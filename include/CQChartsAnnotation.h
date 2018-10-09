@@ -32,6 +32,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   CQChartsEditHandles &editHandles() { return editHandles_; }
 
+  //---
+
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
   virtual QString propertyId() const = 0;
@@ -44,6 +46,10 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   bool getProperty(const QString &name, QVariant &value);
   bool setProperty(const QString &name, const QVariant &value);
+
+  void getPropertyNames(QStringList &names) const;
+
+  //---
 
   bool contains(const CQChartsGeom::Point &p) const;
 

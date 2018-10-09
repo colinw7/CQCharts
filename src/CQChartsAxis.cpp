@@ -1628,18 +1628,24 @@ drawAxisLabel(CQChartsPlot *plot, QPainter *painter, double apos,
       ath = plot->pixelToWindowHeight((lbbox_.getYMax() - ay3) + tgap) + wfh;
 
       painter->drawText(QPointF(axm, lbbox_.getYMax() + ta + tgap), text);
+
+      bbox += CQChartsGeom::Point((amin + amax)/2 - atw, apos - (ath      ));
+      bbox += CQChartsGeom::Point((amin + amax)/2 + atw, apos - (ath - wfh));
+
+      fitBBox_ += CQChartsGeom::Point((amin + amax)/2, apos - (ath      ));
+      fitBBox_ += CQChartsGeom::Point((amin + amax)/2, apos - (ath - wfh));
     }
     else {
       ath = plot->pixelToWindowHeight((ay3 - lbbox_.getYMin()) + tgap) + wfh;
 
       painter->drawText(QPointF(axm, lbbox_.getYMin() - td - tgap), text);
+
+      bbox += CQChartsGeom::Point((amin + amax)/2 - atw, apos + (ath      ));
+      bbox += CQChartsGeom::Point((amin + amax)/2 + atw, apos + (ath - wfh));
+
+      fitBBox_ += CQChartsGeom::Point((amin + amax)/2, apos + (ath      ));
+      fitBBox_ += CQChartsGeom::Point((amin + amax)/2, apos + (ath - wfh));
     }
-
-    bbox += CQChartsGeom::Point((amin + amax)/2 - atw, apos - (ath      ));
-    bbox += CQChartsGeom::Point((amin + amax)/2 + atw, apos - (ath - wfh));
-
-    fitBBox_ += CQChartsGeom::Point((amin + amax)/2, apos - (ath      ));
-    fitBBox_ += CQChartsGeom::Point((amin + amax)/2, apos - (ath - wfh));
   }
   else {
     double wfa = plot->pixelToWindowWidth(ta);
@@ -1662,6 +1668,12 @@ drawAxisLabel(CQChartsPlot *plot, QPainter *painter, double apos,
       double tx = lbbox_.getXMin() - tgap - td;
 
       CQChartsRotatedText::drawRotatedText(painter, tx, aym, text, 90.0);
+
+      bbox += CQChartsGeom::Point(apos - (atw      ), (amin + amax)/2 - ath);
+      bbox += CQChartsGeom::Point(apos - (atw - wfh), (amin + amax)/2 + ath);
+
+      fitBBox_ += CQChartsGeom::Point(apos - (atw      ), (amin + amax)/2);
+      fitBBox_ += CQChartsGeom::Point(apos - (atw - wfh), (amin + amax)/2);
     }
     else {
       double aym = (ay2 + ay1)/2 - tw/2;
@@ -1671,13 +1683,13 @@ drawAxisLabel(CQChartsPlot *plot, QPainter *painter, double apos,
       double tx = lbbox_.getXMax() + tgap + td;
 
       CQChartsRotatedText::drawRotatedText(painter, tx, aym, text, -90.0);
+
+      bbox += CQChartsGeom::Point(apos + (atw      ), (amin + amax)/2 - ath);
+      bbox += CQChartsGeom::Point(apos + (atw - wfh), (amin + amax)/2 + ath);
+
+      fitBBox_ += CQChartsGeom::Point(apos + (atw      ), (amin + amax)/2);
+      fitBBox_ += CQChartsGeom::Point(apos + (atw - wfh), (amin + amax)/2);
     }
-
-    bbox += CQChartsGeom::Point(apos - (atw      ), (amin + amax)/2 - ath);
-    bbox += CQChartsGeom::Point(apos - (atw - wfh), (amin + amax)/2 + ath);
-
-    fitBBox_ += CQChartsGeom::Point(apos - (atw      ), (amin + amax)/2);
-    fitBBox_ += CQChartsGeom::Point(apos - (atw - wfh), (amin + amax)/2);
   }
 
   if (plot->showBoxes())

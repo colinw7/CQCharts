@@ -138,6 +138,7 @@ struct MainData {
   bool             showModel    { false };
   bool             showModelSet { false };
   bool             exit         { false };
+  bool             offscreen    { false };
   int              viewWidth    { 100 };
   int              viewHeight   { 100 };
   OptReal          xmin1;
@@ -280,6 +281,13 @@ main(int argc, char **argv)
       continue;
 
     ++numPlots;
+  }
+
+  //---
+
+  if (mainData.offscreen) {
+    setenv("QT_QPA_PLATFORM", "offscreen" , true);
+    setenv("QT_QPA_FONTDIR" , "/etc/fonts", true);
   }
 
   //---
@@ -742,6 +750,11 @@ parseArgs(int argc, char **argv, MainData &mainData)
       // exit
       else if (arg == "exit") {
         mainData.exit = true;
+      }
+
+      // offscreen
+      else if (arg == "offscreen") {
+        mainData.offscreen = true;
       }
 
       else {

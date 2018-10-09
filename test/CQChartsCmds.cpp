@@ -1251,16 +1251,23 @@ getChartsPropertyCmd(const Vars &vars)
       return;
     }
 
-    QVariant value;
+    if (name == "?") {
+      QStringList names;
 
-    if (! view->getProperty(name, value)) {
-      charts_->errorMsg("Failed to get view parameter '" + name + "'");
-      return;
+      view->getPropertyNames(names);
+
+      setCmdRc(names);
     }
+    else {
+      QVariant value;
 
-    bool rc;
+      if (! view->getProperty(name, value)) {
+        charts_->errorMsg("Failed to get view parameter '" + name + "'");
+        return;
+      }
 
-    setCmdRc(CQChartsVariant::toString(value, rc));
+      setCmdRc(value);
+    }
   }
   else if (argv.hasParseArg("plot")) {
     QString plotName = argv.getParseStr("plot");
@@ -1283,24 +1290,44 @@ getChartsPropertyCmd(const Vars &vars)
       }
     }
 
-    QVariant value;
-
     if (plotObj) {
-      if (! CQUtil::getProperty(plotObj, name, value)) {
-        charts_->errorMsg("Failed to get plot parameter '" + name + "'");
-        return;
+      if (name == "?") {
+        QStringList names;
+
+        plot->getObjectPropertyNames(plotObj, names);
+
+        setCmdRc(names);
+      }
+      else {
+        QVariant value;
+
+        if (! CQUtil::getProperty(plotObj, name, value)) {
+          charts_->errorMsg("Failed to get plot parameter '" + name + "'");
+          return;
+        }
+
+        setCmdRc(value);
       }
     }
     else {
-      if (! plot->getProperty(name, value)) {
-        charts_->errorMsg("Failed to get plot parameter '" + name + "'");
-        return;
+      if (name == "?") {
+        QStringList names;
+
+        plot->getPropertyNames(names);
+
+        setCmdRc(names);
+      }
+      else {
+        QVariant value;
+
+        if (! plot->getProperty(name, value)) {
+          charts_->errorMsg("Failed to get plot parameter '" + name + "'");
+          return;
+        }
+
+        setCmdRc(value);
       }
     }
-
-    bool rc;
-
-    setCmdRc(CQChartsVariant::toString(value, rc));
   }
   else if (argv.hasParseArg("annotation")) {
     QString annotationName = argv.getParseStr("annotation");
@@ -1315,16 +1342,23 @@ getChartsPropertyCmd(const Vars &vars)
       return;
     }
 
-    QVariant value;
+    if (name == "?") {
+      QStringList names;
 
-    if (! annotation->getProperty(name, value)) {
-      charts_->errorMsg("Failed to get annotation parameter '" + name + "'");
-      return;
+      annotation->getPropertyNames(names);
+
+      setCmdRc(names);
     }
+    else {
+      QVariant value;
 
-    bool rc;
+      if (! annotation->getProperty(name, value)) {
+        charts_->errorMsg("Failed to get annotation parameter '" + name + "'");
+        return;
+      }
 
-    setCmdRc(CQChartsVariant::toString(value, rc));
+      setCmdRc(value);
+    }
   }
 }
 

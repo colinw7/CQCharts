@@ -256,6 +256,8 @@ class CQChartsView : public QFrame,
   CQPropertyViewItem *addProperty(const QString &path, QObject *object,
                                   const QString &name, const QString &alias="");
 
+  void getPropertyNames(QStringList &names) const;
+
   //---
 
   CQChartsViewKey *key() const { return keyObj_; }

@@ -180,7 +180,7 @@ connectModel()
   modelNameSet_ = false;
 
   if (modelData) {
-    if (! modelData->name().length() && this->id().length()) {
+    if (! modelData->name().length() && this->hasId()) {
       charts()->setModelName(modelData, this->id());
 
       modelNameSet_ = true;
@@ -689,15 +689,41 @@ void
 CQChartsPlot::
 updateMargins(bool update)
 {
-  innerViewBBox_ = outerMargin_.adjustRange(this, viewBBox_, /*inside*/false);
+  if (isOverlay()) {
+    if (this == firstPlot()) {
+      Plots plots;
+
+      overlayPlots(plots);
+
+      for (auto &plot : plots)
+        plot->updateMargins(outerMargin());
+
+      updateKeyPosition(/*force*/true);
+
+      if (update)
+        invalidateLayers();
+    }
+    else
+      firstPlot()->updateMargins(update);
+  }
+  else {
+    updateMargins(outerMargin());
+
+    updateKeyPosition(/*force*/true);
+
+    if (update)
+      invalidateLayers();
+  }
+}
+
+void
+CQChartsPlot::
+updateMargins(const CQChartsPlotMargin &outerMargin)
+{
+  innerViewBBox_ = outerMargin.adjustRange(this, viewBBox_, /*inside*/false);
 
   displayRange_->setPixelRange(innerViewBBox_.getXMin(), innerViewBBox_.getYMax(),
                                innerViewBBox_.getXMax(), innerViewBBox_.getYMin());
-
-  updateKeyPosition(/*force*/true);
-
-  if (update)
-    invalidateLayers();
 }
 
 QRectF
@@ -1420,6 +1446,20 @@ propertyItemSelected(QObject *obj, const QString &)
     invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 }
 
+void
+CQChartsPlot::
+getPropertyNames(QStringList &names) const
+{
+  view()->propertyModel()->objectNames(const_cast<CQChartsPlot *>(this), names);
+}
+
+void
+CQChartsPlot::
+getObjectPropertyNames(CQChartsPlotObj *plotObj, QStringList &names) const
+{
+  names = CQUtil::getPropertyList(plotObj, /*inherited*/ false);
+}
+
 //------
 
 void
@@ -1586,7 +1626,8 @@ calcDataRange(bool adjust) const
 
       CQChartsPlot *th = const_cast<CQChartsPlot *>(this);
 
-      CQChartsGeom::BBox bbox1 = innerMargin_.adjustRange(this, bbox, /*inside*/true);
+      CQChartsGeom::BBox bbox1 =
+        firstPlot()->innerMargin().adjustRange(this, bbox, /*inside*/true);
 
       th->outerDataRange_ = CQChartsUtil::bboxRange(bbox1);
 

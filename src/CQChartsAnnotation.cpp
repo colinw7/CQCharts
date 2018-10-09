@@ -64,6 +64,8 @@ pathId() const
     return id;
 }
 
+//------
+
 void
 CQChartsAnnotation::
 addProperties(CQPropertyViewModel *, const QString &)
@@ -123,6 +125,18 @@ setProperty(const QString &name, const QVariant &value)
 
   return false;
 }
+
+void
+CQChartsAnnotation::
+getPropertyNames(QStringList &names) const
+{
+  if (! view())
+    return;
+
+  view()->propertyModel()->objectNames(const_cast<CQChartsAnnotation *>(this), names);
+}
+
+//------
 
 bool
 CQChartsAnnotation::

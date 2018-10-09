@@ -461,32 +461,36 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // inner margin
-  const CQChartsLength &innerMarginLeft() const { return innerMargin_.left(); }
+  const CQChartsPlotMargin &innerMargin() const { return innerMargin_; }
+
+  const CQChartsLength &innerMarginLeft() const { return innerMargin().left(); }
   void setInnerMarginLeft(const CQChartsLength &l);
 
-  const CQChartsLength &innerMarginTop() const { return innerMargin_.top(); }
+  const CQChartsLength &innerMarginTop() const { return innerMargin().top(); }
   void setInnerMarginTop(const CQChartsLength &t);
 
-  const CQChartsLength &innerMarginRight() const { return innerMargin_.right(); }
+  const CQChartsLength &innerMarginRight() const { return innerMargin().right(); }
   void setInnerMarginRight(const CQChartsLength &r);
 
-  const CQChartsLength &innerMarginBottom() const { return innerMargin_.bottom(); }
+  const CQChartsLength &innerMarginBottom() const { return innerMargin().bottom(); }
   void setInnerMarginBottom(const CQChartsLength &b);
 
   void setInnerMargin(const CQChartsLength &l, const CQChartsLength &t,
                       const CQChartsLength &r, const CQChartsLength &b);
 
   // outer margin
-  const CQChartsLength &outerMarginLeft() const { return outerMargin_.left(); }
+  const CQChartsPlotMargin &outerMargin() const { return outerMargin_; }
+
+  const CQChartsLength &outerMarginLeft() const { return outerMargin().left(); }
   void setOuterMarginLeft(const CQChartsLength &l);
 
-  const CQChartsLength &outerMarginTop() const { return outerMargin_.top(); }
+  const CQChartsLength &outerMarginTop() const { return outerMargin().top(); }
   void setOuterMarginTop(const CQChartsLength &t);
 
-  const CQChartsLength &outerMarginRight() const { return outerMargin_.right(); }
+  const CQChartsLength &outerMarginRight() const { return outerMargin().right(); }
   void setOuterMarginRight(const CQChartsLength &r);
 
-  const CQChartsLength &outerMarginBottom() const { return outerMargin_.bottom(); }
+  const CQChartsLength &outerMarginBottom() const { return outerMargin().bottom(); }
   void setOuterMarginBottom(const CQChartsLength &b);
 
   void setOuterMargin(const CQChartsLength &l, const CQChartsLength &t,
@@ -591,9 +595,15 @@ class CQChartsPlot : public CQChartsObj,
 
   void propertyItemSelected(QObject *obj, const QString &path);
 
+  void getPropertyNames(QStringList &names) const;
+
+  void getObjectPropertyNames(CQChartsPlotObj *plotObj, QStringList &names) const;
+
   //---
 
   void updateMargins(bool update=true);
+
+  void updateMargins(const CQChartsPlotMargin &outerMargin);
 
   //---
 

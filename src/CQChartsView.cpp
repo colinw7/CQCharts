@@ -405,6 +405,13 @@ addProperty(const QString &path, QObject *object, const QString &name, const QSt
   return propertyModel()->addProperty(path, object, name, alias);
 }
 
+void
+CQChartsView::
+getPropertyNames(QStringList &names) const
+{
+  propertyModel()->objectNames(const_cast<CQChartsView *>(this), names);
+}
+
 //---
 
 CQChartsTextAnnotation *

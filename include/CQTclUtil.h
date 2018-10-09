@@ -60,32 +60,49 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   else if (var.type() == QVariant::PointF) {
     const QPointF &p = var.value<QPointF>();
 
-    QString str = QString("{%1 %2}").arg(p.x()).arg(p.y());
+    Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
 
-    return Tcl_NewStringObj(str.toLatin1().constData(), -1);
+    Tcl_Obj *xObj = Tcl_NewDoubleObj(p.x());
+    Tcl_Obj *yObj = Tcl_NewDoubleObj(p.y());
+
+    Tcl_ListObjAppendElement(interp, obj, xObj);
+    Tcl_ListObjAppendElement(interp, obj, yObj);
+
+    return obj;
   }
   else if (var.type() == QVariant::RectF) {
     const QRectF &r = var.value<QRectF>();
 
-    QString str = QString("{%1 %2 %3 %4}").
-     arg(r.left()).arg(r.bottom()).arg(r.right()).arg(r.top());
+    Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
 
-    return Tcl_NewStringObj(str.toLatin1().constData(), -1);
+    Tcl_Obj *x1Obj = Tcl_NewDoubleObj(r.left  ());
+    Tcl_Obj *y1Obj = Tcl_NewDoubleObj(r.bottom());
+    Tcl_Obj *x2Obj = Tcl_NewDoubleObj(r.right ());
+    Tcl_Obj *y2Obj = Tcl_NewDoubleObj(r.top   ());
+
+    Tcl_ListObjAppendElement(interp, obj, x1Obj);
+    Tcl_ListObjAppendElement(interp, obj, y1Obj);
+    Tcl_ListObjAppendElement(interp, obj, x2Obj);
+    Tcl_ListObjAppendElement(interp, obj, y2Obj);
+
+    return obj;
   }
   else if (var.type() == QVariant::PolygonF) {
     const QPolygonF &p = var.value<QPolygonF>();
 
-    QString str = "{";
+    Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
 
     for (int i = 0; i < p.length(); ++i) {
-      if (i > 0) str += " ";
+      const QPointF &p1 = p[i];
 
-      str + QString("{%1 %2}").arg(p[i].x()).arg(p[i].y());
+      Tcl_Obj *xObj = Tcl_NewDoubleObj(p1.x());
+      Tcl_Obj *yObj = Tcl_NewDoubleObj(p1.y());
+
+      Tcl_ListObjAppendElement(interp, obj, xObj);
+      Tcl_ListObjAppendElement(interp, obj, yObj);
     }
 
-    str += "}";
-
-    return Tcl_NewStringObj(str.toLatin1().constData(), -1);
+    return obj;
   }
   else if (var.type() == QVariant::ModelIndex) {
     QModelIndex ind = var.value<QModelIndex>();
@@ -93,6 +110,21 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
     QString str = modelIndexToString(ind);
 
     return Tcl_NewStringObj(str.toLatin1().constData(), -1);
+  }
+  else if (var.type() == QVariant::StringList) {
+    QStringList strs = var.value<QStringList>();
+
+    Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
+
+    int ns = strs.length();
+
+    for (int i = 0; i < ns; ++i) {
+      Tcl_Obj *sobj = variantToObj(interp, strs[i]);
+
+      Tcl_ListObjAppendElement(interp, obj, sobj);
+    }
+
+    return obj;
   }
   else if (var.type() == QVariant::List) {
     QVariantList vars = var.value<QVariantList>();
@@ -245,32 +277,13 @@ inline void setResult(Tcl_Interp *interp, const QVariant &var) {
 }
 
 inline void setResult(Tcl_Interp *interp, const QStringList &strs) {
-  Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
-
-  int ns = strs.length();
-
-  for (int i = 0; i < ns; ++i) {
-    Tcl_Obj *sobj = variantToObj(interp, strs[i]);
-
-    Tcl_ListObjAppendElement(interp, obj, sobj);
-  }
+  Tcl_Obj *obj = variantToObj(interp, strs);
 
   Tcl_SetObjResult(interp, obj);
 }
 
 inline void setResult(Tcl_Interp *interp, const QVariantList &vars) {
-  Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
-
-  int nv = vars.length();
-
-  for (int i = 0; i < nv; ++i) {
-    if (! vars[i].isValid())
-      continue;
-
-    Tcl_Obj *sobj = variantToObj(interp, vars[i]);
-
-    Tcl_ListObjAppendElement(interp, obj, sobj);
-  }
+  Tcl_Obj *obj = variantToObj(interp, vars);
 
   Tcl_SetObjResult(interp, obj);
 }
