@@ -2980,7 +2980,7 @@ size() const
 
   QFontMetricsF fm(font);
 
-  double w = fm.width("X-X");
+  double w = fm.width("-X-");
   double h = fm.height();
 
   double ww = keyPlot->pixelToWindowWidth (w + 8);
@@ -3042,8 +3042,10 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
   QPen linePen;
   QPen impulsePen;
 
-  plot->setPen(linePen   , true, lineColor   , plot->linesAlpha       ());
-  plot->setPen(impulsePen, true, impulseColor, plot->impulseLinesAlpha());
+  plot->setPen(linePen, true, lineColor, plot->linesAlpha(),
+               plot->linesWidth(), plot->linesDash());
+  plot->setPen(impulsePen, true, impulseColor, plot->impulseLinesAlpha(),
+               plot->impulseLinesWidth(), plot->impulseLinesDash());
 
   if (plot->isFillUnderFilled()) {
     QBrush fillBrush;
@@ -3098,8 +3100,10 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
     QBrush brush;
 
     plot->setPenBrush(pen, brush,
-      plot->isSymbolStroked(), pointStrokeColor, 1.0, CQChartsLength("1px"), CQChartsLineDash(),
-      plot->isSymbolFilled(), pointFillColor, 1.0, CQChartsFillPattern());
+      plot->isSymbolStroked(), pointStrokeColor, plot->symbolStrokeAlpha(),
+      plot->symbolStrokeWidth(), plot->symbolStrokeDash(),
+      plot->isSymbolFilled(), pointFillColor, plot->symbolFillAlpha(),
+      plot->symbolFillPattern());
 
     //---
 
@@ -3110,8 +3114,9 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
     plot->pixelSymbolSize(plot->symbolSize(), sx, sy);
 
     if (plot->isLines() || plot->isImpulseLines()) {
-      plot_->drawSymbol(painter, QPointF(px1, py), symbol, CMathUtil::avg(sx, sy), pen, brush);
-      plot_->drawSymbol(painter, QPointF(px2, py), symbol, CMathUtil::avg(sx, sy), pen, brush);
+      double px = CMathUtil::avg(px1, px2);
+
+      plot_->drawSymbol(painter, QPointF(px, py), symbol, CMathUtil::avg(sx, sy), pen, brush);
     }
     else {
       double px = CMathUtil::avg(px1, px2);

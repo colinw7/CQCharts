@@ -3058,8 +3058,12 @@ setChartsDataCmd(const Vars &vars)
     CQChartsView *view = getViewByName(viewName);
     if (! view) return;
 
-    setCmdError("Invalid name '" + name + "' specified");
-    return;
+    if (name == "fit")
+      view->fitSlot();
+    else {
+      setCmdError("Invalid name '" + name + "' specified");
+      return;
+    }
   }
   else if (argv.hasParseArg("plot")) {
     QString plotName = argv.getParseStr("plot");
