@@ -19,7 +19,6 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   Q_PROPERTY(LocationType     location    READ location    WRITE setLocation   )
   Q_PROPERTY(CQChartsPosition absPosition READ absPosition WRITE setAbsPosition)
   Q_PROPERTY(QRectF           absRect     READ absRect     WRITE setAbsRect    )
-  Q_PROPERTY(bool             inside      READ isInside    WRITE setInside     )
 
   Q_ENUMS(LocationType)
 
@@ -50,8 +49,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   const QRectF &absRect() const { return location_.absRect; }
   void setAbsRect(const QRectF &r) { location_.absRect = r; redraw(); }
 
-  bool isInside() const { return location_.inside; }
-  void setInside(bool b) { location_.inside = b; redraw(); }
+  void setInside(bool b) override { inside_ = b; redraw(); }
 
   //---
 
@@ -124,7 +122,6 @@ class CQChartsTitle : public CQChartsTextBoxObj {
     LocationType     location    { LocationType::TOP}; // loction
     CQChartsPosition absPosition;                      // position (relative to plot box)
     QRectF           absRect;                          // rect (relative to plot box)
-    bool             inside      { false };            // is inside
   };
 
   Location                   location_;          // location
