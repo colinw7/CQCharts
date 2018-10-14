@@ -23,6 +23,7 @@ CQChartsPlotParameter(const QString &name, const QString &desc, const QString &t
   addProperty("monotonic"  , "isMonotonic"  , "");
   addProperty("numeric"    , "isNumeric"    , "");
   addProperty("string"     , "isString"     , "");
+  addProperty("bool"       , "isBool"       , "");
   addProperty("color"      , "isColor"      , "");
   addProperty("type_detail", "typeDetail"   , "");
   addProperty("groupable"  , "isGroupable"  , "");

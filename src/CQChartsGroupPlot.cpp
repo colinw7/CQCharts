@@ -13,9 +13,11 @@ addParameters()
   startParameterGroup("Grouping");
 
   if (isGroupRequired())
-    addColumnParameter("group", "Group", "groupColumn").setRequired().setTip("Group column");
+    addColumnParameter("group", "Group", "groupColumn").
+     setRequired().setGroupable().setTip("Group column");
   else
-    addColumnParameter("group", "Group", "groupColumn").setTip("Group column");
+    addColumnParameter("group", "Group", "groupColumn").
+     setGroupable().setTip("Group column");
 
   if (allowRowGrouping())
     addBoolParameter("rowGrouping", "Row Grouping", "rowGrouping").

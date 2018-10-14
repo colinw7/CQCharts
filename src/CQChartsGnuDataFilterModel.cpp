@@ -7,6 +7,8 @@ CQChartsGnuDataFilterModel::
 CQChartsGnuDataFilterModel(CQCharts *charts) :
  CQChartsModelFilter(charts)
 {
+  setObjectName("gnuDataFilterModel");
+
   dataModel_ = new CQGnuDataModel;
 
   exprModel_ = new CQChartsExprModel(charts_, this, dataModel_);

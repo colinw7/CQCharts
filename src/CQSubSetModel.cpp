@@ -6,6 +6,8 @@
 CQSubSetModel::
 CQSubSetModel(QAbstractItemModel *model, const QModelIndex &tl, const QModelIndex &br)
 {
+  setObjectName("subsetModel");
+
   setSourceModel(model);
 
   setBounds(tl, br);

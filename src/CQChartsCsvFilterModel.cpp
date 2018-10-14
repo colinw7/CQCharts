@@ -7,6 +7,8 @@ CQChartsCsvFilterModel::
 CQChartsCsvFilterModel(CQCharts *charts) :
  CQChartsModelFilter(charts)
 {
+  setObjectName("csvFilterModel");
+
   csvModel_ = new CQCsvModel;
 
   exprModel_ = new CQChartsExprModel(charts_, this, csvModel_);

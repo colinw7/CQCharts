@@ -1151,8 +1151,9 @@ addProperties()
   addProperty("", this, "typeStr");
   addProperty("", this, "visible");
 
-  addProperty("columns", this, "idColumn" , "id" );
-  addProperty("columns", this, "tipColumn", "tip");
+  addProperty("columns", this, "idColumn"     , "id"     );
+  addProperty("columns", this, "tipColumn"    , "tip"    );
+  addProperty("columns", this, "visibleColumn", "visible");
 
   addProperty("range", this, "viewRect"     , "view"     );
   addProperty("range", this, "innerViewRect", "innerView");
@@ -3062,6 +3063,13 @@ CQChartsPlot::
 setTipColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(tipColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPlot::
+setVisibleColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(visibleColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //------
@@ -7743,21 +7751,31 @@ preVisit(QAbstractItemModel *model, const VisitData &data)
 
   //---
 
-  if (! plot_->isEveryEnabled())
-    return State::OK;
+  if (plot_->isEveryEnabled()) {
+    int start = plot_->everyStart();
+    int end   = plot_->everyEnd();
 
-  int start = plot_->everyStart();
-  int end   = plot_->everyEnd();
+    if (vrow < start || vrow > end)
+      return State::SKIP;
 
-  if (vrow < start || vrow > end)
-    return State::SKIP;
+    int step = plot_->everyStep();
 
-  int step = plot_->everyStep();
+    if (step > 1) {
+      int n = (vrow - start) % step;
 
-  if (step > 1) {
-    int n = (vrow - start) % step;
+      if (n != 0)
+        return State::SKIP;
+    }
+  }
 
-    if (n != 0)
+  //---
+
+  if (plot_->visibleColumn().isValid()) {
+    bool ok;
+
+    QVariant value = plot_->modelValue(data.row, plot_->visibleColumn(), data.parent, ok);
+
+    if (ok && ! CQChartsVariant::toBool(value, ok))
       return State::SKIP;
   }
 

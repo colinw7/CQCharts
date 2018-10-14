@@ -2190,17 +2190,58 @@ processExpression(QAbstractItemModel *model, CQChartsExprModel::Function functio
 }
 
 CQChartsExprModel *
-getExprModel(QAbstractItemModel *model) {
+getExprModel(QAbstractItemModel *model)
+{
+//std::cerr << (model ? model->objectName().toStdString() : "null") << "\n";
   CQChartsExprModel *exprModel = qobject_cast<CQChartsExprModel *>(model);
 
-  if (! exprModel) {
-    QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
+  if (exprModel)
+    return exprModel;
 
-    if (proxyModel)
-      exprModel = qobject_cast<CQChartsExprModel *>(proxyModel->sourceModel());
-  }
+  QSortFilterProxyModel *sortModel = qobject_cast<QSortFilterProxyModel *>(model);
 
-  return exprModel;
+  if (! sortModel)
+    return nullptr;
+
+  QAbstractItemModel *sourceModel = sortModel->sourceModel();
+//std::cerr << (sourceModel ? sourceModel->objectName().toStdString() : "null") << "\n";
+
+  exprModel = qobject_cast<CQChartsExprModel *>(sourceModel);
+
+  if (exprModel)
+    return exprModel;
+
+  QAbstractProxyModel *proxyModel = qobject_cast<QAbstractProxyModel *>(sourceModel);
+
+  if (! proxyModel)
+    return nullptr;
+
+  sourceModel = proxyModel->sourceModel();
+//std::cerr << (sourceModel ? sourceModel->objectName().toStdString() : "null") << "\n";
+
+  return getExprModel(sourceModel);
+
+#if 0
+  exprModel = qobject_cast<CQChartsExprModel *>(sourceModel);
+
+  if (exprModel)
+    return exprModel;
+
+  sortModel = qobject_cast<QSortFilterProxyModel *>(sourceModel);
+
+  if (! sortModel)
+    return nullptr;
+
+  sourceModel = sortModel->sourceModel();
+//std::cerr << (sourceModel ? sourceModel->objectName().toStdString() : "null") << "\n";
+
+  exprModel = qobject_cast<CQChartsExprModel *>(sourceModel);
+
+  if (exprModel)
+    return exprModel;
+
+  return nullptr;
+#endif
 }
 
 CQDataModel *

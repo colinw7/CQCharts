@@ -7,6 +7,8 @@ CQChartsExprDataFilterModel::
 CQChartsExprDataFilterModel(CQCharts *charts, int nc, int nr) :
  CQChartsModelFilter(charts)
 {
+  setObjectName("exprFilterModel");
+
   QModelIndex parent; // OK ?
 
   dataModel_ = new CQDataModel(nc, nr);

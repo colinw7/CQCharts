@@ -651,3 +651,11 @@
  + add models button to view toolbar
 # 10/01/2018
  + remove defaults for column parameters
+# 10/14/2018
+ + Add key role to base model and use to auto fill group column
+ + Update barchart plot plot type/value type to match distribution plot
+ + Add visible column support to show/hide individual rows
+ + Add object name to models
+ + Auto init columns in plot dialog
+ + Better date axis ranges
+ + Support sub groups for parameters

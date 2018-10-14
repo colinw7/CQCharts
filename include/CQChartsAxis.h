@@ -46,6 +46,7 @@ class CQChartsAxis : public CQChartsObj,
   Q_PROPERTY(double    position         READ position           WRITE setPosition        )
   Q_PROPERTY(bool      requireTickLabel READ isRequireTickLabel WRITE setRequireTickLabel)
   Q_PROPERTY(bool      integral         READ isIntegral         WRITE setIntegral        )
+  Q_PROPERTY(bool      date             READ isDate             WRITE setDate            )
   Q_PROPERTY(bool      log              READ isLog              WRITE setLog             )
   Q_PROPERTY(QString   format           READ format             WRITE setFormat          )
   Q_PROPERTY(double    tickIncrement    READ tickIncrement      WRITE setTickIncrement   )
@@ -144,6 +145,9 @@ class CQChartsAxis : public CQChartsObj,
 
   bool isIntegral() const { return integral_; }
   void setIntegral(bool b);
+
+  bool isDate() const { return date_; }
+  void setDate(bool b);
 
   bool isLog() const { return log_; }
   void setLog(bool b);
@@ -370,6 +374,7 @@ class CQChartsAxis : public CQChartsObj,
   Direction                  direction_           { Direction::HORIZONTAL };
   Side                       side_                { Side::BOTTOM_LEFT };
   bool                       integral_            { false };
+  bool                       date_                { false };
   bool                       log_                 { false };
   bool                       dataLabels_          { false };  // labels from model row
   CQChartsColumn             column_;

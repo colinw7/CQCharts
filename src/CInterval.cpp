@@ -15,6 +15,240 @@ inline bool isInteger(double r) {
   return std::abs(r - int(r)) < 1E-3;
 }
 
+static int day_seconds    = 24*60*60;
+static int hour_seconds   = 60*60;
+static int minute_seconds = 60;
+
+inline int timeLengthToYears(time_t t1, time_t t2) {
+  struct tm *lt1 = localtime(&t1);
+
+  int y1 = CMathRound::RoundDown(1900 + lt1->tm_year + lt1->tm_yday/365.0);
+
+  struct tm *lt2 = localtime(&t2);
+
+  int y2 = CMathRound::RoundUp(1900 + lt2->tm_year + lt2->tm_yday/365.0);
+
+  return y2 - y1;
+}
+
+inline int timeLengthToMonths(time_t t1, time_t t2) {
+  static double month_days[] = { 31, 28, 31, 30, 31, 30, 31, 31, 31, 30, 31, 30, 31 };
+
+  struct tm *lt1 = localtime(&t1);
+
+  int y1 = CMathRound::RoundDown(lt1->tm_year*12 + lt1->tm_mon +
+                                 (lt1->tm_mday - 1)/(month_days[lt1->tm_mon] - 1));
+
+  struct tm *lt2 = localtime(&t2);
+
+  int y2 = CMathRound::RoundUp(lt2->tm_year*12 + lt2->tm_mon +
+                               (lt2->tm_mday - 1)/(month_days[lt2->tm_mon] - 1));
+
+  return y2 - y1;
+}
+
+inline int timeLengthToDays(double t1, double t2) {
+  double t = t2 - t1;
+
+  return (t + day_seconds - 1)/day_seconds;
+}
+
+inline int timeLengthToHours(double t1, double t2) {
+  double t = t2 - t1;
+
+  return (t + hour_seconds - 1)/hour_seconds;
+}
+
+inline int timeLengthToMinutes(double t1, double t2) {
+  double t = t2 - t1;
+
+  return (t + minute_seconds - 1)/minute_seconds;
+}
+
+inline int timeLengthToSeconds(time_t t1, time_t t2) {
+  double t = t2 - t1;
+
+  return t;
+}
+
+inline double roundTimeToYear(time_t t) {
+  struct tm *lt = localtime(&t);
+
+  lt->tm_mon   = 0;
+  lt->tm_mday  = 1;
+  lt->tm_hour  = 0;
+  lt->tm_min   = 0;
+  lt->tm_sec   = 0;
+  lt->tm_wday  = 0;
+  lt->tm_yday  = 0;
+  lt->tm_isdst = -1; // auto DST
+
+  return mktime(lt);
+}
+
+inline double roundTimeToMonth(time_t t) {
+  struct tm *lt = localtime(&t);
+
+  lt->tm_mday  = 1;
+  lt->tm_hour  = 0;
+  lt->tm_min   = 0;
+  lt->tm_sec   = 0;
+  lt->tm_wday  = 0;
+  lt->tm_isdst = -1; // auto DST
+
+  return mktime(lt);
+}
+
+inline double roundTimeToDay(time_t t) {
+  struct tm *lt = localtime(&t);
+
+  lt->tm_hour  = 0;
+  lt->tm_min   = 0;
+  lt->tm_sec   = 0;
+  lt->tm_isdst = -1; // auto DST
+
+  return mktime(lt);
+}
+
+inline double roundTimeToHour(time_t t) {
+  struct tm *lt = localtime(&t);
+
+  lt->tm_min   = 0;
+  lt->tm_sec   = 0;
+  lt->tm_isdst = -1; // auto DST
+
+  return mktime(lt);
+}
+
+inline double roundTimeToMinute(time_t t) {
+  struct tm *lt = localtime(&t);
+
+  lt->tm_sec   = 0;
+  lt->tm_isdst = -1; // auto DST
+
+  return mktime(lt);
+}
+
+inline int timeToYear(time_t t) {
+  struct tm *lt = localtime(&t);
+
+  return 1900 + lt->tm_year;
+}
+
+inline int timeToMonths(time_t t) {
+  struct tm *lt = localtime(&t);
+
+  return lt->tm_mon;
+}
+
+inline int timeToDays(time_t t) {
+  struct tm *lt = localtime(&t);
+
+  return lt->tm_mday - 1;
+}
+
+inline int timeToHours(time_t t) {
+  struct tm *lt = localtime(&t);
+
+  return lt->tm_hour;
+}
+
+inline int timeToMinutes(time_t t) {
+  struct tm *lt = localtime(&t);
+
+  return lt->tm_min;
+}
+
+inline int timeToSeconds(time_t t) {
+  struct tm *lt = localtime(&t);
+
+  return lt->tm_sec;
+}
+
+inline double yearsToTime(int year) {
+  struct tm tm;
+
+  tm.tm_year  = year - 1900;
+  tm.tm_mon   = 0;
+  tm.tm_mday  = 1;
+  tm.tm_hour  = 0;
+  tm.tm_min   = 0;
+  tm.tm_sec   = 0;
+  tm.tm_isdst = -1; // auto DST
+
+  return mktime(&tm);
+}
+
+inline double monthsToTime(const CInterval::TimeData &timeData, int month) {
+  struct tm tm;
+
+  tm.tm_year  = timeData.year - 1900;
+  tm.tm_mon   = month;
+  tm.tm_mday  = 1;
+  tm.tm_hour  = 0;
+  tm.tm_min   = 0;
+  tm.tm_sec   = 0;
+  tm.tm_isdst = -1; // auto DST
+
+  return mktime(&tm);
+}
+
+inline double daysToTime(const CInterval::TimeData &timeData, int day) {
+  struct tm tm;
+
+  tm.tm_year  = timeData.year - 1900;
+  tm.tm_mon   = timeData.month;
+  tm.tm_mday  = day + 1;
+  tm.tm_hour  = 0;
+  tm.tm_min   = 0;
+  tm.tm_sec   = 0;
+  tm.tm_isdst = -1; // auto DST
+
+  return mktime(&tm);
+}
+
+inline double hoursToTime(const CInterval::TimeData &timeData, int hour) {
+  struct tm tm;
+
+  tm.tm_year  = timeData.year - 1900;
+  tm.tm_mon   = timeData.month;
+  tm.tm_mday  = timeData.day + 1;
+  tm.tm_hour  = hour;
+  tm.tm_min   = 0;
+  tm.tm_sec   = 0;
+  tm.tm_isdst = -1; // auto DST
+
+  return mktime(&tm);
+}
+
+inline double minutesToTime(const CInterval::TimeData &timeData, int minute) {
+  struct tm tm;
+
+  tm.tm_year  = timeData.year - 1900;
+  tm.tm_mon   = timeData.month;
+  tm.tm_mday  = timeData.day + 1;
+  tm.tm_hour  = timeData.hour;
+  tm.tm_min   = minute;
+  tm.tm_sec   = 0;
+  tm.tm_isdst = -1; // auto DST
+
+  return mktime(&tm);
+}
+
+inline double secondsToTime(const CInterval::TimeData &timeData, int second) {
+  struct tm tm;
+
+  tm.tm_year  = timeData.year - 1900;
+  tm.tm_mon   = timeData.month;
+  tm.tm_mday  = timeData.day + 1;
+  tm.tm_hour  = timeData.hour;
+  tm.tm_min   = timeData.minute;
+  tm.tm_sec   = second;
+  tm.tm_isdst = -1; // auto DST
+
+  return mktime(&tm);
+}
+
 }
 
 //---
@@ -77,19 +311,88 @@ void
 CInterval::
 init()
 {
+  bool integral = isIntegral();
+
+  timeType_ = TimeType::SECONDS;
+
+  startTime_.year   = 0;
+  startTime_.month  = 0;
+  startTime_.day    = 0;
+  startTime_.hour   = 0;
+  startTime_.minute = 0;
+  startTime_.second = 0;
+
   // Ensure min/max are in the correct order
   double min = std::min(data_.start, data_.end);
   double max = std::max(data_.start, data_.end);
 
-  if (isIntegral()) {
+  if      (isIntegral()) {
     min = std::floor(min);
     max = std::ceil (max);
+  }
+  else if (isDate()) {
+    int y = timeLengthToYears  (min, max);
+    int m = timeLengthToMonths (min, max);
+    int d = timeLengthToDays   (min, max);
+
+    startTime_.year  = timeToYear   (min);
+    startTime_.month = timeToMonths (min);
+    startTime_.day   = timeToDays   (min);
+
+    min = 0;
+
+    if      (y >= 5) {
+      //std::cout << "years\n";
+      timeType_ = TimeType::YEARS;
+      max       = y;
+    }
+    else if (m >= 3) {
+      //std::cout << "months\n";
+      timeType_ = TimeType::MONTHS;
+      max       = m;
+    }
+    else if (d >= 4) {
+      //std::cout << "days\n";
+      timeType_ = TimeType::DAYS;
+      max       = d;
+    }
+
+    integral = true;
+  }
+  else if (isTime()) {
+    int h = timeLengthToHours  (min, max);
+    int m = timeLengthToMinutes(min, max);
+    int s = timeLengthToSeconds(min, max);
+
+    startTime_.hour   = timeToHours  (min);
+    startTime_.minute = timeToMinutes(min);
+    startTime_.second = timeToSeconds(min);
+
+    min = 0;
+
+    if      (h >= 12) {
+      //std::cout << "hours\n";
+      timeType_ = TimeType::HOURS;
+      max       = h;
+    }
+    else if (m >= 10) {
+      //std::cout << "minutes\n";
+      timeType_ = TimeType::MINUTES;
+      max       = m;
+    }
+    else {
+      //std::cout << "seconds\n";
+      timeType_ = TimeType::SECONDS;
+      max       = s;
+    }
+
+    integral = true;
   }
 
   //---
 
   // use fixed increment
-  if (majorIncrement_ > 0.0) {
+  if (majorIncrement_ > 0.0 && (isDate() || isTime())) {
     calcData_.start     = min;
     calcData_.end       = max;
     calcData_.increment = majorIncrement_;
@@ -122,14 +425,14 @@ init()
   calcData_.increment = data_.increment;
 
   if (calcData_.increment <= 0.0) {
-    calcData_.increment = initIncrement();
+    calcData_.increment = initIncrement(min, max, integral);
 
     //---
 
     // Calculate other test increments
     for (int i = 0; i < numIncrementTests; i++) {
       // disable non-integral increments for integral
-      if (isIntegral() && ! isInteger(incrementTests[i].factor)) {
+      if (integral && ! isInteger(incrementTests[i].factor)) {
         incrementTests[i].incFactor = 0.0;
         continue;
       }
@@ -188,19 +491,42 @@ init()
 
   calcData_.numMajor =
     CMathRound::RoundNearest((calcData_.end - calcData_.start)/calcData_.increment);
+
+  if      (isDate()) {
+    if      (timeType_ == TimeType::YEARS) {
+      calcData_.numMinor = 12;
+    }
+    else if (timeType_ == TimeType::MONTHS) {
+      calcData_.numMinor = 4;
+    }
+    else if (timeType_ == TimeType::DAYS) {
+      calcData_.numMinor = 4;
+    }
+  }
+  else if (isTime()) {
+    if      (timeType_ == TimeType::HOURS) {
+      calcData_.numMinor = 6;
+    }
+    else if (timeType_ == TimeType::MINUTES) {
+      calcData_.numMinor = 12;
+    }
+    else if (timeType_ == TimeType::SECONDS) {
+      calcData_.numMinor = 12;
+    }
+  }
 }
 
 double
 CInterval::
-initIncrement() const
+initIncrement(double imin, double imax, bool integral) const
 {
   // Calculate length
-  double min = std::min(data_.start, data_.end);
-  double max = std::max(data_.start, data_.end);
+  double min = std::min(imin, imax);
+  double max = std::max(imin, imax);
 
   double length = max - min;
 
-  if (isIntegral())
+  if (integral)
     length = CMathRound::RoundNearest(length);
 
   if (length == 0.0)
@@ -218,7 +544,7 @@ initIncrement() const
   // Calculate nearest Power of Ten to Length
   int power = CMathRound::RoundDown(log10(length1));
 
-  if (isIntegral()) {
+  if (integral) {
     if (power < 0) {
       length1 = 1.0;
       power   = 1;
@@ -228,7 +554,7 @@ initIncrement() const
   // Set Default Increment to 0.1 * Power of Ten
   double increment;
 
-  if (! isIntegral() && ! isLog()) {
+  if (! integral && ! isLog()) {
     if (data_.numMajor > 0)
       increment = 1;
     else
@@ -358,6 +684,43 @@ testAxisGaps(double start, double end, double testIncrement, int testNumGapTicks
   }
 
   return false;
+}
+
+double
+CInterval::
+interval(int i) const
+{
+  if       (isDate()) {
+    if      (timeType_ == TimeType::YEARS) {
+      return yearsToTime(startTime_.year + i*calcIncrement());
+    }
+    else if (timeType_ == TimeType::MONTHS) {
+      return monthsToTime(startTime_, startTime_.month + i*calcIncrement());
+    }
+    else if (timeType_ == TimeType::DAYS) {
+      return daysToTime(startTime_, startTime_.day + i*calcIncrement());
+    }
+    else {
+      return 0;
+    }
+  }
+  else if (isTime()) {
+    if      (timeType_ == TimeType::HOURS) {
+      return hoursToTime(startTime_, startTime_.hour + i*calcIncrement());
+    }
+    else if (timeType_ == TimeType::MINUTES) {
+      return minutesToTime(startTime_, startTime_.minute + i*calcIncrement());
+    }
+    else if (timeType_ == TimeType::SECONDS) {
+      return secondsToTime(startTime_, startTime_.second + i*calcIncrement());
+    }
+    else {
+      return 0;
+    }
+  }
+  else {
+    return calcStart() + i*calcIncrement();
+  }
 }
 
 int

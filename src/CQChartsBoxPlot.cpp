@@ -21,35 +21,23 @@ addParameters()
 {
   startParameterGroup("Box Plot");
 
-  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
-  addBoolParameter("normalized", "Normalized", "normalized").setTip("normalize data ranges");
-  addBoolParameter("notched"   , "Notched"   , "notched"   ).setTip("notch bar");
-
-  addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
-
-  addBoolParameter("pointsJitter" , "PointsJitter" , "pointsJitter" ).setTip("jitter data points");
-  addBoolParameter("pointsStacked", "PointsStacked", "pointsStacked").setTip("stacked data points");
-
-  addBoolParameter("violin"  , "Violin"  , "violin"  ).setTip("violin border");
-  addBoolParameter("errorBar", "ErrorBar", "errorBar").setTip("error bar");
-
-  endParameterGroup();
-
   //---
 
-  startParameterGroup("Raw Values");
+  CQChartsPlotParameterGroup *primaryGroup = startParameterGroup("Raw Values");
 
   addColumnsParameter("value", "Value", "valueColumns").
-    setNumeric().setTip("value column(s)");
+    setNumeric().setRequired().setTip("value column(s)");
   addColumnParameter ("name", "Name", "nameColumn").
     setString().setTip("Name column");
-  addColumnParameter ("set", "Set", "setColumn").setTip("Set Values");
+  addColumnParameter ("set", "Set", "setColumn").
+    setTip("Set Values");
 
   endParameterGroup();
 
   //---
 
-  startParameterGroup("Calculated Values");
+  CQChartsPlotParameterGroup *secondaryGroup = startParameterGroup("Calculated Values");
+
   addColumnParameter("x"          , "X"          , "xColumn"          ).
     setNumeric().setTip("X Value");
   addColumnParameter("min"        , "Min"        , "minColumn"        ).
@@ -64,6 +52,33 @@ addParameters()
     setNumeric().setTip("Max Value");
   addColumnParameter("outliers"   , "Outliers"   , "outliersColumn"   ).
     setTip("Outlier Values");
+
+  endParameterGroup();
+
+  //---
+
+  primaryGroup  ->setType(CQChartsPlotParameterGroup::Type::PRIMARY  );
+  secondaryGroup->setType(CQChartsPlotParameterGroup::Type::SECONDARY);
+
+  primaryGroup  ->setOtherGroupId(secondaryGroup->groupId());
+  secondaryGroup->setOtherGroupId(primaryGroup  ->groupId());
+
+  //---
+
+  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
+  addBoolParameter("normalized", "Normalized", "normalized").setTip("normalize data ranges");
+  addBoolParameter("notched"   , "Notched"   , "notched"   ).setTip("notch bar");
+
+  addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
+
+  addBoolParameter("pointsJitter" , "PointsJitter" , "pointsJitter" ).setTip("jitter data points");
+  addBoolParameter("pointsStacked", "PointsStacked", "pointsStacked").setTip("stacked data points");
+
+  addBoolParameter("violin"  , "Violin"  , "violin"  ).setTip("violin border");
+  addBoolParameter("errorBar", "ErrorBar", "errorBar").setTip("error bar");
+
+  //---
+
   endParameterGroup();
 
   //---

@@ -809,6 +809,11 @@ calcRange()
 
   //---
 
+  ColumnType xColumnType = columnValueType(xColumn());
+
+  if (xColumnType == CQBaseModel::Type::TIME)
+    xAxis()->setDate(true);
+
   return dataRange;
 }
 

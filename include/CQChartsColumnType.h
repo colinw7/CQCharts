@@ -68,6 +68,26 @@ class CQChartsColumnStringType : public CQChartsColumnType {
 
 //---
 
+// string column type class
+class CQChartsColumnBooleanType : public CQChartsColumnType {
+ public:
+  CQChartsColumnBooleanType() :
+   CQChartsColumnType(Type::BOOLEAN) {
+  }
+
+  // input variant to data variant for edit
+  QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues,
+                    bool &converted) const override;
+
+  // data variant to output variant (string) for display
+  QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues,
+                    bool &converted) const override {
+    return userData(var, nameValues, converted);
+  }
+};
+
+//---
+
 // real column type class
 class CQChartsColumnRealType : public CQChartsColumnType {
  public:

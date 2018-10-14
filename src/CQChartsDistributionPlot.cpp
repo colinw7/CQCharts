@@ -67,10 +67,6 @@ addParameters()
     addNameValue("Density"     , int(CQChartsDistributionPlot::PlotType::DENSITY     )).
     setTip("Plot type");
 
-  addBoolParameter("stacked"   , "Stacked"   , "stacked"   ).setTip("Stack grouped values");
-  addBoolParameter("sideBySide", "SideBySide", "sideBySide").setTip("Grouped values side by side");
-  addBoolParameter("overlay"   , "Overlay"   , "overlay"   ).setTip("overlay groups");
-
   addEnumParameter("valueType", "ValueType", "valueType").
    addNameValue("Count", int(CQChartsDistributionPlot::ValueType::COUNT)).
    addNameValue("Range", int(CQChartsDistributionPlot::ValueType::RANGE)).
@@ -311,10 +307,6 @@ addProperties()
   addProperty("options", this, "skipEmpty");
   addProperty("options", this, "sorted"   );
 
-  addProperty("placement", this, "stacked"   );
-  addProperty("placement", this, "sideBySide");
-  addProperty("placement", this, "overlay"   );
-
   addProperty("density", this, "density"        , "enabled" );
   addProperty("density", this, "densityOffset"  , "offset"  );
   addProperty("density", this, "densitySamples" , "samples" );
@@ -455,6 +447,16 @@ setValueMax(bool b)
 {
   if (b)
     CQChartsUtil::testAndSet(valueType_, ValueType::MAX, [&]() { updateRangeAndObjs(); } );
+  else
+    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDistributionPlot::
+setValueMean(bool b)
+{
+  if (b)
+    CQChartsUtil::testAndSet(valueType_, ValueType::MEAN, [&]() { updateRangeAndObjs(); } );
   else
     CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
 }
@@ -768,24 +770,29 @@ calcRange()
         //---
 
         // update min/max per value set
-        if      (valueType() == ValueType::COUNT) {
+        if      (isValueCount()) {
           valueRange.add(n);
         }
-        else if (valueType() == ValueType::RANGE) {
+        else if (isValueRange()) {
           calcVarIndsMinMax(varsData);
 
           valueRange.add(varsData.min);
           valueRange.add(varsData.max);
         }
-        else if (valueType() == ValueType::MIN) {
+        else if (isValueMin()) {
           calcVarIndsMinMax(varsData);
 
           valueRange.add(varsData.min);
         }
-        else if (valueType() == ValueType::MAX) {
+        else if (isValueMax()) {
           calcVarIndsMinMax(varsData);
 
           valueRange.add(varsData.max);
+        }
+        else if (isValueMean()) {
+          calcVarIndsMinMax(varsData);
+
+          valueRange.add(varsData.mean);
         }
 
         //---
@@ -823,19 +830,23 @@ calcRange()
   else {
     double n1 = 0.0, n2 = 0.0;
 
-    if      (valueType() == ValueType::COUNT) {
+    if      (isValueCount()) {
       n1 = 0;
       n2 = std::max(nRange.max(), 1);
     }
-    else if (valueType() == ValueType::RANGE) {
+    else if (isValueRange()) {
       n1 = valueRange.min(0);
       n2 = valueRange.max(0);
     }
-    else if (valueType() == ValueType::MIN) {
+    else if (isValueMin()) {
       n1 = 0;
       n2 = valueRange.max(0);
     }
-    else if (valueType() == ValueType::MAX) {
+    else if (isValueMax()) {
+      n1 = 0;
+      n2 = valueRange.max(0);
+    }
+    else if (isValueMean()) {
       n1 = 0;
       n2 = valueRange.max(0);
     }
@@ -1568,15 +1579,15 @@ initObjs()
   else if (isScatter()) {
   }
   else {
-    if      (valueType() == ValueType::COUNT)
+    if      (isValueCount())
       countAxis()->setLabel("Count");
-    else if (valueType() == ValueType::RANGE)
+    else if (isValueRange())
       countAxis()->setLabel("Range");
-    else if (valueType() == ValueType::MIN)
+    else if (isValueMin())
       countAxis()->setLabel("Min");
-    else if (valueType() == ValueType::MAX)
+    else if (isValueMax())
       countAxis()->setLabel("Min");
-    else if (valueType() == ValueType::MEAN)
+    else if (isValueMean())
       countAxis()->setLabel("Mean");
   }
 
@@ -1600,6 +1611,9 @@ calcVarIndsMinMax(VariantIndsData &varInds)
 
   int n = varInds.inds.size();
 
+  double sum = 0.0;
+  int    n1  = 0;
+
   for (int i = 0; i < n; ++i) {
     const VariantInd &var = varInds.inds[i];
 
@@ -1612,12 +1626,19 @@ calcVarIndsMinMax(VariantIndsData &varInds)
     if (! ok)
       r = var.var.toReal(&ok);
 
-    if (ok)
-      valueRange.add(r);
+    if (! ok)
+      continue;
+
+    sum += r;
+
+    valueRange.add(r);
+
+    ++n1;
   }
 
-  varInds.min = valueRange.min(0);
-  varInds.max = valueRange.max(0);
+  varInds.min  = valueRange.min(0);
+  varInds.max  = valueRange.max(0);
+  varInds.mean = (n1 > 0 ? sum/n1 : 0.0);
 }
 
 CQChartsDistributionPlot::BarValue
@@ -1626,21 +1647,25 @@ varIndsValue(const VariantIndsData &varInds) const
 {
   BarValue barValue;
 
-  if      (valueType() == ValueType::COUNT) {
+  if      (isValueCount()) {
     barValue.n1 = 0;
     barValue.n2 = varInds.inds.size();
   }
-  else if (valueType() == ValueType::RANGE) {
+  else if (isValueRange()) {
     barValue.n1 = varInds.min;
     barValue.n2 = varInds.max;
   }
-  else if (valueType() == ValueType::MIN) {
+  else if (isValueMin()) {
     barValue.n1 = 0;
     barValue.n2 = varInds.min;
   }
-  else if (valueType() == ValueType::MAX) {
+  else if (isValueMax()) {
     barValue.n1 = 0;
     barValue.n2 = varInds.max;
+  }
+  else if (isValueMean()) {
+    barValue.n1 = 0;
+    barValue.n2 = varInds.mean;
   }
 
   return barValue;
@@ -2010,16 +2035,17 @@ addMenuItems(QMenu *menu)
 
   menu->addMenu(typeMenu);
 
-  (void) addCheckedAction("Skip Empty", isSkipEmpty(), SLOT(setSkipEmpty(bool)));
-
   QMenu *valueMenu = new QMenu("Value Type");
 
   (void) addMenuCheckedAction(valueMenu, "Count", isValueCount(), SLOT(setValueCount(bool)));
   (void) addMenuCheckedAction(valueMenu, "Range", isValueRange(), SLOT(setValueRange(bool)));
   (void) addMenuCheckedAction(valueMenu, "Min"  , isValueMin  (), SLOT(setValueMin  (bool)));
   (void) addMenuCheckedAction(valueMenu, "Max"  , isValueMax  (), SLOT(setValueMax  (bool)));
+  (void) addMenuCheckedAction(valueMenu, "Mean" , isValueMean (), SLOT(setValueMean (bool)));
 
   menu->addMenu(valueMenu);
+
+  (void) addCheckedAction("Skip Empty", isSkipEmpty(), SLOT(setSkipEmpty(bool)));
 
   //---
 

@@ -91,6 +91,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "direction");
   model->addProperty(path, this, "side"     );
   model->addProperty(path, this, "integral" );
+  model->addProperty(path, this, "date"     );
   model->addProperty(path, this, "log"      );
   model->addProperty(path, this, "format"   );
 
@@ -308,6 +309,13 @@ setIntegral(bool b)
 
 void
 CQChartsAxis::
+setDate(bool b)
+{
+  CQChartsUtil::testAndSet(date_, b, [&]() { calc(); redraw(); } );
+}
+
+void
+CQChartsAxis::
 setLog(bool b)
 {
   CQChartsUtil::testAndSet(log_, b, [&]() { calc(); redraw(); } );
@@ -323,6 +331,7 @@ calc()
   interval_.setEnd  (end  ());
 
   interval_.setIntegral(isIntegral());
+  interval_.setDate    (isDate    ());
 
   interval_.setMajorIncrement(majorIncrement());
   interval_.setTickIncrement (tickIncrement ());
@@ -585,10 +594,20 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
 
     //---
 
-    double pos1 = calcStart();
+    double pos1;
 
-    if (isGridMid())
-      pos1 += inc/2.0;
+    if (isDate()) {
+      pos1 = interval_.interval(0);
+
+      if (isGridMid())
+        pos1 = (pos1 + interval_.interval(1))/2;
+    }
+    else {
+      pos1 = calcStart();
+
+      if (isGridMid())
+        pos1 += inc/2.0;
+    }
 
     double pos2 = pos1;
 
@@ -618,7 +637,11 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
       //---
 
       pos1 = pos2;
-      pos2 = pos1 + inc;
+
+      if (isDate())
+        pos2 = interval_.interval(i + 1);
+      else
+        pos2 = pos1 + inc;
     }
   }
 
@@ -626,10 +649,20 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
 
   // draw grid lines
   if (isAxesMajorGridLines() || isAxesMinorGridLines()) {
-    double pos1 = calcStart();
+    double pos1;
 
-    if (isGridMid())
-      pos1 += inc/2.0;
+    if (isDate()) {
+      pos1 = interval_.interval(0);
+
+      if (isGridMid())
+        pos1 = (pos1 + interval_.interval(1))/2;
+    }
+    else {
+      pos1 = calcStart();
+
+      if (isGridMid())
+        pos1 += inc/2.0;
+    }
 
     for (uint i = 0; i < numMajorTicks() + 1; i++) {
       // draw major line (grid and tick)
@@ -656,7 +689,10 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
 
       //---
 
-      pos1 += inc;
+      if (isDate())
+        pos1 = interval_.interval(i + 1);
+      else
+        pos1 += inc;
     }
   }
 
@@ -715,7 +751,12 @@ draw(CQChartsPlot *plot, QPainter *painter)
 
   //---
 
-  double pos1 = calcStart();
+  double pos1;
+
+  if (isDate())
+    pos1 = interval_.interval(0);
+  else
+    pos1 = calcStart();
 
   int tlen2 = majorTickLen();
   int tgap  = 2;
@@ -779,7 +820,10 @@ draw(CQChartsPlot *plot, QPainter *painter)
 
     //---
 
-    pos1 += inc;
+    if (isDate())
+      pos1 = interval_.interval(i + 1);
+    else
+      pos1 += inc;
   }
 
   //---

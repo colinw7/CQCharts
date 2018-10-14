@@ -46,6 +46,8 @@ CQChartsExprModel::
 CQChartsExprModel(CQCharts *charts, CQChartsModelFilter *filter, QAbstractItemModel *model) :
  charts_(charts), filter_(filter), model_(model)
 {
+  setObjectName("exprModel");
+
 #ifdef CQCharts_USE_TCL
   qtcl_ = new CQChartsExprTcl(this);
 #endif

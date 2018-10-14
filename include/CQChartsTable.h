@@ -43,6 +43,8 @@ class CQChartsTable : public CQTableView {
 
   CQChartsModelDetails *getDetails();
 
+  void scrollTo(const QModelIndex &index, ScrollHint hint=EnsureVisible);
+
   QSize sizeHint() const override;
 
  private:
@@ -61,7 +63,8 @@ class CQChartsTable : public CQTableView {
 
   void selectionSlot();
 
-  void headerClickSlot(int section);
+  void headerClickedSlot(int section);
+  void itemClickedSlot(const QModelIndex &);
 
   void selectionBehaviorSlot(QAction *action);
 

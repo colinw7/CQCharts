@@ -3,11 +3,12 @@
 #set model [load_model -tsv data/multi_series.tsv -comment_header -column_type "time:format=%Y%m%d"]
 #set model [load_model -tsv data/scatter.tsv -first_line_header]
 #set model [load_model -csv data/sankey_energy.csv -comment_header -column_type "0#name_pair"]
-set model [load_model -tsv data/states.tsv -comment_header -column_type "1#polygon_list"]
+#set model [load_model -tsv data/states.tsv -comment_header -column_type "1#polygon_list"]
+set model [load_model -csv data/boxplot.csv -first_line_header]
 
 set tvars [process_model -model $model -analyze]
 
-set ploys {}
+set plots {}
 
 foreach tvar $tvars {
   set typeName    [lindex $tvar 0]

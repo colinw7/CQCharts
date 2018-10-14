@@ -225,6 +225,20 @@ headerName() const
   return CQChartsUtil::modelHeaderString(model, column_, ok);
 }
 
+bool
+CQChartsModelColumnDetails::
+isKey() const
+{
+  QAbstractItemModel *model = details_->data()->currentModel().data();
+
+  bool ok;
+
+  QVariant value =
+    CQChartsUtil::modelHeaderValue(model, column_, static_cast<int>(CQBaseModel::Role::Key), ok);
+
+  return (ok && value.toBool());
+}
+
 QString
 CQChartsModelColumnDetails::
 typeName() const

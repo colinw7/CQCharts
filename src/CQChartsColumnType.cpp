@@ -267,6 +267,24 @@ userData(const QVariant &var, const CQChartsNameValues &, bool &converted) const
 //------
 
 QVariant
+CQChartsColumnBooleanType::
+userData(const QVariant &var, const CQChartsNameValues &, bool &converted) const
+{
+  if (! var.isValid() || var.type() == QVariant::Bool)
+    return var;
+
+  converted = true;
+
+  bool b;
+
+  CQChartsVariant::toBool(var, b);
+
+  return QVariant::fromValue<bool>(b);
+}
+
+//------
+
+QVariant
 CQChartsColumnRealType::
 userData(const QVariant &var, const CQChartsNameValues &, bool &converted) const
 {

@@ -27,6 +27,8 @@ class CQChartsModelColumnDetails {
 
   QString headerName() const;
 
+  bool isKey() const;
+
   QString typeName() const;
 
   CQBaseModel::Type type() const;

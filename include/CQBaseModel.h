@@ -29,7 +29,8 @@ class CQBaseModel : public QAbstractItemModel {
     CachedValue       = Type + 6,         // cached value role
     OutputValue       = Type + 7,         // output value role
     Group             = Type + 8,         // group role
-    CustomSort        = Type + 9          // custom sort role
+    Key               = Type + 9,         // is key role
+    CustomSort        = Type + 10         // custom sort role
   };
 
   // use variant numbers where possible
@@ -88,6 +89,9 @@ class CQBaseModel : public QAbstractItemModel {
   QVariant columnMax(int column) const;
   bool setColumnMax(int column, const QVariant &v);
 
+  bool isColumnKey(int column) const;
+  bool setColumnKey(int column, bool b);
+
   void resetColumnType(int column);
   void resetColumnTypes();
 
@@ -135,6 +139,8 @@ class CQBaseModel : public QAbstractItemModel {
 
   void columnRangeChanged(int column);
 
+  void columnKeyChanged(int column);
+
  protected:
   using RowValues     = std::map<int,QVariant>;
   using RoleRowValues = std::map<int,RowValues>;
@@ -147,9 +153,10 @@ class CQBaseModel : public QAbstractItemModel {
     int           column { -1 };       // column
     Type          type { Type::NONE }; // auto or assigned type
     QString       typeValues;          // type values
-    QVariant      min;
-    QVariant      max;
-    RoleRowValues roleRowValues;
+    QVariant      min;                 // custom min value
+    QVariant      max;                 // custom max value
+    bool          key { false };       // is key
+    RoleRowValues roleRowValues;       // row role values
   };
 
   using ColumnDatas = std::map<int,ColumnData>;

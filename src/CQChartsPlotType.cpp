@@ -87,6 +87,9 @@ CQChartsPlotType()
 CQChartsPlotType::
 ~CQChartsPlotType()
 {
+  for (auto &ng : parameterGroups_)
+    delete ng.second;
+
   for (auto &parameter : parameters_)
     delete parameter;
 }
@@ -102,6 +105,9 @@ addParameters()
 
   addColumnParameter("tip", "Tip", "tipColumn").
     setString().setTip("Tip Column");
+
+  addColumnParameter("visible", "Visible", "visibleColumn").
+    setBool().setTip("Visible Column");
 
   if (hasKey())
     addBoolParameter("key", "Key", "keyVisible").setTip("Show Key");
@@ -147,6 +153,22 @@ groupParameters(int groupId) const
   return parameters;
 }
 
+CQChartsPlotType::ParameterGroups
+CQChartsPlotType::
+groupParameterGroups(int groupId) const
+{
+  ParameterGroups parameterGroups;
+
+  for (auto &ig : parameterGroups_) {
+    CQChartsPlotParameterGroup *parameterGroup = ig.second;
+
+    if (parameterGroup->parentGroupId() == groupId)
+      parameterGroups.push_back(parameterGroup);
+  }
+
+  return parameterGroups;
+}
+
 CQChartsPlotType::Parameters
 CQChartsPlotType::
 nonGroupParameters() const
@@ -161,20 +183,35 @@ nonGroupParameters() const
   return parameters;
 }
 
-void
+CQChartsPlotParameterGroup *
 CQChartsPlotType::
 startParameterGroup(const QString &name)
 {
-  parameterGroupId_ = parameterGroups_.size();
+  int parameterGroupId = parameterGroups_.size();
 
-  parameterGroups_[parameterGroupId_] = CQChartsPlotParameterGroup(name, parameterGroupId_);
+  CQChartsPlotParameterGroup *parameterGroup =
+    new CQChartsPlotParameterGroup(name, parameterGroupId);
+
+  parameterGroups_[parameterGroupId] = parameterGroup;
+
+  if (! parameterGroupIds_.empty()) {
+    int parentGroupId = parameterGroupIds_.back();
+
+    parameterGroup->setParentGroupId(parentGroupId);
+  }
+
+  parameterGroupIds_.push_back(parameterGroupId);
+
+  return parameterGroup;
 }
 
 void
 CQChartsPlotType::
 endParameterGroup()
 {
-  parameterGroupId_ = -1;
+  assert(! parameterGroupIds_.empty());
+
+  parameterGroupIds_.pop_back();
 }
 
 CQChartsPlotParameter &
@@ -296,8 +333,11 @@ addParameter(CQChartsPlotParameter *parameter)
 
   CQChartsPlotParameter *parameter1 = parameters_.back();
 
-  if (parameterGroupId_ >= 0)
-    parameter1->setGroupId(parameterGroupId_);
+  if (! parameterGroupIds_.empty()) {
+    int parameterGroupId = parameterGroupIds_.back();
+
+    parameter1->setGroupId(parameterGroupId);
+  }
 
   return *parameter1;
 }

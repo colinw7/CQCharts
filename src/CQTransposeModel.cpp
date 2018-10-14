@@ -7,6 +7,8 @@
 CQTransposeModel::
 CQTransposeModel(QAbstractItemModel *model)
 {
+  setObjectName("transposeModel");
+
   setSourceModel(model);
 }
 

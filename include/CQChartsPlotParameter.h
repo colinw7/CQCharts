@@ -13,10 +13,11 @@ class CQChartsPlotParameterAttributes {
     MONOTONIC    = (1<<1),
     NUMERIC      = (1<<2),
     STRING       = (1<<3),
-    COLOR        = (1<<4),
-    GROUPABLE    = (1<<5),
-    MAPPED       = (1<<6),
-    DISCRIMIATOR = (1<<7)
+    BOOL         = (1<<4),
+    COLOR        = (1<<5),
+    GROUPABLE    = (1<<6),
+    MAPPED       = (1<<7),
+    DISCRIMIATOR = (1<<8)
   };
 
  public:
@@ -49,14 +50,18 @@ class CQChartsPlotParameterAttributes {
   bool isString() const { return (flags_ & STRING); }
   CQChartsPlotParameterAttributes &setString() { flags_ |= STRING; return *this; }
 
+  bool isBool() const { return (flags_ & BOOL); }
+  CQChartsPlotParameterAttributes &setBool() { flags_ |= BOOL; return *this; }
+
   bool isColor() const { return (flags_ & COLOR); }
   CQChartsPlotParameterAttributes &setColor() { flags_ |= COLOR; return *this; }
 
-  bool hasTypeDetail() const { return isNumeric() || isString() || isColor(); }
+  bool hasTypeDetail() const { return isNumeric() || isString() || isBool() || isColor(); }
 
   QString typeDetail() const {
     if (isNumeric()) return "numeric";
     if (isString ()) return "string";
+    if (isBool   ()) return "bool";
     if (isColor  ()) return "color";
 
     return "generic";
@@ -100,6 +105,8 @@ class CQChartsPlotParameterAttributes {
   double       mapMax_ { 1.0 }; // map max
 };
 
+//---
+
 class CQChartsPlotParameter : public QObject {
   Q_OBJECT
 
@@ -118,6 +125,7 @@ class CQChartsPlotParameter : public QObject {
   Q_PROPERTY(bool     isMonotonic   READ isMonotonic                    )
   Q_PROPERTY(bool     isNumeric     READ isNumeric                      )
   Q_PROPERTY(bool     isString      READ isString                       )
+  Q_PROPERTY(bool     isBool        READ isBool                         )
   Q_PROPERTY(bool     isColor       READ isColor                        )
   Q_PROPERTY(bool     hasTypeDetail READ hasTypeDetail                  )
   Q_PROPERTY(QString  typeDetail    READ typeDetail                     )
@@ -173,6 +181,7 @@ class CQChartsPlotParameter : public QObject {
 
   bool isNumeric() const { return attributes_.isNumeric    (); }
   bool isString () const { return attributes_.isString     (); }
+  bool isBool   () const { return attributes_.isBool       (); }
   bool isColor  () const { return attributes_.isColor      (); }
 
   bool hasTypeDetail() const { return attributes_.hasTypeDetail(); }
@@ -188,6 +197,7 @@ class CQChartsPlotParameter : public QObject {
   CQChartsPlotParameter &setMonotonic  () { attributes_.setMonotonic  (); return *this; }
   CQChartsPlotParameter &setNumeric    () { attributes_.setNumeric    (); return *this; }
   CQChartsPlotParameter &setString     () { attributes_.setString     (); return *this; }
+  CQChartsPlotParameter &setBool       () { attributes_.setBool       (); return *this; }
   CQChartsPlotParameter &setColor      () { attributes_.setColor      (); return *this; }
   CQChartsPlotParameter &setGroupable  () { attributes_.setGroupable  (); return *this; }
   CQChartsPlotParameter &setMapped     () { attributes_.setMapped     (); return *this; }
@@ -246,7 +256,7 @@ class CQChartsPlotParameter : public QObject {
   QString    type_;           //! type
   QString    propName_;       //! property name
   Attributes attributes_;     //! attributes
-  int        groupId_ { -1 }; //! group id
+  int        groupId_ { -1 }; //! parent group id
   QVariant   defValue_;       //! default value
   QString    tip_;            //! tip
   Properties properties_;     //! properties
@@ -255,6 +265,8 @@ class CQChartsPlotParameter : public QObject {
 //---
 
 class CQChartsColumnParameter : public CQChartsPlotParameter {
+  Q_OBJECT
+
  public:
   CQChartsColumnParameter(const QString &name, const QString &desc, const QString &propName,
                           const Attributes &attributes=Attributes(), int defValue=-1) :
@@ -268,6 +280,8 @@ class CQChartsColumnParameter : public CQChartsPlotParameter {
 //---
 
 class CQChartsColumnsParameter : public CQChartsPlotParameter {
+  Q_OBJECT
+
  public:
   CQChartsColumnsParameter(const QString &name, const QString &desc, const QString &propName,
                            const Attributes &attributes=Attributes(), const QString &defValue="") :
@@ -283,6 +297,8 @@ class CQChartsColumnsParameter : public CQChartsPlotParameter {
 //---
 
 class CQChartsStringParameter : public CQChartsPlotParameter {
+  Q_OBJECT
+
  public:
   CQChartsStringParameter(const QString &name, const QString &desc, const QString &propName,
                           const Attributes &attributes=Attributes(), const QString &defValue="") :
@@ -293,6 +309,8 @@ class CQChartsStringParameter : public CQChartsPlotParameter {
 //---
 
 class CQChartsRealParameter : public CQChartsPlotParameter {
+  Q_OBJECT
+
  public:
   CQChartsRealParameter(const QString &name, const QString &desc, const QString &propName,
                         const Attributes &attributes=Attributes(), double defValue=0.0) :
@@ -303,6 +321,8 @@ class CQChartsRealParameter : public CQChartsPlotParameter {
 //---
 
 class CQChartsIntParameter : public CQChartsPlotParameter {
+  Q_OBJECT
+
  public:
   CQChartsIntParameter(const QString &name, const QString &desc, const QString &propName,
                        const Attributes &attributes=Attributes(), int defValue=0) :
@@ -313,6 +333,8 @@ class CQChartsIntParameter : public CQChartsPlotParameter {
 //---
 
 class CQChartsEnumParameter : public CQChartsPlotParameter {
+  Q_OBJECT
+
  public:
   CQChartsEnumParameter(const QString &name, const QString &desc, const QString &propName,
                         const Attributes &attributes=Attributes(), int defValue=0) :
@@ -360,6 +382,8 @@ class CQChartsEnumParameter : public CQChartsPlotParameter {
 //---
 
 class CQChartsBoolParameter : public CQChartsPlotParameter {
+  Q_OBJECT
+
  public:
   CQChartsBoolParameter(const QString &name, const QString &desc, const QString &propName,
                         const Attributes &attributes=Attributes(), bool defValue=false) :
@@ -369,11 +393,28 @@ class CQChartsBoolParameter : public CQChartsPlotParameter {
 
 //------
 
-class CQChartsPlotParameterGroup {
+class CQChartsPlotParameterGroup : public QObject {
+  Q_OBJECT
+
+  Q_PROPERTY(Type    type         READ type)
+  Q_PROPERTY(QString name         READ name         WRITE setName        )
+  Q_PROPERTY(int     groupId      READ groupId      WRITE setGroupId     )
+  Q_PROPERTY(int     otherGroupId READ otherGroupId WRITE setOtherGroupId)
+
+ public:
+  enum Type {
+    NONE,
+    PRIMARY,
+    SECONDARY
+  };
+
  public:
   CQChartsPlotParameterGroup(const QString &name="", int groupId=-1) :
    name_(name), groupId_(groupId) {
   }
+
+  const Type &type() const { return type_; }
+  void setType(const Type &t) { type_ = t; }
 
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
@@ -381,9 +422,18 @@ class CQChartsPlotParameterGroup {
   int groupId() const { return groupId_; }
   void setGroupId(int i) { groupId_ = i; }
 
+  int otherGroupId() const { return otherGroupId_; }
+  void setOtherGroupId(int i) { otherGroupId_ = i; }
+
+  int parentGroupId() const { return parentGroupId_; }
+  void setParentGroupId(int i) { parentGroupId_ = i; }
+
  private:
-  QString name_;
-  int     groupId_ { -1 };
+  Type    type_          { Type::NONE }; // group type
+  QString name_;                         // group name
+  int     groupId_       { -1 };         // group id
+  int     otherGroupId_  { -1 };         // other group id
+  int     parentGroupId_ { -1 };         // parent group id
 };
 
 #endif

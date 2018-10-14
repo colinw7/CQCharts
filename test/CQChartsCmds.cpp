@@ -611,7 +611,20 @@ processModelCmd(const Vars &vars)
   else if (argv.getParseBool("analyze")) {
     CQChartsAnalyzeModel analyzeModel(charts_, modelData);
 
-    analyzeModel.analyze();
+    if (type != "") {
+      if (! charts_->isPlotType(type)) {
+        charts_->errorMsg("Invalid type '" + type + "'");
+        return;
+      }
+
+      CQChartsPlotType *plotType = charts_->plotType(type);
+      assert(plotType);
+
+      analyzeModel.analyzeType(plotType);
+    }
+    else {
+      analyzeModel.analyze();
+    }
 
     const CQChartsAnalyzeModel::TypeNameColumns &typeNameColumns = analyzeModel.typeNameColumns();
 
@@ -1764,6 +1777,10 @@ foldModelCmd(const Vars &vars)
   CQFoldedModel *foldedModel = new CQFoldedModel(model.data(), foldData);
 
   QSortFilterProxyModel *foldProxyModel = new QSortFilterProxyModel;
+
+  foldProxyModel->setObjectName("foldProxyModel");
+
+  foldProxyModel->setSortRole(static_cast<int>(CQBaseModel::Role::CustomSort));
 
   foldProxyModel->setSourceModel(foldedModel);
 
@@ -4391,6 +4408,10 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
 
   //---
 
+  using NameSet = std::set<QString>;
+
+  NameSet setNames;
+
   // set plot property for widgets for plot parameters
   for (const auto &parameter : type->parameters()) {
     if      (parameter->type() == "column") {
@@ -4398,6 +4419,8 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
 
       if (p == nameValueData.values.end())
         continue;
+
+      setNames.insert(parameter->name());
 
       CQChartsColumn column;
 
@@ -4417,6 +4440,8 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
       if (p == nameValueData.values.end())
         continue;
 
+      setNames.insert(parameter->name());
+
       const QString str = (*p).second;
 
       std::vector<CQChartsColumn> columns;
@@ -4435,6 +4460,8 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
       if (p == nameValueData.strings.end())
         continue;
 
+      setNames.insert(parameter->name());
+
       QString str = (*p).second;
 
       if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(str)))
@@ -4445,6 +4472,8 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
 
       if (p == nameValueData.reals.end())
         continue;
+
+      setNames.insert(parameter->name());
 
       double r = (*p).second;
 
@@ -4457,6 +4486,8 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
       if (p == nameValueData.ints.end())
         continue;
 
+      setNames.insert(parameter->name());
+
       int i = (*p).second;
 
       if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(i)))
@@ -4467,6 +4498,8 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
 
       if (p == nameValueData.enums.end())
         continue;
+
+      setNames.insert(parameter->name());
 
       QString str = (*p).second;
 
@@ -4479,6 +4512,8 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
       if (p == nameValueData.bools.end())
         continue;
 
+      setNames.insert(parameter->name());
+
       bool b = (*p).second;
 
       if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(b)))
@@ -4486,6 +4521,36 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
     }
     else
       assert(false);
+  }
+
+  for (const auto &nv : nameValueData.values) {
+    if (setNames.find(nv.first) == setNames.end())
+      charts_->errorMsg("Value not found '" + nv.first + "'");
+  }
+
+  for (const auto &nv : nameValueData.bools) {
+    if (setNames.find(nv.first) == setNames.end())
+      charts_->errorMsg("Value not found '" + nv.first + "'");
+  }
+
+  for (const auto &nv : nameValueData.strings) {
+    if (setNames.find(nv.first) == setNames.end())
+      charts_->errorMsg("Value not found '" + nv.first + "'");
+  }
+
+  for (const auto &nv : nameValueData.ints) {
+    if (setNames.find(nv.first) == setNames.end())
+      charts_->errorMsg("Value not found '" + nv.first + "'");
+  }
+
+  for (const auto &nv : nameValueData.reals) {
+    if (setNames.find(nv.first) == setNames.end())
+      charts_->errorMsg("Value not found '" + nv.first + "'");
+  }
+
+  for (const auto &nv : nameValueData.enums) {
+    if (setNames.find(nv.first) == setNames.end())
+      charts_->errorMsg("Value not found '" + nv.first + "'");
   }
 
   //---

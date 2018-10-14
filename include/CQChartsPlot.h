@@ -98,8 +98,9 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(QString typeStr READ typeStr)
 
   // generic columns and control
-  Q_PROPERTY(CQChartsColumn idColumn  READ idColumn  WRITE setIdColumn )
-  Q_PROPERTY(CQChartsColumn tipColumn READ tipColumn WRITE setTipColumn)
+  Q_PROPERTY(CQChartsColumn idColumn      READ idColumn      WRITE setIdColumn     )
+  Q_PROPERTY(CQChartsColumn tipColumn     READ tipColumn     WRITE setTipColumn    )
+  Q_PROPERTY(CQChartsColumn visibleColumn READ visibleColumn WRITE setVisibleColumn)
 
   // visible, selected
   Q_PROPERTY(bool visible READ isVisible WRITE setVisible)
@@ -995,6 +996,9 @@ class CQChartsPlot : public CQChartsObj,
   const CQChartsColumn &tipColumn() const { return tipColumn_; }
   void setTipColumn(const CQChartsColumn &column);
 
+  const CQChartsColumn &visibleColumn() const { return visibleColumn_; }
+  void setVisibleColumn(const CQChartsColumn &column);
+
   //---
 
   virtual QString keyText() const;
@@ -1613,6 +1617,7 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsColumn            yValueColumn_;                    // y axis value column
   CQChartsColumn            idColumn_;                        // unique data id column (signalled)
   CQChartsColumn            tipColumn_;                       // tip column
+  CQChartsColumn            visibleColumn_;                   // visible column
   double                    minScaleFontSize_ { 6.0 };        // min scaled font size
   double                    maxScaleFontSize_ { 48.0 };       // max scaled font size
   bool                      equalScale_       { false };      // equal scaled

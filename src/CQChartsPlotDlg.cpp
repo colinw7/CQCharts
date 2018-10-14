@@ -12,6 +12,7 @@
 #include <CQChartsModelView.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsAnalyzeModel.h>
 
 #include <CQSummaryModel.h>
 #include <CQDividedArea.h>
@@ -774,42 +775,128 @@ void
 CQChartsPlotDlg::
 addParameterEdits(CQChartsPlotType *type, PlotData &plotData, QGridLayout *layout, int &row)
 {
-  QTabWidget *parameterGroupTab = nullptr;
+  using GroupTab = std::map<int,QTabWidget*>;
+
+  using ChildGroups = std::vector<CQChartsPlotParameterGroup *>;
+
+  GroupTab    groupTab;
+  ChildGroups childGroups;
 
   for (const auto &p : type->parameterGroups()) {
-    const CQChartsPlotParameterGroup &parameterGroup = p.second;
+    CQChartsPlotParameterGroup *parameterGroup = p.second;
 
-    CQChartsPlotType::Parameters parameters = type->groupParameters(parameterGroup.groupId());
-    assert(! parameters.empty());
+    if (parameterGroup->parentGroupId() >= 0) {
+      childGroups.push_back(parameterGroup);
+      continue;
+    }
 
-    if (! parameterGroupTab) {
-      parameterGroupTab = new QTabWidget;
+    CQChartsPlotType::Parameters parameters =
+      type->groupParameters(parameterGroup->groupId());
+
+    CQChartsPlotType::ParameterGroups parameterGroups =
+      type->groupParameterGroups(parameterGroup->groupId());
+
+    assert(! parameters.empty() || ! parameterGroups.empty());
+
+    //---
+
+    // get tab widget
+    auto pg = groupTab.find(-1);
+
+    if (pg == groupTab.end()) {
+      QTabWidget *parameterGroupTab = new QTabWidget;
       parameterGroupTab->setObjectName("parameterGroupTab");
 
       layout->addWidget(parameterGroupTab, row, 0, 1, 5);
 
       ++row;
+
+      pg = groupTab.insert(pg, GroupTab::value_type(-1, parameterGroupTab));
     }
 
+    QTabWidget *parameterGroupTab = (*pg).second;
+
+    //---
+
+    // create frame for widgets and add to tab widget
     QFrame *parameterGroupFrame = new QFrame;
-    parameterGroupFrame->setObjectName(parameterGroup.name());
+    parameterGroupFrame->setObjectName(parameterGroup->name());
 
     QGridLayout *parameterGroupLayout = new QGridLayout(parameterGroupFrame);
 
-    parameterGroupTab->addTab(parameterGroupFrame, parameterGroup.name());
+    parameterGroupTab->addTab(parameterGroupFrame, parameterGroup->name());
 
     int row1 = 0;
 
-    addParameterEdits(parameters, plotData, parameterGroupLayout, row1);
+    //---
 
-    parameterGroupLayout->setRowStretch(row1, 1);
+    for (const auto &parameterGroup1 : parameterGroups) {
+      CQChartsPlotType::Parameters parameters1 =
+        type->groupParameters(parameterGroup1->groupId());
+
+      CQChartsPlotType::ParameterGroups parameterGroups1 =
+        type->groupParameterGroups(parameterGroup1->groupId());
+
+      assert(! parameters1.empty() || ! parameterGroups1.empty());
+
+      //---
+
+      // get tab widget
+      auto pg = groupTab.find(parameterGroup->groupId());
+
+      if (pg == groupTab.end()) {
+        QTabWidget *parameterGroupTab1 = new QTabWidget;
+        parameterGroupTab1->setObjectName("parameterGroupTab");
+
+        parameterGroupLayout->addWidget(parameterGroupTab1, row, 0);
+
+        ++row;
+
+        pg = groupTab.insert(pg,
+          GroupTab::value_type(parameterGroup->groupId(), parameterGroupTab1));
+      }
+
+      QTabWidget *parameterGroupTab1 = (*pg).second;
+
+      //---
+
+      int row2 = 0;
+
+      QFrame *parameterGroupFrame1 = new QFrame;
+      parameterGroupFrame1->setObjectName(parameterGroup1->name());
+
+      QGridLayout *parameterGroupLayout1 = new QGridLayout(parameterGroupFrame1);
+
+      parameterGroupTab1->addTab(parameterGroupFrame1, parameterGroup1->name());
+
+      if (! parameters1.empty()) {
+        addParameterEdits(parameters1, plotData, parameterGroupLayout1, row2);
+
+        parameterGroupLayout1->setRowStretch(row2, 1);
+      }
+
+      //---
+
+      ++row1;
+    }
+
+    //---
+
+    if (! parameters.empty()) {
+      addParameterEdits(parameters, plotData, parameterGroupLayout, row1);
+
+      parameterGroupLayout->setRowStretch(row1, 1);
+    }
   }
 
   //---
 
   CQChartsPlotType::Parameters parameters = type->nonGroupParameters();
 
-  addParameterEdits(parameters, plotData, layout, row);
+  if (parameters.empty())
+    addParameterEdits(parameters, plotData, layout, row);
+
+  //---
 
   layout->setRowStretch(row, 1);
 }
@@ -1599,6 +1686,37 @@ validateSlot()
   if (! type)
     return;
 
+  if (! typeInitialzed_[type->description()]) {
+    PlotData &plotData = typePlotData_[type->name()];
+
+    CQChartsAnalyzeModel analyzeModel(charts_, modelData_);
+
+    analyzeModel.analyzeType(type);
+
+    for (const auto &tnc : analyzeModel.typeNameColumns()) {
+      for (const auto &nc : tnc.second) {
+        auto pe = plotData.columnEdits.find(nc.first);
+
+        if (pe != plotData.columnEdits.end()) {
+          CQChartsColumnEdit *edit = (*pe).second;
+
+          edit->setText(nc.second.toString());
+        }
+        else {
+          auto pe = plotData.columnsEdits.find(nc.first);
+
+          if (pe != plotData.columnsEdits.end()) {
+            QLineEdit *edit = (*pe).second;
+
+            edit->setText(nc.second.toString());
+          }
+        }
+      }
+    }
+
+    typeInitialzed_[type->description()] = true;
+  }
+
   // set description
   descText_->setText(type->description());
 
@@ -1855,6 +1973,12 @@ validate(QStringList &msgs)
         else if (parameter->isString()) {
           if (columnDetails->type() != CQBaseModel::Type::STRING) {
             msgs << QString("non-string column (%1)").arg(parameter->name());
+            rc1 = false;
+          }
+        }
+        else if (parameter->isBool()) {
+          if (columnDetails->type() != CQBaseModel::Type::BOOLEAN) {
+            msgs << QString("non-bool column (%1)").arg(parameter->name());
             rc1 = false;
           }
         }

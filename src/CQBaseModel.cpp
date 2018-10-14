@@ -49,6 +49,8 @@ void initTypes() {
 CQBaseModel::
 CQBaseModel()
 {
+  setObjectName("baseModel");
+
   initTypes();
 }
 
@@ -284,6 +286,34 @@ setColumnMax(int column, const QVariant &v)
   return true;
 }
 
+bool
+CQBaseModel::
+isColumnKey(int column) const
+{
+  if (column < 0 || column >= columnCount())
+    return false;
+
+  ColumnData &columnData = getColumnData(column);
+
+  return columnData.key;
+}
+
+bool
+CQBaseModel::
+setColumnKey(int column, bool b)
+{
+  if (column < 0 || column >= columnCount())
+    return false;
+
+  ColumnData &columnData = getColumnData(column);
+
+  columnData.key = b;
+
+  emit columnKeyChanged(column);
+
+  return true;
+}
+
 CQBaseModel::ColumnData &
 CQBaseModel::
 getColumnData(int column) const
@@ -399,6 +429,9 @@ headerData(int section, Qt::Orientation orientation, int role) const
     else if (role == static_cast<int>(Role::Max)) {
       return columnMax(section);
     }
+    else if (role == static_cast<int>(Role::Key)) {
+      return isColumnKey(section);
+    }
     else {
       return QAbstractItemModel::headerData(section, orientation, role);
     }
@@ -443,6 +476,9 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
     }
     else if (role == static_cast<int>(Role::Max)) {
       return setColumnMax(section, value);
+    }
+    else if (role == static_cast<int>(Role::Key)) {
+      return setColumnKey(section, value.toBool());
     }
     else {
       return QAbstractItemModel::setHeaderData(section, orientation, role);

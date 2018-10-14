@@ -18,12 +18,11 @@ class CQChartsAnalyzeModel {
 
   void analyze();
 
+  bool analyzeType(CQChartsPlotType *type);
+
   const TypeNameColumns &typeNameColumns() { return typeNameColumns_; }
 
   void print() const;
-
- private:
-  bool analyzeType(CQChartsPlotType *type);
 
  private:
   CQCharts*          charts_    { nullptr };

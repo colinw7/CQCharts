@@ -582,6 +582,11 @@ calcRange()
     xAxis()->setLabel(xname);
   }
 
+  ColumnType xColumnType = columnValueType(xColumn());
+
+  if (xColumnType == CQBaseModel::Type::TIME)
+    xAxis()->setDate(true);
+
   // set y axis name(s)
   QString yname = yAxisName();
 

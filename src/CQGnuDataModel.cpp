@@ -35,6 +35,7 @@ inline bool fileToLines(const QString &filename, QStringList &lines) {
 CQGnuDataModel::
 CQGnuDataModel()
 {
+  setObjectName("gnuDataModel");
 }
 
 bool

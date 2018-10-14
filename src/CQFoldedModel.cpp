@@ -8,6 +8,8 @@
 CQFoldedModel::
 CQFoldedModel(QAbstractItemModel *model, const CQFoldData &foldData)
 {
+  setObjectName("foldedModel");
+
   setFoldData(foldData);
 
   setSourceModel(model);
@@ -657,6 +659,10 @@ headerData(int section, Qt::Orientation orientation, int role) const
       assert(false);
     }
   }
+  else if (role == static_cast<int>(CQBaseModel::Role::Key)) {
+    if (section == foldColumn())
+      return QVariant(true);
+  }
 
   //---
 
@@ -684,6 +690,8 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
 
   if (section < 0 || section >= columnCount())
     return false;
+
+  //---
 
   int c = mapColumnToSource(section);
 

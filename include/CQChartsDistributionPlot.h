@@ -324,11 +324,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   Q_PROPERTY(PlotType  plotType  READ plotType  WRITE setPlotType )
   Q_PROPERTY(ValueType valueType READ valueType WRITE setValueType)
 
-  Q_PROPERTY(bool stacked    READ isStacked    WRITE setStacked   )
-  Q_PROPERTY(bool sideBySide READ isSideBySide WRITE setSideBySide)
-  Q_PROPERTY(bool overlay    READ isOverlay    WRITE setOverlay   )
-  Q_PROPERTY(bool skipEmpty  READ isSkipEmpty  WRITE setSkipEmpty )
-  Q_PROPERTY(bool sorted     READ isSorted     WRITE setSorted    )
+  Q_PROPERTY(bool skipEmpty READ isSkipEmpty WRITE setSkipEmpty)
+  Q_PROPERTY(bool sorted    READ isSorted    WRITE setSorted   )
 
   // density
   Q_PROPERTY(bool   density         READ isDensity         WRITE setDensity        )
@@ -357,8 +354,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Rug,rug)
 
-  Q_ENUMS(PlotType);
-  Q_ENUMS(ValueType);
+  Q_ENUMS(PlotType)
+  Q_ENUMS(ValueType)
 
  public:
   enum class PlotType {
@@ -428,26 +425,24 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   PlotType plotType() const { return plotType_; }
 
-  bool isStacked   () const { return (plotType_ == PlotType::STACKED     ); }
-  bool isSideBySide() const { return (plotType_ == PlotType::SIDE_BY_SIDE); }
-  bool isOverlay   () const { return (plotType_ == PlotType::OVERLAY     ); }
-
-  bool isSkipEmpty() const { return skipEmpty_; }
+  bool isNormal    () const { return (plotType() == PlotType::NORMAL      ); }
+  bool isStacked   () const { return (plotType() == PlotType::STACKED     ); }
+  bool isSideBySide() const { return (plotType() == PlotType::SIDE_BY_SIDE); }
+  bool isOverlay   () const { return (plotType() == PlotType::OVERLAY     ); }
+  bool isDensity   () const { return (plotType() == PlotType::DENSITY     ); }
 
   ValueType valueType() const { return valueType_; }
 
-  bool isValueCount() const { return (valueType_ == ValueType::COUNT); }
-  bool isValueRange() const { return (valueType_ == ValueType::RANGE); }
-  bool isValueMin  () const { return (valueType_ == ValueType::MIN  ); }
-  bool isValueMax  () const { return (valueType_ == ValueType::MAX  ); }
+  bool isValueCount() const { return (valueType() == ValueType::COUNT); }
+  bool isValueRange() const { return (valueType() == ValueType::RANGE); }
+  bool isValueMin  () const { return (valueType() == ValueType::MIN  ); }
+  bool isValueMax  () const { return (valueType() == ValueType::MAX  ); }
+  bool isValueMean () const { return (valueType() == ValueType::MEAN ); }
 
-  bool isSorted() const { return sorted_; }
+  bool isSkipEmpty() const { return skipEmpty_; }
+  bool isSorted   () const { return sorted_   ; }
 
   //---
-
-  bool isNormal() const { return (plotType_ == PlotType::NORMAL); }
-
-  bool isDensity() const { return (plotType_ == PlotType::DENSITY); }
 
   double densityOffset() const { return densityData_.offset; }
   void setDensityOffset(double o);
@@ -563,8 +558,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   struct VariantIndsData {
     VariantInds inds;
-    double      min { 0.0 };
-    double      max { 0.0 };
+    double      min  { 0.0 };
+    double      max  { 0.0 };
+    double      mean { 0.0 };
   };
 
   using BarValue = CQChartsDistributionBarValue;
@@ -634,24 +630,23 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   // set plot type
   void setPlotType(PlotType plotType);
 
-  // set normal
-  void setNormal(bool b);
-
-  // set stacked, side by side, overlay
+  // set normal, stacked, side by side, overlay
+  void setNormal    (bool b);
   void setStacked   (bool b);
   void setSideBySide(bool b);
   void setOverlay   (bool b);
-
-  // set skip empty
-  void setSkipEmpty(bool b);
 
   // set value type
   void setValueType(ValueType valueType);
 
   void setValueCount(bool b);
   void setValueRange(bool b);
-  void setValueMin(bool b);
-  void setValueMax(bool b);
+  void setValueMin  (bool b);
+  void setValueMax  (bool b);
+  void setValueMean (bool b);
+
+  // set skip empty
+  void setSkipEmpty(bool b);
 
   // set sorted
   void setSorted(bool b);
@@ -697,9 +692,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   CQChartsColumn    nameColumn_;                          // name column
   CQChartsColumn    dataColumn_;                          // data column
-  bool              skipEmpty_      { false };            // skip empty buckets (non cont range)
   PlotType          plotType_       { PlotType::NORMAL }; // plot type
   ValueType         valueType_      { ValueType::COUNT }; // show value count
+  bool              skipEmpty_      { false };            // skip empty buckets (non cont range)
   bool              sorted_         { false };            // sort by count
   DensityData       densityData_;                         // density data
   ScatterData       scatterData_;                         // scatter data

@@ -263,9 +263,10 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   Q_PROPERTY(CQChartsColumn labelColumn READ labelColumn WRITE setLabelColumn)
 
   // options
-  Q_PROPERTY(bool stacked    READ isStacked    WRITE setStacked   )
+  Q_PROPERTY(PlotType  plotType  READ plotType  WRITE setPlotType )
+  Q_PROPERTY(ValueType valueType READ valueType WRITE setValueType)
+
   Q_PROPERTY(bool percent    READ isPercent    WRITE setPercent   )
-  Q_PROPERTY(bool rangeBar   READ isRangeBar   WRITE setRangeBar  )
   Q_PROPERTY(bool colorBySet READ isColorBySet WRITE setColorBySet)
 
   // dot line
@@ -273,6 +274,23 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   Q_PROPERTY(CQChartsLength dotLineWidth READ dotLineWidth WRITE setDotLineWidth)
 
   CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Dot,dot)
+
+  Q_ENUMS(PlotType)
+  Q_ENUMS(ValueType)
+
+ public:
+  enum class PlotType {
+    NORMAL,
+    STACKED,
+  };
+
+  enum class ValueType {
+    VALUE,
+    RANGE,
+    MIN,
+    MAX,
+    MEAN
+  };
 
  public:
   CQChartsBarChartPlot(CQChartsView *view, const ModelP &model);
@@ -288,9 +306,18 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
-  bool isStacked() const { return stacked_; }
+  PlotType plotType() const { return plotType_; }
 
-  bool isRangeBar() const { return rangeBar_; }
+  bool isNormal () const { return (plotType() == PlotType::NORMAL ); }
+  bool isStacked() const { return (plotType() == PlotType::STACKED); }
+
+  ValueType valueType() const { return valueType_; }
+
+  bool isValueValue() const { return (valueType_ == ValueType::VALUE); }
+  bool isValueRange() const { return (valueType_ == ValueType::RANGE); }
+  bool isValueMin  () const { return (valueType_ == ValueType::MIN  ); }
+  bool isValueMax  () const { return (valueType_ == ValueType::MAX  ); }
+  bool isValueMean () const { return (valueType_ == ValueType::MEAN ); }
 
   bool isPercent() const { return percent_; }
 
@@ -351,11 +378,21 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   // set horizontal
   void setHorizontal(bool b) override;
 
-  // set stacked
+  // set plot type
+  void setPlotType(PlotType plotType);
+
+  // set normal or stacked
+  void setNormal (bool b);
   void setStacked(bool b);
 
-  // set range bar
-  void setRangeBar(bool b);
+  // set value type
+  void setValueType(ValueType valueType);
+
+  void setValueValue(bool b);
+  void setValueRange(bool b);
+  void setValueMin  (bool b);
+  void setValueMax  (bool b);
+  void setValueMean (bool b);
 
   // set percent
   void setPercent(bool b);
@@ -388,19 +425,19 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   CQChartsBarChartValueSet *groupValueSet(int groupId);
 
  private:
-  CQChartsColumn    nameColumn_;               // name column
-  CQChartsColumn    labelColumn_;              // data label column
-  bool              stacked_        { false }; // stacked bars
-  bool              percent_        { false }; // percent values
-  bool              rangeBar_       { false }; // bar of value range
-  bool              colorBySet_     { false }; // color bars by set or value
-  bool              dotLines_       { false }; // show dot lines
-  CQChartsLength    dotLineWidth_   { "3px" }; // dot line width
-  CQChartsDataLabel dataLabel_;                // data label data
-  ValueSets         valueSets_;                // value sets
-  ValueGroupInd     valueGroupInd_;            // group ind to value index map
-  int               numVisible_     { 0 };     // number of visible bars
-  mutable double    barWidth_       { 1.0 };   // bar width
+  CQChartsColumn    nameColumn_;                          // name column
+  CQChartsColumn    labelColumn_;                         // data label column
+  PlotType          plotType_       { PlotType::NORMAL }; // plot type
+  ValueType         valueType_      { ValueType::VALUE }; // bar value type
+  bool              percent_        { false };            // percent values
+  bool              colorBySet_     { false };            // color bars by set or value
+  bool              dotLines_       { false };            // show dot lines
+  CQChartsLength    dotLineWidth_   { "3px" };            // dot line width
+  CQChartsDataLabel dataLabel_;                           // data label data
+  ValueSets         valueSets_;                           // value sets
+  ValueGroupInd     valueGroupInd_;                       // group ind to value index map
+  int               numVisible_     { 0 };                // number of visible bars
+  mutable double    barWidth_       { 1.0 };              // bar width
 };
 
 #endif

@@ -210,8 +210,9 @@ class CQChartsPlotDlg : public QDialog {
   void cancelSlot();
 
  private:
-  using TypePlotData = std::map<QString,PlotData>;
-  using TabType      = std::map<int,CQChartsPlotType *>;
+  using TypePlotData    = std::map<QString,PlotData>;
+  using TabType         = std::map<int,CQChartsPlotType *>;
+  using TypeInitialized = std::map<QString,bool>;
 
   CQCharts*          charts_                 { nullptr }; // parent charts
   CQChartsModelData* modelData_              { nullptr }; // model data
@@ -258,6 +259,7 @@ class CQChartsPlotDlg : public QDialog {
   CQChartsPlot*      previewPlot_            { nullptr }; // preview plot
   CQChartsPlot*      plot_                   { nullptr }; // last created plot (apply)
   bool               initialized_            { false   }; // is initialized
+  TypeInitialized    typeInitialzed_;                     // is type initialized
 };
 
 #endif

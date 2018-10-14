@@ -66,7 +66,8 @@ class CQChartsPlotType : public QObject {
 
  public:
   using Parameters          = std::vector<CQChartsPlotParameter *>;
-  using ParameterGroups     = std::map<int,CQChartsPlotParameterGroup>;
+  using ParameterGroups     = std::vector<CQChartsPlotParameterGroup *>;
+  using ParameterGroupMap   = std::map<int,CQChartsPlotParameterGroup *>;
   using ParameterAttributes = CQChartsPlotParameterAttributes;
   using ModelP              = QSharedPointer<QAbstractItemModel>;
 
@@ -128,15 +129,17 @@ class CQChartsPlotType : public QObject {
   //---
 
   // parameter groups
-  const ParameterGroups &parameterGroups() const { return parameterGroups_; }
+  const ParameterGroupMap &parameterGroups() const { return parameterGroups_; }
 
   Parameters groupParameters(int groupId) const;
 
   Parameters nonGroupParameters() const;
 
+  ParameterGroups groupParameterGroups(int groupId) const;
+
   //--
 
-  void startParameterGroup(const QString &name);
+  CQChartsPlotParameterGroup *startParameterGroup(const QString &name);
   void endParameterGroup();
 
   //---
@@ -225,12 +228,13 @@ class CQChartsPlotType : public QObject {
     }
   };
 
-  using Properties = std::map<QString,PropertyData>;
+  using Properties        = std::map<QString,PropertyData>;
+  using ParameterGroupIds = std::vector<int>;
 
-  Parameters      parameters_;              // parameters
-  ParameterGroups parameterGroups_;         // parameter groups
-  int             parameterGroupId_ { -1 }; // parameter group id
-  Properties      properties_;              // properties
+  Parameters        parameters_;        // parameters
+  ParameterGroupMap parameterGroups_;   // parameter groups
+  ParameterGroupIds parameterGroupIds_; // parameter group stack
+  Properties        properties_;        // properties
 };
 
 #endif

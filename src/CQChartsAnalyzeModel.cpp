@@ -58,8 +58,8 @@ analyzeType(CQChartsPlotType *type)
     if (! parameter->isColumn())
       continue;
 
-    if (parameter->isMultiple())
-      continue;
+    //if (parameter->isMultiple())
+    //  continue;
 
     const CQChartsPlotParameter::Attributes &attributes = parameter->attributes();
 
@@ -87,6 +87,7 @@ analyzeType(CQChartsPlotType *type)
 
   //---
 
+  bool grouped       = false;
   bool requiredValid = true;
 
   IColumnUsed columnUsed1 = columnUsed;
@@ -97,10 +98,31 @@ analyzeType(CQChartsPlotType *type)
     if (! parameter->isColumn())
       continue;
 
-    if (parameter->isMultiple())
-      continue;
+    //if (parameter->isMultiple())
+    //  continue;
 
     const CQChartsPlotParameter::Attributes &attributes = parameter->attributes();
+
+    if (parameter->isGroupable()) {
+      // find first valid unused column for attribute
+      for (auto &cu : columnUsed1) {
+        if (cu.second.second)
+          continue;
+
+        CQChartsModelColumnDetails *columnDetails = cu.second.first;
+
+        if (! columnDetails->isKey())
+          continue;
+
+        nameColumns[parameter->name()] = columnDetails->column();
+
+        cu.second.second = true;
+
+        grouped = true;
+
+        break;
+      }
+    }
 
     if (! attributes.isRequired()) {
       // if attribute is a discrimator then assign if exact match
@@ -166,7 +188,7 @@ analyzeType(CQChartsPlotType *type)
 
   //---
 
-  if (type->isGroupType()) {
+  if (type->isGroupType() & ! grouped) {
     int            bestNumUnique = -1;
     CQChartsColumn bestColumn;
     int            bestI = -1;

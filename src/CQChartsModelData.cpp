@@ -344,6 +344,8 @@ foldModel(const FoldData &foldData)
     if (! proxyModel) {
       QSortFilterProxyModel *foldProxyModel = new QSortFilterProxyModel;
 
+      foldProxyModel->setObjectName("foldProxyModel");
+
       foldProxyModel->setSortRole(static_cast<int>(CQBaseModel::Role::CustomSort));
 
       foldProxyModel->setSourceModel(model);

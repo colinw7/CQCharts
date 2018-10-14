@@ -4,6 +4,8 @@
 CQCsvModel::
 CQCsvModel()
 {
+  setObjectName("csvModel");
+
   // default read only
   setReadOnly(true);
 }

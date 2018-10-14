@@ -4,6 +4,8 @@
 CQTsvModel::
 CQTsvModel()
 {
+  setObjectName("tsvModel");
+
   // default read only
   setReadOnly(true);
 }

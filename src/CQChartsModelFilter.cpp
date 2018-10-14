@@ -13,6 +13,8 @@ CQChartsModelFilter::
 CQChartsModelFilter(CQCharts *charts) :
  charts_(charts)
 {
+  setObjectName("modelFilter");
+
   expr_ = new CQChartsModelExprMatch;
 
   resetFilterData();

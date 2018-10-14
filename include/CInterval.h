@@ -5,6 +5,27 @@
 
 class CInterval {
  public:
+  enum class TimeType {
+    NONE,
+    YEARS,
+    MONTHS,
+    WEEKS,
+    DAYS,
+    HOURS,
+    MINUTES,
+    SECONDS
+  };
+
+  struct TimeData {
+    double year   { 0.0 }; // year
+    double month  { 0.0 }; // month
+    double day    { 0.0 }; // day
+    double hour   { 0.0 }; // hour
+    double minute { 0.0 }; // minute
+    double second { 0.0 }; // second
+  };
+
+ public:
   CInterval(double min=0.0, double max=1.0, int n=10);
 
   //! get/set ideal interval start
@@ -23,6 +44,14 @@ class CInterval {
   bool isIntegral() const { return integral_; }
   void setIntegral(bool b) { integral_ = b; valid_ = false; }
 
+  //! get/set is date
+  bool isDate() const { return date_; }
+  void setDate(bool b) { date_ = b; valid_ = false; }
+
+  //! get/set is time
+  bool isTime() const { return time_; }
+  void setTime(bool b) { time_ = b; valid_ = false; }
+
   //! get/set is log
   bool isLog() const { return log_; }
   void setLog(bool b) { log_ = b; valid_ = false; }
@@ -34,6 +63,10 @@ class CInterval {
   //! get/set required increment multiplier
   double tickIncrement() const { return tickIncrement_; }
   void setTickIncrement(double r) { tickIncrement_ = r; valid_ = false; }
+
+  //---
+
+  double interval(int i) const;
 
   //---
 
@@ -57,7 +90,7 @@ class CInterval {
 
   void init();
 
-  double initIncrement() const;
+  double initIncrement(double imin, double imax, bool integral) const;
 
   bool testAxisGaps(double start, double end, double testIncrement, int testNumGapTicks,
                     GapData &axisGapData);
@@ -97,14 +130,18 @@ class CInterval {
     }
   };
 
-  GapData   data_;                     // axis preferred data
-  bool      integral_       { false }; // is integral
-  bool      log_            { false }; // is log
-  int       majorIncrement_ { 0 };     // required major increment (if > 0)
-  int       tickIncrement_  { 0 };     // required tick increment (if > 0)
-  bool      valid_          { false }; // are calculated values valid
-  GoodTicks goodTicks_;                // ideal tick data
-  GapData   calcData_;                 // calculated tick data
+  GapData   data_;                              // axis preferred data
+  bool      integral_       { false };          // is integral
+  bool      date_           { false };          // is date
+  bool      time_           { false };          // is time
+  bool      log_            { false };          // is log
+  int       majorIncrement_ { 0 };              // required major increment (if > 0)
+  int       tickIncrement_  { 0 };              // required tick increment (if > 0)
+  bool      valid_          { false };          // are calculated values valid
+  GoodTicks goodTicks_;                         // ideal tick data
+  GapData   calcData_;                          // calculated tick data
+  TimeType  timeType_       { TimeType::NONE }; // time type
+  TimeData  startTime_;                         // start year
 };
 
 #endif

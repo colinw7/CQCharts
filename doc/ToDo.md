@@ -1,4 +1,5 @@
 High
+ + Tag grouped column for analyze
  + Remove expr proces that can easily be replace by tcl proc (map, rand, norm)
  + Arrow - empty needed ? Use rotated rect for line
  + offscreen display for print

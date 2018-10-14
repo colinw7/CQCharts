@@ -51,6 +51,8 @@ CQSummaryModel::
 CQSummaryModel(QAbstractItemModel *model, int maxRows) :
  maxRows_(maxRows)
 {
+  setObjectName("summaryModel");
+
   setSourceModel(model);
 }
 

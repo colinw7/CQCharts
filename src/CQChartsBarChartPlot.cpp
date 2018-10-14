@@ -31,11 +31,24 @@ addParameters()
   addColumnParameter("color", "Color", "colorColumn").
     setColor().setTip("Custom bar color");
 
+  // options
   addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
-  addBoolParameter("stacked"   , "Stacked"   , "stacked"   ).setTip("Stack grouped values");
-  addBoolParameter("percent"   , "Percent"   , "percent"   ).setTip("Show value is percentage");
-  addBoolParameter("rangeBar"  , "Range Bar" , "rangeBar"  ).setTip("show value range in bar");
-  addBoolParameter("dotLines"  , "DotLines"  , "dotLines"  ).setTip("draw bars as lines with dot");
+
+  addEnumParameter("plotType", "PlotType", "plotType").
+    addNameValue("Normal" , int(CQChartsBarChartPlot::PlotType::NORMAL )).
+    addNameValue("Stacked", int(CQChartsBarChartPlot::PlotType::STACKED)).
+    setTip("Plot type");
+
+  addEnumParameter("valueType", "ValueType", "valueType").
+   addNameValue("Value", int(CQChartsBarChartPlot::ValueType::VALUE)).
+   addNameValue("Range", int(CQChartsBarChartPlot::ValueType::RANGE)).
+   addNameValue("Min"  , int(CQChartsBarChartPlot::ValueType::MIN  )).
+   addNameValue("Max"  , int(CQChartsBarChartPlot::ValueType::MAX  )).
+   addNameValue("Mean" , int(CQChartsBarChartPlot::ValueType::MEAN )).
+   setTip("Bar value type");
+
+  addBoolParameter("percent" , "Percent" , "percent" ).setTip("Show value is percentage");
+  addBoolParameter("dotLines", "DotLines", "dotLines").setTip("draw bars as lines with dot");
 
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
 
@@ -131,12 +144,11 @@ addProperties()
   addProperty("columns", this, "nameColumn" , "name" );
   addProperty("columns", this, "labelColumn", "label");
 
+  addProperty("options", this, "plotType" , "plotType" );
+  addProperty("options", this, "valueType", "valueType");
+
   addProperty("options", this, "percent"   );
   addProperty("options", this, "colorBySet");
-
-  addProperty("placement", this, "stacked");
-
-  addProperty("rangeBar", this, "rangeBar", "enabled");
 
   addProperty("dotLines",        this, "dotLines"     , "enabled");
   addProperty("dotLines/line",   this, "dotLineWidth" , "width"  );
@@ -164,9 +176,29 @@ setHorizontal(bool b)
 
 void
 CQChartsBarChartPlot::
+setPlotType(PlotType type)
+{
+  CQChartsUtil::testAndSet(plotType_, type, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBarChartPlot::
+setNormal(bool b)
+{
+  if (b)
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
+  else
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBarChartPlot::
 setStacked(bool b)
 {
-  CQChartsUtil::testAndSet(stacked_, b, [&]() { updateRangeAndObjs(); } );
+  if (b)
+    CQChartsUtil::testAndSet(plotType_, PlotType::STACKED, [&]() { updateRangeAndObjs(); } );
+  else
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -176,11 +208,63 @@ setPercent(bool b)
   CQChartsUtil::testAndSet(percent_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+//---
+
 void
 CQChartsBarChartPlot::
-setRangeBar(bool b)
+setValueType(ValueType type)
 {
-  CQChartsUtil::testAndSet(rangeBar_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueType_, type, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBarChartPlot::
+setValueValue(bool b)
+{
+  if (b)
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+  else
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBarChartPlot::
+setValueRange(bool b)
+{
+  if (b)
+    CQChartsUtil::testAndSet(valueType_, ValueType::RANGE, [&]() { updateRangeAndObjs(); } );
+  else
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBarChartPlot::
+setValueMin(bool b)
+{
+  if (b)
+    CQChartsUtil::testAndSet(valueType_, ValueType::MIN, [&]() { updateRangeAndObjs(); } );
+  else
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBarChartPlot::
+setValueMax(bool b)
+{
+  if (b)
+    CQChartsUtil::testAndSet(valueType_, ValueType::MAX, [&]() { updateRangeAndObjs(); } );
+  else
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBarChartPlot::
+setValueMean(bool b)
+{
+  if (b)
+    CQChartsUtil::testAndSet(valueType_, ValueType::MEAN, [&]() { updateRangeAndObjs(); } );
+  else
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -230,7 +314,7 @@ calcRange()
 
   // init grouping
   //   non-range use group columns for grouping
-  if (! isRangeBar())
+  if (isValueValue())
     initGroupData(valueColumns(), nameColumn());
   else
     initGroupData(CQChartsColumns(), nameColumn());
@@ -261,7 +345,7 @@ calcRange()
 
   //---
 
-  int ns = (! isRangeBar() ? valueColumns().count() : 1);
+  int ns = (isValueValue() ? valueColumns().count() : 1);
   int nv = numValueSets();
 
   int ng = numGroups();
@@ -383,7 +467,7 @@ CQChartsBarChartPlot::
 addRow(const ModelVisitor::VisitData &data, CQChartsGeom::Range &dataRange)
 {
   // add value for each column (non-range)
-  if (! isRangeBar()) {
+  if (isValueValue()) {
     for (const auto &column : valueColumns()) {
       CQChartsColumns columns { column };
 
@@ -403,7 +487,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
 {
   CQChartsModelIndex ind;
 
-  if (! isRangeBar()) {
+  if (isValueValue()) {
     assert(valueColumns.count() > 0);
 
     const CQChartsColumn &valueColumn = valueColumns.column();
@@ -526,7 +610,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
 
   //---
 
-  int ns = (! isRangeBar() ? this->valueColumns().count() : 1);
+  int ns = (isValueValue() ? this->valueColumns().count() : 1);
 
   if (ns > 1) {
     // set value data group name and value name
@@ -725,7 +809,7 @@ initObjs()
 
   //---
 
-  int ns = (! isRangeBar() ? valueColumns().count() : 1);
+  int ns = (isValueValue() ? this->valueColumns().count() : 1);
 
   int nv = numValueSets();
 
@@ -857,9 +941,9 @@ initObjs()
       // create bar rect
       CQChartsGeom::BBox brect;
 
-      double value1, value2;
+      double value1 { 0.0 }, value2 { 0.0 };
 
-      if (! isRangeBar()) {
+      if      (isValueValue()) {
         if (isStacked()) {
           if (minInd.value >= 0) {
             value1 = lastPosValue;
@@ -881,13 +965,33 @@ initObjs()
           }
         }
       }
-      else {
+      else if (isValueRange()) {
         if (isStacked()) {
           value1 = lastPosValue;
           value2 = value1 + scale*(maxInd.value - minInd.value);
         }
         else {
           value1 = scale*minInd.value;
+          value2 = scale*maxInd.value;
+        }
+      }
+      else if (isValueMin()) {
+        if (isStacked()) {
+          value1 = lastPosValue;
+          value2 = value1 + scale*minInd.value;
+        }
+        else {
+          value1 = 0.0;
+          value2 = scale*minInd.value;
+        }
+      }
+      else if (isValueMax()) {
+        if (isStacked()) {
+          value1 = lastPosValue;
+          value2 = value1 + scale*maxInd.value;
+        }
+        else {
+          value1 = 0.0;
           value2 = scale*maxInd.value;
         }
       }
@@ -923,7 +1027,7 @@ initObjs()
 
       //---
 
-      if (! isRangeBar()) {
+      if      (isValueValue()) {
         if (minInd.value >= 0) {
           lastPosValue = lastPosValue + scale*minInd.value;
         }
@@ -931,7 +1035,13 @@ initObjs()
           lastNegValue = lastNegValue + scale*minInd.value;
         }
       }
-      else {
+      else if (isValueRange()) {
+        lastPosValue = scale*(maxInd.value - minInd.value);
+      }
+      else if (isValueMin()) {
+        lastPosValue = scale*minInd.value;
+      }
+      else if (isValueMax()) {
         lastPosValue = scale*maxInd.value;
       }
 
@@ -980,7 +1090,7 @@ addKeyItems(CQChartsPlotKey *key)
 
   //---
 
-  int ns = (! isRangeBar() ? valueColumns().count() : 1);
+  int ns = (isValueValue() ? this->valueColumns().count() : 1);
 
   if (ns > 1) {
     if (isColorBySet()) {
@@ -1093,7 +1203,7 @@ bool
 CQChartsBarChartPlot::
 isSetHidden(int i) const
 {
-  int ns = (! isRangeBar() ? valueColumns().count() : 1);
+  int ns = (isValueValue() ? this->valueColumns().count() : 1);
 
   int nv = numValueSets();
 
@@ -1129,7 +1239,7 @@ bool
 CQChartsBarChartPlot::
 isValueHidden(int i) const
 {
-  int ns = (! isRangeBar() ? valueColumns().count() : 1);
+  int ns = (isValueValue() ? this->valueColumns().count() : 1);
 
   int nv = numValueSets();
 
@@ -1154,40 +1264,48 @@ bool
 CQChartsBarChartPlot::
 addMenuItems(QMenu *menu)
 {
-  QAction *horizontalAction = new QAction("Horizontal", menu);
-  QAction *stackedAction    = new QAction("Stacked"   , menu);
-  QAction *percentAction    = new QAction("Percent"   , menu);
-  QAction *rangeAction      = new QAction("Range"     , menu);
-  QAction *dotLinesAction   = new QAction("Dot Lines" , menu);
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
+                                  bool isSet, const char *slot) -> QAction *{
+    QAction *action = new QAction(name, menu);
 
-  horizontalAction->setCheckable(true);
-  horizontalAction->setChecked(isHorizontal());
+    action->setCheckable(true);
+    action->setChecked(isSet);
 
-  stackedAction->setCheckable(true);
-  stackedAction->setChecked(isStacked());
+    connect(action, SIGNAL(triggered(bool)), this, slot);
 
-  percentAction->setCheckable(true);
-  percentAction->setChecked(isPercent());
+    menu->addAction(action);
 
-  rangeAction->setCheckable(true);
-  rangeAction->setChecked(isRangeBar());
+    return action;
+  };
 
-  dotLinesAction->setCheckable(true);
-  dotLinesAction->setChecked(isDotLines());
+  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) -> QAction *{
+    return addMenuCheckedAction(menu, name, isSet, slot);
+  };
 
-  connect(horizontalAction, SIGNAL(triggered(bool)), this, SLOT(setHorizontal(bool)));
-  connect(stackedAction   , SIGNAL(triggered(bool)), this, SLOT(setStacked(bool)));
-  connect(percentAction   , SIGNAL(triggered(bool)), this, SLOT(setPercent(bool)));
-  connect(rangeAction     , SIGNAL(triggered(bool)), this, SLOT(setRangeBar(bool)));
-  connect(dotLinesAction  , SIGNAL(triggered(bool)), this, SLOT(setDotLines(bool)));
+  //---
 
   menu->addSeparator();
 
-  menu->addAction(horizontalAction);
-  menu->addAction(stackedAction);
-  menu->addAction(percentAction);
-  menu->addAction(rangeAction);
-  menu->addAction(dotLinesAction);
+  (void) addCheckedAction("Horizontal", isHorizontal(), SLOT(setHorizontal(bool)));
+
+  QMenu *typeMenu = new QMenu("Plot Type");
+
+  (void) addMenuCheckedAction(typeMenu, "Normal" , isNormal (), SLOT(setNormal (bool)));
+  (void) addMenuCheckedAction(typeMenu, "Stacked", isStacked(), SLOT(setStacked(bool)));
+
+  menu->addMenu(typeMenu);
+
+  QMenu *valueMenu = new QMenu("Value Type");
+
+  (void) addMenuCheckedAction(valueMenu, "Value", isValueValue(), SLOT(setValueValue(bool)));
+  (void) addMenuCheckedAction(valueMenu, "Range", isValueRange(), SLOT(setValueRange(bool)));
+  (void) addMenuCheckedAction(valueMenu, "Min"  , isValueMin  (), SLOT(setValueMin  (bool)));
+  (void) addMenuCheckedAction(valueMenu, "Max"  , isValueMax  (), SLOT(setValueMax  (bool)));
+
+  menu->addMenu(valueMenu);
+
+  (void) addCheckedAction("Percent"  , isPercent (), SLOT(setPercent(bool)));
+  (void) addCheckedAction("Dot Lines", isDotLines(), SLOT(setDotLines(bool)));
 
   return true;
 }
@@ -1290,14 +1408,20 @@ valueStr() const
 
   value->calcRange(minInd, maxInd);
 
-  if (! plot_->isRangeBar()) {
+  if      (plot_->isValueValue()) {
     valueStr = plot_->valueStr(minInd.value);
   }
-  else {
+  else if (plot_->isValueRange()) {
     QString minValueStr = plot_->valueStr(minInd.value);
     QString maxValueStr = plot_->valueStr(maxInd.value);
 
     valueStr = QString("%1-%2").arg(minValueStr).arg(maxValueStr);
+  }
+  else if (plot_->isValueMin()) {
+    valueStr = plot_->valueStr(minInd.value);
+  }
+  else if (plot_->isValueMax()) {
+    valueStr = plot_->valueStr(maxInd.value);
   }
 
   return valueStr;
@@ -1666,7 +1790,7 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
   double posSum = 0.0, negSum = 0.0;
   double value  = 0.0;
 
-  int ns = (! plot_->isRangeBar() ? plot_->valueColumns().count() : 1);
+  int ns = (plot_->isValueValue() ? plot_->valueColumns().count() : 1);
 
   if (ns > 1) {
     if (plot_->isColorBySet()) {

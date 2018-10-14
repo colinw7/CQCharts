@@ -16,6 +16,7 @@
 #include <QItemSelectionModel>
 #include <QItemDelegate>
 #include <QMenu>
+#include <QCheckBox>
 #include <QPainter>
 #include <QActionGroup>
 #include <cassert>
@@ -24,6 +25,7 @@ class CQChartsTableSelectionModel : public QItemSelectionModel {
  public:
   CQChartsTableSelectionModel(CQChartsTable *table) :
    QItemSelectionModel(table->CQTableView::model()), table_(table) {
+    setObjectName("tableSelectionModel");
   }
 
   void select(const QModelIndex &ind, SelectionFlags flags) {
@@ -58,25 +60,14 @@ class CQChartsTableDelegate : public QItemDelegate {
 
   void paint(QPainter *painter, const QStyleOptionViewItem &option,
              const QModelIndex &index) const {
-    QAbstractItemModel *model = table_->modelP().data();
+    CQBaseModel::Type columnType = getColumnType(index);
 
-    CQChartsTableDelegate *th = const_cast<CQChartsTableDelegate *>(this);
+    if      (columnType == CQBaseModel::Type::BOOLEAN) {
+      QVariant var = table_->modelP()->data(index);
 
-    auto p = th->columnTypeMap_.find(index.column());
-
-    if (p == th->columnTypeMap_.end()) {
-      CQBaseModel::Type  columnType;
-      CQChartsNameValues nameValues;
-
-      (void) CQChartsUtil::columnValueType(table_->charts(), model, index.column(),
-                                           columnType, nameValues);
-
-      p = th->columnTypeMap_.insert(p, ColumnTypeMap::value_type(index.column(), columnType));
+      drawCheckInside(painter, option, var.toBool(), index);
     }
-
-    CQBaseModel::Type columnType = (*p).second;
-
-    if (columnType == CQBaseModel::Type::COLOR) {
+    else if (columnType == CQBaseModel::Type::COLOR) {
       QVariant var = table_->modelP()->data(index);
 
       if (var.isValid())
@@ -97,6 +88,92 @@ class CQChartsTableDelegate : public QItemDelegate {
       else
         QItemDelegate::paint(painter, option, index);
     }
+  }
+
+  QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &item,
+                        const QModelIndex &index) const {
+    CQBaseModel::Type columnType = getColumnType(index);
+
+    if (columnType == CQBaseModel::Type::BOOLEAN) {
+      QVariant var = table_->modelP()->data(index);
+
+      QCheckBox *check = new QCheckBox(parent);
+
+      check->setObjectName("check");
+
+      check->setChecked(var.toBool());
+
+      check->setText(check->isChecked() ? "true" : "false");
+
+      check->setAutoFillBackground(true);
+      //check->setLayoutDirection(Qt::RightToLeft);
+
+      connect(check, SIGNAL(stateChanged(int)), this, SLOT(updateBoolean()));
+
+      currentIndex_ = index;
+
+      return check;
+    }
+    else {
+      return QItemDelegate::createEditor(parent, item, index);
+    }
+  }
+
+  void click(const QModelIndex &index) const {
+    CQBaseModel::Type columnType = getColumnType(index);
+
+    if (columnType == CQBaseModel::Type::BOOLEAN) {
+      QVariant var = table_->modelP()->data(index);
+
+      table_->modelP()->setData(index, ! var.toBool());
+    }
+  }
+
+  CQBaseModel::Type getColumnType(const QModelIndex &index) const {
+    QAbstractItemModel *model = table_->modelP().data();
+
+    CQChartsTableDelegate *th = const_cast<CQChartsTableDelegate *>(this);
+
+    auto p = th->columnTypeMap_.find(index.column());
+
+    if (p == th->columnTypeMap_.end()) {
+      CQBaseModel::Type  columnType;
+      CQChartsNameValues nameValues;
+
+      (void) CQChartsUtil::columnValueType(table_->charts(), model, index.column(),
+                                           columnType, nameValues);
+
+      p = th->columnTypeMap_.insert(p, ColumnTypeMap::value_type(index.column(), columnType));
+    }
+
+    return (*p).second;
+  }
+
+  void drawCheckInside(QPainter *painter, const QStyleOptionViewItem &option,
+                       bool checked, const QModelIndex &index) const {
+    QItemDelegate::drawBackground(painter, option, index);
+
+    Qt::CheckState checkState = (checked ? Qt::Checked : Qt::Unchecked);
+
+    QRect rect = option.rect;
+
+    rect.setWidth(option.rect.height());
+
+    rect.adjust(0, 1, -3, -2);
+
+    QItemDelegate::drawCheck(painter, option, rect, checkState);
+
+    QFontMetrics fm(painter->font());
+
+    int x = rect.right() + 4;
+  //int y = rect.top() + fm.ascent();
+
+    QRect rect1;
+
+    rect1.setCoords(x, option.rect.top(), option.rect.right(), option.rect.bottom());
+
+    //painter->drawText(x, y, (checked ? "true" : "false"));
+    QItemDelegate::drawDisplay(painter, option, rect1, checked ? "true" : "false");
   }
 
   void drawColor(QPainter *painter, const QStyleOptionViewItem &option,
@@ -137,11 +214,22 @@ class CQChartsTableDelegate : public QItemDelegate {
 
   void clearColumnTypes() { columnTypeMap_.clear(); }
 
+ private slots:
+  void updateBoolean() {
+    QCheckBox *check = qobject_cast<QCheckBox *>(sender());
+    assert(check);
+
+    check->setText(check->isChecked() ? "true" : "false");
+
+    table_->modelP()->setData(currentIndex_, check->isChecked());
+  }
+
  private:
   using ColumnTypeMap = std::map<int,CQBaseModel::Type>;
 
-  CQChartsTable* table_ { nullptr };
-  ColumnTypeMap  columnTypeMap_;
+  CQChartsTable*      table_ { nullptr };
+  ColumnTypeMap       columnTypeMap_;
+  mutable QModelIndex currentIndex_;
 };
 
 //------
@@ -162,7 +250,10 @@ CQChartsTable(CQCharts *charts, QWidget *parent) :
 
   setSelectionBehavior(SelectRows);
 
-  connect(horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(headerClickSlot(int)));
+  connect(horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(headerClickedSlot(int)));
+
+  connect(this, SIGNAL(clicked(const QModelIndex &)),
+          this, SLOT(itemClickedSlot(const QModelIndex &)));
 
   delegate_ = new CQChartsTableDelegate(this);
 
@@ -531,9 +622,16 @@ addReplaceSearch(const QString &text, bool add)
 
 void
 CQChartsTable::
-headerClickSlot(int section)
+headerClickedSlot(int section)
 {
   emit columnClicked(section);
+}
+
+void
+CQChartsTable::
+itemClickedSlot(const QModelIndex &index)
+{
+  delegate_->click(index);
 }
 
 void
@@ -544,6 +642,16 @@ selectionSlot()
   if (indices.empty()) return;
 
   scrollTo(indices.at(0), QAbstractItemView::EnsureVisible);
+}
+
+void
+CQChartsTable::
+scrollTo(const QModelIndex &index, ScrollHint hint)
+{
+  if (hint == QAbstractItemView::EnsureVisible)
+    return;
+
+  CQTableView::scrollTo(index, hint);
 }
 
 void

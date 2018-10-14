@@ -106,6 +106,7 @@ init()
   columnTypeMgr_->addType(CQBaseModel::Type::INTEGER        , new CQChartsColumnIntegerType       );
   columnTypeMgr_->addType(CQBaseModel::Type::REAL           , new CQChartsColumnRealType          );
   columnTypeMgr_->addType(CQBaseModel::Type::STRING         , new CQChartsColumnStringType        );
+  columnTypeMgr_->addType(CQBaseModel::Type::BOOLEAN        , new CQChartsColumnBooleanType       );
   columnTypeMgr_->addType(CQBaseModel::Type::RECT           , new CQChartsColumnRectType          );
   columnTypeMgr_->addType(CQBaseModel::Type::POLYGON        , new CQChartsColumnPolygonType       );
   columnTypeMgr_->addType(CQBaseModel::Type::COLOR          , new CQChartsColumnColorType         );
