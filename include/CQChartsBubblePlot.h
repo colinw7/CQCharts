@@ -254,7 +254,6 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   // columns
   Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn )
   Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
-  Q_PROPERTY(CQChartsColumn colorColumn READ colorColumn WRITE setColorColumn)
 
   // options
   Q_PROPERTY(bool valueLabel READ isValueLabel WRITE setValueLabel)
@@ -299,21 +298,6 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   //---
 
   void setTextFontSize(double s);
-
-  //---
-
-  const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
-  void setColorColumn(const CQChartsColumn &c) {
-    (void) setValueSetColumn("color", c); updateRangeAndObjs(); }
-
-  bool isColorMapped() const { return isValueSetMapped("color"); }
-  void setColorMapped(bool b) { setValueSetMapped("color", b); updateObjs(); }
-
-  double colorMapMin() const { return valueSetMapMin("color"); }
-  void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }
-
-  double colorMapMax() const { return valueSetMapMax("color"); }
-  void setColorMapMax(double r) { setValueSetMapMax("color", r); updateObjs(); }
 
   //---
 

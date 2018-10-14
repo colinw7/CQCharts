@@ -25,10 +25,7 @@ isSelectIndex(const QModelIndex &ind) const
 {
   Indices inds;
 
-  getSelectIndices(inds);
-
-  if (plot_->idColumn().isValid())
-    addColumnSelectIndex(inds, plot_->idColumn());
+  getHierSelectIndices(inds);
 
   for (auto &ind1 : inds) {
     QModelIndex ind2 = plot_->normalizeIndex(ind1);
@@ -46,10 +43,26 @@ addSelectIndices()
 {
   Indices inds;
 
-  getSelectIndices(inds);
+  getHierSelectIndices(inds);
 
   for (const auto &ind : inds)
     plot_->addSelectIndex(ind);
+}
+
+void
+CQChartsPlotObj::
+getHierSelectIndices(Indices &inds) const
+{
+  getSelectIndices(inds);
+
+  if (plot_->idColumn().isValid())
+    addColumnSelectIndex(inds, plot_->idColumn());
+
+  if (plot_->visibleColumn().isValid())
+    addColumnSelectIndex(inds, plot_->visibleColumn());
+
+  if (plot_->colorColumn().isValid())
+    addColumnSelectIndex(inds, plot_->colorColumn());
 }
 
 void

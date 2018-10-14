@@ -130,7 +130,6 @@ addProperties()
 
   addProperty("columns", this, "nameColumns", "names");
   addProperty("columns", this, "valueColumn", "value");
-  addProperty("columns", this, "colorColumn", "color");
 
   addProperty("options", this, "separator");
   addProperty("options", this, "innerRadius");
@@ -1145,7 +1144,6 @@ getSelectIndices(Indices &inds) const
     addColumnSelectIndex(inds, c);
 
   addColumnSelectIndex(inds, plot_->valueColumn());
-  addColumnSelectIndex(inds, plot_->colorColumn());
 }
 
 void

@@ -7,7 +7,7 @@ proc objPressed { view plot id } {
 }
 
 add_process_model_proc color_value { arg } {
-  return [expr {$arg < 0.0 ? "red" : "green"}]
+  return [expr {$arg < 0.0 ? "#aa4444" : "#44aa44"}]
 }
 
 set model [load_model -csv data/gaussian.txt -comment_header]

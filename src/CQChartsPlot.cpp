@@ -1154,6 +1154,7 @@ addProperties()
   addProperty("columns", this, "idColumn"     , "id"     );
   addProperty("columns", this, "tipColumn"    , "tip"    );
   addProperty("columns", this, "visibleColumn", "visible");
+  addProperty("columns", this, "colorColumn"  , "color"  );
 
   addProperty("range", this, "viewRect"     , "view"     );
   addProperty("range", this, "innerViewRect", "innerView");
@@ -3070,6 +3071,43 @@ CQChartsPlot::
 setVisibleColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(visibleColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsPlot::
+setColorColumn(const CQChartsColumn &c)
+{
+  if (setValueSetColumn("color", c))
+    updateRangeAndObjs();
+}
+
+void
+CQChartsPlot::
+setColorMapped(bool b)
+{
+  setValueSetMapped("color", b);
+
+  updateObjs();
+}
+
+void
+CQChartsPlot::
+setColorMapMin(double r)
+{
+  setValueSetMapMin("color", r);
+
+  updateObjs();
+}
+
+void
+CQChartsPlot::
+setColorMapMax(double r)
+{
+  setValueSetMapMax("color", r);
+
+  updateObjs();
 }
 
 //------

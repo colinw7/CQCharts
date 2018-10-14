@@ -14,7 +14,6 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
 
   // data
   Q_PROPERTY(CQChartsColumns valueColumns READ valueColumns WRITE setValueColumns)
-  Q_PROPERTY(CQChartsColumn  colorColumn  READ colorColumn  WRITE setColorColumn )
 
   // options
   Q_PROPERTY(bool           horizontal  READ isHorizontal WRITE setHorizontal )
@@ -50,21 +49,6 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   // group margin
   const CQChartsLength &groupMargin() const { return groupMargin_; }
   void setGroupMargin(const CQChartsLength &l);
-
-  //---
-
-  const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
-  void setColorColumn(const CQChartsColumn &c) {
-    (void) setValueSetColumn("color", c); updateRangeAndObjs(); }
-
-  bool isColorMapped() const { return isValueSetMapped("color"); }
-  void setColorMapped(bool b) { setValueSetMapped("color", b); updateObjs(); }
-
-  double colorMapMin() const { return valueSetMapMin("color"); }
-  void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }
-
-  double colorMapMax() const { return valueSetMapMax("color"); }
-  void setColorMapMax(double r) { setValueSetMapMax("color", r); updateObjs(); }
 
   //---
 

@@ -33,9 +33,6 @@ addParameters()
   addColumnParameter("keyLabel", "Key Label", "keyLabelColumn").
     setString().setTip("Custom key label");
 
-  addColumnParameter("color", "Color", "colorColumn").
-    setColor().setTip("Custom slice color");
-
   addBoolParameter("donut", "Donut", "donut").setTip("Draw donut");
   addBoolParameter("count", "Count", "count").setTip("Display value counts");
 
@@ -213,7 +210,6 @@ addProperties()
   addProperty("columns", this, "labelColumn"   , "label"   );
   addProperty("columns", this, "radiusColumn"  , "radius"  );
   addProperty("columns", this, "keyLabelColumn", "keyLabel");
-  addProperty("columns", this, "colorColumn"   , "color"   );
 
   CQChartsGroupPlot::addProperties();
 

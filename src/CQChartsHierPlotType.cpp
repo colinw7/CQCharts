@@ -17,9 +17,6 @@ addParameters()
   addColumnParameter ("value", "Value", "valueColumn").
    setNumeric().setTip("Data value column");
 
-  addColumnParameter ("color", "Color", "colorColumn").
-   setColor().setTip("Custom color");
-
   addStringParameter("separator", "Separator", "separator", "/").
    setTip("Separator for hierarchical path");
 

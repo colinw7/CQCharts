@@ -213,7 +213,6 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsColumn symbolTypeColumn READ symbolTypeColumn WRITE setSymbolTypeColumn)
   Q_PROPERTY(CQChartsColumn symbolSizeColumn READ symbolSizeColumn WRITE setSymbolSizeColumn)
   Q_PROPERTY(CQChartsColumn fontSizeColumn   READ fontSizeColumn   WRITE setFontSizeColumn  )
-  Q_PROPERTY(CQChartsColumn colorColumn      READ colorColumn      WRITE setColorColumn     )
 
   // best fit
   Q_PROPERTY(bool bestFit          READ isBestFit          WRITE setBestFit         )
@@ -495,21 +494,6 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   double symbolSizeMapMax() const { return valueSetMapMax("symbolSize"); }
   void setSymbolSizeMapMax(double r);
-
-  //---
-
-  // color column and map
-  const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
-  void setColorColumn(const CQChartsColumn &c);
-
-  bool isColorMapped() const { return isValueSetMapped("color"); }
-  void setColorMapped(bool b);
-
-  double colorMapMin() const { return valueSetMapMin("color"); }
-  void setColorMapMin(double r);
-
-  double colorMapMax() const { return valueSetMapMax("color"); }
-  void setColorMapMax(double r);
 
   //---
 

@@ -95,7 +95,6 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsColumn nameColumn     READ nameColumn     WRITE setNameColumn    )
   Q_PROPERTY(CQChartsColumn geometryColumn READ geometryColumn WRITE setGeometryColumn)
   Q_PROPERTY(CQChartsColumn valueColumn    READ valueColumn    WRITE setValueColumn   )
-  Q_PROPERTY(CQChartsColumn colorColumn    READ colorColumn    WRITE setColorColumn   )
   Q_PROPERTY(CQChartsColumn styleColumn    READ styleColumn    WRITE setStyleColumn   )
 
   // value range
@@ -133,9 +132,6 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   const CQChartsColumn &valueColumn() const { return valueColumn_; }
   void setValueColumn(const CQChartsColumn &c);
-
-  const CQChartsColumn &colorColumn() const { return colorColumn_; }
-  void setColorColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &styleColumn() const { return styleColumn_; }
   void setStyleColumn(const CQChartsColumn &c);
@@ -175,7 +171,6 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   CQChartsColumn    nameColumn_;                              // name column
   CQChartsColumn    geometryColumn_;                          // geometry column
   CQChartsColumn    valueColumn_;                             // value column
-  CQChartsColumn    colorColumn_;                             // color column
   CQChartsColumn    styleColumn_;                             // style column
   ColumnType        geometryColumnType_ { ColumnType::NONE }; // geometry column type
   ColumnType        colorColumnType_    { ColumnType::NONE }; // color column type

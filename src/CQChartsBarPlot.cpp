@@ -44,7 +44,6 @@ CQChartsBarPlot::
 addProperties()
 {
   addProperty("columns", this, "valueColumns", "values");
-  addProperty("columns", this, "colorColumn" , "color" );
 
   addProperty("options", this, "horizontal");
 

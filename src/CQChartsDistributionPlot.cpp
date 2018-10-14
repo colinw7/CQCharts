@@ -52,9 +52,6 @@ addParameters()
   addIntParameter("numAutoBuckets", "Num Auto Buckets", "numAutoBuckets", 10).
     setRequired().setTip("Number of auto buckets");
 
-  // color
-  addColumnParameter("color", "Color", "colorColumn").setTip("Custom bar color");
-
   // options
   addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
 

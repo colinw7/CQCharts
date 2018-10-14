@@ -28,8 +28,6 @@ addParameters()
     setString().setTip("Custom group name");
   addColumnParameter("label", "Label", "labelColumn").
     setString().setTip("Bar data label");
-  addColumnParameter("color", "Color", "colorColumn").
-    setColor().setTip("Custom bar color");
 
   // options
   addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
@@ -1464,7 +1462,6 @@ getSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, plot_->valueColumns().getColumn(iset_));
   addColumnSelectIndex(inds, plot_->nameColumn());
   addColumnSelectIndex(inds, plot_->labelColumn());
-  addColumnSelectIndex(inds, plot_->colorColumn());
 }
 
 void

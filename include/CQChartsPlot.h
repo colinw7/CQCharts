@@ -101,6 +101,7 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(CQChartsColumn idColumn      READ idColumn      WRITE setIdColumn     )
   Q_PROPERTY(CQChartsColumn tipColumn     READ tipColumn     WRITE setTipColumn    )
   Q_PROPERTY(CQChartsColumn visibleColumn READ visibleColumn WRITE setVisibleColumn)
+  Q_PROPERTY(CQChartsColumn colorColumn   READ colorColumn   WRITE setColorColumn  )
 
   // visible, selected
   Q_PROPERTY(bool visible READ isVisible WRITE setVisible)
@@ -998,6 +999,20 @@ class CQChartsPlot : public CQChartsObj,
 
   const CQChartsColumn &visibleColumn() const { return visibleColumn_; }
   void setVisibleColumn(const CQChartsColumn &column);
+
+  //---
+
+  const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
+  void setColorColumn(const CQChartsColumn &c);
+
+  bool isColorMapped() const { return isValueSetMapped("color"); }
+  void setColorMapped(bool b);
+
+  double colorMapMin() const { return valueSetMapMin("color"); }
+  void setColorMapMin(double r);
+
+  double colorMapMax() const { return valueSetMapMax("color"); }
+  void setColorMapMax(double r);
 
   //---
 

@@ -11,7 +11,6 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   Q_PROPERTY(CQChartsColumns nameColumns READ nameColumns WRITE setNameColumns)
   Q_PROPERTY(CQChartsColumn  valueColumn READ valueColumn WRITE setValueColumn)
-  Q_PROPERTY(CQChartsColumn  colorColumn READ colorColumn WRITE setColorColumn)
   Q_PROPERTY(QString         separator   READ separator   WRITE setSeparator  )
 
  public:
@@ -26,21 +25,6 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   const CQChartsColumn &valueColumn() const { return valueColumn_; }
   void setValueColumn(const CQChartsColumn &c);
-
-  //---
-
-  const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
-  void setColorColumn(const CQChartsColumn &c) {
-    (void) setValueSetColumn("color", c); updateRangeAndObjs(); }
-
-  bool isColorMapped() const { return isValueSetMapped("color"); }
-  void setColorMapped(bool b) { setValueSetMapped("color", b); updateObjs(); }
-
-  double colorMapMin() const { return valueSetMapMin("color"); }
-  void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }
-
-  double colorMapMax() const { return valueSetMapMax("color"); }
-  void setColorMapMax(double r) { setValueSetMapMax("color", r); updateObjs(); }
 
   //---
 

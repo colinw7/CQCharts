@@ -24,7 +24,6 @@ addParameters()
   addColumnParameter("value", "Value", "valueColumn").setRequired();
 
   addColumnParameter("name" , "Name" , "nameColumn" );
-  addColumnParameter("color", "Color", "colorColumn").setTip("Custom shape color");
   addColumnParameter("style", "Style", "styleColumn");
 
   endParameterGroup();
@@ -117,13 +116,6 @@ setValueColumn(const CQChartsColumn &c)
 
 void
 CQChartsGeometryPlot::
-setColorColumn(const CQChartsColumn &c)
-{
-  CQChartsUtil::testAndSet(colorColumn_, c, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsGeometryPlot::
 setStyleColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(styleColumn_, c, [&]() { updateRangeAndObjs(); } );
@@ -156,7 +148,6 @@ addProperties()
   addProperty("columns", this, "nameColumn"    , "name"    );
   addProperty("columns", this, "geometryColumn", "geometry");
   addProperty("columns", this, "valueColumn"   , "value"   );
-  addProperty("columns", this, "colorColumn"   , "color"   );
   addProperty("columns", this, "styleColumn"   , "style"   );
 
   addProperty("stroke", this, "border", "visible");
@@ -523,7 +514,6 @@ getSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, plot_->nameColumn    ());
   addColumnSelectIndex(inds, plot_->geometryColumn());
   addColumnSelectIndex(inds, plot_->valueColumn   ());
-  addColumnSelectIndex(inds, plot_->colorColumn   ());
   addColumnSelectIndex(inds, plot_->styleColumn   ());
 }
 

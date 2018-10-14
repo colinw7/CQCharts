@@ -1116,7 +1116,6 @@ getSelectIndices(Indices &inds) const
     addColumnSelectIndex(inds, c);
 
   addColumnSelectIndex(inds, plot_->valueColumn());
-  addColumnSelectIndex(inds, plot_->colorColumn());
 }
 
 void

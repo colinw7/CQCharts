@@ -23,9 +23,6 @@ addParameters()
   addColumnParameter("value", "Value", "valueColumn").
    setNumeric().setRequired().setTip("Value Column");
 
-  addColumnParameter("color", "Color", "colorColumn").
-    setColor().setTip("Custom bubble color");
-
   endParameterGroup();
 
   //---
@@ -133,7 +130,6 @@ addProperties()
   // columns
   addProperty("columns", this, "nameColumn" , "name" );
   addProperty("columns", this, "valueColumn", "value");
-  addProperty("columns", this, "colorColumn", "color");
 
   CQChartsGroupPlot::addProperties();
 
@@ -799,7 +795,6 @@ getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->nameColumn ());
   addColumnSelectIndex(inds, plot_->valueColumn());
-  addColumnSelectIndex(inds, plot_->colorColumn());
 }
 
 void

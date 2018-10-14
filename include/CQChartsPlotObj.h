@@ -73,6 +73,8 @@ class CQChartsPlotObj : public CQChartsObj {
 
   void addSelectIndices();
 
+  void getHierSelectIndices(Indices &inds) const;
+
   virtual void getSelectIndices(Indices &inds) const = 0;
 
   virtual void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const = 0;

@@ -36,7 +36,6 @@ addProperties()
 
   addProperty("columns", this, "nameColumns", "names");
   addProperty("columns", this, "valueColumn", "value");
-  addProperty("columns", this, "colorColumn", "color");
 
   addProperty("options", this, "separator");
 

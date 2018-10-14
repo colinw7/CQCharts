@@ -51,9 +51,6 @@ addParameters()
   addColumnParameter("symbolSize", "Symbol Size", "symbolSizeColumn").
    setTip("Custom Symbol Size").setMapped().setMapMinMax(8, 64);
 
-  addColumnParameter("color", "Color", "colorColumn").
-   setTip("Custom Symbol Fill Color").setMapped();
-
   addColumnParameter("fontSize", "Font Size", "fontSizeColumn"  ).
    setTip("Custom Font Size for Text Label").setMapped().setMapMinMax(8, 48);
 
@@ -257,43 +254,6 @@ CQChartsScatterPlot::
 setSymbolSizeMapMax(double r)
 {
   setValueSetMapMax("symbolSize", r);
-
-  updateObjs();
-}
-
-//---
-
-void
-CQChartsScatterPlot::
-setColorColumn(const CQChartsColumn &c)
-{
-  if (setValueSetColumn("color", c))
-    updateRangeAndObjs();
-}
-
-void
-CQChartsScatterPlot::
-setColorMapped(bool b)
-{
-  setValueSetMapped("color", b);
-
-  updateObjs();
-}
-
-void
-CQChartsScatterPlot::
-setColorMapMin(double r)
-{
-  setValueSetMapMin("color", r);
-
-  updateObjs();
-}
-
-void
-CQChartsScatterPlot::
-setColorMapMax(double r)
-{
-  setValueSetMapMax("color", r);
 
   updateObjs();
 }
@@ -543,7 +503,6 @@ addProperties()
   addProperty("columns", this, "symbolTypeColumn", "symbolType");
   addProperty("columns", this, "symbolSizeColumn", "symbolSize");
   addProperty("columns", this, "fontSizeColumn"  , "fontSize"  );
-  addProperty("columns", this, "colorColumn"     , "color"     );
 
   // best fit line and deviation fill
   addProperty("bestFit", this, "bestFit"         , "enabled"  );
