@@ -153,11 +153,10 @@ class CQChartsAxis : public CQChartsObj,
   void setLog(bool b);
 
   const CQChartsColumn &column() const { return column_; }
-  void setColumn(const CQChartsColumn &c) {
-    CQChartsUtil::testAndSet(column_, c, [&]() { redraw(); } ); }
+  void setColumn(const CQChartsColumn &c);
 
   bool isDataLabels() const { return dataLabels_; }
-  void setDataLabels(bool b) { CQChartsUtil::testAndSet(dataLabels_, b, [&]() { redraw(); } ); }
+  void setDataLabels(bool b);
 
   QString format() const;
   bool setFormat(const QString &s);

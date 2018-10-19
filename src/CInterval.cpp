@@ -71,6 +71,7 @@ inline int timeLengthToSeconds(time_t t1, time_t t2) {
   return t;
 }
 
+#if 0
 inline double roundTimeToYear(time_t t) {
   struct tm *lt = localtime(&t);
 
@@ -128,6 +129,7 @@ inline double roundTimeToMinute(time_t t) {
 
   return mktime(lt);
 }
+#endif
 
 inline int timeToYear(time_t t) {
   struct tm *lt = localtime(&t);

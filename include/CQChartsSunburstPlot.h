@@ -264,9 +264,6 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   // text
   CQCHARTS_TEXT_DATA_PROPERTIES
 
-  // colormap
-  CQCHARTS_COLOR_MAP_PROPERTIES
-
  public:
   using RootNodes = std::vector<CQChartsSunburstRootNode*>;
 

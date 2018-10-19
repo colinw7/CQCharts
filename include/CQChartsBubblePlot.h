@@ -265,9 +265,6 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   // text
   CQCHARTS_TEXT_DATA_PROPERTIES
 
-  // color map
-  CQCHARTS_COLOR_MAP_PROPERTIES
-
  public:
   using Pack  = CQChartsCirclePack<CQChartsBubbleNode>;
   using Nodes = std::vector<CQChartsBubbleNode*>;

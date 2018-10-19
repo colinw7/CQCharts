@@ -232,6 +232,22 @@ tickLabel(long i) const
 
 //---
 
+void
+CQChartsAxis::
+setColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(column_, c, [&]() { redraw(); } );
+}
+
+void
+CQChartsAxis::
+setDataLabels(bool b)
+{
+  CQChartsUtil::testAndSet(dataLabels_, b, [&]() { redraw(); } );
+}
+
+//---
+
 QString
 CQChartsAxis::
 format() const

@@ -99,8 +99,10 @@ class CQChartsPlotDlg : public QDialog {
  private:
   void init();
 
+  QFrame *createDataFrame();
   QFrame *createTypeDataFrame();
   QFrame *createGeneralDataFrame();
+  QFrame *createSummaryFrame();
   QFrame *createPreviewFrame();
 
   void sortedPlotTypes(CQCharts::PlotTypes &sortedPlotTypes);
@@ -189,8 +191,13 @@ class CQChartsPlotDlg : public QDialog {
 
   CQChartsPlotType *getPlotType() const;
 
+  bool isAutoAnalyzeModel() const { return autoAnalyzeModel_; }
+  void setAutoAnalyzeModel(bool b) { autoAnalyzeModel_ = b; }
+
  private slots:
   void comboSlot(const QString &desc);
+
+  void autoAnalyzeSlot(int);
 
   void xminSlot();
   void yminSlot();
@@ -203,6 +210,7 @@ class CQChartsPlotDlg : public QDialog {
 
   void previewEnabledSlot();
   void summaryEnabledSlot();
+  void updateSummaryTypeSlot();
   void updatePreviewSlot();
 
   void okSlot();
@@ -246,19 +254,18 @@ class CQChartsPlotDlg : public QDialog {
   TabType            tabType_;                            // tab type map
   QCheckBox*         previewEnabledCheck_    { nullptr }; // preview enabled checkbox
   QCheckBox*         summaryEnabledCheck_    { nullptr }; // summary enabled checkbox
-  CQIntegerSpin*     previewMaxRows_         { nullptr }; // preview summary max rows
-  QRadioButton*      previewNormalRadio_     { nullptr }; // preview summary normal type
-  QRadioButton*      previewRandomRadio_     { nullptr }; // preview summary random type
-  QRadioButton*      previewSortedRadio_     { nullptr }; // preview summary sorted type
-  QRadioButton*      previewPagedRadio_      { nullptr }; // preview summary paged type
-  CQIntegerSpin*     previewSortedColEdit_   { nullptr }; // preview summary column edit
-  CQIntegerSpin*     previewPageSizeEdit_    { nullptr }; // preview summary page size edit
-  CQIntegerSpin*     previewCurrentPageEdit_ { nullptr }; // preview summary current page edit
-  CQChartsModelView* previewModelView_       { nullptr }; // preview model view
+  CQIntegerSpin*     summaryMaxRows_         { nullptr }; // summary max rows
+  QComboBox*         summaryTypeCombo_       { nullptr }; // summary type combo
+  QStackedWidget*    summaryTypeStack_       { nullptr }; // summary type stack
+  CQIntegerSpin*     summarySortedColEdit_   { nullptr }; // summary column edit
+  CQIntegerSpin*     summaryPageSizeEdit_    { nullptr }; // summary page size edit
+  CQIntegerSpin*     summaryCurrentPageEdit_ { nullptr }; // summary current page edit
+  CQChartsModelView* summaryModelView_       { nullptr }; // summary model view
   CQChartsView*      previewView_            { nullptr }; // preview chart view
   CQChartsPlot*      previewPlot_            { nullptr }; // preview plot
   CQChartsPlot*      plot_                   { nullptr }; // last created plot (apply)
   bool               initialized_            { false   }; // is initialized
+  bool               autoAnalyzeModel_       { true };    // auto analyze model
   TypeInitialized    typeInitialzed_;                     // is type initialized
 };
 

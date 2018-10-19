@@ -300,6 +300,11 @@ print(std::ostream &os) const
     os << "  Type:   " << typeName().toStdString() << "\n";
     os << "  Column: " << column_.column() << "\n";
   }
+  else if (dataType() == DataType::COLUMN_ROOT) {
+    os << " Column Root:\n";
+    os << "  Type:   " << typeName().toStdString() << "\n";
+    os << "  Column: " << column_.column() << "\n";
+  }
   else if (dataType() == DataType::PATH) {
     os << " Path:\n";
   }

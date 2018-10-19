@@ -29,8 +29,7 @@ class CQBaseModel : public QAbstractItemModel {
     CachedValue       = Type + 6,         // cached value role
     OutputValue       = Type + 7,         // output value role
     Group             = Type + 8,         // group role
-    Key               = Type + 9,         // is key role
-    CustomSort        = Type + 10         // custom sort role
+    Key               = Type + 9          // is key role
   };
 
   // use variant numbers where possible

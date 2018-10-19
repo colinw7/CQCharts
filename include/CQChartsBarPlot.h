@@ -23,9 +23,6 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   // bar border
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Bar,bar)
 
-  // color map
-  CQCHARTS_COLOR_MAP_PROPERTIES
-
  public:
   CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model);
 

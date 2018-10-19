@@ -36,7 +36,7 @@ addParameters()
   // connections are id pairs and counts
   startParameterGroup("Name Pair/Count");
 
-  addColumnParameter("namePair", "NamePair", "namePairColumn").
+  addColumnParameter("namePair", "Name Pair", "namePairColumn").
    setTip("Connected Name Pairs (<name1>/<name2>)").setDiscrimator();
 
   addColumnParameter("count", "Count", "countColumn").
@@ -47,7 +47,7 @@ addParameters()
   addColumnParameter("name", "Name", "nameColumn").
    setString().setTip("Name For Id");
 
-  addColumnParameter("groupId", "GroupId", "groupIdColumn").
+  addColumnParameter("groupId", "Group Id", "groupIdColumn").
    setNumeric().setTip("Group Id for Color");
 
   //---

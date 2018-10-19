@@ -36,7 +36,7 @@ addParameters()
   // connections are id pairs and counts
   startParameterGroup("Name Pair/Count");
 
-  addColumnParameter("namePair", "NamePair", "namePairColumn").
+  addColumnParameter("namePair", "Name Pair", "namePairColumn").
     setTip("Connected Name Pairs (<name1>/<name2>)");
 
   addColumnParameter("count", "Count", "countColumn").
@@ -46,7 +46,7 @@ addParameters()
 
   //---
 
-  addColumnParameter("groupId", "GroupId", "groupIdColumn");
+  addColumnParameter("groupId", "Group Id", "groupIdColumn");
 
   //---
 

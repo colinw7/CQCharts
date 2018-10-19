@@ -55,6 +55,7 @@ class CQChartsPlotType : public QObject {
   Q_PROPERTY(bool      hasAxes            READ hasAxes           )
   Q_PROPERTY(bool      hasKey             READ hasKey            )
   Q_PROPERTY(bool      hasTitle           READ hasTitle          )
+  Q_PROPERTY(bool      hasColor           READ hasColor          )
   Q_PROPERTY(bool      allowXAxisIntegral READ allowXAxisIntegral)
   Q_PROPERTY(bool      allowYAxisIntegral READ allowYAxisIntegral)
   Q_PROPERTY(bool      allowXLog          READ allowXLog         )
@@ -100,6 +101,7 @@ class CQChartsPlotType : public QObject {
   virtual bool hasAxes () const { return true; }
   virtual bool hasKey  () const { return true; }
   virtual bool hasTitle() const { return true; }
+  virtual bool hasColor() const { return true; }
 
   // TODO: use plot first then default to type
   virtual bool allowXAxisIntegral() const { return true; }

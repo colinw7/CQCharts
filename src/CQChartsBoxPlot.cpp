@@ -38,19 +38,19 @@ addParameters()
 
   CQChartsPlotParameterGroup *secondaryGroup = startParameterGroup("Calculated Values");
 
-  addColumnParameter("x"          , "X"          , "xColumn"          ).
+  addColumnParameter("x"          , "X"           , "xColumn"          ).
     setNumeric().setTip("X Value");
-  addColumnParameter("min"        , "Min"        , "minColumn"        ).
+  addColumnParameter("min"        , "Min"         , "minColumn"        ).
     setNumeric().setTip("Min Value");
-  addColumnParameter("lowerMedian", "LowerMedian", "lowerMedianColumn").
+  addColumnParameter("lowerMedian", "Lower Median", "lowerMedianColumn").
     setNumeric().setTip("Lower Median Value");
-  addColumnParameter("median"     , "Median"     , "medianColumn"     ).
+  addColumnParameter("median"     , "Median"      , "medianColumn"     ).
     setNumeric().setTip("Media Value");
-  addColumnParameter("upperMedian", "UpperMedian", "upperMedianColumn").
+  addColumnParameter("upperMedian", "Upper Median", "upperMedianColumn").
     setNumeric().setTip("Upper Median Value");
-  addColumnParameter("max"        , "Max"        , "maxColumn"        ).
+  addColumnParameter("max"        , "Max"         , "maxColumn"        ).
     setNumeric().setTip("Max Value");
-  addColumnParameter("outliers"   , "Outliers"   , "outliersColumn"   ).
+  addColumnParameter("outliers"   , "Outliers"    , "outliersColumn"   ).
     setTip("Outlier Values");
 
   endParameterGroup();
@@ -71,11 +71,13 @@ addParameters()
 
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
 
-  addBoolParameter("pointsJitter" , "PointsJitter" , "pointsJitter" ).setTip("jitter data points");
-  addBoolParameter("pointsStacked", "PointsStacked", "pointsStacked").setTip("stacked data points");
+  addBoolParameter("pointsJitter" , "Points Jitter" , "pointsJitter" ).
+    setTip("jitter data points");
+  addBoolParameter("pointsStacked", "Points Stacked", "pointsStacked").
+    setTip("stacked data points");
 
-  addBoolParameter("violin"  , "Violin"  , "violin"  ).setTip("violin border");
-  addBoolParameter("errorBar", "ErrorBar", "errorBar").setTip("error bar");
+  addBoolParameter("violin"  , "Violin"   , "violin"  ).setTip("violin border");
+  addBoolParameter("errorBar", "Error Bar", "errorBar").setTip("error bar");
 
   //---
 

@@ -279,9 +279,6 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   Q_PROPERTY(double symbolSizeMapMin READ symbolSizeMapMin   WRITE setSymbolSizeMapMin)
   Q_PROPERTY(double symbolSizeMapMax READ symbolSizeMapMax   WRITE setSymbolSizeMapMax)
 
-  // color map
-  CQCHARTS_COLOR_MAP_PROPERTIES
-
   // font size map
   Q_PROPERTY(bool   fontSizeMapped READ isFontSizeMapped WRITE setFontSizeMapped)
   Q_PROPERTY(double fontSizeMapMin READ fontSizeMapMin   WRITE setFontSizeMapMin)

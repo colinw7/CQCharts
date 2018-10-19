@@ -103,7 +103,10 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(CQChartsColumn visibleColumn READ visibleColumn WRITE setVisibleColumn)
   Q_PROPERTY(CQChartsColumn colorColumn   READ colorColumn   WRITE setColorColumn  )
 
-  // visible, selected
+  // color map
+  CQCHARTS_COLOR_MAP_PROPERTIES
+
+  // visible
   Q_PROPERTY(bool visible READ isVisible WRITE setVisible)
 
   // rectangle and data range
@@ -770,6 +773,11 @@ class CQChartsPlot : public CQChartsObj,
                                    const QModelIndex &parent, int role, bool &ok) const;
   virtual CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                                    const QModelIndex &parent, bool &ok) const;
+
+  //---
+
+  QVariant modelRootValue(int row, const CQChartsColumn &column,
+                          const QModelIndex &parent, bool &ok) const;
 
   //---
 

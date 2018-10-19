@@ -22,6 +22,33 @@ CQChartsModelDetails::
   reset();
 }
 
+int
+CQChartsModelDetails::
+numColumns() const
+{
+  initSimpleData();
+
+  return numColumns_;
+}
+
+int
+CQChartsModelDetails::
+numRows() const
+{
+  initSimpleData();
+
+  return numRows_;
+}
+
+bool
+CQChartsModelDetails::
+isHierarchical() const
+{
+  initSimpleData();
+
+  return hierarchical_;
+}
+
 const CQChartsModelColumnDetails *
 CQChartsModelDetails::
 columnDetails(const CQChartsColumn &c) const
@@ -35,8 +62,6 @@ CQChartsModelColumnDetails *
 CQChartsModelDetails::
 columnDetails(const CQChartsColumn &c)
 {
-  initData();
-
   auto p = columnDetails_.find(c);
 
   if (p != columnDetails_.end())
@@ -53,12 +78,23 @@ columnDetails(const CQChartsColumn &c)
 
 void
 CQChartsModelDetails::
-initData() const
+initSimpleData() const
 {
-  if (! initialized_) {
+  if (initialized_ == Initialized::NONE) {
     CQChartsModelDetails *th = const_cast<CQChartsModelDetails *>(this);
 
-    th->update();
+    th->updateSimple();
+  }
+}
+
+void
+CQChartsModelDetails::
+initFullData() const
+{
+  if (initialized_ != Initialized::FULL) {
+    CQChartsModelDetails *th = const_cast<CQChartsModelDetails *>(this);
+
+    th->updateFull();
   }
 }
 
@@ -66,7 +102,7 @@ void
 CQChartsModelDetails::
 reset()
 {
-  initialized_  = false;
+  initialized_  = Initialized::NONE;
   numColumns_   = 0;
   numRows_      = 0;
   hierarchical_ = false;
@@ -79,7 +115,27 @@ reset()
 
 void
 CQChartsModelDetails::
-update()
+updateSimple()
+{
+  CIncrementalTimerMgrInst->clear();
+
+  QAbstractItemModel *model = data_->currentModel().data();
+
+  reset();
+
+  hierarchical_ = CQChartsUtil::isHierarchical(model);
+
+  numColumns_ = model->columnCount();
+  numRows_    = model->rowCount   ();
+
+  CIncrementalTimerMgrInst->clear();
+
+  initialized_ = Initialized::SIMPLE;
+}
+
+void
+CQChartsModelDetails::
+updateFull()
 {
   CIncrementalTimerMgrInst->clear();
 
@@ -93,22 +149,22 @@ update()
   numRows_    = model->rowCount   ();
 
   for (int c = 0; c < numColumns_; ++c) {
-    CQChartsModelColumnDetails *columnDetails = new CQChartsModelColumnDetails(this, c);
-
-    columnDetails_[c] = columnDetails;
+    CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
 
     numRows_ = std::max(numRows_, columnDetails->numRows());
   }
 
   CIncrementalTimerMgrInst->clear();
 
-  initialized_ = true;
+  initialized_ = Initialized::FULL;
 }
 
 CQChartsColumns
 CQChartsModelDetails::
 numericColumns() const
 {
+  initFullData();
+
   CQChartsColumns columns;
 
   for (auto &cd : columnDetails_) {
@@ -125,6 +181,8 @@ CQChartsColumns
 CQChartsModelDetails::
 monotonicColumns() const
 {
+  initFullData();
+
   CQChartsColumns columns;
 
   for (auto &cd : columnDetails_) {
@@ -253,6 +311,9 @@ CQBaseModel::Type
 CQChartsModelColumnDetails::
 type() const
 {
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+
   return type_;
 }
 
@@ -267,6 +328,9 @@ const CQChartsNameValues &
 CQChartsModelColumnDetails::
 nameValues() const
 {
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+
   return nameValues_;
 }
 
@@ -294,6 +358,9 @@ QVariant
 CQChartsModelColumnDetails::
 meanValue() const
 {
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+
   if      (type() == CQBaseModel::Type::INTEGER) {
     if (ivals_) return ivals_->mean();
   }
@@ -317,6 +384,9 @@ QVariant
 CQChartsModelColumnDetails::
 stdDevValue() const
 {
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+
   if      (type() == CQBaseModel::Type::INTEGER) {
     if (ivals_) return ivals_->stddev();
   }

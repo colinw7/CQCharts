@@ -4,7 +4,6 @@ CQChartsHierPlot::
 CQChartsHierPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
  CQChartsPlot(view, type, model)
 {
-  (void) addColorSet("color");
 }
 
 CQChartsHierPlot::

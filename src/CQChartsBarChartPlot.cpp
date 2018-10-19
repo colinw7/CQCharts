@@ -3,6 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsTip.h>
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>
 
@@ -32,12 +33,12 @@ addParameters()
   // options
   addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
 
-  addEnumParameter("plotType", "PlotType", "plotType").
+  addEnumParameter("plotType", "Plot Type", "plotType").
     addNameValue("Normal" , int(CQChartsBarChartPlot::PlotType::NORMAL )).
     addNameValue("Stacked", int(CQChartsBarChartPlot::PlotType::STACKED)).
     setTip("Plot type");
 
-  addEnumParameter("valueType", "ValueType", "valueType").
+  addEnumParameter("valueType", "Value Type", "valueType").
    addNameValue("Value", int(CQChartsBarChartPlot::ValueType::VALUE)).
    addNameValue("Range", int(CQChartsBarChartPlot::ValueType::RANGE)).
    addNameValue("Min"  , int(CQChartsBarChartPlot::ValueType::MIN  )).
@@ -45,8 +46,8 @@ addParameters()
    addNameValue("Mean" , int(CQChartsBarChartPlot::ValueType::MEAN )).
    setTip("Bar value type");
 
-  addBoolParameter("percent" , "Percent" , "percent" ).setTip("Show value is percentage");
-  addBoolParameter("dotLines", "DotLines", "dotLines").setTip("draw bars as lines with dot");
+  addBoolParameter("percent" , "Percent"  , "percent" ).setTip("Show value is percentage");
+  addBoolParameter("dotLines", "Dot Lines", "dotLines").setTip("draw bars as lines with dot");
 
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
 
@@ -529,7 +530,14 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   if (nameColumn().isValid()) {
     bool ok2;
 
-    name = modelString(data.row, nameColumn(), data.parent, ok2);
+    QVariant var = modelValue(data.row, nameColumn(), data.parent, ok2);
+
+    double r;
+
+    if (CQChartsVariant::toReal(var, r))
+      name = columnStr(nameColumn(), r);
+    else
+      name = modelString(data.row, nameColumn(), data.parent, ok2);
 
     if (! categoryName.length())
       categoryName = name;

@@ -522,15 +522,9 @@ data(const QModelIndex &index, int role) const
       }
       else if (role == Qt::EditRole) {
         if (c == foldPos_)
-          return nodeData.child->str;
-
-        return "";
-      }
-      else if (role == static_cast<int>(CQBaseModel::Role::CustomSort)) {
-        if (c == foldPos_)
           return nodeData.child->bucket;
 
-        return -1;
+        return "";
       }
       else if (role == Qt::ToolTipRole) {
         if (c == foldPos_)

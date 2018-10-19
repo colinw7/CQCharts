@@ -66,10 +66,6 @@ CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("pie"), model),
  CQChartsObjGridLineData<CQChartsPiePlot>(this)
 {
-  (void) addColorSet("color");
-
-  //---
-
   setValueColumns(CQChartsColumns("1"));
 
   setGridLinesColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5));

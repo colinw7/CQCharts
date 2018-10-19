@@ -54,8 +54,6 @@ CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjShapeData<CQChartsBubblePlot>(this),
  CQChartsObjTextData <CQChartsBubblePlot>(this)
 {
-  (void) addColorSet("color");
-
   setExactValue(false);
 
   //---

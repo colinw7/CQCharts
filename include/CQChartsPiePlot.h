@@ -278,9 +278,6 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   // grid
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Grid,grid)
 
-  // color map
-  CQCHARTS_COLOR_MAP_PROPERTIES
-
  public:
   CQChartsPiePlot(CQChartsView *view, const ModelP &model);
  ~CQChartsPiePlot();

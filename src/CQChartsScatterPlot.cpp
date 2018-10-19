@@ -96,7 +96,7 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   addValueSet("symbolSize", 8, 64)->setMapped(true);
   addValueSet("fontSize"  , 8, 48)->setMapped(true);
 
-  (void) addColorSet("color")->setMapped(true);
+  getColorSet("color")->setMapped(true);
 
   //---
 

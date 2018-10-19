@@ -5,8 +5,6 @@ CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &mo
  CQChartsGroupPlot(view, plotType, model),
  CQChartsObjBarShapeData<CQChartsBarPlot>(this)
 {
-  (void) addColorSet("color");
-
   setBarFilled   (true);
   setBarFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 

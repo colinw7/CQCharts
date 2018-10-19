@@ -43,7 +43,7 @@ addParameters()
   addBoolParameter("bivariate" , "Bivariate" , "bivariateLines" ).setTip("Draw Bivariate Lines");
   addBoolParameter("stacked"   , "Stacked"   , "stacked"        ).setTip("Stack Points");
   addBoolParameter("cumulative", "Cumulative", "cumulative"     ).setTip("Cumulate Values");
-  addBoolParameter("fillUnder" , "FillUnder" , "fillUnderFilled").setTip("Fill Under Curve");
+  addBoolParameter("fillUnder" , "Fill Under", "fillUnderFilled").setTip("Fill Under Curve");
   addBoolParameter("impulse"   , "Impulse"   , "impulseLines"   ).setTip("Draw Point Impulse");
 
   endParameterGroup();
@@ -53,9 +53,9 @@ addParameters()
   // custom columns/map
   startParameterGroup("Points");
 
-  addColumnParameter("pointLabel" , "PointLabel" , "pointLabelColumn" ).setString();
-  addColumnParameter("pointColor" , "PointColor" , "pointColorColumn" ).setColor ();
-  addColumnParameter("pointSymbol", "PointSymbol", "pointSymbolColumn").setString();
+  addColumnParameter("pointLabel" , "Point Label" , "pointLabelColumn" ).setString();
+  addColumnParameter("pointColor" , "Point Color" , "pointColorColumn" ).setColor ();
+  addColumnParameter("pointSymbol", "Point Symbol", "pointSymbolColumn").setString();
 
   endParameterGroup();
 
@@ -64,8 +64,8 @@ addParameters()
   // vector columns
   startParameterGroup("Vectors");
 
-  addColumnParameter("vectorX", "VectorX", "vectorXColumn").setNumeric();
-  addColumnParameter("vectorY", "VectorY", "vectorYColumn").setNumeric();
+  addColumnParameter("vectorX", "Vector X", "vectorXColumn").setNumeric();
+  addColumnParameter("vectorY", "Vector Y", "vectorYColumn").setNumeric();
 
   addBoolParameter("vectors", "Vectors", "vectors");
 

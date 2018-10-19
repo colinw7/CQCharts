@@ -206,7 +206,11 @@ initGroup(const CQChartsGroupData &data)
         column.type() == CQChartsColumn::Type::DATA_INDEX)
       columnType = columnValueType(column);
 
-    groupBucket_.setDataType  (CQChartsColumnBucket::DataType::COLUMN);
+    if (isHierarchical())
+      groupBucket_.setDataType(CQChartsColumnBucket::DataType::COLUMN_ROOT);
+    else
+      groupBucket_.setDataType(CQChartsColumnBucket::DataType::COLUMN);
+
     groupBucket_.setColumnType(columnType);
     groupBucket_.setColumn    (column);
   }
@@ -218,7 +222,11 @@ initGroup(const CQChartsGroupData &data)
         data.column.type() == CQChartsColumn::Type::DATA_INDEX)
       columnType = columnValueType(data.column);
 
-    groupBucket_.setDataType  (CQChartsColumnBucket::DataType::COLUMN);
+    if (isHierarchical())
+      groupBucket_.setDataType(CQChartsColumnBucket::DataType::COLUMN_ROOT);
+    else
+      groupBucket_.setDataType(CQChartsColumnBucket::DataType::COLUMN);
+
     groupBucket_.setColumnType(columnType);
     groupBucket_.setColumn    (data.column);
   }
@@ -249,10 +257,16 @@ initGroup(const CQChartsGroupData &data)
 
     State visit(QAbstractItemModel *model, const VisitData &data) override {
       // add column value
-      if      (bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN) {
+      if      (bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN ||
+               bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT) {
         bool ok;
 
-        QVariant value = plot_->modelHierValue(data.row, bucket_->column(), data.parent, ok);
+        QVariant value;
+
+        if (bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT)
+          value = plot_->modelRootValue(data.row, bucket_->column(), data.parent, ok);
+        else
+          value = plot_->modelHierValue(data.row, bucket_->column(), data.parent, ok);
 
         if (value.isValid())
           bucket_->addValue(value);
@@ -338,10 +352,16 @@ rowGroupInds(const CQChartsModelIndex &ind, std::vector<int> &inds, bool hier) c
     inds.push_back(ind1);
   }
   // get group id from value in group column
-  else if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN) {
+  else if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN ||
+           groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT) {
     bool ok;
 
-    QVariant value = modelHierValue(ind.row, groupBucket_.column(), ind.parent, ok);
+    QVariant value;
+
+    if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT)
+       value = modelRootValue(ind.row, groupBucket_.column(), ind.parent, ok);
+    else
+       value = modelHierValue(ind.row, groupBucket_.column(), ind.parent, ok);
 
     if (! value.isValid())
       return false;
@@ -477,7 +497,8 @@ QString
 CQChartsGroupPlot::
 groupIndName(int ind, bool hier) const
 {
-  if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN) {
+  if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN ||
+      groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT) {
     if      (groupBucket_.isExactValue()) {
       return groupBucket_.indName(ind);
     }

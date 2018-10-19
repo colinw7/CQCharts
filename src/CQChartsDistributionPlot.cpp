@@ -55,7 +55,7 @@ addParameters()
   // options
   addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
 
-  addEnumParameter("plotType", "PlotType", "plotType").
+  addEnumParameter("plotType", "Plot Type", "plotType").
     addNameValue("Normal"      , int(CQChartsDistributionPlot::PlotType::NORMAL      )).
     addNameValue("Stacked"     , int(CQChartsDistributionPlot::PlotType::STACKED     )).
     addNameValue("Side By Side", int(CQChartsDistributionPlot::PlotType::SIDE_BY_SIDE)).
@@ -64,7 +64,7 @@ addParameters()
     addNameValue("Density"     , int(CQChartsDistributionPlot::PlotType::DENSITY     )).
     setTip("Plot type");
 
-  addEnumParameter("valueType", "ValueType", "valueType").
+  addEnumParameter("valueType", "Value Type", "valueType").
    addNameValue("Count", int(CQChartsDistributionPlot::ValueType::COUNT)).
    addNameValue("Range", int(CQChartsDistributionPlot::ValueType::RANGE)).
    addNameValue("Min"  , int(CQChartsDistributionPlot::ValueType::MIN  )).
@@ -72,10 +72,10 @@ addParameters()
    addNameValue("Mean" , int(CQChartsDistributionPlot::ValueType::MEAN )).
    setTip("Bar value type");
 
-  addBoolParameter("skipEmpty", "SkipEmpty", "skipEmpty").setTip("skip empty buckets");
-  addBoolParameter("sorted"   , "Sorted"   , "sorted"   ).setTip("sort by count");
-  addBoolParameter("dotLines" , "DotLines" , "dotLines" ).setTip("draw bars as lines with dot");
-  addBoolParameter("rug"      , "Rug"      , "rug"      ).setTip("draw rug points");
+  addBoolParameter("skipEmpty", "Skip Empty", "skipEmpty").setTip("skip empty buckets");
+  addBoolParameter("sorted"   , "Sorted"    , "sorted"   ).setTip("sort by count");
+  addBoolParameter("dotLines" , "Dot Lines" , "dotLines" ).setTip("draw bars as lines with dot");
+  addBoolParameter("rug"      , "Rug"       , "rug"      ).setTip("draw rug points");
 
   endParameterGroup();
 

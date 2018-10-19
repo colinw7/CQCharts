@@ -281,9 +281,6 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   // text
   CQCHARTS_TEXT_DATA_PROPERTIES
 
-  // color map
-  CQCHARTS_COLOR_MAP_PROPERTIES
-
  public:
   using Nodes = std::vector<CQChartsTreeMapNode*>;
 

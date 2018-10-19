@@ -12,9 +12,10 @@ class CQChartsColumnBucket {
 
   enum class DataType {
     NONE,
-    HEADER, // bucket by header name
-    COLUMN, // bucket by column value
-    PATH    // bucket by hierarchical path
+    HEADER,      // bucket by header name
+    COLUMN,      // bucket by column value
+    COLUMN_ROOT, // bucket by column root value
+    PATH         // bucket by hierarchical path
   };
 
  public:

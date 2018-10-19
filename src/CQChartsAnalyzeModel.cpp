@@ -104,6 +104,8 @@ analyzeType(CQChartsPlotType *type)
     const CQChartsPlotParameter::Attributes &attributes = parameter->attributes();
 
     if (parameter->isGroupable()) {
+      bool found = false;
+
       // find first valid unused column for attribute
       for (auto &cu : columnUsed1) {
         if (cu.second.second)
@@ -118,10 +120,14 @@ analyzeType(CQChartsPlotType *type)
 
         cu.second.second = true;
 
+        found   = true;
         grouped = true;
 
         break;
       }
+
+      if (found)
+        continue;
     }
 
     if (! attributes.isRequired()) {

@@ -659,3 +659,8 @@
  + Auto init columns in plot dialog
  + Better date axis ranges
  + Support sub groups for parameters
+# 10/18/2018
+ + Better parameter names
+ + Use root value for hierarchical group column
+ + Speed up model details for non-summary data
+ + Improve plot dialog

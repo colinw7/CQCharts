@@ -97,6 +97,10 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 
   //---
 
+  (void) addColorSet("color");
+
+  //---
+
   connectModel();
 
   //---
@@ -3680,6 +3684,9 @@ handleResize()
     obj->handleResize();
 
   updateKeyPosition(/*force*/true);
+
+  if (isAutoFit())
+    needsAutoFit_ = true;
 }
 
 void
@@ -6981,6 +6988,18 @@ modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
            const QModelIndex &parent, bool &ok) const
 {
   return CQChartsUtil::modelColor(charts(), model, row, column, parent, ok);
+}
+
+//------
+
+QVariant
+CQChartsPlot::
+modelRootValue(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+{
+  if (column.column() == 0 && parent.isValid())
+    return modelRootValue(parent.row(), column, parent.parent(), ok);
+
+  return modelHierValue(row, column, parent, ok);
 }
 
 //------

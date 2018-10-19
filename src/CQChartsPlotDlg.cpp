@@ -37,6 +37,7 @@
 #include <cassert>
 
 #include <svg/refresh_svg.h>
+#include <svg/info_svg.h>
 
 CQChartsPlotDlg::
 CQChartsPlotDlg(CQCharts *charts, CQChartsModelData *modelData) :
@@ -92,20 +93,15 @@ init()
 
   //----
 
-  QTabWidget *dataTab = new QTabWidget;
-  dataTab->setObjectName("dataTab");
+  QFrame *dataFrame = createDataFrame();
 
-  QFrame *typeFrame = createTypeDataFrame();
+  area->addWidget(dataFrame, "Input Data");
 
-  dataTab->addTab(typeFrame, "Type");
+  //----
 
-  QFrame *genFrame = createGeneralDataFrame();
+  QFrame *summaryFrame = createSummaryFrame();
 
-  dataTab->addTab(genFrame, "General");
-
-  //--
-
-  area->addWidget(dataTab, "Input Data");
+  area->addWidget(summaryFrame, "Summary");
 
   //----
 
@@ -142,6 +138,10 @@ init()
 
   //--
 
+  buttonLayout->addStretch(1);
+
+  //--
+
   okButton_ = new QPushButton("OK");
   okButton_->setObjectName("ok");
 
@@ -175,13 +175,51 @@ init()
 
   //--
 
-  buttonLayout->addStretch(1);
-
-  //--
-
   initialized_ = true;
 
   validateSlot();
+}
+
+QFrame *
+CQChartsPlotDlg::
+createDataFrame()
+{
+  QFrame *dataFrame = new QFrame;
+  dataFrame->setObjectName("data");
+
+  QVBoxLayout *dataLayout = new QVBoxLayout(dataFrame);
+  dataLayout->setMargin(2); dataLayout->setSpacing(2);
+
+  //--
+
+  QCheckBox *autoAnalyzeCheck = new QCheckBox("Auto Analyze");
+  autoAnalyzeCheck->setObjectName("autoAnalyzeCheck");
+
+  autoAnalyzeCheck->setChecked(isAutoAnalyzeModel());
+  autoAnalyzeCheck->setToolTip("Automatically set columnds from model data");
+
+  connect(autoAnalyzeCheck, SIGNAL(stateChanged(int)), this, SLOT(autoAnalyzeSlot(int)));
+
+  dataLayout->addWidget(autoAnalyzeCheck);
+
+  //--
+
+  QTabWidget *dataTab = new QTabWidget;
+  dataTab->setObjectName("dataTab");
+
+  QFrame *typeFrame = createTypeDataFrame();
+
+  dataTab->addTab(typeFrame, "Type");
+
+  QFrame *genFrame = createGeneralDataFrame();
+
+  dataTab->addTab(genFrame, "General");
+
+  //---
+
+  dataLayout->addWidget(dataTab);
+
+  return dataFrame;
 }
 
 QFrame *
@@ -563,6 +601,182 @@ createGeneralDataFrame()
 
 QFrame *
 CQChartsPlotDlg::
+createSummaryFrame()
+{
+  QFrame *summaryFrame = new QFrame;
+  summaryFrame->setObjectName("summary");
+
+  QVBoxLayout *summaryLayout = new QVBoxLayout(summaryFrame);
+  summaryLayout->setMargin(0); summaryLayout->setSpacing(2);
+
+  //--
+
+  CQSummaryModel *summaryModel = modelData_->summaryModel();
+
+  if (summaryModel) {
+    int nr = model_.data()->rowCount();
+    int nc = model_.data()->columnCount();
+
+    QFrame *summaryControl = new QFrame;
+    summaryControl->setObjectName("summaryControl");
+
+    QHBoxLayout *summaryControlLayout = new QHBoxLayout(summaryControl);
+    summaryControlLayout->setMargin(2); summaryControlLayout->setSpacing(2);
+
+    //---
+
+    summaryEnabledCheck_ = new QCheckBox("Summary");
+    summaryEnabledCheck_->setObjectName("summaryEnabled");
+
+    summaryEnabledCheck_->setChecked(modelData_->isSummaryEnabled());
+
+    connect(summaryEnabledCheck_, SIGNAL(stateChanged(int)), this, SLOT(summaryEnabledSlot()));
+
+    summaryControlLayout->addWidget(summaryEnabledCheck_);
+
+    //---
+
+    summaryMaxRows_ = new CQIntegerSpin;
+    summaryMaxRows_->setObjectName("summaryMaxRows");
+
+    summaryMaxRows_->setRange(1, nr);
+    summaryMaxRows_->setToolTip(QString("Set Preview Row Count (1 -> %1)").arg(nr));
+
+    if (summaryModel)
+      summaryMaxRows_->setValue(summaryModel->maxRows());
+
+    connect(summaryMaxRows_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
+
+    summaryControlLayout->addWidget(new QLabel("Max Rows"));
+    summaryControlLayout->addWidget(summaryMaxRows_);
+
+    //---
+
+    summaryTypeCombo_ = new QComboBox;
+    summaryTypeCombo_->setObjectName("summaryTypeCombo");
+
+    summaryTypeCombo_->addItems(QStringList() << "Normal" << "Random" << "Sorted" << "Paged");
+
+    connect(summaryTypeCombo_, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(updateSummaryTypeSlot()));
+
+    summaryControlLayout->addWidget(summaryTypeCombo_);
+
+    //----
+
+    summaryTypeStack_ = new QStackedWidget;
+    summaryTypeStack_->setObjectName("summaryTypeStack");
+
+    summaryControlLayout->addWidget(summaryTypeStack_);
+
+    //---
+
+    QFrame *normalTypeFrame = new QFrame;
+    normalTypeFrame->setObjectName("normalTypeFrame");
+
+    summaryTypeStack_->addWidget(normalTypeFrame);
+
+    //---
+
+    QFrame *randomTypeFrame = new QFrame;
+    randomTypeFrame->setObjectName("randomTypeFrame");
+
+    summaryTypeStack_->addWidget(randomTypeFrame);
+
+    //---
+
+    QFrame *sortedTypeFrame = new QFrame;
+    sortedTypeFrame->setObjectName("sortedTypeFrame");
+
+    summaryTypeStack_->addWidget(sortedTypeFrame);
+
+    QHBoxLayout *sortedTypeLayout = new QHBoxLayout(sortedTypeFrame);
+    sortedTypeLayout->setMargin(0); sortedTypeLayout->setSpacing(2);
+
+    //--
+
+    summarySortedColEdit_ = new CQIntegerSpin;
+    summarySortedColEdit_->setObjectName("summarySortedColEdit");
+
+    summarySortedColEdit_->setRange(0, nc - 1);
+    summarySortedColEdit_->setToolTip(QString("Set Preview Sort Column (0 -> %1)").arg(nc - 1));
+
+    connect(summarySortedColEdit_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
+
+    sortedTypeLayout->addWidget(new QLabel("Sort Column"));
+    sortedTypeLayout->addWidget(summarySortedColEdit_);
+
+    sortedTypeLayout->addStretch(1);
+
+    //---
+
+    QFrame *pageSizeTypeFrame = new QFrame;
+    pageSizeTypeFrame->setObjectName("pageSizeTypeFrame");
+
+    summaryTypeStack_->addWidget(pageSizeTypeFrame);
+
+    QHBoxLayout *pageSizeTypeLayout = new QHBoxLayout(pageSizeTypeFrame);
+    pageSizeTypeLayout->setMargin(0); pageSizeTypeLayout->setSpacing(2);
+
+    //--
+
+    summaryPageSizeEdit_ = new CQIntegerSpin;
+    summaryPageSizeEdit_->setObjectName("summaryPageSizeEdit");
+
+    summaryPageSizeEdit_->setRange(1, nr);
+    summaryPageSizeEdit_->setValue(100);
+    summaryPageSizeEdit_->setToolTip(QString("Set Preview Page Size (1 -> %1)").arg(nr));
+
+    connect(summaryPageSizeEdit_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
+
+    pageSizeTypeLayout->addWidget(new QLabel("Page Size"));
+    pageSizeTypeLayout->addWidget(summaryPageSizeEdit_);
+
+    //--
+
+    summaryCurrentPageEdit_ = new CQIntegerSpin;
+    summaryCurrentPageEdit_->setObjectName("summaryCurrentPageEdit");
+
+    int np = (nr + summaryPageSizeEdit_->value() - 1)/summaryPageSizeEdit_->value();
+
+    summaryCurrentPageEdit_->setRange(0, np - 1);
+    summaryCurrentPageEdit_->setToolTip(QString("Set Preview Page Count (0 -> %1)").arg(np - 1));
+
+    connect(summaryCurrentPageEdit_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
+
+    pageSizeTypeLayout->addWidget(new QLabel("Current Page"));
+    pageSizeTypeLayout->addWidget(summaryCurrentPageEdit_);
+
+    pageSizeTypeLayout->addStretch(1);
+
+    //---
+
+    summaryControlLayout->addStretch(1);
+
+    summaryLayout->addWidget(summaryControl);
+  }
+
+  //--
+
+  summaryModelView_ = new CQChartsModelView(charts_);
+
+  if (modelData_->isSummaryEnabled() && summaryModel) {
+    ModelP summaryModelP = modelData_->summaryModelP();
+
+    summaryModelView_->setModel(summaryModelP, CQChartsUtil::isHierarchical(summaryModel));
+  }
+  else
+    summaryModelView_->setModel(model_, CQChartsUtil::isHierarchical(model_.data()));
+
+  summaryLayout->addWidget(summaryModelView_);
+
+  //--
+
+  return summaryFrame;
+}
+
+QFrame *
+CQChartsPlotDlg::
 createPreviewFrame()
 {
   QFrame *previewFrame = new QFrame;
@@ -572,9 +786,6 @@ createPreviewFrame()
   previewLayout->setMargin(0); previewLayout->setSpacing(2);
 
   //--
-
-  int nr = model_.data()->rowCount();
-  int nc = model_.data()->columnCount();
 
   QFrame *previewControl = new QFrame;
   previewControl->setObjectName("previewControl");
@@ -591,102 +802,6 @@ createPreviewFrame()
 
   previewControlLayout->addWidget(previewEnabledCheck_);
 
-  CQSummaryModel *summaryModel = modelData_->summaryModel();
-
-  if (summaryModel) {
-    summaryEnabledCheck_ = new QCheckBox("Summary");
-    summaryEnabledCheck_->setObjectName("summaryEnabled");
-
-    summaryEnabledCheck_->setChecked(modelData_->isSummaryEnabled());
-
-    connect(summaryEnabledCheck_, SIGNAL(stateChanged(int)), this, SLOT(summaryEnabledSlot()));
-
-    previewControlLayout->addWidget(summaryEnabledCheck_);
-
-    //---
-
-    previewMaxRows_ = new CQIntegerSpin;
-    previewMaxRows_->setObjectName("previewMaxRows");
-
-    previewMaxRows_->setRange(1, nr);
-    previewMaxRows_->setToolTip(QString("Set Preview Row Count (1 -> %1)").arg(nr));
-
-    if (summaryModel)
-      previewMaxRows_->setValue(summaryModel->maxRows());
-
-    connect(previewMaxRows_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
-
-    previewControlLayout->addWidget(new QLabel("Max Rows"));
-    previewControlLayout->addWidget(previewMaxRows_);
-
-    //--
-
-    previewNormalRadio_ = new QRadioButton("Normal");
-    previewNormalRadio_->setObjectName("previewNormal");
-    previewNormalRadio_->setChecked(true);
-
-    previewRandomRadio_ = new QRadioButton("Random");
-    previewRandomRadio_->setObjectName("previewRandom");
-
-    previewSortedRadio_ = new QRadioButton("Sorted");
-    previewSortedRadio_->setObjectName("previewSorted");
-
-    previewPagedRadio_ = new QRadioButton("Paged");
-    previewPagedRadio_->setObjectName("previewPaged");
-
-    connect(previewNormalRadio_, SIGNAL(toggled(bool)), this, SLOT(updatePreviewSlot()));
-    connect(previewRandomRadio_, SIGNAL(toggled(bool)), this, SLOT(updatePreviewSlot()));
-    connect(previewSortedRadio_, SIGNAL(toggled(bool)), this, SLOT(updatePreviewSlot()));
-    connect(previewPagedRadio_ , SIGNAL(toggled(bool)), this, SLOT(updatePreviewSlot()));
-
-    previewControlLayout->addWidget(previewNormalRadio_);
-    previewControlLayout->addWidget(previewRandomRadio_);
-    previewControlLayout->addWidget(previewSortedRadio_);
-    previewControlLayout->addWidget(previewPagedRadio_);
-
-    //--
-
-    previewSortedColEdit_ = new CQIntegerSpin;
-    previewSortedColEdit_->setObjectName("previewSortedColEdit");
-
-    previewSortedColEdit_->setRange(0, nc - 1);
-    previewSortedColEdit_->setToolTip(QString("Set Preview Sort Column (0 -> %1)").arg(nc - 1));
-
-    connect(previewSortedColEdit_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
-
-    previewControlLayout->addWidget(new QLabel("Sort Column"));
-    previewControlLayout->addWidget(previewSortedColEdit_);
-
-    //---
-
-    previewPageSizeEdit_ = new CQIntegerSpin;
-    previewPageSizeEdit_->setObjectName("previewPageSizeEdit");
-
-    previewPageSizeEdit_->setRange(1, nr);
-    previewPageSizeEdit_->setValue(100);
-    previewPageSizeEdit_->setToolTip(QString("Set Preview Page Size (1 -> %1)").arg(nr));
-
-    connect(previewPageSizeEdit_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
-
-    previewControlLayout->addWidget(new QLabel("Page Size"));
-    previewControlLayout->addWidget(previewPageSizeEdit_);
-
-    //--
-
-    previewCurrentPageEdit_ = new CQIntegerSpin;
-    previewCurrentPageEdit_->setObjectName("previewCurrentPageEdit");
-
-    int np = (nr + previewPageSizeEdit_->value() - 1)/previewPageSizeEdit_->value();
-
-    previewCurrentPageEdit_->setRange(0, np - 1);
-    previewCurrentPageEdit_->setToolTip(QString("Set Preview Page Count (0 -> %1)").arg(np - 1));
-
-    connect(previewCurrentPageEdit_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
-
-    previewControlLayout->addWidget(new QLabel("Current Page"));
-    previewControlLayout->addWidget(previewCurrentPageEdit_);
-  }
-
   previewControlLayout->addStretch(1);
 
   previewLayout->addWidget(previewControl);
@@ -700,25 +815,11 @@ createPreviewFrame()
 
   //--
 
-  previewModelView_ = new CQChartsModelView(charts_);
-
-  previewTab->addTab(previewModelView_, "Data");
-
-  if (modelData_->isSummaryEnabled() && summaryModel) {
-    ModelP summaryModelP = modelData_->summaryModelP();
-
-    previewModelView_->setModel(summaryModelP, CQChartsUtil::isHierarchical(summaryModel));
-  }
-  else
-    previewModelView_->setModel(model_, CQChartsUtil::isHierarchical(model_.data()));
-
-  //--
-
   previewView_ = charts_->createView();
 
   previewView_->setPreview(true);
 
-  previewTab->addTab(previewView_, "Chart");
+  previewLayout->addWidget(previewView_);
 
   //----
 
@@ -1074,10 +1175,13 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   //----
 
+  QSize is = formatEditData.formatUpdate->iconSize();
+
   QLabel *attributesLabel = new QLabel;
   attributesLabel->setObjectName("attributesLabel");
 
-  attributesLabel->setText(parameter->attributes().summary());
+  attributesLabel->setPixmap(CQPixmapCacheInst->getSizedPixmap("INFO", is));
+  attributesLabel->setToolTip(parameter->attributes().summary());
 
   layout->addWidget(attributesLabel, row, column); ++column;
 
@@ -1194,10 +1298,13 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   //----
 
+  QSize is = formatEditData.formatUpdate->iconSize();
+
   QLabel *attributesLabel = new QLabel;
   attributesLabel->setObjectName("attributesLabel");
 
-  attributesLabel->setText(parameter->attributes().summary());
+  attributesLabel->setPixmap(CQPixmapCacheInst->getSizedPixmap("INFO", is));
+  attributesLabel->setToolTip(parameter->attributes().summary());
 
   layout->addWidget(attributesLabel, row, column); ++column;
 
@@ -1549,6 +1656,15 @@ comboSlot(const QString &desc)
 
 void
 CQChartsPlotDlg::
+autoAnalyzeSlot(int state)
+{
+  setAutoAnalyzeModel(state);
+
+  validateSlot();
+}
+
+void
+CQChartsPlotDlg::
 xminSlot()
 {
   setXYMin("xmin");
@@ -1686,36 +1802,42 @@ validateSlot()
   if (! type)
     return;
 
-  if (! typeInitialzed_[type->description()]) {
-    PlotData &plotData = typePlotData_[type->name()];
+  //---
 
-    CQChartsAnalyzeModel analyzeModel(charts_, modelData_);
+  if (isAutoAnalyzeModel()) {
+    if (! typeInitialzed_[type->description()]) {
+      PlotData &plotData = typePlotData_[type->name()];
 
-    analyzeModel.analyzeType(type);
+      CQChartsAnalyzeModel analyzeModel(charts_, modelData_);
 
-    for (const auto &tnc : analyzeModel.typeNameColumns()) {
-      for (const auto &nc : tnc.second) {
-        auto pe = plotData.columnEdits.find(nc.first);
+      analyzeModel.analyzeType(type);
 
-        if (pe != plotData.columnEdits.end()) {
-          CQChartsColumnEdit *edit = (*pe).second;
+      for (const auto &tnc : analyzeModel.typeNameColumns()) {
+        for (const auto &nc : tnc.second) {
+          auto pe = plotData.columnEdits.find(nc.first);
 
-          edit->setText(nc.second.toString());
-        }
-        else {
-          auto pe = plotData.columnsEdits.find(nc.first);
-
-          if (pe != plotData.columnsEdits.end()) {
-            QLineEdit *edit = (*pe).second;
+          if (pe != plotData.columnEdits.end()) {
+            CQChartsColumnEdit *edit = (*pe).second;
 
             edit->setText(nc.second.toString());
           }
+          else {
+            auto pe = plotData.columnsEdits.find(nc.first);
+
+            if (pe != plotData.columnsEdits.end()) {
+              QLineEdit *edit = (*pe).second;
+
+              edit->setText(nc.second.toString());
+            }
+          }
         }
       }
-    }
 
-    typeInitialzed_[type->description()] = true;
+      typeInitialzed_[type->description()] = true;
+    }
   }
+
+  //---
 
   // set description
   descText_->setText(type->description());
@@ -1971,10 +2093,12 @@ validate(QStringList &msgs)
           }
         }
         else if (parameter->isString()) {
+#if 0
           if (columnDetails->type() != CQBaseModel::Type::STRING) {
             msgs << QString("non-string column (%1)").arg(parameter->name());
             rc1 = false;
           }
+#endif
         }
         else if (parameter->isBool()) {
           if (columnDetails->type() != CQBaseModel::Type::BOOLEAN) {
@@ -2049,16 +2173,25 @@ summaryEnabledSlot()
 
 void
 CQChartsPlotDlg::
+updateSummaryTypeSlot()
+{
+  summaryTypeStack_->setCurrentIndex(summaryTypeCombo_->currentIndex());
+
+  updatePreviewSlot();
+}
+
+void
+CQChartsPlotDlg::
 updatePreviewSlot()
 {
   CQSummaryModel *summaryModel = modelData_->summaryModel();
 
   if (modelData_->isSummaryEnabled() && summaryModel) {
-    int  n = previewMaxRows_->value();
+    int  n = summaryMaxRows_->value();
 
-    bool random = previewRandomRadio_->isChecked();
-    bool sorted = previewSortedRadio_->isChecked();
-    bool paged  = previewPagedRadio_ ->isChecked();
+    bool random = (summaryTypeCombo_->currentText() == "Random");
+    bool sorted = (summaryTypeCombo_->currentText() == "Sorted");
+    bool paged  = (summaryTypeCombo_->currentText() == "Paged" );
 
     if (n <= 0) return;
 
@@ -2071,14 +2204,14 @@ updatePreviewSlot()
       summaryModel->setRandom(true);
     }
     else if (sorted) {
-      int sortCol = previewSortedColEdit_->value();
+      int sortCol = summarySortedColEdit_->value();
 
       summaryModel->setSortColumn(sortCol);
       summaryModel->setSorted(true);
     }
     else if (paged) {
-      int ps = previewPageSizeEdit_   ->value();
-      int np = previewCurrentPageEdit_->value();
+      int ps = summaryPageSizeEdit_   ->value();
+      int np = summaryCurrentPageEdit_->value();
 
       int nr = model_.data()->rowCount();
 
@@ -2086,8 +2219,8 @@ updatePreviewSlot()
 
       np = std::min(np, np1 - 1);
 
-      previewCurrentPageEdit_->setRange(0, np1 - 1);
-      previewCurrentPageEdit_->setToolTip(QString("Set Preview Page Count (0 -> %1)").arg(np1 - 1));
+      summaryCurrentPageEdit_->setRange(0, np1 - 1);
+      summaryCurrentPageEdit_->setToolTip(QString("Set Preview Page Count (0 -> %1)").arg(np1 - 1));
 
       summaryModel->setPageSize(ps);
       summaryModel->setCurrentPage(np);

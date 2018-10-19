@@ -346,7 +346,7 @@ foldModel(const FoldData &foldData)
 
       foldProxyModel->setObjectName("foldProxyModel");
 
-      foldProxyModel->setSortRole(static_cast<int>(CQBaseModel::Role::CustomSort));
+      foldProxyModel->setSortRole(static_cast<int>(Qt::EditRole));
 
       foldProxyModel->setSourceModel(model);
 

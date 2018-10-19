@@ -3,6 +3,8 @@
 CQDataModel::
 CQDataModel()
 {
+  setObjectName("dataModel");
+
   connect(this, SIGNAL(columnTypeChanged(int)), this, SLOT(resetColumnCache(int)));
 }
 

@@ -121,11 +121,11 @@ class CQChartsModelDetails : public QObject {
 
   CQChartsModelData *data() const { return data_; }
 
-  int numColumns() const { initData(); return numColumns_; }
+  int numColumns() const;
 
-  int numRows() const { initData(); return numRows_; }
+  int numRows() const;
 
-  bool isHierarchical() const { initData(); return hierarchical_; }
+  bool isHierarchical() const;
 
   CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column);
   const CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) const;
@@ -136,12 +136,20 @@ class CQChartsModelDetails : public QObject {
 
   void reset();
 
-  void update();
+ private:
+  void updateSimple();
+  void updateFull();
+
+  void initSimpleData() const;
+  void initFullData() const;
 
  private:
-  void initData() const;
+  enum class Initialized {
+    NONE,
+    SIMPLE,
+    FULL
+  };
 
- private:
   CQChartsModelDetails(const CQChartsModelDetails &) = delete;
   CQChartsModelDetails &operator=(const CQChartsModelDetails &) = delete;
 
@@ -149,7 +157,7 @@ class CQChartsModelDetails : public QObject {
   using ColumnDetails = std::map<CQChartsColumn,CQChartsModelColumnDetails *>;
 
   CQChartsModelData* data_         { nullptr };
-  bool               initialized_  { false };
+  Initialized        initialized_  { Initialized::NONE };
   int                numColumns_   { 0 };
   int                numRows_      { 0 };
   bool               hierarchical_ { false };
