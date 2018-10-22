@@ -1,5 +1,6 @@
 #include <CQChartsGroupPlot.h>
 #include <CQChartsVariant.h>
+#include <CQPerfMonitor.h>
 
 CQChartsGroupPlotType::
 CQChartsGroupPlotType()
@@ -101,6 +102,8 @@ void
 CQChartsGroupPlot::
 initGroupData(const CQChartsColumns &dataColumns, const CQChartsColumn &nameColumn, bool hier)
 {
+  CQPerfTrace trace("CQChartsGroupPlot::initGroupData");
+
   // if multiple data columns then use name column and data labels
   //   if row grouping we are creating a value set per row (1 value per data column)
   //   if column grouping we are creating a value set per data column (1 value per row)

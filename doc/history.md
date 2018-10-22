@@ -664,3 +664,9 @@
  + Use root value for hierarchical group column
  + Speed up model details for non-summary data
  + Improve plot dialog
+# 10/22/2018
+ + Speed up model details for monotonic, numeric columns
+ + Add more performance trace checkpoints
+ + Allow disable plot update timeout using environment variable
+ + Allow display layer buffereing using environment variable
+ + optional load of details in view settings

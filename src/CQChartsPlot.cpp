@@ -23,10 +23,10 @@
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
+#include <CQPerfMonitor.h>
 #include <CQUtil.h>
 
 #include <CMathUtil.h>
-#include <CHRTimer.h>
 
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
@@ -41,6 +41,8 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
  CQChartsObjFitShapeData <CQChartsPlot>(this),
  view_(view), type_(type), model_(model), editHandles_(view)
 {
+  updateTimeout_ = CQChartsEnv::getInt("CQCHARTS_PLOT_UPDATE_TIMEOUT", updateTimeout_);
+
   displayRange_     = new CQChartsDisplayRange();
   displayTransform_ = new CQChartsDisplayTransform(displayRange_);
 
@@ -1550,7 +1552,10 @@ void
 CQChartsPlot::
 updateRangeAndObjs()
 {
-  updateTimer_->start(updateTimeout_);
+  if (updateTimeout_ >= 0)
+    updateTimer_->start(updateTimeout_);
+  else
+    updateRangeAndObjsInternal();
 }
 
 void
@@ -1564,7 +1569,7 @@ void
 CQChartsPlot::
 updateRangeAndObjsInternal()
 {
-  CScopeTimer timer("updateRangeAndObjsInternal");
+  CQPerfTrace trace("CQChartsPlot::updateRangeAndObjsInternal");
 
   updateRange();
 
@@ -1582,6 +1587,8 @@ void
 CQChartsPlot::
 updateRange(bool apply)
 {
+  CQPerfTrace trace("CQChartsPlot::updateRange");
+
   calcDataRange_  = calcRange();
   dataRange_      = calcDataRange_;
   outerDataRange_ = dataRange_;
@@ -1594,7 +1601,7 @@ void
 CQChartsPlot::
 updateObjs()
 {
-  CScopeTimer timer("updateObjs");
+  CQPerfTrace trace("CQChartsPlot::updateObjs");
 
   clearPlotObjects();
 
@@ -1874,6 +1881,8 @@ void
 CQChartsPlot::
 initGroupedPlotObjs()
 {
+  CQPerfTrace trace("CQChartsPlot::initGroupedPlotObjs");
+
   // init overlay plots before draw
   if (isOverlay()) {
     if (! isFirstPlot())
@@ -1895,6 +1904,10 @@ void
 CQChartsPlot::
 initPlotObjs()
 {
+  CQPerfTrace trace("CQChartsPlot::initPlotObjs");
+
+  //---
+
   bool changed = initObjs();
 
   // ensure some range defined
@@ -1943,6 +1956,8 @@ void
 CQChartsPlot::
 initObjTree()
 {
+  CQPerfTrace trace("CQChartsPlot::initObjTree");
+
   if (! isPreview()) {
     bool wait = false;
 
@@ -3732,7 +3747,7 @@ void
 CQChartsPlot::
 draw(QPainter *painter)
 {
-  CScopeTimer timer("draw");
+  CQPerfTrace trace("CQChartsPlot::draw");
 
   initGroupedPlotObjs();
 
@@ -3761,7 +3776,7 @@ void
 CQChartsPlot::
 drawParts(QPainter *painter)
 {
-  CScopeTimer timer("drawParts");
+  CQPerfTrace trace("CQChartsPlot::drawParts");
 
   drawBackgroundParts(painter);
 
@@ -3791,6 +3806,8 @@ void
 CQChartsPlot::
 drawBackgroundParts(QPainter *painter)
 {
+  CQPerfTrace trace("CQChartsPlot::drawBackgroundParts");
+
   bool bgLayer = hasBackgroundLayer();
   bool bgAxes  = hasBgAxes();
   bool bgKey   = hasBgKey();
@@ -3831,6 +3848,8 @@ void
 CQChartsPlot::
 drawMiddleParts(QPainter *painter)
 {
+  CQPerfTrace trace("CQChartsPlot::drawMiddleParts");
+
   bool bg  = hasGroupedObjs(CQChartsLayer::Type::BG_PLOT );
   bool mid = hasGroupedObjs(CQChartsLayer::Type::MID_PLOT);
   bool fg  = hasGroupedObjs(CQChartsLayer::Type::FG_PLOT );
@@ -3863,6 +3882,8 @@ void
 CQChartsPlot::
 drawForegroundParts(QPainter *painter)
 {
+  CQPerfTrace trace("CQChartsPlot::drawForegroundParts");
+
   bool fgAxes      = hasFgAxes();
   bool fgKey       = hasFgKey();
   bool title       = hasTitle();
@@ -3917,6 +3938,8 @@ void
 CQChartsPlot::
 drawOverlayParts(QPainter *painter)
 {
+  CQPerfTrace trace("CQChartsPlot::drawOverlayParts");
+
   bool sel_objs         = hasGroupedObjs(CQChartsLayer::Type::SELECTION);
   bool sel_annotations  = hasGroupedAnnotations(CQChartsLayer::Type::SELECTION);
   bool boxes            = hasGroupedBoxes();
@@ -3999,7 +4022,9 @@ void
 CQChartsPlot::
 drawBackgroundLayer(QPainter *painter)
 {
-  //CScopeTimer timer("drawBackgroundLayer");
+  CQPerfTrace trace("CQChartsPlot::drawBackgroundLayer");
+
+  //CQPerfTrace trace("CQChartsPlot::drawBackgroundLayer");
 
   bool hasPlotBackground = (isPlotFilled() || isPlotBorder());
   bool hasDataBackground = (isDataFilled() || isDataBorder());
@@ -4126,7 +4151,9 @@ void
 CQChartsPlot::
 drawBgAxes(QPainter *painter)
 {
-  //CScopeTimer timer("drawBgAxes");
+  CQPerfTrace trace("CQChartsPlot::drawBgAxes");
+
+  //CQPerfTrace trace("CQChartsPlot::drawBgAxes");
 
   bool showXAxis = (xAxis() && xAxis()->isVisible());
   bool showYAxis = (yAxis() && yAxis()->isVisible());
@@ -4180,7 +4207,9 @@ void
 CQChartsPlot::
 drawBgKey(QPainter *painter)
 {
-  //CScopeTimer timer("drawBgKey");
+  CQPerfTrace trace("CQChartsPlot::drawBgKey");
+
+  //CQPerfTrace trace("CQChartsPlot::drawBgKey");
 
   CQChartsPlotKey *key1;
 
@@ -4242,6 +4271,8 @@ void
 CQChartsPlot::
 drawGroupedObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
 {
+  CQPerfTrace trace("CQChartsPlot::drawGroupedObjs");
+
   // for overlay draw all combine objects on common layers
   if (isOverlay()) {
     if (! isFirstPlot())
@@ -4300,7 +4331,7 @@ void
 CQChartsPlot::
 drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
 {
-  CScopeTimer timer("drawObjs");
+  CQPerfTrace trace("CQChartsPlot::drawObjs");
 
   drawLayer_ = layerType;
 
@@ -4366,7 +4397,7 @@ void
 CQChartsPlot::
 drawFgAxes(QPainter *painter)
 {
-  //CScopeTimer timer("drawFgAxes");
+  CQPerfTrace trace("CQChartsPlot::drawFgAxes");
 
   bool showXAxis = (xAxis() && xAxis()->isVisible());
   bool showYAxis = (yAxis() && yAxis()->isVisible());
@@ -4428,7 +4459,7 @@ void
 CQChartsPlot::
 drawFgKey(QPainter *painter)
 {
-  //CScopeTimer timer("drawFgKey");
+  CQPerfTrace trace("CQChartsPlot::drawFgKey");
 
   CQChartsPlotKey *key1;
 
@@ -4471,7 +4502,7 @@ void
 CQChartsPlot::
 drawTitle(QPainter *painter)
 {
-  //CScopeTimer timer("drawTitle");
+  CQPerfTrace trace("CQChartsPlot::drawTitle");
 
   title()->draw(painter);
 }
@@ -4518,6 +4549,8 @@ void
 CQChartsPlot::
 drawGroupedAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType)
 {
+  CQPerfTrace trace("CQChartsPlot::drawGroupedAnnotations");
+
   if (! hasGroupedAnnotations(layerType))
     return;
 
@@ -4579,7 +4612,7 @@ void
 CQChartsPlot::
 drawAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType)
 {
-  CScopeTimer timer("drawAnnotations");
+  CQPerfTrace trace("CQChartsPlot::drawAnnotations");
 
   drawLayer_ = layerType;
 
@@ -4657,6 +4690,8 @@ void
 CQChartsPlot::
 drawGroupedBoxes(QPainter *painter)
 {
+  CQPerfTrace trace("CQChartsPlot::drawGroupedBoxes");
+
   // for overlay draw all combine objects on common layers
   if (isOverlay()) {
     if (! isFirstPlot())
@@ -4693,7 +4728,7 @@ void
 CQChartsPlot::
 drawBoxes(QPainter *painter)
 {
-  //CScopeTimer timer("drawBoxes");
+  CQPerfTrace trace("CQChartsPlot::drawBoxes");
 
   CQChartsGeom::BBox bbox = fitBBox();
 
@@ -4754,6 +4789,8 @@ void
 CQChartsPlot::
 drawGroupedEditHandles(QPainter *painter)
 {
+  CQPerfTrace trace("CQChartsPlot::drawGroupedEditHandles");
+
   // for overlay draw all combine objects on common layers
   if (isOverlay()) {
     if (! isFirstPlot())
@@ -4815,7 +4852,7 @@ void
 CQChartsPlot::
 drawEditHandles(QPainter *painter)
 {
-  //CScopeTimer timer("drawEditHandles");
+  CQPerfTrace trace("CQChartsPlot::drawEditHandles");
 
   CQChartsPlotKey *key1 = getFirstPlotKey();
 
@@ -4894,6 +4931,8 @@ void
 CQChartsPlot::
 autoFit()
 {
+  CQPerfTrace trace("CQChartsPlot::autoFit");
+
   if (isOverlay()) {
     if (prevPlot())
       return;

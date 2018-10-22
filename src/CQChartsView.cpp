@@ -39,7 +39,7 @@ namespace {
 
 //---
 
-QSize CQChartsView::sizeHint_ = QSize(1280, 1024);
+QSize CQChartsView::defSizeHint_ = QSize(1280, 1024);
 
 CQChartsView::
 CQChartsView(CQCharts *charts, QWidget *parent) :
@@ -47,7 +47,8 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
  CQChartsObjBackgroundFillData(this),
  CQChartsObjSelectedShapeData (this),
  CQChartsObjInsideShapeData   (this),
- charts_(charts)
+ charts_(charts),
+ viewSizeHint_(defSizeHint_)
 {
   setObjectName("view");
 
@@ -56,6 +57,10 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   setFocusPolicy(Qt::StrongFocus);
 
   setBackgroundFillColor(CQChartsColor(Qt::white));
+
+  //---
+
+  bufferLayers_ = CQChartsEnv::getBool("CQCHARTS_BUFFER_LAYERS", bufferLayers_);
 
   //---
 
@@ -90,6 +95,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("", this, "id"            );
   addProperty("", this, "title"         );
   addProperty("", this, "currentPlotInd");
+  addProperty("", this, "viewSizeHint"  );
   addProperty("", this, "mode"          );
   addProperty("", this, "selectMode"    );
   addProperty("", this, "theme"         )->
@@ -99,6 +105,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("", this, "antiAlias"     );
   addProperty("", this, "bufferLayers"  );
   addProperty("", this, "scaleFont"     );
+  addProperty("", this, "fontFactor"    );
   addProperty("", this, "posTextType"   );
 
   addProperty("background", this, "backgroundFillColor"  , "color" );
@@ -264,10 +271,10 @@ CQChartsView::
 calcFontScale(const QSizeF &size) const
 {
   // calc scale factor
-  double sx = (size.width () > 0 ? size.width ()/sizeHint_.width () : 1.0);
-  double sy = (size.height() > 0 ? size.height()/sizeHint_.height() : 1.0);
+  double sx = (size.width () > 0 ? size.width ()/defSizeHint().width () : 1.0);
+  double sy = (size.height() > 0 ? size.height()/defSizeHint().height() : 1.0);
 
-  return std::min(sx, sy);
+  return fontFactor()*std::min(sx, sy);
 }
 
 QFont
@@ -287,7 +294,8 @@ scaledFont(const QFont &font, double s) const
 
   QFont font1 = font;
 
-  font1.setPointSizeF(fs);
+  if (fs > 0)
+    font1.setPointSizeF(fs);
 
   return font1;
 }
@@ -3455,4 +3463,11 @@ windowToPixelHeight(double wh) const
   windowToPixel(0, wh, px2, py2);
 
   return std::abs(py2 - py1);
+}
+
+QSize
+CQChartsView::
+sizeHint() const
+{
+  return viewSizeHint();
 }

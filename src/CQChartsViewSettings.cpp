@@ -38,7 +38,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   CQCharts *charts = view->charts();
 
   connect(charts, SIGNAL(modelDataAdded(int)), this, SLOT(updateModels()));
-  connect(charts, SIGNAL(currentModelChanged(int)), this, SLOT(updateModelDetails()));
+  connect(charts, SIGNAL(currentModelChanged(int)), this, SLOT(invalidateModelDetails()));
   connect(charts, SIGNAL(modelNameChanged(const QString &)), this, SLOT(updateModels()));
 
   connect(view, SIGNAL(plotAdded(const QString &)), this, SLOT(updatePlots()));
@@ -125,6 +125,22 @@ CQChartsViewSettings(CQChartsWindow *window) :
           this, SLOT(modelsSelectionChangeSlot()));
 
   //--
+
+  QFrame *detailsControlFrame = new QFrame;
+  detailsControlFrame->setObjectName("detailsControlFrame");
+
+  QHBoxLayout *detailsControlLayout = new QHBoxLayout(detailsControlFrame);
+
+  modelsFrameLayout->addWidget(detailsControlFrame);
+
+  modelsWidgets_.updateDetailsButton = new QPushButton("Update Details");
+  modelsWidgets_.updateDetailsButton->setObjectName("updateDetails");
+
+  detailsControlLayout->addWidget(modelsWidgets_.updateDetailsButton);
+  detailsControlLayout->addStretch(1);
+
+  connect(modelsWidgets_.updateDetailsButton, SIGNAL(clicked()),
+          this, SLOT(updateModelDetails()));
 
   modelsWidgets_.modelDetailsText = new QTextBrowser;
   modelsWidgets_.modelDetailsText->setObjectName("modelDetailsText");
@@ -533,13 +549,28 @@ updateModels()
 
   //---
 
-  updateModelDetails();
+  invalidateModelDetails();
+}
+
+void
+CQChartsViewSettings::
+invalidateModelDetails()
+{
+  modelDetailsValid_ = false;
+
+  modelsWidgets_.updateDetailsButton->setEnabled(true);
 }
 
 void
 CQChartsViewSettings::
 updateModelDetails()
 {
+  modelDetailsValid_ = true;
+
+  modelsWidgets_.updateDetailsButton->setEnabled(false);
+
+  //---
+
   CQCharts *charts = window_->view()->charts();
 
   CQChartsModelData *modelData = charts->currentModelData();

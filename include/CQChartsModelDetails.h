@@ -79,6 +79,7 @@ class CQChartsModelColumnDetails {
 
  private:
   bool initData();
+  bool initType();
 
   void addInt   (int i);
   void addReal  (double r);
@@ -89,20 +90,21 @@ class CQChartsModelColumnDetails {
   CQChartsModelColumnDetails &operator=(const CQChartsModelColumnDetails &) = delete;
 
  private:
-  CQChartsModelDetails* details_     { nullptr };
+  CQChartsModelDetails* details_         { nullptr };
   CQChartsColumn        column_;
   QString               typeName_;
-  CQBaseModel::Type     type_        { CQBaseModel::Type::NONE };
+  CQBaseModel::Type     type_            { CQBaseModel::Type::NONE };
   CQChartsNameValues    nameValues_;
   QVariant              minValue_;
   QVariant              maxValue_;
-  int                   numRows_     { 0 };
-  bool                  monotonic_   { true };
-  bool                  increasing_  { true };
-  bool                  initialized_ { false };
-  CQChartsIValues*      ivals_       { nullptr };
-  CQChartsRValues*      rvals_       { nullptr };
-  CQChartsSValues*      svals_       { nullptr };
+  int                   numRows_         { 0 };
+  bool                  monotonic_       { true };
+  bool                  increasing_      { true };
+  bool                  initialized_     { false };
+  bool                  typeInitialized_ { false };
+  CQChartsIValues*      ivals_           { nullptr };
+  CQChartsRValues*      rvals_           { nullptr };
+  CQChartsSValues*      svals_           { nullptr };
 };
 
 //---

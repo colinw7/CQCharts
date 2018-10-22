@@ -32,9 +32,6 @@ analyzeType(CQChartsPlotType *type)
   int nc = details->numColumns();
   int nr = details->numRows   ();
 
-  CQChartsColumns numericColumns   = details->numericColumns();
-  CQChartsColumns monotonicColumns = details->monotonicColumns();
-
   //---
 
   using ColumnUsed  = std::pair<CQChartsModelColumnDetails*,bool>;
@@ -79,11 +76,19 @@ analyzeType(CQChartsPlotType *type)
   if (numRequired > nc)
     return false;
 
-  if (numNumeric > 0 && int(numericColumns.count()) < numNumeric)
-    return false;
+  if (numNumeric > 0) {
+    CQChartsColumns numericColumns = details->numericColumns();
 
-  if (numMonotonic > 0 && int(monotonicColumns.count()) < numMonotonic)
-    return false;
+    if (int(numericColumns.count()) < numNumeric)
+      return false;
+  }
+
+  if (numMonotonic > 0) {
+    CQChartsColumns monotonicColumns = details->monotonicColumns();
+
+    if (int(monotonicColumns.count()) < numMonotonic)
+      return false;
+  }
 
   //---
 

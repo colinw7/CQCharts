@@ -179,15 +179,15 @@ main(int argc, char **argv)
   // parse arguments into main data
   MainData mainData;
 
-  mainData.viewWidth  = CQChartsView::getSizeHint().width ();
-  mainData.viewHeight = CQChartsView::getSizeHint().height();
+  mainData.viewWidth  = CQChartsView::defSizeHint().width ();
+  mainData.viewHeight = CQChartsView::defSizeHint().height();
 
   parseArgs(argc, argv, mainData);
 
   //---
 
   // set size hint
-  CQChartsView::setSizeHint(QSize(mainData.viewWidth, mainData.viewHeight));
+  CQChartsView::setDefSizeHint(QSize(mainData.viewWidth, mainData.viewHeight));
 
   //---
 
@@ -305,7 +305,7 @@ main(int argc, char **argv)
 
   //---
 
-  // no plots and app state no specified so show if no plots
+  // no plots and app state not specified so show if no plots
   if (! mainData.showAppSet) {
     if (! mainData.execFile.length() && mainData.initDatas.empty())
       mainData.showApp = true;

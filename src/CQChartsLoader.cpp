@@ -10,8 +10,9 @@
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsExprModel.h>
 #include <CQChartsColumnType.h>
-#include <CQDataModel.h>
 #include <CQCharts.h>
+#include <CQDataModel.h>
+#include <CQPerfMonitor.h>
 #if defined(CQCharts_USE_TCL)
 #include <CQTclUtil.h>
 #endif
@@ -37,6 +38,8 @@ CQChartsLoader::
 loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData &inputData,
          bool &hierarchical)
 {
+  CQPerfTrace trace("CQChartsLoader::loadFile");
+
   hierarchical = false;
 
   QAbstractItemModel *model = nullptr;
@@ -111,6 +114,8 @@ CQChartsCsvFilterModel *
 CQChartsLoader::
 loadCsv(const QString &filename, const CQChartsInputData &inputData)
 {
+  CQPerfTrace trace("CQChartsLoader::loadCsv");
+
   CQChartsCsvFilterModel *csv = new CQChartsCsvFilterModel(charts_);
 
   csv->setCommentHeader    (inputData.commentHeader);
@@ -135,6 +140,8 @@ CQChartsTsvFilterModel *
 CQChartsLoader::
 loadTsv(const QString &filename, const CQChartsInputData &inputData)
 {
+  CQPerfTrace trace("CQChartsLoader::loadTsv");
+
   CQChartsTsvFilterModel *tsv = new CQChartsTsvFilterModel(charts_);
 
   tsv->setCommentHeader    (inputData.commentHeader);
@@ -156,6 +163,8 @@ CQChartsJsonFilterModel *
 CQChartsLoader::
 loadJson(const QString &filename, const CQChartsInputData &)
 {
+  CQPerfTrace trace("CQChartsLoader::loadJson");
+
   CQChartsJsonFilterModel *json = new CQChartsJsonFilterModel(charts_);
 
   if (! json->load(filename)) {
@@ -170,6 +179,8 @@ CQChartsGnuDataFilterModel *
 CQChartsLoader::
 loadData(const QString &filename, const CQChartsInputData &inputData)
 {
+  CQPerfTrace trace("CQChartsLoader::loadData");
+
   CQChartsGnuDataFilterModel *data = new CQChartsGnuDataFilterModel(charts_);
 
   data->setCommentHeader    (inputData.commentHeader);
@@ -191,6 +202,8 @@ QAbstractItemModel *
 CQChartsLoader::
 createExprModel(int n)
 {
+  CQPerfTrace trace("CQChartsLoader::createExprModel");
+
   int nc = 1;
   int nr = n;
 
@@ -203,6 +216,8 @@ QAbstractItemModel *
 CQChartsLoader::
 createVarsModel(const CQChartsInputData &inputData)
 {
+  CQPerfTrace trace("CQChartsLoader::createVarsModel");
+
 #if defined(CQCharts_USE_TCL)
   using ColumnValues = std::vector<QVariant>;
   using VarColumns   = std::vector<ColumnValues>;
@@ -369,6 +384,8 @@ QAbstractItemModel *
 CQChartsLoader::
 createCorrelationModel(QAbstractItemModel *model, bool flip)
 {
+  CQPerfTrace trace("CQChartsLoader::createCorrelationModel");
+
   int nr = model->rowCount   ();
   int nc = model->columnCount();
 

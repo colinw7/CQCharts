@@ -642,6 +642,8 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   //---
 
   bool rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &yv,
@@ -703,6 +705,20 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   void setFillUnderFilledSlot(bool b);
 
  private:
+  struct IndPoly {
+    using Inds = std::vector<QModelIndex>;
+
+    Inds      inds;
+    QPolygonF poly;
+  };
+
+  using SetIndPoly      = std::vector<IndPoly>;
+  using GroupSetIndPoly = std::map<int,SetIndPoly>;
+
+ private:
+  void createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly);
+  bool createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly);
+
   QString xAxisName() const;
   QString yAxisName() const;
 

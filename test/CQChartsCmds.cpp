@@ -34,6 +34,7 @@
 #include <CQFoldedModel.h>
 #include <CQSubSetModel.h>
 #include <CQTransposeModel.h>
+#include <CQPerfMonitor.h>
 
 #include <CQUtil.h>
 #include <CUnixFile.h>
@@ -205,6 +206,8 @@ addCommands()
 
     addCommand("sync_qt" );
 
+    addCommand("perf");
+
 #ifdef CQCharts_USE_TCL
     qtcl()->createAlias("echo", "puts");
 #endif
@@ -306,6 +309,8 @@ processCmd(const QString &cmd, const Vars &vars)
   else if (cmd == "create_plot_dlg" ) { createPlotDlgCmd (vars); }
 
   else if (cmd == "sync_qt" ) { syncQtCmd(vars); }
+
+  else if (cmd == "perf" ) { perfCmd(vars); }
 
   else if (cmd == "sh") { shellCmd(vars); }
 
@@ -4154,7 +4159,52 @@ syncQtCmd(const Vars &vars)
 {
   CQChartsCmdArgs argv("sync_qt", vars);
 
-  qApp->processEvents();
+  argv.addCmdArg("-n", CQChartsCmdArg::Type::Integer, "loop count");
+
+  if (! argv.parse())
+    return;
+
+  int n = 1;
+
+  if (argv.hasParseArg("n"))
+    n = argv.getParseInt("n");
+
+  for (int i = 0; i < n; ++i) {
+    qApp->flush();
+
+    qApp->processEvents();
+  }
+}
+
+//------
+
+void
+CQChartsCmds::
+perfCmd(const Vars &vars)
+{
+  CQChartsCmdArgs argv("pref_cmd", vars);
+
+  argv.addCmdArg("-start_recording", CQChartsCmdArg::Type::Boolean, "start recording");
+  argv.addCmdArg("-end_recording"  , CQChartsCmdArg::Type::Boolean, "end recording"  );
+  argv.addCmdArg("-tracing"        , CQChartsCmdArg::Type::SBool  , "enable tracing" );
+  argv.addCmdArg("-debug"          , CQChartsCmdArg::Type::SBool  , "enable debug"   );
+
+  if (! argv.parse())
+    return;
+
+  //---
+
+  if (argv.hasParseArg("start_recording"))
+    CQPerfMonitorInst->startRecording();
+
+  if (argv.hasParseArg("end_recording"))
+    CQPerfMonitorInst->stopRecording();
+
+  if (argv.hasParseArg("tracing"))
+    CQPerfMonitorInst->setEnabled(argv.getParseBool("tracing"));
+
+  if (argv.hasParseArg("debug"))
+    CQPerfMonitorInst->setDebug(argv.getParseBool("debug"));
 }
 
 //------

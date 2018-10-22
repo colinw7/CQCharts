@@ -6,8 +6,8 @@
 #include <CQChartsVariant.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQPerfMonitor.h>
 
-#include <CHRTimer.h>
 #include <QAbstractItemModel>
 
 CQChartsModelDetails::
@@ -117,7 +117,7 @@ void
 CQChartsModelDetails::
 updateSimple()
 {
-  CIncrementalTimerMgrInst->clear();
+  CQPerfTrace trace("CQChartsModelDetails::updateSimple");
 
   QAbstractItemModel *model = data_->currentModel().data();
 
@@ -127,8 +127,6 @@ updateSimple()
 
   numColumns_ = model->columnCount();
   numRows_    = model->rowCount   ();
-
-  CIncrementalTimerMgrInst->clear();
 
   initialized_ = Initialized::SIMPLE;
 }
@@ -137,24 +135,15 @@ void
 CQChartsModelDetails::
 updateFull()
 {
-  CIncrementalTimerMgrInst->clear();
+  CQPerfTrace trace("CQChartsModelDetails::updateFull");
 
-  QAbstractItemModel *model = data_->currentModel().data();
-
-  reset();
-
-  hierarchical_ = CQChartsUtil::isHierarchical(model);
-
-  numColumns_ = model->columnCount();
-  numRows_    = model->rowCount   ();
+  updateSimple();
 
   for (int c = 0; c < numColumns_; ++c) {
     CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
 
     numRows_ = std::max(numRows_, columnDetails->numRows());
   }
-
-  CIncrementalTimerMgrInst->clear();
 
   initialized_ = Initialized::FULL;
 }
@@ -163,12 +152,13 @@ CQChartsColumns
 CQChartsModelDetails::
 numericColumns() const
 {
-  initFullData();
+  initSimpleData();
 
   CQChartsColumns columns;
 
-  for (auto &cd : columnDetails_) {
-    CQChartsModelColumnDetails *columnDetails = cd.second;
+  for (int c = 0; c < numColumns_; ++c) {
+    CQChartsModelColumnDetails *columnDetails =
+      const_cast<CQChartsModelDetails *>(this)->columnDetails(c);
 
     if (columnDetails->isNumeric())
       columns.addColumn(columnDetails->column());
@@ -181,12 +171,13 @@ CQChartsColumns
 CQChartsModelDetails::
 monotonicColumns() const
 {
-  initFullData();
+  initSimpleData();
 
   CQChartsColumns columns;
 
-  for (auto &cd : columnDetails_) {
-    CQChartsModelColumnDetails *columnDetails = cd.second;
+  for (int c = 0; c < numColumns_; ++c) {
+    CQChartsModelColumnDetails *columnDetails =
+      const_cast<CQChartsModelDetails *>(this)->columnDetails(c);
 
     if (columnDetails->isMonotonic())
       columns.addColumn(columnDetails->column());
@@ -301,8 +292,8 @@ QString
 CQChartsModelColumnDetails::
 typeName() const
 {
-  if (! initialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+  if (! typeInitialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initType();
 
   return typeName_;
 }
@@ -311,8 +302,8 @@ CQBaseModel::Type
 CQChartsModelColumnDetails::
 type() const
 {
-  if (! initialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+  if (! typeInitialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initType();
 
   return type_;
 }
@@ -328,8 +319,8 @@ const CQChartsNameValues &
 CQChartsModelColumnDetails::
 nameValues() const
 {
-  if (! initialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+  if (! typeInitialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initType();
 
   return nameValues_;
 }
@@ -474,6 +465,9 @@ int
 CQChartsModelColumnDetails::
 numUnique() const
 {
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+
   if      (type() == CQBaseModel::Type::INTEGER) {
     return (ivals_ ? ivals_->numUnique() : 0);
   }
@@ -498,6 +492,9 @@ CQChartsModelColumnDetails::VariantList
 CQChartsModelColumnDetails::
 uniqueValues() const
 {
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+
   VariantList vars;
 
   if      (type() == CQBaseModel::Type::INTEGER) {
@@ -558,6 +555,9 @@ CQChartsModelColumnDetails::VariantList
 CQChartsModelColumnDetails::
 uniqueCounts() const
 {
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+
   CQChartsIValues::Counts counts;
 
   if      (type() == CQBaseModel::Type::INTEGER) {
@@ -588,6 +588,9 @@ int
 CQChartsModelColumnDetails::
 uniqueId(const QVariant &v) const
 {
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+
   if      (type() == CQBaseModel::Type::INTEGER) {
     if (ivals_) return ivals_->id(v.toInt());
   }
@@ -623,6 +626,9 @@ int
 CQChartsModelColumnDetails::
 numNull() const
 {
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+
   if      (type() == CQBaseModel::Type::INTEGER) {
     if (ivals_) return ivals_->numNull();
   }
@@ -646,6 +652,9 @@ QVariant
 CQChartsModelColumnDetails::
 medianValue() const
 {
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+
   if      (type() == CQBaseModel::Type::INTEGER) {
     if (ivals_) return ivals_->median();
   }
@@ -669,6 +678,9 @@ QVariant
 CQChartsModelColumnDetails::
 lowerMedianValue() const
 {
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+
   if      (type() == CQBaseModel::Type::INTEGER) {
     if (ivals_) return ivals_->lowerMedian();
   }
@@ -692,6 +704,9 @@ QVariant
 CQChartsModelColumnDetails::
 upperMedianValue() const
 {
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+
   if      (type() == CQBaseModel::Type::INTEGER) {
     if (ivals_) return ivals_->upperMedian();
   }
@@ -715,6 +730,9 @@ QVariantList
 CQChartsModelColumnDetails::
 outlierValues() const
 {
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+
   QVariantList vars;
 
   if      (type() == CQBaseModel::Type::INTEGER) {
@@ -759,6 +777,9 @@ double
 CQChartsModelColumnDetails::
 map(const QVariant &var) const
 {
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+
   bool ok;
 
   if      (type() == CQBaseModel::Type::INTEGER) {
@@ -791,38 +812,12 @@ bool
 CQChartsModelColumnDetails::
 initData()
 {
+  CQPerfTrace trace("CQChartsModelDetails::initData");
+
   initialized_ = true;
 
-  //---
-
-  QAbstractItemModel *model = details_->data()->currentModel().data();
-
-  if (! model)
+  if (! initType())
     return false;
-
-  if (! column_.isValid())
-    return false;
-
-  if (column_.type() == CQChartsColumn::Type::DATA ||
-      column_.type() == CQChartsColumn::Type::DATA_INDEX) {
-    int icolumn = column_.column();
-
-    int numColumns = model->columnCount(QModelIndex());
-
-    if (icolumn < 0 || icolumn >= numColumns)
-      return false;
-  }
-
-  //---
-
-  CQCharts *charts = details_->data()->charts();
-
-  //---
-
-  // get column type and name values
-  // TODO: calls CQChartsModelVisitor, integrate into this visitor
-  if (! CQChartsUtil::columnValueType(charts, model, column_, type_, nameValues_))
-    type_ = CQBaseModel::Type::NONE;
 
   //---
 
@@ -830,23 +825,18 @@ initData()
    public:
     DetailVisitor(CQChartsModelColumnDetails *details) :
      details_(details) {
-      CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+      charts_ = details_->details()->data()->charts();
+
+      CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
       CQChartsColumnType *columnType = columnTypeMgr->getType(details_->type());
 
       if (columnType) {
-        typeName_ = columnType->name();
-
         min_ = columnType->minValue(details->nameValues()); // type custom min value
         max_ = columnType->maxValue(details->nameValues()); // type custom max value
 
         visitMin_ = ! min_.isValid();
         visitMax_ = ! max_.isValid();
-      }
-      else {
-        details->setType(CQBaseModel::Type::STRING);
-
-        typeName_ = "string";
       }
 
       monotonicSet_ = false;
@@ -854,14 +844,12 @@ initData()
       increasing_   = true;
     }
 
-    CQCharts *charts() const { return details_->details()->data()->charts(); }
-
     // visit row
     State visit(QAbstractItemModel *model, const VisitData &data) override {
       if      (details_->type() == CQBaseModel::Type::INTEGER) {
         bool ok;
 
-        long i = CQChartsUtil::modelInteger(charts(), model, data.row, details_->column(),
+        long i = CQChartsUtil::modelInteger(charts_, model, data.row, details_->column(),
                                             data.parent, ok);
         if (! ok) return State::SKIP;
 
@@ -873,7 +861,7 @@ initData()
       else if (details_->type() == CQBaseModel::Type::REAL) {
         bool ok;
 
-        double r = CQChartsUtil::modelReal(charts(), model, data.row, details_->column(),
+        double r = CQChartsUtil::modelReal(charts_, model, data.row, details_->column(),
                                            data.parent, ok);
         if (! ok) return State::SKIP;
 
@@ -885,7 +873,7 @@ initData()
       else if (details_->type() == CQBaseModel::Type::STRING) {
         bool ok;
 
-        QString s = CQChartsUtil::modelString(charts(), model, data.row, details_->column(),
+        QString s = CQChartsUtil::modelString(charts_, model, data.row, details_->column(),
                                               data.parent, ok);
         if (! ok) return State::SKIP;
 
@@ -897,7 +885,7 @@ initData()
       else if (details_->type() == CQBaseModel::Type::TIME) {
         bool ok;
 
-        long t = CQChartsUtil::modelInteger(charts(), model, data.row, details_->column(),
+        long t = CQChartsUtil::modelInteger(charts_, model, data.row, details_->column(),
                                             data.parent, ok);
         if (! ok) return State::SKIP;
 
@@ -909,7 +897,7 @@ initData()
       else if (details_->type() == CQBaseModel::Type::COLOR) {
         bool ok;
 
-        QString s = CQChartsUtil::modelString(charts(), model, data.row, details_->column(),
+        QString s = CQChartsUtil::modelString(charts_, model, data.row, details_->column(),
                                               data.parent, ok);
         if (! ok) return State::SKIP;
 
@@ -1087,8 +1075,6 @@ initData()
       lastValue2_ = s;
     }
 
-    QString typeName() const { return typeName_; }
-
     QVariant minValue() const { return min_; }
     QVariant maxValue() const { return max_; }
 
@@ -1099,7 +1085,7 @@ initData()
 
    private:
     CQChartsModelColumnDetails* details_      { nullptr };
-    QString                     typeName_;
+    CQCharts*                   charts_       { nullptr };
     QVariant                    min_;
     QVariant                    max_;
     QVariant                    mean_;
@@ -1114,18 +1100,72 @@ initData()
 
   //---
 
+  QAbstractItemModel *model = details_->data()->currentModel().data();
+  if (! model) return false;
+
   DetailVisitor detailVisitor(this);
 
   CQChartsModelVisit::exec(model, detailVisitor);
 
   //---
 
-  typeName_   = detailVisitor.typeName();
   minValue_   = detailVisitor.minValue();
   maxValue_   = detailVisitor.maxValue();
   numRows_    = detailVisitor.numRows();
   monotonic_  = detailVisitor.isMonotonic();
   increasing_ = detailVisitor.isIncreasing();
+
+  return true;
+}
+
+bool
+CQChartsModelColumnDetails::
+initType()
+{
+  CQPerfTrace trace("CQChartsModelDetails::initType");
+
+  typeInitialized_ = true;
+
+  //---
+
+  QAbstractItemModel *model = details_->data()->currentModel().data();
+  if (! model) return false;
+
+  if (! column_.isValid())
+    return false;
+
+  if (column_.type() == CQChartsColumn::Type::DATA ||
+      column_.type() == CQChartsColumn::Type::DATA_INDEX) {
+    int icolumn = column_.column();
+
+    int numColumns = details_->numColumns();
+
+    if (icolumn < 0 || icolumn >= numColumns)
+      return false;
+  }
+
+  //---
+
+  // get column type and name values
+  // TODO: calls CQChartsModelVisitor, integrate into this visitor
+  CQCharts *charts = details_->data()->charts();
+
+  if (! CQChartsUtil::columnValueType(charts, model, column_, type_, nameValues_))
+    type_ = CQBaseModel::Type::NONE;
+
+  //---
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+
+  CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
+
+  if (columnType) {
+    typeName_ = columnType->name();
+  }
+  else {
+    type_     = CQBaseModel::Type::STRING;
+    typeName_ = "string";
+  }
 
   return true;
 }

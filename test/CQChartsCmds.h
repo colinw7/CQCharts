@@ -185,6 +185,8 @@ class CQChartsCmds : public QObject {
 
   void syncQtCmd(const Vars &vars);
 
+  void perfCmd(const Vars &vars);
+
   void shellCmd(const Vars &vars);
 
   //---

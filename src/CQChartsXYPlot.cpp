@@ -9,6 +9,7 @@
 #include <CQChartsRoundedPolygon.h>
 #include <CQChartsTip.h>
 #include <CQUtil.h>
+#include <CQPerfMonitor.h>
 
 #include <QMenu>
 #include <QPainter>
@@ -453,6 +454,10 @@ CQChartsGeom::Range
 CQChartsXYPlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsXYPlot::calcRange");
+
+  //---
+
   initGroupData(CQChartsColumns(), CQChartsColumn());
 
   //---
@@ -772,6 +777,8 @@ bool
 CQChartsXYPlot::
 initObjs()
 {
+  CQPerfTrace trace("CQChartsXYPlot::initObjs");
+
   if (! dataRange_.isSet()) {
     updateRange();
 
@@ -786,6 +793,15 @@ initObjs()
 
   //---
 
+  return createObjs();
+}
+
+bool
+CQChartsXYPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsXYPlot::createObjs");
+
   const CQChartsGeom::Range &dataRange = this->dataRange();
 
   // TODO: use actual symbol size
@@ -799,15 +815,26 @@ initObjs()
 
   //---
 
-  struct IndPoly {
-    using Inds = std::vector<QModelIndex>;
+  GroupSetIndPoly groupSetIndPoly;
 
-    Inds      inds;
-    QPolygonF poly;
-  };
+  createGroupSetIndPoly(groupSetIndPoly);
 
-  using SetIndPoly      = std::vector<IndPoly>;
-  using GroupSetIndPoly = std::map<int,SetIndPoly>;
+  (void) createGroupSetObjs(groupSetIndPoly);
+
+  //----
+
+  resetKeyItems();
+
+  //---
+
+  return true;
+}
+
+void
+CQChartsXYPlot::
+createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly)
+{
+  CQPerfTrace trace("CQChartsXYPlot::createGroupSetIndPoly");
 
   // create line per set
   class RowVisitor : public ModelVisitor {
@@ -919,7 +946,16 @@ initObjs()
   else if (isCumulative())
     visitor.cumulate();
 
-  const GroupSetIndPoly &groupSetPoly = visitor.groupSetPoly();
+  groupSetIndPoly = visitor.groupSetPoly();
+}
+
+bool
+CQChartsXYPlot::
+createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly)
+{
+  CQPerfTrace trace("CQChartsXYPlot::createGroupSetObjs");
+
+  const CQChartsGeom::Range &dataRange = this->dataRange();
 
   //---
 
@@ -929,9 +965,9 @@ initObjs()
   //---
 
   int ig = 0;
-  int ng = groupSetPoly.size();
+  int ng = groupSetIndPoly.size();
 
-  for (auto &p : groupSetPoly) {
+  for (auto &p : groupSetIndPoly) {
     int               groupInd = p.first;
     const SetIndPoly &setPoly  = p.second;
 
@@ -1404,12 +1440,6 @@ initObjs()
 
     ++ig;
   }
-
-  //----
-
-  resetKeyItems();
-
-  //---
 
   return true;
 }

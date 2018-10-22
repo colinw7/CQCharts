@@ -16,8 +16,13 @@ while ($#argv > 0)
   else if ("$1" == "-loop") then
     set opts = ($opts -loop)
     shift
-  else if ("$1" == "-timer") then
+  else if ("$1" == "-timer" || "$1" == "-perf_debug") then
     setenv HRTIMER_ACTIVE 1
+    setenv CQ_PERF_MONITOR_DEBUG 1
+    setenv CQ_PERF_MONITOR_DEBUG_PATTERN "*"
+    shift
+  else if ("$1" == "-perf") then
+    setenv CQ_PERF_MONITOR_ENABLED 1
     shift
   else if ("$1" == "-pixmap") then
     setenv CQCHARTS_LAYER_PIXMAP 1

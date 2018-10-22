@@ -51,6 +51,7 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(QString id             READ id             WRITE setId            )
   Q_PROPERTY(QString title          READ title          WRITE setTitle         )
   Q_PROPERTY(int     currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
+  Q_PROPERTY(QSize   viewSizeHint   READ viewSizeHint   WRITE setViewSizeHint  )
 
   CQCHARTS_NAMED_FILL_DATA_PROPERTIES(Background,background)
 
@@ -130,8 +131,8 @@ class CQChartsView : public QFrame,
  public:
   static double viewportRange() { return 100.0; }
 
-  static QSize &getSizeHint() { return sizeHint_; }
-  static void setSizeHint(const QSize &s) { sizeHint_ = s; }
+  static QSize &defSizeHint() { return defSizeHint_; }
+  static void setDefSizeHint(const QSize &s) { defSizeHint_ = s; }
 
  public:
   CQChartsView(CQCharts *charts, QWidget *parent=nullptr);
@@ -218,6 +219,9 @@ class CQChartsView : public QFrame,
 
   bool isScaleFont() const { return scaleFont_; }
   void setScaleFont(bool b);
+
+  double fontFactor() const { return fontFactor_; }
+  void setFontFactor(double r) { fontFactor_ = r; }
 
   const PosTextType &posTextType() const { return posTextType_; }
   void setPosTextType(const PosTextType &t);
@@ -491,7 +495,10 @@ class CQChartsView : public QFrame,
 
   //---
 
-  QSize sizeHint() const override { return CQChartsView::getSizeHint(); }
+  const QSize &viewSizeHint() const { return viewSizeHint_; }
+  void setViewSizeHint(const QSize &v) { viewSizeHint_ = v; }
+
+  QSize sizeHint() const override;
 
  signals:
   void modeChanged();
@@ -627,7 +634,7 @@ class CQChartsView : public QFrame,
 
   using ProbeBands = std::vector<CQChartsProbeBand*>;
 
-  static QSize sizeHint_;
+  static QSize defSizeHint_;
 
   CQCharts*                charts_           { nullptr };           // parent charts
   CQChartsDisplayRange*    displayRange_     { nullptr };           // display range
@@ -651,6 +658,7 @@ class CQChartsView : public QFrame,
   bool                     bufferLayers_     { true };              // buffer draw layers
   bool                     preview_          { false };             // preview
   bool                     scaleFont_        { true };              // auto scale font
+  double                   fontFactor_       { 1.0 };               // font scale font
   PosTextType              posTextType_      { PosTextType::PLOT }; // position text ty[e
   CQChartsGeom::BBox       prect_            { 0, 0, 100, 100 };    // plot rect
   double                   aspect_           { 1.0 };               // current aspect
@@ -660,6 +668,7 @@ class CQChartsView : public QFrame,
   QRubberBand*             regionBand_       { nullptr };           // zoom region rubberband
   ProbeBands               probeBands_;                             // probe lines
   QMenu*                   popupMenu_        { nullptr };           // context menu
+  QSize                    viewSizeHint_;                           // view size hint
 };
 
 #endif

@@ -39,6 +39,8 @@ class CQChartsViewSettings : public QFrame {
 
  private slots:
   void updateModels();
+
+  void invalidateModelDetails();
   void updateModelDetails();
 
   void updatePlots();
@@ -103,8 +105,9 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct ModelsWidgets {
-    QTableWidget* modelTable       { nullptr };
-    QTextBrowser* modelDetailsText { nullptr };
+    QTableWidget* modelTable          { nullptr };
+    QPushButton*  updateDetailsButton { nullptr };
+    QTextBrowser* modelDetailsText    { nullptr };
   };
 
   struct PlotsWidgets {
@@ -136,16 +139,17 @@ class CQChartsViewSettings : public QFrame {
     QTableWidget* layerTable { nullptr };
   };
 
-  CQChartsWindow*   window_       { nullptr }; // parent window
-  QTabWidget*       tab_          { nullptr }; // settings/palette tab
-  PropertiesWidgets propertiesWidgets_;
-  ModelsWidgets     modelsWidgets_;
-  PlotsWidgets      plotsWidgets_;
-  ThemeWidgets      themeWidgets_;
-  LayersWidgets     layersWidgets_;
-  CQChartsLoadDlg*  loadDlg_      { nullptr };
-  CQChartsPlotDlg*  plotDlg_      { nullptr };
-  QString           plotId_;
+  CQChartsWindow*   window_            { nullptr }; // parent window
+  QTabWidget*       tab_               { nullptr }; // settings/palette tab
+  PropertiesWidgets propertiesWidgets_;             // properties widgets
+  ModelsWidgets     modelsWidgets_;                 // models widgets
+  PlotsWidgets      plotsWidgets_;                  // plots widgets
+  ThemeWidgets      themeWidgets_;                  // theme widgets
+  LayersWidgets     layersWidgets_;                 // layers widgets
+  CQChartsLoadDlg*  loadDlg_           { nullptr }; // load dalog
+  CQChartsPlotDlg*  plotDlg_           { nullptr }; // plot dalog
+  QString           plotId_;                        // current plot id
+  bool              modelDetailsValid_ { false };   // model details valid
 };
 
 #endif
