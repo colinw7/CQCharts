@@ -358,6 +358,7 @@ INCLUDEPATH += \
 ../../CJson/include \
 ../../CTsv/include \
 ../../CCsv/include \
+../../CQPerfMonitor/include \
 ../../CImageLib/include \
 ../../CFont/include \
 ../../CReadLine/include \

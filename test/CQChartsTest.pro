@@ -32,6 +32,7 @@ INCLUDEPATH += \
 . \
 ../include \
 ../../CQUtil/include \
+../../CQPerfMonitor/include \
 ../../CImageLib/include \
 ../../CFont/include \
 ../../CReadLine/include \
@@ -49,6 +50,7 @@ unix:LIBS += \
 -L../../CQCustomCombo/lib \
 -L../../CQUtil/lib \
 -L../../CJson/lib \
+-L../../CQPerfMonitor/lib \
 -L../../CConfig/lib \
 -L../../CImageLib/lib \
 -L../../CFont/lib \
@@ -61,7 +63,7 @@ unix:LIBS += \
 -L../../CStrUtil/lib \
 -L../../COS/lib \
 -lCQCharts -lCQPropertyView -lCQDividedArea -lCQCustomCombo -lCQUtil \
--lCJson -lCMath \
+-lCQPerfMonitor -lCJson -lCMath \
 -lCReadLine -lCFileUtil -lCFile -lCRegExp \
 -lCUtil -lCStrUtil -lCOS \
 -lreadline -lpng -ljpeg -ltre -ltcl
