@@ -56,6 +56,13 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   //---
 
+  bool isOrigColumn (int column) const;
+  bool isExtraColumn(int column) const;
+
+  void setReadOnly(bool b);
+
+  //---
+
   bool decodeExpressionFn(const QString &exprStr, Function &function,
                           int &column, QString &expr) const;
 
@@ -63,6 +70,9 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool addExtraColumn(const QString &header, const QString &expr, int &column);
 
   bool removeExtraColumn(int column);
+
+  bool assignColumn(int column, const QString &expr);
+  bool assignColumn(const QString &header, int column, const QString &expr);
 
   bool assignExtraColumn(int column, const QString &expr);
   bool assignExtraColumn(const QString &header, int column, const QString &expr);
@@ -122,6 +132,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   using OptInt     = boost::optional<int>;
   using OptReal    = boost::optional<double>;
   using VariantMap = std::map<int,QVariant>;
+  using NameValues = std::map<QString,QVariant>;
   using Args       = std::vector<QString>;
 
   struct ExtraColumn {
@@ -129,6 +140,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
     QString           header;                                 // header
     CQBaseModel::Type type       { CQBaseModel::Type::NONE }; // value type
     QString           typeValues;                             // type extra values
+    NameValues        nameValues;                             // type named values
     VariantMap        variantMap;                             // calculated values
     Values            values;                                 // assign values
     Function          function   { Function::EVAL };          // current eval function
@@ -164,7 +176,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   ExtraColumn &extraColumn(int i) { return extraColumns_[i]; }
 
-  void calcColumn(int column, int ecolumn);
+  void calcExtraColumn(int column, int ecolumn);
 
   QVariant getExtraColumnValue(int row, int column, int ecolumn) const;
 

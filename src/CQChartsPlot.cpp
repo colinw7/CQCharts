@@ -27,6 +27,7 @@
 #include <CQUtil.h>
 
 #include <CMathUtil.h>
+#include <CMathRound.h>
 
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
@@ -5515,6 +5516,71 @@ void
 CQChartsPlot::
 drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, double size)
 {
+#ifdef SYMBOL_BUFFER
+  auto cmpPen = [](const QPen &pen1, const QPen &pen2) {
+    if (pen1.style () != pen2.style ()) return false;
+    if (pen1.color () != pen2.color ()) return false;
+    if (pen1.widthF() != pen2.widthF()) return false;
+    return true;
+  };
+
+  auto cmpBrush = [](const QBrush &brush1, const QBrush &brush2) {
+    if (brush1.style () != brush2.style ()) return false;
+    if (brush1.color () != brush2.color ()) return false;
+    return true;
+  };
+
+  struct ImageBuffer {
+    CQChartsSymbol symbol;
+    double         size { 0.0 };
+    int            isize { 0 };
+    QPen           pen;
+    QBrush         brush;
+    QImage         image;
+  };
+
+  static ImageBuffer imageBuffer;
+
+  if (symbol != imageBuffer.symbol ||
+      size   != imageBuffer.size   ||
+      ! cmpPen  (painter->pen  (), imageBuffer.pen  ) ||
+      ! cmpBrush(painter->brush(), imageBuffer.brush)) {
+    imageBuffer.symbol = symbol;
+    imageBuffer.size   = size;
+    imageBuffer.isize  = CMathRound::RoundUp(2*(size + std::max(painter->pen().widthF(), 1.0)));
+    imageBuffer.pen    = painter->pen  ();
+    imageBuffer.brush  = painter->brush();
+    imageBuffer.image  = QImage(QSize(imageBuffer.isize, imageBuffer.isize), QImage::Format_ARGB32);
+
+    imageBuffer.image.fill(QColor(0,0,0,0));
+
+    QPainter ipainter(&imageBuffer.image);
+
+    ipainter.setRenderHints(QPainter::Antialiasing);
+
+    ipainter.setPen  (imageBuffer.pen  );
+    ipainter.setBrush(imageBuffer.brush);
+
+    QPointF p1(size, size);
+
+    CQChartsSymbol2DRenderer srenderer(&ipainter, CQChartsUtil::fromQPoint(p1), size);
+
+    if (painter->brush().style() != Qt::NoBrush) {
+      CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer);
+
+      if (painter->pen().style() != Qt::NoPen)
+        CQChartsPlotSymbolMgr::strokeSymbol(symbol, &srenderer);
+    }
+    else {
+      if (painter->pen().style() != Qt::NoPen)
+        CQChartsPlotSymbolMgr::drawSymbol(symbol, &srenderer);
+    }
+  }
+
+  double is = imageBuffer.isize/2.0;
+
+  painter->drawImage(p.x() - is, p.y() - is, imageBuffer.image);
+#else
   CQChartsSymbol2DRenderer srenderer(painter, CQChartsUtil::fromQPoint(p), size);
 
   if (painter->brush().style() != Qt::NoBrush) {
@@ -5527,6 +5593,7 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, do
     if (painter->pen().style() != Qt::NoPen)
       CQChartsPlotSymbolMgr::drawSymbol(symbol, &srenderer);
   }
+#endif
 }
 
 void

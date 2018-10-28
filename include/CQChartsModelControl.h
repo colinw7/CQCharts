@@ -13,6 +13,7 @@ class QGridLayout;
 class QRadioButton;
 class QCheckBox;
 class QLineEdit;
+class QComboBox;
 class QLabel;
 
 class CQChartsModelControl : public QFrame {
@@ -32,7 +33,7 @@ class CQChartsModelControl : public QFrame {
 
   void setModelList(CQChartsModelList *modelList) { modelList_ = modelList; }
 
-  void setColumnData(int num, const QString &headerStr, const QString &typeStr);
+  void setColumnData(int column);
 
   void updateModel(CQChartsModelData *modelData);
 
@@ -41,18 +42,42 @@ class CQChartsModelControl : public QFrame {
  private slots:
   void expressionModeSlot();
 
-  void exprSlot();
+  void exprApplySlot();
 
   void foldApplySlot();
   void foldClearSlot();
 
-  void typeSetSlot();
+  void typeApplySlot();
 
  private:
   QLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
                          const QString &objName) const;
+  QComboBox *addComboBox(QGridLayout *grid, int &row, const QString &name,
+                         const QString &objName) const;
 
  private:
+  struct ParamEdit {
+    int        row { 0 };
+    QLabel    *label;
+    QLineEdit *edit;
+  };
+
+  using ParamEdits = std::vector<ParamEdit>;
+
+  struct ColumnEditData {
+    QFrame*      editFrame  { nullptr };
+    QGridLayout* editLayout { nullptr };
+    QLineEdit*   numEdit    { nullptr };
+    QLineEdit*   nameEdit   { nullptr };
+#if 0
+    QLineEdit*   typeEdit   { nullptr };
+#else
+    QComboBox*   typeCombo  { nullptr };
+#endif
+    int          row        { 0 };
+    ParamEdits   paramEdits;
+  };
+
   CQCharts*          charts_          { nullptr };
   CQChartsModelList* modelList_       { nullptr };
   Mode               mode_            { Mode::ADD };
@@ -73,9 +98,7 @@ class CQChartsModelControl : public QFrame {
   QLineEdit*         foldDeltaEdit_   { nullptr };
   QLineEdit*         foldCountEdit_   { nullptr };
 #endif
-  QLineEdit*         columnNumEdit_   { nullptr };
-  QLineEdit*         columnNameEdit_  { nullptr };
-  QLineEdit*         columnTypeEdit_  { nullptr };
+  ColumnEditData     columnEditData_;
 };
 
 #endif

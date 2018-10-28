@@ -19,7 +19,7 @@ CQChartsModelDetails(CQChartsModelData *data) :
 CQChartsModelDetails::
 ~CQChartsModelDetails()
 {
-  reset();
+  resetValues();
 }
 
 int
@@ -102,6 +102,15 @@ void
 CQChartsModelDetails::
 reset()
 {
+  resetValues();
+
+  emit detailsReset();
+}
+
+void
+CQChartsModelDetails::
+resetValues()
+{
   initialized_  = Initialized::NONE;
   numColumns_   = 0;
   numRows_      = 0;
@@ -121,7 +130,7 @@ updateSimple()
 
   QAbstractItemModel *model = data_->currentModel().data();
 
-  reset();
+  resetValues();
 
   hierarchical_ = CQChartsUtil::isHierarchical(model);
 
@@ -445,6 +454,23 @@ bool
 CQChartsModelColumnDetails::
 isMonotonic() const
 {
+  if (column_.type() == CQChartsColumn::Type::DATA ||
+      column_.type() == CQChartsColumn::Type::DATA_INDEX) {
+    int icolumn = column_.column();
+
+    bool ok;
+
+    QAbstractItemModel *model = details_->data()->currentModel().data();
+
+    QVariant var = CQChartsUtil::modelHeaderValue(
+      model, icolumn, static_cast<int>(CQBaseModel::Role::Sorted), ok);
+
+    if (ok && var.isValid() && var.toBool())
+      return true;
+  }
+
+  //---
+
   if (! initialized_)
     (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
 
@@ -455,6 +481,28 @@ bool
 CQChartsModelColumnDetails::
 isIncreasing() const
 {
+  if (column_.type() == CQChartsColumn::Type::DATA ||
+      column_.type() == CQChartsColumn::Type::DATA_INDEX) {
+    int icolumn = column_.column();
+
+    bool ok;
+
+    QAbstractItemModel *model = details_->data()->currentModel().data();
+
+    QVariant var = CQChartsUtil::modelHeaderValue(
+      model, icolumn, static_cast<int>(CQBaseModel::Role::Sorted), ok);
+
+    if (ok && var.isValid() && var.toBool()) {
+      QVariant var = CQChartsUtil::modelHeaderValue(
+        model, icolumn, static_cast<int>(CQBaseModel::Role::SortOrder), ok);
+
+      if (ok && var.isValid())
+        return (var.toInt() == Qt::AscendingOrder);
+    }
+  }
+
+  //---
+
   if (! initialized_)
     (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
 
@@ -821,6 +869,9 @@ initData()
 
   //---
 
+  // TODO: replace monotonic with sorted and sort dir
+  // auto update sorted when model sorted
+
   class DetailVisitor : public CQChartsModelVisitor {
    public:
     DetailVisitor(CQChartsModelColumnDetails *details) :
@@ -1080,7 +1131,7 @@ initData()
 
     QVariant meanValue() const { return mean_; }
 
-    bool isMonotonic () const { return monotonic_; }
+    bool isMonotonic () const { return monotonicSet_ && monotonic_; }
     bool isIncreasing() const { return increasing_; }
 
    private:
@@ -1093,9 +1144,9 @@ initData()
     bool                        visitMax_     { true };
     QVariant                    lastValue1_;
     QVariant                    lastValue2_;
+    bool                        monotonicSet_ { false };
     bool                        monotonic_    { true };
     bool                        increasing_   { true };
-    bool                        monotonicSet_ { false };
   };
 
   //---

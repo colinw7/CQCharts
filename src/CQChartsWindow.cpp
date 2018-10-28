@@ -3,8 +3,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsViewExpander.h>
 #include <CQChartsViewSettings.h>
-#include <CQChartsTable.h>
-#include <CQChartsTree.h>
 #include <CQChartsViewStatus.h>
 #include <CQChartsViewToolBar.h>
 #include <CQChartsFilterEdit.h>

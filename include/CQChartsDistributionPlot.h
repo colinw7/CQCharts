@@ -324,6 +324,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   Q_PROPERTY(PlotType  plotType  READ plotType  WRITE setPlotType )
   Q_PROPERTY(ValueType valueType READ valueType WRITE setValueType)
 
+  Q_PROPERTY(bool percent   READ isPercent   WRITE setPercent  )
   Q_PROPERTY(bool skipEmpty READ isSkipEmpty WRITE setSkipEmpty)
   Q_PROPERTY(bool sorted    READ isSorted    WRITE setSorted   )
 
@@ -407,7 +408,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   //---
 
   bool isBucketed() const { return bucketed_; }
-  void setBucketed(bool b) { bucketed_ = b; }
+  void setBucketed(bool b);
 
   bool isAutoBucket() const;
   void setAutoBucket(bool b);
@@ -439,6 +440,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   bool isValueMax  () const { return (valueType() == ValueType::MAX  ); }
   bool isValueMean () const { return (valueType() == ValueType::MEAN ); }
 
+  bool isPercent  () const { return percent_  ; }
   bool isSkipEmpty() const { return skipEmpty_; }
   bool isSorted   () const { return sorted_   ; }
 
@@ -645,6 +647,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   void setValueMax  (bool b);
   void setValueMean (bool b);
 
+  // set percent
+  void setPercent(bool b);
+
   // set skip empty
   void setSkipEmpty(bool b);
 
@@ -694,6 +699,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   CQChartsColumn    dataColumn_;                          // data column
   PlotType          plotType_       { PlotType::NORMAL }; // plot type
   ValueType         valueType_      { ValueType::COUNT }; // show value count
+  bool              percent_        { false };            // percent values
   bool              skipEmpty_      { false };            // skip empty buckets (non cont range)
   bool              sorted_         { false };            // sort by count
   DensityData       densityData_;                         // density data

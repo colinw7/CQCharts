@@ -394,7 +394,7 @@ init()
   //---
 
   // use fixed increment
-  if (majorIncrement_ > 0.0 && (isDate() || isTime())) {
+  if (majorIncrement_ > 0.0 || isDate() || isTime()) {
     calcData_.start     = min;
     calcData_.end       = max;
     calcData_.increment = majorIncrement_;

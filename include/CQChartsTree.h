@@ -31,6 +31,9 @@ class CQChartsTree : public CQTreeView {
   void addMenuActions(QMenu *menu) override;
 
  private slots:
+  void headerClickedSlot(int section);
+  void itemClickedSlot(const QModelIndex &);
+
   void selectionSlot();
 
   void selectionBehaviorSlot(QAction *action);
@@ -38,7 +41,11 @@ class CQChartsTree : public CQTreeView {
   void exportSlot(QAction *action);
 
  signals:
+  void columnClicked(int);
+
   void filterChanged();
+
+  void selectionChanged();
 
  private:
   CQCharts*                   charts_ { nullptr };

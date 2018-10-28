@@ -14,6 +14,7 @@
 #include <CQCharts.h>
 #include <CMathCorrelation.h>
 #include <CMathRound.h>
+#include <CQPerfMonitor.h>
 
 #include <QPainter>
 #include <QMenu>
@@ -588,6 +589,8 @@ CQChartsGeom::Range
 CQChartsScatterPlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsScatterPlot::calcRange");
+
   initGroupData(CQChartsColumns(), CQChartsColumn());
 
   //---
@@ -794,6 +797,8 @@ bool
 CQChartsScatterPlot::
 initObjs()
 {
+  CQPerfTrace trace("CQChartsScatterPlot::initObjs");
+
   if (! dataRange_.isSet()) {
     updateRange();
 
@@ -1027,6 +1032,8 @@ void
 CQChartsScatterPlot::
 addNameValues()
 {
+  CQPerfTrace trace("CQChartsScatterPlot::addNameValues");
+
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(CQChartsScatterPlot *plot) :

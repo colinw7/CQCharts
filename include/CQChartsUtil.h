@@ -17,7 +17,7 @@
 #include <QStringList>
 #include <QRectF>
 
-using CQChartsNameValues = std::map<QString,QString>;
+using CQChartsNameValues = std::map<QString,QVariant>;
 
 class CQCharts;
 class CQChartsColumnType;

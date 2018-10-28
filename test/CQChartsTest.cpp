@@ -18,6 +18,7 @@
 #endif
 
 #include <CQMsgHandler.h>
+#include <CQPerfMonitor.h>
 #include <CQUtil.h>
 #include <CReadLine.h>
 
@@ -139,6 +140,7 @@ struct MainData {
   bool             showModelSet { false };
   bool             exit         { false };
   bool             offscreen    { false };
+  bool             record       { false };
   int              viewWidth    { 100 };
   int              viewHeight   { 100 };
   OptReal          xmin1;
@@ -292,6 +294,19 @@ main(int argc, char **argv)
 
   //---
 
+  if (mainData.record) {
+    setenv("CQCHARTS_BUFFER_LAYERS"      , "0" , true);
+    setenv("CQCHARTS_PLOT_UPDATE_TIMEOUT", "0", true);
+    setenv("CQCHARTS_OBJ_TREE_WAIT"      , "1", true);
+
+
+    CQPerfMonitorInst->setEnabled(true);
+
+    CQPerfMonitorInst->startRecording();
+  }
+
+  //---
+
   if (mainData.exit) {
     test.setShow(false);
   }
@@ -338,6 +353,22 @@ main(int argc, char **argv)
   // print plot
   if (mainData.printFile)
     test.print(*mainData.printFile);
+
+  //---
+
+  if (mainData.record) {
+    int n = 100;
+
+    for (int i = 0; i < n; ++i) {
+      qApp->flush();
+
+      qApp->processEvents();
+    }
+
+    CQPerfMonitorInst->stopRecording();
+
+    CQPerfMonitorInst->setEnabled(false);
+  }
 
   //---
 
@@ -755,6 +786,11 @@ parseArgs(int argc, char **argv, MainData &mainData)
       // offscreen
       else if (arg == "offscreen") {
         mainData.offscreen = true;
+      }
+
+      // record
+      else if (arg == "record") {
+        mainData.record = true;
       }
 
       else {

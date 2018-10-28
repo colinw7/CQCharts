@@ -125,7 +125,8 @@ fromString(const QString &str)
       brush_->setColor(c);
     }
     else {
-      std::cerr << name.toStdString() << "=" << value.toStdString() << "\n";
+      std::cerr << "Unsupported style: " <<
+                   name.toStdString() << "=" << value.toStdString() << "\n";
     }
   }
 

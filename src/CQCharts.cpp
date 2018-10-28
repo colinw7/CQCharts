@@ -103,19 +103,19 @@ init()
   //---
 
   // add column types
+  columnTypeMgr_->addType(CQBaseModel::Type::STRING         , new CQChartsColumnStringType        );
   columnTypeMgr_->addType(CQBaseModel::Type::INTEGER        , new CQChartsColumnIntegerType       );
   columnTypeMgr_->addType(CQBaseModel::Type::REAL           , new CQChartsColumnRealType          );
-  columnTypeMgr_->addType(CQBaseModel::Type::STRING         , new CQChartsColumnStringType        );
   columnTypeMgr_->addType(CQBaseModel::Type::BOOLEAN        , new CQChartsColumnBooleanType       );
+  columnTypeMgr_->addType(CQBaseModel::Type::TIME           , new CQChartsColumnTimeType          );
+  columnTypeMgr_->addType(CQBaseModel::Type::COLOR          , new CQChartsColumnColorType         );
   columnTypeMgr_->addType(CQBaseModel::Type::RECT           , new CQChartsColumnRectType          );
   columnTypeMgr_->addType(CQBaseModel::Type::POLYGON        , new CQChartsColumnPolygonType       );
-  columnTypeMgr_->addType(CQBaseModel::Type::COLOR          , new CQChartsColumnColorType         );
-  columnTypeMgr_->addType(CQBaseModel::Type::TIME           , new CQChartsColumnTimeType          );
+  columnTypeMgr_->addType(CQBaseModel::Type::POLYGON_LIST   , new CQChartsColumnPolygonListType   );
   columnTypeMgr_->addType(CQBaseModel::Type::PATH           , new CQChartsColumnPathType          );
   columnTypeMgr_->addType(CQBaseModel::Type::STYLE          , new CQChartsColumnStyleType         );
-  columnTypeMgr_->addType(CQBaseModel::Type::POLYGON_LIST   , new CQChartsColumnPolygonListType   );
-  columnTypeMgr_->addType(CQBaseModel::Type::CONNECTION_LIST, new CQChartsColumnConnectionListType);
   columnTypeMgr_->addType(CQBaseModel::Type::NAME_PAIR      , new CQChartsColumnNamePairType      );
+  columnTypeMgr_->addType(CQBaseModel::Type::CONNECTION_LIST, new CQChartsColumnConnectionListType);
 
   //---
 

@@ -138,7 +138,12 @@ class CQChartsModelDetails : public QObject {
 
   void reset();
 
+ signals:
+  void detailsReset();
+
  private:
+  void resetValues();
+
   void updateSimple();
   void updateFull();
 

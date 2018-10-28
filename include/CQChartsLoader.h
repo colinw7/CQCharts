@@ -6,10 +6,7 @@
 #include <vector>
 
 class CQCharts;
-class CQChartsCsvFilterModel;
-class CQChartsTsvFilterModel;
-class CQChartsJsonFilterModel;
-class CQChartsGnuDataFilterModel;
+class CQChartsFilterModel;
 
 struct CQChartsInputData;
 
@@ -30,16 +27,16 @@ class CQChartsLoader {
   QAbstractItemModel *loadFile(const QString &filename, CQChartsFileType type,
                                const CQChartsInputData &inputData, bool &hierarchical);
 
-  CQChartsCsvFilterModel*     loadCsv (const QString &filename, const CQChartsInputData &inputData);
-  CQChartsTsvFilterModel*     loadTsv (const QString &filename, const CQChartsInputData &inputData);
-  CQChartsJsonFilterModel*    loadJson(const QString &filename, const CQChartsInputData &inputData);
-  CQChartsGnuDataFilterModel* loadData(const QString &filename, const CQChartsInputData &inputData);
+  CQChartsFilterModel* loadCsv (const QString &filename, const CQChartsInputData &inputData);
+  CQChartsFilterModel* loadTsv (const QString &filename, const CQChartsInputData &inputData);
+  CQChartsFilterModel* loadJson(const QString &filename, const CQChartsInputData &inputData);
+  CQChartsFilterModel* loadData(const QString &filename, const CQChartsInputData &inputData);
 
-  QAbstractItemModel *createExprModel(int n);
+  CQChartsFilterModel *createExprModel(int n);
 
-  QAbstractItemModel *createVarsModel(const CQChartsInputData &inputData);
+  CQChartsFilterModel *createVarsModel(const CQChartsInputData &inputData);
 
-  QAbstractItemModel *createCorrelationModel(QAbstractItemModel *model, bool flip=false);
+  CQChartsFilterModel *createCorrelationModel(QAbstractItemModel *model, bool flip=false);
 
  private:
   CQCharts* charts_ { nullptr };

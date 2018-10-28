@@ -54,6 +54,11 @@ CQChartsTree(CQCharts *charts, QWidget *parent) :
   header()->setSortIndicator(0, Qt::AscendingOrder);
 
   setSelectionBehavior(SelectRows);
+
+  connect(header(), SIGNAL(sectionClicked(int)), this, SLOT(headerClickedSlot(int)));
+
+  connect(this, SIGNAL(clicked(const QModelIndex &)),
+          this, SLOT(itemClickedSlot(const QModelIndex &)));
 }
 
 void
@@ -157,12 +162,27 @@ setFilter(const QString &filter)
 
 void
 CQChartsTree::
+headerClickedSlot(int section)
+{
+  emit columnClicked(section);
+}
+
+void
+CQChartsTree::
+itemClickedSlot(const QModelIndex &)
+{
+}
+
+void
+CQChartsTree::
 selectionSlot()
 {
   QModelIndexList indices = selectedIndexes();
   if (indices.empty()) return;
 
   scrollTo(indices.at(0), QAbstractItemView::EnsureVisible);
+
+  emit selectionChanged();
 }
 
 void

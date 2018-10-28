@@ -525,3 +525,17 @@ replaceNamedColumns(QAbstractItemModel *model, const QString &expr) const
 
   return CQChartsUtil::replaceModelExprVars(expr, model, ind, -1, -1);
 }
+
+void
+CQChartsModelFilter::
+sort(int column, Qt::SortOrder order)
+{
+  int nc = columnCount();
+
+  for (int c = 0; c < nc; ++c)
+    setHeaderData(c, Qt::Horizontal, (c == column), int(CQBaseModel::Role::Sorted));
+
+  setHeaderData(column, Qt::Horizontal, order, int(CQBaseModel::Role::SortOrder));
+
+  QSortFilterProxyModel::sort(column, order);
+}

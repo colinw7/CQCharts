@@ -642,6 +642,8 @@ selectionSlot()
   if (indices.empty()) return;
 
   scrollTo(indices.at(0), QAbstractItemView::EnsureVisible);
+
+  emit selectionChanged();
 }
 
 void

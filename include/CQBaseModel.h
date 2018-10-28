@@ -24,12 +24,14 @@ class CQBaseModel : public QAbstractItemModel {
     TypeValues        = Type + 1,         // column type values role
     Min               = Type + 2,         // column user min role
     Max               = Type + 3,         // column user max role
-    RawValue          = Type + 4,         // raw value by role
-    IntermediateValue = Type + 5,         // intermediate value role
-    CachedValue       = Type + 6,         // cached value role
-    OutputValue       = Type + 7,         // output value role
-    Group             = Type + 8,         // group role
-    Key               = Type + 9          // is key role
+    Sorted            = Type + 4,         // sorted
+    SortOrder         = Type + 5,         // sort role
+    Key               = Type + 6,         // is key role
+    RawValue          = Type + 7,         // raw value by role
+    IntermediateValue = Type + 8,         // intermediate value role
+    CachedValue       = Type + 9,         // cached value role
+    OutputValue       = Type + 10,        // output value role
+    Group             = Type + 11         // group role
   };
 
   // use variant numbers where possible
@@ -91,6 +93,12 @@ class CQBaseModel : public QAbstractItemModel {
   bool isColumnKey(int column) const;
   bool setColumnKey(int column, bool b);
 
+  bool isColumnSorted(int column) const;
+  bool setColumnSorted(int column, bool b);
+
+  int columnSortOrder(int column) const;
+  bool setColumnSortOrder(int column, int i);
+
   void resetColumnType(int column);
   void resetColumnTypes();
 
@@ -134,11 +142,11 @@ class CQBaseModel : public QAbstractItemModel {
   static bool isInteger(double r);
 
  signals:
-  void columnTypeChanged(int column);
-
-  void columnRangeChanged(int column);
-
-  void columnKeyChanged(int column);
+  void columnTypeChanged     (int column);
+  void columnRangeChanged    (int column);
+  void columnKeyChanged      (int column);
+  void columnSortedChanged   (int column);
+  void columnSortOrderChanged(int column);
 
  protected:
   using RowValues     = std::map<int,QVariant>;
@@ -149,13 +157,15 @@ class CQBaseModel : public QAbstractItemModel {
      column(column) {
     }
 
-    int           column { -1 };       // column
-    Type          type { Type::NONE }; // auto or assigned type
-    QString       typeValues;          // type values
-    QVariant      min;                 // custom min value
-    QVariant      max;                 // custom max value
-    bool          key { false };       // is key
-    RoleRowValues roleRowValues;       // row role values
+    int           column        { -1 };                 // column
+    Type          type          { Type::NONE };         // auto or assigned type
+    QString       typeValues;                           // type values
+    QVariant      min;                                  // custom min value
+    QVariant      max;                                  // custom max value
+    bool          key           { false };              // is key
+    bool          sorted        { false };              // is sorted
+    bool          sortOrder     { Qt::AscendingOrder }; // sort role
+    RoleRowValues roleRowValues;                        // row role values
   };
 
   using ColumnDatas = std::map<int,ColumnData>;

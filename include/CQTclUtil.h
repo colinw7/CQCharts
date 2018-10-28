@@ -445,6 +445,10 @@ class CQTcl : public CTcl {
     return CQTclUtil::getResult(interp());
   }
 
+  bool isDomainError(int rc) const {
+    return CTclUtil::isDomainError(interp(), rc);
+  }
+
   QString errorInfo(int rc) const {
     return CTclUtil::errorInfo(interp(), rc).c_str();
   }

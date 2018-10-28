@@ -26,7 +26,7 @@
 #include <CQChartsLoadDlg.h>
 #include <CQChartsModelDlg.h>
 #include <CQChartsPlotDlg.h>
-#include <CQChartsDataFilterModel.h>
+#include <CQChartsFilterModel.h>
 #include <CQChartsAnalyzeModel.h>
 
 #include <CQDataModel.h>
@@ -451,7 +451,7 @@ processModelCmd(const Vars &vars)
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model index").setRequired();
   argv.addCmdArg("-column", CQChartsCmdArg::Type::Column ,
-                 "column for delete, modify, calc, query");
+                 "column for delete, modify, calc, query, analyze");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-add"    , CQChartsCmdArg::Type::Boolean, "add column");
@@ -466,6 +466,8 @@ processModelCmd(const Vars &vars)
   argv.addCmdArg("-header", CQChartsCmdArg::Type::String, "header label for add/modify");
   argv.addCmdArg("-type"  , CQChartsCmdArg::Type::String, "type data for add/modify");
   argv.addCmdArg("-expr"  , CQChartsCmdArg::Type::String, "expression for add/modify/calc/query");
+
+  argv.addCmdArg("-force", CQChartsCmdArg::Type::Boolean, "force modify of original data");
 
   if (! argv.parse())
     return;
@@ -554,9 +556,29 @@ processModelCmd(const Vars &vars)
 
     CQChartsColumn column = argv.getParseColumn("column", model.data());
 
-    if (! exprModel->assignExtraColumn(header, column.column(), expr)) {
-      setCmdError("Failed to modify column");
-      return;
+    if (exprModel->isOrigColumn(column.column())) {
+      if (argv.getParseBool("force")) {
+        exprModel->setReadOnly(false);
+
+        bool rc = exprModel->assignColumn(header, column.column(), expr);
+
+        exprModel->setReadOnly(true);
+
+        if (! rc) {
+          setCmdError(QString("Failed to modify column '%1'").arg(column.column()));
+          return;
+        }
+      }
+      else {
+        setCmdError("Use -force to modify original model data");
+        return;
+      }
+    }
+    else {
+      if (! exprModel->assignExtraColumn(header, column.column(), expr)) {
+        setCmdError(QString("Failed to modify column '%1'").arg(column.column()));
+        return;
+      }
     }
 
     //---
@@ -1968,9 +1990,9 @@ flattenModelCmd(const Vars &vars)
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-  CQChartsDataFilterModel *dataModel = new CQChartsDataFilterModel(charts_, nc + nh, nr);
+  CQDataModel *dataModel = new CQDataModel(nc + nh, nr);
 
-  CQDataModel *model1 = dataModel->dataModel();
+  CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, dataModel);
 
   // set hierarchical column
   if (flattenVisitor.isHierarchical()) {
@@ -1978,7 +2000,7 @@ flattenModelCmd(const Vars &vars)
 
     QString name = CQChartsUtil::modelHeaderString(model.data(), 0, Qt::Horizontal, ok);
 
-    CQChartsUtil::setModelHeaderValue(model1, 0, Qt::Horizontal, name);
+    CQChartsUtil::setModelHeaderValue(dataModel, 0, Qt::Horizontal, name);
   }
 
   // set other columns and types
@@ -1989,7 +2011,7 @@ flattenModelCmd(const Vars &vars)
 
     QString name = CQChartsUtil::modelHeaderString(model.data(), c + nh, Qt::Horizontal, ok);
 
-    CQChartsUtil::setModelHeaderValue(model1, c + nh, Qt::Horizontal, name);
+    CQChartsUtil::setModelHeaderValue(dataModel, c + nh, Qt::Horizontal, name);
 
     CQBaseModel::Type  columnType;
     CQChartsNameValues nameValues;
@@ -2003,7 +2025,7 @@ flattenModelCmd(const Vars &vars)
       continue;
 
     if (isGroup || typeData->isNumeric()) {
-      if (! columnTypeMgr->setModelColumnType(model1, c + nh, columnType, nameValues))
+      if (! columnTypeMgr->setModelColumnType(dataModel, c + nh, columnType, nameValues))
         continue;
     }
   }
@@ -2014,7 +2036,7 @@ flattenModelCmd(const Vars &vars)
     if (flattenVisitor.isHierarchical()) {
       QVariant var = flattenVisitor.groupValue(r);
 
-      CQChartsUtil::setModelValue(model1, r, 0, var);
+      CQChartsUtil::setModelValue(dataModel, r, 0, var);
     }
 
     for (int c = 0; c < nc; ++c) {
@@ -2028,17 +2050,17 @@ flattenModelCmd(const Vars &vars)
         else if (meanFlag)
           v = flattenVisitor.hierMean(r, c);
 
-        CQChartsUtil::setModelValue(model1, r, c + nh, v);
+        CQChartsUtil::setModelValue(dataModel, r, c + nh, v);
       }
       else {
         QVariant v = flattenVisitor.groupValue(r);
 
-        CQChartsUtil::setModelValue(model1, r, c + nh, v);
+        CQChartsUtil::setModelValue(dataModel, r, c + nh, v);
       }
     }
   }
 
-  ModelP dataModelP(dataModel);
+  ModelP dataModelP(filterModel);
 
   CQChartsModelData *dataModelData = charts_->initModelData(dataModelP);
 
@@ -2162,12 +2184,12 @@ correlationModelCmd(const Vars &vars)
 
   CQChartsLoader loader(charts_);
 
-  QAbstractItemModel *model1 =
+  QAbstractItemModel *correlationModel =
     loader.createCorrelationModel(modelData->currentModel().data(), flip);
 
-  ModelP modelp1(model1);
+  ModelP correlationModelP(correlationModel);
 
-  CQChartsModelData *modelData1 = charts_->initModelData(modelp1);
+  CQChartsModelData *modelData1 = charts_->initModelData(correlationModelP);
 
   //---
 
@@ -2228,9 +2250,9 @@ subsetModelCmd(const Vars &vars)
 
   subsetModel->setBounds(tlIndex, brIndex);
 
-  ModelP modelp1(subsetModel);
+  ModelP subsetModelP(subsetModel);
 
-  CQChartsModelData *modelData1 = charts_->initModelData(modelp1);
+  CQChartsModelData *modelData1 = charts_->initModelData(subsetModelP);
 
   //---
 
@@ -2268,9 +2290,9 @@ transposeModelCmd(const Vars &vars)
 
   CQTransposeModel *transposeModel = new CQTransposeModel(model);
 
-  ModelP modelp1(transposeModel);
+  ModelP transposeModelP(transposeModel);
 
-  CQChartsModelData *modelData1 = charts_->initModelData(modelp1);
+  CQChartsModelData *modelData1 = charts_->initModelData(transposeModelP);
 
   //---
 

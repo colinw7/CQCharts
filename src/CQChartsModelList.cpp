@@ -18,6 +18,8 @@ CQChartsModelList::
 CQChartsModelList(CQCharts *charts) :
  charts_(charts)
 {
+  setObjectName("modelList");
+
   QVBoxLayout *layout = new QVBoxLayout(this);
 
   //---
@@ -147,6 +149,9 @@ addModelDataWidgets(CQChartsModelData *modelData)
 
   stack->addWidget(tree);
 
+  connect(tree, SIGNAL(columnClicked(int)), this, SLOT(treeColumnClicked(int)));
+  connect(tree, SIGNAL(selectionChanged()), this, SLOT(treeSelectionChanged()));
+
   viewWidgetData->tree = tree;
 
   //---
@@ -156,6 +161,7 @@ addModelDataWidgets(CQChartsModelData *modelData)
   stack->addWidget(table);
 
   connect(table, SIGNAL(columnClicked(int)), this, SLOT(tableColumnClicked(int)));
+  connect(table, SIGNAL(selectionChanged()), this, SLOT(tableSelectionChanged()));
 
   viewWidgetData->table = table;
 
@@ -180,28 +186,37 @@ addModelDataWidgets(CQChartsModelData *modelData)
 
 void
 CQChartsModelList::
-currentTabChanged(int ind)
+currentTabChanged(int)
 {
-  for (auto &p : viewWidgetDatas_) {
-    CQChartsViewWidgetData *viewWidgetDatas = p.second;
+  CQChartsViewWidgetData *viewWidgetData = currentViewWidgetData();
 
-    if (viewWidgetDatas->tabInd == ind)
-      charts_->setCurrentModelInd(viewWidgetDatas->ind);
-  }
+  if (viewWidgetData)
+    charts_->setCurrentModelInd(viewWidgetData->ind);
 }
 
 CQChartsModelData *
 CQChartsModelList::
 currentModelData() const
 {
+  CQChartsViewWidgetData *viewWidgetData = currentViewWidgetData();
+
+  if (viewWidgetData)
+    return charts_->getModelData(viewWidgetData->ind);
+
+  return nullptr;
+}
+
+CQChartsViewWidgetData *
+CQChartsModelList::
+currentViewWidgetData() const
+{
   int ind = viewTab_->currentIndex();
 
   for (auto &p : viewWidgetDatas_) {
-    CQChartsViewWidgetData *viewWidgetDatas = p.second;
+    CQChartsViewWidgetData *viewWidgetData = p.second;
 
-    if (viewWidgetDatas->tabInd == ind) {
-      return charts_->getModelData(viewWidgetDatas->ind);
-    }
+    if (viewWidgetData->tabInd == ind)
+      return viewWidgetData;
   }
 
   return nullptr;
@@ -231,25 +246,44 @@ filterSlot()
 
 void
 CQChartsModelList::
+treeColumnClicked(int column)
+{
+  if (modelControl_)
+    modelControl_->setColumnData(column);
+}
+
+void
+CQChartsModelList::
+treeSelectionChanged()
+{
+}
+
+void
+CQChartsModelList::
 tableColumnClicked(int column)
 {
-  using ModelP = QSharedPointer<QAbstractItemModel>;
-
-  CQChartsTable *table = qobject_cast<CQChartsTable *>(sender());
-
-  ModelP model = table->modelP();
-
-  QString headerStr = model->headerData(column, Qt::Horizontal).toString();
-
-  QString typeStr;
-
-  if (! CQChartsUtil::columnTypeStr(charts_, model.data(), column, typeStr))
-    typeStr = "";
-
-  //---
-
   if (modelControl_)
-    modelControl_->setColumnData(column, headerStr, typeStr);
+    modelControl_->setColumnData(column);
+}
+
+void
+CQChartsModelList::
+tableSelectionChanged()
+{
+  CQChartsViewWidgetData *viewWidgetData = currentViewWidgetData();
+
+  if (viewWidgetData) {
+    QItemSelectionModel *sm = viewWidgetData->table->selectionModel();
+
+    QModelIndexList inds = sm->selectedColumns();
+
+    if (inds.size() == 1) {
+      int column = inds[0].column();
+
+      if (modelControl_)
+        modelControl_->setColumnData(column);
+    }
+  }
 }
 
 void
@@ -323,49 +357,71 @@ void
 CQChartsModelList::
 setDetails(const CQChartsModelData *modelData)
 {
-  CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(modelData->ind());
-  assert(viewWidgetData);
+  currentViewWidgetData_ = this->viewWidgetData(modelData->ind());
+  assert(currentViewWidgetData_);
+
+  //---
 
   CQChartsModelData *modelData1 = nullptr;
 
-  CQChartsModelDetails *details = nullptr;
-
-  if (viewWidgetData->stack->currentIndex() == 0) {
-    if (viewWidgetData->tree)
-      modelData1 = charts_->getModelData(viewWidgetData->tree->modelP().data());
+  if (currentViewWidgetData_->stack->currentIndex() == 0) {
+    if (currentViewWidgetData_->tree)
+      modelData1 = charts_->getModelData(currentViewWidgetData_->tree->modelP().data());
   }
   else {
-    if (viewWidgetData->table)
-      modelData1 = charts_->getModelData(viewWidgetData->table->modelP().data());
+    if (currentViewWidgetData_->table)
+      modelData1 = charts_->getModelData(currentViewWidgetData_->table->modelP().data());
   }
 
   if (! modelData1)
     modelData1 = const_cast<CQChartsModelData *>(modelData);
 
-  if (modelData1)
-    details = modelData1->details();
+  //---
 
-  if (! details)
+  if (currentDetails_)
+    disconnect(currentDetails_, SIGNAL(detailsReset()), this, SLOT(updateDetails()));
+
+  currentDetails_ = nullptr;
+
+  if (modelData1)
+    currentDetails_ = modelData1->details();
+
+  if (! currentDetails_)
     return;
 
-  int nc = details->numColumns();
-  int nr = details->numRows   ();
+  connect(currentDetails_, SIGNAL(detailsReset()), this, SLOT(updateDetails()));
 
   //---
 
-  viewWidgetData->detailsTable->clear();
+  updateDetails();
+}
 
-  viewWidgetData->detailsTable->setColumnCount(7);
+void
+CQChartsModelList::
+updateDetails()
+{
+  assert(currentDetails_);
 
-  viewWidgetData->detailsTable->setHorizontalHeaderLabels(QStringList() <<
+  //---
+
+  int nc = currentDetails_->numColumns();
+  int nr = currentDetails_->numRows   ();
+
+  //---
+
+  currentViewWidgetData_->detailsTable->clear();
+
+  currentViewWidgetData_->detailsTable->setColumnCount(7);
+
+  currentViewWidgetData_->detailsTable->setHorizontalHeaderLabels(QStringList() <<
     "Column" << "Type" << "Min" << "Max" << "Mean" << "StdDev" << "Monotonic");
 
-  viewWidgetData->detailsTable->setRowCount(nc);
+  currentViewWidgetData_->detailsTable->setRowCount(nc);
 
   auto columnDetails = [&](int c, QString &nameStr, QString &typeStr, QString &minStr,
                            QString &maxStr, QString &meanStr, QString &stdDevStr,
                            QString &monoStr) {
-    const CQChartsModelColumnDetails *columnDetails = details->columnDetails(c);
+    const CQChartsModelColumnDetails *columnDetails = currentDetails_->columnDetails(c);
 
     nameStr   = columnDetails->headerName();
     typeStr   = columnDetails->typeName();
@@ -393,13 +449,13 @@ setDetails(const CQChartsModelData *modelData)
     QTableWidgetItem *item6 = new QTableWidgetItem(stdDevStr);
     QTableWidgetItem *item7 = new QTableWidgetItem(monoStr);
 
-    viewWidgetData->detailsTable->setItem(c, 0, item1);
-    viewWidgetData->detailsTable->setItem(c, 1, item2);
-    viewWidgetData->detailsTable->setItem(c, 2, item3);
-    viewWidgetData->detailsTable->setItem(c, 3, item4);
-    viewWidgetData->detailsTable->setItem(c, 4, item5);
-    viewWidgetData->detailsTable->setItem(c, 5, item6);
-    viewWidgetData->detailsTable->setItem(c, 6, item7);
+    currentViewWidgetData_->detailsTable->setItem(c, 0, item1);
+    currentViewWidgetData_->detailsTable->setItem(c, 1, item2);
+    currentViewWidgetData_->detailsTable->setItem(c, 2, item3);
+    currentViewWidgetData_->detailsTable->setItem(c, 3, item4);
+    currentViewWidgetData_->detailsTable->setItem(c, 4, item5);
+    currentViewWidgetData_->detailsTable->setItem(c, 5, item6);
+    currentViewWidgetData_->detailsTable->setItem(c, 6, item7);
   };
 
   //---
@@ -411,29 +467,7 @@ setDetails(const CQChartsModelData *modelData)
   text += QString("<tr><td>Rows</td><td>%1</td></tr>").arg(nr);
   text += "</table>";
 
-#if 0
-  text += "<br>";
-
-  text += "<table padding=\"4\">";
-  text += "<tr><th>Column</th><th>Type</th><th>Min</th><th>Max</th><th>Monotonic</th></tr>";
-
-  for (int c = 0; c < nc; ++c) {
-    text += "<tr>";
-
-    QString nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr, monoStr;
-
-    columnDetails(c, nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr, monoStr);
-
-    text += QString("<td>%1</td><td>%2</td><td>%3</td><td>%4</td><td>%5</td>").
-             arg(nameStr).arg(typeStr).arg(minStr).arg(maxStr).arg(monoStr);
-
-    text += "</tr>";
-  }
-
-  text += "</table>";
-#endif
-
-  viewWidgetData->detailsText->setHtml(text);
+  currentViewWidgetData_->detailsText->setHtml(text);
 
   //---
 

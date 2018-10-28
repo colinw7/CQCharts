@@ -1,17 +1,18 @@
 #include <CQChartsLoader.h>
 #include <CQChartsInputData.h>
 #include <CQChartsFileType.h>
-#include <CQChartsCsvFilterModel.h>
-#include <CQChartsDataFilterModel.h>
-#include <CQChartsExprDataFilterModel.h>
-#include <CQChartsGnuDataFilterModel.h>
-#include <CQChartsJsonFilterModel.h>
-#include <CQChartsTsvFilterModel.h>
 #include <CQChartsModelExprMatch.h>
+#include <CQChartsFilterModel.h>
 #include <CQChartsExprModel.h>
 #include <CQChartsColumnType.h>
 #include <CQCharts.h>
+
+#include <CQCsvModel.h>
+#include <CQTsvModel.h>
+#include <CQGnuDataModel.h>
+#include <CQJsonModel.h>
 #include <CQDataModel.h>
+
 #include <CQPerfMonitor.h>
 #if defined(CQCharts_USE_TCL)
 #include <CQTclUtil.h>
@@ -42,10 +43,8 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
 
   hierarchical = false;
 
-  QAbstractItemModel *model = nullptr;
-
   if      (type == CQChartsFileType::CSV) {
-    CQChartsCsvFilterModel *csv = loadCsv(filename, inputData);
+    CQChartsFilterModel *csv = loadCsv(filename, inputData);
 
     if (! csv) {
       charts_->errorMsg("Failed to load '" + filename + "'");
@@ -55,7 +54,7 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
     return csv;
   }
   else if (type == CQChartsFileType::TSV) {
-    CQChartsTsvFilterModel *tsv = loadTsv(filename, inputData);
+    CQChartsFilterModel *tsv = loadTsv(filename, inputData);
 
     if (! tsv) {
       charts_->errorMsg("Failed to load '" + filename + "'");
@@ -65,19 +64,22 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
     return tsv;
   }
   else if (type == CQChartsFileType::JSON) {
-    CQChartsJsonFilterModel *json = loadJson(filename, inputData);
+    CQChartsFilterModel *json = loadJson(filename, inputData);
 
     if (! json) {
       charts_->errorMsg("Failed to load '" + filename + "'");
       return nullptr;
     }
 
-    hierarchical = json->isHierarchical();
+    CQJsonModel *jsonModel = qobject_cast<CQJsonModel *>(json->baseModel());
+    assert(jsonModel);
+
+    hierarchical = jsonModel->isHierarchical();
 
     return json;
   }
   else if (type == CQChartsFileType::DATA) {
-    CQChartsGnuDataFilterModel *data = loadData(filename, inputData);
+    CQChartsFilterModel *data = loadData(filename, inputData);
 
     if (! data) {
       charts_->errorMsg("Failed to load '" + filename + "'");
@@ -87,45 +89,49 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
     return data;
   }
   else if (type == CQChartsFileType::EXPR) {
-    model = createExprModel(inputData.numRows);
+    CQChartsFilterModel *model = createExprModel(inputData.numRows);
 
     if (! model) {
       charts_->errorMsg("Failed to load '" + filename + "'");
       return nullptr;
     }
+
+    return model;
   }
   else if (type == CQChartsFileType::VARS) {
-    model = createVarsModel(inputData);
+    CQChartsFilterModel *model = createVarsModel(inputData);
 
     if (! model) {
       charts_->errorMsg("Failed to load '" + filename + "'");
       return nullptr;
     }
+
+    return model;
   }
   else {
     charts_->errorMsg("Bad file type specified '" + fileTypeToString(type) + "'");
     return nullptr;
   }
-
-  return model;
 }
 
-CQChartsCsvFilterModel *
+CQChartsFilterModel *
 CQChartsLoader::
 loadCsv(const QString &filename, const CQChartsInputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadCsv");
 
-  CQChartsCsvFilterModel *csv = new CQChartsCsvFilterModel(charts_);
+  CQCsvModel *csvModel = new CQCsvModel;
 
-  csv->setCommentHeader    (inputData.commentHeader);
-  csv->setFirstLineHeader  (inputData.firstLineHeader);
-  csv->setFirstColumnHeader(inputData.firstColumnHeader);
+  CQChartsFilterModel *csv = new CQChartsFilterModel(charts_, csvModel);
+
+  csvModel->setCommentHeader    (inputData.commentHeader);
+  csvModel->setFirstLineHeader  (inputData.firstLineHeader);
+  csvModel->setFirstColumnHeader(inputData.firstColumnHeader);
 
   if (inputData.separator.length())
-    csv->setSeparator(inputData.separator[0].toLatin1());
+    csvModel->setSeparator(inputData.separator[0].toLatin1());
 
-  if (! csv->load(filename)) {
+  if (! csvModel->load(filename)) {
     delete csv;
     return nullptr;
   }
@@ -136,19 +142,21 @@ loadCsv(const QString &filename, const CQChartsInputData &inputData)
   return csv;
 }
 
-CQChartsTsvFilterModel *
+CQChartsFilterModel *
 CQChartsLoader::
 loadTsv(const QString &filename, const CQChartsInputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadTsv");
 
-  CQChartsTsvFilterModel *tsv = new CQChartsTsvFilterModel(charts_);
+  CQTsvModel *tsvModel = new CQTsvModel;
 
-  tsv->setCommentHeader    (inputData.commentHeader);
-  tsv->setFirstLineHeader  (inputData.firstLineHeader);
-  tsv->setFirstColumnHeader(inputData.firstColumnHeader);
+  CQChartsFilterModel *tsv = new CQChartsFilterModel(charts_, tsvModel);
 
-  if (! tsv->load(filename)) {
+  tsvModel->setCommentHeader    (inputData.commentHeader);
+  tsvModel->setFirstLineHeader  (inputData.firstLineHeader);
+  tsvModel->setFirstColumnHeader(inputData.firstColumnHeader);
+
+  if (! tsvModel->load(filename)) {
     delete tsv;
     return nullptr;
   }
@@ -159,15 +167,17 @@ loadTsv(const QString &filename, const CQChartsInputData &inputData)
   return tsv;
 }
 
-CQChartsJsonFilterModel *
+CQChartsFilterModel *
 CQChartsLoader::
 loadJson(const QString &filename, const CQChartsInputData &)
 {
   CQPerfTrace trace("CQChartsLoader::loadJson");
 
-  CQChartsJsonFilterModel *json = new CQChartsJsonFilterModel(charts_);
+  CQJsonModel *jsonModel = new CQJsonModel;
 
-  if (! json->load(filename)) {
+  CQChartsFilterModel *json = new CQChartsFilterModel(charts_, jsonModel, /*exprModel*/false);
+
+  if (! jsonModel->load(filename)) {
     delete json;
     return nullptr;
   }
@@ -175,19 +185,21 @@ loadJson(const QString &filename, const CQChartsInputData &)
   return json;
 }
 
-CQChartsGnuDataFilterModel *
+CQChartsFilterModel *
 CQChartsLoader::
 loadData(const QString &filename, const CQChartsInputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::loadData");
 
-  CQChartsGnuDataFilterModel *data = new CQChartsGnuDataFilterModel(charts_);
+  CQGnuDataModel *dataModel = new CQGnuDataModel;
 
-  data->setCommentHeader    (inputData.commentHeader);
-  data->setFirstLineHeader  (inputData.firstLineHeader);
-  data->setFirstColumnHeader(inputData.firstColumnHeader);
+  CQChartsFilterModel *data = new CQChartsFilterModel(charts_, dataModel);
 
-  if (! data->load(filename)) {
+  dataModel->setCommentHeader    (inputData.commentHeader);
+  dataModel->setFirstLineHeader  (inputData.firstLineHeader);
+  dataModel->setFirstColumnHeader(inputData.firstColumnHeader);
+
+  if (! dataModel->load(filename)) {
     delete data;
     return nullptr;
   }
@@ -198,7 +210,7 @@ loadData(const QString &filename, const CQChartsInputData &inputData)
   return data;
 }
 
-QAbstractItemModel *
+CQChartsFilterModel *
 CQChartsLoader::
 createExprModel(int n)
 {
@@ -207,12 +219,24 @@ createExprModel(int n)
   int nc = 1;
   int nr = n;
 
-  CQChartsExprDataFilterModel *data = new CQChartsExprDataFilterModel(charts_, nc, nr);
+  CQDataModel *dataModel = new CQDataModel(nc, nr);
+
+  QModelIndex parent;
+
+  for (int r = 0; r < nr; ++r) {
+    for (int c = 0; c < nc; ++c) {
+      QModelIndex ind = dataModel->index(r, c, parent);
+
+      dataModel->setData(ind, QVariant(r*nc + c));
+    }
+  }
+
+  CQChartsFilterModel *data = new CQChartsFilterModel(charts_, dataModel);
 
   return data;
 }
 
-QAbstractItemModel *
+CQChartsFilterModel *
 CQChartsLoader::
 createVarsModel(const CQChartsInputData &inputData)
 {
@@ -338,9 +362,9 @@ createVarsModel(const CQChartsInputData &inputData)
 
   int nc = varColumns.size();
 
-  CQChartsDataFilterModel *model = new CQChartsDataFilterModel(charts_, nc - ic, nr - ir);
+  CQDataModel *dataModel = new CQDataModel(nc - ic, nr - ir);
 
-  CQDataModel *dataModel = model->dataModel();
+  CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, dataModel);
 
   QModelIndex parent;
 
@@ -369,18 +393,28 @@ createVarsModel(const CQChartsInputData &inputData)
     }
   }
 
-  return model;
+  return filterModel;
 #else
   int nc = inputData.vars.size();
   int nr = 100;
 
-  CQChartsExprDataFilterModel *model = new CQChartsExprDataFilterModel(charts_, nc, nr);
+  CQDataModel *dataModel = new CQDataModel(nc, nr);
+
+  for (int r = 0; r < nr; ++r) {
+    for (int c = 0; c < nc; ++c) {
+      QModelIndex ind = dataModel->index(r, c, parent);
+
+      dataModel->setData(ind, QVariant(r*nc + c));
+    }
+  }
+
+  CQChartsFilterModel *model = new CQChartsFilterModel(charts_, dataModel);
 
   return model;
 #endif
 }
 
-QAbstractItemModel *
+CQChartsFilterModel *
 CQChartsLoader::
 createCorrelationModel(QAbstractItemModel *model, bool flip)
 {
@@ -445,30 +479,32 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
 
   //---
 
-  CQChartsDataFilterModel *dataModel = new CQChartsDataFilterModel(charts_, nv, nv);
+  CQDataModel *dataModel = new CQDataModel(nv, nv);
+
+  CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, dataModel);
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-  CQDataModel *model1 = dataModel->dataModel();
-
   for (int c = 0; c < nv; ++c)
-    (void) columnTypeMgr->setModelColumnType(model1, c, CQBaseModel::Type::REAL);
+    (void) columnTypeMgr->setModelColumnType(dataModel, c, CQBaseModel::Type::REAL);
 
   for (int c = 0; c < nv; ++c) {
-    CQChartsUtil::setModelHeaderValue(model1, c, Qt::Horizontal, columnNames[c], Qt::DisplayRole);
-    CQChartsUtil::setModelHeaderValue(model1, c, Qt::Vertical  , columnNames[c], Qt::DisplayRole);
+    CQChartsUtil::setModelHeaderValue(dataModel, c, Qt::Horizontal,
+                                      columnNames[c], Qt::DisplayRole);
+    CQChartsUtil::setModelHeaderValue(dataModel, c, Qt::Vertical  ,
+                                      columnNames[c], Qt::DisplayRole);
 
-    CQChartsUtil::setModelValue(model1, c, c, 1.0);
+    CQChartsUtil::setModelValue(dataModel, c, c, 1.0);
   }
 
   for (int c1 = 0; c1 < nv; ++c1) {
     for (int c2 = c1; c2 < nv; ++c2) {
       double corr = CMathCorrelation::calc(columnValues[c1], columnValues[c2]);
 
-      CQChartsUtil::setModelValue(model1, c1, c2, corr);
-      CQChartsUtil::setModelValue(model1, c2, c1, corr);
+      CQChartsUtil::setModelValue(dataModel, c1, c2, corr);
+      CQChartsUtil::setModelValue(dataModel, c2, c1, corr);
     }
   }
 
-  return dataModel;
+  return filterModel;
 }

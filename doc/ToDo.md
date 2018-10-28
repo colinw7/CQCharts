@@ -1,4 +1,6 @@
 High
+ + Column Type parameter types
+ + Single Model/Expr Wrapper
  + Divided Area allow drag resize
  + Analyze, set time to X axis (scatter, xy, ...)
  + Tag grouped column for analyze
@@ -309,6 +311,8 @@ Radar Plot
 
 Scatter
  + Use FillObj for circles
+ + Combine points before create objects
+ + Cache objects as pixmaps/images
 
 Sunburst
  + Flat coloring

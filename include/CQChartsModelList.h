@@ -6,6 +6,7 @@
 class CQCharts;
 class CQChartsModelData;
 class CQChartsModelControl;
+class CQChartsModelDetails;
 class CQChartsTable;
 class CQChartsTree;
 class CQTableWidget;
@@ -63,8 +64,12 @@ class CQChartsModelList : public QFrame {
 
   void updateModelType(int ind);
 
+  void updateDetails();
+
  private:
   QTabWidget *viewTab() const { return viewTab_; }
+
+  CQChartsViewWidgetData *currentViewWidgetData() const;
 
   CQChartsViewWidgetData *viewWidgetData(int ind) const;
 
@@ -75,13 +80,19 @@ class CQChartsModelList : public QFrame {
 
   void filterSlot();
 
+  void treeColumnClicked(int column);
+  void treeSelectionChanged();
+
   void tableColumnClicked(int column);
+  void tableSelectionChanged();
 
  private:
-  CQCharts*             charts_          { nullptr };
-  QTabWidget*           viewTab_         { nullptr };
-  ViewWidgetDatas       viewWidgetDatas_;
-  CQChartsModelControl* modelControl_    { nullptr };
+  CQCharts*               charts_                { nullptr };
+  QTabWidget*             viewTab_               { nullptr };
+  ViewWidgetDatas         viewWidgetDatas_;
+  CQChartsModelControl*   modelControl_          { nullptr };
+  CQChartsModelDetails*   currentDetails_        { nullptr };
+  CQChartsViewWidgetData* currentViewWidgetData_ { nullptr };
 };
 
 #endif

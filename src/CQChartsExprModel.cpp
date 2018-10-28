@@ -8,6 +8,7 @@
 #include <CQChartsUtil.h>
 #include <CQChartsRand.h>
 #include <CQCharts.h>
+#include <CQDataModel.h>
 #ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
 #endif
@@ -123,6 +124,43 @@ addFunction(const QString &name)
 
 bool
 CQChartsExprModel::
+isOrigColumn(int column) const
+{
+  int nc = columnCount();
+
+  int numNonExtra = nc - numExtraColumns();
+
+  return (column >= 0 && column < numNonExtra);
+}
+
+bool
+CQChartsExprModel::
+isExtraColumn(int column) const
+{
+  int nc = columnCount();
+
+  int numNonExtra = nc - numExtraColumns();
+
+  if (column < numNonExtra)
+    return false;
+
+  int ecolumn = column - numNonExtra;
+
+  return (ecolumn >= numExtraColumns());
+}
+
+void
+CQChartsExprModel::
+setReadOnly(bool b)
+{
+  CQDataModel *dataModel = qobject_cast<CQDataModel *>(model_);
+
+  if (dataModel)
+    dataModel->setReadOnly(b);
+}
+
+bool
+CQChartsExprModel::
 addExtraColumn(const QString &exprStr, int &column)
 {
   QString header, expr;
@@ -167,7 +205,7 @@ addExtraColumn(const QString &header, const QString &expr, int &column)
   // calculate new values
   extraColumn.function = Function::ADD;
 
-  calcColumn(nc_, ecolumn);
+  calcExtraColumn(nc_, ecolumn);
 
   extraColumn.function = Function::EVAL;
 
@@ -210,6 +248,18 @@ removeExtraColumn(int column)
 
 bool
 CQChartsExprModel::
+assignColumn(int column, const QString &exprStr)
+{
+  QString header, expr;
+
+  if (! decodeExpression(exprStr, header, expr))
+    return false;
+
+  return assignColumn(header, column, expr);
+}
+
+bool
+CQChartsExprModel::
 assignExtraColumn(int column, const QString &exprStr)
 {
   QString header, expr;
@@ -218,6 +268,52 @@ assignExtraColumn(int column, const QString &exprStr)
     return false;
 
   return assignExtraColumn(header, column, expr);
+}
+
+bool
+CQChartsExprModel::
+assignColumn(const QString &header, int column, const QString &expr)
+{
+  const_cast<CQChartsExprModel *>(this)->initCalc();
+
+  nc_ = columnCount();
+
+  // set new expression and ensure all column values calculated
+  int numNonExtra = nc_ - numExtraColumns();
+
+  if (column < 0 || column >= numNonExtra)
+    return false;
+
+  int role = Qt::EditRole;
+
+  nr_ = rowCount();
+
+  for (int r = 0; r < nr_; ++r) {
+    currentRow_ = r;
+    currentCol_ = column;
+
+    QString expr1 = replaceExprColumns(expr, currentRow_, currentCol_).simplified();
+
+    QVariant var;
+
+    if (evaluateExpression(expr1, var)) {
+      QModelIndex ind = index(currentRow_, currentCol_, QModelIndex());
+
+      setData(ind, var, role);
+    }
+  }
+
+  if (header != "")
+    setHeaderData(column, Qt::Horizontal, header);
+
+  //---
+
+  QModelIndex index1 = index(0      , column, QModelIndex());
+  QModelIndex index2 = index(nr_ - 1, column, QModelIndex());
+
+  emit dataChanged(index1, index2);
+
+  return true;
 }
 
 bool
@@ -236,7 +332,7 @@ assignExtraColumn(const QString &header, int column, const QString &expr)
   if (ecolumn < 0 || ecolumn >= numExtraColumns())
     return false;
 
-  calcColumn(column, ecolumn);
+  calcExtraColumn(column, ecolumn);
 
   // store calculated values in separate array
   ExtraColumn &extraColumn = extraColumns_[ecolumn];
@@ -249,14 +345,16 @@ assignExtraColumn(const QString &header, int column, const QString &expr)
     extraColumn.values[r] = extraColumn.variantMap[r];
 
   // set new expression and ensure all column values calculated
-  extraColumn.header = header;
-  extraColumn.expr   = expr;
+  if (header != "")
+    extraColumn.header = header;
+
+  extraColumn.expr = expr;
 
   extraColumn.variantMap.clear();
 
   extraColumn.function = Function::ASSIGN;
 
-  calcColumn(column, ecolumn);
+  calcExtraColumn(column, ecolumn);
 
   extraColumn.function = Function::EVAL;
 
@@ -352,7 +450,7 @@ initCalc()
 
 void
 CQChartsExprModel::
-calcColumn(int column, int ecolumn)
+calcExtraColumn(int column, int ecolumn)
 {
   nr_ = rowCount();
   nc_ = columnCount();
@@ -783,6 +881,30 @@ headerData(int section, Qt::Orientation orientation, int role) const
   else if (role == static_cast<int>(CQBaseModel::Role::TypeValues)) {
     return QVariant(extraColumn.typeValues);
   }
+  else if (role == static_cast<int>(CQBaseModel::Role::Min)) {
+    auto p = extraColumn.nameValues.find("min");
+    if (p == extraColumn.nameValues.end()) return QVariant();
+
+    return (*p).second;
+  }
+  else if (role == static_cast<int>(CQBaseModel::Role::Max)) {
+    auto p = extraColumn.nameValues.find("max");
+    if (p == extraColumn.nameValues.end()) return QVariant();
+
+    return (*p).second;
+  }
+  else if (role == static_cast<int>(CQBaseModel::Role::Sorted)) {
+    auto p = extraColumn.nameValues.find("sorted");
+    if (p == extraColumn.nameValues.end()) return QVariant();
+
+    return (*p).second;
+  }
+  else if (role == static_cast<int>(CQBaseModel::Role::SortOrder)) {
+    auto p = extraColumn.nameValues.find("sort_order");
+    if (p == extraColumn.nameValues.end()) return QVariant();
+
+    return (*p).second;
+  }
 
   return QVariant();
 }
@@ -822,6 +944,26 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
   }
   else if (role == static_cast<int>(CQBaseModel::Role::TypeValues)) {
     extraColumn.typeValues = value.toString();
+
+    return true;
+  }
+  else if (role == static_cast<int>(CQBaseModel::Role::Min)) {
+    extraColumn.nameValues["min"] = value;
+
+    return true;
+  }
+  else if (role == static_cast<int>(CQBaseModel::Role::Max)) {
+    extraColumn.nameValues["max"] = value;
+
+    return true;
+  }
+  else if (role == static_cast<int>(CQBaseModel::Role::Sorted)) {
+    extraColumn.nameValues["sorted"] = value;
+
+    return true;
+  }
+  else if (role == static_cast<int>(CQBaseModel::Role::SortOrder)) {
+    extraColumn.nameValues["sort_order"] = value;
 
     return true;
   }
@@ -1772,7 +1914,16 @@ evaluateExpression(const QString &expr, QVariant &var) const
   int rc = qtcl_->evalExpr(expr);
 
   if (rc != TCL_OK) {
+    if (qtcl_->isDomainError(rc)) {
+      double x = CMathUtil::getNaN();
+
+      var = QVariant(x);
+
+      return true;
+    }
+
     std::cerr << qtcl_->errorInfo(rc).toStdString() << std::endl;
+
     return false;
   }
 

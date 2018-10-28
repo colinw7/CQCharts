@@ -670,3 +670,13 @@
  + Allow disable plot update timeout using environment variable
  + Allow display layer buffereing using environment variable
  + optional load of details in view settings
+# 10/28/2018
+ + Handle comma in format (time)
+ + column type allows enumerate of parameters and model dialog adds prompts to match
+ + store column parameters min, max, key in model
+ + Add percent support to bar chart
+ + Fix bad x label for bar chart
+ + Allow data model original values to be changed (need -force)
+ + Cleanup per file type filter models 
+ + Track model sort to update model details monotonic
+ + Fix bug in interval for fixed major increment

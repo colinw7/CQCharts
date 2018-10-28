@@ -18,12 +18,7 @@ CONFIG += staticlib
 SOURCES += \
 CQCharts.cpp \
 \
-CQChartsCsvFilterModel.cpp \
-CQChartsTsvFilterModel.cpp \
-CQChartsJsonFilterModel.cpp \
-CQChartsGnuDataFilterModel.cpp \
-CQChartsDataFilterModel.cpp \
-CQChartsExprDataFilterModel.cpp \
+CQChartsFilterModel.cpp \
 CQChartsExprModel.cpp \
 CQChartsExprModelFn.cpp \
 \
@@ -180,12 +175,7 @@ CInterval.cpp \
 HEADERS += \
 ../include/CQCharts.h \
 \
-../include/CQChartsCsvFilterModel.h \
-../include/CQChartsTsvFilterModel.h \
-../include/CQChartsJsonFilterModel.h \
-../include/CQChartsGnuDataFilterModel.h \
-../include/CQChartsDataFilterModel.h \
-../include/CQChartsExprDataFilterModel.h \
+../include/CQChartsFilterModel.h \
 ../include/CQChartsExprModel.h \
 ../include/CQChartsExprModelFn.h \
 \

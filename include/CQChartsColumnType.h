@@ -6,23 +6,62 @@
 #include <QObject>
 #include <QString>
 
-// column type base class
-class CQChartsColumnType {
+// column type parameter
+class CQChartsColumnTypeParam {
  public:
   using Type = CQBaseModel::Type;
 
  public:
-  CQChartsColumnType(Type type) :
-   type_(type) {
+  CQChartsColumnTypeParam(const QString &name, Type type, int role, const QString &tip) :
+   name_(name), type_(type), role_(role), tip_(tip) {
   }
+
+  CQChartsColumnTypeParam(const QString &name, Type type, const QString &tip) :
+   name_(name), type_(type), role_(int(CQBaseModel::Role::TypeValues)), tip_(tip) {
+  }
+
+  const QString &name() const { return name_; }
+
+  Type type() const { return type_; }
+
+  int role() const { return role_; }
+
+  const QString &tip() const { return tip_; }
+
+ private:
+  QString name_;
+  Type    type_ { CQBaseModel::Type::STRING };
+  int     role_ { -1 };
+  QString tip_;
+};
+
+//---
+
+// column type base class
+class CQChartsColumnType {
+ public:
+  using Type   = CQBaseModel::Type;
+  using Params = std::vector<CQChartsColumnTypeParam>;
+
+ public:
+  CQChartsColumnType(Type type);
 
   virtual ~CQChartsColumnType() { }
 
   Type type() const { return type_; }
 
+  int ind() const { return ind_; }
+  void setInd(int i) { ind_ = i; }
+
   virtual QString name() const { return CQBaseModel::typeName(type_); }
 
   virtual bool isNumeric() const { return false; }
+
+  const Params &params() const { return params_; }
+
+  bool hasParam(const QString &name) const;
+
+  const CQChartsColumnTypeParam *getParam(const QString &name) const;
 
   // input variant to data variant for edit
   virtual QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues,
@@ -42,8 +81,10 @@ class CQChartsColumnType {
   // index type (TODO: assert if index invalid or not supported ?)
   virtual Type indexType(const QString &) const { return type(); }
 
- private:
-  Type type_; // base type
+ protected:
+  Type   type_;       // base type
+  int    ind_ { -1 }; // insertion index
+  Params params_;     // parameters
 };
 
 //---
@@ -91,9 +132,7 @@ class CQChartsColumnBooleanType : public CQChartsColumnType {
 // real column type class
 class CQChartsColumnRealType : public CQChartsColumnType {
  public:
-  CQChartsColumnRealType() :
-   CQChartsColumnType(Type::REAL) {
-  }
+  CQChartsColumnRealType();
 
   bool isNumeric() const override { return true; }
 
@@ -120,9 +159,7 @@ class CQChartsColumnRealType : public CQChartsColumnType {
 // integer column type class
 class CQChartsColumnIntegerType : public CQChartsColumnType {
  public:
-  CQChartsColumnIntegerType() :
-   CQChartsColumnType(Type::INTEGER) {
-  }
+  CQChartsColumnIntegerType();
 
   bool isNumeric() const override { return true; }
 
@@ -140,9 +177,7 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
 // time column type class
 class CQChartsColumnTimeType : public CQChartsColumnType {
  public:
-  CQChartsColumnTimeType() :
-   CQChartsColumnType(Type::TIME) {
-  }
+  CQChartsColumnTimeType();
 
   bool isNumeric() const override { return true; }
 
@@ -328,6 +363,8 @@ class CQChartsColumnTypeMgr : public QObject {
   CQChartsColumnTypeMgr(CQCharts *charts);
  ~CQChartsColumnTypeMgr();
 
+  void typeNames(QStringList &names) const;
+
   void addType(Type type, CQChartsColumnType *data);
 
   CQChartsColumnType *decodeTypeData(const QString &type, CQChartsNameValues &nameValues) const;
@@ -354,15 +391,5 @@ class CQChartsColumnTypeMgr : public QObject {
   CQCharts* charts_ { nullptr };
   TypeData  typeData_;
 };
-
-//---
-
-namespace CQChartsColumnUtil {
-  bool decodeType(const QString &type, QString &baseType, CQChartsNameValues &nameValues);
-
-  bool decodeNameValues(const QString &str, CQChartsNameValues &nameValues);
-
-  QString encodeNameValues(const CQChartsNameValues &nameValues);
-}
 
 #endif

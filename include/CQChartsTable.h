@@ -58,13 +58,15 @@ class CQChartsTable : public CQTableView {
 
   void filterChanged();
 
+  void selectionChanged();
+
  private slots:
   void modelTypeChangedSlot(int);
 
-  void selectionSlot();
-
   void headerClickedSlot(int section);
   void itemClickedSlot(const QModelIndex &);
+
+  void selectionSlot();
 
   void selectionBehaviorSlot(QAction *action);
 

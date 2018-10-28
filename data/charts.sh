@@ -24,6 +24,9 @@ while ($#argv > 0)
   else if ("$1" == "-perf") then
     setenv CQ_PERF_MONITOR_ENABLED 1
     shift
+  else if ("$1" == "-record") then
+    set opts = ($opts -record)
+    shift
   else if ("$1" == "-pixmap") then
     setenv CQCHARTS_LAYER_PIXMAP 1
     shift

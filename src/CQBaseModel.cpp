@@ -314,6 +314,62 @@ setColumnKey(int column, bool b)
   return true;
 }
 
+bool
+CQBaseModel::
+isColumnSorted(int column) const
+{
+  if (column < 0 || column >= columnCount())
+    return false;
+
+  ColumnData &columnData = getColumnData(column);
+
+  return columnData.sorted;
+}
+
+bool
+CQBaseModel::
+setColumnSorted(int column, bool b)
+{
+  if (column < 0 || column >= columnCount())
+    return false;
+
+  ColumnData &columnData = getColumnData(column);
+
+  columnData.sorted = b;
+
+  emit columnSortedChanged(column);
+
+  return true;
+}
+
+int
+CQBaseModel::
+columnSortOrder(int column) const
+{
+  if (column < 0 || column >= columnCount())
+    return Qt::AscendingOrder;
+
+  ColumnData &columnData = getColumnData(column);
+
+  return columnData.sortOrder;
+}
+
+bool
+CQBaseModel::
+setColumnSortOrder(int column, int i)
+{
+  if (column < 0 || column >= columnCount())
+    return false;
+
+  ColumnData &columnData = getColumnData(column);
+
+  columnData.sortOrder = i;
+
+  emit columnSortOrderChanged(column);
+
+  return true;
+}
+
 CQBaseModel::ColumnData &
 CQBaseModel::
 getColumnData(int column) const
@@ -432,6 +488,12 @@ headerData(int section, Qt::Orientation orientation, int role) const
     else if (role == static_cast<int>(Role::Key)) {
       return isColumnKey(section);
     }
+    else if (role == static_cast<int>(Role::Sorted)) {
+      return isColumnSorted(section);
+    }
+    else if (role == static_cast<int>(Role::SortOrder)) {
+      return columnSortOrder(section);
+    }
     else {
       return QAbstractItemModel::headerData(section, orientation, role);
     }
@@ -479,6 +541,12 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
     }
     else if (role == static_cast<int>(Role::Key)) {
       return setColumnKey(section, value.toBool());
+    }
+    else if (role == static_cast<int>(Role::Sorted)) {
+      return setColumnSorted(section, value.toBool());
+    }
+    else if (role == static_cast<int>(Role::SortOrder)) {
+      return setColumnSortOrder(section, value.toInt());
     }
     else {
       return QAbstractItemModel::setHeaderData(section, orientation, role);

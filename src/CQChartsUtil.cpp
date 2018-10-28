@@ -827,6 +827,9 @@ int nameToRole(const QString &name) {
   else if (name == "type_values"       ) return (int) CQBaseModel::Role::TypeValues;
   else if (name == "min"               ) return (int) CQBaseModel::Role::Min;
   else if (name == "max"               ) return (int) CQBaseModel::Role::Max;
+  else if (name == "key"               ) return (int) CQBaseModel::Role::Key;
+  else if (name == "sorted"            ) return (int) CQBaseModel::Role::Sorted;
+  else if (name == "sort_order"        ) return (int) CQBaseModel::Role::SortOrder;
   else if (name == "raw_value"         ) return (int) CQBaseModel::Role::RawValue;
   else if (name == "intermediate_value") return (int) CQBaseModel::Role::IntermediateValue;
   else if (name == "cached_value"      ) return (int) CQBaseModel::Role::CachedValue;
@@ -2286,6 +2289,7 @@ replaceModelExprVars(const QString &expr, QAbstractItemModel *model, const QMode
         stringify = true;
       }
 
+      // @<n> get column value for current row
       if      (parse.isDigit()) {
         int pos = parse.getPos();
 
@@ -2296,8 +2300,17 @@ replaceModelExprVars(const QString &expr, QAbstractItemModel *model, const QMode
 
         int column1 = str.toInt();
 
-        expr1 += quoteStr(QString("column(%1)").arg(column1), stringify);
+        if (stringify) {
+          QModelIndex ind1 = model->index(ind.row(), column1, ind.parent());
+
+          QVariant var = model->data(ind1, Qt::DisplayRole);
+
+          expr1 += quoteStr(var.toString(), true);
+        }
+        else
+          expr1 += QString("column(%1)").arg(column1);
       }
+      // @c get column number
       else if (parse.isChar('c')) {
         parse.skipChar();
 
@@ -2306,6 +2319,7 @@ replaceModelExprVars(const QString &expr, QAbstractItemModel *model, const QMode
         else
           expr1 += "@c";
       }
+      // @r get row number
       else if (parse.isChar('r')) {
         parse.skipChar();
 
@@ -2317,6 +2331,7 @@ replaceModelExprVars(const QString &expr, QAbstractItemModel *model, const QMode
       else if (parse.isChar('n')) {
         parse.skipChar();
 
+        // @nc get number of columns
         if      (parse.isChar('c')) {
           parse.skipChar();
 
@@ -2325,6 +2340,7 @@ replaceModelExprVars(const QString &expr, QAbstractItemModel *model, const QMode
           else
             expr1 += "@nc";
         }
+        // @nr get number of rows
         else if (parse.isChar('r')) {
           parse.skipChar();
 
@@ -2340,13 +2356,18 @@ replaceModelExprVars(const QString &expr, QAbstractItemModel *model, const QMode
             expr1 += "@n";
         }
       }
+      // @v current value
       else if (parse.isChar('v')) {
         parse.skipChar();
 
         if (model && ind.isValid()) {
-          QVariant var = model->data(ind, Qt::DisplayRole);
+          if (stringify) {
+            QVariant var = model->data(ind, Qt::DisplayRole);
 
-          expr1 += quoteStr(var.toString(), stringify);
+            expr1 += quoteStr(var.toString(), true);
+          }
+          else
+            expr1 += QString("column(%1)").arg(ind.column());
         }
         else
           expr1 += "@v";
@@ -2366,6 +2387,7 @@ replaceModelExprVars(const QString &expr, QAbstractItemModel *model, const QMode
 
         CQChartsColumn c;
 
+        // @{<name>} column value for current row
         if (model && stringToColumn(model, str, c))
           expr1 += QString("column(%1)").arg(c.column());
         else {
@@ -2381,10 +2403,10 @@ replaceModelExprVars(const QString &expr, QAbstractItemModel *model, const QMode
           expr1 += "@";
       }
     }
-    // #{name} get column number for name
     else if (parse.isChar('#')) {
       parse.skipChar();
 
+      // #{name} get column number for name
       if (parse.isChar('{')) {
         int pos = parse.getPos();
 
