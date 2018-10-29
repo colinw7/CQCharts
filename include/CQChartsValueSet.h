@@ -110,12 +110,18 @@ class CQChartsRValues {
   }
 
   // min/max value
-  double min() const { assert(! valset_.empty()); return valset_. begin()->first; }
-  double max() const { assert(! valset_.empty()); return valset_.rbegin()->first; }
+  double min() const {
+    if (valset_.empty()) return CMathUtil::getNaN();
+    return valset_. begin()->first;
+  }
+  double max() const {
+    if (valset_.empty()) return CMathUtil::getNaN();
+    return valset_.rbegin()->first;
+  }
 
   // min/max index
-  int imin() const { assert(! setvals_.empty()); return setvals_. begin()->first; }
-  int imax() const { assert(! setvals_.empty()); return setvals_.rbegin()->first; }
+  int imin() const { if (setvals_.empty()) return -1; return setvals_. begin()->first; }
+  int imax() const { if (setvals_.empty()) return -1; return setvals_.rbegin()->first; }
 
   // number of unique values
   int numUnique() const { return valset_.size(); }

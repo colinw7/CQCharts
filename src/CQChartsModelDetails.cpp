@@ -195,6 +195,47 @@ monotonicColumns() const
   return columns;
 }
 
+std::vector<int>
+CQChartsModelDetails::
+duplicates() const
+{
+  initSimpleData();
+
+  CQCharts *charts = data_->charts();
+
+  QAbstractItemModel *model = data_->currentModel().data();
+
+  std::vector<QVariant> rowValues1, rowValues2;
+
+  rowValues2.resize(numColumns_);
+
+  std::vector<int> rows;
+
+  for (int r = 0; r < numRows_; ++r) {
+    bool match = true;
+
+    for (int c = 0; c < numColumns_; ++c) {
+      QModelIndex parent;
+
+      bool ok;
+
+      QVariant var = CQChartsUtil::modelValue(charts, model, r, c, parent, ok);
+
+      rowValues2[c] = var;
+
+      if (rowValues1.empty() || var != rowValues1[c])
+        match = false;
+    }
+
+    if (match)
+      rows.push_back(r);
+
+    rowValues1 = rowValues2;
+  }
+
+  return rows;
+}
+
 //------
 
 CQChartsModelColumnDetails::
@@ -1129,8 +1170,6 @@ initData()
     QVariant minValue() const { return min_; }
     QVariant maxValue() const { return max_; }
 
-    QVariant meanValue() const { return mean_; }
-
     bool isMonotonic () const { return monotonicSet_ && monotonic_; }
     bool isIncreasing() const { return increasing_; }
 
@@ -1139,7 +1178,6 @@ initData()
     CQCharts*                   charts_       { nullptr };
     QVariant                    min_;
     QVariant                    max_;
-    QVariant                    mean_;
     bool                        visitMin_     { true };
     bool                        visitMax_     { true };
     QVariant                    lastValue1_;
@@ -1238,7 +1276,10 @@ addReal(double r)
   if (! rvals_)
     rvals_ = new CQChartsRValues;
 
-  rvals_->addValue(r);
+  if (! CMathUtil::isNaN(r))
+    rvals_->addValue(r);
+  else
+    rvals_->addValue(CQChartsRValues::OptReal());
 }
 
 void

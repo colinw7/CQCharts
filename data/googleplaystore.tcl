@@ -48,14 +48,80 @@ set_charts_data -model $model -column "Price"        -name column_type -value re
 set_charts_data -model $model -column "Last Updated" -name column_type -value "time:format=%B %d\\, %Y"
 set_charts_data -model $model -column "Android Ver"  -name column_type -value real
 
-#set view [create_view]
-#set plot [create_plot -model $model -type distribution -columns "value=Category"]
+proc cat_dist { model } {
+  set view [create_view]
+  set plot [create_plot -view $view -model $model -type distribution -columns "value=Category"]
+}
 
-#set view1 [create_view]
-#set plot1 [create_plot -view $view1 -model $model -type barchart -columns "group=Category,value=Installs"]
+proc install_dist { model } {
+  set view [create_view]
+  set plot [create_plot -view $view -model $model -type distribution -columns "value=Installs"]
+}
 
-#set view2 [create_view]
-#set plot2 [create_plot -view $view2 -model $model -type distribution -columns "value=Size"]
+proc bar_installs { model } {
+  set view [create_view]
+  set plot [create_plot -view $view -model $model -type barchart -columns "group=Category,value=Installs" -properties "options.plotType=STACKED"]
+}
 
-set view3 [create_view]
-set plot3 [create_plot -view $view3 -model $model -type boxplot -columns "group=Type,value=Size"]
+proc dist_installs { model } {
+  set view [create_view]
+  set plot [create_plot -view $view -model $model -type distribution -columns "value=Category,data=Installs" -properties "options.valueType=SUM"]
+}
+
+proc size_dist { model } {
+  set view [create_view]
+  set plot [create_plot -view $view -model $model -type distribution -columns "value=Size"]
+}
+
+proc category_type_distribution { model } {
+  set view [create_view]
+  set plot [create_plot -view $view -model $model -type distribution -columns "group=Type,value=Category"]
+}
+
+proc size_boxplot { model } {
+  set view [create_view]
+  set plot [create_plot -view $view -model $model -type boxplot -columns "group=Type,value=Size"]
+}
+
+proc nan_plot { model } {
+  filter_model -model $model -expr {isnan($Size)}
+  set n1 [get_charts_data -model $model -name num_rows]
+
+  filter_model -model $model -expr {isnan($Rating)}
+  set n2 [get_charts_data -model $model -name num_rows]
+
+  filter_model -model $model -expr {isnan(column(12))}
+  set n3 [get_charts_data -model $model -name num_rows]
+
+  set ::names {{Column} {Size} {Rating} {Android Ver}}
+  set ::values [list {Count} $n1 $n2 $n3]
+
+  set model1 [load_model -var ::names -var ::values -first_line_header]
+
+  set view [create_view]
+  set plot [create_plot -view $view -model $model1 -type barchart -columns "name=Column,value=Count"]
+
+  return $plot
+}
+
+proc add_visible { model } {
+  set vis [process_model -model $model -add -expr "1" -header "Visible" -type boolean]
+
+  return $vis
+}
+
+proc mark_duplicates { model } {
+  set vis [get_charts_data -model $model -name column_index -data Visible]
+
+  if {$vis == -1} {
+    set vis [add_visible $model]
+  }
+
+  sort_model -model $model -column 0
+
+  set inds [get_charts_data -model $model -name duplicates]
+
+  foreach ind $inds {
+    set_charts_data -model $model -column $vis -row $ind -name value -value 0
+  }
+}

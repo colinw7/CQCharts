@@ -73,6 +73,7 @@ class CQChartsModelExprMatch {
   QVariant rowCmd   (const Values &values) const;
   QVariant cellCmd  (const Values &values) const;
   QVariant headerCmd(const Values &values) const;
+  QVariant isnanCmd (const Values &values) const;
 
   int currentRow() const { return currentRow_; }
   int currentCol() const { return currentCol_; }

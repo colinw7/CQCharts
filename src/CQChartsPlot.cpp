@@ -5065,13 +5065,14 @@ keyFitBBox() const
   CQChartsGeom::BBox bbox;
 
   if (key() && key()->isVisible()) {
-    CQChartsGeom::BBox bbox = key()->bbox();
+    CQChartsGeom::BBox bbox1 = key()->bbox();
+
+    bbox.add(bbox1.getCenter());
 
     if (! key()->isPixelWidthExceeded())
-      bbox.addX(bbox);
-
+      bbox.addX(bbox1);
     if (! key()->isPixelHeightExceeded())
-      bbox.addY(bbox);
+      bbox.addY(bbox1);
   }
 
   return bbox;

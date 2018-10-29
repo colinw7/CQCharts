@@ -25,10 +25,10 @@ proc modelDetails { modelId } {
     set num_unique [get_charts_data -model $modelId -column $c -name num_unique]
 
     puts "  Num Unique: $num_unique"
-  }
 
-  if {$nr > 100} {
-    set nr 100
+    set num_null [get_charts_data -model $modelId -column $c -name num_null]
+
+    puts "  Num Null: $num_null"
   }
 }
 
@@ -37,6 +37,10 @@ proc modelCells { modelId } {
 
   set nr [get_charts_data -model $modelId -name num_rows]
   set nc [get_charts_data -model $modelId -name num_columns]
+
+# if {$nr > 100} {
+#   set nr 100
+# }
 
   for {set r 0} {$r < $nr} {incr r} {
     for {set c 0} {$c < $nc} {incr c} {

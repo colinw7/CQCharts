@@ -336,6 +336,9 @@ exprApplySlot()
 {
   QString expr = exprValueEdit_->text().simplified();
 
+  if (! expr.length())
+    return;
+
   //---
 
   CQChartsModelData *modelData = charts_->currentModelData();

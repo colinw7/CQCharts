@@ -163,6 +163,11 @@ inline bool toBool(const QVariant &var, bool &ok) {
   if (var.type() == QVariant::Bool)
     return var.toBool();
 
+  if (var.type() == QVariant::String)
+    return var.toBool();
+
+  ok = false;
+
   return false;
 }
 

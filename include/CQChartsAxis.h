@@ -216,6 +216,8 @@ class CQChartsAxis : public CQChartsObj,
   void setNumMajorTicks(uint n) {
     CQChartsUtil::testAndSet(numMajorTicks_, n, [&]() { redraw(); } ); }
 
+  uint maxMajorTicks() const { return maxMajorTicks_; }
+
   uint numMinorTicks() const { return numMinorTicks_; }
   void setNumMinorTicks(uint n) {
     CQChartsUtil::testAndSet(numMinorTicks_, n, [&]() { redraw(); } ); }
@@ -403,6 +405,7 @@ class CQChartsAxis : public CQChartsObj,
   double                     end_                 { 1.0 };
   bool                       includeZero_         { false };
   uint                       numMajorTicks_       { 1 };
+  uint                       maxMajorTicks_       { 1000 };
   uint                       numMinorTicks_       { 0 };
   uint                       tickIncrement_       { 0 };
   double                     majorIncrement_      { 0 };

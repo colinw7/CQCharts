@@ -20,6 +20,7 @@ CQChartsModelDlg(CQCharts *charts) :
   //setWindowIcon(QIcon()); TODO
 
   QVBoxLayout *layout = new QVBoxLayout(this);
+  layout->setMargin(2); layout->setSpacing(2);
 
   //---
 

@@ -12,20 +12,22 @@ class CQChartsTree;
 class CQTableWidget;
 class QStackedWidget;
 class QTabWidget;
+class QPushButton;
 class QLineEdit;
 class QTextEdit;
 
 //---
 
 struct CQChartsViewWidgetData {
-  int             ind          { -1 };
-  int             tabInd       { -1 };
-  QStackedWidget* stack        { nullptr };
-  CQChartsTable*  table        { nullptr };
-  CQChartsTree*   tree         { nullptr };
-  QLineEdit*      filterEdit   { nullptr };
-  QTextEdit*      detailsText  { nullptr };
-  CQTableWidget*  detailsTable { nullptr };
+  int             ind           { -1 };
+  int             tabInd        { -1 };
+  QStackedWidget* stack         { nullptr };
+  CQChartsTable*  table         { nullptr };
+  CQChartsTree*   tree          { nullptr };
+  QLineEdit*      filterEdit    { nullptr };
+  QPushButton*    detailsUpdate { nullptr };
+  QTextEdit*      detailsText   { nullptr };
+  CQTableWidget*  detailsTable  { nullptr };
 };
 
 //---
@@ -63,6 +65,8 @@ class CQChartsModelList : public QFrame {
   void addModelData(int ind);
 
   void updateModelType(int ind);
+
+  void invalidateDetails();
 
   void updateDetails();
 

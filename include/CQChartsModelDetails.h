@@ -138,6 +138,8 @@ class CQChartsModelDetails : public QObject {
 
   void reset();
 
+  std::vector<int> duplicates() const;
+
  signals:
   void detailsReset();
 

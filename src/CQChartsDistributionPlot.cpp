@@ -71,6 +71,7 @@ addParameters()
    addNameValue("Min"  , int(CQChartsDistributionPlot::ValueType::MIN  )).
    addNameValue("Max"  , int(CQChartsDistributionPlot::ValueType::MAX  )).
    addNameValue("Mean" , int(CQChartsDistributionPlot::ValueType::MEAN )).
+   addNameValue("Sum"  , int(CQChartsDistributionPlot::ValueType::SUM  )).
    setTip("Bar value type");
 
   addBoolParameter("percent"  , "Percent"   , "percent"  ).setTip("Show value is percentage");
@@ -475,6 +476,16 @@ setValueMean(bool b)
     CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsDistributionPlot::
+setValueSum(bool b)
+{
+  if (b)
+    CQChartsUtil::testAndSet(valueType_, ValueType::SUM, [&]() { updateRangeAndObjs(); } );
+  else
+    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -790,25 +801,30 @@ calcRange()
           valueRange.add(n);
         }
         else if (isValueRange()) {
-          calcVarIndsMinMax(varsData);
+          calcVarIndsData(varsData);
 
           valueRange.add(varsData.min);
           valueRange.add(varsData.max);
         }
         else if (isValueMin()) {
-          calcVarIndsMinMax(varsData);
+          calcVarIndsData(varsData);
 
           valueRange.add(varsData.min);
         }
         else if (isValueMax()) {
-          calcVarIndsMinMax(varsData);
+          calcVarIndsData(varsData);
 
           valueRange.add(varsData.max);
         }
         else if (isValueMean()) {
-          calcVarIndsMinMax(varsData);
+          calcVarIndsData(varsData);
 
           valueRange.add(varsData.mean);
+        }
+        else if (isValueSum()) {
+          calcVarIndsData(varsData);
+
+          valueRange.add(varsData.sum);
         }
 
         //---
@@ -863,6 +879,10 @@ calcRange()
       n2 = valueRange.max(0);
     }
     else if (isValueMean()) {
+      n1 = 0;
+      n2 = valueRange.max(0);
+    }
+    else if (isValueSum()) {
       n1 = 0;
       n2 = valueRange.max(0);
     }
@@ -1213,7 +1233,11 @@ initObjs()
     valueAxis()->setMinorTicksDisplayed(false);
     valueAxis()->setRequireTickLabel   (true );
 
-    countAxis()->setIntegral           (true);
+    if (isValueCount())
+      countAxis()->setIntegral(true);
+    else
+      countAxis()->setIntegral(false);
+
     countAxis()->setGridMid            (false);
     countAxis()->setMajorIncrement     (0);
     countAxis()->setMinorTicksDisplayed(false);
@@ -1474,6 +1498,8 @@ initObjs()
 
       bool isNumeric = values->valueSet->isNumeric();
 
+      //---
+
       int iv = 0;
       int nv = values->bucketValues.size();
 
@@ -1508,8 +1534,8 @@ initObjs()
 
         int bucket1 = bucket + offset + count;
 
-        if (! isValueCount() && ! isNumeric)
-          continue;
+        //if (! isValueCount() && ! isNumeric)
+        //  continue;
 
         BarValue barValue = varIndsValue(*pVarsData);
 
@@ -1746,6 +1772,8 @@ initObjs()
       countAxis()->setLabel("Min");
     else if (isValueMean())
       countAxis()->setLabel("Mean");
+    else if (isValueSum())
+      countAxis()->setLabel("Sum");
   }
 
   if (yLabel().length())
@@ -1762,7 +1790,7 @@ initObjs()
 
 void
 CQChartsDistributionPlot::
-calcVarIndsMinMax(VariantIndsData &varInds)
+calcVarIndsData(VariantIndsData &varInds)
 {
   CQChartsGeom::RMinMax valueRange;
 
@@ -1796,6 +1824,7 @@ calcVarIndsMinMax(VariantIndsData &varInds)
   varInds.min  = valueRange.min(0);
   varInds.max  = valueRange.max(0);
   varInds.mean = (n1 > 0 ? sum/n1 : 0.0);
+  varInds.sum  = sum;
 }
 
 CQChartsDistributionPlot::BarValue
@@ -1823,6 +1852,10 @@ varIndsValue(const VariantIndsData &varInds) const
   else if (isValueMean()) {
     barValue.n1 = 0;
     barValue.n2 = varInds.mean;
+  }
+  else if (isValueSum()) {
+    barValue.n1 = 0;
+    barValue.n2 = varInds.sum;
   }
 
   return barValue;
@@ -2199,6 +2232,7 @@ addMenuItems(QMenu *menu)
   (void) addMenuCheckedAction(valueMenu, "Min"  , isValueMin  (), SLOT(setValueMin  (bool)));
   (void) addMenuCheckedAction(valueMenu, "Max"  , isValueMax  (), SLOT(setValueMax  (bool)));
   (void) addMenuCheckedAction(valueMenu, "Mean" , isValueMean (), SLOT(setValueMean (bool)));
+  (void) addMenuCheckedAction(valueMenu, "Sum"  , isValueSum  (), SLOT(setValueSum  (bool)));
 
   menu->addMenu(valueMenu);
 
@@ -2433,18 +2467,24 @@ calcTipId() const
 
   tableTip.addTableRow("Bucket", bucketStr);
 
-  if      (plot_->valueType() == CQChartsDistributionPlot::ValueType::COUNT) {
+  if      (plot_->isValueCount()) {
     tableTip.addTableRow("Count", count());
   }
-  else if (plot_->valueType() == CQChartsDistributionPlot::ValueType::RANGE) {
+  else if (plot_->isValueRange()) {
     tableTip.addTableRow("Min", minValue());
     tableTip.addTableRow("Max", maxValue());
   }
-  else if (plot_->valueType() == CQChartsDistributionPlot::ValueType::MIN) {
+  else if (plot_->isValueMin()) {
     tableTip.addTableRow("Min", maxValue());
   }
-  else if (plot_->valueType() == CQChartsDistributionPlot::ValueType::MAX) {
+  else if (plot_->isValueMax()) {
     tableTip.addTableRow("Max", maxValue());
+  }
+  else if (plot_->isValueMean()) {
+    tableTip.addTableRow("Mean", maxValue());
+  }
+  else if (plot_->isValueSum()) {
+    tableTip.addTableRow("Sum", maxValue());
   }
 
   //---
@@ -2509,14 +2549,14 @@ count() const
   return barValue_.n2;
 }
 
-int
+double
 CQChartsDistributionBarObj::
 minValue() const
 {
   return barValue_.n1;
 }
 
-int
+double
 CQChartsDistributionBarObj::
 maxValue() const
 {
@@ -2536,16 +2576,22 @@ dataLabelRect() const
 
   QString ystr;
 
-  if      (plot_->valueType() == CQChartsDistributionPlot::ValueType::COUNT) {
+  if      (plot_->isValueCount()) {
     ystr = QString("%1").arg(count());
   }
-  else if (plot_->valueType() == CQChartsDistributionPlot::ValueType::RANGE) {
+  else if (plot_->isValueRange()) {
     ystr = QString("%1-%2").arg(minValue()).arg(maxValue());
   }
-  else if (plot_->valueType() == CQChartsDistributionPlot::ValueType::MIN) {
+  else if (plot_->isValueMin()) {
     ystr = QString("%1").arg(maxValue());
   }
-  else if (plot_->valueType() == CQChartsDistributionPlot::ValueType::MAX) {
+  else if (plot_->isValueMax()) {
+    ystr = QString("%1").arg(maxValue());
+  }
+  else if (plot_->isValueMean()) {
+    ystr = QString("%1").arg(maxValue());
+  }
+  else if (plot_->isValueSum()) {
     ystr = QString("%1").arg(maxValue());
   }
 
@@ -2654,16 +2700,22 @@ drawFg(QPainter *painter)
 
   QString ystr;
 
-  if      (plot_->valueType() == CQChartsDistributionPlot::ValueType::COUNT) {
+  if      (plot_->isValueCount()) {
     ystr = QString("%1").arg(count());
   }
-  else if (plot_->valueType() == CQChartsDistributionPlot::ValueType::RANGE) {
+  else if (plot_->isValueRange()) {
     ystr = QString("%1-%2").arg(minValue()).arg(maxValue());
   }
-  else if (plot_->valueType() == CQChartsDistributionPlot::ValueType::MIN) {
+  else if (plot_->isValueMin()) {
     ystr = QString("%1").arg(maxValue());
   }
-  else if (plot_->valueType() == CQChartsDistributionPlot::ValueType::MAX) {
+  else if (plot_->isValueMax()) {
+    ystr = QString("%1").arg(maxValue());
+  }
+  else if (plot_->isValueMean()) {
+    ystr = QString("%1").arg(maxValue());
+  }
+  else if (plot_->isValueSum()) {
     ystr = QString("%1").arg(maxValue());
   }
 

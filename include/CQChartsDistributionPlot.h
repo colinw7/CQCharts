@@ -50,8 +50,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   Q_PROPERTY(QString groupName READ groupName)
   Q_PROPERTY(QString bucketStr READ bucketStr)
   Q_PROPERTY(int     count     READ count    )
-  Q_PROPERTY(int     minValue  READ minValue )
-  Q_PROPERTY(int     maxValue  READ maxValue )
+  Q_PROPERTY(double  minValue  READ minValue )
+  Q_PROPERTY(double  maxValue  READ maxValue )
 
  public:
   using ColorCount = std::map<int,int>;
@@ -90,8 +90,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   int count() const;
 
-  int minValue() const;
-  int maxValue() const;
+  double minValue() const;
+  double maxValue() const;
 
   //---
 
@@ -171,6 +171,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
     double  ymin { 0.0 };
     double  ymax { 0.0 };
     double  mean { 0.0 };
+    double  sum  { 0.0 };
     Buckets buckets;
   };
 
@@ -373,7 +374,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     RANGE,
     MIN,
     MAX,
-    MEAN
+    MEAN,
+    SUM
   };
 
   struct Filter {
@@ -439,6 +441,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   bool isValueMin  () const { return (valueType() == ValueType::MIN  ); }
   bool isValueMax  () const { return (valueType() == ValueType::MAX  ); }
   bool isValueMean () const { return (valueType() == ValueType::MEAN ); }
+  bool isValueSum  () const { return (valueType() == ValueType::SUM  ); }
 
   bool isPercent  () const { return percent_  ; }
   bool isSkipEmpty() const { return skipEmpty_; }
@@ -563,12 +566,13 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     double      min  { 0.0 };
     double      max  { 0.0 };
     double      mean { 0.0 };
+    double      sum  { 0.0 };
   };
 
   using BarValue = CQChartsDistributionBarValue;
 
  public:
-  void calcVarIndsMinMax(VariantIndsData &varInds);
+  void calcVarIndsData(VariantIndsData &varInds);
 
   BarValue varIndsValue(const VariantIndsData &varInds) const;
 
@@ -646,6 +650,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   void setValueMin  (bool b);
   void setValueMax  (bool b);
   void setValueMean (bool b);
+  void setValueSum  (bool b);
 
   // set percent
   void setPercent(bool b);

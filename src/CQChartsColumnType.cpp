@@ -424,9 +424,12 @@ userData(const QVariant &var, const CQChartsNameValues &, bool &converted) const
 
   converted = true;
 
-  bool b;
+  bool ok;
 
-  CQChartsVariant::toBool(var, b);
+  bool b = CQChartsVariant::toBool(var, ok);
+
+  if (! ok)
+    b = var.toBool();
 
   return QVariant::fromValue<bool>(b);
 }

@@ -11,6 +11,7 @@
 #include <QVBoxLayout>
 #include <QStackedWidget>
 #include <QTabWidget>
+#include <QPushButton>
 #include <QTextEdit>
 #include <QLineEdit>
 
@@ -21,6 +22,7 @@ CQChartsModelList(CQCharts *charts) :
   setObjectName("modelList");
 
   QVBoxLayout *layout = new QVBoxLayout(this);
+  layout->setMargin(2); layout->setSpacing(2);
 
   //---
 
@@ -114,6 +116,7 @@ addModelDataWidgets(CQChartsModelData *modelData)
   QFrame *viewFrame = CQUtil::makeWidget<QFrame>("view");
 
   QVBoxLayout *viewLayout = new QVBoxLayout(viewFrame);
+  viewLayout->setMargin(2); viewLayout->setSpacing(2);
 
   tableTab->addTab(viewFrame, "Model");
 
@@ -122,12 +125,18 @@ addModelDataWidgets(CQChartsModelData *modelData)
   QFrame *detailsFrame = CQUtil::makeWidget<QFrame>("details");
 
   QVBoxLayout *detailsLayout = new QVBoxLayout(detailsFrame);
+  detailsLayout->setMargin(2); detailsLayout->setSpacing(2);
 
   tableTab->addTab(detailsFrame, "Details");
 
   //---
 
   QLineEdit *filterEdit = CQUtil::makeWidget<QLineEdit>("filter");
+
+  filterEdit->setToolTip("Filter Model by Tcl Expression\n"
+                         "Use column name variable or column(<col>)\n"
+                         "Use row(<row>), cell(<row>,<col>), header(<col>)\n"
+                         "Use \"selected\" or \"non-selected\" for selected items");
 
   viewLayout->addWidget(filterEdit);
 
@@ -166,6 +175,18 @@ addModelDataWidgets(CQChartsModelData *modelData)
   viewWidgetData->table = table;
 
   //------
+
+  QHBoxLayout *detailsControlLayout = new QHBoxLayout;
+  detailsControlLayout->setMargin(2); detailsControlLayout->setSpacing(2);
+
+  viewWidgetData->detailsUpdate = new QPushButton("Update");
+
+  connect(viewWidgetData->detailsUpdate, SIGNAL(clicked()), this, SLOT(updateDetails()));
+
+  detailsControlLayout->addWidget(viewWidgetData->detailsUpdate);
+  detailsControlLayout->addStretch(1);
+
+  detailsLayout->addLayout(detailsControlLayout);
 
   QTextEdit *detailsText = CQUtil::makeWidget<QTextEdit>("detailsText");
 
@@ -379,7 +400,7 @@ setDetails(const CQChartsModelData *modelData)
   //---
 
   if (currentDetails_)
-    disconnect(currentDetails_, SIGNAL(detailsReset()), this, SLOT(updateDetails()));
+    disconnect(currentDetails_, SIGNAL(detailsReset()), this, SLOT(invalidateDetails()));
 
   currentDetails_ = nullptr;
 
@@ -389,11 +410,18 @@ setDetails(const CQChartsModelData *modelData)
   if (! currentDetails_)
     return;
 
-  connect(currentDetails_, SIGNAL(detailsReset()), this, SLOT(updateDetails()));
+  connect(currentDetails_, SIGNAL(detailsReset()), this, SLOT(invalidateDetails()));
 
   //---
 
-  updateDetails();
+  invalidateDetails();
+}
+
+void
+CQChartsModelList::
+invalidateDetails()
+{
+  currentViewWidgetData_->detailsUpdate->setEnabled(true);
 }
 
 void
@@ -404,6 +432,10 @@ updateDetails()
 
   //---
 
+  currentViewWidgetData_->detailsUpdate->setEnabled(false);
+
+  //---
+
   int nc = currentDetails_->numColumns();
   int nr = currentDetails_->numRows   ();
 
@@ -411,16 +443,19 @@ updateDetails()
 
   currentViewWidgetData_->detailsTable->clear();
 
-  currentViewWidgetData_->detailsTable->setColumnCount(7);
+  QStringList columnNames = (QStringList() <<
+    "Column" << "Type" << "Min" << "Max" << "Mean" << "StdDev" <<
+    "Monotonic" << "Num Unique" << "Num Null");
 
-  currentViewWidgetData_->detailsTable->setHorizontalHeaderLabels(QStringList() <<
-    "Column" << "Type" << "Min" << "Max" << "Mean" << "StdDev" << "Monotonic");
+  currentViewWidgetData_->detailsTable->setColumnCount(columnNames.length());
+
+  currentViewWidgetData_->detailsTable->setHorizontalHeaderLabels(columnNames);
 
   currentViewWidgetData_->detailsTable->setRowCount(nc);
 
   auto columnDetails = [&](int c, QString &nameStr, QString &typeStr, QString &minStr,
                            QString &maxStr, QString &meanStr, QString &stdDevStr,
-                           QString &monoStr) {
+                           QString &monoStr, QString &uniqueStr, QString &nullStr) {
     const CQChartsModelColumnDetails *columnDetails = currentDetails_->columnDetails(c);
 
     nameStr   = columnDetails->headerName();
@@ -434,12 +469,16 @@ updateDetails()
       monoStr = (columnDetails->isIncreasing() ? "Increasing" : "Decreasing");
     else
       monoStr = "";
+
+    uniqueStr = QString("%1").arg(columnDetails->numUnique());
+    nullStr   = QString("%1").arg(columnDetails->numNull());
   };
 
   auto setTableRow = [&](int c) {
-    QString nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr, monoStr;
+    QString nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr, monoStr, uniqueStr, nullStr;
 
-    columnDetails(c, nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr, monoStr);
+    columnDetails(c, nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr,
+                  monoStr, uniqueStr, nullStr);
 
     QTableWidgetItem *item1 = new QTableWidgetItem(nameStr);
     QTableWidgetItem *item2 = new QTableWidgetItem(typeStr);
@@ -448,6 +487,8 @@ updateDetails()
     QTableWidgetItem *item5 = new QTableWidgetItem(meanStr);
     QTableWidgetItem *item6 = new QTableWidgetItem(stdDevStr);
     QTableWidgetItem *item7 = new QTableWidgetItem(monoStr);
+    QTableWidgetItem *item8 = new QTableWidgetItem(uniqueStr);
+    QTableWidgetItem *item9 = new QTableWidgetItem(nullStr);
 
     currentViewWidgetData_->detailsTable->setItem(c, 0, item1);
     currentViewWidgetData_->detailsTable->setItem(c, 1, item2);
@@ -456,6 +497,8 @@ updateDetails()
     currentViewWidgetData_->detailsTable->setItem(c, 4, item5);
     currentViewWidgetData_->detailsTable->setItem(c, 5, item6);
     currentViewWidgetData_->detailsTable->setItem(c, 6, item7);
+    currentViewWidgetData_->detailsTable->setItem(c, 7, item8);
+    currentViewWidgetData_->detailsTable->setItem(c, 8, item9);
   };
 
   //---

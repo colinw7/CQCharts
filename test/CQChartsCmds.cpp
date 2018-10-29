@@ -2496,6 +2496,7 @@ getChartsDataCmd(const Vars &vars)
 
       setCmdRc(var);
     }
+    // number of rows, number of columns, hierarchical
     else if (name == "num_rows" || name == "num_columns" || name == "hierarchical") {
       CQChartsModelDetails *details = modelData->details();
 
@@ -2506,6 +2507,7 @@ getChartsDataCmd(const Vars &vars)
       else if (name == "hierarchical")
         setCmdRc(details->isHierarchical());
     }
+    // header value
     else if (name == "header") {
       const CQChartsModelDetails *details = modelData->details();
 
@@ -2523,6 +2525,7 @@ getChartsDataCmd(const Vars &vars)
 
       setCmdRc(vars);
     }
+    // row value
     else if (name == "row") {
       const CQChartsModelDetails *details = modelData->details();
 
@@ -2549,6 +2552,7 @@ getChartsDataCmd(const Vars &vars)
 
       setCmdRc(vars);
     }
+    // column value
     else if (name == "column") {
       const CQChartsModelDetails *details = modelData->details();
 
@@ -2603,6 +2607,7 @@ getChartsDataCmd(const Vars &vars)
         setCmdRc(vars);
       }
     }
+    // map value
     else if (name == "map") {
       CQChartsModelDetails *details = modelData->details();
 
@@ -2628,6 +2633,20 @@ getChartsDataCmd(const Vars &vars)
 
       setCmdRc(r);
     }
+    // duplicate rows
+    else if (name == "duplicates") {
+      CQChartsModelDetails *details = modelData->details();
+
+      std::vector<int> inds = details->duplicates();
+
+      QVariantList vars;
+
+      for (std::size_t i = 0; i < inds.size(); ++i)
+        vars.push_back(inds[i]);
+
+      setCmdRc(vars);
+    }
+    // get index for column name
     else if (name == "column_index") {
       CQChartsColumn column;
 
@@ -3071,7 +3090,8 @@ setChartsDataCmd(const Vars &vars)
         QModelIndex ind = model.data()->index(row, column.column());
 
         if (! ind.isValid()) {
-          setCmdError("Invalid data row/column specified");
+          setCmdError(QString("Invalid data row/column specified '%1,%2'").
+            arg(row).arg(column.column()));
           return;
         }
 

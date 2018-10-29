@@ -127,6 +127,7 @@ addBuiltinFunctions()
   addFunction("row"   );
   addFunction("cell"  );
   addFunction("header");
+  addFunction("isnan" );
 }
 
 void
@@ -224,6 +225,7 @@ processCmd(const QString &name, const Values &values)
   else if (name == "row"   ) return rowCmd   (values);
   else if (name == "cell"  ) return cellCmd  (values);
   else if (name == "header") return headerCmd(values);
+  else if (name == "isnan" ) return isnanCmd (values);
   else                       return QVariant(false);
 }
 
@@ -355,6 +357,24 @@ headerCmd(const Values &values) const
   //---
 
   return model()->headerData(col, Qt::Horizontal, Qt::DisplayRole);
+}
+
+//---
+
+// header(), header(col)
+QVariant
+CQChartsModelExprMatch::
+isnanCmd(const Values &values) const
+{
+  CQChartsExprCmdValues cmdValues(values);
+
+  double r { 0.0 };
+
+  (void) cmdValues.getReal(r);
+
+  //---
+
+  return CMathUtil::isNaN(r);
 }
 
 //------
