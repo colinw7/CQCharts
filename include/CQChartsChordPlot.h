@@ -245,6 +245,8 @@ class CQChartsChordPlot : public CQChartsPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   //---
 
   void handleResize() override;

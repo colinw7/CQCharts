@@ -14,6 +14,7 @@
 #include <set>
 
 class CQCharts;
+class CQChartsWindow;
 class CQChartsPlot;
 class CQChartsObj;
 class CQChartsViewKey;
@@ -141,6 +142,11 @@ class CQChartsView : public QFrame,
 
   CQCharts *charts() const { return charts_; }
 
+  //--
+
+  CQChartsWindow *window() const { return window_; }
+  void setWindow(CQChartsWindow *window) { window_ = window; }
+
   //---
 
   const QString &id() const { return id_; }
@@ -221,7 +227,7 @@ class CQChartsView : public QFrame,
   void setScaleFont(bool b);
 
   double fontFactor() const { return fontFactor_; }
-  void setFontFactor(double r) { fontFactor_ = r; }
+  void setFontFactor(double r);
 
   const PosTextType &posTextType() const { return posTextType_; }
   void setPosTextType(const PosTextType &t);
@@ -350,6 +356,8 @@ class CQChartsView : public QFrame,
 
   void resizeEvent(QResizeEvent *) override;
 
+  void doResize(int w, int h);
+
   //---
 
   void paintEvent(QPaintEvent *) override;
@@ -428,6 +436,8 @@ class CQChartsView : public QFrame,
   int plotInd(CQChartsPlot *plot) const;
 
   CQChartsPlot *currentPlot(bool remap=true) const;
+
+  CQChartsPlot *getPlotForInd(int ind) const;
 
   //---
 
@@ -589,7 +599,18 @@ class CQChartsView : public QFrame,
 
   //---
 
+  void xRangeMapSlot(bool b);
+  void yRangeMapSlot(bool b);
+
+  void dataTableSlot(bool b);
+  void viewSettingsSlot(bool b);
+
+  //---
+
   void currentPlotSlot();
+
+ private slots:
+  void currentPlotZoomPanChanged();
 
  private:
   void resetConnections(bool notify);
@@ -637,6 +658,7 @@ class CQChartsView : public QFrame,
   static QSize defSizeHint_;
 
   CQCharts*                charts_           { nullptr };           // parent charts
+  CQChartsWindow*          window_           { nullptr };           // parent window
   CQChartsDisplayRange*    displayRange_     { nullptr };           // display range
   CQChartsGradientPalette* interfacePalette_ { nullptr };           // interface palette
   CQChartsTheme            theme_;                                  // theme

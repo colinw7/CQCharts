@@ -13,9 +13,9 @@
 #include <CQChartsRand.h>
 #include <CQPerfMonitor.h>
 
+#include <QPainter>
 #include <QMenu>
 #include <QAction>
-#include <QPainter>
 
 CQChartsDistributionPlotType::
 CQChartsDistributionPlotType()
@@ -1176,8 +1176,6 @@ bool
 CQChartsDistributionPlot::
 initObjs()
 {
-  CQPerfTrace trace("CQChartsDistributionPlot::initObjs");
-
   if (! dataRange_.isSet()) {
     updateRange();
 
@@ -1191,6 +1189,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsDistributionPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsDistributionPlot::createObjs");
 
   // init color value set
   initValueSets();
@@ -1758,22 +1765,37 @@ initObjs()
   else if (isScatter()) {
   }
   else {
+    auto setCountLabel = [&](const QString &label) {
+      QString label1 = label;
+
+      if (dataColumn().isValid()) {
+        bool ok;
+
+        QString header = modelHeaderString(dataColumn(), ok);
+
+        if (ok && header.length())
+          label1 += " (" + header + ")";
+      }
+
+      countAxis()->setLabel(label1);
+    };
+
     if      (isValueCount()) {
       if (isPercent())
-        countAxis()->setLabel("Percent");
+        setCountLabel("Percent");
       else
-        countAxis()->setLabel("Count");
+        setCountLabel("Count");
     }
     else if (isValueRange())
-      countAxis()->setLabel("Range");
+      setCountLabel("Range");
     else if (isValueMin())
-      countAxis()->setLabel("Min");
+      setCountLabel("Min");
     else if (isValueMax())
-      countAxis()->setLabel("Min");
+      setCountLabel("Min");
     else if (isValueMean())
-      countAxis()->setLabel("Mean");
+      setCountLabel("Mean");
     else if (isValueSum())
-      countAxis()->setLabel("Sum");
+      setCountLabel("Sum");
   }
 
   if (yLabel().length())

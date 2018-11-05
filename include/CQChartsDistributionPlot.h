@@ -512,6 +512,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   //---
 
   CQChartsAxis *valueAxis() const;

@@ -1,4 +1,5 @@
 #include <CQChartsView.h>
+#include <CQChartsWindow.h>
 #include <CQChartsViewToolTip.h>
 #include <CQChartsProbeBand.h>
 #include <CQChartsPlot.h>
@@ -60,7 +61,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  bufferLayers_ = CQChartsEnv::getBool("CQCHARTS_BUFFER_LAYERS", bufferLayers_);
+  bufferLayers_ = CQChartsEnv::getBool("CQ_CHARTS_BUFFER_LAYERS", bufferLayers_);
 
   //---
 
@@ -225,6 +226,13 @@ setScaleFont(bool b)
 
 void
 CQChartsView::
+setFontFactor(double r)
+{
+  CQChartsUtil::testAndSet(fontFactor_, r, [&]() { updatePlots(); } );
+}
+
+void
+CQChartsView::
 setPosTextType(const PosTextType &t)
 {
   CQChartsUtil::testAndSet(posTextType_, t, [&]() { updatePlots(); } );
@@ -316,8 +324,31 @@ void
 CQChartsView::
 setCurrentPlotInd(int ind)
 {
-  CQChartsUtil::testAndSet(currentPlotInd_, ind, [&]() { emit currentPlotChanged(); } );
+  if (ind != currentPlotInd_) {
+    CQChartsPlot *currentPlot = getPlotForInd(currentPlotInd_);
+
+    if (currentPlot)
+      disconnect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
+
+    currentPlotInd_ = ind;
+
+    currentPlot = getPlotForInd(currentPlotInd_);
+
+    if (currentPlot)
+      connect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
+
+    emit currentPlotChanged();
+  }
 }
+
+void
+CQChartsView::
+currentPlotZoomPanChanged()
+{
+  window()->updateRangeMap();
+}
+
+//---
 
 void
 CQChartsView::
@@ -1796,7 +1827,14 @@ void
 CQChartsView::
 resizeEvent(QResizeEvent *)
 {
-  prect_ = CQChartsGeom::BBox(0, 0, width(), height());
+  doResize(width(), height());
+}
+
+void
+CQChartsView::
+doResize(int w, int h)
+{
+  prect_ = CQChartsGeom::BBox(0, 0, w, h);
 
   if (prect().getHeight() > 0)
     aspect_ = (1.0*prect().getWidth())/prect().getHeight();
@@ -2110,6 +2148,53 @@ showMenu(const QPoint &p)
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
 
   CQChartsPlotType *plotType = (currentPlot ? currentPlot->type() : nullptr);
+
+  //---
+
+  if (allPlots.size() == 1) {
+    QAction *xRangeAction = new QAction("X Overview");
+    QAction *yRangeAction = new QAction("Y Overview");
+
+    xRangeAction->setCheckable(true);
+    yRangeAction->setCheckable(true);
+
+    xRangeAction->setChecked(window()->isXRangeMap());
+    yRangeAction->setChecked(window()->isYRangeMap());
+
+    connect(xRangeAction, SIGNAL(triggered(bool)), this, SLOT(xRangeMapSlot(bool)));
+    connect(yRangeAction, SIGNAL(triggered(bool)), this, SLOT(yRangeMapSlot(bool)));
+
+    popupMenu_->addAction(xRangeAction);
+    popupMenu_->addAction(yRangeAction);
+  }
+
+  //---
+
+  QAction *dataTableAction = new QAction("Data Table");
+
+  dataTableAction->setCheckable(true);
+
+  dataTableAction->setChecked(window()->isDataTable());
+
+  connect(dataTableAction, SIGNAL(triggered(bool)), this, SLOT(dataTableSlot(bool)));
+
+  popupMenu_->addAction(dataTableAction);
+
+  //---
+
+  QAction *viewSettingsAction = new QAction("View Settings");
+
+  viewSettingsAction->setCheckable(true);
+
+  viewSettingsAction->setChecked(window()->isViewSettings());
+
+  connect(viewSettingsAction, SIGNAL(triggered(bool)), this, SLOT(viewSettingsSlot(bool)));
+
+  popupMenu_->addAction(viewSettingsAction);
+
+  //---
+
+  popupMenu_->addSeparator();
 
   //---
 
@@ -2540,7 +2625,7 @@ showMenu(const QPoint &p)
 
   //---
 
-  if (CQChartsEnv::getBool("CQCHARTS_DEBUG", true)) {
+  if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG", true)) {
     QAction *showBoxesAction = new QAction("Show Boxes", popupMenu_);
 
     showBoxesAction->setCheckable(true);
@@ -2991,6 +3076,36 @@ bufferLayersSlot(bool b)
 
 void
 CQChartsView::
+xRangeMapSlot(bool b)
+{
+  window()->setXRangeMap(b);
+}
+
+void
+CQChartsView::
+yRangeMapSlot(bool b)
+{
+  window()->setYRangeMap(b);
+}
+
+void
+CQChartsView::
+dataTableSlot(bool b)
+{
+  window()->setDataTable(b);
+}
+
+void
+CQChartsView::
+viewSettingsSlot(bool b)
+{
+  window()->setViewSettings(b);
+}
+
+//------
+
+void
+CQChartsView::
 currentPlotSlot()
 {
   QAction *action = qobject_cast<QAction *>(sender());
@@ -3157,12 +3272,24 @@ currentPlot(bool remap) const
   if (ind < 0 || ind >= int(plots_.size()))
     ind = 0;
 
-  CQChartsPlot *plot = plots_[ind];
+  CQChartsPlot *plot = getPlotForInd(ind);
 
   if (remap) {
     if (plot->isOverlay())
       plot = plot->firstPlot();
   }
+
+  return plot;
+}
+
+CQChartsPlot *
+CQChartsView::
+getPlotForInd(int ind) const
+{
+  if (ind < 0 || ind >= int(plots_.size()))
+    return nullptr;
+
+  CQChartsPlot *plot = plots_[ind];
 
   return plot;
 }

@@ -235,6 +235,8 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   //---
 
   QColor interpGroupColor(int) const;

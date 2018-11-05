@@ -6,6 +6,7 @@
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>
+#include <CQPerfMonitor.h>
 
 #include <QPainter>
 #include <QMenu>
@@ -66,28 +67,29 @@ description() const
   return "<h2>Summary</h2>\n"
          "<p>Draws bars with heights from a set of values.</p>\n"
          "<h2>Columns</h2>\n"
-         "<p>The bar heights are taken from the values in the <b>Value</b> columns.</p>\n"
-         "<p>Bars can be grouped using standard grouping controls so that related values "
-         "can be placed next to each other.</p>\n"
+         "<p>The bar heights are taken from the values in the <b>Value</b> column.</p>\n"
          "<p>An optional name can be supplied in the <b>Name</b> column to specify the label "
          "to use on the axis below the bar.</p>\n"
          "<p>An optional label can be drawn with the bar to show extra values using "
          "the <b>Label</b> column.</p>\n"
          "<p>The color of the bar can be customized using the <b>Color</b> column.</p>\n"
          "<p>A custom id can specified using the <b>Id</b> column.</p>"
-         "<h2>Options</h2>\n"
+         "<h2>Grouping</h2>\n"
+         "<p>Bars can be grouped using standard grouping controls so that related values "
+         "can be placed next to each other.</p>\n"
          "<p>Enabling the <b>Row Grouping</b> option groups bars by column header name "
          "instead of the normal <b>Group</b> columns.</p>\n"
-         "<p>Enabling the <b>Color by Set</b> option colors bars in the same group the same "
-         "color instead using different colors for each bar in the group.</p>\n"
-         "<p>Enabling the <b>Stacked</b> option places grouped bars on top of each other "
+         "<h2>Options</h2>\n"
+         "<p>Setting the <b>Stacked</b> Plot Type places grouped bars on top of each other "
          "instead of the normal side by side placement.</p>\n"
          "<p>Enabling the <b>Percent</b> option rescales the values to a percentage of the "
          "maximum and minimum of the values.</p>\n"
          "<p>Enabling the <b>Range Bar</b> option draws a bar for the range (min/max) of "
          "the grouped values.</p>\n"
          "<p>Enabling the <b>Horizontal</b> option draws the bars horizontally instead "
-         "of vertically.</p>\n";
+         "of vertically.</p>\n"
+         "<p>Enabling the <b>Color by Set</b> option colors bars in the same group the same "
+         "color instead using different colors for each bar in the group.</p>\n";
 }
 
 CQChartsPlot *
@@ -789,6 +791,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsBarChartPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsBarChartPlot::createObjs");
 
   // init value sets
   initValueSets();

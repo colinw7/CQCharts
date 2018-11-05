@@ -158,6 +158,8 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   //---
 
   bool rowColValue(int row, const CQChartsColumn &column, const QModelIndex &parent,

@@ -3,9 +3,10 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTip.h>
+#include <CQPerfMonitor.h>
 
-#include <QMenu>
 #include <QPainter>
+#include <QMenu>
 
 CQChartsHierBubblePlotType::
 CQChartsHierBubblePlotType()
@@ -208,6 +209,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsHierBubblePlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsHierBubblePlot::createObjs");
 
   // init value sets
   initValueSets();

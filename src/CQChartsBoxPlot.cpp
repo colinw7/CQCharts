@@ -6,6 +6,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsRand.h>
 #include <CQCharts.h>
+#include <CQPerfMonitor.h>
 
 #include <QPainter>
 #include <QMenu>
@@ -1036,6 +1037,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsBoxPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsBoxPlot::createObjs");
 
   if (! isPreCalc())
     return initRawObjs();

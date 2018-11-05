@@ -24,8 +24,8 @@ class CQBaseModel : public QAbstractItemModel {
     TypeValues        = Type + 1,         // column type values role
     Min               = Type + 2,         // column user min role
     Max               = Type + 3,         // column user max role
-    Sorted            = Type + 4,         // sorted
-    SortOrder         = Type + 5,         // sort role
+    Sorted            = Type + 4,         // sorted role
+    SortOrder         = Type + 5,         // sort order role
     Key               = Type + 6,         // is key role
     RawValue          = Type + 7,         // raw value by role
     IntermediateValue = Type + 8,         // intermediate value role

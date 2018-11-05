@@ -198,12 +198,14 @@ class CQChartsScatterGridKeyItem : public CQChartsKeyItem {
 
 CQCHARTS_NAMED_SHAPE_DATA(BestFit,bestFit)
 CQCHARTS_NAMED_SHAPE_DATA(Hull,hull)
+CQCHARTS_NAMED_SHAPE_DATA(GridCell,gridCell)
 
 class CQChartsScatterPlot : public CQChartsGroupPlot,
- public CQChartsObjPointData       <CQChartsScatterPlot>,
- public CQChartsObjBestFitShapeData<CQChartsScatterPlot>,
- public CQChartsObjHullShapeData   <CQChartsScatterPlot>,
- public CQChartsObjRugPointData    <CQChartsScatterPlot> {
+ public CQChartsObjPointData        <CQChartsScatterPlot>,
+ public CQChartsObjBestFitShapeData <CQChartsScatterPlot>,
+ public CQChartsObjHullShapeData    <CQChartsScatterPlot>,
+ public CQChartsObjRugPointData     <CQChartsScatterPlot>,
+ public CQChartsObjGridCellShapeData<CQChartsScatterPlot> {
   Q_OBJECT
 
   // columns
@@ -263,6 +265,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool gridded  READ isGridded WRITE setGridded )
   Q_PROPERTY(int  gridNumX READ gridNumX  WRITE setGridNumX)
   Q_PROPERTY(int  gridNumY READ gridNumY  WRITE setGridNumY)
+
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(GridCell,gridCell)
 
   // symbol map key
   Q_PROPERTY(bool   symbolMapKey       READ isSymbolMapKey     WRITE setSymbolMapKey      )
@@ -542,6 +546,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   void updateObjs() override;
 
   bool initObjs() override;
+
+  bool createObjs();
 
   void addNameValues();
 

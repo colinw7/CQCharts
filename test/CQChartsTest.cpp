@@ -299,7 +299,6 @@ main(int argc, char **argv)
     setenv("CQCHARTS_PLOT_UPDATE_TIMEOUT", "0", true);
     setenv("CQCHARTS_OBJ_TREE_WAIT"      , "1", true);
 
-
     CQPerfMonitorInst->setEnabled(true);
 
     CQPerfMonitorInst->startRecording();

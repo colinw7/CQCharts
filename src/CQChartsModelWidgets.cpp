@@ -24,11 +24,6 @@ CQChartsModelWidgets(CQCharts *charts, QWidget *parent) :
   modelControl_ = new CQChartsModelControl(charts_);
 
   layout->addWidget(modelControl_);
-
-  //---
-
-  modelList_   ->setModelControl(modelControl_);
-  modelControl_->setModelList   (modelList_);
 }
 
 void

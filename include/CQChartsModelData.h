@@ -20,6 +20,7 @@ class CQChartsModelData : public QObject {
   Q_PROPERTY(QString id             READ id                                      )
   Q_PROPERTY(QString name           READ name             WRITE setName          )
   Q_PROPERTY(bool    summaryEnabled READ isSummaryEnabled WRITE setSummaryEnabled)
+  Q_PROPERTY(int     currentColumn  READ currentColumn    WRITE setCurrentColumn )
 
  public:
   using ModelP = QSharedPointer<QAbstractItemModel>;
@@ -60,6 +61,9 @@ class CQChartsModelData : public QObject {
   // get/set name
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
+
+  int currentColumn() const { return currentColumn_; }
+  void setCurrentColumn(int i);
 
 #ifdef CQCHARTS_FOLDED_MODEL
   // get associated fold models
@@ -105,8 +109,14 @@ class CQChartsModelData : public QObject {
   void modelColumnsRemovedSlot();
 
  signals:
+  // model changed
   void modelChanged();
+
+  // current model of model data changed
   void currentModelChanged();
+
+  // current model column changed
+  void currentColumnChanged(int);
 
  private:
 #ifdef CQCHARTS_FOLDED_MODEL
@@ -118,6 +128,7 @@ class CQChartsModelData : public QObject {
   int                   ind_              { -1 };      // model ind
   QItemSelectionModel*  selectionModel_   { nullptr }; // selection model
   QString               name_;                         // model name
+  int                   currentColumn_    { -1 };      // current column
   CQChartsModelDetails* details_          { nullptr }; // model details
 #ifdef CQCHARTS_FOLDED_MODEL
   ModelP                foldProxyModel_;               // folded proxy model

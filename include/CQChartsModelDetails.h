@@ -139,12 +139,15 @@ class CQChartsModelDetails : public QObject {
   void reset();
 
   std::vector<int> duplicates() const;
+  std::vector<int> duplicates(const CQChartsColumn &column) const;
 
  signals:
   void detailsReset();
 
  private:
   void resetValues();
+
+  std::vector<int> columnDuplicates(const CQChartsColumn &column, bool all) const;
 
   void updateSimple();
   void updateFull();

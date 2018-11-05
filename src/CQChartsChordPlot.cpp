@@ -7,6 +7,8 @@
 #include <CQCharts.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsNamePair.h>
+#include <CQPerfMonitor.h>
+
 #include <QPainter>
 
 //---
@@ -235,6 +237,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsChordPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsChordPlot::createObjs");
 
   if (valueColumn().isValid())
     return initHierObjs();

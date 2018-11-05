@@ -311,20 +311,37 @@ class CQChartsPlot : public CQChartsObj,
   const CQChartsGeom::Range &dataRange() const { return dataRange_; }
   void setDataRange(const CQChartsGeom::Range &r, bool update=true);
 
-  double dataScaleX() const;
+  //---
+
+  struct ZoomData {
+    double              dataScaleX { 1.0 };      // data scale (zoom in x direction)
+    double              dataScaleY { 1.0 };      // data scale (zoom in y direction)
+    CQChartsGeom::Point dataOffset { 0.0, 0.0 }; // data offset (pan)
+#if 0
+    OptReal zoomRegionXMin; // zoom region xmin
+    OptReal zoomRegionXMax; // zoom region xmax
+    OptReal zoomRegionYMin; // zoom region ymin
+    OptReal zoomRegionYMax; // zoom region ymax
+#endif
+  };
+
+  double dataScaleX() const { return zoomData_.dataScaleX; }
   void setDataScaleX(double r);
 
-  double dataScaleY() const;
+  double dataScaleY() const { return zoomData_.dataScaleY; }
   void setDataScaleY(double r);
+
+  double dataOffsetX() const { return zoomData_.dataOffset.x; }
+  void setDataOffsetX(double x);
+
+  double dataOffsetY() const { return zoomData_.dataOffset.y; }
+  void setDataOffsetY(double y);
+
+  const ZoomData &zoomData() const { return zoomData_; }
+  void setZoomData(const ZoomData &zoomData);
 
   void updateDataScaleX(double r);
   void updateDataScaleY(double r);
-
-  double dataOffsetX() const;
-  void setDataOffsetX(double x);
-
-  double dataOffsetY() const;
-  void setDataOffsetY(double y);
 
   //---
 
@@ -431,6 +448,11 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  bool isOverview() const { return overview_; }
+  void setOverview(bool b) { overview_ = b; }
+
+  //---
+
   bool showBoxes() const { return showBoxes_; }
   void setShowBoxes(bool b);
 
@@ -482,6 +504,7 @@ class CQChartsPlot : public CQChartsObj,
 
   void setInnerMargin(const CQChartsLength &l, const CQChartsLength &t,
                       const CQChartsLength &r, const CQChartsLength &b);
+  void setInnerMargin(const CQChartsPlotMargin &m);
 
   // outer margin
   const CQChartsPlotMargin &outerMargin() const { return outerMargin_; }
@@ -500,6 +523,7 @@ class CQChartsPlot : public CQChartsObj,
 
   void setOuterMargin(const CQChartsLength &l, const CQChartsLength &t,
                       const CQChartsLength &r, const CQChartsLength &b);
+  void setOuterMargin(const CQChartsPlotMargin &m);
 
   //---
 
@@ -938,6 +962,8 @@ class CQChartsPlot : public CQChartsObj,
   // (re)initialize plot objects
   void initPlotObjs();
 
+  void autoFitOne();
+
  public:
   // (re)initialize plot objects (called by initPlotObjs)
   virtual bool initObjs() = 0;
@@ -1091,6 +1117,20 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual double getZoomFactor(bool is_shift) const;
 
+#if 0
+  void setZoomXRegion(double min, double max) {
+    zoomRegionXMin_ = min;
+    zoomRegionXMax_ = max;
+    invalidateLayer(CQChartsBuffer::Type::OVERLAY);
+  }
+
+  void setZoomYRegion(double min, double max) {
+    zoomRegionYMin_ = min;
+    zoomRegionYMax_ = max;
+    invalidateLayer(CQChartsBuffer::Type::OVERLAY);
+  }
+#endif
+
  public slots:
   void updateSlot();
 
@@ -1104,7 +1144,8 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void zoomIn(double f=1.5);
   virtual void zoomOut(double f=1.5);
-  virtual void zoomFull();
+
+  virtual void zoomFull(bool notify=true);
 
   virtual bool allowZoomX() const { return true; }
   virtual bool allowZoomY() const { return true; }
@@ -1326,6 +1367,12 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void drawEditHandles(QPainter *painter);
 
+#if 0
+  // draw zoom lines
+  bool hasZoomRegionLines() const;
+  void drawZoomRegionLines(QPainter *painter);
+#endif
+
   //---
 
   // set clip rect
@@ -1545,6 +1592,9 @@ class CQChartsPlot : public CQChartsObj,
   void objPressed(CQChartsPlotObj *);
   void objIdPressed(const QString &);
 
+  // zoom/pan changed
+  void zoomPanChanged();
+
  protected:
   using ObjSet     = std::set<CQChartsObj*>;
   using SizeObjSet = std::map<double,ObjSet>;
@@ -1614,9 +1664,7 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsGeom::Range       calcDataRange_;                   // calc data range
   CQChartsGeom::Range       dataRange_;                       // data range
   CQChartsGeom::Range       outerDataRange_;                  // outer data range
-  double                    dataScaleX_       { 1.0 };        // data scale (zoom in x direction)
-  double                    dataScaleY_       { 1.0 };        // data scale (zoom in y direction)
-  CQChartsGeom::Point       dataOffset_       { 0.0, 0.0 };   // data offset (pan)
+  ZoomData                  zoomData_;                        // zoom data
   OptReal                   xmin_;                            // xmin override
   OptReal                   ymin_;                            // ymin override
   OptReal                   xmax_;                            // xmax override
@@ -1650,6 +1698,7 @@ class CQChartsPlot : public CQChartsObj,
   bool                      preview_          { false };      // is preview plot
   int                       previewMaxRows_   { 1000 };       // preview max rows
   bool                      showBoxes_        { false };      // show debug boxes
+  bool                      overview_         { false };      // is overview
   bool                      invertX_          { false };      // x values inverted
   bool                      invertY_          { false };      // y values inverted
   bool                      logX_             { false };      // x values log scaled

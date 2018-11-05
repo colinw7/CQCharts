@@ -164,6 +164,7 @@ CQBucketer.cpp \
 \
 CQHistoryLineEdit.cpp \
 CQFilename.cpp \
+CQRangeScroll.cpp \
 \
 CQChartsDelaunay.cpp \
 CQChartsDendrogram.cpp \
@@ -323,6 +324,7 @@ HEADERS += \
 \
 ../include/CQHistoryLineEdit.h \
 CQFilename.h \
+../include/CQRangeScroll.h \
 \
 ../include/CQChartsDelaunay.h \
 ../include/CQChartsDendrogram.h \

@@ -3,9 +3,10 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTip.h>
+#include <CQPerfMonitor.h>
 
-#include <QMenu>
 #include <QPainter>
+#include <QMenu>
 
 CQChartsTreeMapPlotType::
 CQChartsTreeMapPlotType()
@@ -289,6 +290,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsTreeMapPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsTreeMapPlot::initObjs");
 
   // init value sets
   initValueSets();

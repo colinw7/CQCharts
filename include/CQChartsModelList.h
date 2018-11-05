@@ -5,7 +5,6 @@
 
 class CQCharts;
 class CQChartsModelData;
-class CQChartsModelControl;
 class CQChartsModelDetails;
 class CQChartsTable;
 class CQChartsTree;
@@ -43,25 +42,25 @@ class CQChartsModelList : public QFrame {
 
  ~CQChartsModelList();
 
-  void setModelControl(CQChartsModelControl *control) { modelControl_ = control; }
-
   int numModels() const { return viewWidgetDatas_.size(); }
 
   void addModelData(CQChartsModelData *modelData);
 
-  void updateModel(CQChartsModelData *modelData);
+  void updateModel();
 
   CQChartsModelData *currentModelData() const;
 
   void setTabTitle(int ind, const QString &title);
 
-  void redrawView(const CQChartsModelData *modelData);
+  void redrawView();
 
-  void reloadModel(CQChartsModelData *modelData);
+  void reloadModel();
 
-  void setDetails(const CQChartsModelData *modelData);
+  void setDetails();
 
  private slots:
+  void updateCurrentModel();
+
   void addModelData(int ind);
 
   void updateModelType(int ind);
@@ -92,9 +91,9 @@ class CQChartsModelList : public QFrame {
 
  private:
   CQCharts*               charts_                { nullptr };
+  CQChartsModelData*      modelData_             { nullptr };
   QTabWidget*             viewTab_               { nullptr };
   ViewWidgetDatas         viewWidgetDatas_;
-  CQChartsModelControl*   modelControl_          { nullptr };
   CQChartsModelDetails*   currentDetails_        { nullptr };
   CQChartsViewWidgetData* currentViewWidgetData_ { nullptr };
 };

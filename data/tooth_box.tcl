@@ -44,10 +44,10 @@ proc addAnnotations { view plot } {
 set model [load_model -csv data/ToothGrowth.csv -first_line_header]
 
 set view [create_view]
-sync_qt
+qt_sync
 
 set plot1 [create_plot -view $view -model $model -type boxplot -columns "group=dose,value=len"]
-sync_qt
+qt_sync
 
 connect_chart -plot $plot1 -from plotObjsAdded -to addAnnotations
 

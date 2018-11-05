@@ -90,7 +90,7 @@ beginPaint(QPainter *painter, const QRectF &rect, bool alias)
   if (isValid())
     return nullptr;
 
-  if (CQChartsEnv::getBool("CQCHARTS_LAYER_PIXMAP")) {
+  if (CQChartsEnv::getBool("CQ_CHARTS_LAYER_PIXMAP")) {
     pixmap_->fill(QColor(0,0,0,0));
 
     ipainter()->begin(pixmap_);
@@ -125,7 +125,7 @@ endPaint()
     setValid(true);
   }
 
-  if (CQChartsEnv::getBool("CQCHARTS_LAYER_PIXMAP"))
+  if (CQChartsEnv::getBool("CQ_CHARTS_LAYER_PIXMAP"))
     painter_->drawPixmap(rect_.x(), rect_.y(), *pixmap());
   else
     painter_->drawImage(rect_.x(), rect_.y(), *image());
@@ -151,7 +151,7 @@ updateSize()
 
   QSize size(CMathRound::RoundUp(fsize.width()), CMathRound::RoundUp(fsize.height()));
 
-  bool hasDrawable = (CQChartsEnv::getBool("CQCHARTS_LAYER_PIXMAP") ?
+  bool hasDrawable = (CQChartsEnv::getBool("CQ_CHARTS_LAYER_PIXMAP") ?
                       (pixmap_ != 0) : (image_ != 0));
 
   if (! hasDrawable || size_ != size) {
@@ -161,7 +161,7 @@ updateSize()
 
     size_ = size;
 
-    if (CQChartsEnv::getBool("CQCHARTS_LAYER_PIXMAP"))
+    if (CQChartsEnv::getBool("CQ_CHARTS_LAYER_PIXMAP"))
       pixmap_ = new QPixmap(size_);
     else
       image_ = new QImage(size_, QImage::Format_ARGB32);

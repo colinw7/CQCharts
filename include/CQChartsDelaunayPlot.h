@@ -118,6 +118,8 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   void addPointObj(double x, double y, const QModelIndex &xind, int r);
 
   //---

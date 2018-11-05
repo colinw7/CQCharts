@@ -183,7 +183,9 @@ class CQChartsCmds : public QObject {
   void manageModelDlgCmd(const Vars &vars);
   void createPlotDlgCmd (const Vars &vars);
 
-  void syncQtCmd(const Vars &vars);
+  void qtGetPropertyCmd(const Vars &vars);
+  void qtSetPropertyCmd(const Vars &vars);
+  void qtSyncCmd(const Vars &vars);
 
   void perfCmd(const Vars &vars);
 

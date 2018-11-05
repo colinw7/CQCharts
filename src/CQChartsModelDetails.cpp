@@ -130,8 +130,6 @@ updateSimple()
 
   QAbstractItemModel *model = data_->currentModel().data();
 
-  resetValues();
-
   hierarchical_ = CQChartsUtil::isHierarchical(model);
 
   numColumns_ = model->columnCount();
@@ -145,6 +143,8 @@ CQChartsModelDetails::
 updateFull()
 {
   CQPerfTrace trace("CQChartsModelDetails::updateFull");
+
+  resetValues();
 
   updateSimple();
 
@@ -197,7 +197,21 @@ monotonicColumns() const
 
 std::vector<int>
 CQChartsModelDetails::
+duplicates(const CQChartsColumn &column) const
+{
+  return columnDuplicates(column, false);
+}
+
+std::vector<int>
+CQChartsModelDetails::
 duplicates() const
+{
+  return columnDuplicates(CQChartsColumn(), true);
+}
+
+std::vector<int>
+CQChartsModelDetails::
+columnDuplicates(const CQChartsColumn &column, bool all) const
 {
   initSimpleData();
 
@@ -207,23 +221,40 @@ duplicates() const
 
   std::vector<QVariant> rowValues1, rowValues2;
 
-  rowValues2.resize(numColumns_);
+  if (all)
+    rowValues2.resize(numColumns_);
+  else
+    rowValues2.resize(1);
 
   std::vector<int> rows;
 
   for (int r = 0; r < numRows_; ++r) {
     bool match = true;
 
-    for (int c = 0; c < numColumns_; ++c) {
+    if (all) {
+      for (int c = 0; c < numColumns_; ++c) {
+        QModelIndex parent;
+
+        bool ok;
+
+        QVariant var = CQChartsUtil::modelValue(charts, model, r, c, parent, ok);
+
+        rowValues2[c] = var;
+
+        if (rowValues1.empty() || var != rowValues1[c])
+          match = false;
+      }
+    }
+    else {
       QModelIndex parent;
 
       bool ok;
 
-      QVariant var = CQChartsUtil::modelValue(charts, model, r, c, parent, ok);
+      QVariant var = CQChartsUtil::modelValue(charts, model, r, column, parent, ok);
 
-      rowValues2[c] = var;
+      rowValues2[0] = var;
 
-      if (rowValues1.empty() || var != rowValues1[c])
+      if (rowValues1.empty() || var != rowValues1[0])
         match = false;
     }
 
@@ -901,7 +932,7 @@ bool
 CQChartsModelColumnDetails::
 initData()
 {
-  CQPerfTrace trace("CQChartsModelDetails::initData");
+  CQPerfTrace trace("CQChartsModelColumnDetails::initData");
 
   initialized_ = true;
 
@@ -1211,9 +1242,7 @@ bool
 CQChartsModelColumnDetails::
 initType()
 {
-  CQPerfTrace trace("CQChartsModelDetails::initType");
-
-  typeInitialized_ = true;
+  CQPerfTrace trace("CQChartsModelColumnDetails::initType");
 
   //---
 
@@ -1235,25 +1264,29 @@ initType()
 
   //---
 
-  // get column type and name values
-  // TODO: calls CQChartsModelVisitor, integrate into this visitor
-  CQCharts *charts = details_->data()->charts();
+  if (! typeInitialized_) {
+    // get column type and name values
+    // TODO: calls CQChartsModelVisitor, integrate into this visitor
+    CQCharts *charts = details_->data()->charts();
 
-  if (! CQChartsUtil::columnValueType(charts, model, column_, type_, nameValues_))
-    type_ = CQBaseModel::Type::NONE;
+    if (! CQChartsUtil::columnValueType(charts, model, column_, type_, nameValues_))
+      type_ = CQBaseModel::Type::NONE;
 
-  //---
+    //---
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+    CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
-  CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
+    CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
 
-  if (columnType) {
-    typeName_ = columnType->name();
-  }
-  else {
-    type_     = CQBaseModel::Type::STRING;
-    typeName_ = "string";
+    if (columnType) {
+      typeName_ = columnType->name();
+    }
+    else {
+      type_     = CQBaseModel::Type::STRING;
+      typeName_ = "string";
+    }
+
+    typeInitialized_ = true;
   }
 
   return true;

@@ -28,7 +28,7 @@ while ($#argv > 0)
     set opts = ($opts -record)
     shift
   else if ("$1" == "-pixmap") then
-    setenv CQCHARTS_LAYER_PIXMAP 1
+    setenv CQ_CHARTS_LAYER_PIXMAP 1
     shift
   else if ("$1" == "-csv") then
     set csv_args = ($csv_args $1)

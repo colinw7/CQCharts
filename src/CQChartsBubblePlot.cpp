@@ -3,6 +3,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTip.h>
+#include <CQPerfMonitor.h>
 
 #include <QPainter>
 
@@ -222,6 +223,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsBubblePlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsBubblePlot::createObjs");
 
   // init value sets
   initValueSets();

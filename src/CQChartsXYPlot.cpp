@@ -11,8 +11,8 @@
 #include <CQUtil.h>
 #include <CQPerfMonitor.h>
 
-#include <QMenu>
 #include <QPainter>
+#include <QMenu>
 
 CQChartsXYPlotType::
 CQChartsXYPlotType()
@@ -777,8 +777,6 @@ bool
 CQChartsXYPlot::
 initObjs()
 {
-  CQPerfTrace trace("CQChartsXYPlot::initObjs");
-
   if (! dataRange_.isSet()) {
     updateRange();
 

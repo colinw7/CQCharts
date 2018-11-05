@@ -12,6 +12,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsTip.h>
 #include <CQCharts.h>
+#include <CQPerfMonitor.h>
 #include <CMathCorrelation.h>
 #include <CMathRound.h>
 #include <CQPerfMonitor.h>
@@ -86,10 +87,11 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsScatterPlot::
 CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("scatter"), model),
- CQChartsObjPointData       <CQChartsScatterPlot>(this),
- CQChartsObjBestFitShapeData<CQChartsScatterPlot>(this),
- CQChartsObjHullShapeData   <CQChartsScatterPlot>(this),
- CQChartsObjRugPointData    <CQChartsScatterPlot>(this),
+ CQChartsObjPointData        <CQChartsScatterPlot>(this),
+ CQChartsObjBestFitShapeData <CQChartsScatterPlot>(this),
+ CQChartsObjHullShapeData    <CQChartsScatterPlot>(this),
+ CQChartsObjRugPointData     <CQChartsScatterPlot>(this),
+ CQChartsObjGridCellShapeData<CQChartsScatterPlot>(this),
  dataLabel_(this)
 {
   // set mapped range
@@ -112,6 +114,8 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   setRugSymbolSize(CQChartsLength("5px"));
 
   setBestFitFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+
+  setGridCellBorderColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.1));
 
   //---
 
@@ -566,6 +570,10 @@ addProperties()
   addProperty("grid", this, "gridNumX", "nx"     );
   addProperty("grid", this, "gridNumY", "ny"     );
 
+  addFillProperties("grid/fill"  , "gridCellFill"  );
+  addProperty      ("grid/stroke", this, "gridCellBorder", "visible");
+  addLineProperties("grid/stroke", "gridCellBorder");
+
   // mapping for columns (symbol type, size, font size, color)
   addProperty("symbol/map/type", this, "symbolTypeMapped", "enabled");
   addProperty("symbol/map/type", this, "symbolTypeMapMin", "min"    );
@@ -797,8 +805,6 @@ bool
 CQChartsScatterPlot::
 initObjs()
 {
-  CQPerfTrace trace("CQChartsScatterPlot::initObjs");
-
   if (! dataRange_.isSet()) {
     updateRange();
 
@@ -812,6 +818,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsScatterPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsScatterPlot::initObjs");
 
   // init value set
   initValueSets();
@@ -1819,6 +1834,12 @@ void
 CQChartsScatterPlot::
 drawDensityMap(QPainter *painter)
 {
+  painter->save();
+
+  setClipRect(painter);
+
+  //---
+
   initWhiskerData();
 
   //---
@@ -1893,6 +1914,10 @@ drawDensityMap(QPainter *painter)
       }
     }
   }
+
+  //---
+
+  painter->restore();
 }
 
 //---
@@ -2535,12 +2560,14 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor sc = plot_->interpThemeColor(0.0);
+  QColor pc = plot_->interpGridCellBorderColor(0, 1);
   QColor fc = plot_->interpPaletteColor(points_.size(), maxn_);
 
   plot_->setPenBrush(pen, brush,
-                     /*stroked*/true, sc, 1.0, CQChartsLength("1px"), CQChartsLineDash(),
-                     /*filled*/true, fc, 1.0, CQChartsFillPattern::Type::SOLID);
+    plot_->isGridCellBorder(), pc, plot_->gridCellBorderAlpha(),
+    plot_->gridCellBorderWidth(), plot_->gridCellBorderDash(),
+    /*filled*/true, fc, plot_->gridCellFillAlpha(),
+    plot_->gridCellFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

@@ -204,7 +204,10 @@ addCommands()
     addCommand("manage_model_dlg");
     addCommand("create_plot_dlg" );
 
-    addCommand("sync_qt" );
+    // qt generic
+    addCommand("qt_get_property");
+    addCommand("qt_set_property");
+    addCommand("qt_sync");
 
     addCommand("perf");
 
@@ -308,7 +311,9 @@ processCmd(const QString &cmd, const Vars &vars)
   else if (cmd == "manage_model_dlg") { manageModelDlgCmd(vars); }
   else if (cmd == "create_plot_dlg" ) { createPlotDlgCmd (vars); }
 
-  else if (cmd == "sync_qt" ) { syncQtCmd(vars); }
+  else if (cmd == "qt_get_property" ) { qtGetPropertyCmd(vars); }
+  else if (cmd == "qt_set_property" ) { qtSetPropertyCmd(vars); }
+  else if (cmd == "qt_sync" ) { qtSyncCmd(vars); }
 
   else if (cmd == "perf" ) { perfCmd(vars); }
 
@@ -873,11 +878,7 @@ createPlotCmd(const Vars &vars)
 
   argv.addCmdArg("-where"     , CQChartsCmdArg::Type::String, "filter");
   argv.addCmdArg("-columns"   , CQChartsCmdArg::Type::String, "columns");
-  argv.addCmdArg("-bool"      , CQChartsCmdArg::Type::String, "name_values");
-  argv.addCmdArg("-string"    , CQChartsCmdArg::Type::String, "name_values");
-  argv.addCmdArg("-real"      , CQChartsCmdArg::Type::String, "name_values");
-  argv.addCmdArg("-int"       , CQChartsCmdArg::Type::String, "name_values");
-  argv.addCmdArg("-enum"      , CQChartsCmdArg::Type::String, "name_values");
+  argv.addCmdArg("-parameter" , CQChartsCmdArg::Type::String, "name value");
   argv.addCmdArg("-xintegral" , CQChartsCmdArg::Type::SBool);
   argv.addCmdArg("-yintegral" , CQChartsCmdArg::Type::SBool);
   argv.addCmdArg("-xlog"      , CQChartsCmdArg::Type::SBool);
@@ -929,7 +930,7 @@ createPlotCmd(const Vars &vars)
 
   CQChartsNameValueData nameValueData;
 
-  // parse plot columns
+  // plot columns
   QString columnsStr = argv.getParseStr("columns");
 
   if (columnsStr.length()) {
@@ -944,7 +945,7 @@ createPlotCmd(const Vars &vars)
         auto name  = nameValue.mid(0, pos).simplified();
         auto value = nameValue.mid(pos + 1).simplified();
 
-        nameValueData.values[name] = value;
+        nameValueData.columns[name] = value;
       }
       else {
         charts_->errorMsg("Invalid -columns option '" + columnsStr + "'");
@@ -954,137 +955,26 @@ createPlotCmd(const Vars &vars)
 
   //--
 
-  // plot bool parameters
-  QStringList boolStrs = argv.getParseStrs("bool");
+  // plot parameter
+  QStringList parameterStrs = argv.getParseStrs("parameter");
 
-  for (int i = 0; i < boolStrs.length(); ++i) {
-    const QString &boolStr = boolStrs[i];
+  for (int i = 0; i < parameterStrs.length(); ++i) {
+    const QString &parameterStr = parameterStrs[i];
 
-    auto pos = boolStr.indexOf('=');
+    auto pos = parameterStr.indexOf('=');
 
     QString name, value;
 
     if (pos >= 0) {
-      name  = boolStr.mid(0, pos).simplified();
-      value = boolStr.mid(pos + 1).simplified();
+      name  = parameterStr.mid(0, pos).simplified();
+      value = parameterStr.mid(pos + 1).simplified();
     }
     else {
-      name  = boolStr;
+      name  = parameterStr;
       value = "true";
     }
 
-    bool ok;
-
-    bool b = stringToBool(value, &ok);
-
-    if (ok)
-      nameValueData.bools[name] = b;
-    else {
-      charts_->errorMsg("Invalid -bool option '" + boolStr + "'");
-    }
-  }
-
-  //--
-
-  // plot string parameters
-  QStringList stringStrs = argv.getParseStrs("string");
-
-  for (int i = 0; i < stringStrs.length(); ++i) {
-    const QString &stringStr = stringStrs[i];
-
-    auto pos = stringStr.indexOf('=');
-
-    QString name, value;
-
-    if (pos >= 0) {
-      name  = stringStr.mid(0, pos).simplified();
-      value = stringStr.mid(pos + 1).simplified();
-    }
-    else {
-      name  = stringStr;
-      value = "";
-    }
-
-    nameValueData.strings[name] = value;
-  }
-
-  //--
-
-  // plot real parameters
-  QStringList realStrs = argv.getParseStrs("real");
-
-  for (int i = 0; i < realStrs.length(); ++i) {
-    const QString &realStr = realStrs[i];
-
-    auto pos = realStr.indexOf('=');
-
-    QString name;
-    double  value = 0.0;
-
-    if (pos >= 0) {
-      bool ok;
-
-      name  = realStr.mid(0, pos).simplified();
-      value = realStr.mid(pos + 1).simplified().toDouble(&ok);
-    }
-    else {
-      name  = realStr;
-      value = 0.0;
-    }
-
-    nameValueData.reals[name] = value;
-  }
-
-  //--
-
-  // plot integer parameters
-  QStringList intStrs = argv.getParseStrs("int");
-
-  for (int i = 0; i < intStrs.length(); ++i) {
-    const QString &intStr = intStrs[i];
-
-    auto pos = intStr.indexOf('=');
-
-    QString name;
-    int     value = 0;
-
-    if (pos >= 0) {
-      bool ok;
-
-      name  = intStr.mid(0, pos).simplified();
-      value = intStr.mid(pos + 1).simplified().toInt(&ok);
-    }
-    else {
-      name  = intStr;
-      value = 0.0;
-    }
-
-    nameValueData.ints[name] = value;
-  }
-
-  //--
-
-  // plot integer parameters
-  QStringList enumStrs = argv.getParseStrs("enum");
-
-  for (int i = 0; i < enumStrs.length(); ++i) {
-    const QString &enumStr = enumStrs[i];
-
-    auto pos = enumStr.indexOf('=');
-
-    QString name;
-    QString value;
-
-    if (pos >= 0) {
-      name  = enumStr.mid(0, pos).simplified();
-      value = enumStr.mid(pos + 1).simplified();
-    }
-    else {
-      name  = enumStr;
-      value = "";
-    }
-
-    nameValueData.enums[name] = value;
+    nameValueData.parameters[name] = value;
   }
 
   //------
@@ -2118,8 +2008,10 @@ filterModelCmd(const Vars &vars)
 {
   CQChartsCmdArgs argv("filter_model", vars);
 
-  argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
-  argv.addCmdArg("-expr" , CQChartsCmdArg::Type::String , "filter expression");
+  argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
+  argv.addCmdArg("-expr"  , CQChartsCmdArg::Type::String , "filter expression");
+  argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column");
+  argv.addCmdArg("-type"  , CQChartsCmdArg::Type::String , "filter type");
 
   if (! argv.parse())
     return;
@@ -2128,6 +2020,10 @@ filterModelCmd(const Vars &vars)
 
   int     modelInd = argv.getParseInt("model", -1);
   QString expr     = argv.getParseStr("expr");
+  QString type     = argv.getParseStr("type");
+
+  if (! argv.hasParseArg("type"))
+    type = "expression";
 
   //------
 
@@ -2148,7 +2044,40 @@ filterModelCmd(const Vars &vars)
     return;
   }
 
-  modelFilter->setExpressionFilter(expr);
+  //------
+
+  // get column
+  int icolumn = -1;
+
+  if (argv.hasParseArg("column")) {
+    CQChartsColumn column = argv.getParseColumn("column", model.data());
+
+    icolumn = column.column();
+  }
+
+  modelFilter->setFilterKeyColumn(icolumn);
+
+  //------
+
+  // filter
+  // TODO: selection model from view
+
+  if      (type == "expr" || type == "expression")
+    modelFilter->setExpressionFilter(expr);
+  else if (type == "regex" || type == "regexp")
+    modelFilter->setRegExpFilter(expr);
+  else if (type == "wildcard")
+    modelFilter->setWildcardFilter(expr);
+  else if (type == "simple")
+    modelFilter->setSimpleFilter(expr);
+  else if (type == "selected")
+    modelFilter->setSelectionFilter(false);
+  else if (type == "non-selected")
+    modelFilter->setSelectionFilter(true);
+  else {
+    charts_->errorMsg(QString("Invalid type '%1'").arg(type));
+    return;
+  }
 }
 
 //------
@@ -2637,7 +2566,18 @@ getChartsDataCmd(const Vars &vars)
     else if (name == "duplicates") {
       CQChartsModelDetails *details = modelData->details();
 
-      std::vector<int> inds = details->duplicates();
+      std::vector<int> inds;
+
+      if (argv.hasParseArg("column")) {
+        if (! column.isValid()) {
+          setCmdError("Invalid column specified");
+          return;
+        }
+
+        inds = details->duplicates(column);
+      }
+      else
+        inds = details->duplicates();
 
       QVariantList vars;
 
@@ -3653,7 +3593,6 @@ createTextShapeCmd(const Vars &vars)
   textData.align    = argv.getParseAlign("align"   , textData.align   );
   textData.html     = argv.getParseBool ("html"    , textData.html    );
 
-
   background.visible = argv.getParseBool ("background"        , background.visible);
   background.color   = argv.getParseColor("background_color"  , background.color);
   background.alpha   = argv.getParseReal ("background_alpha"  , background.alpha);
@@ -4197,9 +4136,77 @@ createPlotDlgCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-syncQtCmd(const Vars &vars)
+qtGetPropertyCmd(const Vars &vars)
 {
-  CQChartsCmdArgs argv("sync_qt", vars);
+  CQChartsCmdArgs argv("qt_get_property", vars);
+
+  argv.addCmdArg("-object"  , CQChartsCmdArg::Type::String, "object name");
+  argv.addCmdArg("-property", CQChartsCmdArg::Type::String, "property name");
+
+  if (! argv.parse())
+    return;
+
+  QString objectName = argv.getParseStr("object");
+  QString propName   = argv.getParseStr("property");
+
+  QObject *obj = CQUtil::nameToObject(objectName);
+
+  if (! obj) {
+    charts_->errorMsg(QString("No object '%1'").arg(objectName));
+    return;
+  }
+
+  QVariant v;
+
+  if (! CQUtil::getProperty(obj, propName, v)) {
+    charts_->errorMsg(QString("Failed to get property '%1' for '%2'").
+                       arg(propName).arg(objectName));
+    return;
+  }
+
+  setCmdRc(v);
+}
+
+//------
+
+void
+CQChartsCmds::
+qtSetPropertyCmd(const Vars &vars)
+{
+  CQChartsCmdArgs argv("qt_set_property", vars);
+
+  argv.addCmdArg("-object"  , CQChartsCmdArg::Type::String, "object name");
+  argv.addCmdArg("-property", CQChartsCmdArg::Type::String, "property name");
+  argv.addCmdArg("-value"   , CQChartsCmdArg::Type::String, "property value");
+
+  if (! argv.parse())
+    return;
+
+  QString objectName = argv.getParseStr("object");
+  QString propName   = argv.getParseStr("property");
+  QString value      = argv.getParseStr("value");
+
+  QObject *obj = CQUtil::nameToObject(objectName);
+
+  if (! obj) {
+    charts_->errorMsg(QString("No object '%1'").arg(objectName));
+    return;
+  }
+
+  if (! CQUtil::setProperty(obj, propName, value)) {
+    charts_->errorMsg(QString("Failed to set property '%1' for '%2'").
+                       arg(propName).arg(objectName));
+    return;
+  }
+}
+
+//------
+
+void
+CQChartsCmds::
+qtSyncCmd(const Vars &vars)
+{
+  CQChartsCmdArgs argv("qt_sync", vars);
 
   argv.addCmdArg("-n", CQChartsCmdArg::Type::Integer, "loop count");
 
@@ -4482,7 +4489,7 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
   //---
 
   // check column parameters exist
-  for (const auto &nameValue : nameValueData.values) {
+  for (const auto &nameValue : nameValueData.columns) {
     bool found = false;
 
     for (const auto &parameter : type->parameters()) {
@@ -4498,151 +4505,133 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
     }
   }
 
+  // check other parameters exist
+  for (const auto &nameValue : nameValueData.parameters) {
+    bool found = false;
+
+    for (const auto &parameter : type->parameters()) {
+      if (parameter->name() == nameValue.first) {
+        found = true;
+        break;
+      }
+    }
+
+    if (! found) {
+      charts_->errorMsg("Illegal parameter name '" + nameValue.first + "'");
+      return nullptr;
+    }
+  }
+
   //---
-
-  using NameSet = std::set<QString>;
-
-  NameSet setNames;
 
   // set plot property for widgets for plot parameters
   for (const auto &parameter : type->parameters()) {
     if      (parameter->type() == "column") {
-      auto p = nameValueData.values.find(parameter->name());
+      auto p = nameValueData.columns.find(parameter->name());
 
-      if (p == nameValueData.values.end())
+      if (p == nameValueData.columns.end())
         continue;
-
-      setNames.insert(parameter->name());
 
       CQChartsColumn column;
 
       if (! CQChartsUtil::stringToColumn(model.data(), (*p).second, column)) {
         charts_->errorMsg("Bad column name '" + (*p).second + "'");
-        column = -1;
+        continue;
       }
 
       QString scol = column.toString();
 
-      if (! CQUtil::setProperty(plot, parameter->propName(), scol))
+      if (! CQUtil::setProperty(plot, parameter->propName(), scol)) {
         charts_->errorMsg("Failed to set parameter " + parameter->propName());
+        continue;
+      }
     }
     else if (parameter->type() == "columns") {
-      auto p = nameValueData.values.find(parameter->name());
+      auto p = nameValueData.columns.find(parameter->name());
 
-      if (p == nameValueData.values.end())
+      if (p == nameValueData.columns.end())
         continue;
-
-      setNames.insert(parameter->name());
 
       const QString str = (*p).second;
 
       std::vector<CQChartsColumn> columns;
 
-      if (! CQChartsUtil::stringToColumns(model.data(), str, columns))
+      if (! CQChartsUtil::stringToColumns(model.data(), str, columns)) {
         charts_->errorMsg("Bad columns name '" + str + "'");
+        continue;
+      }
 
       QString s = CQChartsColumn::columnsToString(columns);
 
-      if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(s)))
+      if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(s))) {
         charts_->errorMsg("Failed to set parameter " + parameter->propName());
+        continue;
+      }
     }
-    else if (parameter->type() == "string") {
-      auto p = nameValueData.strings.find(parameter->name());
+    else {
+      auto p = nameValueData.parameters.find(parameter->name());
 
-      if (p == nameValueData.strings.end())
+      if (p == nameValueData.parameters.end())
         continue;
 
-      setNames.insert(parameter->name());
+      QString value = (*p).second;
 
-      QString str = (*p).second;
+      QVariant var;
 
-      if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(str)))
-        charts_->errorMsg("Failed to set parameter " + parameter->propName());
-    }
-    else if (parameter->type() == "real") {
-      auto p = nameValueData.reals.find(parameter->name());
+      if      (parameter->type() == "string") {
+        var = QVariant(value);
+      }
+      else if (parameter->type() == "real") {
+        bool ok;
 
-      if (p == nameValueData.reals.end())
+        double r = value.toDouble(&ok);
+
+        if (! ok) {
+          charts_->errorMsg("Invalid real value '" + value + "' for '" +
+                            parameter->type() + "'");
+          continue;
+        }
+
+        var = QVariant(r);
+      }
+      else if (parameter->type() == "int") {
+        bool ok;
+
+        int i = value.simplified().toInt(&ok);
+
+        if (! ok) {
+          charts_->errorMsg("Invalid integer value '" + value + "' for '" +
+                            parameter->type() + "'");
+          continue;
+        }
+
+        var = QVariant(i);
+      }
+      else if (parameter->type() == "enum") {
+        var = QVariant(value);
+      }
+      else if (parameter->type() == "bool") {
+        bool ok;
+
+        bool b = stringToBool(value, &ok);
+
+        if (! ok) {
+          charts_->errorMsg("Invalid boolean value '" + value + "' for '" +
+                            parameter->type() + "'");
+          continue;
+        }
+
+        var = QVariant(b);
+      }
+      else {
         continue;
+      }
 
-      setNames.insert(parameter->name());
-
-      double r = (*p).second;
-
-      if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(r)))
+      if (! CQUtil::setProperty(plot, parameter->propName(), var)) {
         charts_->errorMsg("Failed to set parameter " + parameter->propName());
-    }
-    else if (parameter->type() == "int") {
-      auto p = nameValueData.ints.find(parameter->name());
-
-      if (p == nameValueData.ints.end())
         continue;
-
-      setNames.insert(parameter->name());
-
-      int i = (*p).second;
-
-      if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(i)))
-        charts_->errorMsg("Failed to set parameter " + parameter->propName());
+      }
     }
-    else if (parameter->type() == "enum") {
-      auto p = nameValueData.enums.find(parameter->name());
-
-      if (p == nameValueData.enums.end())
-        continue;
-
-      setNames.insert(parameter->name());
-
-      QString str = (*p).second;
-
-      if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(str)))
-        charts_->errorMsg("Failed to set parameter " + parameter->propName());
-    }
-    else if (parameter->type() == "bool") {
-      auto p = nameValueData.bools.find(parameter->name());
-
-      if (p == nameValueData.bools.end())
-        continue;
-
-      setNames.insert(parameter->name());
-
-      bool b = (*p).second;
-
-      if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(b)))
-        charts_->errorMsg("Failed to set parameter " + parameter->propName());
-    }
-    else
-      assert(false);
-  }
-
-  for (const auto &nv : nameValueData.values) {
-    if (setNames.find(nv.first) == setNames.end())
-      charts_->errorMsg("Value not found '" + nv.first + "'");
-  }
-
-  for (const auto &nv : nameValueData.bools) {
-    if (setNames.find(nv.first) == setNames.end())
-      charts_->errorMsg("Value not found '" + nv.first + "'");
-  }
-
-  for (const auto &nv : nameValueData.strings) {
-    if (setNames.find(nv.first) == setNames.end())
-      charts_->errorMsg("Value not found '" + nv.first + "'");
-  }
-
-  for (const auto &nv : nameValueData.ints) {
-    if (setNames.find(nv.first) == setNames.end())
-      charts_->errorMsg("Value not found '" + nv.first + "'");
-  }
-
-  for (const auto &nv : nameValueData.reals) {
-    if (setNames.find(nv.first) == setNames.end())
-      charts_->errorMsg("Value not found '" + nv.first + "'");
-  }
-
-  for (const auto &nv : nameValueData.enums) {
-    if (setNames.find(nv.first) == setNames.end())
-      charts_->errorMsg("Value not found '" + nv.first + "'");
   }
 
   //---

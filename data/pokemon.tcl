@@ -40,6 +40,6 @@ sort_model -model $model -column $totalColumn
 
 filter_model -model $model -expr "column($legendaryColumn1) == 1"
 
-set plot2 [create_plot -type distribution -columns "value=$type12Column,color=$generationColumn" -bool "horizontal=1"]
+set plot2 [create_plot -type distribution -columns "value=$type12Column,color=$generationColumn" -parameters "horizontal=1"]
 
 set_charts_property -plot $plot2 -name "color.mapped" -value 1

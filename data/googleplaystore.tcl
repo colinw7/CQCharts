@@ -51,36 +51,43 @@ set_charts_data -model $model -column "Android Ver"  -name column_type -value re
 proc cat_dist { model } {
   set view [create_view]
   set plot [create_plot -view $view -model $model -type distribution -columns "value=Category"]
+  return $plot
 }
 
 proc install_dist { model } {
   set view [create_view]
   set plot [create_plot -view $view -model $model -type distribution -columns "value=Installs"]
+  return $plot
 }
 
 proc bar_installs { model } {
   set view [create_view]
   set plot [create_plot -view $view -model $model -type barchart -columns "group=Category,value=Installs" -properties "options.plotType=STACKED"]
+  return $plot
 }
 
 proc dist_installs { model } {
   set view [create_view]
   set plot [create_plot -view $view -model $model -type distribution -columns "value=Category,data=Installs" -properties "options.valueType=SUM"]
+  return $plot
 }
 
 proc size_dist { model } {
   set view [create_view]
   set plot [create_plot -view $view -model $model -type distribution -columns "value=Size"]
+  return $plot
 }
 
 proc category_type_distribution { model } {
   set view [create_view]
   set plot [create_plot -view $view -model $model -type distribution -columns "group=Type,value=Category"]
+  return $plot
 }
 
 proc size_boxplot { model } {
   set view [create_view]
   set plot [create_plot -view $view -model $model -type boxplot -columns "group=Type,value=Size"]
+  return $plot
 }
 
 proc nan_plot { model } {
@@ -119,7 +126,8 @@ proc mark_duplicates { model } {
 
   sort_model -model $model -column 0
 
-  set inds [get_charts_data -model $model -name duplicates]
+# set inds [get_charts_data -model $model -name duplicates]
+  set inds [get_charts_data -model $model -name duplicates -column 0]
 
   foreach ind $inds {
     set_charts_data -model $model -column $vis -row $ind -name value -value 0

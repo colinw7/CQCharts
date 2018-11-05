@@ -3,7 +3,6 @@
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 
-#include <CHRTimer.h>
 #include <COSNaN.h>
 
 #include <QAbstractItemModel>
@@ -361,7 +360,7 @@ headerCmd(const Values &values) const
 
 //---
 
-// header(), header(col)
+// isnan()
 QVariant
 CQChartsModelExprMatch::
 isnanCmd(const Values &values) const
@@ -383,8 +382,6 @@ bool
 CQChartsModelExprMatch::
 evaluateExpression(const QString &expr, const QModelIndex &ind, QVariant &value, bool replace)
 {
-  CIncrementalTimerScope timer("CQChartsModelExprMatch::evaluateExpression");
-
   if (expr.length() == 0)
     return false;
 

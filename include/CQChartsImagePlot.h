@@ -111,6 +111,8 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   //---
 
   bool addMenuItems(QMenu *menu) override;

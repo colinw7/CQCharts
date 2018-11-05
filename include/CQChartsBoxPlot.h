@@ -526,6 +526,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   bool initRawObjs ();
   bool initCalcObjs();
 

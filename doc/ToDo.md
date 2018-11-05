@@ -1,10 +1,10 @@
 High
+ + Update plot helps (work differences)
  + Column Type parameter types
  + Single Model/Expr Wrapper
  + Divided Area allow drag resize
  + Analyze, set time to X axis (scatter, xy, ...)
- + Tag grouped column for analyze
- + Remove expr proces that can easily be replace by tcl proc (map, rand, norm)
+ + Remove expr process that can easily be replace by tcl proc (map, rand, norm)
  + Arrow - empty needed ? Use rotated rect for line
  + offscreen display for print
  + aggregate function for distribution plot
@@ -16,7 +16,7 @@ High
  + Common Code for Data->Pen/Brush
  + Tree Map title (max) depth
  + Allow write to model value (tcl ?) not extra (extra option ?)
- + Consistent property names and hieracrchy
+ + Consistent property names and hierarchy
  + More Variants in Model (QImage/QIcon could supply custom symbol !)
  + Sort for scatter distribution
  + Layer only include image for object bbox

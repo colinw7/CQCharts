@@ -1,6 +1,7 @@
 #ifndef CQChartsWindow_H
 #define CQChartsWindow_H
 
+#include <CQRangeScroll.h>
 #include <QFrame>
 
 class CQChartsWindow;
@@ -11,6 +12,7 @@ class CQChartsFilterEdit;
 class CQChartsModelView;
 class CQChartsViewStatus;
 class CQChartsViewToolBar;
+class CQChartsWindowRangeScroll;
 class QStackedWidget;
 
 #define CQChartsWindowMgrInst CQChartsWindowMgr::instance()
@@ -45,16 +47,34 @@ class CQChartsWindow : public QFrame {
 
   CQChartsView *view() const { return view_; }
 
+  //---
+
+  bool isXRangeMap() const { return xRangeMap_; }
+  void setXRangeMap(bool b);
+
+  bool isYRangeMap() const { return yRangeMap_; }
+  void setYRangeMap(bool b);
+
+  void updateRangeMap();
+
+  //---
+
+  bool isDataTable() const { return dataTable_; }
+  void setDataTable(bool b);
+
+  //---
+
+  bool isViewSettings() const { return viewSettings_; }
+  void setViewSettings(bool b);
+
+  //---
+
   void updateInterfacePalette();
   void updateThemePalettes();
 
   //---
 
   void resizeEvent(QResizeEvent *);
-
-  void updateMargins();
-
-  void updateGeometry();
 
   QSize sizeHint() const;
 
@@ -63,6 +83,8 @@ class CQChartsWindow : public QFrame {
   void themePalettesChanged();
 
  private slots:
+  void rangeScrollSlot();
+
   void filterAndSlot(bool b);
 
   void replaceFilterSlot(const QString &text);
@@ -84,17 +106,34 @@ class CQChartsWindow : public QFrame {
   void propertyItemSelected(QObject *obj, const QString &path);
 
  private:
-  CQChartsView*         view_             { nullptr };
-  CQChartsViewSettings* settings_         { nullptr };
-  CQChartsViewExpander* settingsExpander_ { nullptr };
-  QStackedWidget*       viewStack_        { nullptr };
-  CQChartsFilterEdit*   filterEdit_       { nullptr };
-  CQChartsModelView*    modelView_        { nullptr };
-  CQChartsViewExpander* tableExpander_    { nullptr };
-  CQChartsViewStatus*   status_           { nullptr };
-  CQChartsViewToolBar*  toolbar_          { nullptr };
-  int                   toolBarHeight_    { 8 };
-  int                   statusHeight_     { 8 };
+  CQChartsView*              view_         { nullptr }; // parent view
+  bool                       xRangeMap_    { false };   // xrange map
+  bool                       yRangeMap_    { false };   // xrange map
+  bool                       dataTable_    { true };    // data table
+  bool                       viewSettings_ { true };    // view settings
+  CQChartsWindowRangeScroll* xrangeScroll_ { nullptr }; // xrange scoll
+  CQChartsWindowRangeScroll* yrangeScroll_ { nullptr }; // yrange scoll
+  CQChartsViewSettings*      settings_     { nullptr }; // settings widget
+  QFrame*                    tableFrame_   { nullptr }; // table frame
+  QStackedWidget*            viewStack_    { nullptr }; // view stack
+  CQChartsFilterEdit*        filterEdit_   { nullptr }; // filter edit
+  CQChartsModelView*         modelView_    { nullptr }; // model view
+  CQChartsViewToolBar*       toolbar_      { nullptr }; // toolbar
+  CQChartsViewStatus*        status_       { nullptr }; // status
+};
+
+//-----
+
+class CQChartsWindowRangeScroll : public CQRangeScroll {
+  Q_OBJECT
+
+ public:
+  CQChartsWindowRangeScroll(CQChartsWindow *window, Qt::Orientation orientation);
+
+  void drawBackground(QPainter *) override;
+
+ private:
+  CQChartsWindow *window_ { nullptr };
 };
 
 #endif

@@ -347,6 +347,8 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   //---
 
   void handleResize() override;

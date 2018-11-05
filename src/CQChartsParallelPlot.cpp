@@ -5,6 +5,7 @@
 #include <CQChartsTip.h>
 #include <CQCharts.h>
 #include <CQChartsDisplayRange.h>
+#include <CQPerfMonitor.h>
 
 #include <QPainter>
 #include <QMenu>
@@ -304,6 +305,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsParallelPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsParallelPlot::createObjs");
 
   // create polyline for value from each set
   using Polygons = std::vector<QPolygonF>;

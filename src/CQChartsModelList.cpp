@@ -37,6 +37,8 @@ CQChartsModelList(CQCharts *charts) :
   connect(charts, SIGNAL(modelDataAdded(int)), this, SLOT(addModelData(int)));
 
   connect(charts, SIGNAL(modelTypeChanged(int)), this, SLOT(updateModelType(int)));
+
+  connect(charts, SIGNAL(currentModelChanged(int)), this, SLOT(updateCurrentModel()));
 }
 
 CQChartsModelList::
@@ -51,9 +53,7 @@ CQChartsModelList::
 addModelData(int ind)
 {
   CQChartsModelData *modelData = charts_->getModelData(ind);
-
-  if (! modelData)
-    return;
+  if (! modelData) return;
 
   addModelData(modelData);
 }
@@ -64,31 +64,35 @@ addModelData(CQChartsModelData *modelData)
 {
   addModelDataWidgets(modelData);
 
-  updateModel(modelData);
-
-  if (modelControl_)
-    modelControl_->setEnabled(numModels() > 0);
+  charts_->setCurrentModelData(modelData);
 }
 
 void
 CQChartsModelList::
-updateModel(CQChartsModelData *modelData)
+updateCurrentModel()
 {
-  reloadModel(modelData);
+  modelData_ = charts_->currentModelData();
 
-  setDetails(modelData);
+  updateModel();
+}
+
+void
+CQChartsModelList::
+updateModel()
+{
+  reloadModel();
+
+  setDetails();
 }
 
 void
 CQChartsModelList::
 updateModelType(int ind)
 {
-  CQChartsModelData *modelData = charts_->getModelData(ind);
-
-  if (! modelData)
+  if (! modelData_ || modelData_->ind() != ind)
     return;
 
-  setDetails(modelData);
+  setDetails();
 }
 
 void
@@ -269,8 +273,8 @@ void
 CQChartsModelList::
 treeColumnClicked(int column)
 {
-  if (modelControl_)
-    modelControl_->setColumnData(column);
+  if (modelData_)
+    modelData_->setCurrentColumn(column);
 }
 
 void
@@ -283,8 +287,8 @@ void
 CQChartsModelList::
 tableColumnClicked(int column)
 {
-  if (modelControl_)
-    modelControl_->setColumnData(column);
+  if (modelData_)
+    modelData_->setCurrentColumn(column);
 }
 
 void
@@ -301,8 +305,8 @@ tableSelectionChanged()
     if (inds.size() == 1) {
       int column = inds[0].column();
 
-      if (modelControl_)
-        modelControl_->setColumnData(column);
+      if (modelData_)
+        modelData_->setCurrentColumn(column);
     }
   }
 }
@@ -328,9 +332,12 @@ setTabTitle(int ind, const QString &title)
 
 void
 CQChartsModelList::
-redrawView(const CQChartsModelData *modelData)
+redrawView()
 {
-  CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(modelData->ind());
+  if (! modelData_)
+    return;
+
+  CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(modelData_->ind());
   assert(viewWidgetData);
 
   if (viewWidgetData->stack->currentIndex() == 0) {
@@ -345,30 +352,33 @@ redrawView(const CQChartsModelData *modelData)
 
 void
 CQChartsModelList::
-reloadModel(CQChartsModelData *modelData)
+reloadModel()
 {
-  CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(modelData->ind());
+  if (! modelData_)
+    return;
+
+  CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(modelData_->ind());
   assert(viewWidgetData);
 
-  if (modelData->details()->isHierarchical()) {
+  if (modelData_->details()->isHierarchical()) {
     if (viewWidgetData->tree) {
-      viewWidgetData->tree->setModelP(modelData->currentModel());
+      viewWidgetData->tree->setModelP(modelData_->currentModel());
 
-      modelData->setSelectionModel(viewWidgetData->tree->selectionModel());
+      modelData_->setSelectionModel(viewWidgetData->tree->selectionModel());
     }
     else
-      modelData->setSelectionModel(nullptr);
+      modelData_->setSelectionModel(nullptr);
 
     viewWidgetData->stack->setCurrentIndex(0);
   }
   else {
     if (viewWidgetData->table) {
-      viewWidgetData->table->setModelP(modelData->currentModel());
+      viewWidgetData->table->setModelP(modelData_->currentModel());
 
-      modelData->setSelectionModel(viewWidgetData->table->selectionModel());
+      modelData_->setSelectionModel(viewWidgetData->table->selectionModel());
     }
     else
-      modelData->setSelectionModel(nullptr);
+      modelData_->setSelectionModel(nullptr);
 
     viewWidgetData->stack->setCurrentIndex(1);
   }
@@ -376,9 +386,12 @@ reloadModel(CQChartsModelData *modelData)
 
 void
 CQChartsModelList::
-setDetails(const CQChartsModelData *modelData)
+setDetails()
 {
-  currentViewWidgetData_ = this->viewWidgetData(modelData->ind());
+  if (! modelData_)
+    return;
+
+  currentViewWidgetData_ = this->viewWidgetData(modelData_->ind());
   assert(currentViewWidgetData_);
 
   //---
@@ -395,7 +408,7 @@ setDetails(const CQChartsModelData *modelData)
   }
 
   if (! modelData1)
-    modelData1 = const_cast<CQChartsModelData *>(modelData);
+    modelData1 = const_cast<CQChartsModelData *>(modelData_);
 
   //---
 

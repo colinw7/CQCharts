@@ -362,9 +362,9 @@ rowGroupInds(const CQChartsModelIndex &ind, std::vector<int> &inds, bool hier) c
     QVariant value;
 
     if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT)
-       value = modelRootValue(ind.row, groupBucket_.column(), ind.parent, ok);
+      value = modelRootValue(ind.row, groupBucket_.column(), ind.parent, ok);
     else
-       value = modelHierValue(ind.row, groupBucket_.column(), ind.parent, ok);
+      value = modelHierValue(ind.row, groupBucket_.column(), ind.parent, ok);
 
     if (! value.isValid())
       return false;

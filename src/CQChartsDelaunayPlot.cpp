@@ -4,6 +4,8 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsDelaunay.h>
+#include <CQPerfMonitor.h>
+
 #include <QPainter>
 #include <QMenu>
 
@@ -227,6 +229,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsDelaunayPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsDelaunayPlot::createObjs");
 
   bool ok;
 

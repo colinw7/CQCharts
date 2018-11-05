@@ -5,6 +5,8 @@
 #include <CQCharts.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsNamePair.h>
+#include <CQPerfMonitor.h>
+
 #include <QPainter>
 
 CQChartsSankeyPlotType::
@@ -176,6 +178,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsSankeyPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsSankeyPlot::createObjs");
 
   for (const auto &nameNode : nameNodeMap_)
     delete nameNode.second;

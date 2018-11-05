@@ -114,6 +114,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   //---
 
   void addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth);

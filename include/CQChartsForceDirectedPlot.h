@@ -117,6 +117,8 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   //---
 
   bool selectPress  (const CQChartsGeom::Point &p, SelMod selMod) override;

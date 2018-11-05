@@ -3,6 +3,7 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsPlotType.h>
 #include <CQCharts.h>
+#include <CQPerfMonitor.h>
 
 CQChartsAnalyzeModel::
 CQChartsAnalyzeModel(CQCharts *charts, CQChartsModelData *modelData) :
@@ -14,6 +15,8 @@ void
 CQChartsAnalyzeModel::
 analyze()
 {
+  CQPerfTrace trace("CQChartsAnalyzeModel::analyze");
+
   CQCharts::PlotTypes types;
 
   charts_->getPlotTypes(types);
@@ -27,6 +30,8 @@ bool
 CQChartsAnalyzeModel::
 analyzeType(CQChartsPlotType *type)
 {
+  CQPerfTrace trace("CQChartsAnalyzeModel::analyzeType");
+
   CQChartsModelDetails *details = modelData_->details();
 
   int nc = details->numColumns();

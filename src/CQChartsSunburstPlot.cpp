@@ -4,9 +4,10 @@
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsTip.h>
+#include <CQPerfMonitor.h>
 
-#include <QMenu>
 #include <QPainter>
+#include <QMenu>
 
 //---
 
@@ -242,6 +243,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsSunburstPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsSunburstPlot::initObjs");
 
   // init value sets
   initValueSets();

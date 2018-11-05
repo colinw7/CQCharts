@@ -64,8 +64,10 @@ class CQChartsPlotMargin {
   const CQChartsLength &bottom() const { return bottom_; }
   void setBottom(const CQChartsLength &v) { bottom_ = v; }
 
-  CQChartsGeom::BBox adjustRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox,
-                                 bool inside=false) const;
+  CQChartsGeom::BBox adjustViewRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox,
+                                     bool inside=false) const;
+  CQChartsGeom::BBox adjustPlotRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox,
+                                     bool inside=false) const;
 
  private:
   CQChartsLength left_;

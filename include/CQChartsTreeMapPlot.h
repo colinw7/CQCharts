@@ -365,6 +365,8 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   //---
 
   void handleResize() override;

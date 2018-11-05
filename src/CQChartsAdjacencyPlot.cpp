@@ -8,6 +8,7 @@
 #include <CQChartsRoundedPolygon.h>
 #include <CQChartsNamePair.h>
 #include <CQChartsTip.h>
+#include <CQPerfMonitor.h>
 
 #include <QPainter>
 
@@ -276,6 +277,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsAdjacencyPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsAdjacencyPlot::createObjs");
 
   for (auto &pnode : nodes_)
     delete pnode.second;
@@ -740,7 +750,7 @@ drawBackground(QPainter *painter)
 
   QFont font = this->textFont();
 
-  font.setPixelSize(ts);
+  font.setPixelSize(ts >= 1 ? ts : 1.0);
 
   painter->setFont(font);
 

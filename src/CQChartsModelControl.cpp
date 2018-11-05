@@ -1,5 +1,4 @@
 #include <CQChartsModelControl.h>
-#include <CQChartsModelList.h>
 #include <CQChartsModelData.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsUtil.h>
@@ -276,6 +275,10 @@ CQChartsModelControl(CQCharts *charts) :
   //---
 
   expressionModeSlot();
+
+  //---
+
+  connect(charts, SIGNAL(currentModelChanged(int)), this, SLOT(updateCurrentModel()));
 }
 
 QLineEdit *
@@ -316,18 +319,18 @@ void
 CQChartsModelControl::
 expressionModeSlot()
 {
-  mode_ = Mode::ADD;
+  exprMode_ = Mode::ADD;
 
-  if      (exprAddRadio_   ->isChecked()) mode_ = Mode::ADD;
-  else if (exprRemoveRadio_->isChecked()) mode_ = Mode::REMOVE;
-  else if (exprModifyRadio_->isChecked()) mode_ = Mode::MODIFY;
+  if      (exprAddRadio_   ->isChecked()) exprMode_ = Mode::ADD;
+  else if (exprRemoveRadio_->isChecked()) exprMode_ = Mode::REMOVE;
+  else if (exprModifyRadio_->isChecked()) exprMode_ = Mode::MODIFY;
 
-  exprColumnLabel_->setEnabled(mode_ == Mode::MODIFY);
-  exprColumnEdit_ ->setEnabled(mode_ == Mode::MODIFY);
+  exprColumnLabel_->setEnabled(exprMode_ == Mode::MODIFY);
+  exprColumnEdit_ ->setEnabled(exprMode_ == Mode::MODIFY);
 
-  exprTypeLabel_->setEnabled(mode_ != Mode::REMOVE);
-  exprNameEdit_ ->setEnabled(mode_ != Mode::REMOVE);
-  exprTypeEdit_ ->setEnabled(mode_ != Mode::REMOVE);
+  exprTypeLabel_->setEnabled(exprMode_ != Mode::REMOVE);
+  exprNameEdit_ ->setEnabled(exprMode_ != Mode::REMOVE);
+  exprTypeEdit_ ->setEnabled(exprMode_ != Mode::REMOVE);
 }
 
 void
@@ -341,23 +344,21 @@ exprApplySlot()
 
   //---
 
-  CQChartsModelData *modelData = charts_->currentModelData();
-
-  if (! modelData) {
+  if (! modelData_) {
     charts_->errorMsg("No model data");
     return;
   }
 
   CQChartsExprModel::Function function { CQChartsExprModel::Function::EVAL };
 
-  switch (mode_) {
+  switch (exprMode_) {
     case Mode::ADD   : function = CQChartsExprModel::Function::ADD   ; break;
     case Mode::REMOVE: function = CQChartsExprModel::Function::DELETE; break;
     case Mode::MODIFY: function = CQChartsExprModel::Function::ASSIGN; break;
     default:                                                           break;
   }
 
-  ModelP model = modelData->currentModel();
+  ModelP model = modelData_->currentModel();
 
   QString columnStr = exprColumnEdit_->text();
 
@@ -401,9 +402,7 @@ CQChartsModelControl::
 foldApplySlot()
 {
 #ifdef CQCHARTS_FOLDED_MODEL
-  CQChartsModelData *modelData = charts_->currentModelData();
-
-  if (! modelData)
+  if (! modelData_)
     return;
 
   CQChartsModelData::FoldData foldData;
@@ -413,11 +412,11 @@ foldApplySlot()
   foldData.delta      = foldDeltaEdit_->text().toDouble();
   foldData.count      = foldCountEdit_->text().toInt();
 
-  modelData->foldModel(foldData);
+  modelData_->foldModel(foldData);
 
-  updateModel(modelData);
+  updateModel();
 
-  updateModelDetails(modelData);
+  updateModelDetails();
 #endif
 }
 
@@ -426,45 +425,57 @@ CQChartsModelControl::
 foldClearSlot()
 {
 #ifdef CQCHARTS_FOLDED_MODEL
-  CQChartsModelData *modelData = charts_->currentModelData();
-
-  if (! modelData)
+  if (! modelData_)
     return;
 
-  modelData->foldClear();
+  modelData_->foldClear();
 
-  updateModel(modelData);
+  updateModel();
 
-  updateModelDetails(modelData);
+  updateModelDetails();
 #endif
 }
 
 void
 CQChartsModelControl::
-updateModel(CQChartsModelData *modelData)
+updateCurrentModel()
 {
-  if (modelList_)
-    modelList_->updateModel(modelData);
+  CQChartsModelData *modelData = charts_->currentModelData();
+
+  if (modelData != modelData_) {
+    if (modelData_)
+      disconnect(modelData_, SIGNAL(currentColumnChanged(int)), this, SLOT(setColumnData(int)));
+
+    modelData_ = modelData;
+
+    if (modelData_)
+      setColumnData(modelData_->currentColumn());
+
+    if (modelData_)
+      connect(modelData_, SIGNAL(currentColumnChanged(int)), this, SLOT(setColumnData(int)));
+  }
 }
 
 void
 CQChartsModelControl::
-updateModelDetails(const CQChartsModelData *modelData)
+updateModel()
 {
-  if (modelList_)
-    modelList_->setDetails(modelData);
+}
+
+void
+CQChartsModelControl::
+updateModelDetails()
+{
 }
 
 void
 CQChartsModelControl::
 typeApplySlot()
 {
-  CQChartsModelData *modelData = charts_->currentModelData();
-
-  if (! modelData)
+  if (! modelData_)
     return;
 
-  ModelP model = modelData->currentModel();
+  ModelP model = modelData_->currentModel();
 
   //---
 
@@ -520,11 +531,6 @@ typeApplySlot()
 
     columnTypeMgr->setModelColumnType(model.data(), column, columnType, nameValues);
   }
-
-  //---
-
-  if (modelList_)
-    modelList_->redrawView(modelData);
 }
 
 void
@@ -535,12 +541,10 @@ setColumnData(int column)
 
   //---
 
-  CQChartsModelData *modelData = charts_->currentModelData();
-
-  if (! modelData)
+  if (! modelData_)
     return;
 
-  ModelP model = modelData->currentModel();
+  ModelP model = modelData_->currentModel();
 
   //---
 

@@ -14,6 +14,7 @@
 
 #include <QStackedWidget>
 #include <QVBoxLayout>
+#include <QSplitter>
 
 CQChartsWindowMgr *
 CQChartsWindowMgr::
@@ -76,7 +77,42 @@ CQChartsWindow(CQChartsView *view) :
 
   //---
 
-  view_->setParent(this);
+  view_->setWindow(this);
+
+  //---
+
+  QVBoxLayout *layout = new QVBoxLayout(this);
+  layout->setMargin(0); layout->setSpacing(0);
+
+  //---
+
+  toolbar_ = new CQChartsViewToolBar(this);
+
+  layout->addWidget(toolbar_);
+
+  //---
+
+  QSplitter *settingsSplitter = new QSplitter;
+
+  settingsSplitter->setObjectName("viewSplitter");
+  settingsSplitter->setOrientation(Qt::Horizontal);
+
+  layout->addWidget(settingsSplitter);
+
+  //---
+
+  status_ = new CQChartsViewStatus(this);
+
+  layout->addWidget(status_);
+
+  //----
+
+  QSplitter *viewSplitter = new QSplitter;
+
+  viewSplitter->setObjectName("viewSplitter");
+  viewSplitter->setOrientation(Qt::Vertical);
+
+  settingsSplitter->addWidget(viewSplitter);
 
   //---
 
@@ -85,23 +121,44 @@ CQChartsWindow(CQChartsView *view) :
   connect(settings_, SIGNAL(propertyItemSelected(QObject *, const QString &)),
           this, SLOT(propertyItemSelected(QObject *, const QString &)));
 
-  settingsExpander_ =
-    new CQChartsViewExpander(this, settings_, CQChartsViewExpander::Side::RIGHT);
-
-  settingsExpander_->setObjectName("settingsExpander");
-
-  settingsExpander_->setTitle(view_->id() + ": Settings");
-  settingsExpander_->setIcon(CQPixmapCacheInst->getIcon("CHARTS"));
+  settingsSplitter->addWidget(settings_);
 
   //---
 
-  QFrame *tableFrame = new QFrame(this);
+  QFrame *viewFrame = new QFrame;
 
-  tableFrame->setObjectName("tableFrame");
+  QGridLayout *viewLayout = new QGridLayout(viewFrame);
 
-  tableFrame->setAutoFillBackground(true);
+  viewSplitter->addWidget(viewFrame);
 
-  QVBoxLayout *tableLayout = new QVBoxLayout(tableFrame);
+  viewLayout->addWidget(view, 0, 0);
+
+  //---
+
+  xrangeScroll_ = new CQChartsWindowRangeScroll(this, Qt::Horizontal);
+  yrangeScroll_ = new CQChartsWindowRangeScroll(this, Qt::Vertical  );
+
+  xrangeScroll_->setFixedHeight(128);
+  yrangeScroll_->setFixedWidth (128);
+
+  viewLayout->addWidget(xrangeScroll_, 1, 0);
+  viewLayout->addWidget(yrangeScroll_, 0, 1);
+
+  connect(xrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
+  connect(yrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
+
+  xrangeScroll_->setVisible(false);
+  yrangeScroll_->setVisible(false);
+
+  //---
+
+  tableFrame_ = new QFrame(this);
+
+  tableFrame_->setObjectName("tableFrame");
+
+  tableFrame_->setAutoFillBackground(true);
+
+  QVBoxLayout *tableLayout = new QVBoxLayout(tableFrame_);
   tableLayout->setMargin(0); tableLayout->setSpacing(2);
 
   filterEdit_ = new CQChartsFilterEdit;
@@ -127,20 +184,9 @@ CQChartsWindow(CQChartsView *view) :
 
   tableLayout->addWidget(modelView_);
 
-  tableExpander_ =
-   new CQChartsViewExpander(this, tableFrame, CQChartsViewExpander::Side::BOTTOM);
-
-  tableExpander_->setObjectName("tableExpander");
-
-  tableExpander_->setTitle(view_->id() + ": Model");
-  tableExpander_->setIcon(CQPixmapCacheInst->getIcon("CHARTS"));
+  viewSplitter->addWidget(tableFrame_);
 
   //---
-
-  status_  = new CQChartsViewStatus(this);
-  toolbar_ = new CQChartsViewToolBar(this);
-
-  //----
 
   connect(view_, SIGNAL(currentPlotChanged()), this, SLOT(plotSlot()));
 
@@ -156,18 +202,11 @@ CQChartsWindow(CQChartsView *view) :
           this, SLOT(setStatusText(const QString &)));
   connect(view_, SIGNAL(selTextChanged(const QString &)),
           this, SLOT(setSelText(const QString &)));
-
-  //---
-
-  updateMargins();
 }
 
 CQChartsWindow::
 ~CQChartsWindow()
 {
-  delete settingsExpander_;
-  delete tableExpander_;
-
   delete settings_;
   delete status_;
   delete toolbar_;
@@ -177,61 +216,74 @@ void
 CQChartsWindow::
 resizeEvent(QResizeEvent *)
 {
-  updateGeometry();
 }
 
 void
 CQChartsWindow::
-updateMargins()
+setXRangeMap(bool b)
 {
-  statusHeight_  = status_ ->sizeHint().height();
-  toolBarHeight_ = toolbar_->sizeHint().height();
+  xRangeMap_ = b;
 
-  tableExpander_->setMargins(0, statusHeight_, 0, toolBarHeight_);
+  xrangeScroll_->setVisible(xRangeMap_);
 }
 
 void
 CQChartsWindow::
-updateGeometry()
+setYRangeMap(bool b)
 {
-  int sew = (! settingsExpander_->isDetached() ? settingsExpander_->width () : 0);
-  int teh = (! tableExpander_   ->isDetached() ? tableExpander_   ->height() : 0);
+  yRangeMap_ = b;
 
-  setMinimumSize(16 + sew, 16 + statusHeight_ + toolBarHeight_ + teh);
+  yrangeScroll_->setVisible(yRangeMap_);
+}
 
-  //---
+void
+CQChartsWindow::
+updateRangeMap()
+{
+  CQChartsPlot *plot = view()->currentPlot();
+  if (! plot) return;
 
-  view_->resize(width() - sew, height() - statusHeight_ - toolBarHeight_ - teh);
+  disconnect(xrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
+  disconnect(yrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
 
-  view_->move(0, toolBarHeight_);
+  CQChartsGeom::BBox bbox1 = plot->getDataRange ();
+  CQChartsGeom::BBox bbox2 = plot->calcDataRange();
 
-  //---
+  double xsize = bbox2.getWidth ()/bbox1.getWidth ();
+  double xpos  = (bbox2.getXMin() - bbox1.getXMin())/bbox1.getWidth();
+  double ysize = bbox2.getHeight()/bbox1.getHeight();
+  double ypos  = (bbox2.getYMin() - bbox1.getYMin())/bbox1.getHeight();
 
-  if (! settingsExpander_->isDetached()) {
-    settingsExpander_->setVisible(true);
-    settingsExpander_->updateGeometry();
+  if (xsize != xrangeScroll_->len()) {
+    xrangeScroll_->setLen(xsize);
+    xrangeScroll_->setPos(xpos);
   }
 
-  if (! tableExpander_->isDetached()) {
-    tableExpander_->setVisible(true);
-    tableExpander_->updateGeometry();
+  if (ysize != yrangeScroll_->len()) {
+    yrangeScroll_->setLen(ysize);
+    xrangeScroll_->setPos(ypos);
   }
 
-  //---
+  connect(xrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
+  connect(yrangeScroll_, SIGNAL(windowChanged()), this, SLOT(rangeScrollSlot()));
+}
 
-  toolbar_->move(0, 0);
-  toolbar_->resize(width(), toolBarHeight_);
+void
+CQChartsWindow::
+setDataTable(bool b)
+{
+  dataTable_ = b;
 
-  //---
+  tableFrame_->setVisible(dataTable_);
+}
 
-  status_->move(0, height() - statusHeight_);
-  status_->resize(width(), statusHeight_);
+void
+CQChartsWindow::
+setViewSettings(bool b)
+{
+  viewSettings_ = b;
 
-  //---
-
-  toolbar_ ->raise();
-  status_  ->raise();
-  settings_->raise();
+  settings_->setVisible(viewSettings_);
 }
 
 void
@@ -253,6 +305,40 @@ CQChartsWindow::
 setSelText(const QString &text)
 {
   status_->setSelText(text);
+}
+
+void
+CQChartsWindow::
+rangeScrollSlot()
+{
+  CQChartsPlot *plot = view()->currentPlot();
+  if (! plot) return;
+
+  CQChartsGeom::BBox dataRange = plot->getDataRange();
+
+  if (xrangeScroll_->isVisible()) {
+    double pos = xrangeScroll_->pos();
+    double len = xrangeScroll_->len();
+
+    double xmin = dataRange.getXMin() + pos*dataRange.getWidth();
+    double xmax = xmin + len*dataRange.getWidth();
+
+    dataRange.setXMin(xmin);
+    dataRange.setXMax(xmax);
+  }
+
+  if (yrangeScroll_->isVisible()) {
+    double pos = yrangeScroll_->pos();
+    double len = yrangeScroll_->len();
+
+    double ymin = dataRange.getYMin() + pos*dataRange.getHeight();
+    double ymax = ymin + len*dataRange.getHeight();
+
+    dataRange.setYMin(ymin);
+    dataRange.setYMax(ymax);
+  }
+
+  plot->zoomTo(dataRange);
 }
 
 void
@@ -322,8 +408,6 @@ plotSlot()
   modelView_->setModel(plot->model(), plot->isHierarchical());
 
   plot->setSelectionModel(modelView_->selectionModel());
-
-  tableExpander_->setTitle(view_->id() + ": Model (" + plot->id() + ")");
 }
 
 void
@@ -377,4 +461,44 @@ CQChartsWindow::
 sizeHint() const
 {
   return QSize(1400, 1200);
+}
+
+//------
+
+CQChartsWindowRangeScroll::
+CQChartsWindowRangeScroll(CQChartsWindow *window, Qt::Orientation orientation) :
+ CQRangeScroll(orientation), window_(window)
+{
+}
+
+void
+CQChartsWindowRangeScroll::
+drawBackground(QPainter *p)
+{
+  CQChartsPlot *plot = window_->view()->currentPlot();
+  if (! plot) return;
+
+  plot->setOverview(true);
+
+  window_->view()->doResize(p->device()->width(), p->device()->height());
+
+  CQChartsPlot::ZoomData zoomData = plot->zoomData();
+
+  CQChartsPlotMargin outerMargin = plot->outerMargin();
+
+  CQChartsLength margin(this->margin(), CQChartsLength::Units::PIXEL);
+
+  plot->setOuterMargin(CQChartsPlotMargin(margin, CQChartsLength(), margin, CQChartsLength()));
+
+  plot->zoomFull(/*notify*/false);
+
+  plot->draw(p);
+
+  window_->view()->doResize(window_->view()->width(), window_->view()->height());
+
+  plot->setOuterMargin(outerMargin);
+
+  plot->setZoomData(zoomData);
+
+  plot->setOverview(false);
 }

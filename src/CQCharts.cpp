@@ -186,6 +186,16 @@ getModelData(QAbstractItemModel *model) const
 
 void
 CQCharts::
+setCurrentModelData(CQChartsModelData *modelData)
+{
+  if (modelData)
+    setCurrentModelInd(modelData->ind());
+  else
+    setCurrentModelInd(-1);
+}
+
+void
+CQCharts::
 setCurrentModelInd(int ind)
 {
   currentModelInd_ = ind;

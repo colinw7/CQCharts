@@ -2,6 +2,8 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQPerfMonitor.h>
+
 #include <QPainter>
 
 CQChartsDendrogramPlotType::
@@ -305,6 +307,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsDendrogramPlot::
+createObjs()
+{
+  CQPerfTrace trace("QChartsDendrogramPlot::createObjs");
 
   CQChartsDendrogram::HierNode *root = dendrogram_->root();
 

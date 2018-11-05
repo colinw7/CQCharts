@@ -348,6 +348,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   //---
 
   void adjustObjAngles();

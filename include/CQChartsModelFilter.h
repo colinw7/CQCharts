@@ -15,6 +15,7 @@ class CQChartsModelFilterData {
   enum class Type {
     EXPRESSION,
     REGEXP,
+    WILDCARD,
     SIMPLE,
     SELECTED
   };
@@ -33,6 +34,7 @@ class CQChartsModelFilterData {
 
   bool isExpr    () const { return type_ == Type::EXPRESSION; }
   bool isRegExp  () const { return type_ == Type::REGEXP;     }
+  bool isWildcard() const { return type_ == Type::WILDCARD;   }
   bool isSimple  () const { return type_ == Type::SIMPLE;     }
   bool isSelected() const { return type_ == Type::SELECTED;   }
 
@@ -120,6 +122,7 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
 
   bool isExpr    () const { return currentFilterData().isExpr(); }
   bool isRegExp  () const { return currentFilterData().isRegExp(); }
+  bool isWildcard() const { return currentFilterData().isWildcard(); }
   bool isSelected() const { return currentFilterData().isSelected(); }
 
   bool isInvert() const { return currentFilterData().isInvert(); }
@@ -131,12 +134,10 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   void popFilterData();
 
   void setExpressionFilter(const QString &filter);
-
-  void setRegExpFilter(const QString &filter);
-
-  void setSimpleFilter(const QString &filter);
-
-  void setSelectionFilter(bool invert);
+  void setRegExpFilter    (const QString &filter);
+  void setWildcardFilter  (const QString &filter);
+  void setSimpleFilter    (const QString &filter);
+  void setSelectionFilter (bool invert);
 
   //---
 
@@ -155,7 +156,7 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
 
   //---
 
-  QVariant data(const QModelIndex &index, int role) const override;
+  QVariant data(const QModelIndex &index, int role=Qt::DisplayRole) const override;
 
   //---
 

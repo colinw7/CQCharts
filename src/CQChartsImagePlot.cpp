@@ -3,6 +3,8 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQPerfMonitor.h>
+
 #include <QPainter>
 #include <QMenu>
 
@@ -204,6 +206,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsImagePlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsImagePlot::createObjs");
 
   class RowVisitor : public ModelVisitor {
    public:

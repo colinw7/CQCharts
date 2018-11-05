@@ -88,6 +88,21 @@ setRegExpFilter(const QString &filter)
 
 void
 CQChartsModelFilter::
+setWildcardFilter(const QString &filter)
+{
+  CQChartsModelFilterData &filterData = currentFilterData();
+
+  filterData.setType  (CQChartsModelFilterData::Type::WILDCARD);
+  filterData.setFilter(filter);
+  filterData.setInvert(false);
+
+  initFilterData(filterData);
+
+  initFilter();
+}
+
+void
+CQChartsModelFilter::
 setSimpleFilter(const QString &filter)
 {
   CQChartsModelFilterData &filterData = currentFilterData();
@@ -268,7 +283,7 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
     return (filterData.isInvert() ? ! rc  : rc);
   }
   // filter string matches regexp
-  else if (filterData.isRegExp()) {
+  else if (filterData.isRegExp() || filterData.isWildcard()) {
     QAbstractItemModel *model = sourceModel();
     assert(model);
 
@@ -356,7 +371,7 @@ initFilterData(CQChartsModelFilterData &filterData)
       filterData.setFilterRows(QModelIndexList());
     }
   }
-  else if (filterData.isRegExp()) {
+  else if (filterData.isRegExp() || filterData.isWildcard()) {
     QAbstractItemModel *model = this->sourceModel();
     assert(model);
 
@@ -366,7 +381,10 @@ initFilterData(CQChartsModelFilterData &filterData)
     if (CQChartsUtil::decodeModelFilterStr(model, filterData.filter(), filter, column))
       setFilterKeyColumn(column);
 
-    filterData.setRegExp(CQChartsRegExp(filter));
+    if (filterData.isRegExp())
+      filterData.setRegExp(CQChartsRegExp(filter, QRegExp::PatternSyntax::RegExp));
+    else
+      filterData.setRegExp(CQChartsRegExp(filter, QRegExp::PatternSyntax::WildcardUnix));
   }
   else if (filterData.isSimple()) {
     QAbstractItemModel *model = this->sourceModel();

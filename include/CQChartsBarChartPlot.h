@@ -352,6 +352,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   //---
 
   QString valueStr(double v) const;

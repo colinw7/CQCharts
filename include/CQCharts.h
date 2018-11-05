@@ -68,6 +68,7 @@ class CQCharts : public QObject {
   void setCurrentModelInd(int ind);
 
   CQChartsModelData *currentModelData() const;
+  void setCurrentModelData(CQChartsModelData *modelData);
 
   void getModelDatas(ModelDatas &modelDatas) const;
 

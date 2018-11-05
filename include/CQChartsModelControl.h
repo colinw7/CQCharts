@@ -6,7 +6,6 @@
 #include <QSharedPointer>
 
 class CQCharts;
-class CQChartsModelList;
 class CQChartsModelData;
 
 class QGridLayout;
@@ -31,15 +30,15 @@ class CQChartsModelControl : public QFrame {
  public:
   CQChartsModelControl(CQCharts *charts);
 
-  void setModelList(CQChartsModelList *modelList) { modelList_ = modelList; }
+  void updateModel();
+
+  void updateModelDetails();
+
+ private slots:
+  void updateCurrentModel();
 
   void setColumnData(int column);
 
-  void updateModel(CQChartsModelData *modelData);
-
-  void updateModelDetails(const CQChartsModelData *modelData);
-
- private slots:
   void expressionModeSlot();
 
   void exprApplySlot();
@@ -79,8 +78,8 @@ class CQChartsModelControl : public QFrame {
   };
 
   CQCharts*          charts_          { nullptr };
-  CQChartsModelList* modelList_       { nullptr };
-  Mode               mode_            { Mode::ADD };
+  CQChartsModelData* modelData_       { nullptr };
+  Mode               exprMode_        { Mode::ADD };
   QRadioButton*      exprAddRadio_    { nullptr };
   QRadioButton*      exprRemoveRadio_ { nullptr };
   QRadioButton*      exprModifyRadio_ { nullptr };

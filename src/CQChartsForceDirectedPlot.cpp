@@ -4,6 +4,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
+#include <CQPerfMonitor.h>
 
 #include <QPainter>
 #include <QTimer>
@@ -241,6 +242,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsForceDirectedPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsForceDirectedPlot::createObjs");
 
   if (! idConnections_.empty())
     return false;

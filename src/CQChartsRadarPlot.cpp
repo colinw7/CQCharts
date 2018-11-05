@@ -6,6 +6,7 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
+#include <CQPerfMonitor.h>
 
 #include <QPainter>
 
@@ -320,6 +321,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsRadarPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsRadarPlot::createObjs");
 
   // process model data
   class RadarPlotVisitor : public ModelVisitor {

@@ -4,6 +4,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQPerfMonitor.h>
 #include <CMathRound.h>
 
 #include <QPainter>
@@ -345,6 +346,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsPiePlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsPiePlot::createObjs");
 
   // calc group totals
   calcDataTotal();

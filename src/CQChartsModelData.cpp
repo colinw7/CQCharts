@@ -51,6 +51,15 @@ details() const
 
 void
 CQChartsModelData::
+setCurrentColumn(int i)
+{
+  currentColumn_ = i;
+
+  emit currentColumnChanged(i);
+}
+
+void
+CQChartsModelData::
 connectModel()
 {
   if (! model_.data())

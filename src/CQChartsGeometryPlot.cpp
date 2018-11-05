@@ -6,6 +6,8 @@
 #include <CQChartsPolygonList.h>
 #include <CQCharts.h>
 #include <CQChartsTip.h>
+#include <CQPerfMonitor.h>
+
 #include <QPainter>
 
 CQChartsGeometryPlotType::
@@ -434,6 +436,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsGeometryPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsGeometryPlot::createObjs");
 
   int n = geometries_.size();
 

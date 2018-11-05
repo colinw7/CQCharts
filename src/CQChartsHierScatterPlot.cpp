@@ -5,6 +5,7 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQPerfMonitor.h>
 
 #include <QPainter>
 #include <QMenu>
@@ -397,6 +398,15 @@ initObjs()
     return false;
 
   //---
+
+  return createObjs();
+}
+
+bool
+CQChartsHierScatterPlot::
+createObjs()
+{
+  CQPerfTrace trace("CQChartsHierScatterPlot::createObjs");
 
   // init name values
   if (! rootGroup_) {

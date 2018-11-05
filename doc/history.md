@@ -680,3 +680,17 @@
  + Cleanup per file type filter models 
  + Track model sort to update model details monotonic
  + Fix bug in interval for fixed major increment
+# 11/04/2018
+ + split initObjs proc into createObjs to better check performance timing
+ + Add dataColumn to distribution y axis
+ + Reduce dependencies in CQChartsModelControl/CQChartsModelList
+ + Support per column duplicates
+ + Support regexp/wildcard in filter
+ + allow filter type to be specified in command
+ + Fix bug in pixel unit handling of outer margin
+ + improve auto fit
+ + add style properties to scattter grid cell
+ + add x/y overview to view (single plot)
+ + allow table and view settings to be hidden
+ + add generic qt set/get property in tcl
+ + replace -int/-real/-enum/-bool/-string parameter option in create_plot with -parameter

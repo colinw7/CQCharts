@@ -157,6 +157,8 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   //---
 
  private:

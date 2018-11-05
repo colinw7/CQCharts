@@ -257,6 +257,8 @@ class CQChartsSankeyPlot : public CQChartsPlot,
 
   bool initObjs() override;
 
+  bool createObjs();
+
   void updateMaxDepth();
 
   //---

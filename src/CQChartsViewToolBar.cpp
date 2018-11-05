@@ -45,6 +45,10 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   setAutoFillBackground(true);
 
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+  //---
+
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setMargin(0); layout->setSpacing(2);
 

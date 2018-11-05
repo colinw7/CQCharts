@@ -29,6 +29,7 @@
 #include <CMathUtil.h>
 #include <CMathRound.h>
 
+#include <QApplication>
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
 #include <QPainter>
@@ -42,7 +43,7 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
  CQChartsObjFitShapeData <CQChartsPlot>(this),
  view_(view), type_(type), model_(model), editHandles_(view)
 {
-  updateTimeout_ = CQChartsEnv::getInt("CQCHARTS_PLOT_UPDATE_TIMEOUT", updateTimeout_);
+  updateTimeout_ = CQChartsEnv::getInt("CQ_CHARTS_PLOT_UPDATE_TIMEOUT", updateTimeout_);
 
   displayRange_     = new CQChartsDisplayRange();
   displayTransform_ = new CQChartsDisplayTransform(displayRange_);
@@ -441,32 +442,43 @@ setDataRange(const CQChartsGeom::Range &r, bool update)
 
 //---
 
-double
-CQChartsPlot::
-dataScaleX() const
-{
-  return dataScaleX_;
-}
-
 void
 CQChartsPlot::
 setDataScaleX(double r)
 {
-  dataScaleX_ = r;
-}
-
-double
-CQChartsPlot::
-dataScaleY() const
-{
-  return dataScaleY_;
+  zoomData_.dataScaleX = r;
 }
 
 void
 CQChartsPlot::
 setDataScaleY(double r)
 {
-  dataScaleY_ = r;
+  zoomData_.dataScaleY = r;
+}
+
+void
+CQChartsPlot::
+setDataOffsetX(double x)
+{
+  zoomData_.dataOffset.x = x;
+}
+
+void
+CQChartsPlot::
+setDataOffsetY(double y)
+{
+  zoomData_.dataOffset.y = y;
+}
+
+void
+CQChartsPlot::
+setZoomData(const ZoomData &zoomData)
+{
+  zoomData_ = zoomData;
+
+  applyDataRange();
+
+  invalidateLayers();
 }
 
 void
@@ -489,34 +501,6 @@ updateDataScaleY(double r)
   applyDataRange();
 
   invalidateLayers();
-}
-
-double
-CQChartsPlot::
-dataOffsetX() const
-{
-  return dataOffset_.x;
-}
-
-void
-CQChartsPlot::
-setDataOffsetX(double x)
-{
-  dataOffset_.x = x;
-}
-
-double
-CQChartsPlot::
-dataOffsetY() const
-{
-  return dataOffset_.y;
-}
-
-void
-CQChartsPlot::
-setDataOffsetY(double y)
-{
-  dataOffset_.y = y;
 }
 
 //---
@@ -727,7 +711,7 @@ void
 CQChartsPlot::
 updateMargins(const CQChartsPlotMargin &outerMargin)
 {
-  innerViewBBox_ = outerMargin.adjustRange(this, viewBBox_, /*inside*/false);
+  innerViewBBox_ = outerMargin.adjustViewRange(this, viewBBox_, /*inside*/false);
 
   displayRange_->setPixelRange(innerViewBBox_.getXMin(), innerViewBBox_.getYMax(),
                                innerViewBBox_.getXMax(), innerViewBBox_.getYMin());
@@ -885,9 +869,16 @@ setInnerMarginBottom(const CQChartsLength &b)
 void
 CQChartsPlot::
 setInnerMargin(const CQChartsLength &l, const CQChartsLength &t,
-                    const CQChartsLength &r, const CQChartsLength &b)
+               const CQChartsLength &r, const CQChartsLength &b)
 {
-  innerMargin_.set(l, t, r, b);
+  setInnerMargin(CQChartsPlotMargin(l, t, r, b));
+}
+
+void
+CQChartsPlot::
+setInnerMargin(const CQChartsPlotMargin &m)
+{
+  innerMargin_ = m;
 
   adjustDataRange();
 
@@ -945,7 +936,14 @@ CQChartsPlot::
 setOuterMargin(const CQChartsLength &l, const CQChartsLength &t,
                const CQChartsLength &r, const CQChartsLength &b)
 {
-  outerMargin_.set(l, t, r, b);
+  return setOuterMargin(CQChartsPlotMargin(l, t, r, b));
+}
+
+void
+CQChartsPlot::
+setOuterMargin(const CQChartsPlotMargin &m)
+{
+  outerMargin_ = m;
 
   updateMargins();
 }
@@ -1188,7 +1186,7 @@ addProperties()
   addProperty("log", this, "logX", "x");
   addProperty("log", this, "logY", "y");
 
-  if (CQChartsEnv::getBool("CQCHARTS_DEBUG", true)) {
+  if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG", true)) {
     addProperty("debug", this, "showBoxes"    );
     addProperty("debug", this, "followMouse"  );
     addProperty("debug", this, "updateTimeout");
@@ -1641,7 +1639,7 @@ calcDataRange(bool adjust) const
       CQChartsPlot *th = const_cast<CQChartsPlot *>(this);
 
       CQChartsGeom::BBox bbox1 =
-        firstPlot()->innerMargin().adjustRange(this, bbox, /*inside*/true);
+        firstPlot()->innerMargin().adjustPlotRange(this, bbox, /*inside*/true);
 
       th->outerDataRange_ = CQChartsUtil::bboxRange(bbox1);
 
@@ -1962,7 +1960,7 @@ initObjTree()
   if (! isPreview()) {
     bool wait = false;
 
-    if (CQChartsEnv::getBool("CQCHARTS_OBJ_TREE_WAIT"))
+    if (CQChartsEnv::getBool("CQ_CHARTS_OBJ_TREE_WAIT"))
       wait = true;
 
     plotObjTree_->addObjects(wait);
@@ -3347,6 +3345,8 @@ panLeft(double f)
 
     updateTransform();
   }
+
+  emit zoomPanChanged();
 }
 
 void
@@ -3370,6 +3370,8 @@ panRight(double f)
 
     updateTransform();
   }
+
+  emit zoomPanChanged();
 }
 
 void
@@ -3393,6 +3395,8 @@ panUp(double f)
 
     updateTransform();
   }
+
+  emit zoomPanChanged();
 }
 
 void
@@ -3416,6 +3420,8 @@ panDown(double f)
 
     updateTransform();
   }
+
+  emit zoomPanChanged();
 }
 
 void
@@ -3440,6 +3446,8 @@ pan(double dx, double dy)
 
     //updateTransform();
   }
+
+  emit zoomPanChanged();
 }
 
 void
@@ -3462,6 +3470,8 @@ zoomIn(double f)
 
     updateTransform();
   }
+
+  emit zoomPanChanged();
 }
 
 void
@@ -3484,6 +3494,8 @@ zoomOut(double f)
 
     updateTransform();
   }
+
+  emit zoomPanChanged();
 }
 
 void
@@ -3540,11 +3552,13 @@ zoomTo(const CQChartsGeom::BBox &bbox)
 
     updateTransform();
   }
+
+  emit zoomPanChanged();
 }
 
 void
 CQChartsPlot::
-zoomFull()
+zoomFull(bool notify)
 {
   if (view_->isZoomData()) {
     if (allowZoomX())
@@ -3565,6 +3579,9 @@ zoomFull()
 
     updateTransform();
   }
+
+  if (notify)
+    emit zoomPanChanged();
 }
 
 void
@@ -3948,6 +3965,10 @@ drawOverlayParts(QPainter *painter)
   bool over_objs        = hasGroupedObjs(CQChartsLayer::Type::MOUSE_OVER);
   bool over_annotations = hasGroupedAnnotations(CQChartsLayer::Type::MOUSE_OVER);
 
+#if 0
+  bool zoom_lines = hasZoomRegionLines();
+#endif
+
   if (! sel_objs && ! sel_annotations && ! boxes &&
       ! edit_handles && ! over_objs && ! over_annotations)
     return;
@@ -3988,6 +4009,13 @@ drawOverlayParts(QPainter *painter)
 
     if (over_annotations)
       drawGroupedAnnotations(painter1, CQChartsLayer::Type::MOUSE_OVER);
+
+    //---
+
+#if 0
+    if (zoom_lines)
+      drawZoomRegionLines(painter1);
+#endif
   }
 
   //---
@@ -4024,8 +4052,6 @@ CQChartsPlot::
 drawBackgroundLayer(QPainter *painter)
 {
   CQPerfTrace trace("CQChartsPlot::drawBackgroundLayer");
-
-  //CQPerfTrace trace("CQChartsPlot::drawBackgroundLayer");
 
   bool hasPlotBackground = (isPlotFilled() || isPlotBorder());
   bool hasDataBackground = (isDataFilled() || isDataBorder());
@@ -4154,8 +4180,6 @@ drawBgAxes(QPainter *painter)
 {
   CQPerfTrace trace("CQChartsPlot::drawBgAxes");
 
-  //CQPerfTrace trace("CQChartsPlot::drawBgAxes");
-
   bool showXAxis = (xAxis() && xAxis()->isVisible());
   bool showYAxis = (yAxis() && yAxis()->isVisible());
 
@@ -4175,6 +4199,9 @@ bool
 CQChartsPlot::
 hasBgKey() const
 {
+  if (isOverview())
+    return false;
+
   CQChartsPlotKey *key1;
 
   if (isOverlay()) {
@@ -4209,8 +4236,6 @@ CQChartsPlot::
 drawBgKey(QPainter *painter)
 {
   CQPerfTrace trace("CQChartsPlot::drawBgKey");
-
-  //CQPerfTrace trace("CQChartsPlot::drawBgKey");
 
   CQChartsPlotKey *key1;
 
@@ -4427,6 +4452,9 @@ bool
 CQChartsPlot::
 hasFgKey() const
 {
+  if (isOverview())
+    return false;
+
   CQChartsPlotKey *key1;
 
   if (isOverlay()) {
@@ -4882,6 +4910,54 @@ drawEditHandles(QPainter *painter)
   }
 }
 
+#if 0
+bool
+CQChartsPlot::
+hasZoomRegionLines() const
+{
+  return (zoomRegionXMin_ || zoomRegionXMax_ || zoomRegionYMin_ || zoomRegionYMax_);
+}
+
+void
+CQChartsPlot::
+drawZoomRegionLines(QPainter *painter)
+{
+  CQChartsGeom::BBox bbox = displayRangeBBox();
+
+  if (zoomRegionXMin_) {
+    painter->setPen(Qt::red);
+
+    QPointF p1, p2;
+
+    p1 = windowToPixel(QPointF(*zoomRegionXMin_, bbox.getYMin()));
+    p2 = windowToPixel(QPointF(*zoomRegionXMin_, bbox.getYMax()));
+
+    painter->drawLine(p1, p2);
+
+    p1 = windowToPixel(QPointF(*zoomRegionXMax_, bbox.getYMin()));
+    p2 = windowToPixel(QPointF(*zoomRegionXMax_, bbox.getYMax()));
+
+    painter->drawLine(p1, p2);
+  }
+
+  if (zoomRegionYMin_) {
+    painter->setPen(Qt::red);
+
+    QPointF p1, p2;
+
+    p1 = windowToPixel(QPointF(bbox.getXMin(), *zoomRegionYMin_));
+    p2 = windowToPixel(QPointF(bbox.getXMax(), *zoomRegionYMin_));
+
+    painter->drawLine(p1, p2);
+
+    p1 = windowToPixel(QPointF(bbox.getXMin(), *zoomRegionYMax_));
+    p2 = windowToPixel(QPointF(bbox.getXMax(), *zoomRegionYMax_));
+
+    painter->drawLine(p1, p2);
+  }
+}
+#endif
+
 CQChartsGeom::BBox
 CQChartsPlot::
 displayRangeBBox() const
@@ -4933,6 +5009,8 @@ CQChartsPlot::
 autoFit()
 {
   CQPerfTrace trace("CQChartsPlot::autoFit");
+
+  zoomFull(/*notify*/false);
 
   if (isOverlay()) {
     if (prevPlot())
@@ -4987,10 +5065,25 @@ autoFit()
     }
   }
   else {
+    autoFitOne();
+  }
+}
+
+void
+CQChartsPlot::
+autoFitOne()
+{
+  for (int i = 0; i < 5; ++i) {
     CQChartsGeom::BBox bbox = fitBBox();
 
     setFitBBox(bbox);
+
+    updateRangeAndObjsInternal();
+
+    qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
   }
+
+  emit zoomPanChanged();
 }
 
 void
@@ -5443,7 +5536,14 @@ setClipRect(QPainter *painter)
   if      (plot1->isDataClip()) {
     CQChartsGeom::BBox bbox = displayRangeBBox();
 
-    bbox += annotationBBox();
+    CQChartsGeom::BBox abbox = annotationBBox();
+
+    if      (dataScaleX() <= 1.0 && dataScaleY() <= 1.0)
+      bbox.add(abbox);
+    else if (dataScaleX() <= 1.0)
+      bbox.addX(abbox);
+    else if (dataScaleY() <= 1.0)
+      bbox.addY(abbox);
 
     CQChartsGeom::BBox pbbox;
 
