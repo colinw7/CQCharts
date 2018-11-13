@@ -34,6 +34,9 @@ class CQChartsModelColumnDetails {
   CQBaseModel::Type type() const;
   void setType(CQBaseModel::Type type);
 
+  CQBaseModel::Type baseType() const;
+  void setBaseType(CQBaseModel::Type type);
+
   const CQChartsNameValues &nameValues() const;
 
   static bool isNamedValue(const QString &name);
@@ -94,6 +97,7 @@ class CQChartsModelColumnDetails {
   CQChartsColumn        column_;
   QString               typeName_;
   CQBaseModel::Type     type_            { CQBaseModel::Type::NONE };
+  CQBaseModel::Type     baseType_        { CQBaseModel::Type::NONE };
   CQChartsNameValues    nameValues_;
   QVariant              minValue_;
   QVariant              maxValue_;

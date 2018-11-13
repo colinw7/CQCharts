@@ -421,27 +421,6 @@ decodeGeometry(const QString &geomStr, Polygons &polygons)
 
 bool
 CQChartsGeometryPlot::
-initObjs()
-{
-  if (! dataRange_.isSet()) {
-    updateRange();
-
-    if (! dataRange_.isSet())
-      return false;
-  }
-
-  //---
-
-  if (! plotObjs_.empty())
-    return false;
-
-  //---
-
-  return createObjs();
-}
-
-bool
-CQChartsGeometryPlot::
 createObjs()
 {
   CQPerfTrace trace("CQChartsGeometryPlot::createObjs");

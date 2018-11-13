@@ -285,9 +285,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   void updateObjs() override;
 
-  bool initObjs() override;
-
-  bool createObjs();
+  bool createObjs() override;
 
   void addGroupPoint(const ModelVisitor::VisitData &data,
                      double x, double y, const QString &name);

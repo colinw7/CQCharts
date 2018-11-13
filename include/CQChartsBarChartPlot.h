@@ -350,9 +350,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   void updateObjs() override;
 
-  bool initObjs() override;
-
-  bool createObjs();
+  bool createObjs() override;
 
   //---
 

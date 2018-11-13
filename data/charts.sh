@@ -1,10 +1,12 @@
 #!/bin/csh -f
 
-set args     = ()
-set opts     = ()
-set debug    = 0
-set valgrind = 0
-set csv_args = ()
+set args      = ()
+set opts      = ()
+set debug     = 0
+set valgrind  = 0
+set csv_args  = ()
+set tsv_args  = ()
+set data_args = ()
 
 while ($#argv > 0)
   if      ("$1" == "-dbx") then
@@ -38,11 +40,22 @@ while ($#argv > 0)
       set csv_args = ($csv_args $1)
       shift
     endif
+  else if ("$1" == "-tsv") then
+    set tsv_args = ($tsv_args $1)
+    shift
+
+    if ($#argv > 0) then
+      set tsv_args = ($tsv_args $1)
+      shift
+    endif
   else if ("$1" == "-first_line_header") then
-    set csv_args = ($csv_args $1)
+    set data_args = ($data_args $1)
     shift
   else if ("$1" == "-first_column_header") then
-    set csv_args = ($csv_args $1)
+    set data_args = ($data_args $1)
+    shift
+  else if ("$1" == "-comment_header") then
+    set data_args = ($data_args $1)
     shift
   else if ("$1" == "-h" || "$1" == "-help") then
     echo "charts.sh [-dbx|-valgrind|-loop|-timer|-pixmap] <script>"
@@ -63,17 +76,17 @@ setenv QT_AUTO_SCREEN_SCALE_FACTOR 0
 setenv QT_SCALE_FACTOR 0
 
 if      ($debug == 1) then
-  echo "Dbx CQChartsTest $exec_args $csv_args $opts"
+  echo "Dbx CQChartsTest $exec_args $csv_args $tsv_args $data_args $opts"
 
-  Dbx CQChartsTest $exec_args $csv_args $opts
+  Dbx CQChartsTest $exec_args $csv_args $tsv_args $data_args $opts
 else if ($valgrind == 1) then
-  echo "Valgrind CQChartsTest $exec_args $csv_args $opts"
+  echo "Valgrind CQChartsTest $exec_args $csv_args $tsv_args $data_args $opts"
 
-  Valgrind CQChartsTest $exec_args $csv_args $opts
+  Valgrind CQChartsTest $exec_args $csv_args $tsv_args $data_args $opts
 else
-  echo "CQChartsTest $exec_args $csv_args $opts"
+  echo "CQChartsTest $exec_args $csv_args $tsv_args $data_args $opts"
 
-  CQChartsTest $exec_args $csv_args $opts
+  CQChartsTest $exec_args $csv_args $tsv_args $data_args $opts
 endif
 
 exit 0

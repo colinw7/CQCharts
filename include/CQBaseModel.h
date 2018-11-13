@@ -21,17 +21,18 @@ class CQBaseModel : public QAbstractItemModel {
 
   enum class Role {
     Type              = Qt::UserRole + 1, // column type role
-    TypeValues        = Type + 1,         // column type values role
-    Min               = Type + 2,         // column user min role
-    Max               = Type + 3,         // column user max role
-    Sorted            = Type + 4,         // sorted role
-    SortOrder         = Type + 5,         // sort order role
-    Key               = Type + 6,         // is key role
-    RawValue          = Type + 7,         // raw value by role
-    IntermediateValue = Type + 8,         // intermediate value role
-    CachedValue       = Type + 9,         // cached value role
-    OutputValue       = Type + 10,        // output value role
-    Group             = Type + 11         // group role
+    BaseType          = Type + 1,         // column base type role
+    TypeValues        = Type + 2,         // column type values role
+    Min               = Type + 3,         // column user min role
+    Max               = Type + 4,         // column user max role
+    Sorted            = Type + 5,         // sorted role
+    SortOrder         = Type + 6,         // sort order role
+    Key               = Type + 7,         // is key role
+    RawValue          = Type + 8,         // raw value by role
+    IntermediateValue = Type + 9,         // intermediate value role
+    CachedValue       = Type + 10,        // cached value role
+    OutputValue       = Type + 11,        // output value role
+    Group             = Type + 12         // group role
   };
 
   // use variant numbers where possible
@@ -57,18 +58,25 @@ class CQBaseModel : public QAbstractItemModel {
     IMAGE   = QVariant::Image,
     TIME    = QVariant::Time,
 
-    PATH            = QVariant::UserType + 101,
-    STYLE           = QVariant::UserType + 102,
-    POLYGON_LIST    = QVariant::UserType + 103,
-    CONNECTION_LIST = QVariant::UserType + 104,
-    NAME_PAIR       = QVariant::UserType + 105
+    SYMBOL          = QVariant::UserType + 101,
+    SYMBOL_SIZE     = QVariant::UserType + 102,
+    FONT_SIZE       = QVariant::UserType + 103,
+    PATH            = QVariant::UserType + 104,
+    STYLE           = QVariant::UserType + 105,
+    POLYGON_LIST    = QVariant::UserType + 106,
+    CONNECTION_LIST = QVariant::UserType + 107,
+    NAME_PAIR       = QVariant::UserType + 108,
+    COLUMN          = QVariant::UserType + 109,
+    COLUMN_LIST     = QVariant::UserType + 110,
+    ENUM            = QVariant::UserType + 111
   };
 
  protected:
   struct ColumnTypeData {
-    Type type    { Type::NONE };
-    int  numInt  { 0 };
-    int  numReal { 0 };
+    Type type     { Type::NONE };
+    Type baseType { Type::NONE };
+    int  numInt   { 0 };
+    int  numReal  { 0 };
   };
 
  public:
@@ -80,6 +88,9 @@ class CQBaseModel : public QAbstractItemModel {
 
   Type columnType(int column) const;
   bool setColumnType(int column, Type t);
+
+  Type columnBaseType(int column) const;
+  bool setColumnBaseType(int column, Type t);
 
   QString columnTypeValues(int column) const;
   bool setColumnTypeValues(int column, const QString &str);
@@ -118,8 +129,27 @@ class CQBaseModel : public QAbstractItemModel {
 
   //---
 
+  QVariant nameValue(const QString &name) const {
+    auto p = nameValues_.find(name);
+    if (p == nameValues_.end()) return QVariant();
+
+    return (*p).second;
+  }
+
+  void setNameValue(const QString &name, const QVariant &value) {
+    nameValues_[name] = value;
+  }
+
+  //---
+
   int maxTypeRows() const { return maxTypeRows_; }
   void setMaxTypeRows(int i) { maxTypeRows_ = i; }
+
+  //---
+
+  int modelColumnNameToInd(const QString &name) const;
+
+  static int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name);
 
   //---
 
@@ -143,6 +173,7 @@ class CQBaseModel : public QAbstractItemModel {
 
  signals:
   void columnTypeChanged     (int column);
+  void columnBaseTypeChanged (int column);
   void columnRangeChanged    (int column);
   void columnKeyChanged      (int column);
   void columnSortedChanged   (int column);
@@ -151,6 +182,7 @@ class CQBaseModel : public QAbstractItemModel {
  protected:
   using RowValues     = std::map<int,QVariant>;
   using RoleRowValues = std::map<int,RowValues>;
+  using NameValues    = std::map<QString,QVariant>;
 
   struct ColumnData {
     ColumnData(int column=-1) :
@@ -159,6 +191,7 @@ class CQBaseModel : public QAbstractItemModel {
 
     int           column        { -1 };                 // column
     Type          type          { Type::NONE };         // auto or assigned type
+    Type          baseType      { Type::NONE };         // auto or assigned base type
     QString       typeValues;                           // type values
     QVariant      min;                                  // custom min value
     QVariant      max;                                  // custom max value
@@ -196,6 +229,7 @@ class CQBaseModel : public QAbstractItemModel {
   ColumnDatas columnDatas_;
   RowDatas    rowDatas_;
   int         maxTypeRows_ { 1000 };
+  NameValues  nameValues_;
 };
 
 #endif

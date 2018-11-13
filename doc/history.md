@@ -694,3 +694,9 @@
  + allow table and view settings to be hidden
  + add generic qt set/get property in tcl
  + replace -int/-real/-enum/-bool/-string parameter option in create_plot with -parameter
+# 11/11/2018
+ + allow write model, plot and annotation commands for current plot
+ + Support symbol type, symbol size and font size as column types
+ + Draw symbols in model using delegate
+ + add settings tab for annotations
+ + move theme to charts class

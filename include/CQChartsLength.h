@@ -62,6 +62,10 @@ class CQChartsLength {
     return true;
   }
 
+  bool isSet() const {
+    return (units_ != Units::PIXEL || value_ != 0.0);
+  }
+
   //---
 
   QString toString() const {

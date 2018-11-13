@@ -1,8 +1,11 @@
 High
+ + Serialize State
+ + Use new types to auto fill scatter plot
+ + cleanup theme interface (allow view, plot customization)
+ + Group Plot grouping and Distrib Plot Group should share common code
  + Update plot helps (work differences)
  + Column Type parameter types
  + Single Model/Expr Wrapper
- + Divided Area allow drag resize
  + Analyze, set time to X axis (scatter, xy, ...)
  + Remove expr process that can easily be replace by tcl proc (map, rand, norm)
  + Arrow - empty needed ? Use rotated rect for line
@@ -283,6 +286,7 @@ Distribution Plot
  + Cross select slow with large number of values (allow disable ?)
  + Line
  + Log Scale
+ + Axis Labels deault should be based on continutity (real)
 
 Hier Bubble Plot
  + Pop to top

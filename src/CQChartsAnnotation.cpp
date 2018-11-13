@@ -3,6 +3,8 @@
 #include <CQChartsView.h>
 #include <CQChartsArrow.h>
 #include <CQPropertyViewModel.h>
+#include <CQAlignEdit.h>
+
 #include <QPainter>
 #include <QTextDocument>
 #include <QAbstractTextDocumentLayout>
@@ -54,7 +56,7 @@ QString
 CQChartsAnnotation::
 pathId() const
 {
-  QString id = QString("%1").arg(ind_);
+  QString id = propertyId();
 
   if      (plot())
     return plot()->pathId() + ":" + id;
@@ -62,6 +64,60 @@ pathId() const
     return view()->id() + ":" + id;
   else
     return id;
+}
+
+void
+CQChartsAnnotation::
+writeKeys(const QString &cmd) const
+{
+  std::cerr << cmd.toStdString();
+
+  if      (view())
+    std::cerr << " -view " << view()->id().toStdString();
+  else if (plot())
+    std::cerr << " -plot " << plot()->id().toStdString();
+
+  if (id() != "")
+    std::cerr << " -id " << id().toStdString();
+
+  if (tipId() != "")
+    std::cerr << " -tip \"" << tipId().toStdString() << "\"";
+}
+
+void
+CQChartsAnnotation::
+writeFill() const
+{
+  if (isFilled()) {
+    std::cerr << " -background 1";
+
+    if (fillColor().isValid())
+      std::cerr << " -background_color " << fillColor().toString().toStdString();
+
+    if (fillAlpha() != 1.0)
+      std::cerr << " -background_alpha " << fillAlpha();
+  }
+}
+
+void
+CQChartsAnnotation::
+writeStroke() const
+{
+  if (isBorder()) {
+    std::cerr << " -border 1";
+
+    if (borderColor().isValid())
+      std::cerr << " -border_color " << borderColor().toString().toStdString();
+
+    if (borderAlpha() != 1.0)
+      std::cerr << " -border_alpha " << borderAlpha();
+
+    if (borderWidth().isSet())
+      std::cerr << " -border_width " << borderWidth().toString().toStdString();
+
+    if (! borderDash().isSolid())
+      std::cerr << " -border_dash " << borderDash().toString().toStdString();
+  }
 }
 
 //------
@@ -421,6 +477,37 @@ draw(QPainter *painter)
   CQChartsAnnotation::draw(painter);
 }
 
+void
+CQChartsRectAnnotation::
+write() const
+{
+  writeKeys("create_rect_shape");
+
+  if (start().isSet())
+    std::cerr << " -start {" << start().toString().toStdString() << "}";
+
+  if (end().isSet())
+    std::cerr << " -end {" << end().toString().toStdString() << "}";
+
+  writeFill();
+
+  writeStroke();
+
+  if (cornerSize().isSet())
+    std::cerr << " -corner_size " << cornerSize();
+
+  if (margin() != 0.0)
+    std::cerr << " -margin "  << margin ();
+
+  if (padding() != 0.0)
+    std::cerr << " -padding " << padding();
+
+  if (! borderSides().isAll())
+    std::cerr << " -border_sides " << borderSides().toString().toStdString();
+
+  std::cerr << "\n";
+}
+
 //---
 
 CQChartsEllipseAnnotation::
@@ -599,6 +686,34 @@ draw(QPainter *painter)
   CQChartsAnnotation::draw(painter);
 }
 
+void
+CQChartsEllipseAnnotation::
+write() const
+{
+  writeKeys("create_ellipse_shape");
+
+  if (center().isSet())
+    std::cerr << " -center {" << center().toString().toStdString() << "}";
+
+  if (xRadius().isSet())
+    std::cerr << " -rx {" << xRadius().toString().toStdString() << "}";
+
+  if (yRadius().isSet())
+    std::cerr << " -ry {" << yRadius().toString().toStdString() << "}";
+
+  writeFill();
+
+  writeStroke();
+
+  if (cornerSize().isSet())
+    std::cerr << " -corner_size " << cornerSize();
+
+  if (! borderSides().isAll())
+    std::cerr << " -border_sides " << borderSides().toString().toStdString();
+
+  std::cerr << "\n";
+}
+
 //---
 
 CQChartsPolygonAnnotation::
@@ -751,6 +866,31 @@ draw(QPainter *painter)
   //---
 
   CQChartsAnnotation::draw(painter);
+}
+
+void
+CQChartsPolygonAnnotation::
+write() const
+{
+  writeKeys("create_polygon_shape");
+
+  if (points().length()) {
+    std::cerr << " -points {";
+
+    for (int i = 0; i < points().length(); ++i) {
+      const QPointF &p = points()[i];
+
+      std::cerr << "{" << p.x() << " " << p.y() << "}";
+    }
+
+    std::cerr << "}";
+  }
+
+  writeFill();
+
+  writeStroke();
+
+  std::cerr << "\n";
 }
 
 //---
@@ -915,6 +1055,31 @@ draw(QPainter *painter)
   //---
 
   CQChartsAnnotation::draw(painter);
+}
+
+void
+CQChartsPolylineAnnotation::
+write() const
+{
+  writeKeys("create_polyline_shape");
+
+  if (points().length()) {
+    std::cerr << " -points {";
+
+    for (int i = 0; i < points().length(); ++i) {
+      const QPointF &p = points()[i];
+
+      std::cerr << "{" << p.x() << " " << p.y() << "}";
+    }
+
+    std::cerr << "}";
+  }
+
+  writeFill();
+
+  writeStroke();
+
+  std::cerr << "\n";
 }
 
 //---
@@ -1235,6 +1400,49 @@ draw(QPainter *painter)
   CQChartsAnnotation::draw(painter);
 }
 
+void
+CQChartsTextAnnotation::
+write() const
+{
+  writeKeys("create_text_shape");
+
+  if (position().isSet())
+    std::cerr << " -position {" << position().toString().toStdString() << "}";
+
+  if (textStr().length())
+    std::cerr << " -text {" << textStr().toStdString() << "}";
+
+  if (textFont() != view()->font())
+    std::cerr << " -font {" << textFont().toString().toStdString() << "}";
+
+  if (textColor().isValid())
+    std::cerr << " -color {" << textColor().toString().toStdString() << "}";
+
+  if (textAlpha() != 1.0)
+    std::cerr << " -alpha " << textAlpha();
+
+  if (isTextContrast())
+    std::cerr << " -contrast 1";
+
+  if (textAlign() != (Qt::AlignLeft | Qt::AlignVCenter))
+    std::cerr << " -align {" << CQAlignEdit::toString(textAlign()).toStdString() << "}";
+
+  if (isHtml())
+    std::cerr << " -html";
+
+  writeFill();
+
+  writeStroke();
+
+  if (cornerSize().isSet())
+    std::cerr << " -corner_size " << cornerSize();
+
+  if (! borderSides().isAll())
+    std::cerr << " -border_sides " << borderSides().toString().toStdString();
+
+  std::cerr << "\n";
+}
+
 //---
 
 CQChartsArrowAnnotation::
@@ -1305,8 +1513,6 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(fillPath  , arrow_, "filled"     , "visible");
   model->addProperty(fillPath  , arrow_, "fillColor"  , "color"  );
   model->addProperty(fillPath  , arrow_, "fillAlpha"  , "alpha"  );
-
-  model->addProperty(path1, arrow_, "debugTextVisible", "debugLabels");
 }
 
 QString
@@ -1457,6 +1663,51 @@ draw(QPainter *painter)
   //---
 
   CQChartsAnnotation::draw(painter);
+}
+
+void
+CQChartsArrowAnnotation::
+write() const
+{
+  writeKeys("create_arrow_shape");
+
+  if (start().isSet())
+    std::cerr << " -start {" << start().toString().toStdString() << "}";
+
+  if (end().isSet())
+    std::cerr << " -end {" << end().toString().toStdString() << "}";
+
+  if (arrow()->length().isSet())
+    std::cerr << " -length {" << arrow()->length().toString().toStdString() << "}";
+
+  if (arrow()->angle() != 0.0)
+    std::cerr << " -angle " << arrow()->angle();
+
+  if (arrow()->backAngle() != 0.0)
+    std::cerr << " -back_angle " << arrow()->backAngle();
+
+  if (arrow()->isFHead())
+    std::cerr << " -fhead 1";
+
+  if (arrow()->isTHead())
+    std::cerr << " -thead 1";
+
+  if (arrow()->isEmpty())
+    std::cerr << " -empty 1";
+
+  if (arrow()->borderWidth().isSet())
+    std::cerr << " -line_width {" << arrow()->borderWidth().toString().toStdString() << "}";
+
+  if (arrow()->borderColor().isValid())
+    std::cerr << " -stroke_color {" << arrow()->borderColor().toString().toStdString() << "}";
+
+  if (arrow()->isFilled())
+    std::cerr << " -filled 1";
+
+  if (arrow()->fillColor().isValid())
+    std::cerr << " -fill_color {" << arrow()->fillColor().toString().toStdString() << "}";
+
+  std::cerr << "\n";
 }
 
 //---
@@ -1642,4 +1893,43 @@ draw(QPainter *painter)
   //---
 
   CQChartsAnnotation::draw(painter);
+}
+
+void
+CQChartsPointAnnotation::
+write() const
+{
+  writeKeys("create_point_shape");
+
+  if (position().isSet())
+    std::cerr << " -position {" << position().toString().toStdString() << "}";
+
+  if (pointData().size.isSet())
+    std::cerr << " -size {" << pointData().size.toString().toStdString() << "}";
+
+  if (type() != CQChartsSymbol::Type::NONE)
+    std::cerr << " -type {" << type().toString().toStdString() << "}";
+
+  if (isBorder())
+    std::cerr << " -stroked 1";
+
+  if (isFilled())
+    std::cerr << " -filled 1";
+
+  if (borderWidth().isSet())
+    std::cerr << " -line_width {" << borderWidth().toString().toStdString() << "}";
+
+  if (borderColor().isValid())
+    std::cerr << " -line_color {" << borderColor().toString().toStdString() << "}";
+
+  if (borderAlpha() != 1.0)
+    std::cerr << " -line_alpha " << borderAlpha();
+
+  if (fillColor().isValid())
+    std::cerr << " -fill_color {" << fillColor().toString().toStdString() << "}";
+
+  if (fillAlpha() != 1.0)
+    std::cerr << " -fill_alpha " << fillAlpha();
+
+  std::cerr << "\n";
 }

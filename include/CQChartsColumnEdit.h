@@ -29,9 +29,9 @@ class CQChartsColumnEdit : public QFrame {
   QString placeholderText() const;
   void setPlaceholderText(const QString &s);
 
-  void paintEvent(QPaintEvent *);
+  void paintEvent(QPaintEvent *) override;
 
-  void resizeEvent(QResizeEvent *);
+  void resizeEvent(QResizeEvent *) override;
 
  signals:
   void textChanged(const QString &);
@@ -76,7 +76,7 @@ class CQChartsColumnEditMenuButton : public QPushButton {
  public:
   CQChartsColumnEditMenuButton(QWidget *parent=nullptr);
 
-  void paintEvent(QPaintEvent *);
+  void paintEvent(QPaintEvent *) override;
 };
 
 #endif

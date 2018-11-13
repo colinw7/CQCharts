@@ -15,6 +15,7 @@ class CQChartsModelDlg : public QDialog {
  ~CQChartsModelDlg();
 
  private slots:
+  void writeSlot();
   void plotSlot();
   void cancelSlot();
 

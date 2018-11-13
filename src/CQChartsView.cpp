@@ -85,8 +85,6 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  interfacePalette_ = new CQChartsGradientPalette;
-
   lightPaletteSlot();
 
   themeSlot("default");
@@ -171,8 +169,6 @@ CQChartsView::
     delete probeBand;
 
   delete popupMenu_;
-
-  delete interfacePalette_;
 
   CQToolTip::unsetToolTip(this);
 }
@@ -384,11 +380,43 @@ deselectAll()
     annotation->setSelected(false);
 }
 
+//---
+
+CQChartsThemeObj *
+CQChartsView::
+themeObj()
+{
+  return theme().obj();
+}
+
+const CQChartsThemeObj *
+CQChartsView::
+themeObj() const
+{
+  return theme().obj();
+}
+
+const CQChartsTheme &
+CQChartsView::
+theme() const
+{
+  return charts()->plotTheme();
+}
+
 void
 CQChartsView::
 setTheme(const CQChartsTheme &theme)
 {
-  CQChartsUtil::testAndSet(theme_, theme, [&]() { updateTheme(); } );
+  charts()->setPlotTheme(theme);
+
+  updateTheme();
+}
+
+CQChartsGradientPalette *
+CQChartsView::
+interfacePalette() const
+{
+  return charts()->interfaceTheme().palette();
 }
 
 CQChartsGradientPalette *
@@ -396,6 +424,13 @@ CQChartsView::
 themeGroupPalette(int i, int /*n*/) const
 {
   return themeObj()->palette(i);
+}
+
+CQChartsGradientPalette *
+CQChartsView::
+themePalette(int ind) const
+{
+  return themeObj()->palette(ind);
 }
 
 //---
@@ -541,6 +576,8 @@ addAnnotation(CQChartsAnnotation *annotation)
   connect(annotation, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
   annotation->addProperties(propertyModel(), "annotations");
+
+  emit annotationsChanged();
 }
 
 CQChartsAnnotation *
@@ -578,6 +615,8 @@ removeAnnotation(CQChartsAnnotation *annotation)
     annotations_[i - 1] = annotations_[i];
 
   annotations_.pop_back();
+
+  emit annotationsChanged();
 }
 
 void
@@ -588,6 +627,8 @@ removeAllAnnotations()
     delete annotation;
 
   annotations_.clear();
+
+  emit annotationsChanged();
 }
 
 //---
@@ -630,6 +671,7 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
 
   emit plotAdded(plot);
   emit plotAdded(plot->id());
+  emit plotsChanged();
 }
 
 void
@@ -682,6 +724,8 @@ void
 CQChartsView::
 removePlot(CQChartsPlot *plot)
 {
+  bool isCurrent = (plot == currentPlot(/*remap*/false));
+
   // build new list of plots without plot and check for match
   Plots plots;
 
@@ -715,6 +759,16 @@ removePlot(CQChartsPlot *plot)
   //---
 
   emit plotRemoved(id);
+  emit plotsChanged();
+
+  //---
+
+  if (isCurrent) {
+    if (plots_.empty())
+      setCurrentPlot(nullptr);
+    else
+      setCurrentPlot(plots_[0]);
+  }
 }
 
 void
@@ -734,6 +788,7 @@ removeAllPlots()
   setCurrentPlot(nullptr);
 
   emit allPlotsRemoved();
+  emit plotsChanged();
 }
 
 CQChartsPlot *
@@ -1086,33 +1141,28 @@ QColor
 CQChartsView::
 interpPaletteColor(double r, bool scale) const
 {
-  CQChartsGradientPalette *palette = this->themePalette();
-
-  QColor c = palette->getColor(r, scale);
-
-  return c;
+  return interpIndPaletteColor(0, r, scale);
 }
 
 QColor
 CQChartsView::
 interpIndPaletteColor(int ind, double r, bool scale) const
 {
-  CQChartsGradientPalette *palette = this->themePalette(ind);
+  return charts()->themePalette(ind)->getColor(r, scale);
+}
 
-  QColor c = palette->getColor(r, scale);
-
-  return c;
+QColor
+CQChartsView::
+interpGroupPaletteColor(int ig, int ng, double r, bool scale) const
+{
+  return charts()->themeGroupPalette(ig, ng)->getColor(r, scale);
 }
 
 QColor
 CQChartsView::
 interpThemeColor(double r) const
 {
-  //CQChartsView *th = const_cast<CQChartsView *>(this);
-
-  QColor c = interfacePalette()->getColor(r, /*scale*/true);
-
-  return c;
+  return charts()->interfaceTheme().interpColor(r, /*scale*/true);
 }
 
 //------
@@ -2903,7 +2953,7 @@ void
 CQChartsView::
 themeSlot(const QString &name)
 {
-  theme_ = CQChartsTheme(name);
+  setTheme(CQChartsTheme(name));
 
   updateTheme();
 }
@@ -2921,24 +2971,18 @@ updateTheme()
   emit themePalettesChanged();
 }
 
+bool
+CQChartsView::
+isDark() const
+{
+  return charts()->interfaceTheme().isDark();
+}
+
 void
 CQChartsView::
 setDark(bool b)
 {
-  isDark_ = b;
-
-  interfacePalette_->setColorType(CQChartsGradientPalette::ColorType::DEFINED);
-
-  interfacePalette_->resetDefinedColors();
-
-  if (! isDark_) {
-    interfacePalette_->addDefinedColor(0.0, QColor("#ffffff"));
-    interfacePalette_->addDefinedColor(1.0, QColor("#000000"));
-  }
-  else {
-    interfacePalette_->addDefinedColor(0.0, QColor("#222222"));
-    interfacePalette_->addDefinedColor(1.0, QColor("#dddddd"));
-  }
+  charts()->interfaceTheme().setDark(b);
 
   updatePlots();
 
@@ -3122,6 +3166,8 @@ updatePlots()
   for (auto &plot : plots_) {
     plot->invalidateLayers();
   }
+
+  update();
 }
 
 //------

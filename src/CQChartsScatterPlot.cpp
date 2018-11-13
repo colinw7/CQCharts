@@ -15,7 +15,6 @@
 #include <CQPerfMonitor.h>
 #include <CMathCorrelation.h>
 #include <CMathRound.h>
-#include <CQPerfMonitor.h>
 
 #include <QPainter>
 #include <QMenu>
@@ -803,30 +802,9 @@ updateObjs()
 
 bool
 CQChartsScatterPlot::
-initObjs()
-{
-  if (! dataRange_.isSet()) {
-    updateRange();
-
-    if (! dataRange_.isSet())
-      return false;
-  }
-
-  //---
-
-  if (! plotObjects().empty())
-    return false;
-
-  //---
-
-  return createObjs();
-}
-
-bool
-CQChartsScatterPlot::
 createObjs()
 {
-  CQPerfTrace trace("CQChartsScatterPlot::initObjs");
+  CQPerfTrace trace("CQChartsScatterPlot::createObjs");
 
   // init value set
   initValueSets();

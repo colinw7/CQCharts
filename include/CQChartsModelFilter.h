@@ -139,6 +139,9 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   void setSimpleFilter    (const QString &filter);
   void setSelectionFilter (bool invert);
 
+  bool isMapping() const { return mapping_; }
+  void setMapping(bool b) { mapping_ = b; }
+
   //---
 
   const Combine &filterCombine() const { return filterCombine_; }
@@ -206,6 +209,7 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   Combine                 filterCombine_  { Combine::AND };
   mutable IndexMatches    matches_;
   mutable ExpandInds      expand_;
+  bool                    mapping_        { true };
 };
 
 #endif

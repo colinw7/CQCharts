@@ -80,14 +80,18 @@ description() const
          "<p>Enabling the <b>Row Grouping</b> option groups bars by column header name "
          "instead of the normal <b>Group</b> columns.</p>\n"
          "<h2>Options</h2>\n"
-         "<p>Setting the <b>Stacked</b> Plot Type places grouped bars on top of each other "
-         "instead of the normal side by side placement.</p>\n"
+         "<p>Selecting the <b>Stacked</b> Plot Type places grouped bars on top of each other "
+         "instead of the <b>Normal</b> side by side placement.</p>\n"
+         "<p>Selecting the <b>Range</b> Value Type draws a bar for the range (min/max) of "
+         "the grouped values, selecting the <b>Min</b> Value Type draws a bar to the "
+         "minimum of the grouped values and selecting the <b>Max</b> Value Type draws a "
+         "bar to the maximum of the grouped values.</p>\n"
          "<p>Enabling the <b>Percent</b> option rescales the values to a percentage of the "
          "maximum and minimum of the values.</p>\n"
-         "<p>Enabling the <b>Range Bar</b> option draws a bar for the range (min/max) of "
-         "the grouped values.</p>\n"
          "<p>Enabling the <b>Horizontal</b> option draws the bars horizontally instead "
          "of vertically.</p>\n"
+         "<p>Enabling the <b>Dot Lines</b> option draws the bars as a single line with a"
+         "circle symol at the end.</p>\n"
          "<p>Enabling the <b>Color by Set</b> option colors bars in the same group the same "
          "color instead using different colors for each bar in the group.</p>\n";
 }
@@ -772,27 +776,6 @@ updateObjs()
   clearValueSets();
 
   CQChartsPlot::updateObjs();
-}
-
-bool
-CQChartsBarChartPlot::
-initObjs()
-{
-  if (! dataRange_.isSet()) {
-    updateRange();
-
-    if (! dataRange_.isSet())
-      return false;
-  }
-
-  //---
-
-  if (! plotObjs_.empty())
-    return false;
-
-  //---
-
-  return createObjs();
 }
 
 bool

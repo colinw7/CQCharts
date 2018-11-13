@@ -49,7 +49,7 @@ class CQChartsViewStatusPos : public QLabel {
   const QString &text() const { return text_; }
   void setText(const QString &text);
 
-  void contextMenuEvent(QContextMenuEvent *e);
+  void contextMenuEvent(QContextMenuEvent *e) override;
 
  private slots:
   void posTextTypeAction(QAction *action);

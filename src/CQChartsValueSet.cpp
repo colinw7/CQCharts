@@ -497,9 +497,7 @@ init()
 
   //---
 
-  ivals_.clear();
-  rvals_.clear();
-  svals_.clear();
+  clearVals();
 
   bool ok;
 
@@ -544,4 +542,15 @@ init()
       tvals_.addValue(ok ? OptReal(t) : OptReal());
     }
   }
+}
+
+void
+CQChartsValueSet::
+clearVals()
+{
+  ivals_.clear();
+  rvals_.clear();
+  svals_.clear();
+  cvals_.clear();
+  tvals_.clear();
 }

@@ -524,9 +524,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   CQChartsGeom::BBox annotationBBox() const override;
 
-  bool initObjs() override;
-
-  bool createObjs();
+  bool createObjs() override;
 
   bool initRawObjs ();
   bool initCalcObjs();

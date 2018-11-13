@@ -106,6 +106,44 @@ load(const QString &filename)
 
   resetColumnTypes();
 
+  //---
+
+  // process meta data
+  const CCsv::Data &meta = csv.meta();
+
+  if (! meta.empty()) {
+    for (const auto &fields : meta) {
+      int numFields = fields.size();
+
+      // column <column_name> <value_type> <value>
+      if      (fields[0] == "column") {
+        if (numFields == 4) {
+          std::string name  = fields[1];
+          std::string type  = fields[2];
+          std::string value = fields[3];
+
+          int icolumn = modelColumnNameToInd(name.c_str());
+
+          if (type == "type") {
+            CQBaseModel::Type columnType = nameType(value.c_str());
+
+            if (columnType != Type::NONE)
+              setColumnType(icolumn, columnType);
+          }
+        }
+      }
+      // global <name> <value>
+      else if (fields[0] == "global") {
+        if (numFields == 3) {
+          std::string name  = fields[1];
+          std::string value = fields[2];
+
+          setNameValue(name.c_str(), value.c_str());
+        }
+      }
+    }
+  }
+
   return true;
 }
 

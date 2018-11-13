@@ -15,11 +15,68 @@
 #include <QLabel>
 #include <QPushButton>
 
+class CQChartsParamEdit : public QFrame {
+ public:
+  CQChartsParamEdit(QWidget *parent=nullptr) :
+   QFrame(parent) {
+    layout_ = new QHBoxLayout(this);
+    layout_->setMargin(0); layout_->setSpacing(0);
+  }
+
+  void setString(const QString &str="") {
+    reset();
+
+    edit_ = new QLineEdit;
+
+    edit_->setText(str);
+
+    layout_->addWidget(edit_);
+  }
+
+  void setBool(bool b=false) {
+    reset();
+
+    check_ = new QCheckBox;
+
+    check_->setChecked(b);
+
+    layout_->addWidget(check_);
+  }
+
+  QString getString() const {
+    assert(edit_);
+
+    return edit_->text().simplified();
+  }
+
+  bool getBool() const {
+    assert(check_);
+
+    return check_->isChecked();
+  }
+
+  void reset() {
+    delete edit_;
+    delete check_;
+
+    edit_  = nullptr;
+    check_ = nullptr;
+  }
+
+ private:
+  QHBoxLayout *layout_ { nullptr };
+  QLineEdit   *edit_   { nullptr };
+  QCheckBox   *check_  { nullptr };
+};
+
+//---
+
 CQChartsModelControl::
 CQChartsModelControl(CQCharts *charts) :
  charts_(charts)
 {
   QVBoxLayout *layout = new QVBoxLayout(this);
+  layout->setMargin(0); layout->setSpacing(2);
 
   //---
 
@@ -36,12 +93,14 @@ CQChartsModelControl(CQCharts *charts) :
   controlTab->addTab(exprFrame, "Expression");
 
   QVBoxLayout *exprFrameLayout = new QVBoxLayout(exprFrame);
+  exprFrameLayout->setMargin(0); exprFrameLayout->setSpacing(2);
 
   //--
 
   QFrame *exprModeFrame = CQUtil::makeWidget<QFrame>("exprMode");
 
   QHBoxLayout *exprModeLayout = new QHBoxLayout(exprModeFrame);
+  exprModeLayout->setMargin(0); exprModeLayout->setSpacing(2);
 
   exprFrameLayout->addWidget(exprModeFrame);
 
@@ -67,6 +126,7 @@ CQChartsModelControl(CQCharts *charts) :
   //--
 
   QGridLayout *exprGridLayout = new QGridLayout;
+  exprGridLayout->setMargin(0); exprGridLayout->setSpacing(2);
 
   exprFrameLayout->addLayout(exprGridLayout);
 
@@ -138,6 +198,7 @@ CQChartsModelControl(CQCharts *charts) :
   //--
 
   QHBoxLayout *exprButtonLayout = new QHBoxLayout;
+  exprButtonLayout->setMargin(0); exprButtonLayout->setSpacing(2);
 
   exprFrameLayout->addLayout(exprButtonLayout);
 
@@ -158,10 +219,12 @@ CQChartsModelControl(CQCharts *charts) :
   controlTab->addTab(foldFrame, "Fold");
 
   QVBoxLayout *foldFrameLayout = new QVBoxLayout(foldFrame);
+  foldFrameLayout->setMargin(0); foldFrameLayout->setSpacing(2);
 
   //---
 
   QGridLayout *foldWidgetsLayout = new QGridLayout;
+  foldWidgetsLayout->setMargin(0); foldWidgetsLayout->setSpacing(2);
 
   foldFrameLayout->addLayout(foldWidgetsLayout);
 
@@ -189,6 +252,7 @@ CQChartsModelControl(CQCharts *charts) :
   //--
 
   QHBoxLayout *foldButtonLayout = new QHBoxLayout;
+  foldButtonLayout->setMargin(0); foldButtonLayout->setSpacing(2);
 
   foldFrameLayout->addLayout(foldButtonLayout);
 
@@ -216,12 +280,14 @@ CQChartsModelControl(CQCharts *charts) :
   controlTab->addTab(columnDataFrame, "Column Data");
 
   QVBoxLayout *columnDataLayout = new QVBoxLayout(columnDataFrame);
+  columnDataLayout->setMargin(0); columnDataLayout->setSpacing(2);
 
   //---
 
   columnEditData_.editFrame = CQUtil::makeWidget<QFrame>("columnEditFrame");
 
   columnEditData_.editLayout = new QGridLayout(columnEditData_.editFrame);
+  columnEditData_.editLayout->setMargin(0); columnEditData_.editLayout->setSpacing(2);
 
   columnDataLayout->addWidget(columnEditData_.editFrame);
 
@@ -231,10 +297,6 @@ CQChartsModelControl(CQCharts *charts) :
     addLineEdit(columnEditData_.editLayout, columnEditData_.row, "Number", "number");
   columnEditData_.nameEdit =
     addLineEdit(columnEditData_.editLayout, columnEditData_.row, "Name"  , "name"  );
-#if 0
-  columnEditData_.typeEdit =
-    addLineEdit(columnEditData_.editLayout, columnEditData_.row, "Type"  , "type"  );
-#else
   columnEditData_.typeCombo =
     addComboBox(columnEditData_.editLayout, columnEditData_.row, "Type"  , "type"  );
 
@@ -245,25 +307,24 @@ CQChartsModelControl(CQCharts *charts) :
   columnTypeMgr->typeNames(typeNames);
 
   columnEditData_.typeCombo->addItems(typeNames);
-#endif
 
   columnEditData_.numEdit ->setToolTip("Column Number");
   columnEditData_.nameEdit->setToolTip("Column Name");
-#if 0
-  columnEditData_.typeEdit->setToolTip("Column Type");
-#else
   columnEditData_.typeCombo->setToolTip("Column Type");
-#endif
 
   columnEditData_.editLayout->setRowStretch(columnEditData_.row, 1);
+
+  connect(columnEditData_.typeCombo, SIGNAL(currentIndexChanged(int)),
+          this, SLOT(typeChangedSlot()));
 
   //---
 
   QHBoxLayout *columnButtonLayout = new QHBoxLayout;
+  columnButtonLayout->setMargin(0); columnButtonLayout->setSpacing(2);
 
   columnDataLayout->addLayout(columnButtonLayout);
 
-  QPushButton *typeApplyButton = CQUtil::makeWidget<QPushButton>("typeSet");
+  QPushButton *typeApplyButton = CQUtil::makeWidget<QPushButton>("typeApply");
 
   typeApplyButton->setText("Apply");
 
@@ -470,6 +531,12 @@ updateModelDetails()
 
 void
 CQChartsModelControl::
+typeChangedSlot()
+{
+}
+
+void
+CQChartsModelControl::
 typeApplySlot()
 {
   if (! modelData_)
@@ -499,11 +566,7 @@ typeApplySlot()
 
   //---
 
-#if 0
-  QString typeStr = columnEditData_.typeEdit->text();
-#else
   QString typeStr = columnEditData_.typeCombo->currentText();
-#endif
 
 #if 0
   if (! CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, typeStr)) {
@@ -522,8 +585,20 @@ typeApplySlot()
     CQChartsNameValues nameValues;
 
     for (const auto &paramEdit : columnEditData_.paramEdits) {
-      QString name  = paramEdit.label->text();
-      QString value = paramEdit.edit ->text().simplified();
+      QString name = paramEdit.label->text();
+
+      const CQChartsColumnTypeParam *param = typeData->getParam(name);
+      if (! param) continue;
+
+      QString value;
+
+      if (param->type() == CQBaseModel::Type::BOOLEAN) {
+        bool b = paramEdit.edit->getBool();
+
+        value = (b ? "1" : "0");
+      }
+      else
+        value = paramEdit.edit->getString();
 
       if (value != "")
         nameValues[name] = value;
@@ -531,6 +606,8 @@ typeApplySlot()
 
     columnTypeMgr->setModelColumnType(model.data(), column, columnType, nameValues);
   }
+
+  setColumnData(column);
 }
 
 void
@@ -555,23 +632,21 @@ setColumnData(int column)
   //---
 
   CQBaseModel::Type  columnType;
+  CQBaseModel::Type  columnBaseType;
   CQChartsNameValues nameValues;
 
-  if (CQChartsUtil::columnValueType(charts_, model.data(), column, columnType, nameValues)) {
+  if (CQChartsUtil::columnValueType(charts_, model.data(), column, columnType,
+                                    columnBaseType, nameValues)) {
     CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
     CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
 
     //QString typeStr = columnTypeMgr->encodeTypeData(columnType, nameValues);
 
-#if 0
-    columnEditData_.typeEdit->setText(typeData->name());
-#else
     int typeInd = columnEditData_.typeCombo->findText(typeData->name());
 
     if (typeInd >= 0)
       columnEditData_.typeCombo->setCurrentIndex(typeInd);
-#endif
 
     int paramInd = 0;
 
@@ -583,7 +658,7 @@ setColumnData(int column)
 
         paramEdit.row   = columnEditData_.row + paramInd;
         paramEdit.label = new QLabel;
-        paramEdit.edit  = new QLineEdit;
+        paramEdit.edit  = new CQChartsParamEdit;
 
         columnEditData_.editLayout->addWidget(paramEdit.label, paramEdit.row, 0);
         columnEditData_.editLayout->addWidget(paramEdit.edit , paramEdit.row, 1);
@@ -594,7 +669,11 @@ setColumnData(int column)
       ParamEdit &paramEdit = columnEditData_.paramEdits[paramInd];
 
       paramEdit.label->setText(param.name());
-      paramEdit.edit ->setText(nameValues[param.name()].toString());
+
+      if (param.type() == CQBaseModel::Type::BOOLEAN)
+        paramEdit.edit->setBool(nameValues[param.name()].toBool());
+      else
+        paramEdit.edit->setString(nameValues[param.name()].toString());
 
       paramEdit.label->setObjectName(param.name() + "_label");
       paramEdit.edit ->setObjectName(param.name() + "_edit" );
@@ -619,10 +698,6 @@ setColumnData(int column)
     columnEditData_.editLayout->invalidate();
   }
   else {
-#if 0
-    columnEditData_.typeEdit->setText("");
-#else
     columnEditData_.typeCombo->setCurrentIndex(-1);
-#endif
   }
 }

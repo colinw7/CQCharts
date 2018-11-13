@@ -2,6 +2,7 @@
 #define CQCharts_H
 
 #include <CQBaseModel.h>
+#include <CQChartsTheme.h>
 
 #include <QObject>
 #include <QAbstractItemModel>
@@ -56,6 +57,30 @@ class CQCharts : public QObject {
   //---
 
   CQChartsColumnTypeMgr *columnTypeMgr() const { return columnTypeMgr_; }
+
+  //---
+
+  const CQChartsInterfaceTheme &interfaceTheme() const { return interfaceTheme_; }
+  CQChartsInterfaceTheme &interfaceTheme() { return interfaceTheme_; }
+
+  const CQChartsTheme &plotTheme() const { return plotTheme_; }
+  CQChartsTheme &plotTheme() { return plotTheme_; }
+
+  void setPlotTheme(const CQChartsTheme &theme);
+
+  //---
+
+  QColor interpPaletteColor(double r, bool scale=false) const;
+  QColor interpIndPaletteColor(int ind, double r, bool scale=false) const;
+
+  QColor interpThemeColor(double r) const;
+
+  CQChartsGradientPalette *themeGroupPalette(int i, int n) const;
+
+  CQChartsGradientPalette *themePalette(int ind) const;
+
+  const CQChartsThemeObj *themeObj() const;
+  CQChartsThemeObj *themeObj();
 
   //---
 
@@ -123,18 +148,22 @@ class CQCharts : public QObject {
 
   void plotAdded(CQChartsPlot *plot);
 
+  void themeChanged();
+
  private:
   int addModelData(ModelP &model);
 
  private:
   using NameViews = std::map<QString,CQChartsView*>;
 
-  CQChartsPlotTypeMgr*   plotTypeMgr_     { nullptr };
-  CQChartsColumnTypeMgr* columnTypeMgr_   { nullptr };
-  int                    currentModelInd_ { -1 };
-  ModelDatas             modelDatas_;
-  NameViews              views_;
-  Procs                  procs_;
+  CQChartsPlotTypeMgr*   plotTypeMgr_     { nullptr }; // plot type manager
+  CQChartsColumnTypeMgr* columnTypeMgr_   { nullptr }; // column type manager
+  CQChartsInterfaceTheme interfaceTheme_;              // interface theme
+  CQChartsTheme          plotTheme_;                   // plot theme
+  int                    currentModelInd_ { -1 };      // current model index
+  ModelDatas             modelDatas_;                  // model datas
+  NameViews              views_;                       // views
+  Procs                  procs_;                       // tcl procs
 };
 
 #endif

@@ -441,3 +441,9 @@ addSummaryModel()
 
   return summaryModel_;
 }
+
+void
+CQChartsModelData::
+write()
+{
+}

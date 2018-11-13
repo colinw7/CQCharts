@@ -5,6 +5,13 @@ CQChartsColumnBucket::
 CQChartsColumnBucket(ColumnType columnType) :
  columnType_(columnType)
 {
+  valueSet_ = new CQChartsValueSet;
+}
+
+CQChartsColumnBucket::
+~CQChartsColumnBucket()
+{
+  delete valueSet_;
 }
 
 void
@@ -80,9 +87,7 @@ void
 CQChartsColumnBucket::
 clear()
 {
-  rvals_.clear();
-  ivals_.clear();
-  svals_.clear();
+  valueSet_->clearVals();
 
   indName_.clear();
 }
@@ -122,21 +127,21 @@ int
 CQChartsColumnBucket::
 addReal(double r)
 {
-  return rvals_.addValue(r);
+  return valueSet_->rvals().addValue(r);
 }
 
 int
 CQChartsColumnBucket::
 addInteger(int i)
 {
-  return ivals_.addValue(i);
+  return valueSet_->ivals().addValue(i);
 }
 
 int
 CQChartsColumnBucket::
 addString(const QString &s)
 {
-  return svals_.addValue(s);
+  return valueSet_->svals().addValue(s);
 }
 
 int
@@ -149,20 +154,20 @@ ind(const QVariant &value) const
     double r = CQChartsVariant::toReal(value, ok);
     if (! ok) return 0;
 
-    return rvals_.id(r);
+    return valueSet_->rvals().id(r);
   }
   else if (columnType() == ColumnType::INTEGER) {
     long i = CQChartsVariant::toInt(value, ok);
     if (! ok) return 0;
 
-    return ivals_.id(i);
+    return valueSet_->ivals().id(i);
   }
   else if (columnType() == ColumnType::STRING) {
     QString s;
 
     CQChartsVariant::toString(value, s);
 
-    return svals_.id(s);
+    return valueSet_->svals().id(s);
   }
   else
     return 0;
@@ -172,7 +177,7 @@ int
 CQChartsColumnBucket::
 ind(const QString &s) const
 {
-  return svals_.id(s);
+  return valueSet_->svals().id(s);
 }
 
 int
@@ -197,7 +202,7 @@ sbucket(const QVariant &value) const
 
     CQChartsVariant::toString(value, s);
 
-    return svals_.sbucket(s);
+    return valueSet_->svals().sbucket(s);
   }
   else
     return -1;
@@ -214,7 +219,7 @@ buckets(int ind) const
     return "";
   }
   else if (columnType() == ColumnType::STRING) {
-    return svals_.buckets(ind);
+    return valueSet_->svals().buckets(ind);
   }
   else
     return "";
@@ -231,40 +236,58 @@ QString
 CQChartsColumnBucket::
 iname(int ind) const
 {
-  if      (columnType() == ColumnType::REAL   ) return QString("%1").arg(rvals_.ivalue(ind));
-  else if (columnType() == ColumnType::INTEGER) return QString("%1").arg(ivals_.ivalue(ind));
-  else if (columnType() == ColumnType::STRING ) return svals_.ivalue(ind);
-  else                                          return "";
+  if      (columnType() == ColumnType::REAL   )
+    return QString("%1").arg(valueSet_->rvals().ivalue(ind));
+  else if (columnType() == ColumnType::INTEGER)
+    return QString("%1").arg(valueSet_->ivals().ivalue(ind));
+  else if (columnType() == ColumnType::STRING )
+    return valueSet_->svals().ivalue(ind);
+  else
+    return "";
 }
 
 int
 CQChartsColumnBucket::
 numUnique() const
 {
-  if      (columnType() == ColumnType::REAL   ) return rvals_.numUnique();
-  else if (columnType() == ColumnType::INTEGER) return ivals_.numUnique();
-  else if (columnType() == ColumnType::STRING ) return svals_.numUnique();
-  else                                          return 0;
+  if      (columnType() == ColumnType::REAL)
+    return valueSet_->rvals().numUnique();
+  else if (columnType() == ColumnType::INTEGER)
+    return valueSet_->ivals().numUnique();
+  else if (columnType() == ColumnType::STRING)
+    return valueSet_->svals().numUnique();
+  else
+    return 0;
 }
 
 int
 CQChartsColumnBucket::
 imin() const
 {
-  if      (columnType() == ColumnType::REAL   ) return rvals_.imin();
-  else if (columnType() == ColumnType::INTEGER) return ivals_.imin();
-  else if (columnType() == ColumnType::STRING ) return svals_.imin();
-  else                                          { assert(false); return 0; }
+  if      (columnType() == ColumnType::REAL)
+    return valueSet_->rvals().imin();
+  else if (columnType() == ColumnType::INTEGER)
+    return valueSet_->ivals().imin();
+  else if (columnType() == ColumnType::STRING)
+    return valueSet_->svals().imin();
+  else {
+    assert(false); return 0;
+  }
 }
 
 int
 CQChartsColumnBucket::
 imax() const
 {
-  if      (columnType() == ColumnType::REAL   ) return rvals_.imax();
-  else if (columnType() == ColumnType::INTEGER) return ivals_.imax();
-  else if (columnType() == ColumnType::STRING ) return svals_.imax();
-  else                                          { assert(false); return 0; }
+  if      (columnType() == ColumnType::REAL)
+    return valueSet_->rvals().imax();
+  else if (columnType() == ColumnType::INTEGER)
+    return valueSet_->ivals().imax();
+  else if (columnType() == ColumnType::STRING)
+    return valueSet_->svals().imax();
+  else {
+    assert(false); return 0;
+  }
 }
 
 void

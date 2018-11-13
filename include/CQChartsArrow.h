@@ -8,11 +8,8 @@
 class CQChartsPlot;
 class QPainter;
 
-CQCHARTS_NAMED_TEXT_DATA(Debug,debug)
-
 class CQChartsArrow : public QObject,
- public CQChartsObjShapeData    <CQChartsArrow>,
- public CQChartsObjDebugTextData<CQChartsArrow> {
+ public CQChartsObjShapeData<CQChartsArrow> {
   Q_OBJECT
 
   Q_PROPERTY(bool           visible   READ isVisible  WRITE setVisible  )
@@ -27,8 +24,6 @@ class CQChartsArrow : public QObject,
   Q_PROPERTY(bool           empty     READ isEmpty    WRITE setEmpty    )
 
   CQCHARTS_SHAPE_DATA_PROPERTIES
-
-  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Debug,debug)
 
  public:
   CQChartsArrow(CQChartsView *view, const QPointF &from=QPointF(0,0),

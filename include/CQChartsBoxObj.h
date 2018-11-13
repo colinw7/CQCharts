@@ -58,8 +58,19 @@ class CQChartsBoxObj : public CQChartsObj,
 
   //---
 
-  const CQChartsBoxData &boxData() const { return boxData_; }
-  void setBoxData(const CQChartsBoxData &data) { boxData_ = data; }
+  CQChartsBoxData boxData() const {
+    CQChartsBoxData data = boxData_;
+
+    data.shape = shapeData();
+
+    return data;
+  }
+
+  void setBoxData(const CQChartsBoxData &data) {
+    boxData_ = data;
+
+    setShapeData(data.shape);
+  }
 
   //---
 

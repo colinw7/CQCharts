@@ -407,7 +407,8 @@ valueStr(CQChartsPlot *plot, double pos) const
   if (formatStr_.length()) {
     QString str;
 
-    if (CQChartsUtil::formatColumnTypeValue(plot->charts(), formatStr_, pos, str))
+    if (CQChartsUtil::formatColumnTypeValue(plot->charts(), plot->model().data(),
+                                            column(), formatStr_, pos, str))
       return str;
   }
 

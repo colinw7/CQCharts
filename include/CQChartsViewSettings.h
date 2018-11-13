@@ -5,6 +5,7 @@
 
 class CQChartsWindow;
 class CQChartsPlot;
+class CQChartsAnnotation;
 class CQChartsFilterEdit;
 class CQChartsGradientPaletteCanvas;
 class CQChartsGradientPaletteControl;
@@ -28,11 +29,14 @@ class CQChartsViewSettings : public QFrame {
   Q_OBJECT
 
  public:
-  using Plots = std::vector<CQChartsPlot *>;
+  using Plots       = std::vector<CQChartsPlot *>;
+  using Annotations = std::vector<CQChartsAnnotation *>;
 
  public:
   CQChartsViewSettings(CQChartsWindow *window);
  ~CQChartsViewSettings();
+
+  CQChartsWindow *window() const { return window_; }
 
  signals:
   void propertyItemSelected(QObject *obj, const QString &path);
@@ -46,6 +50,8 @@ class CQChartsViewSettings : public QFrame {
   void updatePlots();
   void updateCurrentPlot();
 
+  void updateAnnotations();
+
   void updateLayers();
 
   void paletteIndexSlot(int ind);
@@ -58,14 +64,20 @@ class CQChartsViewSettings : public QFrame {
   void replaceSearchSlot(const QString &text);
   void addSearchSlot(const QString &text);
 
+  //---
+
   void modelsSelectionChangeSlot();
 
   void loadModelSlot();
 
-  void plotsSelectionChangeSlot();
+  //---
 
   void layersSelectionChangeSlot();
   void layersClickedSlot(int, int);
+
+  //---
+
+  void plotsSelectionChangeSlot();
 
   void groupPlotsSlot();
 
@@ -77,6 +89,17 @@ class CQChartsViewSettings : public QFrame {
   void removePlotsSlot();
 
   void createPlotSlot();
+  void writePlotSlot();
+
+  //---
+
+  void viewAnnotationSelectionChangeSlot();
+  void plotAnnotationSelectionChangeSlot();
+
+  void removeAnnotationsSlot();
+  void writeAnnotationSlot();
+
+  //---
 
   void updatePalettes();
   void updateInterface();
@@ -94,9 +117,20 @@ class CQChartsViewSettings : public QFrame {
   CQChartsGradientPaletteControl *palettesControl() const {
     return themeWidgets_.palettesControl; }
 
+  void addWidgets();
+
+  void initPropertiesFrame (QFrame *propertiesFrame);
+  void initModelsFrame     (QFrame *modelsFrame);
+  void initPlotsFrame      (QFrame *plotsFrame);
+  void initAnnotationsFrame(QFrame *annotationsFrame);
+  void initThemeFrame      (QFrame *themeFrame);
+  void initLayersFrame     (QFrame *layersFrame);
+
   CQChartsPlot *getSelectedPlot() const;
 
   void getSelectedPlots(Plots &plots) const;
+
+  void getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotations) const;
 
  private:
   struct PropertiesWidgets {
@@ -125,6 +159,12 @@ class CQChartsViewSettings : public QFrame {
     QPushButton*   removeButton         { nullptr };
   };
 
+  struct AnnotationsWidgets {
+    QTableWidget* viewTable    { nullptr };
+    QTableWidget* plotTable    { nullptr };
+    QPushButton*  removeButton { nullptr };
+  };
+
   struct ThemeWidgets {
     QSpinBox*                       palettesSpin       { nullptr }; // palettes index spin
     QComboBox*                      palettesCombo      { nullptr }; // palettes name combo
@@ -139,17 +179,18 @@ class CQChartsViewSettings : public QFrame {
     QTableWidget* layerTable { nullptr };
   };
 
-  CQChartsWindow*   window_            { nullptr }; // parent window
-  QTabWidget*       tab_               { nullptr }; // settings/palette tab
-  PropertiesWidgets propertiesWidgets_;             // properties widgets
-  ModelsWidgets     modelsWidgets_;                 // models widgets
-  PlotsWidgets      plotsWidgets_;                  // plots widgets
-  ThemeWidgets      themeWidgets_;                  // theme widgets
-  LayersWidgets     layersWidgets_;                 // layers widgets
-  CQChartsLoadDlg*  loadDlg_           { nullptr }; // load dalog
-  CQChartsPlotDlg*  plotDlg_           { nullptr }; // plot dalog
-  QString           plotId_;                        // current plot id
-  bool              modelDetailsValid_ { false };   // model details valid
+  CQChartsWindow*    window_             { nullptr }; // parent window
+  QTabWidget*        tab_                { nullptr }; // settings/palette tab
+  PropertiesWidgets  propertiesWidgets_;              // properties widgets
+  ModelsWidgets      modelsWidgets_;                  // models widgets
+  PlotsWidgets       plotsWidgets_;                   // plots widgets
+  AnnotationsWidgets annotationsWidgets_;             // annotations widgets
+  ThemeWidgets       themeWidgets_;                   // theme widgets
+  LayersWidgets      layersWidgets_;                  // layers widgets
+  CQChartsLoadDlg*   loadDlg_            { nullptr }; // load dalog
+  CQChartsPlotDlg*   plotDlg_            { nullptr }; // plot dalog
+  QString            plotId_;                         // current plot id
+  bool               modelDetailsValid_  { false };   // model details valid
 };
 
 #endif

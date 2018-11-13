@@ -155,9 +155,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   CQChartsGeom::Range calcRange() override;
 
-  bool initObjs() override;
-
-  bool createObjs();
+  bool createObjs() override;
 
   //---
 

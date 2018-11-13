@@ -35,10 +35,16 @@ void initTypes() {
     addType(CQBaseModel::Type::BRUSH          , "brush"          );
     addType(CQBaseModel::Type::IMAGE          , "image"          );
     addType(CQBaseModel::Type::TIME           , "time"           );
+    addType(CQBaseModel::Type::SYMBOL         , "symbol"         );
+    addType(CQBaseModel::Type::SYMBOL_SIZE    , "symbol_size"    );
+    addType(CQBaseModel::Type::FONT_SIZE      , "font_size"      );
     addType(CQBaseModel::Type::PATH           , "path"           );
     addType(CQBaseModel::Type::STYLE          , "style"          );
     addType(CQBaseModel::Type::CONNECTION_LIST, "connection_list");
     addType(CQBaseModel::Type::NAME_PAIR      , "name_pair"      );
+    addType(CQBaseModel::Type::COLUMN         , "column"         );
+    addType(CQBaseModel::Type::COLUMN_LIST    , "column_list"    );
+    addType(CQBaseModel::Type::ENUM           , "emum"           );
   }
 }
 
@@ -97,8 +103,11 @@ genColumnType(ColumnData &columnData)
       columnTypeData.type = Type::STRING;
   }
 
+  columnTypeData.baseType = columnTypeData.type;
+
   if (columnTypeData.type != columnData.type) {
-    columnData.type = columnTypeData.type;
+    columnData.type     = columnTypeData.type;
+    columnData.baseType = columnTypeData.baseType;
 
     emit columnTypeChanged(columnData.column);
   }
@@ -197,6 +206,42 @@ setColumnType(int column, Type type)
     columnData.type = type;
 
     emit columnTypeChanged(column);
+  }
+
+  return true;
+}
+
+CQBaseModel::Type
+CQBaseModel::
+columnBaseType(int column) const
+{
+  if (column < 0 || column >= columnCount())
+    return Type::NONE;
+
+  ColumnData &columnData = getColumnData(column);
+
+  if (columnData.type == Type::NONE) {
+    CQBaseModel *th = const_cast<CQBaseModel *>(this);
+
+    th->genColumnType(columnData);
+  }
+
+  return columnData.baseType;
+}
+
+bool
+CQBaseModel::
+setColumnBaseType(int column, Type type)
+{
+  if (column < 0 || column >= columnCount())
+    return false;
+
+  ColumnData &columnData = getColumnData(column);
+
+  if (type != columnData.baseType) {
+    columnData.baseType = type;
+
+    emit columnBaseTypeChanged(column);
   }
 
   return true;
@@ -476,6 +521,9 @@ headerData(int section, Qt::Orientation orientation, int role) const
     if      (role == static_cast<int>(Role::Type)) {
       return QVariant((int) columnType(section));
     }
+    else if (role == static_cast<int>(Role::BaseType)) {
+      return QVariant((int) columnBaseType(section));
+    }
     else if (role == static_cast<int>(Role::TypeValues)) {
       return QVariant(columnTypeValues(section));
     }
@@ -527,6 +575,14 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
       if (! ok) return false;
 
       return setColumnType(section, type);
+    }
+    else if (role == static_cast<int>(Role::BaseType)) {
+      bool ok;
+
+      Type type = variantToType(value, &ok);
+      if (! ok) return false;
+
+      return setColumnBaseType(section, type);
     }
     else if (role == static_cast<int>(Role::TypeValues)) {
       QString str = value.toString();
@@ -583,6 +639,45 @@ data(const QModelIndex &index, int role) const
 
   //return QAbstractItemModel::data(index, role);
   return QVariant();
+}
+
+//------
+
+int
+CQBaseModel::
+modelColumnNameToInd(const QString &name) const
+{
+  return modelColumnNameToInd(this, name);
+}
+
+int
+CQBaseModel::
+modelColumnNameToInd(const QAbstractItemModel *model, const QString &name)
+{
+  int role = Qt::DisplayRole;
+
+  for (int icolumn = 0; icolumn < model->columnCount(); ++icolumn) {
+    QVariant var = model->headerData(icolumn, Qt::Horizontal, role);
+
+    if (! var.isValid())
+      continue;
+
+    QString name1 = var.toString();
+
+    if (name == name1)
+      return icolumn;
+  }
+
+  //---
+
+  bool ok;
+
+  int column = name.toInt(&ok);
+
+  if (ok)
+    return column;
+
+  return -1;
 }
 
 //------

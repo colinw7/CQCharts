@@ -1,6 +1,7 @@
 #include <CQChartsColor.h>
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
+#include <CQCharts.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQChartsBoxObj.h>
@@ -9,11 +10,13 @@
 
 CQUTIL_DEF_META_TYPE(CQChartsColor, toString, fromString)
 
+int CQChartsColor::metaTypeId;
+
 void
 CQChartsColor::
 registerMetaType()
 {
-  CQUTIL_REGISTER_META(CQChartsColor);
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsColor);
 }
 
 QString
@@ -148,18 +151,9 @@ QColor
 CQChartsColor::
 interpColor(const CQChartsPlot *plot, int i, int n) const
 {
-  assert(isValid());
+  double r = CMathUtil::norm(i, 0, n - 1);
 
-  if (type() == Type::INTERFACE_VALUE) {
-    double r = CMathUtil::norm(i, 0, n - 1);
-
-    return interpColor(plot, r);
-  }
-  else {
-    double r = CMathUtil::norm(i, 0, n - 1);
-
-    return interpColor(plot, r);
-  }
+  return interpColor(plot, r);
 }
 
 QColor
@@ -194,18 +188,9 @@ QColor
 CQChartsColor::
 interpColor(const CQChartsView *view, int i, int n) const
 {
-  assert(isValid());
+  double r = CMathUtil::norm(i, 0, n - 1);
 
-  if (type() == Type::INTERFACE_VALUE) {
-    double r = CMathUtil::norm(i, 0, n);
-
-    return interpColor(view, r);
-  }
-  else {
-    double r = CMathUtil::norm(i + 1, 0, n + 1);
-
-    return interpColor(view, r);
-  }
+  return interpColor(view, r);
 }
 
 QColor
@@ -232,6 +217,43 @@ interpColor(const CQChartsView *view, double value) const
     return view->interpThemeColor(value);
   else if (type() == Type::INTERFACE_VALUE)
     return view->interpThemeColor(this->value());
+
+  return QColor(0, 0, 0);
+}
+
+QColor
+CQChartsColor::
+interpColor(const CQCharts *charts, int i, int n) const
+{
+  double r = CMathUtil::norm(i, 0, n - 1);
+
+  return interpColor(charts, r);
+}
+
+QColor
+CQChartsColor::
+interpColor(const CQCharts *charts, double value) const
+{
+  assert(isValid());
+
+  if      (type() == Type::COLOR)
+    return color();
+  else if (type() == Type::PALETTE) {
+    if (ind() == 0)
+      return charts->interpPaletteColor(value);
+    else
+      return charts->interpIndPaletteColor(ind(), value);
+  }
+  else if (type() == Type::PALETTE_VALUE) {
+    if (ind() == 0)
+      return charts->interpPaletteColor(this->value(), isScale());
+    else
+      return charts->interpIndPaletteColor(ind(), this->value(), isScale());
+  }
+  else if (type() == Type::INTERFACE)
+    return charts->interpThemeColor(value);
+  else if (type() == Type::INTERFACE_VALUE)
+    return charts->interpThemeColor(this->value());
 
   return QColor(0, 0, 0);
 }

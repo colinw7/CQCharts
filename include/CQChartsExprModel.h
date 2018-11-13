@@ -139,6 +139,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
     QString           expr;                                   // expression
     QString           header;                                 // header
     CQBaseModel::Type type       { CQBaseModel::Type::NONE }; // value type
+    CQBaseModel::Type baseType   { CQBaseModel::Type::NONE }; // value base type
     QString           typeValues;                             // type extra values
     NameValues        nameValues;                             // type named values
     VariantMap        variantMap;                             // calculated values

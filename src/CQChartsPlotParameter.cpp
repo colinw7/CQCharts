@@ -2,7 +2,7 @@
 #include <CQUtil.h>
 
 CQChartsPlotParameter::
-CQChartsPlotParameter(const QString &name, const QString &desc, const QString &type,
+CQChartsPlotParameter(const QString &name, const QString &desc, const Type &type,
                       const QString &propName, const Attributes &attributes,
                       const QVariant &defValue) :
  name_(name), desc_(desc), type_(type), propName_(propName), attributes_(attributes),

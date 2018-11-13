@@ -163,27 +163,6 @@ calcRange()
 
 bool
 CQChartsSankeyPlot::
-initObjs()
-{
-  if (! dataRange_.isSet()) {
-    updateRange();
-
-    if (! dataRange_.isSet())
-      return false;
-  }
-
-  //---
-
-  if (! plotObjs_.empty())
-    return false;
-
-  //---
-
-  return createObjs();
-}
-
-bool
-CQChartsSankeyPlot::
 createObjs()
 {
   CQPerfTrace trace("CQChartsSankeyPlot::createObjs");

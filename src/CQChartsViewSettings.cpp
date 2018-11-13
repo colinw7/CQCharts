@@ -10,8 +10,10 @@
 #include <CQChartsPlotDlg.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsAnnotation.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
+#include <CQPropertyViewItem.h>
 #include <CQIconCombo.h>
 #include <CQIntegerSpin.h>
 #include <CQUtil.h>
@@ -29,6 +31,70 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
+class CQChartsPropertyViewTree : public CQPropertyViewTree {
+ public:
+  CQChartsPropertyViewTree(CQChartsViewSettings *settings, CQPropertyViewModel *model) :
+   CQPropertyViewTree(settings, model), settings_(settings) {
+  }
+
+  void printItem(CQPropertyViewItem *item) const {
+    QObject *object = item->object();
+
+    QString dataStr = item->dataStr();
+    QString path    = item->path(".", /*alias*/true);
+
+    CQChartsPlot       *plot       = qobject_cast<CQChartsPlot       *>(object);
+    CQChartsAnnotation *annotation = qobject_cast<CQChartsAnnotation *>(object);
+
+    if      (plot) {
+      if (path.startsWith(plot->id()))
+        path = path.mid(plot->id().length() + 1);
+
+      std::cerr << "set_charts_property -plot " << plot->id().toStdString() <<
+                   " -name " << path.toStdString() <<
+                   " -value " << dataStr.toStdString() << "\n";
+    }
+    else if (annotation) {
+      CQChartsPlot *plot = annotation->plot();
+
+      if (plot) {
+        if (path.startsWith(plot->id()))
+          path = path.mid(plot->id().length() + 1);
+
+        if (path.startsWith("annotations."))
+          path = path.mid(12);
+
+        if (path.startsWith(annotation->propertyId()))
+          path = path.mid(annotation->propertyId().length() + 1);
+      }
+      else {
+        if (path.startsWith("annotations."))
+          path = path.mid(12);
+
+        if (path.startsWith(annotation->propertyId()))
+          path = path.mid(annotation->propertyId().length() + 1);
+      }
+
+      std::cerr << "set_charts_property -annotation " <<
+                   annotation->pathId().toStdString() <<
+                   " -name " << path.toStdString() <<
+                   " -value " << dataStr.toStdString() << "\n";
+    }
+    else {
+      CQChartsView *view = settings_->window()->view();
+
+      std::cerr << "set_charts_property -view " << view->id().toStdString() <<
+                   " -name " << path.toStdString() <<
+                   " -value " << dataStr.toStdString() << "\n";
+    }
+  }
+
+ private:
+  CQChartsViewSettings *settings_ { nullptr };
+};
+
+//---
+
 CQChartsViewSettings::
 CQChartsViewSettings(CQChartsWindow *window) :
  QFrame(window), window_(window)
@@ -41,14 +107,14 @@ CQChartsViewSettings(CQChartsWindow *window) :
   connect(charts, SIGNAL(currentModelChanged(int)), this, SLOT(invalidateModelDetails()));
   connect(charts, SIGNAL(modelNameChanged(const QString &)), this, SLOT(updateModels()));
 
-  connect(view, SIGNAL(plotAdded(const QString &)), this, SLOT(updatePlots()));
+  connect(view, SIGNAL(plotsChanged()), this, SLOT(updatePlots()));
   connect(view, SIGNAL(plotsReordered()), this, SLOT(updatePlots()));
-  connect(view, SIGNAL(plotRemoved(const QString &)), this, SLOT(updatePlots()));
-  connect(view, SIGNAL(allPlotsRemoved()), this, SLOT(updatePlots()));
 
   connect(view, SIGNAL(connectDataChanged()), this, SLOT(updatePlots()));
 
   connect(view, SIGNAL(currentPlotChanged()), this, SLOT(updateCurrentPlot()));
+
+  connect(view, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
 
   connect(window, SIGNAL(themePalettesChanged()), this, SLOT(updatePalettes()));
   connect(window, SIGNAL(interfacePaletteChanged()), this, SLOT(updateInterface()));
@@ -59,6 +125,18 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   setAutoFillBackground(true);
 
+  addWidgets();
+}
+
+CQChartsViewSettings::
+~CQChartsViewSettings()
+{
+}
+
+void
+CQChartsViewSettings::
+addWidgets()
+{
   QVBoxLayout *layout = new QVBoxLayout(this);
   layout->setMargin(0); layout->setSpacing(0);
 
@@ -76,10 +154,73 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   tab_->addTab(propertiesFrame, "Properties");
 
-  QVBoxLayout *propertiesLayout = new QVBoxLayout(propertiesFrame);
-  propertiesLayout->setMargin(0); propertiesLayout->setSpacing(2);
+  initPropertiesFrame(propertiesFrame);
 
   //--
+
+  // Models Tab
+  QFrame *modelsFrame = new QFrame;
+  modelsFrame->setObjectName("modelsFrame");
+
+  tab_->addTab(modelsFrame, "Models");
+
+  initModelsFrame(modelsFrame);
+
+  //--
+
+  // Plots Tab
+  QFrame *plotsFrame = new QFrame;
+  plotsFrame->setObjectName("plotsFrame");
+
+  tab_->addTab(plotsFrame, "Plots");
+
+  initPlotsFrame(plotsFrame);
+
+  //--
+
+  // Annotations Tab
+  QFrame *annotationsFrame = new QFrame;
+  annotationsFrame->setObjectName("annotationsFrame");
+
+  tab_->addTab(annotationsFrame, "Annotations");
+
+  initAnnotationsFrame(annotationsFrame);
+
+  //--
+
+  // Theme Tab
+  QFrame *themeFrame = new QFrame;
+  themeFrame->setObjectName("themeFrame");
+
+  tab_->addTab(themeFrame, "Theme");
+
+  initThemeFrame(themeFrame);
+
+  //--
+
+  // Layers Tab
+  QFrame *layersFrame = new QFrame;
+  layersFrame->setObjectName("layersFrame");
+
+  tab_->addTab(layersFrame, "Layers");
+
+  initLayersFrame(layersFrame);
+
+  //----
+
+  updateModels();
+
+  updateAnnotations();
+}
+
+//------
+
+void
+CQChartsViewSettings::
+initPropertiesFrame(QFrame *propertiesFrame)
+{
+  QVBoxLayout *propertiesLayout = new QVBoxLayout(propertiesFrame);
+  propertiesLayout->setMargin(0); propertiesLayout->setSpacing(2);
 
   propertiesWidgets_.filterEdit = new CQChartsFilterEdit;
 
@@ -95,21 +236,20 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   propertiesLayout->addWidget(propertiesWidgets_.filterEdit);
 
-  propertiesWidgets_.propertyTree = new CQPropertyViewTree(this, view->propertyModel());
+  CQChartsView *view = window_->view();
+
+  propertiesWidgets_.propertyTree = new CQChartsPropertyViewTree(this, view->propertyModel());
 
   connect(propertiesWidgets_.propertyTree, SIGNAL(itemSelected(QObject *, const QString &)),
           this, SIGNAL(propertyItemSelected(QObject *, const QString &)));
 
   propertiesLayout->addWidget(propertiesWidgets_.propertyTree);
+}
 
-  //----
-
-  // Models Tab
-  QFrame *modelsFrame = new QFrame;
-  modelsFrame->setObjectName("modelsFrame");
-
-  tab_->addTab(modelsFrame, "Models");
-
+void
+CQChartsViewSettings::
+initModelsFrame(QFrame *modelsFrame)
+{
   QVBoxLayout *modelsFrameLayout = new QVBoxLayout(modelsFrame);
 
   modelsWidgets_.modelTable = new QTableWidget;
@@ -160,15 +300,12 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   modelControlLayout->addWidget(loadModelButton);
   modelControlLayout->addStretch(1);
+}
 
-  //----
-
-  // Plots Tab
-  QFrame *plotsFrame = new QFrame;
-  plotsFrame->setObjectName("plotsFrame");
-
-  tab_->addTab(plotsFrame, "Charts");
-
+void
+CQChartsViewSettings::
+initPlotsFrame(QFrame *plotsFrame)
+{
   QVBoxLayout *plotsFrameLayout = new QVBoxLayout(plotsFrame);
 
   plotsWidgets_.plotTable = new QTableWidget;
@@ -297,37 +434,6 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   //----
 
-  QGroupBox *stackPlotsGroup = new QGroupBox("Modify");
-  stackPlotsGroup->setObjectName("stackPlotsGroup");
-
-  plotsFrameLayout->addWidget(stackPlotsGroup);
-
-  QHBoxLayout *stackPlotsGroupLayout = new QHBoxLayout(stackPlotsGroup);
-
-  plotsWidgets_.raiseButton = new QPushButton("Raise");
-  plotsWidgets_.raiseButton->setObjectName("raise");
-
-  plotsWidgets_.lowerButton = new QPushButton("Lower");
-  plotsWidgets_.lowerButton->setObjectName("lower");
-
-  plotsWidgets_.removeButton = new QPushButton("Remove");
-  plotsWidgets_.removeButton->setObjectName("remove");
-
-  plotsWidgets_.raiseButton ->setEnabled(false);
-  plotsWidgets_.lowerButton ->setEnabled(false);
-  plotsWidgets_.removeButton->setEnabled(false);
-
-  connect(plotsWidgets_.raiseButton , SIGNAL(clicked()), this, SLOT(raisePlotSlot()));
-  connect(plotsWidgets_.lowerButton , SIGNAL(clicked()), this, SLOT(lowerPlotSlot()));
-  connect(plotsWidgets_.removeButton, SIGNAL(clicked()), this, SLOT(removePlotsSlot()));
-
-  stackPlotsGroupLayout->addWidget(plotsWidgets_.raiseButton);
-  stackPlotsGroupLayout->addWidget(plotsWidgets_.lowerButton);
-  stackPlotsGroupLayout->addWidget(plotsWidgets_.removeButton);
-  stackPlotsGroupLayout->addStretch(1);
-
-  //----
-
   QGroupBox *controlPlotsGroup = new QGroupBox("Control");
   controlPlotsGroup->setObjectName("controlPlotsGroup");
 
@@ -335,22 +441,107 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   QHBoxLayout *controlPlotsGroupLayout = new QHBoxLayout(controlPlotsGroup);
 
+  plotsWidgets_.raiseButton = new QPushButton("Raise");
+  plotsWidgets_.raiseButton->setObjectName("raise");
+
+  plotsWidgets_.lowerButton = new QPushButton("Lower");
+  plotsWidgets_.lowerButton->setObjectName("lower");
+
   QPushButton *createPlotButton = new QPushButton("Create");
   createPlotButton->setObjectName("create");
 
-  connect(createPlotButton, SIGNAL(clicked()), this, SLOT(createPlotSlot()));
+  plotsWidgets_.removeButton = new QPushButton("Remove");
+  plotsWidgets_.removeButton->setObjectName("remove");
 
+  QPushButton *writePlotButton = new QPushButton("Write");
+  writePlotButton->setObjectName("write");
+
+  plotsWidgets_.raiseButton ->setEnabled(false);
+  plotsWidgets_.lowerButton ->setEnabled(false);
+  plotsWidgets_.removeButton->setEnabled(false);
+
+  connect(plotsWidgets_.raiseButton , SIGNAL(clicked()), this, SLOT(raisePlotSlot()));
+  connect(plotsWidgets_.lowerButton , SIGNAL(clicked()), this, SLOT(lowerPlotSlot()));
+  connect(createPlotButton          , SIGNAL(clicked()), this, SLOT(createPlotSlot()));
+  connect(plotsWidgets_.removeButton, SIGNAL(clicked()), this, SLOT(removePlotsSlot()));
+  connect(writePlotButton           , SIGNAL(clicked()), this, SLOT(writePlotSlot()));
+
+  controlPlotsGroupLayout->addWidget(plotsWidgets_.raiseButton);
+  controlPlotsGroupLayout->addWidget(plotsWidgets_.lowerButton);
   controlPlotsGroupLayout->addWidget(createPlotButton);
+  controlPlotsGroupLayout->addWidget(plotsWidgets_.removeButton);
+  controlPlotsGroupLayout->addWidget(writePlotButton);
   controlPlotsGroupLayout->addStretch(1);
+}
+
+void
+CQChartsViewSettings::
+initAnnotationsFrame(QFrame *annotationsFrame)
+{
+  QVBoxLayout *annotationsFrameLayout = new QVBoxLayout(annotationsFrame);
+
+  //---
+
+  annotationsWidgets_.viewTable = new QTableWidget;
+  annotationsWidgets_.viewTable->setObjectName("viewTable");
+
+  annotationsWidgets_.viewTable->horizontalHeader()->setStretchLastSection(true);
+
+  annotationsWidgets_.viewTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+  annotationsFrameLayout->addWidget(annotationsWidgets_.viewTable);
+
+  connect(annotationsWidgets_.viewTable, SIGNAL(itemSelectionChanged()),
+          this, SLOT(viewAnnotationSelectionChangeSlot()));
+
+  //---
+
+  annotationsWidgets_.plotTable = new QTableWidget;
+  annotationsWidgets_.plotTable->setObjectName("plotTable");
+
+  annotationsWidgets_.plotTable->horizontalHeader()->setStretchLastSection(true);
+
+  annotationsWidgets_.plotTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+  annotationsFrameLayout->addWidget(annotationsWidgets_.plotTable);
+
+  connect(annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
+          this, SLOT(plotAnnotationSelectionChangeSlot()));
 
   //----
 
-  // Theme Tab
-  QFrame *themeFrame = new QFrame;
-  themeFrame->setObjectName("themeFrame");
+  QGroupBox *controlGroup = new QGroupBox("Control");
+  controlGroup->setObjectName("controlGroup");
 
-  tab_->addTab(themeFrame, "Theme");
+  annotationsFrameLayout->addWidget(controlGroup);
 
+  QHBoxLayout *controlGroupLayout = new QHBoxLayout(controlGroup);
+
+  //QPushButton *createButton = new QPushButton("Create");
+  //createButton->setObjectName("create");
+
+  annotationsWidgets_.removeButton = new QPushButton("Remove");
+  annotationsWidgets_.removeButton->setObjectName("remove");
+
+  QPushButton *writeButton = new QPushButton("Write");
+  writeButton->setObjectName("write");
+
+  annotationsWidgets_.removeButton->setEnabled(false);
+
+  //connect(createButton                  , SIGNAL(clicked()), this, SLOT(createAnnotationSlot()));
+  connect(annotationsWidgets_.removeButton, SIGNAL(clicked()), this, SLOT(removeAnnotationsSlot()));
+  connect(writeButton                     , SIGNAL(clicked()), this, SLOT(writeAnnotationSlot()));
+
+//controlGroupLayout->addWidget(createButton);
+  controlGroupLayout->addWidget(annotationsWidgets_.removeButton);
+  controlGroupLayout->addWidget(writeButton);
+  controlGroupLayout->addStretch(1);
+}
+
+void
+CQChartsViewSettings::
+initThemeFrame(QFrame *themeFrame)
+{
   QVBoxLayout *themeFrameLayout = new QVBoxLayout(themeFrame);
 
   //--
@@ -408,6 +599,8 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   themeWidgets_.palettesSpin = new QSpinBox;
   themeWidgets_.palettesSpin->setObjectName("indexSpin");
+
+  CQChartsView *view = window_->view();
 
   int np = view->themeObj()->numPalettes();
 
@@ -481,15 +674,12 @@ CQChartsViewSettings(CQChartsWindow *window) :
   interfaceSplitter->addWidget(themeWidgets_.interfaceControl);
 
   connect(themeWidgets_.interfaceControl, SIGNAL(stateChanged()), view, SLOT(updatePlots()));
+}
 
-  //----
-
-  // Layers Tab
-  QFrame *layersFrame = new QFrame;
-  layersFrame->setObjectName("layersFrame");
-
-  tab_->addTab(layersFrame, "Layers");
-
+void
+CQChartsViewSettings::
+initLayersFrame(QFrame *layersFrame)
+{
   QVBoxLayout *layersFrameLayout = new QVBoxLayout(layersFrame);
 
   layersWidgets_.layerTable = new QTableWidget;
@@ -505,16 +695,9 @@ CQChartsViewSettings(CQChartsWindow *window) :
           this, SLOT(layersSelectionChangeSlot()));
   connect(layersWidgets_.layerTable, SIGNAL(cellClicked(int, int)),
           this, SLOT(layersClickedSlot(int, int)));
-
-  //----
-
-  updateModels();
 }
 
-CQChartsViewSettings::
-~CQChartsViewSettings()
-{
-}
+//------
 
 void
 CQChartsViewSettings::
@@ -620,6 +803,44 @@ updateModelDetails()
 
 void
 CQChartsViewSettings::
+modelsSelectionChangeSlot()
+{
+  CQCharts *charts = window_->view()->charts();
+
+  QList<QTableWidgetItem *> items = modelsWidgets_.modelTable->selectedItems();
+
+  for (int i = 0; i < items.length(); ++i) {
+    QTableWidgetItem *item = items[i];
+
+    bool ok;
+
+    int ind = item->data(Qt::UserRole).toInt(&ok);
+
+    if (ok) {
+      charts->setCurrentModelInd(ind);
+      return;
+    }
+  }
+}
+
+void
+CQChartsViewSettings::
+loadModelSlot()
+{
+  CQCharts *charts = window_->view()->charts();
+
+  if (loadDlg_)
+    delete loadDlg_;
+
+  loadDlg_ = new CQChartsLoadDlg(charts);
+
+  loadDlg_->show();
+}
+
+//------
+
+void
+CQChartsViewSettings::
 updatePlots()
 {
   CQChartsView *view = window_->view();
@@ -667,8 +888,10 @@ updateCurrentPlot()
   if (plotId_.length()) {
     CQChartsPlot *plot = view->getPlot(plotId_);
 
-    if (plot)
+    if (plot) {
+      disconnect(plot, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
       disconnect(plot, SIGNAL(layersChanged()), this, SLOT(updateLayers()));
+    }
   }
 
   //---
@@ -693,10 +916,14 @@ updateCurrentPlot()
 
   plotId_ = (plot ? plot->id() : "");
 
-  if (plot)
+  if (plot) {
+    connect(plot, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
     connect(plot, SIGNAL(layersChanged()), this, SLOT(updateLayers()));
+  }
 
   //---
+
+  updateAnnotations();
 
   updateLayers();
 }
@@ -737,87 +964,340 @@ getSelectedPlots(Plots &plots) const
 
 void
 CQChartsViewSettings::
-updateLayers()
+plotsSelectionChangeSlot()
 {
-  int l1 = (int) CQChartsLayer::firstLayer();
-  int l2 = (int) CQChartsLayer::lastLayer ();
+  Plots plots;
 
-  if (layersWidgets_.layerTable->rowCount() == 0) {
-    layersWidgets_.layerTable->clear();
+  getSelectedPlots(plots);
 
-    layersWidgets_.layerTable->setColumnCount(3);
-    layersWidgets_.layerTable->setRowCount(l2 - l1 + 1);
+  plotsWidgets_.raiseButton->setEnabled(plots.size() == 1);
+  plotsWidgets_.lowerButton->setEnabled(plots.size() == 1);
 
-    layersWidgets_.layerTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Layer"));
-    layersWidgets_.layerTable->setHorizontalHeaderItem(1, new QTableWidgetItem("State"));
-    layersWidgets_.layerTable->setHorizontalHeaderItem(2, new QTableWidgetItem("Rect" ));
+  plotsWidgets_.removeButton->setEnabled(plots.size() > 0);
+}
 
-    for (int l = l1; l <= l2; ++l) {
-      int i = l - l1;
+void
+CQChartsViewSettings::
+groupPlotsSlot()
+{
+  CQChartsView *view = window_->view();
 
-      CQChartsLayer::Type type = (CQChartsLayer::Type) l;
+  CQCharts *charts = view->charts();
 
-      QString name = CQChartsLayer::typeName(type);
+  // get selected plots ?
+  Plots plots;
 
-      QTableWidgetItem *idItem = new QTableWidgetItem(name);
+  view->getPlots(plots);
 
-      layersWidgets_.layerTable->setItem(i, 0, idItem);
+  bool overlay = plotsWidgets_.overlayCheck->isChecked();
+  bool x1x2    = plotsWidgets_.x1x2Check   ->isChecked();
+  bool y1y2    = plotsWidgets_.y1y2Check   ->isChecked();
 
-      idItem->setData(Qt::UserRole, l);
-
-      QTableWidgetItem *stateItem = new QTableWidgetItem("");
-
-    //stateItem->setFlags(stateItem->flags() | Qt::ItemIsEnabled);
-      stateItem->setFlags(stateItem->flags() | Qt::ItemIsUserCheckable);
-    //stateItem->setFlags(stateItem->flags() & ! Qt::ItemIsEditable);
-
-      layersWidgets_.layerTable->setItem(i, 1, stateItem);
-
-      QTableWidgetItem *rectItem = new QTableWidgetItem("");
-
-      layersWidgets_.layerTable->setItem(i, 2, rectItem);
+  if      (x1x2) {
+    if (plots.size() != 2) {
+      charts->errorMsg("Need 2 plots for x1x2");
+      return;
     }
+
+    view->initX1X2(plots[0], plots[1], overlay, /*reset*/true);
+  }
+  else if (y1y2) {
+    if (plots.size() != 2) {
+      charts->errorMsg("Need 2 plots for y1y2");
+      return;
+    }
+
+    view->initY1Y2(plots[0], plots[1], overlay, /*reset*/true);
+  }
+  else if (overlay) {
+    if (plots.size() < 2) {
+      charts->errorMsg("Need 2 or more plots for overlay");
+      return;
+    }
+
+    view->initOverlay(plots, /*reset*/true);
+  }
+  else {
+    view->resetGrouping();
+  }
+}
+
+void
+CQChartsViewSettings::
+placePlotsSlot()
+{
+  CQChartsView *view = window_->view();
+
+  // get selected plots ?
+  Plots plots;
+
+  view->getPlots(plots);
+
+  bool vertical   = plotsWidgets_.placeVerticalRadio  ->isChecked();
+  bool horizontal = plotsWidgets_.placeHorizontalRadio->isChecked();
+  int  rows       = plotsWidgets_.placeRowsEdit       ->value();
+  int  columns    = plotsWidgets_.placeColumnsEdit    ->value();
+
+  view->placePlots(plots, vertical, horizontal, rows, columns);
+}
+
+void
+CQChartsViewSettings::
+raisePlotSlot()
+{
+  CQChartsView *view = window_->view();
+  CQChartsPlot *plot = getSelectedPlot();
+
+  if (plot)
+    view->raisePlot(plot);
+}
+
+void
+CQChartsViewSettings::
+lowerPlotSlot()
+{
+  CQChartsView *view = window_->view();
+  CQChartsPlot *plot = getSelectedPlot();
+
+  if (plot)
+    view->lowerPlot(plot);
+}
+
+void
+CQChartsViewSettings::
+removePlotsSlot()
+{
+  Plots plots;
+
+  getSelectedPlots(plots);
+
+  CQChartsView *view = window_->view();
+
+  for (auto &plot : plots)
+    view->removePlot(plot);
+
+  view->updatePlots();
+}
+
+void
+CQChartsViewSettings::
+createPlotSlot()
+{
+  CQCharts *charts = window_->view()->charts();
+
+  CQChartsModelData *modelData = charts->currentModelData();
+
+  if (! modelData)
+    return;
+
+  if (plotDlg_)
+    delete plotDlg_;
+
+  plotDlg_ = new CQChartsPlotDlg(charts, modelData);
+
+  plotDlg_->setViewName(window_->view()->id());
+
+  plotDlg_->show();
+}
+
+void
+CQChartsViewSettings::
+writePlotSlot()
+{
+  CQChartsView *view = window_->view();
+  assert(view);
+
+  CQChartsPlot *plot = view->currentPlot();
+  if (! plot) return;
+
+  plot->write();
+}
+
+//------
+
+void
+CQChartsViewSettings::
+updateAnnotations()
+{
+  CQChartsView *view = window_->view();
+
+  annotationsWidgets_.viewTable->clear();
+
+  const CQChartsView::Annotations &viewAnnotations = view->annotations();
+
+  int nv = viewAnnotations.size();
+
+  annotationsWidgets_.viewTable->setColumnCount(2);
+  annotationsWidgets_.viewTable->setRowCount(nv);
+
+  annotationsWidgets_.viewTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"  ));
+  annotationsWidgets_.viewTable->setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
+
+  for (int i = 0; i < nv; ++i) {
+    CQChartsAnnotation *annotation = viewAnnotations[i];
+
+    QTableWidgetItem *idItem = new QTableWidgetItem(annotation->id());
+
+    annotationsWidgets_.viewTable->setItem(i, 0, idItem);
+
+    int ind = annotation->ind();
+
+    idItem->setData(Qt::UserRole, ind);
+
+    QTableWidgetItem *typeItem = new QTableWidgetItem(annotation->typeName());
+
+    annotationsWidgets_.viewTable->setItem(i, 1, typeItem);
   }
 
   //---
 
-  CQChartsView *view = window_->view();
+  annotationsWidgets_.plotTable->clear();
 
   CQChartsPlot *plot = view->currentPlot();
 
-  if (! plot)
-    return;
+  if (plot) {
+    const CQChartsPlot::Annotations &plotAnnotations = plot->annotations();
 
-  for (int l = l1; l <= l2; ++l) {
-    int i = l - l1;
+    int np = plotAnnotations.size();
 
-    CQChartsLayer::Type type = (CQChartsLayer::Type) l;
+    annotationsWidgets_.plotTable->setColumnCount(2);
+    annotationsWidgets_.plotTable->setRowCount(np);
 
-    CQChartsLayer *layer = plot->getLayer(type);
+    annotationsWidgets_.plotTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"  ));
+    annotationsWidgets_.plotTable->setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
 
-    const CQChartsBuffer *buffer = (layer ? layer->buffer() : nullptr);
+    for (int i = 0; i < np; ++i) {
+      CQChartsAnnotation *annotation = plotAnnotations[i];
 
-//  QTableWidgetItem *idItem    = layersWidgets_.layerTable->item(i, 0);
-    QTableWidgetItem *stateItem = layersWidgets_.layerTable->item(i, 1);
-    QTableWidgetItem *rectItem  = layersWidgets_.layerTable->item(i, 2);
+      QTableWidgetItem *idItem = new QTableWidgetItem(annotation->id());
 
-    QStringList states;
+      annotationsWidgets_.plotTable->setItem(i, 0, idItem);
 
-    if (layer  && layer ->isActive()) states += "active";
-    if (buffer && buffer->isValid ()) states += "valid";
+      int ind = annotation->ind();
 
-    stateItem->setText(states.join("|"));
+      idItem->setData(Qt::UserRole, ind);
 
-    stateItem->setCheckState((layer && layer->isActive()) ? Qt::Checked : Qt::Unchecked);
+      QTableWidgetItem *typeItem = new QTableWidgetItem(annotation->typeName());
 
-    QRectF rect = (buffer ? buffer->rect() : QRectF());
-
-    QString rectStr = QString("X:%1, Y:%2, W:%3, H:%4").
-                        arg(rect.x()).arg(rect.y()).arg(rect.width()).arg(rect.height());
-
-    rectItem->setText(rectStr);
+      annotationsWidgets_.plotTable->setItem(i, 1, typeItem);
+    }
   }
 }
+
+void
+CQChartsViewSettings::
+viewAnnotationSelectionChangeSlot()
+{
+  Annotations viewAnnotations, plotAnnotations;
+
+  getSelectedAnnotations(viewAnnotations, plotAnnotations);
+
+  annotationsWidgets_.removeButton->setEnabled(viewAnnotations.size() > 0);
+
+  if (viewAnnotations.size())
+    annotationsWidgets_.plotTable->selectionModel()->clear();
+}
+
+void
+CQChartsViewSettings::
+plotAnnotationSelectionChangeSlot()
+{
+  Annotations viewAnnotations, plotAnnotations;
+
+  getSelectedAnnotations(viewAnnotations, plotAnnotations);
+
+  annotationsWidgets_.removeButton->setEnabled(plotAnnotations.size() > 0);
+
+  if (plotAnnotations.size())
+    annotationsWidgets_.viewTable->selectionModel()->clear();
+}
+
+void
+CQChartsViewSettings::
+getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotations) const
+{
+  CQChartsView *view = window_->view();
+
+  QList<QTableWidgetItem *> items = annotationsWidgets_.viewTable->selectedItems();
+
+  for (int i = 0; i < items.length(); ++i) {
+    QTableWidgetItem *item = items[i];
+    if (item->column() != 0) continue;
+
+    QString id = item->text();
+
+    CQChartsAnnotation *annotation = view->getAnnotationByName(id);
+
+    viewAnnotations.push_back(annotation);
+  }
+
+  CQChartsPlot *plot = view->currentPlot();
+
+  if (plot) {
+    QList<QTableWidgetItem *> items = annotationsWidgets_.plotTable->selectedItems();
+
+    for (int i = 0; i < items.length(); ++i) {
+      QTableWidgetItem *item = items[i];
+      if (item->column() != 0) continue;
+
+      QString id = item->text();
+
+      CQChartsAnnotation *annotation = plot->getAnnotationByName(id);
+
+      plotAnnotations.push_back(annotation);
+    }
+  }
+}
+
+void
+CQChartsViewSettings::
+removeAnnotationsSlot()
+{
+  Annotations viewAnnotations, plotAnnotations;
+
+  getSelectedAnnotations(viewAnnotations, plotAnnotations);
+
+  CQChartsView *view = window_->view();
+
+  for (const auto &annotation : viewAnnotations)
+    view->removeAnnotation(annotation);
+
+  CQChartsPlot *plot = view->currentPlot();
+
+  if (plot) {
+    for (const auto &annotation : plotAnnotations)
+      plot->removeAnnotation(annotation);
+  }
+
+  view->updatePlots();
+}
+
+void
+CQChartsViewSettings::
+writeAnnotationSlot()
+{
+  CQChartsView *view = window_->view();
+
+  const CQChartsView::Annotations &viewAnnotations = view->annotations();
+
+  for (const auto &annotation : viewAnnotations)
+    annotation->write();
+
+  //---
+
+  CQChartsView::Plots plots;
+
+  view->getPlots(plots);
+
+  for (const auto &plot : plots) {
+    const CQChartsPlot::Annotations &plotAnnotations = plot->annotations();
+
+    for (const auto &annotation : plotAnnotations)
+      annotation->write();
+  }
+}
+
+//------
 
 void
 CQChartsViewSettings::
@@ -914,54 +1394,90 @@ addSearchSlot(const QString &text)
   propertyTree()->search(text);
 }
 
+//------
+
 void
 CQChartsViewSettings::
-modelsSelectionChangeSlot()
+updateLayers()
 {
-  CQCharts *charts = window_->view()->charts();
+  int l1 = (int) CQChartsLayer::firstLayer();
+  int l2 = (int) CQChartsLayer::lastLayer ();
 
-  QList<QTableWidgetItem *> items = modelsWidgets_.modelTable->selectedItems();
+  if (layersWidgets_.layerTable->rowCount() == 0) {
+    layersWidgets_.layerTable->clear();
 
-  for (int i = 0; i < items.length(); ++i) {
-    QTableWidgetItem *item = items[i];
+    layersWidgets_.layerTable->setColumnCount(3);
+    layersWidgets_.layerTable->setRowCount(l2 - l1 + 1);
 
-    bool ok;
+    layersWidgets_.layerTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Layer"));
+    layersWidgets_.layerTable->setHorizontalHeaderItem(1, new QTableWidgetItem("State"));
+    layersWidgets_.layerTable->setHorizontalHeaderItem(2, new QTableWidgetItem("Rect" ));
 
-    int ind = item->data(Qt::UserRole).toInt(&ok);
+    for (int l = l1; l <= l2; ++l) {
+      int i = l - l1;
 
-    if (ok) {
-      charts->setCurrentModelInd(ind);
-      return;
+      CQChartsLayer::Type type = (CQChartsLayer::Type) l;
+
+      QString name = CQChartsLayer::typeName(type);
+
+      QTableWidgetItem *idItem = new QTableWidgetItem(name);
+
+      layersWidgets_.layerTable->setItem(i, 0, idItem);
+
+      idItem->setData(Qt::UserRole, l);
+
+      QTableWidgetItem *stateItem = new QTableWidgetItem("");
+
+    //stateItem->setFlags(stateItem->flags() | Qt::ItemIsEnabled);
+      stateItem->setFlags(stateItem->flags() | Qt::ItemIsUserCheckable);
+    //stateItem->setFlags(stateItem->flags() & ! Qt::ItemIsEditable);
+
+      layersWidgets_.layerTable->setItem(i, 1, stateItem);
+
+      QTableWidgetItem *rectItem = new QTableWidgetItem("");
+
+      layersWidgets_.layerTable->setItem(i, 2, rectItem);
     }
   }
-}
 
-void
-CQChartsViewSettings::
-loadModelSlot()
-{
-  CQCharts *charts = window_->view()->charts();
+  //---
 
-  if (loadDlg_)
-    delete loadDlg_;
+  CQChartsView *view = window_->view();
 
-  loadDlg_ = new CQChartsLoadDlg(charts);
+  CQChartsPlot *plot = view->currentPlot();
 
-  loadDlg_->show();
-}
+  if (! plot)
+    return;
 
-void
-CQChartsViewSettings::
-plotsSelectionChangeSlot()
-{
-  Plots plots;
+  for (int l = l1; l <= l2; ++l) {
+    int i = l - l1;
 
-  getSelectedPlots(plots);
+    CQChartsLayer::Type type = (CQChartsLayer::Type) l;
 
-  plotsWidgets_.raiseButton->setEnabled(plots.size() == 1);
-  plotsWidgets_.lowerButton->setEnabled(plots.size() == 1);
+    CQChartsLayer *layer = plot->getLayer(type);
 
-  plotsWidgets_.removeButton->setEnabled(plots.size() > 0);
+    const CQChartsBuffer *buffer = (layer ? layer->buffer() : nullptr);
+
+//  QTableWidgetItem *idItem    = layersWidgets_.layerTable->item(i, 0);
+    QTableWidgetItem *stateItem = layersWidgets_.layerTable->item(i, 1);
+    QTableWidgetItem *rectItem  = layersWidgets_.layerTable->item(i, 2);
+
+    QStringList states;
+
+    if (layer  && layer ->isActive()) states += "active";
+    if (buffer && buffer->isValid ()) states += "valid";
+
+    stateItem->setText(states.join("|"));
+
+    stateItem->setCheckState((layer && layer->isActive()) ? Qt::Checked : Qt::Unchecked);
+
+    QRectF rect = (buffer ? buffer->rect() : QRectF());
+
+    QString rectStr = QString("X:%1, Y:%2, W:%3, H:%4").
+                        arg(rect.x()).arg(rect.y()).arg(rect.width()).arg(rect.height());
+
+    rectItem->setText(rectStr);
+  }
 }
 
 void
@@ -1001,126 +1517,4 @@ layersClickedSlot(int row, int column)
   const CQChartsBuffer *buffer = layer->buffer();
 
   plot->invalidateLayer(buffer->type());
-}
-
-void
-CQChartsViewSettings::
-groupPlotsSlot()
-{
-  CQChartsView *view = window_->view();
-
-  CQCharts *charts = view->charts();
-
-  // get selected plots ?
-  Plots plots;
-
-  view->getPlots(plots);
-
-  bool overlay = plotsWidgets_.overlayCheck->isChecked();
-  bool x1x2    = plotsWidgets_.x1x2Check   ->isChecked();
-  bool y1y2    = plotsWidgets_.y1y2Check   ->isChecked();
-
-  if      (x1x2) {
-    if (plots.size() != 2) {
-      charts->errorMsg("Need 2 plots for x1x2");
-      return;
-    }
-
-    view->initX1X2(plots[0], plots[1], overlay, /*reset*/true);
-  }
-  else if (y1y2) {
-    if (plots.size() != 2) {
-      charts->errorMsg("Need 2 plots for y1y2");
-      return;
-    }
-
-    view->initY1Y2(plots[0], plots[1], overlay, /*reset*/true);
-  }
-  else if (overlay) {
-    if (plots.size() < 2) {
-      charts->errorMsg("Need 2 or more plots for overlay");
-      return;
-    }
-
-    view->initOverlay(plots, /*reset*/true);
-  }
-  else {
-    view->resetGrouping();
-  }
-}
-
-void
-CQChartsViewSettings::
-placePlotsSlot()
-{
-  CQChartsView *view = window_->view();
-
-  // get selected plots ?
-  Plots plots;
-
-  view->getPlots(plots);
-
-  bool vertical   = plotsWidgets_.placeVerticalRadio  ->isChecked();
-  bool horizontal = plotsWidgets_.placeHorizontalRadio->isChecked();
-  int  rows       = plotsWidgets_.placeRowsEdit       ->value();
-  int  columns    = plotsWidgets_.placeColumnsEdit    ->value();
-
-  view->placePlots(plots, vertical, horizontal, rows, columns);
-}
-
-void
-CQChartsViewSettings::
-raisePlotSlot()
-{
-  CQChartsView *view = window_->view();
-  CQChartsPlot *plot = getSelectedPlot();
-
-  if (plot)
-    view->raisePlot(plot);
-}
-
-void
-CQChartsViewSettings::
-lowerPlotSlot()
-{
-  CQChartsView *view = window_->view();
-  CQChartsPlot *plot = getSelectedPlot();
-
-  if (plot)
-    view->lowerPlot(plot);
-}
-
-void
-CQChartsViewSettings::
-removePlotsSlot()
-{
-  CQChartsView *view = window_->view();
-
-  Plots plots;
-
-  getSelectedPlots(plots);
-
-  for (auto &plot : plots)
-    view->removePlot(plot);
-}
-
-void
-CQChartsViewSettings::
-createPlotSlot()
-{
-  CQCharts *charts = window_->view()->charts();
-
-  CQChartsModelData *modelData = charts->currentModelData();
-
-  if (! modelData)
-    return;
-
-  if (plotDlg_)
-    delete plotDlg_;
-
-  plotDlg_ = new CQChartsPlotDlg(charts, modelData);
-
-  plotDlg_->setViewName(window_->view()->id());
-
-  plotDlg_->show();
 }

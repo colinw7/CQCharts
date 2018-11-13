@@ -95,6 +95,9 @@ class CQBucketModel : public QAbstractProxyModel {
   void connectSlots();
   void disconnectSlots();
 
+  int mapColumn(int c) const;
+  int unmapColumn(int c) const;
+
  private:
   int        bucketColumn_ { 0 };               // bucket source model column
   int        bucketRole_   { Qt::DisplayRole }; // bucket role

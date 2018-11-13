@@ -2,8 +2,8 @@
 #define CQChartsView_H
 
 #include <CQChartsObjData.h>
-#include <CQChartsTheme.h>
 #include <CQChartsGeom.h>
+#include <CQChartsTheme.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsPosition.h>
@@ -88,6 +88,7 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(bool        bufferLayers   READ isBufferLayers WRITE setBufferLayers)
   Q_PROPERTY(bool        preview        READ isPreview      WRITE setPreview     )
   Q_PROPERTY(bool        scaleFont      READ isScaleFont    WRITE setScaleFont   )
+  Q_PROPERTY(double      fontFactor     READ fontFactor     WRITE setFontFactor  )
   Q_PROPERTY(PosTextType posTextType    READ posTextType    WRITE setPosTextType )
 
   Q_ENUMS(Mode)
@@ -132,7 +133,7 @@ class CQChartsView : public QFrame,
  public:
   static double viewportRange() { return 100.0; }
 
-  static QSize &defSizeHint() { return defSizeHint_; }
+  static const QSize &defSizeHint() { return defSizeHint_; }
   static void setDefSizeHint(const QSize &s) { defSizeHint_ = s; }
 
  public:
@@ -234,22 +235,21 @@ class CQChartsView : public QFrame,
 
   //---
 
-  CQChartsThemeObj *themeObj() { return theme_.obj(); }
-  const CQChartsThemeObj *themeObj() const { return theme_.obj(); }
+  CQChartsThemeObj *themeObj();
+  const CQChartsThemeObj *themeObj() const;
 
-  const CQChartsTheme &theme() const { return theme_; }
+  const CQChartsTheme &theme() const;
   void setTheme(const CQChartsTheme &name);
 
   //---
 
-  CQChartsGradientPalette *interfacePalette() { return interfacePalette_; }
-  const CQChartsGradientPalette *interfacePalette() const { return interfacePalette_; }
+  CQChartsGradientPalette *interfacePalette() const;
 
   CQChartsGradientPalette *themeGroupPalette(int i, int n) const;
 
-  CQChartsGradientPalette *themePalette(int ind=0) const { return themeObj()->palette(ind); }
+  CQChartsGradientPalette *themePalette(int ind=0) const;
 
-  bool isDark() const { return isDark_; }
+  bool isDark() const;
   void setDark(bool b);
 
   //---
@@ -338,6 +338,7 @@ class CQChartsView : public QFrame,
 
   QColor interpPaletteColor(double r, bool scale=false) const;
   QColor interpIndPaletteColor(int ind, double r, bool scale=false) const;
+  QColor interpGroupPaletteColor(int ig, int ng, double r, bool scale) const;
 
   QColor interpThemeColor(double r) const;
 
@@ -506,7 +507,7 @@ class CQChartsView : public QFrame,
   //---
 
   const QSize &viewSizeHint() const { return viewSizeHint_; }
-  void setViewSizeHint(const QSize &v) { viewSizeHint_ = v; }
+  void setViewSizeHint(const QSize &s) { viewSizeHint_ = s; }
 
   QSize sizeHint() const override;
 
@@ -528,16 +529,18 @@ class CQChartsView : public QFrame,
 
   void plotAdded(CQChartsPlot *);
   void plotAdded(const QString &id);
-
-  void plotsReordered();
   void plotRemoved(const QString &id);
   void allPlotsRemoved();
+  void plotsChanged();
+  void plotsReordered();
 
   void plotConnectDataChanged(const QString &id);
   void connectDataChanged();
 
   void annotationPressed(CQChartsAnnotation *);
   void annotationIdPressed(const QString &);
+
+  void annotationsChanged();
 
  public slots:
   void plotModelChanged();
@@ -657,40 +660,37 @@ class CQChartsView : public QFrame,
 
   static QSize defSizeHint_;
 
-  CQCharts*                charts_           { nullptr };           // parent charts
-  CQChartsWindow*          window_           { nullptr };           // parent window
-  CQChartsDisplayRange*    displayRange_     { nullptr };           // display range
-  CQChartsGradientPalette* interfacePalette_ { nullptr };           // interface palette
-  CQChartsTheme            theme_;                                  // theme
-  bool                     isDark_           { false };             // is dark
-  CQPropertyViewModel*     propertyModel_    { nullptr };           // property model
-  QString                  id_;                                     // view id
-  QString                  title_;                                  // view title
-  CQChartsViewKey*         keyObj_           { nullptr };           // key object
-  Plots                    plots_;                                  // child plots
-  int                      currentPlotInd_   { -1 };                // current plot index
-  Annotations              annotations_;                            // annotations
-  Mode                     mode_             { Mode::SELECT };      // mouse mode
-  SelectMode               selectMode_       { SelectMode::POINT }; // selection sub mode
-  HighlightData            selectedHighlight_;                      // select highlight
-  HighlightData            insideHighlight_;                        // inside highlight
-  bool                     zoomData_         { true };              // zoom data
-  ScrollData               scrollData_;                             // scroll data
-  bool                     antiAlias_        { true };              // anit alias
-  bool                     bufferLayers_     { true };              // buffer draw layers
-  bool                     preview_          { false };             // preview
-  bool                     scaleFont_        { true };              // auto scale font
-  double                   fontFactor_       { 1.0 };               // font scale font
-  PosTextType              posTextType_      { PosTextType::PLOT }; // position text ty[e
-  CQChartsGeom::BBox       prect_            { 0, 0, 100, 100 };    // plot rect
-  double                   aspect_           { 1.0 };               // current aspect
-  MouseData                mouseData_;                              // mouse data
-  QTimer                   searchTimer_;                            // search timer
-  QPointF                  searchPos_;                              // search pos
-  QRubberBand*             regionBand_       { nullptr };           // zoom region rubberband
-  ProbeBands               probeBands_;                             // probe lines
-  QMenu*                   popupMenu_        { nullptr };           // context menu
-  QSize                    viewSizeHint_;                           // view size hint
+  CQCharts*             charts_           { nullptr };           // parent charts
+  CQChartsWindow*       window_           { nullptr };           // parent window
+  CQChartsDisplayRange* displayRange_     { nullptr };           // display range
+  CQPropertyViewModel*  propertyModel_    { nullptr };           // property model
+  QString               id_;                                     // view id
+  QString               title_;                                  // view title
+  CQChartsViewKey*      keyObj_           { nullptr };           // key object
+  Plots                 plots_;                                  // child plots
+  int                   currentPlotInd_   { -1 };                // current plot index
+  Annotations           annotations_;                            // annotations
+  Mode                  mode_             { Mode::SELECT };      // mouse mode
+  SelectMode            selectMode_       { SelectMode::POINT }; // selection sub mode
+  HighlightData         selectedHighlight_;                      // select highlight
+  HighlightData         insideHighlight_;                        // inside highlight
+  bool                  zoomData_         { true };              // zoom data
+  ScrollData            scrollData_;                             // scroll data
+  bool                  antiAlias_        { true };              // anit alias
+  bool                  bufferLayers_     { true };              // buffer draw layers
+  bool                  preview_          { false };             // preview
+  bool                  scaleFont_        { true };              // auto scale font
+  double                fontFactor_       { 1.0 };               // font scale factor
+  PosTextType           posTextType_      { PosTextType::PLOT }; // position text ty[e
+  CQChartsGeom::BBox    prect_            { 0, 0, 100, 100 };    // plot rect
+  double                aspect_           { 1.0 };               // current aspect
+  MouseData             mouseData_;                              // mouse data
+  QTimer                searchTimer_;                            // search timer
+  QPointF               searchPos_;                              // search pos
+  QRubberBand*          regionBand_       { nullptr };           // zoom region rubberband
+  ProbeBands            probeBands_;                             // probe lines
+  QMenu*                popupMenu_        { nullptr };           // context menu
+  QSize                 viewSizeHint_;                           // view size hint
 };
 
 #endif

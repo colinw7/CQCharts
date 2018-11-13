@@ -28,6 +28,7 @@ CQChartsColumnType.cpp \
 CQChartsTable.cpp \
 CQChartsTree.cpp \
 CQChartsHeader.cpp \
+CQChartsTableDelegate.cpp \
 \
 CQChartsWindow.cpp \
 CQChartsView.cpp \
@@ -186,6 +187,7 @@ HEADERS += \
 ../include/CQChartsTable.h \
 ../include/CQChartsTree.h \
 ../include/CQChartsHeader.h \
+../include/CQChartsTableDelegate.h \
 \
 ../include/CQChartsWindow.h \
 ../include/CQChartsView.h \

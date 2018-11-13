@@ -74,7 +74,7 @@ class CQChartsWindow : public QFrame {
 
   //---
 
-  void resizeEvent(QResizeEvent *);
+  void resizeEvent(QResizeEvent *) override;
 
   QSize sizeHint() const;
 

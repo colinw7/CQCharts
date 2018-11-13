@@ -3,6 +3,7 @@
 #include <CQChartsModelList.h>
 #include <CQChartsModelData.h>
 #include <CQChartsPlotDlg.h>
+#include <CQChartsColumnType.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
 
@@ -34,6 +35,11 @@ CQChartsModelDlg(CQCharts *charts) :
   // Bottom Buttons
   QHBoxLayout *buttonLayout = new QHBoxLayout;
 
+  QPushButton *writeButton = new QPushButton("Write");
+  writeButton->setObjectName("write");
+
+  connect(writeButton, SIGNAL(clicked()), this, SLOT(writeSlot()));
+
   QPushButton *plotButton = new QPushButton("Plot");
   plotButton->setObjectName("plot");
 
@@ -44,6 +50,7 @@ CQChartsModelDlg(CQCharts *charts) :
 
   connect(doneButton, SIGNAL(clicked()), this, SLOT(cancelSlot()));
 
+  buttonLayout->addWidget(writeButton);
   buttonLayout->addWidget(plotButton);
   buttonLayout->addStretch(1);
   buttonLayout->addWidget(doneButton);
@@ -63,6 +70,74 @@ CQChartsModelDlg(CQCharts *charts) :
 CQChartsModelDlg::
 ~CQChartsModelDlg()
 {
+}
+
+void
+CQChartsModelDlg::
+writeSlot()
+{
+  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
+  CQChartsModelData *modelData = modelWidgets_->modelList()->currentModelData();
+
+  QAbstractItemModel *model = modelData->currentModel().data();
+
+  for (int i = 0; i < model->columnCount(); ++i) {
+    CQChartsColumn column(i);
+
+    CQBaseModel::Type  columnType;
+    CQBaseModel::Type  columnBaseType;
+    CQChartsNameValues nameValues;
+
+    if (! CQChartsUtil::columnValueType(charts_, model, column, columnType,
+                                        columnBaseType, nameValues))
+      continue;
+
+    CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+
+    QString value = typeData->name();
+
+    bool first = true;
+
+    for (const auto &param : typeData->params()) {
+      QVariant var = nameValues[param.name()];
+
+      if (! var.isValid())
+        continue;
+
+      if      (param.type() == CQBaseModel::Type::BOOLEAN) {
+        if (var.toBool() == param.def().toBool())
+          continue;
+      }
+      else if (param.type() == CQBaseModel::Type::REAL) {
+        if (var.toDouble() == param.def().toDouble())
+          continue;
+      }
+      else if (param.type() == CQBaseModel::Type::INTEGER) {
+        if (var.toInt() == param.def().toInt())
+          continue;
+      }
+      else if (param.type() == CQBaseModel::Type::STRING) {
+        if (var.toString() == param.def().toString())
+          continue;
+      }
+
+      QString str = nameValues[param.name()].toString();
+
+      if (first)
+        value += ":";
+
+      value += param.name() + "=" + str;
+    }
+
+    std::cerr << "set_charts_data -model " << modelData->ind() <<
+                 " -column " << i << " -name column_type" <<
+                 " -value {" << value.toStdString() << "}\n";
+  }
+
+  //---
+
+  modelData->write();
 }
 
 void

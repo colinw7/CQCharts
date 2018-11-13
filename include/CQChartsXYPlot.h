@@ -640,9 +640,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   void postInit() override;
 
-  bool initObjs() override;
-
-  bool createObjs();
+  bool createObjs() override;
 
   //---
 

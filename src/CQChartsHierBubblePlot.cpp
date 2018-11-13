@@ -194,27 +194,6 @@ updateObjs()
 
 bool
 CQChartsHierBubblePlot::
-initObjs()
-{
-  if (! dataRange_.isSet()) {
-    updateRange();
-
-    if (! dataRange_.isSet())
-      return false;
-  }
-
-  //---
-
-  if (! plotObjs_.empty())
-    return false;
-
-  //---
-
-  return createObjs();
-}
-
-bool
-CQChartsHierBubblePlot::
 createObjs()
 {
   CQPerfTrace trace("CQChartsHierBubblePlot::createObjs");

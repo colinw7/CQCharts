@@ -112,9 +112,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   void addNameValue(const QString &name, double value);
 
-  bool initObjs() override;
-
-  bool createObjs();
+  bool createObjs() override;
 
   //---
 

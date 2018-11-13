@@ -275,30 +275,9 @@ updateObjs()
 
 bool
 CQChartsTreeMapPlot::
-initObjs()
-{
-  if (! dataRange_.isSet()) {
-    updateRange();
-
-    if (! dataRange_.isSet())
-      return false;
-  }
-
-  //---
-
-  if (! plotObjs_.empty())
-    return false;
-
-  //---
-
-  return createObjs();
-}
-
-bool
-CQChartsTreeMapPlot::
 createObjs()
 {
-  CQPerfTrace trace("CQChartsTreeMapPlot::initObjs");
+  CQPerfTrace trace("CQChartsTreeMapPlot::createObjs");
 
   // init value sets
   initValueSets();

@@ -1,5 +1,7 @@
 #include <CQCharts.h>
 #include <CQChartsView.h>
+
+// plot types
 #include <CQChartsAdjacencyPlot.h>
 #include <CQChartsBarChartPlot.h>
 #include <CQChartsBoxPlot.h>
@@ -21,6 +23,7 @@
 #include <CQChartsSunburstPlot.h>
 #include <CQChartsTreeMapPlot.h>
 #include <CQChartsXYPlot.h>
+
 #include <CQChartsModelData.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsLineDashEdit.h>
@@ -30,8 +33,9 @@
 #include <CQChartsNamePair.h>
 #include <CQChartsSides.h>
 #include <CQChartsFillUnder.h>
-#include <CQPropertyView.h>
+#include <CQChartsGradientPalette.h>
 #include <CQChartsWindow.h>
+#include <CQPropertyView.h>
 #include <iostream>
 
 CQCharts::
@@ -56,6 +60,10 @@ CQCharts()
   CQChartsStyle         ::registerMetaType();
   CQChartsSymbol        ::registerMetaType();
   CQChartsTheme         ::registerMetaType();
+
+  plotTheme_.setName("default");
+
+  interfaceTheme().setDark(false);
 }
 
 CQCharts::
@@ -112,6 +120,10 @@ init()
   columnTypeMgr_->addType(CQBaseModel::Type::RECT           , new CQChartsColumnRectType          );
   columnTypeMgr_->addType(CQBaseModel::Type::POLYGON        , new CQChartsColumnPolygonType       );
   columnTypeMgr_->addType(CQBaseModel::Type::POLYGON_LIST   , new CQChartsColumnPolygonListType   );
+  columnTypeMgr_->addType(CQBaseModel::Type::IMAGE          , new CQChartsColumnImageType         );
+  columnTypeMgr_->addType(CQBaseModel::Type::SYMBOL         , new CQChartsColumnSymbolType        );
+  columnTypeMgr_->addType(CQBaseModel::Type::SYMBOL_SIZE    , new CQChartsColumnSymbolSizeType    );
+  columnTypeMgr_->addType(CQBaseModel::Type::FONT_SIZE      , new CQChartsColumnFontSizeType      );
   columnTypeMgr_->addType(CQBaseModel::Type::PATH           , new CQChartsColumnPathType          );
   columnTypeMgr_->addType(CQBaseModel::Type::STYLE          , new CQChartsColumnStyleType         );
   columnTypeMgr_->addType(CQBaseModel::Type::NAME_PAIR      , new CQChartsColumnNamePairType      );
@@ -149,6 +161,66 @@ getPlotTypeNames(QStringList &names, QStringList &descs) const
 {
   plotTypeMgr_->getTypeNames(names, descs);
 }
+
+//---
+
+void
+CQCharts::
+setPlotTheme(const CQChartsTheme &theme)
+{
+  CQChartsUtil::testAndSet(plotTheme_, theme, [&]() { emit themeChanged(); } );
+}
+
+QColor
+CQCharts::
+interpPaletteColor(double r, bool scale) const
+{
+  return interpIndPaletteColor(0, r, scale);
+}
+
+QColor
+CQCharts::
+interpIndPaletteColor(int ind, double r, bool scale) const
+{
+  return this->themePalette(ind)->getColor(r, scale);
+}
+
+QColor
+CQCharts::
+interpThemeColor(double r) const
+{
+  return this->interfaceTheme().interpColor(r, /*scale*/true);
+}
+
+CQChartsGradientPalette *
+CQCharts::
+themeGroupPalette(int i, int /*n*/) const
+{
+  return themeObj()->palette(i);
+}
+
+CQChartsGradientPalette *
+CQCharts::
+themePalette(int ind) const
+{
+  return themeObj()->palette(ind);
+}
+
+const CQChartsThemeObj *
+CQCharts::
+themeObj() const
+{
+  return plotTheme().obj();
+}
+
+CQChartsThemeObj *
+CQCharts::
+themeObj()
+{
+  return plotTheme().obj();
+}
+
+//---
 
 CQChartsModelData *
 CQCharts::

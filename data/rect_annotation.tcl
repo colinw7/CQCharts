@@ -6,6 +6,12 @@ set modelId [load_model -csv data/arrowstyle.csv]
 
 set plotId [create_plot -type xy -columns "x=0,y=1" -title "Annotations"]
 
+set viewId [get_charts_property -plot $plotId -name viewId]
+
+set vrectId1 [create_rect_shape -view $viewId -id rectId1 -tip "Rectangle 1" \
+  -start {10 10} -end {50 50} \
+  -background 1 -background_color blue -background_alpha 0.5]
+
 set rectId1 [create_rect_shape -plot $plotId -id rectId1 -tip "Rectangle 1" \
   -start {0 -60} -end {100 -40} \
   -background 1 -background_color red -background_alpha 0.5]

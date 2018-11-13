@@ -63,6 +63,10 @@ class CQChartsPosition {
     return true;
   }
 
+  bool isSet() const {
+    return (units_ != Units::PIXEL || p_.x() != 0.0 || p_.y());
+  }
+
   //---
 
   QString toString() const {

@@ -25,6 +25,8 @@ inline bool isDomainError(Tcl_Interp *interp, int rc) {
   int len = 0;
   std::string msg = Tcl_GetStringFromObj(errorMsg, &len);
 
+  Tcl_DecrRefCount(options);
+
   return (msg.size() > 12 && msg.substr(0, 12) == "ARITH DOMAIN");
 }
 

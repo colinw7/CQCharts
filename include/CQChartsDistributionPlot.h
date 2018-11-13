@@ -510,9 +510,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   CQChartsGeom::Range calcRange() override;
 
-  bool initObjs() override;
+  void updateObjs() override;
 
-  bool createObjs();
+  bool createObjs() override;
 
   //---
 
@@ -587,18 +587,17 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   bool getRealValues(int groupInd, std::vector<double> &xvals, double &mean) const;
 
  private:
-  using ValueSet     = CQChartsValueSet;
   using Inds         = std::vector<CQChartsModelIndex>;
   using BucketValues = std::map<int,VariantIndsData>;
 
   struct Values {
-    Inds            inds;                      // value indices
-    ValueSet*       valueSet      { nullptr }; // value set
-    BucketValues    bucketValues;              // bucketed values
-    CQChartsDensity densityData;               // density data
-    double          mean          { 0.0 };     // mean
+    Inds              inds;                      // value indices
+    CQChartsValueSet* valueSet      { nullptr }; // value set
+    BucketValues      bucketValues;              // bucketed values
+    CQChartsDensity   densityData;               // density data
+    double            mean          { 0.0 };     // mean
 
-    Values(ValueSet *valueSet) :
+    Values(CQChartsValueSet *valueSet) :
      valueSet(valueSet) {
     }
 

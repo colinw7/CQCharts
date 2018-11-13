@@ -322,9 +322,7 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   void updateObjs() override;
 
-  bool initObjs() override;
-
-  bool createObjs();
+  bool createObjs() override;
 
   //---
 

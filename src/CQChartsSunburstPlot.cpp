@@ -228,30 +228,9 @@ updateObjs()
 
 bool
 CQChartsSunburstPlot::
-initObjs()
-{
-  if (! dataRange_.isSet()) {
-    updateRange();
-
-    if (! dataRange_.isSet())
-      return false;
-  }
-
-  //---
-
-  if (! plotObjs_.empty())
-    return false;
-
-  //---
-
-  return createObjs();
-}
-
-bool
-CQChartsSunburstPlot::
 createObjs()
 {
-  CQPerfTrace trace("CQChartsSunburstPlot::initObjs");
+  CQPerfTrace trace("CQChartsSunburstPlot::createObjs");
 
   // init value sets
   initValueSets();

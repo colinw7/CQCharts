@@ -262,27 +262,6 @@ calcRange()
 
 bool
 CQChartsAdjacencyPlot::
-initObjs()
-{
-  if (! dataRange_.isSet()) {
-    updateRange();
-
-    if (! dataRange_.isSet())
-      return false;
-  }
-
-  //---
-
-  if (! plotObjs_.empty())
-    return false;
-
-  //---
-
-  return createObjs();
-}
-
-bool
-CQChartsAdjacencyPlot::
 createObjs()
 {
   CQPerfTrace trace("CQChartsAdjacencyPlot::createObjs");

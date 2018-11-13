@@ -20,6 +20,7 @@ class CQChartsColumnBucket {
 
  public:
   CQChartsColumnBucket(ColumnType columnType=ColumnType::NONE);
+ ~CQChartsColumnBucket();
 
   const CQChartsColumn &column() const { return column_; }
   void setColumn(const CQChartsColumn &c);
@@ -87,17 +88,18 @@ class CQChartsColumnBucket {
  private:
   using IndName = std::map<int,QString>;
 
-  CQChartsColumn  column_;
-  ColumnType      columnType_  { ColumnType::NONE };
-  DataType        dataType_    { DataType::NONE };
-  bool            rowGrouping_ { false };
-  bool            useRow_      { false };
-  bool            exactValue_  { false };
-  CQBucketer      bucketer_;
-  CQChartsRValues rvals_;
-  CQChartsIValues ivals_;
-  CQChartsSValues svals_;
-  IndName         indName_;
+  CQChartsColumn    column_;
+  ColumnType        columnType_  { ColumnType::NONE };
+  DataType          dataType_    { DataType::NONE };
+  bool              rowGrouping_ { false };
+  bool              useRow_      { false };
+  bool              exactValue_  { false };
+  CQBucketer        bucketer_;
+  CQChartsValueSet* valueSet_    { nullptr };
+  CQChartsIValues   ivals_;
+  CQChartsRValues   rvals_;
+  CQChartsSValues   svals_;
+  IndName           indName_;
 };
 
 #endif

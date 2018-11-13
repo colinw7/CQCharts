@@ -272,9 +272,13 @@ void
 CQChartsWindow::
 setDataTable(bool b)
 {
-  dataTable_ = b;
+  if (b != dataTable_) {
+    dataTable_ = b;
 
-  tableFrame_->setVisible(dataTable_);
+    tableFrame_->setVisible(dataTable_);
+
+    plotSlot();
+  }
 }
 
 void
@@ -403,11 +407,18 @@ CQChartsWindow::
 plotSlot()
 {
   CQChartsPlot *plot = view_->currentPlot(/*remap*/false);
-  if (! plot) return;
 
-  modelView_->setModel(plot->model(), plot->isHierarchical());
+  if (tableFrame_->isVisible() && plot) {
+    modelView_->setModel(plot->model(), plot->isHierarchical());
 
-  plot->setSelectionModel(modelView_->selectionModel());
+    plot->setSelectionModel(modelView_->selectionModel());
+  }
+  else {
+    modelView_->setModel(CQChartsModelView::ModelP(), false);
+
+    if (plot)
+      plot->setSelectionModel(nullptr);
+  }
 }
 
 void

@@ -995,11 +995,22 @@ class CQChartsValueSet : public QObject {
 
   //---
 
+  CQChartsIValues &ivals() { return ivals_; };
   const CQChartsIValues &ivals() const { return ivals_; };
+
+  CQChartsRValues &rvals() { return rvals_; };
   const CQChartsRValues &rvals() const { return rvals_; };
+
+  CQChartsSValues &svals() { return svals_; };
   const CQChartsSValues &svals() const { return svals_; };
+
+  CQChartsCValues &cvals() { return cvals_; };
   const CQChartsCValues &cvals() const { return cvals_; };
+
+  CQChartsRValues &tvals() { return tvals_; };
   const CQChartsRValues &tvals() const { return tvals_; };
+
+  void clearVals();
 
   //---
 

@@ -394,7 +394,7 @@ loadModelCmd(const Vars &vars)
 
   inputData.filter = argv.getParseStr("filter");
 
-  QString columnTypes = argv.getParseStr("column_type");
+  QStringList columnTypes = argv.getParseStrs("column_type");
 
   QString name = argv.getParseStr("name");
 
@@ -432,10 +432,11 @@ loadModelCmd(const Vars &vars)
   if (! modelData)
     return false;
 
-  if (columnTypes != "") {
+  if (columnTypes.length()) {
     ModelP model = modelData->currentModel();
 
-    CQChartsUtil::setColumnTypeStrs(charts_, model.data(), columnTypes);
+    for (int i = 0; i < columnTypes.length(); ++i)
+      CQChartsUtil::setColumnTypeStrs(charts_, model.data(), columnTypes[i]);
   }
 
   if (name.length())
@@ -1034,7 +1035,9 @@ createPlotCmd(const Vars &vars)
     return;
   }
 
-  //------
+  plot->setUpdatesEnabled(false);
+
+  //---
 
   // init plot
   if (title != "")
@@ -1098,6 +1101,10 @@ createPlotCmd(const Vars &vars)
     if (properties[i].length())
       setPlotProperties(plot, properties[i]);
   }
+
+  //---
+
+  plot->setUpdatesEnabled(true);
 
   //---
 
@@ -1262,10 +1269,7 @@ getChartsPropertyCmd(const Vars &vars)
   else if (argv.hasParseArg("annotation")) {
     QString annotationName = argv.getParseStr("annotation");
 
-    CQChartsAnnotation *annotation = getAnnotationByName((CQChartsPlot *) nullptr, annotationName);
-
-    if (! annotation)
-      annotation = getAnnotationByName((CQChartsView *) nullptr, annotationName);
+    CQChartsAnnotation *annotation = getAnnotationByName(annotationName);
 
     if (! annotation) {
       charts_->errorMsg("Invalid annotation '" + annotationName + "'");
@@ -1350,10 +1354,7 @@ setChartsPropertyCmd(const Vars &vars)
   else if (argv.hasParseArg("annotation")) {
     QString annotationName = argv.getParseStr("annotation");
 
-    CQChartsAnnotation *annotation = getAnnotationByName((CQChartsPlot *) nullptr, annotationName);
-
-    if (! annotation)
-      annotation = getAnnotationByName((CQChartsView *) nullptr, annotationName);
+    CQChartsAnnotation *annotation = getAnnotationByName(annotationName);
 
     if (! annotation) {
       charts_->errorMsg("Invalid annotation '" + annotationName + "'");
@@ -1904,9 +1905,11 @@ flattenModelCmd(const Vars &vars)
     CQChartsUtil::setModelHeaderValue(dataModel, c + nh, Qt::Horizontal, name);
 
     CQBaseModel::Type  columnType;
+    CQBaseModel::Type  columnBaseType;
     CQChartsNameValues nameValues;
 
-    if (! CQChartsUtil::columnValueType(charts_, model.data(), c, columnType, nameValues))
+    if (! CQChartsUtil::columnValueType(charts_, model.data(), c, columnType,
+                                        columnBaseType, nameValues))
       continue;
 
     CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
@@ -3191,7 +3194,7 @@ createRectShapeCmd(const Vars &vars)
 
   annotation->setBoxData(boxData);
 
-  setCmdRc(annotation->ind());
+  setCmdRc(annotation->propertyId());
 }
 
 //------
@@ -3297,7 +3300,7 @@ createEllipseShapeCmd(const Vars &vars)
 
   annotation->setBoxData(boxData);
 
-  setCmdRc(annotation->ind());
+  setCmdRc(annotation->propertyId());
 }
 
 //------
@@ -3398,7 +3401,7 @@ createPolygonShapeCmd(const Vars &vars)
 
   annotation->setShapeData(shapeData);
 
-  setCmdRc(annotation->ind());
+  setCmdRc(annotation->propertyId());
 }
 
 //------
@@ -3501,7 +3504,7 @@ createPolylineShapeCmd(const Vars &vars)
 
   annotation->setShapeData(shapeData);
 
-  setCmdRc(annotation->ind());
+  setCmdRc(annotation->propertyId());
 }
 
 //------
@@ -3624,7 +3627,7 @@ createTextShapeCmd(const Vars &vars)
   annotation->setTextData(textData);
   annotation->setBoxData(boxData);
 
-  setCmdRc(annotation->pathId());
+  setCmdRc(annotation->propertyId());
 }
 
 //------
@@ -3656,7 +3659,6 @@ createArrowShapeCmd(const Vars &vars)
   argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color , "stroke color");
   argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool , "arrow filled");
   argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color , "fill color");
-  argv.addCmdArg("-labels"      , CQChartsCmdArg::Type::SBool , "debug labels");
 
   if (! argv.parse())
     return;
@@ -3697,7 +3699,6 @@ createArrowShapeCmd(const Vars &vars)
   arrowData.empty     = argv.getParseBool("empty"     , arrowData.empty);
 
   CQChartsShapeData shapeData;
-  CQChartsTextData  textData;
 
   CQChartsStrokeData &stroke = shapeData.border;
   CQChartsFillData   &fill   = shapeData.background;
@@ -3707,8 +3708,6 @@ createArrowShapeCmd(const Vars &vars)
 
   fill.visible = argv.getParseBool ("filled"    , fill.visible);
   fill.color   = argv.getParseColor("fill_color", fill.color);
-
-  textData.visible = argv.getParseBool("labels", textData.visible);
 
   //---
 
@@ -3726,10 +3725,9 @@ createArrowShapeCmd(const Vars &vars)
 
   annotation->setArrowData(arrowData);
 
-  annotation->arrow()->setShapeData    (shapeData);
-  annotation->arrow()->setDebugTextData(textData);
+  annotation->arrow()->setShapeData(shapeData);
 
-  setCmdRc(annotation->ind());
+  setCmdRc(annotation->propertyId());
 }
 
 //------
@@ -3756,7 +3754,7 @@ createPointShapeCmd(const Vars &vars)
   argv.addCmdArg("-stroked", CQChartsCmdArg::Type::SBool, "stroke visible");
   argv.addCmdArg("-filled" , CQChartsCmdArg::Type::SBool, "fill visible");
 
-  argv.addCmdArg("-line_width", CQChartsCmdArg::Type::String, "stroke width");
+  argv.addCmdArg("-line_width", CQChartsCmdArg::Type::Length, "stroke width");
   argv.addCmdArg("-line_color", CQChartsCmdArg::Type::Color , "stroke color");
   argv.addCmdArg("-line_alpha", CQChartsCmdArg::Type::Real  , "stroke alpha");
 
@@ -3826,7 +3824,7 @@ createPointShapeCmd(const Vars &vars)
 
   annotation->setPointData(pointData);
 
-  setCmdRc(annotation->ind());
+  setCmdRc(annotation->propertyId());
 }
 
 //------
@@ -3837,7 +3835,8 @@ removeShapeCmd(const Vars &vars)
 {
   CQChartsCmdArgs argv("remove_shape", vars);
 
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  // -view or -plot needed for -all
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
@@ -3852,45 +3851,45 @@ removeShapeCmd(const Vars &vars)
 
   //---
 
-  CQChartsView *view = nullptr;
-  CQChartsPlot *plot = nullptr;
-
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
-
-    view = getViewByName(viewName);
-    if (! view) return;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
-
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return;
-  }
-
-  //---
-
+  // only id needed for specific
   if (argv.hasParseArg("id")) {
     QString id = argv.getParseStr("id");
 
-    if (view) {
-      CQChartsAnnotation *annotation = getAnnotationByName(view, id);
+    CQChartsAnnotation *annotation = getAnnotationByName(id);
 
-      if (annotation)
-        view->removeAnnotation(annotation);
-    }
-    else {
-      CQChartsAnnotation *annotation = getAnnotationByName(view, id);
+    if (annotation) {
+      CQChartsPlot *plot = annotation->plot();
+      CQChartsView *view = annotation->view();
 
-      if (annotation)
+      if (plot)
         plot->removeAnnotation(annotation);
+      else
+        view->removeAnnotation(annotation);
     }
   }
   else {
-    if (view)
+    CQChartsView *view = nullptr;
+    CQChartsPlot *plot = nullptr;
+
+    if      (argv.hasParseArg("view")) {
+      QString viewName = argv.getParseStr("view");
+
+      view = getViewByName(viewName);
+      if (! view) return;
+    }
+    else if (argv.hasParseArg("plot")) {
+      QString plotName = argv.getParseStr("plot");
+
+      plot = getPlotByName(nullptr, plotName);
+      if (! plot) return;
+    }
+
+    if      (view)
       view->removeAllAnnotations();
-    else
+    else if (plot)
       plot->removeAllAnnotations();
+    else
+      charts_->errorMsg("-view or -plot needed for -all");
   }
 }
 
@@ -4526,7 +4525,7 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
 
   // set plot property for widgets for plot parameters
   for (const auto &parameter : type->parameters()) {
-    if      (parameter->type() == "column") {
+    if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
       auto p = nameValueData.columns.find(parameter->name());
 
       if (p == nameValueData.columns.end())
@@ -4541,12 +4540,12 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
 
       QString scol = column.toString();
 
-      if (! CQUtil::setProperty(plot, parameter->propName(), scol)) {
+      if (! plot->setParameter(parameter, scol)) {
         charts_->errorMsg("Failed to set parameter " + parameter->propName());
         continue;
       }
     }
-    else if (parameter->type() == "columns") {
+    else if (parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
       auto p = nameValueData.columns.find(parameter->name());
 
       if (p == nameValueData.columns.end())
@@ -4563,7 +4562,7 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
 
       QString s = CQChartsColumn::columnsToString(columns);
 
-      if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(s))) {
+      if (! plot->setParameter(parameter, QVariant(s))) {
         charts_->errorMsg("Failed to set parameter " + parameter->propName());
         continue;
       }
@@ -4578,46 +4577,46 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
 
       QVariant var;
 
-      if      (parameter->type() == "string") {
+      if      (parameter->type() == CQChartsPlotParameter::Type::STRING) {
         var = QVariant(value);
       }
-      else if (parameter->type() == "real") {
+      else if (parameter->type() == CQChartsPlotParameter::Type::REAL) {
         bool ok;
 
         double r = value.toDouble(&ok);
 
         if (! ok) {
           charts_->errorMsg("Invalid real value '" + value + "' for '" +
-                            parameter->type() + "'");
+                            parameter->typeName() + "'");
           continue;
         }
 
         var = QVariant(r);
       }
-      else if (parameter->type() == "int") {
+      else if (parameter->type() == CQChartsPlotParameter::Type::INTEGER) {
         bool ok;
 
         int i = value.simplified().toInt(&ok);
 
         if (! ok) {
           charts_->errorMsg("Invalid integer value '" + value + "' for '" +
-                            parameter->type() + "'");
+                            parameter->typeName() + "'");
           continue;
         }
 
         var = QVariant(i);
       }
-      else if (parameter->type() == "enum") {
+      else if (parameter->type() == CQChartsPlotParameter::Type::ENUM) {
         var = QVariant(value);
       }
-      else if (parameter->type() == "bool") {
+      else if (parameter->type() == CQChartsPlotParameter::Type::BOOLEAN) {
         bool ok;
 
         bool b = stringToBool(value, &ok);
 
         if (! ok) {
           charts_->errorMsg("Invalid boolean value '" + value + "' for '" +
-                            parameter->type() + "'");
+                            parameter->typeName() + "'");
           continue;
         }
 
@@ -4627,7 +4626,7 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
         continue;
       }
 
-      if (! CQUtil::setProperty(plot, parameter->propName(), var)) {
+      if (! plot->setParameter(parameter, var)) {
         charts_->errorMsg("Failed to set parameter " + parameter->propName());
         continue;
       }
@@ -4805,79 +4804,8 @@ getPlotByName(CQChartsView *view, const QString &plotName) const
 
 CQChartsAnnotation *
 CQChartsCmds::
-getAnnotationByName(CQChartsView *view, const QString &name) const
+getAnnotationByName(const QString &name) const
 {
-  if (view) {
-    CQChartsAnnotation *annotation = view->getAnnotationByName(name);
-
-    if (annotation)
-      return annotation;
-
-    const CQChartsView::Annotations &annotations = view->annotations();
-
-    for (const auto &annotation : annotations) {
-      if (annotation->id() == name)
-        return annotation;
-
-      if (annotation->pathId() == name)
-        return annotation;
-    }
-
-    charts_->errorMsg("No annotation '" + name + "'");
-
-    return nullptr;
-  }
-
-  //---
-
-  CQCharts::Views views;
-
-  charts_->getViews(views);
-
-  for (auto &view : views) {
-    const CQChartsView::Annotations &annotations = view->annotations();
-
-    for (const auto &annotation : annotations) {
-      if (annotation->id() == name)
-        return annotation;
-
-      if (annotation->pathId() == name)
-        return annotation;
-    }
-  }
-
-  charts_->errorMsg("No annotation '" + name + "'");
-
-  return nullptr;
-}
-
-CQChartsAnnotation *
-CQChartsCmds::
-getAnnotationByName(CQChartsPlot *plot, const QString &name) const
-{
-  if (plot) {
-    CQChartsAnnotation *annotation = plot->getAnnotationByName(name);
-
-    if (annotation)
-      return annotation;
-
-    const CQChartsPlot::Annotations &annotations = plot->annotations();
-
-    for (const auto &annotation : annotations) {
-      if (annotation->id() == name)
-        return annotation;
-
-      if (annotation->pathId() == name)
-        return annotation;
-    }
-
-    charts_->errorMsg("No annotation '" + name + "'");
-
-    return nullptr;
-  }
-
-  //---
-
   CQCharts::Views views;
 
   charts_->getViews(views);
@@ -4897,6 +4825,18 @@ getAnnotationByName(CQChartsPlot *plot, const QString &name) const
         if (annotation->pathId() == name)
           return annotation;
       }
+    }
+
+    //---
+
+    const CQChartsView::Annotations &annotations = view->annotations();
+
+    for (const auto &annotation : annotations) {
+      if (annotation->id() == name)
+        return annotation;
+
+      if (annotation->pathId() == name)
+        return annotation;
     }
   }
 

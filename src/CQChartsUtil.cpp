@@ -86,7 +86,8 @@ QString parentPath(QAbstractItemModel *model, const QModelIndex &parent) {
 //  . column can be model column, header or custom expresssion
 bool
 columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
-                CQBaseModel::Type &columnType, CQChartsNameValues &nameValues) {
+                CQBaseModel::Type &columnType, CQBaseModel::Type &columnBaseType,
+                CQChartsNameValues &nameValues) {
   assert(model);
 
   if (column.type() == CQChartsColumn::Type::DATA ||
@@ -95,7 +96,8 @@ columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColum
     int icolumn = column.column();
 
     if (icolumn < 0 || icolumn >= model->columnCount()) {
-      columnType = CQBaseModel::Type::NONE;
+      columnType     = CQBaseModel::Type::NONE;
+      columnBaseType = CQBaseModel::Type::NONE;
       return false;
     }
 
@@ -104,10 +106,8 @@ columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColum
     // use defined column type if available
     CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
-    if (columnTypeMgr->getModelColumnType(model, icolumn, columnType, nameValues)) {
+    if (columnTypeMgr->getModelColumnType(model, icolumn, columnType, columnBaseType, nameValues)) {
       if (column.type() == CQChartsColumn::Type::DATA_INDEX) {
-        CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
-
         CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
 
         if (typeData) {
@@ -188,17 +188,20 @@ columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColum
 
     CQChartsModelVisit::exec(model, columnTypeVisitor);
 
-    columnType = columnTypeVisitor.columnType();
+    columnType     = columnTypeVisitor.columnType();
+    columnBaseType = columnType;
 
     return true;
   }
   else if (column.type() == CQChartsColumn::Type::GROUP) {
-    columnType = CQBaseModel::Type::INTEGER;
+    columnType     = CQBaseModel::Type::INTEGER;
+    columnBaseType = CQBaseModel::Type::INTEGER;
     return true;
   }
   else {
     // TODO: for custom expression should determine expression result type (if possible)
-    columnType = CQBaseModel::Type::STRING;
+    columnType     = CQBaseModel::Type::STRING;
+    columnBaseType = CQBaseModel::Type::STRING;
     return true;
   }
 }
@@ -206,7 +209,8 @@ columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColum
 // use column format string to format a value as data (used by axis)
 //  TODO: separate format string from column type to remove dependence
 bool
-formatColumnTypeValue(CQCharts *charts, const QString &typeStr, double value, QString &str) {
+formatColumnTypeValue(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                      const QString &typeStr, double value, QString &str) {
   CQChartsNameValues nameValues;
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
@@ -216,7 +220,7 @@ formatColumnTypeValue(CQCharts *charts, const QString &typeStr, double value, QS
   if (! typeData)
     return false;
 
-  return formatColumnTypeValue(typeData, nameValues, value, str);
+  return formatColumnTypeValue(charts, model, column, typeData, nameValues, value, str);
 }
 
 // use column type details to format an internal value (real) to a display value
@@ -225,9 +229,10 @@ bool
 formatColumnValue(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
                   double value, QString &str) {
   CQBaseModel::Type  columnType;
+  CQBaseModel::Type  columnBaseType;
   CQChartsNameValues nameValues;
 
-  if (! columnValueType(charts, model, column, columnType, nameValues))
+  if (! columnValueType(charts, model, column, columnType, columnBaseType, nameValues))
     return false;
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
@@ -237,15 +242,16 @@ formatColumnValue(CQCharts *charts, QAbstractItemModel *model, const CQChartsCol
   if (! typeData)
     return false;
 
-  return formatColumnTypeValue(typeData, nameValues, value, str);
+  return formatColumnTypeValue(charts, model, column, typeData, nameValues, value, str);
 }
 
 bool
-formatColumnTypeValue(CQChartsColumnType *typeData, const CQChartsNameValues &nameValues,
+formatColumnTypeValue(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                      CQChartsColumnType *typeData, const CQChartsNameValues &nameValues,
                       double value, QString &str) {
   bool converted;
 
-  QVariant var = typeData->dataName(value, nameValues, converted);
+  QVariant var = typeData->dataName(charts, model, column, value, nameValues, converted);
 
   if (! var.isValid())
     return false;
@@ -284,9 +290,10 @@ bool
 columnTypeStr(CQCharts *charts, QAbstractItemModel *model,
               const CQChartsColumn &column, QString &typeStr) {
   CQBaseModel::Type  columnType;
+  CQBaseModel::Type  columnBaseType;
   CQChartsNameValues nameValues;
 
-  if (! columnValueType(charts, model, column, columnType, nameValues))
+  if (! columnValueType(charts, model, column, columnType, columnBaseType, nameValues))
     return false;
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
@@ -824,6 +831,7 @@ int nameToRole(const QString &name) {
   else if (name == "decoration"    ) return Qt::DecorationRole;
 
   else if (name == "type"              ) return (int) CQBaseModel::Role::Type;
+  else if (name == "base_type"         ) return (int) CQBaseModel::Role::BaseType;
   else if (name == "type_values"       ) return (int) CQBaseModel::Role::TypeValues;
   else if (name == "min"               ) return (int) CQBaseModel::Role::Min;
   else if (name == "max"               ) return (int) CQBaseModel::Role::Max;
@@ -886,6 +894,9 @@ QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &colum
                           Qt::Orientation orientation, int role, bool &ok) {
   ok = false;
 
+  if (! column.isValid())
+    return QVariant();
+
   if (column.type() != CQChartsColumn::Type::DATA &&
       column.type() != CQChartsColumn::Type::DATA_INDEX)
     return QVariant();
@@ -920,11 +931,6 @@ QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &colum
 
 QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
                           Qt::Orientation orient, int role, bool &ok) {
-  ok = false;
-
-  if (! column.isValid())
-    return "";
-
   QVariant var = modelHeaderValue(model, column, orient, role, ok);
   if (! var.isValid()) return "";
 
@@ -1039,9 +1045,10 @@ QVariant modelValue(CQCharts *charts, QAbstractItemModel *model, int row,
     QVariant var = modelValue(model, ind, role, ok);
 
     CQBaseModel::Type  columnType;
+    CQBaseModel::Type  columnBaseType;
     CQChartsNameValues nameValues;
 
-    if (! columnValueType(charts, model, column.column(), columnType, nameValues))
+    if (! columnValueType(charts, model, column.column(), columnType, columnBaseType, nameValues))
       return var;
 
     CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
@@ -1348,9 +1355,8 @@ long modelHierInteger(CQCharts *charts, QAbstractItemModel *model, int row,
 
 //---
 
-CQChartsColor modelColor(QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok) {
-  QVariant var = modelValue(model, ind, role, ok);
-  if (! ok) return CQChartsColor();
+CQChartsColor variantToColor(const QVariant &var) {
+  bool ok;
 
   if (CQChartsVariant::isColor(var))
     return CQChartsVariant::toColor(var, ok);
@@ -1371,6 +1377,13 @@ CQChartsColor modelColor(QAbstractItemModel *model, const QModelIndex &ind, int 
   }
 
   return color;
+}
+
+CQChartsColor modelColor(QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok) {
+  QVariant var = modelValue(model, ind, role, ok);
+  if (! ok) return CQChartsColor();
+
+  return variantToColor(var);
 }
 
 CQChartsColor modelColor(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
@@ -1388,25 +1401,7 @@ CQChartsColor modelColor(CQCharts *charts, QAbstractItemModel *model, int row,
   QVariant var = modelValue(charts, model, row, column, parent, role, ok);
   if (! ok) return CQChartsColor();
 
-  if (CQChartsVariant::isColor(var))
-    return CQChartsVariant::toColor(var, ok);
-
-  CQChartsColor color;
-
-  if (CQChartsVariant::isReal(var)) {
-    double r;
-
-    if (CQChartsVariant::toReal(var, r))
-      color = CQChartsColor(CQChartsColor::Type::PALETTE, r);
-  }
-  else {
-    QString str;
-
-    if (CQChartsVariant::toString(var, str))
-      color = CQChartsColor(str);
-  }
-
-  return color;
+  return variantToColor(var);
 }
 
 CQChartsColor modelColor(CQCharts *charts, QAbstractItemModel *model, int row,
@@ -1923,6 +1918,7 @@ bool isValidModelColumn(QAbstractItemModel *model, int column) {
 }
 
 int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name) {
+#if 0
   int role = Qt::DisplayRole;
 
   for (int icolumn = 0; icolumn < model->columnCount(); ++icolumn) {
@@ -1952,6 +1948,9 @@ int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name) {
     return column;
 
   return -1;
+#else
+  return CQBaseModel::modelColumnNameToInd(model, name);
+#endif
 }
 
 bool stringToColumn(const QAbstractItemModel *model, const QString &str, CQChartsColumn &column) {

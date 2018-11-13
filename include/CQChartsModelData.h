@@ -93,6 +93,8 @@ class CQChartsModelData : public QObject {
 
   const ModelP &summaryModelP() const { return summaryModelP_; }
 
+  void write();
+
  private:
   void connectModel();
   void disconnectModel();

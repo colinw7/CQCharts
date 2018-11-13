@@ -7,20 +7,16 @@
 
 CQChartsArrow::
 CQChartsArrow(CQChartsView *view, const QPointF &from, const QPointF &to) :
- CQChartsObjShapeData    <CQChartsArrow>(this),
- CQChartsObjDebugTextData<CQChartsArrow>(this),
+ CQChartsObjShapeData<CQChartsArrow>(this),
  view_(view), from_(from), to_(to)
 {
-  setDebugTextVisible(false);
 }
 
 CQChartsArrow::
 CQChartsArrow(CQChartsPlot *plot, const QPointF &from, const QPointF &to) :
- CQChartsObjShapeData    <CQChartsArrow>(this),
- CQChartsObjDebugTextData<CQChartsArrow>(this),
+ CQChartsObjShapeData<CQChartsArrow>(this),
  plot_(plot), from_(from), to_(to)
 {
-  setDebugTextVisible(false);
 }
 
 void
@@ -81,20 +77,24 @@ draw(QPainter *painter)
   double x1 = fx, y1 = fy;
   double x4 = tx, y4 = ty;
 
+#if 0
   if (isDebugTextVisible()) {
     drawPointLabel(QPointF(x1, y1), "p1", true, false);
     drawPointLabel(QPointF(x4, y4), "p4", true, false);
   }
+#endif
 
   double x2 = x1 + xl1*c;
   double y2 = y1 + yl1*s;
   double x3 = x4 - xl1*c;
   double y3 = y4 - yl1*s;
 
+#if 0
   if (isDebugTextVisible()) {
     drawPointLabel(QPointF(x2, y2), "p2", true, false);
     drawPointLabel(QPointF(x3, y3), "p3", true, false);
   }
+#endif
 
   double x11 = x1, y11 = y1;
   double x41 = x4, y41 = y4;
@@ -135,10 +135,12 @@ draw(QPainter *painter)
     double xf2 = x1 + xl*c2;
     double yf2 = y1 + yl*s2;
 
+#if 0
     if (isDebugTextVisible()) {
       drawPointLabel(QPointF(xf1, yf1), "pf1", true, false);
       drawPointLabel(QPointF(xf2, yf2), "pf2", true, false);
     }
+#endif
 
     double xf3 = x2, yf3 = y2;
 
@@ -154,8 +156,10 @@ draw(QPainter *painter)
 
         CQChartsUtil::intersectLines(x1, y1, x2, y2, xf1, yf1, xf1 - 10*c3, yf1 - 10*s3, xf3, yf3);
 
+#if 0
         if (isDebugTextVisible())
           drawPointLabel(QPointF(xf3, yf3), "pf3", true, false);
+#endif
 
         x11 = xf3;
         y11 = yf3;
@@ -184,10 +188,12 @@ draw(QPainter *painter)
     double xt2 = x4 + xl*c2;
     double yt2 = y4 + yl*s2;
 
+#if 0
     if (isDebugTextVisible()) {
       drawPointLabel(QPointF(xt1, yt1), "pt1", true, false);
       drawPointLabel(QPointF(xt2, yt2), "pt2", true, false);
     }
+#endif
 
     double xt3 = x3, yt3 = y3;
 
@@ -203,8 +209,10 @@ draw(QPainter *painter)
 
         CQChartsUtil::intersectLines(x3, y3, x4, y4, xt1, yt1, xt1 - 10*c3, yt1 - 10*s3, xt3, yt3);
 
+#if 0
         if (isDebugTextVisible())
           drawPointLabel(QPointF(xt3, yt3), "pt3", true, false);
+#endif
 
         x41 = xt3;
         y41 = yt3;
@@ -310,6 +318,7 @@ drawLine(const QPointF &point1, const QPointF &point2, double width, bool mappin
   painter_->drawLine(px1, py1, px2, py2);
 }
 
+#if 0
 void
 CQChartsArrow::
 drawPointLabel(const QPointF &point, const QString &text, bool above, bool mapping)
@@ -332,9 +341,9 @@ drawPointLabel(const QPointF &point, const QString &text, bool above, bool mappi
   QColor tc = interpDebugTextColor(0, 1);
 
   if (plot_)
-    plot_->setPen(tpen, true, tc, debugTextAlpha(), CQChartsLength("1.0"));
+    plot_->setPen(tpen, true, tc, 1.0, CQChartsLength("1.0"));
   else
-    view_->setPen(tpen, true, tc, debugTextAlpha(), CQChartsLength("1.0"));
+    view_->setPen(tpen, true, tc, 1.0, CQChartsLength("1.0"));
 
   painter_->setPen(tpen);
 
@@ -348,3 +357,4 @@ drawPointLabel(const QPointF &point, const QString &text, bool above, bool mappi
 
   painter_->drawText(px - w/2, py + (above ? -h : h), text);
 }
+#endif

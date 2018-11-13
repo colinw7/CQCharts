@@ -2,6 +2,7 @@
 #define CQChartsVariant_H
 
 #include <CQChartsUtil.h>
+#include <CQChartsSymbol.h>
 #include <CQUtil.h>
 
 namespace CQChartsVariant {
@@ -174,7 +175,18 @@ inline bool toBool(const QVariant &var, bool &ok) {
 //---
 
 inline bool isColor(const QVariant &var) {
-  return (var.type() == QVariant::Color);
+  if (! var.isValid())
+    return false;
+
+  if (var.type() == QVariant::Color)
+    return true;
+
+  if (var.type() == QVariant::UserType) {
+    if (var.userType() == CQChartsColor::metaTypeId)
+      return true;
+  }
+
+  return false;
 }
 
 inline CQChartsColor toColor(const QVariant &var, bool &ok) {
@@ -182,6 +194,11 @@ inline CQChartsColor toColor(const QVariant &var, bool &ok) {
 
   if (var.type() == QVariant::Color)
     return var.value<QColor>();
+
+  if (var.type() == QVariant::UserType) {
+    if (var.userType() == CQChartsColor::metaTypeId)
+      return var.value<CQChartsColor>();
+  }
 
   QColor c(var.toString());
 
@@ -191,6 +208,38 @@ inline CQChartsColor toColor(const QVariant &var, bool &ok) {
   ok = false;
 
   return CQChartsColor();
+}
+
+//---
+
+inline bool isSymbol(const QVariant &var) {
+  if (! var.isValid())
+    return false;
+
+  if (var.type() == QVariant::UserType) {
+    if (var.userType() == CQChartsSymbol::metaTypeId)
+      return true;
+  }
+
+  return false;
+}
+
+inline CQChartsSymbol toSymbol(const QVariant &var, bool &ok) {
+  ok = true;
+
+  if (var.type() == QVariant::UserType) {
+    if (var.userType() == CQChartsSymbol::metaTypeId)
+      return var.value<CQChartsSymbol>();
+  }
+
+  CQChartsSymbol symbol(var.toString());
+
+  if (symbol.isValid())
+    return symbol;
+
+  ok = false;
+
+  return CQChartsSymbol();
 }
 
 //---

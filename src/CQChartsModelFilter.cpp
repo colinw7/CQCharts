@@ -450,7 +450,7 @@ data(const QModelIndex &ind, int role) const
   if (! ind.isValid())
     return QVariant();
 
-  if (role == Qt::DisplayRole || role == Qt::EditRole) {
+  if (isMapping() && (role == Qt::DisplayRole || role == Qt::EditRole)) {
     if (role == Qt::DisplayRole) {
       QVariant var =
         QSortFilterProxyModel::data(ind, int(CQBaseModel::Role::OutputValue));
@@ -479,7 +479,7 @@ data(const QModelIndex &ind, int role) const
 
   //---
 
-  if (role == Qt::DisplayRole || role == Qt::EditRole) {
+  if (isMapping() && (role == Qt::DisplayRole || role == Qt::EditRole)) {
     assert(ind.model() == this);
 
     QModelIndex ind1 = mapToSource(ind);

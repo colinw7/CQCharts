@@ -26,6 +26,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   QString calcTipId() const override;
 
+  virtual const char *typeName() const = 0;
+
   QString pathId() const;
 
   const CQChartsGeom::BBox &bbox() const { return bbox_; }
@@ -80,6 +82,15 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   CQChartsView *view() const;
 
+  //---
+
+  virtual void write() const = 0;
+
+  void writeKeys(const QString &cmd) const;
+
+  void writeFill() const;
+  void writeStroke() const;
+
  signals:
   void dataChanged();
 
@@ -106,6 +117,8 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsRectAnnotation();
 
+  const char *typeName() const override { return "rect"; }
+
   const CQChartsPosition &start() const { return start_; }
   void setStart(const CQChartsPosition &p) { start_ = p; emit dataChanged(); }
 
@@ -119,6 +132,8 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
   void draw(QPainter *painter) override;
+
+  void write() const override;
 
  private:
   CQChartsPosition start_ { QPointF(0, 0) };
@@ -142,6 +157,8 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsEllipseAnnotation();
 
+  const char *typeName() const override { return "ellipse"; }
+
   const CQChartsPosition &center() const { return center_; }
   void setCenter(const CQChartsPosition &c) { center_ = c; emit dataChanged(); }
 
@@ -160,6 +177,8 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void draw(QPainter *painter) override;
+
+  void write() const override;
 
  private:
   CQChartsPosition center_;
@@ -180,6 +199,8 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsPolygonAnnotation();
 
+  const char *typeName() const override { return "polygon"; }
+
   const QPolygonF &points() const { return points_; }
   void setPoints(const QPolygonF &points) { points_ = points; emit dataChanged(); }
 
@@ -192,6 +213,8 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void draw(QPainter *painter) override;
+
+  void write() const override;
 
  private:
   QPolygonF points_;
@@ -210,6 +233,8 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsPolylineAnnotation();
 
+  const char *typeName() const override { return "polyline"; }
+
   const QPolygonF &points() const { return points_; }
   void setPoints(const QPolygonF &points) { points_ = points; emit dataChanged(); }
 
@@ -222,6 +247,8 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void draw(QPainter *painter) override;
+
+  void write() const override;
 
  private:
   QPolygonF points_;
@@ -242,6 +269,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsTextAnnotation();
 
+  const char *typeName() const override { return "text"; }
+
   const CQChartsPosition &position() const { return position_; }
   void setPosition(const CQChartsPosition &p) { position_ = p; emit dataChanged(); }
 
@@ -258,6 +287,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void draw(QPainter *painter) override;
+
+  void write() const override;
 
  private:
   CQChartsPosition position_;
@@ -281,6 +312,8 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsArrowAnnotation();
 
+  const char *typeName() const override { return "arrow"; }
+
   const CQChartsPosition &start() const { return start_; }
   void setStart(const CQChartsPosition &p) { start_ = p; emit dataChanged(); }
 
@@ -300,6 +333,8 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void draw(QPainter *painter) override;
+
+  void write() const override;
 
  private:
   CQChartsPosition start_ { QPointF(0, 0) };
@@ -322,6 +357,8 @@ class CQChartsPointAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsPointAnnotation();
 
+  const char *typeName() const override { return "point"; }
+
   const CQChartsPosition &position() const { return position_; }
   void setPosition(const CQChartsPosition &p) { position_ = p; emit dataChanged(); }
 
@@ -340,6 +377,8 @@ class CQChartsPointAnnotation : public CQChartsAnnotation {
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void draw(QPainter *painter) override;
+
+  void write() const override;
 
  private:
   CQChartsPosition   position_;

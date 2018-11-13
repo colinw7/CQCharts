@@ -25,7 +25,7 @@ addParameters()
       setTip("Group by rows instead of column headers");
 
   if (allowUsePath())
-    addBoolParameter("usePath", "Use Path", "usePath").
+    addBoolParameter("usePath", "Use Path", "usePath", true).
       setTip("Use hierarchical path as group");
 
   if (allowUseRow())

@@ -7,6 +7,7 @@
 
 class CQCharts;
 class CQChartsModelData;
+class CQChartsParamEdit;
 
 class QGridLayout;
 class QRadioButton;
@@ -46,6 +47,7 @@ class CQChartsModelControl : public QFrame {
   void foldApplySlot();
   void foldClearSlot();
 
+  void typeChangedSlot();
   void typeApplySlot();
 
  private:
@@ -56,9 +58,9 @@ class CQChartsModelControl : public QFrame {
 
  private:
   struct ParamEdit {
-    int        row { 0 };
-    QLabel    *label;
-    QLineEdit *edit;
+    int                row   { 0 };
+    QLabel*            label { nullptr };
+    CQChartsParamEdit* edit  { nullptr };
   };
 
   using ParamEdits = std::vector<ParamEdit>;

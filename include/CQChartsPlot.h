@@ -45,6 +45,7 @@ class CQChartsEllipseAnnotation;
 class CQChartsPolygonAnnotation;
 class CQChartsPolylineAnnotation;
 class CQChartsPointAnnotation;
+class CQChartsPlotParameter;
 class CQChartsObj;
 class CQPropertyViewModel;
 class CQChartsDisplayRange;
@@ -102,6 +103,7 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(CQChartsColumn tipColumn     READ tipColumn     WRITE setTipColumn    )
   Q_PROPERTY(CQChartsColumn visibleColumn READ visibleColumn WRITE setVisibleColumn)
   Q_PROPERTY(CQChartsColumn colorColumn   READ colorColumn   WRITE setColorColumn  )
+  Q_PROPERTY(CQChartsColumn imageColumn   READ imageColumn   WRITE setImageColumn  )
 
   // color map
   CQCHARTS_COLOR_MAP_PROPERTIES
@@ -302,6 +304,11 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  bool updatesEnabled() const { return updatesEnabled_; }
+  void setUpdatesEnabled(bool b);
+
+  //---
+
   const CQChartsDisplayRange &displayRange() const;
   void setDisplayRange(const CQChartsDisplayRange &r);
 
@@ -317,12 +324,6 @@ class CQChartsPlot : public CQChartsObj,
     double              dataScaleX { 1.0 };      // data scale (zoom in x direction)
     double              dataScaleY { 1.0 };      // data scale (zoom in y direction)
     CQChartsGeom::Point dataOffset { 0.0, 0.0 }; // data offset (pan)
-#if 0
-    OptReal zoomRegionXMin; // zoom region xmin
-    OptReal zoomRegionXMax; // zoom region xmax
-    OptReal zoomRegionYMin; // zoom region ymin
-    OptReal zoomRegionYMax; // zoom region ymax
-#endif
   };
 
   double dataScaleX() const { return zoomData_.dataScaleX; }
@@ -718,11 +719,19 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  QVariant modelHeaderValue(const CQChartsColumn &column, bool &ok) const;
+  QVariant modelHeaderValue(const CQChartsColumn &column, int role, bool &ok) const;
+
+  QVariant modelHeaderValue(int section, Qt::Orientation orient, bool &ok) const;
+  QVariant modelHeaderValue(int section, Qt::Orientation orient, int role, bool &ok) const;
+
   QString modelHeaderString(const CQChartsColumn &column, bool &ok) const;
   QString modelHeaderString(const CQChartsColumn &column, int role, bool &ok) const;
 
   QString modelHeaderString(int section, Qt::Orientation orient, bool &ok) const;
   QString modelHeaderString(int section, Qt::Orientation orient, int role, bool &ok) const;
+
+  //---
 
   QVariant modelValue(const CQChartsModelIndex &ind, bool &ok) const;
 
@@ -762,6 +771,15 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  virtual QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                                    bool &ok) const;
+  virtual QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                                    int role, bool &ok) const;
+  virtual QVariant modelHeaderValue(QAbstractItemModel *model, int section,
+                                    Qt::Orientation orient, int role, bool &ok) const;
+  virtual QVariant modelHeaderValue(QAbstractItemModel *model, int section,
+                                    Qt::Orientation orient, bool &ok) const;
+
   virtual QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
                                     bool &ok) const;
   virtual QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
@@ -800,6 +818,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  QVariant modelRootValue(int row, const CQChartsColumn &column,
+                          const QModelIndex &parent, int role, bool &ok) const;
   QVariant modelRootValue(int row, const CQChartsColumn &column,
                           const QModelIndex &parent, bool &ok) const;
 
@@ -966,7 +986,10 @@ class CQChartsPlot : public CQChartsObj,
 
  public:
   // (re)initialize plot objects (called by initPlotObjs)
-  virtual bool initObjs() = 0;
+  virtual bool initObjs();
+
+  // create plot objects (called by initObjs)
+  virtual bool createObjs() = 0;
 
   // add plotObjects to quad tree (create no data object in no objects)
   void initObjTree();
@@ -1033,6 +1056,9 @@ class CQChartsPlot : public CQChartsObj,
 
   const CQChartsColumn &visibleColumn() const { return visibleColumn_; }
   void setVisibleColumn(const CQChartsColumn &column);
+
+  const CQChartsColumn &imageColumn() const { return imageColumn_; }
+  void setImageColumn(const CQChartsColumn &column);
 
   //---
 
@@ -1116,20 +1142,6 @@ class CQChartsPlot : public CQChartsObj,
   virtual double getMoveY(bool is_shift) const;
 
   virtual double getZoomFactor(bool is_shift) const;
-
-#if 0
-  void setZoomXRegion(double min, double max) {
-    zoomRegionXMin_ = min;
-    zoomRegionXMax_ = max;
-    invalidateLayer(CQChartsBuffer::Type::OVERLAY);
-  }
-
-  void setZoomYRegion(double min, double max) {
-    zoomRegionYMin_ = min;
-    zoomRegionYMax_ = max;
-    invalidateLayer(CQChartsBuffer::Type::OVERLAY);
-  }
-#endif
 
  public slots:
   void updateSlot();
@@ -1367,12 +1379,6 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void drawEditHandles(QPainter *painter);
 
-#if 0
-  // draw zoom lines
-  bool hasZoomRegionLines() const;
-  void drawZoomRegionLines(QPainter *painter);
-#endif
-
   //---
 
   // set clip rect
@@ -1494,7 +1500,7 @@ class CQChartsPlot : public CQChartsObj,
                              const ColumnType &defType=ColumnType::STRING) const;
 
   bool columnValueType(const CQChartsColumn &column, ColumnType &columnType,
-                       CQChartsNameValues &nameValues,
+                       ColumnType &columnBaseType, CQChartsNameValues &nameValues,
                        const ColumnType &defType=ColumnType::STRING) const;
 
   bool columnTypeStr(const CQChartsColumn &column, QString &typeStr) const;
@@ -1542,6 +1548,11 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   bool printLayer(CQChartsLayer::Type type, const QString &filename);
+
+  bool setParameter(CQChartsPlotParameter *param, const QVariant &value);
+  bool getParameter(CQChartsPlotParameter *param, QVariant &value) const;
+
+  void write() const;
 
  protected slots:
   void animateSlot();
@@ -1594,6 +1605,9 @@ class CQChartsPlot : public CQChartsObj,
 
   // zoom/pan changed
   void zoomPanChanged();
+
+  // annotations changed
+  void annotationsChanged();
 
  protected:
   using ObjSet     = std::set<CQChartsObj*>;
@@ -1689,6 +1703,7 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsColumn            idColumn_;                        // unique data id column (signalled)
   CQChartsColumn            tipColumn_;                       // tip column
   CQChartsColumn            visibleColumn_;                   // visible column
+  CQChartsColumn            imageColumn_;                     // image column
   double                    minScaleFontSize_ { 6.0 };        // min scaled font size
   double                    maxScaleFontSize_ { 48.0 };       // max scaled font size
   bool                      equalScale_       { false };      // equal scaled
@@ -1724,6 +1739,9 @@ class CQChartsPlot : public CQChartsObj,
   int                       updateTimeout_    { 100 };        // update timeout
   CQChartsEditHandles       editHandles_;                     // edit controls
   Annotations               annotations_;                     // extra annotations
+  bool                      updatesEnabled_   { true };       // updates enabled
+  bool                      needsUpdate_      { false };      // needs update (on enable)
+  bool                      needsInvalidate_  { false };      // needs invalidate (on enable)
   bool                      fromInvalidate_   { false };      // call from invalidate
 };
 

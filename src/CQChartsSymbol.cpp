@@ -2,6 +2,8 @@
 
 CQUTIL_DEF_META_TYPE(CQChartsSymbol, toString, fromString)
 
+int CQChartsSymbol::metaTypeId;
+
 //---
 
 QString
@@ -60,7 +62,7 @@ void
 CQChartsSymbol::
 registerMetaType()
 {
-  CQUTIL_REGISTER_META(CQChartsSymbol);
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsSymbol);
 }
 
 CQChartsSymbol::

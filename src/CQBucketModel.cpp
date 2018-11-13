@@ -173,7 +173,8 @@ bucket()
 
   //---
 
-  bucketPos_ = numColumns;
+  bucketPos_ = 0;
+//bucketPos_ = numColumns;
   bucketed_  = true;
 }
 
@@ -246,7 +247,7 @@ data(const QModelIndex &index, int role) const
   int r = index.row   ();
   int c = index.column();
 
-  if (c < 0)
+  if (c < 0 || c >= columnCount())
     return QVariant();
 
   QAbstractItemModel *model = this->sourceModel();
@@ -254,8 +255,10 @@ data(const QModelIndex &index, int role) const
   if (! model)
     return QVariant();
 
-  if (c < bucketPos()) {
-    QModelIndex ind = model->index(r, c);
+  int c1 = mapColumn(c);
+
+  if (c1 >= 0) {
+    QModelIndex ind = model->index(r, c1);
 
     return model->data(ind, role);
   }
@@ -288,15 +291,17 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   int r = index.row   ();
   int c = index.column();
 
-  if (c < 0)
+  if (c < 0 || c >= columnCount())
     return false;
 
-  if (c < bucketPos()) {
-    QAbstractItemModel *model = this->sourceModel();
+  QAbstractItemModel *model = this->sourceModel();
 
-    if (! model)
-      return false;
+  if (! model)
+    return false;
 
+  int c1 = mapColumn(c);
+
+  if (c1 >= 0) {
     QModelIndex ind = model->index(r, c);
 
     return model->setData(ind, value, role);
@@ -309,25 +314,23 @@ QVariant
 CQBucketModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
+  QAbstractItemModel *model = this->sourceModel();
+
+  if (! model)
+    return QVariant();
+
   if (orientation == Qt::Vertical) {
-    QAbstractItemModel *model = this->sourceModel();
-
-    if (! model)
-      return QVariant();
-
     return model->headerData(section, orientation, role);
   }
 
   if (section < 0 || section >= columnCount())
     return QVariant();
 
-  QAbstractItemModel *model = this->sourceModel();
+  int section1 = mapColumn(section);
 
-  if (! model)
-    return QVariant();
-
-  if (section < bucketPos())
-    return model->headerData(section, orientation, role);
+  if (section1 >= 0) {
+    return model->headerData(section1, orientation, role);
+  }
 
   if (role == Qt::DisplayRole) {
     QString name = model->headerData(bucketColumn(), orientation, role).toString();
@@ -342,25 +345,22 @@ bool
 CQBucketModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
+  QAbstractItemModel *model = this->sourceModel();
+
+  if (! model)
+    return false;
+
   if (orientation == Qt::Vertical) {
-    QAbstractItemModel *model = this->sourceModel();
-
-    if (! model)
-      return false;
-
     return model->setHeaderData(section, orientation, role);
   }
 
   if (section < 0 || section >= columnCount())
     return false;
 
-  if (section < bucketPos()) {
-    QAbstractItemModel *model = this->sourceModel();
+  int section1 = mapColumn(section);
 
-    if (! model)
-      return false;
-
-    return model->setHeaderData(section, orientation, value, role);
+  if (section1 >= 0) {
+    return model->setHeaderData(section1, orientation, value, role);
   }
 
   return false;
@@ -373,16 +373,18 @@ flags(const QModelIndex &index) const
   int r = index.row   ();
   int c = index.column();
 
-  if (c < 0)
+  if (c < 0 || c >= columnCount())
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 
-  if (c < bucketPos()) {
-    QAbstractItemModel *model = this->sourceModel();
+  QAbstractItemModel *model = this->sourceModel();
 
-    if (! model)
-      return 0;
+  if (! model)
+    return 0;
 
-    QModelIndex ind = model->index(r, c);
+  int c1 = mapColumn(c);
+
+  if (c1 >= 0) {
+    QModelIndex ind = model->index(r, c1);
 
     return model->flags(ind);
   }
@@ -390,7 +392,7 @@ flags(const QModelIndex &index) const
   return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
-// map index in source model to folded model
+// map index in source model to bucket model
 QModelIndex
 CQBucketModel::
 mapFromSource(const QModelIndex &sourceIndex) const
@@ -401,13 +403,15 @@ mapFromSource(const QModelIndex &sourceIndex) const
   int r = sourceIndex.row   ();
   int c = sourceIndex.column();
 
-  if (c >= 0 && c < bucketPos())
-    return this->index(r, c);
+  if (c < 0 || c >= columnCount())
+    return QModelIndex();
 
-  return QModelIndex();
+  int c1 = unmapColumn(c);
+
+  return this->index(r, c1);
 }
 
-// map index in folded model to source model
+// map index in bucket model to source model
 QModelIndex
 CQBucketModel::
 mapToSource(const QModelIndex &proxyIndex) const
@@ -418,14 +422,46 @@ mapToSource(const QModelIndex &proxyIndex) const
   int r = proxyIndex.row   ();
   int c = proxyIndex.column();
 
-  if (c >= 0 && c < bucketPos()) {
-    QAbstractItemModel *model = this->sourceModel();
+  if (c < 0 || c >= columnCount())
+    return QModelIndex();
 
-    if (! model)
-      return QModelIndex();
+  QAbstractItemModel *model = this->sourceModel();
 
-    return model->index(r, c);
-  }
+  if (! model)
+    return QModelIndex();
+
+  int c1 = mapColumn(c);
+
+  if (c1 >= 0)
+    return model->index(r, c1);
 
   return QModelIndex();
+}
+
+// map bucket column to source column
+int
+CQBucketModel::
+mapColumn(int c) const
+{
+  if (c < bucketPos())
+    return c;
+
+  if (c > bucketPos())
+    return c - 1;
+
+  return -1;
+}
+
+// map source column to bucket column
+int
+CQBucketModel::
+unmapColumn(int c) const
+{
+  if (c < bucketPos())
+    return c;
+
+  if (c >= bucketPos())
+    return c + 1;
+
+  return -1;
 }

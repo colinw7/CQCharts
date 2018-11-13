@@ -878,6 +878,9 @@ headerData(int section, Qt::Orientation orientation, int role) const
   else if (role == static_cast<int>(CQBaseModel::Role::Type)) {
     return CQBaseModel::typeToVariant(extraColumn.type);
   }
+  else if (role == static_cast<int>(CQBaseModel::Role::BaseType)) {
+    return CQBaseModel::typeToVariant(extraColumn.baseType);
+  }
   else if (role == static_cast<int>(CQBaseModel::Role::TypeValues)) {
     return QVariant(extraColumn.typeValues);
   }
@@ -939,6 +942,11 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
   }
   else if (role == static_cast<int>(CQBaseModel::Role::Type)) {
     extraColumn.type = CQBaseModel::variantToType(value);
+
+    return true;
+  }
+  else if (role == static_cast<int>(CQBaseModel::Role::BaseType)) {
+    extraColumn.baseType = CQBaseModel::variantToType(value);
 
     return true;
   }
@@ -2016,6 +2024,7 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
   //---
 
   CQBaseModel::Type  type;
+  CQBaseModel::Type  baseType;
   CQChartsNameValues nameValues;
 
   if (modelData) {
@@ -2026,10 +2035,11 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
     assert(columnDetails);
 
     type       = columnDetails->type();
+    baseType   = columnDetails->baseType();
     nameValues = columnDetails->nameValues();
   }
   else {
-    if (! CQChartsUtil::columnValueType(charts_, this, column, type, nameValues))
+    if (! CQChartsUtil::columnValueType(charts_, this, column, type, baseType, nameValues))
       return false;
   }
 

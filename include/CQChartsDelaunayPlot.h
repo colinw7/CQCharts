@@ -116,9 +116,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   CQChartsGeom::Range calcRange() override;
 
-  bool initObjs() override;
-
-  bool createObjs();
+  bool createObjs() override;
 
   void addPointObj(double x, double y, const QModelIndex &xind, int r);
 

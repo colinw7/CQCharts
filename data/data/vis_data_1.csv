@@ -1,0 +1,4 @@
+color,image,symbol,symbol_size,font_size
+red,bldg.png,cross,5,10
+green,bldg.png,circle,15,20
+blue,bldg.png,triangle,25,30

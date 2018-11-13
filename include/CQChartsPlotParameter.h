@@ -1,6 +1,7 @@
 #ifndef CQChartsPlotParameter_H
 #define CQChartsPlotParameter_H
 
+#include <CQBaseModel.h>
 #include <QObject>
 #include <QString>
 #include <QStringList>
@@ -112,7 +113,7 @@ class CQChartsPlotParameter : public QObject {
 
   Q_PROPERTY(QString  name          READ name          WRITE setName    )
   Q_PROPERTY(QString  desc          READ desc          WRITE setDesc    )
-  Q_PROPERTY(QString  type          READ type          WRITE setType    )
+  Q_PROPERTY(QString  type          READ typeName      WRITE setTypeName)
   Q_PROPERTY(QString  propName      READ propName      WRITE setPropName)
   Q_PROPERTY(int      groupId       READ groupId       WRITE setGroupId )
   Q_PROPERTY(QVariant defValue      READ defValue      WRITE setDefValue)
@@ -136,9 +137,10 @@ class CQChartsPlotParameter : public QObject {
 
  public:
   using Attributes = CQChartsPlotParameterAttributes;
+  using Type       = CQBaseModel::Type;
 
  public:
-  CQChartsPlotParameter(const QString &name, const QString &desc, const QString &type,
+  CQChartsPlotParameter(const QString &name, const QString &desc, const Type &type,
                         const QString &propName, const Attributes &attributes=Attributes(),
                         const QVariant &defValue=QVariant());
 
@@ -150,8 +152,12 @@ class CQChartsPlotParameter : public QObject {
   const QString &desc() const { return desc_; }
   CQChartsPlotParameter &setDesc(const QString &s) { desc_ = s; return *this; }
 
-  const QString &type() const { return type_; }
-  CQChartsPlotParameter &setType(const QString &s) { type_ = s; return *this; }
+  const Type &type() const { return type_; }
+  CQChartsPlotParameter &setType(const Type &s) { type_ = s; return *this; }
+
+  QString typeName() const { return CQBaseModel::typeName(type_); }
+  CQChartsPlotParameter &setTypeName(const QString &name) {
+    type_ = CQBaseModel::nameType(name); return *this; }
 
   const QString &propName() const { return propName_; }
   CQChartsPlotParameter &setPropName(const QString &s) { propName_ = s; return *this; }
@@ -253,7 +259,7 @@ class CQChartsPlotParameter : public QObject {
 
   QString    name_;           //! name
   QString    desc_;           //! description
-  QString    type_;           //! type
+  Type       type_;           //! type
   QString    propName_;       //! property name
   Attributes attributes_;     //! attributes
   int        groupId_ { -1 }; //! parent group id
@@ -270,7 +276,7 @@ class CQChartsColumnParameter : public CQChartsPlotParameter {
  public:
   CQChartsColumnParameter(const QString &name, const QString &desc, const QString &propName,
                           const Attributes &attributes=Attributes(), int defValue=-1) :
-   CQChartsPlotParameter(name, desc, "column", propName, attributes,
+   CQChartsPlotParameter(name, desc, Type::COLUMN, propName, attributes,
                          (defValue >= 0 ? QVariant(defValue) : QVariant())) {
   }
 
@@ -285,7 +291,7 @@ class CQChartsColumnsParameter : public CQChartsPlotParameter {
  public:
   CQChartsColumnsParameter(const QString &name, const QString &desc, const QString &propName,
                            const Attributes &attributes=Attributes(), const QString &defValue="") :
-   CQChartsPlotParameter(name, desc, "columns", propName, attributes,
+   CQChartsPlotParameter(name, desc, Type::COLUMN_LIST, propName, attributes,
                          (defValue != "" ? QVariant(defValue) : QVariant())) {
   }
 
@@ -302,7 +308,7 @@ class CQChartsStringParameter : public CQChartsPlotParameter {
  public:
   CQChartsStringParameter(const QString &name, const QString &desc, const QString &propName,
                           const Attributes &attributes=Attributes(), const QString &defValue="") :
-   CQChartsPlotParameter(name, desc, "string", propName, attributes, QVariant(defValue)) {
+   CQChartsPlotParameter(name, desc, Type::STRING, propName, attributes, QVariant(defValue)) {
   }
 };
 
@@ -314,7 +320,7 @@ class CQChartsRealParameter : public CQChartsPlotParameter {
  public:
   CQChartsRealParameter(const QString &name, const QString &desc, const QString &propName,
                         const Attributes &attributes=Attributes(), double defValue=0.0) :
-   CQChartsPlotParameter(name, desc, "real", propName, attributes, QVariant(defValue)) {
+   CQChartsPlotParameter(name, desc, Type::REAL, propName, attributes, QVariant(defValue)) {
   }
 };
 
@@ -326,7 +332,7 @@ class CQChartsIntParameter : public CQChartsPlotParameter {
  public:
   CQChartsIntParameter(const QString &name, const QString &desc, const QString &propName,
                        const Attributes &attributes=Attributes(), int defValue=0) :
-   CQChartsPlotParameter(name, desc, "int", propName, attributes, QVariant(defValue)) {
+   CQChartsPlotParameter(name, desc, Type::INTEGER, propName, attributes, QVariant(defValue)) {
   }
 };
 
@@ -338,7 +344,7 @@ class CQChartsEnumParameter : public CQChartsPlotParameter {
  public:
   CQChartsEnumParameter(const QString &name, const QString &desc, const QString &propName,
                         const Attributes &attributes=Attributes(), int defValue=0) :
-   CQChartsPlotParameter(name, desc, "enum", propName, attributes, QVariant(defValue)) {
+   CQChartsPlotParameter(name, desc, Type::ENUM, propName, attributes, QVariant(defValue)) {
   }
 
   CQChartsEnumParameter &addNameValue(const QString &name, int value) {
@@ -387,7 +393,7 @@ class CQChartsBoolParameter : public CQChartsPlotParameter {
  public:
   CQChartsBoolParameter(const QString &name, const QString &desc, const QString &propName,
                         const Attributes &attributes=Attributes(), bool defValue=false) :
-   CQChartsPlotParameter(name, desc, "bool", propName, attributes, QVariant(defValue)) {
+   CQChartsPlotParameter(name, desc, Type::BOOLEAN, propName, attributes, QVariant(defValue)) {
   }
 };
 

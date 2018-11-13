@@ -653,6 +653,8 @@ calcRange()
       bucketer.setRMax    (values->valueSet->rmax());
     }
 
+    bool hierValue = isHierarchical();
+
     // add each index to associated bucket
     for (auto &ind : values->inds) {
       int      bucket = -1;
@@ -678,7 +680,17 @@ calcRange()
           value  = QVariant(i);
         }
         else {
-          QString str = modelString(ind, ok);
+          QString str;
+
+          if (hierValue) {
+            QVariant value = modelRootValue(ind.row, ind.column, ind.parent, Qt::DisplayRole, ok);
+
+            str = value.toString();
+          }
+          else {
+            str = modelString(ind, ok);
+          }
+
           if (! ok) continue;
 
           bucket = bucketer.stringBucket(str);
@@ -1057,7 +1069,7 @@ getGroupIndValues(int groupInd, const CQChartsModelIndex &ind)
   auto pg = groupValues_.find(groupInd);
 
   if (pg == groupValues_.end()) {
-    ValueSet *valueSet = new ValueSet(this);
+    CQChartsValueSet *valueSet = new CQChartsValueSet(this);
 
     valueSet->setColumn(ind.column);
 
@@ -1172,25 +1184,13 @@ calcBucket(int groupInd, double value) const
 
 //------
 
-bool
+void
 CQChartsDistributionPlot::
-initObjs()
+updateObjs()
 {
-  if (! dataRange_.isSet()) {
-    updateRange();
+  clearValueSets();
 
-    if (! dataRange_.isSet())
-      return false;
-  }
-
-  //---
-
-  if (! plotObjs_.empty())
-    return false;
-
-  //---
-
-  return createObjs();
+  CQChartsPlot::updateObjs();
 }
 
 bool
@@ -1711,39 +1711,7 @@ createObjs()
 
   //---
 
-  // value axis label (x)
-  valueAxis()->setLabel("");
-
-  if (isBucketed()) {
-    if (groupValues_.size() > 1) {
-      QStringList groupLabels;
-
-      for (const auto &groupValues : groupValues_) {
-        int groupInd = groupValues.first;
-
-        QString groupName = groupIndName(groupInd);
-
-        groupLabels.push_back(groupName);
-      }
-
-      valueAxis()->setLabel(groupLabels.join(", "));
-    }
-    else {
-      if (xLabel().length())
-        valueAxis()->setLabel(xLabel());
-      else {
-        CQChartsColumn c = valueColumns().column();
-
-        bool ok;
-
-        QString xname = modelHeaderString(c, ok);
-
-        if (ok)
-          valueAxis()->setLabel(xname);
-      }
-    }
-  }
-  else {
+  auto setXLabel = [&]() {
     if (xLabel().length())
       valueAxis()->setLabel(xLabel());
     else {
@@ -1756,6 +1724,53 @@ createObjs()
       if (ok)
         valueAxis()->setLabel(xname);
     }
+  };
+
+  auto setXGroupLabel = [&]() {
+    if (xLabel().length())
+      valueAxis()->setLabel(xLabel());
+    else {
+      CQChartsColumn c = groupColumn().column();
+
+      bool ok;
+
+      QString xname = modelHeaderString(c, ok);
+
+      if (ok)
+        valueAxis()->setLabel(xname);
+    }
+  };
+
+  auto setXGroupValuesLabel = [&]() {
+    QStringList groupLabels;
+
+    for (const auto &groupValues : groupValues_) {
+      int groupInd = groupValues.first;
+
+      QString groupName = groupIndName(groupInd);
+
+      groupLabels.push_back(groupName);
+    }
+
+    valueAxis()->setLabel(groupLabels.join(", "));
+  };
+
+  // value axis label (x)
+  valueAxis()->setLabel("");
+
+  if (isBucketed()) {
+    if (groupValues_.size() > 1) {
+      if (! isScatter())
+        setXGroupValuesLabel();
+      else
+        setXGroupLabel();
+    }
+    else {
+      setXLabel();
+    }
+  }
+  else {
+    setXLabel();
   }
 
   // count axis label (y)
@@ -2674,6 +2689,33 @@ draw(QPainter *painter)
 
   //---
 
+  QImage image;
+
+  if (plot_->imageColumn().isValid()) {
+    CQChartsDistributionPlot::VariantInds vinds;
+
+    plot_->getInds(groupInd_, bucket_, vinds);
+
+    for (auto &vind : vinds) {
+      CQChartsModelIndex ind = vind.ind;
+
+      ind.column = plot_->imageColumn();
+
+      bool ok;
+
+      QVariant imageVar = plot_->modelValue(ind, ok);
+
+      if (ok && imageVar.type() == QVariant::Image) {
+        image = imageVar.value<QImage>();
+
+        if (! image.isNull())
+          break;
+      }
+    }
+  }
+
+  //---
+
   // get bar colors
   colorData_ = ColorData();
 
@@ -2708,6 +2750,9 @@ draw(QPainter *painter)
 
     drawRect(painter, qrect, barColor, useLine);
   }
+
+  if (! image.isNull())
+    painter->drawImage(qrect, image);
 }
 
 void

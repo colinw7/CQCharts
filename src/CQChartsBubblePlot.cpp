@@ -208,27 +208,6 @@ updateObjs()
 
 bool
 CQChartsBubblePlot::
-initObjs()
-{
-  if (! dataRange_.isSet()) {
-    updateRange();
-
-    if (! dataRange_.isSet())
-      return false;
-  }
-
-  //---
-
-  if (! plotObjs_.empty())
-    return false;
-
-  //---
-
-  return createObjs();
-}
-
-bool
-CQChartsBubblePlot::
 createObjs()
 {
   CQPerfTrace trace("CQChartsBubblePlot::createObjs");

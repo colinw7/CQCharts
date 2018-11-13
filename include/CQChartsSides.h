@@ -56,6 +56,10 @@ class CQChartsSides {
   bool isTop   () const { return (sides_ & int(Side::TOP   )); }
   bool isBottom() const { return (sides_ & int(Side::BOTTOM)); }
 
+  bool isSet() const { return sides_ != 0; }
+
+  bool isAll() const { return isLeft() && isRight() && isTop() && isBottom(); }
+
   //---
 
   QString toString() const {

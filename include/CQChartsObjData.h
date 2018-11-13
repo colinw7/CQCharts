@@ -803,6 +803,8 @@ class CQChartsObjShapeData {
 
   //---
 
+  const CQChartsShapeData &shapeData() const { return shapeData_; }
+
   void setShapeData(const CQChartsShapeData &data) {
     shapeData_ = data; shapeDataInvalidate();
   };

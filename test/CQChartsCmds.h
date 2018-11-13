@@ -218,8 +218,7 @@ class CQChartsCmds : public QObject {
 
   CQChartsPlot *getPlotByName(CQChartsView *view, const QString &name) const;
 
-  CQChartsAnnotation *getAnnotationByName(CQChartsView *view, const QString &name) const;
-  CQChartsAnnotation *getAnnotationByName(CQChartsPlot *plot, const QString &name) const;
+  CQChartsAnnotation *getAnnotationByName(const QString &name) const;
 
   //---
 

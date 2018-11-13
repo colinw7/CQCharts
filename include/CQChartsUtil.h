@@ -35,15 +35,19 @@ QString parentPath(QAbstractItemModel *model, const QModelIndex &parent);
 //------
 
 bool columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
-                     CQBaseModel::Type &columnType, CQChartsNameValues &nameValues);
+                     CQBaseModel::Type &columnType, CQBaseModel::Type &columnBaseType,
+                     CQChartsNameValues &nameValues);
 
-bool formatColumnTypeValue(CQCharts *charts, const QString &typeStr, double value, QString &str);
+bool formatColumnTypeValue(CQCharts *charts, QAbstractItemModel *model,
+                           const CQChartsColumn &column, const QString &typeStr,
+                           double value, QString &str);
 
 bool formatColumnValue(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
                        double value, QString &str);
 
-bool formatColumnTypeValue(CQChartsColumnType *typeData, const CQChartsNameValues &nameValues,
-                           double value, QString &str);
+bool formatColumnTypeValue(CQCharts *charts, QAbstractItemModel *model,
+                           const CQChartsColumn &column, CQChartsColumnType *typeData,
+                           const CQChartsNameValues &nameValues, double value, QString &str);
 
 QVariant columnDisplayData(CQCharts *charts, QAbstractItemModel *model,
                            const CQChartsColumn &column, const QVariant &var, bool &converted);
@@ -279,6 +283,8 @@ long modelHierInteger(CQCharts *charts, QAbstractItemModel *model, int row,
                       const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
 
 //---
+
+CQChartsColor variantToColor(const QVariant &var);
 
 CQChartsColor modelColor(QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok);
 CQChartsColor modelColor(QAbstractItemModel *model, const QModelIndex &ind, bool &ok);

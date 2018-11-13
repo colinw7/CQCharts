@@ -310,14 +310,14 @@ addProperties()
   addProperty("vectors/fill"  , arrowObj_, "filled"     , "visible");
   addProperty("vectors/fill"  , arrowObj_, "fillColor"  , "color"  );
 
-  addProperty("vectors", arrowObj_, "debugTextVisible", "debugLabels");
-
   // data label
   addProperty("dataLabel", this, "dataLabelTextVisible", "visible");
 
   addTextProperties("dataLabel" , "dataLabelText");
 
   addProperty("dataLabel", this, "dataLabelTextAlign", "align");
+
+  CQChartsGroupPlot::addProperties();
 }
 
 //---
@@ -771,27 +771,6 @@ postInit()
 
     setLinesWidth(CQChartsLength("3px"));
   }
-}
-
-bool
-CQChartsXYPlot::
-initObjs()
-{
-  if (! dataRange_.isSet()) {
-    updateRange();
-
-    if (! dataRange_.isSet())
-      return false;
-  }
-
-  //---
-
-  if (! plotObjects().empty())
-    return false;
-
-  //---
-
-  return createObjs();
 }
 
 bool
