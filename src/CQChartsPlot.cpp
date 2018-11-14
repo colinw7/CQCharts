@@ -1620,8 +1620,10 @@ updateRange(bool apply)
 {
   CQPerfTrace trace("CQChartsPlot::updateRange");
 
-  calcDataRange_  = calcRange();
-  dataRange_      = calcDataRange_;
+  calcDataRange_ = calcRange();
+
+  adjustDataRange();
+
   outerDataRange_ = dataRange_;
 
   if (apply)
@@ -6803,6 +6805,8 @@ void
 CQChartsPlot::
 visitModel(ModelVisitor &visitor)
 {
+  CQPerfTrace trace("CQChartsPlot::visitModel");
+
   visitor.setPlot(this);
 
   visitor.init();
@@ -6810,7 +6814,7 @@ visitModel(ModelVisitor &visitor)
   //if (isPreview())
   //  visitor.setMaxRows(previewMaxRows());
 
-  (void) CQChartsModelVisit::exec(model().data(), visitor);
+  (void) CQChartsModelVisit::exec(charts(), model().data(), visitor);
 }
 
 //------

@@ -1288,7 +1288,9 @@ initData()
 
   DetailVisitor detailVisitor(this);
 
-  CQChartsModelVisit::exec(model, detailVisitor);
+  CQCharts *charts = details()->data()->charts();
+
+  CQChartsModelVisit::exec(charts, model, detailVisitor);
 
   //---
 

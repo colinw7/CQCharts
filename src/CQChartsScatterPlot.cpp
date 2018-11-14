@@ -843,6 +843,23 @@ createObjs()
 
   //---
 
+  addPointObjects();
+
+  addGridObjects();
+
+  //---
+
+  resetKeyItems();
+
+  //---
+
+  return true;
+}
+
+void
+CQChartsScatterPlot::
+addPointObjects()
+{
   CQChartsValueSet *symbolTypeSet = getValueSet("symbolType");
   CQChartsValueSet *symbolSizeSet = getValueSet("symbolSize");
   CQChartsValueSet *fontSizeSet   = getValueSet("fontSize");
@@ -943,11 +960,18 @@ createObjs()
 
     ++ig;
   }
+}
+
+void
+CQChartsScatterPlot::
+addGridObjects()
+{
+  int hasGroups = (numGroups() > 1);
 
   //---
 
-  ig = 0;
-  ng = groupNameGridData_.size();
+  int ig = 0;
+  int ng = groupNameGridData_.size();
 
   for (const auto &pg : groupNameGridData_) {
     int                 groupInd     = pg.first;
@@ -1011,14 +1035,6 @@ createObjs()
 
     ++ig;
   }
-
-  //---
-
-  resetKeyItems();
-
-  //---
-
-  return true;
 }
 
 void
@@ -2368,8 +2384,13 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
   plot_->setSymbolPenBrush(pen, brush, ic, nc);
 
-  if (color_.isValid())
-    brush.setColor(color_.interpColor(plot_, ic, nc));
+  if (color_.isValid()) {
+    QColor c = color_.interpColor(plot_, ic, nc);
+
+    c.setAlphaF(plot_->symbolFillAlpha());
+
+    brush.setColor(c);
+  }
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -2669,6 +2690,8 @@ fillBrush() const
 
     //c = CQChartsKeyColorBox::fillBrush().color();
   }
+
+  c.setAlphaF(plot->symbolFillAlpha());
 
   int ih = hideIndex();
 

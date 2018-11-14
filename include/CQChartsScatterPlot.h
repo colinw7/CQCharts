@@ -547,6 +547,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   bool createObjs() override;
 
+  void addPointObjects();
+  void addGridObjects();
+
   void addNameValues();
 
   //---

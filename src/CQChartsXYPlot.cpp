@@ -569,99 +569,104 @@ calcRange()
   //---
 
   // set x axis name
-  if (isOverlay()) {
-    if (isFirstPlot() || isX1X2())
-      xAxis()->setColumn(xColumn());
-  }
-  else {
-    xAxis()->setColumn(xColumn());
-  }
+  if (xAxis()) {
+    if (isOverlay()) {
+      if (isFirstPlot() || isX1X2())
+        xAxis()->setColumn(xColumn());
+    }
+    else {
+      if (xAxis())
+       xAxis()->setColumn(xColumn());
+    }
 
-  QString xname = xAxisName();
+    QString xname = xAxisName();
 
-  if (isOverlay()) {
-    if (isFirstPlot() || isX1X2())
+    if (isOverlay()) {
+      if (isFirstPlot() || isX1X2())
+        xAxis()->setLabel(xname);
+    }
+    else {
       xAxis()->setLabel(xname);
-  }
-  else {
-    xAxis()->setLabel(xname);
-  }
+    }
 
-  ColumnType xColumnType = columnValueType(xColumn());
+    ColumnType xColumnType = columnValueType(xColumn());
 
-  if (xColumnType == CQBaseModel::Type::TIME)
-    xAxis()->setDate(true);
+    if (xColumnType == CQBaseModel::Type::TIME)
+      xAxis()->setDate(true);
+  }
 
   // set y axis name(s)
-  QString yname = yAxisName();
+  if (yAxis()) {
+    QString yname = yAxisName();
 
-  int ns = yColumns().count();
+    int ns = yColumns().count();
 
-  if      (isBivariateLines() && ns > 1) {
-    if (isOverlay()) {
-      if      (isY1Y2()) {
-        yAxis()->setLabel(yname);
-      }
-      else if (isFirstPlot()) {
-        yAxis()->setLabel(yname);
-
-        Plots plots;
-
-        overlayPlots(plots);
-
-        for (auto &plot : plots) {
-          if (plot == this)
-            continue;
-
-          QString yname = yAxisName();
-
-          plot->yAxis()->setLabel(firstPlot()->yAxis()->label() + ", " + yname);
+    if      (isBivariateLines() && ns > 1) {
+      if (isOverlay()) {
+        if      (isY1Y2()) {
+          yAxis()->setLabel(yname);
         }
+        else if (isFirstPlot()) {
+          yAxis()->setLabel(yname);
+
+          Plots plots;
+
+          overlayPlots(plots);
+
+          for (auto &plot : plots) {
+            if (plot == this)
+              continue;
+
+            QString yname = yAxisName();
+
+            plot->yAxis()->setLabel(firstPlot()->yAxis()->label() + ", " + yname);
+          }
+        }
+        else
+          yAxis()->setLabel("");
       }
-      else
-        yAxis()->setLabel("");
+      else {
+        yAxis()->setLabel(yname);
+      }
+    }
+    else if (isStacked()) {
     }
     else {
-      yAxis()->setLabel(yname);
-    }
-  }
-  else if (isStacked()) {
-  }
-  else {
-    CQChartsColumn yColumn = yColumns().getColumn(0);
+      CQChartsColumn yColumn = yColumns().getColumn(0);
 
-    if (isOverlay()) {
-      if (isFirstPlot() || isY1Y2())
+      if (isOverlay()) {
+        if (isFirstPlot() || isY1Y2())
+          yAxis()->setColumn(yColumn);
+      }
+      else
         yAxis()->setColumn(yColumn);
-    }
-    else
-      yAxis()->setColumn(yColumn);
 
-    if (isOverlay()) {
-      if      (isY1Y2()) {
-        yAxis()->setLabel(yname);
-      }
-      else if (isFirstPlot()) {
-        yAxis()->setLabel(yname);
-
-        Plots plots;
-
-        overlayPlots(plots);
-
-        for (auto &plot : plots) {
-          if (plot == this)
-            continue;
-
-          QString yname = yAxisName();
-
-          plot->yAxis()->setLabel(firstPlot()->yAxis()->label() + ", " + yname);
+      if (isOverlay()) {
+        if      (isY1Y2()) {
+          yAxis()->setLabel(yname);
         }
+        else if (isFirstPlot()) {
+          yAxis()->setLabel(yname);
+
+          Plots plots;
+
+          overlayPlots(plots);
+
+          for (auto &plot : plots) {
+            if (plot == this)
+              continue;
+
+            QString yname = yAxisName();
+
+            plot->yAxis()->setLabel(firstPlot()->yAxis()->label() + ", " + yname);
+          }
+        }
+        else
+          yAxis()->setLabel("");
       }
-      else
-        yAxis()->setLabel("");
-    }
-    else {
-      yAxis()->setLabel(yname);
+      else {
+        yAxis()->setLabel(yname);
+      }
     }
   }
 

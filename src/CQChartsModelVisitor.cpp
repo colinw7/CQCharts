@@ -1,4 +1,6 @@
 #include <CQChartsModelVisitor.h>
+#include <CQChartsColumnType.h>
+#include <CQCharts.h>
 #include <CQChartsUtil.h>
 
 void
@@ -31,9 +33,13 @@ isHierarchical() const
 
 namespace CQChartsModelVisit {
 
-bool exec(QAbstractItemModel *model, CQChartsModelVisitor &visitor) {
+bool exec(CQCharts *charts, QAbstractItemModel *model, CQChartsModelVisitor &visitor) {
   if (! model)
     return false;
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+
+  columnTypeMgr->initCache();
 
   visitor.init(model);
 
@@ -42,6 +48,8 @@ bool exec(QAbstractItemModel *model, CQChartsModelVisitor &visitor) {
   (void) execIndex(model, parent, visitor);
 
   visitor.term();
+
+  columnTypeMgr->termCache();
 
   return true;
 }

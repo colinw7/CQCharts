@@ -346,7 +346,7 @@ addReplaceSearch(const QString &text, bool add)
 
     RowVisitor visitor(this, text1, keyColumn, rows);
 
-    (void) CQChartsModelVisit::exec(model_.data(), visitor);
+    (void) CQChartsModelVisit::exec(charts_, model_.data(), visitor);
   }
   else {
     if (! match_)
@@ -399,7 +399,7 @@ addReplaceSearch(const QString &text, bool add)
 
     RowVisitor visitor(this, match_, matches_, keyColumn, rows);
 
-    (void) CQChartsModelVisit::exec(model_.data(), visitor);
+    (void) CQChartsModelVisit::exec(charts_, model_.data(), visitor);
   }
 
   //---

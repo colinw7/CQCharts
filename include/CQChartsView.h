@@ -681,7 +681,7 @@ class CQChartsView : public QFrame,
   bool                  preview_          { false };             // preview
   bool                  scaleFont_        { true };              // auto scale font
   double                fontFactor_       { 1.0 };               // font scale factor
-  PosTextType           posTextType_      { PosTextType::PLOT }; // position text ty[e
+  PosTextType           posTextType_      { PosTextType::PLOT }; // position text type
   CQChartsGeom::BBox    prect_            { 0, 0, 100, 100 };    // plot rect
   double                aspect_           { 1.0 };               // current aspect
   MouseData             mouseData_;                              // mouse data

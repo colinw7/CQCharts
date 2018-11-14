@@ -257,19 +257,13 @@ getUserData(QAbstractItemModel *model, const CQChartsColumn &column,
 {
   converted = false;
 
-  Type               type;
-  Type               baseType;
-  CQChartsNameValues nameValues;
+  TypeCacheData typeCacheData;
 
-  if (! getModelColumnType(model, column, type, baseType, nameValues))
+  if (! getDisplayTypeData(model, column, typeCacheData))
     return var;
 
-  CQChartsColumnType *typeData = getType(type);
-
-  if (! typeData)
-    return var;
-
-  QVariant var1 = typeData->userData(charts_, model, column, var, nameValues, converted);
+  QVariant var1 = typeCacheData.typeData->userData(charts_, model, column, var,
+                                                   typeCacheData.nameValues, converted);
 
   return var1;
 }
@@ -282,26 +276,52 @@ getDisplayData(QAbstractItemModel *model, const CQChartsColumn &column,
 {
   converted = false;
 
-  Type               type;
-  Type               baseType;
-  CQChartsNameValues nameValues;
+  TypeCacheData typeCacheData;
 
-  if (! getModelColumnType(model, column, type, baseType, nameValues))
+  if (! getDisplayTypeData(model, column, typeCacheData))
     return var;
 
-  CQChartsColumnType *typeData = getType(type);
-
-  if (! typeData)
-    return var;
-
-  QVariant var1 = typeData->userData(charts_, model, column, var, nameValues, converted);
+  QVariant var1 = typeCacheData.typeData->userData(charts_, model, column, var,
+                                                   typeCacheData.nameValues, converted);
 
   if (! var1.isValid())
     return var;
 
-  QVariant var2 = typeData->dataName(charts_, model, column, var1, nameValues, converted);
+  QVariant var2 = typeCacheData.typeData->dataName(charts_, model, column, var1,
+                                                   typeCacheData.nameValues, converted);
 
   return var2;
+}
+
+bool
+CQChartsColumnTypeMgr::
+getDisplayTypeData(QAbstractItemModel *model, const CQChartsColumn &column,
+                   TypeCacheData &typeCacheData) const
+{
+  if (caching_) {
+    auto p = columnTypeCache_.find(column);
+
+    if (p != columnTypeCache_.end()) {
+      typeCacheData = (*p).second;
+
+      return typeCacheData.valid;
+    }
+  }
+
+  typeCacheData.valid = false;
+
+  if (getModelColumnType(model, column, typeCacheData.type, typeCacheData.baseType,
+                         typeCacheData.nameValues)) {
+    typeCacheData.typeData = getType(typeCacheData.type);
+
+    if (typeCacheData.typeData)
+      typeCacheData.valid = true;
+  }
+
+  if (caching_)
+    columnTypeCache_[column] = typeCacheData;
+
+  return typeCacheData.valid;
 }
 
 bool
@@ -441,6 +461,24 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
   }
 
   return changed;
+}
+
+void
+CQChartsColumnTypeMgr::
+initCache()
+{
+  assert(! caching_ && columnTypeCache_.empty());
+
+  caching_ = true;
+}
+
+void
+CQChartsColumnTypeMgr::
+termCache()
+{
+  caching_ = false;
+
+  columnTypeCache_.clear();
 }
 
 //------

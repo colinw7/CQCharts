@@ -333,6 +333,8 @@ bool
 CQChartsCmds::
 loadModelCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::loadModelCmd");
+
   CQChartsCmdArgs argv("load_model", vars);
 
   // input data type
@@ -453,6 +455,8 @@ void
 CQChartsCmds::
 processModelCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::processModelCmd");
+
   CQChartsCmdArgs argv("process_model", vars);
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model index").setRequired();
@@ -742,6 +746,8 @@ void
 CQChartsCmds::
 addProcessModelProcCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::addProcessModelProcCmd");
+
   CQChartsCmdArgs argv("add_process_model_proc", vars);
 
   argv.addCmdArg("name", CQChartsCmdArg::Type::String, "proc name").setRequired();
@@ -775,6 +781,8 @@ void
 CQChartsCmds::
 measureChartsTextCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::measureChartsTextCmd");
+
   CQChartsCmdArgs argv("measure_charts_text", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -851,6 +859,8 @@ void
 CQChartsCmds::
 createViewCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::createViewCmd");
+
   CQChartsCmdArgs argv("create_view", vars);
 
   if (! argv.parse())
@@ -871,6 +881,8 @@ void
 CQChartsCmds::
 createPlotCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::createPlotCmd");
+
   CQChartsCmdArgs argv("create_plot", vars);
 
   argv.addCmdArg("-view" , CQChartsCmdArg::Type::String , "view_id"  ).setRequired();
@@ -1117,6 +1129,8 @@ void
 CQChartsCmds::
 removePlotCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::removePlotCmd");
+
   CQChartsCmdArgs argv("remove_plot", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view_id").setRequired();
@@ -1157,6 +1171,8 @@ void
 CQChartsCmds::
 getChartsPropertyCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::getChartsPropertyCmd");
+
   CQChartsCmdArgs argv("get_charts_property", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -1302,6 +1318,8 @@ void
 CQChartsCmds::
 setChartsPropertyCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::setChartsPropertyCmd");
+
   CQChartsCmdArgs argv("set_charts_property", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -1374,6 +1392,8 @@ void
 CQChartsCmds::
 getPaletteCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::getPaletteCmd");
+
   CQChartsCmdArgs argv("get_palette", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
@@ -1424,6 +1444,8 @@ void
 CQChartsCmds::
 setPaletteCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::setPaletteCmd");
+
   CQChartsCmdArgs argv("set_palette", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
@@ -1549,6 +1571,8 @@ void
 CQChartsCmds::
 groupPlotsCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::groupPlotsCmd");
+
   CQChartsCmdArgs argv("group_plots", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
@@ -1618,6 +1642,8 @@ void
 CQChartsCmds::
 placePlotsCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::placePlotsCmd");
+
   CQChartsCmdArgs argv("place_plots", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
@@ -1662,6 +1688,8 @@ void
 CQChartsCmds::
 foldModelCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::foldModelCmd");
+
   CQChartsCmdArgs argv("fold_model", vars);
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
@@ -1717,6 +1745,8 @@ void
 CQChartsCmds::
 flattenModelCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::flattenModelCmd");
+
   CQChartsCmdArgs argv("flatten_model", vars);
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
@@ -1871,7 +1901,7 @@ flattenModelCmd(const Vars &vars)
 
   FlattenVisitor flattenVisitor(charts_, groupColumn);
 
-  CQChartsModelVisit::exec(model.data(), flattenVisitor);
+  CQChartsModelVisit::exec(charts_, model.data(), flattenVisitor);
 
   int nh = flattenVisitor.numHierColumns();
   int nc = flattenVisitor.numFlatColumns();
@@ -1968,6 +1998,8 @@ void
 CQChartsCmds::
 sortModelCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::sortModelCmd");
+
   CQChartsCmdArgs argv("sort_model", vars);
 
   argv.addCmdArg("-model"     , CQChartsCmdArg::Type::Integer, "model id");
@@ -2009,6 +2041,8 @@ void
 CQChartsCmds::
 filterModelCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::filterModelCmd");
+
   CQChartsCmdArgs argv("filter_model", vars);
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
@@ -2089,6 +2123,8 @@ void
 CQChartsCmds::
 correlationModelCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::correlationModelCmd");
+
   CQChartsCmdArgs argv("correlation_model", vars);
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
@@ -2134,6 +2170,8 @@ void
 CQChartsCmds::
 subsetModelCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::subsetModelCmd");
+
   CQChartsCmdArgs argv("subset_model", vars);
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
@@ -2197,6 +2235,8 @@ void
 CQChartsCmds::
 transposeModelCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::transposeModelCmd");
+
   CQChartsCmdArgs argv("transpose_model", vars);
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
@@ -2237,6 +2277,8 @@ void
 CQChartsCmds::
 exportModelCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::exportModelCmd");
+
   CQChartsCmdArgs argv("export_model", vars);
 
   argv.addCmdArg("-model"  , CQChartsCmdArg::Type::Integer, "model id");
@@ -2303,6 +2345,8 @@ CQChartsCmds::
 getChartsDataCmd(const Vars &vars)
 {
   using QVariantList = QList<QVariant>;
+
+  CQPerfTrace trace("CQChartsCmds::getChartsDataCmd");
 
   CQChartsCmdArgs argv("get_charts_data", vars);
 
@@ -2424,6 +2468,17 @@ getChartsDataCmd(const Vars &vars)
           setCmdError("Invalid model value");
           return;
         }
+      }
+
+      setCmdRc(var);
+    }
+    // get meta data
+    else if (name == "meta") {
+      QVariant var = CQChartsUtil::modelMetaValue(model.data(), data);
+
+      if (! var.isValid()) {
+        setCmdError("Invalid meta data");
+        return;
       }
 
       setCmdRc(var);
@@ -2964,6 +3019,8 @@ void
 CQChartsCmds::
 setChartsDataCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::setChartsDataCmd");
+
   CQChartsCmdArgs argv("set_charts_data", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -3095,6 +3152,8 @@ void
 CQChartsCmds::
 createRectShapeCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::createRectShapeCmd");
+
   CQChartsCmdArgs argv("create_rect_shape", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -3203,6 +3262,8 @@ void
 CQChartsCmds::
 createEllipseShapeCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::createEllipseShapeCmd");
+
   CQChartsCmdArgs argv("create_ellipse_shape", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -3309,6 +3370,8 @@ void
 CQChartsCmds::
 createPolygonShapeCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::createPolygonShapeCmd");
+
   CQChartsCmdArgs argv("create_polygon_shape", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -3410,6 +3473,8 @@ void
 CQChartsCmds::
 createPolylineShapeCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::createPolylineShapeCmd");
+
   CQChartsCmdArgs argv("create_polyline_shape", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -3513,6 +3578,8 @@ void
 CQChartsCmds::
 createTextShapeCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::createTextShapeCmd");
+
   CQChartsCmdArgs argv("create_text_shape", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -3636,6 +3703,8 @@ void
 CQChartsCmds::
 createArrowShapeCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::createArrowShapeCmd");
+
   CQChartsCmdArgs argv("create_arrow_shape", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -3736,6 +3805,8 @@ void
 CQChartsCmds::
 createPointShapeCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::createPointShapeCmd");
+
   CQChartsCmdArgs argv("create_point_shape", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -3833,6 +3904,8 @@ void
 CQChartsCmds::
 removeShapeCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::removeShapeCmd");
+
   CQChartsCmdArgs argv("remove_shape", vars);
 
   // -view or -plot needed for -all
@@ -3899,6 +3972,8 @@ void
 CQChartsCmds::
 connectChartCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::connectChartCmd");
+
   CQChartsCmdArgs argv("connect_chart", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -3975,6 +4050,8 @@ void
 CQChartsCmds::
 printChartCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::printChartCmd");
+
   CQChartsCmdArgs argv("print_chart", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
@@ -4037,6 +4114,8 @@ void
 CQChartsCmds::
 loadModelDlgCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::loadModelDlgCmd");
+
   CQChartsCmdArgs argv("load_model_dlg", vars);
 
   argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
@@ -4064,6 +4143,8 @@ void
 CQChartsCmds::
 manageModelDlgCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::manageModelDlgCmd");
+
   CQChartsCmdArgs argv("manage_model_dlg", vars);
 
   argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
@@ -4089,6 +4170,8 @@ void
 CQChartsCmds::
 createPlotDlgCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::createPlotDlgCmd");
+
   CQChartsCmdArgs argv("create_plot_dlg", vars);
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model_ind" );
@@ -4137,6 +4220,8 @@ void
 CQChartsCmds::
 qtGetPropertyCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::qtGetPropertyCmd");
+
   CQChartsCmdArgs argv("qt_get_property", vars);
 
   argv.addCmdArg("-object"  , CQChartsCmdArg::Type::String, "object name");
@@ -4172,6 +4257,8 @@ void
 CQChartsCmds::
 qtSetPropertyCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::qtSetPropertyCmd");
+
   CQChartsCmdArgs argv("qt_set_property", vars);
 
   argv.addCmdArg("-object"  , CQChartsCmdArg::Type::String, "object name");
@@ -4205,6 +4292,8 @@ void
 CQChartsCmds::
 qtSyncCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::qtSyncCmd");
+
   CQChartsCmdArgs argv("qt_sync", vars);
 
   argv.addCmdArg("-n", CQChartsCmdArg::Type::Integer, "loop count");
@@ -4230,6 +4319,8 @@ void
 CQChartsCmds::
 perfCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::perfCmd");
+
   CQChartsCmdArgs argv("pref_cmd", vars);
 
   argv.addCmdArg("-start_recording", CQChartsCmdArg::Type::Boolean, "start recording");
@@ -4261,6 +4352,8 @@ void
 CQChartsCmds::
 shellCmd(const Vars &vars)
 {
+  CQPerfTrace trace("CQChartsCmds::shellCmd");
+
   CQChartsCmdArgs argv("sh", vars);
 
   if (! argv.parse())

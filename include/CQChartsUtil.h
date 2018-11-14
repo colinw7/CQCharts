@@ -32,6 +32,8 @@ int hierRowCount(QAbstractItemModel *model);
 
 QString parentPath(QAbstractItemModel *model, const QModelIndex &parent);
 
+CQBaseModel::Type calcColumnType(QAbstractItemModel *model, int icolumn);
+
 //------
 
 bool columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
@@ -353,6 +355,8 @@ int processExpression(QAbstractItemModel *model, CQChartsExprModel::Function fun
 CQChartsExprModel *getExprModel(QAbstractItemModel *model);
 
 CQDataModel *getDataModel(QAbstractItemModel *model);
+
+QVariant modelMetaValue(QAbstractItemModel *model, const QString &name);
 
 }
 

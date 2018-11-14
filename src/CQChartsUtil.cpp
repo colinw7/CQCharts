@@ -48,13 +48,15 @@ bool isHierarchical(QAbstractItemModel *model) {
   return false;
 }
 
-int hierRowCount(QAbstractItemModel *model) {
+#if 0
+int hierRowCount(CQCharts *charts, QAbstractItemModel *model) {
   CQChartsModelVisitor visitor;
 
-  CQChartsModelVisit::exec(model, visitor);
+  CQChartsModelVisit::exec(charts, model, visitor);
 
   return visitor.numRows();
 }
+#endif
 
 QString parentPath(QAbstractItemModel *model, const QModelIndex &parent) {
   QString path;
@@ -81,6 +83,80 @@ QString parentPath(QAbstractItemModel *model, const QModelIndex &parent) {
 }
 
 //------
+
+CQBaseModel::Type
+calcColumnType(CQCharts *charts, QAbstractItemModel *model, int icolumn)
+{
+  // determine column type from values
+  // TODO: cache (in plot ?), max visited values
+
+  // process model data
+  class ColumnTypeVisitor : public CQChartsModelVisitor {
+   public:
+    ColumnTypeVisitor(int column) :
+     column_(column) {
+    }
+
+    State visit(QAbstractItemModel *model, const VisitData &data) override {
+      QModelIndex ind = model->index(data.row, column_, data.parent);
+
+      // if column can be integral, check if value is valid integer
+      if (isInt_) {
+        bool ok;
+
+        (void) modelInteger(model, ind, ok);
+
+        if (ok)
+          return State::SKIP;
+
+        QString str = modelString(model, ind, ok);
+
+        if (! str.length())
+          return State::SKIP;
+
+        isInt_ = false;
+      }
+
+      // if column can be real, check if value is valid real
+      if (isReal_) {
+        bool ok;
+
+        (void) modelReal(model, ind, ok);
+
+        if (ok)
+          return State::SKIP;
+
+        QString str = modelString(model, ind, ok);
+
+        if (! str.length())
+          return State::SKIP;
+
+        isReal_ = false;
+      }
+
+      // not value real or integer so assume string and we are done
+      return State::TERMINATE;
+    }
+
+    CQBaseModel::Type columnType() {
+      if      (isInt_ ) return CQBaseModel::Type::INTEGER;
+      else if (isReal_) return CQBaseModel::Type::REAL;
+      else              return CQBaseModel::Type::STRING;
+    }
+
+   private:
+    int  column_ { -1 };   // column to check
+    bool isInt_  { true }; // could be integeral
+    bool isReal_ { true }; // could be real
+  };
+
+  // determine column value type by looking at model values
+  ColumnTypeVisitor columnTypeVisitor(icolumn);
+
+  CQChartsModelVisit::exec(charts, model, columnTypeVisitor);
+
+  return columnTypeVisitor.columnType();
+}
 
 // get type and associated name values for column
 //  . column can be model column, header or custom expresssion
@@ -123,72 +199,8 @@ columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColum
     // determine column type from values
     // TODO: cache (in plot ?), max visited values
 
-    // process model data
-    class ColumnTypeVisitor : public CQChartsModelVisitor {
-     public:
-      ColumnTypeVisitor(int column) :
-       column_(column) {
-      }
+    CQBaseModel::Type columnType = calcColumnType(charts, model, icolumn);
 
-      State visit(QAbstractItemModel *model, const VisitData &data) override {
-        QModelIndex ind = model->index(data.row, column_, data.parent);
-
-        // if column can be integral, check if value is valid integer
-        if (isInt_) {
-          bool ok;
-
-          (void) modelInteger(model, ind, ok);
-
-          if (ok)
-            return State::SKIP;
-
-          QString str = modelString(model, ind, ok);
-
-          if (! str.length())
-            return State::SKIP;
-
-          isInt_ = false;
-        }
-
-        // if column can be real, check if value is valid real
-        if (isReal_) {
-          bool ok;
-
-          (void) modelReal(model, ind, ok);
-
-          if (ok)
-            return State::SKIP;
-
-          QString str = modelString(model, ind, ok);
-
-          if (! str.length())
-            return State::SKIP;
-
-          isReal_ = false;
-        }
-
-        // not value real or integer so assume string and we are done
-        return State::TERMINATE;
-      }
-
-      CQBaseModel::Type columnType() {
-        if      (isInt_ ) return CQBaseModel::Type::INTEGER;
-        else if (isReal_) return CQBaseModel::Type::REAL;
-        else              return CQBaseModel::Type::STRING;
-      }
-
-     private:
-      int  column_ { -1 };   // column to check
-      bool isInt_  { true }; // could be integeral
-      bool isReal_ { true }; // could be real
-    };
-
-    // determine column value type by looking at model values
-    ColumnTypeVisitor columnTypeVisitor(icolumn);
-
-    CQChartsModelVisit::exec(model, columnTypeVisitor);
-
-    columnType     = columnTypeVisitor.columnType();
     columnBaseType = columnType;
 
     return true;
@@ -2255,6 +2267,15 @@ getDataModel(QAbstractItemModel *model) {
   if (! dataModel) return nullptr;
 
   return dataModel;
+}
+
+QVariant
+modelMetaValue(QAbstractItemModel *model, const QString &name)
+{
+  CQDataModel *dataModel = getDataModel(model);
+  if (! dataModel) return QVariant();
+
+  return dataModel->nameValue(name);
 }
 
 }

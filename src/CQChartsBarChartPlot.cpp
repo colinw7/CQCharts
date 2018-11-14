@@ -91,7 +91,7 @@ description() const
          "<p>Enabling the <b>Horizontal</b> option draws the bars horizontally instead "
          "of vertically.</p>\n"
          "<p>Enabling the <b>Dot Lines</b> option draws the bars as a single line with a"
-         "circle symol at the end.</p>\n"
+         "circle symbol at the end.</p>\n"
          "<p>Enabling the <b>Color by Set</b> option colors bars in the same group the same "
          "color instead using different colors for each bar in the group.</p>\n";
 }

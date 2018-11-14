@@ -466,11 +466,29 @@ class CQChartsColumnTypeMgr : public QObject {
   bool setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column, Type type,
                           const CQChartsNameValues &nameValues=CQChartsNameValues());
 
- private:
-  using TypeData = std::map<Type,CQChartsColumnType*>;
+  void initCache();
+  void termCache();
 
-  CQCharts* charts_ { nullptr };
-  TypeData  typeData_;
+ private:
+  struct TypeCacheData {
+    Type                type     { Type::NONE };
+    Type                baseType { Type::NONE };
+    CQChartsNameValues  nameValues;
+    CQChartsColumnType* typeData { nullptr };
+    bool                valid    { false };
+  };
+
+  bool getDisplayTypeData(QAbstractItemModel *model, const CQChartsColumn &column,
+                          TypeCacheData &typeCacheData) const;
+
+ private:
+  using TypeData        = std::map<Type,CQChartsColumnType*>;
+  using ColumnTypeCache = std::map<CQChartsColumn,TypeCacheData>;
+
+  CQCharts*               charts_   { nullptr };
+  TypeData                typeData_;
+  bool                    caching_  { false };
+  mutable ColumnTypeCache columnTypeCache_;
 };
 
 #endif

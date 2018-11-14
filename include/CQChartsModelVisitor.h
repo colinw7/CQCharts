@@ -4,6 +4,7 @@
 #include <QAbstractItemModel>
 #include <QModelIndex>
 
+class CQCharts;
 class QAbstractItemModel;
 
 //---
@@ -79,7 +80,7 @@ class CQChartsModelVisitor {
 
 namespace CQChartsModelVisit {
 
-bool exec(QAbstractItemModel *model, CQChartsModelVisitor &visitor);
+bool exec(CQCharts *charts, QAbstractItemModel *model, CQChartsModelVisitor &visitor);
 
 bool exec(QAbstractItemModel *model, const QModelIndex &parent, int r,
           CQChartsModelVisitor &visitor);
