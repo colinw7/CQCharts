@@ -1023,12 +1023,14 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
 
     sortModel->setFilter(initData.filterStr);
 
-    plot = cmds_->createPlot(nullptr, sortModelP, modelData->selectionModel(), type,
-                             initData.nameValueData, reuse, bbox);
+    plot = cmds_->createPlot(nullptr, sortModelP, modelData->selectionModel(), type, reuse);
+
+    cmds_->initPlot(plot, initData.nameValueData, bbox);
   }
   else {
-    plot = cmds_->createPlot(nullptr, model, modelData->selectionModel(), type,
-                             initData.nameValueData, reuse, bbox);
+    plot = cmds_->createPlot(nullptr, model, modelData->selectionModel(), type, reuse);
+
+    cmds_->initPlot(plot, initData.nameValueData, bbox);
   }
 
   if (! plot) {

@@ -100,8 +100,10 @@ class CQChartsCmds : public QObject {
   //---
 
   CQChartsPlot *createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
-                           CQChartsPlotType *type, const CQChartsNameValueData &nameValueData,
-                           bool reuse, const CQChartsGeom::BBox &bbox);
+                           CQChartsPlotType *type, bool reuse);
+
+  bool initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
+                const CQChartsGeom::BBox &bbox);
 
   //---
 

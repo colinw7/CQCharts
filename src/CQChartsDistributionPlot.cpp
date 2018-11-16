@@ -130,6 +130,8 @@ CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjRugPointData<CQChartsDistributionPlot>(this),
  dataLabel_(this)
 {
+  NoUpdate noUpdate(this);
+
   setAutoBucket    (true);
   setNumAutoBuckets(20);
 

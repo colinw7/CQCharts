@@ -1610,6 +1610,13 @@ class CQChartsPlot : public CQChartsObj,
   void annotationsChanged();
 
  protected:
+  struct NoUpdate {
+    NoUpdate(CQChartsPlot *plot) : plot_(plot) { plot_->updatesEnabled_ = false; }
+   ~NoUpdate() { plot_->updatesEnabled_ = true;  }
+
+    CQChartsPlot *plot_ { nullptr };
+  };
+
   using ObjSet     = std::set<CQChartsObj*>;
   using SizeObjSet = std::map<double,ObjSet>;
 

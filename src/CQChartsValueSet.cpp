@@ -448,52 +448,9 @@ init()
       type_ = plot_->columnValueType(column(), Type::NONE);
   }
 
-  // if no type then look at added value (TODO: always the same as color values ?)
-  if (type_ == Type::NONE) {
-    int ni = 0, nr = 0;
-
-    for (const auto &value : values_) {
-      if      (value.type() == QVariant::Int)
-        ++ni;
-      else if (value.type() == QVariant::Double) {
-        ++nr;
-
-        bool ok;
-
-        double r = CQChartsVariant::toReal(value, ok);
-
-        if (CMathUtil::isInteger(r))
-          ++ni;
-        else
-          ++nr;
-      }
-      else {
-        bool ok;
-
-        double r = CQChartsVariant::toReal(value, ok);
-
-        if (ok) {
-          if (CMathUtil::isInteger(r))
-            ++ni;
-          else
-            ++nr;
-        }
-        else {
-          type_ = Type::STRING;
-          break;
-        }
-      }
-    }
-
-    if (type_ == Type::NONE) {
-      if      (nr == 0 && ni > 0)
-        type_ = Type::INTEGER;
-      else if (nr > 0)
-        type_ = Type::REAL;
-      else
-        type_ = Type::STRING;
-    }
-  }
+  // if no type then look at added value (TODO: always the same as column values ?)
+  if (type_ == Type::NONE)
+    type_ = calcType();
 
   //---
 
@@ -542,6 +499,59 @@ init()
       tvals_.addValue(ok ? OptReal(t) : OptReal());
     }
   }
+}
+
+CQChartsValueSet::Type
+CQChartsValueSet::
+calcType() const
+{
+  CQChartsValueSet::Type type = Type::NONE;
+
+  int ni = 0, nr = 0;
+
+  for (const auto &value : values_) {
+    if      (value.type() == QVariant::Int)
+      ++ni;
+    else if (value.type() == QVariant::Double) {
+      ++nr;
+
+      bool ok;
+
+      double r = CQChartsVariant::toReal(value, ok);
+
+      if (CMathUtil::isInteger(r))
+        ++ni;
+      else
+        ++nr;
+    }
+    else {
+      bool ok;
+
+      double r = CQChartsVariant::toReal(value, ok);
+
+      if (ok) {
+        if (CMathUtil::isInteger(r))
+          ++ni;
+        else
+          ++nr;
+      }
+      else {
+        type = Type::STRING;
+        break;
+      }
+    }
+  }
+
+  if (type == Type::NONE) {
+    if      (nr == 0 && ni > 0)
+      type = Type::INTEGER;
+    else if (nr > 0)
+      type = Type::REAL;
+    else
+      type = Type::STRING;
+  }
+
+  return type;
 }
 
 void

@@ -39,7 +39,7 @@ bool exec(CQCharts *charts, QAbstractItemModel *model, CQChartsModelVisitor &vis
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
-  columnTypeMgr->initCache();
+  columnTypeMgr->startCache();
 
   visitor.init(model);
 
@@ -49,7 +49,7 @@ bool exec(CQCharts *charts, QAbstractItemModel *model, CQChartsModelVisitor &vis
 
   visitor.term();
 
-  columnTypeMgr->termCache();
+  columnTypeMgr->endCache();
 
   return true;
 }

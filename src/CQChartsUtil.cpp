@@ -13,6 +13,7 @@
 #include <CQUtil.h>
 #include <CQStrUtil.h>
 #include <CQStrParse.h>
+#include <CQPerfMonitor.h>
 #include <QSortFilterProxyModel>
 #include <QFontMetricsF>
 
@@ -87,6 +88,8 @@ QString parentPath(QAbstractItemModel *model, const QModelIndex &parent) {
 CQBaseModel::Type
 calcColumnType(CQCharts *charts, QAbstractItemModel *model, int icolumn)
 {
+  CQPerfTrace trace("CQChartsUtil::calcColumnType");
+
   // determine column type from values
   // TODO: cache (in plot ?), max visited values
 

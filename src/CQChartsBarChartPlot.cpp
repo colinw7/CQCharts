@@ -73,7 +73,7 @@ description() const
          "<p>An optional label can be drawn with the bar to show extra values using "
          "the <b>Label</b> column.</p>\n"
          "<p>The color of the bar can be customized using the <b>Color</b> column.</p>\n"
-         "<p>A custom id can specified using the <b>Id</b> column.</p>"
+         "<p>A custom id can specified using the <b>Id</b> column.</p>\n"
          "<h2>Grouping</h2>\n"
          "<p>Bars can be grouped using standard grouping controls so that related values "
          "can be placed next to each other.</p>\n"
@@ -90,7 +90,7 @@ description() const
          "maximum and minimum of the values.</p>\n"
          "<p>Enabling the <b>Horizontal</b> option draws the bars horizontally instead "
          "of vertically.</p>\n"
-         "<p>Enabling the <b>Dot Lines</b> option draws the bars as a single line with a"
+         "<p>Enabling the <b>Dot Lines</b> option draws the bars as a single line with a "
          "circle symbol at the end.</p>\n"
          "<p>Enabling the <b>Color by Set</b> option colors bars in the same group the same "
          "color instead using different colors for each bar in the group.</p>\n";
@@ -111,6 +111,8 @@ CQChartsBarChartPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjDotPointData<CQChartsBarChartPlot>(this),
  dataLabel_(this)
 {
+  NoUpdate noUpdate(this);
+
   setDotSymbolType(CQChartsSymbol::Type::CIRCLE);
   setDotSymbolSize(CQChartsLength("7px"));
 }

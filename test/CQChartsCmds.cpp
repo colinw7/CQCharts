@@ -1039,15 +1039,18 @@ createPlotCmd(const Vars &vars)
   //------
 
   // create plot from init (argument) data
-  CQChartsPlot *plot = createPlot(view, model, modelData->selectionModel(), type,
-                                  nameValueData, true, bbox);
+  CQChartsPlot *plot = createPlot(view, model, modelData->selectionModel(), type, true);
 
   if (! plot) {
     charts_->errorMsg("Failed to create plot");
     return;
   }
 
+  //---
+
   plot->setUpdatesEnabled(false);
+
+  initPlot(plot, nameValueData, bbox);
 
   //---
 
@@ -4565,8 +4568,7 @@ setCmdError(const QString &msg)
 CQChartsPlot *
 CQChartsCmds::
 createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
-           CQChartsPlotType *type, const CQChartsNameValueData &nameValueData, bool reuse,
-           const CQChartsGeom::BBox &bbox)
+           CQChartsPlotType *type, bool reuse)
 {
   if (! view)
     view = getView(reuse);
@@ -4579,6 +4581,18 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
     plot->setSelectionModel(sm);
 
   //---
+
+  return plot;
+}
+
+bool
+CQChartsCmds::
+initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
+         const CQChartsGeom::BBox &bbox)
+{
+  CQChartsPlotType *type = plot->type();
+
+  ModelP model = plot->model();
 
   // check column parameters exist
   for (const auto &nameValue : nameValueData.columns) {
@@ -4593,7 +4607,7 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
 
     if (! found) {
       charts_->errorMsg("Illegal column name '" + nameValue.first + "'");
-      return nullptr;
+      return false;
     }
   }
 
@@ -4610,7 +4624,7 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
 
     if (! found) {
       charts_->errorMsg("Illegal parameter name '" + nameValue.first + "'");
-      return nullptr;
+      return false;
     }
   }
 
@@ -4729,11 +4743,13 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
   //---
 
   // add plot to view and show
+  CQChartsView *view = plot->view();
+
   view->addPlot(plot, bbox);
 
   //---
 
-  return plot;
+  return true;
 }
 
 QString

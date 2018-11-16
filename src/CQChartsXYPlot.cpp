@@ -140,6 +140,10 @@ CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjFillUnderFillData<CQChartsXYPlot>(this),
  CQChartsObjDataLabelTextData<CQChartsXYPlot>(this)
 {
+  NoUpdate noUpdate(this);
+
+  //---
+
   setImpulseLines  (false);
   setBivariateLines(false);
 
@@ -575,8 +579,7 @@ calcRange()
         xAxis()->setColumn(xColumn());
     }
     else {
-      if (xAxis())
-       xAxis()->setColumn(xColumn());
+      xAxis()->setColumn(xColumn());
     }
 
     QString xname = xAxisName();

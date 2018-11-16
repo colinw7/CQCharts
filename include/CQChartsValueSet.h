@@ -151,7 +151,6 @@ class CQChartsRValues {
 
   double svalue(int i) const { return svalues_[i]; }
 
- private:
   void const_calc() const {
     const_cast<CQChartsRValues *>(this)->calc();
   }
@@ -1075,6 +1074,8 @@ class CQChartsValueSet : public QObject {
  private:
   void init() const;
   void init();
+
+  Type calcType() const;
 
  protected:
   using Values = std::vector<QVariant>;

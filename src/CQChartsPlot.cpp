@@ -5076,7 +5076,7 @@ void
 CQChartsPlot::
 autoFitOne()
 {
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 3; ++i) {
     CQChartsGeom::BBox bbox = fitBBox();
 
     setFitBBox(bbox);
@@ -6690,6 +6690,8 @@ void
 CQChartsPlot::
 initValueSets()
 {
+  CQPerfTrace trace("CQChartsPlot::initValueSets");
+
   // if no columns set then skip
   bool anyColumn = false;
 

@@ -259,7 +259,7 @@ getUserData(QAbstractItemModel *model, const CQChartsColumn &column,
 
   TypeCacheData typeCacheData;
 
-  if (! getDisplayTypeData(model, column, typeCacheData))
+  if (! getModelColumnTypeData(model, column, typeCacheData))
     return var;
 
   QVariant var1 = typeCacheData.typeData->userData(charts_, model, column, var,
@@ -278,7 +278,7 @@ getDisplayData(QAbstractItemModel *model, const CQChartsColumn &column,
 
   TypeCacheData typeCacheData;
 
-  if (! getDisplayTypeData(model, column, typeCacheData))
+  if (! getModelColumnTypeData(model, column, typeCacheData))
     return var;
 
   QVariant var1 = typeCacheData.typeData->userData(charts_, model, column, var,
@@ -295,13 +295,13 @@ getDisplayData(QAbstractItemModel *model, const CQChartsColumn &column,
 
 bool
 CQChartsColumnTypeMgr::
-getDisplayTypeData(QAbstractItemModel *model, const CQChartsColumn &column,
-                   TypeCacheData &typeCacheData) const
+getModelColumnTypeData(QAbstractItemModel *model, const CQChartsColumn &column,
+                       TypeCacheData &typeCacheData) const
 {
   if (caching_) {
-    auto p = columnTypeCache_.find(column);
+    auto p = columnTypeDataCache_.find(column);
 
-    if (p != columnTypeCache_.end()) {
+    if (p != columnTypeDataCache_.end()) {
       typeCacheData = (*p).second;
 
       return typeCacheData.valid;
@@ -319,7 +319,7 @@ getDisplayTypeData(QAbstractItemModel *model, const CQChartsColumn &column,
   }
 
   if (caching_)
-    columnTypeCache_[column] = typeCacheData;
+    columnTypeDataCache_[column] = typeCacheData;
 
   return typeCacheData.valid;
 }
@@ -465,20 +465,20 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 
 void
 CQChartsColumnTypeMgr::
-initCache()
+startCache()
 {
-  assert(! caching_ && columnTypeCache_.empty());
+  assert(! caching_ && columnTypeDataCache_.empty());
 
   caching_ = true;
 }
 
 void
 CQChartsColumnTypeMgr::
-termCache()
+endCache()
 {
   caching_ = false;
 
-  columnTypeCache_.clear();
+  columnTypeDataCache_.clear();
 }
 
 //------
@@ -716,8 +716,8 @@ CQChartsColumnIntegerType() :
 {
   params_.emplace_back("format", Type::INTEGER, "Output Format", "");
 
-  params_.emplace_back("min", Type::REAL, (int) CQBaseModel::Role::Min, "Min Value", 0.0);
-  params_.emplace_back("max", Type::REAL, (int) CQBaseModel::Role::Max, "Max Value", 1.0);
+  params_.emplace_back("min", Type::INTEGER, (int) CQBaseModel::Role::Min, "Min Value",   0);
+  params_.emplace_back("max", Type::INTEGER, (int) CQBaseModel::Role::Max, "Max Value", 100);
 }
 
 QVariant
