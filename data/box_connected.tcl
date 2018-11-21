@@ -13,4 +13,4 @@ set plot [create_plot -model $model -type boxplot \
   -properties "outlier.visible=0,options.connected=1" \
   -title "connected boxplot"]
 
-connect_chart -plot $plot -from objIdPressed -to objPressed
+connect_charts -plot $plot -from objIdPressed -to objPressed

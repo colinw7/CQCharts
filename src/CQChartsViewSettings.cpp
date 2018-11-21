@@ -8,6 +8,7 @@
 #include <CQChartsGradientPaletteControl.h>
 #include <CQChartsLoadDlg.h>
 #include <CQChartsPlotDlg.h>
+#include <CQChartsAnnotationDlg.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsAnnotation.h>
@@ -517,8 +518,8 @@ initAnnotationsFrame(QFrame *annotationsFrame)
 
   QHBoxLayout *controlGroupLayout = new QHBoxLayout(controlGroup);
 
-  //QPushButton *createButton = new QPushButton("Create");
-  //createButton->setObjectName("create");
+  QPushButton *createButton = new QPushButton("Create");
+  createButton->setObjectName("create");
 
   annotationsWidgets_.removeButton = new QPushButton("Remove");
   annotationsWidgets_.removeButton->setObjectName("remove");
@@ -528,11 +529,11 @@ initAnnotationsFrame(QFrame *annotationsFrame)
 
   annotationsWidgets_.removeButton->setEnabled(false);
 
-  //connect(createButton                  , SIGNAL(clicked()), this, SLOT(createAnnotationSlot()));
+  connect(createButton                    , SIGNAL(clicked()), this, SLOT(createAnnotationSlot()));
   connect(annotationsWidgets_.removeButton, SIGNAL(clicked()), this, SLOT(removeAnnotationsSlot()));
   connect(writeButton                     , SIGNAL(clicked()), this, SLOT(writeAnnotationSlot()));
 
-//controlGroupLayout->addWidget(createButton);
+  controlGroupLayout->addWidget(createButton);
   controlGroupLayout->addWidget(annotationsWidgets_.removeButton);
   controlGroupLayout->addWidget(writeButton);
   controlGroupLayout->addStretch(1);
@@ -1110,7 +1111,7 @@ writePlotSlot()
   CQChartsPlot *plot = view->currentPlot();
   if (! plot) return;
 
-  plot->write();
+  plot->write(std::cerr);
 }
 
 //------
@@ -1251,6 +1252,25 @@ getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotation
 
 void
 CQChartsViewSettings::
+createAnnotationSlot()
+{
+  CQChartsView *view = window_->view();
+
+  CQChartsPlot *plot = view->currentPlot();
+
+  if (! plot)
+    return;
+
+  if (annotationDlg_)
+    delete annotationDlg_;
+
+  annotationDlg_ = new CQChartsAnnotationDlg(plot);
+
+  annotationDlg_->show();
+}
+
+void
+CQChartsViewSettings::
 removeAnnotationsSlot()
 {
   Annotations viewAnnotations, plotAnnotations;
@@ -1281,7 +1301,7 @@ writeAnnotationSlot()
   const CQChartsView::Annotations &viewAnnotations = view->annotations();
 
   for (const auto &annotation : viewAnnotations)
-    annotation->write();
+    annotation->write(std::cerr);
 
   //---
 
@@ -1293,7 +1313,7 @@ writeAnnotationSlot()
     const CQChartsPlot::Annotations &plotAnnotations = plot->annotations();
 
     for (const auto &annotation : plotAnnotations)
-      annotation->write();
+      annotation->write(std::cerr);
   }
 }
 

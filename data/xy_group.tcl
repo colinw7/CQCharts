@@ -27,4 +27,4 @@ set model [load_model -csv data/boxplot.csv -first_line_header]
 
 set plot [create_plot -type xy -columns "group=0,x=1,y=2" -title "Group XY Plot"]
 
-connect_chart -plot $plot -from objIdPressed -to objPressed
+connect_charts -plot $plot -from objIdPressed -to objPressed

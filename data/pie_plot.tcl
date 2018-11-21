@@ -12,4 +12,4 @@ set view [create_view]
 
 set plot [create_plot -view $view -model $model -type pie -columns "label=0,value=1" -title "pie chart"]
 
-connect_chart -plot $plot -from objIdPressed -to objPressed
+connect_charts -plot $plot -from objIdPressed -to objPressed

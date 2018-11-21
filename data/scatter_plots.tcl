@@ -26,7 +26,7 @@ foreach group $groups {
     -properties "symbol.fill.color=palette:$c" \
     -title "$group"]
 
-  connect_chart -plot $plot -from objIdPressed -to objPressed
+  connect_charts -plot $plot -from objIdPressed -to objPressed
 
   lappend plots $plot
 

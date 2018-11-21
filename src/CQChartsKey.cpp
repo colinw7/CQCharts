@@ -1169,7 +1169,7 @@ QColor
 CQChartsKeyColorBox::
 interpBorderColor(int i, int n) const
 {
-  return borderColor().interpColor(plot_, i, n);
+  return borderColor().interpColor(plot_->charts(), i, n);
 }
 
 QSizeF

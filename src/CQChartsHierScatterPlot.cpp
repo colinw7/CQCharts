@@ -64,6 +64,8 @@ CQChartsHierScatterPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjPointData<CQChartsHierScatterPlot>(this),
  dataLabel_(this)
 {
+  NoUpdate noUpdate(this);
+
   setSymbolSize(CQChartsLength("4px"));
 
   addAxes();

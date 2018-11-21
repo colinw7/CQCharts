@@ -3,11 +3,13 @@
 
 CQUTIL_DEF_META_TYPE(CQChartsColumn, toString, fromString)
 
+int CQChartsColumn::metaTypeId;
+
 void
 CQChartsColumn::
 registerMetaType()
 {
-  CQUTIL_REGISTER_META(CQChartsColumn);
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsColumn);
 }
 
 CQChartsColumn::
@@ -40,7 +42,7 @@ CQChartsColumn(Type type, int column, const QString &s, int role) :
 
 CQChartsColumn::
 CQChartsColumn(const CQChartsColumn &rhs) :
- type_(rhs.type_), column_(rhs.column_), role_(rhs.role_), expr_(nullptr), mapped_(rhs.mapped_)
+ type_(rhs.type_), column_(rhs.column_), role_(rhs.role_), expr_(nullptr)
 {
   if (rhs.hasExpr() || rhs.hasIndex()) {
     int len = strlen(rhs.expr_);
@@ -356,9 +358,11 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
 
 CQUTIL_DEF_META_TYPE(CQChartsColumns, toString, fromString)
 
+int CQChartsColumns::metaTypeId;
+
 void
 CQChartsColumns::
 registerMetaType()
 {
-  CQUTIL_REGISTER_META(CQChartsColumns);
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsColumns);
 }

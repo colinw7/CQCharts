@@ -19,6 +19,8 @@ class CQChartsFillPattern {
  public:
   static void registerMetaType();
 
+  static int metaTypeId;
+
  public:
   CQChartsFillPattern(Type type=Type::SOLID) :
    type_(type) {

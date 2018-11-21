@@ -66,6 +66,13 @@ CQChartsAxis::
 {
 }
 
+CQCharts *
+CQChartsAxis::
+charts() const
+{
+  return view()->charts();
+}
+
 CQChartsView *
 CQChartsAxis::
 view() const

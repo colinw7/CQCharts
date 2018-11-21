@@ -168,18 +168,19 @@ class CQChartsCmds : public QObject {
   void getPaletteCmd(const Vars &vars);
   void setPaletteCmd(const Vars &vars);
 
-  void createTextShapeCmd    (const Vars &vars);
-  void createArrowShapeCmd   (const Vars &vars);
-  void createRectShapeCmd    (const Vars &vars);
-  void createEllipseShapeCmd (const Vars &vars);
-  void createPolygonShapeCmd (const Vars &vars);
-  void createPolylineShapeCmd(const Vars &vars);
-  void createPointShapeCmd   (const Vars &vars);
-  void removeShapeCmd        (const Vars &vars);
+  void createTextAnnotationCmd    (const Vars &vars);
+  void createArrowAnnotationCmd   (const Vars &vars);
+  void createRectAnnotationCmd    (const Vars &vars);
+  void createEllipseAnnotationCmd (const Vars &vars);
+  void createPolygonAnnotationCmd (const Vars &vars);
+  void createPolylineAnnotationCmd(const Vars &vars);
+  void createPointAnnotationCmd   (const Vars &vars);
+  void removeAnnotationCmd        (const Vars &vars);
 
-  void connectChartCmd(const Vars &vars);
+  void connectChartsCmd(const Vars &vars);
 
-  void printChartCmd(const Vars &vars);
+  void printChartsCmd    (const Vars &vars);
+  void writeChartsDataCmd(const Vars &vars);
 
   void loadModelDlgCmd  (const Vars &vars);
   void manageModelDlgCmd(const Vars &vars);

@@ -11,6 +11,7 @@ set model [load_model -tsv data/scatter.tsv -first_line_header]
 set plot [create_plot -model $model -type scatter \
   -columns "x=sepalLength,y=sepalWidth,group=species,symbolType=@GROUP,color=@GROUP" \
   -properties "symbol.size=9px" \
-  -properties "xaxis.userLabel=Sepal Length,yaxis.userLabel=Sepal Width"]
+  -properties "xaxis.userLabel=Sepal Length" \
+  -properties "yaxis.userLabel=Sepal Width"]
 
-connect_chart -plot $plot -from objIdPressed -to objPressed
+connect_charts -plot $plot -from objIdPressed -to objPressed

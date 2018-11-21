@@ -216,6 +216,9 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
   // visit single row
   int column = filterKeyColumn();
 
+  if (column < 0)
+    column = 0;
+
   RowVisitor visitor(this, column);
 
   (void) CQChartsModelVisit::exec(model, parent, row, visitor);

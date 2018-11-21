@@ -21,6 +21,8 @@ class CQChartsColumn {
  public:
   static void registerMetaType();
 
+  static int metaTypeId;
+
  public:
   CQChartsColumn() = default;
   CQChartsColumn(int column, int role=-1); // data
@@ -77,15 +79,6 @@ class CQChartsColumn {
 
   bool setValue(const QString &str);
 
-  bool isMapped() const { return mapped_; }
-  void setMapped(bool b) { mapped_ = b; }
-
-  double mapMin() const { return mapMin_; }
-  void setMapMin(double r) { mapMin_ = r; }
-
-  double mapMax() const { return mapMax_; }
-  void setMapMax(double r) { mapMax_ = r; }
-
   //---
 
   QString toString() const;
@@ -135,9 +128,6 @@ class CQChartsColumn {
   int    column_ { -1 };
   int    role_   { -1 };
   char*  expr_   { nullptr };
-  bool   mapped_ { false };
-  double mapMin_ { 0.0 };
-  double mapMax_ { 1.0 };
 };
 
 //---
@@ -149,6 +139,8 @@ class CQChartsColumns {
 
  public:
   static void registerMetaType();
+
+  static int metaTypeId;
 
  public:
   CQChartsColumns() { }

@@ -19,6 +19,8 @@ class CQChartsSides {
  public:
   static void registerMetaType();
 
+  static int metaTypeId;
+
  public:
   CQChartsSides() { }
 

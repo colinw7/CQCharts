@@ -46,6 +46,8 @@ CQChartsSunburstPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjShapeData<CQChartsSunburstPlot>(this),
  CQChartsObjTextData <CQChartsSunburstPlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   setBorder(true);
@@ -219,7 +221,7 @@ void
 CQChartsSunburstPlot::
 updateObjs()
 {
-  clearValueSets();
+  //clearValueSets();
 
   resetRoots();
 
@@ -233,7 +235,7 @@ createObjs()
   CQPerfTrace trace("CQChartsSunburstPlot::createObjs");
 
   // init value sets
-  initValueSets();
+  //initValueSets();
 
   //---
 
@@ -542,7 +544,7 @@ loadFlat(CQChartsSunburstHierNode *root)
       if (node) {
         CQChartsColor color;
 
-        if (plot_->colorSetColor("color", data.row, color))
+        if (plot_->columnColor(data.row, data.parent, color))
           node->setColor(color);
       }
 
@@ -664,7 +666,7 @@ addExtraNodes(CQChartsSunburstHierNode *hier)
 
     CQChartsColor color;
 
-    if (colorSetColor("color", ind1.row(), color))
+    if (columnColor(ind1.row(), ind1.parent(), color))
       node->setColor(color);
 
     node->setSize(hier->size());
@@ -1420,7 +1422,7 @@ interpColor(CQChartsSunburstPlot *plot, int n) const
   if      (colorId() >= 0)
     return plot->interpFillColor(colorId(), n);
   else if (color().isValid())
-    return color().interpColor(plot, 0, 1);
+    return color().interpColor(plot->charts(), 0, 1);
   else
     return plot->interpPaletteColor(0, 1);
 }

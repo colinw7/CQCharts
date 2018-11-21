@@ -45,6 +45,8 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjShapeData      <CQChartsTreeMapPlot>(this),
  CQChartsObjTextData       <CQChartsTreeMapPlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   setHeaderFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.4));
   setHeaderTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
 
@@ -266,7 +268,7 @@ void
 CQChartsTreeMapPlot::
 updateObjs()
 {
-  clearValueSets();
+  //clearValueSets();
 
   resetNodes();
 
@@ -280,7 +282,7 @@ createObjs()
   CQPerfTrace trace("CQChartsTreeMapPlot::createObjs");
 
   // init value sets
-  initValueSets();
+  //initValueSets();
 
   //---
 
@@ -481,7 +483,7 @@ loadHier()
       if (node) {
         CQChartsColor color;
 
-        if (plot_->colorSetColor("color", data.row, color))
+        if (plot_->columnColor(data.row, data.parent, color))
           node->setColor(color);
       }
 
@@ -627,7 +629,7 @@ loadFlat()
       if (node) {
         CQChartsColor color;
 
-        if (plot_->colorSetColor("color", data.row, color))
+        if (plot_->columnColor(data.row, data.parent, color))
           node->setColor(color);
       }
 
@@ -731,7 +733,7 @@ addExtraNodes(CQChartsTreeMapHierNode *hier)
 
     CQChartsColor color;
 
-    if (colorSetColor("color", ind1.row(), color))
+    if (columnColor(ind1.row(), ind1.parent(), color))
       node->setColor(color);
 
     node->setDepth (hier->depth() + 1);
@@ -1445,7 +1447,7 @@ interpColor(CQChartsTreeMapPlot *plot, int n) const
   if      (colorId() >= 0)
     return plot->interpPaletteColor(colorId(), n);
   else if (color().isValid())
-    return color().interpColor(plot, 0, 1);
+    return color().interpColor(plot->charts(), 0, 1);
   else
     return plot->interpPaletteColor(0, 1);
 }

@@ -14,4 +14,4 @@ set plot [create_plot -model $model -type xy \
   -properties "bivariate.visible=1,yaxis.includeZero=1" \
   -title "bivariate - single line"]
 
-connect_chart -plot $plot -from objIdPressed -to objPressed
+connect_charts -plot $plot -from objIdPressed -to objPressed

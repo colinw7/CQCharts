@@ -114,6 +114,8 @@ CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjTextData          <CQChartsAdjacencyPlot>(this),
  CQChartsObjEmptyCellShapeData<CQChartsAdjacencyPlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   setBackgroundFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.2));
 
   setBorderColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));

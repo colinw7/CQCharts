@@ -117,6 +117,8 @@ class CQChartsAxis : public CQChartsObj,
 
   virtual ~CQChartsAxis();
 
+  CQCharts *charts() const;
+
   CQChartsPlot *plot() const { return plot_; }
 
   CQChartsView *view() const;

@@ -42,6 +42,8 @@ CQChartsImagePlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("image"), model),
  CQChartsObjTextData<CQChartsImagePlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   addTitle();
 }
 

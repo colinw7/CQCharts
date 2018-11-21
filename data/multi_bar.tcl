@@ -12,4 +12,4 @@ set plot [create_plot -model $model -type barchart \
   -columns "group=0,value=1 2 3 4 5 6 7" \
   -title "multiple bar chart"]
 
-connect_chart -plot $plot -from objIdPressed -to objPressed
+connect_charts -plot $plot -from objIdPressed -to objPressed

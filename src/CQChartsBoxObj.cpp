@@ -21,6 +21,13 @@ CQChartsBoxObj(CQChartsPlot *plot) :
 {
 }
 
+CQCharts *
+CQChartsBoxObj::
+charts() const
+{
+  return view()->charts();
+}
+
 CQChartsView *
 CQChartsBoxObj::
 view() const

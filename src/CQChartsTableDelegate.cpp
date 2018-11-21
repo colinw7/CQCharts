@@ -1,7 +1,9 @@
 #include <CQChartsTableDelegate.h>
 #include <CQChartsTable.h>
+#include <CQChartsColumnType.h>
 #include <CQChartsVariant.h>
 #include <CQChartsPlotSymbol.h>
+#include <CQCharts.h>
 
 #include <QCheckBox>
 #include <QPainter>
@@ -15,29 +17,42 @@ void
 CQChartsTableDelegate::
 paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-  CQBaseModel::Type columnType = getColumnType(index);
+  ColumnData columnData;
 
-  if      (columnType == CQBaseModel::Type::BOOLEAN) {
+  getColumnData(index, columnData);
+
+  if      (columnData.type == CQBaseModel::Type::BOOLEAN) {
     QVariant var = table_->modelP()->data(index);
 
     drawCheckInside(painter, option, var.toBool(), index);
   }
-  else if (columnType == CQBaseModel::Type::COLOR) {
+  else if (columnData.type == CQBaseModel::Type::COLOR) {
     QVariant var = table_->modelP()->data(index, Qt::EditRole);
 
     if (! var.isValid())
       var = table_->modelP()->data(index, Qt::DisplayRole);
 
+    CQChartsColumnTypeMgr *columnTypeMgr = table_->charts()->columnTypeMgr();
+
+    CQChartsColumnColorType *colorType =
+      dynamic_cast<CQChartsColumnColorType *>(columnTypeMgr->getType(columnData.type));
+
+    bool converted;
+
+    QVariant cvar =
+      colorType->userData(table_->charts(), table_->modelP().data(), index.column(),
+                          var, columnData.nameValues, converted);
+
     bool ok;
 
-    CQChartsColor c = CQChartsVariant::toColor(var, ok);
+    CQChartsColor c = CQChartsVariant::toColor(cvar, ok);
 
     if (ok)
       drawColor(painter, option, c, index);
     else
       QItemDelegate::paint(painter, option, index);
   }
-  else if (columnType == CQBaseModel::Type::SYMBOL) {
+  else if (columnData.type == CQBaseModel::Type::SYMBOL) {
     QVariant var = table_->modelP()->data(index, Qt::EditRole);
 
     if (! var.isValid())
@@ -71,9 +86,11 @@ QWidget *
 CQChartsTableDelegate::
 createEditor(QWidget *parent, const QStyleOptionViewItem &item, const QModelIndex &index) const
 {
-  CQBaseModel::Type columnType = getColumnType(index);
+  ColumnData columnData;
 
-  if (columnType == CQBaseModel::Type::BOOLEAN) {
+  getColumnData(index, columnData);
+
+  if (columnData.type == CQBaseModel::Type::BOOLEAN) {
     QVariant var = table_->modelP()->data(index);
 
     QCheckBox *check = new QCheckBox(parent);
@@ -102,37 +119,38 @@ void
 CQChartsTableDelegate::
 click(const QModelIndex &index) const
 {
-  CQBaseModel::Type columnType = getColumnType(index);
+  ColumnData columnData;
 
-  if (columnType == CQBaseModel::Type::BOOLEAN) {
+  getColumnData(index, columnData);
+
+  if (columnData.type == CQBaseModel::Type::BOOLEAN) {
     QVariant var = table_->modelP()->data(index);
 
     table_->modelP()->setData(index, ! var.toBool());
   }
 }
 
-CQBaseModel::Type
+void
 CQChartsTableDelegate::
-getColumnType(const QModelIndex &index) const
+getColumnData(const QModelIndex &index, ColumnData &data) const
 {
   QAbstractItemModel *model = table_->modelP().data();
 
   CQChartsTableDelegate *th = const_cast<CQChartsTableDelegate *>(this);
 
-  auto p = th->columnTypeMap_.find(index.column());
+  auto p = th->columnDataMap_.find(index.column());
 
-  if (p == th->columnTypeMap_.end()) {
-    CQBaseModel::Type  columnType;
-    CQBaseModel::Type  columnBaseType;
-    CQChartsNameValues nameValues;
+  if (p == th->columnDataMap_.end()) {
+    ColumnData columnData;
 
     (void) CQChartsUtil::columnValueType(table_->charts(), model, index.column(),
-                                         columnType, columnBaseType, nameValues);
+                                         columnData.type, columnData.baseType,
+                                         columnData.nameValues);
 
-    p = th->columnTypeMap_.insert(p, ColumnTypeMap::value_type(index.column(), columnType));
+    p = th->columnDataMap_.insert(p, ColumnDataMap::value_type(index.column(), columnData));
   }
 
-  return (*p).second;
+  data = (*p).second;
 }
 
 void
@@ -255,7 +273,7 @@ void
 CQChartsTableDelegate::
 clearColumnTypes()
 {
-  columnTypeMap_.clear();
+  columnDataMap_.clear();
 }
 
 void

@@ -3,6 +3,7 @@
 
 #include <CQChartsUtil.h>
 #include <CQChartsSymbol.h>
+#include <CQChartsLength.h>
 #include <CQUtil.h>
 
 namespace CQChartsVariant {
@@ -39,12 +40,12 @@ inline bool toString(const QVariant &var, QString &str) {
   }
   else if (var.type() == QVariant::UserType) {
 #if 0
-    if      (var.userType() == CQChartsPath::metaType()) {
+    if      (var.userType() == CQChartsPath::metaTypeId) {
       CQChartsPath path = var.value<CQChartsPath>();
 
       str = path.toString();
     }
-    else if (var.userType() == CQChartsStyle::metaType()) {
+    else if (var.userType() == CQChartsStyle::metaTypeId) {
       CQChartsStyle style = var.value<CQChartsStyle>();
 
       str = style.toString();
@@ -152,11 +153,9 @@ inline long toInt(const QVariant &var, bool &ok) {
 
 //---
 
-inline bool isNumeric(const QVariant &var) {
-  return isReal(var) || isInt(var);
+inline bool isBool(const QVariant &var) {
+  return (var.type() == QVariant::Bool);
 }
-
-//---
 
 inline bool toBool(const QVariant &var, bool &ok) {
   ok = true;
@@ -174,6 +173,12 @@ inline bool toBool(const QVariant &var, bool &ok) {
 
 //---
 
+inline bool isNumeric(const QVariant &var) {
+  return isReal(var) || isInt(var) || isBool(var);
+}
+
+//---
+
 inline bool isColor(const QVariant &var) {
   if (! var.isValid())
     return false;
@@ -181,10 +186,8 @@ inline bool isColor(const QVariant &var) {
   if (var.type() == QVariant::Color)
     return true;
 
-  if (var.type() == QVariant::UserType) {
-    if (var.userType() == CQChartsColor::metaTypeId)
-      return true;
-  }
+  if (var.type() == QVariant::UserType && var.userType() == CQChartsColor::metaTypeId)
+    return true;
 
   return false;
 }
@@ -192,22 +195,21 @@ inline bool isColor(const QVariant &var) {
 inline CQChartsColor toColor(const QVariant &var, bool &ok) {
   ok = true;
 
-  if (var.type() == QVariant::Color)
-    return var.value<QColor>();
-
-  if (var.type() == QVariant::UserType) {
-    if (var.userType() == CQChartsColor::metaTypeId)
-      return var.value<CQChartsColor>();
+  if (var.type() == QVariant::Color) {
+    CQChartsColor color = var.value<QColor>();
+    ok = color.isValid();
+    return color;
   }
 
-  QColor c(var.toString());
+  if (var.type() == QVariant::UserType && var.userType() == CQChartsColor::metaTypeId) {
+    CQChartsColor color = var.value<CQChartsColor>();
+    ok = color.isValid();
+    return color;
+  }
 
-  if (c.isValid())
-    return CQChartsColor(c);
-
-  ok = false;
-
-  return CQChartsColor();
+  CQChartsColor color = QColor(var.toString());
+  ok = color.isValid();
+  return color;
 }
 
 //---
@@ -240,6 +242,38 @@ inline CQChartsSymbol toSymbol(const QVariant &var, bool &ok) {
   ok = false;
 
   return CQChartsSymbol();
+}
+
+//---
+
+inline bool isLength(const QVariant &var) {
+  if (! var.isValid())
+    return false;
+
+  if (var.type() == QVariant::UserType) {
+    if (var.userType() == CQChartsLength::metaTypeId)
+      return true;
+  }
+
+  return false;
+}
+
+inline CQChartsLength toLength(const QVariant &var, bool &ok) {
+  ok = true;
+
+  if (var.type() == QVariant::UserType) {
+    if (var.userType() == CQChartsLength::metaTypeId)
+      return var.value<CQChartsLength>();
+  }
+
+  CQChartsLength length(var.toString());
+
+  if (length.isValid())
+    return length;
+
+  ok = false;
+
+  return CQChartsLength();
 }
 
 //---

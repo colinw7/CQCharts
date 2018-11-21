@@ -11,7 +11,7 @@ class CQChartsStyle {
  public:
   static void registerMetaType();
 
-  static int metaType();
+  static int metaTypeId;
 
  public:
   CQChartsStyle() = default;

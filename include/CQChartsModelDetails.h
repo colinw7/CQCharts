@@ -7,9 +7,7 @@
 class CQChartsModelDetails;
 class CQChartsModelData;
 class CQCharts;
-class CQChartsIValues;
-class CQChartsRValues;
-class CQChartsSValues;
+class CQChartsValueSet;
 class QAbstractItemModel;
 
 class CQChartsModelColumnDetails {
@@ -70,6 +68,10 @@ class CQChartsModelColumnDetails {
 
   int numNull() const;
 
+  int numValues() const { return valueInds_.size(); }
+
+  int valueInd(const QVariant &value) const;
+
   QVariant medianValue() const;
   QVariant lowerMedianValue() const;
   QVariant upperMedianValue() const;
@@ -80,6 +82,8 @@ class CQChartsModelColumnDetails {
 
   virtual bool checkRow(const QVariant &) { return true; }
 
+  void initCache() const;
+
  private:
   bool initData();
   bool initType();
@@ -87,12 +91,20 @@ class CQChartsModelColumnDetails {
   void addInt   (int i);
   void addReal  (double r);
   void addString(const QString &s);
+  void addTime  (double t);
+  void addColor (const CQChartsColor &c);
+
+  void addValue(const QVariant &value);
+
+  bool columnColor(const QVariant &var, CQChartsColor &color) const;
 
  private:
   CQChartsModelColumnDetails(const CQChartsModelColumnDetails &) = delete;
   CQChartsModelColumnDetails &operator=(const CQChartsModelColumnDetails &) = delete;
 
  private:
+  using VariantInds = std::map<QVariant,int>;
+
   CQChartsModelDetails* details_         { nullptr };
   CQChartsColumn        column_;
   QString               typeName_;
@@ -106,9 +118,8 @@ class CQChartsModelColumnDetails {
   bool                  increasing_      { true };
   bool                  initialized_     { false };
   bool                  typeInitialized_ { false };
-  CQChartsIValues*      ivals_           { nullptr };
-  CQChartsRValues*      rvals_           { nullptr };
-  CQChartsSValues*      svals_           { nullptr };
+  CQChartsValueSet*     valueSet_        { nullptr };
+  VariantInds           valueInds_;
 };
 
 //---

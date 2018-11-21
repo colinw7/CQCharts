@@ -14,4 +14,4 @@ set plot [create_plot -model $model -type xy \
   -properties "lines.visible=1,points.visible=1" \
   -title "multiple xy plot"]
 
-connect_chart -plot $plot -from objIdPressed -to objPressed
+connect_charts -plot $plot -from objIdPressed -to objPressed

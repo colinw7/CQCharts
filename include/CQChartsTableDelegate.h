@@ -1,6 +1,7 @@
 #ifndef CQChartsTableDelegate_H
 #define CQChartsTableDelegate_H
 
+#include <CQChartsUtil.h>
 #include <CQBaseModel.h>
 #include <QItemDelegate>
 
@@ -10,6 +11,13 @@ class CQChartsSymbol;
 class QPainter;
 
 class CQChartsTableDelegate : public QItemDelegate {
+ public:
+  struct ColumnData {
+    CQBaseModel::Type  type;
+    CQBaseModel::Type  baseType;
+    CQChartsNameValues nameValues;
+  };
+
  public:
   CQChartsTableDelegate(CQChartsTable *table);
 
@@ -21,7 +29,7 @@ class CQChartsTableDelegate : public QItemDelegate {
 
   void click(const QModelIndex &index) const;
 
-  CQBaseModel::Type getColumnType(const QModelIndex &index) const;
+  void getColumnData(const QModelIndex &index, ColumnData &data) const;
 
   void drawCheckInside(QPainter *painter, const QStyleOptionViewItem &option,
                        bool checked, const QModelIndex &index) const;
@@ -41,10 +49,10 @@ class CQChartsTableDelegate : public QItemDelegate {
   void updateBoolean();
 
  private:
-  using ColumnTypeMap = std::map<int,CQBaseModel::Type>;
+  using ColumnDataMap = std::map<int,ColumnData>;
 
   CQChartsTable*      table_ { nullptr };
-  ColumnTypeMap       columnTypeMap_;
+  ColumnDataMap       columnDataMap_;
   mutable QModelIndex currentIndex_;
 };
 

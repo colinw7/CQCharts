@@ -30,4 +30,4 @@ group_plots -view $viewId -y1y2 $plotId1 $plotId2
 
 place_plots -view $viewId -vertical $plotId1 $plotId2
 
-connect_chart -plot $plotId1 -from objIdPressed -to plotSlot
+connect_charts -plot $plotId1 -from objIdPressed -to plotSlot

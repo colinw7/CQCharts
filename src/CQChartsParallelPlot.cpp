@@ -61,6 +61,8 @@ CQChartsParallelPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjLineData <CQChartsParallelPlot>(this),
  CQChartsObjPointData<CQChartsParallelPlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   setLinesColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   setPoints(true);

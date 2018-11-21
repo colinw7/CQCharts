@@ -12,4 +12,4 @@ set view [create_view]
 
 set plot [create_plot -view $view -model $model -type distribution -columns "value=cut,group=color" -properties "scatter.enabled=1,scatter.factor=0.25"]
 
-connect_chart -plot $plot -from objIdPressed -to objPressed
+connect_charts -plot $plot -from objIdPressed -to objPressed

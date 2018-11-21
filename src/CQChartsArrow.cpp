@@ -19,6 +19,13 @@ CQChartsArrow(CQChartsPlot *plot, const QPointF &from, const QPointF &to) :
 {
 }
 
+CQCharts *
+CQChartsArrow::
+charts() const
+{
+  return (plot_ ? plot_->charts() : view_->charts());
+}
+
 void
 CQChartsArrow::
 draw(QPainter *painter)

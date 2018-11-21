@@ -140,7 +140,7 @@ addCommands()
   if (! cmdsAdded) {
     addCommand("help");
 
-    // load, process, sort, filter model
+    // load, process, sort, fold, filter, flatten model
     addCommand("load_model"            );
     addCommand("process_model"         );
     addCommand("add_process_model_proc");
@@ -149,7 +149,7 @@ addCommands()
     addCommand("filter_model"          );
     addCommand("flatten_model"         );
 
-    // correlation, subset
+    // correlation, subset, tranpose
     addCommand("correlation_model");
     addCommand("subset_model"     );
     addCommand("transpose_model"  );
@@ -180,24 +180,25 @@ addCommands()
     addCommand("set_charts_data");
 
     // annotations
-    addCommand("create_text_shape"    );
-    addCommand("create_arrow_shape"   );
-    addCommand("create_rect_shape"    );
-    addCommand("create_ellipse_shape" );
-    addCommand("create_polygon_shape" );
-    addCommand("create_polyline_shape");
-    addCommand("create_point_shape"   );
-    addCommand("remove_shape"         );
+    addCommand("create_text_annotation"    );
+    addCommand("create_arrow_annotation"   );
+    addCommand("create_rect_annotation"    );
+    addCommand("create_ellipse_annotation" );
+    addCommand("create_polygon_annotation" );
+    addCommand("create_polyline_annotation");
+    addCommand("create_point_annotation"   );
+    addCommand("remove_annotation"         );
 
     // theme/palette
     addCommand("get_palette");
     addCommand("set_palette");
 
     // connect
-    addCommand("connect_chart");
+    addCommand("connect_charts");
 
-    // print
-    addCommand("print_chart");
+    // print, write
+    addCommand("print_charts");
+    addCommand("write_charts_data");
 
     // dialogs
     addCommand("load_model_dlg"  );
@@ -287,24 +288,25 @@ processCmd(const QString &cmd, const Vars &vars)
   else if (cmd == "set_charts_data") { setChartsDataCmd(vars); }
 
   // annotations
-  else if (cmd == "create_text_shape"    ) { createTextShapeCmd    (vars); }
-  else if (cmd == "create_arrow_shape"   ) { createArrowShapeCmd   (vars); }
-  else if (cmd == "create_rect_shape"    ) { createRectShapeCmd    (vars); }
-  else if (cmd == "create_ellipse_shape" ) { createEllipseShapeCmd (vars); }
-  else if (cmd == "create_polygon_shape" ) { createPolygonShapeCmd (vars); }
-  else if (cmd == "create_polyline_shape") { createPolylineShapeCmd(vars); }
-  else if (cmd == "create_point_shape"   ) { createPointShapeCmd   (vars); }
-  else if (cmd == "remove_shape"         ) { removeShapeCmd        (vars); }
+  else if (cmd == "create_rect_annotation"    ) { createRectAnnotationCmd    (vars); }
+  else if (cmd == "create_ellipse_annotation" ) { createEllipseAnnotationCmd (vars); }
+  else if (cmd == "create_polygon_annotation" ) { createPolygonAnnotationCmd (vars); }
+  else if (cmd == "create_polyline_annotation") { createPolylineAnnotationCmd(vars); }
+  else if (cmd == "create_text_annotation"    ) { createTextAnnotationCmd    (vars); }
+  else if (cmd == "create_arrow_annotation"   ) { createArrowAnnotationCmd   (vars); }
+  else if (cmd == "create_point_annotation"   ) { createPointAnnotationCmd   (vars); }
+  else if (cmd == "remove_annotation"         ) { removeAnnotationCmd        (vars); }
 
   // palette (interface/theme)
   else if (cmd == "get_palette") { getPaletteCmd(vars); }
   else if (cmd == "set_palette") { setPaletteCmd(vars); }
 
   // connect
-  else if (cmd == "connect_chart") { connectChartCmd(vars); }
+  else if (cmd == "connect_charts") { connectChartsCmd(vars); }
 
-  // print
-  else if (cmd == "print_chart") { printChartCmd(vars); }
+  // print, write
+  else if (cmd == "print_charts"     ) { printChartsCmd    (vars); }
+  else if (cmd == "write_charts_data") { writeChartsDataCmd(vars); }
 
   // dialogs
   else if (cmd == "load_model_dlg"  ) { loadModelDlgCmd  (vars); }
@@ -1050,7 +1052,8 @@ createPlotCmd(const Vars &vars)
 
   plot->setUpdatesEnabled(false);
 
-  initPlot(plot, nameValueData, bbox);
+  if (! initPlot(plot, nameValueData, bbox))
+    return;
 
   //---
 
@@ -3153,11 +3156,11 @@ setChartsDataCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-createRectShapeCmd(const Vars &vars)
+createRectAnnotationCmd(const Vars &vars)
 {
-  CQPerfTrace trace("CQChartsCmds::createRectShapeCmd");
+  CQPerfTrace trace("CQChartsCmds::createRectAnnotationCmd");
 
-  CQChartsCmdArgs argv("create_rect_shape", vars);
+  CQChartsCmdArgs argv("create_rect_annotation", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3170,8 +3173,8 @@ createRectShapeCmd(const Vars &vars)
   argv.addCmdArg("-start", CQChartsCmdArg::Type::Position, "start");
   argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Position, "end"  );
 
-  argv.addCmdArg("-margin" , CQChartsCmdArg::Type::String, "margin");
-  argv.addCmdArg("-padding", CQChartsCmdArg::Type::String, "padding");
+  argv.addCmdArg("-margin" , CQChartsCmdArg::Type::Real, "margin");
+  argv.addCmdArg("-padding", CQChartsCmdArg::Type::Real, "padding");
 
   argv.addCmdArg("-background"        , CQChartsCmdArg::Type::SBool , "background visible");
   argv.addCmdArg("-background_color"  , CQChartsCmdArg::Type::Color , "background color");
@@ -3263,11 +3266,11 @@ createRectShapeCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-createEllipseShapeCmd(const Vars &vars)
+createEllipseAnnotationCmd(const Vars &vars)
 {
-  CQPerfTrace trace("CQChartsCmds::createEllipseShapeCmd");
+  CQPerfTrace trace("CQChartsCmds::createEllipseAnnotationCmd");
 
-  CQChartsCmdArgs argv("create_ellipse_shape", vars);
+  CQChartsCmdArgs argv("create_ellipse_annotation", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3371,11 +3374,11 @@ createEllipseShapeCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-createPolygonShapeCmd(const Vars &vars)
+createPolygonAnnotationCmd(const Vars &vars)
 {
-  CQPerfTrace trace("CQChartsCmds::createPolygonShapeCmd");
+  CQPerfTrace trace("CQChartsCmds::createPolygonAnnotationCmd");
 
-  CQChartsCmdArgs argv("create_polygon_shape", vars);
+  CQChartsCmdArgs argv("create_polygon_annotation", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3474,11 +3477,11 @@ createPolygonShapeCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-createPolylineShapeCmd(const Vars &vars)
+createPolylineAnnotationCmd(const Vars &vars)
 {
-  CQPerfTrace trace("CQChartsCmds::createPolylineShapeCmd");
+  CQPerfTrace trace("CQChartsCmds::createPolylineAnnotationCmd");
 
-  CQChartsCmdArgs argv("create_polyline_shape", vars);
+  CQChartsCmdArgs argv("create_polyline_annotation", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3579,11 +3582,11 @@ createPolylineShapeCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-createTextShapeCmd(const Vars &vars)
+createTextAnnotationCmd(const Vars &vars)
 {
-  CQPerfTrace trace("CQChartsCmds::createTextShapeCmd");
+  CQPerfTrace trace("CQChartsCmds::createTextAnnotationCmd");
 
-  CQChartsCmdArgs argv("create_text_shape", vars);
+  CQChartsCmdArgs argv("create_text_annotation", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3704,11 +3707,11 @@ createTextShapeCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-createArrowShapeCmd(const Vars &vars)
+createArrowAnnotationCmd(const Vars &vars)
 {
-  CQPerfTrace trace("CQChartsCmds::createArrowShapeCmd");
+  CQPerfTrace trace("CQChartsCmds::createArrowAnnotationCmd");
 
-  CQChartsCmdArgs argv("create_arrow_shape", vars);
+  CQChartsCmdArgs argv("create_arrow_annotation", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3806,11 +3809,11 @@ createArrowShapeCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-createPointShapeCmd(const Vars &vars)
+createPointAnnotationCmd(const Vars &vars)
 {
-  CQPerfTrace trace("CQChartsCmds::createPointShapeCmd");
+  CQPerfTrace trace("CQChartsCmds::createPointAnnotationCmd");
 
-  CQChartsCmdArgs argv("create_point_shape", vars);
+  CQChartsCmdArgs argv("create_point_annotation", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3905,11 +3908,11 @@ createPointShapeCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-removeShapeCmd(const Vars &vars)
+removeAnnotationCmd(const Vars &vars)
 {
-  CQPerfTrace trace("CQChartsCmds::removeShapeCmd");
+  CQPerfTrace trace("CQChartsCmds::removeAnnotationCmd");
 
-  CQChartsCmdArgs argv("remove_shape", vars);
+  CQChartsCmdArgs argv("remove_annotation", vars);
 
   // -view or -plot needed for -all
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
@@ -3918,8 +3921,8 @@ removeShapeCmd(const Vars &vars)
   argv.endCmdGroup();
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String , "shape id");
-  argv.addCmdArg("-all", CQChartsCmdArg::Type::Boolean, "all shapes");
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String , "annotation id");
+  argv.addCmdArg("-all", CQChartsCmdArg::Type::Boolean, "all annotations");
   argv.endCmdGroup();
 
   if (! argv.parse())
@@ -3973,11 +3976,11 @@ removeShapeCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-connectChartCmd(const Vars &vars)
+connectChartsCmd(const Vars &vars)
 {
-  CQPerfTrace trace("CQChartsCmds::connectChartCmd");
+  CQPerfTrace trace("CQChartsCmds::connectChartsCmd");
 
-  CQChartsCmdArgs argv("connect_chart", vars);
+  CQChartsCmdArgs argv("connect_charts", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -4051,13 +4054,13 @@ connectChartCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-printChartCmd(const Vars &vars)
+printChartsCmd(const Vars &vars)
 {
-  CQPerfTrace trace("CQChartsCmds::printChartCmd");
+  CQPerfTrace trace("CQChartsCmds::printChartsCmd");
 
-  CQChartsCmdArgs argv("print_chart", vars);
+  CQChartsCmdArgs argv("print_charts", vars);
 
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
@@ -4091,7 +4094,7 @@ printChartCmd(const Vars &vars)
 
   //---
 
-  QString fileName = argv.getParseStr("file");
+  QString filename = argv.getParseStr("file");
 
   if (plot) {
     QString layerName = argv.getParseStr("layer");
@@ -4099,14 +4102,113 @@ printChartCmd(const Vars &vars)
     if (layerName.length()) {
       CQChartsLayer::Type type = CQChartsLayer::nameType(layerName);
 
-      if (! plot->printLayer(type, fileName))
+      if (! plot->printLayer(type, filename))
         charts_->errorMsg("Failed to print layer");
     }
     else
-      view->printFile(fileName, plot);
+      view->printFile(filename, plot);
   }
   else
-    view->printFile(fileName);
+    view->printFile(filename);
+
+  return;
+}
+
+//------
+
+void
+CQChartsCmds::
+writeChartsDataCmd(const Vars &vars)
+{
+  CQPerfTrace trace("CQChartsCmds::writeChartsDataCmd");
+
+  CQChartsCmdArgs argv("write_charts_data", vars);
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-type", CQChartsCmdArg::Type::String, "type");
+  argv.addCmdArg("-file", CQChartsCmdArg::Type::String, "filename");
+
+  if (! argv.parse())
+    return;
+
+  //---
+
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if (argv.hasParseArg("view")) {
+    QString viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return;
+  }
+  else {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(nullptr, plotName);
+    if (! plot) return;
+
+    view = plot->view();
+  }
+
+  //---
+
+  QString filename = argv.getParseStr("file");
+
+  std::ofstream fos; bool isFile = false;
+
+  if (filename.length()) {
+    fos.open(filename.toLatin1().constData());
+
+    if (fos.fail()) {
+      charts_->errorMsg("Failed to open '" + filename + "'");
+      return;
+    }
+
+    isFile = true;
+  }
+
+  //---
+
+  QString type = argv.getParseStr("type");
+
+  if      (plot) {
+    if      (type == "") {
+      plot->write(isFile ? fos : std::cout);
+    }
+    else if (type == "annotations") {
+      const CQChartsPlot::Annotations &annotations = plot->annotations();
+
+      for (const auto &annotation : annotations)
+        annotation->write(isFile ? fos : std::cout);
+    }
+    else {
+      charts_->errorMsg("Invalid write type");
+    }
+  }
+  else if (view) {
+    if      (type == "plots") {
+      CQChartsView::Plots plots;
+
+      view->getPlots(plots);
+
+      for (const auto &plot : plots)
+        plot->write(isFile ? fos : std::cout);
+    }
+    else if (type == "annotations") {
+      const CQChartsView::Annotations &annotations = view->annotations();
+
+      for (const auto &annotation : annotations)
+        annotation->write(isFile ? fos : std::cout);
+    }
+    else {
+      charts_->errorMsg("Invalid write type");
+    }
+  }
 
   return;
 }

@@ -18,6 +18,8 @@ class CQChartsRect {
  public:
   static void registerMetaType();
 
+  static int metaTypeId;
+
  public:
   CQChartsRect(const Units &units, const QRectF &rect) :
    units_(units), rect_(rect) {

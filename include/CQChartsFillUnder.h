@@ -16,6 +16,8 @@ class CQChartsFillUnderSide {
  public:
   static void registerMetaType();
 
+  static int metaTypeId;
+
  public:
   CQChartsFillUnderSide(Type type=Type::BOTH) :
    type_(type) {
@@ -102,6 +104,8 @@ class CQChartsFillUnderPos {
 
  public:
   static void registerMetaType();
+
+  static int metaTypeId;
 
  public:
   CQChartsFillUnderPos() { }

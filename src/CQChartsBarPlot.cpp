@@ -5,6 +5,8 @@ CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &mo
  CQChartsGroupPlot(view, plotType, model),
  CQChartsObjBarShapeData<CQChartsBarPlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   setBarFilled   (true);
   setBarFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 

@@ -147,18 +147,20 @@ setColorStr(const QString &str)
   }
 }
 
+//------
+
 QColor
 CQChartsColor::
-interpColor(const CQChartsPlot *plot, int i, int n) const
+interpColor(const CQCharts *charts, int i, int n) const
 {
   double r = CMathUtil::norm(i, 0, n - 1);
 
-  return interpColor(plot, r);
+  return interpColor(charts, r);
 }
 
 QColor
 CQChartsColor::
-interpColor(const CQChartsPlot *plot, double value) const
+interpColor(const CQCharts *charts, double value) const
 {
   assert(isValid());
 
@@ -166,24 +168,25 @@ interpColor(const CQChartsPlot *plot, double value) const
     return color();
   else if (type() == Type::PALETTE) {
     if (ind() == 0)
-      return plot->interpPaletteColor(value);
+      return charts->interpPaletteColor(value);
     else
-      return plot->interpIndPaletteColor(ind(), value);
+      return charts->interpIndPaletteColor(ind(), value);
   }
   else if (type() == Type::PALETTE_VALUE) {
     if (ind() == 0)
-      return plot->interpPaletteColor(this->value(), isScale());
+      return charts->interpPaletteColor(this->value(), isScale());
     else
-      return plot->interpIndPaletteColor(ind(), this->value(), isScale());
+      return charts->interpIndPaletteColor(ind(), this->value(), isScale());
   }
   else if (type() == Type::INTERFACE)
-    return plot->interpThemeColor(value);
+    return charts->interpThemeColor(value);
   else if (type() == Type::INTERFACE_VALUE)
-    return plot->interpThemeColor(this->value());
+    return charts->interpThemeColor(this->value());
 
   return QColor(0, 0, 0);
 }
 
+#if 0
 QColor
 CQChartsColor::
 interpColor(const CQChartsView *view, int i, int n) const
@@ -223,16 +226,16 @@ interpColor(const CQChartsView *view, double value) const
 
 QColor
 CQChartsColor::
-interpColor(const CQCharts *charts, int i, int n) const
+interpColor(const CQChartsPlot *plot, int i, int n) const
 {
   double r = CMathUtil::norm(i, 0, n - 1);
 
-  return interpColor(charts, r);
+  return interpColor(plot, r);
 }
 
 QColor
 CQChartsColor::
-interpColor(const CQCharts *charts, double value) const
+interpColor(const CQChartsPlot *plot, double value) const
 {
   assert(isValid());
 
@@ -240,20 +243,20 @@ interpColor(const CQCharts *charts, double value) const
     return color();
   else if (type() == Type::PALETTE) {
     if (ind() == 0)
-      return charts->interpPaletteColor(value);
+      return plot->interpPaletteColor(value);
     else
-      return charts->interpIndPaletteColor(ind(), value);
+      return plot->interpIndPaletteColor(ind(), value);
   }
   else if (type() == Type::PALETTE_VALUE) {
     if (ind() == 0)
-      return charts->interpPaletteColor(this->value(), isScale());
+      return plot->interpPaletteColor(this->value(), isScale());
     else
-      return charts->interpIndPaletteColor(ind(), this->value(), isScale());
+      return plot->interpIndPaletteColor(ind(), this->value(), isScale());
   }
   else if (type() == Type::INTERFACE)
-    return charts->interpThemeColor(value);
+    return plot->interpThemeColor(value);
   else if (type() == Type::INTERFACE_VALUE)
-    return charts->interpThemeColor(this->value());
+    return plot->interpThemeColor(this->value());
 
   return QColor(0, 0, 0);
 }
@@ -300,3 +303,4 @@ interpColor(const CQChartsArrow *arrow, int i, int n) const
   else
     return QColor();
 }
+#endif

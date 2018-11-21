@@ -30,7 +30,7 @@ class CQChartsObjLineData {
   }
 
   QColor interpLinesColor(int i, int n) const {
-    return linesColor().interpColor(lineDataObj_, i, n);
+    return linesColor().interpColor(lineDataObj_->charts(), i, n);
   }
 
   double linesAlpha() const { return lineData_.alpha; }
@@ -96,7 +96,7 @@ class CQChartsObj##UNAME##LineData { \
   } \
 \
   QColor interp##UNAME##LinesColor(int i, int n) const { \
-    return LNAME##LinesColor().interpColor(LNAME##LineDataObj_, i, n); \
+    return LNAME##LinesColor().interpColor(LNAME##LineDataObj_->charts(), i, n); \
   } \
 \
   double LNAME##LinesAlpha() const { return LNAME##LineData_.alpha; } \
@@ -197,7 +197,7 @@ class CQChartsObjPointData {
   }
 
   QColor interpSymbolStrokeColor(int i, int n) const {
-    return symbolStrokeColor().interpColor(pointDataObj_, i, n);
+    return symbolStrokeColor().interpColor(pointDataObj_->charts(), i, n);
   }
 
   double symbolStrokeAlpha() const { return pointData_.stroke.alpha; }
@@ -226,11 +226,11 @@ class CQChartsObjPointData {
   }
 
   QColor interpSymbolFillColor(double r) const {
-    return symbolFillColor().interpColor(pointDataObj_, r);
+    return symbolFillColor().interpColor(pointDataObj_->charts(), r);
   }
 
   QColor interpSymbolFillColor(int i, int n) const {
-    return symbolFillColor().interpColor(pointDataObj_, i, n);
+    return symbolFillColor().interpColor(pointDataObj_->charts(), i, n);
   }
 
   double symbolFillAlpha() const { return pointData_.fill.alpha; }
@@ -329,7 +329,7 @@ class CQChartsObj##UNAME##PointData { \
   } \
 \
   QColor interp##UNAME##SymbolStrokeColor(int i, int n) const { \
-    return LNAME##SymbolStrokeColor().interpColor(LNAME##PointDataObj_, i, n); \
+    return LNAME##SymbolStrokeColor().interpColor(LNAME##PointDataObj_->charts(), i, n); \
   } \
 \
   double LNAME##SymbolStrokeAlpha() const { return LNAME##PointData_.stroke.alpha; } \
@@ -365,11 +365,11 @@ class CQChartsObj##UNAME##PointData { \
   } \
 \
   QColor interp##UNAME##SymbolFillColor(double r) const { \
-    return LNAME##SymbolFillColor().interpColor(LNAME##PointDataObj_, r); \
+    return LNAME##SymbolFillColor().interpColor(LNAME##PointDataObj_->charts(), r); \
   } \
 \
   QColor interp##UNAME##SymbolFillColor(int i, int n) const { \
-    return LNAME##SymbolFillColor().interpColor(LNAME##PointDataObj_, i, n); \
+    return LNAME##SymbolFillColor().interpColor(LNAME##PointDataObj_->charts(), i, n); \
   } \
 \
   double LNAME##SymbolFillAlpha() const { return LNAME##PointData_.fill.alpha; } \
@@ -438,7 +438,7 @@ class CQChartsObj##UNAME##FillData { \
   } \
 \
   QColor interp##UNAME##FillColor(int i, int n) const { \
-    return LNAME##FillColor().interpColor(LNAME##FillDataObj_, i, n); \
+    return LNAME##FillColor().interpColor(LNAME##FillDataObj_->charts(), i, n); \
   } \
 \
   double LNAME##FillAlpha() const { return LNAME##FillData_.alpha; } \
@@ -511,7 +511,7 @@ class CQChartsObjTextData {
   }
 
   QColor interpTextColor(int i, int n) const {
-    return textColor().interpColor(textDataObj_, i, n);
+    return textColor().interpColor(textDataObj_->charts(), i, n);
   }
 
   bool isTextContrast() const { return textData_.contrast; }
@@ -607,7 +607,7 @@ class CQChartsObj##UNAME##TextData { \
   } \
 \
   QColor interp##UNAME##TextColor(int i, int n) const { \
-    return LNAME##TextColor().interpColor(LNAME##TextDataObj_, i, n); \
+    return LNAME##TextColor().interpColor(LNAME##TextDataObj_->charts(), i, n); \
   } \
 \
   bool is##UNAME##TextContrast() const { return LNAME##TextData_.contrast; } \
@@ -700,7 +700,7 @@ class CQChartsObjStrokeData {
   }
 
   QColor interpBorderColor(int i, int n) const {
-    return borderColor().interpColor(strokeDataObj_, i, n);
+    return borderColor().interpColor(strokeDataObj_->charts(), i, n);
   }
 
   //---
@@ -772,7 +772,7 @@ class CQChartsObjShapeData {
   }
 
   QColor interpBorderColor(int i, int n) const {
-    return borderColor().interpColor(shapeDataObj_, i, n);
+    return borderColor().interpColor(shapeDataObj_->charts(), i, n);
   }
 
   //---
@@ -798,7 +798,7 @@ class CQChartsObjShapeData {
   }
 
   QColor interpFillColor(int i, int n) const {
-    return fillColor().interpColor(shapeDataObj_, i, n);
+    return fillColor().interpColor(shapeDataObj_->charts(), i, n);
   }
 
   //---
@@ -892,7 +892,7 @@ class CQChartsObj##UNAME##ShapeData { \
   } \
 \
   QColor interp##UNAME##BorderColor(int i, int n) const { \
-    return LNAME##BorderColor().interpColor(LNAME##ShapeDataObj_, i, n); \
+    return LNAME##BorderColor().interpColor(LNAME##ShapeDataObj_->charts(), i, n); \
   } \
 \
   bool is##UNAME##Filled() const { return LNAME##ShapeData_.background.visible; } \
@@ -921,7 +921,7 @@ class CQChartsObj##UNAME##ShapeData { \
   } \
 \
   QColor interp##UNAME##FillColor(int i, int n) const { \
-    return LNAME##FillColor().interpColor(LNAME##ShapeDataObj_, i, n); \
+    return LNAME##FillColor().interpColor(LNAME##ShapeDataObj_->charts(), i, n); \
   } \
 \
   void setShapeData(const CQChartsShapeData &data) { \
@@ -939,13 +939,6 @@ class CQChartsObj##UNAME##ShapeData { \
  protected: \
   CQChartsShapeData LNAME##ShapeData_; \
 };
-
-//------
-
-#define CQCHARTS_COLOR_MAP_PROPERTIES \
-Q_PROPERTY(bool   colorMapped READ isColorMapped WRITE setColorMapped) \
-Q_PROPERTY(double colorMapMin READ colorMapMin   WRITE setColorMapMin) \
-Q_PROPERTY(double colorMapMax READ colorMapMax   WRITE setColorMapMax)
 
 //------
 

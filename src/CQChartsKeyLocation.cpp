@@ -2,11 +2,13 @@
 
 CQUTIL_DEF_META_TYPE(CQChartsKeyLocation, toString, fromString)
 
+int CQChartsKeyLocation::metaTypeId;
+
 void
 CQChartsKeyLocation::
 registerMetaType()
 {
-  CQUTIL_REGISTER_META(CQChartsKeyLocation);
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsKeyLocation);
 }
 
 QString

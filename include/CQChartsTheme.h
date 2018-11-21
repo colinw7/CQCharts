@@ -118,6 +118,8 @@ class CQChartsTheme {
  public:
   static void registerMetaType();
 
+  static int metaTypeId;
+
  public:
   CQChartsTheme(const QString &name="") {
     setName(name);

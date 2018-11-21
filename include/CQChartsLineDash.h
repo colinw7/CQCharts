@@ -16,6 +16,8 @@ class CQChartsLineDash {
  public:
   static void registerMetaType();
 
+  static int metaTypeId;
+
  public:
   CQChartsLineDash();
 

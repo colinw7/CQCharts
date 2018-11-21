@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QPointF>
 
+class CQChartsView;
 class CQChartsPlot;
 class QPainter;
 
@@ -30,6 +31,8 @@ class CQChartsArrow : public QObject,
                 const QPointF &to=QPointF(1,1));
   CQChartsArrow(CQChartsPlot *plot, const QPointF &from=QPointF(0,0),
                 const QPointF &to=QPointF(1,1));
+
+  CQCharts *charts() const;
 
   CQChartsView* view() const { return view_; }
   CQChartsPlot* plot() const { return plot_; }

@@ -16,4 +16,4 @@ set view [create_view]
 set plot [create_plot -view $view -model $model -type distribution -columns "value=cut,group=color"]
 #set plot [create_plot -view $view -model $model -type distribution -columns "value=cut,group=color" -where {$color == "J" || $color == "D"}]
 
-connect_chart -plot $plot -from objIdPressed -to objPressed
+connect_charts -plot $plot -from objIdPressed -to objPressed

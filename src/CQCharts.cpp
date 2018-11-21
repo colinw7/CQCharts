@@ -121,7 +121,7 @@ init()
   columnTypeMgr_->addType(CQBaseModel::Type::POLYGON        , new CQChartsColumnPolygonType       );
   columnTypeMgr_->addType(CQBaseModel::Type::POLYGON_LIST   , new CQChartsColumnPolygonListType   );
   columnTypeMgr_->addType(CQBaseModel::Type::IMAGE          , new CQChartsColumnImageType         );
-  columnTypeMgr_->addType(CQBaseModel::Type::SYMBOL         , new CQChartsColumnSymbolType        );
+  columnTypeMgr_->addType(CQBaseModel::Type::SYMBOL         , new CQChartsColumnSymbolTypeType    );
   columnTypeMgr_->addType(CQBaseModel::Type::SYMBOL_SIZE    , new CQChartsColumnSymbolSizeType    );
   columnTypeMgr_->addType(CQBaseModel::Type::FONT_SIZE      , new CQChartsColumnFontSizeType      );
   columnTypeMgr_->addType(CQBaseModel::Type::PATH           , new CQChartsColumnPathType          );

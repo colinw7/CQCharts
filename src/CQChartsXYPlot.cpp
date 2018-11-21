@@ -2266,7 +2266,7 @@ draw(QPainter *painter)
   plot()->setSymbolPenBrush(pen, brush, iset(), nset());
 
   if (edata_ && edata_->color.isValid()) {
-    QColor strokeColor = edata_->color.interpColor(plot_, 0, 1);
+    QColor strokeColor = edata_->color.interpColor(plot_->charts(), 0, 1);
 
     pen.setColor(strokeColor);
   }

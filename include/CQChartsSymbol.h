@@ -30,6 +30,7 @@ class CQChartsSymbol {
 
   static int metaTypeId;
 
+ public:
   static QString typeToName(Type type);
   static Type nameToType(const QString &str);
 

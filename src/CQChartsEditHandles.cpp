@@ -64,8 +64,10 @@ CQChartsEditHandles::
 updateBBox(double dx, double dy)
 {
   if      (dragSide() == CQChartsResizeHandle::Side::MOVE) {
-    bbox_.setLL(bbox_.getLL() + CQChartsGeom::Point(dx, dy));
-    bbox_.setUR(bbox_.getUR() + CQChartsGeom::Point(dx, dy));
+    bbox_.moveBy(CQChartsGeom::Point(dx, dy));
+
+    //bbox_.setLL(bbox_.getLL() + CQChartsGeom::Point(dx, dy));
+    //bbox_.setUR(bbox_.getUR() + CQChartsGeom::Point(dx, dy));
   }
   else if (dragSide() == CQChartsResizeHandle::Side::LL) {
     bbox_.setLL(bbox_.getLL() + CQChartsGeom::Point(dx, dy));

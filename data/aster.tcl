@@ -26,6 +26,6 @@ set_charts_property -plot $plotId -name options.innerRadius -value 0.2
 
 set averageStr [format "%.0f" $average]
 
-set textId [create_text_shape -plot $plotId -position {0 0} -text $averageStr -align aligncenter]
+set textId [create_text_annotation -plot $plotId -position {0 0} -text $averageStr -align aligncenter]
 
 #set_charts_property -annotation $textId -name textAlign -value aligncenter

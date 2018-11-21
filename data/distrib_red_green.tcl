@@ -12,12 +12,12 @@ add_process_model_proc color_value { arg } {
 
 set model [load_model -csv data/gaussian.txt -comment_header]
 
-process_model -model $model -add -expr "color_value(column(0))" -header "color"
+process_model -model $model -add -expr "color_value(column(0))" -header "color" -type color
 
 set plot [create_plot -model $model -type distribution \
   -columns "value=0,color=1" \
-  -properties "color.map.enable=0" \
+  -properties "color.map.enabled=0" \
   -properties "dataLabel.visible=1,dataLabel.position=TOP_OUTSIDE" \
   -title "color split distribution"]
 
-connect_chart -plot $plot -from objIdPressed -to objPressed
+connect_charts -plot $plot -from objIdPressed -to objPressed

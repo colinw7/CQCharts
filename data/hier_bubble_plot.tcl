@@ -14,7 +14,7 @@ proc objPressed { view plot id } {
 #  -columns "name=0,value=1" \
 #  -title "hierarchical bubble (hier data)"]
 
-#connect_chart -plot $plot1 -from objIdPressed -to objPressed
+#connect_charts -plot $plot1 -from objIdPressed -to objPressed
 
 set model2 [load_model -csv data/flare.csv -comment_header -column_type "1#real"]
 
@@ -22,7 +22,7 @@ set plot2 [create_plot -model $model2 -type hierbubble \
   -columns "names=0,value=1" \
   -title "hierarchical bubble (flat data)"]
 
-connect_chart -plot $plot2 -from objIdPressed -to objPressed
+connect_charts -plot $plot2 -from objIdPressed -to objPressed
 
 #set model3 [load_model -csv data/hier.csv -comment_header]
 
@@ -30,7 +30,7 @@ connect_chart -plot $plot2 -from objIdPressed -to objPressed
 #  -columns "names=0,value=1" \
 #  -title "hierarchical bubble"]
 
-#connect_chart -plot $plot3 -from objIdPressed -to objPressed
+#connect_charts -plot $plot3 -from objIdPressed -to objPressed
 
 if {0} {
 CQChartsTest -csv data/hier_files.csv \

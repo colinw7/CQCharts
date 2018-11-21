@@ -564,7 +564,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
 
   //---
 
-  //get optional color string
+  // get optional color string
   QString colorStr;
 
   if (colorColumn().isValid()) {
@@ -775,7 +775,7 @@ void
 CQChartsBarChartPlot::
 updateObjs()
 {
-  clearValueSets();
+//clearValueSets();
 
   CQChartsPlot::updateObjs();
 }
@@ -787,7 +787,7 @@ createObjs()
   CQPerfTrace trace("CQChartsBarChartPlot::createObjs");
 
   // init value sets
-  initValueSets();
+//initValueSets();
 
   //---
 
@@ -933,10 +933,11 @@ createObjs()
 
       ivalue.calcRange(minInd, maxInd);
 
+      QModelIndex parent; // TODO
+
       CQChartsColor color;
 
-      if (colorColumn().isValid())
-        (void) colorSetColor("color", minInd.vrow, color);
+      (void) columnColor(minInd.vrow, parent, color);
 
       //---
 
@@ -1133,10 +1134,11 @@ addKeyItems(CQChartsPlotKey *key)
 
           const CQChartsBarChartValue::ValueInd &ind0 = valueInds[0];
 
+          QModelIndex   parent; // TODO
           CQChartsColor color;
 
-          if (colorColumn().isValid() && colorSetColor("color", ind0.vrow, color))
-            c = color.interpColor(this, 0, 1);
+          if (columnColor(ind0.vrow, parent, color))
+            c = color.interpColor(charts(), 0, 1);
         }
 
         addKeyRow(iv, nv, valueSet.name(), c);
@@ -1148,9 +1150,22 @@ addKeyItems(CQChartsPlotKey *key)
       int nv = valueSet.numValues();
 
       for (int iv = 0; iv < nv; ++iv) {
-        const CQChartsBarChartValue &value = valueSet.value(iv);
+        const CQChartsBarChartValue &ivalue = valueSet.value(iv);
 
-        addKeyRow(iv, nv, value.valueName());
+        const CQChartsBarChartValue::ValueInds &valueInds = ivalue.valueInds();
+        assert(! valueInds.empty());
+
+        const CQChartsBarChartValue::ValueInd &ind0 = valueInds[0];
+
+        QColor c;
+
+        QModelIndex   parent; // TODO
+        CQChartsColor color;
+
+        if (columnColor(ind0.vrow, parent, color))
+          c = color.interpColor(charts(), 0, 1);
+
+        addKeyRow(iv, nv, ivalue.valueName(), c);
       }
     }
 
@@ -1171,10 +1186,11 @@ addKeyItems(CQChartsPlotKey *key)
 
           const CQChartsBarChartValue::ValueInd &ind0 = valueInds[0];
 
+          QModelIndex   parent; // TODO
           CQChartsColor color;
 
-          if (colorColumn().isValid() && colorSetColor("color", ind0.vrow, color))
-            c = color.interpColor(this, 0, 1);
+          if (columnColor(ind0.vrow, parent, color))
+            c = color.interpColor(charts(), 0, 1);
         }
 
         addKeyRow(iv, nv, valueSet.name(), c);
@@ -1575,7 +1591,7 @@ draw(QPainter *painter)
       }
     }
     else {
-      barColor = color_.interpColor(plot_, 0.0);
+      barColor = color_.interpColor(plot_->charts(), 0.0);
     }
   }
 
@@ -1772,7 +1788,7 @@ fillBrush() const
   QColor c;
 
   if (color_.isValid())
-    c = color_.interpColor(plot_, 0.0);
+    c = color_.interpColor(plot_->charts(), 0.0);
   else
     c = plot_->interpBarFillColor(i_, n_);
 

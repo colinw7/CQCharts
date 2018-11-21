@@ -76,6 +76,8 @@ CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjShapeData<CQChartsGeometryPlot>(this),
  dataLabel_(this)
 {
+  NoUpdate noUpdate(this);
+
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   setFilled(true);
@@ -333,14 +335,16 @@ addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     bool ok4;
 
     if (colorColumnType_ == ColumnType::COLOR) {
-      CQChartsColor c = modelColor(data.row, colorColumn(), data.parent, ok4);
+      CQChartsColor c;
 
-      geometry.color = c;
+      if (columnColor(data.row, data.parent, c))
+        geometry.color = c;
     }
     else {
       QString str = modelString(data.row, colorColumn(), data.parent, ok4);
 
-      geometry.color = CQChartsColor(str);
+      if (ok4)
+        geometry.color = CQChartsColor(str);
     }
   }
 
@@ -547,9 +551,9 @@ draw(QPainter *painter)
 
   if (color().isValid()) {
     if (n_ > 0)
-      fc = color().interpColor(plot_, i_, n_);
+      fc = color().interpColor(plot_->charts(), i_, n_);
     else
-      fc = color().interpColor(plot_, dv);
+      fc = color().interpColor(plot_->charts(), dv);
   }
   else {
     if (n_ > 0)

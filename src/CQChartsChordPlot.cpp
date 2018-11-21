@@ -72,6 +72,8 @@ CQChartsChordPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("chord"), model),
  CQChartsObjStrokeData<CQChartsChordPlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   textBox_ = new CQChartsRotatedTextBoxObj(this);
 
   setBorderAlpha(0.3);

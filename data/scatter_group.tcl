@@ -13,12 +13,12 @@ set plot1 [create_plot -model $model -type scatter \
   -properties "xaxis.userLabel=Petal Length,yaxis.userLabel=Sepal Length" \
   -title "Scatter Group"]
 
-connect_chart -plot $plot1 -from objIdPressed -to objPressed
+connect_charts -plot $plot1 -from objIdPressed -to objPressed
 
 #set plot2 [create_plot -model $model -type scatter \
 #  -columns "x=sepalLength,y=sepalWidth,group=species,color=species" \
 #  -properties "xaxis.userLabel=Sepal Length,yaxis.userLabel=Sepal Width"]
 
-#connect_chart -plot $plot2 -from objIdPressed -to objPressed
+#connect_charts -plot $plot2 -from objIdPressed -to objPressed
 
 #place_plots -horizontal [list $plot1 $plot2]

@@ -2281,11 +2281,13 @@ CQChartsTheme2()
 
 CQUTIL_DEF_META_TYPE(CQChartsTheme, toString, fromString)
 
+int CQChartsTheme::metaTypeId;
+
 void
 CQChartsTheme::
 registerMetaType()
 {
-  CQUTIL_REGISTER_META(CQChartsTheme);
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsTheme);
 }
 
 //------

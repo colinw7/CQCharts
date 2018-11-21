@@ -33,12 +33,7 @@ QColor
 CQChartsTextBoxObj::
 interpTextColor(int i, int n) const
 {
-  if      (plot())
-    return textColor().interpColor(plot(), i, n);
-  else if (view())
-    return textColor().interpColor(view(), i, n);
-  else
-    return QColor();
+  return textColor().interpColor(charts(), i, n);
 }
 
 void

@@ -700,3 +700,10 @@
  + Draw symbols in model using delegate
  + add settings tab for annotations
  + move theme to charts class
+# 11/21/2018
+ + Support write plot, annotations to file
+ + Use EkCharts for all interpColor calls
+ + Remove value sets from plots and use model details.
+ + Improve color, symbol type, symbol size and font size mapping
+ + Add annotation create dialog
+ + Improve command names

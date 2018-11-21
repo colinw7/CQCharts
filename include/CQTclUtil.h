@@ -145,8 +145,10 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
     return obj;
   }
   else {
-    QString str = var.toString();
-    assert(str.length());
+    QString str;
+
+    if (var.canConvert(QVariant::String))
+      str = var.toString();
 
     return Tcl_NewStringObj(str.toLatin1().constData(), -1);
   }

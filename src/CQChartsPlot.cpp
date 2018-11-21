@@ -9,7 +9,7 @@
 #include <CQChartsPlotObjTree.h>
 #include <CQChartsNoDataObj.h>
 #include <CQChartsAnnotation.h>
-#include <CQChartsColorSet.h>
+#include <CQChartsValueSet.h>
 #include <CQChartsDisplayTransform.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsRotatedText.h>
@@ -18,6 +18,7 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsPlotParameter.h>
+#include <CQChartsColumnType.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsEnv.h>
@@ -44,6 +45,8 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
  CQChartsObjFitShapeData <CQChartsPlot>(this),
  view_(view), type_(type), model_(model), editHandles_(view)
 {
+  NoUpdate noUpdate(this);
+
   updateTimeout_ = CQChartsEnv::getInt("CQ_CHARTS_PLOT_UPDATE_TIMEOUT", updateTimeout_);
 
   preview_ = CQChartsEnv::getInt("CQ_CHARTS_PLOT_PREVIEW", preview_);
@@ -104,7 +107,7 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 
   //---
 
-  (void) addColorSet("color");
+//(void) addColorSet("color");
 
   //---
 
@@ -131,7 +134,7 @@ CQChartsPlot::
   for (auto &annotation : annotations())
     delete annotation;
 
-  deleteValueSets();
+//deleteValueSets();
 
   delete plotObjTree_;
 
@@ -1360,9 +1363,10 @@ void
 CQChartsPlot::
 addColorMapProperties()
 {
-  addProperty("color/map", this, "colorMapped", "enable");
-  addProperty("color/map", this, "colorMapMin", "min"   );
-  addProperty("color/map", this, "colorMapMax", "max"   );
+  addProperty("color/map", this, "colorMapped"    , "enabled");
+  addProperty("color/map", this, "colorMapMin"    , "min"    );
+  addProperty("color/map", this, "colorMapMax"    , "max"    );
+  addProperty("color/map", this, "colorMapPalette", "palette");
 }
 
 bool
@@ -1639,6 +1643,8 @@ updateObjs()
   clearPlotObjects();
 
   invalidateLayers();
+
+  initColorColumnData();
 }
 
 void
@@ -3155,39 +3161,183 @@ setImageColumn(const CQChartsColumn &c)
 
 //---
 
+const CQChartsColumn &
+CQChartsPlot::
+colorColumn() const
+{
+  return colorColumnData_.column;
+}
+
 void
 CQChartsPlot::
 setColorColumn(const CQChartsColumn &c)
 {
-  if (setValueSetColumn("color", c))
-    updateRangeAndObjs();
+  CQChartsUtil::testAndSet(colorColumnData_.column, c, [&]() { updateObjs(); } );
+}
+
+bool
+CQChartsPlot::
+isColorMapped() const
+{
+  return colorColumnData_.mapped;
 }
 
 void
 CQChartsPlot::
 setColorMapped(bool b)
 {
-  setValueSetMapped("color", b);
+  CQChartsUtil::testAndSet(colorColumnData_.mapped, b, [&]() { updateObjs(); } );
+}
 
-  updateObjs();
+double
+CQChartsPlot::
+colorMapMin() const
+{
+  return colorColumnData_.map_min;
 }
 
 void
 CQChartsPlot::
 setColorMapMin(double r)
 {
-  setValueSetMapMin("color", r);
+  CQChartsUtil::testAndSet(colorColumnData_.map_min, r, [&]() { updateObjs(); } );
+}
 
-  updateObjs();
+double
+CQChartsPlot::
+colorMapMax() const
+{
+  return colorColumnData_.map_max;
 }
 
 void
 CQChartsPlot::
 setColorMapMax(double r)
 {
-  setValueSetMapMax("color", r);
+  CQChartsUtil::testAndSet(colorColumnData_.map_max, r, [&]() { updateObjs(); } );
+}
 
-  updateObjs();
+const QString &
+CQChartsPlot::
+colorMapPalette() const
+{
+  return colorColumnData_.palette;
+}
+
+void
+CQChartsPlot::
+setColorMapPalette(const QString &s)
+{
+  CQChartsUtil::testAndSet(colorColumnData_.palette, s, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsPlot::
+initColorColumnData()
+{
+  colorColumnData_.valid = false;
+
+  if (! colorColumn().isValid())
+    return;
+
+  CQChartsModelColumnDetails *columnDetails = this->columnDetails(colorColumn());
+
+  QVariant minVar = columnDetails->minValue();
+  QVariant maxVar = columnDetails->maxValue();
+
+  bool ok;
+
+  colorColumnData_.data_min = CQChartsVariant::toReal(minVar, ok);
+  if (! ok) colorColumnData_.data_min = 0.0;
+
+  colorColumnData_.data_max = CQChartsVariant::toReal(maxVar, ok);
+  if (! ok) colorColumnData_.data_max = 1.0;
+
+  CQBaseModel::Type  columnType;
+  CQBaseModel::Type  columnBaseType;
+  CQChartsNameValues nameValues;
+
+  (void) CQChartsUtil::columnValueType(charts(), model().data(), colorColumn(),
+                                       columnType, columnBaseType, nameValues);
+
+  if (columnType == CQBaseModel::Type::COLOR) {
+    CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+
+    CQChartsColumnColorType *colorType =
+      dynamic_cast<CQChartsColumnColorType *>(columnTypeMgr->getType(columnType));
+    assert(colorType);
+
+    colorType->getMapData(charts(), model().data(), colorColumn(), nameValues,
+                          colorColumnData_.mapped,
+                          colorColumnData_.data_min, colorColumnData_.data_max,
+                          colorColumnData_.palette);
+  }
+
+  colorColumnData_.valid = true;
+}
+
+bool
+CQChartsPlot::
+columnColor(int row, const QModelIndex &parent, CQChartsColor &color) const
+{
+  if (! colorColumnData_.valid)
+    return false;
+
+  // get mode edit value
+  bool ok;
+
+  QVariant var = modelValue(row, colorColumn(), parent, ok);
+  if (! ok || ! var.isValid()) return false;
+
+  if (colorColumnData_.mapped) {
+    if (CQChartsVariant::isNumeric(var)) {
+      double r = CQChartsVariant::toReal(var, ok);
+      if (! ok) return false;
+
+      double r1 = CMathUtil::map(r, colorColumnData_.data_min, colorColumnData_.data_max, 0.0, 1.0);
+
+      if (r1 < 0.0 || r1 > 1.0)
+        return false;
+
+      if (colorColumnData_.palette != "")
+        color = CQChartsThemeMgrInst->getNamedPalette(colorColumnData_.palette)->getColor(r1);
+      else
+        color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r1);
+    }
+    else {
+      if (CQChartsVariant::isColor(var)) {
+        color = CQChartsVariant::toColor(var, ok);
+      }
+      else {
+        CQChartsModelColumnDetails *columnDetails = this->columnDetails(colorColumn());
+
+        if (! columnDetails)
+          return false;
+
+        // use unique index/count of edit values (which may have been converted)
+        // not same as CQChartsColumnColorType::userData
+        int n = columnDetails->numUnique();
+        int i = columnDetails->valueInd(var);
+
+        double r = (n > 1 ? double(i)/(n - 1) : 0.0);
+
+        if (colorColumnData_.palette != "")
+          color = CQChartsThemeMgrInst->getNamedPalette(colorColumnData_.palette)->getColor(r);
+        else
+          color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
+      }
+    }
+  }
+  else {
+    if      (CQChartsVariant::isColor(var)) {
+      color = CQChartsVariant::toColor(var, ok);
+    }
+    else {
+      color = CQChartsColor(var.toString());
+    }
+  }
+
+  return color.isValid();
 }
 
 //------
@@ -6269,15 +6419,9 @@ columnValueType(const CQChartsColumn &column, ColumnType &columnType, ColumnType
     return false;
   }
 
-  CQChartsModelData *modelData = getModelData();
+  CQChartsModelColumnDetails *columnDetails = this->columnDetails(column);
 
-  if (modelData) {
-    CQChartsModelDetails *details = modelData->details();
-    assert(details);
-
-    CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
-    assert(columnDetails);
-
+  if (columnDetails) {
     columnType     = columnDetails->type();
     columnBaseType = columnDetails->baseType();
     nameValues     = columnDetails->nameValues();
@@ -6328,28 +6472,32 @@ CQChartsPlot::
 columnDetails(const CQChartsColumn &column, QString &typeName,
               QVariant &minValue, QVariant &maxValue) const
 {
-  if (! column.isValid()) {
+  if (! column.isValid())
     return false;
-  }
 
+  CQChartsModelColumnDetails *details = this->columnDetails(column);
+
+  if (! details)
+    return false;
+
+  typeName = details->typeName();
+  minValue = details->minValue();
+  maxValue = details->maxValue();
+
+  return true;
+}
+
+CQChartsModelColumnDetails *
+CQChartsPlot::
+columnDetails(const CQChartsColumn &column) const
+{
   CQChartsModelData *modelData = getModelData();
+  if (! modelData) return nullptr;
 
-  if (modelData) {
-    CQChartsModelDetails *details = modelData->details();
-    assert(details);
+  CQChartsModelDetails *details = modelData->details();
+  if (! details) return nullptr;
 
-    CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
-    assert(columnDetails);
-
-    typeName = columnDetails->typeName();
-    minValue = columnDetails->minValue();
-    maxValue = columnDetails->maxValue();
-
-    return true;
-  }
-  else {
-    return false;
-  }
+  return details->columnDetails(column);
 }
 
 CQChartsModelData *
@@ -6508,6 +6656,7 @@ isHierarchical() const
 
 //------
 
+#if 0
 CQChartsValueSet *
 CQChartsPlot::
 addValueSet(const QString &name, double min, double max)
@@ -6532,20 +6681,9 @@ addValueSet(const QString &name)
 
   return valueSet;
 }
+#endif
 
-CQChartsValueSet *
-CQChartsPlot::
-addColorSet(const QString &name)
-{
-  assert(! getColorSet(name));
-
-  CQChartsColorSet *colorSet = new CQChartsColorSet(this);
-
-  valueSets_[name] = colorSet;
-
-  return colorSet;
-}
-
+#if 0
 CQChartsValueSet *
 CQChartsPlot::
 getValueSet(const QString &name) const
@@ -6557,16 +6695,9 @@ getValueSet(const QString &name) const
 
   return (*p).second;
 }
+#endif
 
-CQChartsColorSet *
-CQChartsPlot::
-getColorSet(const QString &name) const
-{
-  CQChartsValueSet *valueSet = getValueSet(name);
-
-  return dynamic_cast<CQChartsColorSet *>(valueSet);
-}
-
+#if 0
 void
 CQChartsPlot::
 clearValueSets()
@@ -6675,17 +6806,9 @@ setValueSetMapMax(const QString &name, double max)
 
   valueSet->setMapMax(max);
 }
+#endif
 
-bool
-CQChartsPlot::
-colorSetColor(const QString &name, int i, CQChartsColor &color)
-{
-  CQChartsColorSet *colorSet = getColorSet(name);
-  assert(colorSet);
-
-  return colorSet->icolor(i, color);
-}
-
+#if 0
 void
 CQChartsPlot::
 initValueSets()
@@ -6748,7 +6871,9 @@ initValueSets()
 
   visitModel(valueSetVisitor);
 }
+#endif
 
+#if 0
 void
 CQChartsPlot::
 addValueSetRow(const ModelVisitor::VisitData &data)
@@ -6767,6 +6892,7 @@ addValueSetRow(const ModelVisitor::VisitData &data)
     }
   }
 }
+#endif
 
 void
 CQChartsPlot::
@@ -8068,12 +8194,11 @@ getParameter(CQChartsPlotParameter *param, QVariant &value) const
 
 void
 CQChartsPlot::
-write() const
+write(std::ostream &os) const
 {
   CQChartsModelData *modelData = getModelData();
 
-  std::cerr << "create_plot -model " << modelData->ind() <<
-               " -type " << type_->name().toStdString();
+  os << "create_plot -model " << modelData->ind() << " -type " << type_->name().toStdString();
 
   QString columnsStr, parametersStr;
 
@@ -8112,10 +8237,10 @@ write() const
   }
 
   if (columnsStr.length())
-    std::cerr << " \\\n  -columns \"" << columnsStr.toStdString() << "\"";
+    os << " \\\n  -columns \"" << columnsStr.toStdString() << "\"";
 
   if (parametersStr.length())
-    std::cerr << " \\\n  -parameters \"" << parametersStr.toStdString() << "\"";
+    os << " \\\n  -parameters \"" << parametersStr.toStdString() << "\"";
 
   CQPropertyViewModel::NameValues nameValues;
 
@@ -8136,9 +8261,9 @@ write() const
   }
 
   if (propertiesStr.length())
-    std::cerr << " \\\n  -properties \"" << propertiesStr.toStdString() << "\"";
+    os << " \\\n  -properties \"" << propertiesStr.toStdString() << "\"";
 
-  std::cerr << "\n";
+  os << "\n";
 }
 
 //------

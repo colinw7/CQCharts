@@ -18,4 +18,4 @@ set plot1 [create_plot -model $model -type barchart \
   -columns "value=sepalLength,group=species" \
   -properties "xaxis.userLabel=Petal Length,yaxis.userLabel=Sepal Length"]
 
-connect_chart -plot $plot1 -from objIdPressed -to objPressed
+connect_charts -plot $plot1 -from objIdPressed -to objPressed

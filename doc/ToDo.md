@@ -1,4 +1,6 @@
 High
+ + Allow color names/symbol names in color map
+ + Copy model (filtered, new columns, ...) like export_model
  + Serialize State
  + Use new types to auto fill scatter plot
  + cleanup theme interface (allow view, plot customization)

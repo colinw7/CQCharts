@@ -151,6 +151,7 @@ class CQChartsRValues {
 
   double svalue(int i) const { return svalues_[i]; }
 
+ private:
   void const_calc() const {
     const_cast<CQChartsRValues *>(this)->calc();
   }
@@ -701,13 +702,16 @@ class CQChartsSValues {
   int numUnique() const { return valset_.size(); }
 
   void uniqueValues(Values &values) {
-    for (const auto &vi : valset_)
-      values.push_back(vi.first);
+    for (const auto &sv : setvals_)
+      values.push_back(sv.second);
   }
 
   void uniqueCounts(Counts &counts) {
-    for (const auto &vi : valset_)
-      counts.push_back(vi.second.second);
+    for (const auto &sv : setvals_) {
+      auto p = valset_.find(sv.second);
+
+      counts.push_back((*p).second.second);
+    }
   }
 
   // map value into real in range
@@ -947,16 +951,16 @@ class CQChartsValueSet : public QObject {
   void setColumn(const CQChartsColumn &c) { column_ = c; }
 
   // get/set mapping enabled
-  bool isMapped() const { return column_.isMapped(); }
-  void setMapped(bool b) { column_.setMapped(b); }
+  bool isMapped() const { return mapped_; }
+  void setMapped(bool b) { mapped_ = b; }
 
   // get/set map min value
-  double mapMin() const { return column_.mapMin(); }
-  void setMapMin(double r) { column_.setMapMin(r); }
+  double mapMin() const { return map_min_; }
+  void setMapMin(double r) { map_min_ = r; }
 
   // get/set map max value
-  double mapMax() const { return column_.mapMax(); }
-  void setMapMax(double r) { column_.setMapMax(r); }
+  double mapMax() const { return map_max_; }
+  void setMapMax(double r) { map_max_ = r; }
 
   //---
 
@@ -1083,6 +1087,10 @@ class CQChartsValueSet : public QObject {
   CQChartsPlot *plot_ { nullptr };
 
   CQChartsColumn column_; // associated model column
+
+  bool   mapped_  { false }; // is mapped
+  double map_min_ { 0.0 };   // map min
+  double map_max_ { 1.0 };   // map max
 
   Values values_;                // input values
   bool   initialized_ { false }; // are real, integer, string values initialized

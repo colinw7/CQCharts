@@ -10,4 +10,4 @@ set model [load_model -csv data/mandelbrot.csv]
 
 set plot [create_plot -model $model -type image]
 
-connect_chart -plot $plot -from objIdPressed -to objPressed
+connect_charts -plot $plot -from objIdPressed -to objPressed

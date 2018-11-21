@@ -72,6 +72,8 @@ CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjNodeShapeData<CQChartsSankeyPlot>(this),
  CQChartsObjEdgeShapeData<CQChartsSankeyPlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
   CQChartsColor bg(CQChartsColor::Type::PALETTE);

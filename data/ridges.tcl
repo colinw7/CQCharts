@@ -16,4 +16,4 @@ set_charts_property -plot $plot -name density.enabled -value 1
 
 #set plot [create_plot -model $model -type distribution -columns "group=CST\[%B\],value=Mean Temperature \[F\]"]
 
-connect_chart -plot $plot -from objIdPressed -to objPressed
+connect_charts -plot $plot -from objIdPressed -to objPressed

@@ -3,11 +3,13 @@
 
 CQUTIL_DEF_META_TYPE(CQChartsPosition, toString, fromString)
 
+int CQChartsPosition::metaTypeId;
+
 void
 CQChartsPosition::
 registerMetaType()
 {
-  CQUTIL_REGISTER_META(CQChartsPosition);
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsPosition);
 }
 
 bool
@@ -48,6 +50,18 @@ decodeString(const QString &str, Units &units, QPointF &point, const Units &defU
   point = QPointF(x, y);
 
   //---
+
+  if (! decodeUnits(parse.getAt(), units, defUnits))
+    return false;
+
+  return true;
+}
+
+bool
+CQChartsPosition::
+decodeUnits(const QString &str, Units &units, const Units &defUnits)
+{
+  CQStrParse parse(str);
 
   parse.skipSpace();
 

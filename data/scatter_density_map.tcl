@@ -12,4 +12,4 @@ set plot [create_plot -model $model -type scatter \
   -columns "x=sepalLength,y=sepalWidth" \
   -properties "xaxis.userLabel=Sepal Length,yaxis.userLabel=Sepal Width,densityMap.enabled=1"]
 
-connect_chart -plot $plot -from objIdPressed -to objPressed
+connect_charts -plot $plot -from objIdPressed -to objPressed

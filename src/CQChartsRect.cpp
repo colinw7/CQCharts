@@ -4,11 +4,13 @@
 
 CQUTIL_DEF_META_TYPE(CQChartsRect, toString, fromString)
 
+int CQChartsRect::metaTypeId;
+
 void
 CQChartsRect::
 registerMetaType()
 {
-  CQUTIL_REGISTER_META(CQChartsRect);
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsRect);
 }
 
 bool

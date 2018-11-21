@@ -31,6 +31,8 @@ class CQChartsBoxObj : public CQChartsObj,
 
   //---
 
+  CQCharts *charts() const;
+
   CQChartsView *view() const;
   CQChartsPlot *plot() const { return plot_; }
 

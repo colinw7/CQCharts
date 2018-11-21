@@ -3,11 +3,11 @@
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQChartsTitle.h>
-#include <CQChartsColorSet.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsGradientPalette.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
+#include <CQChartsColumnType.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsTip.h>
@@ -47,12 +47,12 @@ addParameters()
   startParameterGroup("Points");
 
   addColumnParameter("symbolType", "Symbol Size", "symbolTypeColumn").
-   setTip("Custom Symbol Type").setMapped().setMapMinMax(5, 13);
+   setTip("Custom Symbol Type").setMapMinMax(5, 13);
 
   addColumnParameter("symbolSize", "Symbol Size", "symbolSizeColumn").
    setTip("Custom Symbol Size").setMapped().setMapMinMax(8, 64);
 
-  addColumnParameter("fontSize", "Font Size", "fontSizeColumn"  ).
+  addColumnParameter("fontSize", "Font Size", "fontSizeColumn").
    setTip("Custom Font Size for Text Label").setMapped().setMapMinMax(8, 48);
 
   addBoolParameter("textLabels", "Text Labels", "textLabels").
@@ -93,12 +93,12 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjGridCellShapeData<CQChartsScatterPlot>(this),
  dataLabel_(this)
 {
-  // set mapped range
-  addValueSet("symbolType", 5, 13)->setMapped(true);
-  addValueSet("symbolSize", 8, 64)->setMapped(true);
-  addValueSet("fontSize"  , 8, 48)->setMapped(true);
+  NoUpdate noUpdate(this);
 
-  getColorSet("color")->setMapped(true);
+  // set mapped range
+  setSymbolTypeMapped(true); setSymbolTypeMapMin(5); setSymbolTypeMapMax(13);
+  setSymbolSizeMapped(true); setSymbolSizeMapMin(8); setSymbolSizeMapMax(64);
+  setFontSizeMapped  (true); setFontSizeMapMin  (8); setFontSizeMapMax  (48);
 
   //---
 
@@ -196,108 +196,204 @@ setSymbolMapKeyMargin(double m)
 
 //---
 
+const CQChartsColumn &
+CQChartsScatterPlot::
+symbolTypeColumn() const
+{
+  return symbolTypeData_.column;
+}
+
 void
 CQChartsScatterPlot::
 setSymbolTypeColumn(const CQChartsColumn &c)
 {
-  if (setValueSetColumn("symbolType", c))
-    updateRangeAndObjs();
+  CQChartsUtil::testAndSet(symbolTypeData_.column, c, [&]() { updateObjs(); } );
+}
+
+bool
+CQChartsScatterPlot::
+isSymbolTypeMapped() const
+{
+  return symbolTypeData_.mapped;
 }
 
 void
 CQChartsScatterPlot::
 setSymbolTypeMapped(bool b)
 {
-  setValueSetMapped("symbolType", b);
+  CQChartsUtil::testAndSet(symbolTypeData_.mapped, b, [&]() { updateObjs(); } );
+}
 
-  updateObjs();
+int
+CQChartsScatterPlot::
+symbolTypeMapMin() const
+{
+  return symbolTypeData_.map_min;
 }
 
 void
 CQChartsScatterPlot::
-setSymbolTypeMapMin(double r)
+setSymbolTypeMapMin(int i)
 {
-  setValueSetMapMin("symbolType", r); updateObjs(); }
+  CQChartsUtil::testAndSet(symbolTypeData_.map_min, i, [&]() { updateObjs(); } );
+}
+
+int
+CQChartsScatterPlot::
+symbolTypeMapMax() const
+{
+  return symbolTypeData_.map_max;
+}
 
 void
 CQChartsScatterPlot::
-setSymbolTypeMapMax(double r)
+setSymbolTypeMapMax(int i)
 {
-  setValueSetMapMax("symbolType", r);
-
-  updateObjs();
+  CQChartsUtil::testAndSet(symbolTypeData_.map_max, i, [&]() { updateObjs(); } );
 }
 
 //---
+
+const CQChartsColumn &
+CQChartsScatterPlot::
+symbolSizeColumn() const
+{
+  return symbolSizeData_.column;
+}
 
 void
 CQChartsScatterPlot::
 setSymbolSizeColumn(const CQChartsColumn &c)
 {
-  if (setValueSetColumn("symbolSize", c))
-    updateRangeAndObjs();
+  CQChartsUtil::testAndSet(symbolSizeData_.column, c, [&]() { updateRangeAndObjs(); } );
+}
+
+bool
+CQChartsScatterPlot::
+isSymbolSizeMapped() const
+{
+  return symbolSizeData_.mapped;
 }
 
 void
 CQChartsScatterPlot::
 setSymbolSizeMapped(bool b)
 {
-  setValueSetMapped("symbolSize", b);
+  CQChartsUtil::testAndSet(symbolSizeData_.mapped, b, [&]() { updateRangeAndObjs(); } );
+}
 
-  updateObjs();
+double
+CQChartsScatterPlot::
+symbolSizeMapMin() const
+{
+  return symbolSizeData_.map_min;
 }
 
 void
 CQChartsScatterPlot::
 setSymbolSizeMapMin(double r)
 {
-  setValueSetMapMin("symbolSize", r); updateObjs(); }
+  CQChartsUtil::testAndSet(symbolSizeData_.map_min, r, [&]() { updateRangeAndObjs(); } );
+}
+
+double
+CQChartsScatterPlot::
+symbolSizeMapMax() const
+{
+  return symbolSizeData_.map_max;
+}
 
 void
 CQChartsScatterPlot::
 setSymbolSizeMapMax(double r)
 {
-  setValueSetMapMax("symbolSize", r);
+  CQChartsUtil::testAndSet(symbolSizeData_.map_max, r, [&]() { updateRangeAndObjs(); } );
+}
 
-  updateObjs();
+const QString &
+CQChartsScatterPlot::
+symbolSizeMapUnits() const
+{
+  return symbolSizeData_.units;
+}
+
+void
+CQChartsScatterPlot::
+setSymbolSizeMapUnits(const QString &s)
+{
+  CQChartsUtil::testAndSet(symbolSizeData_.units, s, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
+
+const CQChartsColumn &
+CQChartsScatterPlot::
+fontSizeColumn() const
+{
+  return fontSizeData_.column;
+}
 
 void
 CQChartsScatterPlot::
 setFontSizeColumn(const CQChartsColumn &c)
 {
-  if (setValueSetColumn("fontSize", c))
+  CQChartsUtil::testAndSet(fontSizeData_.column, c, [&]() { updateRangeAndObjs(); } );
+}
 
-  updateRangeAndObjs();
+bool
+CQChartsScatterPlot::
+isFontSizeMapped() const
+{
+  return fontSizeData_.mapped;
 }
 
 void
 CQChartsScatterPlot::
 setFontSizeMapped(bool b)
 {
-  setValueSetMapped("fontSize", b);
+  CQChartsUtil::testAndSet(fontSizeData_.mapped, b, [&]() { updateRangeAndObjs(); } );
+}
 
-  updateObjs();
+double
+CQChartsScatterPlot::
+fontSizeMapMin() const
+{
+  return fontSizeData_.map_min;
 }
 
 void
 CQChartsScatterPlot::
 setFontSizeMapMin(double r)
 {
-  setValueSetMapMin("fontSize", r);
+  CQChartsUtil::testAndSet(fontSizeData_.map_min, r, [&]() { updateRangeAndObjs(); } );
+}
 
-  updateObjs();
+double
+CQChartsScatterPlot::
+fontSizeMapMax() const
+{
+  return fontSizeData_.map_max;
 }
 
 void
 CQChartsScatterPlot::
 setFontSizeMapMax(double r)
 {
-  setValueSetMapMax("fontSize", r);
+  CQChartsUtil::testAndSet(fontSizeData_.map_max, r, [&]() { updateRangeAndObjs(); } );
+}
 
-  updateObjs();
+const QString &
+CQChartsScatterPlot::
+fontSizeMapUnits() const
+{
+  return fontSizeData_.units;
+}
+
+void
+CQChartsScatterPlot::
+setFontSizeMapUnits(const QString &s)
+{
+  CQChartsUtil::testAndSet(fontSizeData_.units, s, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -559,11 +655,6 @@ addProperties()
   // point data labels
   dataLabel_.addPathProperties("dataLabel");
 
-  // symbol key
-  addProperty("symbolKey", this, "symbolMapKey"      , "enabled");
-  addProperty("symbolKey", this, "symbolMapKeyAlpha" , "alpha"  );
-  addProperty("symbolKey", this, "symbolMapKeyMargin", "margin" );
-
   // grid
   addProperty("grid", this, "gridded" , "enabled");
   addProperty("grid", this, "gridNumX", "nx"     );
@@ -573,18 +664,25 @@ addProperties()
   addProperty      ("grid/stroke", this, "gridCellBorder", "visible");
   addLineProperties("grid/stroke", "gridCellBorder");
 
+  // symbol key
+  addProperty("symbol/key", this, "symbolMapKey"      , "enabled");
+  addProperty("symbol/key", this, "symbolMapKeyAlpha" , "alpha"  );
+  addProperty("symbol/key", this, "symbolMapKeyMargin", "margin" );
+
   // mapping for columns (symbol type, size, font size, color)
   addProperty("symbol/map/type", this, "symbolTypeMapped", "enabled");
   addProperty("symbol/map/type", this, "symbolTypeMapMin", "min"    );
   addProperty("symbol/map/type", this, "symbolTypeMapMax", "max"    );
 
-  addProperty("symbol/map/size", this, "symbolSizeMapped", "enabled");
-  addProperty("symbol/map/size", this, "symbolSizeMapMin", "min"    );
-  addProperty("symbol/map/size", this, "symbolSizeMapMax", "max"    );
+  addProperty("symbol/map/size", this, "symbolSizeMapped"  , "enabled");
+  addProperty("symbol/map/size", this, "symbolSizeMapMin"  , "min"    );
+  addProperty("symbol/map/size", this, "symbolSizeMapMax"  , "max"    );
+  addProperty("symbol/map/size", this, "symbolSizeMapUnits", "units"  );
 
-  addProperty("font/map/size", this, "fontSizeMapped", "enabled");
-  addProperty("font/map/size", this, "fontSizeMapMin", "min"    );
-  addProperty("font/map/size", this, "fontSizeMapMax", "max"    );
+  addProperty("font/map/size", this, "fontSizeMapped"  , "enabled");
+  addProperty("font/map/size", this, "fontSizeMapMin"  , "min"    );
+  addProperty("font/map/size", this, "fontSizeMapMax"  , "max"    );
+  addProperty("font/map/size", this, "fontSizeMapUnits", "units"  );
 
   // color map
   addColorMapProperties();
@@ -679,12 +777,8 @@ calcRange()
   bool uniqueY = visitor.isUniqueY();
 
   if (uniqueX || uniqueY) {
-    CQChartsModelData *modelData = getModelData();
-
-    CQChartsModelDetails *details = modelData->details();
-
     if (uniqueX) {
-      CQChartsModelColumnDetails *columnDetails = details->columnDetails(xColumn());
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(xColumn());
 
       for (int i = 0; i < columnDetails->numUnique(); ++i)
         xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
@@ -694,7 +788,7 @@ calcRange()
     }
 
     if (uniqueY) {
-      CQChartsModelColumnDetails *columnDetails = details->columnDetails(yColumn());
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(yColumn());
 
       for (int i = 0; i < columnDetails->numUnique(); ++i)
         yAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
@@ -795,7 +889,7 @@ updateObjs()
   groupNameValues_  .clear();
   groupNameGridData_.clear();
 
-  clearValueSets();
+  //clearValueSets();
 
   CQChartsPlot::updateObjs();
 }
@@ -807,7 +901,7 @@ createObjs()
   CQPerfTrace trace("CQChartsScatterPlot::createObjs");
 
   // init value set
-  initValueSets();
+  //initValueSets();
 
   //---
 
@@ -860,11 +954,9 @@ void
 CQChartsScatterPlot::
 addPointObjects()
 {
-  CQChartsValueSet *symbolTypeSet = getValueSet("symbolType");
-  CQChartsValueSet *symbolSizeSet = getValueSet("symbolSize");
-  CQChartsValueSet *fontSizeSet   = getValueSet("fontSize");
-
-  assert(symbolTypeSet && symbolSizeSet && fontSizeSet);
+  initSymbolTypeData();
+  initSymbolSizeData();
+  initFontSizeData  ();
 
   //---
 
@@ -907,30 +999,36 @@ addPointObjects()
 
         const QPointF &p = valuePoint.p;
 
+        //---
+
         CQChartsSymbol symbolType = this->symbolType();
 
-        if (symbolTypeColumn().isValid() && symbolTypeSet->hasInd(valuePoint.i)) {
-          int ival = symbolTypeSet->imap(valuePoint.i);
+        if (symbolTypeColumn().isValid())
+          columnSymbolType(valuePoint.row, valuePoint.ind.parent(), symbolType);
 
-          if (ival >= CQChartsSymbol::minValue() && ival <= CQChartsSymbol::maxValue())
-            symbolType = CQChartsSymbol((CQChartsSymbol::Type) ival);
-        }
+        //---
 
         CQChartsLength symbolSize = this->symbolSize();
 
-        if (symbolSizeColumn().isValid() && symbolSizeSet->hasInd(valuePoint.i))
-          symbolSize = CQChartsLength(symbolSizeSet->imap(valuePoint.i),
-                                      CQChartsLength::Units::PIXEL);
+        if (symbolSizeColumn().isValid())
+          columnSymbolSize(valuePoint.row, valuePoint.ind.parent(), symbolSize);
 
-        OptReal fontSize = boost::make_optional(false, 0.0);
+        //---
 
-        if (fontSizeColumn().isValid() && fontSizeSet->hasInd(valuePoint.i))
-          fontSize = fontSizeSet->imap(valuePoint.i);
+        double dataLabelFontSize = dataLabel().textFont().pointSizeF();
+
+        CQChartsLength fontSize(dataLabelFontSize, CQChartsLength::Units::PIXEL);
+
+        if (fontSizeColumn().isValid())
+          columnFontSize(valuePoint.row, valuePoint.ind.parent(), fontSize);
+
+        //---
 
         CQChartsColor color;
 
-        if (colorColumn().isValid())
-          (void) colorSetColor("color", valuePoint.i, color);
+        if (colorColumn().isValid()) {
+          (void) columnColor(valuePoint.row, valuePoint.ind.parent(), color);
+        }
 
         double sx, sy;
 
@@ -1096,9 +1194,7 @@ addNameValues()
 
       // get color label (needed if not string ?)
       if (plot_->colorColumn().isValid()) {
-        bool ok;
-
-        color = plot_->modelColor(data.row, plot_->colorColumn(), data.parent, ok);
+        (void) plot_->columnColor(data.row, data.parent, color);
       }
 
       //---
@@ -1202,12 +1298,9 @@ addPointKeyItems(CQChartsPlotKey *key)
       //--
 
       if (colorColumn().isValid() && colorColumn().isGroup()) {
-        CQChartsColorSet *colorSet = getColorSet("color");
-        assert(colorSet);
-
-        if (colorSet->isMapped()) {
-          double r = CMathUtil::map(groupInd, colorSet->imin(), colorSet->imax(),
-                                    colorSet->mapMin(), colorSet->mapMax());
+        if (isColorMapped()) {
+          double r = CMathUtil::map(groupInd, colorColumnData_.data_min, colorColumnData_.data_max,
+                                    colorMapMin(), colorMapMax());
 
           CQChartsColor color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
 
@@ -1248,9 +1341,7 @@ addPointKeyItems(CQChartsPlotKey *key)
 
           CQChartsColor color;
 
-          (void) colorSetColor("color", valuePoint.i, color);
-
-          if (color.isValid())
+          if (columnColor(valuePoint.row, valuePoint.ind.parent(), color))
             colorItem->setColor(color);
         }
       }
@@ -1462,7 +1553,8 @@ void
 CQChartsScatterPlot::
 drawForeground(QPainter *painter)
 {
-  drawSymbolMapKey(painter);
+  if (isSymbolMapKey())
+    drawSymbolMapKey(painter);
 }
 
 void
@@ -2014,7 +2106,7 @@ drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
 
   //---
 
-  double ww = lengthPlotHeight(whiskerWidth());
+  double ww = lengthPlotHeight(whiskerWidth ());
   double wm = lengthPlotHeight(whiskerMargin());
 
   const CQChartsGeom::Range &dataRange = this->dataRange();
@@ -2133,89 +2225,392 @@ initWhiskerData()
 
 void
 CQChartsScatterPlot::
+initSymbolTypeData()
+{
+  symbolTypeData_.valid = false;
+
+  if (! symbolTypeColumn().isValid())
+    return;
+
+  CQChartsModelColumnDetails *columnDetails = this->columnDetails(symbolTypeColumn());
+  if (! columnDetails) return;
+
+  QVariant minVar = columnDetails->minValue();
+  QVariant maxVar = columnDetails->maxValue();
+
+  bool ok;
+
+  symbolTypeData_.data_min = CQChartsVariant::toReal(minVar, ok);
+  if (! ok) symbolTypeData_.data_min = 0.0;
+
+  symbolTypeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
+  if (! ok) symbolTypeData_.data_max = 1.0;
+
+  CQBaseModel::Type  columnType;
+  CQBaseModel::Type  columnBaseType;
+  CQChartsNameValues nameValues;
+
+  (void) CQChartsUtil::columnValueType(charts(), model().data(), symbolTypeColumn(),
+                                       columnType, columnBaseType, nameValues);
+
+  if (columnType == CQBaseModel::Type::SYMBOL) {
+    CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+
+    CQChartsColumnSymbolTypeType *symbolTypeType =
+      dynamic_cast<CQChartsColumnSymbolTypeType *>(columnTypeMgr->getType(columnType));
+    assert(symbolTypeType);
+
+    symbolTypeType->getMapData(charts(), model().data(), symbolTypeColumn(), nameValues,
+                               symbolTypeData_.mapped,
+                               symbolTypeData_.map_min, symbolTypeData_.map_max,
+                               symbolTypeData_.data_min, symbolTypeData_.data_max);
+  }
+
+  symbolTypeData_.valid = true;
+}
+
+bool
+CQChartsScatterPlot::
+columnSymbolType(int row, const QModelIndex &parent, CQChartsSymbol &symbolType) const
+{
+  if (! symbolTypeData_.valid)
+    return false;
+
+  bool ok;
+
+  QVariant var = modelValue(row, symbolTypeColumn(), parent, ok);
+  if (! ok || ! var.isValid()) return false;
+
+  if (symbolTypeData_.mapped) {
+    if (CQChartsVariant::isNumeric(var)) {
+      int i = CQChartsVariant::toInt(var, ok);
+      if (! ok) return false;
+
+      int i1 = CMathUtil::map(i, symbolTypeData_.data_min, symbolTypeData_.data_max,
+                              symbolTypeData_.map_min, symbolTypeData_.map_max);
+
+      symbolType = CQChartsSymbol((CQChartsSymbol::Type) i1);
+    }
+    else {
+      if (CQChartsVariant::isSymbol(var)) {
+        symbolType = CQChartsVariant::toSymbol(var, ok);
+      }
+      else {
+        CQChartsModelColumnDetails *columnDetails = this->columnDetails(symbolTypeColumn());
+        if (! columnDetails) return false;
+
+        // use unique index/count of edit values (which may have been converted)
+        // not same as CQChartsColumnColorType::userData
+        int n = columnDetails->numUnique();
+        int i = columnDetails->valueInd(var);
+
+        double r = (n > 1 ? double(i)/(n - 1) : 0.0);
+
+        symbolType = CQChartsSymbol::interpOutline(r);
+      }
+    }
+  }
+  else {
+    if (CQChartsVariant::isSymbol(var)) {
+      symbolType = CQChartsVariant::toSymbol(var, ok);
+    }
+    else {
+      QString str = CQChartsVariant::toString(var, ok);
+
+      symbolType = CQChartsSymbol(str);
+    }
+  }
+
+  return symbolType.isValid();
+}
+
+//------
+
+void
+CQChartsScatterPlot::
+initSymbolSizeData()
+{
+  symbolSizeData_.valid = false;
+
+  if (! symbolSizeColumn().isValid())
+    return;
+
+  CQChartsModelColumnDetails *columnDetails = this->columnDetails(symbolSizeColumn());
+  if (! columnDetails) return;
+
+  QVariant minVar  = columnDetails->minValue();
+  QVariant maxVar  = columnDetails->maxValue();
+  QVariant meanVar = columnDetails->meanValue();
+
+  bool ok;
+
+  symbolSizeData_.data_min = CQChartsVariant::toReal(minVar, ok);
+  if (! ok) symbolSizeData_.data_min = 0.0;
+
+  symbolSizeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
+  if (! ok) symbolSizeData_.data_max = 1.0;
+
+  symbolSizeData_.data_mean = CQChartsVariant::toReal(meanVar, ok);
+  if (! ok) symbolSizeData_.data_mean = (symbolSizeData_.data_min + symbolSizeData_.data_max)/2.0;
+
+  CQBaseModel::Type  columnType;
+  CQBaseModel::Type  columnBaseType;
+  CQChartsNameValues nameValues;
+
+  (void) CQChartsUtil::columnValueType(charts(), model().data(), symbolSizeColumn(),
+                                       columnType, columnBaseType, nameValues);
+
+  if (columnType == CQBaseModel::Type::SYMBOL_SIZE) {
+    CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+
+    CQChartsColumnSymbolSizeType *symbolSizeType =
+      dynamic_cast<CQChartsColumnSymbolSizeType *>(columnTypeMgr->getType(columnType));
+    assert(symbolSizeType);
+
+    symbolSizeType->getMapData(charts(), model().data(), symbolSizeColumn(), nameValues,
+                               symbolSizeData_.mapped,
+                               symbolSizeData_.map_min, symbolSizeData_.map_max,
+                               symbolSizeData_.data_min, symbolSizeData_.data_max);
+  }
+
+  symbolSizeData_.valid = true;
+}
+
+bool
+CQChartsScatterPlot::
+columnSymbolSize(int row, const QModelIndex &parent, CQChartsLength &symbolSize) const
+{
+  if (! symbolSizeData_.valid)
+    return false;
+
+  CQChartsLength::Units units = CQChartsLength::Units::PIXEL;
+
+  (void) CQChartsLength::decodeUnits(symbolSizeMapUnits(), units);
+
+  bool ok;
+
+  QVariant var = modelValue(row, symbolSizeColumn(), parent, ok);
+  if (! ok || ! var.isValid()) return false;
+
+  if (symbolSizeData_.mapped) {
+    if (CQChartsVariant::isNumeric(var)) {
+      double r = CQChartsVariant::toReal(var, ok);
+      if (! ok) return false;
+
+      double r1 = CMathUtil::map(r, symbolSizeData_.data_min, symbolSizeData_.data_max,
+                                 symbolSizeData_.map_min, symbolSizeData_.map_max);
+
+      symbolSize = CQChartsLength(r1, units);
+    }
+    else {
+      if (CQChartsVariant::isLength(var)) {
+        symbolSize = CQChartsVariant::toLength(var, ok);
+      }
+      else {
+        CQChartsModelColumnDetails *columnDetails = this->columnDetails(symbolSizeColumn());
+        if (! columnDetails) return false;
+
+        // use unique index/count of edit values (which may have been converted)
+        // not same as CQChartsColumnColorSize::userData
+        int n = columnDetails->numUnique();
+        int i = columnDetails->valueInd(var);
+
+        double r = (n > 1 ? double(i)/(n - 1) : 0.0);
+
+        double r1 = CMathUtil::map(r, 0.0, 1.0, 8.0, 64.0);
+
+        symbolSize = CQChartsLength(r1, units);
+      }
+    }
+  }
+  else {
+    if (CQChartsVariant::isLength(var)) {
+      symbolSize = CQChartsVariant::toLength(var, ok);
+    }
+    else {
+      QString str = CQChartsVariant::toString(var, ok);
+
+      symbolSize = CQChartsLength(str, units);
+    }
+  }
+
+  return symbolSize.isValid();
+}
+
+//------
+
+void
+CQChartsScatterPlot::
+initFontSizeData()
+{
+  fontSizeData_.valid = false;
+
+  if (! fontSizeColumn().isValid())
+    return;
+
+  CQChartsModelColumnDetails *columnDetails = this->columnDetails(fontSizeColumn());
+  if (! columnDetails) return;
+
+  QVariant minVar = columnDetails->minValue();
+  QVariant maxVar = columnDetails->maxValue();
+
+  bool ok;
+
+  fontSizeData_.data_min = CQChartsVariant::toReal(minVar, ok);
+  if (! ok) fontSizeData_.data_min = 0.0;
+
+  fontSizeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
+  if (! ok) fontSizeData_.data_max = 1.0;
+
+  CQBaseModel::Type  columnType;
+  CQBaseModel::Type  columnBaseType;
+  CQChartsNameValues nameValues;
+
+  (void) CQChartsUtil::columnValueType(charts(), model().data(), fontSizeColumn(),
+                                       columnType, columnBaseType, nameValues);
+
+  if (columnType == CQBaseModel::Type::FONT_SIZE) {
+    CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+
+    CQChartsColumnFontSizeType *fontSizeType =
+      dynamic_cast<CQChartsColumnFontSizeType *>(columnTypeMgr->getType(columnType));
+    assert(fontSizeType);
+
+    fontSizeType->getMapData(charts(), model().data(), fontSizeColumn(), nameValues,
+                             fontSizeData_.mapped,
+                             fontSizeData_.map_min, fontSizeData_.map_max,
+                             fontSizeData_.data_min, fontSizeData_.data_max);
+  }
+
+  fontSizeData_.valid = true;
+}
+
+bool
+CQChartsScatterPlot::
+columnFontSize(int row, const QModelIndex &parent, CQChartsLength &fontSize) const
+{
+  if (! fontSizeData_.valid)
+    return false;
+
+  CQChartsLength::Units units = CQChartsLength::Units::PIXEL;
+
+  (void) CQChartsLength::decodeUnits(fontSizeMapUnits(), units);
+
+  bool ok;
+
+  QVariant var = modelValue(row, fontSizeColumn(), parent, ok);
+  if (! ok || ! var.isValid()) return false;
+
+  if (fontSizeData_.mapped) {
+    if (CQChartsVariant::isNumeric(var)) {
+      double r = CQChartsVariant::toReal(var, ok);
+      if (! ok) return false;
+
+      double r1 = CMathUtil::map(r, fontSizeData_.data_min, fontSizeData_.data_max,
+                                 fontSizeData_.map_min, fontSizeData_.map_max);
+
+      fontSize = CQChartsLength(r1, units);
+    }
+    else {
+      if (CQChartsVariant::isLength(var)) {
+        fontSize = CQChartsVariant::toLength(var, ok);
+      }
+      else {
+        CQChartsModelColumnDetails *columnDetails = this->columnDetails(fontSizeColumn());
+        if (! columnDetails) return false;
+
+        // use unique index/count of edit values (which may have been converted)
+        // not same as CQChartsColumnColorSize::userData
+        int n = columnDetails->numUnique();
+        int i = columnDetails->valueInd(var);
+
+        double r = (n > 1 ? double(i)/(n - 1) : 0.0);
+
+        double r1 = CMathUtil::map(r, 0.0, 1.0, 8.0, 64.0);
+
+        fontSize = CQChartsLength(r1, units);
+      }
+    }
+  }
+  else {
+    if (CQChartsVariant::isLength(var)) {
+      fontSize = CQChartsVariant::toLength(var, ok);
+    }
+    else {
+      QString str = CQChartsVariant::toString(var, ok);
+
+      fontSize = CQChartsLength(str, units);
+    }
+  }
+
+  return fontSize.isValid();
+}
+
+//------
+
+void
+CQChartsScatterPlot::
 drawSymbolMapKey(QPainter *painter)
 {
+  if (! symbolSizeColumn().isValid())
+    return;
+
+  //---
+
   // draw size key
-  if (symbolSizeColumn().isValid() && isSymbolMapKey()) {
-    CQChartsValueSet *symbolSizeSet = getValueSet("symbolSize");
+  double min  = symbolSizeData_.data_min;
+  double mean = symbolSizeData_.data_mean;
+  double max  = symbolSizeData_.data_max;
 
-    OptReal min  = boost::make_optional(false, 0.0);
-    OptReal mean = boost::make_optional(false, 0.0);
-    OptReal max  = boost::make_optional(false, 0.0);
+  CQChartsGeom::BBox pbbox = calcPlotPixelRect();
 
-    if (symbolSizeSet->canMap()) {
-      min  = symbolSizeSet->rmin();
-      mean = symbolSizeSet->rmean();
-      max  = symbolSizeSet->rmax();
-    }
+  //double px, py;
 
-    QString  typeName;
-    QVariant minValue, maxValue;
+  //double vx = view()->viewportRange();
+  //double vy = 0.0;
 
-    columnDetails(symbolSizeColumn(), typeName, minValue, maxValue);
+  //view()->windowToPixel(vx, vy, px, py);
 
-    bool ok;
+  double px = pbbox.getXMax();
+  double py = pbbox.getYMax();
 
-    if (minValue.isValid())
-      min = CQChartsVariant::toReal(minValue, ok);
+  double pm = symbolMapKeyMargin();
 
-    if (maxValue.isValid())
-      max = CQChartsVariant::toReal(maxValue, ok);
+  double pr1 = symbolSizeData_.map_max;
+  double pr3 = symbolSizeData_.map_min;
 
-    CQChartsGeom::BBox pbbox = calcPlotPixelRect();
+  double pr2 = (pr1 + pr3)/2;
 
-    //double px, py;
+  QColor borderColor = interpThemeColor(1.0);
 
-    //double vx = view()->viewportRange();
-    //double vy = 0.0;
+  painter->setPen(borderColor);
 
-    //view()->windowToPixel(vx, vy, px, py);
+  double xm = px - pr1 - pm;
+  double ym = py - pm;
 
-    double px = pbbox.getXMax();
-    double py = pbbox.getYMax();
+  QRectF r1(xm - pr1, ym - 2*pr1, 2*pr1, 2*pr1);
+  QRectF r2(xm - pr2, ym - 2*pr2, 2*pr2, 2*pr2);
+  QRectF r3(xm - pr3, ym - 2*pr3, 2*pr3, 2*pr3);
 
-    double pm = symbolMapKeyMargin();
+  double a = symbolMapKeyAlpha();
 
-    double pr1 = symbolSizeSet->mapMax();
-    double pr3 = symbolSizeSet->mapMin();
-    double pr2 = (pr1 + pr3)/2;
+  QColor fillColor1 = interpSymbolFillColor(1.0); fillColor1.setAlphaF(a);
+  QColor fillColor2 = interpSymbolFillColor(0.5); fillColor2.setAlphaF(a);
+  QColor fillColor3 = interpSymbolFillColor(0.0); fillColor3.setAlphaF(a);
 
-    QColor borderColor = interpThemeColor(1.0);
+  painter->setBrush(fillColor1); painter->drawEllipse(r1);
+  painter->setBrush(fillColor2); painter->drawEllipse(r2);
+  painter->setBrush(fillColor3); painter->drawEllipse(r3);
 
-    painter->setPen(borderColor);
+  auto drawText = [&](QPainter *painter, const QPointF &p, const QString &text) {
+    QFontMetricsF fm(painter->font());
 
-    double xm = px - pr1 - pm;
-    double ym = py - pm;
+    painter->drawText(p.x() - fm.width(text)/2, p.y(), text);
+  };
 
-    QRectF r1(xm - pr1, ym - 2*pr1, 2*pr1, 2*pr1);
-    QRectF r2(xm - pr2, ym - 2*pr2, 2*pr2, 2*pr2);
-    QRectF r3(xm - pr3, ym - 2*pr3, 2*pr3, 2*pr3);
-
-    double a = symbolMapKeyAlpha();
-
-    QColor fillColor1 = interpSymbolFillColor(1.0); fillColor1.setAlphaF(a);
-    QColor fillColor2 = interpSymbolFillColor(0.5); fillColor2.setAlphaF(a);
-    QColor fillColor3 = interpSymbolFillColor(0.0); fillColor3.setAlphaF(a);
-
-    painter->setBrush(fillColor1); painter->drawEllipse(r1);
-    painter->setBrush(fillColor2); painter->drawEllipse(r2);
-    painter->setBrush(fillColor3); painter->drawEllipse(r3);
-
-    auto drawText = [&](QPainter *painter, const QPointF &p, const QString &text) {
-      QFontMetricsF fm(painter->font());
-
-      painter->drawText(p.x() - fm.width(text)/2, p.y(), text);
-    };
-
-    if (max)
-      drawText(painter, QPointF(r1.center().x(), r1.top()), QString("%1").arg(*max));
-
-    if (mean)
-      drawText(painter, QPointF(r2.center().x(), r2.top()), QString("%1").arg(*mean));
-
-    if (min)
-      drawText(painter, QPointF(r3.center().x(), r3.top()), QString("%1").arg(*min));
-  }
+  drawText(painter, QPointF(r1.center().x(), r1.top()), QString("%1").arg(max ));
+  drawText(painter, QPointF(r2.center().x(), r2.top()), QString("%1").arg(mean));
+  drawText(painter, QPointF(r3.center().x(), r3.top()), QString("%1").arg(min ));
 }
 
 //------
@@ -2223,7 +2618,7 @@ drawSymbolMapKey(QPainter *painter)
 CQChartsScatterPointObj::
 CQChartsScatterPointObj(CQChartsScatterPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                         const QPointF &p, const CQChartsSymbol &symbolType,
-                        const CQChartsLength &symbolSize, const OptReal &fontSize,
+                        const CQChartsLength &symbolSize, const CQChartsLength &fontSize,
                         const CQChartsColor &color,
                         int ig, int ng, int is, int ns, int iv, int nv) :
  CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), p_(p), symbolType_(symbolType),
@@ -2279,6 +2674,8 @@ calcTipId() const
 
   const CQChartsScatterPlot::ValueData &valuePoint = values[iv_];
 
+  //---
+
   if (plot_->symbolTypeColumn().isValid()) {
     bool ok;
 
@@ -2288,6 +2685,8 @@ calcTipId() const
     if (ok)
       tableTip.addTableRow(plot_->symbolTypeName(), symbolTypeStr);
   }
+
+  //---
 
   if (plot_->symbolSizeColumn().isValid()) {
     bool ok;
@@ -2299,6 +2698,8 @@ calcTipId() const
       tableTip.addTableRow(plot_->symbolSizeName(), symbolSizeStr);
   }
 
+  //---
+
   if (plot_->fontSizeColumn().isValid()) {
     bool ok;
 
@@ -2308,6 +2709,8 @@ calcTipId() const
     if (ok)
       tableTip.addTableRow(plot_->fontSizeName(), fontSizeStr);
   }
+
+  //---
 
   if (valuePoint.color.isValid())
     tableTip.addTableRow(plot_->colorName(), valuePoint.color.colorStr());
@@ -2385,7 +2788,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
   plot_->setSymbolPenBrush(pen, brush, ic, nc);
 
   if (color_.isValid()) {
-    QColor c = color_.interpColor(plot_, ic, nc);
+    QColor c = color_.interpColor(plot_->charts(), ic, nc);
 
     c.setAlphaF(plot_->symbolFillAlpha());
 
@@ -2468,8 +2871,8 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
     double fontSize = plot_->dataLabel().textFont().pointSizeF();
 
-    if (fontSize_)
-      fontSize = *fontSize_;
+    if (fontSize_.isValid())
+      fontSize = plot_->lengthPixelHeight(fontSize_);
 
     //---
 
@@ -2684,7 +3087,7 @@ fillBrush() const
   QColor c;
 
   if (color_.isValid())
-    c = color_.interpColor(plot_, 0, 1);
+    c = color_.interpColor(plot_->charts(), 0, 1);
   else {
     c = plot->interpSymbolFillColor(i_, n_);
 

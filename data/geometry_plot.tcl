@@ -12,7 +12,7 @@ set plot1 [create_plot -model $model1 -type geometry \
   -columns "name=0,geometry=1" \
   -title "geometry"]
 
-connect_chart -plot $plot1 -from objIdPressed -to objPressed
+connect_charts -plot $plot1 -from objIdPressed -to objPressed
 
 #set model2 [load_model -tsv data/choropeth.tsv]
 
@@ -20,4 +20,4 @@ connect_chart -plot $plot1 -from objIdPressed -to objPressed
 #  -columns "name=0,geometry=1,value=2" \
 #  -title "choropeth"]
 
-#connect_chart -plot $plot2 -from objIdPressed -to objPressed
+#connect_charts -plot $plot2 -from objIdPressed -to objPressed

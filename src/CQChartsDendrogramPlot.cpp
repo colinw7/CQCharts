@@ -54,6 +54,8 @@ CQChartsDendrogramPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjEdgeLineData <CQChartsDendrogramPlot>(this),
  CQChartsObjTextData     <CQChartsDendrogramPlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   setNodeFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   //---

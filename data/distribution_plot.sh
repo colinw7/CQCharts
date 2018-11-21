@@ -13,4 +13,4 @@ CQChartsTest \
  -csv data/distribution_sparse.csv -first_line_header \
  -type distribution -columns "value=0,color=1" \
  -bool "autoRange=0" -real "deltaBucketValue=1" \
- -properties "color.mapped=1"
+ -properties "color.map.enabled=1"

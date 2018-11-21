@@ -4,7 +4,7 @@ set plot [create_plot -type xy -columns "x=0,y=1"]
 
 set view [get_charts_property -plot $plot -name viewId]
 
-set annotation [create_text_shape -plot $plot -id one -position {0 -60} -text "One"]
+set annotation [create_text_annotation -plot $plot -id one -position {0 -60} -text "One"]
 
 get_charts_property -view $view -name "?"
 

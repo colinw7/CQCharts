@@ -98,23 +98,23 @@ puts $tx
 
 set ty 97
 
-set text1Id [create_text_shape -view $::viewId -id prev -position [list $tx $ty] -text "Prev" -border 1 -background 1]
+set text1Id [create_text_annotation -view $::viewId -id prev -position [list $tx $ty] -text "Prev" -border 1 -background 1]
 
 set tw [measure_charts_text -view $::viewId -name width -data "Prev"]
 set tx [expr {$tx + $tw + $dtx}]
 puts $tx
 
-set text2Id [create_text_shape -view $::viewId -id next -position [list $tx $ty] -text "Next" -border 1 -background 1]
+set text2Id [create_text_annotation -view $::viewId -id next -position [list $tx $ty] -text "Next" -border 1 -background 1]
 
 set tw [measure_charts_text -view $::viewId -name width -data "Next"]
 set tx [expr {$tx + $tw + 2*$dtx}]
 puts $tx
 
-set text3Id [create_text_shape -view $::viewId -id overlay -position [list $tx $ty] -text "Overlay" -border 1 -background 1]
+set text3Id [create_text_annotation -view $::viewId -id overlay -position [list $tx $ty] -text "Overlay" -border 1 -background 1]
 
 set tw [measure_charts_text -view $::viewId -name width -data "Overlay"]
 set tx [expr {$tx + $tw + $dtx}]
 puts $tx
 
-set text4Id [create_text_shape -view $::viewId -id sidebyside -position [list $tx $ty] -text "Side By Side" -border 1 -background 1]
-connect_chart -view $::viewId -from annotationIdPressed -to annotationSlot
+set text4Id [create_text_annotation -view $::viewId -id sidebyside -position [list $tx $ty] -text "Side By Side" -border 1 -background 1]
+connect_charts -view $::viewId -from annotationIdPressed -to annotationSlot

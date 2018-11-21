@@ -3,11 +3,13 @@
 
 CQUTIL_DEF_META_TYPE(CQChartsLength, toString, fromString)
 
+int CQChartsLength::metaTypeId;
+
 void
 CQChartsLength::
 registerMetaType()
 {
-  CQUTIL_REGISTER_META(CQChartsLength);
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsLength);
 }
 
 bool
@@ -22,6 +24,20 @@ decodeString(const QString &str, Units &units, double &value, const Units &defUn
     return false;
 
   //---
+
+  parse.skipSpace();
+
+  if (! decodeUnits(parse.getAt(), units, defUnits))
+    return false;
+
+  return true;
+}
+
+bool
+CQChartsLength::
+decodeUnits(const QString &str, Units &units, const Units &defUnits)
+{
+  CQStrParse parse(str);
 
   parse.skipSpace();
 

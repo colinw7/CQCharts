@@ -123,6 +123,8 @@ CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjOutlierPointData<CQChartsBoxPlot>(this),
  CQChartsObjJitterPointData <CQChartsBoxPlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   setBoxFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   setBoxBorder(true);

@@ -96,9 +96,6 @@ class CQChartsColumnBucket {
   bool              exactValue_  { false };
   CQBucketer        bucketer_;
   CQChartsValueSet* valueSet_    { nullptr };
-  CQChartsIValues   ivals_;
-  CQChartsRValues   rvals_;
-  CQChartsSValues   svals_;
   IndName           indName_;
 };
 

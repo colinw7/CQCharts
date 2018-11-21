@@ -47,12 +47,12 @@ class CQChartsPolylineAnnotation;
 class CQChartsPointAnnotation;
 class CQChartsPlotParameter;
 class CQChartsObj;
-class CQPropertyViewModel;
 class CQChartsDisplayRange;
 class CQChartsDisplayTransform;
 class CQChartsValueSet;
-class CQChartsColorSet;
+class CQChartsModelColumnDetails;
 class CQChartsModelExprMatch;
+class CQPropertyViewModel;
 class CQPropertyViewItem;
 class QPainter;
 
@@ -106,7 +106,10 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(CQChartsColumn imageColumn   READ imageColumn   WRITE setImageColumn  )
 
   // color map
-  CQCHARTS_COLOR_MAP_PROPERTIES
+  Q_PROPERTY(bool    colorMapped     READ isColorMapped   WRITE setColorMapped    )
+  Q_PROPERTY(double  colorMapMin     READ colorMapMin     WRITE setColorMapMin    )
+  Q_PROPERTY(double  colorMapMax     READ colorMapMax     WRITE setColorMapMax    )
+  Q_PROPERTY(QString colorMapPalette READ colorMapPalette WRITE setColorMapPalette)
 
   // visible
   Q_PROPERTY(bool visible READ isVisible WRITE setVisible)
@@ -645,31 +648,28 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  CQChartsValueSet *addValueSet(const QString &name, double min, double max);
-  CQChartsValueSet *addValueSet(const QString &name);
-  CQChartsValueSet *addColorSet(const QString &name);
+//CQChartsValueSet *addValueSet(const QString &name, double min, double max);
+//CQChartsValueSet *addValueSet(const QString &name);
+//CQChartsValueSet *getValueSet(const QString &name) const;
 
-  CQChartsValueSet *getValueSet(const QString &name) const;
-  CQChartsColorSet *getColorSet(const QString &name) const;
+//void clearValueSets();
+//void deleteValueSets();
 
-  void clearValueSets();
-  void deleteValueSets();
+//const CQChartsColumn &valueSetColumn(const QString &name) const;
+//bool setValueSetColumn(const QString &name, const CQChartsColumn &column);
 
-  const CQChartsColumn &valueSetColumn(const QString &name) const;
-  bool setValueSetColumn(const QString &name, const CQChartsColumn &column);
+//bool isValueSetMapped(const QString &name) const;
+//void setValueSetMapped(const QString &name, bool b);
 
-  bool isValueSetMapped(const QString &name) const;
-  void setValueSetMapped(const QString &name, bool b);
+//double valueSetMapMin(const QString &name) const;
+//void setValueSetMapMin(const QString &name, double min);
 
-  double valueSetMapMin(const QString &name) const;
-  void setValueSetMapMin(const QString &name, double min);
+//double valueSetMapMax(const QString &name) const;
+//void setValueSetMapMax(const QString &name, double max);
 
-  double valueSetMapMax(const QString &name) const;
-  void setValueSetMapMax(const QString &name, double max);
+//void initValueSets();
 
-  bool colorSetColor(const QString &name, int i, CQChartsColor &color);
-
-  void initValueSets();
+//void addValueSetRow(const ModelVisitor::VisitData &data);
 
   void addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet);
 
@@ -695,8 +695,6 @@ class CQChartsPlot : public CQChartsObj,
   };
 
   void visitModel(ModelVisitor &visitor);
-
-  void addValueSetRow(const ModelVisitor::VisitData &data);
 
   //---
 
@@ -974,6 +972,8 @@ class CQChartsPlot : public CQChartsObj,
   void updateRangeAndObjs();
 
  private:
+  void initColorColumnData();
+
   void updateRangeAndObjsInternal();
 
   // (re)initialize grouped plot objects
@@ -1062,17 +1062,22 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
+  const CQChartsColumn &colorColumn() const;
   void setColorColumn(const CQChartsColumn &c);
 
-  bool isColorMapped() const { return isValueSetMapped("color"); }
+  bool isColorMapped() const;
   void setColorMapped(bool b);
 
-  double colorMapMin() const { return valueSetMapMin("color"); }
+  double colorMapMin() const;
   void setColorMapMin(double r);
 
-  double colorMapMax() const { return valueSetMapMax("color"); }
+  double colorMapMax() const;
   void setColorMapMax(double r);
+
+  const QString &colorMapPalette() const;
+  void setColorMapPalette(const QString &s);
+
+  bool columnColor(int row, const QModelIndex &parent, CQChartsColor &color) const;
 
   //---
 
@@ -1510,6 +1515,8 @@ class CQChartsPlot : public CQChartsObj,
   bool columnDetails(const CQChartsColumn &column, QString &typeName,
                      QVariant &minValue, QVariant &maxValue) const;
 
+  CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) const;
+
   //---
 
   CQChartsModelData *getModelData() const;
@@ -1552,7 +1559,7 @@ class CQChartsPlot : public CQChartsObj,
   bool setParameter(CQChartsPlotParameter *param, const QVariant &value);
   bool getParameter(CQChartsPlotParameter *param, QVariant &value) const;
 
-  void write() const;
+  void write(std::ostream &os) const;
 
  protected slots:
   void animateSlot();
@@ -1635,7 +1642,18 @@ class CQChartsPlot : public CQChartsObj,
   using Rows            = std::set<int>;
   using ColumnRows      = std::map<int,Rows>;
   using IndexColumnRows = std::map<QModelIndex,ColumnRows>;
-  using ValueSets       = std::map<QString,CQChartsValueSet *>;
+//using ValueSets       = std::map<QString,CQChartsValueSet *>;
+
+  struct ColorColumnData {
+    CQChartsColumn column;
+    bool           valid     { false };
+    bool           mapped    { false };
+    double         map_min   { 0.0 };
+    double         map_max   { 1.0 };
+    double         data_min  { 0.0 };
+    double         data_max  { 1.0 };
+    QString        palette;
+  };
 
   struct EveryData {
     bool enabled { false };
@@ -1710,6 +1728,7 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsColumn            idColumn_;                        // unique data id column (signalled)
   CQChartsColumn            tipColumn_;                       // tip column
   CQChartsColumn            visibleColumn_;                   // visible column
+  ColorColumnData           colorColumnData_;                 // color color data
   CQChartsColumn            imageColumn_;                     // image column
   double                    minScaleFontSize_ { 6.0 };        // min scaled font size
   double                    maxScaleFontSize_ { 48.0 };       // max scaled font size
@@ -1728,7 +1747,7 @@ class CQChartsPlot : public CQChartsObj,
   bool                      noData_           { false };      // is no data
   ConnectData               connectData_;                     // associated plot data
   PlotObjs                  plotObjs_;                        // plot objects
-  ValueSets                 valueSets_;                       // named value sets
+//ValueSets                 valueSets_;                       // named value sets
   int                       insideInd_        { 0 };          // current inside object ind
   ObjSet                    insideObjs_;                      // inside plot objects
   SizeObjSet                sizeInsideObjs_;                  // inside plot objects (size sorted)

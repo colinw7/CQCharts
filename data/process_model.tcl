@@ -17,7 +17,7 @@ create_plot -model $modelId -type scatter -columns "x=3,y=4,symbolSize=5,color=6
 
 process_model -model $modelId -add -expr "cell(@r,2)>100000 ? {red} : {green}" -header Color -type color
 
-set colorCol [process_model -model $modelId -add -header Color -type color]
+set colorCol [process_model -model $modelId -add -header Color -type color -expr {0}]
 
 set rows [process_model -model $modelId -query -expr "column(2) > 100000"]
 

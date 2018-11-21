@@ -3,11 +3,13 @@
 
 CQUTIL_DEF_META_TYPE(CQChartsLineDash, toString, fromString)
 
+int CQChartsLineDash::metaTypeId;
+
 void
 CQChartsLineDash::
 registerMetaType()
 {
-  CQUTIL_REGISTER_META(CQChartsLineDash);
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsLineDash);
 }
 
 CQChartsLineDash::

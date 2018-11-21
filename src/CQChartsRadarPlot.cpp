@@ -61,6 +61,8 @@ CQChartsRadarPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjTextData    <CQChartsRadarPlot>(this),
  CQChartsObjGridLineData<CQChartsRadarPlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   setGridLinesColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5));
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));

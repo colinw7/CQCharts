@@ -5,13 +5,13 @@
 #include <QColor>
 #include <iostream>
 
-class CQChartsPlot;
-class CQChartsView;
 class CQCharts;
-class CQChartsAxis;
-class CQChartsKey;
-class CQChartsBoxObj;
-class CQChartsArrow;
+//class CQChartsView;
+//class CQChartsPlot;
+//class CQChartsAxis;
+//class CQChartsKey;
+//class CQChartsBoxObj;
+//class CQChartsArrow;
 
 class QObject;
 
@@ -97,23 +97,23 @@ class CQChartsColor {
 
   //---
 
-  QColor interpColor(const CQChartsPlot *plot, int i, int n) const;
-  QColor interpColor(const CQChartsPlot *plot, double value) const;
-
-  QColor interpColor(const CQChartsView *view, int i, int n) const;
-  QColor interpColor(const CQChartsView *view, double value) const;
-
   QColor interpColor(const CQCharts *charts, int i, int n) const;
   QColor interpColor(const CQCharts *charts, double value) const;
 
-  QColor interpColor(const CQChartsAxis *axis, int i, int n) const;
-  QColor interpColor(const CQChartsKey  *key , int i, int n) const;
+//QColor interpColor(const CQChartsView *view, int i, int n) const;
+//QColor interpColor(const CQChartsView *view, double value) const;
 
-  QColor interpColor(const CQChartsBoxObj *boxObj, int i, int n) const;
+//QColor interpColor(const CQChartsPlot *plot, int i, int n) const;
+//QColor interpColor(const CQChartsPlot *plot, double value) const;
 
-  QColor interpColor(const CQChartsArrow *arrow, int i, int n) const;
+//QColor interpColor(const CQChartsAxis *axis, int i, int n) const;
+//QColor interpColor(const CQChartsKey  *key , int i, int n) const;
 
-  QColor interpColor(const QObject *, int, int) const { assert(false); return QColor(); }
+//QColor interpColor(const CQChartsBoxObj *boxObj, int i, int n) const;
+
+//QColor interpColor(const CQChartsArrow *arrow, int i, int n) const;
+
+//QColor interpColor(const QObject *, int, int) const { assert(false); return QColor(); }
 
   //---
 

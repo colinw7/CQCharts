@@ -55,6 +55,8 @@ CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjShapeData<CQChartsBubblePlot>(this),
  CQChartsObjTextData <CQChartsBubblePlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   setExactValue(false);
 
   //---
@@ -199,7 +201,7 @@ void
 CQChartsBubblePlot::
 updateObjs()
 {
-  clearValueSets();
+//clearValueSets();
 
   resetNodes();
 
@@ -213,7 +215,7 @@ createObjs()
   CQPerfTrace trace("CQChartsBubblePlot::createObjs");
 
   // init value sets
-  initValueSets();
+//initValueSets();
 
   //---
 
@@ -446,7 +448,7 @@ loadModel()
       if (node) {
         CQChartsColor color;
 
-        if (plot_->colorSetColor("color", data.row, color))
+        if (plot_->columnColor(data.row, data.parent, color))
           node->setColor(color);
       }
 
@@ -1130,7 +1132,7 @@ interpColor(CQChartsBubblePlot *plot, int n) const
   if      (colorId() >= 0)
     return plot->interpPaletteColor(colorId(), n);
   else if (color().isValid())
-    return color().interpColor(plot, 0, 1);
+    return color().interpColor(plot->charts(), 0, 1);
   else
     return plot->interpPaletteColor(0, 1);
 }

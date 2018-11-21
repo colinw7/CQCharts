@@ -3,9 +3,10 @@
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQChartsGradientPalette.h>
-#include <CQChartsColorSet.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
+#include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>
 #include <CQChartsTip.h>
@@ -1190,7 +1191,7 @@ void
 CQChartsDistributionPlot::
 updateObjs()
 {
-  clearValueSets();
+//clearValueSets();
 
   CQChartsPlot::updateObjs();
 }
@@ -1202,7 +1203,7 @@ createObjs()
   CQPerfTrace trace("CQChartsDistributionPlot::createObjs");
 
   // init color value set
-  initValueSets();
+//initValueSets();
 
   //---
 
@@ -2055,19 +2056,25 @@ addKeyItems(CQChartsPlotKey *key)
 
       key->setHeaderStr(header);
 
-      CQChartsColorSet *colorSet = getColorSet("color");
+      const CQChartsModelColumnDetails *columnDetails = this->columnDetails(colorColumn());
 
-      int nv = colorSet->snum();
+      int nv = columnDetails->numUnique();
 
       for (int iv = 0; iv < nv; ++iv) {
-        QString value = colorSet->inds(iv);
+        QVariant value = columnDetails->uniqueValue(iv).toString();
 
-        CQChartsDistKeyColorBox *colorBox = addKeyRow(iv, nv, value).first;
+        CQChartsDistKeyColorBox *colorBox = addKeyRow(iv, nv, value.toString()).first;
 
         CQChartsColor c;
 
-        if (colorSet->icolor(iv, c))
-          colorBox->setColor(c);
+        bool ok;
+
+        c = CQChartsVariant::toColor(value, ok);
+
+        if (! ok)
+          continue;
+
+        colorBox->setColor(c);
       }
     }
     else {
@@ -2881,7 +2888,7 @@ getBarColoredRects(ColorData &colorData) const
 
     CQChartsColor color;
 
-    if (! plot_->colorSetColor("color", ind.row, color))
+    if (! plot_->columnColor(ind.row, ind.parent, color))
       color = barColor;
 
     auto p = colorData.colorSet.find(color);
@@ -2919,7 +2926,7 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
   QBrush barBrush;
 
   QColor bc = plot_->interpBarBorderColor(0, 1);
-  QColor fc = color.interpColor(plot_, 0, 1);
+  QColor fc = color.interpColor(plot_->charts(), 0, 1);
 
   CQChartsLength bw = plot_->barBorderWidth();
 
@@ -3494,7 +3501,7 @@ CQChartsDistKeyColorBox::
 fillBrush() const
 {
   if (color_.isValid())
-    return color_.interpColor(plot_, 0, 1);
+    return color_.interpColor(plot_->charts(), 0, 1);
 
   QColor c = plot_->interpBarFillColor(i_, n_);
 

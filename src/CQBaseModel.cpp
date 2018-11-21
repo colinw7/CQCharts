@@ -202,6 +202,9 @@ setColumnType(int column, Type type)
 
   ColumnData &columnData = getColumnData(column);
 
+  if (columnData.baseType == Type::NONE)
+    genColumnType(columnData);
+
   if (type != columnData.type) {
     columnData.type = type;
 

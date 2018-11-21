@@ -12,4 +12,4 @@ set view [create_view]
 
 set plot1 [create_plot -view $view -model $model -type boxplot -columns "group=dose,set=supp,value=len"]
 
-connect_chart -plot $plot1 -from objIdPressed -to objPressed
+connect_charts -plot $plot1 -from objIdPressed -to objPressed

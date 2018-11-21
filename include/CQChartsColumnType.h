@@ -6,6 +6,8 @@
 #include <QObject>
 #include <QString>
 
+class CQChartsModelColumnDetails;
+
 // column type parameter
 class CQChartsColumnTypeParam {
  public:
@@ -43,6 +45,9 @@ class CQChartsColumnTypeParam {
 //---
 
 // column type base class
+//
+// supports one base parameter
+//  . key - is column a key (for grouping)
 class CQChartsColumnType {
  public:
   using Type   = CQBaseModel::Type;
@@ -88,6 +93,9 @@ class CQChartsColumnType {
   // index type (TODO: assert if index invalid or not supported ?)
   virtual Type indexType(const QString &) const { return type(); }
 
+  CQChartsModelColumnDetails *columnDetails(CQCharts *charts, QAbstractItemModel *model,
+                                            const CQChartsColumn &column) const;
+
  protected:
   Type   type_;       // base type
   int    ind_ { -1 }; // insertion index
@@ -114,7 +122,7 @@ class CQChartsColumnStringType : public CQChartsColumnType {
 
 //---
 
-// string column type class
+// boolean column type class
 class CQChartsColumnBooleanType : public CQChartsColumnType {
  public:
   CQChartsColumnBooleanType();
@@ -133,6 +141,12 @@ class CQChartsColumnBooleanType : public CQChartsColumnType {
 //---
 
 // real column type class
+//
+// supports the following parameter
+//  . format       - output format
+//  . format_scale - scale factor for output format e.g. 0.001 for multiples of a thousand
+//  . min          - override calculated min value
+//  . max          - override calculated max value
 class CQChartsColumnRealType : public CQChartsColumnType {
  public:
   CQChartsColumnRealType();
@@ -162,6 +176,11 @@ class CQChartsColumnRealType : public CQChartsColumnType {
 //---
 
 // integer column type class
+//
+// supports the following parameter
+//  . format - output format
+//  . min    - override calculated min value
+//  . max    - override calculated max value
 class CQChartsColumnIntegerType : public CQChartsColumnType {
  public:
   CQChartsColumnIntegerType();
@@ -182,6 +201,11 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
 //---
 
 // time column type class
+//
+// supports the following parameter
+//  . iformat - input format to convert input data to model data (time)
+//  . oformat - output (display) format to convert time to string
+//  - format  - convenience parameter when iformat and oformat are the same
 class CQChartsColumnTimeType : public CQChartsColumnType {
  public:
   CQChartsColumnTimeType();
@@ -286,7 +310,7 @@ class CQChartsColumnConnectionListType : public CQChartsColumnType {
 
 //---
 
-// connection list column type class
+// name pair column type class
 class CQChartsColumnNamePairType : public CQChartsColumnType {
  public:
   CQChartsColumnNamePairType();
@@ -344,6 +368,12 @@ class CQChartsColumnStyleType : public CQChartsColumnType {
 //---
 
 // color column type class
+//
+// supports the following parameter
+//  . mapped  - is input data mapped to color (if not input data is taken as color name)
+//  . min     - override min value for numeric value map
+//  . max     - override max value for numeric value map
+//  . palette - specific palette to lookup color in
 class CQChartsColumnColorType : public CQChartsColumnType {
  public:
   CQChartsColumnColorType();
@@ -357,6 +387,10 @@ class CQChartsColumnColorType : public CQChartsColumnType {
   QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
+
+  bool getMapData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                  const CQChartsNameValues &nameValues, bool &mapped,
+                  double &map_min, double &map_max, QString &palette) const;
 };
 
 //---
@@ -379,10 +413,15 @@ class CQChartsColumnImageType : public CQChartsColumnType {
 
 //---
 
-// color column type class
-class CQChartsColumnSymbolType : public CQChartsColumnType {
+// symbol type column type class
+//
+// supports the following parameter
+//  . mapped - is input data mapped to symbol type (if not input data is taken as symbol name)
+//  . min    - override min value for numeric value map
+//  . max    - override max value for numeric value map
+class CQChartsColumnSymbolTypeType : public CQChartsColumnType {
  public:
-  CQChartsColumnSymbolType();
+  CQChartsColumnSymbolTypeType();
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
@@ -393,11 +432,22 @@ class CQChartsColumnSymbolType : public CQChartsColumnType {
   QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
+
+  bool getMapData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                  const CQChartsNameValues &nameValues, bool &mapped,
+                  int &map_min, int &map_max, int &data_min, int &data_max) const;
 };
 
 //---
 
-// color column type class
+// symbol size column type class
+//
+// supports the following parameter
+//  . mapped   - is input data mapped to symbol size (if not input data is taken as symbol size)
+//  . min      - override input min value for numeric value map
+//  . max      - override input max value for numeric value map
+//  . size_min - override output min value for numeric value map
+//  . size_max - override output max value for numeric value map
 class CQChartsColumnSymbolSizeType : public CQChartsColumnType {
  public:
   CQChartsColumnSymbolSizeType();
@@ -411,11 +461,22 @@ class CQChartsColumnSymbolSizeType : public CQChartsColumnType {
   QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
+
+  bool getMapData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                  const CQChartsNameValues &nameValues, bool &mapped,
+                  double &map_min, double &map_max, double &data_min, double &data_max) const;
 };
 
 //---
 
-// color column type class
+// font size column type class
+//
+// supports the following parameter
+//  . mapped   - is input data mapped to font size (if not input data is taken as font size)
+//  . min      - override input min value for numeric value map
+//  . max      - override input max value for numeric value map
+//  . size_min - override output min value for numeric value map
+//  . size_max - override output max value for numeric value map
 class CQChartsColumnFontSizeType : public CQChartsColumnType {
  public:
   CQChartsColumnFontSizeType();
@@ -429,6 +490,10 @@ class CQChartsColumnFontSizeType : public CQChartsColumnType {
   QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
+
+  bool getMapData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                  const CQChartsNameValues &nameValues, bool &mapped,
+                  double &map_min, double &map_max, double &data_min, double &data_max) const;
 };
 
 //---
@@ -487,9 +552,9 @@ class CQChartsColumnTypeMgr : public QObject {
                               TypeCacheData &typeCacheData) const;
 
  private:
-  CQCharts*               charts_   { nullptr };
+  CQCharts*               charts_     { nullptr };
   TypeData                typeData_;
-  bool                    caching_  { false };
+  int                     cacheDepth_ { 0 };
   mutable ColumnTypeCache columnTypeDataCache_;
 };
 

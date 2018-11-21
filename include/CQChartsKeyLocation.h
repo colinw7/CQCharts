@@ -22,6 +22,8 @@ class CQChartsKeyLocation {
  public:
   static void registerMetaType();
 
+  static int metaTypeId;
+
  public:
   CQChartsKeyLocation(Type type=Type::TOP_RIGHT) :
    type_(type) {

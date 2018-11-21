@@ -3,11 +3,13 @@
 
 CQUTIL_DEF_META_TYPE(CQChartsFillUnderSide, toString, fromString)
 
+int CQChartsFillUnderSide::metaTypeId;
+
 void
 CQChartsFillUnderSide::
 registerMetaType()
 {
-  CQUTIL_REGISTER_META(CQChartsFillUnderSide);
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsFillUnderSide);
 }
 
 QString
@@ -40,11 +42,13 @@ decodeString(const QString &str, Type &type)
 
 CQUTIL_DEF_META_TYPE(CQChartsFillUnderPos, toString, fromString)
 
+int CQChartsFillUnderPos::metaTypeId;
+
 void
 CQChartsFillUnderPos::
 registerMetaType()
 {
-  CQUTIL_REGISTER_META(CQChartsFillUnderPos);
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsFillUnderPos);
 }
 
 QString

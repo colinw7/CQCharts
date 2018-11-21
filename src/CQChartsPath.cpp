@@ -1,26 +1,15 @@
 #include <CQChartsPath.h>
 #include <CQStrParse.h>
 
-namespace {
-
-static int s_typeId = -1;
-
-}
-
 CQUTIL_DEF_META_TYPE(CQChartsPath, toString, fromString)
+
+int CQChartsPath::metaTypeId;
 
 void
 CQChartsPath::
 registerMetaType()
 {
-  s_typeId = CQUTIL_REGISTER_META(CQChartsPath);
-}
-
-int
-CQChartsPath::
-metaType()
-{
-  return s_typeId;
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsPath);
 }
 
 QString

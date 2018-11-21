@@ -101,6 +101,7 @@ CQChartsModelList.cpp \
 CQChartsModelControl.cpp \
 CQChartsModelView.cpp \
 CQChartsEval.cpp \
+CQChartsAnnotationDlg.cpp \
 \
 CQChartsFilterEdit.cpp \
 \
@@ -127,7 +128,9 @@ CQChartsColor.cpp \
 CQChartsNamePair.cpp \
 CQChartsPolygonList.cpp \
 CQChartsPosition.cpp \
+CQChartsPositionEdit.cpp \
 CQChartsLength.cpp \
+CQChartsLengthEdit.cpp \
 CQChartsRect.cpp \
 CQChartsPlotMargin.cpp \
 CQChartsConnectionList.cpp \
@@ -171,6 +174,7 @@ CQChartsDelaunay.cpp \
 CQChartsDendrogram.cpp \
 CQChartsHull3D.cpp \
 \
+CQCheckBox.cpp \
 CLeastSquaresFit.cpp \
 CInterval.cpp \
 
@@ -273,6 +277,7 @@ HEADERS += \
 ../include/CQChartsModelControl.h \
 ../include/CQChartsModelView.h \
 ../include/CQChartsEval.h \
+../include/CQChartsAnnotationDlg.h \
 \
 ../include/CQChartsFilterEdit.h \
 \
@@ -301,7 +306,9 @@ HEADERS += \
 ../include/CQChartsNamePair.h \
 ../include/CQChartsPolygonList.h \
 ../include/CQChartsPosition.h \
+../include/CQChartsPositionEdit.h \
 ../include/CQChartsLength.h \
+../include/CQChartsLengthEdit.h \
 ../include/CQChartsRect.h \
 ../include/CQChartsPlotMargin.h \
 ../include/CQChartsConnectionList.h \
@@ -335,6 +342,7 @@ CListLink.h \
 CStateIterator.h \
 ../include/CUnixFile.h \
 \
+../include/CQCheckBox.h \
 ../include/CLeastSquaresFit.h \
 ../include/CInterval.h \
 

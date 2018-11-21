@@ -98,6 +98,8 @@ CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjNodeShapeData<CQChartsForceDirectedPlot>(this),
  CQChartsObjEdgeLineData <CQChartsForceDirectedPlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   setOuterMargin(0, 0, 0, 0);
 
   setNodeBorderAlpha(0.5);

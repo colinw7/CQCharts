@@ -61,6 +61,8 @@ CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjLineData <CQChartsDelaunayPlot>(this),
  CQChartsObjPointData<CQChartsDelaunayPlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   setPoints(true);
 
   setSymbolStrokeColor(CQChartsColor(CQChartsColor::Type::PALETTE));

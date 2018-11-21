@@ -68,55 +68,55 @@ pathId() const
 
 void
 CQChartsAnnotation::
-writeKeys(const QString &cmd) const
+writeKeys(std::ostream &os, const QString &cmd) const
 {
-  std::cerr << cmd.toStdString();
+  os << cmd.toStdString();
 
   if      (view())
-    std::cerr << " -view " << view()->id().toStdString();
+    os << " -view " << view()->id().toStdString();
   else if (plot())
-    std::cerr << " -plot " << plot()->id().toStdString();
+    os << " -plot " << plot()->id().toStdString();
 
   if (id() != "")
-    std::cerr << " -id " << id().toStdString();
+    os << " -id " << id().toStdString();
 
   if (tipId() != "")
-    std::cerr << " -tip \"" << tipId().toStdString() << "\"";
+    os << " -tip \"" << tipId().toStdString() << "\"";
 }
 
 void
 CQChartsAnnotation::
-writeFill() const
+writeFill(std::ostream &os) const
 {
   if (isFilled()) {
-    std::cerr << " -background 1";
+    os << " -background 1";
 
     if (fillColor().isValid())
-      std::cerr << " -background_color " << fillColor().toString().toStdString();
+      os << " -background_color " << fillColor().toString().toStdString();
 
     if (fillAlpha() != 1.0)
-      std::cerr << " -background_alpha " << fillAlpha();
+      os << " -background_alpha " << fillAlpha();
   }
 }
 
 void
 CQChartsAnnotation::
-writeStroke() const
+writeStroke(std::ostream &os) const
 {
   if (isBorder()) {
-    std::cerr << " -border 1";
+    os << " -border 1";
 
     if (borderColor().isValid())
-      std::cerr << " -border_color " << borderColor().toString().toStdString();
+      os << " -border_color " << borderColor().toString().toStdString();
 
     if (borderAlpha() != 1.0)
-      std::cerr << " -border_alpha " << borderAlpha();
+      os << " -border_alpha " << borderAlpha();
 
     if (borderWidth().isSet())
-      std::cerr << " -border_width " << borderWidth().toString().toStdString();
+      os << " -border_width " << borderWidth().toString().toStdString();
 
     if (! borderDash().isSolid())
-      std::cerr << " -border_dash " << borderDash().toString().toStdString();
+      os << " -border_dash " << borderDash().toString().toStdString();
   }
 }
 
@@ -361,7 +361,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "start");
   model->addProperty(path1, this, "end"  );
 
-  model->addProperty(path1, this, "margin");
+  model->addProperty(path1, this, "margin" );
   model->addProperty(path1, this, "padding");
 
   addStrokeFillProperties(model, path1);
@@ -479,33 +479,33 @@ draw(QPainter *painter)
 
 void
 CQChartsRectAnnotation::
-write() const
+write(std::ostream &os) const
 {
-  writeKeys("create_rect_shape");
+  writeKeys(os, "create_rect_annotation");
 
   if (start().isSet())
-    std::cerr << " -start {" << start().toString().toStdString() << "}";
+    os << " -start {" << start().toString().toStdString() << "}";
 
   if (end().isSet())
-    std::cerr << " -end {" << end().toString().toStdString() << "}";
+    os << " -end {" << end().toString().toStdString() << "}";
 
-  writeFill();
+  writeFill(os);
 
-  writeStroke();
+  writeStroke(os);
 
   if (cornerSize().isSet())
-    std::cerr << " -corner_size " << cornerSize();
+    os << " -corner_size " << cornerSize();
 
   if (margin() != 0.0)
-    std::cerr << " -margin "  << margin ();
+    os << " -margin "  << margin ();
 
   if (padding() != 0.0)
-    std::cerr << " -padding " << padding();
+    os << " -padding " << padding();
 
   if (! borderSides().isAll())
-    std::cerr << " -border_sides " << borderSides().toString().toStdString();
+    os << " -border_sides " << borderSides().toString().toStdString();
 
-  std::cerr << "\n";
+  os << "\n";
 }
 
 //---
@@ -688,30 +688,30 @@ draw(QPainter *painter)
 
 void
 CQChartsEllipseAnnotation::
-write() const
+write(std::ostream &os) const
 {
-  writeKeys("create_ellipse_shape");
+  writeKeys(os, "create_ellipse_annotation");
 
   if (center().isSet())
-    std::cerr << " -center {" << center().toString().toStdString() << "}";
+    os << " -center {" << center().toString().toStdString() << "}";
 
   if (xRadius().isSet())
-    std::cerr << " -rx {" << xRadius().toString().toStdString() << "}";
+    os << " -rx {" << xRadius().toString().toStdString() << "}";
 
   if (yRadius().isSet())
-    std::cerr << " -ry {" << yRadius().toString().toStdString() << "}";
+    os << " -ry {" << yRadius().toString().toStdString() << "}";
 
-  writeFill();
+  writeFill(os);
 
-  writeStroke();
+  writeStroke(os);
 
   if (cornerSize().isSet())
-    std::cerr << " -corner_size " << cornerSize();
+    os << " -corner_size " << cornerSize();
 
   if (! borderSides().isAll())
-    std::cerr << " -border_sides " << borderSides().toString().toStdString();
+    os << " -border_sides " << borderSides().toString().toStdString();
 
-  std::cerr << "\n";
+  os << "\n";
 }
 
 //---
@@ -870,27 +870,29 @@ draw(QPainter *painter)
 
 void
 CQChartsPolygonAnnotation::
-write() const
+write(std::ostream &os) const
 {
-  writeKeys("create_polygon_shape");
+  writeKeys(os, "create_polygon_annotation");
 
-  if (points().length()) {
-    std::cerr << " -points {";
+  if (points().size()) {
+    os << " -points {";
 
-    for (int i = 0; i < points().length(); ++i) {
+    for (int i = 0; i < points().size(); ++i) {
+      if (i > 0) os << " ";
+
       const QPointF &p = points()[i];
 
-      std::cerr << "{" << p.x() << " " << p.y() << "}";
+      os << "{" << p.x() << " " << p.y() << "}";
     }
 
-    std::cerr << "}";
+    os << "}";
   }
 
-  writeFill();
+  writeFill(os);
 
-  writeStroke();
+  writeStroke(os);
 
-  std::cerr << "\n";
+  os << "\n";
 }
 
 //---
@@ -1059,27 +1061,29 @@ draw(QPainter *painter)
 
 void
 CQChartsPolylineAnnotation::
-write() const
+write(std::ostream &os) const
 {
-  writeKeys("create_polyline_shape");
+  writeKeys(os, "create_polyline_annotation");
 
-  if (points().length()) {
-    std::cerr << " -points {";
+  if (points().size()) {
+    os << " -points {";
 
-    for (int i = 0; i < points().length(); ++i) {
+    for (int i = 0; i < points().size(); ++i) {
+      if (i > 0) os << " ";
+
       const QPointF &p = points()[i];
 
-      std::cerr << "{" << p.x() << " " << p.y() << "}";
+      os << "{" << p.x() << " " << p.y() << "}";
     }
 
-    std::cerr << "}";
+    os << "}";
   }
 
-  writeFill();
+  writeFill(os);
 
-  writeStroke();
+  writeStroke(os);
 
-  std::cerr << "\n";
+  os << "\n";
 }
 
 //---
@@ -1141,6 +1145,9 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "textAngle"   , "angle"   );
   model->addProperty(path1, this, "textContrast", "contrast");
   model->addProperty(path1, this, "textAlign"   , "align"   );
+
+  model->addProperty(path1, this, "margin" );
+  model->addProperty(path1, this, "padding");
 
   addStrokeFillProperties(model, path1);
 }
@@ -1244,24 +1251,6 @@ draw(QPainter *painter)
       double x = p.x();
       double y = p.y();
 
-      if      (textAlign() & Qt::AlignLeft) {
-      }
-      else if (textAlign() & Qt::AlignHCenter) {
-        x -= w/2.0;
-      }
-      else if (textAlign() & Qt::AlignRight) {
-        x -= w - 2*xp - 2*xm;
-      }
-
-      if      (textAlign() & Qt::AlignTop) {
-        y -= h - 2*yp - 2*ym;
-      }
-      else if (textAlign() & Qt::AlignVCenter) {
-        y -= h/2;
-      }
-      else if (textAlign() & Qt::AlignBottom) {
-      }
-
       bbox_ = CQChartsGeom::BBox(x - xp - xm, y - yp - ym, x + w, y + h);
     }
     else {
@@ -1316,12 +1305,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor c;
-
-  if      (plot())
-    c = textColor().interpColor(plot(), 0, 1);
-  else if (view())
-    c = textColor().interpColor(view(), 0, 1);
+  QColor c = textColor().interpColor(charts(), 0, 1);
 
   if      (plot())
     plot()->setPen(pen, true, c, textAlpha(), CQChartsLength("0px"));
@@ -1402,45 +1386,45 @@ draw(QPainter *painter)
 
 void
 CQChartsTextAnnotation::
-write() const
+write(std::ostream &os) const
 {
-  writeKeys("create_text_shape");
+  writeKeys(os, "create_text_annotation");
 
   if (position().isSet())
-    std::cerr << " -position {" << position().toString().toStdString() << "}";
+    os << " -position {" << position().toString().toStdString() << "}";
 
   if (textStr().length())
-    std::cerr << " -text {" << textStr().toStdString() << "}";
+    os << " -text {" << textStr().toStdString() << "}";
 
   if (textFont() != view()->font())
-    std::cerr << " -font {" << textFont().toString().toStdString() << "}";
+    os << " -font {" << textFont().toString().toStdString() << "}";
 
   if (textColor().isValid())
-    std::cerr << " -color {" << textColor().toString().toStdString() << "}";
+    os << " -color {" << textColor().toString().toStdString() << "}";
 
   if (textAlpha() != 1.0)
-    std::cerr << " -alpha " << textAlpha();
+    os << " -alpha " << textAlpha();
 
   if (isTextContrast())
-    std::cerr << " -contrast 1";
+    os << " -contrast 1";
 
   if (textAlign() != (Qt::AlignLeft | Qt::AlignVCenter))
-    std::cerr << " -align {" << CQAlignEdit::toString(textAlign()).toStdString() << "}";
+    os << " -align {" << CQAlignEdit::toString(textAlign()).toStdString() << "}";
 
   if (isHtml())
-    std::cerr << " -html";
+    os << " -html";
 
-  writeFill();
+  writeFill(os);
 
-  writeStroke();
+  writeStroke(os);
 
   if (cornerSize().isSet())
-    std::cerr << " -corner_size " << cornerSize();
+    os << " -corner_size " << cornerSize();
 
   if (! borderSides().isAll())
-    std::cerr << " -border_sides " << borderSides().toString().toStdString();
+    os << " -border_sides " << borderSides().toString().toStdString();
 
-  std::cerr << "\n";
+  os << "\n";
 }
 
 //---
@@ -1667,47 +1651,47 @@ draw(QPainter *painter)
 
 void
 CQChartsArrowAnnotation::
-write() const
+write(std::ostream &os) const
 {
-  writeKeys("create_arrow_shape");
+  writeKeys(os, "create_arrow_annotation");
 
   if (start().isSet())
-    std::cerr << " -start {" << start().toString().toStdString() << "}";
+    os << " -start {" << start().toString().toStdString() << "}";
 
   if (end().isSet())
-    std::cerr << " -end {" << end().toString().toStdString() << "}";
+    os << " -end {" << end().toString().toStdString() << "}";
 
   if (arrow()->length().isSet())
-    std::cerr << " -length {" << arrow()->length().toString().toStdString() << "}";
+    os << " -length {" << arrow()->length().toString().toStdString() << "}";
 
   if (arrow()->angle() != 0.0)
-    std::cerr << " -angle " << arrow()->angle();
+    os << " -angle " << arrow()->angle();
 
   if (arrow()->backAngle() != 0.0)
-    std::cerr << " -back_angle " << arrow()->backAngle();
+    os << " -back_angle " << arrow()->backAngle();
 
   if (arrow()->isFHead())
-    std::cerr << " -fhead 1";
+    os << " -fhead 1";
 
   if (arrow()->isTHead())
-    std::cerr << " -thead 1";
+    os << " -thead 1";
 
   if (arrow()->isEmpty())
-    std::cerr << " -empty 1";
+    os << " -empty 1";
 
   if (arrow()->borderWidth().isSet())
-    std::cerr << " -line_width {" << arrow()->borderWidth().toString().toStdString() << "}";
+    os << " -line_width {" << arrow()->borderWidth().toString().toStdString() << "}";
 
   if (arrow()->borderColor().isValid())
-    std::cerr << " -stroke_color {" << arrow()->borderColor().toString().toStdString() << "}";
+    os << " -stroke_color {" << arrow()->borderColor().toString().toStdString() << "}";
 
   if (arrow()->isFilled())
-    std::cerr << " -filled 1";
+    os << " -filled 1";
 
   if (arrow()->fillColor().isValid())
-    std::cerr << " -fill_color {" << arrow()->fillColor().toString().toStdString() << "}";
+    os << " -fill_color {" << arrow()->fillColor().toString().toStdString() << "}";
 
-  std::cerr << "\n";
+  os << "\n";
 }
 
 //---
@@ -1848,16 +1832,8 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor lineColor, fillColor;
-
-  if      (plot()) {
-    lineColor = pointData_.stroke.color.interpColor(plot(), 0, 1);
-    fillColor = pointData_.fill  .color.interpColor(plot(), 0, 1);
-  }
-  else if (view()) {
-    lineColor = pointData_.stroke.color.interpColor(view(), 0, 1);
-    fillColor = pointData_.fill  .color.interpColor(view(), 0, 1);
-  }
+  QColor lineColor = pointData_.stroke.color.interpColor(charts(), 0, 1);
+  QColor fillColor = pointData_.fill  .color.interpColor(charts(), 0, 1);
 
   if      (plot())
     plot()->setPen(pen, pointData_.stroke.visible, lineColor, pointData_.stroke.alpha,
@@ -1897,39 +1873,39 @@ draw(QPainter *painter)
 
 void
 CQChartsPointAnnotation::
-write() const
+write(std::ostream &os) const
 {
-  writeKeys("create_point_shape");
+  writeKeys(os, "create_point_annotation");
 
   if (position().isSet())
-    std::cerr << " -position {" << position().toString().toStdString() << "}";
+    os << " -position {" << position().toString().toStdString() << "}";
 
   if (pointData().size.isSet())
-    std::cerr << " -size {" << pointData().size.toString().toStdString() << "}";
+    os << " -size {" << pointData().size.toString().toStdString() << "}";
 
   if (type() != CQChartsSymbol::Type::NONE)
-    std::cerr << " -type {" << type().toString().toStdString() << "}";
+    os << " -type {" << type().toString().toStdString() << "}";
 
   if (isBorder())
-    std::cerr << " -stroked 1";
+    os << " -stroked 1";
 
   if (isFilled())
-    std::cerr << " -filled 1";
+    os << " -filled 1";
 
   if (borderWidth().isSet())
-    std::cerr << " -line_width {" << borderWidth().toString().toStdString() << "}";
+    os << " -line_width {" << borderWidth().toString().toStdString() << "}";
 
   if (borderColor().isValid())
-    std::cerr << " -line_color {" << borderColor().toString().toStdString() << "}";
+    os << " -line_color {" << borderColor().toString().toStdString() << "}";
 
   if (borderAlpha() != 1.0)
-    std::cerr << " -line_alpha " << borderAlpha();
+    os << " -line_alpha " << borderAlpha();
 
   if (fillColor().isValid())
-    std::cerr << " -fill_color {" << fillColor().toString().toStdString() << "}";
+    os << " -fill_color {" << fillColor().toString().toStdString() << "}";
 
   if (fillAlpha() != 1.0)
-    std::cerr << " -fill_alpha " << fillAlpha();
+    os << " -fill_alpha " << fillAlpha();
 
-  std::cerr << "\n";
+  os << "\n";
 }

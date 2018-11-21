@@ -67,6 +67,8 @@ CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("pie"), model),
  CQChartsObjGridLineData<CQChartsPiePlot>(this)
 {
+  NoUpdate noUpdate(this);
+
   setValueColumns(CQChartsColumns("1"));
 
   setGridLinesColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5));
@@ -324,7 +326,7 @@ void
 CQChartsPiePlot::
 updateObjs()
 {
-  clearValueSets();
+  //clearValueSets();
 
   CQChartsPlot::updateObjs();
 }
@@ -420,7 +422,7 @@ createObjs()
 
   if (! isCount()) {
     // init value sets
-    initValueSets();
+    //initValueSets();
 
     //---
 
@@ -606,10 +608,14 @@ addRowColumn(const CQChartsModelIndex &ind)
 
     obj->setKeyLabel(keyLabel);
 
+    //---
+
     CQChartsColor color;
 
-    if (colorSetColor("color", ind.row, color))
+    if (columnColor(ind.row, ind.parent, color))
       obj->setColor(color);
+
+    //---
 
     addPlotObject(obj);
 
@@ -1256,7 +1262,7 @@ draw(QPainter *painter)
   QColor bg;
 
   if      (color().isValid())
-    bg = color().interpColor(plot_, colorInd(), no);
+    bg = color().interpColor(plot_->charts(), colorInd(), no);
   else if (groupObj)
     bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
 
@@ -1672,7 +1678,7 @@ fillBrush() const
   }
 
   if (obj && obj->color().isValid())
-    c = obj->color().interpColor(plot_, obj->colorInd(), no);
+    c = obj->color().interpColor(plot_->charts(), obj->colorInd(), no);
 
   return c;
 }

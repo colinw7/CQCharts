@@ -14,7 +14,7 @@ proc objPressed { view plot id } {
 #  -columns "name=0,value=1" \
 #  -title "bubble"]
 
-#connect_chart -plot $plot1 -from objIdPressed -to objPressed
+#connect_charts -plot $plot1 -from objIdPressed -to objPressed
 
 #set model2 [load_model -csv data/flare.csv -comment_header -column_type "1#real"]
 
@@ -22,7 +22,7 @@ proc objPressed { view plot id } {
 #  -columns "name=0,value=1" \
 #  -title "bubble"]
 
-#connect_chart -plot $plot2 -from objIdPressed -to objPressed
+#connect_charts -plot $plot2 -from objIdPressed -to objPressed
 
 #set model3 [load_model -csv data/pareto.csv -comment_header]
 
@@ -30,7 +30,7 @@ proc objPressed { view plot id } {
 #  -columns "name=0,value=1" \
 #  -title "bubble"]
 
-#connect_chart -plot $plot3 -from objIdPressed -to objPressed
+#connect_charts -plot $plot3 -from objIdPressed -to objPressed
 
 set model4 [load_model -csv data/flare1.csv -comment_header -column_type "2#real"]
 
@@ -38,4 +38,4 @@ set plot4 [create_plot -model $model4 -type bubble \
   -columns "name=1,value=2" \
   -title "bubble"]
 
-connect_chart -plot $plot4 -from objIdPressed -to objPressed
+connect_charts -plot $plot4 -from objIdPressed -to objPressed

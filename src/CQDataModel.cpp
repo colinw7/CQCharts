@@ -11,7 +11,11 @@ CQDataModel()
 CQDataModel::
 CQDataModel(int numCols, int numRows)
 {
+  setObjectName("dataModel");
+
   init(numCols, numRows);
+
+  connect(this, SIGNAL(columnTypeChanged(int)), this, SLOT(resetColumnCache(int)));
 }
 
 CQDataModel::

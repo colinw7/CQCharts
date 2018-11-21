@@ -16,5 +16,5 @@ set plot2 [create_plot -view $view -model $model -type boxplot -columns "group=d
 
 place_plots -horizontal $plot1 $plot2
 
-connect_chart -plot $plot1 -from objIdPressed -to objPressed
-connect_chart -plot $plot2 -from objIdPressed -to objPressed
+connect_charts -plot $plot1 -from objIdPressed -to objPressed
+connect_charts -plot $plot2 -from objIdPressed -to objPressed

@@ -84,12 +84,12 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
-  virtual void write() const = 0;
+  virtual void write(std::ostream &os) const = 0;
 
-  void writeKeys(const QString &cmd) const;
+  void writeKeys(std::ostream &os, const QString &cmd) const;
 
-  void writeFill() const;
-  void writeStroke() const;
+  void writeFill  (std::ostream &os) const;
+  void writeStroke(std::ostream &os) const;
 
  signals:
   void dataChanged();
@@ -133,7 +133,7 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
 
   void draw(QPainter *painter) override;
 
-  void write() const override;
+  void write(std::ostream &os) const override;
 
  private:
   CQChartsPosition start_ { QPointF(0, 0) };
@@ -178,7 +178,7 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
   void draw(QPainter *painter) override;
 
-  void write() const override;
+  void write(std::ostream &os) const override;
 
  private:
   CQChartsPosition center_;
@@ -214,7 +214,7 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
 
   void draw(QPainter *painter) override;
 
-  void write() const override;
+  void write(std::ostream &os) const override;
 
  private:
   QPolygonF points_;
@@ -248,7 +248,7 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
 
   void draw(QPainter *painter) override;
 
-  void write() const override;
+  void write(std::ostream &os) const override;
 
  private:
   QPolygonF points_;
@@ -288,7 +288,7 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   void draw(QPainter *painter) override;
 
-  void write() const override;
+  void write(std::ostream &os) const override;
 
  private:
   CQChartsPosition position_;
@@ -334,7 +334,7 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   void draw(QPainter *painter) override;
 
-  void write() const override;
+  void write(std::ostream &os) const override;
 
  private:
   CQChartsPosition start_ { QPointF(0, 0) };
@@ -378,7 +378,7 @@ class CQChartsPointAnnotation : public CQChartsAnnotation {
 
   void draw(QPainter *painter) override;
 
-  void write() const override;
+  void write(std::ostream &os) const override;
 
  private:
   CQChartsPosition   position_;

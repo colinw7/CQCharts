@@ -53,7 +53,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
  public:
   CQChartsScatterPointObj(CQChartsScatterPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                           const QPointF &p, const CQChartsSymbol &symbolType,
-                          const CQChartsLength &symbolSize, const OptReal &fontSize,
+                          const CQChartsLength &symbolSize, const CQChartsLength &fontSize,
                           const CQChartsColor &color,
                           int ig, int ng, int is, int ns, int iv, int nv);
 
@@ -66,6 +66,9 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   const CQChartsLength &symbolSize() const { return symbolSize_; }
   void setSymbolSize(const CQChartsLength &s);
+
+  const CQChartsLength &fontSize() const { return fontSize_; }
+  void setFontSize(const CQChartsLength &s);
 
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
@@ -93,7 +96,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   QPointF              p_;
   CQChartsSymbol       symbolType_;
   CQChartsLength       symbolSize_;
-  OptReal              fontSize_;
+  CQChartsLength       fontSize_;
   CQChartsColor        color_;
   int                  ig_         { -1 };
   int                  ng_         { -1 };
@@ -274,19 +277,21 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   Q_PROPERTY(double symbolMapKeyMargin READ symbolMapKeyMargin WRITE setSymbolMapKeyMargin)
 
   // symbol type map
-  Q_PROPERTY(bool   symbolTypeMapped READ isSymbolTypeMapped WRITE setSymbolTypeMapped)
-  Q_PROPERTY(double symbolTypeMapMin READ symbolTypeMapMin   WRITE setSymbolTypeMapMin)
-  Q_PROPERTY(double symbolTypeMapMax READ symbolTypeMapMax   WRITE setSymbolTypeMapMax)
+  Q_PROPERTY(bool symbolTypeMapped READ isSymbolTypeMapped WRITE setSymbolTypeMapped)
+  Q_PROPERTY(int  symbolTypeMapMin READ symbolTypeMapMin   WRITE setSymbolTypeMapMin)
+  Q_PROPERTY(int  symbolTypeMapMax READ symbolTypeMapMax   WRITE setSymbolTypeMapMax)
 
   // symbol size map
-  Q_PROPERTY(bool   symbolSizeMapped READ isSymbolSizeMapped WRITE setSymbolSizeMapped)
-  Q_PROPERTY(double symbolSizeMapMin READ symbolSizeMapMin   WRITE setSymbolSizeMapMin)
-  Q_PROPERTY(double symbolSizeMapMax READ symbolSizeMapMax   WRITE setSymbolSizeMapMax)
+  Q_PROPERTY(bool    symbolSizeMapped   READ isSymbolSizeMapped WRITE setSymbolSizeMapped  )
+  Q_PROPERTY(double  symbolSizeMapMin   READ symbolSizeMapMin   WRITE setSymbolSizeMapMin  )
+  Q_PROPERTY(double  symbolSizeMapMax   READ symbolSizeMapMax   WRITE setSymbolSizeMapMax  )
+  Q_PROPERTY(QString symbolSizeMapUnits READ symbolSizeMapUnits WRITE setSymbolSizeMapUnits)
 
   // font size map
-  Q_PROPERTY(bool   fontSizeMapped READ isFontSizeMapped WRITE setFontSizeMapped)
-  Q_PROPERTY(double fontSizeMapMin READ fontSizeMapMin   WRITE setFontSizeMapMin)
-  Q_PROPERTY(double fontSizeMapMax READ fontSizeMapMax   WRITE setFontSizeMapMax)
+  Q_PROPERTY(bool    fontSizeMapped   READ isFontSizeMapped WRITE setFontSizeMapped  )
+  Q_PROPERTY(double  fontSizeMapMin   READ fontSizeMapMin   WRITE setFontSizeMapMin  )
+  Q_PROPERTY(double  fontSizeMapMax   READ fontSizeMapMax   WRITE setFontSizeMapMax  )
+  Q_PROPERTY(QString fontSizeMapUnits READ fontSizeMapUnits WRITE setFontSizeMapUnits)
 
   Q_PROPERTY(bool textLabels READ isTextLabels WRITE setTextLabels)
 
@@ -296,13 +301,13 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
  public:
   struct ValueData {
     QPointF       p;
-    int           i;
+    int           row { -1 };
     QModelIndex   ind;
     CQChartsColor color;
 
-    ValueData(const QPointF &p, int i, const QModelIndex &ind,
+    ValueData(const QPointF &p, int row, const QModelIndex &ind,
               const CQChartsColor &color=CQChartsColor()) :
-     p(p), i(i), ind(ind), color(color) {
+     p(p), row(row), ind(ind), color(color) {
     }
   };
 
@@ -469,47 +474,53 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   //---
 
   // symbol type column and map
-  const CQChartsColumn &symbolTypeColumn() const { return valueSetColumn("symbolType"); }
+  const CQChartsColumn &symbolTypeColumn() const;
   void setSymbolTypeColumn(const CQChartsColumn &c);
 
-  bool isSymbolTypeMapped() const { return isValueSetMapped("symbolType"); }
+  bool isSymbolTypeMapped() const;
   void setSymbolTypeMapped(bool b);
 
-  double symbolTypeMapMin() const { return valueSetMapMin("symbolType"); }
-  void setSymbolTypeMapMin(double r);
+  int symbolTypeMapMin() const;
+  void setSymbolTypeMapMin(int i);
 
-  double symbolTypeMapMax() const { return valueSetMapMax("symbolType"); }
-  void setSymbolTypeMapMax(double r);
+  int symbolTypeMapMax() const;
+  void setSymbolTypeMapMax(int i);
 
   //---
 
   // symbol size column and map
-  const CQChartsColumn &symbolSizeColumn() const { return valueSetColumn("symbolSize"); }
+  const CQChartsColumn &symbolSizeColumn() const;
   void setSymbolSizeColumn(const CQChartsColumn &c);
 
-  bool isSymbolSizeMapped() const { return isValueSetMapped("symbolSize"); }
+  bool isSymbolSizeMapped() const;
   void setSymbolSizeMapped(bool b);
 
-  double symbolSizeMapMin() const { return valueSetMapMin("symbolSize"); }
+  double symbolSizeMapMin() const;
   void setSymbolSizeMapMin(double r);
 
-  double symbolSizeMapMax() const { return valueSetMapMax("symbolSize"); }
+  double symbolSizeMapMax() const;
   void setSymbolSizeMapMax(double r);
+
+  const QString &symbolSizeMapUnits() const;
+  void setSymbolSizeMapUnits(const QString &s);
 
   //---
 
   // font size column and map
-  const CQChartsColumn &fontSizeColumn() const { return valueSetColumn("fontSize"); }
+  const CQChartsColumn &fontSizeColumn() const;
   void setFontSizeColumn(const CQChartsColumn &c);
 
-  bool isFontSizeMapped() const { return isValueSetMapped("fontSize"); }
+  bool isFontSizeMapped() const;
   void setFontSizeMapped(bool b);
 
-  double fontSizeMapMin() const { return valueSetMapMin("fontSize"); }
+  double fontSizeMapMin() const;
   void setFontSizeMapMin(double r);
 
-  double fontSizeMapMax() const { return valueSetMapMax("fontSize"); }
+  double fontSizeMapMax() const;
   void setFontSizeMapMax(double r);
+
+  const QString &fontSizeMapUnits() const;
+  void setFontSizeMapUnits(const QString &s);
 
   //---
 
@@ -585,6 +596,20 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   };
 
  private:
+  void initSymbolTypeData();
+
+  bool columnSymbolType(int row, const QModelIndex &parent, CQChartsSymbol &symbolType) const;
+
+  void initSymbolSizeData();
+
+  bool columnSymbolSize(int row, const QModelIndex &parent, CQChartsLength &symbolSize) const;
+
+  void initFontSizeData();
+
+  bool columnFontSize(int row, const QModelIndex &parent, CQChartsLength &fontSize) const;
+
+  //---
+
   void addPointKeyItems(CQChartsPlotKey *key);
   void addGridKeyItems (CQChartsPlotKey *key);
 
@@ -624,6 +649,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   //---
 
   void drawSymbolMapKey(QPainter *painter);
+
+  //---
 
  public slots:
   void setBestFit(bool b);
@@ -696,9 +723,45 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
     double delta    { 0.0 };   // value delta
   };
 
+  struct SymbolTypeData {
+    CQChartsColumn column;
+    bool           valid     { false };
+    bool           mapped    { false };
+    int            data_min  { 0 };
+    int            data_max  { 1 };
+    int            map_min   { 0 };
+    int            map_max   { 1 };
+  };
+
+  struct SymbolSizeData {
+    CQChartsColumn column;
+    bool           valid     { false };
+    bool           mapped    { false };
+    double         data_min  { 0.0 };
+    double         data_max  { 1.0 };
+    double         data_mean { 0.0 };
+    double         map_min   { 0.0 };
+    double         map_max   { 1.0 };
+    QString        units     { "px" };
+  };
+
+  struct FontSizeData {
+    CQChartsColumn column;
+    bool           valid     { false };
+    bool           mapped    { false };
+    double         data_min  { 0.0 };
+    double         data_max  { 1.0 };
+    double         map_min   { 0.0 };
+    double         map_max   { 1.0 };
+    QString        units     { "px" };
+  };
+
   CQChartsColumn    nameColumn_;        // name column
   CQChartsColumn    xColumn_;           // x column
   CQChartsColumn    yColumn_;           // y column
+  SymbolTypeData    symbolTypeData_;    // symbol size column
+  SymbolSizeData    symbolSizeData_;    // symbol size column
+  FontSizeData      fontSizeData_;      // font size column
   BestFitData       bestFitData_;       // best fit data
   HullData          hullData_;          // hull data
   AxisRugData       axisRugData_;       // axis rug data

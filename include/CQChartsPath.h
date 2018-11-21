@@ -10,7 +10,7 @@ class CQChartsPath {
  public:
   static void registerMetaType();
 
-  static int metaType();
+  static int metaTypeId;
 
  public:
   CQChartsPath() = default;

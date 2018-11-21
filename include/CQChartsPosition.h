@@ -18,6 +18,8 @@ class CQChartsPosition {
  public:
   static void registerMetaType();
 
+  static int metaTypeId;
+
  public:
   CQChartsPosition(const Units &units, const QPointF &p) :
    units_(units), p_(p) {
@@ -70,19 +72,21 @@ class CQChartsPosition {
   //---
 
   QString toString() const {
-    QString ustr;
-
-    if      (units_ == Units::PIXEL  ) ustr = "px";
-    else if (units_ == Units::PERCENT) ustr = "%" ;
-    else if (units_ == Units::PLOT   ) ustr = "P" ;
-    else if (units_ == Units::VIEW   ) ustr = "V" ;
-    else                               ustr = ""  ;
+    QString ustr = unitsString(units_);
 
     return QString("%1 %2 %3").arg(p_.x()).arg(p_.y()).arg(ustr);
   }
 
   void fromString(const QString &s) {
     setPoint(s);
+  }
+
+  static QString unitsString(const Units &units) {
+    if      (units == Units::PIXEL  ) return "px";
+    else if (units == Units::PERCENT) return "%" ;
+    else if (units == Units::PLOT   ) return "P" ;
+    else if (units == Units::VIEW   ) return "V" ;
+    else                              return ""  ;
   }
 
   //---
@@ -112,8 +116,11 @@ class CQChartsPosition {
 
   //---
 
+  static bool decodeUnits(const QString &str, Units &units, const Units &defUnits=Units::PIXEL);
+
  private:
-  bool decodeString(const QString &str, Units &units, QPointF &point, const Units &defUnits);
+  static bool decodeString(const QString &str, Units &units, QPointF &point,
+                           const Units &defUnits=Units::PIXEL);
 
  private:
   Units   units_ { Units::PIXEL };

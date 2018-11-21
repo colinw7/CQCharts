@@ -2,11 +2,13 @@
 
 CQUTIL_DEF_META_TYPE(CQChartsSides, toString, fromString)
 
+int CQChartsSides::metaTypeId;
+
 void
 CQChartsSides::
 registerMetaType()
 {
-  CQUTIL_REGISTER_META(CQChartsSides);
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsSides);
 }
 
 bool

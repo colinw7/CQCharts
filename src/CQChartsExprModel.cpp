@@ -615,8 +615,21 @@ data(const QModelIndex &index, int role) const
 {
   int nc = sourceModel()->columnCount(mapToSource(index));
 
-  if (! index.isValid() || index.column() < nc)
-    return sourceModel()->data(mapToSource(index), role);
+  if (! index.isValid())
+    return QVariant();
+
+  //---
+
+  if (index.column() >= 0 && index.column() < nc) {
+    QModelIndex sind = mapToSource(index);
+
+    QVariant var = sourceModel()->data(sind, role);
+
+    if (role == Qt::ToolTipRole && ! var.isValid())
+      var = sourceModel()->data(sind, Qt::DisplayRole);
+
+    return var;
+  }
 
   //---
 

@@ -10,4 +10,4 @@ set model [load_model -tsv data/multi_series.tsv -comment_header -column_type "t
 
 set plot [create_plot -type scatter -columns "x=0,y=1" -title "Scatter Plot"]
 
-connect_chart -plot $plot -from objIdPressed -to objPressed
+connect_charts -plot $plot -from objIdPressed -to objPressed
