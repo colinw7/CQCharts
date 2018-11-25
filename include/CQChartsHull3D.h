@@ -149,8 +149,8 @@ class CListLink {
     }
 
    private:
-    const ListLink *list_;
-    const ListLink *p_;
+    const ListLink* list_;
+    const ListLink* p_;
     bool            end_;
   };
 
@@ -160,8 +160,8 @@ class CListLink {
   iterator end  () const { return iterator(IteratorState(0));}
 
  public:
-  T *next;
-  T *prev;
+  T* next { nullptr };
+  T* prev { nullptr };
 };
 
 //---
@@ -232,6 +232,7 @@ class CQChartsHull3D {
     iterator beginIterator() { return ListLink::begin(); }
     iterator endIterator  () { return ListLink::end  (); }
 
+#if 0
     void print(std::ostream &os=std::cout) const {
       os << "(" << x() << ", " << y() << ", " << z() << ")";
     }
@@ -241,6 +242,7 @@ class CQChartsHull3D {
 
       return os;
     }
+#endif
 
    private:
 #ifdef CQChartsHull3D_CheckSafe
@@ -345,6 +347,7 @@ class CQChartsHull3D {
     iterator beginIterator() { return ListLink::begin(); }
     iterator endIterator  () { return ListLink::end  (); }
 
+#if 0
     void print(std::ostream &os=std::cout) const {
       os << "(" << *start() << ", " << *end() << ")";
     }
@@ -354,6 +357,7 @@ class CQChartsHull3D {
 
       return os;
     }
+#endif
 
    private:
     Vertex* endpts_[2];
@@ -427,6 +431,7 @@ class CQChartsHull3D {
       return edge_[i]->otherFace(this);
     }
 
+#if 0
     void print(std::ostream &os=std::cout) const {
       os << "(" << *vertex_[0] << ", " << *vertex_[1] << ", " << *vertex_[2] << ")";
     }
@@ -436,6 +441,7 @@ class CQChartsHull3D {
 
       return os;
     }
+#endif
 
    private:
     void subVec(const double *a, const double *b, double c[3]) {

@@ -38,6 +38,16 @@ decodeString(const QString &str, Type &type)
   return true;
 }
 
+QStringList
+CQChartsFillUnderSide::
+sideNames()
+{
+  static QStringList names = QStringList() <<
+    "both" << "above" << "below";
+
+  return names;
+}
+
 //---
 
 CQUTIL_DEF_META_TYPE(CQChartsFillUnderPos, toString, fromString)

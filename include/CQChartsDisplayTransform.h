@@ -169,7 +169,7 @@ class CQChartsDisplayTransform {
   }
 
  private:
-  const CQChartsDisplayRange *range_ { nullptr };
+  const CQChartsDisplayRange* range_ { nullptr };
   double                      scale_ { 1.0 };
   double                      angle_ { 0.0 };
   double                      tx_    { 0.0 };

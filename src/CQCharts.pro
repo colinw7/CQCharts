@@ -23,6 +23,8 @@ CQChartsExprModel.cpp \
 CQChartsExprModelFn.cpp \
 \
 CQChartsColumn.cpp \
+CQChartsColumnEdit.cpp \
+CQChartsColumnsEdit.cpp \
 CQChartsColumnType.cpp \
 \
 CQChartsTable.cpp \
@@ -110,7 +112,6 @@ CQChartsModelDetails.cpp \
 CQChartsModelExprMatch.cpp \
 CQChartsModelFilter.cpp \
 CQChartsModelVisitor.cpp \
-CQChartsColumnEdit.cpp \
 \
 CQChartsInvalidator.cpp \
 \
@@ -125,6 +126,7 @@ CQChartsRotatedText.cpp \
 CQChartsRoundedPolygon.cpp \
 \
 CQChartsColor.cpp \
+CQChartsColorEdit.cpp \
 CQChartsNamePair.cpp \
 CQChartsPolygonList.cpp \
 CQChartsPosition.cpp \
@@ -132,16 +134,24 @@ CQChartsPositionEdit.cpp \
 CQChartsLength.cpp \
 CQChartsLengthEdit.cpp \
 CQChartsRect.cpp \
+CQChartsRectEdit.cpp \
+CQChartsPolygon.cpp \
+CQChartsPolygonEdit.cpp \
 CQChartsPlotMargin.cpp \
 CQChartsConnectionList.cpp \
 CQChartsSides.cpp \
+CQChartsSidesEdit.cpp \
 CQChartsFillUnder.cpp \
+CQChartsFillUnderEdit.cpp \
 CQChartsKeyLocation.cpp \
+CQChartsKeyLocationEdit.cpp \
 \
 CQChartsDrawUtil.cpp \
 CQChartsSymbol.cpp \
+CQChartsSymbolEdit.cpp \
 CQChartsPath.cpp \
 CQChartsFillPattern.cpp \
+CQChartsFillPatternEdit.cpp \
 CQChartsStyle.cpp \
 CQChartsBoxWhisker.cpp \
 CQChartsDensity.cpp \
@@ -186,6 +196,8 @@ HEADERS += \
 ../include/CQChartsExprModelFn.h \
 \
 ../include/CQChartsColumn.h \
+../include/CQChartsColumnEdit.h \
+../include/CQChartsColumnsEdit.h \
 ../include/CQChartsColumnType.h \
 \
 ../include/CQChartsTable.h \
@@ -255,8 +267,10 @@ HEADERS += \
 ../include/CQChartsColorSet.h \
 ../include/CQChartsPlotSymbol.h \
 ../include/CQChartsSymbol.h \
+../include/CQChartsSymbolEdit.h \
 ../include/CQChartsPath.h \
 ../include/CQChartsFillPattern.h \
+../include/CQChartsFillPatternEdit.h \
 ../include/CQChartsStyle.h \
 ../include/CQChartsBoxWhisker.h \
 ../include/CQChartsDensity.h \
@@ -286,7 +300,6 @@ HEADERS += \
 ../include/CQChartsModelExprMatch.h \
 ../include/CQChartsModelFilter.h \
 ../include/CQChartsModelVisitor.h \
-../include/CQChartsColumnEdit.h \
 \
 ../include/CQChartsObjData.h \
 ../include/CQChartsData.h \
@@ -303,6 +316,7 @@ HEADERS += \
 ../include/CQChartsRoundedPolygon.h \
 \
 ../include/CQChartsColor.h \
+../include/CQChartsColorEdit.h \
 ../include/CQChartsNamePair.h \
 ../include/CQChartsPolygonList.h \
 ../include/CQChartsPosition.h \
@@ -310,11 +324,17 @@ HEADERS += \
 ../include/CQChartsLength.h \
 ../include/CQChartsLengthEdit.h \
 ../include/CQChartsRect.h \
+../include/CQChartsRectEdit.h \
+../include/CQChartsPolygon.h \
+../include/CQChartsPolygonEdit.h \
 ../include/CQChartsPlotMargin.h \
 ../include/CQChartsConnectionList.h \
 ../include/CQChartsSides.h \
+../include/CQChartsSidesEdit.h \
 ../include/CQChartsFillUnder.h \
+../include/CQChartsFillUnderEdit.h \
 ../include/CQChartsKeyLocation.h \
+../include/CQChartsKeyLocationEdit.h \
 \
 ../include/CQChartsDrawUtil.h \
 \

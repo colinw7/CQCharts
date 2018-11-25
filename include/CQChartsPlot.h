@@ -7,6 +7,7 @@
 #include <CQChartsObjData.h>
 #include <CQChartsGroupData.h>
 #include <CQChartsPosition.h>
+#include <CQChartsRect.h>
 #include <CQChartsModelVisitor.h>
 #include <CQChartsTextOptions.h>
 #include <CQChartsLayer.h>
@@ -77,7 +78,7 @@ class CQChartsPlotUpdateTimer : public QTimer {
   CQChartsPlot *plot() const { return plot_; }
 
  private:
-  CQChartsPlot *plot_ { nullptr };
+  CQChartsPlot* plot_ { nullptr };
 };
 
 //----
@@ -205,8 +206,8 @@ class CQChartsPlot : public CQChartsObj,
     bool          x1x2    { false };   // is double x axis plot
     bool          y1y2    { false };   // is double y axis plot
     bool          overlay { false };   // is overlay plot
-    CQChartsPlot *next    { nullptr }; // next plot
-    CQChartsPlot *prev    { nullptr }; // previos plot
+    CQChartsPlot* next    { nullptr }; // next plot
+    CQChartsPlot* prev    { nullptr }; // previos plot
 
     ConnectData() { }
 
@@ -1117,6 +1118,8 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void editMoveBy(const QPointF &d);
 
+  void selectOneObj(CQChartsObj *obj, bool allObjs);
+
   void deselectAllObjs();
 
   void deselectAll();
@@ -1235,8 +1238,7 @@ class CQChartsPlot : public CQChartsObj,
                                                     const QString &text);
   CQChartsArrowAnnotation    *addArrowAnnotation   (const CQChartsPosition &start,
                                                     const CQChartsPosition &end);
-  CQChartsRectAnnotation     *addRectAnnotation    (const CQChartsPosition &start,
-                                                    const CQChartsPosition &end);
+  CQChartsRectAnnotation     *addRectAnnotation    (const CQChartsRect &rect);
   CQChartsEllipseAnnotation  *addEllipseAnnotation (const CQChartsPosition &center,
                                                     const CQChartsLength &xRadius,
                                                     const CQChartsLength &yRadius);
@@ -1575,6 +1577,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void selectionSlot();
 
+  void updateAnnotationSlot();
+
  signals:
   // model data changed
   void modelChanged();
@@ -1621,7 +1625,7 @@ class CQChartsPlot : public CQChartsObj,
     NoUpdate(CQChartsPlot *plot) : plot_(plot) { plot_->updatesEnabled_ = false; }
    ~NoUpdate() { plot_->updatesEnabled_ = true;  }
 
-    CQChartsPlot *plot_ { nullptr };
+    CQChartsPlot* plot_ { nullptr };
   };
 
   using ObjSet     = std::set<CQChartsObj*>;

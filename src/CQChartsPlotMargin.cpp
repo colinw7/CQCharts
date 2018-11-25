@@ -7,26 +7,26 @@ CQChartsPlotMargin::
 adjustPlotRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox, bool inside) const
 {
   auto plotViewWidth = [&](const CQChartsLength &len) -> double {
-    if      (len.units() == CQChartsLength::Units::PIXEL)
+    if      (len.units() == CQChartsUnits::PIXEL)
       return plot->pixelToWindowWidth(len.value());
-    else if (len.units() == CQChartsLength::Units::PLOT)
+    else if (len.units() == CQChartsUnits::PLOT)
       return len.value();
-    else if (len.units() == CQChartsLength::Units::VIEW)
+    else if (len.units() == CQChartsUnits::VIEW)
       return plot->pixelToWindowWidth(plot->view()->windowToPixelWidth(len.value()));
-    else if (len.units() == CQChartsLength::Units::PERCENT)
+    else if (len.units() == CQChartsUnits::PERCENT)
       return bbox.getWidth()*len.value()/100.0;
     else
       return len.value();
   };
 
   auto plotViewHeight = [&](const CQChartsLength &len) -> double {
-    if      (len.units() == CQChartsLength::Units::PIXEL)
+    if      (len.units() == CQChartsUnits::PIXEL)
       return plot->pixelToWindowHeight(len.value());
-    else if (len.units() == CQChartsLength::Units::PLOT)
+    else if (len.units() == CQChartsUnits::PLOT)
       return len.value();
-    else if (len.units() == CQChartsLength::Units::VIEW)
+    else if (len.units() == CQChartsUnits::VIEW)
       return plot->pixelToWindowHeight(plot->view()->windowToPixelHeight(len.value()));
-    else if (len.units() == CQChartsLength::Units::PERCENT)
+    else if (len.units() == CQChartsUnits::PERCENT)
       return bbox.getHeight()*len.value()/100.0;
     else
       return len.value();
@@ -60,26 +60,26 @@ CQChartsPlotMargin::
 adjustViewRange(const CQChartsPlot *plot, const CQChartsGeom::BBox &bbox, bool inside) const
 {
   auto lengthViewWidth = [&](const CQChartsLength &len) -> double {
-    if      (len.units() == CQChartsLength::Units::PIXEL)
+    if      (len.units() == CQChartsUnits::PIXEL)
       return plot->view()->pixelToWindowWidth(len.value());
-    else if (len.units() == CQChartsLength::Units::PLOT)
+    else if (len.units() == CQChartsUnits::PLOT)
       return plot->view()->pixelToWindowWidth(plot->windowToPixelWidth(len.value()));
-    else if (len.units() == CQChartsLength::Units::VIEW)
+    else if (len.units() == CQChartsUnits::VIEW)
       return len.value();
-    else if (len.units() == CQChartsLength::Units::PERCENT)
+    else if (len.units() == CQChartsUnits::PERCENT)
       return bbox.getWidth()*len.value()/100.0;
     else
       return len.value();
   };
 
   auto lengthViewHeight = [&](const CQChartsLength &len) -> double {
-    if      (len.units() == CQChartsLength::Units::PIXEL)
+    if      (len.units() == CQChartsUnits::PIXEL)
       return plot->view()->pixelToWindowHeight(len.value());
-    else if (len.units() == CQChartsLength::Units::PLOT)
+    else if (len.units() == CQChartsUnits::PLOT)
       return plot->view()->pixelToWindowHeight(plot->windowToPixelHeight(len.value()));
-    else if (len.units() == CQChartsLength::Units::VIEW)
+    else if (len.units() == CQChartsUnits::VIEW)
       return len.value();
-    else if (len.units() == CQChartsLength::Units::PERCENT)
+    else if (len.units() == CQChartsUnits::PERCENT)
       return bbox.getHeight()*len.value()/100.0;
     else
       return len.value();

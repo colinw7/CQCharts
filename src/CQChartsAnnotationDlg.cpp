@@ -5,6 +5,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPositionEdit.h>
 #include <CQChartsLengthEdit.h>
+#include <CQChartsRectEdit.h>
 
 #include <CQPoint2DEdit.h>
 #include <CQAngleSpinBox.h>
@@ -71,15 +72,17 @@ initWidgets()
 
   //----
 
-  idEdit_ = new QLineEdit;
-
-  addLabelWidget(layout, "Id", idEdit_);
-
-  //---
-
+  idEdit_  = new QLineEdit;
   tipEdit_ = new QLineEdit;
 
-  addLabelWidget(layout, "Tip", tipEdit_);
+  QGridLayout *gridLayout = new QGridLayout;
+
+  int row = 0;
+
+  addGridLabelWidget(gridLayout, "Id" , idEdit_ , row);
+  addGridLabelWidget(gridLayout, "Tip", tipEdit_, row);
+
+  layout->addLayout(gridLayout);
 
   //---
 
@@ -133,19 +136,22 @@ createRectFrame()
 
   QVBoxLayout *frameLayout = new QVBoxLayout(rectWidgets_.frame);
 
-  rectWidgets_.startEdit = new CQChartsPositionEdit;
-  rectWidgets_.endEdit   = new CQChartsPositionEdit;
+  QGridLayout *gridLayout = new QGridLayout;
 
-  rectWidgets_.startEdit->setPosition(CQChartsPosition(QPointF(0, 0)));
-  rectWidgets_.endEdit  ->setPosition(CQChartsPosition(QPointF(1, 1)));
+  rectWidgets_.rectEdit = new CQChartsRectEdit;
+
+  rectWidgets_.rectEdit->setRect(CQChartsRect());
 
   rectWidgets_.marginEdit  = new CQRealSpin;
   rectWidgets_.paddingEdit = new CQRealSpin;
 
-  addLabelWidget(frameLayout, "Start"  , rectWidgets_.startEdit  );
-  addLabelWidget(frameLayout, "End"    , rectWidgets_.endEdit    );
-  addLabelWidget(frameLayout, "Margin" , rectWidgets_.marginEdit );
-  addLabelWidget(frameLayout, "Padding", rectWidgets_.paddingEdit);
+  int row = 0;
+
+  addGridLabelWidget(gridLayout, "Rect"   , rectWidgets_.rectEdit   , row);
+  addGridLabelWidget(gridLayout, "Margin" , rectWidgets_.marginEdit , row);
+  addGridLabelWidget(gridLayout, "Padding", rectWidgets_.paddingEdit, row);
+
+  frameLayout->addLayout(gridLayout);
 
   addFillWidgets  (rectWidgets_, frameLayout);
   addStrokeWidgets(rectWidgets_, frameLayout);
@@ -153,8 +159,14 @@ createRectFrame()
   rectWidgets_.cornerSizeEdit  = new CQChartsLengthEdit;
   rectWidgets_.borderSidesEdit = new QLineEdit;
 
-  addLabelWidget(frameLayout, "Corner Size" , rectWidgets_.cornerSizeEdit );
-  addLabelWidget(frameLayout, "Border Sides", rectWidgets_.borderSidesEdit);
+  QGridLayout *gridLayout1 = new QGridLayout;
+
+  int row1 = 0;
+
+  addGridLabelWidget(gridLayout1, "Corner Size" , rectWidgets_.cornerSizeEdit , row1);
+  addGridLabelWidget(gridLayout1, "Border Sides", rectWidgets_.borderSidesEdit, row1);
+
+  frameLayout->addLayout(gridLayout1);
 
   frameLayout->addStretch(1);
 }
@@ -171,9 +183,15 @@ createEllipseFrame()
   ellipseWidgets_.rxEdit     = new CQChartsLengthEdit;
   ellipseWidgets_.ryEdit     = new CQChartsLengthEdit;
 
-  addLabelWidget(frameLayout, "Center"  , ellipseWidgets_.centerEdit);
-  addLabelWidget(frameLayout, "Radius X", ellipseWidgets_.rxEdit    );
-  addLabelWidget(frameLayout, "Radius Y", ellipseWidgets_.ryEdit    );
+  QGridLayout *gridLayout = new QGridLayout;
+
+  int row = 0;
+
+  addGridLabelWidget(gridLayout, "Center"  , ellipseWidgets_.centerEdit, row);
+  addGridLabelWidget(gridLayout, "Radius X", ellipseWidgets_.rxEdit    , row);
+  addGridLabelWidget(gridLayout, "Radius Y", ellipseWidgets_.ryEdit    , row);
+
+  frameLayout->addLayout(gridLayout);
 
   addFillWidgets  (ellipseWidgets_, frameLayout);
   addStrokeWidgets(ellipseWidgets_, frameLayout);
@@ -181,8 +199,14 @@ createEllipseFrame()
   ellipseWidgets_.cornerSizeEdit  = new CQChartsLengthEdit;
   ellipseWidgets_.borderSidesEdit = new QLineEdit;
 
-  addLabelWidget(frameLayout, "Corner Size" , ellipseWidgets_.cornerSizeEdit );
-  addLabelWidget(frameLayout, "Border Sides", ellipseWidgets_.borderSidesEdit);
+  QGridLayout *gridLayout1 = new QGridLayout;
+
+  int row1 = 0;
+
+  addGridLabelWidget(gridLayout1, "Corner Size" , ellipseWidgets_.cornerSizeEdit , row1);
+  addGridLabelWidget(gridLayout1, "Border Sides", ellipseWidgets_.borderSidesEdit, row1);
+
+  frameLayout->addLayout(gridLayout1);
 
   frameLayout->addStretch(1);
 }
@@ -244,15 +268,21 @@ createTextFrame()
   textWidgets_.alphaEdit->setRange(0.0, 1.0);
   textWidgets_.alphaEdit->setValue(1.0);
 
-  addLabelWidget(frameLayout, "Position", textWidgets_.positionEdit);
-  addLabelWidget(frameLayout, "Text"    , textWidgets_.textEdit);
-  addLabelWidget(frameLayout, "Font"    , textWidgets_.fontEdit);
-  addLabelWidget(frameLayout, "Color"   , textWidgets_.colorEdit);
-  addLabelWidget(frameLayout, "Alpha"   , textWidgets_.alphaEdit);
-  addLabelWidget(frameLayout, "Angle"   , textWidgets_.angleEdit);
-  addLabelWidget(frameLayout, "Contrast", textWidgets_.contrastCheck);
-  addLabelWidget(frameLayout, "Align"   , textWidgets_.alignEdit);
-  addLabelWidget(frameLayout, "HTML"    , textWidgets_.htmlCheck);
+  QGridLayout *gridLayout = new QGridLayout;
+
+  int row = 0;
+
+  addGridLabelWidget(gridLayout, "Position", textWidgets_.positionEdit , row);
+  addGridLabelWidget(gridLayout, "Text"    , textWidgets_.textEdit     , row);
+  addGridLabelWidget(gridLayout, "Font"    , textWidgets_.fontEdit     , row);
+  addGridLabelWidget(gridLayout, "Color"   , textWidgets_.colorEdit    , row);
+  addGridLabelWidget(gridLayout, "Alpha"   , textWidgets_.alphaEdit    , row);
+  addGridLabelWidget(gridLayout, "Angle"   , textWidgets_.angleEdit    , row);
+  addGridLabelWidget(gridLayout, "Contrast", textWidgets_.contrastCheck, row);
+  addGridLabelWidget(gridLayout, "Align"   , textWidgets_.alignEdit    , row);
+  addGridLabelWidget(gridLayout, "HTML"    , textWidgets_.htmlCheck    , row);
+
+  frameLayout->addLayout(gridLayout);
 
   addFillWidgets  (textWidgets_, frameLayout);
   addStrokeWidgets(textWidgets_, frameLayout);
@@ -260,8 +290,14 @@ createTextFrame()
   textWidgets_.cornerSizeEdit  = new CQChartsLengthEdit;
   textWidgets_.borderSidesEdit = new QLineEdit;
 
-  addLabelWidget(frameLayout, "Corner Size" , textWidgets_.cornerSizeEdit );
-  addLabelWidget(frameLayout, "Border Sides", textWidgets_.borderSidesEdit);
+  QGridLayout *gridLayout1 = new QGridLayout;
+
+  int row1 = 0;
+
+  addGridLabelWidget(gridLayout1, "Corner Size" , textWidgets_.cornerSizeEdit , row1);
+  addGridLabelWidget(gridLayout1, "Border Sides", textWidgets_.borderSidesEdit, row1);
+
+  frameLayout->addLayout(gridLayout1);
 
   frameLayout->addStretch(1);
 }
@@ -274,14 +310,13 @@ createArrowFrame()
 
   QVBoxLayout *frameLayout = new QVBoxLayout(arrowWidgets_.frame);
 
+  QGridLayout *gridLayout = new QGridLayout;
+
   arrowWidgets_.startEdit = new CQChartsPositionEdit;
   arrowWidgets_.endEdit   = new CQChartsPositionEdit;
 
   arrowWidgets_.startEdit->setPosition(CQChartsPosition(QPointF(0, 0)));
   arrowWidgets_.endEdit  ->setPosition(CQChartsPosition(QPointF(1, 1)));
-
-  addLabelWidget(frameLayout, "Start", arrowWidgets_.startEdit);
-  addLabelWidget(frameLayout, "End"  , arrowWidgets_.endEdit  );
 
   arrowWidgets_.lengthEdit      = new CQChartsLengthEdit;
   arrowWidgets_.angleEdit       = new CQAngleSpinBox;
@@ -294,16 +329,22 @@ createArrowFrame()
   arrowWidgets_.filledCheck     = new CQCheckBox;
   arrowWidgets_.fillColorEdit   = new CQColorChooser;
 
-  addLabelWidget(frameLayout, "Length"      , arrowWidgets_.lengthEdit);
-  addLabelWidget(frameLayout, "Angle"       , arrowWidgets_.angleEdit);
-  addLabelWidget(frameLayout, "Back Angle"  , arrowWidgets_.backAngleEdit);
-  addLabelWidget(frameLayout, "Front Head"  , arrowWidgets_.fheadCheck);
-  addLabelWidget(frameLayout, "Tail Head"   , arrowWidgets_.theadCheck);
-  addLabelWidget(frameLayout, "Empty"       , arrowWidgets_.emptyCheck);
-  addLabelWidget(frameLayout, "Line Width"  , arrowWidgets_.lineWidthEdit);
-  addLabelWidget(frameLayout, "Stroke Color", arrowWidgets_.strokeColorEdit);
-  addLabelWidget(frameLayout, "Filled"      , arrowWidgets_.filledCheck);
-  addLabelWidget(frameLayout, "Fill Color"  , arrowWidgets_.fillColorEdit);
+  int row = 0;
+
+  addGridLabelWidget(gridLayout, "Start"       , arrowWidgets_.startEdit      , row);
+  addGridLabelWidget(gridLayout, "End"         , arrowWidgets_.endEdit        , row);
+  addGridLabelWidget(gridLayout, "Length"      , arrowWidgets_.lengthEdit     , row);
+  addGridLabelWidget(gridLayout, "Angle"       , arrowWidgets_.angleEdit      , row);
+  addGridLabelWidget(gridLayout, "Back Angle"  , arrowWidgets_.backAngleEdit  , row);
+  addGridLabelWidget(gridLayout, "Front Head"  , arrowWidgets_.fheadCheck     , row);
+  addGridLabelWidget(gridLayout, "Tail Head"   , arrowWidgets_.theadCheck     , row);
+  addGridLabelWidget(gridLayout, "Empty"       , arrowWidgets_.emptyCheck     , row);
+  addGridLabelWidget(gridLayout, "Line Width"  , arrowWidgets_.lineWidthEdit  , row);
+  addGridLabelWidget(gridLayout, "Stroke Color", arrowWidgets_.strokeColorEdit, row);
+  addGridLabelWidget(gridLayout, "Filled"      , arrowWidgets_.filledCheck    , row);
+  addGridLabelWidget(gridLayout, "Fill Color"  , arrowWidgets_.fillColorEdit  , row);
+
+  frameLayout->addLayout(gridLayout);
 
   frameLayout->addStretch(1);
 }
@@ -333,16 +374,22 @@ createPointFrame()
   pointWidgets_.fillAlphaEdit->setRange(0.0, 1.0);
   pointWidgets_.fillAlphaEdit->setValue(1.0);
 
-  addLabelWidget(frameLayout, "Position"  , pointWidgets_.positionEdit);
-  addLabelWidget(frameLayout, "Size"      , pointWidgets_.sizeEdit);
-  addLabelWidget(frameLayout, "Type"      , pointWidgets_.typeEdit);
-  addLabelWidget(frameLayout, "Stroked"   , pointWidgets_.strokedCheck);
-  addLabelWidget(frameLayout, "Filled"    , pointWidgets_.filledCheck);
-  addLabelWidget(frameLayout, "Line Width", pointWidgets_.lineWidthEdit);
-  addLabelWidget(frameLayout, "Line Color", pointWidgets_.lineColorEdit);
-  addLabelWidget(frameLayout, "Line Alpha", pointWidgets_.lineAlphaEdit);
-  addLabelWidget(frameLayout, "Fill Color", pointWidgets_.fillColorEdit);
-  addLabelWidget(frameLayout, "Fill Alpha", pointWidgets_.fillAlphaEdit);
+  QGridLayout *gridLayout = new QGridLayout;
+
+  int row = 0;
+
+  addGridLabelWidget(gridLayout, "Position"  , pointWidgets_.positionEdit , row);
+  addGridLabelWidget(gridLayout, "Size"      , pointWidgets_.sizeEdit     , row);
+  addGridLabelWidget(gridLayout, "Type"      , pointWidgets_.typeEdit     , row);
+  addGridLabelWidget(gridLayout, "Stroked"   , pointWidgets_.strokedCheck , row);
+  addGridLabelWidget(gridLayout, "Filled"    , pointWidgets_.filledCheck  , row);
+  addGridLabelWidget(gridLayout, "Line Width", pointWidgets_.lineWidthEdit, row);
+  addGridLabelWidget(gridLayout, "Line Color", pointWidgets_.lineColorEdit, row);
+  addGridLabelWidget(gridLayout, "Line Alpha", pointWidgets_.lineAlphaEdit, row);
+  addGridLabelWidget(gridLayout, "Fill Color", pointWidgets_.fillColorEdit, row);
+  addGridLabelWidget(gridLayout, "Fill Alpha", pointWidgets_.fillAlphaEdit, row);
+
+  frameLayout->addLayout(gridLayout);
 
   frameLayout->addStretch(1);
 }
@@ -483,8 +530,7 @@ createRectAnnotation()
   CQChartsFillData   &background = boxData.shape.background;
   CQChartsStrokeData &border     = boxData.shape.border;
 
-  CQChartsPosition start = rectWidgets_.startEdit->position();
-  CQChartsPosition end   = rectWidgets_.endEdit  ->position();
+  CQChartsRect rect = rectWidgets_.rectEdit->rect();
 
   boxData.margin  = rectWidgets_.marginEdit ->value();
   boxData.padding = rectWidgets_.paddingEdit->value();
@@ -514,9 +560,9 @@ createRectAnnotation()
   CQChartsRectAnnotation *annotation = nullptr;
 
   if      (view_)
-    annotation = view_->addRectAnnotation(start, end);
+    annotation = view_->addRectAnnotation(rect);
   else if (plot_)
-    annotation = plot_->addRectAnnotation(start, end);
+    annotation = plot_->addRectAnnotation(rect);
 
   annotation->setId(id);
   annotation->setTipId(tipId);

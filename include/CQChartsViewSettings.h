@@ -39,6 +39,8 @@ class CQChartsViewSettings : public QFrame {
 
   CQChartsWindow *window() const { return window_; }
 
+  CQPropertyViewTree *propertyTree() const { return propertiesWidgets_.propertyTree; }
+
  signals:
   void propertyItemSelected(QObject *obj, const QString &path);
 
@@ -64,6 +66,8 @@ class CQChartsViewSettings : public QFrame {
 
   void replaceSearchSlot(const QString &text);
   void addSearchSlot(const QString &text);
+
+  void updateSelection();
 
   //---
 
@@ -107,8 +111,6 @@ class CQChartsViewSettings : public QFrame {
   void updateInterface();
 
  private:
-  CQPropertyViewTree *propertyTree() const { return propertiesWidgets_.propertyTree; }
-
   CQChartsGradientPaletteCanvas  *interfacePlot   () const {
     return themeWidgets_.interfacePlot; }
   CQChartsGradientPaletteControl *interfaceControl() const {

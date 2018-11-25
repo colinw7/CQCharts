@@ -51,7 +51,7 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsDelaunayPlot *plot_ { nullptr };
+  CQChartsDelaunayPlot* plot_ { nullptr };
   double                x_    { 0.0 };
   double                y_    { 0.0 };
   QModelIndex           ind_;

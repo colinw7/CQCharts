@@ -49,7 +49,7 @@ class CQChartsImageObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsImagePlot *plot_  { nullptr };
+  CQChartsImagePlot* plot_  { nullptr };
   int                row_   { -1 };
   int                col_   { -1 };
   double             value_ { 0.0 };

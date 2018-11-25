@@ -18,6 +18,8 @@ class CQChartsFillUnderSide {
 
   static int metaTypeId;
 
+  static QStringList sideNames();
+
  public:
   CQChartsFillUnderSide(Type type=Type::BOTH) :
    type_(type) {
@@ -110,6 +112,10 @@ class CQChartsFillUnderPos {
  public:
   CQChartsFillUnderPos() { }
 
+  CQChartsFillUnderPos(Type xtype, double xpos, Type ytype, double ypos) :
+   xtype_(xtype), xpos_(xpos), ytype_(ytype), ypos_(ypos) {
+  }
+
   CQChartsFillUnderPos(const QString &s) {
     setValue(s);
   }
@@ -147,6 +153,8 @@ class CQChartsFillUnderPos {
 
     return true;
   }
+
+  bool isValid() const { return xtype_ != Type::NONE || ytype_ != Type::NONE; }
 
   //---
 

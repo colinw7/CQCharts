@@ -1,34 +1,26 @@
 #ifndef CQChartsLength_H
 #define CQChartsLength_H
 
+#include <CQChartsUtil.h>
 #include <QString>
 #include <iostream>
 
 class CQChartsLength {
- public:
-  enum class Units {
-    NONE,
-    VIEW,
-    PLOT,
-    PIXEL,
-    PERCENT
-  };
-
  public:
   static void registerMetaType();
 
   static int metaTypeId;
 
  public:
-  CQChartsLength(const Units &units, double value) :
+  CQChartsLength(const CQChartsUnits &units, double value) :
    units_(units), value_(value) {
   }
 
-  CQChartsLength(double value=0.0, const Units &units=Units::PLOT) :
+  CQChartsLength(double value=0.0, const CQChartsUnits &units=CQChartsUnits::PLOT) :
    units_(units), value_(value) {
   }
 
-  CQChartsLength(const QString &s, const Units &units=Units::PLOT) {
+  CQChartsLength(const QString &s, const CQChartsUnits &units=CQChartsUnits::PLOT) {
     setValue(s, units);
   }
 
@@ -43,19 +35,19 @@ class CQChartsLength {
     return *this;
   }
 
-  bool isValid() const { return units_ != Units::NONE; }
+  bool isValid() const { return units_ != CQChartsUnits::NONE; }
 
-  const Units &units() const { return units_; }
-  double       value() const { return value_; }
+  const CQChartsUnits &units() const { return units_; }
+  double               value() const { return value_; }
 
-  void setValue(const Units &units, double value) {
+  void setValue(const CQChartsUnits &units, double value) {
     units_ = units;
     value_ = value;
   }
 
-  bool setValue(const QString &str, const Units &defUnits=Units::PLOT) {
-    Units  units;
-    double value;
+  bool setValue(const QString &str, const CQChartsUnits &defUnits=CQChartsUnits::PLOT) {
+    CQChartsUnits units;
+    double        value;
 
     if (! decodeString(str, units, value, defUnits))
       return false;
@@ -67,27 +59,19 @@ class CQChartsLength {
   }
 
   bool isSet() const {
-    return (units_ != Units::PIXEL || value_ != 0.0);
+    return (units_ != CQChartsUnits::PIXEL || value_ != 0.0);
   }
 
   //---
 
   QString toString() const {
-    QString ustr = unitsString(units_);
+    QString ustr = CQChartsUtil::unitsString(units_);
 
     return QString("%1%2").arg(value_).arg(ustr);
   }
 
   void fromString(const QString &s) {
     setValue(s);
-  }
-
-  static QString unitsString(const Units &units) {
-    if      (units == Units::PIXEL  ) return "px";
-    else if (units == Units::PERCENT) return "%" ;
-    else if (units == Units::PLOT   ) return "P" ;
-    else if (units == Units::VIEW   ) return "V" ;
-    else                              return ""  ;
   }
 
   //---
@@ -117,15 +101,13 @@ class CQChartsLength {
 
   //---
 
-  static bool decodeUnits(const QString &str, Units &units, const Units &defUnits=Units::PIXEL);
+ private:
+  static bool decodeString(const QString &str, CQChartsUnits &units, double &value,
+                           const CQChartsUnits &defUnits=CQChartsUnits::PIXEL);
 
  private:
-  static bool decodeString(const QString &str, Units &units, double &value,
-                           const Units &defUnits=Units::PIXEL);
-
- private:
-  Units  units_ { Units::PIXEL };
-  double value_ { 0.0 };
+  CQChartsUnits units_ { CQChartsUnits::PIXEL };
+  double        value_ { 0.0 };
 };
 
 //---

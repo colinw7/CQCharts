@@ -118,9 +118,9 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsAdjacencyPlot *plot_  { nullptr }; // parent plot
-  CQChartsAdjacencyNode *node1_ { nullptr }; // row node
-  CQChartsAdjacencyNode *node2_ { nullptr }; // column node
+  CQChartsAdjacencyPlot* plot_  { nullptr }; // parent plot
+  CQChartsAdjacencyNode* node1_ { nullptr }; // row node
+  CQChartsAdjacencyNode* node2_ { nullptr }; // column node
   double                 value_ { 0 };       // connections value
 };
 

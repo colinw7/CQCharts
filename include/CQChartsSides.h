@@ -24,6 +24,10 @@ class CQChartsSides {
  public:
   CQChartsSides() { }
 
+  CQChartsSides(const Sides &sides) :
+   sides_(sides) {
+  }
+
   CQChartsSides(const QString &s) {
     setValue(s);
   }

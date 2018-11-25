@@ -1,35 +1,28 @@
 #ifndef CQChartsRect_H
 #define CQChartsRect_H
 
+#include <CQChartsPosition.h>
+#include <CQChartsUtil.h>
 #include <QString>
 #include <QRectF>
 #include <iostream>
 
 class CQChartsRect {
  public:
-  enum class Units {
-    NONE,
-    VIEW,
-    PLOT,
-    PIXEL,
-    PERCENT
-  };
-
- public:
   static void registerMetaType();
 
   static int metaTypeId;
 
  public:
-  CQChartsRect(const Units &units, const QRectF &rect) :
+  CQChartsRect(const CQChartsUnits &units, const QRectF &rect) :
    units_(units), rect_(rect) {
   }
 
-  CQChartsRect(const QRectF &rect=QRectF(), const Units &units=Units::PLOT) :
+  CQChartsRect(const QRectF &rect=QRectF(), const CQChartsUnits &units=CQChartsUnits::PLOT) :
    units_(units), rect_(rect) {
   }
 
-  CQChartsRect(const QString &s, const Units &units=Units::PLOT) {
+  CQChartsRect(const QString &s, const CQChartsUnits &units=CQChartsUnits::PLOT) {
     setValue(s, units);
   }
 
@@ -44,18 +37,18 @@ class CQChartsRect {
     return *this;
   }
 
-  const Units &units() const { return units_; }
+  const CQChartsUnits &units() const { return units_; }
 
   const QRectF &rect() const { return rect_; }
 
-  void setValue(const Units &units, const QRectF &rect) {
+  void setValue(const CQChartsUnits &units, const QRectF &rect) {
     units_ = units;
     rect_  = rect;
   }
 
-  bool setValue(const QString &str, const Units &defUnits=Units::PLOT) {
-    Units  units;
-    QRectF rect;
+  bool setValue(const QString &str, const CQChartsUnits &defUnits=CQChartsUnits::PLOT) {
+    CQChartsUnits units;
+    QRectF        rect;
 
     if (! decodeString(str, units, rect, defUnits))
       return false;
@@ -69,16 +62,10 @@ class CQChartsRect {
   //---
 
   QString toString() const {
-    QString ustr;
-
-    if      (units_ == Units::PIXEL  ) ustr = "px";
-    else if (units_ == Units::PERCENT) ustr = "%" ;
-    else if (units_ == Units::PLOT   ) ustr = "P" ;
-    else if (units_ == Units::VIEW   ) ustr = "V" ;
-    else                               ustr = ""  ;
+    QString ustr = CQChartsUtil::unitsString(units_);;
 
     return QString("%1 %2 %3 %4 %5").
-             arg(rect_.left()).arg(rect_.bottom()).arg(rect_.right()).arg(rect_.top()).arg(ustr);
+             arg(rect_.left()).arg(rect_.top()).arg(rect_.right()).arg(rect_.bottom()).arg(ustr);
   }
 
   void fromString(const QString &s) {
@@ -113,11 +100,12 @@ class CQChartsRect {
   //---
 
  private:
-  bool decodeString(const QString &str, Units &units, QRectF &rect, const Units &defUnits);
+  static bool decodeString(const QString &str, CQChartsUnits &units, QRectF &rect,
+                           const CQChartsUnits &defUnits=CQChartsUnits::PLOT);
 
  private:
-  Units  units_ { Units::PIXEL };
-  QRectF rect_;
+  CQChartsUnits units_ { CQChartsUnits::PLOT };
+  QRectF        rect_;
 };
 
 //---

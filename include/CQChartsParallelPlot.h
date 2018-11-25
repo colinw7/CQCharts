@@ -54,7 +54,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   void getPolyLine(QPolygonF &poly) const;
 
  private:
-  CQChartsParallelPlot *plot_ { nullptr };
+  CQChartsParallelPlot* plot_ { nullptr };
   QPolygonF             poly_;
   QModelIndex           ind_;
   int                   i_    { -1 };

@@ -54,8 +54,8 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsSunburstPlot *plot_ { nullptr };
-  CQChartsSunburstNode *node_ { nullptr };
+  CQChartsSunburstPlot* plot_ { nullptr };
+  CQChartsSunburstNode* node_ { nullptr };
 };
 
 //---

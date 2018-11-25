@@ -707,3 +707,10 @@
  + Improve color, symbol type, symbol size and font size mapping
  + Add annotation create dialog
  + Improve command names
+# 11/25/2018
+ + Use CQChartsRect for rect annotation
+ + Use CQChartsPolygon for polygon/polyline annotation
+ + Improve layout of annotation dialog
+ + Add more custom editors for types
+ + Add copy_model command
+ + Improve select notifications

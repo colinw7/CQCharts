@@ -96,7 +96,7 @@ class CQChartsPath {
   }
 
  private:
-  QPainterPath *path_ { nullptr };
+  QPainterPath* path_ { nullptr };
 };
 
 //---

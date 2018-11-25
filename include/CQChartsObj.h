@@ -23,7 +23,7 @@ class CQChartsObj : public QObject {
   bool hasId() const { return !!id_; }
 
   const QString &id() const;
-  void setId(const QString &s) { id_ = s; }
+  void setId(const QString &s);
 
   // calculate unique id of object (on demand)
   virtual QString calcId() const { return ""; }
@@ -55,6 +55,9 @@ class CQChartsObj : public QObject {
   // set/get inside
   bool isInside() const { return inside_; }
   virtual void setInside(bool b) { inside_ = b; }
+
+ signals:
+  void idChanged();
 
  protected:
   using OptString = boost::optional<QString>;

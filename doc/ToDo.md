@@ -1,4 +1,5 @@
 High
+ + generate plot on thread (redraw when finished)
  + Allow color names/symbol names in color map
  + Copy model (filtered, new columns, ...) like export_model
  + Serialize State

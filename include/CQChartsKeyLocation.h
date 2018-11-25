@@ -24,6 +24,8 @@ class CQChartsKeyLocation {
 
   static int metaTypeId;
 
+  static QStringList locationNames();
+
  public:
   CQChartsKeyLocation(Type type=Type::TOP_RIGHT) :
    type_(type) {

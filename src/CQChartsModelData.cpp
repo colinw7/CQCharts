@@ -1,6 +1,8 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsFilterModel.h>
 #include <CQSummaryModel.h>
+#include <CQDataModel.h>
 
 #ifdef CQCHARTS_FOLDED_MODEL
 #include <CQFoldedModel.h>
@@ -446,4 +448,62 @@ void
 CQChartsModelData::
 write()
 {
+}
+
+QAbstractItemModel *
+CQChartsModelData::
+copy()
+{
+  QAbstractItemModel *model = model_.data();
+
+  CQChartsModelDetails *details = this->details();
+
+  int nc = details->numColumns();
+  int nr = details->numRows();
+
+  std::vector<int> hroles = {{
+    static_cast<int>(Qt::DisplayRole),
+    static_cast<int>(CQBaseModel::Role::Type),
+    static_cast<int>(CQBaseModel::Role::BaseType),
+    static_cast<int>(CQBaseModel::Role::TypeValues),
+    static_cast<int>(CQBaseModel::Role::Min),
+    static_cast<int>(CQBaseModel::Role::Max),
+    static_cast<int>(CQBaseModel::Role::Key),
+    static_cast<int>(CQBaseModel::Role::Sorted),
+    static_cast<int>(CQBaseModel::Role::SortOrder)
+  }};
+
+  CQDataModel *dataModel = new CQDataModel(nc, nr);
+
+  for (int c = 0; c < nc; ++c) {
+    for (const auto &role : hroles) {
+      QVariant var = model->headerData(c, Qt::Horizontal, role);
+
+      if (var.isValid())
+        dataModel->setHeaderData(c, Qt::Horizontal, var, role);
+    }
+  }
+
+  for (int r = 0; r < nr; ++r) {
+    QVariant var = model->headerData(r, Qt::Vertical);
+
+    if (var.isValid())
+      dataModel->setHeaderData(r, Qt::Vertical, var);
+  }
+
+  for (int r = 0; r < nr; ++r) {
+    for (int c = 0; c < nc; ++c) {
+      QModelIndex ind1 = model    ->index(r, c);
+      QModelIndex ind2 = dataModel->index(r, c);
+
+      QVariant var = model->data(ind1);
+
+      if (var.isValid())
+        dataModel->setData(ind2, var);
+    }
+  }
+
+  CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, dataModel);
+
+  return filterModel;
 }

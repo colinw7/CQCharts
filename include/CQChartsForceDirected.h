@@ -77,10 +77,10 @@ class CQChartsForceDirected {
   double           stiffness_    { 400.0 };
   double           repulsion_    { 400.0 };
   double           damping_      { 0.5 };
-  Springy::Graph  *graph_        { nullptr };
-  Springy::Layout *layout_       { nullptr };
-  Springy::Node   *currentNode_  { nullptr };
-  Springy::Point  *currentPoint_ { nullptr };
+  Springy::Graph*  graph_        { nullptr };
+  Springy::Layout* layout_       { nullptr };
+  Springy::Node*   currentNode_  { nullptr };
+  Springy::Point*  currentPoint_ { nullptr };
 };
 
 #endif

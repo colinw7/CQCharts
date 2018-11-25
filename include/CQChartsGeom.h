@@ -275,7 +275,7 @@ class Point {
 
 #if 0
   void print(std::ostream &os) const {
-    os << "(" << x << "," << y << ")";
+    os << "{" << x << " " << y << "}";
   }
 
   friend std::ostream &operator<<(std::ostream &os, const Point &point) {
@@ -960,9 +960,9 @@ class BBox {
 #if 0
   void print(std::ostream &os) const {
     if (! set_)
-      os << "( not set )";
+      os << "{ }";
     else
-      os << "(" << pmin_ << ") (" << pmax_ << ")";
+      os << "{" << pmin_ << "} {" << pmax_ << "}";
   }
 
   friend std::ostream &operator<<(std::ostream &os, const BBox &bbox) {
@@ -1125,9 +1125,9 @@ class Matrix {
 
   // output
   void print(std::ostream &os) const {
-    os << "((" << m00_ << "," << m01_ << "," << m02_ << ")" <<
-          " (" << m10_ << "," << m11_ << "," << m12_ << ")" <<
-          " (" << m20_ << "," << m21_ << "," << m22_ << "))";
+    os << "{{" << m00_ << " " << m01_ << " " << m02_ << "}" <<
+          " {" << m10_ << " " << m11_ << " " << m12_ << "}" <<
+          " {" << m20_ << " " << m21_ << " " << m22_ << "}}";
   }
 
   friend std::ostream &operator<<(std::ostream &os, const Matrix &matrix) {

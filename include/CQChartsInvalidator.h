@@ -12,7 +12,7 @@ class CQChartsInvalidator {
   void invalidate(bool reload);
 
  private:
-  QObject *obj_ { nullptr };
+  QObject* obj_ { nullptr };
 };
 
 #endif

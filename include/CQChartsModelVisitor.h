@@ -67,7 +67,7 @@ class CQChartsModelVisitor {
   //virtual State postVisit(QAbstractItemModel *, const VisitData &) { return State::OK; }
 
  protected:
-  QAbstractItemModel *model_        { nullptr };
+  QAbstractItemModel* model_        { nullptr };
   int                 numCols_      { 0 };
   int                 row_          { 0 };
   int                 numRows_      { 0 };

@@ -9,6 +9,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsUtil.h>
 #include <CQChartsColumnEdit.h>
+#include <CQChartsColumnsEdit.h>
 #include <CQChartsModelView.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
@@ -1123,24 +1124,20 @@ CQChartsPlotDlg::
 addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
                        CQChartsPlotParameter *parameter)
 {
-  int column = 0;
-
-  bool ok;
-
-  int pColumn = parameter->defValue().toInt(&ok);
+  int col = 0;
 
   CQChartsColumnEdit *columnEdit =
-    addColumnEdit(layout, row, column, parameter->desc(), parameter->name() + "Column",
+    addColumnEdit(layout, row, col, parameter->desc(), parameter->name() + "Column",
                   "Column Name or Number");
 
-  columnEdit->setModel(model_.data());
+  CQChartsColumn column = parameter->defValue().value<CQChartsColumn>();
 
-  if (ok)
-    columnEdit->setText(QString("%1").arg(pColumn));
+  columnEdit->setModel (model_.data());
+  columnEdit->setColumn(column);
 
   plotData.columnEdits[parameter->name()] = columnEdit;
 
-  connect(columnEdit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+  connect(columnEdit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
 
   QString tip = parameter->tip();
 
@@ -1152,7 +1149,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
   FormatEditData formatEditData;
 
   formatEditData.formatEdit =
-    addStringEdit(layout, row, column, "", parameter->name() + "Format", "Column Format");
+    addStringEdit(layout, row, col, "", parameter->name() + "Format", "Column Format");
 
   formatEditData.formatEdit->setToolTip("Column format");
 
@@ -1171,7 +1168,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   formatEditData.formatUpdate->setToolTip("Get current column format");
 
-  layout->addWidget(formatEditData.formatUpdate, row, column); ++column;
+  layout->addWidget(formatEditData.formatUpdate, row, col); ++col;
 
   plotData.formatEdits[parameter->name()] = formatEditData;
 
@@ -1185,7 +1182,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
   attributesLabel->setPixmap(CQPixmapCacheInst->getSizedPixmap("INFO", is));
   attributesLabel->setToolTip(parameter->attributes().summary());
 
-  layout->addWidget(attributesLabel, row, column); ++column;
+  layout->addWidget(attributesLabel, row, col); ++col;
 
   //----
 
@@ -1196,7 +1193,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
   if (parameter->isMapped()) {
     MapEditData mapEditData;
 
-    column = 1;
+    col = 1;
 
     QHBoxLayout *mapLayout = new QHBoxLayout;
     mapLayout->setMargin(0); mapLayout->setSpacing(2);
@@ -1231,7 +1228,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
     plotData.mappedEdits[parameter->name()] = mapEditData;
 
-    layout->addLayout(mapLayout, row, column, 1, 2);
+    layout->addLayout(mapLayout, row, col, 1, 2);
 
     ++row;
 
@@ -1251,19 +1248,18 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 {
   int column = 0;
 
-  QLineEdit *columnsEdit =
-    addStringEdit(layout, row, column, parameter->desc(), parameter->name() + "Columns",
-                  "Column Names or Numbers");
+  CQChartsColumnsEdit *columnsEdit =
+    addColumnsEdit(layout, row, column, parameter->desc(), parameter->name() + "Columns",
+                   "Column Names or Numbers");
 
-  bool ok;
+  CQChartsColumns columns = parameter->defValue().value<CQChartsColumns>();
 
-  QString str = CQChartsVariant::toString(parameter->defValue(), ok);
-
-  columnsEdit->setText(str);
+  columnsEdit->setModel  (model_.data());
+  columnsEdit->setColumns(columns);
 
   plotData.columnsEdits[parameter->name()] = columnsEdit;
 
-  connect(columnsEdit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+  connect(columnsEdit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
 
   QString tip = parameter->tip();
 
@@ -1628,6 +1624,43 @@ addColumnEdit(QLayout *layout, int &row, int &column, const QString &name,
   return edit;
 }
 
+CQChartsColumnsEdit *
+CQChartsPlotDlg::
+addColumnsEdit(QLayout *layout, int &row, int &column, const QString &name,
+               const QString &objName, const QString &placeholderText) const
+{
+  QLabel *label = nullptr;
+
+  if (name != "") {
+    label = new QLabel(name);
+    label->setObjectName(objName + "Label");
+  }
+
+  CQChartsColumnsEdit *edit = new CQChartsColumnsEdit;
+  edit->setObjectName(objName + "Edit" );
+
+  edit->setPlaceholderText(placeholderText);
+
+  QGridLayout *grid    = qobject_cast<QGridLayout *>(layout);
+  QHBoxLayout *hlayout = qobject_cast<QHBoxLayout *>(layout);
+
+  if      (grid) {
+    if (label) {
+      grid->addWidget(label, row, column); ++column;
+    }
+
+    grid->addWidget(edit, row, column); ++column;
+  }
+  else if (hlayout) {
+    if (label)
+      hlayout->addWidget(label);
+
+    hlayout->addWidget(edit);
+  }
+
+  return edit;
+}
+
 void
 CQChartsPlotDlg::
 comboSlot(const QString &desc)
@@ -1715,40 +1748,25 @@ setXYMin(const QString &id)
       continue;
 
     if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
-      bool ok;
+      CQChartsColumn column1 = parameter->defValue().value<CQChartsColumn>();
 
-      int icolumn = parameter->defValue().toInt(&ok);
-
-      if (ok)
-        column = icolumn;
-
-      QString      columnStr;
       QString      columnTypeStr;
       MapValueData mapValueData;
 
-      if (! parseParameterColumnEdit(parameter, plotData, column, columnStr,
-                                     columnTypeStr, mapValueData))
+      if (! parseParameterColumnEdit(parameter, plotData, column1, columnTypeStr, mapValueData))
         return;
+
+      column = column1;
     }
     else if (parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
-      bool ok;
+      CQChartsColumns columns = parameter->defValue().value<CQChartsColumns>();
 
-      QString defValue = CQChartsVariant::toString(parameter->defValue(), ok);
+      QString columnTypeStr;
 
-      std::vector<CQChartsColumn> columns;
-
-      (void) CQChartsUtil::fromString(defValue, columns);
-
-      QStringList columnStrs;
-      QString     columnTypeStr;
-
-      if (! parseParameterColumnsEdit(parameter, plotData, columns, columnStrs, columnTypeStr))
+      if (! parseParameterColumnsEdit(parameter, plotData, columns, columnTypeStr))
         return;
 
-      if (columns.empty())
-        return;
-
-      column = columns[0];
+      column = columns.column();
     }
 
     break;
@@ -1821,15 +1839,15 @@ validateSlot()
           if (pe != plotData.columnEdits.end()) {
             CQChartsColumnEdit *edit = (*pe).second;
 
-            edit->setText(nc.second.toString());
+            edit->setColumn(nc.second);
           }
           else {
             auto pe = plotData.columnsEdits.find(nc.first);
 
             if (pe != plotData.columnsEdits.end()) {
-              QLineEdit *edit = (*pe).second;
+              CQChartsColumnsEdit *edit = (*pe).second;
 
-              edit->setText(nc.second.toString());
+              edit->setColumns(nc.second);
             }
           }
         }
@@ -1878,10 +1896,14 @@ validateSlot()
   okButton_   ->setEnabled(valid);
   applyButton_->setEnabled(valid);
 
-  if (! valid)
+  if (! valid) {
     msgLabel_->setText(msgs.at(0));
-  else
+    msgLabel_->setToolTip(msgs.join("\n"));
+  }
+  else {
     msgLabel_->setText(" ");
+    msgLabel_->setToolTip("");
+  }
 
   msgLabel_->setFixedHeight(msgLabel_->sizeHint().height());
 
@@ -1968,27 +1990,28 @@ updateFormatSlot()
     return;
 
   CQChartsColumn column;
-  QString        columnStr;
-  QString        columnType;
-  CQChartsColumn defColumn;
 
   auto pce = plotData.columnEdits.find(parameterName);
 
   if (pce != plotData.columnEdits.end()) {
-    if (! columnLineEditValue((*pce).second, column, columnStr, columnType, defColumn))
+    CQChartsColumn defColumn;
+
+    if (! columnLineEditValue((*pce).second, column, defColumn))
       return;
   }
   else {
     auto pce = plotData.columnsEdits.find(parameterName);
 
     if (pce != plotData.columnsEdits.end()) {
-      if (! columnLineEditValue((*pce).second, column, columnStr, columnType, defColumn))
+      CQChartsColumns columns;
+      CQChartsColumns defColumns;
+
+      if (! columnsLineEditValue((*pce).second, columns, defColumns))
         return;
+
+      column = columns.column();
     }
   }
-
-  if (! column.isValid())
-    return;
 
   QString typeStr;
 
@@ -2044,23 +2067,14 @@ validate(QStringList &msgs)
 
   for (const auto &parameter : type->parameters()) {
     if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
-      CQChartsColumn column;
+      CQChartsColumn column = parameter->defValue().value<CQChartsColumn>();
 
-      bool ok;
-
-      int icolumn = parameter->defValue().toInt(&ok);
-
-      if (ok)
-        column = icolumn;
-
-      QString      columnStr;
       QString      columnTypeStr;
       MapValueData mapValueData;
 
-      if (! parseParameterColumnEdit(parameter, plotData, column, columnStr,
-                                     columnTypeStr, mapValueData)) {
+      if (! parseParameterColumnEdit(parameter, plotData, column, columnTypeStr, mapValueData)) {
         if (parameter->isRequired()) {
-          msgs << "missing required column value (" << parameter->name() << ")";
+          msgs << QString("missing required column value (%1)").arg(parameter->name());
           rc = false;
         }
 
@@ -2122,18 +2136,11 @@ validate(QStringList &msgs)
         rc = rc1;
     }
     else if (parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
-      bool ok;
+      CQChartsColumns columns = parameter->defValue().value<CQChartsColumns>();
 
-      QString defValue = CQChartsVariant::toString(parameter->defValue(), ok);
+      QString columnTypeStr;
 
-      std::vector<CQChartsColumn> columns;
-
-      (void) CQChartsUtil::fromString(defValue, columns);
-
-      QStringList columnStrs;
-      QString     columnTypeStr;
-
-      if (! parseParameterColumnsEdit(parameter, plotData, columns, columnStrs, columnTypeStr)) {
+      if (! parseParameterColumnsEdit(parameter, plotData, columns, columnTypeStr)) {
         if (parameter->isRequired()) {
           msgs << QString("missing required columns value (%1)").arg(parameter->name());
           rc = false;
@@ -2142,7 +2149,7 @@ validate(QStringList &msgs)
         continue;
       }
 
-      if (! columns.empty()) {
+      if (columns.isValid()) {
         ++num_valid;
       }
     }
@@ -2329,21 +2336,12 @@ applyPlot(CQChartsPlot *plot, bool preview)
 
   for (const auto &parameter : type->parameters()) {
     if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
-      CQChartsColumn column;
+      CQChartsColumn column = parameter->defValue().value<CQChartsColumn>();
 
-      bool ok;
-
-      int icolumn = parameter->defValue().toInt(&ok);
-
-      if (ok)
-        column = icolumn;
-
-      QString      columnStr;
       QString      columnTypeStr;
       MapValueData mapValueData;
 
-      if (parseParameterColumnEdit(parameter, plotData, column, columnStr,
-                                   columnTypeStr, mapValueData)) {
+      if (parseParameterColumnEdit(parameter, plotData, column, columnTypeStr, mapValueData)) {
         if (! plot->setParameter(parameter, column.toString()))
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
 
@@ -2370,8 +2368,8 @@ applyPlot(CQChartsPlot *plot, bool preview)
       }
       else {
         if (parameter->isRequired()) {
-          if (ok)
-            plot->setParameter(parameter, QVariant(icolumn));
+          if (column.isValid())
+            plot->setParameter(parameter, column.toString());
         }
         else {
           plot->setParameter(parameter, QVariant(-1));
@@ -2379,30 +2377,23 @@ applyPlot(CQChartsPlot *plot, bool preview)
       }
     }
     else if (parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
-      bool ok;
+      CQChartsColumns columns = parameter->defValue().value<CQChartsColumns>();
 
-      QString defValue = CQChartsVariant::toString(parameter->defValue(), ok);
+      QString columnTypeStr;
 
-      std::vector<CQChartsColumn> columns;
-
-      (void) CQChartsUtil::fromString(defValue, columns);
-
-      QStringList columnStrs;
-      QString     columnTypeStr;
-
-      if (parseParameterColumnsEdit(parameter, plotData, columns, columnStrs, columnTypeStr)) {
-        QString s = CQChartsUtil::toString(columns);
+      if (parseParameterColumnsEdit(parameter, plotData, columns, columnTypeStr)) {
+        QString s = columns.toString();
 
         if (! plot->setParameter(parameter, QVariant(s)))
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
 
-        if (columnTypeStr.length() && ! columns.empty())
-          CQChartsUtil::setColumnTypeStr(charts_, model.data(), columns[0], columnTypeStr);
+        if (columnTypeStr.length() && columns.isValid())
+          CQChartsUtil::setColumnTypeStr(charts_, model.data(), columns.column(), columnTypeStr);
       }
       else {
         if (parameter->isRequired()) {
-          if (ok)
-            plot->setParameter(parameter, defValue);
+          if (columns.isValid())
+            plot->setParameter(parameter, columns.toString());
         }
         else {
           plot->setParameter(parameter, QString());
@@ -2602,7 +2593,7 @@ parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const
 bool
 CQChartsPlotDlg::
 parseParameterColumnEdit(CQChartsPlotParameter *parameter, const PlotData &plotData,
-                         CQChartsColumn &column, QString &columnStr, QString &columnType,
+                         CQChartsColumn &column, QString &columnType,
                          MapValueData &mapValueData)
 {
   auto pf = plotData.formatEdits.find(parameter->name());
@@ -2617,19 +2608,12 @@ parseParameterColumnEdit(CQChartsPlotParameter *parameter, const PlotData &plotD
 
   //---
 
-  CQChartsColumn defColumn;
-
-  bool ok;
-
-  int icolumn = parameter->defValue().toInt(&ok);
-
-  if (ok)
-    defColumn = icolumn;
+  CQChartsColumn defColumn = parameter->defValue().value<CQChartsColumn>();
 
   auto pe = plotData.columnEdits.find(parameter->name());
   assert(pe != plotData.columnEdits.end());
 
-  if (! columnLineEditValue((*pe).second, column, columnStr, columnType, defColumn))
+  if (! columnLineEditValue((*pe).second, column, defColumn))
     return false;
 
   auto pm = plotData.mappedEdits.find(parameter->name());
@@ -2651,8 +2635,7 @@ parseParameterColumnEdit(CQChartsPlotParameter *parameter, const PlotData &plotD
 bool
 CQChartsPlotDlg::
 parseParameterColumnsEdit(CQChartsPlotParameter *parameter, const PlotData &plotData,
-                          std::vector<CQChartsColumn> &columns, QStringList &columnStrs,
-                          QString &columnType)
+                          CQChartsColumns &columns, QString &columnType)
 {
   auto pf = plotData.formatEdits.find(parameter->name());
   assert(pf != plotData.formatEdits.end());
@@ -2666,24 +2649,15 @@ parseParameterColumnsEdit(CQChartsPlotParameter *parameter, const PlotData &plot
 
   //---
 
-  columns.clear();
+  CQChartsColumns defColumns = parameter->defValue().value<CQChartsColumns>();
 
   auto pe = plotData.columnsEdits.find(parameter->name());
   assert(pe != plotData.columnsEdits.end());
 
-  CQChartsColumn column;
-  QString        columnStr;
+  if (! columnsLineEditValue((*pe).second, columns, defColumns))
+    return false;
 
-  bool ok = columnLineEditValue((*pe).second, column, columnStr, columnType);
-
-  if (ok) {
-    columns   .push_back(column);
-    columnStrs.push_back(columnStr);
-
-    return true;
-  }
-
-  return columnLineEditValues((*pe).second, columns, columnStrs, columnType);
+  return true;
 }
 
 bool
@@ -2774,141 +2748,28 @@ parseParameterBoolEdit(CQChartsPlotParameter *parameter, const PlotData &plotDat
 
 bool
 CQChartsPlotDlg::
-columnLineEditValue(CQChartsColumnEdit *le, CQChartsColumn &column, QString &columnStr,
-                    QString &columnType, const CQChartsColumn &defColumn) const
+columnLineEditValue(CQChartsColumnEdit *le, CQChartsColumn &column,
+                    const CQChartsColumn &defColumn) const
 {
-  QString str = le->text().simplified();
+  column = le->column();
 
-  if (! str.length())
-    return false;
-
-  //--
-
-  return columnTextValue(str, column, columnStr, columnType, defColumn);
-}
-
-bool
-CQChartsPlotDlg::
-columnLineEditValue(QLineEdit *le, CQChartsColumn &column, QString &columnStr,
-                    QString &columnType, const CQChartsColumn &defColumn) const
-{
-  QString str = le->text().simplified();
-
-  if (! str.length())
-    return false;
-
-  //--
-
-  return columnTextValue(str, column, columnStr, columnType, defColumn);
-}
-
-bool
-CQChartsPlotDlg::
-columnTextValue(QString &str, CQChartsColumn &column, QString &columnStr,
-                QString &columnType, const CQChartsColumn &defColumn) const
-{
-  if (str.left(1) != "(") {
-    int pos = str.indexOf(":");
-
-    if (pos >= 0) {
-      str        = str.mid(0, pos).simplified();
-      columnType = str.mid(pos + 1).simplified();
-    }
-  }
-
-  if (! stringToColumn(str, column)) {
+  if (! column.isValid())
     column = defColumn;
 
-    return false;
-  }
-
-  columnStr = str;
-
-  return true;
+  return column.isValid();
 }
 
 bool
 CQChartsPlotDlg::
-columnLineEditValues(QLineEdit *le, std::vector<CQChartsColumn> &columns, QStringList &columnStrs,
-                     QString &columnType) const
+columnsLineEditValue(CQChartsColumnsEdit *le, CQChartsColumns &columns,
+                     const CQChartsColumns &defColumns) const
 {
-  bool ok = true;
+  columns = le->columns();
 
-  // TODO: better split to handle spaces in column names/expressions
-  QStringList strs = le->text().split(" ", QString::SkipEmptyParts);
+  if (! columns.isValid())
+    columns = defColumns;
 
-  for (int i = 0; i < strs.size(); ++i) {
-    const QString &str = strs[i];
-
-    if (str.left(1) != "(") {
-      int pos = str.indexOf(":");
-
-      QString lhs, rhs;
-
-      if (pos > 0) {
-        lhs = str.mid(0, pos).simplified();
-        rhs = str.mid(pos + 1).simplified();
-      }
-      else
-        lhs = str.simplified();
-
-      //---
-
-      // support column numeric range <n>-<m>
-      QStringList strs1 = lhs.split("-", QString::SkipEmptyParts);
-
-      if (strs1.size() == 2) {
-        bool ok1, ok2;
-
-        int startCol = strs1[0].toInt(&ok1);
-        int endCol   = strs1[1].toInt(&ok2);
-
-        if (ok1 && ok2) {
-          for (int col = startCol; col <= endCol; ++col) {
-            columns   .push_back(col);
-            columnStrs.push_back(QString("%1").arg(col));
-          }
-
-          if (rhs.length())
-            columnType = rhs;
-        }
-        else
-          ok = false;
-      }
-      else {
-        CQChartsColumn col;
-
-        if (stringToColumn(lhs, col)) {
-          columns   .push_back(col);
-          columnStrs.push_back(lhs);
-
-          if (rhs.length())
-            columnType = rhs;
-        }
-        else
-          ok = false;
-      }
-    }
-    else {
-      CQChartsColumn col;
-
-      if (stringToColumn(str, col)) {
-        columns   .push_back(col);
-        columnStrs.push_back(str);
-      }
-      else
-        ok = false;
-    }
-  }
-
-  return ok;
-}
-
-bool
-CQChartsPlotDlg::
-stringToColumn(const QString &str, CQChartsColumn &column) const
-{
-  return CQChartsUtil::stringToColumn(model(), str, column);
+  return columns.isValid();
 }
 
 void

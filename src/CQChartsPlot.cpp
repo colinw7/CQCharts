@@ -343,6 +343,10 @@ selectionSlot()
   QModelIndexList indices = sm->selectedIndexes();
   if (indices.empty()) return;
 
+  //---
+
+  view()->startSelection();
+
   // deselect all objects
   deselectAllObjs();
 
@@ -358,7 +362,9 @@ selectionSlot()
     }
   }
 
-  view()->updateSelText();
+  view()->endSelection();
+
+  //---
 
   invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
 
@@ -1424,6 +1430,8 @@ void
 CQChartsPlot::
 propertyItemSelected(QObject *obj, const QString &)
 {
+  view()->startSelection();
+
   view()->deselectAll();
 
   bool changed = false;
@@ -1479,6 +1487,10 @@ propertyItemSelected(QObject *obj, const QString &)
       }
     }
   }
+
+  view()->endSelection();
+
+  //---
 
   if (changed)
     invalidateLayer(CQChartsBuffer::Type::OVERLAY);
@@ -2217,11 +2229,7 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
   for (const auto &annotation : annotations()) {
     if (annotation->contains(w)) {
       if (annotation->selectPress(w)) {
-        deselectAllObjs();
-
-        deselectAll();
-
-        annotation->setSelected(true);
+        selectOneObj(annotation, /*allObjs*/true);
 
         invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
         invalidateLayer(CQChartsBuffer::Type::OVERLAY);
@@ -2306,9 +2314,13 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
     if (objSelected.first->isSelected() == objSelected.second)
       continue;
 
-    objSelected.first->setSelected(objSelected.second);
+    if (! changed) {
+      view()->startSelection();
 
-    changed = true;
+      changed = true;
+    }
+
+    objSelected.first->setSelected(objSelected.second);
   }
 
   //----
@@ -2334,6 +2346,10 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
 
     if (selectInvalidateObjs())
       invalidateLayer(CQChartsBuffer::Type::MIDDLE);
+
+    //---
+
+    view()->endSelection();
   }
 
   //---
@@ -2563,9 +2579,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
   if (key()) {
     if (key()->contains(w)) {
       if (! key()->isSelected()) {
-        deselectAll();
-
-        key()->setSelected(true);
+        selectOneObj(key(), /*allObjs*/false);
 
         invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
@@ -2590,9 +2604,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
   if (xAxis()) {
     if (xAxis()->contains(w)) {
       if (! xAxis()->isSelected()) {
-        deselectAll();
-
-        xAxis()->setSelected(true);
+        selectOneObj(xAxis(), /*allObjs*/false);
 
         invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
@@ -2617,9 +2629,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
   if (yAxis()) {
     if (yAxis()->contains(w)) {
       if (! yAxis()->isSelected()) {
-        deselectAll();
-
-        yAxis()->setSelected(true);
+        selectOneObj(yAxis(), /*allObjs*/false);
 
         invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
@@ -2644,9 +2654,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
   if (title()) {
     if (title()->contains(w)) {
       if (! title()->isSelected()) {
-        deselectAll();
-
-        title()->setSelected(true);
+        selectOneObj(title(), /*allObjs*/false);
 
         invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
@@ -2670,9 +2678,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
   for (const auto &annotation : annotations()) {
     if (annotation->contains(w)) {
       if (! annotation->isSelected()) {
-        deselectAll();
-
-        annotation->setSelected(true);
+        selectOneObj(annotation, /*allObjs*/false);
 
         invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
@@ -2701,9 +2707,15 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
   if (! objs.empty()) {
     if (! isSelected()) {
+      view()->startSelection();
+
       view()->deselectAll();
 
       setSelected(true);
+
+      view()->endSelection();
+
+      //---
 
       view()->setCurrentPlot(this);
 
@@ -2721,17 +2733,37 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
   //---
 
-  deselectAll();
+  view()->deselectAll();
 
   return false;
 }
 
 void
 CQChartsPlot::
+selectOneObj(CQChartsObj *obj, bool allObjs)
+{
+  view()->startSelection();
+
+  if (allObjs)
+    deselectAllObjs();
+
+  view()->deselectAll();
+
+  obj->setSelected(true);
+
+  view()->endSelection();
+}
+
+void
+CQChartsPlot::
 deselectAllObjs()
 {
+  view()->startSelection();
+
   for (auto &plotObj : plotObjects())
     plotObj->setSelected(false);
+
+  view()->endSelection();
 }
 
 void
@@ -2740,46 +2772,57 @@ deselectAll()
 {
   bool changed = false;
 
+  auto updateChanged = [&] {
+    if (! changed) {
+      view()->startSelection();
+
+      changed = true;
+    }
+  };
+
   if (key() && key()->isSelected()) {
     key()->setSelected(false);
 
-    changed = true;
+    updateChanged();
   }
 
   if (xAxis() && xAxis()->isSelected()) {
     xAxis()->setSelected(false);
 
-    changed = true;
+    updateChanged();
   }
 
   if (yAxis() && yAxis()->isSelected()) {
     yAxis()->setSelected(false);
 
-    changed = true;
+    updateChanged();
   }
 
   if (title() && title()->isSelected()) {
     title()->setSelected(false);
 
-    changed = true;
+    updateChanged();
   }
 
   for (auto &annotation : annotations()) {
     if (annotation->isSelected()) {
       annotation->setSelected(false);
 
-      changed = true;
+      updateChanged();
     }
   }
 
   if (isSelected()) {
     setSelected(false);
 
-    changed = true;
+    updateChanged();
   }
 
-  if (changed)
+  if (changed) {
+    view()->endSelection();
+
     invalidateLayer(CQChartsBuffer::Type::OVERLAY);
+  }
 }
 
 bool
@@ -4301,6 +4344,8 @@ drawBackgroundLayer(QPainter *painter)
       setPen(pen, true, interpFitBorderColor(0, 1), fitBorderAlpha(),
              fitBorderWidth(), fitBorderDash());
 
+      painter->setPen(pen);
+
       drawBackgroundSides(painter, fitRect, fitBorderSides());
     }
   }
@@ -4321,6 +4366,8 @@ drawBackgroundLayer(QPainter *painter)
 
       setPen(pen, true, interpDataBorderColor(0, 1), dataBorderAlpha(),
              dataBorderWidth(), dataBorderDash());
+
+      painter->setPen(pen);
 
       drawBackgroundSides(painter, dataRect, dataBorderSides());
     }
@@ -5376,9 +5423,9 @@ addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
 
 CQChartsRectAnnotation *
 CQChartsPlot::
-addRectAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
+addRectAnnotation(const CQChartsRect &rect)
 {
-  CQChartsRectAnnotation *rectAnnotation = new CQChartsRectAnnotation(this, start, end);
+  CQChartsRectAnnotation *rectAnnotation = new CQChartsRectAnnotation(this, rect);
 
   addAnnotation(rectAnnotation);
 
@@ -5437,7 +5484,8 @@ addAnnotation(CQChartsAnnotation *annotation)
 {
   annotations_.push_back(annotation);
 
-  connect(annotation, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  connect(annotation, SIGNAL(idChanged()), this, SLOT(updateAnnotationSlot()));
+  connect(annotation, SIGNAL(dataChanged()), this, SLOT(updateAnnotationSlot()));
 
   annotation->addProperties(propertyModel(), id() + "/" + "annotations");
 
@@ -5504,6 +5552,14 @@ removeAllAnnotations()
   emit annotationsChanged();
 }
 
+void
+CQChartsPlot::
+updateAnnotationSlot()
+{
+  updateSlot();
+
+  emit annotationsChanged();
+}
 //------
 
 CQChartsPlotObj *
@@ -6149,7 +6205,7 @@ CQChartsPlot::
 limitLineWidth(double w) const
 {
   // TODO: configuration setting
-  return CMathUtil::clamp(w, 0.0, 64.0);
+  return CMathUtil::clamp(w, 0.0, CQChartsLineWidth::maxPixelValue());
 }
 
 //------
@@ -7728,13 +7784,13 @@ positionToPlot(const CQChartsPosition &pos) const
 
   CQChartsGeom::Point p1 = p;
 
-  if      (pos.units() == CQChartsPosition::Units::PIXEL)
+  if      (pos.units() == CQChartsUnits::PIXEL)
     p1 = pixelToWindow(p);
-  else if (pos.units() == CQChartsPosition::Units::PLOT)
+  else if (pos.units() == CQChartsUnits::PLOT)
     p1 = p;
-  else if (pos.units() == CQChartsPosition::Units::VIEW)
+  else if (pos.units() == CQChartsUnits::VIEW)
     p1 = pixelToWindow(view_->windowToPixel(p));
-  else if (pos.units() == CQChartsPosition::Units::PERCENT) {
+  else if (pos.units() == CQChartsUnits::PERCENT) {
     CQChartsGeom::BBox pbbox = displayRangeBBox();
 
     p1.setX(p.getX()*pbbox.getWidth ()/100.0);
@@ -7752,13 +7808,13 @@ positionToPixel(const CQChartsPosition &pos) const
 
   CQChartsGeom::Point p1 = p;
 
-  if      (pos.units() == CQChartsPosition::Units::PIXEL)
+  if      (pos.units() == CQChartsUnits::PIXEL)
     p1 = p;
-  else if (pos.units() == CQChartsPosition::Units::PLOT)
+  else if (pos.units() == CQChartsUnits::PLOT)
     p1 = windowToPixel(p);
-  else if (pos.units() == CQChartsPosition::Units::VIEW)
+  else if (pos.units() == CQChartsUnits::VIEW)
     p1 = view_->windowToPixel(p);
-  else if (pos.units() == CQChartsPosition::Units::PERCENT) {
+  else if (pos.units() == CQChartsUnits::PERCENT) {
     CQChartsGeom::BBox pbbox = calcPlotPixelRect();
 
     p1.setX(p.getX()*pbbox.getWidth ()/100.0);
@@ -7781,13 +7837,13 @@ double
 CQChartsPlot::
 lengthPlotWidth(const CQChartsLength &len) const
 {
-  if      (len.units() == CQChartsLength::Units::PIXEL)
+  if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToWindowWidth(len.value());
-  else if (len.units() == CQChartsLength::Units::PLOT)
+  else if (len.units() == CQChartsUnits::PLOT)
     return len.value();
-  else if (len.units() == CQChartsLength::Units::VIEW)
+  else if (len.units() == CQChartsUnits::VIEW)
     return pixelToWindowWidth(view_->windowToPixelWidth(len.value()));
-  else if (len.units() == CQChartsLength::Units::PERCENT)
+  else if (len.units() == CQChartsUnits::PERCENT)
     return len.value()*displayRangeBBox().getWidth()/100.0;
   else
     return len.value();
@@ -7797,13 +7853,13 @@ double
 CQChartsPlot::
 lengthPlotHeight(const CQChartsLength &len) const
 {
-  if      (len.units() == CQChartsLength::Units::PIXEL)
+  if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToWindowHeight(len.value());
-  else if (len.units() == CQChartsLength::Units::PLOT)
+  else if (len.units() == CQChartsUnits::PLOT)
     return len.value();
-  else if (len.units() == CQChartsLength::Units::VIEW)
+  else if (len.units() == CQChartsUnits::VIEW)
     return pixelToWindowHeight(view_->windowToPixelHeight(len.value()));
-  else if (len.units() == CQChartsLength::Units::PERCENT)
+  else if (len.units() == CQChartsUnits::PERCENT)
     return len.value()*displayRangeBBox().getHeight()/100.0;
   else
     return len.value();
@@ -7820,13 +7876,13 @@ double
 CQChartsPlot::
 lengthPixelWidth(const CQChartsLength &len) const
 {
-  if      (len.units() == CQChartsLength::Units::PIXEL)
+  if      (len.units() == CQChartsUnits::PIXEL)
     return len.value();
-  else if (len.units() == CQChartsLength::Units::PLOT)
+  else if (len.units() == CQChartsUnits::PLOT)
     return windowToPixelWidth(len.value());
-  else if (len.units() == CQChartsLength::Units::VIEW)
+  else if (len.units() == CQChartsUnits::VIEW)
     return view_->windowToPixelWidth(len.value());
-  else if (len.units() == CQChartsLength::Units::PERCENT)
+  else if (len.units() == CQChartsUnits::PERCENT)
     return len.value()*calcPlotPixelRect().getWidth()/100.0;
   else
     return len.value();
@@ -7836,13 +7892,13 @@ double
 CQChartsPlot::
 lengthPixelHeight(const CQChartsLength &len) const
 {
-  if      (len.units() == CQChartsLength::Units::PIXEL)
+  if      (len.units() == CQChartsUnits::PIXEL)
     return len.value();
-  else if (len.units() == CQChartsLength::Units::PLOT)
+  else if (len.units() == CQChartsUnits::PLOT)
     return windowToPixelHeight(len.value());
-  else if (len.units() == CQChartsLength::Units::VIEW)
+  else if (len.units() == CQChartsUnits::VIEW)
     return view_->windowToPixelHeight(len.value());
-  else if (len.units() == CQChartsLength::Units::PERCENT)
+  else if (len.units() == CQChartsUnits::PERCENT)
     return len.value()*calcPlotPixelRect().getHeight()/100.0;
   else
     return len.value();
@@ -8165,7 +8221,7 @@ CQChartsPlot::
 limitSymbolSize(double s) const
 {
   // ensure not a crazy number : TODO: property for limits
-  return CMathUtil::clamp(s, 1.0, 1000.0);
+  return CMathUtil::clamp(s, 1.0, CQChartsSymbolSize::maxPixelValue());
 }
 
 double
@@ -8173,7 +8229,7 @@ CQChartsPlot::
 limitFontSize(double s) const
 {
   // ensure not a crazy number : TODO: property for limits
-  return CMathUtil::clamp(s, 1.0, 1000.0);
+  return CMathUtil::clamp(s, 1.0, CQChartsFontSize::maxPixelValue());
 }
 
 //------

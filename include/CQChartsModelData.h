@@ -95,6 +95,8 @@ class CQChartsModelData : public QObject {
 
   void write();
 
+  QAbstractItemModel *copy();
+
  private:
   void connectModel();
   void disconnectModel();

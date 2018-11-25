@@ -185,7 +185,7 @@ class CQChartsTheme {
 
  private:
   QString           name_;
-  CQChartsThemeObj *obj_ { nullptr };
+  CQChartsThemeObj* obj_ { nullptr };
 };
 
 //---

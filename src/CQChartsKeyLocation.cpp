@@ -49,3 +49,13 @@ decodeString(const QString &str, Type &type)
 
   return true;
 }
+
+QStringList
+CQChartsKeyLocation::
+locationNames()
+{
+  static QStringList names = QStringList() <<
+    "tl" << "tc" << "tr" << "cl" << "cc" << "cr" << "bl" << "bc" << "br" << "abs";
+
+  return names;
+}

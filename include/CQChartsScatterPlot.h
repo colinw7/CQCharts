@@ -194,7 +194,7 @@ class CQChartsScatterGridKeyItem : public CQChartsKeyItem {
   void draw(QPainter *painter, const CQChartsGeom::BBox &rect) override;
 
  private:
-  CQChartsScatterPlot *plot_ { nullptr };
+  CQChartsScatterPlot* plot_ { nullptr };
 };
 
 //---

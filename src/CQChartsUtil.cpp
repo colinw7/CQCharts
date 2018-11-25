@@ -1516,6 +1516,10 @@ bool stringToPolygons(const QString &str, std::vector<QPolygonF> &polygons) {
 bool stringToPolygon(const QString &str, QPolygonF &poly) {
   CQStrParse parse(str);
 
+  return parsePolygon(parse, poly);
+}
+
+bool parsePolygon(CQStrParse &parse, QPolygonF &poly) {
   parse.skipSpace();
 
   int pos = parse.getPos();
@@ -2463,6 +2467,45 @@ replaceModelExprVars(const QString &expr, QAbstractItemModel *model, const QMode
   }
 
   return expr1;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+bool decodeUnits(const QString &str, CQChartsUnits &units, const CQChartsUnits &defUnits) {
+  CQStrParse parse(str);
+
+  parse.skipSpace();
+
+  if      (parse.isString("px") || parse.isString("pixel"))
+    units = CQChartsUnits::PIXEL;
+  else if (parse.isString("%" ) || parse.isString("percent"))
+    units = CQChartsUnits::PERCENT;
+  else if (parse.isString("V" ) || parse.isString("view"))
+    units = CQChartsUnits::VIEW;
+  else if (parse.isString("P" ) || parse.isString("plot"))
+    units = CQChartsUnits::PLOT;
+  else if (parse.eof())
+    units = defUnits;
+  else
+    return false;
+
+  return true;
+}
+
+QStringList unitNames() {
+  static QStringList names = QStringList() << "px" << "%" << "P" << "V";
+
+  return names;
+}
+
+QStringList unitTipNames() {
+  static QStringList names = QStringList() << "Pixel" << "Percent" << "Plot" << "View";
+
+  return names;
 }
 
 }

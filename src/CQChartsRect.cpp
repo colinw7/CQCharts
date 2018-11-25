@@ -15,7 +15,8 @@ registerMetaType()
 
 bool
 CQChartsRect::
-decodeString(const QString &str, Units &units, QRectF &rect, const Units &defUnits)
+decodeString(const QString &str, CQChartsUnits &units, QRectF &rect,
+             const CQChartsUnits &defUnits)
 {
   CQStrParse parse(str);
 
@@ -24,17 +25,7 @@ decodeString(const QString &str, Units &units, QRectF &rect, const Units &defUni
 
   parse.skipSpace();
 
-  if      (parse.isString("px") || parse.isString("pixel"))
-    units = Units::PIXEL;
-  else if (parse.isString("%" ) || parse.isString("percent"))
-    units = Units::PERCENT;
-  else if (parse.isString("V" ) || parse.isString("view"))
-    units = Units::VIEW;
-  else if (parse.isString("P" ) || parse.isString("plot"))
-    units = Units::PLOT;
-  else if (parse.eof())
-    units = defUnits;
-  else
+  if (! CQChartsUtil::decodeUnits(parse.getAt(), units, defUnits))
     return false;
 
   return true;

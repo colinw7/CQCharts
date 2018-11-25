@@ -122,10 +122,10 @@ namespace Springy {
 */
 
    private:
-    Point  *point1_ { nullptr };
-    Point  *point2_ { nullptr };
-    double  length_ { 1.0 }; // spring length at rest
-    double  k_      { 1.0 }; // spring constant (See Hooke's law) .. how stiff the spring is
+    Point* point1_ { nullptr };
+    Point* point2_ { nullptr };
+    double length_ { 1.0 }; // spring length at rest
+    double k_      { 1.0 }; // spring constant (See Hooke's law) .. how stiff the spring is
   };
 
   using NodePoint = std::pair<Node*,Point*>;

@@ -4,6 +4,7 @@
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsPosition.h>
+#include <CQChartsRect.h>
 #include <CQChartsGeom.h>
 #include <QPointF>
 #include <QSizeF>
@@ -18,7 +19,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   Q_PROPERTY(LocationType     location    READ location    WRITE setLocation   )
   Q_PROPERTY(CQChartsPosition absPosition READ absPosition WRITE setAbsPosition)
-  Q_PROPERTY(QRectF           absRect     READ absRect     WRITE setAbsRect    )
+  Q_PROPERTY(CQChartsRect     absRect     READ absRect     WRITE setAbsRect    )
 
   Q_ENUMS(LocationType)
 
@@ -46,10 +47,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   const CQChartsPosition &absPosition() const { return location_.absPosition; }
   void setAbsPosition(const CQChartsPosition &p) { location_.absPosition = p; redraw(); }
 
-  const QRectF &absRect() const { return location_.absRect; }
-  void setAbsRect(const QRectF &r) { location_.absRect = r; redraw(); }
-
-  void setInside(bool b) override { inside_ = b; redraw(); }
+  const CQChartsRect &absRect() const { return location_.absRect; }
+  void setAbsRect(const CQChartsRect &r) { location_.absRect = r; redraw(); }
 
   //---
 
@@ -121,7 +120,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   struct Location {
     LocationType     location    { LocationType::TOP}; // loction
     CQChartsPosition absPosition;                      // position (relative to plot box)
-    QRectF           absRect;                          // rect (relative to plot box)
+    CQChartsRect     absRect;                          // rect (relative to plot box)
   };
 
   Location                   location_;          // location

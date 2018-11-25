@@ -46,14 +46,17 @@ addParameters()
   // custom columns/map
   startParameterGroup("Points");
 
-  addColumnParameter("symbolType", "Symbol Size", "symbolTypeColumn").
-   setTip("Custom Symbol Type").setMapMinMax(5, 13);
+  addColumnParameter("symbolType", "Symbol Type", "symbolTypeColumn").
+   setTip("Custom Symbol Type").setMapped().
+   setMapMinMax(CQChartsSymbol::minFillValue(), CQChartsSymbol::maxFillValue());
 
   addColumnParameter("symbolSize", "Symbol Size", "symbolSizeColumn").
-   setTip("Custom Symbol Size").setMapped().setMapMinMax(8, 64);
+   setTip("Custom Symbol Size").setMapped().
+   setMapMinMax(CQChartsSymbolSize::minValue(), CQChartsSymbolSize::maxValue());
 
   addColumnParameter("fontSize", "Font Size", "fontSizeColumn").
-   setTip("Custom Font Size for Text Label").setMapped().setMapMinMax(8, 48);
+   setTip("Custom Font Size for Text Label").setMapped().
+   setMapMinMax(CQChartsFontSize::minValue(), CQChartsFontSize::maxValue());
 
   addBoolParameter("textLabels", "Text Labels", "textLabels").
    setTip("Show Text Label at Point");
@@ -96,9 +99,17 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   NoUpdate noUpdate(this);
 
   // set mapped range
-  setSymbolTypeMapped(true); setSymbolTypeMapMin(5); setSymbolTypeMapMax(13);
-  setSymbolSizeMapped(true); setSymbolSizeMapMin(8); setSymbolSizeMapMax(64);
-  setFontSizeMapped  (true); setFontSizeMapMin  (8); setFontSizeMapMax  (48);
+  setSymbolTypeMapped(true);
+  setSymbolTypeMapMin(CQChartsSymbol::minFillValue());
+  setSymbolTypeMapMax(CQChartsSymbol::maxFillValue());
+
+  setSymbolSizeMapped(true);
+  setSymbolSizeMapMin(CQChartsSymbolSize::minValue());
+  setSymbolSizeMapMax(CQChartsSymbolSize::maxValue());
+
+  setFontSizeMapped(true);
+  setFontSizeMapMin(CQChartsFontSize::minValue());
+  setFontSizeMapMax(CQChartsFontSize::maxValue());
 
   //---
 
@@ -1017,7 +1028,7 @@ addPointObjects()
 
         double dataLabelFontSize = dataLabel().textFont().pointSizeF();
 
-        CQChartsLength fontSize(dataLabelFontSize, CQChartsLength::Units::PIXEL);
+        CQChartsLength fontSize(dataLabelFontSize, CQChartsUnits::PIXEL);
 
         if (fontSizeColumn().isValid())
           columnFontSize(valuePoint.row, valuePoint.ind.parent(), fontSize);
@@ -2383,9 +2394,9 @@ columnSymbolSize(int row, const QModelIndex &parent, CQChartsLength &symbolSize)
   if (! symbolSizeData_.valid)
     return false;
 
-  CQChartsLength::Units units = CQChartsLength::Units::PIXEL;
+  CQChartsUnits units = CQChartsUnits::PIXEL;
 
-  (void) CQChartsLength::decodeUnits(symbolSizeMapUnits(), units);
+  (void) CQChartsUtil::decodeUnits(symbolSizeMapUnits(), units);
 
   bool ok;
 
@@ -2417,7 +2428,9 @@ columnSymbolSize(int row, const QModelIndex &parent, CQChartsLength &symbolSize)
 
         double r = (n > 1 ? double(i)/(n - 1) : 0.0);
 
-        double r1 = CMathUtil::map(r, 0.0, 1.0, 8.0, 64.0);
+        double r1 = CMathUtil::map(r, 0.0, 1.0,
+                                   CQChartsSymbolSize::minValue(),
+                                   CQChartsSymbolSize::maxValue());
 
         symbolSize = CQChartsLength(r1, units);
       }
@@ -2492,9 +2505,9 @@ columnFontSize(int row, const QModelIndex &parent, CQChartsLength &fontSize) con
   if (! fontSizeData_.valid)
     return false;
 
-  CQChartsLength::Units units = CQChartsLength::Units::PIXEL;
+  CQChartsUnits units = CQChartsUnits::PIXEL;
 
-  (void) CQChartsLength::decodeUnits(fontSizeMapUnits(), units);
+  (void) CQChartsUtil::decodeUnits(fontSizeMapUnits(), units);
 
   bool ok;
 
@@ -2526,7 +2539,9 @@ columnFontSize(int row, const QModelIndex &parent, CQChartsLength &fontSize) con
 
         double r = (n > 1 ? double(i)/(n - 1) : 0.0);
 
-        double r1 = CMathUtil::map(r, 0.0, 1.0, 8.0, 64.0);
+        double r1 = CMathUtil::map(r, 0.0, 1.0,
+                                   CQChartsFontSize::minValue(),
+                                   CQChartsFontSize::maxValue());
 
         fontSize = CQChartsLength(r1, units);
       }

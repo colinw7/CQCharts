@@ -720,8 +720,7 @@ class CQChartsCmdArgs {
     auto p = parseStr_.find(name);
     if (p == parseStr_.end()) return def;
 
-    return CQChartsLength((*p).second[0],
-             (view ? CQChartsLength::Units::VIEW : CQChartsLength::Units::PLOT));
+    return CQChartsLength((*p).second[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
   }
 
   CQChartsPosition
@@ -730,8 +729,7 @@ class CQChartsCmdArgs {
     auto p = parseStr_.find(name);
     if (p == parseStr_.end()) return def;
 
-    return CQChartsPosition((*p).second[0],
-             (view ? CQChartsPosition::Units::VIEW : CQChartsPosition::Units::PLOT));
+    return CQChartsPosition((*p).second[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
   }
 
   CQChartsRect
@@ -740,8 +738,7 @@ class CQChartsCmdArgs {
     auto p = parseStr_.find(name);
     if (p == parseStr_.end()) return def;
 
-    return CQChartsRect((*p).second[0],
-             (view ? CQChartsRect::Units::VIEW : CQChartsRect::Units::PLOT));
+    return CQChartsRect((*p).second[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
   }
 
   QPolygonF getParsePoly(const QString &name, const QPolygonF &def=QPolygonF()) const {

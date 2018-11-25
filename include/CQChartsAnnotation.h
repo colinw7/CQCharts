@@ -5,6 +5,8 @@
 #include <CQChartsEditHandles.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsData.h>
+#include <CQChartsRect.h>
+#include <CQChartsPolygon.h>
 #include <CQChartsGeom.h>
 #include <QFont>
 
@@ -106,24 +108,28 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 class CQChartsRectAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsRect     rect  READ rect  WRITE setRect )
   Q_PROPERTY(CQChartsPosition start READ start WRITE setStart)
   Q_PROPERTY(CQChartsPosition end   READ end   WRITE setEnd  )
 
  public:
-  CQChartsRectAnnotation(CQChartsView *view, const CQChartsPosition &p1=CQChartsPosition(),
-                         const CQChartsPosition &p2=CQChartsPosition(QPointF(1, 1)));
-  CQChartsRectAnnotation(CQChartsPlot *plot, const CQChartsPosition &p1=CQChartsPosition(),
-                         const CQChartsPosition &p2=CQChartsPosition(QPointF(1, 1)));
+  CQChartsRectAnnotation(CQChartsView *view, const CQChartsRect &rect=CQChartsRect());
+  CQChartsRectAnnotation(CQChartsPlot *plot, const CQChartsRect &rect=CQChartsRect());
 
   virtual ~CQChartsRectAnnotation();
 
   const char *typeName() const override { return "rect"; }
 
-  const CQChartsPosition &start() const { return start_; }
-  void setStart(const CQChartsPosition &p) { start_ = p; emit dataChanged(); }
+  const CQChartsRect &rect() const { return rect_; }
+  void setRect(const CQChartsRect &rect);
 
-  const CQChartsPosition &end() const { return end_; }
-  void setEnd(const CQChartsPosition &p) { end_ = p; emit dataChanged(); }
+  void setRect(const CQChartsPosition &start, const CQChartsPosition &end);
+
+  CQChartsPosition start() const;
+  void setStart(const CQChartsPosition &p);
+
+  CQChartsPosition end() const;
+  void setEnd(const CQChartsPosition &p);
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
@@ -136,8 +142,7 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
-  CQChartsPosition start_ { QPointF(0, 0) };
-  CQChartsPosition end_   { QPointF(1, 1) };
+  CQChartsRect rect_;
 };
 
 //---
@@ -191,18 +196,18 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(QPolygonF points READ points WRITE setPoints)
+  Q_PROPERTY(CQChartsPolygon polygon READ polygon WRITE setPolygon)
 
  public:
-  CQChartsPolygonAnnotation(CQChartsView *view, const QPolygonF &points);
-  CQChartsPolygonAnnotation(CQChartsPlot *plot, const QPolygonF &points);
+  CQChartsPolygonAnnotation(CQChartsView *view, const CQChartsPolygon &polygon);
+  CQChartsPolygonAnnotation(CQChartsPlot *plot, const CQChartsPolygon &polygon);
 
   virtual ~CQChartsPolygonAnnotation();
 
   const char *typeName() const override { return "polygon"; }
 
-  const QPolygonF &points() const { return points_; }
-  void setPoints(const QPolygonF &points) { points_ = points; emit dataChanged(); }
+  const CQChartsPolygon &polygon() const { return polygon_; }
+  void setPolygon(const CQChartsPolygon &polygon) { polygon_ = polygon; emit dataChanged(); }
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
@@ -217,7 +222,7 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
-  QPolygonF points_;
+  CQChartsPolygon polygon_;
 };
 
 //---
@@ -225,18 +230,18 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
 class CQChartsPolylineAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(QPolygonF points READ points WRITE setPoints)
+  Q_PROPERTY(CQChartsPolygon polygon READ polygon WRITE setPolygon)
 
  public:
-  CQChartsPolylineAnnotation(CQChartsView *view, const QPolygonF &points);
-  CQChartsPolylineAnnotation(CQChartsPlot *plot, const QPolygonF &points);
+  CQChartsPolylineAnnotation(CQChartsView *view, const CQChartsPolygon &polygon);
+  CQChartsPolylineAnnotation(CQChartsPlot *plot, const CQChartsPolygon &polygon);
 
   virtual ~CQChartsPolylineAnnotation();
 
   const char *typeName() const override { return "polyline"; }
 
-  const QPolygonF &points() const { return points_; }
-  void setPoints(const QPolygonF &points) { points_ = points; emit dataChanged(); }
+  const CQChartsPolygon &polygon() const { return polygon_; }
+  void setPolygon(const CQChartsPolygon &polygon) { polygon_ = polygon; emit dataChanged(); }
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
@@ -251,7 +256,7 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
-  QPolygonF points_;
+  CQChartsPolygon polygon_;
 };
 
 //---

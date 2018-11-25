@@ -60,7 +60,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsRadarPlot *plot_       { nullptr }; // parent plot
+  CQChartsRadarPlot* plot_       { nullptr }; // parent plot
   QString            name_;                   // row name
   QPolygonF          poly_;                   // polygon
   NameValues         nameValues_;             // column values

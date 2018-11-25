@@ -110,7 +110,7 @@ class CQChartsHierBubbleNode : public CQChartsCircleNode {
 
  protected:
   CQChartsHierBubblePlot*     plot_    { nullptr }; // parent plot
-  CQChartsHierBubbleHierNode *parent_  { nullptr }; // parent hier node
+  CQChartsHierBubbleHierNode* parent_  { nullptr }; // parent hier node
   uint                        id_      { 0 };       // node id
   QString                     name_;                // node name
   double                      size_    { 0.0 };     // node size

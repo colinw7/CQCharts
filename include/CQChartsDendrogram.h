@@ -75,7 +75,7 @@ class CQChartsDendrogram {
     bool isNodeAtPoint(double x, double y, double tol) const;
 
    protected:
-    HierNode *parent_ { nullptr };
+    HierNode* parent_ { nullptr };
     uint      id_;
     QString   name_;
     double    size_   { 0.0 };
@@ -229,7 +229,7 @@ class CQChartsDendrogram {
   void printGaps();
 
  private:
-  RootNode *root_ { nullptr };
+  RootNode* root_ { nullptr };
 };
 
 #endif

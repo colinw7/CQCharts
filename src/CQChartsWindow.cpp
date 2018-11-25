@@ -7,6 +7,7 @@
 #include <CQChartsViewToolBar.h>
 #include <CQChartsFilterEdit.h>
 #include <CQChartsModelView.h>
+#include <CQPropertyViewTree.h>
 #include <CQChartsGradientPaletteControl.h>
 #include <CQPixmapCache.h>
 
@@ -451,6 +452,26 @@ updateThemePalettes()
 
 void
 CQChartsWindow::
+selectPropertyObjects()
+{
+  disconnect(settings_, SIGNAL(propertyItemSelected(QObject *, const QString &)),
+             this, SLOT(propertyItemSelected(QObject *, const QString &)));
+
+  settings_->propertyTree()->deselectAllObjects();
+
+  CQChartsView::Objs objs;
+
+  view_->allSelectedObjs(objs);
+
+  for (auto &obj : objs)
+    settings_->propertyTree()->selectObject(obj);
+
+  connect(settings_, SIGNAL(propertyItemSelected(QObject *, const QString &)),
+          this, SLOT(propertyItemSelected(QObject *, const QString &)));
+}
+
+void
+CQChartsWindow::
 propertyItemSelected(QObject *obj, const QString &path)
 {
   QObject *obj1 = obj;
@@ -497,7 +518,7 @@ drawBackground(QPainter *p)
 
   CQChartsPlotMargin outerMargin = plot->outerMargin();
 
-  CQChartsLength margin(this->margin(), CQChartsLength::Units::PIXEL);
+  CQChartsLength margin(this->margin(), CQChartsUnits::PIXEL);
 
   plot->setOuterMargin(CQChartsPlotMargin(margin, CQChartsLength(), margin, CQChartsLength()));
 

@@ -56,6 +56,19 @@ nameToType(const QString &str)
   return CQChartsSymbol::Type::NONE;
 }
 
+QStringList
+CQChartsSymbol::
+typeNames()
+{
+  static QStringList typeNames = QStringList() <<
+    "dot"      << "cross"    << "plus"     << "y"        <<
+    "triangle" << "itriangle"<< "box"      << "diamond"  <<
+    "star"     << "star5"    << "star6"    << "circle"   <<
+    "pentagon" << "ipentagon"<< "hline"    << "vline";
+
+  return typeNames;
+}
+
 //---
 
 void

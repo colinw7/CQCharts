@@ -1,0 +1,180 @@
+#ifndef CQChartsFillUnderSideEdit_H
+#define CQChartsFillUnderSideEdit_H
+
+#include <CQChartsFillUnder.h>
+#include <QFrame>
+
+class CQChartsFillUnderPosMenuButton;
+class CQWidgetMenu;
+class CQRealSpin;
+class CQFillUnderPosChooser;
+class CQCheckBox;
+
+class QComboBox;
+class QLineEdit;
+class QPushButton;
+class QStyleOptionComboBox;
+
+class CQChartsFillUnderSideEdit : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsFillUnderSideEdit(QWidget *parent=nullptr);
+
+  const CQChartsFillUnderSide &fillUnderSide() const;
+  void setFillUnderSide(const CQChartsFillUnderSide &side);
+
+ signals:
+  void fillUnderSideChanged();
+
+ private slots:
+  void comboChanged();
+
+ private:
+  CQChartsFillUnderSide fillUnderSide_;
+  QComboBox*            combo_ { nullptr };
+};
+
+//------
+
+#include <CQPropertyViewType.h>
+
+// type for CQChartsFillUnderSide
+class CQChartsFillUnderSidePropertyViewType : public CQPropertyViewType {
+ public:
+  CQChartsFillUnderSidePropertyViewType();
+
+  CQPropertyViewEditorFactory *getEditor() const override;
+
+  bool setEditorData(CQPropertyViewItem *item, const QVariant &value) override;
+
+  void draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
+            const QStyleOptionViewItem &option, const QModelIndex &index,
+            const QVariant &value, bool inside) override;
+
+  QString tip(const QVariant &value) const override;
+};
+
+//---
+
+#include <CQPropertyViewEditor.h>
+
+// editor factory for CQChartsFillUnderSide
+class CQChartsFillUnderSidePropertyViewEditor : public CQPropertyViewEditorFactory {
+ public:
+  CQChartsFillUnderSidePropertyViewEditor();
+
+  QWidget *createEdit(QWidget *parent);
+
+  void connect(QWidget *w, QObject *obj, const char *method);
+
+  QVariant getValue(QWidget *w);
+
+  void setValue(QWidget *w, const QVariant &var);
+};
+
+//------
+
+class CQChartsFillUnderPosEdit : public QFrame {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsFillUnderPos fillUnderPos    READ fillUnderPos    WRITE setFillUnderPos   )
+  Q_PROPERTY(QString              placeholderText READ placeholderText WRITE setPlaceholderText)
+
+ public:
+  CQChartsFillUnderPosEdit(QWidget *parent=nullptr);
+
+  const CQChartsFillUnderPos &fillUnderPos() const;
+  void setFillUnderPos(const CQChartsFillUnderPos &fillUnderPos);
+
+  QString placeholderText() const;
+  void setPlaceholderText(const QString &s);
+
+  void paintEvent(QPaintEvent *) override;
+
+  void resizeEvent(QResizeEvent *) override;
+
+ signals:
+  void fillUnderPosChanged();
+
+ private slots:
+  void showMenu();
+
+  void updateMenu();
+
+  void textChanged(const QString &str);
+
+  void widgetsToFillUnderPos();
+
+  void updateState();
+
+ private:
+  void initStyle(QStyleOptionComboBox &opt);
+
+  void fillUnderPosToWidgets(bool updateText);
+
+  void connectSlots(bool b);
+
+ private:
+  CQChartsFillUnderPos            fillUnderPos_;
+  QLineEdit*                      edit_       { nullptr };
+  CQChartsFillUnderPosMenuButton* button_     { nullptr };
+  CQWidgetMenu*                   menu_       { nullptr };
+  QComboBox*                      xtypeCombo_ { nullptr };
+  CQRealSpin*                     xposEdit_   { nullptr };
+  QComboBox*                      ytypeCombo_ { nullptr };
+  CQRealSpin*                     yposEdit_   { nullptr };
+};
+
+//---
+
+#include <QPushButton>
+
+class CQChartsFillUnderPosMenuButton : public QPushButton {
+  Q_OBJECT
+
+ public:
+  CQChartsFillUnderPosMenuButton(QWidget *parent=nullptr);
+
+  void paintEvent(QPaintEvent *) override;
+};
+
+//------
+
+#include <CQPropertyViewType.h>
+
+// type for CQChartsFillUnderPos
+class CQChartsFillUnderPosPropertyViewType : public CQPropertyViewType {
+ public:
+  CQChartsFillUnderPosPropertyViewType();
+
+  CQPropertyViewEditorFactory *getEditor() const override;
+
+  bool setEditorData(CQPropertyViewItem *item, const QVariant &value) override;
+
+  void draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
+            const QStyleOptionViewItem &option, const QModelIndex &index,
+            const QVariant &value, bool inside) override;
+
+  QString tip(const QVariant &value) const override;
+};
+
+//---
+
+#include <CQPropertyViewEditor.h>
+
+// editor factory for CQChartsFillUnderPos
+class CQChartsFillUnderPosPropertyViewEditor : public CQPropertyViewEditorFactory {
+ public:
+  CQChartsFillUnderPosPropertyViewEditor();
+
+  QWidget *createEdit(QWidget *parent);
+
+  void connect(QWidget *w, QObject *obj, const char *method);
+
+  QVariant getValue(QWidget *w);
+
+  void setValue(QWidget *w, const QVariant &var);
+};
+
+#endif

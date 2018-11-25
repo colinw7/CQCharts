@@ -22,10 +22,10 @@ class CQChartsPlotMargin {
   }
 
   CQChartsPlotMargin(double l, double t, double r, double b) {
-     set(CQChartsLength(l, CQChartsLength::Units::PERCENT),
-         CQChartsLength(t, CQChartsLength::Units::PERCENT),
-         CQChartsLength(r, CQChartsLength::Units::PERCENT),
-         CQChartsLength(b, CQChartsLength::Units::PERCENT));
+     set(CQChartsLength(l, CQChartsUnits::PERCENT),
+         CQChartsLength(t, CQChartsUnits::PERCENT),
+         CQChartsLength(r, CQChartsUnits::PERCENT),
+         CQChartsLength(b, CQChartsUnits::PERCENT));
   }
 
   void set(const CQChartsLength &l, const CQChartsLength &t,
@@ -42,10 +42,10 @@ class CQChartsPlotMargin {
 
     CQChartsLength left, top, right, bottom;
 
-    if (! left  .setValue(strs[0], CQChartsLength::Units::PERCENT)) return false;
-    if (! top   .setValue(strs[1], CQChartsLength::Units::PERCENT)) return false;
-    if (! right .setValue(strs[2], CQChartsLength::Units::PERCENT)) return false;
-    if (! bottom.setValue(strs[3], CQChartsLength::Units::PERCENT)) return false;
+    if (! left  .setValue(strs[0], CQChartsUnits::PERCENT)) return false;
+    if (! top   .setValue(strs[1], CQChartsUnits::PERCENT)) return false;
+    if (! right .setValue(strs[2], CQChartsUnits::PERCENT)) return false;
+    if (! bottom.setValue(strs[3], CQChartsUnits::PERCENT)) return false;
 
     set(left, top, right, bottom);
 

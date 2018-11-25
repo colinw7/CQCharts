@@ -231,7 +231,7 @@ class CQChartsPieKeyColor : public CQChartsKeyColorBox {
   QBrush fillBrush() const override;
 
  private:
-  CQChartsPlotObj *obj_ { nullptr };
+  CQChartsPlotObj* obj_ { nullptr };
 };
 
 class CQChartsPieKeyText : public CQChartsKeyText {
@@ -243,7 +243,7 @@ class CQChartsPieKeyText : public CQChartsKeyText {
   QColor interpTextColor(int i, int n) const override;
 
  private:
-  CQChartsPlotObj *obj_ { nullptr };
+  CQChartsPlotObj* obj_ { nullptr };
 };
 
 //---
@@ -397,7 +397,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
     int                  numValues    { 0 };       // data column num values
     double               radiusMax    { 0.0 };     // radius column value max
     bool                 radiusScaled { false };   // has radius column value max
-    CQChartsPieGroupObj *groupObj     { nullptr }; // associated group obj
+    CQChartsPieGroupObj* groupObj     { nullptr }; // associated group obj
   };
 
   using GroupInd   = std::map<QString,int>;

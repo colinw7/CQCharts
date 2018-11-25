@@ -207,7 +207,7 @@ class CQChartsHierScatterKeyColor : public CQChartsKeyColorBox {
   QBrush fillBrush() const override;
 
  private:
-  CQChartsHierScatterPointGroup *group_ { nullptr };
+  CQChartsHierScatterPointGroup* group_ { nullptr };
 };
 
 //---

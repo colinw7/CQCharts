@@ -1084,7 +1084,7 @@ class CQChartsValueSet : public QObject {
  protected:
   using Values = std::vector<QVariant>;
 
-  CQChartsPlot *plot_ { nullptr };
+  CQChartsPlot* plot_ { nullptr };
 
   CQChartsColumn column_; // associated model column
 

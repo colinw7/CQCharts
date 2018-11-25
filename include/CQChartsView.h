@@ -8,6 +8,7 @@
 #include <CQChartsLineDash.h>
 #include <CQChartsPosition.h>
 #include <CQChartsLength.h>
+#include <CQChartsRect.h>
 #include <CQChartsTypes.h>
 #include <QFrame>
 #include <QTimer>
@@ -293,6 +294,9 @@ class CQChartsView : public QFrame,
 
   void deselectAll();
 
+  void startSelection();
+  void endSelection();
+
   //---
 
   // annotations
@@ -303,8 +307,7 @@ class CQChartsView : public QFrame,
                                                     const QString &text);
   CQChartsArrowAnnotation    *addArrowAnnotation   (const CQChartsPosition &start,
                                                     const CQChartsPosition &end);
-  CQChartsRectAnnotation     *addRectAnnotation    (const CQChartsPosition &start,
-                                                    const CQChartsPosition &end);
+  CQChartsRectAnnotation     *addRectAnnotation    (const CQChartsRect &rect);
   CQChartsEllipseAnnotation  *addEllipseAnnotation (const CQChartsPosition &center,
                                                     const CQChartsLength &xRadius,
                                                     const CQChartsLength &yRadius);
@@ -408,6 +411,10 @@ class CQChartsView : public QFrame,
   //---
 
   void updateSelText();
+
+  void selectedObjs(Objs &objs) const;
+
+  void allSelectedObjs(Objs &objs) const;
 
   //---
 
@@ -542,6 +549,8 @@ class CQChartsView : public QFrame,
 
   void annotationsChanged();
 
+  void selectionChanged();
+
  public slots:
   void plotModelChanged();
   void plotConnectDataChangedSlot();
@@ -615,6 +624,8 @@ class CQChartsView : public QFrame,
  private slots:
   void currentPlotZoomPanChanged();
 
+  void updateAnnotationSlot();
+
  private:
   void resetConnections(bool notify);
 
@@ -672,6 +683,7 @@ class CQChartsView : public QFrame,
   Annotations           annotations_;                            // annotations
   Mode                  mode_             { Mode::SELECT };      // mouse mode
   SelectMode            selectMode_       { SelectMode::POINT }; // selection sub mode
+  int                   selecting_        { 0 };                 // selecting depth
   HighlightData         selectedHighlight_;                      // select highlight
   HighlightData         insideHighlight_;                        // inside highlight
   bool                  zoomData_         { true };              // zoom data

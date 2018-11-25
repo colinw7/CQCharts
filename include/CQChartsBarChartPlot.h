@@ -233,7 +233,7 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   void setSetHidden(bool b);
 
  private:
-  CQChartsBarChartPlot *plot_  { nullptr }; // plot
+  CQChartsBarChartPlot* plot_  { nullptr }; // plot
   CQChartsColor         color_;             // custom color
 };
 

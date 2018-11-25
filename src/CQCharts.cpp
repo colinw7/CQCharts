@@ -26,10 +26,22 @@
 
 #include <CQChartsModelData.h>
 #include <CQChartsColumnType.h>
+
 #include <CQChartsLineDashEdit.h>
-#include <CQChartsLength.h>
+#include <CQChartsColumnEdit.h>
+#include <CQChartsColumnsEdit.h>
+#include <CQChartsPositionEdit.h>
+#include <CQChartsLengthEdit.h>
+#include <CQChartsRectEdit.h>
+#include <CQChartsPolygonEdit.h>
+#include <CQChartsColorEdit.h>
+#include <CQChartsFillPatternEdit.h>
+#include <CQChartsSidesEdit.h>
+#include <CQChartsSymbolEdit.h>
+#include <CQChartsKeyLocationEdit.h>
+#include <CQChartsFillUnderEdit.h>
+
 #include <CQChartsPolygonList.h>
-#include <CQChartsRect.h>
 #include <CQChartsNamePair.h>
 #include <CQChartsSides.h>
 #include <CQChartsFillUnder.h>
@@ -56,6 +68,7 @@ CQCharts()
   CQChartsPolygonList   ::registerMetaType();
   CQChartsPosition      ::registerMetaType();
   CQChartsRect          ::registerMetaType();
+  CQChartsPolygon       ::registerMetaType();
   CQChartsSides         ::registerMetaType();
   CQChartsStyle         ::registerMetaType();
   CQChartsSymbol        ::registerMetaType();
@@ -131,7 +144,22 @@ init()
 
   //---
 
-  CQPropertyViewMgrInst->addType("CQChartsLineDash", new CQChartsLineDashPropertyViewType);
+  CQPropertyViewMgr *viewMgr = CQPropertyViewMgrInst;
+
+  viewMgr->addType("CQChartsLineDash"     , new CQChartsLineDashPropertyViewType     );
+  viewMgr->addType("CQChartsColumn"       , new CQChartsColumnPropertyViewType       );
+  viewMgr->addType("CQChartsColumns"      , new CQChartsColumnsPropertyViewType      );
+  viewMgr->addType("CQChartsPosition"     , new CQChartsPositionPropertyViewType     );
+  viewMgr->addType("CQChartsLength"       , new CQChartsLengthPropertyViewType       );
+  viewMgr->addType("CQChartsRect"         , new CQChartsRectPropertyViewType         );
+  viewMgr->addType("CQChartsPolygon"      , new CQChartsPolygonPropertyViewType      );
+  viewMgr->addType("CQChartsColor"        , new CQChartsColorPropertyViewType        );
+  viewMgr->addType("CQChartsFillPattern"  , new CQChartsFillPatternPropertyViewType  );
+  viewMgr->addType("CQChartsSides"        , new CQChartsSidesPropertyViewType        );
+  viewMgr->addType("CQChartsSymbol"       , new CQChartsSymbolPropertyViewType       );
+  viewMgr->addType("CQChartsKeyLocation"  , new CQChartsKeyLocationPropertyViewType  );
+  viewMgr->addType("CQChartsFillUnderSide", new CQChartsFillUnderSidePropertyViewType);
+  viewMgr->addType("CQChartsFillUnderPos" , new CQChartsFillUnderPosPropertyViewType );
 }
 
 bool

@@ -12,6 +12,7 @@ class CQChartsPlotParameter;
 class CQChartsView;
 class CQChartsPlot;
 class CQChartsColumnEdit;
+class CQChartsColumnsEdit;
 class CQChartsModelView;
 class CQChartsModelData;
 class CQSummaryModel;
@@ -58,27 +59,28 @@ class CQChartsPlotDlg : public QDialog {
 
  private:
   struct MapEditData {
-    QCheckBox  *mappedCheck { nullptr };
-    CQRealSpin *mapMinSpin  { nullptr };
-    CQRealSpin *mapMaxSpin  { nullptr };
+    QCheckBox*  mappedCheck { nullptr };
+    CQRealSpin* mapMinSpin  { nullptr };
+    CQRealSpin* mapMaxSpin  { nullptr };
   };
 
   struct FormatEditData {
-    QLineEdit   *formatEdit;
-    QToolButton *formatUpdate;
+    QLineEdit*   formatEdit;
+    QToolButton* formatUpdate;
   };
 
   struct PlotData {
-    using ColumnEdits = std::map<QString,CQChartsColumnEdit*>;
-    using LineEdits   = std::map<QString,QLineEdit*>;
-    using WidgetEdits = std::map<QString,QWidget*>;
-    using FormatEdits = std::map<QString,FormatEditData>;
-    using Combos      = std::map<QString,QComboBox*>;
-    using CheckBoxes  = std::map<QString,QCheckBox*>;
-    using MapEdits    = std::map<QString,MapEditData>;
+    using ColumnEdits  = std::map<QString,CQChartsColumnEdit*>;
+    using ColumnsEdits = std::map<QString,CQChartsColumnsEdit*>;
+    using LineEdits    = std::map<QString,QLineEdit*>;
+    using WidgetEdits  = std::map<QString,QWidget*>;
+    using FormatEdits  = std::map<QString,FormatEditData>;
+    using Combos       = std::map<QString,QComboBox*>;
+    using CheckBoxes   = std::map<QString,QCheckBox*>;
+    using MapEdits     = std::map<QString,MapEditData>;
 
     ColumnEdits  columnEdits;
-    LineEdits    columnsEdits;
+    ColumnsEdits columnsEdits;
     MapEdits     mappedEdits;
     FormatEdits  formatEdits;
     Combos       enumEdits;
@@ -140,21 +142,24 @@ class CQChartsPlotDlg : public QDialog {
   void addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
                            CQChartsPlotParameter *parameter);
 
-  QLineEdit *addRealEdit(QLayout *grid, int &row, int &column, const QString &name,
-                         const QString &objName, const QString &placeholderText) const;
   CQChartsColumnEdit *addColumnEdit(QLayout *grid, int &row, int &column, const QString &name,
                                     const QString &objName, const QString &placeholderText) const;
+  CQChartsColumnsEdit *addColumnsEdit(QLayout *grid, int &row, int &column, const QString &name,
+                                      const QString &objName, const QString &placeholderText) const;
+
+  QLineEdit *addRealEdit(QLayout *grid, int &row, int &column, const QString &name,
+                         const QString &objName, const QString &placeholderText) const;
   QLineEdit *addStringEdit(QLayout *grid, int &row, int &column, const QString &name,
                            const QString &objName, const QString &placeholderText) const;
 
   bool parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const;
 
   bool parseParameterColumnEdit(CQChartsPlotParameter *parameter, const PlotData &plotData,
-                                CQChartsColumn &column, QString &columnStr, QString &columnType,
+                                CQChartsColumn &column, QString &columnType,
                                 MapValueData &mapValueData);
-  bool parseParameterColumnsEdit(CQChartsPlotParameter *parameter,
-                                 const PlotData &plotData, std::vector<CQChartsColumn> &columns,
-                                 QStringList &columnStrs, QString &columnType);
+  bool parseParameterColumnsEdit(CQChartsPlotParameter *parameter, const PlotData &plotData,
+                                 CQChartsColumns &columns, QString &columnType);
+
   bool parseParameterStringEdit(CQChartsPlotParameter *parameter,
                                 const PlotData &plotData, QString &str);
   bool parseParameterRealEdit(CQChartsPlotParameter *parameter,
@@ -166,20 +171,10 @@ class CQChartsPlotDlg : public QDialog {
   bool parseParameterBoolEdit(CQChartsPlotParameter *parameter,
                               const PlotData &plotData, bool &b);
 
-  bool columnLineEditValue(CQChartsColumnEdit *le, CQChartsColumn &column, QString &columnStr,
-                           QString &columnType,
+  bool columnLineEditValue(CQChartsColumnEdit *le, CQChartsColumn &column,
                            const CQChartsColumn &defColumn=CQChartsColumn()) const;
-  bool columnLineEditValue(QLineEdit *le, CQChartsColumn &column, QString &columnStr,
-                           QString &columnType,
-                           const CQChartsColumn &defColumn=CQChartsColumn()) const;
-  bool columnTextValue(QString &str, CQChartsColumn &column, QString &columnStr,
-                       QString &columnType,
-                       const CQChartsColumn &defColumn=CQChartsColumn()) const;
-
-  bool columnLineEditValues(QLineEdit *le, std::vector<CQChartsColumn> &columns,
-                            QStringList &columnStrs, QString &columnType) const;
-
-  bool stringToColumn(const QString &str, CQChartsColumn &column) const;
+  bool columnsLineEditValue(CQChartsColumnsEdit *le, CQChartsColumns &columns,
+                            const CQChartsColumns &defColumns=CQChartsColumns()) const;
 
   bool validate(QStringList &msgs);
 

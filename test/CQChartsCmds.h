@@ -142,6 +142,7 @@ class CQChartsCmds : public QObject {
   void foldModelCmd          (const Vars &vars);
   void filterModelCmd        (const Vars &vars);
   void flattenModelCmd       (const Vars &vars);
+  void copyModelCmd          (const Vars &vars);
 
   void correlationModelCmd(const Vars &vars);
   void subsetModelCmd     (const Vars &vars);

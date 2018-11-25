@@ -128,7 +128,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   QColor barColor() const;
 
  private:
-  CQChartsDistributionPlot *plot_     { nullptr };
+  CQChartsDistributionPlot* plot_     { nullptr };
   int                       groupInd_ { -1 };
   int                       bucket_   { -1 };
   BarValue                  barValue_;
@@ -218,7 +218,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   CQChartsGeom::BBox calcRect() const;
 
  private:
-  CQChartsDistributionPlot *plot_        { nullptr };
+  CQChartsDistributionPlot* plot_        { nullptr };
   int                       groupInd_    { -1 };
   Data                      data_;
   double                    doffset_     { 0.0 };
@@ -261,7 +261,7 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
  private:
   using Points = std::vector<QPointF>;
 
-  CQChartsDistributionPlot *plot_     { nullptr };
+  CQChartsDistributionPlot* plot_     { nullptr };
   int                       groupInd_ { -1 };
   int                       bucket_   { -1 };
   int                       n_        { 0 };
@@ -295,7 +295,7 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
   void setSetHidden(bool b);
 
  private:
-  CQChartsDistributionPlot *plot_;  // plot
+  CQChartsDistributionPlot* plot_;  // plot
   CQChartsColor             color_; // custom color
 };
 

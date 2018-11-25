@@ -8,6 +8,7 @@
 #include <CQChartsStyle.h>
 #include <CQChartsColor.h>
 #include <CQChartsExprModel.h>
+#include <CQChartsTypes.h>
 #include <CQBaseModel.h>
 #include <CMathUtil.h>
 
@@ -419,6 +420,8 @@ bool stringToPolygons(const QString &str, std::vector<QPolygonF> &polyList);
 QString polygonToString(const QPolygonF &poly);
 bool stringToPolygon(const QString &str, QPolygonF &poly );
 
+bool parsePolygon(CQStrParse &parse, QPolygonF &poly);
+
 QString rectToString(const QRectF &rect);
 bool stringToRect(const QString &str, QRectF &rect);
 
@@ -447,6 +450,28 @@ bool    stringToTime(const QString &fmt, const QString &str, double &t);
 
 bool formatStringInRect(const QString &str, const QFont &font,
                         const QRectF &rect, QStringList &strs);
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+inline QString unitsString(const CQChartsUnits &units) {
+  if      (units == CQChartsUnits::PIXEL  ) return "px";
+  else if (units == CQChartsUnits::PERCENT) return "%" ;
+  else if (units == CQChartsUnits::PLOT   ) return "P" ;
+  else if (units == CQChartsUnits::VIEW   ) return "V" ;
+  else                                      return ""  ;
+}
+
+bool decodeUnits(const QString &str, CQChartsUnits &units,
+                 const CQChartsUnits &defUnits=CQChartsUnits::PLOT);
+
+
+QStringList unitNames();
+
+QStringList unitTipNames();
 
 }
 

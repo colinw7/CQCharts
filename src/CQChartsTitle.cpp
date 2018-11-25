@@ -163,7 +163,7 @@ setAbsPlotPosition(const QPointF &p)
 
   plot_->windowToView(p.x(), p.y(), vx, vy);
 
-  setAbsPosition(CQChartsPosition(QPointF(vx, vy), CQChartsPosition::Units::VIEW));
+  setAbsPosition(CQChartsPosition(QPointF(vx, vy), CQChartsUnits::VIEW));
 }
 
 QSizeF

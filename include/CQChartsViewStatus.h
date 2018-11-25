@@ -55,7 +55,7 @@ class CQChartsViewStatusPos : public QLabel {
   void posTextTypeAction(QAction *action);
 
  private:
-  CQChartsViewStatus *status_ { nullptr };
+  CQChartsViewStatus* status_ { nullptr };
   QString             text_;
 };
 

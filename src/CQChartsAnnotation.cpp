@@ -322,9 +322,8 @@ view() const
 //---
 
 CQChartsRectAnnotation::
-CQChartsRectAnnotation(CQChartsView *view, const CQChartsPosition &start,
-                       const CQChartsPosition &end) :
- CQChartsAnnotation(view), start_(start), end_(end)
+CQChartsRectAnnotation(CQChartsView *view, const CQChartsRect &rect) :
+ CQChartsAnnotation(view), rect_(rect)
 {
   setObjectName(QString("rect.%1").arg(ind()));
 
@@ -334,9 +333,8 @@ CQChartsRectAnnotation(CQChartsView *view, const CQChartsPosition &start,
 }
 
 CQChartsRectAnnotation::
-CQChartsRectAnnotation(CQChartsPlot *plot, const CQChartsPosition &start,
-                       const CQChartsPosition &end) :
- CQChartsAnnotation(plot), start_(start), end_(end)
+CQChartsRectAnnotation(CQChartsPlot *plot, const CQChartsRect &rect) :
+ CQChartsAnnotation(plot), rect_(rect)
 {
   setObjectName(QString("rect.%1").arg(ind()));
 
@@ -352,14 +350,111 @@ CQChartsRectAnnotation::
 
 void
 CQChartsRectAnnotation::
+setRect(const CQChartsRect &rect)
+{
+  rect_ = rect;
+
+  emit dataChanged();
+}
+
+void
+CQChartsRectAnnotation::
+setRect(const CQChartsPosition &start, const CQChartsPosition &end)
+{
+  QPointF pstart, pend;
+
+  if (start.units() != end.units()) {
+    if      (plot()) {
+      pstart = plot()->positionToPlot(start);
+      pend   = plot()->positionToPlot(end);
+
+      rect_ = CQChartsRect(QRectF(pstart, pend), CQChartsUnits::PLOT);
+    }
+    else if (view()) {
+      pstart = view()->positionToView(start);
+      pend   = view()->positionToView(end);
+
+      rect_ = CQChartsRect(QRectF(pstart, pend), CQChartsUnits::VIEW);
+    }
+  }
+  else {
+    rect_ = CQChartsRect(QRectF(start.p(), end.p()), start.units());
+  }
+
+  emit dataChanged();
+}
+
+CQChartsPosition
+CQChartsRectAnnotation::
+start() const
+{
+  QPointF p(rect_.rect().left(), rect_.rect().top());
+
+  return CQChartsPosition(p, rect_.units());
+}
+
+void
+CQChartsRectAnnotation::
+setStart(const CQChartsPosition &p)
+{
+  QPointF start, end;
+
+  if      (plot()) {
+    start = plot()->positionToPlot(p);
+    end   = plot()->positionToPlot(this->end());
+
+    rect_ = CQChartsRect(QRectF(start, end), CQChartsUnits::PLOT);
+  }
+  else if (view()) {
+    start = view()->positionToView(p);
+    end   = view()->positionToView(this->end());
+
+    rect_ = CQChartsRect(QRectF(start, end), CQChartsUnits::VIEW);
+  }
+
+  emit dataChanged();
+}
+
+CQChartsPosition
+CQChartsRectAnnotation::
+end() const
+{
+  QPointF p(rect_.rect().right(), rect_.rect().bottom());
+
+  return CQChartsPosition(p, rect_.units());
+}
+
+void
+CQChartsRectAnnotation::
+setEnd(const CQChartsPosition &p)
+{
+  QPointF start, end;
+
+  if      (plot()) {
+    start = plot()->positionToPlot(this->start());
+    end   = plot()->positionToPlot(p);
+
+    rect_ = CQChartsRect(QRectF(start, end), CQChartsUnits::PLOT);
+  }
+  else if (view()) {
+    start = view()->positionToView(this->start());
+    end   = view()->positionToView(p);
+
+    rect_ = CQChartsRect(QRectF(start, end), CQChartsUnits::VIEW);
+  }
+
+  emit dataChanged();
+}
+
+void
+CQChartsRectAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
   QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "start");
-  model->addProperty(path1, this, "end"  );
+  model->addProperty(path1, this, "rect");
 
   model->addProperty(path1, this, "margin" );
   model->addProperty(path1, this, "padding");
@@ -381,12 +476,12 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
   QPointF start, end;
 
   if      (plot()) {
-    start = plot()->positionToPlot(start_);
-    end   = plot()->positionToPlot(end_  );
+    start = plot()->positionToPlot(this->start());
+    end   = plot()->positionToPlot(this->end  ());
   }
   else if (view()) {
-    start = view()->positionToView(start_);
-    end   = view()->positionToView(end_  );
+    start = view()->positionToView(this->start());
+    end   = view()->positionToView(this->end  ());
   }
 
   double x1 = bbox.getXMin(), y1 = bbox.getYMin();
@@ -413,8 +508,10 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
   start = QPointF(std::min(x1, x2), std::min(y1, y2));
   end   = QPointF(std::max(x1, x2), std::max(y1, y2));
 
-  start_ = CQChartsPosition(start);
-  end_   = CQChartsPosition(end  );
+  if      (plot())
+    setRect(CQChartsRect(QRectF(start, end), CQChartsUnits::PLOT));
+  else if (view())
+    setRect(CQChartsRect(QRectF(start, end), CQChartsUnits::VIEW));
 
   bbox_ = bbox;
 }
@@ -426,12 +523,12 @@ draw(QPainter *painter)
   QPointF start, end;
 
   if      (plot()) {
-    start = plot()->positionToPlot(start_);
-    end   = plot()->positionToPlot(end_  );
+    start = plot()->positionToPlot(this->start());
+    end   = plot()->positionToPlot(this->end  ());
   }
   else if (view()) {
-    start = view()->positionToView(start_);
-    end   = view()->positionToView(end_  );
+    start = view()->positionToView(this->start());
+    end   = view()->positionToView(this->end  ());
   }
 
   double xp = 0.0, yp = 0.0, xm = 0.0, ym = 0.0;
@@ -717,8 +814,8 @@ write(std::ostream &os) const
 //---
 
 CQChartsPolygonAnnotation::
-CQChartsPolygonAnnotation(CQChartsView *view, const QPolygonF &points) :
- CQChartsAnnotation(view), points_(points)
+CQChartsPolygonAnnotation(CQChartsView *view, const CQChartsPolygon &polygon) :
+ CQChartsAnnotation(view), polygon_(polygon)
 {
   setObjectName(QString("poly.%1").arg(ind()));
 
@@ -728,8 +825,8 @@ CQChartsPolygonAnnotation(CQChartsView *view, const QPolygonF &points) :
 }
 
 CQChartsPolygonAnnotation::
-CQChartsPolygonAnnotation(CQChartsPlot *plot, const QPolygonF &points) :
- CQChartsAnnotation(plot), points_(points)
+CQChartsPolygonAnnotation(CQChartsPlot *plot, const CQChartsPolygon &polygon) :
+ CQChartsAnnotation(plot), polygon_(polygon)
 {
   setObjectName(QString("poly.%1").arg(ind()));
 
@@ -750,6 +847,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
+
+  model->addProperty(path1, this, "polygon");
 
   addStrokeFillProperties(model, path1);
 }
@@ -773,38 +872,45 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
   double x1 = bbox_.getXMin();
   double y1 = bbox_.getYMin();
 
-  for (int i = 0; i < points_.size(); ++i) {
-    points_[i].setX(sx*(points_[i].x() - x1) + x1 + dx);
-    points_[i].setY(sy*(points_[i].y() - y1) + y1 + dy);
+  QPolygonF polygon = polygon_.polygon();
+
+  for (int i = 0; i < polygon.size(); ++i) {
+    polygon[i].setX(sx*(polygon[i].x() - x1) + x1 + dx);
+    polygon[i].setY(sy*(polygon[i].y() - y1) + y1 + dy);
   }
 
-  bbox_ = bbox;
+  polygon_ = polygon;
+  bbox_    = bbox;
 }
 
 bool
 CQChartsPolygonAnnotation::
 inside(const CQChartsGeom::Point &p) const
 {
-  return (points_.containsPoint(CQChartsUtil::toQPoint(p), Qt::OddEvenFill));
+  const QPolygonF &polygon = polygon_.polygon();
+
+  return (polygon.containsPoint(CQChartsUtil::toQPoint(p), Qt::OddEvenFill));
 }
 
 void
 CQChartsPolygonAnnotation::
 draw(QPainter *painter)
 {
-  if (! points_.size())
+  const QPolygonF &polygon = polygon_.polygon();
+
+  if (! polygon.size())
     return;
 
-  double x1 = points_[0].x();
-  double y1 = points_[0].y();
+  double x1 = polygon[0].x();
+  double y1 = polygon[0].y();
   double x2 = x1;
   double y2 = y1;
 
-  for (int i = 1; i < points_.size(); ++i) {
-    x1 = std::min(x1, points_[i].x());
-    y1 = std::min(y1, points_[i].y());
-    x2 = std::max(x2, points_[i].x());
-    y2 = std::max(y2, points_[i].y());
+  for (int i = 1; i < polygon.size(); ++i) {
+    x1 = std::min(x1, polygon[i].x());
+    y1 = std::min(y1, polygon[i].y());
+    x2 = std::max(x2, polygon[i].x());
+    y2 = std::max(y2, polygon[i].y());
   }
 
   bbox_ = CQChartsGeom::BBox(x1, y1, x2, y2);
@@ -817,19 +923,19 @@ draw(QPainter *painter)
   double px = 0.0, py = 0.0;
 
   if      (plot())
-    plot()->windowToPixel(points_[0].x(), points_[0].y(), px, py);
+    plot()->windowToPixel(polygon[0].x(), polygon[0].y(), px, py);
   else if (view())
-    view()->windowToPixel(points_[0].x(), points_[0].y(), px, py);
+    view()->windowToPixel(polygon[0].x(), polygon[0].y(), px, py);
 
   path.moveTo(px, py);
 
-  for (int i = 1; i < points_.size(); ++i) {
+  for (int i = 1; i < polygon.size(); ++i) {
     double px = 0.0, py = 0.0;
 
     if      (plot())
-      plot()->windowToPixel(points_[i].x(), points_[i].y(), px, py);
+      plot()->windowToPixel(polygon[i].x(), polygon[i].y(), px, py);
     else if (view())
-      view()->windowToPixel(points_[i].x(), points_[i].y(), px, py);
+      view()->windowToPixel(polygon[i].x(), polygon[i].y(), px, py);
 
     path.lineTo(px, py);
   }
@@ -872,15 +978,17 @@ void
 CQChartsPolygonAnnotation::
 write(std::ostream &os) const
 {
+  const QPolygonF &polygon = polygon_.polygon();
+
   writeKeys(os, "create_polygon_annotation");
 
-  if (points().size()) {
+  if (polygon.size()) {
     os << " -points {";
 
-    for (int i = 0; i < points().size(); ++i) {
+    for (int i = 0; i < polygon.size(); ++i) {
       if (i > 0) os << " ";
 
-      const QPointF &p = points()[i];
+      const QPointF &p = polygon[i];
 
       os << "{" << p.x() << " " << p.y() << "}";
     }
@@ -898,8 +1006,8 @@ write(std::ostream &os) const
 //---
 
 CQChartsPolylineAnnotation::
-CQChartsPolylineAnnotation(CQChartsView *view, const QPolygonF &points) :
- CQChartsAnnotation(view), points_(points)
+CQChartsPolylineAnnotation(CQChartsView *view, const CQChartsPolygon &polygon) :
+ CQChartsAnnotation(view), polygon_(polygon)
 {
   setObjectName(QString("poly.%1").arg(ind()));
 
@@ -909,8 +1017,8 @@ CQChartsPolylineAnnotation(CQChartsView *view, const QPolygonF &points) :
 }
 
 CQChartsPolylineAnnotation::
-CQChartsPolylineAnnotation(CQChartsPlot *plot, const QPolygonF &points) :
- CQChartsAnnotation(plot), points_(points)
+CQChartsPolylineAnnotation(CQChartsPlot *plot, const CQChartsPolygon &polygon) :
+ CQChartsAnnotation(plot), polygon_(polygon)
 {
   setObjectName(QString("poly.%1").arg(ind()));
 
@@ -931,6 +1039,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
+
+  model->addProperty(path1, this, "polygon");
 
   addStrokeProperties(model, path1);
 }
@@ -954,12 +1064,15 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
   double x1 = bbox_.getXMin();
   double y1 = bbox_.getYMin();
 
-  for (int i = 0; i < points_.size(); ++i) {
-    points_[i].setX(sx*(points_[i].x() - x1) + x1 + dx);
-    points_[i].setY(sy*(points_[i].y() - y1) + y1 + dy);
+  QPolygonF polygon = polygon_.polygon();
+
+  for (int i = 0; i < polygon.size(); ++i) {
+    polygon[i].setX(sx*(polygon[i].x() - x1) + x1 + dx);
+    polygon[i].setY(sy*(polygon[i].y() - y1) + y1 + dy);
   }
 
-  bbox_ = bbox;
+  polygon_ = polygon;
+  bbox_    = bbox;
 }
 
 bool
@@ -972,11 +1085,13 @@ inside(const CQChartsGeom::Point &p) const
 
   CQChartsGeom::Point pp(px, py);
 
-  for (int i = 1; i < points_.size(); ++i) {
-    double x1 = points_[i - 1].x();
-    double y1 = points_[i - 1].y();
-    double x2 = points_[i    ].x();
-    double y2 = points_[i    ].y();
+  const QPolygonF &polygon = polygon_.polygon();
+
+  for (int i = 1; i < polygon.size(); ++i) {
+    double x1 = polygon[i - 1].x();
+    double y1 = polygon[i - 1].y();
+    double x2 = polygon[i    ].x();
+    double y2 = polygon[i    ].y();
 
     double px1, py1, px2, py2;
 
@@ -999,19 +1114,21 @@ void
 CQChartsPolylineAnnotation::
 draw(QPainter *painter)
 {
-  if (! points_.size())
+  const QPolygonF &polygon = polygon_.polygon();
+
+  if (! polygon.size())
     return;
 
-  double x1 = points_[0].x();
-  double y1 = points_[0].y();
+  double x1 = polygon[0].x();
+  double y1 = polygon[0].y();
   double x2 = x1;
   double y2 = y1;
 
-  for (int i = 1; i < points_.size(); ++i) {
-    x1 = std::min(x1, points_[i].x());
-    y1 = std::min(y1, points_[i].y());
-    x2 = std::max(x2, points_[i].x());
-    y2 = std::max(y2, points_[i].y());
+  for (int i = 1; i < polygon.size(); ++i) {
+    x1 = std::min(x1, polygon[i].x());
+    y1 = std::min(y1, polygon[i].y());
+    x2 = std::max(x2, polygon[i].x());
+    y2 = std::max(y2, polygon[i].y());
   }
 
   bbox_ = CQChartsGeom::BBox(x1, y1, x2, y2);
@@ -1024,19 +1141,19 @@ draw(QPainter *painter)
   double px = 0.0, py = 0.0;
 
   if      (plot())
-    plot()->windowToPixel(points_[0].x(), points_[0].y(), px, py);
+    plot()->windowToPixel(polygon[0].x(), polygon[0].y(), px, py);
   else if (view())
-    view()->windowToPixel(points_[0].x(), points_[0].y(), px, py);
+    view()->windowToPixel(polygon[0].x(), polygon[0].y(), px, py);
 
   path.moveTo(px, py);
 
-  for (int i = 1; i < points_.size(); ++i) {
+  for (int i = 1; i < polygon.size(); ++i) {
     double px = 0.0, py = 0.0;
 
     if      (plot())
-      plot()->windowToPixel(points_[i].x(), points_[i].y(), px, py);
+      plot()->windowToPixel(polygon[i].x(), polygon[i].y(), px, py);
     else if (view())
-      view()->windowToPixel(points_[i].x(), points_[i].y(), px, py);
+      view()->windowToPixel(polygon[i].x(), polygon[i].y(), px, py);
 
     path.lineTo(px, py);
   }
@@ -1065,13 +1182,15 @@ write(std::ostream &os) const
 {
   writeKeys(os, "create_polyline_annotation");
 
-  if (points().size()) {
+  const QPolygonF &polygon = polygon_.polygon();
+
+  if (polygon.size()) {
     os << " -points {";
 
-    for (int i = 0; i < points().size(); ++i) {
+    for (int i = 0; i < polygon.size(); ++i) {
       if (i > 0) os << " ";
 
-      const QPointF &p = points()[i];
+      const QPointF &p = polygon[i];
 
       os << "{" << p.x() << " " << p.y() << "}";
     }
@@ -1188,7 +1307,7 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
   else
     vp = CQChartsGeom::Point(x, y);
 
-  position_ = CQChartsPosition(CQChartsUtil::toQPoint(vp), CQChartsPosition::Units::VIEW);
+  position_ = CQChartsPosition(CQChartsUtil::toQPoint(vp), CQChartsUnits::VIEW);
 
   bbox_ = bbox;
 }

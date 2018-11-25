@@ -471,7 +471,7 @@ class CQChartsXYKeyLine : public CQChartsKeyItem {
   void draw(QPainter *painter, const CQChartsGeom::BBox &rect) override;
 
 protected:
-  CQChartsPlot *plot_ { nullptr };
+  CQChartsPlot* plot_ { nullptr };
   int           i_    { 0 };
   int           n_    { 0 };
 };

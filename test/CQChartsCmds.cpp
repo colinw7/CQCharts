@@ -148,6 +148,7 @@ addCommands()
     addCommand("fold_model"            );
     addCommand("filter_model"          );
     addCommand("flatten_model"         );
+    addCommand("copy_model"            );
 
     // correlation, subset, tranpose
     addCommand("correlation_model");
@@ -249,13 +250,14 @@ processCmd(const QString &cmd, const Vars &vars)
   }
 
   // load, process, sort, filter model
-  if      (cmd == "load_model"            ) { loadModelCmd     (vars); }
-  else if (cmd == "process_model"         ) { processModelCmd  (vars); }
+  if      (cmd == "load_model"            ) { loadModelCmd          (vars); }
+  else if (cmd == "process_model"         ) { processModelCmd       (vars); }
   else if (cmd == "add_process_model_proc") { addProcessModelProcCmd(vars); }
-  else if (cmd == "sort_model"            ) { sortModelCmd     (vars); }
-  else if (cmd == "fold_model"            ) { foldModelCmd     (vars); }
-  else if (cmd == "filter_model"          ) { filterModelCmd   (vars); }
-  else if (cmd == "flatten_model"         ) { flattenModelCmd  (vars); }
+  else if (cmd == "sort_model"            ) { sortModelCmd          (vars); }
+  else if (cmd == "fold_model"            ) { foldModelCmd          (vars); }
+  else if (cmd == "filter_model"          ) { filterModelCmd        (vars); }
+  else if (cmd == "flatten_model"         ) { flattenModelCmd       (vars); }
+  else if (cmd == "copy_model"            ) { copyModelCmd          (vars); }
 
   // correlation, subset
   else if (cmd == "correlation_model") { correlationModelCmd(vars); }
@@ -2002,6 +2004,46 @@ flattenModelCmd(const Vars &vars)
 
 void
 CQChartsCmds::
+copyModelCmd(const Vars &vars)
+{
+  CQPerfTrace trace("CQChartsCmds::copyModelCmd");
+
+  CQChartsCmdArgs argv("copy_model", vars);
+
+  argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
+
+  if (! argv.parse())
+    return;
+
+  //---
+
+  int modelInd = argv.getParseInt("model" , -1);
+
+  //------
+
+  // get model
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
+
+  if (! modelData) {
+    charts_->errorMsg("No model data");
+    return;
+  }
+
+  QAbstractItemModel *newModel = modelData->copy();
+
+  ModelP newModelP(newModel);
+
+  CQChartsModelData *newModelData = charts_->initModelData(newModelP);
+
+  //---
+
+  setCmdRc(newModelData->ind());
+}
+
+//------
+
+void
+CQChartsCmds::
 sortModelCmd(const Vars &vars)
 {
   CQPerfTrace trace("CQChartsCmds::sortModelCmd");
@@ -2693,28 +2735,28 @@ getChartsDataCmd(const Vars &vars)
       setCmdRc(vars);
     }
     else if (name == "view_width") {
-      CQChartsLength len(data, CQChartsLength::Units::VIEW);
+      CQChartsLength len(data, CQChartsUnits::VIEW);
 
       double w = view->lengthViewWidth(len);
 
       setCmdRc(w);
     }
     else if (name == "view_height") {
-      CQChartsLength len(data, CQChartsLength::Units::VIEW);
+      CQChartsLength len(data, CQChartsUnits::VIEW);
 
       double h = view->lengthViewHeight(len);
 
       setCmdRc(h);
     }
     else if (name == "pixel_width") {
-      CQChartsLength len(data, CQChartsLength::Units::VIEW);
+      CQChartsLength len(data, CQChartsUnits::VIEW);
 
       double w = view->lengthPixelWidth(len);
 
       setCmdRc(w);
     }
     else if (name == "pixel_height") {
-      CQChartsLength len(data, CQChartsLength::Units::VIEW);
+      CQChartsLength len(data, CQChartsUnits::VIEW);
 
       double h = view->lengthPixelHeight(len);
 
@@ -2919,28 +2961,28 @@ getChartsDataCmd(const Vars &vars)
       setCmdRc(vars);
     }
     else if (name == "plot_width") {
-      CQChartsLength len(data, CQChartsLength::Units::PLOT);
+      CQChartsLength len(data, CQChartsUnits::PLOT);
 
       double w = plot->lengthPlotWidth(len);
 
       setCmdRc(w);
     }
     else if (name == "plot_height") {
-      CQChartsLength len(data, CQChartsLength::Units::PLOT);
+      CQChartsLength len(data, CQChartsUnits::PLOT);
 
       double h = plot->lengthPlotHeight(len);
 
       setCmdRc(h);
     }
     else if (name == "pixel_width") {
-      CQChartsLength len(data, CQChartsLength::Units::PLOT);
+      CQChartsLength len(data, CQChartsUnits::PLOT);
 
       double w = plot->lengthPixelWidth(len);
 
       setCmdRc(w);
     }
     else if (name == "pixel_height") {
-      CQChartsLength len(data, CQChartsLength::Units::PLOT);
+      CQChartsLength len(data, CQChartsUnits::PLOT);
 
       double h = plot->lengthPixelHeight(len);
 
@@ -3247,12 +3289,16 @@ createRectAnnotationCmd(const Vars &vars)
 
   CQChartsRectAnnotation *annotation = nullptr;
 
+  CQChartsRect rect;
+
   if      (view)
-    annotation = view->addRectAnnotation(start, end);
+    annotation = view->addRectAnnotation(rect);
   else if (plot)
-    annotation = plot->addRectAnnotation(start, end);
+    annotation = plot->addRectAnnotation(rect);
   else
     return;
+
+  annotation->setRect(start, end);
 
   annotation->setId(id);
   annotation->setTipId(tipId);

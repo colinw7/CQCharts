@@ -34,15 +34,22 @@ class CQChartsSymbol {
   static QString typeToName(Type type);
   static Type nameToType(const QString &str);
 
-  static int minValue() { return (int) Type::DOT  ; }
-  static int maxValue() { return (int) Type::VLINE; }
+  static QStringList typeNames();
+
+  static int minOutlineValue() { return (int) Type::CROSS; }
+  static int maxOutlineValue() { return (int) Type::IPENTAGON; }
+
+  static int minFillValue() { return (int) Type::TRIANGLE; }
+  static int maxFillValue() { return (int) Type::IPENTAGON; }
 
   static CQChartsSymbol interpOutline(double r) {
-    return CQChartsSymbol((CQChartsSymbol::Type) int(CMathUtil::map(r, 0, 1, 2, 13)));
+    return CQChartsSymbol((CQChartsSymbol::Type)
+      int(CMathUtil::map(r, 0, 1, minOutlineValue(), maxOutlineValue())));
   }
 
   static CQChartsSymbol interpFilled(double r) {
-    return CQChartsSymbol((CQChartsSymbol::Type) int(CMathUtil::map(r, 0, 1, 5, 13)));
+    return CQChartsSymbol((CQChartsSymbol::Type)
+      int(CMathUtil::map(r, 0, 1, minFillValue(), maxFillValue())));
   }
 
  public:

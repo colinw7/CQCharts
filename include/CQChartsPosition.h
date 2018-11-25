@@ -1,35 +1,27 @@
 #ifndef CQChartsPosition_H
 #define CQChartsPosition_H
 
+#include <CQChartsUtil.h>
 #include <QString>
 #include <QPointF>
 #include <iostream>
 
 class CQChartsPosition {
  public:
-  enum class Units {
-    NONE,
-    VIEW,
-    PLOT,
-    PIXEL,
-    PERCENT
-  };
-
- public:
   static void registerMetaType();
 
   static int metaTypeId;
 
  public:
-  CQChartsPosition(const Units &units, const QPointF &p) :
+  CQChartsPosition(const CQChartsUnits &units, const QPointF &p) :
    units_(units), p_(p) {
   }
 
-  CQChartsPosition(const QPointF &p=QPointF(0,0), const Units &units=Units::PLOT) :
+  CQChartsPosition(const QPointF &p=QPointF(0,0), const CQChartsUnits &units=CQChartsUnits::PLOT) :
    units_(units), p_(p) {
   }
 
-  CQChartsPosition(const QString &s, const Units &defUnits=Units::PIXEL) {
+  CQChartsPosition(const QString &s, const CQChartsUnits &defUnits=CQChartsUnits::PIXEL) {
     setPoint(s, defUnits);
   }
 
@@ -44,17 +36,19 @@ class CQChartsPosition {
     return *this;
   }
 
-  const Units   &units() const { return units_; }
-  const QPointF &p    () const { return p_; }
+  const CQChartsUnits &units() const { return units_; }
+  const QPointF       &p    () const { return p_; }
 
-  void setPoint(const Units &units, const QPointF &p) {
+  bool isValid() const { return units_ != CQChartsUnits::NONE; }
+
+  void setPoint(const CQChartsUnits &units, const QPointF &p) {
     units_ = units;
     p_     = p;
   }
 
-  bool setPoint(const QString &str, const Units &defUnits=Units::PIXEL) {
-    Units   units;
-    QPointF p;
+  bool setPoint(const QString &str, const CQChartsUnits &defUnits=CQChartsUnits::PIXEL) {
+    CQChartsUnits units;
+    QPointF       p;
 
     if (! decodeString(str, units, p, defUnits))
       return false;
@@ -66,27 +60,19 @@ class CQChartsPosition {
   }
 
   bool isSet() const {
-    return (units_ != Units::PIXEL || p_.x() != 0.0 || p_.y());
+    return (units_ != CQChartsUnits::PIXEL || p_.x() != 0.0 || p_.y());
   }
 
   //---
 
   QString toString() const {
-    QString ustr = unitsString(units_);
+    QString ustr = CQChartsUtil::unitsString(units_);
 
     return QString("%1 %2 %3").arg(p_.x()).arg(p_.y()).arg(ustr);
   }
 
   void fromString(const QString &s) {
     setPoint(s);
-  }
-
-  static QString unitsString(const Units &units) {
-    if      (units == Units::PIXEL  ) return "px";
-    else if (units == Units::PERCENT) return "%" ;
-    else if (units == Units::PLOT   ) return "P" ;
-    else if (units == Units::VIEW   ) return "V" ;
-    else                              return ""  ;
   }
 
   //---
@@ -116,15 +102,13 @@ class CQChartsPosition {
 
   //---
 
-  static bool decodeUnits(const QString &str, Units &units, const Units &defUnits=Units::PIXEL);
+ private:
+  static bool decodeString(const QString &str, CQChartsUnits &units, QPointF &point,
+                           const CQChartsUnits &defUnits=CQChartsUnits::PIXEL);
 
  private:
-  static bool decodeString(const QString &str, Units &units, QPointF &point,
-                           const Units &defUnits=Units::PIXEL);
-
- private:
-  Units   units_ { Units::PIXEL };
-  QPointF p_     { 0, 0 };
+  CQChartsUnits units_ { CQChartsUnits::PIXEL };
+  QPointF       p_     { 0, 0 };
 };
 
 //---

@@ -373,11 +373,35 @@ void
 CQChartsView::
 deselectAll()
 {
+  startSelection();
+
   for (auto &plot : plots_)
     plot->deselectAll();
 
   for (auto &annotation : annotations())
     annotation->setSelected(false);
+
+  endSelection();
+}
+
+void
+CQChartsView::
+startSelection()
+{
+  ++selecting_;
+}
+
+void
+CQChartsView::
+endSelection()
+{
+  --selecting_;
+
+  if (selecting_ == 0) {
+    emit selectionChanged();
+
+    updateSelText();
+  }
 }
 
 //---
@@ -512,9 +536,9 @@ addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
 
 CQChartsRectAnnotation *
 CQChartsView::
-addRectAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
+addRectAnnotation(const CQChartsRect &rect)
 {
-  CQChartsRectAnnotation *rectAnnotation = new CQChartsRectAnnotation(this, start, end);
+  CQChartsRectAnnotation *rectAnnotation = new CQChartsRectAnnotation(this, rect);
 
   addAnnotation(rectAnnotation);
 
@@ -573,7 +597,8 @@ addAnnotation(CQChartsAnnotation *annotation)
 {
   annotations_.push_back(annotation);
 
-  connect(annotation, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+  connect(annotation, SIGNAL(idChanged()), this, SLOT(updateAnnotationSlot()));
+  connect(annotation, SIGNAL(dataChanged()), this, SLOT(updateAnnotationSlot()));
 
   annotation->addProperties(propertyModel(), "annotations");
 
@@ -627,6 +652,15 @@ removeAllAnnotations()
     delete annotation;
 
   annotations_.clear();
+
+  emit annotationsChanged();
+}
+
+void
+CQChartsView::
+updateAnnotationSlot()
+{
+  updateSlot();
 
   emit annotationsChanged();
 }
@@ -1190,13 +1224,19 @@ mousePressEvent(QMouseEvent *me)
   if (me->button() == Qt::LeftButton) {
     if      (mode() == Mode::SELECT) {
       if (selectMode_ == SelectMode::POINT) {
-        CQChartsScopeGuard updateSelTextGuard([&]() { updateSelText(); });
-
-        //---
-
         for (const auto &annotation : annotations()) {
           if (annotation->contains(w)) {
             if (annotation->selectPress(w)) {
+              startSelection();
+
+              deselectAll();
+
+              annotation->setSelected(true);
+
+              endSelection();
+
+              update();
+
               emit annotationPressed  (annotation);
               emit annotationIdPressed(annotation->id());
 
@@ -1547,8 +1587,6 @@ mouseReleaseEvent(QMouseEvent *me)
           mouseData_.plot->selectMouseRelease(me->pos());
       }
       else {
-        CQChartsScopeGuard updateSelTextGuard([&]() { updateSelText(); });
-
         mouseData_.movePoint = me->pos();
 
         endRegionBand();
@@ -1720,9 +1758,15 @@ cycleEdit()
   if (! selObj)
     selObj = objs[0];
 
+  //---
+
+  startSelection();
+
   deselectAll();
 
   selObj->setSelected(true);
+
+  endSelection();
 }
 
 void
@@ -1850,7 +1894,9 @@ updateSelText()
 {
   CQChartsPlot::Objs objs;
 
-  int num = 0;
+  selectedObjs(objs);
+
+  int num = objs.size();
 
   for (auto &plot : plots_) {
     CQChartsPlot::Objs objs1;
@@ -1869,6 +1915,37 @@ updateSelText()
     setSelText(objs[0]->id());
   else
     setSelText(QString("%1").arg(num));
+}
+
+void
+CQChartsView::
+selectedObjs(Objs &objs) const
+{
+  for (auto &annotation : annotations()) {
+    if (annotation->isSelected())
+      objs.push_back(annotation);
+  }
+}
+
+void
+CQChartsView::
+allSelectedObjs(Objs &objs) const
+{
+  CQChartsPlot::Objs objs1;
+
+  selectedObjs(objs1);
+
+  for (const auto &obj1 : objs1)
+    objs.push_back(obj1);
+
+  for (auto &plot : plots_) {
+    CQChartsPlot::Objs objs1;
+
+    plot->selectedObjs(objs1);
+
+    for (const auto &obj1 : objs1)
+      objs.push_back(obj1);
+  }
 }
 
 //------
@@ -3410,11 +3487,11 @@ positionToView(const CQChartsPosition &pos) const
 
   CQChartsGeom::Point p1 = p;
 
-  if      (pos.units() == CQChartsPosition::Units::PIXEL)
+  if      (pos.units() == CQChartsUnits::PIXEL)
     p1 = pixelToWindow(p);
-  else if (pos.units() == CQChartsPosition::Units::VIEW)
+  else if (pos.units() == CQChartsUnits::VIEW)
     p1 = p;
-  else if (pos.units() == CQChartsPosition::Units::PERCENT) {
+  else if (pos.units() == CQChartsUnits::PERCENT) {
     p1.setX(p.getX()*width ()/100.0);
     p1.setY(p.getY()*height()/100.0);
   }
@@ -3430,11 +3507,11 @@ positionToPixel(const CQChartsPosition &pos) const
 
   CQChartsGeom::Point p1 = p;
 
-  if      (pos.units() == CQChartsPosition::Units::PIXEL)
+  if      (pos.units() == CQChartsUnits::PIXEL)
     p1 = p;
-  else if (pos.units() == CQChartsPosition::Units::VIEW)
+  else if (pos.units() == CQChartsUnits::VIEW)
     p1 = windowToPixel(p);
-  else if (pos.units() == CQChartsPosition::Units::PERCENT) {
+  else if (pos.units() == CQChartsUnits::PERCENT) {
     p1.setX(p.getX()*width ()/100.0);
     p1.setY(p.getY()*height()/100.0);
   }
@@ -3448,11 +3525,11 @@ double
 CQChartsView::
 lengthViewWidth(const CQChartsLength &len) const
 {
-  if      (len.units() == CQChartsLength::Units::PIXEL)
+  if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToWindowWidth(len.value());
-  else if (len.units() == CQChartsLength::Units::VIEW)
+  else if (len.units() == CQChartsUnits::VIEW)
     return len.value();
-  else if (len.units() == CQChartsLength::Units::PERCENT)
+  else if (len.units() == CQChartsUnits::PERCENT)
     return len.value()*viewportRange()/100.0;
   else
     return len.value();
@@ -3462,11 +3539,11 @@ double
 CQChartsView::
 lengthViewHeight(const CQChartsLength &len) const
 {
-  if      (len.units() == CQChartsLength::Units::PIXEL)
+  if      (len.units() == CQChartsUnits::PIXEL)
     return pixelToWindowHeight(len.value());
-  else if (len.units() == CQChartsLength::Units::VIEW)
+  else if (len.units() == CQChartsUnits::VIEW)
     return len.value();
-  else if (len.units() == CQChartsLength::Units::PERCENT)
+  else if (len.units() == CQChartsUnits::PERCENT)
     return len.value()*viewportRange()/100.0;
   else
     return len.value();
@@ -3476,11 +3553,11 @@ double
 CQChartsView::
 lengthPixelWidth(const CQChartsLength &len) const
 {
-  if      (len.units() == CQChartsLength::Units::PIXEL)
+  if      (len.units() == CQChartsUnits::PIXEL)
     return len.value();
-  else if (len.units() == CQChartsLength::Units::VIEW)
+  else if (len.units() == CQChartsUnits::VIEW)
     return windowToPixelWidth(len.value());
-  else if (len.units() == CQChartsLength::Units::PERCENT)
+  else if (len.units() == CQChartsUnits::PERCENT)
     return len.value()*width()/100.0;
   else
     return len.value();
@@ -3490,11 +3567,11 @@ double
 CQChartsView::
 lengthPixelHeight(const CQChartsLength &len) const
 {
-  if      (len.units() == CQChartsLength::Units::PIXEL)
+  if      (len.units() == CQChartsUnits::PIXEL)
     return len.value();
-  else if (len.units() == CQChartsLength::Units::VIEW)
+  else if (len.units() == CQChartsUnits::VIEW)
     return windowToPixelHeight(len.value());
-  else if (len.units() == CQChartsLength::Units::PERCENT)
+  else if (len.units() == CQChartsUnits::PERCENT)
     return len.value()*height()/100.0;
   else
     return len.value();

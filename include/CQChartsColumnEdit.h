@@ -1,6 +1,7 @@
 #ifndef CQChartsColumnEdit_H
 #define CQChartsColumnEdit_H
 
+#include <CQChartsColumn.h>
 #include <QFrame>
 #include <QStyleOptionComboBox>
 
@@ -15,16 +16,17 @@ class QAbstractItemModel;
 class CQChartsColumnEdit : public QFrame {
   Q_OBJECT
 
-  Q_PROPERTY(QString text            READ text            WRITE setText           )
-  Q_PROPERTY(QString placeholderText READ placeholderText WRITE setPlaceholderText)
+  Q_PROPERTY(CQChartsColumn column          READ column          WRITE setColumn         )
+  Q_PROPERTY(QString        placeholderText READ placeholderText WRITE setPlaceholderText)
 
  public:
   CQChartsColumnEdit(QWidget *parent=nullptr);
 
+  QAbstractItemModel *model() const { return model_; }
   void setModel(QAbstractItemModel *model);
 
-  QString text() const;
-  void setText(const QString &s);
+  const CQChartsColumn &column() const;
+  void setColumn(const CQChartsColumn &c);
 
   QString placeholderText() const;
   void setPlaceholderText(const QString &s);
@@ -34,12 +36,14 @@ class CQChartsColumnEdit : public QFrame {
   void resizeEvent(QResizeEvent *) override;
 
  signals:
-  void textChanged(const QString &);
+  void columnChanged();
 
  private slots:
   void showMenu();
 
   void updateMenu();
+
+  void textChanged(const QString &str);
 
   void menuColumnGroupClicked(bool b);
   void menuExprGroupClicked  (bool b);
@@ -54,7 +58,13 @@ class CQChartsColumnEdit : public QFrame {
  private:
   void initStyle(QStyleOptionComboBox &opt);
 
+  void connectSlots(bool b);
+
+  void columnToWidgets();
+  void widgetsToColumn();
+
  private:
+  CQChartsColumn      column_;
   QLineEdit*          edit_            { nullptr };
   QPushButton*        button_          { nullptr };
   CQWidgetMenu*       menu_            { nullptr };
@@ -77,6 +87,44 @@ class CQChartsColumnEditMenuButton : public QPushButton {
   CQChartsColumnEditMenuButton(QWidget *parent=nullptr);
 
   void paintEvent(QPaintEvent *) override;
+};
+
+//------
+
+#include <CQPropertyViewType.h>
+
+// type for CQChartsColumn
+class CQChartsColumnPropertyViewType : public CQPropertyViewType {
+ public:
+  CQChartsColumnPropertyViewType();
+
+  CQPropertyViewEditorFactory *getEditor() const override;
+
+  bool setEditorData(CQPropertyViewItem *item, const QVariant &value) override;
+
+  void draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
+            const QStyleOptionViewItem &option, const QModelIndex &index,
+            const QVariant &value, bool inside) override;
+
+  QString tip(const QVariant &value) const override;
+};
+
+//---
+
+#include <CQPropertyViewEditor.h>
+
+// editor factory for CQChartsColumn
+class CQChartsColumnPropertyViewEditor : public CQPropertyViewEditorFactory {
+ public:
+  CQChartsColumnPropertyViewEditor();
+
+  QWidget *createEdit(QWidget *parent);
+
+  void connect(QWidget *w, QObject *obj, const char *method);
+
+  QVariant getValue(QWidget *w);
+
+  void setValue(QWidget *w, const QVariant &var);
 };
 
 #endif

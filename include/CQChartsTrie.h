@@ -66,12 +66,14 @@ class CQChartsTrie {
       return patterns_[i];
     }
 
+#if 0
     void print(std::ostream &os) const {
       os << numPatterns() << " patterns\n";
 
       for (int i = 0; i < numPatterns(); ++i)
         os << " " << pattern(i).toStdString() << "\n";
     }
+#endif
 
    private:
     int        depth_ { -1 };
@@ -513,7 +515,7 @@ class CQChartsTrie {
   }
 
  private:
-  Node *root_ { nullptr };
+  Node* root_ { nullptr };
 };
 
 #endif

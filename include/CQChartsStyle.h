@@ -117,8 +117,8 @@ class CQChartsStyle {
   }
 
  private:
-  QPen   *pen_   { nullptr };
-  QBrush *brush_ { nullptr };
+  QPen*   pen_   { nullptr };
+  QBrush* brush_ { nullptr };
 };
 
 //---

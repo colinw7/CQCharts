@@ -11,11 +11,11 @@ class CQChartsColumn {
  public:
   enum class Type {
     NONE,
-    DATA,
-    VHEADER,
-    GROUP,
-    EXPR,
-    DATA_INDEX
+    DATA,       // model row data
+    VHEADER,    // model vertical header data
+    GROUP,      // model row group id
+    EXPR,       // expression
+    DATA_INDEX  // model row data sub value (e.g. time sub value)
   };
 
  public:
@@ -174,6 +174,14 @@ class CQChartsColumns {
       columns_.push_back(c);
   }
 
+  // remove column
+  void removeColumn() {
+    if (! columns_.empty())
+      columns_.pop_back();
+    else
+      column_ = CQChartsColumn();
+  }
+
   // get multiple columns
   const Columns &columns() const { return columns_; }
 
@@ -228,6 +236,15 @@ class CQChartsColumns {
     assert(i == 0);
 
     return column_;
+  }
+
+  void setColumn(int i, const CQChartsColumn &column) {
+    assert(i >= 0 && i < int(columns_.size()));
+
+    columns_[i] = column;
+
+    if (i == 0)
+      column_ = columns_[0];
   }
 
   friend bool operator==(const CQChartsColumns &lhs, const CQChartsColumns &rhs) {

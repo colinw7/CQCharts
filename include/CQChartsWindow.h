@@ -72,6 +72,8 @@ class CQChartsWindow : public QFrame {
   void updateInterfacePalette();
   void updateThemePalettes();
 
+  void selectPropertyObjects();
+
   //---
 
   void resizeEvent(QResizeEvent *) override;
@@ -133,7 +135,7 @@ class CQChartsWindowRangeScroll : public CQRangeScroll {
   void drawBackground(QPainter *) override;
 
  private:
-  CQChartsWindow *window_ { nullptr };
+  CQChartsWindow* window_ { nullptr };
 };
 
 #endif

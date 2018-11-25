@@ -8,6 +8,7 @@
 #include <CQChartsSymbol.h>
 #include <CQChartsGradientPalette.h>
 #include <CQCharts.h>
+#include <CQChartsTypes.h>
 #include <CQStrParse.h>
 
 //------
@@ -1553,8 +1554,8 @@ userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &colu
   converted = true;
 
   bool mapped   = false;
-  int  min      = 0, max      = 1;
-  int  size_min = 5, size_max = 13;
+  int  min      = 0, max = 1;
+  int  size_min = CQChartsSymbol::minFillValue(), size_max = CQChartsSymbol::maxFillValue();
 
   getMapData(charts, model, column, nameValues, mapped, min, max, size_min, size_max);
 
@@ -1661,8 +1662,8 @@ userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &colu
   converted = true;
 
   bool   mapped   = false;
-  double min      = 0.0, max      = 1.0;
-  double size_min = 8.0, size_max = 64.0;
+  double min      = 0.0, max = 1.0;
+  double size_min = CQChartsSymbolSize::minValue(), size_max = CQChartsSymbolSize::maxValue();
 
   getMapData(charts, model, column, nameValues, mapped, min, max, size_min, size_max);
 
@@ -1776,8 +1777,8 @@ userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &colu
   converted = true;
 
   bool   mapped   = false;
-  double min      = 0.0, max      = 1.0;
-  double size_min = 8.0, size_max = 48.0;
+  double min      = 0.0, max = 1.0;
+  double size_min = CQChartsFontSize::minValue(), size_max = CQChartsFontSize::maxValue();
 
   getMapData(charts, model, column, nameValues, mapped, min, max, size_min, size_max);
 

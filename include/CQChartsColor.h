@@ -6,12 +6,6 @@
 #include <iostream>
 
 class CQCharts;
-//class CQChartsView;
-//class CQChartsPlot;
-//class CQChartsAxis;
-//class CQChartsKey;
-//class CQChartsBoxObj;
-//class CQChartsArrow;
 
 class QObject;
 
@@ -93,27 +87,12 @@ class CQChartsColor {
   //---
 
   QString colorStr() const;
-  void setColorStr(const QString &str);
+  bool setColorStr(const QString &str);
 
   //---
 
   QColor interpColor(const CQCharts *charts, int i, int n) const;
   QColor interpColor(const CQCharts *charts, double value) const;
-
-//QColor interpColor(const CQChartsView *view, int i, int n) const;
-//QColor interpColor(const CQChartsView *view, double value) const;
-
-//QColor interpColor(const CQChartsPlot *plot, int i, int n) const;
-//QColor interpColor(const CQChartsPlot *plot, double value) const;
-
-//QColor interpColor(const CQChartsAxis *axis, int i, int n) const;
-//QColor interpColor(const CQChartsKey  *key , int i, int n) const;
-
-//QColor interpColor(const CQChartsBoxObj *boxObj, int i, int n) const;
-
-//QColor interpColor(const CQChartsArrow *arrow, int i, int n) const;
-
-//QColor interpColor(const QObject *, int, int) const { assert(false); return QColor(); }
 
   //---
 

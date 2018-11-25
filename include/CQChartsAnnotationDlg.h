@@ -7,6 +7,7 @@ class CQChartsView;
 class CQChartsPlot;
 class CQChartsPositionEdit;
 class CQChartsLengthEdit;
+class CQChartsRectEdit;
 class CQChartsAlphaEdit;
 
 class CQColorChooser;
@@ -46,12 +47,11 @@ class CQChartsAnnotationDlg : public QDialog {
   };
 
   struct RectWidgets : public Widgets {
-    CQChartsPositionEdit* startEdit       { nullptr };
-    CQChartsPositionEdit* endEdit         { nullptr };
-    CQRealSpin*           marginEdit      { nullptr };
-    CQRealSpin*           paddingEdit     { nullptr };
-    CQChartsLengthEdit*   cornerSizeEdit  { nullptr };
-    QLineEdit*            borderSidesEdit { nullptr };
+    CQChartsRectEdit*   rectEdit        { nullptr };
+    CQRealSpin*         marginEdit      { nullptr };
+    CQRealSpin*         paddingEdit     { nullptr };
+    CQChartsLengthEdit* cornerSizeEdit  { nullptr };
+    QLineEdit*          borderSidesEdit { nullptr };
   };
 
   struct EllipseWidgets : public Widgets {

@@ -1,4 +1,5 @@
 #include <CQChartsObj.h>
+#include <CQChartsUtil.h>
 
 CQChartsObj::
 CQChartsObj(QObject *parent, const CQChartsGeom::BBox &rect) :
@@ -17,6 +18,15 @@ id() const
   }
 
   return *id_;
+}
+
+void
+CQChartsObj::
+setId(const QString &s)
+{
+  id_ = s;
+
+  emit idChanged();
 }
 
 const QString &

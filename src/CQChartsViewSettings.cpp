@@ -117,6 +117,8 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   connect(view, SIGNAL(annotationsChanged()), this, SLOT(updateAnnotations()));
 
+  connect(view, SIGNAL(selectionChanged()), this, SLOT(updateSelection()));
+
   connect(window, SIGNAL(themePalettesChanged()), this, SLOT(updatePalettes()));
   connect(window, SIGNAL(interfacePaletteChanged()), this, SLOT(updateInterface()));
 
@@ -975,6 +977,19 @@ plotsSelectionChangeSlot()
   plotsWidgets_.lowerButton->setEnabled(plots.size() == 1);
 
   plotsWidgets_.removeButton->setEnabled(plots.size() > 0);
+
+  //---
+
+  CQChartsView *view = window_->view();
+
+  view->startSelection();
+
+  view->deselectAll();
+
+  for (auto &plot : plots)
+    plot->setSelected(true);
+
+  view->endSelection();
 }
 
 void
@@ -1195,8 +1210,28 @@ viewAnnotationSelectionChangeSlot()
 
   annotationsWidgets_.removeButton->setEnabled(viewAnnotations.size() > 0);
 
-  if (viewAnnotations.size())
+  if (viewAnnotations.size()) {
+    disconnect(annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
+               this, SLOT(plotAnnotationSelectionChangeSlot()));
+
     annotationsWidgets_.plotTable->selectionModel()->clear();
+
+    connect(annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
+            this, SLOT(plotAnnotationSelectionChangeSlot()));
+  }
+
+  //---
+
+  CQChartsView *view = window_->view();
+
+  view->startSelection();
+
+  view->deselectAll();
+
+  for (auto &annotation : viewAnnotations)
+    annotation->setSelected(true);
+
+  view->endSelection();
 }
 
 void
@@ -1209,8 +1244,28 @@ plotAnnotationSelectionChangeSlot()
 
   annotationsWidgets_.removeButton->setEnabled(plotAnnotations.size() > 0);
 
-  if (plotAnnotations.size())
+  if (plotAnnotations.size()) {
+    disconnect(annotationsWidgets_.viewTable, SIGNAL(itemSelectionChanged()),
+               this, SLOT(viewAnnotationSelectionChangeSlot()));
+
     annotationsWidgets_.viewTable->selectionModel()->clear();
+
+    connect(annotationsWidgets_.viewTable, SIGNAL(itemSelectionChanged()),
+            this, SLOT(viewAnnotationSelectionChangeSlot()));
+  }
+
+  //---
+
+  CQChartsView *view = window_->view();
+
+  view->startSelection();
+
+  view->deselectAll();
+
+  for (auto &annotation : plotAnnotations)
+    annotation->setSelected(true);
+
+  view->endSelection();
 }
 
 void
@@ -1229,7 +1284,8 @@ getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotation
 
     CQChartsAnnotation *annotation = view->getAnnotationByName(id);
 
-    viewAnnotations.push_back(annotation);
+    if (annotation)
+      viewAnnotations.push_back(annotation);
   }
 
   CQChartsPlot *plot = view->currentPlot();
@@ -1245,7 +1301,8 @@ getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotation
 
       CQChartsAnnotation *annotation = plot->getAnnotationByName(id);
 
-      plotAnnotations.push_back(annotation);
+      if (annotation)
+        plotAnnotations.push_back(annotation);
     }
   }
 }
@@ -1315,6 +1372,15 @@ writeAnnotationSlot()
     for (const auto &annotation : plotAnnotations)
       annotation->write(std::cerr);
   }
+}
+
+//------
+
+void
+CQChartsViewSettings::
+updateSelection()
+{
+  window_->selectPropertyObjects();
 }
 
 //------

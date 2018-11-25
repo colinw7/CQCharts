@@ -73,7 +73,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   void drawFg(QPainter *painter) override;
 
  private:
-  CQChartsGeometryPlot *plot_  { nullptr }; // parent plot
+  CQChartsGeometryPlot* plot_  { nullptr }; // parent plot
   Polygons              polygons_;          // geometry polygons
   double                value_ { 0.0 };     // geometry value
   QString               name_;              // geometry name
