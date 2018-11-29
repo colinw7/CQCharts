@@ -352,8 +352,7 @@ CQChartsDistributionPlot::
 setHorizontal(bool b)
 {
   CQChartsUtil::testAndSet(horizontal_, b, [&]() {
-    dataLabel_.setDirection(horizontal_ ?
-      CQChartsDataLabel::Direction::HORIZONTAL : CQChartsDataLabel::Direction::VERTICAL);
+    dataLabel_.setDirection(horizontal_ ?  Qt::Horizontal : Qt::Vertical);
 
     updateRangeAndObjs();
   } );
@@ -599,8 +598,6 @@ calcRange()
 {
   CQPerfTrace trace("CQChartsDistributionPlot::calcRange");
 
-  CQChartsGeom::Range dataRange;
-
   //---
 
   // init grouping
@@ -634,6 +631,17 @@ calcRange()
   visitModel(distributionVisitor);
 
   //---
+
+  bucketGroupValues();
+
+  return calcBucketRange();
+}
+
+void
+CQChartsDistributionPlot::
+bucketGroupValues()
+{
+  CQPerfTrace trace("CQChartsDistributionPlot::bucketGroupValues");
 
   // bucket grouped sets of values
   for (auto &groupValues : groupValues_) {
@@ -724,8 +732,13 @@ calcRange()
       values->bucketValues[bucket].inds.push_back(varInd);
     }
   }
+}
 
-  //---
+CQChartsGeom::Range
+CQChartsDistributionPlot::
+calcBucketRange()
+{
+  CQPerfTrace trace("CQChartsDistributionPlot::calcBucketRange");
 
   // calc range (number of bars and max height)
 
@@ -860,6 +873,8 @@ calcRange()
   //---
 
   // set range
+  CQChartsGeom::Range dataRange;
+
   if      (isDensity()) {
     if (densityBBox.isSet()) {
       dataRange.updateRange(densityBBox.getXMin(), densityBBox.getYMin());
@@ -1947,7 +1962,7 @@ getRealValues(int groupInd, std::vector<double> &vals, double &mean) const
   const Values *values = getGroupValues(groupInd);
   if (! values) return false;
 
-  if      (values->valueSet->type() == CQBaseModel::Type::INTEGER) {
+  if      (values->valueSet->type() == CQBaseModelType::INTEGER) {
     const CQChartsIValues &ivals = values->valueSet->ivals();
 
     mean = ivals.mean();
@@ -1957,7 +1972,7 @@ getRealValues(int groupInd, std::vector<double> &vals, double &mean) const
     for (int i = 0; i < ivals.size(); ++i)
       vals.push_back(*ivals.value(i));
   }
-  else if (values->valueSet->type() == CQBaseModel::Type::REAL) {
+  else if (values->valueSet->type() == CQBaseModelType::REAL) {
     const CQChartsRValues &rvals = values->valueSet->rvals();
 
     mean = rvals.mean();
@@ -1981,12 +1996,12 @@ getMeanValue(int groupInd, double &mean) const
   const Values *values = getGroupValues(groupInd);
   if (! values) return false;
 
-  if      (values->valueSet->type() == CQBaseModel::Type::INTEGER) {
+  if      (values->valueSet->type() == CQBaseModelType::INTEGER) {
     const CQChartsIValues &ivals = values->valueSet->ivals();
 
     mean = ivals.mean();
   }
-  else if (values->valueSet->type() == CQBaseModel::Type::REAL) {
+  else if (values->valueSet->type() == CQBaseModelType::REAL) {
     const CQChartsRValues &rvals = values->valueSet->rvals();
 
     mean = rvals.mean();
@@ -2061,7 +2076,7 @@ addKeyItems(CQChartsPlotKey *key)
       int nv = columnDetails->numUnique();
 
       for (int iv = 0; iv < nv; ++iv) {
-        QVariant value = columnDetails->uniqueValue(iv).toString();
+        QVariant value = columnDetails->uniqueValue(iv);
 
         CQChartsDistKeyColorBox *colorBox = addKeyRow(iv, nv, value.toString()).first;
 
@@ -2071,10 +2086,13 @@ addKeyItems(CQChartsPlotKey *key)
 
         c = CQChartsVariant::toColor(value, ok);
 
-        if (! ok)
-          continue;
+        if (ok) {
+          QColor c1 = c.interpColor(charts(), 0, 1);
 
-        colorBox->setColor(c);
+          c1.setAlphaF(barFillAlpha());
+        }
+        else
+          colorBox->setColor(c);
       }
     }
     else {
@@ -2888,7 +2906,14 @@ getBarColoredRects(ColorData &colorData) const
 
     CQChartsColor color;
 
-    if (! plot_->columnColor(ind.row, ind.parent, color))
+    if (plot_->columnColor(ind.row, ind.parent, color)) {
+      QColor c1 = color.interpColor(plot_->charts(), 0, 1);
+
+      c1.setAlphaF(plot_->barFillAlpha());
+
+      color = c1;
+    }
+    else
       color = barColor;
 
     auto p = colorData.colorSet.find(color);

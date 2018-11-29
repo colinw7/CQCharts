@@ -59,10 +59,14 @@ class CQChartsRect {
     return true;
   }
 
+  bool isSet() const {
+    return (units_ != CQChartsUnits::NONE);
+  }
+
   //---
 
   QString toString() const {
-    QString ustr = CQChartsUtil::unitsString(units_);;
+    QString ustr = CQChartsUtil::unitsString(units_);
 
     return QString("%1 %2 %3 %4 %5").
              arg(rect_.left()).arg(rect_.top()).arg(rect_.right()).arg(rect_.bottom()).arg(ustr);

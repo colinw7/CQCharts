@@ -39,21 +39,21 @@ class CQChartsAxis : public CQChartsObj,
   Q_OBJECT
 
   // general
-  Q_PROPERTY(bool      visible          READ isVisible          WRITE setVisible         )
-  Q_PROPERTY(Direction direction        READ direction          WRITE setDirection       )
-  Q_PROPERTY(Side      side             READ side               WRITE setSide            )
-  Q_PROPERTY(bool      hasPosition      READ hasPosition        WRITE setHasPosition     )
-  Q_PROPERTY(double    position         READ position           WRITE setPosition        )
-  Q_PROPERTY(bool      requireTickLabel READ isRequireTickLabel WRITE setRequireTickLabel)
-  Q_PROPERTY(bool      integral         READ isIntegral         WRITE setIntegral        )
-  Q_PROPERTY(bool      date             READ isDate             WRITE setDate            )
-  Q_PROPERTY(bool      log              READ isLog              WRITE setLog             )
-  Q_PROPERTY(QString   format           READ format             WRITE setFormat          )
-  Q_PROPERTY(double    tickIncrement    READ tickIncrement      WRITE setTickIncrement   )
-  Q_PROPERTY(double    majorIncrement   READ majorIncrement     WRITE setMajorIncrement  )
-  Q_PROPERTY(double    start            READ start              WRITE setStart           )
-  Q_PROPERTY(double    end              READ end                WRITE setEnd             )
-  Q_PROPERTY(bool      includeZero      READ isIncludeZero      WRITE setIncludeZero     )
+  Q_PROPERTY(bool            visible          READ isVisible          WRITE setVisible         )
+  Q_PROPERTY(Qt::Orientation direction        READ direction          WRITE setDirection       )
+  Q_PROPERTY(Side            side             READ side               WRITE setSide            )
+  Q_PROPERTY(bool            hasPosition      READ hasPosition        WRITE setHasPosition     )
+  Q_PROPERTY(double          position         READ position           WRITE setPosition        )
+  Q_PROPERTY(bool            requireTickLabel READ isRequireTickLabel WRITE setRequireTickLabel)
+  Q_PROPERTY(bool            integral         READ isIntegral         WRITE setIntegral        )
+  Q_PROPERTY(bool            date             READ isDate             WRITE setDate            )
+  Q_PROPERTY(bool            log              READ isLog              WRITE setLog             )
+  Q_PROPERTY(QString         format           READ format             WRITE setFormat          )
+  Q_PROPERTY(double          tickIncrement    READ tickIncrement      WRITE setTickIncrement   )
+  Q_PROPERTY(double          majorIncrement   READ majorIncrement     WRITE setMajorIncrement  )
+  Q_PROPERTY(double          start            READ start              WRITE setStart           )
+  Q_PROPERTY(double          end              READ end                WRITE setEnd             )
+  Q_PROPERTY(bool            includeZero      READ isIncludeZero      WRITE setIncludeZero     )
 
   // line
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Axes,axes)
@@ -87,16 +87,10 @@ class CQChartsAxis : public CQChartsObj,
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(AxesMinorGrid,axesMinorGrid)
   CQCHARTS_NAMED_FILL_DATA_PROPERTIES(AxesGrid,axesGrid)
 
-  Q_ENUMS(Direction)
   Q_ENUMS(Side)
   Q_ENUMS(TickLabelPlacement)
 
  public:
-  enum class Direction {
-    HORIZONTAL,
-    VERTICAL
-  };
-
   enum class Side {
     BOTTOM_LEFT,
     TOP_RIGHT
@@ -112,7 +106,7 @@ class CQChartsAxis : public CQChartsObj,
   using OptReal = boost::optional<double>;
 
  public:
-  CQChartsAxis(CQChartsPlot *plot, Direction direction=Direction::HORIZONTAL,
+  CQChartsAxis(CQChartsPlot *plot, Qt::Orientation direction=Qt::Horizontal,
                double start=0.0, double end=1.0);
 
   virtual ~CQChartsAxis();
@@ -128,8 +122,8 @@ class CQChartsAxis : public CQChartsObj,
 
   void setSelected(bool b) override;
 
-  Direction direction() const { return direction_; }
-  void setDirection(Direction dir) { direction_ = dir; updatePlotPosition(); }
+  Qt::Orientation direction() const { return direction_; }
+  void setDirection(Qt::Orientation dir) { direction_ = dir; updatePlotPosition(); }
 
   Side side() const { return side_; }
   void setSide(Side side) { side_ = side; updatePlotPosition(); }
@@ -374,7 +368,7 @@ class CQChartsAxis : public CQChartsObj,
 
   // general
   bool                       visible_             { true };
-  Direction                  direction_           { Direction::HORIZONTAL };
+  Qt::Orientation            direction_           { Qt::Horizontal };
   Side                       side_                { Side::BOTTOM_LEFT };
   bool                       integral_            { false };
   bool                       date_                { false };

@@ -1,7 +1,7 @@
 #include <CQChartsModelVisitor.h>
 #include <CQChartsColumnType.h>
+#include <CQChartsModelUtil.h>
 #include <CQCharts.h>
-#include <CQChartsUtil.h>
 
 void
 CQChartsModelVisitor::
@@ -22,7 +22,7 @@ isHierarchical() const
   if (! hierSet_) {
     CQChartsModelVisitor *th = const_cast<CQChartsModelVisitor *>(this);
 
-    th->hierarchical_ = CQChartsUtil::isHierarchical(model_);
+    th->hierarchical_ = CQChartsModelUtil::isHierarchical(model_);
     th->hierSet_      = true;
   }
 

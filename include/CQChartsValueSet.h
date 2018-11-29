@@ -3,6 +3,7 @@
 
 #include <CQChartsUtil.h>
 #include <CQChartsTrie.h>
+#include <CQBaseModelTypes.h>
 #include <vector>
 #include <set>
 #include <map>
@@ -41,37 +42,7 @@ class CQChartsRValues {
   // get nth value (non-unique)
   const OptReal &value(int i) const { return values_[i]; }
 
-  int addValue(const OptReal &r) {
-    // add to all values
-    values_.push_back(r);
-
-    calculated_ = false;
-
-    // TODO: don't calc key unless needed
-
-    // TODO: assert
-    if (! r) {
-      ++numNull_;
-
-      return -1;
-    }
-
-    // add to unique values if new
-    auto p = valset_.find(*r);
-
-    if (p == valset_.end()) {
-      int id = valset_.size();
-
-      p = valset_.insert(p, ValueSet::value_type(*r, KeyCount(id, 1))); // id for value
-
-      setvals_[id] = *r; // value for id
-    }
-    else {
-      ++(*p).second.second; // increment count
-    }
-
-    return (*p).second.first; // return key
-  }
+  int addValue(const OptReal &r);
 
   int numNull() const { return numNull_; }
 
@@ -156,135 +127,9 @@ class CQChartsRValues {
     const_cast<CQChartsRValues *>(this)->calc();
   }
 
-  void calc() {
-    if (calculated_)
-      return;
+  void calc();
 
-    calculated_ = true;
-
-    //---
-
-    // init statistics
-    sum_         = 0.0;
-    mean_        = 0.0;
-    stddev_      = 0.0;
-    median_      = 0.0;
-    lowerMedian_ = 0.0;
-    upperMedian_ = 0.0;
-
-    outliers_.clear();
-
-    svalues_.clear();
-
-    //---
-
-    // no values then nothing to do
-    if (values_.empty())
-      return;
-
-    //---
-
-    // get value to sort (skip null values)
-    for (auto &v : values_) {
-      if (! v) continue;
-
-      double r = *v;
-
-      sum_ += r;
-
-      svalues_.push_back(r);
-    }
-
-    if (svalues_.empty())
-      return;
-
-    int n = svalues_.size();
-
-    mean_ = sum_/n;
-
-    //---
-
-    double sum2 = 0.0;
-
-    for (auto &v : values_) {
-      if (! v) continue;
-
-      double r = *v;
-
-      double dr = (r - mean_);
-
-      sum2 += dr*dr;
-    }
-
-    stddev_ = (n > 1 ? sqrt(sum2)/(n - 1) : 0.0);
-
-    //---
-
-    // sort values
-    std::sort(svalues_.begin(), svalues_.end());
-
-    int nv = svalues_.size();
-
-    //---
-
-    // calc median
-    int nv1, nv2;
-
-    medianInd(0, nv - 1, nv1, nv2);
-
-    median_ = (svalues_[nv1] + svalues_[nv2])/2.0;
-
-    // calc lower median
-    if (nv1 > 0) {
-      int nl1, nl2;
-
-      medianInd(0, nv1 - 1, nl1, nl2);
-
-      lowerMedian_ = (svalues_[nl1] + svalues_[nl2])/2.0;
-    }
-    else
-      lowerMedian_ = svalues_[0];
-
-    // calc upper median
-    if (nv2 < nv - 1) {
-      int nu1, nu2;
-
-      medianInd(nv2 + 1, nv - 1, nu1, nu2);
-
-      upperMedian_ = (svalues_[nu1] + svalues_[nu2])/2.0;
-    }
-    else
-      upperMedian_ = svalues_[nv - 1];
-
-    //---
-
-    // calc outliers outside range()*(upper - lower)
-    double routlier = upperMedian_ - lowerMedian_;
-    double loutlier = lowerMedian_ - outlierRange_*routlier;
-    double uoutlier = upperMedian_ + outlierRange_*routlier;
-
-    int i = 0;
-
-    for (auto v : svalues_) {
-      if (v < loutlier || v > uoutlier)
-        outliers_.push_back(i);
-
-      ++i;
-    }
-  }
-
-  void medianInd(int i1, int i2, int &n1, int &n2) {
-    int n = i2 - i1 + 1;
-
-    if (n & 1) {
-      n1 = i1 + n/2;
-      n2 = n1;
-    }
-    else {
-      n2 = i1 + n/2;
-      n1 = n2 - 1;
-    }
-  }
+  void medianInd(int i1, int i2, int &n1, int &n2);
 
  private:
   using OptValues = std::vector<OptReal>;
@@ -339,37 +184,7 @@ class CQChartsIValues {
   // get nth value (non-unique)
   const OptInt &value(int i) const { return values_[i]; }
 
-  int addValue(const OptInt &i) {
-    // add to all values
-    values_.push_back(i);
-
-    calculated_ = false;
-
-    // TODO: don't calc key unless needed
-
-    // TODO: assert
-    if (! i) {
-      ++numNull_;
-
-      return -1;
-    }
-
-    // add to unique values if new
-    auto p = valset_.find(*i);
-
-    if (p == valset_.end()) {
-      int id = valset_.size();
-
-      p = valset_.insert(p, ValueSet::value_type(*i, KeyCount(id, 1))); // id for value
-
-      setvals_[id] = *i; // value for id
-    }
-    else {
-      ++(*p).second.second; // increment count
-    }
-
-    return (*p).second.first; // return key
-  }
+  int addValue(const OptInt &i);
 
   int numNull() const { return numNull_; }
 
@@ -448,134 +263,9 @@ class CQChartsIValues {
     const_cast<CQChartsIValues *>(this)->calc();
   }
 
-  void calc() {
-    if (calculated_)
-      return;
+  void calc();
 
-    calculated_ = true;
-
-    //---
-
-    // init statistics
-    sum_         = 0.0;
-    mean_        = 0.0;
-    median_      = 0.0;
-    lowerMedian_ = 0.0;
-    upperMedian_ = 0.0;
-
-    outliers_.clear();
-
-    svalues_.clear();
-
-    //---
-
-    // no values then nothing to do
-    if (values_.empty())
-      return;
-
-    //---
-
-    // get value to sort (skip null values)
-    for (auto &v : values_) {
-      if (! v) continue;
-
-      int i = *v;
-
-      sum_ += i;
-
-      svalues_.push_back(i);
-    }
-
-    if (svalues_.empty())
-      return;
-
-    int n = svalues_.size();
-
-    mean_ = sum_/n;
-
-    //---
-
-    double sum2 = 0.0;
-
-    for (auto &v : values_) {
-      if (! v) continue;
-
-      double r = *v;
-
-      double dr = (r - mean_);
-
-      sum2 += dr*dr;
-    }
-
-    stddev_ = (n > 1 ? sqrt(sum2)/(n - 1) : 0.0);
-
-    //---
-
-    // sort values
-    std::sort(svalues_.begin(), svalues_.end());
-
-    int nv = svalues_.size();
-
-    //---
-
-    // calc median
-    int nv1, nv2;
-
-    medianInd(0, nv - 1, nv1, nv2);
-
-    median_ = (svalues_[nv1] + svalues_[nv2])/2.0;
-
-    // calc lower median
-    if (nv1 > 0) {
-      int nl1, nl2;
-
-      medianInd(0, nv1 - 1, nl1, nl2);
-
-      lowerMedian_ = (svalues_[nl1] + svalues_[nl2])/2.0;
-    }
-    else
-      lowerMedian_ = svalues_[0];
-
-    // calc upper median
-    if (nv2 < nv - 1) {
-      int nu1, nu2;
-
-      medianInd(nv2 + 1, nv - 1, nu1, nu2);
-
-      upperMedian_ = (svalues_[nu1] + svalues_[nu2])/2.0;
-    }
-    else
-      upperMedian_ = svalues_[nv - 1];
-
-    //---
-
-    // calc outliers outside range()*(upper - lower)
-    double routlier = upperMedian_ - lowerMedian_;
-    double loutlier = lowerMedian_ - outlierRange_*routlier;
-    double uoutlier = upperMedian_ + outlierRange_*routlier;
-
-    int i = 0;
-
-    for (auto v : svalues_) {
-      if (v < loutlier || v > uoutlier)
-        outliers_.push_back(i);
-
-      ++i;
-    }
-  }
-
-  void medianInd(int i1, int i2, int &n1, int &n2) {
-    int n = i2 - i1 + 1;
-
-    if (n & 1) {
-      n1 = i1 + n/2;
-      n2 = n1;
-    }
-    else {
-      n2 = i1 + n/2;
-      n1 = n2 - 1;
-    }
-  }
+  void medianInd(int i1, int i2, int &n1, int &n2);
 
  private:
   using OptValues = std::vector<OptInt>;
@@ -608,21 +298,10 @@ class CQChartsSValues {
   using Counts    = std::vector<int>;
 
  public:
-  CQChartsSValues() { }
+  CQChartsSValues();
+ ~CQChartsSValues();
 
-  void clear() {
-    values_ .clear();
-    valset_ .clear();
-    setvals_.clear();
-
-    numNull_ = 0;
-
-    trie_.clear();
-
-    spatterns_.clear();
-
-    spatternsSet_ = false;
-  }
+  void clear();
 
   bool isValid() const { return ! values_.empty(); }
 
@@ -633,38 +312,7 @@ class CQChartsSValues {
   // get nth value (non-unique)
   const OptString &value(int i) const { return values_[i]; }
 
-  int addValue(const OptString &s) {
-    // add to all values
-    values_.push_back(s);
-
-    // TODO: don't calc key unless needed
-
-    // TODO: assert
-    if (! s) {
-      ++numNull_;
-
-      return -1;
-    }
-
-    // add to trie
-    trie_.addWord(*s);
-
-    // add to unique values if new
-    auto p = valset_.find(*s);
-
-    if (p == valset_.end()) {
-      int id = valset_.size();
-
-      p = valset_.insert(p, ValueSet::value_type(*s, KeyCount(id, 1))); // id for value
-
-      setvals_[id] = *s; // value for id
-    }
-    else {
-      ++(*p).second.second; // increment count
-    }
-
-    return (*p).second.first; // return key
-  }
+  int addValue(const OptString &s);
 
   int numNull() const { return numNull_; }
 
@@ -728,56 +376,12 @@ class CQChartsSValues {
     return CMathUtil::map(i, imin(), imax(), mapMin, mapMax);
   }
 
-  int sbucket(const QString &s) const {
-    initPatterns(initBuckets_);
+  int sbucket(const QString &s) const;
 
-    return trie_.patternIndex(s, spatterns_);
-  }
-
-  QString buckets(int i) const {
-    initPatterns(initBuckets_);
-
-    return trie_.indexPattern(i, spatterns_);
-  }
+  QString buckets(int i) const;
 
  private:
-  void initPatterns(int numIdeal) const {
-    if (spatternsSet_)
-      return;
-
-    using DepthCountMap = std::map<int,CQChartsTrie::Patterns>;
-
-    DepthCountMap depthCountMap;
-
-    for (int depth = 1; depth <= 3; ++depth) {
-      CQChartsTrie::Patterns patterns;
-
-      trie_.patterns(depth, patterns);
-
-      depthCountMap[depth] = patterns;
-
-      //patterns.print(std::cerr);
-    }
-
-    int minD     = -1;
-    int minDepth = -1;
-
-    for (const auto &depthCount : depthCountMap) {
-      int d = std::abs(depthCount.second.numPatterns() - numIdeal);
-
-      if (minDepth < 0 || d < minD) {
-        minD     = d;
-        minDepth = depthCount.first;
-      }
-    }
-
-    CQChartsSValues *th = const_cast<CQChartsSValues *>(this);
-
-    th->spatterns_    = depthCountMap[minDepth];
-    th->spatternsSet_ = true;
-
-    //spatterns_.print(std::cerr);
-  }
+  void initPatterns(int numIdeal) const;
 
  private:
   using OptValues = std::vector<OptString>;
@@ -790,10 +394,10 @@ class CQChartsSValues {
   SetValues setvals_;       // index to string map
   int       numNull_ { 0 }; // number of null values
 
-  int                    initBuckets_  { 10 };
-  CQChartsTrie           trie_;                   // string trie
-  CQChartsTrie::Patterns spatterns_;              // trie patterns
-  bool                   spatternsSet_ { false }; // trie patterns set
+  int                    initBuckets_  { 10 };      // initial buckets
+  CQChartsTrie*          trie_         { nullptr }; // string trie
+  CQChartsTrie::Patterns spatterns_;                // trie patterns
+  bool                   spatternsSet_ { false };   // trie patterns set
 };
 
 //---
@@ -823,35 +427,7 @@ class CQChartsCValues {
   // get nth value (non-unique)
   const CQChartsColor &value(int i) const { return values_[i]; }
 
-  int addValue(const CQChartsColor &c) {
-    // add to all values
-    values_.push_back(c);
-
-    // TODO: don't calc key unless needed
-
-    // TODO: assert
-    if (! c.isValid()) {
-      ++numNull_;
-
-      return -1;
-    }
-
-    // add to unique values if new
-    auto p = valset_.find(c);
-
-    if (p == valset_.end()) {
-      int id = valset_.size();
-
-      p = valset_.insert(p, ValueSet::value_type(c, KeyCount(id, 1))); // id for value
-
-      setvals_[id] = c; // value for id
-    }
-    else {
-      ++(*p).second.second; // increment count
-    }
-
-    return (*p).second.first; // return key
-  }
+  int addValue(const CQChartsColor &c);
 
   int numNull() const { return numNull_; }
 
@@ -937,7 +513,7 @@ class CQChartsValueSet : public QObject {
   Q_PROPERTY(bool           allowNaN READ isAllowNaN  WRITE setAllowNaN)
 
  public:
-  using Type      = CQBaseModel::Type;
+  using Type      = CQBaseModelType;
   using OptInt    = boost::optional<int>;
   using OptReal   = boost::optional<double>;
   using OptString = boost::optional<QString>;

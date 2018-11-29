@@ -124,10 +124,10 @@ class CQChartsColumn {
   bool decodeString(const QString &str, Type &type, int &column, int &role, QString &expr);
 
  private:
-  Type   type_   { Type::NONE };
-  int    column_ { -1 };
-  int    role_   { -1 };
-  char*  expr_   { nullptr };
+  Type  type_   { Type::NONE };
+  int   column_ { -1 };
+  int   role_   { -1 };
+  char* expr_   { nullptr };
 };
 
 //---

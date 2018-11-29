@@ -100,7 +100,7 @@ probe(ProbeData &probeData) const
     return false;
 
   if (! isHorizontal()) {
-    probeData.direction = ProbeData::Direction::VERTICAL;
+    probeData.direction = Qt::Vertical;
 
     if (probeData.x < dataRange.xmin() + 0.5)
       probeData.x = dataRange.xmin() + 0.5;
@@ -111,7 +111,7 @@ probe(ProbeData &probeData) const
     probeData.x = std::round(probeData.x);
   }
   else {
-    probeData.direction = ProbeData::Direction::HORIZONTAL;
+    probeData.direction = Qt::Horizontal;
 
     if (probeData.y < dataRange.ymin() + 0.5)
       probeData.y = dataRange.ymin() + 0.5;

@@ -94,7 +94,7 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   //---
 
-  void addProperties();
+  void addProperties() override;
 
   //---
 
@@ -123,7 +123,7 @@ class CQChartsGroupPlot : public CQChartsPlot {
     return (groupBucket().dataType() == CQChartsColumnBucket::DataType::PATH);
   }
 
-  int numGroups() const;
+  int numGroups() const override;
 
   void printGroup() const;
 

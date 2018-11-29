@@ -3,9 +3,9 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsModelFilter.h>
 #include <CQChartsModelVisitor.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>
-#include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQPerfMonitor.h>
 
@@ -131,7 +131,7 @@ updateSimple()
 
   QAbstractItemModel *model = data_->currentModel().data();
 
-  hierarchical_ = CQChartsUtil::isHierarchical(model);
+  hierarchical_ = CQChartsModelUtil::isHierarchical(model);
 
   numColumns_ = model->columnCount();
   numRows_    = model->rowCount   ();
@@ -238,7 +238,7 @@ columnDuplicates(const CQChartsColumn &column, bool all) const
 
         bool ok;
 
-        QVariant var = CQChartsUtil::modelValue(charts, model, r, c, parent, ok);
+        QVariant var = CQChartsModelUtil::modelValue(charts, model, r, c, parent, ok);
 
         rowValues2[c] = var;
 
@@ -251,7 +251,7 @@ columnDuplicates(const CQChartsColumn &column, bool all) const
 
       bool ok;
 
-      QVariant var = CQChartsUtil::modelValue(charts, model, r, column, parent, ok);
+      QVariant var = CQChartsModelUtil::modelValue(charts, model, r, column, parent, ok);
 
       rowValues2[0] = var;
 
@@ -352,7 +352,7 @@ headerName() const
 
   bool ok;
 
-  return CQChartsUtil::modelHeaderString(model, column_, ok);
+  return CQChartsModelUtil::modelHeaderString(model, column_, ok);
 }
 
 bool
@@ -364,7 +364,8 @@ isKey() const
   bool ok;
 
   QVariant value =
-    CQChartsUtil::modelHeaderValue(model, column_, static_cast<int>(CQBaseModel::Role::Key), ok);
+    CQChartsModelUtil::modelHeaderValue(
+      model, column_, static_cast<int>(CQBaseModelRole::Key), ok);
 
   return (ok && value.toBool());
 }
@@ -379,7 +380,7 @@ typeName() const
   return typeName_;
 }
 
-CQBaseModel::Type
+CQBaseModelType
 CQChartsModelColumnDetails::
 type() const
 {
@@ -391,15 +392,15 @@ type() const
 
 void
 CQChartsModelColumnDetails::
-setType(CQBaseModel::Type type)
+setType(CQBaseModelType type)
 {
   type_ = type;
 
-  if (baseType_ == CQBaseModel::Type::NONE)
+  if (baseType_ == CQBaseModelType::NONE)
     baseType_ = type_;
 }
 
-CQBaseModel::Type
+CQBaseModelType
 CQChartsModelColumnDetails::
 baseType() const
 {
@@ -411,7 +412,7 @@ baseType() const
 
 void
 CQChartsModelColumnDetails::
-setBaseType(CQBaseModel::Type type)
+setBaseType(CQBaseModelType type)
 {
   baseType_ = type;
 }
@@ -450,20 +451,20 @@ meanValue() const
 {
   initCache();
 
-  if      (type() == CQBaseModel::Type::INTEGER) {
+  if      (type() == CQBaseModelType::INTEGER) {
     return valueSet_->ivals().mean();
   }
-  else if (type() == CQBaseModel::Type::REAL) {
+  else if (type() == CQBaseModelType::REAL) {
     return valueSet_->rvals().mean();
   }
-  else if (type() == CQBaseModel::Type::STRING) {
+  else if (type() == CQBaseModelType::STRING) {
     //return valueSet_->svals().mean();
   }
-  else if (type() == CQBaseModel::Type::TIME) {
+  else if (type() == CQBaseModelType::TIME) {
     return valueSet_->tvals().mean();
   }
-  else if (type() == CQBaseModel::Type::COLOR) {
-    //valueSet_->cvals().mean();
+  else if (type() == CQBaseModelType::COLOR) {
+    //return valueSet_->cvals().mean();
   }
 
   return QVariant();
@@ -475,20 +476,20 @@ stdDevValue() const
 {
   initCache();
 
-  if      (type() == CQBaseModel::Type::INTEGER) {
+  if      (type() == CQBaseModelType::INTEGER) {
     return valueSet_->ivals().stddev();
   }
-  else if (type() == CQBaseModel::Type::REAL) {
+  else if (type() == CQBaseModelType::REAL) {
     return valueSet_->rvals().stddev();
   }
-  else if (type() == CQBaseModel::Type::STRING) {
-    //valueSet_->svals().stddev();
+  else if (type() == CQBaseModelType::STRING) {
+    //return valueSet_->svals().stddev();
   }
-  else if (type() == CQBaseModel::Type::TIME) {
+  else if (type() == CQBaseModelType::TIME) {
     return valueSet_->tvals().stddev();
   }
-  else if (type() == CQBaseModel::Type::COLOR) {
-    //valueSet_->cvals().stddev();
+  else if (type() == CQBaseModelType::COLOR) {
+    //return valueSet_->cvals().stddev();
   }
 
   return QVariant();
@@ -531,8 +532,8 @@ bool
 CQChartsModelColumnDetails::
 isNumeric() const
 {
-  if (type() == CQBaseModel::Type::INTEGER ||
-      type() == CQBaseModel::Type::REAL)
+  if (type() == CQBaseModelType::INTEGER ||
+      type() == CQBaseModelType::REAL)
     return true;
 
   return false;
@@ -550,8 +551,8 @@ isMonotonic() const
 
     QAbstractItemModel *model = details_->data()->currentModel().data();
 
-    QVariant var = CQChartsUtil::modelHeaderValue(
-      model, icolumn, static_cast<int>(CQBaseModel::Role::Sorted), ok);
+    QVariant var = CQChartsModelUtil::modelHeaderValue(
+      model, icolumn, static_cast<int>(CQBaseModelRole::Sorted), ok);
 
     if (ok && var.isValid() && var.toBool())
       return true;
@@ -576,12 +577,12 @@ isIncreasing() const
 
     QAbstractItemModel *model = details_->data()->currentModel().data();
 
-    QVariant var = CQChartsUtil::modelHeaderValue(
-      model, icolumn, static_cast<int>(CQBaseModel::Role::Sorted), ok);
+    QVariant var = CQChartsModelUtil::modelHeaderValue(
+      model, icolumn, static_cast<int>(CQBaseModelRole::Sorted), ok);
 
     if (ok && var.isValid() && var.toBool()) {
-      QVariant var = CQChartsUtil::modelHeaderValue(
-        model, icolumn, static_cast<int>(CQBaseModel::Role::SortOrder), ok);
+      QVariant var = CQChartsModelUtil::modelHeaderValue(
+        model, icolumn, static_cast<int>(CQBaseModelRole::SortOrder), ok);
 
       if (ok && var.isValid())
         return (var.toInt() == Qt::AscendingOrder);
@@ -601,19 +602,19 @@ numUnique() const
 {
   initCache();
 
-  if      (type() == CQBaseModel::Type::INTEGER) {
+  if      (type() == CQBaseModelType::INTEGER) {
     return valueSet_->ivals().numUnique();
   }
-  else if (type() == CQBaseModel::Type::REAL) {
+  else if (type() == CQBaseModelType::REAL) {
     return valueSet_->rvals().numUnique();
   }
-  else if (type() == CQBaseModel::Type::STRING) {
+  else if (type() == CQBaseModelType::STRING) {
     return valueSet_->svals().numUnique();
   }
-  else if (type() == CQBaseModel::Type::TIME) {
+  else if (type() == CQBaseModelType::TIME) {
     return valueSet_->tvals().numUnique();
   }
-  else if (type() == CQBaseModel::Type::COLOR) {
+  else if (type() == CQBaseModelType::COLOR) {
     return valueSet_->cvals().numUnique();
   }
   else {
@@ -629,7 +630,7 @@ uniqueValues() const
 
   VariantList vars;
 
-  if      (type() == CQBaseModel::Type::INTEGER) {
+  if      (type() == CQBaseModelType::INTEGER) {
     CQChartsIValues::Values values;
 
     valueSet_->ivals().uniqueValues(values);
@@ -637,7 +638,7 @@ uniqueValues() const
     for (const auto &v : values)
       vars.push_back(v);
   }
-  else if (type() == CQBaseModel::Type::REAL) {
+  else if (type() == CQBaseModelType::REAL) {
     CQChartsRValues::Values values;
 
     valueSet_->rvals().uniqueValues(values);
@@ -645,7 +646,7 @@ uniqueValues() const
     for (const auto &v : values)
       vars.push_back(v);
   }
-  else if (type() == CQBaseModel::Type::STRING) {
+  else if (type() == CQBaseModelType::STRING) {
     CQChartsSValues::Values values;
 
     valueSet_->svals().uniqueValues(values);
@@ -653,15 +654,15 @@ uniqueValues() const
     for (const auto &v : values)
       vars.push_back(v);
   }
-  else if (type() == CQBaseModel::Type::TIME) {
-    CQChartsIValues::Values values;
+  else if (type() == CQBaseModelType::TIME) {
+    CQChartsRValues::Values values;
 
     valueSet_->tvals().uniqueValues(values);
 
     for (const auto &v : values)
       vars.push_back(v);
   }
-  else if (type() == CQBaseModel::Type::COLOR) {
+  else if (type() == CQBaseModelType::COLOR) {
     CQChartsCValues::Values values;
 
     valueSet_->cvals().uniqueValues(values);
@@ -681,19 +682,19 @@ uniqueCounts() const
 
   CQChartsIValues::Counts counts;
 
-  if      (type() == CQBaseModel::Type::INTEGER) {
+  if      (type() == CQBaseModelType::INTEGER) {
     valueSet_->ivals().uniqueCounts(counts);
   }
-  else if (type() == CQBaseModel::Type::REAL) {
+  else if (type() == CQBaseModelType::REAL) {
     valueSet_->rvals().uniqueCounts(counts);
   }
-  else if (type() == CQBaseModel::Type::STRING) {
+  else if (type() == CQBaseModelType::STRING) {
     valueSet_->svals().uniqueCounts(counts);
   }
-  else if (type() == CQBaseModel::Type::TIME) {
+  else if (type() == CQBaseModelType::TIME) {
     valueSet_->tvals().uniqueCounts(counts);
   }
-  else if (type() == CQBaseModel::Type::COLOR) {
+  else if (type() == CQBaseModelType::COLOR) {
     valueSet_->cvals().uniqueCounts(counts);
   }
 
@@ -711,19 +712,19 @@ uniqueId(const QVariant &v) const
 {
   initCache();
 
-  if      (type() == CQBaseModel::Type::INTEGER) {
+  if      (type() == CQBaseModelType::INTEGER) {
     return valueSet_->ivals().id(v.toInt());
   }
-  else if (type() == CQBaseModel::Type::REAL) {
+  else if (type() == CQBaseModelType::REAL) {
     return valueSet_->rvals().id(v.toReal());
   }
-  else if (type() == CQBaseModel::Type::STRING) {
+  else if (type() == CQBaseModelType::STRING) {
     return valueSet_->svals().id(v.toString());
   }
-  else if (type() == CQBaseModel::Type::TIME) {
+  else if (type() == CQBaseModelType::TIME) {
     return valueSet_->tvals().id(v.toReal());
   }
-  else if (type() == CQBaseModel::Type::COLOR) {
+  else if (type() == CQBaseModelType::COLOR) {
     bool ok;
 
     CQChartsColor color = CQChartsVariant::toColor(v, ok);
@@ -753,19 +754,19 @@ numNull() const
 {
   initCache();
 
-  if      (type() == CQBaseModel::Type::INTEGER) {
+  if      (type() == CQBaseModelType::INTEGER) {
     return valueSet_->ivals().numNull();
   }
-  else if (type() == CQBaseModel::Type::REAL) {
+  else if (type() == CQBaseModelType::REAL) {
     return valueSet_->rvals().numNull();
   }
-  else if (type() == CQBaseModel::Type::STRING) {
+  else if (type() == CQBaseModelType::STRING) {
     //return valueSet_->svals().numNull();
   }
-  else if (type() == CQBaseModel::Type::TIME) {
+  else if (type() == CQBaseModelType::TIME) {
     return valueSet_->tvals().numNull();
   }
-  else if (type() == CQBaseModel::Type::COLOR) {
+  else if (type() == CQBaseModelType::COLOR) {
     return valueSet_->cvals().numNull();
   }
 
@@ -790,19 +791,19 @@ medianValue() const
 {
   initCache();
 
-  if      (type() == CQBaseModel::Type::INTEGER) {
+  if      (type() == CQBaseModelType::INTEGER) {
     return valueSet_->ivals().median();
   }
-  else if (type() == CQBaseModel::Type::REAL) {
+  else if (type() == CQBaseModelType::REAL) {
     return valueSet_->rvals().median();
   }
-  else if (type() == CQBaseModel::Type::STRING) {
+  else if (type() == CQBaseModelType::STRING) {
     //return valueSet_->svals().median();
   }
-  else if (type() == CQBaseModel::Type::TIME) {
+  else if (type() == CQBaseModelType::TIME) {
     return valueSet_->tvals().median();
   }
-  else if (type() == CQBaseModel::Type::COLOR) {
+  else if (type() == CQBaseModelType::COLOR) {
     //return valueSet_->cvals().median();
   }
 
@@ -815,19 +816,19 @@ lowerMedianValue() const
 {
   initCache();
 
-  if      (type() == CQBaseModel::Type::INTEGER) {
+  if      (type() == CQBaseModelType::INTEGER) {
     return valueSet_->ivals().lowerMedian();
   }
-  else if (type() == CQBaseModel::Type::REAL) {
+  else if (type() == CQBaseModelType::REAL) {
     return valueSet_->rvals().lowerMedian();
   }
-  else if (type() == CQBaseModel::Type::STRING) {
+  else if (type() == CQBaseModelType::STRING) {
     //return valueSet_->svals().lowerMedian();
   }
-  else if (type() == CQBaseModel::Type::TIME) {
+  else if (type() == CQBaseModelType::TIME) {
     return valueSet_->tvals().lowerMedian();
   }
-  else if (type() == CQBaseModel::Type::COLOR) {
+  else if (type() == CQBaseModelType::COLOR) {
     //return valueSet_->cvals().lowerMedian();
   }
 
@@ -840,20 +841,20 @@ upperMedianValue() const
 {
   initCache();
 
-  if      (type() == CQBaseModel::Type::INTEGER) {
+  if      (type() == CQBaseModelType::INTEGER) {
     return valueSet_->ivals().upperMedian();
   }
-  else if (type() == CQBaseModel::Type::REAL) {
+  else if (type() == CQBaseModelType::REAL) {
     return valueSet_->rvals().upperMedian();
   }
-  else if (type() == CQBaseModel::Type::STRING) {
+  else if (type() == CQBaseModelType::STRING) {
     //return valueSet_->svals().upperMedian();
   }
-  else if (type() == CQBaseModel::Type::TIME) {
+  else if (type() == CQBaseModelType::TIME) {
     return valueSet_->tvals().upperMedian();
   }
-  else if (type() == CQBaseModel::Type::COLOR) {
-    //return valueSet_->svals().upperMedian();
+  else if (type() == CQBaseModelType::COLOR) {
+    //return valueSet_->cvals().upperMedian();
   }
 
   return QVariant();
@@ -867,28 +868,28 @@ outlierValues() const
 
   QVariantList vars;
 
-  if      (type() == CQBaseModel::Type::INTEGER) {
+  if      (type() == CQBaseModelType::INTEGER) {
     const CQChartsIValues::Indices &outliers = valueSet_->ivals().outliers();
 
     for (auto &o : outliers)
       vars.push_back(valueSet_->ivals().svalue(o));
   }
-  else if (type() == CQBaseModel::Type::REAL) {
+  else if (type() == CQBaseModelType::REAL) {
     const CQChartsRValues::Indices &outliers = valueSet_->rvals().outliers();
 
     for (auto &o : outliers)
       vars.push_back(valueSet_->rvals().svalue(o));
   }
-  else if (type() == CQBaseModel::Type::STRING) {
+  else if (type() == CQBaseModelType::STRING) {
     //return valueSet_->svals().outliers();
   }
-  else if (type() == CQBaseModel::Type::TIME) {
+  else if (type() == CQBaseModelType::TIME) {
     const CQChartsIValues::Indices &outliers = valueSet_->tvals().outliers();
 
     for (auto &o : outliers)
       vars.push_back(valueSet_->tvals().svalue(o));
   }
-  else if (type() == CQBaseModel::Type::COLOR) {
+  else if (type() == CQBaseModelType::COLOR) {
     //return valueSet_->cvals().outliers();
   }
 
@@ -903,25 +904,25 @@ map(const QVariant &var) const
 
   bool ok;
 
-  if      (type() == CQBaseModel::Type::INTEGER) {
+  if      (type() == CQBaseModelType::INTEGER) {
     long l = CQChartsVariant::toInt(var, ok);
 
     return valueSet_->ivals().map(l);
   }
-  else if (type() == CQBaseModel::Type::REAL) {
+  else if (type() == CQBaseModelType::REAL) {
     double r = CQChartsVariant::toReal(var, ok);
 
     return valueSet_->rvals().map(r);
   }
-  else if (type() == CQBaseModel::Type::STRING) {
+  else if (type() == CQBaseModelType::STRING) {
     return 0;
   }
-  else if (type() == CQBaseModel::Type::TIME) {
+  else if (type() == CQBaseModelType::TIME) {
     double r = CQChartsVariant::toReal(var, ok);
 
     return valueSet_->tvals().map(r);
   }
-  else if (type() == CQBaseModel::Type::COLOR) {
+  else if (type() == CQBaseModelType::COLOR) {
     return 0;
   }
   else {
@@ -955,17 +956,17 @@ initData()
 
   CQChartsModelFilter *modelFilter = nullptr;
 
-  if      (type() == CQBaseModel::Type::COLOR ||
-           type() == CQBaseModel::Type::SYMBOL) {
+  if      (type() == CQBaseModelType::COLOR ||
+           type() == CQBaseModelType::SYMBOL) {
     modelFilter = qobject_cast<CQChartsModelFilter *>(model);
 
     if (modelFilter)
       modelFilter->setMapping(false);
   }
-  else if (type() == CQBaseModel::Type::SYMBOL_SIZE ||
-           type() == CQBaseModel::Type::FONT_SIZE) {
-    if (baseType() == CQBaseModel::Type::REAL ||
-        baseType() == CQBaseModel::Type::INTEGER) {
+  else if (type() == CQBaseModelType::SYMBOL_SIZE ||
+           type() == CQBaseModelType::FONT_SIZE) {
+    if (baseType() == CQBaseModelType::REAL ||
+        baseType() == CQBaseModelType::INTEGER) {
       modelFilter = qobject_cast<CQChartsModelFilter *>(model);
 
       if (modelFilter)
@@ -1005,13 +1006,13 @@ initData()
     State visit(QAbstractItemModel *model, const VisitData &data) override {
       bool ok;
 
-      QVariant var = CQChartsUtil::modelValue(charts_, model, data.row, details_->column(),
-                                              data.parent, ok);
+      QVariant var = CQChartsModelUtil::modelValue(
+        charts_, model, data.row, details_->column(), data.parent, ok);
       if (! ok) return State::SKIP;
 
       details_->addValue(var);
 
-      if      (details_->type() == CQBaseModel::Type::INTEGER) {
+      if      (details_->type() == CQBaseModelType::INTEGER) {
         long i = CQChartsVariant::toInt(var, ok);
         if (! ok) return State::SKIP;
 
@@ -1022,7 +1023,7 @@ initData()
 
         addInt(i);
       }
-      else if (details_->type() == CQBaseModel::Type::REAL) {
+      else if (details_->type() == CQBaseModelType::REAL) {
         double r = CQChartsVariant::toReal(var, ok);
         if (! ok) return State::SKIP;
 
@@ -1033,7 +1034,7 @@ initData()
 
         addReal(r);
       }
-      else if (details_->type() == CQBaseModel::Type::STRING) {
+      else if (details_->type() == CQBaseModelType::STRING) {
         QString s;
 
         ok = CQChartsVariant::toString(var, s);
@@ -1046,7 +1047,7 @@ initData()
 
         addString(s);
       }
-      else if (details_->type() == CQBaseModel::Type::TIME) {
+      else if (details_->type() == CQBaseModelType::TIME) {
         double t = CQChartsVariant::toReal(var, ok);
         if (! ok) return State::SKIP;
 
@@ -1057,7 +1058,7 @@ initData()
 
         addReal(t);
       }
-      else if (details_->type() == CQBaseModel::Type::COLOR) {
+      else if (details_->type() == CQBaseModelType::COLOR) {
         CQChartsColor color;
 
         if (! details_->columnColor(var, color))
@@ -1070,7 +1071,7 @@ initData()
 
         addColor(color);
       }
-      else if (details_->type() == CQBaseModel::Type::SYMBOL_SIZE) {
+      else if (details_->type() == CQBaseModelType::SYMBOL_SIZE) {
         double r = CQChartsVariant::toReal(var, ok);
         if (! ok) return State::SKIP;
 
@@ -1081,7 +1082,7 @@ initData()
 
         addReal(r);
       }
-      else if (details_->type() == CQBaseModel::Type::FONT_SIZE) {
+      else if (details_->type() == CQBaseModelType::FONT_SIZE) {
         double r = CQChartsVariant::toReal(var, ok);
         if (! ok) return State::SKIP;
 
@@ -1370,9 +1371,10 @@ initType()
     // TODO: calls CQChartsModelVisitor, integrate into this visitor
     CQCharts *charts = details_->data()->charts();
 
-    if (! CQChartsUtil::columnValueType(charts, model, column_, type_, baseType_, nameValues_)) {
-      type_     = CQBaseModel::Type::NONE;
-      baseType_ = CQBaseModel::Type::NONE;
+    if (! CQChartsModelUtil::columnValueType(charts, model, column_, type_,
+                                             baseType_, nameValues_)) {
+      type_     = CQBaseModelType::NONE;
+      baseType_ = CQBaseModelType::NONE;
     }
 
     //---
@@ -1385,8 +1387,8 @@ initType()
       typeName_ = columnType->name();
     }
     else {
-      type_     = CQBaseModel::Type::STRING;
-      baseType_ = CQBaseModel::Type::STRING;
+      type_     = CQBaseModelType::STRING;
+      baseType_ = CQBaseModelType::STRING;
       typeName_ = "string";
     }
 
@@ -1458,7 +1460,7 @@ columnColor(const QVariant &var, CQChartsColor &color) const
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
   CQChartsColumnColorType *colorType =
-    dynamic_cast<CQChartsColumnColorType *>(columnTypeMgr->getType(CQBaseModel::Type::COLOR));
+    dynamic_cast<CQChartsColumnColorType *>(columnTypeMgr->getType(CQBaseModelType::COLOR));
 
   bool converted;
 

@@ -4,7 +4,7 @@
 #include <CQChartsObjData.h>
 #include <CQChartsGeom.h>
 #include <CQChartsTheme.h>
-#include <CQChartsPlotSymbol.h>
+#include <CQChartsSymbol.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsPosition.h>
 #include <CQChartsLength.h>
@@ -305,6 +305,8 @@ class CQChartsView : public QFrame,
 
   CQChartsTextAnnotation     *addTextAnnotation    (const CQChartsPosition &pos,
                                                     const QString &text);
+  CQChartsTextAnnotation     *addTextAnnotation    (const CQChartsRect &rect,
+                                                    const QString &text);
   CQChartsArrowAnnotation    *addArrowAnnotation   (const CQChartsPosition &start,
                                                     const CQChartsPosition &end);
   CQChartsRectAnnotation     *addRectAnnotation    (const CQChartsRect &rect);
@@ -473,8 +475,11 @@ class CQChartsView : public QFrame,
 
   //---
 
-  QPointF positionToView(const CQChartsPosition &pos) const;
+  QPointF positionToView (const CQChartsPosition &pos) const;
   QPointF positionToPixel(const CQChartsPosition &pos) const;
+
+  QRectF rectToView (const CQChartsRect &rect) const;
+  QRectF rectToPixel(const CQChartsRect &rect) const;
 
   double lengthViewWidth (const CQChartsLength &len) const;
   double lengthViewHeight(const CQChartsLength &len) const;

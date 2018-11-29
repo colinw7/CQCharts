@@ -15,7 +15,7 @@
 #include <CQChartsTypes.h>
 #include <CQChartsGeom.h>
 #include <CQChartsPlotMargin.h>
-#include <CQBaseModel.h>
+#include <CQBaseModelTypes.h>
 
 #include <QAbstractItemModel>
 #include <QItemSelection>
@@ -53,6 +53,7 @@ class CQChartsDisplayTransform;
 class CQChartsValueSet;
 class CQChartsModelColumnDetails;
 class CQChartsModelExprMatch;
+class CQChartsModelData;
 class CQPropertyViewModel;
 class CQPropertyViewItem;
 class QPainter;
@@ -232,18 +233,13 @@ class CQChartsPlot : public CQChartsObj,
   };
 
   struct ProbeData {
-    enum class Direction {
-      VERTICAL,
-      HORIZONTAL
-    };
-
     using Values = std::vector<ProbeValue>;
 
-    double    x         { 0.0 };
-    double    y         { 0.0 };
-    Values    xvals;
-    Values    yvals;
-    Direction direction { Direction::VERTICAL };
+    double          x         { 0.0 };
+    double          y         { 0.0 };
+    Values          xvals;
+    Values          yvals;
+    Qt::Orientation direction { Qt::Vertical };
   };
 
   using OptReal = boost::optional<double>;
@@ -257,7 +253,7 @@ class CQChartsPlot : public CQChartsObj,
 
   using ModelIndices = std::vector<QModelIndex>;
 
-  using ColumnType = CQBaseModel::Type;
+  using ColumnType = CQBaseModelType;
 
   using Plots = std::vector<CQChartsPlot*>;
 
@@ -290,6 +286,8 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   virtual bool isHierarchical() const;
+
+  virtual int numGroups() const { return 0; }
 
   //---
 
@@ -870,6 +868,9 @@ class CQChartsPlot : public CQChartsObj,
   QPointF positionToPlot (const CQChartsPosition &pos) const;
   QPointF positionToPixel(const CQChartsPosition &pos) const;
 
+  QRectF rectToPlot (const CQChartsRect &rect) const;
+  QRectF rectToPixel(const CQChartsRect &rect) const;
+
   //---
 
   double lengthPlotSize(const CQChartsLength &len, bool horizontal) const;
@@ -1235,6 +1236,8 @@ class CQChartsPlot : public CQChartsObj,
   const Annotations &annotations() const { return annotations_; }
 
   CQChartsTextAnnotation     *addTextAnnotation    (const CQChartsPosition &pos,
+                                                    const QString &text);
+  CQChartsTextAnnotation     *addTextAnnotation    (const CQChartsRect &rect,
                                                     const QString &text);
   CQChartsArrowAnnotation    *addArrowAnnotation   (const CQChartsPosition &start,
                                                     const CQChartsPosition &end);
@@ -1623,7 +1626,7 @@ class CQChartsPlot : public CQChartsObj,
  protected:
   struct NoUpdate {
     NoUpdate(CQChartsPlot *plot) : plot_(plot) { plot_->updatesEnabled_ = false; }
-   ~NoUpdate() { plot_->updatesEnabled_ = true;  }
+   ~NoUpdate() { plot_->updatesEnabled_ = true; }
 
     CQChartsPlot* plot_ { nullptr };
   };
@@ -1742,6 +1745,7 @@ class CQChartsPlot : public CQChartsObj,
   bool                      needsAutoFit_     { false };      // needs auto fit on next draw
   bool                      preview_          { false };      // is preview plot
   int                       previewMaxRows_   { 1000 };       // preview max rows
+  bool                      bufferSymbols_    { false };      // buffer symbols
   bool                      showBoxes_        { false };      // show debug boxes
   bool                      overview_         { false };      // is overview
   bool                      invertX_          { false };      // x values inverted

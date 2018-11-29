@@ -1,12 +1,14 @@
 High
  + generate plot on thread (redraw when finished)
+ + view annotations in offscreen pixmap/image
  + Allow color names/symbol names in color map
  + Copy model (filtered, new columns, ...) like export_model
+   + Ensure skip filtered and includes filtered
  + Serialize State
- + Use new types to auto fill scatter plot
+ + Use new types (color, symbol, font) to auto fill scatter plot
  + cleanup theme interface (allow view, plot customization)
  + Group Plot grouping and Distrib Plot Group should share common code
- + Update plot helps (work differences)
+ + Update plot helps
  + Column Type parameter types
  + Single Model/Expr Wrapper
  + Analyze, set time to X axis (scatter, xy, ...)

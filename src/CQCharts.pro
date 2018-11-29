@@ -91,7 +91,6 @@ CQChartsResizeHandle.cpp \
 \
 CQChartsColumnBucket.cpp \
 CQChartsValueSet.cpp \
-CQChartsColorSet.cpp \
 CQChartsPlotSymbol.cpp \
 \
 CQChartsLoadDlg.cpp \
@@ -156,6 +155,7 @@ CQChartsStyle.cpp \
 CQChartsBoxWhisker.cpp \
 CQChartsDensity.cpp \
 CQChartsGrahamHull.cpp \
+CQChartsModelUtil.cpp \
 CQChartsUtil.cpp \
 CQChartsEnv.cpp \
 \
@@ -264,7 +264,6 @@ HEADERS += \
 \
 ../include/CQChartsColumnBucket.h \
 ../include/CQChartsValueSet.h \
-../include/CQChartsColorSet.h \
 ../include/CQChartsPlotSymbol.h \
 ../include/CQChartsSymbol.h \
 ../include/CQChartsSymbolEdit.h \
@@ -275,6 +274,7 @@ HEADERS += \
 ../include/CQChartsBoxWhisker.h \
 ../include/CQChartsDensity.h \
 ../include/CQChartsGrahamHull.h \
+../include/CQChartsModelUtil.h \
 ../include/CQChartsUtil.h \
 ../include/CQChartsEnv.h \
 ../include/CQChartsQuadTree.h \
@@ -358,8 +358,6 @@ CQFilename.h \
 ../include/CQChartsDelaunay.h \
 ../include/CQChartsDendrogram.h \
 ../include/CQChartsHull3D.h \
-CListLink.h \
-CStateIterator.h \
 ../include/CUnixFile.h \
 \
 ../include/CQCheckBox.h \

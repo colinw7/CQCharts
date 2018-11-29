@@ -1,7 +1,7 @@
 #ifndef CQChartsPlotParameter_H
 #define CQChartsPlotParameter_H
 
-#include <CQBaseModel.h>
+#include <CQBaseModelTypes.h>
 #include <QObject>
 #include <QString>
 #include <QStringList>
@@ -137,7 +137,7 @@ class CQChartsPlotParameter : public QObject {
 
  public:
   using Attributes = CQChartsPlotParameterAttributes;
-  using Type       = CQBaseModel::Type;
+  using Type       = CQBaseModelType;
 
  public:
   CQChartsPlotParameter(const QString &name, const QString &desc, const Type &type,
@@ -155,9 +155,8 @@ class CQChartsPlotParameter : public QObject {
   const Type &type() const { return type_; }
   CQChartsPlotParameter &setType(const Type &s) { type_ = s; return *this; }
 
-  QString typeName() const { return CQBaseModel::typeName(type_); }
-  CQChartsPlotParameter &setTypeName(const QString &name) {
-    type_ = CQBaseModel::nameType(name); return *this; }
+  QString typeName() const;
+  CQChartsPlotParameter &setTypeName(const QString &name);
 
   const QString &propName() const { return propName_; }
   CQChartsPlotParameter &setPropName(const QString &s) { propName_ = s; return *this; }

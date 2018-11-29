@@ -3,7 +3,7 @@
 #include <CQChartsModelFilter.h>
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsModelData.h>
-#include <CQChartsUtil.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsRegExp.h>
 #include <CQChartsVariant.h>
 #include <CQChartsModelVisitor.h>
@@ -243,7 +243,7 @@ addReplaceFilter(const QString &filter, bool add)
     QString filter1;
     int     column = -1;
 
-    if (CQChartsUtil::decodeModelFilterStr(model, filter, filter1, column))
+    if (CQChartsModelUtil::decodeModelFilterStr(model, filter, filter1, column))
       proxyModel->setFilterKeyColumn(column);
 
     proxyModel->setFilterWildcard(filter1);
@@ -310,7 +310,7 @@ addReplaceSearch(const QString &text, bool add)
     QString text1;
     int     column = -1;
 
-    if (CQChartsUtil::decodeModelFilterStr(model_.data(), text, text1, column))
+    if (CQChartsModelUtil::decodeModelFilterStr(model_.data(), text, text1, column))
       proxyModel->setFilterKeyColumn(column);
 
     keyColumn = proxyModel->filterKeyColumn();
@@ -328,7 +328,7 @@ addReplaceSearch(const QString &text, bool add)
 
         bool ok;
 
-        QString str = CQChartsUtil::modelString(model, ind, ok);
+        QString str = CQChartsModelUtil::modelString(model, ind, ok);
         if (! ok) return State::SKIP;
 
         if (regexp_.match(str))
@@ -494,9 +494,9 @@ exportSlot(QAction *action)
   QString type = action->text();
 
   if      (type == "CSV")
-    CQChartsUtil::exportModel(modelP().data(), CQBaseModel::DataType::CSV);
+    CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::CSV);
   else if (type == "TSV")
-    CQChartsUtil::exportModel(modelP().data(), CQBaseModel::DataType::TSV);
+    CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::TSV);
   else {
     std::cerr << "Invalid export type '" << type.toStdString() << "'\n";
   }

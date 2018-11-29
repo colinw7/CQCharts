@@ -1,4 +1,5 @@
 #include <CQChartsGradientPaletteCanvas.h>
+#include <CQChartsGradientPalette.h>
 #include <CQChartsUtil.h>
 
 #include <QLabel>

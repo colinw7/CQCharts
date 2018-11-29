@@ -7,7 +7,7 @@
 #include <CQChartsRect.h>
 #include <CQChartsColor.h>
 #include <CQChartsLineDash.h>
-#include <CQChartsUtil.h>
+#include <CQChartsModelUtil.h>
 
 #include <CQAlignEdit.h>
 #include <CQStrParse.h>
@@ -870,7 +870,7 @@ class CQChartsCmdArgs {
 
     CQChartsColumn column;
 
-    if (! CQChartsUtil::stringToColumn(model, (*p).second[0], column))
+    if (! CQChartsModelUtil::stringToColumn(model, (*p).second[0], column))
       return CQChartsColumn();
 
     return column;

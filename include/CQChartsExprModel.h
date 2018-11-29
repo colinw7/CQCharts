@@ -1,7 +1,7 @@
 #ifndef CQChartsExprModel_H
 #define CQChartsExprModel_H
 
-#include <CQBaseModel.h>
+#include <CQBaseModelTypes.h>
 #include <CQBucketer.h>
 #include <QAbstractProxyModel>
 #include <boost/optional.hpp>
@@ -136,16 +136,16 @@ class CQChartsExprModel : public QAbstractProxyModel {
   using Args       = std::vector<QString>;
 
   struct ExtraColumn {
-    QString           expr;                                   // expression
-    QString           header;                                 // header
-    CQBaseModel::Type type       { CQBaseModel::Type::NONE }; // value type
-    CQBaseModel::Type baseType   { CQBaseModel::Type::NONE }; // value base type
-    QString           typeValues;                             // type extra values
-    NameValues        nameValues;                             // type named values
-    VariantMap        variantMap;                             // calculated values
-    Values            values;                                 // assign values
-    Function          function   { Function::EVAL };          // current eval function
-    bool              evaluating { false };                   // is evaluating column
+    QString         expr;                                 // expression
+    QString         header;                               // header
+    CQBaseModelType type       { CQBaseModelType::NONE }; // value type
+    CQBaseModelType baseType   { CQBaseModelType::NONE }; // value base type
+    QString         typeValues;                           // type extra values
+    NameValues      nameValues;                           // type named values
+    VariantMap      variantMap;                           // calculated values
+    Values          values;                               // assign values
+    Function        function   { Function::EVAL };        // current eval function
+    bool            evaluating { false };                 // is evaluating column
 
     ExtraColumn(const QString &expr, const QString &header="") :
      expr(expr), header(header) {

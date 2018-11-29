@@ -114,7 +114,7 @@ CQChartsFillUnderPos(QWidget *parent) :
   QLabel yTypeLabel = new QLabel("Y Label");
 
   menuFrameLayout->addWidget(yTypeLabel , 0, 0);
-  menuFrameLayout->addWidget(yTypeCombo_, 0, 1); 
+  menuFrameLayout->addWidget(yTypeCombo_, 0, 1);
 
   //---
 

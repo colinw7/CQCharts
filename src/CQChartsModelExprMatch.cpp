@@ -1,6 +1,6 @@
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsExprCmdValues.h>
-#include <CQChartsUtil.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 
 #include <COSNaN.h>
@@ -491,7 +491,7 @@ QString
 CQChartsModelExprMatch::
 replaceExprColumns(const QString &expr, const QModelIndex &ind) const
 {
-  return CQChartsUtil::replaceModelExprVars(expr, model_, ind, nr_, nc_);
+  return CQChartsModelUtil::replaceModelExprVars(expr, model_, ind, nr_, nc_);
 }
 
 bool

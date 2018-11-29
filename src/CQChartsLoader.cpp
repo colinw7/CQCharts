@@ -4,6 +4,7 @@
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsFilterModel.h>
 #include <CQChartsExprModel.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsColumnType.h>
 #include <CQCharts.h>
 
@@ -438,7 +439,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
     for (int c = 0; c < nc; ++c) {
       bool ok;
 
-      columnNames[c] = CQChartsUtil::modelHeaderString(model, c, Qt::Horizontal, ok);
+      columnNames[c] = CQChartsModelUtil::modelHeaderString(model, c, Qt::Horizontal, ok);
 
       CMathCorrelation::Values &values = columnValues[c];
 
@@ -449,7 +450,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
 
         bool ok;
 
-        double v = CQChartsUtil::modelReal(model, ind, ok);
+        double v = CQChartsModelUtil::modelReal(model, ind, ok);
 
         values[r] = v;
       }
@@ -459,7 +460,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
     for (int r = 0; r < nr; ++r) {
       bool ok;
 
-      columnNames[r] = CQChartsUtil::modelHeaderString(model, r, Qt::Vertical, ok);
+      columnNames[r] = CQChartsModelUtil::modelHeaderString(model, r, Qt::Vertical, ok);
 
       CMathCorrelation::Values &values = columnValues[r];
 
@@ -470,7 +471,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
 
         bool ok;
 
-        double v = CQChartsUtil::modelReal(model, ind, ok);
+        double v = CQChartsModelUtil::modelReal(model, ind, ok);
 
         values[c] = v;
       }
@@ -486,23 +487,23 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
   for (int c = 0; c < nv; ++c)
-    (void) columnTypeMgr->setModelColumnType(dataModel, c, CQBaseModel::Type::REAL);
+    (void) columnTypeMgr->setModelColumnType(dataModel, c, CQBaseModelType::REAL);
 
   for (int c = 0; c < nv; ++c) {
-    CQChartsUtil::setModelHeaderValue(dataModel, c, Qt::Horizontal,
-                                      columnNames[c], Qt::DisplayRole);
-    CQChartsUtil::setModelHeaderValue(dataModel, c, Qt::Vertical  ,
-                                      columnNames[c], Qt::DisplayRole);
+    CQChartsModelUtil::setModelHeaderValue(dataModel, c, Qt::Horizontal,
+                                           columnNames[c], Qt::DisplayRole);
+    CQChartsModelUtil::setModelHeaderValue(dataModel, c, Qt::Vertical  ,
+                                           columnNames[c], Qt::DisplayRole);
 
-    CQChartsUtil::setModelValue(dataModel, c, c, 1.0);
+    CQChartsModelUtil::setModelValue(dataModel, c, c, 1.0);
   }
 
   for (int c1 = 0; c1 < nv; ++c1) {
     for (int c2 = c1; c2 < nv; ++c2) {
       double corr = CMathCorrelation::calc(columnValues[c1], columnValues[c2]);
 
-      CQChartsUtil::setModelValue(dataModel, c1, c2, corr);
-      CQChartsUtil::setModelValue(dataModel, c2, c1, corr);
+      CQChartsModelUtil::setModelValue(dataModel, c1, c2, corr);
+      CQChartsModelUtil::setModelValue(dataModel, c2, c1, corr);
     }
   }
 

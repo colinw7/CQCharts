@@ -621,12 +621,12 @@ headerData(int section, Qt::Orientation orientation, int role) const
 
   //---
 
-  if (role == static_cast<int>(CQBaseModel::Role::Type) ||
-      role == static_cast<int>(CQBaseModel::Role::TypeValues) ||
-      role == static_cast<int>(CQBaseModel::Role::Min) ||
-      role == static_cast<int>(CQBaseModel::Role::Max) ||
-      role == static_cast<int>(CQBaseModel::Role::Sorted) ||
-      role == static_cast<int>(CQBaseModel::Role::SortOrder)) {
+  if (role == static_cast<int>(CQBaseModelRole::Type) ||
+      role == static_cast<int>(CQBaseModelRole::TypeValues) ||
+      role == static_cast<int>(CQBaseModelRole::Min) ||
+      role == static_cast<int>(CQBaseModelRole::Max) ||
+      role == static_cast<int>(CQBaseModelRole::Sorted) ||
+      role == static_cast<int>(CQBaseModelRole::SortOrder)) {
     // get node data
     QModelIndex ind = index(0, section, QModelIndex());
 
@@ -639,24 +639,24 @@ headerData(int section, Qt::Orientation orientation, int role) const
       return model->headerData(c, orientation, role);
     }
 
-    if      (role == static_cast<int>(CQBaseModel::Role::Type)) {
-      return QVariant((int) CQBaseModel::Type::STRING);
+    if      (role == static_cast<int>(CQBaseModelRole::Type)) {
+      return QVariant((int) CQBaseModelType::STRING);
     }
-    else if (role == static_cast<int>(CQBaseModel::Role::TypeValues)) {
+    else if (role == static_cast<int>(CQBaseModelRole::TypeValues)) {
       return QVariant();
     }
-    else if (role == static_cast<int>(CQBaseModel::Role::Min)) {
+    else if (role == static_cast<int>(CQBaseModelRole::Min)) {
       return QVariant();
     }
-    else if (role == static_cast<int>(CQBaseModel::Role::Max)) {
+    else if (role == static_cast<int>(CQBaseModelRole::Max)) {
       return QVariant();
     }
-    else if (role == static_cast<int>(CQBaseModel::Role::Sorted)) {
+    else if (role == static_cast<int>(CQBaseModelRole::Sorted)) {
       int c = mapColumnToSource(section);
 
       return model->headerData(c, orientation, role);
     }
-    else if (role == static_cast<int>(CQBaseModel::Role::SortOrder)) {
+    else if (role == static_cast<int>(CQBaseModelRole::SortOrder)) {
       int c = mapColumnToSource(section);
 
       return model->headerData(c, orientation, role);
@@ -665,7 +665,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
       assert(false);
     }
   }
-  else if (role == static_cast<int>(CQBaseModel::Role::Key)) {
+  else if (role == static_cast<int>(CQBaseModelRole::Key)) {
     if (section == foldColumn())
       return QVariant(true);
   }

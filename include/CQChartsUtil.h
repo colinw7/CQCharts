@@ -1,18 +1,12 @@
 #ifndef CQChartsUtil_H
 #define CQChartsUtil_H
 
-#include <CQChartsLineDash.h>
 #include <CQChartsColumn.h>
 #include <CQChartsGeom.h>
-#include <CQChartsPath.h>
-#include <CQChartsStyle.h>
 #include <CQChartsColor.h>
-#include <CQChartsExprModel.h>
 #include <CQChartsTypes.h>
-#include <CQBaseModel.h>
 #include <CMathUtil.h>
 
-#include <QAbstractItemModel>
 #include <QVariant>
 #include <QPen>
 #include <QStringList>
@@ -20,58 +14,12 @@
 
 using CQChartsNameValues = std::map<QString,QVariant>;
 
-class CQCharts;
-class CQChartsColumnType;
-class CQDataModel;
+class CQChartsLineDash;
+class CQChartsStyle;
+class CQChartsPath;
 class CQStrParse;
 
 namespace CQChartsUtil {
-
-bool isHierarchical(QAbstractItemModel *model);
-
-int hierRowCount(QAbstractItemModel *model);
-
-QString parentPath(QAbstractItemModel *model, const QModelIndex &parent);
-
-CQBaseModel::Type calcColumnType(QAbstractItemModel *model, int icolumn);
-
-//------
-
-bool columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
-                     CQBaseModel::Type &columnType, CQBaseModel::Type &columnBaseType,
-                     CQChartsNameValues &nameValues);
-
-bool formatColumnTypeValue(CQCharts *charts, QAbstractItemModel *model,
-                           const CQChartsColumn &column, const QString &typeStr,
-                           double value, QString &str);
-
-bool formatColumnValue(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
-                       double value, QString &str);
-
-bool formatColumnTypeValue(CQCharts *charts, QAbstractItemModel *model,
-                           const CQChartsColumn &column, CQChartsColumnType *typeData,
-                           const CQChartsNameValues &nameValues, double value, QString &str);
-
-QVariant columnDisplayData(CQCharts *charts, QAbstractItemModel *model,
-                           const CQChartsColumn &column, const QVariant &var, bool &converted);
-
-QVariant columnUserData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
-                        const QVariant &var, bool &converted);
-
-bool columnTypeStr(CQCharts *charts, QAbstractItemModel *model,
-                   const CQChartsColumn &column, QString &typeStr);
-
-bool setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &columnTypes);
-
-bool setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,
-                      const CQChartsColumn &column, const QString &typeStr);
-
-#if 0
-void remapColumnTime(QAbstractItemModel *model, const CQChartsColumn &column,
-                     CQChartsColumnType *typeData, const CQChartsNameValues &nameValues);
-#endif
-
-//------
 
 double toReal(const QString &str, bool &ok);
 bool   toReal(const QString &str, double &r);
@@ -188,177 +136,6 @@ bool fileToLines(const QString &filename, QStringList &lines, int maxLines=-1);
 
 int nameToRole(const QString &name);
 
-//------
-
-QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                          Qt::Orientation orientation, int role, bool &ok);
-QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                          Qt::Orientation orientation, bool &ok);
-
-QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                          int role, bool &ok);
-QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column, bool &ok);
-
-//--
-
-QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
-                          Qt::Orientation orient, int role, bool &ok);
-QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
-                          Qt::Orientation orient, bool &ok);
-
-QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
-                          int role, bool &ok);
-QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column, bool &ok);
-
-//--
-
-bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                         Qt::Orientation orient, const QVariant &var, int role);
-bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                         Qt::Orientation orientation, const QVariant &var);
-
-bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                         const QVariant &var, int role);
-bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                         const QVariant &var);
-
-//--
-
-bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                   const QVariant &var, int role);
-bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                   const QVariant &var);
-
-//---
-
-QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok);
-QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bool &ok);
-
-QVariant modelValue(CQCharts *charts, QAbstractItemModel *model, int row,
-                    const CQChartsColumn &column, const QModelIndex &parent, int role, bool &ok);
-QVariant modelValue(CQCharts *charts, QAbstractItemModel *model, int row,
-                    const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
-
-//---
-
-QString modelString(QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok);
-QString modelString(QAbstractItemModel *model, const QModelIndex &ind, bool &ok);
-
-QString modelString(CQCharts *charts, QAbstractItemModel *model, int row,
-                    const CQChartsColumn &column, const QModelIndex &parent, int role, bool &ok);
-QString modelString(CQCharts *charts, QAbstractItemModel *model, int row,
-                    const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
-
-QString modelHierString(CQCharts *charts, QAbstractItemModel *model, int row,
-                        const CQChartsColumn &column, const QModelIndex &parent,
-                        int role, bool &ok);
-QString modelHierString(CQCharts *charts, QAbstractItemModel *model, int row,
-                        const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
-
-//---
-
-double modelReal(QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok);
-double modelReal(QAbstractItemModel *model, const QModelIndex &ind, bool &ok);
-
-double modelReal(CQCharts *charts, QAbstractItemModel *model, int row,
-                 const CQChartsColumn &column, const QModelIndex &parent, int role, bool &ok);
-double modelReal(CQCharts *charts, QAbstractItemModel *model, int row,
-                 const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
-
-double modelHierReal(CQCharts *charts, QAbstractItemModel *model, int row,
-                     const CQChartsColumn &column, const QModelIndex &parent, int role, bool &ok);
-double modelHierReal(CQCharts *charts, QAbstractItemModel *model, int row,
-                     const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
-
-//---
-
-long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok);
-long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool &ok);
-
-long modelInteger(CQCharts *charts, QAbstractItemModel *model, int row,
-                  const CQChartsColumn &column, const QModelIndex &parent, int role, bool &ok);
-long modelInteger(CQCharts *charts, QAbstractItemModel *model, int row,
-                  const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
-
-long modelHierInteger(CQCharts *charts, QAbstractItemModel *model, int row,
-                      const CQChartsColumn &column, const QModelIndex &parent, int role, bool &ok);
-long modelHierInteger(CQCharts *charts, QAbstractItemModel *model, int row,
-                      const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
-
-//---
-
-CQChartsColor variantToColor(const QVariant &var);
-
-CQChartsColor modelColor(QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok);
-CQChartsColor modelColor(QAbstractItemModel *model, const QModelIndex &ind, bool &ok);
-
-CQChartsColor modelColor(CQCharts *charts, QAbstractItemModel *model, int row,
-                         const CQChartsColumn &column, const QModelIndex &parent,
-                         int role, bool &ok);
-CQChartsColor modelColor(CQCharts *charts, QAbstractItemModel *model, int row,
-                         const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
-
-//------
-
-bool isValidModelColumn(QAbstractItemModel *model, int column);
-
-int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name);
-
-bool stringToColumn(const QAbstractItemModel *model, const QString &str, CQChartsColumn &column);
-
-bool stringToColumns(const QAbstractItemModel *model, const QString &str,
-                     std::vector<CQChartsColumn> &columns);
-
-//------
-
-inline bool decodeModelFilterStr(QAbstractItemModel *model, const QString &filter,
-                                 QString &filter1, int &column) {
-  filter1 = filter;
-  column  = -1;
-
-  if (! filter1.length())
-    return false;
-
-  QStringList strs = filter1.split(':', QString::KeepEmptyParts);
-
-  if (strs.size() != 2)
-    return false;
-
-  column = modelColumnNameToInd(model, strs[0]);
-
-  if (column < 0)
-    return false;
-
-  filter1 = strs[1];
-
-  return true;
-}
-
-//------
-
-void exportModel(QAbstractItemModel *model, CQBaseModel::DataType type,
-                 bool hheader=true, bool vheader=false,
-                 std::ostream &os=std::cout);
-
-}
-
-//------
-
-namespace CQChartsUtil {
-
-void processAddExpression(QAbstractItemModel *model, const QString &exprStr);
-
-int processExpression(QAbstractItemModel *model, const QString &exprStr);
-
-int processExpression(QAbstractItemModel *model, CQChartsExprModel::Function function,
-                      const CQChartsColumn &column, const QString &expr);
-
-CQChartsExprModel *getExprModel(QAbstractItemModel *model);
-
-CQDataModel *getDataModel(QAbstractItemModel *model);
-
-QVariant modelMetaValue(QAbstractItemModel *model, const QString &name);
-
 }
 
 //------
@@ -468,7 +245,6 @@ inline QString unitsString(const CQChartsUnits &units) {
 bool decodeUnits(const QString &str, CQChartsUnits &units,
                  const CQChartsUnits &defUnits=CQChartsUnits::PLOT);
 
-
 QStringList unitNames();
 
 QStringList unitTipNames();
@@ -519,15 +295,6 @@ void testAndSet(T &t, const T &v, NOTIFIER &&notifier) {
     notifier();
   }
 }
-
-}
-
-//------
-
-namespace CQChartsUtil {
-
-QString replaceModelExprVars(const QString &expr, QAbstractItemModel *model,
-                             const QModelIndex &ind, int nr, int nc);
 
 }
 

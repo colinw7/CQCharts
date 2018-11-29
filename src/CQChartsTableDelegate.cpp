@@ -3,6 +3,7 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsVariant.h>
 #include <CQChartsPlotSymbol.h>
+#include <CQChartsModelUtil.h>
 #include <CQCharts.h>
 
 #include <QCheckBox>
@@ -21,12 +22,12 @@ paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &
 
   getColumnData(index, columnData);
 
-  if      (columnData.type == CQBaseModel::Type::BOOLEAN) {
+  if      (columnData.type == CQBaseModelType::BOOLEAN) {
     QVariant var = table_->modelP()->data(index);
 
     drawCheckInside(painter, option, var.toBool(), index);
   }
-  else if (columnData.type == CQBaseModel::Type::COLOR) {
+  else if (columnData.type == CQBaseModelType::COLOR) {
     QVariant var = table_->modelP()->data(index, Qt::EditRole);
 
     if (! var.isValid())
@@ -52,7 +53,7 @@ paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &
     else
       QItemDelegate::paint(painter, option, index);
   }
-  else if (columnData.type == CQBaseModel::Type::SYMBOL) {
+  else if (columnData.type == CQBaseModelType::SYMBOL) {
     QVariant var = table_->modelP()->data(index, Qt::EditRole);
 
     if (! var.isValid())
@@ -90,7 +91,7 @@ createEditor(QWidget *parent, const QStyleOptionViewItem &item, const QModelInde
 
   getColumnData(index, columnData);
 
-  if (columnData.type == CQBaseModel::Type::BOOLEAN) {
+  if (columnData.type == CQBaseModelType::BOOLEAN) {
     QVariant var = table_->modelP()->data(index);
 
     QCheckBox *check = new QCheckBox(parent);
@@ -123,7 +124,7 @@ click(const QModelIndex &index) const
 
   getColumnData(index, columnData);
 
-  if (columnData.type == CQBaseModel::Type::BOOLEAN) {
+  if (columnData.type == CQBaseModelType::BOOLEAN) {
     QVariant var = table_->modelP()->data(index);
 
     table_->modelP()->setData(index, ! var.toBool());
@@ -143,9 +144,9 @@ getColumnData(const QModelIndex &index, ColumnData &data) const
   if (p == th->columnDataMap_.end()) {
     ColumnData columnData;
 
-    (void) CQChartsUtil::columnValueType(table_->charts(), model, index.column(),
-                                         columnData.type, columnData.baseType,
-                                         columnData.nameValues);
+    (void) CQChartsModelUtil::columnValueType(table_->charts(), model, index.column(),
+                                              columnData.type, columnData.baseType,
+                                              columnData.nameValues);
 
     p = th->columnDataMap_.insert(p, ColumnDataMap::value_type(index.column(), columnData));
   }

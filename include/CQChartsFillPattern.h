@@ -2,6 +2,7 @@
 #define CQChartsFillPattern_H
 
 #include <QString>
+#include <QStringList>
 
 class CQChartsFillPattern {
  public:

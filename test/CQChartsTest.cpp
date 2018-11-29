@@ -5,9 +5,10 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsAxis.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsCmds.h>
-#include <CQCharts.h>
 #include <CQChartsModelDlg.h>
+#include <CQCharts.h>
 
 #include <CQSortModel.h>
 
@@ -898,7 +899,7 @@ initPlot(const CQChartsInitData &initData)
     QStringList strs = initData.process.split(";", QString::SkipEmptyParts);
 
     for (int i = 0; i < strs.size(); ++i)
-      CQChartsUtil::processExpression(model.data(), strs[i]);
+      CQChartsModelUtil::processExpression(model.data(), strs[i]);
   }
 
   if (initData.processAdd.length()) {
@@ -907,7 +908,7 @@ initPlot(const CQChartsInitData &initData)
     QStringList strs = initData.processAdd.split(";", QString::SkipEmptyParts);
 
     for (int i = 0; i < strs.size(); ++i)
-      CQChartsUtil::processAddExpression(model.data(), strs[i]);
+      CQChartsModelUtil::processAddExpression(model.data(), strs[i]);
   }
 
   //---
@@ -980,7 +981,7 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
 {
   ModelP model = modelData->currentModel();
 
-  CQChartsUtil::setColumnTypeStrs(charts_, model.data(), initData.columnType);
+  CQChartsModelUtil::setColumnTypeStrs(charts_, model.data(), initData.columnType);
 
   //---
 

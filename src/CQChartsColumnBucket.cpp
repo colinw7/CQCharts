@@ -1,4 +1,5 @@
 #include <CQChartsColumnBucket.h>
+#include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>
 
 CQChartsColumnBucket::
@@ -236,11 +237,11 @@ QString
 CQChartsColumnBucket::
 iname(int ind) const
 {
-  if      (columnType() == ColumnType::REAL   )
+  if      (columnType() == ColumnType::REAL)
     return QString("%1").arg(valueSet_->rvals().ivalue(ind));
   else if (columnType() == ColumnType::INTEGER)
     return QString("%1").arg(valueSet_->ivals().ivalue(ind));
-  else if (columnType() == ColumnType::STRING )
+  else if (columnType() == ColumnType::STRING)
     return valueSet_->svals().ivalue(ind);
   else
     return "";

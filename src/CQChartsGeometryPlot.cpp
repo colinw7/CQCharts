@@ -2,8 +2,9 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsModelDetails.h>
-#include <CQChartsUtil.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsPolygonList.h>
+#include <CQChartsPath.h>
 #include <CQCharts.h>
 #include <CQChartsTip.h>
 #include <CQPerfMonitor.h>
@@ -247,7 +248,7 @@ addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     bool converted;
 
     QVariant rvar =
-      CQChartsUtil::columnUserData(charts(), model, geometryColumn(), var, converted);
+      CQChartsModelUtil::columnUserData(charts(), model, geometryColumn(), var, converted);
 
     QPolygonF poly;
 
@@ -332,8 +333,6 @@ addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data,
 
   // get geometry custom color
   if (colorColumn().isValid()) {
-    bool ok4;
-
     if (colorColumnType_ == ColumnType::COLOR) {
       CQChartsColor c;
 
@@ -341,6 +340,8 @@ addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data,
         geometry.color = c;
     }
     else {
+      bool ok4;
+
       QString str = modelString(data.row, colorColumn(), data.parent, ok4);
 
       if (ok4)

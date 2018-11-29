@@ -5,15 +5,15 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotParameter.h>
 #include <CQChartsAxis.h>
-#include <CQCharts.h>
 #include <CQChartsVariant.h>
-#include <CQChartsUtil.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsColumnEdit.h>
 #include <CQChartsColumnsEdit.h>
 #include <CQChartsModelView.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsAnalyzeModel.h>
+#include <CQCharts.h>
 
 #include <CQSummaryModel.h>
 #include <CQDividedArea.h>
@@ -76,7 +76,7 @@ init()
 
   //----
 
-  if (! CQChartsUtil::isHierarchical(model_.data())) {
+  if (! CQChartsModelUtil::isHierarchical(model_.data())) {
     (void) modelData_->addSummaryModel();
   }
 
@@ -764,10 +764,10 @@ createSummaryFrame()
   if (modelData_->isSummaryEnabled() && summaryModel) {
     ModelP summaryModelP = modelData_->summaryModelP();
 
-    summaryModelView_->setModel(summaryModelP, CQChartsUtil::isHierarchical(summaryModel));
+    summaryModelView_->setModel(summaryModelP, CQChartsModelUtil::isHierarchical(summaryModel));
   }
   else
-    summaryModelView_->setModel(model_, CQChartsUtil::isHierarchical(model_.data()));
+    summaryModelView_->setModel(model_, CQChartsModelUtil::isHierarchical(model_.data()));
 
   summaryLayout->addWidget(summaryModelView_);
 
@@ -2018,11 +2018,11 @@ updateFormatSlot()
   CQSummaryModel *summaryModel = modelData_->summaryModel();
 
   if (modelData_->isSummaryEnabled() && summaryModel) {
-    if (! CQChartsUtil::columnTypeStr(charts_, summaryModel, column, typeStr))
+    if (! CQChartsModelUtil::columnTypeStr(charts_, summaryModel, column, typeStr))
       return;
   }
   else {
-    if (! CQChartsUtil::columnTypeStr(charts_, model_.data(), column, typeStr))
+    if (! CQChartsModelUtil::columnTypeStr(charts_, model_.data(), column, typeStr))
       return;
   }
 
@@ -2101,29 +2101,29 @@ validate(QStringList &msgs)
         }
 
         if      (parameter->isNumeric()) {
-          if (columnDetails->type() != CQBaseModel::Type::INTEGER &&
-              columnDetails->type() != CQBaseModel::Type::REAL &&
-              columnDetails->type() != CQBaseModel::Type::TIME) {
+          if (columnDetails->type() != CQBaseModelType::INTEGER &&
+              columnDetails->type() != CQBaseModelType::REAL &&
+              columnDetails->type() != CQBaseModelType::TIME) {
             msgs << QString("non-numeric column (%1)").arg(parameter->name());
             rc1 = false;
           }
         }
         else if (parameter->isString()) {
 #if 0
-          if (columnDetails->type() != CQBaseModel::Type::STRING) {
+          if (columnDetails->type() != CQBaseModelType::STRING) {
             msgs << QString("non-string column (%1)").arg(parameter->name());
             rc1 = false;
           }
 #endif
         }
         else if (parameter->isBool()) {
-          if (columnDetails->type() != CQBaseModel::Type::BOOLEAN) {
+          if (columnDetails->type() != CQBaseModelType::BOOLEAN) {
             msgs << QString("non-bool column (%1)").arg(parameter->name());
             rc1 = false;
           }
         }
         else if (parameter->isColor()) {
-          if (columnDetails->type() != CQBaseModel::Type::COLOR) {
+          if (columnDetails->type() != CQBaseModelType::COLOR) {
             msgs << QString("non-color column (%1)").arg(parameter->name());
             rc1 = false;
           }
@@ -2346,7 +2346,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
 
         if (columnTypeStr.length())
-          CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, columnTypeStr);
+          CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), column, columnTypeStr);
 
         if (parameter->isMapped()) {
           QString mappedPropName, mapMinPropName, mapMaxPropName;
@@ -2388,7 +2388,8 @@ applyPlot(CQChartsPlot *plot, bool preview)
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
 
         if (columnTypeStr.length() && columns.isValid())
-          CQChartsUtil::setColumnTypeStr(charts_, model.data(), columns.column(), columnTypeStr);
+          CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), columns.column(),
+                                              columnTypeStr);
       }
       else {
         if (parameter->isRequired()) {

@@ -1,14 +1,18 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsPolygonList.h>
 #include <CQChartsConnectionList.h>
 #include <CQChartsNamePair.h>
 #include <CQChartsSymbol.h>
 #include <CQChartsGradientPalette.h>
+#include <CQChartsPath.h>
+#include <CQChartsStyle.h>
 #include <CQCharts.h>
 #include <CQChartsTypes.h>
+#include <CQBaseModel.h>
 #include <CQStrParse.h>
 
 //------
@@ -364,11 +368,11 @@ getModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 
   //---
 
-  int role = static_cast<int>(CQBaseModel::Role::Type);
+  int role = static_cast<int>(CQBaseModelRole::Type);
 
   bool ok1;
 
-  QVariant var1 = CQChartsUtil::modelHeaderValue(model, column, role, ok1);
+  QVariant var1 = CQChartsModelUtil::modelHeaderValue(model, column, role, ok1);
 
   if (! var1.isValid())
     return false;
@@ -383,11 +387,11 @@ getModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 
   //---
 
-  int brole = static_cast<int>(CQBaseModel::Role::BaseType);
+  int brole = static_cast<int>(CQBaseModelRole::BaseType);
 
   bool ok2;
 
-  QVariant var2 = CQChartsUtil::modelHeaderValue(model, column, brole, ok2);
+  QVariant var2 = CQChartsModelUtil::modelHeaderValue(model, column, brole, ok2);
 
   if (! var2.isValid())
     return false;
@@ -400,11 +404,11 @@ getModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 
   //---
 
-  int vrole = static_cast<int>(CQBaseModel::Role::TypeValues);
+  int vrole = static_cast<int>(CQBaseModelRole::TypeValues);
 
   bool ok3;
 
-  QVariant var3 = CQChartsUtil::modelHeaderValue(model, column, vrole, ok3);
+  QVariant var3 = CQChartsModelUtil::modelHeaderValue(model, column, vrole, ok3);
 
   if (var3.isValid()) {
     QString str3;
@@ -422,7 +426,7 @@ getModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
     if (param.role() != vrole) {
       bool ok;
 
-      QVariant var = CQChartsUtil::modelHeaderValue(model, column, param.role(), ok);
+      QVariant var = CQChartsModelUtil::modelHeaderValue(model, column, param.role(), ok);
 
       nameValues[param.name()] = var;
     }
@@ -438,16 +442,17 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 {
   bool changed = false;
 
-  int role = static_cast<int>(CQBaseModel::Role::Type);
+  int role = static_cast<int>(CQBaseModelRole::Type);
 
-  bool rc1 = CQChartsUtil::setModelHeaderValue(model, column, static_cast<int>(type), role);
+  bool rc1 = CQChartsModelUtil::setModelHeaderValue(
+               model, column, static_cast<int>(type), role);
 
   if (rc1)
     changed = true;
 
   //---
 
-  int vrole = static_cast<int>(CQBaseModel::Role::TypeValues);
+  int vrole = static_cast<int>(CQBaseModelRole::TypeValues);
 
   CQChartsNameValues nameValues1;
 
@@ -461,7 +466,8 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
       nameValues1[param.name()] = (*p).second;
     }
     else {
-      bool rc = CQChartsUtil::setModelHeaderValue(model, column, (*p).second, param.role());
+      bool rc = CQChartsModelUtil::setModelHeaderValue(
+                  model, column, (*p).second, param.role());
 
       if (rc)
         changed = true;
@@ -471,7 +477,7 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
   if (! nameValues1.empty()) {
     QString str = CQChartsColumnUtil::encodeNameValues(nameValues1);
 
-    bool rc2 = CQChartsUtil::setModelHeaderValue(model, column, str, vrole);
+    bool rc2 = CQChartsModelUtil::setModelHeaderValue(model, column, str, vrole);
 
     if (rc2)
       changed = true;
@@ -514,7 +520,14 @@ CQChartsColumnType::
 CQChartsColumnType(Type type) :
  type_(type)
 {
-  params_.emplace_back("key", Type::BOOLEAN, (int) CQBaseModel::Role::Key, "Is Key", false);
+  params_.emplace_back("key", Type::BOOLEAN, (int) CQBaseModelRole::Key, "Is Key", false);
+}
+
+QString
+CQChartsColumnType::
+name() const
+{
+  return CQBaseModel::typeName(type_);
 }
 
 bool
@@ -630,8 +643,8 @@ CQChartsColumnRealType() :
   params_.emplace_back("format"      , Type::STRING, "Output Format", "");
   params_.emplace_back("format_scale", Type::REAL  , "Format Scale Factor", 1.0);
 
-  params_.emplace_back("min", Type::REAL, (int) CQBaseModel::Role::Min, "Min Value", 0.0);
-  params_.emplace_back("max", Type::REAL, (int) CQBaseModel::Role::Max, "Max Value", 1.0);
+  params_.emplace_back("min", Type::REAL, (int) CQBaseModelRole::Min, "Min Value", 0.0);
+  params_.emplace_back("max", Type::REAL, (int) CQBaseModelRole::Max, "Max Value", 1.0);
 }
 
 QVariant
@@ -756,8 +769,8 @@ CQChartsColumnIntegerType() :
 {
   params_.emplace_back("format", Type::INTEGER, "Output Format", "");
 
-  params_.emplace_back("min", Type::INTEGER, (int) CQBaseModel::Role::Min, "Min Value",   0);
-  params_.emplace_back("max", Type::INTEGER, (int) CQBaseModel::Role::Max, "Max Value", 100);
+  params_.emplace_back("min", Type::INTEGER, (int) CQBaseModelRole::Min, "Min Value",   0);
+  params_.emplace_back("max", Type::INTEGER, (int) CQBaseModelRole::Max, "Max Value", 100);
 }
 
 QVariant
@@ -1344,8 +1357,8 @@ CQChartsColumnColorType() :
   // map from model value to 0.0 -> 1.0
   params_.emplace_back("mapped", Type::BOOLEAN, "Value Mapped", false);
 
-  params_.emplace_back("min", Type::REAL, (int) CQBaseModel::Role::Min, "Map Min", 0.0);
-  params_.emplace_back("max", Type::REAL, (int) CQBaseModel::Role::Max, "Map Max", 1.0);
+  params_.emplace_back("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0);
+  params_.emplace_back("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0);
 
   // get color from named palette
   params_.emplace_back("palette", Type::STRING, "Palette", "");
@@ -1466,14 +1479,23 @@ getMapData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &co
 
   (void) CQChartsColumnUtil::nameValueString(nameValues, "palette", palette);
 
-  CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
-  if (! columnDetails) return false;
+  if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", map_min)) {
+    if (mapped) {
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
 
-  if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", map_min))
-    map_min = CQChartsColumnUtil::varReal(columnDetails->minValue(), map_min);
+      if (columnDetails)
+        map_min = CQChartsColumnUtil::varReal(columnDetails->minValue(), map_min);
+    }
+  }
 
-  if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", map_max))
-    map_max = CQChartsColumnUtil::varReal(columnDetails->maxValue(), map_max);
+  if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", map_max)) {
+    if (mapped) {
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
+
+      if (columnDetails)
+        map_max = CQChartsColumnUtil::varReal(columnDetails->maxValue(), map_max);
+    }
+  }
 
   return true;
 }
@@ -1536,8 +1558,8 @@ CQChartsColumnSymbolTypeType() :
   // map from model value to fixed symbol type range
   params_.emplace_back("mapped", Type::BOOLEAN, "Value Mapped", false);
 
-  params_.emplace_back("min", Type::REAL, (int) CQBaseModel::Role::Min, "Map Min", 0.0);
-  params_.emplace_back("max", Type::REAL, (int) CQBaseModel::Role::Max, "Map Max", 1.0);
+  params_.emplace_back("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0);
+  params_.emplace_back("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0);
 }
 
 QVariant
@@ -1613,14 +1635,23 @@ getMapData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &co
 
   (void) CQChartsColumnUtil::nameValueBool(nameValues, "mapped", mapped);
 
-  CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
-  if (! columnDetails) return false;
+  if (! CQChartsColumnUtil::nameValueInteger(nameValues, "min", map_min)) {
+    if (mapped) {
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
 
-  if (! CQChartsColumnUtil::nameValueInteger(nameValues, "min", map_min))
-    map_min = CQChartsColumnUtil::varInteger(columnDetails->minValue(), map_min);
+      if (columnDetails)
+        map_min = CQChartsColumnUtil::varInteger(columnDetails->minValue(), map_min);
+    }
+  }
 
-  if (! CQChartsColumnUtil::nameValueInteger(nameValues, "max", map_max))
-    map_max = CQChartsColumnUtil::varInteger(columnDetails->maxValue(), map_max);
+  if (! CQChartsColumnUtil::nameValueInteger(nameValues, "max", map_max)) {
+    if (mapped) {
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
+
+      if (columnDetails)
+        map_max = CQChartsColumnUtil::varInteger(columnDetails->maxValue(), map_max);
+    }
+  }
 
   (void) CQChartsColumnUtil::nameValueInteger(nameValues, "size_min", data_min);
   (void) CQChartsColumnUtil::nameValueInteger(nameValues, "size_max", data_max);
@@ -1637,8 +1668,8 @@ CQChartsColumnSymbolSizeType() :
   // map from model value to symbol size min/max
   params_.emplace_back("mapped", Type::BOOLEAN, "Value Mapped", false);
 
-  params_.emplace_back("min", Type::REAL, (int) CQBaseModel::Role::Min, "Map Min", 0.0);
-  params_.emplace_back("max", Type::REAL, (int) CQBaseModel::Role::Max, "Map Max", 1.0);
+  params_.emplace_back("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0);
+  params_.emplace_back("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0);
 
   params_.emplace_back("size_min", Type::REAL, "Symbol Size Min", 0.0);
   params_.emplace_back("size_max", Type::REAL, "Symbol Size Max", 1.0);
@@ -1728,14 +1759,23 @@ getMapData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &co
 
   (void) CQChartsColumnUtil::nameValueBool(nameValues, "mapped", mapped);
 
-  CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
-  if (! columnDetails) return false;
+  if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", map_min)) {
+    if (mapped) {
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
 
-  if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", map_min))
-    map_min = CQChartsColumnUtil::varReal(columnDetails->minValue(), map_min);
+      if (columnDetails)
+        map_min = CQChartsColumnUtil::varReal(columnDetails->minValue(), map_min);
+    }
+  }
 
-  if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", map_max))
-    map_max = CQChartsColumnUtil::varReal(columnDetails->maxValue(), map_max);
+  if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", map_max)) {
+    if (mapped) {
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
+
+      if (columnDetails)
+        map_max = CQChartsColumnUtil::varReal(columnDetails->maxValue(), map_max);
+    }
+  }
 
   (void) CQChartsColumnUtil::nameValueReal(nameValues, "size_min", data_min);
   (void) CQChartsColumnUtil::nameValueReal(nameValues, "size_max", data_max);
@@ -1752,8 +1792,8 @@ CQChartsColumnFontSizeType() :
   // map from model value to font size min/max
   params_.emplace_back("mapped", Type::BOOLEAN, "Value Mapped", false);
 
-  params_.emplace_back("min", Type::REAL, (int) CQBaseModel::Role::Min, "Map Min", 0.0);
-  params_.emplace_back("max", Type::REAL, (int) CQBaseModel::Role::Max, "Map Max", 1.0);
+  params_.emplace_back("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0);
+  params_.emplace_back("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0);
 
   params_.emplace_back("size_min", Type::REAL, "Font Size Min", 0.0);
   params_.emplace_back("size_max", Type::REAL, "Font Size Max", 1.0);
@@ -1843,14 +1883,23 @@ getMapData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &co
 
   (void) CQChartsColumnUtil::nameValueBool(nameValues, "mapped", mapped);
 
-  CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
-  if (! columnDetails) return false;
+  if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", map_min)) {
+    if (mapped) {
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
 
-  if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", map_min))
-    map_min = CQChartsColumnUtil::varReal(columnDetails->minValue(), map_min);
+      if (columnDetails)
+        map_min = CQChartsColumnUtil::varReal(columnDetails->minValue(), map_min);
+    }
+  }
 
-  if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", map_max))
-    map_max = CQChartsColumnUtil::varReal(columnDetails->maxValue(), map_max);
+  if (! CQChartsColumnUtil::nameValueReal(nameValues, "max", map_max)) {
+    if (mapped) {
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(charts, model, column);
+
+      if (columnDetails)
+        map_max = CQChartsColumnUtil::varReal(columnDetails->maxValue(), map_max);
+    }
+  }
 
   (void) CQChartsColumnUtil::nameValueReal(nameValues, "size_min", data_min);
   (void) CQChartsColumnUtil::nameValueReal(nameValues, "size_max", data_max);

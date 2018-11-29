@@ -77,7 +77,7 @@ class CQChartsPolygon {
   //---
 
   QString toString() const {
-    QString ustr = CQChartsUtil::unitsString(units_);;
+    QString ustr = CQChartsUtil::unitsString(units_);
 
     QString str;
 

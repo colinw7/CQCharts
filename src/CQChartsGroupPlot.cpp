@@ -1,4 +1,5 @@
 #include <CQChartsGroupPlot.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 #include <CQPerfMonitor.h>
 
@@ -203,7 +204,7 @@ initGroup(const CQChartsGroupData &data)
       assert(column.isValid());
     }
 
-    ColumnType columnType = CQBaseModel::Type::STRING;
+    ColumnType columnType = CQBaseModelType::STRING;
 
     if (column.type() == CQChartsColumn::Type::DATA ||
         column.type() == CQChartsColumn::Type::DATA_INDEX)
@@ -219,7 +220,7 @@ initGroup(const CQChartsGroupData &data)
   }
   // for specified grouping column, set column and column type
   else if (data.column.isValid()) {
-    ColumnType columnType = CQBaseModel::Type::STRING;
+    ColumnType columnType = CQBaseModelType::STRING;
 
     if (data.column.type() == CQChartsColumn::Type::DATA ||
         data.column.type() == CQChartsColumn::Type::DATA_INDEX)
@@ -283,7 +284,7 @@ initGroup(const CQChartsGroupData &data)
       }
       // add parent path (hierarchical)
       else if (bucket_->dataType() == CQChartsColumnBucket::DataType::PATH) {
-        QString path = CQChartsUtil::parentPath(model, data.parent);
+        QString path = CQChartsModelUtil::parentPath(model, data.parent);
 
         bucket_->addString(path);
       }
@@ -398,7 +399,7 @@ rowGroupInds(const CQChartsModelIndex &ind, std::vector<int> &inds, bool hier) c
   }
   // get group id from parent path name
   else if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::PATH) {
-    QString path = CQChartsUtil::parentPath(model, ind.parent);
+    QString path = CQChartsModelUtil::parentPath(model, ind.parent);
 
     if (hier) {
       inds = pathInds(path);
@@ -472,7 +473,7 @@ setModelGroupInd(const CQChartsModelIndex &ind, int groupInd)
 
   QVariant var(groupInd);
 
-  int role = (int) CQBaseModel::Role::Group;
+  int role = (int) CQBaseModelRole::Group;
 
   model->setHeaderData(ind.row, Qt::Vertical, var, role);
 }

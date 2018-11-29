@@ -282,7 +282,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
     QString str;
 
     if (headerString(section, str)) {
-      Type type = columnType(section);
+      CQBaseModelType type = columnType(section);
 
       str += ":" + typeName(type);
 

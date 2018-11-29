@@ -594,7 +594,7 @@ calcRange()
 
     ColumnType xColumnType = columnValueType(xColumn());
 
-    if (xColumnType == CQBaseModel::Type::TIME)
+    if (xColumnType == CQBaseModelType::TIME)
       xAxis()->setDate(true);
   }
 
@@ -1311,7 +1311,7 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly)
 
             bool ok;
 
-            if (pointColorColumnType_ == CQBaseModel::Type::COLOR) {
+            if (pointColorColumnType_ == CQBaseModelType::COLOR) {
               c = modelColor(ip, pointColorColumn(), parent, ok);
             }
             else {

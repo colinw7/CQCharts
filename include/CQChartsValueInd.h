@@ -1,11 +1,12 @@
 #ifndef CQChartsValueInd_H
 #define CQChartsValueInd_H
 
+#include <CQBaseModelTypes.h>
 #include <CQChartsUtil.h>
 
 class CQChartsValueInd {
  public:
-  using Type = CQBaseModel::Type;
+  using Type = CQBaseModelType;
 
  public:
   CQChartsValueInd() { }

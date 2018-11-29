@@ -42,7 +42,7 @@ class CQChartsLineDashEdit : public QFrame {
   void valueChanged(const CQChartsLineDash &dash);
 
  private:
-  typedef std::map<std::string, CQChartsLineDashEditAction *> Actions;
+  using Actions = std::map<std::string, CQChartsLineDashEditAction *>;
 
   bool             editable_ { false };
   CQChartsLineDash dash_;

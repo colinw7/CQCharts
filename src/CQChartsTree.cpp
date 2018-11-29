@@ -1,7 +1,7 @@
 #include <CQChartsTree.h>
 #include <CQChartsModelData.h>
+#include <CQChartsModelUtil.h>
 #include <CQCharts.h>
-#include <CQChartsUtil.h>
 
 #include <QHeaderView>
 #include <QSortFilterProxyModel>
@@ -150,7 +150,7 @@ setFilter(const QString &filter)
   QString filter1;
   int     column { -1 };
 
-  CQChartsUtil::decodeModelFilterStr(model_.data(), filter, filter1, column);
+  CQChartsModelUtil::decodeModelFilterStr(model_.data(), filter, filter1, column);
 
   if (column >= 0)
     proxyModel->setFilterKeyColumn(column);
@@ -206,9 +206,9 @@ exportSlot(QAction *action)
   QString type = action->text();
 
   if      (type == "CSV")
-    CQChartsUtil::exportModel(modelP().data(), CQBaseModel::DataType::CSV);
+    CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::CSV);
   else if (type == "TSV")
-    CQChartsUtil::exportModel(modelP().data(), CQBaseModel::DataType::TSV);
+    CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::TSV);
   else {
     std::cerr << "Invalid export type '" << type.toStdString() << "'\n";
   }

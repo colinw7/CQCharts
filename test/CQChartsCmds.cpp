@@ -20,7 +20,7 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsGradientPalette.h>
 #include <CQChartsArrow.h>
-#include <CQChartsUtil.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 
 #include <CQChartsLoadDlg.h>
@@ -47,6 +47,8 @@
 #include <QApplication>
 #include <QStackedWidget>
 #include <QSortFilterProxyModel>
+#include <QTextDocument>
+#include <QAbstractTextDocumentLayout>
 #include <QFont>
 #include <fstream>
 
@@ -442,7 +444,7 @@ loadModelCmd(const Vars &vars)
     ModelP model = modelData->currentModel();
 
     for (int i = 0; i < columnTypes.length(); ++i)
-      CQChartsUtil::setColumnTypeStrs(charts_, model.data(), columnTypes[i]);
+      CQChartsModelUtil::setColumnTypeStrs(charts_, model.data(), columnTypes[i]);
   }
 
   if (name.length())
@@ -509,7 +511,7 @@ processModelCmd(const Vars &vars)
   // get expr model
   ModelP model = modelData->currentModel();
 
-  CQChartsExprModel *exprModel = CQChartsUtil::getExprModel(model.data());
+  CQChartsExprModel *exprModel = CQChartsModelUtil::getExprModel(model.data());
 
   if (! exprModel) {
     setCmdError("Expression not supported for model");
@@ -542,7 +544,7 @@ processModelCmd(const Vars &vars)
     //---
 
     if (type.length()) {
-      if (! CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, type)) {
+      if (! CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), column, type)) {
         setCmdError(QString("Invalid type '" + type + "' for column '%1'").arg(column));
         return;
       }
@@ -598,7 +600,7 @@ processModelCmd(const Vars &vars)
     //---
 
     if (type.length()) {
-      if (! CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, type)) {
+      if (! CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), column, type)) {
         setCmdError(QString("Invalid type '" + type + "' for column '%1'").
                            arg(column.column()));
         return;
@@ -717,7 +719,7 @@ processModelCmd(const Vars &vars)
       for (int c = 0; c < nc; ++c) {
         bool ok;
 
-        QVariant var = CQChartsUtil::modelValue(charts_, exprModel, r, c, parent, role, ok);
+        QVariant var = CQChartsModelUtil::modelValue(charts_, exprModel, r, c, parent, role, ok);
 
         QString str = var.toString();
 
@@ -794,8 +796,9 @@ measureChartsTextCmd(const Vars &vars)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "value name").setRequired();
-  argv.addCmdArg("-data", CQChartsCmdArg::Type::String, "data");
+  argv.addCmdArg("-name", CQChartsCmdArg::Type::String , "value name").setRequired();
+  argv.addCmdArg("-text", CQChartsCmdArg::Type::String , "text string");
+  argv.addCmdArg("-html", CQChartsCmdArg::Type::Boolean, "is html");
 
   if (! argv.parse())
     return;
@@ -820,36 +823,66 @@ measureChartsTextCmd(const Vars &vars)
 
   //---
 
-  QString name = argv.getParseStr("name");
-  QString data = argv.getParseStr("data");
+  QString name = argv.getParseStr ("name");
+  QString text = argv.getParseStr ("text");
+  bool    html = argv.getParseBool("html");
 
   //---
 
-  QFontMetricsF fm(view->font());
+  QFont font;
+
+  if      (plot)
+    font = plot->view()->plotFont(plot, plot->view()->font());
+  else if (view)
+    font = view->viewFont(view->font());
+
+  double tw = 0.0, ta = 0.0, td = 0.0;
+
+  if (! html) {
+    QFontMetricsF fm(font);
+
+    tw = fm.width(text);
+    ta = fm.ascent();
+    td = fm.descent();
+  }
+  else {
+    QTextDocument tdoc;
+
+    tdoc.setHtml(text);
+    tdoc.setDefaultFont(font);
+
+    QAbstractTextDocumentLayout *layout = tdoc.documentLayout();
+
+    QSizeF size = layout->documentSize();
+
+    tw = size.width ();
+    ta = size.height();
+    td = 0.0;
+  }
 
   if      (name == "width") {
     if      (plot)
-      setCmdRc(plot->pixelToWindowWidth(fm.width(data)));
+      setCmdRc(plot->pixelToWindowWidth(tw));
     else if (view)
-      setCmdRc(view->pixelToWindowWidth(fm.width(data)));
+      setCmdRc(view->pixelToWindowWidth(tw));
   }
   else if (name == "height") {
     if      (plot)
-      setCmdRc(plot->pixelToWindowHeight(fm.height()));
+      setCmdRc(plot->pixelToWindowHeight(ta + td));
     else if (view)
-      setCmdRc(view->pixelToWindowHeight(fm.height()));
+      setCmdRc(view->pixelToWindowHeight(ta + td));
   }
   else if (name == "ascent") {
     if      (plot)
-      setCmdRc(plot->pixelToWindowHeight(fm.height()));
+      setCmdRc(plot->pixelToWindowHeight(ta));
     else if (view)
-      setCmdRc(view->pixelToWindowHeight(fm.height()));
+      setCmdRc(view->pixelToWindowHeight(ta));
   }
   else if (name == "descent") {
     if      (plot)
-      setCmdRc(plot->pixelToWindowHeight(fm.descent()));
+      setCmdRc(plot->pixelToWindowHeight(td));
     else if (view)
-      setCmdRc(view->pixelToWindowHeight(fm.descent()));
+      setCmdRc(view->pixelToWindowHeight(td));
   }
   else {
     setCmdError(QString("Invalid value name '%1'").arg(name));
@@ -1804,7 +1837,7 @@ flattenModelCmd(const Vars &vars)
       bool ok;
 
       groupValue_[hierRow_] =
-        CQChartsUtil::modelValue(charts_, model, data.row, 0, data.parent, ok);
+        CQChartsModelUtil::modelValue(charts_, model, data.row, 0, data.parent, ok);
 
       return State::OK;
     }
@@ -1816,7 +1849,8 @@ flattenModelCmd(const Vars &vars)
         for (int c = 1; c < nc; ++c) {
           bool ok;
 
-          QVariant var = CQChartsUtil::modelValue(charts_, model, data.row, c, data.parent, ok);
+          QVariant var =
+            CQChartsModelUtil::modelValue(charts_, model, data.row, c, data.parent, ok);
 
           if (ok)
             rowColValueSet_[hierRow_][c - 1].addValue(var);
@@ -1826,7 +1860,7 @@ flattenModelCmd(const Vars &vars)
         bool ok;
 
         QVariant groupVar =
-          CQChartsUtil::modelValue(charts_, model, data.row, groupColumn_, data.parent, ok);
+          CQChartsModelUtil::modelValue(charts_, model, data.row, groupColumn_, data.parent, ok);
 
         auto p = valueGroup_.find(groupVar);
 
@@ -1843,7 +1877,8 @@ flattenModelCmd(const Vars &vars)
         for (int c = 0; c < nc; ++c) {
           bool ok;
 
-          QVariant var = CQChartsUtil::modelValue(charts_, model, data.row, c, data.parent, ok);
+          QVariant var =
+            CQChartsModelUtil::modelValue(charts_, model, data.row, c, data.parent, ok);
 
           if (ok)
             rowColValueSet_[group][c].addValue(var);
@@ -1853,7 +1888,8 @@ flattenModelCmd(const Vars &vars)
         for (int c = 0; c < nc; ++c) {
           bool ok;
 
-          QVariant var = CQChartsUtil::modelValue(charts_, model, data.row, c, data.parent, ok);
+          QVariant var =
+            CQChartsModelUtil::modelValue(charts_, model, data.row, c, data.parent, ok);
 
           if (ok)
             rowColValueSet_[0][c].addValue(var);
@@ -1927,9 +1963,9 @@ flattenModelCmd(const Vars &vars)
   if (flattenVisitor.isHierarchical()) {
     bool ok;
 
-    QString name = CQChartsUtil::modelHeaderString(model.data(), 0, Qt::Horizontal, ok);
+    QString name = CQChartsModelUtil::modelHeaderString(model.data(), 0, Qt::Horizontal, ok);
 
-    CQChartsUtil::setModelHeaderValue(dataModel, 0, Qt::Horizontal, name);
+    CQChartsModelUtil::setModelHeaderValue(dataModel, 0, Qt::Horizontal, name);
   }
 
   // set other columns and types
@@ -1938,16 +1974,16 @@ flattenModelCmd(const Vars &vars)
 
     bool ok;
 
-    QString name = CQChartsUtil::modelHeaderString(model.data(), c + nh, Qt::Horizontal, ok);
+    QString name = CQChartsModelUtil::modelHeaderString(model.data(), c + nh, Qt::Horizontal, ok);
 
-    CQChartsUtil::setModelHeaderValue(dataModel, c + nh, Qt::Horizontal, name);
+    CQChartsModelUtil::setModelHeaderValue(dataModel, c + nh, Qt::Horizontal, name);
 
-    CQBaseModel::Type  columnType;
-    CQBaseModel::Type  columnBaseType;
+    CQBaseModelType    columnType;
+    CQBaseModelType    columnBaseType;
     CQChartsNameValues nameValues;
 
-    if (! CQChartsUtil::columnValueType(charts_, model.data(), c, columnType,
-                                        columnBaseType, nameValues))
+    if (! CQChartsModelUtil::columnValueType(charts_, model.data(), c, columnType,
+                                             columnBaseType, nameValues))
       continue;
 
     CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
@@ -1967,7 +2003,7 @@ flattenModelCmd(const Vars &vars)
     if (flattenVisitor.isHierarchical()) {
       QVariant var = flattenVisitor.groupValue(r);
 
-      CQChartsUtil::setModelValue(dataModel, r, 0, var);
+      CQChartsModelUtil::setModelValue(dataModel, r, 0, var);
     }
 
     for (int c = 0; c < nc; ++c) {
@@ -1981,12 +2017,12 @@ flattenModelCmd(const Vars &vars)
         else if (meanFlag)
           v = flattenVisitor.hierMean(r, c);
 
-        CQChartsUtil::setModelValue(dataModel, r, c + nh, v);
+        CQChartsModelUtil::setModelValue(dataModel, r, c + nh, v);
       }
       else {
         QVariant v = flattenVisitor.groupValue(r);
 
-        CQChartsUtil::setModelValue(dataModel, r, c + nh, v);
+        CQChartsModelUtil::setModelValue(dataModel, r, c + nh, v);
       }
     }
   }
@@ -2372,12 +2408,12 @@ exportModelCmd(const Vars &vars)
   ModelP model = modelData->currentModel();
 
   if      (toName.toLower() == "csv") {
-    CQChartsUtil::exportModel(model.data(), CQBaseModel::DataType::CSV,
-                              hheader, vheader, (isFile ? fos : std::cout));
+    CQChartsModelUtil::exportModel(model.data(), CQBaseModelDataType::CSV,
+                                   hheader, vheader, (isFile ? fos : std::cout));
   }
   else if (toName.toLower() == "tsv") {
-    CQChartsUtil::exportModel(model.data(), CQBaseModel::DataType::TSV,
-                              hheader, vheader, (isFile ? fos : std::cout));
+    CQChartsModelUtil::exportModel(model.data(), CQBaseModelDataType::TSV,
+                                   hheader, vheader, (isFile ? fos : std::cout));
   }
   else {
     charts_->errorMsg("Invalid output format");
@@ -2489,7 +2525,7 @@ getChartsDataCmd(const Vars &vars)
 
         bool ok;
 
-        var = CQChartsUtil::modelHeaderValue(model.data(), column, role, ok);
+        var = CQChartsModelUtil::modelHeaderValue(model.data(), column, role, ok);
 
         if (! var.isValid()) {
           setCmdError("Invalid header value");
@@ -2510,7 +2546,7 @@ getChartsDataCmd(const Vars &vars)
 
         bool ok;
 
-        var = CQChartsUtil::modelValue(charts_, model.data(), row, column, parent, role, ok);
+        var = CQChartsModelUtil::modelValue(charts_, model.data(), row, column, parent, role, ok);
 
         if (! var.isValid()) {
           setCmdError("Invalid model value");
@@ -2522,7 +2558,7 @@ getChartsDataCmd(const Vars &vars)
     }
     // get meta data
     else if (name == "meta") {
-      QVariant var = CQChartsUtil::modelMetaValue(model.data(), data);
+      QVariant var = CQChartsModelUtil::modelMetaValue(model.data(), data);
 
       if (! var.isValid()) {
         setCmdError("Invalid meta data");
@@ -2553,7 +2589,7 @@ getChartsDataCmd(const Vars &vars)
       for (int c = 0; c < nc; ++c) {
         bool ok;
 
-        QVariant var = CQChartsUtil::modelHeaderValue(model.data(), c, role, ok);
+        QVariant var = CQChartsModelUtil::modelHeaderValue(model.data(), c, role, ok);
 
         vars.push_back(var);
       }
@@ -2580,7 +2616,7 @@ getChartsDataCmd(const Vars &vars)
         bool ok;
 
         QVariant var =
-          CQChartsUtil::modelValue(charts_, model.data(), row, c, parent, role, ok);
+          CQChartsModelUtil::modelValue(charts_, model.data(), row, c, parent, role, ok);
 
         vars.push_back(var);
       }
@@ -2607,7 +2643,8 @@ getChartsDataCmd(const Vars &vars)
         bool ok;
 
         QVariant var =
-          CQChartsUtil::modelValue(charts_, model.data(), r, column.column(), parent, role, ok);
+          CQChartsModelUtil::modelValue(charts_, model.data(), r, column.column(), parent,
+                                        role, ok);
 
         vars.push_back(var);
       }
@@ -2660,7 +2697,8 @@ getChartsDataCmd(const Vars &vars)
       bool ok;
 
       QVariant var =
-        CQChartsUtil::modelValue(charts_, model.data(), row, column.column(), parent, role, ok);
+        CQChartsModelUtil::modelValue(charts_, model.data(), row, column.column(), parent,
+                                      role, ok);
 
       CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
 
@@ -2696,7 +2734,7 @@ getChartsDataCmd(const Vars &vars)
     else if (name == "column_index") {
       CQChartsColumn column;
 
-      if (! CQChartsUtil::stringToColumn(model.data(), data, column))
+      if (! CQChartsModelUtil::stringToColumn(model.data(), data, column))
         column = -1;
 
       setCmdRc(column.column());
@@ -2875,7 +2913,7 @@ getChartsDataCmd(const Vars &vars)
 
         bool ok;
 
-        var = CQChartsUtil::modelHeaderValue(plot->model().data(), column, role, ok);
+        var = CQChartsModelUtil::modelHeaderValue(plot->model().data(), column, role, ok);
 
         if (! var.isValid()) {
           setCmdError("Invalid header value");
@@ -3131,7 +3169,7 @@ setChartsDataCmd(const Vars &vars)
           return;
         }
 
-        if (! CQChartsUtil::setModelHeaderValue(model.data(), column, value, role))
+        if (! CQChartsModelUtil::setModelHeaderValue(model.data(), column, value, role))
           charts_->errorMsg("Failed to set header value");
       }
       else {
@@ -3143,21 +3181,21 @@ setChartsDataCmd(const Vars &vars)
           return;
         }
 
-        if (! CQChartsUtil::setModelValue(model.data(), row, column, value, role))
+        if (! CQChartsModelUtil::setModelValue(model.data(), row, column, value, role))
           charts_->errorMsg("Failed to set row value");
       }
     }
     else if (name == "column_type") {
       if (column.isValid())
-        CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, value);
+        CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), column, value);
       else
-        CQChartsUtil::setColumnTypeStrs(charts_, model.data(), value);
+        CQChartsModelUtil::setColumnTypeStrs(charts_, model.data(), value);
     }
     else if (name == "name") {
       charts_->setModelName(modelData, value);
     }
     else if (name == "process") {
-      CQChartsUtil::processExpression(model.data(), value);
+      CQChartsModelUtil::processExpression(model.data(), value);
     }
     else {
       setCmdError("Invalid name '" + name + "' specified");
@@ -3214,6 +3252,7 @@ createRectAnnotationCmd(const Vars &vars)
 
   argv.addCmdArg("-start", CQChartsCmdArg::Type::Position, "start");
   argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Position, "end"  );
+  argv.addCmdArg("-rect" , CQChartsCmdArg::Type::Rect    , "rect" );
 
   argv.addCmdArg("-margin" , CQChartsCmdArg::Type::Real, "margin");
   argv.addCmdArg("-padding", CQChartsCmdArg::Type::Real, "padding");
@@ -3265,9 +3304,6 @@ createRectAnnotationCmd(const Vars &vars)
   QString id    = argv.getParseStr("id");
   QString tipId = argv.getParseStr("tip");
 
-  CQChartsPosition start = argv.getParsePosition(view, plot, "start");
-  CQChartsPosition end   = argv.getParsePosition(view, plot, "end"  );
-
   boxData.margin  = argv.getParseReal("margin" , boxData.margin);
   boxData.padding = argv.getParseReal("padding", boxData.padding);
 
@@ -3289,16 +3325,31 @@ createRectAnnotationCmd(const Vars &vars)
 
   CQChartsRectAnnotation *annotation = nullptr;
 
-  CQChartsRect rect;
+  if      (argv.hasParseArg("start") || argv.hasParseArg("end")) {
+    CQChartsPosition start = argv.getParsePosition(view, plot, "start");
+    CQChartsPosition end   = argv.getParsePosition(view, plot, "end"  );
 
-  if      (view)
-    annotation = view->addRectAnnotation(rect);
-  else if (plot)
-    annotation = plot->addRectAnnotation(rect);
-  else
+    CQChartsRect rect;
+
+    if      (view)
+      annotation = view->addRectAnnotation(rect);
+    else if (plot)
+      annotation = plot->addRectAnnotation(rect);
+
+    if (annotation)
+      annotation->setRect(start, end);
+  }
+  else if (argv.hasParseArg("rect")) {
+    CQChartsRect rect = argv.getParseRect(view, plot, "rect");
+
+    if      (view)
+      annotation = view->addRectAnnotation(rect);
+    else if (plot)
+      annotation = plot->addRectAnnotation(rect);
+  }
+
+  if (! annotation)
     return;
-
-  annotation->setRect(start, end);
 
   annotation->setId(id);
   annotation->setTipId(tipId);
@@ -3643,6 +3694,7 @@ createTextAnnotationCmd(const Vars &vars)
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
   argv.addCmdArg("-position", CQChartsCmdArg::Type::Position, "position");
+  argv.addCmdArg("-rect"    , CQChartsCmdArg::Type::Rect    , "rect");
 
   argv.addCmdArg("-text", CQChartsCmdArg::Type::String, "text");
 
@@ -3703,8 +3755,6 @@ createTextAnnotationCmd(const Vars &vars)
   QString id    = argv.getParseStr("id");
   QString tipId = argv.getParseStr("tip");
 
-  CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
-
   QString text = argv.getParseStr("text", "Annotation");
 
   textData.font     = argv.getParseFont ("font"    , textData.font    );
@@ -3733,11 +3783,24 @@ createTextAnnotationCmd(const Vars &vars)
 
   CQChartsTextAnnotation *annotation = nullptr;
 
-  if      (view)
-    annotation = view->addTextAnnotation(pos, text);
-  else if (plot)
-    annotation = plot->addTextAnnotation(pos, text);
-  else
+  if      (argv.hasParseArg("position")) {
+    CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
+
+    if      (view)
+      annotation = view->addTextAnnotation(pos, text);
+    else if (plot)
+      annotation = plot->addTextAnnotation(pos, text);
+  }
+  else if (argv.hasParseArg("rect")) {
+    CQChartsRect rect = argv.getParseRect(view, plot, "rect");
+
+    if      (view)
+      annotation = view->addTextAnnotation(rect, text);
+    else if (plot)
+      annotation = plot->addTextAnnotation(rect, text);
+  }
+
+  if (! annotation)
     return;
 
   annotation->setId(id);
@@ -4788,7 +4851,7 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
 
       CQChartsColumn column;
 
-      if (! CQChartsUtil::stringToColumn(model.data(), (*p).second, column)) {
+      if (! CQChartsModelUtil::stringToColumn(model.data(), (*p).second, column)) {
         charts_->errorMsg("Bad column name '" + (*p).second + "'");
         continue;
       }
@@ -4810,7 +4873,7 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
 
       std::vector<CQChartsColumn> columns;
 
-      if (! CQChartsUtil::stringToColumns(model.data(), str, columns)) {
+      if (! CQChartsModelUtil::stringToColumns(model.data(), str, columns)) {
         charts_->errorMsg("Bad columns name '" + str + "'");
         continue;
       }
@@ -5177,7 +5240,7 @@ sortModel(ModelP &model, const QString &args)
 
   CQChartsColumn column;
 
-  if (! CQChartsUtil::stringToColumn(model.data(), columnStr, column))
+  if (! CQChartsModelUtil::stringToColumn(model.data(), columnStr, column))
     return false;
 
   if (column.type() != CQChartsColumn::Type::DATA)

@@ -3,6 +3,8 @@
 
 #include <CMathUtil.h>
 #include <QString>
+#include <QStringList>
+#include <cassert>
 
 class CQChartsSymbol {
  public:
@@ -50,6 +52,18 @@ class CQChartsSymbol {
   static CQChartsSymbol interpFilled(double r) {
     return CQChartsSymbol((CQChartsSymbol::Type)
       int(CMathUtil::map(r, 0, 1, minFillValue(), maxFillValue())));
+  }
+
+  static CQChartsSymbol outlineFromInt(int i) {
+    int len = maxOutlineValue() - minOutlineValue() + 1;
+
+    int n = (i - minOutlineValue())/len;
+
+    int i1 = (i - n*len);
+
+    assert(i1 >= minOutlineValue() && i <= maxOutlineValue());
+
+    return (CQChartsSymbol::Type) i1;
   }
 
  public:

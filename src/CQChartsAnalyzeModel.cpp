@@ -215,8 +215,8 @@ analyzeType(CQChartsPlotType *type)
 
       CQChartsModelColumnDetails *columnDetails = cu.second.first;
 
-      if (columnDetails->type() != CQBaseModel::Type::STRING &&
-          columnDetails->type() != CQBaseModel::Type::INTEGER)
+      if (columnDetails->type() != CQBaseModelType::STRING &&
+          columnDetails->type() != CQBaseModelType::INTEGER)
         continue;
 
       int numUnique = columnDetails->numUnique();

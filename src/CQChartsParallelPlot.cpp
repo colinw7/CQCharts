@@ -149,7 +149,7 @@ CQChartsParallelPlot::
 calcRange()
 {
   // create axes
-  AxisDir adir = (! isHorizontal() ? AxisDir::VERTICAL : AxisDir::HORIZONTAL);
+  Qt::Orientation adir = (! isHorizontal() ? Qt::Vertical : Qt::Horizontal);
 
   if (axes_.empty() || adir_ != adir) {
     adir_ = adir;

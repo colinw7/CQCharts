@@ -2,6 +2,7 @@
 #define CQChartsModelDetails_H
 
 #include <CQChartsColumn.h>
+#include <CQBaseModelTypes.h>
 #include <CQChartsUtil.h>
 
 class CQChartsModelDetails;
@@ -29,11 +30,11 @@ class CQChartsModelColumnDetails {
 
   QString typeName() const;
 
-  CQBaseModel::Type type() const;
-  void setType(CQBaseModel::Type type);
+  CQBaseModelType type() const;
+  void setType(CQBaseModelType type);
 
-  CQBaseModel::Type baseType() const;
-  void setBaseType(CQBaseModel::Type type);
+  CQBaseModelType baseType() const;
+  void setBaseType(CQBaseModelType type);
 
   const CQChartsNameValues &nameValues() const;
 
@@ -108,8 +109,8 @@ class CQChartsModelColumnDetails {
   CQChartsModelDetails* details_         { nullptr };
   CQChartsColumn        column_;
   QString               typeName_;
-  CQBaseModel::Type     type_            { CQBaseModel::Type::NONE };
-  CQBaseModel::Type     baseType_        { CQBaseModel::Type::NONE };
+  CQBaseModelType       type_            { CQBaseModelType::NONE };
+  CQBaseModelType       baseType_        { CQBaseModelType::NONE };
   CQChartsNameValues    nameValues_;
   QVariant              minValue_;
   QVariant              maxValue_;

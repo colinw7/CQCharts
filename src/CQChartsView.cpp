@@ -523,6 +523,17 @@ addTextAnnotation(const CQChartsPosition &pos, const QString &text)
   return textAnnotation;
 }
 
+CQChartsTextAnnotation *
+CQChartsView::
+addTextAnnotation(const CQChartsRect &rect, const QString &text)
+{
+  CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, rect, text);
+
+  addAnnotation(textAnnotation);
+
+  return textAnnotation;
+}
+
 CQChartsArrowAnnotation *
 CQChartsView::
 addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
@@ -1501,7 +1512,7 @@ showProbeLines(const QPointF &p)
 
     CQChartsGeom::BBox dataRange = plot->calcDataRange();
 
-    if (probeData.direction == CQChartsPlot::ProbeData::Direction::VERTICAL) {
+    if (probeData.direction == Qt::Vertical) {
       if (probeData.yvals.empty())
         probeData.yvals.emplace_back(w.y);
 
@@ -3521,6 +3532,52 @@ positionToPixel(const CQChartsPosition &pos) const
 
 //------
 
+QRectF
+CQChartsView::
+rectToView(const CQChartsRect &rect) const
+{
+  CQChartsGeom::BBox r = CQChartsUtil::fromQRect(rect.rect());
+
+  CQChartsGeom::BBox r1 = r;
+
+  if      (rect.units() == CQChartsUnits::PIXEL)
+    r1 = pixelToWindow(r);
+  else if (rect.units() == CQChartsUnits::VIEW)
+    r1 = r;
+  else if (rect.units() == CQChartsUnits::PERCENT) {
+    r1.setXMin(r.getXMin()*width ()/100.0);
+    r1.setYMin(r.getYMin()*height()/100.0);
+    r1.setXMax(r.getXMax()*width ()/100.0);
+    r1.setYMax(r.getYMax()*height()/100.0);
+  }
+
+  return CQChartsUtil::toQRect(r1);
+}
+
+QRectF
+CQChartsView::
+rectToPixel(const CQChartsRect &rect) const
+{
+  CQChartsGeom::BBox r = CQChartsUtil::fromQRect(rect.rect());
+
+  CQChartsGeom::BBox r1 = r;
+
+  if      (rect.units() == CQChartsUnits::PIXEL)
+    r1 = r;
+  else if (rect.units() == CQChartsUnits::VIEW)
+    r1 = windowToPixel(r);
+  else if (rect.units() == CQChartsUnits::PERCENT) {
+    r1.setXMin(r.getXMin()*width ()/100.0);
+    r1.setYMin(r.getYMin()*height()/100.0);
+    r1.setXMax(r.getXMax()*width ()/100.0);
+    r1.setYMax(r.getYMax()*height()/100.0);
+  }
+
+  return CQChartsUtil::toQRect(r1);
+}
+
+//------
+
 double
 CQChartsView::
 lengthViewWidth(const CQChartsLength &len) const
@@ -3714,6 +3771,8 @@ windowToPixelHeight(double wh) const
 
   return std::abs(py2 - py1);
 }
+
+//------
 
 QSize
 CQChartsView::

@@ -714,3 +714,9 @@
  + Add more custom editors for types
  + Add copy_model command
  + Improve select notifications
+# 11/28/2018
+ + Move CQBaseModel enums outside class to reduce dependencies
+ + Add fixed size rect for text annotation
+ + Use Qt::Orieintation for Direction enum
+ + Move model util routines to CQChartsModelUtil
+ + Support symbol image buffer using environment variable

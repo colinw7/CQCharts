@@ -125,9 +125,9 @@ load(const QString &filename)
           int icolumn = modelColumnNameToInd(name.c_str());
 
           if (type == "type") {
-            CQBaseModel::Type columnType = nameType(value.c_str());
+            CQBaseModelType columnType = nameType(value.c_str());
 
-            if (columnType != Type::NONE)
+            if (columnType != CQBaseModelType::NONE)
               setColumnType(icolumn, columnType);
           }
         }

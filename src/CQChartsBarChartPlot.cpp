@@ -174,8 +174,7 @@ CQChartsBarChartPlot::
 setHorizontal(bool b)
 {
   CQChartsUtil::testAndSet(horizontal_, b, [&]() {
-    dataLabel_.setDirection(horizontal_ ?
-      CQChartsDataLabel::Direction::HORIZONTAL : CQChartsDataLabel::Direction::VERTICAL);
+    dataLabel_.setDirection(horizontal_ ? Qt::Horizontal : Qt::Vertical);
 
     updateRangeAndObjs();
   } );

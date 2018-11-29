@@ -19,7 +19,7 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsPlotParameter.h>
 #include <CQChartsColumnType.h>
-#include <CQChartsUtil.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
@@ -50,6 +50,8 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
   updateTimeout_ = CQChartsEnv::getInt("CQ_CHARTS_PLOT_UPDATE_TIMEOUT", updateTimeout_);
 
   preview_ = CQChartsEnv::getInt("CQ_CHARTS_PLOT_PREVIEW", preview_);
+
+  bufferSymbols_ = CQChartsEnv::getInt("CQ_CHARTS_BUFFER_SYMBOLS", bufferSymbols_);
 
   displayRange_     = new CQChartsDisplayRange();
   displayTransform_ = new CQChartsDisplayTransform(displayRange_);
@@ -104,10 +106,6 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
   initLayer(CQChartsLayer::Type::BOXES      , CQChartsBuffer::Type::OVERLAY   , true );
   initLayer(CQChartsLayer::Type::SELECTION  , CQChartsBuffer::Type::OVERLAY   , true );
   initLayer(CQChartsLayer::Type::MOUSE_OVER , CQChartsBuffer::Type::OVERLAY   , true );
-
-  //---
-
-//(void) addColorSet("color");
 
   //---
 
@@ -1524,7 +1522,7 @@ void
 CQChartsPlot::
 addXAxis()
 {
-  xAxis_ = new CQChartsAxis(this, CQChartsAxis::Direction::HORIZONTAL, 0, 1);
+  xAxis_ = new CQChartsAxis(this, Qt::Horizontal, 0, 1);
 
   xAxis_->setObjectName("xaxis");
 }
@@ -1533,7 +1531,7 @@ void
 CQChartsPlot::
 addYAxis()
 {
-  yAxis_ = new CQChartsAxis(this, CQChartsAxis::Direction::VERTICAL, 0, 1);
+  yAxis_ = new CQChartsAxis(this, Qt::Vertical, 0, 1);
 
   yAxis_->setObjectName("yaxis");
 }
@@ -3284,36 +3282,45 @@ initColorColumnData()
     return;
 
   CQChartsModelColumnDetails *columnDetails = this->columnDetails(colorColumn());
+  if (! columnDetails) return;
 
-  QVariant minVar = columnDetails->minValue();
-  QVariant maxVar = columnDetails->maxValue();
+  if (colorColumn().isGroup()) {
+    colorColumnData_.data_min = 0.0;
+    colorColumnData_.data_max = numGroups();
+  }
+  else {
+    if (colorColumnData_.mapped) {
+      QVariant minVar = columnDetails->minValue();
+      QVariant maxVar = columnDetails->maxValue();
 
-  bool ok;
+      bool ok;
 
-  colorColumnData_.data_min = CQChartsVariant::toReal(minVar, ok);
-  if (! ok) colorColumnData_.data_min = 0.0;
+      colorColumnData_.data_min = CQChartsVariant::toReal(minVar, ok);
+      if (! ok) colorColumnData_.data_min = 0.0;
 
-  colorColumnData_.data_max = CQChartsVariant::toReal(maxVar, ok);
-  if (! ok) colorColumnData_.data_max = 1.0;
+      colorColumnData_.data_max = CQChartsVariant::toReal(maxVar, ok);
+      if (! ok) colorColumnData_.data_max = 1.0;
+    }
 
-  CQBaseModel::Type  columnType;
-  CQBaseModel::Type  columnBaseType;
-  CQChartsNameValues nameValues;
+    CQBaseModelType    columnType;
+    CQBaseModelType    columnBaseType;
+    CQChartsNameValues nameValues;
 
-  (void) CQChartsUtil::columnValueType(charts(), model().data(), colorColumn(),
-                                       columnType, columnBaseType, nameValues);
+    (void) CQChartsModelUtil::columnValueType(charts(), model().data(), colorColumn(),
+                                              columnType, columnBaseType, nameValues);
 
-  if (columnType == CQBaseModel::Type::COLOR) {
-    CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+    if (columnType == CQBaseModelType::COLOR) {
+      CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
-    CQChartsColumnColorType *colorType =
-      dynamic_cast<CQChartsColumnColorType *>(columnTypeMgr->getType(columnType));
-    assert(colorType);
+      CQChartsColumnColorType *colorType =
+        dynamic_cast<CQChartsColumnColorType *>(columnTypeMgr->getType(columnType));
+      assert(colorType);
 
-    colorType->getMapData(charts(), model().data(), colorColumn(), nameValues,
-                          colorColumnData_.mapped,
-                          colorColumnData_.data_min, colorColumnData_.data_max,
-                          colorColumnData_.palette);
+      colorType->getMapData(charts(), model().data(), colorColumn(), nameValues,
+                            colorColumnData_.mapped,
+                            colorColumnData_.data_min, colorColumnData_.data_max,
+                            colorColumnData_.palette);
+    }
   }
 
   colorColumnData_.valid = true;
@@ -3337,7 +3344,8 @@ columnColor(int row, const QModelIndex &parent, CQChartsColor &color) const
       double r = CQChartsVariant::toReal(var, ok);
       if (! ok) return false;
 
-      double r1 = CMathUtil::map(r, colorColumnData_.data_min, colorColumnData_.data_max, 0.0, 1.0);
+      double r1 =
+        CMathUtil::map(r, colorColumnData_.data_min, colorColumnData_.data_max, 0.0, 1.0);
 
       if (r1 < 0.0 || r1 > 1.0)
         return false;
@@ -3353,9 +3361,7 @@ columnColor(int row, const QModelIndex &parent, CQChartsColor &color) const
       }
       else {
         CQChartsModelColumnDetails *columnDetails = this->columnDetails(colorColumn());
-
-        if (! columnDetails)
-          return false;
+        if (! columnDetails) return false;
 
         // use unique index/count of edit values (which may have been converted)
         // not same as CQChartsColumnColorType::userData
@@ -3448,7 +3454,7 @@ columnStr(const CQChartsColumn &column, double x) const
 
   QString str;
 
-  if (! CQChartsUtil::formatColumnValue(charts(), model, column, x, str))
+  if (! CQChartsModelUtil::formatColumnValue(charts(), model, column, x, str))
     return CQChartsUtil::toString(x);
 
   return str;
@@ -5360,12 +5366,14 @@ keyFitBBox() const
   if (key() && key()->isVisible()) {
     CQChartsGeom::BBox bbox1 = key()->bbox();
 
-    bbox.add(bbox1.getCenter());
+    if (bbox1.isSet()) {
+      bbox.add(bbox1.getCenter());
 
-    if (! key()->isPixelWidthExceeded())
-      bbox.addX(bbox1);
-    if (! key()->isPixelHeightExceeded())
-      bbox.addY(bbox1);
+      if (! key()->isPixelWidthExceeded())
+        bbox.addX(bbox1);
+      if (! key()->isPixelHeightExceeded())
+        bbox.addY(bbox1);
+    }
   }
 
   return bbox;
@@ -5404,6 +5412,17 @@ CQChartsPlot::
 addTextAnnotation(const CQChartsPosition &pos, const QString &text)
 {
   CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, pos, text);
+
+  addAnnotation(textAnnotation);
+
+  return textAnnotation;
+}
+
+CQChartsTextAnnotation *
+CQChartsPlot::
+addTextAnnotation(const CQChartsRect &rect, const QString &text)
+{
+  CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, rect, text);
 
   addAnnotation(textAnnotation);
 
@@ -5560,6 +5579,7 @@ updateAnnotationSlot()
 
   emit annotationsChanged();
 }
+
 //------
 
 CQChartsPlotObj *
@@ -5674,7 +5694,6 @@ invalidateLayers()
     return;
   }
 
-//std::cerr << "invalidateLayers\n";
   if (isOverlay()) {
     Plots plots;
 
@@ -5701,7 +5720,6 @@ void
 CQChartsPlot::
 invalidateLayer(const CQChartsBuffer::Type &type)
 {
-//std::cerr << "invalidateLayer " << CQChartsBuffer::typeName(type) << "\n";
   if (isOverlay()) {
     Plots plots;
 
@@ -5842,54 +5860,75 @@ void
 CQChartsPlot::
 drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, double size)
 {
-#ifdef SYMBOL_BUFFER
-  auto cmpPen = [](const QPen &pen1, const QPen &pen2) {
-    if (pen1.style () != pen2.style ()) return false;
-    if (pen1.color () != pen2.color ()) return false;
-    if (pen1.widthF() != pen2.widthF()) return false;
-    return true;
-  };
+  if (bufferSymbols_) {
+    auto cmpPen = [](const QPen &pen1, const QPen &pen2) {
+      if (pen1.style () != pen2.style ()) return false;
+      if (pen1.color () != pen2.color ()) return false;
+      if (pen1.widthF() != pen2.widthF()) return false;
+      return true;
+    };
 
-  auto cmpBrush = [](const QBrush &brush1, const QBrush &brush2) {
-    if (brush1.style () != brush2.style ()) return false;
-    if (brush1.color () != brush2.color ()) return false;
-    return true;
-  };
+    auto cmpBrush = [](const QBrush &brush1, const QBrush &brush2) {
+      if (brush1.style () != brush2.style ()) return false;
+      if (brush1.color () != brush2.color ()) return false;
+      return true;
+    };
 
-  struct ImageBuffer {
-    CQChartsSymbol symbol;
-    double         size { 0.0 };
-    int            isize { 0 };
-    QPen           pen;
-    QBrush         brush;
-    QImage         image;
-  };
+    struct ImageBuffer {
+      CQChartsSymbol symbol;
+      double         size { 0.0 };
+      int            isize { 0 };
+      QPen           pen;
+      QBrush         brush;
+      QImage         image;
+    };
 
-  static ImageBuffer imageBuffer;
+    static ImageBuffer imageBuffer;
 
-  if (symbol != imageBuffer.symbol ||
-      size   != imageBuffer.size   ||
-      ! cmpPen  (painter->pen  (), imageBuffer.pen  ) ||
-      ! cmpBrush(painter->brush(), imageBuffer.brush)) {
-    imageBuffer.symbol = symbol;
-    imageBuffer.size   = size;
-    imageBuffer.isize  = CMathRound::RoundUp(2*(size + std::max(painter->pen().widthF(), 1.0)));
-    imageBuffer.pen    = painter->pen  ();
-    imageBuffer.brush  = painter->brush();
-    imageBuffer.image  = QImage(QSize(imageBuffer.isize, imageBuffer.isize), QImage::Format_ARGB32);
+    if (symbol != imageBuffer.symbol ||
+        size   != imageBuffer.size   ||
+        ! cmpPen  (painter->pen  (), imageBuffer.pen  ) ||
+        ! cmpBrush(painter->brush(), imageBuffer.brush)) {
+      imageBuffer.symbol = symbol;
+      imageBuffer.size   = size;
+      imageBuffer.isize  =
+        CMathRound::RoundUp(2*(size + std::max(painter->pen().widthF(), 1.0)));
+      imageBuffer.pen    = painter->pen  ();
+      imageBuffer.brush  = painter->brush();
+      imageBuffer.image  =
+        QImage(QSize(imageBuffer.isize, imageBuffer.isize), QImage::Format_ARGB32);
 
-    imageBuffer.image.fill(QColor(0,0,0,0));
+      imageBuffer.image.fill(QColor(0,0,0,0));
 
-    QPainter ipainter(&imageBuffer.image);
+      QPainter ipainter(&imageBuffer.image);
 
-    ipainter.setRenderHints(QPainter::Antialiasing);
+      ipainter.setRenderHints(QPainter::Antialiasing);
 
-    ipainter.setPen  (imageBuffer.pen  );
-    ipainter.setBrush(imageBuffer.brush);
+      ipainter.setPen  (imageBuffer.pen  );
+      ipainter.setBrush(imageBuffer.brush);
 
-    QPointF p1(size, size);
+      QPointF p1(size, size);
 
-    CQChartsSymbol2DRenderer srenderer(&ipainter, CQChartsUtil::fromQPoint(p1), size);
+      CQChartsSymbol2DRenderer srenderer(&ipainter, CQChartsUtil::fromQPoint(p1), size);
+
+      if (painter->brush().style() != Qt::NoBrush) {
+        CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer);
+
+        if (painter->pen().style() != Qt::NoPen)
+          CQChartsPlotSymbolMgr::strokeSymbol(symbol, &srenderer);
+      }
+      else {
+        if (painter->pen().style() != Qt::NoPen)
+          CQChartsPlotSymbolMgr::drawSymbol(symbol, &srenderer);
+      }
+    }
+
+    double is = imageBuffer.isize/2.0;
+
+    painter->drawImage(p.x() - is, p.y() - is, imageBuffer.image);
+  }
+  else {
+    CQChartsSymbol2DRenderer srenderer(painter, CQChartsUtil::fromQPoint(p), size);
 
     if (painter->brush().style() != Qt::NoBrush) {
       CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer);
@@ -5902,24 +5941,6 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, do
         CQChartsPlotSymbolMgr::drawSymbol(symbol, &srenderer);
     }
   }
-
-  double is = imageBuffer.isize/2.0;
-
-  painter->drawImage(p.x() - is, p.y() - is, imageBuffer.image);
-#else
-  CQChartsSymbol2DRenderer srenderer(painter, CQChartsUtil::fromQPoint(p), size);
-
-  if (painter->brush().style() != Qt::NoBrush) {
-    CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer);
-
-    if (painter->pen().style() != Qt::NoPen)
-      CQChartsPlotSymbolMgr::strokeSymbol(symbol, &srenderer);
-  }
-  else {
-    if (painter->pen().style() != Qt::NoPen)
-      CQChartsPlotSymbolMgr::drawSymbol(symbol, &srenderer);
-  }
-#endif
 }
 
 void
@@ -6492,8 +6513,8 @@ columnValueType(const CQChartsColumn &column, ColumnType &columnType, ColumnType
     QAbstractItemModel *model = this->model().data();
     assert(model);
 
-    if (! CQChartsUtil::columnValueType(charts(), model, column, columnType,
-                                        columnBaseType, nameValues)) {
+    if (! CQChartsModelUtil::columnValueType(charts(), model, column, columnType,
+                                             columnBaseType, nameValues)) {
       columnType     = defType;
       columnBaseType = defType;
       return false;
@@ -6510,7 +6531,7 @@ columnTypeStr(const CQChartsColumn &column, QString &typeStr) const
   QAbstractItemModel *model = this->model().data();
   assert(model);
 
-  return CQChartsUtil::columnTypeStr(charts(), model, column, typeStr);
+  return CQChartsModelUtil::columnTypeStr(charts(), model, column, typeStr);
 }
 
 bool
@@ -6520,7 +6541,7 @@ setColumnTypeStr(const CQChartsColumn &column, const QString &typeStr)
   QAbstractItemModel *model = this->model().data();
   assert(model);
 
-  return CQChartsUtil::setColumnTypeStr(charts(), model, column, typeStr);
+  return CQChartsModelUtil::setColumnTypeStr(charts(), model, column, typeStr);
 }
 
 bool
@@ -6532,9 +6553,7 @@ columnDetails(const CQChartsColumn &column, QString &typeName,
     return false;
 
   CQChartsModelColumnDetails *details = this->columnDetails(column);
-
-  if (! details)
-    return false;
+  if (! details) return false;
 
   typeName = details->typeName();
   minValue = details->minValue();
@@ -6707,7 +6726,7 @@ isHierarchical() const
 {
   QAbstractItemModel *model = this->model().data();
 
-  return CQChartsUtil::isHierarchical(model);
+  return CQChartsModelUtil::isHierarchical(model);
 }
 
 //------
@@ -7312,7 +7331,7 @@ QVariant
 CQChartsPlot::
 modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column, bool &ok) const
 {
-  return CQChartsUtil::modelHeaderValue(model, column, ok);
+  return CQChartsModelUtil::modelHeaderValue(model, column, ok);
 }
 
 QVariant
@@ -7320,7 +7339,7 @@ CQChartsPlot::
 modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
                  int role, bool &ok) const
 {
-  return CQChartsUtil::modelHeaderValue(model, column, role, ok);
+  return CQChartsModelUtil::modelHeaderValue(model, column, role, ok);
 }
 
 QVariant
@@ -7328,7 +7347,7 @@ CQChartsPlot::
 modelHeaderValue(QAbstractItemModel *model, int section, Qt::Orientation orientation,
                  bool &ok) const
 {
-  return CQChartsUtil::modelHeaderValue(model, section, orientation, ok);
+  return CQChartsModelUtil::modelHeaderValue(model, section, orientation, ok);
 }
 
 QVariant
@@ -7336,14 +7355,14 @@ CQChartsPlot::
 modelHeaderValue(QAbstractItemModel *model, int section, Qt::Orientation orientation,
                  int role, bool &ok) const
 {
-  return CQChartsUtil::modelHeaderValue(model, section, orientation, role, ok);
+  return CQChartsModelUtil::modelHeaderValue(model, section, orientation, role, ok);
 }
 
 QString
 CQChartsPlot::
 modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column, bool &ok) const
 {
-  return CQChartsUtil::modelHeaderString(model, column, ok);
+  return CQChartsModelUtil::modelHeaderString(model, column, ok);
 }
 
 QString
@@ -7351,7 +7370,7 @@ CQChartsPlot::
 modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
                   int role, bool &ok) const
 {
-  return CQChartsUtil::modelHeaderString(model, column, role, ok);
+  return CQChartsModelUtil::modelHeaderString(model, column, role, ok);
 }
 
 QString
@@ -7359,7 +7378,7 @@ CQChartsPlot::
 modelHeaderString(QAbstractItemModel *model, int section, Qt::Orientation orientation,
                   bool &ok) const
 {
-  return CQChartsUtil::modelHeaderString(model, section, orientation, ok);
+  return CQChartsModelUtil::modelHeaderString(model, section, orientation, ok);
 }
 
 QString
@@ -7367,7 +7386,7 @@ CQChartsPlot::
 modelHeaderString(QAbstractItemModel *model, int section, Qt::Orientation orientation,
                   int role, bool &ok) const
 {
-  return CQChartsUtil::modelHeaderString(model, section, orientation, role, ok);
+  return CQChartsModelUtil::modelHeaderString(model, section, orientation, role, ok);
 }
 
 //--
@@ -7377,7 +7396,7 @@ CQChartsPlot::
 modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
            const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsUtil::modelValue(charts(), model, row, column, parent, role, ok);
+  return CQChartsModelUtil::modelValue(charts(), model, row, column, parent, role, ok);
 }
 
 QVariant
@@ -7385,7 +7404,7 @@ CQChartsPlot::
 modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
            const QModelIndex &parent, bool &ok) const
 {
-  return CQChartsUtil::modelValue(charts(), model, row, column, parent, ok);
+  return CQChartsModelUtil::modelValue(charts(), model, row, column, parent, ok);
 }
 
 QString
@@ -7393,7 +7412,7 @@ CQChartsPlot::
 modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
             const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsUtil::modelString(charts(), model, row, column, parent, role, ok);
+  return CQChartsModelUtil::modelString(charts(), model, row, column, parent, role, ok);
 }
 
 QString
@@ -7401,7 +7420,7 @@ CQChartsPlot::
 modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
             const QModelIndex &parent, bool &ok) const
 {
-  return CQChartsUtil::modelString(charts(), model, row, column, parent, ok);
+  return CQChartsModelUtil::modelString(charts(), model, row, column, parent, ok);
 }
 
 double
@@ -7409,7 +7428,7 @@ CQChartsPlot::
 modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
           const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsUtil::modelReal(charts(), model, row, column, parent, role, ok);
+  return CQChartsModelUtil::modelReal(charts(), model, row, column, parent, role, ok);
 }
 
 double
@@ -7417,7 +7436,7 @@ CQChartsPlot::
 modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
           const QModelIndex &parent, bool &ok) const
 {
-  return CQChartsUtil::modelReal(charts(), model, row, column, parent, ok);
+  return CQChartsModelUtil::modelReal(charts(), model, row, column, parent, ok);
 }
 
 long
@@ -7425,7 +7444,7 @@ CQChartsPlot::
 modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
              const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsUtil::modelInteger(charts(), model, row, column, parent, role, ok);
+  return CQChartsModelUtil::modelInteger(charts(), model, row, column, parent, role, ok);
 }
 
 long
@@ -7433,7 +7452,7 @@ CQChartsPlot::
 modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
              const QModelIndex &parent, bool &ok) const
 {
-  return CQChartsUtil::modelInteger(charts(), model, row, column, parent, ok);
+  return CQChartsModelUtil::modelInteger(charts(), model, row, column, parent, ok);
 }
 
 CQChartsColor
@@ -7441,7 +7460,7 @@ CQChartsPlot::
 modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
            const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsUtil::modelColor(charts(), model, row, column, parent, role, ok);
+  return CQChartsModelUtil::modelColor(charts(), model, row, column, parent, role, ok);
 }
 
 CQChartsColor
@@ -7449,7 +7468,7 @@ CQChartsPlot::
 modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
            const QModelIndex &parent, bool &ok) const
 {
-  return CQChartsUtil::modelColor(charts(), model, row, column, parent, ok);
+  return CQChartsModelUtil::modelColor(charts(), model, row, column, parent, ok);
 }
 
 //------
@@ -7822,6 +7841,60 @@ positionToPixel(const CQChartsPosition &pos) const
   }
 
   return CQChartsUtil::toQPoint(p1);
+}
+
+//------
+
+QRectF
+CQChartsPlot::
+rectToPlot(const CQChartsRect &rect) const
+{
+  CQChartsGeom::BBox r = CQChartsUtil::fromQRect(rect.rect());
+
+  CQChartsGeom::BBox r1 = r;
+
+  if      (rect.units() == CQChartsUnits::PIXEL)
+    r1 = pixelToWindow(r);
+  else if (rect.units() == CQChartsUnits::PLOT)
+    r1 = r;
+  else if (rect.units() == CQChartsUnits::VIEW)
+    r1 = pixelToWindow(view_->windowToPixel(r));
+  else if (rect.units() == CQChartsUnits::PERCENT) {
+    CQChartsGeom::BBox pbbox = displayRangeBBox();
+
+    r1.setXMin(r.getXMin()*pbbox.getWidth ()/100.0);
+    r1.setYMin(r.getYMin()*pbbox.getHeight()/100.0);
+    r1.setXMax(r.getXMax()*pbbox.getWidth ()/100.0);
+    r1.setYMax(r.getYMax()*pbbox.getHeight()/100.0);
+  }
+
+  return CQChartsUtil::toQRect(r1);
+}
+
+QRectF
+CQChartsPlot::
+rectToPixel(const CQChartsRect &rect) const
+{
+  CQChartsGeom::BBox r = CQChartsUtil::fromQRect(rect.rect());
+
+  CQChartsGeom::BBox r1 = r;
+
+  if      (rect.units() == CQChartsUnits::PIXEL)
+    r1 = r;
+  else if (rect.units() == CQChartsUnits::PLOT)
+    r1 = windowToPixel(r);
+  else if (rect.units() == CQChartsUnits::VIEW)
+    r1 = view_->windowToPixel(r);
+  else if (rect.units() == CQChartsUnits::PERCENT) {
+    CQChartsGeom::BBox pbbox = calcPlotPixelRect();
+
+    r1.setXMin(r.getXMin()*pbbox.getWidth ()/100.0);
+    r1.setYMin(r.getYMin()*pbbox.getHeight()/100.0);
+    r1.setXMax(r.getXMax()*pbbox.getWidth ()/100.0);
+    r1.setYMax(r.getYMax()*pbbox.getHeight()/100.0);
+  }
+
+  return CQChartsUtil::toQRect(r1);
 }
 
 //------
@@ -8278,7 +8351,7 @@ write(std::ostream &os) const
       continue;
 
     if (param->type() == CQChartsPlotParameter::Type::COLUMN ||
-       param->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
+        param->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
       if (columnsStr.length())
         columnsStr += ",";
 

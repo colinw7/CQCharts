@@ -7,8 +7,8 @@
 #include <CQChartsGradientPalette.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsColumnType.h>
-#include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsTip.h>
 #include <CQCharts.h>
@@ -885,7 +885,7 @@ calcRange()
 
   ColumnType xColumnType = columnValueType(xColumn());
 
-  if (xColumnType == CQBaseModel::Type::TIME)
+  if (xColumnType == CQBaseModelType::TIME)
     xAxis()->setDate(true);
 
   return dataRange;
@@ -1040,6 +1040,8 @@ addPointObjects()
         if (colorColumn().isValid()) {
           (void) columnColor(valuePoint.row, valuePoint.ind.parent(), color);
         }
+
+        //---
 
         double sx, sy;
 
@@ -2006,7 +2008,7 @@ drawDensityMap(QPainter *painter)
 
           //---
 
-          painter->fillRect(QRect(x, y, dx, dy), brush);
+          painter->fillRect(QRectF(x, y, dx, dy), brush);
         }
       }
     }
@@ -2246,35 +2248,43 @@ initSymbolTypeData()
   CQChartsModelColumnDetails *columnDetails = this->columnDetails(symbolTypeColumn());
   if (! columnDetails) return;
 
-  QVariant minVar = columnDetails->minValue();
-  QVariant maxVar = columnDetails->maxValue();
+  if (symbolTypeColumn().isGroup()) {
+    symbolTypeData_.data_min = 0.0;
+    symbolTypeData_.data_max = numGroups();
+  }
+  else {
+    if (symbolTypeData_.mapped) {
+      QVariant minVar = columnDetails->minValue();
+      QVariant maxVar = columnDetails->maxValue();
 
-  bool ok;
+      bool ok;
 
-  symbolTypeData_.data_min = CQChartsVariant::toReal(minVar, ok);
-  if (! ok) symbolTypeData_.data_min = 0.0;
+      symbolTypeData_.data_min = CQChartsVariant::toReal(minVar, ok);
+      if (! ok) symbolTypeData_.data_min = 0.0;
 
-  symbolTypeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
-  if (! ok) symbolTypeData_.data_max = 1.0;
+      symbolTypeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
+      if (! ok) symbolTypeData_.data_max = 1.0;
+    }
 
-  CQBaseModel::Type  columnType;
-  CQBaseModel::Type  columnBaseType;
-  CQChartsNameValues nameValues;
+    CQBaseModelType    columnType;
+    CQBaseModelType    columnBaseType;
+    CQChartsNameValues nameValues;
 
-  (void) CQChartsUtil::columnValueType(charts(), model().data(), symbolTypeColumn(),
-                                       columnType, columnBaseType, nameValues);
+    (void) CQChartsModelUtil::columnValueType(charts(), model().data(), symbolTypeColumn(),
+                                              columnType, columnBaseType, nameValues);
 
-  if (columnType == CQBaseModel::Type::SYMBOL) {
-    CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+    if (columnType == CQBaseModelType::SYMBOL) {
+      CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
-    CQChartsColumnSymbolTypeType *symbolTypeType =
-      dynamic_cast<CQChartsColumnSymbolTypeType *>(columnTypeMgr->getType(columnType));
-    assert(symbolTypeType);
+      CQChartsColumnSymbolTypeType *symbolTypeType =
+        dynamic_cast<CQChartsColumnSymbolTypeType *>(columnTypeMgr->getType(columnType));
+      assert(symbolTypeType);
 
-    symbolTypeType->getMapData(charts(), model().data(), symbolTypeColumn(), nameValues,
-                               symbolTypeData_.mapped,
-                               symbolTypeData_.map_min, symbolTypeData_.map_max,
-                               symbolTypeData_.data_min, symbolTypeData_.data_max);
+      symbolTypeType->getMapData(charts(), model().data(), symbolTypeColumn(), nameValues,
+                                 symbolTypeData_.mapped,
+                                 symbolTypeData_.map_min, symbolTypeData_.map_max,
+                                 symbolTypeData_.data_min, symbolTypeData_.data_max);
+    }
   }
 
   symbolTypeData_.valid = true;
@@ -2300,7 +2310,7 @@ columnSymbolType(int row, const QModelIndex &parent, CQChartsSymbol &symbolType)
       int i1 = CMathUtil::map(i, symbolTypeData_.data_min, symbolTypeData_.data_max,
                               symbolTypeData_.map_min, symbolTypeData_.map_max);
 
-      symbolType = CQChartsSymbol((CQChartsSymbol::Type) i1);
+      symbolType = CQChartsSymbol::outlineFromInt(i1);
     }
     else {
       if (CQChartsVariant::isSymbol(var)) {
@@ -2349,39 +2359,49 @@ initSymbolSizeData()
   CQChartsModelColumnDetails *columnDetails = this->columnDetails(symbolSizeColumn());
   if (! columnDetails) return;
 
-  QVariant minVar  = columnDetails->minValue();
-  QVariant maxVar  = columnDetails->maxValue();
-  QVariant meanVar = columnDetails->meanValue();
+  if (symbolSizeColumn().isGroup()) {
+    symbolSizeData_.data_min  = 0.0;
+    symbolSizeData_.data_max  = numGroups();
+    symbolSizeData_.data_mean = symbolSizeData_.data_max/2.0;
+  }
+  else {
+    if (symbolSizeData_.mapped) {
+      QVariant minVar  = columnDetails->minValue();
+      QVariant maxVar  = columnDetails->maxValue();
+      QVariant meanVar = columnDetails->meanValue();
 
-  bool ok;
+      bool ok;
 
-  symbolSizeData_.data_min = CQChartsVariant::toReal(minVar, ok);
-  if (! ok) symbolSizeData_.data_min = 0.0;
+      symbolSizeData_.data_min = CQChartsVariant::toReal(minVar, ok);
+      if (! ok) symbolSizeData_.data_min = 0.0;
 
-  symbolSizeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
-  if (! ok) symbolSizeData_.data_max = 1.0;
+      symbolSizeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
+      if (! ok) symbolSizeData_.data_max = 1.0;
 
-  symbolSizeData_.data_mean = CQChartsVariant::toReal(meanVar, ok);
-  if (! ok) symbolSizeData_.data_mean = (symbolSizeData_.data_min + symbolSizeData_.data_max)/2.0;
+      symbolSizeData_.data_mean = CQChartsVariant::toReal(meanVar, ok);
+      if (! ok) symbolSizeData_.data_mean = (symbolSizeData_.data_min +
+                                             symbolSizeData_.data_max)/2.0;
+    }
 
-  CQBaseModel::Type  columnType;
-  CQBaseModel::Type  columnBaseType;
-  CQChartsNameValues nameValues;
+    CQBaseModelType    columnType;
+    CQBaseModelType    columnBaseType;
+    CQChartsNameValues nameValues;
 
-  (void) CQChartsUtil::columnValueType(charts(), model().data(), symbolSizeColumn(),
-                                       columnType, columnBaseType, nameValues);
+    (void) CQChartsModelUtil::columnValueType(charts(), model().data(), symbolSizeColumn(),
+                                              columnType, columnBaseType, nameValues);
 
-  if (columnType == CQBaseModel::Type::SYMBOL_SIZE) {
-    CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+    if (columnType == CQBaseModelType::SYMBOL_SIZE) {
+      CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
-    CQChartsColumnSymbolSizeType *symbolSizeType =
-      dynamic_cast<CQChartsColumnSymbolSizeType *>(columnTypeMgr->getType(columnType));
-    assert(symbolSizeType);
+      CQChartsColumnSymbolSizeType *symbolSizeType =
+        dynamic_cast<CQChartsColumnSymbolSizeType *>(columnTypeMgr->getType(columnType));
+      assert(symbolSizeType);
 
-    symbolSizeType->getMapData(charts(), model().data(), symbolSizeColumn(), nameValues,
-                               symbolSizeData_.mapped,
-                               symbolSizeData_.map_min, symbolSizeData_.map_max,
-                               symbolSizeData_.data_min, symbolSizeData_.data_max);
+      symbolSizeType->getMapData(charts(), model().data(), symbolSizeColumn(), nameValues,
+                                 symbolSizeData_.mapped,
+                                 symbolSizeData_.map_min, symbolSizeData_.map_max,
+                                 symbolSizeData_.data_min, symbolSizeData_.data_max);
+    }
   }
 
   symbolSizeData_.valid = true;
@@ -2464,35 +2484,43 @@ initFontSizeData()
   CQChartsModelColumnDetails *columnDetails = this->columnDetails(fontSizeColumn());
   if (! columnDetails) return;
 
-  QVariant minVar = columnDetails->minValue();
-  QVariant maxVar = columnDetails->maxValue();
+  if (fontSizeColumn().isGroup()) {
+    fontSizeData_.data_min  = 0.0;
+    fontSizeData_.data_max  = numGroups();
+  }
+  else {
+    if (fontSizeData_.mapped) {
+      QVariant minVar = columnDetails->minValue();
+      QVariant maxVar = columnDetails->maxValue();
 
-  bool ok;
+      bool ok;
 
-  fontSizeData_.data_min = CQChartsVariant::toReal(minVar, ok);
-  if (! ok) fontSizeData_.data_min = 0.0;
+      fontSizeData_.data_min = CQChartsVariant::toReal(minVar, ok);
+      if (! ok) fontSizeData_.data_min = 0.0;
 
-  fontSizeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
-  if (! ok) fontSizeData_.data_max = 1.0;
+      fontSizeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
+      if (! ok) fontSizeData_.data_max = 1.0;
+    }
 
-  CQBaseModel::Type  columnType;
-  CQBaseModel::Type  columnBaseType;
-  CQChartsNameValues nameValues;
+    CQBaseModelType    columnType;
+    CQBaseModelType    columnBaseType;
+    CQChartsNameValues nameValues;
 
-  (void) CQChartsUtil::columnValueType(charts(), model().data(), fontSizeColumn(),
-                                       columnType, columnBaseType, nameValues);
+    (void) CQChartsModelUtil::columnValueType(charts(), model().data(), fontSizeColumn(),
+                                              columnType, columnBaseType, nameValues);
 
-  if (columnType == CQBaseModel::Type::FONT_SIZE) {
-    CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+    if (columnType == CQBaseModelType::FONT_SIZE) {
+      CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
-    CQChartsColumnFontSizeType *fontSizeType =
-      dynamic_cast<CQChartsColumnFontSizeType *>(columnTypeMgr->getType(columnType));
-    assert(fontSizeType);
+      CQChartsColumnFontSizeType *fontSizeType =
+        dynamic_cast<CQChartsColumnFontSizeType *>(columnTypeMgr->getType(columnType));
+      assert(fontSizeType);
 
-    fontSizeType->getMapData(charts(), model().data(), fontSizeColumn(), nameValues,
-                             fontSizeData_.mapped,
-                             fontSizeData_.map_min, fontSizeData_.map_max,
-                             fontSizeData_.data_min, fontSizeData_.data_max);
+      fontSizeType->getMapData(charts(), model().data(), fontSizeColumn(), nameValues,
+                               fontSizeData_.mapped,
+                               fontSizeData_.map_min, fontSizeData_.map_max,
+                               fontSizeData_.data_min, fontSizeData_.data_max);
+    }
   }
 
   fontSizeData_.valid = true;

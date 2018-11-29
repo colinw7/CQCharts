@@ -2,10 +2,10 @@
 #include <CQChartsModelWidgets.h>
 #include <CQChartsModelList.h>
 #include <CQChartsModelData.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsPlotDlg.h>
 #include <CQChartsColumnType.h>
 #include <CQCharts.h>
-#include <CQChartsUtil.h>
 
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -85,12 +85,12 @@ writeSlot()
   for (int i = 0; i < model->columnCount(); ++i) {
     CQChartsColumn column(i);
 
-    CQBaseModel::Type  columnType;
-    CQBaseModel::Type  columnBaseType;
+    CQBaseModelType    columnType;
+    CQBaseModelType    columnBaseType;
     CQChartsNameValues nameValues;
 
-    if (! CQChartsUtil::columnValueType(charts_, model, column, columnType,
-                                        columnBaseType, nameValues))
+    if (! CQChartsModelUtil::columnValueType(charts_, model, column, columnType,
+                                             columnBaseType, nameValues))
       continue;
 
     CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
@@ -105,19 +105,19 @@ writeSlot()
       if (! var.isValid())
         continue;
 
-      if      (param.type() == CQBaseModel::Type::BOOLEAN) {
+      if      (param.type() == CQBaseModelType::BOOLEAN) {
         if (var.toBool() == param.def().toBool())
           continue;
       }
-      else if (param.type() == CQBaseModel::Type::REAL) {
+      else if (param.type() == CQBaseModelType::REAL) {
         if (var.toDouble() == param.def().toDouble())
           continue;
       }
-      else if (param.type() == CQBaseModel::Type::INTEGER) {
+      else if (param.type() == CQBaseModelType::INTEGER) {
         if (var.toInt() == param.def().toInt())
           continue;
       }
-      else if (param.type() == CQBaseModel::Type::STRING) {
+      else if (param.type() == CQBaseModelType::STRING) {
         if (var.toString() == param.def().toString())
           continue;
       }
@@ -137,6 +137,7 @@ writeSlot()
 
   //---
 
+  // TODO: write what ?
   modelData->write();
 }
 

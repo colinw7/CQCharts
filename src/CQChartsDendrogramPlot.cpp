@@ -1,6 +1,6 @@
 #include <CQChartsDendrogramPlot.h>
 #include <CQChartsView.h>
-#include <CQChartsUtil.h>
+#include <CQChartsModelUtil.h>
 #include <CQCharts.h>
 #include <CQPerfMonitor.h>
 
@@ -143,7 +143,7 @@ calcRange()
     }
 
     State visit(QAbstractItemModel *model, const VisitData &data) override {
-      QString path = CQChartsUtil::parentPath(model, data.parent);
+      QString path = CQChartsModelUtil::parentPath(model, data.parent);
 
       //---
 

@@ -279,7 +279,7 @@ previewFileSlot()
 
   //---
 
-  CQBaseModel::DataType dataType = CQBaseModel::DataType::NONE;
+  CQBaseModelDataType dataType = CQBaseModelDataType::NONE;
 
   bool commentHeader     = false;
   bool firstLineHeader   = false;
@@ -294,11 +294,11 @@ previewFileSlot()
   firstLineHeaderCheck_  ->setChecked(firstLineHeader);
   firstColumnHeaderCheck_->setChecked(firstColumnHeader);
 
-  if      (dataType == CQBaseModel::DataType::CSV)
+  if      (dataType == CQBaseModelDataType::CSV)
     typeCombo_->setCurrentIndex(0);
-  else if (dataType == CQBaseModel::DataType::TSV)
+  else if (dataType == CQBaseModelDataType::TSV)
     typeCombo_->setCurrentIndex(1);
-  else if (dataType == CQBaseModel::DataType::GNUPLOT)
+  else if (dataType == CQBaseModelDataType::GNUPLOT)
     typeCombo_->setCurrentIndex(3);
 
   typeSlot();

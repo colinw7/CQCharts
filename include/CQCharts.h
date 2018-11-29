@@ -1,7 +1,7 @@
 #ifndef CQCharts_H
 #define CQCharts_H
 
-#include <CQBaseModel.h>
+#include <CQBaseModelTypes.h>
 #include <CQChartsTheme.h>
 
 #include <QObject>

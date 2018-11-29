@@ -1,7 +1,7 @@
 #include <CQChartsColumnsEdit.h>
 #include <CQChartsColumnEdit.h>
 #include <CQChartsPlot.h>
-#include <CQChartsUtil.h>
+#include <CQChartsModelUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -181,7 +181,7 @@ textToColumns()
       else {
         CQChartsColumn col;
 
-        if (CQChartsUtil::stringToColumn(model(), str, col))
+        if (CQChartsModelUtil::stringToColumn(model(), str, col))
           columns.addColumn(col);
         else
           ok = false;
@@ -190,7 +190,7 @@ textToColumns()
     else {
       CQChartsColumn col;
 
-      if (CQChartsUtil::stringToColumn(model(), str, col))
+      if (CQChartsModelUtil::stringToColumn(model(), str, col))
         columns.addColumn(col);
       else
         ok = false;

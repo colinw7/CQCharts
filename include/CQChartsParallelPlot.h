@@ -188,20 +188,19 @@ class CQChartsParallelPlot : public CQChartsPlot,
   void setHorizontal(bool b);
 
  private:
-  using Ranges  = std::vector<CQChartsGeom::Range>;
-  using YAxes   = std::vector<CQChartsAxis*>;
-  using AxisDir = CQChartsAxis::Direction;
+  using Ranges = std::vector<CQChartsGeom::Range>;
+  using YAxes  = std::vector<CQChartsAxis*>;
 
-  CQChartsColumn      xColumn_;                                 // x value column
-  CQChartsColumns     yColumns_;                                // y value columns
-  bool                horizontal_      { false };               // horizontal bars
-  bool                linesSelectable_ { false };               // are lines selectable
-  Ranges              setRanges_;                               // value set ranges
-  AxisDir             adir_            { AxisDir::HORIZONTAL }; // axis direction
-  YAxes               axes_;                                    // value axes
-  CQChartsGeom::Range normalizedDataRange_;
-  double              max_tw_          { 0.0 };
-  CQChartsGeom::BBox  axesBBox_;
+  CQChartsColumn      xColumn_;                            // x value column
+  CQChartsColumns     yColumns_;                           // y value columns
+  bool                horizontal_      { false };          // horizontal bars
+  bool                linesSelectable_ { false };          // are lines selectable
+  Ranges              setRanges_;                          // value set ranges
+  Qt::Orientation     adir_            { Qt::Horizontal }; // axis direction
+  YAxes               axes_;                               // value axes
+  CQChartsGeom::Range normalizedDataRange_;                // normalized data range
+  double              max_tw_          { 0.0 };            // max text width
+  CQChartsGeom::BBox  axesBBox_;                           // axes bbox
 };
 
 #endif

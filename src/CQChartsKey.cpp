@@ -233,7 +233,7 @@ draw(QPainter *painter)
 
     //---
 
-    QRect qrect(px1, (py1 + py2)/2.0 - bs/2.0, bs, bs);
+    QRectF qrect(px1, (py1 + py2)/2.0 - bs/2.0, bs, bs);
 
     QStylePainter spainter(view_);
 
@@ -243,7 +243,7 @@ draw(QPainter *painter)
 
     opt.initFrom(view_);
 
-    opt.rect = qrect;
+    opt.rect = qrect.toRect();
 
     opt.state |= (checked ? QStyle::State_On : QStyle::State_Off);
 

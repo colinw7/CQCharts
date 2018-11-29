@@ -2,7 +2,7 @@
 #define CQChartsTableDelegate_H
 
 #include <CQChartsUtil.h>
-#include <CQBaseModel.h>
+#include <CQBaseModelTypes.h>
 #include <QItemDelegate>
 
 class CQChartsTable;
@@ -13,8 +13,8 @@ class QPainter;
 class CQChartsTableDelegate : public QItemDelegate {
  public:
   struct ColumnData {
-    CQBaseModel::Type  type;
-    CQBaseModel::Type  baseType;
+    CQBaseModelType    type;
+    CQBaseModelType    baseType;
     CQChartsNameValues nameValues;
   };
 

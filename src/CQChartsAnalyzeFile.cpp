@@ -10,10 +10,10 @@ CQChartsAnalyzeFile(const QString &filename) :
 
 bool
 CQChartsAnalyzeFile::
-getDetails(CQBaseModel::DataType &dataType, bool &commentHeader, bool &firstLineHeader,
+getDetails(CQBaseModelDataType &dataType, bool &commentHeader, bool &firstLineHeader,
            bool &firstColumnHeader)
 {
-  dataType = CQBaseModel::DataType::NONE;
+  dataType = CQBaseModelDataType::NONE;
 
   commentHeader     = false;
   firstLineHeader   = false;
@@ -83,11 +83,11 @@ getDetails(CQBaseModel::DataType &dataType, bool &commentHeader, bool &firstLine
     int ns = spaceStrs.length();
 
     if      (nc > 0 && nc > nt)
-      dataType = CQBaseModel::DataType::CSV;
+      dataType = CQBaseModelDataType::CSV;
     else if (nt > 0 && nt > nc)
-      dataType = CQBaseModel::DataType::TSV;
+      dataType = CQBaseModelDataType::TSV;
     else if (ns > 0)
-      dataType = CQBaseModel::DataType::GNUPLOT;
+      dataType = CQBaseModelDataType::GNUPLOT;
   }
 
   // TODO: auto determine column type from first few lines ?

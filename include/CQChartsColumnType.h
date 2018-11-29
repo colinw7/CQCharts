@@ -2,7 +2,7 @@
 #define CQChartsColumnType_H
 
 #include <CQChartsUtil.h>
-#include <CQBaseModel.h>
+#include <CQBaseModelTypes.h>
 #include <QObject>
 #include <QString>
 
@@ -11,7 +11,7 @@ class CQChartsModelColumnDetails;
 // column type parameter
 class CQChartsColumnTypeParam {
  public:
-  using Type = CQBaseModel::Type;
+  using Type = CQBaseModelType;
 
  public:
   CQChartsColumnTypeParam(const QString &name, Type type, int role, const QString &tip,
@@ -21,7 +21,7 @@ class CQChartsColumnTypeParam {
 
   CQChartsColumnTypeParam(const QString &name, Type type, const QString &tip,
                           const QVariant &def=QVariant()) :
-   name_(name), type_(type), role_(int(CQBaseModel::Role::TypeValues)), tip_(tip), def_(def) {
+   name_(name), type_(type), role_(int(CQBaseModelRole::TypeValues)), tip_(tip), def_(def) {
   }
 
   const QString &name() const { return name_; }
@@ -36,7 +36,7 @@ class CQChartsColumnTypeParam {
 
  private:
   QString  name_;
-  Type     type_ { CQBaseModel::Type::STRING };
+  Type     type_ { CQBaseModelType::STRING };
   int      role_ { -1 };
   QString  tip_;
   QVariant def_;
@@ -50,7 +50,7 @@ class CQChartsColumnTypeParam {
 //  . key - is column a key (for grouping)
 class CQChartsColumnType {
  public:
-  using Type   = CQBaseModel::Type;
+  using Type   = CQBaseModelType;
   using Params = std::vector<CQChartsColumnTypeParam>;
 
  public:
@@ -63,7 +63,7 @@ class CQChartsColumnType {
   int ind() const { return ind_; }
   void setInd(int i) { ind_ = i; }
 
-  virtual QString name() const { return CQBaseModel::typeName(type_); }
+  virtual QString name() const;
 
   virtual bool isNumeric() const { return false; }
 
@@ -503,7 +503,7 @@ class CQChartsColumnTypeMgr : public QObject {
   Q_OBJECT
 
  public:
-  using Type = CQBaseModel::Type;
+  using Type = CQBaseModelType;
 
  public:
   CQChartsColumnTypeMgr(CQCharts *charts);

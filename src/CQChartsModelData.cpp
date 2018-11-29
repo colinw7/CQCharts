@@ -1,5 +1,6 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsFilterModel.h>
 #include <CQSummaryModel.h>
 #include <CQDataModel.h>
@@ -224,7 +225,7 @@ foldModel(const FoldData &foldData)
 
     CQChartsColumn column;
 
-    if (! CQChartsUtil::stringToColumn(model_.data(), columnStr, column)) {
+    if (! CQChartsModelUtil::stringToColumn(model_.data(), columnStr, column)) {
       bool ok;
 
       int icolumn = columnStr.toInt(&ok);
@@ -299,13 +300,13 @@ foldModel(const FoldData &foldData)
       // get type from column
       const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
 
-      if      (columnDetails->type() == CQBaseModel::Type::REAL) {
+      if      (columnDetails->type() == CQBaseModelType::REAL) {
         if (foldData.isAuto)
           type = CQFoldData::Type::REAL_AUTO;
         else
           type = CQFoldData::Type::REAL_RANGE;
       }
-      else if (columnDetails->type() == CQBaseModel::Type::INTEGER) {
+      else if (columnDetails->type() == CQBaseModelType::INTEGER) {
         integral = true;
 
         if (foldData.isAuto)
@@ -463,14 +464,14 @@ copy()
 
   std::vector<int> hroles = {{
     static_cast<int>(Qt::DisplayRole),
-    static_cast<int>(CQBaseModel::Role::Type),
-    static_cast<int>(CQBaseModel::Role::BaseType),
-    static_cast<int>(CQBaseModel::Role::TypeValues),
-    static_cast<int>(CQBaseModel::Role::Min),
-    static_cast<int>(CQBaseModel::Role::Max),
-    static_cast<int>(CQBaseModel::Role::Key),
-    static_cast<int>(CQBaseModel::Role::Sorted),
-    static_cast<int>(CQBaseModel::Role::SortOrder)
+    static_cast<int>(CQBaseModelRole::Type),
+    static_cast<int>(CQBaseModelRole::BaseType),
+    static_cast<int>(CQBaseModelRole::TypeValues),
+    static_cast<int>(CQBaseModelRole::Min),
+    static_cast<int>(CQBaseModelRole::Max),
+    static_cast<int>(CQBaseModelRole::Key),
+    static_cast<int>(CQBaseModelRole::Sorted),
+    static_cast<int>(CQBaseModelRole::SortOrder)
   }};
 
   CQDataModel *dataModel = new CQDataModel(nc, nr);

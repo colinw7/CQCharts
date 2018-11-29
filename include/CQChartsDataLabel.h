@@ -9,10 +9,10 @@ class CQChartsPlot;
 class CQChartsDataLabel : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(Position  position  READ position  WRITE setPosition )
-  Q_PROPERTY(Direction direction READ direction WRITE setDirection)
-  Q_PROPERTY(bool      clip      READ isClip    WRITE setClip     )
-  Q_PROPERTY(double    margin    READ margin    WRITE setMargin   )
+  Q_PROPERTY(Position        position  READ position  WRITE setPosition )
+  Q_PROPERTY(Qt::Orientation direction READ direction WRITE setDirection)
+  Q_PROPERTY(bool            clip      READ isClip    WRITE setClip     )
+  Q_PROPERTY(double          margin    READ margin    WRITE setMargin   )
 
   Q_ENUMS(Position)
 
@@ -25,11 +25,6 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
     BOTTOM_OUTSIDE,
   };
 
-  enum Direction {
-    HORIZONTAL,
-    VERTICAL
-  };
-
  public:
   CQChartsDataLabel(CQChartsPlot *plot);
 
@@ -39,8 +34,8 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   const Position &position() const { return position_; }
   void setPosition(const Position &p) { position_ = p; update(); }
 
-  const Direction &direction() const { return direction_; }
-  void setDirection(const Direction &v) { direction_ = v; }
+  const Qt::Orientation &direction() const { return direction_; }
+  void setDirection(const Qt::Orientation &v) { direction_ = v; }
 
   bool isClip() const { return clip_; }
   void setClip(bool b) { clip_ = b; update(); }
@@ -97,9 +92,9 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   static Qt::Alignment textAlignment(const Position &position);
 
  private:
-  Position  position_  { Position::TOP_INSIDE };
-  Direction direction_ { Direction::VERTICAL };
-  bool      clip_      { false };
+  Position        position_  { Position::TOP_INSIDE };
+  Qt::Orientation direction_ { Qt::Vertical };
+  bool            clip_      { false };
 };
 
 #endif

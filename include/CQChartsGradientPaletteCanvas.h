@@ -1,9 +1,9 @@
 #ifndef CQChartsGradientPaletteCanvas_H
 #define CQChartsGradientPaletteCanvas_H
 
-#include <CQChartsGradientPalette.h>
 #include <QFrame>
 
+class CQChartsGradientPalette;
 class QPainter;
 class QLabel;
 

@@ -1,6 +1,7 @@
 #ifndef CQBaseModel_H
 #define CQBaseModel_H
 
+#include <CQBaseModelTypes.h>
 #include <QAbstractItemModel>
 #include <map>
 
@@ -9,74 +10,12 @@ class CQBaseModel : public QAbstractItemModel {
 
   Q_PROPERTY(int maxTypeRows READ maxTypeRows WRITE setMaxTypeRows)
 
- public:
-  enum class DataType {
-    NONE,
-    CSV,
-    TSV,
-    XML,
-    JSON,
-    GNUPLOT
-  };
-
-  enum class Role {
-    Type              = Qt::UserRole + 1, // column type role
-    BaseType          = Type + 1,         // column base type role
-    TypeValues        = Type + 2,         // column type values role
-    Min               = Type + 3,         // column user min role
-    Max               = Type + 4,         // column user max role
-    Sorted            = Type + 5,         // sorted role
-    SortOrder         = Type + 6,         // sort order role
-    Key               = Type + 7,         // is key role
-    RawValue          = Type + 8,         // raw value by role
-    IntermediateValue = Type + 9,         // intermediate value role
-    CachedValue       = Type + 10,        // cached value role
-    OutputValue       = Type + 11,        // output value role
-    Group             = Type + 12         // group role
-  };
-
-  // use variant numbers where possible
-  enum class Type {
-    NONE    = QVariant::Invalid,
-    BOOLEAN = QVariant::Bool,
-    INTEGER = QVariant::Int,
-    REAL    = QVariant::Double,
-    STRING  = QVariant::String,
-    STRINGS = QVariant::StringList,
-    POINT   = QVariant::PointF,
-    LINE    = QVariant::LineF,
-    RECT    = QVariant::RectF,
-    SIZE    = QVariant::SizeF,
-#if QT_VERSION >= 0x050000
-    POLYGON = QVariant::PolygonF,
-#else
-    POLYGON = QVariant::UserType + 199,
-#endif
-    COLOR   = QVariant::Color,
-    PEN     = QVariant::Pen,
-    BRUSH   = QVariant::Brush,
-    IMAGE   = QVariant::Image,
-    TIME    = QVariant::Time,
-
-    SYMBOL          = QVariant::UserType + 101,
-    SYMBOL_SIZE     = QVariant::UserType + 102,
-    FONT_SIZE       = QVariant::UserType + 103,
-    PATH            = QVariant::UserType + 104,
-    STYLE           = QVariant::UserType + 105,
-    POLYGON_LIST    = QVariant::UserType + 106,
-    CONNECTION_LIST = QVariant::UserType + 107,
-    NAME_PAIR       = QVariant::UserType + 108,
-    COLUMN          = QVariant::UserType + 109,
-    COLUMN_LIST     = QVariant::UserType + 110,
-    ENUM            = QVariant::UserType + 111
-  };
-
  protected:
   struct ColumnTypeData {
-    Type type     { Type::NONE };
-    Type baseType { Type::NONE };
-    int  numInt   { 0 };
-    int  numReal  { 0 };
+    CQBaseModelType type     { CQBaseModelType::NONE };
+    CQBaseModelType baseType { CQBaseModelType::NONE };
+    int             numInt   { 0 };
+    int             numReal  { 0 };
   };
 
  public:
@@ -86,11 +25,11 @@ class CQBaseModel : public QAbstractItemModel {
 
   //---
 
-  Type columnType(int column) const;
-  bool setColumnType(int column, Type t);
+  CQBaseModelType columnType(int column) const;
+  bool setColumnType(int column, CQBaseModelType t);
 
-  Type columnBaseType(int column) const;
-  bool setColumnBaseType(int column, Type t);
+  CQBaseModelType columnBaseType(int column) const;
+  bool setColumnBaseType(int column, CQBaseModelType t);
 
   QString columnTypeValues(int column) const;
   bool setColumnTypeValues(int column, const QString &str);
@@ -153,15 +92,15 @@ class CQBaseModel : public QAbstractItemModel {
 
   //---
 
-  static Type variantToType(const QVariant &var, bool *ok=nullptr);
-  static QVariant typeToVariant(Type type);
+  static CQBaseModelType variantToType(const QVariant &var, bool *ok=nullptr);
+  static QVariant typeToVariant(CQBaseModelType type);
 
-  static QString typeName(Type type);
-  static Type nameType(const QString &name);
+  static QString typeName(CQBaseModelType type);
+  static CQBaseModelType nameType(const QString &name);
 
-  static bool isSameType(const QVariant &var, Type type);
+  static bool isSameType(const QVariant &var, CQBaseModelType type);
 
-  static QVariant typeStringToVariant(const QString &str, Type type);
+  static QVariant typeStringToVariant(const QString &str, CQBaseModelType type);
 
   static bool isType(int type);
 
@@ -189,16 +128,16 @@ class CQBaseModel : public QAbstractItemModel {
      column(column) {
     }
 
-    int           column        { -1 };                 // column
-    Type          type          { Type::NONE };         // auto or assigned type
-    Type          baseType      { Type::NONE };         // auto or assigned base type
-    QString       typeValues;                           // type values
-    QVariant      min;                                  // custom min value
-    QVariant      max;                                  // custom max value
-    bool          key           { false };              // is key
-    bool          sorted        { false };              // is sorted
-    bool          sortOrder     { Qt::AscendingOrder }; // sort role
-    RoleRowValues roleRowValues;                        // row role values
+    int             column        { -1 };                    // column
+    CQBaseModelType type          { CQBaseModelType::NONE }; // auto or assigned type
+    CQBaseModelType baseType      { CQBaseModelType::NONE }; // auto or assigned base type
+    QString         typeValues;                              // type values
+    QVariant        min;                                     // custom min value
+    QVariant        max;                                     // custom max value
+    bool            key           { false };                 // is key
+    bool            sorted        { false };                 // is sorted
+    bool            sortOrder     { Qt::AscendingOrder };    // sort role
+    RoleRowValues   roleRowValues;                           // row role values
   };
 
   using ColumnDatas = std::map<int,ColumnData>;

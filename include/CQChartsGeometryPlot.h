@@ -5,6 +5,7 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
+#include <CQChartsStyle.h>
 
 //---
 

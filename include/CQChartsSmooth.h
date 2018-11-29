@@ -860,7 +860,7 @@ class CQChartsBezier3 {
 // smooth curve through set of points
 class CQChartsSmooth {
  public:
-  typedef std::vector<CQChartsGeom::Point> Points;
+  using Points = std::vector<CQChartsGeom::Point>;
 
   enum class SegmentType {
     NONE,
@@ -1166,7 +1166,7 @@ class CQChartsSmooth {
   }
 
  private:
-  typedef std::vector<Segment *> Segments;
+  using Segments = std::vector<Segment *>;
 
   Points   points_;
   Segments segments_;

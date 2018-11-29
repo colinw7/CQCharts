@@ -1,7 +1,7 @@
 #include <CQChartsModelFilter.h>
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsModelVisitor.h>
-#include <CQChartsUtil.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
 
@@ -381,7 +381,7 @@ initFilterData(CQChartsModelFilterData &filterData)
     QString filter;
     int     column = -1;
 
-    if (CQChartsUtil::decodeModelFilterStr(model, filterData.filter(), filter, column))
+    if (CQChartsModelUtil::decodeModelFilterStr(model, filterData.filter(), filter, column))
       setFilterKeyColumn(column);
 
     if (filterData.isRegExp())
@@ -401,7 +401,7 @@ initFilterData(CQChartsModelFilterData &filterData)
       QString filter;
       int     column = -1;
 
-      if (! CQChartsUtil::decodeModelFilterStr(model, strs[i], filter, column))
+      if (! CQChartsModelUtil::decodeModelFilterStr(model, strs[i], filter, column))
         continue;
 
       columnFilterMap[column] = CQChartsRegExp(filter);
@@ -456,14 +456,14 @@ data(const QModelIndex &ind, int role) const
   if (isMapping() && (role == Qt::DisplayRole || role == Qt::EditRole)) {
     if (role == Qt::DisplayRole) {
       QVariant var =
-        QSortFilterProxyModel::data(ind, int(CQBaseModel::Role::OutputValue));
+        QSortFilterProxyModel::data(ind, int(CQBaseModelRole::OutputValue));
 
       if (var.isValid())
         return var;
     }
     else {
       QVariant var =
-        QSortFilterProxyModel::data(ind, int(CQBaseModel::Role::IntermediateValue));
+        QSortFilterProxyModel::data(ind, int(CQBaseModelRole::IntermediateValue));
 
       if (var.isValid())
         return var;
@@ -502,7 +502,7 @@ data(const QModelIndex &ind, int role) const
     QVariant var1;
 
     if (role == Qt::DisplayRole) {
-      var1 = CQChartsUtil::columnDisplayData(charts_, th, ind1.column(), var, converted);
+      var1 = CQChartsModelUtil::columnDisplayData(charts_, th, ind1.column(), var, converted);
 
       if (converted) {
         CQDataModel *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
@@ -510,14 +510,14 @@ data(const QModelIndex &ind, int role) const
         if (dataModel) {
           dataModel->setReadOnly(false);
 
-          th->setData(ind, var1, int(CQBaseModel::Role::OutputValue));
+          th->setData(ind, var1, int(CQBaseModelRole::OutputValue));
 
           dataModel->setReadOnly(true);
         }
       }
     }
     else {
-      var1 = CQChartsUtil::columnUserData(charts_, th, ind1.column(), var, converted);
+      var1 = CQChartsModelUtil::columnUserData(charts_, th, ind1.column(), var, converted);
 
       if (converted) {
         CQDataModel *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
@@ -525,7 +525,7 @@ data(const QModelIndex &ind, int role) const
         if (dataModel) {
           dataModel->setReadOnly(false);
 
-          th->setData(ind, var1, int(CQBaseModel::Role::IntermediateValue));
+          th->setData(ind, var1, int(CQBaseModelRole::IntermediateValue));
 
           dataModel->setReadOnly(true);
         }
@@ -544,7 +544,7 @@ replaceNamedColumns(QAbstractItemModel *model, const QString &expr) const
 {
   QModelIndex ind;
 
-  return CQChartsUtil::replaceModelExprVars(expr, model, ind, -1, -1);
+  return CQChartsModelUtil::replaceModelExprVars(expr, model, ind, -1, -1);
 }
 
 void
@@ -554,9 +554,9 @@ sort(int column, Qt::SortOrder order)
   int nc = columnCount();
 
   for (int c = 0; c < nc; ++c)
-    setHeaderData(c, Qt::Horizontal, (c == column), int(CQBaseModel::Role::Sorted));
+    setHeaderData(c, Qt::Horizontal, (c == column), int(CQBaseModelRole::Sorted));
 
-  setHeaderData(column, Qt::Horizontal, order, int(CQBaseModel::Role::SortOrder));
+  setHeaderData(column, Qt::Horizontal, order, int(CQBaseModelRole::SortOrder));
 
   QSortFilterProxyModel::sort(column, order);
 }

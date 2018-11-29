@@ -60,7 +60,7 @@ class CQChartsPosition {
   }
 
   bool isSet() const {
-    return (units_ != CQChartsUnits::PIXEL || p_.x() != 0.0 || p_.y());
+    return (units_ != CQChartsUnits::NONE);
   }
 
   //---

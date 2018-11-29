@@ -1,6 +1,6 @@
 #include <CQChartsColumnEdit.h>
 #include <CQChartsPlot.h>
-#include <CQChartsUtil.h>
+#include <CQChartsModelUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -372,7 +372,7 @@ textChanged(const QString &text)
 {
   CQChartsColumn column;
 
-  if (! CQChartsUtil::stringToColumn(model(), text, column))
+  if (! CQChartsModelUtil::stringToColumn(model(), text, column))
     return;
 
   column_ = column;

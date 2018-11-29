@@ -1,8 +1,10 @@
 #include <CQChartsModelControl.h>
 #include <CQChartsModelData.h>
 #include <CQChartsColumnType.h>
-#include <CQChartsUtil.h>
+#include <CQChartsExprModel.h>
+#include <CQChartsModelUtil.h>
 #include <CQCharts.h>
+#include <CQBaseModel.h>
 #include <CQUtil.h>
 
 #include <QVBoxLayout>
@@ -425,7 +427,7 @@ exprApplySlot()
 
   CQChartsColumn column;
 
-  if (! CQChartsUtil::stringToColumn(model.data(), columnStr, column)) {
+  if (! CQChartsModelUtil::stringToColumn(model.data(), columnStr, column)) {
     bool ok;
 
     int icolumn = columnStr.toInt(&ok);
@@ -434,7 +436,7 @@ exprApplySlot()
       column = CQChartsColumn(icolumn);
   }
 
-  int column1 = CQChartsUtil::processExpression(model.data(), function, column, expr);
+  int column1 = CQChartsModelUtil::processExpression(model.data(), function, column, expr);
 
   if (function == CQChartsExprModel::Function::ADD ||
       function == CQChartsExprModel::Function::ASSIGN) {
@@ -450,7 +452,7 @@ exprApplySlot()
       model->setHeaderData(column1, Qt::Horizontal, nameStr, Qt::DisplayRole);
 
     if (typeStr.length()) {
-      if (! CQChartsUtil::setColumnTypeStr(charts_, model.data(), column1, typeStr)) {
+      if (! CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), column1, typeStr)) {
         charts_->errorMsg("Invalid type '" + typeStr + "'");
         return;
       }
@@ -577,7 +579,7 @@ typeApplySlot()
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-  CQBaseModel::Type columnType = CQBaseModel::nameType(typeStr);
+  CQBaseModelType columnType = CQBaseModel::nameType(typeStr);
 
   CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
 
@@ -592,7 +594,7 @@ typeApplySlot()
 
       QString value;
 
-      if (param->type() == CQBaseModel::Type::BOOLEAN) {
+      if (param->type() == CQBaseModelType::BOOLEAN) {
         bool b = paramEdit.edit->getBool();
 
         value = (b ? "1" : "0");
@@ -631,12 +633,12 @@ setColumnData(int column)
 
   //---
 
-  CQBaseModel::Type  columnType;
-  CQBaseModel::Type  columnBaseType;
+  CQBaseModelType    columnType;
+  CQBaseModelType    columnBaseType;
   CQChartsNameValues nameValues;
 
-  if (CQChartsUtil::columnValueType(charts_, model.data(), column, columnType,
-                                    columnBaseType, nameValues)) {
+  if (CQChartsModelUtil::columnValueType(charts_, model.data(), column, columnType,
+                                         columnBaseType, nameValues)) {
     CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
     CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
@@ -670,7 +672,7 @@ setColumnData(int column)
 
       paramEdit.label->setText(param.name());
 
-      if (param.type() == CQBaseModel::Type::BOOLEAN)
+      if (param.type() == CQBaseModelType::BOOLEAN)
         paramEdit.edit->setBool(nameValues[param.name()].toBool());
       else
         paramEdit.edit->setString(nameValues[param.name()].toString());

@@ -525,11 +525,11 @@ updateRawRange()
     int            groupInd      = groupIdWhiskers.first;
     SetWhiskerMap &setWhiskerMap = groupIdWhiskers.second;
 
-    if (! isGrouped() || ! isSetHidden(ig)) {
+    if (! isGroupWhiskers() || ! isSetHidden(ig)) {
       int is = 0;
 
       for (auto &setWhiskers : setWhiskerMap) {
-        if (isGrouped() || ! isSetHidden(is)) {
+        if (isGroupWhiskers() || ! isSetHidden(is)) {
           int                     setId   = setWhiskers.first;
           CQChartsBoxPlotWhisker &whisker = setWhiskers.second;
 
@@ -890,7 +890,7 @@ updateRawWhiskers()
 
   //---
 
-  grouped_ = (numGroups() > 1);
+  isGroupWhiskers_ = (numGroupWhiskers() > 1);
 
   //---
 
@@ -1044,7 +1044,7 @@ initRawObjs()
   //---
 
   int ig = 0;
-  int ng = numGroups();
+  int ng = numGroupWhiskers();
 
   for (const auto &groupIdWhiskers : this->groupWhiskers()) {
     int                  groupInd      = groupIdWhiskers.first;
@@ -1057,7 +1057,7 @@ initRawObjs()
       double sf = (ns > 1 ? 1.0/ns : 1.0);
 
       for (const auto &setWhiskers : setWhiskerMap) {
-        bool hidden = (isGrouped() ? isSetHidden(ig) : isSetHidden(is));
+        bool hidden = (isGroupWhiskers() ? isSetHidden(ig) : isSetHidden(is));
         if (hidden) { ++is; continue; }
 
         int                           setId   = setWhiskers.first;
@@ -1258,7 +1258,7 @@ initRawObjs()
       }
     }
     else {
-      bool hidden = (isGrouped() ? isSetHidden(ig) : false);
+      bool hidden = (isGroupWhiskers() ? isSetHidden(ig) : false);
       if (hidden) { continue; }
 
       CQChartsGeom::BBox rect = getDataRange();
@@ -1325,7 +1325,7 @@ void
 CQChartsBoxPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  int ng = numGroups();
+  int ng = numGroupWhiskers();
 
   // if has groups
   if      (ng > 1) {

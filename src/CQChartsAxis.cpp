@@ -1,7 +1,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
-#include <CQChartsUtil.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
@@ -21,7 +21,7 @@ int boolFactor(bool b) { return (b ? 1 : -1); }
 //------
 
 CQChartsAxis::
-CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) :
+CQChartsAxis(CQChartsPlot *plot, Qt::Orientation direction, double start, double end) :
  CQChartsObj(plot),
  CQChartsObjAxesLineData         <CQChartsAxis>(this),
  CQChartsObjAxesTickLabelTextData<CQChartsAxis>(this),
@@ -414,15 +414,16 @@ valueStr(CQChartsPlot *plot, double pos) const
   if (formatStr_.length()) {
     QString str;
 
-    if (CQChartsUtil::formatColumnTypeValue(plot->charts(), plot->model().data(),
-                                            column(), formatStr_, pos, str))
+    if (CQChartsModelUtil::formatColumnTypeValue(plot->charts(), plot->model().data(),
+                                                 column(), formatStr_, pos, str))
       return str;
   }
 
   if (column().isValid()) {
     QString str;
 
-    if (CQChartsUtil::formatColumnValue(plot->charts(), plot->model().data(), column(), pos, str))
+    if (CQChartsModelUtil::formatColumnValue(plot->charts(), plot->model().data(),
+                                             column(), pos, str))
       return str;
 
     if (isDataLabels()) {
@@ -508,7 +509,7 @@ editMove(const CQChartsGeom::Point &p)
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
-  if (direction_ == Direction::HORIZONTAL)
+  if (direction_ == Qt::Horizontal)
     pos_ = *pos_ + dy;
   else
     pos_ = *pos_ + dx;
@@ -542,7 +543,7 @@ editMoveBy(const QPointF &d)
 
   calcPos(plot(), apos1, apos2);
 
-  if (direction_ == Direction::HORIZONTAL)
+  if (direction_ == Qt::Horizontal)
     pos_ = apos1 + d.y();
   else
     pos_ = apos1 + d.x();
@@ -574,7 +575,7 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
 
   double ax1, ay1, ax2, ay2;
 
-  if (direction_ == Direction::HORIZONTAL) {
+  if (direction_ == Qt::Horizontal) {
     amin = start();
     amax = end  ();
 
@@ -654,7 +655,7 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
 
             CQChartsGeom::BBox bbox;
 
-            if (direction_ == Direction::HORIZONTAL)
+            if (direction_ == Qt::Horizontal)
               bbox = CQChartsGeom::BBox(ppx1, ay1, ppx2, ay2);
             else
               bbox = CQChartsGeom::BBox(ax1, ppy1, ax2, ppy2);
@@ -748,7 +749,7 @@ draw(CQChartsPlot *plot, QPainter *painter)
 
   double amin, amax;
 
-  if (direction_ == Direction::HORIZONTAL) {
+  if (direction_ == Qt::Horizontal) {
     amin = start();
     amax = end  ();
 
@@ -864,7 +865,7 @@ draw(CQChartsPlot *plot, QPainter *painter)
 
   // fix range if not set
   if (! lbbox_.isSet()) {
-    if (direction_ == Direction::HORIZONTAL) {
+    if (direction_ == Qt::Horizontal) {
       double ax1, ay1, ax2, ay2;
 
       plot->windowToPixel(amin, apos1, ax1, ay1);
@@ -951,7 +952,7 @@ calcPos(CQChartsPlot *plot, double &apos1, double &apos2) const
 
   //---
 
-  if (direction_ == Direction::HORIZONTAL) {
+  if (direction_ == Qt::Horizontal) {
     bool isWindowBottom = (side() == Side::BOTTOM_LEFT);
     //bool isPixelBottom = (side() == Side::BOTTOM_LEFT && ! plot->isInvertY()) ||
     //                     (side() == Side::TOP_RIGHT   &&   plot->isInvertY());
@@ -991,7 +992,7 @@ drawLine(CQChartsPlot *plot, QPainter *painter, double apos, double amin, double
 
   double ax1, ay1, ax2, ay2;
 
-  if (direction_ == Direction::HORIZONTAL) {
+  if (direction_ == Qt::Horizontal) {
     plot->windowToPixel(amin, apos, ax1, ay1);
     plot->windowToPixel(amax, apos, ax2, ay2);
 
@@ -1022,7 +1023,7 @@ drawMajorGridLine(CQChartsPlot *plot, QPainter *painter, double apos, double dmi
 
   double ax1, ay1, ax2, ay2;
 
-  if (direction_ == Direction::HORIZONTAL) {
+  if (direction_ == Qt::Horizontal) {
     plot->windowToPixel(apos, dmin, ax1, ay1);
     plot->windowToPixel(apos, dmax, ax2, ay2);
 
@@ -1053,7 +1054,7 @@ drawMinorGridLine(CQChartsPlot *plot, QPainter *painter, double apos, double dmi
 
   double ax1, ay1, ax2, ay2;
 
-  if (direction_ == Direction::HORIZONTAL) {
+  if (direction_ == Qt::Horizontal) {
     plot->windowToPixel(apos, dmin, ax1, ay1);
     plot->windowToPixel(apos, dmax, ax2, ay2);
 
@@ -1091,13 +1092,13 @@ drawTickLine(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
   double ppx, ppy;
 
   if (major && tickLabelPlacement() == TickLabelPlacement::BETWEEN) {
-    if (direction_ == Direction::HORIZONTAL)
+    if (direction_ == Qt::Horizontal)
       plot->windowToPixel(tpos - 0.5, apos, ppx, ppy);
     else
       plot->windowToPixel(apos, tpos - 0.5, ppx, ppy);
   }
   else {
-    if (direction_ == Direction::HORIZONTAL)
+    if (direction_ == Qt::Horizontal)
       plot->windowToPixel(tpos, apos, ppx, ppy);
     else
       plot->windowToPixel(apos, tpos, ppx, ppy);
@@ -1115,7 +1116,7 @@ drawTickLine(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
 
   //---
 
-  if (direction_ == Direction::HORIZONTAL) {
+  if (direction_ == Qt::Horizontal) {
     bool isWindowBottom = (side() == Side::BOTTOM_LEFT);
     bool isPixelBottom  = (side() == Side::BOTTOM_LEFT && ! plot->isInvertY()) ||
                           (side() == Side::TOP_RIGHT   &&   plot->isInvertY());
@@ -1179,7 +1180,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
   double ppx, ppy;
 
-  if (direction_ == Direction::HORIZONTAL)
+  if (direction_ == Qt::Horizontal)
     plot->windowToPixel(tpos, apos, ppx, ppy);
   else
     plot->windowToPixel(apos, tpos, ppx, ppy);
@@ -1209,7 +1210,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
   double angle = axesTickLabelTextAngle();
 
-  if (direction_ == Direction::HORIZONTAL) {
+  if (direction_ == Qt::Horizontal) {
     bool isPixelBottom = (side() == Side::BOTTOM_LEFT && ! plot->isInvertY()) ||
                          (side() == Side::TOP_RIGHT   &&   plot->isInvertY());
 
@@ -1669,7 +1670,7 @@ drawAxisLabel(CQChartsPlot *plot, QPainter *painter, double apos,
 
   double ax1, ay1, ax2, ay2, ax3, ay3;
 
-  if (direction_ == Direction::HORIZONTAL) {
+  if (direction_ == Qt::Horizontal) {
     plot->windowToPixel(amin, apos, ax1, ay1);
     plot->windowToPixel(amax, apos, ax2, ay2);
     plot->windowToPixel(amin, apos, ax3, ay3);
@@ -1701,7 +1702,7 @@ drawAxisLabel(CQChartsPlot *plot, QPainter *painter, double apos,
   CQChartsGeom::BBox bbox;
 
   // draw label
-  if (direction_ == Direction::HORIZONTAL) {
+  if (direction_ == Qt::Horizontal) {
     double wfh = plot->pixelToWindowHeight(ta + td);
 
     double axm = (ax1 + ax2)/2 - tw/2;

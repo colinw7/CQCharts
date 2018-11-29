@@ -179,7 +179,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
     else if (role == Qt::ToolTipRole) {
       QVariant var = hheader_[section];
 
-      Type type = columnType(section);
+      CQBaseModelType type = columnType(section);
 
       QString str = var.toString() + ":" + typeName(type);
 
@@ -290,10 +290,10 @@ data(const QModelIndex &index, int role) const
     return cells[index.column()];
   }
   else if (role == Qt::EditRole) {
-    Type type = columnType(index.column());
+    CQBaseModelType type = columnType(index.column());
 
     // check in cached values
-    auto pr = columnData.roleRowValues.find(int(Role::CachedValue));
+    auto pr = columnData.roleRowValues.find(int(CQBaseModelRole::CachedValue));
 
     if (pr != columnData.roleRowValues.end()) {
       RowValues &rowValues = (*pr).second;
@@ -303,7 +303,7 @@ data(const QModelIndex &index, int role) const
       if (pr1 != rowValues.end()) {
         QVariant &var = (*pr1).second;
 
-        if (type == Type::NONE || isSameType(var, type))
+        if (type == CQBaseModelType::NONE || isSameType(var, type))
           return var;
       }
     }
@@ -312,24 +312,24 @@ data(const QModelIndex &index, int role) const
     QVariant var = cells[index.column()];
 
     // column has no type or already correct type then just return
-    if (type == Type::NONE || isSameType(var, type))
+    if (type == CQBaseModelType::NONE || isSameType(var, type))
       return var;
 
     // cache converted value
     if (var.type() == QVariant::String) {
       QVariant var1 = typeStringToVariant(var.toString(), type);
 
-      columnData.roleRowValues[int(Role::CachedValue)][index.row()] = var1;
+      columnData.roleRowValues[int(CQBaseModelRole::CachedValue)][index.row()] = var1;
 
       return var1;
     }
 
     return var;
   }
-  else if (role == int(Role::RawValue) ||
-           role == int(Role::IntermediateValue) ||
-           role == int(Role::CachedValue) ||
-           role == int(Role::OutputValue)) {
+  else if (role == int(CQBaseModelRole::RawValue) ||
+           role == int(CQBaseModelRole::IntermediateValue) ||
+           role == int(CQBaseModelRole::CachedValue) ||
+           role == int(CQBaseModelRole::OutputValue)) {
     auto pr = columnData.roleRowValues.find(role);
 
     if (pr != columnData.roleRowValues.end()) {
@@ -341,7 +341,7 @@ data(const QModelIndex &index, int role) const
         return (*pr1).second;
     }
 
-    if (role == int(Role::RawValue)) {
+    if (role == int(CQBaseModelRole::RawValue)) {
       return cells[index.column()];
     }
 
@@ -387,19 +387,19 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   ColumnData &columnData = getColumnData(index.column());
 
   if      (role == Qt::DisplayRole) {
-    //Type type = columnType(index.column());
+    //CQBaseModelType type = columnType(index.column());
 
     cells[index.column()] = value;
   }
   else if (role == Qt::EditRole) {
-    //Type type = columnType(index.column());
+    //CQBaseModelType type = columnType(index.column());
 
     cells[index.column()] = value;
   }
-  else if (role == int(Role::RawValue) ||
-           role == int(Role::IntermediateValue) ||
-           role == int(Role::CachedValue) ||
-           role == int(Role::OutputValue)) {
+  else if (role == int(CQBaseModelRole::RawValue) ||
+           role == int(CQBaseModelRole::IntermediateValue) ||
+           role == int(CQBaseModelRole::CachedValue) ||
+           role == int(CQBaseModelRole::OutputValue)) {
     columnData.roleRowValues[role][index.row()] = value;
   }
   else {

@@ -2,6 +2,7 @@
 #define CQChartsKeyLocation_H
 
 #include <QString>
+#include <QStringList>
 #include <iostream>
 
 class CQChartsKeyLocation {

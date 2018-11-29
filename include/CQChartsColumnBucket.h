@@ -1,14 +1,16 @@
 #ifndef CQChartsColumnBucket_H
 #define CQChartsColumnBucket_H
 
-#include <CQChartsValueSet.h>
-#include <CQBaseModel.h>
+#include <CQBaseModelTypes.h>
+#include <CQChartsColumn.h>
 #include <CQBucketer.h>
+
+class CQChartsValueSet;
 
 // bucket of values keyed off header, column or path
 class CQChartsColumnBucket {
  public:
-  using ColumnType = CQBaseModel::Type;
+  using ColumnType = CQBaseModelType;
 
   enum class DataType {
     NONE,

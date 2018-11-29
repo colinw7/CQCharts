@@ -3,7 +3,7 @@
 
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsEditHandles.h>
-#include <CQChartsPlotSymbol.h>
+#include <CQChartsSymbol.h>
 #include <CQChartsData.h>
 #include <CQChartsRect.h>
 #include <CQChartsPolygon.h>
@@ -265,11 +265,17 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
+  Q_PROPERTY(CQChartsRect     rect     READ rect     WRITE setRect    )
 
  public:
   CQChartsTextAnnotation(CQChartsView *view, const CQChartsPosition &p=CQChartsPosition(),
                          const QString &text="");
   CQChartsTextAnnotation(CQChartsPlot *plot, const CQChartsPosition &p=CQChartsPosition(),
+                         const QString &text="");
+
+  CQChartsTextAnnotation(CQChartsView *view, const CQChartsRect &r=CQChartsRect(),
+                         const QString &text="");
+  CQChartsTextAnnotation(CQChartsPlot *plot, const CQChartsRect &r=CQChartsRect(),
                          const QString &text="");
 
   virtual ~CQChartsTextAnnotation();
@@ -278,6 +284,9 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   const CQChartsPosition &position() const { return position_; }
   void setPosition(const CQChartsPosition &p) { position_ = p; emit dataChanged(); }
+
+  const CQChartsRect &rect() const { return rect_; }
+  void setRect(const CQChartsRect &v) { rect_ = v; }
 
   //---
 
@@ -296,7 +305,16 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
+  void init(const QString &text, bool isRect);
+
+  void calcTextSize(double &w, double &h) const;
+
+  void positionToLL(double w, double h, double &x, double &y) const;
+
+ private:
   CQChartsPosition position_;
+  CQChartsRect     rect_;
+  bool             isRect_ { false };
 };
 
 //---

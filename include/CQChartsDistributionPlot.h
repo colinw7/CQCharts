@@ -5,6 +5,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsColor.h>
+#include <CQChartsValueSet.h>
 #include <CQChartsDensity.h>
 
 //---
@@ -615,6 +616,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   using GroupBucketRange = std::map<int,CQChartsGeom::IMinMax>;
 
  private:
+  void bucketGroupValues();
+
+  CQChartsGeom::Range calcBucketRange();
+
   void clearGroupValues();
 
   void addRow(const ModelVisitor::VisitData &data);

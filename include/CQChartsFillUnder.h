@@ -3,6 +3,7 @@
 
 #include <CMathUtil.h>
 #include <QString>
+#include <QStringList>
 #include <iostream>
 
 class CQChartsFillUnderSide {

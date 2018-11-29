@@ -1,4 +1,5 @@
 #include <CQChartsPlotParameter.h>
+#include <CQBaseModel.h>
 #include <CQUtil.h>
 
 CQChartsPlotParameter::
@@ -30,6 +31,22 @@ CQChartsPlotParameter(const QString &name, const QString &desc, const Type &type
   addProperty("mapped"     , "isMapped"     , "");
   addProperty("mapMin"     , "mapMin"       , "");
   addProperty("mapMax"     , "mapMax"       , "");
+}
+
+QString
+CQChartsPlotParameter::
+typeName() const
+{
+  return CQBaseModel::typeName(type_);
+}
+
+CQChartsPlotParameter &
+CQChartsPlotParameter::
+setTypeName(const QString &name)
+{
+  type_ = CQBaseModel::nameType(name);
+
+  return *this;
 }
 
 void

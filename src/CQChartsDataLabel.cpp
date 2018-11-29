@@ -91,7 +91,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
 
     double x, y;
 
-    if (direction() == Direction::VERTICAL) {
+    if (direction() == Qt::Vertical) {
       x = qrect.center().x() - tw/2;
       y = 0.0;
     }
@@ -101,7 +101,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
     }
 
     if      (position == Position::TOP_INSIDE) {
-      if (direction() == Direction::VERTICAL) {
+      if (direction() == Qt::Vertical) {
         if (! plot_->isInvertY())
           y = qrect.top   () + fm.ascent () + ym + b2;
         else
@@ -115,7 +115,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
       }
     }
     else if (position == Position::TOP_OUTSIDE) {
-      if (direction() == Direction::VERTICAL) {
+      if (direction() == Qt::Vertical) {
         if (! plot_->isInvertY())
           y = qrect.top   () - fm.descent() - ym - b2;
         else
@@ -129,7 +129,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
       }
     }
     else if (position == Position::BOTTOM_INSIDE) {
-      if (direction() == Direction::VERTICAL) {
+      if (direction() == Qt::Vertical) {
         if (! plot_->isInvertY())
           y = qrect.bottom() - fm.descent() - ym - b2;
         else
@@ -143,7 +143,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
       }
     }
     else if (position == Position::BOTTOM_OUTSIDE) {
-      if (direction() == Direction::VERTICAL) {
+      if (direction() == Qt::Vertical) {
         if (! plot_->isInvertY())
           y = qrect.bottom() + fm.ascent () + ym + b2;
         else
@@ -157,7 +157,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
       }
     }
     else if (position == Position::CENTER) {
-      if (direction() == Direction::VERTICAL)
+      if (direction() == Qt::Vertical)
         y = qrect.center().y() + (fm.ascent() - fm.descent())/2;
       else
         x = qrect.center().x() - tw/2;
@@ -186,7 +186,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
       painter->setPen(tpen);
 
       if (ystr.length()) {
-        if (direction() == Direction::VERTICAL)
+        if (direction() == Qt::Vertical)
           painter->drawText(QPointF(x, y), ystr);
         else
           painter->drawText(QPointF(x, y), ystr);

@@ -421,7 +421,7 @@ class Range {
 
 #if 0
   void print(std::ostream &os) const {
-    os << x1_ << "," << y1_ << "," << x2_ << "," << y2_;
+    os << x1_ << " " << y1_ << " " << x2_ << " " << y2_;
   }
 
   friend std::ostream &operator<<(std::ostream &os, const Range &range) {
