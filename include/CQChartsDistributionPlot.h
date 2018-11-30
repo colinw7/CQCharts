@@ -618,7 +618,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
  private:
   void bucketGroupValues();
 
-  CQChartsGeom::Range calcBucketRange();
+  CQChartsGeom::Range calcBucketRanges();
 
   void clearGroupValues();
 

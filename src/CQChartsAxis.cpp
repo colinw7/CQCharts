@@ -933,6 +933,32 @@ drawEditHandles(QPainter *painter)
 
 void
 CQChartsAxis::
+getTickLabelsPositions(std::set<int> &positions)
+{
+  if (numMajorTicks() >= maxMajorTicks())
+    return;
+
+  double pos;
+
+  if (isDate())
+    pos = interval_.interval(0);
+  else
+    pos = calcStart();
+
+  double inc = calcIncrement();
+
+  for (uint i = 0; i < numMajorTicks() + 1; i++) {
+    positions.insert(int(pos));
+
+    if (isDate())
+      pos = interval_.interval(i + 1);
+    else
+      pos += inc;
+  }
+}
+
+void
+CQChartsAxis::
 calcPos(CQChartsPlot *plot, double &apos1, double &apos2) const
 {
   if (hasPosition()) {

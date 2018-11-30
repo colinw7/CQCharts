@@ -1460,13 +1460,6 @@ draw(QPainter *painter)
       ym = view()->pixelToWindowHeight(margin ());
     }
 
-    QFont font;
-
-    if      (plot())
-      font = view()->plotFont(plot(), textFont());
-    else if (view())
-      font = view()->viewFont(textFont());
-
     double w, h;
 
     calcTextSize(w, h);
@@ -1526,9 +1519,9 @@ draw(QPainter *painter)
   double tw = prect.getWidth () - 2*margin() - 2*padding();
   double th = prect.getHeight() - 2*margin() - 2*padding();
 
-  if (! isHtml()) {
-    QRectF trect(tx, ty, tw, th);
+  QRectF trect(tx, ty, tw, th);
 
+  if (! isHtml()) {
     CQChartsTextOptions textOptions;
 
     textOptions.angle     = textAngle();
@@ -1543,13 +1536,29 @@ draw(QPainter *painter)
       view()->drawTextInBox(painter, trect, textStr(), pen, textOptions);
   }
   else {
-    QRectF trect(tx, ty, tw, th);
+    double w, h;
+
+    calcTextSize(w, h);
+
+    double xs = trect.width ()/w;
+    double ys = trect.height()/h;
+
+    double s = std::min(xs, ys);
+
+    double fs = font.pointSizeF();
+
+    QFont font1 = font;
+
+    font1.setPointSizeF(fs*s);
+
+    //---
 
     painter->setRenderHints(QPainter::Antialiasing);
 
     QTextDocument td;
 
     td.setHtml(textStr());
+    td.setDefaultFont(font1);
 
     QRectF trect1 = trect.translated(-trect.x(), -trect.y());
 

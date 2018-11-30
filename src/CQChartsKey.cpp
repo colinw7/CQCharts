@@ -538,7 +538,9 @@ doLayout()
   // get size of each cell
   rowColCell_.clear();
 
-  for (int r = 0; r < numRows_; ++r) {
+  int numRows = std::min(numRows_, maxRows());
+
+  for (int r = 0; r < numRows; ++r) {
     for (int c = 0; c < numCols_; ++c) {
       const Items &items = rowColItems[r][c];
 
@@ -571,7 +573,7 @@ doLayout()
   RowHeights rowHeights;
   ColWidths  colWidths;
 
-  for (int r = 0; r < numRows_; ++r) {
+  for (int r = 0; r < numRows; ++r) {
     for (int c = 0; c < numCols_; ++c) {
       rowHeights[r] = std::max(rowHeights[r], rowColCell_[r][c].height);
       colWidths [c] = std::max(colWidths [c], rowColCell_[r][c].width );
@@ -601,7 +603,7 @@ doLayout()
 
   y -= th;
 
-  for (int r = 0; r < numRows_; ++r) {
+  for (int r = 0; r < numRows; ++r) {
     double x = xm;
 
     double rh = rowHeights[r] + 2*ys;
@@ -634,7 +636,7 @@ doLayout()
 
   w += 2*xm;
 
-  for (int r = 0; r < numRows_; ++r) {
+  for (int r = 0; r < numRows; ++r) {
     Cell &cell = rowColCell_[r][0];
 
     h += cell.height;

@@ -3286,7 +3286,7 @@ initColorColumnData()
 
   if (colorColumn().isGroup()) {
     colorColumnData_.data_min = 0.0;
-    colorColumnData_.data_max = numGroups();
+    colorColumnData_.data_max = std::max(numGroups() - 1, 0);
   }
   else {
     if (colorColumnData_.mapped) {

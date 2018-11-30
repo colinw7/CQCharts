@@ -286,7 +286,7 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   void setPosition(const CQChartsPosition &p) { position_ = p; emit dataChanged(); }
 
   const CQChartsRect &rect() const { return rect_; }
-  void setRect(const CQChartsRect &v) { rect_ = v; }
+  void setRect(const CQChartsRect &r) { rect_ = r; emit dataChanged(); }
 
   //---
 

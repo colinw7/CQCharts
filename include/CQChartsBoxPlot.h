@@ -490,7 +490,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
-  bool isGroupWhiskers() const { return isGroupWhiskers_; }
+  bool isWhiskersGrouped() const { return isWhiskersGrouped_; }
 
   int numGroupWhiskers() const { return groupWhiskers_.size(); }
 
@@ -604,7 +604,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   GroupSetWhiskerMap    groupWhiskers_;                              // grouped whisker data
   WhiskerDataList       whiskerDataList_;                            // whisker data
   CQChartsValueInd      setValueInd_;                                // set value inds
-  bool                  isGroupWhiskers_  { false };                 // is grouped whiskers
+  bool                  isWhiskersGrouped_ { false };                // is grouped whiskers
 };
 
 #endif

@@ -2250,7 +2250,7 @@ initSymbolTypeData()
 
   if (symbolTypeColumn().isGroup()) {
     symbolTypeData_.data_min = 0.0;
-    symbolTypeData_.data_max = numGroups();
+    symbolTypeData_.data_max = std::max(numGroups() - 1, 0);
   }
   else {
     if (symbolTypeData_.mapped) {
@@ -2361,7 +2361,7 @@ initSymbolSizeData()
 
   if (symbolSizeColumn().isGroup()) {
     symbolSizeData_.data_min  = 0.0;
-    symbolSizeData_.data_max  = numGroups();
+    symbolSizeData_.data_max  = std::max(numGroups() - 1, 0);
     symbolSizeData_.data_mean = symbolSizeData_.data_max/2.0;
   }
   else {
@@ -2485,8 +2485,8 @@ initFontSizeData()
   if (! columnDetails) return;
 
   if (fontSizeColumn().isGroup()) {
-    fontSizeData_.data_min  = 0.0;
-    fontSizeData_.data_max  = numGroups();
+    fontSizeData_.data_min = 0.0;
+    fontSizeData_.data_max = std::max(numGroups() - 1, 0);
   }
   else {
     if (fontSizeData_.mapped) {

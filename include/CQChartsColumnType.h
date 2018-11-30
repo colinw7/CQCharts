@@ -81,7 +81,7 @@ class CQChartsColumnType {
   // data variant to output variant (string) for display
   virtual QVariant dataName(CQCharts *chart, QAbstractItemModel *model,
                             const CQChartsColumn &column, const QVariant &var,
-                             const CQChartsNameValues &nameValues, bool &converted) const = 0;
+                            const CQChartsNameValues &nameValues, bool &converted) const = 0;
 
   // data min/max value
   virtual QVariant minValue(const CQChartsNameValues &) const { return QVariant(); }

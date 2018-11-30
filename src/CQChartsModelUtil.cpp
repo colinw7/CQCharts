@@ -201,8 +201,7 @@ columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColum
     // determine column type from values
     // TODO: cache (in plot ?), max visited values
 
-    CQBaseModelType columnType = calcColumnType(charts, model, icolumn);
-
+    columnType     = calcColumnType(charts, model, icolumn);
     columnBaseType = columnType;
 
     return true;

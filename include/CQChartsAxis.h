@@ -10,6 +10,7 @@
 #include <CInterval.h>
 
 #include <map>
+#include <set>
 #include <vector>
 #include <string>
 #include <sys/types.h>
@@ -345,6 +346,8 @@ class CQChartsAxis : public CQChartsObj,
 
   void drawAxisLabel(CQChartsPlot *plot, QPainter *painter,
                      double apos, double amin, double amax, const QString &text);
+
+  void getTickLabelsPositions(std::set<int> &positions);
 
  signals:
   void ticksChanged();

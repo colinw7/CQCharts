@@ -33,6 +33,7 @@ class CQChartsKey : public CQChartsBoxObj,
   Q_PROPERTY(CQChartsKeyLocation location    READ location      WRITE setLocation   )
   Q_PROPERTY(QString             header      READ headerStr     WRITE setHeaderStr  )
   Q_PROPERTY(double              hiddenAlpha READ hiddenAlpha   WRITE setHiddenAlpha)
+  Q_PROPERTY(int                 maxRows     READ maxRows       WRITE setMaxRows    )
 
   CQCHARTS_TEXT_DATA_PROPERTIES
 
@@ -101,6 +102,11 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //---
 
+  int maxRows() const { return maxRows_; }
+  void setMaxRows(int i) { maxRows_ = i; }
+
+  //---
+
   virtual void updatePosition() { }
 
   virtual void updateLayout() { }
@@ -124,6 +130,7 @@ class CQChartsKey : public CQChartsBoxObj,
   bool                pixelHeightExceeded_ { true };  // pixel width too big
   bool                interactive_         { true };  // is interactive
   double              hiddenAlpha_         { 0.3 };   // alpha for hidden item
+  int                 maxRows_             { 100 };   // max rows
 };
 
 //------

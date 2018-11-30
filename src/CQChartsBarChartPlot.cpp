@@ -678,9 +678,10 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   //---
 
   // calc pos/neg sums
-  double posSum, negSum;
+  double posSum = 0.0, negSum = 0.0;
 
-  valueSet->calcSums(posSum, negSum);
+  if (isPercent() || isStacked())
+    valueSet->calcSums(posSum, negSum);
 
   // scale for percent
   double scale = 1.0;
@@ -758,11 +759,13 @@ annotationBBox() const
   if (position != CQChartsDataLabel::TOP_OUTSIDE && position != CQChartsDataLabel::BOTTOM_OUTSIDE)
     return bbox;
 
-  for (const auto &plotObj : plotObjs_) {
-    CQChartsBarChartObj *barObj = dynamic_cast<CQChartsBarChartObj *>(plotObj);
+  if (dataLabel().isVisible()) {
+    for (const auto &plotObj : plotObjs_) {
+      CQChartsBarChartObj *barObj = dynamic_cast<CQChartsBarChartObj *>(plotObj);
 
-    if (barObj)
-      bbox += barObj->dataLabelRect();
+      if (barObj)
+        bbox += barObj->dataLabelRect();
+    }
   }
 
   return bbox;
@@ -798,13 +801,13 @@ createObjs()
 
   xAxis->setIntegral           (true);
   xAxis->setGridMid            (true);
-  xAxis->setMajorIncrement     (1);
+//xAxis->setMajorIncrement     (1);
   xAxis->setMinorTicksDisplayed(false);
 //xAxis->setDataLabels         (true);
 
   yAxis->setIntegral           (false);
   yAxis->setGridMid            (false);
-  yAxis->setMajorIncrement     (0);
+//yAxis->setMajorIncrement     (0);
   yAxis->setMinorTicksDisplayed(true);
 //yAxis->setDataLabels         (true);
 
@@ -847,6 +850,10 @@ createObjs()
       }
     }
     else if (nv == 1) {
+      std::set<int> positions;
+
+      xAxis->getTickLabelsPositions(positions);
+
       const CQChartsBarChartValueSet &valueSet = this->valueSet(0);
 
       int nvs = valueSet.numValues();
@@ -855,9 +862,11 @@ createObjs()
         if (isValueHidden(ivs))
           continue;
 
-        const CQChartsBarChartValue &value = valueSet.value(ivs);
+        if (positions.find(numVisible) != positions.end()) {
+          const CQChartsBarChartValue &value = valueSet.value(ivs);
 
-        xAxis->setTickLabel(numVisible, value.valueName());
+          xAxis->setTickLabel(numVisible, value.valueName());
+        }
 
         ++numVisible;
       }
@@ -1685,6 +1694,9 @@ void
 CQChartsBarChartObj::
 drawFg(QPainter *painter)
 {
+  if (! plot_->dataLabel().isVisible())
+    return;
+
   CQChartsGeom::BBox prect;
 
   plot_->windowToPixel(rect(), prect);

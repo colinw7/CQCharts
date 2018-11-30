@@ -634,7 +634,7 @@ calcRange()
 
   bucketGroupValues();
 
-  return calcBucketRange();
+  return calcBucketRanges();
 }
 
 void
@@ -736,9 +736,9 @@ bucketGroupValues()
 
 CQChartsGeom::Range
 CQChartsDistributionPlot::
-calcBucketRange()
+calcBucketRanges()
 {
-  CQPerfTrace trace("CQChartsDistributionPlot::calcBucketRange");
+  CQPerfTrace trace("CQChartsDistributionPlot::calcBucketRanges");
 
   // calc range (number of bars and max height)
 
