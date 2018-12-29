@@ -63,7 +63,7 @@ class CQChartsPlotObj : public CQChartsObj {
   // is rect touching (override if not simple rect shape)
   virtual bool touching(const CQChartsGeom::BBox &r) const { return rect_.overlaps(r); }
 
-  virtual void handleResize() { }
+  virtual void postResize() { }
 
   virtual void selectPress() { }
 

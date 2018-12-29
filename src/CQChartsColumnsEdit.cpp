@@ -114,6 +114,11 @@ CQChartsColumnsEdit::
 setModel(QAbstractItemModel *model)
 {
   model_ = model;
+
+  int n = columnEdits_.size();
+
+  for (int i = 0; i < n; ++i)
+    columnEdits_[i]->setModel(model_);
 }
 
 const CQChartsColumns &
@@ -132,6 +137,8 @@ setColumns(const CQChartsColumns &columns)
   columnsToText();
 
   updateState();
+
+  emit columnsChanged();
 }
 
 void
@@ -287,6 +294,8 @@ addSlot()
   columnsToText();
 
   updateState();
+
+  emit columnsChanged();
 }
 
 void
@@ -298,6 +307,8 @@ removeSlot()
   columnsToText();
 
   updateState();
+
+  emit columnsChanged();
 }
 
 void
@@ -364,6 +375,8 @@ columnSlot()
   columnsToText();
 
   updateState();
+
+  emit columnsChanged();
 }
 
 void

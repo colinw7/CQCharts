@@ -87,7 +87,9 @@ class CQChartsModelColumnDetails {
 
  private:
   bool initData();
-  bool initType();
+
+  void initType() const;
+  bool calcType();
 
   void addInt   (int i);
   void addReal  (double r);

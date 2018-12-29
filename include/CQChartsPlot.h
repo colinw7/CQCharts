@@ -306,8 +306,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  bool updatesEnabled() const { return updatesEnabled_; }
-  void setUpdatesEnabled(bool b);
+  bool isUpdatesEnabled() const { return updatesData_.enabled == 0; }
+  void setUpdatesEnabled(bool b, bool update=true);
 
   //---
 
@@ -594,6 +594,44 @@ class CQChartsPlot : public CQChartsObj,
 
   void overlayPlots(Plots &plots) const;
 
+  template<typename FUNCTION>
+  void processOverlayPlots(FUNCTION f) const {
+    const CQChartsPlot *plot = firstPlot();
+
+    while (plot) {
+      f(plot);
+
+      plot = plot->nextPlot();
+    }
+  }
+
+  template<typename FUNCTION>
+  void processOverlayPlots(FUNCTION f) {
+    CQChartsPlot *plot = firstPlot();
+
+    while (plot) {
+      f(plot);
+
+      plot = plot->nextPlot();
+    }
+  }
+
+  template<typename FUNCTION>
+  bool processOverlayPlots(FUNCTION f, bool b) const {
+    const CQChartsPlot *plot = firstPlot();
+
+    while (plot) {
+      bool b1 = f(plot);
+
+      if (b1 != b)
+        return b1;
+
+      plot = plot->nextPlot();
+    }
+
+    return b;
+  }
+
   void x1x2Plots(CQChartsPlot* &plot1, CQChartsPlot* &plot2);
   void y1y2Plots(CQChartsPlot* &plot1, CQChartsPlot* &plot2);
 
@@ -623,7 +661,7 @@ class CQChartsPlot : public CQChartsObj,
   bool setProperties(const QString &properties);
 
   bool setProperty(const QString &name, const QVariant &value);
-  bool getProperty(const QString &name, QVariant &value);
+  bool getProperty(const QString &name, QVariant &value) const;
 
   void propertyItemSelected(QObject *obj, const QString &path);
 
@@ -647,29 +685,6 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-//CQChartsValueSet *addValueSet(const QString &name, double min, double max);
-//CQChartsValueSet *addValueSet(const QString &name);
-//CQChartsValueSet *getValueSet(const QString &name) const;
-
-//void clearValueSets();
-//void deleteValueSets();
-
-//const CQChartsColumn &valueSetColumn(const QString &name) const;
-//bool setValueSetColumn(const QString &name, const CQChartsColumn &column);
-
-//bool isValueSetMapped(const QString &name) const;
-//void setValueSetMapped(const QString &name, bool b);
-
-//double valueSetMapMin(const QString &name) const;
-//void setValueSetMapMin(const QString &name, double min);
-
-//double valueSetMapMax(const QString &name) const;
-//void setValueSetMapMax(const QString &name, double max);
-
-//void initValueSets();
-
-//void addValueSetRow(const ModelVisitor::VisitData &data);
-
   void addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet);
 
   //---
@@ -680,20 +695,20 @@ class CQChartsPlot : public CQChartsObj,
 
     virtual ~ModelVisitor();
 
-    CQChartsPlot *plot() const { return plot_; }
-    void setPlot(CQChartsPlot *p) { plot_ = p; }
+    const CQChartsPlot *plot() const { return plot_; }
+    void setPlot(const CQChartsPlot *p) { plot_ = p; }
 
     void init();
 
-    State preVisit(QAbstractItemModel *model, const VisitData &data) override;
+    State preVisit(const QAbstractItemModel *model, const VisitData &data) override;
 
    private:
-    CQChartsPlot*           plot_ { nullptr };
+    const CQChartsPlot*     plot_ { nullptr };
     int                     vrow_ { 0 };
     CQChartsModelExprMatch* expr_ { nullptr };
   };
 
-  void visitModel(ModelVisitor &visitor);
+  void visitModel(ModelVisitor &visitor) const;
 
   //---
 
@@ -965,7 +980,7 @@ class CQChartsPlot : public CQChartsObj,
   virtual CQChartsGeom::Range calcRange() = 0;
 
   // update plot objects (clear objects, objects updated on next redraw)
-  virtual void updateObjs();
+  void updateObjs();
 
   // reset range and objects
   void clearRangeAndObjs();
@@ -981,8 +996,13 @@ class CQChartsPlot : public CQChartsObj,
   // (re)initialize grouped plot objects
   void initGroupedPlotObjs();
 
+  // (re)initialize plot range
+  bool initPlotRange();
+
   // (re)initialize plot objects
   void initPlotObjs();
+
+  bool addNoDataObj();
 
   void autoFitOne();
 
@@ -991,7 +1011,10 @@ class CQChartsPlot : public CQChartsObj,
   virtual bool initObjs();
 
   // create plot objects (called by initObjs)
-  virtual bool createObjs() = 0;
+  virtual bool createObjs();
+
+  // create plot objects (called by initObjs)
+  virtual bool createObjs(PlotObjs &);
 
   // add plotObjects to quad tree (create no data object in no objects)
   void initObjTree();
@@ -1018,7 +1041,7 @@ class CQChartsPlot : public CQChartsObj,
 
   void addPlotObject(CQChartsPlotObj *obj);
 
-  void clearPlotObjects();
+  virtual void clearPlotObjects();
 
   bool updatePlotObjects(const CQChartsGeom::Point &w);
 
@@ -1197,7 +1220,7 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // called after resize
-  virtual void handleResize();
+  virtual void postResize();
 
   //---
 
@@ -1284,6 +1307,8 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsLayer *getLayer(const CQChartsLayer::Type &type) const;
 
  private:
+  CQChartsGeom::BBox adjustDataRangeBBox(const CQChartsGeom::BBox &bbox) const;
+
   void setLayerActive1(const CQChartsLayer::Type &type, bool b);
 
   void invalidateLayer1(const CQChartsBuffer::Type &layerType);
@@ -1392,7 +1417,7 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // set clip rect
-  void setClipRect(QPainter *painter);
+  void setClipRect(QPainter *painter) const;
 
   //---
 
@@ -1409,27 +1434,11 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-#if 0
-  void drawLine(QPainter *painter, const QPointF &p1, const QPointF &p2,
-                const CQChartsLineData &data);
-#endif
-
-  //---
-
-#if 0
-  void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbolData &data);
-#endif
-
-#if 0
   void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol,
-                  double size, bool stroked, const QColor &strokeColor,
-                  double lineWidth, bool filled, const QColor &fillColor);
-#endif
-
-  void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, double size);
+                  double size) const;
 
   void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol,
-                  double size, const QPen &pen, const QBrush &brush);
+                  double size, const QPen &pen, const QBrush &brush) const;
 
   //---
 
@@ -1448,10 +1457,10 @@ class CQChartsPlot : public CQChartsObj,
 
   // debug draw (default to red boxes)
   void drawWindowColorBox(QPainter *painter, const CQChartsGeom::BBox &bbox,
-                          const QColor &c=Qt::red);
+                          const QColor &c=Qt::red) const;
 
   void drawColorBox(QPainter *painter, const CQChartsGeom::BBox &bbox,
-                    const QColor &c=Qt::red);
+                    const QColor &c=Qt::red) const;
 
   //---
 
@@ -1529,7 +1538,8 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   bool getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &nameColumns,
-                          const QString &separator, QStringList &nameStrs, ModelIndices &nameInds);
+                          const QString &separator, QStringList &nameStrs,
+                          ModelIndices &nameInds) const;
 
   //---
 
@@ -1559,7 +1569,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  bool printLayer(CQChartsLayer::Type type, const QString &filename);
+  bool printLayer(CQChartsLayer::Type type, const QString &filename) const;
 
   bool setParameter(CQChartsPlotParameter *param, const QVariant &value);
   bool getParameter(CQChartsPlotParameter *param, QVariant &value) const;
@@ -1625,8 +1635,8 @@ class CQChartsPlot : public CQChartsObj,
 
  protected:
   struct NoUpdate {
-    NoUpdate(CQChartsPlot *plot) : plot_(plot) { plot_->updatesEnabled_ = false; }
-   ~NoUpdate() { plot_->updatesEnabled_ = true; }
+    NoUpdate(CQChartsPlot *plot) : plot_(plot) { plot_->setUpdatesEnabled(false); }
+   ~NoUpdate() { plot_->setUpdatesEnabled(true, false); }
 
     CQChartsPlot* plot_ { nullptr };
   };
@@ -1691,6 +1701,14 @@ class CQChartsPlot : public CQChartsObj,
   struct AnimateData {
     QTimer* timer   { nullptr };
     int     tickLen { 30 };
+  };
+
+  struct UpdatesData {
+    int  enabled            { 0 };     // updates enabled
+    bool updateRangeAndObjs { false }; // call updateRangeAndObjs (on enable)
+    bool updateObjs         { false }; // call updateObjs (on enable)
+    bool applyDataRange     { false }; // call applyDataRange (on enable)
+    bool invalidateLayers   { false }; // call needsInvalidate invalidate (on enable)
   };
 
   //---
@@ -1773,9 +1791,7 @@ class CQChartsPlot : public CQChartsObj,
   int                       updateTimeout_    { 100 };        // update timeout
   CQChartsEditHandles       editHandles_;                     // edit controls
   Annotations               annotations_;                     // extra annotations
-  bool                      updatesEnabled_   { true };       // updates enabled
-  bool                      needsUpdate_      { false };      // needs update (on enable)
-  bool                      needsInvalidate_  { false };      // needs invalidate (on enable)
+  UpdatesData               updatesData_;                     // updates data
   bool                      fromInvalidate_   { false };      // call from invalidate
 };
 

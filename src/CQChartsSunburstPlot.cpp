@@ -199,6 +199,8 @@ CQChartsGeom::Range
 CQChartsSunburstPlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsSunburstPlot::calcRange");
+
   CQChartsGeom::Range dataRange;
 
   double r = 1.0;
@@ -219,20 +221,22 @@ calcRange()
 
 void
 CQChartsSunburstPlot::
-updateObjs()
+clearPlotObjects()
 {
-  //clearValueSets();
-
   resetRoots();
 
-  CQChartsPlot::updateObjs();
+  CQChartsPlot::clearPlotObjects();
 }
 
 bool
 CQChartsSunburstPlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsSunburstPlot::createObjs");
+
+  NoUpdate noUpdate(const_cast<CQChartsSunburstPlot *>(this));
+
+  //---
 
   // init value sets
   //initValueSets();
@@ -260,16 +264,16 @@ createObjs()
 
   if (currentRoot()) {
     if (! isUnnamedRoot || roots_[0] != currentRoot())
-      addPlotObj(currentRoot());
+      addPlotObj(currentRoot(), objs);
 
-    addPlotObjs(currentRoot());
+    addPlotObjs(currentRoot(), objs);
   }
   else {
     for (auto &root : roots_) {
       if (! isUnnamedRoot)
-        addPlotObj(root);
+        addPlotObj(root, objs);
 
-      addPlotObjs(root);
+      addPlotObjs(root, objs);
     }
   }
 
@@ -357,12 +361,12 @@ loadHier(CQChartsSunburstHierNode *root)
 {
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsSunburstPlot *plot, CQChartsSunburstHierNode *root) :
+    RowVisitor(const CQChartsSunburstPlot *plot, CQChartsSunburstHierNode *root) :
      plot_(plot) {
       hierStack_.push_back(root);
     }
 
-    State hierVisit(QAbstractItemModel *, const VisitData &data) override {
+    State hierVisit(const QAbstractItemModel *, const VisitData &data) override {
       QString     name;
       QModelIndex nameInd;
 
@@ -370,7 +374,9 @@ loadHier(CQChartsSunburstHierNode *root)
 
       //---
 
-      CQChartsSunburstHierNode *hier = plot_->addHierNode(parentHier(), name, nameInd);
+      CQChartsSunburstPlot *plot = const_cast<CQChartsSunburstPlot *>(plot_);
+
+      CQChartsSunburstHierNode *hier = plot->addHierNode(parentHier(), name, nameInd);
 
       //---
 
@@ -379,7 +385,7 @@ loadHier(CQChartsSunburstHierNode *root)
       return State::OK;
     }
 
-    State hierPostVisit(QAbstractItemModel *, const VisitData &) override {
+    State hierPostVisit(const QAbstractItemModel *, const VisitData &) override {
       hierStack_.pop_back();
 
       assert(! hierStack_.empty());
@@ -387,7 +393,7 @@ loadHier(CQChartsSunburstHierNode *root)
       return State::OK;
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       QString     name;
       QModelIndex nameInd;
 
@@ -403,7 +409,9 @@ loadHier(CQChartsSunburstHierNode *root)
 
       //---
 
-      (void) plot_->addNode(parentHier(), name, size, nameInd, valueInd);
+      CQChartsSunburstPlot *plot = const_cast<CQChartsSunburstPlot *>(plot_);
+
+      (void) plot->addNode(parentHier(), name, size, nameInd, valueInd);
 
       return State::OK;
     }
@@ -446,8 +454,8 @@ loadHier(CQChartsSunburstHierNode *root)
    private:
     using HierStack = std::vector<CQChartsSunburstHierNode *>;
 
-    CQChartsSunburstPlot *plot_ { nullptr };
-    HierStack             hierStack_;
+    const CQChartsSunburstPlot* plot_ { nullptr };
+    HierStack                   hierStack_;
   };
 
   RowVisitor visitor(this, root);
@@ -499,12 +507,12 @@ loadFlat(CQChartsSunburstHierNode *root)
 {
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsSunburstPlot *plot, CQChartsSunburstHierNode *root) :
+    RowVisitor(const CQChartsSunburstPlot *plot, CQChartsSunburstHierNode *root) :
      plot_(plot), root_(root) {
       valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       QStringList  nameStrs;
       ModelIndices nameInds;
 
@@ -539,7 +547,9 @@ loadFlat(CQChartsSunburstHierNode *root)
 
       QModelIndex valueInd = plot_->modelIndex(data.row, plot_->valueColumn(), data.parent);
 
-      CQChartsSunburstNode *node = plot_->addNode(root_, nameStrs, size, nameInd1, valueInd);
+      CQChartsSunburstPlot *plot = const_cast<CQChartsSunburstPlot *>(plot_);
+
+      CQChartsSunburstNode *node = plot->addNode(root_, nameStrs, size, nameInd1, valueInd);
 
       if (node) {
         CQChartsColor color;
@@ -552,9 +562,9 @@ loadFlat(CQChartsSunburstHierNode *root)
     }
 
    private:
-    CQChartsSunburstPlot     *plot_            { nullptr };
-    CQChartsSunburstHierNode *root_            { nullptr };
-    ColumnType                valueColumnType_ { ColumnType::NONE };
+    const CQChartsSunburstPlot *plot_            { nullptr };
+    CQChartsSunburstHierNode   *root_            { nullptr };
+    ColumnType                  valueColumnType_ { ColumnType::NONE };
   };
 
   RowVisitor visitor(this, root);
@@ -731,22 +741,22 @@ childNode(CQChartsSunburstHierNode *parent, const QString &name) const
 
 void
 CQChartsSunburstPlot::
-addPlotObjs(CQChartsSunburstHierNode *hier)
+addPlotObjs(CQChartsSunburstHierNode *hier, PlotObjs &objs)
 {
   for (auto &node : hier->getNodes()) {
-    addPlotObj(node);
+    addPlotObj(node, objs);
   }
 
   for (auto &hierNode : hier->getChildren()) {
-    addPlotObj(hierNode);
+    addPlotObj(hierNode, objs);
 
-    addPlotObjs(hierNode);
+    addPlotObjs(hierNode, objs);
   }
 }
 
 void
 CQChartsSunburstPlot::
-addPlotObj(CQChartsSunburstNode *node)
+addPlotObj(CQChartsSunburstNode *node, PlotObjs &objs)
 {
   double r1 = node->r();
   double r2 = r1 + node->dr();
@@ -757,7 +767,7 @@ addPlotObj(CQChartsSunburstNode *node)
 
   node->setObj(obj);
 
-  addPlotObject(obj);
+  objs.push_back(obj);
 }
 
 //------
@@ -858,16 +868,16 @@ popTopSlot()
 
 void
 CQChartsSunburstPlot::
-handleResize()
+postResize()
 {
-  CQChartsPlot::handleResize();
+  CQChartsPlot::postResize();
 
   resetRange();
 }
 
 void
 CQChartsSunburstPlot::
-drawNodes(QPainter *painter, CQChartsSunburstHierNode *hier)
+drawNodes(QPainter *painter, CQChartsSunburstHierNode *hier) const
 {
   for (auto &node : hier->getNodes())
     drawNode(painter, nullptr, node);
@@ -883,7 +893,7 @@ drawNodes(QPainter *painter, CQChartsSunburstHierNode *hier)
 
 void
 CQChartsSunburstPlot::
-drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNode *node)
+drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNode *node) const
 {
   if (! node->placed())
     return;
@@ -965,16 +975,11 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   QPen   pen;
   QBrush brush;
 
+  QColor fc = node->interpColor(this, numColorIds());
+
   setPenBrush(pen, brush,
-              isBorder(),
-              interpBorderColor(0, 1),
-              borderAlpha(),
-              borderWidth(),
-              borderDash(),
-              isFilled(),
-              node->interpColor(this, numColorIds()),
-              fillAlpha(),
-              fillPattern());
+    isBorder(), interpBorderColor(0, 1), borderAlpha(), borderWidth(), borderDash(),
+    isFilled(), fc, fillAlpha(), fillPattern());
 
   QPen tpen;
 
@@ -1045,9 +1050,9 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
 //------
 
 CQChartsSunburstNodeObj::
-CQChartsSunburstNodeObj(CQChartsSunburstPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsSunburstNodeObj(const CQChartsSunburstPlot *plot, const CQChartsGeom::BBox &rect,
                         CQChartsSunburstNode *node) :
- CQChartsPlotObj(plot, rect), plot_(plot), node_(node)
+ CQChartsPlotObj(const_cast<CQChartsSunburstPlot *>(plot), rect), plot_(plot), node_(node)
 {
 }
 
@@ -1158,7 +1163,7 @@ draw(QPainter *painter)
 //------
 
 CQChartsSunburstHierNode::
-CQChartsSunburstHierNode(CQChartsSunburstPlot *plot, CQChartsSunburstHierNode *parent,
+CQChartsSunburstHierNode(const CQChartsSunburstPlot *plot, CQChartsSunburstHierNode *parent,
                          const QString &name) :
  CQChartsSunburstNode(plot, parent, name)
 {
@@ -1330,7 +1335,7 @@ removeNode(CQChartsSunburstNode *node)
 
 QColor
 CQChartsSunburstHierNode::
-interpColor(CQChartsSunburstPlot *plot, int n) const
+interpColor(const CQChartsSunburstPlot *plot, int n) const
 {
   using Colors = std::vector<QColor>;
 
@@ -1351,7 +1356,7 @@ interpColor(CQChartsSunburstPlot *plot, int n) const
 //------
 
 CQChartsSunburstNode::
-CQChartsSunburstNode(CQChartsSunburstPlot *plot, CQChartsSunburstHierNode *parent,
+CQChartsSunburstNode(const CQChartsSunburstPlot *plot, CQChartsSunburstHierNode *parent,
                      const QString &name) :
  plot_(plot), parent_(parent), id_(nextId()), name_(name)
 {
@@ -1417,12 +1422,12 @@ pointInside(double x, double y)
 
 QColor
 CQChartsSunburstNode::
-interpColor(CQChartsSunburstPlot *plot, int n) const
+interpColor(const CQChartsSunburstPlot *plot, int n) const
 {
   if      (colorId() >= 0)
     return plot->interpFillColor(colorId(), n);
   else if (color().isValid())
-    return color().interpColor(plot->charts(), 0, 1);
+    return plot->charts()->interpColor(color(), 0, 1);
   else
     return plot->interpPaletteColor(0, 1);
 }

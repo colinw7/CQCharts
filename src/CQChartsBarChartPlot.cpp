@@ -108,10 +108,11 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsBarChartPlot::
 CQChartsBarChartPlot(CQChartsView *view, const ModelP &model) :
  CQChartsBarPlot(view, view->charts()->plotType("barchart"), model),
- CQChartsObjDotPointData<CQChartsBarChartPlot>(this),
- dataLabel_(this)
+ CQChartsObjDotPointData<CQChartsBarChartPlot>(this)
 {
   NoUpdate noUpdate(this);
+
+  dataLabel_ = new CQChartsDataLabel(this);
 
   setDotSymbolType(CQChartsSymbol::Type::CIRCLE);
   setDotSymbolSize(CQChartsLength("7px"));
@@ -120,6 +121,7 @@ CQChartsBarChartPlot(CQChartsView *view, const ModelP &model) :
 CQChartsBarChartPlot::
 ~CQChartsBarChartPlot()
 {
+  delete dataLabel_;
 }
 
 //---
@@ -164,7 +166,7 @@ addProperties()
 
   CQChartsGroupPlot::addProperties();
 
-  dataLabel_.addPathProperties("dataLabel");
+  dataLabel_->addPathProperties("dataLabel");
 }
 
 //---
@@ -174,7 +176,7 @@ CQChartsBarChartPlot::
 setHorizontal(bool b)
 {
   CQChartsUtil::testAndSet(horizontal_, b, [&]() {
-    dataLabel_.setDirection(horizontal_ ? Qt::Horizontal : Qt::Vertical);
+    dataLabel_->setDirection(horizontal_ ? Qt::Horizontal : Qt::Vertical);
 
     updateRangeAndObjs();
   } );
@@ -304,6 +306,10 @@ CQChartsGeom::Range
 CQChartsBarChartPlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsBarChartPlot::calcRange");
+
+  //---
+
   CQChartsGeom::Range dataRange;
 
   if (! isHorizontal())
@@ -330,19 +336,19 @@ calcRange()
   // process model data
   class BarChartVisitor : public ModelVisitor {
    public:
-    BarChartVisitor(CQChartsBarChartPlot *plot, CQChartsGeom::Range &dataRange) :
+    BarChartVisitor(const CQChartsBarChartPlot *plot, CQChartsGeom::Range &dataRange) :
      plot_(plot), dataRange_(dataRange) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       plot_->addRow(data, dataRange_);
 
       return State::OK;
     }
 
    private:
-    CQChartsBarChartPlot *plot_ { nullptr };
-    CQChartsGeom::Range&  dataRange_;
+    const CQChartsBarChartPlot* plot_ { nullptr };
+    CQChartsGeom::Range&        dataRange_;
   };
 
   BarChartVisitor barChartVisitor(this, dataRange);
@@ -409,6 +415,24 @@ calcRange()
 
   //---
 
+  initAxes();
+
+  //---
+
+  return dataRange;
+}
+
+void
+CQChartsBarChartPlot::
+initAxes()
+{
+  NoUpdate noUpdate(this);
+
+  int ns = (isValueValue() ? valueColumns().count() : 1);
+//int nv = numValueSets();
+
+  int ng = numGroups();
+
   // needed ?
   if (! isHorizontal()) {
     setXValueColumn(groupColumn().isValid() ? groupColumn() : nameColumn());
@@ -462,15 +486,11 @@ calcRange()
   }
 
   yAxis->setLabel(yname);
-
-  //---
-
-  return dataRange;
 }
 
 void
 CQChartsBarChartPlot::
-addRow(const ModelVisitor::VisitData &data, CQChartsGeom::Range &dataRange)
+addRow(const ModelVisitor::VisitData &data, CQChartsGeom::Range &dataRange) const
 {
   // add value for each column (non-range)
   if (isValueValue()) {
@@ -489,7 +509,7 @@ addRow(const ModelVisitor::VisitData &data, CQChartsGeom::Range &dataRange)
 void
 CQChartsBarChartPlot::
 addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns,
-             CQChartsGeom::Range &dataRange)
+             CQChartsGeom::Range &dataRange) const
 {
   CQChartsModelIndex ind;
 
@@ -575,7 +595,8 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   //---
 
   // get value set for group
-  CQChartsBarChartValueSet *valueSet = groupValueSet(groupInd);
+  CQChartsBarChartValueSet *valueSet =
+    const_cast<CQChartsBarChartPlot *>(this)->groupValueSet(groupInd);
 
   //---
 
@@ -717,6 +738,13 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   }
 }
 
+const CQChartsBarChartValueSet *
+CQChartsBarChartPlot::
+groupValueSet(int groupInd) const
+{
+  return const_cast<CQChartsBarChartPlot *>(this)->groupValueSet(groupInd);
+}
+
 CQChartsBarChartValueSet *
 CQChartsBarChartPlot::
 groupValueSet(int groupInd)
@@ -773,20 +801,15 @@ annotationBBox() const
 
 //------
 
-void
-CQChartsBarChartPlot::
-updateObjs()
-{
-//clearValueSets();
-
-  CQChartsPlot::updateObjs();
-}
-
 bool
 CQChartsBarChartPlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsBarChartPlot::createObjs");
+
+  NoUpdate noUpdate(const_cast<CQChartsBarChartPlot *>(this));
+
+  //---
 
   // init value sets
 //initValueSets();
@@ -1034,7 +1057,7 @@ createObjs()
       if (color.isValid())
         barObj->setColor(color);
 
-      addPlotObject(barObj);
+      objs.push_back(barObj);
 
       //---
 
@@ -1061,10 +1084,6 @@ createObjs()
 
     bx += 1.0;
   }
-
-  //----
-
-  resetKeyItems();
 
   //----
 
@@ -1146,7 +1165,7 @@ addKeyItems(CQChartsPlotKey *key)
           CQChartsColor color;
 
           if (columnColor(ind0.vrow, parent, color))
-            c = color.interpColor(charts(), 0, 1);
+            c = charts()->interpColor(color, 0, 1);
         }
 
         addKeyRow(iv, nv, valueSet.name(), c);
@@ -1171,7 +1190,7 @@ addKeyItems(CQChartsPlotKey *key)
         CQChartsColor color;
 
         if (columnColor(ind0.vrow, parent, color))
-          c = color.interpColor(charts(), 0, 1);
+          c = charts()->interpColor(color, 0, 1);
 
         addKeyRow(iv, nv, ivalue.valueName(), c);
       }
@@ -1198,7 +1217,7 @@ addKeyItems(CQChartsPlotKey *key)
           CQChartsColor color;
 
           if (columnColor(ind0.vrow, parent, color))
-            c = color.interpColor(charts(), 0, 1);
+            c = charts()->interpColor(color, 0, 1);
         }
 
         addKeyRow(iv, nv, valueSet.name(), c);
@@ -1355,11 +1374,11 @@ getPanY(bool is_shift) const
 //------
 
 CQChartsBarChartObj::
-CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsBarChartObj(const CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
                     int iset, int nset, int ival, int nval, int isval, int nsval,
                     const QModelIndex &ind) :
- CQChartsPlotObj(plot, rect), plot_(plot), iset_(iset), nset_(nset), ival_(ival), nval_(nval),
- isval_(isval), nsval_(nsval), ind_(ind)
+ CQChartsPlotObj(const_cast<CQChartsBarChartPlot *>(plot), rect), plot_(plot),
+ iset_(iset), nset_(nset), ival_(ival), nval_(nval), isval_(isval), nsval_(nsval), ind_(ind)
 {
   assert(iset  >= 0 && iset  < nset);
   assert(ival  >= 0 && ival  < nval);
@@ -1599,7 +1618,7 @@ draw(QPainter *painter)
       }
     }
     else {
-      barColor = color_.interpColor(plot_->charts(), 0.0);
+      barColor = plot_->charts()->interpColor(color_, 0.0);
     }
   }
 
@@ -1799,7 +1818,7 @@ fillBrush() const
   QColor c;
 
   if (color_.isValid())
-    c = color_.interpColor(plot_->charts(), 0.0);
+    c = plot_->charts()->interpColor(color_, 0.0);
   else
     c = plot_->interpBarFillColor(i_, n_);
 

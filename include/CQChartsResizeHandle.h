@@ -30,11 +30,11 @@ class CQChartsResizeHandle : QObject {
  public:
   CQChartsResizeHandle() = default;
 
-  CQChartsResizeHandle(CQChartsView *view, Side side);
-  CQChartsResizeHandle(CQChartsPlot *plot, Side side);
+  CQChartsResizeHandle(const CQChartsView *view, Side side);
+  CQChartsResizeHandle(const CQChartsPlot *plot, Side side);
 
-  CQChartsView* view() const { return view_; }
-  CQChartsPlot* plot() const { return plot_; }
+  const CQChartsView* view() const { return view_; }
+  const CQChartsPlot* plot() const { return plot_; }
 
   const CQChartsGeom::BBox &bbox() const { return bbox_; }
   void setBBox(const CQChartsGeom::BBox &v) { bbox_ = v; }
@@ -63,16 +63,16 @@ class CQChartsResizeHandle : QObject {
   CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &p) const;
 
  private:
-  CQChartsView*      view_        { nullptr };
-  CQChartsPlot*      plot_        { nullptr };
-  CQChartsGeom::BBox bbox_;
-  Side               side_        { Side::NONE };
-  bool               selected_    { false };
-  QColor             fillColor_   { "#4444aa" };
-  double             fillAlpha_   { 0.5 };
-  QColor             borderColor_ { Qt::black };
-  QPointF            pos_         { 0, 0 };
-  QPainterPath       path_;
+  const CQChartsView* view_        { nullptr };
+  const CQChartsPlot* plot_        { nullptr };
+  CQChartsGeom::BBox  bbox_;
+  Side                side_        { Side::NONE };
+  bool                selected_    { false };
+  QColor              fillColor_   { "#4444aa" };
+  double              fillAlpha_   { 0.5 };
+  QColor              borderColor_ { Qt::black };
+  QPointF             pos_         { 0, 0 };
+  QPainterPath        path_;
 };
 
 #endif

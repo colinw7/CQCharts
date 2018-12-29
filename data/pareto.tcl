@@ -7,7 +7,7 @@ set nr [get_charts_data -model $model -name num_rows]
 
 set max [get_charts_data -model $model -column 2 -row [expr {$nr - 1}] -name value]
 
-set plot1 [create_plot -type bar -columns "name=0,value=1" -ymax $max]
+set plot1 [create_plot -model $model -type bar -columns "name=0,value=1" -ymax $max]
 
 set view [get_charts_property -plot $plot1 -name viewId]
 
@@ -15,7 +15,7 @@ set_charts_property -view $view -name title -value "Popular Fast Food Chains"
 
 set_charts_property -plot $plot1 -name "yaxis.grid.line.major.visible" -value 1
 
-set plot2 [create_plot -type xy -columns "x=0,y=3" -ymin 0]
+set plot2 [create_plot -model $model -type xy -columns "x=0,y=3" -ymin 0]
 
 set_charts_property -plot $plot2 -name cumulative.enabled -value 1
 

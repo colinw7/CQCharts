@@ -19,6 +19,7 @@
 
 class CQChartsAxis;
 class CQChartsPlot;
+class CQCharts;
 class CQPropertyViewModel;
 class QPainter;
 
@@ -107,16 +108,16 @@ class CQChartsAxis : public CQChartsObj,
   using OptReal = boost::optional<double>;
 
  public:
-  CQChartsAxis(CQChartsPlot *plot, Qt::Orientation direction=Qt::Horizontal,
+  CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction=Qt::Horizontal,
                double start=0.0, double end=1.0);
 
   virtual ~CQChartsAxis();
 
   CQCharts *charts() const;
 
-  CQChartsPlot *plot() const { return plot_; }
+  const CQChartsPlot *plot() const { return plot_; }
 
-  CQChartsView *view() const;
+  const CQChartsView *view() const;
 
   bool isVisible() const { return visible_; }
   void setVisible(bool b);
@@ -276,7 +277,7 @@ class CQChartsAxis : public CQChartsObj,
 
   QString valueStr(double pos) const;
 
-  QString valueStr(CQChartsPlot *plot, double pos) const;
+  QString valueStr(const CQChartsPlot *plot, double pos) const;
 
   //--
 
@@ -315,42 +316,44 @@ class CQChartsAxis : public CQChartsObj,
 
   bool isDrawGrid() const;
 
-  void drawGrid(CQChartsPlot *plot, QPainter *painter);
+  void drawGrid(const CQChartsPlot *plot, QPainter *painter);
 
   //---
 
-  void draw(CQChartsPlot *plot, QPainter *painter);
+  void draw(const CQChartsPlot *plot, QPainter *painter);
 
   void drawEditHandles(QPainter *painter);
 
-  void calcPos(CQChartsPlot *plot, double &apos1, double &apos2) const;
+  void calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const;
 
-  void drawLine(CQChartsPlot *plot, QPainter *painter,
+  void drawLine(const CQChartsPlot *plot, QPainter *painter,
                 double apos, double amin, double amax);
 
-  void drawMajorGridLine(CQChartsPlot *plot, QPainter *painter,
+  void drawMajorGridLine(const CQChartsPlot *plot, QPainter *painter,
                          double apos, double amin, double amax);
-  void drawMinorGridLine(CQChartsPlot *plot, QPainter *painter,
+  void drawMinorGridLine(const CQChartsPlot *plot, QPainter *painter,
                          double apos, double amin, double amax);
 
-  void drawMajorTickLine(CQChartsPlot *plot, QPainter *painter,
+  void drawMajorTickLine(const CQChartsPlot *plot, QPainter *painter,
                          double apos, double tpos, bool inside);
-  void drawMinorTickLine(CQChartsPlot *plot, QPainter *painter,
+  void drawMinorTickLine(const CQChartsPlot *plot, QPainter *painter,
                          double apos, double tpos, bool inside);
 
-  void drawTickLine(CQChartsPlot *plot, QPainter *painter,
+  void drawTickLine(const CQChartsPlot *plot, QPainter *painter,
                     double apos, double tpos, bool inside, bool major);
 
-  void drawTickLabel(CQChartsPlot *plot, QPainter *painter,
+  void drawTickLabel(const CQChartsPlot *plot, QPainter *painter,
                      double apos, double tpos, bool inside);
 
-  void drawAxisLabel(CQChartsPlot *plot, QPainter *painter,
+  void drawAxisLabel(const CQChartsPlot *plot, QPainter *painter,
                      double apos, double amin, double amax, const QString &text);
 
   void getTickLabelsPositions(std::set<int> &positions);
 
  signals:
   void ticksChanged();
+
+  void selectionChanged();
 
  private:
   struct AxisGapData {
@@ -363,11 +366,13 @@ class CQChartsAxis : public CQChartsObj,
 
   void calc();
 
+  void emitSelectionChanged();
+
  private:
   using TickSpaces = std::vector<double>;
   using TickLabels = std::map<int,QString>;
 
-  CQChartsPlot*              plot_                { nullptr };
+  const CQChartsPlot*        plot_                { nullptr };
 
   // general
   bool                       visible_             { true };

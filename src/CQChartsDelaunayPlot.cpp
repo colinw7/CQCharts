@@ -146,14 +146,16 @@ CQChartsGeom::Range
 CQChartsDelaunayPlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsDelaunayPlot::calcRange");
+
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsDelaunayPlot *plot) :
+    RowVisitor(const CQChartsDelaunayPlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       bool ok1, ok2;
 
       double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
@@ -173,8 +175,8 @@ calcRange()
     const CQChartsGeom::Range &range() const { return range_; }
 
    private:
-    CQChartsDelaunayPlot *plot_ { nullptr };
-    CQChartsGeom::Range   range_;
+    const CQChartsDelaunayPlot* plot_ { nullptr };
+    CQChartsGeom::Range         range_;
   };
 
   RowVisitor visitor(this);
@@ -182,8 +184,6 @@ calcRange()
   visitModel(visitor);
 
   CQChartsGeom::Range dataRange = visitor.range();
-
-  nr_ = visitor.numRows();
 
   //---
 
@@ -216,9 +216,13 @@ calcRange()
 
 bool
 CQChartsDelaunayPlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsDelaunayPlot::createObjs");
+
+  NoUpdate noUpdate(const_cast<CQChartsDelaunayPlot *>(this));
+
+  //---
 
   bool ok;
 
@@ -234,11 +238,12 @@ createObjs()
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsDelaunayPlot *plot) :
-     plot_(plot) {
+    RowVisitor(const CQChartsDelaunayPlot *plot, PlotObjs &objs) :
+     plot_(plot), objs_(objs) {
+      nr_ = numRows();
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       bool ok1, ok2;
 
       double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
@@ -252,16 +257,20 @@ createObjs()
 
       QModelIndex xind = plot_->modelIndex(data.row, plot_->xColumn(), data.parent);
 
-      plot_->addPointObj(x, y, xind, ModelVisitor::row());
+      CQChartsDelaunayPlot *plot = const_cast<CQChartsDelaunayPlot *>(plot_);
+
+      plot->addPointObj(x, y, xind, ModelVisitor::row(), nr_, objs_);
 
       return State::OK;
     }
 
    private:
-    CQChartsDelaunayPlot *plot_ { nullptr };
+    const CQChartsDelaunayPlot* plot_ { nullptr };
+    PlotObjs&                   objs_;
+    int                         nr_   { 0 };
   };
 
-  RowVisitor visitor(this);
+  RowVisitor visitor(this, objs);
 
   visitModel(visitor);
 
@@ -276,7 +285,7 @@ createObjs()
 
 void
 CQChartsDelaunayPlot::
-addPointObj(double x, double y, const QModelIndex &xind, int r)
+addPointObj(double x, double y, const QModelIndex &xind, int r, int nr, PlotObjs &objs)
 {
   delaunay_->addVertex(x, y);
 
@@ -292,9 +301,9 @@ addPointObj(double x, double y, const QModelIndex &xind, int r)
   CQChartsGeom::BBox bbox(x - sw/2.0, y - sh/2.0, x + sw/2.0, y + sh/2.0);
 
   CQChartsDelaunayPointObj *pointObj =
-    new CQChartsDelaunayPointObj(this, bbox, x, y, xind1, r, nr_);
+    new CQChartsDelaunayPointObj(this, bbox, x, y, xind1, r, nr);
 
-  addPlotObject(pointObj);
+  objs.push_back(pointObj);
 }
 
 //------
@@ -347,7 +356,7 @@ drawForeground(QPainter *painter)
 
 void
 CQChartsDelaunayPlot::
-drawDelaunay(QPainter *painter)
+drawDelaunay(QPainter *painter) const
 {
   if (isLines()) {
     QPen pen;
@@ -386,7 +395,7 @@ drawDelaunay(QPainter *painter)
 
 void
 CQChartsDelaunayPlot::
-drawVoronoi(QPainter *painter)
+drawVoronoi(QPainter *painter) const
 {
   if (isPoints()) {
     QPen   pen;
@@ -445,9 +454,10 @@ drawVoronoi(QPainter *painter)
 //------
 
 CQChartsDelaunayPointObj::
-CQChartsDelaunayPointObj(CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsDelaunayPointObj(const CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &rect,
                          double x, double y, const QModelIndex &ind, int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), x_(x), y_(y), ind_(ind), i_(i), n_(n)
+ CQChartsPlotObj(const_cast<CQChartsDelaunayPlot *>(plot), rect), plot_(plot),
+ x_(x), y_(y), ind_(ind), i_(i), n_(n)
 {
 }
 

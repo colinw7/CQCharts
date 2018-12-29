@@ -1,6 +1,7 @@
 #include <CQChartsArrow.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQCharts.h>
 
 #include <QPainter>
 #include <QPainterPath>

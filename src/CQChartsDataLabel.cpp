@@ -42,14 +42,14 @@ update()
 
 void
 CQChartsDataLabel::
-draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
+draw(QPainter *painter, const QRectF &qrect, const QString &ystr) const
 {
   draw(painter, qrect, ystr, position());
 }
 
 void
 CQChartsDataLabel::
-draw(QPainter *painter, const QRectF &qrect, const QString &ystr, const Position &position)
+draw(QPainter *painter, const QRectF &qrect, const QString &ystr, const Position &position) const
 {
   if (! isVisible())
     return;
@@ -66,7 +66,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr, const Position
 void
 CQChartsDataLabel::
 draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
-     const Position &position, const QPen &tpen)
+     const Position &position, const QPen &tpen) const
 {
   painter->save();
 

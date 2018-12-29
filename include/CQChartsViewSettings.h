@@ -57,6 +57,8 @@ class CQChartsViewSettings : public QFrame {
 
   void updateLayers();
 
+  void layerImageSlot();
+
   void paletteIndexSlot(int ind);
 
   void loadPaletteNameSlot();

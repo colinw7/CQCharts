@@ -7,6 +7,7 @@
 #include <QString>
 
 class CQChartsModelColumnDetails;
+class CQCharts;
 
 // column type parameter
 class CQChartsColumnTypeParam {
@@ -74,12 +75,12 @@ class CQChartsColumnType {
   const CQChartsColumnTypeParam *getParam(const QString &name) const;
 
   // input variant to data variant for edit
-  virtual QVariant userData(CQCharts *charts, QAbstractItemModel *model,
+  virtual QVariant userData(CQCharts *charts, const QAbstractItemModel *model,
                             const CQChartsColumn &column, const QVariant &var,
                             const CQChartsNameValues &nameValues, bool &converted) const = 0;
 
   // data variant to output variant (string) for display
-  virtual QVariant dataName(CQCharts *chart, QAbstractItemModel *model,
+  virtual QVariant dataName(CQCharts *chart, const QAbstractItemModel *model,
                             const CQChartsColumn &column, const QVariant &var,
                             const CQChartsNameValues &nameValues, bool &converted) const = 0;
 
@@ -93,7 +94,7 @@ class CQChartsColumnType {
   // index type (TODO: assert if index invalid or not supported ?)
   virtual Type indexType(const QString &) const { return type(); }
 
-  CQChartsModelColumnDetails *columnDetails(CQCharts *charts, QAbstractItemModel *model,
+  CQChartsModelColumnDetails *columnDetails(CQCharts *charts, const QAbstractItemModel *model,
                                             const CQChartsColumn &column) const;
 
  protected:
@@ -110,12 +111,12 @@ class CQChartsColumnStringType : public CQChartsColumnType {
   CQChartsColumnStringType();
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 };
@@ -128,12 +129,12 @@ class CQChartsColumnBooleanType : public CQChartsColumnType {
   CQChartsColumnBooleanType();
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 };
@@ -154,12 +155,12 @@ class CQChartsColumnRealType : public CQChartsColumnType {
   bool isNumeric() const override { return true; }
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
@@ -188,12 +189,12 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
   bool isNumeric() const override { return true; }
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 };
@@ -213,12 +214,12 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
   bool isNumeric() const override { return true; }
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
@@ -238,12 +239,12 @@ class CQChartsColumnRectType : public CQChartsColumnType {
   CQChartsColumnRectType();
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 };
@@ -256,12 +257,12 @@ class CQChartsColumnPolygonType : public CQChartsColumnType {
   CQChartsColumnPolygonType();
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 };
@@ -274,12 +275,12 @@ class CQChartsColumnPolygonListType : public CQChartsColumnType {
   CQChartsColumnPolygonListType();
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
@@ -295,12 +296,12 @@ class CQChartsColumnConnectionListType : public CQChartsColumnType {
   CQChartsColumnConnectionListType();
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
@@ -316,12 +317,12 @@ class CQChartsColumnNamePairType : public CQChartsColumnType {
   CQChartsColumnNamePairType();
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
@@ -337,12 +338,12 @@ class CQChartsColumnPathType : public CQChartsColumnType {
   CQChartsColumnPathType();
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 };
@@ -355,12 +356,12 @@ class CQChartsColumnStyleType : public CQChartsColumnType {
   CQChartsColumnStyleType();
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 };
@@ -379,16 +380,16 @@ class CQChartsColumnColorType : public CQChartsColumnType {
   CQChartsColumnColorType();
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
-  bool getMapData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                   const CQChartsNameValues &nameValues, bool &mapped,
                   double &map_min, double &map_max, QString &palette) const;
 };
@@ -401,12 +402,12 @@ class CQChartsColumnImageType : public CQChartsColumnType {
   CQChartsColumnImageType();
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 };
@@ -424,16 +425,16 @@ class CQChartsColumnSymbolTypeType : public CQChartsColumnType {
   CQChartsColumnSymbolTypeType();
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
-  bool getMapData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                   const CQChartsNameValues &nameValues, bool &mapped,
                   int &map_min, int &map_max, int &data_min, int &data_max) const;
 };
@@ -453,16 +454,16 @@ class CQChartsColumnSymbolSizeType : public CQChartsColumnType {
   CQChartsColumnSymbolSizeType();
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
-  bool getMapData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                   const CQChartsNameValues &nameValues, bool &mapped,
                   double &map_min, double &map_max, double &data_min, double &data_max) const;
 };
@@ -482,16 +483,16 @@ class CQChartsColumnFontSizeType : public CQChartsColumnType {
   CQChartsColumnFontSizeType();
 
   // input variant to data variant for edit
-  QVariant userData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
   // data variant to output variant (string) for display
-  QVariant dataName(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
-  bool getMapData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+  bool getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                   const CQChartsNameValues &nameValues, bool &mapped,
                   double &map_min, double &map_max, double &data_min, double &data_max) const;
 };
@@ -519,13 +520,13 @@ class CQChartsColumnTypeMgr : public QObject {
 
   CQChartsColumnType *getType(Type type) const;
 
-  QVariant getUserData(QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant getUserData(const QAbstractItemModel *model, const CQChartsColumn &column,
                        const QVariant &var, bool &converted) const;
 
-  QVariant getDisplayData(QAbstractItemModel *model, const CQChartsColumn &column,
+  QVariant getDisplayData(const QAbstractItemModel *model, const CQChartsColumn &column,
                           const QVariant &var, bool &converted) const;
 
-  bool getModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
+  bool getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column,
                           Type &type, Type &baseType, CQChartsNameValues &nameValues) const;
 
   bool setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column, Type type,
@@ -548,7 +549,7 @@ class CQChartsColumnTypeMgr : public QObject {
   using ColumnTypeCache = std::map<CQChartsColumn,TypeCacheData>;
 
  private:
-  bool getModelColumnTypeData(QAbstractItemModel *model, const CQChartsColumn &column,
+  bool getModelColumnTypeData(const QAbstractItemModel *model, const CQChartsColumn &column,
                               TypeCacheData &typeCacheData) const;
 
  private:

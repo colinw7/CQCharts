@@ -30,7 +30,7 @@ class CQChartsObjLineData {
   }
 
   QColor interpLinesColor(int i, int n) const {
-    return linesColor().interpColor(lineDataObj_->charts(), i, n);
+    return lineDataObj_->charts()->interpColor(linesColor(), i, n);
   }
 
   double linesAlpha() const { return lineData_.alpha; }
@@ -48,7 +48,7 @@ class CQChartsObjLineData {
     CQChartsUtil::testAndSet(lineData_.dash, d, [&]() { lineDataInvalidate(); } );
   }
 
-  void setLineDataPen(QPen &pen, int i, int n) {
+  void setLineDataPen(QPen &pen, int i, int n) const {
     QColor lc = interpLinesColor(i, n);
 
     lineDataObj_->setPen(pen, isLines(), lc, linesAlpha(), linesWidth(), linesDash());
@@ -96,7 +96,7 @@ class CQChartsObj##UNAME##LineData { \
   } \
 \
   QColor interp##UNAME##LinesColor(int i, int n) const { \
-    return LNAME##LinesColor().interpColor(LNAME##LineDataObj_->charts(), i, n); \
+    return LNAME##LineDataObj_->charts()->interpColor(LNAME##LinesColor(), i, n); \
   } \
 \
   double LNAME##LinesAlpha() const { return LNAME##LineData_.alpha; } \
@@ -117,7 +117,7 @@ class CQChartsObj##UNAME##LineData { \
       LNAME##LineDataInvalidate(); } ); \
   } \
 \
-  void set##UNAME##LineDataPen(QPen &pen, int i, int n) { \
+  void set##UNAME##LineDataPen(QPen &pen, int i, int n) const { \
     QColor lc = interp##UNAME##LinesColor(i, n); \
 \
     LNAME##LineDataObj_->setPen(pen, is##UNAME##Lines(), lc, LNAME##LinesAlpha(), \
@@ -197,7 +197,7 @@ class CQChartsObjPointData {
   }
 
   QColor interpSymbolStrokeColor(int i, int n) const {
-    return symbolStrokeColor().interpColor(pointDataObj_->charts(), i, n);
+    return pointDataObj_->charts()->interpColor(symbolStrokeColor(), i, n);
   }
 
   double symbolStrokeAlpha() const { return pointData_.stroke.alpha; }
@@ -226,11 +226,11 @@ class CQChartsObjPointData {
   }
 
   QColor interpSymbolFillColor(double r) const {
-    return symbolFillColor().interpColor(pointDataObj_->charts(), r);
+    return pointDataObj_->charts()->interpColor(symbolFillColor(), r);
   }
 
   QColor interpSymbolFillColor(int i, int n) const {
-    return symbolFillColor().interpColor(pointDataObj_->charts(), i, n);
+    return pointDataObj_->charts()->interpColor(symbolFillColor(), i, n);
   }
 
   double symbolFillAlpha() const { return pointData_.fill.alpha; }
@@ -243,7 +243,7 @@ class CQChartsObjPointData {
     CQChartsUtil::testAndSet(pointData_.fill.pattern, p, [&]() { pointDataInvalidate(); } );
   }
 
-  void setSymbolPenBrush(QPen &pen, QBrush &brush, int i, int n) {
+  void setSymbolPenBrush(QPen &pen, QBrush &brush, int i, int n) const {
     pointDataObj_->setPenBrush(pen, brush,
       isSymbolStroked(), interpSymbolStrokeColor(i, n), symbolStrokeAlpha(),
       symbolStrokeWidth(), symbolStrokeDash(),
@@ -329,7 +329,7 @@ class CQChartsObj##UNAME##PointData { \
   } \
 \
   QColor interp##UNAME##SymbolStrokeColor(int i, int n) const { \
-    return LNAME##SymbolStrokeColor().interpColor(LNAME##PointDataObj_->charts(), i, n); \
+    return LNAME##PointDataObj_->charts()->interpColor(LNAME##SymbolStrokeColor(), i, n); \
   } \
 \
   double LNAME##SymbolStrokeAlpha() const { return LNAME##PointData_.stroke.alpha; } \
@@ -365,11 +365,11 @@ class CQChartsObj##UNAME##PointData { \
   } \
 \
   QColor interp##UNAME##SymbolFillColor(double r) const { \
-    return LNAME##SymbolFillColor().interpColor(LNAME##PointDataObj_->charts(), r); \
+    return LNAME##PointDataObj_->charts()->interpColor(LNAME##SymbolFillColor(), r); \
   } \
 \
   QColor interp##UNAME##SymbolFillColor(int i, int n) const { \
-    return LNAME##SymbolFillColor().interpColor(LNAME##PointDataObj_->charts(), i, n); \
+    return LNAME##PointDataObj_->charts()->interpColor(LNAME##SymbolFillColor(), i, n); \
   } \
 \
   double LNAME##SymbolFillAlpha() const { return LNAME##PointData_.fill.alpha; } \
@@ -385,7 +385,7 @@ class CQChartsObj##UNAME##PointData { \
       LNAME##PointDataInvalidate(); } ); \
   } \
 \
-  void set##UNAME##SymbolPenBrush(QPen &pen, QBrush &brush, int i, int n) { \
+  void set##UNAME##SymbolPenBrush(QPen &pen, QBrush &brush, int i, int n) const { \
     LNAME##PointDataObj_->setPenBrush(pen, brush, \
       is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(i, n), \
       LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), LNAME##SymbolStrokeDash(), \
@@ -438,7 +438,7 @@ class CQChartsObj##UNAME##FillData { \
   } \
 \
   QColor interp##UNAME##FillColor(int i, int n) const { \
-    return LNAME##FillColor().interpColor(LNAME##FillDataObj_->charts(), i, n); \
+    return LNAME##FillDataObj_->charts()->interpColor(LNAME##FillColor(), i, n); \
   } \
 \
   double LNAME##FillAlpha() const { return LNAME##FillData_.alpha; } \
@@ -511,7 +511,7 @@ class CQChartsObjTextData {
   }
 
   QColor interpTextColor(int i, int n) const {
-    return textColor().interpColor(textDataObj_->charts(), i, n);
+    return textDataObj_->charts()->interpColor(textColor(), i, n);
   }
 
   bool isTextContrast() const { return textData_.contrast; }
@@ -607,7 +607,7 @@ class CQChartsObj##UNAME##TextData { \
   } \
 \
   QColor interp##UNAME##TextColor(int i, int n) const { \
-    return LNAME##TextColor().interpColor(LNAME##TextDataObj_->charts(), i, n); \
+    return LNAME##TextDataObj_->charts()->interpColor(LNAME##TextColor(), i, n); \
   } \
 \
   bool is##UNAME##TextContrast() const { return LNAME##TextData_.contrast; } \
@@ -700,7 +700,7 @@ class CQChartsObjStrokeData {
   }
 
   QColor interpBorderColor(int i, int n) const {
-    return borderColor().interpColor(strokeDataObj_->charts(), i, n);
+    return strokeDataObj_->charts()->interpColor(borderColor(), i, n);
   }
 
   //---
@@ -772,7 +772,7 @@ class CQChartsObjShapeData {
   }
 
   QColor interpBorderColor(int i, int n) const {
-    return borderColor().interpColor(shapeDataObj_->charts(), i, n);
+    return shapeDataObj_->charts()->interpColor(borderColor(), i, n);
   }
 
   //---
@@ -798,7 +798,7 @@ class CQChartsObjShapeData {
   }
 
   QColor interpFillColor(int i, int n) const {
-    return fillColor().interpColor(shapeDataObj_->charts(), i, n);
+    return shapeDataObj_->charts()->interpColor(fillColor(), i, n);
   }
 
   //---
@@ -892,7 +892,7 @@ class CQChartsObj##UNAME##ShapeData { \
   } \
 \
   QColor interp##UNAME##BorderColor(int i, int n) const { \
-    return LNAME##BorderColor().interpColor(LNAME##ShapeDataObj_->charts(), i, n); \
+    return LNAME##ShapeDataObj_->charts()->interpColor(LNAME##BorderColor(), i, n); \
   } \
 \
   bool is##UNAME##Filled() const { return LNAME##ShapeData_.background.visible; } \
@@ -921,7 +921,7 @@ class CQChartsObj##UNAME##ShapeData { \
   } \
 \
   QColor interp##UNAME##FillColor(int i, int n) const { \
-    return LNAME##FillColor().interpColor(LNAME##ShapeDataObj_->charts(), i, n); \
+    return LNAME##ShapeDataObj_->charts()->interpColor(LNAME##FillColor(), i, n); \
   } \
 \
   void setShapeData(const CQChartsShapeData &data) { \

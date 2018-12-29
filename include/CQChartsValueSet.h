@@ -81,18 +81,14 @@ class CQChartsRValues {
   }
 
   // min/max value
-  double min() const {
-    if (valset_.empty()) return CMathUtil::getNaN();
-    return valset_. begin()->first;
-  }
-  double max() const {
-    if (valset_.empty()) return CMathUtil::getNaN();
-    return valset_.rbegin()->first;
-  }
+  double min(double def=CMathUtil::getNaN()) const {
+    return (valset_.empty() ? def : valset_. begin()->first); }
+  double max(double def=CMathUtil::getNaN()) const {
+    return (valset_.empty() ? def : valset_.rbegin()->first); }
 
   // min/max index
-  int imin() const { if (setvals_.empty()) return -1; return setvals_. begin()->first; }
-  int imax() const { if (setvals_.empty()) return -1; return setvals_.rbegin()->first; }
+  int imin(int def=0) const { return (setvals_.empty() ? def : setvals_. begin()->first); }
+  int imax(int def=0) const { return (setvals_.empty() ? def : setvals_.rbegin()->first); }
 
   // number of unique values
   int numUnique() const { return valset_.size(); }
@@ -108,23 +104,25 @@ class CQChartsRValues {
   }
 
   // calculated stats
-  double sum () const { const_calc(); return sum_ ; }
-  double mean() const { const_calc(); return mean_; }
+  double sum () const { initCalc(); return sum_ ; }
+  double mean() const { initCalc(); return mean_; }
 
-  double stddev() const { const_calc(); return stddev_; }
+  double stddev() const { initCalc(); return stddev_; }
 
-  double median() const { const_calc(); return median_; }
+  double median() const { initCalc(); return median_; }
 
-  double lowerMedian() const { const_calc(); return lowerMedian_; }
-  double upperMedian() const { const_calc(); return upperMedian_; }
+  double lowerMedian() const { initCalc(); return lowerMedian_; }
+  double upperMedian() const { initCalc(); return upperMedian_; }
 
-  const Indices &outliers() const { const_calc(); return outliers_; }
+  const Indices &outliers() const { initCalc(); return outliers_; }
 
   double svalue(int i) const { return svalues_[i]; }
 
  private:
-  void const_calc() const {
-    const_cast<CQChartsRValues *>(this)->calc();
+  void initCalc() const {
+    CQChartsRValues *th = const_cast<CQChartsRValues *>(this);
+
+    th->calc();
   }
 
   void calc();
@@ -223,12 +221,12 @@ class CQChartsIValues {
   }
 
   // min/max value
-  int min() const { assert(! valset_.empty()); return valset_. begin()->first; }
-  int max() const { assert(! valset_.empty()); return valset_.rbegin()->first; }
+  int min(int def=0) const { return (valset_.empty() ? def : valset_. begin()->first); }
+  int max(int def=0) const { return (valset_.empty() ? def : valset_.rbegin()->first); }
 
   // min/max index
-  int imin() const { assert(! setvals_.empty()); return setvals_. begin()->first; }
-  int imax() const { assert(! setvals_.empty()); return setvals_.rbegin()->first; }
+  int imin(int def=0) const { return (setvals_.empty() ? def : setvals_. begin()->first); }
+  int imax(int def=0) const { return (setvals_.empty() ? def : setvals_.rbegin()->first); }
 
   // number of unique values
   int numUnique() const { return valset_.size(); }
@@ -244,23 +242,25 @@ class CQChartsIValues {
   }
 
   // calculated stats
-  double sum () const { const_calc(); return sum_ ; }
-  double mean() const { const_calc(); return mean_; }
+  double sum () const { initCalc(); return sum_ ; }
+  double mean() const { initCalc(); return mean_; }
 
-  double stddev() const { const_calc(); return stddev_; }
+  double stddev() const { initCalc(); return stddev_; }
 
-  double median() const { const_calc(); return median_; }
+  double median() const { initCalc(); return median_; }
 
-  double lowerMedian() const { const_calc(); return lowerMedian_; }
-  double upperMedian() const { const_calc(); return upperMedian_; }
+  double lowerMedian() const { initCalc(); return lowerMedian_; }
+  double upperMedian() const { initCalc(); return upperMedian_; }
 
-  const Indices &outliers() const { const_calc(); return outliers_; }
+  const Indices &outliers() const { initCalc(); return outliers_; }
 
   double svalue(int i) const { return svalues_[i]; }
 
  private:
-  void const_calc() const {
-    const_cast<CQChartsIValues *>(this)->calc();
+  void initCalc() const {
+    CQChartsIValues *th = const_cast<CQChartsIValues *>(this);
+
+    th->calc();
   }
 
   void calc();
@@ -339,12 +339,14 @@ class CQChartsSValues {
   }
 
   // min/max value
-  QString min() const { assert(! valset_.empty()); return valset_. begin()->first; }
-  QString max() const { assert(! valset_.empty()); return valset_.rbegin()->first; }
+  QString min(const QString &def="") const {
+    return (valset_.empty() ? def : valset_. begin()->first); }
+  QString max(const QString &def="") const {
+    return (valset_.empty() ? def : valset_.rbegin()->first); }
 
   // min/max index
-  int imin() const { assert(! setvals_.empty()); return setvals_. begin()->first; }
-  int imax() const { assert(! setvals_.empty()); return setvals_.rbegin()->first; }
+  int imin(int def=0) const { return (setvals_.empty() ? def : setvals_. begin()->first); }
+  int imax(int def=0) const { return (setvals_.empty() ? def : setvals_.rbegin()->first); }
 
   // number of unique values
   int numUnique() const { return valset_.size(); }
@@ -454,12 +456,14 @@ class CQChartsCValues {
   }
 
   // min/max value
-  CQChartsColor min() const { assert(! valset_.empty()); return valset_. begin()->first; }
-  CQChartsColor max() const { assert(! valset_.empty()); return valset_.rbegin()->first; }
+  CQChartsColor min(const CQChartsColor &def) const {
+    return (valset_.empty() ? def : valset_. begin()->first); }
+  CQChartsColor max(const CQChartsColor &def) const {
+    return (valset_.empty() ? def : valset_.rbegin()->first); }
 
   // min/max index
-  int imin() const { assert(! setvals_.empty()); return setvals_. begin()->first; }
-  int imax() const { assert(! setvals_.empty()); return setvals_.rbegin()->first; }
+  int imin(int def=0) const { return (setvals_.empty() ? def : setvals_. begin()->first); }
+  int imax(int def=0) const { return (setvals_.empty() ? def : setvals_.rbegin()->first); }
 
   // number of unique values
   int numUnique() const { return valset_.size(); }
@@ -519,7 +523,7 @@ class CQChartsValueSet : public QObject {
   using OptString = boost::optional<QString>;
 
  public:
-  CQChartsValueSet(CQChartsPlot *plot=nullptr);
+  CQChartsValueSet(const CQChartsPlot *plot=nullptr);
 
   //---
 
@@ -540,7 +544,7 @@ class CQChartsValueSet : public QObject {
 
   //---
 
-  void addProperties(const QString &path);
+  //void addProperties(const QString &path);
 
   //---
 
@@ -622,20 +626,20 @@ class CQChartsValueSet : public QObject {
 
   // get minimum index value
   // (for integers this is the minimum value, for real/string this is zero)
-  int imin() const;
+  int imin(int def=0) const;
 
   // get maximum index value
   // (for integers this is the maximum value, for real/string this is the one
   // less than the number of unique values)
-  int imax() const;
+  int imax(int def=0) const;
 
   // get minimum real value
   // (for integers and reals this is the minimum unique value, otherwise this  is imin))
-  double rmin() const;
+  double rmin(double def=CMathUtil::getNaN()) const;
 
   // get maximum real value
   // (for integers and reals this is the maximum unique value, otherwise this is imax))
-  double rmax() const;
+  double rmax(double def=CMathUtil::getNaN()) const;
 
   // get sum real value
   // (for integers and reals this is the sum value, otherwise this is 0.0))
@@ -660,7 +664,7 @@ class CQChartsValueSet : public QObject {
  protected:
   using Values = std::vector<QVariant>;
 
-  CQChartsPlot* plot_ { nullptr };
+  const CQChartsPlot* plot_ { nullptr };
 
   CQChartsColumn column_; // associated model column
 

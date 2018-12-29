@@ -1831,7 +1831,7 @@ flattenModelCmd(const Vars &vars)
      charts_(charts), groupColumn_(groupColumn) {
     }
 
-    State hierVisit(QAbstractItemModel *model, const VisitData &data) override {
+    State hierVisit(const QAbstractItemModel *model, const VisitData &data) override {
       ++hierRow_;
 
       bool ok;
@@ -1842,7 +1842,7 @@ flattenModelCmd(const Vars &vars)
       return State::OK;
     }
 
-    State visit(QAbstractItemModel *model, const VisitData &data) override {
+    State visit(const QAbstractItemModel *model, const VisitData &data) override {
       int nc = numCols();
 
       if (isHierarchical()) {

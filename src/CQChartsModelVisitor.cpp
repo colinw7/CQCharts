@@ -5,7 +5,7 @@
 
 void
 CQChartsModelVisitor::
-init(QAbstractItemModel *model)
+init(const QAbstractItemModel *model)
 {
   model_        = model;
   numCols_      = model_->columnCount(QModelIndex());
@@ -33,7 +33,7 @@ isHierarchical() const
 
 namespace CQChartsModelVisit {
 
-bool exec(CQCharts *charts, QAbstractItemModel *model, CQChartsModelVisitor &visitor) {
+bool exec(CQCharts *charts, const QAbstractItemModel *model, CQChartsModelVisitor &visitor) {
   if (! model)
     return false;
 
@@ -54,7 +54,7 @@ bool exec(CQCharts *charts, QAbstractItemModel *model, CQChartsModelVisitor &vis
   return true;
 }
 
-bool exec(QAbstractItemModel *model, const QModelIndex &parent, int row,
+bool exec(const QAbstractItemModel *model, const QModelIndex &parent, int row,
           CQChartsModelVisitor &visitor) {
   if (! model)
     return false;
@@ -69,7 +69,8 @@ bool exec(QAbstractItemModel *model, const QModelIndex &parent, int row,
 }
 
 CQChartsModelVisitor::State
-execIndex(QAbstractItemModel *model, const QModelIndex &parent, CQChartsModelVisitor &visitor) {
+execIndex(const QAbstractItemModel *model, const QModelIndex &parent,
+          CQChartsModelVisitor &visitor) {
   int nr = model->rowCount(parent);
 
   visitor.setNumRows(nr);
@@ -85,7 +86,7 @@ execIndex(QAbstractItemModel *model, const QModelIndex &parent, CQChartsModelVis
 }
 
 CQChartsModelVisitor::State
-execRow(QAbstractItemModel *model, const QModelIndex &parent, int row,
+execRow(const QAbstractItemModel *model, const QModelIndex &parent, int row,
         CQChartsModelVisitor &visitor) {
   QModelIndex ind1 = model->index(row, 0, parent);
 

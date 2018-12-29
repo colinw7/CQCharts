@@ -8,6 +8,7 @@
 #include <QPolygonF>
 
 class CQChartsView;
+class CQCharts;
 class CQPropertyViewModel;
 class QPainter;
 

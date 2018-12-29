@@ -51,28 +51,28 @@ class CQChartsDensity {
 
   //---
 
-  void drawWhisker(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+  void drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
                    const Qt::Orientation &orientation,
                    const CQChartsWhiskerOpts &opts=CQChartsWhiskerOpts()) const;
 
-  void calcWhiskerPoly(QPolygonF &ppoly, CQChartsPlot *plot, const CQChartsGeom::BBox &rect,
+  void calcWhiskerPoly(QPolygonF &ppoly, const CQChartsPlot *plot, const CQChartsGeom::BBox &rect,
                        const Qt::Orientation &orientation,
                        const CQChartsWhiskerOpts &opts=CQChartsWhiskerOpts()) const;
 
-  static void drawCrossBar(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
-                           double mean, const Qt::Orientation &orientation,
-                           const CQChartsLength &cornerSize);
+  static void drawCrossBar(const CQChartsPlot *plot, QPainter *painter,
+                           const CQChartsGeom::BBox &rect, double mean,
+                           const Qt::Orientation &orientation, const CQChartsLength &cornerSize);
 
-  static void drawPointRange(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
-                             double mean, const Qt::Orientation &orientation,
-                             const CQChartsSymbolData &symbol, const QPen &pen,
-                             const QBrush &brush);
+  static void drawPointRange(const CQChartsPlot *plot, QPainter *painter,
+                             const CQChartsGeom::BBox &rect, double mean,
+                             const Qt::Orientation &orientation, const CQChartsSymbolData &symbol,
+                             const QPen &pen, const QBrush &brush);
 
-  static void drawErrorBar(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
-                           const Qt::Orientation &orientation);
+  static void drawErrorBar(const CQChartsPlot *plot, QPainter *painter,
+                           const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation);
 
-  static void drawLineRange(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
-                            const Qt::Orientation &orientation);
+  static void drawLineRange(const CQChartsPlot *plot, QPainter *painter,
+                            const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation);
 
  private:
   void init();

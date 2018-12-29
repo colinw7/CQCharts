@@ -51,10 +51,10 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   using OptReal = boost::optional<double>;
 
  public:
-  CQChartsScatterPointObj(CQChartsScatterPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
-                          const QPointF &p, const CQChartsSymbol &symbolType,
-                          const CQChartsLength &symbolSize, const CQChartsLength &fontSize,
-                          const CQChartsColor &color,
+  CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd,
+                          const CQChartsGeom::BBox &rect, const QPointF &p,
+                          const CQChartsSymbol &symbolType, const CQChartsLength &symbolSize,
+                          const CQChartsLength &fontSize, const CQChartsColor &color,
                           int ig, int ng, int is, int ns, int iv, int nv);
 
   int groupInd() const { return groupInd_; }
@@ -91,21 +91,21 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   void drawDir(QPainter *painter, const Dir &dir, bool flip=false) const;
 
  private:
-  CQChartsScatterPlot* plot_       { nullptr };
-  int                  groupInd_   { -1 };
-  QPointF              p_;
-  CQChartsSymbol       symbolType_;
-  CQChartsLength       symbolSize_;
-  CQChartsLength       fontSize_;
-  CQChartsColor        color_;
-  int                  ig_         { -1 };
-  int                  ng_         { -1 };
-  int                  is_         { -1 };
-  int                  ns_         { -1 };
-  int                  iv_         { -1 };
-  int                  nv_         { -1 };
-  QString              name_;
-  QModelIndex          ind_;
+  const CQChartsScatterPlot* plot_       { nullptr };
+  int                        groupInd_   { -1 };
+  QPointF                    p_;
+  CQChartsSymbol             symbolType_;
+  CQChartsLength             symbolSize_;
+  CQChartsLength             fontSize_;
+  CQChartsColor              color_;
+  int                        ig_         { -1 };
+  int                        ng_         { -1 };
+  int                        is_         { -1 };
+  int                        ns_         { -1 };
+  int                        iv_         { -1 };
+  int                        nv_         { -1 };
+  QString                    name_;
+  QModelIndex                ind_;
 };
 
 //---
@@ -123,9 +123,9 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
   using Points = std::vector<QPointF>;
 
  public:
-  CQChartsScatterCellObj(CQChartsScatterPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
-                         int ig, int ng, int is, int ns, int ix, int iy,
-                         const Points &points, int maxn);
+  CQChartsScatterCellObj(const CQChartsScatterPlot *plot, int groupInd,
+                         const CQChartsGeom::BBox &rect, int ig, int ng, int is, int ns,
+                         int ix, int iy, const Points &points, int maxn);
 
   int groupInd() const { return groupInd_; }
 
@@ -146,16 +146,16 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
   void drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const;
 
  private:
-  CQChartsScatterPlot* plot_     { nullptr };
-  int                  groupInd_ { -1 };
-  int                  ig_       { -1 };
-  int                  ng_       { -1 };
-  int                  is_       { -1 };
-  int                  ns_       { -1 };
-  int                  ix_       { -1 };
-  int                  iy_       { -1 };
-  Points               points_;
-  int                  maxn_     { 0 };
+  const CQChartsScatterPlot* plot_     { nullptr };
+  int                        groupInd_ { -1 };
+  int                        ig_       { -1 };
+  int                        ng_       { -1 };
+  int                        is_       { -1 };
+  int                        ns_       { -1 };
+  int                        ix_       { -1 };
+  int                        iy_       { -1 };
+  Points                     points_;
+  int                        maxn_     { 0 };
 };
 
 //---
@@ -554,12 +554,12 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   CQChartsGeom::Range calcRange() override;
 
-  void updateObjs() override;
+  void clearPlotObjects() override;
 
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
-  void addPointObjects();
-  void addGridObjects();
+  void addPointObjects(PlotObjs &objs);
+  void addGridObjects(PlotObjs &objs);
 
   void addNameValues();
 
@@ -596,6 +596,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   };
 
  private:
+  void initAxes(bool uniqueX, bool uniqueY);
+
   void initSymbolTypeData();
 
   bool columnSymbolType(int row, const QModelIndex &parent, CQChartsSymbol &symbolType) const;
@@ -615,40 +617,40 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
-  void drawBestFit(QPainter *painter);
+  void drawBestFit(QPainter *painter) const;
 
   //---
 
-  void drawHull(QPainter *painter);
+  void drawHull(QPainter *painter) const;
 
   //---
 
-  void drawXRug(QPainter *painter);
-  void drawYRug(QPainter *painter);
+  void drawXRug(QPainter *painter) const;
+  void drawYRug(QPainter *painter) const;
 
   //---
 
-  void drawXDensity(QPainter *painter);
-  void drawYDensity(QPainter *painter);
+  void drawXDensity(QPainter *painter) const;
+  void drawYDensity(QPainter *painter) const;
 
-  void drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng);
-  void drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng);
+  void drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const;
+  void drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const;
 
-  void drawXWhisker(QPainter *painter);
-  void drawYWhisker(QPainter *painter);
+  void drawXWhisker(QPainter *painter) const;
+  void drawYWhisker(QPainter *painter) const;
 
-  void drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng);
-  void drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng);
+  void drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const;
+  void drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const;
 
   void initWhiskerData();
 
   //---
 
-  void drawDensityMap(QPainter *painter);
+  void drawDensityMap(QPainter *painter) const;
 
   //---
 
-  void drawSymbolMapKey(QPainter *painter);
+  void drawSymbolMapKey(QPainter *painter) const;
 
   //---
 

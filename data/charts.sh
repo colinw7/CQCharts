@@ -4,6 +4,9 @@ set args      = ()
 set opts      = ()
 set debug     = 0
 set valgrind  = 0
+set helgrind  = 0
+set git       = 0
+set save      = 0
 set csv_args  = ()
 set tsv_args  = ()
 set data_args = ()
@@ -14,6 +17,15 @@ while ($#argv > 0)
     shift
   else if ("$1" == "-valgrind") then
     set valgrind = 1
+    shift
+  else if ("$1" == "-helgrind") then
+    set helgrind = 1
+    shift
+  else if ("$1" == "-git") then
+    set git = 1
+    shift
+  else if ("$1" == "-save") then
+    set save = 1
     shift
   else if ("$1" == "-loop") then
     set opts = ($opts -loop)
@@ -77,18 +89,32 @@ endif
 setenv QT_AUTO_SCREEN_SCALE_FACTOR 0
 setenv QT_SCALE_FACTOR 0
 
+set exe = CQChartsTest
+
+if ($git == 1) then
+  set exe = ~/git/CQCharts/bin/CQChartsTest
+endif
+
+if ($save == 1) then
+  set exe = /home/colinw/bin/CQChartsSaveTest
+endif
+
 if      ($debug == 1) then
-  echo "Dbx CQChartsTest $exec_args $csv_args $tsv_args $data_args $opts"
+  echo "Dbx $exe $exec_args $csv_args $tsv_args $data_args $opts"
 
-  Dbx CQChartsTest $exec_args $csv_args $tsv_args $data_args $opts
+  Dbx $exe $exec_args $csv_args $tsv_args $data_args $opts
 else if ($valgrind == 1) then
-  echo "Valgrind CQChartsTest $exec_args $csv_args $tsv_args $data_args $opts"
+  echo "Valgrind $exe $exec_args $csv_args $tsv_args $data_args $opts"
 
-  Valgrind CQChartsTest $exec_args $csv_args $tsv_args $data_args $opts
+  Valgrind $exe $exec_args $csv_args $tsv_args $data_args $opts
+else if ($helgrind == 1) then
+  echo "Helgrind $exe $exec_args $csv_args $tsv_args $data_args $opts"
+
+  Helgrind $exe $exec_args $csv_args $tsv_args $data_args $opts
 else
-  echo "CQChartsTest $exec_args $csv_args $tsv_args $data_args $opts"
+  echo "$exe $exec_args $csv_args $tsv_args $data_args $opts"
 
-  CQChartsTest $exec_args $csv_args $tsv_args $data_args $opts
+  $exe $exec_args $csv_args $tsv_args $data_args $opts
 endif
 
 exit 0

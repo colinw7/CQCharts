@@ -5,13 +5,13 @@
 #include <QPainter>
 
 CQChartsResizeHandle::
-CQChartsResizeHandle(CQChartsView *view, Side side) :
+CQChartsResizeHandle(const CQChartsView *view, Side side) :
  view_(view), side_(side)
 {
 }
 
 CQChartsResizeHandle::
-CQChartsResizeHandle(CQChartsPlot *plot, Side side) :
+CQChartsResizeHandle(const CQChartsPlot *plot, Side side) :
  plot_(plot), side_(side)
 {
 }

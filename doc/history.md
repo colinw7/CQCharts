@@ -720,3 +720,5 @@
  + Use Qt::Orieintation for Direction enum
  + Move model util routines to CQChartsModelUtil
  + Support symbol image buffer using environment variable
+# 12/29/2018
+ + improve const correctness

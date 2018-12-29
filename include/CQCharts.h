@@ -3,6 +3,7 @@
 
 #include <CQBaseModelTypes.h>
 #include <CQChartsTheme.h>
+#include <CQChartsColor.h>
 
 #include <QObject>
 #include <QAbstractItemModel>
@@ -60,6 +61,11 @@ class CQCharts : public QObject {
 
   //---
 
+  QColor interpColor(const CQChartsColor &c, int i, int n) const;
+  QColor interpColor(const CQChartsColor &c, double value) const;
+
+  //---
+
   const CQChartsInterfaceTheme &interfaceTheme() const { return interfaceTheme_; }
   CQChartsInterfaceTheme &interfaceTheme() { return interfaceTheme_; }
 
@@ -86,7 +92,7 @@ class CQCharts : public QObject {
 
   CQChartsModelData *initModelData(ModelP &model);
 
-  CQChartsModelData *getModelData(QAbstractItemModel *model) const;
+  CQChartsModelData *getModelData(const QAbstractItemModel *model) const;
   CQChartsModelData *getModelData(int ind) const;
 
   int currentModelInd() const { return currentModelInd_; }

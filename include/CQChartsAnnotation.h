@@ -48,7 +48,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   void addFillProperties(CQPropertyViewModel *model, const QString &path);
 
-  bool getProperty(const QString &name, QVariant &value);
+  bool getProperty(const QString &name, QVariant &value) const;
   bool setProperty(const QString &name, const QVariant &value);
 
   void getPropertyNames(QStringList &names) const;

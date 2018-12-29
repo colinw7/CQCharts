@@ -250,6 +250,8 @@ CQChartsGeom::Range
 CQChartsPiePlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsPiePlot::calcRange");
+
   CQChartsGeom::Range dataRange;
 
   CQChartsGeom::Point c(0.0, 0.0);
@@ -322,20 +324,15 @@ annotationBBox() const
 
 //------
 
-void
-CQChartsPiePlot::
-updateObjs()
-{
-  //clearValueSets();
-
-  CQChartsPlot::updateObjs();
-}
-
 bool
 CQChartsPiePlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsPiePlot::createObjs");
+
+  NoUpdate noUpdate(const_cast<CQChartsPiePlot *>(this));
+
+  //---
 
   // calc group totals
   calcDataTotal();
@@ -401,7 +398,7 @@ createObjs()
 
     groupObj->setVisible(isCount());
 
-    addPlotObject(groupObj);
+    objs.push_back(groupObj);
 
     groupObjs_.push_back(groupObj);
 
@@ -429,21 +426,24 @@ createObjs()
     // process model data
     class PieVisitor : public ModelVisitor {
      public:
-      PieVisitor(CQChartsPiePlot *plot) :
-       plot_(plot) {
+      PieVisitor(const CQChartsPiePlot *plot, PlotObjs &objs) :
+       plot_(plot), objs_(objs) {
       }
 
-      State visit(QAbstractItemModel *, const VisitData &data) override {
-        plot_->addRow(data);
+      State visit(const QAbstractItemModel *, const VisitData &data) override {
+        CQChartsPiePlot *plot = const_cast<CQChartsPiePlot *>(plot_);
+
+        plot->addRow(data, objs_);
 
         return State::OK;
       }
 
      private:
-      CQChartsPiePlot *plot_ { nullptr };
+      const CQChartsPiePlot *plot_ { nullptr };
+      PlotObjs&              objs_;
     };
 
-    PieVisitor pieVisitor(this);
+    PieVisitor pieVisitor(this, objs);
 
     visitModel(pieVisitor);
   }
@@ -454,27 +454,23 @@ createObjs()
 
   //---
 
-  resetKeyItems();
-
-  //---
-
   return true;
 }
 
 void
 CQChartsPiePlot::
-addRow(const ModelVisitor::VisitData &data)
+addRow(const ModelVisitor::VisitData &data, PlotObjs &objs)
 {
   for (const auto &column : valueColumns()) {
     CQChartsModelIndex ind(data.row, column, data.parent);
 
-    addRowColumn(ind);
+    addRowColumn(ind, objs);
   }
 }
 
 void
 CQChartsPiePlot::
-addRowColumn(const CQChartsModelIndex &ind)
+addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs)
 {
   assert(! isCount());
 
@@ -617,7 +613,7 @@ addRowColumn(const CQChartsModelIndex &ind)
 
     //---
 
-    addPlotObject(obj);
+    objs.push_back(obj);
 
     if (groupObj)
       groupObj->addObject(obj);
@@ -644,18 +640,20 @@ calcDataTotal()
   // process model data
   class DataTotalVisitor : public ModelVisitor {
    public:
-    DataTotalVisitor(CQChartsPiePlot *plot) :
+    DataTotalVisitor(const CQChartsPiePlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRowDataTotal(data);
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsPiePlot *plot = const_cast<CQChartsPiePlot *>(plot_);
+
+      plot->addRowDataTotal(data);
 
       return State::OK;
     }
 
    private:
-    CQChartsPiePlot *plot_ { nullptr };
+    const CQChartsPiePlot *plot_ { nullptr };
   };
 
   DataTotalVisitor dataTotalVisitor(this);
@@ -957,9 +955,9 @@ addKeyItems(CQChartsPlotKey *key)
 
 void
 CQChartsPiePlot::
-handleResize()
+postResize()
 {
-  CQChartsPlot::handleResize();
+  CQChartsPlot::postResize();
 
   resetRange();
 }
@@ -999,8 +997,9 @@ addMenuItems(QMenu *menu)
 //------
 
 CQChartsPieObj::
-CQChartsPieObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect, const QModelIndex &ind) :
- CQChartsPlotObj(plot, rect), plot_(plot), ind_(ind)
+CQChartsPieObj(const CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect,
+               const QModelIndex &ind) :
+ CQChartsPlotObj(const_cast<CQChartsPiePlot *>(plot), rect), plot_(plot), ind_(ind)
 {
 }
 
@@ -1262,7 +1261,7 @@ draw(QPainter *painter)
   QColor bg;
 
   if      (color().isValid())
-    bg = color().interpColor(plot_->charts(), colorInd(), no);
+    bg = plot_->charts()->interpColor(color(), colorInd(), no);
   else if (groupObj)
     bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
 
@@ -1329,7 +1328,7 @@ getCenter() const
 
 void
 CQChartsPieObj::
-drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c)
+drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
 {
   if (! plot_->textBox()->isTextVisible())
     return;
@@ -1430,9 +1429,10 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c)
 //------
 
 CQChartsPieGroupObj::
-CQChartsPieGroupObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &bbox,
+CQChartsPieGroupObj(const CQChartsPiePlot *plot, const CQChartsGeom::BBox &bbox,
                     int groupInd, const QString &name, int ig, int ng) :
- CQChartsGroupObj(plot, bbox), plot_(plot), groupInd_(groupInd), name_(name), ig_(ig), ng_(ng)
+ CQChartsGroupObj(const_cast<CQChartsPiePlot *>(plot), bbox), plot_(plot), groupInd_(groupInd),
+ name_(name), ig_(ig), ng_(ng)
 {
 }
 
@@ -1666,9 +1666,9 @@ fillBrush() const
   else if (obj) {
     CQChartsPieGroupObj *group = obj->groupObj();
 
-    no = group->numObjs();
+    no = (group ? group->numObjs() : 1);
 
-    int ig = group->colorInd();
+    int ig = (group ? group->colorInd() : 0);
     int io = obj->colorInd();
 
     c = plot->interpGroupPaletteColor(ig, ng, io, no);
@@ -1678,7 +1678,7 @@ fillBrush() const
   }
 
   if (obj && obj->color().isValid())
-    c = obj->color().interpColor(plot_->charts(), obj->colorInd(), no);
+    c = plot_->charts()->interpColor(obj->color(), obj->colorInd(), no);
 
   return c;
 }
@@ -1725,7 +1725,7 @@ interpTextColor(int i, int n) const
 //------
 
 CQChartsPieTextObj::
-CQChartsPieTextObj(CQChartsPiePlot *plot) :
- CQChartsRotatedTextBoxObj(plot), plot_(plot)
+CQChartsPieTextObj(const CQChartsPiePlot *plot) :
+ CQChartsRotatedTextBoxObj(const_cast<CQChartsPiePlot *>(plot)), plot_(plot)
 {
 }

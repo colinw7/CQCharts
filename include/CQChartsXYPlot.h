@@ -41,13 +41,13 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
   Q_PROPERTY(double y2 READ y2 WRITE setY2)
 
  public:
-  CQChartsXYBiLineObj(CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+  CQChartsXYBiLineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                       double x, double y1, double y2, const QModelIndex &ind,
                       int iset, int nset, int i, int n);
 
   //---
 
-  CQChartsXYPlot *plot() const { return plot_; }
+  const CQChartsXYPlot *plot() const { return plot_; }
 
   double x() const { return x_; }
   void setX(double r) { x_ = r; }
@@ -85,16 +85,16 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsXYPlot* plot_     { nullptr }; // parent plot
-  int             groupInd_ { -1 };      // group ind
-  double          x_        { 0.0 };     // x
-  double          y1_       { 0.0 };     // start y
-  double          y2_       { 0.0 };     // end y
-  QModelIndex     ind_;                  // model index
-  int             iset_     { -1 };      // iset
-  int             nset_     { -1 };      // nset
-  int             i_        { -1 };      // i
-  int             n_        { -1 };      // n
+  const CQChartsXYPlot* plot_     { nullptr }; // parent plot
+  int                   groupInd_ { -1 };      // group ind
+  double                x_        { 0.0 };     // x
+  double                y1_       { 0.0 };     // start y
+  double                y2_       { 0.0 };     // end y
+  QModelIndex           ind_;                  // model index
+  int                   iset_     { -1 };      // iset
+  int                   nset_     { -1 };      // nset
+  int                   i_        { -1 };      // i
+  int                   n_        { -1 };      // n
 };
 
 //---
@@ -107,13 +107,13 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   Q_PROPERTY(double y2 READ y2 WRITE setY2)
 
  public:
-  CQChartsXYImpulseLineObj(CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+  CQChartsXYImpulseLineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                            double x, double y1, double y2, const QModelIndex &ind,
                            int iset, int nset, int i, int n);
 
   //---
 
-  CQChartsXYPlot *plot() const { return plot_; }
+  const CQChartsXYPlot *plot() const { return plot_; }
 
   double x() const { return x_; }
   void setX(double r) { x_ = r; }
@@ -151,16 +151,16 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsXYPlot* plot_     { nullptr }; // parent plot
-  int             groupInd_ { -1 };      // group ind
-  double          x_        { 0.0 };     // x
-  double          y1_       { 0.0 };     // start y
-  double          y2_       { 0.0 };     // end y
-  QModelIndex     ind_;                  // model index
-  int             iset_     { -1 };      // iset
-  int             nset_     { -1 };      // nset
-  int             i_        { -1 };      // i
-  int             n_        { -1 };      // n
+  const CQChartsXYPlot* plot_     { nullptr }; // parent plot
+  int                   groupInd_ { -1 };      // group ind
+  double                x_        { 0.0 };     // x
+  double                y1_       { 0.0 };     // start y
+  double                y2_       { 0.0 };     // end y
+  QModelIndex           ind_;                  // model index
+  int                   iset_     { -1 };      // iset
+  int                   nset_     { -1 };      // nset
+  int                   i_        { -1 };      // i
+  int                   n_        { -1 };      // n
 };
 
 //---
@@ -173,7 +173,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   Q_PROPERTY(double size READ size WRITE setSize)
 
  public:
-  CQChartsXYPointObj(CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+  CQChartsXYPointObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                      double x, double y, double size, const QModelIndex &ind,
                      int iset, int nset, int i, int n);
 
@@ -181,7 +181,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   //---
 
-  CQChartsXYPlot *plot() const { return plot_; }
+  const CQChartsXYPlot *plot() const { return plot_; }
 
   double x() const { return pos_.x(); }
   void setX(double r) { pos_.setX(r); }
@@ -233,16 +233,16 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
     OptPoint       vector;
   };
 
-  CQChartsXYPlot* plot_     { nullptr }; // parent plot
-  int             groupInd_ { -1 };      // group ind
-  QPointF         pos_;                  // position
-  double          size_     { -1 };      // size : TODO support units
-  QModelIndex     ind_;                  // model index
-  int             iset_     { -1 };      // sets index
-  int             nset_     { -1 };      // sets size
-  int             i_        { -1 };      // points index
-  int             n_        { -1 };      // points size
-  ExtraData*      edata_    { nullptr }; // extra data
+  const CQChartsXYPlot* plot_     { nullptr }; // parent plot
+  int                   groupInd_ { -1 };      // group ind
+  QPointF               pos_;                  // position
+  double                size_     { -1 };      // size : TODO support units
+  QModelIndex           ind_;                  // model index
+  int                   iset_     { -1 };      // sets index
+  int                   nset_     { -1 };      // sets size
+  int                   i_        { -1 };      // points index
+  int                   n_        { -1 };      // points size
+  ExtraData*            edata_    { nullptr }; // extra data
 };
 
 //---
@@ -255,7 +255,7 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
   Q_PROPERTY(QString label READ label WRITE setLabel)
 
  public:
-  CQChartsXYLabelObj(CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+  CQChartsXYLabelObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                      double x, double y, const QString &label, const QModelIndex &ind,
                      int iset, int nset, int i, int n);
 
@@ -263,7 +263,7 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
 
   //---
 
-  CQChartsXYPlot *plot() const { return plot_; }
+  const CQChartsXYPlot *plot() const { return plot_; }
 
   double x() const { return pos_.x(); }
   void setX(double r) { pos_.setX(r); }
@@ -303,15 +303,15 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
  private:
   using OptPoint = boost::optional<QPointF>;
 
-  CQChartsXYPlot* plot_     { nullptr }; // parent plot
-  int             groupInd_ { -1 };      // group ind
-  QPointF         pos_;                  // position
-  QString         label_;                // label
-  QModelIndex     ind_;                  // model index
-  int             iset_     { -1 };      // sets index
-  int             nset_     { -1 };      // sets size
-  int             i_        { -1 };      // points index
-  int             n_        { -1 };      // points size
+  const CQChartsXYPlot* plot_     { nullptr }; // parent plot
+  int                   groupInd_ { -1 };      // group ind
+  QPointF               pos_;                  // position
+  QString               label_;                // label
+  QModelIndex           ind_;                  // model index
+  int                   iset_     { -1 };      // sets index
+  int                   nset_     { -1 };      // sets size
+  int                   i_        { -1 };      // points index
+  int                   n_        { -1 };      // points size
 };
 
 //---
@@ -324,7 +324,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   Q_PROPERTY(QString name READ name WRITE setName)
 
  public:
-  CQChartsXYPolylineObj(CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+  CQChartsXYPolylineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                         const QPolygonF &poly, const QString &name,
                         int ig, int ng, int is, int ns);
 
@@ -332,7 +332,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   //---
 
-  CQChartsXYPlot *plot() const { return plot_; }
+  const CQChartsXYPlot *plot() const { return plot_; }
 
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
@@ -367,16 +367,16 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   void initSmooth();
 
  private:
-  CQChartsXYPlot* plot_     { nullptr }; // parent plot
-  int             groupInd_ { -1 };      // group ind
-  QPolygonF       poly_;                 // polygon
-  QString         name_;                 // name
-  int             ig_       { -1 };      // group ind
-  int             ng_       { -1 };      // num groups
-  int             is_       { -1 };      // set ind
-  int             ns_       { -1 };      // num sets
-  CQChartsSmooth* smooth_   { nullptr }; // smooth object
-  CQChartsFitData fit_;                  // fit data
+  const CQChartsXYPlot* plot_     { nullptr }; // parent plot
+  int                   groupInd_ { -1 };      // group ind
+  QPolygonF             poly_;                 // polygon
+  QString               name_;                 // name
+  int                   ig_       { -1 };      // group ind
+  int                   ng_       { -1 };      // num groups
+  int                   is_       { -1 };      // set ind
+  int                   ns_       { -1 };      // num sets
+  CQChartsSmooth*       smooth_   { nullptr }; // smooth object
+  CQChartsFitData       fit_;                  // fit data
 };
 
 //---
@@ -387,7 +387,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   Q_PROPERTY(QString name READ name WRITE setName)
 
  public:
-  CQChartsXYPolygonObj(CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+  CQChartsXYPolygonObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                        const QPolygonF &poly, const QString &name,
                        int ig, int ng, int is, int ns);
 
@@ -395,7 +395,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   //---
 
-  CQChartsXYPlot *plot() const { return plot_; }
+  const CQChartsXYPlot *plot() const { return plot_; }
 
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
@@ -428,15 +428,15 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   void initSmooth();
 
  private:
-  CQChartsXYPlot* plot_     { nullptr }; // parent plot
-  int             groupInd_ { -1 };      // group ind
-  QPolygonF       poly_;                 // polygon
-  QString         name_;                 // name
-  int             ig_       { -1 };      // group ind
-  int             ng_       { -1 };      // num groups
-  int             is_       { -1 };      // set ind
-  int             ns_       { -1 };      // num sets
-  CQChartsSmooth* smooth_   { nullptr }; // smooth object
+  const CQChartsXYPlot* plot_     { nullptr }; // parent plot
+  int                   groupInd_ { -1 };      // group ind
+  QPolygonF             poly_;                 // polygon
+  QString               name_;                 // name
+  int                   ig_       { -1 };      // group ind
+  int                   ng_       { -1 };      // num groups
+  int                   is_       { -1 };      // set ind
+  int                   ns_       { -1 };      // num sets
+  CQChartsSmooth*       smooth_   { nullptr }; // smooth object
 };
 
 //---
@@ -640,7 +640,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   void postInit() override;
 
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
   //---
 
@@ -650,10 +650,10 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   //---
 
   void addPolyLine(const QPolygonF &polyLine, int groupInd, int ig, int ng, int is, int ns,
-                   const QString &name);
+                   const QString &name, PlotObjs &objs);
 
   void addPolygon(const QPolygonF &poly, int groupInd, int ig, int ng, int is, int ns,
-                  const QString &name);
+                  const QString &name, PlotObjs &objs);
 
   QString valueName(int iset, int irow) const;
 
@@ -672,7 +672,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   bool addMenuItems(QMenu *menu) override;
 
-  void drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2);
+  void drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2) const;
 
  public slots:
   // set points visible
@@ -714,8 +714,10 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   using GroupSetIndPoly = std::map<int,SetIndPoly>;
 
  private:
+  void initAxes();
+
   void createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly);
-  bool createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly);
+  bool createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs);
 
   QString xAxisName() const;
   QString yAxisName() const;
@@ -734,10 +736,10 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   bool            cumulative_           { false };            // cumulate values
   bool            linesSelectable_      { false };            // are lines selectable
   bool            roundedLines_         { false };            // draw rounded (smooth) lines
+  bool            fitted_               { false };            // is fitted
   FillUnderData   fillUnderData_;                             // fill under data
   CQChartsArrow*  arrowObj_             { nullptr };          // vectors data
   ColumnType      pointColorColumnType_ { ColumnType::NONE }; // point color column type
-  bool            fitted_               { false };            // is fitted
   mutable double  symbolWidth_          { 1.0 };              // current symbol width
   mutable double  symbolHeight_         { 1.0 };              // current symbol height
 };

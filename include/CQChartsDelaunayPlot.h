@@ -35,7 +35,7 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsDelaunayPointObj(CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsDelaunayPointObj(const CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &rect,
                            double x, double y, const QModelIndex &ind, int i, int n);
 
   QString calcId() const override;
@@ -51,12 +51,12 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsDelaunayPlot* plot_ { nullptr };
-  double                x_    { 0.0 };
-  double                y_    { 0.0 };
-  QModelIndex           ind_;
-  int                   i_    { -1 };
-  int                   n_    { -1 };
+  const CQChartsDelaunayPlot* plot_ { nullptr };
+  double                      x_    { 0.0 };
+  double                      y_    { 0.0 };
+  QModelIndex                 ind_;
+  int                         i_    { -1 };
+  int                         n_    { -1 };
 };
 
 //---
@@ -116,9 +116,10 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   CQChartsGeom::Range calcRange() override;
 
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
-  void addPointObj(double x, double y, const QModelIndex &xind, int r);
+  void addPointObj(double x, double y, const QModelIndex &xind,
+                   int r, int nr, PlotObjs &objs);
 
   //---
 
@@ -134,8 +135,8 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   void setVoronoi(bool b);
 
  private:
-  void drawDelaunay(QPainter *p);
-  void drawVoronoi (QPainter *p);
+  void drawDelaunay(QPainter *p) const;
+  void drawVoronoi (QPainter *p) const;
 
  private:
   CQChartsColumn    xColumn_;                      // x column
@@ -143,7 +144,6 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   CQChartsColumn    nameColumn_;                   // name column
   bool              voronoi_          { true };    // is voronoi
   double            voronoiPointSize_ { 2 };       // voronoi point size
-  int               nr_               { 0 };       // number of rows
   CQChartsDelaunay* delaunay_         { nullptr }; // delaunay data
   QString           yname_;                        // y name
 };

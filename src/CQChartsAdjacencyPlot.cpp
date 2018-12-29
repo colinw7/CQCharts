@@ -239,6 +239,8 @@ CQChartsGeom::Range
 CQChartsAdjacencyPlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsAdjacencyPlot::calcRange");
+
   CQChartsGeom::Range dataRange;
 
   double r = 1.0;
@@ -264,9 +266,13 @@ calcRange()
 
 bool
 CQChartsAdjacencyPlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsAdjacencyPlot::createObjs");
+
+  NoUpdate noUpdate(const_cast<CQChartsAdjacencyPlot *>(this));
+
+  //---
 
   for (auto &pnode : nodes_)
     delete pnode.second;
@@ -278,24 +284,24 @@ createObjs()
   setInsideObj(nullptr);
 
   if      (namePairColumn().isValid() && countColumn().isValid())
-    return initHierObjs();
+    return initHierObjs(objs);
   else if (connectionsColumn().isValid())
-    return initConnectionObjs();
+    return initConnectionObjs(objs);
   else
     return false;
 }
 
 bool
 CQChartsAdjacencyPlot::
-initHierObjs()
+initHierObjs(PlotObjs &objs)
 {
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsAdjacencyPlot *plot) :
+    RowVisitor(const CQChartsAdjacencyPlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       int group = data.row;
 
       if (plot_->groupIdColumn().isValid()) {
@@ -366,7 +372,7 @@ initHierObjs()
     }
 
    private:
-    CQChartsAdjacencyPlot *plot_ { nullptr };
+    const CQChartsAdjacencyPlot *plot_ { nullptr };
   };
 
   nameNodeMap_.clear();
@@ -423,7 +429,7 @@ initHierObjs()
 
         CQChartsAdjacencyObj *obj = new CQChartsAdjacencyObj(this, node1, node2, value, bbox);
 
-        addPlotObject(obj);
+        objs.push_back(obj);
       }
 
       x += scale_;
@@ -439,15 +445,15 @@ initHierObjs()
 
 bool
 CQChartsAdjacencyPlot::
-initConnectionObjs()
+initConnectionObjs(PlotObjs &objs)
 {
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsAdjacencyPlot *plot) :
+    RowVisitor(const CQChartsAdjacencyPlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       ConnectionsData connections;
 
       if (! plot_->getRowConnections(data, connections))
@@ -461,8 +467,8 @@ initConnectionObjs()
     const IdConnectionsData &idConnections() const { return idConnections_; }
 
    private:
-    CQChartsAdjacencyPlot *plot_ { nullptr };
-    IdConnectionsData      idConnections_;
+    const CQChartsAdjacencyPlot* plot_ { nullptr };
+    IdConnectionsData            idConnections_;
   };
 
   RowVisitor visitor(this);
@@ -536,7 +542,7 @@ initConnectionObjs()
 
         CQChartsAdjacencyObj *obj = new CQChartsAdjacencyObj(this, node1, node2, value, bbox);
 
-        addPlotObject(obj);
+        objs.push_back(obj);
       }
 
       x += scale_;
@@ -552,7 +558,7 @@ initConnectionObjs()
 
 bool
 CQChartsAdjacencyPlot::
-getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connections)
+getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connections) const
 {
   // get optional group id
   bool ok2;
@@ -656,26 +662,29 @@ sortNodes()
 
 bool
 CQChartsAdjacencyPlot::
-decodeConnections(const QString &str, Connections &connections)
+decodeConnections(const QString &str, Connections &connections) const
 {
   return CQChartsConnectionList::stringToConnections(str, connections);
 }
 
 CQChartsAdjacencyNode *
 CQChartsAdjacencyPlot::
-getNodeByName(const QString &str)
+getNodeByName(const QString &str) const
 {
   auto p = nameNodeMap_.find(str);
 
-  if (p == nameNodeMap_.end()) {
-    int id = nameNodeMap_.size();
+  if (p != nameNodeMap_.end())
+    return (*p).second;
 
-    CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, str, 0, QModelIndex());
+  int id = nameNodeMap_.size();
 
-    p = nameNodeMap_.insert(p, NameNodeMap::value_type(str, node));
-  }
+  CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, str, 0, QModelIndex());
 
-  return (*p).second;
+  CQChartsAdjacencyPlot *th = const_cast<CQChartsAdjacencyPlot *>(this);
+
+  auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), NameNodeMap::value_type(str, node));
+
+  return (*p1).second;
 }
 
 //---
@@ -695,9 +704,9 @@ autoFit()
 
 void
 CQChartsAdjacencyPlot::
-handleResize()
+postResize()
 {
-  CQChartsPlot::handleResize();
+  CQChartsPlot::postResize();
 
   setInsideObj(nullptr);
 
@@ -879,9 +888,10 @@ interpGroupColor(int group) const
 //------
 
 CQChartsAdjacencyObj::
-CQChartsAdjacencyObj(CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
+CQChartsAdjacencyObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
                      CQChartsAdjacencyNode *node2, double value, const CQChartsGeom::BBox &rect) :
- CQChartsPlotObj(plot, rect), plot_(plot), node1_(node1), node2_(node2), value_(value)
+ CQChartsPlotObj(const_cast<CQChartsAdjacencyPlot *>(plot), rect), plot_(plot),
+ node1_(node1), node2_(node2), value_(value)
 {
 }
 
@@ -926,9 +936,11 @@ draw(QPainter *painter)
 {
   if (isInside()) {
     if (plot_->insideObj() != this) {
-      plot_->setInsideObj(this);
+      CQChartsAdjacencyPlot *plot = const_cast<CQChartsAdjacencyPlot *>(plot_);
 
-      plot_->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+      plot->setInsideObj(this);
+
+      plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
     }
   }
 

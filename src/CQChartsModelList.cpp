@@ -396,7 +396,7 @@ setDetails()
 
   //---
 
-  CQChartsModelData *modelData1 = nullptr;
+  const CQChartsModelData *modelData1 = nullptr;
 
   if (currentViewWidgetData_->stack->currentIndex() == 0) {
     if (currentViewWidgetData_->tree)
@@ -408,7 +408,7 @@ setDetails()
   }
 
   if (! modelData1)
-    modelData1 = const_cast<CQChartsModelData *>(modelData_);
+    modelData1 = modelData_;
 
   //---
 

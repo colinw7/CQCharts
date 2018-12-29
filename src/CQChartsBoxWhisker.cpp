@@ -6,7 +6,7 @@
 namespace CQChartsBoxWhiskerUtil {
 
 void
-drawWhisker(CQChartsPlot *plot, QPainter *painter, const CQChartsBoxWhisker &whisker,
+drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsBoxWhisker &whisker,
             const CQChartsGeom::BBox &bbox, const CQChartsLength &width,
             const Qt::Orientation &orientation)
 {
@@ -14,7 +14,7 @@ drawWhisker(CQChartsPlot *plot, QPainter *painter, const CQChartsBoxWhisker &whi
 }
 
 void
-drawWhisker(CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerData &data,
+drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerData &data,
             const CQChartsGeom::BBox &bbox, const CQChartsLength &width,
             const Qt::Orientation &orientation)
 {
@@ -72,7 +72,7 @@ drawWhisker(CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerData &da
 }
 
 void
-drawWhiskerBar(CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerData &data,
+drawWhiskerBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerData &data,
                double pos, const Qt::Orientation &orientation,
                double ww, double bw, const CQChartsLength &cornerSize, bool notched)
 {
@@ -155,7 +155,7 @@ drawWhiskerBar(CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerData 
 }
 
 void
-drawOutliers(CQChartsPlot *plot, QPainter *painter, const std::vector<double> &ovalues,
+drawOutliers(const CQChartsPlot *plot, QPainter *painter, const std::vector<double> &ovalues,
              double pos, const CQChartsSymbolData &symbol, const QPen &pen,
              const QBrush &brush, const Qt::Orientation &orientation)
 {

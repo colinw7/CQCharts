@@ -46,7 +46,7 @@ class CQChartsModelVisitor {
 
   //---
 
-  void init(QAbstractItemModel *model);
+  void init(const QAbstractItemModel *model);
 
   void step() { ++row_; }
 
@@ -54,41 +54,41 @@ class CQChartsModelVisitor {
 
   //---
 
-  virtual State hierVisit(QAbstractItemModel *, const VisitData &) { return State::OK; }
+  virtual State hierVisit(const QAbstractItemModel *, const VisitData &) { return State::OK; }
 
-  virtual State hierPostVisit(QAbstractItemModel *, const VisitData &) { return State::OK; }
+  virtual State hierPostVisit(const QAbstractItemModel *, const VisitData &) { return State::OK; }
 
   //---
 
-  virtual State preVisit(QAbstractItemModel *, const VisitData &) { return State::OK; }
+  virtual State preVisit(const QAbstractItemModel *, const VisitData &) { return State::OK; }
 
-  virtual State visit(QAbstractItemModel *, const VisitData &) { return State::OK; }
+  virtual State visit(const QAbstractItemModel *, const VisitData &) { return State::OK; }
 
-  //virtual State postVisit(QAbstractItemModel *, const VisitData &) { return State::OK; }
+  //virtual State postVisit(const QAbstractItemModel *, const VisitData &) { return State::OK; }
 
  protected:
-  QAbstractItemModel* model_        { nullptr };
-  int                 numCols_      { 0 };
-  int                 row_          { 0 };
-  int                 numRows_      { 0 };
-  int                 maxRows_      { -1 };
-  bool                hierarchical_ { false };
-  bool                hierSet_      { false };
+  const QAbstractItemModel* model_        { nullptr };
+  int                       numCols_      { 0 };
+  int                       row_          { 0 };
+  int                       numRows_      { 0 };
+  int                       maxRows_      { -1 };
+  bool                      hierarchical_ { false };
+  bool                      hierSet_      { false };
 };
 
 //---
 
 namespace CQChartsModelVisit {
 
-bool exec(CQCharts *charts, QAbstractItemModel *model, CQChartsModelVisitor &visitor);
+bool exec(CQCharts *charts, const QAbstractItemModel *model, CQChartsModelVisitor &visitor);
 
-bool exec(QAbstractItemModel *model, const QModelIndex &parent, int r,
+bool exec(const QAbstractItemModel *model, const QModelIndex &parent, int r,
           CQChartsModelVisitor &visitor);
 
-CQChartsModelVisitor::State execIndex(QAbstractItemModel *model, const QModelIndex &parent,
-                                            CQChartsModelVisitor &visitor);
+CQChartsModelVisitor::State execIndex(const QAbstractItemModel *model, const QModelIndex &parent,
+                                      CQChartsModelVisitor &visitor);
 
-CQChartsModelVisitor::State execRow(QAbstractItemModel *model, const QModelIndex &parent,
+CQChartsModelVisitor::State execRow(const QAbstractItemModel *model, const QModelIndex &parent,
                                     int r, CQChartsModelVisitor &visitor);
 
 }

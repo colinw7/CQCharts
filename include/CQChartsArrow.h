@@ -7,6 +7,7 @@
 
 class CQChartsView;
 class CQChartsPlot;
+class CQCharts;
 class QPainter;
 
 class CQChartsArrow : public QObject,

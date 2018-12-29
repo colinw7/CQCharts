@@ -122,13 +122,15 @@ CQChartsGeom::Range
 CQChartsImagePlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsImagePlot::calcRange");
+
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsImagePlot *plot) :
+    RowVisitor(const CQChartsImagePlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       for (int col = 0; col < numCols(); ++col) {
         bool ok;
 
@@ -153,10 +155,10 @@ calcRange()
     double maxValue() const { return maxValue_; }
 
    private:
-    CQChartsImagePlot *plot_     { nullptr };
-    bool               valueSet_ { false };
-    double             minValue_ { 0.0 };
-    double             maxValue_ { 0.0 };
+    const CQChartsImagePlot* plot_     { nullptr };
+    bool                     valueSet_ { false };
+    double                   minValue_ { 0.0 };
+    double                   maxValue_ { 0.0 };
   };
 
   RowVisitor visitor(this);
@@ -193,17 +195,21 @@ calcRange()
 
 bool
 CQChartsImagePlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsImagePlot::createObjs");
 
+  NoUpdate noUpdate(const_cast<CQChartsImagePlot *>(this));
+
+  //---
+
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsImagePlot *plot) :
-     plot_(plot) {
+    RowVisitor(const CQChartsImagePlot *plot, PlotObjs &objs) :
+     plot_(plot), objs_(objs) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       x_ = 0.0;
 
       for (int col = 0; col < numCols(); ++col) {
@@ -215,7 +221,9 @@ createObjs()
 
         //---
 
-        plot_->addImageObj(data.row, col, x_, y_, dx_, dy_, value, ind);
+        CQChartsImagePlot *plot = const_cast<CQChartsImagePlot *>(plot_);
+
+        plot->addImageObj(data.row, col, x_, y_, dx_, dy_, value, ind, objs_);
 
         //---
 
@@ -228,14 +236,15 @@ createObjs()
     }
 
    private:
-    CQChartsImagePlot* plot_ { nullptr };
-    double             x_    { 0.0 };
-    double             y_    { 0.0 };
-    double             dx_   { 1.0 };
-    double             dy_   { 1.0 };
+    const CQChartsImagePlot* plot_ { nullptr };
+    PlotObjs&                objs_;
+    double                   x_    { 0.0 };
+    double                   y_    { 0.0 };
+    double                   dx_   { 1.0 };
+    double                   dy_   { 1.0 };
   };
 
-  RowVisitor visitor(this);
+  RowVisitor visitor(this, objs);
 
   visitModel(visitor);
 
@@ -247,7 +256,7 @@ createObjs()
 void
 CQChartsImagePlot::
 addImageObj(int row, int col, double x, double y, double dx, double dy, double value,
-            const QModelIndex &ind)
+            const QModelIndex &ind, PlotObjs &objs)
 {
   QModelIndex ind1 = normalizeIndex(ind);
 
@@ -255,7 +264,7 @@ addImageObj(int row, int col, double x, double y, double dx, double dy, double v
 
   CQChartsImageObj *imageObj = new CQChartsImageObj(this, bbox, row, col, value, ind1);
 
-  addPlotObject(imageObj);
+  objs.push_back(imageObj);
 }
 
 bool
@@ -310,7 +319,7 @@ drawForeground(QPainter *painter)
 
 void
 CQChartsImagePlot::
-drawXLabels(QPainter *painter)
+drawXLabels(QPainter *painter) const
 {
   view()->setPlotPainterFont(this, painter, textFont());
 
@@ -374,7 +383,7 @@ drawXLabels(QPainter *painter)
 
 void
 CQChartsImagePlot::
-drawYLabels(QPainter *painter)
+drawYLabels(QPainter *painter) const
 {
   view()->setPlotPainterFont(this, painter, textFont());
 
@@ -491,9 +500,10 @@ annotationBBox() const
 //------
 
 CQChartsImageObj::
-CQChartsImageObj(CQChartsImagePlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsImageObj(const CQChartsImagePlot *plot, const CQChartsGeom::BBox &rect,
                  int row, int col, double value, const QModelIndex &ind) :
- CQChartsPlotObj(plot, rect), plot_(plot), row_(row), col_(col), value_(value), ind_(ind)
+ CQChartsPlotObj(const_cast<CQChartsImagePlot *>(plot), rect), plot_(plot),
+ row_(row), col_(col), value_(value), ind_(ind)
 {
 }
 

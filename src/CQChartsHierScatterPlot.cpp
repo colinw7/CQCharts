@@ -178,7 +178,7 @@ setCurrentGroup(CQChartsHierScatterPointGroup *group)
 
   updateRangeAndObjs();
 
-  //CQChartsPlot::updateObjs();
+  //updateObjs();
 }
 
 //------
@@ -206,14 +206,16 @@ CQChartsGeom::Range
 CQChartsHierScatterPlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsHierScatterPlot::calcRange");
+
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsHierScatterPlot *plot) :
+    RowVisitor(const CQChartsHierScatterPlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       if (! plot_->acceptsRow(data.row, data.parent))
         return State::SKIP;
 
@@ -236,8 +238,8 @@ calcRange()
     const CQChartsGeom::Range &range() const { return range_; }
 
    private:
-    CQChartsHierScatterPlot *plot_ { nullptr };
-    CQChartsGeom::Range      range_;
+    const CQChartsHierScatterPlot* plot_ { nullptr };
+    CQChartsGeom::Range            range_;
   };
 
   RowVisitor visitor(this);
@@ -331,18 +333,20 @@ initGroupValueSets()
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsHierScatterPlot *plot) :
+    RowVisitor(const CQChartsHierScatterPlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRowGroupValueSets(data);
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsHierScatterPlot *plot = const_cast<CQChartsHierScatterPlot *>(plot_);
+
+      plot->addRowGroupValueSets(data);
 
       return State::OK;
     }
 
    private:
-    CQChartsHierScatterPlot *plot_ { nullptr };
+    const CQChartsHierScatterPlot* plot_ { nullptr };
   };
 
   RowVisitor visitor(this);
@@ -373,21 +377,25 @@ addRowGroupValueSets(const ModelVisitor::VisitData &data)
 
 void
 CQChartsHierScatterPlot::
-updateObjs()
+clearPlotObjects()
 {
   delete rootGroup_;
 
   rootGroup_    = nullptr;
   currentGroup_ = nullptr;
 
-  CQChartsPlot::updateObjs();
+  CQChartsPlot::clearPlotObjects();
 }
 
 bool
 CQChartsHierScatterPlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsHierScatterPlot::createObjs");
+
+  NoUpdate noUpdate(const_cast<CQChartsHierScatterPlot *>(this));
+
+  //---
 
   // init name values
   if (! rootGroup_) {
@@ -399,11 +407,11 @@ createObjs()
 
     class RowVisitor : public ModelVisitor {
      public:
-      RowVisitor(CQChartsHierScatterPlot *plot) :
+      RowVisitor(const CQChartsHierScatterPlot *plot) :
        plot_(plot) {
       }
 
-      State visit(QAbstractItemModel *, const VisitData &data) override {
+      State visit(const QAbstractItemModel *, const VisitData &data) override {
         if (! plot_->acceptsRow(data.row, data.parent))
           return State::SKIP;
 
@@ -430,13 +438,15 @@ createObjs()
 
         //---
 
-        plot_->addGroupPoint(data, x, y, name);
+        CQChartsHierScatterPlot *plot = const_cast<CQChartsHierScatterPlot *>(plot_);
+
+        plot->addGroupPoint(data, x, y, name);
 
         return State::OK;
       }
 
      private:
-      CQChartsHierScatterPlot *plot_ { nullptr };
+      const CQChartsHierScatterPlot* plot_ { nullptr };
     };
 
     RowVisitor visitor(this);
@@ -471,16 +481,12 @@ createObjs()
     for (auto &igroup : currentGroup_->groups()) {
       CQChartsHierScatterPointGroup *group = igroup.second;
 
-      addGroupPoints(group, group);
+      addGroupPoints(group, group, objs);
     }
   }
   else {
-    addGroupPoints(currentGroup_, currentGroup_);
+    addGroupPoints(currentGroup_, currentGroup_, objs);
   }
-
-  //---
-
-  resetKeyItems();
 
   //---
 
@@ -545,12 +551,13 @@ addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QSt
 
 void
 CQChartsHierScatterPlot::
-addGroupPoints(CQChartsHierScatterPointGroup *baseGroup, CQChartsHierScatterPointGroup *group)
+addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
+               CQChartsHierScatterPointGroup *group, PlotObjs &objs)
 {
   for (auto &igroup : group->groups()) {
     CQChartsHierScatterPointGroup *group1 = igroup.second;
 
-    addGroupPoints(baseGroup, group1);
+    addGroupPoints(baseGroup, group1, objs);
   }
 
   //---
@@ -578,7 +585,7 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup, CQChartsHierScatterPoin
     pointObj->setInd  (point.ind);
     pointObj->setGroup(point.group);
 
-    addPlotObject(pointObj);
+    objs.push_back(pointObj);
   }
 }
 
@@ -633,9 +640,10 @@ addMenuItems(QMenu *menu)
 //------
 
 CQChartsHierScatterPointObj::
-CQChartsHierScatterPointObj(CQChartsHierScatterPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsHierScatterPointObj(const CQChartsHierScatterPlot *plot, const CQChartsGeom::BBox &rect,
                             const QPointF &p, int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), p_(p), i_(i), n_(n)
+ CQChartsPlotObj(const_cast<CQChartsHierScatterPlot *>(plot), rect), plot_(plot),
+ p_(p), i_(i), n_(n)
 {
 }
 
@@ -733,7 +741,7 @@ draw(QPainter *painter)
   painter->drawEllipse(erect);
 
   if (plot_->isTextLabels()) {
-    CQChartsDataLabel &dataLabel = plot_->dataLabel();
+    const CQChartsDataLabel &dataLabel = plot_->dataLabel();
 
     dataLabel.draw(painter, erect, name_);
   }

@@ -20,7 +20,7 @@ class CQChartsFitData {
 
   double deviation() const { return deviation_; }
 
-  double interp(double x) {
+  double interp(double x) const {
     double y = 0.0;
 
     for (int i = num_coeffs_ - 1; i >= 0; --i)

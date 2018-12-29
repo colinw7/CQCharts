@@ -68,6 +68,9 @@ CQChartsExprModel::
 
   delete qtcl_;
 #endif
+
+  for (auto &extraColumn : extraColumns_)
+    delete extraColumn;
 }
 
 void
@@ -178,7 +181,7 @@ addExtraColumn(const QString &header, const QString &expr, int &column)
 {
   CQPerfTrace trace("CQChartsExprModel::addExtraColumn");
 
-  const_cast<CQChartsExprModel *>(this)->initCalc();
+  initCalc();
 
   //---
 
@@ -189,31 +192,31 @@ addExtraColumn(const QString &header, const QString &expr, int &column)
   //---
 
   // add new column
-  extraColumns_.emplace_back(expr, header);
+  extraColumns_.push_back(new ExtraColumn(expr, header));
 
   int ecolumn = numExtraColumns() - 1;
 
   //---
 
   // init calculated values in separate array
-  ExtraColumn &extraColumn = extraColumns_[ecolumn];
+  ExtraColumn *extraColumn = extraColumns_[ecolumn];
 
   nr_ = rowCount();
 
-  extraColumn.values.resize(nr_);
+  extraColumn->values.resize(nr_);
 
   for (int r = 0; r < nr_; ++r)
-    extraColumn.values[r] = QVariant();
+    extraColumn->values[r] = QVariant();
 
   // calculate new values
-  extraColumn.function = Function::ADD;
+  extraColumn->function = Function::ADD;
 
   calcExtraColumn(nc_, ecolumn);
 
-  extraColumn.function = Function::EVAL;
+  extraColumn->function = Function::EVAL;
 
   // remove extra calculated values
-  extraColumn.values.clear();
+  extraColumn->values.clear();
 
   //---
 
@@ -241,6 +244,8 @@ removeExtraColumn(int column)
 
   for (int i = ecolumn + 1; i < numExtraColumns(); ++i)
     extraColumns_[i - 1] = extraColumns_[i];
+
+  delete extraColumns_.back();
 
   extraColumns_.pop_back();
 
@@ -279,7 +284,7 @@ assignColumn(const QString &header, int column, const QString &expr)
 {
   CQPerfTrace trace("CQChartsExprModel::assignColumn");
 
-  const_cast<CQChartsExprModel *>(this)->initCalc();
+  initCalc();
 
   nc_ = columnCount();
 
@@ -327,7 +332,7 @@ assignExtraColumn(const QString &header, int column, const QString &expr)
 {
   CQPerfTrace trace("CQChartsExprModel::assignExtraColumn");
 
-  const_cast<CQChartsExprModel *>(this)->initCalc();
+  initCalc();
 
   nc_ = columnCount();
 
@@ -342,31 +347,31 @@ assignExtraColumn(const QString &header, int column, const QString &expr)
   calcExtraColumn(column, ecolumn);
 
   // store calculated values in separate array
-  ExtraColumn &extraColumn = extraColumns_[ecolumn];
+  ExtraColumn *extraColumn = extraColumns_[ecolumn];
 
   nr_ = rowCount();
 
-  extraColumn.values.resize(nr_);
+  extraColumn->values.resize(nr_);
 
   for (int r = 0; r < nr_; ++r)
-    extraColumn.values[r] = extraColumn.variantMap[r];
+    extraColumn->values[r] = extraColumn->variantMap[r];
 
   // set new expression and ensure all column values calculated
   if (header != "")
-    extraColumn.header = header;
+    extraColumn->header = header;
 
-  extraColumn.expr = expr;
+  extraColumn->expr = expr;
 
-  extraColumn.variantMap.clear();
+  extraColumn->variantMap.clear();
 
-  extraColumn.function = Function::ASSIGN;
+  extraColumn->function = Function::ASSIGN;
 
   calcExtraColumn(column, ecolumn);
 
-  extraColumn.function = Function::EVAL;
+  extraColumn->function = Function::EVAL;
 
   // remove extra calculated values
-  extraColumn.values.clear();
+  extraColumn->values.clear();
 
   //---
 
@@ -404,7 +409,7 @@ queryColumn(int column, const QString &expr, Rows &rows) const
 {
   CQPerfTrace trace("CQChartsExprModel::queryColumn");
 
-  const_cast<CQChartsExprModel *>(this)->initCalc();
+  initCalc();
 
   bool rc = true;
 
@@ -426,6 +431,15 @@ queryColumn(int column, const QString &expr, Rows &rows) const
   }
 
   return rc;
+}
+
+void
+CQChartsExprModel::
+initCalc() const
+{
+  CQChartsExprModel *th = const_cast<CQChartsExprModel *>(this);
+
+  th->initCalc();
 }
 
 void
@@ -505,14 +519,31 @@ bool
 CQChartsExprModel::
 columnRange(int column, double &minVal, double &maxVal) const
 {
-  ColumnData &columnData = columnDatas_[column];
+  auto p = columnDatas_.find(column);
 
-  if (columnData.rmin) {
-    minVal = *columnData.rmin;
-    maxVal = *columnData.rmax;
+  if (p != columnDatas_.end()) {
+    const ColumnData &columnData = (*p).second;
 
-    return true;
+    if (columnData.rmin) {
+      minVal = *columnData.rmin;
+      maxVal = *columnData.rmax;
+
+      return true;
+    }
   }
+
+  //---
+
+  CQChartsExprModel *th = const_cast<CQChartsExprModel *>(this);
+
+  return th->calcColumnRange(column, minVal, maxVal);
+}
+
+bool
+CQChartsExprModel::
+calcColumnRange(int column, double &minVal, double &maxVal)
+{
+  ColumnData &columnData = columnDatas_[column];
 
   nr_ = rowCount();
 
@@ -543,14 +574,31 @@ bool
 CQChartsExprModel::
 columnRange(int column, int &minVal, int &maxVal) const
 {
-  ColumnData &columnData = columnDatas_[column];
+  auto p = columnDatas_.find(column);
 
-  if (columnData.imin) {
-    minVal = *columnData.imin;
-    maxVal = *columnData.imax;
+  if (p != columnDatas_.end()) {
+    const ColumnData &columnData = (*p).second;
 
-    return true;
+    if (columnData.imin) {
+      minVal = *columnData.imin;
+      maxVal = *columnData.imax;
+
+      return true;
+    }
   }
+
+  //---
+
+  CQChartsExprModel *th = const_cast<CQChartsExprModel *>(this);
+
+  return th->calcColumnRange(column, minVal, maxVal);
+}
+
+bool
+CQChartsExprModel::
+calcColumnRange(int column, int &minVal, int &maxVal)
+{
+  ColumnData &columnData = columnDatas_[column];
 
   nr_ = rowCount();
 
@@ -656,9 +704,7 @@ data(const QModelIndex &index, int role) const
   }
 
   if (role == Qt::TextAlignmentRole) {
-    CQChartsExprModel *th = const_cast<CQChartsExprModel *>(this);
-
-    ExtraColumn &extraColumn = th->extraColumn(column);
+    const ExtraColumn &extraColumn = this->extraColumn(column);
 
     if (extraColumn.type == CQBaseModelType::INTEGER ||
         extraColumn.type == CQBaseModelType::REAL)
@@ -750,9 +796,7 @@ QVariant
 CQChartsExprModel::
 getExtraColumnValue(int row, int column, int ecolumn) const
 {
-  CQChartsExprModel *th = const_cast<CQChartsExprModel *>(this);
-
-  ExtraColumn &extraColumn = th->extraColumn(ecolumn);
+  const ExtraColumn &extraColumn = this->extraColumn(ecolumn);
 
   //---
 
@@ -768,63 +812,78 @@ getExtraColumnValue(int row, int column, int ecolumn) const
 
   auto p = extraColumn.variantMap.find(row);
 
-  if (p == extraColumn.variantMap.end()) {
-    extraColumn.evaluating = true;
+  if (p != extraColumn.variantMap.end())
+    return (*p).second;
 
-    QString expr = extraColumn.expr;
+  //---
 
-    expr = replaceExprColumns(expr, row, column).simplified();
+  CQChartsExprModel *th = const_cast<CQChartsExprModel *>(this);
 
-    QVariant var;
+  return th->calcExtraColumnValue(row, column, ecolumn);
+}
 
-    if (evaluateExpression(expr, var)) {
-      std::string str;
+QVariant
+CQChartsExprModel::
+calcExtraColumnValue(int row, int column, int ecolumn)
+{
+  ExtraColumn &extraColumn = this->extraColumn(ecolumn);
 
-      if      (var.type() == QVariant::Double) {
-        double real = var.value<double>();
+  extraColumn.evaluating = true;
 
-        bool isInt = CQBaseModel::isInteger(real);
+  QString expr = extraColumn.expr;
 
-        if      (extraColumn.type == CQBaseModelType::NONE) {
-          if (CQBaseModel::isInteger(real))
-            extraColumn.type = CQBaseModelType::INTEGER;
-          else
-            extraColumn.type = CQBaseModelType::REAL;
-        }
-        else if (extraColumn.type == CQBaseModelType::INTEGER) {
-          if (! isInt)
-            extraColumn.type = CQBaseModelType::REAL;
-        }
-        else if (extraColumn.type == CQBaseModelType::REAL) {
-        }
-      }
-      else if (var.type() == QVariant::Int) {
-        if (extraColumn.type == CQBaseModelType::NONE)
+  expr = replaceExprColumns(expr, row, column).simplified();
+
+  QVariant var;
+
+  if (evaluateExpression(expr, var)) {
+    std::string str;
+
+    if      (var.type() == QVariant::Double) {
+      double real = var.value<double>();
+
+      bool isInt = CQBaseModel::isInteger(real);
+
+      if      (extraColumn.type == CQBaseModelType::NONE) {
+        if (CQBaseModel::isInteger(real))
           extraColumn.type = CQBaseModelType::INTEGER;
+        else
+          extraColumn.type = CQBaseModelType::REAL;
       }
-      else if (var.type() == QVariant::Bool) {
-        if (extraColumn.type == CQBaseModelType::NONE)
-          extraColumn.type = CQBaseModelType::INTEGER;
+      else if (extraColumn.type == CQBaseModelType::INTEGER) {
+        if (! isInt)
+          extraColumn.type = CQBaseModelType::REAL;
       }
-      else {
-        if (extraColumn.type == CQBaseModelType::NONE)
-          extraColumn.type = CQBaseModelType::STRING;
+      else if (extraColumn.type == CQBaseModelType::REAL) {
       }
     }
-
-    p = extraColumn.variantMap.insert(p, VariantMap::value_type(row, var));
-
-    if (extraColumn.function == Function::ADD) {
-      if (! extraColumn.values.empty())
-        extraColumn.values[row] = var;
+    else if (var.type() == QVariant::Int) {
+      if (extraColumn.type == CQBaseModelType::NONE)
+        extraColumn.type = CQBaseModelType::INTEGER;
     }
-
-    if (debug_)
-      std::cerr << "Set Row " << row << " Column " << column << " = " <<
-                   var.toString().toStdString() << std::endl;
-
-    extraColumn.evaluating = false;
+    else if (var.type() == QVariant::Bool) {
+      if (extraColumn.type == CQBaseModelType::NONE)
+        extraColumn.type = CQBaseModelType::INTEGER;
+    }
+    else {
+      if (extraColumn.type == CQBaseModelType::NONE)
+        extraColumn.type = CQBaseModelType::STRING;
+    }
   }
+
+  auto p = extraColumn.variantMap.insert(extraColumn.variantMap.end(),
+                                         VariantMap::value_type(row, var));
+
+  if (extraColumn.function == Function::ADD) {
+    if (! extraColumn.values.empty())
+      extraColumn.values[row] = var;
+  }
+
+  if (debug_)
+    std::cerr << "Set Row " << row << " Column " << column << " = " <<
+                 var.toString().toStdString() << std::endl;
+
+  extraColumn.evaluating = false;
 
   return (*p).second;
 }
@@ -1468,7 +1527,7 @@ bucketCmd(const Values &values) const
   (void) cmdValues.getInt(col);
 
   if (col < 0 || col >= columnCount())
-    return QVariant(0.0);
+    return QVariant(0);
 
   //---
 
@@ -1483,7 +1542,14 @@ bucketCmd(const Values &values) const
 
   int bucket = -1;
 
-  CQBucketer &bucketer = columnDatas_[col].bucketer;
+  auto p = columnDatas_.find(col);
+
+  if (p == columnDatas_.end())
+    return QVariant(0);
+
+  const ColumnData &columnData = (*p).second;
+
+  const CQBucketer &bucketer = columnData.bucketer;
 
   if      (var.type() == QVariant::Double) {
     double value = var.toDouble();
@@ -1508,12 +1574,14 @@ bucketCmd(const Values &values) const
       return QVariant(-1);
     }
 
-    bucketer.setType(CQBucketer::Type::REAL_RANGE);
+    CQBucketer bucketer1 = bucketer;
 
-    bucketer.setRStart(start);
-    bucketer.setRDelta(delta);
+    bucketer1.setType(CQBucketer::Type::REAL_RANGE);
 
-    bucket = bucketer.realBucket(value);
+    bucketer1.setRStart(start);
+    bucketer1.setRDelta(delta);
+
+    bucket = bucketer1.realBucket(value);
   }
   else if (var.type() == QVariant::Int) {
     return QVariant(var.toInt());
@@ -2032,9 +2100,7 @@ replaceExprColumns(const QString &expr, int row, int column) const
 {
   QModelIndex ind = this->index(row, column, QModelIndex());
 
-  CQChartsExprModel *th = const_cast<CQChartsExprModel *>(this);
-
-  return CQChartsModelUtil::replaceModelExprVars(expr, th, ind, nr_, nc_);
+  return CQChartsModelUtil::replaceModelExprVars(expr, this, ind, nr_, nc_);
 }
 
 //---

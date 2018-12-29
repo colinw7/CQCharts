@@ -4,7 +4,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsAxis.h>
 #include <CQChartsData.h>
 
 //---
@@ -33,7 +32,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsParallelLineObj(CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
                           const QPolygonF &poly, const QModelIndex &ind, int i, int n);
 
   QString calcId() const override;
@@ -54,11 +53,11 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   void getPolyLine(QPolygonF &poly) const;
 
  private:
-  CQChartsParallelPlot* plot_ { nullptr };
-  QPolygonF             poly_;
-  QModelIndex           ind_;
-  int                   i_    { -1 };
-  int                   n_    { -1 };
+  const CQChartsParallelPlot* plot_ { nullptr };
+  QPolygonF                   poly_;
+  QModelIndex                 ind_;
+  int                         i_    { -1 };
+  int                         n_    { -1 };
 };
 
 //---
@@ -67,7 +66,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsParallelPointObj(CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsParallelPointObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
                            double yval, double x, double y, const QModelIndex &ind,
                            int iset, int nset, int i, int n);
 
@@ -86,15 +85,15 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsParallelPlot* plot_  { nullptr };
-  double                yval_  { 0.0 };
-  double                x_     { 0.0 };
-  double                y_     { 0.0 };
-  QModelIndex           ind_;
-  int                   iset_  { -1 };
-  int                   nset_  { -1 };
-  int                   i_     { -1 };
-  int                   n_     { -1 };
+  const CQChartsParallelPlot* plot_  { nullptr };
+  double                      yval_  { 0.0 };
+  double                      x_     { 0.0 };
+  double                      y_     { 0.0 };
+  QModelIndex                 ind_;
+  int                         iset_  { -1 };
+  int                         nset_  { -1 };
+  int                         i_     { -1 };
+  int                         n_     { -1 };
 };
 
 //---
@@ -146,7 +145,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
-  const CQChartsGeom::Range &setRange(int i) { return setRanges_[i]; }
+  const CQChartsGeom::Range &setRange(int i) const { return setRanges_[i]; }
 
   CQChartsAxis *axis(int i) { return axes_[i]; }
 
@@ -156,12 +155,12 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   CQChartsGeom::Range calcRange() override;
 
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
   //---
 
   bool rowColValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
-                   double &value, double defVal);
+                   double &value, double defVal) const;
 
   //---
 

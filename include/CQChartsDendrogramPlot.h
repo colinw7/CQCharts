@@ -36,7 +36,7 @@ class CQChartsDendrogramPlotType : public CQChartsPlotType {
 
 class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
  public:
-  CQChartsDendrogramNodeObj(CQChartsDendrogramPlot *plot, CQChartsDendrogram::Node *node,
+  CQChartsDendrogramNodeObj(const CQChartsDendrogramPlot *plot, CQChartsDendrogram::Node *node,
                             const CQChartsGeom::BBox &rect);
 
   QString calcId() const override;
@@ -50,8 +50,8 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsDendrogramPlot*   plot_ { nullptr };
-  CQChartsDendrogram::Node* node_ { nullptr };
+  const CQChartsDendrogramPlot* plot_ { nullptr };
+  CQChartsDendrogram::Node*     node_ { nullptr };
 };
 
 //---
@@ -112,12 +112,12 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   void addNameValue(const QString &name, double value);
 
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
   //---
 
-  void addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth);
-  void addNodeObj (CQChartsDendrogram::Node *node);
+  void addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth, PlotObjs &objs);
+  void addNodeObj (CQChartsDendrogram::Node *node, PlotObjs &objs);
 
   //---
 
@@ -129,10 +129,10 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   void drawForeground(QPainter *) override;
 
-  void drawNodes(QPainter *painter, CQChartsDendrogram::HierNode *hier, int depth);
+  void drawNodes(QPainter *painter, CQChartsDendrogram::HierNode *hier, int depth) const;
 
   void drawNode(QPainter *painter, CQChartsDendrogram::HierNode *hier,
-                CQChartsDendrogram::Node *node);
+                CQChartsDendrogram::Node *node) const;
 
  private:
   CQChartsColumn      nameColumn_;              // name column

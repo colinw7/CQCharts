@@ -1,6 +1,7 @@
 #include <CQChartsBoxObj.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQCharts.h>
 #include <CQPropertyViewModel.h>
 #include <CQChartsRoundedPolygon.h>
 #include <QPainter>

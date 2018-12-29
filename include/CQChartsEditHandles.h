@@ -14,8 +14,8 @@ class CQChartsEditHandles : public QObject {
   };
 
  public:
-  CQChartsEditHandles(CQChartsView *view, const Mode &mode=Mode::RESIZE);
-  CQChartsEditHandles(CQChartsPlot *plot, const Mode &mode=Mode::RESIZE);
+  CQChartsEditHandles(const CQChartsView *view, const Mode &mode=Mode::RESIZE);
+  CQChartsEditHandles(const CQChartsPlot *plot, const Mode &mode=Mode::RESIZE);
 
   const Mode &mode() const { return mode_; }
   void setMode(const Mode &v) { mode_ = v; }
@@ -48,8 +48,8 @@ class CQChartsEditHandles : public QObject {
   CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &p) const;
 
  private:
-  CQChartsView*              view_       { nullptr };
-  CQChartsPlot*              plot_       { nullptr };
+  const CQChartsView*        view_       { nullptr };
+  const CQChartsPlot*        plot_       { nullptr };
   Mode                       mode_       { Mode::RESIZE };
   CQChartsGeom::BBox         bbox_       { 0, 0, 1, 1 };
   CQChartsResizeHandle       moveHandle_;

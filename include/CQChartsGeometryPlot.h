@@ -44,7 +44,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   using Polygons = std::vector<QPolygonF>;
 
  public:
-  CQChartsGeometryObj(CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
                       const Polygons &polygons, const QModelIndex &ind, int i, int n);
 
   QString calcId() const override;
@@ -74,16 +74,16 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   void drawFg(QPainter *painter) override;
 
  private:
-  CQChartsGeometryPlot* plot_  { nullptr }; // parent plot
-  Polygons              polygons_;          // geometry polygons
-  double                value_ { 0.0 };     // geometry value
-  QString               name_;              // geometry name
-  CQChartsColor         color_;             // optional color
-  CQChartsStyle         style_;             // optional style
-  QModelIndex           ind_;               // model index
-  int                   i_     { -1 };      // value index
-  int                   n_     { -1 };      // value count
-  Polygons              ppolygons_;         // pixel polygons
+  const CQChartsGeometryPlot* plot_  { nullptr }; // parent plot
+  Polygons                    polygons_;          // geometry polygons
+  double                      value_ { 0.0 };     // geometry value
+  QString                     name_;              // geometry name
+  CQChartsColor               color_;             // optional color
+  CQChartsStyle               style_;             // optional style
+  QModelIndex                 ind_;               // model index
+  int                         i_     { -1 };      // value index
+  int                         n_     { -1 };      // value count
+  Polygons                    ppolygons_;         // pixel polygons
 };
 
 //---
@@ -156,15 +156,15 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   CQChartsGeom::Range calcRange() override;
 
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
   //---
 
  private:
-  void addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data,
+  void addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
               CQChartsGeom::Range &dataRange);
 
-  bool decodeGeometry(const QString &geomStr, Polygons &polygons);
+  bool decodeGeometry(const QString &geomStr, Polygons &polygons) const;
 
  private:
   using Geometries = std::vector<Geometry>;

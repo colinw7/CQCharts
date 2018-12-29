@@ -90,12 +90,12 @@ class CQChartsModelList : public QFrame {
   void tableSelectionChanged();
 
  private:
-  CQCharts*               charts_                { nullptr };
-  CQChartsModelData*      modelData_             { nullptr };
-  QTabWidget*             viewTab_               { nullptr };
-  ViewWidgetDatas         viewWidgetDatas_;
-  CQChartsModelDetails*   currentDetails_        { nullptr };
-  CQChartsViewWidgetData* currentViewWidgetData_ { nullptr };
+  CQCharts*                   charts_                { nullptr };
+  CQChartsModelData*          modelData_             { nullptr };
+  QTabWidget*                 viewTab_               { nullptr };
+  ViewWidgetDatas             viewWidgetDatas_;
+  const CQChartsModelDetails* currentDetails_        { nullptr };
+  CQChartsViewWidgetData*     currentViewWidgetData_ { nullptr };
 };
 
 #endif

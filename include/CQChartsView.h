@@ -262,7 +262,7 @@ class CQChartsView : public QFrame,
   bool setProperties(const QString &properties);
 
   bool setProperty(const QString &name, const QVariant &value);
-  bool getProperty(const QString &name, QVariant &value);
+  bool getProperty(const QString &name, QVariant &value) const;
 
   CQPropertyViewItem *addProperty(const QString &path, QObject *object,
                                   const QString &name, const QString &alias="");

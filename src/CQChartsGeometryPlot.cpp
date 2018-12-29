@@ -173,6 +173,8 @@ CQChartsGeom::Range
 CQChartsGeometryPlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsGeometryPlot::calcRange");
+
   CQChartsGeom::Range dataRange;
 
   QAbstractItemModel *model = this->model().data();
@@ -196,12 +198,14 @@ calcRange()
   // process model data
   class GeometryPlotVisitor : public ModelVisitor {
    public:
-    GeometryPlotVisitor(CQChartsGeometryPlot *plot) :
+    GeometryPlotVisitor(const CQChartsGeometryPlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const VisitData &data) override {
-      plot_->addRow(model, data, dataRange_);
+    State visit(const QAbstractItemModel *model, const VisitData &data) override {
+      CQChartsGeometryPlot *plot = const_cast<CQChartsGeometryPlot *>(plot_);
+
+      plot->addRow(model, data, dataRange_);
 
       return State::OK;
     }
@@ -209,8 +213,8 @@ calcRange()
     const CQChartsGeom::Range &dataRange() const { return dataRange_; }
 
    private:
-    CQChartsGeometryPlot *plot_ { nullptr };
-    CQChartsGeom::Range   dataRange_;
+    const CQChartsGeometryPlot *plot_ { nullptr };
+    CQChartsGeom::Range         dataRange_;
   };
 
   GeometryPlotVisitor geometryPlotVisitor(this);
@@ -222,7 +226,7 @@ calcRange()
 
 void
 CQChartsGeometryPlot::
-addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data,
+addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
        CQChartsGeom::Range &dataRange)
 {
   Geometry geometry;
@@ -378,7 +382,7 @@ addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data,
 
 bool
 CQChartsGeometryPlot::
-decodeGeometry(const QString &geomStr, Polygons &polygons)
+decodeGeometry(const QString &geomStr, Polygons &polygons) const
 {
   // count leading braces
   int n = CQChartsUtil::countLeadingBraces(geomStr);
@@ -426,9 +430,13 @@ decodeGeometry(const QString &geomStr, Polygons &polygons)
 
 bool
 CQChartsGeometryPlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsGeometryPlot::createObjs");
+
+  NoUpdate noUpdate(const_cast<CQChartsGeometryPlot *>(this));
+
+  //---
 
   int n = geometries_.size();
 
@@ -449,7 +457,7 @@ createObjs()
     geomObj->setColor(geometry.color);
     geomObj->setStyle(geometry.style);
 
-    addPlotObject(geomObj);
+    objs.push_back(geomObj);
   }
 
   //---
@@ -460,9 +468,10 @@ createObjs()
 //------
 
 CQChartsGeometryObj::
-CQChartsGeometryObj(CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
                     const Polygons &polygons, const QModelIndex &ind, int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), polygons_(polygons), ind_(ind), i_(i), n_(n)
+ CQChartsPlotObj(const_cast<CQChartsGeometryPlot *>(plot), rect), plot_(plot),
+ polygons_(polygons), ind_(ind), i_(i), n_(n)
 {
 }
 
@@ -552,9 +561,9 @@ draw(QPainter *painter)
 
   if (color().isValid()) {
     if (n_ > 0)
-      fc = color().interpColor(plot_->charts(), i_, n_);
+      fc = plot_->charts()->interpColor(color(), i_, n_);
     else
-      fc = color().interpColor(plot_->charts(), dv);
+      fc = plot_->charts()->interpColor(color(), dv);
   }
   else {
     if (n_ > 0)

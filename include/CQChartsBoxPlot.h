@@ -83,7 +83,7 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect);
+  CQChartsBoxPlotObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect);
 
   void drawHText(QPainter *painter, double xl, double xr, double y,
                  const QString &text, bool onLeft);
@@ -96,7 +96,7 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
                 const QString &text, bool onBottom) const;
 
  protected:
-  CQChartsBoxPlot* plot_ { nullptr }; // parent plot
+  const CQChartsBoxPlot* plot_ { nullptr }; // parent plot
 };
 
 //---
@@ -116,8 +116,8 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   Q_PROPERTY(double notch  READ notch )
 
  public:
-  CQChartsBoxPlotWhiskerObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect, int setId,
-                            int groupInd, const CQChartsBoxPlotWhisker &whisker,
+  CQChartsBoxPlotWhiskerObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect, int setId,
+                            int groupInd, const CQChartsBoxPlotWhisker *whisker,
                             int ig, int ng, int is, int ns);
 
   QString typeName() const override { return "whisker"; }
@@ -149,14 +149,14 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   double remapPos(double pos) const;
 
  private:
-  int                    setId_    { 0 };  // set id
-  int                    groupInd_ { 0 };  // set id
-  CQChartsBoxPlotWhisker whisker_;         // whisker data
-  QPolygonF              ppoly_;           // draw polygon
-  int                    ig_       { -1 }; // group index
-  int                    ng_       { 0 };  // group count
-  int                    is_       { -1 }; // value set index
-  int                    ns_       { 0 };  // value set count
+  int                           setId_    { 0 };       // set id
+  int                           groupInd_ { 0 };       // group ind
+  const CQChartsBoxPlotWhisker* whisker_  { nullptr }; // whisker data
+  QPolygonF                     ppoly_;                // draw polygon
+  int                           ig_       { -1 };      // group index
+  int                           ng_       { 0 };       // group count
+  int                           is_       { -1 };      // value set index
+  int                           ns_       { 0 };       // value set count
 };
 
 //---
@@ -168,7 +168,7 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
   Q_PROPERTY(double pos READ pos)
 
  public:
-  CQChartsBoxPlotDataObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsBoxPlotDataObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
                          const CQChartsBoxWhiskerData &data);
 
   QString typeName() const override { return "data"; }
@@ -201,7 +201,7 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsBoxPlotConnectedObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsBoxPlotConnectedObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
                               int groupInd, int i, int n);
 
   QString typeName() const override { return "connected"; }
@@ -218,19 +218,19 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  using SetWhiskerMap = std::map<int,CQChartsBoxPlotWhisker>;
+  using SetWhiskerMap = std::map<int,CQChartsBoxPlotWhisker *>;
 
   const SetWhiskerMap &setWhiskerMap() const;
 
   void initPolygon();
 
  private:
-  CQChartsBoxPlot* plot_     { nullptr }; // parent plot
-  int              groupInd_ { -1 };      // group ind
-  int              i_        { -1 };      // group index
-  int              n_        { 0 };       // group count
-  QPolygonF        line_;
-  QPolygonF        poly_;
+  const CQChartsBoxPlot* plot_     { nullptr }; // parent plot
+  int                    groupInd_ { -1 };      // group ind
+  int                    i_        { -1 };      // group index
+  int                    n_        { 0 };       // group count
+  QPolygonF              line_;
+  QPolygonF              poly_;
 };
 
 //---
@@ -240,9 +240,9 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsBoxPlotPointObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
-                         int setId, int groupInd, const QPointF &p, const QModelIndex &ind,
-                         int ig, int ng, int is, int ns, int iv, int nv);
+  CQChartsBoxPlotPointObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
+                          int setId, int groupInd, const QPointF &p, const QModelIndex &ind,
+                          int ig, int ng, int is, int ns, int iv, int nv);
 
   QString typeName() const override { return "point"; }
 
@@ -258,17 +258,17 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsBoxPlot* plot_     { nullptr }; // parent plot
-  int              setId_    { -1 };      // set id
-  int              groupInd_ { -1 };      // group id
-  QPointF          p_;                    // point
-  QModelIndex      ind_;                  // model index
-  int              ig_       { -1 };      // group index
-  int              ng_       { 0 };       // group count
-  int              is_       { -1 };      // set index
-  int              ns_       { 0 };       // set count
-  int              iv_       { -1 };      // value index
-  int              nv_       { 0 };       // value count
+  const CQChartsBoxPlot* plot_     { nullptr }; // parent plot
+  int                    setId_    { -1 };      // set id
+  int                    groupInd_ { -1 };      // group id
+  QPointF                p_;                    // point
+  QModelIndex            ind_;                  // model index
+  int                    ig_       { -1 };      // group index
+  int                    ng_       { 0 };       // group count
+  int                    is_       { -1 };      // set index
+  int                    ns_       { 0 };       // set count
+  int                    iv_       { -1 };      // value index
+  int                    nv_       { 0 };       // value count
 };
 
 //---
@@ -378,7 +378,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
     POINT_RANGE
   };
 
-  using SetWhiskerMap      = std::map<int,CQChartsBoxPlotWhisker>;
+  using SetWhiskerMap      = std::map<int,CQChartsBoxPlotWhisker *>;
   using GroupSetWhiskerMap = std::map<int,SetWhiskerMap>;
   using WhiskerDataList    = std::vector<CQChartsBoxWhiskerData>;
 
@@ -524,10 +524,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   CQChartsGeom::BBox annotationBBox() const override;
 
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
-  bool initRawObjs ();
-  bool initCalcObjs();
+  bool initRawObjs (PlotObjs &objs);
+  bool initCalcObjs(PlotObjs &objs);
 
   void addKeyItems(CQChartsPlotKey *key) override;
 
@@ -564,47 +564,51 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   void setErrorBar(bool b);
 
  private:
+  void clearRawWhiskers();
+
   void addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
                   CQChartsGeom::Range &dataRange);
 
   void addRawWhiskerRow(const ModelVisitor::VisitData &vdata);
 
  private:
-  CQChartsColumns       valueColumns_;                               // value columns
-  CQChartsColumn        nameColumn_;                                 // name column
-  CQChartsColumn        setColumn_;                                  // set column
+  using RMinMax = CQChartsGeom::RMinMax;
 
-  CQChartsColumn        xColumn_;                                    // x column
-  CQChartsColumn        minColumn_;                                  // min column
-  CQChartsColumn        lowerMedianColumn_;                          // lower median column
-  CQChartsColumn        medianColumn_;                               // median column
-  CQChartsColumn        upperMedianColumn_;                          // upper median column
-  CQChartsColumn        maxColumn_;                                  // max column
-  CQChartsColumn        outliersColumn_;                             // outliers column
+  CQChartsColumns    valueColumns_;                               // value columns
+  CQChartsColumn     nameColumn_;                                 // name column
+  CQChartsColumn     setColumn_;                                  // set column
 
-  bool                  showOutliers_   { true };                    // show outliers
-  bool                  connected_      { false };                   // connect boxes
-  bool                  horizontal_     { false };                   // horizontal bars
-  bool                  normalized_     { false };                   // normalized values
-  bool                  pointsJitter_   { false };                   // show jitter points
-  bool                  pointsStacked_  { false };                   // show stacked points
-  bool                  notched_        { false };                   // show notch
-  bool                  violin_         { false };                   // show violin
-  CQChartsLength        violinWidth_    { 0.6 };                     // violin width
-  bool                  violinBox_      { false };                   // show box width violin
-  bool                  errorBar_       { false };                   // show error bar
-  ErrorBarType          errorBarType_   { ErrorBarType::CROSS_BAR }; // error bar type
-  bool                  colorBySet_     { false };                   // color by set
-  CQChartsLength        boxWidth_       { 0.2 };                     // box width
-  double                whiskerRange_   { 1.5 };                     // whisker range
-  double                whiskerExtent_  { 0.2 };                     // whisker extent
-  CQChartsGeom::RMinMax xrange_;                                     // x range
-  double                textMargin_     { 2 };                       // text margin
-  ColumnType            setType_        { ColumnType::NONE };        // set column data type
-  GroupSetWhiskerMap    groupWhiskers_;                              // grouped whisker data
-  WhiskerDataList       whiskerDataList_;                            // whisker data
-  CQChartsValueInd      setValueInd_;                                // set value inds
-  bool                  isWhiskersGrouped_ { false };                // is grouped whiskers
+  CQChartsColumn     xColumn_;                                    // x column
+  CQChartsColumn     minColumn_;                                  // min column
+  CQChartsColumn     lowerMedianColumn_;                          // lower median column
+  CQChartsColumn     medianColumn_;                               // median column
+  CQChartsColumn     upperMedianColumn_;                          // upper median column
+  CQChartsColumn     maxColumn_;                                  // max column
+  CQChartsColumn     outliersColumn_;                             // outliers column
+
+  bool               showOutliers_   { true };                    // show outliers
+  bool               connected_      { false };                   // connect boxes
+  bool               horizontal_     { false };                   // horizontal bars
+  bool               normalized_     { false };                   // normalized values
+  bool               pointsJitter_   { false };                   // show jitter points
+  bool               pointsStacked_  { false };                   // show stacked points
+  bool               notched_        { false };                   // show notch
+  bool               violin_         { false };                   // show violin
+  CQChartsLength     violinWidth_    { 0.6 };                     // violin width
+  bool               violinBox_      { false };                   // show box width violin
+  bool               errorBar_       { false };                   // show error bar
+  ErrorBarType       errorBarType_   { ErrorBarType::CROSS_BAR }; // error bar type
+  bool               colorBySet_     { false };                   // color by set
+  CQChartsLength     boxWidth_       { 0.2 };                     // box width
+  double             whiskerRange_   { 1.5 };                     // whisker range
+  double             whiskerExtent_  { 0.2 };                     // whisker extent
+  RMinMax            xrange_;                                     // x range
+  double             textMargin_     { 2 };                       // text margin
+  ColumnType         setType_        { ColumnType::NONE };        // set column data type
+  GroupSetWhiskerMap groupWhiskers_;                              // grouped whisker data
+  WhiskerDataList    whiskerDataList_;                            // whisker data
+  CQChartsValueInd   setValueInd_;                                // set value inds
+  bool               isWhiskersGrouped_ { false };                // is grouped whiskers
 };
 
 #endif

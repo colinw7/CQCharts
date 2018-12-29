@@ -24,7 +24,7 @@ class CQChartsGrahamHull {
 
   void getHull(Points &points) const;
 
-  void draw(CQChartsPlot *plot, QPainter *painter);
+  void draw(const CQChartsPlot *plot, QPainter *painter) const;
 
  private:
   void sortLowestClockwise();

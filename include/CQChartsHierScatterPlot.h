@@ -157,7 +157,7 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsHierScatterPointObj(CQChartsHierScatterPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsHierScatterPointObj(const CQChartsHierScatterPlot *plot, const CQChartsGeom::BBox &rect,
                               const QPointF &p, int i, int n);
 
   const QString &name() const { return name_; }
@@ -182,7 +182,7 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsHierScatterPlot*       plot_ { nullptr };
+  const CQChartsHierScatterPlot* plot_ { nullptr };
   QPointF                        p_;
   int                            i_    { -1 };
   int                            n_    { -1 };
@@ -283,15 +283,15 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   void addRowGroupValueSets(const ModelVisitor::VisitData &data);
 
-  void updateObjs() override;
+  void clearPlotObjects() override;
 
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
   void addGroupPoint(const ModelVisitor::VisitData &data,
                      double x, double y, const QString &name);
 
   void addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
-                      CQChartsHierScatterPointGroup *group);
+                      CQChartsHierScatterPointGroup *group, PlotObjs &objs);
 
   //---
 

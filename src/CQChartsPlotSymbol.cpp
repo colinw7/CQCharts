@@ -456,7 +456,7 @@ fill()
 
 void
 CQChartsSymbol2DRenderer::
-drawPoint(double x, double y)
+drawPoint(double x, double y) const
 {
   QPointF p(p_.x + x*s_, p_.y + y*s_);
 
@@ -471,7 +471,7 @@ drawPoint(double x, double y)
 
 void
 CQChartsSymbol2DRenderer::
-drawLine(double x1, double y1, double x2, double y2)
+drawLine(double x1, double y1, double x2, double y2) const
 {
   QPointF p1(p_.x + x1*s_, p_.y + y1*s_);
   QPointF p2(p_.x + x2*s_, p_.y + y2*s_);
@@ -487,7 +487,7 @@ drawLine(double x1, double y1, double x2, double y2)
 
 void
 CQChartsSymbol2DRenderer::
-strokeCircle(double x, double y, double r)
+strokeCircle(double x, double y, double r) const
 {
   QRectF rect(p_.x + (x - r)*s_, p_.y + (y - r)*s_, 2*r*s_, 2*r*s_);
 
@@ -503,7 +503,7 @@ strokeCircle(double x, double y, double r)
 
 void
 CQChartsSymbol2DRenderer::
-fillCircle(double x, double y, double r)
+fillCircle(double x, double y, double r) const
 {
   QRectF rect(p_.x + (x - r)*s_, p_.y + (y - r)*s_, 2*r*s_, 2*r*s_);
 

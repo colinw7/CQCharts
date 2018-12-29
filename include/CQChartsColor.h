@@ -5,8 +5,6 @@
 #include <QColor>
 #include <iostream>
 
-class CQCharts;
-
 class QObject;
 
 class CQChartsColor {
@@ -88,11 +86,6 @@ class CQChartsColor {
 
   QString colorStr() const;
   bool setColorStr(const QString &str);
-
-  //---
-
-  QColor interpColor(const CQCharts *charts, int i, int n) const;
-  QColor interpColor(const CQCharts *charts, double value) const;
 
   //---
 

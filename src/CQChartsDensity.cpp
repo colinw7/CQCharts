@@ -239,7 +239,7 @@ eval(double x) const
 
 void
 CQChartsDensity::
-drawWhisker(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
             const Qt::Orientation &orientation, const CQChartsWhiskerOpts &opts) const
 {
   QPolygonF ppoly;
@@ -253,7 +253,7 @@ drawWhisker(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rec
 
 void
 CQChartsDensity::
-calcWhiskerPoly(QPolygonF &ppoly, CQChartsPlot *plot, const CQChartsGeom::BBox &rect,
+calcWhiskerPoly(QPolygonF &ppoly, const CQChartsPlot *plot, const CQChartsGeom::BBox &rect,
                 const Qt::Orientation &orientation, const CQChartsWhiskerOpts &opts) const
 {
   const CQChartsGeom::Range &dataRange = plot->dataRange();
@@ -389,7 +389,7 @@ calcWhiskerPoly(QPolygonF &ppoly, CQChartsPlot *plot, const CQChartsGeom::BBox &
 
 void
 CQChartsDensity::
-drawCrossBar(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+drawCrossBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
              double mean, const Qt::Orientation &orientation, const CQChartsLength &cornerSize)
 {
   double lpos, tpos, bl, br;
@@ -443,7 +443,7 @@ drawCrossBar(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &re
 
 void
 CQChartsDensity::
-drawPointRange(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+drawPointRange(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
                double mean, const Qt::Orientation &orientation, const CQChartsSymbolData &symbol,
                const QPen &pen, const QBrush &brush)
 {
@@ -497,7 +497,7 @@ drawPointRange(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &
 
 void
 CQChartsDensity::
-drawErrorBar(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+drawErrorBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
              const Qt::Orientation &orientation)
 {
   double lpos, tpos, bl, bm, br;
@@ -549,7 +549,7 @@ drawErrorBar(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &re
 
 void
 CQChartsDensity::
-drawLineRange(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+drawLineRange(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
               const Qt::Orientation &orientation)
 {
   double lpos, tpos, bm;

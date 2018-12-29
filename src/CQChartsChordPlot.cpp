@@ -186,6 +186,8 @@ CQChartsGeom::Range
 CQChartsChordPlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsChordPlot::calcRange");
+
   double r = 1.0;
 
   r = std::max(r, labelRadius());
@@ -224,19 +226,23 @@ annotationBBox() const
 
 bool
 CQChartsChordPlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsChordPlot::createObjs");
 
-  if (valueColumn().isValid())
-    return initHierObjs();
+  NoUpdate noUpdate(const_cast<CQChartsChordPlot *>(this));
 
-  return initTableObjs();
+  //---
+
+  if (valueColumn().isValid())
+    return initHierObjs(objs);
+
+  return initTableObjs(objs);
 }
 
 bool
 CQChartsChordPlot::
-initTableObjs()
+initTableObjs(PlotObjs &objs)
 {
   using RowData = std::vector<QVariant>;
 
@@ -249,11 +255,11 @@ initTableObjs()
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsChordPlot *plot) :
+    RowVisitor(const CQChartsChordPlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       int nc = numCols();
 
       IndRowData indRowData;
@@ -279,8 +285,8 @@ initTableObjs()
     const IndRowDatas &indRowDatas() const { return indRowDatas_; }
 
    private:
-    CQChartsChordPlot *plot_ { nullptr };
-    IndRowDatas        indRowDatas_;
+    const CQChartsChordPlot* plot_ { nullptr };
+    IndRowDatas              indRowDatas_;
   };
 
   RowVisitor visitor(this);
@@ -454,7 +460,7 @@ initTableObjs()
 
     CQChartsChordObj *obj = new CQChartsChordObj(this, rect, data, row, nv);
 
-    addPlotObject(obj);
+    objs.push_back(obj);
   }
 
   //---
@@ -464,7 +470,7 @@ initTableObjs()
 
 bool
 CQChartsChordPlot::
-initHierObjs()
+initHierObjs(PlotObjs &objs)
 {
   CQChartsValueSet groupValues(this);
 
@@ -479,11 +485,11 @@ initHierObjs()
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsChordPlot *plot, CQChartsValueSet &groupValues) :
+    RowVisitor(const CQChartsChordPlot *plot, CQChartsValueSet &groupValues) :
      plot_(plot), groupValues_(groupValues) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       bool ok1, ok2;
 
       QString linkStr = plot_->modelString(data.row, plot_->linkColumn (), data.parent , ok1);
@@ -548,9 +554,9 @@ initHierObjs()
     const NameDataMap &nameDataMap() const { return nameDataMap_; }
 
    private:
-    CQChartsChordPlot* plot_ { nullptr };
-    CQChartsValueSet&  groupValues_;
-    NameDataMap        nameDataMap_;
+    const CQChartsChordPlot* plot_ { nullptr };
+    CQChartsValueSet&        groupValues_;
+    NameDataMap              nameDataMap_;
   };
 
   RowVisitor visitor(this, groupValues);
@@ -639,7 +645,7 @@ initHierObjs()
 
     CQChartsChordObj *obj = new CQChartsChordObj(this, rect, data, row, nv);
 
-    addPlotObject(obj);
+    objs.push_back(obj);
   }
 
   //---
@@ -649,9 +655,9 @@ initHierObjs()
 
 void
 CQChartsChordPlot::
-handleResize()
+postResize()
 {
-  CQChartsPlot::handleResize();
+  CQChartsPlot::postResize();
 
   resetRange();
 }
@@ -659,9 +665,10 @@ handleResize()
 //------
 
 CQChartsChordObj::
-CQChartsChordObj(CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsChordObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
                  const CQChartsChordData &data, int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), data_(data), i_(i), n_(n)
+ CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect), plot_(plot),
+ data_(data), i_(i), n_(n)
 {
 }
 

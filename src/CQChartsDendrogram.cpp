@@ -45,9 +45,16 @@ setGap(double gap)
 
 CQChartsDendrogram::RootNode *
 CQChartsDendrogram::Node::
+root()
+{
+  return const_cast<RootNode *>(root());
+}
+
+const CQChartsDendrogram::RootNode *
+CQChartsDendrogram::Node::
 root() const
 {
-  HierNode *hier;
+  const HierNode *hier;
 
   if (parent_) {
     hier = parent_;
@@ -56,9 +63,9 @@ root() const
       hier = hier->parent();
   }
   else
-    hier = dynamic_cast<HierNode *>(const_cast<Node *>(this));
+    hier = dynamic_cast<const HierNode *>(this);
 
-  return dynamic_cast<RootNode *>(hier);
+  return dynamic_cast<const RootNode *>(hier);
 }
 
 void
@@ -181,7 +188,7 @@ findChild(const QString &name) const
     if (c->name() == name)
       return c;
 
-  return 0;
+  return nullptr;
 }
 
 void
@@ -271,10 +278,17 @@ compressNode(double d)
 
 CQChartsDendrogram::Node *
 CQChartsDendrogram::HierNode::
+getNodeAtPoint(double x, double y, double tol)
+{
+  return const_cast<Node *>(getNodeAtPoint(x, y, tol));
+}
+
+const CQChartsDendrogram::Node *
+CQChartsDendrogram::HierNode::
 getNodeAtPoint(double x, double y, double tol) const
 {
   if (isNodeAtPoint(x, y, tol))
-    return const_cast<HierNode *>(this);
+    return this;
 
   // make single list of nodes to place
   for (const auto &c : children_) {
@@ -289,7 +303,7 @@ getNodeAtPoint(double x, double y, double tol) const
       return n;
   }
 
-  return 0;
+  return nullptr;
 }
 
 //---
@@ -841,12 +855,19 @@ openNode(int depth, const QString &name)
 
 CQChartsDendrogram::Node *
 CQChartsDendrogram::
+getNodeAtPoint(double x, double y, double tol)
+{
+  return const_cast<Node *>(getNodeAtPoint(x, y, tol));
+}
+
+const CQChartsDendrogram::Node *
+CQChartsDendrogram::
 getNodeAtPoint(double x, double y, double tol) const
 {
   if (root_)
     return root_->getNodeAtPoint(x, y, tol);
-  else
-    return 0;
+
+  return nullptr;
 }
 
 void

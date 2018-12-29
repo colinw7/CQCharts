@@ -323,7 +323,7 @@ addReplaceSearch(const QString &text, bool add)
 
       CQChartsTable *table() const { return table_; }
 
-      State visit(QAbstractItemModel *model, const VisitData &data) override {
+      State visit(const QAbstractItemModel *model, const VisitData &data) override {
         QModelIndex ind = model->index(data.row, column_, data.parent);
 
         bool ok;
@@ -367,7 +367,7 @@ addReplaceSearch(const QString &text, bool add)
 
       CQChartsTable *table() const { return table_; }
 
-      State visit(QAbstractItemModel *model, const VisitData &data) override {
+      State visit(const QAbstractItemModel *model, const VisitData &data) override {
         QModelIndex ind = model->index(data.row, column_, data.parent);
 
         bool isMatch = false;

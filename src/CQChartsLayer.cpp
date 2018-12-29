@@ -50,7 +50,7 @@ nameType(const QString &name)
 }
 
 CQChartsLayer::
-CQChartsLayer(const Type &type, CQChartsBuffer *buffer) :
+CQChartsLayer(const Type &type, const CQChartsBuffer::Type &buffer) :
  type_(type), buffer_(buffer)
 {
 }
@@ -66,6 +66,7 @@ CQChartsBuffer::
 CQChartsBuffer(const Type &type) :
  type_(type)
 {
+  usePixmap_ = CQChartsEnv::getBool("CQ_CHARTS_LAYER_PIXMAP");
 }
 
 CQChartsBuffer::
@@ -90,16 +91,7 @@ beginPaint(QPainter *painter, const QRectF &rect, bool alias)
   if (isValid())
     return nullptr;
 
-  if (CQChartsEnv::getBool("CQ_CHARTS_LAYER_PIXMAP")) {
-    pixmap_->fill(QColor(0,0,0,0));
-
-    ipainter()->begin(pixmap_);
-  }
-  else {
-    image_->fill(QColor(0,0,0,0));
-
-    ipainter()->begin(image_);
-  }
+  clear();
 
   QTransform t;
 
@@ -117,7 +109,7 @@ beginPaint(QPainter *painter, const QRectF &rect, bool alias)
 
 void
 CQChartsBuffer::
-endPaint()
+endPaint(bool draw)
 {
   if (! isValid()) {
     ipainter()->end();
@@ -125,12 +117,53 @@ endPaint()
     setValid(true);
   }
 
-  if (CQChartsEnv::getBool("CQ_CHARTS_LAYER_PIXMAP"))
-    painter_->drawPixmap(rect_.x(), rect_.y(), *pixmap());
-  else
-    painter_->drawImage(rect_.x(), rect_.y(), *image());
+  if (draw)
+    this->draw(painter_);
 
   painter_ = nullptr;
+}
+
+void
+CQChartsBuffer::
+clear()
+{
+  if (usePixmap_) {
+    if (! pixmap_) return;
+
+    pixmap_->fill(QColor(0,0,0,0));
+
+    ipainter()->begin(pixmap_);
+  }
+  else {
+    if (! image_) return;
+
+    image_->fill(QColor(0,0,0,0));
+
+    ipainter()->begin(image_);
+  }
+}
+
+void
+CQChartsBuffer::
+draw(QPainter *painter)
+{
+  draw(painter, rect_.x(), rect_.y());
+}
+
+void
+CQChartsBuffer::
+draw(QPainter *painter, int x, int y)
+{
+  if (usePixmap_) {
+    assert(pixmap_);
+
+    painter->drawPixmap(x, y, *pixmap_);
+  }
+  else {
+    assert(image_);
+
+    painter->drawImage(x, y, *image_);
+  }
 }
 
 QPainter *
@@ -151,8 +184,7 @@ updateSize()
 
   QSize size(CMathRound::RoundUp(fsize.width()), CMathRound::RoundUp(fsize.height()));
 
-  bool hasDrawable = (CQChartsEnv::getBool("CQ_CHARTS_LAYER_PIXMAP") ?
-                      (pixmap_ != 0) : (image_ != 0));
+  bool hasDrawable = (usePixmap_ ? (pixmap_ != 0) : (image_ != 0));
 
   if (! hasDrawable || size_ != size) {
     delete image_;
@@ -161,7 +193,7 @@ updateSize()
 
     size_ = size;
 
-    if (CQChartsEnv::getBool("CQ_CHARTS_LAYER_PIXMAP"))
+    if (usePixmap_)
       pixmap_ = new QPixmap(size_);
     else
       image_ = new QImage(size_, QImage::Format_ARGB32);

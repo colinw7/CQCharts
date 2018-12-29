@@ -102,7 +102,7 @@ class CQChartsAdjacencyPlot;
 //  node1->node2 with connections count
 class CQChartsAdjacencyObj : public CQChartsPlotObj {
  public:
-  CQChartsAdjacencyObj(CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
+  CQChartsAdjacencyObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
                        CQChartsAdjacencyNode *node2, double value, const CQChartsGeom::BBox &rect);
 
   QString calcId() const override;
@@ -118,10 +118,10 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsAdjacencyPlot* plot_  { nullptr }; // parent plot
-  CQChartsAdjacencyNode* node1_ { nullptr }; // row node
-  CQChartsAdjacencyNode* node2_ { nullptr }; // column node
-  double                 value_ { 0 };       // connections value
+  const CQChartsAdjacencyPlot* plot_  { nullptr }; // parent plot
+  CQChartsAdjacencyNode*       node1_ { nullptr }; // row node
+  CQChartsAdjacencyNode*       node2_ { nullptr }; // column node
+  double                       value_ { 0 };       // connections value
 };
 
 //---
@@ -233,7 +233,7 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   CQChartsGeom::Range calcRange() override;
 
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
   //---
 
@@ -245,7 +245,7 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   //---
 
-  void handleResize() override;
+  void postResize() override;
 
   //---
 
@@ -271,14 +271,14 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   using IdConnectionsData = std::map<int,ConnectionsData>;
 
  private:
-  bool getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connections);
+  bool getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connections) const;
 
-  bool decodeConnections(const QString &str, Connections &connections);
+  bool decodeConnections(const QString &str, Connections &connections) const;
 
-  CQChartsAdjacencyNode *getNodeByName(const QString &str);
+  CQChartsAdjacencyNode *getNodeByName(const QString &str) const;
 
-  bool initHierObjs();
-  bool initConnectionObjs();
+  bool initHierObjs(PlotObjs &objs);
+  bool initConnectionObjs(PlotObjs &objs);
 
   void sortNodes();
 

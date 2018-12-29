@@ -460,6 +460,8 @@ widgetsToColumn()
     return;
 
   column_ = column;
+
+  edit_->setText(column_.toString());
 }
 
 void

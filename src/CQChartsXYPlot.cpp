@@ -469,14 +469,14 @@ calcRange()
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsXYPlot *plot) :
+    RowVisitor(const CQChartsXYPlot *plot) :
      plot_(plot) {
       int ns = plot_->yColumns().count();
 
       sum_.resize(ns);
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       CQChartsModelIndex ind(data.row, plot_->xColumn(), data.parent);
 
       // init group
@@ -533,10 +533,10 @@ calcRange()
    private:
     using Reals = std::vector<double>;
 
-    CQChartsXYPlot*     plot_ { nullptr };
-    CQChartsGeom::Range range_;
-    Reals               sum_;
-    Reals               lastSum_;
+    const CQChartsXYPlot* plot_ { nullptr };
+    CQChartsGeom::Range   range_;
+    Reals                 sum_;
+    Reals                 lastSum_;
   };
 
   RowVisitor visitor(this);
@@ -567,6 +567,17 @@ calcRange()
 
   //---
 
+  initAxes();
+
+  //---
+
+  return dataRange;
+}
+
+void
+CQChartsXYPlot::
+initAxes()
+{
   setXValueColumn(xColumn());
   setYValueColumn(yColumns().column());
 
@@ -672,10 +683,6 @@ calcRange()
       }
     }
   }
-
-  //---
-
-  return dataRange;
 }
 
 QString
@@ -783,11 +790,16 @@ postInit()
 
 bool
 CQChartsXYPlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsXYPlot::createObjs");
 
+  NoUpdate noUpdate(const_cast<CQChartsXYPlot *>(this));
+
+  //---
+
   const CQChartsGeom::Range &dataRange = this->dataRange();
+  if (! dataRange.isSet()) return false;
 
   // TODO: use actual symbol size
   symbolWidth_  = (dataRange.xmax() - dataRange.xmin())/100.0;
@@ -804,11 +816,7 @@ createObjs()
 
   createGroupSetIndPoly(groupSetIndPoly);
 
-  (void) createGroupSetObjs(groupSetIndPoly);
-
-  //----
-
-  resetKeyItems();
+  (void) createGroupSetObjs(groupSetIndPoly, objs);
 
   //---
 
@@ -824,12 +832,12 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly)
   // create line per set
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsXYPlot *plot) :
+    RowVisitor(const CQChartsXYPlot *plot) :
      plot_(plot) {
       ns_ = plot_->yColumns().count();
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       CQChartsModelIndex ind(data.row, plot_->xColumn(), data.parent);
 
       // get group
@@ -915,9 +923,9 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly)
     const GroupSetIndPoly &groupSetPoly() const { return groupSetPoly_; }
 
    private:
-    CQChartsXYPlot* plot_ { nullptr };
-    int             ns_;
-    GroupSetIndPoly groupSetPoly_;
+    const CQChartsXYPlot* plot_ { nullptr };
+    int                   ns_;
+    GroupSetIndPoly       groupSetPoly_;
   };
 
   //---
@@ -936,7 +944,7 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly)
 
 bool
 CQChartsXYPlot::
-createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly)
+createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsXYPlot::createGroupSetObjs");
 
@@ -1034,7 +1042,7 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly)
               new CQChartsXYBiLineObj(this, groupInd, bbox, x, y1, y2, xind1,
                                       j - 1, ny1 - 1, ip, np);
 
-            addPlotObject(lineObj);
+            objs.push_back(lineObj);
           }
           else {
             QPolygonF &poly1 = polygons1[j - 1].poly;
@@ -1093,8 +1101,8 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly)
           QPolygonF &poly1 = polygons1[j - 1].poly;
           QPolygonF &poly2 = polygons2[j - 1].poly;
 
-          addPolyLine(poly1, groupInd, ig, ng, j - 1, ns - 1, name1);
-          addPolyLine(poly2, groupInd, ig, ng, j - 1, ns - 1, name1);
+          addPolyLine(poly1, groupInd, ig, ng, j - 1, ns - 1, name1, objs);
+          addPolyLine(poly2, groupInd, ig, ng, j - 1, ns - 1, name1, objs);
 
           int len = poly1.size();
 
@@ -1176,7 +1184,7 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly)
             poly1 = poly3;
           }
 
-          addPolygon(poly1, groupInd, ig, ng, j - 1, ns - 1, name1);
+          addPolygon(poly1, groupInd, ig, ng, j - 1, ns - 1, name1, objs);
         }
       }
     }
@@ -1217,7 +1225,7 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly)
           if (CMathUtil::isNaN(x) || CMathUtil::isInf(x) ||
               CMathUtil::isNaN(y) || CMathUtil::isInf(y)) {
             if (polyLine.count()) {
-              addPolyLine(polyLine, groupInd, ig, ng, j, ns, name);
+              addPolyLine(polyLine, groupInd, ig, ng, j, ns, name, objs);
 
               polyLine = QPolygonF();
             }
@@ -1254,7 +1262,7 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly)
           CQChartsXYPointObj *pointObj =
             new CQChartsXYPointObj(this, groupInd, bbox, x, y, size, xind1, j, ns, ip, np);
 
-          addPlotObject(pointObj);
+          objs.push_back(pointObj);
 
           //---
 
@@ -1297,7 +1305,7 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly)
               CQChartsXYLabelObj *labelObj =
                 new CQChartsXYLabelObj(this, groupInd, bbox, x, y, label, xind1, j, ns, ip, np);
 
-              addPlotObject(labelObj);
+              objs.push_back(labelObj);
             }
           }
 
@@ -1346,10 +1354,9 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly)
             CQChartsGeom::BBox bbox(x - sw/2, ys, x + sw/2, ye);
 
             CQChartsXYImpulseLineObj *impulseObj =
-              new CQChartsXYImpulseLineObj(this, groupInd, bbox, x, ys, ye, xind1,
-                                           j, ns, ip, np);
+              new CQChartsXYImpulseLineObj(this, groupInd, bbox, x, ys, ye, xind1, j, ns, ip, np);
 
-            addPlotObject(impulseObj);
+            objs.push_back(impulseObj);
           }
 
           //---
@@ -1415,11 +1422,11 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly)
         //---
 
         if (polyLine.count())
-          addPolyLine(polyLine, groupInd, ig, ng, j, ns, name);
+          addPolyLine(polyLine, groupInd, ig, ng, j, ns, name, objs);
 
         //---
 
-        addPolygon(polyShape, groupInd, ig, ng, j, ns, name);
+        addPolygon(polyShape, groupInd, ig, ng, j, ns, name, objs);
       }
     }
 
@@ -1509,27 +1516,27 @@ calcFillUnderPos(double x, double y) const
 void
 CQChartsXYPlot::
 addPolyLine(const QPolygonF &polyLine, int groupInd, int ig, int ng, int is, int ns,
-            const QString &name)
+            const QString &name, PlotObjs &objs)
 {
   CQChartsGeom::BBox bbox = CQChartsUtil::fromQRect(polyLine.boundingRect());
 
   CQChartsXYPolylineObj *lineObj =
     new CQChartsXYPolylineObj(this, groupInd, bbox, polyLine, name, ig, ng, is, ns);
 
-  addPlotObject(lineObj);
+  objs.push_back(lineObj);
 }
 
 void
 CQChartsXYPlot::
 addPolygon(const QPolygonF &poly, int groupInd, int ig, int ng, int is, int ns,
-           const QString &name)
+           const QString &name, PlotObjs &objs)
 {
   CQChartsGeom::BBox bbox = CQChartsUtil::fromQRect(poly.boundingRect());
 
   CQChartsXYPolygonObj *polyObj =
     new CQChartsXYPolygonObj(this, groupInd, bbox, poly, name, ig, ng, is, ns);
 
-  addPlotObject(polyObj);
+  objs.push_back(polyObj);
 }
 
 QString
@@ -1774,7 +1781,7 @@ addMenuItems(QMenu *menu)
 
 void
 CQChartsXYPlot::
-drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2)
+drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2) const
 {
   arrowObj_->setFrom(p1);
   arrowObj_->setTo  (p2);
@@ -1785,11 +1792,11 @@ drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2)
 //------
 
 CQChartsXYBiLineObj::
-CQChartsXYBiLineObj(CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+CQChartsXYBiLineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                     double x, double y1, double y2, const QModelIndex &ind,
                     int iset, int nset, int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), x_(x), y1_(y1), y2_(y2),
- ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
+ CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
+ x_(x), y1_(y1), y2_(y2), ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
 {
 }
 
@@ -1941,11 +1948,11 @@ draw(QPainter *painter)
 //------
 
 CQChartsXYImpulseLineObj::
-CQChartsXYImpulseLineObj(CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+CQChartsXYImpulseLineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                          double x, double y1, double y2, const QModelIndex &ind,
                          int iset, int nset, int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), x_(x), y1_(y1), y2_(y2),
- ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
+ CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
+ x_(x), y1_(y1), y2_(y2), ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
 {
 }
 
@@ -2093,11 +2100,11 @@ draw(QPainter *painter)
 //------
 
 CQChartsXYPointObj::
-CQChartsXYPointObj(CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+CQChartsXYPointObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                    double x, double y, double size, const QModelIndex &ind,
                    int iset, int nset, int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), pos_(x, y), size_(size),
- ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
+ CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
+ pos_(x, y), size_(size), ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
 {
 }
 
@@ -2266,7 +2273,7 @@ draw(QPainter *painter)
   plot()->setSymbolPenBrush(pen, brush, iset(), nset());
 
   if (edata_ && edata_->color.isValid()) {
-    QColor strokeColor = edata_->color.interpColor(plot_->charts(), 0, 1);
+    QColor strokeColor = plot_->charts()->interpColor(edata_->color, 0, 1);
 
     pen.setColor(strokeColor);
   }
@@ -2310,11 +2317,11 @@ draw(QPainter *painter)
 //------
 
 CQChartsXYLabelObj::
-CQChartsXYLabelObj(CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+CQChartsXYLabelObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                    double x, double y, const QString &label, const QModelIndex &ind,
                    int iset, int nset, int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), pos_(x, y), label_(label),
- ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
+ CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
+ pos_(x, y), label_(label), ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
 {
 }
 
@@ -2429,10 +2436,10 @@ draw(QPainter *painter)
 //------
 
 CQChartsXYPolylineObj::
-CQChartsXYPolylineObj(CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+CQChartsXYPolylineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                       const QPolygonF &poly, const QString &name, int ig, int ng, int is, int ns) :
- CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), poly_(poly), name_(name),
- ig_(ig), ng_(ng), is_(is), ns_(ns)
+ CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
+ poly_(poly), name_(name), ig_(ig), ng_(ng), is_(is), ns_(ns)
 {
 }
 
@@ -2716,10 +2723,10 @@ draw(QPainter *painter)
 //------
 
 CQChartsXYPolygonObj::
-CQChartsXYPolygonObj(CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+CQChartsXYPolygonObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                      const QPolygonF &poly, const QString &name, int ig, int ng, int is, int ns) :
- CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), poly_(poly), name_(name),
- ig_(ig), ng_(ng), is_(is), ns_(ns)
+ CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
+ poly_(poly), name_(name), ig_(ig), ng_(ng), is_(is), ns_(ns)
 {
 }
 

@@ -115,7 +115,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
 
   CQChartsGeom::Range calcRange() override;
 
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
   //---
 
@@ -146,18 +146,18 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
 
  private:
   bool getRowConnections(int group, const ModelVisitor::VisitData &data,
-                         ConnectionsData &connections);
+                         ConnectionsData &connections) const;
 
   bool getNameConnections(int group, const ModelVisitor::VisitData &data,
-                          ConnectionsData &connections, int &destId, int &value);
+                          ConnectionsData &connections, int &destId, int &value) const;
 
-  ConnectionsData &getConnections(int id);
+  ConnectionsData &getConnections(int id) const;
 
   void addConnections(int id, const ConnectionsData &connections);
 
-  bool decodeConnections(const QString &str, Connections &connections);
+  bool decodeConnections(const QString &str, Connections &connections) const;
 
-  int getStringId(const QString &str);
+  int getStringId(const QString &str) const;
 
  private:
   using NodeMap       = std::map<int,Springy::Node*>;

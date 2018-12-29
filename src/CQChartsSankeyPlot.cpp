@@ -145,6 +145,8 @@ CQChartsGeom::Range
 CQChartsSankeyPlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsSankeyPlot::calcRange");
+
   CQChartsGeom::Range dataRange;
 
   QAbstractItemModel *model = this->model().data();
@@ -165,9 +167,13 @@ calcRange()
 
 bool
 CQChartsSankeyPlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsSankeyPlot::createObjs");
+
+  NoUpdate noUpdate(const_cast<CQChartsSankeyPlot *>(this));
+
+  //---
 
   for (const auto &nameNode : nameNodeMap_)
     delete nameNode.second;
@@ -190,11 +196,11 @@ createObjs()
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsSankeyPlot *plot) :
+    RowVisitor(const CQChartsSankeyPlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       bool ok1, ok2;
 
       QString linkStr = plot_->modelString(data.row, plot_->linkColumn (), data.parent, ok1);
@@ -214,7 +220,9 @@ createObjs()
       CQChartsSankeyPlotNode *srcNode  = plot_->findNode(srcStr);
       CQChartsSankeyPlotNode *destNode = plot_->findNode(destStr);
 
-      CQChartsSankeyPlotEdge *edge = plot_->createEdge(value, srcNode, destNode);
+      CQChartsSankeyPlot *plot = const_cast<CQChartsSankeyPlot *>(plot_);
+
+      CQChartsSankeyPlotEdge *edge = plot->createEdge(value, srcNode, destNode);
 
       srcNode ->addDestEdge(edge);
       destNode->addSrcEdge (edge);
@@ -222,7 +230,8 @@ createObjs()
       return State::OK;
     }
 
-    CQChartsSankeyPlot *plot_ { nullptr };
+   private:
+    const CQChartsSankeyPlot *plot_ { nullptr };
   };
 
   RowVisitor visitor(this);
@@ -231,14 +240,14 @@ createObjs()
 
   //---
 
-  createGraph();
+  createGraph(objs);
 
   return true;
 }
 
 void
 CQChartsSankeyPlot::
-createGraph()
+createGraph(PlotObjs &objs)
 {
 //double xs = bbox_.getWidth ();
   double ys = bbox_.getHeight();
@@ -304,11 +313,11 @@ createGraph()
   for (const auto &idNode : indNodeMap_) {
     CQChartsSankeyPlotNode *node = idNode.second;
 
-    addPlotObject(node->obj());
+    objs.push_back(node->obj());
   }
 
   for (const auto &edge : edges_)
-    addPlotObject(edge->obj());
+    objs.push_back(edge->obj());
 }
 
 void
@@ -658,23 +667,26 @@ adjustNode(CQChartsSankeyPlotNode *node)
 
 CQChartsSankeyPlotNode *
 CQChartsSankeyPlot::
-findNode(const QString &name)
+findNode(const QString &name) const
 {
   auto p = nameNodeMap_.find(name);
 
-  if (p == nameNodeMap_.end()) {
-    CQChartsSankeyPlotNode *node = new CQChartsSankeyPlotNode(this, name);
+  if (p != nameNodeMap_.end())
+    return (*p).second;
 
-    node->setInd(nameNodeMap_.size());
+  //---
 
-    p = nameNodeMap_.insert(p, NameNodeMap::value_type(name, node));
+  CQChartsSankeyPlotNode *node = new CQChartsSankeyPlotNode(this, name);
 
-    //--
+  node->setInd(nameNodeMap_.size());
 
-    indNodeMap_[node->ind()] = node;
-  }
+  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
 
-  return (*p).second;
+  auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), NameNodeMap::value_type(name, node));
+
+  th->indNodeMap_[node->ind()] = node;
+
+  return (*p1).second;
 }
 
 CQChartsSankeyPlotEdge *
@@ -704,7 +716,7 @@ keyPress(int key, int modifier)
 //------
 
 CQChartsSankeyPlotNode::
-CQChartsSankeyPlotNode(CQChartsSankeyPlot *plot, const QString &str) :
+CQChartsSankeyPlotNode(const CQChartsSankeyPlot *plot, const QString &str) :
  plot_(plot), str_(str)
 {
 }
@@ -742,7 +754,7 @@ srcDepth() const
 {
   NodeSet visited;
 
-  visited.insert(const_cast<CQChartsSankeyPlotNode *>(this));
+  visited.insert(this);
 
   return srcDepth(visited);
 }
@@ -783,7 +795,7 @@ destDepth() const
 {
   NodeSet visited;
 
-  visited.insert(const_cast<CQChartsSankeyPlotNode *>(this));
+  visited.insert(this);
 
   return destDepth(visited);
 }
@@ -885,7 +897,7 @@ setObj(CQChartsSankeyNodeObj *obj)
 //------
 
 CQChartsSankeyPlotEdge::
-CQChartsSankeyPlotEdge(CQChartsSankeyPlot *plot, double value,
+CQChartsSankeyPlotEdge(const CQChartsSankeyPlot *plot, double value,
                        CQChartsSankeyPlotNode *srcNode, CQChartsSankeyPlotNode *destNode) :
  plot_(plot), value_(value), srcNode_(srcNode), destNode_(destNode)
 {
@@ -906,9 +918,9 @@ setObj(CQChartsSankeyEdgeObj *obj)
 //------
 
 CQChartsSankeyNodeObj::
-CQChartsSankeyNodeObj(CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &rect,
                       CQChartsSankeyPlotNode *node) :
- CQChartsPlotObj(plot, rect), plot_(plot), node_(node)
+ CQChartsPlotObj(const_cast<CQChartsSankeyPlot *>(plot), rect), plot_(plot), node_(node)
 {
   double x1 = rect.getXMin();
   double x2 = rect.getXMax();
@@ -1062,9 +1074,9 @@ drawFg(QPainter *painter)
 //------
 
 CQChartsSankeyEdgeObj::
-CQChartsSankeyEdgeObj(CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsSankeyEdgeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &rect,
                       CQChartsSankeyPlotEdge *edge) :
- CQChartsPlotObj(plot, rect), plot_(plot), edge_(edge)
+ CQChartsPlotObj(const_cast<CQChartsSankeyPlot *>(plot), rect), plot_(plot), edge_(edge)
 {
 }
 

@@ -41,9 +41,9 @@ class CQChartsRadarObj : public CQChartsPlotObj {
   using NameValues = std::map<QString,double>;
 
  public:
-  CQChartsRadarObj(CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect, const QString &name,
-                   const QPolygonF &poly, const NameValues &nameValues, const QModelIndex &ind,
-                   int i, int n);
+  CQChartsRadarObj(const CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect,
+                   const QString &name, const QPolygonF &poly, const NameValues &nameValues,
+                   const QModelIndex &ind, int i, int n);
 
   QString calcId() const override;
 
@@ -60,13 +60,13 @@ class CQChartsRadarObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsRadarPlot* plot_       { nullptr }; // parent plot
-  QString            name_;                   // row name
-  QPolygonF          poly_;                   // polygon
-  NameValues         nameValues_;             // column values
-  QModelIndex        ind_;                    // data index
-  int                i_          { 0 };       // value ind
-  int                n_          { 1 };       // value count
+  const CQChartsRadarPlot* plot_       { nullptr }; // parent plot
+  QString                  name_;                   // row name
+  QPolygonF                poly_;                   // polygon
+  NameValues               nameValues_;             // column values
+  QModelIndex              ind_;                    // data index
+  int                      i_          { 0 };       // value ind
+  int                      n_          { 1 };       // value count
 };
 
 //---
@@ -123,7 +123,7 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   CQChartsGeom::Range calcRange() override;
 
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
   CQChartsGeom::BBox annotationBBox() const override;
 
@@ -131,7 +131,7 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   //---
 
-  void handleResize() override;
+  void postResize() override;
 
   //---
 
@@ -140,7 +140,7 @@ class CQChartsRadarPlot : public CQChartsPlot,
   void drawBackground(QPainter *) override;
 
  private:
-  void addRow(const ModelVisitor::VisitData &data, int nr);
+  void addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs);
 
   bool columnValue(const CQChartsModelIndex &ind, double &value) const;
 

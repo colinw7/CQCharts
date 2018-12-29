@@ -193,6 +193,45 @@ getPlotTypeNames(QStringList &names, QStringList &descs) const
 
 //---
 
+QColor
+CQCharts::
+interpColor(const CQChartsColor &c, int i, int n) const
+{
+  double r = CMathUtil::norm(i, 0, n - 1);
+
+  return interpColor(c, r);
+}
+
+QColor
+CQCharts::
+interpColor(const CQChartsColor &c, double value) const
+{
+  assert(c.isValid());
+
+  if      (c.type() == CQChartsColor::Type::COLOR)
+    return c.color();
+  else if (c.type() == CQChartsColor::Type::PALETTE) {
+    if (c.ind() == 0)
+      return interpPaletteColor(value);
+    else
+      return interpIndPaletteColor(c.ind(), value);
+  }
+  else if (c.type() == CQChartsColor::Type::PALETTE_VALUE) {
+    if (c.ind() == 0)
+      return interpPaletteColor(c.value(), c.isScale());
+    else
+      return interpIndPaletteColor(c.ind(), c.value(), c.isScale());
+  }
+  else if (c.type() == CQChartsColor::Type::INTERFACE)
+    return interpThemeColor(value);
+  else if (c.type() == CQChartsColor::Type::INTERFACE_VALUE)
+    return interpThemeColor(c.value());
+
+  return QColor(0, 0, 0);
+}
+
+//---
+
 void
 CQCharts::
 setPlotTheme(const CQChartsTheme &theme)
@@ -270,7 +309,7 @@ initModelData(ModelP &model)
 
 CQChartsModelData *
 CQCharts::
-getModelData(QAbstractItemModel *model) const
+getModelData(const QAbstractItemModel *model) const
 {
   if (! model)
     return nullptr;

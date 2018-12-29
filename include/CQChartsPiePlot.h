@@ -37,12 +37,12 @@ class CQChartsPiePlot;
 
 class CQChartsPieTextObj : public CQChartsRotatedTextBoxObj {
  public:
-  CQChartsPieTextObj(CQChartsPiePlot *plot);
+  CQChartsPieTextObj(const CQChartsPiePlot *plot);
 
-  CQChartsPiePlot *plot() const { return plot_; }
+  const CQChartsPiePlot *plot() const { return plot_; }
 
  private:
-  CQChartsPiePlot* plot_ { nullptr };
+  const CQChartsPiePlot* plot_ { nullptr };
 };
 
 //---
@@ -54,7 +54,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
   using OptReal = boost::optional<double>;
 
  public:
-  CQChartsPieObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect, const QModelIndex &ind);
+  CQChartsPieObj(const CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect,
+                 const QModelIndex &ind);
 
   QString calcId() const override;
 
@@ -115,26 +116,26 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   void drawFg(QPainter *painter) override;
 
-  void drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c);
+  void drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const;
 
   CQChartsGeom::Point getCenter() const;
 
  protected:
-  CQChartsPiePlot*     plot_     { nullptr }; // parent plot
-  QModelIndex          ind_;                  // model index
-  double               angle1_   { 0 };       // wedge start angle
-  double               angle2_   { 360 };     // wedge end angle
-  double               ri_       { 0.0 };     // inner radius
-  double               ro_       { 0.0 };     // outer radius
-  double               rv_       { 0.0 };     // value radius
-  QString              label_    { "" };      // label
-  double               value_    { 0 };       // value
-  bool                 missing_  { false };   // value missing
-  OptReal              radius_;               // radius
-  QString              keyLabel_ { "" };      // key label
-  CQChartsColor        color_;                // color
-  CQChartsPieGroupObj* groupObj_ { nullptr }; // parent group object
-  bool                 exploded_ { false };   // exploded
+  const CQChartsPiePlot* plot_     { nullptr }; // parent plot
+  QModelIndex            ind_;                  // model index
+  double                 angle1_   { 0 };       // wedge start angle
+  double                 angle2_   { 360 };     // wedge end angle
+  double                 ri_       { 0.0 };     // inner radius
+  double                 ro_       { 0.0 };     // outer radius
+  double                 rv_       { 0.0 };     // value radius
+  QString                label_    { "" };      // label
+  double                 value_    { 0 };       // value
+  bool                   missing_  { false };   // value missing
+  OptReal                radius_;               // radius
+  QString                keyLabel_ { "" };      // key label
+  CQChartsColor          color_;                // color
+  CQChartsPieGroupObj*   groupObj_ { nullptr }; // parent group object
+  bool                   exploded_ { false };   // exploded
 };
 
 //---
@@ -144,10 +145,10 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   using PieObjs = std::vector<CQChartsPieObj *>;
 
  public:
-  CQChartsPieGroupObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &bbox,
+  CQChartsPieGroupObj(const CQChartsPiePlot *plot, const CQChartsGeom::BBox &bbox,
                       int groupInd, const QString &name, int ig, int ng);
 
-  CQChartsPiePlot *plot() const { return plot_; }
+  const CQChartsPiePlot *plot() const { return plot_; }
 
   int groupInd() const { return groupInd_; }
   void setGroupInd(int i) { groupInd_ = i; }
@@ -200,20 +201,20 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   QColor bgColor() const;
 
  private:
-  CQChartsPiePlot* plot_         { nullptr }; // parent plot
-  int              groupInd_     { -1 };      // groupInd
-  QString          name_;                     // group name
-  int              ig_           { 0 };       // group index
-  int              ng_           { 1 };       // num groups
-  double           dataTotal_    { 0.0 };     // value data total
-  int              numValues_    { 0 };       // num values
-  double           radiusMax_    { 0.0 };     // radius data max
-  bool             radiusScaled_ { false };   // radius scaled
-  double           innerRadius_  { 0.0 };     // inner radius
-  double           outerRadius_  { 0.0 };     // outer radius
-  PieObjs          objs_;                     // objects
-  double           startAngle_   { 0.0 };
-  double           endAngle_     { 0.0 };
+  const CQChartsPiePlot* plot_         { nullptr }; // parent plot
+  int                    groupInd_     { -1 };      // groupInd
+  QString                name_;                     // group name
+  int                    ig_           { 0 };       // group index
+  int                    ng_           { 1 };       // num groups
+  double                 dataTotal_    { 0.0 };     // value data total
+  int                    numValues_    { 0 };       // num values
+  double                 radiusMax_    { 0.0 };     // radius data max
+  bool                   radiusScaled_ { false };   // radius scaled
+  double                 innerRadius_  { 0.0 };     // inner radius
+  double                 outerRadius_  { 0.0 };     // outer radius
+  PieObjs                objs_;                     // objects
+  double                 startAngle_   { 0.0 };
+  double                 endAngle_     { 0.0 };
 };
 
 //---
@@ -342,11 +343,9 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   CQChartsGeom::Range calcRange() override;
 
-  void updateObjs() override;
-
   CQChartsGeom::BBox annotationBBox() const override;
 
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
   //---
 
@@ -362,7 +361,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   //---
 
-  void handleResize() override;
+  void postResize() override;
 
   //---
 
@@ -374,9 +373,9 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   void setCount(bool b);
 
  private:
-  void addRow(const ModelVisitor::VisitData &data);
+  void addRow(const ModelVisitor::VisitData &data, PlotObjs &objs);
 
-  void addRowColumn(const CQChartsModelIndex &ind);
+  void addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs);
 
   void calcDataTotal();
 

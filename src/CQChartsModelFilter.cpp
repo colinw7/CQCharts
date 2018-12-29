@@ -184,7 +184,7 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
      filter_(filter), column_(column) {
     }
 
-    State visit(QAbstractItemModel *model, const VisitData &data) override {
+    State visit(const QAbstractItemModel *model, const VisitData &data) override {
       QModelIndex ind = model->index(data.row, column_, data.parent);
 
       if (filter_->acceptsItem(ind)) {
@@ -195,7 +195,7 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
       return State::OK;
     }
 
-    State hierPostVisit(QAbstractItemModel *model, const VisitData &data) override {
+    State hierPostVisit(const QAbstractItemModel *model, const VisitData &data) override {
       if (isAccepted()) {
         QModelIndex ind = model->index(data.row, column_, data.parent);
 
@@ -495,16 +495,16 @@ data(const QModelIndex &ind, int role) const
     //---
 
     // convert variant using column type data
-    CQChartsModelFilter *th = const_cast<CQChartsModelFilter *>(this);
-
     bool converted;
 
     QVariant var1;
 
     if (role == Qt::DisplayRole) {
-      var1 = CQChartsModelUtil::columnDisplayData(charts_, th, ind1.column(), var, converted);
+      var1 = CQChartsModelUtil::columnDisplayData(charts_, this, ind1.column(), var, converted);
 
       if (converted) {
+        CQChartsModelFilter *th = const_cast<CQChartsModelFilter *>(this);
+
         CQDataModel *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
 
         if (dataModel) {
@@ -517,9 +517,11 @@ data(const QModelIndex &ind, int role) const
       }
     }
     else {
-      var1 = CQChartsModelUtil::columnUserData(charts_, th, ind1.column(), var, converted);
+      var1 = CQChartsModelUtil::columnUserData(charts_, this, ind1.column(), var, converted);
 
       if (converted) {
+        CQChartsModelFilter *th = const_cast<CQChartsModelFilter *>(this);
+
         CQDataModel *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
 
         if (dataModel) {

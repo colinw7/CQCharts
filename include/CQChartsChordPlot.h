@@ -140,7 +140,7 @@ class CQChartsChordObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsChordObj(CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsChordObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
                    const CQChartsChordData &data, int i, int n);
 
   const CQChartsChordData &data() { return data_; }
@@ -168,10 +168,10 @@ class CQChartsChordObj : public CQChartsPlotObj {
   void valueAngles(int ind, double &a, double &da) const;
 
  private:
-  CQChartsChordPlot* plot_ { nullptr };
-  CQChartsChordData  data_;
-  int                i_    { 0 };
-  int                n_    { 1 };
+  const CQChartsChordPlot* plot_ { nullptr };
+  CQChartsChordData        data_;
+  int                      i_    { 0 };
+  int                      n_    { 1 };
 };
 
 //---
@@ -243,17 +243,17 @@ class CQChartsChordPlot : public CQChartsPlot,
 
   CQChartsGeom::BBox annotationBBox() const override;
 
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
   //---
 
-  void handleResize() override;
+  void postResize() override;
 
   //---
 
  private:
-  bool initTableObjs();
-  bool initHierObjs();
+  bool initTableObjs(PlotObjs &objs);
+  bool initHierObjs(PlotObjs &objs);
 
  private:
   CQChartsColumn             linkColumn_;               // link column

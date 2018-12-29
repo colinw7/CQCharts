@@ -7,7 +7,6 @@
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
-#include <QTimer>
 
 CQChartsForceDirectedPlotType::
 CQChartsForceDirectedPlotType()
@@ -94,7 +93,7 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsForceDirectedPlot::
 CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("adjacency"), model),
+ CQChartsPlot(view, view->charts()->plotType("forcedirected"), model),
  CQChartsObjNodeShapeData<CQChartsForceDirectedPlot>(this),
  CQChartsObjEdgeLineData <CQChartsForceDirectedPlot>(this)
 {
@@ -211,6 +210,8 @@ CQChartsGeom::Range
 CQChartsForceDirectedPlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsForceDirectedPlot::calcRange");
+
   CQChartsGeom::Range dataRange;
 
   //---
@@ -229,9 +230,13 @@ calcRange()
 
 bool
 CQChartsForceDirectedPlot::
-createObjs()
+createObjs(PlotObjs &)
 {
   CQPerfTrace trace("CQChartsForceDirectedPlot::createObjs");
+
+  NoUpdate noUpdate(const_cast<CQChartsForceDirectedPlot *>(this));
+
+  //---
 
   if (! idConnections_.empty())
     return false;
@@ -240,11 +245,11 @@ createObjs()
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsForceDirectedPlot *plot) :
+    RowVisitor(const CQChartsForceDirectedPlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       bool ok1;
 
       int group = plot_->modelInteger(data.row, plot_->groupIdColumn(), data.parent, ok1);
@@ -259,7 +264,9 @@ createObjs()
         if (! plot_->getRowConnections(group, data, connectionsData))
           return State::SKIP;
 
-        plot_->addConnections(connectionsData.node, connectionsData);
+        CQChartsForceDirectedPlot *plot = const_cast<CQChartsForceDirectedPlot *>(plot_);
+
+        plot->addConnections(connectionsData.node, connectionsData);
       }
       else {
         ConnectionsData connectionsData;
@@ -292,8 +299,8 @@ createObjs()
     int maxGroup() const { return maxGroup_; }
 
    private:
-    CQChartsForceDirectedPlot *plot_     { nullptr };
-    int                        maxGroup_ { 0 };
+    const CQChartsForceDirectedPlot* plot_     { nullptr };
+    int                              maxGroup_ { 0 };
   };
 
   nameNodeMap_.clear();
@@ -352,7 +359,8 @@ createObjs()
 
 bool
 CQChartsForceDirectedPlot::
-getRowConnections(int group, const ModelVisitor::VisitData &data, ConnectionsData &connectionsData)
+getRowConnections(int group, const ModelVisitor::VisitData &data,
+                  ConnectionsData &connectionsData) const
 {
   // get node
   bool ok2;
@@ -407,7 +415,7 @@ getRowConnections(int group, const ModelVisitor::VisitData &data, ConnectionsDat
 bool
 CQChartsForceDirectedPlot::
 getNameConnections(int group, const ModelVisitor::VisitData &data,
-                   ConnectionsData &connections, int &destId, int &count)
+                   ConnectionsData &connections, int &destId, int &count) const
 {
   bool ok2;
 
@@ -465,19 +473,25 @@ getNameConnections(int group, const ModelVisitor::VisitData &data,
 
 CQChartsForceDirectedPlot::ConnectionsData &
 CQChartsForceDirectedPlot::
-getConnections(int id)
+getConnections(int id) const
 {
   auto p = idConnections_.find(id);
 
-  if (p == idConnections_.end()) {
-    ConnectionsData data;
+  if (p != idConnections_.end())
+    return const_cast<CQChartsForceDirectedPlot::ConnectionsData &>((*p).second);
 
-    data.node = id;
+  //---
 
-    p = idConnections_.insert(p, IdConnectionsData::value_type(id, data));
-  }
+  CQChartsForceDirectedPlot *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
-  return (*p).second;
+  ConnectionsData data;
+
+  data.node = id;
+
+  auto p1 = th->idConnections_.insert(th->idConnections_.end(),
+              IdConnectionsData::value_type(id, data));
+
+  return (*p1).second;
 }
 
 void
@@ -489,24 +503,29 @@ addConnections(int id, const ConnectionsData &connections)
 
 bool
 CQChartsForceDirectedPlot::
-decodeConnections(const QString &str, Connections &connections)
+decodeConnections(const QString &str, Connections &connections) const
 {
   return CQChartsConnectionList::stringToConnections(str, connections);
 }
 
 int
 CQChartsForceDirectedPlot::
-getStringId(const QString &str)
+getStringId(const QString &str) const
 {
   auto p = nameNodeMap_.find(str);
 
-  if (p == nameNodeMap_.end()) {
-    int id = nameNodeMap_.size();
+  if (p != nameNodeMap_.end())
+    return (*p).second;
 
-    p = nameNodeMap_.insert(p, StringIndMap::value_type(str, id));
-  }
+  //---
 
-  return (*p).second;
+  int id = nameNodeMap_.size();
+
+  CQChartsForceDirectedPlot *th = const_cast<CQChartsForceDirectedPlot *>(this);
+
+  auto p1 = th->nameNodeMap_.insert(th->nameNodeMap_.end(), StringIndMap::value_type(str, id));
+
+  return (*p1).second;
 }
 
 //---

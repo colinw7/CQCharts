@@ -72,20 +72,10 @@ class CQChartsBoxWhiskerT {
   }
 
   double range() const { return range_; }
-
-  void setRange(double r) {
-    range_ = r;
-
-    invalidate();
-  }
+  void setRange(double r) { range_ = r; invalidate(); }
 
   double fraction() const { return fraction_; }
-
-  void setFraction(double r) {
-    fraction_ = r;
-
-    invalidate();
-  }
+  void setFraction(double r) { fraction_ = r; invalidate(); }
 
   //---
 
@@ -95,69 +85,54 @@ class CQChartsBoxWhiskerT {
   double max   () const { return data().max   ; }
   double upper () const { return data().upper ; }
 
-  const CQChartsWhiskerData &data() const { const_calc(); return data_; }
+  double vmin() const { return (! values_.empty() ? double(values_.front()) : 0.0); }
+  double vmax() const { return (! values_.empty() ? double(values_.back ()) : 0.0); }
+
+  const CQChartsWhiskerData &data() const { initCalc(); return data_; }
 
   //---
 
-  double sum() const { const_calc(); return sum_; }
+  double sum() const { initCalc(); return sum_; }
 
-  double mean() const { const_calc(); return mean_; }
+  double mean() const { initCalc(); return mean_; }
 
-  double stddev() const { const_calc(); return stddev_; }
+  double stddev() const { initCalc(); return stddev_; }
 
   double notch() const { return data().notch; }
 
   double lnotch() const { return data().lnotch; }
   double unotch() const { return data().unotch; }
 
-  const Outliers &outliers() const { const_calc(); return outliers_; }
+  const Outliers &outliers() const { initCalc(); return outliers_; }
 
-  void init() { calc(); }
+  void init() { initCalc(); }
 
-  const Density &density() const {
-    if (! densityValid_) {
-      CQChartsBoxWhiskerT *th = const_cast<CQChartsBoxWhiskerT *>(this);
+  const Density &density() const { initDensity(); return density_; }
 
-      int nv = numValues();
-
-      std::vector<double> vals;
-
-      for (int iv = 0; iv < nv; ++iv) {
-        double v = rvalue(iv);
-
-        vals.push_back(v);
-      }
-
-      th->density_.setXVals(vals);
-
-      th->density_.calc();
-
-      th->densityValid_ = true;
-    }
-
-    return density_;
-  }
-
-  double normalize(double x) const {
-    return CMathUtil::map(x, min(), max(), 0.0, 1.0);
+  double normalize(double x, bool includeOutliers) const {
+    if (includeOutliers)
+      return CMathUtil::map(x, vmin(), vmax(), 0.0, 1.0);
+    else
+      return CMathUtil::map(x, min(), max(), 0.0, 1.0);
   }
 
  private:
   void invalidate() {
-    valid_        = false;
+    calcValid_    = false;
     densityValid_ = false;
   }
 
-  void const_calc() const {
-    const_cast<CQChartsBoxWhiskerT *>(this)->calc();
+  void initCalc() const {
+    if (! calcValid_) {
+      CQChartsBoxWhiskerT *th = const_cast<CQChartsBoxWhiskerT *>(this);
+
+      th->calc();
+
+      th->calcValid_ = true;
+    }
   }
 
   void calc() {
-    if (valid_)
-      return;
-
-    valid_ = true;
-
     if (values_.empty())
       return;
 
@@ -272,17 +247,47 @@ class CQChartsBoxWhiskerT {
     }
   }
 
+  void initDensity() const {
+    if (! densityValid_) {
+      CQChartsBoxWhiskerT *th = const_cast<CQChartsBoxWhiskerT *>(this);
+
+      th->calcDensity();
+
+      th->densityValid_ = true;
+    }
+  }
+
+  void calcDensity() {
+    int nv = numValues();
+
+    std::vector<double> vals;
+
+    for (int iv = 0; iv < nv; ++iv) {
+      double v = rvalue(iv);
+
+      vals.push_back(v);
+    }
+
+    density_.setXVals(vals);
+
+    density_.calc();
+  }
+
  private:
   QString             name_;
   Values              values_;
-  bool                valid_    { false };
-  double              range_    { 1.5 };
-  double              fraction_ { 0.95 }; // TODO
+  double              range_        { 1.5 };
+  double              fraction_     { 0.95 }; // TODO
+
+  // calculated data
+  bool                calcValid_    { false };
   CQChartsWhiskerData data_;
-  double              sum_      { 0.0 };
-  double              mean_     { 0.0 };
-  double              stddev_   { 0.0 };
+  double              sum_          { 0.0 };
+  double              mean_         { 0.0 };
+  double              stddev_       { 0.0 };
   Outliers            outliers_;
+
+  // calculated density
   Density             density_;
   bool                densityValid_ { false };
 };
@@ -299,27 +304,19 @@ class QPainter;
 
 namespace CQChartsBoxWhiskerUtil {
 
-void drawWhisker(CQChartsPlot *plot, QPainter *painter, const CQChartsBoxWhisker &whisker,
+void drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsBoxWhisker &whisker,
                  const CQChartsGeom::BBox &bbox, const CQChartsLength &width,
                  const Qt::Orientation &orientation);
 
-void drawWhisker(CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerData &whisker,
+void drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerData &whisker,
                  const CQChartsGeom::BBox &bbox, const CQChartsLength &width,
                  const Qt::Orientation &orientation);
 
-void drawWhiskerBar(CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerData &data,
+void drawWhiskerBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerData &data,
                     double pos, const Qt::Orientation &orientation,
                     double ww, double bw, const CQChartsLength &cornerSize, bool notched);
 
-#if 0
-void drawOutliers(CQChartsPlot *plot, QPainter *painter, const CQChartsBoxWhisker &whisker,
-                  double pos, const CQChartsSymbolData &symbol,
-                  const Qt::Orientation &orientation);
-void drawOutliers(CQChartsPlot *plot, QPainter *painter, const std::vector<double> &ovalues,
-                  double pos, const CQChartsSymbolData &symbol,
-                  const Qt::Orientation &orientation);
-#endif
-void drawOutliers(CQChartsPlot *plot, QPainter *painter, const std::vector<double> &ovalues,
+void drawOutliers(const CQChartsPlot *plot, QPainter *painter, const std::vector<double> &ovalues,
                   double pos, const CQChartsSymbolData &symbol, const QPen &pen,
                   const QBrush &brush, const Qt::Orientation &orientation);
 }

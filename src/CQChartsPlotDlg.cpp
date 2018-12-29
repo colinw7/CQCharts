@@ -1839,7 +1839,11 @@ validateSlot()
           if (pe != plotData.columnEdits.end()) {
             CQChartsColumnEdit *edit = (*pe).second;
 
+            disconnect(edit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
+
             edit->setColumn(nc.second);
+
+            connect(edit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
           }
           else {
             auto pe = plotData.columnsEdits.find(nc.first);
@@ -1847,7 +1851,11 @@ validateSlot()
             if (pe != plotData.columnsEdits.end()) {
               CQChartsColumnsEdit *edit = (*pe).second;
 
+              disconnect(edit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
+
               edit->setColumns(nc.second);
+
+              connect(edit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
             }
           }
         }

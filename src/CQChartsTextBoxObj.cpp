@@ -2,6 +2,7 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsUtil.h>
+#include <CQCharts.h>
 #include <CQPropertyViewModel.h>
 #include <QPainter>
 
@@ -33,7 +34,7 @@ QColor
 CQChartsTextBoxObj::
 interpTextColor(int i, int n) const
 {
-  return textColor().interpColor(charts(), i, n);
+  return charts()->interpColor(textColor(), i, n);
 }
 
 void

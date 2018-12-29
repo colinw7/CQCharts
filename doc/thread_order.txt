@@ -1,0 +1,9 @@
++ calc range (for each overlay plot)
+  + init group data
++ combine ranges for overlay
++ create objs
++ add no data object (overlay ?)
++ draw objects to buffer
+
++ wait range
+  + overlay plots

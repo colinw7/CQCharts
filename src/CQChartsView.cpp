@@ -491,7 +491,7 @@ setProperty(const QString &name, const QVariant &value)
 
 bool
 CQChartsView::
-getProperty(const QString &name, QVariant &value)
+getProperty(const QString &name, QVariant &value) const
 {
   return propertyModel()->getProperty(this, name, value);
 }
@@ -507,7 +507,7 @@ void
 CQChartsView::
 getPropertyNames(QStringList &names) const
 {
-  propertyModel()->objectNames(const_cast<CQChartsView *>(this), names);
+  propertyModel()->objectNames(this, names);
 }
 
 //---
@@ -1965,7 +1965,10 @@ void
 CQChartsView::
 resizeEvent(QResizeEvent *)
 {
-  doResize(width(), height());
+  int w = width ();
+  int h = height();
+
+  doResize(w, h);
 }
 
 void
@@ -1985,7 +1988,7 @@ doResize(int w, int h)
   //---
 
   for (const auto &plot : plots_)
-    plot->handleResize();
+    plot->postResize();
 }
 
 void
@@ -2006,6 +2009,7 @@ paint(QPainter *painter, CQChartsPlot *plot)
 
   //---
 
+  // fill background
   QBrush brush;
 
   setBrush(brush, true, interpBackgroundFillColor(0, 1),
@@ -2015,9 +2019,11 @@ paint(QPainter *painter, CQChartsPlot *plot)
 
   //---
 
+  // draw specific plot
   if (plot) {
     plot->draw(painter);
   }
+  // draw all plots
   else {
     for (const auto &plot : plots_) {
       if (plot->isVisible())
@@ -2026,13 +2032,14 @@ paint(QPainter *painter, CQChartsPlot *plot)
 
     //---
 
+    // draw view annotations
     // TODO: allow use extra layer for foreground (annotations, key)
-
     for (auto &annotation : annotations())
       annotation->draw(painter);
 
     //---
 
+    // draw view key
     key()->draw(painter);
   }
 }

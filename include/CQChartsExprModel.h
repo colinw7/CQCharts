@@ -129,6 +129,10 @@ class CQChartsExprModel : public QAbstractProxyModel {
   void setVar(const QString &name, int row);
 
  private:
+  bool calcColumnRange(int column, double &minVal, double &maxVal);
+  bool calcColumnRange(int column, int &minVal, int &maxVal);
+
+ private:
   using OptInt     = boost::optional<int>;
   using OptReal    = boost::optional<double>;
   using VariantMap = std::map<int,QVariant>;
@@ -173,17 +177,20 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   int numExtraColumns() const { return extraColumns_.size(); }
 
-  const ExtraColumn &extraColumn(int i) const { return extraColumns_[i]; }
+  const ExtraColumn &extraColumn(int i) const { return *extraColumns_[i]; }
 
-  ExtraColumn &extraColumn(int i) { return extraColumns_[i]; }
+  ExtraColumn &extraColumn(int i) { return *extraColumns_[i]; }
 
   void calcExtraColumn(int column, int ecolumn);
 
   QVariant getExtraColumnValue(int row, int column, int ecolumn) const;
 
+  QVariant calcExtraColumnValue(int row, int column, int ecolumn);
+
   //---
 
   void initCalc();
+  void initCalc() const;
 
   //---
 
@@ -228,7 +235,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   CQChartsModelData *getModelData() const;
 
  protected:
-  using ExtraColumns = std::vector<ExtraColumn>;
+  using ExtraColumns = std::vector<ExtraColumn *>;
   using ColumnDatas  = std::map<int,ColumnData>;
   using ColumnNames  = std::map<int,QString>;
   using NameColumns  = std::map<QString,int>;

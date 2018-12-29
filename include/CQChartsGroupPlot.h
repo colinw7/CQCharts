@@ -99,9 +99,7 @@ class CQChartsGroupPlot : public CQChartsPlot {
   //---
 
   void initGroupData(const CQChartsColumns &dataColumns, const CQChartsColumn &nameColumn,
-                     bool hier=false);
-
-  void initGroup(const CQChartsGroupData &data);
+                     bool hier=false) const;
 
   std::vector<int> rowHierGroupInds(const CQChartsModelIndex &ind) const;
 
@@ -113,14 +111,15 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   void setModelGroupInd(const CQChartsModelIndex &ind, int groupInd);
 
-  const CQChartsColumnBucket &groupBucket() const { return groupBucket_; }
+  const CQChartsColumnBucket *groupBucket() const { return groupBucket_; }
+  void setGroupBucket(CQChartsColumnBucket *bucket);
 
   bool isGroupHeaders() const {
-    return (groupBucket().dataType() == CQChartsColumnBucket::DataType::HEADER);
+    return (groupBucket()->dataType() == CQChartsColumnBucket::DataType::HEADER);
   }
 
   bool isGroupPathType() const {
-    return (groupBucket().dataType() == CQChartsColumnBucket::DataType::PATH);
+    return (groupBucket()->dataType() == CQChartsColumnBucket::DataType::PATH);
   }
 
   int numGroups() const override;
@@ -128,6 +127,12 @@ class CQChartsGroupPlot : public CQChartsPlot {
   void printGroup() const;
 
  private:
+  CQChartsColumnBucket *initGroupData(const CQChartsColumns &dataColumns,
+                                      const CQChartsColumn &nameColumn, bool hier,
+                                      const CQChartsGroupData &groupData) const;
+
+  CQChartsColumnBucket *initGroup(CQChartsGroupData &data) const;
+
   bool rowGroupInds(const CQChartsModelIndex &ind, std::vector<int> &ids, bool hier) const;
 
   std::vector<int> pathInds(const QString &path) const;
@@ -135,9 +140,9 @@ class CQChartsGroupPlot : public CQChartsPlot {
   QStringList pathStrs(const QString &path) const;
 
  protected: // TODO: make private
-  CQChartsColumn       groupColumn_; // group column
-  CQChartsGroupData    groupData_;   // grouping data
-  CQChartsColumnBucket groupBucket_; // group value bucket
+  CQChartsColumn        groupColumn_;             // group column
+  CQChartsGroupData     groupData_;               // grouping data
+  CQChartsColumnBucket* groupBucket_ { nullptr }; // group column bucket
 };
 
 #endif

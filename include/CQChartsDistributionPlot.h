@@ -69,7 +69,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
  public:
   using BarValue = CQChartsDistributionBarValue;
 
-  CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsDistributionBarObj(const CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
                              int groupInd, int bucket, const BarValue &barValue,
                              int is, int ns, int iv, int nv);
 
@@ -110,7 +110,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   void drawFg(QPainter *painter) override;
 
-  void drawRug(QPainter *painter);
+  void drawRug(QPainter *painter) const;
 
   //---
 
@@ -129,17 +129,17 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   QColor barColor() const;
 
  private:
-  CQChartsDistributionPlot* plot_     { nullptr };
-  int                       groupInd_ { -1 };
-  int                       bucket_   { -1 };
-  BarValue                  barValue_;
-  int                       is_       { -1 };
-  int                       ns_       { -1 };
-  int                       iv_       { -1 };
-  int                       nv_       { -1 };
-  double                    value1_   { 0.0 };
-  double                    value2_   { 1.0 };
-  mutable ColorData         colorData_;
+  const CQChartsDistributionPlot* plot_     { nullptr };
+  int                             groupInd_ { -1 };
+  int                             bucket_   { -1 };
+  BarValue                        barValue_;
+  int                             is_       { -1 };
+  int                             ns_       { -1 };
+  int                             iv_       { -1 };
+  int                             nv_       { -1 };
+  double                          value1_   { 0.0 };
+  double                          value2_   { 1.0 };
+  mutable ColorData               colorData_;
 };
 
 //---
@@ -177,8 +177,9 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   };
 
  public:
-  CQChartsDistributionDensityObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
-                                 int groupInd, const Data &data, double doffset, int is, int ns);
+  CQChartsDistributionDensityObj(const CQChartsDistributionPlot *plot,
+                                 const CQChartsGeom::BBox &rect, int groupInd,
+                                 const Data &data, double doffset, int is, int ns);
 
   int groupInd() const { return groupInd_; }
 
@@ -210,23 +211,23 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   void drawFg(QPainter *painter) override;
 
-  void drawMeanLine(QPainter *painter);
+  void drawMeanLine(QPainter *painter) const;
 
-  void drawRug(QPainter *painter);
+  void drawRug(QPainter *painter) const;
 
   //---
 
   CQChartsGeom::BBox calcRect() const;
 
  private:
-  CQChartsDistributionPlot* plot_        { nullptr };
-  int                       groupInd_    { -1 };
-  Data                      data_;
-  double                    doffset_     { 0.0 };
-  int                       is_          { -1 };
-  int                       ns_          { -1 };
-  QPolygonF                 poly_;
-  double                    bucketScale_ { 1.0 };
+  const CQChartsDistributionPlot* plot_        { nullptr };
+  int                             groupInd_    { -1 };
+  Data                            data_;
+  double                          doffset_     { 0.0 };
+  int                             is_          { -1 };
+  int                             ns_          { -1 };
+  QPolygonF                       poly_;
+  double                          bucketScale_ { 1.0 };
 };
 
 //---
@@ -236,8 +237,9 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsDistributionScatterObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
-                                 int groupInd, int bucket, int n, int is, int ns, int iv, int nv);
+  CQChartsDistributionScatterObj(const CQChartsDistributionPlot *plot,
+                                 const CQChartsGeom::BBox &rect, int groupInd, int bucket,
+                                 int n, int is, int ns, int iv, int nv);
 
   int groupInd() const { return groupInd_; }
 
@@ -262,15 +264,15 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
  private:
   using Points = std::vector<QPointF>;
 
-  CQChartsDistributionPlot* plot_     { nullptr };
-  int                       groupInd_ { -1 };
-  int                       bucket_   { -1 };
-  int                       n_        { 0 };
-  int                       is_       { -1 };
-  int                       ns_       { -1 };
-  int                       iv_       { -1 };
-  int                       nv_       { -1 };
-  Points                    points_;
+  const CQChartsDistributionPlot* plot_     { nullptr };
+  int                             groupInd_ { -1 };
+  int                             bucket_   { -1 };
+  int                             n_        { 0 };
+  int                             is_       { -1 };
+  int                             ns_       { -1 };
+  int                             iv_       { -1 };
+  int                             nv_       { -1 };
+  Points                          points_;
 };
 
 //---
@@ -511,9 +513,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   CQChartsGeom::Range calcRange() override;
 
-  void updateObjs() override;
-
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
   //---
 
@@ -534,7 +534,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   void drawForeground(QPainter *) override;
 
-  void drawMeanLine(QPainter *);
+  void drawMeanLine(QPainter *) const;
 
   //---
 
@@ -547,7 +547,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   void bucketValues(int groupInd, int bucket, double &value1, double &value2) const;
 
-  CQBucketer &groupBucketer(int groupInd) const;
+  CQBucketer &groupBucketer(int groupInd);
+  const CQBucketer &groupBucketer(int groupInd) const;
 
   //---
 
@@ -631,7 +632,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   QString bucketValuesStr(int groupInd, int bucket, const Values *values,
                           BucketValueType type=BucketValueType::ALL) const;
 
-  Values *getGroupIndValues(int groupInd, const CQChartsModelIndex &ind);
+  Values *getGroupIndValues(int groupInd, const CQChartsModelIndex &ind) const;
 
   const Values *getGroupValues(int groupInd) const;
 

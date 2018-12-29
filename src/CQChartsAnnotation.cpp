@@ -2,6 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsArrow.h>
+#include <CQCharts.h>
 #include <CQPropertyViewModel.h>
 #include <CQAlignEdit.h>
 
@@ -164,7 +165,7 @@ addStrokeProperties(CQPropertyViewModel *model, const QString &path)
 
 bool
 CQChartsAnnotation::
-getProperty(const QString &name, QVariant &value)
+getProperty(const QString &name, QVariant &value) const
 {
   if (view())
     return view()->propertyModel()->getProperty(this, name, value);
@@ -189,7 +190,7 @@ getPropertyNames(QStringList &names) const
   if (! view())
     return;
 
-  view()->propertyModel()->objectNames(const_cast<CQChartsAnnotation *>(this), names);
+  view()->propertyModel()->objectNames(this, names);
 }
 
 //------
@@ -1489,7 +1490,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor c = textColor().interpColor(charts(), 0, 1);
+  QColor c = charts()->interpColor(textColor(), 0, 1);
 
   if      (plot())
     plot()->setPen(pen, true, c, textAlpha(), CQChartsLength("0px"));
@@ -2038,8 +2039,8 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor lineColor = pointData_.stroke.color.interpColor(charts(), 0, 1);
-  QColor fillColor = pointData_.fill  .color.interpColor(charts(), 0, 1);
+  QColor lineColor = charts()->interpColor(pointData_.stroke.color, 0, 1);
+  QColor fillColor = charts()->interpColor(pointData_.fill  .color, 0, 1);
 
   if      (plot())
     plot()->setPen(pen, pointData_.stroke.visible, lineColor, pointData_.stroke.alpha,

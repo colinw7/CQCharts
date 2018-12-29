@@ -1,5 +1,4 @@
 #include <CQChartsColor.h>
-#include <CQCharts.h>
 #include <CQChartsUtil.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsColor, toString, fromString)
@@ -158,43 +157,4 @@ setColorStr(const QString &str)
   }
 
   return true;
-}
-
-//------
-
-QColor
-CQChartsColor::
-interpColor(const CQCharts *charts, int i, int n) const
-{
-  double r = CMathUtil::norm(i, 0, n - 1);
-
-  return interpColor(charts, r);
-}
-
-QColor
-CQChartsColor::
-interpColor(const CQCharts *charts, double value) const
-{
-  assert(isValid());
-
-  if      (type() == Type::COLOR)
-    return color();
-  else if (type() == Type::PALETTE) {
-    if (ind() == 0)
-      return charts->interpPaletteColor(value);
-    else
-      return charts->interpIndPaletteColor(ind(), value);
-  }
-  else if (type() == Type::PALETTE_VALUE) {
-    if (ind() == 0)
-      return charts->interpPaletteColor(this->value(), isScale());
-    else
-      return charts->interpIndPaletteColor(ind(), this->value(), isScale());
-  }
-  else if (type() == Type::INTERFACE)
-    return charts->interpThemeColor(value);
-  else if (type() == Type::INTERFACE_VALUE)
-    return charts->interpThemeColor(this->value());
-
-  return QColor(0, 0, 0);
 }

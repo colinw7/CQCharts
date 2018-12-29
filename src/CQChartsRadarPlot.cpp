@@ -154,15 +154,17 @@ CQChartsGeom::Range
 CQChartsRadarPlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsRadarPlot::calcRange");
+
   // get values for each row
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsRadarPlot *plot) :
+    RowVisitor(const CQChartsRadarPlot *plot) :
      plot_(plot) {
       nv_ = plot_->valueColumns().count();
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       for (int iv = 0; iv < nv_; ++iv) {
         const CQChartsColumn &column = plot_->valueColumns().getColumn(iv);
 
@@ -182,9 +184,9 @@ calcRange()
     const ValueDatas &valueDatas() const { return valueDatas_; }
 
    private:
-    CQChartsRadarPlot *plot_ { nullptr };
-    int                nv_   { 0 };
-    ValueDatas         valueDatas_;
+    const CQChartsRadarPlot *plot_ { nullptr };
+    int                      nv_   { 0 };
+    ValueDatas               valueDatas_;
   };
 
   RowVisitor visitor(this);
@@ -308,34 +310,37 @@ annotationBBox() const
 
 bool
 CQChartsRadarPlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsRadarPlot::createObjs");
+
+  NoUpdate noUpdate(const_cast<CQChartsRadarPlot *>(this));
+
+  //---
 
   // process model data
   class RadarPlotVisitor : public ModelVisitor {
    public:
-    RadarPlotVisitor(CQChartsRadarPlot *plot) :
-     plot_(plot) {
+    RadarPlotVisitor(const CQChartsRadarPlot *plot, PlotObjs &objs) :
+     plot_(plot), objs_(objs) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRow(data, numRows());
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
+      CQChartsRadarPlot *plot = const_cast<CQChartsRadarPlot *>(plot_);
+
+      plot->addRow(data, numRows(), objs_);
 
       return State::OK;
     }
 
    private:
-    CQChartsRadarPlot *plot_ { nullptr };
+    const CQChartsRadarPlot* plot_ { nullptr };
+    PlotObjs&                objs_;
   };
 
-  RadarPlotVisitor radarPlotVisitor(this);
+  RadarPlotVisitor radarPlotVisitor(this, objs);
 
   visitModel(radarPlotVisitor);
-
-  //---
-
-  resetKeyItems();
 
   //---
 
@@ -344,7 +349,7 @@ createObjs()
 
 void
 CQChartsRadarPlot::
-addRow(const ModelVisitor::VisitData &data, int nr)
+addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs)
 {
   bool hidden = isSetHidden(data.row);
 
@@ -425,7 +430,7 @@ addRow(const ModelVisitor::VisitData &data, int nr)
   CQChartsRadarObj *radarObj =
     new CQChartsRadarObj(this, bbox, name, poly, nameValues, nameInd1, data.row, nr);
 
-  addPlotObject(radarObj);
+  objs.push_back(radarObj);
 }
 
 bool
@@ -468,19 +473,21 @@ addKeyItems(CQChartsPlotKey *key)
 {
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsRadarPlot *plot, CQChartsPlotKey *key) :
+    RowVisitor(const CQChartsRadarPlot *plot, CQChartsPlotKey *key) :
      plot_(plot), key_(key) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       bool ok;
 
       QString name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok);
 
       //---
 
-      CQChartsKeyColorBox *color = new CQChartsKeyColorBox(plot_, data.row, numRows());
-      CQChartsKeyText     *text  = new CQChartsKeyText(plot_, name, data.row, numRows());
+      CQChartsRadarPlot *plot = const_cast<CQChartsRadarPlot *>(plot_);
+
+      CQChartsKeyColorBox *color = new CQChartsKeyColorBox(plot, data.row, numRows());
+      CQChartsKeyText     *text  = new CQChartsKeyText(plot, name, data.row, numRows());
 
       color->setClickHide(true);
 
@@ -491,8 +498,8 @@ addKeyItems(CQChartsPlotKey *key)
     }
 
    private:
-    CQChartsRadarPlot *plot_ { nullptr };
-    CQChartsPlotKey   *key_  { nullptr };
+    const CQChartsRadarPlot* plot_ { nullptr };
+    CQChartsPlotKey*         key_  { nullptr };
   };
 
   RowVisitor visitor(this, key);
@@ -506,9 +513,9 @@ addKeyItems(CQChartsPlotKey *key)
 
 void
 CQChartsRadarPlot::
-handleResize()
+postResize()
 {
-  CQChartsPlot::handleResize();
+  CQChartsPlot::postResize();
 
   resetRange();
 }
@@ -664,11 +671,11 @@ drawBackground(QPainter *painter)
 //------
 
 CQChartsRadarObj::
-CQChartsRadarObj(CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect, const QString &name,
+CQChartsRadarObj(const CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect, const QString &name,
                  const QPolygonF &poly, const NameValues &nameValues, const QModelIndex &ind,
                  int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), name_(name), poly_(poly), nameValues_(nameValues),
- ind_(ind), i_(i), n_(n)
+ CQChartsPlotObj(const_cast<CQChartsRadarPlot *>(plot), rect), plot_(plot),
+ name_(name), poly_(poly), nameValues_(nameValues), ind_(ind), i_(i), n_(n)
 {
   assert(i_ >= 0 && i < n_);
 }

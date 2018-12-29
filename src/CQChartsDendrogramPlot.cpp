@@ -129,6 +129,8 @@ CQChartsGeom::Range
 CQChartsDendrogramPlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsDendrogramPlot::calcRange");
+
   delete dendrogram_;
 
   dendrogram_ = new CQChartsDendrogram;
@@ -138,11 +140,11 @@ calcRange()
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsDendrogramPlot *plot) :
+    RowVisitor(const CQChartsDendrogramPlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const VisitData &data) override {
+    State visit(const QAbstractItemModel *model, const VisitData &data) override {
       QString path = CQChartsModelUtil::parentPath(model, data.parent);
 
       //---
@@ -170,7 +172,9 @@ calcRange()
 
       //---
 
-      plot_->addNameValue(name, value);
+      CQChartsDendrogramPlot *plot = const_cast<CQChartsDendrogramPlot *>(plot_);
+
+      plot->addNameValue(name, value);
 
       return State::OK;
     }
@@ -178,8 +182,8 @@ calcRange()
     const CQChartsGeom::Range &range() const { return range_; }
 
    private:
-    CQChartsDendrogramPlot *plot_ { nullptr };
-    CQChartsGeom::Range     range_;
+    const CQChartsDendrogramPlot* plot_ { nullptr };
+    CQChartsGeom::Range           range_;
   };
 
   RowVisitor visitor(this);
@@ -294,16 +298,20 @@ annotationBBox() const
 
 bool
 CQChartsDendrogramPlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("QChartsDendrogramPlot::createObjs");
+
+  NoUpdate noUpdate(const_cast<CQChartsDendrogramPlot *>(this));
+
+  //---
 
   CQChartsDendrogram::HierNode *root = dendrogram_->root();
 
   if (root) {
-    addNodeObj(root);
+    addNodeObj(root, objs);
 
-    addNodeObjs(root, 0);
+    addNodeObjs(root, 0, objs);
   }
 
   return true;
@@ -311,14 +319,14 @@ createObjs()
 
 void
 CQChartsDendrogramPlot::
-addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth)
+addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth, PlotObjs &objs)
 {
   const CQChartsDendrogram::HierNode::Children &children = hier->getChildren();
 
   for (auto &hierNode : children) {
-    addNodeObj(hierNode);
+    addNodeObj(hierNode, objs);
 
-    addNodeObjs(hierNode, depth + 1);
+    addNodeObjs(hierNode, depth + 1, objs);
   }
 
   //------
@@ -326,12 +334,12 @@ addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth)
   const CQChartsDendrogram::Nodes &nodes = hier->getNodes();
 
   for (auto &node : nodes)
-    addNodeObj(node);
+    addNodeObj(node, objs);
 }
 
 void
 CQChartsDendrogramPlot::
-addNodeObj(CQChartsDendrogram::Node *node)
+addNodeObj(CQChartsDendrogram::Node *node, PlotObjs &objs)
 {
   if (! node->isPlaced()) return;
 
@@ -350,7 +358,7 @@ addNodeObj(CQChartsDendrogram::Node *node)
 
   CQChartsDendrogramNodeObj *obj = new CQChartsDendrogramNodeObj(this, node, rect);
 
-  addPlotObject(obj);
+  objs.push_back(obj);
 }
 
 //------
@@ -380,7 +388,7 @@ drawForeground(QPainter *painter)
 
 void
 CQChartsDendrogramPlot::
-drawNodes(QPainter *painter, CQChartsDendrogram::HierNode *hier, int depth)
+drawNodes(QPainter *painter, CQChartsDendrogram::HierNode *hier, int depth) const
 {
   const CQChartsDendrogram::HierNode::Children &children = hier->getChildren();
 
@@ -400,7 +408,8 @@ drawNodes(QPainter *painter, CQChartsDendrogram::HierNode *hier, int depth)
 
 void
 CQChartsDendrogramPlot::
-drawNode(QPainter *painter, CQChartsDendrogram::HierNode *hier, CQChartsDendrogram::Node *node)
+drawNode(QPainter *painter, CQChartsDendrogram::HierNode *hier,
+         CQChartsDendrogram::Node *node) const
 {
   if (! node->isPlaced()) return;
 
@@ -472,9 +481,9 @@ selectPress(const CQChartsGeom::Point &p, SelMod /*selMod*/)
 //------
 
 CQChartsDendrogramNodeObj::
-CQChartsDendrogramNodeObj(CQChartsDendrogramPlot *plot, CQChartsDendrogram::Node *node,
+CQChartsDendrogramNodeObj(const CQChartsDendrogramPlot *plot, CQChartsDendrogram::Node *node,
                           const CQChartsGeom::BBox &rect) :
- CQChartsPlotObj(plot, rect), plot_(plot), node_(node)
+ CQChartsPlotObj(const_cast<CQChartsDendrogramPlot *>(plot), rect), plot_(plot), node_(node)
 {
 }
 

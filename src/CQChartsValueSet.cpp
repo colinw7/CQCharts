@@ -4,7 +4,7 @@
 #include <CQChartsVariant.h>
 
 CQChartsValueSet::
-CQChartsValueSet(CQChartsPlot *plot) :
+CQChartsValueSet(const CQChartsPlot *plot) :
  plot_(plot)
 {
 }
@@ -33,6 +33,7 @@ canMap() const
   else                              return false;
 }
 
+#if 0
 void
 CQChartsValueSet::
 addProperties(const QString &path)
@@ -43,6 +44,7 @@ addProperties(const QString &path)
     plot_->addProperty(path, this, "mapMax", "mapMax");
   }
 }
+#endif
 
 void
 CQChartsValueSet::
@@ -246,61 +248,61 @@ snum() const
 
 int
 CQChartsValueSet::
-imin() const
+imin(int def) const
 {
   if      (type() == Type::INTEGER)
-    return ivals_.imin();
+    return ivals_.imin(def);
   else if (type() == Type::REAL)
-    return rvals_.imin();
+    return rvals_.imin(def);
   else if (type() == Type::STRING)
-    return svals_.imin();
+    return svals_.imin(def);
   else if (type() == Type::COLOR)
-    return cvals_.imin();
+    return cvals_.imin(def);
   else if (type() == Type::TIME)
-    return tvals_.imin();
+    return tvals_.imin(def);
   else
-    return -1;
+    return def;
 }
 
 int
 CQChartsValueSet::
-imax() const
+imax(int def) const
 {
   if      (type() == Type::INTEGER)
-    return ivals_.imax();
+    return ivals_.imax(def);
   else if (type() == Type::REAL)
-    return rvals_.imax();
+    return rvals_.imax(def);
   else if (type() == Type::STRING)
-    return svals_.imax();
+    return svals_.imax(def);
   else if (type() == Type::COLOR)
-    return cvals_.imax();
+    return cvals_.imax(def);
   else if (type() == Type::TIME)
-    return tvals_.imax();
+    return tvals_.imax(def);
   else
-    return -1;
+    return def;
 }
 
 double
 CQChartsValueSet::
-rmin() const
+rmin(double def) const
 {
   if      (type() == Type::INTEGER)
-    return ivals_.min();
+    return ivals_.min(def);
   else if (type() == Type::REAL)
-    return rvals_.min();
+    return rvals_.min(def);
   else if (type() == Type::STRING)
-    return svals_.imin();
+    return svals_.imin(def);
   else if (type() == Type::COLOR)
-    return cvals_.imin();
+    return cvals_.imin(def);
   else if (type() == Type::TIME)
-    return tvals_.min();
+    return tvals_.min(def);
   else
-    return 0.0;
+    return def;
 }
 
 double
 CQChartsValueSet::
-rmax() const
+rmax(double def) const
 {
   if      (type() == Type::INTEGER)
     return ivals_.max();
@@ -313,7 +315,7 @@ rmax() const
   else if (type() == Type::TIME)
     return tvals_.max();
   else
-    return 0.0;
+    return def;
 }
 
 double

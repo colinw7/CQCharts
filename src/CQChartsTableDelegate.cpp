@@ -137,21 +137,21 @@ getColumnData(const QModelIndex &index, ColumnData &data) const
 {
   QAbstractItemModel *model = table_->modelP().data();
 
-  CQChartsTableDelegate *th = const_cast<CQChartsTableDelegate *>(this);
+  auto p = columnDataMap_.find(index.column());
 
-  auto p = th->columnDataMap_.find(index.column());
-
-  if (p == th->columnDataMap_.end()) {
-    ColumnData columnData;
-
-    (void) CQChartsModelUtil::columnValueType(table_->charts(), model, index.column(),
-                                              columnData.type, columnData.baseType,
-                                              columnData.nameValues);
-
-    p = th->columnDataMap_.insert(p, ColumnDataMap::value_type(index.column(), columnData));
+  if (p != columnDataMap_.end()) {
+    data = (*p).second;
+    return;
   }
 
-  data = (*p).second;
+  //---
+
+  (void) CQChartsModelUtil::columnValueType(table_->charts(), model, index.column(),
+                                            data.type, data.baseType, data.nameValues);
+
+  CQChartsTableDelegate *th = const_cast<CQChartsTableDelegate *>(this);
+
+  th->columnDataMap_[index.column()] = data;
 }
 
 void
@@ -197,7 +197,7 @@ drawColor(QPainter *painter, const QStyleOptionViewItem &option,
 
   rect.adjust(0, 1, -3, -2);
 
-  QColor c = color.interpColor(table_->charts(), 0, 1);
+  QColor c = table_->charts()->interpColor(color, 0, 1);
 
   painter->fillRect(rect, QBrush(c));
 

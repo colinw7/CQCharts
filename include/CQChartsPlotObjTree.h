@@ -14,11 +14,11 @@ class CQChartsPlotObjTree {
   using Objs = std::vector<CQChartsPlotObj*>;
 
  public:
-  CQChartsPlotObjTree(CQChartsPlot *plot);
+  CQChartsPlotObjTree(CQChartsPlot *plot, bool wait=false);
 
  ~CQChartsPlotObjTree();
 
-  void addObjects(bool wait=false);
+  void addObjects();
 
   void clearObjects();
 
@@ -26,20 +26,28 @@ class CQChartsPlotObjTree {
 
   void objectsTouchingRect(const CQChartsGeom::BBox &r, Objs &objs) const;
 
+  bool isBusy() const { return busy_.load(); }
+
  private:
   using PlotObjTree       = CQChartsQuadTree<CQChartsPlotObj,CQChartsGeom::BBox>;
   using PlotObjTreeFuture = std::future<PlotObjTree*>;
 
  private:
-  void initTree() const;
-
   static PlotObjTree *addObjectsASync(CQChartsPlotObjTree *plotObjTree);
+
+  PlotObjTree *addObjectsThread();
+
+  void interruptTree();
+
+  void waitTree() const;
 
  private:
   CQChartsPlot*      plot_        { nullptr }; // parent plot
   PlotObjTree*       plotObjTree_ { nullptr }; // object tree
   PlotObjTreeFuture  plotObjTreeFuture_;       // future
-  mutable std::mutex lock_;
+  bool               wait_        { false };   // wait for thread
+  std::atomic<bool>  busy_        { false };   // busy flag
+  std::atomic<bool>  interrupt_   { false };   // interrupt flag
 };
 
 #endif

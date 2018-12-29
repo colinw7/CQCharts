@@ -224,7 +224,7 @@ areaSign(const QPointF &a, const QPointF &b, const QPointF &c)
 
 void
 CQChartsGrahamHull::
-draw(CQChartsPlot *plot, QPainter *painter)
+draw(const CQChartsPlot *plot, QPainter *painter) const
 {
   std::vector<QPointF> hpoints;
 

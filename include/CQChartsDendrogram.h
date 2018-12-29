@@ -64,7 +64,8 @@ class CQChartsDendrogram {
 
     virtual int maxNodes() { return 1; }
 
-    RootNode *root() const;
+    RootNode *root();
+    const RootNode *root() const;
 
     virtual bool hasChildren() const { return false; }
 
@@ -125,7 +126,8 @@ class CQChartsDendrogram {
 
     void compressNode(double d) override;
 
-    Node *getNodeAtPoint(double x, double y, double tol) const;
+    Node *getNodeAtPoint(double x, double y, double tol);
+    const Node *getNodeAtPoint(double x, double y, double tol) const;
 
    protected:
     Nodes    nodes_;
@@ -224,7 +226,8 @@ class CQChartsDendrogram {
 
   void openNode(int depth, const QString &name);
 
-  Node *getNodeAtPoint(double x, double y, double tol=1E-3) const;
+  Node *getNodeAtPoint(double x, double y, double tol=1E-3);
+  const Node *getNodeAtPoint(double x, double y, double tol=1E-3) const;
 
   void printGaps();
 

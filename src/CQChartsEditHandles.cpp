@@ -4,7 +4,7 @@
 #include <QPainter>
 
 CQChartsEditHandles::
-CQChartsEditHandles(CQChartsPlot *plot, const Mode &mode) :
+CQChartsEditHandles(const CQChartsPlot *plot, const Mode &mode) :
  plot_(plot), mode_(mode),
  moveHandle_(plot, CQChartsResizeHandle::Side::MOVE),
  llHandle_  (plot, CQChartsResizeHandle::Side::LL),
@@ -15,7 +15,7 @@ CQChartsEditHandles(CQChartsPlot *plot, const Mode &mode) :
 }
 
 CQChartsEditHandles::
-CQChartsEditHandles(CQChartsView *view, const Mode &mode) :
+CQChartsEditHandles(const CQChartsView *view, const Mode &mode) :
  view_(view), mode_(mode),
  moveHandle_(view, CQChartsResizeHandle::Side::MOVE),
  llHandle_  (view, CQChartsResizeHandle::Side::LL),

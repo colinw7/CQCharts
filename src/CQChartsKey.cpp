@@ -3,6 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
+#include <CQCharts.h>
 #include <CQPropertyViewModel.h>
 #include <CQChartsRoundedPolygon.h>
 #include <QPainter>
@@ -1171,7 +1172,7 @@ QColor
 CQChartsKeyColorBox::
 interpBorderColor(int i, int n) const
 {
-  return borderColor().interpColor(plot_->charts(), i, n);
+  return plot_->charts()->interpColor(borderColor(), i, n);
 }
 
 QSizeF

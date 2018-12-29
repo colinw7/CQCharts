@@ -65,14 +65,13 @@ columnDetails(const CQChartsColumn &c)
 {
   auto p = columnDetails_.find(c);
 
-  if (p != columnDetails_.end())
-    return (*p).second;
+  if (p == columnDetails_.end()) {
+    CQChartsModelColumnDetails *details = new CQChartsModelColumnDetails(this, c);
 
-  CQChartsModelDetails *th = const_cast<CQChartsModelDetails *>(this);
+    p = columnDetails_.insert(p, ColumnDetails::value_type(c, details));
+  }
 
-  CQChartsModelColumnDetails *details = new CQChartsModelColumnDetails(this, c);
-
-  th->columnDetails_[c] = details;
+  CQChartsModelColumnDetails *details = (*p).second;
 
   return details;
 }
@@ -129,14 +128,16 @@ updateSimple()
 {
   CQPerfTrace trace("CQChartsModelDetails::updateSimple");
 
-  QAbstractItemModel *model = data_->currentModel().data();
+  if (initialized_ != Initialized::SIMPLE) {
+    QAbstractItemModel *model = data_->currentModel().data();
 
-  hierarchical_ = CQChartsModelUtil::isHierarchical(model);
+    hierarchical_ = CQChartsModelUtil::isHierarchical(model);
 
-  numColumns_ = model->columnCount();
-  numRows_    = model->rowCount   ();
+    numColumns_ = model->columnCount();
+    numRows_    = model->rowCount   ();
 
-  initialized_ = Initialized::SIMPLE;
+    initialized_ = Initialized::SIMPLE;
+  }
 }
 
 void
@@ -145,17 +146,19 @@ updateFull()
 {
   CQPerfTrace trace("CQChartsModelDetails::updateFull");
 
-  resetValues();
+  if (initialized_ != Initialized::FULL) {
+    resetValues();
 
-  updateSimple();
+    updateSimple();
 
-  for (int c = 0; c < numColumns_; ++c) {
-    CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
+    for (int c = 0; c < numColumns_; ++c) {
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
 
-    numRows_ = std::max(numRows_, columnDetails->numRows());
+      numRows_ = std::max(numRows_, columnDetails->numRows());
+    }
+
+    initialized_ = Initialized::FULL;
   }
-
-  initialized_ = Initialized::FULL;
 }
 
 CQChartsColumns
@@ -167,8 +170,7 @@ numericColumns() const
   CQChartsColumns columns;
 
   for (int c = 0; c < numColumns_; ++c) {
-    CQChartsModelColumnDetails *columnDetails =
-      const_cast<CQChartsModelDetails *>(this)->columnDetails(c);
+    const CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
 
     if (columnDetails->isNumeric())
       columns.addColumn(columnDetails->column());
@@ -186,8 +188,7 @@ monotonicColumns() const
   CQChartsColumns columns;
 
   for (int c = 0; c < numColumns_; ++c) {
-    CQChartsModelColumnDetails *columnDetails =
-      const_cast<CQChartsModelDetails *>(this)->columnDetails(c);
+    const CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
 
     if (columnDetails->isMonotonic())
       columns.addColumn(columnDetails->column());
@@ -215,6 +216,8 @@ CQChartsModelDetails::
 columnDuplicates(const CQChartsColumn &column, bool all) const
 {
   initSimpleData();
+
+  //---
 
   CQCharts *charts = data_->charts();
 
@@ -374,8 +377,7 @@ QString
 CQChartsModelColumnDetails::
 typeName() const
 {
-  if (! typeInitialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->initType();
+  initType();
 
   return typeName_;
 }
@@ -384,8 +386,7 @@ CQBaseModelType
 CQChartsModelColumnDetails::
 type() const
 {
-  if (! typeInitialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->initType();
+  initType();
 
   return type_;
 }
@@ -404,8 +405,7 @@ CQBaseModelType
 CQChartsModelColumnDetails::
 baseType() const
 {
-  if (! typeInitialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->initType();
+  initType();
 
   return baseType_;
 }
@@ -421,8 +421,7 @@ const CQChartsNameValues &
 CQChartsModelColumnDetails::
 nameValues() const
 {
-  if (! typeInitialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->initType();
+  initType();
 
   return nameValues_;
 }
@@ -934,8 +933,11 @@ void
 CQChartsModelColumnDetails::
 initCache() const
 {
-  if (! initialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
+  if (! initialized_) {
+    CQChartsModelColumnDetails *th = const_cast<CQChartsModelColumnDetails *>(this);
+
+    (void) th->initData();
+  }
 }
 
 bool
@@ -946,7 +948,7 @@ initData()
 
   initialized_ = true;
 
-  if (! initType())
+  if (! calcType())
     return false;
 
   //---
@@ -1003,7 +1005,7 @@ initData()
     }
 
     // visit row
-    State visit(QAbstractItemModel *model, const VisitData &data) override {
+    State visit(const QAbstractItemModel *model, const VisitData &data) override {
       bool ok;
 
       QVariant var = CQChartsModelUtil::modelValue(
@@ -1340,11 +1342,22 @@ initData()
   return true;
 }
 
+void
+CQChartsModelColumnDetails::
+initType() const
+{
+  if (! typeInitialized_) {
+    CQChartsModelColumnDetails *th = const_cast<CQChartsModelColumnDetails *>(this);
+
+    (void) th->calcType();
+  }
+}
+
 bool
 CQChartsModelColumnDetails::
-initType()
+calcType()
 {
-  CQPerfTrace trace("CQChartsModelColumnDetails::initType");
+  CQPerfTrace trace("CQChartsModelColumnDetails::calcType");
 
   //---
 

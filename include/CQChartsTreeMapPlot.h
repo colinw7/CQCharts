@@ -44,12 +44,12 @@ class CQChartsTreeMapNode {
   }
 
  public:
-  CQChartsTreeMapNode(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *parent,
+  CQChartsTreeMapNode(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *parent,
                       const QString &name, double size, const QModelIndex &ind);
 
   virtual ~CQChartsTreeMapNode() { }
 
-  CQChartsTreeMapPlot *plot() const { return plot_; }
+  const CQChartsTreeMapPlot *plot() const { return plot_; }
 
   CQChartsTreeMapHierNode *parent() const { return parent_; }
 
@@ -103,24 +103,24 @@ class CQChartsTreeMapNode {
     return n1.size_ < n2.size_;
   }
 
-  virtual QColor interpColor(CQChartsTreeMapPlot *plot, int n) const;
+  virtual QColor interpColor(const CQChartsTreeMapPlot *plot, int n) const;
 
  protected:
-  CQChartsTreeMapPlot*     plot_    { nullptr }; // parent plot
-  CQChartsTreeMapHierNode* parent_  { nullptr }; // parent hier node
-  uint                     id_      { 0 };       // node id
-  QString                  name_;                // node name
-  double                   size_    { 0.0 };     // node size
-  double                   x_       { 0.0 };     // node x
-  double                   y_       { 0.0 };     // node y
-  double                   w_       { 1.0 };     // node width
-  double                   h_       { 1.0 };     // node height
-  int                      colorId_ { -1 };      // node color index
-  CQChartsColor            color_   { };         // node explicit color
-  QModelIndex              ind_;                 // node model index
-  int                      depth_   { 0 };       // node depth
-  bool                     filler_  { false };   // is filler
-  bool                     placed_  { false };   // is placed
+  const CQChartsTreeMapPlot* plot_    { nullptr }; // parent plot
+  CQChartsTreeMapHierNode*   parent_  { nullptr }; // parent hier node
+  uint                       id_      { 0 };       // node id
+  QString                    name_;                // node name
+  double                     size_    { 0.0 };     // node size
+  double                     x_       { 0.0 };     // node x
+  double                     y_       { 0.0 };     // node y
+  double                     w_       { 1.0 };     // node width
+  double                     h_       { 1.0 };     // node height
+  int                        colorId_ { -1 };      // node color index
+  CQChartsColor              color_   { };         // node explicit color
+  QModelIndex                ind_;                 // node model index
+  int                        depth_   { 0 };       // node depth
+  bool                       filler_  { false };   // is filler
+  bool                       placed_  { false };   // is placed
 };
 
 //---
@@ -139,7 +139,7 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
   using Children = std::vector<CQChartsTreeMapHierNode*>;
 
  public:
-  CQChartsTreeMapHierNode(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *parent=nullptr,
+  CQChartsTreeMapHierNode(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *parent=nullptr,
                           const QString &name="", const QModelIndex &ind=QModelIndex());
 
  ~CQChartsTreeMapHierNode();
@@ -183,7 +183,7 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 
   void removeNode(CQChartsTreeMapNode *node);
 
-  QColor interpColor(CQChartsTreeMapPlot *plot, int n) const override;
+  QColor interpColor(const CQChartsTreeMapPlot *plot, int n) const override;
 
  private:
   Nodes    nodes_;          // child nodes
@@ -197,7 +197,7 @@ class CQChartsTreeMapHierObj;
 
 class CQChartsTreeMapObj : public CQChartsPlotObj {
  public:
-  CQChartsTreeMapObj(CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *node,
+  CQChartsTreeMapObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *node,
                      CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
                      int i, int n);
 
@@ -216,18 +216,18 @@ class CQChartsTreeMapObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  protected:
-  CQChartsTreeMapPlot*    plot_    { nullptr };
-  CQChartsTreeMapNode*    node_    { nullptr };
-  CQChartsTreeMapHierObj* hierObj_ { nullptr };
-  int                     i_       { 0 };
-  int                     n_       { 0 };
+  const CQChartsTreeMapPlot* plot_    { nullptr };
+  CQChartsTreeMapNode*       node_    { nullptr };
+  CQChartsTreeMapHierObj*    hierObj_ { nullptr };
+  int                        i_       { 0 };
+  int                        n_       { 0 };
 };
 
 //---
 
 class CQChartsTreeMapHierObj : public CQChartsTreeMapObj {
  public:
-  CQChartsTreeMapHierObj(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
+  CQChartsTreeMapHierObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
                          CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
                          int i, int n);
 
@@ -361,21 +361,21 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   CQChartsGeom::Range calcRange() override;
 
-  void updateObjs() override;
+  void clearPlotObjects() override;
 
-  bool createObjs() override;
+  bool createObjs(PlotObjs &objs) override;
 
   //---
 
-  void handleResize() override;
+  void postResize() override;
 
   //---
 
   bool addMenuItems(QMenu *menu) override;
 
  private:
-  void initNodeObjs(CQChartsTreeMapHierNode *hier,
-                    CQChartsTreeMapHierObj *parentObj, int depth);
+  void initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj,
+                    int depth, PlotObjs &objs);
 
   void resetNodes();
 

@@ -21,8 +21,8 @@ int boolFactor(bool b) { return (b ? 1 : -1); }
 //------
 
 CQChartsAxis::
-CQChartsAxis(CQChartsPlot *plot, Qt::Orientation direction, double start, double end) :
- CQChartsObj(plot),
+CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction, double start, double end) :
+ CQChartsObj(const_cast<CQChartsPlot *>(plot)),
  CQChartsObjAxesLineData         <CQChartsAxis>(this),
  CQChartsObjAxesTickLabelTextData<CQChartsAxis>(this),
  CQChartsObjAxesLabelTextData    <CQChartsAxis>(this),
@@ -73,7 +73,7 @@ charts() const
   return view()->charts();
 }
 
-CQChartsView *
+const CQChartsView *
 CQChartsAxis::
 view() const
 {
@@ -91,7 +91,14 @@ void
 CQChartsAxis::
 setSelected(bool b)
 {
-  CQChartsUtil::testAndSet(selected_, b, [&]() { plot_->invalidateLayers(); } );
+  CQChartsUtil::testAndSet(selected_, b, [&]() { emitSelectionChanged(); } );
+}
+
+void
+CQChartsAxis::
+emitSelectionChanged()
+{
+  emit selectionChanged();
 }
 
 void
@@ -291,7 +298,9 @@ setFormat(const QString &typeStr)
   //---
 
   if (column().isValid()) {
-    if (! plot()->setColumnTypeStr(column(), typeStr))
+    CQChartsPlot *plot = const_cast<CQChartsPlot *>(plot_);
+
+    if (! plot->setColumnTypeStr(column(), typeStr))
       return false;
   }
 
@@ -396,7 +405,7 @@ valueStr(double pos) const
 
 QString
 CQChartsAxis::
-valueStr(CQChartsPlot *plot, double pos) const
+valueStr(const CQChartsPlot *plot, double pos) const
 {
   if (isLog())
     pos = plot->expValue(pos);
@@ -455,7 +464,9 @@ void
 CQChartsAxis::
 updatePlotPosition()
 {
-  plot()->updateMargins();
+  CQChartsPlot *plot = const_cast<CQChartsPlot *>(plot_);
+
+  plot->updateMargins();
 }
 
 bool
@@ -472,15 +483,19 @@ void
 CQChartsAxis::
 redraw()
 {
-  plot()->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
-  plot()->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+  CQChartsPlot *plot = const_cast<CQChartsPlot *>(plot_);
+
+  plot->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+  plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
 }
 
 void
 CQChartsAxis::
 updatePlotRange()
 {
-  plot()->updateRange();
+  CQChartsPlot *plot = const_cast<CQChartsPlot *>(plot_);
+
+  plot->updateRange();
 }
 
 //---
@@ -562,7 +577,7 @@ isDrawGrid() const
 
 void
 CQChartsAxis::
-drawGrid(CQChartsPlot *plot, QPainter *painter)
+drawGrid(const CQChartsPlot *plot, QPainter *painter)
 {
   if (! isDrawGrid())
     return;
@@ -736,7 +751,7 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
 
 void
 CQChartsAxis::
-draw(CQChartsPlot *plot, QPainter *painter)
+draw(const CQChartsPlot *plot, QPainter *painter)
 {
   fitBBox_ = CQChartsGeom::BBox();
   bbox_    = CQChartsGeom::BBox();
@@ -959,7 +974,7 @@ getTickLabelsPositions(std::set<int> &positions)
 
 void
 CQChartsAxis::
-calcPos(CQChartsPlot *plot, double &apos1, double &apos2) const
+calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const
 {
   if (hasPosition()) {
     apos1 = *pos_;
@@ -1004,7 +1019,7 @@ calcPos(CQChartsPlot *plot, double &apos1, double &apos2) const
 
 void
 CQChartsAxis::
-drawLine(CQChartsPlot *plot, QPainter *painter, double apos, double amin, double amax)
+drawLine(const CQChartsPlot *plot, QPainter *painter, double apos, double amin, double amax)
 {
   QPen pen;
 
@@ -1034,7 +1049,8 @@ drawLine(CQChartsPlot *plot, QPainter *painter, double apos, double amin, double
 
 void
 CQChartsAxis::
-drawMajorGridLine(CQChartsPlot *plot, QPainter *painter, double apos, double dmin, double dmax)
+drawMajorGridLine(const CQChartsPlot *plot, QPainter *painter, double apos,
+                  double dmin, double dmax)
 {
   QPen pen;
 
@@ -1065,7 +1081,8 @@ drawMajorGridLine(CQChartsPlot *plot, QPainter *painter, double apos, double dmi
 
 void
 CQChartsAxis::
-drawMinorGridLine(CQChartsPlot *plot, QPainter *painter, double apos, double dmin, double dmax)
+drawMinorGridLine(const CQChartsPlot *plot, QPainter *painter, double apos,
+                  double dmin, double dmax)
 {
   QPen pen;
 
@@ -1096,21 +1113,23 @@ drawMinorGridLine(CQChartsPlot *plot, QPainter *painter, double apos, double dmi
 
 void
 CQChartsAxis::
-drawMajorTickLine(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, bool inside)
+drawMajorTickLine(const CQChartsPlot *plot, QPainter *painter, double apos,
+                  double tpos, bool inside)
 {
   drawTickLine(plot, painter, apos, tpos, inside, /*major*/true);
 }
 
 void
 CQChartsAxis::
-drawMinorTickLine(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, bool inside)
+drawMinorTickLine(const CQChartsPlot *plot, QPainter *painter, double apos,
+                  double tpos, bool inside)
 {
   drawTickLine(plot, painter, apos, tpos, inside, /*major*/false);
 }
 
 void
 CQChartsAxis::
-drawTickLine(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
+drawTickLine(const CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
              bool inside, bool major)
 {
   int tlen = (major ? majorTickLen() : minorTickLen());
@@ -1198,7 +1217,7 @@ drawTickLine(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
 
 void
 CQChartsAxis::
-drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, bool inside)
+drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double tpos, bool inside)
 {
   int tgap  = 2;
   int tlen1 = majorTickLen();
@@ -1684,7 +1703,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
 void
 CQChartsAxis::
-drawAxisLabel(CQChartsPlot *plot, QPainter *painter, double apos,
+drawAxisLabel(const CQChartsPlot *plot, QPainter *painter, double apos,
               double amin, double amax, const QString &text)
 {
   if (! text.length())

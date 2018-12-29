@@ -154,7 +154,7 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   }
 }
 
-inline QVariant variantFromObj(Tcl_Interp *interp, Tcl_Obj *obj) {
+inline QVariant variantFromObj(Tcl_Interp *interp, const Tcl_Obj *obj) {
   static const Tcl_ObjType *itype;
   static const Tcl_ObjType *rtype;
   static const Tcl_ObjType *stype;
@@ -167,22 +167,24 @@ inline QVariant variantFromObj(Tcl_Interp *interp, Tcl_Obj *obj) {
     ltype = Tcl_GetObjType("list");
   }
 
+  Tcl_Obj *obj1 = const_cast<Tcl_Obj *>(obj);
+
   double real    = 0.0;
   int    integer = 0;
 
-  Tcl_IncrRefCount(obj);
+  Tcl_IncrRefCount(obj1);
 
   QVariant var;
 
-  const Tcl_ObjType *type = obj->typePtr;
+  const Tcl_ObjType *type = obj1->typePtr;
 
   if (type) {
     if      (type == itype) {
-      if (Tcl_GetIntFromObj(interp, obj, &integer) == TCL_OK)
+      if (Tcl_GetIntFromObj(interp, obj1, &integer) == TCL_OK)
         var = QVariant(integer);
     }
     else if (type == rtype) {
-      if (Tcl_GetDoubleFromObj(interp, obj, &real) == TCL_OK)
+      if (Tcl_GetDoubleFromObj(interp, obj1, &real) == TCL_OK)
         var = QVariant(real);
     }
     else if (type == ltype) {
@@ -190,11 +192,11 @@ inline QVariant variantFromObj(Tcl_Interp *interp, Tcl_Obj *obj) {
 
       int len = 0;
 
-      if (Tcl_ListObjLength(interp, obj, &len) == TCL_OK) {
+      if (Tcl_ListObjLength(interp, obj1, &len) == TCL_OK) {
         for (int i = 0; i < len; ++i) {
           Tcl_Obj *lobj;
 
-          if (Tcl_ListObjIndex(interp, obj, i, &lobj) == TCL_OK) {
+          if (Tcl_ListObjIndex(interp, obj1, i, &lobj) == TCL_OK) {
             QVariant lvar = variantFromObj(interp, lobj);
 
             lvars.push_back(lvar);
@@ -214,14 +216,14 @@ inline QVariant variantFromObj(Tcl_Interp *interp, Tcl_Obj *obj) {
   if (! var.isValid()) {
     int len = 0;
 
-    char *str = Tcl_GetStringFromObj(obj, &len);
+    char *str = Tcl_GetStringFromObj(obj1, &len);
 
     std::string cstr(str, len);
 
     var = QVariant(QString(cstr.c_str()));
   }
 
-  Tcl_DecrRefCount(obj);
+  Tcl_DecrRefCount(obj1);
 
   return var;
 }
@@ -405,7 +407,7 @@ class CQTcl : public CTcl {
       return res.toString();
   }
 
-  QVariant variantFromObj(Tcl_Obj *obj) {
+  QVariant variantFromObj(const Tcl_Obj *obj) {
     return CQTclUtil::variantFromObj(interp(), obj);
   }
 

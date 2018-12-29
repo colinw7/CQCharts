@@ -714,12 +714,12 @@ calcRange()
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsScatterPlot *plot) :
+    RowVisitor(const CQChartsScatterPlot *plot) :
      plot_(plot) {
       hasGroups_ = (plot_->numGroups() > 1);
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       CQChartsModelIndex ind(data.row, plot_->xColumn(), data.parent);
 
       // init group
@@ -770,17 +770,19 @@ calcRange()
     bool isUniqueY() const { return uniqueY_ == numRows(); }
 
    private:
-    CQChartsScatterPlot*  plot_      { nullptr };
-    int                   hasGroups_ { false };
-    CQChartsGeom::Range   range_;
-    CQChartsModelDetails* details_   { nullptr };
-    int                   uniqueX_   { 0 };
-    int                   uniqueY_   { 0 };
+    const CQChartsScatterPlot* plot_      { nullptr };
+    int                        hasGroups_ { false };
+    CQChartsGeom::Range        range_;
+    CQChartsModelDetails*      details_   { nullptr };
+    int                        uniqueX_   { 0 };
+    int                        uniqueY_   { 0 };
   };
 
   RowVisitor visitor(this);
 
   visitModel(visitor);
+
+  //---
 
   CQChartsGeom::Range dataRange = visitor.range();
 
@@ -812,6 +814,8 @@ calcRange()
   //---
 
   adjustDataRange();
+
+  //---
 
   // update data range if unset
   if (dataRange.isSet() && CMathUtil::isZero(dataRange.xsize())) {
@@ -862,6 +866,15 @@ calcRange()
 
   //---
 
+  initAxes(uniqueX, uniqueY);
+
+  return dataRange;
+}
+
+void
+CQChartsScatterPlot::
+initAxes(bool uniqueX, bool uniqueY)
+{
   setXValueColumn(xColumn());
   setYValueColumn(yColumn());
 
@@ -887,29 +900,29 @@ calcRange()
 
   if (xColumnType == CQBaseModelType::TIME)
     xAxis()->setDate(true);
-
-  return dataRange;
 }
 
 //------
 
 void
 CQChartsScatterPlot::
-updateObjs()
+clearPlotObjects()
 {
   groupNameValues_  .clear();
   groupNameGridData_.clear();
 
-  //clearValueSets();
-
-  CQChartsPlot::updateObjs();
+  CQChartsPlot::clearPlotObjects();
 }
 
 bool
 CQChartsScatterPlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsScatterPlot::createObjs");
+
+  NoUpdate noUpdate(const_cast<CQChartsScatterPlot *>(this));
+
+  //---
 
   // init value set
   //initValueSets();
@@ -948,13 +961,9 @@ createObjs()
 
   //---
 
-  addPointObjects();
+  addPointObjects(objs);
 
-  addGridObjects();
-
-  //---
-
-  resetKeyItems();
+  addGridObjects(objs);
 
   //---
 
@@ -963,7 +972,7 @@ createObjs()
 
 void
 CQChartsScatterPlot::
-addPointObjects()
+addPointObjects(PlotObjs &objs)
 {
   initSymbolTypeData();
   initSymbolSizeData();
@@ -1050,8 +1059,8 @@ addPointObjects()
         CQChartsGeom::BBox bbox(p.x() - sx, p.y() - sy, p.x() + sx, p.y() + sy);
 
         CQChartsScatterPointObj *pointObj =
-          new CQChartsScatterPointObj(this, groupInd, bbox, p, symbolType, symbolSize,
-                                      fontSize, color, ig, ng, is, ns, iv, nv);
+          new CQChartsScatterPointObj(this, groupInd, bbox, p, symbolType, symbolSize, fontSize,
+                                      color, ig, ng, is, ns, iv, nv);
 
         //---
 
@@ -1059,7 +1068,7 @@ addPointObjects()
 
         pointObj->setInd(valuePoint.ind);
 
-        addPlotObject(pointObj);
+        objs.push_back(pointObj);
 
         //---
 
@@ -1075,7 +1084,7 @@ addPointObjects()
 
 void
 CQChartsScatterPlot::
-addGridObjects()
+addGridObjects(PlotObjs &objs)
 {
   int hasGroups = (numGroups() > 1);
 
@@ -1134,10 +1143,9 @@ addGridObjects()
           CQChartsGeom::BBox bbox(xmin, ymin, xmax, ymax);
 
           CQChartsScatterCellObj *cellObj =
-            new CQChartsScatterCellObj(this, groupInd, bbox, ig, ng, is, ns, ix, iy,
-                                       points, maxN);
+            new CQChartsScatterCellObj(this, groupInd, bbox, ig, ng, is, ns, ix, iy, points, maxN);
 
-          addPlotObject(cellObj);
+          objs.push_back(cellObj);
         }
       }
 
@@ -1156,11 +1164,11 @@ addNameValues()
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsScatterPlot *plot) :
+    RowVisitor(const CQChartsScatterPlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       CQChartsModelIndex ind(data.row, plot_->xColumn(), data.parent);
 
       // get group
@@ -1194,10 +1202,10 @@ addNameValues()
         name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok);
       }
 
-      if (! name.length())
+      if (! name.length() && plot_->title())
         name = plot_->title()->textStr();
 
-      if (! name.length())
+      if (! name.length() && plot_->xAxis())
         name = plot_->xAxis()->label();
 
       //---
@@ -1212,7 +1220,9 @@ addNameValues()
 
       //---
 
-      plot_->addNameValue(groupInd, name, x, y, data.row, xInd1, color);
+      CQChartsScatterPlot *plot = const_cast<CQChartsScatterPlot *>(plot_);
+
+      plot->addNameValue(groupInd, name, x, y, data.row, xInd1, color);
 
       return State::OK;
     }
@@ -1237,8 +1247,8 @@ addNameValues()
     }
 
    private:
-    CQChartsScatterPlot*  plot_    { nullptr };
-    CQChartsModelDetails* details_ { nullptr };
+    const CQChartsScatterPlot* plot_    { nullptr };
+    CQChartsModelDetails*      details_ { nullptr };
   };
 
   RowVisitor visitor(this);
@@ -1572,29 +1582,42 @@ drawForeground(QPainter *painter)
 
 void
 CQChartsScatterPlot::
-drawBestFit(QPainter *painter)
+drawBestFit(QPainter *painter) const
 {
+  // init fit data
+  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
   for (const auto &groupNameValue : groupNameValues_) {
     int groupInd = groupNameValue.first;
 
-    CQChartsFitData &fitData = groupFitData_[groupInd];
+    CQChartsFitData &fitData = th->groupFitData_[groupInd];
 
     if (! fitData.isFitted()) {
-      Points &points = groupPoints_[groupInd];
+      auto p = groupPoints_.find(groupInd);
 
-      fitData.calc(points, bestFitOrder());
+      if (p != groupPoints_.end()) {
+        const Points &points = (*p).second;
+
+        fitData.calc(points, bestFitOrder());
+      }
     }
   }
 
   //---
 
+  // draw fit data
   int ig = 0;
   int ng = groupNameValues_.size();
 
   for (const auto &groupNameValue : groupNameValues_) {
     int groupInd = groupNameValue.first;
 
-    CQChartsFitData &fitData = groupFitData_[groupInd];
+    auto pf = groupFitData_.find(groupInd);
+
+    if (pf == groupFitData_.end())
+      continue;
+
+    const CQChartsFitData &fitData = (*pf).second;
 
     //---
 
@@ -1695,7 +1718,7 @@ drawBestFit(QPainter *painter)
 
 void
 CQChartsScatterPlot::
-drawHull(QPainter *painter)
+drawHull(QPainter *painter) const
 {
   int ig = 0;
   int ng = groupNameValues_.size();
@@ -1703,20 +1726,32 @@ drawHull(QPainter *painter)
   for (const auto &groupNameValue : groupNameValues_) {
     int groupInd = groupNameValue.first;
 
-    CQChartsGrahamHull &hull = groupHull_[groupInd];
+    auto ph = groupHull_.find(groupInd);
 
-    if (hull.numPoints() == 0) {
-      Points &points = groupPoints_[groupInd];
+    if (ph != groupHull_.end()) {
+      const CQChartsGrahamHull &hull = (*ph).second;
 
-      //---
+      if (hull.numPoints() == 0) {
+        CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
 
-      std::vector<double> x, y;
+        CQChartsGrahamHull &hull = th->groupHull_[groupInd];
 
-      for (const auto &p : points)
-        hull.addPoint(p);
+        const Points &points = th->groupPoints_[groupInd];
 
-      hull.calc();
+        //---
+
+        std::vector<double> x, y;
+
+        for (const auto &p : points)
+          hull.addPoint(p);
+
+        hull.calc();
+      }
+
+      ph = groupHull_.find(groupInd);
     }
+
+    const CQChartsGrahamHull &hull = (*ph).second;
 
     //---
 
@@ -1745,7 +1780,7 @@ drawHull(QPainter *painter)
 
 void
 CQChartsScatterPlot::
-drawXRug(QPainter *painter)
+drawXRug(QPainter *painter) const
 {
   for (const auto &plotObj : plotObjects()) {
     const CQChartsScatterPointObj *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
@@ -1761,7 +1796,7 @@ drawXRug(QPainter *painter)
 
 void
 CQChartsScatterPlot::
-drawYRug(QPainter *painter)
+drawYRug(QPainter *painter) const
 {
   for (const auto &plotObj : plotObjects()) {
     const CQChartsScatterPointObj *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
@@ -1779,9 +1814,11 @@ drawYRug(QPainter *painter)
 
 void
 CQChartsScatterPlot::
-drawXDensity(QPainter *painter)
+drawXDensity(QPainter *painter) const
 {
-  initWhiskerData();
+  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
+  th->initWhiskerData();
 
   //---
 
@@ -1792,9 +1829,13 @@ drawXDensity(QPainter *painter)
     for (const auto &groupNameValue : groupNameValues_) {
       int groupInd = groupNameValue.first;
 
-      WhiskerData &whiskerData = groupWhiskers_[groupInd];
+      auto p = groupWhiskers_.find(groupInd);
 
-      drawXDensityWhisker(painter, whiskerData, ig, ng);
+      if (p != groupWhiskers_.end()) {
+        const WhiskerData &whiskerData = (*p).second;
+
+        drawXDensityWhisker(painter, whiskerData, ig, ng);
+      }
 
       ++ig;
     }
@@ -1806,9 +1847,13 @@ drawXDensity(QPainter *painter)
     for (const auto &pg : groupNameGridData_) {
       int groupInd = pg.first;
 
-      WhiskerData &whiskerData = groupWhiskers_[groupInd];
+      auto p = groupWhiskers_.find(groupInd);
 
-      drawXDensityWhisker(painter, whiskerData, ig, ng);
+      if (p != groupWhiskers_.end()) {
+        const WhiskerData &whiskerData = (*p).second;
+
+        drawXDensityWhisker(painter, whiskerData, ig, ng);
+      }
 
       ++ig;
     }
@@ -1817,9 +1862,11 @@ drawXDensity(QPainter *painter)
 
 void
 CQChartsScatterPlot::
-drawYDensity(QPainter *painter)
+drawYDensity(QPainter *painter) const
 {
-  initWhiskerData();
+  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
+  th->initWhiskerData();
 
   //---
 
@@ -1830,9 +1877,13 @@ drawYDensity(QPainter *painter)
     for (const auto &groupNameValue : groupNameValues_) {
       int groupInd = groupNameValue.first;
 
-      WhiskerData &whiskerData = groupWhiskers_[groupInd];
+      auto p = groupWhiskers_.find(groupInd);
 
-      drawYDensityWhisker(painter, whiskerData, ig, ng);
+      if (p != groupWhiskers_.end()) {
+        const WhiskerData &whiskerData = (*p).second;
+
+        drawYDensityWhisker(painter, whiskerData, ig, ng);
+      }
 
       ++ig;
     }
@@ -1844,9 +1895,13 @@ drawYDensity(QPainter *painter)
     for (const auto &pg : groupNameGridData_) {
       int groupInd = pg.first;
 
-      WhiskerData &whiskerData = groupWhiskers_[groupInd];
+      auto p = groupWhiskers_.find(groupInd);
 
-      drawYDensityWhisker(painter, whiskerData, ig, ng);
+      if (p != groupWhiskers_.end()) {
+        const WhiskerData &whiskerData = (*p).second;
+
+        drawYDensityWhisker(painter, whiskerData, ig, ng);
+      }
 
       ++ig;
     }
@@ -1855,7 +1910,7 @@ drawYDensity(QPainter *painter)
 
 void
 CQChartsScatterPlot::
-drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng)
+drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const
 {
   // calc pen/brush
   QPen   pen;
@@ -1893,7 +1948,7 @@ drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
 
 void
 CQChartsScatterPlot::
-drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng)
+drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const
 {
   // calc pen/brush
   QPen   pen;
@@ -1931,7 +1986,7 @@ drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
 
 void
 CQChartsScatterPlot::
-drawDensityMap(QPainter *painter)
+drawDensityMap(QPainter *painter) const
 {
   painter->save();
 
@@ -1939,7 +1994,9 @@ drawDensityMap(QPainter *painter)
 
   //---
 
-  initWhiskerData();
+  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
+  th->initWhiskerData();
 
   //---
 
@@ -2023,9 +2080,11 @@ drawDensityMap(QPainter *painter)
 
 void
 CQChartsScatterPlot::
-drawXWhisker(QPainter *painter)
+drawXWhisker(QPainter *painter) const
 {
-  initWhiskerData();
+  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
+  th->initWhiskerData();
 
   //---
 
@@ -2036,9 +2095,13 @@ drawXWhisker(QPainter *painter)
     for (const auto &groupNameValue : groupNameValues_) {
       int groupInd = groupNameValue.first;
 
-      WhiskerData &whiskerData = groupWhiskers_[groupInd];
+      auto p = groupWhiskers_.find(groupInd);
 
-      drawXWhiskerWhisker(painter, whiskerData, ig, ng);
+      if (p != groupWhiskers_.end()) {
+        const WhiskerData &whiskerData = (*p).second;
+
+        drawXWhiskerWhisker(painter, whiskerData, ig, ng);
+      }
 
       ++ig;
     }
@@ -2050,9 +2113,13 @@ drawXWhisker(QPainter *painter)
     for (const auto &pg : groupNameGridData_) {
       int groupInd = pg.first;
 
-      WhiskerData &whiskerData = groupWhiskers_[groupInd];
+      auto p = groupWhiskers_.find(groupInd);
 
-      drawXWhiskerWhisker(painter, whiskerData, ig, ng);
+      if (p != groupWhiskers_.end()) {
+        const WhiskerData &whiskerData = (*p).second;
+
+        drawXWhiskerWhisker(painter, whiskerData, ig, ng);
+      }
 
       ++ig;
     }
@@ -2061,9 +2128,11 @@ drawXWhisker(QPainter *painter)
 
 void
 CQChartsScatterPlot::
-drawYWhisker(QPainter *painter)
+drawYWhisker(QPainter *painter) const
 {
-  initWhiskerData();
+  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
+  th->initWhiskerData();
 
   //---
 
@@ -2074,9 +2143,13 @@ drawYWhisker(QPainter *painter)
     for (const auto &groupNameValue : groupNameValues_) {
       int groupInd = groupNameValue.first;
 
-      WhiskerData &whiskerData = groupWhiskers_[groupInd];
+      auto p = groupWhiskers_.find(groupInd);
 
-      drawYWhiskerWhisker(painter, whiskerData, ig, ng);
+      if (p != groupWhiskers_.end()) {
+        const WhiskerData &whiskerData = (*p).second;
+
+        drawYWhiskerWhisker(painter, whiskerData, ig, ng);
+      }
 
       ++ig;
     }
@@ -2088,9 +2161,13 @@ drawYWhisker(QPainter *painter)
     for (const auto &pg : groupNameGridData_) {
       int groupInd = pg.first;
 
-      WhiskerData &whiskerData = groupWhiskers_[groupInd];
+      auto p = groupWhiskers_.find(groupInd);
 
-      drawYWhiskerWhisker(painter, whiskerData, ig, ng);
+      if (p != groupWhiskers_.end()) {
+        const WhiskerData &whiskerData = (*p).second;
+
+        drawYWhiskerWhisker(painter, whiskerData, ig, ng);
+      }
 
       ++ig;
     }
@@ -2099,7 +2176,7 @@ drawYWhisker(QPainter *painter)
 
 void
 CQChartsScatterPlot::
-drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng)
+drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const
 {
   // calc pen/brush
   QPen   pen;
@@ -2135,7 +2212,7 @@ drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
 
 void
 CQChartsScatterPlot::
-drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng)
+drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const
 {
   // calc pen/brush
   QPen   pen;
@@ -2593,7 +2670,7 @@ columnFontSize(int row, const QModelIndex &parent, CQChartsLength &fontSize) con
 
 void
 CQChartsScatterPlot::
-drawSymbolMapKey(QPainter *painter)
+drawSymbolMapKey(QPainter *painter) const
 {
   if (! symbolSizeColumn().isValid())
     return;
@@ -2659,13 +2736,13 @@ drawSymbolMapKey(QPainter *painter)
 //------
 
 CQChartsScatterPointObj::
-CQChartsScatterPointObj(CQChartsScatterPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
-                        const QPointF &p, const CQChartsSymbol &symbolType,
-                        const CQChartsLength &symbolSize, const CQChartsLength &fontSize,
-                        const CQChartsColor &color,
+CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd,
+                        const CQChartsGeom::BBox &rect, const QPointF &p,
+                        const CQChartsSymbol &symbolType, const CQChartsLength &symbolSize,
+                        const CQChartsLength &fontSize, const CQChartsColor &color,
                         int ig, int ng, int is, int ns, int iv, int nv) :
- CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), p_(p), symbolType_(symbolType),
- symbolSize_(symbolSize), fontSize_(fontSize), color_(color),
+ CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
+ p_(p), symbolType_(symbolType), symbolSize_(symbolSize), fontSize_(fontSize), color_(color),
  ig_(ig), ng_(ng), is_(is), ns_(ns), iv_(iv), nv_(nv)
 {
   assert(ig >= 0 && ig < ng);
@@ -2831,7 +2908,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
   plot_->setSymbolPenBrush(pen, brush, ic, nc);
 
   if (color_.isValid()) {
-    QColor c = color_.interpColor(plot_->charts(), ic, nc);
+    QColor c = plot_->charts()->interpColor(color_, ic, nc);
 
     c.setAlphaF(plot_->symbolFillAlpha());
 
@@ -2900,7 +2977,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
   // draw text labels
   if (plot_->dataLabel().isVisible()) {
-    CQChartsDataLabel &dataLabel = plot_->dataLabel();
+    const CQChartsDataLabel &dataLabel = plot_->dataLabel();
 
     //---
 
@@ -2929,23 +3006,28 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
       font1.setPointSizeF(fontSize);
 
-      dataLabel.setTextFont(font1);
+      CQChartsDataLabel &dataLabel1 = const_cast<CQChartsScatterPlot *>(plot_)->dataLabel();
+
+      dataLabel1.setTextFont(font1);
     }
 
     dataLabel.draw(painter, erect, name_, dataLabel.position(), tpen);
 
-    if (fontSize > 0)
-      dataLabel.setTextFont(font);
+    if (fontSize > 0) {
+      CQChartsDataLabel &dataLabel1 = const_cast<CQChartsScatterPlot *>(plot_)->dataLabel();
+
+      dataLabel1.setTextFont(font);
+    }
   }
 }
 
 //------
 
 CQChartsScatterCellObj::
-CQChartsScatterCellObj(CQChartsScatterPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
-                       int ig, int ng, int is, int ns, int ix, int iy,
-                       const Points &points, int maxn) :
- CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd),
+CQChartsScatterCellObj(const CQChartsScatterPlot *plot, int groupInd,
+                       const CQChartsGeom::BBox &rect, int ig, int ng, int is, int ns,
+                       int ix, int iy, const Points &points, int maxn) :
+ CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
  ig_(ig), ng_(ng), is_(is), ns_(ns), ix_(ix), iy_(iy), points_(points), maxn_(maxn)
 {
   assert(ig >= 0 && ig < ng);
@@ -3130,7 +3212,7 @@ fillBrush() const
   QColor c;
 
   if (color_.isValid())
-    c = color_.interpColor(plot_->charts(), 0, 1);
+    c = plot_->charts()->interpColor(color_, 0, 1);
   else {
     c = plot->interpSymbolFillColor(i_, n_);
 

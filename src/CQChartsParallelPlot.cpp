@@ -148,6 +148,8 @@ CQChartsGeom::Range
 CQChartsParallelPlot::
 calcRange()
 {
+  CQPerfTrace trace("CQChartsParallelPlot::calcRange");
+
   // create axes
   Qt::Orientation adir = (! isHorizontal() ? Qt::Vertical : Qt::Horizontal);
 
@@ -173,7 +175,7 @@ calcRange()
   // calc range for each value column (set)
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsParallelPlot *plot) :
+    RowVisitor(const CQChartsParallelPlot *plot) :
      plot_(plot) {
       ns_ = plot_->yColumns().count();
 
@@ -181,7 +183,7 @@ calcRange()
         setRanges_.emplace_back();
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       for (int i = 0; i < ns_; ++i) {
         CQChartsGeom::Range &range = setRanges_[i];
 
@@ -208,9 +210,9 @@ calcRange()
     const Ranges &setRanges() const { return setRanges_; }
 
    private:
-    CQChartsParallelPlot *plot_ { nullptr };
-    int                   ns_   { 0 };
-    Ranges                setRanges_;
+    const CQChartsParallelPlot* plot_ { nullptr };
+    int                         ns_   { 0 };
+    Ranges                      setRanges_;
   };
 
   RowVisitor visitor(this);
@@ -292,9 +294,13 @@ calcRange()
 
 bool
 CQChartsParallelPlot::
-createObjs()
+createObjs(PlotObjs &objs)
 {
   CQPerfTrace trace("CQChartsParallelPlot::createObjs");
+
+  NoUpdate noUpdate(const_cast<CQChartsParallelPlot *>(this));
+
+  //---
 
   // create polyline for value from each set
   using Polygons = std::vector<QPolygonF>;
@@ -302,12 +308,12 @@ createObjs()
 
   class RowVisitor : public ModelVisitor {
    public:
-    RowVisitor(CQChartsParallelPlot *plot) :
+    RowVisitor(const CQChartsParallelPlot *plot) :
      plot_(plot) {
       ns_ = plot_->yColumns().count();
     }
 
-    State visit(QAbstractItemModel *, const VisitData &data) override {
+    State visit(const QAbstractItemModel *, const VisitData &data) override {
       QPolygonF poly;
 
       QModelIndex xind = plot_->modelIndex(data.row, plot_->xColumn(), data.parent);
@@ -344,10 +350,10 @@ createObjs()
     const Indices &xinds() const { return xinds_; }
 
    private:
-    CQChartsParallelPlot *plot_ { nullptr };
-    int                   ns_   { 0 };
-    Polygons              polys_;
-    Indices               xinds_;
+    const CQChartsParallelPlot* plot_ { nullptr };
+    int                         ns_   { 0 };
+    Polygons                    polys_;
+    Indices                     xinds_;
   };
 
   RowVisitor visitor(this);
@@ -387,7 +393,7 @@ createObjs()
     CQChartsParallelLineObj *lineObj =
       new CQChartsParallelLineObj(this, bbox, poly, xind1, i, n);
 
-    addPlotObject(lineObj);
+    objs.push_back(lineObj);
 
     //---
 
@@ -446,7 +452,7 @@ createObjs()
 
       //pointObj->setId(id);
 
-      addPlotObject(pointObj);
+      objs.push_back(pointObj);
     }
   }
 
@@ -458,7 +464,7 @@ createObjs()
 bool
 CQChartsParallelPlot::
 rowColValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
-            double &value, double defVal)
+            double &value, double defVal) const
 {
   bool ok;
 
@@ -692,9 +698,10 @@ setNormalizedRange()
 //------
 
 CQChartsParallelLineObj::
-CQChartsParallelLineObj(CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
                         const QPolygonF &poly, const QModelIndex &ind, int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), poly_(poly), ind_(ind), i_(i), n_(n)
+ CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(plot), rect),
+ plot_(plot), poly_(poly), ind_(ind), i_(i), n_(n)
 {
 }
 
@@ -860,11 +867,11 @@ getPolyLine(QPolygonF &poly) const
 //------
 
 CQChartsParallelPointObj::
-CQChartsParallelPointObj(CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
+CQChartsParallelPointObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
                          double yval, double x, double y, const QModelIndex &ind,
                          int iset, int nset, int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), yval_(yval), x_(x), y_(y), ind_(ind),
- iset_(iset), nset_(nset), i_(i), n_(n)
+ CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(plot), rect), plot_(plot),
+ yval_(yval), x_(x), y_(y), ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
 {
 }
 
@@ -962,7 +969,9 @@ draw(QPainter *painter)
 
   //---
 
-  plot_->setObjRange();
+  CQChartsParallelPlot *plot = const_cast<CQChartsParallelPlot *>(plot_);
+
+  plot->setObjRange();
 
   //---
 
@@ -992,5 +1001,5 @@ draw(QPainter *painter)
 
   //---
 
-  plot_->setNormalizedRange();
+  plot->setNormalizedRange();
 }

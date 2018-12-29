@@ -698,6 +698,88 @@ initLayersFrame(QFrame *layersFrame)
           this, SLOT(layersSelectionChangeSlot()));
   connect(layersWidgets_.layerTable, SIGNAL(cellClicked(int, int)),
           this, SLOT(layersClickedSlot(int, int)));
+
+  layersWidgets_.layerTable->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+  //---
+
+  QFrame *controlFrame = new QFrame;
+  controlFrame->setObjectName("control");
+
+  QHBoxLayout *controlLayout = new QHBoxLayout(controlFrame);
+  controlLayout->setMargin(0); controlLayout->setSpacing(0);
+
+  layersFrameLayout->addWidget(controlFrame);
+
+  //--
+
+  QPushButton *imageButton = new QPushButton("Image");
+
+  controlLayout->addWidget(imageButton);
+  controlLayout->addStretch(1);
+
+  connect(imageButton, SIGNAL(clicked()), this, SLOT(layerImageSlot()));
+}
+
+class CQChartsViewSettingsLayerImage : public QDialog {
+ public:
+  CQChartsViewSettingsLayerImage() {
+  }
+
+  void setImage(const QImage &image) {
+    image_ = image;
+
+    setFixedSize(image_.size());
+  }
+
+  void paintEvent(QPaintEvent *) {
+    QPainter p(this);
+
+    p.drawImage(0, 0, image_);
+  }
+
+ private:
+  QImage image_;
+};
+
+void
+CQChartsViewSettings::
+layerImageSlot()
+{
+  static CQChartsViewSettingsLayerImage *layerImage;
+
+  //---
+
+  CQChartsPlot *plot = window_->view()->currentPlot();
+  if (! plot) return;
+
+  QList<QTableWidgetItem *> items = layersWidgets_.layerTable->selectedItems();
+  if (items.length() <= 0) return;
+
+  QTableWidgetItem *item = items[0];
+
+  bool ok;
+
+  int l = item->data(Qt::UserRole).toInt(&ok);
+  if (! ok) return;
+
+  CQChartsLayer *layer = plot->getLayer((CQChartsLayer::Type) l);
+  if (! layer) return;
+
+  CQChartsBuffer *buffer = plot->getBuffer(layer->buffer());
+  if (! buffer) return;
+
+  QImage *image = buffer->image();
+  if (! image) return;
+
+  //---
+
+  if (! layerImage)
+    layerImage = new CQChartsViewSettingsLayerImage;
+
+  layerImage->setImage(*image);
+
+  layerImage->show();
 }
 
 //------
@@ -1542,7 +1624,7 @@ updateLayers()
 
     CQChartsLayer *layer = plot->getLayer(type);
 
-    const CQChartsBuffer *buffer = (layer ? layer->buffer() : nullptr);
+    const CQChartsBuffer *buffer = (layer ? plot->getBuffer(layer->buffer()) : nullptr);
 
 //  QTableWidgetItem *idItem    = layersWidgets_.layerTable->item(i, 0);
     QTableWidgetItem *stateItem = layersWidgets_.layerTable->item(i, 1);
@@ -1600,7 +1682,7 @@ layersClickedSlot(int row, int column)
 
   plot->setLayerActive(type, active);
 
-  const CQChartsBuffer *buffer = layer->buffer();
+  const CQChartsBuffer *buffer = plot->getBuffer(layer->buffer());
 
   plot->invalidateLayer(buffer->type());
 }

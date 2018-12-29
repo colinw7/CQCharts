@@ -1,0 +1,3 @@
+. update timer (100) needed for optimal update for multiple changes
+. column type buffer commented out
+. 
