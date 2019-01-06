@@ -80,6 +80,21 @@ genColumnType(int column)
   ColumnData &columnData = getColumnData(column);
 
   genColumnType(columnData);
+
+  emit columnTypeChanged(columnData.column);
+}
+
+void
+CQBaseModel::
+genColumnType(const ColumnData &columnData) const
+{
+  std::unique_lock<std::mutex> lock(mutex_);
+
+  if (columnData.type == CQBaseModelType::NONE) {
+    CQBaseModel *th = const_cast<CQBaseModel *>(this);
+
+    th->genColumnType(const_cast<ColumnData &>(columnData));
+  }
 }
 
 void
@@ -108,8 +123,6 @@ genColumnType(ColumnData &columnData)
   if (columnTypeData.type != columnData.type) {
     columnData.type     = columnTypeData.type;
     columnData.baseType = columnTypeData.baseType;
-
-    emit columnTypeChanged(columnData.column);
   }
 }
 
@@ -182,13 +195,10 @@ columnType(int column) const
   if (column < 0 || column >= columnCount())
     return CQBaseModelType::NONE;
 
-  ColumnData &columnData = getColumnData(column);
+  const ColumnData &columnData = getColumnData(column);
 
-  if (columnData.type == CQBaseModelType::NONE) {
-    CQBaseModel *th = const_cast<CQBaseModel *>(this);
-
-    th->genColumnType(columnData);
-  }
+  if (columnData.type == CQBaseModelType::NONE)
+    genColumnType(columnData);
 
   return columnData.type;
 }
@@ -221,13 +231,10 @@ columnBaseType(int column) const
   if (column < 0 || column >= columnCount())
     return CQBaseModelType::NONE;
 
-  ColumnData &columnData = getColumnData(column);
+  const ColumnData &columnData = getColumnData(column);
 
-  if (columnData.type == CQBaseModelType::NONE) {
-    CQBaseModel *th = const_cast<CQBaseModel *>(this);
-
-    th->genColumnType(columnData);
-  }
+  if (columnData.type == CQBaseModelType::NONE)
+    genColumnType(columnData);
 
   return columnData.baseType;
 }
@@ -257,7 +264,7 @@ columnTypeValues(int column) const
   if (column < 0 || column >= columnCount())
     return QString();
 
-  ColumnData &columnData = getColumnData(column);
+  const ColumnData &columnData = getColumnData(column);
 
   return columnData.typeValues;
 }
@@ -285,7 +292,7 @@ columnMin(int column) const
   if (column < 0 || column >= columnCount())
     return QVariant();
 
-  ColumnData &columnData = getColumnData(column);
+  const ColumnData &columnData = getColumnData(column);
 
   return columnData.min;
 }
@@ -313,7 +320,7 @@ columnMax(int column) const
   if (column < 0 || column >= columnCount())
     return QVariant();
 
-  ColumnData &columnData = getColumnData(column);
+  const ColumnData &columnData = getColumnData(column);
 
   return columnData.max;
 }
@@ -341,7 +348,7 @@ isColumnKey(int column) const
   if (column < 0 || column >= columnCount())
     return false;
 
-  ColumnData &columnData = getColumnData(column);
+  const ColumnData &columnData = getColumnData(column);
 
   return columnData.key;
 }
@@ -369,7 +376,7 @@ isColumnSorted(int column) const
   if (column < 0 || column >= columnCount())
     return false;
 
-  ColumnData &columnData = getColumnData(column);
+  const ColumnData &columnData = getColumnData(column);
 
   return columnData.sorted;
 }
@@ -397,7 +404,7 @@ columnSortOrder(int column) const
   if (column < 0 || column >= columnCount())
     return Qt::AscendingOrder;
 
-  ColumnData &columnData = getColumnData(column);
+  const ColumnData &columnData = getColumnData(column);
 
   return columnData.sortOrder;
 }
@@ -418,25 +425,39 @@ setColumnSortOrder(int column, int i)
   return true;
 }
 
-CQBaseModel::ColumnData &
+const CQBaseModel::ColumnData &
 CQBaseModel::
 getColumnData(int column) const
 {
+  return const_cast<CQBaseModel *>(this)->getColumnData(column);
+}
+
+CQBaseModel::ColumnData &
+CQBaseModel::
+getColumnData(int column)
+{
+  assert(column >= 0 || column < columnCount());
+
   auto p = columnDatas_.find(column);
 
   if (p != columnDatas_.end()) {
-    const ColumnData &columnData = (*p).second;
+    ColumnData &columnData = (*p).second;
 
     assert(columnData.column == column);
 
-    return const_cast<CQBaseModel::ColumnData &>(columnData);
+    return columnData;
   }
 
-  assert(column >= 0 || column < columnCount());
+  //---
+
+  std::unique_lock<std::mutex> lock(mutex_);
 
   CQBaseModel *th = const_cast<CQBaseModel *>(this);
 
-  auto p1 = th->columnDatas_.insert(p, ColumnDatas::value_type(column, ColumnData(column)));
+  auto p1 = th->columnDatas_.find(column);
+
+  if (p1 == th->columnDatas_.end())
+    p1 = th->columnDatas_.insert(p1, ColumnDatas::value_type(column, ColumnData(column)));
 
   return (*p1).second;
 }
@@ -471,7 +492,7 @@ rowGroup(int row) const
   if (row < 0 || row >= rowCount())
     return QVariant();
 
-  RowData &rowData = getRowData(row);
+  const RowData &rowData = getRowData(row);
 
   return rowData.group;
 }
@@ -490,25 +511,39 @@ setRowGroup(int row, const QVariant &v)
   return true;
 }
 
-CQBaseModel::RowData &
+const CQBaseModel::RowData &
 CQBaseModel::
 getRowData(int row) const
 {
+  return const_cast<CQBaseModel *>(this)->getRowData(row);
+}
+
+CQBaseModel::RowData &
+CQBaseModel::
+getRowData(int row)
+{
+  assert(row >= 0 || row < rowCount());
+
   auto p = rowDatas_.find(row);
 
   if (p != rowDatas_.end()) {
-    const RowData &rowData = (*p).second;
+    RowData &rowData = (*p).second;
 
     assert(rowData.row == row);
 
-    return const_cast<CQBaseModel::RowData &>(rowData);
+    return rowData;
   }
 
-  assert(row >= 0 || row < rowCount());
+  //---
+
+  std::unique_lock<std::mutex> lock(mutex_);
 
   CQBaseModel *th = const_cast<CQBaseModel *>(this);
 
-  auto p1 = th->rowDatas_.insert(p, RowDatas::value_type(row, RowData(row)));
+  auto p1 = th->rowDatas_.find(row);
+
+  if (p1 == th->rowDatas_.end())
+    p1 = th->rowDatas_.insert(p1, RowDatas::value_type(row, RowData(row)));
 
   return (*p1).second;
 }

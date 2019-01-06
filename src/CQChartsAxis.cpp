@@ -30,10 +30,11 @@ CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction, double start, 
  CQChartsObjAxesMinorGridLineData<CQChartsAxis>(this),
  CQChartsObjAxesGridFillData     <CQChartsAxis>(this),
  plot_(plot), direction_(direction),
- start_(std::min(start, end)), end_(std::max(start, end)), calcStart_(start), calcEnd_(end),
- editHandles_(plot, CQChartsEditHandles::Mode::MOVE)
+ start_(std::min(start, end)), end_(std::max(start, end)), calcStart_(start), calcEnd_(end)
 {
   setObjectName("axis");
+
+  editHandles_ = new CQChartsEditHandles(plot, CQChartsEditHandles::Mode::MOVE);
 
   CQChartsColor themeFg   (CQChartsColor::Type::INTERFACE_VALUE, 1);
   CQChartsColor themeGray1(CQChartsColor::Type::INTERFACE_VALUE, 0.7);
@@ -64,6 +65,7 @@ CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction, double start, 
 CQChartsAxis::
 ~CQChartsAxis()
 {
+  delete editHandles_;
 }
 
 CQCharts *
@@ -205,14 +207,14 @@ void
 CQChartsAxis::
 setMajorIncrement(double i)
 {
-  CQChartsUtil::testAndSet(majorIncrement_, i, [&]() { calc(); redraw(); } );
+  CQChartsUtil::testAndSet(majorIncrement_, i, [&]() { calcAndRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setTickIncrement(uint i)
 {
-  CQChartsUtil::testAndSet(tickIncrement_, i, [&]() { calc(); redraw(); } );
+  CQChartsUtil::testAndSet(tickIncrement_, i, [&]() { calcAndRedraw(); } );
 }
 
 //---
@@ -340,24 +342,33 @@ void
 CQChartsAxis::
 setIntegral(bool b)
 {
-  CQChartsUtil::testAndSet(integral_, b, [&]() { calc(); redraw(); } );
+  CQChartsUtil::testAndSet(integral_, b, [&]() { calcAndRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setDate(bool b)
 {
-  CQChartsUtil::testAndSet(date_, b, [&]() { calc(); redraw(); } );
+  CQChartsUtil::testAndSet(date_, b, [&]() { calcAndRedraw(); } );
 }
 
 void
 CQChartsAxis::
 setLog(bool b)
 {
-  CQChartsUtil::testAndSet(log_, b, [&]() { calc(); redraw(); } );
+  CQChartsUtil::testAndSet(log_, b, [&]() { calcAndRedraw(); } );
 }
 
 //---
+
+void
+CQChartsAxis::
+calcAndRedraw()
+{
+  calc();
+
+  redraw();
+}
 
 void
 CQChartsAxis::
@@ -481,12 +492,19 @@ contains(const CQChartsGeom::Point &p) const
 
 void
 CQChartsAxis::
-redraw()
+redraw(bool wait)
 {
   CQChartsPlot *plot = const_cast<CQChartsPlot *>(plot_);
+  if (! plot) return;
 
-  plot->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
-  plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+  if (wait) {
+    plot->queueDrawBackground();
+    plot->queueDrawForeground();
+  }
+  else {
+    plot->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+    plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+  }
 }
 
 void
@@ -504,7 +522,7 @@ bool
 CQChartsAxis::
 editPress(const CQChartsGeom::Point &p)
 {
-  editHandles_.setDragPos(p);
+  editHandles_->setDragPos(p);
 
   double apos1, apos2;
 
@@ -519,7 +537,7 @@ bool
 CQChartsAxis::
 editMove(const CQChartsGeom::Point &p)
 {
-  const CQChartsGeom::Point &dragPos = editHandles_.dragPos();
+  const CQChartsGeom::Point &dragPos = editHandles_->dragPos();
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
@@ -529,9 +547,9 @@ editMove(const CQChartsGeom::Point &p)
   else
     pos_ = *pos_ + dx;
 
-  editHandles_.setDragPos(p);
+  editHandles_->setDragPos(p);
 
-  redraw();
+  redraw(/*wait*/false);
 
   return true;
 }
@@ -540,7 +558,7 @@ bool
 CQChartsAxis::
 editMotion(const CQChartsGeom::Point &p)
 {
-  return editHandles_.selectInside(p);
+  return editHandles_->selectInside(p);
 }
 
 bool
@@ -563,7 +581,7 @@ editMoveBy(const QPointF &d)
   else
     pos_ = apos1 + d.x();
 
-  redraw();
+  redraw(/*wait*/false);
 }
 
 //---
@@ -937,13 +955,13 @@ draw(const CQChartsPlot *plot, QPainter *painter)
 
 void
 CQChartsAxis::
-drawEditHandles(QPainter *painter)
+drawEditHandles(QPainter *painter) const
 {
   assert(view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
-  editHandles_.setBBox(this->bbox());
+  const_cast<CQChartsAxis *>(this)->editHandles_->setBBox(this->bbox());
 
-  editHandles_.draw(painter);
+  editHandles_->draw(painter);
 }
 
 void

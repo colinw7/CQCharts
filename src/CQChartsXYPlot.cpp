@@ -149,6 +149,9 @@ CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
 
   setLinesColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
+  setImpulseLinesColor  (CQChartsColor(CQChartsColor::Type::PALETTE));
+  setBivariateLinesColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+
   //---
 
   // arrow object
@@ -185,63 +188,63 @@ void
 CQChartsXYPlot::
 setXColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setYColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(yColumns_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumns_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setSizeColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(sizeColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(sizeColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setPointLabelColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(pointLabelColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(pointLabelColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setPointColorColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(pointColorColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(pointColorColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setPointSymbolColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(pointSymbolColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(pointSymbolColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setVectorXColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(vectorXColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(vectorXColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setVectorYColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(vectorYColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(vectorYColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -330,14 +333,14 @@ void
 CQChartsXYPlot::
 setStacked(bool b)
 {
-  CQChartsUtil::testAndSet(stacked_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(stacked_, b, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setCumulative(bool b)
 {
-  CQChartsUtil::testAndSet(cumulative_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(cumulative_, b, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 bool
@@ -354,7 +357,7 @@ setVectors(bool b)
   if (b != isVectors()) {
     arrowObj_->setVisible(b);
 
-    updateObjs();
+    queueUpdateObjs();
   }
 }
 
@@ -362,7 +365,7 @@ void
 CQChartsXYPlot::
 setFitted(bool b)
 {
-  CQChartsUtil::testAndSet(fitted_, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(fitted_, b, [&]() { queueDrawObjs(); } );
 }
 
 //---
@@ -387,14 +390,14 @@ void
 CQChartsXYPlot::
 setLinesSelectable(bool b)
 {
-  CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setRoundedLines(bool b)
 {
-  CQChartsUtil::testAndSet(roundedLines_, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(roundedLines_, b, [&]() { queueDrawObjs(); } );
 }
 
 //---
@@ -403,21 +406,21 @@ void
 CQChartsXYPlot::
 setFillUnderSelectable(bool b)
 {
-  CQChartsUtil::testAndSet(fillUnderData_.selectable, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(fillUnderData_.selectable, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setFillUnderPos(const CQChartsFillUnderPos &pos)
 {
-  CQChartsUtil::testAndSet(fillUnderData_.pos, pos, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(fillUnderData_.pos, pos, [&]() { queueUpdateObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setFillUnderSide(const CQChartsFillUnderSide &s)
 {
-  CQChartsUtil::testAndSet(fillUnderData_.side, s, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(fillUnderData_.side, s, [&]() { queueUpdateObjs(); } );
 }
 
 //---
@@ -456,7 +459,7 @@ interpPaletteColor(int i, int n, bool scale) const
 
 CQChartsGeom::Range
 CQChartsXYPlot::
-calcRange()
+calcRange() const
 {
   CQPerfTrace trace("CQChartsXYPlot::calcRange");
 
@@ -545,9 +548,14 @@ calcRange()
 
   CQChartsGeom::Range dataRange = visitor.range();
 
+  if (isInterrupt())
+    return dataRange;
+
   //---
 
-  adjustDataRange();
+  ///dataRange = adjustDataRange(dataRange);
+
+  //---
 
   if (dataRange.isSet()) {
     if (CMathUtil::isZero(dataRange.dx())) {
@@ -567,7 +575,7 @@ calcRange()
 
   //---
 
-  initAxes();
+  const_cast<CQChartsXYPlot *>(this)->initAxes();
 
   //---
 
@@ -790,11 +798,13 @@ postInit()
 
 bool
 CQChartsXYPlot::
-createObjs(PlotObjs &objs)
+createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsXYPlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsXYPlot *>(this));
+  CQChartsXYPlot *th = const_cast<CQChartsXYPlot *>(this);
+
+  NoUpdate noUpdate(th);
 
   //---
 
@@ -802,13 +812,13 @@ createObjs(PlotObjs &objs)
   if (! dataRange.isSet()) return false;
 
   // TODO: use actual symbol size
-  symbolWidth_  = (dataRange.xmax() - dataRange.xmin())/100.0;
-  symbolHeight_ = (dataRange.ymax() - dataRange.ymin())/100.0;
+  th->symbolWidth_  = (dataRange.xmax() - dataRange.xmin())/100.0;
+  th->symbolHeight_ = (dataRange.ymax() - dataRange.ymin())/100.0;
 
   //---
 
   if (pointColorColumn().isValid())
-    pointColorColumnType_ = columnValueType(pointColorColumn());
+    th->pointColorColumnType_ = columnValueType(pointColorColumn());
 
   //---
 
@@ -825,7 +835,7 @@ createObjs(PlotObjs &objs)
 
 void
 CQChartsXYPlot::
-createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly)
+createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const
 {
   CQPerfTrace trace("CQChartsXYPlot::createGroupSetIndPoly");
 
@@ -944,16 +954,9 @@ createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly)
 
 bool
 CQChartsXYPlot::
-createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs)
+createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsXYPlot::createGroupSetObjs");
-
-  const CQChartsGeom::Range &dataRange = this->dataRange();
-
-  //---
-
-  double sw = symbolWidth ();
-  double sh = symbolHeight();
 
   //---
 
@@ -961,476 +964,522 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs)
   int ng = groupSetIndPoly.size();
 
   for (auto &p : groupSetIndPoly) {
+    if (isInterrupt())
+      return false;
+
     int               groupInd = p.first;
     const SetIndPoly &setPoly  = p.second;
 
     if      (isBivariateLines()) {
-      // convert lines bivariate lines (line connected each point pair)
-      int ns = setPoly.size();
+      if (! addBivariateLines(groupInd, setPoly, ig, ng, objs))
+        return false;
+    }
+    else {
+      if (! addLines(groupInd, setPoly, ig, ng, objs))
+        return false;
+    }
 
-      if (ns < 1)
+    ++ig;
+  }
+
+  return true;
+}
+
+bool
+CQChartsXYPlot::
+addBivariateLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotObjs &objs) const
+{
+  double sw = symbolWidth ();
+  double sh = symbolHeight();
+
+  //---
+
+  // convert lines bivariate lines (line connected each point pair)
+  int ns = setPoly.size();
+
+  if (ns < 1)
+    return false;
+
+  SetIndPoly polygons1, polygons2;
+
+  polygons1.resize(ns - 1);
+  polygons2.resize(ns - 1);
+
+  const QPolygonF &poly = setPoly[0].poly;
+
+  int np = poly.size();
+
+  for (int ip = 0; ip < np; ++ip) {
+    if (isInterrupt())
+      return false;
+
+    double x = 0.0;
+
+    // sorted y vals
+    std::set<double> sortedYVals;
+
+    for (int j = 0; j < ns; ++j) {
+      bool hidden = isSetHidden(j);
+
+      if (hidden)
+        continue;
+
+      //---
+
+      const QPolygonF &poly = setPoly[j].poly;
+
+      const QPointF &p = poly[ip];
+
+      if (CMathUtil::isNaN(p.y()) || CMathUtil::isInf(p.y()))
+        continue;
+
+      if (j == 0)
+        x = p.x();
+
+      sortedYVals.insert(p.y());
+    }
+
+    // need at least 2 values
+    if (sortedYVals.size() < 2)
+      continue;
+
+    //---
+
+    std::vector<double> yVals;
+
+    for (const auto &y : sortedYVals)
+      yVals.push_back(y);
+
+    //---
+
+    QModelIndex parent; // TODO: parent
+
+    QModelIndex xind  = modelIndex(ip, xColumn(), parent);
+    QModelIndex xind1 = normalizeIndex(xind);
+
+    //---
+
+    // connect each y value to next y value
+    double y1  = yVals[0];
+    int    ny1 = yVals.size();
+
+    for (int j = 1; j < ny1; ++j) {
+      if (isInterrupt())
         return false;
 
-      SetIndPoly polygons1, polygons2;
+      double y2 = yVals[j];
 
-      polygons1.resize(ns - 1);
-      polygons2.resize(ns - 1);
+      CQChartsGeom::BBox bbox(x - sw/2, y1 - sh/2, x + sw/2, y2 + sh/2);
 
-      const QPolygonF &poly = setPoly[0].poly;
+      if (! isFillUnderFilled()) {
+        // use vertical line object for each point pair if not fill under
+        CQChartsXYBiLineObj *lineObj =
+          new CQChartsXYBiLineObj(this, groupInd, bbox, x, y1, y2, xind1, j - 1, ny1 - 1, ip, np);
 
-      int np = poly.size();
+        objs.push_back(lineObj);
+      }
+      else {
+        QPolygonF &poly1 = polygons1[j - 1].poly;
+        QPolygonF &poly2 = polygons2[j - 1].poly;
 
-      for (int ip = 0; ip < np; ++ip) {
-        double x = 0.0;
+        // build lower and upper poly line for fill under polygon
+        poly1 << QPointF(x, y1);
+        poly2 << QPointF(x, y2);
+      }
 
-        // sorted y vals
-        std::set<double> sortedYVals;
+      y1 = y2;
+    }
+  }
 
-        for (int j = 0; j < ns; ++j) {
-          bool hidden = isSetHidden(j);
+  //---
 
-          if (hidden)
-            continue;
+  // add lower, upper and polygon objects for fill under
+  if (isFillUnderFilled()) {
+    QString name = titleStr();
 
-          //---
+    if (! name.length()) {
+      CQChartsColumn yColumn1 = yColumns().getColumn(0);
 
-          const QPolygonF &poly = setPoly[j].poly;
+      CQChartsColumn yColumn2;
 
-          const QPointF &p = poly[ip];
+      if (yColumns().count() > 1)
+        yColumn2 = yColumns().getColumn(1);
 
-          if (CMathUtil::isNaN(p.y()) || CMathUtil::isInf(p.y()))
-            continue;
+      bool ok;
 
-          if (j == 0)
-            x = p.x();
+      QString yname1 = modelHeaderString(yColumn1, ok);
+      QString yname2 = modelHeaderString(yColumn2, ok);
 
-          sortedYVals.insert(p.y());
+      name = QString("%1-%2").arg(yname1).arg(yname2);
+    }
+
+    int ns = yColumns().count();
+
+    for (int j = 1; j < ns; ++j) {
+      bool hidden = isSetHidden(j);
+
+      if (hidden)
+        continue;
+
+      //---
+
+      QString name1;
+
+      if (ns > 2)
+        name1 = QString("%1:%2").arg(name).arg(j);
+      else
+        name1 = name;
+
+      //---
+
+      QPolygonF &poly1 = polygons1[j - 1].poly;
+      QPolygonF &poly2 = polygons2[j - 1].poly;
+
+      addPolyLine(poly1, groupInd, ig, ng, j - 1, ns - 1, name1, objs);
+      addPolyLine(poly2, groupInd, ig, ng, j - 1, ns - 1, name1, objs);
+
+      int len = poly1.size();
+
+      CQChartsFillUnderSide::Type fillUnderSideType = fillUnderSide().type();
+
+      if      (fillUnderSideType == CQChartsFillUnderSide::Type::BOTH) {
+        // add upper poly line to lower one (points reversed) to build fill polygon
+        for (int k = len - 1; k >= 0; --k)
+          poly1 << poly2[k];
+      }
+      else if (fillUnderSideType == CQChartsFillUnderSide::Type::ABOVE) {
+        QPolygonF poly3, poly4;
+
+        QPointF pa1, pb1; bool above1 = true;
+
+        for (int k = 0; k < len; ++k) {
+          const QPointF &pa2 = poly1[k];
+          const QPointF &pb2 = poly2[k];
+
+          bool above2 = (pa2.y() > pb2.y());
+
+          if (k > 0 && above1 != above2) {
+            QPointF pi;
+
+            CQChartsUtil::intersectLines(pa1, pa2, pb1, pb2, pi);
+
+            poly3 << pi;
+            poly4 << pi;
+          }
+
+          if (above2) {
+            poly3 << pa2;
+            poly4 << pb2;
+          }
+
+          pa1 = pa2; pb1 = pb2; above1 = above2;
         }
 
-        // need at least 2 values
-        if (sortedYVals.size() < 2)
-          continue;
+        len = poly4.size();
 
-        //---
+        for (int k = len - 1; k >= 0; --k)
+          poly3 << poly4[k];
 
-        std::vector<double> yVals;
+        poly1 = poly3;
+      }
+      else if (fillUnderSideType == CQChartsFillUnderSide::Type::BELOW) {
+        QPolygonF poly3, poly4;
 
-        for (const auto &y : sortedYVals)
-          yVals.push_back(y);
+        QPointF pa1, pb1; bool below1 = true;
 
-        //---
+        for (int k = 0; k < len; ++k) {
+          const QPointF &pa2 = poly1[k];
+          const QPointF &pb2 = poly2[k];
+
+          bool below2 = (pa2.y() < pb2.y());
+
+          if (k > 0 && below1 != below2) {
+            QPointF pi;
+
+            CQChartsUtil::intersectLines(pa1, pa2, pb1, pb2, pi);
+
+            poly3 << pi;
+            poly4 << pi;
+          }
+
+          if (below2) {
+            poly3 << pa2;
+            poly4 << pb2;
+          }
+
+          pa1 = pa2; pb1 = pb2; below1 = below2;
+        }
+
+        len = poly4.size();
+
+        for (int k = len - 1; k >= 0; --k)
+          poly3 << poly4[k];
+
+        poly1 = poly3;
+      }
+
+      addPolygon(poly1, groupInd, ig, ng, j - 1, ns - 1, name1, objs);
+    }
+  }
+
+  return true;
+}
+
+bool
+CQChartsXYPlot::
+addLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotObjs &objs) const
+{
+  double sw = symbolWidth ();
+  double sh = symbolHeight();
+
+  //---
+
+  const CQChartsGeom::Range &dataRange = this->dataRange();
+
+  // convert lines into set polygon and set poly lines (more than one if NaNs)
+  int ns = yColumns().count();
+
+  for (int j = 0; j < ns; ++j) {
+    if (isInterrupt())
+      return false;
+
+    bool hidden = isSetHidden(j);
+
+    if (hidden)
+      continue;
+
+    //---
+
+    // get column name
+    CQChartsColumn yColumn = yColumns().getColumn(j);
+
+    bool ok;
+
+    QString name = modelHeaderString(yColumn, ok);
+
+    //---
+
+    QPolygonF polyShape, polyLine;
+
+    const QPolygonF &poly     = setPoly[j].poly;
+    const QPolygonF &prevPoly = (j > 0 ? setPoly[j - 1].poly : poly);
+
+    int np = poly.size();
+    assert(prevPoly.size() == np);
+
+    for (int ip = 0; ip < np; ++ip) {
+      if (isInterrupt())
+        return false;
+
+      const QPointF &p = poly[ip];
+
+      double x = p.x(), y = p.y();
+
+      if (CMathUtil::isNaN(x) || CMathUtil::isInf(x) ||
+          CMathUtil::isNaN(y) || CMathUtil::isInf(y)) {
+        if (polyLine.count()) {
+          addPolyLine(polyLine, groupInd, ig, ng, j, ns, name, objs);
+
+          polyLine = QPolygonF();
+        }
+
+        continue;
+      }
+
+      //---
+
+      // get point size
+      double size = -1;
+
+      if (sizeColumn().isValid()) {
+        bool ok;
 
         QModelIndex parent; // TODO: parent
 
-        QModelIndex xind  = modelIndex(ip, xColumn(), parent);
-        QModelIndex xind1 = normalizeIndex(xind);
+        size = modelReal(ip, sizeColumn(), parent, ok);
 
-        //---
+        if (! ok)
+          size = -1;
+      }
 
-        // connect each y value to next y value
-        double y1  = yVals[0];
-        int    ny1 = yVals.size();
+      //---
 
-        for (int j = 1; j < ny1; ++j) {
-          double y2 = yVals[j];
+      // create point object
+      //QModelIndex parent; // TODO: parent
 
-          CQChartsGeom::BBox bbox(x - sw/2, y1 - sh/2, x + sw/2, y2 + sh/2);
+      QModelIndex xind  = modelIndex(ip, xColumn()); // TODO: parent
+      QModelIndex xind1 = normalizeIndex(xind);
 
-          if (! isFillUnderFilled()) {
-            // use vertical line object for each point pair if not fill under
-            CQChartsXYBiLineObj *lineObj =
-              new CQChartsXYBiLineObj(this, groupInd, bbox, x, y1, y2, xind1,
-                                      j - 1, ny1 - 1, ip, np);
+      CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
 
-            objs.push_back(lineObj);
-          }
-          else {
-            QPolygonF &poly1 = polygons1[j - 1].poly;
-            QPolygonF &poly2 = polygons2[j - 1].poly;
+      CQChartsXYPointObj *pointObj =
+        new CQChartsXYPointObj(this, groupInd, bbox, x, y, size, xind1, j, ns, ip, np);
 
-            // build lower and upper poly line for fill under polygon
-            poly1 << QPointF(x, y1);
-            poly2 << QPointF(x, y2);
-          }
+      objs.push_back(pointObj);
 
-          y1 = y2;
+      //---
+
+      // set vector data
+      if (isVectors()) {
+        double vx = 0.0, vy = 0.0;
+
+        if (vectorXColumn().isValid()) {
+          bool ok;
+
+          QModelIndex parent; // TODO: parent
+
+          vx = modelReal(ip, vectorXColumn(), parent, ok);
+        }
+
+        if (vectorYColumn().isValid()) {
+          bool ok;
+
+          QModelIndex parent; // TODO: parent
+
+          vy = modelReal(ip, vectorYColumn(), parent, ok);
+        }
+
+        pointObj->setVector(vx, vy);
+      }
+
+      //---
+
+      // add optional point label
+      if (pointLabelColumn().isValid()) {
+        QModelIndex parent; // TODO: parent
+
+        bool ok;
+
+        QString label = modelString(ip, pointLabelColumn(), parent, ok);
+
+        if (ok && label.length()) {
+          CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
+
+          CQChartsXYLabelObj *labelObj =
+            new CQChartsXYLabelObj(this, groupInd, bbox, x, y, label, xind1, j, ns, ip, np);
+
+          objs.push_back(labelObj);
         }
       }
 
       //---
 
-      // add lower, upper and polygon objects for fill under
-      if (isFillUnderFilled()) {
-        QString name = titleStr();
+      // set optional point color and symbol
+      if (pointColorColumn().isValid()) {
+        QModelIndex parent; // TODO: parent
 
-        if (! name.length()) {
-          CQChartsColumn yColumn1 = yColumns().getColumn(0);
-
-          CQChartsColumn yColumn2;
-
-          if (yColumns().count() > 1)
-            yColumn2 = yColumns().getColumn(1);
-
-          bool ok;
-
-          QString yname1 = modelHeaderString(yColumn1, ok);
-          QString yname2 = modelHeaderString(yColumn2, ok);
-
-          name = QString("%1-%2").arg(yname1).arg(yname2);
-        }
-
-        int ns = yColumns().count();
-
-        for (int j = 1; j < ns; ++j) {
-          bool hidden = isSetHidden(j);
-
-          if (hidden)
-            continue;
-
-          //---
-
-          QString name1;
-
-          if (ns > 2)
-            name1 = QString("%1:%2").arg(name).arg(j);
-          else
-            name1 = name;
-
-          //---
-
-          QPolygonF &poly1 = polygons1[j - 1].poly;
-          QPolygonF &poly2 = polygons2[j - 1].poly;
-
-          addPolyLine(poly1, groupInd, ig, ng, j - 1, ns - 1, name1, objs);
-          addPolyLine(poly2, groupInd, ig, ng, j - 1, ns - 1, name1, objs);
-
-          int len = poly1.size();
-
-          CQChartsFillUnderSide::Type fillUnderSideType = fillUnderSide().type();
-
-          if      (fillUnderSideType == CQChartsFillUnderSide::Type::BOTH) {
-            // add upper poly line to lower one (points reversed) to build fill polygon
-            for (int k = len - 1; k >= 0; --k)
-              poly1 << poly2[k];
-          }
-          else if (fillUnderSideType == CQChartsFillUnderSide::Type::ABOVE) {
-            QPolygonF poly3, poly4;
-
-            QPointF pa1, pb1; bool above1 = true;
-
-            for (int k = 0; k < len; ++k) {
-              const QPointF &pa2 = poly1[k];
-              const QPointF &pb2 = poly2[k];
-
-              bool above2 = (pa2.y() > pb2.y());
-
-              if (k > 0 && above1 != above2) {
-                QPointF pi;
-
-                CQChartsUtil::intersectLines(pa1, pa2, pb1, pb2, pi);
-
-                poly3 << pi;
-                poly4 << pi;
-              }
-
-              if (above2) {
-                poly3 << pa2;
-                poly4 << pb2;
-              }
-
-              pa1 = pa2; pb1 = pb2; above1 = above2;
-            }
-
-            len = poly4.size();
-
-            for (int k = len - 1; k >= 0; --k)
-              poly3 << poly4[k];
-
-            poly1 = poly3;
-          }
-          else if (fillUnderSideType == CQChartsFillUnderSide::Type::BELOW) {
-            QPolygonF poly3, poly4;
-
-            QPointF pa1, pb1; bool below1 = true;
-
-            for (int k = 0; k < len; ++k) {
-              const QPointF &pa2 = poly1[k];
-              const QPointF &pb2 = poly2[k];
-
-              bool below2 = (pa2.y() < pb2.y());
-
-              if (k > 0 && below1 != below2) {
-                QPointF pi;
-
-                CQChartsUtil::intersectLines(pa1, pa2, pb1, pb2, pi);
-
-                poly3 << pi;
-                poly4 << pi;
-              }
-
-              if (below2) {
-                poly3 << pa2;
-                poly4 << pb2;
-              }
-
-              pa1 = pa2; pb1 = pb2; below1 = below2;
-            }
-
-            len = poly4.size();
-
-            for (int k = len - 1; k >= 0; --k)
-              poly3 << poly4[k];
-
-            poly1 = poly3;
-          }
-
-          addPolygon(poly1, groupInd, ig, ng, j - 1, ns - 1, name1, objs);
-        }
-      }
-    }
-    else {
-      // convert lines into set polygon and set poly lines (more than one if NaNs)
-      int ns = yColumns().count();
-
-      for (int j = 0; j < ns; ++j) {
-        bool hidden = isSetHidden(j);
-
-        if (hidden)
-          continue;
-
-        //---
-
-        // get column name
-        CQChartsColumn yColumn = yColumns().getColumn(j);
+        CQChartsColor c;
 
         bool ok;
 
-        QString name = modelHeaderString(yColumn, ok);
-
-        //---
-
-        QPolygonF polyShape, polyLine;
-
-        const QPolygonF &poly     = setPoly[j].poly;
-        const QPolygonF &prevPoly = (j > 0 ? setPoly[j - 1].poly : poly);
-
-        int np = poly.size();
-        assert(prevPoly.size() == np);
-
-        for (int ip = 0; ip < np; ++ip) {
-          const QPointF &p = poly[ip];
-
-          double x = p.x(), y = p.y();
-
-          if (CMathUtil::isNaN(x) || CMathUtil::isInf(x) ||
-              CMathUtil::isNaN(y) || CMathUtil::isInf(y)) {
-            if (polyLine.count()) {
-              addPolyLine(polyLine, groupInd, ig, ng, j, ns, name, objs);
-
-              polyLine = QPolygonF();
-            }
-
-            continue;
-          }
-
-          //---
-
-          // get point size
-          double size = -1;
-
-          if (sizeColumn().isValid()) {
-            bool ok;
-
-            QModelIndex parent; // TODO: parent
-
-            size = modelReal(ip, sizeColumn(), parent, ok);
-
-            if (! ok)
-              size = -1;
-          }
-
-          //---
-
-          // create point object
-          //QModelIndex parent; // TODO: parent
-
-          QModelIndex xind  = modelIndex(ip, xColumn()); // TODO: parent
-          QModelIndex xind1 = normalizeIndex(xind);
-
-          CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
-
-          CQChartsXYPointObj *pointObj =
-            new CQChartsXYPointObj(this, groupInd, bbox, x, y, size, xind1, j, ns, ip, np);
-
-          objs.push_back(pointObj);
-
-          //---
-
-          // set vector data
-          if (isVectors()) {
-            double vx = 0.0, vy = 0.0;
-
-            if (vectorXColumn().isValid()) {
-              bool ok;
-
-              QModelIndex parent; // TODO: parent
-
-              vx = modelReal(ip, vectorXColumn(), parent, ok);
-            }
-
-            if (vectorYColumn().isValid()) {
-              bool ok;
-
-              QModelIndex parent; // TODO: parent
-
-              vy = modelReal(ip, vectorYColumn(), parent, ok);
-            }
-
-            pointObj->setVector(vx, vy);
-          }
-
-          //---
-
-          // add optional point label
-          if (pointLabelColumn().isValid()) {
-            QModelIndex parent; // TODO: parent
-
-            bool ok;
-
-            QString label = modelString(ip, pointLabelColumn(), parent, ok);
-
-            if (ok && label.length()) {
-              CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
-
-              CQChartsXYLabelObj *labelObj =
-                new CQChartsXYLabelObj(this, groupInd, bbox, x, y, label, xind1, j, ns, ip, np);
-
-              objs.push_back(labelObj);
-            }
-          }
-
-          //---
-
-          // set optional point color and symbol
-          if (pointColorColumn().isValid()) {
-            QModelIndex parent; // TODO: parent
-
-            CQChartsColor c;
-
-            bool ok;
-
-            if (pointColorColumnType_ == CQBaseModelType::COLOR) {
-              c = modelColor(ip, pointColorColumn(), parent, ok);
-            }
-            else {
-              QString str = modelString(ip, pointColorColumn(), parent, ok);
-
-              if (ok && str.length())
-                c = QColor(str);
-            }
-
-            if (c.isValid())
-              pointObj->setColor(c);
-          }
-
-          if (pointSymbolColumn().isValid()) {
-            QModelIndex parent; // TODO: parent
-
-            bool ok;
-
-            QString pointSymbolStr = modelString(ip, pointSymbolColumn(), parent, ok);
-
-            if (ok && pointSymbolStr.length())
-              pointObj->setSymbol(CQChartsSymbol::nameToType(pointSymbolStr));
-          }
-
-          //---
-
-          // add impulse line (down to or up to zero)
-          if (! isStacked() && isImpulseLines()) {
-            double ys = std::min(y, 0.0);
-            double ye = std::max(y, 0.0);
-
-            CQChartsGeom::BBox bbox(x - sw/2, ys, x + sw/2, ye);
-
-            CQChartsXYImpulseLineObj *impulseObj =
-              new CQChartsXYImpulseLineObj(this, groupInd, bbox, x, ys, ye, xind1, j, ns, ip, np);
-
-            objs.push_back(impulseObj);
-          }
-
-          //---
-
-          // add point to poly line
-          polyLine << p;
-
-          //---
-
-          // add point to polygon
-
-          // if first point then add first point of previous polygon
-          if (ip == 0) {
-            if (isStacked()) {
-              double y1 = (j > 0 ? prevPoly[ip].y() : dataRange.ymin());
-
-              if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
-                y1 = dataRange.ymin();
-
-              polyShape << QPointF(x, y1);
-            }
-            else
-              polyShape << calcFillUnderPos(x, dataRange.ymin());
-          }
-
-          polyShape << p;
-
-          // if last point then add last point of previous polygon
-          if (ip == np - 1) {
-            if (isStacked()) {
-              double y1 = (j > 0 ? prevPoly[ip].y() : dataRange.ymin());
-
-              if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
-                y1 = dataRange.ymin();
-
-              polyShape << QPointF(x, y1);
-            }
-            else
-              polyShape << calcFillUnderPos(x, dataRange.ymin());
-          }
+        if (pointColorColumnType_ == CQBaseModelType::COLOR) {
+          c = modelColor(ip, pointColorColumn(), parent, ok);
+        }
+        else {
+          QString str = modelString(ip, pointColorColumn(), parent, ok);
+
+          if (ok && str.length())
+            c = QColor(str);
         }
 
-        //---
+        if (c.isValid())
+          pointObj->setColor(c);
+      }
 
+      if (pointSymbolColumn().isValid()) {
+        QModelIndex parent; // TODO: parent
+
+        bool ok;
+
+        QString pointSymbolStr = modelString(ip, pointSymbolColumn(), parent, ok);
+
+        if (ok && pointSymbolStr.length())
+          pointObj->setSymbol(CQChartsSymbol::nameToType(pointSymbolStr));
+      }
+
+      //---
+
+      // add impulse line (down to or up to zero)
+      if (! isStacked() && isImpulseLines()) {
+        double ys = std::min(y, 0.0);
+        double ye = std::max(y, 0.0);
+
+        CQChartsGeom::BBox bbox(x - sw/2, ys, x + sw/2, ye);
+
+        CQChartsXYImpulseLineObj *impulseObj =
+          new CQChartsXYImpulseLineObj(this, groupInd, bbox, x, ys, ye, xind1, j, ns, ip, np);
+
+        objs.push_back(impulseObj);
+      }
+
+      //---
+
+      // add point to poly line
+      polyLine << p;
+
+      //---
+
+      // add point to polygon
+
+      // if first point then add first point of previous polygon
+      if (ip == 0) {
         if (isStacked()) {
-          // add points from previous polygon to bottom of polygon
-          if (j > 0) {
-            for (int ip = np - 2; ip >= 1; --ip) {
-              double x1 = prevPoly[ip].x();
-              double y1 = prevPoly[ip].y();
+          double y1 = (j > 0 ? prevPoly[ip].y() : dataRange.ymin());
 
-              if (CMathUtil::isNaN(x1) || CMathUtil::isInf(x1))
-                x1 = poly[ip].x();
+          if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
+            y1 = dataRange.ymin();
 
-              if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
-                y1 = 0.0;
-
-              polyShape << QPointF(x1, y1);
-            }
-          }
+          polyShape << QPointF(x, y1);
         }
+        else
+          polyShape << calcFillUnderPos(x, dataRange.ymin());
+      }
 
-        //---
+      polyShape << p;
 
-        if (polyLine.count())
-          addPolyLine(polyLine, groupInd, ig, ng, j, ns, name, objs);
+      // if last point then add last point of previous polygon
+      if (ip == np - 1) {
+        if (isStacked()) {
+          double y1 = (j > 0 ? prevPoly[ip].y() : dataRange.ymin());
 
-        //---
+          if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
+            y1 = dataRange.ymin();
 
-        addPolygon(polyShape, groupInd, ig, ng, j, ns, name, objs);
+          polyShape << QPointF(x, y1);
+        }
+        else
+          polyShape << calcFillUnderPos(x, dataRange.ymin());
       }
     }
 
-    ++ig;
+    //---
+
+    if (isStacked()) {
+      // add points from previous polygon to bottom of polygon
+      if (j > 0) {
+        for (int ip = np - 2; ip >= 1; --ip) {
+          double x1 = prevPoly[ip].x();
+          double y1 = prevPoly[ip].y();
+
+          if (CMathUtil::isNaN(x1) || CMathUtil::isInf(x1))
+            x1 = poly[ip].x();
+
+          if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
+            y1 = 0.0;
+
+          polyShape << QPointF(x1, y1);
+        }
+      }
+    }
+
+    //---
+
+    if (polyLine.count())
+      addPolyLine(polyLine, groupInd, ig, ng, j, ns, name, objs);
+
+    //---
+
+    addPolygon(polyShape, groupInd, ig, ng, j, ns, name, objs);
   }
 
   return true;
@@ -1516,7 +1565,7 @@ calcFillUnderPos(double x, double y) const
 void
 CQChartsXYPlot::
 addPolyLine(const QPolygonF &polyLine, int groupInd, int ig, int ng, int is, int ns,
-            const QString &name, PlotObjs &objs)
+            const QString &name, PlotObjs &objs) const
 {
   CQChartsGeom::BBox bbox = CQChartsUtil::fromQRect(polyLine.boundingRect());
 
@@ -1529,7 +1578,7 @@ addPolyLine(const QPolygonF &polyLine, int groupInd, int ig, int ng, int is, int
 void
 CQChartsXYPlot::
 addPolygon(const QPolygonF &poly, int groupInd, int ig, int ng, int is, int ns,
-           const QString &name, PlotObjs &objs)
+           const QString &name, PlotObjs &objs) const
 {
   CQChartsGeom::BBox bbox = CQChartsUtil::fromQRect(poly.boundingRect());
 
@@ -1702,6 +1751,26 @@ interpY(double x, std::vector<double> &yvals) const
   }
 
   return ! yvals.empty();
+}
+
+//------
+
+CQChartsGeom::BBox
+CQChartsXYPlot::
+dataFitBBox() const
+{
+  CQChartsGeom::BBox bbox = CQChartsPlot::dataFitBBox();
+
+  for (const auto &plotObj : plotObjs_) {
+    CQChartsXYLabelObj *labelObj = dynamic_cast<CQChartsXYLabelObj *>(plotObj);
+
+    if (! labelObj)
+      continue;
+
+    bbox += labelObj->rect();
+  }
+
+  return bbox;
 }
 
 //------
@@ -1901,27 +1970,31 @@ draw(QPainter *painter)
   plot()->windowToPixel(x(), y2(), px, py2);
 
   if (plot()->isLines()) {
+    // calc pen and brush
     QPen   pen;
     QBrush brush;
 
-    QColor lc = plot()->interpFillUnderFillColor(iset(), nset());
+    QColor lc = plot()->interpBivariateLinesColor(iset(), nset());
 
-    plot()->setPen  (pen, true, lc, 1.0, CQChartsLength("0px"), CQChartsLineDash());
+    plot()->setPen(pen, true, lc, plot()->bivariateLinesAlpha(), plot()->bivariateLinesWidth(),
+                   plot()->bivariateLinesDash());
+
     plot()->setBrush(brush, false);
 
     plot()->updateObjPenBrushState(this, pen, brush);
 
+    painter->setPen  (pen);
+    painter->setBrush(brush);
+
     //--
 
+    // draw line
     painter->drawLine(QPointF(px, py1), QPointF(px, py2));
   }
 
   if (plot()->isPoints()) {
-    CQChartsSymbol symbol      = plot()->symbolType();
-    bool           stroked     = plot()->isSymbolStroked();
-    QColor         strokeColor = plot()->interpSymbolStrokeColor(iset(), nset());
-    bool           filled      = plot()->isSymbolFilled();
-    QColor         fillColor   = plot()->interpSymbolFillColor(iset(), nset());
+    // get symbol and size
+    CQChartsSymbol symbol = plot()->symbolType();
 
     double sx, sy;
 
@@ -1929,17 +2002,20 @@ draw(QPainter *painter)
 
     //---
 
+    // calc pen and brush
     QPen   pen;
     QBrush brush;
 
-    plot_->setPenBrush(pen, brush,
-      stroked, strokeColor, 1.0, plot()->symbolStrokeWidth(), plot()->symbolStrokeDash(),
-      filled, fillColor, 1.0, plot()->symbolFillPattern());
+    plot_->setSymbolPenBrush(pen, brush, iset(), nset());
 
     plot_->updateObjPenBrushState(this, pen, brush);
 
+    painter->setPen  (pen);
+    painter->setBrush(brush);
+
     //---
 
+    // draw symbols
     plot()->drawSymbol(painter, QPointF(px, py1), symbol, CMathUtil::avg(sx, sy), pen, brush);
     plot()->drawSymbol(painter, QPointF(px, py2), symbol, CMathUtil::avg(sx, sy), pen, brush);
   }
@@ -2055,7 +2131,7 @@ draw(QPainter *painter)
 
   //---
 
-  // set pen and brush
+  // calc pen and brush
   QPen   pen;
   QBrush brush;
 
@@ -2082,6 +2158,7 @@ draw(QPainter *painter)
 
   //---
 
+  // draw impulse
   double px1, py1, px2, py2;
 
   plot()->windowToPixel(x(), y1(), px1, py1);
@@ -2266,7 +2343,7 @@ draw(QPainter *painter)
 
   //---
 
-  // set pen/brush
+  // calc pen and brush
   QPen   pen;
   QBrush brush;
 
@@ -2279,6 +2356,9 @@ draw(QPainter *painter)
   }
 
   plot()->updateObjPenBrushState(this, pen, brush);
+
+  painter->setPen  (pen);
+  painter->setBrush(brush);
 
   //---
 
@@ -2591,7 +2671,7 @@ draw(QPainter *painter)
 
   //---
 
-  // set pen and brush
+  // calc pen and brush
   QPen   pen;
   QBrush brush;
 
@@ -2611,9 +2691,10 @@ draw(QPainter *painter)
 
   plot_->setBrush(brush, false);
 
-  //---
-
   plot()->updateObjPenBrushState(this, pen, brush);
+
+  painter->setPen  (pen);
+  painter->setBrush(brush);
 
   //---
 
@@ -2661,15 +2742,9 @@ draw(QPainter *painter)
       }
     }
 
-    painter->setPen  (pen);
-    painter->setBrush(brush);
-
     painter->drawPath(path);
   }
   else {
-    painter->setPen  (pen);
-    painter->setBrush(brush);
-
     int np = poly_.count();
 
     for (int i = 1; i < np; ++i)
@@ -2823,7 +2898,7 @@ draw(QPainter *painter)
 
   //---
 
-  // set pen and brush
+  // calc pen and brush
   QPen   pen;
   QBrush brush;
 
@@ -2836,8 +2911,12 @@ draw(QPainter *painter)
 
   plot()->updateObjPenBrushState(this, pen, brush);
 
+  painter->setPen  (pen);
+  painter->setBrush(brush);
+
   //---
 
+  // create polygon path (rounded or normal)
   int np = poly_.count();
 
   if (plot()->isRoundedLines()) {
@@ -2901,12 +2980,13 @@ draw(QPainter *painter)
 
     path.closeSubpath();
 
-    painter->setPen  (pen);
-    painter->setBrush(brush);
+    //---
 
+    // draw polygon
     painter->drawPath(path);
   }
   else {
+    // draw polygon
     QPolygonF poly;
 
     for (int i = 0; i < np; ++i) {
@@ -2916,9 +2996,6 @@ draw(QPainter *painter)
 
       poly << QPointF(px, py);
     }
-
-    painter->setPen  (pen);
-    painter->setBrush(brush);
 
     painter->drawPolygon(poly);
   }
@@ -2940,7 +3017,7 @@ selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 
   plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
-  plot->updateObjs();
+  plot->queueUpdateObjs();
 
   return true;
 }
@@ -2958,11 +3035,9 @@ fillBrush() const
   CQChartsFillPattern pattern = CQChartsFillPattern::Type::SOLID;
 
   if      (plot->isBivariateLines()) {
-    c = plot->interpFillUnderFillColor(i_, n_);
+    c = plot->interpBivariateLinesColor(i_, n_);
 
-    alpha = plot->fillUnderFillAlpha();
-
-    pattern = plot->fillUnderFillPattern();
+    alpha = plot->bivariateLinesAlpha();
   }
   else if (plot_->isOverlay()) {
     if (plot->prevPlot() || plot->nextPlot()) {
@@ -3024,7 +3099,7 @@ selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 
   plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
-  plot->updateObjs();
+  plot->queueUpdateObjs();
 
   return true;
 }

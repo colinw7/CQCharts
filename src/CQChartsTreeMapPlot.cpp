@@ -67,7 +67,8 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
 
   setTextContrast(true);
 
-  setOuterMargin(1, 1, 1, 1);
+  setOuterMargin(CQChartsLength("4px"), CQChartsLength("4px"),
+                 CQChartsLength("4px"), CQChartsLength("4px"));
 
   addTitle();
 }
@@ -91,7 +92,7 @@ void
 CQChartsTreeMapPlot::
 setTitleMaxExtent(double r)
 {
-  CQChartsUtil::testAndSet(titleMaxExtent_, r, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(titleMaxExtent_, r, [&]() { queueDrawObjs(); } );
 }
 
 void
@@ -134,7 +135,7 @@ setHeaderTextFontSize(double s)
   if (s != headerTextData_.font.pointSizeF()) {
     headerTextData_.font.setPointSizeF(s);
 
-    invalidateLayers();
+    queueDrawObjs();
   }
 }
 
@@ -147,7 +148,7 @@ setTextFontSize(double s)
   if (s != textData_.font.pointSizeF()) {
     textData_.font.setPointSizeF(s);
 
-    invalidateLayers();
+    queueDrawObjs();
   }
 }
 
@@ -239,12 +240,12 @@ updateCurrentRoot()
 {
   replaceNodes();
 
-  updateObjs();
+  queueUpdateObjs();
 }
 
 CQChartsGeom::Range
 CQChartsTreeMapPlot::
-calcRange()
+calcRange() const
 {
   CQPerfTrace trace("CQChartsTreeMapPlot::calcRange");
 
@@ -277,11 +278,13 @@ clearPlotObjects()
 
 bool
 CQChartsTreeMapPlot::
-createObjs(PlotObjs &objs)
+createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsTreeMapPlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsTreeMapPlot *>(this));
+  CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
+
+  NoUpdate noUpdate(th);
 
   //---
 
@@ -290,12 +293,12 @@ createObjs(PlotObjs &objs)
 
   //---
 
-  if (! root_)
+  if (! root())
     initNodes();
 
   //---
 
-  initColorIds();
+  th->initColorIds();
 
   colorNodes(firstHier());
 
@@ -312,11 +315,11 @@ createObjs(PlotObjs &objs)
 void
 CQChartsTreeMapPlot::
 initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj,
-             int depth, PlotObjs &objs)
+             int depth, PlotObjs &objs) const
 {
   CQChartsTreeMapHierObj *hierObj = 0;
 
-  if (hier != root_) {
+  if (hier != root()) {
     CQChartsGeom::BBox rect(hier->x(), hier->y(), hier->x() + hier->w(), hier->y() + hier->h());
 
     hierObj = new CQChartsTreeMapHierObj(this, hier, parentObj, rect, hier->depth(), maxDepth());
@@ -358,14 +361,18 @@ resetNodes()
 
 void
 CQChartsTreeMapPlot::
-initNodes()
+initNodes() const
 {
-  hierInd_ = 0;
+  CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
 
-  root_ = new CQChartsTreeMapHierNode(this, nullptr, "<root>");
+  //---
+
+  th->hierInd_ = 0;
+
+  th->root_ = new CQChartsTreeMapHierNode(this, nullptr, "<root>");
 
   root_->setDepth(0);
-  root_->setHierInd(hierInd_++);
+  root_->setHierInd(th->hierInd_++);
 
   //---
 
@@ -376,10 +383,10 @@ initNodes()
 
   //---
 
-  firstHier_ = root_;
+  th->firstHier_ = root();
 
   while (firstHier_ && firstHier_->numChildren() == 1)
-    firstHier_ = firstHier_->childAt(0);
+    th->firstHier_ = firstHier_->childAt(0);
 
   //---
 
@@ -388,10 +395,13 @@ initNodes()
 
 void
 CQChartsTreeMapPlot::
-replaceNodes()
+replaceNodes() const
 {
-  windowHeaderHeight_ = pixelToWindowHeight(calcHeaderHeight());
-  windowMarginWidth_  = lengthPixelWidth   (marginWidth());
+  CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
+
+  th->windowHeaderHeight_ = pixelToWindowHeight(calcHeaderHeight());
+//th->windowMarginWidth_  = lengthPixelWidth   (marginWidth());
+  th->windowMarginWidth_  = lengthPlotWidth    (marginWidth());
 
   CQChartsTreeMapHierNode *hier = currentRoot();
 
@@ -401,14 +411,14 @@ replaceNodes()
 
 void
 CQChartsTreeMapPlot::
-placeNodes(CQChartsTreeMapHierNode *hier)
+placeNodes(CQChartsTreeMapHierNode *hier) const
 {
   hier->setPosition(-1, -1, 2, 2);
 }
 
 void
 CQChartsTreeMapPlot::
-colorNodes(CQChartsTreeMapHierNode *hier)
+colorNodes(CQChartsTreeMapHierNode *hier) const
 {
   if (! hier->hasNodes() && ! hier->hasChildren()) {
     colorNode(hier);
@@ -424,15 +434,18 @@ colorNodes(CQChartsTreeMapHierNode *hier)
 
 void
 CQChartsTreeMapPlot::
-colorNode(CQChartsTreeMapNode *node)
+colorNode(CQChartsTreeMapNode *node) const
 {
-  if (! node->color().isValid())
-    node->setColorId(nextColorId());
+  if (! node->color().isValid()) {
+    CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
+
+    node->setColorId(th->nextColorId());
+  }
 }
 
 void
 CQChartsTreeMapPlot::
-loadHier()
+loadHier() const
 {
   class RowVisitor : public ModelVisitor {
    public:
@@ -451,9 +464,7 @@ loadHier()
 
       //---
 
-      CQChartsTreeMapPlot *plot = const_cast<CQChartsTreeMapPlot *>(plot_);
-
-      CQChartsTreeMapHierNode *hier = plot->addHierNode(parentHier(), name, nameInd);
+      CQChartsTreeMapHierNode *hier = plot_->addHierNode(parentHier(), name, nameInd);
 
       //---
 
@@ -485,9 +496,7 @@ loadHier()
 
       //---
 
-      CQChartsTreeMapPlot *plot = const_cast<CQChartsTreeMapPlot *>(plot_);
-
-      CQChartsTreeMapNode *node = plot->addNode(parentHier(), name, size, nameInd);
+      CQChartsTreeMapNode *node = plot_->addNode(parentHier(), name, size, nameInd);
 
       if (node) {
         CQChartsColor color;
@@ -545,15 +554,19 @@ loadHier()
     HierStack                  hierStack_;
   };
 
-  RowVisitor visitor(this, root_);
+  RowVisitor visitor(this, root());
 
   visitModel(visitor);
 }
 
 CQChartsTreeMapHierNode *
 CQChartsTreeMapPlot::
-addHierNode(CQChartsTreeMapHierNode *hier, const QString &name, const QModelIndex &nameInd)
+addHierNode(CQChartsTreeMapHierNode *hier, const QString &name, const QModelIndex &nameInd) const
 {
+  CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
+
+  //---
+
   int depth1 = hier->depth() + 1;
 
   QModelIndex nameInd1 = normalizeIndex(nameInd);
@@ -562,9 +575,9 @@ addHierNode(CQChartsTreeMapHierNode *hier, const QString &name, const QModelInde
 
   hier1->setDepth(depth1);
 
-  hier1->setHierInd(hierInd_++);
+  hier1->setHierInd(th->hierInd_++);
 
-  maxDepth_ = std::max(maxDepth_, depth1);
+  th->maxDepth_ = std::max(maxDepth_, depth1);
 
   return hier1;
 }
@@ -572,8 +585,12 @@ addHierNode(CQChartsTreeMapHierNode *hier, const QString &name, const QModelInde
 CQChartsTreeMapNode *
 CQChartsTreeMapPlot::
 addNode(CQChartsTreeMapHierNode *hier, const QString &name, double size,
-        const QModelIndex &nameInd)
+        const QModelIndex &nameInd) const
 {
+  CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
+
+  //---
+
   int depth1 = hier->depth() + 1;
 
   QModelIndex nameInd1 = normalizeIndex(nameInd);
@@ -584,14 +601,14 @@ addNode(CQChartsTreeMapHierNode *hier, const QString &name, double size,
 
   hier->addNode(node);
 
-  maxDepth_ = std::max(maxDepth_, depth1);
+  th->maxDepth_ = std::max(maxDepth_, depth1);
 
   return node;
 }
 
 void
 CQChartsTreeMapPlot::
-loadFlat()
+loadFlat() const
 {
   class RowVisitor : public ModelVisitor {
    public:
@@ -633,9 +650,7 @@ loadFlat()
 
       //---
 
-      CQChartsTreeMapPlot *plot = const_cast<CQChartsTreeMapPlot *>(plot_);
-
-      CQChartsTreeMapNode *node = plot->addNode(nameStrs, size, nameInd1);
+      CQChartsTreeMapNode *node = plot_->addNode(nameStrs, size, nameInd1);
 
       if (node) {
         CQChartsColor color;
@@ -663,11 +678,15 @@ loadFlat()
 
 CQChartsTreeMapNode *
 CQChartsTreeMapPlot::
-addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd)
+addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd) const
 {
+  CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
+
+  //---
+
   int depth = nameStrs.length();
 
-  maxDepth_ = std::max(maxDepth_, depth + 1);
+  th->maxDepth_ = std::max(maxDepth_, depth + 1);
 
   //---
 
@@ -699,7 +718,7 @@ addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd)
       child->setSize(size1);
 
       child->setDepth(depth);
-      child->setHierInd(hierInd_++);
+      child->setHierInd(th->hierInd_++);
     }
 
     parent = child;
@@ -734,7 +753,7 @@ addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd)
 
 void
 CQChartsTreeMapPlot::
-addExtraNodes(CQChartsTreeMapHierNode *hier)
+addExtraNodes(CQChartsTreeMapHierNode *hier) const
 {
   if (hier->size() > 0) {
     CQChartsTreeMapNode *node =
@@ -894,7 +913,7 @@ postResize()
 
   replaceNodes();
 
-  updateObjs();
+  queueUpdateObjs();
 }
 
 //------
@@ -979,20 +998,20 @@ draw(QPainter *painter)
   QColor fc = CQChartsUtil::blendColors(c, hierColor, 0.8);
 
   plot_->setPenBrush(pen, brush,
-                     plot_->isHeaderBorder(), bc, plot_->headerBorderAlpha(),
-                     plot_->headerBorderWidth(), plot_->headerBorderDash(),
-                     plot_->isHeaderFilled(), fc, plot_->headerFillAlpha(),
-                     plot_->headerFillPattern());
+    plot_->isHeaderBorder(), bc, plot_->headerBorderAlpha(),
+    plot_->headerBorderWidth(), plot_->headerBorderDash(),
+    plot_->isHeaderFilled(), fc, plot_->headerFillAlpha(), plot_->headerFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
   //---
 
+  // set text pen
   QPen tpen;
 
   QColor tc = plot_->interpHeaderTextColor(0, 1);
 
-  plot_->setPen(tpen, true, tc, plot_->headerTextAlpha(), CQChartsLength("0px"));
+  plot_->setPen(tpen, true, tc, plot_->headerTextAlpha());
 
   plot_->updateObjPenBrushState(this, tpen, brush);
 
@@ -1149,22 +1168,23 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
+  QColor bc = plot_->interpBorderColor(0, 1);
   QColor fc = node_->interpColor(plot_, plot_->numColorIds());
 
   plot_->setPenBrush(pen, brush,
-                     plot_->isBorder(), plot_->interpBorderColor(0, 1), plot_->borderAlpha(),
-                     plot_->borderWidth(), plot_->borderDash(),
-                     plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
+    plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
+    plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
   //---
 
+  // set text pen
   QPen tpen;
 
   QColor tc = plot_->interpTextColor(0, 1);
 
-  plot_->setPen(tpen, true, tc, plot_->textAlpha(), CQChartsLength("0px"));
+  plot_->setPen(tpen, true, tc, plot_->textAlpha());
 
   plot_->updateObjPenBrushState(this, tpen, brush);
 

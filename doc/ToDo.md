@@ -285,6 +285,10 @@ Box Plot
  + Sort by median
  + Connected Box Plot setting X axis wrong (box_connected.tcl) - also slow
 
+Chord Plot
+ + Control gap between sections
+ + Separate segment and arc properties
+
 Distribution Plot
  + Push/Pop save restore ranges
  + Draw data label inside bar if fits
@@ -312,6 +316,7 @@ Pie Chart
  + Better expand display when grouped
  + Key by group and by value (see bar chart)
  + Group Labels 
+ + Add gap between sections
 
 Radar Plot
  + Add Key

@@ -636,11 +636,11 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
   void postInit() override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const;
 
   //---
 
@@ -650,10 +650,10 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   //---
 
   void addPolyLine(const QPolygonF &polyLine, int groupInd, int ig, int ng, int is, int ns,
-                   const QString &name, PlotObjs &objs);
+                   const QString &name, PlotObjs &objs) const;
 
   void addPolygon(const QPolygonF &poly, int groupInd, int ig, int ng, int is, int ns,
-                  const QString &name, PlotObjs &objs);
+                  const QString &name, PlotObjs &objs) const;
 
   QString valueName(int iset, int irow) const;
 
@@ -670,7 +670,15 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   bool interpY(double x, std::vector<double> &yvals) const;
 
+  //---
+
+  CQChartsGeom::BBox dataFitBBox() const;
+
+  //---
+
   bool addMenuItems(QMenu *menu) override;
+
+  //---
 
   void drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2) const;
 
@@ -716,8 +724,13 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
  private:
   void initAxes();
 
-  void createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly);
-  bool createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs);
+  void createGroupSetIndPoly(GroupSetIndPoly &groupSetIndPoly) const;
+  bool createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs) const;
+
+  bool addBivariateLines(int groupInd, const SetIndPoly &setPoly,
+                         int ig, int ng, PlotObjs &objs) const;
+  bool addLines(int groupInd, const SetIndPoly &setPoly,
+                int ig, int ng, PlotObjs &objs) const;
 
   QString xAxisName() const;
   QString yAxisName() const;
@@ -740,8 +753,8 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   FillUnderData   fillUnderData_;                             // fill under data
   CQChartsArrow*  arrowObj_             { nullptr };          // vectors data
   ColumnType      pointColorColumnType_ { ColumnType::NONE }; // point color column type
-  mutable double  symbolWidth_          { 1.0 };              // current symbol width
-  mutable double  symbolHeight_         { 1.0 };              // current symbol height
+  double          symbolWidth_          { 1.0 };              // current symbol width
+  double          symbolHeight_         { 1.0 };              // current symbol height
 };
 
 #endif

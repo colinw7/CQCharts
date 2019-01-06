@@ -35,8 +35,8 @@ paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &
 
     CQChartsColumnTypeMgr *columnTypeMgr = table_->charts()->columnTypeMgr();
 
-    CQChartsColumnColorType *colorType =
-      dynamic_cast<CQChartsColumnColorType *>(columnTypeMgr->getType(columnData.type));
+    const CQChartsColumnColorType *colorType =
+      dynamic_cast<const CQChartsColumnColorType *>(columnTypeMgr->getType(columnData.type));
 
     bool converted;
 
@@ -145,6 +145,8 @@ getColumnData(const QModelIndex &index, ColumnData &data) const
   }
 
   //---
+
+  std::unique_lock<std::mutex> lock(mutex_);
 
   (void) CQChartsModelUtil::columnValueType(table_->charts(), model, index.column(),
                                             data.type, data.baseType, data.nameValues);

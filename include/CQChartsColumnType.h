@@ -5,6 +5,7 @@
 #include <CQBaseModelTypes.h>
 #include <QObject>
 #include <QString>
+#include <future>
 
 class CQChartsModelColumnDetails;
 class CQCharts;
@@ -514,11 +515,12 @@ class CQChartsColumnTypeMgr : public QObject {
 
   void addType(Type type, CQChartsColumnType *data);
 
-  CQChartsColumnType *decodeTypeData(const QString &type, CQChartsNameValues &nameValues) const;
+  const CQChartsColumnType *decodeTypeData(const QString &type,
+                                           CQChartsNameValues &nameValues) const;
 
   QString encodeTypeData(Type type, const CQChartsNameValues &nameValues) const;
 
-  CQChartsColumnType *getType(Type type) const;
+  const CQChartsColumnType *getType(Type type) const;
 
   QVariant getUserData(const QAbstractItemModel *model, const CQChartsColumn &column,
                        const QVariant &var, bool &converted) const;
@@ -532,31 +534,41 @@ class CQChartsColumnTypeMgr : public QObject {
   bool setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column, Type type,
                           const CQChartsNameValues &nameValues=CQChartsNameValues());
 
-  void startCache();
-  void endCache();
+  void startCache(const QAbstractItemModel *model);
+  void endCache  (const QAbstractItemModel *model);
 
  private:
   using TypeData = std::map<Type,CQChartsColumnType*>;
 
   struct TypeCacheData {
-    Type                type     { Type::NONE };
-    Type                baseType { Type::NONE };
-    CQChartsNameValues  nameValues;
-    CQChartsColumnType* typeData { nullptr };
-    bool                valid    { false };
+    Type                      type     { Type::NONE };
+    Type                      baseType { Type::NONE };
+    CQChartsNameValues        nameValues;
+    const CQChartsColumnType* typeData { nullptr };
+    bool                      valid    { false };
   };
 
   using ColumnTypeCache = std::map<CQChartsColumn,TypeCacheData>;
 
- private:
-  bool getModelColumnTypeData(const QAbstractItemModel *model, const CQChartsColumn &column,
-                              TypeCacheData &typeCacheData) const;
+  struct CacheData {
+    ColumnTypeCache columnTypeCache;
+    int             depth { 0 };
+    TypeCacheData   typeCacheData;
+  };
+
+  using ModelCacheData = std::map<int,CacheData>;
 
  private:
-  CQCharts*               charts_     { nullptr };
-  TypeData                typeData_;
-  int                     cacheDepth_ { 0 };
-  mutable ColumnTypeCache columnTypeDataCache_;
+  bool getModelColumnTypeData(const QAbstractItemModel *model, const CQChartsColumn &column,
+                              const TypeCacheData* &typeCacheData) const;
+
+  const CacheData &getModelCacheData(const QAbstractItemModel *model) const;
+
+ private:
+  CQCharts*          charts_     { nullptr }; // charts
+  TypeData           typeData_;               // type data
+  ModelCacheData     modelCacheData_;         // column type cache (per model)
+  mutable std::mutex mutex_;
 };
 
 #endif

@@ -53,7 +53,7 @@ class CQChartsResizeHandle : QObject {
   const QColor &borderColor() const { return borderColor_; }
   void setBorderColor(const QColor &v) { borderColor_ = v; }
 
-  void draw(QPainter *painter);
+  void draw(QPainter *painter) const;
 
   bool selectInside(const CQChartsGeom::Point &p);
 
@@ -63,16 +63,16 @@ class CQChartsResizeHandle : QObject {
   CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &p) const;
 
  private:
-  const CQChartsView* view_        { nullptr };
-  const CQChartsPlot* plot_        { nullptr };
-  CQChartsGeom::BBox  bbox_;
-  Side                side_        { Side::NONE };
-  bool                selected_    { false };
-  QColor              fillColor_   { "#4444aa" };
-  double              fillAlpha_   { 0.5 };
-  QColor              borderColor_ { Qt::black };
-  QPointF             pos_         { 0, 0 };
-  QPainterPath        path_;
+  const CQChartsView*  view_        { nullptr };
+  const CQChartsPlot*  plot_        { nullptr };
+  CQChartsGeom::BBox   bbox_;
+  Side                 side_        { Side::NONE };
+  bool                 selected_    { false };
+  QColor               fillColor_   { "#4444aa" };
+  double               fillAlpha_   { 0.5 };
+  QColor               borderColor_ { Qt::black };
+  QPointF              pos_         { 0, 0 };
+  mutable QPainterPath path_;
 };
 
 #endif

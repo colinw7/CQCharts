@@ -114,12 +114,12 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
   void addPointObj(double x, double y, const QModelIndex &xind,
-                   int r, int nr, PlotObjs &objs);
+                   int r, int nr, PlotObjs &objs) const;
 
   //---
 
@@ -129,7 +129,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   bool hasForeground() const override;
 
-  void drawForeground(QPainter *painter) override;
+  void drawForeground(QPainter *painter) const override;
 
  public slots:
   void setVoronoi(bool b);

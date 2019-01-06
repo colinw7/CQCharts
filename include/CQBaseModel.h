@@ -4,6 +4,7 @@
 #include <CQBaseModelTypes.h>
 #include <QAbstractItemModel>
 #include <map>
+#include <future>
 
 class CQBaseModel : public QAbstractItemModel {
   Q_OBJECT
@@ -157,18 +158,24 @@ class CQBaseModel : public QAbstractItemModel {
   void genColumnTypes();
 
   void genColumnType(int c);
+
   void genColumnType(ColumnData &columnData);
+  void genColumnType(const ColumnData &columnData) const;
+
   bool genColumnType(const QModelIndex &parent, int c, ColumnTypeData &columnTypeData);
 
-  ColumnData &getColumnData(int column) const;
+  ColumnData &getColumnData(int column);
+  const ColumnData &getColumnData(int column) const;
 
-  RowData &getRowData(int column) const;
+  RowData &getRowData(int column);
+  const RowData &getRowData(int row) const;
 
  protected:
-  ColumnDatas columnDatas_;
-  RowDatas    rowDatas_;
-  int         maxTypeRows_ { 1000 };
-  NameValues  nameValues_;
+  ColumnDatas        columnDatas_;
+  RowDatas           rowDatas_;
+  int                maxTypeRows_ { 1000 };
+  NameValues         nameValues_;
+  mutable std::mutex mutex_;
 };
 
 #endif

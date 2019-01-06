@@ -47,7 +47,7 @@ class CQChartsPath {
   }
 
   const QPainterPath &path() const {
-    return *const_cast<CQChartsPath *>(this)->pathPtr();
+    return *(this->pathPtr());
   }
 
   //---
@@ -86,6 +86,8 @@ class CQChartsPath {
   //---
 
  private:
+  const QPainterPath *pathPtr() const { return const_cast<CQChartsPath *>(this)->pathPtr(); }
+
   QPainterPath *pathPtr() {
     static QPainterPath s_path;
 

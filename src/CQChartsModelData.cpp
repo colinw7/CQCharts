@@ -39,8 +39,12 @@ CQChartsModelDetails *
 CQChartsModelData::
 details()
 {
-  if (! details_)
-    details_ = new CQChartsModelDetails(this);
+  if (! details_) {
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    if (! details_)
+      details_ = new CQChartsModelDetails(this);
+  }
 
   return details_;
 }

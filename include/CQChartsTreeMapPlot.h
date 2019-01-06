@@ -359,11 +359,11 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
   void clearPlotObjects() override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
   //---
 
@@ -375,36 +375,36 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
  private:
   void initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj,
-                    int depth, PlotObjs &objs);
+                    int depth, PlotObjs &objs) const;
 
   void resetNodes();
 
-  void initNodes();
+  void initNodes() const;
 
-  void replaceNodes();
+  void replaceNodes() const;
 
-  void placeNodes(CQChartsTreeMapHierNode *hier);
+  void placeNodes(CQChartsTreeMapHierNode *hier) const;
 
-  void colorNodes(CQChartsTreeMapHierNode *hier);
+  void colorNodes(CQChartsTreeMapHierNode *hier) const;
 
-  void colorNode(CQChartsTreeMapNode *node);
+  void colorNode(CQChartsTreeMapNode *node) const;
 
   //---
 
-  void loadHier();
+  void loadHier() const;
 
   CQChartsTreeMapHierNode *addHierNode(CQChartsTreeMapHierNode *parent, const QString &name,
-                                       const QModelIndex &nameInd);
+                                       const QModelIndex &nameInd) const;
 
   CQChartsTreeMapNode *addNode(CQChartsTreeMapHierNode *parent, const QString &name,
-                               double size, const QModelIndex &nameInd);
+                               double size, const QModelIndex &nameInd) const;
 
-  void loadFlat();
+  void loadFlat() const;
 
   CQChartsTreeMapNode *addNode(const QStringList &nameStrs, double size,
-                               const QModelIndex &nameInd);
+                               const QModelIndex &nameInd) const;
 
-  void addExtraNodes(CQChartsTreeMapHierNode *hier);
+  void addExtraNodes(CQChartsTreeMapHierNode *hier) const;
 
   //---
 
@@ -427,13 +427,13 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
  private:
   using Node = CQChartsTreeMapHierNode;
 
+  bool           titles_             { true };    // show title bar (header)
+  double         titleMaxExtent_     { 0.5 };     // title bar max extent (0-1)
+  CQChartsLength headerHeight_       { "0px" };   // header height (should be font based)
+  CQChartsLength marginWidth_        { "2px" };   // box margin
   Node*          root_               { nullptr }; // root node
   Node*          firstHier_          { nullptr }; // first hier node
   QString        currentRootName_;                // current root name
-  bool           titles_             { true };    // show title bar (header)
-  double         titleMaxExtent_     { 0.5 };     // title bar max extent (0-1)
-  CQChartsLength headerHeight_       { 0.0 };     // header height (should be font based)
-  CQChartsLength marginWidth_        { 2.0 };     // box margin
   int            colorId_            { -1 };      // current color id
   int            numColorIds_        { 0 };       // num used color ids
   int            maxDepth_           { 1 };       // max hier depth

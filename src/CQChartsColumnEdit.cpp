@@ -9,6 +9,7 @@
 #include <QLineEdit>
 #include <QGroupBox>
 #include <QCheckBox>
+#include <QLabel>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QAbstractItemModel>
@@ -97,6 +98,18 @@ CQChartsColumnEdit(QWidget *parent) :
           this, SLOT(menuColumnChanged(int)));
 
   menuColumnGroupLayout->addWidget(columnCombo_);
+
+  QFrame *roleFrame = new QFrame;
+
+  QHBoxLayout *roleLayout = new QHBoxLayout(roleFrame);
+
+  roleLayout->addWidget(new QLabel("Role"));
+
+  roleEdit_ = new QLineEdit;
+
+  roleLayout->addWidget(roleEdit_);
+
+  menuColumnGroupLayout->addWidget(roleFrame);
 
   //---
 
@@ -235,30 +248,35 @@ updateMenu()
 
   columnCombo_->clear();
 
-  if (! model())
-    return;
+  columnCombo_->addItem("<none>", -1);
 
-  int nc = model()->columnCount();
+  if (model()) {
+    int nc = model()->columnCount();
 
-  for (int c = 0; c < nc; ++c) {
-    QString name = model()->headerData(c, Qt::Horizontal).toString();
+    for (int c = 0; c < nc; ++c) {
+      QString name = model()->headerData(c, Qt::Horizontal).toString();
 
-    QString label;
+      QString label;
 
-    if (! name.simplified().length())
-      label = QString("%1 : <no name>").arg(c);
-    else
-      label = QString("%1 : %2").arg(c).arg(name);
+      if (! name.simplified().length())
+        label = QString("%1 : <no name>").arg(c);
+      else
+        label = QString("%1 : %2").arg(c).arg(name);
 
-    columnCombo_->addItem(label);
+      columnCombo_->addItem(label, c);
+    }
+
+    bool ok;
+
+    int column = edit_->text().toInt(&ok);
+
+    if (ok && column >= 0 && column < nc) {
+      int ind = columnCombo_->findData(column);
+
+      if (ind > 0)
+        columnCombo_->setCurrentIndex(ind);
+    }
   }
-
-  bool ok;
-
-  int column = edit_->text().toInt(&ok);
-
-  if (ok)
-    columnCombo_->setCurrentIndex(column);
 
   //---
 
@@ -417,19 +435,30 @@ columnToWidgets()
 
     if      (column_.type() == CQChartsColumn::Type::DATA) {
       menuColumnGroup_->setChecked(true);
-      columnCombo_    ->setCurrentIndex(column_.column());
-    }
-    else if (column_.type() == CQChartsColumn::Type::VHEADER) {
-      edit_        ->setText("");
-      vheaderCheck_->setChecked(true);
+
+      int ind = columnCombo_->findData(column_.column());
+
+      if (ind > 0)
+        columnCombo_->setCurrentIndex(ind);
+      else
+        columnCombo_->setCurrentIndex(0);
+
+      if (column_.role() >= 0)
+        roleEdit_->setText(QString("%1").arg(column_.role()));
+      else
+        roleEdit_->setText("");
     }
     else if (column_.type() == CQChartsColumn::Type::EXPR) {
       menuExprGroup_ ->setChecked(true);
       expressionEdit_->setText(column_.expr());
     }
+    else if (column_.type() == CQChartsColumn::Type::VHEADER) {
+      edit_        ->setText("");
+      vheaderCheck_->setChecked(true);
+    }
   }
   else {
-    menuExprGroup_->setChecked(true);
+    menuColumnGroup_->setChecked(true);
   }
 
   connectSlots(true);
@@ -439,25 +468,36 @@ void
 CQChartsColumnEdit::
 widgetsToColumn()
 {
-  QString str;
+  CQChartsColumn column;
 
   if      (menuColumnGroup_->isChecked()) {
-    str = QString("%1").arg(columnCombo_->currentIndex());
+    bool ok;
+
+    int icolumn = columnCombo_->itemData(columnCombo_->currentIndex()).toInt(&ok);
+
+    if (icolumn < 0)
+      icolumn = -1;
+
+    int role = roleEdit_->text().toInt(&ok);
+
+    if (! ok)
+      role = -1;
+
+    column = CQChartsColumn(icolumn, role);
   }
   else if (menuExprGroup_->isChecked()) {
+    QString str;
+
     if (expressionEdit_->text().simplified().length())
       str = QString("(%1)").arg(expressionEdit_->text());
     else
       str = "";
+
+    column = CQChartsColumn(CQChartsColumn::Type::EXPR, -1, str, -1);
   }
   else if (vheaderCheck_->isChecked()) {
-    str = "@VH";
+    column = CQChartsColumn(CQChartsColumn::Type::VHEADER, -1, "", -1);
   }
-
-  CQChartsColumn column(str);
-
-  if (! column.isValid())
-    return;
 
   column_ = column;
 

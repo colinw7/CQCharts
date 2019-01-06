@@ -4,7 +4,7 @@
 #include <cassert>
 #include <algorithm>
 #include <cmath>
-//#include <iostream>
+#include <iostream>
 #include <cstring>
 //#include <sstream>
 
@@ -419,7 +419,6 @@ class Range {
     y2_ = c.y + h/2;
   }
 
-#if 0
   void print(std::ostream &os) const {
     os << x1_ << " " << y1_ << " " << x2_ << " " << y2_;
   }
@@ -429,7 +428,6 @@ class Range {
 
     return os;
   }
-#endif
 
  private:
   bool   set_ { false };

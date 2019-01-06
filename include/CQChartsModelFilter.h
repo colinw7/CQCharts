@@ -5,6 +5,7 @@
 #include <cassert>
 #include <QSortFilterProxyModel>
 #include <set>
+#include <future>
 
 class CQCharts;
 class CQChartsModelExprMatch;
@@ -210,6 +211,7 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   mutable IndexMatches    matches_;
   mutable ExpandInds      expand_;
   bool                    mapping_        { true };
+  mutable std::mutex      mutex_;
 };
 
 #endif

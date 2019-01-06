@@ -88,9 +88,9 @@ class CQChartsSankeyPlotNode {
   int                       ind_       { -1 };
   Edges                     srcEdges_;
   Edges                     destEdges_;
-  mutable int               srcDepth_  { -1 };
-  mutable int               destDepth_ { -1 };
-  mutable int               xpos_      { -1 };
+  int                       srcDepth_  { -1 };
+  int                       destDepth_ { -1 };
+  int                       xpos_      { -1 };
   CQChartsSankeyNodeObj*    obj_       { nullptr };
 };
 
@@ -155,7 +155,7 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   void draw(QPainter *painter) override;
 
-  void drawFg(QPainter *painter) override;
+  void drawFg(QPainter *painter) const override;
 
  private:
   using EdgeRect = std::map<CQChartsSankeyPlotEdge *,CQChartsGeom::BBox>;
@@ -253,11 +253,11 @@ class CQChartsSankeyPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
-  void updateMaxDepth();
+  void updateMaxDepth() const;
 
   //---
 
@@ -276,28 +276,30 @@ class CQChartsSankeyPlot : public CQChartsPlot,
   //---
 
  private:
+  void clearNodesAndEdges();
+
   CQChartsSankeyPlotNode *findNode(const QString &name) const;
 
   CQChartsSankeyPlotEdge *createEdge(double value, CQChartsSankeyPlotNode *srcNode,
-                                     CQChartsSankeyPlotNode *destNode);
+                                     CQChartsSankeyPlotNode *destNode) const;
 
-  void createGraph(PlotObjs &objs);
+  void createGraph(PlotObjs &objs) const;
 
-  void createNodes(const IndNodeMap &nodes);
+  void createNodes(const IndNodeMap &nodes) const;
 
-  void createEdge(CQChartsSankeyPlotEdge *edge);
+  void createEdge(CQChartsSankeyPlotEdge *edge) const;
 
-  void adjustNodes();
+  void adjustNodes() const;
 
   void initPosNodesMap();
 
   void adjustNodeCenters();
 
-  void removeOverlaps();
+  void removeOverlaps() const;
 
-  void reorderNodeEdges();
+  void reorderNodeEdges() const;
 
-  void adjustNode(CQChartsSankeyPlotNode *node);
+  void adjustNode(CQChartsSankeyPlotNode *node) const;
 
  private:
   using PosNodesMap = std::map<int,IndNodeMap>;

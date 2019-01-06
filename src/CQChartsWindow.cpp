@@ -400,7 +400,7 @@ filterChangedSlot()
   //CQChartsPlot *plot = view_->currentPlot(/*remap*/false);
   //if (! plot) return;
 
-  //plot->updateRangeAndObjs();
+  //plot->queueUpdateRangeAndObjs();
 }
 
 void
@@ -408,6 +408,11 @@ CQChartsWindow::
 plotSlot()
 {
   CQChartsPlot *plot = view_->currentPlot(/*remap*/false);
+
+  if (plot)
+    setWindowTitle(QString("Window: View %1, Plot %2").arg(view_->id()).arg(plot->id()));
+  else
+    setWindowTitle(QString("Window: View %1, Plot <none>").arg(view_->id()));
 
   if (tableFrame_->isVisible() && plot) {
     modelView_->setModel(plot->model(), plot->isHierarchical());

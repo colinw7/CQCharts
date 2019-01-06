@@ -78,7 +78,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   virtual void draw(QPainter *painter);
 
-  void drawEditHandles(QPainter *painter);
+  void drawEditHandles(QPainter *painter) const;
 
   //---
 

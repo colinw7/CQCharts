@@ -433,9 +433,13 @@ init() const
   if (initialized_)
     return;
 
-  CQChartsValueSet *th = const_cast<CQChartsValueSet *>(this);
+  std::unique_lock<std::mutex> lock(mutex_);
 
-  th->init();
+  if (! initialized_) {
+    CQChartsValueSet *th = const_cast<CQChartsValueSet *>(this);
+
+    th->init();
+  }
 }
 
 void
@@ -1004,38 +1008,42 @@ initPatterns(int numIdeal) const
   if (spatternsSet_)
     return;
 
-  using DepthCountMap = std::map<int,CQChartsTrie::Patterns>;
+  std::unique_lock<std::mutex> lock(mutex_);
 
-  DepthCountMap depthCountMap;
+  if (! spatternsSet_) {
+    CQChartsSValues *th = const_cast<CQChartsSValues *>(this);
 
-  for (int depth = 1; depth <= 3; ++depth) {
-    CQChartsTrie::Patterns patterns;
+    using DepthCountMap = std::map<int,CQChartsTrie::Patterns>;
 
-    trie_->patterns(depth, patterns);
+    DepthCountMap depthCountMap;
 
-    depthCountMap[depth] = patterns;
+    for (int depth = 1; depth <= 3; ++depth) {
+      CQChartsTrie::Patterns patterns;
 
-    //patterns.print(std::cerr);
-  }
+      trie_->patterns(depth, patterns);
 
-  int minD     = -1;
-  int minDepth = -1;
+      depthCountMap[depth] = patterns;
 
-  for (const auto &depthCount : depthCountMap) {
-    int d = std::abs(depthCount.second.numPatterns() - numIdeal);
-
-    if (minDepth < 0 || d < minD) {
-      minD     = d;
-      minDepth = depthCount.first;
+      //patterns.print(std::cerr);
     }
+
+    int minD     = -1;
+    int minDepth = -1;
+
+    for (const auto &depthCount : depthCountMap) {
+      int d = std::abs(depthCount.second.numPatterns() - numIdeal);
+
+      if (minDepth < 0 || d < minD) {
+        minD     = d;
+        minDepth = depthCount.first;
+      }
+    }
+
+    th->spatterns_    = depthCountMap[minDepth];
+    th->spatternsSet_ = true;
+
+    //spatterns_.print(std::cerr);
   }
-
-  CQChartsSValues *th = const_cast<CQChartsSValues *>(this);
-
-  th->spatterns_    = depthCountMap[minDepth];
-  th->spatternsSet_ = true;
-
-  //spatterns_.print(std::cerr);
 }
 
 //------

@@ -7,6 +7,7 @@
 #include <CQChartsDisplayRange.h>
 #include <CQPerfMonitor.h>
 
+#include <QApplication>
 #include <QPainter>
 #include <QMenu>
 
@@ -90,14 +91,14 @@ void
 CQChartsParallelPlot::
 setXColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsParallelPlot::
 setYColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(yColumns_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumns_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -106,7 +107,7 @@ void
 CQChartsParallelPlot::
 setHorizontal(bool b)
 {
-  CQChartsUtil::testAndSet(horizontal_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(horizontal_, b, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -115,7 +116,7 @@ void
 CQChartsParallelPlot::
 setLinesSelectable(bool b)
 {
-  CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { queueDrawObjs(); } );
 }
 
 //------
@@ -146,27 +147,38 @@ addProperties()
 
 CQChartsGeom::Range
 CQChartsParallelPlot::
-calcRange()
+calcRange() const
 {
   CQPerfTrace trace("CQChartsParallelPlot::calcRange");
+
+  CQChartsParallelPlot *th =  const_cast<CQChartsParallelPlot *>(this);
 
   // create axes
   Qt::Orientation adir = (! isHorizontal() ? Qt::Vertical : Qt::Horizontal);
 
   if (axes_.empty() || adir_ != adir) {
-    adir_ = adir;
+    std::unique_lock<std::mutex> lock(axesMutex_);
 
-    for (auto &axis : axes_)
-      delete axis;
+    if (axes_.empty() || adir_ != adir) {
+      th->adir_ = adir;
 
-    axes_.clear();
+      for (auto &axis : th->axes_)
+        delete axis;
 
-    int ns = yColumns().count();
+      th->axes_.clear();
 
-    for (int j = 0; j < ns; ++j) {
-      CQChartsAxis *axis = new CQChartsAxis(this, adir_, 0, 1);
+      int ns = yColumns().count();
 
-      axes_.push_back(axis);
+      for (int j = 0; j < ns; ++j) {
+        CQChartsAxis *axis = new CQChartsAxis(nullptr, adir_, 0, 1);
+
+        axis->moveToThread(th->thread());
+
+        axis->setParent(th);
+        axis->setPlot  (this);
+
+        th->axes_.push_back(axis);
+      }
     }
   }
 
@@ -210,7 +222,7 @@ calcRange()
     const Ranges &setRanges() const { return setRanges_; }
 
    private:
-    const CQChartsParallelPlot* plot_ { nullptr };
+    const CQChartsParallelPlot *plot_ { nullptr };
     int                         ns_   { 0 };
     Ranges                      setRanges_;
   };
@@ -219,7 +231,7 @@ calcRange()
 
   visitModel(visitor);
 
-  setRanges_ = visitor.setRanges();
+  th->setRanges_ = visitor.setRanges();
 
   //---
 
@@ -227,7 +239,7 @@ calcRange()
   int ns = yColumns().count();
 
   for (int j = 0; j < ns; ++j) {
-    CQChartsGeom::Range &range = setRanges_[j];
+    CQChartsGeom::Range &range = th->setRanges_[j];
 
     if (! isHorizontal()) {
       range.updateRange(   - 0.5, range.ymin());
@@ -253,7 +265,7 @@ calcRange()
     dataRange.updateRange(1, ns - 0.5);
   }
 
-  normalizedDataRange_ = dataRange;
+  th->normalizedDataRange_ = dataRange;
 
   //---
 
@@ -268,7 +280,7 @@ calcRange()
 
     QString name = modelHeaderString(setColumn, ok);
 
-    setDataRange(range);
+    const_cast<CQChartsParallelPlot *>(this)->setDataRange(range);
 
     if (! isHorizontal()) {
       axis->setRange(range.ymin(), range.ymax());
@@ -294,7 +306,7 @@ calcRange()
 
 bool
 CQChartsParallelPlot::
-createObjs(PlotObjs &objs)
+createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsParallelPlot::createObjs");
 
@@ -350,7 +362,7 @@ createObjs(PlotObjs &objs)
     const Indices &xinds() const { return xinds_; }
 
    private:
-    const CQChartsParallelPlot* plot_ { nullptr };
+    const CQChartsParallelPlot *plot_ { nullptr };
     int                         ns_   { 0 };
     Polygons                    polys_;
     Indices                     xinds_;
@@ -584,15 +596,17 @@ hasFgAxes() const
 
 void
 CQChartsParallelPlot::
-drawFgAxes(QPainter *painter)
+drawFgAxes(QPainter *painter) const
 {
-  setObjRange();
+  CQChartsParallelPlot *th = const_cast<CQChartsParallelPlot *>(this);
+
+  th->setObjRange();
 
   //---
 
-  axesBBox_ = CQChartsGeom::BBox();
+  th->axesBBox_ = CQChartsGeom::BBox();
 
-  max_tw_ = 0.0;
+  th->max_tw_ = 0.0;
 
   double tm = 4.0;
 
@@ -610,7 +624,7 @@ drawFgAxes(QPainter *painter)
 
     const CQChartsGeom::Range &range = setRange(j);
 
-    dataRange_ = range;
+    const_cast<CQChartsParallelPlot *>(this)->dataRange_ = range;
   //setDataRange(range); // will clear objects
 
     // set display range to set range
@@ -642,7 +656,7 @@ drawFgAxes(QPainter *painter)
     double ta = fm.ascent();
     double td = fm.descent();
 
-    max_tw_ = std::max(max_tw_, tw);
+    th->max_tw_ = std::max(max_tw_, tw);
 
     QPen tpen;
 
@@ -659,14 +673,14 @@ drawFgAxes(QPainter *painter)
 
     //---
 
-    axesBBox_ += windowToPixel(axis->fitBBox());
+    th->axesBBox_ += windowToPixel(axis->fitBBox());
   }
 
   //---
 
-  setNormalizedRange();
+  const_cast<CQChartsParallelPlot *>(this)->setNormalizedRange();
 
-  axesBBox_ = pixelToWindow(axesBBox_);
+  th->axesBBox_ = pixelToWindow(axesBBox_);
 }
 
 //---
@@ -975,6 +989,7 @@ draw(QPainter *painter)
 
   //---
 
+  // set pen and brush
   QPen   pen;
   QBrush brush;
 
@@ -984,6 +999,7 @@ draw(QPainter *painter)
 
   //---
 
+  // get symbol type and size
   CQChartsSymbol symbol = plot_->symbolType();
 
   double sx, sy;
@@ -995,9 +1011,13 @@ draw(QPainter *painter)
     sy *= 2;
   }
 
+  //---
+
+  // draw symbol
   QPointF p = plot_->windowToPixel(QPointF(x_, y_));
 
-  plot_->drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy), pen, brush);
+  const_cast<CQChartsParallelPlot *>(plot_)->
+    drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy), pen, brush);
 
   //---
 

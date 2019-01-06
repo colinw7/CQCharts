@@ -1684,5 +1684,8 @@ layersClickedSlot(int row, int column)
 
   const CQChartsBuffer *buffer = plot->getBuffer(layer->buffer());
 
-  plot->invalidateLayer(buffer->type());
+  if (buffer->type() != CQChartsBuffer::Type::MIDDLE)
+    plot->invalidateLayer(buffer->type());
+  else
+    plot->queueDrawObjs();
 }

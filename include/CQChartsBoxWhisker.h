@@ -7,6 +7,7 @@
 #include <cassert>
 #include <vector>
 #include <algorithm>
+#include <future>
 
 struct CQChartsWhiskerData {
   double min    { 0.0 };
@@ -118,17 +119,21 @@ class CQChartsBoxWhiskerT {
 
  private:
   void invalidate() {
-    calcValid_    = false;
-    densityValid_ = false;
+    calcValid_   .store(false);
+    densityValid_.store(false);
   }
 
   void initCalc() const {
-    if (! calcValid_) {
-      CQChartsBoxWhiskerT *th = const_cast<CQChartsBoxWhiskerT *>(this);
+    if (! calcValid_.load()) {
+      std::unique_lock<std::mutex> lock(calcMutex_);
 
-      th->calc();
+      if (! calcValid_.load()) {
+        CQChartsBoxWhiskerT *th = const_cast<CQChartsBoxWhiskerT *>(this);
 
-      th->calcValid_ = true;
+        th->calc();
+
+        calcValid_.store(true);
+      }
     }
   }
 
@@ -248,12 +253,16 @@ class CQChartsBoxWhiskerT {
   }
 
   void initDensity() const {
-    if (! densityValid_) {
-      CQChartsBoxWhiskerT *th = const_cast<CQChartsBoxWhiskerT *>(this);
+    if (! densityValid_.load()) {
+      std::unique_lock<std::mutex> lock(densityMutex_);
 
-      th->calcDensity();
+      if (! densityValid_.load()) {
+        CQChartsBoxWhiskerT *th = const_cast<CQChartsBoxWhiskerT *>(this);
 
-      th->densityValid_ = true;
+        th->calcDensity();
+
+        densityValid_.store(true);
+      }
     }
   }
 
@@ -274,22 +283,24 @@ class CQChartsBoxWhiskerT {
   }
 
  private:
-  QString             name_;
-  Values              values_;
-  double              range_        { 1.5 };
-  double              fraction_     { 0.95 }; // TODO
+  QString                   name_;
+  Values                    values_;
+  double                    range_        { 1.5 };
+  double                    fraction_     { 0.95 }; // TODO
 
   // calculated data
-  bool                calcValid_    { false };
-  CQChartsWhiskerData data_;
-  double              sum_          { 0.0 };
-  double              mean_         { 0.0 };
-  double              stddev_       { 0.0 };
-  Outliers            outliers_;
+  mutable std::atomic<bool> calcValid_    { false };
+  mutable std::mutex        calcMutex_;
+  CQChartsWhiskerData       data_;
+  double                    sum_          { 0.0 };
+  double                    mean_         { 0.0 };
+  double                    stddev_       { 0.0 };
+  Outliers                  outliers_;
 
   // calculated density
-  Density             density_;
-  bool                densityValid_ { false };
+  Density                   density_;
+  mutable std::atomic<bool> densityValid_ { false };
+  mutable std::mutex        densityMutex_;
 };
 
 using CQChartsBoxWhisker = CQChartsBoxWhiskerT<double>;

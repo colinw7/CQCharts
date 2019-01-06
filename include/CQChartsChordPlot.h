@@ -90,8 +90,10 @@ class CQChartsChordData {
     if (totalValid_)
       return total_;
 
-    total_      = calcTotal();
-    totalValid_ = true;
+    CQChartsChordData *th = const_cast<CQChartsChordData *>(this);
+
+    th->total_      = calcTotal();
+    th->totalValid_ = true;
 
     return total_;
   }
@@ -122,16 +124,15 @@ class CQChartsChordData {
   }
 
  private:
-  int         from_;
+  int         from_       { -1 };
   QString     name_;
   Group       group_;
   Values      values_;
   QModelIndex ind_;
-  double      a_  { 0 };
-  double      da_ { 0 };
-
-  mutable double total_ { 0.0 };
-  mutable double totalValid_ { false };
+  double      a_          { 0.0 };
+  double      da_         { 0.0 };
+  double      total_      { 0.0 };
+  double      totalValid_ { false };
 };
 
 //---
@@ -150,6 +151,8 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
   QString calcId() const override;
 
+  QString calcTipId() const override;
+
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &inds) const override;
@@ -158,7 +161,7 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
   void draw(QPainter *painter) override;
 
-  void drawFg(QPainter *painter) override;
+  void drawFg(QPainter *painter) const override;
 
   CQChartsGeom::BBox textBBox() const;
 
@@ -193,6 +196,8 @@ class CQChartsChordPlot : public CQChartsPlot,
 
   Q_PROPERTY(double segmentAlpha READ segmentAlpha WRITE setSegmentAlpha)
   Q_PROPERTY(double arcAlpha     READ arcAlpha     WRITE setArcAlpha    )
+  Q_PROPERTY(double gapAngle     READ gapAngle     WRITE setGapAngle    )
+  Q_PROPERTY(double startAngle   READ startAngle   WRITE setStartAngle  )
 
  public:
   CQChartsChordPlot(CQChartsView *view, const ModelP &model);
@@ -227,6 +232,12 @@ class CQChartsChordPlot : public CQChartsPlot,
   double arcAlpha() const { return arcAlpha_; }
   void setArcAlpha(double r);
 
+  double gapAngle() const { return gapAngle_; }
+  void setGapAngle(double r);
+
+  double startAngle() const { return startAngle_; }
+  void setStartAngle(double r);
+
   //---
 
   CQChartsRotatedTextBoxObj *textBox() const { return textBox_; }
@@ -239,11 +250,11 @@ class CQChartsChordPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
   CQChartsGeom::BBox annotationBBox() const override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
   //---
 
@@ -252,20 +263,22 @@ class CQChartsChordPlot : public CQChartsPlot,
   //---
 
  private:
-  bool initTableObjs(PlotObjs &objs);
-  bool initHierObjs(PlotObjs &objs);
+  bool initTableObjs(PlotObjs &objs) const;
+  bool initHierObjs(PlotObjs &objs) const;
 
  private:
-  CQChartsColumn             linkColumn_;               // link column
-  CQChartsColumn             valueColumn_;              // value column
-  CQChartsColumn             groupColumn_;              // group column
-  bool                       sorted_         { false }; // is sorted
-  double                     innerRadius_    { 0.9 };   // inner radius
-  double                     labelRadius_    { 1.1 };   // label radius
-  double                     segmentAlpha_   { 0.7 };   // segment alpha
-  double                     arcAlpha_       { 0.3 };   // arc alpha
-  CQChartsRotatedTextBoxObj* textBox_;                  // text box
-  double                     valueToDegrees_ { 1.0 };   // value to degrees scale
+  CQChartsColumn             linkColumn_;                 // link column
+  CQChartsColumn             valueColumn_;                // value column
+  CQChartsColumn             groupColumn_;                // group column
+  bool                       sorted_         { false };   // is sorted
+  double                     innerRadius_    { 0.9 };     // inner radius
+  double                     labelRadius_    { 1.1 };     // label radius
+  double                     segmentAlpha_   { 0.7 };     // segment alpha
+  double                     arcAlpha_       { 0.3 };     // arc alpha
+  double                     gapAngle_       { 2.0 };     // gap angle
+  double                     startAngle_     { 90.0 };    // start angle
+  CQChartsRotatedTextBoxObj* textBox_        { nullptr }; // text box
+  double                     valueToDegrees_ { 1.0 };     // value to degrees scale
 };
 
 #endif

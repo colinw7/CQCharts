@@ -3,6 +3,7 @@
 
 #include <CQChartsGeom.h>
 #include <QObject>
+#include <future>
 #include <boost/optional.hpp>
 
 class CQChartsObj : public QObject {
@@ -67,6 +68,7 @@ class CQChartsObj : public QObject {
   OptString          tipId_;              // tip id
   bool               selected_ { false }; // is selected
   bool               inside_   { false }; // is mouse inside
+  mutable std::mutex mutex_;
 };
 
 #endif

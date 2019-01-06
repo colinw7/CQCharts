@@ -12,9 +12,13 @@ CQChartsObj::
 id() const
 {
   if (! id_) {
-    const_cast<CQChartsObj*>(this)->id_ = calcId();
+    std::unique_lock<std::mutex> lock(mutex_);
 
-    assert((*id_).length());
+    if (! id_) {
+      const_cast<CQChartsObj*>(this)->id_ = calcId();
+
+      assert((*id_).length());
+    }
   }
 
   return *id_;
@@ -34,9 +38,13 @@ CQChartsObj::
 tipId() const
 {
   if (! tipId_) {
-    const_cast<CQChartsObj*>(this)->tipId_ = calcTipId();
+    std::unique_lock<std::mutex> lock(mutex_);
 
-    assert((*tipId_).length());
+    if (! tipId_) {
+      const_cast<CQChartsObj*>(this)->tipId_ = calcTipId();
+
+      assert((*tipId_).length());
+    }
   }
 
   return *tipId_;

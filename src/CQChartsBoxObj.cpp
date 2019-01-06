@@ -68,6 +68,7 @@ CQChartsBoxObj::
 draw(QPainter *painter, const QRectF &rect) const
 {
   if (isFilled()) {
+    // set pen and brush
     QBrush brush;
     QPen   pen(Qt::NoPen);
 
@@ -84,6 +85,9 @@ draw(QPainter *painter, const QRectF &rect) const
     painter->setPen  (pen);
     painter->setBrush(brush);
 
+    //---
+
+    // fill border
     double cxs = (plot() ? plot()->lengthPixelWidth (cornerSize()) : 0.0);
     double cys = (plot() ? plot()->lengthPixelHeight(cornerSize()) : 0.0);
 
@@ -91,6 +95,7 @@ draw(QPainter *painter, const QRectF &rect) const
   }
 
   if (isBorder()) {
+    // set pen and brush
     QPen   pen;
     QBrush brush(Qt::NoBrush);
 
@@ -107,6 +112,9 @@ draw(QPainter *painter, const QRectF &rect) const
     painter->setPen  (pen);
     painter->setBrush(brush);
 
+    //---
+
+    // draw border
     double cxs = (plot() ? plot()->lengthPixelWidth (cornerSize()) : 0.0);
     double cys = (plot() ? plot()->lengthPixelHeight(cornerSize()) : 0.0);
 
@@ -119,7 +127,7 @@ CQChartsBoxObj::
 redrawBoxObj()
 {
   if      (plot())
-    plot()->invalidateLayers();
+    plot()->queueDrawObjs();
   else if (view())
     view()->update();
 }

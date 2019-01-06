@@ -86,7 +86,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  void redraw();
+  void redraw(bool wait=true);
 
   //---
 
@@ -111,7 +111,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   void draw(QPainter *painter);
 
-  void drawEditHandles(QPainter *painter);
+  void drawEditHandles(QPainter *painter) const;
 
  private:
   void updateLocation();

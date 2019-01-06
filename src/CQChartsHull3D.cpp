@@ -331,7 +331,7 @@ addOne(PVertex p)
   PFace f = faces_;
 
   do {
-    int vol = volumeSign(f, p);
+    int vol = (f ? volumeSign(f, p) : 0);
 
 #if 0
     if (debug_) {

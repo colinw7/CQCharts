@@ -107,13 +107,13 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //---
 
-  virtual void updatePosition() { }
+  virtual void updatePosition(bool /*wait*/=true) { }
 
   virtual void updateLayout() { }
 
   virtual void updateKeyItems() { }
 
-  virtual void redraw() = 0;
+  virtual void redraw(bool /*wait*/=true) = 0;
 
   //---
 
@@ -143,7 +143,7 @@ class CQChartsViewKey : public CQChartsKey {
 
  ~CQChartsViewKey();
 
-  void updatePosition() override;
+  void updatePosition(bool wait=true) override;
 
   void updateLayout() override;
 
@@ -155,7 +155,7 @@ class CQChartsViewKey : public CQChartsKey {
 
   void selectPress(const CQChartsGeom::Point &w, CQChartsSelMod selMod);
 
-  void redraw() override;
+  void redraw(bool wait=true) override;
 
  private:
   void doLayout();
@@ -219,7 +219,7 @@ class CQChartsPlotKey : public CQChartsKey {
   int maxRow() const { return maxRow_; }
   int maxCol() const { return maxCol_; }
 
-  void updatePosition() override;
+  void updatePosition(bool wait=true) override;
 
   void updateLocation(const CQChartsGeom::BBox &bbox);
 
@@ -243,7 +243,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void redrawBoxObj() override { redraw(); }
 
-  void redraw() override;
+  void redraw(bool wait=true) override;
 
   //---
 
@@ -284,7 +284,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void draw(QPainter *painter) override;
 
-  void drawEditHandles(QPainter *painter);
+  void drawEditHandles(QPainter *painter) const;
 
   //---
 

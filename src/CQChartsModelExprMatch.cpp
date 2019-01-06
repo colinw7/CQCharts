@@ -63,7 +63,7 @@ class CQChartsModelExprMatchFn {
     Values values;
 
     for (int i = 1; i < objc; ++i) {
-      Tcl_Obj *obj = const_cast<Tcl_Obj *>(objv[i]);
+      const Tcl_Obj *obj = objv[i];
 
       values.push_back(command->qtcl()->variantFromObj(obj));
     }

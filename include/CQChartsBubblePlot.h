@@ -271,7 +271,6 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
  public:
   CQChartsBubblePlot(CQChartsView *view, const ModelP &model);
-
  ~CQChartsBubblePlot();
 
   //---
@@ -298,7 +297,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   //---
 
-  CQChartsBubbleHierNode *root() const { return root_; }
+  CQChartsBubbleHierNode *root() const { return nodeData_.root; }
 
   //CQChartsBubbleHierNode *firstHier() const { return firstHier_; }
 
@@ -307,45 +306,45 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   //---
 
-  const CQChartsGeom::Point &offset() const { return offset_; }
-  void setOffset(const CQChartsGeom::Point &o) { offset_ = o; }
+  const CQChartsGeom::Point &offset() const { return placeData_.offset; }
+  void setOffset(const CQChartsGeom::Point &o) { placeData_.offset = o; }
 
-  double scale() const { return scale_; }
-  void setScale(double r) { scale_ = r; }
+  double scale() const { return placeData_.scale; }
+  void setScale(double r) { placeData_.scale = r; }
 
   //---
 
-  int colorId() const { return colorId_; }
+  int colorId() const { return colorData_.colorId; }
 
-  int numColorIds() const { return numColorIds_; }
+  int numColorIds() const { return colorData_.numColorIds; }
 
   void initColorIds() {
-    colorId_     = -1;
-    numColorIds_ = 0;
+    colorData_.colorId     = -1;
+    colorData_.numColorIds = 0;
   }
 
   int nextColorId() {
-    ++colorId_;
+    ++colorData_.colorId;
 
-    if (colorId_ >= numColorIds_)
-      numColorIds_ = colorId_ + 1;
+    if (colorData_.colorId >= colorData_.numColorIds)
+      colorData_.numColorIds = colorData_.colorId + 1;
 
-    return colorId_;
+    return colorData_.colorId;
   }
 
   //---
 
-  int maxDepth() const { return maxDepth_; }
+  int maxDepth() const { return nodeData_.maxDepth; }
 
   //---
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
   void clearPlotObjects() override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
   //---
 
@@ -355,59 +354,72 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   bool hasForeground() const override;
 
-  void drawForeground(QPainter *painter) override;
+  void drawForeground(QPainter *painter) const override;
 
  private:
   void initNodeObjs(CQChartsBubbleHierNode *hier, CQChartsBubbleHierObj *parentObj,
-                    int depth, PlotObjs &objs);
+                    int depth, PlotObjs &objs) const;
 
   void resetNodes();
 
-  void initNodes();
+  void initNodes() const;
 
-  void replaceNodes();
+  void replaceNodes() const;
 
-  void placeNodes(CQChartsBubbleHierNode *hier);
+  void placeNodes(CQChartsBubbleHierNode *hier) const;
 
-  void colorNodes(CQChartsBubbleHierNode *hier);
+  void colorNodes(CQChartsBubbleHierNode *hier) const;
 
-  void colorNode(CQChartsBubbleNode *node);
+  void colorNode(CQChartsBubbleNode *node) const;
 
   //---
 
-  void loadModel();
+  void loadModel() const;
 
   CQChartsBubbleHierNode *groupHierNode(CQChartsBubbleHierNode *hier, int groupInd) const;
 
   CQChartsBubbleHierNode *addHierNode(CQChartsBubbleHierNode *hier, const QString &name,
-                                      const QModelIndex &nameInd);
+                                      const QModelIndex &nameInd) const;
 
   CQChartsBubbleNode *addNode(CQChartsBubbleHierNode *hierNode, const QString &name,
-                              double size, const QModelIndex &nameInd);
+                              double size, const QModelIndex &nameInd) const;
 
   //---
 
-  void initNodes(CQChartsBubbleHierNode *hier);
+  void initNodes(CQChartsBubbleHierNode *hier) const;
 
-  void transformNodes(CQChartsBubbleHierNode *hier);
+  void transformNodes(CQChartsBubbleHierNode *hier) const;
 
   void drawBounds(QPainter *painter, CQChartsBubbleHierNode *hier) const;
 
  private:
+  struct PlaceData {
+    CQChartsGeom::Point offset { 0, 0 }; // draw offset
+    double              scale  { 1.0 };  // draw scale
+  };
+
+  struct ColorData {
+    int colorId     { -1 }; // current color id
+    int numColorIds { 0 };  // num used color ids
+  };
+
+  struct NodeData {
+    CQChartsBubbleHierNode* root     { nullptr }; // root node
+    int                     maxDepth { 1 };       // max hier depth
+    int                     hierInd  { 0 };       // current hier ind
+  };
+
+ private:
   using GroupHierNodes = std::map<int,CQChartsBubbleHierNode *>;
 
-  CQChartsColumn          nameColumn_;              // name column
-  CQChartsColumn          valueColumn_;             // value column
-  bool                    valueLabel_  { false };   // draw value with name
-  bool                    sorted_      { false };   // sort nodes by value
-  CQChartsBubbleHierNode* root_        { nullptr }; // root node
-  CQChartsGeom::Point     offset_      { 0, 0 };    // draw offset
-  double                  scale_       { 1.0 };     // draw scale
-  int                     colorId_     { -1 };      // current color id
-  int                     numColorIds_ { 0 };       // num used color ids
-  int                     maxDepth_    { 1 };       // max hier depth
-  int                     hierInd_     { 0 };       // current hier ind
-  GroupHierNodes          groupHierNodes_;          // hier group nodes
+  CQChartsColumn nameColumn_;            // name column
+  CQChartsColumn valueColumn_;           // value column
+  bool           valueLabel_  { false }; // draw value with name
+  bool           sorted_      { false }; // sort nodes by value
+  NodeData       nodeData_;              // node data
+  PlaceData      placeData_;             // place data
+  ColorData      colorData_;             // color data
+  GroupHierNodes groupHierNodes_;        // hier group nodes
 };
 
 #endif

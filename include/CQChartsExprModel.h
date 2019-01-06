@@ -7,6 +7,7 @@
 #include <boost/optional.hpp>
 #include <set>
 #include <vector>
+#include <future>
 
 class CQChartsModelFilter;
 class CQChartsExprModelFn;
@@ -140,16 +141,16 @@ class CQChartsExprModel : public QAbstractProxyModel {
   using Args       = std::vector<QString>;
 
   struct ExtraColumn {
-    QString         expr;                                 // expression
-    QString         header;                               // header
-    CQBaseModelType type       { CQBaseModelType::NONE }; // value type
-    CQBaseModelType baseType   { CQBaseModelType::NONE }; // value base type
-    QString         typeValues;                           // type extra values
-    NameValues      nameValues;                           // type named values
-    VariantMap      variantMap;                           // calculated values
-    Values          values;                               // assign values
-    Function        function   { Function::EVAL };        // current eval function
-    bool            evaluating { false };                 // is evaluating column
+    QString           expr;                                 // expression
+    QString           header;                               // header
+    CQBaseModelType   type       { CQBaseModelType::NONE }; // value type
+    CQBaseModelType   baseType   { CQBaseModelType::NONE }; // value base type
+    QString           typeValues;                           // type extra values
+    NameValues        nameValues;                           // type named values
+    VariantMap        variantMap;                           // calculated values
+    Values            values;                               // assign values
+    Function          function   { Function::EVAL };        // current eval function
+    std::atomic<bool> evaluating { false };                 // is evaluating column
 
     ExtraColumn(const QString &expr, const QString &header="") :
      expr(expr), header(header) {
@@ -254,9 +255,10 @@ class CQChartsExprModel : public QAbstractProxyModel {
   mutable int          nc_         { 0 };       // cached number of columns
   mutable int          currentRow_ { 0 };       // cached current row
   mutable int          currentCol_ { 0 };       // cached current column
-  mutable ColumnDatas  columnDatas_;            // cached column datas
+  ColumnDatas          columnDatas_;            // cached column datas
   ColumnNames          columnNames_;            // cached column names
   NameColumns          nameColumns_;            // cached named columns
+  mutable std::mutex   mutex_;
 };
 
 #endif

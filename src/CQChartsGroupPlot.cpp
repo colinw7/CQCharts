@@ -72,7 +72,7 @@ void
 CQChartsGroupPlot::
 setGroupColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(groupColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
@@ -115,6 +115,8 @@ initGroupData(const CQChartsColumns &dataColumns,
               const CQChartsColumn &nameColumn, bool hier) const
 {
   CQPerfTrace trace("CQChartsGroupPlot::initGroupData");
+
+  std::unique_lock<std::mutex> lock(mutex_);
 
   // given columns and current grouping settings cache group buckets
   CQChartsColumnBucket *groupBucket = initGroupData(dataColumns, nameColumn, hier, groupData_);
@@ -358,9 +360,13 @@ rowGroupInd(const CQChartsModelIndex &ind) const
 
   int groupInd = inds[0];
 
+  {
+  std::unique_lock<std::mutex> lock(mutex_);
+
   CQChartsGroupPlot *th = const_cast<CQChartsGroupPlot *>(this);
 
   th->setModelGroupInd(ind, groupInd);
+  }
 
   return groupInd;
 }

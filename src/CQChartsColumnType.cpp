@@ -239,7 +239,7 @@ addType(Type type, CQChartsColumnType *data)
   typeData_[type] = data;
 }
 
-CQChartsColumnType *
+const CQChartsColumnType *
 CQChartsColumnTypeMgr::
 decodeTypeData(const QString &typeStr, CQChartsNameValues &nameValues) const
 {
@@ -249,7 +249,7 @@ decodeTypeData(const QString &typeStr, CQChartsNameValues &nameValues) const
 
   Type baseType = CQBaseModel::nameType(baseTypeName);
 
-  CQChartsColumnType *baseTypeData = getType(baseType);
+  const CQChartsColumnType *baseTypeData = getType(baseType);
 
   return baseTypeData;
 }
@@ -267,7 +267,7 @@ encodeTypeData(Type type, const CQChartsNameValues &nameValues) const
   return lstr + ":" + rstr;
 }
 
-CQChartsColumnType *
+const CQChartsColumnType *
 CQChartsColumnTypeMgr::
 getType(Type type) const
 {
@@ -287,13 +287,13 @@ getUserData(const QAbstractItemModel *model, const CQChartsColumn &column,
 {
   converted = false;
 
-  TypeCacheData typeCacheData;
+  const TypeCacheData *typeCacheData = nullptr;
 
   if (! getModelColumnTypeData(model, column, typeCacheData))
     return var;
 
-  QVariant var1 = typeCacheData.typeData->userData(charts_, model, column, var,
-                                                   typeCacheData.nameValues, converted);
+  QVariant var1 = typeCacheData->typeData->userData(charts_, model, column, var,
+                                                    typeCacheData->nameValues, converted);
 
   return var1;
 }
@@ -306,19 +306,19 @@ getDisplayData(const QAbstractItemModel *model, const CQChartsColumn &column,
 {
   converted = false;
 
-  TypeCacheData typeCacheData;
+  const TypeCacheData *typeCacheData = nullptr;
 
   if (! getModelColumnTypeData(model, column, typeCacheData))
     return var;
 
-  QVariant var1 = typeCacheData.typeData->userData(charts_, model, column, var,
-                                                   typeCacheData.nameValues, converted);
+  QVariant var1 = typeCacheData->typeData->userData(charts_, model, column, var,
+                                                    typeCacheData->nameValues, converted);
 
   if (! var1.isValid())
     return var;
 
-  QVariant var2 = typeCacheData.typeData->dataName(charts_, model, column, var1,
-                                                   typeCacheData.nameValues, converted);
+  QVariant var2 = typeCacheData->typeData->dataName(charts_, model, column, var1,
+                                                    typeCacheData->nameValues, converted);
 
   return var2;
 }
@@ -326,34 +326,60 @@ getDisplayData(const QAbstractItemModel *model, const CQChartsColumn &column,
 bool
 CQChartsColumnTypeMgr::
 getModelColumnTypeData(const QAbstractItemModel *model, const CQChartsColumn &column,
-                       TypeCacheData &typeCacheData) const
+                       const TypeCacheData* &typeCacheData) const
 {
-  bool caching = (cacheDepth_ > 0);
+  const CacheData &cacheData = getModelCacheData(model);
+
+  //---
+
+  bool caching = (cacheData.depth > 0);
 
   if (caching) {
-    auto p = columnTypeDataCache_.find(column);
+    // get cached column data
+    auto pc = cacheData.columnTypeCache.find(column);
 
-    if (p != columnTypeDataCache_.end()) {
-      typeCacheData = (*p).second;
+    if (pc == cacheData.columnTypeCache.end()) {
+      std::unique_lock<std::mutex> lock(mutex_);
 
-      return typeCacheData.valid;
+      CacheData &cacheData1 = const_cast<CacheData &>(cacheData);
+
+      auto pc1 = cacheData1.columnTypeCache.find(column);
+
+      if (pc1 == cacheData1.columnTypeCache.end()) {
+        TypeCacheData typeCacheData1;
+
+        if (getModelColumnType(model, column, typeCacheData1.type, typeCacheData1.baseType,
+                               typeCacheData1.nameValues)) {
+          typeCacheData1.typeData = getType(typeCacheData1.type);
+
+          if (typeCacheData1.typeData)
+            typeCacheData1.valid = true;
+        }
+
+        pc1 = cacheData1.columnTypeCache.insert(pc1,
+          ColumnTypeCache::value_type(column, typeCacheData1));
+      }
+
+      pc = cacheData.columnTypeCache.find(column);
     }
+
+    typeCacheData = &(*pc).second;
+  }
+  else {
+    TypeCacheData &typeCacheData1 = const_cast<TypeCacheData &>(cacheData.typeCacheData);
+
+    if (getModelColumnType(model, column, typeCacheData1.type, typeCacheData1.baseType,
+                           typeCacheData1.nameValues)) {
+      typeCacheData1.typeData = getType(typeCacheData1.type);
+
+      if (typeCacheData1.typeData)
+        typeCacheData1.valid = true;
+    }
+
+    typeCacheData = &typeCacheData1;
   }
 
-  typeCacheData.valid = false;
-
-  if (getModelColumnType(model, column, typeCacheData.type, typeCacheData.baseType,
-                         typeCacheData.nameValues)) {
-    typeCacheData.typeData = getType(typeCacheData.type);
-
-    if (typeCacheData.typeData)
-      typeCacheData.valid = true;
-  }
-
-  if (caching)
-    columnTypeDataCache_[column] = typeCacheData;
-
-  return typeCacheData.valid;
+  return typeCacheData->valid;
 }
 
 bool
@@ -422,7 +448,7 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
 
   //---
 
-  CQChartsColumnType *typeData = getType(type);
+  const CQChartsColumnType *typeData = getType(type);
 
   for (const auto &param : typeData->params()) {
     if (param.role() != vrole) {
@@ -458,7 +484,7 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 
   CQChartsNameValues nameValues1;
 
-  CQChartsColumnType *typeData = getType(type);
+  const CQChartsColumnType *typeData = getType(type);
 
   for (const auto &param : typeData->params()) {
     auto p = nameValues.find(param.name());
@@ -499,21 +525,66 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 
 void
 CQChartsColumnTypeMgr::
-startCache()
+startCache(const QAbstractItemModel *model)
 {
-  ++cacheDepth_;
+  const CacheData &cacheData = getModelCacheData(model);
+
+  std::unique_lock<std::mutex> lock(mutex_);
+
+  CacheData &cacheData1 = const_cast<CacheData &>(cacheData);
+
+  ++cacheData1.depth;
 }
 
 void
 CQChartsColumnTypeMgr::
-endCache()
+endCache(const QAbstractItemModel *model)
 {
-  assert(cacheDepth_ > 0);
+  const CacheData &cacheData = getModelCacheData(model);
 
-  --cacheDepth_;
+  std::unique_lock<std::mutex> lock(mutex_);
 
-  if (cacheDepth_ == 0)
-    columnTypeDataCache_.clear();
+  CacheData &cacheData1 = const_cast<CacheData &>(cacheData);
+
+  assert(cacheData1.depth > 0);
+
+  --cacheData1.depth;
+
+  if (cacheData1.depth == 0)
+    cacheData1.columnTypeCache.clear();
+}
+
+const CQChartsColumnTypeMgr::CacheData &
+CQChartsColumnTypeMgr::
+getModelCacheData(const QAbstractItemModel *model) const
+{
+  // get model data
+  CQChartsModelData *modelData = charts_->getModelData(model);
+  assert(modelData);
+
+  //---
+
+  // get cache data for model
+  auto pm = modelCacheData_.find(modelData->ind());
+
+  if (pm == modelCacheData_.end()) {
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    CQChartsColumnTypeMgr *th = const_cast<CQChartsColumnTypeMgr *>(this);
+
+    auto pm1 = th->modelCacheData_.find(modelData->ind());
+
+    if (pm1 == modelCacheData_.end()) {
+      pm1 = th->modelCacheData_.insert(pm1,
+        ModelCacheData::value_type(modelData->ind(), CacheData()));
+    }
+
+    pm = modelCacheData_.find(modelData->ind());
+  }
+
+  const CacheData &cacheData = (*pm).second;
+
+  return cacheData;
 }
 
 //------

@@ -63,6 +63,8 @@ CQChartsModelColumnDetails *
 CQChartsModelDetails::
 columnDetails(const CQChartsColumn &c)
 {
+  std::unique_lock<std::mutex> lock(mutex_);
+
   auto p = columnDetails_.find(c);
 
   if (p == columnDetails_.end()) {
@@ -102,6 +104,8 @@ void
 CQChartsModelDetails::
 reset()
 {
+  std::unique_lock<std::mutex> lock(mutex_);
+
   resetValues();
 
   emit detailsReset();
@@ -124,9 +128,12 @@ resetValues()
 
 void
 CQChartsModelDetails::
-updateSimple()
+updateSimple(bool lock)
 {
   CQPerfTrace trace("CQChartsModelDetails::updateSimple");
+
+  if (lock)
+    mutex_.lock();
 
   if (initialized_ != Initialized::SIMPLE) {
     QAbstractItemModel *model = data_->currentModel().data();
@@ -138,6 +145,9 @@ updateSimple()
 
     initialized_ = Initialized::SIMPLE;
   }
+
+  if (lock)
+    mutex_.unlock();
 }
 
 void
@@ -146,10 +156,12 @@ updateFull()
 {
   CQPerfTrace trace("CQChartsModelDetails::updateFull");
 
+  std::unique_lock<std::mutex> lock(mutex_);
+
   if (initialized_ != Initialized::FULL) {
     resetValues();
 
-    updateSimple();
+    updateSimple(/*lock*/false);
 
     for (int c = 0; c < numColumns_; ++c) {
       CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
@@ -504,7 +516,7 @@ dataName(const QVariant &v) const
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
-  CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
+  const CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
 
   if (! columnType)
     return v;
@@ -953,6 +965,8 @@ initData()
 
   //---
 
+  std::unique_lock<std::mutex> lock(mutex_);
+
   QAbstractItemModel *model = details_->data()->currentModel().data();
   if (! model) return false;
 
@@ -989,7 +1003,7 @@ initData()
 
       CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-      CQChartsColumnType *columnType = columnTypeMgr->getType(details_->type());
+      const CQChartsColumnType *columnType = columnTypeMgr->getType(details_->type());
 
       if (columnType) {
         min_ = columnType->minValue(details->nameValues()); // type custom min value
@@ -1361,6 +1375,8 @@ calcType()
 
   //---
 
+  std::unique_lock<std::mutex> lock(mutex_);
+
   QAbstractItemModel *model = details_->data()->currentModel().data();
   if (! model) return false;
 
@@ -1394,7 +1410,7 @@ calcType()
 
     CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
-    CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
+    const CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
 
     if (columnType) {
       typeName_ = columnType->name();
@@ -1472,8 +1488,8 @@ columnColor(const QVariant &var, CQChartsColor &color) const
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
-  CQChartsColumnColorType *colorType =
-    dynamic_cast<CQChartsColumnColorType *>(columnTypeMgr->getType(CQBaseModelType::COLOR));
+  const CQChartsColumnColorType *colorType =
+    dynamic_cast<const CQChartsColumnColorType *>(columnTypeMgr->getType(CQBaseModelType::COLOR));
 
   bool converted;
 

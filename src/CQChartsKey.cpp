@@ -47,7 +47,7 @@ setSelected(bool b)
     if      (view_)
       view_->update();
     else if (plot_)
-      plot_->invalidateLayers();
+      plot_->queueDrawObjs();
   } );
 }
 
@@ -86,7 +86,7 @@ CQChartsViewKey::
 
 void
 CQChartsViewKey::
-updatePosition()
+updatePosition(bool /*wait*/)
 {
   redraw();
 }
@@ -308,7 +308,7 @@ selectPress(const CQChartsGeom::Point &w, CQChartsSelMod /*selMod*/)
 
 void
 CQChartsViewKey::
-redraw()
+redraw(bool /*wait*/)
 {
   view_->update();
 }
@@ -335,10 +335,16 @@ CQChartsPlotKey::
 
 void
 CQChartsPlotKey::
-redraw()
+redraw(bool wait)
 {
-  plot_->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
-  plot_->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+  if (wait) {
+    plot_->queueDrawBackground();
+    plot_->queueDrawForeground();
+  }
+  else {
+    plot_->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+    plot_->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+  }
 }
 
 void
@@ -361,11 +367,11 @@ updateLayout()
 
 void
 CQChartsPlotKey::
-updatePosition()
+updatePosition(bool wait)
 {
   plot_->updateKeyPosition();
 
-  redraw();
+  redraw(wait);
 }
 
 void
@@ -777,7 +783,7 @@ editMove(const CQChartsGeom::Point &p)
 
   editHandles_.setDragPos(p);
 
-  updatePosition();
+  updatePosition(/*wait*/false);
 
   return true;
 }
@@ -1018,11 +1024,11 @@ draw(QPainter *painter)
 
 void
 CQChartsPlotKey::
-drawEditHandles(QPainter *painter)
+drawEditHandles(QPainter *painter) const
 {
   assert(plot_->view()->mode() == CQChartsView::Mode::EDIT || isSelected());
 
-  editHandles_.setBBox(this->bbox());
+  const_cast<CQChartsPlotKey *>(this)->editHandles_.setBBox(this->bbox());
 
   editHandles_.draw(painter);
 }

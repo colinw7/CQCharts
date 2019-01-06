@@ -4,6 +4,7 @@
 #include <CQChartsKey.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsUtil.h>
+#include <CQChartsDataLabel.h>
 #include <CQCharts.h>
 #include <CQPerfMonitor.h>
 
@@ -61,10 +62,11 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsHierScatterPlot::
 CQChartsHierScatterPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("hierscatter"), model),
- CQChartsObjPointData<CQChartsHierScatterPlot>(this),
- dataLabel_(this)
+ CQChartsObjPointData<CQChartsHierScatterPlot>(this)
 {
   NoUpdate noUpdate(this);
+
+  dataLabel_ = new CQChartsDataLabel(this);
 
   setSymbolSize(CQChartsLength("4px"));
 
@@ -82,6 +84,8 @@ CQChartsHierScatterPlot::
     delete groupValueSet.second;
 
   delete rootGroup_;
+
+  delete dataLabel_;
 }
 
 //------
@@ -90,21 +94,21 @@ void
 CQChartsHierScatterPlot::
 setXColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsHierScatterPlot::
 setYColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsHierScatterPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
@@ -114,19 +118,24 @@ setGroupColumns(const CQChartsColumns &c)
   CQChartsUtil::testAndSet(groupColumns_, c, [&]() {
     initGroupValueSets();
 
-    updateRangeAndObjs();
+    queueUpdateRangeAndObjs();
   } );
 }
 
 //---
 
+bool
+CQChartsHierScatterPlot::
+isTextLabels() const
+{
+  return dataLabel_->isVisible();
+}
+
 void
 CQChartsHierScatterPlot::
 setTextLabels(bool b)
 {
-  dataLabel_.setVisible(b);
-
-  invalidateLayers();
+  if (b != isTextLabels()) { dataLabel_->setVisible(b); queueDrawObjs(); }
 }
 
 //---
@@ -135,7 +144,7 @@ void
 CQChartsHierScatterPlot::
 setFontSize(double s)
 {
-  CQChartsUtil::testAndSet(fontSize_, s, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(fontSize_, s, [&]() { queueUpdateObjs(); } );
 }
 
 //---
@@ -144,10 +153,10 @@ void
 CQChartsHierScatterPlot::
 popCurrentGroup()
 {
-  if (! currentGroup_)
+  if (! currentGroup())
     return;
 
-  CQChartsHierScatterPointGroup *group = currentGroup_->parent();
+  CQChartsHierScatterPointGroup *group = currentGroup()->parent();
 
   if (group)
     setCurrentGroup(group);
@@ -176,9 +185,9 @@ setCurrentGroup(CQChartsHierScatterPointGroup *group)
 
   currentGroup_ = group;
 
-  updateRangeAndObjs();
+  queueUpdateRangeAndObjs();
 
-  //updateObjs();
+  //queueUpdateObjs();
 }
 
 //------
@@ -199,12 +208,12 @@ addProperties()
   addProperty("font", this, "fontSize", "font");
 
   // point data labels
-  dataLabel_.addPathProperties("dataLabel");
+  dataLabel_->addPathProperties("dataLabel");
 }
 
 CQChartsGeom::Range
 CQChartsHierScatterPlot::
-calcRange()
+calcRange() const
 {
   CQPerfTrace trace("CQChartsHierScatterPlot::calcRange");
 
@@ -338,9 +347,7 @@ initGroupValueSets()
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      CQChartsHierScatterPlot *plot = const_cast<CQChartsHierScatterPlot *>(plot_);
-
-      plot->addRowGroupValueSets(data);
+      plot_->addRowGroupValueSets(data);
 
       return State::OK;
     }
@@ -356,7 +363,7 @@ initGroupValueSets()
 
 void
 CQChartsHierScatterPlot::
-addRowGroupValueSets(const ModelVisitor::VisitData &data)
+addRowGroupValueSets(const ModelVisitor::VisitData &data) const
 {
   for (const auto &groupValueSet : groupValueSets_) {
     CQChartsColumn    groupColumn = groupValueSet.first;
@@ -389,19 +396,20 @@ clearPlotObjects()
 
 bool
 CQChartsHierScatterPlot::
-createObjs(PlotObjs &objs)
+createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsHierScatterPlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsHierScatterPlot *>(this));
+  CQChartsHierScatterPlot *th = const_cast<CQChartsHierScatterPlot *>(this);
+
+  NoUpdate noUpdate(th);
 
   //---
 
   // init name values
   if (! rootGroup_) {
-    rootGroup_ = new CQChartsHierScatterPointGroup(nullptr, 0);
-
-    currentGroup_ = rootGroup_;
+    th->rootGroup_    = new CQChartsHierScatterPointGroup(nullptr, 0);
+    th->currentGroup_ = rootGroup_;
 
     //---
 
@@ -438,9 +446,7 @@ createObjs(PlotObjs &objs)
 
         //---
 
-        CQChartsHierScatterPlot *plot = const_cast<CQChartsHierScatterPlot *>(plot_);
-
-        plot->addGroupPoint(data, x, y, name);
+        plot_->addGroupPoint(data, x, y, name);
 
         return State::OK;
       }
@@ -458,34 +464,34 @@ createObjs(PlotObjs &objs)
 
   bool ok1, ok2;
 
-  xname_ = modelHeaderString(xColumn(), ok1);
-  yname_ = modelHeaderString(yColumn(), ok2);
+  th->xname_ = modelHeaderString(xColumn(), ok1);
+  th->yname_ = modelHeaderString(yColumn(), ok2);
 
-  if (! xname_.length()) xname_ = "x";
-  if (! yname_.length()) yname_ = "y";
+  if (! xname_.length()) th->xname_ = "x";
+  if (! yname_.length()) th->yname_ = "y";
 
   //---
 
   for (const auto &name : filterNames_) {
-    CQChartsHierScatterPointGroup *group1 = currentGroup_->lookupGroup(name);
+    CQChartsHierScatterPointGroup *group1 = currentGroup()->lookupGroup(name);
 
     if (! group1)
       break;
 
-    currentGroup_ = group1;
+    th->currentGroup_ = group1;
   }
 
   //---
 
-  if (! currentGroup_->groups().empty()) {
-    for (auto &igroup : currentGroup_->groups()) {
+  if (! currentGroup()->groups().empty()) {
+    for (auto &igroup : currentGroup()->groups()) {
       CQChartsHierScatterPointGroup *group = igroup.second;
 
       addGroupPoints(group, group, objs);
     }
   }
   else {
-    addGroupPoints(currentGroup_, currentGroup_, objs);
+    addGroupPoints(currentGroup(), currentGroup(), objs);
   }
 
   //---
@@ -495,7 +501,7 @@ createObjs(PlotObjs &objs)
 
 void
 CQChartsHierScatterPlot::
-addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QString &name)
+addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QString &name) const
 {
   // get point groups
   struct GroupData {
@@ -512,8 +518,12 @@ addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QSt
   for (const auto &groupValue : groupValues_) {
     GroupData groupData;
 
-    groupData.column   = groupValue;
-    groupData.valueSet = groupValueSets_[groupData.column];
+    groupData.column = groupValue;
+
+    auto pv = groupValueSets_.find(groupData.column);
+
+    if (pv != groupValueSets_.end())
+      groupData.valueSet = (*pv).second;
 
     bool ok3;
 
@@ -527,7 +537,7 @@ addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QSt
   //---
 
   // get parent group
-  CQChartsHierScatterPointGroup *group = currentGroup_;
+  CQChartsHierScatterPointGroup *group = currentGroup();
 
   for (const auto &groupData : groupDatas) {
     CQChartsHierScatterPointGroup *group1 = group->lookupGroup(groupData.ind);
@@ -552,7 +562,7 @@ addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QSt
 void
 CQChartsHierScatterPlot::
 addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
-               CQChartsHierScatterPointGroup *group, PlotObjs &objs)
+               CQChartsHierScatterPointGroup *group, PlotObjs &objs) const
 {
   for (auto &igroup : group->groups()) {
     CQChartsHierScatterPointGroup *group1 = igroup.second;
@@ -626,8 +636,8 @@ addMenuItems(QMenu *menu)
   connect(popAction  , SIGNAL(triggered()), this, SLOT(popCurrentGroup()));
   connect(resetAction, SIGNAL(triggered()), this, SLOT(resetCurrentGroup()));
 
-  popAction  ->setEnabled(currentGroup_ != rootGroup_);
-  resetAction->setEnabled(currentGroup_ != rootGroup_);
+  popAction  ->setEnabled(currentGroup() != rootGroup_);
+  resetAction->setEnabled(currentGroup() != rootGroup_);
 
   menu->addSeparator();
 
@@ -709,41 +719,47 @@ void
 CQChartsHierScatterPointObj::
 draw(QPainter *painter)
 {
+  // get symbol size
   double sx, sy;
 
   plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
   //---
 
+  // set pen and brush
+  // TODO: allow full control of symbol fill and stroke
   QPen   pen;
   QBrush brush;
 
   QColor fillColor   = plot_->interpPaletteColor(i_, n_);
   QColor strokeColor = plot_->interpPaletteColor(i_, n_);
 
-  plot_->setPen(pen, true, strokeColor, 1.0, CQChartsLength("0px"), CQChartsLineDash());
-
-  plot_->setBrush(brush, true, fillColor, 1.0, CQChartsFillPattern());
+  plot_->setPen  (pen  , true, strokeColor, 1.0);
+  plot_->setBrush(brush, true, fillColor, 1.0);
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
+  painter->setPen  (pen);
+  painter->setBrush(brush);
+
   //---
 
+  // draw symbol
   double px, py;
 
   plot_->windowToPixel(p_.x(), p_.y(), px, py);
-
-  painter->setPen  (pen);
-  painter->setBrush(brush);
 
   QRectF erect(px - sx, py - sy, 2*sx, 2*sy);
 
   painter->drawEllipse(erect);
 
-  if (plot_->isTextLabels()) {
-    const CQChartsDataLabel &dataLabel = plot_->dataLabel();
+  //---
 
-    dataLabel.draw(painter, erect, name_);
+  // draw label
+  if (plot_->isTextLabels()) {
+    const CQChartsDataLabel *dataLabel = plot_->dataLabel();
+
+    dataLabel->draw(painter, erect, name_);
   }
 }
 
@@ -764,7 +780,7 @@ selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 
   //plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
-  //plot->updateObjs();
+  //plot->queueUpdateObjs();
 
   if (group_->numGroups())
     plot->setCurrentGroup(group_);

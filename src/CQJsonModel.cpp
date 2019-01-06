@@ -303,10 +303,13 @@ bool
 CQJsonModel::
 headerString(int section, QString &str) const
 {
+  if (section < 0)
+    return false;
+
   if (jsonMatch_ != "") {
     CJson::ValueP value = jsonValues_[0];
 
-    if (section >= 0 && section < int(value->numValues())) {
+    if (section < int(value->numValues())) {
       str = value->indexKey(section).c_str();
       return true;
     }

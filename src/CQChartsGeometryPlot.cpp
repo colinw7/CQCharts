@@ -5,6 +5,7 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsPolygonList.h>
 #include <CQChartsPath.h>
+#include <CQChartsDataLabel.h>
 #include <CQCharts.h>
 #include <CQChartsTip.h>
 #include <CQPerfMonitor.h>
@@ -74,10 +75,11 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsGeometryPlot::
 CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("geometry"), model),
- CQChartsObjShapeData<CQChartsGeometryPlot>(this),
- dataLabel_(this)
+ CQChartsObjShapeData<CQChartsGeometryPlot>(this)
 {
   NoUpdate noUpdate(this);
+
+  dataLabel_ = new CQChartsDataLabel(this);
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
@@ -94,6 +96,7 @@ CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
 CQChartsGeometryPlot::
 ~CQChartsGeometryPlot()
 {
+  delete dataLabel_;
 }
 
 //---
@@ -102,44 +105,62 @@ void
 CQChartsGeometryPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsGeometryPlot::
 setGeometryColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(geometryColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(geometryColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsGeometryPlot::
 setValueColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsGeometryPlot::
 setStyleColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(styleColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(styleColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
+
+double
+CQChartsGeometryPlot::
+minValue() const
+{
+  return minValue_.value_or(valueRange_.min(0.0));
+}
 
 void
 CQChartsGeometryPlot::
 setMinValue(double r)
 {
-  CQChartsUtil::testAndSet(minValue_, r, [&]() { invalidateLayers(); } );
+  if (! minValue_ || r != minValue_.value()) {
+    minValue_ = r; queueDrawObjs();
+  }
+}
+
+double
+CQChartsGeometryPlot::
+maxValue() const
+{
+  return maxValue_.value_or(valueRange_.max(1.0));
 }
 
 void
 CQChartsGeometryPlot::
 setMaxValue(double r)
 {
-  CQChartsUtil::testAndSet(maxValue_, r, [&]() { invalidateLayers(); } );
+  if (! maxValue_ || r != maxValue_.value()) {
+    maxValue_ = r; queueDrawObjs();
+  }
 }
 
 //---
@@ -163,7 +184,7 @@ addProperties()
 
   addFillProperties("fill", "fill");
 
-  dataLabel_.addPathProperties("dataLabel");
+  dataLabel_->addPathProperties("dataLabel");
 
   addProperty("value", this, "minValue", "min");
   addProperty("value", this, "maxValue", "max");
@@ -171,7 +192,7 @@ addProperties()
 
 CQChartsGeom::Range
 CQChartsGeometryPlot::
-calcRange()
+calcRange() const
 {
   CQPerfTrace trace("CQChartsGeometryPlot::calcRange");
 
@@ -182,16 +203,19 @@ calcRange()
   if (! model)
     return dataRange;
 
-  geometries_.clear();
+  //---
 
-  minValue_ = 0.0;
-  maxValue_ = 0.0;
+  CQChartsGeometryPlot *th = const_cast<CQChartsGeometryPlot *>(this);
+
+  th->geometries_.clear();
+
+  th->valueRange_ = CQChartsGeom::RMinMax();
 
   //---
 
-  geometryColumnType_ = columnValueType(geometryColumn());
-  colorColumnType_    = columnValueType(colorColumn());
-  styleColumnType_    = columnValueType(styleColumn());
+  th->geometryColumnType_ = columnValueType(geometryColumn());
+  th->colorColumnType_    = columnValueType(colorColumn());
+  th->styleColumnType_    = columnValueType(styleColumn());
 
   //---
 
@@ -203,9 +227,7 @@ calcRange()
     }
 
     State visit(const QAbstractItemModel *model, const VisitData &data) override {
-      CQChartsGeometryPlot *plot = const_cast<CQChartsGeometryPlot *>(plot_);
-
-      plot->addRow(model, data, dataRange_);
+      plot_->addRow(model, data, dataRange_);
 
       return State::OK;
     }
@@ -227,8 +249,12 @@ calcRange()
 void
 CQChartsGeometryPlot::
 addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
-       CQChartsGeom::Range &dataRange)
+       CQChartsGeom::Range &dataRange) const
 {
+  CQChartsGeometryPlot *th = const_cast<CQChartsGeometryPlot *>(this);
+
+  //---
+
   Geometry geometry;
 
   //---
@@ -324,14 +350,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     return;
 
   // update value range
-  if (geometries_.empty()) {
-    minValue_ = geometry.value;
-    maxValue_ = geometry.value;
-  }
-  else {
-    minValue_ = std::min(minValue_, geometry.value);
-    maxValue_ = std::max(maxValue_, geometry.value);
-  }
+  th->valueRange_.add(geometry.value);
 
   //---
 
@@ -377,7 +396,7 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   //---
 
   // add to list
-  geometries_.push_back(geometry);
+  th->geometries_.push_back(geometry);
 }
 
 bool
@@ -430,11 +449,13 @@ decodeGeometry(const QString &geomStr, Polygons &polygons) const
 
 bool
 CQChartsGeometryPlot::
-createObjs(PlotObjs &objs)
+createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsGeometryPlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsGeometryPlot *>(this));
+  CQChartsGeometryPlot *th = const_cast<CQChartsGeometryPlot *>(this);
+
+  NoUpdate noUpdate(th);
 
   //---
 
@@ -572,16 +593,11 @@ draw(QPainter *painter)
       fc = plot_->interpPaletteColor(dv);
   }
 
+  QColor bc = plot_->interpBorderColor(0, 1);
+
   plot_->setPenBrush(pen, brush,
-                     plot_->isBorder(),
-                     plot_->interpBorderColor(0, 1),
-                     plot_->borderAlpha(),
-                     plot_->borderWidth(),
-                     plot_->borderDash(),
-                     plot_->isFilled(),
-                     fc,
-                     plot_->fillAlpha(),
-                     plot_->fillPattern());
+    plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
+    plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
 
   if (style().isValid()) {
     pen   = style().pen  ();
@@ -617,7 +633,7 @@ draw(QPainter *painter)
 
 void
 CQChartsGeometryObj::
-drawFg(QPainter *painter)
+drawFg(QPainter *painter) const
 {
   CQChartsGeom::BBox prect;
 
@@ -625,5 +641,5 @@ drawFg(QPainter *painter)
 
   QRectF qrect = CQChartsUtil::toQRect(prect);
 
-  plot_->dataLabel().draw(painter, qrect, name());
+  plot_->dataLabel()->draw(painter, qrect, name());
 }

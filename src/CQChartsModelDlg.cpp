@@ -93,7 +93,7 @@ writeSlot()
                                              columnBaseType, nameValues))
       continue;
 
-    CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
 
     QString value = typeData->name();
 

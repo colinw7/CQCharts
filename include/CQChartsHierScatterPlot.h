@@ -4,7 +4,8 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsDataLabel.h>
+
+class CQChartsDataLabel;
 
 //---
 
@@ -252,7 +253,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   //---
 
-  bool isTextLabels() const { return dataLabel_.isVisible(); }
+  bool isTextLabels() const;
   void setTextLabels(bool b);
 
   double fontSize() const { return fontSize_; }
@@ -270,28 +271,28 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   //---
 
-  const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
-  CQChartsDataLabel &dataLabel() { return dataLabel_; }
+  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
+  CQChartsDataLabel *dataLabel() { return dataLabel_; }
 
   //---
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
   void initGroupValueSets();
 
-  void addRowGroupValueSets(const ModelVisitor::VisitData &data);
+  void addRowGroupValueSets(const ModelVisitor::VisitData &data) const;
 
   void clearPlotObjects() override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
   void addGroupPoint(const ModelVisitor::VisitData &data,
-                     double x, double y, const QString &name);
+                     double x, double y, const QString &name) const;
 
   void addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
-                      CQChartsHierScatterPointGroup *group, PlotObjs &objs);
+                      CQChartsHierScatterPointGroup *group, PlotObjs &objs) const;
 
   //---
 
@@ -311,19 +312,19 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
  private:
   using PointGroup = CQChartsHierScatterPointGroup;
 
-  CQChartsColumn    xColumn_;                     // x column
-  CQChartsColumn    yColumn_;                     // y column
-  CQChartsColumn    nameColumn_;                  // name column
-  CQChartsColumns   groupColumns_;                // group columns
-  double            fontSize_        { 8 };       // font size
-  PointGroup*       rootGroup_       { nullptr }; // root group
-  PointGroup*       currentGroup_    { nullptr }; // current group
-  QStringList       filterNames_;                 // filter names
-  CQChartsDataLabel dataLabel_;                   // data label style
-  QString           xname_;                       // x name
-  QString           yname_;                       // y name
-  CQChartsColumns   groupValues_;                 // group values
-  GroupValueSets    groupValueSets_;              // group value sets
+  CQChartsColumn     xColumn_;                     // x column
+  CQChartsColumn     yColumn_;                     // y column
+  CQChartsColumn     nameColumn_;                  // name column
+  CQChartsColumns    groupColumns_;                // group columns
+  double             fontSize_        { 8 };       // font size
+  CQChartsDataLabel* dataLabel_       { nullptr }; // data label style
+  QStringList        filterNames_;                 // filter names
+  CQChartsColumns    groupValues_;                 // group values
+  PointGroup*        rootGroup_       { nullptr }; // root group
+  PointGroup*        currentGroup_    { nullptr }; // current group
+  QString            xname_;                       // x name
+  QString            yname_;                       // y name
+  GroupValueSets     groupValueSets_;              // group value sets
 };
 
 #endif

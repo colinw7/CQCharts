@@ -4,6 +4,7 @@
 #include <CQChartsColumn.h>
 #include <CQBaseModelTypes.h>
 #include <CQChartsUtil.h>
+#include <future>
 
 class CQChartsModelDetails;
 class CQChartsModelData;
@@ -123,6 +124,7 @@ class CQChartsModelColumnDetails {
   bool                  typeInitialized_ { false };
   CQChartsValueSet*     valueSet_        { nullptr };
   VariantInds           valueInds_;
+  mutable std::mutex    mutex_;
 };
 
 //---
@@ -167,7 +169,7 @@ class CQChartsModelDetails : public QObject {
 
   std::vector<int> columnDuplicates(const CQChartsColumn &column, bool all) const;
 
-  void updateSimple();
+  void updateSimple(bool lock=true);
   void updateFull();
 
   void initSimpleData() const;
@@ -192,6 +194,7 @@ class CQChartsModelDetails : public QObject {
   int                numRows_      { 0 };
   bool               hierarchical_ { false };
   ColumnDetails      columnDetails_;
+  mutable std::mutex mutex_;
 };
 
 #endif

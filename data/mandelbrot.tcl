@@ -8,6 +8,10 @@ proc objPressed { view plot id } {
 
 set model [load_model -csv data/mandelbrot.csv]
 
-set plot [create_plot -model $model -type image]
+set view [create_view]
+
+set_charts_property -view $view -name antiAlias -value false
+
+set plot [create_plot -view $view -model $model -type image]
 
 connect_charts -plot $plot -from objIdPressed -to objPressed

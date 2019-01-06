@@ -50,7 +50,9 @@ CQChartsPiePlotType::
 description() const
 {
   return "<h2>Summary</h2>\n"
-         "<p>Draw circle segments with diameter from a set of values.</p>\n";
+         "<p>Draw circle segments with diameter from a set of values.</p>\n"
+         "<p>The segments can be restricted to an inner radius and a label"
+         "can be displated at the center of the circle.\n";
 }
 
 CQChartsPlot *
@@ -65,13 +67,21 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsPiePlot::
 CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("pie"), model),
+ CQChartsObjShapeData   <CQChartsPiePlot>(this),
  CQChartsObjGridLineData<CQChartsPiePlot>(this)
 {
   NoUpdate noUpdate(this);
 
   setValueColumns(CQChartsColumns("1"));
 
+  //---
+
+  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+
+  setGridLines(false);
   setGridLinesColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5));
+
+  //---
 
   textBox_ = new CQChartsPieTextObj(this);
 
@@ -94,14 +104,14 @@ void
 CQChartsPiePlot::
 setLabelColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setValueColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -110,14 +120,14 @@ void
 CQChartsPiePlot::
 setRadiusColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(radiusColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(radiusColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setKeyLabelColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(keyLabelColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(keyLabelColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -126,14 +136,14 @@ void
 CQChartsPiePlot::
 setDonut(bool b)
 {
-  CQChartsUtil::testAndSet(donut_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(donut_, b, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setCount(bool b)
 {
-  CQChartsUtil::testAndSet(count_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(count_, b, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -142,35 +152,42 @@ void
 CQChartsPiePlot::
 setInnerRadius(double r)
 {
-  CQChartsUtil::testAndSet(innerRadius_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(innerRadius_, r, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setOuterRadius(double r)
 {
-  CQChartsUtil::testAndSet(outerRadius_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(outerRadius_, r, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setLabelRadius(double r)
 {
-  CQChartsUtil::testAndSet(labelRadius_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(labelRadius_, r, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setStartAngle(double r)
 {
-  CQChartsUtil::testAndSet(startAngle_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(startAngle_, r, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setAngleExtent(double r)
 {
-  CQChartsUtil::testAndSet(angleExtent_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(angleExtent_, r, [&]() { queueUpdateRangeAndObjs(); } );
+}
+
+void
+CQChartsPiePlot::
+setGapAngle(double r)
+{
+  CQChartsUtil::testAndSet(gapAngle_, r, [&]() { queueDrawObjs(); } );
 }
 
 //---
@@ -179,21 +196,21 @@ void
 CQChartsPiePlot::
 setRotatedText(bool b)
 {
-  CQChartsUtil::testAndSet(rotatedText_, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(rotatedText_, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setExplodeSelected(bool b)
 {
-  CQChartsUtil::testAndSet(explodeSelected_, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(explodeSelected_, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setExplodeRadius(double r)
 {
-  CQChartsUtil::testAndSet(explodeRadius_, r, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(explodeRadius_, r, [&]() { queueDrawObjs(); } );
 }
 
 //---
@@ -212,12 +229,23 @@ addProperties()
 
   CQChartsGroupPlot::addProperties();
 
-  // general
+  // options
   addProperty("options", this, "donut"      );
   addProperty("options", this, "count"      );
   addProperty("options", this, "innerRadius");
   addProperty("options", this, "startAngle" );
   addProperty("options", this, "angleExtent");
+  addProperty("options", this, "gapAngle"   );
+
+  // stroke
+  addProperty("stroke", this, "border", "visible");
+
+  addLineProperties("stroke", "border");
+
+  // fill
+  addProperty("fill", this, "filled", "visible");
+
+  addFillProperties("fill", "fill");
 
   // grid
   addProperty("grid", this, "gridLines", "visible");
@@ -248,7 +276,7 @@ addProperties()
 
 CQChartsGeom::Range
 CQChartsPiePlot::
-calcRange()
+calcRange() const
 {
   CQPerfTrace trace("CQChartsPiePlot::calcRange");
 
@@ -315,8 +343,10 @@ annotationBBox() const
   for (const auto &plotObj : plotObjs_) {
     CQChartsPieObj *pieObj = dynamic_cast<CQChartsPieObj *>(plotObj);
 
-    if (pieObj)
-      bbox += pieObj->annotationBBox();
+    if (! pieObj || ! pieObj->visible())
+      continue;
+
+    bbox += pieObj->annotationBBox();
   }
 
   return bbox;
@@ -326,11 +356,13 @@ annotationBBox() const
 
 bool
 CQChartsPiePlot::
-createObjs(PlotObjs &objs)
+createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsPiePlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsPiePlot *>(this));
+  CQChartsPiePlot *th = const_cast<CQChartsPiePlot *>(this);
+
+  NoUpdate noUpdate(th);
 
   //---
 
@@ -339,7 +371,7 @@ createObjs(PlotObjs &objs)
 
   //---
 
-  groupObjs_.clear();
+  th->groupObjs_.clear();
 
   //---
 
@@ -369,7 +401,7 @@ createObjs(PlotObjs &objs)
       assert(pg != groupDatas_.end());
     }
 
-    GroupData &groupData = (*pg).second;
+    const GroupData &groupData = (*pg).second;
 
     //---
 
@@ -400,11 +432,15 @@ createObjs(PlotObjs &objs)
 
     objs.push_back(groupObj);
 
-    groupObjs_.push_back(groupObj);
+    th->groupObjs_.push_back(groupObj);
 
     //---
 
-    groupData.groupObj = groupObj;
+    if (groupData.groupObj != groupObj) {
+      GroupData &groupData1 = const_cast<GroupData &>(groupData);
+
+      groupData1.groupObj = groupObj;
+    }
 
     //---
 
@@ -431,9 +467,7 @@ createObjs(PlotObjs &objs)
       }
 
       State visit(const QAbstractItemModel *, const VisitData &data) override {
-        CQChartsPiePlot *plot = const_cast<CQChartsPiePlot *>(plot_);
-
-        plot->addRow(data, objs_);
+        plot_->addRow(data, objs_);
 
         return State::OK;
       }
@@ -459,7 +493,7 @@ createObjs(PlotObjs &objs)
 
 void
 CQChartsPiePlot::
-addRow(const ModelVisitor::VisitData &data, PlotObjs &objs)
+addRow(const ModelVisitor::VisitData &data, PlotObjs &objs) const
 {
   for (const auto &column : valueColumns()) {
     CQChartsModelIndex ind(data.row, column, data.parent);
@@ -470,7 +504,7 @@ addRow(const ModelVisitor::VisitData &data, PlotObjs &objs)
 
 void
 CQChartsPiePlot::
-addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs)
+addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
 {
   assert(! isCount());
 
@@ -551,7 +585,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs)
   auto pg = groupDatas_.find(groupInd);
   assert(pg != groupDatas_.end());
 
-  GroupData &groupData = (*pg).second;
+  const GroupData &groupData = (*pg).second;
 
   CQChartsPieGroupObj *groupObj = groupData.groupObj;
 
@@ -633,9 +667,11 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs)
 
 void
 CQChartsPiePlot::
-calcDataTotal()
+calcDataTotal() const
 {
-  groupDatas_.clear();
+  CQChartsPiePlot *th = const_cast<CQChartsPiePlot *>(this);
+
+  th->groupDatas_.clear();
 
   // process model data
   class DataTotalVisitor : public ModelVisitor {
@@ -645,9 +681,7 @@ calcDataTotal()
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      CQChartsPiePlot *plot = const_cast<CQChartsPiePlot *>(plot_);
-
-      plot->addRowDataTotal(data);
+      plot_->addRowDataTotal(data);
 
       return State::OK;
     }
@@ -663,7 +697,7 @@ calcDataTotal()
 
 void
 CQChartsPiePlot::
-addRowDataTotal(const ModelVisitor::VisitData &data)
+addRowDataTotal(const ModelVisitor::VisitData &data) const
 {
   for (const auto &column : valueColumns()) {
     CQChartsModelIndex ind(data.row, column, data.parent);
@@ -674,8 +708,10 @@ addRowDataTotal(const ModelVisitor::VisitData &data)
 
 void
 CQChartsPiePlot::
-addRowColumnDataTotal(const CQChartsModelIndex &ind)
+addRowColumnDataTotal(const CQChartsModelIndex &ind) const
 {
+  CQChartsPiePlot *th = const_cast<CQChartsPiePlot *>(this);
+
   // get group ind
   int groupInd = rowGroupInd(ind);
 
@@ -700,12 +736,20 @@ addRowColumnDataTotal(const CQChartsModelIndex &ind)
   auto pg = groupDatas_.find(groupInd);
 
   if (pg == groupDatas_.end()) {
-    QString groupName = groupIndName(groupInd);
+    std::unique_lock<std::mutex> lock(mutex_);
 
-    pg = groupDatas_.insert(pg, GroupDatas::value_type(groupInd, GroupData(groupName)));
+    auto pg1 = th->groupDatas_.find(groupInd);
+
+    if (pg1 == th->groupDatas_.end()) {
+      QString groupName = groupIndName(groupInd);
+
+      pg1 = th->groupDatas_.insert(pg1, GroupDatas::value_type(groupInd, GroupData(groupName)));
+    }
+
+    pg = groupDatas_.find(groupInd);
   }
 
-  GroupData &groupData = (*pg).second;
+  const GroupData &groupData = (*pg).second;
 
   //---
 
@@ -720,9 +764,11 @@ addRowColumnDataTotal(const CQChartsModelIndex &ind)
 
   // sum values
   if (! hidden) {
-    ++groupData.numValues;
+    GroupData &groupData1 = const_cast<GroupData &>(groupData);
 
-    groupData.dataTotal += value;
+    ++groupData1.numValues;
+
+    groupData1.dataTotal += value;
   }
 
   //---
@@ -736,8 +782,10 @@ addRowColumnDataTotal(const CQChartsModelIndex &ind)
 
     if (getColumnSizeValue(rind, radius, radiusMissing)) {
       if (! hidden) {
-        groupData.radiusScaled = true;
-        groupData.radiusMax    = std::max(groupData.radiusMax, radius);
+        GroupData &groupData1 = const_cast<GroupData &>(groupData);
+
+        groupData1.radiusScaled = true;
+        groupData1.radiusMax    = std::max(groupData.radiusMax, radius);
       }
     }
   }
@@ -796,13 +844,14 @@ getColumnSizeValue(const CQChartsModelIndex &ind, double &value, bool &missing) 
 
 void
 CQChartsPiePlot::
-adjustObjAngles()
+adjustObjAngles() const
 {
   double ro = outerRadius();
   double ri = (isDonut() ? innerRadius()*outerRadius() : 0.0);
 
   bool isGrouped = (numGroups() > 1);
 
+  // cal delta radius (grouped)
   int    ng = 1, nh = 0;
   double dr = 0.0;
 
@@ -823,6 +872,7 @@ adjustObjAngles()
 
   //---
 
+  // get total values
   int totalValues = 0;
 
   for (auto &groupObj : groupObjs_) {
@@ -831,6 +881,7 @@ adjustObjAngles()
 
   //---
 
+  // calc angle extents for each group
   double ga1 = startAngle();
   double ga2 = ga1;
 
@@ -839,6 +890,7 @@ adjustObjAngles()
   for (auto &groupObj : groupObjs_) {
     ga1 = ga2;
 
+    // skip hidden groups
     if (! isCount()) {
       if (isGrouped && nh > 0) {
         if (isSetHidden(groupObj->groupInd()))
@@ -852,6 +904,7 @@ adjustObjAngles()
 
     //---
 
+    // set group angles
     double dga = (totalValues > 0 ? 360.0*groupObj->numValues()/totalValues : 0);
 
     ga2 = ga1 - dga;
@@ -861,6 +914,7 @@ adjustObjAngles()
     //---
 
     if (! isCount()) {
+      // set group object inner/outer radii
       if (isGrouped && nh > 0) {
         groupObj->setInnerRadius(r - dr);
         groupObj->setOuterRadius(r);
@@ -868,23 +922,30 @@ adjustObjAngles()
 
       //---
 
+      // set segment angles
       double angle1    = startAngle();
       double alen      = CMathUtil::clamp(angleExtent(), -360.0, 360.0);
       double dataTotal = groupObj->dataTotal();
 
       for (auto &obj : groupObj->objs()) {
+        // skip hidden objects
         if (! obj->isVisible())
           continue;
 
+        //---
+
+        // set angle based on value
         double value = obj->value();
 
-        double angle = (dataTotal > 0.0 ? alen*value/dataTotal : 0.0);
-
+        double angle  = (dataTotal > 0.0 ? alen*value/dataTotal : 0.0);
         double angle2 = angle1 - angle;
 
         obj->setAngle1(angle1);
         obj->setAngle2(angle2);
 
+        //---
+
+        // set inner/outer radius and value radius
         if (isGrouped && nh > 0) {
           obj->setInnerRadius(r - dr);
           obj->setOuterRadius(r);
@@ -900,11 +961,15 @@ adjustObjAngles()
           obj->setValueRadius(rv);
         }
 
+        //---
+
+        // move to next start angle
         angle1 = angle2;
       }
 
       //---
 
+      // move to next radius
       if (isGrouped && nh > 0)
         r -= dr;
     }
@@ -959,7 +1024,7 @@ postResize()
 {
   CQChartsPlot::postResize();
 
-  resetRange();
+  resetDataRange(/*updateRange*/true, /*updateObjs*/false);
 }
 
 //------
@@ -1016,6 +1081,7 @@ calcTipId() const
 {
   QModelIndex ind = plot_->unnormalizeIndex(ind_);
 
+  // get group name and label
   bool hasGroup = (plot_->numGroups() > 1 && groupObj_);
 
   QString groupName, label;
@@ -1038,12 +1104,16 @@ calcTipId() const
     label = plot_->modelString(lind, ok);
   }
 
+  //---
+
+  // get value string
   int valueColumn = ind_.column();
 
   QString valueStr = plot_->columnStr(valueColumn, value_);
 
   //---
 
+  // set tip values
   CQChartsTableTip tableTip;
 
   if (groupName.length())
@@ -1066,10 +1136,14 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
+  // calc distance from center (radius)
   CQChartsGeom::Point center(0, 0);
 
   double r = p.distanceTo(center);
 
+  //---
+
+  // check in radius extent
   double ri = innerRadius();
   double ro = valueRadius();
 
@@ -1147,27 +1221,11 @@ annotationBBox() const
 
   CQChartsGeom::Point c = getCenter();
 
-  QPointF center(c.x, c.y);
+  //---
 
-  double ri = innerRadius();
-  double ro = outerRadius();
-  double rv = valueRadius();
-  double lr = plot_->labelRadius();
-
+  // calc angle extent
   double a1 = angle1();
   double a2 = angle2();
-
-  double lr1;
-
-  if (! CMathUtil::isZero(ri))
-    lr1 = ri + lr*(ro - ri);
-  else
-    lr1 = lr*ro;
-
-  if (lr1 < 0.01)
-    lr1 = 0.01;
-
-  double ta = CMathUtil::avg(a1, a2);
 
   double a21 = a2 - a1;
 
@@ -1183,13 +1241,39 @@ annotationBBox() const
   }
   // draw on arc center line
   else {
+    // calc label radius
+    double ri = innerRadius();
+    double ro = outerRadius();
+    double lr = plot_->labelRadius();
+
+    double lr1;
+
+    if (! CMathUtil::isZero(ri))
+      lr1 = ri + lr*(ro - ri);
+    else
+      lr1 = lr*ro;
+
+    lr1 = std::max(lr1, 0.01);
+
+    //---
+
+    QPointF center(c.x, c.y);
+
+    double rv = valueRadius();
+
+    //---
+
+    // text angle (mid angle)
+    double ta = CMathUtil::avg(a1, a2);
+
+    //---
+
     if (plot_->numGroups() == 1 && lr > 1.0) {
       plot_->textBox()->calcConnectedRadialTextBBox(center, rv, lr1, ta, label(),
                                                     plot_->isRotatedText(), bbox);
     }
     else {
-      Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
-
+      // calc text position
       double tangle = CMathUtil::Deg2Rad(ta);
 
       double tc = cos(tangle);
@@ -1204,10 +1288,14 @@ annotationBBox() const
 
       QPointF pt(ptx, pty);
 
+      // calc text angle
       double angle = 0.0;
 
       if (plot_->isRotatedText())
         angle = (tc >= 0 ? ta : 180.0 + ta);
+
+      // calc text box
+      Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
       bbox = plot_->textBox()->bbox(pt, label(), angle, align);
     }
@@ -1230,6 +1318,7 @@ draw(QPainter *painter)
 
   //---
 
+  // get pie center, radii and angles
   CQChartsGeom::Point c = getCenter();
 
   double ri = innerRadius();
@@ -1239,8 +1328,14 @@ draw(QPainter *painter)
   double a1 = angle1();
   double a2 = angle2();
 
+  double ga = plot_->gapAngle()/2.0;
+
+  double aa1 = a1 - ga;
+  double aa2 = a2 + ga;
+
   //---
 
+  // draw grid lines (as pie)
   if (plot_->isGridLines()) {
     QPen   pen;
     QBrush brush(Qt::NoBrush);
@@ -1253,25 +1348,31 @@ draw(QPainter *painter)
     painter->setPen  (pen);
     painter->setBrush(brush);
 
+    CQChartsGeom::Point c(0.0, 0.0);
+
     plot_->drawPieSlice(painter, c, ri, ro, a1, a2);
   }
 
   //---
 
-  QColor bg;
-
-  if      (color().isValid())
-    bg = plot_->charts()->interpColor(color(), colorInd(), no);
-  else if (groupObj)
-    bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
-
-  QColor fg = plot_->calcTextColor(bg);
-
+  // calc stroke and brush
   QPen   pen;
   QBrush brush;
 
-  plot_->setPen  (pen  , true, fg, 1.0, CQChartsLength("0px"), CQChartsLineDash());
-  plot_->setBrush(brush, true, bg, 1.0, CQChartsFillPattern());
+  QColor bc = plot_->interpBorderColor(0, 1);
+
+  QColor fc;
+
+  if      (color().isValid())
+    fc = plot_->charts()->interpColor(color(), colorInd(), no);
+  else if (plot_->fillColor().type() != CQChartsColor::Type::PALETTE)
+    fc = plot_->charts()->interpColor(plot_->fillColor(), colorInd(), no);
+  else if (groupObj)
+    fc = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
+
+  plot_->setPenBrush(pen, brush,
+    plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
+    plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -1280,16 +1381,18 @@ draw(QPainter *painter)
 
   //---
 
-  plot_->drawPieSlice(painter, c, ri, rv, a1, a2);
+  // draw pie slice
+  plot_->drawPieSlice(painter, c, ri, rv, aa1, aa2);
 }
 
 void
 CQChartsPieObj::
-drawFg(QPainter *painter)
+drawFg(QPainter *painter) const
 {
   if (! visible())
     return;
 
+  // draw segement label
   CQChartsGeom::Point c = getCenter();
 
   drawSegmentLabel(painter, c);
@@ -1310,6 +1413,7 @@ getCenter() const
 
   //---
 
+  // get adjusted center (exploded state)
   double rv = valueRadius();
 
   double a1 = angle1();
@@ -1340,18 +1444,10 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
 
   CQChartsPieGroupObj *groupObj = this->groupObj();
 
-  QPointF center(c.x, c.y);
-
-  int ng = plot_->numGroupObjs();
-  int no = (groupObj ? groupObj->numObjs() : 0);
-
+  // calc label radius
   double ri = innerRadius();
   double ro = outerRadius();
-  double rv = valueRadius();
   double lr = plot_->labelRadius();
-
-  double a1 = angle1();
-  double a2 = angle2();
 
   double lr1;
 
@@ -1360,13 +1456,23 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
   else
     lr1 = lr*ro;
 
-  if (lr1 < 0.01)
-    lr1 = 0.01;
+  lr1 = std::max(lr1, 0.01);
+
+  //---
+
+  // calc text angle
+  double a1 = angle1();
+  double a2 = angle2();
 
   double ta = CMathUtil::avg(a1, a2);
 
   //---
 
+  int ng = plot_->numGroupObjs();
+  int no = (groupObj ? groupObj->numObjs() : 0);
+
+  // calc label pen
+  // TODO: label alpha
   QPen lpen;
 
   QColor bg;
@@ -1374,10 +1480,11 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
   if (groupObj)
     bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
 
-  plot_->setPen(lpen, true, bg, 1.0, CQChartsLength("0px"), CQChartsLineDash());
+  plot_->setPen(lpen, true, bg, 1.0);
 
   //---
 
+  // calc angle extent
   double a21 = a2 - a1;
 
   // if full circle always draw text at center
@@ -1392,6 +1499,10 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
   }
   // draw on arc center line
   else {
+    double rv = valueRadius();
+
+    QPointF center(c.x, c.y);
+
     if (plot_->numGroups() == 1 && lr > 1.0) {
       plot_->textBox()->drawConnectedRadialText(painter, center, rv, lr1, ta, label(),
                                                 lpen, plot_->isRotatedText());
@@ -1400,8 +1511,7 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
       //plot_->textBox()->drawConnectedRadialText(painter, center, rv, lr1, ta, label(),
       //                                          lpen, plot_->isRotatedText());
 
-      Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
-
+      // calc text position
       double tangle = CMathUtil::Deg2Rad(ta);
 
       double tc = cos(tangle);
@@ -1416,10 +1526,14 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
 
       QPointF pt(ptx, pty);
 
+      // calc text angle
       double angle = 0.0;
 
       if (plot_->isRotatedText())
         angle = (tc >= 0 ? ta : 180.0 + ta);
+
+      // draw label
+      Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
       plot_->textBox()->draw(painter, pt, label(), angle, align);
     }
@@ -1530,8 +1644,20 @@ draw(QPainter *painter)
   double ro = plot_->outerRadius();
   double ri = (plot_->isDonut() ? plot_->innerRadius()*plot_->outerRadius() : 0.0);
 
+  //---
+
   double a1 = startAngle_;
   double a2 = endAngle_;
+
+  double ga = plot_->gapAngle()/2.0;
+
+  double aa1 = a1 - ga;
+  double aa2 = a2 + ga;
+
+  //---
+
+  // set pen and brush
+  // TODO: more customization support
 
   QColor bg = bgColor();
   QColor fg = plot_->interpPlotBorderColor(0, 1);
@@ -1539,22 +1665,23 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  plot_->setPen  (pen  , true, fg, 1.0, CQChartsLength("0px"), CQChartsLineDash());
-  plot_->setBrush(brush, true, bg, 1.0, CQChartsFillPattern());
+  plot_->setPen  (pen  , true, fg, 1.0);
+  plot_->setBrush(brush, true, bg, 1.0);
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
   painter->setPen  (pen);
   painter->setBrush(brush);
 
-  plot_->drawPieSlice(painter, c, ri, ro, a1, a2);
-}
-
   //---
+
+  // draw pie slice
+  plot_->drawPieSlice(painter, c, ri, ro, aa1, aa2);
+}
 
 void
 CQChartsPieGroupObj::
-drawFg(QPainter *painter)
+drawFg(QPainter *painter) const
 {
   if (! visible())
     return;
@@ -1584,11 +1711,12 @@ drawFg(QPainter *painter)
 
   //---
 
+  // set text pen
   QPen pen;
 
   QColor fg = plot_->interpPlotBorderColor(0, 1);
 
-  plot_->setPen(pen, true, fg, 1.0, CQChartsLength("0px"), CQChartsLineDash());
+  plot_->setPen(pen, true, fg, 1.0);
 
   //---
 
@@ -1630,7 +1758,7 @@ selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 
   plot->setSetHidden(ih, ! plot->isSetHidden(ih));
 
-  plot->updateObjs();
+  plot->queueUpdateObjs();
 
   return true;
 }

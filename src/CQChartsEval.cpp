@@ -65,7 +65,7 @@ colorCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
   std::vector<QVariant> vars;
 
   for (int i = 1; i < objc; ++i) {
-    Tcl_Obj *obj = const_cast<Tcl_Obj *>(objv[i]);
+    const Tcl_Obj *obj = objv[i];
 
     vars.push_back(eval->qtcl()->variantFromObj(obj));
   }

@@ -153,9 +153,9 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
   //---
 
@@ -176,7 +176,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   bool hasFgAxes() const override;
 
-  void drawFgAxes(QPainter *painter) override;
+  void drawFgAxes(QPainter *painter) const override;
 
   void setObjRange();
 
@@ -197,6 +197,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
   Ranges              setRanges_;                          // value set ranges
   Qt::Orientation     adir_            { Qt::Horizontal }; // axis direction
   YAxes               axes_;                               // value axes
+  mutable std::mutex  axesMutex_;                          // value axes
   CQChartsGeom::Range normalizedDataRange_;                // normalized data range
   double              max_tw_          { 0.0 };            // max text width
   CQChartsGeom::BBox  axesBBox_;                           // axes bbox

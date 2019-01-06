@@ -20,10 +20,14 @@ CQChartsModelVisitor::
 isHierarchical() const
 {
   if (! hierSet_) {
-    CQChartsModelVisitor *th = const_cast<CQChartsModelVisitor *>(this);
+    std::unique_lock<std::mutex> lock(mutex_);
 
-    th->hierarchical_ = CQChartsModelUtil::isHierarchical(model_);
-    th->hierSet_      = true;
+    if (! hierSet_) {
+      CQChartsModelVisitor *th = const_cast<CQChartsModelVisitor *>(this);
+
+      th->hierarchical_ = CQChartsModelUtil::isHierarchical(model_);
+      th->hierSet_      = true;
+    }
   }
 
   return hierarchical_;
@@ -39,7 +43,7 @@ bool exec(CQCharts *charts, const QAbstractItemModel *model, CQChartsModelVisito
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
-  columnTypeMgr->startCache();
+  columnTypeMgr->startCache(model);
 
   visitor.init(model);
 
@@ -49,7 +53,7 @@ bool exec(CQCharts *charts, const QAbstractItemModel *model, CQChartsModelVisito
 
   visitor.term();
 
-  columnTypeMgr->endCache();
+  columnTypeMgr->endCache(model);
 
   return true;
 }

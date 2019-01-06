@@ -581,7 +581,7 @@ typeApplySlot()
 
   CQBaseModelType columnType = CQBaseModel::nameType(typeStr);
 
-  CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+  const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
 
   if (typeData) {
     CQChartsNameValues nameValues;
@@ -641,7 +641,7 @@ setColumnData(int column)
                                          columnBaseType, nameValues)) {
     CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-    CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
 
     //QString typeStr = columnTypeMgr->encodeTypeData(columnType, nameValues);
 

@@ -121,9 +121,9 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
   CQChartsGeom::BBox annotationBBox() const override;
 
@@ -137,10 +137,10 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   bool hasBackground() const override;
 
-  void drawBackground(QPainter *) override;
+  void drawBackground(QPainter *) const override;
 
  private:
-  void addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs);
+  void addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const;
 
   bool columnValue(const CQChartsModelIndex &ind, double &value) const;
 

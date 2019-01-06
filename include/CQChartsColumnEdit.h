@@ -70,6 +70,7 @@ class CQChartsColumnEdit : public QFrame {
   CQWidgetMenu*       menu_            { nullptr };
   QGroupBox*          menuColumnGroup_ { nullptr };
   QComboBox*          columnCombo_     { nullptr };
+  QLineEdit*          roleEdit_        { nullptr };
   QGroupBox*          menuExprGroup_   { nullptr };
   QLineEdit*          expressionEdit_  { nullptr };
   QCheckBox*          vheaderCheck_    { nullptr };

@@ -42,23 +42,23 @@ class CQChartsEditHandles : public QObject {
 
   void updateBBox(double dx, double dy);
 
-  void draw(QPainter *painter);
+  void draw(QPainter *painter) const;
 
  private:
   CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &p) const;
 
  private:
-  const CQChartsView*        view_       { nullptr };
-  const CQChartsPlot*        plot_       { nullptr };
-  Mode                       mode_       { Mode::RESIZE };
-  CQChartsGeom::BBox         bbox_       { 0, 0, 1, 1 };
-  CQChartsResizeHandle       moveHandle_;
-  CQChartsResizeHandle       llHandle_;
-  CQChartsResizeHandle       lrHandle_;
-  CQChartsResizeHandle       ulHandle_;
-  CQChartsResizeHandle       urHandle_;
-  CQChartsGeom::Point        dragPos_    { 0, 0 };
-  CQChartsResizeHandle::Side dragSide_   { CQChartsResizeHandle::Side::NONE };
+  const CQChartsView*          view_       { nullptr };
+  const CQChartsPlot*          plot_       { nullptr };
+  Mode                         mode_       { Mode::RESIZE };
+  CQChartsGeom::BBox           bbox_       { 0, 0, 1, 1 };
+  mutable CQChartsResizeHandle moveHandle_;
+  mutable CQChartsResizeHandle llHandle_;
+  mutable CQChartsResizeHandle lrHandle_;
+  mutable CQChartsResizeHandle ulHandle_;
+  mutable CQChartsResizeHandle urHandle_;
+  CQChartsGeom::Point          dragPos_    { 0, 0 };
+  CQChartsResizeHandle::Side   dragSide_   { CQChartsResizeHandle::Side::NONE };
 };
 
 #endif

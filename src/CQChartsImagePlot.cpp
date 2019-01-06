@@ -69,14 +69,14 @@ void
 CQChartsImagePlot::
 setMinValue(double r)
 {
-  CQChartsUtil::testAndSet(minValue_, r, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(minValue_, r, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsImagePlot::
 setMaxValue(double r)
 {
-  CQChartsUtil::testAndSet(maxValue_, r, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(maxValue_, r, [&]() { queueDrawObjs(); } );
 }
 
 //---
@@ -85,44 +85,46 @@ void
 CQChartsImagePlot::
 setXLabels(bool b)
 {
-  CQChartsUtil::testAndSet(xLabels_, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(xLabels_, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsImagePlot::
 setYLabels(bool b)
 {
-  CQChartsUtil::testAndSet(yLabels_, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(yLabels_, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsImagePlot::
 setCellLabels(bool b)
 {
-  CQChartsUtil::testAndSet(cellLabels_, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(cellLabels_, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsImagePlot::
 setScaleCellLabels(bool b)
 {
-  CQChartsUtil::testAndSet(scaleCellLabels_, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(scaleCellLabels_, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsImagePlot::
 setBalloon(bool b)
 {
-  CQChartsUtil::testAndSet(balloon_, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(balloon_, b, [&]() { queueDrawObjs(); } );
 }
 
 //---
 
 CQChartsGeom::Range
 CQChartsImagePlot::
-calcRange()
+calcRange() const
 {
   CQPerfTrace trace("CQChartsImagePlot::calcRange");
+
+  CQChartsImagePlot *th = const_cast<CQChartsImagePlot *>(this);
 
   class RowVisitor : public ModelVisitor {
    public:
@@ -136,29 +138,19 @@ calcRange()
 
         double value = plot_->modelReal(data.row, col, data.parent, ok);
 
-        if (! valueSet_) {
-          minValue_ = value;
-          maxValue_ = value;
-
-          valueSet_ = true;
-        }
-        else {
-          minValue_ = std::min(minValue_, value);
-          maxValue_ = std::max(maxValue_, value);
-        }
+        if (ok && ! CMathUtil::isNaN(value))
+          valueRange_.add(value);
       }
 
       return State::OK;
     }
 
-    double minValue() const { return minValue_; }
-    double maxValue() const { return maxValue_; }
+    double minValue() const { return valueRange_.min(0.0); }
+    double maxValue() const { return valueRange_.max(1.0); }
 
    private:
     const CQChartsImagePlot* plot_     { nullptr };
-    bool                     valueSet_ { false };
-    double                   minValue_ { 0.0 };
-    double                   maxValue_ { 0.0 };
+    CQChartsGeom::RMinMax    valueRange_;
   };
 
   RowVisitor visitor(this);
@@ -168,22 +160,22 @@ calcRange()
   //---
 
   // set value range
-  minValue_ = visitor.minValue();
+  th->minValue_ = visitor.minValue();
 
   if (xmin())
-    minValue_ = *xmin();
+    th->minValue_ = *xmin();
 
-  maxValue_ = visitor.maxValue();
+  th->maxValue_ = visitor.maxValue();
 
   if (xmax())
-    maxValue_ = *xmax();
+    th->maxValue_ = *xmax();
 
   //---
 
   CQChartsGeom::Range dataRange;
 
-  nr_ = visitor.numRows();
-  nc_ = visitor.numCols();
+  th->nr_ = visitor.numRows();
+  th->nc_ = visitor.numCols();
 
   dataRange.updateRange(  0,   0);
   dataRange.updateRange(nc_, nr_);
@@ -195,7 +187,7 @@ calcRange()
 
 bool
 CQChartsImagePlot::
-createObjs(PlotObjs &objs)
+createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsImagePlot::createObjs");
 
@@ -221,9 +213,7 @@ createObjs(PlotObjs &objs)
 
         //---
 
-        CQChartsImagePlot *plot = const_cast<CQChartsImagePlot *>(plot_);
-
-        plot->addImageObj(data.row, col, x_, y_, dx_, dy_, value, ind, objs_);
+        plot_->addImageObj(data.row, col, x_, y_, dx_, dy_, value, ind, objs_);
 
         //---
 
@@ -256,7 +246,7 @@ createObjs(PlotObjs &objs)
 void
 CQChartsImagePlot::
 addImageObj(int row, int col, double x, double y, double dx, double dy, double value,
-            const QModelIndex &ind, PlotObjs &objs)
+            const QModelIndex &ind, PlotObjs &objs) const
 {
   QModelIndex ind1 = normalizeIndex(ind);
 
@@ -308,7 +298,7 @@ hasForeground() const
 
 void
 CQChartsImagePlot::
-drawForeground(QPainter *painter)
+drawForeground(QPainter *painter) const
 {
   if (isXLabels())
     drawXLabels(painter);
@@ -329,7 +319,7 @@ drawXLabels(QPainter *painter) const
 
   QColor tc = interpTextColor(0, 1);
 
-  setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"));
+  setPen(tpen, true, tc, textAlpha());
 
   painter->setPen(tpen);
 
@@ -393,7 +383,7 @@ drawYLabels(QPainter *painter) const
 
   QColor tc = interpTextColor(0, 1);
 
-  setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"));
+  setPen(tpen, true, tc, textAlpha());
 
   painter->setPen(tpen);
 
@@ -565,6 +555,7 @@ draw(QPainter *painter)
 
   //---
 
+  // set pen and brush
   QColor c = plot_->interpPaletteColor(v);
 
   QPen   pen;
@@ -592,7 +583,7 @@ draw(QPainter *painter)
 
       QColor tc = plot_->interpTextColor(0, 1);
 
-      plot_->setPen(tpen, true, tc, plot_->textAlpha(), CQChartsLength("0px"));
+      plot_->setPen(tpen, true, tc, plot_->textAlpha());
 
       plot_->updateObjPenBrushState(this, tpen, tbrush);
 

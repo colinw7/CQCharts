@@ -1,9 +1,22 @@
-+ calc range (for each overlay plot)
++ calc range (for each overlay plot) : from first plot
   + init group data
-+ combine ranges for overlay
++ combine ranges for overlay, x1x2, y1y2
++ place key, title, ... ?
 + create objs
-+ add no data object (overlay ?)
-+ draw objects to buffer
++ add no data object (for overlay then only first plot ?)
++ draw objects (+ key, title) to buffer
+  + data changed that doesn't need new objects
 
 + wait range
   + overlay plots
+
++ maintain state stack
+  + assert if operation processed before preceding state done
+
++ invalidate layers (when ?)
+  + background
+  + plot objects (recalc objs ?)
+  + foreground
+  + overlay (just redraw)
+
++ use timer to keep state in sync

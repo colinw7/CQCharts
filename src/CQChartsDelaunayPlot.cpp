@@ -84,21 +84,21 @@ void
 CQChartsDelaunayPlot::
 setXColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsDelaunayPlot::
 setYColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsDelaunayPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -107,14 +107,14 @@ void
 CQChartsDelaunayPlot::
 setVoronoi(bool b)
 {
-  CQChartsUtil::testAndSet(voronoi_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(voronoi_, b, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsDelaunayPlot::
 setVoronoiPointSize(double r)
 {
-  CQChartsUtil::testAndSet(voronoiPointSize_, r, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(voronoiPointSize_, r, [&]() { queueDrawObjs(); } );
 }
 
 //---
@@ -144,7 +144,7 @@ addProperties()
 
 CQChartsGeom::Range
 CQChartsDelaunayPlot::
-calcRange()
+calcRange() const
 {
   CQPerfTrace trace("CQChartsDelaunayPlot::calcRange");
 
@@ -216,23 +216,25 @@ calcRange()
 
 bool
 CQChartsDelaunayPlot::
-createObjs(PlotObjs &objs)
+createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsDelaunayPlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsDelaunayPlot *>(this));
+  CQChartsDelaunayPlot *th = const_cast<CQChartsDelaunayPlot *>(this);
+
+  NoUpdate noUpdate(th);
 
   //---
 
   bool ok;
 
-  yname_ = modelHeaderString(yColumn(), ok);
+  th->yname_ = modelHeaderString(yColumn(), ok);
 
   //---
 
-  delete delaunay_;
+  delete th->delaunay_;
 
-  delaunay_ = new CQChartsDelaunay;
+  th->delaunay_ = new CQChartsDelaunay;
 
   //---
 
@@ -257,9 +259,7 @@ createObjs(PlotObjs &objs)
 
       QModelIndex xind = plot_->modelIndex(data.row, plot_->xColumn(), data.parent);
 
-      CQChartsDelaunayPlot *plot = const_cast<CQChartsDelaunayPlot *>(plot_);
-
-      plot->addPointObj(x, y, xind, ModelVisitor::row(), nr_, objs_);
+      plot_->addPointObj(x, y, xind, ModelVisitor::row(), nr_, objs_);
 
       return State::OK;
     }
@@ -276,7 +276,7 @@ createObjs(PlotObjs &objs)
 
   //---
 
-  delaunay_->calc();
+  th->delaunay_->calc();
 
   //---
 
@@ -285,9 +285,13 @@ createObjs(PlotObjs &objs)
 
 void
 CQChartsDelaunayPlot::
-addPointObj(double x, double y, const QModelIndex &xind, int r, int nr, PlotObjs &objs)
+addPointObj(double x, double y, const QModelIndex &xind, int r, int nr, PlotObjs &objs) const
 {
-  delaunay_->addVertex(x, y);
+  assert(delaunay_);
+
+  CQChartsDelaunayPlot *th = const_cast<CQChartsDelaunayPlot *>(this);
+
+  th->delaunay_->addVertex(x, y);
 
   //---
 
@@ -340,7 +344,7 @@ hasForeground() const
 
 void
 CQChartsDelaunayPlot::
-drawForeground(QPainter *painter)
+drawForeground(QPainter *painter) const
 {
   painter->save();
 
@@ -358,6 +362,9 @@ void
 CQChartsDelaunayPlot::
 drawDelaunay(QPainter *painter) const
 {
+  if (! delaunay_)
+    return;
+
   if (isLines()) {
     QPen pen;
 
@@ -397,6 +404,9 @@ void
 CQChartsDelaunayPlot::
 drawVoronoi(QPainter *painter) const
 {
+  if (! delaunay_)
+    return;
+
   if (isPoints()) {
     QPen   pen;
     QBrush brush;
@@ -538,6 +548,7 @@ draw(QPainter *painter)
   if (! visible())
     return;
 
+  // calc pen and brush
   QPen   pen;
   QBrush brush;
 
@@ -548,6 +559,9 @@ draw(QPainter *painter)
   painter->setPen  (pen);
   painter->setBrush(brush);
 
+  //---
+
+  // get symbol type and size
   double sx, sy;
 
   plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
@@ -556,6 +570,7 @@ draw(QPainter *painter)
 
   //---
 
+  // draw symbol
   double px, py;
 
   plot_->windowToPixel(x_, y_, px, py);

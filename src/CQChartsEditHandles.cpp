@@ -85,7 +85,7 @@ updateBBox(double dx, double dy)
 
 void
 CQChartsEditHandles::
-draw(QPainter *painter)
+draw(QPainter *painter) const
 {
   QPointF ll = CQChartsUtil::toQPoint(windowToPixel(bbox_.getLL()));
   QPointF ur = CQChartsUtil::toQPoint(windowToPixel(bbox_.getUR()));

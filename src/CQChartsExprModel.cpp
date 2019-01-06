@@ -446,6 +446,8 @@ void
 CQChartsExprModel::
 initCalc()
 {
+  std::unique_lock<std::mutex> lock(mutex_);
+
   nr_ = rowCount();
   nc_ = columnCount();
 
@@ -543,6 +545,8 @@ bool
 CQChartsExprModel::
 calcColumnRange(int column, double &minVal, double &maxVal)
 {
+  std::unique_lock<std::mutex> lock(mutex_);
+
   ColumnData &columnData = columnDatas_[column];
 
   nr_ = rowCount();
@@ -598,6 +602,8 @@ bool
 CQChartsExprModel::
 calcColumnRange(int column, int &minVal, int &maxVal)
 {
+  std::unique_lock<std::mutex> lock(mutex_);
+
   ColumnData &columnData = columnDatas_[column];
 
   nr_ = rowCount();
@@ -696,14 +702,13 @@ data(const QModelIndex &index, int role) const
 
   int column = index.column() - nc;
 
-  if (role == Qt::DisplayRole || role == Qt::EditRole) {
+  if      (role == Qt::DisplayRole || role == Qt::EditRole) {
     currentRow_ = index.row();
     currentCol_ = index.column();
 
     return getExtraColumnValue(currentRow_, currentCol_, column);
   }
-
-  if (role == Qt::TextAlignmentRole) {
+  else if (role == Qt::TextAlignmentRole) {
     const ExtraColumn &extraColumn = this->extraColumn(column);
 
     if (extraColumn.type == CQBaseModelType::INTEGER ||
@@ -711,6 +716,12 @@ data(const QModelIndex &index, int role) const
       return QVariant(Qt::AlignRight | Qt::AlignVCenter);
     else
       return QVariant(Qt::AlignLeft | Qt::AlignVCenter);
+  }
+  else if (role == Qt::ToolTipRole) {
+    currentRow_ = index.row();
+    currentCol_ = index.column();
+
+    return getExtraColumnValue(currentRow_, currentCol_, column);
   }
 
   return QVariant();
@@ -801,7 +812,7 @@ getExtraColumnValue(int row, int column, int ecolumn) const
   //---
 
   // if evaluating the expression for this row use cached values for referenced values
-  if (extraColumn.evaluating) {
+  if (extraColumn.evaluating.load()) {
     if (! extraColumn.values.empty())
       return extraColumn.values[row];
 
@@ -826,6 +837,8 @@ QVariant
 CQChartsExprModel::
 calcExtraColumnValue(int row, int column, int ecolumn)
 {
+  std::unique_lock<std::mutex> lock(mutex_);
+
   ExtraColumn &extraColumn = this->extraColumn(ecolumn);
 
   extraColumn.evaluating = true;
@@ -2139,9 +2152,9 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-  CQChartsColumnType *typeData = columnTypeMgr->getType(type);
+  const CQChartsColumnType *typeData = columnTypeMgr->getType(type);
 
-  CQChartsColumnRealType *rtypeData = dynamic_cast<CQChartsColumnRealType *>(typeData);
+  const CQChartsColumnRealType *rtypeData = dynamic_cast<const CQChartsColumnRealType *>(typeData);
 
   if (! rtypeData)
     return false;

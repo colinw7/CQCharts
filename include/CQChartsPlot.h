@@ -16,6 +16,7 @@
 #include <CQChartsGeom.h>
 #include <CQChartsPlotMargin.h>
 #include <CQBaseModelTypes.h>
+#include <CHRTime.h>
 
 #include <QAbstractItemModel>
 #include <QItemSelection>
@@ -23,6 +24,7 @@
 #include <QTimer>
 #include <QPointer>
 
+#include <future>
 #include <memory>
 #include <set>
 
@@ -195,9 +197,8 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(bool autoFit        READ isAutoFit      WRITE setAutoFit       )
   Q_PROPERTY(bool preview        READ isPreview      WRITE setPreview       )
   Q_PROPERTY(int  previewMaxRows READ previewMaxRows WRITE setPreviewMaxRows)
+  Q_PROPERTY(bool queueUpdate    READ queueUpdate    WRITE setQueueUpdate   )
   Q_PROPERTY(bool showBoxes      READ showBoxes      WRITE setShowBoxes     )
-
-  Q_PROPERTY(int updateTimeout READ updateTimeout WRITE setUpdateTimeout)
 
  public:
   using SelMod = CQChartsSelMod;
@@ -311,6 +312,17 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  void queueUpdateRange();
+  void queueUpdateRangeAndObjs();
+  void queueUpdateObjs();
+  void queueDrawBackground();
+  void queueDrawForeground();
+  void queueDrawObjs();
+
+  void drawOverlay();
+
+  //---
+
   const CQChartsDisplayRange &displayRange() const;
   void setDisplayRange(const CQChartsDisplayRange &r);
 
@@ -319,6 +331,8 @@ class CQChartsPlot : public CQChartsObj,
 
   const CQChartsGeom::Range &dataRange() const { return dataRange_; }
   void setDataRange(const CQChartsGeom::Range &r, bool update=true);
+
+  void resetDataRange(bool updateRange=true, bool updateObjs=true);
 
   //---
 
@@ -449,6 +463,11 @@ class CQChartsPlot : public CQChartsObj,
   int previewMaxRows() const { return previewMaxRows_; }
   void setPreviewMaxRows(int i) { previewMaxRows_ = i; }
 
+  bool isSequential() const { return sequential_; }
+
+  bool queueUpdate() const { return queueUpdate_; }
+  void setQueueUpdate(bool b) { queueUpdate_ = b; }
+
   //---
 
   bool isOverview() const { return overview_; }
@@ -458,11 +477,6 @@ class CQChartsPlot : public CQChartsObj,
 
   bool showBoxes() const { return showBoxes_; }
   void setShowBoxes(bool b);
-
-  //---
-
-  int updateTimeout() const { return updateTimeout_; }
-  void setUpdateTimeout(int i) { updateTimeout_ = i; }
 
   //---
 
@@ -547,6 +561,8 @@ class CQChartsPlot : public CQChartsObj,
   bool isOverlay() const { return connectData_.overlay; }
   void setOverlay(bool b, bool notify=true);
 
+  void updateOverlay();
+
   bool isX1X2() const { return connectData_.x1x2; }
   void setX1X2(bool b, bool notify=true);
 
@@ -577,12 +593,13 @@ class CQChartsPlot : public CQChartsObj,
   void setNextPlot(CQChartsPlot *plot, bool notify=true);
   void setPrevPlot(CQChartsPlot *plot, bool notify=true);
 
-  CQChartsPlot *firstPlot() const;
-  CQChartsPlot *lastPlot () const;
+  const CQChartsPlot *firstPlot() const;
+  CQChartsPlot *firstPlot();
 
-  bool isFirstPlot() const {
-    return (const_cast<CQChartsPlot *>(this)->firstPlot() == this);
-  }
+  const CQChartsPlot *lastPlot() const;
+  CQChartsPlot *lastPlot();
+
+  bool isFirstPlot() const { return (firstPlot() == this); }
 
   bool isOverlayFirstPlot() const {
     return (isOverlay() && isFirstPlot());
@@ -645,7 +662,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  CQPropertyViewModel *propertyModel() const;
+  const CQPropertyViewModel *propertyModel() const;
+  CQPropertyViewModel *propertyModel();
 
   // add plot properties to model
   virtual void addProperties();
@@ -685,7 +703,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet);
+  void addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet) const;
 
   //---
 
@@ -975,11 +993,15 @@ class CQChartsPlot : public CQChartsObj,
   void resetRange();
 
   // update data range (calls calcRange)
-  virtual void updateRange(bool apply=true);
+  void updateRange();
 
-  virtual CQChartsGeom::Range calcRange() = 0;
+  virtual CQChartsGeom::Range calcRange() const = 0;
+
+  virtual void postUpdateObjs() { }
 
   // update plot objects (clear objects, objects updated on next redraw)
+  void updateGroupedObjs();
+
   void updateObjs();
 
   // reset range and objects
@@ -989,9 +1011,59 @@ class CQChartsPlot : public CQChartsObj,
   void updateRangeAndObjs();
 
  private:
-  void initColorColumnData();
+  void startThreadTimer();
+  void stopThreadTimer();
 
-  void updateRangeAndObjsInternal();
+  //---
+
+  void updateAndApplyRange(bool apply, bool updateObjs);
+
+  void updateAndApplyPlotRange(bool apply, bool updateObjs);
+
+  void updateAndApplyPlotRange1(bool updateObjs);
+
+  //---
+
+  static void updateRangeASync(CQChartsPlot *plot);
+
+  void updateRangeThread();
+
+  void interruptRange();
+
+  void waitRange();
+  void waitRange1();
+
+  //---
+
+  static void updateObjsASync(CQChartsPlot *plot);
+
+  void updateObjsThread();
+
+  void interruptObjs();
+
+  void waitObjs();
+  void waitObjs1();
+
+  //---
+
+  void updatePlotObjs();
+
+  void updateGroupedDraw();
+  void updateDraw();
+
+  //---
+
+  static void drawASync(CQChartsPlot *plot);
+
+  void drawThread();
+
+  void interruptDraw();
+
+  void waitDraw();
+  void waitDraw1();
+
+ private:
+  void initColorColumnData();
 
   // (re)initialize grouped plot objects
   void initGroupedPlotObjs();
@@ -1004,6 +1076,8 @@ class CQChartsPlot : public CQChartsObj,
 
   bool addNoDataObj();
 
+  void updateAutoFit();
+
   void autoFitOne();
 
  public:
@@ -1011,10 +1085,9 @@ class CQChartsPlot : public CQChartsObj,
   virtual bool initObjs();
 
   // create plot objects (called by initObjs)
-  virtual bool createObjs();
+  bool createObjs();
 
-  // create plot objects (called by initObjs)
-  virtual bool createObjs(PlotObjs &);
+  virtual bool createObjs(PlotObjs &) const = 0;
 
   // add plotObjects to quad tree (create no data object in no objects)
   void initObjTree();
@@ -1028,11 +1101,14 @@ class CQChartsPlot : public CQChartsObj,
 
   CQChartsGeom::BBox getDataRange() const;
 
+  void setPixelRange (const CQChartsGeom::BBox &bbox);
+  void setWindowRange(const CQChartsGeom::BBox &bbox);
+
   void applyDataRange(bool propagate=true);
 
   void applyDisplayTransform(bool propagate=true);
 
-  void adjustDataRange();
+  CQChartsGeom::Range adjustDataRange(const CQChartsGeom::Range &range) const;
 
   //---
 
@@ -1219,6 +1295,9 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  // called before resize
+  virtual void preResize();
+
   // called after resize
   virtual void postResize();
 
@@ -1313,106 +1392,120 @@ class CQChartsPlot : public CQChartsObj,
 
   void invalidateLayer1(const CQChartsBuffer::Type &layerType);
 
+  void setLayersChanged(bool update);
+
   //---
 
  public:
   // draw plot parts
-  virtual void drawParts(QPainter *painter);
+  virtual void drawParts(QPainter *painter) const;
+
+  // draw plot parts
+  virtual void drawNonMiddleParts(QPainter *painter) const;
 
   // draw background layer plot parts
-  virtual void drawBackgroundParts(QPainter *painter);
+  virtual void drawBackgroundParts(QPainter *painter) const;
 
   // draw middle layer plot parts
-  virtual void drawMiddleParts(QPainter *painter);
+  virtual void drawMiddleParts(QPainter *painter) const;
 
   // draw foreground layer plot parts
-  virtual void drawForegroundParts(QPainter *painter);
+  virtual void drawForegroundParts(QPainter *painter) const;
 
   // draw overlay layer plot parts
-  virtual void drawOverlayParts(QPainter *painter);
+  virtual void drawOverlayParts(QPainter *painter) const;
 
   //---
 
   // draw background (layer and detail)
   virtual bool hasBackgroundLayer() const;
 
-  virtual void drawBackgroundLayer(QPainter *painter);
+  virtual void drawBackgroundLayer(QPainter *painter) const;
 
   virtual bool hasBackground() const;
 
-  virtual void drawBackground(QPainter *painter);
+  virtual void drawBackground(QPainter *painter) const;
 
-  void drawBackgroundSides(QPainter *painter, const QRectF &rect, const CQChartsSides &sides);
+  void drawBackgroundSides(QPainter *painter, const QRectF &rect,
+                           const CQChartsSides &sides) const;
 
   // draw axes on background
+  bool hasGroupedBgAxes() const;
+
   virtual bool hasBgAxes() const;
 
-  virtual void drawBgAxes(QPainter *painter);
+  void drawGroupedBgAxes(QPainter *painter) const;
+
+  virtual void drawBgAxes(QPainter *painter) const;
 
   // draw key on background
-  virtual bool hasBgKey() const;
+  virtual bool hasGroupedBgKey() const;
 
-  virtual void drawBgKey(QPainter *painter);
+  virtual void drawBgKey(QPainter *painter) const;
 
   //---
 
   // draw objects
   bool hasGroupedObjs(const CQChartsLayer::Type &layerType) const;
 
-  void drawGroupedObjs(QPainter *painter, const CQChartsLayer::Type &layerType);
+  void drawGroupedObjs(QPainter *painter, const CQChartsLayer::Type &layerType) const;
 
   virtual bool hasObjs(const CQChartsLayer::Type &layerType) const;
 
-  virtual void drawObjs(QPainter *painter, const CQChartsLayer::Type &type);
+  virtual void drawObjs(QPainter *painter, const CQChartsLayer::Type &type) const;
 
   //---
 
   // draw axes on foreground
+  bool hasGroupedFgAxes() const;
+
   virtual bool hasFgAxes() const;
 
-  virtual void drawFgAxes(QPainter *painter);
+  void drawGroupedFgAxes(QPainter *painter) const;
+
+  virtual void drawFgAxes(QPainter *painter) const;
 
   // draw key on foreground
-  virtual bool hasFgKey() const;
+  virtual bool hasGroupedFgKey() const;
 
-  virtual void drawFgKey(QPainter *painter);
+  virtual void drawFgKey(QPainter *painter) const;
 
   // draw title
   virtual bool hasTitle() const;
 
-  virtual void drawTitle(QPainter *painter);
+  virtual void drawTitle(QPainter *painter) const;
 
   // draw annotations
   virtual bool hasGroupedAnnotations(const CQChartsLayer::Type &layerType) const;
 
-  void drawGroupedAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType);
+  void drawGroupedAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType) const;
 
   virtual bool hasAnnotations(const CQChartsLayer::Type &layerType) const;
 
-  virtual void drawAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType);
+  virtual void drawAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType) const;
 
   // draw foreground
   virtual bool hasForeground() const;
 
-  virtual void drawForeground(QPainter *painter);
+  virtual void drawForeground(QPainter *painter) const;
 
   // draw debug boxes
   virtual bool hasGroupedBoxes() const;
 
-  void drawGroupedBoxes(QPainter *painter);
+  void drawGroupedBoxes(QPainter *painter) const;
 
   virtual bool hasBoxes() const;
 
-  virtual void drawBoxes(QPainter *painter);
+  virtual void drawBoxes(QPainter *painter) const;
 
   // draw edit handles
   bool hasGroupedEditHandles() const;
 
-  void drawGroupedEditHandles(QPainter *painter);
+  void drawGroupedEditHandles(QPainter *painter) const;
 
   bool hasEditHandles() const;
 
-  virtual void drawEditHandles(QPainter *painter);
+  virtual void drawEditHandles(QPainter *painter) const;
 
   //---
 
@@ -1425,8 +1518,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  QPainter *beginPaint(CQChartsBuffer *layer, QPainter *painter, const QRectF &rect=QRectF());
-  void      endPaint  (CQChartsBuffer *layer);
+  QPainter *beginPaint(CQChartsBuffer *layer, QPainter *painter, const QRectF &rect=QRectF()) const;
+  void      endPaint  (CQChartsBuffer *layer) const;
 
   //---
 
@@ -1559,17 +1652,22 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // draw plot
-  void draw(QPainter *painter);
+  virtual void draw(QPainter *painter);
 
   // draw plot layer
-  void drawLayer(QPainter *painter, CQChartsLayer::Type type);
+  void drawLayer(QPainter *painter, CQChartsLayer::Type type) const;
+
+  // draw all layers
+  void drawLayers(QPainter *painter) const;
 
   // draw plot layer type
-  CQChartsLayer::Type drawLayerType() const { return drawLayer_; }
+  const CQChartsLayer::Type &drawLayerType() const { return drawLayer_; }
 
   //---
 
   bool printLayer(CQChartsLayer::Type type, const QString &filename) const;
+
+  //---
 
   bool setParameter(CQChartsPlotParameter *param, const QVariant &value);
   bool getParameter(CQChartsPlotParameter *param, QVariant &value) const;
@@ -1579,14 +1677,14 @@ class CQChartsPlot : public CQChartsObj,
  protected slots:
   void animateSlot();
 
+  void threadTimerSlot();
+
   // model change slots
   void modelChangedSlot();
 
   void currentModelChangedSlot();
 
   //---
-
-  void updateTimerSlot();
 
   void selectionSlot();
 
@@ -1635,10 +1733,15 @@ class CQChartsPlot : public CQChartsObj,
 
  protected:
   struct NoUpdate {
-    NoUpdate(CQChartsPlot *plot) : plot_(plot) { plot_->setUpdatesEnabled(false); }
-   ~NoUpdate() { plot_->setUpdatesEnabled(true, false); }
+    NoUpdate(CQChartsPlot *plot, bool update=false) :
+     plot_(plot), update_(update) {
+      plot_->setUpdatesEnabled(false);
+    }
 
-    CQChartsPlot* plot_ { nullptr };
+   ~NoUpdate() { plot_->setUpdatesEnabled(true, update_); }
+
+    CQChartsPlot* plot_   { nullptr };
+    bool          update_ { false };
   };
 
   using ObjSet     = std::set<CQChartsObj*>;
@@ -1655,11 +1758,142 @@ class CQChartsPlot : public CQChartsObj,
   void objsTouchingRect(const CQChartsGeom::BBox &r, Objs &objs) const;
 
  protected:
+  enum class UpdateState {
+    INVALID,                // invalid state
+    CALC_RANGE,             // calculating range
+    CALC_OBJS,              // calculating objects
+    DRAW_OBJS,              // drawing objects
+    READY,                  // ready to draw
+    UPDATE_RANGE,           // needs range update
+    UPDATE_OBJS,            // needs objs update
+    UPDATE_DRAW_OBJS,       // needs draw objects
+    UPDATE_DRAW_BACKGROUND, // needs draw background
+    UPDATE_DRAW_FOREGROUND, // needs draw foreground
+    UPDATE_VIEW,            // update view
+    DRAWN                   // drawn
+  };
+
+  struct ThreadData {
+    CHRTime           startTime;
+    std::future<void> future;
+    std::atomic<bool> busy { false };
+
+    void start(const CQChartsPlot *plot, const char *id) {
+      if (id) {
+        std::cerr << "Start: " << plot->id().toStdString() << " : " << id << "\n";
+
+        startTime = CHRTime::getTime();
+      }
+
+      busy.store(true);
+    }
+
+    void end(const CQChartsPlot *plot, const char *id) {
+      busy.store(false);
+
+      if (id) {
+        CHRTime dt = startTime.diffTime();
+
+        std::cerr << "Elapsed: " << plot->id().toStdString() << " : " << id << " " <<
+                     dt.getMSecs() << "\n";
+      }
+    }
+
+    void finish(const CQChartsPlot *plot, const char *id) {
+      if (id) {
+        CHRTime dt = startTime.diffTime();
+
+        std::cerr << "Finish: " << plot->id().toStdString() << " : " << id << " " <<
+                     dt.getMSecs() << "\n";
+      }
+    }
+  };
+
+  struct LockData {
+    mutable std::mutex lock;
+    const char*        id { nullptr };
+  };
+
+  struct DrawBusyData {
+    QColor      bgColor  { 255, 255, 255 };
+    QColor      fgColor  { 100, 200, 100 };
+    int         count    { 10 };
+    int         multiple { 10 };
+    mutable int ind      { 0 };
+  };
+
+  struct UpdateData {
+    std::atomic<int> state       { 0 };
+    std::atomic<int> interrupt   { 0 };
+    ThreadData       rangeThread;
+    ThreadData       objsThread;
+    ThreadData       drawThread;
+    LockData         lockData;
+    bool             updateObjs  { false };
+    QTimer*          timer       { nullptr };
+    DrawBusyData     drawBusy;
+  };
+
+  const QColor &updateBusyColor() const { return updateData_.drawBusy.fgColor; }
+  void setUpdateBusyColor(const QColor &c) { updateData_.drawBusy.fgColor = c; }
+
+  int updateBusyCount() const { return updateData_.drawBusy.count; }
+  void setUpdateBusyCount(int i) { updateData_.drawBusy.count = i; }
+
+  void setGroupedUpdateState(UpdateState state);
+
+  UpdateState updateState() { return (UpdateState) updateData_.state.load(); }
+  void setUpdateState(UpdateState state);
+
+  void setInterrupt(bool b=true);
+
+  void updateLock(const char *id) {
+    //std::cerr << "> " << id << "\n";
+    assert(! updateData_.lockData.id);
+    updateData_.lockData.lock.lock();
+    updateData_.lockData.id = id;
+  }
+
+  bool updateTryLock(const char *id) {
+    //std::cerr << "> " << id << "\n";
+    assert(! updateData_.lockData.id);
+    bool locked = updateData_.lockData.lock.try_lock();
+    updateData_.lockData.id = id;
+    return locked;
+  }
+
+  void updateUnLock() {
+    //std::cerr << "< " << updateData_.lockData.id << "\n";
+    updateData_.lockData.lock.unlock();
+    updateData_.lockData.id = nullptr;
+   }
+
+  struct LockMutex {
+    LockMutex(CQChartsPlot *plot, const char *id) : plot(plot) { plot->updateLock(id); }
+   ~LockMutex() { plot->updateUnLock(); }
+
+    CQChartsPlot* plot { nullptr };
+  };
+
+  struct TryLockMutex {
+    TryLockMutex(CQChartsPlot *plot, const char *id) : plot(plot) {
+      locked = plot->updateTryLock(id); }
+   ~TryLockMutex() { if (locked) plot->updateUnLock(); }
+
+    CQChartsPlot *plot   { nullptr };
+    bool          locked { false };
+  };
+
+  void drawBusy(QPainter *painter, const UpdateState &updateState) const;
+
+ public:
+  bool isInterrupt() const { return updateData_.interrupt.load() > 0; }
+
+ protected:
   using IdHidden        = std::map<int,bool>;
   using Rows            = std::set<int>;
   using ColumnRows      = std::map<int,Rows>;
   using IndexColumnRows = std::map<QModelIndex,ColumnRows>;
-//using ValueSets       = std::map<QString,CQChartsValueSet *>;
 
   struct ColorColumnData {
     CQChartsColumn column;
@@ -1704,95 +1938,104 @@ class CQChartsPlot : public CQChartsObj,
   };
 
   struct UpdatesData {
-    int  enabled            { 0 };     // updates enabled
-    bool updateRangeAndObjs { false }; // call updateRangeAndObjs (on enable)
-    bool updateObjs         { false }; // call updateObjs (on enable)
-    bool applyDataRange     { false }; // call applyDataRange (on enable)
-    bool invalidateLayers   { false }; // call needsInvalidate invalidate (on enable)
+    using StateFlag = std::map<UpdateState,int>;
+
+    int       enabled            { 0 };     // updates enabled
+    bool      updateRangeAndObjs { false }; // call updateRangeAndObjs (on enable)
+    bool      updateObjs         { false }; // call updateObjs (on enable)
+    bool      applyDataRange     { false }; // call applyDataRange (on enable)
+    bool      invalidateLayers   { false }; // call needsInvalidate invalidate (on enable)
+    StateFlag stateFlag;
   };
 
   //---
 
-  CQChartsView*             view_             { nullptr };    // parent view
-  CQChartsPlotType*         type_             { nullptr };    // plot type data
-  ModelP                    model_;                           // abstract model
-  bool                      modelNameSet_     { false };      // model name set from plot
-  SelectionModelP           selectionModel_;                  // selection model
-  bool                      visible_          { true };       // is visible
-  CQChartsGeom::BBox        viewBBox_         { 0, 0, 1, 1 }; // view box
-  CQChartsGeom::BBox        innerViewBBox_    { 0, 0, 1, 1 }; // inner view box
-  CQChartsPlotMargin        innerMargin_      { 0, 0, 0, 0 }; // inner margin
-  CQChartsPlotMargin        outerMargin_      { 10, 10, 10, 10 }; // outer margin
-  CQChartsDisplayRange*     displayRange_     { nullptr };    // value range mapping
-  CQChartsDisplayTransform* displayTransform_ { nullptr };    // value range transform (zoom/pan)
-  CQChartsGeom::Range       calcDataRange_;                   // calc data range
-  CQChartsGeom::Range       dataRange_;                       // data range
-  CQChartsGeom::Range       outerDataRange_;                  // outer data range
-  ZoomData                  zoomData_;                        // zoom data
-  OptReal                   xmin_;                            // xmin override
-  OptReal                   ymin_;                            // ymin override
-  OptReal                   xmax_;                            // xmax override
-  OptReal                   ymax_;                            // ymax override
-  EveryData                 everyData_;                       // every data
-  QString                   filterStr_;                       // filter
-  CQChartsSides             plotBorderSides_  { "tlbr" };     // plot border sides
-  bool                      plotClip_         { true };       // is clipped at plot limits
-  CQChartsSides             dataBorderSides_  { "tlbr" };     // data border sides
-  bool                      dataClip_         { false };      // is clipped at data limits
-  CQChartsSides             fitBorderSides_   { "tlbr" };     // fit border sides
-  QString                   titleStr_;                        // title string
-  QString                   fileName_;                        // associated data filename
-  QString                   xLabel_;                          // x label override
-  QString                   yLabel_;                          // y label override
-  CQChartsAxis*             xAxis_            { nullptr };    // x axis object
-  CQChartsAxis*             yAxis_            { nullptr };    // y axis object
-  CQChartsPlotKey*          keyObj_           { nullptr };    // key object
-  CQChartsTitle*            titleObj_         { nullptr };    // tilte object
-  CQChartsColumn            xValueColumn_;                    // x axis value column
-  CQChartsColumn            yValueColumn_;                    // y axis value column
-  CQChartsColumn            idColumn_;                        // unique data id column (signalled)
-  CQChartsColumn            tipColumn_;                       // tip column
-  CQChartsColumn            visibleColumn_;                   // visible column
-  ColorColumnData           colorColumnData_;                 // color color data
-  CQChartsColumn            imageColumn_;                     // image column
-  double                    minScaleFontSize_ { 6.0 };        // min scaled font size
-  double                    maxScaleFontSize_ { 48.0 };       // max scaled font size
-  bool                      equalScale_       { false };      // equal scaled
-  bool                      followMouse_      { true };       // track object under mouse
-  bool                      autoFit_          { false };      // auto fit on data change
-  bool                      needsAutoFit_     { false };      // needs auto fit on next draw
-  bool                      preview_          { false };      // is preview plot
-  int                       previewMaxRows_   { 1000 };       // preview max rows
-  bool                      bufferSymbols_    { false };      // buffer symbols
-  bool                      showBoxes_        { false };      // show debug boxes
-  bool                      overview_         { false };      // is overview
-  bool                      invertX_          { false };      // x values inverted
-  bool                      invertY_          { false };      // y values inverted
-  bool                      logX_             { false };      // x values log scaled
-  bool                      logY_             { false };      // y values log scaled
-  bool                      noData_           { false };      // is no data
-  ConnectData               connectData_;                     // associated plot data
-  PlotObjs                  plotObjs_;                        // plot objects
-//ValueSets                 valueSets_;                       // named value sets
-  int                       insideInd_        { 0 };          // current inside object ind
-  ObjSet                    insideObjs_;                      // inside plot objects
-  SizeObjSet                sizeInsideObjs_;                  // inside plot objects (size sorted)
-  CQChartsPlotObjTree*      plotObjTree_      { nullptr };    // plot object quad tree
-  MouseData                 mouseData_;                       // mouse event data
-  AnimateData               animateData_;                     // animation data
-  Buffers                   buffers_;                         // draw layer bufferss
-  Layers                    layers_;                          // draw layers
-  CQChartsBuffer::Type      drawBuffer_;                      // objects draw buffer
-  CQChartsLayer::Type       drawLayer_;                       // objects draw layer
-  IdHidden                  idHidden_;                        // hidden object ids
-  IndexColumnRows           selIndexColumnRows_;              // sel model indices (by col/row)
-  QItemSelection            itemSelection_;                   // selected model indices
-  CQChartsPlotUpdateTimer*  updateTimer_      { nullptr };    // update timer
-  int                       updateTimeout_    { 100 };        // update timeout
-  CQChartsEditHandles       editHandles_;                     // edit controls
-  Annotations               annotations_;                     // extra annotations
-  UpdatesData               updatesData_;                     // updates data
-  bool                      fromInvalidate_   { false };      // call from invalidate
+ protected:
+  CQChartsView*                view_             { nullptr };    // parent view
+  CQChartsPlotType*            type_             { nullptr };    // plot type data
+  ModelP                       model_;                           // abstract model
+  bool                         modelNameSet_     { false };      // model name set from plot
+  SelectionModelP              selectionModel_;                  // selection model
+  bool                         visible_          { true };       // is visible
+  CQChartsGeom::BBox           viewBBox_         { 0, 0, 1, 1 }; // view box
+  CQChartsGeom::BBox           innerViewBBox_    { 0, 0, 1, 1 }; // inner view box
+  CQChartsPlotMargin           innerMargin_      { 0, 0, 0, 0 }; // inner margin
+  CQChartsPlotMargin           outerMargin_      { 10, 10, 10, 10 }; // outer margin
+  CQChartsDisplayRange*        displayRange_     { nullptr };    // value range mapping
+  CQChartsDisplayTransform*    displayTransform_ { nullptr };    // value range transform (zoom/pan)
+  CQChartsGeom::Range          calcDataRange_;                   // calc data range
+  CQChartsGeom::Range          dataRange_;                       // data range
+  CQChartsGeom::Range          outerDataRange_;                  // outer data range
+  ZoomData                     zoomData_;                        // zoom data
+  OptReal                      xmin_;                            // xmin override
+  OptReal                      ymin_;                            // ymin override
+  OptReal                      xmax_;                            // xmax override
+  OptReal                      ymax_;                            // ymax override
+  EveryData                    everyData_;                       // every data
+  QString                      filterStr_;                       // filter
+  CQChartsSides                plotBorderSides_  { "tlbr" };     // plot border sides
+  bool                         plotClip_         { true };       // is clipped at plot limits
+  CQChartsSides                dataBorderSides_  { "tlbr" };     // data border sides
+  bool                         dataClip_         { false };      // is clipped at data limits
+  CQChartsSides                fitBorderSides_   { "tlbr" };     // fit border sides
+  QString                      titleStr_;                        // title string
+  QString                      fileName_;                        // associated data filename
+  QString                      xLabel_;                          // x label override
+  QString                      yLabel_;                          // y label override
+  CQChartsAxis*                xAxis_            { nullptr };    // x axis object
+  CQChartsAxis*                yAxis_            { nullptr };    // y axis object
+  CQChartsPlotKey*             keyObj_           { nullptr };    // key object
+  CQChartsTitle*               titleObj_         { nullptr };    // tilte object
+  CQChartsColumn               xValueColumn_;                    // x axis value column
+  CQChartsColumn               yValueColumn_;                    // y axis value column
+  CQChartsColumn               idColumn_;                        // unique data id column
+                                                                 // (signalled)
+  CQChartsColumn               tipColumn_;                       // tip column
+  CQChartsColumn               visibleColumn_;                   // visible column
+  ColorColumnData              colorColumnData_;                 // color color data
+  mutable std::mutex           colorMutex_;                      // color mutex
+  CQChartsColumn               imageColumn_;                     // image column
+  double                       minScaleFontSize_ { 6.0 };        // min scaled font size
+  double                       maxScaleFontSize_ { 48.0 };       // max scaled font size
+  bool                         equalScale_       { false };      // equal scaled
+  bool                         followMouse_      { true };       // track object under mouse
+  bool                         autoFit_          { false };      // auto fit on data change
+  bool                         needsAutoFit_     { false };      // needs auto fit on next draw
+  bool                         initObjTree_      { false };      // needs init obj tree
+  bool                         preview_          { false };      // is preview plot
+  int                          previewMaxRows_   { 1000 };       // preview max rows
+  bool                         sequential_       { false };      // is sequential plot
+  bool                         queueUpdate_      { true };       // is queued udate
+  bool                         bufferSymbols_    { false };      // buffer symbols
+  bool                         showBoxes_        { false };      // show debug boxes
+  bool                         overview_         { false };      // is overview
+  bool                         invertX_          { false };      // x values inverted
+  bool                         invertY_          { false };      // y values inverted
+  bool                         logX_             { false };      // x values log scaled
+  bool                         logY_             { false };      // y values log scaled
+  bool                         noData_           { false };      // is no data
+  bool                         debugUpdate_      { false };      // debug update
+  ConnectData                  connectData_;                     // associated plot data
+  PlotObjs                     plotObjs_;                        // plot objects
+  int                          insideInd_        { 0 };          // current inside object ind
+  ObjSet                       insideObjs_;                      // inside plot objects
+  SizeObjSet                   sizeInsideObjs_;                  // inside plot objects
+                                                                 // (size sorted)
+  CQChartsPlotObjTree*         plotObjTree_      { nullptr };    // plot object quad tree
+  UpdateData                   updateData_;                      // update data
+  MouseData                    mouseData_;                       // mouse event data
+  AnimateData                  animateData_;                     // animation data
+  Buffers                      buffers_;                         // draw layer buffers
+  Layers                       layers_;                          // draw layers
+  mutable CQChartsBuffer::Type drawBuffer_;                      // objects draw buffer
+  mutable CQChartsLayer::Type  drawLayer_;                       // objects draw layer
+  IdHidden                     idHidden_;                        // hidden object ids
+  IndexColumnRows              selIndexColumnRows_;              // sel model indices (by col/row)
+  QItemSelection               itemSelection_;                   // selected model indices
+  CQChartsEditHandles          editHandles_;                     // edit controls
+  Annotations                  annotations_;                     // extra annotations
+  UpdatesData                  updatesData_;                     // updates data
+  bool                         fromInvalidate_   { false };      // call from invalidate
 };
 
 //------

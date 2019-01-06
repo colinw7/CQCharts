@@ -4,6 +4,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsColumnBucket.h>
+#include <future>
 
 //---
 
@@ -143,6 +144,7 @@ class CQChartsGroupPlot : public CQChartsPlot {
   CQChartsColumn        groupColumn_;             // group column
   CQChartsGroupData     groupData_;               // grouping data
   CQChartsColumnBucket* groupBucket_ { nullptr }; // group column bucket
+  mutable std::mutex    mutex_;
 };
 
 #endif

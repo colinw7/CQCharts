@@ -190,7 +190,7 @@ class CQChartsHull3D {
       v_[2] = z;
 
       num_       = 0;
-      duplicate_ = NULL;
+      duplicate_ = nullptr;
       onHull_    = false;
       mark_      = false;
 
@@ -204,7 +204,7 @@ class CQChartsHull3D {
     }
 
     void reset() {
-      duplicate_ = NULL;
+      duplicate_ = nullptr;
       onHull_    = false;
       mark_      = false;
     }
@@ -260,11 +260,11 @@ class CQChartsHull3D {
    private:
     static uint count_;
 
-    double v_[3];
-    uint   num_;
-    Edge*  duplicate_; /* pointer to incident cone edge (or NULL) */
-    bool   onHull_;    /* true iff point on hull. */
-    bool   mark_;      /* true iff point already processed. */
+    double v_[3];                  // vertices
+    uint   num_       { 0 };       // vertex number
+    Edge*  duplicate_ { nullptr }; // pointer to incident cone edge (or NULL)
+    bool   onHull_    { false };   // true iff point on hull.
+    bool   mark_      { false };   // true iff point already processed.
   };
 
   typedef Vertex *PVertex;
@@ -377,8 +377,8 @@ class CQChartsHull3D {
    public:
     Face() {
       for (uint i = 0; i < 3; ++i) {
-        edge_  [i] = 0;
-        vertex_[i] = 0;
+        edge_  [i] = nullptr;
+        vertex_[i] = nullptr;
       }
 
       visible_ = false;
@@ -386,7 +386,7 @@ class CQChartsHull3D {
 
       color_ = -1;
 
-      vv_ = 0;
+      vv_ = nullptr;
     }
 
     Edge *edge(uint i) const { return edge_[i]; }
@@ -450,12 +450,12 @@ class CQChartsHull3D {
     }
 
    private:
-    Edge*   edge_[3];
-    Vertex* vertex_[3];
-    bool    visible_; // true iff face visible from new point
-    bool    lower_;   // true iff is lower face
-    int     color_;
-    Vertex* vv_;      // voronoi vertex
+    Edge*   edge_  [3];           // edges
+    Vertex* vertex_[3];           // vertices
+    bool    visible_ { false };   // true iff face visible from new point
+    bool    lower_   { false };   // true iff is lower face
+    int     color_   { -1 };      // face color
+    Vertex* vv_      { nullptr }; // voronoi vertex
   };
 
   typedef Face *PFace;
@@ -488,14 +488,14 @@ class CQChartsHull3D {
   typedef Edge::iterator   EdgeIterator;
   typedef Face::iterator   FaceIterator;
 
-  VertexIterator verticesBegin() { return vertices_->beginIterator(); }
-  VertexIterator verticesEnd  () { return vertices_->endIterator  (); }
+  VertexIterator verticesBegin() { assert(vertices_); return vertices_->beginIterator(); }
+  VertexIterator verticesEnd  () { assert(vertices_); return vertices_->endIterator  (); }
 
-  EdgeIterator edgesBegin() { return edges_->beginIterator(); }
-  EdgeIterator edgesEnd  () { return edges_->endIterator  (); }
+  EdgeIterator edgesBegin() { assert(edges_); return edges_->beginIterator(); }
+  EdgeIterator edgesEnd  () { assert(edges_); return edges_->endIterator  (); }
 
-  FaceIterator facesBegin() { return faces_->begin(); }
-  FaceIterator facesEnd  () { return faces_->end  (); }
+  FaceIterator facesBegin() { assert(faces_); return faces_->begin(); }
+  FaceIterator facesEnd  () { assert(faces_); return faces_->end  (); }
 
   EdgeIterator voronoiEdgesBegin() { return vedges_->beginIterator(); }
   EdgeIterator voronoiEdgesEnd  () { return vedges_->endIterator  (); }

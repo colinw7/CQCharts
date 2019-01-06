@@ -36,7 +36,7 @@ bool formatColumnValue(CQCharts *charts, const QAbstractItemModel *model,
                        const CQChartsColumn &column, double value, QString &str);
 
 bool formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
-                           const CQChartsColumn &column, CQChartsColumnType *typeData,
+                           const CQChartsColumn &column, const CQChartsColumnType *typeData,
                            const CQChartsNameValues &nameValues, double value, QString &str);
 
 QVariant columnDisplayData(CQCharts *charts, const QAbstractItemModel *model,

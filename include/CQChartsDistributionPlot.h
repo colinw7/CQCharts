@@ -3,10 +3,11 @@
 
 #include <CQChartsBarPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsDataLabel.h>
 #include <CQChartsColor.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsDensity.h>
+
+class CQChartsDataLabel;
 
 //---
 
@@ -108,7 +109,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   void draw(QPainter *painter) override;
 
-  void drawFg(QPainter *painter) override;
+  void drawFg(QPainter *painter) const override;
 
   void drawRug(QPainter *painter) const;
 
@@ -139,7 +140,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   int                             nv_       { -1 };
   double                          value1_   { 0.0 };
   double                          value2_   { 1.0 };
-  mutable ColorData               colorData_;
+  ColorData                       colorData_;
 };
 
 //---
@@ -209,7 +210,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   void draw(QPainter *painter) override;
 
-  void drawFg(QPainter *painter) override;
+  void drawFg(QPainter *painter) const override;
 
   void drawMeanLine(QPainter *painter) const;
 
@@ -494,8 +495,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
-  CQChartsDataLabel &dataLabel() { return dataLabel_; }
+  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
+  CQChartsDataLabel *dataLabel() { return dataLabel_; }
 
   CQChartsGeom::BBox annotationBBox() const override;
 
@@ -511,9 +512,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
   //---
 
@@ -532,7 +533,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   bool hasForeground() const override;
 
-  void drawForeground(QPainter *) override;
+  void drawForeground(QPainter *) const override;
 
   void drawMeanLine(QPainter *) const;
 
@@ -576,7 +577,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   using BarValue = CQChartsDistributionBarValue;
 
  public:
-  void calcVarIndsData(VariantIndsData &varInds);
+  void calcVarIndsData(VariantIndsData &varInds) const;
 
   BarValue varIndsValue(const VariantIndsData &varInds) const;
 
@@ -617,15 +618,15 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   using GroupBucketRange = std::map<int,CQChartsGeom::IMinMax>;
 
  private:
-  void bucketGroupValues();
+  void bucketGroupValues() const;
 
-  CQChartsGeom::Range calcBucketRanges();
+  CQChartsGeom::Range calcBucketRanges() const;
 
-  void clearGroupValues();
+  void clearGroupValues() const;
 
-  void addRow(const ModelVisitor::VisitData &data);
+  void addRow(const ModelVisitor::VisitData &data) const;
 
-  void addRowColumn(const CQChartsModelIndex &ind);
+  void addRowColumn(const CQChartsModelIndex &ind) const;
 
   //---
 
@@ -707,25 +708,30 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     CQChartsLength width   { "3px" }; // width
   };
 
-  CQChartsColumn    nameColumn_;                          // name column
-  CQChartsColumn    dataColumn_;                          // data column
-  PlotType          plotType_       { PlotType::NORMAL }; // plot type
-  ValueType         valueType_      { ValueType::COUNT }; // show value count
-  bool              percent_        { false };            // percent values
-  bool              skipEmpty_      { false };            // skip empty buckets (non cont range)
-  bool              sorted_         { false };            // sort by count
-  DensityData       densityData_;                         // density data
-  ScatterData       scatterData_;                         // scatter data
-  DotLineData       dotLineData_;                         // show dot lines
-  bool              rug_            { false };            // show rug
-  bool              showMean_       { false };            // show mean
-  CQChartsDataLabel dataLabel_;                           // data label data
-  GroupValues       groupValues_;                         // grouped value sets
-  GroupBucketer     groupBucketer_;                       // group bucketer
-  CQBucketer        bucketer_;                            // shared bucketer
-  bool              bucketed_       { true };             // is bucketed
-  FilterStack       filterStack_;                         // filter stack
-  GroupBucketRange  groupBucketRange_;                    // bucketer per group
+  struct GroupData {
+    GroupValues      groupValues;      // grouped value sets
+    GroupBucketer    groupBucketer;    // group bucketer
+    GroupBucketRange groupBucketRange; // bucketer per group
+  };
+
+  CQChartsColumn     nameColumn_;                          // name column
+  CQChartsColumn     dataColumn_;                          // data column
+  PlotType           plotType_       { PlotType::NORMAL }; // plot type
+  ValueType          valueType_      { ValueType::COUNT }; // show value count
+  bool               percent_        { false };            // percent values
+  bool               skipEmpty_      { false };            // skip empty buckets (non cont range)
+  bool               sorted_         { false };            // sort by count
+  DensityData        densityData_;                         // density data
+  ScatterData        scatterData_;                         // scatter data
+  DotLineData        dotLineData_;                         // show dot lines
+  bool               rug_            { false };            // show rug
+  bool               showMean_       { false };            // show mean
+  CQChartsDataLabel* dataLabel_      { nullptr };          // data label data
+  CQBucketer         bucketer_;                            // shared bucketer
+  bool               bucketed_       { true };             // is bucketed
+  FilterStack        filterStack_;                         // filter stack
+  GroupData          groupData_;                           // grouped value sets
+  mutable std::mutex mutex_;                               // mutex
 };
 
 #endif

@@ -153,6 +153,9 @@ CQChartsView::
 
   //---
 
+  delete ipainter_;
+  delete image_;
+
   delete propertyModel_;
 
   delete keyObj_;
@@ -1011,6 +1014,8 @@ initOverlayPlot(CQChartsPlot *firstPlot)
 
   //---
 
+  firstPlot->updateOverlay();
+
   firstPlot->updateObjs();
 
   //---
@@ -1059,6 +1064,10 @@ initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
 //  plot2->setDataBackground(false);
   }
 
+  //---
+
+  plot1->updateOverlay();
+
   emit connectDataChanged();
 }
 
@@ -1102,6 +1111,10 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
 //  plot2->setBackground    (false);
 //  plot2->setDataBackground(false);
   }
+
+  //---
+
+  plot1->updateOverlay();
 
   emit connectDataChanged();
 }
@@ -1975,6 +1988,23 @@ void
 CQChartsView::
 doResize(int w, int h)
 {
+  lockPainter(true);
+
+  //---
+
+  for (const auto &plot : plots_)
+    plot->preResize();
+
+  //---
+
+  delete ipainter_;
+  delete image_;
+
+  image_    = new QImage(QSize(w, h), QImage::Format_ARGB32);
+  ipainter_ = new QPainter(image_);
+
+  //---
+
   prect_ = CQChartsGeom::BBox(0, 0, w, h);
 
   if (prect().getHeight() > 0)
@@ -1987,6 +2017,10 @@ doResize(int w, int h)
 
   //---
 
+  lockPainter(false);
+
+  //---
+
   for (const auto &plot : plots_)
     plot->postResize();
 }
@@ -1995,9 +2029,15 @@ void
 CQChartsView::
 paintEvent(QPaintEvent *)
 {
+  lockPainter(true);
+
+  paint(ipainter_);
+
   QPainter painter(this);
 
-  paint(&painter);
+  painter.drawImage(0, 0, *image_);
+
+  lockPainter(false);
 }
 
 void
@@ -2042,6 +2082,16 @@ paint(QPainter *painter, CQChartsPlot *plot)
     // draw view key
     key()->draw(painter);
   }
+}
+
+void
+CQChartsView::
+lockPainter(bool lock)
+{
+  if (lock)
+    painterMutex_.lock();
+  else
+    painterMutex_.unlock();
 }
 
 //------
@@ -3259,7 +3309,7 @@ CQChartsView::
 updatePlots()
 {
   for (auto &plot : plots_) {
-    plot->invalidateLayers();
+    plot->queueDrawObjs();
   }
 
   update();

@@ -186,7 +186,7 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
 
     if (columnTypeMgr->getModelColumnType(model, icolumn, columnType, columnBaseType, nameValues)) {
       if (column.type() == CQChartsColumn::Type::DATA_INDEX) {
-        CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+        const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
 
         if (typeData) {
           columnType = typeData->indexType(column.index());
@@ -229,7 +229,7 @@ formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
-  CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
+  const CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
 
   if (! typeData)
     return false;
@@ -251,7 +251,7 @@ formatColumnValue(CQCharts *charts, const QAbstractItemModel *model, const CQCha
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
-  CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+  const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
 
   if (! typeData)
     return false;
@@ -261,7 +261,7 @@ formatColumnValue(CQCharts *charts, const QAbstractItemModel *model, const CQCha
 
 bool
 formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
-                      const CQChartsColumn &column, CQChartsColumnType *typeData,
+                      const CQChartsColumn &column, const CQChartsColumnType *typeData,
                       const CQChartsNameValues &nameValues, double value, QString &str) {
   bool converted;
 
@@ -380,7 +380,7 @@ setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColu
   // decode to type name and name values
   CQChartsNameValues nameValues;
 
-  CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
+  const CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
 
   if (! typeData)
     return false;
@@ -753,7 +753,7 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
 
     CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
-    CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
 
     return typeData->indexVar(var, column.index());
   }

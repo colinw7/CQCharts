@@ -32,14 +32,17 @@ void
 CQChartsTitle::
 setSelected(bool b)
 {
-  CQChartsUtil::testAndSet(selected_, b, [&]() { plot_->invalidateLayers(); } );
+  CQChartsUtil::testAndSet(selected_, b, [&]() { plot_->queueDrawObjs(); } );
 }
 
 void
 CQChartsTitle::
-redraw()
+redraw(bool wait)
 {
-  plot_->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+  if (wait)
+    plot_->queueDrawForeground();
+  else
+    plot_->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
 }
 
 QString
@@ -252,7 +255,7 @@ editMove(const CQChartsGeom::Point &p)
 
   editHandles_.setDragPos(p);
 
-  redraw();
+  redraw(/*wait*/false);
 
   return true;
 }
@@ -279,7 +282,7 @@ editMoveBy(const QPointF &d)
 
   setAbsPlotPosition(position_ + d);
 
-  redraw();
+  redraw(/*wait*/false);
 }
 
 //------
@@ -361,12 +364,12 @@ draw(QPainter *painter)
 
   //---
 
-  // set pen
+  // set text pen
   QPen pen;
 
   QColor tc = interpTextColor(0, 1);
 
-  plot()->setPen(pen, true, tc, textAlpha(), CQChartsLength("0px"));
+  plot()->setPen(pen, true, tc, textAlpha());
 
   painter->setPen(pen);
 
@@ -400,12 +403,12 @@ draw(QPainter *painter)
 
 void
 CQChartsTitle::
-drawEditHandles(QPainter *painter)
+drawEditHandles(QPainter *painter) const
 {
   assert(plot_->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
   if (location_.location != LocationType::ABS_RECT)
-    editHandles_.setBBox(this->bbox());
+    const_cast<CQChartsTitle *>(this)->editHandles_.setBBox(this->bbox());
 
   editHandles_.draw(painter);
 }

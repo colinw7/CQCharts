@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QSharedPointer>
 #include <QModelIndex>
+#include <future>
 
 class CQChartsModelDetails;
 class CQCharts;
@@ -142,6 +143,7 @@ class CQChartsModelData : public QObject {
   CQSummaryModel*       summaryModel_     { nullptr }; // summary model
   ModelP                summaryModelP_;                // summary model (shared pointer)
   CQChartsModelData*    summaryModelData_ { nullptr }; // summary model data
+  mutable std::mutex    mutex_;
 };
 
 #endif

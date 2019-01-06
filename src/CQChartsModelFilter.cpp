@@ -503,6 +503,8 @@ data(const QModelIndex &ind, int role) const
       var1 = CQChartsModelUtil::columnDisplayData(charts_, this, ind1.column(), var, converted);
 
       if (converted) {
+        std::unique_lock<std::mutex> lock(mutex_);
+
         CQChartsModelFilter *th = const_cast<CQChartsModelFilter *>(this);
 
         CQDataModel *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
@@ -520,6 +522,8 @@ data(const QModelIndex &ind, int role) const
       var1 = CQChartsModelUtil::columnUserData(charts_, this, ind1.column(), var, converted);
 
       if (converted) {
+        std::unique_lock<std::mutex> lock(mutex_);
+
         CQChartsModelFilter *th = const_cast<CQChartsModelFilter *>(this);
 
         CQDataModel *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());

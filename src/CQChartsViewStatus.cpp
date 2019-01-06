@@ -23,15 +23,9 @@ CQChartsViewStatus(CQChartsWindow *window) :
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setMargin(0); layout->setSpacing(2);
 
-  statusLabel_ = new QLabel;
-
-  statusLabel_->setObjectName("status");
-
-  posLabel_ = new CQChartsViewStatusPos(this);
-
-  selLabel_ = new QLabel;
-
-  selLabel_->setObjectName("sel");
+  statusLabel_ = new CQChartsViewStatusStatus(this);
+  posLabel_    = new CQChartsViewStatusPos   (this);
+  selLabel_    = new CQChartsViewStatusSel   (this);
 
   QFontMetricsF fm(font());
 
@@ -47,8 +41,8 @@ CQChartsViewStatus(CQChartsWindow *window) :
   //---
 
   setStatusText("");
-  setPosText("");
-  setSelText("None");
+  setPosText   ("");
+  setSelText   ("None");
 }
 
 QString
@@ -62,7 +56,7 @@ void
 CQChartsViewStatus::
 setStatusText(const QString &s)
 {
-  statusLabel_->setText("<b>Status:</b> " + s);
+  statusLabel_->setText(s);
 
   update();
 }
@@ -94,7 +88,7 @@ void
 CQChartsViewStatus::
 setSelText(const QString &s)
 {
-  selLabel_->setText("<b>Sel:</b> " + s);
+  selLabel_->setText(s);
 
   update();
 }
@@ -106,6 +100,60 @@ sizeHint() const
   QFontMetricsF fm(font());
 
   return QSize(fm.width("XX"), fm.height() + 4);
+}
+
+//------
+
+CQChartsViewStatusStatus::
+CQChartsViewStatusStatus(CQChartsViewStatus *status) :
+ status_(status)
+{
+  setObjectName("status");
+
+  setContextMenuPolicy(Qt::DefaultContextMenu);
+}
+
+void
+CQChartsViewStatusStatus::
+setText(const QString &text)
+{
+  if (active_)
+    text_ = text;
+  else
+    text_ = "";
+
+  QLabel::setText("<b>Status:</b> " + text_);
+}
+
+void
+CQChartsViewStatusStatus::
+contextMenuEvent(QContextMenuEvent *e)
+{
+  QMenu *menu = new QMenu;
+
+  //---
+
+  QAction *activeAction = menu->addAction("Active");
+
+  activeAction->setCheckable(true);
+  activeAction->setChecked  (active_);
+
+  connect(activeAction, SIGNAL(triggered(bool)), this, SLOT(activateSlot(bool)));
+
+  //---
+
+  (void) menu->exec(e->globalPos());
+
+  delete menu;
+}
+
+void
+CQChartsViewStatusStatus::
+activateSlot(bool b)
+{
+  active_ = b;
+
+  setText("");
 }
 
 //------
@@ -123,7 +171,10 @@ void
 CQChartsViewStatusPos::
 setText(const QString &text)
 {
-  text_ = text;
+  if (active_)
+    text_ = text;
+  else
+    text_ = "";
 
   QLabel::setText("<b>Pos:</b> " + text_);
 }
@@ -133,6 +184,21 @@ CQChartsViewStatusPos::
 contextMenuEvent(QContextMenuEvent *e)
 {
   QMenu *menu = new QMenu;
+
+  //---
+
+  QAction *activeAction = menu->addAction("Active");
+
+  activeAction->setCheckable(true);
+  activeAction->setChecked  (active_);
+
+  connect(activeAction, SIGNAL(triggered(bool)), this, SLOT(activateSlot(bool)));
+
+  //---
+
+  menu->addSeparator();
+
+  //---
 
   QActionGroup *actionGroup = new QActionGroup(menu);
 
@@ -163,11 +229,21 @@ contextMenuEvent(QContextMenuEvent *e)
 
   menu->addActions(actionGroup->actions());
 
+  //---
+
   (void) menu->exec(e->globalPos());
 
   delete menu;
 }
 
+void
+CQChartsViewStatusPos::
+activateSlot(bool b)
+{
+  active_ = b;
+
+  setText("");
+}
 void
 CQChartsViewStatusPos::
 posTextTypeAction(QAction *action)
@@ -180,4 +256,58 @@ posTextTypeAction(QAction *action)
     status_->window()->view()->setPosTextType(CQChartsView::PosTextType::VIEW);
   else if (str == "Pixel")
     status_->window()->view()->setPosTextType(CQChartsView::PosTextType::PIXEL);
+}
+
+//------
+
+CQChartsViewStatusSel::
+CQChartsViewStatusSel(CQChartsViewStatus *status) :
+ status_(status)
+{
+  setObjectName("sel");
+
+  setContextMenuPolicy(Qt::DefaultContextMenu);
+}
+
+void
+CQChartsViewStatusSel::
+setText(const QString &text)
+{
+  if (active_)
+    text_ = text;
+  else
+    text_ = "";
+
+  QLabel::setText("<b>Sel:</b> " + text_);
+}
+
+void
+CQChartsViewStatusSel::
+contextMenuEvent(QContextMenuEvent *e)
+{
+  QMenu *menu = new QMenu;
+
+  //---
+
+  QAction *activeAction = menu->addAction("Active");
+
+  activeAction->setCheckable(true);
+  activeAction->setChecked  (active_);
+
+  connect(activeAction, SIGNAL(triggered(bool)), this, SLOT(activateSlot(bool)));
+
+  //---
+
+  (void) menu->exec(e->globalPos());
+
+  delete menu;
+}
+
+void
+CQChartsViewStatusSel::
+activateSlot(bool b)
+{
+  active_ = b;
+
+  setText("");
 }

@@ -107,9 +107,9 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
   //---
 
@@ -119,7 +119,7 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   bool hasForeground() const override;
 
-  void drawForeground(QPainter *) override;
+  void drawForeground(QPainter *) const override;
 
   //---
 
@@ -135,14 +135,12 @@ class CQChartsImagePlot : public CQChartsPlot,
 
  private:
   void addImageObj(int row, int col, double x, double y, double dx, double dy,
-                   double value, const QModelIndex &ind, PlotObjs &objs);
+                   double value, const QModelIndex &ind, PlotObjs &objs) const;
 
   void drawXLabels(QPainter *) const;
   void drawYLabels(QPainter *) const;
 
  private:
-  double minValue_        { 0.0 };   // min value
-  double maxValue_        { 0.0 };   // max value
   bool   xLabels_         { false }; // x labels
   bool   yLabels_         { false }; // y labels
   bool   cellLabels_      { false }; // cell labels
@@ -150,6 +148,8 @@ class CQChartsImagePlot : public CQChartsPlot,
   bool   balloon_         { false }; // draw balloon
   int    nc_              { 0 };     // number of grid columns
   int    nr_              { 0 };     // number of grid rows
+  double minValue_        { 0.0 };   // min value
+  double maxValue_        { 0.0 };   // max value
   double minBalloonSize_  { 0.1 };   // min balloon size (cell fraction)
   double maxBalloonSize_  { 1.0 };   // max balloon size (cell fraction)
 };

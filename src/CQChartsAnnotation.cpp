@@ -252,7 +252,7 @@ editMove(const CQChartsGeom::Point &p)
   editHandles_.setDragPos(p);
 
   if      (plot())
-    plot()->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+    plot()->queueDrawForeground();
   else if (view())
     view()->update();
 
@@ -284,7 +284,7 @@ editMoveBy(const QPointF &f)
   setBBox(editHandles_.bbox(), CQChartsResizeHandle::Side::MOVE);
 
   if      (plot())
-    plot()->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+    plot()->queueDrawForeground();
   else if (view())
     view()->update();
 }
@@ -302,11 +302,11 @@ draw(QPainter *painter)
 
 void
 CQChartsAnnotation::
-drawEditHandles(QPainter *painter)
+drawEditHandles(QPainter *painter) const
 {
   assert(view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
-  editHandles_.setBBox(this->bbox());
+  const_cast<CQChartsAnnotation *>(this)->editHandles_.setBBox(this->bbox());
 
   editHandles_.draw(painter);
 }
@@ -521,6 +521,7 @@ void
 CQChartsRectAnnotation::
 draw(QPainter *painter)
 {
+  // calc box
   QPointF start, end;
 
   if      (plot()) {
@@ -561,6 +562,7 @@ draw(QPainter *painter)
 
   //---
 
+  // draw box
   CQChartsGeom::BBox prect;
 
   if      (plot())
@@ -572,6 +574,7 @@ draw(QPainter *painter)
 
   //---
 
+  // draw base class
   CQChartsAnnotation::draw(painter);
 }
 
@@ -754,6 +757,7 @@ draw(QPainter *painter)
 
   //---
 
+  // set pen and brush
   QPen   pen;
   QBrush brush;
 
@@ -776,11 +780,13 @@ draw(QPainter *painter)
 
   //---
 
+  // draw path
   painter->fillPath  (path, brush);
   painter->strokePath(path, pen  );
 
   //---
 
+  // draw base class
   CQChartsAnnotation::draw(painter);
 }
 
@@ -945,6 +951,7 @@ draw(QPainter *painter)
 
   //---
 
+  // set pen and brush
   QPen   pen;
   QBrush brush;
 
@@ -967,11 +974,13 @@ draw(QPainter *painter)
 
   //---
 
+  // draw path
   painter->fillPath  (path, brush);
   painter->strokePath(path, pen  );
 
   //---
 
+  // draw base class
   CQChartsAnnotation::draw(painter);
 }
 
@@ -1161,6 +1170,7 @@ draw(QPainter *painter)
 
   //---
 
+  // set pen
   QPen pen;
 
   QColor borderColor = interpBorderColor(0, 1);
@@ -1170,10 +1180,14 @@ draw(QPainter *painter)
   else if (view())
     view()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());
 
+  //---
+
+  // draw path
   painter->strokePath(path, pen);
 
   //---
 
+  // draw base class
   CQChartsAnnotation::draw(painter);
 }
 
@@ -1493,9 +1507,9 @@ draw(QPainter *painter)
   QColor c = charts()->interpColor(textColor(), 0, 1);
 
   if      (plot())
-    plot()->setPen(pen, true, c, textAlpha(), CQChartsLength("0px"));
+    plot()->setPen(pen, true, c, textAlpha());
   else if (view())
-    view()->setPen(pen, true, c, textAlpha(), CQChartsLength("0px"));
+    view()->setPen(pen, true, c, textAlpha());
 
   brush.setStyle(Qt::NoBrush);
 
@@ -1508,8 +1522,6 @@ draw(QPainter *painter)
   //---
 
   // draw text
-  QFont font;
-
   if     (plot())
     view()->setPlotPainterFont(plot(), painter, textFont());
   else if (view())
@@ -1537,6 +1549,8 @@ draw(QPainter *painter)
       view()->drawTextInBox(painter, trect, textStr(), pen, textOptions);
   }
   else {
+    QFont font;
+
     double w, h;
 
     calcTextSize(w, h);
@@ -1582,6 +1596,7 @@ draw(QPainter *painter)
 
   //---
 
+  // draw base class
   CQChartsAnnotation::draw(painter);
 }
 
@@ -1795,6 +1810,7 @@ void
 CQChartsArrowAnnotation::
 draw(QPainter *painter)
 {
+  // calc box
   QPointF start, end;
 
   if      (plot()) {
@@ -1846,13 +1862,19 @@ draw(QPainter *painter)
 
   //---
 
+  // draw arrow
+  disconnect(arrow_, SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+
   arrow_->setFrom(start);
   arrow_->setTo  (end  );
 
   arrow_->draw(painter);
 
+  connect(arrow_, SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+
   //---
 
+  // draw base class
   CQChartsAnnotation::draw(painter);
 }
 
@@ -2036,6 +2058,7 @@ draw(QPainter *painter)
 
   //---
 
+  // set pen and brush
   QPen   pen;
   QBrush brush;
 
@@ -2064,6 +2087,7 @@ draw(QPainter *painter)
 
   //---
 
+  // draw symbol
   CQChartsSymbol2DRenderer srenderer(painter, CQChartsGeom::Point(px, py),
                                      CMathUtil::avg(sw, sh));
 
@@ -2075,6 +2099,7 @@ draw(QPainter *painter)
 
   //---
 
+  // draw base class
   CQChartsAnnotation::draw(painter);
 }
 

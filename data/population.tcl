@@ -90,7 +90,7 @@ plotYear $::year
 
 set ::viewId [get_charts_property -plot $::plot1Id -name viewId]
 
-set dtx [measure_charts_text -view $::viewId -name width -data "xx"]
+set dtx [measure_charts_text -view $::viewId -name width -text "xx"]
 puts $dtx
 
 set tx [expr {2*$dtx}]
@@ -100,19 +100,19 @@ set ty 97
 
 set text1Id [create_text_annotation -view $::viewId -id prev -position [list $tx $ty] -text "Prev" -border 1 -background 1]
 
-set tw [measure_charts_text -view $::viewId -name width -data "Prev"]
+set tw [measure_charts_text -view $::viewId -name width -text "Prev"]
 set tx [expr {$tx + $tw + $dtx}]
 puts $tx
 
 set text2Id [create_text_annotation -view $::viewId -id next -position [list $tx $ty] -text "Next" -border 1 -background 1]
 
-set tw [measure_charts_text -view $::viewId -name width -data "Next"]
+set tw [measure_charts_text -view $::viewId -name width -text "Next"]
 set tx [expr {$tx + $tw + 2*$dtx}]
 puts $tx
 
 set text3Id [create_text_annotation -view $::viewId -id overlay -position [list $tx $ty] -text "Overlay" -border 1 -background 1]
 
-set tw [measure_charts_text -view $::viewId -name width -data "Overlay"]
+set tw [measure_charts_text -view $::viewId -name width -text "Overlay"]
 set tx [expr {$tx + $tw + $dtx}]
 puts $tx
 

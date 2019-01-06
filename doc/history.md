@@ -722,3 +722,14 @@
  + Support symbol image buffer using environment variable
 # 12/29/2018
  + improve const correctness
+# 1/6/2019
+ + add thread support for calc range, create objs and draw objs
+ + create box plot outliers as separate interactive objects
+ + support gap between pie chart segments
+ + improve customization of pie segment fill/stroke
+ + allow change gap in chord plot
+ + support role and unset value in column edit
+ + cache column type per model
+ + allow disable status bar widgets
+ + more const correctness
+ + fix bivariare xy line customization

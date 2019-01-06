@@ -4,8 +4,9 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsDataLabel.h>
 #include <CQChartsStyle.h>
+
+class CQChartsDataLabel;
 
 //---
 
@@ -71,7 +72,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
   void draw(QPainter *painter) override;
 
-  void drawFg(QPainter *painter) override;
+  void drawFg(QPainter *painter) const override;
 
  private:
   const CQChartsGeometryPlot* plot_  { nullptr }; // parent plot
@@ -139,47 +140,48 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   //---
 
-  double minValue() const { return minValue_; }
+  double minValue() const;
   void setMinValue(double r);
 
-  double maxValue() const { return maxValue_; }
+  double maxValue() const;
   void setMaxValue(double r);
 
   //---
 
-  const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
-  CQChartsDataLabel &dataLabel() { return dataLabel_; }
+  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
+  CQChartsDataLabel *dataLabel() { return dataLabel_; }
 
   //---
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
   //---
 
  private:
   void addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
-              CQChartsGeom::Range &dataRange);
+              CQChartsGeom::Range &dataRange) const;
 
   bool decodeGeometry(const QString &geomStr, Polygons &polygons) const;
 
  private:
   using Geometries = std::vector<Geometry>;
 
-  CQChartsColumn    nameColumn_;                              // name column
-  CQChartsColumn    geometryColumn_;                          // geometry column
-  CQChartsColumn    valueColumn_;                             // value column
-  CQChartsColumn    styleColumn_;                             // style column
-  ColumnType        geometryColumnType_ { ColumnType::NONE }; // geometry column type
-  ColumnType        colorColumnType_    { ColumnType::NONE }; // color column type
-  ColumnType        styleColumnType_    { ColumnType::NONE }; // style column type
-  Geometries        geometries_;                              // geometry shapes
-  double            minValue_           { 0.0 };              // min value
-  double            maxValue_           { 0.0 };              // max value
-  CQChartsDataLabel dataLabel_;                               // data label style
+  CQChartsColumn        nameColumn_;                              // name column
+  CQChartsColumn        geometryColumn_;                          // geometry column
+  CQChartsColumn        valueColumn_;                             // value column
+  CQChartsColumn        styleColumn_;                             // style column
+  CQChartsDataLabel*    dataLabel_          { nullptr };          // data label style
+  OptReal               minValue_;                                // user min value
+  OptReal               maxValue_;                                // user max value
+  CQChartsGeom::RMinMax valueRange_;                              // data value range
+  ColumnType            geometryColumnType_ { ColumnType::NONE }; // geometry column type
+  ColumnType            colorColumnType_    { ColumnType::NONE }; // color column type
+  ColumnType            styleColumnType_    { ColumnType::NONE }; // style column type
+  Geometries            geometries_;                              // geometry shapes
 };
 
 #endif

@@ -108,16 +108,16 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
-  void addNameValue(const QString &name, double value);
+  void addNameValue(const QString &name, double value) const;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
   //---
 
-  void addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth, PlotObjs &objs);
-  void addNodeObj (CQChartsDendrogram::Node *node, PlotObjs &objs);
+  void addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth, PlotObjs &objs) const;
+  void addNodeObj (CQChartsDendrogram::Node *node, PlotObjs &objs) const;
 
   //---
 
@@ -127,7 +127,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   bool hasForeground() const override;
 
-  void drawForeground(QPainter *) override;
+  void drawForeground(QPainter *) const override;
 
   void drawNodes(QPainter *painter, CQChartsDendrogram::HierNode *hier, int depth) const;
 
@@ -138,8 +138,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
   CQChartsColumn      nameColumn_;              // name column
   CQChartsColumn      valueColumn_;             // value column
   CQChartsDendrogram* dendrogram_  { nullptr }; // dendogram class
-  double              circleSize_  { 8 };       // circle size
-  double              textMargin_  { 4 };       // text margin
+  double              circleSize_  { 8.0 };     // circle size
+  double              textMargin_  { 4.0 };     // text margin
 };
 
 #endif

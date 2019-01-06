@@ -3,8 +3,9 @@
 
 #include <CQChartsBarPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsDataLabel.h>
 #include <CQChartsColor.h>
+
+class CQChartsDataLabel;
 
 //---
 
@@ -193,7 +194,7 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   void draw(QPainter *painter) override;
 
-  void drawFg(QPainter *painter) override;
+  void drawFg(QPainter *painter) const override;
 
   const CQChartsBarChartValue *value() const;
 
@@ -335,8 +336,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
-  const CQChartsDataLabel &dataLabel() const { return *dataLabel_; }
-  CQChartsDataLabel &dataLabel() { return *dataLabel_; }
+  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
+  CQChartsDataLabel *dataLabel() { return dataLabel_; }
 
   //---
 
@@ -346,9 +347,9 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
   //---
 
@@ -404,22 +405,36 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   void addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns,
                     CQChartsGeom::Range &dataRange) const;
 
-  void initAxes();
+  void initRangeAxes();
+
+  void initObjAxes();
 
  private:
   using ValueSets     = std::vector<CQChartsBarChartValueSet>;
   using ValueNames    = std::vector<QString>;
   using ValueGroupInd = std::map<int,int>;
 
+  struct ValueData {
+    ValueSets     valueSets;     // value sets
+    ValueGroupInd valueGroupInd; // group ind to value index map
+
+    void clear() {
+      valueSets    .clear();
+      valueGroupInd.clear();
+    }
+  };
+
  public:
-  int numValueSets() const { return valueSets_.size(); }
+  int numValueSets() const { return valueData_.valueSets.size(); }
 
   const CQChartsBarChartValueSet &valueSet(int i) const {
-    assert(i >= 0 && i < int(valueSets_.size()));
-    return valueSets_[i];
+    assert(i >= 0 && i < int(valueData_.valueSets.size()));
+    return valueData_.valueSets[i];
   }
 
-  int numSetValues() const { return (! valueSets_.empty() ? valueSets_[0].numValues() : 0); }
+  int numSetValues() const {
+    return (! valueData_.valueSets.empty() ? valueData_.valueSets[0].numValues() : 0);
+  }
 
  private:
   const CQChartsBarChartValueSet *groupValueSet(int groupId) const;
@@ -435,10 +450,9 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   bool               dotLines_       { false };            // show dot lines
   CQChartsLength     dotLineWidth_   { "3px" };            // dot line width
   CQChartsDataLabel* dataLabel_      { nullptr };          // data label data
-  ValueSets          valueSets_;                           // value sets
-  ValueGroupInd      valueGroupInd_;                       // group ind to value index map
   int                numVisible_     { 0 };                // number of visible bars
-  mutable double     barWidth_       { 1.0 };              // bar width
+  double             barWidth_       { 1.0 };              // bar width
+  ValueData          valueData_;                           // value data
 };
 
 #endif

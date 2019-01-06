@@ -12,7 +12,9 @@
 #include <CQChartsTypes.h>
 #include <QFrame>
 #include <QTimer>
+
 #include <set>
+#include <future>
 
 class CQCharts;
 class CQChartsWindow;
@@ -148,6 +150,10 @@ class CQChartsView : public QFrame,
 
   CQChartsWindow *window() const { return window_; }
   void setWindow(CQChartsWindow *window) { window_ = window; }
+
+  //---
+
+  QPainter *ipainter() const { return ipainter_; }
 
   //---
 
@@ -369,6 +375,8 @@ class CQChartsView : public QFrame,
   void paintEvent(QPaintEvent *) override;
 
   void paint(QPainter *painter, CQChartsPlot *plot=nullptr);
+
+  void lockPainter(bool lock);
 
   //---
 
@@ -678,6 +686,8 @@ class CQChartsView : public QFrame,
 
   CQCharts*             charts_           { nullptr };           // parent charts
   CQChartsWindow*       window_           { nullptr };           // parent window
+  QImage*               image_            { nullptr };           // image buffer
+  QPainter*             ipainter_         { nullptr };           // image painter
   CQChartsDisplayRange* displayRange_     { nullptr };           // display range
   CQPropertyViewModel*  propertyModel_    { nullptr };           // property model
   QString               id_;                                     // view id
@@ -708,6 +718,7 @@ class CQChartsView : public QFrame,
   ProbeBands            probeBands_;                             // probe lines
   QMenu*                popupMenu_        { nullptr };           // context menu
   QSize                 viewSizeHint_;                           // view size hint
+  mutable std::mutex    painterMutex_;
 };
 
 #endif

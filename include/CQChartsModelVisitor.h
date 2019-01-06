@@ -3,6 +3,7 @@
 
 #include <QAbstractItemModel>
 #include <QModelIndex>
+#include <future>
 
 class CQCharts;
 class QAbstractItemModel;
@@ -74,6 +75,7 @@ class CQChartsModelVisitor {
   int                       maxRows_      { -1 };
   bool                      hierarchical_ { false };
   bool                      hierSet_      { false };
+  mutable std::mutex        mutex_;
 };
 
 //---

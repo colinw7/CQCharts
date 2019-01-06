@@ -11,6 +11,7 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsVariant.h>
 #include <CQChartsTip.h>
+#include <CQChartsDataLabel.h>
 #include <CQCharts.h>
 #include <CQPerfMonitor.h>
 #include <CMathCorrelation.h>
@@ -93,10 +94,11 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjBestFitShapeData <CQChartsScatterPlot>(this),
  CQChartsObjHullShapeData    <CQChartsScatterPlot>(this),
  CQChartsObjRugPointData     <CQChartsScatterPlot>(this),
- CQChartsObjGridCellShapeData<CQChartsScatterPlot>(this),
- dataLabel_(this)
+ CQChartsObjGridCellShapeData<CQChartsScatterPlot>(this)
 {
   NoUpdate noUpdate(this);
+
+  dataLabel_ = new CQChartsDataLabel(this);
 
   // set mapped range
   setSymbolTypeMapped(true);
@@ -136,27 +138,33 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   addTitle();
 }
 
+CQChartsScatterPlot::
+~CQChartsScatterPlot()
+{
+  delete dataLabel_;
+}
+
 //------
 
 void
 CQChartsScatterPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setXColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setYColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -165,21 +173,21 @@ void
 CQChartsScatterPlot::
 setGridded(bool b)
 {
-  CQChartsUtil::testAndSet(gridData_.enabled, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(gridData_.enabled, b, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setGridNumX(int n)
 {
-  CQChartsUtil::testAndSet(gridData_.nx, n, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(gridData_.nx, n, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setGridNumY(int n)
 {
-  CQChartsUtil::testAndSet(gridData_.ny, n, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(gridData_.ny, n, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -188,21 +196,21 @@ void
 CQChartsScatterPlot::
 setSymbolMapKey(bool b)
 {
-  CQChartsUtil::testAndSet(symbolMapKeyData_.displayed, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(symbolMapKeyData_.displayed, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setSymbolMapKeyAlpha(double a)
 {
-  CQChartsUtil::testAndSet(symbolMapKeyData_.alpha, a, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(symbolMapKeyData_.alpha, a, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setSymbolMapKeyMargin(double m)
 {
-  CQChartsUtil::testAndSet(symbolMapKeyData_.margin, m, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(symbolMapKeyData_.margin, m, [&]() { queueDrawObjs(); } );
 }
 
 //---
@@ -218,7 +226,7 @@ void
 CQChartsScatterPlot::
 setSymbolTypeColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.column, c, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(symbolTypeData_.column, c, [&]() { queueUpdateObjs(); } );
 }
 
 bool
@@ -232,7 +240,7 @@ void
 CQChartsScatterPlot::
 setSymbolTypeMapped(bool b)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.mapped, b, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(symbolTypeData_.mapped, b, [&]() { queueUpdateObjs(); } );
 }
 
 int
@@ -246,7 +254,7 @@ void
 CQChartsScatterPlot::
 setSymbolTypeMapMin(int i)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.map_min, i, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(symbolTypeData_.map_min, i, [&]() { queueUpdateObjs(); } );
 }
 
 int
@@ -260,7 +268,7 @@ void
 CQChartsScatterPlot::
 setSymbolTypeMapMax(int i)
 {
-  CQChartsUtil::testAndSet(symbolTypeData_.map_max, i, [&]() { updateObjs(); } );
+  CQChartsUtil::testAndSet(symbolTypeData_.map_max, i, [&]() { queueUpdateObjs(); } );
 }
 
 //---
@@ -276,7 +284,7 @@ void
 CQChartsScatterPlot::
 setSymbolSizeColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.column, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(symbolSizeData_.column, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 bool
@@ -290,7 +298,7 @@ void
 CQChartsScatterPlot::
 setSymbolSizeMapped(bool b)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.mapped, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(symbolSizeData_.mapped, b, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 double
@@ -304,7 +312,7 @@ void
 CQChartsScatterPlot::
 setSymbolSizeMapMin(double r)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.map_min, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(symbolSizeData_.map_min, r, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 double
@@ -318,7 +326,7 @@ void
 CQChartsScatterPlot::
 setSymbolSizeMapMax(double r)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.map_max, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(symbolSizeData_.map_max, r, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 const QString &
@@ -332,7 +340,7 @@ void
 CQChartsScatterPlot::
 setSymbolSizeMapUnits(const QString &s)
 {
-  CQChartsUtil::testAndSet(symbolSizeData_.units, s, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(symbolSizeData_.units, s, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -348,7 +356,7 @@ void
 CQChartsScatterPlot::
 setFontSizeColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.column, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(fontSizeData_.column, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 bool
@@ -362,7 +370,7 @@ void
 CQChartsScatterPlot::
 setFontSizeMapped(bool b)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.mapped, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(fontSizeData_.mapped, b, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 double
@@ -376,7 +384,7 @@ void
 CQChartsScatterPlot::
 setFontSizeMapMin(double r)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.map_min, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(fontSizeData_.map_min, r, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 double
@@ -390,7 +398,7 @@ void
 CQChartsScatterPlot::
 setFontSizeMapMax(double r)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.map_max, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(fontSizeData_.map_max, r, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 const QString &
@@ -404,18 +412,34 @@ void
 CQChartsScatterPlot::
 setFontSizeMapUnits(const QString &s)
 {
-  CQChartsUtil::testAndSet(fontSizeData_.units, s, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(fontSizeData_.units, s, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
+
+bool
+CQChartsScatterPlot::
+isTextLabels() const
+{
+  return dataLabel_->isVisible();
+}
 
 void
 CQChartsScatterPlot::
 setTextLabels(bool b)
 {
-  dataLabel().setVisible(b);
+  if (b != isTextLabels()) { dataLabel()->setVisible(b); queueDrawObjs(); }
+}
 
-  invalidateLayers();
+void
+CQChartsScatterPlot::
+setDataLabelFont(const QFont &font)
+{
+  NoUpdate noUpdate(this);
+
+  CQChartsDataLabel *dataLabel = this->dataLabel();
+
+  dataLabel->setTextFont(font);
 }
 
 //---
@@ -424,21 +448,21 @@ void
 CQChartsScatterPlot::
 setBestFit(bool b)
 {
-  CQChartsUtil::testAndSet(bestFitData_.visible, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(bestFitData_.visible, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setBestFitDeviation(bool b)
 {
-  CQChartsUtil::testAndSet(bestFitData_.showDeviation, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(bestFitData_.showDeviation, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setBestFitOrder(int o)
 {
-  CQChartsUtil::testAndSet(bestFitData_.order, o, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(bestFitData_.order, o, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -447,7 +471,7 @@ void
 CQChartsScatterPlot::
 setHull(bool b)
 {
-  CQChartsUtil::testAndSet(hullData_.visible, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(hullData_.visible, b, [&]() { queueDrawObjs(); } );
 }
 
 //---
@@ -456,28 +480,28 @@ void
 CQChartsScatterPlot::
 setXRug(bool b)
 {
-  CQChartsUtil::testAndSet(axisRugData_.xVisible, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisRugData_.xVisible, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setYRug(bool b)
 {
-  CQChartsUtil::testAndSet(axisRugData_.yVisible, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisRugData_.yVisible, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setXRugSide(const YSide &s)
 {
-  CQChartsUtil::testAndSet(axisRugData_.xSide, s, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisRugData_.xSide, s, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setYRugSide(const XSide &s)
 {
-  CQChartsUtil::testAndSet(axisRugData_.ySide, s, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisRugData_.ySide, s, [&]() { queueDrawObjs(); } );
 }
 
 //------
@@ -486,42 +510,42 @@ void
 CQChartsScatterPlot::
 setXDensity(bool b)
 {
-  CQChartsUtil::testAndSet(axisDensityData_.xVisible, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisDensityData_.xVisible, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setYDensity(bool b)
 {
-  CQChartsUtil::testAndSet(axisDensityData_.yVisible, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisDensityData_.yVisible, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setXDensitySide(const YSide &s)
 {
-  CQChartsUtil::testAndSet(axisDensityData_.xSide, s, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisDensityData_.xSide, s, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setYDensitySide(const XSide &s)
 {
-  CQChartsUtil::testAndSet(axisDensityData_.ySide, s, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisDensityData_.ySide, s, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setDensityWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(axisDensityData_.width, l, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisDensityData_.width, l, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setDensityAlpha(double a)
 {
-  CQChartsUtil::testAndSet(axisDensityData_.alpha, a, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisDensityData_.alpha, a, [&]() { queueDrawObjs(); } );
 }
 
 //------
@@ -530,21 +554,21 @@ void
 CQChartsScatterPlot::
 setDensityMap(bool b)
 {
-  CQChartsUtil::testAndSet(densityMapData_.visible, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(densityMapData_.visible, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setDensityMapGridSize(int s)
 {
-  CQChartsUtil::testAndSet(densityMapData_.gridSize, s, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(densityMapData_.gridSize, s, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setDensityMapDelta(double d)
 {
-  CQChartsUtil::testAndSet(densityMapData_.delta, d, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(densityMapData_.delta, d, [&]() { queueDrawObjs(); } );
 }
 
 //------
@@ -553,49 +577,49 @@ void
 CQChartsScatterPlot::
 setXWhisker(bool b)
 {
-  CQChartsUtil::testAndSet(axisWhiskerData_.xVisible, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisWhiskerData_.xVisible, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setYWhisker(bool b)
 {
-  CQChartsUtil::testAndSet(axisWhiskerData_.yVisible, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisWhiskerData_.yVisible, b, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setXWhiskerSide(const YSide &s)
 {
-  CQChartsUtil::testAndSet(axisWhiskerData_.xSide, s, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisWhiskerData_.xSide, s, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setYWhiskerSide(const XSide &s)
 {
-  CQChartsUtil::testAndSet(axisWhiskerData_.ySide, s, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisWhiskerData_.ySide, s, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setWhiskerWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(axisWhiskerData_.width, l, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisWhiskerData_.width, l, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setWhiskerMargin(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(axisWhiskerData_.margin, l, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisWhiskerData_.margin, l, [&]() { queueDrawObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setWhiskerAlpha(double a)
 {
-  CQChartsUtil::testAndSet(axisWhiskerData_.alpha, a, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(axisWhiskerData_.alpha, a, [&]() { queueDrawObjs(); } );
 }
 
 //------
@@ -664,7 +688,7 @@ addProperties()
   addSymbolProperties("symbol");
 
   // point data labels
-  dataLabel_.addPathProperties("dataLabel");
+  dataLabel_->addPathProperties("dataLabel");
 
   // grid
   addProperty("grid", this, "gridded" , "enabled");
@@ -703,7 +727,7 @@ addProperties()
 
 CQChartsGeom::Range
 CQChartsScatterPlot::
-calcRange()
+calcRange() const
 {
   CQPerfTrace trace("CQChartsScatterPlot::calcRange");
 
@@ -720,6 +744,9 @@ calcRange()
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      if (plot_->isInterrupt())
+        return State::TERMINATE;
+
       CQChartsModelIndex ind(data.row, plot_->xColumn(), data.parent);
 
       // init group
@@ -782,12 +809,15 @@ calcRange()
 
   visitModel(visitor);
 
-  //---
-
   CQChartsGeom::Range dataRange = visitor.range();
 
   bool uniqueX = visitor.isUniqueX();
   bool uniqueY = visitor.isUniqueY();
+
+  if (isInterrupt())
+    return dataRange;
+
+  //---
 
   if (uniqueX || uniqueY) {
     if (uniqueX) {
@@ -813,7 +843,7 @@ calcRange()
 
   //---
 
-  adjustDataRange();
+  dataRange = adjustDataRange(dataRange);
 
   //---
 
@@ -836,6 +866,30 @@ calcRange()
 
   //---
 
+  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
+  th->initGridData(dataRange);
+
+  //---
+
+  if (isGridded()) {
+    if (dataRange.isSet()) {
+      dataRange.updateRange(gridData_.xinterval.calcStart(), gridData_.yinterval.calcStart());
+      dataRange.updateRange(gridData_.xinterval.calcEnd  (), gridData_.yinterval.calcEnd  ());
+    }
+  }
+
+  //---
+
+  th->initAxes(uniqueX, uniqueY);
+
+  return dataRange;
+}
+
+void
+CQChartsScatterPlot::
+initGridData(const CQChartsGeom::Range &dataRange)
+{
   if (dataRange.isSet()) {
     gridData_.xinterval.setStart   (dataRange.xmin());
     gridData_.xinterval.setEnd     (dataRange.xmax());
@@ -854,21 +908,6 @@ calcRange()
     gridData_.yinterval.setEnd     (1);
     gridData_.yinterval.setNumMajor(1);
   }
-
-  //---
-
-  if (isGridded()) {
-    if (dataRange.isSet()) {
-      dataRange.updateRange(gridData_.xinterval.calcStart(), gridData_.yinterval.calcStart());
-      dataRange.updateRange(gridData_.xinterval.calcEnd  (), gridData_.yinterval.calcEnd  ());
-    }
-  }
-
-  //---
-
-  initAxes(uniqueX, uniqueY);
-
-  return dataRange;
 }
 
 void
@@ -916,11 +955,13 @@ clearPlotObjects()
 
 bool
 CQChartsScatterPlot::
-createObjs(PlotObjs &objs)
+createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsScatterPlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsScatterPlot *>(this));
+  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
+  NoUpdate noUpdate(th);
 
   //---
 
@@ -930,34 +971,34 @@ createObjs(PlotObjs &objs)
   //---
 
   // init name values
-  gridData_.maxN = 0;
+  th->gridData_.maxN = 0;
 
   if (groupNameValues_.empty())
     addNameValues();
 
-  groupPoints_  .clear();
-  groupFitData_ .clear();
-  groupHull_    .clear();
-  groupWhiskers_.clear();
+  th->groupPoints_  .clear();
+  th->groupFitData_ .clear();
+  th->groupHull_    .clear();
+  th->groupWhiskers_.clear();
 
   //---
 
   // get column titles
   bool ok;
 
-  xname_          = modelHeaderString(xColumn         (), ok);
-  yname_          = modelHeaderString(yColumn         (), ok);
-  symbolTypeName_ = modelHeaderString(symbolTypeColumn(), ok);
-  symbolSizeName_ = modelHeaderString(symbolSizeColumn(), ok);
-  fontSizeName_   = modelHeaderString(fontSizeColumn  (), ok);
-  colorName_      = modelHeaderString(colorColumn     (), ok);
+  th->xname_          = modelHeaderString(xColumn         (), ok);
+  th->yname_          = modelHeaderString(yColumn         (), ok);
+  th->symbolTypeName_ = modelHeaderString(symbolTypeColumn(), ok);
+  th->symbolSizeName_ = modelHeaderString(symbolSizeColumn(), ok);
+  th->fontSizeName_   = modelHeaderString(fontSizeColumn  (), ok);
+  th->colorName_      = modelHeaderString(colorColumn     (), ok);
 
-  if (! xname_         .length()) xname_          = "x";
-  if (! yname_         .length()) yname_          = "y";
-  if (! symbolTypeName_.length()) symbolTypeName_ = "symbolType";
-  if (! symbolSizeName_.length()) symbolSizeName_ = "symbolSize";
-  if (! fontSizeName_  .length()) fontSizeName_   = "fontSize";
-  if (! colorName_     .length()) colorName_      = "color";
+  if (! xname_         .length()) th->xname_          = "x";
+  if (! yname_         .length()) th->yname_          = "y";
+  if (! symbolTypeName_.length()) th->symbolTypeName_ = "symbolType";
+  if (! symbolSizeName_.length()) th->symbolSizeName_ = "symbolSize";
+  if (! fontSizeName_  .length()) th->fontSizeName_   = "fontSize";
+  if (! colorName_     .length()) th->colorName_      = "color";
 
   //---
 
@@ -972,7 +1013,7 @@ createObjs(PlotObjs &objs)
 
 void
 CQChartsScatterPlot::
-addPointObjects(PlotObjs &objs)
+addPointObjects(PlotObjs &objs) const
 {
   initSymbolTypeData();
   initSymbolSizeData();
@@ -986,6 +1027,9 @@ addPointObjects(PlotObjs &objs)
   int ng = groupNameValues_.size();
 
   for (const auto &groupNameValue : groupNameValues_) {
+    if (isInterrupt())
+      return;
+
     int               groupInd   = groupNameValue.first;
     const NameValues &nameValues = groupNameValue.second;
 
@@ -997,12 +1041,33 @@ addPointObjects(PlotObjs &objs)
 
     //---
 
-    Points &points = groupPoints_[groupInd];
+    // get group points
+    auto pg = groupPoints_.find(groupInd);
+
+    if (pg == groupPoints_.end()) {
+      std::unique_lock<std::mutex> lock(mutex_);
+
+      CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
+      auto pg1 = th->groupPoints_.find(groupInd);
+
+      if (pg1 == th->groupPoints_.end())
+        pg1 = th->groupPoints_.insert(pg1, GroupPoints::value_type(groupInd, Points()));
+
+      pg = groupPoints_.find(groupInd);
+    }
+
+    Points &points = const_cast<Points &>((*pg).second);
+
+    //---
 
     int is = 0;
     int ns = nameValues.size();
 
     for (const auto &nameValue : nameValues) {
+      if (isInterrupt())
+        return;
+
       bool hidden = (! hasGroups && isSetHidden(is));
 
       if (hidden) { ++is; continue; }
@@ -1015,6 +1080,9 @@ addPointObjects(PlotObjs &objs)
       int nv = values.size();
 
       for (int iv = 0; iv < nv; ++iv) {
+        if (isInterrupt())
+          return;
+
         const ValueData &valuePoint = values[iv];
 
         const QPointF &p = valuePoint.p;
@@ -1035,7 +1103,7 @@ addPointObjects(PlotObjs &objs)
 
         //---
 
-        double dataLabelFontSize = dataLabel().textFont().pointSizeF();
+        double dataLabelFontSize = dataLabel()->textFont().pointSizeF();
 
         CQChartsLength fontSize(dataLabelFontSize, CQChartsUnits::PIXEL);
 
@@ -1084,7 +1152,7 @@ addPointObjects(PlotObjs &objs)
 
 void
 CQChartsScatterPlot::
-addGridObjects(PlotObjs &objs)
+addGridObjects(PlotObjs &objs) const
 {
   int hasGroups = (numGroups() > 1);
 
@@ -1094,6 +1162,9 @@ addGridObjects(PlotObjs &objs)
   int ng = groupNameGridData_.size();
 
   for (const auto &pg : groupNameGridData_) {
+    if (isInterrupt())
+      return;
+
     int                 groupInd     = pg.first;
     const NameGridData &nameGridData = pg.second;
 
@@ -1109,6 +1180,9 @@ addGridObjects(PlotObjs &objs)
     int ns = nameGridData.size();
 
     for (const auto &pn : nameGridData) {
+      if (isInterrupt())
+        return;
+
       bool hidden = (! hasGroups && isSetHidden(is));
 
       if (hidden) { ++is; continue; }
@@ -1123,6 +1197,9 @@ addGridObjects(PlotObjs &objs)
       int maxN = cellPointData.maxN;
 
       for (const auto &px : cellPointData.xyPoints) {
+        if (isInterrupt())
+          return;
+
         int            ix      = px.first;
         const YPoints &yPoints = px.second;
 
@@ -1133,6 +1210,9 @@ addGridObjects(PlotObjs &objs)
       //int ny = yPoints.size();
 
         for (const auto &py : yPoints) {
+          if (isInterrupt())
+            return;
+
           int           iy     = py.first;
           const Points &points = py.second;
 
@@ -1158,7 +1238,7 @@ addGridObjects(PlotObjs &objs)
 
 void
 CQChartsScatterPlot::
-addNameValues()
+addNameValues() const
 {
   CQPerfTrace trace("CQChartsScatterPlot::addNameValues");
 
@@ -1541,7 +1621,7 @@ hasBackground() const
 
 void
 CQChartsScatterPlot::
-drawBackground(QPainter *painter)
+drawBackground(QPainter *painter) const
 {
   CQChartsPlot::drawBackground(painter);
 
@@ -1574,7 +1654,7 @@ hasForeground() const
 
 void
 CQChartsScatterPlot::
-drawForeground(QPainter *painter)
+drawForeground(QPainter *painter) const
 {
   if (isSymbolMapKey())
     drawSymbolMapKey(painter);
@@ -1588,6 +1668,9 @@ drawBestFit(QPainter *painter) const
   CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
 
   for (const auto &groupNameValue : groupNameValues_) {
+    if (isInterrupt())
+      return;
+
     int groupInd = groupNameValue.first;
 
     CQChartsFitData &fitData = th->groupFitData_[groupInd];
@@ -1610,6 +1693,9 @@ drawBestFit(QPainter *painter) const
   int ng = groupNameValues_.size();
 
   for (const auto &groupNameValue : groupNameValues_) {
+    if (isInterrupt())
+      return;
+
     int groupInd = groupNameValue.first;
 
     auto pf = groupFitData_.find(groupInd);
@@ -1646,6 +1732,9 @@ drawBestFit(QPainter *painter) const
     QPolygonF bpoly, poly, tpoly;
 
     for (int px = pxl; px <= pxr; ++px) {
+      if (isInterrupt())
+        return;
+
       double x, y;
 
       pixelToWindow(px, 0.0, x, y);
@@ -1676,12 +1765,18 @@ drawBestFit(QPainter *painter) const
       QPolygonF dpoly;
 
       for (int i = 0; i < bpoly.size(); ++i) {
+        if (isInterrupt())
+          return;
+
         const QPointF &p = bpoly[i];
 
         dpoly << p;
       }
 
       for (int i = tpoly.size() - 1; i >= 0; --i) {
+        if (isInterrupt())
+          return;
+
         const QPointF &p = tpoly[i];
 
         dpoly << p;
@@ -1703,6 +1798,9 @@ drawBestFit(QPainter *painter) const
     path.moveTo(p);
 
     for (int i = 1; i < poly.size(); ++i) {
+      if (isInterrupt())
+        return;
+
       const QPointF &p = poly[i];
 
       path.lineTo(p);
@@ -1724,6 +1822,9 @@ drawHull(QPainter *painter) const
   int ng = groupNameValues_.size();
 
   for (const auto &groupNameValue : groupNameValues_) {
+    if (isInterrupt())
+      return;
+
     int groupInd = groupNameValue.first;
 
     auto ph = groupHull_.find(groupInd);
@@ -1742,8 +1843,12 @@ drawHull(QPainter *painter) const
 
         std::vector<double> x, y;
 
-        for (const auto &p : points)
+        for (const auto &p : points) {
+          if (isInterrupt())
+            return;
+
           hull.addPoint(p);
+        }
 
         hull.calc();
       }
@@ -1783,6 +1888,9 @@ CQChartsScatterPlot::
 drawXRug(QPainter *painter) const
 {
   for (const auto &plotObj : plotObjects()) {
+    if (isInterrupt())
+      return;
+
     const CQChartsScatterPointObj *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
     const CQChartsScatterCellObj  *cellObj  = dynamic_cast<CQChartsScatterCellObj  *>(plotObj);
 
@@ -1799,6 +1907,9 @@ CQChartsScatterPlot::
 drawYRug(QPainter *painter) const
 {
   for (const auto &plotObj : plotObjects()) {
+    if (isInterrupt())
+      return;
+
     const CQChartsScatterPointObj *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
     const CQChartsScatterCellObj  *cellObj  = dynamic_cast<CQChartsScatterCellObj  *>(plotObj);
 
@@ -1816,9 +1927,7 @@ void
 CQChartsScatterPlot::
 drawXDensity(QPainter *painter) const
 {
-  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
-
-  th->initWhiskerData();
+  initWhiskerData();
 
   //---
 
@@ -1827,6 +1936,9 @@ drawXDensity(QPainter *painter) const
     int ng = groupNameValues_.size();
 
     for (const auto &groupNameValue : groupNameValues_) {
+      if (isInterrupt())
+        return;
+
       int groupInd = groupNameValue.first;
 
       auto p = groupWhiskers_.find(groupInd);
@@ -1845,6 +1957,9 @@ drawXDensity(QPainter *painter) const
     int ng = groupNameGridData_.size();
 
     for (const auto &pg : groupNameGridData_) {
+      if (isInterrupt())
+        return;
+
       int groupInd = pg.first;
 
       auto p = groupWhiskers_.find(groupInd);
@@ -1864,9 +1979,7 @@ void
 CQChartsScatterPlot::
 drawYDensity(QPainter *painter) const
 {
-  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
-
-  th->initWhiskerData();
+  initWhiskerData();
 
   //---
 
@@ -1875,6 +1988,9 @@ drawYDensity(QPainter *painter) const
     int ng = groupNameValues_.size();
 
     for (const auto &groupNameValue : groupNameValues_) {
+      if (isInterrupt())
+        return;
+
       int groupInd = groupNameValue.first;
 
       auto p = groupWhiskers_.find(groupInd);
@@ -1893,6 +2009,9 @@ drawYDensity(QPainter *painter) const
     int ng = groupNameGridData_.size();
 
     for (const auto &pg : groupNameGridData_) {
+      if (isInterrupt())
+        return;
+
       int groupInd = pg.first;
 
       auto p = groupWhiskers_.find(groupInd);
@@ -1920,10 +2039,8 @@ drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
   QColor fillColor   = interpSymbolFillColor  (ig, ng);
 
   setPenBrush(pen, brush,
-              /*stroked*/ true, strokeColor, symbolStrokeAlpha(),
-              CQChartsLength("1px"), CQChartsLineDash(),
-              /*filled*/ true, fillColor, densityAlpha(),
-              CQChartsFillPattern());
+    /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
+    /*filled*/ true, fillColor, densityAlpha(), CQChartsFillPattern());
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -1958,10 +2075,8 @@ drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
   QColor fillColor   = interpSymbolFillColor  (ig, ng);
 
   setPenBrush(pen, brush,
-              /*stroked*/ true, strokeColor, symbolStrokeAlpha(),
-              CQChartsLength("1px"), CQChartsLineDash(),
-              /*filled*/ true, fillColor, densityAlpha(),
-              symbolFillPattern());
+    /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
+    /*filled*/ true, fillColor, densityAlpha(), symbolFillPattern());
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -1994,9 +2109,7 @@ drawDensityMap(QPainter *painter) const
 
   //---
 
-  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
-
-  th->initWhiskerData();
+  initWhiskerData();
 
   //---
 
@@ -2005,9 +2118,15 @@ drawDensityMap(QPainter *painter) const
   double delta = densityMapDelta();
 
   for (const auto &groupNameValue : groupNameValues_) {
+    if (isInterrupt())
+      return;
+
     const NameValues &nameValues = groupNameValue.second;
 
     for (const auto &nameValue : nameValues) {
+      if (isInterrupt())
+        return;
+
       const ValuesData &values = nameValue.second;
 
       double xmin = values.xrange.min();
@@ -2030,6 +2149,9 @@ drawDensityMap(QPainter *painter) const
       std::vector<double> yv;
 
       for (const auto &v : values.values) {
+        if (isInterrupt())
+          return;
+
         double x1 = (v.p.x() - xmin)/(xmax - xmin);
         double y1 = (v.p.y() - ymin)/(ymax - ymin);
 
@@ -2040,7 +2162,13 @@ drawDensityMap(QPainter *painter) const
       CMathBivariate bivariate(xv, yv);
 
       for (int y = y1; y <= y2; y += dy) {
+        if (isInterrupt())
+          return;
+
         for (int x = x1; x <= x2; x += dx) {
+          if (isInterrupt())
+            return;
+
           QPointF p = pixelToWindow(QPointF(x, y));
 
           double x1 = (p.x() - xmin)/(xmax - xmin);
@@ -2082,9 +2210,7 @@ void
 CQChartsScatterPlot::
 drawXWhisker(QPainter *painter) const
 {
-  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
-
-  th->initWhiskerData();
+  initWhiskerData();
 
   //---
 
@@ -2093,6 +2219,9 @@ drawXWhisker(QPainter *painter) const
     int ng = groupNameValues_.size();
 
     for (const auto &groupNameValue : groupNameValues_) {
+      if (isInterrupt())
+        return;
+
       int groupInd = groupNameValue.first;
 
       auto p = groupWhiskers_.find(groupInd);
@@ -2111,6 +2240,9 @@ drawXWhisker(QPainter *painter) const
     int ng = groupNameGridData_.size();
 
     for (const auto &pg : groupNameGridData_) {
+      if (isInterrupt())
+        return;
+
       int groupInd = pg.first;
 
       auto p = groupWhiskers_.find(groupInd);
@@ -2130,9 +2262,7 @@ void
 CQChartsScatterPlot::
 drawYWhisker(QPainter *painter) const
 {
-  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
-
-  th->initWhiskerData();
+  initWhiskerData();
 
   //---
 
@@ -2141,6 +2271,9 @@ drawYWhisker(QPainter *painter) const
     int ng = groupNameValues_.size();
 
     for (const auto &groupNameValue : groupNameValues_) {
+      if (isInterrupt())
+        return;
+
       int groupInd = groupNameValue.first;
 
       auto p = groupWhiskers_.find(groupInd);
@@ -2159,6 +2292,9 @@ drawYWhisker(QPainter *painter) const
     int ng = groupNameGridData_.size();
 
     for (const auto &pg : groupNameGridData_) {
+      if (isInterrupt())
+        return;
+
       int groupInd = pg.first;
 
       auto p = groupWhiskers_.find(groupInd);
@@ -2186,10 +2322,8 @@ drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
   QColor fillColor   = interpSymbolFillColor  (ig, ng);
 
   setPenBrush(pen, brush,
-              /*stroked*/ true, strokeColor, symbolStrokeAlpha(),
-              CQChartsLength("1px"), CQChartsLineDash(),
-              /*filled*/ true, fillColor, whiskerAlpha(),
-              symbolFillPattern());
+    /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
+    /*filled*/ true, fillColor, whiskerAlpha(), symbolFillPattern());
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -2222,10 +2356,8 @@ drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
   QColor fillColor   = interpSymbolFillColor  (ig, ng);
 
   setPenBrush(pen, brush,
-              /*stroked*/ true, strokeColor, symbolStrokeAlpha(),
-              CQChartsLength("1px"), CQChartsLineDash(),
-              /*filled*/ true, fillColor, whiskerAlpha(),
-              symbolFillPattern());
+    /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
+    /*filled*/ true, fillColor, whiskerAlpha(), symbolFillPattern());
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -2248,31 +2380,68 @@ drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
 
 void
 CQChartsScatterPlot::
-initWhiskerData()
+initWhiskerData() const
 {
   for (const auto &groupNameValue : groupNameValues_) {
+    if (isInterrupt())
+      return;
+
+    //---
+
+    // get group whiskers
     int groupInd = groupNameValue.first;
 
-    WhiskerData &whiskerData = groupWhiskers_[groupInd];
+    auto pw = groupWhiskers_.find(groupInd);
+
+    if (pw == groupWhiskers_.end()) {
+      std::unique_lock<std::mutex> lock(mutex_);
+
+      CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
+      auto pw1 = th->groupWhiskers_.find(groupInd);
+
+      if (pw1 == th->groupWhiskers_.end()) {
+        (void) th->groupWhiskers_[groupInd];
+        //pw1 = th->groupWhiskers_.insert(pw1, GroupWhiskers::value_type(groupInd, WhiskerData()));
+      }
+
+      pw = groupWhiskers_.find(groupInd);
+    }
+
+    const WhiskerData &whiskerData = (*pw).second;
+
+    //---
 
     // init whisker if needed
     if (! whiskerData.xWhisker.numValues()) {
       for (const auto &plotObj : plotObjects()) {
+        if (isInterrupt())
+          return;
+
         const CQChartsScatterPointObj *pointObj =
           dynamic_cast<CQChartsScatterPointObj *>(plotObj);
 
-        if (pointObj && pointObj->groupInd() == groupInd)
-          whiskerData.xWhisker.addValue(pointObj->point().x());
+        if (pointObj && pointObj->groupInd() == groupInd) {
+          WhiskerData &whiskerData1 = const_cast<WhiskerData &>(whiskerData);
+
+          whiskerData1.xWhisker.addValue(pointObj->point().x());
+        }
       }
     }
 
     if (! whiskerData.yWhisker.numValues()) {
       for (const auto &plotObj : plotObjects()) {
+        if (isInterrupt())
+          return;
+
         const CQChartsScatterPointObj *pointObj =
           dynamic_cast<CQChartsScatterPointObj *>(plotObj);
 
-        if (pointObj && pointObj->groupInd() == groupInd)
-          whiskerData.yWhisker.addValue(pointObj->point().y());
+        if (pointObj && pointObj->groupInd() == groupInd) {
+          WhiskerData &whiskerData1 = const_cast<WhiskerData &>(whiskerData);
+
+          whiskerData1.yWhisker.addValue(pointObj->point().y());
+        }
       }
     }
   }
@@ -2280,31 +2449,74 @@ initWhiskerData()
   //---
 
   for (const auto &pg : groupNameGridData_) {
+    if (isInterrupt())
+      return;
+
+    //---
+
+    // get group whiskers
     int groupInd = pg.first;
 
-    WhiskerData &whiskerData = groupWhiskers_[groupInd];
+    auto pw = groupWhiskers_.find(groupInd);
+
+    if (pw == groupWhiskers_.end()) {
+      std::unique_lock<std::mutex> lock(mutex_);
+
+      CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
+      auto pw1 = th->groupWhiskers_.find(groupInd);
+
+      if (pw1 == th->groupWhiskers_.end()) {
+        (void) th->groupWhiskers_[groupInd];
+        //pw1 = th->groupWhiskers_.insert(pw1, GroupWhiskers::value_type(groupInd, WhiskerData()));
+      }
+
+      pw = groupWhiskers_.find(groupInd);
+    }
+
+    const WhiskerData &whiskerData = (*pw).second;
+
+    //---
 
     // init whisker if needed
     if (! whiskerData.xWhisker.numValues()) {
       for (const auto &plotObj : plotObjects()) {
+        if (isInterrupt())
+          return;
+
         const CQChartsScatterCellObj *cellObj =
           dynamic_cast<CQChartsScatterCellObj *>(plotObj);
 
         if (cellObj && cellObj->groupInd() == groupInd) {
-          for (const auto &p : cellObj->points())
-            whiskerData.xWhisker.addValue(p.x());
+          for (const auto &p : cellObj->points()) {
+            if (isInterrupt())
+              return;
+
+            WhiskerData &whiskerData1 = const_cast<WhiskerData &>(whiskerData);
+
+            whiskerData1.xWhisker.addValue(p.x());
+          }
         }
       }
     }
 
     if (! whiskerData.yWhisker.numValues()) {
       for (const auto &plotObj : plotObjects()) {
+        if (isInterrupt())
+          return;
+
         const CQChartsScatterCellObj *cellObj =
           dynamic_cast<CQChartsScatterCellObj *>(plotObj);
 
         if (cellObj && cellObj->groupInd() == groupInd) {
-          for (const auto &p : cellObj->points())
-            whiskerData.yWhisker.addValue(p.y());
+          for (const auto &p : cellObj->points()) {
+            if (isInterrupt())
+              return;
+
+            WhiskerData &whiskerData1 = const_cast<WhiskerData &>(whiskerData);
+
+            whiskerData1.yWhisker.addValue(p.y());
+          }
         }
       }
     }
@@ -2315,9 +2527,11 @@ initWhiskerData()
 
 void
 CQChartsScatterPlot::
-initSymbolTypeData()
+initSymbolTypeData() const
 {
-  symbolTypeData_.valid = false;
+  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
+  th->symbolTypeData_.valid = false;
 
   if (! symbolTypeColumn().isValid())
     return;
@@ -2326,8 +2540,8 @@ initSymbolTypeData()
   if (! columnDetails) return;
 
   if (symbolTypeColumn().isGroup()) {
-    symbolTypeData_.data_min = 0.0;
-    symbolTypeData_.data_max = std::max(numGroups() - 1, 0);
+    th->symbolTypeData_.data_min = 0.0;
+    th->symbolTypeData_.data_max = std::max(numGroups() - 1, 0);
   }
   else {
     if (symbolTypeData_.mapped) {
@@ -2336,11 +2550,11 @@ initSymbolTypeData()
 
       bool ok;
 
-      symbolTypeData_.data_min = CQChartsVariant::toReal(minVar, ok);
-      if (! ok) symbolTypeData_.data_min = 0.0;
+      th->symbolTypeData_.data_min = CQChartsVariant::toReal(minVar, ok);
+      if (! ok) th->symbolTypeData_.data_min = 0.0;
 
-      symbolTypeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
-      if (! ok) symbolTypeData_.data_max = 1.0;
+      th->symbolTypeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
+      if (! ok) th->symbolTypeData_.data_max = 1.0;
     }
 
     CQBaseModelType    columnType;
@@ -2353,18 +2567,18 @@ initSymbolTypeData()
     if (columnType == CQBaseModelType::SYMBOL) {
       CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
-      CQChartsColumnSymbolTypeType *symbolTypeType =
-        dynamic_cast<CQChartsColumnSymbolTypeType *>(columnTypeMgr->getType(columnType));
+      const CQChartsColumnSymbolTypeType *symbolTypeType =
+        dynamic_cast<const CQChartsColumnSymbolTypeType *>(columnTypeMgr->getType(columnType));
       assert(symbolTypeType);
 
       symbolTypeType->getMapData(charts(), model().data(), symbolTypeColumn(), nameValues,
-                                 symbolTypeData_.mapped,
-                                 symbolTypeData_.map_min, symbolTypeData_.map_max,
-                                 symbolTypeData_.data_min, symbolTypeData_.data_max);
+                                 th->symbolTypeData_.mapped,
+                                 th->symbolTypeData_.map_min, th->symbolTypeData_.map_max,
+                                 th->symbolTypeData_.data_min, th->symbolTypeData_.data_max);
     }
   }
 
-  symbolTypeData_.valid = true;
+  th->symbolTypeData_.valid = true;
 }
 
 bool
@@ -2426,9 +2640,11 @@ columnSymbolType(int row, const QModelIndex &parent, CQChartsSymbol &symbolType)
 
 void
 CQChartsScatterPlot::
-initSymbolSizeData()
+initSymbolSizeData() const
 {
-  symbolSizeData_.valid = false;
+  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
+  th->symbolSizeData_.valid = false;
 
   if (! symbolSizeColumn().isValid())
     return;
@@ -2437,9 +2653,9 @@ initSymbolSizeData()
   if (! columnDetails) return;
 
   if (symbolSizeColumn().isGroup()) {
-    symbolSizeData_.data_min  = 0.0;
-    symbolSizeData_.data_max  = std::max(numGroups() - 1, 0);
-    symbolSizeData_.data_mean = symbolSizeData_.data_max/2.0;
+    th->symbolSizeData_.data_min  = 0.0;
+    th->symbolSizeData_.data_max  = std::max(numGroups() - 1, 0);
+    th->symbolSizeData_.data_mean = symbolSizeData_.data_max/2.0;
   }
   else {
     if (symbolSizeData_.mapped) {
@@ -2449,15 +2665,15 @@ initSymbolSizeData()
 
       bool ok;
 
-      symbolSizeData_.data_min = CQChartsVariant::toReal(minVar, ok);
-      if (! ok) symbolSizeData_.data_min = 0.0;
+      th->symbolSizeData_.data_min = CQChartsVariant::toReal(minVar, ok);
+      if (! ok) th->symbolSizeData_.data_min = 0.0;
 
-      symbolSizeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
-      if (! ok) symbolSizeData_.data_max = 1.0;
+      th->symbolSizeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
+      if (! ok) th->symbolSizeData_.data_max = 1.0;
 
-      symbolSizeData_.data_mean = CQChartsVariant::toReal(meanVar, ok);
-      if (! ok) symbolSizeData_.data_mean = (symbolSizeData_.data_min +
-                                             symbolSizeData_.data_max)/2.0;
+      th->symbolSizeData_.data_mean = CQChartsVariant::toReal(meanVar, ok);
+      if (! ok) th->symbolSizeData_.data_mean =
+                  CMathUtil::avg(symbolSizeData_.data_min, symbolSizeData_.data_max);
     }
 
     CQBaseModelType    columnType;
@@ -2470,18 +2686,18 @@ initSymbolSizeData()
     if (columnType == CQBaseModelType::SYMBOL_SIZE) {
       CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
-      CQChartsColumnSymbolSizeType *symbolSizeType =
-        dynamic_cast<CQChartsColumnSymbolSizeType *>(columnTypeMgr->getType(columnType));
+      const CQChartsColumnSymbolSizeType *symbolSizeType =
+        dynamic_cast<const CQChartsColumnSymbolSizeType *>(columnTypeMgr->getType(columnType));
       assert(symbolSizeType);
 
       symbolSizeType->getMapData(charts(), model().data(), symbolSizeColumn(), nameValues,
-                                 symbolSizeData_.mapped,
-                                 symbolSizeData_.map_min, symbolSizeData_.map_max,
-                                 symbolSizeData_.data_min, symbolSizeData_.data_max);
+                                 th->symbolSizeData_.mapped,
+                                 th->symbolSizeData_.map_min, th->symbolSizeData_.map_max,
+                                 th->symbolSizeData_.data_min, th->symbolSizeData_.data_max);
     }
   }
 
-  symbolSizeData_.valid = true;
+  th->symbolSizeData_.valid = true;
 }
 
 bool
@@ -2551,9 +2767,11 @@ columnSymbolSize(int row, const QModelIndex &parent, CQChartsLength &symbolSize)
 
 void
 CQChartsScatterPlot::
-initFontSizeData()
+initFontSizeData() const
 {
-  fontSizeData_.valid = false;
+  CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+
+  th->fontSizeData_.valid = false;
 
   if (! fontSizeColumn().isValid())
     return;
@@ -2562,8 +2780,8 @@ initFontSizeData()
   if (! columnDetails) return;
 
   if (fontSizeColumn().isGroup()) {
-    fontSizeData_.data_min = 0.0;
-    fontSizeData_.data_max = std::max(numGroups() - 1, 0);
+    th->fontSizeData_.data_min = 0.0;
+    th->fontSizeData_.data_max = std::max(numGroups() - 1, 0);
   }
   else {
     if (fontSizeData_.mapped) {
@@ -2572,11 +2790,11 @@ initFontSizeData()
 
       bool ok;
 
-      fontSizeData_.data_min = CQChartsVariant::toReal(minVar, ok);
-      if (! ok) fontSizeData_.data_min = 0.0;
+      th->fontSizeData_.data_min = CQChartsVariant::toReal(minVar, ok);
+      if (! ok) th->fontSizeData_.data_min = 0.0;
 
-      fontSizeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
-      if (! ok) fontSizeData_.data_max = 1.0;
+      th->fontSizeData_.data_max = CQChartsVariant::toReal(maxVar, ok);
+      if (! ok) th->fontSizeData_.data_max = 1.0;
     }
 
     CQBaseModelType    columnType;
@@ -2589,18 +2807,18 @@ initFontSizeData()
     if (columnType == CQBaseModelType::FONT_SIZE) {
       CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
-      CQChartsColumnFontSizeType *fontSizeType =
-        dynamic_cast<CQChartsColumnFontSizeType *>(columnTypeMgr->getType(columnType));
+      const CQChartsColumnFontSizeType *fontSizeType =
+        dynamic_cast<const CQChartsColumnFontSizeType *>(columnTypeMgr->getType(columnType));
       assert(fontSizeType);
 
       fontSizeType->getMapData(charts(), model().data(), fontSizeColumn(), nameValues,
-                               fontSizeData_.mapped,
-                               fontSizeData_.map_min, fontSizeData_.map_max,
-                               fontSizeData_.data_min, fontSizeData_.data_max);
+                               th->fontSizeData_.mapped,
+                               th->fontSizeData_.map_min, th->fontSizeData_.map_max,
+                               th->fontSizeData_.data_min, th->fontSizeData_.data_max);
     }
   }
 
-  fontSizeData_.valid = true;
+  th->fontSizeData_.valid = true;
 }
 
 bool
@@ -2922,7 +3140,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
   //---
 
-  // get symbol, data
+  // get symbol type and size
   CQChartsSymbol symbol;
   double         sx, sy;
 
@@ -2976,27 +3194,27 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
   //---
 
   // draw text labels
-  if (plot_->dataLabel().isVisible()) {
-    const CQChartsDataLabel &dataLabel = plot_->dataLabel();
+  if (plot_->dataLabel()->isVisible()) {
+    const CQChartsDataLabel *dataLabel = plot_->dataLabel();
 
     //---
 
     QPen tpen;
 
-    QColor tc = plot_->dataLabel().interpTextColor(ic, nc);
+    QColor tc = dataLabel->interpTextColor(ic, nc);
 
-    plot_->setPen(tpen, true, tc, plot_->dataLabel().textAlpha(), CQChartsLength("0px"));
+    plot_->setPen(tpen, true, tc, dataLabel->textAlpha());
 
     //---
 
-    double fontSize = plot_->dataLabel().textFont().pointSizeF();
+    double fontSize = dataLabel->textFont().pointSizeF();
 
     if (fontSize_.isValid())
       fontSize = plot_->lengthPixelHeight(fontSize_);
 
     //---
 
-    QFont font = dataLabel.textFont();
+    QFont font = dataLabel->textFont();
 
     if (fontSize > 0) {
       // scale to font size
@@ -3006,17 +3224,13 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
       font1.setPointSizeF(fontSize);
 
-      CQChartsDataLabel &dataLabel1 = const_cast<CQChartsScatterPlot *>(plot_)->dataLabel();
-
-      dataLabel1.setTextFont(font1);
+      const_cast<CQChartsScatterPlot *>(plot_)->setDataLabelFont(font1);
     }
 
-    dataLabel.draw(painter, erect, name_, dataLabel.position(), tpen);
+    dataLabel->draw(painter, erect, name_, dataLabel->position(), tpen);
 
     if (fontSize > 0) {
-      CQChartsDataLabel &dataLabel1 = const_cast<CQChartsScatterPlot *>(plot_)->dataLabel();
-
-      dataLabel1.setTextFont(font);
+      const_cast<CQChartsScatterPlot *>(plot_)->setDataLabelFont(font);
     }
   }
 }
@@ -3084,6 +3298,7 @@ draw(QPainter *painter)
 {
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
+  // set pen and brush
   QPen   pen;
   QBrush brush;
 
@@ -3101,6 +3316,9 @@ draw(QPainter *painter)
   painter->setPen  (pen);
   painter->setBrush(brush);
 
+  //---
+
+  // draw rect
   painter->drawRect(CQChartsUtil::toQRect(prect));
 }
 
@@ -3135,6 +3353,7 @@ drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const
 
   //---
 
+  // set symbol type and size
   CQChartsSymbol symbol = plot_->rugSymbolType();
 
   if (symbol == CQChartsSymbol::Type::NONE)
@@ -3146,7 +3365,11 @@ drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const
 
   //---
 
+  // draw symbols
   for (const auto &p : points_) {
+    if (plot_->isInterrupt())
+      return;
+
     QPointF ps = plot_->windowToPixel(p);
 
     // Dir::X and Dir::Y are X/Y Rug Symbols
@@ -3198,7 +3421,7 @@ selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod)
     plot->setSetHidden(ih, ! plot->isSetHidden(ih));
   }
 
-  plot->updateRangeAndObjs();
+  plot->queueUpdateRangeAndObjs();
 
   return true;
 }
@@ -3269,6 +3492,7 @@ void
 CQChartsScatterGridKeyItem::
 draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 {
+  // calc text width
   plot_->view()->setPlotPainterFont(plot_, painter, key_->textFont());
 
   QFontMetricsF fm(painter->font());
@@ -3279,6 +3503,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 
   double tw = plot_->pixelToWindowWidth(fm.width(QString("%1").arg(n)) - 3);
 
+  // calc left/right boxes
   CQChartsGeom::BBox lrect(rect.getXMin(), rect.getYMin(), rect.getXMax() - tw, rect.getYMax());
   CQChartsGeom::BBox rrect(rect.getXMax() - tw, rect.getYMin(), rect.getXMax(), rect.getYMax());
 
@@ -3287,6 +3512,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 
   //---
 
+  // draw gradient in left box
   QPointF pg1 = QPointF(lprect.getXMin() + 2, lprect.getYMax() - 2 - fh/2);
   QPointF pg2 = QPointF(lprect.getXMin() + 2, lprect.getYMin() + 2 + fh/2);
 
@@ -3296,14 +3522,13 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 
   QBrush brush(lg);
 
-  //---
-
   QRectF frect(pg1.x(), pg2.y(), lprect.getWidth() - 4, lprect.getHeight() - 4 - fh);
 
   painter->fillRect(frect, brush);
 
   //---
 
+  // calc label positions
   int n1 = 0;
   int n5 = n;
 
@@ -3323,16 +3548,18 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 
   //---
 
+  // set text pen
   QPen pen;
 
   QColor tc = plot_->interpThemeColor(1.0);
 
-  plot_->setPen(pen, true, tc, 1.0, CQChartsLength("0px"), CQChartsLineDash());
+  plot_->setPen(pen, true, tc, 1.0);
 
   painter->setPen(pen);
 
   //---
 
+  // draw key labels
   double df = (fm.ascent() - fm.descent())/2.0;
 
   painter->drawText(rprect.getXMin() + 1, y1 + df, QString("%1").arg(n1));

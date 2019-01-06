@@ -5,8 +5,8 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
-#include <CQChartsForceDirected.h>
 #include <CQChartsConnectionList.h>
+#include <CQChartsForceDirected.h>
 
 class CQChartsForceDirectedPlotType : public CQChartsPlotType {
  public:
@@ -113,9 +113,11 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
+
+  void postUpdateObjs() override;
 
   //---
 
@@ -129,7 +131,9 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
 
   //---
 
-  void drawParts(QPainter *painter) override;
+  void draw(QPainter *painter) override;
+
+  void drawParts(QPainter *painter) const override;
 
  private:
   using Connections = CQChartsConnectionList::Connections;
@@ -151,9 +155,10 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
   bool getNameConnections(int group, const ModelVisitor::VisitData &data,
                           ConnectionsData &connections, int &destId, int &value) const;
 
-  ConnectionsData &getConnections(int id) const;
+  const ConnectionsData &getConnections(int id) const;
+  ConnectionsData &getConnections(int id);
 
-  void addConnections(int id, const ConnectionsData &connections);
+  void addConnections(int id, const ConnectionsData &connections) const;
 
   bool decodeConnections(const QString &str, Connections &connections) const;
 
@@ -174,13 +179,13 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
   ColumnType        namePairColumnType_    { ColumnType::NONE }; // name pair column type
   IdConnectionsData idConnections_;                              // id connections
   NodeMap           nodes_;                                      // force directed nodes
-  ForceDirected     forceDirected_;                              // force directed class
+  ForceDirected*    forceDirected_         { nullptr };          // force directed class
   StringIndMap      nameNodeMap_;                                // node name index map
   bool              running_               { true };             // is running
   bool              pressed_               { false };            // is pressed
   double            rangeSize_             { 20.0 };             // range size
   double            nodeMass_              { 1.0 };              // node mass
-  bool              edgeLinesValueWidth_   { true };             // use value for edge line width
+  bool              edgeLinesValueWidth_   { true };             // use value for edge width
   int               initSteps_             { 100 };              // initial steps
   double            stepSize_              { 0.01 };             // step size
   double            nodeRadius_            { 6.0 };              // node radius

@@ -2,7 +2,6 @@
 #define CQChartsAxis_H
 
 #include <CQChartsObj.h>
-#include <CQChartsEditHandles.h>
 #include <CQChartsObjData.h>
 #include <CQChartsColumn.h>
 #include <CQChartsGeom.h>
@@ -19,7 +18,10 @@
 
 class CQChartsAxis;
 class CQChartsPlot;
+class CQChartsView;
+class CQChartsEditHandles;
 class CQCharts;
+
 class CQPropertyViewModel;
 class QPainter;
 
@@ -116,6 +118,7 @@ class CQChartsAxis : public CQChartsObj,
   CQCharts *charts() const;
 
   const CQChartsPlot *plot() const { return plot_; }
+  void setPlot(const CQChartsPlot *plot) { plot_ = plot; }
 
   const CQChartsView *view() const;
 
@@ -297,11 +300,11 @@ class CQChartsAxis : public CQChartsObj,
 
   //---
 
-  void redraw();
+  void redraw(bool wait=true);
 
   void updatePlotRange();
 
-  CQChartsEditHandles &editHandles() { return editHandles_; }
+  CQChartsEditHandles *editHandles() { return editHandles_; }
 
   //---
 
@@ -322,7 +325,7 @@ class CQChartsAxis : public CQChartsObj,
 
   void draw(const CQChartsPlot *plot, QPainter *painter);
 
-  void drawEditHandles(QPainter *painter);
+  void drawEditHandles(QPainter *painter) const;
 
   void calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const;
 
@@ -363,6 +366,8 @@ class CQChartsAxis : public CQChartsObj,
     uint   numGaps     { 0 };
     uint   numGapTicks { 0 };
   };
+
+  void calcAndRedraw();
 
   void calc();
 
@@ -421,10 +426,10 @@ class CQChartsAxis : public CQChartsObj,
   TickLabels                 tickLabels_;
   bool                       requireTickLabel_    { false };
   OptReal                    pos_;
+  CQChartsEditHandles*       editHandles_         { nullptr };
+
   mutable CQChartsGeom::BBox bbox_;
   mutable CQChartsGeom::BBox fitBBox_;
-
-  CQChartsEditHandles        editHandles_;
 //mutable double             lmin_ { INT_MAX };
 //mutable double             lmax_ { INT_MIN };
   mutable CQChartsGeom::BBox lbbox_;

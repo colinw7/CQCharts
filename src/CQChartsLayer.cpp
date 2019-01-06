@@ -93,6 +93,17 @@ beginPaint(QPainter *painter, const QRectF &rect, bool alias)
 
   clear();
 
+  if (usePixmap_) {
+    assert(pixmap_);
+
+    ipainter()->begin(pixmap_);
+  }
+  else {
+    assert(image_);
+
+    ipainter()->begin(image_);
+  }
+
   QTransform t;
 
   t.translate(-rect_.x(), -rect_.y());
@@ -131,15 +142,11 @@ clear()
     if (! pixmap_) return;
 
     pixmap_->fill(QColor(0,0,0,0));
-
-    ipainter()->begin(pixmap_);
   }
   else {
     if (! image_) return;
 
     image_->fill(QColor(0,0,0,0));
-
-    ipainter()->begin(image_);
   }
 }
 

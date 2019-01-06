@@ -4,6 +4,7 @@
 #include <CQChartsUtil.h>
 #include <CQBaseModelTypes.h>
 #include <QItemDelegate>
+#include <future>
 
 class CQChartsTable;
 class CQChartsColor;
@@ -54,6 +55,7 @@ class CQChartsTableDelegate : public QItemDelegate {
   CQChartsTable*      table_ { nullptr };
   ColumnDataMap       columnDataMap_;
   mutable QModelIndex currentIndex_;
+  mutable std::mutex  mutex_;
 };
 
 #endif

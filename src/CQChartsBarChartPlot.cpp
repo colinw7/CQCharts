@@ -4,6 +4,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
+#include <CQChartsDataLabel.h>
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>
 #include <CQPerfMonitor.h>
@@ -130,14 +131,14 @@ void
 CQChartsBarChartPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsBarChartPlot::
 setLabelColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -178,7 +179,7 @@ setHorizontal(bool b)
   CQChartsUtil::testAndSet(horizontal_, b, [&]() {
     dataLabel_->setDirection(horizontal_ ? Qt::Horizontal : Qt::Vertical);
 
-    updateRangeAndObjs();
+    queueUpdateRangeAndObjs();
   } );
 }
 
@@ -186,7 +187,7 @@ void
 CQChartsBarChartPlot::
 setPlotType(PlotType type)
 {
-  CQChartsUtil::testAndSet(plotType_, type, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(plotType_, type, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
@@ -194,9 +195,9 @@ CQChartsBarChartPlot::
 setNormal(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { queueUpdateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
@@ -204,16 +205,16 @@ CQChartsBarChartPlot::
 setStacked(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::STACKED, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::STACKED, [&]() { queueUpdateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsBarChartPlot::
 setPercent(bool b)
 {
-  CQChartsUtil::testAndSet(percent_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(percent_, b, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -222,7 +223,7 @@ void
 CQChartsBarChartPlot::
 setValueType(ValueType type)
 {
-  CQChartsUtil::testAndSet(valueType_, type, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueType_, type, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
@@ -230,9 +231,9 @@ CQChartsBarChartPlot::
 setValueValue(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { queueUpdateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
@@ -240,9 +241,9 @@ CQChartsBarChartPlot::
 setValueRange(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::RANGE, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::RANGE, [&]() { queueUpdateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
@@ -250,9 +251,9 @@ CQChartsBarChartPlot::
 setValueMin(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MIN, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::MIN, [&]() { queueUpdateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
@@ -260,9 +261,9 @@ CQChartsBarChartPlot::
 setValueMax(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MAX, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::MAX, [&]() { queueUpdateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
@@ -270,9 +271,9 @@ CQChartsBarChartPlot::
 setValueMean(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MEAN, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::MEAN, [&]() { queueUpdateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -282,7 +283,7 @@ CQChartsBarChartPlot::
 setColorBySet(bool b)
 {
   CQChartsUtil::testAndSet(colorBySet_, b, [&]() {
-    resetSetHidden(); updateRangeAndObjs();
+    resetSetHidden(); queueUpdateRangeAndObjs();
   });
 }
 
@@ -290,23 +291,25 @@ void
 CQChartsBarChartPlot::
 setDotLines(bool b)
 {
-  CQChartsUtil::testAndSet(dotLines_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(dotLines_, b, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsBarChartPlot::
 setDotLineWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(dotLineWidth_, l, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(dotLineWidth_, l, [&]() { queueDrawObjs(); } );
 }
 
 //---
 
 CQChartsGeom::Range
 CQChartsBarChartPlot::
-calcRange()
+calcRange() const
 {
   CQPerfTrace trace("CQChartsBarChartPlot::calcRange");
+
+  CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
 
   //---
 
@@ -319,8 +322,7 @@ calcRange()
 
   //---
 
-  valueSets_    .clear();
-  valueGroupInd_.clear();
+  th->valueData_.clear();
 
   //---
 
@@ -411,11 +413,11 @@ calcRange()
 
   //---
 
-  adjustDataRange();
+  //dataRange = adjustDataRange(dataRange);
 
   //---
 
-  initAxes();
+  th->initRangeAxes();
 
   //---
 
@@ -424,7 +426,7 @@ calcRange()
 
 void
 CQChartsBarChartPlot::
-initAxes()
+initRangeAxes()
 {
   NoUpdate noUpdate(this);
 
@@ -595,8 +597,9 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   //---
 
   // get value set for group
-  CQChartsBarChartValueSet *valueSet =
-    const_cast<CQChartsBarChartPlot *>(this)->groupValueSet(groupInd);
+  CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
+
+  CQChartsBarChartValueSet *valueSet = th->groupValueSet(groupInd);
 
   //---
 
@@ -742,32 +745,34 @@ const CQChartsBarChartValueSet *
 CQChartsBarChartPlot::
 groupValueSet(int groupInd) const
 {
-  return const_cast<CQChartsBarChartPlot *>(this)->groupValueSet(groupInd);
+  CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
+
+  return th->groupValueSet(groupInd);
 }
 
 CQChartsBarChartValueSet *
 CQChartsBarChartPlot::
 groupValueSet(int groupInd)
 {
-  auto p = valueGroupInd_.find(groupInd);
+  auto p = valueData_.valueGroupInd.find(groupInd);
 
-  if (p != valueGroupInd_.end()) {
+  if (p != valueData_.valueGroupInd.end()) {
     int ind = (*p).second;
 
-    assert(ind >= 0 && ind < int(valueSets_.size()));
+    assert(ind >= 0 && ind < int(valueData_.valueSets.size()));
 
-    return &valueSets_[ind];
+    return &valueData_.valueSets[ind];
   }
 
   int ind = numValueSets();
 
   QString name = groupIndName(groupInd);
 
-  valueSets_.emplace_back(name, ind);
+  valueData_.valueSets.emplace_back(name, ind);
 
-  valueGroupInd_[groupInd] = ind;
+  valueData_.valueGroupInd[groupInd] = ind;
 
-  CQChartsBarChartValueSet *valueSet = &valueSets_.back();
+  CQChartsBarChartValueSet *valueSet = &valueData_.valueSets.back();
 
   valueSet->setGroupInd(groupInd);
 
@@ -782,12 +787,12 @@ annotationBBox() const
 {
   CQChartsGeom::BBox bbox;
 
-  CQChartsDataLabel::Position position = dataLabel().position();
+  CQChartsDataLabel::Position position = dataLabel()->position();
 
   if (position != CQChartsDataLabel::TOP_OUTSIDE && position != CQChartsDataLabel::BOTTOM_OUTSIDE)
     return bbox;
 
-  if (dataLabel().isVisible()) {
+  if (dataLabel()->isVisible()) {
     for (const auto &plotObj : plotObjs_) {
       CQChartsBarChartObj *barObj = dynamic_cast<CQChartsBarChartObj *>(plotObj);
 
@@ -803,11 +808,13 @@ annotationBBox() const
 
 bool
 CQChartsBarChartPlot::
-createObjs(PlotObjs &objs)
+createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsBarChartPlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsBarChartPlot *>(this));
+  CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
+
+  NoUpdate noUpdate(th);
 
   //---
 
@@ -816,23 +823,7 @@ createObjs(PlotObjs &objs)
 
   //---
 
-  CQChartsAxis *xAxis = (! isHorizontal() ? this->xAxis() : this->yAxis());
-  CQChartsAxis *yAxis = (! isHorizontal() ? this->yAxis() : this->xAxis());
-
-  xAxis->clearTickLabels();
-  yAxis->clearTickLabels();
-
-  xAxis->setIntegral           (true);
-  xAxis->setGridMid            (true);
-//xAxis->setMajorIncrement     (1);
-  xAxis->setMinorTicksDisplayed(false);
-//xAxis->setDataLabels         (true);
-
-  yAxis->setIntegral           (false);
-  yAxis->setGridMid            (false);
-//yAxis->setMajorIncrement     (0);
-  yAxis->setMinorTicksDisplayed(true);
-//yAxis->setDataLabels         (true);
+  th->initObjAxes();
 
   //---
 
@@ -842,63 +833,7 @@ createObjs(PlotObjs &objs)
 
   //---
 
-  // set x axis labels
-  if (ns > 1) {
-    int numVisible = 0;
-
-    for (int iv = 0; iv < nv; ++iv) {
-      if (isSetHidden(iv))
-        continue;
-
-      const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
-
-      xAxis->setTickLabel(numVisible, valueSet.name());
-
-      ++numVisible;
-    }
-  }
-  else {
-    int numVisible = 0;
-
-    if      (nv > 1) {
-      for (int iv = 0; iv < nv; ++iv) {
-        if (isSetHidden(iv))
-          continue;
-
-        const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
-
-        xAxis->setTickLabel(numVisible, valueSet.name());
-
-        ++numVisible;
-      }
-    }
-    else if (nv == 1) {
-      std::set<int> positions;
-
-      xAxis->getTickLabelsPositions(positions);
-
-      const CQChartsBarChartValueSet &valueSet = this->valueSet(0);
-
-      int nvs = valueSet.numValues();
-
-      for (int ivs = 0; ivs < nvs; ++ivs) {
-        if (isValueHidden(ivs))
-          continue;
-
-        if (positions.find(numVisible) != positions.end()) {
-          const CQChartsBarChartValue &value = valueSet.value(ivs);
-
-          xAxis->setTickLabel(numVisible, value.valueName());
-        }
-
-        ++numVisible;
-      }
-    }
-  }
-
-  //---
-
-  barWidth_ = 1.0;
+  th->barWidth_ = 1.0;
 
   // start at px1 - bar width
   double bx = -0.5;
@@ -1036,7 +971,7 @@ createObjs(PlotObjs &objs)
         else
           brect = CQChartsGeom::BBox(bx1, value1, bx1 + bw1, value2);
 
-        barWidth_ = std::min(barWidth_, brect.getWidth());
+        th->barWidth_ = std::min(th->barWidth_, brect.getWidth());
       }
       else {
         if (isStacked())
@@ -1044,7 +979,7 @@ createObjs(PlotObjs &objs)
         else
           brect = CQChartsGeom::BBox(value1, bx1, value2, bx1 + bw1);
 
-        barWidth_ = std::min(barWidth_, brect.getHeight());
+        th->barWidth_ = std::min(th->barWidth_, brect.getHeight());
       }
 
       CQChartsBarChartObj *barObj = nullptr;
@@ -1088,6 +1023,92 @@ createObjs(PlotObjs &objs)
   //----
 
   return true;
+}
+
+void
+CQChartsBarChartPlot::
+initObjAxes()
+{
+  // init axes
+  CQChartsAxis *xAxis = (! isHorizontal() ? this->xAxis() : this->yAxis());
+  CQChartsAxis *yAxis = (! isHorizontal() ? this->yAxis() : this->xAxis());
+
+  xAxis->clearTickLabels();
+  yAxis->clearTickLabels();
+
+  xAxis->setIntegral           (true);
+  xAxis->setGridMid            (true);
+//xAxis->setMajorIncrement     (1);
+  xAxis->setMinorTicksDisplayed(false);
+//xAxis->setDataLabels         (true);
+
+  yAxis->setIntegral           (false);
+  yAxis->setGridMid            (false);
+//yAxis->setMajorIncrement     (0);
+  yAxis->setMinorTicksDisplayed(true);
+//yAxis->setDataLabels         (true);
+
+  //---
+
+  int ns = (isValueValue() ? this->valueColumns().count() : 1);
+
+  int nv = numValueSets();
+
+  //---
+
+  // set x axis labels
+  if (ns > 1) {
+    int numVisible = 0;
+
+    for (int iv = 0; iv < nv; ++iv) {
+      if (isSetHidden(iv))
+        continue;
+
+      const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
+
+      xAxis->setTickLabel(numVisible, valueSet.name());
+
+      ++numVisible;
+    }
+  }
+  else {
+    int numVisible = 0;
+
+    if      (nv > 1) {
+      for (int iv = 0; iv < nv; ++iv) {
+        if (isSetHidden(iv))
+          continue;
+
+        const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
+
+        xAxis->setTickLabel(numVisible, valueSet.name());
+
+        ++numVisible;
+      }
+    }
+    else if (nv == 1) {
+      std::set<int> positions;
+
+      xAxis->getTickLabelsPositions(positions);
+
+      const CQChartsBarChartValueSet &valueSet = this->valueSet(0);
+
+      int nvs = valueSet.numValues();
+
+      for (int ivs = 0; ivs < nvs; ++ivs) {
+        if (isValueHidden(ivs))
+          continue;
+
+        if (positions.find(numVisible) != positions.end()) {
+          const CQChartsBarChartValue &value = valueSet.value(ivs);
+
+          xAxis->setTickLabel(numVisible, value.valueName());
+        }
+
+        ++numVisible;
+      }
+    }
+  }
 }
 
 QString
@@ -1476,7 +1497,7 @@ CQChartsGeom::BBox
 CQChartsBarChartObj::
 dataLabelRect() const
 {
-  if (! plot_->dataLabel().isVisible())
+  if (! plot_->dataLabel()->isVisible())
     return CQChartsGeom::BBox();
 
   CQChartsGeom::BBox prect;
@@ -1498,7 +1519,7 @@ dataLabelRect() const
     label = plot_->valueStr(value);
   }
 
-  return plot_->dataLabel().calcRect(qrect, label);
+  return plot_->dataLabel()->calcRect(qrect, label);
 }
 
 void
@@ -1635,22 +1656,24 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, barBrush);
 
+  painter->setPen(pen);
+  painter->setBrush(barBrush);
+
   //---
 
   if (! plot_->isDotLines()) {
     // draw rect
     if (qrect.width() > minBarSize && qrect.height() > minBarSize) {
-      painter->setPen(pen);
-      painter->setBrush(barBrush);
-
       double cxs = plot_->lengthPixelWidth (plot_->barCornerSize());
       double cys = plot_->lengthPixelHeight(plot_->barCornerSize());
 
       CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
     }
     else {
-      if (! plot_->isBarBorder())
+      if (! plot_->isBarBorder()) {
         painter->setPen(barBrush.color());
+        painter->setBrush(Qt::NoBrush);
+      }
 
       painter->drawLine(QPointF(qrect.left (), qrect.bottom()),
                         QPointF(qrect.right(), qrect.top   ()));
@@ -1659,9 +1682,6 @@ draw(QPainter *painter)
   else {
     // draw line
     double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), ! plot_->isHorizontal());
-
-    painter->setPen(pen);
-    painter->setBrush(barBrush);
 
     if (! plot_->isHorizontal()) {
       double xc = qrect.center().x();
@@ -1711,9 +1731,9 @@ draw(QPainter *painter)
 
 void
 CQChartsBarChartObj::
-drawFg(QPainter *painter)
+drawFg(QPainter *painter) const
 {
-  if (! plot_->dataLabel().isVisible())
+  if (! plot_->dataLabel()->isVisible())
     return;
 
   CQChartsGeom::BBox prect;
@@ -1738,28 +1758,28 @@ drawFg(QPainter *painter)
     maxLabel = plot_->valueStr(maxInd.value);
   }
 
-  CQChartsDataLabel::Position pos = plot_->dataLabel().position();
+  CQChartsDataLabel::Position pos = plot_->dataLabel()->position();
 
   if (minLabel == maxLabel) {
     if (minInd.value < 0)
       pos = CQChartsDataLabel::flipPosition(pos);
 
-    plot_->dataLabel().draw(painter, qrect, minLabel, pos);
+    plot_->dataLabel()->draw(painter, qrect, minLabel, pos);
   }
   else {
-    if (plot_->dataLabel().isPositionOutside()) {
+    if (plot_->dataLabel()->isPositionOutside()) {
       CQChartsDataLabel::Position minPos = CQChartsDataLabel::Position::BOTTOM_OUTSIDE;
       CQChartsDataLabel::Position maxPos = CQChartsDataLabel::Position::TOP_OUTSIDE;
 
-      plot_->dataLabel().draw(painter, qrect, minLabel, minPos);
-      plot_->dataLabel().draw(painter, qrect, maxLabel, maxPos);
+      plot_->dataLabel()->draw(painter, qrect, minLabel, minPos);
+      plot_->dataLabel()->draw(painter, qrect, maxLabel, maxPos);
     }
     else {
       CQChartsDataLabel::Position minPos = CQChartsDataLabel::Position::BOTTOM_INSIDE;
       CQChartsDataLabel::Position maxPos = CQChartsDataLabel::Position::TOP_INSIDE;
 
-      plot_->dataLabel().draw(painter, qrect, minLabel, minPos);
-      plot_->dataLabel().draw(painter, qrect, maxLabel, maxPos);
+      plot_->dataLabel()->draw(painter, qrect, minLabel, minPos);
+      plot_->dataLabel()->draw(painter, qrect, maxLabel, maxPos);
     }
   }
 }
@@ -1806,7 +1826,7 @@ selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod)
     setSetHidden(! isSetHidden());
   }
 
-  plot_->updateRangeAndObjs();
+  plot_->queueUpdateRangeAndObjs();
 
   return true;
 }

@@ -100,11 +100,22 @@ CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
 CQChartsSankeyPlot::
 ~CQChartsSankeyPlot()
 {
+  clearNodesAndEdges();
+}
+
+void
+CQChartsSankeyPlot::
+clearNodesAndEdges()
+{
   for (const auto &nameNode : nameNodeMap_)
     delete nameNode.second;
 
   for (const auto &edge : edges_)
     delete edge;
+
+  nameNodeMap_.clear();
+  indNodeMap_ .clear();
+  edges_      .clear();
 }
 
 //---
@@ -143,7 +154,7 @@ addProperties()
 
 CQChartsGeom::Range
 CQChartsSankeyPlot::
-calcRange()
+calcRange() const
 {
   CQPerfTrace trace("CQChartsSankeyPlot::calcRange");
 
@@ -167,23 +178,17 @@ calcRange()
 
 bool
 CQChartsSankeyPlot::
-createObjs(PlotObjs &objs)
+createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsSankeyPlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsSankeyPlot *>(this));
+  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
+
+  NoUpdate noUpdate(th);
 
   //---
 
-  for (const auto &nameNode : nameNodeMap_)
-    delete nameNode.second;
-
-  for (const auto &edge : edges_)
-    delete edge;
-
-  nameNodeMap_.clear();
-  indNodeMap_ .clear();
-  edges_      .clear();
+  th->clearNodesAndEdges();
 
   //---
 
@@ -220,9 +225,7 @@ createObjs(PlotObjs &objs)
       CQChartsSankeyPlotNode *srcNode  = plot_->findNode(srcStr);
       CQChartsSankeyPlotNode *destNode = plot_->findNode(destStr);
 
-      CQChartsSankeyPlot *plot = const_cast<CQChartsSankeyPlot *>(plot_);
-
-      CQChartsSankeyPlotEdge *edge = plot->createEdge(value, srcNode, destNode);
+      CQChartsSankeyPlotEdge *edge = plot_->createEdge(value, srcNode, destNode);
 
       srcNode ->addDestEdge(edge);
       destNode->addSrcEdge (edge);
@@ -247,8 +250,12 @@ createObjs(PlotObjs &objs)
 
 void
 CQChartsSankeyPlot::
-createGraph(PlotObjs &objs)
+createGraph(PlotObjs &objs) const
 {
+  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
+
+  //---
+
 //double xs = bbox_.getWidth ();
   double ys = bbox_.getHeight();
 
@@ -276,10 +283,10 @@ createGraph(PlotObjs &objs)
 
   //---
 
-  maxHeight_ = 0;
+  th->maxHeight_ = 0;
 
   for (const auto &depthNodes : depthNodesMap)
-    maxHeight_ = std::max(maxHeight_, int(depthNodes.second.size()));
+    th->maxHeight_ = std::max(maxHeight_, int(depthNodes.second.size()));
 
   //---
 
@@ -290,9 +297,9 @@ createGraph(PlotObjs &objs)
 
   //---
 
-  margin_ = (maxHeight_ > 1 ? 0.2*ys/(maxHeight_ - 1) : 0.0);
+  th->margin_ = (maxHeight_ > 1 ? 0.2*ys/(maxHeight_ - 1) : 0.0);
 
-  valueScale_ = (totalSize > 0 ? ys/totalSize : 0.0);
+  th->valueScale_ = (totalSize > 0 ? ys/totalSize : 0.0);
 
   //---
 
@@ -322,7 +329,7 @@ createGraph(PlotObjs &objs)
 
 void
 CQChartsSankeyPlot::
-createNodes(const IndNodeMap &nodes)
+createNodes(const IndNodeMap &nodes) const
 {
   double xs = bbox_.getWidth ();
   double ys = bbox_.getHeight();
@@ -383,7 +390,7 @@ createNodes(const IndNodeMap &nodes)
 
 void
 CQChartsSankeyPlot::
-createEdge(CQChartsSankeyPlotEdge *edge)
+createEdge(CQChartsSankeyPlotEdge *edge) const
 {
   double xm = bbox_.getHeight()*0.01;
   double ym = bbox_.getWidth ()*0.01;
@@ -398,11 +405,15 @@ createEdge(CQChartsSankeyPlotEdge *edge)
 
 void
 CQChartsSankeyPlot::
-updateMaxDepth()
+updateMaxDepth() const
 {
-  bbox_ = CQChartsGeom::BBox(-1.0, -1.0, 1.0, 1.0);
+  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
 
-  maxDepth_ = 0;
+  //---
+
+  th->bbox_ = CQChartsGeom::BBox(-1.0, -1.0, 1.0, 1.0);
+
+  int maxDepth = 0;
 
   for (const auto &idNode : indNodeMap_) {
     CQChartsSankeyPlotNode *node = idNode.second;
@@ -411,32 +422,39 @@ updateMaxDepth()
     int destDepth = node->destDepth();
 
     if      (align() == CQChartsSankeyPlot::Align::SRC)
-      maxDepth_ = std::max(maxDepth_, srcDepth);
+      maxDepth = std::max(maxDepth, srcDepth);
     else if (align() == CQChartsSankeyPlot::Align::DEST)
-      maxDepth_ = std::max(maxDepth_, destDepth);
+      maxDepth = std::max(maxDepth, destDepth);
     else
-      maxDepth_ = std::max(std::max(maxDepth_, srcDepth), destDepth);
+      maxDepth = std::max(std::max(maxDepth, srcDepth), destDepth);
   }
+
+  th->maxDepth_ = maxDepth;
 }
 
 void
 CQChartsSankeyPlot::
-adjustNodes()
+adjustNodes() const
 {
+  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
+
+  //---
+
   // update range
-  bbox_ = CQChartsGeom::BBox();
+  th->bbox_ = CQChartsGeom::BBox();
 
   for (const auto &idNode : indNodeMap_) {
     CQChartsSankeyPlotNode *node = idNode.second;
 
-    bbox_ += node->obj()->rect();
+    th->bbox_ += node->obj()->rect();
   }
 
-  updateRange();
+  //updateRange();
+  th->dataRange_ = calcRange();
 
   //---
 
-  initPosNodesMap();
+  th->initPosNodesMap();
 
   //---
 
@@ -445,7 +463,7 @@ adjustNodes()
   for (int pass = 0; pass < numPasses; ++pass) {
     //std::cerr << "Pass " << pass << "\n";
 
-    adjustNodeCenters();
+    th->adjustNodeCenters();
   }
 
   //---
@@ -502,7 +520,7 @@ adjustNodeCenters()
 
 void
 CQChartsSankeyPlot::
-removeOverlaps()
+removeOverlaps() const
 {
   using PosNodeMap = std::map<double,CQChartsSankeyPlotNode *>;
 
@@ -573,7 +591,7 @@ removeOverlaps()
 
 void
 CQChartsSankeyPlot::
-reorderNodeEdges()
+reorderNodeEdges() const
 {
   // sort node edges nodes by bbox
   using PosEdgeMap = std::map<double,CQChartsSankeyPlotEdge *>;
@@ -644,7 +662,7 @@ reorderNodeEdges()
 
 void
 CQChartsSankeyPlot::
-adjustNode(CQChartsSankeyPlotNode *node)
+adjustNode(CQChartsSankeyPlotNode *node) const
 {
   CQChartsGeom::BBox bbox;
 
@@ -691,11 +709,13 @@ findNode(const QString &name) const
 
 CQChartsSankeyPlotEdge *
 CQChartsSankeyPlot::
-createEdge(double value, CQChartsSankeyPlotNode *srcNode, CQChartsSankeyPlotNode *destNode)
+createEdge(double value, CQChartsSankeyPlotNode *srcNode, CQChartsSankeyPlotNode *destNode) const
 {
   CQChartsSankeyPlotEdge *edge = new CQChartsSankeyPlotEdge(this, value, srcNode, destNode);
 
-  edges_.push_back(edge);
+  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
+
+  th->edges_.push_back(edge);
 
   return edge;
 }
@@ -707,7 +727,7 @@ keyPress(int key, int modifier)
   if (key == Qt::Key_A) {
     adjustNodes();
 
-    invalidateLayers();
+    queueDrawObjs();
   }
   else
     CQChartsPlot::keyPress(key, modifier);
@@ -766,8 +786,10 @@ srcDepth(NodeSet &visited) const
   if (srcDepth_ >= 0)
     return srcDepth_;
 
+  CQChartsSankeyPlotNode *th = const_cast<CQChartsSankeyPlotNode *>(this);
+
   if (srcEdges_.empty())
-    srcDepth_ = 0;
+    th->srcDepth_ = 0;
   else {
     int depth = 0;
 
@@ -783,7 +805,7 @@ srcDepth(NodeSet &visited) const
       }
     }
 
-    srcDepth_ = depth + 1;
+    th->srcDepth_ = depth + 1;
   }
 
   return srcDepth_;
@@ -807,8 +829,10 @@ destDepth(NodeSet &visited) const
   if (destDepth_ >= 0)
     return destDepth_;
 
+  CQChartsSankeyPlotNode *th = const_cast<CQChartsSankeyPlotNode *>(this);
+
   if (destEdges_.empty())
-    destDepth_ = 0;
+    th->destDepth_ = 0;
   else {
     int depth = 0;
 
@@ -824,7 +848,7 @@ destDepth(NodeSet &visited) const
       }
     }
 
-    destDepth_ = depth + 1;
+    th->destDepth_ = depth + 1;
   }
 
   return destDepth_;
@@ -837,23 +861,29 @@ calcXPos() const
   int srcDepth  = this->srcDepth ();
   int destDepth = this->destDepth();
 
+  int xpos = 0;
+
   if      (srcDepth == 0)
-    xpos_ = 0;
+    xpos = 0;
   else if (destDepth == 0)
-    xpos_ = plot_->maxDepth();
+    xpos = plot_->maxDepth();
   else {
     if      (plot_->align() == CQChartsSankeyPlot::Align::SRC)
-      xpos_ = srcDepth;
+      xpos = srcDepth;
     else if (plot_->align() == CQChartsSankeyPlot::Align::DEST)
-      xpos_ = plot_->maxDepth() - destDepth;
+      xpos = plot_->maxDepth() - destDepth;
     else if (plot_->align() == CQChartsSankeyPlot::Align::JUSTIFY) {
       double f = 1.0*srcDepth/(srcDepth + destDepth);
 
-      xpos_ = int(f*plot_->maxDepth());
+      xpos = int(f*plot_->maxDepth());
     }
   }
 
-  return xpos_;
+  CQChartsSankeyPlotNode *th = const_cast<CQChartsSankeyPlotNode *>(this);
+
+  th->xpos_ = xpos;
+
+  return xpos;
 }
 
 double
@@ -989,11 +1019,13 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
+  QColor bc = plot_->interpNodeBorderColor(node_->ind(), numNodes);
+  QColor fc = plot_->interpNodeFillColor(node_->ind(), numNodes);
+
   plot_->setPenBrush(pen, brush,
-                     plot_->isNodeBorder(), plot_->interpNodeBorderColor(node_->ind(), numNodes),
-                     plot_->nodeBorderAlpha(), plot_->nodeBorderWidth(), plot_->nodeBorderDash(),
-                     plot_->isNodeFilled(), plot_->interpNodeFillColor(node_->ind(), numNodes),
-                     plot_->nodeFillAlpha(), plot_->nodeFillPattern());
+    plot_->isNodeBorder(), bc, plot_->nodeBorderAlpha(),
+    plot_->nodeBorderWidth(), plot_->nodeBorderDash(),
+    plot_->isNodeFilled(), fc, plot_->nodeFillAlpha(), plot_->nodeFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -1026,7 +1058,7 @@ draw(QPainter *painter)
 
 void
 CQChartsSankeyNodeObj::
-drawFg(QPainter *painter)
+drawFg(QPainter *painter) const
 {
   if (! plot_->isTextVisible())
     return;
@@ -1046,12 +1078,12 @@ drawFg(QPainter *painter)
 
   //---
 
-  // set color
+  // set text pen
   QPen pen;
 
   QColor c = plot_->interpTextColor(node_->ind(), numNodes);
 
-  plot_->setPen(pen, true, c, plot_->textAlpha(), CQChartsLength("0px"));
+  plot_->setPen(pen, true, c, plot_->textAlpha());
 
   painter->setPen(pen);
 
@@ -1120,10 +1152,9 @@ draw(QPainter *painter)
   QColor sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
 
   plot_->setPenBrush(pen, brush,
-                     plot_->isEdgeBorder(), sc,
-                     plot_->edgeBorderAlpha(), plot_->edgeBorderWidth(), plot_->edgeBorderDash(),
-                     plot_->isEdgeFilled(), fc,
-                     plot_->edgeFillAlpha(), plot_->edgeFillPattern());
+    plot_->isEdgeBorder(), sc, plot_->edgeBorderAlpha(),
+    plot_->edgeBorderWidth(), plot_->edgeBorderDash(),
+    plot_->isEdgeFilled(), fc, plot_->edgeFillAlpha(), plot_->edgeFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

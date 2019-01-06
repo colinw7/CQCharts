@@ -185,6 +185,10 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   //----
 
+  void clearNodes();
+
+  //----
+
   // columns
   //  . node connections (node id, connection list, name)
   const CQChartsColumn &nodeColumn() const { return nodeColumn_; }
@@ -219,7 +223,19 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   CQChartsAdjacencyObj *insideObj() const { return insideObj_; }
   void setInsideObj(CQChartsAdjacencyObj *obj) { insideObj_ = obj; }
 
-  double maxValue() const { return maxValue_; }
+  //---
+
+  double maxValue() const { return nodeData_.maxValue; }
+
+  int maxGroup() const { return nodeData_.maxGroup; }
+
+  int maxLen() const { return nodeData_.maxLen; }
+
+  double scale() const { return nodeData_.scale; }
+
+  double drawFactor() const { return nodeData_.drawFactor; }
+
+  //---
 
   int numNodes() const { return sortedNodes_.size(); }
 
@@ -231,9 +247,9 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
   //---
 
@@ -251,11 +267,11 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   bool hasBackground() const override;
 
-  void drawBackground(QPainter *) override;
+  void drawBackground(QPainter *) const override;
 
   bool hasForeground() const override;
 
-  void drawForeground(QPainter *) override;
+  void drawForeground(QPainter *) const override;
 
  private:
   using Connections = CQChartsConnectionList::Connections;
@@ -277,39 +293,45 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   CQChartsAdjacencyNode *getNodeByName(const QString &str) const;
 
-  bool initHierObjs(PlotObjs &objs);
-  bool initConnectionObjs(PlotObjs &objs);
-
-  void sortNodes();
+  bool initHierObjs(PlotObjs &objs) const;
+  bool initConnectionObjs(PlotObjs &objs) const;
 
  private:
-  using NodeMap     = std::map<int,CQChartsAdjacencyNode*>;
-  using NodeArray   = std::vector<CQChartsAdjacencyNode*>;
+  using NodeMap   = std::map<int,CQChartsAdjacencyNode*>;
+  using NodeArray = std::vector<CQChartsAdjacencyNode*>;
+
+  struct NodeData {
+    double maxValue   { 0 };   // max node value
+    int    maxGroup   { 0 };   // max node group
+    int    maxLen     { 0 };   // max text length
+    double scale      { 1.0 }; // box size
+    double drawFactor { 1.0 }; // saved font factor
+  };
+
+ private:
+  void sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) const;
+
+ private:
   using NameNodeMap = std::map<QString,CQChartsAdjacencyNode *>;
 
   using AdjacencyObj = CQChartsAdjacencyObj;
 
-  CQChartsColumn    nodeColumn_;                                 // connection node column
-  CQChartsColumn    connectionsColumn_;                          // connections column
-  CQChartsColumn    nameColumn_;                                 // name column
-  CQChartsColumn    namePairColumn_;                             // name pairs column
-  CQChartsColumn    countColumn_;                                // count column
-  CQChartsColumn    groupIdColumn_;                              // group id column
-  ColumnType        connectionsColumnType_ { ColumnType::NONE }; // connection column type
-  ColumnType        namePairColumnType_    { ColumnType::NONE }; // name pair column type
-  SortType          sortType_              { SortType::GROUP };  // sort type
-  CQChartsLength    bgMargin_              { "2px" };            // background margin
-  IdConnectionsData idConnections_;                              // connections by id
-  NodeMap           nodes_;                                      // all nodes
-  NameNodeMap       nameNodeMap_;                                // name node map
-  NodeArray         sortedNodes_;                                // sorted nodes
-  AdjacencyObj*     insideObj_             { nullptr };          // last inside object
-  double            maxValue_              { 0 };                // max node value
-  int               maxGroup_              { 0 };                // max node group
-  int               maxLen_                { 0 };                // max text length
-  double            scale_                 { 1.0 };              // box size
-  double            factor_                { 1.0 };              // font factor
-  double            drawFactor_            { 1.0 };              // saved font factor
+  CQChartsColumn nodeColumn_;                                 // connection node column
+  CQChartsColumn connectionsColumn_;                          // connections column
+  CQChartsColumn nameColumn_;                                 // name column
+  CQChartsColumn namePairColumn_;                             // name pairs column
+  CQChartsColumn countColumn_;                                // count column
+  CQChartsColumn groupIdColumn_;                              // group id column
+  SortType       sortType_              { SortType::GROUP };  // sort type
+  CQChartsLength bgMargin_              { "2px" };            // background margin
+  NodeMap        nodes_;                                      // all nodes
+  NameNodeMap    nameNodeMap_;                                // name node map
+  double         factor_                { 1.0 };              // font factor
+  AdjacencyObj*  insideObj_             { nullptr };          // last inside object
+  ColumnType     connectionsColumnType_ { ColumnType::NONE }; // connection column type
+  ColumnType     namePairColumnType_    { ColumnType::NONE }; // name pair column type
+  NodeArray      sortedNodes_;                                // sorted nodes
+  NodeData       nodeData_;                                   // node data
 };
 
 #endif

@@ -3,13 +3,13 @@
 
 #include <CQChartsGroupPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsDataLabel.h>
 #include <CQChartsGrahamHull.h>
 #include <CQChartsBoxWhisker.h>
 #include <CQChartsFitData.h>
 #include <CInterval.h>
 
 class CQChartsScatterPlot;
+class CQChartsDataLabel;
 
 //---
 
@@ -357,6 +357,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
  public:
   CQChartsScatterPlot(CQChartsView *view, const ModelP &model);
+ ~CQChartsScatterPlot();
 
   //---
 
@@ -541,27 +542,33 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
-  bool isTextLabels() const { return dataLabel_.isVisible(); }
+  bool isTextLabels() const;
   void setTextLabels(bool b);
 
+  //---
+
+  void setDataLabelFont(const QFont &font);
+
+  //---
+
   // data label
-  const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
-  CQChartsDataLabel &dataLabel() { return dataLabel_; }
+  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
+  CQChartsDataLabel *dataLabel() { return dataLabel_; }
 
   //---
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
   void clearPlotObjects() override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &obj) const override;
 
-  void addPointObjects(PlotObjs &objs);
-  void addGridObjects(PlotObjs &objs);
+  void addPointObjects(PlotObjs &objs) const;
+  void addGridObjects(PlotObjs &objs) const;
 
-  void addNameValues();
+  void addNameValues() const;
 
   //---
 
@@ -579,11 +586,11 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   bool hasBackground() const override;
 
-  void drawBackground(QPainter *painter) override;
+  void drawBackground(QPainter *painter) const override;
 
   bool hasForeground() const override;
 
-  void drawForeground(QPainter *painter) override;
+  void drawForeground(QPainter *painter) const override;
 
   //---
 
@@ -596,17 +603,19 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   };
 
  private:
+  void initGridData(const CQChartsGeom::Range &dataRange);
+
   void initAxes(bool uniqueX, bool uniqueY);
 
-  void initSymbolTypeData();
+  void initSymbolTypeData() const;
 
   bool columnSymbolType(int row, const QModelIndex &parent, CQChartsSymbol &symbolType) const;
 
-  void initSymbolSizeData();
+  void initSymbolSizeData() const;
 
   bool columnSymbolSize(int row, const QModelIndex &parent, CQChartsLength &symbolSize) const;
 
-  void initFontSizeData();
+  void initFontSizeData() const;
 
   bool columnFontSize(int row, const QModelIndex &parent, CQChartsLength &fontSize) const;
 
@@ -642,7 +651,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   void drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const;
   void drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const;
 
-  void initWhiskerData();
+  void initWhiskerData() const;
 
   //---
 
@@ -727,12 +736,12 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   struct SymbolTypeData {
     CQChartsColumn column;
-    bool           valid     { false };
-    bool           mapped    { false };
-    int            data_min  { 0 };
-    int            data_max  { 1 };
-    int            map_min   { 0 };
-    int            map_max   { 1 };
+    bool           valid    { false };
+    bool           mapped   { false };
+    int            data_min { 0 };
+    int            data_max { 1 };
+    int            map_min  { 0 };
+    int            map_max  { 1 };
   };
 
   struct SymbolSizeData {
@@ -749,42 +758,42 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   struct FontSizeData {
     CQChartsColumn column;
-    bool           valid     { false };
-    bool           mapped    { false };
-    double         data_min  { 0.0 };
-    double         data_max  { 1.0 };
-    double         map_min   { 0.0 };
-    double         map_max   { 1.0 };
-    QString        units     { "px" };
+    bool           valid    { false };
+    bool           mapped   { false };
+    double         data_min { 0.0 };
+    double         data_max { 1.0 };
+    double         map_min  { 0.0 };
+    double         map_max  { 1.0 };
+    QString        units    { "px" };
   };
 
-  CQChartsColumn    nameColumn_;        // name column
-  CQChartsColumn    xColumn_;           // x column
-  CQChartsColumn    yColumn_;           // y column
-  SymbolTypeData    symbolTypeData_;    // symbol size column
-  SymbolSizeData    symbolSizeData_;    // symbol size column
-  FontSizeData      fontSizeData_;      // font size column
-  BestFitData       bestFitData_;       // best fit data
-  HullData          hullData_;          // hull data
-  AxisRugData       axisRugData_;       // axis rug data
-  AxisDensityData   axisDensityData_;   // axis density data
-  DensityMapData    densityMapData_;    // density map data
-  AxisWhiskerData   axisWhiskerData_;   // axis whisker data
-  GroupNameValues   groupNameValues_;   // name values
-  GroupNameGridData groupNameGridData_; // grid values
-  CQChartsDataLabel dataLabel_;         // data label style
-  GridData          gridData_;          // grid data
-  QString           xname_;             // x column header
-  QString           yname_;             // y column header
-  SymbolMapKeyData  symbolMapKeyData_;  // symbol map key data
-  QString           symbolTypeName_;    // symbol type column header
-  QString           symbolSizeName_;    // symbol size column header
-  QString           fontSizeName_;      // font size column header
-  QString           colorName_;         // color column header
-  GroupPoints       groupPoints_;       // group fit points
-  GroupFitData      groupFitData_;      // group fit data
-  GroupHull         groupHull_;         // group hull
-  GroupWhiskers     groupWhiskers_;     // group whiskers
+  CQChartsColumn     xColumn_;                        // x column
+  CQChartsColumn     yColumn_;                        // y column
+  CQChartsColumn     nameColumn_;                     // name column
+  SymbolTypeData     symbolTypeData_;                 // symbol size column
+  SymbolSizeData     symbolSizeData_;                 // symbol size column
+  FontSizeData       fontSizeData_;                   // font size column
+  BestFitData        bestFitData_;                    // best fit data
+  HullData           hullData_;                       // hull data
+  AxisRugData        axisRugData_;                    // axis rug data
+  AxisDensityData    axisDensityData_;                // axis density data
+  DensityMapData     densityMapData_;                 // density map data
+  AxisWhiskerData    axisWhiskerData_;                // axis whisker data
+  CQChartsDataLabel* dataLabel_          { nullptr }; // data label style
+  GroupNameValues    groupNameValues_;                // name values
+  GroupNameGridData  groupNameGridData_;              // grid values
+  GridData           gridData_;                       // grid data
+  QString            xname_;                          // x column header
+  QString            yname_;                          // y column header
+  QString            symbolTypeName_;                 // symbol type column header
+  QString            symbolSizeName_;                 // symbol size column header
+  QString            fontSizeName_;                   // font size column header
+  QString            colorName_;                      // color column header
+  SymbolMapKeyData   symbolMapKeyData_;               // symbol map key data
+  GroupPoints        groupPoints_;                    // group fit points
+  GroupFitData       groupFitData_;                   // group fit data
+  GroupHull          groupHull_;                      // group hull
+  GroupWhiskers      groupWhiskers_;                  // group whiskers
 };
 
 #endif

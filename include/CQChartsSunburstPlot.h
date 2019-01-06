@@ -324,11 +324,11 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   void addProperties() override;
 
-  CQChartsGeom::Range calcRange() override;
+  CQChartsGeom::Range calcRange() const override;
 
   void clearPlotObjects() override;
 
-  bool createObjs(PlotObjs &objs) override;
+  bool createObjs(PlotObjs &objs) const override;
 
   //---
 
@@ -348,29 +348,29 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   void initRoots();
 
-  void replaceRoots();
+  void replaceRoots() const;
 
-  void colorNodes(CQChartsSunburstHierNode *hier);
+  void colorNodes(CQChartsSunburstHierNode *hier) const;
 
-  void colorNode(CQChartsSunburstNode *node);
+  void colorNode(CQChartsSunburstNode *node) const;
 
   //---
 
-  void loadHier(CQChartsSunburstHierNode *hier);
+  void loadHier(CQChartsSunburstHierNode *hier) const;
 
   CQChartsSunburstHierNode *addHierNode(CQChartsSunburstHierNode *hier, const QString &name,
-                                        const QModelIndex &nameInd);
+                                        const QModelIndex &nameInd) const;
 
   CQChartsSunburstNode *addNode(CQChartsSunburstHierNode *hier, const QString &name, double size,
-                                const QModelIndex &nameInd, const QModelIndex &valueInd);
+                                const QModelIndex &nameInd, const QModelIndex &valueInd) const;
 
-  void loadFlat(CQChartsSunburstHierNode *hier);
+  void loadFlat(CQChartsSunburstHierNode *hier) const;
 
   CQChartsSunburstNode *addNode(CQChartsSunburstHierNode *root, const QStringList &nameStrs,
                                 double size, const QModelIndex &nameInd,
-                                const QModelIndex &valueInd);
+                                const QModelIndex &valueInd) const;
 
-  void addExtraNodes(CQChartsSunburstHierNode *hier);
+  void addExtraNodes(CQChartsSunburstHierNode *hier) const;
 
   //---
 
@@ -386,9 +386,11 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   //---
 
-  void addPlotObjs(CQChartsSunburstHierNode *parent, PlotObjs &objs);
+  void addPlotObjs(CQChartsSunburstHierNode *parent, PlotObjs &objs) const;
 
-  void addPlotObj(CQChartsSunburstNode *node, PlotObjs &objs);
+  void addPlotObj(CQChartsSunburstNode *node, PlotObjs &objs) const;
+
+  //---
 
   void drawNodes(QPainter *painter, CQChartsSunburstHierNode *hier) const;
 

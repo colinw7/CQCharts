@@ -89,14 +89,14 @@ void
 CQChartsRadarPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsRadarPlot::
 setValueColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //------
@@ -105,14 +105,14 @@ void
 CQChartsRadarPlot::
 setAngleStart(double r)
 {
-  CQChartsUtil::testAndSet(angleStart_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(angleStart_, r, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsRadarPlot::
 setAngleExtent(double r)
 {
-  CQChartsUtil::testAndSet(angleExtent_, r, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(angleExtent_, r, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //----
@@ -152,9 +152,11 @@ addProperties()
 
 CQChartsGeom::Range
 CQChartsRadarPlot::
-calcRange()
+calcRange() const
 {
   CQPerfTrace trace("CQChartsRadarPlot::calcRange");
+
+  CQChartsRadarPlot *th = const_cast<CQChartsRadarPlot *>(this);
 
   // get values for each row
   class RowVisitor : public ModelVisitor {
@@ -193,17 +195,23 @@ calcRange()
 
   visitModel(visitor);
 
-  valueDatas_ = visitor.valueDatas();
+  th->valueDatas_ = visitor.valueDatas();
 
   //---
 
   // calc max radius (normalized values)
-  valueRadius_ = 0.0;
+  th->valueRadius_ = 0.0;
 
   int nv = valueColumns().count();
 
-  for (int iv = 0; iv < nv; ++iv)
-    valueRadius_ = std::max(valueRadius_, valueDatas_[iv].max()/valueDatas_[iv].sum());
+  for (int iv = 0; iv < nv; ++iv) {
+    auto pd = valueDatas_.find(iv);
+    assert(pd != valueDatas_.end());
+
+    const ValueData &valueData = (*pd).second;
+
+    th->valueRadius_ = std::max(valueRadius_, valueData.max()/valueData.sum());
+  }
 
   //---
 
@@ -310,7 +318,7 @@ annotationBBox() const
 
 bool
 CQChartsRadarPlot::
-createObjs(PlotObjs &objs)
+createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsRadarPlot::createObjs");
 
@@ -326,9 +334,7 @@ createObjs(PlotObjs &objs)
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      CQChartsRadarPlot *plot = const_cast<CQChartsRadarPlot *>(plot_);
-
-      plot->addRow(data, numRows(), objs_);
+      plot_->addRow(data, numRows(), objs_);
 
       return State::OK;
     }
@@ -349,7 +355,7 @@ createObjs(PlotObjs &objs)
 
 void
 CQChartsRadarPlot::
-addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs)
+addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
 {
   bool hidden = isSetHidden(data.row);
 
@@ -400,8 +406,15 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs)
 
     //---
 
+    auto pd = valueDatas_.find(iv);
+    assert(pd != valueDatas_.end());
+
+    const ValueData &valueData = (*pd).second;
+
+    //---
+
     // set point
-    double scale = valueDatas_[iv].sum();
+    double scale = valueData.sum();
 
     double ra = CMathUtil::Deg2Rad(a);
 
@@ -517,7 +530,7 @@ postResize()
 {
   CQChartsPlot::postResize();
 
-  resetRange();
+  resetDataRange(/*updateRange*/true, /*updateObjs*/false);
 }
 
 bool
@@ -529,7 +542,7 @@ hasBackground() const
 
 void
 CQChartsRadarPlot::
-drawBackground(QPainter *painter)
+drawBackground(QPainter *painter) const
 {
   int nv = valueColumns().count();
 
@@ -595,7 +608,7 @@ drawBackground(QPainter *painter)
 
     QColor tc = interpTextColor(0, 1);
 
-    setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"));
+    setPen(tpen, true, tc, textAlpha());
 
     //---
 
@@ -812,6 +825,7 @@ draw(QPainter *painter)
 
   //---
 
+  // draw polygon
   if      (poly_.size() == 1) {
     const QPointF &p1 = ppoly[0]; // circle radius p1.x()
 

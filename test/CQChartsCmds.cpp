@@ -925,6 +925,7 @@ createPlotCmd(const Vars &vars)
   argv.addCmdArg("-view" , CQChartsCmdArg::Type::String , "view_id"  ).setRequired();
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model_ind").setRequired();
   argv.addCmdArg("-type" , CQChartsCmdArg::Type::String , "type"     ).setRequired();
+  argv.addCmdArg("-id"   , CQChartsCmdArg::Type::String , "plot id"  );
 
   argv.addCmdArg("-where"     , CQChartsCmdArg::Type::String, "filter");
   argv.addCmdArg("-columns"   , CQChartsCmdArg::Type::String, "columns");
@@ -949,6 +950,7 @@ createPlotCmd(const Vars &vars)
   QString     viewName    = argv.getParseStr    ("view");
   int         modelInd    = argv.getParseInt    ("model", -1);
   QString     typeName    = argv.getParseStr    ("type");
+  QString     id          = argv.getParseStr    ("id");
   QString     filterStr   = argv.getParseStr    ("where");
   QString     title       = argv.getParseStr    ("title");
   QStringList properties  = argv.getParseStrs   ("properties");
@@ -1156,6 +1158,9 @@ createPlotCmd(const Vars &vars)
   }
 
   //---
+
+  if (id != "")
+    plot->setId(id);
 
   plot->setUpdatesEnabled(true);
 
@@ -1986,7 +1991,7 @@ flattenModelCmd(const Vars &vars)
                                              columnBaseType, nameValues))
       continue;
 
-    CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
 
     if (! typeData)
       continue;
@@ -3223,7 +3228,22 @@ setChartsDataCmd(const Vars &vars)
     CQChartsPlot *plot = getPlotByName(view, plotName);
     if (! plot) return;
 
-    setCmdError("Invalid name '" + name + "' specified");
+    if (name == "updates_enabled") {
+      bool ok;
+
+      bool b = stringToBool(value, &ok);
+
+      plot->setUpdatesEnabled(b);
+
+      if (b) {
+        plot->queueUpdateRangeAndObjs();
+
+        plot->queueDrawObjs();
+      }
+    }
+    else
+      setCmdError("Invalid name '" + name + "' specified");
+
     return;
   }
   else {
@@ -3351,8 +3371,11 @@ createRectAnnotationCmd(const Vars &vars)
   if (! annotation)
     return;
 
-  annotation->setId(id);
-  annotation->setTipId(tipId);
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
 
   annotation->setBoxData(boxData);
 
@@ -3459,8 +3482,11 @@ createEllipseAnnotationCmd(const Vars &vars)
   else
     return;
 
-  annotation->setId(id);
-  annotation->setTipId(tipId);
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
 
   annotation->setBoxData(boxData);
 
@@ -3562,8 +3588,11 @@ createPolygonAnnotationCmd(const Vars &vars)
   else
     return;
 
-  annotation->setId(id);
-  annotation->setTipId(tipId);
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
 
   annotation->setShapeData(shapeData);
 
@@ -3667,8 +3696,11 @@ createPolylineAnnotationCmd(const Vars &vars)
   else
     return;
 
-  annotation->setId(id);
-  annotation->setTipId(tipId);
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
 
   annotation->setShapeData(shapeData);
 
@@ -3803,8 +3835,11 @@ createTextAnnotationCmd(const Vars &vars)
   if (! annotation)
     return;
 
-  annotation->setId(id);
-  annotation->setTipId(tipId);
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
 
   annotation->setTextData(textData);
   annotation->setBoxData(boxData);
@@ -3904,8 +3939,11 @@ createArrowAnnotationCmd(const Vars &vars)
   else
     return;
 
-  annotation->setId(id);
-  annotation->setTipId(tipId);
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
 
   annotation->setArrowData(arrowData);
 
@@ -4005,8 +4043,11 @@ createPointAnnotationCmd(const Vars &vars)
   else
     return;
 
-  annotation->setId(id);
-  annotation->setTipId(tipId);
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
 
   annotation->setPointData(pointData);
 

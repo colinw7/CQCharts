@@ -5,8 +5,9 @@
 #include <QLabel>
 
 class CQChartsWindow;
+class CQChartsViewStatusStatus;
 class CQChartsViewStatusPos;
-class QLabel;
+class CQChartsViewStatusSel;
 
 class CQChartsViewStatus : public QFrame {
   Q_OBJECT
@@ -32,10 +33,32 @@ class CQChartsViewStatus : public QFrame {
   QSize sizeHint() const override;
 
  private:
-  CQChartsWindow*        window_      { nullptr };
-  QLabel*                statusLabel_ { nullptr };
-  CQChartsViewStatusPos* posLabel_    { nullptr };
-  QLabel*                selLabel_    { nullptr };
+  CQChartsWindow*           window_      { nullptr };
+  CQChartsViewStatusStatus* statusLabel_ { nullptr };
+  CQChartsViewStatusPos*    posLabel_    { nullptr };
+  CQChartsViewStatusSel*    selLabel_    { nullptr };
+};
+
+//---
+
+class CQChartsViewStatusStatus : public QLabel {
+  Q_OBJECT
+
+ public:
+  CQChartsViewStatusStatus(CQChartsViewStatus *status);
+
+  const QString &text() const { return text_; }
+  void setText(const QString &text);
+
+  void contextMenuEvent(QContextMenuEvent *e) override;
+
+ private slots:
+  void activateSlot(bool);
+
+ private:
+  CQChartsViewStatus* status_ { nullptr };
+  QString             text_;
+  bool                active_ { true };
 };
 
 //---
@@ -52,11 +75,35 @@ class CQChartsViewStatusPos : public QLabel {
   void contextMenuEvent(QContextMenuEvent *e) override;
 
  private slots:
+  void activateSlot(bool);
   void posTextTypeAction(QAction *action);
 
  private:
   CQChartsViewStatus* status_ { nullptr };
   QString             text_;
+  bool                active_ { true };
+};
+
+//---
+
+class CQChartsViewStatusSel : public QLabel {
+  Q_OBJECT
+
+ public:
+  CQChartsViewStatusSel(CQChartsViewStatus *status);
+
+  const QString &text() const { return text_; }
+  void setText(const QString &text);
+
+  void contextMenuEvent(QContextMenuEvent *e) override;
+
+ private slots:
+  void activateSlot(bool);
+
+ private:
+  CQChartsViewStatus* status_ { nullptr };
+  QString             text_;
+  bool                active_ { true };
 };
 
 #endif

@@ -18,7 +18,7 @@ CQChartsResizeHandle(const CQChartsPlot *plot, Side side) :
 
 void
 CQChartsResizeHandle::
-draw(QPainter *painter)
+draw(QPainter *painter) const
 {
   // set pen and brush
   QPen   pen;
