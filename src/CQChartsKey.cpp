@@ -2,10 +2,11 @@
 #include <CQChartsPlot.h>
 #include <CQChartsAxis.h>
 #include <CQChartsView.h>
+#include <CQChartsEditHandles.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQPropertyViewModel.h>
 #include <CQChartsRoundedPolygon.h>
+#include <CQPropertyViewModel.h>
 #include <QPainter>
 #include <QStylePainter>
 #include <QStyleOption>
@@ -102,16 +103,24 @@ void
 CQChartsViewKey::
 doLayout()
 {
-  double x  = 0.0, y  = 0.0;
-  double dx = 0.0, dy = 0.0;
+  QFont font = view()->viewFont(textFont());
 
-  if      (location().onLeft   ()) { x =   0.0; dx =  1.0; }
-  else if (location().onHCenter()) { x =  50.0; dx =  0.0; }
-  else if (location().onRight  ()) { x = 100.0; dx = -1.0; }
+  QFontMetricsF fm(font);
 
-  if      (location().onTop    ()) { y = 100.0; dy =  1.0; }
-  else if (location().onVCenter()) { y =  50.0; dy =  0.0; }
-  else if (location().onBottom ()) { y =   0.0; dy = -1.0; }
+  double bs = fm.height() + 4.0;
+
+  //----
+
+  double x = 0.0, y = 0.0;
+//double dx = 0.0, dy = 0.0;
+
+  if      (location().onLeft   ()) { x =   0.0; /*dx =  1.0; */ }
+  else if (location().onHCenter()) { x =  50.0; /*dx =  0.0; */ }
+  else if (location().onRight  ()) { x = 100.0; /*dx = -1.0; */ }
+
+  if      (location().onTop    ()) { y = 100.0; /*dy =  1.0; */ }
+  else if (location().onVCenter()) { y =  50.0; /*dy =  0.0; */ }
+  else if (location().onBottom ()) { y =   0.0; /*dy = -1.0; */ }
 
   //----
 
@@ -119,14 +128,10 @@ doLayout()
 
   view_->windowToPixel(x, y, px, py);
 
-  px += dx*16.0;
-  py += dy*16.0;
+  //px += dx*bs;
+  //py += dy*bs;
 
   //---
-
-  QFont font = view()->viewFont(textFont());
-
-  QFontMetricsF fm(font);
 
   double pw = 0.0;
   double ph = 0.0;
@@ -138,18 +143,26 @@ doLayout()
 
     QString name = plot->keyText();
 
-    double tw = fm.width(name) + 16.0 + margin();
+    double tw = fm.width(name) + bs + margin();
 
     pw = std::max(pw, tw);
 
-    ph += fm.height();
+    ph += bs;
   }
 
-  if      (location().onLeft   ()) position_ = QPointF(px        +   margin(), py);
-  else if (location().onHCenter()) position_ = QPointF(px - pw/2 -   margin(), py);
-  else if (location().onRight  ()) position_ = QPointF(px - pw   - 2*margin(), py);
+  size_ = QSizeF(pw + 2*margin(), ph + 2*margin()  + (n - 1)*2);
 
-  size_ = QSizeF(pw + 2*margin(), ph + 2*margin());
+  double pxr, pyr;
+
+  if      (location().onLeft   ()) pxr = px                   + margin();
+  else if (location().onHCenter()) pxr = px - size_.width()/2;
+  else if (location().onRight  ()) pxr = px - size_.width()   - margin();
+
+  if      (location().onTop    ()) pyr = py                    + margin();
+  else if (location().onVCenter()) pyr = py - size_.height()/2;
+  else if (location().onBottom ()) pyr = py - size_.height()   - margin();
+
+  position_ = QPointF(pxr, pyr);
 }
 
 void
@@ -225,8 +238,10 @@ draw(QPainter *painter)
 
   double bs = fm.height() + 4.0;
 
+  double dth = (bs - fm.height())/2;
+
   for (int i = 0; i < n; ++i) {
-    double py2 = py1 + fm.height() + 2;
+    double py2 = py1 + bs + 2;
 
     CQChartsPlot *plot = view_->plot(i);
 
@@ -234,9 +249,14 @@ draw(QPainter *painter)
 
     //---
 
-    QRectF qrect(px1, (py1 + py2)/2.0 - bs/2.0, bs, bs);
+    QImage cimage(QSize(bs, bs), QImage::Format_ARGB32);
 
-    QStylePainter spainter(view_);
+    cimage.fill(QColor(0,0,0,0));
+
+    //QRectF qrect(px1, (py1 + py2)/2.0 - bs/2.0, bs, bs);
+    QRectF qrect(0, 0, bs, bs);
+
+    QStylePainter spainter(&cimage, view_);
 
     spainter.setPen(interpTextColor(0, 1));
 
@@ -250,6 +270,8 @@ draw(QPainter *painter)
 
     spainter.drawControl(QStyle::CE_CheckBox, opt);
 
+    painter->drawImage(px1, (py1 + py2)/2.0 - bs/2.0, cimage);
+
     //painter->drawRect(qrect);
 
     //---
@@ -262,7 +284,7 @@ draw(QPainter *painter)
 
     //double tw = fm.width(name);
 
-    painter->drawText(px2, py1 + fm.ascent(), name);
+    painter->drawText(px2, py1 + fm.ascent() + dth, name);
 
     //---
 
@@ -317,8 +339,10 @@ redraw(bool /*wait*/)
 
 CQChartsPlotKey::
 CQChartsPlotKey(CQChartsPlot *plot) :
- CQChartsKey(plot), editHandles_(plot, CQChartsEditHandles::Mode::MOVE)
+ CQChartsKey(plot)
 {
+  editHandles_ = new CQChartsEditHandles(plot, CQChartsEditHandles::Mode::MOVE);
+
   setBorder(true);
 
   clearItems();
@@ -327,6 +351,8 @@ CQChartsPlotKey(CQChartsPlot *plot) :
 CQChartsPlotKey::
 ~CQChartsPlotKey()
 {
+  delete editHandles_;
+
   for (auto &item : items_)
     delete item;
 }
@@ -759,7 +785,7 @@ bool
 CQChartsPlotKey::
 editPress(const CQChartsGeom::Point &p)
 {
-  editHandles_.setDragPos(p);
+  editHandles_->setDragPos(p);
 
   location_ = CQChartsKeyLocation(CQChartsKeyLocation::Type::ABS_POS);
 
@@ -772,7 +798,7 @@ bool
 CQChartsPlotKey::
 editMove(const CQChartsGeom::Point &p)
 {
-  const CQChartsGeom::Point &dragPos = editHandles_.dragPos();
+  const CQChartsGeom::Point &dragPos = editHandles_->dragPos();
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
@@ -781,7 +807,7 @@ editMove(const CQChartsGeom::Point &p)
 
   setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
 
-  editHandles_.setDragPos(p);
+  editHandles_->setDragPos(p);
 
   updatePosition(/*wait*/false);
 
@@ -792,7 +818,7 @@ bool
 CQChartsPlotKey::
 editMotion(const CQChartsGeom::Point &p)
 {
-  return editHandles_.selectInside(p);
+  return editHandles_->selectInside(p);
 }
 
 bool
@@ -1028,9 +1054,9 @@ drawEditHandles(QPainter *painter) const
 {
   assert(plot_->view()->mode() == CQChartsView::Mode::EDIT || isSelected());
 
-  const_cast<CQChartsPlotKey *>(this)->editHandles_.setBBox(this->bbox());
+  const_cast<CQChartsPlotKey *>(this)->editHandles_->setBBox(this->bbox());
 
-  editHandles_.draw(painter);
+  editHandles_->draw(painter);
 }
 
 QColor

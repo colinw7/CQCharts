@@ -1,4 +1,5 @@
 #include <CQChartsGroupPlot.h>
+#include <CQChartsColumnBucket.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 #include <CQPerfMonitor.h>
@@ -505,6 +506,20 @@ setModelGroupInd(const CQChartsModelIndex &ind, int groupInd)
   int role = (int) CQBaseModelRole::Group;
 
   model->setHeaderData(ind.row, Qt::Vertical, var, role);
+}
+
+bool
+CQChartsGroupPlot::
+isGroupHeaders() const
+{
+  return (groupBucket()->dataType() == CQChartsColumnBucket::DataType::HEADER);
+}
+
+bool
+CQChartsGroupPlot::
+isGroupPathType() const
+{
+  return (groupBucket()->dataType() == CQChartsColumnBucket::DataType::PATH);
 }
 
 int

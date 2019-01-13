@@ -1,28 +1,49 @@
 #include <CQChartsEditHandles.h>
+#include <CQChartsResizeHandle.h>
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
 #include <QPainter>
 
 CQChartsEditHandles::
 CQChartsEditHandles(const CQChartsPlot *plot, const Mode &mode) :
- plot_(plot), mode_(mode),
- moveHandle_(plot, CQChartsResizeHandle::Side::MOVE),
- llHandle_  (plot, CQChartsResizeHandle::Side::LL),
- lrHandle_  (plot, CQChartsResizeHandle::Side::LR),
- ulHandle_  (plot, CQChartsResizeHandle::Side::UL),
- urHandle_  (plot, CQChartsResizeHandle::Side::UR)
+ plot_(plot), mode_(mode)
 {
+  init();
 }
 
 CQChartsEditHandles::
 CQChartsEditHandles(const CQChartsView *view, const Mode &mode) :
- view_(view), mode_(mode),
- moveHandle_(view, CQChartsResizeHandle::Side::MOVE),
- llHandle_  (view, CQChartsResizeHandle::Side::LL),
- lrHandle_  (view, CQChartsResizeHandle::Side::LR),
- ulHandle_  (view, CQChartsResizeHandle::Side::UL),
- urHandle_  (view, CQChartsResizeHandle::Side::UR)
+ view_(view), mode_(mode)
 {
+  init();
+}
+
+CQChartsEditHandles::
+~CQChartsEditHandles()
+{
+  delete moveHandle_;
+  delete llHandle_;
+  delete lrHandle_;
+  delete ulHandle_;
+  delete urHandle_;
+}
+
+void
+CQChartsEditHandles::
+init()
+{
+  auto createHandle = [&](CQChartsResizeSide side) -> CQChartsResizeHandle * {
+    if (plot_)
+      return new CQChartsResizeHandle(plot_, side);
+    else
+      return new CQChartsResizeHandle(view_, side);
+  };
+
+  moveHandle_ = createHandle(CQChartsResizeSide::MOVE);
+  llHandle_   = createHandle(CQChartsResizeSide::LL  );
+  lrHandle_   = createHandle(CQChartsResizeSide::LR  );
+  ulHandle_   = createHandle(CQChartsResizeSide::UL  );
+  urHandle_   = createHandle(CQChartsResizeSide::UR  );
 }
 
 bool
@@ -31,54 +52,54 @@ selectInside(const CQChartsGeom::Point &p)
 {
   int changed = 0;
 
-  if (moveHandle_.selectInside(p)) ++changed;
+  if (moveHandle_->selectInside(p)) ++changed;
 
   if (mode() == Mode::RESIZE) {
-    if (llHandle_.selectInside(p)) ++changed;
-    if (lrHandle_.selectInside(p)) ++changed;
-    if (ulHandle_.selectInside(p)) ++changed;
-    if (urHandle_.selectInside(p)) ++changed;
+    if (llHandle_->selectInside(p)) ++changed;
+    if (lrHandle_->selectInside(p)) ++changed;
+    if (ulHandle_->selectInside(p)) ++changed;
+    if (urHandle_->selectInside(p)) ++changed;
   }
 
   return changed;
 }
 
-CQChartsResizeHandle::Side
+CQChartsResizeSide
 CQChartsEditHandles::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (moveHandle().inside(p)) return CQChartsResizeHandle::Side::MOVE;
+  if (moveHandle()->inside(p)) return CQChartsResizeSide::MOVE;
 
   if (mode() == Mode::RESIZE) {
-    if (llHandle().inside(p)) return CQChartsResizeHandle::Side::LL;
-    if (lrHandle().inside(p)) return CQChartsResizeHandle::Side::LR;
-    if (ulHandle().inside(p)) return CQChartsResizeHandle::Side::UL;
-    if (urHandle().inside(p)) return CQChartsResizeHandle::Side::UR;
+    if (llHandle()->inside(p)) return CQChartsResizeSide::LL;
+    if (lrHandle()->inside(p)) return CQChartsResizeSide::LR;
+    if (ulHandle()->inside(p)) return CQChartsResizeSide::UL;
+    if (urHandle()->inside(p)) return CQChartsResizeSide::UR;
   }
 
-  return CQChartsResizeHandle::Side::NONE;
+  return CQChartsResizeSide::NONE;
 }
 
 void
 CQChartsEditHandles::
 updateBBox(double dx, double dy)
 {
-  if      (dragSide() == CQChartsResizeHandle::Side::MOVE) {
+  if      (dragSide() == CQChartsResizeSide::MOVE) {
     bbox_.moveBy(CQChartsGeom::Point(dx, dy));
 
     //bbox_.setLL(bbox_.getLL() + CQChartsGeom::Point(dx, dy));
     //bbox_.setUR(bbox_.getUR() + CQChartsGeom::Point(dx, dy));
   }
-  else if (dragSide() == CQChartsResizeHandle::Side::LL) {
+  else if (dragSide() == CQChartsResizeSide::LL) {
     bbox_.setLL(bbox_.getLL() + CQChartsGeom::Point(dx, dy));
   }
-  else if (dragSide() == CQChartsResizeHandle::Side::LR) {
+  else if (dragSide() == CQChartsResizeSide::LR) {
     bbox_.setLR(bbox_.getLR() + CQChartsGeom::Point(dx, dy));
   }
-  else if (dragSide() == CQChartsResizeHandle::Side::UL) {
+  else if (dragSide() == CQChartsResizeSide::UL) {
     bbox_.setUL(bbox_.getUL() + CQChartsGeom::Point(dx, dy));
   }
-  else if (dragSide() == CQChartsResizeHandle::Side::UR) {
+  else if (dragSide() == CQChartsResizeSide::UR) {
     bbox_.setUR(bbox_.getUR() + CQChartsGeom::Point(dx, dy));
   }
 }
@@ -106,20 +127,13 @@ draw(QPainter *painter) const
 
   //---
 
-  moveHandle_.setBBox(bbox_);
-
-  moveHandle_.draw(painter);
+  moveHandle_->setBBox(bbox_); moveHandle_->draw(painter);
 
   if (mode() == Mode::RESIZE) {
-    llHandle_.setBBox(bbox_);
-    lrHandle_.setBBox(bbox_);
-    ulHandle_.setBBox(bbox_);
-    urHandle_.setBBox(bbox_);
-
-    llHandle_.draw(painter);
-    lrHandle_.draw(painter);
-    ulHandle_.draw(painter);
-    urHandle_.draw(painter);
+    llHandle_->setBBox(bbox_); llHandle_->draw(painter);
+    lrHandle_->setBBox(bbox_); lrHandle_->draw(painter);
+    ulHandle_->setBBox(bbox_); ulHandle_->draw(painter);
+    urHandle_->setBBox(bbox_); urHandle_->draw(painter);
   }
 }
 

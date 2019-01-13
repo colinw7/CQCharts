@@ -239,6 +239,12 @@ class CQChartsColumns {
   }
 
   void setColumn(int i, const CQChartsColumn &column) {
+    if (i == 0 && ! isValid()) {
+      setColumn(i);
+
+      return;
+    }
+
     assert(i >= 0 && i < int(columns_.size()));
 
     columns_[i] = column;

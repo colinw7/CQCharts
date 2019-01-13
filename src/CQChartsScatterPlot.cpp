@@ -819,25 +819,27 @@ calcRange() const
 
   //---
 
-  if (uniqueX || uniqueY) {
-    if (uniqueX) {
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(xColumn());
+  if (dataRange.isSet()) {
+    if (uniqueX || uniqueY) {
+      if (uniqueX) {
+        CQChartsModelColumnDetails *columnDetails = this->columnDetails(xColumn());
 
-      for (int i = 0; i < columnDetails->numUnique(); ++i)
-        xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+        for (int i = 0; i < columnDetails->numUnique(); ++i)
+          xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
 
-      dataRange.updateRange(dataRange.xmin() - 0.5, dataRange.ymin());
-      dataRange.updateRange(dataRange.xmax() + 0.5, dataRange.ymin());
-    }
+        dataRange.updateRange(dataRange.xmin() - 0.5, dataRange.ymin());
+        dataRange.updateRange(dataRange.xmax() + 0.5, dataRange.ymin());
+      }
 
-    if (uniqueY) {
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(yColumn());
+      if (uniqueY) {
+        CQChartsModelColumnDetails *columnDetails = this->columnDetails(yColumn());
 
-      for (int i = 0; i < columnDetails->numUnique(); ++i)
-        yAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+        for (int i = 0; i < columnDetails->numUnique(); ++i)
+          yAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
 
-      dataRange.updateRange(dataRange.xmin(), dataRange.ymin() - 0.5);
-      dataRange.updateRange(dataRange.xmax(), dataRange.ymax() + 0.5);
+        dataRange.updateRange(dataRange.xmin(), dataRange.ymin() - 0.5);
+        dataRange.updateRange(dataRange.xmax(), dataRange.ymax() + 0.5);
+      }
     }
   }
 
@@ -1320,10 +1322,10 @@ addNameValues() const
       if (! details_) {
         CQChartsModelData *modelData = plot_->getModelData();
 
-        details_ = modelData->details();
+        details_ = (modelData ? modelData->details() : nullptr);
       }
 
-      return details_->columnDetails(column);
+      return (details_ ? details_->columnDetails(column) : nullptr);
     }
 
    private:
@@ -2152,8 +2154,8 @@ drawDensityMap(QPainter *painter) const
         if (isInterrupt())
           return;
 
-        double x1 = (v.p.x() - xmin)/(xmax - xmin);
-        double y1 = (v.p.y() - ymin)/(ymax - ymin);
+        double x1 = (xmax > xmin ? (v.p.x() - xmin)/(xmax - xmin) : 0.0);
+        double y1 = (ymax > ymin ? (v.p.y() - ymin)/(ymax - ymin) : 0.0);
 
         xv.push_back(x1);
         yv.push_back(y1);

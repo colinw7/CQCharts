@@ -294,11 +294,9 @@ CQChartsModelData *
 CQCharts::
 initModelData(ModelP &model)
 {
-  bool ok;
+  int ind;
 
-  int ind = model->property("modelInd").toInt(&ok);
-
-  if (! ok) {
+  if (! getModelInd(model.data(), ind)) {
     ind = addModelData(model);
 
     emit modelDataAdded(ind);
@@ -314,11 +312,9 @@ getModelData(const QAbstractItemModel *model) const
   if (! model)
     return nullptr;
 
-  bool ok;
+  int ind;
 
-  int ind = model->property("modelInd").toInt(&ok);
-
-  if (! ok)
+  if (! getModelInd(model, ind))
     return nullptr;
 
   return getModelData(ind);
@@ -364,17 +360,59 @@ int
 CQCharts::
 addModelData(ModelP &model)
 {
-  int ind = modelDatas_.size() + 1;
-
   CQChartsModelData *modelData = new CQChartsModelData(this, model);
 
-  model->setProperty("modelInd", ind);
+  int ind;
+
+  bool rc = assignModelInd(model.data(), ind);
+
+  assert(rc);
 
   modelData->setInd(ind);
 
   modelDatas_.push_back(modelData);
 
   return modelData->ind();
+}
+
+bool
+CQCharts::
+getModelInd(const QAbstractItemModel *model, int &ind) const
+{
+  ind = -1;
+
+  if (! model)
+    return false;
+
+  bool ok;
+
+  ind = model->property("modelInd").toInt(&ok);
+
+  if (! ok)
+    return false;
+
+  return true;
+}
+
+bool
+CQCharts::
+assignModelInd(QAbstractItemModel *model, int &ind)
+{
+  ind = ++lastModelInd_;
+
+  return setModelInd(model, ind);
+}
+
+bool
+CQCharts::
+setModelInd(QAbstractItemModel *model, int ind)
+{
+  if (! model)
+    return false;
+
+  model->setProperty("modelInd", ind);
+
+  return true;
 }
 
 CQChartsModelData *

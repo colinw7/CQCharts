@@ -2,6 +2,7 @@
 #define CQChartsResizeHandle_H
 
 #include <CQChartsGeom.h>
+#include <CQChartsTypes.h>
 #include <QPainterPath>
 #include <QColor>
 #include <QPointF>
@@ -18,20 +19,10 @@ class CQChartsResizeHandle : QObject {
   Q_PROPERTY(QColor borderColor READ borderColor WRITE setBorderColor)
 
  public:
-  enum class Side {
-    NONE,
-    MOVE,
-    LL,
-    LR,
-    UL,
-    UR
-  };
-
- public:
   CQChartsResizeHandle() = default;
 
-  CQChartsResizeHandle(const CQChartsView *view, Side side);
-  CQChartsResizeHandle(const CQChartsPlot *plot, Side side);
+  CQChartsResizeHandle(const CQChartsView *view, CQChartsResizeSide side);
+  CQChartsResizeHandle(const CQChartsPlot *plot, CQChartsResizeSide side);
 
   const CQChartsView* view() const { return view_; }
   const CQChartsPlot* plot() const { return plot_; }
@@ -39,7 +30,7 @@ class CQChartsResizeHandle : QObject {
   const CQChartsGeom::BBox &bbox() const { return bbox_; }
   void setBBox(const CQChartsGeom::BBox &v) { bbox_ = v; }
 
-  const Side &side() const { return side_; }
+  const CQChartsResizeSide &side() const { return side_; }
 
   bool isSelected() const { return selected_; }
   void setSelected(bool b) { selected_ = b; }
@@ -66,7 +57,7 @@ class CQChartsResizeHandle : QObject {
   const CQChartsView*  view_        { nullptr };
   const CQChartsPlot*  plot_        { nullptr };
   CQChartsGeom::BBox   bbox_;
-  Side                 side_        { Side::NONE };
+  CQChartsResizeSide   side_        { CQChartsResizeSide::NONE };
   bool                 selected_    { false };
   QColor               fillColor_   { "#4444aa" };
   double               fillAlpha_   { 0.5 };

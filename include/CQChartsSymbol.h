@@ -61,7 +61,7 @@ class CQChartsSymbol {
 
     int i1 = (i - n*len);
 
-    assert(i1 >= minOutlineValue() && i <= maxOutlineValue());
+    assert(i1 >= minOutlineValue() && i1 <= maxOutlineValue());
 
     return (CQChartsSymbol::Type) i1;
   }

@@ -2,7 +2,6 @@
 #define CQChartsTitle_H
 
 #include <CQChartsTextBoxObj.h>
-#include <CQChartsEditHandles.h>
 #include <CQChartsPosition.h>
 #include <CQChartsRect.h>
 #include <CQChartsGeom.h>
@@ -11,6 +10,7 @@
 #include <vector>
 
 class CQChartsPlot;
+class CQChartsEditHandles;
 class CQPropertyViewModel;
 class QPainter;
 
@@ -34,6 +34,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
  public:
   CQChartsTitle(CQChartsPlot *plot);
+ ~CQChartsTitle();
 
   QString id() const;
 
@@ -55,7 +56,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   const QPointF &position() const { return position_; }
   void setPosition(const QPointF &p) { position_ = p; }
 
-  CQChartsEditHandles &editHandles() { return editHandles_; }
+  CQChartsEditHandles *editHandles() { return editHandles_; }
 
   //---
 
@@ -123,11 +124,11 @@ class CQChartsTitle : public CQChartsTextBoxObj {
     CQChartsRect     absRect;                          // rect (relative to plot box)
   };
 
-  Location                   location_;          // location
-  QPointF                    position_ { 0, 0 }; // position
-  QSizeF                     size_;              // size
-  mutable CQChartsGeom::BBox bbox_;              // bbox
-  CQChartsEditHandles        editHandles_;       // edit handles
+  Location                   location_;                // location
+  QPointF                    position_    { 0, 0 };    // position
+  QSizeF                     size_;                    // size
+  mutable CQChartsGeom::BBox bbox_;                    // bbox
+  CQChartsEditHandles*       editHandles_ { nullptr }; // edit handles
 };
 
 #endif

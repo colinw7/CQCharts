@@ -20,6 +20,7 @@
 #include <CQChartsPlotParameter.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsModelUtil.h>
+#include <CQChartsEditHandles.h>
 #include <CQChartsVariant.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
@@ -43,7 +44,7 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
  CQChartsObjPlotShapeData<CQChartsPlot>(this),
  CQChartsObjDataShapeData<CQChartsPlot>(this),
  CQChartsObjFitShapeData <CQChartsPlot>(this),
- view_(view), type_(type), model_(model), editHandles_(view)
+ view_(view), type_(type), model_(model)
 {
   NoUpdate noUpdate(this);
 
@@ -67,6 +68,8 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
   animateData_.tickLen = CQChartsEnv::getInt("CQ_CHARTS_TICK_LEN", animateData_.tickLen);
 
   debugUpdate_ = CQChartsEnv::getBool("CQ_CHARTS_DEBUG_UPDATE", debugUpdate_);
+
+  editHandles_ = new CQChartsEditHandles(view);
 
   //--
 
@@ -3239,21 +3242,27 @@ selectObjsAtPoint(const CQChartsGeom::Point &w, Objs &objs)
 
 bool
 CQChartsPlot::
-editMousePress(const QPointF &pos)
+editMousePress(const QPointF &pos, bool inside)
 {
   CQChartsGeom::Point p = CQChartsUtil::fromQPoint(pos);
   CQChartsGeom::Point w = pixelToWindow(p);
 
-  return editPress(p, w);
+  return editPress(p, w, inside);
 }
 
 bool
 CQChartsPlot::
-editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
+editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool inside)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return false;
+
+  //---
+
   mouseData_.dragObj    = DragObj::NONE;
   mouseData_.pressPoint = CQChartsUtil::toQPoint(p);
   mouseData_.movePoint  = mouseData_.pressPoint;
+  mouseData_.dragged    = false;
 
   //---
 
@@ -3262,13 +3271,13 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
     CQChartsGeom::Point v = windowToView(w);
 
     // to edit must be in handle
-    mouseData_.dragSide = editHandles_.inside(v);
+    mouseData_.dragSide = editHandles_->inside(v);
 
-    if (mouseData_.dragSide != CQChartsResizeHandle::Side::NONE) {
+    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
       mouseData_.dragObj = DragObj::PLOT_HANDLE;
 
-      editHandles_.setDragSide(mouseData_.dragSide);
-      editHandles_.setDragPos (w);
+      editHandles_->setDragSide(mouseData_.dragSide);
+      editHandles_->setDragPos (w);
 
       drawOverlay();
 
@@ -3278,15 +3287,15 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
   // start drag on already selected key handle
   if (key() && key()->isSelected()) {
-    mouseData_.dragSide = key()->editHandles().inside(w);
+    mouseData_.dragSide = key()->editHandles()->inside(w);
 
-    if (mouseData_.dragSide != CQChartsResizeHandle::Side::NONE) {
+    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
       mouseData_.dragObj = DragObj::KEY;
 
       key()->editPress(w);
 
-      key()->editHandles().setDragSide(mouseData_.dragSide);
-      key()->editHandles().setDragPos (w);
+      key()->editHandles()->setDragSide(mouseData_.dragSide);
+      key()->editHandles()->setDragPos (w);
 
       drawOverlay();
 
@@ -3298,7 +3307,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
   if (xAxis() && xAxis()->isSelected()) {
     mouseData_.dragSide = xAxis()->editHandles()->inside(w);
 
-    if (mouseData_.dragSide != CQChartsResizeHandle::Side::NONE) {
+    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
       mouseData_.dragObj = DragObj::XAXIS;
 
       xAxis()->editPress(w);
@@ -3316,7 +3325,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
   if (yAxis() && yAxis()->isSelected()) {
     mouseData_.dragSide = yAxis()->editHandles()->inside(w);
 
-    if (mouseData_.dragSide != CQChartsResizeHandle::Side::NONE) {
+    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
       mouseData_.dragObj = DragObj::YAXIS;
 
       yAxis()->editPress(w);
@@ -3332,15 +3341,15 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
   // start drag on already selected title handle
   if (title() && title()->isSelected()) {
-    mouseData_.dragSide = title()->editHandles().inside(w);
+    mouseData_.dragSide = title()->editHandles()->inside(w);
 
-    if (mouseData_.dragSide != CQChartsResizeHandle::Side::NONE) {
+    if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
       mouseData_.dragObj = DragObj::TITLE;
 
       title()->editPress(w);
 
-      title()->editHandles().setDragSide(mouseData_.dragSide);
-      title()->editHandles().setDragPos (w);
+      title()->editHandles()->setDragSide(mouseData_.dragSide);
+      title()->editHandles()->setDragPos (w);
 
       drawOverlay();
 
@@ -3351,13 +3360,13 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
   // start drag on already selected annotation handle
   for (const auto &annotation : annotations()) {
     if (annotation->isSelected()) {
-      mouseData_.dragSide = annotation->editHandles().inside(w);
+      mouseData_.dragSide = annotation->editHandles()->inside(w);
 
-      if (mouseData_.dragSide != CQChartsResizeHandle::Side::NONE) {
+      if (mouseData_.dragSide != CQChartsResizeSide::NONE) {
         mouseData_.dragObj = DragObj::ANNOTATION;
 
-        annotation->editHandles().setDragSide(mouseData_.dragSide);
-        annotation->editHandles().setDragPos (w);
+        annotation->editHandles()->setDragSide(mouseData_.dragSide);
+        annotation->editHandles()->setDragPos (w);
 
         drawOverlay();
 
@@ -3482,6 +3491,22 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
   //---
 
+  auto selectPlot = [&]() {
+    view()->startSelection();
+
+    view()->deselectAll();
+
+    setSelected(true);
+
+    view()->endSelection();
+
+    //---
+
+    view()->setCurrentPlot(this);
+
+    drawOverlay();
+  };
+
   // select/deselect plot
   // (to select point must be inside a plot object)
   Objs objs;
@@ -3490,19 +3515,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
   if (! objs.empty()) {
     if (! isSelected()) {
-      view()->startSelection();
-
-      view()->deselectAll();
-
-      setSelected(true);
-
-      view()->endSelection();
-
-      //---
-
-      view()->setCurrentPlot(this);
-
-      drawOverlay();
+      selectPlot();
 
       return true;
     }
@@ -3514,9 +3527,19 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
     return true;
   }
 
+  if (inside) {
+    if (dataRange_.inside(w)) {
+      if (! isSelected()) {
+        selectPlot();
+
+        return true;
+      }
+    }
+  }
+
   //---
 
-  view()->deselectAll();
+  //view()->deselectAll();
 
   return false;
 }
@@ -3624,6 +3647,11 @@ bool
 CQChartsPlot::
 editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*first*/)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return false;
+
+  //---
+
   QPointF lastMovePoint = mouseData_.movePoint;
 
   mouseData_.movePoint = CQChartsUtil::toQPoint(p);
@@ -3632,23 +3660,28 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
     return false;
 
   if      (mouseData_.dragObj == DragObj::KEY) {
-    (void) key()->editMove(w);
+    if (key()->editMove(w))
+      mouseData_.dragged = true;
   }
   else if (mouseData_.dragObj == DragObj::XAXIS) {
-    (void) xAxis()->editMove(w);
+    if (xAxis()->editMove(w))
+      mouseData_.dragged = true;
   }
   else if (mouseData_.dragObj == DragObj::YAXIS) {
-    (void) yAxis()->editMove(w);
+    if (yAxis()->editMove(w))
+      mouseData_.dragged = true;
   }
   else if (mouseData_.dragObj == DragObj::TITLE) {
-    (void) title()->editMove(w);
+    if (title()->editMove(w))
+      mouseData_.dragged = true;
   }
   else if (mouseData_.dragObj == DragObj::ANNOTATION) {
     bool edited = false;
 
     for (const auto &annotation : annotations()) {
       if (annotation->isSelected()) {
-        (void) annotation->editMove(w);
+        if (annotation->editMove(w))
+          mouseData_.dragged = true;
 
         edited = true;
       }
@@ -3664,12 +3697,35 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
     double dx1 =  view_->pixelToSignedWindowWidth (dx);
     double dy1 = -view_->pixelToSignedWindowHeight(dy);
 
-    viewBBox_.moveBy(CQChartsGeom::Point(dx1, dy1));
+    if (isOverlay()) {
+      processOverlayPlots([&](CQChartsPlot *plot) {
+        plot->viewBBox_.moveBy(CQChartsGeom::Point(dx1, dy1));
 
-    if (mouseData_.dragSide == CQChartsResizeHandle::Side::MOVE)
-      updateMargins(false);
-    else
-      updateMargins();
+        if (mouseData_.dragSide == CQChartsResizeSide::MOVE)
+          plot->updateMargins(false);
+        else
+          plot->updateMargins();
+
+        plot->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+        plot->invalidateLayer(CQChartsBuffer::Type::MIDDLE);
+        plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+      });
+    }
+    else {
+      viewBBox_.moveBy(CQChartsGeom::Point(dx1, dy1));
+
+      if (mouseData_.dragSide == CQChartsResizeSide::MOVE)
+        updateMargins(false);
+      else
+        updateMargins();
+
+      invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+      invalidateLayer(CQChartsBuffer::Type::MIDDLE);
+      invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+    }
+
+    if (dx || dy)
+      mouseData_.dragged = true;
   }
   else if (mouseData_.dragObj == DragObj::PLOT_HANDLE) {
     double dx = mouseData_.movePoint.x() - lastMovePoint.x();
@@ -3678,14 +3734,41 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
     double dx1 =  view_->pixelToSignedWindowWidth (dx);
     double dy1 = -view_->pixelToSignedWindowHeight(dy);
 
-    editHandles_.updateBBox(dx1, dy1);
+    if (isOverlay()) {
+      processOverlayPlots([&](CQChartsPlot *plot) {
+        editHandles_->updateBBox(dx1, dy1);
 
-    viewBBox_ = editHandles_.bbox();
+        plot->viewBBox_ = editHandles_->bbox();
 
-    if (mouseData_.dragSide == CQChartsResizeHandle::Side::MOVE)
-      updateMargins(false);
-    else
-      updateMargins();
+        if (mouseData_.dragSide == CQChartsResizeSide::MOVE)
+          plot->updateMargins(false);
+        else
+          plot->updateMargins();
+
+        plot->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+        plot->invalidateLayer(CQChartsBuffer::Type::MIDDLE);
+        plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+      });
+    }
+    else {
+      editHandles_->updateBBox(dx1, dy1);
+
+      viewBBox_ = editHandles_->bbox();
+
+      if (mouseData_.dragSide == CQChartsResizeSide::MOVE)
+        updateMargins(false);
+      else
+        updateMargins();
+
+      invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+      invalidateLayer(CQChartsBuffer::Type::MIDDLE);
+      invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+    }
+
+    if (dx || dy)
+      mouseData_.dragged = true;
+
+    view_->update();
   }
   else {
     return false;
@@ -3710,10 +3793,15 @@ bool
 CQChartsPlot::
 editMotion(const CQChartsGeom::Point &, const CQChartsGeom::Point &w)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return false;
+
+  //---
+
   if      (isSelected()) {
     CQChartsGeom::Point v = windowToView(w);
 
-    if (! editHandles_.selectInside(v))
+    if (! editHandles_->selectInside(v))
       return true;
   }
   else if (key() && key()->isSelected()) {
@@ -3767,7 +3855,15 @@ bool
 CQChartsPlot::
 editRelease(const CQChartsGeom::Point & /*p*/, const CQChartsGeom::Point & /*w*/)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return false;
+
+  //---
+
   mouseData_.dragObj = DragObj::NONE;
+
+  if (mouseData_.dragged)
+    queueDrawObjs();
 
   return true;
 }
@@ -3776,6 +3872,11 @@ void
 CQChartsPlot::
 editMoveBy(const QPointF &d)
 {
+  if (isOverlay() && ! isFirstPlot())
+    return;
+
+  //---
+
   QRectF r = calcDataRect();
 
   double dw = d.x()*r.width ();
@@ -4853,7 +4954,7 @@ draw(QPainter *painter)
   UpdateState updateState { UpdateState::INVALID };
 
   {
-  LockMutex lock(this, "draw::layers");
+  LockMutex lock(this, "draw");
 
   updateState = this->updateState();
 
@@ -4866,6 +4967,8 @@ draw(QPainter *painter)
     drawLayers = true;
   }
   }
+
+  //---
 
   if (! isSequential()) {
     if (drawLayers)
@@ -6250,9 +6353,9 @@ drawEditHandles(QPainter *painter) const
   const CQChartsPlotKey *key1 = getFirstPlotKey();
 
   if      (isSelected()) {
-    const_cast<CQChartsPlot *>(this)->editHandles_.setBBox(this->viewBBox());
+    const_cast<CQChartsPlot *>(this)->editHandles_->setBBox(this->viewBBox());
 
-    editHandles_.draw(painter);
+    editHandles_->draw(painter);
   }
   else if (title() && title()->isSelected()) {
     title()->drawEditHandles(painter);
@@ -6849,7 +6952,7 @@ invalidateLayer(const CQChartsBuffer::Type &type)
     return;
   }
 
-  assert(type != CQChartsBuffer::Type::MIDDLE);
+  //assert(type != CQChartsBuffer::Type::MIDDLE);
 
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
@@ -6865,6 +6968,7 @@ void
 CQChartsPlot::
 invalidateLayer1(const CQChartsBuffer::Type &type)
 {
+//std::cerr << "invalidateLayer1: " << CQChartsBuffer::typeName(type) << "\n";
   CQChartsBuffer *layer = getBuffer(type);
 
   layer->setValid(false);
@@ -6896,7 +7000,8 @@ setLayersChanged(bool update)
       updateDraw();
   }
   else {
-    drawNonMiddleParts(view_->ipainter());
+    //drawNonMiddleParts(view_->ipainter());
+    drawParts(view_->ipainter());
 
     fromInvalidate_ = true;
 

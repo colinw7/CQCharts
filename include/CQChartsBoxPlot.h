@@ -226,9 +226,9 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
   double remapPos(double pos) const;
 
  private:
-  CQChartsBoxWhiskerData data_;             // whisker data
-  int                    is_    { 0 };    // set index
-  int                    ns_    { 1 };    // number of sets
+  CQChartsBoxWhiskerData data_;        // whisker data
+  int                    is_    { 0 }; // set index
+  int                    ns_    { 1 }; // number of sets
 };
 
 //---
@@ -402,7 +402,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   // labels
   Q_PROPERTY(double textMargin READ textMargin WRITE setTextMargin)
 
-  // labels
+  // margin
   Q_PROPERTY(double ymargin READ ymargin WRITE setYMargin)
 
   // outliers

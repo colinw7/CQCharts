@@ -16,6 +16,7 @@
 #include <QStackedWidget>
 #include <QVBoxLayout>
 #include <QSplitter>
+#include <QPainter>
 
 CQChartsWindowMgr *
 CQChartsWindowMgr::

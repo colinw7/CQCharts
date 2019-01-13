@@ -107,6 +107,9 @@ CQChartsColumnEdit(QWidget *parent) :
 
   roleEdit_ = new QLineEdit;
 
+  connect(roleEdit_, SIGNAL(textChanged(const QString &)),
+          this, SLOT(roleTextChanged(const QString &)));
+
   roleLayout->addWidget(roleEdit_);
 
   menuColumnGroupLayout->addWidget(roleFrame);
@@ -174,34 +177,41 @@ void
 CQChartsColumnEdit::
 connectSlots(bool b)
 {
-  if (b) {
-    connect(edit_, SIGNAL(textChanged(const QString &)),
-            this, SLOT(textChanged(const QString &)));
-    connect(menuColumnGroup_, SIGNAL(clicked(bool)),
-            this, SLOT(menuColumnGroupClicked(bool)));
-    connect(columnCombo_, SIGNAL(currentIndexChanged(int)),
-            this, SLOT(menuColumnChanged(int)));
-    connect(menuExprGroup_, SIGNAL(clicked(bool)),
-            this, SLOT(menuExprGroupClicked(bool)));
-    connect(expressionEdit_, SIGNAL(textChanged(const QString &)),
-            this, SLOT(expressionTextChanged(const QString &)));
-    connect(vheaderCheck_, SIGNAL(clicked(bool)),
-            this, SLOT(vheaderCheckClicked(bool)));
-  }
-  else {
-    disconnect(edit_, SIGNAL(textChanged(const QString &)),
-               this, SLOT(textChanged(const QString &)));
-    disconnect(menuColumnGroup_, SIGNAL(clicked(bool)),
-               this, SLOT(menuColumnGroupClicked(bool)));
-    disconnect(columnCombo_, SIGNAL(currentIndexChanged(int)),
-               this, SLOT(menuColumnChanged(int)));
-    disconnect(menuExprGroup_, SIGNAL(clicked(bool)),
-               this, SLOT(menuExprGroupClicked(bool)));
-    disconnect(expressionEdit_, SIGNAL(textChanged(const QString &)),
-               this, SLOT(expressionTextChanged(const QString &)));
-    disconnect(vheaderCheck_, SIGNAL(clicked(bool)),
-               this, SLOT(vheaderCheckClicked(bool)));
-  }
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      connect(w, from, this, to);
+    else
+      disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, edit_, SIGNAL(textChanged(const QString &)),
+                    SLOT(textChanged(const QString &)));
+  connectDisconnect(b, menuColumnGroup_, SIGNAL(clicked(bool)),
+                    SLOT(menuColumnGroupClicked(bool)));
+  connectDisconnect(b, columnCombo_, SIGNAL(currentIndexChanged(int)),
+                    SLOT(menuColumnChanged(int)));
+  connectDisconnect(b, roleEdit_, SIGNAL(textChanged(const QString &)),
+                    SLOT(roleTextChanged(const QString &)));
+  connectDisconnect(b, menuExprGroup_, SIGNAL(clicked(bool)),
+                    SLOT(menuExprGroupClicked(bool)));
+  connectDisconnect(b, expressionEdit_, SIGNAL(textChanged(const QString &)),
+                    SLOT(expressionTextChanged(const QString &)));
+  connectDisconnect(b, vheaderCheck_, SIGNAL(clicked(bool)),
+                    SLOT(vheaderCheckClicked(bool)));
+}
+
+QString
+CQChartsColumnEdit::
+text() const
+{
+  return edit_->text();
+}
+
+void
+CQChartsColumnEdit::
+setText(const QString &s)
+{
+  edit_->setText(s);
 }
 
 QString
@@ -396,6 +406,23 @@ textChanged(const QString &text)
   column_ = column;
 
   columnToWidgets();
+
+  emit columnChanged();
+}
+
+void
+CQChartsColumnEdit::
+roleTextChanged(const QString &)
+{
+  connectSlots(false);
+
+  //---
+
+  widgetsToColumn();
+
+  //---
+
+  connectSlots(true);
 
   emit columnChanged();
 }

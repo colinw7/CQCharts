@@ -8,7 +8,9 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsDataLabel.h>
+#include <CQChartsValueSet.h>
 #include <CQCharts.h>
+#include <CQChartsDensity.h>
 #include <CQChartsRoundedPolygon.h>
 #include <CQChartsTip.h>
 #include <CQChartsDensity.h>
@@ -59,21 +61,21 @@ addParameters()
   addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
 
   addEnumParameter("plotType", "Plot Type", "plotType").
-    addNameValue("Normal"      , int(CQChartsDistributionPlot::PlotType::NORMAL      )).
-    addNameValue("Stacked"     , int(CQChartsDistributionPlot::PlotType::STACKED     )).
-    addNameValue("Side By Side", int(CQChartsDistributionPlot::PlotType::SIDE_BY_SIDE)).
-    addNameValue("Overlay"     , int(CQChartsDistributionPlot::PlotType::OVERLAY     )).
-    addNameValue("Scatter"     , int(CQChartsDistributionPlot::PlotType::SCATTER     )).
-    addNameValue("Density"     , int(CQChartsDistributionPlot::PlotType::DENSITY     )).
+    addNameValue("NORMAL"      , int(CQChartsDistributionPlot::PlotType::NORMAL      )).
+    addNameValue("STACKED"     , int(CQChartsDistributionPlot::PlotType::STACKED     )).
+    addNameValue("SIDE_BY_SIDE", int(CQChartsDistributionPlot::PlotType::SIDE_BY_SIDE)).
+    addNameValue("OVERLAY"     , int(CQChartsDistributionPlot::PlotType::OVERLAY     )).
+    addNameValue("SCATTER"     , int(CQChartsDistributionPlot::PlotType::SCATTER     )).
+    addNameValue("DENSITY"     , int(CQChartsDistributionPlot::PlotType::DENSITY     )).
     setTip("Plot type");
 
   addEnumParameter("valueType", "Value Type", "valueType").
-   addNameValue("Count", int(CQChartsDistributionPlot::ValueType::COUNT)).
-   addNameValue("Range", int(CQChartsDistributionPlot::ValueType::RANGE)).
-   addNameValue("Min"  , int(CQChartsDistributionPlot::ValueType::MIN  )).
-   addNameValue("Max"  , int(CQChartsDistributionPlot::ValueType::MAX  )).
-   addNameValue("Mean" , int(CQChartsDistributionPlot::ValueType::MEAN )).
-   addNameValue("Sum"  , int(CQChartsDistributionPlot::ValueType::SUM  )).
+   addNameValue("COUNT", int(CQChartsDistributionPlot::ValueType::COUNT)).
+   addNameValue("RANGE", int(CQChartsDistributionPlot::ValueType::RANGE)).
+   addNameValue("MIN"  , int(CQChartsDistributionPlot::ValueType::MIN  )).
+   addNameValue("MAX"  , int(CQChartsDistributionPlot::ValueType::MAX  )).
+   addNameValue("MEAN" , int(CQChartsDistributionPlot::ValueType::MEAN )).
+   addNameValue("SUM"  , int(CQChartsDistributionPlot::ValueType::SUM  )).
    setTip("Bar value type");
 
   addBoolParameter("percent"  , "Percent"   , "percent"  ).setTip("Show value is percentage");
@@ -782,23 +784,23 @@ calcBucketRanges() const
 
     // density curve per group (optionally offset)
     if      (isDensity()) {
-      values->densityData.setNumSamples(densitySamples());
+      values->densityData->setNumSamples(densitySamples());
 
       std::vector<double> xvals;
 
       (void) getRealValues(groupInd, xvals, values->mean);
 
-      values->densityData.setXVals(xvals);
+      values->densityData->setXVals(xvals);
 
-      values->densityData.calc();
+      values->densityData->calc();
 
       if (! isHorizontal()) {
-        densityBBox.add(values->densityData.xmin1(), values->densityData.ymin1() + doffset);
-        densityBBox.add(values->densityData.xmax1(), values->densityData.ymax1() + doffset);
+        densityBBox.add(values->densityData->xmin1(), values->densityData->ymin1() + doffset);
+        densityBBox.add(values->densityData->xmax1(), values->densityData->ymax1() + doffset);
       }
       else {
-        densityBBox.add(values->densityData.ymin1() + doffset, values->densityData.xmin1());
-        densityBBox.add(values->densityData.ymax1() + doffset, values->densityData.xmax1());
+        densityBBox.add(values->densityData->ymin1() + doffset, values->densityData->xmin1());
+        densityBBox.add(values->densityData->ymax1() + doffset, values->densityData->xmax1());
       }
 
       doffset += densityOffset();
@@ -1314,31 +1316,36 @@ createObjs(PlotObjs &objs) const
   GroupBuckets      groupSortedBuckets;
 
   if (isSorted()) {
-    for (auto &groupValues : groupData_.groupValues) {
-      int           groupInd = groupValues.first;
-      const Values *values   = groupValues.second;
-
-      for (const auto &bucketValues : values->bucketValues) {
-        int                    bucket   = bucketValues.first;
-        const VariantIndsData &varsData = bucketValues.second;
-
-        BarValue barValue = varIndsValue(varsData);
-
-        int n = barValue.n2;
-
-        groupCountBuckets[groupInd][n].push_back(bucket);
-      }
+    if (isStacked() || isSideBySide()) {
+      // TODO
     }
+    else {
+      for (auto &groupValues : groupData_.groupValues) {
+        int           groupInd = groupValues.first;
+        const Values *values   = groupValues.second;
 
-    for (const auto &gcb : groupCountBuckets) {
-      int                 groupInd     = gcb.first;
-      const CountBuckets &countBuckets = gcb.second;
+        for (const auto &bucketValues : values->bucketValues) {
+          int                    bucket   = bucketValues.first;
+          const VariantIndsData &varsData = bucketValues.second;
 
-      for (const auto &cb : countBuckets) {
-        const Buckets &buckets = cb.second;
+          BarValue barValue = varIndsValue(varsData);
 
-        for (auto &bucket : buckets)
-          groupSortedBuckets[groupInd].push_back(bucket);
+          int n = barValue.n2;
+
+          groupCountBuckets[groupInd][n].push_back(bucket);
+        }
+      }
+
+      for (const auto &gcb : groupCountBuckets) {
+        int                 groupInd     = gcb.first;
+        const CountBuckets &countBuckets = gcb.second;
+
+        for (const auto &cb : countBuckets) {
+          const Buckets &buckets = cb.second;
+
+          for (auto &bucket : buckets)
+            groupSortedBuckets[groupInd].push_back(bucket);
+        }
       }
     }
   }
@@ -1356,7 +1363,7 @@ createObjs(PlotObjs &objs) const
       auto p = groupSortedBuckets.find(groupInd);
       assert(p != groupSortedBuckets.end());
 
-     return (*p).second;
+      return (*p).second;
     }
   };
 
@@ -1429,11 +1436,11 @@ createObjs(PlotObjs &objs) const
     if      (isDensity()) {
       CQChartsDistributionDensityObj::Data data;
 
-      data.points = values->densityData.opoints();
-      data.xmin   = values->densityData.xmin1();
-      data.xmax   = values->densityData.xmax1();
-      data.ymin   = values->densityData.ymin1();
-      data.ymax   = values->densityData.ymax1();
+      data.points = values->densityData->opoints();
+      data.xmin   = values->densityData->xmin1();
+      data.xmax   = values->densityData->xmax1();
+      data.ymin   = values->densityData->ymin1();
+      data.ymax   = values->densityData->ymax1();
       data.mean   = values->mean;
 
       //---
@@ -1486,16 +1493,21 @@ createObjs(PlotObjs &objs) const
         int sbucket = bucket;
 
         if (isSorted()) {
-          const Buckets &sortedBuckets = getSortedBuckets(groupInd);
+          if (isStacked() || isSideBySide()) {
+            // TODO
+          }
+          else {
+            const Buckets &sortedBuckets = getSortedBuckets(groupInd);
 
-          sbucket = sortedBuckets[iv];
+            sbucket = sortedBuckets[iv];
 
-          auto p = values->bucketValues.find(sbucket);
-          assert(p != values->bucketValues.end());
+            auto p = values->bucketValues.find(sbucket);
+            assert(p != values->bucketValues.end());
 
-          const VariantIndsData &varsData1 = (*p).second;
+            const VariantIndsData &varsData1 = (*p).second;
 
-          pVarsData = &varsData1;
+            pVarsData = &varsData1;
+          }
         }
 
         //---
@@ -1555,16 +1567,21 @@ createObjs(PlotObjs &objs) const
         int sbucket = bucket;
 
         if (isSorted()) {
-          const Buckets &sortedBuckets = getSortedBuckets(groupInd);
+          if (isStacked() || isSideBySide()) {
+            // TODO
+          }
+          else {
+            const Buckets &sortedBuckets = getSortedBuckets(groupInd);
 
-          sbucket = sortedBuckets[iv];
+            sbucket = sortedBuckets[iv];
 
-          auto p = values->bucketValues.find(sbucket);
-          assert(p != values->bucketValues.end());
+            auto p = values->bucketValues.find(sbucket);
+            assert(p != values->bucketValues.end());
 
-          const VariantIndsData &varsData1 = (*p).second;
+            const VariantIndsData &varsData1 = (*p).second;
 
-          pVarsData = &varsData1;
+            pVarsData = &varsData1;
+          }
         }
 
         //---
@@ -3094,7 +3111,7 @@ CQChartsGeom::BBox
 CQChartsDistributionBarObj::
 calcRect() const
 {
-  static double minSize = 3.0;
+  double minSize = plot_->minBarSize();
 
   //---
 
@@ -3106,10 +3123,12 @@ calcRect() const
   double m2 = m1;
 
   if (ns_ > 1) {
-    if      (iv_ == 0)
-      m1 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
-    else if (iv_ == nv_ - 1)
-      m2 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
+    if (! plot_->isStacked() && ! plot_->isSideBySide()) {
+      if      (iv_ == 0)
+        m1 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
+      else if (iv_ == nv_ - 1)
+        m2 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
+    }
   }
 
   double rs = prect.getSize(! plot_->isHorizontal());
@@ -3433,7 +3452,7 @@ CQChartsDistributionScatterObj(const CQChartsDistributionPlot *plot, const CQCha
   int nf = CMathUtil::clamp(int(n_*plot_->scatterFactor()), 1, n_);
 
   // generate random points in box (0.0->1.0) with margin
-  double m = 0.05;
+  double m = plot_->scatterMargin();
 
   // TODO: constant seed ?
   CQChartsRand::RealInRange rand(m, 1.0 - m);
@@ -3576,4 +3595,20 @@ CQChartsDistKeyColorBox::
 setSetHidden(bool b)
 {
   plot_->CQChartsPlot::setSetHidden(i_, b);
+}
+
+//------
+
+CQChartsDistributionPlot::Values::
+Values(CQChartsValueSet *valueSet) :
+ valueSet(valueSet)
+{
+  densityData = new CQChartsDensity;
+}
+
+CQChartsDistributionPlot::Values::
+~Values()
+{
+  delete valueSet;
+  delete densityData;
 }

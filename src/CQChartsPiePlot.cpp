@@ -72,8 +72,6 @@ CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
 {
   NoUpdate noUpdate(this);
 
-  setValueColumns(CQChartsColumns("1"));
-
   //---
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
@@ -851,7 +849,7 @@ adjustObjAngles() const
 
   bool isGrouped = (numGroups() > 1);
 
-  // cal delta radius (grouped)
+  // calc delta radius (grouped)
   int    ng = 1, nh = 0;
   double dr = 0.0;
 

@@ -69,7 +69,9 @@ CQChartsScatterPlot.cpp \
 CQChartsSunburstPlot.cpp \
 CQChartsTreeMapPlot.cpp \
 CQChartsXYPlot.cpp \
+\
 CQChartsLayer.cpp \
+CQChartsBuffer.cpp \
 \
 CQChartsNoDataObj.cpp \
 CQChartsPlotObj.cpp \
@@ -156,7 +158,9 @@ CQChartsBoxWhisker.cpp \
 CQChartsDensity.cpp \
 CQChartsGrahamHull.cpp \
 CQChartsModelUtil.cpp \
+\
 CQChartsUtil.cpp \
+CQChartsTrie.cpp \
 CQChartsEnv.cpp \
 \
 CQChartsAnalyzeFile.cpp \
@@ -242,7 +246,9 @@ HEADERS += \
 ../include/CQChartsSunburstPlot.h \
 ../include/CQChartsTreeMapPlot.h \
 ../include/CQChartsXYPlot.h \
+\
 ../include/CQChartsLayer.h \
+../include/CQChartsBuffer.h \
 \
 ../include/CQChartsNoDataObj.h \
 ../include/CQChartsPlotObj.h \
@@ -275,7 +281,9 @@ HEADERS += \
 ../include/CQChartsDensity.h \
 ../include/CQChartsGrahamHull.h \
 ../include/CQChartsModelUtil.h \
+\
 ../include/CQChartsUtil.h \
+../include/CQChartsTrie.h \
 ../include/CQChartsEnv.h \
 ../include/CQChartsQuadTree.h \
 \

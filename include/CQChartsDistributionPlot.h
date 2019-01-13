@@ -4,10 +4,9 @@
 #include <CQChartsBarPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsColor.h>
-#include <CQChartsValueSet.h>
-#include <CQChartsDensity.h>
 
 class CQChartsDataLabel;
+class CQChartsDensity;
 
 //---
 
@@ -349,6 +348,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Mean,mean)
 
+  // min bar size
+  Q_PROPERTY(double minBarSize READ minBarSize WRITE setMinBarSize)
+
   // dot line (bar with dot)
   Q_PROPERTY(bool           dotLines     READ isDotLines   WRITE setDotLines    )
   Q_PROPERTY(CQChartsLength dotLineWidth READ dotLineWidth WRITE setDotLineWidth)
@@ -489,6 +491,14 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
+  double minBarSize() const { return minBarSize_; }
+  void setMinBarSize(double s) { minBarSize_ = s; }
+
+  double scatterMargin() const { return scatterMargin_; }
+  void setScatterMargin(double m) { scatterMargin_ = m; }
+
+  //---
+
   bool checkFilter(int groupInd, const QVariant &value) const;
 
   int calcBucket(int groupInd, double v) const;
@@ -539,14 +549,14 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  QString bucketValuesStr(int groupInd, int bucket,
-                          BucketValueType type=BucketValueType::ALL) const;
+  virtual QString bucketValuesStr(int groupInd, int bucket,
+                                  BucketValueType type=BucketValueType::ALL) const;
 
   QString bucketStr(int groupInd, int bucket, BucketValueType type=BucketValueType::ALL) const;
 
-  //---
+  virtual void bucketValues(int groupInd, int bucket, double &value1, double &value2) const;
 
-  void bucketValues(int groupInd, int bucket, double &value1, double &value2) const;
+  //---
 
   CQBucketer &groupBucketer(int groupInd);
   const CQBucketer &groupBucketer(int groupInd) const;
@@ -597,16 +607,14 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     Inds              inds;                      // value indices
     CQChartsValueSet* valueSet      { nullptr }; // value set
     BucketValues      bucketValues;              // bucketed values
-    CQChartsDensity   densityData;               // density data
+    CQChartsDensity*  densityData   { nullptr }; // density data
     double            mean          { 0.0 };     // mean
 
-    Values(CQChartsValueSet *valueSet) :
-     valueSet(valueSet) {
-    }
+    Values(CQChartsValueSet *valueSet);
+   ~Values();
 
-   ~Values() {
-      delete valueSet;
-    }
+    Values(const Values &) = delete;
+    Values &operator=(const Values &) = delete;
   };
 
   using GroupValues   = std::map<int,Values *>;
@@ -726,6 +734,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   DotLineData        dotLineData_;                         // show dot lines
   bool               rug_            { false };            // show rug
   bool               showMean_       { false };            // show mean
+  double             minBarSize_     { 3.0 };              // min bar size
+  double             scatterMargin_  { 0.05 };             // scatter point margin
   CQChartsDataLabel* dataLabel_      { nullptr };          // data label data
   CQBucketer         bucketer_;                            // shared bucketer
   bool               bucketed_       { true };             // is bucketed

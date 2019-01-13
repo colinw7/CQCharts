@@ -36,11 +36,13 @@ void
 CQChartsDendrogram::Node::
 setGap(double gap)
 {
-  if (parent() && gap != gap_ && root()->debug())
-    std::cerr << "Set gap for " << name().toStdString() <<
-                 " Old: " << gap_ << " New: " << gap << std::endl;
+  if (parent() && gap != gap_) {
+    if (root()->debug())
+      std::cerr << "Set gap for " << name().toStdString() <<
+                   " Old: " << gap_ << " New: " << gap << std::endl;
 
-  gap_ = gap;
+    gap_ = gap;
+  }
 }
 
 const CQChartsDendrogram::RootNode *
@@ -396,8 +398,10 @@ setGaps()
 
     //double gap = max_rows_ - row;
 
-    //if (gap > 0 && root()->debug())
-    //  std::cerr << "Gap "  << gap << " at " << i << "," << n << std::endl;
+    //if (gap > 0) {
+    //  if (root()->debug())
+    //    std::cerr << "Gap "  << gap << " at " << i << "," << n << std::endl;
+    //}
 
     // update max rows (ignore depth==0 which has a single root node)
     if (i > 0)

@@ -32,7 +32,10 @@ analyzeType(CQChartsPlotType *type)
 {
   CQPerfTrace trace("CQChartsAnalyzeModel::analyzeType");
 
+  if (! modelData_) return false;
+
   CQChartsModelDetails *details = modelData_->details();
+  if (! details) return false;
 
   int nc = details->numColumns();
   int nr = details->numRows   ();

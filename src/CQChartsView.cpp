@@ -75,9 +75,13 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   propertyModel_ = new CQPropertyViewModel;
 
-  keyObj_ = new CQChartsViewKey(this);
+  //---
 
-  keyObj_->setVisible(false);
+  if (charts_->hasViewKey()) {
+    keyObj_ = new CQChartsViewKey(this);
+
+    keyObj_->setVisible(false);
+  }
 
   //---
 
@@ -131,7 +135,8 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("scroll", this, "scrollNumPages", "numPages");
   addProperty("scroll", this, "scrollPage"    , "page"    );
 
-  key()->addProperties(propertyModel(), "key");
+  if (key())
+    key()->addProperties(propertyModel(), "key");
 
   //---
 
@@ -139,10 +144,16 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  searchTimer_.setInterval(10);
-  searchTimer_.setSingleShot(true);
+  searchTimeout_ = CQChartsEnv::getInt("CQ_CHARTS_SEARCH_TIMEOUT", searchTimeout_);
 
-  connect(&searchTimer_, SIGNAL(timeout()), this, SLOT(searchSlot()));
+  if (searchTimeout_ > 0) {
+    searchTimer_ = new QTimer;
+
+    searchTimer_->setInterval(searchTimeout_);
+    searchTimer_->setSingleShot(true);
+
+    connect(searchTimer_, SIGNAL(timeout()), this, SLOT(searchSlot()));
+  }
 }
 
 CQChartsView::
@@ -1271,28 +1282,33 @@ mousePressEvent(QMouseEvent *me)
 
         //---
 
-        CQChartsSelMod selMod = modifiersToSelMod(me->modifiers());
+        struct SelData {
+          QPointF        pos;
+          CQChartsSelMod selMod;
 
-        if (mouseData_.plot && mouseData_.plot->selectMousePress(me->pos(), selMod)) {
-          setCurrentPlot(mouseData_.plot);
-          return;
-        }
-
-        for (auto &plot : mouseData_.plots) {
-          if (plot == mouseData_.plot) continue;
-
-          if (plot->selectMousePress(me->pos(), selMod)) {
-            setCurrentPlot(plot);
-            return;
+          SelData(const QPointF &pos, CQChartsSelMod selMod) :
+           pos(pos), selMod(selMod) {
           }
+        };
+
+        SelData selData(me->pos(), modifiersToSelMod(me->modifiers()));
+
+        if (processMouseDataPlots([&](CQChartsPlot *plot, const SelData &data) {
+              if (plot->selectMousePress(data.pos, data.selMod)) {
+                setCurrentPlot(plot);
+                return true;
+              }
+              return false;
+            }, selData)) {
+          return;
         }
 
         //---
 
         CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
-        if (keyObj_->isInside(w))
-          keyObj_->selectPress(w, SelMod::REPLACE);
+        if (key() && key()->isInside(w))
+          key()->selectPress(w, SelMod::REPLACE);
       }
       else {
         startRegionBand(mouseData_.pressPoint);
@@ -1325,17 +1341,19 @@ bool
 CQChartsView::
 editMousePress(const QPointF &p)
 {
-  if (mouseData_.plot) {
-    if (mouseData_.plot->editMousePress(p))
-      return true;
-  }
+  bool rc = processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &p) {
+    return plot->editMousePress(p, /*inside*/false);
+  }, p);
 
-  for (auto &plot : mouseData_.plots) {
-    if (plot == mouseData_.plot) continue;
+  if (rc)
+    return true;
 
-    if (plot->editMousePress(p))
-      return true;
-  }
+  rc = processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &p) {
+    return plot->editMousePress(p, /*inside*/true);
+  }, p);
+
+  if (rc)
+    return true;
 
   deselectAll();
 
@@ -1357,7 +1375,10 @@ mouseMoveEvent(QMouseEvent *me)
 
     searchPos_ = me->pos();
 
-    searchTimer_.start();
+    if (searchTimer_)
+      searchTimer_->start();
+    else
+      searchSlot();
 
     return;
   }
@@ -1386,7 +1407,7 @@ mouseMoveEvent(QMouseEvent *me)
     return;
   }
 
-  // get plots are point
+  // get plots at point
   CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
   plotsAt(w, mouseData_.plots, mouseData_.plot);
@@ -1397,16 +1418,11 @@ mouseMoveEvent(QMouseEvent *me)
     // select plot object
     if      (mode() == Mode::SELECT) {
       if (selectMode_ == SelectMode::POINT) {
-        if (mouseData_.plot) {
-          (void) mouseData_.plot->selectMouseMove(searchPos_, true);
-        }
+        processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &pos) {
+          bool current = (plot == mouseData_.plot);
 
-        for (auto &plot : mouseData_.plots) {
-          if (plot == mouseData_.plot) continue;
-
-          if (plot->selectMouseMove(searchPos_, false))
-            return;
-        }
+          return plot->selectMouseMove(pos, current);
+        }, searchPos_);
       }
       else {
         mouseData_.movePoint = me->pos();
@@ -1446,15 +1462,11 @@ mouseMoveEvent(QMouseEvent *me)
     else if (mode() == Mode::PROBE) {
     }
     else if (mode() == Mode::EDIT) {
-      if (mouseData_.plot)
-        (void) mouseData_.plot->editMouseMove(me->pos(), true);
+      processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &pos) {
+        bool current = (plot == mouseData_.plot);
 
-      for (auto &plot : mouseData_.plots) {
-        if (plot == mouseData_.plot) continue;
-
-        if (plot->editMouseMove(me->pos(), false))
-          return;
-      }
+        return plot->editMouseMove(pos, current);
+      }, me->pos());
     }
   }
   else if (mouseData_.button == Qt::MiddleButton) {
@@ -1617,27 +1629,14 @@ mouseReleaseEvent(QMouseEvent *me)
 
         CQChartsSelMod selMod = modifiersToSelMod(me->modifiers());
 
-        if (mouseData_.plot) {
-          CQChartsGeom::Point w1, w2;
-
-          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.pressPoint), w1);
-          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.movePoint ), w2);
-
-          if (mouseData_.plot->rectSelect(CQChartsGeom::BBox(w1, w2), selMod))
-            return;
-        }
-
-        for (auto &plot : mouseData_.plots) {
-          if (plot == mouseData_.plot) continue;
-
+        processMouseDataPlots([&](CQChartsPlot *plot, const CQChartsSelMod &selMod) {
           CQChartsGeom::Point w1, w2;
 
           plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.pressPoint), w1);
           plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.movePoint ), w2);
 
-          if (plot->rectSelect(CQChartsGeom::BBox(w1, w2), selMod))
-            return;
-        }
+          return plot->rectSelect(CQChartsGeom::BBox(w1, w2), selMod);
+        }, selMod);
       }
     }
     else if (mode() == Mode::ZOOM) {
@@ -1670,14 +1669,9 @@ mouseReleaseEvent(QMouseEvent *me)
       if (! mouseData_.pressed)
         return;
 
-      if (mouseData_.plot)
-        mouseData_.plot->editMouseRelease(me->pos());
-
-      for (auto &plot : mouseData_.plots) {
-        if (plot == mouseData_.plot) continue;
-
-        plot->editMouseRelease(me->pos());
-      }
+      processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &pos) {
+        plot->editMouseRelease(pos); return false;
+      }, me->pos());
     }
   }
   else if (mouseData_.button == Qt::MiddleButton) {
@@ -2080,7 +2074,8 @@ paint(QPainter *painter, CQChartsPlot *plot)
     //---
 
     // draw view key
-    key()->draw(painter);
+    if (key())
+      key()->draw(painter);
   }
 }
 
@@ -2275,9 +2270,10 @@ void
 CQChartsView::
 searchSlot()
 {
-  QPointF p = mapFromGlobal(QCursor::pos());
+  //QPointF p = mapFromGlobal(QCursor::pos());
 
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(p));
+  //CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(p));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(searchPos_));
 
   plotsAt(w, mouseData_.plots, mouseData_.plot);
 
@@ -2287,27 +2283,14 @@ searchSlot()
 
   bool handled = false;
 
-  // process current plot first
-  if (mouseData_.plot) {
-    CQChartsGeom::Point w;
-
-    mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(searchPos_), w);
-
-    if (mouseData_.plot->selectMove(w, ! handled))
-      handled = true;
-  }
-
-  // process other plots
-  for (auto &plot : mouseData_.plots) {
-    if (plot == mouseData_.plot) continue;
-
-    CQChartsGeom::Point w;
-
-    plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(searchPos_)), w);
+  processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &pos) {
+    CQChartsGeom::Point w = plot->pixelToWindow(CQChartsUtil::fromQPoint(pos));
 
     if (plot->selectMove(w, ! handled))
       handled = true;
-  }
+
+    return false;
+  }, searchPos_);
 }
 
 //------
@@ -2329,6 +2312,13 @@ showMenu(const QPoint &p)
 
   //---
 
+  // get base plots
+  PlotSet basePlots;
+
+  this->basePlots(basePlots);
+
+  //---
+
   // get current plot
   CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(p));
 
@@ -2343,6 +2333,72 @@ showMenu(const QPoint &p)
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
 
   CQChartsPlotType *plotType = (currentPlot ? currentPlot->type() : nullptr);
+
+  //---
+
+  if (key() && basePlots.size() > 1) {
+    QMenu *viewKeyMenu = new QMenu("View Key", popupMenu_);
+
+    QAction *viewKeyAction = new QAction("Visible");
+
+    viewKeyAction->setCheckable(true);
+    viewKeyAction->setChecked(key()->isVisible());
+
+    viewKeyMenu->addAction(viewKeyAction);
+
+    connect(viewKeyAction, SIGNAL(triggered(bool)), this, SLOT(viewKeyVisibleSlot(bool)));
+
+    //---
+
+    using KeyLocationActionMap = std::map<CQChartsKeyLocation::Type, QAction *>;
+
+    KeyLocationActionMap keyLocationActionMap;
+
+    QMenu *keyLocationMenu = new QMenu("Location", viewKeyMenu);
+
+    QActionGroup *keyLocationActionGroup = new QActionGroup(keyLocationMenu);
+
+    auto addKeyLocationGroupAction =
+     [&](const QString &label, const CQChartsKeyLocation::Type &location) {
+      QAction *action = new QAction(label, keyLocationMenu);
+
+      action->setCheckable(true);
+
+      keyLocationActionMap[location] = action;
+
+      keyLocationActionGroup->addAction(action);
+
+      return action;
+    };
+
+    addKeyLocationGroupAction("Top Left"     , CQChartsKeyLocation::Type::TOP_LEFT     );
+    addKeyLocationGroupAction("Top Center"   , CQChartsKeyLocation::Type::TOP_CENTER   );
+    addKeyLocationGroupAction("Top Right"    , CQChartsKeyLocation::Type::TOP_RIGHT    );
+    addKeyLocationGroupAction("Center Left"  , CQChartsKeyLocation::Type::CENTER_LEFT  );
+    addKeyLocationGroupAction("Center Center", CQChartsKeyLocation::Type::CENTER_CENTER);
+    addKeyLocationGroupAction("Center Right" , CQChartsKeyLocation::Type::CENTER_RIGHT );
+    addKeyLocationGroupAction("Bottom Left"  , CQChartsKeyLocation::Type::BOTTOM_LEFT  );
+    addKeyLocationGroupAction("Bottom Center", CQChartsKeyLocation::Type::BOTTOM_CENTER);
+    addKeyLocationGroupAction("Bottom Right" , CQChartsKeyLocation::Type::BOTTOM_RIGHT );
+    addKeyLocationGroupAction("Absolute"     , CQChartsKeyLocation::Type::ABS_POS      );
+
+    keyLocationActionGroup->setExclusive(true);
+
+    CQChartsKeyLocation::Type location = key()->location().type();
+
+    keyLocationActionMap[location]->setChecked(true);
+
+    connect(keyLocationActionGroup, SIGNAL(triggered(QAction *)),
+            this, SLOT(viewKeyPositionSlot(QAction *)));
+
+    keyLocationMenu->addActions(keyLocationActionGroup->actions());
+
+    viewKeyMenu->addMenu(keyLocationMenu);
+
+    //---
+
+    popupMenu_->addMenu(viewKeyMenu);
+  }
 
   //---
 
@@ -2426,32 +2482,34 @@ showMenu(const QPoint &p)
   //------
 
   if (plotType && plotType->hasKey()) {
-    QMenu *keyMenu = new QMenu("Key", popupMenu_);
+    QMenu *plotKeyMenu = new QMenu("Plot Key", popupMenu_);
 
     //---
 
     auto addKeyCheckAction = [&](const QString &label, bool checked, const char *slot) {
-      QAction *action = new QAction(label, keyMenu);
+      QAction *action = new QAction(label, plotKeyMenu);
 
       action->setCheckable(true);
       action->setChecked(checked);
 
       connect(action, SIGNAL(triggered(bool)), this, slot);
 
-      keyMenu->addAction(action);
+      plotKeyMenu->addAction(action);
 
       return action;
     };
 
     //---
 
-    bool visibleChecked = (currentPlot && currentPlot->key() && currentPlot->key()->isVisible());
+    CQChartsPlotKey *plotKey = (currentPlot ? currentPlot->key() : nullptr);
+
+    bool visibleChecked = (plotKey && plotKey->isVisible());
 
     QAction *keyVisibleAction =
-      addKeyCheckAction("Visible", visibleChecked, SLOT(keyVisibleSlot(bool)));
+      addKeyCheckAction("Visible", visibleChecked, SLOT(plotKeyVisibleSlot(bool)));
 
-    if (currentPlot && currentPlot->key()) {
-      if (currentPlot->key()->isEmpty())
+    if (plotKey) {
+      if (plotKey->isEmpty())
         keyVisibleAction->setEnabled(false);
     }
     else
@@ -2463,7 +2521,7 @@ showMenu(const QPoint &p)
 
     KeyLocationActionMap keyLocationActionMap;
 
-    QMenu *keyLocationMenu = new QMenu("Location", keyMenu);
+    QMenu *keyLocationMenu = new QMenu("Location", plotKeyMenu);
 
     QActionGroup *keyLocationActionGroup = new QActionGroup(keyLocationMenu);
 
@@ -2493,30 +2551,30 @@ showMenu(const QPoint &p)
 
     keyLocationActionGroup->setExclusive(true);
 
-    if (currentPlot && currentPlot->key()) {
-      CQChartsKeyLocation::Type location = currentPlot->key()->location().type();
+    if (plotKey) {
+      CQChartsKeyLocation::Type location = plotKey->location().type();
 
       keyLocationActionMap[location]->setChecked(true);
     }
 
     connect(keyLocationActionGroup, SIGNAL(triggered(QAction *)),
-            this, SLOT(keyPositionSlot(QAction *)));
+            this, SLOT(plotKeyPositionSlot(QAction *)));
 
     keyLocationMenu->addActions(keyLocationActionGroup->actions());
 
-    keyMenu->addMenu(keyLocationMenu);
+    plotKeyMenu->addMenu(keyLocationMenu);
 
     //---
 
-    bool insideXChecked = (currentPlot && currentPlot->key() && currentPlot->key()->isInsideX());
-    bool insideYChecked = (currentPlot && currentPlot->key() && currentPlot->key()->isInsideY());
+    bool insideXChecked = (plotKey && plotKey->isInsideX());
+    bool insideYChecked = (plotKey && plotKey->isInsideY());
 
-    (void) addKeyCheckAction("Inside X", insideXChecked, SLOT(keyInsideXSlot(bool)));
-    (void) addKeyCheckAction("Inside Y", insideYChecked, SLOT(keyInsideYSlot(bool)));
+    (void) addKeyCheckAction("Inside X", insideXChecked, SLOT(plotKeyInsideXSlot(bool)));
+    (void) addKeyCheckAction("Inside Y", insideYChecked, SLOT(plotKeyInsideYSlot(bool)));
 
     //---
 
-    popupMenu_->addMenu(keyMenu);
+    popupMenu_->addMenu(plotKeyMenu);
   }
 
   //------
@@ -2849,17 +2907,62 @@ showMenu(const QPoint &p)
   popupMenu_->popup(mapToGlobal(p));
 }
 
+//------
+
 void
 CQChartsView::
-keyVisibleSlot(bool b)
+viewKeyVisibleSlot(bool b)
+{
+  if (key() && b != key()->isVisible())
+    key()->setVisible(b);
+}
+
+void
+CQChartsView::
+viewKeyPositionSlot(QAction *action)
+{
+  CQChartsViewKey *viewKey = key();
+  if (! viewKey) return;
+
+  if      (action->text() == "Top Left"     )
+    viewKey->setLocation(CQChartsKeyLocation::Type::TOP_LEFT     );
+  else if (action->text() == "Top Center"   )
+    viewKey->setLocation(CQChartsKeyLocation::Type::TOP_CENTER   );
+  else if (action->text() == "Top Right"    )
+    viewKey->setLocation(CQChartsKeyLocation::Type::TOP_RIGHT    );
+  else if (action->text() == "Center Left"  )
+    viewKey->setLocation(CQChartsKeyLocation::Type::CENTER_LEFT  );
+  else if (action->text() == "Center Center")
+    viewKey->setLocation(CQChartsKeyLocation::Type::CENTER_CENTER);
+  else if (action->text() == "Center Right" )
+    viewKey->setLocation(CQChartsKeyLocation::Type::CENTER_RIGHT );
+  else if (action->text() == "Bottom Left"  )
+    viewKey->setLocation(CQChartsKeyLocation::Type::BOTTOM_LEFT  );
+  else if (action->text() == "Bottom Center")
+    viewKey->setLocation(CQChartsKeyLocation::Type::BOTTOM_CENTER);
+  else if (action->text() == "Bottom Right" )
+    viewKey->setLocation(CQChartsKeyLocation::Type::BOTTOM_RIGHT );
+  else if (action->text() == "Absolute"     )
+    viewKey->setLocation(CQChartsKeyLocation::Type::ABS_POS      );
+  else
+    assert(false);
+}
+
+//------
+
+void
+CQChartsView::
+plotKeyVisibleSlot(bool b)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  if (! currentPlot || ! currentPlot->key())
+  CQChartsPlotKey *plotKey = (currentPlot ? currentPlot->key() : nullptr);
+
+  if (! plotKey)
     return;
 
-  if (b != currentPlot->key()->isVisible()) {
-    currentPlot->key()->setVisible(b);
+  if (b != plotKey->isVisible()) {
+    plotKey->setVisible(b);
 
     if (b)
       currentPlot->updateKeyPosition(/*force*/true);
@@ -2868,31 +2971,33 @@ keyVisibleSlot(bool b)
 
 void
 CQChartsView::
-keyPositionSlot(QAction *action)
+plotKeyPositionSlot(QAction *action)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  if (currentPlot && currentPlot->key()) {
+  CQChartsPlotKey *plotKey = (currentPlot ? currentPlot->key() : nullptr);
+
+  if (plotKey) {
     if      (action->text() == "Top Left"     )
-      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::TOP_LEFT     );
+      plotKey->setLocation(CQChartsKeyLocation::Type::TOP_LEFT     );
     else if (action->text() == "Top Center"   )
-      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::TOP_CENTER   );
+      plotKey->setLocation(CQChartsKeyLocation::Type::TOP_CENTER   );
     else if (action->text() == "Top Right"    )
-      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::TOP_RIGHT    );
+      plotKey->setLocation(CQChartsKeyLocation::Type::TOP_RIGHT    );
     else if (action->text() == "Center Left"  )
-      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::CENTER_LEFT  );
+      plotKey->setLocation(CQChartsKeyLocation::Type::CENTER_LEFT  );
     else if (action->text() == "Center Center")
-      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::CENTER_CENTER);
+      plotKey->setLocation(CQChartsKeyLocation::Type::CENTER_CENTER);
     else if (action->text() == "Center Right" )
-      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::CENTER_RIGHT );
+      plotKey->setLocation(CQChartsKeyLocation::Type::CENTER_RIGHT );
     else if (action->text() == "Bottom Left"  )
-      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::BOTTOM_LEFT  );
+      plotKey->setLocation(CQChartsKeyLocation::Type::BOTTOM_LEFT  );
     else if (action->text() == "Bottom Center")
-      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::BOTTOM_CENTER);
+      plotKey->setLocation(CQChartsKeyLocation::Type::BOTTOM_CENTER);
     else if (action->text() == "Bottom Right" )
-      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::BOTTOM_RIGHT );
+      plotKey->setLocation(CQChartsKeyLocation::Type::BOTTOM_RIGHT );
     else if (action->text() == "Absolute"     )
-      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::ABS_POS      );
+      plotKey->setLocation(CQChartsKeyLocation::Type::ABS_POS      );
     else
       assert(false);
   }
@@ -2900,15 +3005,17 @@ keyPositionSlot(QAction *action)
 
 void
 CQChartsView::
-keyInsideXSlot(bool b)
+plotKeyInsideXSlot(bool b)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  if (! currentPlot || ! currentPlot->key())
+  CQChartsPlotKey *plotKey = (currentPlot ? currentPlot->key() : nullptr);
+
+  if (! plotKey)
     return;
 
-  if (b != currentPlot->key()->isInsideX()) {
-    currentPlot->key()->setInsideX(b);
+  if (b != plotKey->isInsideX()) {
+    plotKey->setInsideX(b);
 
     if (b)
       currentPlot->updateKeyPosition(/*force*/true);
@@ -2917,15 +3024,17 @@ keyInsideXSlot(bool b)
 
 void
 CQChartsView::
-keyInsideYSlot(bool b)
+plotKeyInsideYSlot(bool b)
 {
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
-  if (! currentPlot || ! currentPlot->key())
+  CQChartsPlotKey *plotKey = (currentPlot ? currentPlot->key() : nullptr);
+
+  if (! plotKey)
     return;
 
-  if (b != currentPlot->key()->isInsideY()) {
-    currentPlot->key()->setInsideY(b);
+  if (b != plotKey->isInsideY()) {
+    plotKey->setInsideY(b);
 
     if (b)
       currentPlot->updateKeyPosition(/*force*/true);

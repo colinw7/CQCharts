@@ -17,6 +17,7 @@ class CQChartsColumnEdit : public QFrame {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsColumn column          READ column          WRITE setColumn         )
+  Q_PROPERTY(QString        text            READ text            WRITE setText           )
   Q_PROPERTY(QString        placeholderText READ placeholderText WRITE setPlaceholderText)
 
  public:
@@ -27,6 +28,9 @@ class CQChartsColumnEdit : public QFrame {
 
   const CQChartsColumn &column() const;
   void setColumn(const CQChartsColumn &c);
+
+  QString text() const;
+  void setText(const QString &s);
 
   QString placeholderText() const;
   void setPlaceholderText(const QString &s);
@@ -50,6 +54,7 @@ class CQChartsColumnEdit : public QFrame {
   void vheaderCheckClicked   (bool b);
 
   void menuColumnChanged(int i);
+  void roleTextChanged(const QString &str);
 
   void expressionTextChanged(const QString &str);
 

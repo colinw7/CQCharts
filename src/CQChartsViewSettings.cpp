@@ -31,6 +31,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QVBoxLayout>
+#include <QPainter>
 
 class CQChartsPropertyViewTree : public CQPropertyViewTree {
  public:

@@ -5,13 +5,13 @@
 #include <QPainter>
 
 CQChartsResizeHandle::
-CQChartsResizeHandle(const CQChartsView *view, Side side) :
+CQChartsResizeHandle(const CQChartsView *view, CQChartsResizeSide side) :
  view_(view), side_(side)
 {
 }
 
 CQChartsResizeHandle::
-CQChartsResizeHandle(const CQChartsPlot *plot, Side side) :
+CQChartsResizeHandle(const CQChartsPlot *plot, CQChartsResizeSide side) :
  plot_(plot), side_(side)
 {
 }
@@ -48,7 +48,7 @@ draw(QPainter *painter) const
 
   path_ = QPainterPath();
 
-  if      (side() == Side::MOVE) {
+  if      (side() == CQChartsResizeSide::MOVE) {
     double ms1 = 12;
     double ms2 = 4;
 
@@ -64,7 +64,7 @@ draw(QPainter *painter) const
     path_.lineTo(c.x() - ms2, c.y() - ms2);
     path_.closeSubpath();
   }
-  else if (side() == Side::LL) {
+  else if (side() == CQChartsResizeSide::LL) {
     QPointF ll = CQChartsUtil::toQPoint(windowToPixel(bbox_.getLL()));
 
     path_.addEllipse(ll.x() - cs/2, ll.y() - cs/2, cs, cs);
@@ -74,7 +74,7 @@ draw(QPainter *painter) const
     //path_.lineTo(ll.x()     , ll.y() - cs);
     //path_.closeSubpath();
   }
-  else if (side() == Side::LR) {
+  else if (side() == CQChartsResizeSide::LR) {
     QPointF lr = CQChartsUtil::toQPoint(windowToPixel(bbox_.getLR()));
 
     path_.addEllipse(lr.x() - cs/2, lr.y() - cs/2, cs, cs);
@@ -84,7 +84,7 @@ draw(QPainter *painter) const
     //path_.lineTo(lr.x()     , lr.y() - cs);
     //path_.closeSubpath();
   }
-  else if (side() == Side::UL) {
+  else if (side() == CQChartsResizeSide::UL) {
     QPointF ul = CQChartsUtil::toQPoint(windowToPixel(bbox_.getUL()));
 
     path_.addEllipse(ul.x() - cs/2, ul.y() - cs/2, cs, cs);
@@ -94,7 +94,7 @@ draw(QPainter *painter) const
     //path_.lineTo(ul.x()     , ul.y() + cs);
     //path_.closeSubpath();
   }
-  else if (side() == Side::UR) {
+  else if (side() == CQChartsResizeSide::UR) {
     QPointF ur = CQChartsUtil::toQPoint(windowToPixel(bbox_.getUR()));
 
     path_.addEllipse(ur.x() - cs/2, ur.y() - cs/2, cs, cs);

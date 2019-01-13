@@ -2,6 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsModelUtil.h>
+#include <CQChartsEditHandles.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
@@ -198,9 +199,7 @@ setRange(double start, double end)
   start_ = std::min(start, end);
   end_   = std::max(start, end);
 
-  calc();
-
-  redraw();
+  calcAndRedraw();
 }
 
 void

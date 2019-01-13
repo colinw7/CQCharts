@@ -674,6 +674,18 @@ CQChartsForceDirectedPlot::
 draw(QPainter *painter)
 {
   drawParts(painter);
+
+  //---
+
+  {
+  LockMutex lock(this, "draw");
+
+  UpdateState updateState = this->updateState();
+
+  if (updateState == UpdateState::READY) {
+    setGroupedUpdateState(UpdateState::DRAWN);
+  }
+  }
 }
 
 void

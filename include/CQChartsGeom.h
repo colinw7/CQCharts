@@ -419,6 +419,17 @@ class Range {
     y2_ = c.y + h/2;
   }
 
+  bool inside(double x, double y) const {
+    return inside(Point(x, y));
+  }
+
+  bool inside(const Point &point) const {
+    if (! set_) return false;
+
+    return ((point.x >= x1_ && point.x <= x2_) &&
+            (point.y >= y1_ && point.y <= y2_));
+  }
+
   void print(std::ostream &os) const {
     os << x1_ << " " << y1_ << " " << x2_ << " " << y2_;
   }

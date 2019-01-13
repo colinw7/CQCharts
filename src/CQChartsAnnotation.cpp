@@ -2,6 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsArrow.h>
+#include <CQChartsEditHandles.h>
 #include <CQCharts.h>
 #include <CQPropertyViewModel.h>
 #include <CQAlignEdit.h>
@@ -12,18 +13,22 @@
 
 CQChartsAnnotation::
 CQChartsAnnotation(CQChartsView *view) :
- CQChartsTextBoxObj(view), editHandles_(view, CQChartsEditHandles::Mode::MOVE)
+ CQChartsTextBoxObj(view)
 {
   static int s_lastInd;
+
+  editHandles_ = new CQChartsEditHandles(view_, CQChartsEditHandles::Mode::MOVE);
 
   ind_ = ++s_lastInd;
 }
 
 CQChartsAnnotation::
 CQChartsAnnotation(CQChartsPlot *plot) :
- CQChartsTextBoxObj(plot), editHandles_(plot, CQChartsEditHandles::Mode::MOVE)
+ CQChartsTextBoxObj(plot)
 {
   static int s_lastInd;
+
+  editHandles_ = new CQChartsEditHandles(plot_, CQChartsEditHandles::Mode::MOVE);
 
   ind_ = ++s_lastInd;
 }
@@ -31,6 +36,7 @@ CQChartsAnnotation(CQChartsPlot *plot) :
 CQChartsAnnotation::
 ~CQChartsAnnotation()
 {
+  delete editHandles_;
 }
 
 QString
@@ -227,7 +233,7 @@ bool
 CQChartsAnnotation::
 editPress(const CQChartsGeom::Point &p)
 {
-  editHandles_.setDragPos(p);
+  editHandles_->setDragPos(p);
 
   return true;
 }
@@ -236,20 +242,20 @@ bool
 CQChartsAnnotation::
 editMove(const CQChartsGeom::Point &p)
 {
-  const CQChartsGeom::Point        &dragPos  = editHandles_.dragPos();
-  const CQChartsResizeHandle::Side &dragSide = editHandles_.dragSide();
+  const CQChartsGeom::Point &dragPos = editHandles_->dragPos();
+  const CQChartsResizeSide& dragSide = editHandles_->dragSide();
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
-  editHandles_.updateBBox(dx, dy);
+  editHandles_->updateBBox(dx, dy);
 
-  if (dragSide != CQChartsResizeHandle::Side::MOVE)
+  if (dragSide != CQChartsResizeSide::MOVE)
     autoSize_ = false;
 
-  setBBox(editHandles_.bbox(), dragSide);
+  setBBox(editHandles_->bbox(), dragSide);
 
-  editHandles_.setDragPos(p);
+  editHandles_->setDragPos(p);
 
   if      (plot())
     plot()->queueDrawForeground();
@@ -263,7 +269,7 @@ bool
 CQChartsAnnotation::
 editMotion(const CQChartsGeom::Point &p)
 {
-  return editHandles_.selectInside(p);
+  return editHandles_->selectInside(p);
 }
 
 bool
@@ -277,11 +283,11 @@ void
 CQChartsAnnotation::
 editMoveBy(const QPointF &f)
 {
-  editHandles_.setDragSide(CQChartsResizeHandle::Side::MOVE);
+  editHandles_->setDragSide(CQChartsResizeSide::MOVE);
 
-  editHandles_.updateBBox(f.x(), f.y());
+  editHandles_->updateBBox(f.x(), f.y());
 
-  setBBox(editHandles_.bbox(), CQChartsResizeHandle::Side::MOVE);
+  setBBox(editHandles_->bbox(), CQChartsResizeSide::MOVE);
 
   if      (plot())
     plot()->queueDrawForeground();
@@ -306,9 +312,9 @@ drawEditHandles(QPainter *painter) const
 {
   assert(view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
-  const_cast<CQChartsAnnotation *>(this)->editHandles_.setBBox(this->bbox());
+  const_cast<CQChartsAnnotation *>(this)->editHandles_->setBBox(this->bbox());
 
-  editHandles_.draw(painter);
+  editHandles_->draw(painter);
 }
 
 //---
@@ -330,7 +336,7 @@ CQChartsRectAnnotation(CQChartsView *view, const CQChartsRect &rect) :
 
   setBorder(true);
 
-  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
 CQChartsRectAnnotation::
@@ -341,7 +347,7 @@ CQChartsRectAnnotation(CQChartsPlot *plot, const CQChartsRect &rect) :
 
   setBorder(true);
 
-  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
 CQChartsRectAnnotation::
@@ -472,7 +478,7 @@ propertyId() const
 
 void
 CQChartsRectAnnotation::
-setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
   QPointF start, end;
 
@@ -620,7 +626,7 @@ CQChartsEllipseAnnotation(CQChartsView *view, const CQChartsPosition &center,
 
   setBorder(true);
 
-  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
 CQChartsEllipseAnnotation::
@@ -632,7 +638,7 @@ CQChartsEllipseAnnotation(CQChartsPlot *plot, const CQChartsPosition &center,
 
   setBorder(true);
 
-  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
 CQChartsEllipseAnnotation::
@@ -664,7 +670,7 @@ propertyId() const
 
 void
 CQChartsEllipseAnnotation::
-setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
   center_ = CQChartsPosition(CQChartsUtil::toQPoint(bbox.getCenter()));
 
@@ -828,7 +834,7 @@ CQChartsPolygonAnnotation(CQChartsView *view, const CQChartsPolygon &polygon) :
 
   setBorder(true);
 
-  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
 CQChartsPolygonAnnotation::
@@ -839,7 +845,7 @@ CQChartsPolygonAnnotation(CQChartsPlot *plot, const CQChartsPolygon &polygon) :
 
   setBorder(true);
 
-  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
 CQChartsPolygonAnnotation::
@@ -869,7 +875,7 @@ propertyId() const
 
 void
 CQChartsPolygonAnnotation::
-setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
   double dx = bbox.getXMin() - bbox_.getXMin();
   double dy = bbox.getYMin() - bbox_.getYMin();
@@ -1023,7 +1029,7 @@ CQChartsPolylineAnnotation(CQChartsView *view, const CQChartsPolygon &polygon) :
 
   setBorder(true);
 
-  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
 CQChartsPolylineAnnotation::
@@ -1034,7 +1040,7 @@ CQChartsPolylineAnnotation(CQChartsPlot *plot, const CQChartsPolygon &polygon) :
 
   setBorder(true);
 
-  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
 CQChartsPolylineAnnotation::
@@ -1064,7 +1070,7 @@ propertyId() const
 
 void
 CQChartsPolylineAnnotation::
-setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
   double dx = bbox.getXMin() - bbox_.getXMin();
   double dy = bbox.getYMin() - bbox_.getYMin();
@@ -1271,7 +1277,7 @@ init(const QString &textStr, bool isRect)
   setBorder(false);
   setFilled(false);
 
-  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 
   isRect_   = isRect;
   autoSize_ = ! isRect_;
@@ -1392,7 +1398,7 @@ positionToLL(double w, double h, double &x, double &y) const
 
 void
 CQChartsTextAnnotation::
-setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
   double xp = 0.0, yp = 0.0, xm = 0.0, ym = 0.0;
 
@@ -1549,8 +1555,6 @@ draw(QPainter *painter)
       view()->drawTextInBox(painter, trect, textStr(), pen, textOptions);
   }
   else {
-    QFont font;
-
     double w, h;
 
     calcTextSize(w, h);
@@ -1560,11 +1564,13 @@ draw(QPainter *painter)
 
     double s = std::min(xs, ys);
 
-    double fs = font.pointSizeF();
+    QFont font1 = painter->font();
 
-    QFont font1 = font;
+    double fs = font1.pointSizeF()*s;
 
-    font1.setPointSizeF(fs*s);
+    font1.setPointSizeF(fs);
+
+    painter->setFont(font1);
 
     //---
 
@@ -1573,7 +1579,7 @@ draw(QPainter *painter)
     QTextDocument td;
 
     td.setHtml(textStr());
-    td.setDefaultFont(font1);
+    td.setDefaultFont(painter->font());
 
     QRectF trect1 = trect.translated(-trect.x(), -trect.y());
 
@@ -1658,7 +1664,7 @@ CQChartsArrowAnnotation(CQChartsView *view, const CQChartsPosition &start,
 {
   setObjectName(QString("arrow.%1").arg(ind()));
 
-  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 
   arrow_ = new CQChartsArrow(view);
 
@@ -1672,7 +1678,7 @@ CQChartsArrowAnnotation(CQChartsPlot *plot, const CQChartsPosition &start,
 {
   setObjectName(QString("arrow.%1").arg(ind()));
 
-  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 
   arrow_ = new CQChartsArrow(plot);
 
@@ -1730,7 +1736,7 @@ propertyId() const
 
 void
 CQChartsArrowAnnotation::
-setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
   QPointF start, end;
 
@@ -1970,7 +1976,7 @@ propertyId() const
 
 void
 CQChartsPointAnnotation::
-setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
   QPointF position;
 

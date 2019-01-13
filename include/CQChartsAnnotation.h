@@ -2,13 +2,14 @@
 #define CQChartsAnnotation_H
 
 #include <CQChartsTextBoxObj.h>
-#include <CQChartsEditHandles.h>
 #include <CQChartsSymbol.h>
 #include <CQChartsData.h>
 #include <CQChartsRect.h>
 #include <CQChartsPolygon.h>
 #include <CQChartsGeom.h>
 #include <QFont>
+
+class CQChartsEditHandles;
 
 class CQChartsAnnotation : public CQChartsTextBoxObj {
   Q_OBJECT
@@ -34,7 +35,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   const CQChartsGeom::BBox &bbox() const { return bbox_; }
 
-  CQChartsEditHandles &editHandles() { return editHandles_; }
+  CQChartsEditHandles *editHandles() { return editHandles_; }
 
   //---
 
@@ -70,7 +71,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   virtual void editMoveBy(const QPointF &d);
 
-  virtual void setBBox(const CQChartsGeom::BBox &, const CQChartsResizeHandle::Side &) { }
+  virtual void setBBox(const CQChartsGeom::BBox &, const CQChartsResizeSide &) { }
 
   //---
 
@@ -97,10 +98,10 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void dataChanged();
 
  protected:
-  int                 ind_         { 0 };    // unique ind
-  CQChartsGeom::BBox  bbox_;                 // bbox (plot coords)
-  CQChartsEditHandles editHandles_;          // edit handles
-  bool                autoSize_    { true }; // set bbox from contents
+  int                  ind_         { 0 };       // unique ind
+  CQChartsGeom::BBox   bbox_;                    // bbox (plot coords)
+  CQChartsEditHandles* editHandles_ { nullptr }; // edit handles
+  bool                 autoSize_    { true };    // set bbox from contents
 };
 
 //---
@@ -135,7 +136,7 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   void draw(QPainter *painter) override;
 
@@ -177,7 +178,7 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -213,7 +214,7 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -247,7 +248,7 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -296,7 +297,7 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -351,7 +352,7 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -395,7 +396,7 @@ class CQChartsPointAnnotation : public CQChartsAnnotation {
 
   QString propertyId() const override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 

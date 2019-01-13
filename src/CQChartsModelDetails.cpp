@@ -1302,7 +1302,7 @@ initData()
       if (visitMax_) {
         CQChartsColor cmax;
 
-        if (details_->columnColor(min_, cmax))
+        if (details_->columnColor(max_, cmax))
           cmax = std::max(cmax, c);
         else
           cmax = c;

@@ -2,7 +2,6 @@
 #define CQChartsValueSet_H
 
 #include <CQChartsUtil.h>
-#include <CQChartsTrie.h>
 #include <CQBaseModelTypes.h>
 #include <vector>
 #include <set>
@@ -11,6 +10,8 @@
 #include <boost/optional.hpp>
 
 class CQChartsPlot;
+class CQChartsTrie;
+class CQChartsTriePatterns;
 
 //------
 
@@ -83,9 +84,11 @@ class CQChartsRValues {
 
   // min/max value
   double min(double def=CMathUtil::getNaN()) const {
-    return (valset_.empty() ? def : valset_. begin()->first); }
+    return (valset_.empty() ? def : valset_. begin()->first);
+  }
   double max(double def=CMathUtil::getNaN()) const {
-    return (valset_.empty() ? def : valset_.rbegin()->first); }
+    return (valset_.empty() ? def : valset_.rbegin()->first);
+  }
 
   // min/max index
   int imin(int def=0) const { return (setvals_.empty() ? def : setvals_. begin()->first); }
@@ -361,9 +364,11 @@ class CQChartsSValues {
 
   // min/max value
   QString min(const QString &def="") const {
-    return (valset_.empty() ? def : valset_. begin()->first); }
+    return (valset_.empty() ? def : valset_. begin()->first);
+  }
   QString max(const QString &def="") const {
-    return (valset_.empty() ? def : valset_.rbegin()->first); }
+    return (valset_.empty() ? def : valset_.rbegin()->first);
+  }
 
   // min/max index
   int imin(int def=0) const { return (setvals_.empty() ? def : setvals_. begin()->first); }
@@ -417,11 +422,11 @@ class CQChartsSValues {
   SetValues setvals_;       // index to string map
   int       numNull_ { 0 }; // number of null values
 
-  int                    initBuckets_  { 10 };      // initial buckets
-  CQChartsTrie*          trie_         { nullptr }; // string trie
-  CQChartsTrie::Patterns spatterns_;                // trie patterns
-  bool                   spatternsSet_ { false };   // trie patterns set
-  mutable std::mutex     mutex_;
+  int                   initBuckets_  { 10 };      // initial buckets
+  CQChartsTrie*         trie_         { nullptr }; // string trie
+  CQChartsTriePatterns* spatterns_    { nullptr }; // trie patterns
+  bool                  spatternsSet_ { false };   // trie patterns set
+  mutable std::mutex    mutex_;
 };
 
 //---
@@ -478,10 +483,12 @@ class CQChartsCValues {
   }
 
   // min/max value
-  CQChartsColor min(const CQChartsColor &def) const {
-    return (valset_.empty() ? def : valset_. begin()->first); }
-  CQChartsColor max(const CQChartsColor &def) const {
-    return (valset_.empty() ? def : valset_.rbegin()->first); }
+  CQChartsColor min(const CQChartsColor &def=CQChartsColor()) const {
+    return (valset_.empty() ? def : valset_. begin()->first);
+  }
+  CQChartsColor max(const CQChartsColor &def=CQChartsColor()) const {
+    return (valset_.empty() ? def : valset_.rbegin()->first);
+  }
 
   // min/max index
   int imin(int def=0) const { return (setvals_.empty() ? def : setvals_. begin()->first); }
@@ -656,19 +663,19 @@ class CQChartsValueSet : public QObject {
   int imax(int def=0) const;
 
   // get minimum real value
-  // (for integers and reals this is the minimum unique value, otherwise this  is imin))
+  // (for integers and reals this is the minimum unique value, otherwise this is imin)
   double rmin(double def=CMathUtil::getNaN()) const;
 
   // get maximum real value
-  // (for integers and reals this is the maximum unique value, otherwise this is imax))
+  // (for integers and reals this is the maximum unique value, otherwise this is imax)
   double rmax(double def=CMathUtil::getNaN()) const;
 
   // get sum real value
-  // (for integers and reals this is the sum value, otherwise this is 0.0))
+  // (for integers and reals this is the sum value, otherwise this is 0.0)
   double rsum() const;
 
   // get mean real value
-  // (for integers and reals this is the mean value, otherwise this is imax/2))
+  // (for integers and reals this is the mean value, otherwise this is imax/2)
   double rmean() const;
 
   int    rid(double r) const;

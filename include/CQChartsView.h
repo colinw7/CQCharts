@@ -574,10 +574,13 @@ class CQChartsView : public QFrame,
 
   void searchSlot();
 
-  void keyVisibleSlot(bool b);
-  void keyPositionSlot(QAction *action);
-  void keyInsideXSlot(bool b);
-  void keyInsideYSlot(bool b);
+  void viewKeyVisibleSlot(bool b);
+  void viewKeyPositionSlot(QAction *action);
+
+  void plotKeyVisibleSlot(bool b);
+  void plotKeyPositionSlot(QAction *action);
+  void plotKeyInsideXSlot(bool b);
+  void plotKeyInsideYSlot(bool b);
 
   void xAxisVisibleSlot(bool b);
   void xAxisGridSlot(bool b);
@@ -647,6 +650,24 @@ class CQChartsView : public QFrame,
   int plotPos(CQChartsPlot *plot) const;
 
  private:
+  template<typename FUNCTION, typename DATA=int>
+  bool processMouseDataPlots(FUNCTION f, const DATA &data=DATA()) const {
+    if (mouseData_.plot) {
+      if (f(mouseData_.plot, data))
+        return true;
+    }
+
+    for (auto &plot : mouseData_.plots) {
+      if (plot == mouseData_.plot) continue;
+
+      if (f(plot, data))
+        return true;
+    }
+
+    return false;
+  }
+
+ private:
   struct MouseData {
     Plots         plots;
     CQChartsPlot* plot      { nullptr };
@@ -712,7 +733,8 @@ class CQChartsView : public QFrame,
   CQChartsGeom::BBox    prect_            { 0, 0, 100, 100 };    // plot rect
   double                aspect_           { 1.0 };               // current aspect
   MouseData             mouseData_;                              // mouse data
-  QTimer                searchTimer_;                            // search timer
+  int                   searchTimeout_    { 10 };                // search timeout
+  QTimer*               searchTimer_      { nullptr };           // search timer
   QPointF               searchPos_;                              // search pos
   QRubberBand*          regionBand_       { nullptr };           // zoom region rubberband
   ProbeBands            probeBands_;                             // probe lines

@@ -45,7 +45,7 @@ class CQChartsPolygon {
 
   const QPolygonF &polygon() const { return polygon_; }
 
-  int numPoints() const { return polygon_.size(); }
+  int numPoints() const { return polygon_.length(); }
 
   const QPointF &point(int i) const { return polygon_[i]; }
   void setPoint(int i, const QPointF &p) { polygon_[i] = p; }

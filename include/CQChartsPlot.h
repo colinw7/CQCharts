@@ -56,6 +56,7 @@ class CQChartsValueSet;
 class CQChartsModelColumnDetails;
 class CQChartsModelExprMatch;
 class CQChartsModelData;
+class CQChartsEditHandles;
 class CQPropertyViewModel;
 class CQPropertyViewItem;
 class QPainter;
@@ -64,10 +65,6 @@ class QSortFilterProxyModel;
 class QItemSelectionModel;
 class QRubberBand;
 class QMenu;
-
-//----
-
-#include <CQChartsEditHandles.h>
 
 //----
 
@@ -1205,12 +1202,13 @@ class CQChartsPlot : public CQChartsObj,
   virtual bool selectRelease(const CQChartsGeom::Point &p);
 
   // handle mouse drag press/move/release
-  bool editMousePress  (const QPointF &p);
+  bool editMousePress  (const QPointF &p, bool inside=false);
   bool editMouseMove   (const QPointF &p, bool first=false);
   bool editMouseMotion (const QPointF &p);
   bool editMouseRelease(const QPointF &p);
 
-  virtual bool editPress  (const CQChartsGeom::Point &p, const CQChartsGeom::Point &w);
+  virtual bool editPress  (const CQChartsGeom::Point &p, const CQChartsGeom::Point &w,
+                           bool inside=false);
   virtual bool editMove   (const CQChartsGeom::Point &p, const CQChartsGeom::Point &w,
                            bool first=false);
   virtual bool editMotion (const CQChartsGeom::Point &p, const CQChartsGeom::Point &w);
@@ -1925,11 +1923,12 @@ class CQChartsPlot : public CQChartsObj,
   };
 
   struct MouseData {
-    QPointF                    pressPoint { 0, 0 };
-    QPointF                    movePoint  { 0, 0 };
-    bool                       pressed    { false };
-    DragObj                    dragObj    { DragObj::NONE };
-    CQChartsResizeHandle::Side dragSide   { CQChartsResizeHandle::Side::NONE };
+    QPointF            pressPoint { 0, 0 };
+    QPointF            movePoint  { 0, 0 };
+    bool               pressed    { false };
+    DragObj            dragObj    { DragObj::NONE };
+    CQChartsResizeSide dragSide   { CQChartsResizeSide::NONE };
+    bool               dragged    { false };
   };
 
   struct AnimateData {
@@ -2032,7 +2031,7 @@ class CQChartsPlot : public CQChartsObj,
   IdHidden                     idHidden_;                        // hidden object ids
   IndexColumnRows              selIndexColumnRows_;              // sel model indices (by col/row)
   QItemSelection               itemSelection_;                   // selected model indices
-  CQChartsEditHandles          editHandles_;                     // edit controls
+  CQChartsEditHandles*         editHandles_      { nullptr };    // edit controls
   Annotations                  annotations_;                     // extra annotations
   UpdatesData                  updatesData_;                     // updates data
   bool                         fromInvalidate_   { false };      // call from invalidate

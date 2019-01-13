@@ -2,6 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsAxis.h>
 #include <CQChartsView.h>
+#include <CQChartsEditHandles.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyViewModel.h>
 #include <QPainter>
@@ -9,9 +10,11 @@
 
 CQChartsTitle::
 CQChartsTitle(CQChartsPlot *plot) :
- CQChartsTextBoxObj(plot), editHandles_(plot)
+ CQChartsTextBoxObj(plot)
 {
   setObjectName("title");
+
+  editHandles_ = new CQChartsEditHandles(plot);
 
   setTextStr("Title");
 
@@ -19,6 +22,12 @@ CQChartsTitle(CQChartsPlot *plot) :
 
   setBorder(false);
   setFilled(false);
+}
+
+CQChartsTitle::
+~CQChartsTitle()
+{
+  delete editHandles_;
 }
 
 QString
@@ -215,7 +224,7 @@ bool
 CQChartsTitle::
 editPress(const CQChartsGeom::Point &p)
 {
-  editHandles_.setDragPos(p);
+  editHandles_->setDragPos(p);
 
   if (location_.location != LocationType::ABS_POS &&
       location_.location != LocationType::ABS_RECT) {
@@ -231,14 +240,14 @@ bool
 CQChartsTitle::
 editMove(const CQChartsGeom::Point &p)
 {
-  const CQChartsGeom::Point        &dragPos  = editHandles_.dragPos();
-  const CQChartsResizeHandle::Side &dragSide = editHandles_.dragSide();
+  const CQChartsGeom::Point &dragPos = editHandles_->dragPos();
+  const CQChartsResizeSide& dragSide = editHandles_->dragSide();
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
   if (location_.location == LocationType::ABS_POS &&
-      dragSide == CQChartsResizeHandle::Side::MOVE) {
+      dragSide == CQChartsResizeSide::MOVE) {
     location_.location = LocationType::ABS_POS;
 
     setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
@@ -246,14 +255,14 @@ editMove(const CQChartsGeom::Point &p)
   else {
     location_.location = LocationType::ABS_RECT;
 
-    editHandles_.updateBBox(dx, dy);
+    editHandles_->updateBBox(dx, dy);
 
-    bbox_ = editHandles_.bbox();
+    bbox_ = editHandles_->bbox();
 
     setAbsRect(CQChartsUtil::toQRect(bbox_));
   }
 
-  editHandles_.setDragPos(p);
+  editHandles_->setDragPos(p);
 
   redraw(/*wait*/false);
 
@@ -264,7 +273,7 @@ bool
 CQChartsTitle::
 editMotion(const CQChartsGeom::Point &p)
 {
-  return editHandles_.selectInside(p);
+  return editHandles_->selectInside(p);
 }
 
 bool
@@ -408,7 +417,7 @@ drawEditHandles(QPainter *painter) const
   assert(plot_->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
   if (location_.location != LocationType::ABS_RECT)
-    const_cast<CQChartsTitle *>(this)->editHandles_.setBBox(this->bbox());
+    const_cast<CQChartsTitle *>(this)->editHandles_->setBBox(this->bbox());
 
-  editHandles_.draw(painter);
+  editHandles_->draw(painter);
 }

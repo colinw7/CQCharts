@@ -1,6 +1,7 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsPlot.h>
 #include <CQChartsUtil.h>
+#include <CQChartsTrie.h>
 #include <CQChartsVariant.h>
 
 CQChartsValueSet::
@@ -305,15 +306,15 @@ CQChartsValueSet::
 rmax(double def) const
 {
   if      (type() == Type::INTEGER)
-    return ivals_.max();
+    return ivals_.max(def);
   else if (type() == Type::REAL)
-    return rvals_.max();
+    return rvals_.max(def);
   else if (type() == Type::STRING)
-    return svals_.imax();
+    return svals_.imax(def);
   else if (type() == Type::COLOR)
-    return cvals_.imax();
+    return cvals_.imax(def);
   else if (type() == Type::TIME)
-    return tvals_.max();
+    return tvals_.max(def);
   else
     return def;
 }
@@ -921,13 +922,15 @@ medianInd(int i1, int i2, int &n1, int &n2)
 CQChartsSValues::
 CQChartsSValues()
 {
-  trie_ = new CQChartsTrie;
+  trie_      = new CQChartsTrie;
+  spatterns_ = new CQChartsTriePatterns;
 }
 
 CQChartsSValues::
 ~CQChartsSValues()
 {
   delete trie_;
+  delete spatterns_;
 }
 
 void
@@ -942,7 +945,7 @@ clear()
 
   trie_->clear();
 
-  spatterns_.clear();
+  spatterns_->clear();
 
   spatternsSet_ = false;
 }
@@ -989,7 +992,7 @@ sbucket(const QString &s) const
 {
   initPatterns(initBuckets_);
 
-  return trie_->patternIndex(s, spatterns_);
+  return trie_->patternIndex(s, *spatterns_);
 }
 
 QString
@@ -998,7 +1001,7 @@ buckets(int i) const
 {
   initPatterns(initBuckets_);
 
-  return trie_->indexPattern(i, spatterns_);
+  return trie_->indexPattern(i, *spatterns_);
 }
 
 void
@@ -1013,12 +1016,12 @@ initPatterns(int numIdeal) const
   if (! spatternsSet_) {
     CQChartsSValues *th = const_cast<CQChartsSValues *>(this);
 
-    using DepthCountMap = std::map<int,CQChartsTrie::Patterns>;
+    using DepthCountMap = std::map<int,CQChartsTriePatterns>;
 
     DepthCountMap depthCountMap;
 
     for (int depth = 1; depth <= 3; ++depth) {
-      CQChartsTrie::Patterns patterns;
+      CQChartsTriePatterns patterns;
 
       trie_->patterns(depth, patterns);
 
@@ -1039,10 +1042,11 @@ initPatterns(int numIdeal) const
       }
     }
 
-    th->spatterns_    = depthCountMap[minDepth];
+    *th->spatterns_ = depthCountMap[minDepth];
+
     th->spatternsSet_ = true;
 
-    //spatterns_.print(std::cerr);
+    //spatterns_->print(std::cerr);
   }
 }
 

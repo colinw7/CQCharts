@@ -2,7 +2,6 @@
 #define CQChartsKey_H
 
 #include <CQChartsBoxObj.h>
-#include <CQChartsEditHandles.h>
 #include <CQChartsObjData.h>
 #include <CQChartsKeyLocation.h>
 #include <CQChartsGeom.h>
@@ -16,6 +15,7 @@
 
 class CQChartsPlot;
 class CQChartsKeyItem;
+class CQChartsEditHandles;
 class CQPropertyViewModel;
 class QPainter;
 
@@ -261,7 +261,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
 
-  CQChartsEditHandles &editHandles() { return editHandles_; }
+  CQChartsEditHandles *editHandles() { return editHandles_; }
 
   //---
 
@@ -324,7 +324,7 @@ class CQChartsPlotKey : public CQChartsKey {
   int                        numCols_     { 0 };
   RowColCell                 rowColCell_;
   mutable CQChartsGeom::BBox bbox_;
-  CQChartsEditHandles        editHandles_;
+  CQChartsEditHandles*       editHandles_ { nullptr };
 };
 
 //------

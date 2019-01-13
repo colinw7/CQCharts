@@ -733,3 +733,7 @@
  + allow disable status bar widgets
  + more const correctness
  + fix bivariare xy line customization
+# 1/13/2018
+ + Ensure column type cache works for non registered QAbstractModel data
+ + Improve view key rendering and add to context menu
+ + Fix redraw of dragged edited objects when threads active

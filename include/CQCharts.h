@@ -47,6 +47,11 @@ class CQCharts : public QObject {
 
   //---
 
+  bool hasViewKey() const { return viewKey_; }
+  void setViewKey(bool b) { viewKey_ = b; }
+
+  //---
+
   bool isPlotType(const QString &name) const;
 
   CQChartsPlotType *plotType(const QString &name) const;
@@ -137,6 +142,18 @@ class CQCharts : public QObject {
 
   //---
 
+  // model index management. Model stores unique index in "modelInd" property
+  // and charts class keeps last free model index.
+
+  // get current model index for model (fails if not set yet)
+  bool getModelInd(const QAbstractItemModel *model, int &ind) const;
+
+  // get next free model index and set it into the model
+  // (only fails if can't set property in model)
+  bool assignModelInd(QAbstractItemModel *model, int &ind);
+
+  //---
+
   void errorMsg(const QString &msg) const;
 
  signals:
@@ -157,17 +174,23 @@ class CQCharts : public QObject {
   void themeChanged();
 
  private:
+  // add new model data for model
   int addModelData(ModelP &model);
+
+  // assign model index to model
+  bool setModelInd(QAbstractItemModel *model, int ind);
 
  private:
   using NameViews = std::map<QString,CQChartsView*>;
 
+  bool                   viewKey_         { true };    // has view key
   CQChartsPlotTypeMgr*   plotTypeMgr_     { nullptr }; // plot type manager
   CQChartsColumnTypeMgr* columnTypeMgr_   { nullptr }; // column type manager
   CQChartsInterfaceTheme interfaceTheme_;              // interface theme
   CQChartsTheme          plotTheme_;                   // plot theme
   int                    currentModelInd_ { -1 };      // current model index
   ModelDatas             modelDatas_;                  // model datas
+  int                    lastModelInd_    { 0 };       // last model ind
   NameViews              views_;                       // views
   Procs                  procs_;                       // tcl procs
 };

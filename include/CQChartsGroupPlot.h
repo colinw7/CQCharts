@@ -3,8 +3,9 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
-#include <CQChartsColumnBucket.h>
 #include <future>
+
+class CQChartsColumnBucket;
 
 //---
 
@@ -115,13 +116,8 @@ class CQChartsGroupPlot : public CQChartsPlot {
   const CQChartsColumnBucket *groupBucket() const { return groupBucket_; }
   void setGroupBucket(CQChartsColumnBucket *bucket);
 
-  bool isGroupHeaders() const {
-    return (groupBucket()->dataType() == CQChartsColumnBucket::DataType::HEADER);
-  }
-
-  bool isGroupPathType() const {
-    return (groupBucket()->dataType() == CQChartsColumnBucket::DataType::PATH);
-  }
+  bool isGroupHeaders () const;
+  bool isGroupPathType() const;
 
   int numGroups() const override;
 

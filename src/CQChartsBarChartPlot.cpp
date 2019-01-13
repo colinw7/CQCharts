@@ -36,16 +36,16 @@ addParameters()
   addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
 
   addEnumParameter("plotType", "Plot Type", "plotType").
-    addNameValue("Normal" , int(CQChartsBarChartPlot::PlotType::NORMAL )).
-    addNameValue("Stacked", int(CQChartsBarChartPlot::PlotType::STACKED)).
+    addNameValue("NORMAL" , int(CQChartsBarChartPlot::PlotType::NORMAL )).
+    addNameValue("STACKED", int(CQChartsBarChartPlot::PlotType::STACKED)).
     setTip("Plot type");
 
   addEnumParameter("valueType", "Value Type", "valueType").
-   addNameValue("Value", int(CQChartsBarChartPlot::ValueType::VALUE)).
-   addNameValue("Range", int(CQChartsBarChartPlot::ValueType::RANGE)).
-   addNameValue("Min"  , int(CQChartsBarChartPlot::ValueType::MIN  )).
-   addNameValue("Max"  , int(CQChartsBarChartPlot::ValueType::MAX  )).
-   addNameValue("Mean" , int(CQChartsBarChartPlot::ValueType::MEAN )).
+   addNameValue("VALUE", int(CQChartsBarChartPlot::ValueType::VALUE)).
+   addNameValue("RANGE", int(CQChartsBarChartPlot::ValueType::RANGE)).
+   addNameValue("MIN"  , int(CQChartsBarChartPlot::ValueType::MIN  )).
+   addNameValue("MAX"  , int(CQChartsBarChartPlot::ValueType::MAX  )).
+   addNameValue("MEAN" , int(CQChartsBarChartPlot::ValueType::MEAN )).
    setTip("Bar value type");
 
   addBoolParameter("percent" , "Percent"  , "percent" ).setTip("Show value is percentage");
@@ -311,6 +311,8 @@ calcRange() const
 
   CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
 
+  NoUpdate noUpdate(th);
+
   //---
 
   CQChartsGeom::Range dataRange;
@@ -428,8 +430,6 @@ void
 CQChartsBarChartPlot::
 initRangeAxes()
 {
-  NoUpdate noUpdate(this);
-
   int ns = (isValueValue() ? valueColumns().count() : 1);
 //int nv = numValueSets();
 

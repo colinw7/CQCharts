@@ -377,63 +377,61 @@ class CQChartsAxis : public CQChartsObj,
   using TickSpaces = std::vector<double>;
   using TickLabels = std::map<int,QString>;
 
-  const CQChartsPlot*        plot_                { nullptr };
+  const CQChartsPlot*  plot_                { nullptr };
 
   // general
-  bool                       visible_             { true };
-  Qt::Orientation            direction_           { Qt::Horizontal };
-  Side                       side_                { Side::BOTTOM_LEFT };
-  bool                       integral_            { false };
-  bool                       date_                { false };
-  bool                       log_                 { false };
-  bool                       dataLabels_          { false };  // labels from model row
-  CQChartsColumn             column_;
-  QString                    formatStr_;
+  bool                 visible_             { true };
+  Qt::Orientation      direction_           { Qt::Horizontal };
+  Side                 side_                { Side::BOTTOM_LEFT };
+  bool                 integral_            { false };
+  bool                 date_                { false };
+  bool                 log_                 { false };
+  bool                 dataLabels_          { false };  // labels from model row
+  CQChartsColumn       column_;
+  QString              formatStr_;
 
   // label
-  bool                       labelDisplayed_      { true };
-  QString                    label_;
+  bool                 labelDisplayed_      { true };
+  QString              label_;
 
   // grid (lines and gap fill)
-  bool                       gridMid_             { false };
-  bool                       gridAbove_           { false };
+  bool                 gridMid_             { false };
+  bool                 gridAbove_           { false };
 
   // ticks
-  bool                       minorTicksDisplayed_ { true };
-  bool                       majorTicksDisplayed_ { true };
-  int                        minorTickLen_        { 4 };
-  int                        majorTickLen_        { 8 };
-  bool                       tickInside_          { false };
-  bool                       mirrorTicks_         { false };
+  bool                 minorTicksDisplayed_ { true };
+  bool                 majorTicksDisplayed_ { true };
+  int                  minorTickLen_        { 4 };
+  int                  majorTickLen_        { 8 };
+  bool                 tickInside_          { false };
+  bool                 mirrorTicks_         { false };
 
-  bool                       tickLabelAutoHide_   { true };
-  TickLabelPlacement         tickLabelPlacement_  { TickLabelPlacement::MIDDLE };
+  bool                 tickLabelAutoHide_   { true };
+  TickLabelPlacement   tickLabelPlacement_  { TickLabelPlacement::MIDDLE };
 
   // state
-  double                     start_               { 0.0 };
-  double                     end_                 { 1.0 };
-  bool                       includeZero_         { false };
-  uint                       numMajorTicks_       { 1 };
-  uint                       maxMajorTicks_       { 1000 };
-  uint                       numMinorTicks_       { 0 };
-  uint                       tickIncrement_       { 0 };
-  double                     majorIncrement_      { 0 };
-  double                     calcStart_           { 0 };
-  double                     calcEnd_             { 1 };
-  double                     calcIncrement_       { 0 };
-  CInterval                  interval_;
-  TickSpaces                 tickSpaces_;
-  TickLabels                 tickLabels_;
-  bool                       requireTickLabel_    { false };
-  OptReal                    pos_;
-  CQChartsEditHandles*       editHandles_         { nullptr };
+  double               start_               { 0.0 };
+  double               end_                 { 1.0 };
+  bool                 includeZero_         { false };
+  uint                 numMajorTicks_       { 1 };
+  uint                 maxMajorTicks_       { 1000 };
+  uint                 numMinorTicks_       { 0 };
+  uint                 tickIncrement_       { 0 };
+  double               majorIncrement_      { 0 };
+  double               calcStart_           { 0 };
+  double               calcEnd_             { 1 };
+  double               calcIncrement_       { 0 };
+  CInterval            interval_;
+  TickSpaces           tickSpaces_;
+  TickLabels           tickLabels_;
+  bool                 requireTickLabel_    { false };
+  OptReal              pos_;
+  CQChartsEditHandles* editHandles_         { nullptr };
 
-  mutable CQChartsGeom::BBox bbox_;
-  mutable CQChartsGeom::BBox fitBBox_;
-//mutable double             lmin_ { INT_MAX };
-//mutable double             lmax_ { INT_MIN };
-  mutable CQChartsGeom::BBox lbbox_;
-  mutable CQChartsGeom::BBox lastTickLabelRect_;
+  CQChartsGeom::BBox   bbox_;
+  CQChartsGeom::BBox   fitBBox_;
+  CQChartsGeom::BBox   lbbox_;
+  CQChartsGeom::BBox   lastTickLabelRect_;
 };
 
 #endif

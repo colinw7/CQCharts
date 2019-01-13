@@ -562,7 +562,7 @@ class CQChartsColumnTypeMgr : public QObject {
   bool getModelColumnTypeData(const QAbstractItemModel *model, const CQChartsColumn &column,
                               const TypeCacheData* &typeCacheData) const;
 
-  const CacheData &getModelCacheData(const QAbstractItemModel *model) const;
+  const CacheData &getModelCacheData(const QAbstractItemModel *model, bool &ok) const;
 
  private:
   CQCharts*          charts_     { nullptr }; // charts

@@ -989,11 +989,10 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
     bool ok2;
 
     double value = modelReal(vdata.row, valueColumn, vdata.parent, ok2);
-
-    if (! ok2) value = vdata.row;
+    if (! ok2) continue;
 
     if (CMathUtil::isNaN(value))
-      return;
+      continue;
 
     QModelIndex yind  = modelIndex(vdata.row, valueColumn, vdata.parent);
     QModelIndex yind1 = normalizeIndex(yind);
@@ -1421,8 +1420,7 @@ initCalcObjs(PlotObjs &objs) const
         rect = CQChartsGeom::BBox(0.0, pos - 0.10, 1.0, pos + 0.10);
     }
 
-    CQChartsBoxPlotDataObj *boxObj =
-      new CQChartsBoxPlotDataObj(this, rect, whiskerData, is, ns);
+    CQChartsBoxPlotDataObj *boxObj = new CQChartsBoxPlotDataObj(this, rect, whiskerData, is, ns);
 
     objs.push_back(boxObj);
 
@@ -1709,7 +1707,7 @@ QString
 CQChartsBoxPlotWhiskerObj::
 calcId() const
 {
-  return QString("whisker:%1:%2:%3").arg(typeName()).arg(setId_).arg(groupInd_);
+  return QString("%1:%2:%3").arg(typeName()).arg(setId_).arg(groupInd_);
 }
 
 QString
@@ -2212,7 +2210,7 @@ QString
 CQChartsBoxPlotOutlierObj::
 calcId() const
 {
-  return QString("outlier:%1:%2:%3:%4").arg(typeName()).arg(setId_).arg(groupInd_).arg(io_);
+  return QString("%1:%2:%3:%4").arg(typeName()).arg(setId_).arg(groupInd_).arg(io_);
 }
 
 QString
@@ -2344,7 +2342,7 @@ QString
 CQChartsBoxPlotDataObj::
 calcId() const
 {
-  return QString("whisker:%1:%2").arg(typeName()).arg(data_.name);
+  return QString("%1:%2").arg(typeName()).arg(data_.name);
 }
 
 QString
@@ -2650,7 +2648,7 @@ QString
 CQChartsBoxPlotConnectedObj::
 calcId() const
 {
-  return QString("connected:%1:%2").arg(typeName()).arg(i_);
+  return QString("%1:%2").arg(typeName()).arg(i_);
 }
 
 QString
@@ -2941,7 +2939,7 @@ QString
 CQChartsBoxPlotPointObj::
 calcId() const
 {
-  return QString("point:%1:%2:%3:%4").arg(typeName()).arg(ig_).arg(is_).arg(iv_);
+  return QString("%1:%2:%3:%4").arg(typeName()).arg(ig_).arg(is_).arg(iv_);
 }
 
 QString
