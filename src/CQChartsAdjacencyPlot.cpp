@@ -1018,9 +1018,7 @@ draw(QPainter *painter)
   //---
 
   // draw box
-  CQChartsGeom::BBox prect;
-
-  plot_->windowToPixel(rect(), prect);
+  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
   double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
   double cys = plot_->lengthPixelHeight(plot_->cornerSize());

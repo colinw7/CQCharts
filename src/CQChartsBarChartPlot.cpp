@@ -1968,12 +1968,17 @@ QColor
 CQChartsBarKeyText::
 interpTextColor(int i, int n) const
 {
-  CQChartsBarChartPlot *plot = qobject_cast<CQChartsBarChartPlot *>(plot_);
-
   QColor c = CQChartsKeyText::interpTextColor(i, n);
 
-  if (plot->isSetHidden(i_))
-    c = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), key_->hiddenAlpha());
+  if (isSetHidden())
+    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
+}
+
+bool
+CQChartsBarKeyText::
+isSetHidden() const
+{
+  return plot_->CQChartsPlot::isSetHidden(i_);
 }

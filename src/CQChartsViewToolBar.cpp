@@ -34,6 +34,7 @@
 #include <QToolButton>
 #include <QPushButton>
 #include <QRadioButton>
+#include <QCheckBox>
 #include <QButtonGroup>
 #include <QHBoxLayout>
 
@@ -112,7 +113,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   layout->addStretch(1);
 
-  //---
+  //-----
 
   QHBoxLayout *selectControlsLayout = new QHBoxLayout(selectControls);
   selectControlsLayout->setMargin(0); selectControlsLayout->setSpacing(2);
@@ -120,12 +121,21 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   QButtonGroup *selectButtonGroup = new QButtonGroup(this);
 
   selectPointButton_ = new QRadioButton("Point");
-  selectRectButton_  = new QRadioButton("Rect");
 
+  selectPointButton_->setObjectName("point");
   selectPointButton_->setFocusPolicy(Qt::NoFocus);
-  selectRectButton_ ->setFocusPolicy(Qt::NoFocus);
+  selectPointButton_->setToolTip("Select objects at point");
 
-  selectPointButton_->setChecked(true);
+  selectRectButton_ = new QRadioButton("Rect");
+
+  selectRectButton_->setObjectName("rect");
+  selectRectButton_->setFocusPolicy(Qt::NoFocus);
+  selectRectButton_->setToolTip("Select objects inside/touching rectangle");
+
+  if (window_->view()->selectMode() == CQChartsView::SelectMode::POINT)
+    selectPointButton_->setChecked(true);
+  else
+    selectRectButton_ ->setChecked(true);
 
   selectButtonGroup->addButton(selectPointButton_, 0);
   selectButtonGroup->addButton(selectRectButton_ , 1);
@@ -135,21 +145,41 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   connect(selectButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(selectButtonClicked(int)));
 
-  //---
+  //--
+
+  selectInsideCheck_ = new QCheckBox("Inside");
+
+  selectInsideCheck_->setObjectName("rect");
+  selectInsideCheck_->setFocusPolicy(Qt::NoFocus);
+  selectInsideCheck_->setToolTip("Rectangle intersect inside (checked) or touching (unchecked)");
+
+  selectInsideCheck_->setChecked(window_->view()->isSelectInside());
+
+  connect(selectInsideCheck_, SIGNAL(stateChanged(int)), this, SLOT(selectInsideSlot(int)));
+
+  selectControlsLayout->addWidget(selectInsideCheck_);
+
+  //--
+
+  selectControlsLayout->addStretch(1);
+
+  //-----
 
   QHBoxLayout *zoomControlsLayout = new QHBoxLayout(zoomControls);
   zoomControlsLayout->setMargin(0); zoomControlsLayout->setSpacing(2);
 
   QPushButton *zoomButton = CQUtil::makeWidget<QPushButton>("reset");
 
+  zoomButton->setObjectName("reset");
   zoomButton->setText("Reset");
   zoomButton->setFocusPolicy(Qt::NoFocus);
+  zoomButton->setToolTip("Reset Zoom");
 
   connect(zoomButton, SIGNAL(clicked()), this, SLOT(zoomFullSlot()));
 
   zoomControlsLayout->addWidget(zoomButton);
 
-  //---
+  //-----
 
   QHBoxLayout *panControlsLayout = new QHBoxLayout(panControls);
   panControlsLayout->setMargin(0); panControlsLayout->setSpacing(2);
@@ -158,14 +188,15 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   panButton->setText("Reset");
   panButton->setFocusPolicy(Qt::NoFocus);
+  panButton->setToolTip("Reset Pan");
 
   connect(panButton, SIGNAL(clicked()), this, SLOT(panResetSlot()));
 
   panControlsLayout->addWidget(panButton);
 
-  //---
+  //-----
 
-  modelDlgButton_ = createButton("moldeDel", "MODELS", "Manage Models",
+  modelDlgButton_ = createButton("modelDlg", "MODELS", "Manage Models",
                                  SLOT(manageModelsSlot()), false);
   plotDlgButton_  = createButton("plotDlg" , "CHARTS", "Add Plot",
                                  SLOT(addPlotSlot()), false);
@@ -207,6 +238,13 @@ selectButtonClicked(int ind)
     window_->view()->setSelectMode(CQChartsView::SelectMode::POINT);
   else
     window_->view()->setSelectMode(CQChartsView::SelectMode::RECT);
+}
+
+void
+CQChartsViewToolBar::
+selectInsideSlot(int state)
+{
+  window_->view()->setSelectInside(state);
 }
 
 void

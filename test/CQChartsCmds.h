@@ -1,6 +1,8 @@
 #ifndef CQChartsCmds_H
 #define CQChartsCmds_H
 
+#include <CQChartsCmdBase.h>
+
 #include <CQCharts.h>
 #include <CQChartsInitData.h>
 #include <CQChartsGeom.h>
@@ -8,8 +10,6 @@
 #include <QString>
 #include <QSharedPointer>
 #include <QPointer>
-
-#include <boost/optional.hpp>
 
 class CQChartsWindow;
 class CQChartsView;
@@ -62,13 +62,13 @@ class CQChartsCmds : public QObject {
   Q_OBJECT
 
  public:
-  using Args    = std::vector<QString>;
-  using Vars    = std::vector<QVariant>;
+  using Vars   = std::vector<QVariant>;
+  using ModelP = QSharedPointer<QAbstractItemModel>;
+  using ViewP  = QPointer<CQChartsView>;
+  using Plots  = std::vector<CQChartsPlot *>;
+
+ private:
   using OptReal = boost::optional<double>;
-  using ModelP  = QSharedPointer<QAbstractItemModel>;
-  using Strs    = std::vector<QString>;
-  using ViewP   = QPointer<CQChartsView>;
-  using Plots   = std::vector<CQChartsPlot *>;
 
  public:
   CQChartsCmds(CQCharts *charts);
@@ -76,11 +76,11 @@ class CQChartsCmds : public QObject {
 
   CQCharts *charts() const { return charts_; }
 
+  CQChartsCmdBase *cmdBase() { return cmdBase_; }
+
   void addCommands();
 
-  void addCommand(const QString &name);
-
-  bool processCmd(const QString &cmd, const Vars &vars);
+  void addCommand(const QString &name, CQChartsCmdProc *proc);
 
   static QString fixTypeName(const QString &typeName);
 
@@ -119,88 +119,69 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  static bool isCompleteLine(QString &line, bool &join);
-
-  void parseLine(const QString &line, bool log=true);
-
-  void parseScriptLine(const QString &line);
-
   static bool stringToColumn(QAbstractItemModel *model, const QString &str,
                              CQChartsColumn &column);
 
   //---
 
-#ifdef CQCharts_USE_TCL
-  CQTcl *qtcl() const { return qtcl_; }
-#endif
+ public:
+  bool loadModelCmd          (CQChartsCmdArgs &args);
+  void processModelCmd       (CQChartsCmdArgs &args);
+  void addProcessModelProcCmd(CQChartsCmdArgs &args);
+  void sortModelCmd          (CQChartsCmdArgs &args);
+  void foldModelCmd          (CQChartsCmdArgs &args);
+  void filterModelCmd        (CQChartsCmdArgs &args);
+  void flattenModelCmd       (CQChartsCmdArgs &args);
+  void copyModelCmd          (CQChartsCmdArgs &args);
 
- private:
-  bool loadModelCmd          (const Vars &vars);
-  void processModelCmd       (const Vars &vars);
-  void addProcessModelProcCmd(const Vars &vars);
-  void sortModelCmd          (const Vars &vars);
-  void foldModelCmd          (const Vars &vars);
-  void filterModelCmd        (const Vars &vars);
-  void flattenModelCmd       (const Vars &vars);
-  void copyModelCmd          (const Vars &vars);
+  void correlationModelCmd(CQChartsCmdArgs &args);
+  void subsetModelCmd     (CQChartsCmdArgs &args);
+  void transposeModelCmd  (CQChartsCmdArgs &args);
 
-  void correlationModelCmd(const Vars &vars);
-  void subsetModelCmd     (const Vars &vars);
-  void transposeModelCmd  (const Vars &vars);
+  void exportModelCmd(CQChartsCmdArgs &args);
 
-  void exportModelCmd(const Vars &vars);
+  void groupPlotsCmd(CQChartsCmdArgs &args);
+  void placePlotsCmd(CQChartsCmdArgs &args);
 
-  void groupPlotsCmd(const Vars &vars);
-  void placePlotsCmd(const Vars &vars);
+  void measureChartsTextCmd(CQChartsCmdArgs &args);
 
-  void measureChartsTextCmd(const Vars &vars);
+  void createViewCmd(CQChartsCmdArgs &args);
 
-  void createViewCmd(const Vars &vars);
+  void createPlotCmd(CQChartsCmdArgs &args);
+  void removePlotCmd(CQChartsCmdArgs &args);
 
-  void createPlotCmd(const Vars &vars);
-  void removePlotCmd(const Vars &vars);
+  void getChartsPropertyCmd(CQChartsCmdArgs &args);
+  void setChartsPropertyCmd(CQChartsCmdArgs &args);
 
-  void getChartsPropertyCmd(const Vars &vars);
-  void setChartsPropertyCmd(const Vars &vars);
+  void getChartsDataCmd(CQChartsCmdArgs &args);
+  void setChartsDataCmd(CQChartsCmdArgs &args);
 
-  void getChartsDataCmd(const Vars &vars);
-  void setChartsDataCmd(const Vars &vars);
+  void getPaletteCmd(CQChartsCmdArgs &args);
+  void setPaletteCmd(CQChartsCmdArgs &args);
 
-  void getPaletteCmd(const Vars &vars);
-  void setPaletteCmd(const Vars &vars);
+  void createTextAnnotationCmd    (CQChartsCmdArgs &args);
+  void createArrowAnnotationCmd   (CQChartsCmdArgs &args);
+  void createRectAnnotationCmd    (CQChartsCmdArgs &args);
+  void createEllipseAnnotationCmd (CQChartsCmdArgs &args);
+  void createPolygonAnnotationCmd (CQChartsCmdArgs &args);
+  void createPolylineAnnotationCmd(CQChartsCmdArgs &args);
+  void createPointAnnotationCmd   (CQChartsCmdArgs &args);
+  void removeAnnotationCmd        (CQChartsCmdArgs &args);
 
-  void createTextAnnotationCmd    (const Vars &vars);
-  void createArrowAnnotationCmd   (const Vars &vars);
-  void createRectAnnotationCmd    (const Vars &vars);
-  void createEllipseAnnotationCmd (const Vars &vars);
-  void createPolygonAnnotationCmd (const Vars &vars);
-  void createPolylineAnnotationCmd(const Vars &vars);
-  void createPointAnnotationCmd   (const Vars &vars);
-  void removeAnnotationCmd        (const Vars &vars);
+  void connectChartsCmd(CQChartsCmdArgs &args);
 
-  void connectChartsCmd(const Vars &vars);
+  void printChartsCmd    (CQChartsCmdArgs &args);
+  void writeChartsDataCmd(CQChartsCmdArgs &args);
 
-  void printChartsCmd    (const Vars &vars);
-  void writeChartsDataCmd(const Vars &vars);
-
-  void loadModelDlgCmd  (const Vars &vars);
-  void manageModelDlgCmd(const Vars &vars);
-  void createPlotDlgCmd (const Vars &vars);
-
-  void qtGetPropertyCmd(const Vars &vars);
-  void qtSetPropertyCmd(const Vars &vars);
-  void qtSyncCmd(const Vars &vars);
-
-  void perfCmd(const Vars &vars);
-
-  void shellCmd(const Vars &vars);
+  void loadModelDlgCmd  (CQChartsCmdArgs &args);
+  void manageModelDlgCmd(CQChartsCmdArgs &args);
+  void createPlotDlgCmd (CQChartsCmdArgs &args);
 
   //---
 
+ private:
   void setPaletteData(CQChartsGradientPalette *palette,
                       const CQChartsPaletteColorData &paletteData);
-
-  QStringList stringToCmds(const QString &str) const;
 
   //---
 
@@ -226,26 +207,95 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  void setCmdRc(int rc);
-  void setCmdRc(double rc);
-  void setCmdRc(const QString &rc);
-  void setCmdRc(const QVariant &rc);
-  void setCmdRc(const QStringList &rc);
-  void setCmdRc(const QVariantList &rc);
-
-  void setCmdError(const QString &msg);
-
   QStringList stringToColumns(const QString &str) const;
 
  private:
-  using CommandNames = std::vector<QString>;
-
-  CQCharts*    charts_       { nullptr };
-  bool         continueFlag_ { false };
-#ifdef CQCharts_USE_TCL
-  CQTcl*       qtcl_         { nullptr };
-#endif
-  CommandNames commandNames_;
+  CQCharts*        charts_  { nullptr };
+  CQChartsCmdBase* cmdBase_ { nullptr };
 };
+
+//---
+
+#define CQCHARTS_DEF_CMD(NAME, PROC) \
+class CQCharts##NAME##Cmd : public CQChartsCmdProc { \
+ public: \
+  CQCharts##NAME##Cmd(CQChartsCmds *cmds) : CQChartsCmdProc(cmds->cmdBase()), cmds_(cmds) { } \
+ \
+  void exec(CQChartsCmdArgs &args) override { cmds_->PROC(args); } \
+\
+ private: \
+  CQChartsCmds* cmds_ { nullptr }; \
+};
+
+//---
+
+CQCHARTS_DEF_CMD(LoadModel          , loadModelCmd)
+CQCHARTS_DEF_CMD(ProcessModel       , processModelCmd)
+CQCHARTS_DEF_CMD(AddProcessModelProc, addProcessModelProcCmd)
+CQCHARTS_DEF_CMD(SortModel          , sortModelCmd)
+CQCHARTS_DEF_CMD(FoldModel          , foldModelCmd)
+CQCHARTS_DEF_CMD(FilterModel        , filterModelCmd)
+CQCHARTS_DEF_CMD(FlattenModel       , flattenModelCmd)
+CQCHARTS_DEF_CMD(CopyModel          , copyModelCmd)
+
+//---
+
+CQCHARTS_DEF_CMD(CorrelationModel, correlationModelCmd)
+CQCHARTS_DEF_CMD(SubsetModel     , subsetModelCmd)
+CQCHARTS_DEF_CMD(TransposeModel  , transposeModelCmd)
+
+//---
+
+CQCHARTS_DEF_CMD(ExportModel, exportModelCmd)
+
+//---
+
+CQCHARTS_DEF_CMD(GroupPlots, groupPlotsCmd)
+CQCHARTS_DEF_CMD(PlacePlots, placePlotsCmd)
+
+CQCHARTS_DEF_CMD(MeasureChartsText, measureChartsTextCmd)
+
+CQCHARTS_DEF_CMD(CreateView, createViewCmd)
+
+CQCHARTS_DEF_CMD(CreatePlot, createPlotCmd)
+CQCHARTS_DEF_CMD(RemovePlot, removePlotCmd)
+
+CQCHARTS_DEF_CMD(GetChartsProperty, getChartsPropertyCmd)
+CQCHARTS_DEF_CMD(SetChartsProperty, setChartsPropertyCmd)
+
+CQCHARTS_DEF_CMD(GetChartsData, getChartsDataCmd)
+CQCHARTS_DEF_CMD(SetChartsData, setChartsDataCmd)
+
+CQCHARTS_DEF_CMD(GetPalette, getPaletteCmd)
+CQCHARTS_DEF_CMD(SetPalette, setPaletteCmd)
+
+//---
+
+CQCHARTS_DEF_CMD(CreateTextAnnotation    , createTextAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateArrowAnnotation   , createArrowAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateRectAnnotation    , createRectAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateEllipseAnnotation , createEllipseAnnotationCmd)
+CQCHARTS_DEF_CMD(CreatePolygonAnnotation , createPolygonAnnotationCmd)
+CQCHARTS_DEF_CMD(CreatePolylineAnnotation, createPolylineAnnotationCmd)
+CQCHARTS_DEF_CMD(CreatePointAnnotation   , createPointAnnotationCmd)
+
+CQCHARTS_DEF_CMD(RemoveAnnotation, removeAnnotationCmd)
+
+//---
+
+CQCHARTS_DEF_CMD(ConnectCharts, connectChartsCmd)
+
+//---
+
+CQCHARTS_DEF_CMD(PrintCharts    , printChartsCmd)
+CQCHARTS_DEF_CMD(WriteChartsData, writeChartsDataCmd)
+
+//---
+
+CQCHARTS_DEF_CMD(LoadModelDlg  , loadModelDlgCmd)
+CQCHARTS_DEF_CMD(ManageModelDlg, manageModelDlgCmd)
+CQCHARTS_DEF_CMD(CreatePlotDlg , createPlotDlgCmd)
+
+//---
 
 #endif

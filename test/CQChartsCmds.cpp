@@ -1,5 +1,5 @@
 #include <CQChartsCmds.h>
-#include <CQChartsCmdsArgs.h>
+#include <CQChartsCmdArgs.h>
 #include <CQChartsLoader.h>
 
 #include <CQChartsModelData.h>
@@ -76,51 +76,13 @@ bool stringToBool(const QString &str, bool *ok) {
 
 }
 
-#ifdef CQCharts_USE_TCL
-class CQChartsTclCmd {
- public:
-  using Vars = std::vector<QVariant>;
-
- public:
-  CQChartsTclCmd(CQChartsCmds *cmds, const QString &name) :
-   cmds_(cmds), name_(name) {
-    cmdId_ = cmds_->qtcl()->createObjCommand(name_,
-               (CQTcl::ObjCmdProc) &CQChartsTclCmd::commandProc, (CQTcl::ObjCmdData) this);
-  }
-
-  static int commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv) {
-    CQChartsTclCmd *command = (CQChartsTclCmd *) clientData;
-
-    Vars vars;
-
-    for (int i = 1; i < objc; ++i) {
-      Tcl_Obj *obj = const_cast<Tcl_Obj *>(objv[i]);
-
-      vars.push_back(command->cmds_->qtcl()->variantFromObj(obj));
-    }
-
-    if (! command->cmds_->processCmd(command->name_, vars))
-      return TCL_ERROR;
-
-    return TCL_OK;
-  }
-
- private:
-  CQChartsCmds *cmds_  { nullptr };
-  QString       name_;
-  Tcl_Command   cmdId_ { nullptr };
-};
-#endif
-
 //----
 
 CQChartsCmds::
 CQChartsCmds(CQCharts *charts) :
  charts_(charts)
 {
-#ifdef CQCharts_USE_TCL
-  qtcl_ = new CQTcl();
-#endif
+  cmdBase_ = new CQChartsCmdBase;
 
   addCommands();
 }
@@ -128,9 +90,6 @@ CQChartsCmds(CQCharts *charts) :
 CQChartsCmds::
 ~CQChartsCmds()
 {
-#ifdef CQCharts_USE_TCL
-  delete qtcl_;
-#endif
 }
 
 void
@@ -140,88 +99,75 @@ addCommands()
   static bool cmdsAdded;
 
   if (! cmdsAdded) {
-    addCommand("help");
-
     // load, process, sort, fold, filter, flatten model
-    addCommand("load_model"            );
-    addCommand("process_model"         );
-    addCommand("add_process_model_proc");
-    addCommand("sort_model"            );
-    addCommand("fold_model"            );
-    addCommand("filter_model"          );
-    addCommand("flatten_model"         );
-    addCommand("copy_model"            );
+    addCommand("load_model"            , new CQChartsLoadModelCmd          (this));
+    addCommand("process_model"         , new CQChartsProcessModelCmd       (this));
+    addCommand("add_process_model_proc", new CQChartsAddProcessModelProcCmd(this));
+    addCommand("sort_model"            , new CQChartsSortModelCmd          (this));
+    addCommand("fold_model"            , new CQChartsFoldModelCmd          (this));
+    addCommand("filter_model"          , new CQChartsFilterModelCmd        (this));
+    addCommand("flatten_model"         , new CQChartsFlattenModelCmd       (this));
+    addCommand("copy_model"            , new CQChartsCopyModelCmd          (this));
 
     // correlation, subset, tranpose
-    addCommand("correlation_model");
-    addCommand("subset_model"     );
-    addCommand("transpose_model"  );
+    addCommand("correlation_model", new CQChartsCorrelationModelCmd(this));
+    addCommand("subset_model"     , new CQChartsSubsetModelCmd     (this));
+    addCommand("transpose_model"  , new CQChartsTransposeModelCmd  (this));
 
     // export
-    addCommand("export_model");
+    addCommand("export_model", new CQChartsExportModelCmd(this));
 
     // measure text
-    addCommand("measure_charts_text");
+    addCommand("measure_charts_text", new CQChartsMeasureChartsTextCmd(this));
 
     // add view
-    addCommand("create_view");
+    addCommand("create_view", new CQChartsCreateViewCmd(this));
 
     // add/remove plot
-    addCommand("create_plot");
-    addCommand("remove_plot");
+    addCommand("create_plot", new CQChartsCreatePlotCmd(this));
+    addCommand("remove_plot", new CQChartsRemovePlotCmd(this));
 
     // group/place plots
-    addCommand("group_plots");
-    addCommand("place_plots");
+    addCommand("group_plots", new CQChartsGroupPlotsCmd(this));
+    addCommand("place_plots", new CQChartsPlacePlotsCmd(this));
 
     // get/set charts property
-    addCommand("get_charts_property");
-    addCommand("set_charts_property");
+    addCommand("get_charts_property", new CQChartsGetChartsPropertyCmd(this));
+    addCommand("set_charts_property", new CQChartsSetChartsPropertyCmd(this));
 
     // get/set charts model data
-    addCommand("get_charts_data");
-    addCommand("set_charts_data");
+    addCommand("get_charts_data", new CQChartsGetChartsDataCmd(this));
+    addCommand("set_charts_data", new CQChartsSetChartsDataCmd(this));
 
     // annotations
-    addCommand("create_text_annotation"    );
-    addCommand("create_arrow_annotation"   );
-    addCommand("create_rect_annotation"    );
-    addCommand("create_ellipse_annotation" );
-    addCommand("create_polygon_annotation" );
-    addCommand("create_polyline_annotation");
-    addCommand("create_point_annotation"   );
-    addCommand("remove_annotation"         );
+    addCommand("create_text_annotation"    , new CQChartsCreateTextAnnotationCmd    (this));
+    addCommand("create_arrow_annotation"   , new CQChartsCreateArrowAnnotationCmd   (this));
+    addCommand("create_rect_annotation"    , new CQChartsCreateRectAnnotationCmd    (this));
+    addCommand("create_ellipse_annotation" , new CQChartsCreateEllipseAnnotationCmd (this));
+    addCommand("create_polygon_annotation" , new CQChartsCreatePolygonAnnotationCmd (this));
+    addCommand("create_polyline_annotation", new CQChartsCreatePolylineAnnotationCmd(this));
+    addCommand("create_point_annotation"   , new CQChartsCreatePointAnnotationCmd   (this));
+    addCommand("remove_annotation"         , new CQChartsRemoveAnnotationCmd        (this));
 
     // theme/palette
-    addCommand("get_palette");
-    addCommand("set_palette");
+    addCommand("get_palette", new CQChartsGetPaletteCmd(this));
+    addCommand("set_palette", new CQChartsSetPaletteCmd(this));
 
     // connect
-    addCommand("connect_charts");
+    addCommand("connect_charts", new CQChartsConnectChartsCmd(this));
 
     // print, write
-    addCommand("print_charts");
-    addCommand("write_charts_data");
+    addCommand("print_charts", new CQChartsPrintChartsCmd(this));
+    addCommand("write_charts_data", new CQChartsWriteChartsDataCmd(this));
 
     // dialogs
-    addCommand("load_model_dlg"  );
-    addCommand("manage_model_dlg");
-    addCommand("create_plot_dlg" );
-
-    // qt generic
-    addCommand("qt_get_property");
-    addCommand("qt_set_property");
-    addCommand("qt_sync");
-
-    addCommand("perf");
-
-#ifdef CQCharts_USE_TCL
-    qtcl()->createAlias("echo", "puts");
-#endif
-
-    addCommand("sh");
+    addCommand("load_model_dlg"  , new CQChartsLoadModelDlgCmd(this));
+    addCommand("manage_model_dlg", new CQChartsManageModelDlgCmd(this));
+    addCommand("create_plot_dlg" , new CQChartsCreatePlotDlgCmd(this));
 
     //---
+
+    cmdBase_->addCommands();
 
     cmdsAdded = true;
   }
@@ -229,107 +175,9 @@ addCommands()
 
 void
 CQChartsCmds::
-addCommand(const QString &name)
+addCommand(const QString &name, CQChartsCmdProc *proc)
 {
-#ifdef CQCharts_USE_TCL
-  new CQChartsTclCmd(this, name);
-#else
-  assert(false);
-#endif
-
-  commandNames_.push_back(name);
-}
-
-bool
-CQChartsCmds::
-processCmd(const QString &cmd, const Vars &vars)
-{
-  if (cmd == "help") {
-    for (auto &name : commandNames_)
-      std::cout << name.toStdString() << "\n";
-
-    return true;
-  }
-
-  // load, process, sort, filter model
-  if      (cmd == "load_model"            ) { loadModelCmd          (vars); }
-  else if (cmd == "process_model"         ) { processModelCmd       (vars); }
-  else if (cmd == "add_process_model_proc") { addProcessModelProcCmd(vars); }
-  else if (cmd == "sort_model"            ) { sortModelCmd          (vars); }
-  else if (cmd == "fold_model"            ) { foldModelCmd          (vars); }
-  else if (cmd == "filter_model"          ) { filterModelCmd        (vars); }
-  else if (cmd == "flatten_model"         ) { flattenModelCmd       (vars); }
-  else if (cmd == "copy_model"            ) { copyModelCmd          (vars); }
-
-  // correlation, subset
-  else if (cmd == "correlation_model") { correlationModelCmd(vars); }
-  else if (cmd == "subset_model"     ) { subsetModelCmd     (vars); }
-  else if (cmd == "transpose_model"  ) { transposeModelCmd  (vars); }
-
-  // export
-  else if (cmd == "export_model") { exportModelCmd(vars); }
-
-  // measure text
-  else if (cmd == "measure_charts_text") { measureChartsTextCmd(vars); }
-
-  // create view
-  else if (cmd == "create_view") { createViewCmd(vars); }
-
-  // create/remove plot
-  else if (cmd == "create_plot") { createPlotCmd(vars); }
-  else if (cmd == "remove_plot") { removePlotCmd(vars); }
-
-  // group/place plots
-  else if (cmd == "group_plots") { groupPlotsCmd(vars); }
-  else if (cmd == "place_plots") { placePlotsCmd(vars); }
-
-  // get/set property
-  else if (cmd == "get_charts_property") { getChartsPropertyCmd(vars); }
-  else if (cmd == "set_charts_property") { setChartsPropertyCmd(vars); }
-
-  // get/set data
-  else if (cmd == "get_charts_data") { getChartsDataCmd(vars); }
-  else if (cmd == "set_charts_data") { setChartsDataCmd(vars); }
-
-  // annotations
-  else if (cmd == "create_rect_annotation"    ) { createRectAnnotationCmd    (vars); }
-  else if (cmd == "create_ellipse_annotation" ) { createEllipseAnnotationCmd (vars); }
-  else if (cmd == "create_polygon_annotation" ) { createPolygonAnnotationCmd (vars); }
-  else if (cmd == "create_polyline_annotation") { createPolylineAnnotationCmd(vars); }
-  else if (cmd == "create_text_annotation"    ) { createTextAnnotationCmd    (vars); }
-  else if (cmd == "create_arrow_annotation"   ) { createArrowAnnotationCmd   (vars); }
-  else if (cmd == "create_point_annotation"   ) { createPointAnnotationCmd   (vars); }
-  else if (cmd == "remove_annotation"         ) { removeAnnotationCmd        (vars); }
-
-  // palette (interface/theme)
-  else if (cmd == "get_palette") { getPaletteCmd(vars); }
-  else if (cmd == "set_palette") { setPaletteCmd(vars); }
-
-  // connect
-  else if (cmd == "connect_charts") { connectChartsCmd(vars); }
-
-  // print, write
-  else if (cmd == "print_charts"     ) { printChartsCmd    (vars); }
-  else if (cmd == "write_charts_data") { writeChartsDataCmd(vars); }
-
-  // dialogs
-  else if (cmd == "load_model_dlg"  ) { loadModelDlgCmd  (vars); }
-  else if (cmd == "manage_model_dlg") { manageModelDlgCmd(vars); }
-  else if (cmd == "create_plot_dlg" ) { createPlotDlgCmd (vars); }
-
-  else if (cmd == "qt_get_property" ) { qtGetPropertyCmd(vars); }
-  else if (cmd == "qt_set_property" ) { qtSetPropertyCmd(vars); }
-  else if (cmd == "qt_sync" ) { qtSyncCmd(vars); }
-
-  else if (cmd == "perf" ) { perfCmd(vars); }
-
-  else if (cmd == "sh") { shellCmd(vars); }
-
-  else if (cmd == "exit") { exit(0); }
-
-  else return false;
-
-  return true;
+  cmdBase_->addCommand(name, proc);
 }
 
 //------
@@ -337,11 +185,9 @@ processCmd(const QString &cmd, const Vars &vars)
 // load model from data
 bool
 CQChartsCmds::
-loadModelCmd(const Vars &vars)
+loadModelCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::loadModelCmd");
-
-  CQChartsCmdArgs argv("load_model", vars);
 
   // input data type
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -450,7 +296,7 @@ loadModelCmd(const Vars &vars)
   if (name.length())
     modelData->setName(name);
 
-  setCmdRc(modelData->ind());
+  cmdBase_->setCmdRc(modelData->ind());
 
   return true;
 }
@@ -459,11 +305,9 @@ loadModelCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-processModelCmd(const Vars &vars)
+processModelCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::processModelCmd");
-
-  CQChartsCmdArgs argv("process_model", vars);
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model index").setRequired();
   argv.addCmdArg("-column", CQChartsCmdArg::Type::Column ,
@@ -502,7 +346,7 @@ processModelCmd(const Vars &vars)
   CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
 
   if (! modelData) {
-    setCmdError("No model data");
+    cmdBase_->setCmdError("No model data");
     return;
   }
 
@@ -514,7 +358,7 @@ processModelCmd(const Vars &vars)
   CQChartsExprModel *exprModel = CQChartsModelUtil::getExprModel(model.data());
 
   if (! exprModel) {
-    setCmdError("Expression not supported for model");
+    cmdBase_->setCmdError("Expression not supported for model");
     return;
   }
 
@@ -530,14 +374,14 @@ processModelCmd(const Vars &vars)
   // add new column (values from result of expression)
   if      (argv.getParseBool("add")) {
     if (! argv.hasParseArg("expr")) {
-      setCmdError("Missing expression");
+      cmdBase_->setCmdError("Missing expression");
       return;
     }
 
     int column;
 
     if (! exprModel->addExtraColumn(header, expr, column)) {
-      setCmdError("Failed to add column");
+      cmdBase_->setCmdError("Failed to add column");
       return;
     }
 
@@ -545,28 +389,28 @@ processModelCmd(const Vars &vars)
 
     if (type.length()) {
       if (! CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), column, type)) {
-        setCmdError(QString("Invalid type '" + type + "' for column '%1'").arg(column));
+        cmdBase_->setCmdError(QString("Invalid type '" + type + "' for column '%1'").arg(column));
         return;
       }
     }
 
-    setCmdRc(column);
+    cmdBase_->setCmdRc(column);
   }
   // remove column (must be an added one)
   else if (argv.getParseBool("delete")) {
     CQChartsColumn column = argv.getParseColumn("column", model.data());
 
     if (! exprModel->removeExtraColumn(column.column())) {
-      setCmdError("Failed to delete column");
+      cmdBase_->setCmdError("Failed to delete column");
       return;
     }
 
-    setCmdRc(-1);
+    cmdBase_->setCmdRc(-1);
   }
   // modify column (values from result of expression)
   else if (argv.getParseBool("modify")) {
     if (! argv.hasParseArg("expr")) {
-      setCmdError("Missing expression");
+      cmdBase_->setCmdError("Missing expression");
       return;
     }
 
@@ -581,18 +425,18 @@ processModelCmd(const Vars &vars)
         exprModel->setReadOnly(true);
 
         if (! rc) {
-          setCmdError(QString("Failed to modify column '%1'").arg(column.column()));
+          cmdBase_->setCmdError(QString("Failed to modify column '%1'").arg(column.column()));
           return;
         }
       }
       else {
-        setCmdError("Use -force to modify original model data");
+        cmdBase_->setCmdError("Use -force to modify original model data");
         return;
       }
     }
     else {
       if (! exprModel->assignExtraColumn(header, column.column(), expr)) {
-        setCmdError(QString("Failed to modify column '%1'").arg(column.column()));
+        cmdBase_->setCmdError(QString("Failed to modify column '%1'").arg(column.column()));
         return;
       }
     }
@@ -601,18 +445,18 @@ processModelCmd(const Vars &vars)
 
     if (type.length()) {
       if (! CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), column, type)) {
-        setCmdError(QString("Invalid type '" + type + "' for column '%1'").
-                           arg(column.column()));
+        cmdBase_->setCmdError(QString("Invalid type '" + type + "' for column '%1'").
+                              arg(column.column()));
         return;
       }
     }
 
-    setCmdRc(column.column());
+    cmdBase_->setCmdRc(column.column());
   }
   // calculate values from result of expression
   else if (argv.getParseBool("calc")) {
     if (! argv.hasParseArg("expr")) {
-      setCmdError("Missing expression");
+      cmdBase_->setCmdError("Missing expression");
       return;
     }
 
@@ -627,12 +471,12 @@ processModelCmd(const Vars &vars)
     for (const auto &var : values)
       vars.push_back(var);
 
-    setCmdRc(vars);
+    cmdBase_->setCmdRc(vars);
   }
   // query rows where result of expression is true
   else if (argv.getParseBool("query")) {
     if (! argv.hasParseArg("expr")) {
-      setCmdError("Missing expression");
+      cmdBase_->setCmdError("Missing expression");
       return;
     }
 
@@ -649,7 +493,7 @@ processModelCmd(const Vars &vars)
     for (const auto &row : rows)
       vars.push_back(row);
 
-    setCmdRc(vars);
+    cmdBase_->setCmdRc(vars);
   }
   else if (argv.getParseBool("analyze")) {
     CQChartsAnalyzeModel analyzeModel(charts_, modelData);
@@ -703,7 +547,7 @@ processModelCmd(const Vars &vars)
 
     analyzeModel.print();
 
-    setCmdRc(tvars);
+    cmdBase_->setCmdRc(tvars);
   }
   // list values
   else if (argv.getParseBool("list")) {
@@ -734,7 +578,7 @@ processModelCmd(const Vars &vars)
   else {
 #if 0
     if (! argv.hasParseArg("expr")) {
-      setCmdError("Missing expression");
+      cmdBase_->setCmdError("Missing expression");
       return;
     }
 
@@ -750,11 +594,9 @@ processModelCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-addProcessModelProcCmd(const Vars &vars)
+addProcessModelProcCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::addProcessModelProcCmd");
-
-  CQChartsCmdArgs argv("add_process_model_proc", vars);
 
   argv.addCmdArg("name", CQChartsCmdArg::Type::String, "proc name").setRequired();
   argv.addCmdArg("args", CQChartsCmdArg::Type::String, "proc args").setRequired();
@@ -785,11 +627,9 @@ addProcessModelProcCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-measureChartsTextCmd(const Vars &vars)
+measureChartsTextCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::measureChartsTextCmd");
-
-  CQChartsCmdArgs argv("measure_charts_text", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -862,30 +702,30 @@ measureChartsTextCmd(const Vars &vars)
 
   if      (name == "width") {
     if      (plot)
-      setCmdRc(plot->pixelToWindowWidth(tw));
+      cmdBase_->setCmdRc(plot->pixelToWindowWidth(tw));
     else if (view)
-      setCmdRc(view->pixelToWindowWidth(tw));
+      cmdBase_->setCmdRc(view->pixelToWindowWidth(tw));
   }
   else if (name == "height") {
     if      (plot)
-      setCmdRc(plot->pixelToWindowHeight(ta + td));
+      cmdBase_->setCmdRc(plot->pixelToWindowHeight(ta + td));
     else if (view)
-      setCmdRc(view->pixelToWindowHeight(ta + td));
+      cmdBase_->setCmdRc(view->pixelToWindowHeight(ta + td));
   }
   else if (name == "ascent") {
     if      (plot)
-      setCmdRc(plot->pixelToWindowHeight(ta));
+      cmdBase_->setCmdRc(plot->pixelToWindowHeight(ta));
     else if (view)
-      setCmdRc(view->pixelToWindowHeight(ta));
+      cmdBase_->setCmdRc(view->pixelToWindowHeight(ta));
   }
   else if (name == "descent") {
     if      (plot)
-      setCmdRc(plot->pixelToWindowHeight(td));
+      cmdBase_->setCmdRc(plot->pixelToWindowHeight(td));
     else if (view)
-      setCmdRc(view->pixelToWindowHeight(td));
+      cmdBase_->setCmdRc(view->pixelToWindowHeight(td));
   }
   else {
-    setCmdError(QString("Invalid value name '%1'").arg(name));
+    cmdBase_->setCmdError(QString("Invalid value name '%1'").arg(name));
     return;
   }
 }
@@ -894,11 +734,9 @@ measureChartsTextCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-createViewCmd(const Vars &vars)
+createViewCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::createViewCmd");
-
-  CQChartsCmdArgs argv("create_view", vars);
 
   if (! argv.parse())
     return;
@@ -909,18 +747,16 @@ createViewCmd(const Vars &vars)
 
   //---
 
-  setCmdRc(view->id());
+  cmdBase_->setCmdRc(view->id());
 }
 
 //------
 
 void
 CQChartsCmds::
-createPlotCmd(const Vars &vars)
+createPlotCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::createPlotCmd");
-
-  CQChartsCmdArgs argv("create_plot", vars);
 
   argv.addCmdArg("-view" , CQChartsCmdArg::Type::String , "view_id"  ).setRequired();
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model_ind").setRequired();
@@ -1166,18 +1002,16 @@ createPlotCmd(const Vars &vars)
 
   //---
 
-  setCmdRc(plot->pathId());
+  cmdBase_->setCmdRc(plot->pathId());
 }
 
 //------
 
 void
 CQChartsCmds::
-removePlotCmd(const Vars &vars)
+removePlotCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::removePlotCmd");
-
-  CQChartsCmdArgs argv("remove_plot", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view_id").setRequired();
 
@@ -1215,11 +1049,9 @@ removePlotCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-getChartsPropertyCmd(const Vars &vars)
+getChartsPropertyCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::getChartsPropertyCmd");
-
-  CQChartsCmdArgs argv("get_charts_property", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
@@ -1255,7 +1087,7 @@ getChartsPropertyCmd(const Vars &vars)
 
       view->getPropertyNames(names);
 
-      setCmdRc(names);
+      cmdBase_->setCmdRc(names);
     }
     else {
       QVariant value;
@@ -1265,7 +1097,7 @@ getChartsPropertyCmd(const Vars &vars)
         return;
       }
 
-      setCmdRc(value);
+      cmdBase_->setCmdRc(value);
     }
   }
   else if (argv.hasParseArg("plot")) {
@@ -1295,7 +1127,7 @@ getChartsPropertyCmd(const Vars &vars)
 
         plot->getObjectPropertyNames(plotObj, names);
 
-        setCmdRc(names);
+        cmdBase_->setCmdRc(names);
       }
       else {
         QVariant value;
@@ -1305,7 +1137,7 @@ getChartsPropertyCmd(const Vars &vars)
           return;
         }
 
-        setCmdRc(value);
+        cmdBase_->setCmdRc(value);
       }
     }
     else {
@@ -1314,7 +1146,7 @@ getChartsPropertyCmd(const Vars &vars)
 
         plot->getPropertyNames(names);
 
-        setCmdRc(names);
+        cmdBase_->setCmdRc(names);
       }
       else {
         QVariant value;
@@ -1324,7 +1156,7 @@ getChartsPropertyCmd(const Vars &vars)
           return;
         }
 
-        setCmdRc(value);
+        cmdBase_->setCmdRc(value);
       }
     }
   }
@@ -1343,7 +1175,7 @@ getChartsPropertyCmd(const Vars &vars)
 
       annotation->getPropertyNames(names);
 
-      setCmdRc(names);
+      cmdBase_->setCmdRc(names);
     }
     else {
       QVariant value;
@@ -1353,7 +1185,7 @@ getChartsPropertyCmd(const Vars &vars)
         return;
       }
 
-      setCmdRc(value);
+      cmdBase_->setCmdRc(value);
     }
   }
 }
@@ -1362,11 +1194,9 @@ getChartsPropertyCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-setChartsPropertyCmd(const Vars &vars)
+setChartsPropertyCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::setChartsPropertyCmd");
-
-  CQChartsCmdArgs argv("set_charts_property", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
@@ -1436,11 +1266,9 @@ setChartsPropertyCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-getPaletteCmd(const Vars &vars)
+getPaletteCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::getPaletteCmd");
-
-  CQChartsCmdArgs argv("get_palette", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
 
@@ -1480,7 +1308,7 @@ getPaletteCmd(const Vars &vars)
   if (getColorFlag) {
     QColor c = palette->getColor(getColorValue, getColorScale);
 
-    setCmdRc(c.name());
+    cmdBase_->setCmdRc(c.name());
   }
 }
 
@@ -1488,11 +1316,9 @@ getPaletteCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-setPaletteCmd(const Vars &vars)
+setPaletteCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::setPaletteCmd");
-
-  CQChartsCmdArgs argv("set_palette", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
 
@@ -1615,11 +1441,9 @@ setPaletteCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-groupPlotsCmd(const Vars &vars)
+groupPlotsCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::groupPlotsCmd");
-
-  CQChartsCmdArgs argv("group_plots", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
 
@@ -1686,11 +1510,9 @@ groupPlotsCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-placePlotsCmd(const Vars &vars)
+placePlotsCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::placePlotsCmd");
-
-  CQChartsCmdArgs argv("place_plots", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
 
@@ -1732,11 +1554,9 @@ placePlotsCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-foldModelCmd(const Vars &vars)
+foldModelCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::foldModelCmd");
-
-  CQChartsCmdArgs argv("fold_model", vars);
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column to fold");
@@ -1782,18 +1602,16 @@ foldModelCmd(const Vars &vars)
 
   //---
 
-  setCmdRc(foldedModelData->ind());
+  cmdBase_->setCmdRc(foldedModelData->ind());
 }
 
 //------
 
 void
 CQChartsCmds::
-flattenModelCmd(const Vars &vars)
+flattenModelCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::flattenModelCmd");
-
-  CQChartsCmdArgs argv("flatten_model", vars);
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-group", CQChartsCmdArg::Type::Column , "grouping column id");
@@ -2038,18 +1856,16 @@ flattenModelCmd(const Vars &vars)
 
   //---
 
-  setCmdRc(dataModelData->ind());
+  cmdBase_->setCmdRc(dataModelData->ind());
 }
 
 //------
 
 void
 CQChartsCmds::
-copyModelCmd(const Vars &vars)
+copyModelCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::copyModelCmd");
-
-  CQChartsCmdArgs argv("copy_model", vars);
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
 
@@ -2078,18 +1894,16 @@ copyModelCmd(const Vars &vars)
 
   //---
 
-  setCmdRc(newModelData->ind());
+  cmdBase_->setCmdRc(newModelData->ind());
 }
 
 //------
 
 void
 CQChartsCmds::
-sortModelCmd(const Vars &vars)
+sortModelCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::sortModelCmd");
-
-  CQChartsCmdArgs argv("sort_model", vars);
 
   argv.addCmdArg("-model"     , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-column"    , CQChartsCmdArg::Type::Column , "column to sort");
@@ -2128,11 +1942,9 @@ sortModelCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-filterModelCmd(const Vars &vars)
+filterModelCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::filterModelCmd");
-
-  CQChartsCmdArgs argv("filter_model", vars);
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-expr"  , CQChartsCmdArg::Type::String , "filter expression");
@@ -2210,11 +2022,9 @@ filterModelCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-correlationModelCmd(const Vars &vars)
+correlationModelCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::correlationModelCmd");
-
-  CQChartsCmdArgs argv("correlation_model", vars);
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-flip" , CQChartsCmdArg::Type::Boolean, "correlate rows instead of columns");
@@ -2250,18 +2060,16 @@ correlationModelCmd(const Vars &vars)
 
   //---
 
-  setCmdRc(modelData1->ind());
+  cmdBase_->setCmdRc(modelData1->ind());
 }
 
 //------
 
 void
 CQChartsCmds::
-subsetModelCmd(const Vars &vars)
+subsetModelCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::subsetModelCmd");
-
-  CQChartsCmdArgs argv("subset_model", vars);
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-left"  , CQChartsCmdArg::Type::Column , "left (start) column");
@@ -2315,18 +2123,16 @@ subsetModelCmd(const Vars &vars)
 
   //---
 
-  setCmdRc(modelData1->ind());
+  cmdBase_->setCmdRc(modelData1->ind());
 }
 
 //------
 
 void
 CQChartsCmds::
-transposeModelCmd(const Vars &vars)
+transposeModelCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::transposeModelCmd");
-
-  CQChartsCmdArgs argv("transpose_model", vars);
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
 
@@ -2357,18 +2163,16 @@ transposeModelCmd(const Vars &vars)
 
   //---
 
-  setCmdRc(modelData1->ind());
+  cmdBase_->setCmdRc(modelData1->ind());
 }
 
 //------
 
 void
 CQChartsCmds::
-exportModelCmd(const Vars &vars)
+exportModelCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::exportModelCmd");
-
-  CQChartsCmdArgs argv("export_model", vars);
 
   argv.addCmdArg("-model"  , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-to"     , CQChartsCmdArg::Type::String , "destination format");
@@ -2431,13 +2235,11 @@ exportModelCmd(const Vars &vars)
 // get charts data
 void
 CQChartsCmds::
-getChartsDataCmd(const Vars &vars)
+getChartsDataCmd(CQChartsCmdArgs &argv)
 {
   using QVariantList = QList<QVariant>;
 
   CQPerfTrace trace("CQChartsCmds::getChartsDataCmd");
-
-  CQChartsCmdArgs argv("get_charts_data", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model index");
@@ -2497,7 +2299,7 @@ getChartsDataCmd(const Vars &vars)
 
     CQChartsColumn column = argv.getParseColumn("column", model.data());
 
-    int row = argv.getParseRow("row");
+    CQChartsRow row = argv.getParseRow("row");
 
     if (argv.hasParseArg("ind")) {
 #ifdef CQCharts_USE_TCL
@@ -2524,7 +2326,7 @@ getChartsDataCmd(const Vars &vars)
 
       if (header) {
         if (! column.isValid()) {
-          setCmdError("Invalid header column specified");
+          cmdBase_->setCmdError("Invalid header column specified");
           return;
         }
 
@@ -2533,7 +2335,7 @@ getChartsDataCmd(const Vars &vars)
         var = CQChartsModelUtil::modelHeaderValue(model.data(), column, role, ok);
 
         if (! var.isValid()) {
-          setCmdError("Invalid header value");
+          cmdBase_->setCmdError("Invalid header value");
           return;
         }
       }
@@ -2542,7 +2344,7 @@ getChartsDataCmd(const Vars &vars)
         QModelIndex ind = model.data()->index(row, column.column());
 
         if (! ind.isValid()) {
-          setCmdError("Invalid data row/column specified");
+          cmdBase_->setCmdError("Invalid data row/column specified");
           return;
         }
 #endif
@@ -2551,37 +2353,38 @@ getChartsDataCmd(const Vars &vars)
 
         bool ok;
 
-        var = CQChartsModelUtil::modelValue(charts_, model.data(), row, column, parent, role, ok);
+        var = CQChartsModelUtil::modelValue(charts_, model.data(), row.row(),
+                                            column, parent, role, ok);
 
         if (! var.isValid()) {
-          setCmdError("Invalid model value");
+          cmdBase_->setCmdError("Invalid model value");
           return;
         }
       }
 
-      setCmdRc(var);
+      cmdBase_->setCmdRc(var);
     }
     // get meta data
     else if (name == "meta") {
       QVariant var = CQChartsModelUtil::modelMetaValue(model.data(), data);
 
       if (! var.isValid()) {
-        setCmdError("Invalid meta data");
+        cmdBase_->setCmdError("Invalid meta data");
         return;
       }
 
-      setCmdRc(var);
+      cmdBase_->setCmdRc(var);
     }
     // number of rows, number of columns, hierarchical
     else if (name == "num_rows" || name == "num_columns" || name == "hierarchical") {
       CQChartsModelDetails *details = modelData->details();
 
       if      (name == "num_rows")
-        setCmdRc(details->numRows());
+        cmdBase_->setCmdRc(details->numRows());
       else if (name == "num_columns")
-        setCmdRc(details->numColumns());
+        cmdBase_->setCmdRc(details->numColumns());
       else if (name == "hierarchical")
-        setCmdRc(details->isHierarchical());
+        cmdBase_->setCmdRc(details->isHierarchical());
     }
     // header value
     else if (name == "header") {
@@ -2599,7 +2402,7 @@ getChartsDataCmd(const Vars &vars)
         vars.push_back(var);
       }
 
-      setCmdRc(vars);
+      cmdBase_->setCmdRc(vars);
     }
     // row value
     else if (name == "row") {
@@ -2608,8 +2411,8 @@ getChartsDataCmd(const Vars &vars)
       int nr = details->numRows();
       int nc = details->numColumns();
 
-      if (row < 0 || row >= nr) {
-        setCmdError("Invalid row number");
+      if (row.row() < 0 || row.row() >= nr) {
+        cmdBase_->setCmdError("Invalid row number");
         return;
       }
 
@@ -2621,12 +2424,12 @@ getChartsDataCmd(const Vars &vars)
         bool ok;
 
         QVariant var =
-          CQChartsModelUtil::modelValue(charts_, model.data(), row, c, parent, role, ok);
+          CQChartsModelUtil::modelValue(charts_, model.data(), row.row(), c, parent, role, ok);
 
         vars.push_back(var);
       }
 
-      setCmdRc(vars);
+      cmdBase_->setCmdRc(vars);
     }
     // column value
     else if (name == "column") {
@@ -2636,7 +2439,7 @@ getChartsDataCmd(const Vars &vars)
       int nc = details->numColumns();
 
       if (column < 0 || column.column() >= nc) {
-        setCmdError("Invalid row number");
+        cmdBase_->setCmdError("Invalid row number");
         return;
       }
 
@@ -2654,7 +2457,7 @@ getChartsDataCmd(const Vars &vars)
         vars.push_back(var);
       }
 
-      setCmdRc(vars);
+      cmdBase_->setCmdRc(vars);
     }
     // column named value
     else if (CQChartsModelColumnDetails::isNamedValue(name)) {
@@ -2662,13 +2465,13 @@ getChartsDataCmd(const Vars &vars)
 
       if (argv.hasParseArg("column")) {
         if (! column.isValid() || column.column() >= details->numColumns()) {
-          setCmdError("Invalid column specified");
+          cmdBase_->setCmdError("Invalid column specified");
           return;
         }
 
         const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
 
-        setCmdRc(columnDetails->getNamedValue(name));
+        cmdBase_->setCmdRc(columnDetails->getNamedValue(name));
       }
       else {
         int nc = details->numColumns();
@@ -2681,7 +2484,7 @@ getChartsDataCmd(const Vars &vars)
           vars.push_back(columnDetails->getNamedValue(name));
         }
 
-        setCmdRc(vars);
+        cmdBase_->setCmdRc(vars);
       }
     }
     // map value
@@ -2689,12 +2492,12 @@ getChartsDataCmd(const Vars &vars)
       CQChartsModelDetails *details = modelData->details();
 
       if (! column.isValid() || column.column() >= details->numColumns()) {
-        setCmdError("Invalid column specified");
+        cmdBase_->setCmdError("Invalid column specified");
         return;
       }
 
 #if 0
-      QModelIndex ind = model.data()->index(row, column.column());
+      QModelIndex ind = model.data()->index(row.row(), column.column());
 #endif
 
       QModelIndex parent;
@@ -2702,14 +2505,14 @@ getChartsDataCmd(const Vars &vars)
       bool ok;
 
       QVariant var =
-        CQChartsModelUtil::modelValue(charts_, model.data(), row, column.column(), parent,
+        CQChartsModelUtil::modelValue(charts_, model.data(), row.row(), column.column(), parent,
                                       role, ok);
 
       CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
 
       double r = columnDetails->map(var);
 
-      setCmdRc(r);
+      cmdBase_->setCmdRc(r);
     }
     // duplicate rows
     else if (name == "duplicates") {
@@ -2719,7 +2522,7 @@ getChartsDataCmd(const Vars &vars)
 
       if (argv.hasParseArg("column")) {
         if (! column.isValid()) {
-          setCmdError("Invalid column specified");
+          cmdBase_->setCmdError("Invalid column specified");
           return;
         }
 
@@ -2733,7 +2536,7 @@ getChartsDataCmd(const Vars &vars)
       for (std::size_t i = 0; i < inds.size(); ++i)
         vars.push_back(inds[i]);
 
-      setCmdRc(vars);
+      cmdBase_->setCmdRc(vars);
     }
     // get index for column name
     else if (name == "column_index") {
@@ -2742,10 +2545,10 @@ getChartsDataCmd(const Vars &vars)
       if (! CQChartsModelUtil::stringToColumn(model.data(), data, column))
         column = -1;
 
-      setCmdRc(column.column());
+      cmdBase_->setCmdRc(column.column());
     }
     else {
-      setCmdError("Invalid name '" + name + "' specified");
+      cmdBase_->setCmdError("Invalid name '" + name + "' specified");
       return;
     }
   }
@@ -2765,7 +2568,7 @@ getChartsDataCmd(const Vars &vars)
       for (const auto &plot : plots)
         vars.push_back(plot->pathId());
 
-      setCmdRc(vars);
+      cmdBase_->setCmdRc(vars);
     }
     else if (name == "annotations") {
       QVariantList vars;
@@ -2775,38 +2578,38 @@ getChartsDataCmd(const Vars &vars)
       for (const auto &annotation : annotations)
         vars.push_back(annotation->pathId());
 
-      setCmdRc(vars);
+      cmdBase_->setCmdRc(vars);
     }
     else if (name == "view_width") {
       CQChartsLength len(data, CQChartsUnits::VIEW);
 
       double w = view->lengthViewWidth(len);
 
-      setCmdRc(w);
+      cmdBase_->setCmdRc(w);
     }
     else if (name == "view_height") {
       CQChartsLength len(data, CQChartsUnits::VIEW);
 
       double h = view->lengthViewHeight(len);
 
-      setCmdRc(h);
+      cmdBase_->setCmdRc(h);
     }
     else if (name == "pixel_width") {
       CQChartsLength len(data, CQChartsUnits::VIEW);
 
       double w = view->lengthPixelWidth(len);
 
-      setCmdRc(w);
+      cmdBase_->setCmdRc(w);
     }
     else if (name == "pixel_height") {
       CQChartsLength len(data, CQChartsUnits::VIEW);
 
       double h = view->lengthPixelHeight(len);
 
-      setCmdRc(h);
+      cmdBase_->setCmdRc(h);
     }
     else {
-      setCmdError("Invalid name '" + name + "' specified");
+      cmdBase_->setCmdError("Invalid name '" + name + "' specified");
       return;
     }
   }
@@ -2832,7 +2635,7 @@ getChartsDataCmd(const Vars &vars)
 
       type->propertyNames(names);
 
-      setCmdRc(names);
+      cmdBase_->setCmdRc(names);
     }
     else if (name == "parameters") {
       const CQChartsPlotType::Parameters &parameters = type->parameters();
@@ -2842,7 +2645,7 @@ getChartsDataCmd(const Vars &vars)
       for (auto &parameter : parameters)
         names.push_back(parameter->name());
 
-      setCmdRc(names);
+      cmdBase_->setCmdRc(names);
     }
     else if (name.left(10) == "parameter.") {
       if (! type->hasParameter(data)) {
@@ -2859,21 +2662,21 @@ getChartsDataCmd(const Vars &vars)
 
         parameter.propertyNames(names);
 
-        setCmdRc(names);
+        cmdBase_->setCmdRc(names);
       }
       else if (parameter.hasProperty(name1)) {
-        setCmdRc(parameter.getPropertyValue(name1));
+        cmdBase_->setCmdRc(parameter.getPropertyValue(name1));
       }
       else {
-        setCmdError("Invalid name 'parameter." + name1 + "' specified");
+        cmdBase_->setCmdError("Invalid name 'parameter." + name1 + "' specified");
         return;
       }
     }
     else if (type->hasProperty(name)) {
-      setCmdRc(type->getPropertyValue(name));
+      cmdBase_->setCmdRc(type->getPropertyValue(name));
     }
     else {
-      setCmdError("Invalid name '" + name + "' specified");
+      cmdBase_->setCmdError("Invalid name '" + name + "' specified");
       return;
     }
 
@@ -2887,7 +2690,7 @@ getChartsDataCmd(const Vars &vars)
     CQChartsPlot *plot = getPlotByName(view, plotName);
     if (! plot) return;
 
-    int row = argv.getParseRow("row", plot);
+    CQChartsRow row = argv.getParseRow("row", plot);
 
     //---
 
@@ -2900,7 +2703,7 @@ getChartsDataCmd(const Vars &vars)
         return;
       }
 
-      setCmdRc(modelData->ind());
+      cmdBase_->setCmdRc(modelData->ind());
     }
     // get column header or row, column value
     else if (name == "value") {
@@ -2912,7 +2715,7 @@ getChartsDataCmd(const Vars &vars)
 
       if (header) {
         if (! column.isValid()) {
-          setCmdError("Invalid header column specified");
+          cmdBase_->setCmdError("Invalid header column specified");
           return;
         }
 
@@ -2921,7 +2724,7 @@ getChartsDataCmd(const Vars &vars)
         var = CQChartsModelUtil::modelHeaderValue(plot->model().data(), column, role, ok);
 
         if (! var.isValid()) {
-          setCmdError("Invalid header value");
+          cmdBase_->setCmdError("Invalid header value");
           return;
         }
       }
@@ -2930,11 +2733,11 @@ getChartsDataCmd(const Vars &vars)
 
         bool ok;
 
-        QVariant var = plot->modelValue(row, column, parent, role, ok);
+        QVariant var = plot->modelValue(row.row(), column, parent, role, ok);
 
         bool rc;
 
-        setCmdRc(CQChartsVariant::toString(var, rc));
+        cmdBase_->setCmdRc(CQChartsVariant::toString(var, rc));
       }
     }
     else if (name == "map") {
@@ -2952,7 +2755,7 @@ getChartsDataCmd(const Vars &vars)
       CQChartsModelDetails *details = modelData->details();
 
       if (! column.isValid() || column.column() >= details->numColumns()) {
-        setCmdError("Invalid column specified");
+        cmdBase_->setCmdError("Invalid column specified");
         return;
       }
 
@@ -2960,13 +2763,13 @@ getChartsDataCmd(const Vars &vars)
 
       bool ok;
 
-      QVariant var = plot->modelValue(row, column, parent, role, ok);
+      QVariant var = plot->modelValue(row.row(), column, parent, role, ok);
 
       CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
 
       double r = columnDetails->map(var);
 
-      setCmdRc(r);
+      cmdBase_->setCmdRc(r);
     }
     else if (name == "annotations") {
       QVariantList vars;
@@ -2976,7 +2779,7 @@ getChartsDataCmd(const Vars &vars)
       for (const auto &annotation : annotations)
         vars.push_back(annotation->pathId());
 
-      setCmdRc(vars);
+      cmdBase_->setCmdRc(vars);
     }
     else if (name == "objects") {
       QVariantList vars;
@@ -2986,7 +2789,7 @@ getChartsDataCmd(const Vars &vars)
       for (const auto &obj : objs)
         vars.push_back(obj->id());
 
-      setCmdRc(vars);
+      cmdBase_->setCmdRc(vars);
     }
     else if (name == "inds") {
       if (! objectId.length()) {
@@ -3001,38 +2804,38 @@ getChartsDataCmd(const Vars &vars)
       for (int i = 0; i < inds.length(); ++i)
         vars.push_back(inds[i]);
 
-      setCmdRc(vars);
+      cmdBase_->setCmdRc(vars);
     }
     else if (name == "plot_width") {
       CQChartsLength len(data, CQChartsUnits::PLOT);
 
       double w = plot->lengthPlotWidth(len);
 
-      setCmdRc(w);
+      cmdBase_->setCmdRc(w);
     }
     else if (name == "plot_height") {
       CQChartsLength len(data, CQChartsUnits::PLOT);
 
       double h = plot->lengthPlotHeight(len);
 
-      setCmdRc(h);
+      cmdBase_->setCmdRc(h);
     }
     else if (name == "pixel_width") {
       CQChartsLength len(data, CQChartsUnits::PLOT);
 
       double w = plot->lengthPixelWidth(len);
 
-      setCmdRc(w);
+      cmdBase_->setCmdRc(w);
     }
     else if (name == "pixel_height") {
       CQChartsLength len(data, CQChartsUnits::PLOT);
 
       double h = plot->lengthPixelHeight(len);
 
-      setCmdRc(h);
+      cmdBase_->setCmdRc(h);
     }
     else {
-      setCmdError("Invalid name '" + name + "' specified");
+      cmdBase_->setCmdError("Invalid name '" + name + "' specified");
       return;
     }
   }
@@ -3047,7 +2850,7 @@ getChartsDataCmd(const Vars &vars)
       for (auto &modelData : modelDatas)
         vars.push_back(modelData->ind());
 
-      setCmdRc(vars);
+      cmdBase_->setCmdRc(vars);
     }
     else if (name == "views") {
       QVariantList vars;
@@ -3059,14 +2862,14 @@ getChartsDataCmd(const Vars &vars)
       for (auto &view : views)
         vars.push_back(view->id());
 
-      setCmdRc(vars);
+      cmdBase_->setCmdRc(vars);
     }
     else if (name == "types") {
       QStringList names, descs;
 
       charts_->getPlotTypeNames(names, descs);
 
-      setCmdRc(names);
+      cmdBase_->setCmdRc(names);
     }
     else if (name == "plots") {
       QVariantList vars;
@@ -3084,7 +2887,7 @@ getChartsDataCmd(const Vars &vars)
           vars.push_back(plot->pathId());
       }
 
-      setCmdRc(vars);
+      cmdBase_->setCmdRc(vars);
     }
     else if (name == "current_model") {
       CQChartsModelData *modelData = charts_->currentModelData();
@@ -3094,10 +2897,10 @@ getChartsDataCmd(const Vars &vars)
         return;
       }
 
-      setCmdRc(modelData->ind());
+      cmdBase_->setCmdRc(modelData->ind());
     }
     else {
-      setCmdError("Invalid name '" + name + "' specified");
+      cmdBase_->setCmdError("Invalid name '" + name + "' specified");
       return;
     }
   }
@@ -3108,11 +2911,9 @@ getChartsDataCmd(const Vars &vars)
 // set charts data
 void
 CQChartsCmds::
-setChartsDataCmd(const Vars &vars)
+setChartsDataCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::setChartsDataCmd");
-
-  CQChartsCmdArgs argv("set_charts_data", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model index");
@@ -3164,13 +2965,13 @@ setChartsDataCmd(const Vars &vars)
 
     CQChartsColumn column = argv.getParseColumn("column", model.data());
 
-    int row = argv.getParseRow("row");
+    CQChartsRow row = argv.getParseRow("row");
 
     // set column header or row, column value
     if      (name == "value") {
       if (header) {
         if (! column.isValid()) {
-          setCmdError("Invalid header column specified");
+          cmdBase_->setCmdError("Invalid header column specified");
           return;
         }
 
@@ -3178,15 +2979,15 @@ setChartsDataCmd(const Vars &vars)
           charts_->errorMsg("Failed to set header value");
       }
       else {
-        QModelIndex ind = model.data()->index(row, column.column());
+        QModelIndex ind = model.data()->index(row.row(), column.column());
 
         if (! ind.isValid()) {
-          setCmdError(QString("Invalid data row/column specified '%1,%2'").
-            arg(row).arg(column.column()));
+          cmdBase_->setCmdError(QString("Invalid data row/column specified '%1,%2'").
+            arg(row.row()).arg(column.column()));
           return;
         }
 
-        if (! CQChartsModelUtil::setModelValue(model.data(), row, column, value, role))
+        if (! CQChartsModelUtil::setModelValue(model.data(), row.row(), column, value, role))
           charts_->errorMsg("Failed to set row value");
       }
     }
@@ -3203,7 +3004,7 @@ setChartsDataCmd(const Vars &vars)
       CQChartsModelUtil::processExpression(model.data(), value);
     }
     else {
-      setCmdError("Invalid name '" + name + "' specified");
+      cmdBase_->setCmdError("Invalid name '" + name + "' specified");
       return;
     }
   }
@@ -3216,7 +3017,7 @@ setChartsDataCmd(const Vars &vars)
     if (name == "fit")
       view->fitSlot();
     else {
-      setCmdError("Invalid name '" + name + "' specified");
+      cmdBase_->setCmdError("Invalid name '" + name + "' specified");
       return;
     }
   }
@@ -3242,12 +3043,12 @@ setChartsDataCmd(const Vars &vars)
       }
     }
     else
-      setCmdError("Invalid name '" + name + "' specified");
+      cmdBase_->setCmdError("Invalid name '" + name + "' specified");
 
     return;
   }
   else {
-    setCmdError("Invalid name '" + name + "' specified");
+    cmdBase_->setCmdError("Invalid name '" + name + "' specified");
     return;
   }
 }
@@ -3256,11 +3057,9 @@ setChartsDataCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-createRectAnnotationCmd(const Vars &vars)
+createRectAnnotationCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::createRectAnnotationCmd");
-
-  CQChartsCmdArgs argv("create_rect_annotation", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3379,18 +3178,16 @@ createRectAnnotationCmd(const Vars &vars)
 
   annotation->setBoxData(boxData);
 
-  setCmdRc(annotation->propertyId());
+  cmdBase_->setCmdRc(annotation->propertyId());
 }
 
 //------
 
 void
 CQChartsCmds::
-createEllipseAnnotationCmd(const Vars &vars)
+createEllipseAnnotationCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::createEllipseAnnotationCmd");
-
-  CQChartsCmdArgs argv("create_ellipse_annotation", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3490,18 +3287,16 @@ createEllipseAnnotationCmd(const Vars &vars)
 
   annotation->setBoxData(boxData);
 
-  setCmdRc(annotation->propertyId());
+  cmdBase_->setCmdRc(annotation->propertyId());
 }
 
 //------
 
 void
 CQChartsCmds::
-createPolygonAnnotationCmd(const Vars &vars)
+createPolygonAnnotationCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::createPolygonAnnotationCmd");
-
-  CQChartsCmdArgs argv("create_polygon_annotation", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3596,18 +3391,16 @@ createPolygonAnnotationCmd(const Vars &vars)
 
   annotation->setShapeData(shapeData);
 
-  setCmdRc(annotation->propertyId());
+  cmdBase_->setCmdRc(annotation->propertyId());
 }
 
 //------
 
 void
 CQChartsCmds::
-createPolylineAnnotationCmd(const Vars &vars)
+createPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::createPolylineAnnotationCmd");
-
-  CQChartsCmdArgs argv("create_polyline_annotation", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3704,18 +3497,16 @@ createPolylineAnnotationCmd(const Vars &vars)
 
   annotation->setShapeData(shapeData);
 
-  setCmdRc(annotation->propertyId());
+  cmdBase_->setCmdRc(annotation->propertyId());
 }
 
 //------
 
 void
 CQChartsCmds::
-createTextAnnotationCmd(const Vars &vars)
+createTextAnnotationCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::createTextAnnotationCmd");
-
-  CQChartsCmdArgs argv("create_text_annotation", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3844,18 +3635,16 @@ createTextAnnotationCmd(const Vars &vars)
   annotation->setTextData(textData);
   annotation->setBoxData(boxData);
 
-  setCmdRc(annotation->propertyId());
+  cmdBase_->setCmdRc(annotation->propertyId());
 }
 
 //------
 
 void
 CQChartsCmds::
-createArrowAnnotationCmd(const Vars &vars)
+createArrowAnnotationCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::createArrowAnnotationCmd");
-
-  CQChartsCmdArgs argv("create_arrow_annotation", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3873,10 +3662,12 @@ createArrowAnnotationCmd(const Vars &vars)
   argv.addCmdArg("-back_angle"  , CQChartsCmdArg::Type::Real  , "arrow back angle");
   argv.addCmdArg("-fhead"       , CQChartsCmdArg::Type::SBool , "show start arrow");
   argv.addCmdArg("-thead"       , CQChartsCmdArg::Type::SBool , "show end arrow");
-  argv.addCmdArg("-empty"       , CQChartsCmdArg::Type::SBool , "empty arrows");
+//argv.addCmdArg("-empty"       , CQChartsCmdArg::Type::SBool , "empty arrows");
+  argv.addCmdArg("-line_ends"   , CQChartsCmdArg::Type::SBool , "line ends");
   argv.addCmdArg("-line_width"  , CQChartsCmdArg::Type::Length, "line width");
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color , "stroke color");
-  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool , "arrow filled");
+  argv.addCmdArg("-border_color", CQChartsCmdArg::Type::Color , "border color");
+  argv.addCmdArg("-border_width", CQChartsCmdArg::Type::Length, "border width");
+  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool , "is filled");
   argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color , "fill color");
 
   if (! argv.parse())
@@ -3911,19 +3702,21 @@ createArrowAnnotationCmd(const Vars &vars)
   CQChartsPosition end   = argv.getParsePosition(view, plot, "end"  );
 
   arrowData.length    = argv.getParseLength(view, plot, "length", arrowData.length);
-  arrowData.angle     = argv.getParseReal("angle"     , arrowData.angle);
-  arrowData.backAngle = argv.getParseReal("back_angle", arrowData.backAngle);
-  arrowData.fhead     = argv.getParseBool("fhead"     , arrowData.fhead);
-  arrowData.thead     = argv.getParseBool("thead"     , arrowData.thead);
-  arrowData.empty     = argv.getParseBool("empty"     , arrowData.empty);
+  arrowData.angle     = argv.getParseReal  ("angle"     , arrowData.angle);
+  arrowData.backAngle = argv.getParseReal  ("back_angle", arrowData.backAngle);
+  arrowData.fhead     = argv.getParseBool  ("fhead"     , arrowData.fhead);
+  arrowData.thead     = argv.getParseBool  ("thead"     , arrowData.thead);
+//arrowData.empty     = argv.getParseBool  ("empty"     , arrowData.empty);
+  arrowData.lineEnds  = argv.getParseBool  ("line_ends" , arrowData.lineEnds);
+  arrowData.lineWidth = argv.getParseLength(view, plot, "line_width", arrowData.lineWidth);
 
   CQChartsShapeData shapeData;
 
   CQChartsStrokeData &stroke = shapeData.border;
   CQChartsFillData   &fill   = shapeData.background;
 
-  stroke.width = argv.getParseLength(view, plot, "line_width", stroke.width);
-  stroke.color = argv.getParseColor("stroke_color", stroke.color);
+  stroke.width = argv.getParseLength(view, plot, "border_width", stroke.width);
+  stroke.color = argv.getParseColor("border_color", stroke.color);
 
   fill.visible = argv.getParseBool ("filled"    , fill.visible);
   fill.color   = argv.getParseColor("fill_color", fill.color);
@@ -3949,18 +3742,16 @@ createArrowAnnotationCmd(const Vars &vars)
 
   annotation->arrow()->setShapeData(shapeData);
 
-  setCmdRc(annotation->propertyId());
+  cmdBase_->setCmdRc(annotation->propertyId());
 }
 
 //------
 
 void
 CQChartsCmds::
-createPointAnnotationCmd(const Vars &vars)
+createPointAnnotationCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::createPointAnnotationCmd");
-
-  CQChartsCmdArgs argv("create_point_annotation", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -4051,18 +3842,16 @@ createPointAnnotationCmd(const Vars &vars)
 
   annotation->setPointData(pointData);
 
-  setCmdRc(annotation->propertyId());
+  cmdBase_->setCmdRc(annotation->propertyId());
 }
 
 //------
 
 void
 CQChartsCmds::
-removeAnnotationCmd(const Vars &vars)
+removeAnnotationCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::removeAnnotationCmd");
-
-  CQChartsCmdArgs argv("remove_annotation", vars);
 
   // -view or -plot needed for -all
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
@@ -4126,11 +3915,9 @@ removeAnnotationCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-connectChartsCmd(const Vars &vars)
+connectChartsCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::connectChartsCmd");
-
-  CQChartsCmdArgs argv("connect_charts", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -4204,11 +3991,9 @@ connectChartsCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-printChartsCmd(const Vars &vars)
+printChartsCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::printChartsCmd");
-
-  CQChartsCmdArgs argv("print_charts", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -4268,11 +4053,9 @@ printChartsCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-writeChartsDataCmd(const Vars &vars)
+writeChartsDataCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::writeChartsDataCmd");
-
-  CQChartsCmdArgs argv("write_charts_data", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -4367,11 +4150,9 @@ writeChartsDataCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-loadModelDlgCmd(const Vars &vars)
+loadModelDlgCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::loadModelDlgCmd");
-
-  CQChartsCmdArgs argv("load_model_dlg", vars);
 
   argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
 
@@ -4389,18 +4170,16 @@ loadModelDlgCmd(const Vars &vars)
   else
     dlg->show();
 
-  setCmdRc(dlg->modelInd());
+  cmdBase_->setCmdRc(dlg->modelInd());
 }
 
 //------
 
 void
 CQChartsCmds::
-manageModelDlgCmd(const Vars &vars)
+manageModelDlgCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::manageModelDlgCmd");
-
-  CQChartsCmdArgs argv("manage_model_dlg", vars);
 
   argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
 
@@ -4423,11 +4202,9 @@ manageModelDlgCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-createPlotDlgCmd(const Vars &vars)
+createPlotDlgCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::createPlotDlgCmd");
-
-  CQChartsCmdArgs argv("create_plot_dlg", vars);
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model_ind" );
   argv.addCmdArg("-view" , CQChartsCmdArg::Type::String , "view name" );
@@ -4466,170 +4243,7 @@ createPlotDlgCmd(const Vars &vars)
 
   CQChartsPlot *plot = dlg->plot();
 
-  setCmdRc(plot ? plot->pathId() : "");
-}
-
-//------
-
-void
-CQChartsCmds::
-qtGetPropertyCmd(const Vars &vars)
-{
-  CQPerfTrace trace("CQChartsCmds::qtGetPropertyCmd");
-
-  CQChartsCmdArgs argv("qt_get_property", vars);
-
-  argv.addCmdArg("-object"  , CQChartsCmdArg::Type::String, "object name");
-  argv.addCmdArg("-property", CQChartsCmdArg::Type::String, "property name");
-
-  if (! argv.parse())
-    return;
-
-  QString objectName = argv.getParseStr("object");
-  QString propName   = argv.getParseStr("property");
-
-  QObject *obj = CQUtil::nameToObject(objectName);
-
-  if (! obj) {
-    charts_->errorMsg(QString("No object '%1'").arg(objectName));
-    return;
-  }
-
-  QVariant v;
-
-  if (! CQUtil::getProperty(obj, propName, v)) {
-    charts_->errorMsg(QString("Failed to get property '%1' for '%2'").
-                       arg(propName).arg(objectName));
-    return;
-  }
-
-  setCmdRc(v);
-}
-
-//------
-
-void
-CQChartsCmds::
-qtSetPropertyCmd(const Vars &vars)
-{
-  CQPerfTrace trace("CQChartsCmds::qtSetPropertyCmd");
-
-  CQChartsCmdArgs argv("qt_set_property", vars);
-
-  argv.addCmdArg("-object"  , CQChartsCmdArg::Type::String, "object name");
-  argv.addCmdArg("-property", CQChartsCmdArg::Type::String, "property name");
-  argv.addCmdArg("-value"   , CQChartsCmdArg::Type::String, "property value");
-
-  if (! argv.parse())
-    return;
-
-  QString objectName = argv.getParseStr("object");
-  QString propName   = argv.getParseStr("property");
-  QString value      = argv.getParseStr("value");
-
-  QObject *obj = CQUtil::nameToObject(objectName);
-
-  if (! obj) {
-    charts_->errorMsg(QString("No object '%1'").arg(objectName));
-    return;
-  }
-
-  if (! CQUtil::setProperty(obj, propName, value)) {
-    charts_->errorMsg(QString("Failed to set property '%1' for '%2'").
-                       arg(propName).arg(objectName));
-    return;
-  }
-}
-
-//------
-
-void
-CQChartsCmds::
-qtSyncCmd(const Vars &vars)
-{
-  CQPerfTrace trace("CQChartsCmds::qtSyncCmd");
-
-  CQChartsCmdArgs argv("qt_sync", vars);
-
-  argv.addCmdArg("-n", CQChartsCmdArg::Type::Integer, "loop count");
-
-  if (! argv.parse())
-    return;
-
-  int n = 1;
-
-  if (argv.hasParseArg("n"))
-    n = argv.getParseInt("n");
-
-  for (int i = 0; i < n; ++i) {
-    qApp->flush();
-
-    qApp->processEvents();
-  }
-}
-
-//------
-
-void
-CQChartsCmds::
-perfCmd(const Vars &vars)
-{
-  CQPerfTrace trace("CQChartsCmds::perfCmd");
-
-  CQChartsCmdArgs argv("pref_cmd", vars);
-
-  argv.addCmdArg("-start_recording", CQChartsCmdArg::Type::Boolean, "start recording");
-  argv.addCmdArg("-end_recording"  , CQChartsCmdArg::Type::Boolean, "end recording"  );
-  argv.addCmdArg("-tracing"        , CQChartsCmdArg::Type::SBool  , "enable tracing" );
-  argv.addCmdArg("-debug"          , CQChartsCmdArg::Type::SBool  , "enable debug"   );
-
-  if (! argv.parse())
-    return;
-
-  //---
-
-  if (argv.hasParseArg("start_recording"))
-    CQPerfMonitorInst->startRecording();
-
-  if (argv.hasParseArg("end_recording"))
-    CQPerfMonitorInst->stopRecording();
-
-  if (argv.hasParseArg("tracing"))
-    CQPerfMonitorInst->setEnabled(argv.getParseBool("tracing"));
-
-  if (argv.hasParseArg("debug"))
-    CQPerfMonitorInst->setDebug(argv.getParseBool("debug"));
-}
-
-//------
-
-void
-CQChartsCmds::
-shellCmd(const Vars &vars)
-{
-  CQPerfTrace trace("CQChartsCmds::shellCmd");
-
-  CQChartsCmdArgs argv("sh", vars);
-
-  if (! argv.parse())
-    return;
-
-  //---
-
-  const Vars &shArgs = argv.getParseArgs();
-
-  QString cmd = (! shArgs.empty() ? shArgs[0].toString() : "");
-
-  //---
-
-  if (cmd == "") {
-    charts_->errorMsg("No command");
-    return;
-  }
-
-  int rc = system(cmd.toLatin1().constData());
-
-  setCmdRc(rc);
+  cmdBase_->setCmdRc(plot ? plot->pathId() : "");
 }
 
 //------
@@ -4697,122 +4311,6 @@ setPaletteData(CQChartsGradientPalette *palette, const CQChartsPaletteColorData 
     for (const auto &definedColor : paletteData.definedColors)
       palette->addDefinedColor(definedColor.v, definedColor.c);
   }
-}
-
-//------
-
-QStringList
-CQChartsCmds::
-stringToCmds(const QString &str) const
-{
-  QStringList lines = str.split('\n', QString::SkipEmptyParts);
-
-  QStringList lines1;
-
-  int i = 0;
-
-  for ( ; i < lines.size(); ++i) {
-    QString line = lines[i];
-
-    bool join;
-
-    while (! isCompleteLine(line, join)) {
-      ++i;
-
-      if (i >= lines.size())
-        break;
-
-      const QString &line1 = lines[i];
-
-      if (! join)
-        line += "\n" + line1;
-      else
-        line += line1;
-    }
-
-    lines1.push_back(line);
-  }
-
-  return lines1;
-}
-
-//------
-
-void
-CQChartsCmds::
-setCmdRc(int rc)
-{
-#ifdef CQCharts_USE_TCL
-  qtcl()->setResult(rc);
-#else
-  std::cerr << rc << "\n";
-#endif
-}
-
-void
-CQChartsCmds::
-setCmdRc(double rc)
-{
-#ifdef CQCharts_USE_TCL
-  qtcl()->setResult(rc);
-#else
-  std::cerr << rc << "\n";
-#endif
-}
-
-void
-CQChartsCmds::
-setCmdRc(const QString &rc)
-{
-#ifdef CQCharts_USE_TCL
-  qtcl()->setResult(rc);
-#else
-  std::cerr << rc.toStdString() << "\n";
-#endif
-}
-
-void
-CQChartsCmds::
-setCmdRc(const QVariant &rc)
-{
-#ifdef CQCharts_USE_TCL
-  qtcl()->setResult(rc);
-#else
-  std::cerr << rc.toString().toStdString() << "\n";
-#endif
-}
-
-void
-CQChartsCmds::
-setCmdRc(const QStringList &rc)
-{
-#ifdef CQCharts_USE_TCL
-  qtcl()->setResult(rc);
-#else
-  for (int i = 0; i < rc.length(); ++i)
-    std::cerr << rc[i].toStdString() << "\n";
-#endif
-}
-
-void
-CQChartsCmds::
-setCmdRc(const QVariantList &rc)
-{
-#ifdef CQCharts_USE_TCL
-  qtcl()->setResult(rc);
-#else
-  for (int i = 0; i < rc.length(); ++i)
-    std::cerr << rc[i].toString().toStdString() << "\n";
-#endif
-}
-
-void
-CQChartsCmds::
-setCmdError(const QString &msg)
-{
-  charts_->errorMsg(msg);
-
-  setCmdRc(QString());
 }
 
 //------
@@ -5254,7 +4752,7 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
   CQChartsLoader loader(charts_);
 
 #ifdef CQCharts_USE_TCL
-  loader.setQtcl(qtcl());
+  loader.setQtcl(cmdBase_->qtcl());
 #endif
 
   return loader.loadFile(filename, type, inputData, hierarchical);
@@ -5349,63 +4847,6 @@ addView()
 
 //------
 
-bool
-CQChartsCmds::
-isCompleteLine(QString &str, bool &join)
-{
-  join = false;
-
-  if (! str.length())
-    return true;
-
-  if (str[str.size() - 1] == '\\') {
-    str = str.mid(0, str.length() - 1);
-    join = true;
-    return false;
-  }
-
-  //---
-
-  CQStrParse line(str);
-
-  line.skipSpace();
-
-  while (! line.eof()) {
-    if      (line.isChar('{')) {
-      if (! line.skipBracedString())
-        return false;
-    }
-    else if (line.isChar('\"') || line.isChar('\'')) {
-      if (! line.skipString())
-        return false;
-    }
-    else {
-      line.skipNonSpace();
-    }
-
-    line.skipSpace();
-  }
-
-  return true;
-}
-
-void
-CQChartsCmds::
-parseLine(const QString &line, bool log)
-{
-#ifdef CQCharts_USE_TCL
-  int rc = qtcl()->eval(line, /*showError*/true, /*showResult*/log);
-
-  if (rc != TCL_OK)
-    charts_->errorMsg("Invalid line: '" + line + "'");
-#else
-  if (log)
-    charts_->errorMsg("No eval");
-
-  charts_->errorMsg("Invalid line: '" + line + "'");
-#endif
-}
-
 QStringList
 CQChartsCmds::
 stringToColumns(const QString &str) const
@@ -5494,7 +4935,7 @@ objIdPressed(const QString &id)
 #ifdef CQCharts_USE_TCL
   QString cmd = getTclIdCmd(id);
 
-  cmds_->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
+  cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
 #else
   std::cerr << "objIdPressed: " << id.toStdString() << "\n";
 #endif
@@ -5507,7 +4948,7 @@ annotationIdPressed(const QString &id)
 #ifdef CQCharts_USE_TCL
   QString cmd = getTclIdCmd(id);
 
-  cmds_->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
+  cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
 #else
   std::cerr << "annotationIdPressed: " << id.toStdString() << "\n";
 #endif
@@ -5523,7 +4964,7 @@ plotObjsAdded()
 #ifdef CQCharts_USE_TCL
   QString cmd = getTclCmd();
 
-  cmds_->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
+  cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
 #else
   std::cerr << "plotObjsAdded\n";
 #endif

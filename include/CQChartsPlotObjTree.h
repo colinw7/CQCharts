@@ -24,7 +24,7 @@ class CQChartsPlotObjTree {
 
   void objectsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const;
 
-  void objectsTouchingRect(const CQChartsGeom::BBox &r, Objs &objs) const;
+  void objectsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const;
 
   bool isBusy() const { return busy_.load(); }
 

@@ -1161,7 +1161,7 @@ initRawObjs(PlotObjs &objs) const
 
           double osx, osy;
 
-          pixelSymbolSize(outlierSymbolSize(), osx, osy);
+          plotSymbolSize(outlierSymbolSize(), osx, osy);
 
           for (auto &o : whisker->outliers()) {
             double ovalue = whisker->rvalue(o);
@@ -1433,7 +1433,7 @@ initCalcObjs(PlotObjs &objs) const
 
       double osx, osy;
 
-      pixelSymbolSize(outlierSymbolSize(), osx, osy);
+      plotSymbolSize(outlierSymbolSize(), osx, osy);
 
       int io = 0;
 
@@ -1927,7 +1927,7 @@ draw(QPainter *painter)
       plot_->setBrush(symbolBrush, /*filled*/true, boxColor, plot_->boxFillAlpha(),
                       plot_->boxFillPattern());
 
-      plot_->updateObjPenBrushState(this, symbolPen, symbolBrush);
+      plot_->updateObjPenBrushState(this, symbolPen, symbolBrush, /*force*/true);
 
       //---
 
@@ -2061,7 +2061,7 @@ draw(QPainter *painter)
 
         plot_->setOutlierSymbolPenBrush(pen, brush, ic, nc);
 
-        plot_->updateObjPenBrushState(this, pen, brush);
+        plot_->updateObjPenBrushState(this, pen, brush, /*force*/true);
 
         //---
 
@@ -2288,7 +2288,7 @@ draw(QPainter *painter)
 
   plot_->setOutlierSymbolPenBrush(pen, brush, ic, nc);
 
-  plot_->updateObjPenBrushState(this, pen, brush);
+  plot_->updateObjPenBrushState(this, pen, brush, /*force*/true);
 
   painter->setBrush(brush);
   painter->setPen  (pen);
@@ -2521,7 +2521,7 @@ draw(QPainter *painter)
 
     plot_->setOutlierSymbolPenBrush(pen, brush, 0, 1);
 
-    plot_->updateObjPenBrushState(this, pen, brush);
+    plot_->updateObjPenBrushState(this, pen, brush, /*force*/true);
 
     //---
 
@@ -3027,7 +3027,7 @@ draw(QPainter *painter)
     plot_->isOutlierSymbolStroked(), bc, /*alpha*/1.0, CQChartsLength(), CQChartsLineDash(),
     plot_->isOutlierSymbolFilled(), fc, /*alpha*/1.0, plot_->boxFillPattern());
 
-  plot_->updateObjPenBrushState(this, pen, brush);
+  plot_->updateObjPenBrushState(this, pen, brush, /*force*/true);
 
   //---
 

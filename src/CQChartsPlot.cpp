@@ -156,6 +156,8 @@ CQChartsPlot::
   delete xAxis_;
   delete yAxis_;
 
+  delete editHandles_;
+
   delete animateData_.timer;
   delete updateData_.timer;
 }
@@ -410,7 +412,7 @@ selectionSlot()
 
   //---
 
-  queueDrawForeground();
+  drawOverlay();
 
   if (selectInvalidateObjs())
     queueDrawObjs();
@@ -488,18 +490,12 @@ setUpdatesEnabled(bool b, bool update)
         }
       }
 
-      updatesData_.updateRangeAndObjs = false;
-      updatesData_.updateObjs         = false;
-      updatesData_.applyDataRange     = false;
-      updatesData_.invalidateLayers   = false;
+      updatesData_.reset();
     }
   }
   else {
     if (updatesData_.enabled == 0) {
-      updatesData_.updateRangeAndObjs = false;
-      updatesData_.updateObjs         = false;
-      updatesData_.applyDataRange     = false;
-      updatesData_.invalidateLayers   = false;
+      updatesData_.reset();
     }
 
     ++updatesData_.enabled;
@@ -1216,7 +1212,11 @@ updateOverlay()
   processOverlayPlots([&](CQChartsPlot *plot) {
     plot->stopThreadTimer ();
     plot->startThreadTimer();
+
+    plot->updatesData_.reset();
   });
+
+  applyDataRange();
 }
 
 void
@@ -2430,8 +2430,16 @@ adjustDataRangeBBox(const CQChartsGeom::BBox &bbox) const
 
   //---
 
-  CQChartsGeom::BBox ibbox =
-    firstPlot()->innerMargin().adjustPlotRange(this, bbox1, /*inside*/true);
+  CQChartsGeom::BBox ibbox;
+
+  if (isOverlay()) {
+    const CQChartsPlotMargin &innerMargin = firstPlot()->innerMargin();
+
+    ibbox = innerMargin.adjustPlotRange(this, bbox1, /*inside*/true);
+  }
+  else {
+    ibbox = innerMargin().adjustPlotRange(this, bbox1, /*inside*/true);
+  }
 
   return ibbox;
 }
@@ -2451,6 +2459,11 @@ CQChartsPlot::
 applyDataRange(bool propagate)
 {
   if (! isUpdatesEnabled()) {
+    updatesData_.applyDataRange = true;
+    return;
+  }
+
+  if (! dataRange_.isSet()) {
     updatesData_.applyDataRange = true;
     return;
   }
@@ -2498,9 +2511,9 @@ applyDataRange(bool propagate)
       }
     }
     else {
-      processOverlayPlots([&](CQChartsPlot *plot) {
-        plot->setWindowRange(dataRange);
-      });
+      //processOverlayPlots([&](CQChartsPlot *plot) {
+      //  plot->setWindowRange(dataRange);
+      //});
     }
   }
   else {
@@ -2854,9 +2867,11 @@ clearPlotObjects()
   sizeInsideObjs_.clear();
 }
 
+//------
+
 bool
 CQChartsPlot::
-updatePlotObjects(const CQChartsGeom::Point &w)
+updateInsideObjects(const CQChartsGeom::Point &w)
 {
   Objs objs;
 
@@ -2879,15 +2894,18 @@ updatePlotObjects(const CQChartsGeom::Point &w)
   if (changed) {
     insideInd_ = 0;
 
-    insideObjs_    .clear();
-    sizeInsideObjs_.clear();
-
-    for (auto &obj : plotObjects())
-      obj->setInside(false);
-
-    for (auto &annotation : annotations()) {
-      annotation->setInside(false);
+    if (isOverlay()) {
+      processOverlayPlots([&](CQChartsPlot *plot) {
+        plot->resetInsideObjs();
+      });
     }
+    else {
+      resetInsideObjs();
+    }
+
+    //---
+
+    sizeInsideObjs_.clear();
 
     for (const auto &obj : objs) {
       insideObjs_.insert(obj);
@@ -2899,6 +2917,20 @@ updatePlotObjects(const CQChartsGeom::Point &w)
   }
 
   return changed;
+}
+
+void
+CQChartsPlot::
+resetInsideObjs()
+{
+  insideObjs_.clear();
+
+  for (auto &obj : plotObjects())
+    obj->setInside(false);
+
+  for (auto &annotation : annotations()) {
+    annotation->setInside(false);
+  }
 }
 
 CQChartsObj *
@@ -2945,8 +2977,10 @@ setInsideObject()
 {
   CQChartsObj *insideObj = insideObject();
 
-  for (auto &obj : insideObjs_)
-    obj->setInside(obj == insideObj);
+  for (auto &obj : insideObjs_) {
+    if (obj == insideObj)
+      obj->setInside(true);
+  }
 }
 
 QString
@@ -2986,6 +3020,7 @@ bool
 CQChartsPlot::
 selectPress(const CQChartsGeom::Point &w, SelMod selMod)
 {
+  // select key
   if (key() && key()->contains(w)) {
     CQChartsKeyItem *item = key()->getItemAt(w);
 
@@ -3012,6 +3047,7 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
 
   //---
 
+  // select title
   if (title() && title()->contains(w)) {
     if (title()->selectPress(w)) {
       emit titlePressed  (title());
@@ -3023,6 +3059,7 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
 
   //---
 
+  // select annotation
   for (const auto &annotation : annotations()) {
     if (annotation->contains(w)) {
       if (annotation->selectPress(w)) {
@@ -3046,11 +3083,23 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
 
   ObjsSelected objsSelected;
 
-  for (auto &plotObj : plotObjects()) {
-    if (selMod == SelMod::REPLACE)
-      objsSelected[plotObj] = false;
-    else
-      objsSelected[plotObj] = plotObj->isSelected();
+  if (isOverlay()) {
+    processOverlayPlots([&](CQChartsPlot *plot) {
+      for (auto &plotObj : plot->plotObjects()) {
+        if (selMod == SelMod::REPLACE)
+          objsSelected[plotObj] = false;
+        else
+          objsSelected[plotObj] = plotObj->isSelected();
+      }
+    });
+  }
+  else {
+    for (auto &plotObj : plotObjects()) {
+      if (selMod == SelMod::REPLACE)
+        objsSelected[plotObj] = false;
+      else
+        objsSelected[plotObj] = plotObj->isSelected();
+    }
   }
 
   //---
@@ -3179,7 +3228,7 @@ selectMove(const CQChartsGeom::Point &w, bool first)
   QString objText;
 
   if (isFollowMouse()) {
-    bool changed = updatePlotObjects(w);
+    bool changed = updateInsideObjects(w);
 
     objText = insideObjectText();
 
@@ -3568,8 +3617,20 @@ deselectAllObjs()
 {
   view()->startSelection();
 
-  for (auto &plotObj : plotObjects())
-    plotObj->setSelected(false);
+  //---
+
+  if (isOverlay()) {
+    processOverlayPlots([&](CQChartsPlot *plot) {
+      for (auto &plotObj : plot->plotObjects())
+        plotObj->setSelected(false);
+    });
+  }
+  else {
+    for (auto &plotObj : plotObjects())
+      plotObj->setSelected(false);
+  }
+
+  //---
 
   view()->endSelection();
 }
@@ -3580,6 +3641,30 @@ deselectAll()
 {
   bool changed = false;
 
+  //---
+
+  if (isOverlay()) {
+    processOverlayPlots([&](CQChartsPlot *plot) {
+      plot->deselectAll1(changed);
+    });
+  }
+  else {
+    deselectAll1(changed);
+  }
+
+  //---
+
+  if (changed) {
+    view()->endSelection();
+
+    drawOverlay();
+  }
+}
+
+void
+CQChartsPlot::
+deselectAll1(bool &changed)
+{
   auto updateChanged = [&] {
     if (! changed) {
       view()->startSelection();
@@ -3587,6 +3672,8 @@ deselectAll()
       changed = true;
     }
   };
+
+  //---
 
   if (key() && key()->isSelected()) {
     key()->setSelected(false);
@@ -3624,12 +3711,6 @@ deselectAll()
     setSelected(false);
 
     updateChanged();
-  }
-
-  if (changed) {
-    view()->endSelection();
-
-    drawOverlay();
   }
 }
 
@@ -3939,19 +4020,31 @@ rectSelect(const CQChartsGeom::BBox &r, SelMod selMod)
 
   ObjsSelected objsSelected;
 
-  for (auto &plotObj : plotObjects()) {
-    if (selMod == SelMod::REPLACE)
-      objsSelected[plotObj] = false;
-    else
-      objsSelected[plotObj] = plotObj->isSelected();
+  if (isOverlay()) {
+    processOverlayPlots([&](CQChartsPlot *plot) {
+      for (auto &plotObj : plot->plotObjects()) {
+        if (selMod == SelMod::REPLACE)
+          objsSelected[plotObj] = false;
+        else
+          objsSelected[plotObj] = plotObj->isSelected();
+      }
+    });
+  }
+  else {
+    for (auto &plotObj : plotObjects()) {
+      if (selMod == SelMod::REPLACE)
+        objsSelected[plotObj] = false;
+      else
+        objsSelected[plotObj] = plotObj->isSelected();
+    }
   }
 
   //---
 
-  // get objects touching rectangle
+  // get objects inside/touching rectangle
   Objs objs;
 
-  objsTouchingRect(r, objs);
+  objsIntersectRect(r, objs, view()->isSelectInside());
 
   // change selection depending on selection modifier
   for (auto &obj : objs) {
@@ -4399,6 +4492,12 @@ keyPress(int key, int modifier)
     else
       cyclePrev();
   }
+  else if (key == Qt::Key_F1) {
+    if (! is_shift)
+      cycleNext();
+    else
+      cyclePrev();
+  }
   else
     return;
 }
@@ -4820,7 +4919,12 @@ plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &plotObjs) const
 {
   if (isOverlay()) {
     processOverlayPlots([&](const CQChartsPlot *plot) {
-      plot->plotObjTree_->objectsAtPoint(p, plotObjs);
+      CQChartsGeom::Point p1 = p;
+
+      if (plot != this)
+        p1 = plot->pixelToWindow(windowToPixel(p));
+
+      plot->plotObjTree_->objectsAtPoint(p1, plotObjs);
     });
   }
   else {
@@ -4830,13 +4934,18 @@ plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &plotObjs) const
 
 void
 CQChartsPlot::
-objsTouchingRect(const CQChartsGeom::BBox &r, Objs &objs) const
+objsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const
 {
   if (isOverlay()) {
     processOverlayPlots([&](const CQChartsPlot *plot) {
+      CQChartsGeom::BBox r1 = r;
+
+      if (plot != this)
+        r1 = windowToPixel(plot->pixelToWindow(r));
+
       PlotObjs plotObjs;
 
-      plot->plotObjTree_->objectsTouchingRect(r, plotObjs);
+      plot->plotObjTree_->objectsIntersectRect(r1, plotObjs, inside);
 
       for (const auto &plotObj : plotObjs)
         objs.push_back(plotObj);
@@ -4845,7 +4954,7 @@ objsTouchingRect(const CQChartsGeom::BBox &r, Objs &objs) const
   else {
     PlotObjs plotObjs;
 
-    plotObjTree_->objectsTouchingRect(r, plotObjs);
+    plotObjTree_->objectsIntersectRect(r, plotObjs, inside);
 
     for (const auto &plotObj : plotObjs)
       objs.push_back(plotObj);
@@ -4901,6 +5010,9 @@ updateKeyPosition(bool force)
 
   if (force)
     key()->invalidateLayout();
+
+  if (! dataRange_.isSet())
+    return;
 
   CQChartsGeom::BBox bbox = calcDataRange();
 
@@ -4999,16 +5111,31 @@ void
 CQChartsPlot::
 updateDraw()
 {
-  if (initObjTree_) {
-    initObjTree_ = false;
-
-    initObjTree();
-  }
+  // only draw first plot for overlay plots
+  if (isOverlay() && ! isFirstPlot())
+    return;
 
   //---
 
-  if (isOverlay() && ! isFirstPlot())
-    return;
+  // init object tree(s)
+  if (isOverlay()) {
+    processOverlayPlots([&](CQChartsPlot *plot) {
+      if (plot->initObjTree_) {
+        plot->initObjTree_ = false;
+
+        plot->initObjTree();
+      }
+    });
+  }
+  else {
+    if (initObjTree_) {
+      initObjTree_ = false;
+
+      initObjTree();
+    }
+  }
+
+  //---
 
   if (! isSequential()) {
     // ignore draw until after calc range and objs finished
@@ -5820,29 +5947,41 @@ drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType) const
 {
   CQPerfTrace trace("CQChartsPlot::drawObjs");
 
+  // set draw layer
   drawLayer_ = layerType;
-
-  CQChartsGeom::BBox bbox = displayRangeBBox();
 
   //---
 
+  // init painter (clipped)
   painter->save();
 
   setClipRect(painter);
 
+  //---
+
+  CQChartsGeom::BBox bbox = displayRangeBBox();
+
   for (const auto &plotObj : plotObjects()) {
+    // skip unselected objects on selection layer
     if      (layerType == CQChartsLayer::Type::SELECTION) {
       if (! plotObj->isSelected())
         continue;
     }
+    // skip non-inside objects on mouse over layer
     else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
       if (! plotObj->isInside())
         continue;
     }
 
+    //---
+
+    // skip objects not inside plor
     if (! bbox.overlaps(plotObj->rect()))
       continue;
 
+    //---
+
+    // draw object on layer
     if      (layerType == CQChartsLayer::Type::BG_PLOT)
       plotObj->drawBg(painter);
     else if (layerType == CQChartsLayer::Type::FG_PLOT)
@@ -5857,7 +5996,15 @@ drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType) const
       plotObj->draw  (painter);
       plotObj->drawFg(painter);
     }
+
+    //---
+
+    // show debug box
+    if (showBoxes())
+      plotObj->drawDebugRect(this, painter);
   }
+
+  //---
 
   painter->restore();
 }
@@ -7277,9 +7424,7 @@ drawWindowColorBox(QPainter *painter, const CQChartsGeom::BBox &bbox, const QCol
   if (! bbox.isSet())
     return;
 
-  CQChartsGeom::BBox prect;
-
-  windowToPixel(bbox, prect);
+  CQChartsGeom::BBox prect = windowToPixel(bbox);
 
   drawColorBox(painter, prect, c);
 }
@@ -7496,43 +7641,43 @@ limitLineWidth(double w) const
 
 void
 CQChartsPlot::
-updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush) const
+updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush, bool force) const
 {
   if (! view_->isBufferLayers()) {
     // inside and selected
     if      (obj->isInside() && obj->isSelected()) {
-      updateSelectedObjPenBrushState(pen, brush);
-      updateInsideObjPenBrushState  (pen, brush, false);
+      updateSelectedObjPenBrushState(pen, brush, force);
+      updateInsideObjPenBrushState  (pen, brush, /*outline*/false, force);
     }
     // inside
     else if (obj->isInside()) {
-      updateInsideObjPenBrushState(pen, brush);
+      updateInsideObjPenBrushState(pen, brush, /*outline*/true, force);
     }
     // selected
     else if (obj->isSelected()) {
-      updateSelectedObjPenBrushState(pen, brush);
+      updateSelectedObjPenBrushState(pen, brush, force);
     }
   }
   else {
     // inside
     if      (drawLayer_ == CQChartsLayer::Type::MOUSE_OVER) {
       if (obj->isInside())
-        updateInsideObjPenBrushState(pen, brush);
+        updateInsideObjPenBrushState(pen, brush, /*outline*/true, force);
     }
     // selected
     else if (drawLayer_ == CQChartsLayer::Type::SELECTION) {
       if (obj->isSelected())
-        updateSelectedObjPenBrushState(pen, brush);
+        updateSelectedObjPenBrushState(pen, brush, force);
     }
   }
 }
 
 void
 CQChartsPlot::
-updateInsideObjPenBrushState(QPen &pen, QBrush &brush, bool outline) const
+updateInsideObjPenBrushState(QPen &pen, QBrush &brush, bool outline, bool force) const
 {
   // fill and stroke
-  if (brush.style() != Qt::NoBrush) {
+  if (force || brush.style() != Qt::NoBrush) {
     if (view()->insideMode() == CQChartsView::HighlightDataMode::OUTLINE) {
       QColor opc;
       double alpha = 1.0;
@@ -7572,7 +7717,14 @@ updateInsideObjPenBrushState(QPen &pen, QBrush &brush, bool outline) const
       else
         ibc = insideColor(bc);
 
-      setBrush(brush, true, ibc, bc.alphaF(), view()->insideFillPattern());
+      double alpha = 1.0;
+
+      if (view_->isBufferLayers())
+        alpha = view()->insideFillAlpha()*bc.alphaF();
+      else
+        alpha = bc.alphaF();
+
+      setBrush(brush, true, ibc, alpha, view()->insideFillPattern());
     }
   }
   // just stroke
@@ -7593,10 +7745,10 @@ updateInsideObjPenBrushState(QPen &pen, QBrush &brush, bool outline) const
 
 void
 CQChartsPlot::
-updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const
+updateSelectedObjPenBrushState(QPen &pen, QBrush &brush, bool force) const
 {
   // fill and stroke
-  if      (brush.style() != Qt::NoBrush) {
+  if      (force || brush.style() != Qt::NoBrush) {
     if (view()->selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
       QColor opc;
       double alpha = 1.0;
@@ -7638,7 +7790,7 @@ updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const
       double alpha = 1.0;
 
       if (view_->isBufferLayers())
-        alpha = 0.5*bc.alphaF();
+        alpha = view()->selectedFillAlpha()*bc.alphaF();
       else
         alpha = bc.alphaF();
 

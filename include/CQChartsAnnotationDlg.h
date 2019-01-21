@@ -93,9 +93,11 @@ class CQChartsAnnotationDlg : public QDialog {
     CQAngleSpinBox*       backAngleEdit   { nullptr };
     CQCheckBox*           fheadCheck      { nullptr };
     CQCheckBox*           theadCheck      { nullptr };
-    CQCheckBox*           emptyCheck      { nullptr };
+//  CQCheckBox*           emptyCheck      { nullptr };
+    CQCheckBox*           lineEndsCheck   { nullptr };
     CQChartsLengthEdit*   lineWidthEdit   { nullptr };
-    CQColorChooser*       strokeColorEdit { nullptr };
+    CQChartsLengthEdit*   borderWidthEdit { nullptr };
+    CQColorChooser*       borderColorEdit { nullptr };
     CQCheckBox*           filledCheck     { nullptr };
     CQColorChooser*       fillColorEdit   { nullptr };
   };

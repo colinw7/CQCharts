@@ -995,7 +995,7 @@ draw(QPainter *painter)
 
   plot_->setSymbolPenBrush(pen, brush, iset_, nset_);
 
-  plot_->updateObjPenBrushState(this, pen, brush);
+  plot_->updateObjPenBrushState(this, pen, brush, /*force*/true);
 
   //---
 

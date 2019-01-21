@@ -95,7 +95,9 @@ struct CQChartsArrowData {
   double         backAngle { -1 };    // arrow back angle
   bool           fhead     { false }; // draw arrow head at front
   bool           thead     { true };  // draw arrow head at tail
-  bool           empty     { false }; // draw empty head (unfilled stroked)
+//bool           empty     { false }; // draw empty head (unfilled stroked)
+  bool           lineEnds  { false }; // lines at end
+  CQChartsLength lineWidth { -1 };    // connecting line width
 };
 
 #endif

@@ -419,10 +419,12 @@ class Range {
     y2_ = c.y + h/2;
   }
 
+  // supplied point inside this rect
   bool inside(double x, double y) const {
     return inside(Point(x, y));
   }
 
+  // supplied point inside this rect
   bool inside(const Point &point) const {
     if (! set_) return false;
 
@@ -621,10 +623,12 @@ class BBox {
     return true;
   }
 
+  // supplied point inside this rect
   bool inside(double x, double y) const {
     return inside(Point(x, y));
   }
 
+  // supplied point inside this rect
   bool inside(const Point &point) const {
     if (! set_) return false;
 
@@ -632,6 +636,7 @@ class BBox {
             (point.y >= pmin_.y && point.y <= pmax_.y));
   }
 
+  // supplied bbox inside this bbox
   bool inside(const BBox &bbox) const {
     if (! set_) return false;
 

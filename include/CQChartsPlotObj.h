@@ -58,10 +58,20 @@ class CQChartsPlotObj : public CQChartsObj {
   //---
 
   // is point inside (override if not simple rect shape)
-  virtual bool inside(const CQChartsGeom::Point &p) const { return rect_.inside(p); }
+  virtual bool inside(const CQChartsGeom::Point &p) const {
+    if (! isVisible()) return false;
+    return rect_.inside(p);
+  }
 
-  // is rect touching (override if not simple rect shape)
-  virtual bool touching(const CQChartsGeom::BBox &r) const { return rect_.overlaps(r); }
+  // is rect inside/touching (override if not simple rect shape)
+  virtual bool intersectRect(const CQChartsGeom::BBox &r, bool inside) const {
+    if (! isVisible()) return false;
+
+    if (inside)
+      return r.inside(rect_);
+    else
+      return r.overlaps(rect_);
+  }
 
   //virtual void postResize() { }
 

@@ -310,12 +310,18 @@ addProperties()
   addProperty("vectors", arrowObj_, "backAngle", "backAngle");
   addProperty("vectors", arrowObj_, "fhead"    , "fhead"    );
   addProperty("vectors", arrowObj_, "thead"    , "thead"    );
-  addProperty("vectors", arrowObj_, "empty"    , "empty"    );
+//addProperty("vectors", arrowObj_, "empty"    , "empty"    );
+  addProperty("vectors", arrowObj_, "filled"   , "filled"   );
+  addProperty("vectors", arrowObj_, "lineEnds" , "lineEnds" );
+  addProperty("vectors", arrowObj_, "lineWidth", "lineWidth");
 
   addProperty("vectors/stroke", arrowObj_, "border"     , "visible");
+  addProperty("vectors/stroke", arrowObj_, "borderColor", "color"  );
+  addProperty("vectors/stroke", arrowObj_, "borderAlpha", "alpha"  );
   addProperty("vectors/stroke", arrowObj_, "borderWidth", "width"  );
   addProperty("vectors/fill"  , arrowObj_, "filled"     , "visible");
   addProperty("vectors/fill"  , arrowObj_, "fillColor"  , "color"  );
+  addProperty("vectors/fill"  , arrowObj_, "fillAlpha"  , "alpha"  );
 
   // data label
   addProperty("dataLabel", this, "dataLabelTextVisible", "visible");
@@ -2008,7 +2014,7 @@ draw(QPainter *painter)
 
     plot_->setSymbolPenBrush(pen, brush, iset(), nset());
 
-    plot_->updateObjPenBrushState(this, pen, brush);
+    plot_->updateObjPenBrushState(this, pen, brush, /*force*/true);
 
     painter->setPen  (pen);
     painter->setBrush(brush);
@@ -2355,7 +2361,7 @@ draw(QPainter *painter)
     pen.setColor(strokeColor);
   }
 
-  plot()->updateObjPenBrushState(this, pen, brush);
+  plot()->updateObjPenBrushState(this, pen, brush, /*force*/true);
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -2594,6 +2600,16 @@ inside(const CQChartsGeom::Point &p) const
   }
 
   return false;
+}
+
+bool
+CQChartsXYPolylineObj::
+intersectRect(const CQChartsGeom::BBox &r, bool inside) const
+{
+  if (! plot()->isLinesSelectable())
+    return false;
+
+  return CQChartsPlotObj::intersectRect(r, inside);
 }
 
 bool
@@ -2851,6 +2867,16 @@ inside(const CQChartsGeom::Point &p) const
     return false;
 
   return poly_.containsPoint(CQChartsUtil::toQPoint(p), Qt::OddEvenFill);
+}
+
+bool
+CQChartsXYPolygonObj::
+intersectRect(const CQChartsGeom::BBox &r, bool inside) const
+{
+  if (! plot()->isFillUnderSelectable())
+    return false;
+
+  return CQChartsPlotObj::intersectRect(r, inside);
 }
 
 void

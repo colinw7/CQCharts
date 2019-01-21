@@ -9,6 +9,7 @@ class CQChartsPlotDlg;
 class CQIconCombo;
 class QToolButton;
 class QRadioButton;
+class QCheckBox;
 class QStackedWidget;
 
 class CQChartsViewToolBar : public QFrame {
@@ -25,6 +26,8 @@ class CQChartsViewToolBar : public QFrame {
   void modeSlot(int ind);
 
   void selectButtonClicked(int);
+
+  void selectInsideSlot(int state);
 
   void manageModelsSlot();
 
@@ -44,6 +47,7 @@ class CQChartsViewToolBar : public QFrame {
   CQIconCombo*      modeCombo_         { nullptr };
   QRadioButton*     selectPointButton_ { nullptr };
   QRadioButton*     selectRectButton_  { nullptr };
+  QCheckBox*        selectInsideCheck_ { nullptr };
   QToolButton*      modelDlgButton_    { nullptr };
   QToolButton*      plotDlgButton_     { nullptr };
   QToolButton*      autoFitButton_     { nullptr };

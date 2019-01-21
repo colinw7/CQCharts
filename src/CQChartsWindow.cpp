@@ -96,7 +96,7 @@ CQChartsWindow(CQChartsView *view) :
 
   QSplitter *settingsSplitter = new QSplitter;
 
-  settingsSplitter->setObjectName("viewSplitter");
+  settingsSplitter->setObjectName("hsplitter");
   settingsSplitter->setOrientation(Qt::Horizontal);
 
   layout->addWidget(settingsSplitter);
@@ -111,7 +111,7 @@ CQChartsWindow(CQChartsView *view) :
 
   QSplitter *viewSplitter = new QSplitter;
 
-  viewSplitter->setObjectName("viewSplitter");
+  viewSplitter->setObjectName("vsplitter");
   viewSplitter->setOrientation(Qt::Vertical);
 
   settingsSplitter->addWidget(viewSplitter);
@@ -128,6 +128,8 @@ CQChartsWindow(CQChartsView *view) :
   //---
 
   QFrame *viewFrame = new QFrame;
+
+  viewFrame->setObjectName("viewFrame");
 
   QGridLayout *viewLayout = new QGridLayout(viewFrame);
 

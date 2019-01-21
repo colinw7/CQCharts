@@ -133,17 +133,20 @@ objectsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const
 
 void
 CQChartsPlotObjTree::
-objectsTouchingRect(const CQChartsGeom::BBox &r, Objs &objs) const
+objectsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const
 {
   waitTree();
 
   if (plotObjTree_) {
     PlotObjTree::DataList dataList;
 
-    static_cast<PlotObjTree *>(plotObjTree_)->dataTouchingRect(r, dataList);
+    if (inside)
+      static_cast<PlotObjTree *>(plotObjTree_)->dataInsideRect(r, dataList);
+    else
+      static_cast<PlotObjTree *>(plotObjTree_)->dataTouchingRect(r, dataList);
 
     for (const auto &obj : dataList) {
-      if (obj->touching(r))
+      if (obj->intersectRect(r, inside))
         objs.push_back(obj);
     }
   }

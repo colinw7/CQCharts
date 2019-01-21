@@ -1713,7 +1713,10 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, arrow_, "backAngle");
   model->addProperty(path1, arrow_, "fhead"    );
   model->addProperty(path1, arrow_, "thead"    );
-  model->addProperty(path1, arrow_, "empty"    );
+//model->addProperty(path1, arrow_, "empty"    );
+  model->addProperty(path1, arrow_, "filled"   );
+  model->addProperty(path1, arrow_, "lineEnds" );
+  model->addProperty(path1, arrow_, "lineWidth");
 
   QString strokePath = path1 + "/stroke";
   QString fillPath   = path1 + "/fill";
@@ -1911,8 +1914,8 @@ write(std::ostream &os) const
   if (arrow()->isTHead())
     os << " -thead 1";
 
-  if (arrow()->isEmpty())
-    os << " -empty 1";
+//if (arrow()->isEmpty())
+//  os << " -empty 1";
 
   if (arrow()->borderWidth().isSet())
     os << " -line_width {" << arrow()->borderWidth().toString().toStdString() << "}";
@@ -2086,7 +2089,7 @@ draw(QPainter *painter)
                      pointData_.fill.pattern);
 
   if (plot())
-    plot()->updateObjPenBrushState(this, pen, brush);
+    plot()->updateObjPenBrushState(this, pen, brush, /*force*/true);
 
   painter->setPen  (pen);
   painter->setBrush(brush);

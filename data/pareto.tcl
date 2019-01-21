@@ -7,6 +7,11 @@ set nr [get_charts_data -model $model -name num_rows]
 
 set max [get_charts_data -model $model -column 2 -row [expr {$nr - 1}] -name value]
 
+set view [create_view]
+
+set_charts_property -view $view -name inside.highlight.mode -value FILL
+set_charts_property -view $view -name inside.highlight.fill.color -value red
+
 set plot1 [create_plot -model $model -type bar -columns "name=0,value=1" -ymax $max]
 
 set_charts_data -plot $plot1 -name updates_enabled -value 0
@@ -23,6 +28,7 @@ set_charts_data -plot $plot2 -name updates_enabled -value 0
 
 set_charts_property -plot $plot2 -name cumulative.enabled -value 1
 
+set_charts_property -plot $plot2 -name points.visible             -value 1
 set_charts_property -plot $plot2 -name points.symbol.type         -value circle
 set_charts_property -plot $plot2 -name points.symbol.size         -value 6px
 set_charts_property -plot $plot2 -name points.symbol.fill.visible -value 1
@@ -33,3 +39,8 @@ group_plots -y1y2 -overlay $plot1 $plot2
 
 set_charts_data -plot $plot1 -name updates_enabled -value 1
 set_charts_data -plot $plot2 -name updates_enabled -value 1
+
+set_charts_property -plot $plot1 -name margin.inner.left   -value 8px
+set_charts_property -plot $plot1 -name margin.inner.right  -value 8px
+set_charts_property -plot $plot1 -name margin.inner.bottom -value 8px
+set_charts_property -plot $plot1 -name margin.inner.top    -value 8px

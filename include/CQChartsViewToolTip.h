@@ -26,6 +26,8 @@ class CQChartsViewToolTip : public CQToolTipIFace {
 
   bool isHideKey(int key, Qt::KeyboardModifiers mod) const override;
 
+  bool grabKey() const override { return true; }
+
   QSize sizeHint() const override;
 
  private:

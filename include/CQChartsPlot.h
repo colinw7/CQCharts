@@ -1045,6 +1045,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void updatePlotObjs();
 
+  void resetInsideObjs();
+
   void updateGroupedDraw();
   void updateDraw();
 
@@ -1116,7 +1118,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void clearPlotObjects();
 
-  bool updatePlotObjects(const CQChartsGeom::Point &w);
+  bool updateInsideObjects(const CQChartsGeom::Point &w);
 
   CQChartsObj *insideObject() const;
 
@@ -1392,6 +1394,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void setLayersChanged(bool update);
 
+  void deselectAll1(bool &changed);
+
   //---
 
  public:
@@ -1579,10 +1583,12 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush) const;
+  void updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush,
+                              bool force=false) const;
 
-  void updateInsideObjPenBrushState  (QPen &pen, QBrush &brush, bool outline=true) const;
-  void updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const;
+  void updateInsideObjPenBrushState  (QPen &pen, QBrush &brush, bool outline=true,
+                                      bool force=false) const;
+  void updateSelectedObjPenBrushState(QPen &pen, QBrush &brush, bool force=false) const;
 
   QColor insideColor(const QColor &c) const;
   QColor selectedColor(const QColor &c) const;
@@ -1753,7 +1759,7 @@ class CQChartsPlot : public CQChartsObj,
 
   void plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const;
 
-  void objsTouchingRect(const CQChartsGeom::BBox &r, Objs &objs) const;
+  void objsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const;
 
  protected:
   enum class UpdateState {
@@ -1944,7 +1950,16 @@ class CQChartsPlot : public CQChartsObj,
     bool      updateObjs         { false }; // call updateObjs (on enable)
     bool      applyDataRange     { false }; // call applyDataRange (on enable)
     bool      invalidateLayers   { false }; // call needsInvalidate invalidate (on enable)
-    StateFlag stateFlag;
+    StateFlag stateFlag;                    // state flags
+
+    void reset() {
+      updateRangeAndObjs = false;
+      updateObjs         = false;
+      applyDataRange     = false;
+      invalidateLayers   = false;
+
+      //stateFlag.clear();
+    }
   };
 
   //---

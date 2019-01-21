@@ -12,6 +12,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsTip.h>
 #include <CQChartsDataLabel.h>
+#include <CQChartsGrahamHull.h>
 #include <CQCharts.h>
 #include <CQPerfMonitor.h>
 #include <CMathCorrelation.h>
@@ -978,6 +979,9 @@ createObjs(PlotObjs &objs) const
   if (groupNameValues_.empty())
     addNameValues();
 
+  for (const auto &ghull : th->groupHull_)
+    delete ghull.second;
+
   th->groupPoints_  .clear();
   th->groupFitData_ .clear();
   th->groupHull_    .clear();
@@ -1831,34 +1835,35 @@ drawHull(QPainter *painter) const
 
     auto ph = groupHull_.find(groupInd);
 
-    if (ph != groupHull_.end()) {
-      const CQChartsGrahamHull &hull = (*ph).second;
+    if (ph == groupHull_.end()) {
+      CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
 
-      if (hull.numPoints() == 0) {
-        CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+      auto ph1 = th->groupHull_.insert(th->groupHull_.end(),
+                   GroupHull::value_type(groupInd, new CQChartsGrahamHull));
 
-        CQChartsGrahamHull &hull = th->groupHull_[groupInd];
+      CQChartsGrahamHull *hull = (*ph1).second;
 
-        const Points &points = th->groupPoints_[groupInd];
+      const Points &points = th->groupPoints_[groupInd];
 
-        //---
+      //---
 
-        std::vector<double> x, y;
+      std::vector<double> x, y;
 
-        for (const auto &p : points) {
-          if (isInterrupt())
-            return;
+      for (const auto &p : points) {
+        if (isInterrupt())
+          return;
 
-          hull.addPoint(p);
-        }
-
-        hull.calc();
+        hull->addPoint(p);
       }
+
+      hull->calc();
+
+      //---
 
       ph = groupHull_.find(groupInd);
     }
 
-    const CQChartsGrahamHull &hull = (*ph).second;
+    const CQChartsGrahamHull *hull = (*ph).second;
 
     //---
 
@@ -1875,7 +1880,7 @@ drawHull(QPainter *painter) const
 
     //---
 
-    hull.draw(this, painter);
+    hull->draw(this, painter);
 
     //---
 
@@ -2173,8 +2178,8 @@ drawDensityMap(QPainter *painter) const
 
           QPointF p = pixelToWindow(QPointF(x, y));
 
-          double x1 = (p.x() - xmin)/(xmax - xmin);
-          double y1 = (p.y() - ymin)/(ymax - ymin);
+          double x1 = (xmax > xmin ? (p.x() - xmin)/(xmax - xmin) : 0.0);
+          double y1 = (ymax > ymin ? (p.y() - ymin)/(ymax - ymin) : 0.0);
 
           double a = 1.0;
           double v = bivariate.calc(x1, y1);
@@ -3135,7 +3140,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
     brush.setColor(c);
   }
 
-  plot_->updateObjPenBrushState(this, pen, brush);
+  plot_->updateObjPenBrushState(this, pen, brush, /*force*/true);
 
   painter->setPen  (pen);
   painter->setBrush(brush);

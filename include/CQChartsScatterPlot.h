@@ -3,13 +3,13 @@
 
 #include <CQChartsGroupPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsGrahamHull.h>
 #include <CQChartsBoxWhisker.h>
 #include <CQChartsFitData.h>
 #include <CInterval.h>
 
 class CQChartsScatterPlot;
 class CQChartsDataLabel;
+class CQChartsGrahamHull;
 
 //---
 
@@ -689,7 +689,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   using GroupPoints   = std::map<int,Points>;
   using GroupFitData  = std::map<int,CQChartsFitData>;
-  using GroupHull     = std::map<int,CQChartsGrahamHull>;
+  using GroupHull     = std::map<int,CQChartsGrahamHull *>;
   using GroupWhiskers = std::map<int,WhiskerData>;
 
   struct BestFitData {

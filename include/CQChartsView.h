@@ -40,6 +40,7 @@ struct CQChartsTextOptions;
 class QPainter;
 class QToolButton;
 class QRubberBand;
+class QScrollBar;
 class QLabel;
 class QMenu;
 
@@ -59,9 +60,12 @@ class CQChartsView : public QFrame,
 
   CQCHARTS_NAMED_FILL_DATA_PROPERTIES(Background,background)
 
-  // edit, select mode
-  Q_PROPERTY(Mode       mode       READ mode       WRITE setMode      )
-  Q_PROPERTY(SelectMode selectMode READ selectMode WRITE setSelectMode)
+  // mode
+  Q_PROPERTY(Mode mode READ mode WRITE setMode)
+
+  // select mode
+  Q_PROPERTY(SelectMode selectMode   READ selectMode     WRITE setSelectMode  )
+  Q_PROPERTY(bool       selectInside READ isSelectInside WRITE setSelectInside)
 
   // theme
   Q_PROPERTY(CQChartsTheme theme READ theme  WRITE setTheme)
@@ -90,9 +94,15 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(bool        antiAlias      READ isAntiAlias    WRITE setAntiAlias   )
   Q_PROPERTY(bool        bufferLayers   READ isBufferLayers WRITE setBufferLayers)
   Q_PROPERTY(bool        preview        READ isPreview      WRITE setPreview     )
-  Q_PROPERTY(bool        scaleFont      READ isScaleFont    WRITE setScaleFont   )
-  Q_PROPERTY(double      fontFactor     READ fontFactor     WRITE setFontFactor  )
   Q_PROPERTY(PosTextType posTextType    READ posTextType    WRITE setPosTextType )
+
+  // fixed size
+  Q_PROPERTY(bool  autoSize  READ isAutoSize WRITE setAutoSize )
+  Q_PROPERTY(QSize fixedSize READ fixedSize  WRITE setFixedSize)
+
+  // font scaling/factor
+  Q_PROPERTY(bool   scaleFont  READ isScaleFont WRITE setScaleFont )
+  Q_PROPERTY(double fontFactor READ fontFactor  WRITE setFontFactor)
 
   Q_ENUMS(Mode)
   Q_ENUMS(SelectMode)
@@ -168,11 +178,18 @@ class CQChartsView : public QFrame,
   int currentPlotInd() const { return currentPlotInd_; }
   void setCurrentPlotInd(int i);
 
+  //---
+
   const Mode &mode() const { return mode_; }
   void setMode(const Mode &m);
 
+  //---
+
   const SelectMode &selectMode() const { return selectMode_; }
   void setSelectMode(const SelectMode &m);
+
+  bool isSelectInside() const { return selectInside_; }
+  void setSelectInside(bool b) { selectInside_ = b; }
 
   //---
 
@@ -225,23 +242,41 @@ class CQChartsView : public QFrame,
   bool isAntiAlias() const { return antiAlias_; }
   void setAntiAlias(bool b);
 
+  //bool isShowTable() const { return showTable_; }
+  //void setShowTable(bool b);
+
   bool isBufferLayers() const { return bufferLayers_; }
   void setBufferLayers(bool b);
 
   bool isPreview() const { return preview_; }
   void setPreview(bool b);
 
+  //---
+
+  // auto/fixed size
+  bool isAutoSize() const { return sizeData_.autoSize; }
+
+  QSize fixedSize() const { return QSize(sizeData_.width, sizeData_.height); }
+  void setFixedSize(const QSize &size);
+
+  //---
+
+  // font scaling
   bool isScaleFont() const { return scaleFont_; }
   void setScaleFont(bool b);
 
   double fontFactor() const { return fontFactor_; }
   void setFontFactor(double r);
 
+  //---
+
+  // position text type
   const PosTextType &posTextType() const { return posTextType_; }
   void setPosTextType(const PosTextType &t);
 
   //---
 
+  // theme
   CQChartsThemeObj *themeObj();
   const CQChartsThemeObj *themeObj() const;
 
@@ -250,21 +285,25 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // palettes
   CQChartsGradientPalette *interfacePalette() const;
 
   CQChartsGradientPalette *themeGroupPalette(int i, int n) const;
 
   CQChartsGradientPalette *themePalette(int ind=0) const;
 
+  // is dark
   bool isDark() const;
   void setDark(bool b);
 
   //---
 
+  // property model
   CQPropertyViewModel *propertyModel() const { return propertyModel_; }
 
   //---
 
+  // get/set properties
   bool setProperties(const QString &properties);
 
   bool setProperty(const QString &name, const QVariant &value);
@@ -277,10 +316,12 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // view key
   CQChartsViewKey *key() const { return keyObj_; }
 
   //---
 
+  // add/get/modify plots
   void addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox=CQChartsGeom::BBox());
 
   int numPlots() const { return plots_.size(); }
@@ -298,6 +339,9 @@ class CQChartsView : public QFrame,
 
   void removeAllPlots();
 
+  //---
+
+  // select
   void deselectAll();
 
   void startSelection();
@@ -306,7 +350,6 @@ class CQChartsView : public QFrame,
   //---
 
   // annotations
-
   const Annotations &annotations() const { return annotations_; }
 
   CQChartsTextAnnotation     *addTextAnnotation    (const CQChartsPosition &pos,
@@ -334,6 +377,7 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // group plots (overlay, x1/x2, y1/y2)
   void resetGrouping();
 
   void initOverlay(const Plots &plots, bool reset=false);
@@ -343,10 +387,12 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // place plots
   void placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int columns);
 
   //---
 
+  // interp palette/theme color
   QColor interpPaletteColor(double r, bool scale=false) const;
   QColor interpIndPaletteColor(int ind, double r, bool scale=false) const;
   QColor interpGroupPaletteColor(int ig, int ng, double r, bool scale) const;
@@ -355,6 +401,7 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // Qt event handling
   void mousePressEvent  (QMouseEvent *me) override;
   void mouseMoveEvent   (QMouseEvent *me) override;
   void mouseReleaseEvent(QMouseEvent *me) override;
@@ -366,12 +413,14 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // handle resize
   void resizeEvent(QResizeEvent *) override;
 
   void doResize(int w, int h);
 
   //---
 
+  // handle paint
   void paintEvent(QPaintEvent *) override;
 
   void paint(QPainter *painter, CQChartsPlot *plot=nullptr);
@@ -380,11 +429,13 @@ class CQChartsView : public QFrame,
 
   //---
 
-  void printPNG(const QString &filename, CQChartsPlot *plot=nullptr);
-  void printSVG(const QString &filename, CQChartsPlot *plot=nullptr);
+  // print to PNG/SVG
+  bool printPNG(const QString &filename, CQChartsPlot *plot=nullptr);
+  bool printSVG(const QString &filename, CQChartsPlot *plot=nullptr);
 
   //---
 
+  // set pen/brush
   void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha=1.0,
               const CQChartsLength &strokeWidth=CQChartsLength("0px"),
               const CQChartsLineDash &strokeDash=CQChartsLineDash()) const;
@@ -394,6 +445,7 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // drae text helpers
   static void drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
                             const QPen &pen, const CQChartsTextOptions &options);
   static void drawContrastText(QPainter *painter, double x, double y, const QString &text,
@@ -401,18 +453,24 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // cycle and edit
   void cycleEdit();
 
   void editObjs(Objs &objs);
 
   //---
 
+  // probe lines
   void showProbeLines(const QPointF &p);
 
+  //---
+
+  // update cursor position text
   void updatePosText(const QPointF &pos);
 
   //---
 
+  // handle region rubberband
   void startRegionBand(const QPoint &pos);
   void updateRegionBand(CQChartsPlot *plot, const QPoint &pressPoint, const QPoint &movePoint);
   void updateRegionBand(const QPoint &pressPoint, const QPoint &movePoint);
@@ -420,45 +478,56 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // update selected text
   void updateSelText();
 
+  //---
+
+  // get selected objects
   void selectedObjs(Objs &objs) const;
 
   void allSelectedObjs(Objs &objs) const;
 
   //---
 
+  // show context menu
   void showMenu(const QPoint &p);
 
   QPointF menuPos() const { return mouseData_.pressPoint; }
 
   //---
 
+  // get plots
   bool plots(Plots &plots, bool clear=true) const;
 
   bool basePlots(PlotSet &plots, bool clear=true) const;
 
+  // get plots at point
   CQChartsPlot *plotAt(const CQChartsGeom::Point &p) const;
 
   bool plotsAt(const CQChartsGeom::Point &p, Plots &plots, CQChartsPlot* &plot,
-               bool clear=true) const;
+               bool clear=true, bool first=false) const;
 
   bool plotsAt(const CQChartsGeom::Point &p, Plots &plots, bool clear=true) const;
 
   bool basePlotsAt(const CQChartsGeom::Point &p, PlotSet &plots, bool clear=true) const;
 
+  // get plot bbox
   CQChartsGeom::BBox plotBBox(CQChartsPlot *plot) const;
 
   //---
 
+  // convert plot to/from index
   int plotInd(CQChartsPlot *plot) const;
-
-  CQChartsPlot *currentPlot(bool remap=true) const;
 
   CQChartsPlot *getPlotForInd(int ind) const;
 
+  // get current plot
+  CQChartsPlot *currentPlot(bool remap=true) const;
+
   //---
 
+  // virtual to handle status text display
   virtual void setPosText(const QString &text);
 
   virtual void setStatusText(const QString &text);
@@ -467,12 +536,14 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // scroll left/right
   void scrollLeft();
   void scrollRight();
   void updateScroll();
 
   //---
 
+  // update palette/theme colors
   void setPaletteColors1();
   void setPaletteColors2();
 
@@ -483,9 +554,11 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // position, rect, length coordinate conversions
   QPointF positionToView (const CQChartsPosition &pos) const;
   QPointF positionToPixel(const CQChartsPosition &pos) const;
 
+  // rect
   QRectF rectToView (const CQChartsRect &rect) const;
   QRectF rectToPixel(const CQChartsRect &rect) const;
 
@@ -497,6 +570,7 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // coordinate conversions
   void windowToPixel(double wx, double wy, double &px, double &py) const;
   void pixelToWindow(double px, double py, double &wx, double &wy) const;
 
@@ -520,51 +594,78 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // get pixel rect
   const CQChartsGeom::BBox prect() const { return prect_; }
 
+  // get aspect
   double aspect() const { return aspect_; }
 
   //---
 
+  // get/set view size hint
   const QSize &viewSizeHint() const { return viewSizeHint_; }
   void setViewSizeHint(const QSize &s) { viewSizeHint_ = s; }
 
   QSize sizeHint() const override;
 
  signals:
+  // emitted when user asks to show table
+  //void showTable(bool b);
+
+  // emitted when current mode changed
   void modeChanged();
 
+  // emitted when selection mode changed
   void selectModeChanged();
 
+  // emitted when interface or theme palettes changed
   void interfacePaletteChanged();
   void themePalettesChanged();
 
+  // emitted when status text changes
   void statusTextChanged(const QString &text);
 
+  // emitted when position text changes
   void posTextChanged(const QString &text);
 
+  // emitted when selection text changed
   void selTextChanged(const QString &text);
 
+  // emitted when current plot changed
   void currentPlotChanged();
 
+  // emitted when plot added
   void plotAdded(CQChartsPlot *);
   void plotAdded(const QString &id);
+
+  // emitted when plot removed
   void plotRemoved(const QString &id);
+  // emitted when all plots removed
   void allPlotsRemoved();
+
+  // emitted when plots changed
   void plotsChanged();
+
+  // emitted when plots reordered
   void plotsReordered();
 
+  // emitted when plot connect data changed
   void plotConnectDataChanged(const QString &id);
   void connectDataChanged();
 
+  // emitted when annotation pressed
   void annotationPressed(CQChartsAnnotation *);
   void annotationIdPressed(const QString &);
 
+  // emitted when annotations changed
   void annotationsChanged();
 
+  // emitted when selection changed
   void selectionChanged();
 
  public slots:
+  void setAutoSize(bool b);
+
   void plotModelChanged();
   void plotConnectDataChangedSlot();
 
@@ -611,7 +712,7 @@ class CQChartsView : public QFrame,
 
   //---
 
-  void printFile(const QString &filename, CQChartsPlot *plot=nullptr);
+  bool printFile(const QString &filename, CQChartsPlot *plot=nullptr);
 
   void printPNGSlot();
   void printPNGSlot(const QString &filename);
@@ -630,19 +731,30 @@ class CQChartsView : public QFrame,
   void xRangeMapSlot(bool b);
   void yRangeMapSlot(bool b);
 
+  //void showTableSlot(bool b);
   void dataTableSlot(bool b);
+
   void viewSettingsSlot(bool b);
+
+  //---
+
+  void resizeToView();
 
   //---
 
   void currentPlotSlot();
 
  private slots:
+  void hbarScrollSlot(int pos);
+  void vbarScrollSlot(int pos);
+
   void currentPlotZoomPanChanged();
 
   void updateAnnotationSlot();
 
  private:
+  void selectPointPress();
+
   void resetConnections(bool notify);
 
   void initOverlayPlot(CQChartsPlot *firstPlot);
@@ -669,13 +781,14 @@ class CQChartsView : public QFrame,
 
  private:
   struct MouseData {
-    Plots         plots;
-    CQChartsPlot* plot      { nullptr };
-    QPoint        pressPoint;
-    QPoint        movePoint;
-    bool          pressed   { false };
-    bool          escape    { false };
-    int           button    { Qt::NoButton };
+    Plots          plots;
+    CQChartsPlot*  plot      { nullptr };
+    QPoint         pressPoint;
+    QPoint         movePoint;
+    bool           pressed   { false };
+    bool           escape    { false };
+    int            button    { Qt::NoButton };
+    CQChartsSelMod selMod    { CQChartsSelMod::REPLACE };
 
     void reset() {
       plots.clear();
@@ -684,6 +797,7 @@ class CQChartsView : public QFrame,
       pressed = false;
       escape  = false;
       button  = Qt::NoButton;
+      selMod  = CQChartsSelMod::REPLACE;
     }
   };
 
@@ -692,6 +806,17 @@ class CQChartsView : public QFrame,
 
     bool isOutline() const { return int(mode) & int(HighlightDataMode::OUTLINE); }
     bool isFill   () const { return int(mode) & int(HighlightDataMode::FILL   ); }
+  };
+
+  struct SizeData {
+    bool        autoSize { true };
+    bool        sizeSet  { false };
+    int         width    { 800 };
+    int         height   { 800 };
+    QScrollBar* hbar     { nullptr };
+    QScrollBar* vbar     { nullptr };
+    int         xpos     { 0 };
+    int         ypos     { 0 };
   };
 
   struct ScrollData {
@@ -718,16 +843,19 @@ class CQChartsView : public QFrame,
   int                   currentPlotInd_   { -1 };                // current plot index
   Annotations           annotations_;                            // annotations
   Mode                  mode_             { Mode::SELECT };      // mouse mode
-  SelectMode            selectMode_       { SelectMode::POINT }; // selection sub mode
+  SelectMode            selectMode_       { SelectMode::RECT };  // selection sub mode
+  bool                  selectInside_     { true };              // select inside/touching
   int                   selecting_        { 0 };                 // selecting depth
   HighlightData         selectedHighlight_;                      // select highlight
   HighlightData         insideHighlight_;                        // inside highlight
   bool                  zoomData_         { true };              // zoom data
   ScrollData            scrollData_;                             // scroll data
   bool                  antiAlias_        { true };              // anit alias
+//bool                  showTable_        { false };             // show table with plot
   bool                  bufferLayers_     { true };              // buffer draw layers
   bool                  preview_          { false };             // preview
   bool                  scaleFont_        { true };              // auto scale font
+  SizeData              sizeData_;                               // size control
   double                fontFactor_       { 1.0 };               // font scale factor
   PosTextType           posTextType_      { PosTextType::PLOT }; // position text type
   CQChartsGeom::BBox    prect_            { 0, 0, 100, 100 };    // plot rect
@@ -740,7 +868,7 @@ class CQChartsView : public QFrame,
   ProbeBands            probeBands_;                             // probe lines
   QMenu*                popupMenu_        { nullptr };           // context menu
   QSize                 viewSizeHint_;                           // view size hint
-  mutable std::mutex    painterMutex_;
+  mutable std::mutex    painterMutex_;                           // painter mutex
 };
 
 #endif

@@ -8,7 +8,9 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsCmds.h>
 #include <CQChartsModelDlg.h>
+#include <CQChartsInput.h>
 #include <CQCharts.h>
+#include <CQChartsReadLine.h>
 
 #include <CQSortModel.h>
 
@@ -21,9 +23,7 @@
 #include <CQMsgHandler.h>
 #include <CQPerfMonitor.h>
 #include <CQUtil.h>
-#include <CReadLine.h>
 
-#include <QFile>
 #include <QTextStream>
 
 #include <mcheck.h>
@@ -1117,38 +1117,10 @@ bool
 CQChartsTest::
 exec(const QString &filename)
 {
-  // open file
-  QFile file(filename);
-
-  if (! file.open(QIODevice::ReadOnly))
-    return false;
-
-  // read lines
-  QTextStream in(&file);
-
-  while (! in.atEnd()) {
-    QString line = in.readLine();
-
-    bool join;
-
-    while (! CQChartsCmds::isCompleteLine(line, join)) {
-      if (in.atEnd())
-        break;
-
-      QString line1 = in.readLine();
-
-      if (! join)
-        line += "\n" + line1;
-      else
-        line += line1;
-    }
-
-    cmds_->parseLine(line, /*log*/false);
-  }
-
-  file.close();
-
-  return true;
+  return CQChartsInput::processFileLines(filename,
+    [&](QString &line, bool &join) { return CQChartsCmdBase::isCompleteLine(line, join); },
+    [&](const QString &line) { cmds_->cmdBase()->parseLine(line, /*log*/false); }
+  );
 }
 
 //------
@@ -1173,20 +1145,6 @@ print(const QString &filename)
 
 //------
 
-class CQChartsReadLine : public CReadLine {
- public:
-  CQChartsReadLine(CQChartsTest *test) :
-   test_(test) {
-  }
-
-  void timeout() {
-    test_->timeout();
-  }
-
- private:
-  CQChartsTest *test_;
-};
-
 void
 CQChartsTest::
 loop()
@@ -1197,28 +1155,10 @@ loop()
 
   readLine->enableTimeoutHook(rlTimeout);
 
-  for (;;) {
-    readLine->setPrompt("> ");
-
-    QString line = readLine->readLine().c_str();
-
-    bool join;
-
-    while (! CQChartsCmds::isCompleteLine(line, join)) {
-      readLine->setPrompt("+> ");
-
-      QString line1 = readLine->readLine().c_str();
-
-      if (! join)
-        line += "\n" + line1;
-      else
-        line += line1;
-    }
-
-    cmds_->parseLine(line);
-
-    readLine->addHistory(line.toStdString());
-  }
+  CQChartsInput::readLineLoop(readLine,
+   [&](QString &line, bool &join) { return CQChartsCmdBase::isCompleteLine(line, join); },
+   [&](const QString &line) { cmds_->cmdBase()->parseLine(line); }
+  );
 }
 
 void

@@ -355,6 +355,8 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
+  bool intersectRect(const CQChartsGeom::BBox &r, bool inside) const override;
+
   bool interpY(double x, std::vector<double> &yvals) const;
 
   void getSelectIndices(Indices &inds) const override;
@@ -417,6 +419,8 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   bool visible() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
+
+  bool intersectRect(const CQChartsGeom::BBox &r, bool inside) const override;
 
   void getSelectIndices(Indices &inds) const override;
 

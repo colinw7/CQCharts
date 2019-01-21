@@ -25,6 +25,9 @@ class CQChartsColumnsEdit : public QFrame {
   const CQChartsColumns &columns() const;
   void setColumns(const CQChartsColumns &c);
 
+  QString text() const;
+  void setText(const QString &s);
+
   QString placeholderText() const;
   void setPlaceholderText(const QString &s);
 

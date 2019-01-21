@@ -14,16 +14,32 @@ QMAKE_CXXFLAGS += \
 MOC_DIR = .moc
 
 SOURCES += \
-CQChartsTest.cpp \
-CQChartsCmds.cpp \
-CQChartsAppWindow.cpp \
 CQAppWindow.cpp \
+CQChartsAppWindow.cpp \
+CQChartsCmdArg.cpp \
+CQChartsCmdArgs.cpp \
+CQChartsCmdBase.cpp \
+CQChartsCmdGroup.cpp \
+CQChartsCmds.cpp \
+CQChartsInitData.cpp \
+CQChartsReadLine.cpp \
+CQChartsTest.cpp \
 
 HEADERS += \
-CQChartsTest.h \
-CQChartsCmds.h \
-CQChartsAppWindow.h \
 CQAppWindow.h \
+CQChartsAppWindow.h \
+CQChartsCmdArg.h \
+CQChartsCmdArgs.h \
+CQChartsCmdBase.h \
+CQChartsCmdGroup.h \
+CQChartsCmdsArgs.h \
+CQChartsCmds.h \
+CQChartsInitData.h \
+CQChartsInput.h \
+CQChartsNameValueData.h \
+CQChartsPaletteColorData.h \
+CQChartsReadLine.h \
+CQChartsTest.h \
 
 DESTDIR     = ../bin
 OBJECTS_DIR = ../obj

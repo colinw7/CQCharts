@@ -246,6 +246,8 @@ class CQChartsBarKeyText : public CQChartsKeyText {
   CQChartsBarKeyText(CQChartsBarChartPlot *plot, const QString &text, int i, int n);
 
   QColor interpTextColor(int i, int n) const override;
+
+  bool isSetHidden() const;
 };
 
 //---

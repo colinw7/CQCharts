@@ -1035,9 +1035,7 @@ draw(QPainter *painter)
   //---
 
   // draw node
-  CQChartsGeom::BBox prect;
-
-  plot_->windowToPixel(rect_, prect);
+  CQChartsGeom::BBox prect = plot_->windowToPixel(rect_);
 
   double px1 = prect.getXMin();
   double py1 = prect.getYMin();
@@ -1063,9 +1061,7 @@ drawFg(QPainter *painter) const
   if (! plot_->isTextVisible())
     return;
 
-  CQChartsGeom::BBox prect;
-
-  plot_->windowToPixel(rect_, prect);
+  CQChartsGeom::BBox prect = plot_->windowToPixel(rect_);
 
   int numNodes = plot_->numNodes();
 
@@ -1124,9 +1120,7 @@ bool
 CQChartsSankeyEdgeObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  CQChartsGeom::Point p1;
-
-  plot_->windowToPixel(p, p1);
+  CQChartsGeom::Point p1 = plot_->windowToPixel(p);
 
   return path_.contains(CQChartsUtil::toQPoint(p1));
 }
@@ -1167,10 +1161,8 @@ draw(QPainter *painter)
   const CQChartsGeom::BBox &srcRect  = edge_->srcNode ()->obj()->destEdgeRect(edge_);
   const CQChartsGeom::BBox &destRect = edge_->destNode()->obj()->srcEdgeRect (edge_);
 
-  CQChartsGeom::BBox psrcRect, pdestRect;
-
-  plot_->windowToPixel(srcRect , psrcRect );
-  plot_->windowToPixel(destRect, pdestRect);
+  CQChartsGeom::BBox psrcRect  = plot_->windowToPixel(srcRect);
+  CQChartsGeom::BBox pdestRect = plot_->windowToPixel(destRect);
 
   double px1 = psrcRect .getXMax();
   double px2 = pdestRect.getXMin();

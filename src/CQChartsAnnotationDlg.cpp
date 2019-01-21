@@ -323,9 +323,11 @@ createArrowFrame()
   arrowWidgets_.backAngleEdit   = new CQAngleSpinBox;
   arrowWidgets_.fheadCheck      = new CQCheckBox;
   arrowWidgets_.theadCheck      = new CQCheckBox;
-  arrowWidgets_.emptyCheck      = new CQCheckBox;
+//arrowWidgets_.emptyCheck      = new CQCheckBox;
+  arrowWidgets_.lineEndsCheck   = new CQCheckBox;
   arrowWidgets_.lineWidthEdit   = new CQChartsLengthEdit;
-  arrowWidgets_.strokeColorEdit = new CQColorChooser;
+  arrowWidgets_.borderWidthEdit = new CQChartsLengthEdit;
+  arrowWidgets_.borderColorEdit = new CQColorChooser;
   arrowWidgets_.filledCheck     = new CQCheckBox;
   arrowWidgets_.fillColorEdit   = new CQColorChooser;
 
@@ -338,9 +340,11 @@ createArrowFrame()
   addGridLabelWidget(gridLayout, "Back Angle"  , arrowWidgets_.backAngleEdit  , row);
   addGridLabelWidget(gridLayout, "Front Head"  , arrowWidgets_.fheadCheck     , row);
   addGridLabelWidget(gridLayout, "Tail Head"   , arrowWidgets_.theadCheck     , row);
-  addGridLabelWidget(gridLayout, "Empty"       , arrowWidgets_.emptyCheck     , row);
+//addGridLabelWidget(gridLayout, "Empty"       , arrowWidgets_.emptyCheck     , row);
+  addGridLabelWidget(gridLayout, "Line Ends"   , arrowWidgets_.lineEndsCheck  , row);
   addGridLabelWidget(gridLayout, "Line Width"  , arrowWidgets_.lineWidthEdit  , row);
-  addGridLabelWidget(gridLayout, "Stroke Color", arrowWidgets_.strokeColorEdit, row);
+  addGridLabelWidget(gridLayout, "Border Width", arrowWidgets_.borderWidthEdit, row);
+  addGridLabelWidget(gridLayout, "Border Color", arrowWidgets_.borderColorEdit, row);
   addGridLabelWidget(gridLayout, "Filled"      , arrowWidgets_.filledCheck    , row);
   addGridLabelWidget(gridLayout, "Fill Color"  , arrowWidgets_.fillColorEdit  , row);
 
@@ -810,15 +814,17 @@ createArrowAnnotation()
   arrowData.backAngle = arrowWidgets_.backAngleEdit->value();
   arrowData.fhead     = arrowWidgets_.fheadCheck->isChecked();
   arrowData.thead     = arrowWidgets_.theadCheck->isChecked();
-  arrowData.empty     = arrowWidgets_.emptyCheck->isChecked();
+//arrowData.empty     = arrowWidgets_.emptyCheck->isChecked();
+  arrowData.lineEnds  = arrowWidgets_.lineEndsCheck->isChecked();
+  arrowData.lineWidth = arrowWidgets_.lineWidthEdit->length();
 
   CQChartsShapeData shapeData;
 
   CQChartsStrokeData &stroke = shapeData.border;
   CQChartsFillData   &fill   = shapeData.background;
 
-  stroke.width = arrowWidgets_.lineWidthEdit->length();
-  stroke.color = arrowWidgets_.strokeColorEdit->color();
+  stroke.width = arrowWidgets_.borderWidthEdit->length();
+  stroke.color = arrowWidgets_.borderColorEdit->color();
 
   fill.visible = arrowWidgets_.filledCheck->isChecked();
   fill.color   = arrowWidgets_.fillColorEdit->color();

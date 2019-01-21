@@ -737,3 +737,12 @@
  + Ensure column type cache works for non registered QAbstractModel data
  + Improve view key rendering and add to context menu
  + Fix redraw of dragged edited objects when threads active
+# 1/20/2018
+ + Support line ends and connecting line width for xy vector/annotation arrow
+ + improve handling of inside object/selected object in overlap plots
+ + support fixed size view
+ + smart rect select to do point select if no drag
+ + support rect inside/touching
+ + support cycle select with F1 key
+ + separate out cmd processing classes
+ + resize property view on show

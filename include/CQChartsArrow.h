@@ -1,5 +1,5 @@
-#ifndef CQChartsArrow_H
-#define CQChartsArrow_H
+#ifndef CQArrow_H
+#define CQArrow_H
 
 #include <CQChartsObjData.h>
 #include <QObject>
@@ -23,7 +23,8 @@ class CQChartsArrow : public QObject,
   Q_PROPERTY(double         backAngle READ backAngle  WRITE setBackAngle)
   Q_PROPERTY(bool           fhead     READ isFHead    WRITE setFHead    )
   Q_PROPERTY(bool           thead     READ isTHead    WRITE setTHead    )
-  Q_PROPERTY(bool           empty     READ isEmpty    WRITE setEmpty    )
+  Q_PROPERTY(bool           lineEnds  READ isLineEnds WRITE setLineEnds )
+  Q_PROPERTY(CQChartsLength lineWidth READ lineWidth  WRITE setLineWidth)
 
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
@@ -65,19 +66,24 @@ class CQChartsArrow : public QObject,
   bool isTHead() const { return data_.thead; }
   void setTHead(bool b) { data_.thead = b; emit dataChanged(); }
 
-  bool isEmpty() const { return data_.empty; }
-  void setEmpty(bool b) { data_.empty = b; emit dataChanged(); }
+  bool isLineEnds() const { return data_.lineEnds; }
+  void setLineEnds(bool b) { data_.lineEnds = b; emit dataChanged(); }
+
+  const CQChartsLength &lineWidth() const { return data_.lineWidth; }
+  void setLineWidth(const CQChartsLength &l) { data_.lineWidth = l; emit dataChanged(); }
 
   void setData(const CQChartsArrowData &data) { data_ = data; emit dataChanged(); }
 
   void draw(QPainter *painter);
 
  private:
-  void drawPolygon(const std::vector<QPointF> &points, double w, bool filled, bool stroked);
+  void drawPolygon(const std::vector<QPointF> &points, double w, bool filled);
 
   void drawLine(const QPointF &point1, const QPointF &point2, double width, bool mapping);
 
-  void drawPointLabel(const QPointF &point, const QString &text, bool above, bool mapping);
+#if 0
+  void drawPointLabel(const QPointF &point, const QString &text, ool above, bool mapping);
+#endif
 
  signals:
   void dataChanged();

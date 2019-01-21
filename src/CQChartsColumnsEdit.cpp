@@ -226,6 +226,20 @@ connectSlots(bool b)
 
 QString
 CQChartsColumnsEdit::
+text() const
+{
+  return edit_->text();
+}
+
+void
+CQChartsColumnsEdit::
+setText(const QString &s)
+{
+  edit_->setText(s);
+}
+
+QString
+CQChartsColumnsEdit::
 placeholderText() const
 {
   return edit_->placeholderText();
