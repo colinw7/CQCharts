@@ -57,15 +57,15 @@ class CQChartsCmdBase {
   //---
 
  public:
-  void qtGetPropertyCmd(CQChartsCmdArgs &args);
-  void qtSetPropertyCmd(CQChartsCmdArgs &args);
-  void qtSyncCmd       (CQChartsCmdArgs &args);
+  bool qtGetPropertyCmd(CQChartsCmdArgs &args);
+  bool qtSetPropertyCmd(CQChartsCmdArgs &args);
+  bool qtSyncCmd       (CQChartsCmdArgs &args);
 
-  void perfCmd(CQChartsCmdArgs &args);
+  bool perfCmd(CQChartsCmdArgs &args);
 
-  void shellCmd(CQChartsCmdArgs &args);
+  bool shellCmd(CQChartsCmdArgs &args);
 
-  void helpCmd(CQChartsCmdArgs &args);
+  bool helpCmd(CQChartsCmdArgs &args);
 
   //---
 
@@ -104,7 +104,7 @@ class CQChartsCmdProc {
   void setTclCmd(CQChartsTclCmd *tclCmd) { tclCmd_ = tclCmd; }
 #endif
 
-  virtual void exec(CQChartsCmdArgs &args) = 0;
+  virtual bool exec(CQChartsCmdArgs &args) = 0;
 
  protected:
   CQChartsCmdBase* cmdBase_   { nullptr };
@@ -121,7 +121,7 @@ class CQChartsBase##NAME##Cmd : public CQChartsCmdProc { \
  public: \
   CQChartsBase##NAME##Cmd(CQChartsCmdBase *cmdBase) : CQChartsCmdProc(cmdBase) { } \
  \
-  void exec(CQChartsCmdArgs &args) override { cmdBase_->PROC(args); } \
+  bool exec(CQChartsCmdArgs &args) override { return cmdBase_->PROC(args); } \
 };
 
 //---

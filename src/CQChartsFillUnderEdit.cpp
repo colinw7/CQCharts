@@ -4,6 +4,7 @@
 #include <CQPropertyView.h>
 #include <CQRealSpin.h>
 
+#include <QGroupBox>
 #include <QComboBox>
 #include <QLineEdit>
 #include <QLabel>
@@ -172,394 +173,96 @@ setValue(QWidget *w, const QVariant &var)
 
 //------
 
-CQChartsFillUnderPosEdit::
-CQChartsFillUnderPosEdit(QWidget *parent) :
- QFrame(parent)
+CQChartsFillUnderPosLineEdit::
+CQChartsFillUnderPosLineEdit(QWidget *parent) :
+ CQChartsLineEditBase(parent)
 {
-  setObjectName("fillUnderPos");
-
-  setFrameShape(QFrame::StyledPanel);
-  setFrameShadow(QFrame::Sunken);
-
-  setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+  setObjectName("fillUnderPosLineEdit");
 
   //---
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  menuEdit_ = new CQChartsFillUnderPosEdit;
 
-  edit_ = new QLineEdit;
-  edit_->setObjectName("edit");
+  menu_->setWidget(menuEdit_);
 
-  edit_->setFrame(false);
-
-  connect(edit_, SIGNAL(textChanged(const QString &)),
-          this, SLOT(textChanged(const QString &)));
-
-  layout->addWidget(edit_);
-
-  //---
-
-  button_ = new CQChartsFillUnderPosMenuButton;
-  button_->setObjectName("button");
-
-  QStyleOptionComboBox opt;
-
-  initStyle(opt);
-
-  QRect r = style()->subControlRect(QStyle::CC_ComboBox, &opt, QStyle::SC_ComboBoxArrow, this);
-
-  button_->setFixedWidth(r.size().width());
-
-  button_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-  button_->setFocusPolicy(Qt::NoFocus);
-
-  connect(button_, SIGNAL(clicked()), this, SLOT(showMenu()));
-
-  layout->addWidget(button_);
-
-  //---
-
-  menu_ = new CQWidgetMenu(this);
-
-  connect(menu_, SIGNAL(menuShown()), this, SLOT(updateMenu()));
-
-  //---
-
-  QFrame *menuFrame = new QFrame;
-
-  QGridLayout *menuFrameLayout = new QGridLayout(menuFrame);
-  menuFrameLayout->setMargin(2); menuFrameLayout->setSpacing(2);
-
-  menu_->setWidget(menuFrame);
-
-  //---
-
-  xtypeCombo_ = new QComboBox;
-
-  xtypeCombo_->addItems(QStringList() << "None" << "Min" << "Max" << "Pos");
-
-  connect(xtypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToFillUnderPos()));
-
-  QLabel *xtypeLabel = new QLabel("X Type");
-
-  menuFrameLayout->addWidget(xtypeLabel , 0, 0);
-  menuFrameLayout->addWidget(xtypeCombo_, 0, 1);
-
-  //---
-
-  QLabel *xposLabel = new QLabel("X Pos");
-
-  xposEdit_ = new CQRealSpin;
-
-  connect(xposEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToFillUnderPos()));
-
-  menuFrameLayout->addWidget(xposLabel, 1, 0);
-  menuFrameLayout->addWidget(xposEdit_, 1, 1);
-
-  //---
-
-  ytypeCombo_ = new QComboBox;
-
-  ytypeCombo_->addItems(QStringList() << "None" << "Min" << "Max" << "Pos");
-
-  connect(ytypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToFillUnderPos()));
-
-  QLabel *ytypeLabel = new QLabel("Y Type");
-
-  menuFrameLayout->addWidget(ytypeLabel , 2, 0);
-  menuFrameLayout->addWidget(ytypeCombo_, 2, 1);
-
-  //---
-
-  QLabel *yposLabel = new QLabel("Y Pos");
-
-  yposEdit_ = new CQRealSpin;
-
-  connect(yposEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToFillUnderPos()));
-
-  menuFrameLayout->addWidget(yposLabel, 3, 0);
-  menuFrameLayout->addWidget(yposEdit_, 3, 1);
-
-  //---
-
-  updateState();
+  connect(menuEdit_, SIGNAL(fillUnderPosChanged()), this, SLOT(menuEditChanged()));
 }
 
 const CQChartsFillUnderPos &
-CQChartsFillUnderPosEdit::
+CQChartsFillUnderPosLineEdit::
 fillUnderPos() const
 {
-  return fillUnderPos_;
+  return menuEdit_->fillUnderPos();
 }
 
 void
-CQChartsFillUnderPosEdit::
+CQChartsFillUnderPosLineEdit::
 setFillUnderPos(const CQChartsFillUnderPos &fillUnderPos)
 {
-  fillUnderPos_ = fillUnderPos;
+  updateFillUnderPos(fillUnderPos, /*updateText*/true);
+}
 
-  fillUnderPosToWidgets(true);
+void
+CQChartsFillUnderPosLineEdit::
+updateFillUnderPos(const CQChartsFillUnderPos &fillUnderPos, bool updateText)
+{
+  connectSlots(false);
 
-  updateState();
+  menuEdit_->setFillUnderPos(fillUnderPos);
+
+  if (updateText)
+    fillUnderPosToWidgets();
+
+  connectSlots(true);
 
   emit fillUnderPosChanged();
 }
 
 void
-CQChartsFillUnderPosEdit::
-connectSlots(bool b)
-{
-  if (b) {
-    connect(edit_, SIGNAL(textChanged(const QString &)),
-            this, SLOT(textChanged(const QString &)));
-
-    connect(xtypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToFillUnderPos()));
-    connect(xposEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToFillUnderPos()));
-    connect(ytypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToFillUnderPos()));
-    connect(yposEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToFillUnderPos()));
-  }
-  else {
-    disconnect(edit_, SIGNAL(textChanged(const QString &)),
-               this, SLOT(textChanged(const QString &)));
-
-    disconnect(xtypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToFillUnderPos()));
-    disconnect(xposEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToFillUnderPos()));
-    disconnect(ytypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToFillUnderPos()));
-    disconnect(yposEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToFillUnderPos()));
-  }
-}
-
-QString
-CQChartsFillUnderPosEdit::
-placeholderText() const
-{
-  return edit_->placeholderText();
-}
-
-void
-CQChartsFillUnderPosEdit::
-setPlaceholderText(const QString &s)
-{
-  edit_->setPlaceholderText(s);
-}
-
-void
-CQChartsFillUnderPosEdit::
-showMenu()
-{
-  // popup menu below or above the widget bounding box
-  QPoint tl = edit_->mapToGlobal(edit_->rect().topLeft());
-
-  QRect rect(tl.x(), tl.y(), edit_->parentWidget()->rect().width(), edit_->rect().height());
-
-  menu_->popup(rect.bottomLeft());
-}
-
-void
-CQChartsFillUnderPosEdit::
-updateMenu()
-{
-  connectSlots(false);
-
-  //---
-
-  int w = std::max(menu_->sizeHint().width(), this->width());
-
-  menu_->setFixedWidth(w);
-
-  menu_->updateAreaSize();
-
-  //---
-
-  connectSlots(true);
-}
-
-void
-CQChartsFillUnderPosEdit::
-textChanged(const QString &)
+CQChartsFillUnderPosLineEdit::
+textChanged()
 {
   CQChartsFillUnderPos fillUnderPos(edit_->text());
 
   if (! fillUnderPos.isValid())
     return;
 
-  fillUnderPos_ = fillUnderPos;
-
-  fillUnderPosToWidgets(false);
-
-  updateState();
-
-  emit fillUnderPosChanged();
+  updateFillUnderPos(fillUnderPos, /*updateText*/ false);
 }
 
 void
-CQChartsFillUnderPosEdit::
-fillUnderPosToWidgets(bool updateText)
+CQChartsFillUnderPosLineEdit::
+fillUnderPosToWidgets()
 {
   connectSlots(false);
 
-  if (fillUnderPos_.isValid()) {
-    if      (fillUnderPos_.xtype() == CQChartsFillUnderPos::Type::NONE) {
-      xtypeCombo_->setCurrentIndex(0);
-    }
-    else if (fillUnderPos_.xtype() == CQChartsFillUnderPos::Type::MIN) {
-      xtypeCombo_->setCurrentIndex(1);
-    }
-    else if (fillUnderPos_.xtype() == CQChartsFillUnderPos::Type::MAX) {
-      xtypeCombo_->setCurrentIndex(2);
-    }
-    else if (fillUnderPos_.xtype() == CQChartsFillUnderPos::Type::POS) {
-      xtypeCombo_->setCurrentIndex(3);
-    }
-
-    xposEdit_->setValue(fillUnderPos_.xpos());
-
-    if      (fillUnderPos_.ytype() == CQChartsFillUnderPos::Type::NONE) {
-      ytypeCombo_->setCurrentIndex(0);
-    }
-    else if (fillUnderPos_.ytype() == CQChartsFillUnderPos::Type::MIN) {
-      ytypeCombo_->setCurrentIndex(1);
-    }
-    else if (fillUnderPos_.ytype() == CQChartsFillUnderPos::Type::MAX) {
-      ytypeCombo_->setCurrentIndex(2);
-    }
-    else if (fillUnderPos_.ytype() == CQChartsFillUnderPos::Type::POS) {
-      ytypeCombo_->setCurrentIndex(3);
-    }
-
-    yposEdit_->setValue(fillUnderPos_.ypos());
-
-    if (updateText)
-      edit_->setText(fillUnderPos_.toString());
-  }
-  else {
-    xtypeCombo_->setCurrentIndex(0);
-    xposEdit_->setValue(0.0);
-
-    ytypeCombo_->setCurrentIndex(0);
-    yposEdit_->setValue(0.0);
-
-    if (updateText)
-      edit_->setText("");
-  }
+  if (fillUnderPos().isValid())
+    edit_->setText(fillUnderPos().toString());
+  else
+    edit_->setText("");
 
   connectSlots(true);
 }
 
 void
-CQChartsFillUnderPosEdit::
-widgetsToFillUnderPos()
+CQChartsFillUnderPosLineEdit::
+menuEditChanged()
 {
-  connectSlots(false);
-
-  //---
-
-  CQChartsFillUnderPos::Type xtype = CQChartsFillUnderPos::Type::NONE;
-
-  int xtypeInd = xtypeCombo_->currentIndex();
-
-  if      (xtypeInd == 0) xtype = CQChartsFillUnderPos::Type::NONE;
-  else if (xtypeInd == 1) xtype = CQChartsFillUnderPos::Type::MIN;
-  else if (xtypeInd == 2) xtype = CQChartsFillUnderPos::Type::MAX;
-  else if (xtypeInd == 3) xtype = CQChartsFillUnderPos::Type::POS;
-
-  double xpos = xposEdit_->value();
-
-  CQChartsFillUnderPos::Type ytype = CQChartsFillUnderPos::Type::NONE;
-
-  int ytypeInd = ytypeCombo_->currentIndex();
-
-  if      (ytypeInd == 0) ytype = CQChartsFillUnderPos::Type::NONE;
-  else if (ytypeInd == 1) ytype = CQChartsFillUnderPos::Type::MIN;
-  else if (ytypeInd == 2) ytype = CQChartsFillUnderPos::Type::MAX;
-  else if (ytypeInd == 3) ytype = CQChartsFillUnderPos::Type::POS;
-
-  double ypos = yposEdit_->value();
-
-  fillUnderPos_ = CQChartsFillUnderPos(xtype, xpos, ytype, ypos);
-
-  edit_->setText(fillUnderPos_.toString());
-
-  updateState();
-
-  //---
-
-  connectSlots(true);
+  fillUnderPosToWidgets();
 
   emit fillUnderPosChanged();
 }
 
 void
-CQChartsFillUnderPosEdit::
-updateState()
+CQChartsFillUnderPosLineEdit::
+connectSlots(bool b)
 {
-}
+  CQChartsLineEditBase::connectSlots(b);
 
-void
-CQChartsFillUnderPosEdit::
-paintEvent(QPaintEvent *)
-{
-  QStylePainter painter(this);
-
-  painter.setPen(palette().color(QPalette::Text));
-
-  // draw the combobox frame, focusrect and selected etc.
-  QStyleOptionComboBox opt;
-
-  initStyle(opt);
-
-  painter.drawComplexControl(QStyle::CC_ComboBox, opt);
-
-  // draw text
-  painter.drawControl(QStyle::CE_ComboBoxLabel, opt);
-}
-
-void
-CQChartsFillUnderPosEdit::
-resizeEvent(QResizeEvent *)
-{
-  button_->setFixedHeight(edit_->height() + 2);
-}
-
-void
-CQChartsFillUnderPosEdit::
-initStyle(QStyleOptionComboBox &opt)
-{
-  opt.initFrom(this);
-
-  opt.editable = true;
-  opt.frame    = true;
-
-  if (hasFocus()) opt.state |= QStyle::State_Selected;
-
-  opt.subControls = QStyle::SC_All;
-
-  if      (button_ && button_->isDown()) {
-    opt.activeSubControls = QStyle::SC_ComboBoxArrow;
-    opt.state |= QStyle::State_Sunken;
-  }
-  else if (button_ && button_->underMouse()) {
-    opt.activeSubControls = QStyle::SC_ComboBoxArrow;
-  }
-  else if (edit_ && edit_->underMouse()) {
-    opt.activeSubControls = QStyle::SC_ComboBoxEditField;
-  }
-}
-
-//------
-
-CQChartsFillUnderPosMenuButton::
-CQChartsFillUnderPosMenuButton(QWidget *parent) :
- QPushButton(parent)
-{
-}
-
-void
-CQChartsFillUnderPosMenuButton::
-paintEvent(QPaintEvent*)
-{
-  // drawn by CQChartsFillUnderPosEdit
+  if (b)
+    connect(menuEdit_, SIGNAL(fillUnderPosChanged()), this, SLOT(menuEditChanged()));
+  else
+    disconnect(menuEdit_, SIGNAL(fillUnderPosChanged()), this, SLOT(menuEditChanged()));
 }
 
 //------
@@ -631,7 +334,7 @@ QWidget *
 CQChartsFillUnderPosPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsFillUnderPosEdit *edit = new CQChartsFillUnderPosEdit(parent);
+  CQChartsFillUnderPosLineEdit *edit = new CQChartsFillUnderPosLineEdit(parent);
 
   return edit;
 }
@@ -640,7 +343,7 @@ void
 CQChartsFillUnderPosPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsFillUnderPosEdit *edit = qobject_cast<CQChartsFillUnderPosEdit *>(w);
+  CQChartsFillUnderPosLineEdit *edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(fillUnderPosChanged()), obj, method);
@@ -650,7 +353,7 @@ QVariant
 CQChartsFillUnderPosPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsFillUnderPosEdit *edit = qobject_cast<CQChartsFillUnderPosEdit *>(w);
+  CQChartsFillUnderPosLineEdit *edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->fillUnderPos());
@@ -660,10 +363,228 @@ void
 CQChartsFillUnderPosPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsFillUnderPosEdit *edit = qobject_cast<CQChartsFillUnderPosEdit *>(w);
+  CQChartsFillUnderPosLineEdit *edit = qobject_cast<CQChartsFillUnderPosLineEdit *>(w);
   assert(edit);
 
   CQChartsFillUnderPos fillUnderPos = var.value<CQChartsFillUnderPos>();
 
   edit->setFillUnderPos(fillUnderPos);
+}
+
+//------
+
+CQChartsFillUnderPosEdit::
+CQChartsFillUnderPosEdit(QWidget *parent) :
+ QFrame(parent)
+{
+  setObjectName("fillUnderPos");
+
+  QVBoxLayout *layout = new QVBoxLayout(this);
+  layout->setMargin(2); layout->setSpacing(2);
+
+  //----
+
+  QGroupBox *xGroup = new QGroupBox;
+
+  xGroup->setObjectName("xGroup");
+  xGroup->setTitle("X");
+
+  layout->addWidget(xGroup);
+
+  QGridLayout *xlayout = new QGridLayout(xGroup);
+  xlayout->setMargin(2); xlayout->setSpacing(2);
+
+  //--
+
+  xtypeCombo_ = new QComboBox;
+
+  xtypeCombo_->setObjectName("xtypeCombo");
+  xtypeCombo_->addItems(QStringList() << "None" << "Min" << "Max" << "Pos");
+
+  connect(xtypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToFillUnderPos()));
+
+  QLabel *xtypeLabel = new QLabel("Type");
+
+  xtypeLabel->setObjectName("xtypeLabel");
+
+  xlayout->addWidget(xtypeLabel , 0, 0);
+  xlayout->addWidget(xtypeCombo_, 0, 1);
+
+  //---
+
+  QLabel *xposLabel = new QLabel("Pos");
+
+  xposLabel->setObjectName("xposLabel");
+
+  xposEdit_ = new CQRealSpin;
+
+  xposEdit_->setObjectName("xposEdit");
+
+  connect(xposEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToFillUnderPos()));
+
+  xlayout->addWidget(xposLabel, 1, 0);
+  xlayout->addWidget(xposEdit_, 1, 1);
+
+  //----
+
+  QGroupBox *yGroup = new QGroupBox;
+
+  yGroup->setObjectName("yGroup");
+  yGroup->setTitle("Y");
+
+  layout->addWidget(yGroup);
+
+  QGridLayout *ylayout = new QGridLayout(yGroup);
+  ylayout->setMargin(2); ylayout->setSpacing(2);
+
+  //--
+
+  ytypeCombo_ = new QComboBox;
+
+  ytypeCombo_->setObjectName("ytypeCombo");
+  ytypeCombo_->addItems(QStringList() << "None" << "Min" << "Max" << "Pos");
+
+  connect(ytypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToFillUnderPos()));
+
+  QLabel *ytypeLabel = new QLabel("Type");
+
+  ytypeLabel->setObjectName("ytypeLabel");
+
+  ylayout->addWidget(ytypeLabel , 0, 0);
+  ylayout->addWidget(ytypeCombo_, 0, 1);
+
+  //---
+
+  QLabel *yposLabel = new QLabel("Pos");
+
+  yposLabel->setObjectName("yposLabel");
+
+  yposEdit_ = new CQRealSpin;
+
+  yposEdit_->setObjectName("yposEdit");
+
+  connect(yposEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToFillUnderPos()));
+
+  ylayout->addWidget(yposLabel, 1, 0);
+  ylayout->addWidget(yposEdit_, 1, 1);
+}
+
+const CQChartsFillUnderPos &
+CQChartsFillUnderPosEdit::
+fillUnderPos() const
+{
+  return fillUnderPos_;
+}
+
+void
+CQChartsFillUnderPosEdit::
+setFillUnderPos(const CQChartsFillUnderPos &fillUnderPos)
+{
+  fillUnderPos_ = fillUnderPos;
+
+  fillUnderPosToWidgets();
+
+  emit fillUnderPosChanged();
+}
+
+void
+CQChartsFillUnderPosEdit::
+fillUnderPosToWidgets()
+{
+  connectSlots(false);
+
+  if (fillUnderPos_.isValid()) {
+    if      (fillUnderPos_.xtype() == CQChartsFillUnderPos::Type::NONE) {
+      xtypeCombo_->setCurrentIndex(0);
+    }
+    else if (fillUnderPos_.xtype() == CQChartsFillUnderPos::Type::MIN) {
+      xtypeCombo_->setCurrentIndex(1);
+    }
+    else if (fillUnderPos_.xtype() == CQChartsFillUnderPos::Type::MAX) {
+      xtypeCombo_->setCurrentIndex(2);
+    }
+    else if (fillUnderPos_.xtype() == CQChartsFillUnderPos::Type::POS) {
+      xtypeCombo_->setCurrentIndex(3);
+    }
+
+    xposEdit_->setValue(fillUnderPos_.xpos());
+
+    if      (fillUnderPos_.ytype() == CQChartsFillUnderPos::Type::NONE) {
+      ytypeCombo_->setCurrentIndex(0);
+    }
+    else if (fillUnderPos_.ytype() == CQChartsFillUnderPos::Type::MIN) {
+      ytypeCombo_->setCurrentIndex(1);
+    }
+    else if (fillUnderPos_.ytype() == CQChartsFillUnderPos::Type::MAX) {
+      ytypeCombo_->setCurrentIndex(2);
+    }
+    else if (fillUnderPos_.ytype() == CQChartsFillUnderPos::Type::POS) {
+      ytypeCombo_->setCurrentIndex(3);
+    }
+
+    yposEdit_->setValue(fillUnderPos_.ypos());
+  }
+  else {
+    xtypeCombo_->setCurrentIndex(0);
+    xposEdit_->setValue(0.0);
+
+    ytypeCombo_->setCurrentIndex(0);
+    yposEdit_->setValue(0.0);
+  }
+
+  connectSlots(true);
+}
+
+void
+CQChartsFillUnderPosEdit::
+widgetsToFillUnderPos()
+{
+  CQChartsFillUnderPos::Type xtype = CQChartsFillUnderPos::Type::NONE;
+
+  int xtypeInd = xtypeCombo_->currentIndex();
+
+  if      (xtypeInd == 0) xtype = CQChartsFillUnderPos::Type::NONE;
+  else if (xtypeInd == 1) xtype = CQChartsFillUnderPos::Type::MIN;
+  else if (xtypeInd == 2) xtype = CQChartsFillUnderPos::Type::MAX;
+  else if (xtypeInd == 3) xtype = CQChartsFillUnderPos::Type::POS;
+
+  double xpos = xposEdit_->value();
+
+  CQChartsFillUnderPos::Type ytype = CQChartsFillUnderPos::Type::NONE;
+
+  int ytypeInd = ytypeCombo_->currentIndex();
+
+  if      (ytypeInd == 0) ytype = CQChartsFillUnderPos::Type::NONE;
+  else if (ytypeInd == 1) ytype = CQChartsFillUnderPos::Type::MIN;
+  else if (ytypeInd == 2) ytype = CQChartsFillUnderPos::Type::MAX;
+  else if (ytypeInd == 3) ytype = CQChartsFillUnderPos::Type::POS;
+
+  double ypos = yposEdit_->value();
+
+  fillUnderPos_ = CQChartsFillUnderPos(xtype, xpos, ytype, ypos);
+
+  //---
+
+  emit fillUnderPosChanged();
+}
+
+void
+CQChartsFillUnderPosEdit::
+connectSlots(bool b)
+{
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      connect(w, from, this, to);
+    else
+      disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, xtypeCombo_, SIGNAL(currentIndexChanged(int)),
+                    SLOT(widgetsToFillUnderPos()));
+  connectDisconnect(b, xposEdit_, SIGNAL(valueChanged(double)),
+                    SLOT(widgetsToFillUnderPos()));
+  connectDisconnect(b, ytypeCombo_, SIGNAL(currentIndexChanged(int)),
+                    SLOT(widgetsToFillUnderPos()));
+  connectDisconnect(b, yposEdit_, SIGNAL(valueChanged(double)),
+                    SLOT(widgetsToFillUnderPos()));
 }

@@ -1756,8 +1756,8 @@ scaleCmd(const Values &values) const
   CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
   assert(columnDetails);
 
-  QVariant mean   = columnDetails->meanValue  ();
-  QVariant stddev = columnDetails->stdDevValue();
+  QVariant mean   = columnDetails->meanValue  (/*useNaN*/false);
+  QVariant stddev = columnDetails->stdDevValue(/*useNaN*/false);
 
   if (! mean.isValid() || ! stddev.isValid())
     return QVariant(0.0);

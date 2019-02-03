@@ -144,8 +144,8 @@ analyzeType(CQChartsPlotType *type)
     }
 
     if (! attributes.isRequired()) {
-      // if attribute is a discrimator then assign if exact match
-      if (attributes.isDiscrimator()) {
+      // if attribute is a discriminator then assign if exact match
+      if (attributes.isDiscriminator()) {
         // find first valid unused column for attribute
         for (auto &cu : columnUsed1) {
           if (cu.second.second)

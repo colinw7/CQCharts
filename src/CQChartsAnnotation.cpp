@@ -2071,25 +2071,25 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor lineColor = charts()->interpColor(pointData_.stroke.color, 0, 1);
-  QColor fillColor = charts()->interpColor(pointData_.fill  .color, 0, 1);
+  QColor lineColor = charts()->interpColor(pointData_.stroke.color(), 0, 1);
+  QColor fillColor = charts()->interpColor(pointData_.fill  .color(), 0, 1);
 
   if      (plot())
-    plot()->setPen(pen, pointData_.stroke.visible, lineColor, pointData_.stroke.alpha,
-                   pointData_.stroke.width, pointData_.stroke.dash);
+    plot()->setPen(pen, pointData_.stroke.isVisible(), lineColor, pointData_.stroke.alpha(),
+                   pointData_.stroke.width(), pointData_.stroke.dash());
   else if (view())
-    view()->setPen(pen, pointData_.stroke.visible, lineColor, pointData_.stroke.alpha,
-                   pointData_.stroke.width, pointData_.stroke.dash);
+    view()->setPen(pen, pointData_.stroke.isVisible(), lineColor, pointData_.stroke.alpha(),
+                   pointData_.stroke.width(), pointData_.stroke.dash());
 
   if      (plot())
-    plot()->setBrush(brush, pointData_.fill.visible, fillColor, pointData_.fill.alpha,
-                     pointData_.fill.pattern);
+    plot()->setBrush(brush, pointData_.fill.isVisible(), fillColor, pointData_.fill.alpha(),
+                     pointData_.fill.pattern());
   else if (view())
-    view()->setBrush(brush, pointData_.fill.visible, fillColor, pointData_.fill.alpha,
-                     pointData_.fill.pattern);
+    view()->setBrush(brush, pointData_.fill.isVisible(), fillColor, pointData_.fill.alpha(),
+                     pointData_.fill.pattern());
 
   if (plot())
-    plot()->updateObjPenBrushState(this, pen, brush, /*force*/true);
+    plot()->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
   painter->setPen  (pen);
   painter->setBrush(brush);

@@ -11,156 +11,123 @@
 #include <QToolButton>
 #include <QHBoxLayout>
 #include <QAbstractItemModel>
-#include <QStylePainter>
 
 #include <svg/add_svg.h>
 #include <svg/remove_svg.h>
 
-CQChartsColumnsEdit::
-CQChartsColumnsEdit(QWidget *parent) :
- QFrame(parent)
+CQChartsColumnsLineEdit::
+CQChartsColumnsLineEdit(QWidget *parent) :
+ CQChartsLineEditBase(parent)
 {
-  setObjectName("columnsEdit");
-
-  setFrameShape(QFrame::StyledPanel);
-  setFrameShadow(QFrame::Sunken);
-
-  setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+  setObjectName("columnsLineEdit");
 
   //---
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  menuEdit_ = new CQChartsColumnsEdit;
 
-  edit_ = new QLineEdit;
-  edit_->setObjectName("edit");
+  menu_->setWidget(menuEdit_);
 
-  edit_->setFrame(false);
+  connect(menuEdit_, SIGNAL(columnsChanged()), this, SLOT(menuEditChanged()));
+}
 
-  connect(edit_, SIGNAL(textChanged(const QString &)),
-          this, SLOT(textChanged(const QString &)));
-
-  layout->addWidget(edit_);
-
-  //---
-
-  button_ = new CQChartsColumnsEditMenuButton;
-  button_->setObjectName("button");
-
-  QStyleOptionComboBox opt;
-
-  initStyle(opt);
-
-  QRect r = style()->subControlRect(QStyle::CC_ComboBox, &opt, QStyle::SC_ComboBoxArrow, this);
-
-  button_->setFixedWidth(r.size().width());
-
-  button_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-  button_->setFocusPolicy(Qt::NoFocus);
-
-  connect(button_, SIGNAL(clicked()), this, SLOT(showMenu()));
-
-  layout->addWidget(button_);
-
-  //---
-
-  menu_ = new CQWidgetMenu(this);
-
-  connect(menu_, SIGNAL(menuShown()), this, SLOT(updateMenu()));
-
-  //---
-
-  menuFrame_ = new QFrame;
-
-  QVBoxLayout *menuFrameLayout = new QVBoxLayout(menuFrame_);
-  menuFrameLayout->setMargin(2); menuFrameLayout->setSpacing(2);
-
-  menu_->setWidget(menuFrame_);
-
-  controlFrame_ = new QFrame;
-
-  QHBoxLayout *controlFrameLayout = new QHBoxLayout(controlFrame_);
-  controlFrameLayout->setMargin(2); controlFrameLayout->setSpacing(2);
-
-  QToolButton *addButton    = new QToolButton;
-  QToolButton *removeButton = new QToolButton;
-
-  addButton   ->setIcon(CQPixmapCacheInst->getIcon("ADD"));
-  removeButton->setIcon(CQPixmapCacheInst->getIcon("REMOVE"));
-
-  controlFrameLayout->addStretch(1);
-  controlFrameLayout->addWidget(addButton);
-  controlFrameLayout->addWidget(removeButton);
-
-  connect(addButton, SIGNAL(clicked()), this, SLOT(addSlot()));
-  connect(removeButton, SIGNAL(clicked()), this, SLOT(removeSlot()));
-
-  menuFrameLayout->addWidget(controlFrame_);
-
-  columnsFrame_ = new QFrame;
-
-  QVBoxLayout *columnsFrameLayout = new QVBoxLayout(columnsFrame_);
-  columnsFrameLayout->setMargin(2); columnsFrameLayout->setSpacing(2);
-
-  menuFrameLayout->addWidget(columnsFrame_);
-
-  //---
-
-  updateState();
+QAbstractItemModel *
+CQChartsColumnsLineEdit::
+model() const
+{
+  return menuEdit_->model();
 }
 
 void
-CQChartsColumnsEdit::
+CQChartsColumnsLineEdit::
 setModel(QAbstractItemModel *model)
 {
-  model_ = model;
-
-  int n = columnEdits_.size();
-
-  for (int i = 0; i < n; ++i)
-    columnEdits_[i]->setModel(model_);
+  menuEdit_->setModel(model);
 }
 
 const CQChartsColumns &
-CQChartsColumnsEdit::
+CQChartsColumnsLineEdit::
 columns() const
 {
-  return columns_;
+  return menuEdit_->columns();
 }
 
 void
-CQChartsColumnsEdit::
+CQChartsColumnsLineEdit::
 setColumns(const CQChartsColumns &columns)
 {
-  columns_ = columns;
+  updateColumns(columns, /*updateText*/true);
+}
 
-  columnsToText();
+void
+CQChartsColumnsLineEdit::
+updateColumns(const CQChartsColumns &columns, bool updateText)
+{
+  connectSlots(false);
 
-  updateState();
+  menuEdit_->setColumns(columns);
+
+  if (updateText)
+    columnsToWidgets();
+
+  connectSlots(true);
 
   emit columnsChanged();
 }
 
 void
-CQChartsColumnsEdit::
-columnsToText()
+CQChartsColumnsLineEdit::
+textChanged()
+{
+  CQChartsColumns columns;
+
+  if (! textToColumns(edit_->text(), columns))
+    return;
+
+  updateColumns(columns, /*updateText*/ false);
+}
+
+void
+CQChartsColumnsLineEdit::
+columnsToWidgets()
 {
   connectSlots(false);
 
-  edit_->setText(columns_.toString());
+  if (columns().isValid())
+    edit_->setText(columns().toString());
+  else
+    edit_->setText("");
 
   connectSlots(true);
 }
 
 void
-CQChartsColumnsEdit::
-textToColumns()
+CQChartsColumnsLineEdit::
+menuEditChanged()
+{
+  updateMenu();
+
+  columnsToWidgets();
+
+  emit columnsChanged();
+}
+
+void
+CQChartsColumnsLineEdit::
+connectSlots(bool b)
+{
+  CQChartsLineEditBase::connectSlots(b);
+
+  if (b)
+    connect(menuEdit_, SIGNAL(columnsChanged()), this, SLOT(menuEditChanged()));
+  else
+    disconnect(menuEdit_, SIGNAL(columnsChanged()), this, SLOT(menuEditChanged()));
+}
+
+bool
+CQChartsColumnsLineEdit::
+textToColumns(const QString &str, CQChartsColumns &columns) const
 {
   bool ok = true;
-
-  CQChartsColumns columns;
-
-  QString str = edit_->text();
 
   // TODO: better split to handle spaces in column names/expressions
   QStringList strs = str.split(" ", QString::SkipEmptyParts);
@@ -188,7 +155,14 @@ textToColumns()
       else {
         CQChartsColumn col;
 
-        if (CQChartsModelUtil::stringToColumn(model(), str, col))
+        if (model()) {
+          if (! CQChartsModelUtil::stringToColumn(model(), str, col))
+            col = CQChartsColumn();
+        }
+        else
+          col = CQChartsColumn(str);
+
+        if (col.isValid())
           columns.addColumn(col);
         else
           ok = false;
@@ -197,266 +171,45 @@ textToColumns()
     else {
       CQChartsColumn col;
 
-      if (CQChartsModelUtil::stringToColumn(model(), str, col))
+      if (model()) {
+        if (! CQChartsModelUtil::stringToColumn(model(), str, col))
+          col = CQChartsColumn();
+      }
+      else
+        col = CQChartsColumn(str);
+
+      if (col.isValid())
         columns.addColumn(col);
       else
         ok = false;
     }
   }
 
-  if (! ok)
-    return;
-
-  columns_ = columns;
+  return ok;
 }
 
 void
-CQChartsColumnsEdit::
-connectSlots(bool b)
-{
-  if (b) {
-    connect(edit_, SIGNAL(textChanged(const QString &)),
-            this, SLOT(textChanged(const QString &)));
-  }
-  else {
-    disconnect(edit_, SIGNAL(textChanged(const QString &)),
-               this, SLOT(textChanged(const QString &)));
-  }
-}
-
-QString
-CQChartsColumnsEdit::
-text() const
-{
-  return edit_->text();
-}
-
-void
-CQChartsColumnsEdit::
-setText(const QString &s)
-{
-  edit_->setText(s);
-}
-
-QString
-CQChartsColumnsEdit::
-placeholderText() const
-{
-  return edit_->placeholderText();
-}
-
-void
-CQChartsColumnsEdit::
-setPlaceholderText(const QString &s)
-{
-  edit_->setPlaceholderText(s);
-}
-
-void
-CQChartsColumnsEdit::
-showMenu()
-{
-  // popup menu below or above the widget bounding box
-  QPoint tl = edit_->mapToGlobal(edit_->rect().topLeft());
-
-  QRect rect(tl.x(), tl.y(), edit_->parentWidget()->rect().width(), edit_->rect().height());
-
-  menu_->popup(rect.bottomLeft());
-}
-
-void
-CQChartsColumnsEdit::
+CQChartsColumnsLineEdit::
 updateMenu()
 {
-  connectSlots(false);
+  CQChartsLineEditBase::updateMenu();
 
   //---
 
-  int n  = columns_.count();
-  int ne = columnEdits_.size();
-  assert(n == ne);
+  QSize s = menuEdit_->sizeHint();
 
-  for (int i = 0; i < n; ++i)
-    columnEdits_[i]->setColumn(columns_.getColumn(i));
+  int w = std::max(this->width(), s.width());
+  int h = s.height();
 
   //---
 
-  menu_->updateAreaSize();
-
-  //---
-
-  connectSlots(true);
-}
-
-void
-CQChartsColumnsEdit::
-textChanged(const QString &)
-{
-  textToColumns();
-
-  updateState();
-
-  emit columnsChanged();
-}
-
-void
-CQChartsColumnsEdit::
-addSlot()
-{
-  columns_.addColumn(CQChartsColumn());
-
-  columnsToText();
-
-  updateState();
-
-  emit columnsChanged();
-}
-
-void
-CQChartsColumnsEdit::
-removeSlot()
-{
-  columns_.removeColumn();
-
-  columnsToText();
-
-  updateState();
-
-  emit columnsChanged();
-}
-
-void
-CQChartsColumnsEdit::
-updateState()
-{
-  int ew = this->width();
-  int eh = this->height();
-
-  int w = ew, h = controlFrame_->sizeHint().height();
-
-  int n = columns_.count();
-
-  int ch = n*eh;
-
-  h += ch;
-
-  //---
-
-  int ne = columnEdits_.size();
-
-  while (ne < n) {
-    CQChartsColumnEdit *edit = new CQChartsColumnEdit;
-
-    connect(edit, SIGNAL(columnChanged()), this, SLOT(columnSlot()));
-
-    edit->setModel(model());
-
-    qobject_cast<QVBoxLayout *>(columnsFrame_->layout())->addWidget(edit);
-
-    columnEdits_.push_back(edit);
-
-    ++ne;
-  }
-
-  while (ne > n) {
-    delete columnEdits_.back();
-
-    columnEdits_.pop_back();
-
-    --ne;
-  }
-
-  columnsFrame_->setFixedSize(QSize(w, ch));
-
-  menuFrame_->setFixedSize(QSize(w, h));
+  menuEdit_->setFixedSize(w, h);
 
   int bw = 2;
 
   menu_->setFixedSize(QSize(w + 2*bw, h + 2*bw));
-}
 
-void
-CQChartsColumnsEdit::
-columnSlot()
-{
-  int n  = columns_.count();
-  int ne = columnEdits_.size();
-  assert(n == ne);
-
-  for (int i = 0; i < n; ++i)
-    columns_.setColumn(i, columnEdits_[i]->column());
-
-  columnsToText();
-
-  updateState();
-
-  emit columnsChanged();
-}
-
-void
-CQChartsColumnsEdit::
-paintEvent(QPaintEvent *)
-{
-  QStylePainter painter(this);
-
-  painter.setPen(palette().color(QPalette::Text));
-
-  // draw the combobox frame, focusrect and selected etc.
-  QStyleOptionComboBox opt;
-
-  initStyle(opt);
-
-  painter.drawComplexControl(QStyle::CC_ComboBox, opt);
-
-  // draw text
-  painter.drawControl(QStyle::CE_ComboBoxLabel, opt);
-}
-
-void
-CQChartsColumnsEdit::
-resizeEvent(QResizeEvent *)
-{
-  button_->setFixedHeight(edit_->height() + 2);
-}
-
-void
-CQChartsColumnsEdit::
-initStyle(QStyleOptionComboBox &opt)
-{
-  opt.initFrom(this);
-
-  opt.editable = true;
-  opt.frame    = true;
-
-  if (hasFocus()) opt.state |= QStyle::State_Selected;
-
-  opt.subControls = QStyle::SC_All;
-
-  if      (button_ && button_->isDown()) {
-    opt.activeSubControls = QStyle::SC_ComboBoxArrow;
-    opt.state |= QStyle::State_Sunken;
-  }
-  else if (button_ && button_->underMouse()) {
-    opt.activeSubControls = QStyle::SC_ComboBoxArrow;
-  }
-  else if (edit_ && edit_->underMouse()) {
-    opt.activeSubControls = QStyle::SC_ComboBoxEditField;
-  }
-}
-
-//------
-
-CQChartsColumnsEditMenuButton::
-CQChartsColumnsEditMenuButton(QWidget *parent) :
- QPushButton(parent)
-{
-}
-
-void
-CQChartsColumnsEditMenuButton::
-paintEvent(QPaintEvent*)
-{
-  // drawn by CQChartsColumnsEdit
+  menu_->updateAreaSize();
 }
 
 //------
@@ -532,7 +285,9 @@ createEdit(QWidget *parent)
 
   QObject *obj = (item ? item->object() : nullptr);
 
-  CQChartsColumnsEdit *edit = new CQChartsColumnsEdit(parent);
+  CQChartsColumnsLineEdit *edit = new CQChartsColumnsLineEdit(parent);
+
+  //---
 
   CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj);
 
@@ -546,7 +301,7 @@ void
 CQChartsColumnsPropertyViewEditor::
 connect(QWidget *w, QObject *obj, const char *method)
 {
-  CQChartsColumnsEdit *edit = qobject_cast<CQChartsColumnsEdit *>(w);
+  CQChartsColumnsLineEdit *edit = qobject_cast<CQChartsColumnsLineEdit *>(w);
   assert(edit);
 
   QObject::connect(edit, SIGNAL(columnsChanged()), obj, method);
@@ -556,7 +311,7 @@ QVariant
 CQChartsColumnsPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsColumnsEdit *edit = qobject_cast<CQChartsColumnsEdit *>(w);
+  CQChartsColumnsLineEdit *edit = qobject_cast<CQChartsColumnsLineEdit *>(w);
   assert(edit);
 
   return QVariant::fromValue(edit->columns());
@@ -566,10 +321,213 @@ void
 CQChartsColumnsPropertyViewEditor::
 setValue(QWidget *w, const QVariant &var)
 {
-  CQChartsColumnsEdit *edit = qobject_cast<CQChartsColumnsEdit *>(w);
+  CQChartsColumnsLineEdit *edit = qobject_cast<CQChartsColumnsLineEdit *>(w);
   assert(edit);
 
   CQChartsColumns columns = var.value<CQChartsColumns>();
 
   edit->setColumns(columns);
+}
+
+//------
+
+CQChartsColumnsEdit::
+CQChartsColumnsEdit(QWidget *parent) :
+ QFrame(parent)
+{
+  setObjectName("columnsEdit");
+
+  QVBoxLayout *layout = new QVBoxLayout(this);
+  layout->setMargin(2); layout->setSpacing(2);
+
+  controlFrame_ = new QFrame;
+
+  QHBoxLayout *controlFrameLayout = new QHBoxLayout(controlFrame_);
+  controlFrameLayout->setMargin(2); controlFrameLayout->setSpacing(2);
+
+  QToolButton *addButton    = new QToolButton;
+  QToolButton *removeButton = new QToolButton;
+
+  addButton   ->setIcon(CQPixmapCacheInst->getIcon("ADD"));
+  removeButton->setIcon(CQPixmapCacheInst->getIcon("REMOVE"));
+
+  connect(addButton, SIGNAL(clicked()), this, SLOT(addSlot()));
+  connect(removeButton, SIGNAL(clicked()), this, SLOT(removeSlot()));
+
+  controlFrameLayout->addStretch(1);
+  controlFrameLayout->addWidget(addButton);
+  controlFrameLayout->addWidget(removeButton);
+
+  layout->addWidget(controlFrame_);
+
+  columnsFrame_ = new QFrame;
+
+  QVBoxLayout *columnsFrameLayout = new QVBoxLayout(columnsFrame_);
+  columnsFrameLayout->setMargin(2); columnsFrameLayout->setSpacing(2);
+
+  layout->addWidget(columnsFrame_);
+
+  layout->addStretch(1);
+
+  //---
+
+  updateEdits();
+}
+
+void
+CQChartsColumnsEdit::
+setModel(QAbstractItemModel *model)
+{
+  connectSlots(false);
+
+  model_ = model;
+
+  int ne = columnEdits_.size();
+
+  for (int i = 0; i < ne; ++i)
+    columnEdits_[i]->setModel(model_);
+
+  connectSlots(true);
+}
+
+const CQChartsColumns &
+CQChartsColumnsEdit::
+columns() const
+{
+  return columns_;
+}
+
+void
+CQChartsColumnsEdit::
+setColumns(const CQChartsColumns &columns)
+{
+  columns_ = columns;
+
+  columnsToWidgets();
+
+  emit columnsChanged();
+}
+
+void
+CQChartsColumnsEdit::
+columnsToWidgets()
+{
+  updateEdits();
+
+  //---
+
+  connectSlots(false);
+
+  int n  = columns_.count();
+  int ne = columnEdits_.size();
+  assert(n == ne);
+
+  for (int i = 0; i < n; ++i)
+    columnEdits_[i]->setColumn(columns_.getColumn(i));
+
+  connectSlots(true);
+}
+
+void
+CQChartsColumnsEdit::
+widgetsToColumn()
+{
+  int n  = columns_.count();
+  int ne = columnEdits_.size();
+  assert(n == ne);
+
+  for (int i = 0; i < n; ++i)
+    columns_.setColumn(i, columnEdits_[i]->column());
+
+  emit columnsChanged();
+}
+
+void
+CQChartsColumnsEdit::
+addSlot()
+{
+  columns_.addColumn(CQChartsColumn());
+
+  columnsToWidgets();
+
+  emit columnsChanged();
+}
+
+void
+CQChartsColumnsEdit::
+removeSlot()
+{
+  columns_.removeColumn();
+
+  columnsToWidgets();
+
+  emit columnsChanged();
+}
+
+void
+CQChartsColumnsEdit::
+updateEdits()
+{
+  connectSlots(false);
+
+  int n  = columns_.count();
+  int ne = columnEdits_.size();
+
+  while (ne < n) {
+    CQChartsColumnLineEdit *edit = new CQChartsColumnLineEdit;
+
+    edit->setModel(model());
+
+    qobject_cast<QVBoxLayout *>(columnsFrame_->layout())->addWidget(edit);
+
+    columnEdits_.push_back(edit);
+
+    ++ne;
+  }
+
+  while (ne > n) {
+    delete columnEdits_.back();
+
+    columnEdits_.pop_back();
+
+    --ne;
+  }
+
+  connectSlots(true);
+}
+
+void
+CQChartsColumnsEdit::
+connectSlots(bool b)
+{
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      connect(w, from, this, to);
+    else
+      disconnect(w, from, this, to);
+  };
+
+  for (auto &edit : columnEdits_)
+    connectDisconnect(b, edit, SIGNAL(columnChanged()), SLOT(widgetsToColumn()));
+}
+
+QSize
+CQChartsColumnsEdit::
+sizeHint() const
+{
+  QSize s1 = controlFrame_->sizeHint();
+
+  int ne = columnEdits_.size();
+
+  int w1 = s1.width();
+  int h1 = s1.height() + 2;
+
+  for (int i = 0; i < ne; ++i) {
+    QSize s2 = columnEdits_[i]->sizeHint();
+
+    w1  = std::max(w1, s2.width());
+    h1 += s2.height() + 2;
+  }
+
+  return QSize(w1 + 4, h1 + 2);
 }

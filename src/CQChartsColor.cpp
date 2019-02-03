@@ -53,14 +53,25 @@ bool
 CQChartsColor::
 setColorStr(const QString &str)
 {
+  auto startsWith = [](const QString &str, const QString &pattern, QString &rhs) {
+    if (str.startsWith(pattern)) {
+      rhs = str.mid(pattern.length());
+      return true;
+    }
+
+    return false;
+  };
+
+  //---
+
   scale_ = false;
+
+  QString rhs;
 
   if      (str == "palette") {
     setValue(Type::PALETTE, 0.0);
   }
-  else if (str.startsWith("palette#")) {
-    QString rhs = str.mid(8);
-
+  else if (startsWith(str, "palette#", rhs)) {
     int pos = rhs.indexOf(':');
 
     if (pos > 0) {
@@ -107,10 +118,8 @@ setColorStr(const QString &str)
       setIndValue(Type::PALETTE, ind, 0.0);
     }
   }
-  else if (str.startsWith("palette:")) {
+  else if (startsWith(str, "palette:", rhs)) {
     bool scale = false;
-
-    QString rhs = str.mid(8);
 
     int pos = rhs.indexOf(':');
 
@@ -135,9 +144,7 @@ setColorStr(const QString &str)
   else if (str == "interface") {
     setValue(Type::INTERFACE, 0.0);
   }
-  else if (str.startsWith("interface:")) {
-    QString rhs = str.mid(10);
-
+  else if (startsWith(str, "interface:", rhs)) {
     bool ok;
 
     double value = rhs.toDouble(&ok);

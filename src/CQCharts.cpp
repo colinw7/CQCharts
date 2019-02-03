@@ -27,19 +27,23 @@
 #include <CQChartsModelData.h>
 #include <CQChartsColumnType.h>
 
-#include <CQChartsLineDashEdit.h>
+#include <CQChartsColorEdit.h>
 #include <CQChartsColumnEdit.h>
 #include <CQChartsColumnsEdit.h>
-#include <CQChartsPositionEdit.h>
-#include <CQChartsLengthEdit.h>
-#include <CQChartsRectEdit.h>
-#include <CQChartsPolygonEdit.h>
-#include <CQChartsColorEdit.h>
+#include <CQChartsFillDataEdit.h>
 #include <CQChartsFillPatternEdit.h>
-#include <CQChartsSidesEdit.h>
-#include <CQChartsSymbolEdit.h>
-#include <CQChartsKeyLocationEdit.h>
 #include <CQChartsFillUnderEdit.h>
+#include <CQChartsKeyLocationEdit.h>
+#include <CQChartsLengthEdit.h>
+#include <CQChartsLineDataEdit.h>
+#include <CQChartsLineDashEdit.h>
+#include <CQChartsPolygonEdit.h>
+#include <CQChartsPositionEdit.h>
+#include <CQChartsRectEdit.h>
+#include <CQChartsShapeDataEdit.h>
+#include <CQChartsSidesEdit.h>
+#include <CQChartsStrokeDataEdit.h>
+#include <CQChartsSymbolEdit.h>
 
 #include <CQChartsPolygonList.h>
 #include <CQChartsNamePair.h>
@@ -54,15 +58,18 @@
 CQCharts::
 CQCharts()
 {
+  // register variant meta types
   CQChartsColor         ::registerMetaType();
   CQChartsColumn        ::registerMetaType();
   CQChartsColumns       ::registerMetaType();
   CQChartsConnectionList::registerMetaType();
+  CQChartsFillData      ::registerMetaType();
   CQChartsFillPattern   ::registerMetaType();
   CQChartsFillUnderSide ::registerMetaType();
   CQChartsFillUnderPos  ::registerMetaType();
   CQChartsKeyLocation   ::registerMetaType();
   CQChartsLength        ::registerMetaType();
+  CQChartsLineData      ::registerMetaType();
   CQChartsLineDash      ::registerMetaType();
   CQChartsNamePair      ::registerMetaType();
   CQChartsPath          ::registerMetaType();
@@ -70,11 +77,15 @@ CQCharts()
   CQChartsPosition      ::registerMetaType();
   CQChartsRect          ::registerMetaType();
   CQChartsPolygon       ::registerMetaType();
+  CQChartsShapeData     ::registerMetaType();
   CQChartsSides         ::registerMetaType();
   CQChartsStyle         ::registerMetaType();
   CQChartsSymbol        ::registerMetaType();
   CQChartsTheme         ::registerMetaType();
 
+  //---
+
+  // init theme
   plotTheme_.setName("default");
 
   interfaceTheme().setDark(false);
@@ -145,22 +156,27 @@ init()
 
   //---
 
+  // add property types (and editors)
   CQPropertyViewMgr *viewMgr = CQPropertyViewMgrInst;
 
-  viewMgr->addType("CQChartsLineDash"     , new CQChartsLineDashPropertyViewType     );
+  viewMgr->addType("CQChartsColor"        , new CQChartsColorPropertyViewType        );
   viewMgr->addType("CQChartsColumn"       , new CQChartsColumnPropertyViewType       );
   viewMgr->addType("CQChartsColumns"      , new CQChartsColumnsPropertyViewType      );
-  viewMgr->addType("CQChartsPosition"     , new CQChartsPositionPropertyViewType     );
-  viewMgr->addType("CQChartsLength"       , new CQChartsLengthPropertyViewType       );
-  viewMgr->addType("CQChartsRect"         , new CQChartsRectPropertyViewType         );
-  viewMgr->addType("CQChartsPolygon"      , new CQChartsPolygonPropertyViewType      );
-  viewMgr->addType("CQChartsColor"        , new CQChartsColorPropertyViewType        );
+  viewMgr->addType("CQChartsFillData"     , new CQChartsFillDataPropertyViewType     );
   viewMgr->addType("CQChartsFillPattern"  , new CQChartsFillPatternPropertyViewType  );
+  viewMgr->addType("CQChartsFillUnderPos" , new CQChartsFillUnderPosPropertyViewType );
+  viewMgr->addType("CQChartsFillUnderSide", new CQChartsFillUnderSidePropertyViewType);
+  viewMgr->addType("CQChartsKeyLocation"  , new CQChartsKeyLocationPropertyViewType  );
+  viewMgr->addType("CQChartsLength"       , new CQChartsLengthPropertyViewType       );
+  viewMgr->addType("CQChartsLineData"     , new CQChartsFillDataPropertyViewType     );
+  viewMgr->addType("CQChartsLineDash"     , new CQChartsLineDashPropertyViewType     );
+  viewMgr->addType("CQChartsPolygon"      , new CQChartsPolygonPropertyViewType      );
+  viewMgr->addType("CQChartsPosition"     , new CQChartsPositionPropertyViewType     );
+  viewMgr->addType("CQChartsRect"         , new CQChartsRectPropertyViewType         );
+  viewMgr->addType("CQChartsShapeData"    , new CQChartsShapeDataPropertyViewType    );
+  viewMgr->addType("CQChartsStrokeData"   , new CQChartsStrokeDataPropertyViewType   );
   viewMgr->addType("CQChartsSides"        , new CQChartsSidesPropertyViewType        );
   viewMgr->addType("CQChartsSymbol"       , new CQChartsSymbolPropertyViewType       );
-  viewMgr->addType("CQChartsKeyLocation"  , new CQChartsKeyLocationPropertyViewType  );
-  viewMgr->addType("CQChartsFillUnderSide", new CQChartsFillUnderSidePropertyViewType);
-  viewMgr->addType("CQChartsFillUnderPos" , new CQChartsFillUnderPosPropertyViewType );
 }
 
 bool

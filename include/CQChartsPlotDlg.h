@@ -11,8 +11,8 @@ class CQCharts;
 class CQChartsPlotParameter;
 class CQChartsView;
 class CQChartsPlot;
-class CQChartsColumnEdit;
-class CQChartsColumnsEdit;
+class CQChartsColumnLineEdit;
+class CQChartsColumnsLineEdit;
 class CQChartsModelView;
 class CQChartsModelData;
 class CQSummaryModel;
@@ -70,8 +70,8 @@ class CQChartsPlotDlg : public QDialog {
   };
 
   struct PlotData {
-    using ColumnEdits  = std::map<QString,CQChartsColumnEdit*>;
-    using ColumnsEdits = std::map<QString,CQChartsColumnsEdit*>;
+    using ColumnEdits  = std::map<QString,CQChartsColumnLineEdit*>;
+    using ColumnsEdits = std::map<QString,CQChartsColumnsLineEdit*>;
     using LineEdits    = std::map<QString,QLineEdit*>;
     using WidgetEdits  = std::map<QString,QWidget*>;
     using FormatEdits  = std::map<QString,FormatEditData>;
@@ -142,10 +142,12 @@ class CQChartsPlotDlg : public QDialog {
   void addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
                            CQChartsPlotParameter *parameter);
 
-  CQChartsColumnEdit *addColumnEdit(QLayout *grid, int &row, int &column, const QString &name,
-                                    const QString &objName, const QString &placeholderText) const;
-  CQChartsColumnsEdit *addColumnsEdit(QLayout *grid, int &row, int &column, const QString &name,
-                                      const QString &objName, const QString &placeholderText) const;
+  CQChartsColumnLineEdit *addColumnEdit(QLayout *grid, int &row, int &column,
+                                        const QString &name, const QString &objName,
+                                        const QString &placeholderText) const;
+  CQChartsColumnsLineEdit *addColumnsEdit(QLayout *grid, int &row, int &column,
+                                          const QString &name, const QString &objName,
+                                          const QString &placeholderText) const;
 
   QLineEdit *addRealEdit(QLayout *grid, int &row, int &column, const QString &name,
                          const QString &objName, const QString &placeholderText) const;
@@ -171,9 +173,9 @@ class CQChartsPlotDlg : public QDialog {
   bool parseParameterBoolEdit(CQChartsPlotParameter *parameter,
                               const PlotData &plotData, bool &b);
 
-  bool columnLineEditValue(CQChartsColumnEdit *le, CQChartsColumn &column,
+  bool columnLineEditValue(CQChartsColumnLineEdit *le, CQChartsColumn &column,
                            const CQChartsColumn &defColumn=CQChartsColumn()) const;
-  bool columnsLineEditValue(CQChartsColumnsEdit *le, CQChartsColumns &columns,
+  bool columnsLineEditValue(CQChartsColumnsLineEdit *le, CQChartsColumns &columns,
                             const CQChartsColumns &defColumns=CQChartsColumns()) const;
 
   bool validate(QStringList &msgs);

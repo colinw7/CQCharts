@@ -373,6 +373,11 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
+  QString xColumnName(const QString &def="x") const;
+  QString yColumnName(const QString &def="y") const;
+
+  //---
+
   // best fit
   bool isBestFit() const { return bestFitData_.visible; }
 

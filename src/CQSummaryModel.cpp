@@ -124,6 +124,18 @@ setSortRole(int r)
 
 void
 CQSummaryModel::
+setSortOrder(Qt::SortOrder order)
+{
+  if (order != sortOrder_) {
+    sortOrder_ = order;
+
+    if (mode() == Mode::SORTED)
+      resetMapping();
+  }
+}
+
+void
+CQSummaryModel::
 setPageSize(int i)
 {
   if (i != pageSize_) {
@@ -236,7 +248,7 @@ initMapping()
   else if (mode() == Mode::SORTED) {
     int nc = model->columnCount();
 
-    if (sortColumn_ < 0 || sortColumn_ >= nc) {
+    if (sortColumn() < 0 || sortColumn() >= nc) {
       mapValid_ = true;
       mapNone_  = true;
       return;
@@ -251,18 +263,24 @@ initMapping()
     rowValues.resize(nr);
 
     for (int r = 0; r < nr; ++r) {
-      QModelIndex ind = model->index(r, sortColumn_, QModelIndex());
+      QModelIndex ind = model->index(r, sortColumn(), QModelIndex());
 
-      QVariant value = model->data(ind, sortRole_);
+      QVariant value = model->data(ind, sortRole());
 
       rowValues[r] = ValueRow(value, r);
     }
 
     // sort summary size
-    std::partial_sort(rowValues.begin(), rowValues.begin() + maxRows(), rowValues.end(),
-                      [](const ValueRow &lhs, const ValueRow &rhs) {
-                        return variantCmp(lhs.first, rhs.first) < 0;
-                      });
+    if      (sortOrder() == Qt::AscendingOrder)
+      std::partial_sort(rowValues.begin(), rowValues.begin() + maxRows(), rowValues.end(),
+                        [](const ValueRow &lhs, const ValueRow &rhs) {
+                          return variantCmp(lhs.first, rhs.first) < 0;
+                        });
+    else if (sortOrder() == Qt::DescendingOrder)
+      std::partial_sort(rowValues.begin(), rowValues.begin() + maxRows(), rowValues.end(),
+                        [](const ValueRow &lhs, const ValueRow &rhs) {
+                          return variantCmp(lhs.first, rhs.first) >= 0;
+                        });
 
     //---
 

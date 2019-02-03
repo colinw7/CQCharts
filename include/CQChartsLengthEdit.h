@@ -4,8 +4,8 @@
 #include <CQChartsLength.h>
 #include <QFrame>
 
+class CQChartsUnitsEdit;
 class CQRealSpin;
-class QComboBox;
 
 class CQChartsLengthEdit : public QFrame {
   Q_OBJECT
@@ -27,14 +27,12 @@ class CQChartsLengthEdit : public QFrame {
   void widgetsToLength();
   void lengthToWidgets();
 
-  void updateUnits();
-
   void connectSlots(bool b);
 
  private:
-  CQChartsLength length_;
-  CQRealSpin*    edit_       { nullptr };
-  QComboBox*     unitsCombo_ { nullptr };
+  CQChartsLength     length_;
+  CQRealSpin*        edit_      { nullptr };
+  CQChartsUnitsEdit* unitsEdit_ { nullptr };
 };
 
 //------

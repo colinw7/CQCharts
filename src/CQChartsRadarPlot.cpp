@@ -136,15 +136,15 @@ addProperties()
 
   addLineProperties("grid", "gridLines");
 
-  // stroke
-  addProperty("stroke", this, "border", "visible");
-
-  addLineProperties("stroke", "border");
-
   // fill
   addProperty("fill", this, "filled", "visible");
 
   addFillProperties("fill", "fill");
+
+  // stroke
+  addProperty("stroke", this, "border", "visible");
+
+  addLineProperties("stroke", "border");
 
   // text
   addTextProperties("text", "text");
@@ -502,7 +502,7 @@ addKeyItems(CQChartsPlotKey *key)
       CQChartsKeyColorBox *color = new CQChartsKeyColorBox(plot, data.row, numRows());
       CQChartsKeyText     *text  = new CQChartsKeyText(plot, name, data.row, numRows());
 
-      color->setClickHide(true);
+      color->setClickable(true);
 
       key_->addItem(color, data.row, 0);
       key_->addItem(text , data.row, 1);

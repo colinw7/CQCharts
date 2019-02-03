@@ -4,8 +4,8 @@
 #include <CQChartsRect.h>
 #include <QFrame>
 
+class CQChartsUnitsEdit;
 class CQRectEdit;
-class QComboBox;
 
 class CQChartsRectEdit : public QFrame {
   Q_OBJECT
@@ -29,12 +29,10 @@ class CQChartsRectEdit : public QFrame {
 
   void connectSlots(bool b);
 
-  void updateUnits();
-
  private:
-  CQChartsRect rect_;
-  CQRectEdit*  edit_       { nullptr };
-  QComboBox*   unitsCombo_ { nullptr };
+  CQChartsRect       rect_;
+  CQRectEdit*        edit_       { nullptr };
+  CQChartsUnitsEdit* unitsEdit_ { nullptr };
 };
 
 //------

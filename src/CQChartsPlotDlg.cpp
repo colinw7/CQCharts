@@ -1126,7 +1126,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 {
   int col = 0;
 
-  CQChartsColumnEdit *columnEdit =
+  CQChartsColumnLineEdit *columnEdit =
     addColumnEdit(layout, row, col, parameter->desc(), parameter->name() + "Column",
                   "Column Name or Number");
 
@@ -1248,7 +1248,7 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 {
   int column = 0;
 
-  CQChartsColumnsEdit *columnsEdit =
+  CQChartsColumnsLineEdit *columnsEdit =
     addColumnsEdit(layout, row, column, parameter->desc(), parameter->name() + "Columns",
                    "Column Names or Numbers");
 
@@ -1587,7 +1587,7 @@ addStringEdit(QLayout *layout, int &row, int &column, const QString &name,
   return edit;
 }
 
-CQChartsColumnEdit *
+CQChartsColumnLineEdit *
 CQChartsPlotDlg::
 addColumnEdit(QLayout *layout, int &row, int &column, const QString &name,
               const QString &objName, const QString &placeholderText) const
@@ -1599,7 +1599,7 @@ addColumnEdit(QLayout *layout, int &row, int &column, const QString &name,
     label->setObjectName(objName + "Label");
   }
 
-  CQChartsColumnEdit *edit = new CQChartsColumnEdit;
+  CQChartsColumnLineEdit *edit = new CQChartsColumnLineEdit;
   edit->setObjectName(objName + "Edit" );
 
   edit->setPlaceholderText(placeholderText);
@@ -1624,7 +1624,7 @@ addColumnEdit(QLayout *layout, int &row, int &column, const QString &name,
   return edit;
 }
 
-CQChartsColumnsEdit *
+CQChartsColumnsLineEdit *
 CQChartsPlotDlg::
 addColumnsEdit(QLayout *layout, int &row, int &column, const QString &name,
                const QString &objName, const QString &placeholderText) const
@@ -1636,7 +1636,7 @@ addColumnsEdit(QLayout *layout, int &row, int &column, const QString &name,
     label->setObjectName(objName + "Label");
   }
 
-  CQChartsColumnsEdit *edit = new CQChartsColumnsEdit;
+  CQChartsColumnsLineEdit *edit = new CQChartsColumnsLineEdit;
   edit->setObjectName(objName + "Edit" );
 
   edit->setPlaceholderText(placeholderText);
@@ -1837,7 +1837,7 @@ validateSlot()
           auto pe = plotData.columnEdits.find(nc.first);
 
           if (pe != plotData.columnEdits.end()) {
-            CQChartsColumnEdit *edit = (*pe).second;
+            CQChartsColumnLineEdit *edit = (*pe).second;
 
             disconnect(edit, SIGNAL(columnChanged()), this, SLOT(validateSlot()));
 
@@ -1849,7 +1849,7 @@ validateSlot()
             auto pe = plotData.columnsEdits.find(nc.first);
 
             if (pe != plotData.columnsEdits.end()) {
-              CQChartsColumnsEdit *edit = (*pe).second;
+              CQChartsColumnsLineEdit *edit = (*pe).second;
 
               disconnect(edit, SIGNAL(columnsChanged()), this, SLOT(validateSlot()));
 
@@ -2757,7 +2757,7 @@ parseParameterBoolEdit(CQChartsPlotParameter *parameter, const PlotData &plotDat
 
 bool
 CQChartsPlotDlg::
-columnLineEditValue(CQChartsColumnEdit *le, CQChartsColumn &column,
+columnLineEditValue(CQChartsColumnLineEdit *le, CQChartsColumn &column,
                     const CQChartsColumn &defColumn) const
 {
   column = le->column();
@@ -2770,7 +2770,7 @@ columnLineEditValue(CQChartsColumnEdit *le, CQChartsColumn &column,
 
 bool
 CQChartsPlotDlg::
-columnsLineEditValue(CQChartsColumnsEdit *le, CQChartsColumns &columns,
+columnsLineEditValue(CQChartsColumnsLineEdit *le, CQChartsColumns &columns,
                      const CQChartsColumns &defColumns) const
 {
   columns = le->columns();

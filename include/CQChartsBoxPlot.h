@@ -465,6 +465,11 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
+  QString groupSetColumnName(const QString &def="") const;
+  QString valueColumnName   (const QString &def="value") const;
+
+  //---
+
   bool isShowOutliers() const { return showOutliers_; }
   void setShowOutliers(bool b);
 

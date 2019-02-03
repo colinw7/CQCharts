@@ -5,14 +5,14 @@
 #include <CQChartsGeom.h>
 #include <CQChartsColor.h>
 #include <CQChartsTypes.h>
+#include <CQChartsFillPattern.h>
+#include <CQChartsNameValues.h>
 #include <CMathUtil.h>
 
 #include <QVariant>
 #include <QPen>
 #include <QStringList>
 #include <QRectF>
-
-using CQChartsNameValues = std::map<QString,QVariant>;
 
 class CQChartsLineDash;
 class CQChartsStyle;
@@ -234,6 +234,57 @@ bool formatStringInRect(const QString &str, const QFont &font,
 
 namespace CQChartsUtil {
 
+inline void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
+                   double strokeWidth, const CQChartsLineDash &strokeDash) {
+  // calc pen (stroke)
+  if (stroked) {
+    QColor color = strokeColor;
+
+    color.setAlphaF(CMathUtil::clamp(strokeAlpha, 0.0, 1.0));
+
+    pen.setColor(color);
+
+    if (strokeWidth > 0)
+      pen.setWidthF(strokeWidth);
+    else
+      pen.setWidthF(0.0);
+
+    penSetLineDash(pen, strokeDash);
+  }
+  else {
+    pen.setStyle(Qt::NoPen);
+  }
+}
+
+inline void setBrush(QBrush &brush, bool filled,
+                     const QColor &fillColor=QColor(), double fillAlpha=1.0,
+                     const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID) {
+  // calc brush (fill)
+  if (filled) {
+    QColor color = fillColor;
+
+    color.setAlphaF(CMathUtil::clamp(fillAlpha, 0.0, 1.0));
+
+    brush.setColor(color);
+
+    brush.setStyle(pattern.style());
+  }
+  else {
+    brush.setStyle(Qt::NoBrush);
+  }
+}
+
+inline double limitLineWidth(double w) {
+  // TODO: configuration setting
+  return CMathUtil::clamp(w, 0.0, CQChartsLineWidth::maxPixelValue());
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
 inline QString unitsString(const CQChartsUnits &units) {
   if      (units == CQChartsUnits::PIXEL  ) return "px";
   else if (units == CQChartsUnits::PERCENT) return "%" ;
@@ -287,7 +338,7 @@ class CQChartsScopeGuard {
 
 namespace CQChartsUtil {
 
-template<class T, class NOTIFIER>
+template<typename T, typename NOTIFIER>
 void testAndSet(T &t, const T &v, NOTIFIER &&notifier) {
   if (v != t) {
     t = v;

@@ -302,6 +302,18 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
   CQChartsColor             color_; // custom color
 };
 
+// key text
+class CQChartsDistKeyText : public CQChartsKeyText {
+  Q_OBJECT
+
+ public:
+  CQChartsDistKeyText(CQChartsDistributionPlot *plot, const QString &text, int i, int n);
+
+  QColor interpTextColor(int i, int n) const override;
+
+  bool isSetHidden() const;
+};
+
 //---
 
 CQCHARTS_NAMED_LINE_DATA(Mean,mean)
@@ -412,6 +424,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   const CQChartsColumn &dataColumn() const { return dataColumn_; }
   void setDataColumn(const CQChartsColumn &c);
+
+  //---
+
+  QString valueColumnName(const QString &def="value") const;
 
   //---
 
@@ -645,7 +661,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   const Values *getGroupValues(int groupInd) const;
 
- private slots:
+ public slots:
   // set horizontal
   void setHorizontal(bool b) override;
 

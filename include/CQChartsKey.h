@@ -25,17 +25,26 @@ class CQChartsKey : public CQChartsBoxObj,
  public CQChartsObjTextData<CQChartsKey> {
   Q_OBJECT
 
-  Q_PROPERTY(bool                horizontal  READ isHorizontal  WRITE setHorizontal )
-  Q_PROPERTY(bool                autoHide    READ isAutoHide    WRITE setAutoHide   )
-  Q_PROPERTY(bool                clipped     READ isClipped     WRITE setClipped    )
-  Q_PROPERTY(bool                above       READ isAbove       WRITE setAbove      )
-  Q_PROPERTY(bool                interactive READ isInteractive WRITE setInteractive)
-  Q_PROPERTY(CQChartsKeyLocation location    READ location      WRITE setLocation   )
-  Q_PROPERTY(QString             header      READ headerStr     WRITE setHeaderStr  )
-  Q_PROPERTY(double              hiddenAlpha READ hiddenAlpha   WRITE setHiddenAlpha)
-  Q_PROPERTY(int                 maxRows     READ maxRows       WRITE setMaxRows    )
+  Q_PROPERTY(bool                horizontal    READ isHorizontal  WRITE setHorizontal   )
+  Q_PROPERTY(bool                autoHide      READ isAutoHide    WRITE setAutoHide     )
+  Q_PROPERTY(bool                clipped       READ isClipped     WRITE setClipped      )
+  Q_PROPERTY(bool                above         READ isAbove       WRITE setAbove        )
+  Q_PROPERTY(bool                interactive   READ isInteractive WRITE setInteractive  )
+  Q_PROPERTY(CQChartsKeyLocation location      READ location      WRITE setLocation     )
+  Q_PROPERTY(QString             header        READ headerStr     WRITE setHeaderStr    )
+  Q_PROPERTY(double              hiddenAlpha   READ hiddenAlpha   WRITE setHiddenAlpha  )
+  Q_PROPERTY(int                 maxRows       READ maxRows       WRITE setMaxRows      )
+  Q_PROPERTY(PressBehavior       pressBehavior READ pressBehavior WRITE setPressBehavior)
 
   CQCHARTS_TEXT_DATA_PROPERTIES
+
+  Q_ENUMS(PressBehavior)
+
+ public:
+  enum class PressBehavior {
+    SHOW,
+    SELECT
+  };
 
  public:
   CQChartsKey(CQChartsView *view);
@@ -97,13 +106,20 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //---
 
+  // alpha when assoiated object hidden
   double hiddenAlpha() const { return hiddenAlpha_; }
   void setHiddenAlpha(double r) { hiddenAlpha_ = r; }
 
   //---
 
+  // max rows
   int maxRows() const { return maxRows_; }
   void setMaxRows(int i) { maxRows_ = i; }
+
+  //---
+
+  const PressBehavior &pressBehavior() const { return pressBehavior_; }
+  void setPressBehavior(const PressBehavior &v) { pressBehavior_ = v; }
 
   //---
 
@@ -120,17 +136,18 @@ class CQChartsKey : public CQChartsBoxObj,
   virtual void draw(QPainter *painter);
 
  protected:
-  bool                horizontal_          { false }; // is layed out horizontallly
-  bool                above_               { true };  // draw above view/plot
-  CQChartsKeyLocation location_;                      // key location
-  QString             header_;                        // header
-  bool                autoHide_            { true };  // auto hide if too big
-  bool                clipped_             { true };  // clipped to plot
-  bool                pixelWidthExceeded_  { true };  // pixel height too big
-  bool                pixelHeightExceeded_ { true };  // pixel width too big
-  bool                interactive_         { true };  // is interactive
-  double              hiddenAlpha_         { 0.3 };   // alpha for hidden item
-  int                 maxRows_             { 100 };   // max rows
+  bool                horizontal_          { false };               // is layed out horizontallly
+  bool                above_               { true };                // draw above view/plot
+  CQChartsKeyLocation location_;                                    // key location
+  QString             header_;                                      // header
+  bool                autoHide_            { true };                // auto hide if too big
+  bool                clipped_             { true };                // clipped to parent
+  bool                pixelWidthExceeded_  { true };                // pixel height too big
+  bool                pixelHeightExceeded_ { true };                // pixel width too big
+  bool                interactive_         { true };                // is interactive
+  double              hiddenAlpha_         { 0.3 };                 // alpha for hidden item
+  int                 maxRows_             { 100 };                 // max rows
+  PressBehavior       pressBehavior_       { PressBehavior::SHOW }; // press behavior
 };
 
 //------
@@ -154,6 +171,10 @@ class CQChartsViewKey : public CQChartsKey {
   bool isInside(const CQChartsGeom::Point &w) const;
 
   void selectPress(const CQChartsGeom::Point &w, CQChartsSelMod selMod);
+
+  virtual void toggleShow(int i);
+
+  virtual void toggleSelect(int i);
 
   void redraw(bool wait=true) override;
 
@@ -311,20 +332,20 @@ class CQChartsPlotKey : public CQChartsKey {
   using ColCell    = std::map<int,Cell>;
   using RowColCell = std::map<int,ColCell>;
 
-  Location                   locationData_;
-  int                        spacing_     { 2 };
-  bool                       flipped_     { false };
-  Items                      items_;
-  int                        maxRow_      { 0 };
-  int                        maxCol_      { 0 };
-  bool                       needsLayout_ { false };
-  QPointF                    position_    { 0, 0 };
-  QSizeF                     size_;
-  int                        numRows_     { 0 };
-  int                        numCols_     { 0 };
-  RowColCell                 rowColCell_;
-  mutable CQChartsGeom::BBox bbox_;
-  CQChartsEditHandles*       editHandles_ { nullptr };
+  Location                   locationData_;                          // key location data
+  int                        spacing_       { 2 };                   // key item spacing
+  bool                       flipped_       { false };               // key order flipped
+  Items                      items_;                                 // key items
+  int                        maxRow_        { 0 };                   // maximim key row
+  int                        maxCol_        { 0 };                   // maximum key column
+  bool                       needsLayout_   { false };               // needs layout
+  QPointF                    position_      { 0, 0 };                // explicit position
+  QSizeF                     size_;                                  // size
+  int                        numRows_       { 0 };                   // number of rows
+  int                        numCols_       { 0 };                   // number of columns
+  RowColCell                 rowColCell_;                            // cells (per row/col)
+  mutable CQChartsGeom::BBox bbox_;                                  // bounding box
+  CQChartsEditHandles*       editHandles_   { nullptr };             // edit handles
 };
 
 //------
@@ -332,8 +353,10 @@ class CQChartsPlotKey : public CQChartsKey {
 class CQChartsKeyItem : public QObject {
   Q_OBJECT
 
+  Q_PROPERTY(bool clickable READ isClickable WRITE setClickable)
+
  public:
-  CQChartsKeyItem(CQChartsPlotKey *key);
+  CQChartsKeyItem(CQChartsPlotKey *key, int i, int n);
 
   virtual ~CQChartsKeyItem() { }
 
@@ -362,27 +385,37 @@ class CQChartsKeyItem : public QObject {
   bool isInside() const { return inside_; }
   void setInside(bool b) { inside_ = b; }
 
+  bool isClickable() const { return clickable_; }
+  void setClickable(bool b) { clickable_ = b; }
+
   //---
 
   virtual bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
 
   //---
 
-  virtual bool selectPress(const CQChartsGeom::Point &, CQChartsSelMod) { return false; }
-  virtual bool selectMove (const CQChartsGeom::Point &) { return false; }
+  virtual bool selectPress(const CQChartsGeom::Point &, CQChartsSelMod);
+  virtual bool selectMove (const CQChartsGeom::Point &);
+
+  virtual void toggleShow();
+
+  virtual void toggleSelect();
 
   //---
 
   virtual void draw(QPainter *painter, const CQChartsGeom::BBox &rect) = 0;
 
  protected:
-  CQChartsPlotKey*           key_     { nullptr };
-  int                        row_     { 0 };
-  int                        col_     { 0 };
-  int                        rowSpan_ { 1 };
-  int                        colSpan_ { 1 };
-  bool                       inside_  { false };
-  mutable CQChartsGeom::BBox bbox_;
+  CQChartsPlotKey*           key_       { nullptr }; // parent key
+  int                        i_         { 0 };       // index
+  int                        n_         { 0 };       // number of indices
+  int                        row_       { 0 };       // row
+  int                        col_       { 0 };       // col
+  int                        rowSpan_   { 1 };       // row span
+  int                        colSpan_   { 1 };       // col span
+  bool                       inside_    { false };   // is inside
+  mutable CQChartsGeom::BBox bbox_;                  // bounding box
+  bool                       clickable_ { false };   // clickable
 };
 
 //---
@@ -409,8 +442,6 @@ class CQChartsKeyText : public CQChartsKeyItem {
  protected:
   CQChartsPlot* plot_ { nullptr };
   QString       text_;
-  int           i_    { 0 };
-  int           n_    { 0 };
 };
 
 //---
@@ -424,8 +455,8 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
  public:
   CQChartsKeyColorBox(CQChartsPlot *plot, int i, int n);
 
-  const CQChartsLength &cornerRadius() const { return boxData_.shape.border.cornerSize; }
-  void setCornerRadius(const CQChartsLength &r) { boxData_.shape.border.cornerSize = r; }
+  const CQChartsLength &cornerRadius() const { return boxData_.shape.border().cornerSize(); }
+  void setCornerRadius(const CQChartsLength &r) { boxData_.shape.border().setCornerSize(r); }
 
   QSizeF size() const override;
 
@@ -433,22 +464,16 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   virtual QBrush fillBrush() const;
 
-  virtual const CQChartsColor &borderColor() const { return boxData_.shape.border.color; }
-  virtual void setBorderColor(const CQChartsColor &c) { boxData_.shape.border.color = c; }
+  virtual const CQChartsColor &borderColor() const { return boxData_.shape.border().color(); }
+  virtual void setBorderColor(const CQChartsColor &c) { boxData_.shape.border().setColor(c); }
 
   QColor interpBorderColor(int i, int n) const;
 
-  bool isClickHide() const { return clickHide_; }
-  void setClickHide(bool b) { clickHide_ = b; }
-
-  bool selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod) override;
-
  protected:
-  CQChartsPlot*   plot_      { nullptr };
-  int             i_         { 0 };
-  int             n_         { 0 };
-  CQChartsBoxData boxData_;
-  bool            clickHide_ { false };
+  CQChartsPlot*   plot_      { nullptr }; // parent plot
+  int             i_         { 0 };       // index
+  int             n_         { 0 };       // num indicies
+  CQChartsBoxData boxData_;               // box data
 };
 
 #endif

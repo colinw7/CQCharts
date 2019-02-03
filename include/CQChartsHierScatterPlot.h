@@ -304,7 +304,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   bool addMenuItems(QMenu *menu) override;
 
- private slots:
+ public slots:
   void popCurrentGroup();
 
   void resetCurrentGroup();

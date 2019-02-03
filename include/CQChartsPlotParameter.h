@@ -10,15 +10,15 @@
 class CQChartsPlotParameterAttributes {
  public:
   enum Flags {
-    REQUIRED     = (1<<0),
-    MONOTONIC    = (1<<1),
-    NUMERIC      = (1<<2),
-    STRING       = (1<<3),
-    BOOL         = (1<<4),
-    COLOR        = (1<<5),
-    GROUPABLE    = (1<<6),
-    MAPPED       = (1<<7),
-    DISCRIMIATOR = (1<<8)
+    REQUIRED      = (1<<0),
+    MONOTONIC     = (1<<1),
+    NUMERIC       = (1<<2),
+    STRING        = (1<<3),
+    BOOL          = (1<<4),
+    COLOR         = (1<<5),
+    GROUPABLE     = (1<<6),
+    MAPPED        = (1<<7),
+    DISCRIMINATOR = (1<<8)
   };
 
  public:
@@ -33,8 +33,8 @@ class CQChartsPlotParameterAttributes {
 
   //---
 
-  bool isDiscrimator() const { return (flags_ & DISCRIMIATOR); }
-  CQChartsPlotParameterAttributes &setDiscrimator() { flags_ |= DISCRIMIATOR ; return *this; }
+  bool isDiscriminator() const { return (flags_ & DISCRIMINATOR); }
+  CQChartsPlotParameterAttributes &setDiscriminator() { flags_ |= DISCRIMINATOR ; return *this; }
 
   //---
 
@@ -111,29 +111,29 @@ class CQChartsPlotParameterAttributes {
 class CQChartsPlotParameter : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(QString  name          READ name          WRITE setName    )
-  Q_PROPERTY(QString  desc          READ desc          WRITE setDesc    )
-  Q_PROPERTY(QString  type          READ typeName      WRITE setTypeName)
-  Q_PROPERTY(QString  propName      READ propName      WRITE setPropName)
-  Q_PROPERTY(int      groupId       READ groupId       WRITE setGroupId )
-  Q_PROPERTY(QVariant defValue      READ defValue      WRITE setDefValue)
-  Q_PROPERTY(QString  tip           READ tip           WRITE setTip     )
-  Q_PROPERTY(bool     isColumn      READ isColumn                       )
-  Q_PROPERTY(bool     isMultiple    READ isMultiple                     )
-  Q_PROPERTY(bool     isOptional    READ isOptional                     )
-  Q_PROPERTY(bool     isRequired    READ isRequired                     )
-  Q_PROPERTY(bool     isDiscrimator READ isDiscrimator                  )
-  Q_PROPERTY(bool     isMonotonic   READ isMonotonic                    )
-  Q_PROPERTY(bool     isNumeric     READ isNumeric                      )
-  Q_PROPERTY(bool     isString      READ isString                       )
-  Q_PROPERTY(bool     isBool        READ isBool                         )
-  Q_PROPERTY(bool     isColor       READ isColor                        )
-  Q_PROPERTY(bool     hasTypeDetail READ hasTypeDetail                  )
-  Q_PROPERTY(QString  typeDetail    READ typeDetail                     )
-  Q_PROPERTY(bool     isGroupable   READ isGroupable                    )
-  Q_PROPERTY(bool     isMapped      READ isMapped                       )
-  Q_PROPERTY(double   mapMin        READ mapMin                         )
-  Q_PROPERTY(double   mapMax        READ mapMax                         )
+  Q_PROPERTY(QString  name            READ name            WRITE setName    )
+  Q_PROPERTY(QString  desc            READ desc            WRITE setDesc    )
+  Q_PROPERTY(QString  type            READ typeName        WRITE setTypeName)
+  Q_PROPERTY(QString  propName        READ propName        WRITE setPropName)
+  Q_PROPERTY(int      groupId         READ groupId         WRITE setGroupId )
+  Q_PROPERTY(QVariant defValue        READ defValue        WRITE setDefValue)
+  Q_PROPERTY(QString  tip             READ tip             WRITE setTip     )
+  Q_PROPERTY(bool     isColumn        READ isColumn                         )
+  Q_PROPERTY(bool     isMultiple      READ isMultiple                       )
+  Q_PROPERTY(bool     isOptional      READ isOptional                       )
+  Q_PROPERTY(bool     isRequired      READ isRequired                       )
+  Q_PROPERTY(bool     isDiscriminator READ isDiscriminator                  )
+  Q_PROPERTY(bool     isMonotonic     READ isMonotonic                      )
+  Q_PROPERTY(bool     isNumeric       READ isNumeric                        )
+  Q_PROPERTY(bool     isString        READ isString                         )
+  Q_PROPERTY(bool     isBool          READ isBool                           )
+  Q_PROPERTY(bool     isColor         READ isColor                          )
+  Q_PROPERTY(bool     hasTypeDetail   READ hasTypeDetail                    )
+  Q_PROPERTY(QString  typeDetail      READ typeDetail                       )
+  Q_PROPERTY(bool     isGroupable     READ isGroupable                      )
+  Q_PROPERTY(bool     isMapped        READ isMapped                         )
+  Q_PROPERTY(double   mapMin          READ mapMin                           )
+  Q_PROPERTY(double   mapMax          READ mapMax                           )
 
  public:
   using Attributes = CQChartsPlotParameterAttributes;
@@ -179,10 +179,10 @@ class CQChartsPlotParameter : public QObject {
 
   virtual bool isMultiple() const { return false; }
 
-  bool isOptional   () const { return attributes_.isOptional   (); }
-  bool isRequired   () const { return attributes_.isRequired   (); }
-  bool isDiscrimator() const { return attributes_.isDiscrimator(); }
-  bool isMonotonic  () const { return attributes_.isMonotonic  (); }
+  bool isOptional     () const { return attributes_.isOptional     (); }
+  bool isRequired     () const { return attributes_.isRequired     (); }
+  bool isDiscriminator() const { return attributes_.isDiscriminator(); }
+  bool isMonotonic    () const { return attributes_.isMonotonic    (); }
 
   bool isNumeric() const { return attributes_.isNumeric    (); }
   bool isString () const { return attributes_.isString     (); }
@@ -196,16 +196,16 @@ class CQChartsPlotParameter : public QObject {
   bool isGroupable() const { return attributes_.isGroupable  (); }
   bool isMapped   () const { return attributes_.isMapped     (); }
 
-  CQChartsPlotParameter &setOptional   () { attributes_.setOptional   (); return *this; }
-  CQChartsPlotParameter &setRequired   () { attributes_.setRequired   (); return *this; }
-  CQChartsPlotParameter &setDiscrimator() { attributes_.setDiscrimator(); return *this; }
-  CQChartsPlotParameter &setMonotonic  () { attributes_.setMonotonic  (); return *this; }
-  CQChartsPlotParameter &setNumeric    () { attributes_.setNumeric    (); return *this; }
-  CQChartsPlotParameter &setString     () { attributes_.setString     (); return *this; }
-  CQChartsPlotParameter &setBool       () { attributes_.setBool       (); return *this; }
-  CQChartsPlotParameter &setColor      () { attributes_.setColor      (); return *this; }
-  CQChartsPlotParameter &setGroupable  () { attributes_.setGroupable  (); return *this; }
-  CQChartsPlotParameter &setMapped     () { attributes_.setMapped     (); return *this; }
+  CQChartsPlotParameter &setOptional     () { attributes_.setOptional     (); return *this; }
+  CQChartsPlotParameter &setRequired     () { attributes_.setRequired     (); return *this; }
+  CQChartsPlotParameter &setDiscriminator() { attributes_.setDiscriminator(); return *this; }
+  CQChartsPlotParameter &setMonotonic    () { attributes_.setMonotonic    (); return *this; }
+  CQChartsPlotParameter &setNumeric      () { attributes_.setNumeric      (); return *this; }
+  CQChartsPlotParameter &setString       () { attributes_.setString       (); return *this; }
+  CQChartsPlotParameter &setBool         () { attributes_.setBool         (); return *this; }
+  CQChartsPlotParameter &setColor        () { attributes_.setColor        (); return *this; }
+  CQChartsPlotParameter &setGroupable    () { attributes_.setGroupable    (); return *this; }
+  CQChartsPlotParameter &setMapped       () { attributes_.setMapped       (); return *this; }
 
   double mapMin() const { return attributes_.mapMin(); }
   double mapMax() const { return attributes_.mapMax(); }

@@ -9,28 +9,28 @@ CQChartsPlotParameter(const QString &name, const QString &desc, const Type &type
  name_(name), desc_(desc), type_(type), propName_(propName), attributes_(attributes),
  defValue_(defValue)
 {
-  addProperty("name"       , "name"         , "");
-  addProperty("desc"       , "desc"         , "");
-  addProperty("type"       , "type"         , "");
-  addProperty("prop_name"  , "propName"     , "");
-  addProperty("group_id"   , "groupId"      , "");
-  addProperty("def_value"  , "defValue"     , "");
-  addProperty("tip"        , "tip"          , "");
-  addProperty("column"     , "isColumn"     , "");
-  addProperty("multiple"   , "isMultiple"   , "");
-  addProperty("optional"   , "isOptional"   , "");
-  addProperty("required"   , "isRequired"   , "");
-  addProperty("discrimator", "isDiscrimator", "");
-  addProperty("monotonic"  , "isMonotonic"  , "");
-  addProperty("numeric"    , "isNumeric"    , "");
-  addProperty("string"     , "isString"     , "");
-  addProperty("bool"       , "isBool"       , "");
-  addProperty("color"      , "isColor"      , "");
-  addProperty("type_detail", "typeDetail"   , "");
-  addProperty("groupable"  , "isGroupable"  , "");
-  addProperty("mapped"     , "isMapped"     , "");
-  addProperty("mapMin"     , "mapMin"       , "");
-  addProperty("mapMax"     , "mapMax"       , "");
+  addProperty("name"         , "name"           , "");
+  addProperty("desc"         , "desc"           , "");
+  addProperty("type"         , "type"           , "");
+  addProperty("prop_name"    , "propName"       , "");
+  addProperty("group_id"     , "groupId"        , "");
+  addProperty("def_value"    , "defValue"       , "");
+  addProperty("tip"          , "tip"            , "");
+  addProperty("column"       , "isColumn"       , "");
+  addProperty("multiple"     , "isMultiple"     , "");
+  addProperty("optional"     , "isOptional"     , "");
+  addProperty("required"     , "isRequired"     , "");
+  addProperty("discriminator", "isDiscriminator", "");
+  addProperty("monotonic"    , "isMonotonic"    , "");
+  addProperty("numeric"      , "isNumeric"      , "");
+  addProperty("string"       , "isString"       , "");
+  addProperty("bool"         , "isBool"         , "");
+  addProperty("color"        , "isColor"        , "");
+  addProperty("type_detail"  , "typeDetail"     , "");
+  addProperty("groupable"    , "isGroupable"    , "");
+  addProperty("mapped"       , "isMapped"       , "");
+  addProperty("mapMin"       , "mapMin"         , "");
+  addProperty("mapMax"       , "mapMax"         , "");
 }
 
 QString

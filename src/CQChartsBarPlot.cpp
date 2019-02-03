@@ -43,23 +43,29 @@ void
 CQChartsBarPlot::
 addProperties()
 {
+  // columns
   addProperty("columns", this, "valueColumns", "values");
 
+  // options
   addProperty("options", this, "horizontal");
 
+  // margins
   addProperty("margins", this, "margin"     , "bar"  );
   addProperty("margins", this, "groupMargin", "group");
 
+  // fill
+  addProperty("fill", this, "barFilled", "visible");
+
+  addFillProperties("fill", "barFill");
+
+  // stroke
   addProperty("stroke", this, "barBorder", "visible");
 
   addLineProperties("stroke", "barBorder");
 
   addProperty("stroke", this, "barCornerSize", "cornerSize");
 
-  addProperty("fill", this, "barFilled", "visible");
-
-  addFillProperties("fill", "barFill");
-
+  // color map
   addColorMapProperties();
 }
 

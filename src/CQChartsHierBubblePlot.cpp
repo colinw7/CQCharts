@@ -94,16 +94,20 @@ addProperties()
 {
   CQChartsHierPlot::addProperties();
 
+  // options
   addProperty("options", this, "valueLabel");
 
-  addProperty("stroke", this, "border", "visible");
-
-  addLineProperties("stroke", "border");
-
+  // fill
   addProperty("fill", this, "filled", "visible");
 
   addFillProperties("fill", "fill");
 
+  // stroke
+  addProperty("stroke", this, "border", "visible");
+
+  addLineProperties("stroke", "border");
+
+  // text
   addTextProperties("text", "text");
 
   addProperty("text", this, "textScaled", "scaled");

@@ -1759,33 +1759,11 @@ createObjs(PlotObjs &objs) const
   //---
 
   auto setXLabel = [&]() {
-    if (xLabel().length())
-      valueAxis()->setLabel(xLabel());
-    else {
-      CQChartsColumn c = valueColumns().column();
-
-      bool ok;
-
-      QString xname = modelHeaderString(c, ok);
-
-      if (ok)
-        valueAxis()->setLabel(xname);
-    }
+    valueAxis()->setLabel(valueColumnName(""));
   };
 
   auto setXGroupLabel = [&]() {
-    if (xLabel().length())
-      valueAxis()->setLabel(xLabel());
-    else {
-      CQChartsColumn c = groupColumn().column();
-
-      bool ok;
-
-      QString xname = modelHeaderString(c, ok);
-
-      if (ok)
-        valueAxis()->setLabel(xname);
-    }
+    valueAxis()->setLabel(valueColumnName(""));
   };
 
   auto setXGroupValuesLabel = [&]() {
@@ -1866,6 +1844,25 @@ createObjs(PlotObjs &objs) const
   //---
 
   return true;
+}
+
+QString
+CQChartsDistributionPlot::
+valueColumnName(const QString &def) const
+{
+  if (xLabel().length())
+    return xLabel();
+
+  CQChartsColumn c = valueColumns().column();
+
+  bool ok;
+
+  QString name = modelHeaderString(c, ok);
+
+  if (! ok)
+    name = def;
+
+  return name;
 }
 
 void
@@ -2060,14 +2057,14 @@ addKeyItems(CQChartsPlotKey *key)
 
   auto addKeyRow = [&](int i, int n, const QString &name) {
     CQChartsDistKeyColorBox *keyColor = new CQChartsDistKeyColorBox(this, i, n);
-    CQChartsKeyText         *keyText  = new CQChartsKeyText        (this, name, i, n);
+    CQChartsDistKeyText     *keyText  = new CQChartsDistKeyText    (this, name, i, n);
 
     key->addItem(keyColor, row, 0);
     key->addItem(keyText , row, 1);
 
     ++row;
 
-    return std::pair<CQChartsDistKeyColorBox *,CQChartsKeyText*>(keyColor, keyText);
+    return std::pair<CQChartsDistKeyColorBox *,CQChartsDistKeyText*>(keyColor, keyText);
   };
 
   //---
@@ -3595,6 +3592,33 @@ CQChartsDistKeyColorBox::
 setSetHidden(bool b)
 {
   plot_->CQChartsPlot::setSetHidden(i_, b);
+}
+
+//------
+
+CQChartsDistKeyText::
+CQChartsDistKeyText(CQChartsDistributionPlot *plot, const QString &text, int i, int n) :
+ CQChartsKeyText(plot, text, i, n)
+{
+}
+
+QColor
+CQChartsDistKeyText::
+interpTextColor(int i, int n) const
+{
+  QColor c = CQChartsKeyText::interpTextColor(i, n);
+
+  if (isSetHidden())
+    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
+
+  return c;
+}
+
+bool
+CQChartsDistKeyText::
+isSetHidden() const
+{
+  return plot_->CQChartsPlot::isSetHidden(i_);
 }
 
 //------

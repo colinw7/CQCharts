@@ -165,6 +165,8 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
 
 //---
 
+class CQChartsXYPolylineObj;
+
 class CQChartsXYPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -178,6 +180,10 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
                      int iset, int nset, int i, int n);
 
  ~CQChartsXYPointObj();
+
+  //---
+
+  void setSelected(bool b) override;
 
   //---
 
@@ -199,6 +205,11 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   int i() const { return i_; }
   int n() const { return n_; }
+
+  //---
+
+  const CQChartsXYPolylineObj *lineObj() const { return lineObj_; }
+  void setLineObj(const CQChartsXYPolylineObj *obj) { lineObj_ = obj; }
 
   //---
 
@@ -233,16 +244,17 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
     OptPoint       vector;
   };
 
-  const CQChartsXYPlot* plot_     { nullptr }; // parent plot
-  int                   groupInd_ { -1 };      // group ind
-  QPointF               pos_;                  // position
-  double                size_     { -1 };      // size : TODO support units
-  QModelIndex           ind_;                  // model index
-  int                   iset_     { -1 };      // sets index
-  int                   nset_     { -1 };      // sets size
-  int                   i_        { -1 };      // points index
-  int                   n_        { -1 };      // points size
-  ExtraData*            edata_    { nullptr }; // extra data
+  const CQChartsXYPlot*        plot_     { nullptr }; // parent plot
+  int                          groupInd_ { -1 };      // group ind
+  QPointF                      pos_;                  // position
+  double                       size_     { -1 };      // size : TODO support units
+  QModelIndex                  ind_;                  // model index
+  int                          iset_     { -1 };      // sets index
+  int                          nset_     { -1 };      // sets size
+  int                          i_        { -1 };      // points index
+  int                          n_        { -1 };      // points size
+  ExtraData*                   edata_    { nullptr }; // extra data
+  const CQChartsXYPolylineObj* lineObj_  { nullptr }; // line obj
 };
 
 //---
@@ -326,7 +338,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
  public:
   CQChartsXYPolylineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                         const QPolygonF &poly, const QString &name,
-                        int ig, int ng, int is, int ns);
+                        int is, int ns, int ig, int ng);
 
  ~CQChartsXYPolylineObj();
 
@@ -337,11 +349,11 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
-  int ig() const { return ig_; }
-  int ng() const { return ng_; }
-
   int is() const { return is_; }
   int ns() const { return ns_; }
+
+  int ig() const { return ig_; }
+  int ng() const { return ng_; }
 
   //---
 
@@ -359,6 +371,8 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   bool interpY(double x, std::vector<double> &yvals) const;
 
+  //---
+
   void getSelectIndices(Indices &inds) const override;
 
   void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
@@ -373,10 +387,10 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   int                   groupInd_ { -1 };      // group ind
   QPolygonF             poly_;                 // polygon
   QString               name_;                 // name
-  int                   ig_       { -1 };      // group ind
-  int                   ng_       { -1 };      // num groups
   int                   is_       { -1 };      // set ind
   int                   ns_       { -1 };      // num sets
+  int                   ig_       { -1 };      // group ind
+  int                   ng_       { -1 };      // num groups
   CQChartsSmooth*       smooth_   { nullptr }; // smooth object
   CQChartsFitData       fit_;                  // fit data
 };
@@ -391,7 +405,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
  public:
   CQChartsXYPolygonObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                        const QPolygonF &poly, const QString &name,
-                       int ig, int ng, int is, int ns);
+                       int is, int ns, int ig, int ng);
 
  ~CQChartsXYPolygonObj();
 
@@ -402,11 +416,11 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
-  int ig() const { return ig_; }
-  int ng() const { return ng_; }
-
   int is() const { return is_; }
   int ns() const { return ns_; }
+
+  int ig() const { return ig_; }
+  int ng() const { return ng_; }
 
   //---
 
@@ -436,10 +450,10 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   int                   groupInd_ { -1 };      // group ind
   QPolygonF             poly_;                 // polygon
   QString               name_;                 // name
-  int                   ig_       { -1 };      // group ind
-  int                   ng_       { -1 };      // num groups
   int                   is_       { -1 };      // set ind
   int                   ns_       { -1 };      // num sets
+  int                   ig_       { -1 };      // group ind
+  int                   ng_       { -1 };      // num groups
   CQChartsSmooth*       smooth_   { nullptr }; // smooth object
 };
 
@@ -451,42 +465,54 @@ class CQChartsXYKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
  public:
-  CQChartsXYKeyColor(CQChartsXYPlot *plot, int i, int n);
+  CQChartsXYKeyColor(CQChartsXYPlot *plot, int is, int ns, int ig, int ng);
 
-  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
-
-  bool selectMove(const CQChartsGeom::Point &) override { return true; }
+  void toggleSelect() override;
 
   QBrush fillBrush() const override;
+
+ protected:
+  CQChartsXYPlot* plot_ { nullptr };
+  int             is_   { 0 };
+  int             ns_   { 0 };
+  int             ig_   { 0 };
+  int             ng_   { 0 };
 };
 
 class CQChartsXYKeyLine : public CQChartsKeyItem {
   Q_OBJECT
 
  public:
-  CQChartsXYKeyLine(CQChartsXYPlot *plot, int i, int n);
+  CQChartsXYKeyLine(CQChartsXYPlot *plot, int is, int ns, int ig, int ng);
+
+  void toggleSelect() override;
 
   QSizeF size() const override;
 
-  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
-
-  bool selectMove(const CQChartsGeom::Point &) override { return true; }
-
   void draw(QPainter *painter, const CQChartsGeom::BBox &rect) override;
 
-protected:
-  CQChartsPlot* plot_ { nullptr };
-  int           i_    { 0 };
-  int           n_    { 0 };
+ protected:
+  CQChartsXYPlot* plot_ { nullptr };
+  int             is_   { 0 };
+  int             ns_   { 0 };
+  int             ig_   { 0 };
+  int             ng_   { 0 };
 };
 
 class CQChartsXYKeyText : public CQChartsKeyText {
   Q_OBJECT
 
  public:
-  CQChartsXYKeyText(CQChartsXYPlot *plot, const QString &text, int i, int n);
+  CQChartsXYKeyText(CQChartsXYPlot *plot, const QString &text, int is, int ns, int ig, int ng);
 
   QColor interpTextColor(int i, int n) const override;
+
+ protected:
+  CQChartsXYPlot* plot_ { nullptr };
+  int             is_   { 0 };
+  int             ns_   { 0 };
+  int             ig_   { 0 };
+  int             ng_   { 0 };
 };
 
 //---
@@ -532,6 +558,10 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   // point: (display, symbol)
   CQCHARTS_POINT_DATA_PROPERTIES
+
+  Q_PROPERTY(bool pointLineSelect READ isPointLineSelect WRITE setPointLineSelect)
+  Q_PROPERTY(int  pointDelta      READ pointDelta        WRITE setPointDelta)
+  Q_PROPERTY(int  pointCount      READ pointCount        WRITE setPointCount)
 
   // lines (selectable, rounded, display, stroke)
   Q_PROPERTY(bool linesSelectable READ isLinesSelectable WRITE setLinesSelectable)
@@ -603,6 +633,19 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   //---
 
+  // select lines when point selected
+  bool isPointLineSelect() const { return pointLineSelect_; }
+  void setPointLineSelect(bool b) { pointLineSelect_ = b; }
+
+  // point delta/count
+  int pointDelta() const { return pointDelta_; }
+  void setPointDelta(int i);
+
+  int pointCount() const { return pointCount_; }
+  void setPointCount(int i);
+
+  //---
+
   // lines selectable, rounded
   bool isLinesSelectable() const { return linesSelectable_; }
   void setLinesSelectable(bool b);
@@ -642,8 +685,6 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   CQChartsGeom::Range calcRange() const override;
 
-  void postInit() override;
-
   bool createObjs(PlotObjs &objs) const;
 
   //---
@@ -653,13 +694,15 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   //---
 
-  void addPolyLine(const QPolygonF &polyLine, int groupInd, int ig, int ng, int is, int ns,
-                   const QString &name, PlotObjs &objs) const;
+  CQChartsXYPolylineObj *addPolyLine(const QPolygonF &polyLine, int groupInd,
+                                     int is, int ns, int ig, int ng, const QString &name,
+                                     PlotObjs &pointObjs, PlotObjs &objs) const;
 
-  void addPolygon(const QPolygonF &poly, int groupInd, int ig, int ng, int is, int ns,
-                  const QString &name, PlotObjs &objs) const;
+  void addPolygon(const QPolygonF &poly, int groupInd,
+                  int is, int ns, int ig, int ng, const QString &name,
+                  PlotObjs &objs) const;
 
-  QString valueName(int iset, int irow) const;
+  QString valueName(int iset, int nset, int irow) const;
 
   void addKeyItems(CQChartsPlotKey *key) override;
 
@@ -714,6 +757,8 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   // set fill under
   void setFillUnderFilledSlot(bool b);
 
+  CQChartsPlotObj *getGroupObj(int ig) const;
+
  private:
   struct IndPoly {
     using Inds = std::vector<QModelIndex>;
@@ -749,6 +794,9 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   CQChartsColumn  pointSymbolColumn_;                         // point symbol column
   CQChartsColumn  vectorXColumn_;                             // vector x direction column
   CQChartsColumn  vectorYColumn_;                             // vector y direction column
+  bool            pointLineSelect_      { true };             // select line of point
+  int             pointDelta_           { 1 };                // point delta
+  int             pointCount_           { -1 };               // point count
   bool            stacked_              { false };            // is stacked
   bool            cumulative_           { false };            // cumulate values
   bool            linesSelectable_      { false };            // are lines selectable

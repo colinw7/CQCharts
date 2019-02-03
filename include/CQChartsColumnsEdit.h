@@ -2,19 +2,55 @@
 #define CQChartsColumnsEdit_H
 
 #include <CQChartsColumn.h>
-#include <QFrame>
-#include <QStyleOptionComboBox>
+#include <CQChartsLineEditBase.h>
 
-class CQChartsColumnEdit;
-class CQWidgetMenu;
-class QLineEdit;
-class QPushButton;
+class CQChartsColumnsEdit;
+
+class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsColumns columns READ columns WRITE setColumns)
+
+ public:
+  CQChartsColumnsLineEdit(QWidget *parent=nullptr);
+
+  QAbstractItemModel *model() const;
+  void setModel(QAbstractItemModel *model);
+
+  const CQChartsColumns &columns() const;
+  void setColumns(const CQChartsColumns &c);
+
+ signals:
+  void columnsChanged();
+
+ private slots:
+  void menuEditChanged();
+
+ private:
+  void updateColumns(const CQChartsColumns &columns, bool updateText);
+
+  void textChanged() override;
+
+  void updateMenu() override;
+
+  void columnsToWidgets();
+
+  void connectSlots(bool b);
+
+  bool textToColumns(const QString &str, CQChartsColumns &columns) const;
+
+ private:
+  CQChartsColumnsEdit *menuEdit_ { nullptr };
+};
+
+//------
+
+class CQChartsColumnLineEdit;
 
 class CQChartsColumnsEdit : public QFrame {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumns columns         READ columns         WRITE setColumns        )
-  Q_PROPERTY(QString         placeholderText READ placeholderText WRITE setPlaceholderText)
+  Q_PROPERTY(CQChartsColumns columns READ columns WRITE setColumns)
 
  public:
   CQChartsColumnsEdit(QWidget *parent=nullptr);
@@ -25,66 +61,32 @@ class CQChartsColumnsEdit : public QFrame {
   const CQChartsColumns &columns() const;
   void setColumns(const CQChartsColumns &c);
 
-  QString text() const;
-  void setText(const QString &s);
-
-  QString placeholderText() const;
-  void setPlaceholderText(const QString &s);
-
-  void paintEvent(QPaintEvent *) override;
-
-  void resizeEvent(QResizeEvent *) override;
+  QSize sizeHint() const;
 
  signals:
   void columnsChanged();
 
  private slots:
-  void showMenu();
-
-  void updateMenu();
-
-  void textChanged(const QString &str);
-
   void addSlot();
   void removeSlot();
 
-  void updateState();
-
-  void columnSlot();
+  void widgetsToColumn();
 
  private:
-  void initStyle(QStyleOptionComboBox &opt);
+  void columnsToWidgets();
 
-  void textToColumns();
-  void columnsToText();
+  void updateEdits();
 
   void connectSlots(bool b);
 
  private:
-  using ColumnEdits = std::vector<CQChartsColumnEdit *>;
+  using ColumnEdits = std::vector<CQChartsColumnLineEdit *>;
 
   CQChartsColumns     columns_;
-  QLineEdit*          edit_            { nullptr };
-  QPushButton*        button_          { nullptr };
-  CQWidgetMenu*       menu_            { nullptr };
   QAbstractItemModel* model_           { nullptr };
-  QFrame*             menuFrame_       { nullptr };
   QFrame*             controlFrame_    { nullptr };
   QFrame*             columnsFrame_    { nullptr };
   ColumnEdits         columnEdits_;
-};
-
-//---
-
-#include <QPushButton>
-
-class CQChartsColumnsEditMenuButton : public QPushButton {
-  Q_OBJECT
-
- public:
-  CQChartsColumnsEditMenuButton(QWidget *parent=nullptr);
-
-  void paintEvent(QPaintEvent *) override;
 };
 
 //------

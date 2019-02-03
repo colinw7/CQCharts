@@ -28,7 +28,7 @@ addParameters()
     setNumeric().setTip("Node Id Column");
 
   addColumnParameter("connections", "Connections", "connectionsColumn").
-   setTip("List of Connection Pairs (Ids from id column and connection count)").setDiscrimator();
+   setTip("List of Connection Pairs (Ids from id column and connection count)").setDiscriminator();
 
   endParameterGroup();
 
@@ -38,7 +38,7 @@ addParameters()
   startParameterGroup("Name Pair/Count");
 
   addColumnParameter("namePair", "Name Pair", "namePairColumn").
-   setTip("Connected Name Pairs (<name1>/<name2>)").setDiscrimator();
+   setTip("Connected Name Pairs (<name1>/<name2>)").setDiscriminator();
 
   addColumnParameter("count", "Count", "countColumn").
    setNumeric().setTip("Connection Count");

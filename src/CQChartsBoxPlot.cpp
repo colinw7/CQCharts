@@ -547,6 +547,7 @@ updateRawRange() const
           //---
 
           QString name;
+          bool    allowNoName = false;
 
           if      (isGroupHeaders()) {
             name = whisker->name();
@@ -556,6 +557,9 @@ updateRawRange() const
           }
           else if (hasSets) {
             name = this->setIdName(setId);
+          }
+          else {
+            allowNoName = true;
           }
 
           whisker->setName(name);
@@ -571,7 +575,7 @@ updateRawRange() const
 
           //---
 
-          if (name.length())
+          if (allowNoName || name.length())
             xAxis->setTickLabel(x, name);
 
           //---
@@ -657,6 +661,21 @@ updateRawRange() const
 
   //---
 
+  xAxis->setLabel(groupSetColumnName(""));
+  yAxis->setLabel(valueColumnName   (""));
+
+  //---
+
+  return dataRange;
+}
+
+QString
+CQChartsBoxPlot::
+groupSetColumnName(const QString &def) const
+{
+  if (numGroupWhiskers() <= 1)
+    return "";
+
   bool ok;
 
   QString xname = xLabel();
@@ -667,20 +686,27 @@ updateRawRange() const
   if (! xname.length() && setColumn().isValid())
     xname = modelHeaderString(setColumn(), ok);
 
-  xAxis->setLabel(xname);
+  if (! ok)
+    xname = def;
 
-  //---
+  return xname;
+}
+
+QString
+CQChartsBoxPlot::
+valueColumnName(const QString &def) const
+{
+  bool ok;
 
   QString yname = yLabel();
 
   if (valueColumns().count() == 1 && ! yname.length())
     yname = modelHeaderString(valueColumns().column(), ok);
 
-  yAxis->setLabel(yname);
+  if (! ok)
+    yname = def;
 
-  //---
-
-  return dataRange;
+  return yname;
 }
 
 bool
@@ -1927,7 +1953,7 @@ draw(QPainter *painter)
       plot_->setBrush(symbolBrush, /*filled*/true, boxColor, plot_->boxFillAlpha(),
                       plot_->boxFillPattern());
 
-      plot_->updateObjPenBrushState(this, symbolPen, symbolBrush, /*force*/true);
+      plot_->updateObjPenBrushState(this, symbolPen, symbolBrush, CQChartsPlot::DrawType::SYMBOL);
 
       //---
 
@@ -2061,7 +2087,7 @@ draw(QPainter *painter)
 
         plot_->setOutlierSymbolPenBrush(pen, brush, ic, nc);
 
-        plot_->updateObjPenBrushState(this, pen, brush, /*force*/true);
+        plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
         //---
 
@@ -2288,7 +2314,7 @@ draw(QPainter *painter)
 
   plot_->setOutlierSymbolPenBrush(pen, brush, ic, nc);
 
-  plot_->updateObjPenBrushState(this, pen, brush, /*force*/true);
+  plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
   painter->setBrush(brush);
   painter->setPen  (pen);
@@ -2521,7 +2547,7 @@ draw(QPainter *painter)
 
     plot_->setOutlierSymbolPenBrush(pen, brush, 0, 1);
 
-    plot_->updateObjPenBrushState(this, pen, brush, /*force*/true);
+    plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
     //---
 
@@ -3027,7 +3053,7 @@ draw(QPainter *painter)
     plot_->isOutlierSymbolStroked(), bc, /*alpha*/1.0, CQChartsLength(), CQChartsLineDash(),
     plot_->isOutlierSymbolFilled(), fc, /*alpha*/1.0, plot_->boxFillPattern());
 
-  plot_->updateObjPenBrushState(this, pen, brush, /*force*/true);
+  plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
   //---
 

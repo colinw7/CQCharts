@@ -100,7 +100,10 @@ writeSlot()
     bool first = true;
 
     for (const auto &param : typeData->params()) {
-      QVariant var = nameValues[param.name()];
+      QVariant var;
+
+      if (! nameValues.nameValue(param.name(), var))
+        continue;
 
       if (! var.isValid())
         continue;
@@ -122,7 +125,7 @@ writeSlot()
           continue;
       }
 
-      QString str = nameValues[param.name()].toString();
+      QString str = var.toString();
 
       if (first)
         value += ":";

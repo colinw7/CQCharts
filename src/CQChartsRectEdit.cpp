@@ -1,9 +1,9 @@
 #include <CQChartsRectEdit.h>
+#include <CQChartsUnitsEdit.h>
 
 #include <CQPropertyView.h>
 #include <CQRectEdit.h>
 
-#include <QComboBox>
 #include <QHBoxLayout>
 
 CQChartsRectEdit::
@@ -27,19 +27,11 @@ CQChartsRectEdit(QWidget *parent) :
 
   //---
 
-  unitsCombo_ = new QComboBox;
+  unitsEdit_ = new CQChartsUnitsEdit;
 
-  unitsCombo_->addItems(CQChartsUtil::unitNames());
+  layout->addWidget(unitsEdit_);
 
-  unitsCombo_->setObjectName("units");
-
-  layout->addWidget(unitsCombo_);
-
-  connect(unitsCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged()));
-
-  //---
-
-  updateUnits();
+  connect(unitsEdit_, SIGNAL(unitsChanged(int)), this, SLOT(unitsChanged()));
 }
 
 const CQChartsRect &
@@ -60,17 +52,36 @@ setRect(const CQChartsRect &rect)
 
 void
 CQChartsRectEdit::
-widgetsToRect()
+editChanged()
 {
-  QRectF rect = edit_->getValue();
+  QRectF               qrect = edit_->getValue();
+  const CQChartsUnits &units = rect_.units();
 
-  QString str = unitsCombo_->currentText();
+  CQChartsRect rect(qrect, units);
 
-  CQChartsUnits units;
+  if (! rect_.isValid())
+    return;
 
-  CQChartsUtil::decodeUnits(str, units);
+  rect_ = rect;
 
-  rect_ = CQChartsRect(rect, units);
+  emit rectChanged();
+}
+
+void
+CQChartsRectEdit::
+unitsChanged()
+{
+  const QRectF& qrect = rect_.rect();
+  CQChartsUnits units = unitsEdit_->units();
+
+  CQChartsRect rect(qrect, units);
+
+  if (! rect_.isValid())
+    return;
+
+  rect_ = rect;
+
+  emit rectChanged();
 }
 
 void
@@ -82,13 +93,26 @@ rectToWidgets()
   const QRectF        &rect  = rect_.rect();
   const CQChartsUnits &units = rect_.units();
 
-  QString ustr = CQChartsUtil::unitsString(units);
-
   edit_->setValue(rect);
 
-  unitsCombo_->setCurrentIndex(unitsCombo_->findText(ustr, Qt::MatchExactly));
+  unitsEdit_->setUnits(units);
 
   connectSlots(true);
+}
+
+void
+CQChartsRectEdit::
+widgetsToRect()
+{
+  QRectF        qrect = edit_->getValue();
+  CQChartsUnits units = unitsEdit_->units();
+
+  CQChartsRect rect(qrect, units);
+
+  if (! rect.isValid())
+    return;
+
+  rect_ = rect;
 }
 
 void
@@ -97,47 +121,12 @@ connectSlots(bool b)
 {
   if (b) {
     connect(edit_, SIGNAL(valueChanged()), this, SLOT(editChanged()));
-    connect(unitsCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged()));
+    connect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
   }
   else {
     disconnect(edit_, SIGNAL(valueChanged()), this, SLOT(editChanged()));
-    disconnect(unitsCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged()));
+    disconnect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
   }
-}
-
-void
-CQChartsRectEdit::
-editChanged()
-{
-  QRectF rect = edit_->getValue();
-
-  rect_ = CQChartsRect(rect, rect_.units());
-
-  rectToWidgets();
-
-  emit rectChanged();
-}
-
-void
-CQChartsRectEdit::
-unitsChanged()
-{
-  int ind = unitsCombo_->currentIndex();
-
-  rect_ = CQChartsRect(rect_.rect(), (CQChartsUnits) ind);
-
-  rectToWidgets();
-
-  emit rectChanged();
-}
-
-void
-CQChartsRectEdit::
-updateUnits()
-{
-  int ind = unitsCombo_->currentIndex();
-
-  unitsCombo_->setToolTip(CQChartsUtil::unitTipNames()[ind]);
 }
 
 //------

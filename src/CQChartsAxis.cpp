@@ -129,6 +129,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   QString linePath = path + "/line";
 
+  model->addProperty(linePath, this, "axesLineData"  , "line"   );
   model->addProperty(linePath, this, "axesLines"     , "visible");
   model->addProperty(linePath, this, "axesLinesColor", "color"  );
   model->addProperty(linePath, this, "axesLinesAlpha", "alpha"  );
@@ -174,12 +175,14 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(gridPath, this, "gridMid"  , "middle");
   model->addProperty(gridPath, this, "gridAbove", "above" );
 
+  model->addProperty(gridMajorLinePath, this, "axesMajorGridLineData"  , "line"   );
   model->addProperty(gridMajorLinePath, this, "axesMajorGridLines"     , "visible");
   model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesColor", "color"  );
   model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesAlpha", "alpha"  );
   model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesWidth", "width"  );
   model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesDash" , "dash"   );
 
+  model->addProperty(gridMinorLinePath, this, "axesMinorGridLineData"  , "line");
   model->addProperty(gridMinorLinePath, this, "axesMinorGridLines"     , "visible");
   model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesColor", "color"  );
   model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesAlpha", "alpha"  );
@@ -965,7 +968,7 @@ drawEditHandles(QPainter *painter) const
 
 void
 CQChartsAxis::
-getTickLabelsPositions(std::set<int> &positions)
+getTickLabelsPositions(std::set<int> &positions) const
 {
   if (numMajorTicks() >= maxMajorTicks())
     return;

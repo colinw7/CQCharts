@@ -1,9 +1,9 @@
 #include <CQChartsLengthEdit.h>
+#include <CQChartsUnitsEdit.h>
 
 #include <CQPropertyView.h>
 #include <CQRealSpin.h>
 
-#include <QComboBox>
 #include <QHBoxLayout>
 
 CQChartsLengthEdit::
@@ -27,18 +27,11 @@ CQChartsLengthEdit(QWidget *parent) :
 
   //---
 
-  unitsCombo_ = new QComboBox;
+  unitsEdit_ = new CQChartsUnitsEdit;
 
-  unitsCombo_->setObjectName("units");
-  unitsCombo_->addItems(CQChartsUtil::unitNames());
+  layout->addWidget(unitsEdit_);
 
-  layout->addWidget(unitsCombo_);
-
-  connect(unitsCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged()));
-
-  //---
-
-  updateUnits();
+  connect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
 }
 
 const CQChartsLength &
@@ -55,8 +48,6 @@ setLength(const CQChartsLength &length)
   length_ = length;
 
   lengthToWidgets();
-
-  updateUnits();
 }
 
 void
@@ -81,7 +72,7 @@ CQChartsLengthEdit::
 unitsChanged()
 {
   double        value = length_.value();
-  CQChartsUnits units = (CQChartsUnits) unitsCombo_->currentIndex();
+  CQChartsUnits units = unitsEdit_->units();
 
   CQChartsLength length(value, units);
 
@@ -89,8 +80,6 @@ unitsChanged()
     return;
 
   length_ = length;
-
-  updateUnits();
 
   emit lengthChanged();
 }
@@ -104,11 +93,9 @@ lengthToWidgets()
   double               value = length_.value();
   const CQChartsUnits &units = length_.units();
 
-  QString ustr = CQChartsUtil::unitsString(units);
-
   edit_->setValue(value);
 
-  unitsCombo_->setCurrentIndex(unitsCombo_->findText(ustr, Qt::MatchExactly));
+  unitsEdit_->setUnits(units);
 
   connectSlots(true);
 }
@@ -118,7 +105,7 @@ CQChartsLengthEdit::
 widgetsToLength()
 {
   double        value = edit_->value();
-  CQChartsUnits units = (CQChartsUnits) unitsCombo_->currentIndex();
+  CQChartsUnits units = unitsEdit_->units();
 
   CQChartsLength length(value, units);
 
@@ -134,21 +121,12 @@ connectSlots(bool b)
 {
   if (b) {
     connect(edit_, SIGNAL(valueChanged(double)), this, SLOT(editChanged()));
-    connect(unitsCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged()));
+    connect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
   }
   else {
     disconnect(edit_, SIGNAL(valueChanged(double)), this, SLOT(editChanged()));
-    disconnect(unitsCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged()));
+    disconnect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
   }
-}
-
-void
-CQChartsLengthEdit::
-updateUnits()
-{
-  int ind = unitsCombo_->currentIndex();
-
-  unitsCombo_->setToolTip(CQChartsUtil::unitTipNames()[ind]);
 }
 
 //------

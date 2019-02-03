@@ -39,7 +39,12 @@ class CQChartsPolygon {
 
   //---
 
+  bool isValid() const { return units_ != CQChartsUnits::NONE; }
+
+  //---
+
   const CQChartsUnits &units() const { return units_; }
+  void setUnits(const CQChartsUnits &units) { units_ = units; }
 
   //---
 

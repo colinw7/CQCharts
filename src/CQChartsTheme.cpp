@@ -2252,7 +2252,8 @@ CQChartsDefaultTheme()
 {
   setPalette(0, CQChartsThemeMgrInst->getNamedPalette("set2")->dup());
 
-  selectColor_ = QColor("#71d852");
+  selectColor_ = QColor("#ee4444");
+  insideColor_ = QColor("#44ee44");
 }
 
 CQChartsTheme1::
@@ -2263,7 +2264,8 @@ CQChartsTheme1()
 
   //---
 
-  selectColor_ = QColor("#b60000");
+  selectColor_ = QColor("#44ee44");
+  insideColor_ = QColor("#4444ee");
 }
 
 CQChartsTheme2::
@@ -2274,7 +2276,8 @@ CQChartsTheme2()
 
   //---
 
-  selectColor_ = QColor("#cccc00");
+  selectColor_ = QColor("#44ee44");
+  insideColor_ = QColor("#4444ee");
 }
 
 //---

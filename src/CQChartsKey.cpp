@@ -169,13 +169,14 @@ void
 CQChartsViewKey::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "visible"    );
-  model->addProperty(path, this, "location"   );
-  model->addProperty(path, this, "header"     );
-  model->addProperty(path, this, "horizontal" );
-  model->addProperty(path, this, "autoHide"   );
-  model->addProperty(path, this, "clipped"    );
-  model->addProperty(path, this, "hiddenAlpha");
+  model->addProperty(path, this, "visible"      );
+  model->addProperty(path, this, "location"     );
+  model->addProperty(path, this, "header"       );
+  model->addProperty(path, this, "horizontal"   );
+  model->addProperty(path, this, "autoHide"     );
+  model->addProperty(path, this, "clipped"      );
+  model->addProperty(path, this, "hiddenAlpha"  );
+  model->addProperty(path, this, "pressBehavior");
 
   CQChartsBoxObj::addProperties(model, path);
 
@@ -317,15 +318,33 @@ selectPress(const CQChartsGeom::Point &w, CQChartsSelMod /*selMod*/)
   int n = std::min(view_->numPlots(), int(prects_.size()));
 
   for (int i = 0; i < n; ++i) {
-    CQChartsPlot *plot = view_->plot(i);
+    if (! prects_[i].contains(CQChartsUtil::toQPoint(w)))
+      continue;
 
-    if (prects_[i].contains(CQChartsUtil::toQPoint(w))) {
-      plot->setVisible(! plot->isVisible());
-      break;
-    }
+    if      (pressBehavior() == CQChartsKey::PressBehavior::SHOW)
+      toggleShow(i);
+    else if (pressBehavior() == CQChartsKey::PressBehavior::SELECT)
+      toggleSelect(i);
+
+    break;
   }
 
   redraw();
+}
+
+void
+CQChartsViewKey::
+toggleShow(int i)
+{
+  CQChartsPlot *plot = view_->plot(i);
+
+  plot->setVisible(! plot->isVisible());
+}
+
+void
+CQChartsViewKey::
+toggleSelect(int)
+{
 }
 
 void
@@ -1100,8 +1119,46 @@ interpBgColor() const
 //------
 
 CQChartsKeyItem::
-CQChartsKeyItem(CQChartsPlotKey *key) :
- key_(key)
+CQChartsKeyItem(CQChartsPlotKey *key, int i, int n) :
+ key_(key), i_(i), n_(n)
+{
+}
+
+bool
+CQChartsKeyItem::
+selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
+{
+  if (isClickable()) {
+    if      (key_->pressBehavior() == CQChartsKey::PressBehavior::SHOW)
+      toggleShow();
+    else if (key_->pressBehavior() == CQChartsKey::PressBehavior::SELECT)
+      toggleSelect();
+  }
+
+  return true;
+}
+
+bool
+CQChartsKeyItem::
+selectMove(const CQChartsGeom::Point &)
+{
+  return isClickable();
+}
+
+void
+CQChartsKeyItem::
+toggleShow()
+{
+  CQChartsPlot *plot = key_->plot();
+
+  plot->setSetHidden(i_, ! plot->isSetHidden(i_));
+
+  plot->queueUpdateObjs();
+}
+
+void
+CQChartsKeyItem::
+toggleSelect()
 {
 }
 
@@ -1116,7 +1173,7 @@ tipText(const CQChartsGeom::Point &, QString &) const
 
 CQChartsKeyText::
 CQChartsKeyText(CQChartsPlot *plot, const QString &text, int i, int n) :
- CQChartsKeyItem(plot->key()), plot_(plot), text_(text), i_(i), n_(n)
+ CQChartsKeyItem(plot->key(), i, n), plot_(plot), text_(text)
 {
 }
 
@@ -1183,21 +1240,9 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 
 CQChartsKeyColorBox::
 CQChartsKeyColorBox(CQChartsPlot *plot, int i, int n) :
- CQChartsKeyItem(plot->key()), plot_(plot), i_(i), n_(n)
+ CQChartsKeyItem(plot->key(), i, n), plot_(plot)
 {
-}
-
-bool
-CQChartsKeyColorBox::
-selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
-{
-  if (isClickHide()) {
-    plot_->setSetHidden(i_, ! plot_->isSetHidden(i_));
-
-    plot_->hiddenChanged();
-  }
-
-  return true;
+  setClickable(true);
 }
 
 QColor

@@ -334,15 +334,14 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   struct ZoomData {
-    double              dataScaleX { 1.0 };      // data scale (zoom in x direction)
-    double              dataScaleY { 1.0 };      // data scale (zoom in y direction)
+    CQChartsGeom::Point dataScale  { 1.0, 1.0 }; // data scale (zoom in x/y direction)
     CQChartsGeom::Point dataOffset { 0.0, 0.0 }; // data offset (pan)
   };
 
-  double dataScaleX() const { return zoomData_.dataScaleX; }
+  double dataScaleX() const { return zoomData_.dataScale.x; }
   void setDataScaleX(double r);
 
-  double dataScaleY() const { return zoomData_.dataScaleY; }
+  double dataScaleY() const { return zoomData_.dataScale.y; }
   void setDataScaleY(double r);
 
   double dataOffsetX() const { return zoomData_.dataOffset.x; }
@@ -1103,6 +1102,8 @@ class CQChartsPlot : public CQChartsObj,
   void setPixelRange (const CQChartsGeom::BBox &bbox);
   void setWindowRange(const CQChartsGeom::BBox &bbox);
 
+  void applyDataRangeAndDraw();
+
   void applyDataRange(bool propagate=true);
 
   void applyDisplayTransform(bool propagate=true);
@@ -1570,25 +1571,31 @@ class CQChartsPlot : public CQChartsObj,
                    bool filled, const QColor &fillColor, double fillAlpha,
                    const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID) const;
 
-  void setPen(QPen &pen, bool stroked,
-              const QColor &strokeColor=QColor(), double strokeAlpha=1.0,
+  void setPen(QPen &pen, bool stroked, const QColor &strokeColor=QColor(), double strokeAlpha=1.0,
               const CQChartsLength &strokeWidth=CQChartsLength("0px"),
               const CQChartsLineDash &strokeDash=CQChartsLineDash()) const;
 
-  void setBrush(QBrush &brush, bool filled,
-                const QColor &fillColor=QColor(), double fillAlpha=1.0,
+  void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(), double fillAlpha=1.0,
                 const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID) const;
-
-  double limitLineWidth(double w) const;
 
   //---
 
-  void updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush,
-                              bool force=false) const;
+  enum class DrawType {
+    LINE,
+    BOX,
+    SYMBOL
+  };
 
-  void updateInsideObjPenBrushState  (QPen &pen, QBrush &brush, bool outline=true,
-                                      bool force=false) const;
-  void updateSelectedObjPenBrushState(QPen &pen, QBrush &brush, bool force=false) const;
+  void updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush,
+                              DrawType drawType=DrawType::BOX) const;
+
+  void updateObjPenBrushState(const CQChartsObj *obj, int i, int n, QPen &pen, QBrush &brush,
+                              DrawType drawType) const;
+
+  void updateInsideObjPenBrushState  (int i, int n, QPen &pen, QBrush &brush,
+                                      bool outline, DrawType drawType) const;
+  void updateSelectedObjPenBrushState(int i, int n, QPen &pen, QBrush &brush,
+                                      DrawType drawType) const;
 
   QColor insideColor(const QColor &c) const;
   QColor selectedColor(const QColor &c) const;
@@ -1646,8 +1653,6 @@ class CQChartsPlot : public CQChartsObj,
   void setSetHidden(int id, bool hidden);
 
   void resetSetHidden();
-
-  virtual void hiddenChanged();
 
   //---
 

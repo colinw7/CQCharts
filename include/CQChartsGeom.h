@@ -1,6 +1,7 @@
 #ifndef CQChartsGeom_H
 #define CQChartsGeom_H
 
+#include <QPointF>
 #include <cassert>
 #include <algorithm>
 #include <cmath>
@@ -20,6 +21,10 @@ class Point {
 
   Point(const Point &point) :
    x(point.x), y(point.y) {
+  }
+
+  Point(const QPointF &point) :
+   x(point.x()), y(point.y()) {
   }
 
   Point &operator=(const Point &point) {

@@ -132,23 +132,28 @@ addProperties()
 {
   CQChartsHierPlot::addProperties();
 
+  // columns
   addProperty("columns", this, "nameColumns", "names");
   addProperty("columns", this, "valueColumn", "value");
 
+  // options
   addProperty("options", this, "separator");
   addProperty("options", this, "innerRadius");
   addProperty("options", this, "outerRadius");
   addProperty("options", this, "startAngle" );
   addProperty("options", this, "multiRoot"  );
 
-  addProperty("stroke", this, "border", "visible");
-
-  addLineProperties("stroke", "border");
-
+  // fill
   addProperty("fill", this, "filled", "visible");
 
   addFillProperties("fill", "fill");
 
+  // stroke
+  addProperty("stroke", this, "border", "visible");
+
+  addLineProperties("stroke", "border");
+
+  // text
   addTextProperties("text", "text");
 
   // color map

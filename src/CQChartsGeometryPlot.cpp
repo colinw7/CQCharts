@@ -171,21 +171,26 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
+  // columns
   addProperty("columns", this, "nameColumn"    , "name"    );
   addProperty("columns", this, "geometryColumn", "geometry");
   addProperty("columns", this, "valueColumn"   , "value"   );
   addProperty("columns", this, "styleColumn"   , "style"   );
 
-  addProperty("stroke", this, "border", "visible");
-
-  addLineProperties("stroke", "border");
-
+  // fill
   addProperty("fill", this, "filled", "visible");
 
   addFillProperties("fill", "fill");
 
+  // stroke
+  addProperty("stroke", this, "border", "visible");
+
+  addLineProperties("stroke", "border");
+
+  // data label
   dataLabel_->addPathProperties("dataLabel");
 
+  // value
   addProperty("value", this, "minValue", "min");
   addProperty("value", this, "maxValue", "max");
 }

@@ -4,8 +4,8 @@
 #include <CQChartsPosition.h>
 #include <QFrame>
 
+class CQChartsUnitsEdit;
 class CQPoint2DEdit;
-class QComboBox;
 
 class CQChartsPositionEdit : public QFrame {
   Q_OBJECT
@@ -27,14 +27,12 @@ class CQChartsPositionEdit : public QFrame {
   void widgetsToPosition();
   void positionToWidgets();
 
-  void updateUnits();
-
   void connectSlots(bool b);
 
  private:
-  CQChartsPosition position_;
-  CQPoint2DEdit*   edit_       { nullptr };
-  QComboBox*       unitsCombo_ { nullptr };
+  CQChartsPosition   position_;
+  CQPoint2DEdit*     edit_       { nullptr };
+  CQChartsUnitsEdit* unitsEdit_ { nullptr };
 };
 
 //------

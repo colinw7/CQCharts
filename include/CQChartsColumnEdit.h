@@ -2,23 +2,55 @@
 #define CQChartsColumnEdit_H
 
 #include <CQChartsColumn.h>
-#include <QFrame>
-#include <QStyleOptionComboBox>
+#include <CQChartsLineEditBase.h>
 
-class CQWidgetMenu;
+class CQChartsColumnEdit;
+class QAbstractItemModel;
+
+class CQChartsColumnLineEdit : public CQChartsLineEditBase {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)
+
+ public:
+  CQChartsColumnLineEdit(QWidget *parent=nullptr);
+
+  QAbstractItemModel *model() const;
+  void setModel(QAbstractItemModel *model);
+
+  const CQChartsColumn &column() const;
+  void setColumn(const CQChartsColumn &c);
+
+ signals:
+  void columnChanged();
+
+ private slots:
+  void menuEditChanged();
+
+ private:
+  void textChanged() override;
+
+  void updateColumn(const CQChartsColumn &c, bool updateText);
+
+  void columnToWidgets();
+
+  void connectSlots(bool b) override;
+
+ private:
+  CQChartsColumnEdit* menuEdit_ { nullptr };
+};
+
+//---
+
 class QLineEdit;
-class QPushButton;
 class QGroupBox;
 class QComboBox;
 class QCheckBox;
-class QAbstractItemModel;
 
 class CQChartsColumnEdit : public QFrame {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumn column          READ column          WRITE setColumn         )
-  Q_PROPERTY(QString        text            READ text            WRITE setText           )
-  Q_PROPERTY(QString        placeholderText READ placeholderText WRITE setPlaceholderText)
+  Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)
 
  public:
   CQChartsColumnEdit(QWidget *parent=nullptr);
@@ -29,25 +61,13 @@ class CQChartsColumnEdit : public QFrame {
   const CQChartsColumn &column() const;
   void setColumn(const CQChartsColumn &c);
 
-  QString text() const;
-  void setText(const QString &s);
-
-  QString placeholderText() const;
-  void setPlaceholderText(const QString &s);
-
-  void paintEvent(QPaintEvent *) override;
-
-  void resizeEvent(QResizeEvent *) override;
-
  signals:
   void columnChanged();
 
  private slots:
-  void showMenu();
+  void widgetsToColumn();
 
-  void updateMenu();
-
-  void textChanged(const QString &str);
+  void updateState();
 
   void menuColumnGroupClicked(bool b);
   void menuExprGroupClicked  (bool b);
@@ -58,41 +78,22 @@ class CQChartsColumnEdit : public QFrame {
 
   void expressionTextChanged(const QString &str);
 
-  void updateState();
-
  private:
-  void initStyle(QStyleOptionComboBox &opt);
+  void columnToWidgets();
+
+  void updateColumnsFromModel();
 
   void connectSlots(bool b);
 
-  void columnToWidgets();
-  void widgetsToColumn();
-
  private:
+  QAbstractItemModel* model_          { nullptr };
   CQChartsColumn      column_;
-  QLineEdit*          edit_            { nullptr };
-  QPushButton*        button_          { nullptr };
-  CQWidgetMenu*       menu_            { nullptr };
-  QGroupBox*          menuColumnGroup_ { nullptr };
-  QComboBox*          columnCombo_     { nullptr };
-  QLineEdit*          roleEdit_        { nullptr };
-  QGroupBox*          menuExprGroup_   { nullptr };
-  QLineEdit*          expressionEdit_  { nullptr };
-  QCheckBox*          vheaderCheck_    { nullptr };
-  QAbstractItemModel* model_           { nullptr };
-};
-
-//---
-
-#include <QPushButton>
-
-class CQChartsColumnEditMenuButton : public QPushButton {
-  Q_OBJECT
-
- public:
-  CQChartsColumnEditMenuButton(QWidget *parent=nullptr);
-
-  void paintEvent(QPaintEvent *) override;
+  QGroupBox*          columnGroup_    { nullptr };
+  QComboBox*          columnCombo_    { nullptr };
+  QLineEdit*          roleEdit_       { nullptr };
+  QGroupBox*          menuExprGroup_  { nullptr };
+  QLineEdit*          expressionEdit_ { nullptr };
+  QCheckBox*          vheaderCheck_   { nullptr };
 };
 
 //------

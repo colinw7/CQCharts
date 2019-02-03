@@ -6,6 +6,7 @@
 #include <CQChartsPositionEdit.h>
 #include <CQChartsLengthEdit.h>
 #include <CQChartsRectEdit.h>
+#include <CQChartsAlphaEdit.h>
 
 #include <CQPoint2DEdit.h>
 #include <CQAngleSpinBox.h>
@@ -24,16 +25,6 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
-
-class CQChartsAlphaEdit : public CQRealSpin {
- public:
-  CQChartsAlphaEdit() {
-    setRange(0.0, 1.0);
-    setValue(1.0);
-  }
-};
-
-//---
 
 CQChartsAnnotationDlg::
 CQChartsAnnotationDlg(CQChartsView *view) :
@@ -531,17 +522,17 @@ createRectAnnotation()
 
   CQChartsBoxData boxData;
 
-  CQChartsFillData   &background = boxData.shape.background;
-  CQChartsStrokeData &border     = boxData.shape.border;
+  CQChartsFillData   &background = boxData.shape.background();
+  CQChartsStrokeData &border     = boxData.shape.border();
 
   CQChartsRect rect = rectWidgets_.rectEdit->rect();
 
   boxData.margin  = rectWidgets_.marginEdit ->value();
   boxData.padding = rectWidgets_.paddingEdit->value();
 
-  background.visible = rectWidgets_.backgroundCheck->isChecked();
-  background.color   = rectWidgets_.backgroundColor->color();
-  background.alpha   = rectWidgets_.backgroundAlpha->value();
+  background.setVisible(rectWidgets_.backgroundCheck->isChecked());
+  background.setColor  (rectWidgets_.backgroundColor->color());
+  background.setAlpha  (rectWidgets_.backgroundAlpha->value());
 
   CLineDash lineDash = rectWidgets_.borderDash ->getLineDash();
 
@@ -549,13 +540,13 @@ createRectAnnotation()
 
   lineDash.getLengths(lineDashLengths);
 
-  border.visible = rectWidgets_.borderCheck->isChecked();
-  border.color   = rectWidgets_.borderColor->color();
-  border.alpha   = rectWidgets_.borderAlpha->value();
-  border.width   = rectWidgets_.borderWidth->length();
-  border.dash    = CQChartsLineDash(lineDashLengths, lineDash.getOffset());
+  border.setVisible(rectWidgets_.borderCheck->isChecked());
+  border.setColor  (rectWidgets_.borderColor->color());
+  border.setAlpha  (rectWidgets_.borderAlpha->value());
+  border.setWidth  (rectWidgets_.borderWidth->length());
+  border.setDash   (CQChartsLineDash(lineDashLengths, lineDash.getOffset()));
 
-  border.cornerSize = rectWidgets_.cornerSizeEdit->length();
+  border.setCornerSize(rectWidgets_.cornerSizeEdit->length());
 
   boxData.borderSides = rectWidgets_.borderSidesEdit->text();
 
@@ -585,17 +576,17 @@ createEllipseAnnotation()
 
   CQChartsBoxData boxData;
 
-  CQChartsFillData   &background = boxData.shape.background;
-  CQChartsStrokeData &border     = boxData.shape.border;
+  CQChartsFillData   &background = boxData.shape.background();
+  CQChartsStrokeData &border     = boxData.shape.border();
 
   CQChartsPosition center = ellipseWidgets_.centerEdit->position();
 
   CQChartsLength rx = ellipseWidgets_.rxEdit->length();
   CQChartsLength ry = ellipseWidgets_.ryEdit->length();
 
-  background.visible = ellipseWidgets_.backgroundCheck->isChecked();
-  background.color   = ellipseWidgets_.backgroundColor->color();
-  background.alpha   = ellipseWidgets_.backgroundAlpha->value();
+  background.setVisible(ellipseWidgets_.backgroundCheck->isChecked());
+  background.setColor  (ellipseWidgets_.backgroundColor->color());
+  background.setAlpha  (ellipseWidgets_.backgroundAlpha->value());
 
   CLineDash lineDash = ellipseWidgets_.borderDash ->getLineDash();
 
@@ -603,13 +594,13 @@ createEllipseAnnotation()
 
   lineDash.getLengths(lineDashLengths);
 
-  border.visible = ellipseWidgets_.borderCheck->isChecked();
-  border.color   = ellipseWidgets_.borderColor->color();
-  border.alpha   = ellipseWidgets_.borderAlpha->value();
-  border.width   = ellipseWidgets_.borderWidth->length();
-  border.dash    = CQChartsLineDash(lineDashLengths, lineDash.getOffset());
+  border.setVisible(ellipseWidgets_.borderCheck->isChecked());
+  border.setColor  (ellipseWidgets_.borderColor->color());
+  border.setAlpha  (ellipseWidgets_.borderAlpha->value());
+  border.setWidth  (ellipseWidgets_.borderWidth->length());
+  border.setDash   (CQChartsLineDash(lineDashLengths, lineDash.getOffset()));
 
-  border.cornerSize = ellipseWidgets_.cornerSizeEdit->length();
+  border.setCornerSize(ellipseWidgets_.cornerSizeEdit->length());
 
   boxData.borderSides = ellipseWidgets_.borderSidesEdit->text();
 
@@ -639,8 +630,8 @@ createPolygonAnnotation()
 
   CQChartsShapeData shapeData;
 
-  CQChartsFillData   &background = shapeData.background;
-  CQChartsStrokeData &border     = shapeData.border;
+  CQChartsFillData   &background = shapeData.background();
+  CQChartsStrokeData &border     = shapeData.border();
 
   QPolygonF points;
 
@@ -649,9 +640,9 @@ createPolygonAnnotation()
   if (! points.length())
     return false;
 
-  background.visible = polygonWidgets_.backgroundCheck->isChecked();
-  background.color   = polygonWidgets_.backgroundColor->color();
-  background.alpha   = polygonWidgets_.backgroundAlpha->value();
+  background.setVisible(polygonWidgets_.backgroundCheck->isChecked());
+  background.setColor  (polygonWidgets_.backgroundColor->color());
+  background.setAlpha  (polygonWidgets_.backgroundAlpha->value());
 
   CLineDash lineDash = polygonWidgets_.borderDash ->getLineDash();
 
@@ -659,11 +650,11 @@ createPolygonAnnotation()
 
   lineDash.getLengths(lineDashLengths);
 
-  border.visible = polygonWidgets_.borderCheck->isChecked();
-  border.color   = polygonWidgets_.borderColor->color();
-  border.alpha   = polygonWidgets_.borderAlpha->value();
-  border.width   = polygonWidgets_.borderWidth->length();
-  border.dash    = CQChartsLineDash(lineDashLengths, lineDash.getOffset());
+  border.setVisible(polygonWidgets_.borderCheck->isChecked());
+  border.setColor  (polygonWidgets_.borderColor->color());
+  border.setAlpha  (polygonWidgets_.borderAlpha->value());
+  border.setWidth  (polygonWidgets_.borderWidth->length());
+  border.setDash   (CQChartsLineDash(lineDashLengths, lineDash.getOffset()));
 
   //---
 
@@ -691,8 +682,8 @@ createPolylineAnnotation()
 
   CQChartsShapeData shapeData;
 
-  CQChartsFillData   &background = shapeData.background;
-  CQChartsStrokeData &border     = shapeData.border;
+  CQChartsFillData   &background = shapeData.background();
+  CQChartsStrokeData &border     = shapeData.border();
 
   QPolygonF points;
 
@@ -701,9 +692,9 @@ createPolylineAnnotation()
   if (! points.length())
     return false;
 
-  background.visible = polylineWidgets_.backgroundCheck->isChecked();
-  background.color   = polylineWidgets_.backgroundColor->color();
-  background.alpha   = polylineWidgets_.backgroundAlpha->value();
+  background.setVisible(polylineWidgets_.backgroundCheck->isChecked());
+  background.setColor  (polylineWidgets_.backgroundColor->color());
+  background.setAlpha  (polylineWidgets_.backgroundAlpha->value());
 
   CLineDash lineDash = polylineWidgets_.borderDash ->getLineDash();
 
@@ -711,11 +702,11 @@ createPolylineAnnotation()
 
   lineDash.getLengths(lineDashLengths);
 
-  border.visible = polylineWidgets_.borderCheck->isChecked();
-  border.color   = polylineWidgets_.borderColor->color();
-  border.alpha   = polylineWidgets_.borderAlpha->value();
-  border.width   = polylineWidgets_.borderWidth->length();
-  border.dash    = CQChartsLineDash(lineDashLengths, lineDash.getOffset());
+  border.setVisible(polylineWidgets_.borderCheck->isChecked());
+  border.setColor  (polylineWidgets_.borderColor->color());
+  border.setAlpha  (polylineWidgets_.borderAlpha->value());
+  border.setWidth  (polylineWidgets_.borderWidth->length());
+  border.setDash   (CQChartsLineDash(lineDashLengths, lineDash.getOffset()));
 
   //---
 
@@ -741,8 +732,8 @@ createTextAnnotation()
   CQChartsTextData textData;
   CQChartsBoxData  boxData;
 
-  CQChartsFillData   &background = boxData.shape.background;
-  CQChartsStrokeData &border     = boxData.shape.border;
+  CQChartsFillData   &background = boxData.shape.background();
+  CQChartsStrokeData &border     = boxData.shape.border();
 
   QString id    = idEdit_ ->text();
   QString tipId = tipEdit_->text();
@@ -759,9 +750,9 @@ createTextAnnotation()
   textData.align    = textWidgets_.alignEdit->align();
   textData.html     = textWidgets_.htmlCheck->isChecked();
 
-  background.visible = textWidgets_.backgroundCheck->isChecked();
-  background.color   = textWidgets_.backgroundColor->color();
-  background.alpha   = textWidgets_.backgroundAlpha->value();
+  background.setVisible(textWidgets_.backgroundCheck->isChecked());
+  background.setColor  (textWidgets_.backgroundColor->color());
+  background.setAlpha  (textWidgets_.backgroundAlpha->value());
 
   CLineDash lineDash = textWidgets_.borderDash ->getLineDash();
 
@@ -769,13 +760,13 @@ createTextAnnotation()
 
   lineDash.getLengths(lineDashLengths);
 
-  border.visible = textWidgets_.borderCheck->isChecked();
-  border.color   = textWidgets_.borderColor->color();
-  border.alpha   = textWidgets_.borderAlpha->value();
-  border.width   = textWidgets_.borderWidth->length();
-  border.dash    = CQChartsLineDash(lineDashLengths, lineDash.getOffset());
+  border.setVisible(textWidgets_.borderCheck->isChecked());
+  border.setColor  (textWidgets_.borderColor->color());
+  border.setAlpha  (textWidgets_.borderAlpha->value());
+  border.setWidth  (textWidgets_.borderWidth->length());
+  border.setDash   (CQChartsLineDash(lineDashLengths, lineDash.getOffset()));
 
-  border.cornerSize = textWidgets_.cornerSizeEdit->length();
+  border.setCornerSize(textWidgets_.cornerSizeEdit->length());
 
   boxData.borderSides = textWidgets_.borderSidesEdit->text();
 
@@ -820,14 +811,14 @@ createArrowAnnotation()
 
   CQChartsShapeData shapeData;
 
-  CQChartsStrokeData &stroke = shapeData.border;
-  CQChartsFillData   &fill   = shapeData.background;
+  CQChartsStrokeData &stroke = shapeData.border();
+  CQChartsFillData   &fill   = shapeData.background();
 
-  stroke.width = arrowWidgets_.borderWidthEdit->length();
-  stroke.color = arrowWidgets_.borderColorEdit->color();
+  stroke.setWidth(arrowWidgets_.borderWidthEdit->length());
+  stroke.setColor(arrowWidgets_.borderColorEdit->color());
 
-  fill.visible = arrowWidgets_.filledCheck->isChecked();
-  fill.color   = arrowWidgets_.fillColorEdit->color();
+  fill.setVisible(arrowWidgets_.filledCheck->isChecked());
+  fill.setColor  (arrowWidgets_.fillColorEdit->color());
 
   //---
 
@@ -866,15 +857,14 @@ createPointAnnotation()
   if (typeStr.length())
     pointData.type = CQChartsSymbol::nameToType(typeStr);
 
-  pointData.stroke.visible = pointWidgets_.strokedCheck->isChecked();
-  pointData.fill  .visible = pointWidgets_.filledCheck->isChecked();
+  pointData.stroke.setVisible(pointWidgets_.strokedCheck->isChecked());
+  pointData.stroke.setWidth  (pointWidgets_.lineWidthEdit->length());
+  pointData.stroke.setColor  (pointWidgets_.lineColorEdit->color());
+  pointData.stroke.setAlpha  (pointWidgets_.lineAlphaEdit->value());
 
-  pointData.stroke.width = pointWidgets_.lineWidthEdit->length();
-  pointData.stroke.color = pointWidgets_.lineColorEdit->color();
-  pointData.stroke.alpha = pointWidgets_.lineAlphaEdit->value();
-
-  pointData.fill.color = pointWidgets_.fillColorEdit->color();
-  pointData.fill.alpha = pointWidgets_.fillAlphaEdit->value();
+  pointData.fill.setVisible(pointWidgets_.filledCheck->isChecked());
+  pointData.fill.setColor  (pointWidgets_.fillColorEdit->color());
+  pointData.fill.setAlpha  (pointWidgets_.fillAlphaEdit->value());
 
   //---
 

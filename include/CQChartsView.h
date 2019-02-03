@@ -92,6 +92,8 @@ class CQChartsView : public QFrame,
 
   // anti-alias, buffer, preview, pos text type
   Q_PROPERTY(bool        antiAlias      READ isAntiAlias    WRITE setAntiAlias   )
+  Q_PROPERTY(bool        showTable      READ isShowTable    WRITE setShowTable   )
+  Q_PROPERTY(bool        showSettings   READ isShowSettings WRITE setShowSettings)
   Q_PROPERTY(bool        bufferLayers   READ isBufferLayers WRITE setBufferLayers)
   Q_PROPERTY(bool        preview        READ isPreview      WRITE setPreview     )
   Q_PROPERTY(PosTextType posTextType    READ posTextType    WRITE setPosTextType )
@@ -242,8 +244,8 @@ class CQChartsView : public QFrame,
   bool isAntiAlias() const { return antiAlias_; }
   void setAntiAlias(bool b);
 
-  //bool isShowTable() const { return showTable_; }
-  //void setShowTable(bool b);
+  bool isShowTable() const;
+  bool isShowSettings() const;
 
   bool isBufferLayers() const { return bufferLayers_; }
   void setBufferLayers(bool b);
@@ -440,7 +442,7 @@ class CQChartsView : public QFrame,
               const CQChartsLength &strokeWidth=CQChartsLength("0px"),
               const CQChartsLineDash &strokeDash=CQChartsLineDash()) const;
 
-  void setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha=1.0,
+  void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(), double fillAlpha=1.0,
                 const CQChartsFillPattern &pattern=CQChartsFillPattern()) const;
 
   //---
@@ -731,10 +733,8 @@ class CQChartsView : public QFrame,
   void xRangeMapSlot(bool b);
   void yRangeMapSlot(bool b);
 
-  //void showTableSlot(bool b);
-  void dataTableSlot(bool b);
-
-  void viewSettingsSlot(bool b);
+  void setShowTable(bool b);
+  void setShowSettings(bool b);
 
   //---
 

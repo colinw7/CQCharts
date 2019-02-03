@@ -302,16 +302,31 @@ bool
 CQChartsModelColumnDetails::
 isNamedValue(const QString &name)
 {
-  return (name == "type" ||
-          name == "min" || name == "minimum" ||
-          name == "max" || name == "maximum" ||
-          name == "mean" || name == "avg" || name == "average" ||
-          name == "monotonic" || name == "increasing" ||
-          name == "num_unique" || name == "unique_values" || name == "unique_counts" ||
-          name == "num_null" ||
-          name == "median" || name == "lower_median" || name == "upper_median" ||
-          name == "stddev" || name == "std_dev" ||
-          name == "outliers");
+  return getLongNamedValues().contains(name) ||
+         getShortNamedValues().contains(name);
+}
+
+const QStringList &
+CQChartsModelColumnDetails::
+getLongNamedValues()
+{
+  static QStringList namedValues = QStringList() <<
+   "name" << "type" << "minimum" << "maximum" << "average" << "standard_deviation" <<
+   "monotonic" << "increasing" << "num_unique" << "unique_values" << "unique_counts" <<
+   "num_null" << "median" << "lower_median" << "upper_median" <<
+   "outliers";
+
+  return namedValues;
+}
+
+const QStringList &
+CQChartsModelColumnDetails::
+getShortNamedValues()
+{
+  static QStringList namedValues = QStringList() <<
+   "min" << "max" << "mean" << "avg" << "stddev" << "std_dev";
+
+  return namedValues;
 }
 
 QVariant
@@ -328,8 +343,8 @@ getNamedValue(const QString &name) const
     return this->maxValue();
   else if (name == "mean" || name == "avg" || name == "average")
     return this->meanValue();
-  else if (name == "stddev" || name == "std_dev")
-    return this->stdDevValue();
+  else if (name == "stddev" || name == "std_dev" || name == "standard_deviation")
+    return this->stdDevValue(CMathUtil::getNaN());
 
   else if (name == "monotonic")
     return this->isMonotonic();
@@ -458,7 +473,7 @@ maxValue() const
 
 QVariant
 CQChartsModelColumnDetails::
-meanValue() const
+meanValue(bool useNaN) const
 {
   initCache();
 
@@ -469,13 +484,13 @@ meanValue() const
     return valueSet_->rvals().mean();
   }
   else if (type() == CQBaseModelType::STRING) {
-    //return valueSet_->svals().mean();
+    return (useNaN ? QVariant(CMathUtil::getNaN()) : QVariant());
   }
   else if (type() == CQBaseModelType::TIME) {
     return valueSet_->tvals().mean();
   }
   else if (type() == CQBaseModelType::COLOR) {
-    //return valueSet_->cvals().mean();
+    return (useNaN ? QVariant(CMathUtil::getNaN()) : QVariant());
   }
 
   return QVariant();
@@ -483,7 +498,7 @@ meanValue() const
 
 QVariant
 CQChartsModelColumnDetails::
-stdDevValue() const
+stdDevValue(bool useNaN) const
 {
   initCache();
 
@@ -494,13 +509,13 @@ stdDevValue() const
     return valueSet_->rvals().stddev();
   }
   else if (type() == CQBaseModelType::STRING) {
-    //return valueSet_->svals().stddev();
+    return (useNaN ? QVariant(CMathUtil::getNaN()) : QVariant());
   }
   else if (type() == CQBaseModelType::TIME) {
     return valueSet_->tvals().stddev();
   }
   else if (type() == CQBaseModelType::COLOR) {
-    //return valueSet_->cvals().stddev();
+    return (useNaN ? QVariant(CMathUtil::getNaN()) : QVariant());
   }
 
   return QVariant();
@@ -772,7 +787,7 @@ numNull() const
     return valueSet_->rvals().numNull();
   }
   else if (type() == CQBaseModelType::STRING) {
-    //return valueSet_->svals().numNull();
+    return 0;
   }
   else if (type() == CQBaseModelType::TIME) {
     return valueSet_->tvals().numNull();
@@ -798,7 +813,7 @@ valueInd(const QVariant &value) const
 
 QVariant
 CQChartsModelColumnDetails::
-medianValue() const
+medianValue(bool useNaN) const
 {
   initCache();
 
@@ -809,13 +824,13 @@ medianValue() const
     return valueSet_->rvals().median();
   }
   else if (type() == CQBaseModelType::STRING) {
-    //return valueSet_->svals().median();
+    return (useNaN ? QVariant(CMathUtil::getNaN()) : QVariant());
   }
   else if (type() == CQBaseModelType::TIME) {
     return valueSet_->tvals().median();
   }
   else if (type() == CQBaseModelType::COLOR) {
-    //return valueSet_->cvals().median();
+    return (useNaN ? QVariant(CMathUtil::getNaN()) : QVariant());
   }
 
   return QVariant();
@@ -823,7 +838,7 @@ medianValue() const
 
 QVariant
 CQChartsModelColumnDetails::
-lowerMedianValue() const
+lowerMedianValue(bool useNaN) const
 {
   initCache();
 
@@ -834,13 +849,13 @@ lowerMedianValue() const
     return valueSet_->rvals().lowerMedian();
   }
   else if (type() == CQBaseModelType::STRING) {
-    //return valueSet_->svals().lowerMedian();
+    return (useNaN ? QVariant(CMathUtil::getNaN()) : QVariant());
   }
   else if (type() == CQBaseModelType::TIME) {
     return valueSet_->tvals().lowerMedian();
   }
   else if (type() == CQBaseModelType::COLOR) {
-    //return valueSet_->cvals().lowerMedian();
+    return (useNaN ? QVariant(CMathUtil::getNaN()) : QVariant());
   }
 
   return QVariant();
@@ -848,7 +863,7 @@ lowerMedianValue() const
 
 QVariant
 CQChartsModelColumnDetails::
-upperMedianValue() const
+upperMedianValue(bool useNaN) const
 {
   initCache();
 
@@ -859,13 +874,13 @@ upperMedianValue() const
     return valueSet_->rvals().upperMedian();
   }
   else if (type() == CQBaseModelType::STRING) {
-    //return valueSet_->svals().upperMedian();
+    return (useNaN ? QVariant(CMathUtil::getNaN()) : QVariant());
   }
   else if (type() == CQBaseModelType::TIME) {
     return valueSet_->tvals().upperMedian();
   }
   else if (type() == CQBaseModelType::COLOR) {
-    //return valueSet_->cvals().upperMedian();
+    return (useNaN ? QVariant(CMathUtil::getNaN()) : QVariant());
   }
 
   return QVariant();
@@ -892,7 +907,7 @@ outlierValues() const
       vars.push_back(valueSet_->rvals().svalue(o));
   }
   else if (type() == CQBaseModelType::STRING) {
-    //return valueSet_->svals().outliers();
+    return vars;
   }
   else if (type() == CQBaseModelType::TIME) {
     const CQChartsIValues::Indices &outliers = valueSet_->tvals().outliers();
@@ -901,7 +916,7 @@ outlierValues() const
       vars.push_back(valueSet_->tvals().svalue(o));
   }
   else if (type() == CQBaseModelType::COLOR) {
-    //return valueSet_->cvals().outliers();
+    return vars;
   }
 
   return vars;

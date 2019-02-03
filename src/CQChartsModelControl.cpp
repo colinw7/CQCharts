@@ -603,7 +603,7 @@ typeApplySlot()
         value = paramEdit.edit->getString();
 
       if (value != "")
-        nameValues[name] = value;
+        nameValues.setNameValue(name, value);
     }
 
     columnTypeMgr->setModelColumnType(model.data(), column, columnType, nameValues);
@@ -672,10 +672,14 @@ setColumnData(int column)
 
       paramEdit.label->setText(param.name());
 
+      QVariant var;
+
+      nameValues.nameValue(param.name(), var);
+
       if (param.type() == CQBaseModelType::BOOLEAN)
-        paramEdit.edit->setBool(nameValues[param.name()].toBool());
+        paramEdit.edit->setBool(var.toBool());
       else
-        paramEdit.edit->setString(nameValues[param.name()].toString());
+        paramEdit.edit->setString(var.toString());
 
       paramEdit.label->setObjectName(param.name() + "_label");
       paramEdit.edit ->setObjectName(param.name() + "_edit" );

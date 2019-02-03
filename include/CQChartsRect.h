@@ -37,7 +37,16 @@ class CQChartsRect {
     return *this;
   }
 
+  //---
+
+  bool isValid() const { return units_ != CQChartsUnits::NONE; }
+
+  //---
+
   const CQChartsUnits &units() const { return units_; }
+  void setUnits(const CQChartsUnits &units) { units_ = units; }
+
+  //---
 
   const QRectF &rect() const { return rect_; }
 

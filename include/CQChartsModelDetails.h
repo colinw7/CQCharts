@@ -39,6 +39,9 @@ class CQChartsModelColumnDetails {
 
   const CQChartsNameValues &nameValues() const;
 
+  static const QStringList &getLongNamedValues();
+  static const QStringList &getShortNamedValues();
+
   static bool isNamedValue(const QString &name);
 
   QVariant getNamedValue(const QString &name) const;
@@ -46,9 +49,9 @@ class CQChartsModelColumnDetails {
   QVariant minValue() const;
   QVariant maxValue() const;
 
-  QVariant meanValue() const;
+  QVariant meanValue(bool useNaN=true) const;
 
-  QVariant stdDevValue() const;
+  QVariant stdDevValue(bool useNaN=true) const;
 
   QVariant dataName(const QVariant &v) const;
 
@@ -74,9 +77,9 @@ class CQChartsModelColumnDetails {
 
   int valueInd(const QVariant &value) const;
 
-  QVariant medianValue() const;
-  QVariant lowerMedianValue() const;
-  QVariant upperMedianValue() const;
+  QVariant medianValue     (bool useNaN=true) const;
+  QVariant lowerMedianValue(bool useNaN=true) const;
+  QVariant upperMedianValue(bool useNaN=true) const;
 
   QVariantList outlierValues() const;
 

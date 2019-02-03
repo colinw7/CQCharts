@@ -1,9 +1,9 @@
 #include <CQChartsPositionEdit.h>
+#include <CQChartsUnitsEdit.h>
 
 #include <CQPropertyView.h>
 #include <CQPoint2DEdit.h>
 
-#include <QComboBox>
 #include <QHBoxLayout>
 
 CQChartsPositionEdit::
@@ -27,18 +27,11 @@ CQChartsPositionEdit(QWidget *parent) :
 
   //---
 
-  unitsCombo_ = new QComboBox;
+  unitsEdit_ = new CQChartsUnitsEdit;
 
-  unitsCombo_->setObjectName("units");
-  unitsCombo_->addItems(CQChartsUtil::unitNames());
+  layout->addWidget(unitsEdit_);
 
-  layout->addWidget(unitsCombo_);
-
-  connect(unitsCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged()));
-
-  //---
-
-  updateUnits();
+  connect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
 }
 
 const CQChartsPosition &
@@ -55,8 +48,6 @@ setPosition(const CQChartsPosition &position)
   position_ = position;
 
   positionToWidgets();
-
-  updateUnits();
 }
 
 void
@@ -81,7 +72,7 @@ CQChartsPositionEdit::
 unitsChanged()
 {
   QPointF       value = position_.p();
-  CQChartsUnits units = (CQChartsUnits) unitsCombo_->currentIndex();
+  CQChartsUnits units = unitsEdit_->units();
 
   CQChartsPosition position(value, units);
 
@@ -89,8 +80,6 @@ unitsChanged()
     return;
 
   position_ = position;
-
-  updateUnits();
 
   emit positionChanged();
 }
@@ -104,11 +93,9 @@ positionToWidgets()
   QPointF              value = position_.p();
   const CQChartsUnits &units = position_.units();
 
-  QString ustr = CQChartsUtil::unitsString(units);
-
   edit_->setValue(value);
 
-  unitsCombo_->setCurrentIndex(unitsCombo_->findText(ustr, Qt::MatchExactly));
+  unitsEdit_->setUnits(units);
 
   connectSlots(true);
 }
@@ -118,7 +105,7 @@ CQChartsPositionEdit::
 widgetsToPosition()
 {
   QPointF       value = edit_->getQValue();
-  CQChartsUnits units = (CQChartsUnits) unitsCombo_->currentIndex();
+  CQChartsUnits units = unitsEdit_->units();
 
   CQChartsPosition position(value, units);
 
@@ -134,21 +121,12 @@ connectSlots(bool b)
 {
   if (b) {
     connect(edit_, SIGNAL(valueChanged()), this, SLOT(editChanged()));
-    connect(unitsCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged()));
+    connect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
   }
   else {
     disconnect(edit_, SIGNAL(valueChanged()), this, SLOT(editChanged()));
-    disconnect(unitsCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged()));
+    disconnect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
   }
-}
-
-void
-CQChartsPositionEdit::
-updateUnits()
-{
-  int ind = unitsCombo_->currentIndex();
-
-  unitsCombo_->setToolTip(CQChartsUtil::unitTipNames()[ind]);
 }
 
 //------

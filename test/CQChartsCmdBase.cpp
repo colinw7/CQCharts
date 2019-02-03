@@ -132,9 +132,7 @@ processCmd(const QString &cmd, const Vars &vars)
 
     CQChartsCmdArgs argv(cmd, vars);
 
-    proc->exec(argv);
-
-    return true;
+    return proc->exec(argv);
   }
 
   //---
@@ -148,7 +146,7 @@ processCmd(const QString &cmd, const Vars &vars)
 
 //------
 
-void
+bool
 CQChartsCmdBase::
 qtGetPropertyCmd(CQChartsCmdArgs &argv)
 {
@@ -158,7 +156,7 @@ qtGetPropertyCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-property", CQChartsCmdArg::Type::String, "property name");
 
   if (! argv.parse())
-    return;
+    return false;
 
   QString objectName = argv.getParseStr("object");
   QString propName   = argv.getParseStr("property");
@@ -167,22 +165,24 @@ qtGetPropertyCmd(CQChartsCmdArgs &argv)
 
   if (! obj) {
     errorMsg(QString("No object '%1'").arg(objectName));
-    return;
+    return false;
   }
 
   QVariant v;
 
   if (! CQUtil::getProperty(obj, propName, v)) {
     errorMsg(QString("Failed to get property '%1' for '%2'").arg(propName).arg(objectName));
-    return;
+    return false;
   }
 
   setCmdRc(v);
+
+  return true;
 }
 
 //------
 
-void
+bool
 CQChartsCmdBase::
 qtSetPropertyCmd(CQChartsCmdArgs &argv)
 {
@@ -193,7 +193,7 @@ qtSetPropertyCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-value"   , CQChartsCmdArg::Type::String, "property value");
 
   if (! argv.parse())
-    return;
+    return false;
 
   QString objectName = argv.getParseStr("object");
   QString propName   = argv.getParseStr("property");
@@ -203,18 +203,20 @@ qtSetPropertyCmd(CQChartsCmdArgs &argv)
 
   if (! obj) {
     errorMsg(QString("No object '%1'").arg(objectName));
-    return;
+    return false;
   }
 
   if (! CQUtil::setProperty(obj, propName, value)) {
     errorMsg(QString("Failed to set property '%1' for '%2'").arg(propName).arg(objectName));
-    return;
+    return false;
   }
+
+  return true;
 }
 
 //------
 
-void
+bool
 CQChartsCmdBase::
 qtSyncCmd(CQChartsCmdArgs &argv)
 {
@@ -223,7 +225,7 @@ qtSyncCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-n", CQChartsCmdArg::Type::Integer, "loop count");
 
   if (! argv.parse())
-    return;
+    return false;
 
   int n = 1;
 
@@ -235,11 +237,13 @@ qtSyncCmd(CQChartsCmdArgs &argv)
 
     qApp->processEvents();
   }
+
+  return true;
 }
 
 //------
 
-void
+bool
 CQChartsCmdBase::
 perfCmd(CQChartsCmdArgs &argv)
 {
@@ -251,7 +255,7 @@ perfCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-debug"          , CQChartsCmdArg::Type::SBool  , "enable debug"   );
 
   if (! argv.parse())
-    return;
+    return false;
 
   //---
 
@@ -266,18 +270,20 @@ perfCmd(CQChartsCmdArgs &argv)
 
   if (argv.hasParseArg("debug"))
     CQPerfMonitorInst->setDebug(argv.getParseBool("debug"));
+
+  return true;
 }
 
 //------
 
-void
+bool
 CQChartsCmdBase::
 shellCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmdBase::shellCmd");
 
   if (! argv.parse())
-    return;
+    return false;
 
   //---
 
@@ -289,22 +295,26 @@ shellCmd(CQChartsCmdArgs &argv)
 
   if (cmd == "") {
     errorMsg("No command");
-    return;
+    return false;
   }
 
   int rc = system(cmd.toLatin1().constData());
 
   setCmdRc(rc);
+
+  return true;
 }
 
 //------
 
-void
+bool
 CQChartsCmdBase::
 helpCmd(CQChartsCmdArgs &)
 {
   for (auto &name : commandNames_)
     std::cout << name.toStdString() << "\n";
+
+  return true;
 }
 
 //------

@@ -73,6 +73,10 @@ class CQChartsThemeObj : public QObject {
   const QColor &selectColor() const { return selectColor_; }
   void setSelectColor(const QColor &c) { selectColor_ = c; }
 
+  // get/set select color
+  const QColor &insideColor() const { return insideColor_; }
+  void setInsideColor(const QColor &c) { insideColor_ = c; }
+
  protected:
   // initialize with all named palettes
   void addNamedPalettes();
@@ -86,6 +90,7 @@ class CQChartsThemeObj : public QObject {
   QString  name_;                       // theme name
   Palettes palettes_;                   // theme palette list
   QColor   selectColor_ { Qt::yellow }; // selection color
+  QColor   insideColor_ { Qt::cyan };   // inside color
 };
 
 //---

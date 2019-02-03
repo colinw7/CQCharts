@@ -825,7 +825,7 @@ calcRange() const
       if (uniqueX) {
         CQChartsModelColumnDetails *columnDetails = this->columnDetails(xColumn());
 
-        for (int i = 0; i < columnDetails->numUnique(); ++i)
+        for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
           xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
 
         dataRange.updateRange(dataRange.xmin() - 0.5, dataRange.ymin());
@@ -835,7 +835,7 @@ calcRange() const
       if (uniqueY) {
         CQChartsModelColumnDetails *columnDetails = this->columnDetails(yColumn());
 
-        for (int i = 0; i < columnDetails->numUnique(); ++i)
+        for (int i = 0; columnDetails && i < columnDetails->numUnique(); ++i)
           yAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
 
         dataRange.updateRange(dataRange.xmin(), dataRange.ymin() - 0.5);
@@ -925,10 +925,8 @@ initAxes(bool uniqueX, bool uniqueY)
   xAxis_->setColumn(xColumn());
   yAxis_->setColumn(yColumn());
 
-  bool ok;
-
-  QString xname = (xLabel().length() ? xLabel() : modelHeaderString(xColumn(), ok));
-  QString yname = (yLabel().length() ? yLabel() : modelHeaderString(yColumn(), ok));
+  QString xname = xColumnName("");
+  QString yname = yColumnName("");
 
   xAxis_->setLabel(xname);
   yAxis_->setLabel(yname);
@@ -942,6 +940,40 @@ initAxes(bool uniqueX, bool uniqueY)
 
   if (xColumnType == CQBaseModelType::TIME)
     xAxis()->setDate(true);
+}
+
+QString
+CQChartsScatterPlot::
+xColumnName(const QString &def) const
+{
+  if (xLabel().length())
+    return xLabel();
+
+  bool ok;
+
+  QString xname = modelHeaderString(xColumn(), ok);
+
+  if (! ok || ! xname.length())
+    xname = def;
+
+  return xname;
+}
+
+QString
+CQChartsScatterPlot::
+yColumnName(const QString &def) const
+{
+  if (yLabel().length())
+    return yLabel();
+
+  bool ok;
+
+  QString yname = modelHeaderString(yColumn(), ok);
+
+  if (! ok || ! yname.length())
+    yname = def;
+
+  return yname;
 }
 
 //------
@@ -990,17 +1022,16 @@ createObjs(PlotObjs &objs) const
   //---
 
   // get column titles
+  th->xname_ = xColumnName();
+  th->yname_ = yColumnName();
+
   bool ok;
 
-  th->xname_          = modelHeaderString(xColumn         (), ok);
-  th->yname_          = modelHeaderString(yColumn         (), ok);
   th->symbolTypeName_ = modelHeaderString(symbolTypeColumn(), ok);
   th->symbolSizeName_ = modelHeaderString(symbolSizeColumn(), ok);
   th->fontSizeName_   = modelHeaderString(fontSizeColumn  (), ok);
   th->colorName_      = modelHeaderString(colorColumn     (), ok);
 
-  if (! xname_         .length()) th->xname_          = "x";
-  if (! yname_         .length()) th->yname_          = "y";
   if (! symbolTypeName_.length()) th->symbolTypeName_ = "symbolType";
   if (! symbolSizeName_.length()) th->symbolSizeName_ = "symbolSize";
   if (! fontSizeName_  .length()) th->fontSizeName_   = "fontSize";
@@ -3140,7 +3171,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
     brush.setColor(c);
   }
 
-  plot_->updateObjPenBrushState(this, pen, brush, /*force*/true);
+  plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -3353,7 +3384,7 @@ drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const
 
   plot_->setSymbolPenBrush(pen, brush, ic, nc);
 
-  plot_->updateObjPenBrushState(this, pen, brush);
+  plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -3470,7 +3501,7 @@ hideIndex() const
 
 CQChartsScatterGridKeyItem::
 CQChartsScatterGridKeyItem(CQChartsScatterPlot *plot) :
- CQChartsKeyItem(plot->key()), plot_(plot)
+ CQChartsKeyItem(plot->key(), 0, 1), plot_(plot)
 {
 }
 

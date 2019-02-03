@@ -2,21 +2,50 @@
 #define CQChartsPolygonEdit_H
 
 #include <CQChartsPolygon.h>
-#include <QFrame>
-#include <QStyleOptionComboBox>
+#include <CQChartsLineEditBase.h>
 
+class CQChartsPolygonEdit;
+
+class CQChartsPolygonLineEdit : public CQChartsLineEditBase {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsPolygon polygon READ polygon WRITE setPolygon)
+
+ public:
+  CQChartsPolygonLineEdit(QWidget *parent=nullptr);
+
+  const CQChartsPolygon &polygon() const;
+  void setPolygon(const CQChartsPolygon &pos);
+
+ signals:
+  void polygonChanged();
+
+ private slots:
+  void menuEditChanged();
+
+ private:
+  void textChanged() override;
+
+  void updatePolygon(const CQChartsPolygon &polygon, bool updateText);
+
+  void polygonToWidgets();
+
+  void connectSlots(bool b) override;
+
+ private:
+  CQChartsPolygonEdit* menuEdit_ { nullptr };
+};
+
+//---
+
+class CQChartsUnitsEdit;
 class CQPoint2DEdit;
-class CQWidgetMenu;
-class QLineEdit;
-class QComboBox;
-class QPushButton;
 class QScrollArea;
 
 class CQChartsPolygonEdit : public QFrame {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsPolygon polygon         READ polygon         WRITE setPolygon        )
-  Q_PROPERTY(QString         placeholderText READ placeholderText WRITE setPlaceholderText)
+  Q_PROPERTY(CQChartsPolygon polygon READ polygon WRITE setPolygon)
 
  public:
   CQChartsPolygonEdit(QWidget *parent=nullptr);
@@ -24,66 +53,35 @@ class CQChartsPolygonEdit : public QFrame {
   const CQChartsPolygon &polygon() const;
   void setPolygon(const CQChartsPolygon &pos);
 
-  QString placeholderText() const;
-  void setPlaceholderText(const QString &s);
-
-  void paintEvent(QPaintEvent *) override;
-
-  void resizeEvent(QResizeEvent *) override;
-
  signals:
   void polygonChanged();
 
  private slots:
-  void showMenu();
+  void widgetsToPolygon();
 
-  void updateMenu();
+  void updatePointEdits();
 
-  void textChanged();
+  void updateState();
 
   void unitsChanged();
 
   void addSlot();
   void removeSlot();
 
-  void updateState();
-
   void pointSlot();
 
  private:
-  void initStyle(QStyleOptionComboBox &opt);
-
-  void widgetsToPolygon();
   void polygonToWidgets();
-
-  void connectSlots(bool b);
 
  private:
   using PointEdits = std::vector<CQPoint2DEdit *>;
 
-  CQChartsPolygon polygon_;
-  QLineEdit*      edit_         { nullptr };
-  QPushButton*    button_       { nullptr };
-  CQWidgetMenu*   menu_         { nullptr };
-  QFrame*         menuFrame_    { nullptr };
-  QComboBox*      unitsCombo_   { nullptr };
-  QFrame*         controlFrame_ { nullptr };
-  QScrollArea*    scrollArea_   { nullptr };
-  QFrame*         pointsFrame_  { nullptr };
-  PointEdits      pointEdits_;
-};
-
-//---
-
-#include <QPushButton>
-
-class CQChartsPolygonEditMenuButton : public QPushButton {
-  Q_OBJECT
-
- public:
-  CQChartsPolygonEditMenuButton(QWidget *parent=nullptr);
-
-  void paintEvent(QPaintEvent *) override;
+  CQChartsPolygon    polygon_;
+  CQChartsUnitsEdit* unitsEdit_    { nullptr };
+  QFrame*            controlFrame_ { nullptr };
+  QScrollArea*       scrollArea_   { nullptr };
+  QFrame*            pointsFrame_  { nullptr };
+  PointEdits         pointEdits_;
 };
 
 //------
@@ -106,7 +104,7 @@ class CQChartsPolygonPropertyViewType : public CQPropertyViewType {
   QString tip(const QVariant &value) const override;
 };
 
-//---
+//------
 
 #include <CQPropertyViewEditor.h>
 

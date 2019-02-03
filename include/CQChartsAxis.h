@@ -351,7 +351,7 @@ class CQChartsAxis : public CQChartsObj,
   void drawAxisLabel(const CQChartsPlot *plot, QPainter *painter,
                      double apos, double amin, double amax, const QString &text);
 
-  void getTickLabelsPositions(std::set<int> &positions);
+  void getTickLabelsPositions(std::set<int> &positions) const;
 
  signals:
   void ticksChanged();

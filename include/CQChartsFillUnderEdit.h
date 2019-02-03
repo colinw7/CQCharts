@@ -2,18 +2,9 @@
 #define CQChartsFillUnderSideEdit_H
 
 #include <CQChartsFillUnder.h>
-#include <QFrame>
-
-class CQChartsFillUnderPosMenuButton;
-class CQWidgetMenu;
-class CQRealSpin;
-class CQFillUnderPosChooser;
-class CQCheckBox;
+#include <CQChartsLineEditBase.h>
 
 class QComboBox;
-class QLineEdit;
-class QPushButton;
-class QStyleOptionComboBox;
 
 class CQChartsFillUnderSideEdit : public QFrame {
   Q_OBJECT
@@ -75,11 +66,46 @@ class CQChartsFillUnderSidePropertyViewEditor : public CQPropertyViewEditorFacto
 
 //------
 
+class CQChartsFillUnderPosEdit;
+
+class CQChartsFillUnderPosLineEdit : public CQChartsLineEditBase {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsFillUnderPos fillUnderPos READ fillUnderPos WRITE setFillUnderPos)
+
+ public:
+  CQChartsFillUnderPosLineEdit(QWidget *parent=nullptr);
+
+  const CQChartsFillUnderPos &fillUnderPos() const;
+  void setFillUnderPos(const CQChartsFillUnderPos &fillUnderPos);
+
+ signals:
+  void fillUnderPosChanged();
+
+ private slots:
+  void menuEditChanged();
+
+ private:
+  void textChanged() override;
+
+  void updateFillUnderPos(const CQChartsFillUnderPos &fillUnderPos, bool updateText);
+
+  void fillUnderPosToWidgets();
+
+  void connectSlots(bool b) override;
+
+ private:
+  CQChartsFillUnderPosEdit *menuEdit_ { nullptr };
+};
+
+//------
+
+class CQRealSpin;
+
 class CQChartsFillUnderPosEdit : public QFrame {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsFillUnderPos fillUnderPos    READ fillUnderPos    WRITE setFillUnderPos   )
-  Q_PROPERTY(QString              placeholderText READ placeholderText WRITE setPlaceholderText)
+  Q_PROPERTY(CQChartsFillUnderPos fillUnderPos READ fillUnderPos WRITE setFillUnderPos)
 
  public:
   CQChartsFillUnderPosEdit(QWidget *parent=nullptr);
@@ -87,56 +113,23 @@ class CQChartsFillUnderPosEdit : public QFrame {
   const CQChartsFillUnderPos &fillUnderPos() const;
   void setFillUnderPos(const CQChartsFillUnderPos &fillUnderPos);
 
-  QString placeholderText() const;
-  void setPlaceholderText(const QString &s);
-
-  void paintEvent(QPaintEvent *) override;
-
-  void resizeEvent(QResizeEvent *) override;
-
  signals:
   void fillUnderPosChanged();
 
  private slots:
-  void showMenu();
-
-  void updateMenu();
-
-  void textChanged(const QString &str);
-
   void widgetsToFillUnderPos();
 
-  void updateState();
-
  private:
-  void initStyle(QStyleOptionComboBox &opt);
-
-  void fillUnderPosToWidgets(bool updateText);
+  void fillUnderPosToWidgets();
 
   void connectSlots(bool b);
 
  private:
-  CQChartsFillUnderPos            fillUnderPos_;
-  QLineEdit*                      edit_       { nullptr };
-  CQChartsFillUnderPosMenuButton* button_     { nullptr };
-  CQWidgetMenu*                   menu_       { nullptr };
-  QComboBox*                      xtypeCombo_ { nullptr };
-  CQRealSpin*                     xposEdit_   { nullptr };
-  QComboBox*                      ytypeCombo_ { nullptr };
-  CQRealSpin*                     yposEdit_   { nullptr };
-};
-
-//---
-
-#include <QPushButton>
-
-class CQChartsFillUnderPosMenuButton : public QPushButton {
-  Q_OBJECT
-
- public:
-  CQChartsFillUnderPosMenuButton(QWidget *parent=nullptr);
-
-  void paintEvent(QPaintEvent *) override;
+  CQChartsFillUnderPos fillUnderPos_;
+  QComboBox*           xtypeCombo_ { nullptr };
+  CQRealSpin*          xposEdit_   { nullptr };
+  QComboBox*           ytypeCombo_ { nullptr };
+  CQRealSpin*          yposEdit_   { nullptr };
 };
 
 //------

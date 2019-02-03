@@ -47,6 +47,7 @@ OBJECTS_DIR = ../obj
 INCLUDEPATH += \
 . \
 ../include \
+../../CQPropertyView/include \
 ../../CQUtil/include \
 ../../CQPerfMonitor/include \
 ../../CImageLib/include \

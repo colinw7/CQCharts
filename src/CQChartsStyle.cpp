@@ -86,19 +86,7 @@ fromString(const QString &str)
       parse.skipSpace();
     }
 
-    if      (name == "stroke") {
-      QColor c(value);
-
-      pen_->setColor(c);
-    }
-    else if (name == "stroke-width") {
-      bool ok;
-      double w = CQChartsVariant::toReal(value, ok);
-      if (! ok) continue;
-
-      pen_->setWidthF(w);
-    }
-    else if (name == "fill") {
+    if      (name == "fill") {
       QColor c(value);
 
       brush_->setColor(c);
@@ -112,6 +100,18 @@ fromString(const QString &str)
       QColor c = brush_->color();
       c.setAlphaF(a);
       brush_->setColor(c);
+    }
+    else if (name == "stroke") {
+      QColor c(value);
+
+      pen_->setColor(c);
+    }
+    else if (name == "stroke-width") {
+      bool ok;
+      double w = CQChartsVariant::toReal(value, ok);
+      if (! ok) continue;
+
+      pen_->setWidthF(w);
     }
     else {
       std::cerr << "Unsupported style: " <<

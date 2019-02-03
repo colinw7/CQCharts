@@ -1132,6 +1132,8 @@ bool isValidModelColumn(const QAbstractItemModel *model, int column) {
 }
 
 int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name) {
+  assert(model);
+
 #if 0
   int role = Qt::DisplayRole;
 
@@ -1168,6 +1170,8 @@ int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name) {
 }
 
 bool stringToColumn(const QAbstractItemModel *model, const QString &str, CQChartsColumn &column) {
+  assert(model);
+
   if (! str.length())
     return false;
 
@@ -1462,6 +1466,8 @@ namespace CQChartsModelUtil {
 
 bool decodeModelFilterStr(const QAbstractItemModel *model, const QString &filter,
                           QString &filter1, int &column) {
+  assert(model);
+
   filter1 = filter;
   column  = -1;
 

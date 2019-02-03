@@ -1,6 +1,5 @@
 High
- + turn off auto resize. scroll bars
- + use new arrow code
+ + better handling of update notifications
  + generate plot on thread (redraw when finished)
  + view annotations in offscreen pixmap/image
  + Allow color names/symbol names in color map

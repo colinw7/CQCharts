@@ -160,32 +160,39 @@ addProperties()
 {
   CQChartsHierPlot::addProperties();
 
+  // options
   addProperty("options", this, "marginWidth");
 
+  // header
   addProperty("header", this, "titles"        , "visible"  );
   addProperty("header", this, "titleMaxExtent", "maxExtent");
   addProperty("header", this, "headerHeight"  , "height"   );
 
-  addProperty("header/stroke", this, "headerBorder", "visible");
-
-  addLineProperties("header/stroke", "headerBorder");
-
+  // header/fill
   addProperty("header/fill", this, "headerFilled", "visible");
 
   addFillProperties("header/fill", "headerFill");
+
+  // header/stroke
+  addProperty("header/stroke", this, "headerBorder", "visible");
+
+  addLineProperties("header/stroke", "headerBorder");
 
   addTextProperties("header/text", "headerText");
 
   addProperty("header/text", this, "headerTextAlign", "align");
 
-  addProperty("stroke", this, "border", "visible");
-
-  addLineProperties("stroke", "border");
-
+  // fill
   addProperty("fill", this, "filled", "visible");
 
   addFillProperties("fill", "fill");
 
+  // stroke
+  addProperty("stroke", this, "border", "visible");
+
+  addLineProperties("stroke", "border");
+
+  // text
   addTextProperties("text", "text");
 
   addProperty("text", this, "textAlign"    , "align"    );

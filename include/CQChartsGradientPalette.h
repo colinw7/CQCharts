@@ -110,6 +110,7 @@ class CCubeHelix {
 class CQChartsGradientPalette {
  public:
   enum class ColorType {
+    NONE,
     MODEL,
     DEFINED,
     FUNCTIONS,
@@ -117,6 +118,7 @@ class CQChartsGradientPalette {
   };
 
   enum class ColorModel {
+    NONE,
     RGB,
     HSV,
     CMY,
@@ -125,6 +127,26 @@ class CQChartsGradientPalette {
   };
 
   using ColorMap = std::map<double,QColor>;
+
+ public:
+  static ColorType stringToColorType(const QString &str) {
+    if      (str == "model"    ) return ColorType::MODEL;
+    else if (str == "defined"  ) return ColorType::DEFINED;
+    else if (str == "functions") return ColorType::FUNCTIONS;
+    else if (str == "cubehelix") return ColorType::CUBEHELIX;
+
+    return ColorType::NONE;
+  }
+
+  static ColorModel stringToColorModel(const QString &str) {
+    if      (str == "rgb") return ColorModel::RGB;
+    else if (str == "hsv") return ColorModel::HSV;
+    else if (str == "cmy") return ColorModel::CMY;
+    else if (str == "yiq") return ColorModel::YIQ;
+    else if (str == "xyz") return ColorModel::XYZ;
+
+    return ColorModel::NONE;
+  }
 
  public:
   CQChartsGradientPalette();

@@ -176,21 +176,27 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
+  // columns
   addProperty("columns", this, "linkColumn" , "link" );
   addProperty("columns", this, "valueColumn", "value");
   addProperty("columns", this, "groupColumn", "group");
 
+  // options
   addProperty("options", this, "sorted"     );
   addProperty("options", this, "innerRadius");
 
+  // stroke
   addLineProperties("stroke", "border");
 
+  // segment
   addProperty("segment", this, "segmentAlpha", "alpha");
 
+  // arc
   addProperty("arc", this, "arcAlpha"  , "alpha"     );
   addProperty("arc", this, "gapAngle"  , "gapAngle"  );
   addProperty("arc", this, "startAngle", "startAngle");
 
+  // label
   addProperty("label", textBox_, "textVisible");
   addProperty("label", textBox_, "textFont"   );
   addProperty("label", textBox_, "textColor"  );

@@ -235,15 +235,15 @@ addProperties()
   addProperty("options", this, "angleExtent");
   addProperty("options", this, "gapAngle"   );
 
-  // stroke
-  addProperty("stroke", this, "border", "visible");
-
-  addLineProperties("stroke", "border");
-
   // fill
   addProperty("fill", this, "filled", "visible");
 
   addFillProperties("fill", "fill");
+
+  // stroke
+  addProperty("stroke", this, "border", "visible");
+
+  addLineProperties("stroke", "border");
 
   // grid
   addProperty("grid", this, "gridLines", "visible");
