@@ -862,10 +862,17 @@ createPlotCmd(CQChartsCmdArgs &argv)
 
   CQChartsNameValueData nameValueData;
 
-  // plot columns
-  QString columnsStr = argv.getParseStr("columns");
+  //--
 
-  if (columnsStr.length()) {
+  // plot columns
+  QStringList columnsStrs = argv.getParseStrs("columns");
+
+  for (int i = 0; i < columnsStrs.length(); ++i) {
+    const QString &columnsStr = columnsStrs[i];
+
+    if (! columnsStr.length())
+      continue;
+
     QStringList strs = stringToColumns(columnsStr);
 
     for (int j = 0; j < strs.size(); ++j) {
@@ -5379,92 +5386,4 @@ stringToColumns(const QString &str) const
     words.push_back(word);
 
   return words;
-}
-
-//------
-
-CQChartsCmdsSlot::
-CQChartsCmdsSlot(CQChartsCmds *cmds, CQChartsView *view, CQChartsPlot *plot,
-                 const QString &procName) :
- cmds_(cmds), view_(view), plot_(plot), procName_(procName)
-{
-}
-
-void
-CQChartsCmdsSlot::
-objIdPressed(const QString &id)
-{
-#ifdef CQCharts_USE_TCL
-  QString cmd = getTclIdCmd(id);
-
-  cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
-#else
-  std::cerr << "objIdPressed: " << id.toStdString() << "\n";
-#endif
-}
-
-void
-CQChartsCmdsSlot::
-annotationIdPressed(const QString &id)
-{
-#ifdef CQCharts_USE_TCL
-  QString cmd = getTclIdCmd(id);
-
-  cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
-#else
-  std::cerr << "annotationIdPressed: " << id.toStdString() << "\n";
-#endif
-}
-
-void
-CQChartsCmdsSlot::
-plotObjsAdded()
-{
-  disconnect(plot_, SIGNAL(plotObjsAdded()),
-             this, SLOT(plotObjsAdded()));
-
-#ifdef CQCharts_USE_TCL
-  QString cmd = getTclCmd();
-
-  cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
-#else
-  std::cerr << "plotObjsAdded\n";
-#endif
-
-  connect(plot_, SIGNAL(plotObjsAdded()),
-          this, SLOT(plotObjsAdded()));
-}
-
-QString
-CQChartsCmdsSlot::
-getTclCmd() const
-{
-  QString viewName = view_->id();
-
-  QString cmd = procName_;
-
-  cmd += " \"" + viewName + "\"";
-
-  if (plot_)
-    cmd += " \"" + plot_->pathId() + "\"";
-
-  return cmd;
-}
-
-QString
-CQChartsCmdsSlot::
-getTclIdCmd(const QString &id) const
-{
-  QString viewName = view_->id();
-
-  QString cmd = procName_;
-
-  cmd += " \"" + viewName + "\"";
-
-  if (plot_)
-    cmd += " \"" + plot_->pathId() + "\"";
-
-  cmd += " \"" + id + "\"";
-
-  return cmd;
 }

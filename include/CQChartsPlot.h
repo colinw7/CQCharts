@@ -100,11 +100,11 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(QString typeStr READ typeStr)
 
   // generic columns and control
-  Q_PROPERTY(CQChartsColumn idColumn      READ idColumn      WRITE setIdColumn     )
-  Q_PROPERTY(CQChartsColumn tipColumn     READ tipColumn     WRITE setTipColumn    )
-  Q_PROPERTY(CQChartsColumn visibleColumn READ visibleColumn WRITE setVisibleColumn)
-  Q_PROPERTY(CQChartsColumn colorColumn   READ colorColumn   WRITE setColorColumn  )
-  Q_PROPERTY(CQChartsColumn imageColumn   READ imageColumn   WRITE setImageColumn  )
+  Q_PROPERTY(CQChartsColumn  idColumn      READ idColumn      WRITE setIdColumn     )
+  Q_PROPERTY(CQChartsColumns tipColumns    READ tipColumns    WRITE setTipColumns   )
+  Q_PROPERTY(CQChartsColumn  visibleColumn READ visibleColumn WRITE setVisibleColumn)
+  Q_PROPERTY(CQChartsColumn  colorColumn   READ colorColumn   WRITE setColorColumn  )
+  Q_PROPERTY(CQChartsColumn  imageColumn   READ imageColumn   WRITE setImageColumn  )
 
   // color map
   Q_PROPERTY(bool    colorMapped     READ isColorMapped   WRITE setColorMapped    )
@@ -1152,8 +1152,8 @@ class CQChartsPlot : public CQChartsObj,
   const CQChartsColumn &idColumn() const { return idColumn_; }
   void setIdColumn(const CQChartsColumn &column);
 
-  const CQChartsColumn &tipColumn() const { return tipColumn_; }
-  void setTipColumn(const CQChartsColumn &column);
+  const CQChartsColumns &tipColumns() const { return tipColumns_; }
+  void setTipColumns(const CQChartsColumns &columns);
 
   const CQChartsColumn &visibleColumn() const { return visibleColumn_; }
   void setVisibleColumn(const CQChartsColumn &column);
@@ -2009,7 +2009,7 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsColumn               yValueColumn_;                    // y axis value column
   CQChartsColumn               idColumn_;                        // unique data id column
                                                                  // (signalled)
-  CQChartsColumn               tipColumn_;                       // tip column
+  CQChartsColumns              tipColumns_;                      // tip columns
   CQChartsColumn               visibleColumn_;                   // visible column
   ColorColumnData              colorColumnData_;                 // color color data
   mutable std::mutex           colorMutex_;                      // color mutex

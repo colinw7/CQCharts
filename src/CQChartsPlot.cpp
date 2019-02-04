@@ -1407,7 +1407,7 @@ addProperties()
   addProperty("", this, "visible");
 
   addProperty("columns", this, "idColumn"     , "id"     );
-  addProperty("columns", this, "tipColumn"    , "tip"    );
+  addProperty("columns", this, "tipColumns"   , "tips"   );
   addProperty("columns", this, "visibleColumn", "visible");
   addProperty("columns", this, "colorColumn"  , "color"  );
   addProperty("columns", this, "imageColumn"  , "image"  );
@@ -4162,9 +4162,9 @@ setIdColumn(const CQChartsColumn &c)
 
 void
 CQChartsPlot::
-setTipColumn(const CQChartsColumn &c)
+setTipColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(tipColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(tipColumns_, c, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void

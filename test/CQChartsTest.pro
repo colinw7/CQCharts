@@ -21,6 +21,7 @@ CQChartsCmdArgs.cpp \
 CQChartsCmdBase.cpp \
 CQChartsCmdGroup.cpp \
 CQChartsCmds.cpp \
+CQChartsCmdsSlot.cpp \
 CQChartsInitData.cpp \
 CQChartsReadLine.cpp \
 CQChartsTest.cpp \
@@ -34,6 +35,7 @@ CQChartsCmdBase.h \
 CQChartsCmdGroup.h \
 CQChartsCmdsArgs.h \
 CQChartsCmds.h \
+CQChartsCmdsSlot.h \
 CQChartsInitData.h \
 CQChartsInput.h \
 CQChartsNameValueData.h \

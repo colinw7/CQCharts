@@ -2,6 +2,7 @@
 #define CQChartsCmds_H
 
 #include <CQChartsCmdBase.h>
+#include <CQChartsCmdsSlot.h>
 
 #include <CQCharts.h>
 #include <CQChartsInitData.h>
@@ -30,31 +31,6 @@ class CQTcl;
 
 class QAbstractItemModel;
 class QItemSelectionModel;
-
-//---
-
-class CQChartsCmdsSlot : public QObject {
-  Q_OBJECT
-
- public:
-  CQChartsCmdsSlot(CQChartsCmds *cmds, CQChartsView *view, CQChartsPlot *plot,
-                   const QString &procName);
-
- private:
-  QString getTclCmd() const;
-  QString getTclIdCmd(const QString &id) const;
-
- public slots:
-  void objIdPressed       (const QString &);
-  void annotationIdPressed(const QString &);
-  void plotObjsAdded      ();
-
- private:
-  CQChartsCmds* cmds_ { nullptr };
-  CQChartsView* view_ { nullptr };
-  CQChartsPlot* plot_ { nullptr };
-  QString       procName_;
-};
 
 //---
 

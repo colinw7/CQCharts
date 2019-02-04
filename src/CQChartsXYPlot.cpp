@@ -727,18 +727,24 @@ initAxes()
 
 QString
 CQChartsXYPlot::
-xAxisName() const
+xAxisName(const QString &def) const
 {
   bool ok;
 
-  return modelHeaderString(xColumn(), ok);
+  QString name = modelHeaderString(xColumn(), ok);
+
+  if (! ok)
+    name = def;
+
+  return name;
 }
 
 QString
 CQChartsXYPlot::
-yAxisName() const
+yAxisName(const QString &def) const
 {
   QString name;
+  bool    ok = true;
 
   int ns = yColumns().count();
 
@@ -753,15 +759,18 @@ yAxisName() const
       if (ns > 1)
         yColumn2 = yColumns().getColumn(1);
 
-      bool ok;
+      bool ok1, ok2;
 
-      QString yname1 = modelHeaderString(yColumn1, ok);
-      QString yname2 = modelHeaderString(yColumn2, ok);
+      QString yname1 = modelHeaderString(yColumn1, ok1);
+      QString yname2 = modelHeaderString(yColumn2, ok2);
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
+
+    ok = name.length();
   }
   else if (isStacked()) {
+    ok = false;
   }
   else {
     for (int j = 0; j < ns; ++j) {
@@ -776,7 +785,12 @@ yAxisName() const
 
       name += name1;
     }
+
+    ok = name.length();
   }
+
+  if (! ok)
+    name = def;
 
   return name;
 }
@@ -1276,10 +1290,18 @@ addLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotObjs &objs
 
     //---
 
-    QPolygonF polyShape, polyLine;
+    const IndPoly &setPoly1 = setPoly[j];
 
-    const QPolygonF &poly     = setPoly[j].poly;
-    const QPolygonF &prevPoly = (j > 0 ? setPoly[j - 1].poly : poly);
+    const QPolygonF     &poly = setPoly1.poly;
+    const IndPoly::Inds &inds = setPoly1.inds;
+
+    const IndPoly &setPoly2 = setPoly[j - 1];
+
+    const QPolygonF &prevPoly = (j > 0 ? setPoly2.poly : poly);
+
+    //---
+
+    QPolygonF polyShape, polyLine;
 
     int np = poly.size();
     assert(prevPoly.size() == np);
@@ -1354,15 +1376,15 @@ addLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotObjs &objs
         //---
 
         // create point object
-        //QModelIndex parent; // TODO: parent
+        const QModelIndex &xind = inds[ip];
 
-        QModelIndex xind  = modelIndex(ip, xColumn()); // TODO: parent
         QModelIndex xind1 = normalizeIndex(xind);
 
         CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
 
         CQChartsXYPointObj *pointObj =
-          new CQChartsXYPointObj(this, groupInd, bbox, x, y, size, xind1, j, ns, ip, np);
+          new CQChartsXYPointObj(this, groupInd, bbox, x, y, size, xind1,
+                                 j, ns, ig, ng, ip, np);
 
         pointObjs.push_back(pointObj);
 
@@ -1656,12 +1678,12 @@ addPolygon(const QPolygonF &poly, int groupInd, int is, int ns, int ig, int ng,
 
 QString
 CQChartsXYPlot::
-valueName(int iset, int nset, int irow) const
+valueName(int is, int ns, int irow) const
 {
   QString name;
 
-  if (nset > 1 && iset >= 0) {
-    CQChartsColumn yColumn = yColumns().getColumn(iset);
+  if (ns > 1 && is >= 0) {
+    CQChartsColumn yColumn = yColumns().getColumn(is);
 
     bool ok;
 
@@ -1971,9 +1993,9 @@ drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2) const
 CQChartsXYBiLineObj::
 CQChartsXYBiLineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                     double x, double y1, double y2, const QModelIndex &ind,
-                    int iset, int nset, int i, int n) :
+                    int is, int ns, int i, int n) :
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
- x_(x), y1_(y1), y2_(y2), ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
+ x_(x), y1_(y1), y2_(y2), ind_(ind), is_(is), ns_(ns), i_(i), n_(n)
 {
 }
 
@@ -1988,7 +2010,7 @@ calcId() const
   if (calcColumnId(ind1, idStr))
     return idStr;
 
-  return QString("biline:%1:%2").arg(iset()).arg(i());
+  return QString("biline:%1:%2").arg(is()).arg(i());
 }
 
 QString
@@ -2005,9 +2027,11 @@ calcTipId() const
   if (name.length())
     tableTip.addTableRow("Name", name);
 
-  tableTip.addTableRow("X" , xstr );
-  tableTip.addTableRow("Y1", y1str);
-  tableTip.addTableRow("Y2", y2str);
+  QString xname = plot()->xAxisName("X");
+
+  tableTip.addTableRow(xname, xstr );
+  tableTip.addTableRow("Y1" , y1str);
+  tableTip.addTableRow("Y2" , y2str);
 
   return tableTip.str();
 }
@@ -2082,7 +2106,7 @@ draw(QPainter *painter)
     QPen   pen;
     QBrush brush;
 
-    QColor lc = plot()->interpBivariateLinesColor(iset(), nset());
+    QColor lc = plot()->interpBivariateLinesColor(is(), ns());
 
     plot()->setPen(pen, true, lc, plot()->bivariateLinesAlpha(), plot()->bivariateLinesWidth(),
                    plot()->bivariateLinesDash());
@@ -2114,7 +2138,7 @@ draw(QPainter *painter)
     QPen   pen;
     QBrush brush;
 
-    plot_->setSymbolPenBrush(pen, brush, iset(), nset());
+    plot_->setSymbolPenBrush(pen, brush, is(), ns());
 
     plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
@@ -2134,9 +2158,9 @@ draw(QPainter *painter)
 CQChartsXYImpulseLineObj::
 CQChartsXYImpulseLineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                          double x, double y1, double y2, const QModelIndex &ind,
-                         int iset, int nset, int i, int n) :
+                         int is, int ns, int i, int n) :
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
- x_(x), y1_(y1), y2_(y2), ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
+ x_(x), y1_(y1), y2_(y2), ind_(ind), is_(is), ns_(ns), i_(i), n_(n)
 {
 }
 
@@ -2151,14 +2175,14 @@ calcId() const
   if (calcColumnId(ind1, idStr))
     return idStr;
 
-  return QString("impulse:%1:%2").arg(iset()).arg(i());
+  return QString("impulse:%1:%2").arg(is()).arg(i());
 }
 
 QString
 CQChartsXYImpulseLineObj::
 calcTipId() const
 {
-  QString name  = plot()->valueName(iset(), nset(), ind().row());
+  QString name  = plot()->valueName(is(), ns(), ind().row());
   QString xstr  = plot()->xStr(x());
   QString y1str = plot()->yStr(y1());
   QString y2str = plot()->yStr(y2());
@@ -2168,9 +2192,11 @@ calcTipId() const
   if (name.length())
     tableTip.addTableRow("Name", name);
 
-  tableTip.addTableRow("X" , xstr );
-  tableTip.addTableRow("Y1", y1str);
-  tableTip.addTableRow("Y2", y2str);
+  QString xname = plot()->xAxisName("X");
+
+  tableTip.addTableRow(xname, xstr );
+  tableTip.addTableRow("Y1" , y1str);
+  tableTip.addTableRow("Y2" , y2str);
 
   return tableTip.str();
 }
@@ -2234,8 +2260,8 @@ draw(QPainter *painter)
 
   //---
 
-  int ic = (nset() > 1 ? iset() : i());
-  int nc = (nset() > 1 ? nset() : n());
+  int ic = (ns() > 1 ? is() : i());
+  int nc = (ns() > 1 ? ns() : n());
 
   //---
 
@@ -2287,9 +2313,9 @@ draw(QPainter *painter)
 CQChartsXYPointObj::
 CQChartsXYPointObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                    double x, double y, double size, const QModelIndex &ind,
-                   int iset, int nset, int i, int n) :
+                   int is, int ns, int ig, int ng, int i, int n) :
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
- pos_(x, y), size_(size), ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
+ pos_(x, y), size_(size), ind_(ind), is_(is), ns_(ns), ig_(ig), ng_(ng), i_(i), n_(n)
 {
 }
 
@@ -2320,28 +2346,13 @@ calcId() const
   if (calcColumnId(ind1, idStr))
     return idStr;
 
-  return QString("point:%1:%2").arg(iset()).arg(i());
+  return QString("point:%1:%2").arg(is()).arg(i());
 }
 
 QString
 CQChartsXYPointObj::
 calcTipId() const
 {
-  if (plot()->tipColumn().isValid()) {
-    QModelIndex tipInd = plot()->modelIndex(ind().row(), plot()->tipColumn(), ind().parent());
-
-    QModelIndex tipInd1 = plot()->unnormalizeIndex(tipInd);
-
-    bool ok;
-
-    QString tipStr = plot()->modelString(tipInd1.row(), plot()->tipColumn(), tipInd1.parent(), ok);
-
-    if (ok)
-      return tipStr;
-  }
-
-  //---
-
   CQChartsTableTip tableTip;
 
   QModelIndex ind1 = plot()->unnormalizeIndex(ind());
@@ -2351,18 +2362,47 @@ calcTipId() const
   if (calcColumnId(ind1, idStr))
     tableTip.addTableRow("Id", idStr);
 
-  QString name = plot()->valueName(iset(), nset(), ind().row());
+  if (ng_ > 1) {
+    QString groupName = plot()->groupIndName(ig_);
+
+    tableTip.addTableRow("Group", groupName);
+  }
+
+  QString name = plot()->valueName(is(), ns(), ind().row());
   QString xstr = plot()->xStr(x());
   QString ystr = plot()->yStr(y());
 
   if (name.length())
     tableTip.addTableRow("Name", name);
 
-  tableTip.addTableRow("X", xstr);
-  tableTip.addTableRow("Y", ystr);
+  QString xname = plot()->xAxisName("X");
+  QString yname = plot()->yAxisName("Y");
+
+  tableTip.addTableRow(xname, xstr);
+  tableTip.addTableRow(yname, ystr);
 
   if (size_ > 0)
     tableTip.addTableRow("Size", size_);
+
+  //---
+
+  for (const auto &c : plot()->tipColumns().columns()) {
+    if (c.isValid()) {
+      QModelIndex tipInd = plot()->modelIndex(ind().row(), c, ind().parent());
+
+      QModelIndex tipInd1 = plot()->unnormalizeIndex(tipInd);
+
+      bool ok1, ok2;
+
+      QString name  = plot()->modelHeaderString(c, ok1);
+      QString value = plot()->modelString(tipInd1.row(), c, tipInd1.parent(), ok2);
+
+      if (ok1 && ok2)
+        tableTip.addTableRow(name, value);
+    }
+  }
+
+  //---
 
   return tableTip.str();
 }
@@ -2441,7 +2481,7 @@ getSelectIndices(Indices &inds) const
     return;
 
   addColumnSelectIndex(inds, plot()->xColumn());
-  addColumnSelectIndex(inds, plot()->yColumns().getColumn(iset()));
+  addColumnSelectIndex(inds, plot()->yColumns().getColumn(is()));
 }
 
 void
@@ -2465,7 +2505,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  plot()->setSymbolPenBrush(pen, brush, iset(), nset());
+  plot()->setSymbolPenBrush(pen, brush, is(), ns());
 
   if (edata_ && edata_->color.isValid()) {
     QColor strokeColor = plot_->charts()->interpColor(edata_->color, 0, 1);
@@ -2517,9 +2557,9 @@ draw(QPainter *painter)
 CQChartsXYLabelObj::
 CQChartsXYLabelObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                    double x, double y, const QString &label, const QModelIndex &ind,
-                   int iset, int nset, int i, int n) :
+                   int is, int ns, int i, int n) :
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
- pos_(x, y), label_(label), ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
+ pos_(x, y), label_(label), ind_(ind), is_(is), ns_(ns), i_(i), n_(n)
 {
 }
 
@@ -2539,7 +2579,7 @@ calcId() const
   if (calcColumnId(ind1, idStr))
     return idStr;
 
-  return QString("label:%1:%2").arg(iset()).arg(i());
+  return QString("label:%1:%2").arg(is()).arg(i());
 }
 
 QString
@@ -2590,7 +2630,7 @@ getSelectIndices(Indices &inds) const
     return;
 
   addColumnSelectIndex(inds, plot()->xColumn());
-  addColumnSelectIndex(inds, plot()->yColumns().getColumn(iset()));
+  addColumnSelectIndex(inds, plot()->yColumns().getColumn(is()));
 }
 
 void
