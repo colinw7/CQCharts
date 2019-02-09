@@ -46,7 +46,7 @@ class CQChartsFillPattern {
 
   QString toString() const { return typeToString(type_); }
 
-  void fromString(const QString &s) { type_ = stringToType(s); }
+  bool fromString(const QString &s) { type_ = stringToType(s); return isValid(); }
 
   //---
 

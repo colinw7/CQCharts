@@ -9,6 +9,8 @@
 #include <CQUtil.h>
 #include <CQStrUtil.h>
 #include <CQStrParse.h>
+
+#include <QPainter>
 #include <QFontMetricsF>
 
 namespace CQChartsUtil {
@@ -444,6 +446,19 @@ void findStringSplits3(const QString &str, std::vector<int> &splits) {
 
 namespace CQChartsUtil {
 
+const QStringList &roleNames() {
+  static QStringList names;
+
+  if (names.empty())
+    names << "display" << "edit" << "user" << "font" << "size_hint" <<
+             "tool_tip" << "background" << "foreground" << "text_alignment" <<
+             "text_color" << "decoration" << "type" << "base_type" << "type_values" <<
+             "min" << "max" << "sorted" << "sort_order" << "title" << "key" <<
+             "raw_value" << "intermediate_value" << "cached_value" << "output_value" << "group";
+
+  return names;
+};
+
 int nameToRole(const QString &name) {
   if      (name == "display"       ) return Qt::DisplayRole;
   else if (name == "edit"          ) return Qt::EditRole;
@@ -462,13 +477,15 @@ int nameToRole(const QString &name) {
   else if (name == "type_values"       ) return (int) CQBaseModelRole::TypeValues;
   else if (name == "min"               ) return (int) CQBaseModelRole::Min;
   else if (name == "max"               ) return (int) CQBaseModelRole::Max;
-  else if (name == "key"               ) return (int) CQBaseModelRole::Key;
   else if (name == "sorted"            ) return (int) CQBaseModelRole::Sorted;
   else if (name == "sort_order"        ) return (int) CQBaseModelRole::SortOrder;
+  else if (name == "title"             ) return (int) CQBaseModelRole::Title;
+  else if (name == "key"               ) return (int) CQBaseModelRole::Key;
   else if (name == "raw_value"         ) return (int) CQBaseModelRole::RawValue;
   else if (name == "intermediate_value") return (int) CQBaseModelRole::IntermediateValue;
   else if (name == "cached_value"      ) return (int) CQBaseModelRole::CachedValue;
   else if (name == "output_value"      ) return (int) CQBaseModelRole::OutputValue;
+  else if (name == "group"             ) return (int) CQBaseModelRole::Group;
 
   return -1;
 }
@@ -795,7 +812,8 @@ QString pathToString(const CQChartsPath &path) {
 bool stringToPath(const QString &str, CQChartsPath &path) {
   path = CQChartsPath();
 
-  path.fromString(str);
+  if (! path.fromString(str))
+    return false;
 
   return true;
 }
@@ -813,7 +831,8 @@ QString styleToString(const CQChartsStyle &style) {
 bool stringToStyle(const QString &str, CQChartsStyle &style) {
   style = CQChartsStyle();
 
-  style.fromString(str);
+  if (! style.fromString(str))
+    return false;
 
   return true;
 }
@@ -1000,6 +1019,88 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
   }
 
   return true;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+void drawContrastText(QPainter *painter, double x, double y, const QString &text, const QPen &pen) {
+  // set contrast color
+  // TODO: allow set type (invert, bw) and alpha
+  QColor icolor = CQChartsUtil::invColor(pen.color());
+
+  icolor.setAlphaF(0.5);
+
+  //---
+
+  // draw contrast border
+  painter->setPen(icolor);
+
+  for (int dy = -2; dy <= 2; ++dy)
+    for (int dx = -2; dx <= 2; ++dx)
+      painter->drawText(QPointF(x + dx, y + dy), text);
+
+  //---
+
+  // draw text
+  painter->setPen(pen);
+
+  painter->drawText(QPointF(x, y), text);
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
+            double strokeWidth, const CQChartsLineDash &strokeDash) {
+  double width = limitLineWidth(strokeWidth);
+
+  // calc pen (stroke)
+  if (stroked) {
+    QColor color = strokeColor;
+
+    color.setAlphaF(CMathUtil::clamp(strokeAlpha, 0.0, 1.0));
+
+    pen.setColor(color);
+
+    if (width > 0)
+      pen.setWidthF(width);
+    else
+      pen.setWidthF(0.0);
+
+    penSetLineDash(pen, strokeDash);
+  }
+  else {
+    pen.setStyle(Qt::NoPen);
+  }
+}
+
+void setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
+              const CQChartsFillPattern &pattern) {
+  // calc brush (fill)
+  if (filled) {
+    QColor color = fillColor;
+
+    color.setAlphaF(CMathUtil::clamp(fillAlpha, 0.0, 1.0));
+
+    brush.setColor(color);
+
+    brush.setStyle(pattern.style());
+  }
+  else {
+    brush.setStyle(Qt::NoBrush);
+  }
+}
+
+double limitLineWidth(double w) {
+  // TODO: configuration setting
+  return CMathUtil::clamp(w, 0.0, CQChartsLineWidth::maxPixelValue());
 }
 
 }

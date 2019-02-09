@@ -52,6 +52,10 @@
 #include <CQChartsGradientPalette.h>
 #include <CQChartsWindow.h>
 #include <CQChartsPath.h>
+
+#include <CQChartsOptLength.h>
+#include <CQChartsOptReal.h>
+
 #include <CQPropertyView.h>
 #include <iostream>
 
@@ -72,6 +76,8 @@ CQCharts()
   CQChartsLineData      ::registerMetaType();
   CQChartsLineDash      ::registerMetaType();
   CQChartsNamePair      ::registerMetaType();
+  CQChartsOptLength     ::registerMetaType();
+  CQChartsOptReal       ::registerMetaType();
   CQChartsPath          ::registerMetaType();
   CQChartsPolygonList   ::registerMetaType();
   CQChartsPosition      ::registerMetaType();
@@ -215,12 +221,19 @@ interpColor(const CQChartsColor &c, int i, int n) const
 {
   double r = CMathUtil::norm(i, 0, n - 1);
 
-  return interpColor(c, r);
+  return interpColorValue(c, i, n, r);
 }
 
 QColor
 CQCharts::
 interpColor(const CQChartsColor &c, double value) const
+{
+  return interpColorValue(c, 0, -1, value);
+}
+
+QColor
+CQCharts::
+interpColorValue(const CQChartsColor &c, int i, int n, double value) const
 {
   assert(c.isValid());
 
@@ -228,9 +241,9 @@ interpColor(const CQChartsColor &c, double value) const
     return c.color();
   else if (c.type() == CQChartsColor::Type::PALETTE) {
     if (c.ind() == 0)
-      return interpPaletteColor(value);
+      return interpPaletteColorValue(i, n, value);
     else
-      return interpIndPaletteColor(c.ind(), value);
+      return interpIndPaletteColorValue(c.ind(), i, n, value);
   }
   else if (c.type() == CQChartsColor::Type::PALETTE_VALUE) {
     if (c.ind() == 0)
@@ -259,14 +272,40 @@ QColor
 CQCharts::
 interpPaletteColor(double r, bool scale) const
 {
-  return interpIndPaletteColor(0, r, scale);
+  return interpIndPaletteColor(/*palette_ind*/0, r, scale);
 }
 
 QColor
 CQCharts::
 interpIndPaletteColor(int ind, double r, bool scale) const
 {
-  return this->themePalette(ind)->getColor(r, scale);
+  return interpIndPaletteColorValue(ind, 0, -1, r, scale);
+}
+
+QColor
+CQCharts::
+interpPaletteColorValue(int i, int n, double r, bool scale) const
+{
+  return interpIndPaletteColorValue(/*palette_ind*/0, i, n, r, scale);
+}
+
+QColor
+CQCharts::
+interpIndPaletteColorValue(int ind, int i, int n, double r, bool scale) const
+{
+  CQChartsGradientPalette *palette = this->themePalette(ind);
+
+  if (! palette->isDistinct() || n <= 0)
+    return palette->getColor(r, scale);
+
+  int nc = palette->numColors();
+  assert(nc > 0);
+
+  int i1 = (i % nc);
+
+  double r1 = CMathUtil::norm(i1, 0, nc - 1);
+
+  return palette->getColor(r1, /*scale*/false);
 }
 
 QColor

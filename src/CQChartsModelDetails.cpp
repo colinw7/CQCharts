@@ -344,7 +344,7 @@ getNamedValue(const QString &name) const
   else if (name == "mean" || name == "avg" || name == "average")
     return this->meanValue();
   else if (name == "stddev" || name == "std_dev" || name == "standard_deviation")
-    return this->stdDevValue(CMathUtil::getNaN());
+    return this->stdDevValue();
 
   else if (name == "monotonic")
     return this->isMonotonic();

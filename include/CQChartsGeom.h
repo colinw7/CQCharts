@@ -1,7 +1,9 @@
 #ifndef CQChartsGeom_H
 #define CQChartsGeom_H
 
+#include <QRectF>
 #include <QPointF>
+
 #include <cassert>
 #include <algorithm>
 #include <cmath>
@@ -79,6 +81,10 @@ class Point {
 
     return *this;
   }
+
+  //-----
+
+  QPointF qpoint() const { return QPointF(x, y); }
 
   //-----
 
@@ -482,6 +488,10 @@ class BBox {
     update();
   }
 
+  BBox(const QRectF &rect) :
+   pmin_(rect.bottomLeft()), pmax_(rect.topRight()), set_(rect.isValid()) {
+  }
+
 #if 0
   BBox(const Point &o, const Size &s) :
    pmin_(o), pmax_(o + s), set_(true) {
@@ -492,6 +502,14 @@ class BBox {
   void reset() { set_ = false; }
 
   bool isSet() const { return set_; }
+
+  //---
+
+  QRectF qrect() const {
+    return QRectF(getLL().qpoint(), getUR().qpoint()).normalized();
+  }
+
+  //---
 
   BBox operator+(const Point &rhs) const {
     BBox t(*this);

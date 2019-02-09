@@ -636,7 +636,7 @@ drawFgAxes(QPainter *painter) const
     //---
 
     // draw set axis
-    axis->setPos(j);
+    axis->setPosition(CQChartsOptReal(j));
 
     axis->draw(this, painter);
 

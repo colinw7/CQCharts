@@ -18,6 +18,7 @@ class CQChartsLineDash;
 class CQChartsStyle;
 class CQChartsPath;
 class CQStrParse;
+class QPainter;
 
 namespace CQChartsUtil {
 
@@ -232,52 +233,20 @@ bool formatStringInRect(const QString &str, const QFont &font,
 
 //------
 
+#include <CQChartsLineDash.h>
+
 namespace CQChartsUtil {
 
-inline void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
-                   double strokeWidth, const CQChartsLineDash &strokeDash) {
-  // calc pen (stroke)
-  if (stroked) {
-    QColor color = strokeColor;
+void drawContrastText(QPainter *painter, double x, double y, const QString &text, const QPen &pen);
 
-    color.setAlphaF(CMathUtil::clamp(strokeAlpha, 0.0, 1.0));
+void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha=1.0,
+            double strokeWidth=0.0, const CQChartsLineDash &strokeDash=CQChartsLineDash());
 
-    pen.setColor(color);
+void setBrush(QBrush &brush, bool filled,
+              const QColor &fillColor=QColor(), double fillAlpha=1.0,
+              const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID);
 
-    if (strokeWidth > 0)
-      pen.setWidthF(strokeWidth);
-    else
-      pen.setWidthF(0.0);
-
-    penSetLineDash(pen, strokeDash);
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
-}
-
-inline void setBrush(QBrush &brush, bool filled,
-                     const QColor &fillColor=QColor(), double fillAlpha=1.0,
-                     const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID) {
-  // calc brush (fill)
-  if (filled) {
-    QColor color = fillColor;
-
-    color.setAlphaF(CMathUtil::clamp(fillAlpha, 0.0, 1.0));
-
-    brush.setColor(color);
-
-    brush.setStyle(pattern.style());
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
-}
-
-inline double limitLineWidth(double w) {
-  // TODO: configuration setting
-  return CMathUtil::clamp(w, 0.0, CQChartsLineWidth::maxPixelValue());
-}
+double limitLineWidth(double w);
 
 }
 

@@ -26,7 +26,7 @@ toString() const
   return nameValues.toString();
 }
 
-void
+bool
 CQChartsLineData::
 fromString(const QString &str)
 {
@@ -37,6 +37,8 @@ fromString(const QString &str)
   nameValues.nameValueReal    ("alpha"  , alpha_);
 //nameValues.nameValueLength  ("width"  , width_);
 //nameValues.nameValueLineDash("dash"   , dash_);
+
+  return true;
 }
 
 //------
@@ -67,12 +69,14 @@ toString() const
     return str2;
 }
 
-void
+bool
 CQChartsShapeData::
 fromString(const QString &str)
 {
   background_.fromString(str);
   border_    .fromString(str);
+
+  return true;
 }
 
 //---
@@ -102,7 +106,7 @@ toString() const
   return nameValues.toString();
 }
 
-void
+bool
 CQChartsFillData::
 fromString(const QString &str)
 {
@@ -112,6 +116,8 @@ fromString(const QString &str)
   nameValues.nameValueColor      ("fillColor"  , color_);
   nameValues.nameValueReal       ("fillAlpha"  , alpha_);
 //nameValues.nameValueFillPattern("fillPattern", pattern_);
+
+  return true;
 }
 
 //---
@@ -143,7 +149,7 @@ toString() const
   return nameValues.toString();
 }
 
-void
+bool
 CQChartsStrokeData::
 fromString(const QString &str)
 {
@@ -155,4 +161,6 @@ fromString(const QString &str)
 //nameValues.nameValueLength  ("strokeWidth"     , width_);
 //nameValues.nameValueLineDash("strokeDash"      , dash_);
 //nameValues.nameValueLength  ("strokeCornerSize", cornerSize_);
+
+  return true;
 }

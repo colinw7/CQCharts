@@ -169,6 +169,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
  private:
   using Geometries = std::vector<Geometry>;
+  using OptReal    = boost::optional<double>;
 
   CQChartsColumn        nameColumn_;                              // name column
   CQChartsColumn        geometryColumn_;                          // geometry column

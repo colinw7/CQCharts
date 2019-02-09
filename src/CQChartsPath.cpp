@@ -43,7 +43,7 @@ toString() const
   return str;
 }
 
-void
+bool
 CQChartsPath::
 fromString(const QString &str)
 {
@@ -123,8 +123,10 @@ fromString(const QString &str)
     }
   }
 
+#if 0
   if (! valid)
     std::cerr << "Invalid path: " << str.toStdString() << "\n";
+#endif
 
-  return;
+  return valid;
 }

@@ -514,14 +514,15 @@ class CQChartsObj##UNAME##FillData { \
 Q_PROPERTY(CQChartsTextData textData READ textData WRITE setTextData) \
 \
 Q_PROPERTY(bool          textVisible   READ isTextVisible   WRITE setTextVisible  ) \
-Q_PROPERTY(QFont         textFont      READ textFont        WRITE setTextFont     ) \
 Q_PROPERTY(CQChartsColor textColor     READ textColor       WRITE setTextColor    ) \
 Q_PROPERTY(double        textAlpha     READ textAlpha       WRITE setTextAlpha    ) \
+Q_PROPERTY(QFont         textFont      READ textFont        WRITE setTextFont     ) \
 Q_PROPERTY(double        textAngle     READ textAngle       WRITE setTextAngle    ) \
 Q_PROPERTY(bool          textContrast  READ isTextContrast  WRITE setTextContrast ) \
 Q_PROPERTY(Qt::Alignment textAlign     READ textAlign       WRITE setTextAlign    ) \
 Q_PROPERTY(bool          textFormatted READ isTextFormatted WRITE setTextFormatted) \
-Q_PROPERTY(bool          textScaled    READ isTextScaled    WRITE setTextScaled   )
+Q_PROPERTY(bool          textScaled    READ isTextScaled    WRITE setTextScaled   ) \
+Q_PROPERTY(bool          textHtml      READ isTextHtml      WRITE setTextHtml     )
 
 template<class OBJ>
 class CQChartsObjTextData {
@@ -535,11 +536,6 @@ class CQChartsObjTextData {
     CQChartsUtil::testAndSet(textData_.visible, b, [&]() { textDataInvalidate(true); } );
   }
 
-  const QFont &textFont() const { return textData_.font; }
-  void setTextFont(const QFont &f) {
-    CQChartsUtil::testAndSet(textData_.font, f, [&]() { textDataInvalidate(); } );
-  }
-
   const CQChartsColor &textColor() const { return textData_.color; }
   void setTextColor(const CQChartsColor &c) {
     CQChartsUtil::testAndSet(textData_.color, c, [&]() { textDataInvalidate(); } );
@@ -550,13 +546,18 @@ class CQChartsObjTextData {
     CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { textDataInvalidate(); } );
   }
 
+  QColor interpTextColor(int i, int n) const {
+    return textDataObj_->charts()->interpColor(textColor(), i, n);
+  }
+
+  const QFont &textFont() const { return textData_.font; }
+  void setTextFont(const QFont &f) {
+    CQChartsUtil::testAndSet(textData_.font, f, [&]() { textDataInvalidate(); } );
+  }
+
   double textAngle() const { return textData_.angle; }
   void setTextAngle(double a) {
     CQChartsUtil::testAndSet(textData_.angle, a, [&]() { textDataInvalidate(); } );
-  }
-
-  QColor interpTextColor(int i, int n) const {
-    return textDataObj_->charts()->interpColor(textColor(), i, n);
   }
 
   bool isTextContrast() const { return textData_.contrast; }
@@ -577,6 +578,11 @@ class CQChartsObjTextData {
   bool isTextScaled() const { return textData_.scaled; }
   void setTextScaled(bool b) {
     CQChartsUtil::testAndSet(textData_.scaled, b, [&]() { textDataInvalidate(); } );
+  }
+
+  bool isTextHtml() const { return textData_.html; }
+  void setTextHtml(bool b) {
+    CQChartsUtil::testAndSet(textData_.html, b, [&]() { textDataInvalidate(); } );
   }
 
   //---
@@ -604,12 +610,12 @@ class CQChartsObjTextData {
 #define CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(UNAME,LNAME) \
 Q_PROPERTY(bool          LNAME##TextVisible \
            READ is##UNAME##TextVisible   WRITE set##UNAME##TextVisible  ) \
-Q_PROPERTY(QFont         LNAME##TextFont \
-           READ LNAME##TextFont          WRITE set##UNAME##TextFont     ) \
 Q_PROPERTY(CQChartsColor LNAME##TextColor \
            READ LNAME##TextColor         WRITE set##UNAME##TextColor    ) \
 Q_PROPERTY(double        LNAME##TextAlpha \
            READ LNAME##TextAlpha         WRITE set##UNAME##TextAlpha    ) \
+Q_PROPERTY(QFont         LNAME##TextFont \
+           READ LNAME##TextFont          WRITE set##UNAME##TextFont     ) \
 Q_PROPERTY(double        LNAME##TextAngle \
            READ LNAME##TextAngle         WRITE set##UNAME##TextAngle    ) \
 Q_PROPERTY(bool          LNAME##TextContrast \
@@ -619,7 +625,9 @@ Q_PROPERTY(Qt::Alignment LNAME##TextAlign \
 Q_PROPERTY(bool          LNAME##TextFormatted \
            READ is##UNAME##TextFormatted WRITE set##UNAME##TextFormatted) \
 Q_PROPERTY(bool          LNAME##TextScaled \
-           READ is##UNAME##TextScaled    WRITE set##UNAME##TextScaled   )
+           READ is##UNAME##TextScaled    WRITE set##UNAME##TextScaled   ) \
+Q_PROPERTY(bool          LNAME##TextHtml \
+           READ is##UNAME##TextHtml      WRITE set##UNAME##TextHtml     )
 
 #define CQCHARTS_NAMED_TEXT_DATA(UNAME,LNAME) \
 template<class OBJ> \
@@ -635,12 +643,6 @@ class CQChartsObj##UNAME##TextData { \
      LNAME##TextDataInvalidate(true); } ); \
   } \
 \
-  const QFont &LNAME##TextFont() const { return LNAME##TextData_.font; } \
-  void set##UNAME##TextFont(const QFont &f) { \
-    CQChartsUtil::testAndSet(LNAME##TextData_.font, f, [&]() { \
-     LNAME##TextDataInvalidate(); } ); \
-  } \
-\
   const CQChartsColor &LNAME##TextColor() const { return LNAME##TextData_.color; } \
   void set##UNAME##TextColor(const CQChartsColor &c) { \
     CQChartsUtil::testAndSet(LNAME##TextData_.color, c, [&]() { \
@@ -653,14 +655,20 @@ class CQChartsObj##UNAME##TextData { \
      LNAME##TextDataInvalidate(); } ); \
   } \
 \
+  QColor interp##UNAME##TextColor(int i, int n) const { \
+    return LNAME##TextDataObj_->charts()->interpColor(LNAME##TextColor(), i, n); \
+  } \
+\
+  const QFont &LNAME##TextFont() const { return LNAME##TextData_.font; } \
+  void set##UNAME##TextFont(const QFont &f) { \
+    CQChartsUtil::testAndSet(LNAME##TextData_.font, f, [&]() { \
+     LNAME##TextDataInvalidate(); } ); \
+  } \
+\
   double LNAME##TextAngle() const { return LNAME##TextData_.angle; } \
   void set##UNAME##TextAngle(double a) { \
     CQChartsUtil::testAndSet(LNAME##TextData_.angle, a, [&]() { \
      LNAME##TextDataInvalidate(); } ); \
-  } \
-\
-  QColor interp##UNAME##TextColor(int i, int n) const { \
-    return LNAME##TextDataObj_->charts()->interpColor(LNAME##TextColor(), i, n); \
   } \
 \
   bool is##UNAME##TextContrast() const { return LNAME##TextData_.contrast; } \
@@ -684,6 +692,12 @@ class CQChartsObj##UNAME##TextData { \
   bool is##UNAME##TextScaled() const { return LNAME##TextData_.scaled; } \
   void set##UNAME##TextScaled(bool b) { \
     CQChartsUtil::testAndSet(LNAME##TextData_.scaled, b, [&]() { \
+     LNAME##TextDataInvalidate(); } ); \
+  } \
+\
+  bool is##UNAME##TextHtml() const { return LNAME##TextData_.html; } \
+  void set##UNAME##TextHtml(bool b) { \
+    CQChartsUtil::testAndSet(LNAME##TextData_.html, b, [&]() { \
      LNAME##TextDataInvalidate(); } ); \
   } \
 \

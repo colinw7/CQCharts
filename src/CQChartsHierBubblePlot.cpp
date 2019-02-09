@@ -108,9 +108,7 @@ addProperties()
   addLineProperties("stroke", "border");
 
   // text
-  addTextProperties("text", "text");
-
-  addProperty("text", this, "textScaled", "scaled");
+  addAllTextProperties("text", "text");
 }
 
 //------

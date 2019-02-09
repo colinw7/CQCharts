@@ -79,7 +79,7 @@ draw(QPainter *painter, const QRectF &rect) const
     else if (view())
       view()->setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
 
-    if (plot())
+    if (plot() && isStateColoring())
       plot()->updateObjPenBrushState(this, pen, brush);
 
     painter->setPen  (pen);
@@ -106,7 +106,7 @@ draw(QPainter *painter, const QRectF &rect) const
     else if (view())
       view()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());
 
-    if (plot())
+    if (plot() && isStateColoring())
       plot()->updateObjPenBrushState(this, pen, brush);
 
     painter->setPen  (pen);

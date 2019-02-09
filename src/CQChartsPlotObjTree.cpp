@@ -146,7 +146,7 @@ objectsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const
       static_cast<PlotObjTree *>(plotObjTree_)->dataTouchingRect(r, dataList);
 
     for (const auto &obj : dataList) {
-      if (obj->intersectRect(r, inside))
+      if (obj->rectIntersect(r, inside))
         objs.push_back(obj);
     }
   }

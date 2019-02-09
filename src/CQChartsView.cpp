@@ -1321,6 +1321,8 @@ mousePressEvent(QMouseEvent *me)
     }
     else if (mode() == Mode::PROBE) {
     }
+    else if (mode() == Mode::QUERY) {
+    }
     else if (mode() == Mode::EDIT) {
       (void) editMousePress(mouseData_.pressPoint);
     }
@@ -1375,7 +1377,13 @@ mouseMoveEvent(QMouseEvent *me)
   // probe mode and move (pressed or not pressed) - show probe lines
   if (mode() == Mode::PROBE) {
     showProbeLines(mouseData_.movePoint);
+    return;
+  }
 
+  //---
+
+  if (mode() == Mode::QUERY) {
+    updatePosText(mouseData_.movePoint);
     return;
   }
 
@@ -1435,8 +1443,6 @@ mouseMoveEvent(QMouseEvent *me)
 
         mouseData_.plot->pan(dx, dy);
       }
-    }
-    else if (mode() == Mode::PROBE) {
     }
     else if (mode() == Mode::EDIT) {
       processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &pos) {
@@ -1530,6 +1536,8 @@ mouseReleaseEvent(QMouseEvent *me)
     }
     else if (mode() == Mode::PROBE) {
     }
+    else if (mode() == Mode::QUERY) {
+    }
     else if (mode() == Mode::EDIT) {
       if (! mouseData_.pressed)
         return;
@@ -1571,6 +1579,9 @@ keyPressEvent(QKeyEvent *ke)
     else if (mode() == Mode::PROBE) {
       setMode(Mode::SELECT);
     }
+    else if (mode() == Mode::QUERY) {
+      setMode(Mode::SELECT);
+    }
     else if (mode() == Mode::EDIT) {
       setMode(Mode::SELECT);
     }
@@ -1586,6 +1597,11 @@ keyPressEvent(QKeyEvent *ke)
     setMode(Mode::PROBE);
 
     // TODO: do mouse move to show probe immediately or add probe move API
+
+    return;
+  }
+  else if (ke->key() == Qt::Key_Q) {
+    setMode(Mode::QUERY);
 
     return;
   }
@@ -2426,17 +2442,7 @@ void
 CQChartsView::
 drawContrastText(QPainter *painter, double x, double y, const QString &text, const QPen &pen)
 {
-  QColor icolor = CQChartsUtil::invColor(pen.color());
-
-  icolor.setAlphaF(0.5);
-
-  painter->setPen(icolor);
-
-  painter->drawText(QPointF(x + 1, y + 1), text);
-
-  painter->setPen(pen);
-
-  painter->drawText(QPointF(x, y), text);
+  CQChartsUtil::drawContrastText(painter, x, y, text, pen);
 }
 
 //------
@@ -3509,7 +3515,7 @@ printPNGSlot()
 
   QString fileName = QFileDialog::getSaveFileName(this, "Print PNG", dir, "Files (*.png)");
 
-  if (fileName.isNull())
+  if (! fileName.isNull())
     printPNGSlot(fileName);
 }
 
@@ -3528,7 +3534,7 @@ printSVGSlot()
 
   QString fileName = QFileDialog::getSaveFileName(this, "Print SVG", dir, "Files (*.svg)");
 
-  if (fileName.isNull())
+  if (! fileName.isNull())
     printSVGSlot(fileName);
 }
 

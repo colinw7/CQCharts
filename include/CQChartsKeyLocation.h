@@ -97,8 +97,8 @@ class CQChartsKeyLocation {
 
   QString toString() const;
 
-  void fromString(const QString &s) {
-    setValue(s);
+  bool fromString(const QString &s) {
+    return setValue(s);
   }
 
   //---

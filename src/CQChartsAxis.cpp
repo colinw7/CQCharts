@@ -124,8 +124,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   QString posPath = path + "/position";
 
-  model->addProperty(posPath, this, "hasPosition", "enabled");
-  model->addProperty(posPath, this, "position"   , "value"  );
+  model->addProperty(posPath, this, "position", "value");
 
   QString linePath = path + "/line";
 
@@ -409,6 +408,13 @@ minorIncrement() const
   return 0.0;
 }
 
+void
+CQChartsAxis::
+setPosition(const CQChartsOptReal &r)
+{
+  CQChartsUtil::testAndSet(position_, r, [&]() { redraw(); });
+}
+
 QString
 CQChartsAxis::
 valueStr(double pos) const
@@ -530,7 +536,7 @@ editPress(const CQChartsGeom::Point &p)
 
   calcPos(plot(), apos1, apos2);
 
-  pos_ = apos1;
+  setPosition(CQChartsOptReal(apos1));
 
   return true;
 }
@@ -544,10 +550,14 @@ editMove(const CQChartsGeom::Point &p)
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
+  double apos;
+
   if (direction_ == Qt::Horizontal)
-    pos_ = *pos_ + dy;
+    apos = position().realOr(0.0) + dy;
   else
-    pos_ = *pos_ + dx;
+    apos = position().realOr(0.0) + dx;
+
+  setPosition(CQChartsOptReal(apos));
 
   editHandles_->setDragPos(p);
 
@@ -578,10 +588,14 @@ editMoveBy(const QPointF &d)
 
   calcPos(plot(), apos1, apos2);
 
+  double apos;
+
   if (direction_ == Qt::Horizontal)
-    pos_ = apos1 + d.y();
+    apos = apos1 + d.y();
   else
-    pos_ = apos1 + d.x();
+    apos = apos1 + d.x();
+
+  setPosition(CQChartsOptReal(apos));
 
   redraw(/*wait*/false);
 }
@@ -961,7 +975,9 @@ drawEditHandles(QPainter *painter) const
 {
   assert(view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
-  const_cast<CQChartsAxis *>(this)->editHandles_->setBBox(this->bbox());
+  CQChartsAxis *th = const_cast<CQChartsAxis *>(this);
+
+  th->editHandles_->setBBox(this->bbox());
 
   editHandles_->draw(painter);
 }
@@ -996,8 +1012,8 @@ void
 CQChartsAxis::
 calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const
 {
-  if (hasPosition()) {
-    apos1 = *pos_;
+  if (position().isSet()) {
+    apos1 = position().real();
     apos2 = apos1;
     return;
   }

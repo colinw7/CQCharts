@@ -1,4 +1,5 @@
 High
+ + string enum for command args
  + better handling of update notifications
  + generate plot on thread (redraw when finished)
  + view annotations in offscreen pixmap/image

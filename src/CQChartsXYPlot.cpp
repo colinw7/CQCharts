@@ -287,6 +287,7 @@ addProperties()
   addProperty("points", this, "pointLineSelect", "lineSelect");
   addProperty("points", this, "pointCount"     , "count");
   addProperty("points", this, "pointDelta"     , "delta");
+  addProperty("points", this, "pointStart"     , "start");
 
   addSymbolProperties("points/symbol");
 
@@ -332,11 +333,10 @@ addProperties()
   addProperty("vectors/fill"  , arrowObj_, "fillAlpha"  , "alpha"  );
 
   // data label
+  addProperty("dataLabel", this, "dataLabelTextAngle"  , "angle"  );
   addProperty("dataLabel", this, "dataLabelTextVisible", "visible");
 
-  addTextProperties("dataLabel" , "dataLabelText");
-
-  addProperty("dataLabel", this, "dataLabelTextAlign", "align");
+  addAllTextProperties("dataLabel" , "dataLabelText");
 
   CQChartsGroupPlot::addProperties();
 }
@@ -407,6 +407,13 @@ CQChartsXYPlot::
 setPointCount(int i)
 {
   CQChartsUtil::testAndSet(pointCount_, i, [&]() { queueUpdateObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setPointStart(int i)
+{
+  CQChartsUtil::testAndSet(pointStart_, i, [&]() { queueUpdateObjs(); } );
 }
 
 //---
@@ -1306,9 +1313,20 @@ addLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotObjs &objs
     int np = poly.size();
     assert(prevPoly.size() == np);
 
+    auto pointStartIndex = [&]() {
+      if (pointStart_ == 0)
+        return 0;
+      else if (pointStart_ == -1)
+        return np - 1;
+      else if (pointStart_ == -2)
+        return np/2;
+      else
+        return pointStart_;
+    };
+
     auto validPointIndex = [&](int ip, int np) {
       if      (pointCount_ == 1) {
-        return (ip == np/2);
+        return (ip == pointStartIndex());
       }
       else if (pointCount_ > 1) {
         if (ip == 0 || ip == np - 1)
@@ -2386,21 +2404,7 @@ calcTipId() const
 
   //---
 
-  for (const auto &c : plot()->tipColumns().columns()) {
-    if (c.isValid()) {
-      QModelIndex tipInd = plot()->modelIndex(ind().row(), c, ind().parent());
-
-      QModelIndex tipInd1 = plot()->unnormalizeIndex(tipInd);
-
-      bool ok1, ok2;
-
-      QString name  = plot()->modelHeaderString(c, ok1);
-      QString value = plot()->modelString(tipInd1.row(), c, tipInd1.parent(), ok2);
-
-      if (ok1 && ok2)
-        tableTip.addTableRow(name, value);
-    }
-  }
+  plot()->addTipColumns(tableTip, ind());
 
   //---
 
@@ -2745,12 +2749,12 @@ inside(const CQChartsGeom::Point &p) const
 
 bool
 CQChartsXYPolylineObj::
-intersectRect(const CQChartsGeom::BBox &r, bool inside) const
+rectIntersect(const CQChartsGeom::BBox &r, bool inside) const
 {
   if (! plot()->isLinesSelectable())
     return false;
 
-  return CQChartsPlotObj::intersectRect(r, inside);
+  return CQChartsPlotObj::rectIntersect(r, inside);
 }
 
 bool
@@ -2783,7 +2787,7 @@ getSelectIndices(Indices &) const
   if (! visible())
     return;
 
-  // all objects part of line (dont support select)
+  // all objects part of line (don't support select)
 }
 
 void
@@ -3002,12 +3006,12 @@ inside(const CQChartsGeom::Point &p) const
 
 bool
 CQChartsXYPolygonObj::
-intersectRect(const CQChartsGeom::BBox &r, bool inside) const
+rectIntersect(const CQChartsGeom::BBox &r, bool inside) const
 {
   if (! plot()->isFillUnderSelectable())
     return false;
 
-  return CQChartsPlotObj::intersectRect(r, inside);
+  return CQChartsPlotObj::rectIntersect(r, inside);
 }
 
 void
@@ -3017,7 +3021,7 @@ getSelectIndices(Indices &) const
   if (! visible())
     return;
 
-  // all objects part of polygon (dont support select)
+  // all objects part of polygon (don't support select)
 }
 
 void
@@ -3164,20 +3168,36 @@ CQChartsXYKeyColor::
 CQChartsXYKeyColor(CQChartsXYPlot *plot, int is, int ns, int ig, int ng) :
  CQChartsKeyColorBox(plot, is, ns), plot_(plot), is_(is), ns_(ns), ig_(ig), ng_(ng)
 {
+  setClickable(true);
 }
 
 void
 CQChartsXYKeyColor::
-toggleSelect()
+doSelect(CQChartsSelMod selMod)
 {
+  CQChartsPlotObj *obj = plotObj();
+  if (! obj) return;
+
   CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
 
-  if (ng_ > 1) {
-    CQChartsPlotObj *obj = plot->getGroupObj(ig_);
+  if      (selMod == CQChartsSelMod::REPLACE) {
+    for (int ig = 0; ig < ng_; ++ig) {
+      CQChartsPlotObj *obj1 = plot->getGroupObj(ig);
 
-    if (obj)
-      obj->setSelected(! obj->isSelected());
+      if (obj1)
+        obj1->setSelected(obj1 == obj);
+    }
   }
+  else if (selMod == CQChartsSelMod::ADD)
+    obj->setSelected(true);
+  else if (selMod == CQChartsSelMod::REMOVE)
+    obj->setSelected(false);
+  else if (selMod == CQChartsSelMod::TOGGLE)
+    obj->setSelected(! obj->isSelected());
+
+  plot->drawOverlay();
+
+  key_->redraw(/*wait*/ true);
 }
 
 QBrush
@@ -3217,12 +3237,27 @@ fillBrush() const
   return brush;
 }
 
+CQChartsPlotObj *
+CQChartsXYKeyColor::
+plotObj() const
+{
+  if (ng_ <= 1)
+    return nullptr;
+
+  CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
+
+  CQChartsPlotObj *obj = plot->getGroupObj(ig_);
+
+  return obj;
+}
+
 //------
 
 CQChartsXYKeyLine::
 CQChartsXYKeyLine(CQChartsXYPlot *plot, int is, int ns, int ig, int ng) :
  CQChartsKeyItem(plot->key(), is, ns), plot_(plot), is_(is), ns_(ns), ig_(ig), ng_(ng)
 {
+  setClickable(true);
 }
 
 QSizeF
@@ -3251,21 +3286,36 @@ size() const
 
 void
 CQChartsXYKeyLine::
-toggleSelect()
+doSelect(CQChartsSelMod selMod)
 {
+  CQChartsPlotObj *obj = plotObj();
+  if (! obj) return;
+
   CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
 
-  if (ng_ > 1) {
-    CQChartsPlotObj *obj = plot->getGroupObj(ig_);
+  if      (selMod == CQChartsSelMod::REPLACE) {
+    for (int ig = 0; ig < ng_; ++ig) {
+      CQChartsPlotObj *obj1 = plot->getGroupObj(ig);
 
-    if (obj)
-      obj->setSelected(! obj->isSelected());
+      if (obj1)
+        obj1->setSelected(obj1 == obj);
+    }
   }
+  else if (selMod == CQChartsSelMod::ADD)
+    obj->setSelected(true);
+  else if (selMod == CQChartsSelMod::REMOVE)
+    obj->setSelected(false);
+  else if (selMod == CQChartsSelMod::TOGGLE)
+    obj->setSelected(! obj->isSelected());
+
+  plot->drawOverlay();
+
+  key_->redraw(/*wait*/ true);
 }
 
 void
 CQChartsXYKeyLine::
-draw(QPainter *painter, const CQChartsGeom::BBox &rect)
+draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 {
   painter->save();
 
@@ -3283,7 +3333,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
   QRectF prect1(QPointF(prect.getXMin() + 2, prect.getYMin() + 2),
                 QPointF(prect.getXMax() - 2, prect.getYMax() - 2));
 
-  painter->setClipRect(prect1);
+  painter->setClipRect(prect1, Qt::IntersectClip);
 
   QColor pointStrokeColor = plot->interpSymbolStrokeColor(i_, n_);
   QColor pointFillColor   = plot->interpSymbolFillColor  (i_, n_);
@@ -3299,14 +3349,6 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
     lineColor        = CQChartsUtil::blendColors(lineColor       , bg, a);
     impulseColor     = CQChartsUtil::blendColors(impulseColor    , bg, a);
   }
-
-  QPen linePen;
-  QPen impulsePen;
-
-  plot->setPen(linePen, true, lineColor, plot->linesAlpha(),
-               plot->linesWidth(), plot->linesDash());
-  plot->setPen(impulsePen, true, impulseColor, plot->impulseLinesAlpha(),
-               plot->impulseLinesWidth(), plot->impulseLinesDash());
 
   if (plot->isFillUnderFilled()) {
     QBrush fillBrush;
@@ -3332,8 +3374,22 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
     double x2 = prect.getXMax() - 4;
     double y  = prect.getYMid();
 
-    if (! plot->isLines())
-      linePen = impulsePen;
+    QPen linePen;
+
+    if (plot->isLines())
+      plot->setPen(linePen, true, lineColor, plot->linesAlpha(),
+                   plot->linesWidth(), plot->linesDash());
+    else
+      plot->setPen(linePen, true, impulseColor, plot->impulseLinesAlpha(),
+                   plot->impulseLinesWidth(), plot->impulseLinesDash());
+
+    QBrush lineBrush(Qt::NoBrush);
+
+    CQChartsPlotObj *obj = plotObj();
+
+    if (obj)
+      plot->updateObjPenBrushState(obj, ig_, ng_, linePen, lineBrush,
+                                   CQChartsPlot::DrawType::LINE);
 
     if (isInside())
       linePen = plot->insideColor(linePen.color());
@@ -3366,6 +3422,12 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
       plot->isSymbolFilled(), pointFillColor, plot->symbolFillAlpha(),
       plot->symbolFillPattern());
 
+    CQChartsPlotObj *obj = plotObj();
+
+    if (obj)
+      plot->updateObjPenBrushState(obj, ig_, ng_, pen, brush,
+                                   CQChartsPlot::DrawType::SYMBOL);
+
     //---
 
     CQChartsSymbol symbol = plot->symbolType();
@@ -3387,6 +3449,20 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
   }
 
   painter->restore();
+}
+
+CQChartsPlotObj *
+CQChartsXYKeyLine::
+plotObj() const
+{
+  if (ng_ <= 1)
+    return nullptr;
+
+  CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
+
+  CQChartsPlotObj *obj = plot->getGroupObj(ig_);
+
+  return obj;
 }
 
 //------

@@ -165,7 +165,7 @@ initGroupData(const CQChartsColumns &dataColumns, const CQChartsColumn &nameColu
     groupData1.useRow = true;
   }
 #if 0
-  // default use name column if defined (?? enables grouping when no groupiing wanted)
+  // default use name column if defined (?? enables grouping when no grouping wanted)
   else if (nameColumn.isValid()) {
     groupData1.column = nameColumn;
   }
@@ -379,6 +379,9 @@ rowGroupInds(const CQChartsModelIndex &ind, std::vector<int> &inds, bool hier) c
   QAbstractItemModel *model = this->model().data();
   if (! model) return false;
 
+  if (! groupBucket_)
+    return false;
+
   // header has multiple groups (one per column)
   if      (groupBucket_->dataType() == CQChartsColumnBucket::DataType::HEADER) {
     int ind1 = groupBucket_->ind(ind.column.column());
@@ -458,6 +461,9 @@ pathInds(const QString &path) const
 {
   std::vector<int> inds;
 
+  if (! groupBucket_)
+    return inds;
+
   QStringList paths = pathStrs(path);
 
   for (int i = 0; i < paths.length(); ++i) {
@@ -526,7 +532,7 @@ int
 CQChartsGroupPlot::
 numGroups() const
 {
-  return groupBucket_->numUnique();
+  return (groupBucket_ ? groupBucket_->numUnique() : 1);
 }
 
 //---
@@ -535,7 +541,7 @@ void
 CQChartsGroupPlot::
 getGroupInds(std::vector<int> &inds) const
 {
-  if (groupBucket_->dataType() != CQChartsColumnBucket::DataType::NONE) {
+  if (groupBucket_ && groupBucket_->dataType() != CQChartsColumnBucket::DataType::NONE) {
     for (int groupInd = groupBucket_->imin(); groupInd <= groupBucket_->imax(); ++groupInd)
       inds.push_back(groupInd);
   }
@@ -550,6 +556,9 @@ QString
 CQChartsGroupPlot::
 groupIndName(int ind, bool hier) const
 {
+  if (! groupBucket_)
+    return "";
+
   if (groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN ||
       groupBucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN_ROOT) {
     if      (groupBucket_->isExactValue()) {
@@ -577,5 +586,6 @@ void
 CQChartsGroupPlot::
 printGroup() const
 {
-  groupBucket_->print(std::cerr);
+  if (groupBucket_)
+    groupBucket_->print(std::cerr);
 }

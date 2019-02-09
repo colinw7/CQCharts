@@ -22,10 +22,11 @@ addPathProperties(const QString &path)
 
   QString textPath = path + "/text";
 
-  plot_->addProperty(textPath, this, "textAngle", "angle");
-  plot_->addProperty(textPath, this, "textFont" , "font" );
-  plot_->addProperty(textPath, this, "textColor", "color");
-  plot_->addProperty(textPath, this, "textAlpha", "alpha");
+  plot_->addProperty(textPath, this, "textColor"   , "color"   );
+  plot_->addProperty(textPath, this, "textAlpha"   , "alpha"   );
+  plot_->addProperty(textPath, this, "textFont"    , "font"    );
+  plot_->addProperty(textPath, this, "textAngle"   , "angle"   );
+  plot_->addProperty(textPath, this, "textContrast", "contrast");
 
   QString boxPath = plot_->id() + "/" + path + "/box";
 
@@ -89,6 +90,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
 
     double tw = fm.width(ystr);
 
+    // calc text position
     double x, y;
 
     if (direction() == Qt::Vertical) {
@@ -163,6 +165,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
         x = qrect.center().x() - tw/2;
     }
 
+    // clip if needed
     bool clipped = false;
 
     if (isClip()) {
@@ -178,24 +181,36 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
       }
     }
 
+    // draw box
     prect = QRectF(x - b1, y - fm.ascent() - b1, tw + 2*b1, fm.height() + 2*b1);
 
     CQChartsBoxObj::draw(painter, prect);
 
     if (! clipped) {
-      painter->setPen(tpen);
+      if (isTextContrast()) {
+        if (ystr.length()) {
+          if (direction() == Qt::Vertical)
+            CQChartsUtil::drawContrastText(painter, x, y, ystr, tpen);
+          else
+            CQChartsUtil::drawContrastText(painter, x, y, ystr, tpen);
+        }
+      }
+      else {
+        if (ystr.length()) {
+          painter->setPen(tpen);
 
-      if (ystr.length()) {
-        if (direction() == Qt::Vertical)
-          painter->drawText(QPointF(x, y), ystr);
-        else
-          painter->drawText(QPointF(x, y), ystr);
+          if (direction() == Qt::Vertical)
+            painter->drawText(QPointF(x, y), ystr);
+          else
+            painter->drawText(QPointF(x, y), ystr);
+        }
       }
     }
   }
   else {
     // TODO: handle horizontal and angle
 
+    // calc text position
     double x = qrect.center().x();
     double y = 0.0;
 

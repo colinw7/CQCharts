@@ -22,6 +22,7 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsVariant.h>
+#include <CQChartsTip.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
 
@@ -760,30 +761,30 @@ updateDataScaleY(double r)
 
 void
 CQChartsPlot::
-setXMin(const OptReal &r)
+setXMin(const CQChartsOptReal &r)
 {
-  CQChartsUtil::testAndSet(xmin_, r, [&]() { queueUpdateObjs(); } );
+  CQChartsUtil::testAndSet(xmin_, r, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsPlot::
-setXMax(const OptReal &r)
+setXMax(const CQChartsOptReal &r)
 {
-  CQChartsUtil::testAndSet(xmax_, r, [&]() { queueUpdateObjs(); } );
+  CQChartsUtil::testAndSet(xmax_, r, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsPlot::
-setYMin(const OptReal &r)
+setYMin(const CQChartsOptReal &r)
 {
-  CQChartsUtil::testAndSet(ymin_, r, [&]() { queueUpdateObjs(); } );
+  CQChartsUtil::testAndSet(ymin_, r, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 void
 CQChartsPlot::
-setYMax(const OptReal &r)
+setYMax(const CQChartsOptReal &r)
 {
-  CQChartsUtil::testAndSet(ymax_, r, [&]() { queueUpdateObjs(); } );
+  CQChartsUtil::testAndSet(ymax_, r, [&]() { queueUpdateRangeAndObjs(); } );
 }
 
 //---
@@ -1412,14 +1413,20 @@ addProperties()
   addProperty("columns", this, "colorColumn"  , "color"  );
   addProperty("columns", this, "imageColumn"  , "image"  );
 
-  addProperty("range", this, "viewRect"     , "view"     );
-  addProperty("range", this, "innerViewRect", "innerView");
+  addProperty("range", this, "viewRect", "view"     );
+  addProperty("range", this, "dataRect", "data"     );
 
-  addProperty("range", this, "dataRect"     , "data"     );
-  addProperty("range", this, "calcDataRect" , "calcData" );
-  addProperty("range", this, "outerDataRect", "outerData");
+  if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG", true)) {
+    addProperty("range", this, "innerViewRect", "innerView");
+    addProperty("range", this, "calcDataRect" , "calcData" );
+    addProperty("range", this, "outerDataRect", "outerData");
+  }
 
   addProperty("range", this, "autoFit", "autoFit");
+  addProperty("range", this, "xmin"   , "xmin"   );
+  addProperty("range", this, "ymin"   , "ymin"   );
+  addProperty("range", this, "xmax"   , "xmax"   );
+  addProperty("range", this, "ymax"   , "ymax"   );
 
   addProperty("scaling"            , this, "equalScale" , "equal");
   addProperty("scaling/data/scale" , this, "dataScaleX" , "x"    );
@@ -1577,10 +1584,23 @@ void
 CQChartsPlot::
 addTextProperties(const QString &path, const QString &prefix)
 {
-  addProperty(path, this, prefix + "Font"    , "font"    );
   addProperty(path, this, prefix + "Color"   , "color"   );
   addProperty(path, this, prefix + "Alpha"   , "alpha"   );
+  addProperty(path, this, prefix + "Font"    , "font"    );
+  addProperty(path, this, prefix + "Angle"   , "angle"   );
   addProperty(path, this, prefix + "Contrast", "contrast");
+}
+
+void
+CQChartsPlot::
+addAllTextProperties(const QString &path, const QString &prefix)
+{
+  addTextProperties(path, prefix);
+
+  addProperty(path, this, prefix + "Align"    , "align"    );
+  addProperty(path, this, prefix + "Formatted", "formatted");
+  addProperty(path, this, prefix + "Scaled"   , "scaled"   );
+  addProperty(path, this, prefix + "Html"     , "html"     );
 }
 
 void
@@ -2670,10 +2690,10 @@ adjustDataRange(const CQChartsGeom::Range &calcDataRange) const
   CQChartsGeom::Range dataRange = calcDataRange;
 
   // adjust data range to custom values
-  if (xmin()) dataRange.setLeft  (*xmin());
-  if (ymin()) dataRange.setBottom(*ymin());
-  if (xmax()) dataRange.setRight (*xmax());
-  if (ymax()) dataRange.setTop   (*ymax());
+  if (xmin().isSet()) dataRange.setLeft  (xmin().real());
+  if (ymin().isSet()) dataRange.setBottom(ymin().real());
+  if (xmax().isSet()) dataRange.setRight (xmax().real());
+  if (ymax().isSet()) dataRange.setTop   (ymax().real());
 
   if (xAxis() && xAxis()->isIncludeZero()) {
     if (dataRange.isSet())
@@ -4831,6 +4851,8 @@ updateTransform()
   queueDrawObjs();
 }
 
+//------
+
 bool
 CQChartsPlot::
 tipText(const CQChartsGeom::Point &p, QString &tip) const
@@ -4875,6 +4897,29 @@ tipText(const CQChartsGeom::Point &p, QString &tip) const
 
   return tip.length();
 }
+
+void
+CQChartsPlot::
+addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const
+{
+  for (const auto &c : tipColumns().columns()) {
+    if (c.isValid()) {
+      QModelIndex tipInd = modelIndex(ind.row(), c, ind.parent());
+
+      QModelIndex tipInd1 = unnormalizeIndex(tipInd);
+
+      bool ok1, ok2;
+
+      QString name  = modelHeaderString(c, ok1);
+      QString value = modelString(tipInd1.row(), c, tipInd1.parent(), ok2);
+
+      if (ok1 && ok2)
+        tableTip.addTableRow(name, value);
+    }
+  }
+}
+
+//------
 
 void
 CQChartsPlot::
@@ -5344,6 +5389,7 @@ drawParts(QPainter *painter) const
   drawOverlayParts(painter);
 }
 
+#if 0
 void
 CQChartsPlot::
 drawNonMiddleParts(QPainter *painter) const
@@ -5360,6 +5406,7 @@ drawNonMiddleParts(QPainter *painter) const
 
   drawOverlayParts(painter);
 }
+#endif
 
 void
 CQChartsPlot::
@@ -7562,32 +7609,9 @@ CQChartsPlot::
 setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
        const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash) const
 {
-  double width = CQChartsUtil::limitLineWidth(lengthPixelWidth(strokeWidth));
+  double width = lengthPixelWidth(strokeWidth);
 
   CQChartsUtil::setPen(pen, stroked, strokeColor, strokeAlpha, width, strokeDash);
-
-#if 0
-  // calc pen (stroke)
-  if (stroked) {
-    QColor color = strokeColor;
-
-    color.setAlphaF(CMathUtil::clamp(strokeAlpha, 0.0, 1.0));
-
-    pen.setColor(color);
-
-    double width = CQChartsUtil::limitLineWidth(lengthPixelWidth(strokeWidth));
-
-    if (width > 0)
-      pen.setWidthF(width);
-    else
-      pen.setWidthF(0.0);
-
-    CQChartsUtil::penSetLineDash(pen, strokeDash);
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
-#endif
 }
 
 void
@@ -7596,22 +7620,6 @@ setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
          const CQChartsFillPattern &pattern) const
 {
   CQChartsUtil::setBrush(brush, filled, fillColor, fillAlpha, pattern);
-
-#if 0
-  // calc brush (fill)
-  if (filled) {
-    QColor color = fillColor;
-
-    color.setAlphaF(CMathUtil::clamp(fillAlpha, 0.0, 1.0));
-
-    brush.setColor(color);
-
-    brush.setStyle(pattern.style());
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
-#endif
 }
 
 //------
@@ -7738,7 +7746,7 @@ updateSelectedObjPenBrushState(int i, int n, QPen &pen, QBrush &brush, DrawType 
   // fill and stroke
   if      (drawType != DrawType::LINE) {
     // outline box, symbol
-    if (view()->insideMode() == CQChartsView::HighlightDataMode::OUTLINE) {
+    if (view()->selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
       QColor opc;
       double alpha = 1.0;
 
@@ -7997,7 +8005,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &na
   QAbstractItemModel *model = this->model().data();
   assert(model);
 
-  // single column (seprated names)
+  // single column (seperated names)
   if (nameColumns.count() == 1) {
     const CQChartsColumn &nameColumn = nameColumns.column();
 

@@ -162,13 +162,13 @@ calcRange() const
   // set value range
   th->minValue_ = visitor.minValue();
 
-  if (xmin())
-    th->minValue_ = *xmin();
+  if (xmin().isSet())
+    th->minValue_ = xmin().real();
 
   th->maxValue_ = visitor.maxValue();
 
-  if (xmax())
-    th->maxValue_ = *xmax();
+  if (xmax().isSet())
+    th->maxValue_ = xmax().real();
 
   //---
 

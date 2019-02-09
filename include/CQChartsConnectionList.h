@@ -48,8 +48,8 @@ class CQChartsConnectionList {
     return connectionsToString(connections_);
   }
 
-  void fromString(const QString &s) {
-    setValue(s);
+  bool fromString(const QString &s) {
+    return setValue(s);
   }
 
   //---

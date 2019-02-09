@@ -137,12 +137,14 @@ toString() const
   return "";
 }
 
-void
+bool
 CQChartsColumn::
 fromString(const QString &s)
 {
   if (! setValue(s))
     type_ = Type::NONE;
+
+  return (type_ != Type::NONE);
 }
 
 int

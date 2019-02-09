@@ -15,6 +15,7 @@
 #include <CQChartsTypes.h>
 #include <CQChartsGeom.h>
 #include <CQChartsPlotMargin.h>
+#include <CQChartsOptReal.h>
 #include <CQBaseModelTypes.h>
 #include <CHRTime.h>
 
@@ -57,6 +58,7 @@ class CQChartsModelColumnDetails;
 class CQChartsModelExprMatch;
 class CQChartsModelData;
 class CQChartsEditHandles;
+class CQChartsTableTip;
 class CQPropertyViewModel;
 class CQPropertyViewItem;
 class QPainter;
@@ -130,6 +132,12 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(double dataScaleY  READ dataScaleY   WRITE updateDataScaleY)
   Q_PROPERTY(double dataOffsetX READ dataOffsetX  WRITE setDataOffsetX  )
   Q_PROPERTY(double dataOffsetY READ dataOffsetY  WRITE setDataOffsetY  )
+
+  // range
+  Q_PROPERTY(CQChartsOptReal xmin READ xmin WRITE setXMin)
+  Q_PROPERTY(CQChartsOptReal ymin READ ymin WRITE setYMin)
+  Q_PROPERTY(CQChartsOptReal xmax READ xmax WRITE setXMax)
+  Q_PROPERTY(CQChartsOptReal ymax READ ymax WRITE setYMax)
 
   // every
   Q_PROPERTY(bool everyEnabled READ isEveryEnabled WRITE setEveryEnabled)
@@ -239,8 +247,6 @@ class CQChartsPlot : public CQChartsObj,
     Values          yvals;
     Qt::Orientation direction { Qt::Vertical };
   };
-
-  using OptReal = boost::optional<double>;
 
   using ModelP          = QSharedPointer<QAbstractItemModel>;
   using SelectionModelP = QPointer<QItemSelectionModel>;
@@ -358,17 +364,17 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  const OptReal &xmin() const { return xmin_; }
-  void setXMin(const OptReal &r);
+  const CQChartsOptReal &xmin() const { return xmin_; }
+  void setXMin(const CQChartsOptReal &r);
 
-  const OptReal &xmax() const { return xmax_; }
-  void setXMax(const OptReal &r);
+  const CQChartsOptReal &xmax() const { return xmax_; }
+  void setXMax(const CQChartsOptReal &r);
 
-  const OptReal &ymin() const { return ymin_; }
-  void setYMin(const OptReal &r);
+  const CQChartsOptReal &ymin() const { return ymin_; }
+  void setYMin(const CQChartsOptReal &r);
 
-  const OptReal &ymax() const { return ymax_; }
-  void setYMax(const OptReal &r);
+  const CQChartsOptReal &ymax() const { return ymax_; }
+  void setYMax(const CQChartsOptReal &r);
 
   //---
 
@@ -668,7 +674,9 @@ class CQChartsPlot : public CQChartsObj,
 
   void addLineProperties(const QString &path, const QString &prefix);
   void addFillProperties(const QString &path, const QString &prefix);
-  void addTextProperties(const QString &path, const QString &prefix);
+
+  void addTextProperties   (const QString &path, const QString &prefix);
+  void addAllTextProperties(const QString &path, const QString &prefix);
 
   void addColorMapProperties();
 
@@ -1231,6 +1239,8 @@ class CQChartsPlot : public CQChartsObj,
   // get tip text at point
   virtual bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
 
+  void addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const;
+
   // handle rect select
   bool rectSelect(const CQChartsGeom::BBox &r, SelMod selMod);
 
@@ -1402,9 +1412,6 @@ class CQChartsPlot : public CQChartsObj,
  public:
   // draw plot parts
   virtual void drawParts(QPainter *painter) const;
-
-  // draw plot parts
-  virtual void drawNonMiddleParts(QPainter *painter) const;
 
   // draw background layer plot parts
   virtual void drawBackgroundParts(QPainter *painter) const;
@@ -1986,10 +1993,10 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsGeom::Range          dataRange_;                       // data range
   CQChartsGeom::Range          outerDataRange_;                  // outer data range
   ZoomData                     zoomData_;                        // zoom data
-  OptReal                      xmin_;                            // xmin override
-  OptReal                      ymin_;                            // ymin override
-  OptReal                      xmax_;                            // xmax override
-  OptReal                      ymax_;                            // ymax override
+  CQChartsOptReal              xmin_;                            // xmin override
+  CQChartsOptReal              ymin_;                            // ymin override
+  CQChartsOptReal              xmax_;                            // xmax override
+  CQChartsOptReal              ymax_;                            // ymax override
   EveryData                    everyData_;                       // every data
   QString                      filterStr_;                       // filter
   CQChartsSides                plotBorderSides_  { "tlbr" };     // plot border sides

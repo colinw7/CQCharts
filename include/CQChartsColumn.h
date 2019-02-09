@@ -83,7 +83,7 @@ class CQChartsColumn {
 
   QString toString() const;
 
-  void fromString(const QString &s);
+  bool fromString(const QString &s);
 
   //---
 
@@ -240,7 +240,7 @@ class CQChartsColumns {
 
   void setColumn(int i, const CQChartsColumn &column) {
     if (i == 0 && ! isValid()) {
-      setColumn(i);
+      setColumn(column);
 
       return;
     }

@@ -755,3 +755,9 @@
  + Allow show/select operation for key click
  + Support delta/count to draw selection of points in xy plot
  + Improve group handling for key in xy plot
+# 2/9/2019
+ + add support for scrolling the plot key
+ + support discrete palettes
+ + improve support for optional types in properties
+ + support modifiers in key show/select
+ + add support for global title and column title in model

@@ -4,10 +4,10 @@
 #include <CQChartsBoxObj.h>
 #include <CQChartsObjData.h>
 #include <CQChartsKeyLocation.h>
+#include <CQChartsOptLength.h>
 #include <CQChartsGeom.h>
 #include <CQChartsTypes.h>
 #include <QFont>
-#include <QPointF>
 #include <QSizeF>
 
 #include <map>
@@ -18,6 +18,7 @@ class CQChartsKeyItem;
 class CQChartsEditHandles;
 class CQPropertyViewModel;
 class QPainter;
+class QScrollBar;
 
 //------
 
@@ -69,7 +70,6 @@ class CQChartsKey : public CQChartsBoxObj,
   //---
 
   // position
-
   const CQChartsKeyLocation &location() const { return location_; }
   void setLocation(const CQChartsKeyLocation &l);
 
@@ -92,11 +92,8 @@ class CQChartsKey : public CQChartsBoxObj,
   //---
 
   // pixel width/height exceeded
-  bool isPixelWidthExceeded() const { return pixelWidthExceeded_; }
-  void setPixelWidthExceeded(bool b) { pixelWidthExceeded_ = b; }
-
+  bool isPixelWidthExceeded () const { return pixelWidthExceeded_ ; }
   bool isPixelHeightExceeded() const { return pixelHeightExceeded_; }
-  void setPixelHeightExceeded(bool b) { pixelHeightExceeded_ = b; }
 
   //---
 
@@ -123,31 +120,39 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //---
 
-  virtual void updatePosition(bool /*wait*/=true) { }
+  virtual void updatePosition(bool /*queued*/=true) { }
 
   virtual void updateLayout() { }
 
   virtual void updateKeyItems() { }
 
-  virtual void redraw(bool /*wait*/=true) = 0;
+  virtual void redraw(bool /*queued*/=true) = 0;
 
   //---
 
-  virtual void draw(QPainter *painter);
+  virtual void draw(QPainter *painter) const;
 
  protected:
+  struct ScrollData {
+    bool              scrolled { false };   // scrolled
+    int               pos      { 0 };       // scroll position
+    CQChartsOptLength height;               // scroll height
+    QScrollBar*       bar      { nullptr }; // scroll bar
+  };
+
   bool                horizontal_          { false };               // is layed out horizontallly
   bool                above_               { true };                // draw above view/plot
   CQChartsKeyLocation location_;                                    // key location
   QString             header_;                                      // header
   bool                autoHide_            { true };                // auto hide if too big
   bool                clipped_             { true };                // clipped to parent
-  bool                pixelWidthExceeded_  { true };                // pixel height too big
-  bool                pixelHeightExceeded_ { true };                // pixel width too big
   bool                interactive_         { true };                // is interactive
   double              hiddenAlpha_         { 0.3 };                 // alpha for hidden item
   int                 maxRows_             { 100 };                 // max rows
   PressBehavior       pressBehavior_       { PressBehavior::SHOW }; // press behavior
+  mutable  bool       pixelWidthExceeded_  { true };                // pixel height too big
+  mutable bool        pixelHeightExceeded_ { true };                // pixel width too big
+  mutable ScrollData  scrollData_;                                  // scrollbar data
 };
 
 //------
@@ -160,34 +165,36 @@ class CQChartsViewKey : public CQChartsKey {
 
  ~CQChartsViewKey();
 
-  void updatePosition(bool wait=true) override;
+  void updatePosition(bool queued=true) override;
 
   void updateLayout() override;
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
-  void draw(QPainter *painter) override;
+  void draw(QPainter *painter) const override;
+
+  void drawCheckBox(QPainter *painter, double x, double y, int bs, bool checked) const;
 
   bool isInside(const CQChartsGeom::Point &w) const;
 
   void selectPress(const CQChartsGeom::Point &w, CQChartsSelMod selMod);
 
-  virtual void toggleShow(int i);
+  virtual void doShow(int i, CQChartsSelMod selMod);
 
-  virtual void toggleSelect(int i);
+  virtual void doSelect(int i, CQChartsSelMod selMod);
 
-  void redraw(bool wait=true) override;
+  void redraw(bool queued=true) override;
 
  private:
   void doLayout();
 
  private:
-  using Rects = std::vector<QRectF>;
+  using Rects = std::vector<CQChartsGeom::BBox>;
 
-  QPointF position_ { 0, 0 };
-  QSizeF  size_;
-  QRectF  rect_;
-  Rects   prects_;
+  QPointF                    position_ { 0, 0 }; // pixel position
+  QSizeF                     size_;              // pixel size
+  mutable CQChartsGeom::BBox pbbox_;             // view pixel bounding box
+  mutable Rects              prects_;            // plot key item rects
 };
 
 //------
@@ -195,11 +202,12 @@ class CQChartsViewKey : public CQChartsKey {
 class CQChartsPlotKey : public CQChartsKey {
   Q_OBJECT
 
-  Q_PROPERTY(QPointF absPosition READ absPosition  WRITE setAbsPosition)
-  Q_PROPERTY(bool    insideX     READ isInsideX    WRITE setInsideX    )
-  Q_PROPERTY(bool    insideY     READ isInsideY    WRITE setInsideY    )
-  Q_PROPERTY(int     spacing     READ spacing      WRITE setSpacing    )
-  Q_PROPERTY(bool    flipped     READ isFlipped    WRITE setFlipped    )
+  Q_PROPERTY(QPointF           absPosition  READ absPosition  WRITE setAbsPosition )
+  Q_PROPERTY(bool              insideX      READ isInsideX    WRITE setInsideX     )
+  Q_PROPERTY(bool              insideY      READ isInsideY    WRITE setInsideY     )
+  Q_PROPERTY(int               spacing      READ spacing      WRITE setSpacing     )
+  Q_PROPERTY(bool              flipped      READ isFlipped    WRITE setFlipped     )
+  Q_PROPERTY(CQChartsOptLength scrollHeight READ scrollHeight WRITE setScrollHeight)
 
  public:
   CQChartsPlotKey(CQChartsPlot *plot);
@@ -226,8 +234,15 @@ class CQChartsPlotKey : public CQChartsKey {
   bool isFlipped() const { return flipped_; }
   void setFlipped(bool b);
 
-  const CQChartsGeom::BBox &bbox() const { return bbox_; }
-  void setBBox(const CQChartsGeom::BBox &b) { bbox_ = b; }
+  //---
+
+  const CQChartsOptLength &scrollHeight() const { return scrollData_.height; }
+  void setScrollHeight(const CQChartsOptLength &l) { scrollData_.height = l; }
+
+  //---
+
+  const CQChartsGeom::BBox &bbox() const { return wbbox_; }
+  void setBBox(const CQChartsGeom::BBox &b) { wbbox_ = b; }
 
   //---
 
@@ -240,7 +255,7 @@ class CQChartsPlotKey : public CQChartsKey {
   int maxRow() const { return maxRow_; }
   int maxCol() const { return maxCol_; }
 
-  void updatePosition(bool wait=true) override;
+  void updatePosition(bool queued=true) override;
 
   void updateLocation(const CQChartsGeom::BBox &bbox);
 
@@ -264,7 +279,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void redrawBoxObj() override { redraw(); }
 
-  void redraw(bool wait=true) override;
+  void redraw(bool queued=true) override;
 
   //---
 
@@ -303,13 +318,16 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  void draw(QPainter *painter) override;
+  void draw(QPainter *painter) const override;
 
   void drawEditHandles(QPainter *painter) const;
 
   //---
 
   QColor interpBgColor() const;
+
+ private slots:
+  void scrollSlot(int);
 
  private:
   void doLayout();
@@ -323,29 +341,38 @@ class CQChartsPlotKey : public CQChartsKey {
   };
 
   struct Location {
-    QPointF absPosition;
-    bool    insideX     { true };
-    bool    insideY     { true };
+    QPointF absPosition;          // absolute position
+    bool    insideX     { true }; // inside plot in x
+    bool    insideY     { true }; // inside plot in y
   };
 
   using Items      = std::vector<CQChartsKeyItem*>;
   using ColCell    = std::map<int,Cell>;
   using RowColCell = std::map<int,ColCell>;
+  using RowHeights = std::map<int,double>;
+  using ColWidths  = std::map<int,double>;
 
-  Location                   locationData_;                          // key location data
-  int                        spacing_       { 2 };                   // key item spacing
-  bool                       flipped_       { false };               // key order flipped
-  Items                      items_;                                 // key items
-  int                        maxRow_        { 0 };                   // maximim key row
-  int                        maxCol_        { 0 };                   // maximum key column
-  bool                       needsLayout_   { false };               // needs layout
-  QPointF                    position_      { 0, 0 };                // explicit position
-  QSizeF                     size_;                                  // size
-  int                        numRows_       { 0 };                   // number of rows
-  int                        numCols_       { 0 };                   // number of columns
-  RowColCell                 rowColCell_;                            // cells (per row/col)
-  mutable CQChartsGeom::BBox bbox_;                                  // bounding box
-  CQChartsEditHandles*       editHandles_   { nullptr };             // edit handles
+  Location                   locationData_;              // key location data
+  int                        spacing_       { 2 };       // key item spacing
+  bool                       flipped_       { false };   // key order flipped
+  Items                      items_;                     // key items
+  int                        maxRow_        { 0 };       // maximim key row
+  int                        maxCol_        { 0 };       // maximum key column
+  bool                       needsLayout_   { false };   // needs layout
+  QPointF                    position_      { 0, 0 };    // explicit position
+  QSizeF                     size_;                      // size
+  int                        numRows_       { 0 };       // number of rows
+  int                        numCols_       { 0 };       // number of columns
+  CQChartsEditHandles*       editHandles_   { nullptr }; // edit handles
+  mutable CQChartsGeom::BBox wbbox_;                     // window bounding box
+  mutable RowHeights         rowHeights_;                // row heights
+  mutable ColWidths          colWidths_;                 // column widths
+  mutable RowColCell         rowColCell_;                // cells (per row/col)
+  mutable double             xs_            { 0.0 };     // x spacing (pixels)
+  mutable double             ys_            { 0.0 };     // y spacing (pixels)
+  mutable double             xm_            { 0.0 };     // x margin (pixels)
+  mutable double             ym_            { 0.0 };     // y margin (pixels)
+  mutable double             sy_            { 0.0 };     // scroll y offset
 };
 
 //------
@@ -397,13 +424,13 @@ class CQChartsKeyItem : public QObject {
   virtual bool selectPress(const CQChartsGeom::Point &, CQChartsSelMod);
   virtual bool selectMove (const CQChartsGeom::Point &);
 
-  virtual void toggleShow();
+  virtual void doShow(CQChartsSelMod selMod);
 
-  virtual void toggleSelect();
+  virtual void doSelect(CQChartsSelMod selMod);
 
   //---
 
-  virtual void draw(QPainter *painter, const CQChartsGeom::BBox &rect) = 0;
+  virtual void draw(QPainter *painter, const CQChartsGeom::BBox &rect) const = 0;
 
  protected:
   CQChartsPlotKey*           key_       { nullptr }; // parent key
@@ -437,7 +464,7 @@ class CQChartsKeyText : public CQChartsKeyItem {
 
   virtual QColor interpTextColor(int i, int n) const;
 
-  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) override;
+  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) const override;
 
  protected:
   CQChartsPlot* plot_ { nullptr };
@@ -460,7 +487,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   QSizeF size() const override;
 
-  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) override;
+  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) const override;
 
   virtual QBrush fillBrush() const;
 
@@ -471,8 +498,6 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
  protected:
   CQChartsPlot*   plot_      { nullptr }; // parent plot
-  int             i_         { 0 };       // index
-  int             n_         { 0 };       // num indicies
   CQChartsBoxData boxData_;               // box data
 };
 

@@ -166,7 +166,7 @@ draw(QPainter *painter)
 
     if (isLineEnds()) {
       drawLine(p1, pf1, xw, false);
-      drawLine(p1, pf2, yw, false);
+      drawLine(p1, pf2, xw, false);
     }
     else {
       if (ba > aa && ba < M_PI) {
@@ -392,7 +392,7 @@ draw(QPainter *painter)
         tl2 = QPointF(xt, yt);
 
         if (bi2) {
-          if (xt < ix3) {
+          if (xt < ix4) {
             ix4 = xt;
             iy4 = yt;
           }
@@ -502,7 +502,7 @@ draw(QPainter *painter)
     }
     else {
       drawLine(pl1, pl3, xw, false);
-      drawLine(pl2, pl4, yw, false);
+      drawLine(pl2, pl4, xw, false);
     }
 #endif
   }

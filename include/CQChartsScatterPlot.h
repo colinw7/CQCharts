@@ -191,7 +191,7 @@ class CQChartsScatterGridKeyItem : public CQChartsKeyItem {
 
   QSizeF size() const override;
 
-  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) override;
+  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) const override;
 
  private:
   CQChartsScatterPlot* plot_ { nullptr };

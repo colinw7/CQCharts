@@ -35,10 +35,12 @@ toString() const
   return str;
 }
 
-void
+bool
 CQChartsStyle::
 fromString(const QString &str)
 {
+  bool valid = true;
+
   delete pen_;
   delete brush_;
 
@@ -114,10 +116,14 @@ fromString(const QString &str)
       pen_->setWidthF(w);
     }
     else {
+      valid = false;
+
+#if 0
       std::cerr << "Unsupported style: " <<
                    name.toStdString() << "=" << value.toStdString() << "\n";
+#endif
     }
   }
 
-  return;
+  return valid;
 }

@@ -372,7 +372,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  bool intersectRect(const CQChartsGeom::BBox &r, bool inside) const override;
+  bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
 
   bool interpY(double x, std::vector<double> &yvals) const;
 
@@ -439,7 +439,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  bool intersectRect(const CQChartsGeom::BBox &r, bool inside) const override;
+  bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
 
   void getSelectIndices(Indices &inds) const override;
 
@@ -472,9 +472,11 @@ class CQChartsXYKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsXYKeyColor(CQChartsXYPlot *plot, int is, int ns, int ig, int ng);
 
-  void toggleSelect() override;
+  void doSelect(CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;
+
+  CQChartsPlotObj *plotObj() const;
 
  protected:
   CQChartsXYPlot* plot_ { nullptr };
@@ -490,11 +492,13 @@ class CQChartsXYKeyLine : public CQChartsKeyItem {
  public:
   CQChartsXYKeyLine(CQChartsXYPlot *plot, int is, int ns, int ig, int ng);
 
-  void toggleSelect() override;
+  void doSelect(CQChartsSelMod selMod) override;
 
   QSizeF size() const override;
 
-  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) override;
+  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) const override;
+
+  CQChartsPlotObj *plotObj() const;
 
  protected:
   CQChartsXYPlot* plot_ { nullptr };
@@ -567,6 +571,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool pointLineSelect READ isPointLineSelect WRITE setPointLineSelect)
   Q_PROPERTY(int  pointDelta      READ pointDelta        WRITE setPointDelta)
   Q_PROPERTY(int  pointCount      READ pointCount        WRITE setPointCount)
+  Q_PROPERTY(int  pointStart      READ pointStart        WRITE setPointStart)
 
   // lines (selectable, rounded, display, stroke)
   Q_PROPERTY(bool linesSelectable READ isLinesSelectable WRITE setLinesSelectable)
@@ -649,6 +654,9 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   int pointCount() const { return pointCount_; }
   void setPointCount(int i);
 
+  int pointStart() const { return pointStart_; }
+  void setPointStart(int i);
+
   //---
 
   // lines selectable, rounded
@@ -724,7 +732,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   //---
 
-  CQChartsGeom::BBox dataFitBBox() const;
+  CQChartsGeom::BBox dataFitBBox() const override;
 
   //---
 
@@ -733,6 +741,15 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   //---
 
   void drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2) const;
+
+  //---
+
+  // axis names
+  QString xAxisName(const QString &def="") const;
+  QString yAxisName(const QString &def="") const;
+
+  // object for group
+  CQChartsPlotObj *getGroupObj(int ig) const;
 
  public slots:
   // set points visible
@@ -761,13 +778,6 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   // set fill under
   void setFillUnderFilledSlot(bool b);
-
-  // axis names
-  QString xAxisName(const QString &def="") const;
-  QString yAxisName(const QString &def="") const;
-
-  // object for group
-  CQChartsPlotObj *getGroupObj(int ig) const;
 
  private:
   struct IndPoly {
@@ -802,8 +812,10 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   CQChartsColumn  vectorXColumn_;                             // vector x direction column
   CQChartsColumn  vectorYColumn_;                             // vector y direction column
   bool            pointLineSelect_      { true };             // select line of point
-  int             pointDelta_           { 1 };                // point delta
+  int             pointDelta_           { -1 };               // point delta
   int             pointCount_           { -1 };               // point count
+  int             pointStart_           { 0 };                // point start
+                                                              //  (0=start, -1=end, -2=moddle)
   bool            stacked_              { false };            // is stacked
   bool            cumulative_           { false };            // cumulate values
   bool            linesSelectable_      { false };            // are lines selectable

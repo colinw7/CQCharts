@@ -16,9 +16,10 @@ class CQChartsBoxObj : public CQChartsObj,
  public CQChartsObjShapeData<CQChartsBoxObj> {
   Q_OBJECT
 
-  Q_PROPERTY(bool   visible READ isVisible WRITE setVisible)
-  Q_PROPERTY(double margin  READ margin    WRITE setMargin )
-  Q_PROPERTY(double padding READ padding   WRITE setPadding)
+  Q_PROPERTY(bool   visible       READ isVisible       WRITE setVisible      )
+  Q_PROPERTY(double margin        READ margin          WRITE setMargin       )
+  Q_PROPERTY(double padding       READ padding         WRITE setPadding      )
+  Q_PROPERTY(bool   stateColoring READ isStateColoring WRITE setStateColoring)
 
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
@@ -52,6 +53,11 @@ class CQChartsBoxObj : public CQChartsObj,
   // outside padding
   double padding() const { return boxData_.padding; }
   void setPadding(double r) { boxData_.padding = r; redrawBoxObj(); }
+
+  //---
+
+  bool isStateColoring() const { return stateColoring_; }
+  void setStateColoring(bool b) { stateColoring_ = b; }
 
   //---
 
@@ -89,9 +95,10 @@ class CQChartsBoxObj : public CQChartsObj,
   void draw(QPainter *painter, const QPolygonF &poly) const;
 
  protected:
-  CQChartsView*   view_     { nullptr }; // parent view
-  CQChartsPlot*   plot_     { nullptr }; // parent plot
-  CQChartsBoxData boxData_;              // box data
+  CQChartsView*   view_          { nullptr }; // parent view
+  CQChartsPlot*   plot_          { nullptr }; // parent plot
+  CQChartsBoxData boxData_;                   // box data
+  bool            stateColoring_ { true };    // color depending on inside/selected state
 };
 
 #endif

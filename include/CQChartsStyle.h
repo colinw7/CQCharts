@@ -17,7 +17,7 @@ class CQChartsStyle {
   CQChartsStyle() = default;
 
   explicit CQChartsStyle(const QString &str) {
-    fromString(str);
+    (void) fromString(str);
   }
 
   CQChartsStyle(const CQChartsStyle &rhs) {
@@ -64,7 +64,7 @@ class CQChartsStyle {
 
   QString toString() const;
 
-  void fromString(const QString &s);
+  bool fromString(const QString &s);
 
   //---
 

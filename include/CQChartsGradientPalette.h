@@ -250,6 +250,9 @@ class CQChartsGradientPalette {
   int maxColors() const { return maxColors_; }
   void setMaxColors(int n) { maxColors_ = n; }
 
+  bool isDistinct() const { return distinct_; }
+  void setDistinct(bool b) { distinct_ = b; }
+
   //---
 
   QColor getColor(double x, bool scale=false) const;
@@ -385,6 +388,7 @@ class CQChartsGradientPalette {
   int        maxColors_     { -1 };
   double     colorsMin_     { 0.0 };
   double     colorsMax_     { 0.0 };
+  bool       distinct_      { false };
 
   // Misc
 #ifdef CQCharts_USE_TCL

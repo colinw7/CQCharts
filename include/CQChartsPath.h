@@ -16,7 +16,7 @@ class CQChartsPath {
   CQChartsPath() = default;
 
   explicit CQChartsPath(const QString &str) {
-    fromString(str);
+    (void) fromString(str);
   }
 
   CQChartsPath(const CQChartsPath &rhs) {
@@ -54,7 +54,7 @@ class CQChartsPath {
 
   QString toString() const;
 
-  void fromString(const QString &s);
+  bool fromString(const QString &s);
 
   //---
 

@@ -32,8 +32,6 @@ class CQChartsGrahamHull {
   void findLowest();
   bool doScan();
 
-  static int sortLowestClockwiseCmp(const void *tp1, const void *tp2);
-
   static bool pointLineLeft(const QPointF &a, const QPointF &b, const QPointF &c);
 
   static int areaSign(const QPointF &a, const QPointF &b, const QPointF &c);

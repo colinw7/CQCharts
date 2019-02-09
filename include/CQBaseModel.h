@@ -9,7 +9,8 @@
 class CQBaseModel : public QAbstractItemModel {
   Q_OBJECT
 
-  Q_PROPERTY(int maxTypeRows READ maxTypeRows WRITE setMaxTypeRows)
+  Q_PROPERTY(QString title       READ title       WRITE setTitle      )
+  Q_PROPERTY(int     maxTypeRows READ maxTypeRows WRITE setMaxTypeRows)
 
  protected:
   struct ColumnTypeData {
@@ -23,6 +24,14 @@ class CQBaseModel : public QAbstractItemModel {
   CQBaseModel();
 
   virtual ~CQBaseModel() { }
+
+  //---
+
+  const QString &title() const { return title_; }
+  void setTitle(const QString &v) { title_ = v; }
+
+  int maxTypeRows() const { return maxTypeRows_; }
+  void setMaxTypeRows(int i) { maxTypeRows_ = i; }
 
   //---
 
@@ -49,6 +58,9 @@ class CQBaseModel : public QAbstractItemModel {
 
   int columnSortOrder(int column) const;
   bool setColumnSortOrder(int column, int i);
+
+  QString columnTitle(int column) const;
+  bool setColumnTitle(int column, const QString &v);
 
   void resetColumnType(int column);
   void resetColumnTypes();
@@ -79,11 +91,6 @@ class CQBaseModel : public QAbstractItemModel {
   void setNameValue(const QString &name, const QVariant &value) {
     nameValues_[name] = value;
   }
-
-  //---
-
-  int maxTypeRows() const { return maxTypeRows_; }
-  void setMaxTypeRows(int i) { maxTypeRows_ = i; }
 
   //---
 
@@ -118,6 +125,7 @@ class CQBaseModel : public QAbstractItemModel {
   void columnKeyChanged      (int column);
   void columnSortedChanged   (int column);
   void columnSortOrderChanged(int column);
+  void columnTitleChanged    (int column);
 
  protected:
   using RowValues     = std::map<int,QVariant>;
@@ -138,6 +146,7 @@ class CQBaseModel : public QAbstractItemModel {
     bool            key           { false };                 // is key
     bool            sorted        { false };                 // is sorted
     bool            sortOrder     { Qt::AscendingOrder };    // sort role
+    QString         title;                                   // title
     RoleRowValues   roleRowValues;                           // row role values
   };
 
@@ -171,6 +180,7 @@ class CQBaseModel : public QAbstractItemModel {
   const RowData &getRowData(int row) const;
 
  protected:
+  QString            title_;
   ColumnDatas        columnDatas_;
   RowDatas           rowDatas_;
   int                maxTypeRows_ { 1000 };

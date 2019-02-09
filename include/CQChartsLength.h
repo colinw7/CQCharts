@@ -70,8 +70,8 @@ class CQChartsLength {
     return QString("%1%2").arg(value_).arg(ustr);
   }
 
-  void fromString(const QString &s) {
-    setValue(s);
+  bool fromString(const QString &s) {
+    return setValue(s);
   }
 
   //---

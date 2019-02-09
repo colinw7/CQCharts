@@ -2520,35 +2520,34 @@ applyPlot(CQChartsPlot *plot, bool preview)
 
   //---
 
+  // set range
   bool xminOk = false, yminOk = false, xmaxOk = false, ymaxOk = false;
 
   if (xminEdit_->text().length()) {
     double xmin = xminEdit_->text().toDouble(&xminOk);
-    if (xminOk) plot->setXMin(xmin);
+    if (xminOk) plot->setXMin(CQChartsOptReal(xmin));
   }
 
   if (yminEdit_->text().length()) {
     double ymin = yminEdit_->text().toDouble(&yminOk);
-    if (yminOk) plot->setYMin(ymin);
+    if (yminOk) plot->setYMin(CQChartsOptReal(ymin));
   }
 
   if (xmaxEdit_->text().length()) {
     double xmax = xmaxEdit_->text().toDouble(&xmaxOk);
-    if (xmaxOk) plot->setXMax(xmax);
+    if (xmaxOk) plot->setXMax(CQChartsOptReal(xmax));
   }
 
   if (ymaxEdit_->text().length()) {
     double ymax = ymaxEdit_->text().toDouble(&ymaxOk);
-    if (ymaxOk) plot->setYMax(ymax);
+    if (ymaxOk) plot->setYMax(CQChartsOptReal(ymax));
   }
 
   if (preview) {
-    using OptReal = CQChartsPlot::OptReal;
-
-    if (! xminOk) plot->setXMin(OptReal());
-    if (! yminOk) plot->setYMin(OptReal());
-    if (! xmaxOk) plot->setXMax(OptReal());
-    if (! ymaxOk) plot->setYMax(OptReal());
+    if (! xminOk) plot->setXMin(CQChartsOptReal());
+    if (! yminOk) plot->setYMin(CQChartsOptReal());
+    if (! xmaxOk) plot->setXMax(CQChartsOptReal());
+    if (! ymaxOk) plot->setYMax(CQChartsOptReal());
   }
 }
 

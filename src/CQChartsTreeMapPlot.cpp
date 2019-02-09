@@ -178,9 +178,7 @@ addProperties()
 
   addLineProperties("header/stroke", "headerBorder");
 
-  addTextProperties("header/text", "headerText");
-
-  addProperty("header/text", this, "headerTextAlign", "align");
+  addAllTextProperties("header/text", "headerText");
 
   // fill
   addProperty("fill", this, "filled", "visible");
@@ -193,11 +191,7 @@ addProperties()
   addLineProperties("stroke", "border");
 
   // text
-  addTextProperties("text", "text");
-
-  addProperty("text", this, "textAlign"    , "align"    );
-  addProperty("text", this, "textFormatted", "formatted");
-  addProperty("text", this, "textScaled"   , "scaled"   );
+  addAllTextProperties("text", "text");
 }
 
 //------

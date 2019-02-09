@@ -425,6 +425,34 @@ setColumnSortOrder(int column, int i)
   return true;
 }
 
+QString
+CQBaseModel::
+columnTitle(int column) const
+{
+  if (column < 0 || column >= columnCount())
+    return "";
+
+  const ColumnData &columnData = getColumnData(column);
+
+  return columnData.title;
+}
+
+bool
+CQBaseModel::
+setColumnTitle(int column, const QString &s)
+{
+  if (column < 0 || column >= columnCount())
+    return false;
+
+  ColumnData &columnData = getColumnData(column);
+
+  columnData.title = s;
+
+  emit columnTitleChanged(column);
+
+  return true;
+}
+
 const CQBaseModel::ColumnData &
 CQBaseModel::
 getColumnData(int column) const
@@ -580,6 +608,9 @@ headerData(int section, Qt::Orientation orientation, int role) const
     else if (role == static_cast<int>(CQBaseModelRole::SortOrder)) {
       return columnSortOrder(section);
     }
+    else if (role == static_cast<int>(CQBaseModelRole::Title)) {
+      return columnTitle(section);
+    }
     else {
       return QAbstractItemModel::headerData(section, orientation, role);
     }
@@ -641,6 +672,9 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
     }
     else if (role == static_cast<int>(CQBaseModelRole::SortOrder)) {
       return setColumnSortOrder(section, value.toInt());
+    }
+    else if (role == static_cast<int>(CQBaseModelRole::Title)) {
+      return setColumnTitle(section, value.toString());
     }
     else {
       return QAbstractItemModel::setHeaderData(section, orientation, role);

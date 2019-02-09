@@ -142,6 +142,9 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
 CQChartsScatterPlot::
 ~CQChartsScatterPlot()
 {
+  for (const auto &ghull : groupHull_)
+    delete ghull.second;
+
   delete dataLabel_;
 }
 
@@ -701,7 +704,7 @@ addProperties()
   addLineProperties("grid/stroke", "gridCellBorder");
 
   // symbol key
-  addProperty("symbol/key", this, "symbolMapKey"      , "enabled");
+  addProperty("symbol/key", this, "symbolMapKey"      , "visible");
   addProperty("symbol/key", this, "symbolMapKeyAlpha" , "alpha"  );
   addProperty("symbol/key", this, "symbolMapKeyMargin", "margin" );
 
@@ -925,11 +928,17 @@ initAxes(bool uniqueX, bool uniqueY)
   xAxis_->setColumn(xColumn());
   yAxis_->setColumn(yColumn());
 
-  QString xname = xColumnName("");
-  QString yname = yColumnName("");
+  if (xAxis_->label() != "") {
+    QString xname = xColumnName("");
 
-  xAxis_->setLabel(xname);
-  yAxis_->setLabel(yname);
+    xAxis_->setLabel(xname);
+  }
+
+  if (yAxis_->label() != "") {
+    QString yname = yColumnName("");
+
+    yAxis_->setLabel(yname);
+  }
 
   xAxis_->setIntegral(uniqueX);
   yAxis_->setIntegral(uniqueY);
@@ -1458,37 +1467,40 @@ addPointKeyItems(CQChartsPlotKey *key)
   else if (ng > 0) {
     const NameValues &nameValues = (*groupNameValues_.begin()).second;
 
-    int is = 0;
     int ns = nameValues.size();
 
-    for (const auto &nameValue : nameValues) {
-      const QString &name   = nameValue.first;
-      const Values  &values = nameValue.second.values;
+    if (ns > 1) {
+      int is = 0;
 
-      CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, -1  , is, ns);
-      CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, name, is, ns);
+      for (const auto &nameValue : nameValues) {
+        const QString &name   = nameValue.first;
+        const Values  &values = nameValue.second.values;
 
-      key->addItem(colorItem, is, 0);
-      key->addItem(textItem , is, 1);
+        CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, -1  , is, ns);
+        CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, name, is, ns);
 
-      //--
+        key->addItem(colorItem, is, 0);
+        key->addItem(textItem , is, 1);
 
-      if (colorColumn().isValid()) {
-        int nv = values.size();
+        //--
 
-        if (nv > 0) {
-          const ValueData &valuePoint = values[0];
+        if (colorColumn().isValid()) {
+          int nv = values.size();
 
-          CQChartsColor color;
+          if (nv > 0) {
+            const ValueData &valuePoint = values[0];
 
-          if (columnColor(valuePoint.row, valuePoint.ind.parent(), color))
-            colorItem->setColor(color);
+            CQChartsColor color;
+
+            if (columnColor(valuePoint.row, valuePoint.ind.parent(), color))
+              colorItem->setColor(color);
+          }
         }
+
+        //--
+
+        ++is;
       }
-
-      //--
-
-      ++is;
     }
   }
 }
@@ -3528,7 +3540,7 @@ size() const
 
 void
 CQChartsScatterGridKeyItem::
-draw(QPainter *painter, const CQChartsGeom::BBox &rect)
+draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 {
   // calc text width
   plot_->view()->setPlotPainterFont(plot_, painter, key_->textFont());

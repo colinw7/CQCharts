@@ -81,8 +81,8 @@ class CQChartsRect {
              arg(rect_.left()).arg(rect_.top()).arg(rect_.right()).arg(rect_.bottom()).arg(ustr);
   }
 
-  void fromString(const QString &s) {
-    setValue(s);
+  bool fromString(const QString &s) {
+    return setValue(s);
   }
 
   //---

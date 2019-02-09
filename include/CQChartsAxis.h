@@ -6,6 +6,7 @@
 #include <CQChartsColumn.h>
 #include <CQChartsGeom.h>
 #include <CQChartsUtil.h>
+#include <CQChartsOptReal.h>
 #include <CInterval.h>
 
 #include <map>
@@ -13,8 +14,6 @@
 #include <vector>
 #include <string>
 #include <sys/types.h>
-
-#include <boost/optional.hpp>
 
 class CQChartsAxis;
 class CQChartsPlot;
@@ -46,8 +45,7 @@ class CQChartsAxis : public CQChartsObj,
   Q_PROPERTY(bool            visible          READ isVisible          WRITE setVisible         )
   Q_PROPERTY(Qt::Orientation direction        READ direction          WRITE setDirection       )
   Q_PROPERTY(Side            side             READ side               WRITE setSide            )
-  Q_PROPERTY(bool            hasPosition      READ hasPosition        WRITE setHasPosition     )
-  Q_PROPERTY(double          position         READ position           WRITE setPosition        )
+  Q_PROPERTY(CQChartsOptReal position         READ position           WRITE setPosition        )
   Q_PROPERTY(bool            requireTickLabel READ isRequireTickLabel WRITE setRequireTickLabel)
   Q_PROPERTY(bool            integral         READ isIntegral         WRITE setIntegral        )
   Q_PROPERTY(bool            date             READ isDate             WRITE setDate            )
@@ -106,8 +104,6 @@ class CQChartsAxis : public CQChartsObj,
     TOP_RIGHT,
     BETWEEN
   };
-
-  using OptReal = boost::optional<double>;
 
  public:
   CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction=Qt::Horizontal,
@@ -261,20 +257,8 @@ class CQChartsAxis : public CQChartsObj,
 
   //---
 
-  const OptReal &pos() const { return pos_; }
-  void setPos(double r) { if (! pos_ || *pos_ != r) { pos_ = r; redraw(); } }
-
-  void unsetPos() { pos_.reset(); redraw(); }
-
-  bool hasPosition() const { return !!pos_; }
-
-  void setHasPosition(bool b) {
-    if (! b) { if (  hasPosition()) unsetPos(); }
-    else     { if (! hasPosition()) setPos(0.0); }
-  }
-
-  double position() const { return pos_.value_or(0.0); }
-  void setPosition(double r) { setPos(r); }
+  const CQChartsOptReal &position() const { return position_; }
+  void setPosition(const CQChartsOptReal &r);
 
   //---
 
@@ -425,7 +409,7 @@ class CQChartsAxis : public CQChartsObj,
   TickSpaces           tickSpaces_;
   TickLabels           tickLabels_;
   bool                 requireTickLabel_    { false };
-  OptReal              pos_;
+  CQChartsOptReal      position_;
   CQChartsEditHandles* editHandles_         { nullptr };
 
   CQChartsGeom::BBox   bbox_;

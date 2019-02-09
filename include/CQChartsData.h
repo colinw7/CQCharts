@@ -19,9 +19,9 @@
 // TODO shadow properties
 struct CQChartsTextData {
   bool          visible   { true };
-  QFont         font;
   CQChartsColor color     { CQChartsColor::Type::INTERFACE_VALUE, 1.0 };
   double        alpha     { 1.0 };
+  QFont         font;
   double        angle     { 0.0 };
   bool          contrast  { false };
   Qt::Alignment align     { Qt::AlignLeft | Qt::AlignVCenter };
@@ -44,7 +44,7 @@ class CQChartsLineData {
   CQChartsLineData() = default;
 
   explicit CQChartsLineData(const QString &str) {
-    fromString(str);
+    (void) fromString(str);
   }
 
   bool isVisible() const { return visible_; }
@@ -68,7 +68,7 @@ class CQChartsLineData {
 
   QString toString() const;
 
-  void fromString(const QString &s);
+  bool fromString(const QString &s);
 
  private:
   bool             visible_ { true };                                      // visible
@@ -94,7 +94,7 @@ class CQChartsFillData {
   CQChartsFillData() = default;
 
   explicit CQChartsFillData(const QString &str) {
-    fromString(str);
+    (void) fromString(str);
   }
 
   bool isVisible() const { return visible_; }
@@ -115,7 +115,7 @@ class CQChartsFillData {
 
   QString toString() const;
 
-  void fromString(const QString &s);
+  bool fromString(const QString &s);
 
  private:
   bool                visible_ { true };                                      // draw bg
@@ -140,7 +140,7 @@ class CQChartsStrokeData {
   CQChartsStrokeData() = default;
 
   explicit CQChartsStrokeData(const QString &str) {
-    fromString(str);
+    (void) fromString(str);
   }
 
   bool isVisible() const { return visible_; }
@@ -167,7 +167,7 @@ class CQChartsStrokeData {
 
   QString toString() const;
 
-  void fromString(const QString &s);
+  bool fromString(const QString &s);
 
  private:
   bool             visible_    { true };                                      // draw border
@@ -194,7 +194,7 @@ class CQChartsShapeData {
   CQChartsShapeData() = default;
 
   explicit CQChartsShapeData(const QString &str) {
-    fromString(str);
+    (void) fromString(str);
   }
 
   CQChartsFillData &background() { return background_; }
@@ -211,7 +211,7 @@ class CQChartsShapeData {
 
   QString toString() const;
 
-  void fromString(const QString &s);
+  bool fromString(const QString &s);
 
  private:
   CQChartsFillData   background_; // background data

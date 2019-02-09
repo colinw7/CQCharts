@@ -2,7 +2,7 @@
 
 CQCharts is a Qt based charting library to support the display of an interactive
 chart from a 'QAbstractItemModel' data model with support for cross selection using
-a 'QItemSelectionModel' selection model.
+the 'QItemSelectionModel' selection model.
 
 Charts are live in that changes to the data model automatically update
 the chart which allows the programmer to build interactive charts where
@@ -71,7 +71,8 @@ Chart types supported
     ![treemap](treemap.png "Treemap Plot")
   + XY
     + x/y monotonic value plot
-    ![xychart](xychart.png "XY Chart")
+    ![xychart](xychart.png "XY Multi Line")
+    ![goal_scorers](goal_scorers.png "XY Grouped")
 
 ## Adjacency
 

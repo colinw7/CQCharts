@@ -5,8 +5,6 @@
 #include <cmath>
 #include <cassert>
 
-static CQChartsGrahamHull *s_hull = 0;
-
 CQChartsGrahamHull::
 CQChartsGrahamHull()
 {
@@ -130,54 +128,51 @@ void
 CQChartsGrahamHull::
 sortLowestClockwise()
 {
+  if (ipoints_.size() < 3)
+    return;
+
   // sort points by angle they make with lowest point and x-axis
   del_points_.clear();
 
-  s_hull = this;
+  auto p1 = ipoints_.begin(); ++p1; // first unsorted point;
+  auto p2 = ipoints_.end();
 
-  qsort(&ipoints_[1], ipoints_.size() - 1, sizeof(int), sortLowestClockwiseCmp);
-}
+  int i0 = ipoints_[0];
 
-int
-CQChartsGrahamHull::
-sortLowestClockwiseCmp(const void *s1, const void *s2)
-{
-  int i0 = s_hull->ipoints_[0];
-  int i1 = *(int *) s1;
-  int i2 = *(int *) s2;
+  std::sort(p1, p2, [&](const int &i1, const int &i2) {
+    const QPointF &p0 = points_[i0];
+    const QPointF &p1 = points_[i1];
+    const QPointF &p2 = points_[i2];
 
-  const QPointF &p0 = s_hull->points_[i0];
-  const QPointF &p1 = s_hull->points_[i1];
-  const QPointF &p2 = s_hull->points_[i2];
+    int as = areaSign(p0, p1, p2);
 
-  int as = areaSign(p0, p1, p2);
+    if (as > 0) return true;
+    if (as < 0) return false;
 
-  if (as > 0) return -1;
-  if (as < 0) return  1;
+    // zero area (p1 and/or p2 are colinear)
+    double x = fabs(p1.x() - p0.x()) - fabs(p2.x() - p0.x());
+    double y = fabs(p1.y() - p0.y()) - fabs(p2.y() - p0.y());
 
-  // zero area (p1 and/or p2 are colinear)
-  double x = fabs(p1.x() - p0.x()) - fabs(p2.x() - p0.x());
-  double y = fabs(p1.y() - p0.y()) - fabs(p2.y() - p0.y());
+    // remove colinear points
 
-  // remove colinear points
+    if (x < 0 || y < 0) {
+      del_points_.insert(i1);
+      return true;
+    }
 
-  if (x < 0 || y < 0) {
-    s_hull->del_points_.insert(i1);
-    return -1;
-  }
+    if (x > 0 || y > 0) {
+      del_points_.insert(i2);
+      return false;
+    }
 
-  if (x > 0 || y > 0) {
-    s_hull->del_points_.insert(i2);
-    return 1;
-  }
+    // p1 and p2 are coincident
+    if (i1 > i2)
+      del_points_.insert(i2);
+    else
+      del_points_.insert(i1);
 
-  // p1 and p2 are coincident
-  if (i1 > i2)
-    s_hull->del_points_.insert(i2);
-  else
-    s_hull->del_points_.insert(i1);
-
-  return 0;
+    return false;
+  });
 }
 
 void

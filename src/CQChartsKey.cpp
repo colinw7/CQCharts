@@ -7,16 +7,19 @@
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>
 #include <CQPropertyViewModel.h>
+
+#include <QScrollBar>
 #include <QPainter>
 #include <QStylePainter>
-#include <QStyleOption>
-#include <QRectF>
+#include <QStyleOptionSlider>
 
 CQChartsKey::
 CQChartsKey(CQChartsView *view) :
  CQChartsBoxObj(view), CQChartsObjTextData<CQChartsKey>(this)
 {
   setObjectName("key");
+
+  setStateColoring(false);
 }
 
 CQChartsKey::
@@ -68,7 +71,7 @@ setLocation(const CQChartsKeyLocation &l)
 
 void
 CQChartsKey::
-draw(QPainter *)
+draw(QPainter *) const
 {
 }
 
@@ -87,7 +90,7 @@ CQChartsViewKey::
 
 void
 CQChartsViewKey::
-updatePosition(bool /*wait*/)
+updatePosition(bool /*queued*/)
 {
   redraw();
 }
@@ -170,6 +173,7 @@ CQChartsViewKey::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
   model->addProperty(path, this, "visible"      );
+  model->addProperty(path, this, "selected"     );
   model->addProperty(path, this, "location"     );
   model->addProperty(path, this, "header"       );
   model->addProperty(path, this, "horizontal"   );
@@ -190,24 +194,27 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
 void
 CQChartsViewKey::
-draw(QPainter *painter)
+draw(QPainter *painter) const
 {
   if (! isVisible())
     return;
 
   //---
 
-  doLayout();
+  CQChartsViewKey *th = const_cast<CQChartsViewKey *>(this);
+
+  th->doLayout();
 
   //---
 
+  // pixel position & size (TODO: using view/units)
   double px = position_.x(); // left
   double py = position_.y(); // top
 
   double pw = size_.width ();
   double ph = size_.height();
 
-  //bbox_ = CQChartsGeom::BBox(x, y - h, x + w, y);
+  //vbbox_ = CQChartsGeom::BBox(px, py - ph, px + pw, py);
 
   //---
 
@@ -216,7 +223,7 @@ draw(QPainter *painter)
   view_->pixelToWindow(px     , py     , x1, y1);
   view_->pixelToWindow(px + pw, py + ph, x2, y2);
 
-  rect_ = QRectF(x1, y2, x2 - x1, y1 - y2);
+  pbbox_ = CQChartsGeom::BBox(x1, y2, x2, y1);
 
   //---
 
@@ -250,30 +257,7 @@ draw(QPainter *painter)
 
     //---
 
-    QImage cimage(QSize(bs, bs), QImage::Format_ARGB32);
-
-    cimage.fill(QColor(0,0,0,0));
-
-    //QRectF qrect(px1, (py1 + py2)/2.0 - bs/2.0, bs, bs);
-    QRectF qrect(0, 0, bs, bs);
-
-    QStylePainter spainter(&cimage, view_);
-
-    spainter.setPen(interpTextColor(0, 1));
-
-    QStyleOptionButton opt;
-
-    opt.initFrom(view_);
-
-    opt.rect = qrect.toRect();
-
-    opt.state |= (checked ? QStyle::State_On : QStyle::State_Off);
-
-    spainter.drawControl(QStyle::CE_CheckBox, opt);
-
-    painter->drawImage(px1, (py1 + py2)/2.0 - bs/2.0, cimage);
-
-    //painter->drawRect(qrect);
+    drawCheckBox(painter, px1, (py1 + py2)/2.0 - bs/2.0, bs, checked);
 
     //---
 
@@ -289,12 +273,13 @@ draw(QPainter *painter)
 
     //---
 
+    // save view key item (plot) rect
     double x1, y1, x2, y2;
 
     view_->pixelToWindow(px     , py1, x1, y1);
     view_->pixelToWindow(px + pw, py2, x2, y2);
 
-    QRectF prect(x1, y2, x2 - x1, y1 - y2);
+    CQChartsGeom::BBox prect(x1, y2, x2 - x1, y1 - y2);
 
     prects_.push_back(prect);
 
@@ -304,27 +289,57 @@ draw(QPainter *painter)
   }
 }
 
+void
+CQChartsViewKey::
+drawCheckBox(QPainter *painter, double x, double y, int bs, bool checked) const
+{
+  QImage cimage(QSize(bs, bs), QImage::Format_ARGB32);
+
+  cimage.fill(QColor(0,0,0,0));
+
+  //QRectF qrect(x, y, bs, bs);
+  QRectF qrect(0, 0, bs, bs);
+
+  QStylePainter spainter(&cimage, view_);
+
+  spainter.setPen(interpTextColor(0, 1));
+
+  QStyleOptionButton opt;
+
+  opt.initFrom(view_);
+
+  opt.rect = qrect.toRect();
+
+  opt.state |= (checked ? QStyle::State_On : QStyle::State_Off);
+
+  spainter.drawControl(QStyle::CE_CheckBox, opt);
+
+  painter->drawImage(x, y, cimage);
+
+  //painter->drawRect(qrect);
+}
+
 bool
 CQChartsViewKey::
 isInside(const CQChartsGeom::Point &w) const
 {
-  return rect_.contains(CQChartsUtil::toQPoint(w));
+  return pbbox_.inside(w);
 }
 
 void
 CQChartsViewKey::
-selectPress(const CQChartsGeom::Point &w, CQChartsSelMod /*selMod*/)
+selectPress(const CQChartsGeom::Point &w, CQChartsSelMod selMod)
 {
   int n = std::min(view_->numPlots(), int(prects_.size()));
 
   for (int i = 0; i < n; ++i) {
-    if (! prects_[i].contains(CQChartsUtil::toQPoint(w)))
+    if (! prects_[i].inside(w))
       continue;
 
     if      (pressBehavior() == CQChartsKey::PressBehavior::SHOW)
-      toggleShow(i);
+      doShow(i, selMod);
     else if (pressBehavior() == CQChartsKey::PressBehavior::SELECT)
-      toggleSelect(i);
+      doSelect(i, selMod);
 
     break;
   }
@@ -334,22 +349,35 @@ selectPress(const CQChartsGeom::Point &w, CQChartsSelMod /*selMod*/)
 
 void
 CQChartsViewKey::
-toggleShow(int i)
+doShow(int i, CQChartsSelMod selMod)
 {
   CQChartsPlot *plot = view_->plot(i);
 
-  plot->setVisible(! plot->isVisible());
+  if      (selMod == CQChartsSelMod::REPLACE) {
+    CQChartsView::Plots plots;
+
+    view_->getPlots(plots);
+
+    for (auto &plot1 : plots)
+      plot->setVisible(plot1 == plot);
+  }
+  else if (selMod == CQChartsSelMod::ADD)
+    plot->setVisible(true);
+  else if (selMod == CQChartsSelMod::REMOVE)
+    plot->setVisible(false);
+  else if (selMod == CQChartsSelMod::TOGGLE)
+    plot->setVisible(! plot->isVisible());
 }
 
 void
 CQChartsViewKey::
-toggleSelect(int)
+doSelect(int, CQChartsSelMod)
 {
 }
 
 void
 CQChartsViewKey::
-redraw(bool /*wait*/)
+redraw(bool /*queued*/)
 {
   view_->update();
 }
@@ -365,6 +393,12 @@ CQChartsPlotKey(CQChartsPlot *plot) :
   setBorder(true);
 
   clearItems();
+
+  scrollData_.bar = new QScrollBar(Qt::Vertical, plot->view());
+
+  scrollData_.bar->hide();
+
+  connect(scrollData_.bar, SIGNAL(valueChanged(int)), this, SLOT(scrollSlot(int)));
 }
 
 CQChartsPlotKey::
@@ -380,9 +414,18 @@ CQChartsPlotKey::
 
 void
 CQChartsPlotKey::
-redraw(bool wait)
+scrollSlot(int v)
 {
-  if (wait) {
+  scrollData_.pos = v;
+
+  redraw(/*queued*/ false);
+}
+
+void
+CQChartsPlotKey::
+redraw(bool queued)
+{
+  if (queued) {
     plot_->queueDrawBackground();
     plot_->queueDrawForeground();
   }
@@ -412,11 +455,11 @@ updateLayout()
 
 void
 CQChartsPlotKey::
-updatePosition(bool wait)
+updatePosition(bool queued)
 {
   plot_->updateKeyPosition();
 
-  redraw(wait);
+  redraw(queued);
 }
 
 void
@@ -426,8 +469,8 @@ updateLocation(const CQChartsGeom::BBox &bbox)
   // calc key size
   QSizeF ks = calcSize();
 
-  double xm = plot_->pixelToWindowWidth (8);
-  double ym = plot_->pixelToWindowHeight(8);
+  double xm = plot_->pixelToWindowWidth (margin());
+  double ym = plot_->pixelToWindowHeight(margin());
 
   double kx { 0.0 }, ky { 0.0 };
 
@@ -484,13 +527,16 @@ void
 CQChartsPlotKey::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "visible"    );
-  model->addProperty(path, this, "location"   );
-  model->addProperty(path, this, "header"     );
-  model->addProperty(path, this, "horizontal" );
-  model->addProperty(path, this, "autoHide"   );
-  model->addProperty(path, this, "clipped"    );
-  model->addProperty(path, this, "hiddenAlpha");
+  model->addProperty(path, this, "visible"      );
+  model->addProperty(path, this, "selected"     );
+  model->addProperty(path, this, "location"     );
+  model->addProperty(path, this, "header"       );
+  model->addProperty(path, this, "horizontal"   );
+  model->addProperty(path, this, "autoHide"     );
+  model->addProperty(path, this, "clipped"      );
+  model->addProperty(path, this, "hiddenAlpha"  );
+  model->addProperty(path, this, "pressBehavior");
+  model->addProperty(path, this, "scrollHeight" );
 
   model->addProperty(path, this, "absPosition");
   model->addProperty(path, this, "insideX"    );
@@ -587,10 +633,17 @@ doLayout()
 
   //---
 
+  // get max number of rows
+  int numRows = numRows_;
+
+  // limit rows if height (and this scrolled) not defined
+  if (! scrollData_.height.isSet())
+    numRows = std::min(numRows, maxRows());
+
+  //---
+
   // get size of each cell
   rowColCell_.clear();
-
-  int numRows = std::min(numRows_, maxRows());
 
   for (int r = 0; r < numRows; ++r) {
     for (int c = 0; c < numCols_; ++c) {
@@ -610,30 +663,29 @@ doLayout()
 
   //---
 
-  double xs = plot_->pixelToWindowWidth (spacing());
-  double ys = plot_->pixelToWindowHeight(spacing());
+  // get spacing and margin in plot coords
+  xs_ = plot_->pixelToWindowWidth (spacing());
+  ys_ = plot_->pixelToWindowHeight(spacing());
 
-  double xm = plot_->pixelToWindowWidth (margin());
-  double ym = plot_->pixelToWindowHeight(margin());
+  xm_ = plot_->pixelToWindowWidth (margin());
+  ym_ = plot_->pixelToWindowHeight(margin());
 
   //---
 
   // get size of each row and column
-  using RowHeights = std::map<int,double>;
-  using ColWidths  = std::map<int,double>;
-
-  RowHeights rowHeights;
-  ColWidths  colWidths;
+  rowHeights_.clear();
+  colWidths_ .clear();
 
   for (int r = 0; r < numRows; ++r) {
     for (int c = 0; c < numCols_; ++c) {
-      rowHeights[r] = std::max(rowHeights[r], rowColCell_[r][c].height);
-      colWidths [c] = std::max(colWidths [c], rowColCell_[r][c].width );
+      rowHeights_[r] = std::max(rowHeights_[r], rowColCell_[r][c].height);
+      colWidths_ [c] = std::max(colWidths_ [c], rowColCell_[r][c].width );
     }
   }
 
   //----
 
+  // get header text size
   double tw = 0, th = 0;
 
   if (headerStr().length()) {
@@ -644,24 +696,24 @@ doLayout()
     double ptw = fm.width(headerStr());
     double pth = fm.height();
 
-    tw = plot_->pixelToWindowWidth (ptw) + 2*xm;
-    th = plot_->pixelToWindowHeight(pth) + 2*ym;
+    tw = plot_->pixelToWindowWidth (ptw) + 2*xs_;
+    th = plot_->pixelToWindowHeight(pth) + 2*ys_;
   }
 
   //---
 
   // update cell positions and sizes
-  double y = -ym;
+  double y = -ym_;
 
   y -= th;
 
   for (int r = 0; r < numRows; ++r) {
-    double x = xm;
+    double x = xm_;
 
-    double rh = rowHeights[r] + 2*ys;
+    double rh = rowHeights_[r] + 2*ys_;
 
     for (int c = 0; c < numCols_; ++c) {
-      double cw = colWidths[c] + 2*xs;
+      double cw = colWidths_[c] + 2*xs_;
 
       Cell &cell = rowColCell_[r][c];
 
@@ -678,6 +730,7 @@ doLayout()
 
   //----
 
+  // calc size
   double w = 0, h = 0;
 
   for (int c = 0; c < numCols_; ++c) {
@@ -686,7 +739,7 @@ doLayout()
     w += cell.width;
   }
 
-  w += 2*xm;
+  w += 2*xm_;
 
   for (int r = 0; r < numRows; ++r) {
     Cell &cell = rowColCell_[r][0];
@@ -694,7 +747,7 @@ doLayout()
     h += cell.height;
   }
 
-  h += 2*ym + th;
+  h += 2*ym_ + th;
 
   w = std::max(w, tw);
 
@@ -828,7 +881,7 @@ editMove(const CQChartsGeom::Point &p)
 
   editHandles_->setDragPos(p);
 
-  updatePosition(/*wait*/false);
+  updatePosition(/*queued*/false);
 
   return true;
 }
@@ -930,40 +983,78 @@ setFlipped(bool b)
 
 void
 CQChartsPlotKey::
-draw(QPainter *painter)
+draw(QPainter *painter) const
 {
-  if (! isVisible() || isEmpty())
+  if (! isVisible() || isEmpty()) {
+    scrollData_.bar->hide();
     return;
+  }
 
   //---
 
-  doLayout();
+  CQChartsPlotKey *th = const_cast<CQChartsPlotKey *>(this);
+
+  th->doLayout();
 
   //---
 
+  // calc plot bounding box
   double x = position_.x(); // left
   double y = position_.y(); // top
 
   double w = size_.width ();
   double h = size_.height();
 
-  bbox_ = CQChartsGeom::BBox(x, y - h, x + w, y);
+  //---
+
+  double psw = 13.0;
+
+  double sw = plot_->pixelToWindowWidth(psw);
+  double sh = h;
+
+  if (scrollData_.height.isSet()) {
+    sh = plot_->lengthPlotHeight(scrollData_.height.length());
+
+    scrollData_.scrolled = (sh < h);
+
+    if (scrollData_.scrolled) {
+      psw = 13.0;
+
+      double scrollHeight = sh - 2*ym_;
+
+      for (int i = 0; i < numRows_; ++i) {
+        scrollHeight -= rowHeights_[i] + 2*ys_;
+
+        if (scrollHeight <= 0)
+          break;
+      }
+
+      sh -= scrollHeight;
+    }
+  }
+  else
+    scrollData_.scrolled = false;
+
+  wbbox_ = CQChartsGeom::BBox(x, y - sh, x + w + sw, y);
 
   //---
 
+  // calc pixel bounding box
   double px1, py1, px2, py2;
 
-  plot_->windowToPixel(x    , y    , px1, py2);
-  plot_->windowToPixel(x + w, y - h, px2, py1);
+  plot_->windowToPixel(x         , y     , px1, py2);
+  plot_->windowToPixel(x + w + sw, y - sh, px2, py1);
 
   QRectF rect(px1, py2, px2 - px1, py1 - py2);
 
+  double psh = py1 - py2;
+
   //---
 
-  CQChartsGeom::BBox pixelRect = plot_->calcPlotPixelRect();
+  CQChartsGeom::BBox plotPixelRect = plot_->calcPlotPixelRect();
 
-  pixelWidthExceeded_  = (rect.width() > pixelRect.getWidth());
-  pixelHeightExceeded_ = rect.height() > pixelRect.getHeight();
+  pixelWidthExceeded_  = (rect.width () > plotPixelRect.getWidth ()*0.8);
+  pixelHeightExceeded_ = (rect.height() > plotPixelRect.getHeight()*0.8);
 
   if (isAutoHide()) {
     if (pixelWidthExceeded_ || pixelHeightExceeded_)
@@ -972,27 +1063,78 @@ draw(QPainter *painter)
 
   //---
 
+  CQChartsGeom::BBox dataPixelRect = plot_->calcDataPixelRect();
+
+  QRectF dataRect = CQChartsUtil::toQRect(dataPixelRect);
+  QRectF clipRect = CQChartsUtil::toQRect(plotPixelRect);
+
   painter->save();
 
-  QRectF dataRect = CQChartsUtil::toQRect(plot_->calcDataPixelRect());
-  QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPlotPixelRect());
+  sy_ = 0.0;
 
-  CQChartsKeyLocation::Type locationType = this->location().type();
+  if (scrollData_.scrolled) {
+    scrollData_.bar->show();
 
-  if (locationType != CQChartsKeyLocation::Type::ABS_POS) {
-    if (isInsideX()) {
-      clipRect.setLeft (dataRect.left ());
-      clipRect.setRight(dataRect.right());
+    scrollData_.bar->move(px2 - psw, py2);
+    scrollData_.bar->resize(psw - 1, psh - 1);
+
+    //---
+
+    // count number of rows in height
+    int    scrollRows   = 0;
+    double scrollHeight = sh - 2*ym_;
+
+    for (int i = 0; i < numRows_; ++i) {
+      ++scrollRows;
+
+      scrollHeight -= rowHeights_[i] + 2*ys_;
+
+      if (scrollHeight <= 0)
+        break;
     }
 
-    if (isInsideY()) {
-      clipRect.setTop   (dataRect.top   ());
-      clipRect.setBottom(dataRect.bottom());
-    }
+    //---
+
+    // update scroll bar
+    int smax = std::max(numRows_ - scrollRows, 1);
+
+    if (scrollData_.bar->maximum() != smax)
+      scrollData_.bar->setRange(0, smax);
+
+    if (scrollData_.bar->pageStep() != scrollRows)
+      scrollData_.bar->setPageStep(scrollRows);
+
+    if (scrollData_.bar->value() != scrollData_.pos)
+      scrollData_.bar->setValue(scrollData_.pos);
+
+    for (int i = 0; i < scrollData_.pos; ++i)
+      sy_ += rowHeights_[i] + 2*ys_;
+
+    wbbox_ = CQChartsGeom::BBox(x, y - sh, x + w, y);
+
+    painter->setClipRect(QRect(px1, py2, px2 - px1 - psw, psh));
   }
+  else {
+    if (scrollData_.bar)
+      scrollData_.bar->hide();
 
-  if (isClipped())
-    painter->setClipRect(clipRect);
+    CQChartsKeyLocation::Type locationType = this->location().type();
+
+    if (locationType != CQChartsKeyLocation::Type::ABS_POS) {
+      if (isInsideX()) {
+        clipRect.setLeft (dataRect.left ());
+        clipRect.setRight(dataRect.right());
+      }
+
+      if (isInsideY()) {
+        clipRect.setTop   (dataRect.top   ());
+        clipRect.setBottom(dataRect.bottom());
+      }
+    }
+
+    if (isClipped())
+      painter->setClipRect(clipRect);
+  }
 
   //---
 
@@ -1000,6 +1142,7 @@ draw(QPainter *painter)
 
   //---
 
+  // draw items
   for (const auto &item : items_) {
     int col = item->col();
 
@@ -1009,7 +1152,7 @@ draw(QPainter *painter)
     Cell &cell = rowColCell_[item->row()][col];
 
     double x1 = cell.x;
-    double y1 = cell.y;
+    double y1 = cell.y + sy_;
     double w1 = cell.width;
     double h1 = cell.height;
 
@@ -1029,11 +1172,17 @@ draw(QPainter *painter)
 
     item->setBBox(bbox);
 
-    item->draw(painter, bbox);
+    if (wbbox_.inside(bbox)) {
+      item->draw(painter, bbox);
+
+      if (plot_->showBoxes())
+        plot_->drawWindowColorBox(painter, bbox);
+    }
   }
 
   //---
 
+  // draw header
   if (headerStr().length()) {
     QPointF p = plot_->windowToPixel(QPointF(x, y)); // top left
 
@@ -1059,8 +1208,9 @@ draw(QPainter *painter)
 
   //---
 
+  // draw box
   if (plot_->showBoxes())
-    plot_->drawWindowColorBox(painter, bbox_);
+    plot_->drawWindowColorBox(painter, wbbox_);
 
   //---
 
@@ -1126,13 +1276,13 @@ CQChartsKeyItem(CQChartsPlotKey *key, int i, int n) :
 
 bool
 CQChartsKeyItem::
-selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
+selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod)
 {
   if (isClickable()) {
     if      (key_->pressBehavior() == CQChartsKey::PressBehavior::SHOW)
-      toggleShow();
+      doShow(selMod);
     else if (key_->pressBehavior() == CQChartsKey::PressBehavior::SELECT)
-      toggleSelect();
+      doSelect(selMod);
   }
 
   return true;
@@ -1147,18 +1297,27 @@ selectMove(const CQChartsGeom::Point &)
 
 void
 CQChartsKeyItem::
-toggleShow()
+doShow(CQChartsSelMod selMod)
 {
   CQChartsPlot *plot = key_->plot();
 
-  plot->setSetHidden(i_, ! plot->isSetHidden(i_));
+  if      (selMod == CQChartsSelMod::REPLACE) {
+    for (int i = 0; i < n_; ++i)
+      plot->setSetHidden(i, i != i_);
+  }
+  else if (selMod == CQChartsSelMod::ADD)
+    plot->setSetHidden(i_, false);
+  else if (selMod == CQChartsSelMod::REMOVE)
+    plot->setSetHidden(i_, true);
+  else if (selMod == CQChartsSelMod::TOGGLE)
+    plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
   plot->queueUpdateObjs();
 }
 
 void
 CQChartsKeyItem::
-toggleSelect()
+doSelect(CQChartsSelMod)
 {
 }
 
@@ -1205,7 +1364,7 @@ interpTextColor(int i, int n) const
 
 void
 CQChartsKeyText::
-draw(QPainter *painter, const CQChartsGeom::BBox &rect)
+draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 {
   CQChartsPlot *plot = key_->plot();
 
@@ -1272,7 +1431,7 @@ size() const
 
 void
 CQChartsKeyColorBox::
-draw(QPainter *painter, const CQChartsGeom::BBox &rect)
+draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 {
   CQChartsPlot *plot = key_->plot();
 

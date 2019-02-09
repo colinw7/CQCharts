@@ -69,6 +69,8 @@ class CQCharts : public QObject {
   QColor interpColor(const CQChartsColor &c, int i, int n) const;
   QColor interpColor(const CQChartsColor &c, double value) const;
 
+  QColor interpColorValue(const CQChartsColor &c, int i, int n, double value) const;
+
   //---
 
   const CQChartsInterfaceTheme &interfaceTheme() const { return interfaceTheme_; }
@@ -83,6 +85,9 @@ class CQCharts : public QObject {
 
   QColor interpPaletteColor(double r, bool scale=false) const;
   QColor interpIndPaletteColor(int ind, double r, bool scale=false) const;
+
+  QColor interpPaletteColorValue(int i, int n, double r, bool scale=false) const;
+  QColor interpIndPaletteColorValue(int ind, int i, int n, double r, bool scale=false) const;
 
   QColor interpThemeColor(double r) const;
 

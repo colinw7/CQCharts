@@ -20,12 +20,13 @@ enum class CQBaseModelRole {
   Max               = Type + 4,         // column user max role
   Sorted            = Type + 5,         // sorted role
   SortOrder         = Type + 6,         // sort order role
-  Key               = Type + 7,         // is key role
-  RawValue          = Type + 8,         // raw value by role
-  IntermediateValue = Type + 9,         // intermediate value role
-  CachedValue       = Type + 10,        // cached value role
-  OutputValue       = Type + 11,        // output value role
-  Group             = Type + 12         // group role
+  Title             = Type + 7,         // sort order role
+  Key               = Type + 8,         // title role
+  RawValue          = Type + 9,         // raw value by role
+  IntermediateValue = Type + 10,        // intermediate value role
+  CachedValue       = Type + 11,        // cached value role
+  OutputValue       = Type + 12,        // output value role
+  Group             = Type + 13         // group role
 };
 
 // use variant numbers where possible

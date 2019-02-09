@@ -137,6 +137,9 @@ CQChartsSides.cpp \
 CQChartsFillUnder.cpp \
 CQChartsKeyLocation.cpp \
 \
+CQChartsOptLength.cpp \
+CQChartsOptReal.cpp \
+\
 CQChartsDrawUtil.cpp \
 CQChartsSymbol.cpp \
 CQChartsPath.cpp \
@@ -346,6 +349,9 @@ HEADERS += \
 ../include/CQChartsSides.h \
 ../include/CQChartsFillUnder.h \
 ../include/CQChartsKeyLocation.h \
+\
+../include/CQChartsOptLength.h \
+../include/CQChartsOptReal.h \
 \
 ../include/CQChartsDrawUtil.h \
 \

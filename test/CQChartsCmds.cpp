@@ -2470,8 +2470,14 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
   int role = Qt::EditRole;
 
-  if (roleName != "")
+  if (roleName != "") {
     role = CQChartsUtil::nameToRole(roleName);
+
+    if (role < 0) {
+      charts_->errorMsg("No model data");
+      return false;
+    }
+  }
 
   //---
 
@@ -2754,6 +2760,17 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(column.column());
     }
+    // get title
+    else if (name == "title") {
+      CQDataModel *dataModel = CQChartsModelUtil::getDataModel(model.data());
+
+      QString title;
+
+      if (dataModel)
+        title = dataModel->title();
+
+      cmdBase_->setCmdRc(title);
+    }
     // model property
     else if (name.left(9) == "property.") {
       QString name1 = name.mid(9);
@@ -2770,7 +2787,8 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     else if (name == "?") {
       QStringList names = QStringList() <<
         "value" << "meta" << "num_rows" << "num_columns" << "hierarchical" <<
-        "header" << "row" << "column" << "map" << "duplicates" << "column_index";
+        "header" << "row" << "column" << "map" << "duplicates" << "column_index" <<
+        "title" << "property.<name>";
 
       names << CQChartsModelColumnDetails::getLongNamedValues();
 
@@ -2837,10 +2855,17 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(h);
     }
+    else if (name == "pixel_position") {
+      CQChartsPosition pos(data, CQChartsUnits::VIEW);
+
+      QPointF p = view->positionToPixel(pos);
+
+      cmdBase_->setCmdRc(p);
+    }
     else if (name == "?") {
       QStringList names = QStringList() <<
        "plots" << "annotations" << "view_width" << "view_height" <<
-       "pixel_width" << "pixel_height";
+       "pixel_width" << "pixel_height" << "pixel_position";
 
       cmdBase_->setCmdRc(names);
     }
@@ -3074,10 +3099,17 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(h);
     }
+    else if (name == "pixel_position") {
+      CQChartsPosition pos(data, CQChartsUnits::PLOT);
+
+      QPointF p = plot->positionToPixel(pos);
+
+      cmdBase_->setCmdRc(p);
+    }
     else if (name == "?") {
       QStringList names = QStringList() <<
        "model" << "value" << "map" << "annotations" << "objects" << "inds" <<
-       "plot_width" << "plot_height" << "pixel_width" << "pixel_height";
+       "plot_width" << "plot_height" << "pixel_width" << "pixel_height" << "pixel_position";
 
       cmdBase_->setCmdRc(names);
     }
@@ -3198,8 +3230,14 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
 
   int role = Qt::EditRole;
 
-  if (roleName != "")
+  if (roleName != "") {
     role = CQChartsUtil::nameToRole(roleName);
+
+    if (role < 0) {
+      charts_->errorMsg("No model data");
+      return false;
+    }
+  }
 
   //---
 
@@ -3269,7 +3307,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
     }
     else if (name == "?") {
       QStringList names = QStringList() <<
-       "value" << "column_type" << "name" << "process";
+       "value" << "column_type" << "name" << "process" << "property.<name>";
 
       cmdBase_->setCmdRc(names);
     }

@@ -91,7 +91,7 @@ class CQChartsColor {
 
   QString toString() const { return colorStr(); }
 
-  void fromString(const QString &s) { setColorStr(s); }
+  bool fromString(const QString &s) { return setColorStr(s); }
 
   //---
 

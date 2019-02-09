@@ -146,10 +146,7 @@ addProperties()
   addLineProperties("stroke", "border");
 
   // text
-  addTextProperties("text", "text");
-
-  addProperty("text", this, "textScaled"   , "scaled"   );
-  addProperty("text", this, "textFormatted", "formatted");
+  addAllTextProperties("text", "text");
 
   // color map
   addColorMapProperties();

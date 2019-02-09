@@ -71,8 +71,8 @@ class CQChartsPosition {
     return QString("%1 %2 %3").arg(p_.x()).arg(p_.y()).arg(ustr);
   }
 
-  void fromString(const QString &s) {
-    setPoint(s);
+  bool fromString(const QString &s) {
+    return setPoint(s);
   }
 
   //---

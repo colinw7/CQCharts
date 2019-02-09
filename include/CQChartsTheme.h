@@ -162,7 +162,7 @@ class CQChartsTheme {
   //---
 
   QString toString() const { return name(); }
-  void fromString(const QString &s) { setName(s); }
+  bool fromString(const QString &s) { return setName(s); }
 
   //---
 

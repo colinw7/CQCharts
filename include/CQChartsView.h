@@ -120,6 +120,7 @@ class CQChartsView : public QFrame,
     ZOOM,
     PAN,
     PROBE,
+    QUERY,
     EDIT
   };
 

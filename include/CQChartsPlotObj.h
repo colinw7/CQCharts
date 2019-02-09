@@ -64,7 +64,7 @@ class CQChartsPlotObj : public CQChartsObj {
   }
 
   // is rect inside/touching (override if not simple rect shape)
-  virtual bool intersectRect(const CQChartsGeom::BBox &r, bool inside) const {
+  virtual bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const {
     if (! isVisible()) return false;
 
     if (inside)

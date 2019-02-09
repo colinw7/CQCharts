@@ -56,7 +56,7 @@ CQChartsLineDash(ushort pattern)
 CQChartsLineDash::
 CQChartsLineDash(const QString &str)
 {
-  fromString(str);
+  (void) fromString(str);
 }
 
 CQChartsLineDash &
