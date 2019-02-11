@@ -8,13 +8,10 @@
 #include <QAbstractItemModel>
 #include <QVariant>
 
-#ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
-#endif
 
 //------
 
-#ifdef CQCharts_USE_TCL
 class CQChartsModelExprTcl : public CQTcl {
  public:
   CQChartsModelExprTcl(CQChartsModelExprMatch *match) :
@@ -34,11 +31,9 @@ class CQChartsModelExprTcl : public CQTcl {
   CQChartsModelExprMatch *match_ { nullptr };
   int                     row_   { -1 };
 };
-#endif
 
 //------
 
-#ifdef CQCharts_USE_TCL
 class CQChartsModelExprMatchFn {
  public:
   using Values = std::vector<QVariant>;
@@ -87,7 +82,6 @@ class CQChartsModelExprMatchFn {
   CQChartsModelExprTcl*   qtcl_  { nullptr };
   Tcl_Command             cmdId_ { nullptr };
 };
-#endif
 
 //------
 
@@ -95,9 +89,7 @@ CQChartsModelExprMatch::
 CQChartsModelExprMatch(QAbstractItemModel *model) :
  model_(model)
 {
-#ifdef CQCharts_USE_TCL
   qtcl_ = new CQChartsModelExprTcl(this);
-#endif
 
   addBuiltinFunctions();
 }
@@ -105,22 +97,18 @@ CQChartsModelExprMatch(QAbstractItemModel *model) :
 CQChartsModelExprMatch::
 ~CQChartsModelExprMatch()
 {
-#ifdef CQCharts_USE_TCL
   for (auto &tclCmd : tclCmds_)
     delete tclCmd;
 
   delete qtcl_;
-#endif
 }
 
 void
 CQChartsModelExprMatch::
 addBuiltinFunctions()
 {
-#ifdef CQCharts_USE_TCL
   qtcl_->createVar("pi" , QVariant(M_PI));
   qtcl_->createVar("NaN", QVariant(COSNaN::get_nan()));
-#endif
 
   addFunction("column");
   addFunction("row"   );
@@ -135,11 +123,9 @@ addFunction(const QString &name)
 {
   assert(name.length());
 
-#ifdef CQCharts_USE_TCL
   CQChartsModelExprMatchFn *fn = new CQChartsModelExprMatchFn(this, name);
 
   tclCmds_.push_back(fn);
-#endif
 }
 
 void
@@ -388,7 +374,6 @@ evaluateExpression(const QString &expr, const QModelIndex &ind, QVariant &value,
   currentRow_ = ind.row   ();
   currentCol_ = ind.column();
 
-#ifdef CQCharts_USE_TCL
   qtcl_->createVar("row"   , currentRow_);
   qtcl_->createVar("column", currentCol_);
 
@@ -406,16 +391,12 @@ evaluateExpression(const QString &expr, const QModelIndex &ind, QVariant &value,
   }
 
   return getTclResult(value);
-#else
-  return false;
-#endif
 }
 
 void
 CQChartsModelExprMatch::
 setVar(const QString &name, int row)
 {
-#ifdef CQCharts_USE_TCL
   auto p = nameColumns_.find(name);
 
   if (p == nameColumns_.end())
@@ -428,20 +409,17 @@ setVar(const QString &name, int row)
 
   // store value in column variable
   qtcl_->createVar(name, var);
-#endif
 }
 
 void
 CQChartsModelExprMatch::
 setVar(const QModelIndex &ind)
 {
-#ifdef CQCharts_USE_TCL
   // get model value
   QVariant var = getCmdData(ind);
 
   // store value in column variable
   qtcl_->createVar(columnNames_[ind.column()], var);
-#endif
 }
 
 QVariant
@@ -471,20 +449,16 @@ bool
 CQChartsModelExprMatch::
 setTclResult(const QVariant &rc)
 {
-#ifdef CQCharts_USE_TCL
   qtcl_->setResult(rc);
   return true;
-#endif
 }
 
 bool
 CQChartsModelExprMatch::
 getTclResult(QVariant &var) const
 {
-#ifdef CQCharts_USE_TCL
   var = qtcl_->getResult();
   return true;
-#endif
 }
 
 QString

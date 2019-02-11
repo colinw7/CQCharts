@@ -11,6 +11,10 @@ class QLabel;
 class CQChartsGradientPaletteCanvas : public QFrame {
   Q_OBJECT
 
+  Q_PROPERTY(bool showPoints   READ isShowPoints   WRITE setShowPoints  )
+  Q_PROPERTY(bool showLines    READ isShowLines    WRITE setShowLines   )
+  Q_PROPERTY(bool showColorBar READ isShowColorBar WRITE setShowColorBar)
+
  public:
   struct Margin {
     double left   = 0.1;
@@ -25,8 +29,16 @@ class CQChartsGradientPaletteCanvas : public QFrame {
 
  ~CQChartsGradientPaletteCanvas();
 
+  //---
+
   CQChartsGradientPalette *gradientPalette() { return palette_; }
   void setGradientPalette(CQChartsGradientPalette *pal);
+
+  bool isShowPoints  () const { return showPoints_  ; }
+  bool isShowLines   () const { return showLines_   ; }
+  bool isShowColorBar() const { return showColorBar_; }
+
+  //---
 
   void enterEvent(QEvent *) override;
   void leaveEvent(QEvent *) override;
@@ -35,7 +47,11 @@ class CQChartsGradientPaletteCanvas : public QFrame {
   void mouseMoveEvent   (QMouseEvent *) override;
   void mouseReleaseEvent(QMouseEvent *) override;
 
+  void contextMenuEvent(QContextMenuEvent *e);
+
   void paintEvent(QPaintEvent *) override;
+
+  //---
 
   QSize sizeHint() const override;
 
@@ -68,6 +84,11 @@ class CQChartsGradientPaletteCanvas : public QFrame {
   void windowToPixel(double wx, double wy, double &px, double &py) const;
   void pixelToWindow(double px, double py, double &wx, double &wy) const;
 
+ private slots:
+  void setShowPoints(bool b);
+  void setShowLines(bool b);
+  void setShowColorBar(bool b);
+
  signals:
   void colorsChanged();
 
@@ -78,11 +99,14 @@ class CQChartsGradientPaletteCanvas : public QFrame {
     QPointF movePos;
   };
 
-  CQChartsGradientPalette* palette_ { nullptr };
+  CQChartsGradientPalette* palette_       { nullptr };
   Margin                   margin_;
-  QLabel*                  tipText_ { nullptr };
+  QLabel*                  tipText_       { nullptr };
   MouseData                mouseData_;
   NearestColor             nearestColor_;
+  bool                     showPoints_    { true };
+  bool                     showLines_     { true };
+  bool                     showColorBar_  { true };
 };
 
 #endif

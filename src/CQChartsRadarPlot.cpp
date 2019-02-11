@@ -206,7 +206,7 @@ calcRange() const
 
   for (int iv = 0; iv < nv; ++iv) {
     auto pd = valueDatas_.find(iv);
-    assert(pd != valueDatas_.end());
+    if (pd == valueDatas_.end()) continue;
 
     const ValueData &valueData = (*pd).second;
 
@@ -220,8 +220,10 @@ calcRange() const
 
   CQChartsGeom::Range dataRange;
 
-  dataRange.updateRange(-r, -r);
-  dataRange.updateRange( r,  r);
+  if (r > 0.0) {
+    dataRange.updateRange(-r, -r);
+    dataRange.updateRange( r,  r);
+  }
 
   if (isEqualScale()) {
     double aspect = this->aspect();

@@ -4066,6 +4066,8 @@ rectSelect(const CQChartsGeom::BBox &r, SelMod selMod)
 
   objsIntersectRect(r, objs, view()->isSelectInside());
 
+  //---
+
   // change selection depending on selection modifier
   for (auto &obj : objs) {
     if      (selMod == SelMod::TOGGLE)
@@ -4087,9 +4089,22 @@ rectSelect(const CQChartsGeom::BBox &r, SelMod selMod)
     if (objSelected.first->isSelected() == objSelected.second)
       continue;
 
-    objSelected.first->setSelected(objSelected.second);
+    if (! objSelected.second) {
+      if (! changed) { view()->startSelection(); changed = true; }
 
-    changed = true;
+      objSelected.first->setSelected(objSelected.second);
+    }
+  }
+
+  for (const auto &objSelected : objsSelected) {
+    if (objSelected.first->isSelected() == objSelected.second)
+      continue;
+
+    if (objSelected.second) {
+      if (! changed) { view()->startSelection(); changed = true; }
+
+      objSelected.first->setSelected(objSelected.second);
+    }
   }
 
   //----
@@ -4115,6 +4130,10 @@ rectSelect(const CQChartsGeom::BBox &r, SelMod selMod)
 
     if (selectInvalidateObjs())
       queueDrawObjs();
+
+    //---
+
+    view()->endSelection();
   }
 
   //---

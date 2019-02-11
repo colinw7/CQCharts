@@ -1,6 +1,8 @@
 High
- + string enum for command args
+ + Use QThread
+ + Numeric Sort for strings (split into numeber/non-number blocks)
  + better handling of update notifications
+ + Better/more stable algorithm for fit
  + generate plot on thread (redraw when finished)
  + view annotations in offscreen pixmap/image
  + Allow color names/symbol names in color map

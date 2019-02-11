@@ -2,6 +2,7 @@
 #define CQChartsCmdArg_H
 
 #include <QString>
+#include <vector>
 
 class CQChartsCmdArg {
  public:
@@ -12,6 +13,7 @@ class CQChartsCmdArg {
     Real,
     String,
     SBool,
+    Enum,
     Color,
     Font,
     LineDash,
@@ -24,6 +26,9 @@ class CQChartsCmdArg {
     Column,
     Row
   };
+
+  using NameValue  = std::pair<QString,int>;
+  using NameValues = std::vector<NameValue>;
 
  public:
   CQChartsCmdArg(int ind, const QString &name, Type type, const QString &argDesc="",
@@ -52,15 +57,23 @@ class CQChartsCmdArg {
   int groupInd() const { return groupInd_; }
   void setGroupInd(int i) { groupInd_ = i; }
 
+  CQChartsCmdArg &addNameValue(const QString &name, int value) {
+    nameValues_.push_back(NameValue(name, value));
+    return *this;
+  }
+
+  const NameValues &nameValues() const { return nameValues_; }
+
  private:
-  int     ind_      { -1 };         // command ind
-  QString name_;                    // arg name
-  bool    isOpt_    { false };      // is option
-  Type    type_     { Type::None }; // value type
-  QString argDesc_;                 // short description
-  QString desc_;                    // long description
-  bool    required_ { false };      // is required
-  int     groupInd_ { -1 };         // cmd group ind
+  int        ind_      { -1 };         // command ind
+  QString    name_;                    // arg name
+  bool       isOpt_    { false };      // is option
+  Type       type_     { Type::None }; // value type
+  QString    argDesc_;                 // short description
+  QString    desc_;                    // long description
+  bool       required_ { false };      // is required
+  int        groupInd_ { -1 };         // cmd group ind
+  NameValues nameValues_;              // enum name values
 };
 
 #endif

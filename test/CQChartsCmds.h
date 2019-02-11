@@ -25,9 +25,7 @@ struct CQChartsPaletteColorData;
 
 class CQChartsCmds;
 
-#ifdef CQCharts_USE_TCL
 class CQTcl;
-#endif
 
 class QAbstractItemModel;
 class QItemSelectionModel;

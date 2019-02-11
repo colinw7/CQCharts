@@ -531,58 +531,68 @@ class CQChartsObjTextData {
    textDataObj_(obj) {
   }
 
-  bool isTextVisible() const { return textData_.visible; }
+  bool isTextVisible() const { return textData_.isVisible(); }
   void setTextVisible(bool b) {
-    CQChartsUtil::testAndSet(textData_.visible, b, [&]() { textDataInvalidate(true); } );
+    if (b != textData_.isVisible()) {
+      textData_.setVisible(b); textDataInvalidate(true); }
   }
 
-  const CQChartsColor &textColor() const { return textData_.color; }
+  const CQChartsColor &textColor() const { return textData_.color(); }
   void setTextColor(const CQChartsColor &c) {
-    CQChartsUtil::testAndSet(textData_.color, c, [&]() { textDataInvalidate(); } );
+    if (c != textData_.color()) {
+      textData_.setColor(c); textDataInvalidate(); }
   }
 
-  double textAlpha() const { return textData_.alpha; }
+  double textAlpha() const { return textData_.alpha(); }
   void setTextAlpha(double a) {
-    CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { textDataInvalidate(); } );
+    if (a != textData_.alpha()) {
+      textData_.setAlpha(a); textDataInvalidate(); }
   }
 
   QColor interpTextColor(int i, int n) const {
     return textDataObj_->charts()->interpColor(textColor(), i, n);
   }
 
-  const QFont &textFont() const { return textData_.font; }
+  const QFont &textFont() const { return textData_.font(); }
   void setTextFont(const QFont &f) {
-    CQChartsUtil::testAndSet(textData_.font, f, [&]() { textDataInvalidate(); } );
+    if (f != textData_.font()) {
+      textData_.setFont(f); textDataInvalidate(); }
   }
 
-  double textAngle() const { return textData_.angle; }
+  double textAngle() const { return textData_.angle(); }
   void setTextAngle(double a) {
-    CQChartsUtil::testAndSet(textData_.angle, a, [&]() { textDataInvalidate(); } );
+    if (a != textData_.angle()) {
+      textData_.setAngle(a); textDataInvalidate(); }
   }
 
-  bool isTextContrast() const { return textData_.contrast; }
+  bool isTextContrast() const { return textData_.isContrast(); }
   void setTextContrast(bool b) {
-    CQChartsUtil::testAndSet(textData_.contrast, b, [&]() { textDataInvalidate(); } );
+    if (b != textData_.isContrast()) {
+      textData_.setContrast(b); textDataInvalidate(); }
   }
 
-  const Qt::Alignment &textAlign() const { return textData_.align; }
+  const Qt::Alignment &textAlign() const { return textData_.align(); }
   void setTextAlign(const Qt::Alignment &a) {
-    CQChartsUtil::testAndSet(textData_.align, a, [&]() { textDataInvalidate(); } );
+    if (a != textData_.align()) {
+      textData_.setAlign(a); textDataInvalidate(); }
   }
 
-  bool isTextFormatted() const { return textData_.formatted; }
+  bool isTextFormatted() const { return textData_.isFormatted(); }
   void setTextFormatted(bool b) {
-    CQChartsUtil::testAndSet(textData_.formatted, b, [&]() { textDataInvalidate(); } );
+    if (b != textData_.isFormatted()) {
+      textData_.setFormatted(b); textDataInvalidate(); }
   }
 
-  bool isTextScaled() const { return textData_.scaled; }
+  bool isTextScaled() const { return textData_.isScaled(); }
   void setTextScaled(bool b) {
-    CQChartsUtil::testAndSet(textData_.scaled, b, [&]() { textDataInvalidate(); } );
+    if (b != textData_.isScaled()) {
+      textData_.setScaled(b); textDataInvalidate(); }
   }
 
-  bool isTextHtml() const { return textData_.html; }
+  bool isTextHtml() const { return textData_.isHtml(); }
   void setTextHtml(bool b) {
-    CQChartsUtil::testAndSet(textData_.html, b, [&]() { textDataInvalidate(); } );
+    if (b != textData_.isHtml()) {
+      textData_.setHtml(b); textDataInvalidate(); }
   }
 
   //---
@@ -637,68 +647,68 @@ class CQChartsObj##UNAME##TextData { \
    LNAME##TextDataObj_(obj) { \
   } \
 \
-  bool is##UNAME##TextVisible() const { return LNAME##TextData_.visible; } \
+  bool is##UNAME##TextVisible() const { return LNAME##TextData_.isVisible(); } \
   void set##UNAME##TextVisible(bool b) { \
-    CQChartsUtil::testAndSet(LNAME##TextData_.visible, b, [&]() { \
-     LNAME##TextDataInvalidate(true); } ); \
+    if (b != LNAME##TextData_.isVisible()) { \
+      LNAME##TextData_.setVisible(b); LNAME##TextDataInvalidate(true); } \
   } \
 \
-  const CQChartsColor &LNAME##TextColor() const { return LNAME##TextData_.color; } \
+  const CQChartsColor &LNAME##TextColor() const { return LNAME##TextData_.color(); } \
   void set##UNAME##TextColor(const CQChartsColor &c) { \
-    CQChartsUtil::testAndSet(LNAME##TextData_.color, c, [&]() { \
-     LNAME##TextDataInvalidate(); } ); \
+    if (c != LNAME##TextData_.color()) { \
+      LNAME##TextData_.setColor(c); LNAME##TextDataInvalidate(); } \
   } \
 \
-  double LNAME##TextAlpha() const { return LNAME##TextData_.alpha; } \
+  double LNAME##TextAlpha() const { return LNAME##TextData_.alpha(); } \
   void set##UNAME##TextAlpha(double a) { \
-    CQChartsUtil::testAndSet(LNAME##TextData_.alpha, a, [&]() { \
-     LNAME##TextDataInvalidate(); } ); \
+    if (a != LNAME##TextData_.alpha()) { \
+      LNAME##TextData_.setAlpha(a); LNAME##TextDataInvalidate(); } \
   } \
 \
   QColor interp##UNAME##TextColor(int i, int n) const { \
     return LNAME##TextDataObj_->charts()->interpColor(LNAME##TextColor(), i, n); \
   } \
 \
-  const QFont &LNAME##TextFont() const { return LNAME##TextData_.font; } \
+  const QFont &LNAME##TextFont() const { return LNAME##TextData_.font(); } \
   void set##UNAME##TextFont(const QFont &f) { \
-    CQChartsUtil::testAndSet(LNAME##TextData_.font, f, [&]() { \
-     LNAME##TextDataInvalidate(); } ); \
+    if (f != LNAME##TextData_.font()) { \
+      LNAME##TextData_.setFont(f); LNAME##TextDataInvalidate(); } \
   } \
 \
-  double LNAME##TextAngle() const { return LNAME##TextData_.angle; } \
+  double LNAME##TextAngle() const { return LNAME##TextData_.angle(); } \
   void set##UNAME##TextAngle(double a) { \
-    CQChartsUtil::testAndSet(LNAME##TextData_.angle, a, [&]() { \
-     LNAME##TextDataInvalidate(); } ); \
+    if (a != LNAME##TextData_.angle()) { \
+      LNAME##TextData_.setAngle(a); LNAME##TextDataInvalidate(); } \
   } \
 \
-  bool is##UNAME##TextContrast() const { return LNAME##TextData_.contrast; } \
+  bool is##UNAME##TextContrast() const { return LNAME##TextData_.isContrast(); } \
   void set##UNAME##TextContrast(bool b) { \
-    CQChartsUtil::testAndSet(LNAME##TextData_.contrast, b, [&]() { \
-     LNAME##TextDataInvalidate(); } ); \
+    if (b != LNAME##TextData_.isContrast()) { \
+      LNAME##TextData_.setContrast(b); LNAME##TextDataInvalidate(); } \
   } \
 \
-  const Qt::Alignment &LNAME##TextAlign() const { return LNAME##TextData_.align; } \
+  const Qt::Alignment &LNAME##TextAlign() const { return LNAME##TextData_.align(); } \
   void set##UNAME##TextAlign(const Qt::Alignment &a) { \
-    CQChartsUtil::testAndSet(LNAME##TextData_.align, a, [&]() { \
-     LNAME##TextDataInvalidate(); } ); \
+    if (a != LNAME##TextData_.align()) { \
+      LNAME##TextData_.setAlign(a); LNAME##TextDataInvalidate(); } \
   } \
 \
-  bool is##UNAME##TextFormatted() const { return LNAME##TextData_.formatted; } \
+  bool is##UNAME##TextFormatted() const { return LNAME##TextData_.isFormatted(); } \
   void set##UNAME##TextFormatted(bool b) { \
-    CQChartsUtil::testAndSet(LNAME##TextData_.formatted, b, [&]() { \
-     LNAME##TextDataInvalidate(); } ); \
+    if (b != LNAME##TextData_.isFormatted()) { \
+      LNAME##TextData_.setFormatted(b); LNAME##TextDataInvalidate(); } \
   } \
 \
-  bool is##UNAME##TextScaled() const { return LNAME##TextData_.scaled; } \
+  bool is##UNAME##TextScaled() const { return LNAME##TextData_.isScaled(); } \
   void set##UNAME##TextScaled(bool b) { \
-    CQChartsUtil::testAndSet(LNAME##TextData_.scaled, b, [&]() { \
-     LNAME##TextDataInvalidate(); } ); \
+    if (b != LNAME##TextData_.isScaled()) { \
+      LNAME##TextData_.setScaled(b); LNAME##TextDataInvalidate(); } \
   } \
 \
-  bool is##UNAME##TextHtml() const { return LNAME##TextData_.html; } \
+  bool is##UNAME##TextHtml() const { return LNAME##TextData_.isHtml(); } \
   void set##UNAME##TextHtml(bool b) { \
-    CQChartsUtil::testAndSet(LNAME##TextData_.html, b, [&]() { \
-     LNAME##TextDataInvalidate(); } ); \
+    if (b != LNAME##TextData_.isHtml()) { \
+      LNAME##TextData_.setHtml(b); LNAME##TextDataInvalidate(); } \
   } \
 \
   void set##UNAME##TextData(const CQChartsTextData &data) { \

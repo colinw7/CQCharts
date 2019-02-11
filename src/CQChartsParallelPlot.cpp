@@ -241,6 +241,9 @@ calcRange() const
   for (int j = 0; j < ns; ++j) {
     CQChartsGeom::Range &range = th->setRanges_[j];
 
+    if (! range.isSet())
+      continue;
+
     if (! isHorizontal()) {
       range.updateRange(   - 0.5, range.ymin());
       range.updateRange(ns - 0.5, range.ymax());
@@ -282,13 +285,15 @@ calcRange() const
 
     const_cast<CQChartsParallelPlot *>(this)->setDataRange(range);
 
-    if (! isHorizontal()) {
-      axis->setRange(range.ymin(), range.ymax());
-      axis->setLabel(name);
-    }
-    else {
-      axis->setRange(range.xmin(), range.xmax());
-      axis->setLabel(name);
+    if (range.isSet()) {
+      if (! isHorizontal()) {
+        axis->setRange(range.ymin(), range.ymax());
+        axis->setLabel(name);
+      }
+      else {
+        axis->setRange(range.xmin(), range.xmax());
+        axis->setLabel(name);
+      }
     }
   }
 
@@ -380,8 +385,12 @@ createObjs(PlotObjs &objs) const
   // TODO: use actual symbol size
   const CQChartsGeom::Range &dataRange = this->dataRange();
 
-  double sw = (dataRange.xmax() - dataRange.xmin())/100.0;
-  double sh = (dataRange.ymax() - dataRange.ymin())/100.0;
+  double sw = 0.01, sh = 0.01;
+
+  if (dataRange.isSet()) {
+    sw = (dataRange.xmax() - dataRange.xmin())/100.0;
+    sh = (dataRange.ymax() - dataRange.ymin())/100.0;
+  }
 
   int n = polys.size();
 
@@ -628,10 +637,12 @@ drawFgAxes(QPainter *painter) const
   //setDataRange(range); // will clear objects
 
     // set display range to set range
-    if (! isHorizontal())
-      displayRange_->setWindowRange(-0.5, dataRange_.ymin(), ns - 0.5, dataRange_.ymax());
-    else
-      displayRange_->setWindowRange(dataRange_.xmin(), -0.5, dataRange_.xmax(), ns - 0.5);
+    if (dataRange_.isSet()) {
+      if (! isHorizontal())
+        displayRange_->setWindowRange(-0.5, dataRange_.ymin(), ns - 0.5, dataRange_.ymax());
+      else
+        displayRange_->setWindowRange(dataRange_.xmin(), -0.5, dataRange_.xmax(), ns - 0.5);
+    }
 
     //---
 
@@ -645,12 +656,14 @@ drawFgAxes(QPainter *painter) const
     // draw set label
     QString label = axis->label();
 
-    double px, py;
+    double px = 0.0, py = 0.0;
 
-    if (! isHorizontal())
-      windowToPixel(j, dataRange_.ymax(), px, py);
-    else
-      windowToPixel(dataRange_.xmax(), j, px, py);
+    if (dataRange_.isSet()) {
+      if (! isHorizontal())
+        windowToPixel(j, dataRange_.ymax(), px, py);
+      else
+        windowToPixel(dataRange_.xmax(), j, px, py);
+    }
 
     double tw = fm.width(label);
     double ta = fm.ascent();
@@ -692,10 +705,12 @@ setObjRange()
   // set display range to data range
   const CQChartsGeom::Range &dataRange = this->dataRange();
 
-  if (! isHorizontal())
-    displayRange_->setWindowRange(dataRange.xmin(), 0, dataRange.xmax(), 1);
-  else
-    displayRange_->setWindowRange(0, dataRange.ymin(), 1, dataRange.ymax());
+  if (dataRange.isSet()) {
+    if (! isHorizontal())
+      displayRange_->setWindowRange(dataRange.xmin(), 0, dataRange.xmax(), 1);
+    else
+      displayRange_->setWindowRange(0, dataRange.ymin(), 1, dataRange.ymax());
+  }
 }
 
 void

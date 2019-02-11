@@ -18,7 +18,15 @@ CQChartsTitle(CQChartsPlot *plot) :
 
   setTextStr("Title");
 
-  textData_.font.setPointSizeF(1.2*textFont().pointSizeF());
+  //---
+
+  QFont f = textData_.font();
+
+  f.setPointSizeF(1.2*textFont().pointSizeF());
+
+  textData_.setFont(f);
+
+  //---
 
   setBorder(false);
   setFilled(false);

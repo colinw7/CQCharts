@@ -5,11 +5,11 @@ process_model -model $model -add -expr "scale(#{Assault})" -header "Assault (Sca
 process_model -model $model -add -expr "scale(#{UrbanPop})" -header "UrbanPop (Scaled)"
 process_model -model $model -add -expr "scale(#{Rape})" -header "Rape (Scaled)"
 
-set scaleModel [subset_model -model $model -left 4 -right 7]
+set scaleModel [create_subset_model -model $model -left 4 -right 7]
 
-set corrModel [correlation_model -model $scaleModel -flip]
+set corrModel [create_correlation_model -model $scaleModel -flip]
 
-set tranposeModel [transpose_model -model $scaleModel]
+set tranposeModel [create_transpose_model -model $scaleModel]
 
 set plot [create_plot -model $corrModel -type image]
 

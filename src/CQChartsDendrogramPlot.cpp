@@ -196,7 +196,8 @@ calcRange() const
 
   CQChartsDendrogram::HierNode *root = dendrogram_->root();
 
-  root->setOpen(true);
+  if (root)
+    root->setOpen(true);
 
   dendrogram_->placeNodes();
 

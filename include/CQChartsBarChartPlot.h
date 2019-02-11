@@ -9,7 +9,9 @@ class CQChartsDataLabel;
 
 //---
 
-// bar chart plot type
+/*!
+ * \brief bar chart plot type
+ */
 class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
  public:
   CQChartsBarChartPlotType();
@@ -37,8 +39,12 @@ class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
 
 class CQChartsBarChartPlot;
 
-// values for bar (normal: 1 value : range bar: multiple values)
-// ToDo: handle range bar in distribution plot
+/*!
+ * brief values for bar
+ *
+ * values for bar (normal: 1 value : range bar: multiple values)
+ * \todo handle range bar in distribution plot
+ */
 class CQChartsBarChartValue {
  public:
   using NameValues = std::map<QString,QString>;
@@ -99,15 +105,17 @@ class CQChartsBarChartValue {
   }
 
  private:
-  ValueInds  valueInds_;
-  QString    valueName_;
-  QString    groupName_;
-  NameValues nameValues_;
+  ValueInds  valueInds_;  //! value indices
+  QString    valueName_;  //! value name
+  QString    groupName_;  //! group name
+  NameValues nameValues_; //! name values
 };
 
 //------
 
-// set of value bars for group
+/*!
+ * \brief set of value bars for group
+ */
 class CQChartsBarChartValueSet {
  public:
   using Values = std::vector<CQChartsBarChartValue>;
@@ -155,15 +163,17 @@ class CQChartsBarChartValueSet {
   }
 
  private:
-  QString name_;            // group name
-  int     ind_      { 0 };  // index
-  int     groupInd_ { -1 }; // group ind
-  Values  values_;          // value bars
+  QString name_;            //! group name
+  int     ind_      { 0 };  //! index
+  int     groupInd_ { -1 }; //! group ind
+  Values  values_;          //! value bars
 };
 
 //------
 
-// bar object
+/*!
+ * \brief bar object
+ */
 class CQChartsBarChartObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -199,22 +209,24 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   const CQChartsBarChartValue *value() const;
 
  private:
-  const CQChartsBarChartPlot* plot_  { nullptr }; // parent plot
-  int                         iset_  { -1 };      // set number
-  int                         nset_  { -1 };      // number of sets
-  int                         ival_  { -1 };      // value number
-  int                         nval_  { -1 };      // number of values
-  int                         isval_ { -1 };      // sub set number
-  int                         nsval_ { -1 };      // number of sub sets
-  QModelIndex                 ind_;               // model index
-  CQChartsColor               color_;             // custom color
+  const CQChartsBarChartPlot* plot_  { nullptr }; //! parent plot
+  int                         iset_  { -1 };      //! set number
+  int                         nset_  { -1 };      //! number of sets
+  int                         ival_  { -1 };      //! value number
+  int                         nval_  { -1 };      //! number of values
+  int                         isval_ { -1 };      //! sub set number
+  int                         nsval_ { -1 };      //! number of sub sets
+  QModelIndex                 ind_;               //! model index
+  CQChartsColor               color_;             //! custom color
 };
 
 //---
 
 #include <CQChartsKey.h>
 
-// key color box
+/*!
+ * \brief key color box
+ */
 class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
@@ -252,11 +264,21 @@ class CQChartsBarKeyText : public CQChartsKeyText {
 
 //---
 
-// bar chart plot
-//  x     : name
-//  y     : value(s)
-//  group : group(s)
-//  bar   : custom color, stacked, percent, range, horizontal, margin, border, fill
+/*!
+ * \brief bar chart plot
+ *
+ * columns:
+ *   + x     : name
+ *   + y     : value(s)
+ *   + group : group(s)
+ *   + bar   : custom color, stacked, percent, range, horizontal, margin, border, fill
+ *
+ * Plot Type
+ *   + \ref CQChartsBarChartPlotType
+ *
+ * Example
+ *   + \image html barchart.png
+ */
 class CQChartsBarChartPlot : public CQChartsBarPlot,
  public CQChartsObjDotPointData<CQChartsBarChartPlot> {
   Q_OBJECT
@@ -443,18 +465,18 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   CQChartsBarChartValueSet *groupValueSet(int groupId);
 
  private:
-  CQChartsColumn     nameColumn_;                          // name column
-  CQChartsColumn     labelColumn_;                         // data label column
-  PlotType           plotType_       { PlotType::NORMAL }; // plot type
-  ValueType          valueType_      { ValueType::VALUE }; // bar value type
-  bool               percent_        { false };            // percent values
-  bool               colorBySet_     { false };            // color bars by set or value
-  bool               dotLines_       { false };            // show dot lines
-  CQChartsLength     dotLineWidth_   { "3px" };            // dot line width
-  CQChartsDataLabel* dataLabel_      { nullptr };          // data label data
-  int                numVisible_     { 0 };                // number of visible bars
-  double             barWidth_       { 1.0 };              // bar width
-  ValueData          valueData_;                           // value data
+  CQChartsColumn     nameColumn_;                          //! name column
+  CQChartsColumn     labelColumn_;                         //! data label column
+  PlotType           plotType_       { PlotType::NORMAL }; //! plot type
+  ValueType          valueType_      { ValueType::VALUE }; //! bar value type
+  bool               percent_        { false };            //! percent values
+  bool               colorBySet_     { false };            //! color bars by set or value
+  bool               dotLines_       { false };            //! show dot lines
+  CQChartsLength     dotLineWidth_   { "3px" };            //! dot line width
+  CQChartsDataLabel* dataLabel_      { nullptr };          //! data label data
+  int                numVisible_     { 0 };                //! number of visible bars
+  double             barWidth_       { 1.0 };              //! bar width
+  ValueData          valueData_;                           //! value data
 };
 
 #endif

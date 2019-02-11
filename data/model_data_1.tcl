@@ -21,7 +21,7 @@ set sd [get_charts_data -model $model -name standard_deviation -column 4]
 echo "standard_deviation 4: $sd"
 
 # summary model
-set model1 [summary_model -model $model -sorted]
+set model1 [create_summary_model -model $model -sorted]
 
 set order [get_charts_data -model $model1 -name property.sortOrder]
 

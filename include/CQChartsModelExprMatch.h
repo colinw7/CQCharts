@@ -7,10 +7,7 @@
 #include <vector>
 
 class CQChartsModelExprMatchFn;
-
-#ifdef CQCharts_USE_TCL
 class CQChartsModelExprTcl;
-#endif
 
 class QAbstractItemModel;
 
@@ -63,9 +60,7 @@ class CQChartsModelExprMatch {
  private:
   void addBuiltinFunctions();
 
-#ifdef CQCharts_USE_TCL
   CQChartsModelExprTcl *qtcl() const { return qtcl_; }
-#endif
 
   void setVar(const QModelIndex &ind);
 
@@ -95,9 +90,7 @@ class CQChartsModelExprMatch {
   using NameColumns = std::map<QString,int>;
 
   QAbstractItemModel*   model_      { nullptr };
-#ifdef CQCharts_USE_TCL
   CQChartsModelExprTcl* qtcl_       { nullptr };
-#endif
   TclCmds               tclCmds_;
   bool                  debug_      { false };
   ColumnNames           columnNames_;

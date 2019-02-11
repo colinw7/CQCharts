@@ -19,6 +19,8 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
+  bool hasTitle() const override { return false; }
+
   bool hasAxes() const override { return false; }
 
   QString description() const override;

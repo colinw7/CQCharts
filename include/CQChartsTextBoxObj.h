@@ -29,38 +29,38 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
 
   //---
 
-  bool isTextVisible() const { return textData_.visible; }
-  void setTextVisible(bool b) { textData_.visible = b; redrawBoxObj(); }
+  bool isTextVisible() const { return textData_.isVisible(); }
+  void setTextVisible(bool b) { textData_.setVisible(b); redrawBoxObj(); }
 
   const QString &textStr() const { return textStr_; }
   void setTextStr(const QString &s) { textStr_ = s; redrawBoxObj(); }
 
-  const QFont &textFont() const { return textData_.font; }
-  void setTextFont(const QFont &f) { textData_.font = f; redrawBoxObj(); }
+  const QFont &textFont() const { return textData_.font(); }
+  void setTextFont(const QFont &f) { textData_.setFont(f); redrawBoxObj(); }
 
-  const CQChartsColor &textColor() const { return textData_.color; }
-  void setTextColor(const CQChartsColor &c) { textData_.color = c; redrawBoxObj(); }
+  const CQChartsColor &textColor() const { return textData_.color(); }
+  void setTextColor(const CQChartsColor &c) { textData_.setColor(c); redrawBoxObj(); }
 
-  double textAlpha() const { return textData_.alpha; }
-  void setTextAlpha(double r) { textData_.alpha = r; redrawBoxObj(); }
+  double textAlpha() const { return textData_.alpha(); }
+  void setTextAlpha(double a) { textData_.setAlpha(a); redrawBoxObj(); }
 
-  double textAngle() const { return textData_.angle; }
-  void setTextAngle(double r) { textData_.angle = r; redrawBoxObj(); }
+  double textAngle() const { return textData_.angle(); }
+  void setTextAngle(double a) { textData_.setAngle(a); redrawBoxObj(); }
 
-  bool isTextContrast() const { return textData_.contrast; }
-  void setTextContrast(bool b) { textData_.contrast = b; redrawBoxObj(); }
+  bool isTextContrast() const { return textData_.isContrast(); }
+  void setTextContrast(bool b) { textData_.setContrast(b); redrawBoxObj(); }
 
-  const Qt::Alignment &textAlign() const { return textData_.align; }
-  void setTextAlign(const Qt::Alignment &a) { textData_.align = a; redrawBoxObj(); }
+  const Qt::Alignment &textAlign() const { return textData_.align(); }
+  void setTextAlign(const Qt::Alignment &a) { textData_.setAlign(a); redrawBoxObj(); }
 
-  bool isTextFormatted() const { return textData_.formatted; }
-  void setTextFormatted(bool b) { textData_.formatted = b; redrawBoxObj(); }
+  bool isTextFormatted() const { return textData_.isFormatted(); }
+  void setTextFormatted(bool b) { textData_.setFormatted(b); redrawBoxObj(); }
 
-  bool isTextScaled() const { return textData_.scaled; }
-  void setTextScaled(bool b) { textData_.scaled = b; redrawBoxObj(); }
+  bool isTextScaled() const { return textData_.isScaled(); }
+  void setTextScaled(bool b) { textData_.setScaled(b); redrawBoxObj(); }
 
-  bool isHtml() const { return textData_.html; }
-  void setHtml(bool b) { textData_.html = b; redrawBoxObj(); }
+  bool isHtml() const { return textData_.isHtml(); }
+  void setHtml(bool b) { textData_.setHtml(b); redrawBoxObj(); }
 
   //---
 
@@ -69,7 +69,8 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
 
   //---
 
-  void setTextFontSize(double s) { textData_.font.setPointSizeF(s); redrawBoxObj(); }
+  void setTextFontSize(double s) {
+    QFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f); redrawBoxObj(); }
 
   QColor interpTextColor(int i, int n) const;
 

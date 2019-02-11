@@ -7,7 +7,9 @@
 
 CQCHARTS_NAMED_SHAPE_DATA(Bar,bar)
 
-// bar plot
+/*!
+ * \brief base class for bar type plots (bar chart and distribution)
+ */
 class CQChartsBarPlot : public CQChartsGroupPlot,
  public CQChartsObjBarShapeData<CQChartsBarPlot> {
   Q_OBJECT
@@ -68,10 +70,10 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   virtual void setHorizontal(bool b);
 
  protected:
-  CQChartsColumns valueColumns_;           // value columns
-  bool            horizontal_   { false }; // horizontal bars
-  CQChartsLength  margin_       { "2px" }; // bar margin
-  CQChartsLength  groupMargin_  { "4px" }; // bar group margin
+  CQChartsColumns valueColumns_;           //! value columns
+  bool            horizontal_   { false }; //! horizontal bars
+  CQChartsLength  margin_       { "2px" }; //! bar margin
+  CQChartsLength  groupMargin_  { "4px" }; //! bar group margin
 };
 
 #endif

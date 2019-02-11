@@ -18,10 +18,57 @@ class CQChartsPlot;
 class CQChartsModelData;
 class CQChartsColumnTypeMgr;
 
+/*!
+ * \mainpage Charts Package
+ *
+ * \section Introduction
+ *
+ *  The charts package allows the display of multiple views of \ref CQChartsView
+ *  in a window \ref CQChartsWindow.
+ *
+ *  The views contains one or more plots of \ref CQChartsPlot and any number of
+ *  view annotations of \ref CQChartsAnnotation and can have a title of \ref CQChartsTitle
+ *  and key of \ref CQChartsViewKey.
+ *
+ *  Each plot has a type of \ref CQChartsPlotType which can be configured using
+ *  parameters of \ref CQChartsPlotParameter and properties using standard QVariant values.
+ *  The plot also can have any number of plot annotations of \ref CQChartsAnnotation.
+ *
+ *  Plots can optionlly have axes of \ref CQChartsAxis, a title of \ref CQChartsTitle
+ *  and key of \ref CQChartsPlotKey.
+ *
+ *  Plot Types are:
+ *   + \ref CQChartsAdjacencyPlot
+ *   + \ref CQChartsBarChartPlot
+ *   + \ref CQChartsBoxPlot
+ *   + \ref CQChartsBubblePlot
+ *   + \ref CQChartsChordPlot
+ *   + \ref CQChartsDelaunayPlot
+ *   + \ref CQChartsDendrogramPlot
+ *   + \ref CQChartsDistributionPlot
+ *   + \ref CQChartsForceDirectedPlot
+ *   + \ref CQChartsGeometryPlot
+ *   + \ref CQChartsHierBubblePlot
+ *   + \ref CQChartsHierScatterPlot
+ *   + \ref CQChartsImagePlot
+ *   + \ref CQChartsParallelPlot
+ *   + \ref CQChartsPiePlot
+ *   + \ref CQChartsRadarPlot
+ *   + \ref CQChartsSankeyPlot
+ *   + \ref CQChartsScatterPlot
+ *   + \ref CQChartsSunburstPlot
+ *   + \ref CQChartsTreeMapPlot
+ *   + \ref CQChartsXYPlot
+ */
+
+/*!
+ * \brief Charts base class
+ */
 class CQCharts : public QObject {
   Q_OBJECT
 
  public:
+  //! charts tcl proc data
   struct ProcData {
     QString name;
     QString args;

@@ -259,21 +259,7 @@ calcRange() const
 
   //---
 
-  if (CMathUtil::isZero(dataRange.xsize())) {
-    double x = dataRange.xmid();
-    double y = dataRange.ymid();
-
-    dataRange.updateRange(x - 1, y);
-    dataRange.updateRange(x + 1, y);
-  }
-
-  if (CMathUtil::isZero(dataRange.ysize())) {
-    double x = dataRange.xmid();
-    double y = dataRange.ymid();
-
-    dataRange.updateRange(x, y - 1);
-    dataRange.updateRange(x, y + 1);
-  }
+  dataRange.makeNonZero();
 
   //---
 

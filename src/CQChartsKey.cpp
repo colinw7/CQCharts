@@ -155,7 +155,7 @@ doLayout()
 
   size_ = QSizeF(pw + 2*margin(), ph + 2*margin()  + (n - 1)*2);
 
-  double pxr, pyr;
+  double pxr = 0.0, pyr = 0.0;
 
   if      (location().onLeft   ()) pxr = px                   + margin();
   else if (location().onHCenter()) pxr = px - size_.width()/2;
@@ -394,11 +394,16 @@ CQChartsPlotKey(CQChartsPlot *plot) :
 
   clearItems();
 
+  //---
+
+  // create scroll bar
   scrollData_.bar = new QScrollBar(Qt::Vertical, plot->view());
 
   scrollData_.bar->hide();
 
   connect(scrollData_.bar, SIGNAL(valueChanged(int)), this, SLOT(scrollSlot(int)));
+
+  scrollData_.width = view()->style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 2;
 }
 
 CQChartsPlotKey::
@@ -752,6 +757,20 @@ doLayout()
   w = std::max(w, tw);
 
   size_ = QSizeF(w, h);
+
+  fullSize_ = size_;
+
+  //---
+
+  if (scrollData_.height.isSet()) {
+    double sw = plot_->pixelToWindowWidth(scrollData_.width);
+    double sh = plot_->lengthPlotHeight(scrollData_.height.length());
+
+    w += sw;
+    h  = sh;
+
+    size_ = QSizeF(w, h);
+  }
 }
 
 QPointF
@@ -1002,14 +1021,12 @@ draw(QPainter *painter) const
   double x = position_.x(); // left
   double y = position_.y(); // top
 
-  double w = size_.width ();
-  double h = size_.height();
+  double w = fullSize_.width ();
+  double h = fullSize_.height();
 
   //---
 
-  double psw = 13.0;
-
-  double sw = plot_->pixelToWindowWidth(psw);
+  double sw = plot_->pixelToWindowWidth(scrollData_.width);
   double sh = h;
 
   if (scrollData_.height.isSet()) {
@@ -1018,8 +1035,6 @@ draw(QPainter *painter) const
     scrollData_.scrolled = (sh < h);
 
     if (scrollData_.scrolled) {
-      psw = 13.0;
-
       double scrollHeight = sh - 2*ym_;
 
       for (int i = 0; i < numRows_; ++i) {
@@ -1075,8 +1090,8 @@ draw(QPainter *painter) const
   if (scrollData_.scrolled) {
     scrollData_.bar->show();
 
-    scrollData_.bar->move(px2 - psw, py2);
-    scrollData_.bar->resize(psw - 1, psh - 1);
+    scrollData_.bar->move(px2 - scrollData_.width - 1, py2);
+    scrollData_.bar->resize(scrollData_.width - 2, psh - 1);
 
     //---
 
@@ -1112,7 +1127,7 @@ draw(QPainter *painter) const
 
     wbbox_ = CQChartsGeom::BBox(x, y - sh, x + w, y);
 
-    painter->setClipRect(QRect(px1, py2, px2 - px1 - psw, psh));
+    painter->setClipRect(QRect(px1, py2, px2 - px1 - scrollData_.width, psh));
   }
   else {
     if (scrollData_.bar)

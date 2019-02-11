@@ -41,9 +41,7 @@
 #include <CUnixFile.h>
 #include <CHRTimer.h>
 
-#ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
-#endif
 
 #include <QApplication>
 #include <QStackedWidget>
@@ -52,32 +50,6 @@
 #include <QAbstractTextDocumentLayout>
 #include <QFont>
 #include <fstream>
-
-//----
-
-namespace {
-
-bool stringToBool(const QString &str, bool *ok) {
-  QString lstr = str.toLower();
-
-  if (lstr == "0" || lstr == "false" || lstr == "no") {
-    *ok = true;
-    return false;
-  }
-
-  if (lstr == "1" || lstr == "true" || lstr == "yes") {
-    *ok = true;
-    return true;
-  }
-
-  *ok = false;
-
-  return false;
-}
-
-}
-
-//----
 
 CQChartsCmds::
 CQChartsCmds(CQCharts *charts) :
@@ -111,10 +83,10 @@ addCommands()
     addCommand("copy_model"            , new CQChartsCopyModelCmd          (this));
 
     // correlation, subset, tranpose
-    addCommand("correlation_model", new CQChartsCorrelationModelCmd(this));
-    addCommand("subset_model"     , new CQChartsSubsetModelCmd     (this));
-    addCommand("transpose_model"  , new CQChartsTransposeModelCmd  (this));
-    addCommand("summary_model"    , new CQChartsSummaryModelCmd    (this));
+    addCommand("create_correlation_model", new CQChartsCorrelationModelCmd(this));
+    addCommand("create_subset_model"     , new CQChartsSubsetModelCmd     (this));
+    addCommand("create_transpose_model"  , new CQChartsTransposeModelCmd  (this));
+    addCommand("create_summary_model"    , new CQChartsSummaryModelCmd    (this));
 
     // export
     addCommand("export_model", new CQChartsExportModelCmd(this));
@@ -159,7 +131,7 @@ addCommands()
     addCommand("connect_charts", new CQChartsConnectChartsCmd(this));
 
     // print, write
-    addCommand("print_charts", new CQChartsPrintChartsCmd(this));
+    addCommand("print_charts"     , new CQChartsPrintChartsCmd(this));
     addCommand("write_charts_data", new CQChartsWriteChartsDataCmd(this));
 
     // dialogs
@@ -209,17 +181,21 @@ loadModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-first_line_header"  , CQChartsCmdArg::Type::Boolean);
   argv.addCmdArg("-first_column_header", CQChartsCmdArg::Type::Boolean);
   argv.addCmdArg("-separator"          , CQChartsCmdArg::Type::String );
+  argv.addCmdArg("-columns"            , CQChartsCmdArg::Type::String );
   argv.addCmdArg("-transpose"          , CQChartsCmdArg::Type::Boolean);
 
-  argv.addCmdArg("-num_rows"   , CQChartsCmdArg::Type::Integer, "number of rows");
+  argv.addCmdArg("-num_rows"   , CQChartsCmdArg::Type::Integer, "number of expression rows");
+  argv.addCmdArg("-max_rows"   , CQChartsCmdArg::Type::Integer, "maximum number of file rows");
   argv.addCmdArg("-filter"     , CQChartsCmdArg::Type::String , "filter expression");
   argv.addCmdArg("-column_type", CQChartsCmdArg::Type::String , "column type");
   argv.addCmdArg("-name"       , CQChartsCmdArg::Type::String , "name for model");
 
   argv.addCmdArg("filename", CQChartsCmdArg::Type::String, "file name");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -247,9 +223,17 @@ loadModelCmd(CQChartsCmdArgs &argv)
 
   inputData.separator = argv.getParseStr("separator");
 
+  QString columnsStr = argv.getParseStr("columns");
+
+  inputData.columns = columnsStr.split(" ", QString::SkipEmptyParts);
+
   inputData.transpose = argv.getParseBool("transpose");
 
-  inputData.numRows = std::max(argv.getParseInt("num_rows"), 1);
+  if (argv.hasParseArg("num_rows"))
+    inputData.numRows = std::max(argv.getParseInt("num_rows"), 1);
+
+  if (argv.hasParseArg("max_rows"))
+    inputData.maxRows = std::max(argv.getParseInt("max_rows"), 1);
 
   inputData.filter = argv.getParseStr("filter");
 
@@ -2088,7 +2072,7 @@ filterModelCmd(CQChartsCmdArgs &argv)
     modelFilter->setSimpleFilter(expr);
   else if (type == "selected")
     modelFilter->setSelectionFilter(false);
-  else if (type == "non-selected")
+  else if (type == "non-selected" || type == "non_selected")
     modelFilter->setSelectionFilter(true);
   else if (type == "?") {
     QStringList names = QStringList() <<
@@ -2272,7 +2256,9 @@ summaryModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-sorted"     , CQChartsCmdArg::Type::Boolean, "sorted rows");
   argv.addCmdArg("-sort_column", CQChartsCmdArg::Type::Integer, "sorted column");
   argv.addCmdArg("-sort_role"  , CQChartsCmdArg::Type::Integer, "sorted role");
-  argv.addCmdArg("-sort_order" , CQChartsCmdArg::Type::String , "sorted order");
+  argv.addCmdArg("-sort_order" , CQChartsCmdArg::Type::Enum   , "sorted order").
+   addNameValue("ascending" , Qt::AscendingOrder ).
+   addNameValue("descending", Qt::DescendingOrder);
   argv.addCmdArg("-paged"      , CQChartsCmdArg::Type::Boolean, "paged");
   argv.addCmdArg("-page_size"  , CQChartsCmdArg::Type::Integer, "page size");
   argv.addCmdArg("-page_number", CQChartsCmdArg::Type::Integer, "page number");
@@ -2316,16 +2302,7 @@ summaryModelCmd(CQChartsCmdArgs &argv)
     summaryModel->setSortRole(argv.getParseInt("sort_role", summaryModel->sortRole()));
 
   if (argv.hasParseArg("sort_order")) {
-    auto stringToSortOrder = [](const QString &str, bool &ok) {
-      if (str == "ascending" ) { ok = true; return Qt::AscendingOrder ; }
-      if (str == "descending") { ok = true; return Qt::DescendingOrder; }
-
-      ok = false; return Qt::DescendingOrder;
-    };
-
-    bool ok;
-
-    Qt::SortOrder order = stringToSortOrder(argv.getParseStr("sort_order"), ok);
+    Qt::SortOrder order = (Qt::SortOrder) argv.getParseInt("sort_order");
 
     summaryModel->setSortOrder(order);
   }
@@ -2481,6 +2458,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // model data
   if      (argv.hasParseArg("model")) {
     int modelInd = argv.getParseInt("model", -1);
 
@@ -2501,7 +2479,6 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     CQChartsRow row = argv.getParseRow("row");
 
     if (argv.hasParseArg("ind")) {
-#ifdef CQCharts_USE_TCL
       int irow, icol;
 
       if (! CQTclUtil::stringToModelIndex(argv.getParseStr("ind"), irow, icol)) {
@@ -2511,10 +2488,6 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       row    = irow;
       column = icol;
-#else
-      row    = 0;
-      column = 0;
-#endif
     }
 
     //---
@@ -2799,6 +2772,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return false;
     }
   }
+  // view data
   else if (argv.hasParseArg("view")) {
     QString viewName = argv.getParseStr("view");
 
@@ -2874,6 +2848,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return false;
     }
   }
+  // type data
   else if (argv.hasParseArg("type")) {
     QString typeName = argv.getParseStr("type");
 
@@ -2947,6 +2922,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return false;
     }
   }
+  // plot data
   else if (argv.hasParseArg("plot")) {
     QString plotName = argv.getParseStr("plot");
 
@@ -3118,6 +3094,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       return false;
     }
   }
+  // global charts data
   else {
     if      (name == "models") {
       QVariantList vars;
@@ -3347,7 +3324,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
     if      (name == "updates_enabled") {
       bool ok;
 
-      bool b = stringToBool(value, &ok);
+      bool b = CQChartsCmdBaseArgs::stringToBool(value, &ok);
 
       plot->setUpdatesEnabled(b);
 
@@ -3911,13 +3888,13 @@ createTextAnnotationCmd(CQChartsCmdArgs &argv)
 
   QString text = argv.getParseStr("text", "Annotation");
 
-  textData.font     = argv.getParseFont ("font"    , textData.font    );
-  textData.color    = argv.getParseColor("color"   , textData.color   );
-  textData.alpha    = argv.getParseReal ("alpha"   , textData.alpha   );
-  textData.angle    = argv.getParseReal ("angle"   , textData.angle   );
-  textData.contrast = argv.getParseBool ("contrast", textData.contrast);
-  textData.align    = argv.getParseAlign("align"   , textData.align   );
-  textData.html     = argv.getParseBool ("html"    , textData.html    );
+  textData.setFont    (argv.getParseFont ("font"    , textData.font      ()));
+  textData.setColor   (argv.getParseColor("color"   , textData.color     ()));
+  textData.setAlpha   (argv.getParseReal ("alpha"   , textData.alpha     ()));
+  textData.setAngle   (argv.getParseReal ("angle"   , textData.angle     ()));
+  textData.setContrast(argv.getParseBool ("contrast", textData.isContrast()));
+  textData.setAlign   (argv.getParseAlign("align"   , textData.align     ()));
+  textData.setHtml    (argv.getParseBool ("html"    , textData.isHtml    ()));
 
   background.setVisible(argv.getParseBool ("background"        , background.isVisible()));
   background.setColor  (argv.getParseColor("background_color"  , background.color    ()));
@@ -4976,7 +4953,7 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
       else if (parameter->type() == CQChartsPlotParameter::Type::BOOLEAN) {
         bool ok;
 
-        bool b = stringToBool(value, &ok);
+        bool b = CQChartsCmdBaseArgs::stringToBool(value, &ok);
 
         if (! ok) {
           charts_->errorMsg("Invalid boolean value '" + value + "' for '" +
@@ -5258,9 +5235,7 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
 {
   CQChartsLoader loader(charts_);
 
-#ifdef CQCharts_USE_TCL
   loader.setQtcl(cmdBase_->qtcl());
-#endif
 
   return loader.loadFile(filename, type, inputData, hierarchical);
 }

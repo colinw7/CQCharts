@@ -1,17 +1,21 @@
 # CQCharts
 
+## Introduction
+
 CQCharts is a Qt based charting library to support the display of an interactive
-chart from a 'QAbstractItemModel' data model with support for cross selection using
-the 'QItemSelectionModel' selection model.
+chart from a data model (QAbstractItemModel) with support for cross selection using
+the data model's selection model (QItemSelectionModel).
 
 Charts are live in that changes to the data model automatically update
-the chart which allows the programmer to build interactive charts where
-the user can select items from the model using a table/tree view and/or
+the chart. This allows the programmer to build interactive charts where
+the user can select items from the model using a table or tree view and/or
 the displayed chart data.
 
 The library comes with a test program which supports scripting of charts using the
 'tcl' programming language. A number of example plot scripts are available in the
 data directory.
+
+## Chart Types
 
 Chart types supported 
   + Adjacency
@@ -74,7 +78,7 @@ Chart types supported
     ![xychart](xychart.png "XY Multi Line")
     ![goal_scorers](goal_scorers.png "XY Grouped")
 
-## Adjacency
+### Adjacency
 
 Uses table cell coloring to show number of connections between two items.
 
@@ -95,7 +99,7 @@ Input data model can contain either node data (name, id, group) and a list of
 connections (id, count) [old format] or a '/' separated connection data
 (from name/to name, value, count).
 
-## BarChart
+### BarChart
 
 1d bar chart for column value or values.
 
@@ -106,7 +110,7 @@ Custom bar colors and data labels can be provided in additional columns.
 Bars can be stacked next to each other or on top of each other and can be
 drawn vertically (default) or horizontally.
 
-## Box
+### Box
 
 Box plot of aggregated values from value and group columns.
 
@@ -117,13 +121,13 @@ Data can also be additional grouped by an extra column.
 Values can be displayed as a candlestick bar or connected into a single
 solid bar of the value range.
 
-## Bubble
+### Bubble
 
 Bubble plot where circle is size of column value.
 
 Circles are packed in minimum enclosing circle.
 
-## Chord
+### Chord
 
 Circlular connectivity chart.
 
@@ -131,50 +135,50 @@ Input data model can contain either node data (name, id, group) and a list of
 connections (id, count) (old format) or '/' separated connection data
 (from name/to name, value, count).
 
-## Delaunay
+### Delaunay
 
 Delaunay/Voronoi geometric connectivity chart
 
-## Distribution
+### Distribution
 Distribution count of range based values
 
-## ForceDirected
+### ForceDirected
 Force directed connectivity chart
 
-## Geometry
+### Geometry
 General polygon geometry colored by value
 
-## HierBubble
+### HierBubble
 
 Hierarchical bubble plot where circle is size of column value.
 
 Hierarchical circles are packed in minimum enclosing circle.
 
-## Image
+### Image
 Image plot (x, y, color)
 
-## Parallel
+### Parallel
 Parallel lines plots multiple overlaid value sets
 
-## Pie
+### Pie
 Pie chart
 
-## Radar
+### Radar
 Radar (polygon pie chart)
 
-## Sankey
+### Sankey
 Sankey plot of connected values
 
-## Scatter
+### Scatter
 Scatter plot of disparate values
 
-## Sunburst
+### Sunburst
 Hierarchical pie chart plot
 
-## TreeMap
+### TreeMap
 Hierarchical tree map
 
-## XY
+### XY
 Plot of x,y values. x values should be monotonic.
 
 Multiple y columns can be supplied to produce multi line plot.
@@ -182,3 +186,18 @@ Multiple y columns can be supplied to produce multi line plot.
 Binariate plot using two y columns.
 
 Display of connecing lines and individual points can be customized.
+
+## Parameter and Properties
+
+Each plot type has a set of parameters which allow the major plot controls to be configured.
+
+The plot also support properties for fine tuning the plot display.
+
+The parameter and properties use Qt variants (QVariant)  and are displayed in a
+property view tree which can be displayed at the side of the plot.
+
+## Data Model
+
+The data model can be viewed in a table or tree view in the plot and can be
+sorted and filtered to update the plot.
+

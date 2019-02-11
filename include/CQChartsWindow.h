@@ -38,6 +38,9 @@ class CQChartsWindowMgr {
 
 //---
 
+/*!
+ * \brief Widget to hold view and associated controls
+ */
 class CQChartsWindow : public QFrame {
   Q_OBJECT
 
@@ -108,20 +111,20 @@ class CQChartsWindow : public QFrame {
   void propertyItemSelected(QObject *obj, const QString &path);
 
  private:
-  CQChartsView*              view_         { nullptr }; // parent view
-  bool                       xRangeMap_    { false };   // xrange map
-  bool                       yRangeMap_    { false };   // xrange map
-  bool                       dataTable_    { true };    // data table
-  bool                       viewSettings_ { true };    // view settings
-  CQChartsWindowRangeScroll* xrangeScroll_ { nullptr }; // xrange scoll
-  CQChartsWindowRangeScroll* yrangeScroll_ { nullptr }; // yrange scoll
-  CQChartsViewSettings*      settings_     { nullptr }; // settings widget
-  QFrame*                    tableFrame_   { nullptr }; // table frame
-  QStackedWidget*            viewStack_    { nullptr }; // view stack
-  CQChartsFilterEdit*        filterEdit_   { nullptr }; // filter edit
-  CQChartsModelView*         modelView_    { nullptr }; // model view
-  CQChartsViewToolBar*       toolbar_      { nullptr }; // toolbar
-  CQChartsViewStatus*        status_       { nullptr }; // status
+  CQChartsView*              view_         { nullptr }; //! parent view
+  bool                       xRangeMap_    { false };   //! xrange map
+  bool                       yRangeMap_    { false };   //! xrange map
+  bool                       dataTable_    { true };    //! data table
+  bool                       viewSettings_ { true };    //! view settings
+  CQChartsWindowRangeScroll* xrangeScroll_ { nullptr }; //! xrange scoll
+  CQChartsWindowRangeScroll* yrangeScroll_ { nullptr }; //! yrange scoll
+  CQChartsViewSettings*      settings_     { nullptr }; //! settings widget
+  QFrame*                    tableFrame_   { nullptr }; //! table frame
+  QStackedWidget*            viewStack_    { nullptr }; //! view stack
+  CQChartsFilterEdit*        filterEdit_   { nullptr }; //! filter edit
+  CQChartsModelView*         modelView_    { nullptr }; //! model view
+  CQChartsViewToolBar*       toolbar_      { nullptr }; //! toolbar
+  CQChartsViewStatus*        status_       { nullptr }; //! status
 };
 
 //-----

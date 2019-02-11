@@ -1,9 +1,7 @@
 #include <CQChartsGradientPalette.h>
 #include <CQChartsUtil.h>
 
-#ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
-#endif
 
 #include <COSNaN.h>
 
@@ -68,14 +66,11 @@ CQChartsGradientPalette(const CQChartsGradientPalette &palette)
 CQChartsGradientPalette::
 ~CQChartsGradientPalette()
 {
-#ifdef CQCharts_USE_TCL
   delete qtcl_;
-#endif
 }
 
 //---
 
-#ifdef CQCharts_USE_TCL
 CQTcl *
 CQChartsGradientPalette::
 qtcl() const
@@ -90,7 +85,6 @@ qtcl() const
 
   return qtcl_;
 }
-#endif
 
 //---
 
@@ -285,7 +279,6 @@ getColor(double x, bool scale) const
   else if (colorType() == ColorType::FUNCTIONS) {
     double r = 0.0, g = 0.0, b = 0.0;
 
-#ifdef CQCharts_USE_TCL
     CQTcl *qtcl = this->qtcl();
 
     qtcl->createVar("gray", x);
@@ -300,7 +293,6 @@ getColor(double x, bool scale) const
 
     if (qtcl->evalExpr(bf_.fn.c_str(), res))
       b = res.toDouble();
-#endif
 
     //---
 

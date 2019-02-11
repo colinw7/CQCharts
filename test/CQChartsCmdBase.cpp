@@ -2,10 +2,7 @@
 #include <CQChartsInput.h>
 #include <CQPerfMonitor.h>
 #include <CQUtil.h>
-
-#ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
-#endif
 
 #include <QApplication>
 
@@ -19,7 +16,6 @@ errorMsg(const QString &msg)
 
 }
 
-#ifdef CQCharts_USE_TCL
 class CQChartsTclCmd {
  public:
   using Vars = std::vector<QVariant>;
@@ -53,24 +49,19 @@ class CQChartsTclCmd {
   QString          name_;
   Tcl_Command      cmdId_ { nullptr };
 };
-#endif
 
 //----
 
 CQChartsCmdBase::
 CQChartsCmdBase()
 {
-#ifdef CQCharts_USE_TCL
   qtcl_ = new CQTcl();
-#endif
 }
 
 CQChartsCmdBase::
 ~CQChartsCmdBase()
 {
-#ifdef CQCharts_USE_TCL
   delete qtcl_;
-#endif
 }
 
 void
@@ -90,9 +81,9 @@ addCommands()
 
     addCommand("perf", new CQChartsBasePerfCmd(this));
 
-#ifdef CQCharts_USE_TCL
     qtcl()->createAlias("echo", "puts");
-#endif
+
+    addCommand("assert", new CQChartsBaseAssertCmd(this));
 
     addCommand("sh", new CQChartsBaseShellCmd(this));
 
@@ -108,13 +99,9 @@ addCommand(const QString &name, CQChartsCmdProc *proc)
 {
   proc->setName(name);
 
-#ifdef CQCharts_USE_TCL
   CQChartsTclCmd *tclCmd = new CQChartsTclCmd(this, name);
 
   proc->setTclCmd(tclCmd);
-#else
-  assert(false);
-#endif
 
   commandNames_.push_back(name);
 
@@ -278,6 +265,32 @@ perfCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmdBase::
+assertCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmdBase::assertCmd");
+
+  if (! argv.parse())
+    return false;
+
+  //---
+
+  const Vars &pargs = argv.getParseArgs();
+
+  QString expr = (! pargs.empty() ? pargs[0].toString() : "");
+
+  QString expr1 = QString("expr {%1}").arg(expr);
+
+  int rc = qtcl()->eval(expr1, /*showError*/true, /*showResult*/false);
+
+  //---
+
+  return (rc == TCL_OK);
+}
+
+//------
+
+bool
+CQChartsCmdBase::
 shellCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmdBase::shellCmd");
@@ -287,9 +300,9 @@ shellCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  const Vars &shArgs = argv.getParseArgs();
+  const Vars &pargs = argv.getParseArgs();
 
-  QString cmd = (! shArgs.empty() ? shArgs[0].toString() : "");
+  QString cmd = (! pargs.empty() ? pargs[0].toString() : "");
 
   //---
 
@@ -336,68 +349,42 @@ void
 CQChartsCmdBase::
 setCmdRc(int rc)
 {
-#ifdef CQCharts_USE_TCL
   qtcl()->setResult(rc);
-#else
-  std::cerr << rc << "\n";
-#endif
 }
 
 void
 CQChartsCmdBase::
 setCmdRc(double rc)
 {
-#ifdef CQCharts_USE_TCL
   qtcl()->setResult(rc);
-#else
-  std::cerr << rc << "\n";
-#endif
 }
 
 void
 CQChartsCmdBase::
 setCmdRc(const QString &rc)
 {
-#ifdef CQCharts_USE_TCL
   qtcl()->setResult(rc);
-#else
-  std::cerr << rc.toStdString() << "\n";
-#endif
 }
 
 void
 CQChartsCmdBase::
 setCmdRc(const QVariant &rc)
 {
-#ifdef CQCharts_USE_TCL
   qtcl()->setResult(rc);
-#else
-  std::cerr << rc.toString().toStdString() << "\n";
-#endif
 }
 
 void
 CQChartsCmdBase::
 setCmdRc(const QStringList &rc)
 {
-#ifdef CQCharts_USE_TCL
   qtcl()->setResult(rc);
-#else
-  for (int i = 0; i < rc.length(); ++i)
-    std::cerr << rc[i].toStdString() << "\n";
-#endif
 }
 
 void
 CQChartsCmdBase::
 setCmdRc(const QVariantList &rc)
 {
-#ifdef CQCharts_USE_TCL
   qtcl()->setResult(rc);
-#else
-  for (int i = 0; i < rc.length(); ++i)
-    std::cerr << rc[i].toString().toStdString() << "\n";
-#endif
 }
 
 void
@@ -468,15 +455,8 @@ void
 CQChartsCmdBase::
 parseLine(const QString &line, bool log)
 {
-#ifdef CQCharts_USE_TCL
   int rc = qtcl()->eval(line, /*showError*/true, /*showResult*/log);
 
   if (rc != TCL_OK)
     errorMsg("Invalid line: '" + line + "'");
-#else
-  if (log)
-    errorMsg("No eval");
-
-  errorMsg("Invalid line: '" + line + "'");
-#endif
 }

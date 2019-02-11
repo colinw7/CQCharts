@@ -136,6 +136,7 @@ class CQChartsKey : public CQChartsBoxObj,
   struct ScrollData {
     bool              scrolled { false };   // scrolled
     int               pos      { 0 };       // scroll position
+    double            width    { 13 };      // scroll width
     CQChartsOptLength height;               // scroll height
     QScrollBar*       bar      { nullptr }; // scroll bar
   };
@@ -360,7 +361,8 @@ class CQChartsPlotKey : public CQChartsKey {
   int                        maxCol_        { 0 };       // maximum key column
   bool                       needsLayout_   { false };   // needs layout
   QPointF                    position_      { 0, 0 };    // explicit position
-  QSizeF                     size_;                      // size
+  QSizeF                     size_;                      // size (scrolled)
+  QSizeF                     fullSize_;                  // full size (no scrolled)
   int                        numRows_       { 0 };       // number of rows
   int                        numCols_       { 0 };       // number of columns
   CQChartsEditHandles*       editHandles_   { nullptr }; // edit handles

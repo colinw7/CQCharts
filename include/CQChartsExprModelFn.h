@@ -5,11 +5,9 @@
 
 class CQChartsExprModel;
 
-#ifdef CQCharts_USE_TCL
 class CQTcl;
 
 #include <tcl.h>
-#endif
 
 class CQChartsExprModelFn {
  public:
@@ -20,11 +18,9 @@ class CQChartsExprModelFn {
 
   virtual ~CQChartsExprModelFn() { }
 
-#ifdef CQCharts_USE_TCL
   CQTcl *qtcl() const { return qtcl_; }
 
   static int commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
-#endif
 
   QVariant exec(const Values &values);
 
@@ -35,10 +31,8 @@ class CQChartsExprModelFn {
  protected:
   CQChartsExprModel* model_ { nullptr };
   QString            name_;
-#ifdef CQCharts_USE_TCL
   CQTcl*             qtcl_  { nullptr };
   Tcl_Command        cmdId_ { nullptr };
-#endif
 };
 
 #endif

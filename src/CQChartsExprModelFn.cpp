@@ -6,16 +6,13 @@ CQChartsExprModelFn::
 CQChartsExprModelFn(CQChartsExprModel *model, const QString &name) :
  model_(model), name_(name)
 {
-#ifdef CQCharts_USE_TCL
   qtcl_ = model->qtcl();
 
   cmdId_ = qtcl()->createExprCommand(name_,
              (CQTcl::ObjCmdProc) &CQChartsExprModelFn::commandProc,
              (CQTcl::ObjCmdData) this);
-#endif
 }
 
-#ifdef CQCharts_USE_TCL
 int
 CQChartsExprModelFn::
 commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
@@ -36,17 +33,12 @@ commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
 
   return TCL_OK;
 }
-#endif
 
 QVariant
 CQChartsExprModelFn::
 exec(const Values &values)
 {
-#ifdef CQCharts_USE_TCL
   return model_->processCmd(name_, values);
-#else
-  return QVariant();
-#endif
 }
 
 bool

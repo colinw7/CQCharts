@@ -9,9 +9,7 @@
 #include <CQChartsRand.h>
 #include <CQCharts.h>
 #include <CQDataModel.h>
-#ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
-#endif
 #include <CQPerfMonitor.h>
 
 #include <COSNaN.h>
@@ -20,7 +18,6 @@
 
 //------
 
-#ifdef CQCharts_USE_TCL
 class CQChartsExprTcl : public CQTcl {
  public:
   CQChartsExprTcl(CQChartsExprModel *model) :
@@ -40,7 +37,6 @@ class CQChartsExprTcl : public CQTcl {
   CQChartsExprModel *model_ { nullptr };
   int                row_   { -1 };
 };
-#endif
 
 //------
 
@@ -50,9 +46,7 @@ CQChartsExprModel(CQCharts *charts, CQChartsModelFilter *filter, QAbstractItemMo
 {
   setObjectName("exprModel");
 
-#ifdef CQCharts_USE_TCL
   qtcl_ = new CQChartsExprTcl(this);
-#endif
 
   addBuiltinFunctions();
 
@@ -62,12 +56,10 @@ CQChartsExprModel(CQCharts *charts, CQChartsModelFilter *filter, QAbstractItemMo
 CQChartsExprModel::
 ~CQChartsExprModel()
 {
-#ifdef CQCharts_USE_TCL
   for (auto &tclCmd : tclCmds_)
     delete tclCmd;
 
   delete qtcl_;
-#endif
 
   for (auto &extraColumn : extraColumns_)
     delete extraColumn;
@@ -77,10 +69,8 @@ void
 CQChartsExprModel::
 addBuiltinFunctions()
 {
-#ifdef CQCharts_USE_TCL
   qtcl_->createVar("pi" , QVariant(M_PI));
   qtcl_->createVar("NaN", QVariant(COSNaN::get_nan()));
-#endif
 
   addFunction("column"   );
   addFunction("row"      );
@@ -119,11 +109,9 @@ addFunction(const QString &name)
 {
   assert(name.length());
 
-#ifdef CQCharts_USE_TCL
   CQChartsExprModelFn *fn = new CQChartsExprModelFn(this, name);
 
   tclCmds_.push_back(fn);
-#endif
 }
 
 bool
@@ -2023,7 +2011,6 @@ evaluateExpression(const QString &expr, QVariant &var) const
   if (expr.length() == 0)
     return false;
 
-#ifdef CQCharts_USE_TCL
   qtcl_->setRow(currentRow_);
 
   int rc = qtcl_->evalExpr(expr);
@@ -2043,16 +2030,12 @@ evaluateExpression(const QString &expr, QVariant &var) const
   }
 
   return getTclResult(var);
-#else
-  return false;
-#endif
 }
 
 void
 CQChartsExprModel::
 setVar(const QString &name, int row)
 {
-#ifdef CQCharts_USE_TCL
   auto p = nameColumns_.find(name);
 
   if (p == nameColumns_.end())
@@ -2065,7 +2048,6 @@ setVar(const QString &name, int row)
 
   // store value in column variable
   qtcl_->createVar(name, var);
-#endif
 }
 
 bool
@@ -2091,20 +2073,16 @@ bool
 CQChartsExprModel::
 setTclResult(const QVariant &rc)
 {
-#ifdef CQCharts_USE_TCL
   qtcl_->setResult(rc);
   return true;
-#endif
 }
 
 bool
 CQChartsExprModel::
 getTclResult(QVariant &var) const
 {
-#ifdef CQCharts_USE_TCL
   var = qtcl_->getResult();
   return true;
-#endif
 }
 
 QString

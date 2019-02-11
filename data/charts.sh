@@ -2,7 +2,7 @@
 
 set args      = ()
 set opts      = ()
-set debug     = 0
+set dbx       = 0
 set valgrind  = 0
 set helgrind  = 0
 set git       = 0
@@ -13,7 +13,7 @@ set data_args = ()
 
 while ($#argv > 0)
   if      ("$1" == "-dbx") then
-    set debug = 1
+    set dbx = 1
     shift
   else if ("$1" == "-valgrind") then
     set valgrind = 1
@@ -29,6 +29,9 @@ while ($#argv > 0)
     shift
   else if ("$1" == "-loop") then
     set opts = ($opts -loop)
+    shift
+  else if ("$1" == "-debug") then
+    setenv CQ_CHARTS_DEBUG 1
     shift
   else if ("$1" == "-timer" || "$1" == "-perf_debug") then
     setenv HRTIMER_ACTIVE 1
@@ -99,7 +102,7 @@ if ($save == 1) then
   set exe = /home/colinw/bin/CQChartsSaveTest
 endif
 
-if      ($debug == 1) then
+if      ($dbx == 1) then
   echo "Dbx $exe $exec_args $csv_args $tsv_args $data_args $opts"
 
   Dbx $exe $exec_args $csv_args $tsv_args $data_args $opts

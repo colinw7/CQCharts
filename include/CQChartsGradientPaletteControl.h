@@ -20,7 +20,9 @@ class QCheckBox;
 class QLabel;
 class QGridLayout;
 
-// Controls for CQChartsGradientPalette customization
+/*!
+ * \brief Controls for CQChartsGradientPalette customization
+ */
 class CQChartsGradientPaletteControl : public QFrame {
   Q_OBJECT
 
@@ -39,21 +41,31 @@ class CQChartsGradientPaletteControl : public QFrame {
   CQChartsGradientPalette::ColorModel colorModel() const;
   void setColorModel(CQChartsGradientPalette::ColorModel colorModel);
 
+  //! get/set distinct
+  bool isDistinct() const;
+  void setDistinct(bool b);
+
+  //! get/set red model
   int redModel() const;
   void setRedModel(int mode);
 
+  //! get/set green model
   int greenModel() const;
   void setGreenModel(int mode);
 
+  //! get/set blue model
   int blueModel() const;
   void setBlueModel(int mode);
 
+  //! get/set red function
   std::string redFunction() const;
   void setRedFunction(const std::string &fn);
 
+  //! get/set green function
   std::string greenFunction() const;
   void setGreenFunction(const std::string &fn);
 
+  //! get/set blue function
   std::string blueFunction() const;
   void setBlueFunction(const std::string &fn);
 
@@ -77,6 +89,8 @@ class CQChartsGradientPaletteControl : public QFrame {
  private slots:
   void colorTypeChanged(int);
   void colorModelChanged(int);
+
+  void distinctChanged(int);
 
   void modelChanged(int);
 
@@ -120,6 +134,7 @@ class CQChartsGradientPaletteControl : public QFrame {
   CQChartsGradientPaletteCanvas*        palette_             { nullptr };
   CQChartsGradientPaletteColorType*     colorType_           { nullptr };
   CQChartsGradientPaletteColorModel*    colorModel_          { nullptr };
+  QCheckBox*                            distinctCheck_       { nullptr };
   QStackedWidget*                       stack_               { nullptr };
   QLabel*                               redModelLabel_       { nullptr };
   CQChartsGradientPaletteModel*         redModelCombo_       { nullptr };

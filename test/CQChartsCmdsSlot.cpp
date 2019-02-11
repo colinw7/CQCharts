@@ -3,9 +3,7 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 
-#ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
-#endif
 
 CQChartsCmdsSlot::
 CQChartsCmdsSlot(CQChartsCmds *cmds, CQChartsView *view, CQChartsPlot *plot,
@@ -18,26 +16,18 @@ void
 CQChartsCmdsSlot::
 objIdPressed(const QString &id)
 {
-#ifdef CQCharts_USE_TCL
   QString cmd = getTclIdCmd(id);
 
   cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
-#else
-  std::cerr << "objIdPressed: " << id.toStdString() << "\n";
-#endif
 }
 
 void
 CQChartsCmdsSlot::
 annotationIdPressed(const QString &id)
 {
-#ifdef CQCharts_USE_TCL
   QString cmd = getTclIdCmd(id);
 
   cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
-#else
-  std::cerr << "annotationIdPressed: " << id.toStdString() << "\n";
-#endif
 }
 
 void
@@ -47,13 +37,9 @@ plotObjsAdded()
   disconnect(plot_, SIGNAL(plotObjsAdded()),
              this, SLOT(plotObjsAdded()));
 
-#ifdef CQCharts_USE_TCL
   QString cmd = getTclCmd();
 
   cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
-#else
-  std::cerr << "plotObjsAdded\n";
-#endif
 
   connect(plot_, SIGNAL(plotObjsAdded()),
           this, SLOT(plotObjsAdded()));

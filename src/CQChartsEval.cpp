@@ -17,41 +17,31 @@ instance()
 CQChartsEval::
 CQChartsEval()
 {
-#ifdef CQCharts_USE_TCL
   qtcl_ = new CQTcl;
 
   addFunc("color", (CQTcl::ObjCmdProc) &CQChartsEval::colorCmd);
-#endif
 }
 
 CQChartsEval::
 ~CQChartsEval()
 {
-#ifdef CQCharts_USE_TCL
   delete qtcl_;
-#endif
 }
 
 bool
 CQChartsEval::
 evalExpr(int row, const QString &exprStr, QVariant &var)
 {
-#ifdef CQCharts_USE_TCL
   qtcl()->createVar("x", row);
 
   return qtcl()->evalExpr(exprStr, var);
-#else
-  return false;
-#endif
 }
 
 void
 CQChartsEval::
 addFunc(const QString &name, CQTcl::ObjCmdProc proc)
 {
-#ifdef CQCharts_USE_TCL
   qtcl_->createExprCommand(name, proc, (CQTcl::ObjCmdData) this);
-#endif
 }
 
 int

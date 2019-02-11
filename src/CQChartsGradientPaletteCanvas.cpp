@@ -4,6 +4,8 @@
 
 #include <QLabel>
 #include <QMouseEvent>
+#include <QMenu>
+#include <QAction>
 #include <QPainter>
 
 namespace Util {
@@ -87,61 +89,12 @@ void
 CQChartsGradientPaletteCanvas::
 mousePressEvent(QMouseEvent *me)
 {
-  mouseData_.pressed  = true;
-  mouseData_.pressPos = pixelToWindow(me->pos());
-  mouseData_.movePos  = mouseData_.pressPos;
+  if (me->button() == Qt::LeftButton) {
+    mouseData_.pressed  = true;
+    mouseData_.pressPos = pixelToWindow(me->pos());
+    mouseData_.movePos  = mouseData_.pressPos;
 
-  if (gradientPalette()->colorType() == CQChartsGradientPalette::ColorType::DEFINED) {
-    NearestColor nearestColor;
-
-    nearestDefinedColor(mouseData_.movePos, nearestColor);
-
-    if (nearestColor.i != nearestColor_.i || nearestColor.c != nearestColor_.c) {
-      nearestColor_ = nearestColor;
-
-      update();
-    }
-  }
-}
-
-void
-CQChartsGradientPaletteCanvas::
-mouseMoveEvent(QMouseEvent *me)
-{
-  mouseData_.movePos = pixelToWindow(me->pos());
-
-  //---
-
-  if (mouseData_.movePos.x() >= 0.0 && mouseData_.movePos.x() <= 1.0) {
-    QColor bg = gradientPalette()->getColor(mouseData_.movePos.x());
-    QColor fg = CQChartsUtil::bwColor(bg);
-
-    tipText_->setText(QString("%1,%2").arg(mouseData_.movePos.x()).arg(mouseData_.movePos.y()));
-
-    QPalette palette = tipText_->palette();
-
-    palette.setColor(tipText_->backgroundRole(), bg);
-    palette.setColor(tipText_->foregroundRole(), fg);
-
-    tipText_->setPalette(palette);
-
-    showTipText();
-  }
-  else {
-    hideTipText();
-  }
-
-  //---
-
-  if (gradientPalette()->colorType() == CQChartsGradientPalette::ColorType::DEFINED) {
-    if (mouseData_.pressed) {
-      double dy = mouseData_.movePos.y() - mouseData_.pressPos.y();
-
-      moveNearestDefinedColor(nearestColor_, dy);
-
-      update();
-    }
-    else {
+    if (gradientPalette()->colorType() == CQChartsGradientPalette::ColorType::DEFINED) {
       NearestColor nearestColor;
 
       nearestDefinedColor(mouseData_.movePos, nearestColor);
@@ -157,9 +110,131 @@ mouseMoveEvent(QMouseEvent *me)
 
 void
 CQChartsGradientPaletteCanvas::
-mouseReleaseEvent(QMouseEvent *)
+mouseMoveEvent(QMouseEvent *me)
 {
-  mouseData_.pressed = false;
+  if (me->button() == Qt::LeftButton) {
+    mouseData_.movePos = pixelToWindow(me->pos());
+
+    //---
+
+    if (mouseData_.movePos.x() >= 0.0 && mouseData_.movePos.x() <= 1.0) {
+      QColor bg = gradientPalette()->getColor(mouseData_.movePos.x());
+      QColor fg = CQChartsUtil::bwColor(bg);
+
+      tipText_->setText(QString("%1,%2").arg(mouseData_.movePos.x()).arg(mouseData_.movePos.y()));
+
+      QPalette palette = tipText_->palette();
+
+      palette.setColor(tipText_->backgroundRole(), bg);
+      palette.setColor(tipText_->foregroundRole(), fg);
+
+      tipText_->setPalette(palette);
+
+      showTipText();
+    }
+    else {
+      hideTipText();
+    }
+
+    //---
+
+    if (gradientPalette()->colorType() == CQChartsGradientPalette::ColorType::DEFINED) {
+      if (mouseData_.pressed) {
+        double dy = mouseData_.movePos.y() - mouseData_.pressPos.y();
+
+        moveNearestDefinedColor(nearestColor_, dy);
+
+        update();
+      }
+      else {
+        NearestColor nearestColor;
+
+        nearestDefinedColor(mouseData_.movePos, nearestColor);
+
+        if (nearestColor.i != nearestColor_.i || nearestColor.c != nearestColor_.c) {
+          nearestColor_ = nearestColor;
+
+          update();
+        }
+      }
+    }
+  }
+}
+
+void
+CQChartsGradientPaletteCanvas::
+mouseReleaseEvent(QMouseEvent *me)
+{
+  if (me->button() == Qt::LeftButton) {
+    mouseData_.pressed = false;
+  }
+}
+
+void
+CQChartsGradientPaletteCanvas::
+contextMenuEvent(QContextMenuEvent *e)
+{
+  QMenu *menu = new QMenu;
+
+  //---
+
+  QAction *linesAction = menu->addAction("Lines");
+
+  linesAction->setCheckable(true);
+  linesAction->setChecked  (isShowLines());
+
+  connect(linesAction, SIGNAL(triggered(bool)), this, SLOT(setShowLines(bool)));
+
+  //---
+
+  QAction *pointsAction = menu->addAction("Points");
+
+  pointsAction->setCheckable(true);
+  pointsAction->setChecked  (isShowPoints());
+
+  connect(pointsAction, SIGNAL(triggered(bool)), this, SLOT(setShowPoints(bool)));
+
+  //---
+
+  QAction *colorBarAction = menu->addAction("Color Bar");
+
+  colorBarAction->setCheckable(true);
+  colorBarAction->setChecked  (isShowColorBar());
+
+  connect(colorBarAction, SIGNAL(triggered(bool)), this, SLOT(setShowColorBar(bool)));
+
+  //---
+
+  (void) menu->exec(e->globalPos());
+
+  delete menu;
+}
+
+void
+CQChartsGradientPaletteCanvas::
+setShowLines(bool b)
+{
+  showLines_ = b;
+
+  update();
+}
+
+void
+CQChartsGradientPaletteCanvas::
+setShowPoints(bool b)
+{
+  showPoints_ = b;
+
+  update();
+}
+
+void
+CQChartsGradientPaletteCanvas::
+setShowColorBar(bool b)
+{
+  showColorBar_ = b;
+
+  update();
 }
 
 void
@@ -293,139 +368,178 @@ paintEvent(QPaintEvent *)
 
   painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
+  //---
+
+  // draw background
   painter.fillRect(rect(), Qt::white);
 
   //---
 
+  // draw axes
   drawAxis(&painter);
 
   //---
-
-  // draw graph
-  QPen redPen   (Qt::red   ); redPen   .setWidth(0);
-  QPen greenPen (Qt::green ); greenPen .setWidth(0);
-  QPen bluePen  (Qt::blue  ); bluePen  .setWidth(0);
-  QPen blackPen (Qt::black ); blackPen .setWidth(0);
-  QPen yellowPen(Qt::yellow); yellowPen.setWidth(2);
-
-  QPainterPath redPath, greenPath, bluePath, blackPath;
 
   double px1, py1, px2, py2;
 
   windowToPixel(0.0, 0.0, px1, py1);
   windowToPixel(1.0, 1.0, px2, py2);
 
-  bool   first = true;
-//double r1 = 0.0, g1 = 0.0, b1 = 0.0, m1 = 0.0, x1 = 0.0;
+  //---
 
-  for (double x = px1; x <= px2; x += 1.0) {
-    double wx, wy;
+  // set pens
+  QPen redPen   (Qt::red   ); redPen   .setWidth(0);
+  QPen greenPen (Qt::green ); greenPen .setWidth(0);
+  QPen bluePen  (Qt::blue  ); bluePen  .setWidth(0);
+  QPen blackPen (Qt::black ); blackPen .setWidth(0);
+  QPen yellowPen(Qt::yellow); yellowPen.setWidth(2);
 
-    pixelToWindow(x, 0, wx, wy);
+  //---
 
-    QColor c = gradientPalette()->getColor(wx);
+  // draw lines
+  if (isShowLines()) {
+    QPainterPath redPath, greenPath, bluePath, blackPath;
 
-    double x2 = wx;
+    bool   first = true;
+  //double r1 = 0.0, g1 = 0.0, b1 = 0.0, m1 = 0.0, x1 = 0.0;
 
-    double r2 = 0.0, g2 = 0.0, b2 = 0.0, m2 = 0.0;
+    // get rgb (red, green, blue, gray), or hsv (hue, staturation, value, gray) paths
+    for (double x = px1; x <= px2; x += 1.0) {
+      double wx, wy;
 
-    if (gradientPalette()->colorModel() == CQChartsGradientPalette::ColorModel::HSV) {
-      r2 = c.hueF       ();
-      g2 = c.saturationF();
-      b2 = c.valueF     ();
-      m2 = c.valueF     ();
+      pixelToWindow(x, 0, wx, wy);
+
+      QColor c = gradientPalette()->getColor(wx);
+
+      double x2 = wx;
+
+      double r2 = 0.0, g2 = 0.0, b2 = 0.0, m2 = 0.0;
+
+      if (gradientPalette()->colorModel() == CQChartsGradientPalette::ColorModel::HSV) {
+        r2 = c.hueF       ();
+        g2 = c.saturationF();
+        b2 = c.valueF     ();
+        m2 = c.valueF     ();
+      }
+      else {
+        r2 = c.redF  ();
+        g2 = c.greenF();
+        b2 = c.blueF ();
+        m2 = Util::rgbToGray(r2, g2, b2);
+      }
+
+      double px, py;
+
+      if (first) {
+        windowToPixel(x2, r2, px, py); redPath  .moveTo(px, py);
+        windowToPixel(x2, g2, px, py); greenPath.moveTo(px, py);
+        windowToPixel(x2, b2, px, py); bluePath .moveTo(px, py);
+        windowToPixel(x2, m2, px, py); blackPath.moveTo(px, py);
+      }
+      else {
+        windowToPixel(x2, r2, px, py); redPath  .lineTo(px, py);
+        windowToPixel(x2, g2, px, py); greenPath.lineTo(px, py);
+        windowToPixel(x2, b2, px, py); bluePath .lineTo(px, py);
+        windowToPixel(x2, m2, px, py); blackPath.lineTo(px, py);
+      }
+
+  //  x1 = x2; r1 = r2; g1 = g2; b1 = b2; m1 = m2;
+
+      first = false;
     }
-    else {
-      r2 = c.redF  ();
-      g2 = c.greenF();
-      b2 = c.blueF ();
-      m2 = Util::rgbToGray(r2, g2, b2);
-    }
 
-    double px, py;
-
-    if (first) {
-      windowToPixel(x2, r2, px, py); redPath  .moveTo(px, py);
-      windowToPixel(x2, g2, px, py); greenPath.moveTo(px, py);
-      windowToPixel(x2, b2, px, py); bluePath .moveTo(px, py);
-      windowToPixel(x2, m2, px, py); blackPath.moveTo(px, py);
-    }
-    else {
-      windowToPixel(x2, r2, px, py); redPath  .lineTo(px, py);
-      windowToPixel(x2, g2, px, py); greenPath.lineTo(px, py);
-      windowToPixel(x2, b2, px, py); bluePath .lineTo(px, py);
-      windowToPixel(x2, m2, px, py); blackPath.lineTo(px, py);
-    }
-
-//  x1 = x2; r1 = r2; g1 = g2; b1 = b2; m1 = m2;
-
-    first = false;
+    // draw paths
+    painter.strokePath(redPath  , redPen  );
+    painter.strokePath(greenPath, greenPen);
+    painter.strokePath(bluePath , bluePen );
+    painter.strokePath(blackPath, blackPen);
   }
-
-  painter.strokePath(redPath  , redPen  );
-  painter.strokePath(greenPath, greenPen);
-  painter.strokePath(bluePath , bluePen );
-  painter.strokePath(blackPath, blackPen);
 
   //---
 
   // draw color bar
-  double xp1 = 1.05;
-  double xp2 = 1.15;
+  if (isShowColorBar()) {
+    double xp1 = 1.05;
+    double xp2 = 1.15;
 
-  double pxp1, pxp2;
+    double pxp1, pxp2;
 
-  windowToPixel(xp1, 0.0, pxp1, py1);
-  windowToPixel(xp2, 1.0, pxp2, py2);
+    windowToPixel(xp1, 0.0, pxp1, py1);
+    windowToPixel(xp2, 1.0, pxp2, py2);
 
-  for (double y = py2; y <= py1; y += 1.0) {
-    double wx, wy;
+    // draw gradient
+    if (! gradientPalette()->isDistinct()) {
+      for (double y = py2; y <= py1; y += 1.0) {
+        double wx, wy;
 
-    pixelToWindow(0, y, wx, wy);
+        pixelToWindow(0, y, wx, wy);
 
-    QColor c = gradientPalette()->getColor(wy);
+        QColor c = gradientPalette()->getColor(wy);
 
-    QPen pen(c); pen.setWidth(0);
+        QPen pen(c); pen.setWidth(0);
 
-    painter.setPen(pen);
+        painter.setPen(pen);
 
-    painter.drawLine(QPointF(pxp1, y), QPointF(pxp2, y));
+        painter.drawLine(QPointF(pxp1, y), QPointF(pxp2, y));
+      }
+    }
+    else {
+      int nc = gradientPalette()->numColors();
+
+      double dy = (nc > 0 ? (py1 - py2)/nc : 0.0);
+
+      int i = 0;
+
+      for (double y = py1; y >= py2; y -= dy, ++i) {
+        QColor c = gradientPalette()->icolor(i);
+
+        QBrush brush(c);
+
+        painter.setBrush(brush);
+
+        painter.fillRect(QRectF(pxp1, y - dy, pxp2 - pxp1, dy), brush);
+      }
+    }
+
+    // draw border
+    painter.setPen(blackPen);
+
+    painter.drawLine(QPointF(pxp1, py1), QPointF(pxp2, py1));
+    painter.drawLine(QPointF(pxp2, py1), QPointF(pxp2, py2));
+    painter.drawLine(QPointF(pxp2, py2), QPointF(pxp1, py2));
+    painter.drawLine(QPointF(pxp1, py2), QPointF(pxp1, py1));
   }
-
-  painter.setPen(blackPen);
-
-  painter.drawLine(QPointF(pxp1, py1), QPointF(pxp2, py1));
-  painter.drawLine(QPointF(pxp2, py1), QPointF(pxp2, py2));
-  painter.drawLine(QPointF(pxp2, py2), QPointF(pxp1, py2));
-  painter.drawLine(QPointF(pxp1, py2), QPointF(pxp1, py1));
 
   //---
 
-  if (gradientPalette()->colorType() == CQChartsGradientPalette::ColorType::DEFINED) {
-    int i = 0;
+  // draw color points
+  if (isShowPoints()) {
+    if (gradientPalette()->colorType() == CQChartsGradientPalette::ColorType::DEFINED) {
+      int i = 0;
 
-    for (const auto &c : gradientPalette()->colors()) {
-      double x  = gradientPalette()->mapDefinedColorX(c.first);
-      QColor c1 = c.second;
+      for (const auto &c : gradientPalette()->colors()) {
+        double x  = gradientPalette()->mapDefinedColorX(c.first);
+        QColor c1 = c.second;
 
-      if (gradientPalette()->colorModel() == CQChartsGradientPalette::ColorModel::HSV) {
-        drawSymbol(&painter, x, c1.hueF       (),
-                   (nearestColor_.i == i && nearestColor_.c == 0 ? yellowPen : redPen  ));
-        drawSymbol(&painter, x, c1.saturationF(),
-                   (nearestColor_.i == i && nearestColor_.c == 1 ? yellowPen : greenPen));
-        drawSymbol(&painter, x, c1.valueF     (),
-                   (nearestColor_.i == i && nearestColor_.c == 2 ? yellowPen : bluePen ));
+        if (gradientPalette()->colorModel() == CQChartsGradientPalette::ColorModel::HSV) {
+          drawSymbol(&painter, x, c1.hueF       (),
+                     (nearestColor_.i == i && nearestColor_.c == 0 ? yellowPen : redPen  ));
+          drawSymbol(&painter, x, c1.saturationF(),
+                     (nearestColor_.i == i && nearestColor_.c == 1 ? yellowPen : greenPen));
+          drawSymbol(&painter, x, c1.valueF     (),
+                     (nearestColor_.i == i && nearestColor_.c == 2 ? yellowPen : bluePen ));
+        }
+        else {
+          drawSymbol(&painter, x, c1.redF  (),
+                     (nearestColor_.i == i && nearestColor_.c == 0 ? yellowPen : redPen  ));
+          drawSymbol(&painter, x, c1.greenF(),
+                     (nearestColor_.i == i && nearestColor_.c == 1 ? yellowPen : greenPen));
+          drawSymbol(&painter, x, c1.blueF (),
+                     (nearestColor_.i == i && nearestColor_.c == 2 ? yellowPen : bluePen ));
+        }
+
+        ++i;
       }
-      else {
-        drawSymbol(&painter, x, c1.redF  (),
-                   (nearestColor_.i == i && nearestColor_.c == 0 ? yellowPen : redPen  ));
-        drawSymbol(&painter, x, c1.greenF(),
-                   (nearestColor_.i == i && nearestColor_.c == 1 ? yellowPen : greenPen));
-        drawSymbol(&painter, x, c1.blueF (),
-                   (nearestColor_.i == i && nearestColor_.c == 2 ? yellowPen : bluePen ));
-      }
-
-      ++i;
     }
   }
 }

@@ -482,19 +482,21 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  // bbox in view range
+  // get/set bbox in view range
   const CQChartsGeom::BBox &viewBBox() const { return viewBBox_; }
   void setViewBBox(const CQChartsGeom::BBox &bbox);
 
+  // get inner view bbox
   const CQChartsGeom::BBox &innerViewBBox() const { return innerViewBBox_; }
 
-  // get set in view rect (as QRectF)
+  // get/set view rect (as QRectF)
   QRectF viewRect() const;
   void setViewRect(const QRectF &r);
 
+  // get inner view rect (as QRectF)
   QRectF innerViewRect() const;
 
-  // data range
+  // get/set data range
   QRectF range() const;
   void setRange(const QRectF &r);
 
@@ -1911,6 +1913,7 @@ class CQChartsPlot : public CQChartsObj,
   using ColumnRows      = std::map<int,Rows>;
   using IndexColumnRows = std::map<QModelIndex,ColumnRows>;
 
+  //! color column data
   struct ColorColumnData {
     CQChartsColumn column;
     bool           valid     { false };
@@ -1922,6 +1925,7 @@ class CQChartsPlot : public CQChartsObj,
     QString        palette;
   };
 
+  //! every row selection data
   struct EveryData {
     bool enabled { false };
     int  start   { 0 };
@@ -1929,6 +1933,7 @@ class CQChartsPlot : public CQChartsObj,
     int  step    { 1 };
   };
 
+  //! drag object
   enum class DragObj {
     NONE,
     KEY,
@@ -1940,6 +1945,7 @@ class CQChartsPlot : public CQChartsObj,
     PLOT_HANDLE
   };
 
+  //! mouse state data
   struct MouseData {
     QPointF            pressPoint { 0, 0 };
     QPointF            movePoint  { 0, 0 };
@@ -1949,20 +1955,22 @@ class CQChartsPlot : public CQChartsObj,
     bool               dragged    { false };
   };
 
+  //! amimation data
   struct AnimateData {
     QTimer* timer   { nullptr };
     int     tickLen { 30 };
   };
 
+  //! update state data
   struct UpdatesData {
     using StateFlag = std::map<UpdateState,int>;
 
-    int       enabled            { 0 };     // updates enabled
-    bool      updateRangeAndObjs { false }; // call updateRangeAndObjs (on enable)
-    bool      updateObjs         { false }; // call updateObjs (on enable)
-    bool      applyDataRange     { false }; // call applyDataRange (on enable)
-    bool      invalidateLayers   { false }; // call needsInvalidate invalidate (on enable)
-    StateFlag stateFlag;                    // state flags
+    int       enabled            { 0 };     //! updates enabled
+    bool      updateRangeAndObjs { false }; //! call updateRangeAndObjs (on enable)
+    bool      updateObjs         { false }; //! call updateObjs (on enable)
+    bool      applyDataRange     { false }; //! call applyDataRange (on enable)
+    bool      invalidateLayers   { false }; //! call needsInvalidate invalidate (on enable)
+    StateFlag stateFlag;                    //! state flags
 
     void reset() {
       updateRangeAndObjs = false;
@@ -1977,91 +1985,92 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
  protected:
-  CQChartsView*                view_             { nullptr };    // parent view
-  CQChartsPlotType*            type_             { nullptr };    // plot type data
-  ModelP                       model_;                           // abstract model
-  bool                         modelNameSet_     { false };      // model name set from plot
-  SelectionModelP              selectionModel_;                  // selection model
-  bool                         visible_          { true };       // is visible
-  CQChartsGeom::BBox           viewBBox_         { 0, 0, 1, 1 }; // view box
-  CQChartsGeom::BBox           innerViewBBox_    { 0, 0, 1, 1 }; // inner view box
-  CQChartsPlotMargin           innerMargin_      { 0, 0, 0, 0 }; // inner margin
+  CQChartsView*                view_             { nullptr };    //! parent view
+  CQChartsPlotType*            type_             { nullptr };    //! plot type data
+  ModelP                       model_;                           //! abstract model
+  bool                         modelNameSet_     { false };      //! model name set from plot
+  SelectionModelP              selectionModel_;                  //! selection model
+  bool                         visible_          { true };       //! is visible
+  CQChartsGeom::BBox           viewBBox_         { 0, 0, 1, 1 }; //! view box
+  CQChartsGeom::BBox           innerViewBBox_    { 0, 0, 1, 1 }; //! inner view box
+  CQChartsPlotMargin           innerMargin_      { 0, 0, 0, 0 }; //! inner margin
   CQChartsPlotMargin           outerMargin_      { 10, 10, 10, 10 }; // outer margin
-  CQChartsDisplayRange*        displayRange_     { nullptr };    // value range mapping
-  CQChartsDisplayTransform*    displayTransform_ { nullptr };    // value range transform (zoom/pan)
-  CQChartsGeom::Range          calcDataRange_;                   // calc data range
-  CQChartsGeom::Range          dataRange_;                       // data range
-  CQChartsGeom::Range          outerDataRange_;                  // outer data range
-  ZoomData                     zoomData_;                        // zoom data
-  CQChartsOptReal              xmin_;                            // xmin override
-  CQChartsOptReal              ymin_;                            // ymin override
-  CQChartsOptReal              xmax_;                            // xmax override
-  CQChartsOptReal              ymax_;                            // ymax override
-  EveryData                    everyData_;                       // every data
-  QString                      filterStr_;                       // filter
-  CQChartsSides                plotBorderSides_  { "tlbr" };     // plot border sides
-  bool                         plotClip_         { true };       // is clipped at plot limits
-  CQChartsSides                dataBorderSides_  { "tlbr" };     // data border sides
-  bool                         dataClip_         { false };      // is clipped at data limits
-  CQChartsSides                fitBorderSides_   { "tlbr" };     // fit border sides
-  QString                      titleStr_;                        // title string
-  QString                      fileName_;                        // associated data filename
-  QString                      xLabel_;                          // x label override
-  QString                      yLabel_;                          // y label override
-  CQChartsAxis*                xAxis_            { nullptr };    // x axis object
-  CQChartsAxis*                yAxis_            { nullptr };    // y axis object
-  CQChartsPlotKey*             keyObj_           { nullptr };    // key object
-  CQChartsTitle*               titleObj_         { nullptr };    // tilte object
-  CQChartsColumn               xValueColumn_;                    // x axis value column
-  CQChartsColumn               yValueColumn_;                    // y axis value column
-  CQChartsColumn               idColumn_;                        // unique data id column
-                                                                 // (signalled)
-  CQChartsColumns              tipColumns_;                      // tip columns
-  CQChartsColumn               visibleColumn_;                   // visible column
-  ColorColumnData              colorColumnData_;                 // color color data
-  mutable std::mutex           colorMutex_;                      // color mutex
-  CQChartsColumn               imageColumn_;                     // image column
-  double                       minScaleFontSize_ { 6.0 };        // min scaled font size
-  double                       maxScaleFontSize_ { 48.0 };       // max scaled font size
-  bool                         equalScale_       { false };      // equal scaled
-  bool                         followMouse_      { true };       // track object under mouse
-  bool                         autoFit_          { false };      // auto fit on data change
-  bool                         needsAutoFit_     { false };      // needs auto fit on next draw
-  bool                         initObjTree_      { false };      // needs init obj tree
-  bool                         preview_          { false };      // is preview plot
-  int                          previewMaxRows_   { 1000 };       // preview max rows
-  bool                         sequential_       { false };      // is sequential plot
-  bool                         queueUpdate_      { true };       // is queued udate
-  bool                         bufferSymbols_    { false };      // buffer symbols
-  bool                         showBoxes_        { false };      // show debug boxes
-  bool                         overview_         { false };      // is overview
-  bool                         invertX_          { false };      // x values inverted
-  bool                         invertY_          { false };      // y values inverted
-  bool                         logX_             { false };      // x values log scaled
-  bool                         logY_             { false };      // y values log scaled
-  bool                         noData_           { false };      // is no data
-  bool                         debugUpdate_      { false };      // debug update
-  ConnectData                  connectData_;                     // associated plot data
-  PlotObjs                     plotObjs_;                        // plot objects
-  int                          insideInd_        { 0 };          // current inside object ind
-  ObjSet                       insideObjs_;                      // inside plot objects
-  SizeObjSet                   sizeInsideObjs_;                  // inside plot objects
-                                                                 // (size sorted)
-  CQChartsPlotObjTree*         plotObjTree_      { nullptr };    // plot object quad tree
-  UpdateData                   updateData_;                      // update data
-  MouseData                    mouseData_;                       // mouse event data
-  AnimateData                  animateData_;                     // animation data
-  Buffers                      buffers_;                         // draw layer buffers
-  Layers                       layers_;                          // draw layers
-  mutable CQChartsBuffer::Type drawBuffer_;                      // objects draw buffer
-  mutable CQChartsLayer::Type  drawLayer_;                       // objects draw layer
-  IdHidden                     idHidden_;                        // hidden object ids
-  IndexColumnRows              selIndexColumnRows_;              // sel model indices (by col/row)
-  QItemSelection               itemSelection_;                   // selected model indices
-  CQChartsEditHandles*         editHandles_      { nullptr };    // edit controls
-  Annotations                  annotations_;                     // extra annotations
-  UpdatesData                  updatesData_;                     // updates data
-  bool                         fromInvalidate_   { false };      // call from invalidate
+  CQChartsDisplayRange*        displayRange_     { nullptr };    //! value range mapping
+  CQChartsDisplayTransform*    displayTransform_ { nullptr };    //! value range transform
+                                                                 //! (zoom/pan)
+  CQChartsGeom::Range          calcDataRange_;                   //! calc data range
+  CQChartsGeom::Range          dataRange_;                       //! data range
+  CQChartsGeom::Range          outerDataRange_;                  //! outer data range
+  ZoomData                     zoomData_;                        //! zoom data
+  CQChartsOptReal              xmin_;                            //! xmin override
+  CQChartsOptReal              ymin_;                            //! ymin override
+  CQChartsOptReal              xmax_;                            //! xmax override
+  CQChartsOptReal              ymax_;                            //! ymax override
+  EveryData                    everyData_;                       //! every data
+  QString                      filterStr_;                       //! filter
+  CQChartsSides                plotBorderSides_  { "tlbr" };     //! plot border sides
+  bool                         plotClip_         { true };       //! is clipped at plot limits
+  CQChartsSides                dataBorderSides_  { "tlbr" };     //! data border sides
+  bool                         dataClip_         { false };      //! is clipped at data limits
+  CQChartsSides                fitBorderSides_   { "tlbr" };     //! fit border sides
+  QString                      titleStr_;                        //! title string
+  QString                      fileName_;                        //! associated data filename
+  QString                      xLabel_;                          //! x label override
+  QString                      yLabel_;                          //! y label override
+  CQChartsAxis*                xAxis_            { nullptr };    //! x axis object
+  CQChartsAxis*                yAxis_            { nullptr };    //! y axis object
+  CQChartsPlotKey*             keyObj_           { nullptr };    //! key object
+  CQChartsTitle*               titleObj_         { nullptr };    //! tilte object
+  CQChartsColumn               xValueColumn_;                    //! x axis value column
+  CQChartsColumn               yValueColumn_;                    //! y axis value column
+  CQChartsColumn               idColumn_;                        //! unique data id column
+                                                                 //! (signalled)
+  CQChartsColumns              tipColumns_;                      //! tip columns
+  CQChartsColumn               visibleColumn_;                   //! visible column
+  ColorColumnData              colorColumnData_;                 //! color color data
+  mutable std::mutex           colorMutex_;                      //! color mutex
+  CQChartsColumn               imageColumn_;                     //! image column
+  double                       minScaleFontSize_ { 6.0 };        //! min scaled font size
+  double                       maxScaleFontSize_ { 48.0 };       //! max scaled font size
+  bool                         equalScale_       { false };      //! equal scaled
+  bool                         followMouse_      { true };       //! track object under mouse
+  bool                         autoFit_          { false };      //! auto fit on data change
+  bool                         needsAutoFit_     { false };      //! needs auto fit on next draw
+  bool                         initObjTree_      { false };      //! needs init obj tree
+  bool                         preview_          { false };      //! is preview plot
+  int                          previewMaxRows_   { 1000 };       //! preview max rows
+  bool                         sequential_       { false };      //! is sequential plot
+  bool                         queueUpdate_      { true };       //! is queued udate
+  bool                         bufferSymbols_    { false };      //! buffer symbols
+  bool                         showBoxes_        { false };      //! show debug boxes
+  bool                         overview_         { false };      //! is overview
+  bool                         invertX_          { false };      //! x values inverted
+  bool                         invertY_          { false };      //! y values inverted
+  bool                         logX_             { false };      //! x values log scaled
+  bool                         logY_             { false };      //! y values log scaled
+  bool                         noData_           { false };      //! is no data
+  bool                         debugUpdate_      { false };      //! debug update
+  ConnectData                  connectData_;                     //! associated plot data
+  PlotObjs                     plotObjs_;                        //! plot objects
+  int                          insideInd_        { 0 };          //! current inside object ind
+  ObjSet                       insideObjs_;                      //! inside plot objects
+  SizeObjSet                   sizeInsideObjs_;                  //! inside plot objects
+                                                                 //! (size sorted)
+  CQChartsPlotObjTree*         plotObjTree_      { nullptr };    //! plot object quad tree
+  UpdateData                   updateData_;                      //! update data
+  MouseData                    mouseData_;                       //! mouse event data
+  AnimateData                  animateData_;                     //! animation data
+  Buffers                      buffers_;                         //! draw layer buffers
+  Layers                       layers_;                          //! draw layers
+  mutable CQChartsBuffer::Type drawBuffer_;                      //! objects draw buffer
+  mutable CQChartsLayer::Type  drawLayer_;                       //! objects draw layer
+  IdHidden                     idHidden_;                        //! hidden object ids
+  IndexColumnRows              selIndexColumnRows_;              //! sel model indices (by col/row)
+  QItemSelection               itemSelection_;                   //! selected model indices
+  CQChartsEditHandles*         editHandles_      { nullptr };    //! edit controls
+  Annotations                  annotations_;                     //! extra annotations
+  UpdatesData                  updatesData_;                     //! updates data
+  bool                         fromInvalidate_   { false };      //! call from invalidate
 };
 
 //------

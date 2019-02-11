@@ -44,6 +44,7 @@
 #include <CQChartsSidesEdit.h>
 #include <CQChartsStrokeDataEdit.h>
 #include <CQChartsSymbolEdit.h>
+#include <CQChartsTextDataEdit.h>
 
 #include <CQChartsPolygonList.h>
 #include <CQChartsNamePair.h>
@@ -87,6 +88,7 @@ CQCharts()
   CQChartsSides         ::registerMetaType();
   CQChartsStyle         ::registerMetaType();
   CQChartsSymbol        ::registerMetaType();
+  CQChartsTextData      ::registerMetaType();
   CQChartsTheme         ::registerMetaType();
 
   //---
@@ -183,6 +185,7 @@ init()
   viewMgr->addType("CQChartsStrokeData"   , new CQChartsStrokeDataPropertyViewType   );
   viewMgr->addType("CQChartsSides"        , new CQChartsSidesPropertyViewType        );
   viewMgr->addType("CQChartsSymbol"       , new CQChartsSymbolPropertyViewType       );
+  viewMgr->addType("CQChartsTextData"     , new CQChartsTextDataPropertyViewType     );
 }
 
 bool

@@ -242,7 +242,7 @@ main(int argc, char **argv)
 
   // no plots and app state not specified so show if no plots
   if (! mainData.showAppSet) {
-    if (! mainData.execFile.length() && mainData.initDatas.empty())
+    if (! mainData.execFile.length() && mainData.initDatas.empty() && ! mainData.loop)
       mainData.showApp = true;
   }
 

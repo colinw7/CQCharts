@@ -596,21 +596,8 @@ calcRange() const
 
   //---
 
-  if (dataRange.isSet()) {
-    if (CMathUtil::isZero(dataRange.dx())) {
-      double xm = dataRange.xmid();
-
-      dataRange.setLeft (xm - 1.0);
-      dataRange.setRight(xm + 1.0);
-    }
-
-    if (CMathUtil::isZero(dataRange.dy())) {
-      double ym = dataRange.ymid();
-
-      dataRange.setBottom(ym - 1.0);
-      dataRange.setTop   (ym + 1.0);
-    }
-  }
+  // ensure range non-zero
+  dataRange.makeNonZero();
 
   //---
 

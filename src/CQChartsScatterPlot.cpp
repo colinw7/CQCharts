@@ -854,21 +854,7 @@ calcRange() const
   //---
 
   // update data range if unset
-  if (dataRange.isSet() && CMathUtil::isZero(dataRange.xsize())) {
-    double x = dataRange.xmid();
-    double y = dataRange.ymid();
-
-    dataRange.updateRange(x - 1.0, y);
-    dataRange.updateRange(x + 1.0, y);
-  }
-
-  if (dataRange.isSet() && CMathUtil::isZero(dataRange.ysize())) {
-    double x = dataRange.xmid();
-    double y = dataRange.ymid();
-
-    dataRange.updateRange(x, y - 1.0);
-    dataRange.updateRange(x, y + 1.0);
-  }
+  dataRange.makeNonZero();
 
   //---
 

@@ -1,5 +1,58 @@
 #include <CQChartsData.h>
 
+CQUTIL_DEF_META_TYPE(CQChartsTextData, toString, fromString)
+
+int CQChartsTextData::metaTypeId;
+
+void
+CQChartsTextData::
+registerMetaType()
+{
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsTextData);
+}
+
+QString
+CQChartsTextData::
+toString() const
+{
+  CQChartsNameValues nameValues;
+
+  nameValues.setNameValue("visible"  , isVisible());
+  nameValues.setNameValue("color"    , color().toString());
+  nameValues.setNameValue("alpha"    , alpha());
+  nameValues.setNameValue("font"     , font());
+  nameValues.setNameValue("angle"    , angle());
+  nameValues.setNameValue("contrast" , isContrast());
+  nameValues.setNameValue("align"    , int(align()));
+  nameValues.setNameValue("formatted", isFormatted());
+  nameValues.setNameValue("scaled"   , isScaled());
+  nameValues.setNameValue("html"     , isHtml());
+
+  return nameValues.toString();
+}
+
+bool
+CQChartsTextData::
+fromString(const QString &str)
+{
+  CQChartsNameValues nameValues(str);
+
+  nameValues.nameValueBool ("visible"  , visible_);
+  nameValues.nameValueColor("color"    , color_);
+  nameValues.nameValueReal ("alpha"    , alpha_);
+//nameValues.nameValueFont ("font"     , font_);
+  nameValues.nameValueReal ("angle"    , angle_);
+  nameValues.nameValueBool ("contrast" , contrast_);
+//nameValues.nameValueAlign("align"    , align_);
+  nameValues.nameValueBool ("formatted", formatted_);
+  nameValues.nameValueBool ("scaled"   , scaled_);
+  nameValues.nameValueBool ("html"     , html_);
+
+  return true;
+}
+
+//------
+
 CQUTIL_DEF_META_TYPE(CQChartsLineData, toString, fromString)
 
 int CQChartsLineData::metaTypeId;

@@ -34,9 +34,7 @@ class CQChartsCmdBase {
 
   //---
 
-#ifdef CQCharts_USE_TCL
   CQTcl *qtcl() const { return qtcl_; }
-#endif
 
  public:
   QStringList stringToCmds(const QString &str) const;
@@ -63,6 +61,8 @@ class CQChartsCmdBase {
 
   bool perfCmd(CQChartsCmdArgs &args);
 
+  bool assertCmd(CQChartsCmdArgs &args);
+
   bool shellCmd(CQChartsCmdArgs &args);
 
   bool helpCmd(CQChartsCmdArgs &args);
@@ -74,9 +74,7 @@ class CQChartsCmdBase {
   using CommandProcs = std::map<QString,CQChartsCmdProc *>;
 
   bool         continueFlag_ { false };
-#ifdef CQCharts_USE_TCL
   CQTcl*       qtcl_         { nullptr };
-#endif
   CommandNames commandNames_;
   CommandProcs commandProcs_;
 };
@@ -99,19 +97,15 @@ class CQChartsCmdProc {
   const QString &name() const { return name_; }
   void setName(const QString &v) { name_ = v; }
 
-#ifdef CQCharts_USE_TCL
   CQChartsTclCmd *tclCmd() const { return tclCmd_; }
   void setTclCmd(CQChartsTclCmd *tclCmd) { tclCmd_ = tclCmd; }
-#endif
 
   virtual bool exec(CQChartsCmdArgs &args) = 0;
 
  protected:
   CQChartsCmdBase* cmdBase_   { nullptr };
   QString          name_;
-#ifdef CQCharts_USE_TCL
   CQChartsTclCmd*  tclCmd_ { nullptr };
-#endif
 };
 
 //---
@@ -131,6 +125,8 @@ CQCHARTS_BASE_DEF_CMD(SetProperty, qtSetPropertyCmd)
 CQCHARTS_BASE_DEF_CMD(QtSync     , qtSyncCmd)
 
 CQCHARTS_BASE_DEF_CMD(Perf, perfCmd)
+
+CQCHARTS_BASE_DEF_CMD(Assert, assertCmd)
 
 CQCHARTS_BASE_DEF_CMD(Shell, shellCmd)
 

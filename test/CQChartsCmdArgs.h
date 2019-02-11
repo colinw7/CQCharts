@@ -20,6 +20,9 @@
 
 //------
 
+/*!
+ * \brief base class for handling command arguments
+ */
 class CQChartsCmdBaseArgs {
  public:
   using Args    = std::vector<QVariant>;
@@ -167,14 +170,11 @@ class CQChartsCmdBaseArgs {
 
     str = str.toLower();
 
-    if      (str == "0" || str == "no"  || str == "false" || str == "off") {
-      b = false; return true;
-    }
-    else if (str == "1" || str == "yes" || str == "true"  || str == "on" ) {
-      b = true; return true;
-    }
+    bool ok;
 
-    return false;
+    b = stringToBool(str, &ok);
+
+    return ok;
   }
 
   // get generic value of current option
@@ -253,8 +253,22 @@ class CQChartsCmdBaseArgs {
 
   //---
 
+  // get/set debug
+  bool isDebug() const { return debug_; }
+  void setDebug(bool b) { debug_ = b; }
+
+  //---
+
   // parse command arguments
-  bool parse(bool debug=false) {
+  bool parse() {
+    bool rc;
+
+    return parse(rc);
+  }
+
+  bool parse(bool &rc) {
+    rc = false;
+
     // clear parsed values
     parseInt_ .clear();
     parseReal_.clear();
@@ -298,8 +312,7 @@ class CQChartsCmdBaseArgs {
         CQChartsCmdArg *cmdArg = getCmdOpt(opt);
 
         if (! cmdArg) {
-          this->error();
-          continue;
+          return this->error();
         }
 
         //---
@@ -323,8 +336,7 @@ class CQChartsCmdBaseArgs {
             parseInt_[opt] = i;
           }
           else {
-            valueError(opt);
-            continue;
+            return valueError(opt);
           }
         }
         // handle real option
@@ -335,8 +347,7 @@ class CQChartsCmdBaseArgs {
             parseReal_[opt] = r;
           }
           else {
-            valueError(opt);
-            continue;
+            return valueError(opt);
           }
         }
         // handle string option
@@ -347,8 +358,7 @@ class CQChartsCmdBaseArgs {
             parseStr_[opt].push_back(str);
           }
           else {
-            valueError(opt);
-            continue;
+            return valueError(opt);
           }
         }
         // handle string bool option
@@ -359,8 +369,35 @@ class CQChartsCmdBaseArgs {
             parseBool_[opt] = b;
           }
           else {
-            valueError(opt);
-            continue;
+            return valueError(opt);
+          }
+        }
+        // handle enum option (string)
+        else if (cmdArg->type() == CQChartsCmdArg::Type::Enum) {
+          QString str;
+
+          if (getOptValue(str)) {
+            bool found = false;
+
+            for (auto &nv : cmdArg->nameValues()) {
+              if (str == nv.first) {
+                parseInt_[opt] = nv.second;
+                found = true;
+                break;
+              }
+            }
+
+            if (! found) {
+              QString msg =
+                QString("Invalid value '%1' for '-%2' should be one of :\n ").arg(str).arg(opt);
+              for (auto &nv : cmdArg->nameValues())
+                msg += " " + nv.first;
+              errorMsg(msg);
+              return false;
+            }
+          }
+          else {
+            return valueError(opt);
           }
         }
         // handle color option (string)
@@ -371,8 +408,7 @@ class CQChartsCmdBaseArgs {
             parseStr_[opt].push_back(str);
           }
           else {
-            valueError(opt);
-            continue;
+            return valueError(opt);
           }
         }
         // handle line dash option (string)
@@ -383,8 +419,7 @@ class CQChartsCmdBaseArgs {
             parseStr_[opt].push_back(str);
           }
           else {
-            valueError(opt);
-            continue;
+            return valueError(opt);
           }
         }
         // handle length option (string)
@@ -395,8 +430,7 @@ class CQChartsCmdBaseArgs {
             parseStr_[opt].push_back(str);
           }
           else {
-            valueError(opt);
-            continue;
+            return valueError(opt);
           }
         }
         // handle position option (string)
@@ -407,8 +441,7 @@ class CQChartsCmdBaseArgs {
             parseStr_[opt].push_back(str);
           }
           else {
-            valueError(opt);
-            continue;
+            return valueError(opt);
           }
         }
         // handle rect option (string)
@@ -419,8 +452,7 @@ class CQChartsCmdBaseArgs {
             parseStr_[opt].push_back(str);
           }
           else {
-            valueError(opt);
-            continue;
+            return valueError(opt);
           }
         }
         // handle polygon option (string)
@@ -431,8 +463,7 @@ class CQChartsCmdBaseArgs {
             parseStr_[opt].push_back(str);
           }
           else {
-            valueError(opt);
-            continue;
+            return valueError(opt);
           }
         }
         // handle align option (string)
@@ -443,8 +474,7 @@ class CQChartsCmdBaseArgs {
             parseStr_[opt].push_back(str);
           }
           else {
-            valueError(opt);
-            continue;
+            return valueError(opt);
           }
         }
         // handle sides option (string)
@@ -455,8 +485,7 @@ class CQChartsCmdBaseArgs {
             parseStr_[opt].push_back(str);
           }
           else {
-            valueError(opt);
-            continue;
+            return valueError(opt);
           }
         }
         // handle column option (string)
@@ -467,8 +496,7 @@ class CQChartsCmdBaseArgs {
             parseStr_[opt].push_back(str);
           }
           else {
-            valueError(opt);
-            continue;
+            return valueError(opt);
           }
         }
         // handle row option (string)
@@ -479,8 +507,7 @@ class CQChartsCmdBaseArgs {
             parseStr_[opt].push_back(str);
           }
           else {
-            valueError(opt);
-            continue;
+            return valueError(opt);
           }
         }
         // invalid type (assert ?)
@@ -502,8 +529,11 @@ class CQChartsCmdBaseArgs {
     if (help) {
       this->help();
 
-      if (! debug)
+      if (! isDebug()) {
+        rc = true;
+
         return false;
+      }
     }
 
     //---
@@ -537,7 +567,7 @@ class CQChartsCmdBaseArgs {
     //---
 
     //  display parsed data for debug
-    if (debug) {
+    if (isDebug()) {
       for (auto &pi : parseInt_) {
         std::cerr << pi.first.toStdString() << "=" << pi.second << "\n";
       }
@@ -561,6 +591,8 @@ class CQChartsCmdBaseArgs {
     }
 
     //---
+
+    rc = true;
 
     return true;
   }
@@ -723,16 +755,18 @@ class CQChartsCmdBaseArgs {
   //---
 
   // handle missing value error
-  void valueError(const QString &opt) {
-    std::cerr << "Missing value for '-" << opt.toStdString() << "'\n";
+  bool valueError(const QString &opt) {
+    errorMsg(QString("Missing value for '-%1'").arg(opt));
+    return false;
   }
 
   // handle invalid option/arg error
-  void error() {
+  bool error() {
     if (lastArg_.isOpt())
       errorMsg("Invalid option '" + lastArg_.opt() + "'");
     else
       errorMsg("Invalid arg '" + toString(lastArg_.var()) + "'");
+    return false;
   }
 
   //---
@@ -839,6 +873,26 @@ class CQChartsCmdBaseArgs {
     }
     else
       return var.toString();
+  }
+
+  //---
+
+  static bool stringToBool(const QString &str, bool *ok) {
+    QString lstr = str.toLower();
+
+    if (lstr == "0" || lstr == "false" || lstr == "no") {
+      *ok = true;
+      return false;
+    }
+
+    if (lstr == "1" || lstr == "true" || lstr == "yes") {
+      *ok = true;
+      return true;
+    }
+
+    *ok = false;
+
+    return false;
   }
 
  private:
@@ -1023,19 +1077,20 @@ class CQChartsCmdBaseArgs {
   }
 
  protected:
-  QString     cmdName_;         // command name being processed
-  Args        argv_;            // input args
-  int         i_    { 0 };      // current arg
-  int         argc_ { 0 };      // numer of args
-  Arg         lastArg_;         // last processed arg
-  CmdArgs     cmdArgs_;         // command argument data
-  CmdGroups   cmdGroups_;       // command argument groups
-  int         groupInd_ { -1 }; // current group index
-  NameInt     parseInt_;        // parsed option integers
-  NameReal    parseReal_;       // parsed option reals
-  NameStrings parseStr_;        // parsed option strings
-  NameBool    parseBool_;       // parsed option booleans
-  Args        parseArgs_;       // parsed arguments
+  QString     cmdName_;              //! command name being processed
+  bool        debug_      { false }; //! is debug
+  Args        argv_;                 //! input args
+  int         i_          { 0 };     //! current arg
+  int         argc_       { 0 };     //! numer of args
+  Arg         lastArg_;              //! last processed arg
+  CmdArgs     cmdArgs_;              //! command argument data
+  CmdGroups   cmdGroups_;            //! command argument groups
+  int         groupInd_   { -1 };    //! current group index
+  NameInt     parseInt_;             //! parsed option integers
+  NameReal    parseReal_;            //! parsed option reals
+  NameStrings parseStr_;             //! parsed option strings
+  NameBool    parseBool_;            //! parsed option booleans
+  Args        parseArgs_;            //! parsed arguments
 };
 
 //------
@@ -1116,6 +1171,9 @@ modelStringToValue(const QString &str, QAbstractItemModel *model) {
 
 //---
 
+/*!
+ * \brief derived class for handling command arguments (adds charts classes)
+ */
 class CQChartsCmdArgs : public CQChartsCmdBaseArgs {
  public:
   CQChartsCmdArgs(const QString &cmdName, const Args &argv) :

@@ -15,9 +15,7 @@
 #include <CQDataModel.h>
 
 #include <CQPerfMonitor.h>
-#if defined(CQCharts_USE_TCL)
 #include <CQTclUtil.h>
-#endif
 #include <CMathCorrelation.h>
 
 CQChartsLoader::
@@ -26,14 +24,12 @@ CQChartsLoader(CQCharts *charts) :
 {
 }
 
-#if defined(CQCharts_USE_TCL)
 void
 CQChartsLoader::
 setQtcl(CQTcl *qtcl)
 {
   qtcl_ = qtcl;
 }
-#endif
 
 QAbstractItemModel *
 CQChartsLoader::
@@ -131,6 +127,12 @@ loadCsv(const QString &filename, const CQChartsInputData &inputData)
 
   if (inputData.separator.length())
     csvModel->setSeparator(inputData.separator[0].toLatin1());
+
+  if (inputData.maxRows > 0)
+    csvModel->setMaxRows(inputData.maxRows);
+
+  if (inputData.columns.length() > 0)
+    csvModel->setColumns(inputData.columns);
 
   if (! csvModel->load(filename)) {
     delete csv;
@@ -243,7 +245,6 @@ createVarsModel(const CQChartsInputData &inputData)
 {
   CQPerfTrace trace("CQChartsLoader::createVarsModel");
 
-#if defined(CQCharts_USE_TCL)
   using ColumnValues = std::vector<QVariant>;
   using VarColumns   = std::vector<ColumnValues>;
 
@@ -395,24 +396,6 @@ createVarsModel(const CQChartsInputData &inputData)
   }
 
   return filterModel;
-#else
-  int nc = inputData.vars.size();
-  int nr = 100;
-
-  CQDataModel *dataModel = new CQDataModel(nc, nr);
-
-  for (int r = 0; r < nr; ++r) {
-    for (int c = 0; c < nc; ++c) {
-      QModelIndex ind = dataModel->index(r, c, parent);
-
-      dataModel->setData(ind, QVariant(r*nc + c));
-    }
-  }
-
-  CQChartsFilterModel *model = new CQChartsFilterModel(charts_, dataModel);
-
-  return model;
-#endif
 }
 
 CQChartsFilterModel *

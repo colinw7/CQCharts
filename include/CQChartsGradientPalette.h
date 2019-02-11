@@ -9,9 +9,7 @@
 #include <memory>
 #include <cmath>
 
-#ifdef CQCharts_USE_TCL
 class CQTcl;
-#endif
 
 class QLinearGradient;
 
@@ -235,6 +233,19 @@ class CQChartsGradientPalette {
 
   const ColorMap &colors() const { return colors_; }
 
+  QColor icolor(int i) const {
+    int i1 = 0;
+
+    for (const auto &rc : colors_) {
+      if (i1 == i)
+        return rc.second;
+
+      ++i1;
+    }
+
+    return QColor();
+  }
+
   ColorMap &colors() { return colors_; }
 
   void setColors(const ColorMap &colors) { colors_ = colors; }
@@ -342,9 +353,7 @@ class CQChartsGradientPalette {
 
   void initFunctions();
 
-#ifdef CQCharts_USE_TCL
   CQTcl *qtcl() const;
-#endif
 
  private:
   struct ColorFn {
@@ -391,9 +400,7 @@ class CQChartsGradientPalette {
   bool       distinct_      { false };
 
   // Misc
-#ifdef CQCharts_USE_TCL
   CQTcl*     qtcl_          { nullptr };
-#endif
   double     gamma_         { 1.5 };
 #if 0
   bool       psAllcF_       { false };

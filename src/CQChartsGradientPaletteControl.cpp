@@ -37,13 +37,18 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   //---
 
+  QHBoxLayout *controlLayout = new QHBoxLayout;
+  controlLayout->setMargin(2); controlLayout->setSpacing(2);
+
+  //---
+
   QFrame *colorTypeFrame = createColorTypeCombo("Type", &colorType_);
 
   colorType_->setType(pal->colorType());
 
   connect(colorType_, SIGNAL(currentIndexChanged(int)), this, SLOT(colorTypeChanged(int)));
 
-  layout->addWidget(colorTypeFrame);
+  controlLayout->addWidget(colorTypeFrame);
 
   //---
 
@@ -53,7 +58,26 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   connect(colorModel_, SIGNAL(currentIndexChanged(int)), this, SLOT(colorModelChanged(int)));
 
-  layout->addWidget(colorModelFrame);
+  controlLayout->addWidget(colorModelFrame);
+
+  //---
+
+  distinctCheck_ = new QCheckBox("Distinct");
+
+  distinctCheck_->setObjectName("distinct");
+  distinctCheck_->setChecked(isDistinct());
+
+  connect(distinctCheck_, SIGNAL(stateChanged(int)), this, SLOT(distinctChanged(int)));
+
+  controlLayout->addWidget(distinctCheck_);
+
+  //---
+
+  controlLayout->addStretch(1);
+
+  //---
+
+  layout->addLayout(controlLayout);
 
   //---
 
@@ -335,6 +359,13 @@ colorTypeChanged(int)
   setColorType(colorType_->type());
 }
 
+void
+CQChartsGradientPaletteControl::
+distinctChanged(int)
+{
+  setDistinct(distinctCheck_->isChecked());
+}
+
 CQChartsGradientPalette::ColorType
 CQChartsGradientPaletteControl::
 colorType() const
@@ -353,6 +384,26 @@ setColorType(CQChartsGradientPalette::ColorType colorType)
   pal->setColorType(colorType);
 
   updateColorType();
+
+  emit stateChanged();
+}
+
+bool
+CQChartsGradientPaletteControl::
+isDistinct() const
+{
+  CQChartsGradientPalette *pal = palette_->gradientPalette();
+
+  return pal->isDistinct();
+}
+
+void
+CQChartsGradientPaletteControl::
+setDistinct(bool b)
+{
+  CQChartsGradientPalette *pal = palette_->gradientPalette();
+
+  pal->setDistinct(b);
 
   emit stateChanged();
 }
@@ -702,6 +753,8 @@ readFile(const QString &fileName)
   pal->readFile(fileName.toStdString());
 
   definedColors_->updateColors(pal);
+
+  distinctCheck_->setChecked(pal->isDistinct());
 }
 
 std::string

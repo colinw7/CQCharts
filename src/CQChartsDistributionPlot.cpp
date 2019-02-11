@@ -891,10 +891,6 @@ calcBucketRanges() const
       dataRange.updateRange(densityBBox.getXMin(), densityBBox.getYMin());
       dataRange.updateRange(densityBBox.getXMax(), densityBBox.getYMax());
     }
-    else {
-      dataRange.updateRange(0, 0);
-      dataRange.updateRange(1, 1);
-    }
   }
   else if (isScatter()) {
     dataRange.updateRange(   - 0.5,           - 0.5);
@@ -1034,6 +1030,8 @@ calcBucketRanges() const
       }
     }
   }
+
+  dataRange.makeNonZero();
 
   //---
 

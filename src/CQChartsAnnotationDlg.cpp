@@ -742,13 +742,13 @@ createTextAnnotation()
 
   QString text = textWidgets_.textEdit->text();
 
-  textData.font     = textWidgets_.fontEdit->font();
-  textData.color    = textWidgets_.colorEdit->color();
-  textData.alpha    = textWidgets_.alphaEdit->value();
-  textData.angle    = textWidgets_.angleEdit->value();
-  textData.contrast = textWidgets_.contrastCheck->isChecked();
-  textData.align    = textWidgets_.alignEdit->align();
-  textData.html     = textWidgets_.htmlCheck->isChecked();
+  textData.setFont    (textWidgets_.fontEdit->font());
+  textData.setColor   (textWidgets_.colorEdit->color());
+  textData.setAlpha   (textWidgets_.alphaEdit->value());
+  textData.setAngle   (textWidgets_.angleEdit->value());
+  textData.setContrast(textWidgets_.contrastCheck->isChecked());
+  textData.setAlign   (textWidgets_.alignEdit->align());
+  textData.setHtml    (textWidgets_.htmlCheck->isChecked());
 
   background.setVisible(textWidgets_.backgroundCheck->isChecked());
   background.setColor  (textWidgets_.backgroundColor->color());

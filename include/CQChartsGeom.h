@@ -1,6 +1,7 @@
 #ifndef CQChartsGeom_H
 #define CQChartsGeom_H
 
+#include <CMathUtil.h>
 #include <QRectF>
 #include <QPointF>
 
@@ -359,6 +360,33 @@ class Range {
 
   double xsize() const { assert(set_); return fabs(x2_ - x1_); }
   double ysize() const { assert(set_); return fabs(y2_ - y1_); }
+
+  bool isZero() const { return isXZero() || isYZero(); }
+
+  bool isXZero() const { return CMathUtil::isZero(xsize()); }
+  bool isYZero() const { return CMathUtil::isZero(ysize()); }
+
+  void makeNonZero(double d=1.0) {
+    if (isSet()) {
+      if (isXZero()) {
+        double x = xmid(), y = ymid();
+
+        updateRange(x - d, y);
+        updateRange(x + d, y);
+      }
+
+      if (isYZero()) {
+        double x = xmid(), y = ymid();
+
+        updateRange(x, y - d);
+        updateRange(x, y + d);
+      }
+    }
+    else {
+      updateRange(-d, -d);
+      updateRange( d,  d);
+    }
+  }
 
   Point center() const { assert(set_); return Point((x1_ + x2_)/2.0, (y1_ + y2_)/2.0); }
 

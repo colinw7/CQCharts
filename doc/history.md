@@ -761,3 +761,14 @@
  + improve support for optional types in properties
  + support modifiers in key show/select
  + add support for global title and column title in model
+# 2/10/2019
+ + support meta data for text data structure
+ + fix some issues for plot types with no data
+ + fit no data object draw for multiple plots
+ + make tcl required to build
+ + add distinct palettes and update gradient palette to display
+ + make lines, points and color bar draw in gradient palette optional
+ + improve handling of unset data range
+ + use doxygen style for comments 
+ + improve rect select when select triggers extra selection
+ + add max rows and specified columns for CSV

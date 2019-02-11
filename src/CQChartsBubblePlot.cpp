@@ -114,7 +114,11 @@ void
 CQChartsBubblePlot::
 setTextFontSize(double s)
 {
-  if (s != textData_.font.pointSizeF()) { textData_.font.setPointSizeF(s); queueDrawObjs(); }
+  if (s != textData_.font().pointSizeF()) {
+    QFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
+
+    queueDrawObjs();
+  }
 }
 
 //---

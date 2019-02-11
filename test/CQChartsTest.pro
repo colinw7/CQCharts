@@ -8,7 +8,6 @@ DEPENDPATH += .
 
 QMAKE_CXXFLAGS += \
 -std=c++14 \
--DCQCharts_USE_TCL \
 -DCQCHARTS_FOLDED_MODEL \
 
 MOC_DIR = .moc

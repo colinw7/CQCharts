@@ -14,10 +14,8 @@ class CQChartsExprModelFn;
 class CQChartsModelData;
 class CQCharts;
 
-#ifdef CQCharts_USE_TCL
 class CQChartsExprTcl;
 class CQTcl;
-#endif
 
 //---
 
@@ -170,9 +168,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
  private:
   void addBuiltinFunctions();
 
-#ifdef CQCharts_USE_TCL
   CQTcl *qtcl() const;
-#endif
 
   //---
 
@@ -244,9 +240,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   CQCharts*            charts_     { nullptr }; // charts
   CQChartsModelFilter* filter_     { nullptr }; // parent filter model
   QAbstractItemModel*  model_      { nullptr }; // child data model
-#ifdef CQCharts_USE_TCL
   CQChartsExprTcl*     qtcl_       { nullptr }; // tcl expression
-#endif
   TclCmds              tclCmds_;                // tcl commands
   bool                 editable_   { true };    // is editable
   bool                 debug_      { false };   // is debug
