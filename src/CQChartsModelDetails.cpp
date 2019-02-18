@@ -610,8 +610,13 @@ isIncreasing() const
       QVariant var = CQChartsModelUtil::modelHeaderValue(
         model, icolumn, static_cast<int>(CQBaseModelRole::SortOrder), ok);
 
-      if (ok && var.isValid())
-        return (var.toInt() == Qt::AscendingOrder);
+      if (ok && var.isValid()) {
+        bool ok;
+
+        long order = CQChartsVariant::toInt(var, ok);
+
+        return (ok && (order == Qt::AscendingOrder));
+      }
     }
   }
 
@@ -734,26 +739,35 @@ uniqueCounts() const
 
 int
 CQChartsModelColumnDetails::
-uniqueId(const QVariant &v) const
+uniqueId(const QVariant &var) const
 {
   initCache();
 
+  bool ok;
+
   if      (type() == CQBaseModelType::INTEGER) {
-    return valueSet_->ivals().id(v.toInt());
+    long i = CQChartsVariant::toInt(var, ok);
+
+    if (ok)
+      return valueSet_->ivals().id(i);
   }
   else if (type() == CQBaseModelType::REAL) {
-    return valueSet_->rvals().id(v.toReal());
+    double r = CQChartsVariant::toReal(var, ok);
+
+    return valueSet_->rvals().id(r);
   }
   else if (type() == CQBaseModelType::STRING) {
-    return valueSet_->svals().id(v.toString());
+    return valueSet_->svals().id(var.toString());
   }
   else if (type() == CQBaseModelType::TIME) {
-    return valueSet_->tvals().id(v.toReal());
+    double r = CQChartsVariant::toReal(var, ok);
+
+    return valueSet_->tvals().id(r);
   }
   else if (type() == CQBaseModelType::COLOR) {
     bool ok;
 
-    CQChartsColor color = CQChartsVariant::toColor(v, ok);
+    CQChartsColor color = CQChartsVariant::toColor(var, ok);
 
     if (ok)
       return valueSet_->cvals().id(color);
@@ -931,9 +945,10 @@ map(const QVariant &var) const
   bool ok;
 
   if      (type() == CQBaseModelType::INTEGER) {
-    long l = CQChartsVariant::toInt(var, ok);
+    long i = CQChartsVariant::toInt(var, ok);
 
-    return valueSet_->ivals().map(l);
+    if (ok)
+      return valueSet_->ivals().map(i);
   }
   else if (type() == CQBaseModelType::REAL) {
     double r = CQChartsVariant::toReal(var, ok);
@@ -951,9 +966,8 @@ map(const QVariant &var) const
   else if (type() == CQBaseModelType::COLOR) {
     return 0;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 void

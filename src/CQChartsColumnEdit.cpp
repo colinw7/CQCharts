@@ -1,6 +1,7 @@
 #include <CQChartsColumnEdit.h>
 #include <CQChartsPlot.h>
 #include <CQChartsModelUtil.h>
+#include <CQChartsVariant.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -13,6 +14,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QAbstractItemModel>
+#include <QPainter>
 
 CQChartsColumnLineEdit::
 CQChartsColumnLineEdit(QWidget *parent) :
@@ -22,32 +24,42 @@ CQChartsColumnLineEdit(QWidget *parent) :
 
   //---
 
-  menuEdit_ = new CQChartsColumnEdit;
+  menuEdit_ = dataEdit_ = new CQChartsColumnEdit;
 
-  menu_->setWidget(menuEdit_);
+  menu_->setWidget(dataEdit_);
 
-  connect(menuEdit_, SIGNAL(columnChanged()), this, SLOT(menuEditChanged()));
+  connect(dataEdit_, SIGNAL(columnChanged()), this, SLOT(menuEditChanged()));
+}
+
+void
+CQChartsColumnLineEdit::
+setPlot(CQChartsPlot *plot)
+{
+  CQChartsLineEditBase::setPlot(plot);
+
+  if (plot)
+    setModel(plot->model().data());
 }
 
 QAbstractItemModel *
 CQChartsColumnLineEdit::
 model() const
 {
-  return menuEdit_->model();
+  return dataEdit_->model();
 }
 
 void
 CQChartsColumnLineEdit::
 setModel(QAbstractItemModel *model)
 {
-  menuEdit_->setModel(model);
+  dataEdit_->setModel(model);
 }
 
 const CQChartsColumn &
 CQChartsColumnLineEdit::
 column() const
 {
-  return menuEdit_->column();
+  return dataEdit_->column();
 }
 
 void
@@ -63,7 +75,7 @@ updateColumn(const CQChartsColumn &column, bool updateText)
 {
   connectSlots(false);
 
-  menuEdit_->setColumn(column);
+  dataEdit_->setColumn(column);
 
   if (updateText)
     columnToWidgets();
@@ -101,6 +113,8 @@ columnToWidgets()
   else
     edit_->setText("");
 
+  setToolTip(column().toString());
+
   connectSlots(true);
 }
 
@@ -120,9 +134,33 @@ connectSlots(bool b)
   CQChartsLineEditBase::connectSlots(b);
 
   if (b)
-    connect(menuEdit_, SIGNAL(columnChanged()), this, SLOT(menuEditChanged()));
+    connect(dataEdit_, SIGNAL(columnChanged()), this, SLOT(menuEditChanged()));
   else
-    disconnect(menuEdit_, SIGNAL(columnChanged()), this, SLOT(menuEditChanged()));
+    disconnect(dataEdit_, SIGNAL(columnChanged()), this, SLOT(menuEditChanged()));
+}
+
+void
+CQChartsColumnLineEdit::
+drawPreview(QPainter *painter, const QRect &rect)
+{
+  QColor c = palette().color(QPalette::Window);
+
+  painter->fillRect(rect, QBrush(c));
+
+  //---
+
+  QString str = (column().isValid() ? column().toString() : "<none>");
+
+  QFontMetricsF fm(font());
+
+  double fa = fm.ascent();
+  double fd = fm.descent();
+
+  QColor tc = CQChartsUtil::bwColor(c);
+
+  painter->setPen(tc);
+
+  painter->drawText(rect.left() + 2, rect.center().y() + (fa - fd)/2, str);
 }
 
 //------
@@ -246,7 +284,7 @@ setValue(QWidget *w, const QVariant &var)
 
 CQChartsColumnEdit::
 CQChartsColumnEdit(QWidget *parent) :
- QFrame(parent)
+ CQChartsEditBase(parent)
 {
   setObjectName("columnEdit");
 
@@ -410,14 +448,16 @@ widgetsToColumn()
   CQChartsColumn column;
 
   if      (columnGroup_->isChecked()) {
+    QVariant var = columnCombo_->itemData(columnCombo_->currentIndex());
+
     bool ok;
 
-    int icolumn = columnCombo_->itemData(columnCombo_->currentIndex()).toInt(&ok);
+    long icolumn = CQChartsVariant::toInt(var, ok);
 
     if (icolumn < 0)
       icolumn = -1;
 
-    int role = roleEdit_->text().toInt(&ok);
+    long role = CQChartsUtil::toInt(roleEdit_->text(), ok);
 
     if (! ok)
       role = -1;

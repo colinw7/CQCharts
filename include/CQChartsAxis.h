@@ -370,7 +370,7 @@ class CQChartsAxis : public CQChartsObj,
   bool                 integral_            { false };
   bool                 date_                { false };
   bool                 log_                 { false };
-  bool                 dataLabels_          { false };  // labels from model row
+  bool                 dataLabels_          { false };  //! labels from model row
   CQChartsColumn       column_;
   QString              formatStr_;
 

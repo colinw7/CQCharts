@@ -30,6 +30,8 @@ bool   toReal(const QString &str, double &r);
 long toInt(const QString &str, bool &ok);
 bool toInt(const QString &str, long &i);
 
+long toInt(const char *str, bool &ok, const char **rstr);
+
 //------
 
 QString toString(double r, const QString &fmt="%g" );
@@ -132,10 +134,6 @@ bool PointLineDistance(const CQChartsGeom::Point &point, const CQChartsGeom::Poi
 //------
 
 bool fileToLines(const QString &filename, QStringList &lines, int maxLines=-1);
-
-//------
-
-int nameToRole(const QString &name);
 
 }
 
@@ -265,9 +263,9 @@ inline QString unitsString(const CQChartsUnits &units) {
 bool decodeUnits(const QString &str, CQChartsUnits &units,
                  const CQChartsUnits &defUnits=CQChartsUnits::PLOT);
 
-QStringList unitNames();
+QStringList unitNames(bool includeNone=false);
 
-QStringList unitTipNames();
+QStringList unitTipNames(bool includeNone=false);
 
 }
 

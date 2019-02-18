@@ -41,6 +41,10 @@ bool toInt(const QString &str, long &i) {
   return ok;
 }
 
+long toInt(const char *str, bool &ok, const char **rstr) {
+  return CQStrUtil::toInt(str, ok, rstr);
+}
+
 QString toString(double r, const QString &fmt) {
 #ifdef ALLOW_NAN
   if (COS::is_nan(real))
@@ -141,7 +145,7 @@ bool fromString(const QString &str, std::vector<CQChartsColumn> &columns) {
   for (int i = 0; i < strs.size(); ++i) {
     bool ok1;
 
-    int col = strs[i].toInt(&ok1);
+    long col = toInt(strs[i], ok1);
 
     if (ok1)
       columns.push_back(col);
@@ -438,56 +442,6 @@ void findStringSplits3(const QString &str, std::vector<int> &splits) {
     if (str[i - 1].isLower() && str[i].isUpper())
       splits.push_back(i);
   }
-}
-
-}
-
-//------
-
-namespace CQChartsUtil {
-
-const QStringList &roleNames() {
-  static QStringList names;
-
-  if (names.empty())
-    names << "display" << "edit" << "user" << "font" << "size_hint" <<
-             "tool_tip" << "background" << "foreground" << "text_alignment" <<
-             "text_color" << "decoration" << "type" << "base_type" << "type_values" <<
-             "min" << "max" << "sorted" << "sort_order" << "title" << "key" <<
-             "raw_value" << "intermediate_value" << "cached_value" << "output_value" << "group";
-
-  return names;
-};
-
-int nameToRole(const QString &name) {
-  if      (name == "display"       ) return Qt::DisplayRole;
-  else if (name == "edit"          ) return Qt::EditRole;
-  else if (name == "user"          ) return Qt::UserRole;
-  else if (name == "font"          ) return Qt::FontRole;
-  else if (name == "size_hint"     ) return Qt::SizeHintRole;
-  else if (name == "tool_tip"      ) return Qt::ToolTipRole;
-  else if (name == "background"    ) return Qt::BackgroundRole;
-  else if (name == "foreground"    ) return Qt::ForegroundRole;
-  else if (name == "text_alignment") return Qt::TextAlignmentRole;
-  else if (name == "text_color"    ) return Qt::TextColorRole;
-  else if (name == "decoration"    ) return Qt::DecorationRole;
-
-  else if (name == "type"              ) return (int) CQBaseModelRole::Type;
-  else if (name == "base_type"         ) return (int) CQBaseModelRole::BaseType;
-  else if (name == "type_values"       ) return (int) CQBaseModelRole::TypeValues;
-  else if (name == "min"               ) return (int) CQBaseModelRole::Min;
-  else if (name == "max"               ) return (int) CQBaseModelRole::Max;
-  else if (name == "sorted"            ) return (int) CQBaseModelRole::Sorted;
-  else if (name == "sort_order"        ) return (int) CQBaseModelRole::SortOrder;
-  else if (name == "title"             ) return (int) CQBaseModelRole::Title;
-  else if (name == "key"               ) return (int) CQBaseModelRole::Key;
-  else if (name == "raw_value"         ) return (int) CQBaseModelRole::RawValue;
-  else if (name == "intermediate_value") return (int) CQBaseModelRole::IntermediateValue;
-  else if (name == "cached_value"      ) return (int) CQBaseModelRole::CachedValue;
-  else if (name == "output_value"      ) return (int) CQBaseModelRole::OutputValue;
-  else if (name == "group"             ) return (int) CQBaseModelRole::Group;
-
-  return -1;
 }
 
 }
@@ -1030,7 +984,7 @@ namespace CQChartsUtil {
 void drawContrastText(QPainter *painter, double x, double y, const QString &text, const QPen &pen) {
   // set contrast color
   // TODO: allow set type (invert, bw) and alpha
-  QColor icolor = CQChartsUtil::invColor(pen.color());
+  QColor icolor = invColor(pen.color());
 
   icolor.setAlphaF(0.5);
 
@@ -1130,16 +1084,18 @@ bool decodeUnits(const QString &str, CQChartsUnits &units, const CQChartsUnits &
   return true;
 }
 
-QStringList unitNames() {
-  static QStringList names = QStringList() << "px" << "%" << "P" << "V";
+QStringList unitNames(bool includeNone) {
+  static QStringList names      = QStringList() << "px" << "%" << "P" << "V";
+  static QStringList none_names = QStringList() << "none" << names;
 
-  return names;
+  return (includeNone ? none_names : names);
 }
 
-QStringList unitTipNames() {
-  static QStringList names = QStringList() << "Pixel" << "Percent" << "Plot" << "View";
+QStringList unitTipNames(bool includeNone) {
+  static QStringList names      = QStringList() << "Pixel" << "Percent" << "Plot" << "View";
+  static QStringList none_names = QStringList() << "None" << names;
 
-  return names;
+  return (includeNone ? none_names : names);
 }
 
 }

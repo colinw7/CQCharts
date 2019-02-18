@@ -24,46 +24,22 @@ CQChartsFillDataLineEdit(QWidget *parent) :
 
   //---
 
-  menuEdit_ = new CQChartsFillDataEdit;
+  menuEdit_ = dataEdit_ = new CQChartsFillDataEdit;
 
-  menu_->setWidget(menuEdit_);
+  menu_->setWidget(dataEdit_);
 
-  connect(menuEdit_, SIGNAL(fillDataChanged()), this, SLOT(menuEditChanged()));
-}
+  connect(dataEdit_, SIGNAL(fillDataChanged()), this, SLOT(menuEditChanged()));
 
-CQChartsPlot *
-CQChartsFillDataLineEdit::
-plot() const
-{
-  return menuEdit_->plot();
-}
+  //---
 
-void
-CQChartsFillDataLineEdit::
-setPlot(CQChartsPlot *plot)
-{
-  menuEdit_->setPlot(plot);
-}
-
-CQChartsView *
-CQChartsFillDataLineEdit::
-view() const
-{
-  return menuEdit_->view();
-}
-
-void
-CQChartsFillDataLineEdit::
-setView(CQChartsView *view)
-{
-  menuEdit_->setView(view);
+  fillDataToWidgets();
 }
 
 const CQChartsFillData &
 CQChartsFillDataLineEdit::
 fillData() const
 {
-  return menuEdit_->data();
+  return dataEdit_->data();
 }
 
 void
@@ -79,7 +55,7 @@ updateFillData(const CQChartsFillData &fillData, bool updateText)
 {
   connectSlots(false);
 
-  menuEdit_->setData(fillData);
+  dataEdit_->setData(fillData);
 
   if (updateText)
     fillDataToWidgets();
@@ -112,6 +88,8 @@ fillDataToWidgets()
   else
     edit_->setText("");
 
+  setToolTip(fillData().toString());
+
   connectSlots(true);
 }
 
@@ -131,20 +109,23 @@ connectSlots(bool b)
   CQChartsLineEditBase::connectSlots(b);
 
   if (b)
-    connect(menuEdit_, SIGNAL(fillDataChanged()), this, SLOT(menuEditChanged()));
+    connect(dataEdit_, SIGNAL(fillDataChanged()), this, SLOT(menuEditChanged()));
   else
-    disconnect(menuEdit_, SIGNAL(fillDataChanged()), this, SLOT(menuEditChanged()));
+    disconnect(dataEdit_, SIGNAL(fillDataChanged()), this, SLOT(menuEditChanged()));
+}
+
+void
+CQChartsFillDataLineEdit::
+drawPreview(QPainter *painter, const QRect &rect)
+{
+  QColor c = palette().color(QPalette::Window);
+
+  painter->fillRect(rect, QBrush(c));
+
+  CQChartsFillDataEditPreview::draw(painter, fillData(), rect, plot(), view());
 }
 
 //------
-
-#include <CQPropertyViewItem.h>
-#include <CQPropertyViewDelegate.h>
-
-CQChartsFillDataPropertyViewType::
-CQChartsFillDataPropertyViewType()
-{
-}
 
 CQPropertyViewEditorFactory *
 CQChartsFillDataPropertyViewType::
@@ -153,46 +134,14 @@ getEditor() const
   return new CQChartsFillDataPropertyViewEditor;
 }
 
-bool
-CQChartsFillDataPropertyViewType::
-setEditorData(CQPropertyViewItem *item, const QVariant &value)
-{
-  return item->setData(value);
-}
-
 void
 CQChartsFillDataPropertyViewType::
-draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
-     const QStyleOptionViewItem &option, const QModelIndex &ind,
-     const QVariant &value, bool inside)
+drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
+            CQChartsPlot *plot, CQChartsView *view)
 {
-  CQPropertyViewItem *item = CQPropertyViewMgrInst->drawItem();
-
-  QObject *obj = (item ? item->object() : nullptr);
-
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj);
-  CQChartsView *view = qobject_cast<CQChartsView *>(obj);
-
-  //---
-
-  delegate->drawBackground(painter, option, ind, inside);
-
   CQChartsFillData data = value.value<CQChartsFillData>();
 
-  QColor fc;
-
-  if      (plot)
-    fc = plot->charts()->interpColor(data.color(), 0, 1);
-  else if (view)
-    fc = view->charts()->interpColor(data.color(), 0, 1);
-  else
-    fc = data.color().color();
-
-  QBrush brush;
-
-  CQChartsUtil::setBrush(brush, data.isVisible(), fc, data.alpha(), data.pattern());
-
-  painter->fillRect(option.rect, brush);
+  CQChartsFillDataEditPreview::draw(painter, data, rect, plot, view);
 }
 
 QString
@@ -206,28 +155,11 @@ tip(const QVariant &value) const
 
 //------
 
+CQChartsLineEditBase *
 CQChartsFillDataPropertyViewEditor::
-CQChartsFillDataPropertyViewEditor()
+createPropertyEdit(QWidget *parent)
 {
-}
-
-QWidget *
-CQChartsFillDataPropertyViewEditor::
-createEdit(QWidget *parent)
-{
-  CQPropertyViewItem *item = CQPropertyViewMgrInst->editItem();
-
-  QObject *obj = (item ? item->object() : nullptr);
-
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj);
-  CQChartsView *view = qobject_cast<CQChartsView *>(obj);
-
-  CQChartsFillDataLineEdit *edit = new CQChartsFillDataLineEdit(parent);
-
-  if      (plot) edit->setPlot(plot);
-  else if (view) edit->setView(view);
-
-  return edit;
+  return new CQChartsFillDataLineEdit(parent);
 }
 
 void
@@ -266,8 +198,10 @@ setValue(QWidget *w, const QVariant &var)
 
 CQChartsFillDataEdit::
 CQChartsFillDataEdit(QWidget *parent) :
- QFrame(parent)
+ CQChartsEditBase(parent)
 {
+  setObjectName("fillDataEdit");
+
   QVBoxLayout *layout = new QVBoxLayout(this);
 
   groupBox_ = new QGroupBox;
@@ -333,6 +267,15 @@ CQChartsFillDataEdit(QWidget *parent) :
 
 void
 CQChartsFillDataEdit::
+setData(const CQChartsFillData &d)
+{
+  data_ = d;
+
+  dataToWidgets();
+}
+
+void
+CQChartsFillDataEdit::
 setTitle(const QString &title)
 {
   groupBox_->setTitle(title);
@@ -387,41 +330,33 @@ widgetsToData()
 
 CQChartsFillDataEditPreview::
 CQChartsFillDataEditPreview(CQChartsFillDataEdit *edit) :
- edit_(edit)
+ CQChartsEditPreview(edit), edit_(edit)
 {
 }
 
 void
 CQChartsFillDataEditPreview::
-paintEvent(QPaintEvent *)
+draw(QPainter *painter)
 {
   const CQChartsFillData &data = edit_->data();
 
-  QColor fc;
+  draw(painter, data, rect(), edit_->plot(), edit_->view());
+}
 
-  if      (edit_->plot())
-    fc = edit_->plot()->charts()->interpColor(data.color(), 0, 1);
-  else if (edit_->view())
-    fc = edit_->view()->charts()->interpColor(data.color(), 0, 1);
-  else
-    fc = data.color().color();
+void
+CQChartsFillDataEditPreview::
+draw(QPainter *painter, const CQChartsFillData &data, const QRect &rect,
+     CQChartsPlot *plot, CQChartsView *view)
+{
+  // set brush
+  QColor fc = interpColor(plot, view, data.color());
 
   QBrush brush;
 
   CQChartsUtil::setBrush(brush, data.isVisible(), fc, data.alpha(), data.pattern());
 
-  QPainter painter(this);
+  //---
 
-  painter.setRenderHints(QPainter::Antialiasing);
-
-  painter.fillRect(rect(), brush);
-}
-
-QSize
-CQChartsFillDataEditPreview::
-sizeHint() const
-{
-  QFontMetrics fm(font());
-
-  return QSize(fm.width("XXXX"), fm.height() + 4);
+  // draw fill
+  painter->fillRect(rect, brush);
 }

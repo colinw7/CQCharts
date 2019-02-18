@@ -190,9 +190,9 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
  public:
   enum class SortType {
-    GROUP,
-    NAME,
-    COUNT
+    GROUP /*! sort by group */,
+    NAME  /*! sort by name  */,
+    COUNT /*! sort by count */
   };
 
  public:

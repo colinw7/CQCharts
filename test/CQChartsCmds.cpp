@@ -48,6 +48,8 @@
 #include <QSortFilterProxyModel>
 #include <QTextDocument>
 #include <QAbstractTextDocumentLayout>
+#include <QLabel>
+#include <QVBoxLayout>
 #include <QFont>
 #include <fstream>
 
@@ -140,7 +142,7 @@ addCommands()
     addCommand("create_plot_dlg" , new CQChartsCreatePlotDlgCmd(this));
 
     // test
-    addCommand("test_edit", new CQChartsTestEditCmd(this));
+    addCommand("charts::test_edit", new CQChartsTestEditCmd(this));
 
     //---
 
@@ -559,7 +561,7 @@ processModelCmd(CQChartsCmdArgs &argv)
     if (argv.hasParseArg("expr")) {
       bool ok;
 
-      int count1 = expr.toInt(&ok);
+      int count1 = CQChartsUtil::toInt(expr, ok);
 
       if (ok && count1 > 0)
         count = count1;
@@ -930,10 +932,10 @@ createPlotCmd(CQChartsCmdArgs &argv)
     if (positionStrs.length() == 4) {
       bool ok1, ok2, ok3, ok4;
 
-      double pxmin = positionStrs[0].toDouble(&ok1);
-      double pymin = positionStrs[1].toDouble(&ok2);
-      double pxmax = positionStrs[2].toDouble(&ok3);
-      double pymax = positionStrs[3].toDouble(&ok4);
+      double pxmin = CQChartsUtil::toReal(positionStrs[0], ok1);
+      double pymin = CQChartsUtil::toReal(positionStrs[1], ok2);
+      double pxmax = CQChartsUtil::toReal(positionStrs[2], ok3);
+      double pymax = CQChartsUtil::toReal(positionStrs[3], ok4);
 
       if (ok1 && ok2 && ok3 && ok4) {
         bbox = CQChartsGeom::BBox(pxmin, pymin, pxmax, pymax);
@@ -1443,7 +1445,7 @@ setPaletteCmd(CQChartsCmdArgs &argv)
 
           bool ok;
 
-          v = lhs.toDouble(&ok);
+          v = CQChartsUtil::toReal(lhs, ok);
           c = QColor(rhs);
         }
         else
@@ -2254,9 +2256,9 @@ summaryModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-max_rows"   , CQChartsCmdArg::Type::Integer, "maxumum rows");
   argv.addCmdArg("-random"     , CQChartsCmdArg::Type::Boolean, "random rows");
   argv.addCmdArg("-sorted"     , CQChartsCmdArg::Type::Boolean, "sorted rows");
-  argv.addCmdArg("-sort_column", CQChartsCmdArg::Type::Integer, "sorted column");
-  argv.addCmdArg("-sort_role"  , CQChartsCmdArg::Type::Integer, "sorted role");
-  argv.addCmdArg("-sort_order" , CQChartsCmdArg::Type::Enum   , "sorted order").
+  argv.addCmdArg("-sort_column", CQChartsCmdArg::Type::Integer, "sort column");
+  argv.addCmdArg("-sort_role"  , CQChartsCmdArg::Type::String , "sort role");
+  argv.addCmdArg("-sort_order" , CQChartsCmdArg::Type::Enum   , "sort order").
    addNameValue("ascending" , Qt::AscendingOrder ).
    addNameValue("descending", Qt::DescendingOrder);
   argv.addCmdArg("-paged"      , CQChartsCmdArg::Type::Boolean, "paged");
@@ -2298,8 +2300,23 @@ summaryModelCmd(CQChartsCmdArgs &argv)
   if (argv.hasParseArg("sort_column"))
     summaryModel->setSortColumn(argv.getParseInt("sort_column", summaryModel->sortColumn()));
 
-  if (argv.hasParseArg("sort_role"))
-    summaryModel->setSortRole(argv.getParseInt("sort_role", summaryModel->sortRole()));
+  if (argv.hasParseArg("sort_role")) {
+    QString roleName = argv.getParseStr("sort_role");
+
+    if (roleName == "?") {
+      cmdBase_->setCmdRc(CQChartsModelUtil::roleNames());
+      return true;
+    }
+
+    int sortRole = CQChartsModelUtil::nameToRole(roleName);
+
+    if (sortRole < 0) {
+      charts_->errorMsg("Invalid sort role");
+      return false;
+    }
+
+    summaryModel->setSortRole(sortRole);
+  }
 
   if (argv.hasParseArg("sort_order")) {
     Qt::SortOrder order = (Qt::SortOrder) argv.getParseInt("sort_order");
@@ -2448,10 +2465,15 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
   int role = Qt::EditRole;
 
   if (roleName != "") {
-    role = CQChartsUtil::nameToRole(roleName);
+    if (roleName == "?") {
+      cmdBase_->setCmdRc(CQChartsModelUtil::roleNames());
+      return true;
+    }
+
+    role = CQChartsModelUtil::nameToRole(roleName);
 
     if (role < 0) {
-      charts_->errorMsg("No model data");
+      charts_->errorMsg("Invalid role");
       return false;
     }
   }
@@ -3208,10 +3230,15 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
   int role = Qt::EditRole;
 
   if (roleName != "") {
-    role = CQChartsUtil::nameToRole(roleName);
+    if (roleName == "?") {
+      cmdBase_->setCmdRc(CQChartsModelUtil::roleNames());
+      return true;
+    }
+
+    role = CQChartsModelUtil::nameToRole(roleName);
 
     if (role < 0) {
-      charts_->errorMsg("No model data");
+      charts_->errorMsg("Invalid role");
       return false;
     }
   }
@@ -3415,16 +3442,16 @@ createRectAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsBoxData boxData;
 
-  CQChartsFillData   &background = boxData.shape.background();
-  CQChartsStrokeData &border     = boxData.shape.border();
+  CQChartsFillData   &background = boxData.shape().background();
+  CQChartsStrokeData &border     = boxData.shape().border();
 
   border.setVisible(true);
 
   QString id    = argv.getParseStr("id");
   QString tipId = argv.getParseStr("tip");
 
-  boxData.margin  = argv.getParseReal("margin" , boxData.margin);
-  boxData.padding = argv.getParseReal("padding", boxData.padding);
+  boxData.setMargin (argv.getParseReal("margin" , boxData.margin()));
+  boxData.setPadding(argv.getParseReal("padding", boxData.padding()));
 
   background.setVisible(argv.getParseBool ("background"        , background.isVisible()));
   background.setColor  (argv.getParseColor("background_color"  , background.color    ()));
@@ -3438,7 +3465,7 @@ createRectAnnotationCmd(CQChartsCmdArgs &argv)
   border.setDash      (argv.getParseLineDash("border_dash" , border.dash     ()));
   border.setCornerSize(argv.getParseLength  (view, plot, "corner_size", border.cornerSize()));
 
-  boxData.borderSides = argv.getParseSides("border_sides", boxData.borderSides);
+  boxData.setBorderSides(argv.getParseSides("border_sides", boxData.borderSides()));
 
   //---
 
@@ -3543,8 +3570,8 @@ createEllipseAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsBoxData boxData;
 
-  CQChartsFillData   &background = boxData.shape.background();
-  CQChartsStrokeData &border     = boxData.shape.border();
+  CQChartsFillData   &background = boxData.shape().background();
+  CQChartsStrokeData &border     = boxData.shape().border();
 
   border.setVisible(true);
 
@@ -3568,7 +3595,7 @@ createEllipseAnnotationCmd(CQChartsCmdArgs &argv)
   border.setDash      (argv.getParseLineDash("border_dash" , border.dash     ()));
   border.setCornerSize(argv.getParseLength  (view, plot, "corner_size", border.cornerSize()));
 
-  boxData.borderSides = argv.getParseSides("border_sides", boxData.borderSides);
+  boxData.setBorderSides(argv.getParseSides("border_sides", boxData.borderSides()));
 
   //---
 
@@ -3877,8 +3904,8 @@ createTextAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsTextData textData;
   CQChartsBoxData  boxData;
 
-  CQChartsFillData   &background = boxData.shape.background();
-  CQChartsStrokeData &border     = boxData.shape.border();
+  CQChartsFillData   &background = boxData.shape().background();
+  CQChartsStrokeData &border     = boxData.shape().border();
 
   background.setVisible(false);
   border    .setVisible(false);
@@ -3908,7 +3935,7 @@ createTextAnnotationCmd(CQChartsCmdArgs &argv)
   border.setDash      (argv.getParseLineDash("border_dash" , border.dash     ()));
   border.setCornerSize(argv.getParseLength  (view, plot, "corner_size", border.cornerSize()));
 
-  boxData.borderSides = argv.getParseSides("border_sides", boxData.borderSides);
+  boxData.setBorderSides(argv.getParseSides("border_sides", boxData.borderSides()));
 
   //---
 
@@ -3972,7 +3999,6 @@ createArrowAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-back_angle"  , CQChartsCmdArg::Type::Real  , "arrow back angle");
   argv.addCmdArg("-fhead"       , CQChartsCmdArg::Type::SBool , "show start arrow");
   argv.addCmdArg("-thead"       , CQChartsCmdArg::Type::SBool , "show end arrow");
-//argv.addCmdArg("-empty"       , CQChartsCmdArg::Type::SBool , "empty arrows");
   argv.addCmdArg("-line_ends"   , CQChartsCmdArg::Type::SBool , "line ends");
   argv.addCmdArg("-line_width"  , CQChartsCmdArg::Type::Length, "line width");
   argv.addCmdArg("-border_color", CQChartsCmdArg::Type::Color , "border color");
@@ -4011,14 +4037,13 @@ createArrowAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsPosition start = argv.getParsePosition(view, plot, "start");
   CQChartsPosition end   = argv.getParsePosition(view, plot, "end"  );
 
-  arrowData.length    = argv.getParseLength(view, plot, "length", arrowData.length);
-  arrowData.angle     = argv.getParseReal  ("angle"     , arrowData.angle);
-  arrowData.backAngle = argv.getParseReal  ("back_angle", arrowData.backAngle);
-  arrowData.fhead     = argv.getParseBool  ("fhead"     , arrowData.fhead);
-  arrowData.thead     = argv.getParseBool  ("thead"     , arrowData.thead);
-//arrowData.empty     = argv.getParseBool  ("empty"     , arrowData.empty);
-  arrowData.lineEnds  = argv.getParseBool  ("line_ends" , arrowData.lineEnds);
-  arrowData.lineWidth = argv.getParseLength(view, plot, "line_width", arrowData.lineWidth);
+  arrowData.setLength   (argv.getParseLength(view, plot, "length", arrowData.length()));
+  arrowData.setAngle    (argv.getParseReal  ("angle"     , arrowData.angle()));
+  arrowData.setBackAngle(argv.getParseReal  ("back_angle", arrowData.backAngle()));
+  arrowData.setFHead    (argv.getParseBool  ("fhead"     , arrowData.isFHead()));
+  arrowData.setTHead    (argv.getParseBool  ("thead"     , arrowData.isTHead()));
+  arrowData.setLineEnds (argv.getParseBool  ("line_ends" , arrowData.isLineEnds()));
+  arrowData.setLineWidth(argv.getParseLength(view, plot, "line_width", arrowData.lineWidth()));
 
   CQChartsShapeData shapeData;
 
@@ -4118,31 +4143,31 @@ createPointAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
 
-  pointData.size = argv.getParseLength(view, plot, "size", pointData.size);
+  pointData.setSize(argv.getParseLength(view, plot, "size", pointData.size()));
 
   QString typeStr = argv.getParseStr("type");
 
   if (typeStr.length())
-    pointData.type = CQChartsSymbol::nameToType(typeStr);
+    pointData.setType(CQChartsSymbol::nameToType(typeStr));
 
-  pointData.stroke.setVisible(argv.getParseBool  ("stroked", pointData.stroke.isVisible()));
-  pointData.stroke.setWidth  (argv.getParseLength(view, plot, "line_width",
-                                                  pointData.stroke.width()));
-  pointData.stroke.setColor  (argv.getParseColor ("line_color", pointData.stroke.color()));
-  pointData.stroke.setAlpha  (argv.getParseReal  ("line_alpha", pointData.stroke.alpha()));
+  pointData.stroke().setVisible(argv.getParseBool  ("stroked", pointData.stroke().isVisible()));
+  pointData.stroke().setWidth  (argv.getParseLength(view, plot, "line_width",
+                                                  pointData.stroke().width()));
+  pointData.stroke().setColor  (argv.getParseColor ("line_color", pointData.stroke().color()));
+  pointData.stroke().setAlpha  (argv.getParseReal  ("line_alpha", pointData.stroke().alpha()));
 
-  pointData.fill.setVisible(argv.getParseBool ("filled"    , pointData.fill.isVisible()));
-  pointData.fill.setColor  (argv.getParseColor("fill_color", pointData.fill.color    ()));
-  pointData.fill.setAlpha  (argv.getParseReal ("fill_alpha", pointData.fill.alpha    ()));
+  pointData.fill().setVisible(argv.getParseBool ("filled"    , pointData.fill().isVisible()));
+  pointData.fill().setColor  (argv.getParseColor("fill_color", pointData.fill().color    ()));
+  pointData.fill().setAlpha  (argv.getParseReal ("fill_alpha", pointData.fill().alpha    ()));
 
   //---
 
   CQChartsPointAnnotation *annotation = nullptr;
 
   if      (view)
-    annotation = view->addPointAnnotation(pos, pointData.type);
+    annotation = view->addPointAnnotation(pos, pointData.type());
   else if (plot)
-    annotation = plot->addPointAnnotation(pos, pointData.type);
+    annotation = plot->addPointAnnotation(pos, pointData.type());
   else
     return false;
 
@@ -4617,121 +4642,211 @@ testEditCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::testEditCmd");
 
-  argv.addCmdArg("-type", CQChartsCmdArg::Type::String, "type");
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-type", CQChartsCmdArg::Type::String, "type").setMultiple(true);
+
+  argv.addCmdArg("-editable", CQChartsCmdArg::Type::SBool, "editable");
 
   if (! argv.parse())
     return false;
 
-  QString type = argv.getParseStr("type");
+  //---
+
+  // get view or plot
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if (argv.hasParseArg("view")) {
+    QString viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return false;
+  }
+
+  if (argv.hasParseArg("plot")) {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+
+    view = plot->view();
+  }
+
+  // get types
+  QStringList types = argv.getParseStrs("type");
+
+  bool editable = argv.getParseBool("editable", true);
 
   //---
 
-  if      (type == "alpha") {
-    CQChartsAlphaEdit *edit = new CQChartsAlphaEdit; edit->show();
+  // create parent dialog
+  QDialog *dialog = new QDialog;
+
+  QGridLayout *layout = new QGridLayout(dialog);
+
+  //---
+
+  // add type edits
+  int numEdits = 0;
+
+  auto addEdit = [&](QWidget *w, const QString &label) {
+    layout->addWidget(new QLabel(label), numEdits, 0);
+    layout->addWidget(w                , numEdits, 1);
+
+    CQChartsEditBase     *editBase     = qobject_cast<CQChartsEditBase     *>(w);
+    CQChartsLineEditBase *lineEditBase = qobject_cast<CQChartsLineEditBase *>(w);
+
+    if      (editBase) {
+      if      (plot) editBase->setPlot(plot);
+      else if (view) editBase->setView(view);
+    }
+    else if (lineEditBase) {
+      if      (plot) lineEditBase->setPlot(plot);
+      else if (view) lineEditBase->setView(view);
+
+      lineEditBase->setEditable(editable);
+    }
+
+    ++numEdits;
+  };
+
+  for (int i = 0; i < types.length(); ++i) {
+    const QString &type = types[i];
+
+    if      (type == "alpha") {
+      CQChartsAlphaEdit *edit = new CQChartsAlphaEdit; addEdit(edit, type);
+    }
+    else if (type == "arrow_data") {
+      CQChartsArrowDataEdit *edit = new CQChartsArrowDataEdit; addEdit(edit, type);
+    }
+    else if (type == "arrow_data_line") {
+      CQChartsArrowDataLineEdit *edit = new CQChartsArrowDataLineEdit; addEdit(edit, type);
+    }
+    else if (type == "box_data") {
+      CQChartsBoxDataEdit *edit = new CQChartsBoxDataEdit; addEdit(edit, type);
+    }
+    else if (type == "box_data_line") {
+      CQChartsBoxDataLineEdit *edit = new CQChartsBoxDataLineEdit; addEdit(edit, type);
+    }
+    else if (type == "color") {
+      CQChartsColorEdit *edit = new CQChartsColorEdit; addEdit(edit, type);
+    }
+    else if (type == "color_line") {
+      CQChartsColorLineEdit *edit = new CQChartsColorLineEdit; addEdit(edit, type);
+    }
+    else if (type == "column") {
+      CQChartsColumnEdit *edit = new CQChartsColumnEdit; addEdit(edit, type);
+    }
+    else if (type == "column_line") {
+      CQChartsColumnLineEdit *edit = new CQChartsColumnLineEdit; addEdit(edit, type);
+    }
+    else if (type == "columns") {
+      CQChartsColumnsEdit *edit = new CQChartsColumnsEdit; addEdit(edit, type);
+    }
+    else if (type == "columns_line") {
+      CQChartsColumnsLineEdit *edit = new CQChartsColumnsLineEdit; addEdit(edit, type);
+    }
+    else if (type == "fill_data") {
+      CQChartsFillDataEdit *edit = new CQChartsFillDataEdit; addEdit(edit, type);
+    }
+    else if (type == "fill_data_line") {
+      CQChartsFillDataLineEdit *edit = new CQChartsFillDataLineEdit; addEdit(edit, type);
+    }
+    else if (type == "fill_pattern") {
+      CQChartsFillPatternEdit *edit = new CQChartsFillPatternEdit; addEdit(edit, type);
+    }
+    else if (type == "fill_under_side") {
+      CQChartsFillUnderSideEdit *edit = new CQChartsFillUnderSideEdit; addEdit(edit, type);
+    }
+    else if (type == "fill_under_pos") {
+      CQChartsFillUnderPosEdit *edit = new CQChartsFillUnderPosEdit; addEdit(edit, type);
+    }
+    else if (type == "fill_under_pos_line") {
+      CQChartsFillUnderPosLineEdit *edit = new CQChartsFillUnderPosLineEdit; addEdit(edit, type);
+    }
+    else if (type == "filter") {
+      CQChartsFilterEdit *edit = new CQChartsFilterEdit; addEdit(edit, type);
+    }
+    else if (type == "key_location") {
+      CQChartsKeyLocationEdit *edit = new CQChartsKeyLocationEdit; addEdit(edit, type);
+    }
+    else if (type == "length") {
+      CQChartsLengthEdit *edit = new CQChartsLengthEdit; addEdit(edit, type);
+    }
+    else if (type == "line_dash") {
+      CQChartsLineDashEdit *edit = new CQChartsLineDashEdit; addEdit(edit, type);
+    }
+    else if (type == "line_data") {
+      CQChartsLineDataEdit *edit = new CQChartsLineDataEdit; addEdit(edit, type);
+    }
+    else if (type == "line_data_line") {
+      CQChartsLineDataLineEdit *edit = new CQChartsLineDataLineEdit; addEdit(edit, type);
+    }
+    else if (type == "polygon") {
+      CQChartsPolygonEdit *edit = new CQChartsPolygonEdit; addEdit(edit, type);
+    }
+    else if (type == "polygon_line") {
+      CQChartsPolygonLineEdit *edit = new CQChartsPolygonLineEdit; addEdit(edit, type);
+    }
+    else if (type == "position") {
+      CQChartsPositionEdit *edit = new CQChartsPositionEdit; addEdit(edit, type);
+    }
+    else if (type == "rect") {
+      CQChartsRectEdit *edit = new CQChartsRectEdit; addEdit(edit, type);
+    }
+    else if (type == "shape_data") {
+      CQChartsShapeDataEdit *edit = new CQChartsShapeDataEdit; addEdit(edit, type);
+    }
+    else if (type == "shape_data_line") {
+      CQChartsShapeDataLineEdit *edit = new CQChartsShapeDataLineEdit; addEdit(edit, type);
+    }
+    else if (type == "sides") {
+      CQChartsSidesEdit *edit = new CQChartsSidesEdit; addEdit(edit, type);
+    }
+    else if (type == "stroke_data") {
+      CQChartsStrokeDataEdit *edit = new CQChartsStrokeDataEdit; addEdit(edit, type);
+    }
+    else if (type == "stroke_data_line") {
+      CQChartsStrokeDataLineEdit *edit = new CQChartsStrokeDataLineEdit; addEdit(edit, type);
+    }
+    else if (type == "symbol_data") {
+      CQChartsSymbolDataEdit *edit = new CQChartsSymbolDataEdit; addEdit(edit, type);
+    }
+    else if (type == "symbol_data_line") {
+      CQChartsSymbolDataLineEdit *edit = new CQChartsSymbolDataLineEdit; addEdit(edit, type);
+    }
+    else if (type == "symbol_type") {
+      CQChartsSymbolEdit *edit = new CQChartsSymbolEdit; addEdit(edit, type);
+    }
+    else if (type == "text_box_data") {
+      CQChartsTextBoxDataEdit *edit = new CQChartsTextBoxDataEdit; addEdit(edit, type);
+    }
+    else if (type == "text_box_data_line") {
+      CQChartsTextBoxDataLineEdit *edit = new CQChartsTextBoxDataLineEdit; addEdit(edit, type);
+    }
+    else if (type == "text_data") {
+      CQChartsTextDataEdit *edit = new CQChartsTextDataEdit; addEdit(edit, type);
+    }
+    else if (type == "text_data_line") {
+      CQChartsTextDataLineEdit *edit = new CQChartsTextDataLineEdit; addEdit(edit, type);
+    }
+    else {
+      charts_->errorMsg("Bad edit type '" + type + "'");
+      return false;
+    }
   }
-  else if (type == "arrow_data") {
-    CQChartsArrowDataEdit *edit = new CQChartsArrowDataEdit; edit->show();
-  }
-  else if (type == "box_data") {
-    CQChartsBoxDataEdit *edit = new CQChartsBoxDataEdit; edit->show();
-  }
-  else if (type == "color") {
-    CQChartsColorEdit *edit = new CQChartsColorEdit; edit->show();
-  }
-  else if (type == "color_line") {
-    CQChartsColorLineEdit *edit = new CQChartsColorLineEdit; edit->show();
-  }
-  else if (type == "column") {
-    CQChartsColumnEdit *edit = new CQChartsColumnEdit; edit->show();
-  }
-  else if (type == "column_line") {
-    CQChartsColumnLineEdit *edit = new CQChartsColumnLineEdit; edit->show();
-  }
-  else if (type == "columns") {
-    CQChartsColumnsEdit *edit = new CQChartsColumnsEdit; edit->show();
-  }
-  else if (type == "columns_line") {
-    CQChartsColumnsLineEdit *edit = new CQChartsColumnsLineEdit; edit->show();
-  }
-  else if (type == "fill_data") {
-    CQChartsFillDataEdit *edit = new CQChartsFillDataEdit; edit->show();
-  }
-  else if (type == "fill_data_line") {
-    CQChartsFillDataLineEdit *edit = new CQChartsFillDataLineEdit; edit->show();
-  }
-  else if (type == "fill_pattern") {
-    CQChartsFillPatternEdit *edit = new CQChartsFillPatternEdit; edit->show();
-  }
-  else if (type == "fill_under_side") {
-    CQChartsFillUnderSideEdit *edit = new CQChartsFillUnderSideEdit; edit->show();
-  }
-  else if (type == "fill_under_pos") {
-    CQChartsFillUnderPosEdit *edit = new CQChartsFillUnderPosEdit; edit->show();
-  }
-  else if (type == "fill_under_pos_line") {
-    CQChartsFillUnderPosLineEdit *edit = new CQChartsFillUnderPosLineEdit; edit->show();
-  }
-  else if (type == "filter") {
-    CQChartsFilterEdit *edit = new CQChartsFilterEdit; edit->show();
-  }
-  else if (type == "key_location") {
-    CQChartsKeyLocationEdit *edit = new CQChartsKeyLocationEdit; edit->show();
-  }
-  else if (type == "length") {
-    CQChartsLengthEdit *edit = new CQChartsLengthEdit; edit->show();
-  }
-  else if (type == "line_dash") {
-    CQChartsLineDashEdit *edit = new CQChartsLineDashEdit; edit->show();
-  }
-  else if (type == "line_data") {
-    CQChartsLineDataEdit *edit = new CQChartsLineDataEdit; edit->show();
-  }
-  else if (type == "line_data_line") {
-    CQChartsLineDataLineEdit *edit = new CQChartsLineDataLineEdit; edit->show();
-  }
-  else if (type == "polygon") {
-    CQChartsPolygonEdit *edit = new CQChartsPolygonEdit; edit->show();
-  }
-  else if (type == "polygon_line") {
-    CQChartsPolygonLineEdit *edit = new CQChartsPolygonLineEdit; edit->show();
-  }
-  else if (type == "position") {
-    CQChartsPositionEdit *edit = new CQChartsPositionEdit; edit->show();
-  }
-  else if (type == "rect") {
-    CQChartsRectEdit *edit = new CQChartsRectEdit; edit->show();
-  }
-  else if (type == "shape_data") {
-    CQChartsShapeDataEdit *edit = new CQChartsShapeDataEdit; edit->show();
-  }
-  else if (type == "shape_data_line") {
-    CQChartsShapeDataLineEdit *edit = new CQChartsShapeDataLineEdit; edit->show();
-  }
-  else if (type == "sides") {
-    CQChartsSidesEdit *edit = new CQChartsSidesEdit; edit->show();
-  }
-  else if (type == "stroke_data") {
-    CQChartsStrokeDataEdit *edit = new CQChartsStrokeDataEdit; edit->show();
-  }
-  else if (type == "stroke_data_edit") {
-    CQChartsStrokeDataLineEdit *edit = new CQChartsStrokeDataLineEdit; edit->show();
-  }
-  else if (type == "symbol_data") {
-    CQChartsSymbolDataEdit *edit = new CQChartsSymbolDataEdit; edit->show();
-  }
-  else if (type == "symbol_type") {
-    CQChartsSymbolEdit *edit = new CQChartsSymbolEdit; edit->show();
-  }
-  else if (type == "text_box_data") {
-    CQChartsTextBoxDataEdit *edit = new CQChartsTextBoxDataEdit; edit->show();
-  }
-  else if (type == "text_data") {
-    CQChartsTextDataEdit *edit = new CQChartsTextDataEdit; edit->show();
-  }
-  else {
-    charts_->errorMsg("Bad edit type '" + type + "'");
+
+  if (numEdits == 0)
     return false;
-  }
+
+  layout->setRowStretch(numEdits + 1, 1);
+
+  // show dialog
+  dialog->show();
 
   return true;
 }
@@ -4924,7 +5039,7 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
       else if (parameter->type() == CQChartsPlotParameter::Type::REAL) {
         bool ok;
 
-        double r = value.toDouble(&ok);
+        double r = CQChartsUtil::toReal(value, ok);
 
         if (! ok) {
           charts_->errorMsg("Invalid real value '" + value + "' for '" +
@@ -4937,7 +5052,7 @@ initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
       else if (parameter->type() == CQChartsPlotParameter::Type::INTEGER) {
         bool ok;
 
-        int i = value.simplified().toInt(&ok);
+        int i = CQChartsUtil::toInt(value.simplified(), ok);
 
         if (! ok) {
           charts_->errorMsg("Invalid integer value '" + value + "' for '" +

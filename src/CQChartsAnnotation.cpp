@@ -1941,7 +1941,7 @@ CQChartsPointAnnotation(CQChartsView *view, const CQChartsPosition &position,
 {
   setObjectName(QString("point.%1").arg(ind()));
 
-  pointData_.type = type;
+  pointData_.setType(type);
 }
 
 CQChartsPointAnnotation::
@@ -1951,7 +1951,7 @@ CQChartsPointAnnotation(CQChartsPlot *plot, const CQChartsPosition &position,
 {
   setObjectName(QString("point.%1").arg(ind()));
 
-  pointData_.type = type;
+  pointData_.setType(type);
 }
 
 CQChartsPointAnnotation::
@@ -2034,12 +2034,12 @@ draw(QPainter *painter)
   double sw = 0.0, sh = 0.0;
 
   if      (plot()) {
-    sw = plot()->lengthPlotWidth (pointData_.size);
-    sh = plot()->lengthPlotHeight(pointData_.size);
+    sw = plot()->lengthPlotWidth (pointData_.size());
+    sh = plot()->lengthPlotHeight(pointData_.size());
   }
   else if (view()) {
-    sw = view()->lengthViewWidth (pointData_.size);
-    sh = view()->lengthViewHeight(pointData_.size);
+    sw = view()->lengthViewWidth (pointData_.size());
+    sh = view()->lengthViewHeight(pointData_.size());
   }
 
   double x = position.x() - xp - xm; // bottom
@@ -2071,22 +2071,22 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor lineColor = charts()->interpColor(pointData_.stroke.color(), 0, 1);
-  QColor fillColor = charts()->interpColor(pointData_.fill  .color(), 0, 1);
+  QColor lineColor = charts()->interpColor(pointData_.stroke().color(), 0, 1);
+  QColor fillColor = charts()->interpColor(pointData_.fill  ().color(), 0, 1);
 
   if      (plot())
-    plot()->setPen(pen, pointData_.stroke.isVisible(), lineColor, pointData_.stroke.alpha(),
-                   pointData_.stroke.width(), pointData_.stroke.dash());
+    plot()->setPen(pen, pointData_.stroke().isVisible(), lineColor, pointData_.stroke().alpha(),
+                   pointData_.stroke().width(), pointData_.stroke().dash());
   else if (view())
-    view()->setPen(pen, pointData_.stroke.isVisible(), lineColor, pointData_.stroke.alpha(),
-                   pointData_.stroke.width(), pointData_.stroke.dash());
+    view()->setPen(pen, pointData_.stroke().isVisible(), lineColor, pointData_.stroke().alpha(),
+                   pointData_.stroke().width(), pointData_.stroke().dash());
 
   if      (plot())
-    plot()->setBrush(brush, pointData_.fill.isVisible(), fillColor, pointData_.fill.alpha(),
-                     pointData_.fill.pattern());
+    plot()->setBrush(brush, pointData_.fill().isVisible(), fillColor, pointData_.fill().alpha(),
+                     pointData_.fill().pattern());
   else if (view())
-    view()->setBrush(brush, pointData_.fill.isVisible(), fillColor, pointData_.fill.alpha(),
-                     pointData_.fill.pattern());
+    view()->setBrush(brush, pointData_.fill().isVisible(), fillColor, pointData_.fill().alpha(),
+                     pointData_.fill().pattern());
 
   if (plot())
     plot()->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
@@ -2101,10 +2101,10 @@ draw(QPainter *painter)
                                      CMathUtil::avg(sw, sh));
 
   if (painter->brush().style() != Qt::NoBrush)
-    CQChartsPlotSymbolMgr::fillSymbol(pointData_.type, &srenderer);
+    CQChartsPlotSymbolMgr::fillSymbol(pointData_.type(), &srenderer);
 
   if (painter->pen().style() != Qt::NoPen)
-    CQChartsPlotSymbolMgr::drawSymbol(pointData_.type, &srenderer);
+    CQChartsPlotSymbolMgr::drawSymbol(pointData_.type(), &srenderer);
 
   //---
 
@@ -2121,8 +2121,8 @@ write(std::ostream &os) const
   if (position().isSet())
     os << " -position {" << position().toString().toStdString() << "}";
 
-  if (pointData().size.isSet())
-    os << " -size {" << pointData().size.toString().toStdString() << "}";
+  if (pointData().size().isSet())
+    os << " -size {" << pointData().size().toString().toStdString() << "}";
 
   if (type() != CQChartsSymbol::Type::NONE)
     os << " -type {" << type().toString().toStdString() << "}";

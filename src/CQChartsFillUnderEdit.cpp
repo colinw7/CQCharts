@@ -3,6 +3,7 @@
 #include <CQWidgetMenu.h>
 #include <CQPropertyView.h>
 #include <CQRealSpin.h>
+#include <CQChartsUtil.h>
 
 #include <QGroupBox>
 #include <QComboBox>
@@ -181,18 +182,18 @@ CQChartsFillUnderPosLineEdit(QWidget *parent) :
 
   //---
 
-  menuEdit_ = new CQChartsFillUnderPosEdit;
+  menuEdit_ = dataEdit_ = new CQChartsFillUnderPosEdit;
 
-  menu_->setWidget(menuEdit_);
+  menu_->setWidget(dataEdit_);
 
-  connect(menuEdit_, SIGNAL(fillUnderPosChanged()), this, SLOT(menuEditChanged()));
+  connect(dataEdit_, SIGNAL(fillUnderPosChanged()), this, SLOT(menuEditChanged()));
 }
 
 const CQChartsFillUnderPos &
 CQChartsFillUnderPosLineEdit::
 fillUnderPos() const
 {
-  return menuEdit_->fillUnderPos();
+  return dataEdit_->fillUnderPos();
 }
 
 void
@@ -208,7 +209,7 @@ updateFillUnderPos(const CQChartsFillUnderPos &fillUnderPos, bool updateText)
 {
   connectSlots(false);
 
-  menuEdit_->setFillUnderPos(fillUnderPos);
+  dataEdit_->setFillUnderPos(fillUnderPos);
 
   if (updateText)
     fillUnderPosToWidgets();
@@ -241,6 +242,8 @@ fillUnderPosToWidgets()
   else
     edit_->setText("");
 
+  setToolTip(fillUnderPos().toString());
+
   connectSlots(true);
 }
 
@@ -260,9 +263,33 @@ connectSlots(bool b)
   CQChartsLineEditBase::connectSlots(b);
 
   if (b)
-    connect(menuEdit_, SIGNAL(fillUnderPosChanged()), this, SLOT(menuEditChanged()));
+    connect(dataEdit_, SIGNAL(fillUnderPosChanged()), this, SLOT(menuEditChanged()));
   else
-    disconnect(menuEdit_, SIGNAL(fillUnderPosChanged()), this, SLOT(menuEditChanged()));
+    disconnect(dataEdit_, SIGNAL(fillUnderPosChanged()), this, SLOT(menuEditChanged()));
+}
+
+void
+CQChartsFillUnderPosLineEdit::
+drawPreview(QPainter *painter, const QRect &rect)
+{
+  QColor c = palette().color(QPalette::Window);
+
+  painter->fillRect(rect, QBrush(c));
+
+  //---
+
+  QString str = (fillUnderPos().isValid() ? fillUnderPos().toString() : "<none>");
+
+  QFontMetricsF fm(font());
+
+  double fa = fm.ascent();
+  double fd = fm.descent();
+
+  QColor tc = CQChartsUtil::bwColor(c);
+
+  painter->setPen(tc);
+
+  painter->drawText(rect.left() + 2, rect.center().y() + (fa - fd)/2, str);
 }
 
 //------
@@ -375,7 +402,7 @@ setValue(QWidget *w, const QVariant &var)
 
 CQChartsFillUnderPosEdit::
 CQChartsFillUnderPosEdit(QWidget *parent) :
- QFrame(parent)
+ CQChartsEditBase(parent)
 {
   setObjectName("fillUnderPos");
 
@@ -587,4 +614,28 @@ connectSlots(bool b)
                     SLOT(widgetsToFillUnderPos()));
   connectDisconnect(b, yposEdit_, SIGNAL(valueChanged(double)),
                     SLOT(widgetsToFillUnderPos()));
+}
+
+void
+CQChartsFillUnderPosEdit::
+drawPreview(QPainter *painter, const QRect &rect)
+{
+  QColor c = palette().color(QPalette::Window);
+
+  painter->fillRect(rect, QBrush(c));
+
+  //---
+
+  QString str = (fillUnderPos().isValid() ? fillUnderPos().toString() : "<none>");
+
+  QFontMetricsF fm(font());
+
+  double fa = fm.ascent();
+  double fd = fm.descent();
+
+  QColor tc = CQChartsUtil::bwColor(c);
+
+  painter->setPen(tc);
+
+  painter->drawText(rect.left() + 2, rect.center().y() + (fa - fd)/2, str);
 }

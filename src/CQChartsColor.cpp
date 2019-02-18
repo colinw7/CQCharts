@@ -82,7 +82,7 @@ setColorStr(const QString &str)
 
       bool ok;
 
-      int ind = lhs1.toInt(&ok);
+      long ind = CQChartsUtil::toInt(lhs1, ok);
 
       if (! ok)
         return false;
@@ -100,7 +100,7 @@ setColorStr(const QString &str)
 
       bool ok1;
 
-      double value = rhs1.toDouble(&ok1);
+      double value = CQChartsUtil::toReal(rhs1, ok1);
 
       if (! ok1)
         return false;
@@ -110,7 +110,7 @@ setColorStr(const QString &str)
     else {
       bool ok;
 
-      int ind = rhs.toInt(&ok);
+      long ind = CQChartsUtil::toInt(rhs, ok);
 
       if (! ok)
         return false;
@@ -134,7 +134,7 @@ setColorStr(const QString &str)
 
     bool ok;
 
-    double value = rhs.toDouble(&ok);
+    double value = CQChartsUtil::toReal(rhs, ok);
 
     if (! ok)
       return false;
@@ -147,7 +147,7 @@ setColorStr(const QString &str)
   else if (startsWith(str, "interface:", rhs)) {
     bool ok;
 
-    double value = rhs.toDouble(&ok);
+    double value = CQChartsUtil::toReal(rhs, ok);
 
     if (! ok)
       return false;

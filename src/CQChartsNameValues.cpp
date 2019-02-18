@@ -1,6 +1,7 @@
 #include <CQChartsNameValues.h>
 
 #include <CQChartsVariant.h>
+#include <CQAlignEdit.h>
 #include <CQStrParse.h>
 
 QString
@@ -168,6 +169,34 @@ nameValueColor(const QString &name, CQChartsColor &color) const
   color = CQChartsVariant::toColor(var, ok);
 
   return ok;
+}
+
+bool
+CQChartsNameValues::
+nameValueFont(const QString &name, QFont &font) const
+{
+  QVariant var;
+
+  if (! nameValue(name, var))
+    return false;
+
+  font = QFont(var.toString());
+
+  return true;
+}
+
+bool
+CQChartsNameValues::
+nameValueAlign(const QString &name, Qt::Alignment &align) const
+{
+  QVariant var;
+
+  if (! nameValue(name, var))
+    return false;
+
+  align = CQAlignEdit::fromString(var.toString());
+
+  return true;
 }
 
 QStringList

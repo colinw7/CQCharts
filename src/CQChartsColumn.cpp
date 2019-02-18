@@ -1,5 +1,5 @@
 #include <CQChartsColumn.h>
-#include <CQStrUtil.h>
+#include <CQChartsUtil.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsColumn, toString, fromString)
 
@@ -161,8 +161,8 @@ cmp(const CQChartsColumn &lhs, const CQChartsColumn &rhs)
   if (lhs.role_ > rhs.role_) return  1;
 
   if (lhs.expr_ != rhs.expr_) {
-    if (! lhs.expr_ &&   rhs.expr_) return -1;
-    if (  lhs.expr_ && ! rhs.expr_) return  1;
+    if (! lhs.expr_) return -1;
+    if (! rhs.expr_) return  1;
 
     return strcmp(lhs.expr_, rhs.expr_);
   }
@@ -284,7 +284,7 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
 
   const char *p;
 
-  long column1 = CQStrUtil::toInt(&c_str[i], ok, &p);
+  long column1 = CQChartsUtil::toInt(&c_str[i], ok, &p);
 
   if (! ok)
     return false;
@@ -304,7 +304,7 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
 
     const char *p1;
 
-    role1 = CQStrUtil::toInt(p, ok1, &p1);
+    role1 = CQChartsUtil::toInt(p, ok1, &p1);
 
     if (! ok1)
       return false;

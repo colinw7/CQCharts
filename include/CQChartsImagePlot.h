@@ -141,17 +141,17 @@ class CQChartsImagePlot : public CQChartsPlot,
   void drawYLabels(QPainter *) const;
 
  private:
-  bool   xLabels_         { false }; // x labels
-  bool   yLabels_         { false }; // y labels
-  bool   cellLabels_      { false }; // cell labels
-  bool   scaleCellLabels_ { false }; // scale cell labels
-  bool   balloon_         { false }; // draw balloon
-  int    nc_              { 0 };     // number of grid columns
-  int    nr_              { 0 };     // number of grid rows
-  double minValue_        { 0.0 };   // min value
-  double maxValue_        { 0.0 };   // max value
-  double minBalloonSize_  { 0.1 };   // min balloon size (cell fraction)
-  double maxBalloonSize_  { 1.0 };   // max balloon size (cell fraction)
+  bool   xLabels_         { false }; //! x labels
+  bool   yLabels_         { false }; //! y labels
+  bool   cellLabels_      { false }; //! cell labels
+  bool   scaleCellLabels_ { false }; //! scale cell labels
+  bool   balloon_         { false }; //! draw balloon
+  int    nc_              { 0 };     //! number of grid columns
+  int    nr_              { 0 };     //! number of grid rows
+  double minValue_        { 0.0 };   //! min value
+  double maxValue_        { 0.0 };   //! max value
+  double minBalloonSize_  { 0.1 };   //! min balloon size (cell fraction)
+  double maxBalloonSize_  { 1.0 };   //! max balloon size (cell fraction)
 };
 
 #endif

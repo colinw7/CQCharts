@@ -1959,8 +1959,8 @@ draw(QPainter *painter)
 
       CQChartsSymbolData symbol;
 
-      symbol.type = CQChartsSymbol::Type::CIRCLE;
-      symbol.size = plot_->outlierSymbolSize();
+      symbol.setType(CQChartsSymbol::Type::CIRCLE);
+      symbol.setSize(plot_->outlierSymbolSize());
 
       CQChartsDensity::drawPointRange(plot_, painter, rect, mean, orientation, symbol,
                                       symbolPen, symbolBrush);
@@ -2077,8 +2077,8 @@ draw(QPainter *painter)
       if (plot_->isShowOutliers()) {
         CQChartsSymbolData symbol;
 
-        symbol.type = plot_->outlierSymbolType();
-        symbol.size = plot_->outlierSymbolSize();
+        symbol.setType(plot_->outlierSymbolType());
+        symbol.setSize(plot_->outlierSymbolSize());
 
         //---
 
@@ -2537,8 +2537,8 @@ draw(QPainter *painter)
   if (plot_->isShowOutliers()) {
     CQChartsSymbolData symbol;
 
-    symbol.type = plot_->outlierSymbolType();
-    symbol.size = plot_->outlierSymbolSize();
+    symbol.setType(plot_->outlierSymbolType());
+    symbol.setSize(plot_->outlierSymbolSize());
 
     //---
 

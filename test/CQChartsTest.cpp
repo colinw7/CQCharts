@@ -514,7 +514,7 @@ parseArgs(int argc, char **argv, MainData &mainData)
 
             bool ok;
 
-            double r = value.toDouble(&ok);
+            double r = CQChartsUtil::toReal(value, ok);
 
             if (ok)
               mainData.initData.setNameReal(name, r);

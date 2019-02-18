@@ -29,50 +29,22 @@ CQChartsTextDataLineEdit(QWidget *parent) :
 
   //---
 
-  menuEdit_ = new CQChartsTextDataEdit;
+  menuEdit_ = dataEdit_ = new CQChartsTextDataEdit;
 
-  menu_->setWidget(menuEdit_);
+  menu_->setWidget(dataEdit_);
 
-  connect(menuEdit_, SIGNAL(textDataChanged()), this, SLOT(menuEditChanged()));
+  connect(dataEdit_, SIGNAL(textDataChanged()), this, SLOT(menuEditChanged()));
 
   //---
 
   textDataToWidgets();
 }
 
-CQChartsPlot *
-CQChartsTextDataLineEdit::
-plot() const
-{
-  return menuEdit_->plot();
-}
-
-void
-CQChartsTextDataLineEdit::
-setPlot(CQChartsPlot *plot)
-{
-  menuEdit_->setPlot(plot);
-}
-
-CQChartsView *
-CQChartsTextDataLineEdit::
-view() const
-{
-  return menuEdit_->view();
-}
-
-void
-CQChartsTextDataLineEdit::
-setView(CQChartsView *view)
-{
-  menuEdit_->setView(view);
-}
-
 const CQChartsTextData &
 CQChartsTextDataLineEdit::
 textData() const
 {
-  return menuEdit_->data();
+  return dataEdit_->data();
 }
 
 void
@@ -88,7 +60,7 @@ updateTextData(const CQChartsTextData &textData, bool updateText)
 {
   connectSlots(false);
 
-  menuEdit_->setData(textData);
+  dataEdit_->setData(textData);
 
   if (updateText)
     textDataToWidgets();
@@ -121,6 +93,8 @@ textDataToWidgets()
   else
     edit_->setText("");
 
+  setToolTip(textData().toString());
+
   connectSlots(true);
 }
 
@@ -140,20 +114,23 @@ connectSlots(bool b)
   CQChartsLineEditBase::connectSlots(b);
 
   if (b)
-    connect(menuEdit_, SIGNAL(textDataChanged()), this, SLOT(menuEditChanged()));
+    connect(dataEdit_, SIGNAL(textDataChanged()), this, SLOT(menuEditChanged()));
   else
-    disconnect(menuEdit_, SIGNAL(textDataChanged()), this, SLOT(menuEditChanged()));
+    disconnect(dataEdit_, SIGNAL(textDataChanged()), this, SLOT(menuEditChanged()));
+}
+
+void
+CQChartsTextDataLineEdit::
+drawPreview(QPainter *painter, const QRect &rect)
+{
+  QColor c = palette().color(QPalette::Window);
+
+  painter->fillRect(rect, QBrush(c));
+
+  CQChartsTextDataEditPreview::draw(painter, textData(), rect, plot(), view());
 }
 
 //------
-
-#include <CQPropertyViewItem.h>
-#include <CQPropertyViewDelegate.h>
-
-CQChartsTextDataPropertyViewType::
-CQChartsTextDataPropertyViewType()
-{
-}
 
 CQPropertyViewEditorFactory *
 CQChartsTextDataPropertyViewType::
@@ -162,54 +139,14 @@ getEditor() const
   return new CQChartsTextDataPropertyViewEditor;
 }
 
-bool
-CQChartsTextDataPropertyViewType::
-setEditorData(CQPropertyViewItem *item, const QVariant &value)
-{
-  return item->setData(value);
-}
-
 void
 CQChartsTextDataPropertyViewType::
-draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
-     const QStyleOptionViewItem &option, const QModelIndex &ind,
-     const QVariant &value, bool inside)
+drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
+            CQChartsPlot *plot, CQChartsView *view)
 {
-  CQPropertyViewItem *item = CQPropertyViewMgrInst->drawItem();
-
-  QObject *obj = (item ? item->object() : nullptr);
-
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj);
-  CQChartsView *view = qobject_cast<CQChartsView *>(obj);
-
-  //---
-
-  delegate->drawBackground(painter, option, ind, inside);
-
   CQChartsTextData data = value.value<CQChartsTextData>();
 
-  QColor pc;
-
-  if      (plot)
-    pc = plot->charts()->interpColor(data.color(), 0, 1);
-  else if (view)
-    pc = view->charts()->interpColor(data.color(), 0, 1);
-  else
-    pc = data.color().color();
-
-  QPen pen;
-
-  CQChartsUtil::setPen(pen, data.isVisible(), pc, data.alpha());
-
-  painter->setRenderHints(QPainter::Antialiasing);
-
-  painter->setPen(pen);
-
-  // TODO: contrast, formatted, html
-
-  CQChartsRotatedText::drawRotatedText(painter, option.rect.center().x(), option.rect.center().y(),
-                                       "ABC abc", data.angle(), data.align(),
-                                       /*alignBox*/false);
+  CQChartsTextDataEditPreview::draw(painter, data, rect, plot, view);
 }
 
 QString
@@ -223,28 +160,11 @@ tip(const QVariant &value) const
 
 //------
 
+CQChartsLineEditBase *
 CQChartsTextDataPropertyViewEditor::
-CQChartsTextDataPropertyViewEditor()
+createPropertyEdit(QWidget *parent)
 {
-}
-
-QWidget *
-CQChartsTextDataPropertyViewEditor::
-createEdit(QWidget *parent)
-{
-  CQPropertyViewItem *item = CQPropertyViewMgrInst->editItem();
-
-  QObject *obj = (item ? item->object() : nullptr);
-
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj);
-  CQChartsView *view = qobject_cast<CQChartsView *>(obj);
-
-  CQChartsTextDataLineEdit *edit = new CQChartsTextDataLineEdit(parent);
-
-  if      (plot) edit->setPlot(plot);
-  else if (view) edit->setView(view);
-
-  return edit;
+  return new CQChartsTextDataLineEdit(parent);
 }
 
 void
@@ -283,7 +203,7 @@ setValue(QWidget *w, const QVariant &var)
 
 CQChartsTextDataEdit::
 CQChartsTextDataEdit(QWidget *parent) :
- QFrame(parent)
+ CQChartsEditBase(parent)
 {
   QVBoxLayout *layout = new QVBoxLayout(this);
 
@@ -410,6 +330,29 @@ CQChartsTextDataEdit(QWidget *parent) :
 
 void
 CQChartsTextDataEdit::
+setData(const CQChartsTextData &d)
+{
+  data_ = d;
+
+  dataToWidgets();
+}
+
+void
+CQChartsTextDataEdit::
+setTitle(const QString &title)
+{
+ groupBox_->setTitle(title);
+}
+
+void
+CQChartsTextDataEdit::
+setPreview(bool b)
+{
+  preview_->setVisible(b);
+}
+
+void
+CQChartsTextDataEdit::
 dataToWidgets()
 {
   disconnect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
@@ -472,49 +415,44 @@ widgetsToData()
 
 CQChartsTextDataEditPreview::
 CQChartsTextDataEditPreview(CQChartsTextDataEdit *edit) :
- edit_(edit)
+ CQChartsEditPreview(edit), edit_(edit)
 {
 }
 
 void
 CQChartsTextDataEditPreview::
-paintEvent(QPaintEvent *)
+draw(QPainter *painter)
 {
   const CQChartsTextData &data = edit_->data();
 
-  QColor pc;
+  draw(painter, data, rect(), edit_->plot(), edit_->view());
+}
 
-  if      (edit_->plot())
-    pc = edit_->plot()->charts()->interpColor(data.color(), 0, 1);
-  else if (edit_->view())
-    pc = edit_->view()->charts()->interpColor(data.color(), 0, 1);
-  else
-    pc = data.color().color();
+void
+CQChartsTextDataEditPreview::
+draw(QPainter *painter, const CQChartsTextData &data, const QRect &rect,
+     CQChartsPlot *plot, CQChartsView *view)
+{
+  // set pen
+  QColor pc = interpColor(plot, view, data.color());
 
   QPen pen;
 
   CQChartsUtil::setPen(pen, data.isVisible(), pc, data.alpha());
 
-  QPainter painter(this);
+  painter->setPen(pen);
 
-  painter.setRenderHints(QPainter::Antialiasing);
+  //---
 
-  painter.setPen(pen);
+  // set font
+  painter->setFont(data.font());
 
-  painter.setFont(data.font());
+  //---
 
+  // draw text
   // TODO: contrast, formatted, html
 
-  CQChartsRotatedText::drawRotatedText(&painter, rect().center().x(), rect().center().y(),
+  CQChartsRotatedText::drawRotatedText(painter, rect.center().x(), rect.center().y(),
                                        "ABC abc", data.angle(), data.align(),
                                        /*alignBox*/false);
-}
-
-QSize
-CQChartsTextDataEditPreview::
-sizeHint() const
-{
-  QFontMetrics fm(font());
-
-  return QSize(fm.width("XXXX"), fm.height() + 4);
 }

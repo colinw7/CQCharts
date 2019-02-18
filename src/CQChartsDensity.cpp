@@ -490,9 +490,9 @@ drawPointRange(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::
   // draw symbol
   double sx, sy;
 
-  plot->pixelSymbolSize(symbol.size, sx, sy);
+  plot->pixelSymbolSize(symbol.size(), sx, sy);
 
-  plot->drawSymbol(painter, QPointF(px2, py2), symbol.type, CMathUtil::avg(sx, sy), pen, brush);
+  plot->drawSymbol(painter, QPointF(px2, py2), symbol.type(), CMathUtil::avg(sx, sy), pen, brush);
 }
 
 void

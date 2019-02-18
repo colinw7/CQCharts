@@ -430,7 +430,7 @@ exprApplySlot()
   if (! CQChartsModelUtil::stringToColumn(model.data(), columnStr, column)) {
     bool ok;
 
-    int icolumn = columnStr.toInt(&ok);
+    long icolumn = CQChartsUtil::toInt(columnStr, ok);
 
     if (ok)
       column = CQChartsColumn(icolumn);
@@ -468,12 +468,14 @@ foldApplySlot()
   if (! modelData_)
     return;
 
+  bool ok;
+
   CQChartsModelData::FoldData foldData;
 
   foldData.columnsStr = foldColumnEdit_->text();
   foldData.isAuto     = foldAutoCheck_->isChecked();
-  foldData.delta      = foldDeltaEdit_->text().toDouble();
-  foldData.count      = foldCountEdit_->text().toInt();
+  foldData.delta      = CQChartsUtil::toReal(foldDeltaEdit_->text(), ok);
+  foldData.count      = CQChartsUtil::toInt (foldCountEdit_->text(), ok);
 
   modelData_->foldModel(foldData);
 
@@ -552,7 +554,7 @@ typeApplySlot()
 
   bool ok;
 
-  int column = numStr.toInt(&ok);
+  long column = CQChartsUtil::toInt(numStr, ok);
 
   if (! ok) {
     charts_->errorMsg("Invalid column number '" + numStr + "'");

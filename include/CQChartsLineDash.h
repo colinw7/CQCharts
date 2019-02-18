@@ -63,6 +63,8 @@ class CQChartsLineDash {
 
   bool fromString(const QString &str);
 
+  bool isValid() const { return true; }
+
   friend std::ostream &operator<<(std::ostream &os, const CQChartsLineDash &dash) {
     os << dash.toString().toStdString();
 

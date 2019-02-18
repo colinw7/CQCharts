@@ -101,9 +101,9 @@ class CQChartsPlotParameterAttributes {
   }
 
  private:
-  unsigned int flags_  { 0 };   // flags
-  double       mapMin_ { 0.0 }; // map min
-  double       mapMax_ { 1.0 }; // map max
+  unsigned int flags_  { 0 };   //! flags
+  double       mapMin_ { 0.0 }; //! map min
+  double       mapMax_ { 1.0 }; //! map max
 };
 
 //---
@@ -434,11 +434,11 @@ class CQChartsPlotParameterGroup : public QObject {
   void setParentGroupId(int i) { parentGroupId_ = i; }
 
  private:
-  Type    type_          { Type::NONE }; // group type
-  QString name_;                         // group name
-  int     groupId_       { -1 };         // group id
-  int     otherGroupId_  { -1 };         // other group id
-  int     parentGroupId_ { -1 };         // parent group id
+  Type    type_          { Type::NONE }; //! group type
+  QString name_;                         //! group name
+  int     groupId_       { -1 };         //! group id
+  int     otherGroupId_  { -1 };         //! other group id
+  int     parentGroupId_ { -1 };         //! parent group id
 };
 
 #endif

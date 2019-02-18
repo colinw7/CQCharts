@@ -314,7 +314,6 @@ createArrowFrame()
   arrowWidgets_.backAngleEdit   = new CQAngleSpinBox;
   arrowWidgets_.fheadCheck      = new CQCheckBox;
   arrowWidgets_.theadCheck      = new CQCheckBox;
-//arrowWidgets_.emptyCheck      = new CQCheckBox;
   arrowWidgets_.lineEndsCheck   = new CQCheckBox;
   arrowWidgets_.lineWidthEdit   = new CQChartsLengthEdit;
   arrowWidgets_.borderWidthEdit = new CQChartsLengthEdit;
@@ -331,7 +330,6 @@ createArrowFrame()
   addGridLabelWidget(gridLayout, "Back Angle"  , arrowWidgets_.backAngleEdit  , row);
   addGridLabelWidget(gridLayout, "Front Head"  , arrowWidgets_.fheadCheck     , row);
   addGridLabelWidget(gridLayout, "Tail Head"   , arrowWidgets_.theadCheck     , row);
-//addGridLabelWidget(gridLayout, "Empty"       , arrowWidgets_.emptyCheck     , row);
   addGridLabelWidget(gridLayout, "Line Ends"   , arrowWidgets_.lineEndsCheck  , row);
   addGridLabelWidget(gridLayout, "Line Width"  , arrowWidgets_.lineWidthEdit  , row);
   addGridLabelWidget(gridLayout, "Border Width", arrowWidgets_.borderWidthEdit, row);
@@ -522,13 +520,13 @@ createRectAnnotation()
 
   CQChartsBoxData boxData;
 
-  CQChartsFillData   &background = boxData.shape.background();
-  CQChartsStrokeData &border     = boxData.shape.border();
+  CQChartsFillData   &background = boxData.shape().background();
+  CQChartsStrokeData &border     = boxData.shape().border();
 
   CQChartsRect rect = rectWidgets_.rectEdit->rect();
 
-  boxData.margin  = rectWidgets_.marginEdit ->value();
-  boxData.padding = rectWidgets_.paddingEdit->value();
+  boxData.setMargin (rectWidgets_.marginEdit ->value());
+  boxData.setPadding(rectWidgets_.paddingEdit->value());
 
   background.setVisible(rectWidgets_.backgroundCheck->isChecked());
   background.setColor  (rectWidgets_.backgroundColor->color());
@@ -548,7 +546,7 @@ createRectAnnotation()
 
   border.setCornerSize(rectWidgets_.cornerSizeEdit->length());
 
-  boxData.borderSides = rectWidgets_.borderSidesEdit->text();
+  boxData.setBorderSides(rectWidgets_.borderSidesEdit->text());
 
   //---
 
@@ -576,8 +574,8 @@ createEllipseAnnotation()
 
   CQChartsBoxData boxData;
 
-  CQChartsFillData   &background = boxData.shape.background();
-  CQChartsStrokeData &border     = boxData.shape.border();
+  CQChartsFillData   &background = boxData.shape().background();
+  CQChartsStrokeData &border     = boxData.shape().border();
 
   CQChartsPosition center = ellipseWidgets_.centerEdit->position();
 
@@ -602,7 +600,7 @@ createEllipseAnnotation()
 
   border.setCornerSize(ellipseWidgets_.cornerSizeEdit->length());
 
-  boxData.borderSides = ellipseWidgets_.borderSidesEdit->text();
+  boxData.setBorderSides(ellipseWidgets_.borderSidesEdit->text());
 
   //---
 
@@ -732,8 +730,8 @@ createTextAnnotation()
   CQChartsTextData textData;
   CQChartsBoxData  boxData;
 
-  CQChartsFillData   &background = boxData.shape.background();
-  CQChartsStrokeData &border     = boxData.shape.border();
+  CQChartsFillData   &background = boxData.shape().background();
+  CQChartsStrokeData &border     = boxData.shape().border();
 
   QString id    = idEdit_ ->text();
   QString tipId = tipEdit_->text();
@@ -768,7 +766,7 @@ createTextAnnotation()
 
   border.setCornerSize(textWidgets_.cornerSizeEdit->length());
 
-  boxData.borderSides = textWidgets_.borderSidesEdit->text();
+  boxData.setBorderSides(textWidgets_.borderSidesEdit->text());
 
   //---
 
@@ -800,14 +798,13 @@ createArrowAnnotation()
   CQChartsPosition start = arrowWidgets_.startEdit->position();
   CQChartsPosition end   = arrowWidgets_.endEdit  ->position();
 
-  arrowData.length    = arrowWidgets_.lengthEdit->length();
-  arrowData.angle     = arrowWidgets_.angleEdit->value();
-  arrowData.backAngle = arrowWidgets_.backAngleEdit->value();
-  arrowData.fhead     = arrowWidgets_.fheadCheck->isChecked();
-  arrowData.thead     = arrowWidgets_.theadCheck->isChecked();
-//arrowData.empty     = arrowWidgets_.emptyCheck->isChecked();
-  arrowData.lineEnds  = arrowWidgets_.lineEndsCheck->isChecked();
-  arrowData.lineWidth = arrowWidgets_.lineWidthEdit->length();
+  arrowData.setLength   (arrowWidgets_.lengthEdit->length());
+  arrowData.setAngle    (arrowWidgets_.angleEdit->value());
+  arrowData.setBackAngle(arrowWidgets_.backAngleEdit->value());
+  arrowData.setFHead    (arrowWidgets_.fheadCheck->isChecked());
+  arrowData.setTHead    (arrowWidgets_.theadCheck->isChecked());
+  arrowData.setLineEnds (arrowWidgets_.lineEndsCheck->isChecked());
+  arrowData.setLineWidth(arrowWidgets_.lineWidthEdit->length());
 
   CQChartsShapeData shapeData;
 
@@ -850,30 +847,30 @@ createPointAnnotation()
 
   CQChartsPosition pos = pointWidgets_.positionEdit->position();
 
-  pointData.size = pointWidgets_.sizeEdit->length();
+  pointData.setSize(pointWidgets_.sizeEdit->length());
 
   QString typeStr = pointWidgets_.typeEdit->text();
 
   if (typeStr.length())
-    pointData.type = CQChartsSymbol::nameToType(typeStr);
+    pointData.setType(CQChartsSymbol::nameToType(typeStr));
 
-  pointData.stroke.setVisible(pointWidgets_.strokedCheck->isChecked());
-  pointData.stroke.setWidth  (pointWidgets_.lineWidthEdit->length());
-  pointData.stroke.setColor  (pointWidgets_.lineColorEdit->color());
-  pointData.stroke.setAlpha  (pointWidgets_.lineAlphaEdit->value());
+  pointData.stroke().setVisible(pointWidgets_.strokedCheck->isChecked());
+  pointData.stroke().setWidth  (pointWidgets_.lineWidthEdit->length());
+  pointData.stroke().setColor  (pointWidgets_.lineColorEdit->color());
+  pointData.stroke().setAlpha  (pointWidgets_.lineAlphaEdit->value());
 
-  pointData.fill.setVisible(pointWidgets_.filledCheck->isChecked());
-  pointData.fill.setColor  (pointWidgets_.fillColorEdit->color());
-  pointData.fill.setAlpha  (pointWidgets_.fillAlphaEdit->value());
+  pointData.fill().setVisible(pointWidgets_.filledCheck->isChecked());
+  pointData.fill().setColor  (pointWidgets_.fillColorEdit->color());
+  pointData.fill().setAlpha  (pointWidgets_.fillAlphaEdit->value());
 
   //---
 
   CQChartsPointAnnotation *annotation = nullptr;
 
   if      (view_)
-    annotation = view_->addPointAnnotation(pos, pointData.type);
+    annotation = view_->addPointAnnotation(pos, pointData.type());
   else if (plot_)
-    annotation = plot_->addPointAnnotation(pos, pointData.type);
+    annotation = plot_->addPointAnnotation(pos, pointData.type());
 
   annotation->setId(id);
   annotation->setTipId(tipId);

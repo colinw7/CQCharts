@@ -10,6 +10,9 @@
 
 //---
 
+/*!
+ * \brief bubble plot type
+ */
 class CQChartsBubblePlotType : public CQChartsGroupPlotType {
  public:
   CQChartsBubblePlotType();
@@ -37,6 +40,9 @@ class CQChartsBubblePlotType : public CQChartsGroupPlotType {
 class CQChartsBubblePlot;
 class CQChartsBubbleHierNode;
 
+/*!
+ * \brief bubble node
+ */
 class CQChartsBubbleNode : public CQChartsCircleNode {
  protected:
   static uint nextId() {
@@ -109,21 +115,24 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
   virtual QColor interpColor(const CQChartsBubblePlot *plot, int n) const;
 
  protected:
-  const CQChartsBubblePlot* plot_    { nullptr }; // parent plot
-  CQChartsBubbleHierNode*   parent_  { nullptr }; // parent hier node
-  uint                      id_      { 0 };       // node id
-  QString                   name_;                // node name
-  double                    size_    { 0.0 };     // node size
-  int                       colorId_ { -1 };      // node color index
-  CQChartsColor             color_;               // node explicit color
-  QModelIndex               ind_;                 // data model index
-  int                       depth_   { 0 };       // node depth
-  bool                      filler_  { false };   // is filler
-  bool                      placed_  { false };   // is placed
+  const CQChartsBubblePlot* plot_    { nullptr }; //! parent plot
+  CQChartsBubbleHierNode*   parent_  { nullptr }; //! parent hier node
+  uint                      id_      { 0 };       //! node id
+  QString                   name_;                //! node name
+  double                    size_    { 0.0 };     //! node size
+  int                       colorId_ { -1 };      //! node color index
+  CQChartsColor             color_;               //! node explicit color
+  QModelIndex               ind_;                 //! data model index
+  int                       depth_   { 0 };       //! node depth
+  bool                      filler_  { false };   //! is filler
+  bool                      placed_  { false };   //! is placed
 };
 
 //---
 
+/*!
+ * \brief bubble node compare functor
+ */
 struct CQChartsBubbleNodeCmp {
   bool operator()(const CQChartsBubbleNode *n1, const CQChartsBubbleNode *n2) {
     return (*n1) < (*n2);
@@ -132,6 +141,9 @@ struct CQChartsBubbleNodeCmp {
 
 //---
 
+/*!
+ * \brief bubble hierarchical node
+ */
 class CQChartsBubbleHierNode : public CQChartsBubbleNode {
  public:
   using Nodes    = std::vector<CQChartsBubbleNode*>;
@@ -178,16 +190,19 @@ class CQChartsBubbleHierNode : public CQChartsBubbleNode {
   QColor interpColor(const CQChartsBubblePlot *plot, int n) const override;
 
  protected:
-  Nodes    nodes_;          // child nodes
-  Pack     pack_;           // circle pack
-  Children children_;       // child hier nodes
-  int      hierInd_ { -1 }; // hier index
+  Nodes    nodes_;          //! child nodes
+  Pack     pack_;           //! circle pack
+  Children children_;       //! child hier nodes
+  int      hierInd_ { -1 }; //! hier index
 };
 
 //---
 
 class CQChartsBubbleHierObj;
 
+/*!
+ * \brief bubble object
+ */
 class CQChartsBubbleObj : public CQChartsPlotObj {
  public:
   CQChartsBubbleObj(const CQChartsBubblePlot *plot, CQChartsBubbleNode *node,
@@ -211,15 +226,18 @@ class CQChartsBubbleObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  protected:
-  const CQChartsBubblePlot* plot_    { nullptr }; // parent plot
-  CQChartsBubbleNode*       node_    { nullptr }; // associated node
-  CQChartsBubbleHierObj*    hierObj_ { nullptr }; // parent hier obj
-  int                       i_       { 0 };       // data index
-  int                       n_       { 0 };       // data count
+  const CQChartsBubblePlot* plot_    { nullptr }; //! parent plot
+  CQChartsBubbleNode*       node_    { nullptr }; //! associated node
+  CQChartsBubbleHierObj*    hierObj_ { nullptr }; //! parent hier obj
+  int                       i_       { 0 };       //! data index
+  int                       n_       { 0 };       //! data count
 };
 
 //---
 
+/*!
+ * \brief hierarchical bubble object
+ */
 class CQChartsBubbleHierObj : public CQChartsBubbleObj {
  public:
   CQChartsBubbleHierObj(const CQChartsBubblePlot *plot, CQChartsBubbleHierNode *hier,
@@ -241,11 +259,24 @@ class CQChartsBubbleHierObj : public CQChartsBubbleObj {
   void draw(QPainter *painter) override;
 
  protected:
-  CQChartsBubbleHierNode* hier_ { nullptr }; // associated hier node
+  CQChartsBubbleHierNode* hier_ { nullptr }; //! associated hier node
 };
 
 //---
 
+/*!
+ * \brief bubble plot
+ *
+ * columns:
+ *   + name  : name
+ *   + value : value
+ *
+ * Plot Type
+ *   + \ref CQChartsBubblePlotType
+ *
+ * Example
+ *   + \image html bubbleplot.png
+ */
 class CQChartsBubblePlot : public CQChartsGroupPlot,
  public CQChartsObjShapeData<CQChartsBubblePlot>,
  public CQChartsObjTextData <CQChartsBubblePlot> {
@@ -394,32 +425,32 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
  private:
   struct PlaceData {
-    CQChartsGeom::Point offset { 0, 0 }; // draw offset
-    double              scale  { 1.0 };  // draw scale
+    CQChartsGeom::Point offset { 0, 0 }; //! draw offset
+    double              scale  { 1.0 };  //! draw scale
   };
 
   struct ColorData {
-    int colorId     { -1 }; // current color id
-    int numColorIds { 0 };  // num used color ids
+    int colorId     { -1 }; //! current color id
+    int numColorIds { 0 };  //! num used color ids
   };
 
   struct NodeData {
-    CQChartsBubbleHierNode* root     { nullptr }; // root node
-    int                     maxDepth { 1 };       // max hier depth
-    int                     hierInd  { 0 };       // current hier ind
+    CQChartsBubbleHierNode* root     { nullptr }; //! root node
+    int                     maxDepth { 1 };       //! max hier depth
+    int                     hierInd  { 0 };       //! current hier ind
   };
 
  private:
   using GroupHierNodes = std::map<int,CQChartsBubbleHierNode *>;
 
-  CQChartsColumn nameColumn_;            // name column
-  CQChartsColumn valueColumn_;           // value column
-  bool           valueLabel_  { false }; // draw value with name
-  bool           sorted_      { false }; // sort nodes by value
-  NodeData       nodeData_;              // node data
-  PlaceData      placeData_;             // place data
-  ColorData      colorData_;             // color data
-  GroupHierNodes groupHierNodes_;        // hier group nodes
+  CQChartsColumn nameColumn_;            //! name column
+  CQChartsColumn valueColumn_;           //! value column
+  bool           valueLabel_  { false }; //! draw value with name
+  bool           sorted_      { false }; //! sort nodes by value
+  NodeData       nodeData_;              //! node data
+  PlaceData      placeData_;             //! place data
+  ColorData      colorData_;             //! color data
+  GroupHierNodes groupHierNodes_;        //! hier group nodes
 };
 
 #endif

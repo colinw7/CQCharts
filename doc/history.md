@@ -772,3 +772,9 @@
  + use doxygen style for comments 
  + improve rect select when select triggers extra selection
  + add max rows and specified columns for CSV
+# 2/17/2019
+ + Cleanup data line edit widgets
+ + Support hidden property view items
+ + Use CQChartsUtil::toInt, toReal and CQChartsVariant::toInt, toReal in all conversions
+ + Support tcl list in commands
+ + Add more doxygen comments

@@ -279,7 +279,7 @@ draw(QPainter *painter) const
     view_->pixelToWindow(px     , py1, x1, y1);
     view_->pixelToWindow(px + pw, py2, x2, y2);
 
-    CQChartsGeom::BBox prect(x1, y2, x2 - x1, y1 - y2);
+    CQChartsGeom::BBox prect(x1, y2, x2, y1);
 
     prects_.push_back(prect);
 
@@ -1026,10 +1026,11 @@ draw(QPainter *painter) const
 
   //---
 
-  double sw = plot_->pixelToWindowWidth(scrollData_.width);
+  double sw = 0.0;
   double sh = h;
 
   if (scrollData_.height.isSet()) {
+    sw = plot_->pixelToWindowWidth(scrollData_.width);
     sh = plot_->lengthPlotHeight(scrollData_.height.length());
 
     scrollData_.scrolled = (sh < h);

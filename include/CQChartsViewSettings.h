@@ -26,6 +26,9 @@ class QCheckBox;
 class QLineEdit;
 class QLabel;
 
+/*!
+ * \brief View settings widget
+ */
 class CQChartsViewSettings : public QFrame {
   Q_OBJECT
 
@@ -140,64 +143,64 @@ class CQChartsViewSettings : public QFrame {
 
  private:
   struct PropertiesWidgets {
-    CQChartsFilterEdit* filterEdit   { nullptr }; // settings filter
-    CQPropertyViewTree* propertyTree { nullptr }; // settings tree
+    CQChartsFilterEdit* filterEdit   { nullptr }; //! settings filter
+    CQPropertyViewTree* propertyTree { nullptr }; //! settings tree
   };
 
   struct ModelsWidgets {
-    QTableWidget* modelTable          { nullptr };
-    QPushButton*  updateDetailsButton { nullptr };
-    QTextBrowser* modelDetailsText    { nullptr };
+    QTableWidget* modelTable          { nullptr }; //! model table
+    QPushButton*  updateDetailsButton { nullptr }; //! update details button
+    QTextBrowser* modelDetailsText    { nullptr }; //! model details text
   };
 
   struct PlotsWidgets {
-    QTableWidget*  plotTable            { nullptr };
-    QCheckBox*     overlayCheck         { nullptr };
-    QCheckBox*     x1x2Check            { nullptr };
-    QCheckBox*     y1y2Check            { nullptr };
-    QRadioButton*  placeVerticalRadio   { nullptr };
-    QRadioButton*  placeHorizontalRadio { nullptr };
-    QRadioButton*  placeGridRadio       { nullptr };
-    CQIntegerSpin* placeRowsEdit        { nullptr };
-    CQIntegerSpin* placeColumnsEdit     { nullptr };
-    QPushButton*   raiseButton          { nullptr };
-    QPushButton*   lowerButton          { nullptr };
-    QPushButton*   removeButton         { nullptr };
+    QTableWidget*  plotTable            { nullptr }; //! plot table
+    QCheckBox*     overlayCheck         { nullptr }; //! overlay check
+    QCheckBox*     x1x2Check            { nullptr }; //! x1x2 check
+    QCheckBox*     y1y2Check            { nullptr }; //! y1y2 check
+    QRadioButton*  placeVerticalRadio   { nullptr }; //! place vertical radio
+    QRadioButton*  placeHorizontalRadio { nullptr }; //! place horizontal radio
+    QRadioButton*  placeGridRadio       { nullptr }; //! place grid radio
+    CQIntegerSpin* placeRowsEdit        { nullptr }; //! grid number of rows edit
+    CQIntegerSpin* placeColumnsEdit     { nullptr }; //! grid number of columns edit
+    QPushButton*   raiseButton          { nullptr }; //! raise plot button
+    QPushButton*   lowerButton          { nullptr }; //! lower plot button
+    QPushButton*   removeButton         { nullptr }; //! remove plot button
   };
 
   struct AnnotationsWidgets {
-    QTableWidget* viewTable    { nullptr };
-    QTableWidget* plotTable    { nullptr };
-    QPushButton*  removeButton { nullptr };
+    QTableWidget* viewTable    { nullptr }; //! view annotations table widget
+    QTableWidget* plotTable    { nullptr }; //! plot annotations table widget
+    QPushButton*  removeButton { nullptr }; //! remove annotation button
   };
 
   struct ThemeWidgets {
-    QSpinBox*                       palettesSpin       { nullptr }; // palettes index spin
-    QComboBox*                      palettesCombo      { nullptr }; // palettes name combo
-    QPushButton*                    palettesLoadButton { nullptr }; // load palette name button
-    CQChartsGradientPaletteCanvas*  palettesPlot       { nullptr }; // current palette plot
-    CQChartsGradientPaletteControl* palettesControl    { nullptr }; // current palette control
-    CQChartsGradientPaletteCanvas*  interfacePlot      { nullptr }; // interface palette plot
-    CQChartsGradientPaletteControl* interfaceControl   { nullptr }; // interface palette control
+    QSpinBox*                       palettesSpin       { nullptr }; //! palettes index spin
+    QComboBox*                      palettesCombo      { nullptr }; //! palettes name combo
+    QPushButton*                    palettesLoadButton { nullptr }; //! load palette name button
+    CQChartsGradientPaletteCanvas*  palettesPlot       { nullptr }; //! current palette plot
+    CQChartsGradientPaletteControl* palettesControl    { nullptr }; //! current palette control
+    CQChartsGradientPaletteCanvas*  interfacePlot      { nullptr }; //! interface palette plot
+    CQChartsGradientPaletteControl* interfaceControl   { nullptr }; //! interface palette control
   };
 
   struct LayersWidgets {
-    QTableWidget* layerTable { nullptr };
+    QTableWidget* layerTable { nullptr }; //! layer table widget
   };
 
-  CQChartsWindow*        window_             { nullptr }; // parent window
-  QTabWidget*            tab_                { nullptr }; // settings/palette tab
-  PropertiesWidgets      propertiesWidgets_;              // properties widgets
-  ModelsWidgets          modelsWidgets_;                  // models widgets
-  PlotsWidgets           plotsWidgets_;                   // plots widgets
-  AnnotationsWidgets     annotationsWidgets_;             // annotations widgets
-  ThemeWidgets           themeWidgets_;                   // theme widgets
-  LayersWidgets          layersWidgets_;                  // layers widgets
-  CQChartsLoadDlg*       loadDlg_            { nullptr }; // load dalog
-  CQChartsPlotDlg*       plotDlg_            { nullptr }; // plot dalog
-  CQChartsAnnotationDlg* annotationDlg_      { nullptr }; // annotation dalog
-  QString                plotId_;                         // current plot id
-  bool                   modelDetailsValid_  { false };   // model details valid
+  CQChartsWindow*        window_             { nullptr }; //! parent window
+  QTabWidget*            tab_                { nullptr }; //! settings/palette tab
+  PropertiesWidgets      propertiesWidgets_;              //! properties widgets
+  ModelsWidgets          modelsWidgets_;                  //! models widgets
+  PlotsWidgets           plotsWidgets_;                   //! plots widgets
+  AnnotationsWidgets     annotationsWidgets_;             //! annotations widgets
+  ThemeWidgets           themeWidgets_;                   //! theme widgets
+  LayersWidgets          layersWidgets_;                  //! layers widgets
+  CQChartsLoadDlg*       loadDlg_            { nullptr }; //! load dalog
+  CQChartsPlotDlg*       plotDlg_            { nullptr }; //! plot dalog
+  CQChartsAnnotationDlg* annotationDlg_      { nullptr }; //! annotation dalog
+  QString                plotId_;                         //! current plot id
+  bool                   modelDetailsValid_  { false };   //! model details valid
 };
 
 #endif

@@ -4,6 +4,9 @@
 #include <CQBaseModelTypes.h>
 #include <QString>
 
+/*!
+ * \brief analyze a file to auto determine file type and format
+ */
 class CQChartsAnalyzeFile {
  public:
   CQChartsAnalyzeFile(const QString &filename);
@@ -12,7 +15,7 @@ class CQChartsAnalyzeFile {
                   bool &firstLineHeader, bool &firstColumnHeader);
 
  private:
-  QString filename_;
+  QString filename_; //! file name
 };
 
 #endif

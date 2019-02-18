@@ -11,6 +11,7 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QScrollArea>
+#include <QPainter>
 
 #include <svg/add_svg.h>
 #include <svg/remove_svg.h>
@@ -23,18 +24,18 @@ CQChartsPolygonLineEdit(QWidget *parent) :
 
   //---
 
-  menuEdit_ = new CQChartsPolygonEdit;
+  menuEdit_ = dataEdit_ = new CQChartsPolygonEdit;
 
-  menu_->setWidget(menuEdit_);
+  menu_->setWidget(dataEdit_);
 
-  connect(menuEdit_, SIGNAL(polygonChanged()), this, SLOT(menuEditChanged()));
+  connect(dataEdit_, SIGNAL(polygonChanged()), this, SLOT(menuEditChanged()));
 }
 
 const CQChartsPolygon &
 CQChartsPolygonLineEdit::
 polygon() const
 {
-  return menuEdit_->polygon();
+  return dataEdit_->polygon();
 }
 
 void
@@ -50,7 +51,7 @@ updatePolygon(const CQChartsPolygon &polygon, bool updateText)
 {
   connectSlots(false);
 
-  menuEdit_->setPolygon(polygon);
+  dataEdit_->setPolygon(polygon);
 
   if (updateText)
     polygonToWidgets();
@@ -83,6 +84,8 @@ polygonToWidgets()
   else
     edit_->setText("");
 
+  setToolTip(polygon().toString());
+
   connectSlots(true);
 }
 
@@ -90,6 +93,8 @@ void
 CQChartsPolygonLineEdit::
 menuEditChanged()
 {
+  updateMenu();
+
   polygonToWidgets();
 
   emit polygonChanged();
@@ -102,9 +107,57 @@ connectSlots(bool b)
   CQChartsLineEditBase::connectSlots(b);
 
   if (b)
-    connect(menuEdit_, SIGNAL(polygonChanged()), this, SLOT(menuEditChanged()));
+    connect(dataEdit_, SIGNAL(polygonChanged()), this, SLOT(menuEditChanged()));
   else
-    disconnect(menuEdit_, SIGNAL(polygonChanged()), this, SLOT(menuEditChanged()));
+    disconnect(dataEdit_, SIGNAL(polygonChanged()), this, SLOT(menuEditChanged()));
+}
+
+void
+CQChartsPolygonLineEdit::
+updateMenu()
+{
+  CQChartsLineEditBase::updateMenu();
+
+  //---
+
+  QSize s = dataEdit_->sizeHint();
+
+  int w = std::max(this->width(), s.width());
+  int h = s.height();
+
+  //---
+
+  dataEdit_->setFixedSize(w, h);
+
+  int bw = 2;
+
+  menu_->setFixedSize(QSize(w + 2*bw, h + 2*bw));
+
+  menu_->updateAreaSize();
+}
+
+void
+CQChartsPolygonLineEdit::
+drawPreview(QPainter *painter, const QRect &rect)
+{
+  QColor c = palette().color(QPalette::Window);
+
+  painter->fillRect(rect, QBrush(c));
+
+  //---
+
+  QString str = (polygon().isValid() ? polygon().toString() : "<none>");
+
+  QFontMetricsF fm(font());
+
+  double fa = fm.ascent();
+  double fd = fm.descent();
+
+  QColor tc = CQChartsUtil::bwColor(c);
+
+  painter->setPen(tc);
+
+  painter->drawText(rect.left() + 2, rect.center().y() + (fa - fd)/2, str);
 }
 
 //------
@@ -217,14 +270,17 @@ setValue(QWidget *w, const QVariant &var)
 
 CQChartsPolygonEdit::
 CQChartsPolygonEdit(QWidget *parent) :
- QFrame(parent)
+ CQChartsEditBase(parent)
 {
+  setObjectName("polygonEdit");
+
   QVBoxLayout *layout = new QVBoxLayout(this);
   layout->setMargin(0); layout->setSpacing(2);
 
   //---
 
   controlFrame_ = new QFrame;
+  controlFrame_->setObjectName("controlFrame");
 
   QHBoxLayout *controlFrameLayout = new QHBoxLayout(controlFrame_);
   controlFrameLayout->setMargin(0); controlFrameLayout->setSpacing(2);
@@ -239,8 +295,8 @@ CQChartsPolygonEdit(QWidget *parent) :
 
   //---
 
-  QToolButton *addButton    = new QToolButton;
-  QToolButton *removeButton = new QToolButton;
+  QToolButton *addButton    = new QToolButton; addButton   ->setObjectName("add");
+  QToolButton *removeButton = new QToolButton; removeButton->setObjectName("remove");
 
   addButton   ->setIcon(CQPixmapCacheInst->getIcon("ADD"));
   removeButton->setIcon(CQPixmapCacheInst->getIcon("REMOVE"));
@@ -257,8 +313,10 @@ CQChartsPolygonEdit(QWidget *parent) :
   //---
 
   scrollArea_ = new QScrollArea;
+  scrollArea_->setObjectName("scrollArea");
 
   pointsFrame_ = new QFrame;
+  pointsFrame_->setObjectName("pointsFrame");
 
   QVBoxLayout *pointsFrameLayout = new QVBoxLayout(pointsFrame_);
   pointsFrameLayout->setMargin(0); pointsFrameLayout->setSpacing(0);
@@ -377,37 +435,13 @@ void
 CQChartsPolygonEdit::
 updateState()
 {
-  QFontMetrics fm(font());
+  QSize scrollSize, pointsSize, fullSize;
 
-  int ew = 32*fm.width("8");
-  int eh = fm.height() + 4;
+  calcSizes(scrollSize, pointsSize, fullSize);
 
-  int w = ew;
-  int h = 2*controlFrame_->sizeHint().height();
+  scrollArea_->setFixedSize(scrollSize);
 
-  int n  = polygon_.numPoints();
-  int ch = n*eh;
-
-  int n1  = std::min(n, 10);
-  int ch1 = n1*eh;
-
-  int sw = 0;
-
-  if (n1 < n) {
-    QStyleOptionSlider opt;
-
-    sw = style()->pixelMetric(QStyle::PM_ScrollBarExtent, &opt, this);
-  }
-
-  h += ch1;
-
-  int w1 = w + sw;
-
-  //---
-
-  scrollArea_->setFixedSize(QSize(w1, ch1));
-
-  pointsFrame_->setFixedSize(QSize(w, ch));
+  pointsFrame_->setFixedSize(pointsSize);
 }
 
 void
@@ -437,4 +471,56 @@ updatePointEdits()
 
     --ne;
   }
+}
+
+QSize
+CQChartsPolygonEdit::
+sizeHint() const
+{
+  QSize scrollSize, pointsSize, fullSize;
+
+  calcSizes(scrollSize, pointsSize, fullSize);
+
+  return fullSize;
+}
+
+void
+CQChartsPolygonEdit::
+calcSizes(QSize &scrollSize, QSize &pointsSize, QSize &fullSize) const
+{
+  QFontMetrics fm(font());
+
+  int ew = 32*fm.width("8");
+  int eh = fm.height() + 4;
+
+  int w = ew;
+  int h = controlFrame_->sizeHint().height() + 4;
+
+  int n  = polygon_.numPoints();
+  int ch = n*eh;
+
+  int n1  = std::min(n, 10);
+  int ch1 = n1*eh;
+
+  QStyleOptionSlider opt;
+
+  int ss = style()->pixelMetric(QStyle::PM_ScrollBarExtent, &opt, this);
+
+  int sw = 0;
+//int sh = 0;
+
+  if (n1 < n) {
+    sw = ss;
+//  sh = ss;
+  }
+
+  h += ch1;
+
+  int w1 = w + sw;
+
+  scrollSize = QSize(w1, ch1);
+
+  pointsSize = QSize(w, ch);
+
+  fullSize = QSize(w1 + 8, h + 8);
 }

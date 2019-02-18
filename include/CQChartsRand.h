@@ -32,10 +32,10 @@ class RealInRange {
   }
 
  private:
-  std::random_device                     rd_;
-  std::default_random_engine             eng_;
-//std::mt19937                           mt_; // mersine twister
-  std::uniform_real_distribution<double> rdis_;
+  std::random_device                     rd_;   //! random device
+  std::default_random_engine             eng_;  //! random engine
+//std::mt19937                           mt_;   //! mersine twister
+  std::uniform_real_distribution<double> rdis_; //! uniform distribution
 };
 
 class NormalRealInRange {

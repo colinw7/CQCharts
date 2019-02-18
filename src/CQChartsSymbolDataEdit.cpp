@@ -4,15 +4,229 @@
 #include <CQChartsLengthEdit.h>
 #include <CQChartsStrokeDataEdit.h>
 #include <CQChartsFillDataEdit.h>
+#include <CQChartsView.h>
+#include <CQChartsPlot.h>
+#include <CQCharts.h>
+
+#include <CQPropertyView.h>
+#include <CQWidgetMenu.h>
 
 #include <QGroupBox>
+#include <QLineEdit>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QPainter>
 
+CQChartsSymbolDataLineEdit::
+CQChartsSymbolDataLineEdit(QWidget *parent) :
+ CQChartsLineEditBase(parent)
+{
+  setObjectName("symbolDataLineEdit");
+
+  //---
+
+  menuEdit_ = dataEdit_ = new CQChartsSymbolDataEdit;
+
+  menu_->setWidget(dataEdit_);
+
+  connect(dataEdit_, SIGNAL(symbolDataChanged()), this, SLOT(menuEditChanged()));
+
+  //---
+
+  symbolDataToWidgets();
+}
+
+const CQChartsSymbolData &
+CQChartsSymbolDataLineEdit::
+symbolData() const
+{
+  return dataEdit_->data();
+}
+
+void
+CQChartsSymbolDataLineEdit::
+setSymbolData(const CQChartsSymbolData &symbolData)
+{
+  updateSymbolData(symbolData, /*updateText*/ true);
+}
+
+void
+CQChartsSymbolDataLineEdit::
+updateSymbolData(const CQChartsSymbolData &symbolData, bool updateText)
+{
+  connectSlots(false);
+
+  dataEdit_->setData(symbolData);
+
+  if (updateText)
+    symbolDataToWidgets();
+
+  connectSlots(true);
+
+  emit symbolDataChanged();
+}
+
+void
+CQChartsSymbolDataLineEdit::
+textChanged()
+{
+  CQChartsSymbolData symbolData(edit_->text());
+
+  if (! symbolData.isValid())
+    return;
+
+  updateSymbolData(symbolData, /*updateText*/ false);
+}
+
+void
+CQChartsSymbolDataLineEdit::
+symbolDataToWidgets()
+{
+  connectSlots(false);
+
+  if (symbolData().isValid())
+    edit_->setText(symbolData().toString());
+  else
+    edit_->setText("");
+
+  setToolTip(symbolData().toString());
+
+  connectSlots(true);
+}
+
+void
+CQChartsSymbolDataLineEdit::
+menuEditChanged()
+{
+  symbolDataToWidgets();
+
+  emit symbolDataChanged();
+}
+
+void
+CQChartsSymbolDataLineEdit::
+connectSlots(bool b)
+{
+  CQChartsLineEditBase::connectSlots(b);
+
+  if (b)
+    connect(dataEdit_, SIGNAL(symbolDataChanged()), this, SLOT(menuEditChanged()));
+  else
+    disconnect(dataEdit_, SIGNAL(symbolDataChanged()), this, SLOT(menuEditChanged()));
+}
+
+void
+CQChartsSymbolDataLineEdit::
+drawPreview(QPainter *painter, const QRect &rect)
+{
+  QColor c = palette().color(QPalette::Window);
+
+  painter->fillRect(rect, QBrush(c));
+
+  CQChartsSymbolData data = this->symbolData();
+
+  double s  = rect.height()/2.0 - 4.0;
+  double is = int(s + 0.5);
+
+  int xl = 3;
+
+  data.setSize(CQChartsLength(s, CQChartsUnits::PIXEL));
+
+  QRect rect1(rect.left() + xl, rect.center().y() - is, 2*is, 2*is);
+
+  CQChartsSymbolDataEditPreview::draw(painter, data, rect1, plot(), view());
+
+  //---
+
+  QString str = QString("%1 %2").
+    arg(symbolData().type().toString()).arg(symbolData().size().toString());
+
+  QFontMetricsF fm(font());
+
+  double fa = fm.ascent();
+  double fd = fm.descent();
+
+  QColor tc = CQChartsUtil::bwColor(c);
+
+  painter->setPen(tc);
+
+  painter->drawText(rect.left() + xl + 2 + 2*is, rect.center().y() + (fa - fd)/2, str);
+}
+
+//------
+
+CQPropertyViewEditorFactory *
+CQChartsSymbolDataPropertyViewType::
+getEditor() const
+{
+  return new CQChartsSymbolDataPropertyViewEditor;
+}
+
+void
+CQChartsSymbolDataPropertyViewType::
+drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
+            CQChartsPlot *plot, CQChartsView *view)
+{
+  CQChartsSymbolData data = value.value<CQChartsSymbolData>();
+
+  CQChartsSymbolDataEditPreview::draw(painter, data, rect, plot, view);
+}
+
+QString
+CQChartsSymbolDataPropertyViewType::
+tip(const QVariant &value) const
+{
+  QString str = value.value<CQChartsSymbolData>().toString();
+
+  return str;
+}
+
+//------
+
+CQChartsLineEditBase *
+CQChartsSymbolDataPropertyViewEditor::
+createPropertyEdit(QWidget *parent)
+{
+  return new CQChartsSymbolDataLineEdit(parent);
+}
+
+void
+CQChartsSymbolDataPropertyViewEditor::
+connect(QWidget *w, QObject *obj, const char *method)
+{
+  CQChartsSymbolDataLineEdit *edit = qobject_cast<CQChartsSymbolDataLineEdit *>(w);
+  assert(edit);
+
+  QObject::connect(edit, SIGNAL(symbolDataChanged()), obj, method);
+}
+
+QVariant
+CQChartsSymbolDataPropertyViewEditor::
+getValue(QWidget *w)
+{
+  CQChartsSymbolDataLineEdit *edit = qobject_cast<CQChartsSymbolDataLineEdit *>(w);
+  assert(edit);
+
+  return QVariant::fromValue(edit->symbolData());
+}
+
+void
+CQChartsSymbolDataPropertyViewEditor::
+setValue(QWidget *w, const QVariant &var)
+{
+  CQChartsSymbolDataLineEdit *edit = qobject_cast<CQChartsSymbolDataLineEdit *>(w);
+  assert(edit);
+
+  CQChartsSymbolData data = var.value<CQChartsSymbolData>();
+
+  edit->setSymbolData(data);
+}
+
+//------
+
 CQChartsSymbolDataEdit::
 CQChartsSymbolDataEdit(QWidget *parent) :
- QFrame(parent)
+ CQChartsEditBase(parent)
 {
   QVBoxLayout *layout = new QVBoxLayout(this);
 
@@ -54,6 +268,7 @@ CQChartsSymbolDataEdit(QWidget *parent) :
   strokeEdit_ = new CQChartsStrokeDataEdit;
 
   strokeEdit_->setTitle("Stroke");
+  strokeEdit_->setPreview(false);
 
   connect(strokeEdit_, SIGNAL(strokeDataChanged()), this, SLOT(widgetsToData()));
 
@@ -63,6 +278,7 @@ CQChartsSymbolDataEdit(QWidget *parent) :
   fillEdit_ = new CQChartsFillDataEdit;
 
   fillEdit_->setTitle("Fill");
+  fillEdit_->setPreview(false);
 
   connect(fillEdit_, SIGNAL(fillDataChanged()), this, SLOT(widgetsToData()));
 
@@ -87,6 +303,55 @@ CQChartsSymbolDataEdit(QWidget *parent) :
 
 void
 CQChartsSymbolDataEdit::
+setData(const CQChartsSymbolData &d)
+{
+  data_ = d;
+
+  dataToWidgets();
+}
+
+void
+CQChartsSymbolDataEdit::
+setPlot(CQChartsPlot *plot)
+{
+  CQChartsEditBase::setPlot(plot);
+
+  strokeEdit_->setPlot(plot);
+  fillEdit_  ->setPlot(plot);
+}
+
+void
+CQChartsSymbolDataEdit::
+setView(CQChartsView *view)
+{
+  CQChartsEditBase::setView(view);
+
+  strokeEdit_->setView(view);
+  fillEdit_  ->setView(view);
+}
+
+void
+CQChartsSymbolDataEdit::
+setTitle(const QString &title)
+{
+  groupBox_->setTitle(title);
+
+  strokeEdit_->setTitle("Stroke");
+  fillEdit_  ->setTitle("Fill");
+}
+
+void
+CQChartsSymbolDataEdit::
+setPreview(bool b)
+{
+  strokeEdit_->setPreview(b);
+  fillEdit_  ->setPreview(b);
+
+  preview_->setVisible(b);
+}
+
+void
+CQChartsSymbolDataEdit::
 dataToWidgets()
 {
   disconnect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
@@ -95,12 +360,12 @@ dataToWidgets()
   disconnect(strokeEdit_, SIGNAL(strokeDataChanged()), this, SLOT(widgetsToData()));
   disconnect(fillEdit_, SIGNAL(fillDataChanged()), this, SLOT(widgetsToData()));
 
-  groupBox_->setChecked(data_.visible);
+  groupBox_->setChecked(data_.isVisible());
 
-  symbolEdit_->setSymbol (data_.type);
-  sizeEdit_  ->setLength (data_.size);
-  strokeEdit_->setData   (data_.stroke);
-  fillEdit_  ->setData   (data_.fill);
+  symbolEdit_->setSymbol (data_.type());
+  sizeEdit_  ->setLength (data_.size());
+  strokeEdit_->setData   (data_.stroke());
+  fillEdit_  ->setData   (data_.fill());
 
   preview_->update();
 
@@ -116,12 +381,12 @@ void
 CQChartsSymbolDataEdit::
 widgetsToData()
 {
-  data_.visible = groupBox_->isChecked();
+  data_.setVisible(groupBox_->isChecked());
 
-  data_.type   = symbolEdit_->symbol();
-  data_.size   = sizeEdit_  ->length();
-  data_.stroke = strokeEdit_->data();
-  data_.fill   = fillEdit_  ->data();
+  data_.setType  (symbolEdit_->symbol());
+  data_.setSize  (sizeEdit_  ->length());
+  data_.setStroke(strokeEdit_->data());
+  data_.setFill  (fillEdit_  ->data());
 
   preview_->update();
 
@@ -132,58 +397,65 @@ widgetsToData()
 
 CQChartsSymbolDataEditPreview::
 CQChartsSymbolDataEditPreview(CQChartsSymbolDataEdit *edit) :
- edit_(edit)
+ CQChartsEditPreview(edit), edit_(edit)
 {
 }
 
 void
 CQChartsSymbolDataEditPreview::
-paintEvent(QPaintEvent *)
+draw(QPainter *painter)
 {
-  QPainter painter(this);
-
-  painter.setRenderHints(QPainter::Antialiasing);
-
   const CQChartsSymbolData &data = edit_->data();
 
-  CQChartsGeom::Point p(rect().center().x(), rect().center().y());
+  draw(painter, data, rect(), edit_->plot(), edit_->view());
+}
 
-  double size = data.size.value();
+void
+CQChartsSymbolDataEditPreview::
+draw(QPainter *painter, const CQChartsSymbolData &data, const QRect &rect,
+     CQChartsPlot *plot, CQChartsView *view)
+{
+  // set pen
+  QColor pc = interpColor(plot, view, data.stroke().color());
 
   QPen pen;
 
-  double width = CQChartsUtil::limitLineWidth(data.stroke.width().value());
+  double width = CQChartsUtil::limitLineWidth(data.stroke().width().value());
 
-  CQChartsUtil::setPen(pen, data.stroke.isVisible(), data.stroke.color().color(),
-                       data.stroke.alpha(), width, data.stroke.dash());
+  CQChartsUtil::setPen(pen, data.stroke().isVisible(), pc,
+                       data.stroke().alpha(), width, data.stroke().dash());
+
+  painter->setPen(pen);
+
+  //---
+
+  // set brush
+  QColor fc = interpColor(plot, view, data.fill().color());
 
   QBrush brush;
 
-  CQChartsUtil::setBrush(brush, data.fill.isVisible(), data.fill.color().color(),
-                         data.fill.alpha(), data.fill.pattern());
+  CQChartsUtil::setBrush(brush, data.fill().isVisible(), fc,
+                         data.fill().alpha(), data.fill().pattern());
 
-  painter.setPen  (pen);
-  painter.setBrush(brush);
+  painter->setBrush(brush);
 
-  CQChartsSymbol2DRenderer srenderer(&painter, p, size);
+  //---
 
-  if (data.fill.isVisible()) {
-    CQChartsPlotSymbolMgr::fillSymbol(data.type, &srenderer);
+  // draw symbol
+  CQChartsGeom::Point p(rect.center().x(), rect.center().y());
 
-    if (data.stroke.isVisible())
-      CQChartsPlotSymbolMgr::strokeSymbol(data.type, &srenderer);
+  double size = data.size().value();
+
+  CQChartsSymbol2DRenderer srenderer(painter, p, size);
+
+  if (data.fill().isVisible()) {
+    CQChartsPlotSymbolMgr::fillSymbol(data.type(), &srenderer);
+
+    if (data.stroke().isVisible())
+      CQChartsPlotSymbolMgr::strokeSymbol(data.type(), &srenderer);
   }
   else {
-    if (data.stroke.isVisible())
-      CQChartsPlotSymbolMgr::drawSymbol(data.type, &srenderer);
+    if (data.stroke().isVisible())
+      CQChartsPlotSymbolMgr::drawSymbol(data.type(), &srenderer);
   }
-}
-
-QSize
-CQChartsSymbolDataEditPreview::
-sizeHint() const
-{
-  QFontMetrics fm(font());
-
-  return QSize(fm.width("XXXX"), fm.height() + 4);
 }

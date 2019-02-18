@@ -8,6 +8,9 @@ class CQCharts;
 class CQChartsPlotType;
 class CQChartsModelData;
 
+/*!
+ * \brief analyze a model to auto determine best plot type and columns
+ */
 class CQChartsAnalyzeModel {
  public:
   using NameColumns     = std::map<QString,CQChartsColumn>;
@@ -25,9 +28,9 @@ class CQChartsAnalyzeModel {
   void print() const;
 
  private:
-  CQCharts*          charts_    { nullptr };
-  CQChartsModelData* modelData_ { nullptr };
-  TypeNameColumns    typeNameColumns_;
+  CQCharts*          charts_    { nullptr }; //! charts
+  CQChartsModelData* modelData_ { nullptr }; //! model data
+  TypeNameColumns    typeNameColumns_;       //! typed columns
 };
 
 #endif

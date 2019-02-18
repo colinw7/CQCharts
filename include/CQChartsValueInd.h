@@ -97,11 +97,11 @@ class CQChartsValueInd {
   using NameSet  = std::map<QString,int>;
   using SetName  = std::map<int,QString>;
 
-  Type     type_     { Type::NONE }; // value type
-  ValueSet valueSet_;                // value set map
-  SetValue setValue_;                // set value map
-  NameSet  nameSet_;                 // name set map
-  SetName  setName_;                 // set name map
+  Type     type_     { Type::NONE }; //! value type
+  ValueSet valueSet_;                //! value set map
+  SetValue setValue_;                //! set value map
+  NameSet  nameSet_;                 //! name set map
+  SetName  setName_;                 //! set name map
 };
 
 #endif

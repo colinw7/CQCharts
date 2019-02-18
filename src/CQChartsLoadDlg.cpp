@@ -236,7 +236,7 @@ numRows() const
 {
   bool ok;
 
-  int n = numberEdit_->text().toInt(&ok);
+  int n = CQChartsUtil::toInt(numberEdit_->text(), ok);
 
   if (! ok)
     n = 100;

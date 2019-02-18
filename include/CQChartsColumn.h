@@ -73,6 +73,10 @@ class CQChartsColumn {
 
   //--
 
+  bool isVHeader() const { return (type_ == Type::VHEADER); }
+
+  //--
+
   bool isGroup() const { return (type_ == Type::GROUP); }
 
   //--
@@ -287,11 +291,11 @@ class CQChartsColumns {
 
   QString toString() const { return columnsStr(); }
 
-  void fromString(const QString &s) { setColumnsStr(s); }
+  bool fromString(const QString &s) { return setColumnsStr(s); }
 
  private:
-  CQChartsColumn column_;  // single column
-  Columns        columns_; // multiple columns
+  CQChartsColumn column_;  //! single column
+  Columns        columns_; //! multiple columns
 };
 
 //---

@@ -3,6 +3,9 @@
 
 #include <CQRealSpin.h>
 
+/*!
+ * \brief alpha value edit
+ */
 class CQChartsAlphaEdit : public CQRealSpin {
   Q_OBJECT
 

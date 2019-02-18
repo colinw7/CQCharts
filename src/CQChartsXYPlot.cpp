@@ -319,8 +319,6 @@ addProperties()
   addProperty("vectors", arrowObj_, "backAngle", "backAngle");
   addProperty("vectors", arrowObj_, "fhead"    , "fhead"    );
   addProperty("vectors", arrowObj_, "thead"    , "thead"    );
-//addProperty("vectors", arrowObj_, "empty"    , "empty"    );
-//addProperty("vectors", arrowObj_, "filled"   , "filled"   );
   addProperty("vectors", arrowObj_, "lineEnds" , "lineEnds" );
   addProperty("vectors", arrowObj_, "lineWidth", "lineWidth");
 
@@ -592,7 +590,7 @@ calcRange() const
 
   //---
 
-  ///dataRange = adjustDataRange(dataRange);
+  //dataRange = adjustDataRange(dataRange);
 
   //---
 
@@ -1784,12 +1782,14 @@ addKeyItems(CQChartsPlotKey *key)
             name = fileName();
         }
 #endif
+#if 0
         if (ns == 1 && ! isOverlay() && (titleStr().length() || fileName().length())) {
           if      (titleStr().length())
             name = titleStr();
           else if (fileName().length())
             name = fileName();
         }
+#endif
 
         CQChartsXYKeyLine *line = new CQChartsXYKeyLine(this, i, ns, 0, 1);
         CQChartsXYKeyText *text = new CQChartsXYKeyText(this, name, i, ns, 0, 1);

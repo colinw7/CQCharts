@@ -88,8 +88,8 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
   void drawText(QPainter *painter, const QRectF &rect, const QString &text) const;
 
  protected:
-  QString          textStr_;  // text
-  CQChartsTextData textData_; // draw data
+  QString          textStr_;  //! text
+  CQChartsTextData textData_; //! draw data
 };
 
 #endif

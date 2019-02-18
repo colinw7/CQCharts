@@ -110,6 +110,15 @@ class CQChartsCmdBaseArgs {
 
   //---
 
+  // get string or string list value of current option
+  bool getOptValue(QStringList &strs) {
+    if (eof()) return false;
+
+    strs = toStringList(argv_[i_++]);
+
+    return true;
+  }
+
   // get string value of current option
   bool getOptValue(QString &str) {
     if (eof()) return false;
@@ -128,7 +137,7 @@ class CQChartsCmdBaseArgs {
 
     bool ok;
 
-    i = str.toInt(&ok);
+    i = CQChartsUtil::toInt(str, ok);
 
     return ok;
   }
@@ -142,7 +151,7 @@ class CQChartsCmdBaseArgs {
 
     bool ok;
 
-    r = str.toDouble(&ok);
+    r = CQChartsUtil::toReal(str, ok);
 
     return ok;
   }
@@ -156,7 +165,7 @@ class CQChartsCmdBaseArgs {
 
     bool ok;
 
-    r = str.toDouble(&ok);
+    r = CQChartsUtil::toReal(str, ok);
 
     return ok;
   }
@@ -352,13 +361,23 @@ class CQChartsCmdBaseArgs {
         }
         // handle string option
         else if (cmdArg->type() == CQChartsCmdArg::Type::String) {
-          QString str;
+          if (cmdArg->isMultiple()) {
+            QStringList strs;
 
-          if (getOptValue(str)) {
-            parseStr_[opt].push_back(str);
+            if (getOptValue(strs)) {
+              for (int i = 0; i < strs.length(); ++i)
+                parseStr_[opt].push_back(strs[i]);
+            }
+            else
+              return valueError(opt);
           }
           else {
-            return valueError(opt);
+            QString str;
+
+            if (getOptValue(str))
+              parseStr_[opt].push_back(str);
+            else
+              return valueError(opt);
           }
         }
         // handle string bool option
@@ -857,6 +876,28 @@ class CQChartsCmdBaseArgs {
   //---
 
   // variant to string
+  static QStringList toStringList(const QVariant &var) {
+    QStringList strs;
+
+    if (var.type() == QVariant::List) {
+      QList<QVariant> vars = var.toList();
+
+      for (int i = 0; i < vars.length(); ++i) {
+        QString str = toString(vars[i]);
+
+        strs.push_back(str);
+      }
+    }
+    else {
+      strs.push_back(var.toString());
+    }
+
+    return strs;
+  }
+
+  //---
+
+  // variant to string
   static QString toString(const QVariant &var) {
     if (var.type() == QVariant::List) {
       QList<QVariant> vars = var.toList();
@@ -877,6 +918,7 @@ class CQChartsCmdBaseArgs {
 
   //---
 
+  // variant to bool
   static bool stringToBool(const QString &str, bool *ok) {
     QString lstr = str.toLower();
 
@@ -1137,7 +1179,7 @@ plotStringToValue(const QString &str, CQChartsPlot *plot) {
 
   bool ok;
 
-  int irow = rowName.toInt(&ok);
+  int irow = CQChartsUtil::toInt(rowName, ok);
 
   if (! ok) {
     if (plot)
@@ -1296,7 +1338,7 @@ class CQChartsCmdArgs : public CQChartsCmdBaseArgs {
 
     bool ok;
 
-    int irow = rowName.toInt(&ok);
+    int irow = CQChartsUtil::toInt(rowName, ok);
 
     if (! ok) {
       if (plot)

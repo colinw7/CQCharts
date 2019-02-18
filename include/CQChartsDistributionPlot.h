@@ -298,8 +298,8 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
   void setSetHidden(bool b);
 
  private:
-  CQChartsDistributionPlot* plot_;  // plot
-  CQChartsColor             color_; // custom color
+  CQChartsDistributionPlot* plot_;  //! plot
+  CQChartsColor             color_; //! custom color
 };
 
 // key text
@@ -620,11 +620,11 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   using BucketValues = std::map<int,VariantIndsData>;
 
   struct Values {
-    Inds              inds;                      // value indices
-    CQChartsValueSet* valueSet      { nullptr }; // value set
-    BucketValues      bucketValues;              // bucketed values
-    CQChartsDensity*  densityData   { nullptr }; // density data
-    double            mean          { 0.0 };     // mean
+    Inds              inds;                      //! value indices
+    CQChartsValueSet* valueSet      { nullptr }; //! value set
+    BucketValues      bucketValues;              //! bucketed values
+    CQChartsDensity*  densityData   { nullptr }; //! density data
+    double            mean          { 0.0 };     //! mean
 
     Values(CQChartsValueSet *valueSet);
    ~Values();
@@ -717,47 +717,47 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
  private:
   struct DensityData {
-    double offset     { 0.0 };   // offset
-    int    numSamples { 100 };   // num samples
-    bool   gradient   { false }; // gradient
-    bool   bars       { false }; // show bars
+    double offset     { 0.0 };   //! offset
+    int    numSamples { 100 };   //! num samples
+    bool   gradient   { false }; //! gradient
+    bool   bars       { false }; //! show bars
   };
 
   struct ScatterData {
-    double factor { 1.0 };   // factor
+    double factor { 1.0 }; //! factor
   };
 
   struct DotLineData {
-    bool           enabled { false }; // shown
-    CQChartsLength width   { "3px" }; // width
+    bool           enabled { false }; //! shown
+    CQChartsLength width   { "3px" }; //! width
   };
 
   struct GroupData {
-    GroupValues      groupValues;      // grouped value sets
-    GroupBucketer    groupBucketer;    // group bucketer
-    GroupBucketRange groupBucketRange; // bucketer per group
+    GroupValues      groupValues;      //! grouped value sets
+    GroupBucketer    groupBucketer;    //! group bucketer
+    GroupBucketRange groupBucketRange; //! bucketer per group
   };
 
-  CQChartsColumn     nameColumn_;                          // name column
-  CQChartsColumn     dataColumn_;                          // data column
-  PlotType           plotType_       { PlotType::NORMAL }; // plot type
-  ValueType          valueType_      { ValueType::COUNT }; // show value count
-  bool               percent_        { false };            // percent values
-  bool               skipEmpty_      { false };            // skip empty buckets (non cont range)
-  bool               sorted_         { false };            // sort by count
-  DensityData        densityData_;                         // density data
-  ScatterData        scatterData_;                         // scatter data
-  DotLineData        dotLineData_;                         // show dot lines
-  bool               rug_            { false };            // show rug
-  bool               showMean_       { false };            // show mean
-  double             minBarSize_     { 3.0 };              // min bar size
-  double             scatterMargin_  { 0.05 };             // scatter point margin
-  CQChartsDataLabel* dataLabel_      { nullptr };          // data label data
-  CQBucketer         bucketer_;                            // shared bucketer
-  bool               bucketed_       { true };             // is bucketed
-  FilterStack        filterStack_;                         // filter stack
-  GroupData          groupData_;                           // grouped value sets
-  mutable std::mutex mutex_;                               // mutex
+  CQChartsColumn     nameColumn_;                          //! name column
+  CQChartsColumn     dataColumn_;                          //! data column
+  PlotType           plotType_       { PlotType::NORMAL }; //! plot type
+  ValueType          valueType_      { ValueType::COUNT }; //! show value count
+  bool               percent_        { false };            //! percent values
+  bool               skipEmpty_      { false };            //! skip empty buckets (non cont range)
+  bool               sorted_         { false };            //! sort by count
+  DensityData        densityData_;                         //! density data
+  ScatterData        scatterData_;                         //! scatter data
+  DotLineData        dotLineData_;                         //! show dot lines
+  bool               rug_            { false };            //! show rug
+  bool               showMean_       { false };            //! show mean
+  double             minBarSize_     { 3.0 };              //! min bar size
+  double             scatterMargin_  { 0.05 };             //! scatter point margin
+  CQChartsDataLabel* dataLabel_      { nullptr };          //! data label data
+  CQBucketer         bucketer_;                            //! shared bucketer
+  bool               bucketed_       { true };             //! is bucketed
+  FilterStack        filterStack_;                         //! filter stack
+  GroupData          groupData_;                           //! grouped value sets
+  mutable std::mutex mutex_;                               //! mutex
 };
 
 #endif

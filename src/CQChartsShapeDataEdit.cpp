@@ -24,46 +24,22 @@ CQChartsShapeDataLineEdit(QWidget *parent) :
 
   //---
 
-  menuEdit_ = new CQChartsShapeDataEdit;
+  menuEdit_ = dataEdit_ = new CQChartsShapeDataEdit;
 
-  menu_->setWidget(menuEdit_);
+  menu_->setWidget(dataEdit_);
 
-  connect(menuEdit_, SIGNAL(shapeDataChanged()), this, SLOT(menuEditChanged()));
-}
+  connect(dataEdit_, SIGNAL(shapeDataChanged()), this, SLOT(menuEditChanged()));
 
-CQChartsPlot *
-CQChartsShapeDataLineEdit::
-plot() const
-{
-  return menuEdit_->plot();
-}
+  //---
 
-void
-CQChartsShapeDataLineEdit::
-setPlot(CQChartsPlot *plot)
-{
-  menuEdit_->setPlot(plot);
-}
-
-CQChartsView *
-CQChartsShapeDataLineEdit::
-view() const
-{
-  return menuEdit_->view();
-}
-
-void
-CQChartsShapeDataLineEdit::
-setView(CQChartsView *view)
-{
-  menuEdit_->setView(view);
+  shapeDataToWidgets();
 }
 
 const CQChartsShapeData &
 CQChartsShapeDataLineEdit::
 shapeData() const
 {
-  return menuEdit_->data();
+  return dataEdit_->data();
 }
 
 void
@@ -79,7 +55,7 @@ updateShapeData(const CQChartsShapeData &shapeData, bool updateText)
 {
   connectSlots(false);
 
-  menuEdit_->setData(shapeData);
+  dataEdit_->setData(shapeData);
 
   if (updateText)
     shapeDataToWidgets();
@@ -112,6 +88,8 @@ shapeDataToWidgets()
   else
     edit_->setText("");
 
+  setToolTip(shapeData().toString());
+
   connectSlots(true);
 }
 
@@ -131,20 +109,23 @@ connectSlots(bool b)
   CQChartsLineEditBase::connectSlots(b);
 
   if (b)
-    connect(menuEdit_, SIGNAL(shapeDataChanged()), this, SLOT(menuEditChanged()));
+    connect(dataEdit_, SIGNAL(shapeDataChanged()), this, SLOT(menuEditChanged()));
   else
-    disconnect(menuEdit_, SIGNAL(shapeDataChanged()), this, SLOT(menuEditChanged()));
+    disconnect(dataEdit_, SIGNAL(shapeDataChanged()), this, SLOT(menuEditChanged()));
+}
+
+void
+CQChartsShapeDataLineEdit::
+drawPreview(QPainter *painter, const QRect &rect)
+{
+  QColor c = palette().color(QPalette::Window);
+
+  painter->fillRect(rect, QBrush(c));
+
+  CQChartsShapeDataEditPreview::draw(painter, shapeData(), rect, plot(), view());
 }
 
 //------
-
-#include <CQPropertyViewItem.h>
-#include <CQPropertyViewDelegate.h>
-
-CQChartsShapeDataPropertyViewType::
-CQChartsShapeDataPropertyViewType()
-{
-}
 
 CQPropertyViewEditorFactory *
 CQChartsShapeDataPropertyViewType::
@@ -153,66 +134,14 @@ getEditor() const
   return new CQChartsShapeDataPropertyViewEditor;
 }
 
-bool
-CQChartsShapeDataPropertyViewType::
-setEditorData(CQPropertyViewItem *item, const QVariant &value)
-{
-  return item->setData(value);
-}
-
 void
 CQChartsShapeDataPropertyViewType::
-draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
-     const QStyleOptionViewItem &option, const QModelIndex &ind,
-     const QVariant &value, bool inside)
+drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
+            CQChartsPlot *plot, CQChartsView *view)
 {
-  CQPropertyViewItem *item = CQPropertyViewMgrInst->drawItem();
-
-  QObject *obj = (item ? item->object() : nullptr);
-
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj);
-  CQChartsView *view = qobject_cast<CQChartsView *>(obj);
-
-  //---
-
-  delegate->drawBackground(painter, option, ind, inside);
-
   CQChartsShapeData data = value.value<CQChartsShapeData>();
 
-  QColor pc, fc;
-
-  if      (plot) {
-    pc = plot->charts()->interpColor(data.border().color(), 0, 1);
-    fc = plot->charts()->interpColor(data.background().color(), 0, 1);
-  }
-  else if (view) {
-    pc = view->charts()->interpColor(data.border().color(), 0, 1);
-    fc = view->charts()->interpColor(data.background().color(), 0, 1);
-  }
-  else {
-    pc = data.border().color().color();
-    fc = data.background().color().color();
-  }
-
-  double width = CQChartsUtil::limitLineWidth(data.border().width().value());
-
-  QPen pen;
-
-  CQChartsUtil::setPen(pen, data.border().isVisible(), pc, data.border().alpha(),
-                       width, data.border().dash());
-
-  QBrush brush;
-
-  CQChartsUtil::setBrush(brush, data.background().isVisible(), fc, data.background().alpha(),
-                         data.background().pattern());
-
-  painter->setPen  (pen);
-  painter->setBrush(brush);
-
-  double cxs = data.border().cornerSize().value();
-  double cys = data.border().cornerSize().value();
-
-  CQChartsRoundedPolygon::draw(painter, option.rect, cxs, cys);
+  CQChartsShapeDataEditPreview::draw(painter, data, rect, plot, view);
 }
 
 QString
@@ -226,28 +155,11 @@ tip(const QVariant &value) const
 
 //------
 
+CQChartsLineEditBase *
 CQChartsShapeDataPropertyViewEditor::
-CQChartsShapeDataPropertyViewEditor()
+createPropertyEdit(QWidget *parent)
 {
-}
-
-QWidget *
-CQChartsShapeDataPropertyViewEditor::
-createEdit(QWidget *parent)
-{
-  CQPropertyViewItem *item = CQPropertyViewMgrInst->editItem();
-
-  QObject *obj = (item ? item->object() : nullptr);
-
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj);
-  CQChartsView *view = qobject_cast<CQChartsView *>(obj);
-
-  CQChartsShapeDataLineEdit *edit = new CQChartsShapeDataLineEdit(parent);
-
-  if      (plot) edit->setPlot(plot);
-  else if (view) edit->setView(view);
-
-  return edit;
+  return new CQChartsShapeDataLineEdit(parent);
 }
 
 void
@@ -286,8 +198,10 @@ setValue(QWidget *w, const QVariant &var)
 
 CQChartsShapeDataEdit::
 CQChartsShapeDataEdit(QWidget *parent) :
- QFrame(parent)
+ CQChartsEditBase(parent)
 {
+  setObjectName("shapeDataEdit");
+
   QGridLayout *layout = new QGridLayout(this);
 
   //---
@@ -329,22 +243,49 @@ CQChartsShapeDataEdit(QWidget *parent) :
 
 void
 CQChartsShapeDataEdit::
+setData(const CQChartsShapeData &d)
+{
+  data_ = d;
+
+  dataToWidgets();
+}
+
+void
+CQChartsShapeDataEdit::
 setPlot(CQChartsPlot *plot)
 {
-  plot_ = plot;
+  CQChartsEditBase::setPlot(plot);
 
-  fillEdit_  ->setPlot(plot_);
-  strokeEdit_->setPlot(plot_);
+  fillEdit_  ->setPlot(plot);
+  strokeEdit_->setPlot(plot);
 }
 
 void
 CQChartsShapeDataEdit::
 setView(CQChartsView *view)
 {
-  view_ = view;
+  CQChartsEditBase::setView(view);
 
-  fillEdit_  ->setView(view_);
-  strokeEdit_->setView(view_);
+  fillEdit_  ->setView(view);
+  strokeEdit_->setView(view);
+}
+
+void
+CQChartsShapeDataEdit::
+setTitle(const QString &)
+{
+  fillEdit_  ->setTitle("Fill");
+  strokeEdit_->setTitle("Stroke");
+}
+
+void
+CQChartsShapeDataEdit::
+setPreview(bool b)
+{
+  fillEdit_  ->setPreview(b);
+  strokeEdit_->setPreview(b);
+
+  preview_->setVisible(b);
 }
 
 void
@@ -380,34 +321,27 @@ widgetsToData()
 
 CQChartsShapeDataEditPreview::
 CQChartsShapeDataEditPreview(CQChartsShapeDataEdit *edit) :
- edit_(edit)
+ CQChartsEditPreview(edit), edit_(edit)
 {
 }
 
 void
 CQChartsShapeDataEditPreview::
-paintEvent(QPaintEvent *)
+draw(QPainter *painter)
 {
-  QPainter painter(this);
-
-  painter.setRenderHints(QPainter::Antialiasing);
-
   const CQChartsShapeData &data = edit_->data();
 
-  QColor pc, fc;
+  draw(painter, data, rect(), edit_->plot(), edit_->view());
+}
 
-  if      (edit_->plot()) {
-    pc = edit_->plot()->charts()->interpColor(data.border().color(), 0, 1);
-    fc = edit_->plot()->charts()->interpColor(data.background().color(), 0, 1);
-  }
-  else if (edit_->view()) {
-    pc = edit_->view()->charts()->interpColor(data.border().color(), 0, 1);
-    fc = edit_->view()->charts()->interpColor(data.background().color(), 0, 1);
-  }
-  else {
-    pc = data.border().color().color();
-    fc = data.background().color().color();
-  }
+void
+CQChartsShapeDataEditPreview::
+draw(QPainter *painter, const CQChartsShapeData &data, const QRect &rect,
+     CQChartsPlot *plot, CQChartsView *view)
+{
+  // set pen and brush
+  QColor pc = interpColor(plot, view, data.border    ().color());
+  QColor fc = interpColor(plot, view, data.background().color());
 
   double width = CQChartsUtil::limitLineWidth(data.border().width().value());
 
@@ -421,20 +355,14 @@ paintEvent(QPaintEvent *)
   CQChartsUtil::setBrush(brush, data.background().isVisible(), fc, data.background().alpha(),
                          data.background().pattern());
 
-  painter.setPen  (pen);
-  painter.setBrush(brush);
+  painter->setPen  (pen);
+  painter->setBrush(brush);
 
+  //---
+
+  // draw shape
   double cxs = data.border().cornerSize().value();
   double cys = data.border().cornerSize().value();
 
-  CQChartsRoundedPolygon::draw(&painter, rect(), cxs, cys);
-}
-
-QSize
-CQChartsShapeDataEditPreview::
-sizeHint() const
-{
-  QFontMetrics fm(font());
-
-  return QSize(fm.width("XXXX"), fm.height() + 4);
+  CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
 }

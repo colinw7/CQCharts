@@ -41,18 +41,18 @@ class CQChartsBoxObj : public CQChartsObj,
   //---
 
   // get/set visible
-  bool isVisible() const { return boxData_.visible; }
-  void setVisible(bool b) { boxData_.visible = b; redrawBoxObj(); }
+  bool isVisible() const { return boxData_.isVisible(); }
+  void setVisible(bool b) { boxData_.setVisible(b); redrawBoxObj(); }
 
   //---
 
   // inside margin
-  double margin() const { return boxData_.margin; }
-  void setMargin(double r) { boxData_.margin = r; redrawBoxObj(); }
+  double margin() const { return boxData_.margin(); }
+  void setMargin(double r) { boxData_.setMargin(r); redrawBoxObj(); }
 
   // outside padding
-  double padding() const { return boxData_.padding; }
-  void setPadding(double r) { boxData_.padding = r; redrawBoxObj(); }
+  double padding() const { return boxData_.padding(); }
+  void setPadding(double r) { boxData_.setPadding(r); redrawBoxObj(); }
 
   //---
 
@@ -62,15 +62,15 @@ class CQChartsBoxObj : public CQChartsObj,
   //---
 
   // border
-  const CQChartsSides &borderSides() const { return boxData_.borderSides; }
-  void setBorderSides(const CQChartsSides &s) { boxData_.borderSides = s; redrawBoxObj(); }
+  const CQChartsSides &borderSides() const { return boxData_.borderSides(); }
+  void setBorderSides(const CQChartsSides &s) { boxData_.setBorderSides(s); redrawBoxObj(); }
 
   //---
 
   CQChartsBoxData boxData() const {
     CQChartsBoxData data = boxData_;
 
-    data.shape = shapeData();
+    data.setShape(shapeData());
 
     return data;
   }
@@ -78,7 +78,7 @@ class CQChartsBoxObj : public CQChartsObj,
   void setBoxData(const CQChartsBoxData &data) {
     boxData_ = data;
 
-    setShapeData(data.shape);
+    setShapeData(data.shape());
   }
 
   //---
@@ -95,10 +95,10 @@ class CQChartsBoxObj : public CQChartsObj,
   void draw(QPainter *painter, const QPolygonF &poly) const;
 
  protected:
-  CQChartsView*   view_          { nullptr }; // parent view
-  CQChartsPlot*   plot_          { nullptr }; // parent plot
-  CQChartsBoxData boxData_;                   // box data
-  bool            stateColoring_ { true };    // color depending on inside/selected state
+  CQChartsView*   view_          { nullptr }; //! parent view
+  CQChartsPlot*   plot_          { nullptr }; //! parent plot
+  CQChartsBoxData boxData_;                   //! box data
+  bool            stateColoring_ { true };    //! color depending on inside/selected state
 };
 
 #endif

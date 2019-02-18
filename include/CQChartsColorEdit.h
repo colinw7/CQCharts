@@ -17,6 +17,8 @@ class CQChartsColorLineEdit : public CQChartsLineEditBase {
   const CQChartsColor &color() const;
   void setColor(const CQChartsColor &c);
 
+  void drawPreview(QPainter *painter, const QRect &rect) override;
+
  signals:
   void colorChanged();
 
@@ -33,19 +35,21 @@ class CQChartsColorLineEdit : public CQChartsLineEditBase {
   void connectSlots(bool b) override;
 
  private:
-  CQChartsColorEdit* menuEdit_ { nullptr };
+  CQChartsColorEdit* dataEdit_ { nullptr };
 };
 
 //---
 
+#include <CQChartsEditBase.h>
+
 class CQRealSpin;
-class CQColorChooser;
+class CQColorEdit;
 class CQCheckBox;
 
 class QComboBox;
 class QSpinBox;
 
-class CQChartsColorEdit : public QFrame {
+class CQChartsColorEdit : public CQChartsEditBase {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsColor color READ color WRITE setColor)
@@ -70,12 +74,12 @@ class CQChartsColorEdit : public QFrame {
   void connectSlots(bool b);
 
  private:
-  CQChartsColor   color_;
-  QComboBox*      typeCombo_  { nullptr };
-  QSpinBox*       indEdit_    { nullptr };
-  CQRealSpin*     valueEdit_  { nullptr };
-  CQColorChooser* colorEdit_  { nullptr };
-  CQCheckBox*     scaleCheck_ { nullptr };
+  CQChartsColor color_;
+  QComboBox*    typeCombo_  { nullptr };
+  QSpinBox*     indEdit_    { nullptr };
+  CQRealSpin*   valueEdit_  { nullptr };
+  CQColorEdit*  colorEdit_  { nullptr };
+  CQCheckBox*   scaleCheck_ { nullptr };
 };
 
 //------

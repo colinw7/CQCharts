@@ -79,6 +79,8 @@ class CQChartsFillUnderPosLineEdit : public CQChartsLineEditBase {
   const CQChartsFillUnderPos &fillUnderPos() const;
   void setFillUnderPos(const CQChartsFillUnderPos &fillUnderPos);
 
+  void drawPreview(QPainter*, const QRect&);
+
  signals:
   void fillUnderPosChanged();
 
@@ -95,14 +97,16 @@ class CQChartsFillUnderPosLineEdit : public CQChartsLineEditBase {
   void connectSlots(bool b) override;
 
  private:
-  CQChartsFillUnderPosEdit *menuEdit_ { nullptr };
+  CQChartsFillUnderPosEdit *dataEdit_ { nullptr };
 };
 
 //------
 
+#include <CQChartsEditBase.h>
+
 class CQRealSpin;
 
-class CQChartsFillUnderPosEdit : public QFrame {
+class CQChartsFillUnderPosEdit : public CQChartsEditBase {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsFillUnderPos fillUnderPos READ fillUnderPos WRITE setFillUnderPos)
@@ -112,6 +116,8 @@ class CQChartsFillUnderPosEdit : public QFrame {
 
   const CQChartsFillUnderPos &fillUnderPos() const;
   void setFillUnderPos(const CQChartsFillUnderPos &fillUnderPos);
+
+  void drawPreview(QPainter*, const QRect&);
 
  signals:
   void fillUnderPosChanged();

@@ -255,6 +255,15 @@ tickLabel(long i) const
 
 void
 CQChartsAxis::
+setPosition(const CQChartsOptReal &r)
+{
+  CQChartsUtil::testAndSet(position_, r, [&]() { redraw(); } );
+}
+
+//---
+
+void
+CQChartsAxis::
 setColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(column_, c, [&]() { redraw(); } );
@@ -384,8 +393,8 @@ calc()
   interval_.setMajorIncrement(majorIncrement());
   interval_.setTickIncrement (tickIncrement ());
 
-  numMajorTicks_ = interval_.calcNumMajor ();
-  numMinorTicks_ = interval_.calcNumMinor ();
+  numMajorTicks_ = std::max(interval_.calcNumMajor(), 1);
+  numMinorTicks_ = std::max(interval_.calcNumMinor(), 1);
   calcIncrement_ = interval_.calcIncrement();
   calcStart_     = interval_.calcStart    ();
   calcEnd_       = interval_.calcEnd      ();
@@ -406,13 +415,6 @@ minorIncrement() const
     return (calcEnd() - calcStart())/(numMajorTicks()*numMinorTicks());
 
   return 0.0;
-}
-
-void
-CQChartsAxis::
-setPosition(const CQChartsOptReal &r)
-{
-  CQChartsUtil::testAndSet(position_, r, [&]() { redraw(); });
 }
 
 QString

@@ -232,7 +232,7 @@ foldModel(const FoldData &foldData)
     if (! CQChartsModelUtil::stringToColumn(model_.data(), columnStr, column)) {
       bool ok;
 
-      int icolumn = columnStr.toInt(&ok);
+      int icolumn = CQChartsUtil::toInt(columnStr, ok);
 
       if (! ok)
         continue;
@@ -277,7 +277,7 @@ foldModel(const FoldData &foldData)
 
         QString deltaStr = columnSubStrs[2];
 
-        delta = columnSubStrs[i].toDouble(&ok);
+        delta = CQChartsUtil::toReal(columnSubStrs[i], ok);
 
         if (! ok)
           continue;
@@ -294,7 +294,7 @@ foldModel(const FoldData &foldData)
 
         QString deltaStr = columnSubStrs[1];
 
-        delta = columnSubStrs[i].toDouble(&ok);
+        delta = CQChartsUtil::toReal(columnSubStrs[i], ok);
 
         if (! ok)
           continue;

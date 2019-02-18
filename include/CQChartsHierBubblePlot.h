@@ -109,17 +109,17 @@ class CQChartsHierBubbleNode : public CQChartsCircleNode {
   virtual QColor interpColor(const CQChartsHierBubblePlot *plot, int n) const;
 
  protected:
-  const CQChartsHierBubblePlot* plot_    { nullptr }; // parent plot
-  CQChartsHierBubbleHierNode*   parent_  { nullptr }; // parent hier node
-  uint                          id_      { 0 };       // node id
-  QString                       name_;                // node name
-  double                        size_    { 0.0 };     // node size
-  int                           colorId_ { -1 };      // node color index
-  CQChartsColor                 color_;               // node explicit color
-  QModelIndex                   ind_;                 // node model index
-  int                           depth_   { 0 };       // node depth
-  bool                          filler_  { false };   // is filler
-  bool                          placed_  { false };   // is placed
+  const CQChartsHierBubblePlot* plot_    { nullptr }; //! parent plot
+  CQChartsHierBubbleHierNode*   parent_  { nullptr }; //! parent hier node
+  uint                          id_      { 0 };       //! node id
+  QString                       name_;                //! node name
+  double                        size_    { 0.0 };     //! node size
+  int                           colorId_ { -1 };      //! node color index
+  CQChartsColor                 color_;               //! node explicit color
+  QModelIndex                   ind_;                 //! node model index
+  int                           depth_   { 0 };       //! node depth
+  bool                          filler_  { false };   //! is filler
+  bool                          placed_  { false };   //! is placed
 };
 
 //---
@@ -174,10 +174,10 @@ class CQChartsHierBubbleHierNode : public CQChartsHierBubbleNode {
   QColor interpColor(const CQChartsHierBubblePlot *plot, int n) const override;
 
  protected:
-  Nodes    nodes_;          // child nodes
-  Pack     pack_;           // circle pack
-  Children children_;       // child hier nodes
-  int      hierInd_ { -1 }; // hier index
+  Nodes    nodes_;          //! child nodes
+  Pack     pack_;           //! circle pack
+  Children children_;       //! child hier nodes
+  int      hierInd_ { -1 }; //! hier index
 };
 
 //---
@@ -207,11 +207,11 @@ class CQChartsHierBubbleObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  protected:
-  const CQChartsHierBubblePlot* plot_    { nullptr }; // parent plot
-  CQChartsHierBubbleNode*       node_    { nullptr }; // associated node
-  CQChartsHierBubbleHierObj*    hierObj_ { nullptr }; // parent hier obj
-  int                           i_       { 0 };       // index
-  int                           n_       { 0 };       // index count
+  const CQChartsHierBubblePlot* plot_    { nullptr }; //! parent plot
+  CQChartsHierBubbleNode*       node_    { nullptr }; //! associated node
+  CQChartsHierBubbleHierObj*    hierObj_ { nullptr }; //! parent hier obj
+  int                           i_       { 0 };       //! index
+  int                           n_       { 0 };       //! index count
 };
 
 //---
@@ -237,7 +237,7 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleObj {
   void draw(QPainter *painter) override;
 
  protected:
-  CQChartsHierBubbleHierNode* hier_ { nullptr }; // associated hier node
+  CQChartsHierBubbleHierNode* hier_ { nullptr }; //! associated hier node
 };
 
 //---
@@ -397,28 +397,28 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   using HierNode = CQChartsHierBubbleHierNode;
 
   struct PlaceData {
-    CQChartsGeom::Point offset { 0, 0 }; // draw offset
-    double              scale  { 1.0 };  // draw scale
+    CQChartsGeom::Point offset { 0, 0 }; //! draw offset
+    double              scale  { 1.0 };  //! draw scale
   };
 
   struct ColorData {
-    int colorId     { -1 }; // current color id
-    int numColorIds { 0 };  // num used color ids
+    int colorId     { -1 }; //! current color id
+    int numColorIds { 0 };  //! num used color ids
   };
 
   struct NodeData {
-    HierNode* root      { nullptr }; // root node
-    HierNode* firstHier { nullptr }; // first hier node
-    int       maxDepth  { 1 };       // max hier depth
-    int       hierInd   { 0 };       // current hier ind
+    HierNode* root      { nullptr }; //! root node
+    HierNode* firstHier { nullptr }; //! first hier node
+    int       maxDepth  { 1 };       //! max hier depth
+    int       hierInd   { 0 };       //! current hier ind
   };
 
  private:
-  bool      valueLabel_      { false }; // draw value with name
-  QString   currentRootName_;           // current root name
-  NodeData  nodeData_;                  // node data
-  PlaceData placeData_;                 // place data
-  ColorData colorData_;                 // color data
+  bool      valueLabel_      { false }; //! draw value with name
+  QString   currentRootName_;           //! current root name
+  NodeData  nodeData_;                  //! node data
+  PlaceData placeData_;                 //! place data
+  ColorData colorData_;                 //! color data
 };
 
 #endif

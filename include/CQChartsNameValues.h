@@ -2,6 +2,7 @@
 #define CQChartsNameValues_H
 
 #include <QVariant>
+#include <QFont>
 
 class CQChartsColor;
 
@@ -30,11 +31,30 @@ class CQChartsNameValues {
   bool nameValue(const QString &name, QVariant &value) const;
   void setNameValue(const QString &name, const QVariant &value);
 
+  template<typename T>
+  void setNameValueType(const QString &name, const T &t) {
+    setNameValue(name, t.toString());
+  }
+
   bool nameValueString (const QString &name, QString &value) const;
   bool nameValueInteger(const QString &name, int &value) const;
   bool nameValueReal   (const QString &name, double &value) const;
   bool nameValueBool   (const QString &name, bool &value) const;
   bool nameValueColor  (const QString &name, CQChartsColor &color) const;
+  bool nameValueFont   (const QString &name, QFont &font) const;
+  bool nameValueAlign  (const QString &name, Qt::Alignment &align) const;
+
+  template<typename T>
+  bool nameValueType(const QString &name, T &t) const {
+    QVariant var;
+
+    if (! nameValue(name, var))
+      return false;
+
+    t = T(var.toString());
+
+    return t.isValid();
+  }
 
  private:
   static QStringList splitNameValues(const QString &str);

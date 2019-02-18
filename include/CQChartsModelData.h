@@ -128,21 +128,21 @@ class CQChartsModelData : public QObject {
   using FoldedModelPs = std::vector<ModelP>;
 #endif
 
-  CQCharts*             charts_           { nullptr }; // parent charts
-  ModelP                model_;                        // model
-  int                   ind_              { -1 };      // model ind
-  QItemSelectionModel*  selectionModel_   { nullptr }; // selection model
-  QString               name_;                         // model name
-  int                   currentColumn_    { -1 };      // current column
-  CQChartsModelDetails* details_          { nullptr }; // model details
+  CQCharts*             charts_           { nullptr }; //! parent charts
+  ModelP                model_;                        //! model
+  int                   ind_              { -1 };      //! model ind
+  QItemSelectionModel*  selectionModel_   { nullptr }; //! selection model
+  QString               name_;                         //! model name
+  int                   currentColumn_    { -1 };      //! current column
+  CQChartsModelDetails* details_          { nullptr }; //! model details
 #ifdef CQCHARTS_FOLDED_MODEL
-  ModelP                foldProxyModel_;               // folded proxy model
-  FoldedModelPs         foldedModels_;                 // folded models
+  ModelP                foldProxyModel_;               //! folded proxy model
+  FoldedModelPs         foldedModels_;                 //! folded models
 #endif
-  bool                  summaryEnabled_   { false };   // summary model enabled
-  CQSummaryModel*       summaryModel_     { nullptr }; // summary model
-  ModelP                summaryModelP_;                // summary model (shared pointer)
-  CQChartsModelData*    summaryModelData_ { nullptr }; // summary model data
+  bool                  summaryEnabled_   { false };   //! summary model enabled
+  CQSummaryModel*       summaryModel_     { nullptr }; //! summary model
+  ModelP                summaryModelP_;                //! summary model (shared pointer)
+  CQChartsModelData*    summaryModelData_ { nullptr }; //! summary model data
   mutable std::mutex    mutex_;
 };
 

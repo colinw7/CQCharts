@@ -5,6 +5,7 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsPlotDlg.h>
 #include <CQChartsColumnType.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
 
 #include <QPushButton>
@@ -113,11 +114,21 @@ writeSlot()
           continue;
       }
       else if (param.type() == CQBaseModelType::REAL) {
-        if (var.toDouble() == param.def().toDouble())
+        bool ok1, ok2;
+
+        double r1 = CQChartsVariant::toReal(var        , ok1);
+        double r2 = CQChartsVariant::toReal(param.def(), ok2);
+
+        if (ok1 && ok2 && r1 == r2)
           continue;
       }
       else if (param.type() == CQBaseModelType::INTEGER) {
-        if (var.toInt() == param.def().toInt())
+        bool ok1, ok2;
+
+        int i1 = CQChartsVariant::toInt(var        , ok1);
+        int i2 = CQChartsVariant::toInt(param.def(), ok2);
+
+        if (ok1 && ok2 && i1 == i2)
           continue;
       }
       else if (param.type() == CQBaseModelType::STRING) {

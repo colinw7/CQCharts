@@ -56,7 +56,7 @@ bool nameValueBool(const CQChartsNameValues &nameValues, const QString &name, bo
 int varInteger(const QVariant &var, int def) {
   bool ok = false;
 
-  int i = var.toInt(&ok);
+  long i = CQChartsVariant::toInt(var, ok);
 
   return (ok ? i : def);
 }
@@ -64,7 +64,7 @@ int varInteger(const QVariant &var, int def) {
 double varReal(const QVariant &var, double def) {
   bool ok = false;
 
-  double r = var.toDouble(&ok);
+  double r = CQChartsVariant::toReal(var, ok);
 
   return (ok ? r : def);
 }
@@ -314,9 +314,11 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
   }
 
   // validate ?
-  type = static_cast<Type>(var1.toInt());
+  bool ok2;
 
-  if (type == Type::NONE) {
+  type = static_cast<Type>(CQChartsVariant::toInt(var1, ok2));
+
+  if (! ok2 || type == Type::NONE) {
     baseType = Type::NONE;
     return false;
   }
@@ -325,28 +327,30 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
 
   int brole = static_cast<int>(CQBaseModelRole::BaseType);
 
-  bool ok2;
+  bool ok3;
 
-  QVariant var2 = CQChartsModelUtil::modelHeaderValue(model, column, brole, ok2);
+  QVariant var2 = CQChartsModelUtil::modelHeaderValue(model, column, brole, ok3);
 
-  if (! var2.isValid())
+  if (! ok3 || ! var2.isValid())
     return false;
 
   // validate ?
-  baseType = static_cast<Type>(var2.toInt());
+  bool ok4;
 
-  if (baseType == Type::NONE)
+  baseType = static_cast<Type>(CQChartsVariant::toInt(var2, ok4));
+
+  if (! ok4 || baseType == Type::NONE)
     baseType = type;
 
   //---
 
   int vrole = static_cast<int>(CQBaseModelRole::TypeValues);
 
-  bool ok3;
+  bool ok5;
 
-  QVariant var3 = CQChartsModelUtil::modelHeaderValue(model, column, vrole, ok3);
+  QVariant var3 = CQChartsModelUtil::modelHeaderValue(model, column, vrole, ok5);
 
-  if (var3.isValid()) {
+  if (ok5 && var3.isValid()) {
     QString str3;
 
     CQChartsVariant::toString(var3, str3);

@@ -3,7 +3,6 @@
 
 #include <CQBaseModelTypes.h>
 #include <CQChartsTheme.h>
-#include <CQChartsColor.h>
 
 #include <QObject>
 #include <QAbstractItemModel>
@@ -17,6 +16,7 @@ class CQChartsPlotType;
 class CQChartsPlot;
 class CQChartsModelData;
 class CQChartsColumnTypeMgr;
+class CQChartsColor;
 
 /*!
  * \mainpage Charts Package
@@ -66,6 +66,8 @@ class CQChartsColumnTypeMgr;
  */
 class CQCharts : public QObject {
   Q_OBJECT
+
+  Q_PROPERTY(bool viewKey READ hasViewKey WRITE setViewKey)
 
  public:
   //! charts tcl proc data
@@ -229,22 +231,25 @@ class CQCharts : public QObject {
   // add new model data for model
   int addModelData(ModelP &model);
 
+  // remove model data for model
+  bool removeModelData(ModelP &model);
+
   // assign model index to model
   bool setModelInd(QAbstractItemModel *model, int ind);
 
  private:
   using NameViews = std::map<QString,CQChartsView*>;
 
-  bool                   viewKey_         { true };    // has view key
-  CQChartsPlotTypeMgr*   plotTypeMgr_     { nullptr }; // plot type manager
-  CQChartsColumnTypeMgr* columnTypeMgr_   { nullptr }; // column type manager
-  CQChartsInterfaceTheme interfaceTheme_;              // interface theme
-  CQChartsTheme          plotTheme_;                   // plot theme
-  int                    currentModelInd_ { -1 };      // current model index
-  ModelDatas             modelDatas_;                  // model datas
-  int                    lastModelInd_    { 0 };       // last model ind
-  NameViews              views_;                       // views
-  Procs                  procs_;                       // tcl procs
+  bool                   viewKey_         { true };    //! has view key
+  CQChartsPlotTypeMgr*   plotTypeMgr_     { nullptr }; //! plot type manager
+  CQChartsColumnTypeMgr* columnTypeMgr_   { nullptr }; //! column type manager
+  CQChartsInterfaceTheme interfaceTheme_;              //! interface theme
+  CQChartsTheme          plotTheme_;                   //! plot theme
+  int                    currentModelInd_ { -1 };      //! current model index
+  ModelDatas             modelDatas_;                  //! model datas
+  int                    lastModelInd_    { 0 };       //! last model ind
+  NameViews              views_;                       //! views
+  Procs                  procs_;                       //! tcl procs
 };
 
 #endif

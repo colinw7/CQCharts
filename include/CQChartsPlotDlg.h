@@ -219,51 +219,51 @@ class CQChartsPlotDlg : public QDialog {
   using TabType         = std::map<int,CQChartsPlotType *>;
   using TypeInitialized = std::map<QString,bool>;
 
-  CQCharts*          charts_                 { nullptr }; // parent charts
-  CQChartsModelData* modelData_              { nullptr }; // model data
-  ModelP             model_;                              // model
-  SelectionModelP    selectionModel_;                     // selection model
-  QComboBox*         combo_                  { nullptr }; // type combo
-  QStackedWidget*    stack_                  { nullptr }; // widget stack
-  QTextEdit*         descText_               { nullptr }; // type description
-  QLineEdit*         whereEdit_              { nullptr }; // where edit
-  QLineEdit*         viewEdit_               { nullptr }; // view name edit
-  QLineEdit*         posEdit_                { nullptr }; // position edit
-  QLineEdit*         titleEdit_              { nullptr }; // title edit
-  QLineEdit*         xLabelEdit_             { nullptr }; // x label edit
-  QLineEdit*         yLabelEdit_             { nullptr }; // y label edit
-  QLineEdit*         xminEdit_               { nullptr }; // xmin edit
-  QToolButton*       xminButton_             { nullptr }; // xmin load button
-  QLineEdit*         yminEdit_               { nullptr }; // ymin edit
-  QToolButton*       yminButton_             { nullptr }; // ymin load button
-  QLineEdit*         xmaxEdit_               { nullptr }; // xmax edit
-  QToolButton*       xmaxButton_             { nullptr }; // xmax load button
-  QLineEdit*         ymaxEdit_               { nullptr }; // ymax edit
-  QToolButton*       ymaxButton_             { nullptr }; // ymax load button
-  QCheckBox*         xintegralCheck_         { nullptr }; // x integral check
-  QCheckBox*         yintegralCheck_         { nullptr }; // y integral check
-  QCheckBox*         xlogCheck_              { nullptr }; // x log check
-  QCheckBox*         ylogCheck_              { nullptr }; // y log check
-  TypePlotData       typePlotData_;                       // per type plot data
-  QLabel*            msgLabel_               { nullptr }; // message label
-  QPushButton*       okButton_               { nullptr }; // ok button
-  QPushButton*       applyButton_            { nullptr }; // apply button
-  TabType            tabType_;                            // tab type map
-  QCheckBox*         previewEnabledCheck_    { nullptr }; // preview enabled checkbox
-  QCheckBox*         summaryEnabledCheck_    { nullptr }; // summary enabled checkbox
-  CQIntegerSpin*     summaryMaxRows_         { nullptr }; // summary max rows
-  QComboBox*         summaryTypeCombo_       { nullptr }; // summary type combo
-  QStackedWidget*    summaryTypeStack_       { nullptr }; // summary type stack
-  CQIntegerSpin*     summarySortedColEdit_   { nullptr }; // summary column edit
-  CQIntegerSpin*     summaryPageSizeEdit_    { nullptr }; // summary page size edit
-  CQIntegerSpin*     summaryCurrentPageEdit_ { nullptr }; // summary current page edit
-  CQChartsModelView* summaryModelView_       { nullptr }; // summary model view
-  CQChartsView*      previewView_            { nullptr }; // preview chart view
-  CQChartsPlot*      previewPlot_            { nullptr }; // preview plot
-  CQChartsPlot*      plot_                   { nullptr }; // last created plot (apply)
-  bool               initialized_            { false   }; // is initialized
-  bool               autoAnalyzeModel_       { true };    // auto analyze model
-  TypeInitialized    typeInitialzed_;                     // is type initialized
+  CQCharts*          charts_                 { nullptr }; //! parent charts
+  CQChartsModelData* modelData_              { nullptr }; //! model data
+  ModelP             model_;                              //! model
+  SelectionModelP    selectionModel_;                     //! selection model
+  QComboBox*         combo_                  { nullptr }; //! type combo
+  QStackedWidget*    stack_                  { nullptr }; //! widget stack
+  QTextEdit*         descText_               { nullptr }; //! type description
+  QLineEdit*         whereEdit_              { nullptr }; //! where edit
+  QLineEdit*         viewEdit_               { nullptr }; //! view name edit
+  QLineEdit*         posEdit_                { nullptr }; //! position edit
+  QLineEdit*         titleEdit_              { nullptr }; //! title edit
+  QLineEdit*         xLabelEdit_             { nullptr }; //! x label edit
+  QLineEdit*         yLabelEdit_             { nullptr }; //! y label edit
+  QLineEdit*         xminEdit_               { nullptr }; //! xmin edit
+  QToolButton*       xminButton_             { nullptr }; //! xmin load button
+  QLineEdit*         yminEdit_               { nullptr }; //! ymin edit
+  QToolButton*       yminButton_             { nullptr }; //! ymin load button
+  QLineEdit*         xmaxEdit_               { nullptr }; //! xmax edit
+  QToolButton*       xmaxButton_             { nullptr }; //! xmax load button
+  QLineEdit*         ymaxEdit_               { nullptr }; //! ymax edit
+  QToolButton*       ymaxButton_             { nullptr }; //! ymax load button
+  QCheckBox*         xintegralCheck_         { nullptr }; //! x integral check
+  QCheckBox*         yintegralCheck_         { nullptr }; //! y integral check
+  QCheckBox*         xlogCheck_              { nullptr }; //! x log check
+  QCheckBox*         ylogCheck_              { nullptr }; //! y log check
+  TypePlotData       typePlotData_;                       //! per type plot data
+  QLabel*            msgLabel_               { nullptr }; //! message label
+  QPushButton*       okButton_               { nullptr }; //! ok button
+  QPushButton*       applyButton_            { nullptr }; //! apply button
+  TabType            tabType_;                            //! tab type map
+  QCheckBox*         previewEnabledCheck_    { nullptr }; //! preview enabled checkbox
+  QCheckBox*         summaryEnabledCheck_    { nullptr }; //! summary enabled checkbox
+  CQIntegerSpin*     summaryMaxRows_         { nullptr }; //! summary max rows
+  QComboBox*         summaryTypeCombo_       { nullptr }; //! summary type combo
+  QStackedWidget*    summaryTypeStack_       { nullptr }; //! summary type stack
+  CQIntegerSpin*     summarySortedColEdit_   { nullptr }; //! summary column edit
+  CQIntegerSpin*     summaryPageSizeEdit_    { nullptr }; //! summary page size edit
+  CQIntegerSpin*     summaryCurrentPageEdit_ { nullptr }; //! summary current page edit
+  CQChartsModelView* summaryModelView_       { nullptr }; //! summary model view
+  CQChartsView*      previewView_            { nullptr }; //! preview chart view
+  CQChartsPlot*      previewPlot_            { nullptr }; //! preview plot
+  CQChartsPlot*      plot_                   { nullptr }; //! last created plot (apply)
+  bool               initialized_            { false   }; //! is initialized
+  bool               autoAnalyzeModel_       { true };    //! auto analyze model
+  TypeInitialized    typeInitialzed_;                     //! is type initialized
 };
 
 #endif

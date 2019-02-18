@@ -210,11 +210,11 @@ class CQChartsPlot : public CQChartsObj,
 
   // associated plot for overlay/y1y2
   struct ConnectData {
-    bool          x1x2    { false };   // is double x axis plot
-    bool          y1y2    { false };   // is double y axis plot
-    bool          overlay { false };   // is overlay plot
-    CQChartsPlot* next    { nullptr }; // next plot
-    CQChartsPlot* prev    { nullptr }; // previos plot
+    bool          x1x2    { false };   //! is double x axis plot
+    bool          y1y2    { false };   //! is double y axis plot
+    bool          overlay { false };   //! is overlay plot
+    CQChartsPlot* next    { nullptr }; //! next plot
+    CQChartsPlot* prev    { nullptr }; //! previos plot
 
     ConnectData() { }
 
@@ -340,8 +340,8 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   struct ZoomData {
-    CQChartsGeom::Point dataScale  { 1.0, 1.0 }; // data scale (zoom in x/y direction)
-    CQChartsGeom::Point dataOffset { 0.0, 0.0 }; // data offset (pan)
+    CQChartsGeom::Point dataScale  { 1.0, 1.0 }; //! data scale (zoom in x/y direction)
+    CQChartsGeom::Point dataOffset { 0.0, 0.0 }; //! data offset (pan)
   };
 
   double dataScaleX() const { return zoomData_.dataScale.x; }
@@ -1994,7 +1994,7 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsGeom::BBox           viewBBox_         { 0, 0, 1, 1 }; //! view box
   CQChartsGeom::BBox           innerViewBBox_    { 0, 0, 1, 1 }; //! inner view box
   CQChartsPlotMargin           innerMargin_      { 0, 0, 0, 0 }; //! inner margin
-  CQChartsPlotMargin           outerMargin_      { 10, 10, 10, 10 }; // outer margin
+  CQChartsPlotMargin           outerMargin_      { 10, 10, 10, 10 }; //! outer margin
   CQChartsDisplayRange*        displayRange_     { nullptr };    //! value range mapping
   CQChartsDisplayTransform*    displayTransform_ { nullptr };    //! value range transform
                                                                  //! (zoom/pan)

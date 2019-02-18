@@ -74,8 +74,8 @@ class CInterval {
   double calcStart    () const { constInit(); return calcData_.start    ; }
   double calcEnd      () const { constInit(); return calcData_.end      ; }
   double calcIncrement() const { constInit(); return calcData_.increment; }
-  double calcNumMajor () const { constInit(); return calcData_.numMajor ; }
-  double calcNumMinor () const { constInit(); return calcData_.numMinor ; }
+  int    calcNumMajor () const { constInit(); return calcData_.numMajor ; }
+  int    calcNumMinor () const { constInit(); return calcData_.numMinor ; }
 
   // get interval for value
   int valueInterval(double r) const;

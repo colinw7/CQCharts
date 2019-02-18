@@ -75,16 +75,16 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   void drawFg(QPainter *painter) const override;
 
  private:
-  const CQChartsGeometryPlot* plot_  { nullptr }; // parent plot
-  Polygons                    polygons_;          // geometry polygons
-  double                      value_ { 0.0 };     // geometry value
-  QString                     name_;              // geometry name
-  CQChartsColor               color_;             // optional color
-  CQChartsStyle               style_;             // optional style
-  QModelIndex                 ind_;               // model index
-  int                         i_     { -1 };      // value index
-  int                         n_     { -1 };      // value count
-  Polygons                    ppolygons_;         // pixel polygons
+  const CQChartsGeometryPlot* plot_  { nullptr }; //! parent plot
+  Polygons                    polygons_;          //! geometry polygons
+  double                      value_ { 0.0 };     //! geometry value
+  QString                     name_;              //! geometry name
+  CQChartsColor               color_;             //! optional color
+  CQChartsStyle               style_;             //! optional style
+  QModelIndex                 ind_;               //! model index
+  int                         i_     { -1 };      //! value index
+  int                         n_     { -1 };      //! value count
+  Polygons                    ppolygons_;         //! pixel polygons
 };
 
 //---
@@ -171,18 +171,18 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   using Geometries = std::vector<Geometry>;
   using OptReal    = boost::optional<double>;
 
-  CQChartsColumn        nameColumn_;                              // name column
-  CQChartsColumn        geometryColumn_;                          // geometry column
-  CQChartsColumn        valueColumn_;                             // value column
-  CQChartsColumn        styleColumn_;                             // style column
-  CQChartsDataLabel*    dataLabel_          { nullptr };          // data label style
-  OptReal               minValue_;                                // user min value
-  OptReal               maxValue_;                                // user max value
-  CQChartsGeom::RMinMax valueRange_;                              // data value range
-  ColumnType            geometryColumnType_ { ColumnType::NONE }; // geometry column type
-  ColumnType            colorColumnType_    { ColumnType::NONE }; // color column type
-  ColumnType            styleColumnType_    { ColumnType::NONE }; // style column type
-  Geometries            geometries_;                              // geometry shapes
+  CQChartsColumn        nameColumn_;                              //! name column
+  CQChartsColumn        geometryColumn_;                          //! geometry column
+  CQChartsColumn        valueColumn_;                             //! value column
+  CQChartsColumn        styleColumn_;                             //! style column
+  CQChartsDataLabel*    dataLabel_          { nullptr };          //! data label style
+  OptReal               minValue_;                                //! user min value
+  OptReal               maxValue_;                                //! user max value
+  CQChartsGeom::RMinMax valueRange_;                              //! data value range
+  ColumnType            geometryColumnType_ { ColumnType::NONE }; //! geometry column type
+  ColumnType            colorColumnType_    { ColumnType::NONE }; //! color column type
+  ColumnType            styleColumnType_    { ColumnType::NONE }; //! style column type
+  Geometries            geometries_;                              //! geometry shapes
 };
 
 #endif

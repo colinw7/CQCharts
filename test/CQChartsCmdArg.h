@@ -54,6 +54,9 @@ class CQChartsCmdArg {
   bool isRequired() const { return required_; }
   CQChartsCmdArg &setRequired(bool b=true) { required_ = b; return *this; }
 
+  bool isMultiple() const { return multiple_; }
+  CQChartsCmdArg &setMultiple(bool b=true) { multiple_ = b; return *this; }
+
   int groupInd() const { return groupInd_; }
   void setGroupInd(int i) { groupInd_ = i; }
 
@@ -72,6 +75,7 @@ class CQChartsCmdArg {
   QString    argDesc_;                 // short description
   QString    desc_;                    // long description
   bool       required_ { false };      // is required
+  bool       multiple_ { false };      // can have multiple values
   int        groupInd_ { -1 };         // cmd group ind
   NameValues nameValues_;              // enum name values
 };

@@ -239,4 +239,14 @@ void exportModel(const QAbstractItemModel *model, CQBaseModelDataType type,
 
 }
 
+//------
+
+namespace CQChartsModelUtil {
+
+const QStringList &roleNames();
+
+int nameToRole(const QString &name);
+
+}
+
 #endif

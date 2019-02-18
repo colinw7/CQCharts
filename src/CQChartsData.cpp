@@ -1,4 +1,7 @@
 #include <CQChartsData.h>
+#include <CQAlignEdit.h>
+
+// TODO: only save if value not default
 
 CQUTIL_DEF_META_TYPE(CQChartsTextData, toString, fromString)
 
@@ -17,18 +20,41 @@ toString() const
 {
   CQChartsNameValues nameValues;
 
-  nameValues.setNameValue("visible"  , isVisible());
-  nameValues.setNameValue("color"    , color().toString());
-  nameValues.setNameValue("alpha"    , alpha());
-  nameValues.setNameValue("font"     , font());
-  nameValues.setNameValue("angle"    , angle());
-  nameValues.setNameValue("contrast" , isContrast());
-  nameValues.setNameValue("align"    , int(align()));
-  nameValues.setNameValue("formatted", isFormatted());
-  nameValues.setNameValue("scaled"   , isScaled());
-  nameValues.setNameValue("html"     , isHtml());
+  setNameValues(nameValues);
 
   return nameValues.toString();
+}
+
+void
+CQChartsTextData::
+setNameValues(CQChartsNameValues &nameValues) const
+{
+  if (! isVisible())
+    nameValues.setNameValue("visible", isVisible());
+
+  nameValues.setNameValue("color", color().toString());
+
+  if (alpha() != 1.0)
+    nameValues.setNameValue("alpha", alpha());
+
+  nameValues.setNameValue("font", font());
+
+  if (angle() != 0.0)
+    nameValues.setNameValue("angle", angle());
+
+  if (isContrast())
+    nameValues.setNameValue("contrast", isContrast());
+
+  nameValues.setNameValue("align", CQAlignEdit::toString(align()));
+
+  if (isFormatted())
+    nameValues.setNameValue("formatted", isFormatted());
+
+  if (isScaled())
+    nameValues.setNameValue("scaled", isScaled());
+
+  if (isHtml())
+    nameValues.setNameValue("html", isHtml());
 }
 
 bool
@@ -37,13 +63,20 @@ fromString(const QString &str)
 {
   CQChartsNameValues nameValues(str);
 
+  return getNameValues(nameValues);
+}
+
+bool
+CQChartsTextData::
+getNameValues(const CQChartsNameValues &nameValues)
+{
   nameValues.nameValueBool ("visible"  , visible_);
   nameValues.nameValueColor("color"    , color_);
   nameValues.nameValueReal ("alpha"    , alpha_);
-//nameValues.nameValueFont ("font"     , font_);
+  nameValues.nameValueFont ("font"     , font_);
   nameValues.nameValueReal ("angle"    , angle_);
   nameValues.nameValueBool ("contrast" , contrast_);
-//nameValues.nameValueAlign("align"    , align_);
+  nameValues.nameValueAlign("align"    , align_);
   nameValues.nameValueBool ("formatted", formatted_);
   nameValues.nameValueBool ("scaled"   , scaled_);
   nameValues.nameValueBool ("html"     , html_);
@@ -70,13 +103,27 @@ toString() const
 {
   CQChartsNameValues nameValues;
 
-  nameValues.setNameValue("visible", isVisible());
-  nameValues.setNameValue("color"  , color().toString());
-  nameValues.setNameValue("alpha"  , alpha());
-  nameValues.setNameValue("width"  , width().toString());
-  nameValues.setNameValue("dash"   , dash().toString());
+  setNameValues(nameValues);
 
   return nameValues.toString();
+}
+
+void
+CQChartsLineData::
+setNameValues(CQChartsNameValues &nameValues) const
+{
+  if (! isVisible())
+    nameValues.setNameValue("visible", isVisible());
+
+  nameValues.setNameValue("color", color().toString());
+
+  if (alpha() != 1.0)
+    nameValues.setNameValue("alpha", alpha());
+
+  nameValues.setNameValueType<CQChartsLength>("width", width());
+
+  if (dash() != CQChartsLineDash())
+    nameValues.setNameValueType<CQChartsLineDash>("dash", dash());
 }
 
 bool
@@ -85,11 +132,19 @@ fromString(const QString &str)
 {
   CQChartsNameValues nameValues(str);
 
-  nameValues.nameValueBool    ("visible", visible_);
-  nameValues.nameValueColor   ("color"  , color_);
-  nameValues.nameValueReal    ("alpha"  , alpha_);
-//nameValues.nameValueLength  ("width"  , width_);
-//nameValues.nameValueLineDash("dash"   , dash_);
+  return getNameValues(nameValues);
+}
+
+bool
+CQChartsLineData::
+getNameValues(const CQChartsNameValues &nameValues)
+{
+  nameValues.nameValueBool ("visible", visible_);
+  nameValues.nameValueColor("color"  , color_);
+  nameValues.nameValueReal ("alpha"  , alpha_);
+
+  nameValues.nameValueType<CQChartsLength>  ("width", width_);
+  nameValues.nameValueType<CQChartsLineDash>("dash" , dash_);
 
   return true;
 }
@@ -111,28 +166,158 @@ QString
 CQChartsShapeData::
 toString() const
 {
-  QString str1 = background_.toString();
-  QString str2 = border_.toString();
+  CQChartsNameValues nameValues;
 
-  if      (str1 != "" && str2 != "")
-    return str1 + "," + str2;
-  else if (str1 != "")
-    return str1;
-  else
-    return str2;
+  setNameValues(nameValues);
+
+  return nameValues.toString();
+}
+
+void
+CQChartsShapeData::
+setNameValues(CQChartsNameValues &nameValues) const
+{
+  background_.setNameValues(nameValues);
+  border_    .setNameValues(nameValues);
 }
 
 bool
 CQChartsShapeData::
 fromString(const QString &str)
 {
-  background_.fromString(str);
-  border_    .fromString(str);
+  CQChartsNameValues nameValues(str);
+
+  return getNameValues(nameValues);
+}
+
+bool
+CQChartsShapeData::
+getNameValues(const CQChartsNameValues &nameValues)
+{
+  background_.getNameValues(nameValues);
+  border_    .getNameValues(nameValues);
 
   return true;
 }
 
-//---
+//------
+
+CQUTIL_DEF_META_TYPE(CQChartsBoxData, toString, fromString)
+
+int CQChartsBoxData::metaTypeId;
+
+void
+CQChartsBoxData::
+registerMetaType()
+{
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsBoxData);
+}
+
+QString
+CQChartsBoxData::
+toString() const
+{
+  CQChartsNameValues nameValues;
+
+  setNameValues(nameValues);
+
+  return nameValues.toString();
+}
+
+void
+CQChartsBoxData::
+setNameValues(CQChartsNameValues &nameValues) const
+{
+  if (! isVisible())
+    nameValues.setNameValue("visible", isVisible());
+
+  nameValues.setNameValue("margin" , margin ());
+  nameValues.setNameValue("padding", padding());
+
+  shape_.setNameValues(nameValues);
+
+  nameValues.setNameValue("border_sides", borderSides().toString());
+}
+
+bool
+CQChartsBoxData::
+fromString(const QString &str)
+{
+  CQChartsNameValues nameValues(str);
+
+  return getNameValues(nameValues);
+}
+
+bool
+CQChartsBoxData::
+getNameValues(const CQChartsNameValues &nameValues)
+{
+  nameValues.nameValueBool("visible", visible_);
+  nameValues.nameValueReal("margin" , margin_ );
+  nameValues.nameValueReal("padding", padding_);
+
+  shape_.getNameValues(nameValues);
+
+  QString str;
+
+  if (nameValues.nameValueString("border_sides", str))
+    borderSides_ = CQChartsSides(str);
+
+  return true;
+}
+
+//------
+
+CQUTIL_DEF_META_TYPE(CQChartsTextBoxData, toString, fromString)
+
+int CQChartsTextBoxData::metaTypeId;
+
+void
+CQChartsTextBoxData::
+registerMetaType()
+{
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsTextBoxData);
+}
+
+QString
+CQChartsTextBoxData::
+toString() const
+{
+  CQChartsNameValues nameValues;
+
+  setNameValues(nameValues);
+
+  return nameValues.toString();
+}
+
+void
+CQChartsTextBoxData::
+setNameValues(CQChartsNameValues &nameValues) const
+{
+  text_.setNameValues(nameValues);
+  box_ .setNameValues(nameValues);
+}
+
+bool
+CQChartsTextBoxData::
+fromString(const QString &str)
+{
+  CQChartsNameValues nameValues(str);
+
+  return getNameValues(nameValues);
+}
+
+bool
+CQChartsTextBoxData::
+getNameValues(const CQChartsNameValues &nameValues)
+{
+  text_.getNameValues(nameValues);
+  box_ .getNameValues(nameValues);
+
+  return true;
+}
+
+//------
 
 CQUTIL_DEF_META_TYPE(CQChartsFillData, toString, fromString)
 
@@ -151,12 +336,24 @@ toString() const
 {
   CQChartsNameValues nameValues;
 
-  nameValues.setNameValue("filled"     , isVisible());
-  nameValues.setNameValue("fillColor"  , color().toString());
-  nameValues.setNameValue("fillAlpha"  , alpha());
-  nameValues.setNameValue("fillPattern", pattern().toString());
+  setNameValues(nameValues);
 
   return nameValues.toString();
+}
+
+void
+CQChartsFillData::
+setNameValues(CQChartsNameValues &nameValues) const
+{
+  nameValues.setNameValue("filled", isVisible());
+
+  nameValues.setNameValue("fillColor", color().toString());
+
+  if (alpha() != 1.0)
+    nameValues.setNameValue("fillAlpha", alpha());
+
+  if (pattern() != CQChartsFillPattern(CQChartsFillPattern::Type::SOLID))
+    nameValues.setNameValueType<CQChartsFillPattern>("fillPattern", pattern());
 }
 
 bool
@@ -165,15 +362,23 @@ fromString(const QString &str)
 {
   CQChartsNameValues nameValues(str);
 
-  nameValues.nameValueBool       ("filled"     , visible_);
-  nameValues.nameValueColor      ("fillColor"  , color_);
-  nameValues.nameValueReal       ("fillAlpha"  , alpha_);
-//nameValues.nameValueFillPattern("fillPattern", pattern_);
+  return getNameValues(nameValues);
+}
+
+bool
+CQChartsFillData::
+getNameValues(const CQChartsNameValues &nameValues)
+{
+  nameValues.nameValueBool ("filled", visible_);
+  nameValues.nameValueColor("fillColor", color_);
+  nameValues.nameValueReal ("fillAlpha", alpha_);
+
+  nameValues.nameValueType<CQChartsFillPattern>("fillPattern", pattern_);
 
   return true;
 }
 
-//---
+//------
 
 CQUTIL_DEF_META_TYPE(CQChartsStrokeData, toString, fromString)
 
@@ -192,14 +397,30 @@ toString() const
 {
   CQChartsNameValues nameValues;
 
-  nameValues.setNameValue("stroked"         , isVisible());
-  nameValues.setNameValue("strokeColor"     , color().toString());
-  nameValues.setNameValue("strokeAlpha"     , alpha());
-  nameValues.setNameValue("strokeWidth"     , width().toString());
-  nameValues.setNameValue("strokeDash"      , dash().toString());
-  nameValues.setNameValue("strokeCornerSize", cornerSize().toString());
+  setNameValues(nameValues);
 
   return nameValues.toString();
+}
+
+void
+CQChartsStrokeData::
+setNameValues(CQChartsNameValues &nameValues) const
+{
+  nameValues.setNameValue("stroked", isVisible());
+
+  nameValues.setNameValue("strokeColor", color().toString());
+
+  if (alpha() != 1.0)
+    nameValues.setNameValue("strokeAlpha", alpha());
+
+  if (width() != CQChartsLength("0px"))
+    nameValues.setNameValueType<CQChartsLength>("strokeWidth", width());
+
+  if (dash() != CQChartsLineDash())
+    nameValues.setNameValueType<CQChartsLineDash>("strokeDash" , dash());
+
+  if (cornerSize() != CQChartsLength("0px"))
+    nameValues.setNameValueType<CQChartsLength>("strokeCornerSize", cornerSize());
 }
 
 bool
@@ -208,12 +429,159 @@ fromString(const QString &str)
 {
   CQChartsNameValues nameValues(str);
 
-  nameValues.nameValueBool    ("stroked"         , visible_);
-  nameValues.nameValueColor   ("strokeColor"     , color_);
-  nameValues.nameValueReal    ("strokeAlpha"     , alpha_);
-//nameValues.nameValueLength  ("strokeWidth"     , width_);
-//nameValues.nameValueLineDash("strokeDash"      , dash_);
-//nameValues.nameValueLength  ("strokeCornerSize", cornerSize_);
+  return getNameValues(nameValues);
+}
+
+bool
+CQChartsStrokeData::
+getNameValues(const CQChartsNameValues &nameValues)
+{
+  nameValues.nameValueBool ("stroked"    , visible_);
+  nameValues.nameValueColor("strokeColor", color_);
+  nameValues.nameValueReal ("strokeAlpha", alpha_);
+
+  nameValues.nameValueType<CQChartsLength>("strokeWidth", width_);
+
+  nameValues.nameValueType<CQChartsLineDash>("strokeDash", dash_);
+
+  nameValues.nameValueType<CQChartsLength>("strokeCornerSize", cornerSize_);
+
+  return true;
+}
+
+//------
+
+CQUTIL_DEF_META_TYPE(CQChartsSymbolData, toString, fromString)
+
+int CQChartsSymbolData::metaTypeId;
+
+void
+CQChartsSymbolData::
+registerMetaType()
+{
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsSymbolData);
+}
+
+QString
+CQChartsSymbolData::
+toString() const
+{
+  CQChartsNameValues nameValues;
+
+  setNameValues(nameValues);
+
+  return nameValues.toString();
+}
+
+void
+CQChartsSymbolData::
+setNameValues(CQChartsNameValues &nameValues) const
+{
+  nameValues.setNameValue("visible", isVisible());
+
+  nameValues.setNameValueType<CQChartsSymbol>("type", type());
+  nameValues.setNameValueType<CQChartsLength>("size", size());
+
+  stroke_.setNameValues(nameValues);
+  fill_  .setNameValues(nameValues);
+}
+
+bool
+CQChartsSymbolData::
+fromString(const QString &str)
+{
+  CQChartsNameValues nameValues(str);
+
+  return getNameValues(nameValues);
+}
+
+bool
+CQChartsSymbolData::
+getNameValues(const CQChartsNameValues &nameValues)
+{
+  nameValues.nameValueBool("visible", visible_);
+
+  nameValues.nameValueType<CQChartsSymbol>("type", type_);
+  nameValues.nameValueType<CQChartsLength>("size", size_);
+
+  stroke_.getNameValues(nameValues);
+  fill_  .getNameValues(nameValues);
+
+  return true;
+}
+
+//------
+
+CQUTIL_DEF_META_TYPE(CQChartsArrowData, toString, fromString)
+
+int CQChartsArrowData::metaTypeId;
+
+void
+CQChartsArrowData::
+registerMetaType()
+{
+  metaTypeId = CQUTIL_REGISTER_META(CQChartsArrowData);
+}
+
+QString
+CQChartsArrowData::
+toString() const
+{
+  CQChartsNameValues nameValues;
+
+  setNameValues(nameValues);
+
+  return nameValues.toString();
+}
+
+void
+CQChartsArrowData::
+setNameValues(CQChartsNameValues &nameValues) const
+{
+  if (isRelative())
+    nameValues.setNameValue("relative", isRelative());
+
+  if (angle() > 0)
+    nameValues.setNameValue("angle", angle());
+
+  if (backAngle() > 0)
+    nameValues.setNameValue("back_angle", backAngle());
+
+  nameValues.setNameValue("fhead", isFHead());
+  nameValues.setNameValue("thead", isTHead());
+
+  if (isLineEnds())
+    nameValues.setNameValue("line_ends", isLineEnds());
+
+  if (length().isValid())
+    nameValues.setNameValueType<CQChartsLength>("length", length());
+
+  if (lineWidth().value() > 0)
+    nameValues.setNameValueType<CQChartsLength>("line_width", lineWidth());
+}
+
+bool
+CQChartsArrowData::
+fromString(const QString &str)
+{
+  CQChartsNameValues nameValues(str);
+
+  return getNameValues(nameValues);
+}
+
+bool
+CQChartsArrowData::
+getNameValues(const CQChartsNameValues &nameValues)
+{
+  nameValues.nameValueBool("relative"  , relative_);
+  nameValues.nameValueReal("angle"     , angle_);
+  nameValues.nameValueReal("back_angle", backAngle_);
+  nameValues.nameValueBool("fhead"     , fhead_);
+  nameValues.nameValueBool("thead"     , thead_);
+  nameValues.nameValueBool("line_ends" , lineEnds_);
+
+  nameValues.nameValueType<CQChartsLength>("length", length_);
+  nameValues.nameValueType<CQChartsLength>("line_width", lineWidth_);
 
   return true;
 }

@@ -5,7 +5,7 @@
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
 #include <CQRealSpin.h>
-#include <CQColorChooser.h>
+#include <CQColorEdit.h>
 #include <CQCheckBox.h>
 
 #include <QComboBox>
@@ -15,6 +15,7 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QPainter>
 
 CQChartsColorLineEdit::
 CQChartsColorLineEdit(QWidget *parent) :
@@ -24,18 +25,22 @@ CQChartsColorLineEdit(QWidget *parent) :
 
   //---
 
-  menuEdit_ = new CQChartsColorEdit;
+  menuEdit_ = dataEdit_ = new CQChartsColorEdit;
 
-  menu_->setWidget(menuEdit_);
+  menu_->setWidget(dataEdit_);
 
-  connect(menuEdit_, SIGNAL(colorChanged()), this, SLOT(menuEditChanged()));
+  connect(dataEdit_, SIGNAL(colorChanged()), this, SLOT(menuEditChanged()));
+
+  //---
+
+  colorToWidgets();
 }
 
 const CQChartsColor &
 CQChartsColorLineEdit::
 color() const
 {
-  return menuEdit_->color();
+  return dataEdit_->color();
 }
 
 void
@@ -51,7 +56,7 @@ updateColor(const CQChartsColor &color, bool updateText)
 {
   connectSlots(false);
 
-  menuEdit_->setColor(color);
+  dataEdit_->setColor(color);
 
   if (updateText)
     colorToWidgets();
@@ -84,6 +89,8 @@ colorToWidgets()
   else
     edit_->setText("");
 
+  setToolTip(color().toString());
+
   connectSlots(true);
 }
 
@@ -103,9 +110,33 @@ connectSlots(bool b)
   CQChartsLineEditBase::connectSlots(b);
 
   if (b)
-    connect(menuEdit_, SIGNAL(colorChanged()), this, SLOT(menuEditChanged()));
+    connect(dataEdit_, SIGNAL(colorChanged()), this, SLOT(menuEditChanged()));
   else
-    disconnect(menuEdit_, SIGNAL(colorChanged()), this, SLOT(menuEditChanged()));
+    disconnect(dataEdit_, SIGNAL(colorChanged()), this, SLOT(menuEditChanged()));
+}
+
+void
+CQChartsColorLineEdit::
+drawPreview(QPainter *painter, const QRect &rect)
+{
+  QColor c = (color().isValid() ? interpColor(color()) : palette().color(QPalette::Window));
+
+  painter->fillRect(rect, QBrush(c));
+
+  //---
+
+  QString str = (color().isValid() ? color().toString() : "<none>");
+
+  QFontMetricsF fm(font());
+
+  double fa = fm.ascent();
+  double fd = fm.descent();
+
+  QColor tc = CQChartsUtil::bwColor(c);
+
+  painter->setPen(tc);
+
+  painter->drawText(rect.left() + 2, rect.center().y() + (fa - fd)/2, str);
 }
 
 //------
@@ -218,7 +249,7 @@ setValue(QWidget *w, const QVariant &var)
 
 CQChartsColorEdit::
 CQChartsColorEdit(QWidget *parent) :
- QFrame(parent)
+ CQChartsEditBase(parent)
 {
   QVBoxLayout *layout = new QVBoxLayout(this);
   layout->setMargin(2); layout->setSpacing(2);
@@ -228,7 +259,7 @@ CQChartsColorEdit(QWidget *parent) :
   typeCombo_ = new QComboBox;
 
   typeCombo_->addItems(QStringList() <<
-    "Palette" << "Palette Value" << "Interface" << "Interface Value" << "Color");
+    "None" << "Palette" << "Palette Value" << "Interface" << "Interface Value" << "Color");
 
   connect(typeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToColor()));
 
@@ -273,7 +304,7 @@ CQChartsColorEdit(QWidget *parent) :
 
   QLabel *colorLabel = new QLabel("Color");
 
-  colorEdit_ = new CQColorChooser;
+  colorEdit_ = new CQColorEdit;
 
   connect(colorEdit_, SIGNAL(colorChanged(const QColor &)), this, SLOT(widgetsToColor()));
 
@@ -351,12 +382,12 @@ colorToWidgets()
 
   if (color_.isValid()) {
     if      (color_.type() == CQChartsColor::Type::PALETTE) {
-      typeCombo_->setCurrentIndex(0);
+      typeCombo_->setCurrentIndex(1);
 
       indEdit_->setValue(color_.ind());
     }
     else if (color_.type() == CQChartsColor::Type::PALETTE_VALUE) {
-      typeCombo_->setCurrentIndex(1);
+      typeCombo_->setCurrentIndex(2);
 
       indEdit_->setValue(color_.ind());
 
@@ -365,15 +396,15 @@ colorToWidgets()
       scaleCheck_->setChecked(color_.isScale());
     }
     else if (color_.type() == CQChartsColor::Type::INTERFACE) {
-      typeCombo_->setCurrentIndex(2);
+      typeCombo_->setCurrentIndex(3);
     }
     else if (color_.type() == CQChartsColor::Type::INTERFACE_VALUE) {
-      typeCombo_->setCurrentIndex(3);
+      typeCombo_->setCurrentIndex(4);
 
       valueEdit_->setValue(color_.value());
     }
     else if (color_.type() == CQChartsColor::Type::COLOR) {
-      typeCombo_->setCurrentIndex(4);
+      typeCombo_->setCurrentIndex(5);
 
       colorEdit_->setColor(color_.color());
     }
@@ -393,27 +424,27 @@ widgetsToColor()
 
   CQChartsColor color;
 
-  if      (typeInd == 0) {
+  if      (typeInd == 1) {
     color = CQChartsColor(CQChartsColor::Type::PALETTE);
 
     color.setInd(indEdit_->value());
   }
-  else if (typeInd == 1) {
+  else if (typeInd == 2) {
     color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE);
 
     color.setInd  (indEdit_   ->value    ());
     color.setValue(CQChartsColor::Type::PALETTE_VALUE, valueEdit_ ->value());
     color.setScale(scaleCheck_->isChecked());
   }
-  else if (typeInd == 2) {
+  else if (typeInd == 3) {
     color = CQChartsColor(CQChartsColor::Type::INTERFACE);
   }
-  else if (typeInd == 3) {
+  else if (typeInd == 4) {
     color = CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE);
 
     color.setValue(CQChartsColor::Type::INTERFACE_VALUE, valueEdit_->value());
   }
-  else if (typeInd == 4) {
+  else if (typeInd == 5) {
     color = CQChartsColor(CQChartsColor::Type::COLOR);
 
     color.setColor(colorEdit_->color());

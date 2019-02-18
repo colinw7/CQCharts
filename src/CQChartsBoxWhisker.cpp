@@ -161,7 +161,7 @@ drawOutliers(const CQChartsPlot *plot, QPainter *painter, const std::vector<doub
 {
   double sx, sy;
 
-  plot->pixelSymbolSize(symbol.size, sx, sy);
+  plot->pixelSymbolSize(symbol.size(), sx, sy);
 
   for (auto &o : ovalues) {
     double px1, py1;
@@ -171,7 +171,7 @@ drawOutliers(const CQChartsPlot *plot, QPainter *painter, const std::vector<doub
     else
       plot->windowToPixel(o, pos, px1, py1);
 
-    plot->drawSymbol(painter, QPointF(px1, py1), symbol.type, CMathUtil::avg(sx, sy),
+    plot->drawSymbol(painter, QPointF(px1, py1), symbol.type(), CMathUtil::avg(sx, sy),
                      pen, brush);
   }
 }

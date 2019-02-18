@@ -1182,7 +1182,7 @@ checkFilter(int groupInd, const QVariant &value) const
 
   bool ok;
 
-  double r = value.toReal(&ok);
+  double r = CQChartsVariant::toReal(value, ok);
 
   if (! ok)
     return true;
@@ -1881,10 +1881,10 @@ calcVarIndsData(VariantIndsData &varInds) const
     bool   ok = false;
 
     if (var.dvar.isValid())
-      r = var.dvar.toReal(&ok);
+      r = CQChartsVariant::toReal(var.dvar, ok);
 
     if (! ok)
-      r = var.var.toReal(&ok);
+      r = CQChartsVariant::toReal(var.var, ok);
 
     if (! ok)
       continue;

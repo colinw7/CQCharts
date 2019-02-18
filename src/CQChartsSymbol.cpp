@@ -8,7 +8,7 @@ int CQChartsSymbol::metaTypeId;
 
 QString
 CQChartsSymbol::
-typeToName(CQChartsSymbol::Type type)
+typeToName(Type type)
 {
   switch (type) {
     case Type::DOT:       return "dot";

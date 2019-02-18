@@ -137,10 +137,10 @@ class CQChartsGroupPlot : public CQChartsPlot {
   QStringList pathStrs(const QString &path) const;
 
  protected: // TODO: make private
-  CQChartsColumn        groupColumn_;             // group column
-  CQChartsGroupData     groupData_;               // grouping data
-  CQChartsColumnBucket* groupBucket_ { nullptr }; // group column bucket
-  mutable std::mutex    mutex_;
+  CQChartsColumn        groupColumn_;             //! group column
+  CQChartsGroupData     groupData_;               //! grouping data
+  CQChartsColumnBucket* groupBucket_ { nullptr }; //! group column bucket
+  mutable std::mutex    mutex_;                   //! mutex
 };
 
 #endif

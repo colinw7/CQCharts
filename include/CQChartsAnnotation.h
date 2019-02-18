@@ -11,6 +11,9 @@
 
 class CQChartsEditHandles;
 
+/*!
+ * \brief base class for view/plot annotation
+ */
 class CQChartsAnnotation : public CQChartsTextBoxObj {
   Q_OBJECT
 
@@ -98,14 +101,17 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void dataChanged();
 
  protected:
-  int                  ind_         { 0 };       // unique ind
-  CQChartsGeom::BBox   bbox_;                    // bbox (plot coords)
-  CQChartsEditHandles* editHandles_ { nullptr }; // edit handles
-  bool                 autoSize_    { true };    // set bbox from contents
+  int                  ind_         { 0 };       //! unique ind
+  CQChartsGeom::BBox   bbox_;                    //! bbox (plot coords)
+  CQChartsEditHandles* editHandles_ { nullptr }; //! edit handles
+  bool                 autoSize_    { true };    //! set bbox from contents
 };
 
 //---
 
+/*!
+ * \brief rectangle annotation
+ */
 class CQChartsRectAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
@@ -143,11 +149,14 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
-  CQChartsRect rect_;
+  CQChartsRect rect_; //! rectangle
 };
 
 //---
 
+/*!
+ * \brief ellipse annotation
+ */
 class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
@@ -187,13 +196,16 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
-  CQChartsPosition center_;
-  CQChartsLength   xRadius_ { 1.0 };
-  CQChartsLength   yRadius_ { 1.0 };
+  CQChartsPosition center_;          //! ellipse center
+  CQChartsLength   xRadius_ { 1.0 }; //! ellipse x radius
+  CQChartsLength   yRadius_ { 1.0 }; //! ellipse y radius
 };
 
 //---
 
+/*!
+ * \brief polygon annotation
+ */
 class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
@@ -223,11 +235,14 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
-  CQChartsPolygon polygon_;
+  CQChartsPolygon polygon_; //! polygon points
 };
 
 //---
 
+/*!
+ * \brief polyline annotation
+ */
 class CQChartsPolylineAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
@@ -257,11 +272,14 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
-  CQChartsPolygon polygon_;
+  CQChartsPolygon polygon_; //! polyline points
 };
 
 //---
 
+/*!
+ * \brief text annotation
+ */
 class CQChartsTextAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
@@ -313,15 +331,18 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   void positionToLL(double w, double h, double &x, double &y) const;
 
  private:
-  CQChartsPosition position_;
-  CQChartsRect     rect_;
-  bool             isRect_ { false };
+  CQChartsPosition position_;         //! text position
+  CQChartsRect     rect_;             //! text bounding box (if not auto fit)
+  bool             isRect_ { false }; //! has text bounding box
 };
 
 //---
 
 class CQChartsArrow;
 
+/*!
+ * \brief arrow annotation
+ */
 class CQChartsArrowAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
@@ -361,13 +382,16 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
-  CQChartsPosition start_ { QPointF(0, 0) };
-  CQChartsPosition end_   { QPointF(1, 1) };
-  CQChartsArrow*   arrow_ { nullptr };
+  CQChartsPosition start_ { QPointF(0, 0) }; //! arrow start
+  CQChartsPosition end_   { QPointF(1, 1) }; //! arrow end
+  CQChartsArrow*   arrow_ { nullptr };       //! arrow data
 };
 
 //---
 
+/*!
+ * \brief point annotation
+ */
 class CQChartsPointAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
@@ -386,8 +410,8 @@ class CQChartsPointAnnotation : public CQChartsAnnotation {
   const CQChartsPosition &position() const { return position_; }
   void setPosition(const CQChartsPosition &p) { position_ = p; emit dataChanged(); }
 
-  const CQChartsSymbol &type() const { return pointData_.type; }
-  void setType(const CQChartsSymbol &t) { pointData_.type = t; emit dataChanged(); }
+  const CQChartsSymbol &type() const { return pointData_.type(); }
+  void setType(const CQChartsSymbol &t) { pointData_.setType(t); emit dataChanged(); }
 
   const CQChartsSymbolData &pointData() const { return pointData_; }
   void setPointData(const CQChartsSymbolData &p) { pointData_ = p; emit dataChanged(); }
@@ -405,8 +429,8 @@ class CQChartsPointAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
-  CQChartsPosition   position_;
-  CQChartsSymbolData pointData_;
+  CQChartsPosition   position_;  //! point position
+  CQChartsSymbolData pointData_; //! symbol data
 };
 
 #endif

@@ -14,11 +14,15 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
  public:
   CQChartsColumnsLineEdit(QWidget *parent=nullptr);
 
+  void setPlot(CQChartsPlot *plot) override;
+
   QAbstractItemModel *model() const;
   void setModel(QAbstractItemModel *model);
 
   const CQChartsColumns &columns() const;
   void setColumns(const CQChartsColumns &c);
+
+  void drawPreview(QPainter *painter, const QRect &rect);
 
  signals:
   void columnsChanged();
@@ -40,14 +44,17 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
   bool textToColumns(const QString &str, CQChartsColumns &columns) const;
 
  private:
-  CQChartsColumnsEdit *menuEdit_ { nullptr };
+  CQChartsColumnsEdit *dataEdit_ { nullptr };
 };
 
 //------
 
-class CQChartsColumnLineEdit;
+#include <CQChartsEditBase.h>
 
-class CQChartsColumnsEdit : public QFrame {
+class CQChartsColumnLineEdit;
+class QLabel;
+
+class CQChartsColumnsEdit : public CQChartsEditBase {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsColumns columns READ columns WRITE setColumns)
@@ -83,9 +90,10 @@ class CQChartsColumnsEdit : public QFrame {
   using ColumnEdits = std::vector<CQChartsColumnLineEdit *>;
 
   CQChartsColumns     columns_;
-  QAbstractItemModel* model_           { nullptr };
-  QFrame*             controlFrame_    { nullptr };
-  QFrame*             columnsFrame_    { nullptr };
+  QAbstractItemModel* model_        { nullptr };
+  QFrame*             controlFrame_ { nullptr };
+  QFrame*             columnsFrame_ { nullptr };
+  QLabel*             countLabel_   { nullptr };
   ColumnEdits         columnEdits_;
 };
 

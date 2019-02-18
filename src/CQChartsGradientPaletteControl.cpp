@@ -1,5 +1,6 @@
 #include <CQChartsGradientPaletteControl.h>
 #include <CQChartsGradientPaletteCanvas.h>
+#include <CQChartsVariant.h>
 #include <CQRealSpin.h>
 #include <CQColorChooser.h>
 
@@ -1000,18 +1001,28 @@ CQChartsGradientPalette::ColorType
 CQChartsGradientPaletteColorType::
 type() const
 {
-  return static_cast<CQChartsGradientPalette::ColorType>(itemData(currentIndex()).toInt());
+  bool ok;
+
+  long i = CQChartsVariant::toInt(itemData(currentIndex()), ok);
+  // TODO: asssert if bad value
+
+  return static_cast<CQChartsGradientPalette::ColorType>(i);
 }
 
 void
 CQChartsGradientPaletteColorType::
 setType(const CQChartsGradientPalette::ColorType &type)
 {
-  QVariant var(static_cast<int>(type));
+  int t = static_cast<int>(type);
 
-  for (int i = 0; i < count(); ++i)
-    if (itemData(i).toInt() == var.toInt())
+  for (int i = 0; i < count(); ++i) {
+    bool ok;
+
+    long t1 = CQChartsVariant::toInt(itemData(i), ok);
+
+    if (ok && t == t1)
       setCurrentIndex(i);
+  }
 }
 
 //---
@@ -1030,18 +1041,28 @@ CQChartsGradientPalette::ColorModel
 CQChartsGradientPaletteColorModel::
 model() const
 {
-  return static_cast<CQChartsGradientPalette::ColorModel>(itemData(currentIndex()).toInt());
+  bool ok;
+
+  long i = CQChartsVariant::toInt(itemData(currentIndex()), ok);
+  // TODO: asssert if bad value
+
+  return static_cast<CQChartsGradientPalette::ColorModel>(i);
 }
 
 void
 CQChartsGradientPaletteColorModel::
 setModel(const CQChartsGradientPalette::ColorModel &model)
 {
-  QVariant var(static_cast<int>(model));
+  int m = static_cast<int>(model);
 
-  for (int i = 0; i < count(); ++i)
-    if (itemData(i).toInt() == var.toInt())
+  for (int i = 0; i < count(); ++i) {
+    bool ok;
+
+    long m1 = CQChartsVariant::toInt(itemData(i), ok);
+
+    if (ok && m == m1)
       setCurrentIndex(i);
+  }
 }
 
 //---

@@ -1,4 +1,5 @@
 #include <CQChartsGradientPalette.h>
+#include <CQChartsVariant.h>
 #include <CQChartsUtil.h>
 
 #include <CQTclUtil.h>
@@ -28,15 +29,11 @@ namespace Util {
     return M_PI*d/180.0;
   }
 
-  void addWords(const QString &str, std::vector<std::string> &words) {
+  void addWords(const QString &str, std::vector<QString> &words) {
     QStringList strs = str.split(" ", QString::SkipEmptyParts);
 
     for (int i = 0; i < strs.length(); ++i)
-      words.push_back(strs[i].toStdString());
-  }
-
-  double toReal(const std::string &s) {
-    return stod(s);
+      words.push_back(strs[i]);
   }
 }
 
@@ -284,15 +281,16 @@ getColor(double x, bool scale) const
     qtcl->createVar("gray", x);
 
     QVariant res;
+    bool     ok;
 
     if (qtcl->evalExpr(rf_.fn.c_str(), res))
-      r = res.toDouble();
+      r = CQChartsVariant::toReal(res, ok);
 
     if (qtcl->evalExpr(gf_.fn.c_str(), res))
-      g = res.toDouble();
+      g = CQChartsVariant::toReal(res, ok);
 
     if (qtcl->evalExpr(bf_.fn.c_str(), res))
-      b = res.toDouble();
+      b = CQChartsVariant::toReal(res, ok);
 
     //---
 
@@ -454,7 +452,7 @@ readFileLines(const QStringList &lines)
   for (const auto &line : lines) {
     if (line.length() == 0) continue;
 
-    std::vector<std::string> words;
+    std::vector<QString> words;
 
     Util::addWords(line, words);
 
@@ -463,7 +461,9 @@ readFileLines(const QStringList &lines)
     int j = 0;
 
     if (words.size() >= 4) {
-      x = Util::toReal(words[0]);
+      bool ok;
+
+      x = CQChartsUtil::toReal(words[0], ok);
 
       ++j;
     }
@@ -471,9 +471,11 @@ readFileLines(const QStringList &lines)
     double r, g, b;
 
     if (words.size() >= 3) {
-      r = Util::toReal(words[j + 0]);
-      g = Util::toReal(words[j + 1]);
-      b = Util::toReal(words[j + 2]);
+      bool ok;
+
+      r = CQChartsUtil::toReal(words[j + 0], ok);
+      g = CQChartsUtil::toReal(words[j + 1], ok);
+      b = CQChartsUtil::toReal(words[j + 2], ok);
     }
     else
       continue;

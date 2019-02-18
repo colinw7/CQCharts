@@ -16,14 +16,10 @@ class CQChartsShapeDataLineEdit : public CQChartsLineEditBase {
  public:
   CQChartsShapeDataLineEdit(QWidget *parent=nullptr);
 
-  CQChartsPlot *plot() const;
-  void setPlot(CQChartsPlot *plot);
-
-  CQChartsView *view() const;
-  void setView(CQChartsView *view);
-
   const CQChartsShapeData &shapeData() const;
   void setShapeData(const CQChartsShapeData &c);
+
+  void drawPreview(QPainter *painter, const QRect &rect) override;
 
  signals:
   void shapeDataChanged();
@@ -41,30 +37,33 @@ class CQChartsShapeDataLineEdit : public CQChartsLineEditBase {
   void connectSlots(bool b) override;
 
  private:
-  CQChartsShapeDataEdit* menuEdit_ { nullptr };
+  CQChartsShapeDataEdit* dataEdit_ { nullptr };
 };
 
 //---
+
+#include <CQChartsEditBase.h>
 
 class CQChartsFillDataEdit;
 class CQChartsStrokeDataEdit;
 class CQChartsShapeDataEditPreview;
 class QGroupBox;
 
-class CQChartsShapeDataEdit : public QFrame {
+class CQChartsShapeDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
  public:
   CQChartsShapeDataEdit(QWidget *parent=nullptr);
 
-  CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *plot);
-
-  CQChartsView *view() const { return view_; }
-  void setView(CQChartsView *view);
-
   const CQChartsShapeData &data() const { return data_; }
-  void setData(const CQChartsShapeData &v) { data_ = v; }
+  void setData(const CQChartsShapeData &d);
+
+  void setPlot(CQChartsPlot *plot) override;
+  void setView(CQChartsView *view) override;
+
+  void setTitle(const QString &title);
+
+  void setPreview(bool b);
 
  signals:
   void shapeDataChanged();
@@ -86,15 +85,16 @@ class CQChartsShapeDataEdit : public QFrame {
 
 //---
 
-class CQChartsShapeDataEditPreview : public QFrame {
+class CQChartsShapeDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
 
  public:
   CQChartsShapeDataEditPreview(CQChartsShapeDataEdit *edit);
 
-  void paintEvent(QPaintEvent *);
+  void draw(QPainter *painter) override;
 
-  QSize sizeHint() const;
+  static void draw(QPainter *painter, const CQChartsShapeData &data, const QRect &rect,
+                   CQChartsPlot *plot, CQChartsView *view);
 
  private:
   CQChartsShapeDataEdit *edit_ { nullptr };
@@ -102,34 +102,25 @@ class CQChartsShapeDataEditPreview : public QFrame {
 
 //------
 
-#include <CQPropertyViewType.h>
+#include <CQChartsPropertyViewEditor.h>
 
 // type for CQChartsShapeData
-class CQChartsShapeDataPropertyViewType : public CQPropertyViewType {
+class CQChartsShapeDataPropertyViewType : public CQChartsPropertyViewType {
  public:
-  CQChartsShapeDataPropertyViewType();
-
   CQPropertyViewEditorFactory *getEditor() const override;
 
-  bool setEditorData(CQPropertyViewItem *item, const QVariant &value) override;
-
-  void draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
-            const QStyleOptionViewItem &option, const QModelIndex &index,
-            const QVariant &value, bool inside) override;
+  void drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
+                   CQChartsPlot *plot, CQChartsView *view) override;
 
   QString tip(const QVariant &value) const override;
 };
 
 //---
 
-#include <CQPropertyViewEditor.h>
-
 // editor factory for CQChartsShapeData
-class CQChartsShapeDataPropertyViewEditor : public CQPropertyViewEditorFactory {
+class CQChartsShapeDataPropertyViewEditor : public CQChartsPropertyViewEditorFactory {
  public:
-  CQChartsShapeDataPropertyViewEditor();
-
-  QWidget *createEdit(QWidget *parent);
+  CQChartsLineEditBase *createPropertyEdit(QWidget *parent);
 
   void connect(QWidget *w, QObject *obj, const char *method);
 

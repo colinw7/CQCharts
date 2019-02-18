@@ -48,6 +48,9 @@ class CQChartsThemeMgr {
 class CQChartsThemeObj : public QObject {
   Q_OBJECT
 
+  Q_PROPERTY(QColor selectColor READ selectColor WRITE setSelectColor)
+  Q_PROPERTY(QColor insideColor READ insideColor WRITE setInsideColor)
+
  public:
   CQChartsThemeObj();
  ~CQChartsThemeObj();
@@ -73,7 +76,7 @@ class CQChartsThemeObj : public QObject {
   const QColor &selectColor() const { return selectColor_; }
   void setSelectColor(const QColor &c) { selectColor_ = c; }
 
-  // get/set select color
+  // get/set inside color
   const QColor &insideColor() const { return insideColor_; }
   void setInsideColor(const QColor &c) { insideColor_ = c; }
 
@@ -87,10 +90,10 @@ class CQChartsThemeObj : public QObject {
  protected:
   using Palettes = std::vector<CQChartsGradientPalette*>;
 
-  QString  name_;                       // theme name
-  Palettes palettes_;                   // theme palette list
-  QColor   selectColor_ { Qt::yellow }; // selection color
-  QColor   insideColor_ { Qt::cyan };   // inside color
+  QString  name_;                       //! theme name
+  Palettes palettes_;                   //! theme palette list
+  QColor   selectColor_ { Qt::yellow }; //! selection color
+  QColor   insideColor_ { Qt::cyan };   //! inside color
 };
 
 //---
@@ -209,12 +212,12 @@ class CQChartsInterfaceTheme {
   QColor interpColor(double r, bool scale) const;
 
  private:
-  CQChartsGradientPalette* palette_      { nullptr };   // palette
-  bool                     isDark_       { false };     // is dark
-  QColor                   lightBgColor_ { "#ffffff" }; // light bg color
-  QColor                   lightFgColor_ { "#000000" }; // light fg color
-  QColor                   darkBgColor_  { "#222222" }; // dark bg color
-  QColor                   darkFgColor_  { "#dddddd" }; // dark fg color
+  CQChartsGradientPalette* palette_      { nullptr };   //! palette
+  bool                     isDark_       { false };     //! is dark
+  QColor                   lightBgColor_ { "#ffffff" }; //! light bg color
+  QColor                   lightFgColor_ { "#000000" }; //! light fg color
+  QColor                   darkBgColor_  { "#222222" }; //! dark bg color
+  QColor                   darkFgColor_  { "#dddddd" }; //! dark fg color
 };
 
 //---

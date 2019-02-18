@@ -13,6 +13,7 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsAnnotation.h>
 #include <CQCharts.h>
+#include <CQChartsVariant.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyViewItem.h>
 #include <CQIconCombo.h>
@@ -761,7 +762,7 @@ layerImageSlot()
 
   bool ok;
 
-  int l = item->data(Qt::UserRole).toInt(&ok);
+  long l = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
   if (! ok) return;
 
   CQChartsLayer *layer = plot->getLayer((CQChartsLayer::Type) l);
@@ -900,7 +901,7 @@ modelsSelectionChangeSlot()
 
     bool ok;
 
-    int ind = item->data(Qt::UserRole).toInt(&ok);
+    long ind = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
 
     if (ok) {
       charts->setCurrentModelInd(ind);
@@ -991,7 +992,7 @@ updateCurrentPlot()
 
     bool ok;
 
-    int ind1 = item->data(Qt::UserRole).toInt(&ok);
+    long ind1 = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
 
     item->setSelected(ind1 == ind);
   }

@@ -26,6 +26,9 @@ class QBoxLayout;
 class QHBoxLayout;
 class QGridLayout;
 
+/*!
+ * \brief dialog to create a new annotation
+ */
 class CQChartsAnnotationDlg : public QDialog {
   Q_OBJECT
 
@@ -93,7 +96,6 @@ class CQChartsAnnotationDlg : public QDialog {
     CQAngleSpinBox*       backAngleEdit   { nullptr };
     CQCheckBox*           fheadCheck      { nullptr };
     CQCheckBox*           theadCheck      { nullptr };
-//  CQCheckBox*           emptyCheck      { nullptr };
     CQCheckBox*           lineEndsCheck   { nullptr };
     CQChartsLengthEdit*   lineWidthEdit   { nullptr };
     CQChartsLengthEdit*   borderWidthEdit { nullptr };

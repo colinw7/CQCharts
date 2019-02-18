@@ -133,21 +133,21 @@ class CQChartsSunburstNode {
   virtual QColor interpColor(const CQChartsSunburstPlot *plot, int n) const;
 
  protected:
-  const CQChartsSunburstPlot* plot_    { nullptr }; // parent plot
-  CQChartsSunburstHierNode*   parent_  { nullptr }; // parent hier node
-  uint                        id_      { 0 };       // node id
-  QString                     name_;                // node name
-  double                      size_    { 0.0 };     // node size
-  QModelIndex                 ind_;                 // node index
-  double                      r_       { 0.0 };     // node radius
-  double                      a_       { 0.0 };     // node angle
-  double                      dr_      { 0.0 };     // node delta radius
-  double                      da_      { 0.0 };     // node delta angle
-  int                         colorId_ { -1 };      // node color index
-  CQChartsColor               color_   { };         // node explicit color
-  bool                        filler_  { false };   // is filler
-  bool                        placed_  { false };   // is place
-  CQChartsSunburstNodeObj*    obj_     { nullptr }; // associated object
+  const CQChartsSunburstPlot* plot_    { nullptr }; //! parent plot
+  CQChartsSunburstHierNode*   parent_  { nullptr }; //! parent hier node
+  uint                        id_      { 0 };       //! node id
+  QString                     name_;                //! node name
+  double                      size_    { 0.0 };     //! node size
+  QModelIndex                 ind_;                 //! node index
+  double                      r_       { 0.0 };     //! node radius
+  double                      a_       { 0.0 };     //! node angle
+  double                      dr_      { 0.0 };     //! node delta radius
+  double                      da_      { 0.0 };     //! node delta angle
+  int                         colorId_ { -1 };      //! node color index
+  CQChartsColor               color_   { };         //! node explicit color
+  bool                        filler_  { false };   //! is filler
+  bool                        placed_  { false };   //! is place
+  CQChartsSunburstNodeObj*    obj_     { nullptr }; //! associated object
 };
 
 //---
@@ -220,8 +220,8 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
   QColor interpColor(const CQChartsSunburstPlot *plot, int n) const override;
 
  private:
-  Nodes    nodes_;    // child nodes
-  Children children_; // child hier nodes
+  Nodes    nodes_;    //! child nodes
+  Children children_; //! child hier nodes
 };
 
 //---
@@ -243,8 +243,8 @@ class CQChartsSunburstRootNode : public CQChartsSunburstHierNode {
   }
 
  private:
-  bool  sort_  { true };        // is sorted
-  Order order_ { Order::SIZE }; // sort order
+  bool  sort_  { true };        //! is sorted
+  Order order_ { Order::SIZE }; //! sort order
 };
 
 //---
@@ -400,14 +400,14 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   void popTopSlot();
 
  private:
-  double    innerRadius_ { 0.5 };   // inner radius
-  double    outerRadius_ { 1.0 };   // outer radius
-  double    startAngle_  { -90 };   // start angle
-  bool      multiRoot_   { false }; // has multiple roots
-  RootNodes roots_;                 // root nodes
-  QString   currentRootName_;       // current root name
-  int       colorId_     { -1 };    // current color id
-  int       numColorIds_ { 0 };     // num used color ids
+  double    innerRadius_ { 0.5 };   //! inner radius
+  double    outerRadius_ { 1.0 };   //! outer radius
+  double    startAngle_  { -90 };   //! start angle
+  bool      multiRoot_   { false }; //! has multiple roots
+  RootNodes roots_;                 //! root nodes
+  QString   currentRootName_;       //! current root name
+  int       colorId_     { -1 };    //! current color id
+  int       numColorIds_ { 0 };     //! num used color ids
 };
 
 #endif

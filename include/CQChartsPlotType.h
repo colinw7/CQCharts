@@ -233,10 +233,10 @@ class CQChartsPlotType : public QObject {
   using Properties        = std::map<QString,PropertyData>;
   using ParameterGroupIds = std::vector<int>;
 
-  Parameters        parameters_;        // parameters
-  ParameterGroupMap parameterGroups_;   // parameter groups
-  ParameterGroupIds parameterGroupIds_; // parameter group stack
-  Properties        properties_;        // properties
+  Parameters        parameters_;        //! parameters
+  ParameterGroupMap parameterGroups_;   //! parameter groups
+  ParameterGroupIds parameterGroupIds_; //! parameter group stack
+  Properties        properties_;        //! properties
 };
 
 #endif

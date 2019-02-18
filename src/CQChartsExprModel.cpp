@@ -544,7 +544,9 @@ calcColumnRange(int column, double &minVal, double &maxVal)
 
     QVariant var = data(ind, Qt::DisplayRole);
 
-    double value = var.toDouble();
+    bool ok;
+
+    double value = CQChartsVariant::toReal(var, ok);
 
     if (r == 0) {
       minVal = value;
@@ -601,7 +603,10 @@ calcColumnRange(int column, int &minVal, int &maxVal)
 
     QVariant var = data(ind, Qt::DisplayRole);
 
-    int value = var.toInt();
+    bool ok;
+
+    int value = CQChartsVariant::toInt(var, ok);
+    if (! ok) continue;
 
     if (r == 0) {
       minVal = value;
@@ -739,7 +744,7 @@ decodeExpressionFn(const QString &exprStr, Function &function, int &column, QStr
 
     bool ok;
 
-    column = columnStr.toInt(&ok);
+    column = CQChartsUtil::toInt(columnStr, ok);
 
     if (! ok)
       return false;
@@ -759,7 +764,7 @@ decodeExpressionFn(const QString &exprStr, Function &function, int &column, QStr
 
     bool ok;
 
-    column = columnStr.toInt(&ok);
+    column = CQChartsUtil::toInt(columnStr, ok);
 
     if (! ok)
       return false;
@@ -1427,7 +1432,12 @@ typeCmd(const Values &values) const
 
   QVariant var = headerData(col, Qt::Horizontal, role);
 
-  QString typeName = CQBaseModel::typeName((CQBaseModelType) var.toInt());
+  bool ok;
+
+  CQBaseModelType type = (CQBaseModelType) CQChartsVariant::toInt(var, ok);
+  if (! ok) return "";
+
+  QString typeName = CQBaseModel::typeName(type);
 
   return QVariant(typeName);
 }
@@ -1553,7 +1563,9 @@ bucketCmd(const Values &values) const
   const CQBucketer &bucketer = columnData.bucketer;
 
   if      (var.type() == QVariant::Double) {
-    double value = var.toDouble();
+    bool ok;
+
+    double value = CQChartsVariant::toReal(var, ok);
 
     double start = 0;
     double delta = 1;
@@ -1585,7 +1597,7 @@ bucketCmd(const Values &values) const
     bucket = bucketer1.realBucket(value);
   }
   else if (var.type() == QVariant::Int) {
-    return QVariant(var.toInt());
+    return var;
   }
   else {
     QString str = var.toString();
@@ -1637,7 +1649,9 @@ normCmd(const Values &values) const
   //---
 
   if      (var.type() == QVariant::Double) {
-    double value = var.toDouble();
+    bool ok;
+
+    double value = CQChartsVariant::toReal(var, ok);
 
     double minVal = 0;
     double maxVal = 1;
@@ -1660,7 +1674,9 @@ normCmd(const Values &values) const
     return QVariant(s);
   }
   else if (var.type() == QVariant::Int) {
-    int value = var.toInt();
+    bool ok;
+
+    int value = CQChartsVariant::toInt(var, ok);
 
     int minVal = 0;
     int maxVal = 1;
@@ -1727,7 +1743,9 @@ scaleCmd(const Values &values) const
   if (! var.isValid())
     return QVariant(0.0);
 
-  double value = var.toDouble();
+  bool ok;
+
+  double value = CQChartsVariant::toReal(var, ok);
 
   //---
 
@@ -1744,15 +1762,18 @@ scaleCmd(const Values &values) const
   CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
   assert(columnDetails);
 
-  QVariant mean   = columnDetails->meanValue  (/*useNaN*/false);
-  QVariant stddev = columnDetails->stdDevValue(/*useNaN*/false);
+  QVariant meanVar   = columnDetails->meanValue  (/*useNaN*/false);
+  QVariant stddevVar = columnDetails->stdDevValue(/*useNaN*/false);
 
-  if (! mean.isValid() || ! stddev.isValid())
+  if (! meanVar.isValid() || ! stddevVar.isValid())
     return QVariant(0.0);
 
   //---
 
-  double value1 = (stddev > 0.0 ? (value - mean.toReal())/stddev.toReal() : 0.0);
+  double mean   = CQChartsVariant::toReal(meanVar  , ok);
+  double stddev = CQChartsVariant::toReal(stddevVar, ok);
+
+  double value1 = (stddev > 0.0 ? (value - mean)/stddev : 0.0);
 
   return QVariant(value1);
 }
@@ -2140,13 +2161,21 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
   //---
 
   if (! rtypeData->rmin(nameValues, rmin)) {
-    if (modelData)
-      rmin = modelData->details()->columnDetails(ind.column())->minValue().toReal();
+    if (modelData) {
+      bool ok;
+
+      rmin = CQChartsVariant::toReal(
+        modelData->details()->columnDetails(ind.column())->minValue(), ok);
+    }
   }
 
   if (! rtypeData->rmax(nameValues, rmax)) {
-    if (modelData)
-      rmax = modelData->details()->columnDetails(ind.column())->maxValue().toReal();
+    if (modelData) {
+      bool ok;
+
+      rmax = CQChartsVariant::toReal(
+        modelData->details()->columnDetails(ind.column())->maxValue(), ok);
+    }
   }
 
   return true;

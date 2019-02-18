@@ -124,13 +124,13 @@ class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
   double lineWidth() const override;
 
  private:
-  QPainter*           painter_ { nullptr };  // painter
-  CQChartsGeom::Point p_       { 0.0, 0.0 }; // symbol center
-  double              s_       { 2.0 };      // size
-  double              w_       { 0.0 };      // line width
-  QPainterPath        path_;                 // path
-  QPen                strokePen_;            // stroke pen
-  QBrush              fillBrush_;            // fill brush
+  QPainter*           painter_ { nullptr };  //! painter
+  CQChartsGeom::Point p_       { 0.0, 0.0 }; //! symbol center
+  double              s_       { 2.0 };      //! size
+  double              w_       { 0.0 };      //! line width
+  QPainterPath        path_;                 //! path
+  QPen                strokePen_;            //! stroke pen
+  QBrush              fillBrush_;            //! fill brush
 };
 
 #endif

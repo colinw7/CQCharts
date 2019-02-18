@@ -99,9 +99,9 @@ class CQChartsColumnType {
                                             const CQChartsColumn &column) const;
 
  protected:
-  Type   type_;       // base type
-  int    ind_ { -1 }; // insertion index
-  Params params_;     // parameters
+  Type   type_;       //! base type
+  int    ind_ { -1 }; //! insertion index
+  Params params_;     //! parameters
 };
 
 //---
@@ -565,9 +565,9 @@ class CQChartsColumnTypeMgr : public QObject {
   const CacheData &getModelCacheData(const QAbstractItemModel *model, bool &ok) const;
 
  private:
-  CQCharts*          charts_     { nullptr }; // charts
-  TypeData           typeData_;               // type data
-  ModelCacheData     modelCacheData_;         // column type cache (per model)
+  CQCharts*          charts_     { nullptr }; //! charts
+  TypeData           typeData_;               //! type data
+  ModelCacheData     modelCacheData_;         //! column type cache (per model)
   mutable std::mutex mutex_;
 };
 

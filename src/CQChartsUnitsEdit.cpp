@@ -7,7 +7,7 @@ CQChartsUnitsEdit(QWidget *parent) :
 {
   setObjectName("units");
 
-  addItems(CQChartsUtil::unitNames());
+  addItems(CQChartsUtil::unitNames(/*includeNone*/true));
 
   connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(indexChanged()));
 }
@@ -31,7 +31,7 @@ setUnits(const CQChartsUnits &units)
 
   int ind = currentIndex();
 
-  setToolTip(CQChartsUtil::unitTipNames()[ind]);
+  setToolTip(CQChartsUtil::unitTipNames(/*includeNone*/true)[ind]);
 }
 
 void

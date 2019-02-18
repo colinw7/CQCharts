@@ -102,11 +102,11 @@ class CQChartsPlotObj : public CQChartsObj {
   virtual void draw(QPainter *) = 0;
 
  protected:
-  CQChartsPlot* plot_     { nullptr }; // parent plot
-  int           colorInd_ { -1 };      // color index
-  bool          visible_  { true };    // is visible
-  QBrush        fill_;                 // fill brush
-  QPen          stroke_;               // stroke pen
+  CQChartsPlot* plot_     { nullptr }; //! parent plot
+  int           colorInd_ { -1 };      //! color index
+  bool          visible_  { true };    //! is visible
+  QBrush        fill_;                 //! fill brush
+  QPen          stroke_;               //! stroke pen
 };
 
 //------

@@ -1,4 +1,5 @@
 #include <CQChartsEval.h>
+#include <CQChartsVariant.h>
 #include <CMathUtil.h>
 #include <QColor>
 
@@ -68,9 +69,9 @@ colorCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
   else if (vars.size() == 3) {
     bool ok;
 
-    double r = vars[0].toDouble(&ok);
-    double g = vars[1].toDouble(&ok);
-    double b = vars[2].toDouble(&ok);
+    double r = CQChartsVariant::toReal(vars[0], ok);
+    double g = CQChartsVariant::toReal(vars[1], ok);
+    double b = CQChartsVariant::toReal(vars[2], ok);
 
     QColor c;
 

@@ -124,21 +124,21 @@ class CQChartsPieObj : public CQChartsPlotObj {
   CQChartsGeom::Point getCenter() const;
 
  protected:
-  const CQChartsPiePlot* plot_     { nullptr }; // parent plot
-  QModelIndex            ind_;                  // model index
-  double                 angle1_   { 0 };       // wedge start angle
-  double                 angle2_   { 360 };     // wedge end angle
-  double                 ri_       { 0.0 };     // inner radius
-  double                 ro_       { 0.0 };     // outer radius
-  double                 rv_       { 0.0 };     // value radius
-  QString                label_    { "" };      // label
-  double                 value_    { 0 };       // value
-  bool                   missing_  { false };   // value missing
-  OptReal                radius_;               // radius
-  QString                keyLabel_ { "" };      // key label
-  CQChartsColor          color_;                // color
-  CQChartsPieGroupObj*   groupObj_ { nullptr }; // parent group object
-  bool                   exploded_ { false };   // exploded
+  const CQChartsPiePlot* plot_     { nullptr }; //! parent plot
+  QModelIndex            ind_;                  //! model index
+  double                 angle1_   { 0 };       //! wedge start angle
+  double                 angle2_   { 360 };     //! wedge end angle
+  double                 ri_       { 0.0 };     //! inner radius
+  double                 ro_       { 0.0 };     //! outer radius
+  double                 rv_       { 0.0 };     //! value radius
+  QString                label_    { "" };      //! label
+  double                 value_    { 0 };       //! value
+  bool                   missing_  { false };   //! value missing
+  OptReal                radius_;               //! radius
+  QString                keyLabel_ { "" };      //! key label
+  CQChartsColor          color_;                //! color
+  CQChartsPieGroupObj*   groupObj_ { nullptr }; //! parent group object
+  bool                   exploded_ { false };   //! exploded
 };
 
 //---
@@ -204,20 +204,20 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   QColor bgColor() const;
 
  private:
-  const CQChartsPiePlot* plot_         { nullptr }; // parent plot
-  int                    groupInd_     { -1 };      // groupInd
-  QString                name_;                     // group name
-  int                    ig_           { 0 };       // group index
-  int                    ng_           { 1 };       // num groups
-  double                 dataTotal_    { 0.0 };     // value data total
-  int                    numValues_    { 0 };       // num values
-  double                 radiusMax_    { 0.0 };     // radius data max
-  bool                   radiusScaled_ { false };   // radius scaled
-  double                 innerRadius_  { 0.0 };     // inner radius
-  double                 outerRadius_  { 0.0 };     // outer radius
-  PieObjs                objs_;                     // objects
-  double                 startAngle_   { 0.0 };
-  double                 endAngle_     { 0.0 };
+  const CQChartsPiePlot* plot_         { nullptr }; //! parent plot
+  int                    groupInd_     { -1 };      //! groupInd
+  QString                name_;                     //! group name
+  int                    ig_           { 0 };       //! group index
+  int                    ng_           { 1 };       //! num groups
+  double                 dataTotal_    { 0.0 };     //! value data total
+  int                    numValues_    { 0 };       //! num values
+  double                 radiusMax_    { 0.0 };     //! radius data max
+  bool                   radiusScaled_ { false };   //! radius scaled
+  double                 innerRadius_  { 0.0 };     //! inner radius
+  double                 outerRadius_  { 0.0 };     //! outer radius
+  PieObjs                objs_;                     //! objects
+  double                 startAngle_   { 0.0 };     //! start angle
+  double                 endAngle_     { 0.0 };     //! end angle
 };
 
 //---
@@ -401,37 +401,37 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
      name(name) {
     }
 
-    QString              name;                     // name
-    double               dataTotal    { 0.0 };     // data column value total
-    int                  numValues    { 0 };       // data column num values
-    double               radiusMax    { 0.0 };     // radius column value max
-    bool                 radiusScaled { false };   // has radius column value max
-    CQChartsPieGroupObj* groupObj     { nullptr }; // associated group obj
+    QString              name;                     //! name
+    double               dataTotal    { 0.0 };     //! data column value total
+    int                  numValues    { 0 };       //! data column num values
+    double               radiusMax    { 0.0 };     //! radius column value max
+    bool                 radiusScaled { false };   //! has radius column value max
+    CQChartsPieGroupObj* groupObj     { nullptr }; //! associated group obj
   };
 
   using GroupInd   = std::map<QString,int>;
   using GroupDatas = std::map<int,GroupData>;
   using GroupObjs  = std::vector<CQChartsPieGroupObj *>;
 
-  CQChartsColumn      labelColumn_;                 // label column
-  CQChartsColumns     valueColumns_;                // value columns
-  CQChartsColumn      radiusColumn_;                // radius value column
-  CQChartsColumn      keyLabelColumn_;              // key label column
-  bool                donut_           { false };   // is donut
-  bool                count_           { false };   // show value counts
-  double              innerRadius_     { 0.6 };     // relative inner donut radius
-  double              outerRadius_     { 0.9 };     // relative outer donut radius
-  double              labelRadius_     { 1.1 };     // label radus
-  double              startAngle_      { 90 };      // first pie start angle
-  double              angleExtent_     { 360.0 };   // pie angle extent
-  double              gapAngle_        { 0.0 };     // angle gap between segments
-  bool                rotatedText_     { false };   // is label rotated
-  bool                explodeSelected_ { true };    // explode selected pie
-  double              explodeRadius_   { 0.05 };    // expose radus
-  CQChartsPieTextObj* textBox_         { nullptr }; // text box
-  CQChartsGeom::Point center_;                      // center point
-  GroupDatas          groupDatas_;                  // data per group
-  GroupObjs           groupObjs_;                   // group objects
+  CQChartsColumn      labelColumn_;                 //! label column
+  CQChartsColumns     valueColumns_;                //! value columns
+  CQChartsColumn      radiusColumn_;                //! radius value column
+  CQChartsColumn      keyLabelColumn_;              //! key label column
+  bool                donut_           { false };   //! is donut
+  bool                count_           { false };   //! show value counts
+  double              innerRadius_     { 0.6 };     //! relative inner donut radius
+  double              outerRadius_     { 0.9 };     //! relative outer donut radius
+  double              labelRadius_     { 1.1 };     //! label radus
+  double              startAngle_      { 90 };      //! first pie start angle
+  double              angleExtent_     { 360.0 };   //! pie angle extent
+  double              gapAngle_        { 0.0 };     //! angle gap between segments
+  bool                rotatedText_     { false };   //! is label rotated
+  bool                explodeSelected_ { true };    //! explode selected pie
+  double              explodeRadius_   { 0.05 };    //! expose radus
+  CQChartsPieTextObj* textBox_         { nullptr }; //! text box
+  CQChartsGeom::Point center_;                      //! center point
+  GroupDatas          groupDatas_;                  //! data per group
+  GroupObjs           groupObjs_;                   //! group objects
 };
 
 #endif

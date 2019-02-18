@@ -246,8 +246,8 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   void setSetHidden(bool b);
 
  private:
-  CQChartsBarChartPlot* plot_  { nullptr }; // plot
-  CQChartsColor         color_;             // custom color
+  CQChartsBarChartPlot* plot_  { nullptr }; //! plot
+  CQChartsColor         color_;             //! custom color
 };
 
 // key text
@@ -439,8 +439,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   using ValueGroupInd = std::map<int,int>;
 
   struct ValueData {
-    ValueSets     valueSets;     // value sets
-    ValueGroupInd valueGroupInd; // group ind to value index map
+    ValueSets     valueSets;     //! value sets
+    ValueGroupInd valueGroupInd; //! group ind to value index map
 
     void clear() {
       valueSets    .clear();

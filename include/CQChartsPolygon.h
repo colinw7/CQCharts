@@ -39,7 +39,7 @@ class CQChartsPolygon {
 
   //---
 
-  bool isValid() const { return units_ != CQChartsUnits::NONE; }
+  bool isValid() const { return units_ != CQChartsUnits::NONE && polygon_.size() > 0; }
 
   //---
 
@@ -50,7 +50,7 @@ class CQChartsPolygon {
 
   const QPolygonF &polygon() const { return polygon_; }
 
-  int numPoints() const { return polygon_.length(); }
+  int numPoints() const { return polygon_.size(); }
 
   const QPointF &point(int i) const { return polygon_[i]; }
   void setPoint(int i, const QPointF &p) { polygon_[i] = p; }
@@ -82,17 +82,22 @@ class CQChartsPolygon {
   //---
 
   QString toString() const {
+    if (! isValid())
+      return "";
+
+    //---
+
     QString ustr = CQChartsUtil::unitsString(units_);
 
     QString str;
 
-    for (int i = 0; i < polygon_.length(); ++i) {
+    for (int i = 0; i < polygon_.size(); ++i) {
       if (i > 0) str += " ";
 
       str += QString("%1 %2").arg(polygon_[i].x()).arg(polygon_[i].y());
     }
 
-    str += ustr;
+    str += " " + ustr;
 
     return str;
   }

@@ -2,6 +2,7 @@
 #define CTclUtil_H
 
 // TODO: See CTclValue.h
+// TODO: Use Tcl_SplitList to convert String to List
 
 #include <tcl.h>
 #include <iostream>

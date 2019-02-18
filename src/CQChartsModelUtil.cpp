@@ -1158,7 +1158,7 @@ int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name) {
 
   bool ok;
 
-  int column = name.toInt(&ok);
+  int column = CQChartsUtil::toInt(name, ok);
 
   if (ok)
     return column;
@@ -1314,7 +1314,9 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
 
         QString str = parse.getBefore(pos);
 
-        int column1 = str.toInt();
+        bool ok;
+
+        int column1 = CQChartsUtil::toInt(str, ok);
 
         if (stringify) {
           QModelIndex ind1 = model->index(ind.row(), column1, ind.parent());
@@ -1517,6 +1519,63 @@ exportModel(const QAbstractItemModel *model, CQBaseModelDataType type, bool hhea
   else {
     assert(false);
   }
+}
+
+}
+
+//------
+
+namespace CQChartsModelUtil {
+
+const QStringList &roleNames() {
+  static QStringList names;
+
+  if (names.empty())
+    names << "display" << "edit" << "user" << "font" << "size_hint" <<
+             "tool_tip" << "background" << "foreground" << "text_alignment" <<
+             "text_color" << "decoration" << "type" << "base_type" << "type_values" <<
+             "min" << "max" << "sorted" << "sort_order" << "title" << "key" <<
+             "raw_value" << "intermediate_value" << "cached_value" << "output_value" << "group";
+
+  return names;
+};
+
+int nameToRole(const QString &name) {
+  if      (name == "display"       ) return Qt::DisplayRole;
+  else if (name == "edit"          ) return Qt::EditRole;
+  else if (name == "user"          ) return Qt::UserRole;
+  else if (name == "font"          ) return Qt::FontRole;
+  else if (name == "size_hint"     ) return Qt::SizeHintRole;
+  else if (name == "tool_tip"      ) return Qt::ToolTipRole;
+  else if (name == "background"    ) return Qt::BackgroundRole;
+  else if (name == "foreground"    ) return Qt::ForegroundRole;
+  else if (name == "text_alignment") return Qt::TextAlignmentRole;
+  else if (name == "text_color"    ) return Qt::TextColorRole;
+  else if (name == "decoration"    ) return Qt::DecorationRole;
+
+  else if (name == "type"              ) return (int) CQBaseModelRole::Type;
+  else if (name == "base_type"         ) return (int) CQBaseModelRole::BaseType;
+  else if (name == "type_values"       ) return (int) CQBaseModelRole::TypeValues;
+  else if (name == "min"               ) return (int) CQBaseModelRole::Min;
+  else if (name == "max"               ) return (int) CQBaseModelRole::Max;
+  else if (name == "sorted"            ) return (int) CQBaseModelRole::Sorted;
+  else if (name == "sort_order"        ) return (int) CQBaseModelRole::SortOrder;
+  else if (name == "title"             ) return (int) CQBaseModelRole::Title;
+  else if (name == "key"               ) return (int) CQBaseModelRole::Key;
+  else if (name == "raw_value"         ) return (int) CQBaseModelRole::RawValue;
+  else if (name == "intermediate_value") return (int) CQBaseModelRole::IntermediateValue;
+  else if (name == "cached_value"      ) return (int) CQBaseModelRole::CachedValue;
+  else if (name == "output_value"      ) return (int) CQBaseModelRole::OutputValue;
+  else if (name == "group"             ) return (int) CQBaseModelRole::Group;
+
+  bool ok;
+
+  int role = CQChartsUtil::toInt(name, ok);
+
+  if (ok)
+    return role;
+
+  return -1;
 }
 
 }

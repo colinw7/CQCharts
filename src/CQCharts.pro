@@ -186,6 +186,8 @@ CQChartsSymbolEdit.cpp \
 CQChartsTextBoxDataEdit.cpp \
 CQChartsTextDataEdit.cpp \
 CQChartsUnitsEdit.cpp \
+CQChartsEditBase.cpp \
+CQChartsPropertyViewEditor.cpp \
 \
 CQCsvModel.cpp \
 CQTsvModel.cpp \
@@ -383,6 +385,8 @@ HEADERS += \
 ../include/CQChartsTextBoxDataEdit.h \
 ../include/CQChartsTextDataEdit.h \
 ../include/CQChartsUnitsEdit.h \
+../include/CQChartsEditBase.h \
+../include/CQChartsPropertyViewEditor.h \
 \
 ../include/CQCsvModel.h \
 ../include/CQTsvModel.h \

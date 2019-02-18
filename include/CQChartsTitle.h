@@ -119,16 +119,16 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
  private:
   struct Location {
-    LocationType     location    { LocationType::TOP}; // loction
-    CQChartsPosition absPosition;                      // position (relative to plot box)
-    CQChartsRect     absRect;                          // rect (relative to plot box)
+    LocationType     location    { LocationType::TOP}; //! loction
+    CQChartsPosition absPosition;                      //! position (relative to plot box)
+    CQChartsRect     absRect;                          //! rect (relative to plot box)
   };
 
-  Location                   location_;                // location
-  QPointF                    position_    { 0, 0 };    // position
-  QSizeF                     size_;                    // size
-  mutable CQChartsGeom::BBox bbox_;                    // bbox
-  CQChartsEditHandles*       editHandles_ { nullptr }; // edit handles
+  Location                   location_;                //! location
+  QPointF                    position_    { 0, 0 };    //! position
+  QSizeF                     size_;                    //! size
+  mutable CQChartsGeom::BBox bbox_;                    //! bbox
+  CQChartsEditHandles*       editHandles_ { nullptr }; //! edit handles
 };
 
 #endif

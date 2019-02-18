@@ -1351,7 +1351,9 @@ CQChartsPlotDlg::
 addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
                      CQChartsPlotParameter *parameter)
 {
-  double r = parameter->defValue().toDouble();
+  bool ok;
+
+  double r = CQChartsVariant::toReal(parameter->defValue(), ok);
 
   QHBoxLayout *editLayout = new QHBoxLayout;
   editLayout->setMargin(0); editLayout->setSpacing(2);
@@ -1402,7 +1404,9 @@ CQChartsPlotDlg::
 addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
                     CQChartsPlotParameter *parameter)
 {
-  int i = parameter->defValue().toInt();
+  bool ok;
+
+  long i = CQChartsVariant::toInt(parameter->defValue(), ok);
 
   QHBoxLayout *editLayout = new QHBoxLayout;
   editLayout->setMargin(0); editLayout->setSpacing(2);
@@ -1456,7 +1460,9 @@ addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
   CQChartsEnumParameter *eparameter = dynamic_cast<CQChartsEnumParameter *>(parameter);
   assert(eparameter);
 
-  int i = eparameter->defValue().toInt();
+  bool ok;
+
+  long i = CQChartsVariant::toInt(eparameter->defValue(), ok);
 
   QHBoxLayout *editLayout = new QHBoxLayout;
   editLayout->setMargin(0); editLayout->setSpacing(2);
@@ -2433,7 +2439,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
     else if (parameter->type() == CQChartsPlotParameter::Type::REAL) {
       bool ok;
 
-      double defValue = parameter->defValue().toDouble(&ok);
+      double defValue = CQChartsVariant::toReal(parameter->defValue(), ok);
 
       double r = defValue;
 
@@ -2451,7 +2457,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
     else if (parameter->type() == CQChartsPlotParameter::Type::INTEGER) {
       bool ok;
 
-      int defValue = parameter->defValue().toInt(&ok);
+      int defValue = CQChartsVariant::toInt(parameter->defValue(), ok);
 
       int i = defValue;
 
@@ -2467,7 +2473,9 @@ applyPlot(CQChartsPlot *plot, bool preview)
       }
     }
     else if (parameter->type() == CQChartsPlotParameter::Type::ENUM) {
-      int defValue = parameter->defValue().toInt();
+      bool ok;
+
+      int defValue = CQChartsVariant::toInt(parameter->defValue(), ok);
 
       int i = defValue;
 
@@ -2524,22 +2532,22 @@ applyPlot(CQChartsPlot *plot, bool preview)
   bool xminOk = false, yminOk = false, xmaxOk = false, ymaxOk = false;
 
   if (xminEdit_->text().length()) {
-    double xmin = xminEdit_->text().toDouble(&xminOk);
+    double xmin = CQChartsUtil::toReal(xminEdit_->text(), xminOk);
     if (xminOk) plot->setXMin(CQChartsOptReal(xmin));
   }
 
   if (yminEdit_->text().length()) {
-    double ymin = yminEdit_->text().toDouble(&yminOk);
+    double ymin = CQChartsUtil::toReal(yminEdit_->text(), yminOk);
     if (yminOk) plot->setYMin(CQChartsOptReal(ymin));
   }
 
   if (xmaxEdit_->text().length()) {
-    double xmax = xmaxEdit_->text().toDouble(&xmaxOk);
+    double xmax = CQChartsUtil::toReal(xmaxEdit_->text(), xmaxOk);
     if (xmaxOk) plot->setXMax(CQChartsOptReal(xmax));
   }
 
   if (ymaxEdit_->text().length()) {
-    double ymax = ymaxEdit_->text().toDouble(&ymaxOk);
+    double ymax = CQChartsUtil::toReal(ymaxEdit_->text(), ymaxOk);
     if (ymaxOk) plot->setYMax(CQChartsOptReal(ymax));
   }
 
@@ -2569,10 +2577,10 @@ parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const
   QStringList posStrs = posStr.split(" ", QString::SkipEmptyParts);
 
   if (posStrs.length() == 4) {
-    bool ok1; xmin = posStrs[0].toDouble(&ok1); if (! ok1) xmin = 0.0;
-    bool ok2; ymin = posStrs[1].toDouble(&ok2); if (! ok2) ymin = 0.0;
-    bool ok3; xmax = posStrs[2].toDouble(&ok3); if (! ok3) xmax = 1.0;
-    bool ok4; ymax = posStrs[3].toDouble(&ok4); if (! ok4) ymax = 1.0;
+    bool ok1; xmin = CQChartsUtil::toReal(posStrs[0], ok1); if (! ok1) xmin = 0.0;
+    bool ok2; ymin = CQChartsUtil::toReal(posStrs[1], ok2); if (! ok2) ymin = 0.0;
+    bool ok3; xmax = CQChartsUtil::toReal(posStrs[2], ok3); if (! ok3) xmax = 1.0;
+    bool ok4; ymax = CQChartsUtil::toReal(posStrs[3], ok4); if (! ok4) ymax = 1.0;
 
     xmin = CMathUtil::clamp(xmin, 0.0, 1.0);
     ymin = CMathUtil::clamp(ymin, 0.0, 1.0);
@@ -2698,7 +2706,7 @@ parseParameterRealEdit(CQChartsPlotParameter *parameter, const PlotData &plotDat
   else {
     bool ok;
 
-    r = lineEdit->text().toDouble(&ok);
+    r = CQChartsUtil::toReal(lineEdit->text(), ok);
   }
 
   return true;
@@ -2721,7 +2729,7 @@ parseParameterIntEdit(CQChartsPlotParameter *parameter, const PlotData &plotData
   else {
     bool ok;
 
-    i = lineEdit->text().toInt(&ok);
+    i = CQChartsUtil::toInt(lineEdit->text(), ok);
   }
 
   return true;

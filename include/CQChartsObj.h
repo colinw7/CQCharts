@@ -76,12 +76,12 @@ class CQChartsObj : public QObject {
  protected:
   using OptString = boost::optional<QString>;
 
-  OptString          id_;                 // id
-  CQChartsGeom::BBox rect_;               // bbox
-  OptString          tipId_;              // tip id
-  bool               selected_ { false }; // is selected
-  bool               inside_   { false }; // is mouse inside
-  mutable std::mutex mutex_;
+  OptString          id_;                 //! id
+  CQChartsGeom::BBox rect_;               //! bbox
+  OptString          tipId_;              //! tip id
+  bool               selected_ { false }; //! is selected
+  bool               inside_   { false }; //! is mouse inside
+  mutable std::mutex mutex_;              //! mutex
 };
 
 #endif

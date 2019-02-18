@@ -17,6 +17,10 @@ class CQChartsPolygonLineEdit : public CQChartsLineEditBase {
   const CQChartsPolygon &polygon() const;
   void setPolygon(const CQChartsPolygon &pos);
 
+  void updateMenu();
+
+  void drawPreview(QPainter *painter, const QRect &rect);
+
  signals:
   void polygonChanged();
 
@@ -33,16 +37,18 @@ class CQChartsPolygonLineEdit : public CQChartsLineEditBase {
   void connectSlots(bool b) override;
 
  private:
-  CQChartsPolygonEdit* menuEdit_ { nullptr };
+  CQChartsPolygonEdit* dataEdit_ { nullptr };
 };
 
 //---
+
+#include <CQChartsEditBase.h>
 
 class CQChartsUnitsEdit;
 class CQPoint2DEdit;
 class QScrollArea;
 
-class CQChartsPolygonEdit : public QFrame {
+class CQChartsPolygonEdit : public CQChartsEditBase {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsPolygon polygon READ polygon WRITE setPolygon)
@@ -52,6 +58,10 @@ class CQChartsPolygonEdit : public QFrame {
 
   const CQChartsPolygon &polygon() const;
   void setPolygon(const CQChartsPolygon &pos);
+
+  QSize sizeHint() const;
+
+  void calcSizes(QSize &scrollSize, QSize &pointsSize, QSize &fullSize) const;
 
  signals:
   void polygonChanged();

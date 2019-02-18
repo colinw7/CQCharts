@@ -15,11 +15,15 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
  public:
   CQChartsColumnLineEdit(QWidget *parent=nullptr);
 
+  void setPlot(CQChartsPlot *plot) override;
+
   QAbstractItemModel *model() const;
   void setModel(QAbstractItemModel *model);
 
   const CQChartsColumn &column() const;
   void setColumn(const CQChartsColumn &c);
+
+  void drawPreview(QPainter *painter, const QRect &rect);
 
  signals:
   void columnChanged();
@@ -37,17 +41,19 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
   void connectSlots(bool b) override;
 
  private:
-  CQChartsColumnEdit* menuEdit_ { nullptr };
+  CQChartsColumnEdit* dataEdit_ { nullptr };
 };
 
 //---
+
+#include <CQChartsEditBase.h>
 
 class QLineEdit;
 class QGroupBox;
 class QComboBox;
 class QCheckBox;
 
-class CQChartsColumnEdit : public QFrame {
+class CQChartsColumnEdit : public CQChartsEditBase {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsColumn column READ column WRITE setColumn)

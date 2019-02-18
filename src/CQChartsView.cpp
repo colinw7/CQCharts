@@ -15,6 +15,8 @@
 #include <CQChartsGradientPalette.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsDisplayRange.h>
+#include <CQChartsVariant.h>
+
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 
@@ -104,17 +106,15 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   addProperty("", this, "antiAlias");
 
-  if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG", true)) {
-    addProperty("", this, "id"            );
-    addProperty("", this, "currentPlotInd");
+  addProperty("", this, "id"            )->setHidden(true);
+  addProperty("", this, "currentPlotInd")->setHidden(true);
 
-    addProperty("", this, "viewSizeHint");
-    addProperty("", this, "zoomData"    );
-    addProperty("", this, "bufferLayers");
-  }
+  addProperty("", this, "viewSizeHint")->setHidden(true);
+  addProperty("", this, "zoomData"    )->setHidden(true);
+  addProperty("", this, "bufferLayers")->setHidden(true);
 
-  addProperty("", this, "showTable"   );
-  addProperty("", this, "showSettings");
+  addProperty("", this, "showTable"   )->setHidden(true);
+  addProperty("", this, "showSettings")->setHidden(true);
 
   addProperty("theme", this, "theme", "name")->
     setValues(QStringList() << "default" << "palette1" << "palette2");
@@ -126,12 +126,14 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("sizing", this, "autoSize" , "auto"     );
   addProperty("sizing", this, "fixedSize", "fixedSize");
 
-  addProperty("background", this, "backgroundFillColor"  , "color" );
+  addProperty("background", this, "backgroundFillData"   , "fill"   );
+  addProperty("background", this, "backgroundFillColor"  , "color"  );
   addProperty("background", this, "backgroundFillPattern", "pattern");
 
   addProperty("select"                 , this, "selectMode"         , "mode");
   addProperty("select"                 , this, "selectInside"       , "inside");
   addProperty("select/highlight"       , this, "selectedMode"       , "mode");
+  addProperty("select/highlight"       , this, "selectedShapeData"  , "style");
   addProperty("select/highlight/stroke", this, "selectedBorder"     , "enabled");
   addProperty("select/highlight/stroke", this, "selectedBorderColor", "color");
   addProperty("select/highlight/stroke", this, "selectedBorderWidth", "width");
@@ -141,6 +143,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("select/highlight/fill"  , this, "selectedFillAlpha"  , "alpha");
 
   addProperty("inside/highlight"       , this, "insideMode"       , "mode");
+  addProperty("inside/highlight"       , this, "insideShapeData"  , "style");
   addProperty("inside/highlight/stroke", this, "insideBorder"     , "enabled");
   addProperty("inside/highlight/stroke", this, "insideBorderColor", "color");
   addProperty("inside/highlight/stroke", this, "insideBorderWidth", "width");
@@ -562,6 +565,8 @@ CQPropertyViewItem *
 CQChartsView::
 addProperty(const QString &path, QObject *object, const QString &name, const QString &alias)
 {
+  assert(CQUtil::hasProperty(object, name));
+
   return propertyModel()->addProperty(path, object, name, alias);
 }
 
@@ -3693,7 +3698,12 @@ currentPlotSlot()
 {
   QAction *action = qobject_cast<QAction *>(sender());
 
-  setCurrentPlotInd(action->data().toInt());
+  bool ok;
+
+  int plotInd = CQChartsVariant::toInt(action->data(), ok);
+  assert(ok);
+
+  setCurrentPlotInd(plotInd);
 }
 
 //------

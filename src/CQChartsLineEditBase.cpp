@@ -1,10 +1,14 @@
 #include <CQChartsLineEditBase.h>
+#include <CQChartsEditBase.h>
+#include <CQChartsPlot.h>
+#include <CQChartsView.h>
+#include <CQCharts.h>
 #include <CQWidgetMenu.h>
 
 #include <QHBoxLayout>
-#include <QLineEdit>
-#include <QToolButton>
 #include <QStylePainter>
+#include <QStyleOptionComboBox>
+#include <cassert>
 
 CQChartsLineEditBase::
 CQChartsLineEditBase(QWidget *parent) :
@@ -15,7 +19,7 @@ CQChartsLineEditBase(QWidget *parent) :
   setFrameShape(QFrame::StyledPanel);
   setFrameShadow(QFrame::Sunken);
 
-  setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   //---
 
@@ -24,10 +28,7 @@ CQChartsLineEditBase(QWidget *parent) :
 
   //---
 
-  edit_ = new QLineEdit;
-  edit_->setObjectName("edit");
-
-  edit_->setFrame(false);
+  edit_ = new CQChartsLineEditEdit(this);
 
   connect(edit_, SIGNAL(textChanged(const QString &)), this, SLOT(textChangedSlot()));
 
@@ -35,19 +36,7 @@ CQChartsLineEditBase(QWidget *parent) :
 
   //---
 
-  button_ = new CQChartsLineEditMenuButton;
-  button_->setObjectName("button");
-
-  QStyleOptionComboBox opt;
-
-  initStyle(opt);
-
-  QRect r = style()->subControlRect(QStyle::CC_ComboBox, &opt, QStyle::SC_ComboBoxArrow, this);
-
-  button_->setFixedWidth(r.size().width());
-
-  button_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-  button_->setFocusPolicy(Qt::NoFocus);
+  button_ = new CQChartsLineEditMenuButton(this);
 
   connect(button_, SIGNAL(clicked()), this, SLOT(showMenuSlot()));
 
@@ -58,6 +47,10 @@ CQChartsLineEditBase(QWidget *parent) :
   menu_ = new CQWidgetMenu(this);
 
   connect(menu_, SIGNAL(menuShown()), this, SLOT(updateMenuSlot()));
+
+  //---
+
+  setFocusProxy(edit_);
 }
 
 QString
@@ -86,6 +79,49 @@ CQChartsLineEditBase::
 setPlaceholderText(const QString &s)
 {
   edit_->setPlaceholderText(s);
+}
+
+void
+CQChartsLineEditBase::
+setEditable(bool b)
+{
+  editable_ = b;
+
+  edit_->setReadOnly(! b);
+
+  update();
+}
+
+CQChartsPlot *
+CQChartsLineEditBase::
+plot() const
+{
+  return (menuEdit_ ? menuEdit_->plot() : nullptr);
+}
+
+void
+CQChartsLineEditBase::
+setPlot(CQChartsPlot *plot)
+{
+  assert(menuEdit_);
+
+  menuEdit_->setPlot(plot);
+}
+
+CQChartsView *
+CQChartsLineEditBase::
+view() const
+{
+  return (menuEdit_ ? menuEdit_->view() : nullptr);
+}
+
+void
+CQChartsLineEditBase::
+setView(CQChartsView *view)
+{
+  assert(menuEdit_);
+
+  menuEdit_->setView(view);
 }
 
 void
@@ -191,17 +227,94 @@ initStyle(QStyleOptionComboBox &opt)
   }
 }
 
+void
+CQChartsLineEditBase::
+drawPreview(QPainter *painter, const QRect &rect)
+{
+  QColor  c   = palette().color(QPalette::Window);
+  QString str = "Preview";
+
+  painter->fillRect(rect, QBrush(c));
+
+  QFontMetricsF fm(font());
+
+  double fa = fm.ascent();
+  double fd = fm.descent();
+
+  QColor tc = CQChartsUtil::bwColor(c);
+
+  painter->setPen(tc);
+
+  painter->drawText(rect.left() + 2, rect.center().y() + (fa - fd)/2, str);
+}
+
+QColor
+CQChartsLineEditBase::
+interpColor(const CQChartsColor &color)
+{
+  QColor c;
+
+  if      (plot())
+    return plot()->charts()->interpColor(color, 0, 1);
+  else if (view())
+    return view()->charts()->interpColor(color, 0, 1);
+  else
+    return color.color();
+}
+
+//------
+
+CQChartsLineEditEdit::
+CQChartsLineEditEdit(CQChartsLineEditBase *edit) :
+ QLineEdit(edit), edit_(edit)
+{
+  setObjectName("edit");
+
+  setFrame(false);
+
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+}
+
+void
+CQChartsLineEditEdit::
+paintEvent(QPaintEvent *e)
+{
+  if (edit_->isEditable())
+    QLineEdit::paintEvent(e);
+  else {
+    QPainter painter(this);
+
+    edit_->drawPreview(&painter, rect());
+  }
+}
+
 //------
 
 CQChartsLineEditMenuButton::
-CQChartsLineEditMenuButton(QWidget *parent) :
- QPushButton(parent)
+CQChartsLineEditMenuButton(CQChartsLineEditBase *edit) :
+ QPushButton(edit), edit_(edit)
 {
+  setObjectName("button");
+
+  //---
+
+  QStyleOptionComboBox opt;
+
+  edit_->initStyle(opt);
+
+  QRect r = style()->subControlRect(QStyle::CC_ComboBox, &opt, QStyle::SC_ComboBoxArrow, this);
+
+  setFixedWidth(r.size().width());
+
+  //---
+
+  setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  setFocusPolicy(Qt::NoFocus);
 }
 
 void
 CQChartsLineEditMenuButton::
-paintEvent(QPaintEvent*)
+paintEvent(QPaintEvent *)
 {
   // drawn by CQChartsLineEditBase
 }

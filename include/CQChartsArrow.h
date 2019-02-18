@@ -10,6 +10,9 @@ class CQChartsPlot;
 class CQCharts;
 class QPainter;
 
+/*!
+ * \brief class for arrow object
+ */
 class CQChartsArrow : public QObject,
  public CQChartsObjShapeData<CQChartsArrow> {
   Q_OBJECT
@@ -48,54 +51,54 @@ class CQChartsArrow : public QObject,
   const QPointF &to() const { return to_; }
   void setTo(const QPointF &v) { to_ = v; emit dataChanged(); }
 
-  bool isRelative() const { return data_.relative; }
-  void setRelative(bool b) { data_.relative = b; emit dataChanged(); }
+  bool isRelative() const { return data_.isRelative(); }
+  void setRelative(bool b) { data_.setRelative(b); emit dataChanged(); }
 
-  const CQChartsLength &length() const { return data_.length; }
-  void setLength(const CQChartsLength &l) { data_.length = l; emit dataChanged(); }
+  const CQChartsLength &length() const { return data_.length(); }
+  void setLength(const CQChartsLength &l) { data_.setLength(l); emit dataChanged(); }
 
-  double angle() const { return data_.angle; }
-  void setAngle(double r) { data_.angle = r; emit dataChanged(); }
+  double angle() const { return data_.angle(); }
+  void setAngle(double r) { data_.setAngle(r); emit dataChanged(); }
 
-  double backAngle() const { return data_.backAngle; }
-  void setBackAngle(double r) { data_.backAngle = r; emit dataChanged(); }
+  double backAngle() const { return data_.backAngle(); }
+  void setBackAngle(double r) { data_.setBackAngle(r); emit dataChanged(); }
 
-  bool isFHead() const { return data_.fhead; }
-  void setFHead(bool b) { data_.fhead = b; emit dataChanged(); }
+  bool isFHead() const { return data_.isFHead(); }
+  void setFHead(bool b) { data_.setFHead(b); emit dataChanged(); }
 
-  bool isTHead() const { return data_.thead; }
-  void setTHead(bool b) { data_.thead = b; emit dataChanged(); }
+  bool isTHead() const { return data_.isTHead(); }
+  void setTHead(bool b) { data_.setTHead(b); emit dataChanged(); }
 
-  bool isLineEnds() const { return data_.lineEnds; }
-  void setLineEnds(bool b) { data_.lineEnds = b; emit dataChanged(); }
+  bool isLineEnds() const { return data_.isLineEnds(); }
+  void setLineEnds(bool b) { data_.setLineEnds(b); emit dataChanged(); }
 
-  const CQChartsLength &lineWidth() const { return data_.lineWidth; }
-  void setLineWidth(const CQChartsLength &l) { data_.lineWidth = l; emit dataChanged(); }
+  const CQChartsLength &lineWidth() const { return data_.lineWidth(); }
+  void setLineWidth(const CQChartsLength &l) { data_.setLineWidth(l); emit dataChanged(); }
 
   void setData(const CQChartsArrowData &data) { data_ = data; emit dataChanged(); }
 
-  void draw(QPainter *painter);
+  void draw(QPainter *painter) const;
 
  private:
-  void drawPolygon(const std::vector<QPointF> &points, double w, bool filled);
+  void drawPolygon(const std::vector<QPointF> &points, double w, bool filled) const;
 
-  void drawLine(const QPointF &point1, const QPointF &point2, double width, bool mapping);
+  void drawLine(const QPointF &point1, const QPointF &point2, double width, bool mapping) const;
 
 #if 0
-  void drawPointLabel(const QPointF &point, const QString &text, ool above, bool mapping);
+  void drawPointLabel(const QPointF &point, const QString &text, ool above, bool mapping) const;
 #endif
 
  signals:
   void dataChanged();
 
  private:
-  CQChartsView*     view_    { nullptr };
-  CQChartsPlot*     plot_    { nullptr };
-  bool              visible_ { true };
-  QPointF           from_    { 0, 0 };
-  QPointF           to_      { 1, 1 };
-  CQChartsArrowData data_;
-  QPainter*         painter_ { nullptr };
+  CQChartsView*     view_    { nullptr }; //! parent view
+  CQChartsPlot*     plot_    { nullptr }; //! parent plot
+  bool              visible_ { true };    //! is visible
+  QPointF           from_    { 0, 0 };    //! start point
+  QPointF           to_      { 1, 1 };    //! end point
+  CQChartsArrowData data_;                //! arrow data
+  mutable QPainter* painter_ { nullptr }; //! painter
 };
 
 #endif

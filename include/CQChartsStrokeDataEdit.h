@@ -16,14 +16,10 @@ class CQChartsStrokeDataLineEdit : public CQChartsLineEditBase {
  public:
   CQChartsStrokeDataLineEdit(QWidget *parent=nullptr);
 
-  CQChartsPlot *plot() const;
-  void setPlot(CQChartsPlot *plot);
-
-  CQChartsView *view() const;
-  void setView(CQChartsView *view);
-
   const CQChartsStrokeData &strokeData() const;
   void setStrokeData(const CQChartsStrokeData &c);
+
+  void drawPreview(QPainter *painter, const QRect &rect) override;
 
  signals:
   void strokeDataChanged();
@@ -41,10 +37,12 @@ class CQChartsStrokeDataLineEdit : public CQChartsLineEditBase {
   void connectSlots(bool b) override;
 
  private:
-  CQChartsStrokeDataEdit* menuEdit_ { nullptr };
+  CQChartsStrokeDataEdit* dataEdit_ { nullptr };
 };
 
 //---
+
+#include <CQChartsEditBase.h>
 
 class CQChartsColorLineEdit;
 class CQChartsAlphaEdit;
@@ -53,20 +51,14 @@ class CQChartsLineDashEdit;
 class CQChartsStrokeDataEditPreview;
 class QGroupBox;
 
-class CQChartsStrokeDataEdit : public QFrame {
+class CQChartsStrokeDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
  public:
   CQChartsStrokeDataEdit(QWidget *parent=nullptr);
 
-  CQChartsPlot *plot() const { return plot_; }
-  void setPlot(CQChartsPlot *plot) { plot_ = plot; }
-
-  CQChartsView *view() const { return view_; }
-  void setView(CQChartsView *view) { view_ = view; }
-
   const CQChartsStrokeData &data() const { return data_; }
-  void setData(const CQChartsStrokeData &v) { data_ = v; }
+  void setData(const CQChartsStrokeData &d);
 
   void setTitle(const QString &title);
 
@@ -96,15 +88,16 @@ class CQChartsStrokeDataEdit : public QFrame {
 
 //---
 
-class CQChartsStrokeDataEditPreview : public QFrame {
+class CQChartsStrokeDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
 
  public:
   CQChartsStrokeDataEditPreview(CQChartsStrokeDataEdit *edit);
 
-  void paintEvent(QPaintEvent *);
+  void draw(QPainter *painter) override;
 
-  QSize sizeHint() const;
+  static void draw(QPainter *painter, const CQChartsStrokeData &data, const QRect &rect,
+                   CQChartsPlot *plot, CQChartsView *view);
 
  private:
   CQChartsStrokeDataEdit *edit_ { nullptr };
@@ -112,34 +105,25 @@ class CQChartsStrokeDataEditPreview : public QFrame {
 
 //------
 
-#include <CQPropertyViewType.h>
+#include <CQChartsPropertyViewEditor.h>
 
 // type for CQChartsStrokeData
-class CQChartsStrokeDataPropertyViewType : public CQPropertyViewType {
+class CQChartsStrokeDataPropertyViewType : public CQChartsPropertyViewType {
  public:
-  CQChartsStrokeDataPropertyViewType();
-
   CQPropertyViewEditorFactory *getEditor() const override;
 
-  bool setEditorData(CQPropertyViewItem *item, const QVariant &value) override;
-
-  void draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
-            const QStyleOptionViewItem &option, const QModelIndex &index,
-            const QVariant &value, bool inside) override;
+  void drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
+                   CQChartsPlot *plot, CQChartsView *view) override;
 
   QString tip(const QVariant &value) const override;
 };
 
 //---
 
-#include <CQPropertyViewEditor.h>
-
 // editor factory for CQChartsStrokeData
-class CQChartsStrokeDataPropertyViewEditor : public CQPropertyViewEditorFactory {
+class CQChartsStrokeDataPropertyViewEditor : public CQChartsPropertyViewEditorFactory {
  public:
-  CQChartsStrokeDataPropertyViewEditor();
-
-  QWidget *createEdit(QWidget *parent);
+  CQChartsLineEditBase *createPropertyEdit(QWidget *parent);
 
   void connect(QWidget *w, QObject *obj, const char *method);
 

@@ -312,19 +312,19 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
  private:
   using PointGroup = CQChartsHierScatterPointGroup;
 
-  CQChartsColumn     xColumn_;                     // x column
-  CQChartsColumn     yColumn_;                     // y column
-  CQChartsColumn     nameColumn_;                  // name column
-  CQChartsColumns    groupColumns_;                // group columns
-  double             fontSize_        { 8 };       // font size
-  CQChartsDataLabel* dataLabel_       { nullptr }; // data label style
-  QStringList        filterNames_;                 // filter names
-  CQChartsColumns    groupValues_;                 // group values
-  PointGroup*        rootGroup_       { nullptr }; // root group
-  PointGroup*        currentGroup_    { nullptr }; // current group
-  QString            xname_;                       // x name
-  QString            yname_;                       // y name
-  GroupValueSets     groupValueSets_;              // group value sets
+  CQChartsColumn     xColumn_;                     //! x column
+  CQChartsColumn     yColumn_;                     //! y column
+  CQChartsColumn     nameColumn_;                  //! name column
+  CQChartsColumns    groupColumns_;                //! group columns
+  double             fontSize_        { 8 };       //! font size
+  CQChartsDataLabel* dataLabel_       { nullptr }; //! data label style
+  QStringList        filterNames_;                 //! filter names
+  CQChartsColumns    groupValues_;                 //! group values
+  PointGroup*        rootGroup_       { nullptr }; //! root group
+  PointGroup*        currentGroup_    { nullptr }; //! current group
+  QString            xname_;                       //! x name
+  QString            yname_;                       //! y name
+  GroupValueSets     groupValueSets_;              //! group value sets
 };
 
 #endif

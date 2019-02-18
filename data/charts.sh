@@ -10,10 +10,12 @@ set save      = 0
 set csv_args  = ()
 set tsv_args  = ()
 set data_args = ()
+set nograb    = ""
 
 while ($#argv > 0)
   if      ("$1" == "-dbx") then
     set dbx = 1
+    set nograb = "-nograb"
     shift
   else if ("$1" == "-valgrind") then
     set valgrind = 1
@@ -103,9 +105,9 @@ if ($save == 1) then
 endif
 
 if      ($dbx == 1) then
-  echo "Dbx $exe $exec_args $csv_args $tsv_args $data_args $opts"
+  echo "Dbx $exe $exec_args $csv_args $tsv_args $data_args $opts $nograb"
 
-  Dbx $exe $exec_args $csv_args $tsv_args $data_args $opts
+  Dbx $exe $exec_args $csv_args $tsv_args $data_args $opts $nograb
 else if ($valgrind == 1) then
   echo "Valgrind $exe $exec_args $csv_args $tsv_args $data_args $opts"
 

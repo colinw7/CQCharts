@@ -25,46 +25,22 @@ CQChartsStrokeDataLineEdit(QWidget *parent) :
 
   //---
 
-  menuEdit_ = new CQChartsStrokeDataEdit;
+  menuEdit_ = dataEdit_ = new CQChartsStrokeDataEdit;
 
-  menu_->setWidget(menuEdit_);
+  menu_->setWidget(dataEdit_);
 
-  connect(menuEdit_, SIGNAL(strokeDataChanged()), this, SLOT(menuEditChanged()));
-}
+  connect(dataEdit_, SIGNAL(strokeDataChanged()), this, SLOT(menuEditChanged()));
 
-CQChartsPlot *
-CQChartsStrokeDataLineEdit::
-plot() const
-{
-  return menuEdit_->plot();
-}
+  //---
 
-void
-CQChartsStrokeDataLineEdit::
-setPlot(CQChartsPlot *plot)
-{
-  menuEdit_->setPlot(plot);
-}
-
-CQChartsView *
-CQChartsStrokeDataLineEdit::
-view() const
-{
-  return menuEdit_->view();
-}
-
-void
-CQChartsStrokeDataLineEdit::
-setView(CQChartsView *view)
-{
-  menuEdit_->setView(view);
+  strokeDataToWidgets();
 }
 
 const CQChartsStrokeData &
 CQChartsStrokeDataLineEdit::
 strokeData() const
 {
-  return menuEdit_->data();
+  return dataEdit_->data();
 }
 
 void
@@ -80,7 +56,7 @@ updateStrokeData(const CQChartsStrokeData &strokeData, bool updateText)
 {
   connectSlots(false);
 
-  menuEdit_->setData(strokeData);
+  dataEdit_->setData(strokeData);
 
   if (updateText)
     strokeDataToWidgets();
@@ -113,6 +89,8 @@ strokeDataToWidgets()
   else
     edit_->setText("");
 
+  setToolTip(strokeData().toString());
+
   connectSlots(true);
 }
 
@@ -132,20 +110,23 @@ connectSlots(bool b)
   CQChartsLineEditBase::connectSlots(b);
 
   if (b)
-    connect(menuEdit_, SIGNAL(strokeDataChanged()), this, SLOT(menuEditChanged()));
+    connect(dataEdit_, SIGNAL(strokeDataChanged()), this, SLOT(menuEditChanged()));
   else
-    disconnect(menuEdit_, SIGNAL(strokeDataChanged()), this, SLOT(menuEditChanged()));
+    disconnect(dataEdit_, SIGNAL(strokeDataChanged()), this, SLOT(menuEditChanged()));
+}
+
+void
+CQChartsStrokeDataLineEdit::
+drawPreview(QPainter *painter, const QRect &rect)
+{
+  QColor c = palette().color(QPalette::Window);
+
+  painter->fillRect(rect, QBrush(c));
+
+  CQChartsStrokeDataEditPreview::draw(painter, strokeData(), rect, plot(), view());
 }
 
 //------
-
-#include <CQPropertyViewItem.h>
-#include <CQPropertyViewDelegate.h>
-
-CQChartsStrokeDataPropertyViewType::
-CQChartsStrokeDataPropertyViewType()
-{
-}
 
 CQPropertyViewEditorFactory *
 CQChartsStrokeDataPropertyViewType::
@@ -154,55 +135,14 @@ getEditor() const
   return new CQChartsStrokeDataPropertyViewEditor;
 }
 
-bool
-CQChartsStrokeDataPropertyViewType::
-setEditorData(CQPropertyViewItem *item, const QVariant &value)
-{
-  return item->setData(value);
-}
-
 void
 CQChartsStrokeDataPropertyViewType::
-draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
-     const QStyleOptionViewItem &option, const QModelIndex &ind,
-     const QVariant &value, bool inside)
+drawPreview(QPainter *painter, const QRect &rect, const QVariant &value,
+            CQChartsPlot *plot, CQChartsView *view)
 {
-  CQPropertyViewItem *item = CQPropertyViewMgrInst->drawItem();
-
-  QObject *obj = (item ? item->object() : nullptr);
-
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj);
-  CQChartsView *view = qobject_cast<CQChartsView *>(obj);
-
-  //---
-
-  delegate->drawBackground(painter, option, ind, inside);
-
   CQChartsStrokeData data = value.value<CQChartsStrokeData>();
 
-  QColor pc;
-
-  if      (plot)
-    pc = plot->charts()->interpColor(data.color(), 0, 1);
-  else if (view)
-    pc = view->charts()->interpColor(data.color(), 0, 1);
-  else
-    pc = data.color().color();
-
-  double width = CQChartsUtil::limitLineWidth(data.width().value());
-
-  QPen pen;
-
-  CQChartsUtil::setPen(pen, data.isVisible(), pc, data.alpha(), width, data.dash());
-
-  painter->setRenderHints(QPainter::Antialiasing);
-
-  painter->setPen(pen);
-
-  QPoint p1(option.rect.left (), option.rect.center().y());
-  QPoint p2(option.rect.right(), option.rect.center().y());
-
-  painter->drawLine(p1, p2);
+  CQChartsStrokeDataEditPreview::draw(painter, data, rect, plot, view);
 }
 
 QString
@@ -216,28 +156,11 @@ tip(const QVariant &value) const
 
 //------
 
+CQChartsLineEditBase *
 CQChartsStrokeDataPropertyViewEditor::
-CQChartsStrokeDataPropertyViewEditor()
+createPropertyEdit(QWidget *parent)
 {
-}
-
-QWidget *
-CQChartsStrokeDataPropertyViewEditor::
-createEdit(QWidget *parent)
-{
-  CQPropertyViewItem *item = CQPropertyViewMgrInst->editItem();
-
-  QObject *obj = (item ? item->object() : nullptr);
-
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj);
-  CQChartsView *view = qobject_cast<CQChartsView *>(obj);
-
-  CQChartsStrokeDataLineEdit *edit = new CQChartsStrokeDataLineEdit(parent);
-
-  if      (plot) edit->setPlot(plot);
-  else if (view) edit->setView(view);
-
-  return edit;
+  return new CQChartsStrokeDataLineEdit(parent);
 }
 
 void
@@ -276,11 +199,14 @@ setValue(QWidget *w, const QVariant &var)
 
 CQChartsStrokeDataEdit::
 CQChartsStrokeDataEdit(QWidget *parent) :
- QFrame(parent)
+ CQChartsEditBase(parent)
 {
+  setObjectName("strokeDataEdit");
+
   QVBoxLayout *layout = new QVBoxLayout(this);
 
   groupBox_ = new QGroupBox;
+  groupBox_->setObjectName("groupBox");
 
   groupBox_->setCheckable(true);
   groupBox_->setChecked(false);
@@ -296,6 +222,7 @@ CQChartsStrokeDataEdit(QWidget *parent) :
 
   // color
   QLabel *colorLabel = new QLabel("Color");
+  colorLabel->setObjectName("colorLabel");
 
   colorEdit_ = new CQChartsColorLineEdit;
 
@@ -306,6 +233,7 @@ CQChartsStrokeDataEdit(QWidget *parent) :
 
   // alpha
   QLabel *alphaLabel = new QLabel("Alpha");
+  alphaLabel->setObjectName("alphaLabel");
 
   alphaEdit_ = new CQChartsAlphaEdit;
 
@@ -316,8 +244,10 @@ CQChartsStrokeDataEdit(QWidget *parent) :
 
   // width
   QLabel *widthLabel = new QLabel("Width");
+  widthLabel->setObjectName("widthLabel");
 
   widthEdit_ = new CQChartsLengthEdit;
+  widthEdit_->setObjectName("widthEdit");
 
   connect(widthEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
 
@@ -326,6 +256,7 @@ CQChartsStrokeDataEdit(QWidget *parent) :
 
   // dash
   QLabel *dashLabel = new QLabel("Dash");
+  dashLabel->setObjectName("dashLabel");
 
   dashEdit_ = new CQChartsLineDashEdit;
 
@@ -336,8 +267,10 @@ CQChartsStrokeDataEdit(QWidget *parent) :
 
   // corner size
   QLabel *cornerLabel = new QLabel("Corner");
+  cornerLabel->setObjectName("cornerLabel");
 
   cornerEdit_ = new CQChartsLengthEdit;
+  cornerEdit_->setObjectName("cornerEdit");
 
   connect(cornerEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
 
@@ -357,6 +290,15 @@ CQChartsStrokeDataEdit(QWidget *parent) :
   //---
 
   layout->addStretch(1);
+
+  dataToWidgets();
+}
+
+void
+CQChartsStrokeDataEdit::
+setData(const CQChartsStrokeData &d)
+{
+  data_ = d;
 
   dataToWidgets();
 }
@@ -425,24 +367,26 @@ widgetsToData()
 
 CQChartsStrokeDataEditPreview::
 CQChartsStrokeDataEditPreview(CQChartsStrokeDataEdit *edit) :
- edit_(edit)
+ CQChartsEditPreview(edit), edit_(edit)
 {
 }
 
 void
 CQChartsStrokeDataEditPreview::
-paintEvent(QPaintEvent *)
+draw(QPainter *painter)
 {
   const CQChartsStrokeData &data = edit_->data();
 
-  QColor pc;
+  draw(painter, data, rect(), edit_->plot(), edit_->view());
+}
 
-  if      (edit_->plot())
-    pc = edit_->plot()->charts()->interpColor(data.color(), 0, 1);
-  else if (edit_->view())
-    pc = edit_->view()->charts()->interpColor(data.color(), 0, 1);
-  else
-    pc = data.color().color();
+void
+CQChartsStrokeDataEditPreview::
+draw(QPainter *painter, const CQChartsStrokeData &data, const QRect &rect,
+     CQChartsPlot *plot, CQChartsView *view)
+{
+  // set pen
+  QColor pc = interpColor(plot, view, data.color());
 
   double width = CQChartsUtil::limitLineWidth(data.width().value());
 
@@ -450,23 +394,13 @@ paintEvent(QPaintEvent *)
 
   CQChartsUtil::setPen(pen, data.isVisible(), pc, data.alpha(), width, data.dash());
 
-  QPainter painter(this);
+  painter->setPen(pen);
 
-  painter.setRenderHints(QPainter::Antialiasing);
+  //---
 
-  painter.setPen(pen);
+  // draw line
+  QPoint p1(rect.left (), rect.center().y());
+  QPoint p2(rect.right(), rect.center().y());
 
-  QPoint p1(rect().left (), rect().center().y());
-  QPoint p2(rect().right(), rect().center().y());
-
-  painter.drawLine(p1, p2);
-}
-
-QSize
-CQChartsStrokeDataEditPreview::
-sizeHint() const
-{
-  QFontMetrics fm(font());
-
-  return QSize(fm.width("XXXX"), fm.height() + 4);
+  painter->drawLine(p1, p2);
 }

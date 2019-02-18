@@ -24,32 +24,45 @@ CQCharts *
 CQChartsArrow::
 charts() const
 {
-  return (plot_ ? plot_->charts() : view_->charts());
+  if      (plot_)
+    return plot_->charts();
+  else if (view_)
+    return view_->charts();
+  else
+    return nullptr;
 }
 
 void
 CQChartsArrow::
-draw(QPainter *painter)
+draw(QPainter *painter) const
 {
   auto windowToPixel = [&](double wx, double wy, double &px, double &py) {
-    if (plot_)
+    if      (plot_)
       plot_->windowToPixel(wx, wy, px, py);
-    else
+    else if (view_)
       view_->windowToPixel(wx, wy, px, py);
+    else {
+      px = wx;
+      py = wy;
+    }
   };
 
   auto lengthPixelWidth = [&](const CQChartsLength &l) {
-    if (plot_)
+    if      (plot_)
       return plot_->lengthPixelWidth(l);
-    else
+    else if (view_)
       return view_->lengthPixelWidth(l);
+    else
+      return l.value();
   };
 
   auto lengthPixelHeight = [&](const CQChartsLength &l) {
-    if (plot_)
+    if      (plot_)
       return plot_->lengthPixelHeight(l);
-    else
+    else if (view_)
       return view_->lengthPixelHeight(l);
+    else
+      return l.value();
   };
 
   //---
@@ -513,7 +526,7 @@ draw(QPainter *painter)
 
 void
 CQChartsArrow::
-drawPolygon(const std::vector<QPointF> &points, double width, bool filled)
+drawPolygon(const std::vector<QPointF> &points, double width, bool filled) const
 {
   QPainterPath path;
 
@@ -538,10 +551,7 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled)
 
     QColor fc = interpFillColor(0, 1);
 
-    if (plot_)
-      plot_->setBrush(brush, true, fc, fillAlpha(), fillPattern());
-    else
-      view_->setBrush(brush, true, fc, fillAlpha(), fillPattern());
+    CQChartsUtil::setBrush(brush, true, fc, fillAlpha(), fillPattern());
 
     painter_->fillPath(path, brush);
   }
@@ -550,10 +560,7 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled)
 
     QColor sc = interpBorderColor(0, 1);
 
-    if (plot_)
-      plot_->setPen(pen, true, sc, borderAlpha(), width);
-    else
-      view_->setPen(pen, true, sc, borderAlpha(), width);
+    CQChartsUtil::setPen(pen, true, sc, borderAlpha(), width);
 
     painter_->strokePath(path, pen);
   }
@@ -561,13 +568,17 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled)
 
 void
 CQChartsArrow::
-drawLine(const QPointF &point1, const QPointF &point2, double width, bool mapping)
+drawLine(const QPointF &point1, const QPointF &point2, double width, bool mapping) const
 {
   auto windowToPixel = [&](double wx, double wy, double &px, double &py) {
-    if (plot_)
+    if      (plot_)
       plot_->windowToPixel(wx, wy, px, py);
-    else
+    else if (view_)
       view_->windowToPixel(wx, wy, px, py);
+    else {
+      px = wx;
+      py = wy;
+    }
   };
 
   //---
@@ -600,7 +611,7 @@ drawLine(const QPointF &point1, const QPointF &point2, double width, bool mappin
 #if 0
 void
 CQChartsArrow::
-drawPointLabel(const QPointF &point, const QString &text, bool above, bool mapping)
+drawPointLabel(const QPointF &point, const QString &text, bool above, bool mapping) const
 {
   double px, py;
 
@@ -616,10 +627,7 @@ drawPointLabel(const QPointF &point, const QString &text, bool above, bool mappi
 
   QColor tc = interpDebugTextColor(0, 1);
 
-  if (plot_)
-    plot_->setPen(tpen, true, tc, 1.0, CQChartsLength("1.0"));
-  else
-    view_->setPen(tpen, true, tc, 1.0, CQChartsLength("1.0"));
+  CQChartsUtil::>setPen(tpen, true, tc, 1.0, CQChartsLength("1.0"));
 
   painter_->setPen(tpen);
 
