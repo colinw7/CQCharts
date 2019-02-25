@@ -3,11 +3,11 @@
 #include <CQChartsVariant.h>
 #include <CQRealSpin.h>
 #include <CQColorChooser.h>
+#include <CQGroupBox.h>
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
-#include <QGroupBox>
 #include <QStackedWidget>
 #include <QLineEdit>
 #include <QPushButton>
@@ -96,7 +96,7 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   //---
 
   // red, green, blue function combos
-  QGroupBox *functionGroupBox = new QGroupBox("Function");
+  CQGroupBox *functionGroupBox = new CQGroupBox("Function");
   functionGroupBox->setObjectName("function");
 
   functionGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
@@ -121,7 +121,7 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   //---
 
   // red, green, blue negative check boxes
-  QGroupBox *negateGroupBox = new QGroupBox("Negate");
+  CQGroupBox *negateGroupBox = new CQGroupBox("Negate");
   negateGroupBox->setObjectName("negate");
 
   negateGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
@@ -152,7 +152,7 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   //---
 
   // red, green, blue min/max edits
-  QGroupBox *rangeGroupBox = new QGroupBox("Range");
+  CQGroupBox *rangeGroupBox = new CQGroupBox("Range");
   rangeGroupBox->setObjectName("range");
 
   rangeGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);

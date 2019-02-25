@@ -274,10 +274,10 @@ void penSetLineDash(QPen &pen, const CQChartsLineDash &dash) {
     if (w <= 0.0) w = 1.0;
 
     for (int i = 0; i < num; ++i)
-      dashes << dash.getLength(i)*w;
+      dashes << dash.getLength(i);
 
     if (num & 1)
-      dashes << dash.getLength(0)*w;
+      dashes << dash.getLength(0);
 
     pen.setDashPattern(dashes);
   }
@@ -981,36 +981,6 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
 
 namespace CQChartsUtil {
 
-void drawContrastText(QPainter *painter, double x, double y, const QString &text, const QPen &pen) {
-  // set contrast color
-  // TODO: allow set type (invert, bw) and alpha
-  QColor icolor = invColor(pen.color());
-
-  icolor.setAlphaF(0.5);
-
-  //---
-
-  // draw contrast border
-  painter->setPen(icolor);
-
-  for (int dy = -2; dy <= 2; ++dy)
-    for (int dx = -2; dx <= 2; ++dx)
-      painter->drawText(QPointF(x + dx, y + dy), text);
-
-  //---
-
-  // draw text
-  painter->setPen(pen);
-
-  painter->drawText(QPointF(x, y), text);
-}
-
-}
-
-//------
-
-namespace CQChartsUtil {
-
 void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
             double strokeWidth, const CQChartsLineDash &strokeDash) {
   double width = limitLineWidth(strokeWidth);
@@ -1022,6 +992,8 @@ void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlp
     color.setAlphaF(CMathUtil::clamp(strokeAlpha, 0.0, 1.0));
 
     pen.setColor(color);
+
+    pen.setCosmetic(true);
 
     if (width > 0)
       pen.setWidthF(width);

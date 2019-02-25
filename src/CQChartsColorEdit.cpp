@@ -27,6 +27,8 @@ CQChartsColorLineEdit(QWidget *parent) :
 
   menuEdit_ = dataEdit_ = new CQChartsColorEdit;
 
+  dataEdit_->setNoFocus();
+
   menu_->setWidget(dataEdit_);
 
   connect(dataEdit_, SIGNAL(colorChanged()), this, SLOT(menuEditChanged()));
@@ -48,6 +50,13 @@ CQChartsColorLineEdit::
 setColor(const CQChartsColor &color)
 {
   updateColor(color, /*updateText*/ true);
+}
+
+void
+CQChartsColorLineEdit::
+setNoFocus()
+{
+  dataEdit_->setNoFocus();
 }
 
 void
@@ -127,16 +136,7 @@ drawPreview(QPainter *painter, const QRect &rect)
 
   QString str = (color().isValid() ? color().toString() : "<none>");
 
-  QFontMetricsF fm(font());
-
-  double fa = fm.ascent();
-  double fd = fm.descent();
-
-  QColor tc = CQChartsUtil::bwColor(c);
-
-  painter->setPen(tc);
-
-  painter->drawText(rect.left() + 2, rect.center().y() + (fa - fd)/2, str);
+  drawCenteredText(painter, str);
 }
 
 //------
@@ -251,12 +251,16 @@ CQChartsColorEdit::
 CQChartsColorEdit(QWidget *parent) :
  CQChartsEditBase(parent)
 {
+  setObjectName("colorEdit");
+
   QVBoxLayout *layout = new QVBoxLayout(this);
   layout->setMargin(2); layout->setSpacing(2);
 
   //---
 
   typeCombo_ = new QComboBox;
+
+  typeCombo_->setObjectName("typeCombo");
 
   typeCombo_->addItems(QStringList() <<
     "None" << "Palette" << "Palette Value" << "Interface" << "Interface Value" << "Color");
@@ -272,7 +276,11 @@ CQChartsColorEdit(QWidget *parent) :
 
   QLabel *indLabel = new QLabel("Index");
 
+  indLabel->setObjectName("indLabel");
+
   indEdit_ = new QSpinBox;
+
+  indEdit_->setObjectName("indEdit");
 
   connect(indEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToColor()));
 
@@ -288,7 +296,11 @@ CQChartsColorEdit(QWidget *parent) :
 
   QLabel *valueLabel = new QLabel("Value");
 
+  valueLabel->setObjectName("valueLabel");
+
   valueEdit_ = new CQRealSpin;
+
+  valueEdit_->setObjectName("valueEdit");
 
   connect(valueEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToColor()));
 
@@ -304,7 +316,11 @@ CQChartsColorEdit(QWidget *parent) :
 
   QLabel *colorLabel = new QLabel("Color");
 
+  colorLabel->setObjectName("colorLabel");
+
   colorEdit_ = new CQColorEdit;
+
+  colorEdit_->setObjectName("colorEdit");
 
   connect(colorEdit_, SIGNAL(colorChanged(const QColor &)), this, SLOT(widgetsToColor()));
 
@@ -320,7 +336,11 @@ CQChartsColorEdit(QWidget *parent) :
 
   QLabel *scaleLabel = new QLabel("Scale");
 
+  scaleLabel->setObjectName("scaleLabel");
+
   scaleCheck_ = new CQCheckBox;
+
+  scaleCheck_->setObjectName("scaleCheck");
 
   connect(scaleCheck_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToColor()));
 
@@ -352,6 +372,18 @@ setColor(const CQChartsColor &color)
   updateState();
 
   emit colorChanged();
+}
+
+void
+CQChartsColorEdit::
+setNoFocus()
+{
+  colorEdit_->setNoFocus();
+
+  typeCombo_ ->setFocusPolicy(Qt::NoFocus);
+  indEdit_   ->setFocusPolicy(Qt::NoFocus);
+  valueEdit_ ->setFocusPolicy(Qt::NoFocus);
+  scaleCheck_->setFocusPolicy(Qt::NoFocus);
 }
 
 void

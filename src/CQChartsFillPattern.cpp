@@ -11,6 +11,27 @@ registerMetaType()
   metaTypeId = CQUTIL_REGISTER_META(CQChartsFillPattern);
 }
 
+QString
+CQChartsFillPattern::
+toString() const
+{
+  return typeToString(type_);
+}
+
+bool
+CQChartsFillPattern::
+fromString(const QString &s)
+{
+  Type type = stringToType(s);
+
+  if (type == Type::NONE)
+    return false;
+
+  type_ = type;
+
+  return true;
+}
+
 CQChartsFillPattern::Type
 CQChartsFillPattern::
 stringToType(const QString &str)
@@ -78,7 +99,7 @@ typeToStyle(const Type &type)
 
 QStringList
 CQChartsFillPattern::
-typeNames()
+enumNames() const
 {
   static QStringList names = QStringList() <<
     "SOLID" << "HATCH" << "DENSE" << "HORIZONTAL" << "VERTICAL" << "FDIAG" << "BDIAG";

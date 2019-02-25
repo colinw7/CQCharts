@@ -228,26 +228,11 @@ updateMenu()
 
 void
 CQChartsColumnsLineEdit::
-drawPreview(QPainter *painter, const QRect &rect)
+drawPreview(QPainter *painter, const QRect &)
 {
-  QColor c = palette().color(QPalette::Window);
-
-  painter->fillRect(rect, QBrush(c));
-
-  //---
-
   QString str = (columns().isValid() ? columns().toString() : "<none>");
 
-  QFontMetricsF fm(font());
-
-  double fa = fm.ascent();
-  double fd = fm.descent();
-
-  QColor tc = CQChartsUtil::bwColor(c);
-
-  painter->setPen(tc);
-
-  painter->drawText(rect.left() + 2, rect.center().y() + (fa - fd)/2, str);
+  drawCenteredText(painter, str);
 }
 
 //------

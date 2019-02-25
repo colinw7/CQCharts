@@ -10,8 +10,9 @@
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
+#include <CQGroupBox.h>
+#include <CQUtil.h>
 
-#include <QGroupBox>
 #include <QLineEdit>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -119,10 +120,6 @@ void
 CQChartsStrokeDataLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  QColor c = palette().color(QPalette::Window);
-
-  painter->fillRect(rect, QBrush(c));
-
   CQChartsStrokeDataEditPreview::draw(painter, strokeData(), rect, plot(), view());
 }
 
@@ -198,15 +195,17 @@ setValue(QWidget *w, const QVariant &var)
 //------
 
 CQChartsStrokeDataEdit::
-CQChartsStrokeDataEdit(QWidget *parent) :
- CQChartsEditBase(parent)
+CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &config) :
+ CQChartsEditBase(parent), config_(config)
 {
   setObjectName("strokeDataEdit");
 
   QVBoxLayout *layout = new QVBoxLayout(this);
+  layout->setMargin(0); layout->setSpacing(0);
 
-  groupBox_ = new QGroupBox;
-  groupBox_->setObjectName("groupBox");
+  //---
+
+  groupBox_ = CQUtil::makeWidget<CQGroupBox>("groupBox");
 
   groupBox_->setCheckable(true);
   groupBox_->setChecked(false);
@@ -246,8 +245,7 @@ CQChartsStrokeDataEdit(QWidget *parent) :
   QLabel *widthLabel = new QLabel("Width");
   widthLabel->setObjectName("widthLabel");
 
-  widthEdit_ = new CQChartsLengthEdit;
-  widthEdit_->setObjectName("widthEdit");
+  widthEdit_ = CQUtil::makeWidget<CQChartsLengthEdit>("widthEdit");
 
   connect(widthEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
 
@@ -266,16 +264,17 @@ CQChartsStrokeDataEdit(QWidget *parent) :
   groupLayout->addWidget(dashEdit_, 3, 1);
 
   // corner size
-  QLabel *cornerLabel = new QLabel("Corner");
-  cornerLabel->setObjectName("cornerLabel");
+  if (config_.cornerSize) {
+    QLabel *cornerLabel = new QLabel("Corner");
+    cornerLabel->setObjectName("cornerLabel");
 
-  cornerEdit_ = new CQChartsLengthEdit;
-  cornerEdit_->setObjectName("cornerEdit");
+    cornerEdit_ = CQUtil::makeWidget<CQChartsLengthEdit>("cornerEdit");
 
-  connect(cornerEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
+    connect(cornerEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
 
-  groupLayout->addWidget(cornerLabel, 4, 0);
-  groupLayout->addWidget(cornerEdit_, 4, 1);
+    groupLayout->addWidget(cornerLabel, 4, 0);
+    groupLayout->addWidget(cornerEdit_, 4, 1);
+  }
 
   //---
 
@@ -327,14 +326,18 @@ dataToWidgets()
   disconnect(widthEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
   disconnect(dashEdit_, SIGNAL(valueChanged(const CQChartsLineDash &)),
              this, SLOT(widgetsToData()));
-  disconnect(cornerEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
 
-  groupBox_  ->setChecked (data_.isVisible());
-  colorEdit_ ->setColor   (data_.color());
-  alphaEdit_ ->setValue   (data_.alpha());
-  widthEdit_ ->setLength  (data_.width());
-  dashEdit_  ->setLineDash(data_.dash());
-  cornerEdit_->setLength  (data_.cornerSize());
+  if (cornerEdit_)
+    disconnect(cornerEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
+
+  groupBox_ ->setChecked (data_.isVisible());
+  colorEdit_->setColor   (data_.color());
+  alphaEdit_->setValue   (data_.alpha());
+  widthEdit_->setLength  (data_.width());
+  dashEdit_ ->setLineDash(data_.dash());
+
+  if (cornerEdit_)
+    cornerEdit_->setLength(data_.cornerSize());
 
   preview_->update();
 
@@ -344,19 +347,23 @@ dataToWidgets()
   connect(widthEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
   connect(dashEdit_, SIGNAL(valueChanged(const CQChartsLineDash &)),
           this, SLOT(widgetsToData()));
-  connect(cornerEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
+
+  if (cornerEdit_)
+    connect(cornerEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
 }
 
 void
 CQChartsStrokeDataEdit::
 widgetsToData()
 {
-  data_.setVisible   (groupBox_  ->isChecked());
-  data_.setColor     (colorEdit_ ->color());
-  data_.setAlpha     (alphaEdit_ ->value());
-  data_.setWidth     (widthEdit_ ->length());
-  data_.setDash      (dashEdit_  ->getLineDash());
-  data_.setCornerSize(cornerEdit_->length());
+  data_.setVisible(groupBox_ ->isChecked());
+  data_.setColor  (colorEdit_->color());
+  data_.setAlpha  (alphaEdit_->value());
+  data_.setWidth  (widthEdit_->length());
+  data_.setDash   (dashEdit_ ->getLineDash());
+
+  if (cornerEdit_)
+    data_.setCornerSize(cornerEdit_->length());
 
   preview_->update();
 

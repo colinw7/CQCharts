@@ -9,8 +9,8 @@
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
+#include <CQUtil.h>
 
-#include <QGroupBox>
 #include <QLineEdit>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -118,10 +118,6 @@ void
 CQChartsShapeDataLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  QColor c = palette().color(QPalette::Window);
-
-  painter->fillRect(rect, QBrush(c));
-
   CQChartsShapeDataEditPreview::draw(painter, shapeData(), rect, plot(), view());
 }
 
@@ -203,6 +199,7 @@ CQChartsShapeDataEdit(QWidget *parent) :
   setObjectName("shapeDataEdit");
 
   QGridLayout *layout = new QGridLayout(this);
+  layout->setMargin(0); layout->setSpacing(0);
 
   //---
 

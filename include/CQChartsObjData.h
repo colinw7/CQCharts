@@ -1085,6 +1085,150 @@ class CQChartsObj##UNAME##ShapeData { \
 
 //------
 
+#define CQCHARTS_BOX_DATA_PROPERTIES \
+Q_PROPERTY(CQChartsBoxData boxData READ boxData WRITE setBoxData) \
+\
+Q_PROPERTY(bool   visible READ isVisible WRITE setVisible) \
+Q_PROPERTY(double margin  READ margin    WRITE setMargin ) \
+Q_PROPERTY(double padding READ padding   WRITE setPadding) \
+\
+Q_PROPERTY(bool              border      READ isBorder    WRITE setBorder     ) \
+Q_PROPERTY(CQChartsColor     borderColor READ borderColor WRITE setBorderColor) \
+Q_PROPERTY(double            borderAlpha READ borderAlpha WRITE setBorderAlpha) \
+Q_PROPERTY(CQChartsLength    borderWidth READ borderWidth WRITE setBorderWidth) \
+Q_PROPERTY(CQChartsLineDash  borderDash  READ borderDash  WRITE setBorderDash ) \
+Q_PROPERTY(CQChartsLength    cornerSize  READ cornerSize  WRITE setCornerSize ) \
+\
+Q_PROPERTY(bool                filled      READ isFilled    WRITE setFilled     ) \
+Q_PROPERTY(CQChartsColor       fillColor   READ fillColor   WRITE setFillColor  ) \
+Q_PROPERTY(double              fillAlpha   READ fillAlpha   WRITE setFillAlpha  ) \
+Q_PROPERTY(CQChartsFillPattern fillPattern READ fillPattern WRITE setFillPattern) \
+\
+Q_PROPERTY(CQChartsSides borderSides READ borderSides WRITE setBorderSides)
+
+template<class OBJ>
+class CQChartsObjBoxData {
+ public:
+  CQChartsObjBoxData(OBJ *obj) :
+   boxDataObj_(obj) {
+  }
+
+  //---
+
+  bool isVisible() const { return boxData_.isVisible(); }
+  void setVisible(bool b) { boxData_.setVisible(b); boxDataInvalidate(); }
+
+  double margin() const { return boxData_.margin(); }
+  void setMargin(double r) { boxData_.setMargin(r); boxDataInvalidate(); }
+
+  double padding() const { return boxData_.padding(); }
+  void setPadding(double r) { boxData_.setPadding(r); boxDataInvalidate(); }
+
+  //---
+
+  const CQChartsSides &borderSides() const { return boxData_.borderSides(); }
+  void setBorderSides(const CQChartsSides &s) { boxData_.setBorderSides(s); boxDataInvalidate(); }
+
+  //---
+
+  bool isBorder() const { return boxData_.shape().border().isVisible(); }
+  void setBorder(bool b) {
+    if (b != boxData_.shape().border().isVisible()) {
+      boxData_.shape().border().setVisible(b); boxDataInvalidate(); }
+  }
+
+  const CQChartsColor &borderColor() const { return boxData_.shape().border().color(); }
+  void setBorderColor(const CQChartsColor &c) {
+    if (c != boxData_.shape().border().color()) {
+      boxData_.shape().border().setColor(c); boxDataInvalidate(); }
+  }
+
+  double borderAlpha() const { return boxData_.shape().border().alpha(); }
+  void setBorderAlpha(double a) {
+    if (a != boxData_.shape().border().alpha()) {
+      boxData_.shape().border().setAlpha(a); boxDataInvalidate(); }
+  }
+
+  const CQChartsLength &borderWidth() const { return boxData_.shape().border().width(); }
+  void setBorderWidth(const CQChartsLength &l) {
+    if (l != boxData_.shape().border().width()) {
+      boxData_.shape().border().setWidth(l); boxDataInvalidate(); }
+  }
+
+  const CQChartsLineDash &borderDash() const { return boxData_.shape().border().dash(); }
+  void setBorderDash(const CQChartsLineDash &d) {
+    if (d != boxData_.shape().border().dash()) {
+      boxData_.shape().border().setDash(d); boxDataInvalidate(); }
+  }
+
+  const CQChartsLength &cornerSize() const { return boxData_.shape().border().cornerSize(); }
+  void setCornerSize(const CQChartsLength &l) {
+    if (l != boxData_.shape().border().cornerSize()) {
+      boxData_.shape().border().setCornerSize(l); boxDataInvalidate(); }
+  }
+
+  QColor interpBorderColor(int i, int n) const {
+    if (boxDataObj_->charts())
+      return boxDataObj_->charts()->interpColor(borderColor(), i, n);
+    else
+      return borderColor().color();
+  }
+
+  //---
+
+  bool isFilled() const { return boxData_.shape().background().isVisible(); }
+  void setFilled(bool b) {
+    if (b != boxData_.shape().background().isVisible()) {
+      boxData_.shape().background().setVisible(b); boxDataInvalidate(); }
+  }
+
+  const CQChartsColor &fillColor() const { return boxData_.shape().background().color(); }
+  void setFillColor(const CQChartsColor &c) {
+    if (c != boxData_.shape().background().color()) {
+      boxData_.shape().background().setColor(c); boxDataInvalidate(); }
+  }
+
+  double fillAlpha() const { return boxData_.shape().background().alpha(); }
+  void setFillAlpha(double a) {
+    if (a != boxData_.shape().background().alpha()) {
+      boxData_.shape().background().setAlpha(a); boxDataInvalidate(); }
+  }
+
+  const CQChartsFillPattern &fillPattern() const { return boxData_.shape().background().pattern(); }
+  void setFillPattern(const CQChartsFillPattern &p) {
+    if (p != boxData_.shape().background().pattern()) {
+      boxData_.shape().background().setPattern(p); boxDataInvalidate(); }
+  }
+
+  QColor interpFillColor(int i, int n) const {
+    if (boxDataObj_->charts())
+      return boxDataObj_->charts()->interpColor(fillColor(), i, n);
+    else
+      return fillColor().color();
+  }
+
+  //---
+
+  const CQChartsBoxData &boxData() const { return boxData_; }
+
+  void setBoxData(const CQChartsBoxData &data) {
+    boxData_ = data; boxDataInvalidate();
+  };
+
+ private:
+  void boxDataInvalidate(bool reload=false) {
+    CQChartsInvalidator(boxDataObj_).invalidate(reload);
+  }
+
+ private:
+  OBJ* boxDataObj_ { nullptr };
+
+ protected:
+  CQChartsBoxData boxData_;
+};
+
+//------
+
 CQCHARTS_NAMED_FILL_DATA(Background,background)
 
 #endif

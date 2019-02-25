@@ -5,4 +5,4 @@ set plot2 [create_plot -model $model -type scatter -columns "x=Hair,y=Eye,symbol
 
 place_plots -horizontal [list $plot1 $plot2]
 
-#manage_model_dlg
+#manage_models_dlg

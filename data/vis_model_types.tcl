@@ -7,4 +7,4 @@ set model [load_model -csv data/vis_data_2.csv -first_line_header \
  -column_type "2#symbol_size:mapped=1,size_min=4,size_max=32" \
  -column_type "3#font_size:mapped=1,size_min=6,size_max=48"]
 
-manage_model_dlg
+manage_models_dlg

@@ -81,8 +81,8 @@ draw(QPainter *painter, const QPointF &center, const QString &text, double angle
 
   painter->setPen(pen);
 
-  CQChartsRotatedText::drawRotatedText(painter, center.x() + cd, center.y(), text, angle,
-                                       align, /*alignBBox*/ true);
+  CQChartsRotatedText::draw(painter, center.x() + cd, center.y(), text, angle,
+                            align, /*alignBBox*/ true);
 
   painter->restore();
 }

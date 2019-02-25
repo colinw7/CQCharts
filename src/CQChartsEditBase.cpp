@@ -3,7 +3,30 @@
 #include <CQChartsView.h>
 #include <CQChartsColor.h>
 #include <CQCharts.h>
+
+#include <QLabel>
+#include <QGridLayout>
 #include <QPainter>
+
+void
+CQChartsEditBase::
+drawCenteredText(QPainter *painter, const QString &text)
+{
+  QColor c = palette().color(QPalette::Window);
+
+  QColor tc = CQChartsUtil::invColor(c);
+
+  painter->setPen(tc);
+
+  QFontMetricsF fm(font());
+
+  double fa = fm.ascent();
+  double fd = fm.descent();
+
+  painter->drawText(rect().left() + 2, rect().center().y() + (fa - fd)/2, text);
+}
+
+//------
 
 CQChartsEditPreview::
 CQChartsEditPreview(CQChartsEditBase *edit) :

@@ -8,6 +8,8 @@
 #include <CQChartsRoundedPolygon.h>
 #include <CQChartsNamePair.h>
 #include <CQChartsTip.h>
+#include <CQChartsDrawUtil.h>
+
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -795,7 +797,7 @@ drawBackground(QPainter *painter) const
 
     twMax = std::max(twMax, tw);
 
-    painter->drawText(QPointF(px + xts - tw - 2, py + pys - fm.descent()), str);
+    CQChartsDrawUtil::drawSimpleText(painter, px + xts - tw - 2, py + pys - fm.descent(), str);
 
     py += pys;
   }
@@ -810,8 +812,8 @@ drawBackground(QPainter *painter) const
   py = pyo + lengthPixelHeight(bgMargin()) + yts;
 
   for (auto &node : sortedNodes_) {
-    CQChartsRotatedText::drawRotatedText(painter, px + pxs/2, py - 2, node->name(), 90,
-                                         Qt::AlignHCenter | Qt::AlignBottom, /*alignBox*/true);
+    CQChartsRotatedText::draw(painter, px + pxs/2, py - 2, node->name(), 90,
+                              Qt::AlignHCenter | Qt::AlignBottom, /*alignBox*/true);
 
     px += pxs;
   }

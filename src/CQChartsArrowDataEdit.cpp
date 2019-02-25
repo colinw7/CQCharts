@@ -117,10 +117,6 @@ void
 CQChartsArrowDataLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  QColor c = palette().color(QPalette::Window);
-
-  painter->fillRect(rect, QBrush(c));
-
   CQChartsArrowData data = this->arrowData();
 
   data.setLength   (CQChartsLength(16, CQChartsUnits::PIXEL));

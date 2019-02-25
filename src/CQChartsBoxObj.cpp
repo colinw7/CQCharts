@@ -9,7 +9,7 @@
 CQChartsBoxObj::
 CQChartsBoxObj(CQChartsView *view) :
  CQChartsObj(view),
- CQChartsObjShapeData<CQChartsBoxObj>(this),
+ CQChartsObjBoxData<CQChartsBoxObj>(this),
  view_(view)
 {
 }
@@ -17,7 +17,7 @@ CQChartsBoxObj(CQChartsView *view) :
 CQChartsBoxObj::
 CQChartsBoxObj(CQChartsPlot *plot) :
  CQChartsObj(plot),
- CQChartsObjShapeData<CQChartsBoxObj>(this),
+ CQChartsObjBoxData<CQChartsBoxObj>(this),
  plot_(plot)
 {
 }
@@ -124,7 +124,7 @@ draw(QPainter *painter, const QRectF &rect) const
 
 void
 CQChartsBoxObj::
-redrawBoxObj()
+boxDataInvalidate()
 {
   if      (plot())
     plot()->queueDrawObjs();

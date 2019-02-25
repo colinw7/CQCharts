@@ -8,6 +8,9 @@ class CQChartsTextDataEdit;
 class CQChartsPlot;
 class CQChartsView;
 
+/*!
+ * \brief line edit like widget for text data
+ */
 class CQChartsTextDataLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
@@ -18,6 +21,8 @@ class CQChartsTextDataLineEdit : public CQChartsLineEditBase {
 
   const CQChartsTextData &textData() const;
   void setTextData(const CQChartsTextData &c);
+
+  void setNoFocus();
 
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
@@ -37,7 +42,7 @@ class CQChartsTextDataLineEdit : public CQChartsLineEditBase {
   void connectSlots(bool b) override;
 
  private:
-  CQChartsTextDataEdit* dataEdit_ { nullptr };
+  CQChartsTextDataEdit* dataEdit_ { nullptr }; //! text data edit widget
 };
 
 //---
@@ -47,17 +52,20 @@ class CQChartsTextDataLineEdit : public CQChartsLineEditBase {
 class CQChartsColorLineEdit;
 class CQChartsAlphaEdit;
 class CQChartsTextDataEditPreview;
-class CQFontChooser;
+class CQFontEdit;
 class CQAngleSpinBox;
 class CQAlignEdit;
-class QGroupBox;
-class QCheckBox;
+class CQGroupBox;
+class CQCheckBox;
 
+/*!
+ * \brief widget to edit text data values
+ */
 class CQChartsTextDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
  public:
-  CQChartsTextDataEdit(QWidget *parent=nullptr);
+  CQChartsTextDataEdit(QWidget *parent=nullptr, bool optional=true);
 
   const CQChartsTextData &data() const { return data_; }
   void setData(const CQChartsTextData &d);
@@ -65,6 +73,8 @@ class CQChartsTextDataEdit : public CQChartsEditBase {
   void setTitle(const QString &title);
 
   void setPreview(bool b);
+
+  void setNoFocus();
 
  signals:
   void textDataChanged();
@@ -79,21 +89,24 @@ class CQChartsTextDataEdit : public CQChartsEditBase {
   CQChartsPlot*                plot_          { nullptr };
   CQChartsView*                view_          { nullptr };
   CQChartsTextData             data_;
-  QGroupBox*                   groupBox_      { nullptr };
-  CQFontChooser*               fontEdit_      { nullptr };
+  CQGroupBox*                  groupBox_      { nullptr };
+  CQFontEdit*                  fontEdit_      { nullptr };
   CQChartsColorLineEdit*       colorEdit_     { nullptr };
   CQChartsAlphaEdit*           alphaEdit_     { nullptr };
   CQAngleSpinBox*              angleEdit_     { nullptr };
-  QCheckBox*                   contrastEdit_  { nullptr };
+  CQCheckBox*                  contrastEdit_  { nullptr };
   CQAlignEdit*                 alignEdit_     { nullptr };
-  QCheckBox*                   formattedEdit_ { nullptr };
-  QCheckBox*                   scaledEdit_    { nullptr };
-  QCheckBox*                   htmlEdit_      { nullptr };
+  CQCheckBox*                  formattedEdit_ { nullptr };
+  CQCheckBox*                  scaledEdit_    { nullptr };
+  CQCheckBox*                  htmlEdit_      { nullptr };
   CQChartsTextDataEditPreview* preview_       { nullptr };
 };
 
 //---
 
+/*!
+ * \brief preview widget for text data
+ */
 class CQChartsTextDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
 
@@ -113,7 +126,9 @@ class CQChartsTextDataEditPreview : public CQChartsEditPreview {
 
 #include <CQChartsPropertyViewEditor.h>
 
-// type for CQChartsTextData
+/*!
+ * \brief type for CQChartsTextData
+ */
 class CQChartsTextDataPropertyViewType : public CQChartsPropertyViewType {
  public:
   CQPropertyViewEditorFactory *getEditor() const override;
@@ -128,7 +143,9 @@ class CQChartsTextDataPropertyViewType : public CQChartsPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-// editor factory for CQChartsTextData
+/*!
+ * \brief editor factory for CQChartsTextData
+ */
 class CQChartsTextDataPropertyViewEditor : public CQChartsPropertyViewEditorFactory {
  public:
   CQChartsLineEditBase *createPropertyEdit(QWidget *parent);

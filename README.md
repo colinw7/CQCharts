@@ -33,7 +33,7 @@ Chart types supported
     ![bubble](bubbleplot.png "Bubble Plot")
   + Chord
     + Circlular connectivity chart (needs special column value syntax for connections)
-    ![chord](chordplot.png "Chord Plot")
+    ![chord](chord_plot.png "Chord Plot")
   + Delaunay
     + Delaunay/Voronoi geometric connectivity chart
     ![delaunay](delaunay.png "Delaunay Plot")

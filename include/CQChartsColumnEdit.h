@@ -48,8 +48,8 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
 
 #include <CQChartsEditBase.h>
 
+class CQGroupBox;
 class QLineEdit;
-class QGroupBox;
 class QComboBox;
 class QCheckBox;
 
@@ -94,10 +94,10 @@ class CQChartsColumnEdit : public CQChartsEditBase {
  private:
   QAbstractItemModel* model_          { nullptr };
   CQChartsColumn      column_;
-  QGroupBox*          columnGroup_    { nullptr };
+  CQGroupBox*         columnGroup_    { nullptr };
   QComboBox*          columnCombo_    { nullptr };
   QLineEdit*          roleEdit_       { nullptr };
-  QGroupBox*          menuExprGroup_  { nullptr };
+  CQGroupBox*         menuExprGroup_  { nullptr };
   QLineEdit*          expressionEdit_ { nullptr };
   QCheckBox*          vheaderCheck_   { nullptr };
 };

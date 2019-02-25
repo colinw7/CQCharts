@@ -36,17 +36,8 @@ class CQChartsKeyLocation {
     setValue(s);
   }
 
-  CQChartsKeyLocation(const CQChartsKeyLocation &rhs) :
-    type_(rhs.type_) {
-  }
-
-  CQChartsKeyLocation &operator=(const CQChartsKeyLocation &rhs) {
-    type_ = rhs.type_;
-
-    return *this;
-  }
-
   const Type &type() const { return type_; }
+  void setType(const Type &type) { type_ = type; }
 
   bool setValue(const QString &str) {
     Type type { Type::TOP_RIGHT };

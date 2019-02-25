@@ -5,10 +5,10 @@
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
+#include <CQGroupBox.h>
 
 #include <QComboBox>
 #include <QLineEdit>
-#include <QGroupBox>
 #include <QCheckBox>
 #include <QLabel>
 #include <QHBoxLayout>
@@ -141,26 +141,11 @@ connectSlots(bool b)
 
 void
 CQChartsColumnLineEdit::
-drawPreview(QPainter *painter, const QRect &rect)
+drawPreview(QPainter *painter, const QRect &)
 {
-  QColor c = palette().color(QPalette::Window);
-
-  painter->fillRect(rect, QBrush(c));
-
-  //---
-
   QString str = (column().isValid() ? column().toString() : "<none>");
 
-  QFontMetricsF fm(font());
-
-  double fa = fm.ascent();
-  double fd = fm.descent();
-
-  QColor tc = CQChartsUtil::bwColor(c);
-
-  painter->setPen(tc);
-
-  painter->drawText(rect.left() + 2, rect.center().y() + (fa - fd)/2, str);
+  drawCenteredText(painter, str);
 }
 
 //------
@@ -293,7 +278,7 @@ CQChartsColumnEdit(QWidget *parent) :
 
   //---
 
-  columnGroup_ = new QGroupBox("Column");
+  columnGroup_ = new CQGroupBox("Column");
 
   columnGroup_->setCheckable(true);
   columnGroup_->setChecked(true);
@@ -331,7 +316,7 @@ CQChartsColumnEdit(QWidget *parent) :
 
   //---
 
-  menuExprGroup_ = new QGroupBox("Expression");
+  menuExprGroup_ = new CQGroupBox("Expression");
 
   menuExprGroup_->setCheckable(true);
   menuExprGroup_->setChecked(false);

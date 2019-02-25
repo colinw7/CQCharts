@@ -48,7 +48,7 @@ class CQChartsShapeDataEdit;
 class CQChartsSidesEdit;
 class CQChartsBoxDataEditPreview;
 class CQRealSpin;
-class QGroupBox;
+class CQGroupBox;
 
 class CQChartsBoxDataEdit : public CQChartsEditBase {
   Q_OBJECT
@@ -77,7 +77,7 @@ class CQChartsBoxDataEdit : public CQChartsEditBase {
 
  private:
   CQChartsBoxData             data_;
-  QGroupBox*                  groupBox_    { nullptr };
+  CQGroupBox*                 groupBox_    { nullptr };
   CQRealSpin*                 marginEdit_  { nullptr };
   CQRealSpin*                 paddingEdit_ { nullptr };
   CQChartsShapeDataEdit*      shapeEdit_   { nullptr };

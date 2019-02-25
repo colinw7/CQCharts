@@ -1,4 +1,8 @@
 High
+ + Annotation Tool
+   + Create and Edit Text
+ + Edit key size
+ + Font Editor
  + Use QThread
  + Numeric Sort for strings (split into numeber/non-number blocks)
  + better handling of update notifications

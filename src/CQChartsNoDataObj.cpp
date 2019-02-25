@@ -1,5 +1,7 @@
 #include <CQChartsNoDataObj.h>
 #include <CQChartsView.h>
+#include <CQChartsDrawUtil.h>
+
 #include <QPainter>
 
 CQChartsNoDataObj::
@@ -28,11 +30,7 @@ draw(QPainter *painter)
   // draw no data text
   QString msg = "NO DATA";
 
-  QFontMetricsF fm(view->font());
-
-  double fw = fm.width(msg);
-
   painter->setFont(view->font());
 
-  painter->drawText(QPointF(c.x - fw/2, c.y + (fm.ascent() - fm.descent())/2), msg);
+  CQChartsDrawUtil::drawCenteredText(painter, c.qpoint(), msg);
 }

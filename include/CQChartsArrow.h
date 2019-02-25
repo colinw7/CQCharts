@@ -75,6 +75,7 @@ class CQChartsArrow : public QObject,
   const CQChartsLength &lineWidth() const { return data_.lineWidth(); }
   void setLineWidth(const CQChartsLength &l) { data_.setLineWidth(l); emit dataChanged(); }
 
+  const CQChartsArrowData &data() const { return data_; }
   void setData(const CQChartsArrowData &data) { data_ = data; emit dataChanged(); }
 
   void draw(QPainter *painter) const;

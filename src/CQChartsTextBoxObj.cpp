@@ -3,12 +3,15 @@
 #include <CQChartsPlot.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQChartsDrawUtil.h>
+
 #include <CQPropertyViewModel.h>
 #include <QPainter>
 
 CQChartsTextBoxObj::
 CQChartsTextBoxObj(CQChartsView *view) :
- CQChartsBoxObj(view)
+ CQChartsBoxObj(view),
+ CQChartsObjTextData<CQChartsTextBoxObj>(this)
 {
   CQChartsColor themeFg(CQChartsColor::Type::INTERFACE_VALUE, 1);
 
@@ -20,7 +23,8 @@ CQChartsTextBoxObj(CQChartsView *view) :
 
 CQChartsTextBoxObj::
 CQChartsTextBoxObj(CQChartsPlot *plot) :
- CQChartsBoxObj(plot)
+ CQChartsBoxObj(plot),
+ CQChartsObjTextData<CQChartsTextBoxObj>(this)
 {
   CQChartsColor themeFg(CQChartsColor::Type::INTERFACE_VALUE, 1);
 
@@ -28,13 +32,6 @@ CQChartsTextBoxObj(CQChartsPlot *plot) :
 
   setBorder(false);
   setFilled(false);
-}
-
-QColor
-CQChartsTextBoxObj::
-interpTextColor(int i, int n) const
-{
-  return charts()->interpColor(textColor(), i, n);
 }
 
 void
@@ -103,6 +100,7 @@ drawText(QPainter *painter, const QRectF &rect, const QString &text) const
 
   painter->setPen(pen);
 
-  painter->drawText(QPointF(rect.left() + margin(),
-                            rect.bottom() - margin() - fm.descent()), text);
+  QPointF tp(rect.left() + margin(), rect.bottom() - margin() - fm.descent());
+
+  CQChartsDrawUtil::drawSimpleText(painter, tp, text);
 }

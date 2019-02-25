@@ -3,6 +3,8 @@
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
 #include <CQCharts.h>
+
+#include <CQPropertyViewTree.h>
 #include <CQWidgetMenu.h>
 
 #include <QHBoxLayout>
@@ -38,7 +40,7 @@ CQChartsLineEditBase(QWidget *parent) :
 
   button_ = new CQChartsLineEditMenuButton(this);
 
-  connect(button_, SIGNAL(clicked()), this, SLOT(showMenuSlot()));
+  connect(button_, SIGNAL(clicked()), this, SLOT(menuButtonSlot()));
 
   layout_->addWidget(button_);
 
@@ -46,7 +48,8 @@ CQChartsLineEditBase(QWidget *parent) :
 
   menu_ = new CQWidgetMenu(this);
 
-  connect(menu_, SIGNAL(menuShown()), this, SLOT(updateMenuSlot()));
+  connect(menu_, SIGNAL(menuShown ()), this, SLOT(showMenuSlot()));
+  connect(menu_, SIGNAL(menuHidden()), this, SLOT(hideMenuSlot()));
 
   //---
 
@@ -133,7 +136,7 @@ textChangedSlot()
 
 void
 CQChartsLineEditBase::
-showMenuSlot()
+menuButtonSlot()
 {
   // popup menu below or above the widget bounding box
   QPoint tl = edit_->mapToGlobal(edit_->rect().topLeft());
@@ -145,9 +148,17 @@ showMenuSlot()
 
 void
 CQChartsLineEditBase::
-updateMenuSlot()
+showMenuSlot()
 {
   updateMenu();
+}
+
+void
+CQChartsLineEditBase::
+hideMenuSlot()
+{
+  if (propertyViewTree_)
+    propertyViewTree_->closeEditor();
 }
 
 void
@@ -229,28 +240,43 @@ initStyle(QStyleOptionComboBox &opt)
 
 void
 CQChartsLineEditBase::
-drawPreview(QPainter *painter, const QRect &rect)
+drawPreview(QPainter *painter, const QRect &)
 {
-  QColor  c   = palette().color(QPalette::Window);
-  QString str = "Preview";
+  drawBackground(painter);
 
-  painter->fillRect(rect, QBrush(c));
+  //---
+
+  drawCenteredText(painter, "Preview");
+}
+
+void
+CQChartsLineEditBase::
+drawBackground(QPainter *painter) const
+{
+  QColor c = palette().color(QPalette::Window);
+
+  painter->fillRect(rect(), QBrush(c));
+
+  tc_ = CQChartsUtil::bwColor(c);
+}
+
+void
+CQChartsLineEditBase::
+drawCenteredText(QPainter *painter, const QString &text) const
+{
+  painter->setPen(tc_);
 
   QFontMetricsF fm(font());
 
   double fa = fm.ascent();
   double fd = fm.descent();
 
-  QColor tc = CQChartsUtil::bwColor(c);
-
-  painter->setPen(tc);
-
-  painter->drawText(rect.left() + 2, rect.center().y() + (fa - fd)/2, str);
+  painter->drawText(rect().left() + 2, rect().center().y() + (fa - fd)/2, text);
 }
 
 QColor
 CQChartsLineEditBase::
-interpColor(const CQChartsColor &color)
+interpColor(const CQChartsColor &color) const
 {
   QColor c;
 
@@ -283,6 +309,8 @@ paintEvent(QPaintEvent *e)
     QLineEdit::paintEvent(e);
   else {
     QPainter painter(this);
+
+    edit_->drawBackground(&painter);
 
     edit_->drawPreview(&painter, rect());
   }

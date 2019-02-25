@@ -10,8 +10,8 @@
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
+#include <CQGroupBox.h>
 
-#include <QGroupBox>
 #include <QLineEdit>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -119,10 +119,6 @@ void
 CQChartsLineDataLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  QColor c = palette().color(QPalette::Window);
-
-  painter->fillRect(rect, QBrush(c));
-
   CQChartsLineDataEditPreview::draw(painter, lineData(), rect, plot(), view());
 }
 
@@ -203,7 +199,7 @@ CQChartsLineDataEdit(QWidget *parent) :
 {
   QVBoxLayout *layout = new QVBoxLayout(this);
 
-  groupBox_ = new QGroupBox;
+  groupBox_ = new CQGroupBox;
 
   groupBox_->setCheckable(true);
   groupBox_->setChecked(false);
@@ -281,6 +277,20 @@ setData(const CQChartsLineData &d)
   data_ = d;
 
   dataToWidgets();
+}
+
+void
+CQChartsLineDataEdit::
+setTitle(const QString &title)
+{
+  groupBox_->setTitle(title);
+}
+
+void
+CQChartsLineDataEdit::
+setPreview(bool b)
+{
+  preview_->setVisible(b);
 }
 
 void

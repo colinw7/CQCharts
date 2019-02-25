@@ -49,7 +49,7 @@ class CQChartsAlphaEdit;
 class CQChartsLengthEdit;
 class CQChartsLineDashEdit;
 class CQChartsLineDataEditPreview;
-class QGroupBox;
+class CQGroupBox;
 
 class CQChartsLineDataEdit : public CQChartsEditBase {
   Q_OBJECT
@@ -59,6 +59,10 @@ class CQChartsLineDataEdit : public CQChartsEditBase {
 
   const CQChartsLineData &data() const { return data_; }
   void setData(const CQChartsLineData &d);
+
+  void setTitle(const QString &title);
+
+  void setPreview(bool b);
 
  signals:
   void lineDataChanged();
@@ -73,7 +77,7 @@ class CQChartsLineDataEdit : public CQChartsEditBase {
   CQChartsPlot*                plot_      { nullptr };
   CQChartsView*                view_      { nullptr };
   CQChartsLineData             data_;
-  QGroupBox*                   groupBox_  { nullptr };
+  CQGroupBox*                  groupBox_  { nullptr };
   CQChartsColorLineEdit*       colorEdit_ { nullptr };
   CQChartsAlphaEdit*           alphaEdit_ { nullptr };
   CQChartsLengthEdit*          widthEdit_ { nullptr };

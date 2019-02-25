@@ -92,16 +92,18 @@ CQChartsColumnBucket.cpp \
 CQChartsValueSet.cpp \
 CQChartsPlotSymbol.cpp \
 \
-CQChartsLoadDlg.cpp \
-CQChartsPlotDlg.cpp \
+CQChartsCreateAnnotationDlg.cpp \
+CQChartsCreatePlotDlg.cpp \
+CQChartsEditAnnotationDlg.cpp \
+CQChartsLoadModelDlg.cpp \
+CQChartsManageModelsDlg.cpp \
+\
 CQChartsLoader.cpp \
-CQChartsModelDlg.cpp \
 CQChartsModelWidgets.cpp \
 CQChartsModelList.cpp \
 CQChartsModelControl.cpp \
 CQChartsModelView.cpp \
 CQChartsEval.cpp \
-CQChartsAnnotationDlg.cpp \
 \
 CQChartsFilterEdit.cpp \
 \
@@ -123,6 +125,11 @@ CQChartsLineDash.cpp \
 CQChartsRotatedText.cpp \
 CQChartsRoundedPolygon.cpp \
 \
+CQChartsOptLength.cpp \
+CQChartsOptPosition.cpp \
+CQChartsOptReal.cpp \
+CQChartsOptRect.cpp \
+\
 CQChartsColor.cpp \
 CQChartsNamePair.cpp \
 CQChartsPolygonList.cpp \
@@ -136,23 +143,31 @@ CQChartsSides.cpp \
 CQChartsFillUnder.cpp \
 CQChartsKeyLocation.cpp \
 \
-CQChartsOptLength.cpp \
-CQChartsOptReal.cpp \
-\
-CQChartsDrawUtil.cpp \
 CQChartsSymbol.cpp \
 CQChartsPath.cpp \
-CQChartsFillPattern.cpp \
 CQChartsStyle.cpp \
 CQChartsBoxWhisker.cpp \
 CQChartsDensity.cpp \
 CQChartsGrahamHull.cpp \
-CQChartsModelUtil.cpp \
 \
-CQChartsUtil.cpp \
-CQChartsNameValues.cpp \
+CQChartsFillPattern.cpp \
+CQChartsFillPatternEdit.cpp \
+CQChartsTitleLocation.cpp \
+CQChartsTitleLocationEdit.cpp \
+CQChartsAxisSide.cpp \
+CQChartsAxisSideEdit.cpp \
+CQChartsAxisTickLabelPlacement.cpp \
+CQChartsAxisTickLabelPlacementEdit.cpp \
+CQChartsEnumEdit.cpp \
+\
+CQChartsModelUtil.cpp \
 CQChartsTrie.cpp \
+CQChartsNameValues.cpp \
 CQChartsEnv.cpp \
+\
+CQChartsDrawUtil.cpp \
+CQChartsUtil.cpp \
+CQChartsWidgetUtil.cpp \
 \
 CQChartsAnalyzeFile.cpp \
 CQChartsAnalyzeModel.cpp \
@@ -161,6 +176,10 @@ CQChartsDelaunay.cpp \
 CQChartsDendrogram.cpp \
 CQChartsHull3D.cpp \
 \
+CQChartsTitleEdit.cpp \
+CQChartsKeyEdit.cpp \
+CQChartsAxisEdit.cpp \
+\
 CQChartsAlphaEdit.cpp \
 CQChartsArrowDataEdit.cpp \
 CQChartsBoxDataEdit.cpp \
@@ -168,7 +187,6 @@ CQChartsColorEdit.cpp \
 CQChartsColumnEdit.cpp \
 CQChartsColumnsEdit.cpp \
 CQChartsFillDataEdit.cpp \
-CQChartsFillPatternEdit.cpp \
 CQChartsFillUnderEdit.cpp \
 CQChartsKeyLocationEdit.cpp \
 CQChartsLengthEdit.cpp \
@@ -290,32 +308,46 @@ HEADERS += \
 ../include/CQChartsPlotSymbol.h \
 ../include/CQChartsSymbol.h \
 ../include/CQChartsPath.h \
-../include/CQChartsFillPattern.h \
 ../include/CQChartsStyle.h \
 ../include/CQChartsBoxWhisker.h \
 ../include/CQChartsDensity.h \
 ../include/CQChartsGrahamHull.h \
-../include/CQChartsModelUtil.h \
 \
-../include/CQChartsUtil.h \
-../include/CQChartsNameValues.h \
+../include/CQChartsFillPattern.h \
+../include/CQChartsFillPatternEdit.h \
+../include/CQChartsTitleLocation.h \
+../include/CQChartsTitleLocationEdit.h \
+../include/CQChartsAxisSide.h \
+../include/CQChartsAxisSideEdit.h \
+../include/CQChartsAxisTickLabelPlacement.h \
+../include/CQChartsAxisTickLabelPlacementEdit.h \
+../include/CQChartsEnumEdit.h \
+\
+../include/CQChartsModelUtil.h \
 ../include/CQChartsTrie.h \
-../include/CQChartsEnv.h \
+../include/CQChartsNameValues.h \
 ../include/CQChartsQuadTree.h \
+../include/CQChartsEnv.h \
+\
+../include/CQChartsDrawUtil.h \
+../include/CQChartsUtil.h \
+../include/CQChartsWidgetUtil.h \
 \
 ../include/CQChartsAnalyzeFile.h \
 ../include/CQChartsAnalyzeModel.h \
 \
-../include/CQChartsLoadDlg.h \
-../include/CQChartsPlotDlg.h \
+../include/CQChartsCreateAnnotationDlg.h \
+../include/CQChartsCreatePlotDlg.h \
+../include/CQChartsEditAnnotationDlg.h \
+../include/CQChartsLoadModelDlg.h \
+../include/CQChartsManageModelsDlg.h \
+\
 ../include/CQChartsLoader.h \
-../include/CQChartsModelDlg.h \
 ../include/CQChartsModelWidgets.h \
 ../include/CQChartsModelList.h \
 ../include/CQChartsModelControl.h \
 ../include/CQChartsModelView.h \
 ../include/CQChartsEval.h \
-../include/CQChartsAnnotationDlg.h \
 \
 ../include/CQChartsFilterEdit.h \
 \
@@ -352,13 +384,17 @@ HEADERS += \
 ../include/CQChartsKeyLocation.h \
 \
 ../include/CQChartsOptLength.h \
+../include/CQChartsOptPosition.h \
 ../include/CQChartsOptReal.h \
-\
-../include/CQChartsDrawUtil.h \
+../include/CQChartsOptRect.h \
 \
 ../include/CQChartsDelaunay.h \
 ../include/CQChartsDendrogram.h \
 ../include/CQChartsHull3D.h \
+\
+../include/CQChartsTitleEdit.h \
+../include/CQChartsKeyEdit.h \
+../include/CQChartsAxisEdit.h \
 \
 ../include/CQChartsAlphaEdit.h \
 ../include/CQChartsArrowDataEdit.h \
@@ -367,7 +403,6 @@ HEADERS += \
 ../include/CQChartsColumnEdit.h \
 ../include/CQChartsColumnsEdit.h \
 ../include/CQChartsFillDataEdit.h \
-../include/CQChartsFillPatternEdit.h \
 ../include/CQChartsFillUnderEdit.h \
 ../include/CQChartsKeyLocationEdit.h \
 ../include/CQChartsLengthEdit.h \

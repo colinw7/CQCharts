@@ -12,4 +12,4 @@ add_process_model_proc toProc { arg } {
 process_model -model $modelId -add -expr "fromProc(column(0))" -header "From"
 process_model -model $modelId -add -expr "toProc(column(0))" -header "To"
 
-manage_model_dlg
+manage_models_dlg

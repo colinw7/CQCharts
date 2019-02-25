@@ -235,8 +235,6 @@ bool formatStringInRect(const QString &str, const QFont &font,
 
 namespace CQChartsUtil {
 
-void drawContrastText(QPainter *painter, double x, double y, const QString &text, const QPen &pen);
-
 void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha=1.0,
             double strokeWidth=0.0, const CQChartsLineDash &strokeDash=CQChartsLineDash());
 

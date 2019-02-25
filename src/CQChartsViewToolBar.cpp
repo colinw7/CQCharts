@@ -2,8 +2,8 @@
 #include <CQChartsWindow.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
-#include <CQChartsModelDlg.h>
-#include <CQChartsPlotDlg.h>
+#include <CQChartsLoadModelDlg.h>
+#include <CQChartsCreatePlotDlg.h>
 #include <CQChartsModelData.h>
 #include <CQPixmapCache.h>
 #include <CQIconCombo.h>
@@ -196,17 +196,18 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
-  modelDlgButton_ = createButton("modelDlg", "MODELS", "Manage Models",
-                                 SLOT(manageModelsSlot()), false);
-  plotDlgButton_  = createButton("plotDlg" , "CHARTS", "Add Plot",
-                                 SLOT(addPlotSlot()), false);
+  loadModelDlgButton_ =
+    createButton("modelDlg", "MODELS", "Manage Models", SLOT(manageModelsSlot()), false);
+  createPlotDlgButton_ =
+    createButton("plotDlg" , "CHARTS", "Add Plot", SLOT(addPlotSlot()), false);
+
+  layout->addWidget(loadModelDlgButton_);
+  layout->addWidget(createPlotDlgButton_);
 
   autoFitButton_ = createButton("fit"  , "ZOOM_FIT", "Zoom Fit"    , SLOT(autoFitSlot()), false);
   leftButton_    = createButton("left" , "LEFT"    , "Scroll Left" , SLOT(leftSlot()));
   rightButton_   = createButton("right", "RIGHT"   , "Scroll Right", SLOT(rightSlot()));
 
-  layout->addWidget(modelDlgButton_);
-  layout->addWidget(plotDlgButton_);
   layout->addWidget(autoFitButton_);
   layout->addWidget(leftButton_);
   layout->addWidget(rightButton_);
@@ -300,12 +301,12 @@ manageModelsSlot()
 {
   CQCharts *charts = window_->view()->charts();
 
-  if (modelDlg_)
-    delete modelDlg_;
+  if (loadModelDlg_)
+    delete loadModelDlg_;
 
-  modelDlg_ = new CQChartsModelDlg(charts);
+  loadModelDlg_ = new CQChartsLoadModelDlg(charts);
 
-  modelDlg_->show();
+  loadModelDlg_->show();
 }
 
 void
@@ -319,14 +320,14 @@ addPlotSlot()
   if (! modelData)
     return;
 
-  if (plotDlg_)
-    delete plotDlg_;
+  if (createPlotDlg_)
+    delete createPlotDlg_;
 
-  plotDlg_ = new CQChartsPlotDlg(charts, modelData);
+  createPlotDlg_ = new CQChartsCreatePlotDlg(charts, modelData);
 
-  plotDlg_->setViewName(window_->view()->id());
+  createPlotDlg_->setViewName(window_->view()->id());
 
-  plotDlg_->show();
+  createPlotDlg_->show();
 }
 
 void

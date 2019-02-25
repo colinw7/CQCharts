@@ -6,6 +6,8 @@
 #include <CQChartsVariant.h>
 #include <CQChartsRand.h>
 #include <CQCharts.h>
+#include <CQChartsDrawUtil.h>
+
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -2848,10 +2850,14 @@ drawHText(QPainter *painter, double xl, double xr, double y, const QString &text
 
   double yf = (fm.ascent() - fm.descent())/2.0;
 
+  QPointF tp;
+
   if (onLeft)
-    painter->drawText(QPointF(x - margin - fm.width(text), y + yf), text);
+    tp = QPointF(x - margin - fm.width(text), y + yf);
   else
-    painter->drawText(QPointF(x + margin, y + yf), text);
+    tp = QPointF(x + margin, y + yf);
+
+  CQChartsDrawUtil::drawSimpleText(painter, tp, text);
 }
 
 void
@@ -2875,10 +2881,14 @@ drawVText(QPainter *painter, double yb, double yt, double x, const QString &text
   double fa = fm.ascent ();
   double fd = fm.descent();
 
+  QPointF tp;
+
   if (onBottom)
-    painter->drawText(QPointF(x - xf, y + margin + fa), text);
+    tp = QPointF(x - xf, y + margin + fa);
   else
-    painter->drawText(QPointF(x - xf, y - margin - fd), text);
+    tp = QPointF(x - xf, y - margin - fd);
+
+  CQChartsDrawUtil::drawSimpleText(painter, tp, text);
 }
 
 void

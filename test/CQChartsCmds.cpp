@@ -23,9 +23,9 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 
-#include <CQChartsLoadDlg.h>
-#include <CQChartsModelDlg.h>
-#include <CQChartsPlotDlg.h>
+#include <CQChartsLoadModelDlg.h>
+#include <CQChartsManageModelsDlg.h>
+#include <CQChartsCreatePlotDlg.h>
 #include <CQChartsFilterModel.h>
 #include <CQChartsAnalyzeModel.h>
 
@@ -137,9 +137,9 @@ addCommands()
     addCommand("write_charts_data", new CQChartsWriteChartsDataCmd(this));
 
     // dialogs
-    addCommand("load_model_dlg"  , new CQChartsLoadModelDlgCmd(this));
-    addCommand("manage_model_dlg", new CQChartsManageModelDlgCmd(this));
-    addCommand("create_plot_dlg" , new CQChartsCreatePlotDlgCmd(this));
+    addCommand("load_model_dlg"   , new CQChartsLoadModelDlgCmd(this));
+    addCommand("manage_models_dlg", new CQChartsManageModelsDlgCmd(this));
+    addCommand("create_plot_dlg"  , new CQChartsCreatePlotDlgCmd(this));
 
     // test
     addCommand("charts::test_edit", new CQChartsTestEditCmd(this));
@@ -3673,7 +3673,9 @@ createPolygonAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsShapeData shapeData;
+  CQChartsBoxData boxData;
+
+  CQChartsShapeData &shapeData = boxData.shape();
 
   CQChartsFillData   &background = shapeData.background();
   CQChartsStrokeData &border     = shapeData.border();
@@ -3720,7 +3722,7 @@ createPolygonAnnotationCmd(CQChartsCmdArgs &argv)
   if (tipId != "")
     annotation->setTipId(tipId);
 
-  annotation->setShapeData(shapeData);
+  annotation->setBoxData(boxData);
 
   cmdBase_->setCmdRc(annotation->propertyId());
 
@@ -3779,7 +3781,9 @@ createPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsShapeData shapeData;
+  CQChartsBoxData boxData;
+
+  CQChartsShapeData &shapeData = boxData.shape();
 
   CQChartsFillData   &background = shapeData.background();
   CQChartsStrokeData &border     = shapeData.border();
@@ -3828,7 +3832,7 @@ createPolylineAnnotationCmd(CQChartsCmdArgs &argv)
   if (tipId != "")
     annotation->setTipId(tipId);
 
-  annotation->setShapeData(shapeData);
+  annotation->setBoxData(boxData);
 
   cmdBase_->setCmdRc(annotation->propertyId());
 
@@ -4099,17 +4103,16 @@ createPointAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
   argv.addCmdArg("-position", CQChartsCmdArg::Type::Position, "position");
+  argv.addCmdArg("-type"    , CQChartsCmdArg::Type::String  , "symbol type");
 
-  argv.addCmdArg("-size", CQChartsCmdArg::Type::Length, "point size");
-  argv.addCmdArg("-type", CQChartsCmdArg::Type::String, "point type");
+  argv.addCmdArg("-size", CQChartsCmdArg::Type::Length, "symbol size");
 
-  argv.addCmdArg("-stroked", CQChartsCmdArg::Type::SBool, "stroke visible");
-  argv.addCmdArg("-filled" , CQChartsCmdArg::Type::SBool, "fill visible");
-
+  argv.addCmdArg("-stroked"   , CQChartsCmdArg::Type::SBool , "stroke visible");
   argv.addCmdArg("-line_width", CQChartsCmdArg::Type::Length, "stroke width");
   argv.addCmdArg("-line_color", CQChartsCmdArg::Type::Color , "stroke color");
   argv.addCmdArg("-line_alpha", CQChartsCmdArg::Type::Real  , "stroke alpha");
 
+  argv.addCmdArg("-filled"    , CQChartsCmdArg::Type::SBool, "fill visible");
   argv.addCmdArg("-fill_color", CQChartsCmdArg::Type::Color, "fill color");
   argv.addCmdArg("-fill_alpha", CQChartsCmdArg::Type::Real , "fill alpha");
 
@@ -4136,38 +4139,41 @@ createPointAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsSymbolData pointData;
+  CQChartsSymbolData symbolData;
 
   QString id    = argv.getParseStr("id");
   QString tipId = argv.getParseStr("tip");
 
   CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
 
-  pointData.setSize(argv.getParseLength(view, plot, "size", pointData.size()));
-
   QString typeStr = argv.getParseStr("type");
 
   if (typeStr.length())
-    pointData.setType(CQChartsSymbol::nameToType(typeStr));
+    symbolData.setType(CQChartsSymbol::nameToType(typeStr));
 
-  pointData.stroke().setVisible(argv.getParseBool  ("stroked", pointData.stroke().isVisible()));
-  pointData.stroke().setWidth  (argv.getParseLength(view, plot, "line_width",
-                                                  pointData.stroke().width()));
-  pointData.stroke().setColor  (argv.getParseColor ("line_color", pointData.stroke().color()));
-  pointData.stroke().setAlpha  (argv.getParseReal  ("line_alpha", pointData.stroke().alpha()));
+  symbolData.setSize(argv.getParseLength(view, plot, "size", symbolData.size()));
 
-  pointData.fill().setVisible(argv.getParseBool ("filled"    , pointData.fill().isVisible()));
-  pointData.fill().setColor  (argv.getParseColor("fill_color", pointData.fill().color    ()));
-  pointData.fill().setAlpha  (argv.getParseReal ("fill_alpha", pointData.fill().alpha    ()));
+  CQChartsStrokeData &strokeData = symbolData.stroke();
+
+  strokeData.setVisible(argv.getParseBool  ("stroked", strokeData.isVisible()));
+  strokeData.setWidth  (argv.getParseLength(view, plot, "line_width", strokeData.width()));
+  strokeData.setColor  (argv.getParseColor ("line_color", strokeData.color()));
+  strokeData.setAlpha  (argv.getParseReal  ("line_alpha", strokeData.alpha()));
+
+  CQChartsFillData &fillData = symbolData.fill();
+
+  fillData.setVisible(argv.getParseBool ("filled"    , fillData.isVisible()));
+  fillData.setColor  (argv.getParseColor("fill_color", fillData.color    ()));
+  fillData.setAlpha  (argv.getParseReal ("fill_alpha", fillData.alpha    ()));
 
   //---
 
   CQChartsPointAnnotation *annotation = nullptr;
 
   if      (view)
-    annotation = view->addPointAnnotation(pos, pointData.type());
+    annotation = view->addPointAnnotation(pos, symbolData.type());
   else if (plot)
-    annotation = plot->addPointAnnotation(pos, pointData.type());
+    annotation = plot->addPointAnnotation(pos, symbolData.type());
   else
     return false;
 
@@ -4177,7 +4183,7 @@ createPointAnnotationCmd(CQChartsCmdArgs &argv)
   if (tipId != "")
     annotation->setTipId(tipId);
 
-  annotation->setPointData(pointData);
+  annotation->setSymbolData(symbolData);
 
   cmdBase_->setCmdRc(annotation->propertyId());
 
@@ -4520,7 +4526,7 @@ loadModelDlgCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsLoadDlg *dlg = new CQChartsLoadDlg(charts_);
+  CQChartsLoadModelDlg *dlg = new CQChartsLoadModelDlg(charts_);
 
   if (modal)
     dlg->exec();
@@ -4536,9 +4542,9 @@ loadModelDlgCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-manageModelDlgCmd(CQChartsCmdArgs &argv)
+manageModelsDlgCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::manageModelDlgCmd");
+  CQPerfTrace trace("CQChartsCmds::manageModelsDlgCmd");
 
   argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
 
@@ -4549,7 +4555,7 @@ manageModelDlgCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsModelDlg *dlg = new CQChartsModelDlg(charts_);
+  CQChartsManageModelsDlg *dlg = new CQChartsManageModelsDlg(charts_);
 
   if (modal)
     dlg->exec();
@@ -4593,7 +4599,7 @@ createPlotDlgCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsPlotDlg *dlg = new CQChartsPlotDlg(charts_, modelData);
+  CQChartsCreatePlotDlg *dlg = new CQChartsCreatePlotDlg(charts_, modelData);
 
   dlg->setViewName(viewName);
 

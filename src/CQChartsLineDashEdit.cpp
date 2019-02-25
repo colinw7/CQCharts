@@ -1,4 +1,5 @@
 #include <CQChartsLineDashEdit.h>
+#include <CQChartsUtil.h>
 #include <CQIconCombo.h>
 #include <CQUtil.h>
 
@@ -335,10 +336,12 @@ paint(QPainter *painter, const QRect &rect, QIcon::Mode mode, QIcon::State state
 
   painter->fillRect(rect, bg);
 
-  QPen pen = dash_.pen();
+  QPen pen;
 
   pen.setColor(fg);
   pen.setWidthF(1.5);
+
+  CQChartsUtil::penSetLineDash(pen, dash_);
 
   int y = rect.height()/2;
 

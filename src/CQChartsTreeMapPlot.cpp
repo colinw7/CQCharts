@@ -3,6 +3,8 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTip.h>
+#include <CQChartsDrawUtil.h>
+
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -1055,11 +1057,11 @@ draw(QPainter *painter)
   painter->setClipRect(qrect);
 
   if (plot_->isHeaderTextContrast())
-    plot_->drawContrastText(painter, tx, ty, name, tpen);
+    CQChartsDrawUtil::drawContrastText(painter, tx, ty, name, tpen);
   else {
     painter->setPen(tpen);
 
-    painter->drawText(tx, ty, name);
+    CQChartsDrawUtil::drawSimpleText(painter, tx, ty, name);
   }
 
   //---
@@ -1223,7 +1225,9 @@ draw(QPainter *painter)
   textOptions.scaled    = plot_->isTextScaled();
   textOptions.align     = plot_->textAlign();
 
-  plot_->drawTextInBox(painter, qrect, name, tpen, textOptions);
+  textOptions = plot_->adjustTextOptions(textOptions);
+
+  CQChartsDrawUtil::drawTextInBox(painter, qrect, name, tpen, textOptions);
 
   //---
 

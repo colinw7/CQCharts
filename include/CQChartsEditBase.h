@@ -7,6 +7,8 @@ class CQChartsPlot;
 class CQChartsView;
 class CQChartsColor;
 
+class QGridLayout;
+
 class CQChartsEditBase : public QFrame {
   Q_OBJECT
 
@@ -22,6 +24,8 @@ class CQChartsEditBase : public QFrame {
 
   CQChartsView *view() const { return view_; }
   virtual void setView(CQChartsView *view) { view_ = view; }
+
+  void drawCenteredText(QPainter *painter, const QString &text);
 
  protected:
   CQChartsPlot* plot_ { nullptr };

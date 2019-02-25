@@ -148,9 +148,9 @@ class CQChartsCmds : public QObject {
   bool printChartsCmd    (CQChartsCmdArgs &args);
   bool writeChartsDataCmd(CQChartsCmdArgs &args);
 
-  bool loadModelDlgCmd  (CQChartsCmdArgs &args);
-  bool manageModelDlgCmd(CQChartsCmdArgs &args);
-  bool createPlotDlgCmd (CQChartsCmdArgs &args);
+  bool loadModelDlgCmd   (CQChartsCmdArgs &args);
+  bool manageModelsDlgCmd(CQChartsCmdArgs &args);
+  bool createPlotDlgCmd  (CQChartsCmdArgs &args);
 
   bool testEditCmd(CQChartsCmdArgs &args);
 
@@ -270,9 +270,9 @@ CQCHARTS_DEF_CMD(WriteChartsData, writeChartsDataCmd)
 
 //---
 
-CQCHARTS_DEF_CMD(LoadModelDlg  , loadModelDlgCmd)
-CQCHARTS_DEF_CMD(ManageModelDlg, manageModelDlgCmd)
-CQCHARTS_DEF_CMD(CreatePlotDlg , createPlotDlgCmd)
+CQCHARTS_DEF_CMD(LoadModelDlg   , loadModelDlgCmd)
+CQCHARTS_DEF_CMD(ManageModelsDlg, manageModelsDlgCmd)
+CQCHARTS_DEF_CMD(CreatePlotDlg  , createPlotDlgCmd)
 
 //---
 

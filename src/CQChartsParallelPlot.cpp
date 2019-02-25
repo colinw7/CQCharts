@@ -5,6 +5,8 @@
 #include <CQChartsTip.h>
 #include <CQCharts.h>
 #include <CQChartsDisplayRange.h>
+#include <CQChartsDrawUtil.h>
+
 #include <CQPerfMonitor.h>
 
 #include <QApplication>
@@ -679,10 +681,14 @@ drawFgAxes(QPainter *painter) const
 
     painter->setPen(tpen);
 
+    QPointF tp;
+
     if (! isHorizontal())
-      painter->drawText(QPointF(px - tw/2.0, py - td - tm), label);
+      tp = QPointF(px - tw/2.0, py - td - tm);
     else
-      painter->drawText(QPointF(px + tm, py - (ta - td)/2), label);
+      tp = QPointF(px + tm, py - (ta - td)/2);
+
+    CQChartsDrawUtil::drawSimpleText(painter, tp, label);
 
     //---
 

@@ -3,6 +3,8 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTip.h>
+#include <CQChartsDrawUtil.h>
+
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -1256,15 +1258,23 @@ draw(QPainter *painter)
 
   textOptions.contrast = plot_->isTextContrast();
 
-  if      (strs.size() == 1)
-    plot_->drawTextAtPoint(painter, QPointF(px1, py1), name, tpen, textOptions);
+  textOptions = plot_->adjustTextOptions(textOptions);
+
+  if      (strs.size() == 1) {
+    QPointF tp(px1, py1);
+
+    CQChartsDrawUtil::drawTextAtPoint(painter, tp, name, tpen, textOptions);
+  }
   else if (strs.size() == 2) {
     QFontMetricsF fm(painter->font());
 
     double th = fm.height();
 
-    plot_->drawTextAtPoint(painter, QPointF(px1, py1 - th/2), strs[0], tpen, textOptions);
-    plot_->drawTextAtPoint(painter, QPointF(px1, py1 + th/2), strs[1], tpen, textOptions);
+    QPointF tp1(px1, py1 - th/2);
+    QPointF tp2(px1, py1 + th/2);
+
+    CQChartsDrawUtil::drawTextAtPoint(painter, tp1, strs[0], tpen, textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(painter, tp2, strs[1], tpen, textOptions);
   }
   else {
     assert(false);

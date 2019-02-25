@@ -8,6 +8,7 @@
 #include <CQChartsGroupData.h>
 #include <CQChartsPosition.h>
 #include <CQChartsRect.h>
+#include <CQChartsPolygon.h>
 #include <CQChartsModelVisitor.h>
 #include <CQChartsTextOptions.h>
 #include <CQChartsLayer.h>
@@ -942,9 +943,12 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &w) const;
   CQChartsGeom::Point windowToView (const CQChartsGeom::Point &w) const;
   CQChartsGeom::Point pixelToWindow(const CQChartsGeom::Point &p) const;
+  CQChartsGeom::Point viewToWindow (const CQChartsGeom::Point &v) const;
 
   QPointF windowToPixel(const QPointF &w) const;
-  QPointF pixelToWindow(const QPointF &w) const;
+  QPointF windowToView (const QPointF &w) const;
+  QPointF pixelToWindow(const QPointF &p) const;
+  QPointF viewToWindow (const QPointF &v) const;
 
   void windowToPixel(const CQChartsGeom::BBox &wrect, CQChartsGeom::BBox &prect) const;
   void pixelToWindow(const CQChartsGeom::BBox &prect, CQChartsGeom::BBox &wrect) const;
@@ -1360,8 +1364,8 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsEllipseAnnotation  *addEllipseAnnotation (const CQChartsPosition &center,
                                                     const CQChartsLength &xRadius,
                                                     const CQChartsLength &yRadius);
-  CQChartsPolygonAnnotation  *addPolygonAnnotation (const QPolygonF &points);
-  CQChartsPolylineAnnotation *addPolylineAnnotation(const QPolygonF &points);
+  CQChartsPolygonAnnotation  *addPolygonAnnotation (const CQChartsPolygon &polygon);
+  CQChartsPolylineAnnotation *addPolylineAnnotation(const CQChartsPolygon &polygon);
   CQChartsPointAnnotation    *addPointAnnotation   (const CQChartsPosition &pos,
                                                     const CQChartsSymbol &type);
 
@@ -1547,16 +1551,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void drawTextAtPoint(QPainter *painter, const QPointF &point,
-                       const QString &text, const QPen &pen,
-                       const CQChartsTextOptions &options=CQChartsTextOptions()) const;
-
-  void drawTextInBox(QPainter *painter, const QRectF &rect,
-                     const QString &text, const QPen &pen,
-                     const CQChartsTextOptions &options=CQChartsTextOptions()) const;
-
-  void drawContrastText(QPainter *painter, double x, double y,
-                        const QString &text, const QPen &pen) const;
+  CQChartsTextOptions adjustTextOptions(
+    const CQChartsTextOptions &options=CQChartsTextOptions()) const;
 
   //---
 
@@ -2068,6 +2064,7 @@ class CQChartsPlot : public CQChartsObj,
   IndexColumnRows              selIndexColumnRows_;              //! sel model indices (by col/row)
   QItemSelection               itemSelection_;                   //! selected model indices
   CQChartsEditHandles*         editHandles_      { nullptr };    //! edit controls
+  bool                         editing_          { false };      //! is editing
   Annotations                  annotations_;                     //! extra annotations
   UpdatesData                  updatesData_;                     //! updates data
   bool                         fromInvalidate_   { false };      //! call from invalidate

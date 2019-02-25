@@ -13,9 +13,9 @@
 #include <CQChartsUtil.h>
 #include <CQChartsEnv.h>
 #include <CQChartsGradientPalette.h>
-#include <CQChartsRotatedText.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsVariant.h>
+#include <CQChartsDrawUtil.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -638,7 +638,7 @@ addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadi
 
 CQChartsPolygonAnnotation *
 CQChartsView::
-addPolygonAnnotation(const QPolygonF &points)
+addPolygonAnnotation(const CQChartsPolygon &points)
 {
   CQChartsPolygonAnnotation *polyAnnotation = new CQChartsPolygonAnnotation(this, points);
 
@@ -649,7 +649,7 @@ addPolygonAnnotation(const QPolygonF &points)
 
 CQChartsPolylineAnnotation *
 CQChartsView::
-addPolylineAnnotation(const QPolygonF &points)
+addPolylineAnnotation(const CQChartsPolygon &points)
 {
   CQChartsPolylineAnnotation *polyAnnotation = new CQChartsPolylineAnnotation(this, points);
 
@@ -957,12 +957,12 @@ resetGrouping()
 
   for (auto &plot : plots_) {
     if (plot->xAxis()) {
-      plot->xAxis()->setSide(CQChartsAxis::Side::BOTTOM_LEFT);
+      plot->xAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
       plot->xAxis()->setVisible(true);
     }
 
     if (plot->yAxis()) {
-      plot->yAxis()->setSide(CQChartsAxis::Side::BOTTOM_LEFT);
+      plot->yAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
       plot->yAxis()->setVisible(true);
     }
 
@@ -1111,7 +1111,7 @@ initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
   // first plot x axis BOTTOM/LEFT (set by resetConnectData), second plot x axis TOP/RIGHT
   if (plot2->xAxis()) {
     if (plot2->isOverlay())
-      plot2->xAxis()->setSide(CQChartsAxis::Side::TOP_RIGHT);
+      plot2->xAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
   }
 
   if (plot2->isOverlay()) {
@@ -1159,7 +1159,7 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
   // first plot y axis BOTTOM/LEFT (set by resetConnectData), second plot y axis TOP/RIGHT
   if (plot2->yAxis()) {
     if (plot2->isOverlay())
-      plot2->yAxis()->setSide(CQChartsAxis::Side::TOP_RIGHT);
+      plot2->yAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
   }
 
   if (plot2->isOverlay()) {
@@ -2294,29 +2294,6 @@ setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
   double width = CQChartsUtil::limitLineWidth(lengthPixelWidth(strokeWidth));
 
   CQChartsUtil::setPen(pen, stroked, strokeColor, strokeAlpha, width, strokeDash);
-
-#if 0
-  // calc pen (stroke)
-  if (stroked) {
-    QColor color = strokeColor;
-
-    color.setAlphaF(CMathUtil::clamp(strokeAlpha, 0.0, 1.0));
-
-    pen.setColor(color);
-
-    double width = lengthPixelWidth(strokeWidth);
-
-    if (width > 0)
-      pen.setWidthF(width);
-    else
-      pen.setWidthF(0.0);
-
-    CQChartsUtil::penSetLineDash(pen, strokeDash);
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
-#endif
 }
 
 void
@@ -2325,129 +2302,6 @@ setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
          const CQChartsFillPattern &pattern) const
 {
   CQChartsUtil::setBrush(brush, filled, fillColor, fillAlpha, pattern);
-
-#if 0
-  // calc brush (fill)
-  if (filled) {
-    QColor color = fillColor;
-
-    color.setAlphaF(CMathUtil::clamp(fillAlpha, 0.0, 1.0));
-
-    brush.setColor(color);
-
-    brush.setStyle(pattern.style());
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
-#endif
-}
-
-//------
-
-void
-CQChartsView::
-drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
-              const QPen &pen, const CQChartsTextOptions &options)
-{
-  painter->save();
-
-  if (CMathUtil::isZero(options.angle)) {
-    QFontMetricsF fm(painter->font());
-
-    if (options.clipped)
-      painter->setClipRect(rect);
-
-    if (! options.contrast)
-      painter->setPen(pen);
-
-    //---
-
-    QStringList strs;
-
-    if (options.formatted)
-      CQChartsUtil::formatStringInRect(text, painter->font(), rect, strs);
-    else
-      strs << text;
-
-    //---
-
-    double tw = 0;
-
-    for (int i = 0; i < strs.size(); ++i)
-      tw = std::max(tw, fm.width(strs[i]));
-
-    double th = strs.size()*fm.height();
-
-    if (options.scaled) {
-      double sx = (tw > 0 ? rect.width ()/tw : 1);
-      double sy = (th > 0 ? rect.height()/th : 1);
-
-      double s = std::min(sx, sy);
-
-      double fs = painter->font().pointSizeF()*s;
-
-      fs = CMathUtil::clamp(fs, options.minScaleFontSize, options.maxScaleFontSize);
-
-      QFont font1 = painter->font();
-
-      font1.setPointSizeF(fs);
-
-      painter->setFont(font1);
-
-      fm = QFontMetricsF(painter->font());
-
-      th = strs.size()*fm.height();
-    }
-
-    //---
-
-    double dy = 0.0;
-
-    if      (options.align & Qt::AlignVCenter)
-      dy = (rect.height() - th)/2.0;
-    else if (options.align & Qt::AlignBottom)
-      dy = rect.height() - th;
-
-    double y = rect.top() + dy + fm.ascent();
-
-    for (int i = 0; i < strs.size(); ++i) {
-      double dx = 0.0;
-
-      double tw = fm.width(strs[i]);
-
-      if      (options.align & Qt::AlignHCenter)
-         dx = (rect.width() - tw)/2;
-      else if (options.align & Qt::AlignRight)
-         dx = rect.width() - tw;
-
-      double x = rect.left() + dx;
-
-      if (options.contrast)
-        drawContrastText(painter, x, y, strs[i], pen);
-      else
-        painter->drawText(x, y, strs[i]);
-
-      y += fm.height();
-    }
-  }
-  else {
-    painter->setPen(pen);
-
-    // TODO: support align and contrast
-    CQChartsRotatedText::drawRotatedText(painter, rect.center().x(), rect.center().y(),
-                                         text, options.angle, Qt::AlignHCenter | Qt::AlignVCenter,
-                                         /*alignBox*/false);
-  }
-
-  painter->restore();
-}
-
-void
-CQChartsView::
-drawContrastText(QPainter *painter, double x, double y, const QString &text, const QPen &pen)
-{
-  CQChartsUtil::drawContrastText(painter, x, y, text, pen);
 }
 
 //------
@@ -2794,7 +2648,7 @@ showMenu(const QPoint &p)
 
   //------
 
-  using AxisSideActionMap = std::map<CQChartsAxis::Side, QAction *>;
+  using AxisSideActionMap = std::map<CQChartsAxisSide, QAction *>;
 
   //------
 
@@ -2835,7 +2689,7 @@ showMenu(const QPoint &p)
 
     QActionGroup *xAxisSideGroup = new QActionGroup(xAxisMenu);
 
-    auto addXAxisSideGroupAction = [&](const QString &label, const CQChartsAxis::Side &side) {
+    auto addXAxisSideGroupAction = [&](const QString &label, const CQChartsAxisSide &side) {
       QAction *action = new QAction(label, xAxisSideMenu);
 
       action->setCheckable(true);
@@ -2847,8 +2701,8 @@ showMenu(const QPoint &p)
       return action;
     };
 
-    addXAxisSideGroupAction("Bottom", CQChartsAxis::Side::BOTTOM_LEFT);
-    addXAxisSideGroupAction("Top"   , CQChartsAxis::Side::TOP_RIGHT  );
+    addXAxisSideGroupAction("Bottom", CQChartsAxisSide::Type::BOTTOM_LEFT);
+    addXAxisSideGroupAction("Top"   , CQChartsAxisSide::Type::TOP_RIGHT  );
 
     if (basePlot && basePlot->xAxis())
       xAxisSideActionMap[basePlot->xAxis()->side()]->setChecked(true);
@@ -2901,7 +2755,7 @@ showMenu(const QPoint &p)
 
     QActionGroup *yAxisSideGroup = new QActionGroup(yAxisMenu);
 
-    auto addYAxisSideGroupAction = [&](const QString &label, const CQChartsAxis::Side &side) {
+    auto addYAxisSideGroupAction = [&](const QString &label, const CQChartsAxisSide &side) {
       QAction *action = new QAction(label, yAxisSideMenu);
 
       action->setCheckable(true);
@@ -2913,8 +2767,8 @@ showMenu(const QPoint &p)
       return action;
     };
 
-    addYAxisSideGroupAction("Left" , CQChartsAxis::Side::BOTTOM_LEFT);
-    addYAxisSideGroupAction("Right", CQChartsAxis::Side::TOP_RIGHT  );
+    addYAxisSideGroupAction("Left" , CQChartsAxisSide::Type::BOTTOM_LEFT);
+    addYAxisSideGroupAction("Right", CQChartsAxisSide::Type::TOP_RIGHT  );
 
     if (basePlot && basePlot->yAxis())
       yAxisSideActionMap[basePlot->yAxis()->side()]->setChecked(true);
@@ -2948,7 +2802,7 @@ showMenu(const QPoint &p)
 
     //---
 
-    using TitleLocationActionMap = std::map<CQChartsTitle::LocationType, QAction *>;
+    using TitleLocationActionMap = std::map<CQChartsTitleLocation::Type, QAction *>;
 
     TitleLocationActionMap titleLocationActionMap;
 
@@ -2957,7 +2811,7 @@ showMenu(const QPoint &p)
     QActionGroup *titleLocationGroup = new QActionGroup(titleMenu);
 
     auto addTitleLocationGroupAction =
-     [&](const QString &label, const CQChartsTitle::LocationType &location) {
+     [&](const QString &label, const CQChartsTitleLocation::Type &location) {
       QAction *action = new QAction(label, titleLocationMenu);
 
       action->setCheckable(true);
@@ -2969,13 +2823,13 @@ showMenu(const QPoint &p)
       return action;
     };
 
-    addTitleLocationGroupAction("Top"     , CQChartsTitle::LocationType::TOP    );
-    addTitleLocationGroupAction("Center"  , CQChartsTitle::LocationType::CENTER );
-    addTitleLocationGroupAction("Bottom"  , CQChartsTitle::LocationType::BOTTOM );
-    addTitleLocationGroupAction("Absolute", CQChartsTitle::LocationType::ABS_POS);
+    addTitleLocationGroupAction("Top"     , CQChartsTitleLocation::Type::TOP    );
+    addTitleLocationGroupAction("Center"  , CQChartsTitleLocation::Type::CENTER );
+    addTitleLocationGroupAction("Bottom"  , CQChartsTitleLocation::Type::BOTTOM );
+    addTitleLocationGroupAction("Absolute", CQChartsTitleLocation::Type::ABS_POS);
 
     if (basePlot && basePlot->title())
-      titleLocationActionMap[basePlot->title()->location()]->setChecked(true);
+      titleLocationActionMap[basePlot->title()->location().type()]->setChecked(true);
 
     connect(titleLocationGroup, SIGNAL(triggered(QAction *)),
             this, SLOT(titleLocationSlot(QAction *)));
@@ -3298,9 +3152,9 @@ xAxisSideSlot(QAction *action)
 
   if (basePlot && basePlot->xAxis()) {
     if      (action->text() == "Bottom")
-      basePlot->xAxis()->setSide(CQChartsAxis::Side::BOTTOM_LEFT);
+      basePlot->xAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
     else if (action->text() == "Top")
-      basePlot->xAxis()->setSide(CQChartsAxis::Side::TOP_RIGHT);
+      basePlot->xAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
   }
 }
 
@@ -3338,9 +3192,9 @@ yAxisSideSlot(QAction *action)
 
   if (basePlot && basePlot->yAxis()) {
     if      (action->text() == "Left")
-      basePlot->yAxis()->setSide(CQChartsAxis::Side::BOTTOM_LEFT);
+      basePlot->yAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
     else if (action->text() == "Right")
-      basePlot->yAxis()->setSide(CQChartsAxis::Side::TOP_RIGHT);
+      basePlot->yAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
   }
 }
 
@@ -3366,13 +3220,13 @@ titleLocationSlot(QAction *action)
 
   if (basePlot && basePlot->title()) {
     if      (action->text() == "Top")
-      basePlot->title()->setLocation(CQChartsTitle::LocationType::TOP);
+      basePlot->title()->setLocation(CQChartsTitleLocation::Type::TOP);
     else if (action->text() == "Center")
-      basePlot->title()->setLocation(CQChartsTitle::LocationType::CENTER);
+      basePlot->title()->setLocation(CQChartsTitleLocation::Type::CENTER);
     else if (action->text() == "Bottom")
-      basePlot->title()->setLocation(CQChartsTitle::LocationType::BOTTOM);
+      basePlot->title()->setLocation(CQChartsTitleLocation::Type::BOTTOM);
     else if (action->text() == "Absolute")
-      basePlot->title()->setLocation(CQChartsTitle::LocationType::ABS_POS);
+      basePlot->title()->setLocation(CQChartsTitleLocation::Type::ABS_POS);
   }
 }
 

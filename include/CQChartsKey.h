@@ -136,8 +136,9 @@ class CQChartsKey : public CQChartsBoxObj,
   struct ScrollData {
     bool              scrolled { false };   //! scrolled
     int               pos      { 0 };       //! scroll position
-    double            width    { 13 };      //! scroll width
-    CQChartsOptLength height;               //! scroll height
+    double            barSize  { 13 };      //! scroll bar size
+    CQChartsOptLength width;                //! fixed width
+    CQChartsOptLength height;               //! fixed height
     QScrollBar*       bar      { nullptr }; //! scroll bar
   };
 
@@ -208,6 +209,7 @@ class CQChartsPlotKey : public CQChartsKey {
   Q_PROPERTY(bool              insideY      READ isInsideY    WRITE setInsideY     )
   Q_PROPERTY(int               spacing      READ spacing      WRITE setSpacing     )
   Q_PROPERTY(bool              flipped      READ isFlipped    WRITE setFlipped     )
+  Q_PROPERTY(CQChartsOptLength scrollWidth  READ scrollWidth  WRITE setScrollWidth )
   Q_PROPERTY(CQChartsOptLength scrollHeight READ scrollHeight WRITE setScrollHeight)
 
  public:
@@ -236,6 +238,9 @@ class CQChartsPlotKey : public CQChartsKey {
   void setFlipped(bool b);
 
   //---
+
+  const CQChartsOptLength &scrollWidth() const { return scrollData_.width; }
+  void setScrollWidth(const CQChartsOptLength &l) { scrollData_.width = l; }
 
   const CQChartsOptLength &scrollHeight() const { return scrollData_.height; }
   void setScrollHeight(const CQChartsOptLength &l) { scrollData_.height = l; }
@@ -278,7 +283,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  void redrawBoxObj() override { redraw(); }
+  void boxDataInvalidate() override { redraw(); }
 
   void redraw(bool queued=true) override;
 

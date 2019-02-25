@@ -14,6 +14,8 @@
 #include <CQChartsDataLabel.h>
 #include <CQChartsGrahamHull.h>
 #include <CQCharts.h>
+#include <CQChartsDrawUtil.h>
+
 #include <CQPerfMonitor.h>
 #include <CMathCorrelation.h>
 #include <CMathRound.h>
@@ -2979,7 +2981,7 @@ drawSymbolMapKey(QPainter *painter) const
   auto drawText = [&](QPainter *painter, const QPointF &p, const QString &text) {
     QFontMetricsF fm(painter->font());
 
-    painter->drawText(p.x() - fm.width(text)/2, p.y(), text);
+    CQChartsDrawUtil::drawSimpleText(painter, p.x() - fm.width(text)/2, p.y(), text);
   };
 
   drawText(painter, QPointF(r1.center().x(), r1.top()), QString("%1").arg(max ));
@@ -3598,9 +3600,9 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
   // draw key labels
   double df = (fm.ascent() - fm.descent())/2.0;
 
-  painter->drawText(rprect.getXMin() + 1, y1 + df, QString("%1").arg(n1));
-  painter->drawText(rprect.getXMin() + 1, y2 + df, QString("%1").arg(n2));
-  painter->drawText(rprect.getXMin() + 1, y3 + df, QString("%1").arg(n3));
-  painter->drawText(rprect.getXMin() + 1, y4 + df, QString("%1").arg(n4));
-  painter->drawText(rprect.getXMin() + 1, y5 + df, QString("%1").arg(n5));
+  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin() + 1, y1 + df, QString("%1").arg(n1));
+  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin() + 1, y2 + df, QString("%1").arg(n2));
+  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin() + 1, y3 + df, QString("%1").arg(n3));
+  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin() + 1, y4 + df, QString("%1").arg(n4));
+  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin() + 1, y5 + df, QString("%1").arg(n5));
 }

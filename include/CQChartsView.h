@@ -9,6 +9,7 @@
 #include <CQChartsPosition.h>
 #include <CQChartsLength.h>
 #include <CQChartsRect.h>
+#include <CQChartsPolygon.h>
 #include <CQChartsTypes.h>
 #include <QFrame>
 #include <QTimer>
@@ -378,8 +379,8 @@ class CQChartsView : public QFrame,
   CQChartsEllipseAnnotation  *addEllipseAnnotation (const CQChartsPosition &center,
                                                     const CQChartsLength &xRadius,
                                                     const CQChartsLength &yRadius);
-  CQChartsPolygonAnnotation  *addPolygonAnnotation (const QPolygonF &points);
-  CQChartsPolylineAnnotation *addPolylineAnnotation(const QPolygonF &points);
+  CQChartsPolygonAnnotation  *addPolygonAnnotation (const CQChartsPolygon &polygon);
+  CQChartsPolylineAnnotation *addPolylineAnnotation(const CQChartsPolygon &polygon);
   CQChartsPointAnnotation    *addPointAnnotation   (const CQChartsPosition &pos,
                                                     const CQChartsSymbol &type);
 
@@ -458,14 +459,6 @@ class CQChartsView : public QFrame,
 
   void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(), double fillAlpha=1.0,
                 const CQChartsFillPattern &pattern=CQChartsFillPattern()) const;
-
-  //---
-
-  // drae text helpers
-  static void drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
-                            const QPen &pen, const CQChartsTextOptions &options);
-  static void drawContrastText(QPainter *painter, double x, double y, const QString &text,
-                               const QPen &pen);
 
   //---
 

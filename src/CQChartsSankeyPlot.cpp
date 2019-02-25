@@ -5,6 +5,8 @@
 #include <CQCharts.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsNamePair.h>
+#include <CQChartsDrawUtil.h>
+
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -1094,9 +1096,9 @@ drawFg(QPainter *painter) const
   double ty = prect.getYMid() + fm.ascent()/2;
 
   if (plot_->isTextContrast())
-    plot_->drawContrastText(painter, tx, ty, str, pen);
+    CQChartsDrawUtil::drawContrastText(painter, tx, ty, str, pen);
   else
-    painter->drawText(tx, ty, str);
+    CQChartsDrawUtil::drawSimpleText(painter, tx, ty, str);
 }
 
 //------

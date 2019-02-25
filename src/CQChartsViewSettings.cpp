@@ -6,24 +6,30 @@
 #include <CQPropertyViewTree.h>
 #include <CQChartsGradientPaletteCanvas.h>
 #include <CQChartsGradientPaletteControl.h>
-#include <CQChartsLoadDlg.h>
-#include <CQChartsPlotDlg.h>
-#include <CQChartsAnnotationDlg.h>
+#include <CQChartsLoadModelDlg.h>
+#include <CQChartsCreatePlotDlg.h>
+#include <CQChartsCreateAnnotationDlg.h>
+#include <CQChartsEditAnnotationDlg.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsAnnotation.h>
+#include <CQChartsTitleEdit.h>
+#include <CQChartsKeyEdit.h>
+#include <CQChartsAxisEdit.h>
+#include <CQChartsKey.h>
 #include <CQCharts.h>
 #include <CQChartsVariant.h>
 #include <CQChartsUtil.h>
+
 #include <CQPropertyViewItem.h>
 #include <CQIconCombo.h>
 #include <CQIntegerSpin.h>
 #include <CQUtil.h>
+#include <CQGroupBox.h>
 
 #include <QTabWidget>
 #include <QTextBrowser>
 #include <QHeaderView>
-#include <QGroupBox>
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QSplitter>
@@ -327,7 +333,37 @@ initPlotsFrame(QFrame *plotsFrame)
 
   //--
 
-  QGroupBox *groupPlotsGroup = new QGroupBox("Group");
+  QFrame *editFrame = new QFrame;
+
+  QHBoxLayout *editLayout = new QHBoxLayout(editFrame);
+
+  QPushButton *titleButton = new QPushButton("Title");
+
+  connect(titleButton, SIGNAL(clicked()), this, SLOT(editPlotTitleSlot()));
+
+  QPushButton *keyButton = new QPushButton("Key");
+
+  connect(keyButton, SIGNAL(clicked()), this, SLOT(editPlotKeySlot()));
+
+  QPushButton *xAxisButton = new QPushButton("X Axis");
+
+  connect(xAxisButton, SIGNAL(clicked()), this, SLOT(editPlotXAxisSlot()));
+
+  QPushButton *yAxisButton = new QPushButton("Y Axis");
+
+  connect(yAxisButton, SIGNAL(clicked()), this, SLOT(editPlotYAxisSlot()));
+
+  editLayout->addWidget(titleButton);
+  editLayout->addWidget(keyButton);
+  editLayout->addWidget(xAxisButton);
+  editLayout->addWidget(yAxisButton);
+  editLayout->addStretch(1);
+
+  plotsFrameLayout->addWidget(editFrame);
+
+  //--
+
+  CQGroupBox *groupPlotsGroup = new CQGroupBox("Group");
   groupPlotsGroup->setObjectName("groupPlotsGroup");
 
   QVBoxLayout *groupPlotsGroupLayout = new QVBoxLayout(groupPlotsGroup);
@@ -370,7 +406,7 @@ initPlotsFrame(QFrame *plotsFrame)
 
   //----
 
-  QGroupBox *placePlotsGroup = new QGroupBox("Place");
+  CQGroupBox *placePlotsGroup = new CQGroupBox("Place");
   placePlotsGroup->setObjectName("placePlotsGroup");
 
   QVBoxLayout *placePlotsGroupLayout = new QVBoxLayout(placePlotsGroup);
@@ -439,7 +475,7 @@ initPlotsFrame(QFrame *plotsFrame)
 
   //----
 
-  QGroupBox *controlPlotsGroup = new QGroupBox("Control");
+  CQGroupBox *controlPlotsGroup = new CQGroupBox("Control");
   controlPlotsGroup->setObjectName("controlPlotsGroup");
 
   plotsFrameLayout->addWidget(controlPlotsGroup);
@@ -515,7 +551,7 @@ initAnnotationsFrame(QFrame *annotationsFrame)
 
   //----
 
-  QGroupBox *controlGroup = new QGroupBox("Control");
+  CQGroupBox *controlGroup = new CQGroupBox("Control");
   controlGroup->setObjectName("controlGroup");
 
   annotationsFrameLayout->addWidget(controlGroup);
@@ -525,19 +561,25 @@ initAnnotationsFrame(QFrame *annotationsFrame)
   QPushButton *createButton = new QPushButton("Create");
   createButton->setObjectName("create");
 
+  annotationsWidgets_.editButton = new QPushButton("Edit");
+  annotationsWidgets_.editButton->setObjectName("edit");
+
   annotationsWidgets_.removeButton = new QPushButton("Remove");
   annotationsWidgets_.removeButton->setObjectName("remove");
 
   QPushButton *writeButton = new QPushButton("Write");
   writeButton->setObjectName("write");
 
+  annotationsWidgets_.editButton  ->setEnabled(false);
   annotationsWidgets_.removeButton->setEnabled(false);
 
   connect(createButton                    , SIGNAL(clicked()), this, SLOT(createAnnotationSlot()));
+  connect(annotationsWidgets_.editButton  , SIGNAL(clicked()), this, SLOT(editAnnotationSlot()));
   connect(annotationsWidgets_.removeButton, SIGNAL(clicked()), this, SLOT(removeAnnotationsSlot()));
   connect(writeButton                     , SIGNAL(clicked()), this, SLOT(writeAnnotationSlot()));
 
   controlGroupLayout->addWidget(createButton);
+  controlGroupLayout->addWidget(annotationsWidgets_.editButton);
   controlGroupLayout->addWidget(annotationsWidgets_.removeButton);
   controlGroupLayout->addWidget(writeButton);
   controlGroupLayout->addStretch(1);
@@ -916,12 +958,12 @@ loadModelSlot()
 {
   CQCharts *charts = window_->view()->charts();
 
-  if (loadDlg_)
-    delete loadDlg_;
+  if (loadModelDlg_)
+    delete loadModelDlg_;
 
-  loadDlg_ = new CQChartsLoadDlg(charts);
+  loadModelDlg_ = new CQChartsLoadModelDlg(charts);
 
-  loadDlg_->show();
+  loadModelDlg_->show();
 }
 
 //------
@@ -1078,6 +1120,102 @@ plotsSelectionChangeSlot()
 
 void
 CQChartsViewSettings::
+editPlotTitleSlot()
+{
+  Plots plots;
+
+  getSelectedPlots(plots);
+
+  if (plots.empty())
+    return;
+
+  CQChartsPlot *plot = plots[0];
+
+  if (! plot->title())
+    return;
+
+  if (editTitleDlg_)
+    delete editTitleDlg_;
+
+  editTitleDlg_ = new CQChartsEditTitleDlg(plot->title());
+
+  editTitleDlg_->show();
+}
+
+void
+CQChartsViewSettings::
+editPlotKeySlot()
+{
+  Plots plots;
+
+  getSelectedPlots(plots);
+
+  if (plots.empty())
+    return;
+
+  CQChartsPlot *plot = plots[0];
+
+  if (! plot->key())
+    return;
+
+  if (editKeyDlg_)
+    delete editKeyDlg_;
+
+  editKeyDlg_ = new CQChartsEditKeyDlg(plot->key());
+
+  editKeyDlg_->show();
+}
+
+void
+CQChartsViewSettings::
+editPlotXAxisSlot()
+{
+  Plots plots;
+
+  getSelectedPlots(plots);
+
+  if (plots.empty())
+    return;
+
+  CQChartsPlot *plot = plots[0];
+
+  if (! plot->xAxis())
+    return;
+
+  if (editXAxisDlg_)
+    delete editXAxisDlg_;
+
+  editXAxisDlg_ = new CQChartsEditAxisDlg(plot->xAxis());
+
+  editXAxisDlg_->show();
+}
+
+void
+CQChartsViewSettings::
+editPlotYAxisSlot()
+{
+  Plots plots;
+
+  getSelectedPlots(plots);
+
+  if (plots.empty())
+    return;
+
+  CQChartsPlot *plot = plots[0];
+
+  if (! plot->yAxis())
+    return;
+
+  if (editYAxisDlg_)
+    delete editYAxisDlg_;
+
+  editYAxisDlg_ = new CQChartsEditAxisDlg(plot->yAxis());
+
+  editYAxisDlg_->show();
+}
+
+void
+CQChartsViewSettings::
 groupPlotsSlot()
 {
   CQChartsView *view = window_->view();
@@ -1190,14 +1328,14 @@ createPlotSlot()
   if (! modelData)
     return;
 
-  if (plotDlg_)
-    delete plotDlg_;
+  if (createPlotDlg_)
+    delete createPlotDlg_;
 
-  plotDlg_ = new CQChartsPlotDlg(charts, modelData);
+  createPlotDlg_ = new CQChartsCreatePlotDlg(charts, modelData);
 
-  plotDlg_->setViewName(window_->view()->id());
+  createPlotDlg_->setViewName(window_->view()->id());
 
-  plotDlg_->show();
+  createPlotDlg_->show();
 }
 
 void
@@ -1292,7 +1430,10 @@ viewAnnotationSelectionChangeSlot()
 
   getSelectedAnnotations(viewAnnotations, plotAnnotations);
 
-  annotationsWidgets_.removeButton->setEnabled(viewAnnotations.size() > 0);
+  bool anyAnnotations = (viewAnnotations.size() > 0 || plotAnnotations.size() > 0);
+
+  annotationsWidgets_.editButton  ->setEnabled(anyAnnotations);
+  annotationsWidgets_.removeButton->setEnabled(anyAnnotations);
 
   if (viewAnnotations.size()) {
     disconnect(annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
@@ -1326,7 +1467,10 @@ plotAnnotationSelectionChangeSlot()
 
   getSelectedAnnotations(viewAnnotations, plotAnnotations);
 
-  annotationsWidgets_.removeButton->setEnabled(plotAnnotations.size() > 0);
+  bool anyAnnotations = (viewAnnotations.size() > 0 || plotAnnotations.size() > 0);
+
+  annotationsWidgets_.editButton  ->setEnabled(anyAnnotations);
+  annotationsWidgets_.removeButton->setEnabled(anyAnnotations);
 
   if (plotAnnotations.size()) {
     disconnect(annotationsWidgets_.viewTable, SIGNAL(itemSelectionChanged()),
@@ -1402,12 +1546,38 @@ createAnnotationSlot()
   if (! plot)
     return;
 
-  if (annotationDlg_)
-    delete annotationDlg_;
+  if (createAnnotationDlg_)
+    delete createAnnotationDlg_;
 
-  annotationDlg_ = new CQChartsAnnotationDlg(plot);
+  createAnnotationDlg_ = new CQChartsCreateAnnotationDlg(plot);
 
-  annotationDlg_->show();
+  createAnnotationDlg_->show();
+}
+
+void
+CQChartsViewSettings::
+editAnnotationSlot()
+{
+  Annotations viewAnnotations, plotAnnotations;
+
+  getSelectedAnnotations(viewAnnotations, plotAnnotations);
+
+  CQChartsAnnotation *annotation = nullptr;
+
+  if      (! viewAnnotations.empty())
+    annotation = viewAnnotations[0];
+  else if (! plotAnnotations.empty())
+    annotation = plotAnnotations[0];
+
+  if (! annotation)
+    return;
+
+  if (editAnnotationDlg_)
+    delete editAnnotationDlg_;
+
+  editAnnotationDlg_ = new CQChartsEditAnnotationDlg(annotation);
+
+  editAnnotationDlg_->show();
 }
 
 void

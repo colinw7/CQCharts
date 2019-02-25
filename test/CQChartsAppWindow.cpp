@@ -1,7 +1,7 @@
 #include <CQChartsAppWindow.h>
 #include <CQChartsModelWidgets.h>
-#include <CQChartsLoadDlg.h>
-#include <CQChartsPlotDlg.h>
+#include <CQChartsLoadModelDlg.h>
+#include <CQChartsCreatePlotDlg.h>
 #include <CQChartsModelData.h>
 #include <CQCharts.h>
 #include <CQUtil.h>
@@ -34,7 +34,7 @@ CQChartsAppWindow(CQCharts *charts) :
 CQChartsAppWindow::
 ~CQChartsAppWindow()
 {
-  delete loadDlg_;
+  delete loadModelDlg_;
 }
 
 void
@@ -84,13 +84,13 @@ void
 CQChartsAppWindow::
 loadModelSlot()
 {
-  if (! loadDlg_) {
-    loadDlg_ = new CQChartsLoadDlg(charts_);
+  if (! loadModelDlg_) {
+    loadModelDlg_ = new CQChartsLoadModelDlg(charts_);
 
-    connect(loadDlg_, SIGNAL(modelLoaded(int)), this, SLOT(modelLoadedSlot(int)));
+    connect(loadModelDlg_, SIGNAL(modelLoaded(int)), this, SLOT(modelLoadedSlot(int)));
   }
 
-  loadDlg_->exec();
+  loadModelDlg_->exec();
 }
 
 void
@@ -118,17 +118,17 @@ createPlotSlot()
 
   //---
 
-  CQChartsPlotDlg *dlg = new CQChartsPlotDlg(charts_, modelData);
+  CQChartsCreatePlotDlg *createPlotDlg = new CQChartsCreatePlotDlg(charts_, modelData);
 
   if (modelData->selectionModel())
-    dlg->setSelectionModel(modelData->selectionModel());
+    createPlotDlg->setSelectionModel(modelData->selectionModel());
 
-  if (! dlg->exec())
+  if (! createPlotDlg->exec())
     return;
 
   //---
 
-  delete dlg;
+  delete createPlotDlg;
 }
 
 QSize

@@ -518,4 +518,64 @@ class CQChartsArrowData {
 
 CQUTIL_DCL_META_TYPE(CQChartsArrowData)
 
+//------
+
+#include <CQChartsRect.h>
+#include <CQChartsTitleLocation.h>
+
+struct CQChartsTitleData {
+  bool                  visible   { true };
+  CQChartsTitleLocation location;
+  CQChartsPosition      position;
+  CQChartsRect          rect;
+  bool                  insidePlot { false };
+  CQChartsTextData      textData;
+};
+
+//------
+
+#include <CQChartsKeyLocation.h>
+
+struct CQChartsKeyData {
+  bool                       visible     { true };
+  bool                       horizontal  { false };
+  bool                       autoHide    { false };
+  bool                       clipped     { false };
+  bool                       above       { false };
+  bool                       interactive { false };
+  CQChartsKeyLocation        location;
+  QString                    header;
+  double                     hiddenAlpha { 0.3 };
+  int                        maxRows;
+//CQChartsKey::PressBehavior pressBehavior;
+  CQChartsTextBoxData        textBoxData;
+};
+
+//------
+
+#include <CQChartsAxisSide.h>
+#include <CQChartsOptReal.h>
+
+struct CQChartsAxisData {
+  bool             visible        { true };
+  Qt::Orientation  direction      { Qt::Horizontal };
+  CQChartsAxisSide side;
+  bool             integral       { false };
+  bool             date           { false };
+  bool             log            { false };
+  QString          format         { false };
+  int              tickIncrement  { 0 };
+  double           majorIncrement { 0.0 };
+  double           start          { 0.0 };
+  double           end            { 0.0 };
+  bool             includeZero;
+  CQChartsOptReal  position;
+  CQChartsLineData lineData;
+  CQChartsTextData tickLabelTextData;
+  CQChartsTextData labelTextData;
+  CQChartsLineData majorGridLineData;
+  CQChartsLineData minorGridLineData;
+  CQChartsFillData gridFillData;
+};
+
 #endif

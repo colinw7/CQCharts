@@ -37,7 +37,7 @@ class CQChartsArrowDataLineEdit : public CQChartsLineEditBase {
   void connectSlots(bool b) override;
 
  private:
-  CQChartsArrowDataEdit* dataEdit_ { nullptr };
+  CQChartsArrowDataEdit* dataEdit_ { nullptr }; //! arrow data edit
 };
 
 //---
@@ -72,16 +72,16 @@ class CQChartsArrowDataEdit : public CQChartsEditBase {
   void widgetsToData();
 
  private:
-  CQChartsArrowData             data_;
-  QCheckBox*                    relativeEdit_  { nullptr };
-  CQChartsLengthEdit*           lengthEdit_    { nullptr };
-  CQAngleSpinBox*               angleEdit_     { nullptr };
-  CQAngleSpinBox*               backAngleEdit_ { nullptr };
-  QCheckBox*                    fheadEdit_     { nullptr };
-  QCheckBox*                    theadEdit_     { nullptr };
-  QCheckBox*                    lineEndsEdit_  { nullptr };
-  CQChartsLengthEdit*           lineWidthEdit_ { nullptr };
-  CQChartsArrowDataEditPreview* preview_       { nullptr };
+  CQChartsArrowData             data_;                      //! arrow data
+  QCheckBox*                    relativeEdit_  { nullptr }; //! relative edit
+  CQChartsLengthEdit*           lengthEdit_    { nullptr }; //! length edit
+  CQAngleSpinBox*               angleEdit_     { nullptr }; //! angle edit
+  CQAngleSpinBox*               backAngleEdit_ { nullptr }; //! back angle edit
+  QCheckBox*                    fheadEdit_     { nullptr }; //! start head edit
+  QCheckBox*                    theadEdit_     { nullptr }; //! end head edit
+  QCheckBox*                    lineEndsEdit_  { nullptr }; //! line ends edit
+  CQChartsLengthEdit*           lineWidthEdit_ { nullptr }; //! line width edit
+  CQChartsArrowDataEditPreview* preview_       { nullptr }; //! preview
 };
 
 //---
@@ -98,7 +98,7 @@ class CQChartsArrowDataEditPreview : public CQChartsEditPreview {
                    CQChartsPlot *plot, CQChartsView *view);
 
  private:
-  CQChartsArrowDataEdit *edit_ { nullptr };
+  CQChartsArrowDataEdit *edit_ { nullptr }; //! arrow data edit
 };
 
 //------

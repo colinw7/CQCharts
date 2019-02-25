@@ -4,6 +4,8 @@
 #include <CQChartsTip.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQChartsDrawUtil.h>
+
 #include <CQPerfMonitor.h>
 #include <CMathRound.h>
 
@@ -1718,9 +1720,9 @@ drawFg(QPainter *painter) const
 
   //---
 
-  CQChartsTextOptions textOptions;
+  CQChartsTextOptions textOptions = plot_->adjustTextOptions();
 
-  plot_->drawTextAtPoint(painter, pt, label, pen, textOptions);
+  CQChartsDrawUtil::drawTextAtPoint(painter, pt, label, pen, textOptions);
 }
 
 QColor

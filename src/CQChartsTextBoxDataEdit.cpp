@@ -9,8 +9,8 @@
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
+#include <CQUtil.h>
 
-#include <QGroupBox>
 #include <QLineEdit>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -118,10 +118,6 @@ void
 CQChartsTextBoxDataLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  QColor c = palette().color(QPalette::Window);
-
-  painter->fillRect(rect, QBrush(c));
-
   CQChartsTextBoxDataEditPreview::draw(painter, textBoxData(), rect, plot(), view());
 }
 
@@ -176,8 +172,7 @@ QVariant
 CQChartsTextBoxDataPropertyViewEditor::
 getValue(QWidget *w)
 {
-  CQChartsTextBoxDataLineEdit *edit = qobject_cast<CQChartsTextBoxDataLineEdit *>(w);
-  assert(edit);
+  CQChartsTextBoxDataLineEdit *edit = qobject_cast<CQChartsTextBoxDataLineEdit *>(w); assert(edit);
 
   return QVariant::fromValue(edit->textBoxData());
 }
@@ -201,6 +196,7 @@ CQChartsTextBoxDataEdit(QWidget *parent) :
  CQChartsEditBase(parent)
 {
   QGridLayout *layout = new QGridLayout(this);
+  layout->setMargin(0); layout->setSpacing(2);
 
   //---
 

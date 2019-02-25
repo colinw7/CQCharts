@@ -6,6 +6,8 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>
+#include <CQChartsDrawUtil.h>
+
 #include <CQPropertyViewModel.h>
 
 #include <QScrollBar>
@@ -269,7 +271,7 @@ draw(QPainter *painter) const
 
     //double tw = fm.width(name);
 
-    painter->drawText(px2, py1 + fm.ascent() + dth, name);
+    CQChartsDrawUtil::drawSimpleText(painter, px2, py1 + fm.ascent() + dth, name);
 
     //---
 
@@ -403,7 +405,7 @@ CQChartsPlotKey(CQChartsPlot *plot) :
 
   connect(scrollData_.bar, SIGNAL(valueChanged(int)), this, SLOT(scrollSlot(int)));
 
-  scrollData_.width = view()->style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 2;
+  scrollData_.barSize = view()->style()->pixelMetric(QStyle::PM_ScrollBarExtent) + 2;
 }
 
 CQChartsPlotKey::
@@ -512,7 +514,7 @@ updateLocation(const CQChartsGeom::BBox &bbox)
 
       CQChartsAxis *xAxis = plot_->xAxis();
 
-      if (xAxis && xAxis->side() == CQChartsAxis::Side::BOTTOM_LEFT && xAxis->bbox().isSet())
+      if (xAxis && xAxis->side() == CQChartsAxisSide::Type::BOTTOM_LEFT && xAxis->bbox().isSet())
         ky -= xAxis->bbox().getHeight();
     }
   }
@@ -541,6 +543,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "clipped"      );
   model->addProperty(path, this, "hiddenAlpha"  );
   model->addProperty(path, this, "pressBehavior");
+  model->addProperty(path, this, "scrollWidth"  );
   model->addProperty(path, this, "scrollHeight" );
 
   model->addProperty(path, this, "absPosition");
@@ -762,8 +765,16 @@ doLayout()
 
   //---
 
+  if (scrollData_.width.isSet()) {
+    double sw = plot_->lengthPlotWidth(scrollData_.width.length());
+
+    w = sw;
+
+    size_ = QSizeF(w, h);
+  }
+
   if (scrollData_.height.isSet()) {
-    double sw = plot_->pixelToWindowWidth(scrollData_.width);
+    double sw = plot_->pixelToWindowWidth(scrollData_.barSize);
     double sh = plot_->lengthPlotHeight(scrollData_.height.length());
 
     w += sw;
@@ -777,22 +788,14 @@ QPointF
 CQChartsPlotKey::
 absPlotPosition() const
 {
-  double wx, wy;
-
-  plot_->viewToWindow(absPosition().x(), absPosition().y(), wx, wy);
-
-  return QPointF(wx, wy);
+  return plot_->viewToWindow(absPosition());
 }
 
 void
 CQChartsPlotKey::
 setAbsPlotPosition(const QPointF &p)
 {
-  double vx, vy;
-
-  plot_->windowToView(p.x(), p.y(), vx, vy);
-
-  setAbsPosition(QPointF(vx, vy));
+  setAbsPosition(plot_->windowToView(p));
 }
 
 QSizeF
@@ -889,14 +892,29 @@ bool
 CQChartsPlotKey::
 editMove(const CQChartsGeom::Point &p)
 {
-  const CQChartsGeom::Point &dragPos = editHandles_->dragPos();
+  const CQChartsGeom::Point& dragPos  = editHandles_->dragPos();
+  const CQChartsResizeSide&  dragSide = editHandles_->dragSide();
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
   location_ = CQChartsKeyLocation::Type::ABS_POS;
 
-  setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
+  if (dragSide == CQChartsResizeSide::MOVE)
+    setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
+  else {
+    editHandles_->updateBBox(dx, dy);
+
+    wbbox_ = editHandles_->bbox();
+
+    setAbsPlotPosition(wbbox_.getUL().qpoint());
+
+    CQChartsLength width (wbbox_.getWidth (), CQChartsUnits::PLOT);
+    CQChartsLength height(wbbox_.getHeight(), CQChartsUnits::PLOT);
+
+    setScrollWidth (CQChartsOptLength(width ));
+    setScrollHeight(CQChartsOptLength(height));
+  }
 
   editHandles_->setDragPos(p);
 
@@ -1026,44 +1044,61 @@ draw(QPainter *painter) const
 
   //---
 
-  double sw = 0.0;
-  double sh = h;
+  double barWidth = 0.0;
 
   if (scrollData_.height.isSet()) {
-    sw = plot_->pixelToWindowWidth(scrollData_.width);
-    sh = plot_->lengthPlotHeight(scrollData_.height.length());
+    double sh = plot_->lengthPlotHeight(scrollData_.height.length());
 
     scrollData_.scrolled = (sh < h);
 
-    if (scrollData_.scrolled) {
-      double scrollHeight = sh - 2*ym_;
-
-      for (int i = 0; i < numRows_; ++i) {
-        scrollHeight -= rowHeights_[i] + 2*ys_;
-
-        if (scrollHeight <= 0)
-          break;
-      }
-
-      sh -= scrollHeight;
-    }
+    if (scrollData_.scrolled)
+      barWidth = plot_->pixelToWindowWidth(scrollData_.barSize);
   }
-  else
+  else {
     scrollData_.scrolled = false;
+  }
 
-  wbbox_ = CQChartsGeom::BBox(x, y - sh, x + w + sw, y);
+  w += barWidth;
+
+  //---
+
+  double sw = w;
+  double sh = h;
+
+  if (scrollData_.width.isSet()) {
+    sw = plot_->lengthPlotWidth(scrollData_.width.length());
+  }
+
+  if (scrollData_.height.isSet()) {
+    sh = plot_->lengthPlotHeight(scrollData_.height.length());
+
+#if 0
+    double scrollHeight = sh - 2*ym_;
+
+    for (int i = 0; i < numRows_; ++i) {
+      scrollHeight -= rowHeights_[i] + 2*ys_;
+
+      if (scrollHeight <= 0)
+        break;
+    }
+
+    sh -= scrollHeight;
+#endif
+  }
+
+  wbbox_ = CQChartsGeom::BBox(x, y - sh, x + sw, y);
 
   //---
 
   // calc pixel bounding box
   double px1, py1, px2, py2;
 
-  plot_->windowToPixel(x         , y     , px1, py2);
-  plot_->windowToPixel(x + w + sw, y - sh, px2, py1);
+  plot_->windowToPixel(x     , y     , px1, py1);
+  plot_->windowToPixel(x + sw, y - sh, px2, py2);
 
-  QRectF rect(px1, py2, px2 - px1, py1 - py2);
+  QRectF rect(px1, py1, px2 - px1, py2 - py1);
 
-  double psh = py1 - py2;
+  double psh = py2 - py1;
 
   //---
 
@@ -1073,8 +1108,10 @@ draw(QPainter *painter) const
   pixelHeightExceeded_ = (rect.height() > plotPixelRect.getHeight()*0.8);
 
   if (isAutoHide()) {
-    if (pixelWidthExceeded_ || pixelHeightExceeded_)
+    if (pixelWidthExceeded_ || pixelHeightExceeded_) {
+      scrollData_.bar->hide();
       return;
+    }
   }
 
   //---
@@ -1091,8 +1128,8 @@ draw(QPainter *painter) const
   if (scrollData_.scrolled) {
     scrollData_.bar->show();
 
-    scrollData_.bar->move(px2 - scrollData_.width - 1, py2);
-    scrollData_.bar->resize(scrollData_.width - 2, psh - 1);
+    scrollData_.bar->move(px2 - scrollData_.barSize - 1, py1);
+    scrollData_.bar->resize(scrollData_.barSize - 2, psh - 1);
 
     //---
 
@@ -1126,9 +1163,7 @@ draw(QPainter *painter) const
     for (int i = 0; i < scrollData_.pos; ++i)
       sy_ += rowHeights_[i] + 2*ys_;
 
-    wbbox_ = CQChartsGeom::BBox(x, y - sh, x + w, y);
-
-    painter->setClipRect(QRect(px1, py2, px2 - px1 - scrollData_.width, psh));
+    painter->setClipRect(QRect(px1, py1, px2 - px1 - scrollData_.barSize, psh));
   }
   else {
     if (scrollData_.bar)
@@ -1202,7 +1237,7 @@ draw(QPainter *painter) const
   if (headerStr().length()) {
     QPointF p = plot_->windowToPixel(QPointF(x, y)); // top left
 
-    double pw = plot_->windowToPixelWidth(w);
+    double pw = plot_->windowToPixelWidth(sw);
 
     double xm = margin();
     double ym = margin();
@@ -1219,7 +1254,7 @@ draw(QPainter *painter) const
 
     double dx = (pw - tw + xm)/2.0;
 
-    painter->drawText(p.x() + dx, p.y() + fa + ym, headerStr());
+    CQChartsDrawUtil::drawSimpleText(painter, p.x() + dx, p.y() + fa + ym, headerStr());
   }
 
   //---
@@ -1239,7 +1274,14 @@ drawEditHandles(QPainter *painter) const
 {
   assert(plot_->view()->mode() == CQChartsView::Mode::EDIT || isSelected());
 
-  const_cast<CQChartsPlotKey *>(this)->editHandles_->setBBox(this->bbox());
+  CQChartsPlotKey *th = const_cast<CQChartsPlotKey *>(this);
+
+  if (scrollData_.height.isSet())
+    th->editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
+  else
+    th->editHandles_->setMode(CQChartsEditHandles::Mode::MOVE);
+
+  th->editHandles_->setBBox(this->bbox());
 
   editHandles_->draw(painter);
 }
@@ -1405,10 +1447,14 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
   if (key_->textAlign() & Qt::AlignRight)
     px = px2 - 2 - fm.width(text_);
 
+  QPointF tp;
+
   if (! plot->isInvertY())
-    painter->drawText(QPointF(px, py - fm.descent() - 2), text_);
+    tp = QPointF(px, py - fm.descent() - 2);
   else
-    painter->drawText(QPointF(px, py + fm.ascent() + 2), text_);
+    tp = QPointF(px, py + fm.ascent() + 2);
+
+  CQChartsDrawUtil::drawSimpleText(painter, tp, text_);
 }
 
 //------

@@ -2,25 +2,32 @@
 #define CQChartsFillPatternEdit_H
 
 #include <CQChartsFillPattern.h>
-#include <QFrame>
+#include <CQChartsEnumEdit.h>
 
-class CQRealSpin;
-class QComboBox;
-
-class CQChartsFillPatternEdit : public QFrame {
+// editor for CQChartsFillPattern
+class CQChartsFillPatternEdit : public CQChartsEnumEdit {
   Q_OBJECT
 
  public:
   CQChartsFillPatternEdit(QWidget *parent=nullptr);
 
-  const CQChartsFillPattern &fillPattern() const;
+  const CQChartsFillPattern &fillPattern() const { return fillPattern_; }
   void setFillPattern(const CQChartsFillPattern &pos);
+
+  QStringList enumNames() const override { return fillPattern_.enumNames(); }
+
+  void setEnumFromString(const QString &str) override;
+
+  QVariant getVariantFromEnum() const override;
+
+  void setEnumFromVariant(const QVariant &var) override;
+
+  QString variantToString(const QVariant &var) const override;
+
+  void connect(QObject *obj, const char *method) override;
 
  signals:
   void fillPatternChanged();
-
- private slots:
-  void comboChanged();
 
  private:
   CQChartsFillPattern fillPattern_;
@@ -29,40 +36,21 @@ class CQChartsFillPatternEdit : public QFrame {
 
 //------
 
-#include <CQPropertyViewType.h>
-
 // type for CQChartsFillPattern
-class CQChartsFillPatternPropertyViewType : public CQPropertyViewType {
+class CQChartsFillPatternPropertyViewType : public CQChartsEnumPropertyViewType {
  public:
-  CQChartsFillPatternPropertyViewType();
-
   CQPropertyViewEditorFactory *getEditor() const override;
 
-  bool setEditorData(CQPropertyViewItem *item, const QVariant &value) override;
-
-  void draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
-            const QStyleOptionViewItem &option, const QModelIndex &index,
-            const QVariant &value, bool inside) override;
-
-  QString tip(const QVariant &value) const override;
+  QString variantToString(const QVariant &var) const override;
 };
 
 //---
 
-#include <CQPropertyViewEditor.h>
-
 // editor factory for CQChartsFillPattern
-class CQChartsFillPatternPropertyViewEditor : public CQPropertyViewEditorFactory {
+class CQChartsFillPatternPropertyViewEditorFactory :
+  public CQChartsEnumPropertyViewEditorFactory {
  public:
-  CQChartsFillPatternPropertyViewEditor();
-
-  QWidget *createEdit(QWidget *parent);
-
-  void connect(QWidget *w, QObject *obj, const char *method);
-
-  QVariant getValue(QWidget *w);
-
-  void setValue(QWidget *w, const QVariant &var);
+  QWidget *createEdit(QWidget *parent) override;
 };
 
 #endif

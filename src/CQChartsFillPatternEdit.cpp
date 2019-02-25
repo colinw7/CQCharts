@@ -1,166 +1,87 @@
 #include <CQChartsFillPatternEdit.h>
 
-#include <CQPropertyView.h>
-#include <CQRealSpin.h>
-
-#include <QComboBox>
-#include <QHBoxLayout>
-
 CQChartsFillPatternEdit::
 CQChartsFillPatternEdit(QWidget *parent) :
- QFrame(parent)
+ CQChartsEnumEdit(parent)
 {
   setObjectName("fillPattern");
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  init();
 
-  combo_ = new QComboBox;
-
-  combo_->addItems(CQChartsFillPattern::typeNames());
-
-  combo_->setObjectName("combo");
-
-  layout->addWidget(combo_);
-
-  connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
-}
-
-const CQChartsFillPattern &
-CQChartsFillPatternEdit::
-fillPattern() const
-{
-  return fillPattern_;
+  QObject::connect(this, SIGNAL(enumChanged()), this, SIGNAL(fillPatternChanged()));
 }
 
 void
 CQChartsFillPatternEdit::
 setFillPattern(const CQChartsFillPattern &fillPattern)
 {
-  disconnect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
-
   fillPattern_ = fillPattern;
 
-  combo_->setCurrentIndex(combo_->findText(fillPattern_.toString()));
-
-  connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  setEnumString(fillPattern_.toString());
 }
 
 void
 CQChartsFillPatternEdit::
-comboChanged()
+setEnumFromString(const QString &str)
 {
-  disconnect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  fillPattern_ = CQChartsFillPattern(str);
+}
 
-  fillPattern_ = CQChartsFillPattern(combo_->currentText());
+QVariant
+CQChartsFillPatternEdit::
+getVariantFromEnum() const
+{
+  return QVariant::fromValue(fillPattern());
+}
 
-  connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+void
+CQChartsFillPatternEdit::
+setEnumFromVariant(const QVariant &var)
+{
+  CQChartsFillPattern fillPatten = var.value<CQChartsFillPattern>();
 
-  emit fillPatternChanged();
+  setFillPattern(fillPatten);
+}
+
+QString
+CQChartsFillPatternEdit::
+variantToString(const QVariant &var) const
+{
+  CQChartsFillPattern fillPatten = var.value<CQChartsFillPattern>();
+
+  return fillPatten.toString();
+}
+
+void
+CQChartsFillPatternEdit::
+connect(QObject *obj, const char *method)
+{
+  QObject::connect(this, SIGNAL(fillPattenChanged()), obj, method);
 }
 
 //------
-
-#include <CQPropertyViewItem.h>
-#include <CQPropertyViewDelegate.h>
-
-CQChartsFillPatternPropertyViewType::
-CQChartsFillPatternPropertyViewType()
-{
-}
 
 CQPropertyViewEditorFactory *
 CQChartsFillPatternPropertyViewType::
 getEditor() const
 {
-  return new CQChartsFillPatternPropertyViewEditor;
-}
-
-bool
-CQChartsFillPatternPropertyViewType::
-setEditorData(CQPropertyViewItem *item, const QVariant &value)
-{
-  return item->setData(value);
-}
-
-void
-CQChartsFillPatternPropertyViewType::
-draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
-     const QStyleOptionViewItem &option, const QModelIndex &ind,
-     const QVariant &value, bool inside)
-{
-  delegate->drawBackground(painter, option, ind, inside);
-
-  CQChartsFillPattern fillPattern = value.value<CQChartsFillPattern>();
-
-  QString str = fillPattern.toString();
-
-  QFontMetricsF fm(option.font);
-
-  double w = fm.width(str);
-
-  //---
-
-  QStyleOptionViewItem option1 = option;
-
-  option1.rect.setRight(option1.rect.left() + w + 8);
-
-  delegate->drawString(painter, option1, str, ind, inside);
+  return new CQChartsFillPatternPropertyViewEditorFactory;
 }
 
 QString
 CQChartsFillPatternPropertyViewType::
-tip(const QVariant &value) const
+variantToString(const QVariant &var) const
 {
-  QString str = value.value<CQChartsFillPattern>().toString();
+  CQChartsFillPattern fillPattern = var.value<CQChartsFillPattern>();
 
-  return str;
+  return fillPattern.toString();
 }
 
 //------
 
-CQChartsFillPatternPropertyViewEditor::
-CQChartsFillPatternPropertyViewEditor()
-{
-}
-
 QWidget *
-CQChartsFillPatternPropertyViewEditor::
+CQChartsFillPatternPropertyViewEditorFactory::
 createEdit(QWidget *parent)
 {
-  CQChartsFillPatternEdit *edit = new CQChartsFillPatternEdit(parent);
-
-  return edit;
-}
-
-void
-CQChartsFillPatternPropertyViewEditor::
-connect(QWidget *w, QObject *obj, const char *method)
-{
-  CQChartsFillPatternEdit *edit = qobject_cast<CQChartsFillPatternEdit *>(w);
-  assert(edit);
-
-  QObject::connect(edit, SIGNAL(fillPatternChanged()), obj, method);
-}
-
-QVariant
-CQChartsFillPatternPropertyViewEditor::
-getValue(QWidget *w)
-{
-  CQChartsFillPatternEdit *edit = qobject_cast<CQChartsFillPatternEdit *>(w);
-  assert(edit);
-
-  return QVariant::fromValue(edit->fillPattern());
-}
-
-void
-CQChartsFillPatternPropertyViewEditor::
-setValue(QWidget *w, const QVariant &var)
-{
-  CQChartsFillPatternEdit *edit = qobject_cast<CQChartsFillPatternEdit *>(w);
-  assert(edit);
-
-  CQChartsFillPattern fillPattern = var.value<CQChartsFillPattern>();
-
-  edit->setFillPattern(fillPattern);
+  return new CQChartsFillPatternEdit(parent);
 }

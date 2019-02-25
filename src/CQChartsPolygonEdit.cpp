@@ -138,26 +138,11 @@ updateMenu()
 
 void
 CQChartsPolygonLineEdit::
-drawPreview(QPainter *painter, const QRect &rect)
+drawPreview(QPainter *painter, const QRect &)
 {
-  QColor c = palette().color(QPalette::Window);
-
-  painter->fillRect(rect, QBrush(c));
-
-  //---
-
   QString str = (polygon().isValid() ? polygon().toString() : "<none>");
 
-  QFontMetricsF fm(font());
-
-  double fa = fm.ascent();
-  double fd = fm.descent();
-
-  QColor tc = CQChartsUtil::bwColor(c);
-
-  painter->setPen(tc);
-
-  painter->drawText(rect.left() + 2, rect.center().y() + (fa - fd)/2, str);
+  drawCenteredText(painter, str);
 }
 
 //------
@@ -343,6 +328,8 @@ setPolygon(const CQChartsPolygon &polygon)
 {
   polygon_ = polygon;
 
+  updatePointEdits();
+
   polygonToWidgets();
 
   updateState();
@@ -352,6 +339,10 @@ void
 CQChartsPolygonEdit::
 polygonToWidgets()
 {
+  disconnect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
+
+  //---
+
 //const QPolygonF     &polygon = polygon_.polygon();
   const CQChartsUnits &units   = polygon_.units();
 
@@ -363,6 +354,10 @@ polygonToWidgets()
 
   for (int i = 0; i < n; ++i)
     pointEdits_[i]->setValue(polygon_.point(i));
+
+  //---
+
+  connect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
 }
 
 void

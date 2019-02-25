@@ -9,9 +9,13 @@ class CQChartsAnnotation;
 class CQChartsFilterEdit;
 class CQChartsGradientPaletteCanvas;
 class CQChartsGradientPaletteControl;
-class CQChartsLoadDlg;
-class CQChartsPlotDlg;
-class CQChartsAnnotationDlg;
+class CQChartsLoadModelDlg;
+class CQChartsCreatePlotDlg;
+class CQChartsCreateAnnotationDlg;
+class CQChartsEditAnnotationDlg;
+class CQChartsEditTitleDlg;
+class CQChartsEditKeyDlg;
+class CQChartsEditAxisDlg;
 class CQPropertyViewTree;
 class CQIntegerSpin;
 
@@ -89,6 +93,11 @@ class CQChartsViewSettings : public QFrame {
 
   void plotsSelectionChangeSlot();
 
+  void editPlotTitleSlot();
+  void editPlotKeySlot();
+  void editPlotXAxisSlot();
+  void editPlotYAxisSlot();
+
   void groupPlotsSlot();
 
   void placePlotsSlot();
@@ -107,6 +116,7 @@ class CQChartsViewSettings : public QFrame {
   void plotAnnotationSelectionChangeSlot();
 
   void createAnnotationSlot();
+  void editAnnotationSlot();
   void removeAnnotationsSlot();
   void writeAnnotationSlot();
 
@@ -171,6 +181,7 @@ class CQChartsViewSettings : public QFrame {
   struct AnnotationsWidgets {
     QTableWidget* viewTable    { nullptr }; //! view annotations table widget
     QTableWidget* plotTable    { nullptr }; //! plot annotations table widget
+    QPushButton*  editButton   { nullptr }; //! edit annotation button
     QPushButton*  removeButton { nullptr }; //! remove annotation button
   };
 
@@ -188,19 +199,24 @@ class CQChartsViewSettings : public QFrame {
     QTableWidget* layerTable { nullptr }; //! layer table widget
   };
 
-  CQChartsWindow*        window_             { nullptr }; //! parent window
-  QTabWidget*            tab_                { nullptr }; //! settings/palette tab
-  PropertiesWidgets      propertiesWidgets_;              //! properties widgets
-  ModelsWidgets          modelsWidgets_;                  //! models widgets
-  PlotsWidgets           plotsWidgets_;                   //! plots widgets
-  AnnotationsWidgets     annotationsWidgets_;             //! annotations widgets
-  ThemeWidgets           themeWidgets_;                   //! theme widgets
-  LayersWidgets          layersWidgets_;                  //! layers widgets
-  CQChartsLoadDlg*       loadDlg_            { nullptr }; //! load dalog
-  CQChartsPlotDlg*       plotDlg_            { nullptr }; //! plot dalog
-  CQChartsAnnotationDlg* annotationDlg_      { nullptr }; //! annotation dalog
-  QString                plotId_;                         //! current plot id
-  bool                   modelDetailsValid_  { false };   //! model details valid
+  CQChartsWindow*              window_              { nullptr }; //! parent window
+  QTabWidget*                  tab_                 { nullptr }; //! settings/palette tab
+  PropertiesWidgets            propertiesWidgets_;               //! properties widgets
+  ModelsWidgets                modelsWidgets_;                   //! models widgets
+  PlotsWidgets                 plotsWidgets_;                    //! plots widgets
+  AnnotationsWidgets           annotationsWidgets_;              //! annotations widgets
+  ThemeWidgets                 themeWidgets_;                    //! theme widgets
+  LayersWidgets                layersWidgets_;                   //! layers widgets
+  CQChartsLoadModelDlg*        loadModelDlg_        { nullptr }; //! load dalog
+  CQChartsCreatePlotDlg*       createPlotDlg_       { nullptr }; //! plot dalog
+  CQChartsCreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //! create annotation dalog
+  CQChartsEditAnnotationDlg*   editAnnotationDlg_   { nullptr }; //! edit annotation dalog
+  CQChartsEditTitleDlg*        editTitleDlg_        { nullptr }; //! edit plot title dialog
+  CQChartsEditKeyDlg*          editKeyDlg_          { nullptr }; //! edit plot key dialog
+  CQChartsEditAxisDlg*         editXAxisDlg_        { nullptr }; //! edit plot x axis dialog
+  CQChartsEditAxisDlg*         editYAxisDlg_        { nullptr }; //! edit plot y axis dialog
+  QString                      plotId_;                          //! current plot id
+  bool                         modelDetailsValid_   { false };   //! model details valid
 };
 
 #endif

@@ -1,6 +1,8 @@
 #ifndef CQChartsTextOptions_H
 #define CQChartsTextOptions_H
 
+#include <QString>
+
 struct CQChartsTextOptions {
   double        angle            { 0.0 };   //! text angle
   bool          contrast         { false }; //! text contrast

@@ -31,7 +31,7 @@ CQChartsRectEdit(QWidget *parent) :
 
   layout->addWidget(unitsEdit_);
 
-  connect(unitsEdit_, SIGNAL(unitsChanged(int)), this, SLOT(unitsChanged()));
+  connect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
 }
 
 const CQChartsRect &

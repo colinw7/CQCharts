@@ -48,7 +48,7 @@ class CQChartsColorLineEdit;
 class CQChartsAlphaEdit;
 class CQChartsFillPatternEdit;
 class CQChartsFillDataEditPreview;
-class QGroupBox;
+class CQGroupBox;
 
 class CQChartsFillDataEdit : public CQChartsEditBase {
   Q_OBJECT
@@ -76,7 +76,7 @@ class CQChartsFillDataEdit : public CQChartsEditBase {
   CQChartsPlot*                plot_        { nullptr };
   CQChartsView*                view_        { nullptr };
   CQChartsFillData             data_;
-  QGroupBox*                   groupBox_    { nullptr };
+  CQGroupBox*                  groupBox_    { nullptr };
   CQChartsColorLineEdit*       colorEdit_   { nullptr };
   CQChartsAlphaEdit*           alphaEdit_   { nullptr };
   CQChartsFillPatternEdit*     patternEdit_ { nullptr };

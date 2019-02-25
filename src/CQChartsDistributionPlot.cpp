@@ -1672,7 +1672,7 @@ createObjs(PlotObjs &objs) const
           valueAxis()->setTickLabel(bucket1, groupName);
         }
         else if (isNumeric) {
-          if (valueAxis()->tickLabelPlacement() == CQChartsAxis::TickLabelPlacement::MIDDLE) {
+          if (valueAxis()->tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
             QString bucketStr = bucketValuesStr(groupInd, sbucket, values);
 
             if      (isOverlay())

@@ -1,4 +1,5 @@
 #include <CQChartsRotatedText.h>
+#include <CQChartsUtil.h>
 #include <QPainter>
 
 #include <cmath>
@@ -6,8 +7,8 @@
 namespace CQChartsRotatedText {
 
 void
-drawRotatedText(QPainter *painter, double x, double y, const QString &text,
-                double angle, Qt::Alignment align, bool alignBBox)
+draw(QPainter *painter, double x, double y, const QString &text,
+     double angle, Qt::Alignment align, bool alignBBox, bool contrast)
 {
   painter->save();
 
@@ -76,7 +77,28 @@ drawRotatedText(QPainter *painter, double x, double y, const QString &text,
 
   painter->setTransform(t);
 
-  painter->drawText(QPointF(0, 0), text);
+  if (contrast) {
+    QColor tc = painter->pen().color();
+
+    QColor icolor = CQChartsUtil::invColor(tc);
+
+    icolor.setAlphaF(0.5);
+
+    // draw contrast border
+    painter->setPen(icolor);
+
+    for (int dy = -2; dy <= 2; ++dy)
+      for (int dx = -2; dx <= 2; ++dx)
+        painter->drawText(QPointF(dx, dy), text);
+
+    // draw text
+    painter->setPen(tc);
+
+    painter->drawText(QPointF(0, 0), text);
+  }
+  else {
+    painter->drawText(QPointF(0, 0), text);
+  }
 
   painter->restore();
 }

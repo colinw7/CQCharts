@@ -5,4 +5,4 @@ set plot2 [create_plot -model $model -type barchart -columns "group=Hair,value=F
 
 place_plots -horizontal [list $plot1 $plot2]
 
-#manage_model_dlg
+#manage_models_dlg

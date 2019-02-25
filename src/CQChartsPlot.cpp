@@ -12,7 +12,6 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsDisplayTransform.h>
 #include <CQChartsDisplayRange.h>
-#include <CQChartsRotatedText.h>
 #include <CQChartsGradientPalette.h>
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsModelData.h>
@@ -615,8 +614,10 @@ queueDrawForeground()
 
     startThreadTimer();
   }
-  else
+  else {
     invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+    invalidateLayer(CQChartsBuffer::Type::OVERLAY);
+  }
 }
 
 void
@@ -1991,6 +1992,7 @@ threadTimerSlot()
       updatesData_.stateFlag[UpdateState::UPDATE_DRAW_BACKGROUND] = 0;
 
       this->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+      this->invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
       updateView = true;
     }
@@ -2001,6 +2003,7 @@ threadTimerSlot()
       updatesData_.stateFlag[UpdateState::UPDATE_DRAW_FOREGROUND] = 0;
 
       this->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+      this->invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
       updateView = true;
     }
@@ -3316,6 +3319,8 @@ editMousePress(const QPointF &pos, bool inside)
   CQChartsGeom::Point p = CQChartsUtil::fromQPoint(pos);
   CQChartsGeom::Point w = pixelToWindow(p);
 
+  editing_ = true;
+
   return editPress(p, w, inside);
 }
 
@@ -3810,6 +3815,7 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
         plot->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
         plot->invalidateLayer(CQChartsBuffer::Type::MIDDLE);
         plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+        plot->invalidateLayer(CQChartsBuffer::Type::OVERLAY);
       });
     }
     else {
@@ -3823,6 +3829,7 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
       invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
       invalidateLayer(CQChartsBuffer::Type::MIDDLE);
       invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+      invalidateLayer(CQChartsBuffer::Type::OVERLAY);
     }
 
     if (dx || dy)
@@ -3849,6 +3856,7 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
         plot->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
         plot->invalidateLayer(CQChartsBuffer::Type::MIDDLE);
         plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+        plot->invalidateLayer(CQChartsBuffer::Type::OVERLAY);
       });
     }
     else {
@@ -3864,6 +3872,7 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
       invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
       invalidateLayer(CQChartsBuffer::Type::MIDDLE);
       invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+      invalidateLayer(CQChartsBuffer::Type::OVERLAY);
     }
 
     if (dx || dy)
@@ -3948,6 +3957,8 @@ editMouseRelease(const QPointF &pos)
 {
   CQChartsGeom::Point p = CQChartsUtil::fromQPoint(pos);
   CQChartsGeom::Point w = pixelToWindow(p);
+
+  editing_ = false;
 
   return editRelease(p, w);
 }
@@ -6893,7 +6904,7 @@ addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadi
 
 CQChartsPolygonAnnotation *
 CQChartsPlot::
-addPolygonAnnotation(const QPolygonF &points)
+addPolygonAnnotation(const CQChartsPolygon &points)
 {
   CQChartsPolygonAnnotation *polyAnnotation = new CQChartsPolygonAnnotation(this, points);
 
@@ -6904,7 +6915,7 @@ addPolygonAnnotation(const QPolygonF &points)
 
 CQChartsPolylineAnnotation *
 CQChartsPlot::
-addPolylineAnnotation(const QPolygonF &points)
+addPolylineAnnotation(const CQChartsPolygon &points)
 {
   CQChartsPolylineAnnotation *polyAnnotation = new CQChartsPolylineAnnotation(this, points);
 
@@ -7002,7 +7013,12 @@ void
 CQChartsPlot::
 updateAnnotationSlot()
 {
-  updateSlot();
+  if (editing_) {
+    invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+    invalidateLayer(CQChartsBuffer::Type::OVERLAY);
+  }
+  else
+    queueDrawForeground();
 
   emit annotationsChanged();
 }
@@ -7401,66 +7417,16 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, do
   }
 }
 
-void
+CQChartsTextOptions
 CQChartsPlot::
-drawTextAtPoint(QPainter *painter, const QPointF &point, const QString &text,
-                const QPen &pen, const CQChartsTextOptions &options) const
-{
-  if (CMathUtil::isZero(options.angle)) {
-    QFontMetricsF fm(painter->font());
-
-    double tw = fm.width(text);
-    double ta = fm.ascent();
-    double td = fm.descent();
-
-    double dx = 0.0;
-
-    if      (options.align & Qt::AlignHCenter)
-      dx = -tw/2.0;
-    else if (options.align & Qt::AlignRight)
-      dx = -tw;
-
-    double dy = 0.0;
-
-    if      (options.align & Qt::AlignTop)
-      dy = -ta;
-    else if (options.align & Qt::AlignVCenter)
-      dy = (ta - td)/2.0;
-    else if (options.align & Qt::AlignBottom)
-      dy = td;
-
-    if (options.contrast)
-      drawContrastText(painter, point.x() + dx, point.y() + dy, text, pen);
-    else {
-      painter->setPen(pen);
-
-      painter->drawText(point.x() + dx, point.y() + dy, text);
-    }
-  }
-  else {
-    assert(false);
-  }
-}
-
-void
-CQChartsPlot::
-drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
-              const QPen &pen, const CQChartsTextOptions &options) const
+adjustTextOptions(const CQChartsTextOptions &options) const
 {
   CQChartsTextOptions options1 = options;
 
   options1.minScaleFontSize = minScaleFontSize();
   options1.maxScaleFontSize = maxScaleFontSize();
 
-  CQChartsView::drawTextInBox(painter, rect, text, pen, options1);
-}
-
-void
-CQChartsPlot::
-drawContrastText(QPainter *painter, double x, double y, const QString &text,
-                 const QPen &pen) const
-{
-  CQChartsView::drawContrastText(painter, x, y, text, pen);
+  return options1;
 }
 
 //------
@@ -9329,6 +9295,17 @@ pixelToWindow(const CQChartsGeom::Point &w) const
   return p;
 }
 
+CQChartsGeom::Point
+CQChartsPlot::
+viewToWindow(const CQChartsGeom::Point &v) const
+{
+  double wx, wy;
+
+  viewToWindow(v.x, v.y, wx, wy);
+
+  return CQChartsGeom::Point(wx, wy);
+}
+
 QPointF
 CQChartsPlot::
 windowToPixel(const QPointF &w) const
@@ -9338,9 +9315,23 @@ windowToPixel(const QPointF &w) const
 
 QPointF
 CQChartsPlot::
+windowToView(const QPointF &w) const
+{
+  return CQChartsUtil::toQPoint(windowToView(CQChartsUtil::fromQPoint(w)));
+}
+
+QPointF
+CQChartsPlot::
 pixelToWindow(const QPointF &w) const
 {
   return CQChartsUtil::toQPoint(pixelToWindow(CQChartsUtil::fromQPoint(w)));
+}
+
+QPointF
+CQChartsPlot::
+viewToWindow(const QPointF &v) const
+{
+  return CQChartsUtil::toQPoint(viewToWindow(CQChartsUtil::fromQPoint(v)));
 }
 
 void

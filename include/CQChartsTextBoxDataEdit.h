@@ -47,7 +47,6 @@ class CQChartsTextBoxDataLineEdit : public CQChartsLineEditBase {
 class CQChartsTextDataEdit;
 class CQChartsBoxDataEdit;
 class CQChartsTextBoxDataEditPreview;
-class QGroupBox;
 
 class CQChartsTextBoxDataEdit : public CQChartsEditBase {
   Q_OBJECT

@@ -49,13 +49,13 @@ class CQChartsLengthEdit;
 class CQChartsStrokeDataEdit;
 class CQChartsFillDataEdit;
 class CQChartsSymbolDataEditPreview;
-class QGroupBox;
+class CQGroupBox;
 
 class CQChartsSymbolDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
  public:
-  CQChartsSymbolDataEdit(QWidget *parent=nullptr);
+  CQChartsSymbolDataEdit(QWidget *parent=nullptr, bool optional=true);
 
   const CQChartsSymbolData &data() const { return data_; }
   void setData(const CQChartsSymbolData &d);
@@ -80,7 +80,7 @@ class CQChartsSymbolDataEdit : public CQChartsEditBase {
   CQChartsPlot*                  plot_        { nullptr };
   CQChartsView*                  view_        { nullptr };
   CQChartsSymbolData             data_;
-  QGroupBox*                     groupBox_    { nullptr };
+  CQGroupBox*                    groupBox_    { nullptr };
   CQChartsSymbolEdit*            symbolEdit_  { nullptr };
   CQChartsLengthEdit*            sizeEdit_    { nullptr };
   CQChartsStrokeDataEdit*        strokeEdit_  { nullptr };

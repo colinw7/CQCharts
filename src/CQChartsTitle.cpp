@@ -4,7 +4,10 @@
 #include <CQChartsView.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsUtil.h>
+#include <CQChartsDrawUtil.h>
+
 #include <CQPropertyViewModel.h>
+
 #include <QPainter>
 #include <QRectF>
 
@@ -66,27 +69,14 @@ QString
 CQChartsTitle::
 locationStr() const
 {
-  switch (location_.location) {
-    case LocationType::TOP:      return "top";
-    case LocationType::CENTER:   return "center";
-    case LocationType::BOTTOM:   return "bottom";
-    case LocationType::ABS_POS:  return "abs_pos";
-    case LocationType::ABS_RECT: return "abs_rect";
-    default:                     return "none";
-  }
+  return location().toString();
 }
 
 void
 CQChartsTitle::
 setLocationStr(const QString &str)
 {
-  QString lstr = str.toLower();
-
-  if      (lstr == "top"     ) location_.location = LocationType::TOP;
-  else if (lstr == "center"  ) location_.location = LocationType::CENTER;
-  else if (lstr == "bottom"  ) location_.location = LocationType::BOTTOM;
-  else if (lstr == "abs_pos" ) location_.location = LocationType::ABS_POS;
-  else if (lstr == "abs_rect") location_.location = LocationType::ABS_RECT;
+  setLocation(CQChartsTitleLocation(str));
 
   redraw();
 }
@@ -107,7 +97,7 @@ updateLocation()
   // calc title size
   QSizeF ts = calcSize();
 
-  LocationType location = this->location();
+  CQChartsTitleLocation location = this->location();
 
 //double xm = plot_->pixelToWindowWidth (8);
   double ym = plot_->pixelToWindowHeight(8);
@@ -117,24 +107,24 @@ updateLocation()
 
   CQChartsAxis *xAxis = plot_->xAxis();
 
-  if      (location == CQChartsTitle::LocationType::TOP) {
-    if (! isInside()) {
+  if      (location == CQChartsTitleLocation::Type::TOP) {
+    if (! isInsidePlot()) {
       ky = bbox.getYMax() + ym;
 
-      if (xAxis && xAxis->side() == CQChartsAxis::Side::TOP_RIGHT)
+      if (xAxis && xAxis->side() == CQChartsAxisSide::Type::TOP_RIGHT)
         ky += xAxis->bbox().getHeight();
     }
     else
       ky = bbox.getYMax() - ts.height() - ym;
   }
-  else if (location == CQChartsTitle::LocationType::CENTER) {
+  else if (location == CQChartsTitleLocation::Type::CENTER) {
     ky = bbox.getYMid() - ts.height()/2;
   }
-  else if (location == CQChartsTitle::LocationType::BOTTOM) {
-    if (! isInside()) {
+  else if (location == CQChartsTitleLocation::Type::BOTTOM) {
+    if (! isInsidePlot()) {
       ky = bbox.getYMin() - ts.height() - ym;
 
-      if (xAxis && xAxis->side() == CQChartsAxis::Side::BOTTOM_LEFT)
+      if (xAxis && xAxis->side() == CQChartsAxisSide::Type::BOTTOM_LEFT)
         ky -= xAxis->bbox().getHeight();
     }
     else
@@ -146,10 +136,10 @@ updateLocation()
 
   QPointF kp(kx, ky);
 
-  if      (location == LocationType::ABS_POS) {
+  if      (location == CQChartsTitleLocation::Type::ABS_POS) {
     kp = absPlotPosition();
   }
-  else if (location == LocationType::ABS_RECT) {
+  else if (location == CQChartsTitleLocation::Type::ABS_RECT) {
   }
 
   setPosition(kp);
@@ -163,7 +153,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "location"   );
   model->addProperty(path, this, "absPosition");
   model->addProperty(path, this, "absRect"    );
-  model->addProperty(path, this, "inside"     );
+  model->addProperty(path, this, "insidePlot" );
 
   CQChartsTextBoxObj::addProperties(model, path);
 }
@@ -179,11 +169,7 @@ void
 CQChartsTitle::
 setAbsPlotPosition(const QPointF &p)
 {
-  double vx, vy;
-
-  plot_->windowToView(p.x(), p.y(), vx, vy);
-
-  setAbsPosition(CQChartsPosition(QPointF(vx, vy), CQChartsUnits::VIEW));
+  setAbsPosition(CQChartsPosition(plot_->windowToView(p), CQChartsUnits::VIEW));
 }
 
 QSizeF
@@ -234,9 +220,9 @@ editPress(const CQChartsGeom::Point &p)
 {
   editHandles_->setDragPos(p);
 
-  if (location_.location != LocationType::ABS_POS &&
-      location_.location != LocationType::ABS_RECT) {
-    location_.location = LocationType::ABS_POS;
+  if (location() != CQChartsTitleLocation::Type::ABS_POS &&
+      location() != CQChartsTitleLocation::Type::ABS_RECT) {
+    setLocation(CQChartsTitleLocation::Type::ABS_POS);
 
     setAbsPlotPosition(position_);
   }
@@ -248,20 +234,20 @@ bool
 CQChartsTitle::
 editMove(const CQChartsGeom::Point &p)
 {
-  const CQChartsGeom::Point &dragPos = editHandles_->dragPos();
-  const CQChartsResizeSide& dragSide = editHandles_->dragSide();
+  const CQChartsGeom::Point& dragPos  = editHandles_->dragPos();
+  const CQChartsResizeSide&  dragSide = editHandles_->dragSide();
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
-  if (location_.location == LocationType::ABS_POS &&
+  if (location() == CQChartsTitleLocation::Type::ABS_POS &&
       dragSide == CQChartsResizeSide::MOVE) {
-    location_.location = LocationType::ABS_POS;
+    setLocation(CQChartsTitleLocation::Type::ABS_POS);
 
     setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
   }
   else {
-    location_.location = LocationType::ABS_RECT;
+    setLocation(CQChartsTitleLocation::Type::ABS_RECT);
 
     editHandles_->updateBBox(dx, dy);
 
@@ -295,7 +281,7 @@ void
 CQChartsTitle::
 editMoveBy(const QPointF &d)
 {
-  location_.location = LocationType::ABS_POS;
+  setLocation(CQChartsTitleLocation::Type::ABS_POS);
 
   setAbsPlotPosition(position_ + d);
 
@@ -337,14 +323,14 @@ draw(QPainter *painter)
 
   //---
 
-  if (location_.location != LocationType::ABS_RECT)
+  if (location() != CQChartsTitleLocation::Type::ABS_RECT)
     updateLocation();
 
   //---
 
   double x, y, w, h;
 
-  if (location_.location != LocationType::ABS_RECT) {
+  if (location() != CQChartsTitleLocation::Type::ABS_RECT) {
     x = position_.x(); // bottom
     y = position_.y(); // top
     w = size_.width ();
@@ -406,7 +392,10 @@ draw(QPainter *painter)
   textOptions.clipped   = false;
   textOptions.align     = textAlign();
 
-  plot_->drawTextInBox(painter, CQChartsUtil::toQRect(ptrect), textStr(), pen, textOptions);
+  textOptions = plot_->adjustTextOptions(textOptions);
+
+  CQChartsDrawUtil::drawTextInBox(painter, CQChartsUtil::toQRect(ptrect), textStr(),
+                                  pen, textOptions);
 
   //---
 
@@ -424,7 +413,7 @@ drawEditHandles(QPainter *painter) const
 {
   assert(plot_->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
-  if (location_.location != LocationType::ABS_RECT)
+  if (location() != CQChartsTitleLocation::Type::ABS_RECT)
     const_cast<CQChartsTitle *>(this)->editHandles_->setBBox(this->bbox());
 
   editHandles_->draw(painter);

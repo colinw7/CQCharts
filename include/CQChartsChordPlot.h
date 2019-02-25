@@ -10,6 +10,9 @@ class CQChartsRotatedTextBoxObj;
 
 //---
 
+/*!
+ * \brief Chord Plot Type
+ */
 class CQChartsChordPlotType : public CQChartsPlotType {
  public:
   CQChartsChordPlotType();
@@ -41,6 +44,9 @@ class CQChartsChordPlot;
 
 //---
 
+/*!
+ * \brief Chord Data
+ */
 class CQChartsChordData {
  public:
   struct Value {
@@ -137,6 +143,9 @@ class CQChartsChordData {
 
 //---
 
+/*!
+ * \brief Chord Plot Object
+ */
 class CQChartsChordObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -179,6 +188,20 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
 //---
 
+/*!
+ * \brief Chord Plot
+ *
+ * columns:
+ *   + link  : link
+ *   + value : value
+ *   + group : goup
+ *
+ * Plot Type
+ *   + \ref CQChartsChordPlotType
+ *
+ * Example
+ *   + \image html chord_plot.png
+ */
 class CQChartsChordPlot : public CQChartsPlot,
  public CQChartsObjStrokeData<CQChartsChordPlot> {
   Q_OBJECT
@@ -188,12 +211,15 @@ class CQChartsChordPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
   Q_PROPERTY(CQChartsColumn groupColumn READ groupColumn WRITE setGroupColumn)
 
+  // options
   Q_PROPERTY(bool   sorted      READ isSorted    WRITE setSorted     )
   Q_PROPERTY(double innerRadius READ innerRadius WRITE setInnerRadius)
   Q_PROPERTY(double labelRadius READ labelRadius WRITE setLabelRadius)
 
+  // border
   CQCHARTS_STROKE_DATA_PROPERTIES
 
+  // style
   Q_PROPERTY(double segmentAlpha READ segmentAlpha WRITE setSegmentAlpha)
   Q_PROPERTY(double arcAlpha     READ arcAlpha     WRITE setArcAlpha    )
   Q_PROPERTY(double gapAngle     READ gapAngle     WRITE setGapAngle    )

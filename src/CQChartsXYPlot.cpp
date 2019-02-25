@@ -2657,9 +2657,8 @@ draw(QPainter *painter)
 
   plot()->view()->setPlotPainterFont(plot(), painter, plot()->dataLabelTextFont());
 
-  CQChartsRotatedText::drawRotatedText(painter, ppos.x, ppos.y, label_,
-                                       plot()->dataLabelTextAngle(),
-                                       plot()->dataLabelTextAlign());
+  CQChartsRotatedText::draw(painter, ppos.x, ppos.y, label_,
+                            plot()->dataLabelTextAngle(), plot()->dataLabelTextAlign());
 }
 
 //------

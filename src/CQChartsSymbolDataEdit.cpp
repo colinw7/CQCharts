@@ -10,8 +10,8 @@
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
+#include <CQGroupBox.h>
 
-#include <QGroupBox>
 #include <QLineEdit>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -119,10 +119,6 @@ void
 CQChartsSymbolDataLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  QColor c = palette().color(QPalette::Window);
-
-  painter->fillRect(rect, QBrush(c));
-
   CQChartsSymbolData data = this->symbolData();
 
   double s  = rect.height()/2.0 - 4.0;
@@ -141,16 +137,7 @@ drawPreview(QPainter *painter, const QRect &rect)
   QString str = QString("%1 %2").
     arg(symbolData().type().toString()).arg(symbolData().size().toString());
 
-  QFontMetricsF fm(font());
-
-  double fa = fm.ascent();
-  double fd = fm.descent();
-
-  QColor tc = CQChartsUtil::bwColor(c);
-
-  painter->setPen(tc);
-
-  painter->drawText(rect.left() + xl + 2 + 2*is, rect.center().y() + (fa - fd)/2, str);
+  drawCenteredText(painter, str);
 }
 
 //------
@@ -225,27 +212,39 @@ setValue(QWidget *w, const QVariant &var)
 //------
 
 CQChartsSymbolDataEdit::
-CQChartsSymbolDataEdit(QWidget *parent) :
+CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
  CQChartsEditBase(parent)
 {
+  setObjectName("symbolDataEdit");
+
+  //---
+
   QVBoxLayout *layout = new QVBoxLayout(this);
+  layout->setMargin(0); layout->setSpacing(0);
 
-  groupBox_ = new QGroupBox;
+  if (optional) {
+    groupBox_ = new CQGroupBox;
 
-  groupBox_->setCheckable(true);
-  groupBox_->setChecked(false);
-  groupBox_->setTitle("Visible");
+    groupBox_->setObjectName("groupBox");
+    groupBox_->setCheckable(true);
+    groupBox_->setChecked(false);
+    groupBox_->setTitle("Visible");
 
-  connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
+    connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
 
-  layout->addWidget(groupBox_);
+    layout->addWidget(groupBox_);
+  }
 
   //---
 
   QGridLayout *groupLayout = new QGridLayout(groupBox_);
 
+  if (! optional)
+    layout->addLayout(groupLayout);
+
   // symbol
   QLabel *symbolLabel = new QLabel("Symbol");
+  symbolLabel->setObjectName("symbolLabel");
 
   symbolEdit_ = new CQChartsSymbolEdit;
 
@@ -256,6 +255,7 @@ CQChartsSymbolDataEdit(QWidget *parent) :
 
   // size
   QLabel *sizeLabel = new QLabel("Size");
+  sizeLabel->setObjectName("sizeLabel");
 
   sizeEdit_ = new CQChartsLengthEdit;
 
@@ -334,7 +334,8 @@ void
 CQChartsSymbolDataEdit::
 setTitle(const QString &title)
 {
-  groupBox_->setTitle(title);
+  if (groupBox_)
+    groupBox_->setTitle(title);
 
   strokeEdit_->setTitle("Stroke");
   fillEdit_  ->setTitle("Fill");
@@ -354,13 +355,16 @@ void
 CQChartsSymbolDataEdit::
 dataToWidgets()
 {
-  disconnect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
+  if (groupBox_)
+    disconnect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
+
   disconnect(symbolEdit_, SIGNAL(symbolChanged()), this, SLOT(widgetsToData()));
   disconnect(sizeEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
   disconnect(strokeEdit_, SIGNAL(strokeDataChanged()), this, SLOT(widgetsToData()));
   disconnect(fillEdit_, SIGNAL(fillDataChanged()), this, SLOT(widgetsToData()));
 
-  groupBox_->setChecked(data_.isVisible());
+  if (groupBox_)
+    groupBox_->setChecked(data_.isVisible());
 
   symbolEdit_->setSymbol (data_.type());
   sizeEdit_  ->setLength (data_.size());
@@ -369,7 +373,9 @@ dataToWidgets()
 
   preview_->update();
 
-  connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
+  if (groupBox_)
+    connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
+
   connect(symbolEdit_, SIGNAL(symbolChanged()), this, SLOT(widgetsToData()));
   connect(sizeEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
   connect(strokeEdit_, SIGNAL(strokeDataChanged()), this, SLOT(widgetsToData()));
@@ -381,7 +387,8 @@ void
 CQChartsSymbolDataEdit::
 widgetsToData()
 {
-  data_.setVisible(groupBox_->isChecked());
+  if (groupBox_)
+    data_.setVisible(groupBox_->isChecked());
 
   data_.setType  (symbolEdit_->symbol());
   data_.setSize  (sizeEdit_  ->length());

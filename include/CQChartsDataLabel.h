@@ -12,7 +12,6 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   Q_PROPERTY(Position        position  READ position  WRITE setPosition )
   Q_PROPERTY(Qt::Orientation direction READ direction WRITE setDirection)
   Q_PROPERTY(bool            clip      READ isClip    WRITE setClip     )
-  Q_PROPERTY(double          margin    READ margin    WRITE setMargin   )
 
   Q_ENUMS(Position)
 

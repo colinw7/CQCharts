@@ -37,4 +37,4 @@ set mean_day_model [flatten_model -model $day_model -sum]
 # flatten directly on data number
 set mean_day_model [flatten_model -model $model -group Day -sum]
 
-manage_model_dlg
+manage_models_dlg

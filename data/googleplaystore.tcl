@@ -1,6 +1,6 @@
 set model [load_model -csv data/googleplaystore.csv -first_line_header]
 
-manage_model_dlg
+manage_models_dlg
 
 add_process_model_proc fixSize { value } {
   if {"$value" == "Varies with device"} { return "NaN" }

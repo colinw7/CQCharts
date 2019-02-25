@@ -639,6 +639,6 @@ drawPointLabel(const QPointF &point, const QString &text, bool above, bool mappi
   double w = fm.width(text);
   double h = fm.height();
 
-  painter_->drawText(px - w/2, py + (above ? -h : h), text);
+  CQChartsDrawUtil::drawSimpleText(painter_, px - w/2, py + (above ? -h : h), text);
 }
 #endif

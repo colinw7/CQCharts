@@ -1,7 +1,7 @@
 #include <CQChartsNameValues.h>
 
 #include <CQChartsVariant.h>
-#include <CQAlignEdit.h>
+#include <CQUtil.h>
 #include <CQStrParse.h>
 
 QString
@@ -194,7 +194,8 @@ nameValueAlign(const QString &name, Qt::Alignment &align) const
   if (! nameValue(name, var))
     return false;
 
-  align = CQAlignEdit::fromString(var.toString());
+  if (! CQUtil::stringToAlign(var.toString(), align))
+    return false;
 
   return true;
 }

@@ -6,12 +6,14 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
 #include <CQRealSpin.h>
+#include <CQGroupBox.h>
+#include <CQUtil.h>
 
-#include <QGroupBox>
 #include <QLineEdit>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -119,10 +121,6 @@ void
 CQChartsBoxDataLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  QColor c = palette().color(QPalette::Window);
-
-  painter->fillRect(rect, QBrush(c));
-
   CQChartsBoxData data = this->boxData();
 
   CQChartsBoxDataEditPreview::draw(painter, data, rect, plot(), view());
@@ -206,9 +204,12 @@ CQChartsBoxDataEdit(QWidget *parent) :
   setObjectName("boxDataEdit");
 
   QVBoxLayout *layout = new QVBoxLayout(this);
+  layout->setMargin(0); layout->setSpacing(0);
 
-  groupBox_ = new QGroupBox;
-  groupBox_->setObjectName("groupBox");
+  //---
+
+  // visible
+  groupBox_ = CQUtil::makeWidget<CQGroupBox>("groupBox");
 
   groupBox_->setCheckable(true);
   groupBox_->setChecked(false);
@@ -222,31 +223,29 @@ CQChartsBoxDataEdit(QWidget *parent) :
 
   QGridLayout *groupLayout = new QGridLayout(groupBox_);
 
-  // margin
-  QLabel *marginLabel = new QLabel("Margin");
-  marginLabel->setObjectName("marginLabel");
+  int row = 0;
 
-  marginEdit_ = new CQRealSpin;
-  marginEdit_->setObjectName("marginEdit");
+  //--
+
+  // margin
+  marginEdit_ = CQUtil::makeWidget<CQRealSpin>("marginEdit");
+
+  CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Margin", marginEdit_, row);
 
   connect(marginEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
 
-  groupLayout->addWidget(marginLabel, 0, 0);
-  groupLayout->addWidget(marginEdit_, 0, 1);
+  //--
 
   // padding
-  QLabel *paddingLabel = new QLabel("Padding");
-  paddingLabel->setObjectName("paddingLabel");
-
-  paddingEdit_ = new CQRealSpin;
-  paddingEdit_->setObjectName("paddingEdit");
+  paddingEdit_ = CQUtil::makeWidget<CQRealSpin>("paddingEdit");
 
   connect(paddingEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
 
-  groupLayout->addWidget(paddingLabel, 1, 0);
-  groupLayout->addWidget(paddingEdit_, 1, 1);
+  CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Padding", paddingEdit_, row);
 
-  // shape
+  //--
+
+  // shape (stroke, fill)
   shapeEdit_ = new CQChartsShapeDataEdit;
 
   shapeEdit_->setTitle("Shape");
@@ -254,24 +253,26 @@ CQChartsBoxDataEdit(QWidget *parent) :
 
   connect(shapeEdit_, SIGNAL(shapeDataChanged()), this, SLOT(widgetsToData()));
 
-  groupLayout->addWidget(shapeEdit_, 2, 0, 1, 2);
+  groupLayout->addWidget(shapeEdit_, row, 0, 1, 2); ++row;
+
+  //---
 
   // sides
   sidesEdit_ = new CQChartsSidesEdit;
 
   connect(sidesEdit_, SIGNAL(sidesChanged()), this, SLOT(widgetsToData()));
 
-  groupLayout->addWidget(sidesEdit_, 3, 0, 1, 2);
+  groupLayout->addWidget(sidesEdit_, row, 0, 1, 2); ++row;
 
   //---
 
   preview_ = new CQChartsBoxDataEditPreview(this);
 
-  groupLayout->addWidget(preview_, 4, 1);
+  groupLayout->addWidget(preview_, row, 1); ++row;
 
   //---
 
-  groupLayout->setRowStretch(5, 1);
+  groupLayout->setRowStretch(row, 1);
 
   //---
 

@@ -9,8 +9,9 @@
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
+#include <CQGroupBox.h>
+#include <CQUtil.h>
 
-#include <QGroupBox>
 #include <QLineEdit>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -118,10 +119,6 @@ void
 CQChartsFillDataLineEdit::
 drawPreview(QPainter *painter, const QRect &rect)
 {
-  QColor c = palette().color(QPalette::Window);
-
-  painter->fillRect(rect, QBrush(c));
-
   CQChartsFillDataEditPreview::draw(painter, fillData(), rect, plot(), view());
 }
 
@@ -203,8 +200,11 @@ CQChartsFillDataEdit(QWidget *parent) :
   setObjectName("fillDataEdit");
 
   QVBoxLayout *layout = new QVBoxLayout(this);
+  layout->setMargin(0); layout->setSpacing(0);
 
-  groupBox_ = new QGroupBox;
+  //---
+
+  groupBox_ = CQUtil::makeWidget<CQGroupBox>("groupBox");
 
   groupBox_->setCheckable(true);
   groupBox_->setChecked(false);

@@ -1,10 +1,9 @@
 #ifndef CQChartsFillPattern_H
 #define CQChartsFillPattern_H
 
-#include <QString>
-#include <QStringList>
+#include <CQChartsEnum.h>
 
-class CQChartsFillPattern {
+class CQChartsFillPattern : public CQChartsEnum {
  public:
   enum class Type {
     NONE,
@@ -22,16 +21,16 @@ class CQChartsFillPattern {
 
   static int metaTypeId;
 
-  static QStringList typeNames();
-
  public:
   CQChartsFillPattern(Type type=Type::SOLID) :
    type_(type) {
   }
 
   explicit CQChartsFillPattern(const QString &str) {
-    type_ = stringToType(str);
+    (void) fromString(str);
   }
+
+  //---
 
   bool isValid() const { return type_ != Type::NONE; }
 
@@ -40,22 +39,12 @@ class CQChartsFillPattern {
 
   //---
 
-  Qt::BrushStyle style() const { return typeToStyle(type_); }
+  QString toString() const override;
+  bool fromString(const QString &s) override;
 
   //---
 
-  QString toString() const { return typeToString(type_); }
-
-  bool fromString(const QString &s) {
-    Type type = stringToType(s);
-
-    if (type == Type::NONE)
-      return false;
-
-    type_ = type;
-
-    return true;
-  }
+  QStringList enumNames() const override;
 
   //---
 
@@ -65,12 +54,25 @@ class CQChartsFillPattern {
   static Type styleToType(const Qt::BrushStyle &style);
   static Qt::BrushStyle typeToStyle(const Type &type);
 
+  //---
+
+  Qt::BrushStyle style() const { return typeToStyle(type_); }
+
+  //---
+
   friend bool operator==(const CQChartsFillPattern &lhs, const CQChartsFillPattern &rhs) {
     return (lhs.type_ == rhs.type_);
   }
 
   friend bool operator!=(const CQChartsFillPattern &lhs, const CQChartsFillPattern &rhs) {
-    return (lhs.type_ != rhs.type_);
+    return ! operator==(lhs, rhs);
+  }
+
+  //---
+
+  friend std::ostream &operator<<(std::ostream &os, const CQChartsFillPattern &l) {
+    l.print(os);
+    return os;
   }
 
  private:
@@ -78,8 +80,6 @@ class CQChartsFillPattern {
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsFillPattern)
 

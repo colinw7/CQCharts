@@ -7,7 +7,7 @@
 
 class CQCharts;
 class CQChartsModelWidgets;
-class CQChartsLoadDlg;
+class CQChartsLoadModelDlg;
 class QVBoxLayout;
 
 class CQChartsAppWindow : public CQAppWindow {
@@ -44,7 +44,7 @@ class CQChartsAppWindow : public CQAppWindow {
  private:
   CQCharts*             charts_       { nullptr };
   CQChartsModelWidgets* modelWidgets_ { nullptr };
-  CQChartsLoadDlg*      loadDlg_      { nullptr };
+  CQChartsLoadModelDlg* loadModelDlg_ { nullptr };
 };
 
 #endif

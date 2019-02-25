@@ -778,3 +778,7 @@
  + Use CQChartsUtil::toInt, toReal and CQChartsVariant::toInt, toReal in all conversions
  + Support tcl list in commands
  + Add more doxygen comments
+# 2/24/2019
+ + Add contrast text drawing for html text
+ + Add Edit Dialog for Annotation, Title, Key and Axis
+ + More Enum Editors

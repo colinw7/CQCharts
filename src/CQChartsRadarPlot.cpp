@@ -6,6 +6,7 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
+
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -291,7 +292,7 @@ annotationBBox() const
           else if (y > 0)                align |= Qt::AlignBottom;
           else if (y < 0)                align |= Qt::AlignTop;
 
-          QRectF trect = CQChartsDrawUtil::alignedTextRect(font, px, py, name, align, 2, 2);
+          QRectF trect = CQChartsDrawUtil::calcAlignedTextRect(font, px, py, name, align, 2, 2);
 
           bbox += pixelToWindow(CQChartsUtil::fromQRect(trect));
         }

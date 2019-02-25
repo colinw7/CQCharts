@@ -4,6 +4,14 @@
 #include <CQChartsData.h>
 #include <CQChartsLineEditBase.h>
 
+struct CQChartsStrokeDataEditConfig {
+  bool cornerSize { true };
+
+  CQChartsStrokeDataEditConfig &setCornerSize(bool b) { cornerSize = b; return *this; }
+};
+
+//---
+
 class CQChartsStrokeDataEdit;
 class CQChartsPlot;
 class CQChartsView;
@@ -49,13 +57,14 @@ class CQChartsAlphaEdit;
 class CQChartsLengthEdit;
 class CQChartsLineDashEdit;
 class CQChartsStrokeDataEditPreview;
-class QGroupBox;
+class CQGroupBox;
 
 class CQChartsStrokeDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
  public:
-  CQChartsStrokeDataEdit(QWidget *parent=nullptr);
+  CQChartsStrokeDataEdit(QWidget *parent=nullptr,
+   const CQChartsStrokeDataEditConfig &config=CQChartsStrokeDataEditConfig());
 
   const CQChartsStrokeData &data() const { return data_; }
   void setData(const CQChartsStrokeData &d);
@@ -74,10 +83,11 @@ class CQChartsStrokeDataEdit : public CQChartsEditBase {
   void widgetsToData();
 
  private:
+  CQChartsStrokeDataEditConfig   config_;
   CQChartsPlot*                  plot_       { nullptr };
   CQChartsView*                  view_       { nullptr };
   CQChartsStrokeData             data_;
-  QGroupBox*                     groupBox_   { nullptr };
+  CQGroupBox*                    groupBox_   { nullptr };
   CQChartsColorLineEdit*         colorEdit_  { nullptr };
   CQChartsAlphaEdit*             alphaEdit_  { nullptr };
   CQChartsLengthEdit*            widthEdit_  { nullptr };

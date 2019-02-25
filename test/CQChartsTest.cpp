@@ -8,7 +8,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsCmds.h>
-#include <CQChartsModelDlg.h>
+#include <CQChartsLoadModelDlg.h>
 #include <CQChartsInput.h>
 #include <CQCharts.h>
 #include <CQChartsReadLine.h>
@@ -265,7 +265,7 @@ main(int argc, char **argv)
       appWindow->window()->raise();
   }
   else if (mainData.showModel) {
-    CQChartsModelDlg *dlg = new CQChartsModelDlg(test.charts());
+    CQChartsLoadModelDlg *dlg = new CQChartsLoadModelDlg(test.charts());
 
     dlg->show();
   }

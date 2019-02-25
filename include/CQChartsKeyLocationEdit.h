@@ -14,7 +14,7 @@ class CQChartsKeyLocationEdit : public QFrame {
   CQChartsKeyLocationEdit(QWidget *parent=nullptr);
 
   const CQChartsKeyLocation &keyLocation() const;
-  void setKeyLocation(const CQChartsKeyLocation &pos);
+  void setKeyLocation(const CQChartsKeyLocation &loc);
 
  signals:
   void keyLocationChanged();

@@ -2,6 +2,7 @@
 #define CQChartsLineDash_H
 
 #include <QPen>
+#include <CLineDash.h>
 
 #include <sys/types.h>
 
@@ -23,6 +24,8 @@ class CQChartsLineDash {
 
   CQChartsLineDash(const CQChartsLineDash &dash);
 
+  CQChartsLineDash(const CLineDash &dash);
+
   CQChartsLineDash(const Lengths &lengths, double offset=0.0);
 
   explicit CQChartsLineDash(ushort pattern);
@@ -43,21 +46,23 @@ class CQChartsLineDash {
 
   CQChartsLineDash &copy(const CQChartsLineDash &dash);
 
-  const QPen &pen() const { return pen_; }
+  double getOffset() const { return offset_; }
+  void setOffset(double offset) { offset_ = offset; }
 
-  double   getOffset    () const { return pen_.dashOffset(); }
-  QLengths getLengths   () const { return pen_.dashPattern(); }
-  int      getNumLengths() const { return pen_.dashPattern().size(); }
+  QLengths getLengths() const { return lengths_; }
+  void setLengths(const QLengths &lengths) { lengths_ = lengths; }
 
-  double getLength(int i) const { return pen_.dashPattern()[i]; }
+  int getNumLengths() const { return lengths_.length(); }
 
-  void setOffset(double offset) { pen_.setDashOffset(offset); }
+  double getLength(int i) const { return lengths_[i]; }
 
-  bool isSolid() const { return pen_.dashPattern().empty(); }
+  bool isSolid() const { return lengths_.length() == 0; }
 
   void setDashes(const Lengths &lengths, double offset=0.0);
 
   void setDashes(ushort pattern);
+
+  CLineDash lineDash() const;
 
   QString toString() const;
 
@@ -72,10 +77,12 @@ class CQChartsLineDash {
   }
 
  private:
+  void init(const Lengths &lengths, double offset);
   void init();
 
  private:
-  QPen pen_;
+  double   offset_;
+  QLengths lengths_;
 };
 
 //------

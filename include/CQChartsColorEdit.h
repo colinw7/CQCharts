@@ -17,6 +17,8 @@ class CQChartsColorLineEdit : public CQChartsLineEditBase {
   const CQChartsColor &color() const;
   void setColor(const CQChartsColor &c);
 
+  void setNoFocus();
+
   void drawPreview(QPainter *painter, const QRect &rect) override;
 
  signals:
@@ -59,6 +61,8 @@ class CQChartsColorEdit : public CQChartsEditBase {
 
   const CQChartsColor &color() const;
   void setColor(const CQChartsColor &c);
+
+  void setNoFocus();
 
  signals:
   void colorChanged();

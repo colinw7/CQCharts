@@ -12,9 +12,9 @@ namespace CQChartsRotatedText {
 
 typedef std::vector<QPointF> Points;
 
-void drawRotatedText(QPainter *painter, double x, double y, const QString &text,
-                     double angle=0.0, Qt::Alignment align=Qt::AlignLeft | Qt::AlignBottom,
-                     bool alignBBox=false);
+void draw(QPainter *painter, double x, double y, const QString &text,
+          double angle=0.0, Qt::Alignment align=Qt::AlignLeft | Qt::AlignBottom,
+          bool alignBBox=false, bool contrast=false);
 
 QRectF bbox(double x, double y, const QString &text, const QFont &font,
             double angle=0.0, double border=0.0,

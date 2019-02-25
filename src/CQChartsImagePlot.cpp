@@ -3,6 +3,8 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQChartsDrawUtil.h>
+
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -367,7 +369,7 @@ drawXLabels(QPainter *painter) const
     else
       trect = QRectF(p1.x() - tw/2, p1.y() - tw1 - tm, tw, tw1);
 
-    drawTextInBox(painter, trect, name, tpen, textOptions);
+    CQChartsDrawUtil::drawTextInBox(painter, trect, name, tpen, adjustTextOptions(textOptions));
   }
 }
 
@@ -428,7 +430,7 @@ drawYLabels(QPainter *painter) const
     else
       trect = QRectF(p1.x() + tm, p1.y() - th/2.0, tw, th);
 
-    drawTextInBox(painter, trect, name, tpen, textOptions);
+    CQChartsDrawUtil::drawTextInBox(painter, trect, name, tpen, adjustTextOptions(textOptions));
   }
 }
 
@@ -600,7 +602,9 @@ draw(QPainter *painter)
       textOptions.align       = Qt::AlignCenter;
       textOptions.scaled      = plot_->isScaleCellLabels();
 
-      plot_->drawTextInBox(painter, qrect, valueStr, tpen, textOptions);
+      textOptions = plot_->adjustTextOptions(textOptions);
+
+      CQChartsDrawUtil::drawTextInBox(painter, qrect, valueStr, tpen, textOptions);
     }
   }
   else {

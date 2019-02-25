@@ -9,6 +9,9 @@
 #include <algorithm>
 #include <future>
 
+/*!
+ * \brief whisker data
+ */
 struct CQChartsWhiskerData {
   double min    { 0.0 };
   double lower  { 0.0 };
@@ -20,6 +23,11 @@ struct CQChartsWhiskerData {
   double unotch { 0.0 };
 };
 
+//---
+
+/*!
+ * \bried box whisker
+ */
 template<typename VALUE>
 class CQChartsBoxWhiskerT {
  public:
@@ -283,24 +291,24 @@ class CQChartsBoxWhiskerT {
   }
 
  private:
-  QString                   name_;
-  Values                    values_;
-  double                    range_        { 1.5 };
-  double                    fraction_     { 0.95 }; // TODO
+  QString                   name_;                  //! name
+  Values                    values_;                //! values
+  double                    range_        { 1.5 };  //! outlier range scale
+  double                    fraction_     { 0.95 }; //! fraction ? TODO
 
   // calculated data
-  mutable std::atomic<bool> calcValid_    { false };
-  mutable std::mutex        calcMutex_;
-  CQChartsWhiskerData       data_;
-  double                    sum_          { 0.0 };
-  double                    mean_         { 0.0 };
-  double                    stddev_       { 0.0 };
-  Outliers                  outliers_;
+  mutable std::atomic<bool> calcValid_    { false }; //! calc valid
+  mutable std::mutex        calcMutex_;              //! calc mutex
+  CQChartsWhiskerData       data_;                   //! calc daya
+  double                    sum_          { 0.0 };   //! calc sum
+  double                    mean_         { 0.0 };   //! calc mean
+  double                    stddev_       { 0.0 };   //! calc standard deviation
+  Outliers                  outliers_;               //! calc outliers
 
   // calculated density
-  Density                   density_;
-  mutable std::atomic<bool> densityValid_ { false };
-  mutable std::mutex        densityMutex_;
+  Density                   density_;                //! density data
+  mutable std::atomic<bool> densityValid_ { false }; //! density data valid
+  mutable std::mutex        densityMutex_;           //! density data mutext
 };
 
 using CQChartsBoxWhisker = CQChartsBoxWhiskerT<double>;
@@ -313,6 +321,9 @@ using CQChartsBoxWhisker = CQChartsBoxWhiskerT<double>;
 class CQChartsPlot;
 class QPainter;
 
+/*!
+ * \brief box whisker utility functions
+ */
 namespace CQChartsBoxWhiskerUtil {
 
 void drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsBoxWhisker &whisker,

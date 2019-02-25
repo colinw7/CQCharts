@@ -1,5 +1,5 @@
 #include <CQChartsData.h>
-#include <CQAlignEdit.h>
+#include <CQUtil.h>
 
 // TODO: only save if value not default
 
@@ -45,7 +45,7 @@ setNameValues(CQChartsNameValues &nameValues) const
   if (isContrast())
     nameValues.setNameValue("contrast", isContrast());
 
-  nameValues.setNameValue("align", CQAlignEdit::toString(align()));
+  nameValues.setNameValue("align", CQUtil::alignToString(align()));
 
   if (isFormatted())
     nameValues.setNameValue("formatted", isFormatted());

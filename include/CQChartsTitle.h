@@ -2,6 +2,7 @@
 #define CQChartsTitle_H
 
 #include <CQChartsTextBoxObj.h>
+#include <CQChartsTitleLocation.h>
 #include <CQChartsPosition.h>
 #include <CQChartsRect.h>
 #include <CQChartsGeom.h>
@@ -17,20 +18,10 @@ class QPainter;
 class CQChartsTitle : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(LocationType     location    READ location    WRITE setLocation   )
-  Q_PROPERTY(CQChartsPosition absPosition READ absPosition WRITE setAbsPosition)
-  Q_PROPERTY(CQChartsRect     absRect     READ absRect     WRITE setAbsRect    )
-
-  Q_ENUMS(LocationType)
-
- public:
-  enum LocationType {
-    TOP,
-    CENTER,
-    BOTTOM,
-    ABS_POS,
-    ABS_RECT
-  };
+  Q_PROPERTY(CQChartsTitleLocation location    READ location     WRITE setLocation   )
+  Q_PROPERTY(CQChartsPosition      absPosition READ absPosition  WRITE setAbsPosition)
+  Q_PROPERTY(CQChartsRect          absRect     READ absRect      WRITE setAbsRect    )
+  Q_PROPERTY(bool                  insidePlot  READ isInsidePlot WRITE setInsidePlot )
 
  public:
   CQChartsTitle(CQChartsPlot *plot);
@@ -42,14 +33,17 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  const LocationType &location() const { return location_.location; }
-  void setLocation(const LocationType &l) { location_.location = l; redraw(); }
+  const CQChartsTitleLocation &location() const { return location_; }
+  void setLocation(const CQChartsTitleLocation &l) { location_ = l; redraw(); }
 
-  const CQChartsPosition &absPosition() const { return location_.absPosition; }
-  void setAbsPosition(const CQChartsPosition &p) { location_.absPosition = p; redraw(); }
+  const CQChartsPosition &absPosition() const { return absPosition_; }
+  void setAbsPosition(const CQChartsPosition &p) { absPosition_ = p; redraw(); }
 
-  const CQChartsRect &absRect() const { return location_.absRect; }
-  void setAbsRect(const CQChartsRect &r) { location_.absRect = r; redraw(); }
+  const CQChartsRect &absRect() const { return absRect_; }
+  void setAbsRect(const CQChartsRect &r) { absRect_ = r; redraw(); }
+
+  bool isInsidePlot() const { return insidePlot_; }
+  void setInsidePlot(bool b) { insidePlot_ = b; }
 
   //---
 
@@ -75,7 +69,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  void redrawBoxObj() override { redraw(); }
+  void boxDataInvalidate() override { redraw(); }
 
   //---
 
@@ -118,13 +112,10 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   void updateLocation();
 
  private:
-  struct Location {
-    LocationType     location    { LocationType::TOP}; //! loction
-    CQChartsPosition absPosition;                      //! position (relative to plot box)
-    CQChartsRect     absRect;                          //! rect (relative to plot box)
-  };
-
-  Location                   location_;                //! location
+  CQChartsTitleLocation      location_;                //! loction type
+  CQChartsPosition           absPosition_;             //! position (relative to plot box)
+  CQChartsRect               absRect_;                 //! rect (relative to plot box)
+  bool                       insidePlot_  { false };   //! is placed inside plot
   QPointF                    position_    { 0, 0 };    //! position
   QSizeF                     size_;                    //! size
   mutable CQChartsGeom::BBox bbox_;                    //! bbox

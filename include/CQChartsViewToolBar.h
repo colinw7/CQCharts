@@ -4,8 +4,8 @@
 #include <QFrame>
 
 class CQChartsWindow;
-class CQChartsModelDlg;
-class CQChartsPlotDlg;
+class CQChartsLoadModelDlg;
+class CQChartsCreatePlotDlg;
 class CQIconCombo;
 class QToolButton;
 class QRadioButton;
@@ -43,19 +43,19 @@ class CQChartsViewToolBar : public QFrame {
   void rightSlot();
 
  private:
-  CQChartsWindow*   window_            { nullptr };
-  CQIconCombo*      modeCombo_         { nullptr };
-  QRadioButton*     selectPointButton_ { nullptr };
-  QRadioButton*     selectRectButton_  { nullptr };
-  QCheckBox*        selectInsideCheck_ { nullptr };
-  QToolButton*      modelDlgButton_    { nullptr };
-  QToolButton*      plotDlgButton_     { nullptr };
-  QToolButton*      autoFitButton_     { nullptr };
-  QToolButton*      leftButton_        { nullptr };
-  QToolButton*      rightButton_       { nullptr };
-  QStackedWidget*   controlsStack_     { nullptr };
-  CQChartsModelDlg* modelDlg_          { nullptr };
-  CQChartsPlotDlg*  plotDlg_           { nullptr };
+  CQChartsWindow*        window_              { nullptr };
+  CQIconCombo*           modeCombo_           { nullptr };
+  QRadioButton*          selectPointButton_   { nullptr };
+  QRadioButton*          selectRectButton_    { nullptr };
+  QCheckBox*             selectInsideCheck_   { nullptr };
+  QToolButton*           loadModelDlgButton_  { nullptr };
+  QToolButton*           createPlotDlgButton_ { nullptr };
+  QToolButton*           autoFitButton_       { nullptr };
+  QToolButton*           leftButton_          { nullptr };
+  QToolButton*           rightButton_         { nullptr };
+  QStackedWidget*        controlsStack_       { nullptr };
+  CQChartsLoadModelDlg*  loadModelDlg_        { nullptr };
+  CQChartsCreatePlotDlg* createPlotDlg_       { nullptr };
 };
 
 #endif

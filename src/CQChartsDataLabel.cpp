@@ -3,6 +3,8 @@
 #include <CQChartsPlot.h>
 #include <CQChartsUtil.h>
 #include <CQChartsRotatedText.h>
+#include <CQChartsDrawUtil.h>
+
 #include <QPainter>
 
 CQChartsDataLabel::
@@ -189,20 +191,28 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
     if (! clipped) {
       if (isTextContrast()) {
         if (ystr.length()) {
+#if 0
           if (direction() == Qt::Vertical)
-            CQChartsUtil::drawContrastText(painter, x, y, ystr, tpen);
+            CQChartsDrawUtil::drawContrastText(painter, x, y, ystr, tpen);
           else
-            CQChartsUtil::drawContrastText(painter, x, y, ystr, tpen);
+            CQChartsDrawUtil::drawContrastText(painter, x, y, ystr, tpen);
+#else
+          CQChartsDrawUtil::drawContrastText(painter, x, y, ystr, tpen);
+#endif
         }
       }
       else {
         if (ystr.length()) {
           painter->setPen(tpen);
 
+#if 0
           if (direction() == Qt::Vertical)
-            painter->drawText(QPointF(x, y), ystr);
+            CQChartsDrawUtil::drawSimpleText(painter, QPointF(x, y), ystr);
           else
-            painter->drawText(QPointF(x, y), ystr);
+            CQChartsDrawUtil::drawSimpleText(painter, QPointF(x, y), ystr);
+#else
+          CQChartsDrawUtil::drawSimpleText(painter, QPointF(x, y), ystr);
+#endif
         }
       }
     }
@@ -242,8 +252,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
     painter->setPen(tpen);
 
     if (ystr.length())
-      CQChartsRotatedText::drawRotatedText(painter, x, y, ystr, textAngle(), align,
-                                           /*alignBBox*/ true);
+      CQChartsRotatedText::draw(painter, x, y, ystr, textAngle(), align, /*alignBBox*/ true);
   }
 
   //---

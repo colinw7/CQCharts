@@ -2,6 +2,10 @@
 
 interp alias {} test_edit {} charts::test_edit
 
+set model [load_model -tsv data/multi_series.tsv -comment_header -column_type "time:format=%Y%m%d,oformat=%F"]
+
+set plot [create_plot -type xy -columns "x=0,y=1" -title "XY Plot"]
+
 #charts::test_edit -type alpha
 
 #charts::test_edit -type arrow_data
@@ -55,8 +59,8 @@ interp alias {} test_edit {} charts::test_edit
 #charts::test_edit -type stroke_data
 #charts::test_edit -type stroke_data_line
 
-#charts::test_edit -type symbol_data
-#charts::test_edit -type symbol_data_line
+charts::test_edit -type symbol_data
+charts::test_edit -type symbol_data_line
 
 #charts::test_edit -type symbol_type
 
@@ -66,10 +70,7 @@ interp alias {} test_edit {} charts::test_edit
 #charts::test_edit -type text_data
 #charts::test_edit -type text_data_line
 
-set model [load_model -tsv data/multi_series.tsv -comment_header -column_type "time:format=%Y%m%d,oformat=%F"]
-
-set plot [create_plot -type xy -columns "x=0,y=1" -title "XY Plot"]
-
+if {0} {
 charts::test_edit -plot $plot -editable 0 -type [list \
  arrow_data_line \
  box_data_line \
@@ -85,3 +86,4 @@ charts::test_edit -plot $plot -editable 0 -type [list \
  stroke_data_line \
  text_box_data_line \
  text_data_line]
+}

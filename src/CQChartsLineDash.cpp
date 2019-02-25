@@ -27,22 +27,19 @@ CQChartsLineDash(const CQChartsLineDash &dash)
 }
 
 CQChartsLineDash::
+CQChartsLineDash(const CLineDash &dash)
+{
+  Lengths lengths;
+
+  dash.getLengths(lengths);
+
+  init(lengths, dash.getOffset());
+}
+
+CQChartsLineDash::
 CQChartsLineDash(const Lengths &lengths, double offset)
 {
-  init();
-
-  setOffset(offset);
-
-  QLengths qlengths;
-
-  int num_lengths = lengths.size();
-
-  for (int i = 0; i < num_lengths; ++i) {
-    if (lengths[i] > 1E-5)
-      qlengths.push_back(lengths[i]);
-  }
-
-  pen_.setDashPattern(qlengths);
+  init(lengths, offset);
 }
 
 CQChartsLineDash::
@@ -103,7 +100,7 @@ scale(double factor)
   for (int i = 0; i < num_lengths; ++i)
     qlengths[i] *= factor;
 
-  pen_.setDashPattern(qlengths);
+  setLengths(qlengths);
 }
 
 CQChartsLineDash &
@@ -113,7 +110,8 @@ copy(const CQChartsLineDash &dash)
   if (&dash == this)
     return *this;
 
-  pen_ = dash.pen_;
+  offset_  = dash.offset_;
+  lengths_ = dash.lengths_;
 
   return *this;
 }
@@ -129,9 +127,8 @@ setDashes(const Lengths &lengths, double offset)
       qlengths.push_back(len);
   }
 
-  setOffset(offset);
-
-  pen_.setDashPattern(qlengths);
+  setOffset (offset);
+  setLengths(qlengths);
 }
 
 void
@@ -195,7 +192,25 @@ setDashes(ushort pattern)
 
   setOffset(offset);
 
-  pen_.setDashPattern(qlengths);
+  setLengths(qlengths);
+}
+
+CLineDash
+CQChartsLineDash::
+lineDash() const
+{
+  if (isSolid()) return CLineDash();
+
+  QLengths qlengths = getLengths();
+
+  uint num_lengths = qlengths.size();
+
+  Lengths lengths;
+
+  for (uint i = 0; i < num_lengths; ++i)
+    lengths.push_back(qlengths[i]);
+
+  return CLineDash(lengths, getOffset());
 }
 
 QString
@@ -279,11 +294,31 @@ fromString(const QString &str)
 
 void
 CQChartsLineDash::
+init(const Lengths &lengths, double offset)
+{
+  init();
+
+  setOffset(offset);
+
+  QLengths qlengths;
+
+  int num_lengths = lengths.size();
+
+  for (int i = 0; i < num_lengths; ++i) {
+    if (lengths[i] > 1E-5)
+      qlengths.push_back(lengths[i]);
+  }
+
+  setLengths(qlengths);
+}
+
+void
+CQChartsLineDash::
 init()
 {
   setOffset(0.0);
 
   QLengths qlengths;
 
-  pen_.setDashPattern(qlengths);
+  setLengths(qlengths);
 }
