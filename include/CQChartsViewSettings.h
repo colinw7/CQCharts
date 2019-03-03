@@ -3,6 +3,9 @@
 
 #include <QFrame>
 
+class CQChartsViewSettingsPlotTabWidget;
+class CQChartsViewSettingsFilterEdit;
+class CQChartsModelDetailsWidget;
 class CQChartsWindow;
 class CQChartsPlot;
 class CQChartsAnnotation;
@@ -17,11 +20,10 @@ class CQChartsEditTitleDlg;
 class CQChartsEditKeyDlg;
 class CQChartsEditAxisDlg;
 class CQChartsPropertyViewTree;
-class CQIntegerSpin;
 
+class CQIntegerSpin;
 class QTabWidget;
 class QTableWidget;
-class QTextBrowser;
 class QComboBox;
 class QSpinBox;
 class QPushButton;
@@ -46,7 +48,7 @@ class CQChartsViewSettings : public QFrame {
 
   CQChartsWindow *window() const { return window_; }
 
-  CQChartsPropertyViewTree *propertyTree() const { return propertiesWidgets_.propertyTree; }
+  CQChartsPropertyViewTree *viewPropertyTree() const { return propertiesWidgets_.viewPropertyTree; }
 
  signals:
   void propertyItemSelected(QObject *obj, const QString &path);
@@ -55,7 +57,7 @@ class CQChartsViewSettings : public QFrame {
   void updateModels();
 
   void invalidateModelDetails();
-  void updateModelDetails();
+//void updateModelDetails();
 
   void updatePlots();
   void updateCurrentPlot();
@@ -69,12 +71,6 @@ class CQChartsViewSettings : public QFrame {
   void paletteIndexSlot(int ind);
 
   void loadPaletteNameSlot();
-
-  void replaceFilterSlot(const QString &text);
-  void addFilterSlot(const QString &text);
-
-  void replaceSearchSlot(const QString &text);
-  void addSearchSlot(const QString &text);
 
   void updateSelection();
 
@@ -92,6 +88,8 @@ class CQChartsViewSettings : public QFrame {
   //---
 
   void plotsSelectionChangeSlot();
+
+  void editViewKeySlot();
 
   void editPlotTitleSlot();
   void editPlotKeySlot();
@@ -145,6 +143,8 @@ class CQChartsViewSettings : public QFrame {
   void initThemeFrame      (QFrame *themeFrame);
   void initLayersFrame     (QFrame *layersFrame);
 
+  CQChartsPlot *getPropertiesPlot() const;
+
   CQChartsPlot *getSelectedPlot() const;
 
   void getSelectedPlots(Plots &plots) const;
@@ -152,15 +152,18 @@ class CQChartsViewSettings : public QFrame {
   void getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotations) const;
 
  private:
+  using PlotTabWidgets = std::map<CQChartsPlot *, CQChartsViewSettingsPlotTabWidget *>;
+
   struct PropertiesWidgets {
-    CQChartsFilterEdit*       filterEdit   { nullptr }; //! settings filter
-    CQChartsPropertyViewTree* propertyTree { nullptr }; //! settings tree
+    CQChartsViewSettingsFilterEdit* viewFilterEdit   { nullptr }; //! view settings filter
+    CQChartsPropertyViewTree*       viewPropertyTree { nullptr }; //! view settings tree
+    QTabWidget*                     plotsTab         { nullptr }; //! plots settings tab
+    PlotTabWidgets                  plotTabWidgets;
   };
 
   struct ModelsWidgets {
-    QTableWidget* modelTable          { nullptr }; //! model table
-    QPushButton*  updateDetailsButton { nullptr }; //! update details button
-    QTextBrowser* modelDetailsText    { nullptr }; //! model details text
+    QTableWidget*               modelTable    { nullptr }; //! model table
+    CQChartsModelDetailsWidget* detailsWidget { nullptr }; //! model details
   };
 
   struct PlotsWidgets {
@@ -216,7 +219,43 @@ class CQChartsViewSettings : public QFrame {
   CQChartsEditAxisDlg*         editXAxisDlg_        { nullptr }; //! edit plot x axis dialog
   CQChartsEditAxisDlg*         editYAxisDlg_        { nullptr }; //! edit plot y axis dialog
   QString                      plotId_;                          //! current plot id
-  bool                         modelDetailsValid_   { false };   //! model details valid
+//bool                         modelDetailsValid_   { false };   //! model details valid
+};
+
+//---
+
+class CQChartsViewSettingsPlotTabWidget : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsViewSettingsPlotTabWidget(CQChartsViewSettings *settings, CQChartsPlot *plot);
+
+  CQChartsPlot *plot() const { return plot_; }
+
+  CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
+
+ private:
+  CQChartsPlot*             plot_         { nullptr };
+  CQChartsPropertyViewTree* propertyTree_ { nullptr };
+};
+
+//---
+
+class CQChartsViewSettingsFilterEdit : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsViewSettingsFilterEdit(CQChartsPropertyViewTree *tree);
+
+ private slots:
+  void replaceFilterSlot(const QString &text);
+  void addFilterSlot(const QString &text);
+  void replaceSearchSlot(const QString &text);
+  void addSearchSlot(const QString &text);
+
+ private:
+  CQChartsPropertyViewTree* tree_       { nullptr };
+  CQChartsFilterEdit*       filterEdit_ { nullptr };
 };
 
 #endif

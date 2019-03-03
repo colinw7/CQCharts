@@ -48,6 +48,12 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 {
   NoUpdate noUpdate(this);
 
+  //---
+
+  propertyModel_ = new CQPropertyViewModel;
+
+  //---
+
   preview_ = CQChartsEnv::getInt("CQ_CHARTS_PLOT_PREVIEW", preview_);
 
   sequential_ = CQChartsEnv::getBool("CQ_CHARTS_SEQUENTIAL", sequential_);
@@ -135,6 +141,8 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 CQChartsPlot::
 ~CQChartsPlot()
 {
+  delete propertyModel_;
+
   clearPlotObjects();
 
   for (auto &layer : layers_)
@@ -1390,14 +1398,14 @@ const CQPropertyViewModel *
 CQChartsPlot::
 propertyModel() const
 {
-  return const_cast<CQChartsPlot *>(this)->view_->propertyModel();
+  return propertyModel_;
 }
 
 CQPropertyViewModel *
 CQChartsPlot::
 propertyModel()
 {
-  return view_->propertyModel();
+  return propertyModel_;
 }
 
 void
@@ -1654,12 +1662,16 @@ addProperty(const QString &path, QObject *object, const QString &name, const QSt
 {
   assert(CQUtil::hasProperty(object, name));
 
+#if 0
   QString path1 = id();
 
   if (path.length())
     path1 += "/" + path;
+#else
+  QString path1 = path;
+#endif
 
-  return view_->addProperty(path1, object, name, alias);
+  return propertyModel()->addProperty(path1, object, name, alias);
 }
 
 void
@@ -1736,7 +1748,7 @@ void
 CQChartsPlot::
 getPropertyNames(QStringList &names) const
 {
-  view()->propertyModel()->objectNames(this, names);
+  propertyModel()->objectNames(this, names);
 }
 
 void
@@ -9580,7 +9592,7 @@ write(std::ostream &os) const
 
   CQPropertyViewModel::NameValues nameValues;
 
-  view()->propertyModel()->getChangedNameValues(this, nameValues);
+  propertyModel()->getChangedNameValues(this, nameValues);
 
   QString propertiesStr;
 

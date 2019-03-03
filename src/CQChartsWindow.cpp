@@ -474,7 +474,7 @@ selectPropertyObjects()
   // get currently selected property view objects
   CQPropertyViewTree::Objs selectedObjs;
 
-  settings_->propertyTree()->getSelectedObjects(selectedObjs);
+  settings_->viewPropertyTree()->getSelectedObjects(selectedObjs);
 
   ObjSet selectedObjSet;
 
@@ -518,10 +518,10 @@ selectPropertyObjects()
 
   // update selected if changed
   if (changed) {
-    settings_->propertyTree()->deselectAllObjects();
+    settings_->viewPropertyTree()->deselectAllObjects();
 
     for (auto &obj : objSet)
-      settings_->propertyTree()->selectObject(obj);
+      settings_->viewPropertyTree()->selectObject(obj);
   }
 
   //---

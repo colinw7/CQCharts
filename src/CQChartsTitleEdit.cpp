@@ -21,7 +21,7 @@ CQChartsEditTitleDlg::
 CQChartsEditTitleDlg(CQChartsTitle *title) :
  QDialog(), title_(title)
 {
-  setWindowTitle("Edit Title");
+  setWindowTitle(QString("Edit Plot Title (%1)").arg(title->plot()->id()));
 
   //---
 

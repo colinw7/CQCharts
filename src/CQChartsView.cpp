@@ -859,7 +859,7 @@ removePlot(CQChartsPlot *plot)
   // remove plot
   QString id = plot->id();
 
-  propertyModel()->removeProperties(id, plot);
+  //propertyModel()->removeProperties(id, plot);
 
   std::swap(plots, plots_);
 
@@ -887,8 +887,10 @@ void
 CQChartsView::
 removeAllPlots()
 {
+#if 0
   for (auto &plot : plots_)
     propertyModel()->removeProperties(plot->id(), plot);
+#endif
 
   for (auto &plot : plots_)
     delete plot;

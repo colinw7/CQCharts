@@ -98,10 +98,13 @@ CQChartsEditAnnotationDlg.cpp \
 CQChartsLoadModelDlg.cpp \
 CQChartsManageModelsDlg.cpp \
 \
-CQChartsLoader.cpp \
 CQChartsModelWidgets.cpp \
 CQChartsModelList.cpp \
 CQChartsModelControl.cpp \
+CQChartsModelDetailsWidget.cpp \
+\
+CQChartsLoader.cpp \
+\
 CQChartsModelView.cpp \
 CQChartsEval.cpp \
 \
@@ -350,10 +353,13 @@ HEADERS += \
 ../include/CQChartsLoadModelDlg.h \
 ../include/CQChartsManageModelsDlg.h \
 \
-../include/CQChartsLoader.h \
 ../include/CQChartsModelWidgets.h \
 ../include/CQChartsModelList.h \
 ../include/CQChartsModelControl.h \
+../include/CQChartsModelDetailsWidget.h \
+\
+../include/CQChartsLoader.h \
+\
 ../include/CQChartsModelView.h \
 ../include/CQChartsEval.h \
 \

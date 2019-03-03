@@ -2,7 +2,7 @@
 #include <CQChartsWindow.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
-#include <CQChartsLoadModelDlg.h>
+#include <CQChartsManageModelsDlg.h>
 #include <CQChartsCreatePlotDlg.h>
 #include <CQChartsModelData.h>
 #include <CQPixmapCache.h>
@@ -196,12 +196,12 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
-  loadModelDlgButton_ =
+  manageModelsDlgButton_ =
     createButton("modelDlg", "MODELS", "Manage Models", SLOT(manageModelsSlot()), false);
   createPlotDlgButton_ =
     createButton("plotDlg" , "CHARTS", "Add Plot", SLOT(addPlotSlot()), false);
 
-  layout->addWidget(loadModelDlgButton_);
+  layout->addWidget(manageModelsDlgButton_);
   layout->addWidget(createPlotDlgButton_);
 
   autoFitButton_ = createButton("fit"  , "ZOOM_FIT", "Zoom Fit"    , SLOT(autoFitSlot()), false);
@@ -301,12 +301,12 @@ manageModelsSlot()
 {
   CQCharts *charts = window_->view()->charts();
 
-  if (loadModelDlg_)
-    delete loadModelDlg_;
+  if (manageModelsDlg_)
+    delete manageModelsDlg_;
 
-  loadModelDlg_ = new CQChartsLoadModelDlg(charts);
+  manageModelsDlg_ = new CQChartsManageModelsDlg(charts);
 
-  loadModelDlg_->show();
+  manageModelsDlg_->show();
 }
 
 void

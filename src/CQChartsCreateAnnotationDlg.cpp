@@ -537,7 +537,12 @@ void
 CQChartsCreateAnnotationDlg::
 typeSlot(int ind)
 {
-  setWindowTitle(QString("Create %1 Annotation").arg(typeCombo_->currentText()));
+  if      (view_)
+    setWindowTitle(QString("Create View %1 Annotation").
+      arg(typeCombo_->currentText()));
+  else if (plot_)
+    setWindowTitle(QString("Create Plot %1 Annotation (%2)").
+      arg(typeCombo_->currentText()).arg(plot_->id()));
 
   typeStack_->setCurrentIndex(ind);
 }

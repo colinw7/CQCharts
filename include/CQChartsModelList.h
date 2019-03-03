@@ -3,30 +3,28 @@
 
 #include <QFrame>
 
-class CQCharts;
+class CQChartsModelDetailsWidget;
 class CQChartsModelData;
 class CQChartsModelDetails;
 class CQChartsTable;
 class CQChartsTree;
+class CQCharts;
+
 class CQTableWidget;
 class QStackedWidget;
 class QTabWidget;
-class QPushButton;
 class QLineEdit;
-class QTextEdit;
 
 //---
 
 struct CQChartsViewWidgetData {
-  int             ind           { -1 };
-  int             tabInd        { -1 };
-  QStackedWidget* stack         { nullptr };
-  CQChartsTable*  table         { nullptr };
-  CQChartsTree*   tree          { nullptr };
-  QLineEdit*      filterEdit    { nullptr };
-  QPushButton*    detailsUpdate { nullptr };
-  QTextEdit*      detailsText   { nullptr };
-  CQTableWidget*  detailsTable  { nullptr };
+  int                         ind           { -1 };
+  int                         tabInd        { -1 };
+  QStackedWidget*             stack         { nullptr };
+  CQChartsTable*              table         { nullptr };
+  CQChartsTree*               tree          { nullptr };
+  QLineEdit*                  filterEdit    { nullptr };
+  CQChartsModelDetailsWidget* detailsWidget { nullptr };
 };
 
 //---
@@ -65,10 +63,6 @@ class CQChartsModelList : public QFrame {
 
   void updateModelType(int ind);
 
-  void invalidateDetails();
-
-  void updateDetails();
-
  private:
   QTabWidget *viewTab() const { return viewTab_; }
 
@@ -94,7 +88,6 @@ class CQChartsModelList : public QFrame {
   CQChartsModelData*          modelData_             { nullptr };
   QTabWidget*                 viewTab_               { nullptr };
   ViewWidgetDatas             viewWidgetDatas_;
-  const CQChartsModelDetails* currentDetails_        { nullptr };
   CQChartsViewWidgetData*     currentViewWidgetData_ { nullptr };
 };
 

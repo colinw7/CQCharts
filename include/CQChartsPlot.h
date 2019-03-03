@@ -1987,6 +1987,7 @@ class CQChartsPlot : public CQChartsObj,
   ModelP                       model_;                           //! abstract model
   bool                         modelNameSet_     { false };      //! model name set from plot
   SelectionModelP              selectionModel_;                  //! selection model
+  CQPropertyViewModel*         propertyModel_    { nullptr };    //! property model
   bool                         visible_          { true };       //! is visible
   CQChartsGeom::BBox           viewBBox_         { 0, 0, 1, 1 }; //! view box
   CQChartsGeom::BBox           innerViewBBox_    { 0, 0, 1, 1 }; //! inner view box

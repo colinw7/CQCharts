@@ -25,7 +25,7 @@ CQChartsEditAxisDlg::
 CQChartsEditAxisDlg(CQChartsAxis *axis) :
  QDialog(), axis_(axis)
 {
-  setWindowTitle("Edit Axis");
+  setWindowTitle(QString("Edit Plot Axis (%1)").arg(axis->plot()->id()));
 
   //---
 

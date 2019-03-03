@@ -786,3 +786,5 @@
  + support html text in title
  + add edit context menu item in tree to show edit dialog
  + clean up edit dialogs to support tabs
+# 3/3/2019
+ + Use separate property models for plots

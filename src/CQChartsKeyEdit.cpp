@@ -23,7 +23,10 @@ CQChartsEditKeyDlg::
 CQChartsEditKeyDlg(CQChartsKey *key) :
  QDialog(), key_(key)
 {
-  setWindowTitle("Edit Key");
+  if (key_->plot())
+    setWindowTitle(QString("Edit Plot Key (%1)").arg(key_->plot()->id()));
+  else
+    setWindowTitle("Edit View Key");
 
   //---
 

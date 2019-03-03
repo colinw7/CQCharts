@@ -25,7 +25,6 @@
 #include <QItemSelectionModel>
 #include <QGridLayout>
 #include <QHBoxLayout>
-#include <QSplitter>
 #include <QComboBox>
 #include <QStackedWidget>
 #include <QTextEdit>
