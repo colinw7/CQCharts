@@ -2026,6 +2026,13 @@ updateSelText()
 
   selectedObjs(objs);
 
+  for (auto &plot : plots_) {
+    if (plot->isSelected())
+      objs.push_back(plot);
+  }
+
+  //---
+
   int num = objs.size();
 
   for (auto &plot : plots_) {
@@ -2049,12 +2056,25 @@ updateSelText()
 
 void
 CQChartsView::
+selectedPlots(Plots &plots) const
+{
+  for (auto &plot : plots_) {
+    if (plot->isSelected())
+      plots.push_back(plot);
+  }
+}
+
+void
+CQChartsView::
 selectedObjs(Objs &objs) const
 {
   for (auto &annotation : annotations()) {
     if (annotation->isSelected())
       objs.push_back(annotation);
   }
+
+  if (key() && key()->isSelected())
+    objs.push_back(key());
 }
 
 void
@@ -4097,6 +4117,16 @@ windowToPixelHeight(double wh) const
   windowToPixel(0, wh, px2, py2);
 
   return std::abs(py2 - py1);
+}
+
+QSizeF
+CQChartsView::
+pixelToWindowSize(const QSizeF &ps) const
+{
+  double w = pixelToWindowWidth (ps.width ());
+  double h = pixelToWindowHeight(ps.height());
+
+  return QSizeF(w, h);
 }
 
 //------

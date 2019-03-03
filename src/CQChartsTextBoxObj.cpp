@@ -48,6 +48,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(textPath, this, "textAlpha"   , "alpha"   );
   model->addProperty(textPath, this, "textAngle"   , "angle"   );
   model->addProperty(textPath, this, "textContrast", "contrast");
+  model->addProperty(textPath, this, "textHtml"    , "html"    );
   model->addProperty(textPath, this, "textAlign"   , "align"   );
 }
 
@@ -103,4 +104,11 @@ drawText(QPainter *painter, const QRectF &rect, const QString &text) const
   QPointF tp(rect.left() + margin(), rect.bottom() - margin() - fm.descent());
 
   CQChartsDrawUtil::drawSimpleText(painter, tp, text);
+}
+
+void
+CQChartsTextBoxObj::
+textBoxDataInvalidate()
+{
+  boxDataInvalidate();
 }

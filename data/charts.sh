@@ -11,6 +11,7 @@ set csv_args  = ()
 set tsv_args  = ()
 set data_args = ()
 set nograb    = ""
+set modal     = 1
 
 while ($#argv > 0)
   if      ("$1" == "-dbx") then
@@ -76,6 +77,12 @@ while ($#argv > 0)
   else if ("$1" == "-comment_header") then
     set data_args = ($data_args $1)
     shift
+  else if ("$1" == "-modal") then
+    set modal = 1
+    shift
+  else if ("$1" == "-no_modal") then
+    set modal = 0
+    shift
   else if ("$1" == "-h" || "$1" == "-help") then
     echo "charts.sh [-dbx|-valgrind|-loop|-timer|-pixmap] <script>"
     exit 1
@@ -93,6 +100,8 @@ endif
 
 setenv QT_AUTO_SCREEN_SCALE_FACTOR 0
 setenv QT_SCALE_FACTOR 0
+
+setenv CQ_CHARTS_MODAL_DLG $modal
 
 set exe = CQChartsTest
 

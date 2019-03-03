@@ -1,7 +1,7 @@
 #ifndef CQChartsLength_H
 #define CQChartsLength_H
 
-#include <CQChartsUtil.h>
+#include <CQChartsTypes.h>
 #include <QString>
 #include <iostream>
 
@@ -45,18 +45,7 @@ class CQChartsLength {
     value_ = value;
   }
 
-  bool setValue(const QString &str, const CQChartsUnits &defUnits=CQChartsUnits::PLOT) {
-    CQChartsUnits units;
-    double        value;
-
-    if (! decodeString(str, units, value, defUnits))
-      return false;
-
-    units_ = units;
-    value_ = value;
-
-    return true;
-  }
+  bool setValue(const QString &str, const CQChartsUnits &defUnits=CQChartsUnits::PLOT);
 
   bool isSet() const {
     return (units_ != CQChartsUnits::PIXEL || value_ != 0.0);
@@ -64,11 +53,7 @@ class CQChartsLength {
 
   //---
 
-  QString toString() const {
-    QString ustr = CQChartsUtil::unitsString(units_);
-
-    return QString("%1%2").arg(value_).arg(ustr);
-  }
+  QString toString() const;
 
   bool fromString(const QString &s) {
     return setValue(s);

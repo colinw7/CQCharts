@@ -35,6 +35,8 @@ CQChartsSidesEdit(QWidget *parent) :
  QFrame(parent)
 {
   setObjectName("sides");
+
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
 
 CQChartsSidesEdit::

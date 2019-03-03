@@ -35,14 +35,14 @@ CQChartsKey(CQChartsPlot *plot) :
 
 QString
 CQChartsKey::
-id() const
+calcId() const
 {
   if      (view_)
-    return view_->id();
+    return view_->id() + "/key";
   else if (plot_)
-    return plot_->id();
+    return plot_->id() + "/key";
   else
-    return "";
+    return "key";
 }
 
 void
@@ -174,15 +174,19 @@ void
 CQChartsViewKey::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "visible"      );
-  model->addProperty(path, this, "selected"     );
-  model->addProperty(path, this, "location"     );
-  model->addProperty(path, this, "header"       );
-  model->addProperty(path, this, "horizontal"   );
-  model->addProperty(path, this, "autoHide"     );
-  model->addProperty(path, this, "clipped"      );
-  model->addProperty(path, this, "hiddenAlpha"  );
+  model->addProperty(path, this, "visible"   );
+  model->addProperty(path, this, "selected"  );
+  model->addProperty(path, this, "horizontal");
+  model->addProperty(path, this, "autoHide"  );
+  model->addProperty(path, this, "clipped"   );
+
+  model->addProperty(path, this, "location");
+
+  model->addProperty(path, this, "interactive"  );
   model->addProperty(path, this, "pressBehavior");
+
+  model->addProperty(path, this, "header"     );
+  model->addProperty(path, this, "hiddenAlpha");
 
   CQChartsBoxObj::addProperties(model, path);
 
@@ -338,9 +342,9 @@ selectPress(const CQChartsGeom::Point &w, CQChartsSelMod selMod)
     if (! prects_[i].inside(w))
       continue;
 
-    if      (pressBehavior() == CQChartsKey::PressBehavior::SHOW)
+    if      (pressBehavior() == CQChartsKeyPressBehavior::Type::SHOW)
       doShow(i, selMod);
-    else if (pressBehavior() == CQChartsKey::PressBehavior::SELECT)
+    else if (pressBehavior() == CQChartsKeyPressBehavior::Type::SELECT)
       doSelect(i, selMod);
 
     break;
@@ -534,24 +538,28 @@ void
 CQChartsPlotKey::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "visible"      );
-  model->addProperty(path, this, "selected"     );
-  model->addProperty(path, this, "location"     );
-  model->addProperty(path, this, "header"       );
-  model->addProperty(path, this, "horizontal"   );
-  model->addProperty(path, this, "autoHide"     );
-  model->addProperty(path, this, "clipped"      );
-  model->addProperty(path, this, "hiddenAlpha"  );
-  model->addProperty(path, this, "pressBehavior");
-  model->addProperty(path, this, "scrollWidth"  );
-  model->addProperty(path, this, "scrollHeight" );
+  model->addProperty(path, this, "visible"   );
+  model->addProperty(path, this, "selected"  );
+  model->addProperty(path, this, "horizontal");
+  model->addProperty(path, this, "flipped"   );
+  model->addProperty(path, this, "autoHide"  );
+  model->addProperty(path, this, "clipped"   );
 
-  model->addProperty(path, this, "absPosition");
+  model->addProperty(path, this, "above"      );
   model->addProperty(path, this, "insideX"    );
   model->addProperty(path, this, "insideY"    );
-  model->addProperty(path, this, "spacing"    );
-  model->addProperty(path, this, "above"      );
-  model->addProperty(path, this, "flipped"    );
+  model->addProperty(path, this, "location"   );
+  model->addProperty(path, this, "absPosition");
+
+  model->addProperty(path, this, "interactive"  );
+  model->addProperty(path, this, "pressBehavior");
+
+  model->addProperty(path, this, "header"      );
+  model->addProperty(path, this, "hiddenAlpha" );
+  model->addProperty(path, this, "maxRows"     );
+  model->addProperty(path, this, "spacing"     );
+  model->addProperty(path, this, "scrollWidth" );
+  model->addProperty(path, this, "scrollHeight");
 
   CQChartsBoxObj::addProperties(model, path);
 
@@ -1337,9 +1345,9 @@ CQChartsKeyItem::
 selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod)
 {
   if (isClickable()) {
-    if      (key_->pressBehavior() == CQChartsKey::PressBehavior::SHOW)
+    if      (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SHOW)
       doShow(selMod);
-    else if (key_->pressBehavior() == CQChartsKey::PressBehavior::SELECT)
+    else if (key_->pressBehavior() == CQChartsKeyPressBehavior::Type::SELECT)
       doSelect(selMod);
   }
 

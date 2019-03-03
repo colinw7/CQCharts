@@ -52,7 +52,7 @@ class CQChartsShapeDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
  public:
-  CQChartsShapeDataEdit(QWidget *parent=nullptr);
+  CQChartsShapeDataEdit(QWidget *parent=nullptr, bool tabbed=false);
 
   const CQChartsShapeData &data() const { return data_; }
   void setData(const CQChartsShapeData &d);
@@ -76,6 +76,7 @@ class CQChartsShapeDataEdit : public CQChartsEditBase {
  private:
   CQChartsPlot*                 plot_       { nullptr };
   CQChartsView*                 view_       { nullptr };
+  bool                          tabbed_     { false };
   CQChartsShapeData             data_;
   CQChartsFillDataEdit*         fillEdit_   { nullptr };
   CQChartsStrokeDataEdit*       strokeEdit_ { nullptr };

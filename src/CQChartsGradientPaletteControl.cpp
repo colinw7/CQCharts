@@ -1004,7 +1004,7 @@ type() const
   bool ok;
 
   long i = CQChartsVariant::toInt(itemData(currentIndex()), ok);
-  // TODO: asssert if bad value
+  // TODO: assert if bad value
 
   return static_cast<CQChartsGradientPalette::ColorType>(i);
 }
@@ -1044,7 +1044,7 @@ model() const
   bool ok;
 
   long i = CQChartsVariant::toInt(itemData(currentIndex()), ok);
-  // TODO: asssert if bad value
+  // TODO: assert if bad value
 
   return static_cast<CQChartsGradientPalette::ColorModel>(i);
 }

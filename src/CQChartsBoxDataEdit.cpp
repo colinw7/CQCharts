@@ -204,7 +204,7 @@ CQChartsBoxDataEdit(QWidget *parent) :
   setObjectName("boxDataEdit");
 
   QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(0);
+  layout->setMargin(0); layout->setSpacing(2);
 
   //---
 
@@ -246,7 +246,7 @@ CQChartsBoxDataEdit(QWidget *parent) :
   //--
 
   // shape (stroke, fill)
-  shapeEdit_ = new CQChartsShapeDataEdit;
+  shapeEdit_ = new CQChartsShapeDataEdit(nullptr, /*tabbed*/true);
 
   shapeEdit_->setTitle("Shape");
   shapeEdit_->setPreview(false);
@@ -262,7 +262,7 @@ CQChartsBoxDataEdit(QWidget *parent) :
 
   connect(sidesEdit_, SIGNAL(sidesChanged()), this, SLOT(widgetsToData()));
 
-  groupLayout->addWidget(sidesEdit_, row, 0, 1, 2); ++row;
+  CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Sides", sidesEdit_, row);
 
   //---
 

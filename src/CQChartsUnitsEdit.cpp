@@ -7,6 +7,8 @@ CQChartsUnitsEdit(QWidget *parent) :
 {
   setObjectName("units");
 
+  setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
   addItems(CQChartsUtil::unitNames(/*includeNone*/true));
 
   connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(indexChanged()));
@@ -43,4 +45,13 @@ indexChanged()
   (void) CQChartsUtil::decodeUnits(ustr, units_, units_);
 
   emit unitsChanged();
+}
+
+QSize
+CQChartsUnitsEdit::
+sizeHint() const
+{
+  QFontMetrics fm(font());
+
+  return QSize(fm.width("none") + 8, fm.height() + 4);
 }

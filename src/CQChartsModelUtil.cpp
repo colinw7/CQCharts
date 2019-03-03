@@ -161,7 +161,7 @@ calcColumnType(CQCharts *charts, const QAbstractItemModel *model, int icolumn)
 }
 
 // get type and associated name values for column
-//  . column can be model column, header or custom expresssion
+//  . column can be model column, header or custom expression
 bool
 columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                 CQBaseModelType &columnType, CQBaseModelType &columnBaseType,

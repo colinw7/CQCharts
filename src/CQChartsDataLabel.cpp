@@ -29,18 +29,11 @@ addPathProperties(const QString &path)
   plot_->addProperty(textPath, this, "textFont"    , "font"    );
   plot_->addProperty(textPath, this, "textAngle"   , "angle"   );
   plot_->addProperty(textPath, this, "textContrast", "contrast");
+  plot_->addProperty(textPath, this, "textHtml"    , "html"    );
 
   QString boxPath = plot_->id() + "/" + path + "/box";
 
   CQChartsBoxObj::addProperties(plot_->propertyModel(), boxPath);
-}
-
-void
-CQChartsDataLabel::
-update()
-{
-  // update range ?
-  plot_->queueDrawObjs();
 }
 
 void
@@ -392,4 +385,14 @@ textAlignment(const Position &position)
     align |= Qt::AlignVCenter;
 
   return align;
+}
+
+void
+CQChartsDataLabel::
+textBoxDataInvalidate()
+{
+  if (isSendSignal())
+    emit dataChanged();
+  else
+    CQChartsTextBoxObj::textBoxDataInvalidate();
 }

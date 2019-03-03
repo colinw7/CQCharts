@@ -3,7 +3,6 @@
 #include <CQSwitch.h>
 
 #include <QLineEdit>
-#include <QCheckBox>
 #include <QHBoxLayout>
 #include <QButtonGroup>
 

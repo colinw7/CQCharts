@@ -3,7 +3,7 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsFilterEdit.h>
-#include <CQPropertyViewTree.h>
+#include <CQChartsPropertyViewTree.h>
 #include <CQChartsGradientPaletteCanvas.h>
 #include <CQChartsGradientPaletteControl.h>
 #include <CQChartsLoadModelDlg.h>
@@ -39,70 +39,6 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QPainter>
-
-class CQChartsPropertyViewTree : public CQPropertyViewTree {
- public:
-  CQChartsPropertyViewTree(CQChartsViewSettings *settings, CQPropertyViewModel *model) :
-   CQPropertyViewTree(settings, model), settings_(settings) {
-  }
-
-  void printItem(CQPropertyViewItem *item) const {
-    QObject *object = item->object();
-
-    QString dataStr = item->dataStr();
-    QString path    = item->path(".", /*alias*/true);
-
-    CQChartsPlot       *plot       = qobject_cast<CQChartsPlot       *>(object);
-    CQChartsAnnotation *annotation = qobject_cast<CQChartsAnnotation *>(object);
-
-    if      (plot) {
-      if (path.startsWith(plot->id()))
-        path = path.mid(plot->id().length() + 1);
-
-      std::cerr << "set_charts_property -plot " << plot->id().toStdString() <<
-                   " -name " << path.toStdString() <<
-                   " -value " << dataStr.toStdString() << "\n";
-    }
-    else if (annotation) {
-      CQChartsPlot *plot = annotation->plot();
-
-      if (plot) {
-        if (path.startsWith(plot->id()))
-          path = path.mid(plot->id().length() + 1);
-
-        if (path.startsWith("annotations."))
-          path = path.mid(12);
-
-        if (path.startsWith(annotation->propertyId()))
-          path = path.mid(annotation->propertyId().length() + 1);
-      }
-      else {
-        if (path.startsWith("annotations."))
-          path = path.mid(12);
-
-        if (path.startsWith(annotation->propertyId()))
-          path = path.mid(annotation->propertyId().length() + 1);
-      }
-
-      std::cerr << "set_charts_property -annotation " <<
-                   annotation->pathId().toStdString() <<
-                   " -name " << path.toStdString() <<
-                   " -value " << dataStr.toStdString() << "\n";
-    }
-    else {
-      CQChartsView *view = settings_->window()->view();
-
-      std::cerr << "set_charts_property -view " << view->id().toStdString() <<
-                   " -name " << path.toStdString() <<
-                   " -value " << dataStr.toStdString() << "\n";
-    }
-  }
-
- private:
-  CQChartsViewSettings *settings_ { nullptr };
-};
-
-//---
 
 CQChartsViewSettings::
 CQChartsViewSettings(CQChartsWindow *window) :

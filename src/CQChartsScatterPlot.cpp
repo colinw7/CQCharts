@@ -101,7 +101,15 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
 {
   NoUpdate noUpdate(this);
 
+  //---
+
   dataLabel_ = new CQChartsDataLabel(this);
+
+  dataLabel_->setSendSignal(true);
+
+  connect(dataLabel_, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
+
+  //---
 
   // set mapped range
   setSymbolTypeMapped(true);
@@ -445,7 +453,11 @@ setDataLabelFont(const QFont &font)
 
   CQChartsDataLabel *dataLabel = this->dataLabel();
 
+  disconnect(dataLabel, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
+
   dataLabel->setTextFont(font);
+
+  connect(dataLabel, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
 }
 
 //---
@@ -626,6 +638,16 @@ CQChartsScatterPlot::
 setWhiskerAlpha(double a)
 {
   CQChartsUtil::testAndSet(axisWhiskerData_.alpha, a, [&]() { queueDrawObjs(); } );
+}
+
+//------
+
+void
+CQChartsScatterPlot::
+dataLabelChanged()
+{
+  // TODO: not enough detail to update data label depending on change
+  queueUpdateObjs();
 }
 
 //------

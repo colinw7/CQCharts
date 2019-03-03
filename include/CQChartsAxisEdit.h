@@ -13,6 +13,8 @@ class CQChartsEditAxisDlg : public QDialog {
  public:
   CQChartsEditAxisDlg(CQChartsAxis *axis);
 
+  QSize sizeHint() const;
+
  private slots:
   void okSlot();
   bool applySlot();

@@ -14,7 +14,8 @@ drawCenteredText(QPainter *painter, const QString &text)
 {
   QColor c = palette().color(QPalette::Window);
 
-  QColor tc = CQChartsUtil::invColor(c);
+//QColor tc = CQChartsUtil::invColor(c);
+  QColor tc = CQChartsUtil::bwColor(c);
 
   painter->setPen(tc);
 

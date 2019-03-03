@@ -47,7 +47,7 @@ class CQChartsArrowDataLineEdit : public CQChartsLineEditBase {
 class CQChartsLengthEdit;
 class CQChartsArrowDataEditPreview;
 class CQAngleSpinBox;
-class QCheckBox;
+class CQCheckBox;
 
 class CQChartsArrowDataEdit : public CQChartsEditBase {
   Q_OBJECT
@@ -73,13 +73,13 @@ class CQChartsArrowDataEdit : public CQChartsEditBase {
 
  private:
   CQChartsArrowData             data_;                      //! arrow data
-  QCheckBox*                    relativeEdit_  { nullptr }; //! relative edit
+  CQCheckBox*                   relativeEdit_  { nullptr }; //! relative edit
   CQChartsLengthEdit*           lengthEdit_    { nullptr }; //! length edit
   CQAngleSpinBox*               angleEdit_     { nullptr }; //! angle edit
   CQAngleSpinBox*               backAngleEdit_ { nullptr }; //! back angle edit
-  QCheckBox*                    fheadEdit_     { nullptr }; //! start head edit
-  QCheckBox*                    theadEdit_     { nullptr }; //! end head edit
-  QCheckBox*                    lineEndsEdit_  { nullptr }; //! line ends edit
+  CQCheckBox*                   fheadEdit_     { nullptr }; //! start head edit
+  CQCheckBox*                   theadEdit_     { nullptr }; //! end head edit
+  CQCheckBox*                   lineEndsEdit_  { nullptr }; //! line ends edit
   CQChartsLengthEdit*           lineWidthEdit_ { nullptr }; //! line width edit
   CQChartsArrowDataEditPreview* preview_       { nullptr }; //! preview
 };

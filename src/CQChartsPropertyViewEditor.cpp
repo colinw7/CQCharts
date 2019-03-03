@@ -1,7 +1,7 @@
 #include <CQChartsPropertyViewEditor.h>
+#include <CQChartsPropertyViewTree.h>
 #include <CQChartsLineEditBase.h>
 
-#include <CQPropertyViewTree.h>
 #include <CQPropertyViewItem.h>
 #include <CQPropertyViewDelegate.h>
 #include <CQPropertyView.h>
@@ -62,8 +62,8 @@ createEdit(QWidget *parent)
 {
   CQPropertyViewItem *item = CQPropertyViewMgrInst->editItem();
 
-  CQPropertyViewTree *tree =
-    (parent ? qobject_cast<CQPropertyViewTree *>(parent->parentWidget()) : nullptr);
+  CQChartsPropertyViewTree *tree =
+    (parent ? qobject_cast<CQChartsPropertyViewTree *>(parent->parentWidget()) : nullptr);
 
   CQChartsPlot *plot;
   CQChartsView *view;

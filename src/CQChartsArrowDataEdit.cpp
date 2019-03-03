@@ -6,11 +6,13 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
+#include <CQChartsWidgetUtil.h>
 
 #include <CQWidgetMenu.h>
+#include <CQCheckBox.h>
+#include <CQUtil.h>
 
 #include <QLineEdit>
-#include <QCheckBox>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QPainter>
@@ -200,111 +202,88 @@ CQChartsArrowDataEdit::
 CQChartsArrowDataEdit(QWidget *parent) :
  CQChartsEditBase(parent)
 {
+  setObjectName("lineDataEdit");
+
+  //---
+
+  int row = 0;
+
   QGridLayout *layout = new QGridLayout(this);
+  layout->setMargin(0); layout->setSpacing(2);
+
+  //---
 
   // relative
-  QLabel *relativeLabel = new QLabel("Relative");
+  relativeEdit_ = CQUtil::makeWidget<CQCheckBox>("relative");
 
-  relativeEdit_ = new QCheckBox;
-
-  relativeEdit_->setObjectName("relative");
   relativeEdit_->setToolTip("Is end point a delta from start point");
 
   connect(relativeEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
 
-  layout->addWidget(relativeLabel, 0, 0);
-  layout->addWidget(relativeEdit_, 0, 1);
+  CQChartsWidgetUtil::addGridLabelWidget(layout, "Relative", relativeEdit_, row);
 
   // length
-  QLabel *lengthLabel = new QLabel("Length");
+  lengthEdit_ = CQUtil::makeWidget<CQChartsLengthEdit>("length");
 
-  lengthEdit_ = new CQChartsLengthEdit;
-
-  lengthEdit_->setObjectName("relative");
   lengthEdit_->setToolTip("arrow head length");
 
   connect(lengthEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
 
-  layout->addWidget(lengthLabel, 1, 0);
-  layout->addWidget(lengthEdit_, 1, 1);
+  CQChartsWidgetUtil::addGridLabelWidget(layout, "Length", lengthEdit_, row);
 
   // angle
-  QLabel *angleLabel = new QLabel("Angle");
+  angleEdit_ = CQUtil::makeWidget<CQAngleSpinBox>("angle");
 
-  angleEdit_ = new CQAngleSpinBox;
-
-  angleEdit_->setObjectName("angle");
   angleEdit_->setToolTip("arrow head angle");
 
   connect(angleEdit_, SIGNAL(angleChanged(const CAngle &)), this, SLOT(widgetsToData()));
 
-  layout->addWidget(angleLabel, 2, 0);
-  layout->addWidget(angleEdit_, 2, 1);
+  CQChartsWidgetUtil::addGridLabelWidget(layout, "Angle", angleEdit_, row);
 
   // back angle
-  QLabel *backAngleLabel = new QLabel("Back Angle");
+  backAngleEdit_ = CQUtil::makeWidget<CQAngleSpinBox>("back_angle");
 
-  backAngleEdit_ = new CQAngleSpinBox;
-
-  backAngleEdit_->setObjectName("back_angle");
   backAngleEdit_->setToolTip("arrow head back angle");
 
   connect(backAngleEdit_, SIGNAL(angleChanged(const CAngle &)), this, SLOT(widgetsToData()));
 
-  layout->addWidget(backAngleLabel, 3, 0);
-  layout->addWidget(backAngleEdit_, 3, 1);
+  CQChartsWidgetUtil::addGridLabelWidget(layout, "Back Angle", backAngleEdit_, row);
 
   // fhead
-  QLabel *fheadLabel = new QLabel("Front Head");
+  fheadEdit_ = CQUtil::makeWidget<CQCheckBox>("fhead");
 
-  fheadEdit_ = new QCheckBox;
-
-  fheadEdit_->setObjectName("fhead");
   fheadEdit_->setToolTip("draw arrow head at start");
 
   connect(fheadEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
 
-  layout->addWidget(fheadLabel, 4, 0);
-  layout->addWidget(fheadEdit_, 4, 1);
+  CQChartsWidgetUtil::addGridLabelWidget(layout, "Front Head", fheadEdit_, row);
 
   // fhead
-  QLabel *theadLabel = new QLabel("Tail Head");
+  theadEdit_ = CQUtil::makeWidget<CQCheckBox>("thead");
 
-  theadEdit_ = new QCheckBox;
-
-  theadEdit_->setObjectName("thead");
   theadEdit_->setToolTip("draw arrow head at end");
 
   connect(theadEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
 
-  layout->addWidget(theadLabel, 5, 0);
-  layout->addWidget(theadEdit_, 5, 1);
+  CQChartsWidgetUtil::addGridLabelWidget(layout, "Tail Head", theadEdit_, row);
 
   // line ends
-  QLabel *lineEndsLabel = new QLabel("Line Ends");
+  lineEndsEdit_ = CQUtil::makeWidget<CQCheckBox>("line_ends");
 
-  lineEndsEdit_ = new QCheckBox;
-
-  lineEndsEdit_->setObjectName("line_ends");
   lineEndsEdit_->setToolTip("draw lines for arrow heads");
 
   connect(lineEndsEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
 
-  layout->addWidget(lineEndsLabel, 6, 0);
-  layout->addWidget(lineEndsEdit_, 6, 1);
+  CQChartsWidgetUtil::addGridLabelWidget(layout, "Line Ends", lineEndsEdit_, row);
 
   // line width
-  QLabel *lineWidthLabel = new QLabel("Line Width");
+  lineWidthEdit_ = CQUtil::makeWidget<CQChartsLengthEdit>("line_width");
 
-  lineWidthEdit_ = new CQChartsLengthEdit;
-
-  lineWidthEdit_->setObjectName("line_width");
   lineWidthEdit_->setToolTip("connecting line width");
 
   connect(lineWidthEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
 
-  layout->addWidget(lineWidthLabel, 7, 0);
-  layout->addWidget(lineWidthEdit_, 7, 1);
+  CQChartsWidgetUtil::addGridLabelWidget(layout, "Line Width", lineWidthEdit_, row);
 
   //---
 

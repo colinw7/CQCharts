@@ -43,9 +43,9 @@ CQChartsTitle::
 
 QString
 CQChartsTitle::
-id() const
+calcId() const
 {
-  return plot_->id();
+  return plot_->id() + "/title";
 }
 
 void
@@ -99,8 +99,7 @@ updateLocation()
 
   CQChartsTitleLocation location = this->location();
 
-//double xm = plot_->pixelToWindowWidth (8);
-  double ym = plot_->pixelToWindowHeight(8);
+  QSizeF marginSize = plot_->pixelToWindowSize(QSizeF(8, 8));
 
   double kx = bbox.getXMid() - ts.width()/2;
   double ky = 0.0;
@@ -109,26 +108,26 @@ updateLocation()
 
   if      (location == CQChartsTitleLocation::Type::TOP) {
     if (! isInsidePlot()) {
-      ky = bbox.getYMax() + ym;
+      ky = bbox.getYMax() + marginSize.height();
 
       if (xAxis && xAxis->side() == CQChartsAxisSide::Type::TOP_RIGHT)
         ky += xAxis->bbox().getHeight();
     }
     else
-      ky = bbox.getYMax() - ts.height() - ym;
+      ky = bbox.getYMax() - ts.height() - marginSize.height();
   }
   else if (location == CQChartsTitleLocation::Type::CENTER) {
     ky = bbox.getYMid() - ts.height()/2;
   }
   else if (location == CQChartsTitleLocation::Type::BOTTOM) {
     if (! isInsidePlot()) {
-      ky = bbox.getYMin() - ts.height() - ym;
+      ky = bbox.getYMin() - ts.height() - marginSize.height();
 
       if (xAxis && xAxis->side() == CQChartsAxisSide::Type::BOTTOM_LEFT)
         ky -= xAxis->bbox().getHeight();
     }
     else
-      ky = bbox.getYMin() + ym;
+      ky = bbox.getYMin() + marginSize.height();
   }
   else {
     ky = bbox.getYMid() - ts.height()/2;
@@ -177,23 +176,26 @@ CQChartsTitle::
 calcSize()
 {
   if (textStr().length()) {
+    // get font
     QFont font = view()->plotFont(plot(), textFont());
 
-    QFontMetricsF fm(font);
+    // get pixel size
+    QSizeF psize;
 
-    double pw = fm.width(textStr());
-    double ph = fm.height();
+    if (! isTextHtml())
+      psize = CQChartsDrawUtil::calcTextSize(textStr(), font);
+    else
+      psize = CQChartsDrawUtil::calcHtmlTextSize(textStr(), font);
 
-    double ww = plot_->pixelToWindowWidth (pw);
-    double wh = plot_->pixelToWindowHeight(ph);
+    // convert to window size
+    QSizeF wsize = plot_->pixelToWindowSize(psize);
 
-    double xp = plot_->pixelToWindowWidth (padding());
-    double yp = plot_->pixelToWindowHeight(padding());
+    // add padding and margin
+    QSizeF paddingSize = plot_->pixelToWindowSize(QSizeF(padding(), padding()));
+    QSizeF marginSize  = plot_->pixelToWindowSize(QSizeF(margin (), margin ()));
 
-    double xm = plot_->pixelToWindowWidth (margin());
-    double ym = plot_->pixelToWindowHeight(margin());
-
-    size_ = QSizeF(ww + 2*xp + 2*xm, wh + 2*yp + 2*ym);
+    size_ = QSizeF(wsize.width () + 2*paddingSize.width () + 2*marginSize.width (),
+                   wsize.height() + 2*paddingSize.height() + 2*marginSize.height());
   }
   else {
     size_ = QSizeF();
@@ -345,13 +347,16 @@ draw(QPainter *painter)
     h = bbox_.getHeight();
   }
 
-  double xp = plot_->pixelToWindowWidth (padding());
-  double yp = plot_->pixelToWindowHeight(padding());
-  double xm = plot_->pixelToWindowWidth (margin ());
-  double ym = plot_->pixelToWindowHeight(margin ());
+  QSizeF paddingSize = plot_->pixelToWindowSize(QSizeF(padding(), padding()));
+  QSizeF marginSize  = plot_->pixelToWindowSize(QSizeF(margin (), margin ()));
 
-  CQChartsGeom::BBox ibbox(x + xp     , y + yp     , x + w - xp     , y + h - yp     );
-  CQChartsGeom::BBox tbbox(x + xp + xm, y + yp + ym, x + w - xp - xm, y + h - yp - ym);
+  CQChartsGeom::BBox ibbox(x     + paddingSize.width(), y     + paddingSize.height(),
+                           x + w - paddingSize.width(), y + h - paddingSize.height());
+
+  CQChartsGeom::BBox tbbox(x + paddingSize.width () + marginSize.width (),
+                           y + paddingSize.height() + marginSize.height(),
+                           x + w - paddingSize.width () - marginSize.width (),
+                           y + h - paddingSize.height() - marginSize.height());
 
   //---
 
@@ -378,12 +383,7 @@ draw(QPainter *painter)
 
   //---
 
-  // set font
-  view()->setPlotPainterFont(plot(), painter, textFont());
-
-  //---
-
-  // draw text
+  // set text options
   CQChartsTextOptions textOptions;
 
   textOptions.angle     = textAngle();
@@ -394,8 +394,25 @@ draw(QPainter *painter)
 
   textOptions = plot_->adjustTextOptions(textOptions);
 
-  CQChartsDrawUtil::drawTextInBox(painter, CQChartsUtil::toQRect(ptrect), textStr(),
-                                  pen, textOptions);
+  //---
+
+  // set font
+  view()->setPlotPainterFont(plot(), painter, textFont());
+
+  //---
+
+  // set box
+  QRectF trect = CQChartsUtil::toQRect(ptrect);
+
+  //---
+
+  // draw text
+  painter->setRenderHints(QPainter::Antialiasing);
+
+  if (! isTextHtml())
+    CQChartsDrawUtil::drawTextInBox(painter, trect, textStr(), pen, textOptions);
+  else
+    CQChartsDrawUtil::drawScaledHtmlText(painter, trect, textStr(), textOptions);
 
   //---
 

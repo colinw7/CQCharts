@@ -141,7 +141,6 @@ CQChartsPlotMargin.cpp \
 CQChartsConnectionList.cpp \
 CQChartsSides.cpp \
 CQChartsFillUnder.cpp \
-CQChartsKeyLocation.cpp \
 \
 CQChartsSymbol.cpp \
 CQChartsPath.cpp \
@@ -158,6 +157,10 @@ CQChartsAxisSide.cpp \
 CQChartsAxisSideEdit.cpp \
 CQChartsAxisTickLabelPlacement.cpp \
 CQChartsAxisTickLabelPlacementEdit.cpp \
+CQChartsKeyLocation.cpp \
+CQChartsKeyLocationEdit.cpp \
+CQChartsKeyPressBehavior.cpp \
+CQChartsKeyPressBehaviorEdit.cpp \
 CQChartsEnumEdit.cpp \
 \
 CQChartsModelUtil.cpp \
@@ -188,7 +191,6 @@ CQChartsColumnEdit.cpp \
 CQChartsColumnsEdit.cpp \
 CQChartsFillDataEdit.cpp \
 CQChartsFillUnderEdit.cpp \
-CQChartsKeyLocationEdit.cpp \
 CQChartsLengthEdit.cpp \
 CQChartsLineDashEdit.cpp \
 CQChartsLineDataEdit.cpp \
@@ -205,6 +207,8 @@ CQChartsTextBoxDataEdit.cpp \
 CQChartsTextDataEdit.cpp \
 CQChartsUnitsEdit.cpp \
 CQChartsEditBase.cpp \
+\
+CQChartsPropertyViewTree.cpp \
 CQChartsPropertyViewEditor.cpp \
 \
 CQCsvModel.cpp \
@@ -321,6 +325,10 @@ HEADERS += \
 ../include/CQChartsAxisSideEdit.h \
 ../include/CQChartsAxisTickLabelPlacement.h \
 ../include/CQChartsAxisTickLabelPlacementEdit.h \
+../include/CQChartsKeyLocation.h \
+../include/CQChartsKeyLocationEdit.h \
+../include/CQChartsKeyPressBehavior.h \
+../include/CQChartsKeyPressBehaviorEdit.h \
 ../include/CQChartsEnumEdit.h \
 \
 ../include/CQChartsModelUtil.h \
@@ -381,7 +389,6 @@ HEADERS += \
 ../include/CQChartsConnectionList.h \
 ../include/CQChartsSides.h \
 ../include/CQChartsFillUnder.h \
-../include/CQChartsKeyLocation.h \
 \
 ../include/CQChartsOptLength.h \
 ../include/CQChartsOptPosition.h \
@@ -404,7 +411,6 @@ HEADERS += \
 ../include/CQChartsColumnsEdit.h \
 ../include/CQChartsFillDataEdit.h \
 ../include/CQChartsFillUnderEdit.h \
-../include/CQChartsKeyLocationEdit.h \
 ../include/CQChartsLengthEdit.h \
 ../include/CQChartsLineDashEdit.h \
 ../include/CQChartsLineDataEdit.h \
@@ -421,6 +427,8 @@ HEADERS += \
 ../include/CQChartsTextDataEdit.h \
 ../include/CQChartsUnitsEdit.h \
 ../include/CQChartsEditBase.h \
+\
+../include/CQChartsPropertyViewTree.h \
 ../include/CQChartsPropertyViewEditor.h \
 \
 ../include/CQCsvModel.h \

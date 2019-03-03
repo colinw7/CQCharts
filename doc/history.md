@@ -782,3 +782,7 @@
  + Add contrast text drawing for html text
  + Add Edit Dialog for Annotation, Title, Key and Axis
  + More Enum Editors
+# 3/2/2019
+ + support html text in title
+ + add edit context menu item in tree to show edit dialog
+ + clean up edit dialogs to support tabs

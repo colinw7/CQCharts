@@ -1387,7 +1387,9 @@ createObjs(PlotObjs &objs) const
       int iv = 0;
 
       for (auto &bucketValues : values->bucketValues) {
-        if (ng == 1 && isSetHidden(iv)) { ++iv; continue; }
+        if (! colorColumn().isValid()) {
+          if (ng == 1 && isSetHidden(iv)) { ++iv; continue; }
+        }
 
         //---
 
@@ -1551,7 +1553,9 @@ createObjs(PlotObjs &objs) const
       int nv = values->bucketValues.size();
 
       for (auto &bucketValues : values->bucketValues) {
-        if (ng == 1 && isSetHidden(iv)) { ++iv; continue; }
+        if (! colorColumn().isValid()) {
+          if (ng == 1 && isSetHidden(iv)) { ++iv; continue; }
+        }
 
         //---
 

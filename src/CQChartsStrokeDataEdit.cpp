@@ -201,7 +201,7 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
   setObjectName("strokeDataEdit");
 
   QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(0);
+  layout->setMargin(0); layout->setSpacing(2);
 
   //---
 

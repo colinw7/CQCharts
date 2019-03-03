@@ -38,7 +38,14 @@ class CQChartsColor {
     setColorStr(str);
   }
 
-  bool isValid() const { return type_ != Type::NONE; }
+  bool isValid() const {
+    if      (type_ == Type::NONE)
+      return false;
+    else if (type_ == Type::COLOR)
+      return color_.isValid();
+    else
+      return true;
+  }
 
   Type type() const { return type_; }
   void setType(Type type) { type_  = type; }

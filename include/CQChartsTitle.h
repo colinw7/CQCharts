@@ -27,7 +27,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   CQChartsTitle(CQChartsPlot *plot);
  ~CQChartsTitle();
 
-  QString id() const;
+  QString calcId() const override;
 
   void setSelected(bool b) override;
 

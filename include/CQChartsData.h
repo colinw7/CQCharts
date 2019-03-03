@@ -535,20 +535,29 @@ struct CQChartsTitleData {
 //------
 
 #include <CQChartsKeyLocation.h>
+#include <CQChartsKeyPressBehavior.h>
+#include <CQChartsOptLength.h>
 
 struct CQChartsKeyData {
-  bool                       visible     { true };
-  bool                       horizontal  { false };
-  bool                       autoHide    { false };
-  bool                       clipped     { false };
-  bool                       above       { false };
-  bool                       interactive { false };
-  CQChartsKeyLocation        location;
-  QString                    header;
-  double                     hiddenAlpha { 0.3 };
-  int                        maxRows;
-//CQChartsKey::PressBehavior pressBehavior;
-  CQChartsTextBoxData        textBoxData;
+  bool                     visible      { true };
+  bool                     horizontal   { false };
+  bool                     autoHide     { false };
+  bool                     clipped      { false };
+  bool                     above        { false };
+  CQChartsKeyLocation      location;
+  bool                     insideX      { false };
+  bool                     insideY      { false };
+  QPointF                  absPosition;
+  QString                  header;
+  double                   hiddenAlpha  { 0.3 };
+  int                      maxRows;
+  bool                     interactive  { false };
+  CQChartsKeyPressBehavior pressBehavior;
+  int                      spacing      { 2 };
+  bool                     flipped      { false };
+  CQChartsOptLength        scrollWidth;
+  CQChartsOptLength        scrollHeight;
+  CQChartsTextBoxData      textBoxData;
 };
 
 //------

@@ -403,7 +403,7 @@ paintEvent(QPaintEvent *)
     bool   first = true;
   //double r1 = 0.0, g1 = 0.0, b1 = 0.0, m1 = 0.0, x1 = 0.0;
 
-    // get rgb (red, green, blue, gray), or hsv (hue, staturation, value, gray) paths
+    // get rgb (red, green, blue, gray), or hsv (hue, saturation, value, gray) paths
     for (double x = px1; x <= px2; x += 1.0) {
       double wx, wy;
 

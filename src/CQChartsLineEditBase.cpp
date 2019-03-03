@@ -3,8 +3,8 @@
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
 #include <CQCharts.h>
+#include <CQChartsPropertyViewTree.h>
 
-#include <CQPropertyViewTree.h>
 #include <CQWidgetMenu.h>
 
 #include <QHBoxLayout>

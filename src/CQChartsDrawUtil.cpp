@@ -143,13 +143,12 @@ drawTextAtPoint(QPainter *painter, const QPointF &point, const QString &text,
     else if (options.align & Qt::AlignBottom)
       dy = td;
 
+    painter->setPen(pen);
+
     if (options.contrast)
       drawContrastText(painter, point.x() + dx, point.y() + dy, text, pen);
-    else {
-      painter->setPen(pen);
-
+    else
       drawSimpleText(painter, point.x() + dx, point.y() + dy, text);
-    }
   }
   else {
     assert(false);
@@ -225,7 +224,8 @@ calcAlignedTextRect(const QFont &font, double x, double y, const QString &text,
 void drawContrastText(QPainter *painter, double x, double y, const QString &text, const QPen &pen) {
   // set contrast color
   // TODO: allow set type (invert, bw) and alpha
-  QColor icolor = CQChartsUtil::invColor(pen.color());
+//QColor icolor = CQChartsUtil::invColor(pen.color());
+  QColor icolor = CQChartsUtil::bwColor(pen.color());
 
   icolor.setAlphaF(0.5);
 
@@ -251,6 +251,13 @@ void drawContrastText(QPainter *painter, double x, double y, const QString &text
 
 //------
 
+QSizeF calcTextSize(const QString &text, const QFont &font)
+{
+  QFontMetricsF fm(font);
+
+  return QSizeF(fm.width(text), fm.height());
+}
+
 QSizeF calcHtmlTextSize(const QString &text, const QFont &font)
 {
   QTextDocument td;
@@ -264,6 +271,36 @@ QSizeF calcHtmlTextSize(const QString &text, const QFont &font)
 }
 
 //------
+
+void drawScaledHtmlText(QPainter *painter, const QRectF &trect, const QString &text,
+                        const CQChartsTextOptions &options)
+{
+  // calc scale
+  QSizeF psize = calcHtmlTextSize(text, painter->font());
+
+  double pw = psize.width ();
+  double ph = psize.height();
+
+  double xs = trect.width ()/pw;
+  double ys = trect.height()/ph;
+
+  double s = std::min(xs, ys);
+
+  //---
+
+  // scale font
+  QFont font1 = painter->font();
+
+  double fs = font1.pointSizeF()*s;
+
+  font1.setPointSizeF(fs);
+
+  painter->setFont(font1);
+
+  //---
+
+  drawHtmlText(painter, trect, text, options);
+}
 
 void drawHtmlText(QPainter *painter, const QRectF &trect, const QString &text,
                   const CQChartsTextOptions &options)
@@ -294,7 +331,8 @@ void drawHtmlText(QPainter *painter, const QRectF &trect, const QString &text,
   layout->setPaintDevice(painter->device());
 
   if (options.contrast) {
-    QColor ipc = CQChartsUtil::invColor(pc);
+  //QColor ipc = CQChartsUtil::invColor(pc);
+    QColor ipc = CQChartsUtil::bwColor(pc);
 
     ctx.palette.setColor(QPalette::Text, ipc);
 

@@ -116,8 +116,8 @@ class CQChartsWindow : public QFrame {
   bool                       yRangeMap_    { false };   //! xrange map
   bool                       dataTable_    { true };    //! data table
   bool                       viewSettings_ { true };    //! view settings
-  CQChartsWindowRangeScroll* xrangeScroll_ { nullptr }; //! xrange scoll
-  CQChartsWindowRangeScroll* yrangeScroll_ { nullptr }; //! yrange scoll
+  CQChartsWindowRangeScroll* xrangeScroll_ { nullptr }; //! xrange scroll
+  CQChartsWindowRangeScroll* yrangeScroll_ { nullptr }; //! yrange scroll
   CQChartsViewSettings*      settings_     { nullptr }; //! settings widget
   QFrame*                    tableFrame_   { nullptr }; //! table frame
   QStackedWidget*            viewStack_    { nullptr }; //! view stack

@@ -77,12 +77,9 @@ draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
      const QStyleOptionViewItem &option, const QModelIndex &ind,
      const QVariant &value, bool inside)
 {
-  CQChartsEnumEdit *edit = qobject_cast<CQChartsEnumEdit *>(delegate->getEditor());
-  assert(edit);
-
   delegate->drawBackground(painter, option, ind, inside);
 
-  QString str = edit->variantToString(value);
+  QString str = variantToString(value);
 
   QFontMetricsF fm(option.font);
 

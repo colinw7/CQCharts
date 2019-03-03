@@ -6,12 +6,16 @@
 
 class CQChartsPlot;
 
+/*!
+ * \brief class for plot text box object
+ */
 class CQChartsDataLabel : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(Position        position  READ position  WRITE setPosition )
-  Q_PROPERTY(Qt::Orientation direction READ direction WRITE setDirection)
-  Q_PROPERTY(bool            clip      READ isClip    WRITE setClip     )
+  Q_PROPERTY(Position        position   READ position     WRITE setPosition  )
+  Q_PROPERTY(Qt::Orientation direction  READ direction    WRITE setDirection )
+  Q_PROPERTY(bool            clip       READ isClip       WRITE setClip      )
+  Q_PROPERTY(bool            sendSignal READ isSendSignal WRITE setSendSignal)
 
   Q_ENUMS(Position)
 
@@ -29,15 +33,23 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   virtual ~CQChartsDataLabel() { }
 
-  // data label
-  const Position &position() const { return position_; }
-  void setPosition(const Position &p) { position_ = p; update(); }
+  //--
 
+  //! data label
+  const Position &position() const { return position_; }
+  void setPosition(const Position &p) { position_ = p; textBoxDataInvalidate(); }
+
+  //! direction
   const Qt::Orientation &direction() const { return direction_; }
   void setDirection(const Qt::Orientation &v) { direction_ = v; }
 
+  //! clip
   bool isClip() const { return clip_; }
-  void setClip(bool b) { clip_ = b; update(); }
+  void setClip(bool b) { clip_ = b; textBoxDataInvalidate(); }
+
+  //! send signal
+  bool isSendSignal() const { return sendSignal_; }
+  void setSendSignal(bool b) { sendSignal_ = b; }
 
   //--
 
@@ -67,8 +79,6 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   void addPathProperties(const QString &path);
 
-  virtual void update();
-
   //---
 
   void draw(QPainter *painter, const QRectF &qrect, const QString &ystr) const;
@@ -90,10 +100,18 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   static Qt::Alignment textAlignment(const Position &position);
 
+  //---
+
+  void textBoxDataInvalidate() override;
+
+ signals:
+  void dataChanged();
+
  private:
-  Position        position_  { Position::TOP_INSIDE };
-  Qt::Orientation direction_ { Qt::Vertical };
-  bool            clip_      { false };
+  Position        position_   { Position::TOP_INSIDE }; //! position relative to parent
+  Qt::Orientation direction_  { Qt::Vertical };         //! parent object direction
+  bool            clip_       { false };                //! clip to parent
+  bool            sendSignal_ { false };                //! send signal on data change
 };
 
 #endif

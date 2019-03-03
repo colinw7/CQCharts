@@ -1,6 +1,7 @@
 #include <CQChartsDendrogramPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsModelUtil.h>
+#include <CQChartsDrawUtil.h>
 #include <CQCharts.h>
 #include <CQPerfMonitor.h>
 
@@ -619,5 +620,5 @@ draw(QPainter *painter)
   else
     p = QPointF(px1 + cs, py1 + dy);
 
-  painter->drawText(p, name);
+  CQChartsDrawUtil::drawSimpleText(painter, p, name);
 }

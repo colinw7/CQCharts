@@ -22,30 +22,25 @@ class QScrollBar;
 
 //------
 
+/*!
+ * \brief Base Key class
+ */
 class CQChartsKey : public CQChartsBoxObj,
  public CQChartsObjTextData<CQChartsKey> {
   Q_OBJECT
 
-  Q_PROPERTY(bool                horizontal    READ isHorizontal  WRITE setHorizontal   )
-  Q_PROPERTY(bool                autoHide      READ isAutoHide    WRITE setAutoHide     )
-  Q_PROPERTY(bool                clipped       READ isClipped     WRITE setClipped      )
-  Q_PROPERTY(bool                above         READ isAbove       WRITE setAbove        )
-  Q_PROPERTY(bool                interactive   READ isInteractive WRITE setInteractive  )
-  Q_PROPERTY(CQChartsKeyLocation location      READ location      WRITE setLocation     )
-  Q_PROPERTY(QString             header        READ headerStr     WRITE setHeaderStr    )
-  Q_PROPERTY(double              hiddenAlpha   READ hiddenAlpha   WRITE setHiddenAlpha  )
-  Q_PROPERTY(int                 maxRows       READ maxRows       WRITE setMaxRows      )
-  Q_PROPERTY(PressBehavior       pressBehavior READ pressBehavior WRITE setPressBehavior)
+  Q_PROPERTY(bool                     horizontal    READ isHorizontal  WRITE setHorizontal   )
+  Q_PROPERTY(bool                     autoHide      READ isAutoHide    WRITE setAutoHide     )
+  Q_PROPERTY(bool                     clipped       READ isClipped     WRITE setClipped      )
+  Q_PROPERTY(bool                     above         READ isAbove       WRITE setAbove        )
+  Q_PROPERTY(CQChartsKeyLocation      location      READ location      WRITE setLocation     )
+  Q_PROPERTY(QString                  header        READ headerStr     WRITE setHeaderStr    )
+  Q_PROPERTY(double                   hiddenAlpha   READ hiddenAlpha   WRITE setHiddenAlpha  )
+  Q_PROPERTY(int                      maxRows       READ maxRows       WRITE setMaxRows      )
+  Q_PROPERTY(bool                     interactive   READ isInteractive WRITE setInteractive  )
+  Q_PROPERTY(CQChartsKeyPressBehavior pressBehavior READ pressBehavior WRITE setPressBehavior)
 
   CQCHARTS_TEXT_DATA_PROPERTIES
-
-  Q_ENUMS(PressBehavior)
-
- public:
-  enum class PressBehavior {
-    SHOW,
-    SELECT
-  };
 
  public:
   CQChartsKey(CQChartsView *view);
@@ -53,23 +48,37 @@ class CQChartsKey : public CQChartsBoxObj,
 
   virtual ~CQChartsKey();
 
-  QString id() const;
+  QString calcId() const override;
 
   void setSelected(bool b) override;
 
   //---
 
+  // horizontal
   bool isHorizontal() const { return horizontal_; }
   void setHorizontal(bool b) { horizontal_ = b; updateKeyItems(); }
 
   //---
 
+  // auto hide
+  bool isAutoHide() const { return autoHide_; }
+  void setAutoHide(bool b) { autoHide_ = b; updatePosition(); }
+
+  //---
+
+  // clip
+  bool isClipped() const { return clipped_; }
+  void setClipped(bool b) { clipped_ = b; redraw(); }
+
+  //---
+
+  // above plot
   bool isAbove() const { return above_; }
   void setAbove(bool b) { above_ = b; redraw(); }
 
   //---
 
-  // position
+  // locaition
   const CQChartsKeyLocation &location() const { return location_; }
   void setLocation(const CQChartsKeyLocation &l);
 
@@ -79,31 +88,11 @@ class CQChartsKey : public CQChartsBoxObj,
   const QString &headerStr() const { return header_; }
   void setHeaderStr(const QString &s) { header_ = s; updateLayout(); }
 
-  //---
-
-  // auto hide
-  bool isAutoHide() const { return autoHide_; }
-  void setAutoHide(bool b) { autoHide_ = b; updatePosition(); }
-
-  // clip
-  bool isClipped() const { return clipped_; }
-  void setClipped(bool b) { clipped_ = b; redraw(); }
+  // TODO header text properties
 
   //---
 
-  // pixel width/height exceeded
-  bool isPixelWidthExceeded () const { return pixelWidthExceeded_ ; }
-  bool isPixelHeightExceeded() const { return pixelHeightExceeded_; }
-
-  //---
-
-  // interactive
-  bool isInteractive() const { return interactive_; }
-  void setInteractive(bool b) { interactive_ = b; }
-
-  //---
-
-  // alpha when assoiated object hidden
+  // alpha when associated object hidden
   double hiddenAlpha() const { return hiddenAlpha_; }
   void setHiddenAlpha(double r) { hiddenAlpha_ = r; }
 
@@ -115,8 +104,21 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //---
 
-  const PressBehavior &pressBehavior() const { return pressBehavior_; }
-  void setPressBehavior(const PressBehavior &v) { pressBehavior_ = v; }
+  // interactive
+  bool isInteractive() const { return interactive_; }
+  void setInteractive(bool b) { interactive_ = b; }
+
+  //---
+
+  // press behavior
+  const CQChartsKeyPressBehavior &pressBehavior() const { return pressBehavior_; }
+  void setPressBehavior(const CQChartsKeyPressBehavior &v) { pressBehavior_ = v; }
+
+  //---
+
+  // pixel width/height exceeded
+  bool isPixelWidthExceeded () const { return pixelWidthExceeded_ ; }
+  bool isPixelHeightExceeded() const { return pixelHeightExceeded_; }
 
   //---
 
@@ -142,23 +144,26 @@ class CQChartsKey : public CQChartsBoxObj,
     QScrollBar*       bar      { nullptr }; //! scroll bar
   };
 
-  bool                horizontal_          { false };               //! is layed out horizontallly
-  bool                above_               { true };                //! draw above view/plot
-  CQChartsKeyLocation location_;                                    //! key location
-  QString             header_;                                      //! header
-  bool                autoHide_            { true };                //! auto hide if too big
-  bool                clipped_             { true };                //! clipped to parent
-  bool                interactive_         { true };                //! is interactive
-  double              hiddenAlpha_         { 0.3 };                 //! alpha for hidden item
-  int                 maxRows_             { 100 };                 //! max rows
-  PressBehavior       pressBehavior_       { PressBehavior::SHOW }; //! press behavior
-  mutable  bool       pixelWidthExceeded_  { true };                //! pixel height too big
-  mutable bool        pixelHeightExceeded_ { true };                //! pixel width too big
-  mutable ScrollData  scrollData_;                                  //! scrollbar data
+  bool                     horizontal_          { false }; //! is layed out horizontallly
+  bool                     above_               { true };  //! draw above view/plot
+  CQChartsKeyLocation      location_;                      //! key location
+  QString                  header_;                        //! header
+  bool                     autoHide_            { true };  //! auto hide if too big
+  bool                     clipped_             { true };  //! clipped to parent
+  bool                     interactive_         { true };  //! is interactive
+  double                   hiddenAlpha_         { 0.3 };   //! alpha for hidden item
+  int                      maxRows_             { 100 };   //! max rows
+  CQChartsKeyPressBehavior pressBehavior_;                 //! press behavior
+  mutable  bool            pixelWidthExceeded_  { true };  //! pixel height too big
+  mutable bool             pixelHeightExceeded_ { true };  //! pixel width too big
+  mutable ScrollData       scrollData_;                    //! scrollbar data
 };
 
 //------
 
+/*!
+ * \brief View Key class
+ */
 class CQChartsViewKey : public CQChartsKey {
   Q_OBJECT
 
@@ -181,8 +186,7 @@ class CQChartsViewKey : public CQChartsKey {
 
   void selectPress(const CQChartsGeom::Point &w, CQChartsSelMod selMod);
 
-  virtual void doShow(int i, CQChartsSelMod selMod);
-
+  virtual void doShow  (int i, CQChartsSelMod selMod);
   virtual void doSelect(int i, CQChartsSelMod selMod);
 
   void redraw(bool queued=true) override;
@@ -201,14 +205,17 @@ class CQChartsViewKey : public CQChartsKey {
 
 //------
 
+/*!
+ * \brief Plot Key class
+ */
 class CQChartsPlotKey : public CQChartsKey {
   Q_OBJECT
 
-  Q_PROPERTY(QPointF           absPosition  READ absPosition  WRITE setAbsPosition )
+  Q_PROPERTY(bool              flipped      READ isFlipped    WRITE setFlipped     )
   Q_PROPERTY(bool              insideX      READ isInsideX    WRITE setInsideX     )
   Q_PROPERTY(bool              insideY      READ isInsideY    WRITE setInsideY     )
+  Q_PROPERTY(QPointF           absPosition  READ absPosition  WRITE setAbsPosition )
   Q_PROPERTY(int               spacing      READ spacing      WRITE setSpacing     )
-  Q_PROPERTY(bool              flipped      READ isFlipped    WRITE setFlipped     )
   Q_PROPERTY(CQChartsOptLength scrollWidth  READ scrollWidth  WRITE setScrollWidth )
   Q_PROPERTY(CQChartsOptLength scrollHeight READ scrollHeight WRITE setScrollHeight)
 
@@ -220,28 +227,41 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  const QPointF &absPosition() const { return locationData_.absPosition; }
-  void setAbsPosition(const QPointF &p) { locationData_.absPosition = p; updatePosition(); }
-
-  bool isInsideX() const { return locationData_.insideX; }
-  void setInsideX(bool b) { locationData_.insideX = b; updatePosition(); }
-
-  bool isInsideY() const { return locationData_.insideY; }
-  void setInsideY(bool b) { locationData_.insideY = b; updatePosition(); }
-
-  int spacing() const { return spacing_; }
-  void setSpacing(int i) { spacing_ = i; updateLayout(); }
-
-  //---
-
+  // flipped
   bool isFlipped() const { return flipped_; }
   void setFlipped(bool b);
 
   //---
 
+  // inside plot in x direction
+  bool isInsideX() const { return locationData_.insideX; }
+  void setInsideX(bool b) { locationData_.insideX = b; updatePosition(); }
+
+  //---
+
+  // inside plot in y direction
+  bool isInsideY() const { return locationData_.insideY; }
+  void setInsideY(bool b) { locationData_.insideY = b; updatePosition(); }
+
+  //---
+
+  // position
+  const QPointF &absPosition() const { return locationData_.absPosition; }
+  void setAbsPosition(const QPointF &p) { locationData_.absPosition = p; updatePosition(); }
+
+  //---
+
+  // item spacing
+  int spacing() const { return spacing_; }
+  void setSpacing(int i) { spacing_ = i; updateLayout(); }
+
+  //---
+
+  // scroll width
   const CQChartsOptLength &scrollWidth() const { return scrollData_.width; }
   void setScrollWidth(const CQChartsOptLength &l) { scrollData_.width = l; }
 
+  // scroll height
   const CQChartsOptLength &scrollHeight() const { return scrollData_.height; }
   void setScrollHeight(const CQChartsOptLength &l) { scrollData_.height = l; }
 
@@ -362,7 +382,7 @@ class CQChartsPlotKey : public CQChartsKey {
   int                        spacing_       { 2 };       //! key item spacing
   bool                       flipped_       { false };   //! key order flipped
   Items                      items_;                     //! key items
-  int                        maxRow_        { 0 };       //! maximim key row
+  int                        maxRow_        { 0 };       //! maximum key row
   int                        maxCol_        { 0 };       //! maximum key column
   bool                       needsLayout_   { false };   //! needs layout
   QPointF                    position_      { 0, 0 };    //! explicit position
@@ -431,8 +451,7 @@ class CQChartsKeyItem : public QObject {
   virtual bool selectPress(const CQChartsGeom::Point &, CQChartsSelMod);
   virtual bool selectMove (const CQChartsGeom::Point &);
 
-  virtual void doShow(CQChartsSelMod selMod);
-
+  virtual void doShow  (CQChartsSelMod selMod);
   virtual void doSelect(CQChartsSelMod selMod);
 
   //---

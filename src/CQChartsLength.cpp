@@ -1,4 +1,5 @@
 #include <CQChartsLength.h>
+#include <CQChartsUtil.h>
 #include <CQStrParse.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsLength, toString, fromString)
@@ -10,6 +11,31 @@ CQChartsLength::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsLength);
+}
+
+bool
+CQChartsLength::
+setValue(const QString &str, const CQChartsUnits &defUnits)
+{
+  CQChartsUnits units;
+  double        value;
+
+  if (! decodeString(str, units, value, defUnits))
+    return false;
+
+  units_ = units;
+  value_ = value;
+
+  return true;
+}
+
+QString
+CQChartsLength::
+toString() const
+{
+  QString ustr = CQChartsUtil::unitsString(units_);
+
+  return QString("%1%2").arg(value_).arg(ustr);
 }
 
 bool

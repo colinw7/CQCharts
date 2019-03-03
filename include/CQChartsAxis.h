@@ -98,6 +98,8 @@ class CQChartsAxis : public CQChartsObj,
 
   CQCharts *charts() const;
 
+  QString calcId() const override;
+
   CQChartsPlot *plot() { return const_cast<CQChartsPlot *>(plot_); }
   const CQChartsPlot *plot() const { return plot_; }
   void setPlot(const CQChartsPlot *plot) { plot_ = plot; }

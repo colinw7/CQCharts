@@ -1056,13 +1056,12 @@ draw(QPainter *painter)
 
   painter->setClipRect(qrect);
 
+  painter->setPen(tpen);
+
   if (plot_->isHeaderTextContrast())
     CQChartsDrawUtil::drawContrastText(painter, tx, ty, name, tpen);
-  else {
-    painter->setPen(tpen);
-
+  else
     CQChartsDrawUtil::drawSimpleText(painter, tx, ty, name);
-  }
 
   //---
 

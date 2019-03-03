@@ -222,7 +222,7 @@ class CQChartsColumns {
     return false;
   }
 
-  // return number of columns (minumum is one as single invalid counts)
+  // return number of columns (minimum is one as single invalid counts)
   int count() const {
     if (columns_.empty())
       return 1;

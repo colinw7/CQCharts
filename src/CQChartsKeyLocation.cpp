@@ -16,17 +16,17 @@ CQChartsKeyLocation::
 toString() const
 {
   switch (type_) {
-    case Type::TOP_LEFT:      return "tl";
-    case Type::TOP_CENTER:    return "tc";
-    case Type::TOP_RIGHT:     return "tr";
-    case Type::CENTER_LEFT:   return "cl";
-    case Type::CENTER_CENTER: return "cc";
-    case Type::CENTER_RIGHT:  return "cr";
-    case Type::BOTTOM_LEFT:   return "bl";
-    case Type::BOTTOM_CENTER: return "bc";
-    case Type::BOTTOM_RIGHT:  return "br";
-    case Type::ABS_POS:       return "abs";
-    default:                  return "none";
+    case Type::TOP_LEFT:      return "TOP_LEFT";
+    case Type::TOP_CENTER:    return "TOP_CENTER";
+    case Type::TOP_RIGHT:     return "TOP_RIGHT";
+    case Type::CENTER_LEFT:   return "CENTER_LEFT";
+    case Type::CENTER_CENTER: return "CENTER_CENTER";
+    case Type::CENTER_RIGHT:  return "CENTER_RIGHT";
+    case Type::BOTTOM_LEFT:   return "BOTTOM_LEFT";
+    case Type::BOTTOM_CENTER: return "BOTTOM_CENTER";
+    case Type::BOTTOM_RIGHT:  return "BOTTOM_RIGHT";
+    case Type::ABS_POS:       return "ABS_POS";
+    default:                  return "NONE";
   }
 }
 
@@ -36,26 +36,29 @@ decodeString(const QString &str, Type &type)
 {
   QString lstr = str.toLower();
 
-  if      (lstr == "tl" ) type = Type::TOP_LEFT;
-  else if (lstr == "tc" ) type = Type::TOP_CENTER;
-  else if (lstr == "tr" ) type = Type::TOP_RIGHT;
-  else if (lstr == "cl" ) type = Type::CENTER_LEFT;
-  else if (lstr == "cc" ) type = Type::CENTER_CENTER;
-  else if (lstr == "cr" ) type = Type::CENTER_RIGHT;
-  else if (lstr == "bl" ) type = Type::BOTTOM_LEFT;
-  else if (lstr == "bc" ) type = Type::BOTTOM_CENTER;
-  else if (lstr == "br" ) type = Type::BOTTOM_RIGHT;
-  else if (lstr == "abs") type = Type::ABS_POS;
+  if      (lstr == "top_left"     ) type = Type::TOP_LEFT;
+  else if (lstr == "top_center"   ) type = Type::TOP_CENTER;
+  else if (lstr == "top_right"    ) type = Type::TOP_RIGHT;
+  else if (lstr == "center_left"  ) type = Type::CENTER_LEFT;
+  else if (lstr == "center_center") type = Type::CENTER_CENTER;
+  else if (lstr == "center_right" ) type = Type::CENTER_RIGHT;
+  else if (lstr == "bottom_left"  ) type = Type::BOTTOM_LEFT;
+  else if (lstr == "bottom_center") type = Type::BOTTOM_CENTER;
+  else if (lstr == "bottom_right" ) type = Type::BOTTOM_RIGHT;
+  else if (lstr == "abs_pos"      ) type = Type::ABS_POS;
+  else                              return false;
 
   return true;
 }
 
 QStringList
 CQChartsKeyLocation::
-locationNames()
+enumNames() const
 {
   static QStringList names = QStringList() <<
-    "tl" << "tc" << "tr" << "cl" << "cc" << "cr" << "bl" << "bc" << "br" << "abs";
+    "TOP_LEFT" << "TOP_CENTER" << "TOP_RIGHT" <<
+    "CENTER_LEFT" << "CENTER_CENTER" << "CENTER_RIGHT" <<
+    "BOTTOM_LEFT" << "BOTTOM_CENTER" << "BOTTOM_RIGHT" << "ABS_POS";
 
   return names;
 }

@@ -685,6 +685,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   void setGridded(bool b);
 
+ private slots:
+  void dataLabelChanged();
+
  private:
   struct SymbolMapKeyData {
     bool   displayed { true };

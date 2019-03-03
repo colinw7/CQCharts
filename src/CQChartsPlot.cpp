@@ -1590,6 +1590,7 @@ addTextProperties(const QString &path, const QString &prefix)
   addProperty(path, this, prefix + "Font"    , "font"    );
   addProperty(path, this, prefix + "Angle"   , "angle"   );
   addProperty(path, this, prefix + "Contrast", "contrast");
+  addProperty(path, this, prefix + "Html"    , "html"    );
 }
 
 void
@@ -4167,6 +4168,18 @@ selectedObjs(Objs &objs) const
     if (annotation->isSelected())
       objs.push_back(annotation);
   }
+
+  if (key() && key()->isSelected())
+    objs.push_back(key());
+
+  if (title() && title()->isSelected())
+    objs.push_back(title());
+
+  if (xAxis() && xAxis()->isSelected())
+    objs.push_back(xAxis());
+
+  if (yAxis() && yAxis()->isSelected())
+    objs.push_back(yAxis());
 }
 
 void
@@ -6763,10 +6776,10 @@ fitBBox() const
   bbox += annotationBBox();
 
   // add margin (TODO: config pixel margin size)
-  double xm = pixelToWindowWidth (8);
-  double ym = pixelToWindowHeight(8);
+  QSizeF marginSize = pixelToWindowSize(QSizeF(8, 8));
 
-  bbox.expand(-xm, -ym, xm, ym);
+  bbox.expand(-marginSize.width(), -marginSize.height(),
+               marginSize.width(),  marginSize.height());
 
   return bbox;
 }
@@ -9391,6 +9404,16 @@ CQChartsPlot::
 pixelToWindowSize(double ps, bool horizontal) const
 {
   return (horizontal ? pixelToWindowWidth(ps) : pixelToWindowHeight(ps));
+}
+
+QSizeF
+CQChartsPlot::
+pixelToWindowSize(const QSizeF &ps) const
+{
+  double w = pixelToWindowWidth (ps.width ());
+  double h = pixelToWindowHeight(ps.height());
+
+  return QSizeF(w, h);
 }
 
 double

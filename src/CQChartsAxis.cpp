@@ -77,6 +77,16 @@ charts() const
   return view()->charts();
 }
 
+QString
+CQChartsAxis::
+calcId() const
+{
+  if (direction_ == Qt::Horizontal)
+    return plot()->id() + "/xaxis";
+  else
+    return plot()->id() + "/yaxis";
+}
+
 CQChartsView *
 CQChartsAxis::
 view()

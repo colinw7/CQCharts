@@ -1882,7 +1882,7 @@ validateSlot()
   xmaxEdit_->setEnabled(type->customXRange());
   ymaxEdit_->setEnabled(type->customYRange());
 
-  // can only set range if plot type supplies which column referes to these axes
+  // can only set range if plot type supplies which column refers to these axes
   QString xcolName = type->xColumnName();
   QString ycolName = type->yColumnName();
 

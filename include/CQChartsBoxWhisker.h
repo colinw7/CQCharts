@@ -26,7 +26,7 @@ struct CQChartsWhiskerData {
 //---
 
 /*!
- * \bried box whisker
+ * \brief box whisker
  */
 template<typename VALUE>
 class CQChartsBoxWhiskerT {
@@ -299,7 +299,7 @@ class CQChartsBoxWhiskerT {
   // calculated data
   mutable std::atomic<bool> calcValid_    { false }; //! calc valid
   mutable std::mutex        calcMutex_;              //! calc mutex
-  CQChartsWhiskerData       data_;                   //! calc daya
+  CQChartsWhiskerData       data_;                   //! calc data
   double                    sum_          { 0.0 };   //! calc sum
   double                    mean_         { 0.0 };   //! calc mean
   double                    stddev_       { 0.0 };   //! calc standard deviation

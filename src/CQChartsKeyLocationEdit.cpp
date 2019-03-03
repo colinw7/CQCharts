@@ -1,72 +1,65 @@
 #include <CQChartsKeyLocationEdit.h>
 
-#include <CQPropertyView.h>
-
-#include <QComboBox>
-#include <QHBoxLayout>
-
 CQChartsKeyLocationEdit::
 CQChartsKeyLocationEdit(QWidget *parent) :
- QFrame(parent)
+ CQChartsEnumEdit(parent)
 {
   setObjectName("keyLocation");
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  init();
 
-  combo_ = new QComboBox;
-
-  combo_->addItems(CQChartsKeyLocation::locationNames());
-
-  combo_->setObjectName("combo");
-
-  layout->addWidget(combo_);
-
-  connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
-}
-
-const CQChartsKeyLocation &
-CQChartsKeyLocationEdit::
-keyLocation() const
-{
-  return keyLocation_;
+  QObject::connect(this, SIGNAL(enumChanged()), this, SIGNAL(keyLocationChanged()));
 }
 
 void
 CQChartsKeyLocationEdit::
 setKeyLocation(const CQChartsKeyLocation &keyLocation)
 {
-  disconnect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
-
   keyLocation_ = keyLocation;
 
-  combo_->setCurrentIndex(combo_->findText(keyLocation_.toString()));
-
-  connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  setEnumString(keyLocation_.toString());
 }
 
 void
 CQChartsKeyLocationEdit::
-comboChanged()
+setEnumFromString(const QString &str)
 {
-  disconnect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  keyLocation_ = CQChartsKeyLocation(str);
+}
 
-  keyLocation_ = CQChartsKeyLocation(combo_->currentText());
+QVariant
+CQChartsKeyLocationEdit::
+getVariantFromEnum() const
+{
+  return QVariant::fromValue(keyLocation());
+}
 
-  connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+void
+CQChartsKeyLocationEdit::
+setEnumFromVariant(const QVariant &var)
+{
+  CQChartsKeyLocation keyLocation = var.value<CQChartsKeyLocation>();
 
-  emit keyLocationChanged();
+  setKeyLocation(keyLocation);
+}
+
+QString
+CQChartsKeyLocationEdit::
+variantToString(const QVariant &var) const
+{
+  CQChartsKeyLocation keyLocation = var.value<CQChartsKeyLocation>();
+
+  return keyLocation.toString();
+}
+
+void
+CQChartsKeyLocationEdit::
+connect(QObject *obj, const char *method)
+{
+  QObject::connect(this, SIGNAL(keyLocationChanged()), obj, method);
 }
 
 //------
-
-#include <CQPropertyViewItem.h>
-#include <CQPropertyViewDelegate.h>
-
-CQChartsKeyLocationPropertyViewType::
-CQChartsKeyLocationPropertyViewType()
-{
-}
 
 CQPropertyViewEditorFactory *
 CQChartsKeyLocationPropertyViewType::
@@ -75,91 +68,20 @@ getEditor() const
   return new CQChartsKeyLocationPropertyViewEditor;
 }
 
-bool
-CQChartsKeyLocationPropertyViewType::
-setEditorData(CQPropertyViewItem *item, const QVariant &value)
-{
-  return item->setData(value);
-}
-
-void
-CQChartsKeyLocationPropertyViewType::
-draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
-     const QStyleOptionViewItem &option, const QModelIndex &ind,
-     const QVariant &value, bool inside)
-{
-  delegate->drawBackground(painter, option, ind, inside);
-
-  CQChartsKeyLocation keyLocation = value.value<CQChartsKeyLocation>();
-
-  QString str = keyLocation.toString();
-
-  QFontMetricsF fm(option.font);
-
-  double w = fm.width(str);
-
-  //---
-
-  QStyleOptionViewItem option1 = option;
-
-  option1.rect.setRight(option1.rect.left() + w + 8);
-
-  delegate->drawString(painter, option1, str, ind, inside);
-}
-
 QString
 CQChartsKeyLocationPropertyViewType::
-tip(const QVariant &value) const
+variantToString(const QVariant &var) const
 {
-  QString str = value.value<CQChartsKeyLocation>().toString();
+  CQChartsKeyLocation keyLocation = var.value<CQChartsKeyLocation>();
 
-  return str;
+  return keyLocation.toString();
 }
 
 //------
-
-CQChartsKeyLocationPropertyViewEditor::
-CQChartsKeyLocationPropertyViewEditor()
-{
-}
 
 QWidget *
 CQChartsKeyLocationPropertyViewEditor::
 createEdit(QWidget *parent)
 {
-  CQChartsKeyLocationEdit *edit = new CQChartsKeyLocationEdit(parent);
-
-  return edit;
-}
-
-void
-CQChartsKeyLocationPropertyViewEditor::
-connect(QWidget *w, QObject *obj, const char *method)
-{
-  CQChartsKeyLocationEdit *edit = qobject_cast<CQChartsKeyLocationEdit *>(w);
-  assert(edit);
-
-  QObject::connect(edit, SIGNAL(keyLocationChanged()), obj, method);
-}
-
-QVariant
-CQChartsKeyLocationPropertyViewEditor::
-getValue(QWidget *w)
-{
-  CQChartsKeyLocationEdit *edit = qobject_cast<CQChartsKeyLocationEdit *>(w);
-  assert(edit);
-
-  return QVariant::fromValue(edit->keyLocation());
-}
-
-void
-CQChartsKeyLocationPropertyViewEditor::
-setValue(QWidget *w, const QVariant &var)
-{
-  CQChartsKeyLocationEdit *edit = qobject_cast<CQChartsKeyLocationEdit *>(w);
-  assert(edit);
-
-  CQChartsKeyLocation keyLocation = var.value<CQChartsKeyLocation>();
-
-  edit->setKeyLocation(keyLocation);
+  return new CQChartsKeyLocationEdit(parent);
 }

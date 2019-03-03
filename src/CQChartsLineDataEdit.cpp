@@ -11,6 +11,7 @@
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
 #include <CQGroupBox.h>
+#include <CQUtil.h>
 
 #include <QLineEdit>
 #include <QLabel>
@@ -197,9 +198,14 @@ CQChartsLineDataEdit::
 CQChartsLineDataEdit(QWidget *parent) :
  CQChartsEditBase(parent)
 {
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  setObjectName("lineDataEdit");
 
-  groupBox_ = new CQGroupBox;
+  QVBoxLayout *layout = new QVBoxLayout(this);
+  layout->setMargin(0); layout->setSpacing(2);
+
+  //---
+
+  groupBox_ = CQUtil::makeWidget<CQGroupBox>("groupBox");
 
   groupBox_->setCheckable(true);
   groupBox_->setChecked(false);
@@ -214,7 +220,7 @@ CQChartsLineDataEdit(QWidget *parent) :
   QGridLayout *groupLayout = new QGridLayout(groupBox_);
 
   // color
-  QLabel *colorLabel = new QLabel("Color");
+  QLabel *colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "color");
 
   colorEdit_ = new CQChartsColorLineEdit;
 
@@ -224,7 +230,7 @@ CQChartsLineDataEdit(QWidget *parent) :
   groupLayout->addWidget(colorEdit_, 0, 1);
 
   // alpha
-  QLabel *alphaLabel = new QLabel("Alpha");
+  QLabel *alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alpha");
 
   alphaEdit_ = new CQChartsAlphaEdit;
 
@@ -234,7 +240,7 @@ CQChartsLineDataEdit(QWidget *parent) :
   groupLayout->addWidget(alphaEdit_, 1, 1);
 
   // width
-  QLabel *widthLabel = new QLabel("Width");
+  QLabel *widthLabel = CQUtil::makeLabelWidget<QLabel>("Width", "width");
 
   widthEdit_ = new CQChartsLengthEdit;
 
@@ -244,7 +250,7 @@ CQChartsLineDataEdit(QWidget *parent) :
   groupLayout->addWidget(widthEdit_, 2, 1);
 
   // dash
-  QLabel *dashLabel = new QLabel("Dash");
+  QLabel *dashLabel = CQUtil::makeLabelWidget<QLabel>("Dash", "dash");
 
   dashEdit_ = new CQChartsLineDashEdit;
 

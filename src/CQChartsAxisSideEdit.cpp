@@ -38,25 +38,25 @@ void
 CQChartsAxisSideEdit::
 setEnumFromVariant(const QVariant &var)
 {
-  CQChartsAxisSide fillPatten = var.value<CQChartsAxisSide>();
+  CQChartsAxisSide axisSide = var.value<CQChartsAxisSide>();
 
-  setAxisSide(fillPatten);
+  setAxisSide(axisSide);
 }
 
 QString
 CQChartsAxisSideEdit::
 variantToString(const QVariant &var) const
 {
-  CQChartsAxisSide fillPatten = var.value<CQChartsAxisSide>();
+  CQChartsAxisSide axisSide = var.value<CQChartsAxisSide>();
 
-  return fillPatten.toString();
+  return axisSide.toString();
 }
 
 void
 CQChartsAxisSideEdit::
 connect(QObject *obj, const char *method)
 {
-  QObject::connect(this, SIGNAL(fillPattenChanged()), obj, method);
+  QObject::connect(this, SIGNAL(axisSideChanged()), obj, method);
 }
 
 //------

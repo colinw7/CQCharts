@@ -1392,7 +1392,7 @@ drawFg(QPainter *painter) const
   if (! visible())
     return;
 
-  // draw segement label
+  // draw segment label
   CQChartsGeom::Point c = getCenter();
 
   drawSegmentLabel(painter, c);

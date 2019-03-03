@@ -100,7 +100,7 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
   int                   is_       { -1 };      //! set index
   int                   ns_       { -1 };      //! number of sets
   int                   i_        { -1 };      //! point index
-  int                   n_        { -1 };      //! number of poitns
+  int                   n_        { -1 };      //! number of points
 };
 
 //---

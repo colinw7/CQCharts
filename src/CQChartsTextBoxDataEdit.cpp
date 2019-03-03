@@ -192,43 +192,96 @@ setValue(QWidget *w, const QVariant &var)
 //------
 
 CQChartsTextBoxDataEdit::
-CQChartsTextBoxDataEdit(QWidget *parent) :
- CQChartsEditBase(parent)
+CQChartsTextBoxDataEdit(QWidget *parent, bool tabbed) :
+ CQChartsEditBase(parent), tabbed_(tabbed)
 {
+  setObjectName("textBoxDataEdit");
+
   QGridLayout *layout = new QGridLayout(this);
   layout->setMargin(0); layout->setSpacing(2);
 
+  int row = 0;
+
   //---
 
-  // text
-  textEdit_ = new CQChartsTextDataEdit;
+  if (tabbed_) {
+    QTabWidget *tab = CQUtil::makeWidget<QTabWidget>("tab");
 
-  textEdit_->setTitle("Text");
-  textEdit_->setPreview(false);
+    layout->addWidget(tab, row, 0, 1, 2); ++row;
+
+    //----
+
+    // text frame
+    QFrame *textFrame = CQUtil::makeWidget<QFrame>("textFrame");
+
+    QVBoxLayout *textFrameLayout = new QVBoxLayout(textFrame);
+    textFrameLayout->setMargin(0); textFrameLayout->setSpacing(2);
+
+    tab->addTab(textFrame, "Text");
+
+    //--
+
+    // text
+    textEdit_ = new CQChartsTextDataEdit;
+
+    textEdit_->setPreview(false);
+
+    textFrameLayout->addWidget(textEdit_);
+
+    //----
+
+    // box frame
+    QFrame *boxFrame = CQUtil::makeWidget<QFrame>("boxFrame");
+
+    QVBoxLayout *boxFrameLayout = new QVBoxLayout(boxFrame);
+    boxFrameLayout->setMargin(0); boxFrameLayout->setSpacing(2);
+
+    tab->addTab(boxFrame, "Box");
+
+    //--
+
+    // box
+    boxEdit_ = new CQChartsBoxDataEdit;
+
+    boxEdit_->setPreview(false);
+
+    boxFrameLayout->addWidget(boxEdit_);
+  }
+  else {
+    //--
+
+    // text
+    textEdit_ = new CQChartsTextDataEdit;
+
+    textEdit_->setTitle("Text");
+    textEdit_->setPreview(false);
+
+    layout->addWidget(textEdit_, row, 0, 1, 2); ++row;
+
+    //--
+
+    // box
+    boxEdit_ = new CQChartsBoxDataEdit;
+
+    boxEdit_->setTitle("Box");
+    boxEdit_->setPreview(false);
+
+    layout->addWidget(boxEdit_, row, 0, 1, 2); ++row;
+  }
 
   connect(textEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
-
-  layout->addWidget(textEdit_, 0, 0, 1, 2);
-
-  // box
-  boxEdit_ = new CQChartsBoxDataEdit;
-
-  boxEdit_->setTitle("Box");
-  boxEdit_->setPreview(false);
-
-  connect(boxEdit_, SIGNAL(boxDataChanged()), this, SLOT(widgetsToData()));
-
-  layout->addWidget(boxEdit_, 1, 0, 1, 2);
+  connect(boxEdit_ , SIGNAL(boxDataChanged()) , this, SLOT(widgetsToData()));
 
   //---
 
+  // preview
   preview_ = new CQChartsTextBoxDataEditPreview(this);
 
-  layout->addWidget(preview_, 2, 1);
+  layout->addWidget(preview_, row, 1);
 
   //---
 
-  layout->setRowStretch(3, 1);
+  layout->setRowStretch(row, 1);
 
   //---
 
@@ -268,8 +321,10 @@ void
 CQChartsTextBoxDataEdit::
 setTitle(const QString &)
 {
-  textEdit_->setTitle("Text");
-  boxEdit_ ->setTitle("Box" );
+  if (! tabbed_) {
+    textEdit_->setTitle("Text");
+    boxEdit_ ->setTitle("Box" );
+  }
 }
 
 void

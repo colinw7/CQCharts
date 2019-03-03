@@ -1400,10 +1400,9 @@ propertyId() const
 
 void
 CQChartsTextAnnotation::
-calcTextSize(double &w, double &h) const
+calcTextSize(QSizeF &psize, QSizeF &wsize) const
 {
-  w = 0.0, h = 0.0;
-
+  // get font
   QFont font;
 
   if      (plot())
@@ -1411,25 +1410,20 @@ calcTextSize(double &w, double &h) const
   else if (view())
     font = view()->viewFont(textFont());
 
-  QSizeF size;
+  // get text size (pixel)
+  if (! isTextHtml())
+    psize = CQChartsDrawUtil::calcTextSize(textStr(), font);
+  else
+    psize = CQChartsDrawUtil::calcHtmlTextSize(textStr(), font);
 
-  if (! isTextHtml()) {
-    QFontMetricsF fm(font);
+  // convert to window size
+  if      (plot())
+    wsize = plot()->pixelToWindowSize(psize);
+  else if (view())
+    wsize = view()->pixelToWindowSize(psize);
+  else
+    wsize = psize;
 
-    size = QSizeF(fm.width(textStr()), fm.height());
-  }
-  else {
-    size = CQChartsDrawUtil::calcHtmlTextSize(textStr(), font);
-  }
-
-  if      (plot()) {
-    w = plot()->pixelToWindowWidth (size.width ());
-    h = plot()->pixelToWindowHeight(size.height());
-  }
-  else if (view()) {
-    w = view()->pixelToWindowWidth (size.width ());
-    h = view()->pixelToWindowHeight(size.height());
-  }
 }
 
 void
@@ -1546,7 +1540,7 @@ void
 CQChartsTextAnnotation::
 draw(QPainter *painter)
 {
-  // reculate position to bbox on draw as can change depending on pixel mapping
+  // recalculate position to bbox on draw as can change depending on pixel mapping
   if (! rect_.isSet())
     positionToBBox();
 
@@ -1585,6 +1579,7 @@ draw(QPainter *painter)
 
   //---
 
+  // set text options
   CQChartsTextOptions textOptions;
 
   textOptions.angle     = textAngle();
@@ -1598,12 +1593,15 @@ draw(QPainter *painter)
 
   //---
 
-  // draw text
+  // set font
   if     (plot())
     view()->setPlotPainterFont(plot(), painter, textFont());
   else if (view())
     view()->setPainterFont(painter, textFont());
 
+  //---
+
+  // set box
   double tx = prect.getXMin  () +   margin() +   padding();
   double ty = prect.getYMin  () +   margin() +   padding();
   double tw = prect.getWidth () - 2*margin() - 2*padding();
@@ -1611,44 +1609,15 @@ draw(QPainter *painter)
 
   QRectF trect(tx, ty, tw, th);
 
-  if (! isTextHtml()) {
+  //---
+
+  // draw text
+  painter->setRenderHints(QPainter::Antialiasing);
+
+  if (! isTextHtml())
     CQChartsDrawUtil::drawTextInBox(painter, trect, textStr(), pen, textOptions);
-  }
-  else {
-    double w, h;
-
-    calcTextSize(w, h);
-
-    double pw = w, ph = h;
-
-    if      (plot()) {
-      pw = plot()->windowToPixelWidth (w);
-      ph = plot()->windowToPixelHeight(h);
-    }
-    else if (view()) {
-      pw = view()->windowToPixelWidth (w);
-      ph = view()->windowToPixelHeight(h);
-    }
-
-    double xs = trect.width ()/pw;
-    double ys = trect.height()/ph;
-
-    double s = std::min(xs, ys);
-
-    QFont font1 = painter->font();
-
-    double fs = font1.pointSizeF()*s;
-
-    font1.setPointSizeF(fs);
-
-    painter->setFont(font1);
-
-    //---
-
-    painter->setRenderHints(QPainter::Antialiasing);
-
-    CQChartsDrawUtil::drawHtmlText(painter, trect, textStr(), textOptions);
-  }
+  else
+    CQChartsDrawUtil::drawScaledHtmlText(painter, trect, textStr(), textOptions);
 
   //---
 
@@ -1700,16 +1669,16 @@ positionToBBox()
     ym = view()->pixelToWindowHeight(margin ());
   }
 
-  double w, h;
+  QSizeF psize, wsize;
 
-  calcTextSize(w, h);
+  calcTextSize(psize, wsize);
 
   double x, y;
 
-  positionToLL(w, h, x, y);
+  positionToLL(wsize.width(), wsize.height(), x, y);
 
-  CQChartsGeom::Point ll(x     - xp - xm, y     - yp - ym);
-  CQChartsGeom::Point ur(x + w + xp + xm, y + h + yp + ym);
+  CQChartsGeom::Point ll(x                 - xp - xm, y                  - yp - ym);
+  CQChartsGeom::Point ur(x + wsize.width() + xp + xm, y + wsize.height() + yp + ym);
 
   bbox_ = CQChartsGeom::BBox(ll, ur);
 }

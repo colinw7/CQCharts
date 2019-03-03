@@ -16,7 +16,7 @@ class CQChartsEditAnnotationDlg;
 class CQChartsEditTitleDlg;
 class CQChartsEditKeyDlg;
 class CQChartsEditAxisDlg;
-class CQPropertyViewTree;
+class CQChartsPropertyViewTree;
 class CQIntegerSpin;
 
 class QTabWidget;
@@ -46,7 +46,7 @@ class CQChartsViewSettings : public QFrame {
 
   CQChartsWindow *window() const { return window_; }
 
-  CQPropertyViewTree *propertyTree() const { return propertiesWidgets_.propertyTree; }
+  CQChartsPropertyViewTree *propertyTree() const { return propertiesWidgets_.propertyTree; }
 
  signals:
   void propertyItemSelected(QObject *obj, const QString &path);
@@ -153,8 +153,8 @@ class CQChartsViewSettings : public QFrame {
 
  private:
   struct PropertiesWidgets {
-    CQChartsFilterEdit* filterEdit   { nullptr }; //! settings filter
-    CQPropertyViewTree* propertyTree { nullptr }; //! settings tree
+    CQChartsFilterEdit*       filterEdit   { nullptr }; //! settings filter
+    CQChartsPropertyViewTree* propertyTree { nullptr }; //! settings tree
   };
 
   struct ModelsWidgets {
@@ -207,10 +207,10 @@ class CQChartsViewSettings : public QFrame {
   AnnotationsWidgets           annotationsWidgets_;              //! annotations widgets
   ThemeWidgets                 themeWidgets_;                    //! theme widgets
   LayersWidgets                layersWidgets_;                   //! layers widgets
-  CQChartsLoadModelDlg*        loadModelDlg_        { nullptr }; //! load dalog
-  CQChartsCreatePlotDlg*       createPlotDlg_       { nullptr }; //! plot dalog
-  CQChartsCreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //! create annotation dalog
-  CQChartsEditAnnotationDlg*   editAnnotationDlg_   { nullptr }; //! edit annotation dalog
+  CQChartsLoadModelDlg*        loadModelDlg_        { nullptr }; //! load dialog
+  CQChartsCreatePlotDlg*       createPlotDlg_       { nullptr }; //! plot dialog
+  CQChartsCreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //! create annotation dialog
+  CQChartsEditAnnotationDlg*   editAnnotationDlg_   { nullptr }; //! edit annotation dialog
   CQChartsEditTitleDlg*        editTitleDlg_        { nullptr }; //! edit plot title dialog
   CQChartsEditKeyDlg*          editKeyDlg_          { nullptr }; //! edit plot key dialog
   CQChartsEditAxisDlg*         editXAxisDlg_        { nullptr }; //! edit plot x axis dialog

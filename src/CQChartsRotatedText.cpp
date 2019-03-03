@@ -80,7 +80,8 @@ draw(QPainter *painter, double x, double y, const QString &text,
   if (contrast) {
     QColor tc = painter->pen().color();
 
-    QColor icolor = CQChartsUtil::invColor(tc);
+  //QColor icolor = CQChartsUtil::invColor(tc);
+    QColor icolor = CQChartsUtil::bwColor(tc);
 
     icolor.setAlphaF(0.5);
 

@@ -9,7 +9,6 @@
 #include <CQCheckBox.h>
 
 #include <QComboBox>
-#include <QCheckBox>
 #include <QSpinBox>
 #include <QLineEdit>
 #include <QLabel>

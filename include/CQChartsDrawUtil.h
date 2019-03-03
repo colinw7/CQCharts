@@ -27,7 +27,11 @@ QRectF calcAlignedTextRect(const QFont &font, double x, double y, const QString 
 
 void drawContrastText(QPainter *painter, double x, double y, const QString &text, const QPen &pen);
 
+QSizeF calcTextSize    (const QString &text, const QFont &font);
 QSizeF calcHtmlTextSize(const QString &text, const QFont &font);
+
+void drawScaledHtmlText(QPainter *painter, const QRectF &trect, const QString &text,
+                        const CQChartsTextOptions &options);
 
 void drawHtmlText(QPainter *painter, const QRectF &trect, const QString &text,
                   const CQChartsTextOptions &options);

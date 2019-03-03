@@ -38,25 +38,25 @@ void
 CQChartsFillPatternEdit::
 setEnumFromVariant(const QVariant &var)
 {
-  CQChartsFillPattern fillPatten = var.value<CQChartsFillPattern>();
+  CQChartsFillPattern fillPattern = var.value<CQChartsFillPattern>();
 
-  setFillPattern(fillPatten);
+  setFillPattern(fillPattern);
 }
 
 QString
 CQChartsFillPatternEdit::
 variantToString(const QVariant &var) const
 {
-  CQChartsFillPattern fillPatten = var.value<CQChartsFillPattern>();
+  CQChartsFillPattern fillPattern = var.value<CQChartsFillPattern>();
 
-  return fillPatten.toString();
+  return fillPattern.toString();
 }
 
 void
 CQChartsFillPatternEdit::
 connect(QObject *obj, const char *method)
 {
-  QObject::connect(this, SIGNAL(fillPattenChanged()), obj, method);
+  QObject::connect(this, SIGNAL(fillPatternChanged()), obj, method);
 }
 
 //------

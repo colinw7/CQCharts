@@ -492,9 +492,13 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // get selected plots
+  void selectedPlots(Plots &plots) const;
+
   // get selected objects
   void selectedObjs(Objs &objs) const;
 
+  // get all selected objects
   void allSelectedObjs(Objs &objs) const;
 
   //---
@@ -600,6 +604,8 @@ class CQChartsView : public QFrame,
 
   double windowToPixelWidth (double ww) const;
   double windowToPixelHeight(double wh) const;
+
+  QSizeF pixelToWindowSize(const QSizeF &ps) const;
 
   //---
 

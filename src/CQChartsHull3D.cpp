@@ -138,13 +138,13 @@ reset()
 }
 
 /*---------------------------------------------------------------------
- doubleTriangle builds the initial double triangle.  It first finds 3
- non-collinear points and makes two faces out of them, in opposite order.
- It then finds a fourth point that is not coplanar with that face.  The
- vertices are stored in the face structure in counterclockwise order so
- that the volume between the face and the point is negative. Lastly, the
- 3 new faces to the fourth point are constructed and the data structures
- are cleaned up.
+  doubleTriangle builds the initial double triangle.  It first finds 3
+  non-collinear points and makes two faces out of them, in opposite order.
+  It then finds a fourth point that is not coplanar with that face.  The
+  vertices are stored in the face structure in counterclockwise order so
+  that the volume between the face and the point is negative. Lastly, the
+  3 new faces to the fourth point are constructed and the data structures
+  are cleaned up.
 ---------------------------------------------------------------------*/
 bool
 CQChartsHull3D::
@@ -218,8 +218,8 @@ doubleTriangle()
 }
 
 /*---------------------------------------------------------------------
-constructHull adds the vertices to the hull one at a time. The hull
-vertices are those in the list marked as on hull.
+  constructHull adds the vertices to the hull one at a time. The hull
+  vertices are those in the list marked as on hull.
 ---------------------------------------------------------------------*/
 void
 CQChartsHull3D::
@@ -305,11 +305,11 @@ edgeOrderOnFaces()
 }
 
 /*---------------------------------------------------------------------
-addOne is passed a vertex. It first determines all faces visible from
-that point. If none are visible then the point is marked as not
-on hull. Next is a loop over edges. If both faces adjacent to an edge
-are visible, then the edge is marked for deletion. If just one of the
-adjacent faces is visible then a new face is constructed.
+  addOne is passed a vertex. It first determines all faces visible from
+  that point. If none are visible then the point is marked as not
+  on hull. Next is a loop over edges. If both faces adjacent to an edge
+  are visible, then the edge is marked for deletion. If just one of the
+  adjacent faces is visible then a new face is constructed.
 ---------------------------------------------------------------------*/
 bool
 CQChartsHull3D::
@@ -381,9 +381,9 @@ addOne(PVertex p)
 }
 
 /*---------------------------------------------------------------------
-makeConeFace makes a new face and two new edges between the
-edge and the point that are passed to it. It returns a pointer to
-the new face.
+  makeConeFace makes a new face and two new edges between the
+  edge and the point that are passed to it. It returns a pointer to
+  the new face.
 ---------------------------------------------------------------------*/
 CQChartsHull3D::PFace
 CQChartsHull3D::
@@ -430,15 +430,15 @@ makeConeFace(PEdge e, PVertex p)
 }
 
 /*---------------------------------------------------------------------
-makeCcw puts the vertices in the face structure in counterclock wise
-order. We want to store the vertices in the same order as in the
-visible face. The third vertex is always p.
+  makeCcw puts the vertices in the face structure in counterclock wise
+  order. We want to store the vertices in the same order as in the
+  visible face. The third vertex is always p.
 
-Although no specific ordering of the edges of a face are used
-by the code, the following condition is maintained for each face f:
-one of the two endpoints of f->edge(i) matches f->vertex(i).
-But note that this does not imply that f->edge(i) is between
-f->vertex(i) and f->vertex((i + 1) % 3).  (Thanks to Bob Williamson.)
+  Although no specific ordering of the edges of a face are used
+  by the code, the following condition is maintained for each face f:
+  one of the two endpoints of f->edge(i) matches f->vertex(i).
+  But note that this does not imply that f->edge(i) is between
+  f->vertex(i) and f->vertex((i + 1) % 3).  (Thanks to Bob Williamson.)
 ---------------------------------------------------------------------*/
 void
 CQChartsHull3D::
@@ -487,9 +487,9 @@ makeCcw(PFace f, PEdge e, PVertex p)
 
 #if 0
 /*---------------------------------------------------------------------
-dumpPS: prints out the vertices and the faces. Uses the indices
-corresponding to the order in which the vertices were input.
-Output is in PostScript format.
+  dumpPS: prints out the vertices and the faces. Uses the indices
+  corresponding to the order in which the vertices were input.
+  Output is in PostScript format.
 ---------------------------------------------------------------------*/
 void
 CQChartsHull3D::
@@ -646,11 +646,11 @@ getRange(double *xmin, double *ymin, double *zmin, double *xmax, double *ymax, d
 }
 
 /*---------------------------------------------------------------------
-volumeSign returns the sign of the volume of the tetrahedron determined by f
-and p. volumeSign is +1 iff p is on the negative side of f, where the
-positive side is determined by the rh-rule. So the volume is positive if
-the ccw normal to f points outside the tetrahedron. The final
-fewer-multiplications form is due to Bob Williamson.
+  volumeSign returns the sign of the volume of the tetrahedron determined by f
+  and p. volumeSign is +1 iff p is on the negative side of f, where the
+  positive side is determined by the rh-rule. So the volume is positive if
+  the ccw normal to f points outside the tetrahedron. The final
+  fewer-multiplications form is due to Bob Williamson.
 ---------------------------------------------------------------------*/
 int
 CQChartsHull3D::
@@ -671,9 +671,9 @@ volumeSign(PFace f, PVertex p)
 }
 
 /*--------------------------------------------------------------------
-makeFace creates a new face structure and initializes all of its
-flags to NULL and sets all the flags to off.  It returns a pointer
-to the empty cell.
+  makeFace creates a new face structure and initializes all of its
+  flags to NULL and sets all the flags to off.  It returns a pointer
+  to the empty cell.
 ---------------------------------------------------------------------*/
 CQChartsHull3D::PFace
 CQChartsHull3D::
@@ -687,8 +687,8 @@ makeFace()
 }
 
 /*---------------------------------------------------------------------
-makeFace creates a new face structure from three vertices (in ccw
-order).  It returns a pointer to the face.
+  makeFace creates a new face structure from three vertices (in ccw
+  order).  It returns a pointer to the face.
 ---------------------------------------------------------------------*/
 CQChartsHull3D::PFace
 CQChartsHull3D::
@@ -728,8 +728,8 @@ makeFace(PVertex v0, PVertex v1, PVertex v2, PFace fold)
 }
 
 /*---------------------------------------------------------------------
-makeEdge creates a new cell and initializes all pointers to NULL
-and sets all flags to off.  It returns a pointer to the empty cell.
+  makeEdge creates a new cell and initializes all pointers to NULL
+  and sets all flags to off.  It returns a pointer to the empty cell.
 ---------------------------------------------------------------------*/
 CQChartsHull3D::PEdge
 CQChartsHull3D::
@@ -743,9 +743,9 @@ makeEdge()
 }
 
 /*---------------------------------------------------------------------
-cleanUp goes through each data structure list and clears all
-flags and NULLs out some pointers.  The order of processing
-(edges, faces, vertices) is important.
+  cleanUp goes through each data structure list and clears all
+  flags and NULLs out some pointers.  The order of processing
+  (edges, faces, vertices) is important.
 ---------------------------------------------------------------------*/
 void
 CQChartsHull3D::
@@ -759,9 +759,9 @@ cleanUp(PVertex *pvnext)
 }
 
 /*---------------------------------------------------------------------
-cleanEdges runs through the edge list and cleans up the structure.
-If there is a new face then it will put that face in place of the
-visible face and NULL out new face. It also deletes so marked edges.
+  cleanEdges runs through the edge list and cleans up the structure.
+  If there is a new face then it will put that face in place of the
+  visible face and NULL out new face. It also deletes so marked edges.
 ---------------------------------------------------------------------*/
 void
 CQChartsHull3D::
@@ -813,7 +813,7 @@ cleanEdges()
 }
 
 /*---------------------------------------------------------------------
-cleanFaces runs through the face list and deletes any face marked visible.
+  cleanFaces runs through the face list and deletes any face marked visible.
 ---------------------------------------------------------------------*/
 void
 CQChartsHull3D::
@@ -849,12 +849,12 @@ cleanFaces()
 }
 
 /*---------------------------------------------------------------------
-cleanVertices runs through the vertex list and deletes the
-vertices that are marked as processed but are not incident to any
-undeleted edges.
+  cleanVertices runs through the vertex list and deletes the
+  vertices that are marked as processed but are not incident to any
+  undeleted edges.
 
-The pointer to vnext, is used to alter vnext in constructHull()
-if we are about to delete vnext.
+  The pointer to vnext, is used to alter vnext in constructHull()
+  if we are about to delete vnext.
 ---------------------------------------------------------------------*/
 void
 CQChartsHull3D::
@@ -1013,9 +1013,9 @@ checks()
 
 #if 0
 /*---------------------------------------------------------------------
-consistency runs through the edge list and checks that all
-adjacent faces have their endpoints in opposite order.  This verifies
-that the vertices are in counterclockwise order.
+  consistency runs through the edge list and checks that all
+  adjacent faces have their endpoints in opposite order.  This verifies
+  that the vertices are in counterclockwise order.
 ---------------------------------------------------------------------*/
 void
 CQChartsHull3D::
@@ -1243,9 +1243,9 @@ printFaces()
 
 #if 0
 /*-------------------------------------------------------------------
-Checks that, for each face, for each i={0,1,2}, the [i]th vertex of
-that face is either the [0]th or [1]st endpoint of the [ith] edge of
-the face.
+  Checks that, for each face, for each i={0,1,2}, the [i]th vertex of
+  that face is either the [0]th or [1]st endpoint of the [ith] edge of
+  the face.
 -------------------------------------------------------------------*/
 void
 CQChartsHull3D::

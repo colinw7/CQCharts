@@ -18,6 +18,7 @@
 
 #include <QLabel>
 #include <QComboBox>
+#include <QTabWidget>
 #include <QVBoxLayout>
 
 CQChartsEditAxisDlg::
@@ -68,6 +69,21 @@ CQChartsEditAxisDlg::
 cancelSlot()
 {
   close();
+}
+
+QSize
+CQChartsEditAxisDlg::
+sizeHint() const
+{
+  QSize s = QDialog::sizeHint();
+
+  QFontMetrics fm(font());
+
+  int w = fm.width("Major Grid Line") + fm.width("Minor Grid Line") + fm.width("Grid Fill") + 100;
+
+  s.setWidth(w);
+
+  return s;
 }
 
 //------
@@ -269,27 +285,25 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   groupLayout->addWidget(lineDataEdit_, row, 0, 1, 2); ++row;
 
-  //--
+  //------
 
-  // tick label
-  tickLabelTextDataEdit_ = CQUtil::makeWidget<CQChartsTextDataEdit>("tickLabelTextDataEdit");
+  QTabWidget *labelTab = CQUtil::makeWidget<QTabWidget>("labelTab");
 
-  tickLabelTextDataEdit_->setTitle("Tick Label");
-  tickLabelTextDataEdit_->setPreview(false);
-  tickLabelTextDataEdit_->setPlot(axis_->plot());
-  tickLabelTextDataEdit_->setView(axis_->view());
-  tickLabelTextDataEdit_->setData(data_.tickLabelTextData);
-
-  connect(tickLabelTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
-
-  groupLayout->addWidget(tickLabelTextDataEdit_, row, 0, 1, 2); ++row;
+  layout->addWidget(labelTab);
 
   //--
 
   // label
+  QFrame *labelFrame = CQUtil::makeWidget<QFrame>("labelFrame");
+
+  QVBoxLayout *labelLayout = new QVBoxLayout(labelFrame);
+  labelLayout->setMargin(0); labelLayout->setSpacing(2);
+
+  labelTab->addTab(labelFrame, "Axis Label");
+
   labelTextDataEdit_ = CQUtil::makeWidget<CQChartsTextDataEdit>("labelTextDataEdit");
 
-  labelTextDataEdit_->setTitle("Label");
+//labelTextDataEdit_->setTitle("Label");
   labelTextDataEdit_->setPreview(false);
   labelTextDataEdit_->setPlot(axis_->plot());
   labelTextDataEdit_->setView(axis_->view());
@@ -297,14 +311,49 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   connect(labelTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
 
-  groupLayout->addWidget(labelTextDataEdit_, row, 0, 1, 2); ++row;
+  labelLayout->addWidget(labelTextDataEdit_);
+
+  //--
+
+  // tick label
+  QFrame *tickLabelFrame = CQUtil::makeWidget<QFrame>("tickLabelFrame");
+
+  QVBoxLayout *tickLabelLayout = new QVBoxLayout(tickLabelFrame);
+  tickLabelLayout->setMargin(0); tickLabelLayout->setSpacing(2);
+
+  labelTab->addTab(tickLabelFrame, "Tick Label");
+
+  tickLabelTextDataEdit_ = CQUtil::makeWidget<CQChartsTextDataEdit>("tickLabelTextDataEdit");
+
+//tickLabelTextDataEdit_->setTitle("Tick Label");
+  tickLabelTextDataEdit_->setPreview(false);
+  tickLabelTextDataEdit_->setPlot(axis_->plot());
+  tickLabelTextDataEdit_->setView(axis_->view());
+  tickLabelTextDataEdit_->setData(data_.tickLabelTextData);
+
+  connect(tickLabelTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
+
+  tickLabelLayout->addWidget(tickLabelTextDataEdit_);
 
   //---
 
+  QTabWidget *gridTab = CQUtil::makeWidget<QTabWidget>("gridTab");
+
+  layout->addWidget(gridTab);
+
+  //--
+
   // major grid line
+  QFrame *majorGridLineFrame = CQUtil::makeWidget<QFrame>("majorGridLineFrame");
+
+  QVBoxLayout *majorGridLineLayout = new QVBoxLayout(majorGridLineFrame);
+  majorGridLineLayout->setMargin(0); majorGridLineLayout->setSpacing(2);
+
+  gridTab->addTab(majorGridLineFrame, "Major Grid Line");
+
   majorGridLineDataEdit_ = CQUtil::makeWidget<CQChartsLineDataEdit>("majorGridLineDataEdit");
 
-  majorGridLineDataEdit_->setTitle("Major Grid Line");
+//majorGridLineDataEdit_->setTitle("Major Grid Line");
   majorGridLineDataEdit_->setPreview(false);
   majorGridLineDataEdit_->setPlot(axis_->plot());
   majorGridLineDataEdit_->setView(axis_->view());
@@ -312,14 +361,21 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   connect(majorGridLineDataEdit_, SIGNAL(lineDataChanged()), this, SLOT(widgetsToData()));
 
-  groupLayout->addWidget(majorGridLineDataEdit_, row, 0, 1, 2); ++row;
+  majorGridLineLayout->addWidget(majorGridLineDataEdit_);
 
   //---
 
   // minor grid line
+  QFrame *minorGridLineFrame = CQUtil::makeWidget<QFrame>("minorGridLineFrame");
+
+  QVBoxLayout *minorGridLineLayout = new QVBoxLayout(minorGridLineFrame);
+  minorGridLineLayout->setMargin(0); minorGridLineLayout->setSpacing(2);
+
+  gridTab->addTab(minorGridLineFrame, "Minor Grid Line");
+
   minorGridLineDataEdit_ = CQUtil::makeWidget<CQChartsLineDataEdit>("minorGridLineDataEdit");
 
-  minorGridLineDataEdit_->setTitle("Minor Grid Line");
+//minorGridLineDataEdit_->setTitle("Minor Grid Line");
   minorGridLineDataEdit_->setPreview(false);
   minorGridLineDataEdit_->setPlot(axis_->plot());
   minorGridLineDataEdit_->setView(axis_->view());
@@ -327,14 +383,21 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   connect(minorGridLineDataEdit_, SIGNAL(lineDataChanged()), this, SLOT(widgetsToData()));
 
-  groupLayout->addWidget(minorGridLineDataEdit_, row, 0, 1, 2); ++row;
+  minorGridLineLayout->addWidget(minorGridLineDataEdit_);
 
   //---
 
   // grid fill
+  QFrame *gridFillFrame = CQUtil::makeWidget<QFrame>("gridFillFrame");
+
+  QVBoxLayout *gridFillLayout = new QVBoxLayout(gridFillFrame);
+  gridFillLayout->setMargin(0); gridFillLayout->setSpacing(2);
+
+  gridTab->addTab(gridFillFrame, "Grid Fill");
+
   gridFillDataEdit_ = CQUtil::makeWidget<CQChartsFillDataEdit>("gridFillDataEdit");
 
-  gridFillDataEdit_->setTitle("Grid Fill");
+//gridFillDataEdit_->setTitle("Grid Fill");
   gridFillDataEdit_->setPreview(false);
   gridFillDataEdit_->setPlot(axis_->plot());
   gridFillDataEdit_->setView(axis_->view());
@@ -342,11 +405,11 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   connect(gridFillDataEdit_, SIGNAL(fillDataChanged()), this, SLOT(widgetsToData()));
 
-  groupLayout->addWidget(gridFillDataEdit_, row, 0, 1, 2); ++row;
+  gridFillLayout->addWidget(gridFillDataEdit_);
 
   //---
 
-  groupLayout->setRowStretch(row, 1);
+  layout->addStretch(1);
 
   //---
 

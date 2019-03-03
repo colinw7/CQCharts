@@ -38,25 +38,27 @@ void
 CQChartsAxisTickLabelPlacementEdit::
 setEnumFromVariant(const QVariant &var)
 {
-  CQChartsAxisTickLabelPlacement fillPatten = var.value<CQChartsAxisTickLabelPlacement>();
+  CQChartsAxisTickLabelPlacement axisTickLabelPlacement =
+    var.value<CQChartsAxisTickLabelPlacement>();
 
-  setAxisTickLabelPlacement(fillPatten);
+  setAxisTickLabelPlacement(axisTickLabelPlacement);
 }
 
 QString
 CQChartsAxisTickLabelPlacementEdit::
 variantToString(const QVariant &var) const
 {
-  CQChartsAxisTickLabelPlacement fillPatten = var.value<CQChartsAxisTickLabelPlacement>();
+  CQChartsAxisTickLabelPlacement axisTickLabelPlacement =
+    var.value<CQChartsAxisTickLabelPlacement>();
 
-  return fillPatten.toString();
+  return axisTickLabelPlacement.toString();
 }
 
 void
 CQChartsAxisTickLabelPlacementEdit::
 connect(QObject *obj, const char *method)
 {
-  QObject::connect(this, SIGNAL(fillPattenChanged()), obj, method);
+  QObject::connect(this, SIGNAL(axisTickLabelPlacementChanged()), obj, method);
 }
 
 //------

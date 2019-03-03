@@ -1,13 +1,12 @@
 #ifndef CQChartsKeyLocation_H
 #define CQChartsKeyLocation_H
 
-#include <QString>
-#include <QStringList>
-#include <iostream>
+#include <CQChartsEnum.h>
 
-class CQChartsKeyLocation {
+class CQChartsKeyLocation : public CQChartsEnum {
  public:
   enum Type {
+    NONE,
     TOP_LEFT,
     TOP_CENTER,
     TOP_RIGHT,
@@ -25,19 +24,32 @@ class CQChartsKeyLocation {
 
   static int metaTypeId;
 
-  static QStringList locationNames();
-
  public:
   CQChartsKeyLocation(Type type=Type::TOP_RIGHT) :
    type_(type) {
   }
 
-  CQChartsKeyLocation(const QString &s) {
-    setValue(s);
+  CQChartsKeyLocation(const QString &str) {
+    (void) fromString(str);
   }
+
+  //---
+
+  bool isValid() const { return type_ != Type::NONE; }
 
   const Type &type() const { return type_; }
   void setType(const Type &type) { type_ = type; }
+
+  //---
+
+  QString toString() const override;
+  bool fromString(const QString &s) override { return setValue(s); }
+
+  //---
+
+  QStringList enumNames() const;
+
+  //---
 
   bool setValue(const QString &str) {
     Type type { Type::TOP_RIGHT };
@@ -86,14 +98,6 @@ class CQChartsKeyLocation {
 
   //---
 
-  QString toString() const;
-
-  bool fromString(const QString &s) {
-    return setValue(s);
-  }
-
-  //---
-
   friend bool operator==(const CQChartsKeyLocation &lhs, const CQChartsKeyLocation &rhs) {
     if (lhs.type_ != rhs.type_) return false;
 
@@ -105,10 +109,6 @@ class CQChartsKeyLocation {
   }
 
   //---
-
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
 
   friend std::ostream &operator<<(std::ostream &os, const CQChartsKeyLocation &l) {
     l.print(os);
@@ -126,8 +126,6 @@ class CQChartsKeyLocation {
 };
 
 //---
-
-#include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsKeyLocation)
 

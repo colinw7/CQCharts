@@ -7,8 +7,8 @@
 #include <CQChartsViewToolBar.h>
 #include <CQChartsFilterEdit.h>
 #include <CQChartsModelView.h>
-#include <CQPropertyViewTree.h>
 #include <CQChartsGradientPaletteControl.h>
+#include <CQChartsPropertyViewTree.h>
 #include <CQPixmapCache.h>
 
 #include <svg/charts_svg.h>
@@ -462,17 +462,69 @@ void
 CQChartsWindow::
 selectPropertyObjects()
 {
+  using ObjSet = std::set<QObject *>;
+
+  //---
+
   disconnect(settings_, SIGNAL(propertyItemSelected(QObject *, const QString &)),
              this, SLOT(propertyItemSelected(QObject *, const QString &)));
 
-  settings_->propertyTree()->deselectAllObjects();
+  //---
 
+  // get currently selected property view objects
+  CQPropertyViewTree::Objs selectedObjs;
+
+  settings_->propertyTree()->getSelectedObjects(selectedObjs);
+
+  ObjSet selectedObjSet;
+
+  for (auto &obj : selectedObjs)
+    selectedObjSet.insert(obj);
+
+  //---
+
+  // get selected charts objects
   CQChartsView::Objs objs;
 
   view_->allSelectedObjs(objs);
 
+  CQChartsView::Plots plots;
+
+  view_->selectedPlots(plots);
+
+  ObjSet objSet;
+
   for (auto &obj : objs)
-    settings_->propertyTree()->selectObject(obj);
+    objSet.insert(obj);
+
+  for (auto &plot : plots)
+    objSet.insert(plot);
+
+  //---
+
+  // check if selection has changed
+  bool changed = (objSet.size() != selectedObjSet.size());
+
+  if (! changed) {
+    for (auto &obj : objSet) {
+      if (selectedObjSet.find(obj) == selectedObjSet.end()) {
+        changed = true;
+        break;
+      }
+    }
+  }
+
+  //---
+
+  // update selected if changed
+  if (changed) {
+    settings_->propertyTree()->deselectAllObjects();
+
+    for (auto &obj : objSet)
+      settings_->propertyTree()->selectObject(obj);
+  }
+
+  //---
 
   connect(settings_, SIGNAL(propertyItemSelected(QObject *, const QString &)),
           this, SLOT(propertyItemSelected(QObject *, const QString &)));

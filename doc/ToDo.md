@@ -1,7 +1,6 @@
 High
- + Annotation Tool
-   + Create and Edit Text
- + Edit key size
+ + Key Title Properties
+ + Clipping when scrolled with title
  + Font Editor
  + Use QThread
  + Numeric Sort for strings (split into numeber/non-number blocks)

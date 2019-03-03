@@ -7,8 +7,7 @@ class CQChartsEditBase;
 class CQChartsPlot;
 class CQChartsView;
 class CQChartsColor;
-
-class CQPropertyViewTree;
+class CQChartsPropertyViewTree;
 class CQWidgetMenu;
 
 class QHBoxLayout;
@@ -35,8 +34,8 @@ class CQChartsLineEditBase : public QFrame {
   bool isEditable() const { return editable_; }
   void setEditable(bool b);
 
-  const CQPropertyViewTree *propertyViewTree() const { return propertyViewTree_; }
-  void setPropertyViewTree(CQPropertyViewTree *tree) { propertyViewTree_ = tree; }
+  const CQChartsPropertyViewTree *propertyViewTree() const { return propertyViewTree_; }
+  void setPropertyViewTree(CQChartsPropertyViewTree *tree) { propertyViewTree_ = tree; }
 
   CQChartsPlot *plot() const;
   virtual void setPlot(CQChartsPlot *plot);
@@ -78,14 +77,14 @@ class CQChartsLineEditBase : public QFrame {
   void initStyle(QStyleOptionComboBox &opt);
 
  protected:
-  bool                editable_         { true };
-  CQPropertyViewTree* propertyViewTree_ { nullptr };
-  CQChartsEditBase*   menuEdit_         { nullptr };
-  QHBoxLayout*        layout_           { nullptr };
-  QLineEdit*          edit_             { nullptr };
-  QPushButton*        button_           { nullptr };
-  CQWidgetMenu*       menu_             { nullptr };
-  mutable QColor      tc_;
+  bool                      editable_         { true };
+  CQChartsPropertyViewTree* propertyViewTree_ { nullptr };
+  CQChartsEditBase*         menuEdit_         { nullptr };
+  QHBoxLayout*              layout_           { nullptr };
+  QLineEdit*                edit_             { nullptr };
+  QPushButton*              button_           { nullptr };
+  CQWidgetMenu*             menu_             { nullptr };
+  mutable QColor            tc_;
 };
 
 //---

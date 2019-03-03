@@ -193,45 +193,94 @@ setValue(QWidget *w, const QVariant &var)
 //------
 
 CQChartsShapeDataEdit::
-CQChartsShapeDataEdit(QWidget *parent) :
- CQChartsEditBase(parent)
+CQChartsShapeDataEdit(QWidget *parent, bool tabbed) :
+ CQChartsEditBase(parent), tabbed_(tabbed)
 {
   setObjectName("shapeDataEdit");
 
   QGridLayout *layout = new QGridLayout(this);
-  layout->setMargin(0); layout->setSpacing(0);
+  layout->setMargin(0); layout->setSpacing(2);
+
+  int row = 0;
 
   //---
 
-  // background
-  fillEdit_ = new CQChartsFillDataEdit;
+  if (tabbed_) {
+    QTabWidget *tab = CQUtil::makeWidget<QTabWidget>("tab");
 
-  fillEdit_->setTitle  ("Fill");
-  fillEdit_->setPreview(false);
+    layout->addWidget(tab, row, 0, 1, 2); ++row;
 
-  connect(fillEdit_, SIGNAL(fillDataChanged()), this, SLOT(widgetsToData()));
+    //----
 
-  layout->addWidget(fillEdit_, 0, 0, 1, 2);
+    // fill frame
+    QFrame *fillFrame = CQUtil::makeWidget<QFrame>("fillFrame");
 
-  // border
-  strokeEdit_ = new CQChartsStrokeDataEdit;
+    QVBoxLayout *fillFrameLayout = new QVBoxLayout(fillFrame);
+    fillFrameLayout->setMargin(0); fillFrameLayout->setSpacing(2);
 
-  strokeEdit_->setTitle("Stroke");
-  strokeEdit_->setPreview(false);
+    tab->addTab(fillFrame, "Fill");
 
+    //--
+
+    // background
+    fillEdit_ = new CQChartsFillDataEdit;
+
+    fillEdit_->setPreview(false);
+
+    fillFrameLayout->addWidget(fillEdit_);
+
+    //----
+
+    // stroke frame
+    QFrame *strokeFrame = CQUtil::makeWidget<QFrame>("strokeFrame");
+
+    QVBoxLayout *strokeFrameLayout = new QVBoxLayout(strokeFrame);
+    strokeFrameLayout->setMargin(0); strokeFrameLayout->setSpacing(2);
+
+    tab->addTab(strokeFrame, "Stroke");
+
+    //--
+
+    // border
+    strokeEdit_ = new CQChartsStrokeDataEdit;
+
+    strokeEdit_->setPreview(false);
+
+    strokeFrameLayout->addWidget(strokeEdit_);
+  }
+  else {
+    // background
+    fillEdit_ = new CQChartsFillDataEdit;
+
+    fillEdit_->setTitle("Fill");
+    fillEdit_->setPreview(false);
+
+    layout->addWidget(fillEdit_, row, 0, 1, 2); ++row;
+
+    //--
+
+    // border
+    strokeEdit_ = new CQChartsStrokeDataEdit;
+
+    strokeEdit_->setTitle("Stroke");
+    strokeEdit_->setPreview(false);
+
+    layout->addWidget(strokeEdit_, row, 0, 1, 2); ++row;
+  }
+
+  connect(fillEdit_  , SIGNAL(fillDataChanged())  , this, SLOT(widgetsToData()));
   connect(strokeEdit_, SIGNAL(strokeDataChanged()), this, SLOT(widgetsToData()));
 
-  layout->addWidget(strokeEdit_, 1, 0, 1, 2);
-
   //---
 
+  // preview
   preview_ = new CQChartsShapeDataEditPreview(this);
 
-  layout->addWidget(preview_, 2, 1);
+  layout->addWidget(preview_, row, 1);
 
   //---
 
-  layout->setRowStretch(3, 1);
+  layout->setRowStretch(row, 1);
 
   //---
 
@@ -271,8 +320,10 @@ void
 CQChartsShapeDataEdit::
 setTitle(const QString &)
 {
-  fillEdit_  ->setTitle("Fill");
-  strokeEdit_->setTitle("Stroke");
+  if (! tabbed_) {
+    fillEdit_  ->setTitle("Fill");
+    strokeEdit_->setTitle("Stroke");
+  }
 }
 
 void

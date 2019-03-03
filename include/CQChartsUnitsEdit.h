@@ -13,6 +13,8 @@ class CQChartsUnitsEdit : public QComboBox {
   const CQChartsUnits &units() const;
   void setUnits(const CQChartsUnits &units);
 
+  QSize sizeHint() const override;
+
  signals:
   void unitsChanged();
 

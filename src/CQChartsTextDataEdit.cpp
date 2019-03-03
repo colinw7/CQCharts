@@ -216,10 +216,10 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 {
   setObjectName("textDataEdit");
 
-  //---
-
   QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(0);
+  layout->setMargin(0); layout->setSpacing(2);
+
+  //---
 
   if (optional) {
     groupBox_ = new CQGroupBox;

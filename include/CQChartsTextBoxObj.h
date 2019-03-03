@@ -25,7 +25,7 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
   //---
 
   const QString &textStr() const { return textStr_; }
-  void setTextStr(const QString &s) { textStr_ = s; boxDataInvalidate(); }
+  void setTextStr(const QString &s) { textStr_ = s; textBoxDataInvalidate(); }
 
   //---
 
@@ -47,9 +47,13 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   void drawText(QPainter *painter, const QRectF &rect, const QString &text) const;
 
+  //---
+
+  virtual void textBoxDataInvalidate();
+
  protected:
   void textDataInvalidate(bool) override {
-    boxDataInvalidate();
+    textBoxDataInvalidate();
   }
 
  protected:

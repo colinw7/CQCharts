@@ -116,7 +116,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //! handle edit move by
   virtual void editMoveBy(const QPointF &d);
 
-  //! set new bouding box
+  //! set new bounding box
   virtual void setBBox(const CQChartsGeom::BBox &, const CQChartsResizeSide &) { }
 
   //---
@@ -392,7 +392,7 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
  private:
   void init(const QString &text);
 
-  void calcTextSize(double &w, double &h) const;
+  void calcTextSize(QSizeF &psize, QSizeF &wsize) const;
 
   void positionToLL(double w, double h, double &x, double &y) const;
 

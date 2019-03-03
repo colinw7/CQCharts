@@ -576,7 +576,7 @@ initHierObjs(PlotObjs &objs) const
         (*pd).second.setInd (linkInd1);
       }
 
-      // create linek from src to dest for value
+      // create link from src to dest for value
       (*ps).second.addValue((*pd).second.from(), value);
 
       //---

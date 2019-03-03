@@ -960,6 +960,7 @@ class CQChartsPlot : public CQChartsObj,
   double pixelToSignedWindowHeight(double wh) const;
 
   double pixelToWindowSize(double ps, bool horizontal) const;
+  QSizeF pixelToWindowSize(const QSizeF &ps) const;
 
   double pixelToWindowWidth (double pw) const;
   double pixelToWindowHeight(double ph) const;
@@ -1951,7 +1952,7 @@ class CQChartsPlot : public CQChartsObj,
     bool               dragged    { false };
   };
 
-  //! amimation data
+  //! animation data
   struct AnimateData {
     QTimer* timer   { nullptr };
     int     tickLen { 30 };
@@ -2016,7 +2017,7 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsAxis*                xAxis_            { nullptr };    //! x axis object
   CQChartsAxis*                yAxis_            { nullptr };    //! y axis object
   CQChartsPlotKey*             keyObj_           { nullptr };    //! key object
-  CQChartsTitle*               titleObj_         { nullptr };    //! tilte object
+  CQChartsTitle*               titleObj_         { nullptr };    //! title object
   CQChartsColumn               xValueColumn_;                    //! x axis value column
   CQChartsColumn               yValueColumn_;                    //! y axis value column
   CQChartsColumn               idColumn_;                        //! unique data id column

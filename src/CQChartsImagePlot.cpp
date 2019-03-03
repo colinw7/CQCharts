@@ -397,6 +397,7 @@ drawYLabels(QPainter *painter) const
 //textOptions.formatted = isTextFormatted();
 //textOptions.scaled    = isTextScaled();
   textOptions.align     = (! isInvertX() ? Qt::AlignRight : Qt::AlignLeft);
+  textOptions.angle     = 0;
 
   QFontMetricsF fm(painter->font());
 
