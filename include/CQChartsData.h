@@ -548,13 +548,14 @@ struct CQChartsKeyData {
   bool                     insideX      { false };
   bool                     insideY      { false };
   QPointF                  absPosition;
-  QString                  header;
   double                   hiddenAlpha  { 0.3 };
   int                      maxRows;
   bool                     interactive  { false };
   CQChartsKeyPressBehavior pressBehavior;
   int                      spacing      { 2 };
   bool                     flipped      { false };
+  QString                  header;
+  CQChartsTextData         headerTextData;
   CQChartsOptLength        scrollWidth;
   CQChartsOptLength        scrollHeight;
   CQChartsTextBoxData      textBoxData;

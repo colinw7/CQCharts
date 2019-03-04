@@ -567,6 +567,11 @@ class CQChartsView : public QFrame,
 
   //---
 
+  // write details to output
+  void write(std::ostream &os) const;
+
+  //---
+
   // position, rect, length coordinate conversions
   QPointF positionToView (const CQChartsPosition &pos) const;
   QPointF positionToPixel(const CQChartsPosition &pos) const;

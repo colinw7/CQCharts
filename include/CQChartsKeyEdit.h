@@ -31,6 +31,7 @@ class CQChartsEditKeyDlg : public QDialog {
 class CQChartsKeyLocationEdit;
 class CQChartsKeyPressBehaviorEdit;
 class CQChartsAlphaEdit;
+class CQChartsTextDataEdit;
 class CQChartsTextBoxDataEdit;
 
 class CQCheckBox;
@@ -57,27 +58,28 @@ class CQChartsKeyEdit : public QFrame {
   void widgetsToData();
 
  private:
-  CQChartsKey*                  key_               { nullptr };
+  CQChartsKey*                  key_                { nullptr };
   CQChartsKeyData               data_;
-  CQGroupBox*                   groupBox_          { nullptr };
-  CQCheckBox*                   horizontalEdit_    { nullptr };
-  CQCheckBox*                   autoHideEdit_      { nullptr };
-  CQCheckBox*                   clippedEdit_       { nullptr };
-  CQCheckBox*                   aboveEdit_         { nullptr };
-  CQCheckBox*                   interactiveEdit_   { nullptr };
-  CQChartsKeyLocationEdit*      locationEdit_      { nullptr };
-  QLineEdit*                    headerEdit_        { nullptr };
-  CQChartsAlphaEdit*            hiddenAlphaEdit_   { nullptr };
-  CQIntegerSpin*                maxRowsEdit_       { nullptr };
-  CQChartsKeyPressBehaviorEdit* pressBehaviorEdit_ { nullptr };
-  CQPoint2DEdit*                absPositionEdit_   { nullptr };
-  CQCheckBox*                   insideXEdit_       { nullptr };
-  CQCheckBox*                   insideYEdit_       { nullptr };
-  CQIntegerSpin*                spacingEdit_       { nullptr };
-  CQCheckBox*                   flippedEdit_       { nullptr };
-  QLineEdit*                    scrollWidthEdit_   { nullptr };
-  QLineEdit*                    scrollHeightEdit_  { nullptr };
-  CQChartsTextBoxDataEdit*      textBoxEdit_       { nullptr };
+  CQGroupBox*                   groupBox_           { nullptr };
+  CQCheckBox*                   horizontalEdit_     { nullptr };
+  CQCheckBox*                   autoHideEdit_       { nullptr };
+  CQCheckBox*                   clippedEdit_        { nullptr };
+  CQCheckBox*                   aboveEdit_          { nullptr };
+  CQCheckBox*                   interactiveEdit_    { nullptr };
+  CQChartsKeyLocationEdit*      locationEdit_       { nullptr };
+  CQChartsAlphaEdit*            hiddenAlphaEdit_    { nullptr };
+  CQIntegerSpin*                maxRowsEdit_        { nullptr };
+  CQChartsKeyPressBehaviorEdit* pressBehaviorEdit_  { nullptr };
+  CQPoint2DEdit*                absPositionEdit_    { nullptr };
+  CQCheckBox*                   insideXEdit_        { nullptr };
+  CQCheckBox*                   insideYEdit_        { nullptr };
+  CQIntegerSpin*                spacingEdit_        { nullptr };
+  CQCheckBox*                   flippedEdit_        { nullptr };
+  QLineEdit*                    headerEdit_         { nullptr };
+  CQChartsTextDataEdit*         headerTextDataEdit_ { nullptr };
+  QLineEdit*                    scrollWidthEdit_    { nullptr };
+  QLineEdit*                    scrollHeightEdit_   { nullptr };
+  CQChartsTextBoxDataEdit*      textBoxEdit_        { nullptr };
 };
 
 #endif

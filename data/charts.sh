@@ -83,6 +83,9 @@ while ($#argv > 0)
   else if ("$1" == "-no_modal") then
     set modal = 0
     shift
+  else if ("$1" == "-meta_edit") then
+    setenv CQ_CHARTS_META_EDIT 1
+    shift
   else if ("$1" == "-h" || "$1" == "-help") then
     echo "charts.sh [-dbx|-valgrind|-loop|-timer|-pixmap] <script>"
     exit 1

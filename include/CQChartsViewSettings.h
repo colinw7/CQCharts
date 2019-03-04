@@ -87,6 +87,10 @@ class CQChartsViewSettings : public QFrame {
 
   //---
 
+  void writeViewSlot();
+
+  //---
+
   void plotsSelectionChangeSlot();
 
   void editViewKeySlot();

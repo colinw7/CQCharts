@@ -17,20 +17,28 @@
 
 CQChartsKey::
 CQChartsKey(CQChartsView *view) :
- CQChartsBoxObj(view), CQChartsObjTextData<CQChartsKey>(this)
+ CQChartsBoxObj(view),
+ CQChartsObjTextData      <CQChartsKey>(this),
+ CQChartsObjHeaderTextData<CQChartsKey>(this)
 {
   setObjectName("key");
 
   setStateColoring(false);
+
+  setHeaderTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
 }
 
 CQChartsKey::
 CQChartsKey(CQChartsPlot *plot) :
- CQChartsBoxObj(plot), CQChartsObjTextData<CQChartsKey>(this)
+ CQChartsBoxObj(plot),
+ CQChartsObjTextData      <CQChartsKey>(this),
+ CQChartsObjHeaderTextData<CQChartsKey>(this)
 {
   setObjectName("key");
 
   setFilled(false);
+
+  setHeaderTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
 }
 
 QString
@@ -185,11 +193,32 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "interactive"  );
   model->addProperty(path, this, "pressBehavior");
 
-  model->addProperty(path, this, "header"     );
   model->addProperty(path, this, "hiddenAlpha");
 
+  //---
+
+  // header text
+  QString headerPath = path + "/header";
+
+  model->addProperty(headerPath, this, "header"             , "text"     );
+  model->addProperty(headerPath, this, "headerTextColor"    , "color"    );
+  model->addProperty(headerPath, this, "headerTextAlpha"    , "alpha"    );
+  model->addProperty(headerPath, this, "headerTextFont"     , "font"     );
+  model->addProperty(headerPath, this, "headerTextAngle"    , "angle"    );
+  model->addProperty(headerPath, this, "headerTextContrast" , "contrast" );
+  model->addProperty(headerPath, this, "headerTextAlign"    , "align"    );
+  model->addProperty(headerPath, this, "headerTextFormatted", "formatted");
+  model->addProperty(headerPath, this, "headerTextScaled"   , "scaled"   );
+  model->addProperty(headerPath, this, "headerTextHtml"     , "html"     );
+
+  //---
+
+  // border, fill
   CQChartsBoxObj::addProperties(model, path);
 
+  //---
+
+  // key text
   QString textPath = path + "/text";
 
   model->addProperty(textPath, this, "textColor", "color");
@@ -554,15 +583,36 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "interactive"  );
   model->addProperty(path, this, "pressBehavior");
 
-  model->addProperty(path, this, "header"      );
   model->addProperty(path, this, "hiddenAlpha" );
   model->addProperty(path, this, "maxRows"     );
   model->addProperty(path, this, "spacing"     );
   model->addProperty(path, this, "scrollWidth" );
   model->addProperty(path, this, "scrollHeight");
 
+  //---
+
+  // header text
+  QString headerPath = path + "/header";
+
+  model->addProperty(headerPath, this, "header"             , "text"     );
+  model->addProperty(headerPath, this, "headerTextColor"    , "color"    );
+  model->addProperty(headerPath, this, "headerTextAlpha"    , "alpha"    );
+  model->addProperty(headerPath, this, "headerTextFont"     , "font"     );
+  model->addProperty(headerPath, this, "headerTextAngle"    , "angle"    );
+  model->addProperty(headerPath, this, "headerTextContrast" , "contrast" );
+  model->addProperty(headerPath, this, "headerTextAlign"    , "align"    );
+  model->addProperty(headerPath, this, "headerTextFormatted", "formatted");
+  model->addProperty(headerPath, this, "headerTextScaled"   , "scaled"   );
+  model->addProperty(headerPath, this, "headerTextHtml"     , "html"     );
+
+  //---
+
+  // border, fill
   CQChartsBoxObj::addProperties(model, path);
 
+  //---
+
+  // key text
   QString textPath = path + "/text";
 
   model->addProperty(textPath, this, "textColor", "color");
@@ -705,15 +755,19 @@ doLayout()
   double tw = 0, th = 0;
 
   if (headerStr().length()) {
-    QFont font = view()->plotFont(plot_, textFont());
+    // set text options
+    CQChartsTextOptions textOptions;
 
-    QFontMetricsF fm(font);
+    textOptions.html = isHeaderTextHtml();
 
-    double ptw = fm.width(headerStr());
-    double pth = fm.height();
+    // get font
+    QFont font = view()->plotFont(plot_, headerTextFont());
 
-    tw = plot_->pixelToWindowWidth (ptw) + 2*xs_;
-    th = plot_->pixelToWindowHeight(pth) + 2*ys_;
+    // get text size
+    QSizeF tsize = CQChartsDrawUtil::calcTextSize(headerStr(), font, textOptions);
+
+    tw = plot_->pixelToWindowWidth (tsize.width ()) + 2*xs_;
+    th = plot_->pixelToWindowHeight(tsize.height()) + 2*ys_;
   }
 
   //---
@@ -1243,26 +1297,62 @@ draw(QPainter *painter) const
 
   // draw header
   if (headerStr().length()) {
+    // set text options
+    CQChartsTextOptions textOptions;
+
+    textOptions.contrast  = isHeaderTextContrast();
+    textOptions.formatted = isHeaderTextFormatted();
+    textOptions.scaled    = isHeaderTextScaled();
+    textOptions.html      = isHeaderTextHtml();
+    textOptions.align     = headerTextAlign();
+
+    textOptions = plot_->adjustTextOptions(textOptions);
+
+    //---
+
+    // get font
+    QFont font = view()->plotFont(plot_, headerTextFont());
+
+    painter->setFont(font);
+
+    //---
+
+    // get key top left, width (pixels), margins
     QPointF p = plot_->windowToPixel(QPointF(x, y)); // top left
 
     double pw = plot_->windowToPixelWidth(sw);
 
-    double xm = margin();
+  //double xm = margin();
     double ym = margin();
 
-    QFont font = view()->plotFont(plot_, textFont());
+    //---
 
-    QFontMetricsF fm(font);
+    // calc text rect
+    QSizeF tsize = CQChartsDrawUtil::calcTextSize(headerStr(), font, textOptions);
 
-    double fa = fm.ascent ();
-//  double fd = fm.descent();
+    double tw = pw;
+    double th = tsize.height() + 2*ym;
 
-    double tw = fm.width(headerStr()) + 2*xm;
-//  double th = fa + fd + 2*ym;
+    QRectF trect(p.x(), p.y(), tw, th);
 
-    double dx = (pw - tw + xm)/2.0;
+    //---
 
-    CQChartsDrawUtil::drawSimpleText(painter, p.x() + dx, p.y() + fa + ym, headerStr());
+    // set text pen
+    QPen   tpen;
+    QBrush tbrush;
+
+    QColor tc = interpHeaderTextColor(0, 1);
+
+    plot_->setPen(tpen, true, tc, headerTextAlpha());
+
+    plot_->updateObjPenBrushState(this, tpen, tbrush);
+
+    //---
+
+    // draw text
+    painter->setPen(tpen);
+
+    CQChartsDrawUtil::drawTextInBox(painter, trect, headerStr(), textOptions);
   }
 
   //---

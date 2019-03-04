@@ -332,6 +332,7 @@ drawXLabels(QPainter *painter) const
 //textOptions.contrast  = isTextContrast();
 //textOptions.formatted = isTextFormatted();
 //textOptions.scaled    = isTextScaled();
+  textOptions.html      = isTextHtml();
   textOptions.align     = Qt::AlignRight;
   textOptions.angle     = 90;
 
@@ -369,7 +370,7 @@ drawXLabels(QPainter *painter) const
     else
       trect = QRectF(p1.x() - tw/2, p1.y() - tw1 - tm, tw, tw1);
 
-    CQChartsDrawUtil::drawTextInBox(painter, trect, name, tpen, adjustTextOptions(textOptions));
+    CQChartsDrawUtil::drawTextInBox(painter, trect, name, adjustTextOptions(textOptions));
   }
 }
 
@@ -396,6 +397,7 @@ drawYLabels(QPainter *painter) const
 //textOptions.contrast  = isTextContrast();
 //textOptions.formatted = isTextFormatted();
 //textOptions.scaled    = isTextScaled();
+//textOptions.html      = isTextHtml();
   textOptions.align     = (! isInvertX() ? Qt::AlignRight : Qt::AlignLeft);
   textOptions.angle     = 0;
 
@@ -431,7 +433,7 @@ drawYLabels(QPainter *painter) const
     else
       trect = QRectF(p1.x() + tm, p1.y() - th/2.0, tw, th);
 
-    CQChartsDrawUtil::drawTextInBox(painter, trect, name, tpen, adjustTextOptions(textOptions));
+    CQChartsDrawUtil::drawTextInBox(painter, trect, name, adjustTextOptions(textOptions));
   }
 }
 
@@ -598,14 +600,15 @@ draw(QPainter *painter)
 
       CQChartsTextOptions textOptions;
 
-      //textOptions.contrast  = plot_->isTextContrast();
-      //textOptions.formatted = plot_->isTextFormatted();
-      textOptions.align       = Qt::AlignCenter;
-      textOptions.scaled      = plot_->isScaleCellLabels();
+    //textOptions.contrast  = plot_->isTextContrast();
+    //textOptions.formatted = plot_->isTextFormatted();
+    //textOptions.html      = plot_->isTextHtml();
+      textOptions.align     = Qt::AlignCenter;
+      textOptions.scaled    = plot_->isScaleCellLabels();
 
       textOptions = plot_->adjustTextOptions(textOptions);
 
-      CQChartsDrawUtil::drawTextInBox(painter, qrect, valueStr, tpen, textOptions);
+      CQChartsDrawUtil::drawTextInBox(painter, qrect, valueStr, textOptions);
     }
   }
   else {

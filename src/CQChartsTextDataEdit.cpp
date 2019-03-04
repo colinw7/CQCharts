@@ -532,7 +532,7 @@ draw(QPainter *painter, const CQChartsTextData &data, const QRect &rect,
   QString text("ABC abc");
 
   if (data.isContrast())
-    CQChartsDrawUtil::drawContrastText(painter, tx, ty, text, pen);
+    CQChartsDrawUtil::drawContrastText(painter, tx, ty, text);
   else
     CQChartsDrawUtil::drawSimpleText(painter, tx, ty, text);
 }

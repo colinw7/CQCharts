@@ -38,6 +38,9 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
+  void addTextDataProperties(CQPropertyViewModel *model, const QString &path);
+
+
   //---
 
   void draw(QPainter *painter, const QRectF &rect) const;

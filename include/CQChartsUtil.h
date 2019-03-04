@@ -62,15 +62,24 @@ inline CQChartsGeom::Point fromQPointF(const QPoint &point) {
 }
 
 inline QRectF toQRect(const CQChartsGeom::BBox &rect) {
-  return QRectF(toQPoint(rect.getLL()), toQPoint(rect.getUR())).normalized();
+  if (rect.isSet())
+    return QRectF(toQPoint(rect.getLL()), toQPoint(rect.getUR())).normalized();
+  else
+    return QRectF();
 }
 
 inline QRectF toQRect(const CQChartsGeom::Range &range) {
-  return QRectF(range.xmin(), range.ymin(), range.xsize(), range.ysize());
+  if (range.isSet())
+    return QRectF(range.xmin(), range.ymin(), range.xsize(), range.ysize());
+  else
+    return QRectF();
 }
 
 inline QRect toQRectI(const CQChartsGeom::BBox &rect) {
-  return QRect(toQPointI(rect.getLL()), toQPointI(rect.getUR())).normalized();
+  if (rect.isSet())
+    return QRect(toQPointI(rect.getLL()), toQPointI(rect.getUR())).normalized();
+  else
+    return QRect();
 }
 
 inline CQChartsGeom::BBox fromQRect(const QRectF &rect) {
@@ -78,11 +87,17 @@ inline CQChartsGeom::BBox fromQRect(const QRectF &rect) {
 }
 
 inline CQChartsGeom::BBox rangeBBox(const CQChartsGeom::Range &range) {
-  return CQChartsGeom::BBox(range.xmin(), range.ymin(), range.xmax(), range.ymax());
+  if (range.isSet())
+    return CQChartsGeom::BBox(range.xmin(), range.ymin(), range.xmax(), range.ymax());
+  else
+    return CQChartsGeom::BBox();
 }
 
 inline CQChartsGeom::Range bboxRange(const CQChartsGeom::BBox &bbox) {
-  return CQChartsGeom::Range(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
+  if (bbox.isSet())
+    return CQChartsGeom::Range(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
+  else
+    return CQChartsGeom::Range();
 }
 
 //------

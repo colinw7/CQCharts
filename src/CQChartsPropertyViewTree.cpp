@@ -14,6 +14,7 @@
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
+#include <CQApp.h>
 
 #include <QMenu>
 #include <QAction>
@@ -103,6 +104,13 @@ editSlot()
   CQPropertyViewItem *item = this->menuItem();
 
   QObject *obj = item->hierObject();
+
+  //---
+
+  if (CQChartsEnv::getBool("CQ_CHARTS_META_EDIT", false))
+    CQApp::showMetaEdit(obj);
+
+  //---
 
   CQChartsTitle *title = qobject_cast<CQChartsTitle *>(obj);
   CQChartsKey   *key   = qobject_cast<CQChartsKey   *>(obj);

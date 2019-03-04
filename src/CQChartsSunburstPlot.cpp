@@ -1048,10 +1048,9 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
 
   QString name = (! node->isFiller() ? node->name() : node->parent()->name());
 
-  if (c >= 0)
-    CQChartsRotatedText::draw(painter, px, py, name, ta, align);
-  else
-    CQChartsRotatedText::draw(painter, px, py, name, ta - 180, align);
+  double ta1 = (c >= 0 ? ta : ta - 180);
+
+  CQChartsRotatedText::draw(painter, px, py, name, ta1, align, /*contrast*/false);
 }
 
 //------

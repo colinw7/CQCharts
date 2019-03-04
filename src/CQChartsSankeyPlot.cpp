@@ -1096,7 +1096,7 @@ drawFg(QPainter *painter) const
   double ty = prect.getYMid() + fm.ascent()/2;
 
   if (plot_->isTextContrast())
-    CQChartsDrawUtil::drawContrastText(painter, tx, ty, str, pen);
+    CQChartsDrawUtil::drawContrastText(painter, tx, ty, str);
   else
     CQChartsDrawUtil::drawSimpleText(painter, tx, ty, str);
 }

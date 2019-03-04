@@ -258,13 +258,13 @@ addProperties()
 
   // label
   addProperty("label", textBox_, "textVisible", "visible");
-  addProperty("label", textBox_, "textFont"   , "font"   );
-  addProperty("label", textBox_, "textColor"  , "color"  );
-  addProperty("label", textBox_, "textAlpha"  , "alpha"  );
-  addProperty("label", this    , "labelRadius", "radius" );
-  addProperty("label", this    , "rotatedText", "rotated");
 
-  QString labelBoxPath = id() + "/label/box";
+  textBox_->addTextDataProperties(propertyModel(), "label");
+
+  addProperty("label", this, "labelRadius", "radius" );
+  addProperty("label", this, "rotatedText", "rotated");
+
+  QString labelBoxPath = "label/box";
 
   textBox_->CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath);
 
@@ -1508,8 +1508,8 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
                                                 lpen, plot_->isRotatedText());
     }
     else {
-      //plot_->textBox()->drawConnectedRadialText(painter, center, rv, lr1, ta, label(),
-      //                                          lpen, plot_->isRotatedText());
+    //plot_->textBox()->drawConnectedRadialText(painter, center, rv, lr1, ta, label(),
+    //                                          lpen, plot_->isRotatedText());
 
       // calc text position
       double tangle = CMathUtil::Deg2Rad(ta);
@@ -1720,9 +1720,11 @@ drawFg(QPainter *painter) const
 
   //---
 
+  painter->setPen(pen);
+
   CQChartsTextOptions textOptions = plot_->adjustTextOptions();
 
-  CQChartsDrawUtil::drawTextAtPoint(painter, pt, label, pen, textOptions);
+  CQChartsDrawUtil::drawTextAtPoint(painter, pt, label, textOptions);
 }
 
 QColor

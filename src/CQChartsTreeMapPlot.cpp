@@ -1059,7 +1059,7 @@ draw(QPainter *painter)
   painter->setPen(tpen);
 
   if (plot_->isHeaderTextContrast())
-    CQChartsDrawUtil::drawContrastText(painter, tx, ty, name, tpen);
+    CQChartsDrawUtil::drawContrastText(painter, tx, ty, name);
   else
     CQChartsDrawUtil::drawSimpleText(painter, tx, ty, name);
 
@@ -1217,16 +1217,19 @@ draw(QPainter *painter)
   //---
 
   // draw label
+  painter->setPen(tpen);
+
   CQChartsTextOptions textOptions;
 
   textOptions.contrast  = plot_->isTextContrast();
   textOptions.formatted = plot_->isTextFormatted();
   textOptions.scaled    = plot_->isTextScaled();
+  textOptions.html      = plot_->isTextHtml();
   textOptions.align     = plot_->textAlign();
 
   textOptions = plot_->adjustTextOptions(textOptions);
 
-  CQChartsDrawUtil::drawTextInBox(painter, qrect, name, tpen, textOptions);
+  CQChartsDrawUtil::drawTextInBox(painter, qrect, name, textOptions);
 
   //---
 

@@ -8,6 +8,7 @@ struct CQChartsTextOptions {
   bool          contrast         { false }; //! text contrast
   bool          formatted        { false }; //! text formatted
   bool          scaled           { false }; //! text scaled
+  bool          html             { false }; //! text html
   bool          clipped          { true };  //! text clipped
   Qt::Alignment align            { Qt::AlignHCenter | Qt::AlignVCenter }; //! text align
   double        minScaleFontSize { 6.0 };   //! min scaled font size

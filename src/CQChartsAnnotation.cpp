@@ -1382,7 +1382,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "textContrast" , "contrast" );
   model->addProperty(path1, this, "textAlign"    , "align"    );
   model->addProperty(path1, this, "textFormatted", "formatted");
-  model->addProperty(path1, this, "textScaled"   , "scalled"  );
+  model->addProperty(path1, this, "textScaled"   , "scaled"   );
   model->addProperty(path1, this, "textHtml"     , "html"     );
 
   model->addProperty(path1, this, "margin" );
@@ -1411,10 +1411,11 @@ calcTextSize(QSizeF &psize, QSizeF &wsize) const
     font = view()->viewFont(textFont());
 
   // get text size (pixel)
-  if (! isTextHtml())
-    psize = CQChartsDrawUtil::calcTextSize(textStr(), font);
-  else
-    psize = CQChartsDrawUtil::calcHtmlTextSize(textStr(), font);
+  CQChartsTextOptions textOptions;
+
+  textOptions.html = isTextHtml();
+
+  psize = CQChartsDrawUtil::calcTextSize(textStr(), font, textOptions);
 
   // convert to window size
   if      (plot())
@@ -1585,6 +1586,7 @@ draw(QPainter *painter)
   textOptions.angle     = textAngle();
   textOptions.contrast  = isTextContrast();
   textOptions.formatted = true;
+  textOptions.html      = isTextHtml();
   textOptions.clipped   = false;
   textOptions.align     = textAlign();
 
@@ -1614,10 +1616,7 @@ draw(QPainter *painter)
   // draw text
   painter->setRenderHints(QPainter::Antialiasing);
 
-  if (! isTextHtml())
-    CQChartsDrawUtil::drawTextInBox(painter, trect, textStr(), pen, textOptions);
-  else
-    CQChartsDrawUtil::drawScaledHtmlText(painter, trect, textStr(), textOptions);
+  CQChartsDrawUtil::drawTextInBox(painter, trect, textStr(), textOptions);
 
   //---
 

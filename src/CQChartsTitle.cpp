@@ -180,12 +180,11 @@ calcSize()
     QFont font = view()->plotFont(plot(), textFont());
 
     // get pixel size
-    QSizeF psize;
+    CQChartsTextOptions textOptions;
 
-    if (! isTextHtml())
-      psize = CQChartsDrawUtil::calcTextSize(textStr(), font);
-    else
-      psize = CQChartsDrawUtil::calcHtmlTextSize(textStr(), font);
+    textOptions.html = isTextHtml();
+
+    QSizeF psize = CQChartsDrawUtil::calcTextSize(textStr(), font, textOptions);
 
     // convert to window size
     QSizeF wsize = plot_->pixelToWindowSize(psize);
@@ -389,6 +388,7 @@ draw(QPainter *painter)
   textOptions.angle     = textAngle();
   textOptions.contrast  = isTextContrast();
   textOptions.formatted = true;
+  textOptions.html      = isTextHtml();
   textOptions.clipped   = false;
   textOptions.align     = textAlign();
 
@@ -409,10 +409,7 @@ draw(QPainter *painter)
   // draw text
   painter->setRenderHints(QPainter::Antialiasing);
 
-  if (! isTextHtml())
-    CQChartsDrawUtil::drawTextInBox(painter, trect, textStr(), pen, textOptions);
-  else
-    CQChartsDrawUtil::drawScaledHtmlText(painter, trect, textStr(), textOptions);
+  CQChartsDrawUtil::drawTextInBox(painter, trect, textStr(), textOptions);
 
   //---
 

@@ -5,6 +5,7 @@
 #include <CQChartsKeyLocationEdit.h>
 #include <CQChartsKeyPressBehaviorEdit.h>
 #include <CQChartsAlphaEdit.h>
+#include <CQChartsTextDataEdit.h>
 #include <CQChartsTextBoxDataEdit.h>
 #include <CQCharts.h>
 #include <CQChartsWidgetUtil.h>
@@ -85,17 +86,18 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //---
 
-  data_.visible       = key_->isVisible();
-  data_.horizontal    = key_->isHorizontal();
-  data_.autoHide      = key_->isAutoHide();
-  data_.clipped       = key_->isClipped();
-  data_.above         = key_->isAbove();
-  data_.location      = key_->location();
-  data_.header        = key_->headerStr();
-  data_.hiddenAlpha   = key_->hiddenAlpha();
-  data_.maxRows       = key_->maxRows();
-  data_.interactive   = key_->isInteractive();
-  data_.pressBehavior = key_->pressBehavior();
+  data_.visible        = key_->isVisible();
+  data_.horizontal     = key_->isHorizontal();
+  data_.autoHide       = key_->isAutoHide();
+  data_.clipped        = key_->isClipped();
+  data_.above          = key_->isAbove();
+  data_.location       = key_->location();
+  data_.hiddenAlpha    = key_->hiddenAlpha();
+  data_.maxRows        = key_->maxRows();
+  data_.interactive    = key_->isInteractive();
+  data_.pressBehavior  = key_->pressBehavior();
+  data_.header         = key_->headerStr();
+  data_.headerTextData = key_->headerTextData();
 
   CQChartsPlotKey *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
@@ -277,17 +279,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //--
 
-  // header
-  headerEdit_ = CQUtil::makeWidget<QLineEdit>("headerEdit");
-
-  headerEdit_->setText(data_.header);
-
-  connect(headerEdit_, SIGNAL(editingFinished()), this, SLOT(widgetsToData()));
-
-  CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Header", headerEdit_, row);
-
-  //--
-
   // hiddenAlpha
   hiddenAlphaEdit_ = CQUtil::makeWidget<CQChartsAlphaEdit>("hiddenAlphaEdit");
 
@@ -343,6 +334,43 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
     CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Scroll Height", scrollHeightEdit_, row);
   }
 
+  //----
+
+  CQGroupBox *headerGroup = new CQGroupBox("Header");
+  headerGroup->setObjectName("headerGroup");
+
+  QGridLayout *headerGroupLayout = new QGridLayout(headerGroup);
+  headerGroupLayout->setMargin(0); headerGroupLayout->setSpacing(2);
+
+  groupLayout->addWidget(headerGroup, row, 0, 1, 2); ++row;
+
+  int headerRow = 0;
+
+  //--
+
+  // header
+  headerEdit_ = CQUtil::makeWidget<QLineEdit>("headerEdit");
+
+  headerEdit_->setText(data_.header);
+
+  connect(headerEdit_, SIGNAL(editingFinished()), this, SLOT(widgetsToData()));
+
+  CQChartsWidgetUtil::addGridLabelWidget(headerGroupLayout, "Text", headerEdit_, headerRow);
+
+  //--
+
+  // header text data
+  headerTextDataEdit_ = new CQChartsTextDataEdit(nullptr, /*optional*/false);
+
+  headerTextDataEdit_->setPreview(false);
+  headerTextDataEdit_->setPlot(key_->plot());
+  headerTextDataEdit_->setView(key_->view());
+  headerTextDataEdit_->setData(data_.headerTextData);
+
+  connect(headerTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
+
+  headerGroupLayout->addWidget(headerTextDataEdit_, headerRow, 0, 1, 2); ++headerRow;
+
   //--
 
   // box (margin, passing, fill, border, text)
@@ -378,11 +406,12 @@ dataToWidgets()
   disconnect(clippedEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
   disconnect(aboveEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
   disconnect(locationEdit_, SIGNAL(keyLocationChanged()), this, SLOT(widgetsToData()));
-  disconnect(headerEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
   disconnect(hiddenAlphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
   disconnect(maxRowsEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToData()));
   disconnect(interactiveEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
   disconnect(pressBehaviorEdit_, SIGNAL(keyPressBehaviorChanged()), this, SLOT(widgetsToData()));
+  disconnect(headerEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
+  disconnect(headerTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
 
   if (plotKey) {
     disconnect(absPositionEdit_, SIGNAL(valueChanged()), this, SLOT(widgetsToData()));
@@ -397,17 +426,18 @@ dataToWidgets()
     disconnect(textBoxEdit_, SIGNAL(textBoxDataChanged()), this, SLOT(widgetsToData()));
   }
 
-  groupBox_         ->setChecked(data_.visible);
-  horizontalEdit_   ->setChecked(data_.horizontal);
-  autoHideEdit_     ->setChecked(data_.autoHide);
-  clippedEdit_      ->setChecked(data_.clipped);
-  aboveEdit_        ->setChecked(data_.above);
-  locationEdit_     ->setKeyLocation(data_.location);
-  headerEdit_       ->setText(data_.header);
-  hiddenAlphaEdit_  ->setValue(data_.hiddenAlpha);
-  maxRowsEdit_      ->setValue(data_.maxRows);
-  interactiveEdit_  ->setChecked(data_.interactive);
-  pressBehaviorEdit_->setKeyPressBehavior(data_.pressBehavior);
+  groupBox_          ->setChecked(data_.visible);
+  horizontalEdit_    ->setChecked(data_.horizontal);
+  autoHideEdit_      ->setChecked(data_.autoHide);
+  clippedEdit_       ->setChecked(data_.clipped);
+  aboveEdit_         ->setChecked(data_.above);
+  locationEdit_      ->setKeyLocation(data_.location);
+  hiddenAlphaEdit_   ->setValue(data_.hiddenAlpha);
+  maxRowsEdit_       ->setValue(data_.maxRows);
+  interactiveEdit_   ->setChecked(data_.interactive);
+  pressBehaviorEdit_ ->setKeyPressBehavior(data_.pressBehavior);
+  headerEdit_        ->setText(data_.header);
+  headerTextDataEdit_->setData(data_.headerTextData);
 
   if (plotKey) {
     absPositionEdit_ ->setValue(data_.absPosition);
@@ -427,11 +457,12 @@ dataToWidgets()
   connect(clippedEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
   connect(aboveEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
   connect(locationEdit_, SIGNAL(keyLocationChanged()), this, SLOT(widgetsToData()));
-  connect(headerEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
   connect(hiddenAlphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
   connect(maxRowsEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToData()));
   connect(interactiveEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
   connect(pressBehaviorEdit_, SIGNAL(keyPressBehaviorChanged()), this, SLOT(widgetsToData()));
+  connect(headerEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
+  connect(headerTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
 
   if (plotKey) {
     connect(absPositionEdit_, SIGNAL(valueChanged()), this, SLOT(widgetsToData()));
@@ -451,17 +482,18 @@ widgetsToData()
 {
   CQChartsPlotKey *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
-  data_.visible       = groupBox_->isChecked();
-  data_.horizontal    = horizontalEdit_->isChecked();
-  data_.autoHide      = autoHideEdit_->isChecked();
-  data_.clipped       = clippedEdit_->isChecked();
-  data_.above         = aboveEdit_->isChecked();
-  data_.location      = locationEdit_->keyLocation();
-  data_.header        = headerEdit_->text();
-  data_.hiddenAlpha   = hiddenAlphaEdit_->value();
-  data_.maxRows       = maxRowsEdit_->value();
-  data_.interactive   = interactiveEdit_->isChecked();
-  data_.pressBehavior = pressBehaviorEdit_->keyPressBehavior();
+  data_.visible        = groupBox_->isChecked();
+  data_.horizontal     = horizontalEdit_->isChecked();
+  data_.autoHide       = autoHideEdit_->isChecked();
+  data_.clipped        = clippedEdit_->isChecked();
+  data_.above          = aboveEdit_->isChecked();
+  data_.location       = locationEdit_->keyLocation();
+  data_.hiddenAlpha    = hiddenAlphaEdit_->value();
+  data_.maxRows        = maxRowsEdit_->value();
+  data_.interactive    = interactiveEdit_->isChecked();
+  data_.pressBehavior  = pressBehaviorEdit_->keyPressBehavior();
+  data_.header         = headerEdit_->text();
+  data_.headerTextData = headerTextDataEdit_->data();
 
   if (plotKey) {
     data_.absPosition  = absPositionEdit_->getQValue();
@@ -490,11 +522,13 @@ applyData()
   key_->setClipped      (data_.clipped);
   key_->setAbove        (data_.above);
   key_->setLocation     (data_.location);
-  key_->setHeaderStr    (data_.header);
   key_->setHiddenAlpha  (data_.hiddenAlpha);
   key_->setMaxRows      (data_.maxRows);
   key_->setInteractive  (data_.interactive);
   key_->setPressBehavior(data_.pressBehavior);
+
+  key_->setHeaderStr     (data_.header);
+  key_->setHeaderTextData(data_.headerTextData);
 
   if (plotKey) {
     plotKey->setAbsPosition (data_.absPosition);

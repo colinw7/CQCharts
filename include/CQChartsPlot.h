@@ -1680,14 +1680,21 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  // print layer data
   bool printLayer(CQChartsLayer::Type type, const QString &filename) const;
 
   //---
 
-  bool setParameter(CQChartsPlotParameter *param, const QVariant &value);
+  // get/set parameter
   bool getParameter(CQChartsPlotParameter *param, QVariant &value) const;
+  bool setParameter(CQChartsPlotParameter *param, const QVariant &value);
 
+  //---
+
+  // write details to output
   void write(std::ostream &os) const;
+
+  //---
 
  protected slots:
   void animateSlot();

@@ -197,12 +197,11 @@ addProperties()
   addProperty("arc", this, "startAngle", "startAngle");
 
   // label
-  addProperty("label", textBox_, "textVisible");
-  addProperty("label", textBox_, "textFont"   );
-  addProperty("label", textBox_, "textColor"  );
-  addProperty("label", this    , "labelRadius", "radius");
+  textBox_->addTextDataProperties(propertyModel(), "label");
 
-  QString labelBoxPath = id() + "/label/box";
+  addProperty("label", this, "labelRadius", "radius");
+
+  QString labelBoxPath = "label/box";
 
   textBox_->CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath);
 }

@@ -1527,22 +1527,22 @@ addProperties()
   //---
 
   if (xAxis()) {
-    xAxis()->addProperties(propertyModel(), id() + "/" + "xaxis");
+    xAxis()->addProperties(propertyModel(), "xaxis");
 
     addProperty("xaxis", this, "xLabel", "userLabel");
   }
 
   if (yAxis()) {
-    yAxis()->addProperties(propertyModel(), id() + "/" + "yaxis");
+    yAxis()->addProperties(propertyModel(), "yaxis");
 
     addProperty("yaxis", this, "yLabel", "userLabel");
   }
 
   if (key())
-    key()->addProperties(propertyModel(), id() + "/" + "key");
+    key()->addProperties(propertyModel(), "key");
 
   if (title())
-    title()->addProperties(propertyModel(), id() + "/" + "title");
+    title()->addProperties(propertyModel(), "title");
 
   addProperty("scaledFont", this, "minScaleFontSize", "minSize");
   addProperty("scaledFont", this, "maxScaleFontSize", "maxSize");
@@ -1610,7 +1610,6 @@ addAllTextProperties(const QString &path, const QString &prefix)
   addProperty(path, this, prefix + "Align"    , "align"    );
   addProperty(path, this, prefix + "Formatted", "formatted");
   addProperty(path, this, prefix + "Scaled"   , "scaled"   );
-  addProperty(path, this, prefix + "Html"     , "html"     );
 }
 
 void
@@ -1662,16 +1661,7 @@ addProperty(const QString &path, QObject *object, const QString &name, const QSt
 {
   assert(CQUtil::hasProperty(object, name));
 
-#if 0
-  QString path1 = id();
-
-  if (path.length())
-    path1 += "/" + path;
-#else
-  QString path1 = path;
-#endif
-
-  return propertyModel()->addProperty(path1, object, name, alias);
+  return propertyModel()->addProperty(path, object, name, alias);
 }
 
 void
@@ -6969,7 +6959,7 @@ addAnnotation(CQChartsAnnotation *annotation)
   connect(annotation, SIGNAL(idChanged()), this, SLOT(updateAnnotationSlot()));
   connect(annotation, SIGNAL(dataChanged()), this, SLOT(updateAnnotationSlot()));
 
-  annotation->addProperties(propertyModel(), id() + "/" + "annotations");
+  annotation->addProperties(propertyModel(), "annotations");
 
 //emit annotationAdded(annotation->id());
   emit annotationsChanged();
@@ -9546,8 +9536,12 @@ write(std::ostream &os) const
 {
   CQChartsModelData *modelData = getModelData();
 
-  os << "create_plot -model " << modelData->ind() << " -type " << type_->name().toStdString();
+  os << "set plot [create_plot -model " << modelData->ind() <<
+    " -type " << type_->name().toStdString();
 
+  //---
+
+  // add columns, parameters
   QString columnsStr, parametersStr;
 
   for (const auto &param : type()->parameters()) {
@@ -9590,11 +9584,15 @@ write(std::ostream &os) const
   if (parametersStr.length())
     os << " \\\n  -parameters \"" << parametersStr.toStdString() << "\"";
 
+  //---
+
+  os << "]\n";
+
+  //---
+
   CQPropertyViewModel::NameValues nameValues;
 
   propertyModel()->getChangedNameValues(this, nameValues);
-
-  QString propertiesStr;
 
   for (const auto &nv : nameValues) {
     QString str;
@@ -9602,16 +9600,9 @@ write(std::ostream &os) const
     if (! CQChartsVariant::toString(nv.second, str))
       str = "";
 
-    if (propertiesStr.length())
-      propertiesStr += ",";
-
-    propertiesStr += nv.first + "=" + str;
+    os << "set_charts_property -plot $plot -name " << nv.first.toStdString() <<
+          " -value {" << str.toStdString() << "}\n";
   }
-
-  if (propertiesStr.length())
-    os << " \\\n  -properties \"" << propertiesStr.toStdString() << "\"";
-
-  os << "\n";
 }
 
 //------

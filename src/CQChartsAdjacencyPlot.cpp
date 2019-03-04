@@ -813,7 +813,8 @@ drawBackground(QPainter *painter) const
 
   for (auto &node : sortedNodes_) {
     CQChartsRotatedText::draw(painter, px + pxs/2, py - 2, node->name(), 90,
-                              Qt::AlignHCenter | Qt::AlignBottom, /*alignBox*/true);
+                              Qt::AlignHCenter | Qt::AlignBottom, /*alignBox*/true,
+                              isTextContrast());
 
     px += pxs;
   }

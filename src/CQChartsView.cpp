@@ -3839,6 +3839,31 @@ updateScroll()
 
 //------
 
+void
+CQChartsView::
+write(std::ostream &os) const
+{
+  os << "set view [create_view]\n";
+
+  CQPropertyViewModel::NameValues nameValues;
+
+  propertyModel()->getChangedNameValues(this, nameValues);
+
+  QString propertiesStr;
+
+  for (const auto &nv : nameValues) {
+    QString str;
+
+    if (! CQChartsVariant::toString(nv.second, str))
+      str = "";
+
+    os << "set_charts_property -view $view -name " << nv.first.toStdString() <<
+          " -value {" << str.toStdString() << "}\n";
+  }
+}
+
+//------
+
 QPointF
 CQChartsView::
 positionToView(const CQChartsPosition &pos) const

@@ -26,7 +26,8 @@ class QScrollBar;
  * \brief Base Key class
  */
 class CQChartsKey : public CQChartsBoxObj,
- public CQChartsObjTextData<CQChartsKey> {
+ public CQChartsObjTextData      <CQChartsKey>,
+ public CQChartsObjHeaderTextData<CQChartsKey> {
   Q_OBJECT
 
   Q_PROPERTY(bool                     horizontal    READ isHorizontal  WRITE setHorizontal   )
@@ -41,6 +42,8 @@ class CQChartsKey : public CQChartsBoxObj,
   Q_PROPERTY(CQChartsKeyPressBehavior pressBehavior READ pressBehavior WRITE setPressBehavior)
 
   CQCHARTS_TEXT_DATA_PROPERTIES
+
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header,header)
 
  public:
   CQChartsKey(CQChartsView *view);

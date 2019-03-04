@@ -1425,8 +1425,8 @@ drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double t
           CQChartsDrawUtil::drawSimpleText(painter, p, text);
         }
         else {
-          CQChartsRotatedText::draw(painter, pt.x(), pt.y(), text,
-                                    angle, align, /*alignBox*/true);
+          CQChartsRotatedText::draw(painter, pt.x(), pt.y(), text, angle, align,
+                                    /*alignBox*/true, isAxesTickLabelTextContrast());
         }
 
         if (plot->showBoxes())
@@ -1521,8 +1521,8 @@ drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double t
           CQChartsDrawUtil::drawSimpleText(painter, p, text);
         }
         else {
-          CQChartsRotatedText::draw(painter, pt.x(), pt.y(), text,
-                                    angle, align, /*alignBox*/true);
+          CQChartsRotatedText::draw(painter, pt.x(), pt.y(), text, angle, align,
+                                    /*alignBox*/true, isAxesTickLabelTextContrast());
         }
 
         if (plot->showBoxes())
@@ -1647,8 +1647,8 @@ drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double t
           CQChartsDrawUtil::drawSimpleText(painter, p, text);
         }
         else {
-          CQChartsRotatedText::draw(painter, pt.x(), pt.y(), text,
-                                    angle, align, /*alignBox*/true);
+          CQChartsRotatedText::draw(painter, pt.x(), pt.y(), text, angle, align,
+                                    /*alignBox*/true, isAxesTickLabelTextContrast());
         }
 
         if (plot->showBoxes())
@@ -1744,8 +1744,8 @@ drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double t
           CQChartsDrawUtil::drawSimpleText(painter, p, text);
         }
         else {
-          CQChartsRotatedText::draw(painter, pt.x(), pt.y(), text,
-                                    angle, align, /*alignBox*/true);
+          CQChartsRotatedText::draw(painter, pt.x(), pt.y(), text, angle, align,
+                                    /*alignBox*/true, isAxesTickLabelTextContrast());
         }
 
         if (plot->showBoxes())
@@ -1874,7 +1874,8 @@ drawAxisLabel(const CQChartsPlot *plot, QPainter *painter, double apos,
 
       double tx = lbbox_.getXMin() - tgap - td;
 
-      CQChartsRotatedText::draw(painter, tx, aym, text, 90.0);
+      CQChartsRotatedText::draw(painter, tx, aym, text, 90.0, Qt::AlignLeft | Qt::AlignBottom,
+                                /*alignBBox*/false, isAxesLabelTextContrast());
 
       if (! plot_->isInvertX()) {
         bbox += CQChartsGeom::Point(apos - (atw      ), (amin + amax)/2 - ath);
@@ -1895,7 +1896,8 @@ drawAxisLabel(const CQChartsPlot *plot, QPainter *painter, double apos,
 
       double tx = lbbox_.getXMax() + tgap + td;
 
-      CQChartsRotatedText::draw(painter, tx, aym, text, -90.0);
+      CQChartsRotatedText::draw(painter, tx, aym, text, -90.0, Qt::AlignLeft | Qt::AlignBottom,
+                                /*alignBBox*/false, isAxesLabelTextContrast());
 
       if (! plot_->isInvertX()) {
         bbox += CQChartsGeom::Point(apos + (atw      ), (amin + amax)/2 - ath);

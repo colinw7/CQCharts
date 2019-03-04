@@ -252,7 +252,6 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapObj {
 //---
 
 CQCHARTS_NAMED_SHAPE_DATA(Header,header)
-CQCHARTS_NAMED_TEXT_DATA(Header,header)
 
 class CQChartsTreeMapPlot : public CQChartsHierPlot,
  public CQChartsObjHeaderShapeData<CQChartsTreeMapPlot>,
@@ -269,7 +268,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   // header shape (border, fill)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Header,header)
 
-  // header font
+  // header font, color
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header,header)
 
   // box margin

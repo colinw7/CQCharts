@@ -42,14 +42,22 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   QString textPath = path + "/text";
 
-  model->addProperty(textPath, this, "textStr"     , "text"    );
-  model->addProperty(textPath, this, "textFont"    , "font"    );
-  model->addProperty(textPath, this, "textColor"   , "color"   );
-  model->addProperty(textPath, this, "textAlpha"   , "alpha"   );
-  model->addProperty(textPath, this, "textAngle"   , "angle"   );
-  model->addProperty(textPath, this, "textContrast", "contrast");
-  model->addProperty(textPath, this, "textHtml"    , "html"    );
-  model->addProperty(textPath, this, "textAlign"   , "align"   );
+  model->addProperty(textPath, this, "textStr", "text");
+
+  addTextDataProperties(model, textPath);
+}
+
+void
+CQChartsTextBoxObj::
+addTextDataProperties(CQPropertyViewModel *model, const QString &path)
+{
+  model->addProperty(path, this, "textFont"    , "font"    );
+  model->addProperty(path, this, "textColor"   , "color"   );
+  model->addProperty(path, this, "textAlpha"   , "alpha"   );
+  model->addProperty(path, this, "textAngle"   , "angle"   );
+  model->addProperty(path, this, "textContrast", "contrast");
+  model->addProperty(path, this, "textHtml"    , "html"    );
+  model->addProperty(path, this, "textAlign"   , "align"   );
 }
 
 void
@@ -101,9 +109,25 @@ drawText(QPainter *painter, const QRectF &rect, const QString &text) const
 
   painter->setPen(pen);
 
+  //---
+
+  // set text options
+  CQChartsTextOptions textOptions;
+
+  textOptions.contrast  = isTextContrast();
+  textOptions.formatted = isTextFormatted();
+  textOptions.scaled    = isTextScaled();
+  textOptions.html      = isTextHtml();
+  textOptions.align     = textAlign();
+
+  if (plot())
+    textOptions = plot()->adjustTextOptions(textOptions);
+
+  //---
+
   QPointF tp(rect.left() + margin(), rect.bottom() - margin() - fm.descent());
 
-  CQChartsDrawUtil::drawSimpleText(painter, tp, text);
+  CQChartsDrawUtil::drawTextAtPoint(painter, tp, text, textOptions);
 }
 
 void

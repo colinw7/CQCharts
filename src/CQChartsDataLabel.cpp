@@ -31,7 +31,7 @@ addPathProperties(const QString &path)
   plot_->addProperty(textPath, this, "textContrast", "contrast");
   plot_->addProperty(textPath, this, "textHtml"    , "html"    );
 
-  QString boxPath = plot_->id() + "/" + path + "/box";
+  QString boxPath = path + "/box";
 
   CQChartsBoxObj::addProperties(plot_->propertyModel(), boxPath);
 }
@@ -182,22 +182,20 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
     CQChartsBoxObj::draw(painter, prect);
 
     if (! clipped) {
-      if (isTextContrast()) {
-        if (ystr.length()) {
+      if (ystr.length()) {
+        painter->setPen(tpen);
+
+        if (isTextContrast()) {
 #if 0
           if (direction() == Qt::Vertical)
-            CQChartsDrawUtil::drawContrastText(painter, x, y, ystr, tpen);
+            CQChartsDrawUtil::drawContrastText(painter, x, y, ystr);
           else
-            CQChartsDrawUtil::drawContrastText(painter, x, y, ystr, tpen);
+            CQChartsDrawUtil::drawContrastText(painter, x, y, ystr);
 #else
-          CQChartsDrawUtil::drawContrastText(painter, x, y, ystr, tpen);
+          CQChartsDrawUtil::drawContrastText(painter, x, y, ystr);
 #endif
         }
-      }
-      else {
-        if (ystr.length()) {
-          painter->setPen(tpen);
-
+        else {
 #if 0
           if (direction() == Qt::Vertical)
             CQChartsDrawUtil::drawSimpleText(painter, QPointF(x, y), ystr);
@@ -245,7 +243,8 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
     painter->setPen(tpen);
 
     if (ystr.length())
-      CQChartsRotatedText::draw(painter, x, y, ystr, textAngle(), align, /*alignBBox*/ true);
+      CQChartsRotatedText::draw(painter, x, y, ystr, textAngle(), align,
+                                /*alignBBox*/ true, isTextContrast());
   }
 
   //---

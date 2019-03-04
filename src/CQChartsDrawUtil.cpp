@@ -12,8 +12,17 @@ namespace CQChartsDrawUtil {
 
 void
 drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
-              const QPen &pen, const CQChartsTextOptions &options)
+              const CQChartsTextOptions &options)
 {
+  if (options.html) {
+    CQChartsDrawPrivate::drawScaledHtmlText(painter, rect, text, options);
+    return;
+  }
+
+  //---
+
+  QPen pen = painter->pen();
+
   painter->save();
 
   if (CMathUtil::isZero(options.angle)) {
@@ -22,8 +31,7 @@ drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
     if (options.clipped)
       painter->setClipRect(rect);
 
-    if (! options.contrast)
-      painter->setPen(pen);
+    painter->setPen(pen);
 
     //---
 
@@ -88,7 +96,7 @@ drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
       double x = rect.left() + dx;
 
       if (options.contrast)
-        drawContrastText(painter, x, y, strs[i], pen);
+        drawContrastText(painter, x, y, strs[i]);
       else
         drawSimpleText(painter, x, y, strs[i]);
 
@@ -118,8 +126,10 @@ drawRotatedTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
 
 void
 drawTextAtPoint(QPainter *painter, const QPointF &point, const QString &text,
-                const QPen &pen, const CQChartsTextOptions &options)
+                const CQChartsTextOptions &options)
 {
+  QPen pen = painter->pen();
+
   if (CMathUtil::isZero(options.angle)) {
     QFontMetricsF fm(painter->font());
 
@@ -146,7 +156,7 @@ drawTextAtPoint(QPainter *painter, const QPointF &point, const QString &text,
     painter->setPen(pen);
 
     if (options.contrast)
-      drawContrastText(painter, point.x() + dx, point.y() + dy, text, pen);
+      drawContrastText(painter, point.x() + dx, point.y() + dy, text);
     else
       drawSimpleText(painter, point.x() + dx, point.y() + dy, text);
   }
@@ -221,7 +231,11 @@ calcAlignedTextRect(const QFont &font, double x, double y, const QString &text,
 
 //------
 
-void drawContrastText(QPainter *painter, double x, double y, const QString &text, const QPen &pen) {
+void drawContrastText(QPainter *painter, double x, double y, const QString &text) {
+  QPen pen = painter->pen();
+
+  //---
+
   // set contrast color
   // TODO: allow set type (invert, bw) and alpha
 //QColor icolor = CQChartsUtil::invColor(pen.color());
@@ -251,12 +265,46 @@ void drawContrastText(QPainter *painter, double x, double y, const QString &text
 
 //------
 
-QSizeF calcTextSize(const QString &text, const QFont &font)
+QSizeF calcTextSize(const QString &text, const QFont &font, const CQChartsTextOptions &options)
 {
+  if (options.html)
+    return CQChartsDrawPrivate::calcHtmlTextSize(text, font);
+
+  //---
+
   QFontMetricsF fm(font);
 
   return QSizeF(fm.width(text), fm.height());
 }
+
+//------
+
+void drawCenteredText(QPainter *painter, const QPointF &pos, const QString &text)
+{
+  QFontMetricsF fm(painter->font());
+
+  QPointF pos1(pos.x() - fm.width(text)/2, pos.y() + (fm.ascent() - fm.descent())/2);
+
+  drawSimpleText(painter, pos1, text);
+}
+
+//------
+
+void drawSimpleText(QPainter *painter, double x, double y, const QString &text)
+{
+  drawSimpleText(painter, QPointF(x, y), text);
+}
+
+void drawSimpleText(QPainter *painter, const QPointF &pos, const QString &text)
+{
+  painter->drawText(pos, text);
+}
+
+}
+
+//------
+
+namespace CQChartsDrawPrivate {
 
 QSizeF calcHtmlTextSize(const QString &text, const QFont &font)
 {
@@ -361,29 +409,6 @@ void drawHtmlText(QPainter *painter, const QRectF &trect, const QString &text,
   //---
 
   painter->restore();
-}
-
-//------
-
-void drawCenteredText(QPainter *painter, const QPointF &pos, const QString &text)
-{
-  QFontMetricsF fm(painter->font());
-
-  QPointF pos1(pos.x() - fm.width(text)/2, pos.y() + (fm.ascent() - fm.descent())/2);
-
-  drawSimpleText(painter, pos1, text);
-}
-
-//------
-
-void drawSimpleText(QPainter *painter, double x, double y, const QString &text)
-{
-  drawSimpleText(painter, QPointF(x, y), text);
-}
-
-void drawSimpleText(QPainter *painter, const QPointF &pos, const QString &text)
-{
-  painter->drawText(pos, text);
 }
 
 }

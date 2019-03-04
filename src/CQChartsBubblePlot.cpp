@@ -938,10 +938,12 @@ draw(QPainter *painter)
 
   textOptions = plot_->adjustTextOptions(textOptions);
 
+  painter->setPen(tpen);
+
   if      (strs.size() == 1) {
     QPointF tp(px1, py1);
 
-    CQChartsDrawUtil::drawTextAtPoint(painter, tp, name, tpen, textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(painter, tp, name, textOptions);
   }
   else if (strs.size() == 2) {
     QFontMetricsF fm(painter->font());
@@ -951,8 +953,8 @@ draw(QPainter *painter)
     QPointF tp1(px1, py1 - th/2);
     QPointF tp2(px1, py1 + th/2);
 
-    CQChartsDrawUtil::drawTextAtPoint(painter, tp1, strs[0], tpen, textOptions);
-    CQChartsDrawUtil::drawTextAtPoint(painter, tp2, strs[1], tpen, textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(painter, tp1, strs[0], textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(painter, tp2, strs[1], textOptions);
   }
   else {
     assert(false);
