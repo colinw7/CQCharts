@@ -41,6 +41,410 @@
 #include <QVBoxLayout>
 #include <QPainter>
 
+class CQChartsViewSettingsModelTable : public QTableWidget {
+ public:
+  CQChartsViewSettingsModelTable() {
+    setObjectName("modelTable");
+
+    horizontalHeader()->setStretchLastSection(true);
+
+    setSelectionBehavior(QAbstractItemView::SelectRows);
+  }
+
+  void updateModels(CQCharts *charts) {
+    CQCharts::ModelDatas modelDatas;
+
+    charts->getModelDatas(modelDatas);
+
+    clear();
+
+    setColumnCount(1);
+    setRowCount(modelDatas.size());
+
+    setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
+
+    int i = 0;
+
+    for (const auto &modelData : modelDatas) {
+      QTableWidgetItem *idItem = new QTableWidgetItem(modelData->id());
+
+      setItem(i, 0, idItem);
+
+      idItem->setData(Qt::UserRole, modelData->ind());
+
+      ++i;
+    }
+  }
+
+  long selectedModel() const {
+    QList<QTableWidgetItem *> items = selectedItems();
+
+    for (int i = 0; i < items.length(); ++i) {
+      QTableWidgetItem *item = items[i];
+
+      bool ok;
+
+      long ind = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
+
+      if (ok)
+        return ind;
+    }
+
+    return -1;
+  }
+};
+
+//---
+
+class CQChartsViewSettingsPlotTable : public QTableWidget {
+ public:
+  CQChartsViewSettingsPlotTable() {
+    setObjectName("plotTable");
+
+    horizontalHeader()->setStretchLastSection(true);
+
+    setSelectionBehavior(QAbstractItemView::SelectRows);
+  }
+
+  void updatePlots(CQChartsView *view) {
+    // add plots to plot table (id, type and state)
+    clear();
+
+    int np = view->numPlots();
+
+    setColumnCount(3);
+    setRowCount(np);
+
+    setHorizontalHeaderItem(0, new QTableWidgetItem("Id"   ));
+    setHorizontalHeaderItem(1, new QTableWidgetItem("Type" ));
+    setHorizontalHeaderItem(2, new QTableWidgetItem("State"));
+
+    for (int i = 0; i < np; ++i) {
+      CQChartsPlot *plot = view->plot(i);
+
+      //--
+
+      // set id item store plot index in user data
+      QTableWidgetItem *idItem = new QTableWidgetItem(plot->id());
+
+      setItem(i, 0, idItem);
+
+      int ind = view->plotInd(plot);
+
+      idItem->setData(Qt::UserRole, ind);
+
+      //--
+
+      // set type item
+      QTableWidgetItem *typeItem = new QTableWidgetItem(plot->type()->name());
+
+      setItem(i, 1, typeItem);
+
+      //--
+
+      // set state item
+      QStringList states;
+
+      if (plot->isOverlay()) states += "overlay";
+      if (plot->isX1X2   ()) states += "x1x2";
+      if (plot->isY1Y2   ()) states += "y1y2";
+
+      QString stateStr = states.join("|");
+
+      if (stateStr == "")
+        stateStr = "normal";
+
+      QTableWidgetItem *stateItem = new QTableWidgetItem(stateStr);
+
+      setItem(i, 2, stateItem);
+    }
+  }
+
+  void setCurrentInd(int ind) {
+    int nr = rowCount();
+
+    for (int i = 0; i < nr; ++i) {
+      QTableWidgetItem *item = this->item(i, 0);
+
+      bool ok;
+
+      long ind1 = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
+
+      item->setSelected(ind1 == ind);
+    }
+  }
+
+  void getSelectedPlots(CQChartsView *view, std::vector<CQChartsPlot *> &plots) {
+    QList<QTableWidgetItem *> items = selectedItems();
+
+    for (int i = 0; i < items.length(); ++i) {
+      QTableWidgetItem *item = items[i];
+      if (item->column() != 0) continue;
+
+      QString id = item->text();
+
+      CQChartsPlot *plot = view->getPlot(id);
+
+      plots.push_back(plot);
+    }
+  }
+};
+
+//---
+
+class CQChartsViewSettingsViewAnnotationsTable : public QTableWidget {
+ public:
+  CQChartsViewSettingsViewAnnotationsTable() {
+    setObjectName("viewTable");
+
+    horizontalHeader()->setStretchLastSection(true);
+
+    setSelectionBehavior(QAbstractItemView::SelectRows);
+  }
+
+  void updateAnnotations(CQChartsView *view) {
+    clear();
+
+    const CQChartsView::Annotations &viewAnnotations = view->annotations();
+
+    int nv = viewAnnotations.size();
+
+    setColumnCount(2);
+    setRowCount(nv);
+
+    setHorizontalHeaderItem(0, new QTableWidgetItem("Id"  ));
+    setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
+
+    for (int i = 0; i < nv; ++i) {
+      CQChartsAnnotation *annotation = viewAnnotations[i];
+
+      QTableWidgetItem *idItem = new QTableWidgetItem(annotation->id());
+
+      setItem(i, 0, idItem);
+
+      int ind = annotation->ind();
+
+      idItem->setData(Qt::UserRole, ind);
+
+      QTableWidgetItem *typeItem = new QTableWidgetItem(annotation->typeName());
+
+      setItem(i, 1, typeItem);
+    }
+  }
+
+  void getSelectedAnnotations(CQChartsView *view, std::vector<CQChartsAnnotation *> &annotations) {
+    QList<QTableWidgetItem *> items = selectedItems();
+
+    for (int i = 0; i < items.length(); ++i) {
+      QTableWidgetItem *item = items[i];
+      if (item->column() != 0) continue;
+
+      QString id = item->text();
+
+      CQChartsAnnotation *annotation = view->getAnnotationByName(id);
+
+      if (annotation)
+        annotations.push_back(annotation);
+    }
+  }
+};
+
+//---
+
+class CQChartsViewSettingsPlotAnnotationsTable : public QTableWidget {
+ public:
+  CQChartsViewSettingsPlotAnnotationsTable() {
+    setObjectName("plotTable");
+
+    horizontalHeader()->setStretchLastSection(true);
+
+    setSelectionBehavior(QAbstractItemView::SelectRows);
+  }
+
+  void updateAnnotations(CQChartsPlot *plot) {
+    clear();
+
+    if (! plot)
+      return;
+
+    const CQChartsPlot::Annotations &plotAnnotations = plot->annotations();
+
+    int np = plotAnnotations.size();
+
+    setColumnCount(2);
+    setRowCount(np);
+
+    setHorizontalHeaderItem(0, new QTableWidgetItem("Id"  ));
+    setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
+
+    for (int i = 0; i < np; ++i) {
+      CQChartsAnnotation *annotation = plotAnnotations[i];
+
+      QTableWidgetItem *idItem = new QTableWidgetItem(annotation->id());
+
+      setItem(i, 0, idItem);
+
+      int ind = annotation->ind();
+
+      idItem->setData(Qt::UserRole, ind);
+
+      QTableWidgetItem *typeItem = new QTableWidgetItem(annotation->typeName());
+
+      setItem(i, 1, typeItem);
+    }
+  }
+
+  void getSelectedAnnotations(CQChartsPlot *plot, std::vector<CQChartsAnnotation *> &annotations) {
+    QList<QTableWidgetItem *> items = selectedItems();
+
+    for (int i = 0; i < items.length(); ++i) {
+      QTableWidgetItem *item = items[i];
+      if (item->column() != 0) continue;
+
+      QString id = item->text();
+
+      CQChartsAnnotation *annotation = plot->getAnnotationByName(id);
+
+      if (annotation)
+        annotations.push_back(annotation);
+    }
+  }
+};
+
+//---
+
+class CQChartsViewSettingsLayerTable : public QTableWidget {
+ public:
+  CQChartsViewSettingsLayerTable() {
+    setObjectName("layerTable");
+
+    horizontalHeader()->setStretchLastSection(true);
+
+    setSelectionBehavior(QAbstractItemView::SelectRows);
+  }
+
+  QImage *selectedImage(CQChartsPlot *plot) const {
+    if (! plot) return nullptr;
+
+    QList<QTableWidgetItem *> items = selectedItems();
+    if (items.length() <= 0) return nullptr;
+
+    QTableWidgetItem *item = items[0];
+
+    bool ok;
+
+    long l = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
+    if (! ok) return nullptr;
+
+    CQChartsLayer *layer = plot->getLayer((CQChartsLayer::Type) l);
+    if (! layer) return nullptr;
+
+    CQChartsBuffer *buffer = plot->getBuffer(layer->buffer());
+    if (! buffer) return nullptr;
+
+    QImage *image = buffer->image();
+
+    return image;
+  }
+
+  void initLayers() {
+    if (rowCount() != 0)
+      return;
+
+    int l1 = (int) CQChartsLayer::firstLayer();
+    int l2 = (int) CQChartsLayer::lastLayer ();
+
+    clear();
+
+    setColumnCount(3);
+    setRowCount(l2 - l1 + 1);
+
+    setHorizontalHeaderItem(0, new QTableWidgetItem("Layer"));
+    setHorizontalHeaderItem(1, new QTableWidgetItem("State"));
+    setHorizontalHeaderItem(2, new QTableWidgetItem("Rect" ));
+
+    for (int l = l1; l <= l2; ++l) {
+      int i = l - l1;
+
+      CQChartsLayer::Type type = (CQChartsLayer::Type) l;
+
+      QString name = CQChartsLayer::typeName(type);
+
+      QTableWidgetItem *idItem = new QTableWidgetItem(name);
+
+      setItem(i, 0, idItem);
+
+      idItem->setData(Qt::UserRole, l);
+
+      QTableWidgetItem *stateItem = new QTableWidgetItem("");
+
+    //stateItem->setFlags(stateItem->flags() | Qt::ItemIsEnabled);
+      stateItem->setFlags(stateItem->flags() | Qt::ItemIsUserCheckable);
+    //stateItem->setFlags(stateItem->flags() & ! Qt::ItemIsEditable);
+
+      setItem(i, 1, stateItem);
+
+      QTableWidgetItem *rectItem = new QTableWidgetItem("");
+
+      setItem(i, 2, rectItem);
+    }
+  }
+
+  void updateLayers(CQChartsPlot *plot) {
+    int l1 = (int) CQChartsLayer::firstLayer();
+    int l2 = (int) CQChartsLayer::lastLayer ();
+
+    for (int l = l1; l <= l2; ++l) {
+      int i = l - l1;
+
+      CQChartsLayer::Type type = (CQChartsLayer::Type) l;
+
+      CQChartsLayer *layer = plot->getLayer(type);
+
+      const CQChartsBuffer *buffer = (layer ? plot->getBuffer(layer->buffer()) : nullptr);
+
+  //  QTableWidgetItem *idItem    = item(i, 0);
+      QTableWidgetItem *stateItem = item(i, 1);
+      QTableWidgetItem *rectItem  = item(i, 2);
+
+      QStringList states;
+
+      if (layer  && layer ->isActive()) states += "active";
+      if (buffer && buffer->isValid ()) states += "valid";
+
+      stateItem->setText(states.join("|"));
+
+      stateItem->setCheckState((layer && layer->isActive()) ? Qt::Checked : Qt::Unchecked);
+
+      QRectF rect = (buffer ? buffer->rect() : QRectF());
+
+      QString rectStr = QString("X:%1, Y:%2, W:%3, H:%4").
+                          arg(rect.x()).arg(rect.y()).arg(rect.width()).arg(rect.height());
+
+      rectItem->setText(rectStr);
+    }
+  }
+
+  bool getLayerState(CQChartsPlot *plot, int row, CQChartsLayer::Type &type, bool &active) {
+    QTableWidgetItem *nameItem = item(row, 0);
+
+    QString name = nameItem->text();
+
+    type = CQChartsLayer::nameType(name);
+
+    CQChartsLayer *layer = plot->getLayer(type);
+    if (! layer) return false;
+
+    QTableWidgetItem *stateItem = item(row, 1);
+
+    active = (stateItem->checkState() == Qt::Checked);
+
+    return true;
+  }
+};
+
+//------
+
 CQChartsViewSettings::
 CQChartsViewSettings(CQChartsWindow *window) :
  QFrame(window), window_(window)
@@ -277,11 +681,7 @@ initModelsFrame(QFrame *modelsFrame)
 {
   QVBoxLayout *modelsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(modelsFrame, 0, 0);
 
-  modelsWidgets_.modelTable = CQUtil::makeWidget<QTableWidget>("modelTable");
-
-  modelsWidgets_.modelTable->horizontalHeader()->setStretchLastSection(true);
-
-  modelsWidgets_.modelTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+  modelsWidgets_.modelTable = new CQChartsViewSettingsModelTable;
 
   modelsFrameLayout->addWidget(modelsWidgets_.modelTable);
 
@@ -339,11 +739,7 @@ initPlotsFrame(QFrame *plotsFrame)
 {
   QVBoxLayout *plotsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(plotsFrame, 0, 0);
 
-  plotsWidgets_.plotTable = CQUtil::makeWidget<QTableWidget>("plotTable");
-
-  plotsWidgets_.plotTable->horizontalHeader()->setStretchLastSection(true);
-
-  plotsWidgets_.plotTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+  plotsWidgets_.plotTable = new CQChartsViewSettingsPlotTable;
 
   plotsFrameLayout->addWidget(plotsWidgets_.plotTable);
 
@@ -546,16 +942,10 @@ initAnnotationsFrame(QFrame *annotationsFrame)
 
   //--
 
-  annotationsWidgets_.viewTable = CQUtil::makeWidget<QTableWidget>("viewTable");
-
-  annotationsWidgets_.viewTable->horizontalHeader()->setStretchLastSection(true);
-
-  annotationsWidgets_.viewTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+  annotationsWidgets_.viewTable = new CQChartsViewSettingsViewAnnotationsTable;
 
   connect(annotationsWidgets_.viewTable, SIGNAL(itemSelectionChanged()),
           this, SLOT(viewAnnotationSelectionChangeSlot()));
-
-  //--
 
   viewGroupLayout->addWidget(annotationsWidgets_.viewTable);
 
@@ -570,16 +960,10 @@ initAnnotationsFrame(QFrame *annotationsFrame)
 
   //--
 
-  annotationsWidgets_.plotTable = CQUtil::makeWidget<QTableWidget>("plotTable");
-
-  annotationsWidgets_.plotTable->horizontalHeader()->setStretchLastSection(true);
-
-  annotationsWidgets_.plotTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+  annotationsWidgets_.plotTable = new CQChartsViewSettingsPlotAnnotationsTable;
 
   connect(annotationsWidgets_.plotTable, SIGNAL(itemSelectionChanged()),
           this, SLOT(plotAnnotationSelectionChangeSlot()));
-
-  //--
 
   plotGroupLayout->addWidget(annotationsWidgets_.plotTable);
 
@@ -755,11 +1139,9 @@ initLayersFrame(QFrame *layersFrame)
 {
   QVBoxLayout *layersFrameLayout = CQUtil::makeLayout<QVBoxLayout>(layersFrame, 0, 0);
 
-  layersWidgets_.layerTable = CQUtil::makeWidget<QTableWidget>("layerTable");
+  layersWidgets_.layerTable = new CQChartsViewSettingsLayerTable;
 
-  layersWidgets_.layerTable->horizontalHeader()->setStretchLastSection(true);
-
-  layersWidgets_.layerTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+  layersWidgets_.layerTable->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   layersFrameLayout->addWidget(layersWidgets_.layerTable);
 
@@ -767,8 +1149,6 @@ initLayersFrame(QFrame *layersFrame)
           this, SLOT(layersSelectionChangeSlot()));
   connect(layersWidgets_.layerTable, SIGNAL(cellClicked(int, int)),
           this, SLOT(layersClickedSlot(int, int)));
-
-  layersWidgets_.layerTable->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   //---
 
@@ -820,23 +1200,7 @@ layerImageSlot()
   CQChartsPlot *plot = window_->view()->currentPlot();
   if (! plot) return;
 
-  QList<QTableWidgetItem *> items = layersWidgets_.layerTable->selectedItems();
-  if (items.length() <= 0) return;
-
-  QTableWidgetItem *item = items[0];
-
-  bool ok;
-
-  long l = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
-  if (! ok) return;
-
-  CQChartsLayer *layer = plot->getLayer((CQChartsLayer::Type) l);
-  if (! layer) return;
-
-  CQChartsBuffer *buffer = plot->getBuffer(layer->buffer());
-  if (! buffer) return;
-
-  QImage *image = buffer->image();
+  QImage *image = layersWidgets_.layerTable->selectedImage(plot);
   if (! image) return;
 
   //---
@@ -859,28 +1223,7 @@ updateModels()
 
   CQCharts *charts = view->charts();
 
-  CQCharts::ModelDatas modelDatas;
-
-  charts->getModelDatas(modelDatas);
-
-  modelsWidgets_.modelTable->clear();
-
-  modelsWidgets_.modelTable->setColumnCount(1);
-  modelsWidgets_.modelTable->setRowCount(modelDatas.size());
-
-  modelsWidgets_.modelTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
-
-  int i = 0;
-
-  for (const auto &modelData : modelDatas) {
-    QTableWidgetItem *idItem = new QTableWidgetItem(modelData->id());
-
-    modelsWidgets_.modelTable->setItem(i, 0, idItem);
-
-    idItem->setData(Qt::UserRole, modelData->ind());
-
-    ++i;
-  }
+  modelsWidgets_.modelTable->updateModels(charts);
 
   //---
 
@@ -973,20 +1316,10 @@ modelsSelectionChangeSlot()
 {
   CQCharts *charts = window_->view()->charts();
 
-  QList<QTableWidgetItem *> items = modelsWidgets_.modelTable->selectedItems();
+  long ind = modelsWidgets_.modelTable->selectedModel();
 
-  for (int i = 0; i < items.length(); ++i) {
-    QTableWidgetItem *item = items[i];
-
-    bool ok;
-
-    long ind = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
-
-    if (ok) {
-      charts->setCurrentModelInd(ind);
-      return;
-    }
-  }
+  if (ind >= 0)
+    charts->setCurrentModelInd(ind);
 }
 
 void
@@ -1037,54 +1370,7 @@ updatePlots()
   //---
 
   // add plots to plot table (id, type and state)
-  plotsWidgets_.plotTable->clear();
-
-  plotsWidgets_.plotTable->setColumnCount(3);
-  plotsWidgets_.plotTable->setRowCount(np);
-
-  plotsWidgets_.plotTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"   ));
-  plotsWidgets_.plotTable->setHorizontalHeaderItem(1, new QTableWidgetItem("Type" ));
-  plotsWidgets_.plotTable->setHorizontalHeaderItem(2, new QTableWidgetItem("State"));
-
-  for (int i = 0; i < np; ++i) {
-    CQChartsPlot *plot = view->plot(i);
-
-    //--
-
-    // set id item store plot index in user data
-    QTableWidgetItem *idItem = new QTableWidgetItem(plot->id());
-
-    plotsWidgets_.plotTable->setItem(i, 0, idItem);
-
-    int ind = view->plotInd(plot);
-
-    idItem->setData(Qt::UserRole, ind);
-
-    //--
-
-    // set type item
-    QTableWidgetItem *typeItem = new QTableWidgetItem(plot->type()->name());
-
-    plotsWidgets_.plotTable->setItem(i, 1, typeItem);
-
-    //--
-
-    // set state item
-    QStringList states;
-
-    if (plot->isOverlay()) states += "overlay";
-    if (plot->isX1X2   ()) states += "x1x2";
-    if (plot->isY1Y2   ()) states += "y1y2";
-
-    QString stateStr = states.join("|");
-
-    if (stateStr == "")
-      stateStr = "normal";
-
-    QTableWidgetItem *stateItem = new QTableWidgetItem(stateStr);
-
-    plotsWidgets_.plotTable->setItem(i, 2, stateItem);
-  }
+  plotsWidgets_.plotTable->updatePlots(view);
 
   //---
 
@@ -1145,17 +1431,7 @@ updateCurrentPlot()
 
   int ind = view->currentPlotInd();
 
-  int nr = plotsWidgets_.plotTable->rowCount();
-
-  for (int i = 0; i < nr; ++i) {
-    QTableWidgetItem *item = plotsWidgets_.plotTable->item(i, 0);
-
-    bool ok;
-
-    long ind1 = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
-
-    item->setSelected(ind1 == ind);
-  }
+  plotsWidgets_.plotTable->setCurrentInd(ind);
 
   //---
 
@@ -1208,18 +1484,7 @@ getSelectedPlots(Plots &plots) const
 {
   CQChartsView *view = window_->view();
 
-  QList<QTableWidgetItem *> items = plotsWidgets_.plotTable->selectedItems();
-
-  for (int i = 0; i < items.length(); ++i) {
-    QTableWidgetItem *item = items[i];
-    if (item->column() != 0) continue;
-
-    QString id = item->text();
-
-    CQChartsPlot *plot = view->getPlot(id);
-
-    plots.push_back(plot);
-  }
+  plotsWidgets_.plotTable->getSelectedPlots(view, plots);
 }
 
 void
@@ -1483,69 +1748,13 @@ updateAnnotations()
 {
   CQChartsView *view = window_->view();
 
-  //---
-
-  annotationsWidgets_.viewTable->clear();
-
-  const CQChartsView::Annotations &viewAnnotations = view->annotations();
-
-  int nv = viewAnnotations.size();
-
-  annotationsWidgets_.viewTable->setColumnCount(2);
-  annotationsWidgets_.viewTable->setRowCount(nv);
-
-  annotationsWidgets_.viewTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"  ));
-  annotationsWidgets_.viewTable->setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
-
-  for (int i = 0; i < nv; ++i) {
-    CQChartsAnnotation *annotation = viewAnnotations[i];
-
-    QTableWidgetItem *idItem = new QTableWidgetItem(annotation->id());
-
-    annotationsWidgets_.viewTable->setItem(i, 0, idItem);
-
-    int ind = annotation->ind();
-
-    idItem->setData(Qt::UserRole, ind);
-
-    QTableWidgetItem *typeItem = new QTableWidgetItem(annotation->typeName());
-
-    annotationsWidgets_.viewTable->setItem(i, 1, typeItem);
-  }
+  annotationsWidgets_.viewTable->updateAnnotations(view);
 
   //---
-
-  annotationsWidgets_.plotTable->clear();
 
   CQChartsPlot *plot = view->currentPlot();
 
-  if (plot) {
-    const CQChartsPlot::Annotations &plotAnnotations = plot->annotations();
-
-    int np = plotAnnotations.size();
-
-    annotationsWidgets_.plotTable->setColumnCount(2);
-    annotationsWidgets_.plotTable->setRowCount(np);
-
-    annotationsWidgets_.plotTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"  ));
-    annotationsWidgets_.plotTable->setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
-
-    for (int i = 0; i < np; ++i) {
-      CQChartsAnnotation *annotation = plotAnnotations[i];
-
-      QTableWidgetItem *idItem = new QTableWidgetItem(annotation->id());
-
-      annotationsWidgets_.plotTable->setItem(i, 0, idItem);
-
-      int ind = annotation->ind();
-
-      idItem->setData(Qt::UserRole, ind);
-
-      QTableWidgetItem *typeItem = new QTableWidgetItem(annotation->typeName());
-
-      annotationsWidgets_.plotTable->setItem(i, 1, typeItem);
-    }
-  }
+  annotationsWidgets_.plotTable->updateAnnotations(plot);
 }
 
 void
@@ -1628,37 +1837,14 @@ getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotation
 {
   CQChartsView *view = window_->view();
 
-  QList<QTableWidgetItem *> items = annotationsWidgets_.viewTable->selectedItems();
+  annotationsWidgets_.viewTable->getSelectedAnnotations(view, viewAnnotations);
 
-  for (int i = 0; i < items.length(); ++i) {
-    QTableWidgetItem *item = items[i];
-    if (item->column() != 0) continue;
-
-    QString id = item->text();
-
-    CQChartsAnnotation *annotation = view->getAnnotationByName(id);
-
-    if (annotation)
-      viewAnnotations.push_back(annotation);
-  }
+  //---
 
   CQChartsPlot *plot = view->currentPlot();
 
-  if (plot) {
-    QList<QTableWidgetItem *> items = annotationsWidgets_.plotTable->selectedItems();
-
-    for (int i = 0; i < items.length(); ++i) {
-      QTableWidgetItem *item = items[i];
-      if (item->column() != 0) continue;
-
-      QString id = item->text();
-
-      CQChartsAnnotation *annotation = plot->getAnnotationByName(id);
-
-      if (annotation)
-        plotAnnotations.push_back(annotation);
-    }
-  }
+  if (plot)
+    annotationsWidgets_.plotTable->getSelectedAnnotations(plot, plotAnnotations);
 }
 
 void
@@ -1836,84 +2022,15 @@ void
 CQChartsViewSettings::
 updateLayers()
 {
-  int l1 = (int) CQChartsLayer::firstLayer();
-  int l2 = (int) CQChartsLayer::lastLayer ();
-
-  if (layersWidgets_.layerTable->rowCount() == 0) {
-    layersWidgets_.layerTable->clear();
-
-    layersWidgets_.layerTable->setColumnCount(3);
-    layersWidgets_.layerTable->setRowCount(l2 - l1 + 1);
-
-    layersWidgets_.layerTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Layer"));
-    layersWidgets_.layerTable->setHorizontalHeaderItem(1, new QTableWidgetItem("State"));
-    layersWidgets_.layerTable->setHorizontalHeaderItem(2, new QTableWidgetItem("Rect" ));
-
-    for (int l = l1; l <= l2; ++l) {
-      int i = l - l1;
-
-      CQChartsLayer::Type type = (CQChartsLayer::Type) l;
-
-      QString name = CQChartsLayer::typeName(type);
-
-      QTableWidgetItem *idItem = new QTableWidgetItem(name);
-
-      layersWidgets_.layerTable->setItem(i, 0, idItem);
-
-      idItem->setData(Qt::UserRole, l);
-
-      QTableWidgetItem *stateItem = new QTableWidgetItem("");
-
-    //stateItem->setFlags(stateItem->flags() | Qt::ItemIsEnabled);
-      stateItem->setFlags(stateItem->flags() | Qt::ItemIsUserCheckable);
-    //stateItem->setFlags(stateItem->flags() & ! Qt::ItemIsEditable);
-
-      layersWidgets_.layerTable->setItem(i, 1, stateItem);
-
-      QTableWidgetItem *rectItem = new QTableWidgetItem("");
-
-      layersWidgets_.layerTable->setItem(i, 2, rectItem);
-    }
-  }
+  layersWidgets_.layerTable->initLayers();
 
   //---
 
   CQChartsView *view = window_->view();
+  CQChartsPlot *plot = (view ? view->currentPlot() : nullptr);
+  if (! plot) return;
 
-  CQChartsPlot *plot = view->currentPlot();
-
-  if (! plot)
-    return;
-
-  for (int l = l1; l <= l2; ++l) {
-    int i = l - l1;
-
-    CQChartsLayer::Type type = (CQChartsLayer::Type) l;
-
-    CQChartsLayer *layer = plot->getLayer(type);
-
-    const CQChartsBuffer *buffer = (layer ? plot->getBuffer(layer->buffer()) : nullptr);
-
-//  QTableWidgetItem *idItem    = layersWidgets_.layerTable->item(i, 0);
-    QTableWidgetItem *stateItem = layersWidgets_.layerTable->item(i, 1);
-    QTableWidgetItem *rectItem  = layersWidgets_.layerTable->item(i, 2);
-
-    QStringList states;
-
-    if (layer  && layer ->isActive()) states += "active";
-    if (buffer && buffer->isValid ()) states += "valid";
-
-    stateItem->setText(states.join("|"));
-
-    stateItem->setCheckState((layer && layer->isActive()) ? Qt::Checked : Qt::Unchecked);
-
-    QRectF rect = (buffer ? buffer->rect() : QRectF());
-
-    QString rectStr = QString("X:%1, Y:%2, W:%3, H:%4").
-                        arg(rect.x()).arg(rect.y()).arg(rect.width()).arg(rect.height());
-
-    rectItem->setText(rectStr);
-  }
+  layersWidgets_.layerTable->updateLayers(plot);
 }
 
 void
@@ -1930,23 +2047,17 @@ layersClickedSlot(int row, int column)
     return;
 
   CQChartsView *view = window_->view();
-  assert(view);
-
-  CQChartsPlot *plot = view->currentPlot();
+  CQChartsPlot *plot = (view ? view->currentPlot() : nullptr);
   if (! plot) return;
 
-  QTableWidgetItem *nameItem = layersWidgets_.layerTable->item(row, 0);
+  CQChartsLayer::Type type;
+  bool                active;
 
-  QString name = nameItem->text();
-
-  CQChartsLayer::Type type = CQChartsLayer::nameType(name);
+  if (! layersWidgets_.layerTable->getLayerState(plot, row, type, active))
+    return;
 
   CQChartsLayer *layer = plot->getLayer(type);
   if (! layer) return;
-
-  QTableWidgetItem *stateItem = layersWidgets_.layerTable->item(row, 1);
-
-  bool active = (stateItem->checkState() == Qt::Checked);
 
   plot->setLayerActive(type, active);
 
@@ -2023,4 +2134,3 @@ addSearchSlot(const QString &text)
 //tree_->addSearch(text);
   tree_->search(text);
 }
-

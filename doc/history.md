@@ -788,3 +788,5 @@
  + clean up edit dialogs to support tabs
 # 3/3/2019
  + Use separate property models for plots
+# 3/4/2019
+ + add tcl selection callbacks, selection query and plot selection signals

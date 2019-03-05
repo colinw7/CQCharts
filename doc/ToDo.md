@@ -1,6 +1,6 @@
 High
- + Key Title Properties
- + Clipping when scrolled with title
+ + Clipping when key scrolled with title
+ + Common text drawing to support all options
  + Font Editor
  + Use QThread
  + Numeric Sort for strings (split into numeber/non-number blocks)

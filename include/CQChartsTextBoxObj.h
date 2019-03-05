@@ -40,7 +40,6 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   void addTextDataProperties(CQPropertyViewModel *model, const QString &path);
 
-
   //---
 
   void draw(QPainter *painter, const QRectF &rect) const;

@@ -2823,6 +2823,22 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(vars);
     }
+    else if (name == "selected_objects") {
+      CQChartsView::Objs objs;
+
+      view->allSelectedObjs(objs);
+
+      QStringList ids;
+
+      for (const auto &obj : objs) {
+        CQChartsPlotObj *plotObj = qobject_cast<CQChartsPlotObj *>(obj);
+
+        if (plotObj)
+          ids.push_back(plotObj->plot()->id() + ":" + plotObj->id());
+      }
+
+      cmdBase_->setCmdRc(ids);
+    }
     else if (name == "view_width") {
       CQChartsLength len(data, CQChartsUnits::VIEW);
 
@@ -3054,6 +3070,18 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(vars);
     }
+    else if (name == "selected_objects") {
+      CQChartsPlot::PlotObjs objs;
+
+      plot->selectedPlotObjs(objs);
+
+      QStringList ids;
+
+      for (const auto &obj : objs)
+        ids.push_back(obj->id());
+
+      cmdBase_->setCmdRc(ids);
+    }
     else if (name == "inds") {
       if (! objectId.length()) {
         charts_->errorMsg("Missing object id");
@@ -3106,7 +3134,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     }
     else if (name == "?") {
       QStringList names = QStringList() <<
-       "model" << "value" << "map" << "annotations" << "objects" << "inds" <<
+       "model" << "value" << "map" << "annotations" << "objects" << "selected_objects" << "inds" <<
        "plot_width" << "plot_height" << "pixel_width" << "pixel_height" << "pixel_position";
 
       cmdBase_->setCmdRc(names);
@@ -4302,38 +4330,53 @@ connectChartsCmd(CQChartsCmdArgs &argv)
   QString fromName = argv.getParseStr("from");
   QString toName   = argv.getParseStr("to"  );
 
-  CQChartsCmdsSlot *cmdsSlot = new CQChartsCmdsSlot(this, view, plot, toName);
+  auto createCmdsSlot = [&]() {
+    return new CQChartsCmdsSlot(this, view, plot, toName);
+  };
 
   if      (fromName == "objIdPressed") {
     if (plot)
       connect(plot, SIGNAL(objIdPressed(const QString &)),
-              cmdsSlot, SLOT(objIdPressed(const QString &)));
+              createCmdsSlot(), SLOT(objIdPressed(const QString &)));
     else
       connect(view, SIGNAL(objIdPressed(const QString &)),
-              cmdsSlot, SLOT(objIdPressed(const QString &)));
+              createCmdsSlot(), SLOT(objIdPressed(const QString &)));
   }
   else if (fromName == "annotationIdPressed") {
     if (plot)
       connect(plot, SIGNAL(annotationIdPressed(const QString &)),
-              cmdsSlot, SLOT(annotationIdPressed(const QString &)));
+              createCmdsSlot(), SLOT(annotationIdPressed(const QString &)));
     else
       connect(view, SIGNAL(annotationIdPressed(const QString &)),
-              cmdsSlot, SLOT(annotationIdPressed(const QString &)));
+              createCmdsSlot(), SLOT(annotationIdPressed(const QString &)));
   }
   else if (fromName == "plotObjsAdded") {
     if (plot)
-      connect(plot, SIGNAL(plotObjsAdded()),
-              cmdsSlot, SLOT(plotObjsAdded()));
+      connect(plot, SIGNAL(plotObjsAdded()), createCmdsSlot(), SLOT(plotObjsAdded()));
+    else {
+      charts_->errorMsg("unknown slot");
+      return false;
+    }
+  }
+  else if (fromName == "selectionChanged") {
+    if (plot)
+      connect(plot, SIGNAL(selectionChanged()), createCmdsSlot(), SLOT(selectionChanged()));
+    else
+      connect(view, SIGNAL(selectionChanged()), createCmdsSlot(), SLOT(selectionChanged()));
   }
   else if (fromName == "?") {
-    QStringList names = QStringList() <<
-     "objIdPressed" << "annotationIdPressed" << "plotObjsAdded";
+    QStringList names;
+
+    if (plot)
+      names = QStringList() << "objIdPressed" << "annotationIdPressed" <<
+                               "plotObjsAdded" << "selectionChanged";
+    else
+      names = QStringList() << "objIdPressed" << "annotationIdPressed" << "selectionChanged";
 
     cmdBase_->setCmdRc(names);
   }
   else {
     charts_->errorMsg("unknown slot");
-    delete cmdsSlot;
     return false;
   }
 

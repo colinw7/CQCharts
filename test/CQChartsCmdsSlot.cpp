@@ -18,7 +18,7 @@ objIdPressed(const QString &id)
 {
   QString cmd = getTclIdCmd(id);
 
-  cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
+  evalCmd(cmd);
 }
 
 void
@@ -27,22 +27,48 @@ annotationIdPressed(const QString &id)
 {
   QString cmd = getTclIdCmd(id);
 
-  cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
+  evalCmd(cmd);
 }
 
 void
 CQChartsCmdsSlot::
 plotObjsAdded()
 {
-  disconnect(plot_, SIGNAL(plotObjsAdded()),
-             this, SLOT(plotObjsAdded()));
+  if (plot_)
+    disconnect(plot_, SIGNAL(plotObjsAdded()), this, SLOT(plotObjsAdded()));
 
   QString cmd = getTclCmd();
 
-  cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
+  evalCmd(cmd);
 
-  connect(plot_, SIGNAL(plotObjsAdded()),
-          this, SLOT(plotObjsAdded()));
+  if (plot_)
+    connect(plot_, SIGNAL(plotObjsAdded()), this, SLOT(plotObjsAdded()));
+}
+
+void
+CQChartsCmdsSlot::
+selectionChanged()
+{
+  if (plot_)
+    disconnect(plot_, SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
+  else
+    disconnect(view_, SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
+
+  QString cmd = getTclCmd();
+
+  evalCmd(cmd);
+
+  if (plot_)
+    connect(plot_, SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
+  else
+    connect(view_, SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
+}
+
+void
+CQChartsCmdsSlot::
+evalCmd(const QString &cmd)
+{
+  cmds_->cmdBase()->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
 }
 
 QString

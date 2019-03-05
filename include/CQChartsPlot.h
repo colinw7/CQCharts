@@ -890,13 +890,13 @@ class CQChartsPlot : public CQChartsObj,
   QModelIndex selectIndex(int row, const CQChartsColumn &col,
                           const QModelIndex &parent=QModelIndex()) const;
 
-  void beginSelect();
+  void beginSelectIndex();
 
   void addSelectIndex(const CQChartsModelIndex &ind);
   void addSelectIndex(int row, int col, const QModelIndex &parent=QModelIndex());
   void addSelectIndex(const QModelIndex &ind);
 
-  void endSelect();
+  void endSelectIndex();
 
   //---
 
@@ -1250,6 +1250,11 @@ class CQChartsPlot : public CQChartsObj,
 
   // handle rect select
   bool rectSelect(const CQChartsGeom::BBox &r, SelMod selMod);
+
+  //---
+
+  void startSelection();
+  void endSelection();
 
   //---
 
@@ -1752,6 +1757,9 @@ class CQChartsPlot : public CQChartsObj,
 
   // annotations changed
   void annotationsChanged();
+
+  // selection changed
+  void selectionChanged();
 
  protected:
   struct NoUpdate {

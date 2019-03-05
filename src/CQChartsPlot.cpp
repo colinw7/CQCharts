@@ -399,7 +399,7 @@ selectionSlot()
 
   //---
 
-  view()->startSelection();
+  startSelection();
 
   // deselect all objects
   deselectAllObjs();
@@ -416,7 +416,7 @@ selectionSlot()
     }
   }
 
-  view()->endSelection();
+  endSelection();
 
   //---
 
@@ -1668,7 +1668,7 @@ void
 CQChartsPlot::
 propertyItemSelected(QObject *obj, const QString &)
 {
-  view()->startSelection();
+  startSelection();
 
   view()->deselectAll();
 
@@ -1726,7 +1726,7 @@ propertyItemSelected(QObject *obj, const QString &)
     }
   }
 
-  view()->endSelection();
+  endSelection();
 
   //---
 
@@ -3169,36 +3169,36 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
 
   //---
 
-  // determine if selection changed
+  // select objects and track if selection changed
   bool changed = false;
+
+  auto setObjSelected = [&](CQChartsObj *obj, bool selected) {
+    if (! changed) { startSelection(); changed = true; }
+
+    obj->setSelected(selected);
+  };
 
   for (const auto &objSelected : objsSelected) {
     if (objSelected.first->isSelected() == objSelected.second)
       continue;
 
-    if (! objSelected.second) {
-      if (! changed) { view()->startSelection(); changed = true; }
-
-      objSelected.first->setSelected(objSelected.second);
-    }
+    if (! objSelected.second)
+      setObjSelected(objSelected.first, objSelected.second);
   }
 
   for (const auto &objSelected : objsSelected) {
     if (objSelected.first->isSelected() == objSelected.second)
       continue;
 
-    if (objSelected.second) {
-      if (! changed) { view()->startSelection(); changed = true; }
-
-      objSelected.first->setSelected(objSelected.second);
-    }
+    if (objSelected.second)
+      setObjSelected(objSelected.first, objSelected.second);
   }
 
   //----
 
   // update selection if changed
   if (changed) {
-    beginSelect();
+    beginSelectIndex();
 
     for (const auto &objSelected : objsSelected) {
       CQChartsPlotObj *selectPlotObj = dynamic_cast<CQChartsPlotObj *>(objSelected.first);
@@ -3209,7 +3209,7 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
       selectPlotObj->addSelectIndices();
     }
 
-    endSelect();
+    endSelectIndex();
 
     //---
 
@@ -3220,7 +3220,7 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
 
     //---
 
-    view()->endSelection();
+    endSelection();
   }
 
   //---
@@ -3569,13 +3569,13 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool insid
   //---
 
   auto selectPlot = [&]() {
-    view()->startSelection();
+    startSelection();
 
     view()->deselectAll();
 
     setSelected(true);
 
-    view()->endSelection();
+    endSelection();
 
     //---
 
@@ -3625,7 +3625,7 @@ void
 CQChartsPlot::
 selectOneObj(CQChartsObj *obj, bool allObjs)
 {
-  view()->startSelection();
+  startSelection();
 
   if (allObjs)
     deselectAllObjs();
@@ -3634,7 +3634,7 @@ selectOneObj(CQChartsObj *obj, bool allObjs)
 
   obj->setSelected(true);
 
-  view()->endSelection();
+  endSelection();
 
   drawOverlay();
 }
@@ -3643,7 +3643,7 @@ void
 CQChartsPlot::
 deselectAllObjs()
 {
-  view()->startSelection();
+  startSelection();
 
   //---
 
@@ -3660,7 +3660,7 @@ deselectAllObjs()
 
   //---
 
-  view()->endSelection();
+  endSelection();
 }
 
 void
@@ -3683,7 +3683,7 @@ deselectAll()
   //---
 
   if (changed) {
-    view()->endSelection();
+    endSelection();
 
     drawOverlay();
   }
@@ -3694,11 +3694,7 @@ CQChartsPlot::
 deselectAll1(bool &changed)
 {
   auto updateChanged = [&] {
-    if (! changed) {
-      view()->startSelection();
-
-      changed = true;
-    }
+    if (! changed) { startSelection(); changed = true; }
   };
 
   //---
@@ -4096,36 +4092,36 @@ rectSelect(const CQChartsGeom::BBox &r, SelMod selMod)
 
   //---
 
-  // determine if selection changed
+  // select objects and track if selection changed
   bool changed = false;
+
+  auto setObjSelected = [&](CQChartsObj *obj, bool selected) {
+    if (! changed) { startSelection(); changed = true; }
+
+    obj->setSelected(selected);
+  };
 
   for (const auto &objSelected : objsSelected) {
     if (objSelected.first->isSelected() == objSelected.second)
       continue;
 
-    if (! objSelected.second) {
-      if (! changed) { view()->startSelection(); changed = true; }
-
-      objSelected.first->setSelected(objSelected.second);
-    }
+    if (! objSelected.second)
+      setObjSelected(objSelected.first, objSelected.second);
   }
 
   for (const auto &objSelected : objsSelected) {
     if (objSelected.first->isSelected() == objSelected.second)
       continue;
 
-    if (objSelected.second) {
-      if (! changed) { view()->startSelection(); changed = true; }
-
-      objSelected.first->setSelected(objSelected.second);
-    }
+    if (objSelected.second)
+      setObjSelected(objSelected.first, objSelected.second);
   }
 
   //----
 
   // update selection if changed
   if (changed) {
-    beginSelect();
+    beginSelectIndex();
 
     for (const auto &objSelected : objsSelected) {
       CQChartsPlotObj *selectPlotObj = dynamic_cast<CQChartsPlotObj *>(objSelected.first);
@@ -4136,7 +4132,7 @@ rectSelect(const CQChartsGeom::BBox &r, SelMod selMod)
       selectPlotObj->addSelectIndices();
     }
 
-    endSelect();
+    endSelectIndex();
 
     //---
 
@@ -4147,12 +4143,28 @@ rectSelect(const CQChartsGeom::BBox &r, SelMod selMod)
 
     //---
 
-    view()->endSelection();
+    endSelection();
   }
 
   //---
 
   return ! objs.empty();
+}
+
+void
+CQChartsPlot::
+startSelection()
+{
+  view()->startSelection();
+}
+
+void
+CQChartsPlot::
+endSelection()
+{
+  view()->endSelection();
+
+  emit selectionChanged();
 }
 
 void
@@ -8837,7 +8849,7 @@ selectIndex(int row, const CQChartsColumn &column, const QModelIndex &parent) co
 
 void
 CQChartsPlot::
-beginSelect()
+beginSelectIndex()
 {
   selIndexColumnRows_.clear();
 
@@ -8878,7 +8890,7 @@ addSelectIndex(const QModelIndex &ind)
 
 void
 CQChartsPlot::
-endSelect()
+endSelectIndex()
 {
   QItemSelectionModel *sm = this->selectionModel();
   if (! sm) return;

@@ -5,6 +5,12 @@
 
 class CQChartsViewSettingsPlotTabWidget;
 class CQChartsViewSettingsFilterEdit;
+class CQChartsViewSettingsModelTable;
+class CQChartsViewSettingsPlotTable;
+class CQChartsViewSettingsViewAnnotationsTable;
+class CQChartsViewSettingsPlotAnnotationsTable;
+class CQChartsViewSettingsLayerTable;
+
 class CQChartsModelDetailsWidget;
 class CQChartsWindow;
 class CQChartsPlot;
@@ -23,7 +29,6 @@ class CQChartsPropertyViewTree;
 
 class CQIntegerSpin;
 class QTabWidget;
-class QTableWidget;
 class QComboBox;
 class QSpinBox;
 class QPushButton;
@@ -166,30 +171,30 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct ModelsWidgets {
-    QTableWidget*               modelTable    { nullptr }; //! model table
-    CQChartsModelDetailsWidget* detailsWidget { nullptr }; //! model details
+    CQChartsViewSettingsModelTable* modelTable    { nullptr }; //! model table
+    CQChartsModelDetailsWidget*     detailsWidget { nullptr }; //! model details
   };
 
   struct PlotsWidgets {
-    QTableWidget*  plotTable            { nullptr }; //! plot table
-    QCheckBox*     overlayCheck         { nullptr }; //! overlay check
-    QCheckBox*     x1x2Check            { nullptr }; //! x1x2 check
-    QCheckBox*     y1y2Check            { nullptr }; //! y1y2 check
-    QRadioButton*  placeVerticalRadio   { nullptr }; //! place vertical radio
-    QRadioButton*  placeHorizontalRadio { nullptr }; //! place horizontal radio
-    QRadioButton*  placeGridRadio       { nullptr }; //! place grid radio
-    CQIntegerSpin* placeRowsEdit        { nullptr }; //! grid number of rows edit
-    CQIntegerSpin* placeColumnsEdit     { nullptr }; //! grid number of columns edit
-    QPushButton*   raiseButton          { nullptr }; //! raise plot button
-    QPushButton*   lowerButton          { nullptr }; //! lower plot button
-    QPushButton*   removeButton         { nullptr }; //! remove plot button
+    CQChartsViewSettingsPlotTable* plotTable            { nullptr }; //! plot table
+    QCheckBox*                     overlayCheck         { nullptr }; //! overlay check
+    QCheckBox*                     x1x2Check            { nullptr }; //! x1x2 check
+    QCheckBox*                     y1y2Check            { nullptr }; //! y1y2 check
+    QRadioButton*                  placeVerticalRadio   { nullptr }; //! place vertical radio
+    QRadioButton*                  placeHorizontalRadio { nullptr }; //! place horizontal radio
+    QRadioButton*                  placeGridRadio       { nullptr }; //! place grid radio
+    CQIntegerSpin*                 placeRowsEdit        { nullptr }; //! grid number of rows edit
+    CQIntegerSpin*                 placeColumnsEdit     { nullptr }; //! grid number of columns edit
+    QPushButton*                   raiseButton          { nullptr }; //! raise plot button
+    QPushButton*                   lowerButton          { nullptr }; //! lower plot button
+    QPushButton*                   removeButton         { nullptr }; //! remove plot button
   };
 
   struct AnnotationsWidgets {
-    QTableWidget* viewTable    { nullptr }; //! view annotations table widget
-    QTableWidget* plotTable    { nullptr }; //! plot annotations table widget
-    QPushButton*  editButton   { nullptr }; //! edit annotation button
-    QPushButton*  removeButton { nullptr }; //! remove annotation button
+    CQChartsViewSettingsViewAnnotationsTable* viewTable    { nullptr }; //! view annotations table
+    CQChartsViewSettingsPlotAnnotationsTable* plotTable    { nullptr }; //! plot annotations table
+    QPushButton*                              editButton   { nullptr }; //! edit button
+    QPushButton*                              removeButton { nullptr }; //! remove button
   };
 
   struct ThemeWidgets {
@@ -203,7 +208,7 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct LayersWidgets {
-    QTableWidget* layerTable { nullptr }; //! layer table widget
+    CQChartsViewSettingsLayerTable* layerTable { nullptr }; //! layer table widget
   };
 
   CQChartsWindow*              window_              { nullptr }; //! parent window
