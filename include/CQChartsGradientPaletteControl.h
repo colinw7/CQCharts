@@ -12,10 +12,10 @@ class CQChartsGradientPaletteColorModel;
 class CQChartsGradientPaletteModel;
 class CQChartsGradientPaletteDefinedColors;
 class CQRealSpin;
+class CQLineEdit;
 
 class QStackedWidget;
 class QPushButton;
-class QLineEdit;
 class QCheckBox;
 class QLabel;
 class QGridLayout;
@@ -123,7 +123,7 @@ class CQChartsGradientPaletteControl : public QFrame {
                         QLabel **modelLabel, CQChartsGradientPaletteModel **modelCombo);
 
   void createFunctionEdit(QGridLayout *grid, int row, const QString &label,
-                          QLabel **functionLabel, QLineEdit **functionEdit);
+                          QLabel **functionLabel, CQLineEdit **functionEdit);
 
   void createRealEdit(QGridLayout *grid, int row, const QString &label, CQRealSpin **edit);
 
@@ -157,9 +157,9 @@ class CQChartsGradientPaletteControl : public QFrame {
   QLabel*                               redFunctionLabel_    { nullptr };
   QLabel*                               greenFunctionLabel_  { nullptr };
   QLabel*                               blueFunctionLabel_   { nullptr };
-  QLineEdit*                            redFunctionEdit_     { nullptr };
-  QLineEdit*                            greenFunctionEdit_   { nullptr };
-  QLineEdit*                            blueFunctionEdit_    { nullptr };
+  CQLineEdit*                           redFunctionEdit_     { nullptr };
+  CQLineEdit*                           greenFunctionEdit_   { nullptr };
+  CQLineEdit*                           blueFunctionEdit_    { nullptr };
   CQChartsGradientPaletteDefinedColors* definedColors_       { nullptr };
   QPushButton*                          addColorButton_      { nullptr };
   QPushButton*                          removeColorButton_   { nullptr };

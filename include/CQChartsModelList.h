@@ -11,9 +11,9 @@ class CQChartsTree;
 class CQCharts;
 
 class CQTableWidget;
+class CQLineEdit;
 class QStackedWidget;
 class QTabWidget;
-class QLineEdit;
 
 //---
 
@@ -23,7 +23,7 @@ struct CQChartsViewWidgetData {
   QStackedWidget*             stack         { nullptr };
   CQChartsTable*              table         { nullptr };
   CQChartsTree*               tree          { nullptr };
-  QLineEdit*                  filterEdit    { nullptr };
+  CQLineEdit*                 filterEdit    { nullptr };
   CQChartsModelDetailsWidget* detailsWidget { nullptr };
 };
 

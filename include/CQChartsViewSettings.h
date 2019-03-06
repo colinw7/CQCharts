@@ -28,6 +28,8 @@ class CQChartsEditAxisDlg;
 class CQChartsPropertyViewTree;
 
 class CQIntegerSpin;
+class CQGroupBox;
+
 class QTabWidget;
 class QComboBox;
 class QSpinBox;
@@ -161,17 +163,15 @@ class CQChartsViewSettings : public QFrame {
   void getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotations) const;
 
  private:
-  using PlotTabWidgets = std::map<CQChartsPlot *, CQChartsViewSettingsPlotTabWidget *>;
-
   struct PropertiesWidgets {
     CQChartsViewSettingsFilterEdit* viewFilterEdit   { nullptr }; //! view settings filter
     CQChartsPropertyViewTree*       viewPropertyTree { nullptr }; //! view settings tree
     QTabWidget*                     plotsTab         { nullptr }; //! plots settings tab
-    PlotTabWidgets                  plotTabWidgets;
   };
 
   struct ModelsWidgets {
     CQChartsViewSettingsModelTable* modelTable    { nullptr }; //! model table
+    CQGroupBox*                     detailsGroup  { nullptr }; //! model details group box
     CQChartsModelDetailsWidget*     detailsWidget { nullptr }; //! model details
   };
 
@@ -243,9 +243,13 @@ class CQChartsViewSettingsPlotTabWidget : public QFrame {
 
   CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
 
+ signals:
+  void propertyItemSelected(QObject *obj, const QString &path);
+
  private:
-  CQChartsPlot*             plot_         { nullptr };
-  CQChartsPropertyViewTree* propertyTree_ { nullptr };
+  CQChartsPlot*                   plot_         { nullptr };
+  CQChartsPropertyViewTree*       propertyTree_ { nullptr };
+  CQChartsViewSettingsFilterEdit* filterEdit_   { nullptr };
 };
 
 //---
@@ -259,6 +263,7 @@ class CQChartsViewSettingsFilterEdit : public QFrame {
  private slots:
   void replaceFilterSlot(const QString &text);
   void addFilterSlot(const QString &text);
+
   void replaceSearchSlot(const QString &text);
   void addSearchSlot(const QString &text);
 

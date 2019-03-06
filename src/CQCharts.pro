@@ -451,7 +451,7 @@ HEADERS += \
 ../include/CQBucketer.h \
 \
 ../include/CQHistoryLineEdit.h \
-CQFilename.h \
+../include/CQFilename.h \
 ../include/CQRangeScroll.h \
 \
 ../include/CUnixFile.h \

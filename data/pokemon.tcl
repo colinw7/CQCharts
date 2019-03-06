@@ -34,7 +34,7 @@ set_charts_property -plot $plot1 -name "yaxis.label.text" -value "Strength"
 }
 
 # create new column as combination of Type 1 and new Type 2
-add_process_model_proc concat { a b c } {
+define_charts_proc concat { a b c } {
   return "${a}${b}${c}"
 }
 

@@ -4,12 +4,12 @@
 #include <CQRealSpin.h>
 #include <CQColorChooser.h>
 #include <CQGroupBox.h>
+#include <CQLineEdit.h>
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
 #include <QStackedWidget>
-#include <QLineEdit>
 #include <QPushButton>
 #include <QLabel>
 #include <QFileDialog>
@@ -804,7 +804,7 @@ void
 CQChartsGradientPaletteControl::
 functionChanged()
 {
-  QLineEdit *le = qobject_cast<QLineEdit *>(sender());
+  CQLineEdit *le = qobject_cast<CQLineEdit *>(sender());
   assert(le);
 
   CQChartsGradientPalette *pal = palette_->gradientPalette();
@@ -944,13 +944,10 @@ createModelCombo(QGridLayout *grid, int row, const QString &label,
 void
 CQChartsGradientPaletteControl::
 createFunctionEdit(QGridLayout *grid, int row, const QString &label,
-                   QLabel **functionLabel, QLineEdit **functionEdit)
+                   QLabel **functionLabel, CQLineEdit **functionEdit)
 {
-  *functionLabel = new QLabel(label);
-  (*functionLabel)->setObjectName("label");
-
-  *functionEdit = new QLineEdit;
-  (*functionEdit)->setObjectName("edit");
+  *functionLabel = CQUtil::makeLabelWidget<QLabel>(label, "label");
+  *functionEdit  = CQUtil::makeWidget<CQLineEdit>("edit");
 
   grid->addWidget(*functionLabel, row, 0);
   grid->addWidget(*functionEdit , row, 1);

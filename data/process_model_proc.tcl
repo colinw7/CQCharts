@@ -1,11 +1,11 @@
 set modelId [load_model -csv data/chord-cities.csv]
 puts $modelId
 
-add_process_model_proc fromProc { arg } {
+define_charts_proc fromProc { arg } {
   return [lindex [split $arg / ] 0]
 }
 
-add_process_model_proc toProc { arg } {
+define_charts_proc toProc { arg } {
   return [lindex [split $arg / ] 1]
 }
 

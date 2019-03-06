@@ -7,9 +7,9 @@
 #include <CQChartsUtil.h>
 #include <CQDividedArea.h>
 #include <CQFilename.h>
+#include <CQUtil.h>
 
 #include <QComboBox>
-#include <QLineEdit>
 #include <QPushButton>
 #include <QCheckBox>
 #include <QTextEdit>
@@ -104,8 +104,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   //--
 
   // Number Edit
-  numberEdit_ = new QLineEdit;
-  numberEdit_->setObjectName("numberEdit");
+  numberEdit_ = CQUtil::makeWidget<CQLineEdit>("numerEdit");
 
   numberEdit_->setText("100");
 
@@ -143,8 +142,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   //--
 
   // Filter Edit
-  filterEdit_ = new QLineEdit;
-  filterEdit_->setObjectName("filterEdit");
+  filterEdit_ = CQUtil::makeWidget<CQLineEdit>("filterEdit");
 
   fileFrameLayout->addWidget(new QLabel("Filter"), row, 0);
   fileFrameLayout->addWidget(filterEdit_         , row, 1);

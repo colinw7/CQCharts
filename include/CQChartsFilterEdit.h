@@ -5,7 +5,7 @@
 
 class CQIconCombo;
 class CQSwitch;
-class QLineEdit;
+class CQLineEdit;
 class QCheckBox;
 
 class CQChartsFilterEdit : public QFrame {
@@ -34,7 +34,7 @@ class CQChartsFilterEdit : public QFrame {
   void addSearch(const QString &text);
 
  private:
-  QLineEdit*   edit_             { nullptr };
+  CQLineEdit*  edit_             { nullptr };
   CQIconCombo* combo_            { nullptr };
   CQSwitch*    addReplaceSwitch_ { nullptr };
   CQSwitch*    andOrSwitch_      { nullptr };

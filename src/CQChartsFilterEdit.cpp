@@ -1,8 +1,9 @@
 #include <CQChartsFilterEdit.h>
 #include <CQIconCombo.h>
 #include <CQSwitch.h>
+#include <CQLineEdit.h>
+#include <CQUtil.h>
 
-#include <QLineEdit>
 #include <QHBoxLayout>
 #include <QButtonGroup>
 
@@ -20,10 +21,7 @@ CQChartsFilterEdit(QWidget *parent) :
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setMargin(0); layout->setSpacing(2);
 
-  edit_ = new QLineEdit;
-
-  edit_->setObjectName("edit");
-  edit_->setClearButtonEnabled(true);
+  edit_ = CQUtil::makeWidget<CQLineEdit>("edit");
 
   connect(edit_, SIGNAL(returnPressed()), this, SLOT(acceptSlot()));
 

@@ -75,14 +75,14 @@ addCommands()
 
   if (! cmdsAdded) {
     // load, process, sort, fold, filter, flatten model
-    addCommand("load_model"            , new CQChartsLoadModelCmd          (this));
-    addCommand("process_model"         , new CQChartsProcessModelCmd       (this));
-    addCommand("add_process_model_proc", new CQChartsAddProcessModelProcCmd(this));
-    addCommand("sort_model"            , new CQChartsSortModelCmd          (this));
-    addCommand("fold_model"            , new CQChartsFoldModelCmd          (this));
-    addCommand("filter_model"          , new CQChartsFilterModelCmd        (this));
-    addCommand("flatten_model"         , new CQChartsFlattenModelCmd       (this));
-    addCommand("copy_model"            , new CQChartsCopyModelCmd          (this));
+    addCommand("load_model"        , new CQChartsLoadModelCmd       (this));
+    addCommand("process_model"     , new CQChartsProcessModelCmd    (this));
+    addCommand("define_charts_proc", new CQChartsDefineChartsProcCmd(this));
+    addCommand("sort_model"        , new CQChartsSortModelCmd       (this));
+    addCommand("fold_model"        , new CQChartsFoldModelCmd       (this));
+    addCommand("filter_model"      , new CQChartsFilterModelCmd     (this));
+    addCommand("flatten_model"     , new CQChartsFlattenModelCmd    (this));
+    addCommand("copy_model"        , new CQChartsCopyModelCmd       (this));
 
     // correlation, subset, tranpose
     addCommand("create_correlation_model", new CQChartsCorrelationModelCmd(this));
@@ -612,9 +612,9 @@ processModelCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-addProcessModelProcCmd(CQChartsCmdArgs &argv)
+defineChartsProcCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::addProcessModelProcCmd");
+  CQPerfTrace trace("CQChartsCmds::defineChartsProcCmd");
 
   argv.addCmdArg("name", CQChartsCmdArg::Type::String, "proc name").setRequired();
   argv.addCmdArg("args", CQChartsCmdArg::Type::String, "proc args").setRequired();
@@ -626,7 +626,7 @@ addProcessModelProcCmd(CQChartsCmdArgs &argv)
   const Vars &pargs = argv.getParseArgs();
 
   if (pargs.size() != 3) {
-    charts_->errorMsg("Usage: add_process_model_proc <name> <args> <body>");
+    charts_->errorMsg("Usage: define_charts_proc <name> <args> <body>");
     return false;
   }
 

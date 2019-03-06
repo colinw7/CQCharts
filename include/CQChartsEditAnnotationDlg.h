@@ -18,8 +18,8 @@ class CQChartsColorLineEdit;
 
 class CQRealSpin;
 class CQCheckBox;
+class CQLineEdit;
 
-class QLineEdit;
 class QFrame;
 class QRadioButton;
 class QBoxLayout;
@@ -54,7 +54,7 @@ class CQChartsEditAnnotationDlg : public QDialog {
     CQChartsPositionEdit* centerEdit  { nullptr };
     CQChartsLengthEdit*   rxEdit      { nullptr };
     CQChartsLengthEdit*   ryEdit      { nullptr };
-    QLineEdit*            paddingEdit { nullptr };
+    CQLineEdit*           paddingEdit { nullptr };
   };
 
   struct PolygonWidgets : public Widgets {
@@ -70,7 +70,7 @@ class CQChartsEditAnnotationDlg : public QDialog {
     QRadioButton*         rectRadio     { nullptr };
     CQChartsPositionEdit* positionEdit  { nullptr };
     CQChartsRectEdit*     rectEdit      { nullptr };
-    QLineEdit*            textEdit      { nullptr };
+    CQLineEdit*           textEdit      { nullptr };
     CQChartsTextDataEdit* dataEdit      { nullptr };
   };
 
@@ -124,8 +124,8 @@ class CQChartsEditAnnotationDlg : public QDialog {
 
  private:
   CQChartsAnnotation* annotation_       { nullptr }; //! annotation
-  QLineEdit*          idEdit_           { nullptr }; //! id edit
-  QLineEdit*          tipEdit_          { nullptr }; //! tip edit
+  CQLineEdit*         idEdit_           { nullptr }; //! id edit
+  CQLineEdit*         tipEdit_          { nullptr }; //! tip edit
   QVBoxLayout*        frameLayout_      { nullptr }; //! frame layout
   RectWidgets         rectWidgets_;                  //! rect edit widgets
   EllipseWidgets      ellipseWidgets_;               //! ellipse edit widgets

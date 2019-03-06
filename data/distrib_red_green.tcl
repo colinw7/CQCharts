@@ -6,7 +6,7 @@ proc objPressed { view plot id } {
   echo "$inds"
 }
 
-add_process_model_proc color_value { arg } {
+define_charts_proc color_value { arg } {
   return [expr {$arg < 0.0 ? "#aa4444" : "#44aa44"}]
 }
 

@@ -19,8 +19,8 @@ class CQChartsColorLineEdit;
 
 class CQRealSpin;
 class CQCheckBox;
+class CQLineEdit;
 
-class QLineEdit;
 class QStackedWidget;
 class QFrame;
 class QComboBox;
@@ -60,7 +60,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
     CQChartsPositionEdit* centerEdit  { nullptr };
     CQChartsLengthEdit*   rxEdit      { nullptr };
     CQChartsLengthEdit*   ryEdit      { nullptr };
-    QLineEdit*            paddingEdit { nullptr };
+    CQLineEdit*           paddingEdit { nullptr };
   };
 
   struct PolygonWidgets : public Widgets {
@@ -76,7 +76,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
     QRadioButton*         rectRadio     { nullptr };
     CQChartsPositionEdit* positionEdit  { nullptr };
     CQChartsRectEdit*     rectEdit      { nullptr };
-    QLineEdit*            textEdit      { nullptr };
+    CQLineEdit*           textEdit      { nullptr };
     CQChartsTextDataEdit* dataEdit      { nullptr };
   };
 
@@ -134,8 +134,8 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   CQChartsView*   view_             { nullptr }; //! associated view
   CQChartsPlot*   plot_             { nullptr }; //! associated plot
   QComboBox*      typeCombo_        { nullptr }; //! type combo
-  QLineEdit*      idEdit_           { nullptr }; //! id edit
-  QLineEdit*      tipEdit_          { nullptr }; //! tip edit
+  CQLineEdit*     idEdit_           { nullptr }; //! id edit
+  CQLineEdit*     tipEdit_          { nullptr }; //! tip edit
   QStackedWidget* typeStack_        { nullptr }; //! type stacked widget
   RectWidgets     rectWidgets_;                  //! rect edit widgets
   EllipseWidgets  ellipseWidgets_;               //! ellipse edit widgets

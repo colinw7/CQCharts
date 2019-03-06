@@ -2,7 +2,7 @@ set model [load_model -csv data/googleplaystore.csv -first_line_header]
 
 manage_models_dlg
 
-add_process_model_proc fixSize { value } {
+define_charts_proc fixSize { value } {
   if {"$value" == "Varies with device"} { return "NaN" }
   if {[regexp {M$} $value]} { return [regsub {M$} $value {}] }
   if {[regexp {k$} $value]} { return [expr {[regsub {(.*)k$} $value {\1}] / 1000.0}] }
@@ -13,7 +13,7 @@ echo "Size"
 process_model -model $model -column "Size" -modify -expr "fixSize(@v)" -force
 set_charts_data -model $model -column "Size" -name column_type -value real
 
-add_process_model_proc fixInstalls { value } {
+define_charts_proc fixInstalls { value } {
   regsub {\+$} $value {} value
   regsub -all {,} $value {} value
   return $value
@@ -22,7 +22,7 @@ add_process_model_proc fixInstalls { value } {
 echo "Installs"
 process_model -model $model -column "Installs" -modify -expr "fixInstalls(@v)" -force
 
-add_process_model_proc fixPrice { value } {
+define_charts_proc fixPrice { value } {
   regsub {^\$} $value {} value
   return $value
 }
@@ -30,7 +30,7 @@ add_process_model_proc fixPrice { value } {
 echo "Price"
 process_model -model $model -column "Price" -modify -expr "fixPrice(@v)" -force
 
-add_process_model_proc fixAndroidVer { value } {
+define_charts_proc fixAndroidVer { value } {
   if {"$value" == "Varies with device"} { return "NaN" }
   regsub { and up$} $value {} value
   if {[string length $value] > 3} { return [string range $value 0 2] }

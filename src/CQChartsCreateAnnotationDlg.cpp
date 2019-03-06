@@ -19,10 +19,11 @@
 #include <CQRealSpin.h>
 #include <CQCheckBox.h>
 #include <CQGroupBox.h>
+#include <CQLineEdit.h>
+#include <CQUtil.h>
 
 #include <QFrame>
 #include <QStackedWidget>
-#include <QLineEdit>
 #include <QComboBox>
 #include <QRadioButton>
 #include <QLabel>
@@ -76,8 +77,8 @@ initWidgets()
   //--
 
   // id, tip edits
-  idEdit_  = new QLineEdit; idEdit_ ->setObjectName("id");
-  tipEdit_ = new QLineEdit; tipEdit_->setObjectName("tip");
+  idEdit_  = CQUtil::makeWidget<CQLineEdit>("id");
+  tipEdit_ = CQUtil::makeWidget<CQLineEdit>("tip");
 
   //--
 
@@ -327,7 +328,7 @@ createTextFrame()
 
   //---
 
-  textWidgets_.textEdit = new QLineEdit;
+  textWidgets_.textEdit = CQUtil::makeWidget<CQLineEdit>("edit");
 
   //---
 

@@ -8,11 +8,11 @@
 class CQCharts;
 class CQChartsModelData;
 class CQChartsParamEdit;
+class CQLineEdit;
 
 class QGridLayout;
 class QRadioButton;
 class QCheckBox;
-class QLineEdit;
 class QComboBox;
 class QLabel;
 
@@ -51,8 +51,8 @@ class CQChartsModelControl : public QFrame {
   void typeApplySlot();
 
  private:
-  QLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
-                         const QString &objName) const;
+  CQLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
+                          const QString &objName) const;
   QComboBox *addComboBox(QGridLayout *grid, int &row, const QString &name,
                          const QString &objName) const;
 
@@ -68,10 +68,10 @@ class CQChartsModelControl : public QFrame {
   struct ColumnEditData {
     QFrame*      editFrame  { nullptr };
     QGridLayout* editLayout { nullptr };
-    QLineEdit*   numEdit    { nullptr };
-    QLineEdit*   nameEdit   { nullptr };
+    CQLineEdit*  numEdit    { nullptr };
+    CQLineEdit*  nameEdit   { nullptr };
 #if 0
-    QLineEdit*   typeEdit   { nullptr };
+    CQLineEdit*  typeEdit   { nullptr };
 #else
     QComboBox*   typeCombo  { nullptr };
 #endif
@@ -86,18 +86,18 @@ class CQChartsModelControl : public QFrame {
   QRadioButton*      exprRemoveRadio_ { nullptr };
   QRadioButton*      exprModifyRadio_ { nullptr };
   QLabel*            exprValueLabel_  { nullptr };
-  QLineEdit*         exprValueEdit_   { nullptr };
+  CQLineEdit*        exprValueEdit_   { nullptr };
   QLabel*            exprColumnLabel_ { nullptr };
-  QLineEdit*         exprColumnEdit_  { nullptr };
+  CQLineEdit*        exprColumnEdit_  { nullptr };
   QLabel*            exprNameLabel_   { nullptr };
-  QLineEdit*         exprNameEdit_    { nullptr };
+  CQLineEdit*        exprNameEdit_    { nullptr };
   QLabel*            exprTypeLabel_   { nullptr };
-  QLineEdit*         exprTypeEdit_    { nullptr };
+  CQLineEdit*        exprTypeEdit_    { nullptr };
 #ifdef CQCHARTS_FOLDED_MODEL
-  QLineEdit*         foldColumnEdit_  { nullptr };
+  CQLineEdit*        foldColumnEdit_  { nullptr };
   QCheckBox*         foldAutoCheck_   { nullptr };
-  QLineEdit*         foldDeltaEdit_   { nullptr };
-  QLineEdit*         foldCountEdit_   { nullptr };
+  CQLineEdit*        foldDeltaEdit_   { nullptr };
+  CQLineEdit*        foldCountEdit_   { nullptr };
 #endif
   ColumnEditData     columnEditData_;
 };

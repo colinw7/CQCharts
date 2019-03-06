@@ -2,6 +2,7 @@
 #define CQChartsLoadModelDlg_H
 
 #include <CQChartsFileType.h>
+#include <CQLineEdit.h>
 #include <QDialog>
 #include <QSharedPointer>
 
@@ -13,7 +14,6 @@ struct CQChartsInputData;
 class QAbstractItemModel;
 class QComboBox;
 class QCheckBox;
-class QLineEdit;
 class QTextEdit;
 class QPushButton;
 
@@ -66,8 +66,8 @@ class CQChartsLoadModelDlg : public QDialog {
   QCheckBox*   commentHeaderCheck_     { nullptr };
   QCheckBox*   firstLineHeaderCheck_   { nullptr };
   QCheckBox*   firstColumnHeaderCheck_ { nullptr };
-  QLineEdit*   numberEdit_             { nullptr };
-  QLineEdit*   filterEdit_             { nullptr };
+  CQLineEdit*  numberEdit_             { nullptr };
+  CQLineEdit*  filterEdit_             { nullptr };
   QTextEdit*   previewText_            { nullptr };
   QPushButton* okButton_               { nullptr };
   QPushButton* applyButton_            { nullptr };

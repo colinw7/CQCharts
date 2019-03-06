@@ -99,14 +99,14 @@ class CQChartsCmds : public QObject {
   //---
 
  public:
-  bool loadModelCmd          (CQChartsCmdArgs &args);
-  bool processModelCmd       (CQChartsCmdArgs &args);
-  bool addProcessModelProcCmd(CQChartsCmdArgs &args);
-  bool sortModelCmd          (CQChartsCmdArgs &args);
-  bool foldModelCmd          (CQChartsCmdArgs &args);
-  bool filterModelCmd        (CQChartsCmdArgs &args);
-  bool flattenModelCmd       (CQChartsCmdArgs &args);
-  bool copyModelCmd          (CQChartsCmdArgs &args);
+  bool loadModelCmd       (CQChartsCmdArgs &args);
+  bool processModelCmd    (CQChartsCmdArgs &args);
+  bool defineChartsProcCmd(CQChartsCmdArgs &args);
+  bool sortModelCmd       (CQChartsCmdArgs &args);
+  bool foldModelCmd       (CQChartsCmdArgs &args);
+  bool filterModelCmd     (CQChartsCmdArgs &args);
+  bool flattenModelCmd    (CQChartsCmdArgs &args);
+  bool copyModelCmd       (CQChartsCmdArgs &args);
 
   bool correlationModelCmd(CQChartsCmdArgs &args);
   bool subsetModelCmd     (CQChartsCmdArgs &args);
@@ -206,14 +206,14 @@ class CQCharts##NAME##Cmd : public CQChartsCmdProc { \
 
 //---
 
-CQCHARTS_DEF_CMD(LoadModel          , loadModelCmd)
-CQCHARTS_DEF_CMD(ProcessModel       , processModelCmd)
-CQCHARTS_DEF_CMD(AddProcessModelProc, addProcessModelProcCmd)
-CQCHARTS_DEF_CMD(SortModel          , sortModelCmd)
-CQCHARTS_DEF_CMD(FoldModel          , foldModelCmd)
-CQCHARTS_DEF_CMD(FilterModel        , filterModelCmd)
-CQCHARTS_DEF_CMD(FlattenModel       , flattenModelCmd)
-CQCHARTS_DEF_CMD(CopyModel          , copyModelCmd)
+CQCHARTS_DEF_CMD(LoadModel       , loadModelCmd)
+CQCHARTS_DEF_CMD(ProcessModel    , processModelCmd)
+CQCHARTS_DEF_CMD(DefineChartsProc, defineChartsProcCmd)
+CQCHARTS_DEF_CMD(SortModel       , sortModelCmd)
+CQCHARTS_DEF_CMD(FoldModel       , foldModelCmd)
+CQCHARTS_DEF_CMD(FilterModel     , filterModelCmd)
+CQCHARTS_DEF_CMD(FlattenModel    , flattenModelCmd)
+CQCHARTS_DEF_CMD(CopyModel       , copyModelCmd)
 
 //---
 

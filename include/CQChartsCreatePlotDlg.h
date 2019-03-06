@@ -18,6 +18,7 @@ class CQChartsModelData;
 class CQSummaryModel;
 class CQIntegerSpin;
 class CQRealSpin;
+class CQLineEdit;
 
 class QAbstractItemModel;
 class QItemSelectionModel;
@@ -27,7 +28,6 @@ class QHBoxLayout;
 class QComboBox;
 class QStackedWidget;
 class QTextEdit;
-class QLineEdit;
 class QCheckBox;
 class QRadioButton;
 class QToolButton;
@@ -65,14 +65,14 @@ class CQChartsCreatePlotDlg : public QDialog {
   };
 
   struct FormatEditData {
-    QLineEdit*   formatEdit;
+    CQLineEdit*  formatEdit;
     QToolButton* formatUpdate;
   };
 
   struct PlotData {
     using ColumnEdits  = std::map<QString,CQChartsColumnLineEdit*>;
     using ColumnsEdits = std::map<QString,CQChartsColumnsLineEdit*>;
-    using LineEdits    = std::map<QString,QLineEdit*>;
+    using LineEdits    = std::map<QString,CQLineEdit*>;
     using WidgetEdits  = std::map<QString,QWidget*>;
     using FormatEdits  = std::map<QString,FormatEditData>;
     using Combos       = std::map<QString,QComboBox*>;
@@ -149,10 +149,10 @@ class CQChartsCreatePlotDlg : public QDialog {
                                           const QString &name, const QString &objName,
                                           const QString &placeholderText) const;
 
-  QLineEdit *addRealEdit(QLayout *grid, int &row, int &column, const QString &name,
-                         const QString &objName, const QString &placeholderText) const;
-  QLineEdit *addStringEdit(QLayout *grid, int &row, int &column, const QString &name,
-                           const QString &objName, const QString &placeholderText) const;
+  CQLineEdit *addRealEdit(QLayout *grid, int &row, int &column, const QString &name,
+                          const QString &objName, const QString &placeholderText) const;
+  CQLineEdit *addStringEdit(QLayout *grid, int &row, int &column, const QString &name,
+                            const QString &objName, const QString &placeholderText) const;
 
   bool parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const;
 
@@ -226,19 +226,19 @@ class CQChartsCreatePlotDlg : public QDialog {
   QComboBox*         combo_                  { nullptr }; //! type combo
   QStackedWidget*    stack_                  { nullptr }; //! widget stack
   QTextEdit*         descText_               { nullptr }; //! type description
-  QLineEdit*         whereEdit_              { nullptr }; //! where edit
-  QLineEdit*         viewEdit_               { nullptr }; //! view name edit
-  QLineEdit*         posEdit_                { nullptr }; //! position edit
-  QLineEdit*         titleEdit_              { nullptr }; //! title edit
-  QLineEdit*         xLabelEdit_             { nullptr }; //! x label edit
-  QLineEdit*         yLabelEdit_             { nullptr }; //! y label edit
-  QLineEdit*         xminEdit_               { nullptr }; //! xmin edit
+  CQLineEdit*        whereEdit_              { nullptr }; //! where edit
+  CQLineEdit*        viewEdit_               { nullptr }; //! view name edit
+  CQLineEdit*        posEdit_                { nullptr }; //! position edit
+  CQLineEdit*        titleEdit_              { nullptr }; //! title edit
+  CQLineEdit*        xLabelEdit_             { nullptr }; //! x label edit
+  CQLineEdit*        yLabelEdit_             { nullptr }; //! y label edit
+  CQLineEdit*        xminEdit_               { nullptr }; //! xmin edit
   QToolButton*       xminButton_             { nullptr }; //! xmin load button
-  QLineEdit*         yminEdit_               { nullptr }; //! ymin edit
+  CQLineEdit*        yminEdit_               { nullptr }; //! ymin edit
   QToolButton*       yminButton_             { nullptr }; //! ymin load button
-  QLineEdit*         xmaxEdit_               { nullptr }; //! xmax edit
+  CQLineEdit*        xmaxEdit_               { nullptr }; //! xmax edit
   QToolButton*       xmaxButton_             { nullptr }; //! xmax load button
-  QLineEdit*         ymaxEdit_               { nullptr }; //! ymax edit
+  CQLineEdit*        ymaxEdit_               { nullptr }; //! ymax edit
   QToolButton*       ymaxButton_             { nullptr }; //! ymax load button
   QCheckBox*         xintegralCheck_         { nullptr }; //! x integral check
   QCheckBox*         yintegralCheck_         { nullptr }; //! y integral check

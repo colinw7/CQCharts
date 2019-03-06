@@ -790,3 +790,6 @@
  + Use separate property models for plots
 # 3/4/2019
  + add tcl selection callbacks, selection query and plot selection signals
+# 3/5/2019
+ + add filter for plot properties
+ + use CQLineEdit

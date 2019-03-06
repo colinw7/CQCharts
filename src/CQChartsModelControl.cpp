@@ -5,6 +5,7 @@
 #include <CQChartsModelUtil.h>
 #include <CQCharts.h>
 #include <CQBaseModel.h>
+#include <CQLineEdit.h>
 #include <CQUtil.h>
 
 #include <QVBoxLayout>
@@ -12,7 +13,6 @@
 #include <QStackedWidget>
 #include <QRadioButton>
 #include <QCheckBox>
-#include <QLineEdit>
 #include <QComboBox>
 #include <QLabel>
 #include <QPushButton>
@@ -28,7 +28,7 @@ class CQChartsParamEdit : public QFrame {
   void setString(const QString &str="") {
     reset();
 
-    edit_ = new QLineEdit;
+    edit_ = CQUtil::makeWidget<CQLineEdit>("edit");
 
     edit_->setText(str);
 
@@ -67,7 +67,7 @@ class CQChartsParamEdit : public QFrame {
 
  private:
   QHBoxLayout *layout_ { nullptr };
-  QLineEdit   *edit_   { nullptr };
+  CQLineEdit  *edit_   { nullptr };
   QCheckBox   *check_  { nullptr };
 };
 
@@ -139,7 +139,7 @@ CQChartsModelControl(CQCharts *charts) :
   exprValueLabel_ = new QLabel("Expression");
   exprValueLabel_->setObjectName("exprValueLabel");
 
-  exprValueEdit_ = CQUtil::makeWidget<QLineEdit>("exprValueEdit");
+  exprValueEdit_ = CQUtil::makeWidget<CQLineEdit>("exprValueEdit");
 
   exprValueEdit_->setToolTip("+<expr> OR -<column> OR =<column>:<expr>\n"
                              "Use: @<number> as shorthand for column(<number>)\n"
@@ -156,7 +156,7 @@ CQChartsModelControl(CQCharts *charts) :
   exprColumnLabel_ = new QLabel("Column");
   exprColumnLabel_->setObjectName("exprEditLabel");
 
-  exprColumnEdit_ = CQUtil::makeWidget<QLineEdit>("exprColumnEdit");
+  exprColumnEdit_ = CQUtil::makeWidget<CQLineEdit>("exprColumnEdit");
 
   exprColumnEdit_->setToolTip("Column to Modify");
 
@@ -170,7 +170,7 @@ CQChartsModelControl(CQCharts *charts) :
   exprNameLabel_ = new QLabel("Name");
   exprNameLabel_->setObjectName("exprNameLabel");
 
-  exprNameEdit_ = CQUtil::makeWidget<QLineEdit>("exprNameEdit");
+  exprNameEdit_ = CQUtil::makeWidget<CQLineEdit>("exprNameEdit");
 
   exprNameEdit_->setToolTip("Column Name");
 
@@ -184,7 +184,7 @@ CQChartsModelControl(CQCharts *charts) :
   exprTypeLabel_ = new QLabel("Type");
   exprTypeLabel_->setObjectName("exprTypeLabel");
 
-  exprTypeEdit_ = CQUtil::makeWidget<QLineEdit>("exprTypeEdit");
+  exprTypeEdit_ = CQUtil::makeWidget<CQLineEdit>("exprTypeEdit");
 
   exprTypeEdit_->setToolTip("Column Type");
 
@@ -344,12 +344,12 @@ CQChartsModelControl(CQCharts *charts) :
   connect(charts, SIGNAL(currentModelChanged(int)), this, SLOT(updateCurrentModel()));
 }
 
-QLineEdit *
+CQLineEdit *
 CQChartsModelControl::
 addLineEdit(QGridLayout *grid, int &row, const QString &name, const QString &objName) const
 {
-  QLabel    *label = CQUtil::makeWidget<QLabel   >(objName + "Label");
-  QLineEdit *edit  = CQUtil::makeWidget<QLineEdit>(objName + "Edit" );
+  QLabel     *label = CQUtil::makeWidget<QLabel    >(objName + "Label");
+  CQLineEdit *edit  = CQUtil::makeWidget<CQLineEdit>(objName + "Edit" );
 
   label->setText(name);
 

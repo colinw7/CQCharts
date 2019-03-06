@@ -7008,7 +7008,7 @@ removeAnnotation(CQChartsAnnotation *annotation)
 
   assert(pos >= 0 && pos < n);
 
-  propertyModel()->removeProperties(id() + "/" + "annotations/" + annotation->propertyId());
+  propertyModel()->removeProperties("annotations/" + annotation->propertyId());
 
   delete annotation;
 
@@ -7030,7 +7030,7 @@ removeAllAnnotations()
 
   annotations_.clear();
 
-  propertyModel()->removeProperties(id() + "/" + "annotations");
+  propertyModel()->removeProperties("annotations");
 
 //emit allAnnotationsRemoved();
   emit annotationsChanged();
