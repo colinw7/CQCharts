@@ -1,4 +1,4 @@
-set model [load_model -csv data/bikes.csv -first_line_header]
+set model [load_charts_model -csv data/bikes.csv -first_line_header]
 
 set_charts_data -model $model -column 0 -name column_type -value "time:format=%d/%m/%Y"
 
@@ -23,7 +23,7 @@ echo ""
 #---
 
 # add data number to model
-set day_col [process_model -model $model -add -expr {timeval(0,"%u")} -header Day]
+set day_col [process_charts_model -model $model -add -expr {timeval(0,"%u")} -header Day]
 
 #---
 

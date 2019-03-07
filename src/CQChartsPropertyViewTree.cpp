@@ -32,12 +32,25 @@ addMenuItems(QMenu *menu)
   CQPropertyViewItem *item = CQPropertyViewTree::menuItem();
 
   if (item) {
-    QAction *action = new QAction("Edit");
+    QAction *editAction = new QAction("Edit");
 
-    connect(action, SIGNAL(triggered()), this, SLOT(editSlot()));
+    connect(editAction, SIGNAL(triggered()), this, SLOT(editSlot()));
 
-    menu->addAction(action);
+    menu->addAction(editAction);
   }
+
+  //---
+
+  QAction *showHideAction = new QAction("Show Filter");
+
+  showHideAction->setCheckable(true);
+  showHideAction->setChecked(isFilterDisplayed());
+
+  connect(showHideAction, SIGNAL(triggered(bool)), this, SLOT(showHideFilterSlot(bool)));
+
+  menu->addAction(showHideAction);
+
+  //---
 
   CQPropertyViewTree::addStandardMenuItems(menu);
 }
@@ -163,4 +176,13 @@ editSlot()
     else
       axisDlg_->show();
   }
+}
+
+void
+CQChartsPropertyViewTree::
+showHideFilterSlot(bool b)
+{
+  setFilterDisplayed(b);
+
+  emit filterStateChanged(b);
 }

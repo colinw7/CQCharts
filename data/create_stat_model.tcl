@@ -39,7 +39,7 @@ proc create_stat_model { model } {
     lappend ::stat_columns $stat_column($c1)
   }
 
-  set stat_model [load_model -var stat_columns -first_line_header -first_column_header]
+  set stat_model [load_charts_model -var stat_columns -first_line_header -first_column_header]
 
   for {set c1 0} {$c1 < $nc1} {incr c1} {
     set_charts_data -model $stat_model -name column_type -column $c1 -value "real"

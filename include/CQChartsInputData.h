@@ -6,7 +6,7 @@
 #include <vector>
 
 /*!
- * \brief data used when loadinf a model from a file.
+ * \brief data used when loading a model from a file.
  */
 struct CQChartsInputData {
   using Values = std::vector<QVariant>;

@@ -6,12 +6,12 @@ proc objPressed { view plot id } {
   echo "$inds"
 }
 
-set model [load_model -csv data/mandelbrot.csv]
+set model [load_charts_model -csv data/mandelbrot.csv]
 
-set view [create_view]
+set view [create_charts_view]
 
 set_charts_property -view $view -name antiAlias -value false
 
-set plot [create_plot -view $view -model $model -type image]
+set plot [create_charts_plot -view $view -model $model -type image]
 
-connect_charts -plot $plot -from objIdPressed -to objPressed
+connect_charts_signal -plot $plot -from objIdPressed -to objPressed

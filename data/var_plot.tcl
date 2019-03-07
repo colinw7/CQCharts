@@ -18,6 +18,6 @@ for {set i 0} {$i < $n} {incr i} {
   lappend s [expr {sin($i1)}]
 }
 
-set modelInd [load_model -var x -var y -var c -var s]
+set modelInd [load_charts_model -var x -var y -var c -var s]
 
-set plotInd [create_plot -type xy -columns "x=0,y=2 3"]
+set plotInd [create_charts_plot -type xy -columns "x=0,y=2 3"]

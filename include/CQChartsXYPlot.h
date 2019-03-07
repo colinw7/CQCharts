@@ -854,7 +854,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   int             pointDelta_           { -1 };               //! point delta
   int             pointCount_           { -1 };               //! point count
   int             pointStart_           { 0 };                //! point start
-                                                              //!  (0=start, -1=end, -2=moddle)
+                                                              //!  (0=start, -1=end, -2=middle)
   bool            stacked_              { false };            //! is stacked
   bool            cumulative_           { false };            //! cumulate values
   bool            linesSelectable_      { false };            //! are lines selectable

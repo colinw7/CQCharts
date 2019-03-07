@@ -75,37 +75,41 @@ addCommands()
 
   if (! cmdsAdded) {
     // load, process, sort, fold, filter, flatten model
-    addCommand("load_model"        , new CQChartsLoadModelCmd       (this));
-    addCommand("process_model"     , new CQChartsProcessModelCmd    (this));
-    addCommand("define_charts_proc", new CQChartsDefineChartsProcCmd(this));
-    addCommand("sort_model"        , new CQChartsSortModelCmd       (this));
-    addCommand("fold_model"        , new CQChartsFoldModelCmd       (this));
-    addCommand("filter_model"      , new CQChartsFilterModelCmd     (this));
-    addCommand("flatten_model"     , new CQChartsFlattenModelCmd    (this));
-    addCommand("copy_model"        , new CQChartsCopyModelCmd       (this));
+    addCommand("load_charts_model"   , new CQChartsLoadChartsModelCmd   (this));
+    addCommand("process_charts_model", new CQChartsProcessChartsModelCmd(this));
+    addCommand("define_charts_proc"  , new CQChartsDefineChartsProcCmd  (this));
+    addCommand("sort_charts_model"   , new CQChartsSortChartsModelCmd   (this));
+    addCommand("fold_charts_model"   , new CQChartsFoldChartsModelCmd   (this));
+    addCommand("filter_charts_model" , new CQChartsFilterChartsModelCmd (this));
+    addCommand("flatten_charts_model", new CQChartsFlattenChartsModelCmd(this));
+    addCommand("copy_charts_model"   , new CQChartsCopyChartsModelCmd   (this));
 
-    // correlation, subset, tranpose
-    addCommand("create_correlation_model", new CQChartsCorrelationModelCmd(this));
-    addCommand("create_subset_model"     , new CQChartsSubsetModelCmd     (this));
-    addCommand("create_transpose_model"  , new CQChartsTransposeModelCmd  (this));
-    addCommand("create_summary_model"    , new CQChartsSummaryModelCmd    (this));
+    // correlation, subset, transpose
+    addCommand("create_charts_correlation_model",
+               new CQChartsCreateChartsCorrelationModelCmd(this));
+    addCommand("create_charts_subset_model"     ,
+               new CQChartsCreateChartsSubsetModelCmd     (this));
+    addCommand("create_charts_transpose_model"  ,
+               new CQChartsCreateChartsTransposeModelCmd  (this));
+    addCommand("create_charts_summary_model"    ,
+               new CQChartsCreateChartsSummaryModelCmd    (this));
 
     // export
-    addCommand("export_model", new CQChartsExportModelCmd(this));
+    addCommand("export_charts_model", new CQChartsExportChartsModelCmd(this));
 
     // measure text
     addCommand("measure_charts_text", new CQChartsMeasureChartsTextCmd(this));
 
     // add view
-    addCommand("create_view", new CQChartsCreateViewCmd(this));
+    addCommand("create_charts_view", new CQChartsCreateChartsViewCmd(this));
 
     // add/remove plot
-    addCommand("create_plot", new CQChartsCreatePlotCmd(this));
-    addCommand("remove_plot", new CQChartsRemovePlotCmd(this));
+    addCommand("create_charts_plot", new CQChartsCreateChartsPlotCmd(this));
+    addCommand("remove_charts_plot", new CQChartsRemoveChartsPlotCmd(this));
 
     // group/place plots
-    addCommand("group_plots", new CQChartsGroupPlotsCmd(this));
-    addCommand("place_plots", new CQChartsPlacePlotsCmd(this));
+    addCommand("group_charts_plots", new CQChartsGroupChartsPlotsCmd(this));
+    addCommand("place_charts_plots", new CQChartsPlaceChartsPlotsCmd(this));
 
     // get/set charts property
     addCommand("get_charts_property", new CQChartsGetChartsPropertyCmd(this));
@@ -116,30 +120,38 @@ addCommands()
     addCommand("set_charts_data", new CQChartsSetChartsDataCmd(this));
 
     // annotations
-    addCommand("create_text_annotation"    , new CQChartsCreateTextAnnotationCmd    (this));
-    addCommand("create_arrow_annotation"   , new CQChartsCreateArrowAnnotationCmd   (this));
-    addCommand("create_rect_annotation"    , new CQChartsCreateRectAnnotationCmd    (this));
-    addCommand("create_ellipse_annotation" , new CQChartsCreateEllipseAnnotationCmd (this));
-    addCommand("create_polygon_annotation" , new CQChartsCreatePolygonAnnotationCmd (this));
-    addCommand("create_polyline_annotation", new CQChartsCreatePolylineAnnotationCmd(this));
-    addCommand("create_point_annotation"   , new CQChartsCreatePointAnnotationCmd   (this));
-    addCommand("remove_annotation"         , new CQChartsRemoveAnnotationCmd        (this));
+    addCommand("create_charts_text_annotation"    ,
+               new CQChartsCreateChartsTextAnnotationCmd    (this));
+    addCommand("create_charts_arrow_annotation"   ,
+               new CQChartsCreateChartsArrowAnnotationCmd   (this));
+    addCommand("create_charts_rect_annotation"    ,
+               new CQChartsCreateChartsRectAnnotationCmd    (this));
+    addCommand("create_charts_ellipse_annotation" ,
+               new CQChartsCreateChartsEllipseAnnotationCmd (this));
+    addCommand("create_charts_polygon_annotation" ,
+               new CQChartsCreateChartsPolygonAnnotationCmd (this));
+    addCommand("create_charts_polyline_annotation",
+               new CQChartsCreateChartsPolylineAnnotationCmd(this));
+    addCommand("create_charts_point_annotation"   ,
+               new CQChartsCreateChartsPointAnnotationCmd   (this));
+    addCommand("remove_charts_annotation"         ,
+               new CQChartsRemoveChartsAnnotationCmd        (this));
 
     // theme/palette
-    addCommand("get_palette", new CQChartsGetPaletteCmd(this));
-    addCommand("set_palette", new CQChartsSetPaletteCmd(this));
+    addCommand("get_charts_palette", new CQChartsGetChartsPaletteCmd(this));
+    addCommand("set_charts_palette", new CQChartsSetChartsPaletteCmd(this));
 
     // connect
-    addCommand("connect_charts", new CQChartsConnectChartsCmd(this));
+    addCommand("connect_charts_signal", new CQChartsConnectChartsSignalCmd(this));
 
     // print, write
-    addCommand("print_charts"     , new CQChartsPrintChartsCmd(this));
-    addCommand("write_charts_data", new CQChartsWriteChartsDataCmd(this));
+    addCommand("print_charts_image", new CQChartsPrintChartsImageCmd(this));
+    addCommand("write_charts_data" , new CQChartsWriteChartsDataCmd(this));
 
     // dialogs
-    addCommand("load_model_dlg"   , new CQChartsLoadModelDlgCmd(this));
-    addCommand("manage_models_dlg", new CQChartsManageModelsDlgCmd(this));
-    addCommand("create_plot_dlg"  , new CQChartsCreatePlotDlgCmd(this));
+    addCommand("show_charts_load_model_dlg"   , new CQChartsShowChartsLoadModelDlgCmd(this));
+    addCommand("show_charts_manage_models_dlg", new CQChartsShowChartsManageModelsDlgCmd(this));
+    addCommand("show_charts_create_plot_dlg"  , new CQChartsShowChartsCreatePlotDlgCmd(this));
 
     // test
     addCommand("charts::test_edit", new CQChartsTestEditCmd(this));
@@ -164,9 +176,9 @@ addCommand(const QString &name, CQChartsCmdProc *proc)
 // load model from data
 bool
 CQChartsCmds::
-loadModelCmd(CQChartsCmdArgs &argv)
+loadChartsModelCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::loadModelCmd");
+  CQPerfTrace trace("CQChartsCmds::loadChartsModelCmd");
 
   // input data type
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -296,9 +308,9 @@ loadModelCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-processModelCmd(CQChartsCmdArgs &argv)
+processChartsModelCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::processModelCmd");
+  CQPerfTrace trace("CQChartsCmds::processChartsModelCmd");
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model index").setRequired();
   argv.addCmdArg("-column", CQChartsCmdArg::Type::Column ,
@@ -762,9 +774,9 @@ measureChartsTextCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-createViewCmd(CQChartsCmdArgs &argv)
+createChartsViewCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::createViewCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsViewCmd");
 
   if (! argv.parse())
     return false;
@@ -784,9 +796,9 @@ createViewCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-createPlotCmd(CQChartsCmdArgs &argv)
+createChartsPlotCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::createPlotCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsPlotCmd");
 
   argv.addCmdArg("-view" , CQChartsCmdArg::Type::String , "view_id"  ).setRequired();
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model_ind").setRequired();
@@ -1048,9 +1060,9 @@ createPlotCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-removePlotCmd(CQChartsCmdArgs &argv)
+removeChartsPlotCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::removePlotCmd");
+  CQPerfTrace trace("CQChartsCmds::removeChartsPlotCmd");
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view_id").setRequired();
 
@@ -1313,9 +1325,9 @@ setChartsPropertyCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-getPaletteCmd(CQChartsCmdArgs &argv)
+getChartsPaletteCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::getPaletteCmd");
+  CQPerfTrace trace("CQChartsCmds::getChartsPaletteCmd");
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
 
@@ -1365,9 +1377,9 @@ getPaletteCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-setPaletteCmd(CQChartsCmdArgs &argv)
+setChartsPaletteCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::setPaletteCmd");
+  CQPerfTrace trace("CQChartsCmds::setChartsPaletteCmd");
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
 
@@ -1409,7 +1421,7 @@ setPaletteCmd(CQChartsCmdArgs &argv)
   paletteData.greenModel = argv.getParseOptInt("green_model");
   paletteData.blueModel  = argv.getParseOptInt("blue_model" );
 
-  // alias for negateRedm negateGreenm negateBlue
+  // alias for negateRed, negateGreen, negateBlue
   paletteData.negateRed  = argv.getParseOptBool("negate_red"  );
   paletteData.negateGreen= argv.getParseOptBool("negate_green");
   paletteData.negateBlue = argv.getParseOptBool("negate_blue" );
@@ -1493,9 +1505,9 @@ setPaletteCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-groupPlotsCmd(CQChartsCmdArgs &argv)
+groupChartsPlotsCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::groupPlotsCmd");
+  CQPerfTrace trace("CQChartsCmds::groupChartsPlotsCmd");
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
 
@@ -1564,9 +1576,9 @@ groupPlotsCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-placePlotsCmd(CQChartsCmdArgs &argv)
+placeChartsPlotsCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::placePlotsCmd");
+  CQPerfTrace trace("CQChartsCmds::placeChartsPlotsCmd");
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
 
@@ -1610,9 +1622,9 @@ placePlotsCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-foldModelCmd(CQChartsCmdArgs &argv)
+foldChartsModelCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::foldModelCmd");
+  CQPerfTrace trace("CQChartsCmds::foldChartsModelCmd");
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column to fold");
@@ -1667,9 +1679,9 @@ foldModelCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-flattenModelCmd(CQChartsCmdArgs &argv)
+flattenChartsModelCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::flattenModelCmd");
+  CQPerfTrace trace("CQChartsCmds::flattenChartsModelCmd");
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-group", CQChartsCmdArg::Type::Column , "grouping column id");
@@ -1923,9 +1935,9 @@ flattenModelCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-copyModelCmd(CQChartsCmdArgs &argv)
+copyChartsModelCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::copyModelCmd");
+  CQPerfTrace trace("CQChartsCmds::copyChartsModelCmd");
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
 
@@ -1963,9 +1975,9 @@ copyModelCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-sortModelCmd(CQChartsCmdArgs &argv)
+sortChartsModelCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::sortModelCmd");
+  CQPerfTrace trace("CQChartsCmds::sortChartsModelCmd");
 
   argv.addCmdArg("-model"     , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-column"    , CQChartsCmdArg::Type::Column , "column to sort");
@@ -2006,9 +2018,9 @@ sortModelCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-filterModelCmd(CQChartsCmdArgs &argv)
+filterChartsModelCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::filterModelCmd");
+  CQPerfTrace trace("CQChartsCmds::filterChartsModelCmd");
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-expr"  , CQChartsCmdArg::Type::String , "filter expression");
@@ -2094,9 +2106,9 @@ filterModelCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-correlationModelCmd(CQChartsCmdArgs &argv)
+createChartsCorrelationModelCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::correlationModelCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsCorrelationModelCmd");
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-flip" , CQChartsCmdArg::Type::Boolean, "correlate rows instead of columns");
@@ -2141,9 +2153,9 @@ correlationModelCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-subsetModelCmd(CQChartsCmdArgs &argv)
+createChartsSubsetModelCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::subsetModelCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsSubsetModelCmd");
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-left"  , CQChartsCmdArg::Type::Column , "left (start) column");
@@ -2206,9 +2218,9 @@ subsetModelCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-transposeModelCmd(CQChartsCmdArgs &argv)
+createChartsTransposeModelCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::transposeModelCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsTransposeModelCmd");
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
 
@@ -2248,9 +2260,9 @@ transposeModelCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-summaryModelCmd(CQChartsCmdArgs &argv)
+createChartsSummaryModelCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::summaryModelCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsSummaryModelCmd");
 
   argv.addCmdArg("-model"      , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-max_rows"   , CQChartsCmdArg::Type::Integer, "maxumum rows");
@@ -2350,9 +2362,9 @@ summaryModelCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-exportModelCmd(CQChartsCmdArgs &argv)
+exportChartsModelCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::exportModelCmd");
+  CQPerfTrace trace("CQChartsCmds::exportChartsModelCmd");
 
   argv.addCmdArg("-model"  , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-to"     , CQChartsCmdArg::Type::String , "destination format");
@@ -3412,9 +3424,9 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-createRectAnnotationCmd(CQChartsCmdArgs &argv)
+createChartsRectAnnotationCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::createRectAnnotationCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsRectAnnotationCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3542,9 +3554,9 @@ createRectAnnotationCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-createEllipseAnnotationCmd(CQChartsCmdArgs &argv)
+createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::createEllipseAnnotationCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsEllipseAnnotationCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3653,9 +3665,9 @@ createEllipseAnnotationCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-createPolygonAnnotationCmd(CQChartsCmdArgs &argv)
+createChartsPolygonAnnotationCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::createPolygonAnnotationCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsPolygonAnnotationCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3761,9 +3773,9 @@ createPolygonAnnotationCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-createPolylineAnnotationCmd(CQChartsCmdArgs &argv)
+createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::createPolylineAnnotationCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsPolylineAnnotationCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -3871,9 +3883,9 @@ createPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-createTextAnnotationCmd(CQChartsCmdArgs &argv)
+createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::createTextAnnotationCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsTextAnnotationCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -4011,9 +4023,9 @@ createTextAnnotationCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-createArrowAnnotationCmd(CQChartsCmdArgs &argv)
+createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::createArrowAnnotationCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsArrowAnnotationCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -4118,9 +4130,9 @@ createArrowAnnotationCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-createPointAnnotationCmd(CQChartsCmdArgs &argv)
+createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::createPointAnnotationCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsPointAnnotationCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -4222,9 +4234,9 @@ createPointAnnotationCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-removeAnnotationCmd(CQChartsCmdArgs &argv)
+removeChartsAnnotationCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::removeAnnotationCmd");
+  CQPerfTrace trace("CQChartsCmds::removeChartsAnnotationCmd");
 
   // -view or -plot needed for -all
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
@@ -4290,9 +4302,9 @@ removeAnnotationCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-connectChartsCmd(CQChartsCmdArgs &argv)
+connectChartsSignalCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::connectChartsCmd");
+  CQPerfTrace trace("CQChartsCmds::connectChartsSignalCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -4387,9 +4399,9 @@ connectChartsCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-printChartsCmd(CQChartsCmdArgs &argv)
+printChartsImageCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::printChartsCmd");
+  CQPerfTrace trace("CQChartsCmds::printChartsImageCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -4556,9 +4568,9 @@ writeChartsDataCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-loadModelDlgCmd(CQChartsCmdArgs &argv)
+showChartsLoadModelDlgCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::loadModelDlgCmd");
+  CQPerfTrace trace("CQChartsCmds::showChartsLoadModelDlgCmd");
 
   argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
 
@@ -4585,9 +4597,9 @@ loadModelDlgCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-manageModelsDlgCmd(CQChartsCmdArgs &argv)
+showChartsManageModelsDlgCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::manageModelsDlgCmd");
+  CQPerfTrace trace("CQChartsCmds::showChartsManageModelsDlgCmd");
 
   argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
 
@@ -4612,9 +4624,9 @@ manageModelsDlgCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-createPlotDlgCmd(CQChartsCmdArgs &argv)
+showChartsCreatePlotDlgCmd(CQChartsCmdArgs &argv)
 {
-  CQPerfTrace trace("CQChartsCmds::createPlotDlgCmd");
+  CQPerfTrace trace("CQChartsCmds::showChartsCreatePlotDlgCmd");
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model_ind" );
   argv.addCmdArg("-view" , CQChartsCmdArg::Type::String , "view name" );

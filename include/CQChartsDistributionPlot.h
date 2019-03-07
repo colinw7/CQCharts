@@ -743,7 +743,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   PlotType           plotType_       { PlotType::NORMAL }; //! plot type
   ValueType          valueType_      { ValueType::COUNT }; //! show value count
   bool               percent_        { false };            //! percent values
-  bool               skipEmpty_      { false };            //! skip empty buckets (non cont range)
+  bool               skipEmpty_      { false };            //! skip empty buckets
+                                                           //! (non contiguous range)
   bool               sorted_         { false };            //! sort by count
   DensityData        densityData_;                         //! density data
   ScatterData        scatterData_;                         //! scatter data

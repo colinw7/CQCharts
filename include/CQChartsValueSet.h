@@ -298,7 +298,7 @@ class CQChartsIValues {
   OptValues                 values_;                 //! all integer values
   Values                    svalues_;                //! sorted integer values
   ValueSet                  valset_;                 //! unique indexed integer values
-  SetValues                 setvals_;                //! index to integr map
+  SetValues                 setvals_;                //! index to integer map
   int                       numNull_      { 0 };     //! number of null values
   bool                      calculated_   { false }; //! are stats calculated
   double                    sum_          { 0.0 };   //! values sum

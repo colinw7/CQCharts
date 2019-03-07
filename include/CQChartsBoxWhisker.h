@@ -308,7 +308,7 @@ class CQChartsBoxWhiskerT {
   // calculated density
   Density                   density_;                //! density data
   mutable std::atomic<bool> densityValid_ { false }; //! density data valid
-  mutable std::mutex        densityMutex_;           //! density data mutext
+  mutable std::mutex        densityMutex_;           //! density data mutex
 };
 
 using CQChartsBoxWhisker = CQChartsBoxWhiskerT<double>;

@@ -1,4 +1,4 @@
-set model [load_model -csv data/winequality-white.csv -first_line_header -separator {;}]
+set model [load_charts_model -csv data/winequality-white.csv -first_line_header -separator {;}]
 
 #---
 
@@ -25,12 +25,12 @@ puts $counts
 set nr [get_charts_data -model $model -name num_rows]
 set nc [get_charts_data -model $model -name num_columns]
 
-set view1 [create_view]
+set view1 [create_charts_view]
 
 set box_plots {}
 
 for {set c 0} {$c < $nc} {incr c} {
-  set plot [create_plot -view $view1 -model $model -type boxplot -columns "group=(0),value=$c"]
+  set plot [create_charts_plot -view $view1 -model $model -type boxplot -columns "group=(0),value=$c"]
 
   lappend box_plots $plot
 
@@ -43,16 +43,16 @@ for {set c 0} {$c < $nc} {incr c} {
   set_charts_property -plot $plot -name outlier.symbol.fill.color     -value green
 }
 
-place_plots -horizontal $box_plots
+place_charts_plots -horizontal $box_plots
 
 #---
 
-set view2 [create_view]
+set view2 [create_charts_view]
 
 set dist_plots {}
 
 for {set c 0} {$c < $nc} {incr c} {
-  set plot [create_plot -view $view2 -model $model -type distribution -columns "value=$c"]
+  set plot [create_charts_plot -view $view2 -model $model -type distribution -columns "value=$c"]
 
   lappend dist_plots $plot
 
@@ -62,15 +62,15 @@ for {set c 0} {$c < $nc} {incr c} {
   set_charts_property -plot $plot -name yaxis.label.visible           -value 0
 }
 
-place_plots -horizontal $dist_plots
+place_charts_plots -horizontal $dist_plots
 
 #---
 
 set corrModel [create_correlation_model -model $model]
 
-set view3 [create_view]
+set view3 [create_charts_view]
 
-set plot3 [create_plot -view $view3 -model $corrModel -type image]
+set plot3 [create_charts_plot -view $view3 -model $corrModel -type image]
 
 set_charts_property -plot $plot3 -name labels.x.visible    -value 1
 set_charts_property -plot $plot3 -name labels.y.visible    -value 1

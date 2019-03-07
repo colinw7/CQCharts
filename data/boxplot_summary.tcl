@@ -1,4 +1,4 @@
-set model [load_model -csv data/winequality-white.csv -first_line_header -separator {;}]
+set model [load_charts_model -csv data/winequality-white.csv -first_line_header -separator {;}]
 
 #---
 
@@ -44,11 +44,11 @@ proc create_stat_model { model } {
     lappend ::stat_rows $stat_row
   }
 
-  set stat_model [load_model -var ::stat_rows -first_line_header -first_column_header -transpose]
+  set stat_model [load_charts_model -var ::stat_rows -first_line_header -first_column_header -transpose]
 
   return $stat_model
 }
 
 set stat_model [create_stat_model $model]
 
-set plot [create_plot -model $stat_model -type boxplot -columns "min=1,lowerMedian=2,median=3,upperMedian=4,max=5,outliers=6" -properties "options.horizontal=1,options.normalized=1"]
+set plot [create_charts_plot -model $stat_model -type boxplot -columns "min=1,lowerMedian=2,median=3,upperMedian=4,max=5,outliers=6" -properties "options.horizontal=1,options.normalized=1"]

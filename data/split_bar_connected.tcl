@@ -1,8 +1,8 @@
-set modelInd [load_model -csv data/split_bar.csv -first_line_header]
+set modelInd [load_charts_model -csv data/split_bar.csv -first_line_header]
 
-set plotInd1 [create_plot -type bar -columns "group=0,value=1"]
+set plotInd1 [create_charts_plot -type bar -columns "group=0,value=1"]
 
-set plotInd2 [create_plot -type bar -columns "group=0,value=2"]
+set plotInd2 [create_charts_plot -type bar -columns "group=0,value=2"]
 
 set viewInd [get_charts_property -plot $plotInd1 -name viewId]
 

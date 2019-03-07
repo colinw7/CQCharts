@@ -215,7 +215,7 @@ class CQChartsPlot : public CQChartsObj,
     bool          y1y2    { false };   //! is double y axis plot
     bool          overlay { false };   //! is overlay plot
     CQChartsPlot* next    { nullptr }; //! next plot
-    CQChartsPlot* prev    { nullptr }; //! previos plot
+    CQChartsPlot* prev    { nullptr }; //! previous plot
 
     ConnectData() { }
 
@@ -2053,7 +2053,7 @@ class CQChartsPlot : public CQChartsObj,
   bool                         preview_          { false };      //! is preview plot
   int                          previewMaxRows_   { 1000 };       //! preview max rows
   bool                         sequential_       { false };      //! is sequential plot
-  bool                         queueUpdate_      { true };       //! is queued udate
+  bool                         queueUpdate_      { true };       //! is queued update
   bool                         bufferSymbols_    { false };      //! buffer symbols
   bool                         showBoxes_        { false };      //! show debug boxes
   bool                         overview_         { false };      //! is overview

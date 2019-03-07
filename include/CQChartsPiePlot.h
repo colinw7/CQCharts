@@ -421,13 +421,13 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   bool                count_           { false };   //! show value counts
   double              innerRadius_     { 0.6 };     //! relative inner donut radius
   double              outerRadius_     { 0.9 };     //! relative outer donut radius
-  double              labelRadius_     { 1.1 };     //! label radus
+  double              labelRadius_     { 1.1 };     //! label radius
   double              startAngle_      { 90 };      //! first pie start angle
   double              angleExtent_     { 360.0 };   //! pie angle extent
   double              gapAngle_        { 0.0 };     //! angle gap between segments
   bool                rotatedText_     { false };   //! is label rotated
   bool                explodeSelected_ { true };    //! explode selected pie
-  double              explodeRadius_   { 0.05 };    //! expose radus
+  double              explodeRadius_   { 0.05 };    //! expose radius
   CQChartsPieTextObj* textBox_         { nullptr }; //! text box
   CQChartsGeom::Point center_;                      //! center point
   GroupDatas          groupDatas_;                  //! data per group

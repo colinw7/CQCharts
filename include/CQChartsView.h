@@ -873,7 +873,7 @@ class CQChartsView : public QFrame,
   HighlightData         insideHighlight_;                        //! inside highlight
   bool                  zoomData_         { true };              //! zoom data
   ScrollData            scrollData_;                             //! scroll data
-  bool                  antiAlias_        { true };              //! anit alias
+  bool                  antiAlias_        { true };              //! anti alias
 //bool                  showTable_        { false };             //! show table with plot
   bool                  bufferLayers_     { true };              //! buffer draw layers
   bool                  preview_          { false };             //! preview

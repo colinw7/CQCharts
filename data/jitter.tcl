@@ -20,6 +20,6 @@ for {set i 0} {$i < $nsamp} {incr i} {
   lappend y [expr {100.0*[invnorm [expr rand()]]}]
 }
 
-set modelId [load_model -var ind -var y]
+set modelId [load_charts_model -var ind -var y]
 
-set plotInd [create_plot -model $modelId -type scatter -columns "x=0,y=1"]
+set plotInd [create_charts_plot -model $modelId -type scatter -columns "x=0,y=1"]

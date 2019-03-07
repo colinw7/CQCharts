@@ -1,4 +1,4 @@
-set model [load_model -csv data/Pokemon.csv -comment_header]
+set model [load_charts_model -csv data/Pokemon.csv -comment_header]
 
 # get column numbers
 set type1Column      [get_charts_data -model $model -name column_index -data {Type 1}]
@@ -10,9 +10,9 @@ set generationColumn [get_charts_data -model $model -name column_index -data Gen
 set_charts_data -model $model -column $legendaryColumn -name column_type -value boolean
 
 # create new Type 2 row with empty rows set to Type 1 value
-set type2Column1 [process_model -model $model -add -expr "column($type2Column)" -header "Type 2a"]
+set type2Column1 [process_charts_model -model $model -add -expr "column($type2Column)" -header "Type 2a"]
 
-set rows [process_model -model $model -query -expr "column($type2Column1) == {}"]
+set rows [process_charts_model -model $model -query -expr "column($type2Column1) == {}"]
 
 foreach row $rows {
   set type1 [get_charts_data -model $model -row $row -column 2 -name value]
@@ -23,11 +23,11 @@ foreach row $rows {
 # create new legendary column as boolean
 #set legendaryExpr "column($legendaryColumn) == {True}"
 
-set legendaryColumn1 [process_model -model $model -add -expr "column($legendaryColumn) == {True}" -header "Legendary(bool)" -type boolean]
+set legendaryColumn1 [process_charts_model -model $model -add -expr "column($legendaryColumn) == {True}" -header "Legendary(bool)" -type boolean]
 
 # use box plot
 if {0} {
-set plot1 [create_plot -type boxplot -columns "group=$legendaryColumn1,value=$totalColumn"]
+set plot1 [create_charts_plot -type boxplot -columns "group=$legendaryColumn1,value=$totalColumn"]
 
 set_charts_property -plot $plot1 -name "xaxis.label.text" -value "is Legendary"
 set_charts_property -plot $plot1 -name "yaxis.label.text" -value "Strength"
@@ -40,12 +40,12 @@ define_charts_proc concat { a b c } {
 
 set type12Expr "column($type1Column) == column($type2Column1) ? column($type1Column) : concat(column($type1Column),{ - },column($type2Column1))"
 
-set type12Column [process_model -model $model -add -expr $type12Expr -header "Type Combination"]
+set type12Column [process_charts_model -model $model -add -expr $type12Expr -header "Type Combination"]
 
 sort_model -model $model -column $totalColumn
 
 filter_model -model $model -expr "column($legendaryColumn1) == 1"
 
-set plot2 [create_plot -type distribution -columns "value=$type12Column,color=$generationColumn" -parameter "horizontal=1"]
+set plot2 [create_charts_plot -type distribution -columns "value=$type12Column,color=$generationColumn" -parameter "horizontal=1"]
 
 set_charts_property -plot $plot2 -name "color.map.enabled" -value 1

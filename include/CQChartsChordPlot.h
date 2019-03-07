@@ -194,7 +194,7 @@ class CQChartsChordObj : public CQChartsPlotObj {
  * columns:
  *   + link  : link
  *   + value : value
- *   + group : goup
+ *   + group : group
  *
  * Plot Type
  *   + \ref CQChartsChordPlotType

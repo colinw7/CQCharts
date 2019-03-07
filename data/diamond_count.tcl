@@ -6,18 +6,18 @@ proc objPressed { view plot id } {
   echo "$inds"
 }
 
-set model [load_model -csv data/diamonds.csv -first_line_header]
+set model [load_charts_model -csv data/diamonds.csv -first_line_header]
 
-set view [create_view]
+set view [create_charts_view]
 
-set plot1 [create_plot -view $view -model $model -type distribution -columns "value=cut"]
-connect_charts -plot $plot1 -from objIdPressed -to objPressed
+set plot1 [create_charts_plot -view $view -model $model -type distribution -columns "value=cut"]
+connect_charts_signal -plot $plot1 -from objIdPressed -to objPressed
 
-set plot2 [create_plot -view $view -model $model -type pie -columns "group=cut"]
+set plot2 [create_charts_plot -view $view -model $model -type pie -columns "group=cut"]
 set_charts_property -plot $plot2 -name options.count -value 1
-connect_charts -plot $plot2 -from objIdPressed -to objPressed
+connect_charts_signal -plot $plot2 -from objIdPressed -to objPressed
 
-set plot3 [create_plot -view $view -model $model -type distribution -columns "value=cut"]
-connect_charts -plot $plot3 -from objIdPressed -to objPressed
+set plot3 [create_charts_plot -view $view -model $model -type distribution -columns "value=cut"]
+connect_charts_signal -plot $plot3 -from objIdPressed -to objPressed
 
-place_plots -horizontal $plot1 $plot2 $plot3
+place_charts_plots -horizontal $plot1 $plot2 $plot3

@@ -3,7 +3,8 @@
 
 #include <QFrame>
 
-class CQChartsViewSettingsPlotTabWidget;
+class CQChartsViewSettingsViewPropertiesWidget;
+class CQChartsViewSettingsPlotPropertiesWidget;
 class CQChartsViewSettingsFilterEdit;
 class CQChartsViewSettingsModelTable;
 class CQChartsViewSettingsPlotTable;
@@ -13,6 +14,7 @@ class CQChartsViewSettingsLayerTable;
 
 class CQChartsModelDetailsWidget;
 class CQChartsWindow;
+class CQChartsView;
 class CQChartsPlot;
 class CQChartsAnnotation;
 class CQChartsFilterEdit;
@@ -55,7 +57,7 @@ class CQChartsViewSettings : public QFrame {
 
   CQChartsWindow *window() const { return window_; }
 
-  CQChartsPropertyViewTree *viewPropertyTree() const { return propertiesWidgets_.viewPropertyTree; }
+  CQChartsPropertyViewTree *viewPropertyTree() const;
 
  signals:
   void propertyItemSelected(QObject *obj, const QString &path);
@@ -164,9 +166,9 @@ class CQChartsViewSettings : public QFrame {
 
  private:
   struct PropertiesWidgets {
-    CQChartsViewSettingsFilterEdit* viewFilterEdit   { nullptr }; //! view settings filter
-    CQChartsPropertyViewTree*       viewPropertyTree { nullptr }; //! view settings tree
-    QTabWidget*                     plotsTab         { nullptr }; //! plots settings tab
+    CQChartsViewSettingsFilterEdit*           viewFilterEdit   { nullptr }; //! view settings filter
+    CQChartsViewSettingsViewPropertiesWidget* viewPropertyTree { nullptr }; //! view settings tree
+    QTabWidget*                               plotsTab         { nullptr }; //! plots settings tab
   };
 
   struct ModelsWidgets {
@@ -233,11 +235,35 @@ class CQChartsViewSettings : public QFrame {
 
 //---
 
-class CQChartsViewSettingsPlotTabWidget : public QFrame {
+class CQChartsViewSettingsViewPropertiesWidget : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsViewSettingsPlotTabWidget(CQChartsViewSettings *settings, CQChartsPlot *plot);
+  CQChartsViewSettingsViewPropertiesWidget(CQChartsViewSettings *settings, CQChartsView *view);
+
+  CQChartsView *view() const { return view_; }
+
+  CQChartsPropertyViewTree *propertyTree() const { return propertyTree_; }
+
+ signals:
+  void propertyItemSelected(QObject *obj, const QString &path);
+
+ private slots:
+  void filterStateSlot(bool b);
+
+ private:
+  CQChartsView*                   view_         { nullptr };
+  CQChartsPropertyViewTree*       propertyTree_ { nullptr };
+  CQChartsViewSettingsFilterEdit* filterEdit_   { nullptr };
+};
+
+//---
+
+class CQChartsViewSettingsPlotPropertiesWidget : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsViewSettingsPlotPropertiesWidget(CQChartsViewSettings *settings, CQChartsPlot *plot);
 
   CQChartsPlot *plot() const { return plot_; }
 
@@ -245,6 +271,9 @@ class CQChartsViewSettingsPlotTabWidget : public QFrame {
 
  signals:
   void propertyItemSelected(QObject *obj, const QString &path);
+
+ private slots:
+  void filterStateSlot(bool b);
 
  private:
   CQChartsPlot*                   plot_         { nullptr };

@@ -37,20 +37,20 @@ proc addAnnotations { view plot } {
     }
   }
 
-  set polyId [create_polyline_annotation -plot $plot -id mean_line -points $points \
+  set polyId [create_charts_polyline_annotation -plot $plot -id mean_line -points $points \
    -background 1 -background_color red -background_alpha 0.5]
 }
 
-set model [load_model -csv data/ToothGrowth.csv -first_line_header]
+set model [load_charts_model -csv data/ToothGrowth.csv -first_line_header]
 
-set view [create_view]
+set view [create_charts_view]
 qt_sync
 
-set plot1 [create_plot -view $view -model $model -type boxplot -columns "group=dose,value=len"]
+set plot1 [create_charts_plot -view $view -model $model -type boxplot -columns "group=dose,value=len"]
 qt_sync
 
-connect_charts -plot $plot1 -from plotObjsAdded -to addAnnotations
+connect_charts_signal -plot $plot1 -from plotObjsAdded -to addAnnotations
 
-connect_charts -plot $plot1 -from objIdPressed -to objPressed
+connect_charts_signal -plot $plot1 -from objIdPressed -to objPressed
 
-connect_charts -plot $plot1 -from annotationIdPressed -to annotationSlot
+connect_charts_signal -plot $plot1 -from annotationIdPressed -to annotationSlot

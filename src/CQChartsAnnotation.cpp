@@ -177,7 +177,9 @@ bool
 CQChartsAnnotation::
 getProperty(const QString &name, QVariant &value) const
 {
-  if (view())
+  if      (plot())
+    return plot()->propertyModel()->getProperty(this, name, value);
+  else if (view())
     return view()->propertyModel()->getProperty(this, name, value);
 
   return false;
@@ -187,7 +189,9 @@ bool
 CQChartsAnnotation::
 setProperty(const QString &name, const QVariant &value)
 {
-  if (view())
+  if      (plot())
+    return plot()->propertyModel()->setProperty(this, name, value);
+  else if (view())
     return view()->propertyModel()->setProperty(this, name, value);
 
   return false;
@@ -197,10 +201,10 @@ void
 CQChartsAnnotation::
 getPropertyNames(QStringList &names) const
 {
-  if (! view())
-    return;
-
-  view()->propertyModel()->objectNames(this, names);
+  if      (plot())
+    plot()->propertyModel()->objectNames(this, names);
+  else if (view())
+    view()->propertyModel()->objectNames(this, names);
 }
 
 //------

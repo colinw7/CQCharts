@@ -191,7 +191,7 @@ namespace Springy {
    private:
     int    id_     { 0 };       //! id
     Node*  source_ { nullptr }; //! source node
-    Node*  target_ { nullptr }; //! targe node
+    Node*  target_ { nullptr }; //! target node
     double length_ { 1.0 };     //! length
     double value_  { 0.0 };     //! value
   };

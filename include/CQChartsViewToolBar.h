@@ -47,7 +47,7 @@ class CQChartsViewToolBar : public QFrame {
   CQIconCombo*             modeCombo_             { nullptr }; //! plot mode
   QRadioButton*            selectPointButton_     { nullptr }; //! select point radio
   QRadioButton*            selectRectButton_      { nullptr }; //! select rect radio
-  QCheckBox*               selectInsideCheck_     { nullptr }; //! selecy index checkbox
+  QCheckBox*               selectInsideCheck_     { nullptr }; //! select index checkbox
   QToolButton*             manageModelsDlgButton_ { nullptr }; //! load model dlg button
   QToolButton*             createPlotDlgButton_   { nullptr }; //! create plot dlg button
   QToolButton*             autoFitButton_         { nullptr }; //! auto fit button

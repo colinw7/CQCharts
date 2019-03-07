@@ -99,31 +99,31 @@ class CQChartsCmds : public QObject {
   //---
 
  public:
-  bool loadModelCmd       (CQChartsCmdArgs &args);
-  bool processModelCmd    (CQChartsCmdArgs &args);
-  bool defineChartsProcCmd(CQChartsCmdArgs &args);
-  bool sortModelCmd       (CQChartsCmdArgs &args);
-  bool foldModelCmd       (CQChartsCmdArgs &args);
-  bool filterModelCmd     (CQChartsCmdArgs &args);
-  bool flattenModelCmd    (CQChartsCmdArgs &args);
-  bool copyModelCmd       (CQChartsCmdArgs &args);
+  bool loadChartsModelCmd   (CQChartsCmdArgs &args);
+  bool processChartsModelCmd(CQChartsCmdArgs &args);
+  bool defineChartsProcCmd  (CQChartsCmdArgs &args);
+  bool sortChartsModelCmd   (CQChartsCmdArgs &args);
+  bool foldChartsModelCmd   (CQChartsCmdArgs &args);
+  bool filterChartsModelCmd (CQChartsCmdArgs &args);
+  bool flattenChartsModelCmd(CQChartsCmdArgs &args);
+  bool copyChartsModelCmd   (CQChartsCmdArgs &args);
 
-  bool correlationModelCmd(CQChartsCmdArgs &args);
-  bool subsetModelCmd     (CQChartsCmdArgs &args);
-  bool transposeModelCmd  (CQChartsCmdArgs &args);
-  bool summaryModelCmd    (CQChartsCmdArgs &args);
+  bool createChartsCorrelationModelCmd(CQChartsCmdArgs &args);
+  bool createChartsSubsetModelCmd     (CQChartsCmdArgs &args);
+  bool createChartsTransposeModelCmd  (CQChartsCmdArgs &args);
+  bool createChartsSummaryModelCmd    (CQChartsCmdArgs &args);
 
-  bool exportModelCmd(CQChartsCmdArgs &args);
+  bool exportChartsModelCmd(CQChartsCmdArgs &args);
 
-  bool groupPlotsCmd(CQChartsCmdArgs &args);
-  bool placePlotsCmd(CQChartsCmdArgs &args);
+  bool groupChartsPlotsCmd(CQChartsCmdArgs &args);
+  bool placeChartsPlotsCmd(CQChartsCmdArgs &args);
 
   bool measureChartsTextCmd(CQChartsCmdArgs &args);
 
-  bool createViewCmd(CQChartsCmdArgs &args);
+  bool createChartsViewCmd(CQChartsCmdArgs &args);
 
-  bool createPlotCmd(CQChartsCmdArgs &args);
-  bool removePlotCmd(CQChartsCmdArgs &args);
+  bool createChartsPlotCmd(CQChartsCmdArgs &args);
+  bool removeChartsPlotCmd(CQChartsCmdArgs &args);
 
   bool getChartsPropertyCmd(CQChartsCmdArgs &args);
   bool setChartsPropertyCmd(CQChartsCmdArgs &args);
@@ -131,26 +131,26 @@ class CQChartsCmds : public QObject {
   bool getChartsDataCmd(CQChartsCmdArgs &args);
   bool setChartsDataCmd(CQChartsCmdArgs &args);
 
-  bool getPaletteCmd(CQChartsCmdArgs &args);
-  bool setPaletteCmd(CQChartsCmdArgs &args);
+  bool getChartsPaletteCmd(CQChartsCmdArgs &args);
+  bool setChartsPaletteCmd(CQChartsCmdArgs &args);
 
-  bool createTextAnnotationCmd    (CQChartsCmdArgs &args);
-  bool createArrowAnnotationCmd   (CQChartsCmdArgs &args);
-  bool createRectAnnotationCmd    (CQChartsCmdArgs &args);
-  bool createEllipseAnnotationCmd (CQChartsCmdArgs &args);
-  bool createPolygonAnnotationCmd (CQChartsCmdArgs &args);
-  bool createPolylineAnnotationCmd(CQChartsCmdArgs &args);
-  bool createPointAnnotationCmd   (CQChartsCmdArgs &args);
-  bool removeAnnotationCmd        (CQChartsCmdArgs &args);
+  bool createChartsTextAnnotationCmd    (CQChartsCmdArgs &args);
+  bool createChartsArrowAnnotationCmd   (CQChartsCmdArgs &args);
+  bool createChartsRectAnnotationCmd    (CQChartsCmdArgs &args);
+  bool createChartsEllipseAnnotationCmd (CQChartsCmdArgs &args);
+  bool createChartsPolygonAnnotationCmd (CQChartsCmdArgs &args);
+  bool createChartsPolylineAnnotationCmd(CQChartsCmdArgs &args);
+  bool createChartsPointAnnotationCmd   (CQChartsCmdArgs &args);
+  bool removeChartsAnnotationCmd        (CQChartsCmdArgs &args);
 
-  bool connectChartsCmd(CQChartsCmdArgs &args);
+  bool connectChartsSignalCmd(CQChartsCmdArgs &args);
 
-  bool printChartsCmd    (CQChartsCmdArgs &args);
-  bool writeChartsDataCmd(CQChartsCmdArgs &args);
+  bool printChartsImageCmd(CQChartsCmdArgs &args);
+  bool writeChartsDataCmd (CQChartsCmdArgs &args);
 
-  bool loadModelDlgCmd   (CQChartsCmdArgs &args);
-  bool manageModelsDlgCmd(CQChartsCmdArgs &args);
-  bool createPlotDlgCmd  (CQChartsCmdArgs &args);
+  bool showChartsLoadModelDlgCmd   (CQChartsCmdArgs &args);
+  bool showChartsManageModelsDlgCmd(CQChartsCmdArgs &args);
+  bool showChartsCreatePlotDlgCmd  (CQChartsCmdArgs &args);
 
   bool testEditCmd(CQChartsCmdArgs &args);
 
@@ -206,37 +206,37 @@ class CQCharts##NAME##Cmd : public CQChartsCmdProc { \
 
 //---
 
-CQCHARTS_DEF_CMD(LoadModel       , loadModelCmd)
-CQCHARTS_DEF_CMD(ProcessModel    , processModelCmd)
-CQCHARTS_DEF_CMD(DefineChartsProc, defineChartsProcCmd)
-CQCHARTS_DEF_CMD(SortModel       , sortModelCmd)
-CQCHARTS_DEF_CMD(FoldModel       , foldModelCmd)
-CQCHARTS_DEF_CMD(FilterModel     , filterModelCmd)
-CQCHARTS_DEF_CMD(FlattenModel    , flattenModelCmd)
-CQCHARTS_DEF_CMD(CopyModel       , copyModelCmd)
+CQCHARTS_DEF_CMD(LoadChartsModel   , loadChartsModelCmd)
+CQCHARTS_DEF_CMD(ProcessChartsModel, processChartsModelCmd)
+CQCHARTS_DEF_CMD(DefineChartsProc  , defineChartsProcCmd)
+CQCHARTS_DEF_CMD(SortChartsModel   , sortChartsModelCmd)
+CQCHARTS_DEF_CMD(FoldChartsModel   , foldChartsModelCmd)
+CQCHARTS_DEF_CMD(FilterChartsModel , filterChartsModelCmd)
+CQCHARTS_DEF_CMD(FlattenChartsModel, flattenChartsModelCmd)
+CQCHARTS_DEF_CMD(CopyChartsModel   , copyChartsModelCmd)
 
 //---
 
-CQCHARTS_DEF_CMD(CorrelationModel, correlationModelCmd)
-CQCHARTS_DEF_CMD(SubsetModel     , subsetModelCmd)
-CQCHARTS_DEF_CMD(TransposeModel  , transposeModelCmd)
-CQCHARTS_DEF_CMD(SummaryModel    , summaryModelCmd)
+CQCHARTS_DEF_CMD(CreateChartsCorrelationModel, createChartsCorrelationModelCmd)
+CQCHARTS_DEF_CMD(CreateChartsSubsetModel     , createChartsSubsetModelCmd)
+CQCHARTS_DEF_CMD(CreateChartsTransposeModel  , createChartsTransposeModelCmd)
+CQCHARTS_DEF_CMD(CreateChartsSummaryModel    , createChartsSummaryModelCmd)
 
 //---
 
-CQCHARTS_DEF_CMD(ExportModel, exportModelCmd)
+CQCHARTS_DEF_CMD(ExportChartsModel, exportChartsModelCmd)
 
 //---
 
-CQCHARTS_DEF_CMD(GroupPlots, groupPlotsCmd)
-CQCHARTS_DEF_CMD(PlacePlots, placePlotsCmd)
+CQCHARTS_DEF_CMD(GroupChartsPlots, groupChartsPlotsCmd)
+CQCHARTS_DEF_CMD(PlaceChartsPlots, placeChartsPlotsCmd)
 
 CQCHARTS_DEF_CMD(MeasureChartsText, measureChartsTextCmd)
 
-CQCHARTS_DEF_CMD(CreateView, createViewCmd)
+CQCHARTS_DEF_CMD(CreateChartsView, createChartsViewCmd)
 
-CQCHARTS_DEF_CMD(CreatePlot, createPlotCmd)
-CQCHARTS_DEF_CMD(RemovePlot, removePlotCmd)
+CQCHARTS_DEF_CMD(CreateChartsPlot, createChartsPlotCmd)
+CQCHARTS_DEF_CMD(RemoveChartsPlot, removeChartsPlotCmd)
 
 CQCHARTS_DEF_CMD(GetChartsProperty, getChartsPropertyCmd)
 CQCHARTS_DEF_CMD(SetChartsProperty, setChartsPropertyCmd)
@@ -244,35 +244,35 @@ CQCHARTS_DEF_CMD(SetChartsProperty, setChartsPropertyCmd)
 CQCHARTS_DEF_CMD(GetChartsData, getChartsDataCmd)
 CQCHARTS_DEF_CMD(SetChartsData, setChartsDataCmd)
 
-CQCHARTS_DEF_CMD(GetPalette, getPaletteCmd)
-CQCHARTS_DEF_CMD(SetPalette, setPaletteCmd)
+CQCHARTS_DEF_CMD(GetChartsPalette, getChartsPaletteCmd)
+CQCHARTS_DEF_CMD(SetChartsPalette, setChartsPaletteCmd)
 
 //---
 
-CQCHARTS_DEF_CMD(CreateTextAnnotation    , createTextAnnotationCmd)
-CQCHARTS_DEF_CMD(CreateArrowAnnotation   , createArrowAnnotationCmd)
-CQCHARTS_DEF_CMD(CreateRectAnnotation    , createRectAnnotationCmd)
-CQCHARTS_DEF_CMD(CreateEllipseAnnotation , createEllipseAnnotationCmd)
-CQCHARTS_DEF_CMD(CreatePolygonAnnotation , createPolygonAnnotationCmd)
-CQCHARTS_DEF_CMD(CreatePolylineAnnotation, createPolylineAnnotationCmd)
-CQCHARTS_DEF_CMD(CreatePointAnnotation   , createPointAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsTextAnnotation    , createChartsTextAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsArrowAnnotation   , createChartsArrowAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsRectAnnotation    , createChartsRectAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsEllipseAnnotation , createChartsEllipseAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsPolygonAnnotation , createChartsPolygonAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsPolylineAnnotation, createChartsPolylineAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsPointAnnotation   , createChartsPointAnnotationCmd)
 
-CQCHARTS_DEF_CMD(RemoveAnnotation, removeAnnotationCmd)
-
-//---
-
-CQCHARTS_DEF_CMD(ConnectCharts, connectChartsCmd)
+CQCHARTS_DEF_CMD(RemoveChartsAnnotation, removeChartsAnnotationCmd)
 
 //---
 
-CQCHARTS_DEF_CMD(PrintCharts    , printChartsCmd)
-CQCHARTS_DEF_CMD(WriteChartsData, writeChartsDataCmd)
+CQCHARTS_DEF_CMD(ConnectChartsSignal, connectChartsSignalCmd)
 
 //---
 
-CQCHARTS_DEF_CMD(LoadModelDlg   , loadModelDlgCmd)
-CQCHARTS_DEF_CMD(ManageModelsDlg, manageModelsDlgCmd)
-CQCHARTS_DEF_CMD(CreatePlotDlg  , createPlotDlgCmd)
+CQCHARTS_DEF_CMD(PrintChartsImage, printChartsImageCmd)
+CQCHARTS_DEF_CMD(WriteChartsData , writeChartsDataCmd)
+
+//---
+
+CQCHARTS_DEF_CMD(ShowChartsLoadModelDlg   , showChartsLoadModelDlgCmd)
+CQCHARTS_DEF_CMD(ShowChartsManageModelsDlg, showChartsManageModelsDlgCmd)
+CQCHARTS_DEF_CMD(ShowChartsCreatePlotDlg  , showChartsCreatePlotDlgCmd)
 
 //---
 

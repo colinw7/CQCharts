@@ -4,12 +4,12 @@ set font_data [list \
  [list 3 30 Three  5] \
 ]
 
-set model [load_model -var font_data -transpose]
+set model [load_charts_model -var font_data -transpose]
 
 # map font directly in model
 #set_charts_data -model $model -column 2 -name column_type -value "fontSize:mapped=1"
 
-set plot [create_plot -model $model -type scatter \
+set plot [create_charts_plot -model $model -type scatter \
   -columns "x=0,y=1,name=2,fontSize=3" \
   -parameter "textLabels=1"]
 

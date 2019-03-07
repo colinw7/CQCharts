@@ -1,4 +1,4 @@
-set model [load_model -csv data/diamonds.csv -first_line_header]
+set model [load_charts_model -csv data/diamonds.csv -first_line_header]
 
 # headers
 set headers [get_charts_data -model $model -name header]
@@ -21,13 +21,13 @@ set sd [get_charts_data -model $model -name standard_deviation -column 4]
 echo "standard_deviation 4: $sd"
 
 # summary model
-set model1 [create_summary_model -model $model -sorted]
+set model1 [create_charts_summary_model -model $model -sorted]
 
 set order [get_charts_data -model $model1 -name property.sortOrder]
 
 echo "order: $order"
 
-process_model -model $model1 -list -expr 10
+process_charts_model -model $model1 -list -expr 10
 
 set_charts_data -model $model1 -name property.sortOrder -value 1
 
@@ -35,4 +35,4 @@ set order [get_charts_data -model $model1 -name property.sortOrder]
 
 echo "order: $order"
 
-process_model -model $model1 -list -expr 10
+process_charts_model -model $model1 -list -expr 10

@@ -81,7 +81,7 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //---
 
-  // locaition
+  // location
   const CQChartsKeyLocation &location() const { return location_; }
   void setLocation(const CQChartsKeyLocation &l);
 
@@ -147,7 +147,7 @@ class CQChartsKey : public CQChartsBoxObj,
     QScrollBar*       bar      { nullptr }; //! scroll bar
   };
 
-  bool                     horizontal_          { false }; //! is layed out horizontallly
+  bool                     horizontal_          { false }; //! is laid out horizontally
   bool                     above_               { true };  //! draw above view/plot
   CQChartsKeyLocation      location_;                      //! key location
   QString                  header_;                        //! header

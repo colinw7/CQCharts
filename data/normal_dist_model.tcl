@@ -1,8 +1,8 @@
-set model [load_model -expr -num_rows 200 -name "male/female distribution"]
+set model [load_charts_model -expr -num_rows 200 -name "male/female distribution"]
 
-process_model -model $model -add -expr "rnorm(55)" -header "F"
-process_model -model $model -add -expr "rnorm(58)" -header "M"
+process_charts_model -model $model -add -expr "rnorm(55)" -header "F"
+process_charts_model -model $model -add -expr "rnorm(58)" -header "M"
 
 #manage_models_dlg
 
-set plot [create_plot -model $model -type distribution -columns "value=1 2"]
+set plot [create_charts_plot -model $model -type distribution -columns "value=1 2"]

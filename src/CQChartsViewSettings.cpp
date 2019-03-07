@@ -604,21 +604,9 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   //--
 
-  propertiesWidgets_.viewPropertyTree =
-    new CQChartsPropertyViewTree(this, view->propertyModel());
+  propertiesWidgets_.viewPropertyTree = new CQChartsViewSettingsViewPropertiesWidget(this, view);
 
-  connect(viewPropertyTree(), SIGNAL(itemSelected(QObject *, const QString &)),
-          this, SIGNAL(propertyItemSelected(QObject *, const QString &)));
-
-  //--
-
-  propertiesWidgets_.viewFilterEdit =
-    new CQChartsViewSettingsFilterEdit(viewPropertyTree());
-
-  //--
-
-  viewGroupLayout->addWidget(propertiesWidgets_.viewFilterEdit);
-  viewGroupLayout->addWidget(viewPropertyTree());
+  viewGroupLayout->addWidget(propertiesWidgets_.viewPropertyTree);
 
   //--
 
@@ -1201,6 +1189,8 @@ initLayersFrame(QFrame *layersFrame)
   connect(imageButton, SIGNAL(clicked()), this, SLOT(layerImageSlot()));
 }
 
+//------
+
 class CQChartsViewSettingsLayerImage : public QDialog {
  public:
   CQChartsViewSettingsLayerImage() {
@@ -1244,6 +1234,15 @@ layerImageSlot()
   layerImage->setImage(*image);
 
   layerImage->show();
+}
+
+//------
+
+CQChartsPropertyViewTree *
+CQChartsViewSettings::
+viewPropertyTree() const
+{
+  return propertiesWidgets_.viewPropertyTree->propertyTree();
 }
 
 //------
@@ -1341,8 +1340,9 @@ updatePlots()
 
   auto findPlotTab = [&](CQChartsPlot *plot) {
     for (int i = 0; i < propertiesWidgets_.plotsTab->count(); ++i) {
-      CQChartsViewSettingsPlotTabWidget *plotWidget =
-        qobject_cast<CQChartsViewSettingsPlotTabWidget *>(propertiesWidgets_.plotsTab->widget(i));
+      CQChartsViewSettingsPlotPropertiesWidget *plotWidget =
+        qobject_cast<CQChartsViewSettingsPlotPropertiesWidget *>(
+          propertiesWidgets_.plotsTab->widget(i));
       assert(plotWidget);
 
       if (plotWidget->plot() == plot)
@@ -1359,8 +1359,11 @@ updatePlots()
     int ind = findPlotTab(plot);
 
     if (ind < 0) {
-      CQChartsViewSettingsPlotTabWidget *plotWidget =
-        new CQChartsViewSettingsPlotTabWidget(this, plot);
+      CQChartsViewSettingsPlotPropertiesWidget *plotWidget =
+        new CQChartsViewSettingsPlotPropertiesWidget(this, plot);
+
+      plotWidget->setObjectName(QString("plotTabWidget_%1").
+        arg(propertiesWidgets_.plotsTab->count() + 1));
 
       connect(plotWidget, SIGNAL(propertyItemSelected(QObject *, const QString &)),
               this, SIGNAL(propertyItemSelected(QObject *, const QString &)));
@@ -1370,13 +1373,14 @@ updatePlots()
   }
 
   // remove deleted plots from tab
-  using PlotWidgets = std::vector<CQChartsViewSettingsPlotTabWidget *>;
+  using PlotWidgets = std::vector<CQChartsViewSettingsPlotPropertiesWidget *>;
 
   PlotWidgets plotWidgets;
 
   for (int i = 0; i < propertiesWidgets_.plotsTab->count(); ++i) {
-    CQChartsViewSettingsPlotTabWidget *plotWidget =
-      qobject_cast<CQChartsViewSettingsPlotTabWidget *>(propertiesWidgets_.plotsTab->widget(i));
+    CQChartsViewSettingsPlotPropertiesWidget *plotWidget =
+      qobject_cast<CQChartsViewSettingsPlotPropertiesWidget *>(
+        propertiesWidgets_.plotsTab->widget(i));
     assert(plotWidget);
 
     if (plotSet.find(plotWidget->plot()) == plotSet.end())
@@ -1437,8 +1441,9 @@ CQChartsPlot *
 CQChartsViewSettings::
 getPropertiesPlot() const
 {
-  CQChartsViewSettingsPlotTabWidget *plotWidget =
-    qobject_cast<CQChartsViewSettingsPlotTabWidget *>(propertiesWidgets_.plotsTab->currentWidget());
+  CQChartsViewSettingsPlotPropertiesWidget *plotWidget =
+    qobject_cast<CQChartsViewSettingsPlotPropertiesWidget *>(
+      propertiesWidgets_.plotsTab->currentWidget());
 
   if (! plotWidget)
     return nullptr;
@@ -2053,27 +2058,84 @@ layersClickedSlot(int row, int column)
 
 //------
 
-CQChartsViewSettingsPlotTabWidget::
-CQChartsViewSettingsPlotTabWidget(CQChartsViewSettings *settings, CQChartsPlot *plot) :
+CQChartsViewSettingsViewPropertiesWidget::
+CQChartsViewSettingsViewPropertiesWidget(CQChartsViewSettings *settings, CQChartsView *view) :
+ view_(view)
+{
+  setObjectName("viewWidget");
+
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+
+  //--
+
+  propertyTree_ = new CQChartsPropertyViewTree(settings, view->propertyModel());
+
+  propertyTree_->setObjectName("propertyTree");
+
+  connect(propertyTree_, SIGNAL(itemSelected(QObject *, const QString &)),
+          this, SIGNAL(propertyItemSelected(QObject *, const QString &)));
+
+  connect(propertyTree_, SIGNAL(filterStateChanged(bool)),
+          this, SLOT(filterStateSlot(bool)));
+
+  //--
+
+  filterEdit_ = new CQChartsViewSettingsFilterEdit(propertyTree_);
+
+  filterEdit_->setVisible(propertyTree_->isFilterDisplayed());
+
+  //--
+
+  layout->addWidget(filterEdit_);
+  layout->addWidget(propertyTree_);
+}
+
+void
+CQChartsViewSettingsViewPropertiesWidget::
+filterStateSlot(bool b)
+{
+  filterEdit_->setVisible(b);
+}
+
+//------
+
+CQChartsViewSettingsPlotPropertiesWidget::
+CQChartsViewSettingsPlotPropertiesWidget(CQChartsViewSettings *settings, CQChartsPlot *plot) :
  plot_(plot)
 {
+  setObjectName("plotTabWidget");
+
   QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //--
 
   propertyTree_ = new CQChartsPropertyViewTree(settings, plot_->propertyModel());
 
+  propertyTree_->setObjectName("propertyTree");
+
   connect(propertyTree_, SIGNAL(itemSelected(QObject *, const QString &)),
           this, SIGNAL(propertyItemSelected(QObject *, const QString &)));
+
+  connect(propertyTree_, SIGNAL(filterStateChanged(bool)),
+          this, SLOT(filterStateSlot(bool)));
 
   //--
 
   filterEdit_ = new CQChartsViewSettingsFilterEdit(propertyTree_);
 
+  filterEdit_->setVisible(propertyTree_->isFilterDisplayed());
+
   //--
 
   layout->addWidget(filterEdit_);
   layout->addWidget(propertyTree_);
+}
+
+void
+CQChartsViewSettingsPlotPropertiesWidget::
+filterStateSlot(bool b)
+{
+  filterEdit_->setVisible(b);
 }
 
 //------
@@ -2082,6 +2144,8 @@ CQChartsViewSettingsFilterEdit::
 CQChartsViewSettingsFilterEdit(CQChartsPropertyViewTree *tree) :
  tree_(tree)
 {
+  setObjectName("filterEdit");
+
   QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   filterEdit_ = new CQChartsFilterEdit;

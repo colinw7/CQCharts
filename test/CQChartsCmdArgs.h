@@ -557,7 +557,7 @@ class CQChartsCmdBaseArgs {
 
     //---
 
-    // check options specfied for cmd groups
+    // check options specified for cmd groups
     for (const auto &cmdGroup : cmdGroups_) {
       int groupInd = cmdGroup.ind();
 
@@ -694,7 +694,7 @@ class CQChartsCmdBaseArgs {
     return (*p).second;
   }
 
-  // get parsed optonal boolean for option
+  // get parsed optional boolean for option
   OptBool getParseOptBool(const QString &name) const {
     auto p = parseBool_.find(name);
     if (p == parseBool_.end()) return OptBool();
@@ -1123,7 +1123,7 @@ class CQChartsCmdBaseArgs {
   bool        debug_      { false }; //! is debug
   Args        argv_;                 //! input args
   int         i_          { 0 };     //! current arg
-  int         argc_       { 0 };     //! numer of args
+  int         argc_       { 0 };     //! number of args
   Arg         lastArg_;              //! last processed arg
   CmdArgs     cmdArgs_;              //! command argument data
   CmdGroups   cmdGroups_;            //! command argument groups

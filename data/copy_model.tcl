@@ -1,4 +1,4 @@
-set model [load_model -csv data/HairEyeColor.csv -first_line_header]
+set model [load_charts_model -csv data/HairEyeColor.csv -first_line_header]
 
 filter_model -model $model  -expr {$Sex=="Male"}
 

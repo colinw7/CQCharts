@@ -112,7 +112,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   void updateLocation();
 
  private:
-  CQChartsTitleLocation      location_;                //! loction type
+  CQChartsTitleLocation      location_;                //! location type
   CQChartsPosition           absPosition_;             //! position (relative to plot box)
   CQChartsRect               absRect_;                 //! rect (relative to plot box)
   bool                       insidePlot_  { false };   //! is placed inside plot
