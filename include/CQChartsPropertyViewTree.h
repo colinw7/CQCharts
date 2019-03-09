@@ -12,6 +12,8 @@ class CQChartsEditAxisDlg;
 class CQChartsPropertyViewTree : public CQPropertyViewTree {
   Q_OBJECT
 
+  Q_PROPERTY(bool filterDisplayed READ isFilterDisplayed WRITE setFilterDisplayed)
+
  public:
   CQChartsPropertyViewTree(CQChartsViewSettings *settings, CQPropertyViewModel *model);
 
@@ -20,10 +22,12 @@ class CQChartsPropertyViewTree : public CQPropertyViewTree {
   void printItem(CQPropertyViewItem *item) const;
 
   bool isFilterDisplayed() const { return filterDisplayed_; }
-  void setFilterDisplayed(bool b) { filterDisplayed_ = b; }
+  void setFilterDisplayed(bool visible, bool focus=false);
+
+  void keyPressEvent(QKeyEvent *e) override;
 
  signals:
-  void filterStateChanged(bool);
+  void filterStateChanged(bool show, bool focus);
 
  private slots:
   void editSlot();

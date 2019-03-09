@@ -18,6 +18,7 @@
 
 #include <QMenu>
 #include <QAction>
+#include <QKeyEvent>
 
 CQChartsPropertyViewTree::
 CQChartsPropertyViewTree(CQChartsViewSettings *settings, CQPropertyViewModel *model) :
@@ -180,9 +181,28 @@ editSlot()
 
 void
 CQChartsPropertyViewTree::
+setFilterDisplayed(bool show, bool focus)
+{
+  filterDisplayed_ = show;
+
+  emit filterStateChanged(filterDisplayed_, focus);
+}
+
+void
+CQChartsPropertyViewTree::
 showHideFilterSlot(bool b)
 {
   setFilterDisplayed(b);
+}
 
-  emit filterStateChanged(b);
+void
+CQChartsPropertyViewTree::
+keyPressEvent(QKeyEvent *e)
+{
+  if (e->key() == Qt::Key_Slash) {
+    setFilterDisplayed(true, true);
+    return;
+  }
+
+  CQPropertyViewTree::keyPressEvent(e);
 }

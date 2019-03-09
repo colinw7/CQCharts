@@ -3,29 +3,11 @@
 
 #include <QFrame>
 
-class CQChartsModelDetailsWidget;
+class CQChartsModelDataWidget;
 class CQChartsModelData;
-class CQChartsModelDetails;
-class CQChartsTable;
-class CQChartsTree;
 class CQCharts;
 
-class CQTableWidget;
-class CQLineEdit;
-class QStackedWidget;
 class QTabWidget;
-
-//---
-
-struct CQChartsViewWidgetData {
-  int                         ind           { -1 };
-  int                         tabInd        { -1 };
-  QStackedWidget*             stack         { nullptr };
-  CQChartsTable*              table         { nullptr };
-  CQChartsTree*               tree          { nullptr };
-  CQLineEdit*                 filterEdit    { nullptr };
-  CQChartsModelDetailsWidget* detailsWidget { nullptr };
-};
 
 //---
 
@@ -33,28 +15,13 @@ class CQChartsModelList : public QFrame {
   Q_OBJECT
 
  public:
-  using ViewWidgetDatas = std::map<int,CQChartsViewWidgetData*>;
-
- public:
   CQChartsModelList(CQCharts *charts);
 
  ~CQChartsModelList();
 
-  int numModels() const { return viewWidgetDatas_.size(); }
-
   void addModelData(CQChartsModelData *modelData);
 
-  void updateModel();
-
   CQChartsModelData *currentModelData() const;
-
-  void setTabTitle(int ind, const QString &title);
-
-  void redrawView();
-
-  void reloadModel();
-
-  void setDetails();
 
  private slots:
   void updateCurrentModel();
@@ -66,29 +33,15 @@ class CQChartsModelList : public QFrame {
  private:
   QTabWidget *viewTab() const { return viewTab_; }
 
-  CQChartsViewWidgetData *currentViewWidgetData() const;
-
-  CQChartsViewWidgetData *viewWidgetData(int ind) const;
-
-  void addModelDataWidgets(CQChartsModelData *modelData);
+  CQChartsModelDataWidget *currentModelDataWidget() const;
+  CQChartsModelDataWidget *modelDataWidget(int ind) const;
 
  private slots:
   void currentTabChanged(int);
 
-  void filterSlot();
-
-  void treeColumnClicked(int column);
-  void treeSelectionChanged();
-
-  void tableColumnClicked(int column);
-  void tableSelectionChanged();
-
  private:
-  CQCharts*                   charts_                { nullptr };
-  CQChartsModelData*          modelData_             { nullptr };
-  QTabWidget*                 viewTab_               { nullptr };
-  ViewWidgetDatas             viewWidgetDatas_;
-  CQChartsViewWidgetData*     currentViewWidgetData_ { nullptr };
+  CQCharts*   charts_  { nullptr };
+  QTabWidget* viewTab_ { nullptr };
 };
 
 #endif

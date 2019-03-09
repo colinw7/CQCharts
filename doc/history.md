@@ -793,3 +793,6 @@
 # 3/5/2019
  + add filter for plot properties
  + use CQLineEdit
+# 3/9/2019
+ + Add shortcut key to show/hide property tree filter
+ + Add dialog to edit single model

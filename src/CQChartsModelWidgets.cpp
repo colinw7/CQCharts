@@ -24,6 +24,11 @@ CQChartsModelWidgets(CQCharts *charts, QWidget *parent) :
   modelControl_ = new CQChartsModelControl(charts_);
 
   layout->addWidget(modelControl_);
+
+  //---
+
+  connect(charts_, SIGNAL(currentModelChanged(int)),
+          modelControl_, SLOT(updateCurrentModel()));
 }
 
 void

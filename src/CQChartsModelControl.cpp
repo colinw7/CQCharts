@@ -74,7 +74,7 @@ class CQChartsParamEdit : public QFrame {
 //---
 
 CQChartsModelControl::
-CQChartsModelControl(CQCharts *charts) :
+CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
  charts_(charts)
 {
   QVBoxLayout *layout = new QVBoxLayout(this);
@@ -281,8 +281,7 @@ CQChartsModelControl(CQCharts *charts) :
 
   controlTab->addTab(columnDataFrame, "Column Data");
 
-  QVBoxLayout *columnDataLayout = new QVBoxLayout(columnDataFrame);
-  columnDataLayout->setMargin(0); columnDataLayout->setSpacing(2);
+  QVBoxLayout *columnDataLayout = CQUtil::makeLayout<QVBoxLayout>(columnDataFrame, 2, 2);
 
   //---
 
@@ -337,11 +336,11 @@ CQChartsModelControl(CQCharts *charts) :
 
   //---
 
-  expressionModeSlot();
+  setModelData(modelData);
 
   //---
 
-  connect(charts, SIGNAL(currentModelChanged(int)), this, SLOT(updateCurrentModel()));
+  expressionModeSlot();
 }
 
 CQLineEdit *
@@ -507,6 +506,13 @@ updateCurrentModel()
 {
   CQChartsModelData *modelData = charts_->currentModelData();
 
+  setModelData(modelData);
+}
+
+void
+CQChartsModelControl::
+setModelData(CQChartsModelData *modelData)
+{
   if (modelData != modelData_) {
     if (modelData_)
       disconnect(modelData_, SIGNAL(currentColumnChanged(int)), this, SLOT(setColumnData(int)));

@@ -1,6 +1,6 @@
-#include <CQChartsManageModelsDlg.h>
-#include <CQChartsModelWidgets.h>
-#include <CQChartsModelList.h>
+#include <CQChartsEditModelDlg.h>
+#include <CQChartsModelDataWidget.h>
+#include <CQChartsModelControl.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsCreatePlotDlg.h>
@@ -12,22 +12,32 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
-CQChartsManageModelsDlg::
-CQChartsManageModelsDlg(CQCharts *charts) :
- charts_(charts)
+CQChartsEditModelDlg::
+CQChartsEditModelDlg(CQCharts *charts, CQChartsModelData *modelData) :
+ charts_(charts), modelData_(modelData)
 {
-  setObjectName("manageModelsDlg");
+  setObjectName("editModelDlg");
 
-  setWindowTitle("Manage Models");
+  if (modelData_)
+    setWindowTitle(QString("Edit Model %1").arg(modelData_->id()));
+  else
+    setWindowTitle("Edit Model");
 
   QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
-  // create model widgets
-  modelWidgets_ = new CQChartsModelWidgets(charts_);
+  // create model widget
+  modelWidget_ = new CQChartsModelDataWidget(charts_, modelData_);
 
-  layout->addWidget(modelWidgets_);
+  layout->addWidget(modelWidget_);
+
+  //---
+
+  // create model control
+  modelControl_ = new CQChartsModelControl(charts_, modelData);
+
+  layout->addWidget(modelControl_);
 
   //---
 
@@ -55,31 +65,39 @@ CQChartsManageModelsDlg(CQCharts *charts) :
   buttonLayout->addWidget(doneButton);
 
   layout->addLayout(buttonLayout);
-
-  //----
-
-  CQCharts::ModelDatas modelDatas;
-
-  charts_->getModelDatas(modelDatas);
-
-  for (const auto &modelData : modelDatas)
-    modelWidgets_->addModelData(modelData);
 }
 
-CQChartsManageModelsDlg::
-~CQChartsManageModelsDlg()
+CQChartsEditModelDlg::
+~CQChartsEditModelDlg()
 {
 }
 
 void
-CQChartsManageModelsDlg::
+CQChartsEditModelDlg::
+setModelData(CQChartsModelData *modelData)
+{
+  modelData_ = modelData;
+
+  if (modelData_)
+    setWindowTitle(QString("Edit Model %1").arg(modelData_->id()));
+  else
+    setWindowTitle("Edit Model");
+
+  modelWidget_->setModelData(modelData_);
+
+  modelControl_->setModelData(modelData_);
+}
+
+void
+CQChartsEditModelDlg::
 writeSlot()
 {
+  if (! modelData_)
+    return;
+
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-  CQChartsModelData *modelData = modelWidgets_->modelList()->currentModelData();
-
-  QAbstractItemModel *model = modelData->currentModel().data();
+  QAbstractItemModel *model = modelData_->currentModel().data();
 
   for (int i = 0; i < model->columnCount(); ++i) {
     CQChartsColumn column(i);
@@ -142,7 +160,7 @@ writeSlot()
       value += param.name() + "=" + str;
     }
 
-    std::cerr << "set_charts_data -model " << modelData->ind() <<
+    std::cerr << "set_charts_data -model " << modelData_->ind() <<
                  " -column " << i << " -name column_type" <<
                  " -value {" << value.toStdString() << "}\n";
   }
@@ -150,24 +168,22 @@ writeSlot()
   //---
 
   // TODO: write what ?
-  modelData->write();
+  modelData_->write();
 }
 
 void
-CQChartsManageModelsDlg::
+CQChartsEditModelDlg::
 plotSlot()
 {
-  CQChartsModelData *modelData = modelWidgets_->modelList()->currentModelData();
-
   delete createPlotDlg_;
 
-  createPlotDlg_ = new CQChartsCreatePlotDlg(charts_, modelData);
+  createPlotDlg_ = new CQChartsCreatePlotDlg(charts_, modelData_);
 
   createPlotDlg_->show();
 }
 
 void
-CQChartsManageModelsDlg::
+CQChartsEditModelDlg::
 cancelSlot()
 {
   hide();

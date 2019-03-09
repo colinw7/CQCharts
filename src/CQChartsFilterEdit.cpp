@@ -1,11 +1,11 @@
 #include <CQChartsFilterEdit.h>
 #include <CQIconCombo.h>
 #include <CQSwitch.h>
-#include <CQLineEdit.h>
 #include <CQUtil.h>
 
 #include <QHBoxLayout>
 #include <QButtonGroup>
+#include <QKeyEvent>
 
 #include <svg/filter_light_svg.h>
 #include <svg/filter_dark_svg.h>
@@ -21,9 +21,10 @@ CQChartsFilterEdit(QWidget *parent) :
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setMargin(0); layout->setSpacing(2);
 
-  edit_ = CQUtil::makeWidget<CQLineEdit>("edit");
+  edit_ = new CQChartsFilterEditEdit;
 
   connect(edit_, SIGNAL(returnPressed()), this, SLOT(acceptSlot()));
+  connect(edit_, SIGNAL(escapePressed()), this, SLOT(escapeSlot()));
 
   layout->addWidget(edit_);
 
@@ -33,6 +34,7 @@ CQChartsFilterEdit(QWidget *parent) :
 
   combo_->addItem(CQPixmapCacheInst->getIcon("FILTER_LIGHT", "FILTER_DARK"), "Filter");
   combo_->addItem(CQPixmapCacheInst->getIcon("SEARCH_LIGHT", "SEARCH_DARK"), "Search");
+  combo_->setFocusPolicy(Qt::NoFocus);
 
   connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboSlot(int)));
 
@@ -50,6 +52,7 @@ CQChartsFilterEdit(QWidget *parent) :
   addReplaceSwitch_->setObjectName("add_replace");
   addReplaceSwitch_->setChecked(true);
   addReplaceSwitch_->setHighlightOn(false);
+  addReplaceSwitch_->setFocusPolicy(Qt::NoFocus);
 
   opLayout->addWidget(addReplaceSwitch_);
 
@@ -58,12 +61,15 @@ CQChartsFilterEdit(QWidget *parent) :
   andOrSwitch_->setObjectName("and");
   andOrSwitch_->setChecked(true);
   andOrSwitch_->setHighlightOn(false);
+  andOrSwitch_->setFocusPolicy(Qt::NoFocus);
 
   connect(andOrSwitch_, SIGNAL(toggled(bool)), this, SLOT(andSlot()));
 
   opLayout->addWidget(andOrSwitch_);
 
   layout->addWidget(opFrame);
+
+  setFocusProxy(edit_);
 }
 
 void
@@ -136,4 +142,32 @@ acceptSlot()
         emit addSearch(searchText_);
     }
   }
+}
+
+void
+CQChartsFilterEdit::
+escapeSlot()
+{
+  emit escapePressed();
+}
+
+//------
+
+CQChartsFilterEditEdit::
+CQChartsFilterEditEdit(QWidget *parent) :
+ CQLineEdit(parent)
+{
+  setObjectName("edit");
+}
+
+void
+CQChartsFilterEditEdit::
+keyPressEvent(QKeyEvent *e)
+{
+  if (e->key() == Qt::Key_Escape) {
+    emit escapePressed();
+    return;
+  }
+
+  CQLineEdit::keyPressEvent(e);
 }

@@ -21,6 +21,7 @@ class CQChartsFilterEdit;
 class CQChartsGradientPaletteCanvas;
 class CQChartsGradientPaletteControl;
 class CQChartsLoadModelDlg;
+class CQChartsEditModelDlg;
 class CQChartsCreatePlotDlg;
 class CQChartsCreateAnnotationDlg;
 class CQChartsEditAnnotationDlg;
@@ -88,6 +89,7 @@ class CQChartsViewSettings : public QFrame {
   void modelsSelectionChangeSlot();
 
   void loadModelSlot();
+  void editModelSlot();
 
   //---
 
@@ -175,6 +177,7 @@ class CQChartsViewSettings : public QFrame {
     CQChartsViewSettingsModelTable* modelTable    { nullptr }; //! model table
     CQGroupBox*                     detailsGroup  { nullptr }; //! model details group box
     CQChartsModelDetailsWidget*     detailsWidget { nullptr }; //! model details
+    QPushButton*                    editButton    { nullptr }; //! edit model
   };
 
   struct PlotsWidgets {
@@ -222,6 +225,7 @@ class CQChartsViewSettings : public QFrame {
   ThemeWidgets                 themeWidgets_;                    //! theme widgets
   LayersWidgets                layersWidgets_;                   //! layers widgets
   CQChartsLoadModelDlg*        loadModelDlg_        { nullptr }; //! load dialog
+  CQChartsEditModelDlg*        editModelDlg_        { nullptr }; //! edit model dialog
   CQChartsCreatePlotDlg*       createPlotDlg_       { nullptr }; //! plot dialog
   CQChartsCreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //! create annotation dialog
   CQChartsEditAnnotationDlg*   editAnnotationDlg_   { nullptr }; //! edit annotation dialog
@@ -249,7 +253,7 @@ class CQChartsViewSettingsViewPropertiesWidget : public QFrame {
   void propertyItemSelected(QObject *obj, const QString &path);
 
  private slots:
-  void filterStateSlot(bool b);
+  void filterStateSlot(bool show, bool focus);
 
  private:
   CQChartsView*                   view_         { nullptr };
@@ -273,7 +277,7 @@ class CQChartsViewSettingsPlotPropertiesWidget : public QFrame {
   void propertyItemSelected(QObject *obj, const QString &path);
 
  private slots:
-  void filterStateSlot(bool b);
+  void filterStateSlot(bool show, bool focus);
 
  private:
   CQChartsPlot*                   plot_         { nullptr };
@@ -295,6 +299,8 @@ class CQChartsViewSettingsFilterEdit : public QFrame {
 
   void replaceSearchSlot(const QString &text);
   void addSearchSlot(const QString &text);
+
+  void hideFilterSlot();
 
  private:
   CQChartsPropertyViewTree* tree_       { nullptr };

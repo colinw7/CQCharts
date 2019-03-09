@@ -97,6 +97,8 @@ CQChartsCreatePlotDlg.cpp \
 CQChartsEditAnnotationDlg.cpp \
 CQChartsLoadModelDlg.cpp \
 CQChartsManageModelsDlg.cpp \
+CQChartsEditModelDlg.cpp \
+CQChartsModelDataWidget.cpp \
 \
 CQChartsModelWidgets.cpp \
 CQChartsModelList.cpp \
@@ -352,6 +354,8 @@ HEADERS += \
 ../include/CQChartsEditAnnotationDlg.h \
 ../include/CQChartsLoadModelDlg.h \
 ../include/CQChartsManageModelsDlg.h \
+../include/CQChartsEditModelDlg.h \
+../include/CQChartsModelDataWidget.h \
 \
 ../include/CQChartsModelWidgets.h \
 ../include/CQChartsModelList.h \

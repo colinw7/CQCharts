@@ -7,7 +7,6 @@
 #include <CQGroupBox.h>
 
 #include <QComboBox>
-#include <QLineEdit>
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QVBoxLayout>

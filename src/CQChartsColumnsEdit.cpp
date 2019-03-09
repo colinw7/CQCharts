@@ -7,7 +7,6 @@
 #include <CQWidgetMenu.h>
 #include <CQPixmapCache.h>
 
-#include <QLineEdit>
 #include <QToolButton>
 #include <QHBoxLayout>
 #include <QAbstractItemModel>

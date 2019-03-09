@@ -29,15 +29,19 @@ class CQChartsModelControl : public QFrame {
   };
 
  public:
-  CQChartsModelControl(CQCharts *charts);
+  CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData=nullptr);
+
+  CQChartsModelData *modelData() const { return modelData_; }
+  void setModelData(CQChartsModelData *modelData);
 
   void updateModel();
 
   void updateModelDetails();
 
- private slots:
+ public slots:
   void updateCurrentModel();
 
+ private slots:
   void setColumnData(int column);
 
   void expressionModeSlot();

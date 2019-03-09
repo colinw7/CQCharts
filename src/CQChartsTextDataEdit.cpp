@@ -16,7 +16,6 @@
 #include <CQGroupBox.h>
 #include <CQCheckBox.h>
 
-#include <QLineEdit>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QPainter>

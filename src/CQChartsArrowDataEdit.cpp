@@ -12,7 +12,6 @@
 #include <CQCheckBox.h>
 #include <CQUtil.h>
 
-#include <QLineEdit>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QPainter>

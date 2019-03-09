@@ -10,7 +10,6 @@
 
 #include <QComboBox>
 #include <QSpinBox>
-#include <QLineEdit>
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QVBoxLayout>

@@ -8,6 +8,7 @@
 #include <CQChartsGradientPaletteCanvas.h>
 #include <CQChartsGradientPaletteControl.h>
 #include <CQChartsLoadModelDlg.h>
+#include <CQChartsEditModelDlg.h>
 #include <CQChartsCreatePlotDlg.h>
 #include <CQChartsCreateAnnotationDlg.h>
 #include <CQChartsEditAnnotationDlg.h>
@@ -23,6 +24,7 @@
 #include <CQChartsUtil.h>
 
 #include <CQPropertyViewItem.h>
+#include <CQTableWidget.h>
 #include <CQIconCombo.h>
 #include <CQIntegerSpin.h>
 #include <CQUtil.h>
@@ -31,7 +33,6 @@
 #include <QTabWidget>
 #include <QTextBrowser>
 #include <QHeaderView>
-#include <QLineEdit>
 #include <QSpinBox>
 #include <QSplitter>
 #include <QRadioButton>
@@ -41,7 +42,7 @@
 #include <QVBoxLayout>
 #include <QPainter>
 
-class CQChartsViewSettingsModelTable : public QTableWidget {
+class CQChartsViewSettingsModelTable : public CQTableWidget {
  public:
   CQChartsViewSettingsModelTable() {
     setObjectName("modelTable");
@@ -100,7 +101,7 @@ class CQChartsViewSettingsModelTable : public QTableWidget {
 
 //---
 
-class CQChartsViewSettingsPlotTable : public QTableWidget {
+class CQChartsViewSettingsPlotTable : public CQTableWidget {
  public:
   CQChartsViewSettingsPlotTable() {
     setObjectName("plotTable");
@@ -196,7 +197,7 @@ class CQChartsViewSettingsPlotTable : public QTableWidget {
 
 //---
 
-class CQChartsViewSettingsViewAnnotationsTable : public QTableWidget {
+class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
  public:
   CQChartsViewSettingsViewAnnotationsTable() {
     setObjectName("viewTable");
@@ -255,7 +256,7 @@ class CQChartsViewSettingsViewAnnotationsTable : public QTableWidget {
 
 //---
 
-class CQChartsViewSettingsPlotAnnotationsTable : public QTableWidget {
+class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
  public:
   CQChartsViewSettingsPlotAnnotationsTable() {
     setObjectName("plotTable");
@@ -317,7 +318,7 @@ class CQChartsViewSettingsPlotAnnotationsTable : public QTableWidget {
 
 //---
 
-class CQChartsViewSettingsLayerTable : public QTableWidget {
+class CQChartsViewSettingsLayerTable : public CQTableWidget {
  public:
   CQChartsViewSettingsLayerTable() {
     setObjectName("layerTable");
@@ -730,11 +731,24 @@ initModelsFrame(QFrame *modelsFrame)
 
   modelsFrameLayout->addLayout(modelControlLayout);
 
+  //--
+
   QPushButton *loadModelButton = CQUtil::makeLabelWidget<QPushButton>("Load", "load");
 
   connect(loadModelButton, SIGNAL(clicked()), this, SLOT(loadModelSlot()));
 
   modelControlLayout->addWidget(loadModelButton);
+
+  //--
+
+  modelsWidgets_.editButton = CQUtil::makeLabelWidget<QPushButton>("Edit", "edit");
+
+  connect(modelsWidgets_.editButton, SIGNAL(clicked()), this, SLOT(editModelSlot()));
+
+  modelControlLayout->addWidget(modelsWidgets_.editButton);
+
+  //--
+
   modelControlLayout->addStretch(1);
 
   //--
@@ -1063,8 +1077,8 @@ initThemeFrame(QFrame *themeFrame)
 
   QGridLayout *themeColorsLayout = CQUtil::makeLayout<QGridLayout>(themeColorsFrame, 2, 2);
 
-  QLabel*    selColorLabel = CQUtil::makeLabelWidget("Selection", "selColorLabel");
-  QLineEdit* selColorEdit  = CQUtil::makeWidget<CQLineEdit>("selColorEdit");
+  QLabel*     selColorLabel = CQUtil::makeLabelWidget("Selection", "selColorLabel");
+  CQLineEdit* selColorEdit  = CQUtil::makeWidget<CQLineEdit>("selColorEdit");
 
   themeColorsLayout->addWidget(selColorLabel, 0, 0);
   themeColorsLayout->addWidget(selColorEdit , 0, 1);
@@ -1298,6 +1312,30 @@ loadModelSlot()
   loadModelDlg_ = new CQChartsLoadModelDlg(charts);
 
   loadModelDlg_->show();
+}
+
+void
+CQChartsViewSettings::
+editModelSlot()
+{
+  long ind = modelsWidgets_.modelTable->selectedModel();
+
+  if (ind < 0)
+    return;
+
+  CQCharts *charts = window_->view()->charts();
+
+  CQChartsModelData *modelData = charts->getModelData(ind);
+
+  if (! modelData)
+    return;
+
+  if (editModelDlg_)
+    delete editModelDlg_;
+
+  editModelDlg_ = new CQChartsEditModelDlg(charts, modelData);
+
+  editModelDlg_->show();
 }
 
 //------
@@ -2075,8 +2113,8 @@ CQChartsViewSettingsViewPropertiesWidget(CQChartsViewSettings *settings, CQChart
   connect(propertyTree_, SIGNAL(itemSelected(QObject *, const QString &)),
           this, SIGNAL(propertyItemSelected(QObject *, const QString &)));
 
-  connect(propertyTree_, SIGNAL(filterStateChanged(bool)),
-          this, SLOT(filterStateSlot(bool)));
+  connect(propertyTree_, SIGNAL(filterStateChanged(bool, bool)),
+          this, SLOT(filterStateSlot(bool, bool)));
 
   //--
 
@@ -2092,9 +2130,12 @@ CQChartsViewSettingsViewPropertiesWidget(CQChartsViewSettings *settings, CQChart
 
 void
 CQChartsViewSettingsViewPropertiesWidget::
-filterStateSlot(bool b)
+filterStateSlot(bool visible, bool focus)
 {
-  filterEdit_->setVisible(b);
+  filterEdit_->setVisible(visible);
+
+  if (focus)
+    filterEdit_->setFocus();
 }
 
 //------
@@ -2116,8 +2157,8 @@ CQChartsViewSettingsPlotPropertiesWidget(CQChartsViewSettings *settings, CQChart
   connect(propertyTree_, SIGNAL(itemSelected(QObject *, const QString &)),
           this, SIGNAL(propertyItemSelected(QObject *, const QString &)));
 
-  connect(propertyTree_, SIGNAL(filterStateChanged(bool)),
-          this, SLOT(filterStateSlot(bool)));
+  connect(propertyTree_, SIGNAL(filterStateChanged(bool, bool)),
+          this, SLOT(filterStateSlot(bool, bool)));
 
   //--
 
@@ -2133,9 +2174,12 @@ CQChartsViewSettingsPlotPropertiesWidget(CQChartsViewSettings *settings, CQChart
 
 void
 CQChartsViewSettingsPlotPropertiesWidget::
-filterStateSlot(bool b)
+filterStateSlot(bool visible, bool focus)
 {
-  filterEdit_->setVisible(b);
+  filterEdit_->setVisible(visible);
+
+  if (focus)
+    filterEdit_->setFocus();
 }
 
 //------
@@ -2154,6 +2198,8 @@ CQChartsViewSettingsFilterEdit(CQChartsPropertyViewTree *tree) :
           this, SLOT(replaceFilterSlot(const QString &)));
   connect(filterEdit_, SIGNAL(addFilter(const QString &)),
           this, SLOT(addFilterSlot(const QString &)));
+  connect(filterEdit_, SIGNAL(escapePressed()),
+          this, SLOT(hideFilterSlot()));
 
   connect(filterEdit_, SIGNAL(replaceSearch(const QString &)),
           this, SLOT(replaceSearchSlot(const QString &)));
@@ -2161,6 +2207,8 @@ CQChartsViewSettingsFilterEdit(CQChartsPropertyViewTree *tree) :
           this, SLOT(addSearchSlot(const QString &)));
 
   layout->addWidget(filterEdit_);
+
+  setFocusProxy(filterEdit_);
 }
 
 void
@@ -2191,4 +2239,11 @@ addSearchSlot(const QString &text)
 {
 //tree_->addSearch(text);
   tree_->search(text);
+}
+
+void
+CQChartsViewSettingsFilterEdit::
+hideFilterSlot()
+{
+  tree_->setFilterDisplayed(false);
 }

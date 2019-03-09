@@ -6,7 +6,6 @@
 #include <CQPoint2DEdit.h>
 #include <CQWidgetMenu.h>
 
-#include <QLineEdit>
 #include <QToolButton>
 #include <QLabel>
 #include <QHBoxLayout>

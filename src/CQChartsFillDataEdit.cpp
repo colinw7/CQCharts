@@ -12,7 +12,6 @@
 #include <CQGroupBox.h>
 #include <CQUtil.h>
 
-#include <QLineEdit>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QPainter>
