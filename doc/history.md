@@ -796,3 +796,6 @@
 # 3/9/2019
  + Add shortcut key to show/hide property tree filter
  + Add dialog to edit single model
+ + add horizontal scroll support to key
+ + fix issues whe scrolled key has title
+ + make pixel calculations for margins more stable

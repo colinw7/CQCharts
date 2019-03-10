@@ -2436,7 +2436,15 @@ adjustDataRangeBBox(const CQChartsGeom::BBox &bbox) const
 
   CQChartsGeom::BBox bbox1 = CQChartsGeom::BBox(x - w, y - h, x + w, y + h);
 
-  //---
+  //----
+
+  CQChartsDisplayRange displayRange = *displayRange_;
+
+  CQChartsGeom::BBox dataRange = calcDataRange(/*adjust*/false);
+
+  const_cast<CQChartsPlot *>(this)->setWindowRange(dataRange);
+
+  //--
 
   CQChartsGeom::BBox ibbox;
 
@@ -2448,6 +2456,10 @@ adjustDataRangeBBox(const CQChartsGeom::BBox &bbox) const
   else {
     ibbox = innerMargin().adjustPlotRange(this, bbox1, /*inside*/true);
   }
+
+  //--
+
+  *displayRange_ = displayRange;
 
   return ibbox;
 }
@@ -9391,12 +9403,48 @@ CQChartsGeom::BBox
 CQChartsPlot::
 pixelToWindow(const CQChartsGeom::BBox &wrect) const
 {
-  double px1, py1, px2, py2;
+  double wx1, wy1, wx2, wy2;
 
-  pixelToWindow(wrect.getXMin(), wrect.getYMin(), px1, py2);
-  pixelToWindow(wrect.getXMax(), wrect.getYMax(), px2, py1);
+  pixelToWindow(wrect.getXMin(), wrect.getYMin(), wx1, wy1);
+  pixelToWindow(wrect.getXMax(), wrect.getYMax(), wx2, wy2);
 
-  return CQChartsGeom::BBox(px1, py1, px2, py2);
+  return CQChartsGeom::BBox(wx1, wy1, wx2, wy2);
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+viewToWindow(const CQChartsGeom::BBox &vrect) const
+{
+  double wx1, wy1, wx2, wy2;
+
+  viewToWindow(vrect.getXMin(), vrect.getYMin(), wx1, wy1);
+  viewToWindow(vrect.getXMax(), vrect.getYMax(), wx2, wy2);
+
+  return CQChartsGeom::BBox(wx1, wy1, wx2, wy2);
+}
+
+QRectF
+CQChartsPlot::
+windowToView(const QRectF &w) const
+{
+  double vx1, vy1, vx2, vy2;
+
+  windowToView(w.left (), w.top   (), vx1, vy1);
+  windowToView(w.right(), w.bottom(), vx2, vy2);
+
+  return QRectF(vx1, vy1, vx2 - vx1, vy2 - vy1);
+}
+
+QRectF
+CQChartsPlot::
+viewToWindow(const QRectF &v) const
+{
+  double wx1, wy1, wx2, wy2;
+
+  viewToWindow(v.left (), v.top   (), wx1, wy1);
+  viewToWindow(v.right(), v.bottom(), wx2, wy2);
+
+  return QRectF(wx1, wy1, wx2 - wx1, wy2 - wy1);
 }
 
 double

@@ -285,7 +285,6 @@ class Point {
 
   //-----
 
-#if 0
   void print(std::ostream &os) const {
     os << "{" << x << " " << y << "}";
   }
@@ -295,7 +294,6 @@ class Point {
 
     return os;
   }
-#endif
 
  public:
   double x { 0 };
@@ -1022,7 +1020,6 @@ class BBox {
     return ! operator==(lhs, rhs);
   }
 
-#if 0
   void print(std::ostream &os) const {
     if (! set_)
       os << "{ }";
@@ -1035,7 +1032,6 @@ class BBox {
 
     return os;
   }
-#endif
 
  private:
   void update() {

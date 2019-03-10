@@ -78,6 +78,21 @@ class CQChartsOptLength {
 
   //---
 
+  void print(std::ostream &os) const {
+    if (! value_)
+      os << "<unset>";
+    else
+      os << *value_;
+  }
+
+  friend std::ostream &operator<<(std::ostream &os, const CQChartsOptLength &l) {
+    l.print(os);
+
+    return os;
+  }
+
+  //---
+
  private:
   OptLength value_;
 };

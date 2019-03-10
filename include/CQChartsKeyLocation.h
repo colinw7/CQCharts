@@ -16,7 +16,8 @@ class CQChartsKeyLocation : public CQChartsEnum {
     BOTTOM_LEFT,
     BOTTOM_CENTER,
     BOTTOM_RIGHT,
-    ABS_POS
+    ABS_POSITION,
+    ABS_RECT
   };
 
  public:

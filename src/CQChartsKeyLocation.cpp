@@ -25,7 +25,8 @@ toString() const
     case Type::BOTTOM_LEFT:   return "BOTTOM_LEFT";
     case Type::BOTTOM_CENTER: return "BOTTOM_CENTER";
     case Type::BOTTOM_RIGHT:  return "BOTTOM_RIGHT";
-    case Type::ABS_POS:       return "ABS_POS";
+    case Type::ABS_POSITION:  return "ABS_POSITION";
+    case Type::ABS_RECT:      return "ABS_RECT";
     default:                  return "NONE";
   }
 }
@@ -45,7 +46,8 @@ decodeString(const QString &str, Type &type)
   else if (lstr == "bottom_left"  ) type = Type::BOTTOM_LEFT;
   else if (lstr == "bottom_center") type = Type::BOTTOM_CENTER;
   else if (lstr == "bottom_right" ) type = Type::BOTTOM_RIGHT;
-  else if (lstr == "abs_pos"      ) type = Type::ABS_POS;
+  else if (lstr == "abs_position" ) type = Type::ABS_POSITION;
+  else if (lstr == "abs_rect"     ) type = Type::ABS_RECT;
   else                              return false;
 
   return true;
@@ -58,7 +60,8 @@ enumNames() const
   static QStringList names = QStringList() <<
     "TOP_LEFT" << "TOP_CENTER" << "TOP_RIGHT" <<
     "CENTER_LEFT" << "CENTER_CENTER" << "CENTER_RIGHT" <<
-    "BOTTOM_LEFT" << "BOTTOM_CENTER" << "BOTTOM_RIGHT" << "ABS_POS";
+    "BOTTOM_LEFT" << "BOTTOM_CENTER" << "BOTTOM_RIGHT" <<
+    "ABS_POSITION" << "ABS_RECT";
 
   return names;
 }

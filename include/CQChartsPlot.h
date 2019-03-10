@@ -955,6 +955,10 @@ class CQChartsPlot : public CQChartsObj,
 
   CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &wrect) const;
   CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &prect) const;
+  CQChartsGeom::BBox viewToWindow (const CQChartsGeom::BBox &vrect) const;
+
+  QRectF windowToView(const QRectF &w) const;
+  QRectF viewToWindow(const QRectF &v) const;
 
   double pixelToSignedWindowWidth (double ww) const;
   double pixelToSignedWindowHeight(double wh) const;

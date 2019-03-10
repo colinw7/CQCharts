@@ -29,6 +29,7 @@ set_charts_property -plot $plot -name margin.inner.top    -value 16px
 set_charts_property -plot $plot -name lines.color -value "interface:0.25"
 set_charts_property -plot $plot -name lines.width -value "1px"
 
+set_charts_property -plot $plot -name key.header.text   -value "Goal Scorer"
 set_charts_property -plot $plot -name key.scrollHeight  -value "256px"
 set_charts_property -plot $plot -name key.pressBehavior -value "SELECT"
 set_charts_property -plot $plot -name key.fill.visible  -value 1

@@ -2490,16 +2490,17 @@ showMenu(const QPoint &p)
       return action;
     };
 
-    addKeyLocationGroupAction("Top Left"     , CQChartsKeyLocation::Type::TOP_LEFT     );
-    addKeyLocationGroupAction("Top Center"   , CQChartsKeyLocation::Type::TOP_CENTER   );
-    addKeyLocationGroupAction("Top Right"    , CQChartsKeyLocation::Type::TOP_RIGHT    );
-    addKeyLocationGroupAction("Center Left"  , CQChartsKeyLocation::Type::CENTER_LEFT  );
-    addKeyLocationGroupAction("Center Center", CQChartsKeyLocation::Type::CENTER_CENTER);
-    addKeyLocationGroupAction("Center Right" , CQChartsKeyLocation::Type::CENTER_RIGHT );
-    addKeyLocationGroupAction("Bottom Left"  , CQChartsKeyLocation::Type::BOTTOM_LEFT  );
-    addKeyLocationGroupAction("Bottom Center", CQChartsKeyLocation::Type::BOTTOM_CENTER);
-    addKeyLocationGroupAction("Bottom Right" , CQChartsKeyLocation::Type::BOTTOM_RIGHT );
-    addKeyLocationGroupAction("Absolute"     , CQChartsKeyLocation::Type::ABS_POS      );
+    addKeyLocationGroupAction("Top Left"         , CQChartsKeyLocation::Type::TOP_LEFT     );
+    addKeyLocationGroupAction("Top Center"       , CQChartsKeyLocation::Type::TOP_CENTER   );
+    addKeyLocationGroupAction("Top Right"        , CQChartsKeyLocation::Type::TOP_RIGHT    );
+    addKeyLocationGroupAction("Center Left"      , CQChartsKeyLocation::Type::CENTER_LEFT  );
+    addKeyLocationGroupAction("Center Center"    , CQChartsKeyLocation::Type::CENTER_CENTER);
+    addKeyLocationGroupAction("Center Right"     , CQChartsKeyLocation::Type::CENTER_RIGHT );
+    addKeyLocationGroupAction("Bottom Left"      , CQChartsKeyLocation::Type::BOTTOM_LEFT  );
+    addKeyLocationGroupAction("Bottom Center"    , CQChartsKeyLocation::Type::BOTTOM_CENTER);
+    addKeyLocationGroupAction("Bottom Right"     , CQChartsKeyLocation::Type::BOTTOM_RIGHT );
+    addKeyLocationGroupAction("Absolute Position", CQChartsKeyLocation::Type::ABS_POSITION );
+    addKeyLocationGroupAction("Absolute Rect"    , CQChartsKeyLocation::Type::ABS_RECT      );
 
     keyLocationActionGroup->setExclusive(true);
 
@@ -2629,16 +2630,17 @@ showMenu(const QPoint &p)
       return action;
     };
 
-    addKeyLocationGroupAction("Top Left"     , CQChartsKeyLocation::Type::TOP_LEFT     );
-    addKeyLocationGroupAction("Top Center"   , CQChartsKeyLocation::Type::TOP_CENTER   );
-    addKeyLocationGroupAction("Top Right"    , CQChartsKeyLocation::Type::TOP_RIGHT    );
-    addKeyLocationGroupAction("Center Left"  , CQChartsKeyLocation::Type::CENTER_LEFT  );
-    addKeyLocationGroupAction("Center Center", CQChartsKeyLocation::Type::CENTER_CENTER);
-    addKeyLocationGroupAction("Center Right" , CQChartsKeyLocation::Type::CENTER_RIGHT );
-    addKeyLocationGroupAction("Bottom Left"  , CQChartsKeyLocation::Type::BOTTOM_LEFT  );
-    addKeyLocationGroupAction("Bottom Center", CQChartsKeyLocation::Type::BOTTOM_CENTER);
-    addKeyLocationGroupAction("Bottom Right" , CQChartsKeyLocation::Type::BOTTOM_RIGHT );
-    addKeyLocationGroupAction("Absolute"     , CQChartsKeyLocation::Type::ABS_POS      );
+    addKeyLocationGroupAction("Top Left"         , CQChartsKeyLocation::Type::TOP_LEFT     );
+    addKeyLocationGroupAction("Top Center"       , CQChartsKeyLocation::Type::TOP_CENTER   );
+    addKeyLocationGroupAction("Top Right"        , CQChartsKeyLocation::Type::TOP_RIGHT    );
+    addKeyLocationGroupAction("Center Left"      , CQChartsKeyLocation::Type::CENTER_LEFT  );
+    addKeyLocationGroupAction("Center Center"    , CQChartsKeyLocation::Type::CENTER_CENTER);
+    addKeyLocationGroupAction("Center Right"     , CQChartsKeyLocation::Type::CENTER_RIGHT );
+    addKeyLocationGroupAction("Bottom Left"      , CQChartsKeyLocation::Type::BOTTOM_LEFT  );
+    addKeyLocationGroupAction("Bottom Center"    , CQChartsKeyLocation::Type::BOTTOM_CENTER);
+    addKeyLocationGroupAction("Bottom Right"     , CQChartsKeyLocation::Type::BOTTOM_RIGHT );
+    addKeyLocationGroupAction("Absolute Position", CQChartsKeyLocation::Type::ABS_POSITION );
+    addKeyLocationGroupAction("Absolute Rect"    , CQChartsKeyLocation::Type::ABS_RECT     );
 
     keyLocationActionGroup->setExclusive(true);
 
@@ -3015,26 +3017,28 @@ viewKeyPositionSlot(QAction *action)
   CQChartsViewKey *viewKey = key();
   if (! viewKey) return;
 
-  if      (action->text() == "Top Left"     )
+  if      (action->text() == "Top Left"         )
     viewKey->setLocation(CQChartsKeyLocation::Type::TOP_LEFT     );
-  else if (action->text() == "Top Center"   )
+  else if (action->text() == "Top Center"       )
     viewKey->setLocation(CQChartsKeyLocation::Type::TOP_CENTER   );
-  else if (action->text() == "Top Right"    )
+  else if (action->text() == "Top Right"        )
     viewKey->setLocation(CQChartsKeyLocation::Type::TOP_RIGHT    );
-  else if (action->text() == "Center Left"  )
+  else if (action->text() == "Center Left"      )
     viewKey->setLocation(CQChartsKeyLocation::Type::CENTER_LEFT  );
-  else if (action->text() == "Center Center")
+  else if (action->text() == "Center Center"    )
     viewKey->setLocation(CQChartsKeyLocation::Type::CENTER_CENTER);
-  else if (action->text() == "Center Right" )
+  else if (action->text() == "Center Right"     )
     viewKey->setLocation(CQChartsKeyLocation::Type::CENTER_RIGHT );
-  else if (action->text() == "Bottom Left"  )
+  else if (action->text() == "Bottom Left"      )
     viewKey->setLocation(CQChartsKeyLocation::Type::BOTTOM_LEFT  );
-  else if (action->text() == "Bottom Center")
+  else if (action->text() == "Bottom Center"    )
     viewKey->setLocation(CQChartsKeyLocation::Type::BOTTOM_CENTER);
-  else if (action->text() == "Bottom Right" )
+  else if (action->text() == "Bottom Right"     )
     viewKey->setLocation(CQChartsKeyLocation::Type::BOTTOM_RIGHT );
-  else if (action->text() == "Absolute"     )
-    viewKey->setLocation(CQChartsKeyLocation::Type::ABS_POS      );
+  else if (action->text() == "Absolute Position")
+    viewKey->setLocation(CQChartsKeyLocation::Type::ABS_POSITION );
+  else if (action->text() == "Absolute Rect")
+    viewKey->setLocation(CQChartsKeyLocation::Type::ABS_RECT     );
   else
     assert(false);
 }
@@ -3073,26 +3077,28 @@ plotKeyPositionSlot(QAction *action)
   CQChartsPlotKey *plotKey = (basePlot ? basePlot->key() : nullptr);
 
   if (plotKey) {
-    if      (action->text() == "Top Left"     )
+    if      (action->text() == "Top Left"         )
       plotKey->setLocation(CQChartsKeyLocation::Type::TOP_LEFT     );
-    else if (action->text() == "Top Center"   )
+    else if (action->text() == "Top Center"       )
       plotKey->setLocation(CQChartsKeyLocation::Type::TOP_CENTER   );
-    else if (action->text() == "Top Right"    )
+    else if (action->text() == "Top Right"        )
       plotKey->setLocation(CQChartsKeyLocation::Type::TOP_RIGHT    );
-    else if (action->text() == "Center Left"  )
+    else if (action->text() == "Center Left"      )
       plotKey->setLocation(CQChartsKeyLocation::Type::CENTER_LEFT  );
-    else if (action->text() == "Center Center")
+    else if (action->text() == "Center Center"    )
       plotKey->setLocation(CQChartsKeyLocation::Type::CENTER_CENTER);
-    else if (action->text() == "Center Right" )
+    else if (action->text() == "Center Right"     )
       plotKey->setLocation(CQChartsKeyLocation::Type::CENTER_RIGHT );
-    else if (action->text() == "Bottom Left"  )
+    else if (action->text() == "Bottom Left"      )
       plotKey->setLocation(CQChartsKeyLocation::Type::BOTTOM_LEFT  );
-    else if (action->text() == "Bottom Center")
+    else if (action->text() == "Bottom Center"    )
       plotKey->setLocation(CQChartsKeyLocation::Type::BOTTOM_CENTER);
-    else if (action->text() == "Bottom Right" )
+    else if (action->text() == "Bottom Right"     )
       plotKey->setLocation(CQChartsKeyLocation::Type::BOTTOM_RIGHT );
-    else if (action->text() == "Absolute"     )
-      plotKey->setLocation(CQChartsKeyLocation::Type::ABS_POS      );
+    else if (action->text() == "Absolute Position")
+      plotKey->setLocation(CQChartsKeyLocation::Type::ABS_POSITION );
+    else if (action->text() == "Absolute Rect")
+      plotKey->setLocation(CQChartsKeyLocation::Type::ABS_RECT     );
     else
       assert(false);
   }
