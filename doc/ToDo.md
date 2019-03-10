@@ -1,5 +1,4 @@
 High
- + Clipping when key scrolled with title
  + Common text drawing to support all options
  + Font Editor
  + Use QThread

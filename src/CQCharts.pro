@@ -236,7 +236,6 @@ CQRangeScroll.cpp \
 \
 CQCheckBox.cpp \
 CLeastSquaresFit.cpp \
-CInterval.cpp \
 
 HEADERS += \
 ../include/CQCharts.h \
@@ -462,7 +461,6 @@ HEADERS += \
 \
 ../include/CQCheckBox.h \
 ../include/CLeastSquaresFit.h \
-../include/CInterval.h \
 
 DESTDIR     = ../lib
 OBJECTS_DIR = ../obj
