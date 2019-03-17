@@ -4,6 +4,8 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsDelaunay.h>
+
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -125,19 +127,21 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "xColumn", "x");
-  addProperty("columns", this, "yColumn", "y");
+  addProperty("columns", this, "xColumn", "x")->setDesc("X column");
+  addProperty("columns", this, "yColumn", "y")->setDesc("Y column");
 
-  addProperty("voronoi", this, "voronoi"         , "enabled"  );
-  addProperty("voronoi", this, "voronoiPointSize", "pointSize");
+  addProperty("voronoi", this, "voronoi"         , "enabled"  )->
+    setDesc("Show voronoi connections");
+  addProperty("voronoi", this, "voronoiPointSize", "pointSize")->
+    setDesc("Voronoi point symbol size");
 
   // points
-  addProperty("points", this, "points", "visible");
+  addProperty("points", this, "points", "visible")->setDesc("Show center points");
 
   addSymbolProperties("points/symbol");
 
   // lines
-  addProperty("lines", this, "lines", "visible");
+  addProperty("lines", this, "lines", "visible")->setDesc("Show connecting lines");
 
   addLineProperties("lines", "lines");
 }

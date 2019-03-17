@@ -799,3 +799,8 @@
  + add horizontal scroll support to key
  + fix issues whe scrolled key has title
  + make pixel calculations for margins more stable
+# 3/17/2019
+ + Add descriptions to properties
+ + Support sub coloring of distribution bar with summed values
+ + Fix box plot bar positioning with explicit x values
+ + Add commands to create folded model, collapsed model, bucket model and stat model

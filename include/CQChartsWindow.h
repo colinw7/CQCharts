@@ -17,6 +17,9 @@ class QStackedWidget;
 
 #define CQChartsWindowMgrInst CQChartsWindowMgr::instance()
 
+/*!
+ * \brief Class to manage created windows
+ */
 class CQChartsWindowMgr {
  public:
   static CQChartsWindowMgr *instance();
@@ -129,6 +132,9 @@ class CQChartsWindow : public QFrame {
 
 //-----
 
+/*!
+ * \brief Range scroll control for window
+ */
 class CQChartsWindowRangeScroll : public CQRangeScroll {
   Q_OBJECT
 

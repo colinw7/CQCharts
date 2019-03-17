@@ -1887,11 +1887,11 @@ validateSlot()
   ymaxButton_->setEnabled(ycolName != "");
 
   titleEdit_ ->setEnabled(type->hasTitle());
-  xLabelEdit_->setEnabled(type->hasAxes());
-  yLabelEdit_->setEnabled(type->hasAxes());
+  xLabelEdit_->setEnabled(type->hasXAxis());
+  yLabelEdit_->setEnabled(type->hasYAxis());
 
-  xintegralCheck_->setEnabled(type->hasAxes() && type->allowXAxisIntegral());
-  yintegralCheck_->setEnabled(type->hasAxes() && type->allowYAxisIntegral());
+  xintegralCheck_->setEnabled(type->hasXAxis() && type->allowXAxisIntegral());
+  yintegralCheck_->setEnabled(type->hasYAxis() && type->allowYAxisIntegral());
 
   xlogCheck_->setEnabled(type->allowXLog());
   ylogCheck_->setEnabled(type->allowYLog());

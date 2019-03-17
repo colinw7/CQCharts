@@ -67,7 +67,10 @@ class CQChartsColumnType {
 
   virtual QString name() const;
 
-  virtual bool isNumeric() const { return false; }
+  virtual bool isNumeric () const { return false; }
+  virtual bool isIntegral() const { return false; }
+  virtual bool isBoolean () const { return false; }
+  virtual bool isTime    () const { return false; }
 
   const Params &params() const { return params_; }
 
@@ -129,6 +132,8 @@ class CQChartsColumnBooleanType : public CQChartsColumnType {
  public:
   CQChartsColumnBooleanType();
 
+  bool isBoolean() const override { return true; }
+
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
@@ -187,7 +192,8 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
  public:
   CQChartsColumnIntegerType();
 
-  bool isNumeric() const override { return true; }
+  bool isNumeric () const override { return true; }
+  bool isIntegral() const override { return true; }
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -213,6 +219,7 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
   CQChartsColumnTimeType();
 
   bool isNumeric() const override { return true; }
+  bool isTime   () const override { return true; }
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,

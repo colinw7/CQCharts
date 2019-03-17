@@ -5,6 +5,8 @@
 #include <CQChartsRotatedText.h>
 #include <CQChartsDrawUtil.h>
 
+#include <CQPropertyViewItem.h>
+
 #include <QPainter>
 
 CQChartsDataLabel::
@@ -24,9 +26,9 @@ addPathProperties(const QString &path)
 
   QString textPath = path + "/text";
 
-  plot_->addProperty(textPath, this, "textColor"   , "color"   );
-  plot_->addProperty(textPath, this, "textAlpha"   , "alpha"   );
-  plot_->addProperty(textPath, this, "textFont"    , "font"    );
+  plot_->addProperty(textPath, this, "textColor"   , "color"   )->setDesc("Text color");
+  plot_->addProperty(textPath, this, "textAlpha"   , "alpha"   )->setDesc("Text alpha");
+  plot_->addProperty(textPath, this, "textFont"    , "font"    )->setDesc("Text font");
   plot_->addProperty(textPath, this, "textAngle"   , "angle"   );
   plot_->addProperty(textPath, this, "textContrast", "contrast");
   plot_->addProperty(textPath, this, "textHtml"    , "html"    );

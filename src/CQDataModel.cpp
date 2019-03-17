@@ -232,7 +232,7 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
     if (section < 0 || section >= numCols)
       return false;
 
-    if (role == Qt::DisplayRole) {
+    if (role == Qt::DisplayRole || role == Qt::EditRole) {
       hheader_[section] = value;
 
       emit headerDataChanged(orientation, section, section);

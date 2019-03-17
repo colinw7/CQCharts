@@ -170,6 +170,7 @@ CQChartsEnumEdit.cpp \
 \
 CQChartsModelUtil.cpp \
 CQChartsTrie.cpp \
+CQChartsValueInd.cpp \
 CQChartsNameValues.cpp \
 CQChartsEnv.cpp \
 \
@@ -228,6 +229,8 @@ CQBaseModel.cpp \
 CQSummaryModel.cpp \
 CQSubSetModel.cpp \
 CQTransposeModel.cpp \
+CQBucketModel.cpp \
+CQCollapseModel.cpp \
 CQBucketer.cpp \
 \
 CQHistoryLineEdit.cpp \
@@ -337,6 +340,7 @@ HEADERS += \
 \
 ../include/CQChartsModelUtil.h \
 ../include/CQChartsTrie.h \
+../include/CQChartsValueInd.h \
 ../include/CQChartsNameValues.h \
 ../include/CQChartsQuadTree.h \
 ../include/CQChartsEnv.h \
@@ -451,6 +455,8 @@ HEADERS += \
 ../include/CQSummaryModel.h \
 ../include/CQSubSetModel.h \
 ../include/CQTransposeModel.h \
+../include/CQBucketModel.h \
+../include/CQCollapseModel.h \
 ../include/CQBucketer.h \
 \
 ../include/CQHistoryLineEdit.h \

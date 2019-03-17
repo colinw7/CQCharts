@@ -7,6 +7,8 @@
 #include <CQChartsDataLabel.h>
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>
+
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -49,7 +51,7 @@ addParameters()
    setTip("Bar value type");
 
   addBoolParameter("percent" , "Percent"  , "percent" ).setTip("Show value is percentage");
-  addBoolParameter("dotLines", "Dot Lines", "dotLines").setTip("draw bars as lines with dot");
+  addBoolParameter("dotLines", "Dot Lines", "dotLines").setTip("Draw bars as lines with dot");
 
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
 
@@ -151,19 +153,23 @@ addProperties()
 
   CQChartsBarPlot::addProperties();
 
-  addProperty("columns", this, "nameColumn" , "name" );
-  addProperty("columns", this, "labelColumn", "label");
+  addProperty("columns", this, "nameColumn" , "name" )->setDesc("Name column");
+  addProperty("columns", this, "labelColumn", "label")->setDesc("Label column");
 
-  addProperty("options", this, "plotType" , "plotType" );
-  addProperty("options", this, "valueType", "valueType");
+  addProperty("options", this, "plotType" , "plotType" )->setDesc("Plot type");
+  addProperty("options", this, "valueType", "valueType")->setDesc("Value type");
 
-  addProperty("options", this, "percent"   );
-  addProperty("options", this, "colorBySet");
+  addProperty("options", this, "percent"   )->setDesc("Use percentage value");
+  addProperty("options", this, "colorBySet")->setDesc("Color by value set");
 
-  addProperty("dotLines",        this, "dotLines"     , "enabled");
-  addProperty("dotLines/line",   this, "dotLineWidth" , "width"  );
-  addProperty("dotLines/symbol", this, "dotSymbolType", "type"   );
-  addProperty("dotLines/symbol", this, "dotSymbolSize", "size"   );
+  addProperty("dotLines",        this, "dotLines"     , "enabled")->
+    setDesc("Draw bars as lines with dot");
+  addProperty("dotLines/line",   this, "dotLineWidth" , "width"  )->
+    setDesc("Dot line width");
+  addProperty("dotLines/symbol", this, "dotSymbolType", "type"   )->
+    setDesc("Dot line symbol type");
+  addProperty("dotLines/symbol", this, "dotSymbolSize", "size"   )->
+    setDesc("Dot line symbol size");
 
   CQChartsGroupPlot::addProperties();
 
@@ -1527,7 +1533,12 @@ CQChartsBarChartObj::
 getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->groupColumn());
-  addColumnSelectIndex(inds, plot_->valueColumns().getColumn(iset_));
+
+  if (plot_->isStacked())
+    addColumnSelectIndex(inds, plot_->valueColumns().getColumn(ival_));
+  else
+    addColumnSelectIndex(inds, plot_->valueColumns().getColumn(iset_));
+
   addColumnSelectIndex(inds, plot_->nameColumn());
   addColumnSelectIndex(inds, plot_->labelColumn());
 }

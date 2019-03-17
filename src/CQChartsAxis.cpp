@@ -9,6 +9,7 @@
 #include <CQChartsRotatedText.h>
 
 #include <CQPropertyViewModel.h>
+#include <CQPropertyViewItem.h>
 #include <CMathRound.h>
 
 #include <QPainter>
@@ -148,8 +149,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   model->addProperty(linePath, this, "axesLineData"  , "style"  );
   model->addProperty(linePath, this, "axesLines"     , "visible");
-  model->addProperty(linePath, this, "axesLinesColor", "color"  );
-  model->addProperty(linePath, this, "axesLinesAlpha", "alpha"  );
+  model->addProperty(linePath, this, "axesLinesColor", "color"  )->setDesc("Line color");
+  model->addProperty(linePath, this, "axesLinesAlpha", "alpha"  )->setDesc("Line alpha");
   model->addProperty(linePath, this, "axesLinesWidth", "width"  );
   model->addProperty(linePath, this, "axesLinesDash" , "dash"   );
 
@@ -167,8 +168,12 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   model->addProperty(ticksLabelPath, this, "axesTickLabelTextData"   , "style");
   model->addProperty(ticksLabelPath, this, "axesTickLabelTextVisible", "visible");
-  model->addProperty(ticksLabelPath, this, "axesTickLabelTextFont"   , "font");
-  model->addProperty(ticksLabelPath, this, "axesTickLabelTextColor"  , "color");
+  model->addProperty(ticksLabelPath, this, "axesTickLabelTextColor"  , "color")->
+                      setDesc("Text color");
+  model->addProperty(ticksLabelPath, this, "axesTickLabelTextAlpha"  , "alpha")->
+                      setDesc("Text alpha");
+  model->addProperty(ticksLabelPath, this, "axesTickLabelTextFont"   , "font")->
+                      setDesc("Text font");
   model->addProperty(ticksLabelPath, this, "axesTickLabelTextAngle"  , "angle");
   model->addProperty(ticksLabelPath, this, "tickLabelAutoHide"       , "autoHide");
   model->addProperty(ticksLabelPath, this, "tickLabelPlacement"      , "placement");
@@ -181,9 +186,9 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(labelPath, this, "label"               , "text"   );
   model->addProperty(labelPath, this, "axesLabelTextData"   , "style"  );
   model->addProperty(labelPath, this, "axesLabelTextVisible", "visible");
-  model->addProperty(labelPath, this, "axesLabelTextFont"   , "font"   );
-  model->addProperty(labelPath, this, "axesLabelTextAlpha"  , "alpha"  );
-  model->addProperty(labelPath, this, "axesLabelTextColor"  , "color"  );
+  model->addProperty(labelPath, this, "axesLabelTextColor"  , "color"  )->setDesc("Text color");
+  model->addProperty(labelPath, this, "axesLabelTextAlpha"  , "alpha"  )->setDesc("Text alpha");
+  model->addProperty(labelPath, this, "axesLabelTextFont"   , "font"   )->setDesc("Text font");
 
   QString gridPath          = path + "/grid";
   QString gridLinePath      = gridPath + "/line";
@@ -196,22 +201,26 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   model->addProperty(gridMajorLinePath, this, "axesMajorGridLineData"  , "style"  );
   model->addProperty(gridMajorLinePath, this, "axesMajorGridLines"     , "visible");
-  model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesColor", "color"  );
-  model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesAlpha", "alpha"  );
+  model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesColor", "color"  )->
+                      setDesc("Line color");
+  model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesAlpha", "alpha"  )->
+                      setDesc("Line color");
   model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesWidth", "width"  );
   model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesDash" , "dash"   );
 
   model->addProperty(gridMinorLinePath, this, "axesMinorGridLineData"  , "style"  );
   model->addProperty(gridMinorLinePath, this, "axesMinorGridLines"     , "visible");
-  model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesColor", "color"  );
-  model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesAlpha", "alpha"  );
+  model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesColor", "color"  )->
+                      setDesc("Line color");
+  model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesAlpha", "alpha"  )->
+                      setDesc("Line alpha");
   model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesWidth", "width"  );
   model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesDash" , "dash"   );
 
   model->addProperty(gridFillPath, this, "axesGridFillData"   , "style"  );
   model->addProperty(gridFillPath, this, "axesGridFilled"     , "visible");
-  model->addProperty(gridFillPath, this, "axesGridFillColor"  , "color"  );
-  model->addProperty(gridFillPath, this, "axesGridFillAlpha"  , "alpha"  );
+  model->addProperty(gridFillPath, this, "axesGridFillColor"  , "color"  )->setDesc("Fill color");
+  model->addProperty(gridFillPath, this, "axesGridFillAlpha"  , "alpha"  )->setDesc("Fill alpha");
   model->addProperty(gridFillPath, this, "axesGridFillPattern", "pattern");
 }
 

@@ -7,6 +7,7 @@
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
+#include <CQPropertyViewItem.h>
 #include <CQUtil.h>
 
 #include <QPainter>
@@ -135,8 +136,9 @@ initRect()
 
 void
 CQChartsAnnotation::
-addProperties(CQPropertyViewModel *, const QString &)
+addProperties(CQPropertyViewModel *model, const QString &path)
 {
+  model->setObjectRoot(path, this);
 }
 
 void
@@ -153,24 +155,24 @@ addFillProperties(CQPropertyViewModel *model, const QString &path)
 {
   QString bgPath = path + "/fill";
 
-  model->addProperty(bgPath, this, "filled"     , "visible");
-  model->addProperty(bgPath, this, "fillColor"  , "color"  );
-  model->addProperty(bgPath, this, "fillAlpha"  , "alpha"  );
-  model->addProperty(bgPath, this, "fillPattern", "pattern");
+  model->addProperty(bgPath, this, "filled"     , "visible")->setDesc("Fill visible");
+  model->addProperty(bgPath, this, "fillColor"  , "color"  )->setDesc("Fill color");
+  model->addProperty(bgPath, this, "fillAlpha"  , "alpha"  )->setDesc("Fill alpha");
+  model->addProperty(bgPath, this, "fillPattern", "pattern")->setDesc("Fill pattern");
 }
 
 void
 CQChartsAnnotation::
 addStrokeProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString borderPath = path + "/border";
+  QString borderPath = path + "/stroke";
 
-  model->addProperty(borderPath, this, "border"     , "visible"   );
-  model->addProperty(borderPath, this, "borderColor", "color"     );
-  model->addProperty(borderPath, this, "borderAlpha", "alpha"     );
-  model->addProperty(borderPath, this, "borderWidth", "width"     );
-  model->addProperty(borderPath, this, "cornerSize" , "cornerSize");
-  model->addProperty(borderPath, this, "borderSides", "sides"     );
+  model->addProperty(borderPath, this, "border"     , "visible"   )->setDesc("Stroke visible");
+  model->addProperty(borderPath, this, "borderColor", "color"     )->setDesc("Stroke color");
+  model->addProperty(borderPath, this, "borderAlpha", "alpha"     )->setDesc("Stroke alpha");
+  model->addProperty(borderPath, this, "borderWidth", "width"     )->setDesc("Stroke width");
+  model->addProperty(borderPath, this, "cornerSize" , "cornerSize")->setDesc("Box corner size");
+  model->addProperty(borderPath, this, "borderSides", "sides"     )->setDesc("Box visible sides");
 }
 
 bool
@@ -1379,9 +1381,9 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   model->addProperty(path1, this, "textData"     , "style"    );
   model->addProperty(path1, this, "textStr"      , "text"     );
-  model->addProperty(path1, this, "textFont"     , "font"     );
-  model->addProperty(path1, this, "textColor"    , "color"    );
-  model->addProperty(path1, this, "textAlpha"    , "alpha"    );
+  model->addProperty(path1, this, "textColor"    , "color"    )->setDesc("Text color");
+  model->addProperty(path1, this, "textAlpha"    , "alpha"    )->setDesc("Text alpha");
+  model->addProperty(path1, this, "textFont"     , "font"     )->setDesc("Text font");
   model->addProperty(path1, this, "textAngle"    , "angle"    );
   model->addProperty(path1, this, "textContrast" , "contrast" );
   model->addProperty(path1, this, "textAlign"    , "align"    );
@@ -1610,8 +1612,8 @@ draw(QPainter *painter)
   // set box
   double tx = prect.getXMin  () +   margin() +   padding();
   double ty = prect.getYMin  () +   margin() +   padding();
-  double tw = prect.getWidth () - 2*margin() - 2*padding();
-  double th = prect.getHeight() - 2*margin() - 2*padding();
+  double tw = std::max(prect.getWidth () - 2*margin() - 2*padding(), 0.0);
+  double th = std::max(prect.getHeight() - 2*margin() - 2*padding(), 0.0);
 
   QRectF trect(tx, ty, tw, th);
 
@@ -1793,27 +1795,31 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 {
   QString path1 = path + "/" + propertyId();
 
-  model->addProperty(path1, this  , "start"    );
-  model->addProperty(path1, this  , "end"      );
-  model->addProperty(path1, arrow_, "length"   );
-  model->addProperty(path1, arrow_, "angle"    );
-  model->addProperty(path1, arrow_, "backAngle");
-  model->addProperty(path1, arrow_, "fhead"    );
-  model->addProperty(path1, arrow_, "thead"    );
-  model->addProperty(path1, arrow_, "filled"   );
-  model->addProperty(path1, arrow_, "lineEnds" );
-  model->addProperty(path1, arrow_, "lineWidth");
+  CQChartsAnnotation::addProperties(model, path1);
+
+  model->addProperty(path1, this  , "start"    )->setDesc("Arrow start point");
+  model->addProperty(path1, this  , "end"      )->setDesc("Arrow end point");
+  model->addProperty(path1, arrow_, "length"   )->setDesc("Arrow line length");
+  model->addProperty(path1, arrow_, "angle"    )->setDesc("Arrow angle");
+  model->addProperty(path1, arrow_, "backAngle")->setDesc("Arrow back angle");
+  model->addProperty(path1, arrow_, "fhead"    )->setDesc("Show arrow front head");
+  model->addProperty(path1, arrow_, "thead"    )->setDesc("Show arrow tail head");
+  model->addProperty(path1, arrow_, "filled"   )->setDesc("Arrow is filled");
+  model->addProperty(path1, arrow_, "lineEnds" )->setDesc("Draw lines for end arrows");
+  model->addProperty(path1, arrow_, "lineWidth")->setDesc("Arrow connecting line width");
+
+  QString fillPath = path1 + "/fill";
+
+  model->addProperty(fillPath, arrow_, "filled"   , "visible")->setDesc("Fill visible");
+  model->addProperty(fillPath, arrow_, "fillColor", "color"  )->setDesc("Fill color");
+  model->addProperty(fillPath, arrow_, "fillAlpha", "alpha"  )->setDesc("Fill alpha");
 
   QString strokePath = path1 + "/stroke";
-  QString fillPath   = path1 + "/fill";
 
   model->addProperty(strokePath, arrow_, "border"     , "visible");
-  model->addProperty(strokePath, arrow_, "borderColor", "color"  );
-  model->addProperty(strokePath, arrow_, "borderAlpha", "alpha"  );
+  model->addProperty(strokePath, arrow_, "borderColor", "color"  )->setDesc("Stroke color");
+  model->addProperty(strokePath, arrow_, "borderAlpha", "alpha"  )->setDesc("Stroke alpha");
   model->addProperty(strokePath, arrow_, "borderWidth", "width"  );
-  model->addProperty(fillPath  , arrow_, "filled"     , "visible");
-  model->addProperty(fillPath  , arrow_, "fillColor"  , "color"  );
-  model->addProperty(fillPath  , arrow_, "fillAlpha"  , "alpha"  );
 }
 
 QString

@@ -63,7 +63,8 @@ drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
 
       QFont font1 = painter->font();
 
-      font1.setPointSizeF(fs);
+      if (fs > 0.0)
+        font1.setPointSizeF(fs);
 
       painter->setFont(font1);
 
@@ -341,7 +342,8 @@ void drawScaledHtmlText(QPainter *painter, const QRectF &trect, const QString &t
 
   double fs = font1.pointSizeF()*s;
 
-  font1.setPointSizeF(fs);
+  if (fs > 0.0)
+    font1.setPointSizeF(fs);
 
   painter->setFont(font1);
 

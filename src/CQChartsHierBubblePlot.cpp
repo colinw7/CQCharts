@@ -5,6 +5,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
 
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -104,7 +105,7 @@ addProperties()
   addProperty("options", this, "valueLabel");
 
   // fill
-  addProperty("fill", this, "filled", "visible");
+  addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
 
   addFillProperties("fill", "fill");
 

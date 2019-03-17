@@ -124,20 +124,20 @@ connectSlots()
 
   if (model) {
     connect(model, SIGNAL(columnsInserted(const QModelIndex &, int, int)),
-            this, SLOT(fold()));
+            this, SLOT(foldSlot()));
     connect(model, SIGNAL(columnsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-            this, SLOT(fold()));
+            this, SLOT(foldSlot()));
     connect(model, SIGNAL(columnsRemoved(const QModelIndex &, int, int)),
-            this, SLOT(fold()));
+            this, SLOT(foldSlot()));
 
-    connect(model, SIGNAL(modelReset()), this, SLOT(fold()));
+    connect(model, SIGNAL(modelReset()), this, SLOT(foldSlot()));
 
     connect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)),
-            this, SLOT(fold()));
+            this, SLOT(foldSlot()));
     connect(model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-            this, SLOT(fold()));
+            this, SLOT(foldSlot()));
     connect(model, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-            this, SLOT(fold()));
+            this, SLOT(foldSlot()));
   }
 }
 
@@ -149,21 +149,28 @@ disconnectSlots()
 
   if (model) {
     disconnect(model, SIGNAL(columnsInserted(const QModelIndex &, int, int)),
-               this, SLOT(fold()));
+               this, SLOT(foldSlot()));
     disconnect(model, SIGNAL(columnsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-               this, SLOT(fold()));
+               this, SLOT(foldSlot()));
     disconnect(model, SIGNAL(columnsRemoved(const QModelIndex &, int, int)),
-               this, SLOT(fold()));
+               this, SLOT(foldSlot()));
 
-    disconnect(model, SIGNAL(modelReset()), this, SLOT(fold()));
+    disconnect(model, SIGNAL(modelReset()), this, SLOT(foldSlot()));
 
     disconnect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)),
-               this, SLOT(fold()));
+               this, SLOT(foldSlot()));
     disconnect(model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-               this, SLOT(fold()));
+               this, SLOT(foldSlot()));
     disconnect(model, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-               this, SLOT(fold()));
+               this, SLOT(foldSlot()));
   }
+}
+
+void
+CQFoldedModel::
+foldSlot()
+{
+  fold();
 }
 
 void
@@ -196,27 +203,7 @@ fold()
     bool   rset = false;
     double rmin = 0.0, rmax = 0.0;
 
-    for (int r = 0; r < model->rowCount(); ++r) {
-      QModelIndex ind = model->index(r, foldColumn());
-
-      QVariant var = model->data(ind, Qt::DisplayRole);
-
-      bool ok;
-
-      double rval = CQBucketer::varReal(var, ok);
-      if (! ok) continue;
-
-      if (! rset) {
-        rmin = rval;
-        rmax = rval;
-
-        rset = true;
-      }
-      else {
-        rmin = std::min(rmin, rval);
-        rmax = std::max(rmax, rval);
-      }
-    }
+    calcRMinMax(model, QModelIndex(), rset, rmin, rmax);
 
     bucketer_.setRMin(rmin);
     bucketer_.setRMax(rmax);
@@ -249,6 +236,45 @@ fold()
   //---
 
   folded_ = true;
+}
+
+void
+CQFoldedModel::
+calcRMinMax(QAbstractItemModel *model, const QModelIndex &parent,
+            bool &rset, double &rmin, double &rmax) const
+{
+  int nr = model->rowCount(parent);
+
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex parent1 = model->index(r, 0, parent);
+
+    int nr1 = model->rowCount(parent1);
+
+    if (nr1 > 0) {
+      calcRMinMax(model, parent1, rset, rmin, rmax);
+    }
+    else {
+      QModelIndex ind = model->index(r, foldColumn(), parent);
+
+      QVariant var = model->data(ind, Qt::DisplayRole);
+
+      bool ok;
+
+      double rval = CQBucketer::varReal(var, ok);
+      if (! ok) continue;
+
+      if (! rset) {
+        rmin = rval;
+        rmax = rval;
+
+        rset = true;
+      }
+      else {
+        rmin = std::min(rmin, rval);
+        rmax = std::max(rmax, rval);
+      }
+    }
+  }
 }
 
 void
@@ -635,6 +661,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
     // folded node has no child (no children)
     if (! nodeData.child || ! nodeData.parent || section > nodeData.parent->depth) {
       int c = mapColumnToSource(section);
+      if (c < 0) return QVariant();
 
       return model->headerData(c, orientation, role);
     }
@@ -653,11 +680,13 @@ headerData(int section, Qt::Orientation orientation, int role) const
     }
     else if (role == static_cast<int>(CQBaseModelRole::Sorted)) {
       int c = mapColumnToSource(section);
+      if (c < 0) return QVariant();
 
       return model->headerData(c, orientation, role);
     }
     else if (role == static_cast<int>(CQBaseModelRole::SortOrder)) {
       int c = mapColumnToSource(section);
+      if (c < 0) return QVariant();
 
       return model->headerData(c, orientation, role);
     }
@@ -673,6 +702,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
   //---
 
   int c = mapColumnToSource(section);
+  if (c < 0) return QVariant();
 
   return model->headerData(c, orientation, role);
 }
@@ -700,6 +730,7 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
   //---
 
   int c = mapColumnToSource(section);
+  if (c < 0) return false;
 
   return model->setHeaderData(c, orientation, value, role);
 }
@@ -821,7 +852,9 @@ mapToSource(const QModelIndex &proxyIndex) const
     Node *node = nodeData.child;
 
     int r1 = node->sourceInd.row();
+
     int c1 = mapColumnToSource(c);
+    if (c1 < 0) return QModelIndex();
 
     Node *pnode = nodeData.parent;
 
@@ -842,7 +875,8 @@ int
 CQFoldedModel::
 mapColumnToSource(int column) const
 {
-  assert(column >= 0 && column < numColumns_);
+  if (column < 0 || column >= numColumns_)
+    return -1;
 
   return sourceColumns_[column];
 }
@@ -855,8 +889,6 @@ mapColumnFromSource(int column) const
   for (int i = 0; i < numColumns_; ++i)
     if (sourceColumns_[i] == column)
       return i;
-
-  assert(false);
 
   return -1;
 }
@@ -908,7 +940,9 @@ foldedChildIndex(Node *pnode, int row, int column) const
     return QModelIndex();
 
   int r = pnode->sourceRows[row];
+
   int c = mapColumnToSource(column);
+  if (c < 0) return QModelIndex();
 
   return model->index(r, c, pnode->sourceInd);
 }
@@ -921,6 +955,7 @@ findSourceIndex(Node *pnode, const QModelIndex &sourceIndex) const
   int c = sourceIndex.column();
 
   int c1 = mapColumnFromSource(c);
+  if (c1 < 0) return QModelIndex();
 
   int r1 = 0;
 

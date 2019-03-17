@@ -10,6 +10,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
 
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -223,29 +224,30 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nodeColumn"       , "node"      );
-  addProperty("columns", this, "connectionsColumn", "connections");
-  addProperty("columns", this, "nameColumn"       , "name"       );
+  addProperty("columns", this, "nodeColumn"       , "node"       )->setDesc("Node column");
+  addProperty("columns", this, "connectionsColumn", "connections")->setDesc("Connections column");
+  addProperty("columns", this, "nameColumn"       , "name"       )->setDesc("Name column");
 
-  addProperty("columns", this, "namePairColumn", "namePair");
-  addProperty("columns", this, "countColumn"   , "count"   );
+  addProperty("columns", this, "namePairColumn", "namePair")->setDesc("Name/Value column");
+  addProperty("columns", this, "countColumn"   , "count"   )->setDesc("Count column");
 
-  addProperty("columns", this, "groupIdColumn", "groupId");
+  addProperty("columns", this, "groupIdColumn", "groupId")->setDesc("Grouping column");
 
-  addProperty("options", this, "sortType", "sort"  );
-  addProperty("options", this, "bgMargin", "margin");
+  addProperty("options", this, "sortType", "sort"  )->setDesc("Sort type");
+  addProperty("options", this, "bgMargin", "margin")->setDesc("Background margin");
 
   addFillProperties("background/fill", "backgroundFill");
 
   addFillProperties("cell/fill"  , "fill"  );
   addLineProperties("cell/stroke", "border");
 
-  addProperty("cell/stroke", this, "cornerSize", "cornerSize");
+  addProperty("cell/stroke", this, "cornerSize", "cornerSize")->setDesc("Cell box corner size");
 
   addFillProperties("emptyCell/fill"  , "emptyCellFill"  );
   addLineProperties("emptyCell/stroke", "emptyCellBorder");
 
-  addProperty("emptyCell/stroke", this, "cornerSize", "cornerSize");
+  addProperty("emptyCell/stroke", this, "cornerSize", "cornerSize")->
+    setDesc("Empty cell box corner size");
 
   addTextProperties("text", "text");
 }

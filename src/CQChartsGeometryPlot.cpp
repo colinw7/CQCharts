@@ -8,6 +8,8 @@
 #include <CQChartsDataLabel.h>
 #include <CQCharts.h>
 #include <CQChartsTip.h>
+
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -178,7 +180,7 @@ addProperties()
   addProperty("columns", this, "styleColumn"   , "style"   );
 
   // fill
-  addProperty("fill", this, "filled", "visible");
+  addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
 
   addFillProperties("fill", "fill");
 

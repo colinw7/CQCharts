@@ -31,10 +31,12 @@
 
 #include <CQDataModel.h>
 #include <CQSortModel.h>
+#include <CQBucketModel.h>
 #include <CQFoldedModel.h>
 #include <CQSubSetModel.h>
 #include <CQTransposeModel.h>
 #include <CQSummaryModel.h>
+#include <CQCollapseModel.h>
 #include <CQPerfMonitor.h>
 
 #include <CQUtil.h>
@@ -74,28 +76,37 @@ addCommands()
   static bool cmdsAdded;
 
   if (! cmdsAdded) {
-    // load, process, sort, fold, filter, flatten model
+    // load, process, sort, fold, filter, flatten, copy, export, write model
     addCommand("load_charts_model"   , new CQChartsLoadChartsModelCmd   (this));
     addCommand("process_charts_model", new CQChartsProcessChartsModelCmd(this));
-    addCommand("define_charts_proc"  , new CQChartsDefineChartsProcCmd  (this));
     addCommand("sort_charts_model"   , new CQChartsSortChartsModelCmd   (this));
     addCommand("fold_charts_model"   , new CQChartsFoldChartsModelCmd   (this));
     addCommand("filter_charts_model" , new CQChartsFilterChartsModelCmd (this));
     addCommand("flatten_charts_model", new CQChartsFlattenChartsModelCmd(this));
     addCommand("copy_charts_model"   , new CQChartsCopyChartsModelCmd   (this));
+    addCommand("export_charts_model" , new CQChartsExportChartsModelCmd (this));
+    addCommand("write_charts_model"  , new CQChartsWriteChartsModelCmd  (this));
 
-    // correlation, subset, transpose
+    // define charts tcl proc
+    addCommand("define_charts_proc", new CQChartsDefineChartsProcCmd(this));
+
+    // correlation, bucket, folded, subset, transpose, summary, collapse, stats
     addCommand("create_charts_correlation_model",
                new CQChartsCreateChartsCorrelationModelCmd(this));
+    addCommand("create_charts_bucket_model"     ,
+               new CQChartsCreateChartsBucketModelCmd     (this));
+    addCommand("create_charts_folded_model"     ,
+               new CQChartsCreateChartsFoldedModelCmd     (this));
     addCommand("create_charts_subset_model"     ,
                new CQChartsCreateChartsSubsetModelCmd     (this));
     addCommand("create_charts_transpose_model"  ,
                new CQChartsCreateChartsTransposeModelCmd  (this));
     addCommand("create_charts_summary_model"    ,
                new CQChartsCreateChartsSummaryModelCmd    (this));
-
-    // export
-    addCommand("export_charts_model", new CQChartsExportChartsModelCmd(this));
+    addCommand("create_charts_collapse_model"   ,
+               new CQChartsCreateChartsCollapseModelCmd   (this));
+    addCommand("create_charts_stats_model"   ,
+               new CQChartsCreateChartsStatsModelCmd      (this));
 
     // measure text
     addCommand("measure_charts_text", new CQChartsMeasureChartsTextCmd(this));
@@ -323,7 +334,6 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-calc"   , CQChartsCmdArg::Type::Boolean, "calc column");
   argv.addCmdArg("-query"  , CQChartsCmdArg::Type::Boolean, "query column");
   argv.addCmdArg("-analyze", CQChartsCmdArg::Type::Boolean, "analyze data");
-  argv.addCmdArg("-list"   , CQChartsCmdArg::Type::Boolean, "list data");
   argv.endCmdGroup();
 
   argv.addCmdArg("-header", CQChartsCmdArg::Type::String, "header label for add/modify");
@@ -564,44 +574,6 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
     analyzeModel.print();
 
     cmdBase_->setCmdRc(tvars);
-  }
-  // list values
-  else if (argv.getParseBool("list")) {
-    int count = 10;
-
-    // TODO: dedicated option or support tcl expression
-    if (argv.hasParseArg("expr")) {
-      bool ok;
-
-      int count1 = CQChartsUtil::toInt(expr, ok);
-
-      if (ok && count1 > 0)
-        count = count1;
-    }
-
-    int nr = std::min(model.data()->rowCount(), count);
-    int nc = model.data()->columnCount();
-
-    QModelIndex parent;
-    int         role = Qt::DisplayRole;
-
-    for (int r = 0; r < nr; ++r) {
-      QStringList strs;
-
-      for (int c = 0; c < nc; ++c) {
-        bool ok;
-
-        QVariant var = CQChartsModelUtil::modelValue(charts_, model.data(), r, c, parent, role, ok);
-
-        QString str = var.toString();
-
-        strs += str;
-      }
-
-      QString str = strs.join("\t");
-
-      std::cout << str.toStdString() << "\n";
-    }
   }
   else {
 #if 0
@@ -871,7 +843,7 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
     if (! columnsStr.length())
       continue;
 
-    QStringList strs = stringToColumns(columnsStr);
+    QStringList strs = stringToNamedColumns(columnsStr);
 
     for (int j = 0; j < strs.size(); ++j) {
       const QString &nameValue = strs[j];
@@ -1656,6 +1628,8 @@ foldChartsModelCmd(CQChartsCmdArgs &argv)
 
   CQFoldedModel *foldedModel = new CQFoldedModel(model.data(), foldData);
 
+  //---
+
   QSortFilterProxyModel *foldProxyModel = new QSortFilterProxyModel;
 
   foldProxyModel->setObjectName("foldProxyModel");
@@ -1829,11 +1803,11 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
     using RowColValueSet = std::map<QVariant,ColValueSet>;
 
     CQCharts*      charts_ { nullptr };
-    CQChartsColumn groupColumn_;
+    CQChartsColumn groupColumn_;        // grouping column
     int            hierRow_ { -1 };
-    ValueGroup     valueGroup_;
-    GroupValue     groupValue_;
-    RowColValueSet rowColValueSet_;
+    ValueGroup     valueGroup_;         // map group column value to group number
+    GroupValue     groupValue_;         // map group number to group column value
+    RowColValueSet rowColValueSet_;     // values per hier row or group
   };
 
   FlattenVisitor flattenVisitor(charts_, groupColumn);
@@ -1875,7 +1849,7 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
     CQBaseModelType    columnBaseType;
     CQChartsNameValues nameValues;
 
-    if (! CQChartsModelUtil::columnValueType(charts_, model.data(), c, columnType,
+    if (! CQChartsModelUtil::columnValueType(charts_, model.data(), c + nh, columnType,
                                              columnBaseType, nameValues))
       continue;
 
@@ -1967,6 +1941,277 @@ copyChartsModelCmd(CQChartsCmdArgs &argv)
   //---
 
   cmdBase_->setCmdRc(newModelData->ind());
+
+  return true;
+}
+
+//------
+
+// TODO: combine with export. Support vertical header
+bool
+CQChartsCmds::
+writeChartsModelCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmds::writeChartsModelCmd");
+
+  argv.addCmdArg("-model"    , CQChartsCmdArg::Type::Integer, "model id");
+  argv.addCmdArg("-header"   , CQChartsCmdArg::Type::SBool  , "show header");
+  argv.addCmdArg("-max_rows" , CQChartsCmdArg::Type::Integer, "maximum number of rows to write");
+  argv.addCmdArg("-max_width", CQChartsCmdArg::Type::Integer, "maximum column width");
+  argv.addCmdArg("-hier"     , CQChartsCmdArg::Type::SBool  , "output hierarchically");
+
+  if (! argv.parse())
+    return false;
+
+  //---
+
+  int modelInd = argv.getParseInt("model", -1);
+
+  //------
+
+  // get model
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
+
+  if (! modelData) {
+    charts_->errorMsg("No model data");
+    return false;
+  }
+
+  ModelP model = modelData->currentModel();
+
+  //------
+
+  // get max rows
+  int maxRows = -1;
+
+  if (argv.hasParseArg("max_rows")) {
+    int maxRows1 = argv.getParseInt("max_rows", -1);
+
+    if (maxRows1 > 0)
+      maxRows = maxRows1;
+  }
+
+  //------
+
+  // get max column width
+  int maxWidth = -1;
+
+  if (argv.hasParseArg("max_width")) {
+    int maxWidth1 = argv.getParseInt("max_width", -1);
+
+    if (maxWidth1 > 0)
+      maxWidth = maxWidth1;
+  }
+
+  //------
+
+  bool hier = true;
+
+  if (argv.hasParseArg("hier")) {
+    hier = argv.getParseBool("hier");
+  }
+
+  //------
+
+  bool header = true;
+
+  if (argv.hasParseArg("header")) {
+    header = argv.getParseBool("header");
+  }
+
+  //------
+
+  class OutputRows {
+   public:
+    OutputRows(int nc, int maxWidth=-1) :
+     nc_(nc), maxWidth_(maxWidth) {
+    }
+
+    void setHeader(const QStringList &strs) {
+      assert(strs.size() == nc_);
+
+      for (int i = 0; i < nc_; ++i) {
+        const QString &str = strs[i];
+
+        columnWidths_[i] = std::max(columnWidths_[i], str.length());
+
+        if (maxWidth_ > 0)
+          columnWidths_[i] = std::min(columnWidths_[i], maxWidth_);
+      }
+
+      header_ = strs;
+    }
+
+    void addRow(int depth, const QStringList &strs) {
+      assert(strs.size() == nc_);
+
+      for (int i = 0; i < nc_; ++i) {
+        const QString &str = strs[i];
+
+        columnWidths_[i] = std::max(columnWidths_[i], str.length());
+
+        if (maxWidth_ > 0)
+          columnWidths_[i] = std::min(columnWidths_[i], maxWidth_);
+      }
+
+      rows_.push_back(Row(depth, strs));
+
+      maxDepth_ = std::max(maxDepth_, depth);
+    }
+
+    void write(bool header) {
+      if (header) {
+        QString str;
+
+        for (int i = 0; i < nc_; ++i) {
+          int w = columnWidths_[i];
+
+          QString str1 = header_[i];
+
+          if (str1.length() > w)
+            str1 = str1.mid(0, w);
+
+          if (str.length())
+            str += "|";
+
+          str += QString("%1").arg(str1, w);
+        }
+
+        for (int i = 0; i < maxDepth_; ++i)
+          std::cout << " ";
+
+        std::cout << " ";
+
+        std::cout << str.toStdString() << "\n";
+      }
+
+      for (const auto &row : rows_) {
+        int d1 = row.depth;
+        int d2 = maxDepth_ - d1;
+
+        for (int i = 0; i < d1; ++i)
+          std::cout << ".";
+
+        for (int i = 0; i < d2; ++i)
+          std::cout << " ";
+
+        std::cout << " ";
+
+        //---
+
+        QString str;
+
+        for (int i = 0; i < nc_; ++i) {
+          int w = columnWidths_[i];
+
+          QString str1 = row.strs[i];
+
+          if (str1.length() > w)
+            str1 = str1.mid(0, w);
+
+          if (str.length())
+            str += "|";
+
+          str += QString("%1").arg(str1, w);
+        }
+
+        std::cout << str.toStdString() << "\n";
+      }
+    }
+
+   private:
+    using ColumnWidths = std::map<int,int>;
+
+    struct Row {
+      int         depth { 0 };
+      QStringList strs;
+
+      Row(int depth, const QStringList &strs) :
+       depth(depth), strs(strs) {
+      }
+    };
+
+    using Rows = std::vector<Row>;
+
+    int          nc_       { 0 };
+    int          maxWidth_ { -1 };
+    ColumnWidths columnWidths_;
+    Rows         rows_;
+    QStringList  header_;
+    int          maxDepth_ { 0 };
+  };
+
+  // list values
+  int role = Qt::DisplayRole;
+
+  int nc = model.data()->columnCount();
+
+  OutputRows output(nc, maxWidth);
+
+  //---
+
+  auto outputColumns = [&]() {
+    QStringList strs;
+
+    for (int c = 0; c < nc; ++c) {
+      bool ok;
+
+      QVariant var = CQChartsModelUtil::modelHeaderValue(model.data(), c, Qt::Horizontal, role, ok);
+
+      QString str = var.toString();
+
+      strs += str;
+    }
+
+    output.setHeader(strs);
+  };
+
+  std::function<void(const QModelIndex &,int)> outputHier;
+
+  outputHier = [&](const QModelIndex &parent, int depth) -> void {
+    int nr = model.data()->rowCount(parent);
+
+    if (maxRows > 0)
+      nr = std::min(nr, maxRows);
+
+    for (int r = 0; r < nr; ++r) {
+      QStringList strs;
+
+      for (int c = 0; c < nc; ++c) {
+        bool ok;
+
+        QVariant var = CQChartsModelUtil::modelValue(charts_, model.data(), r, c, parent, role, ok);
+
+        QString str = var.toString();
+
+        strs += str;
+      }
+
+      output.addRow(depth, strs);
+
+      //---
+
+      if (hier) {
+        QModelIndex parent1 = model.data()->index(r, 0, parent);
+
+        if (model.data()->rowCount(parent1) > 0) {
+          outputHier(parent1, depth + 1);
+        }
+      }
+    }
+  };
+
+  //---
+
+  fflush(stdout); std::cout << std::flush;
+
+  outputColumns();
+
+  outputHier(QModelIndex(), 0);
+
+  output.write(header);
+
+  fflush(stdout); std::cout << std::flush;
 
   return true;
 }
@@ -2141,6 +2386,213 @@ createChartsCorrelationModelCmd(CQChartsCmdArgs &argv)
   ModelP correlationModelP(correlationModel);
 
   CQChartsModelData *modelData1 = charts_->initModelData(correlationModelP);
+
+  //---
+
+  cmdBase_->setCmdRc(modelData1->ind());
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsFoldedModelCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmds::createChartsFoldedModelCmd");
+
+  argv.addCmdArg("-model"       , CQChartsCmdArg::Type::Integer, "model id");
+  argv.addCmdArg("-column"      , CQChartsCmdArg::Type::Column , "column to fold");
+  argv.addCmdArg("-fold_keep"   , CQChartsCmdArg::Type::Boolean, "keep folded column");
+  argv.addCmdArg("-fold_data"   , CQChartsCmdArg::Type::Boolean, "show folded column child data");
+  argv.addCmdArg("-bucket_count", CQChartsCmdArg::Type::Integer, "bucket count");
+  argv.addCmdArg("-bucket_delta", CQChartsCmdArg::Type::Real   , "bucket delta");
+
+  if (! argv.parse())
+    return false;
+
+  //---
+
+  // get model
+  int modelInd = argv.getParseInt("model", -1);
+
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
+
+  if (! modelData) {
+    charts_->errorMsg("No model data");
+    return false;
+  }
+
+  ModelP model = modelData->currentModel();
+
+  //---
+
+  // get column
+  CQChartsColumn column = argv.getParseColumn("column", model.data());
+
+  //------
+
+  CQFoldData foldData;
+
+  if (argv.hasParseArg("fold_keep"))
+    foldData.setKeepColumn(argv.getParseBool("fold_keep"));
+
+  if (argv.hasParseArg("fold_data"))
+    foldData.setShowColumnData(argv.getParseBool("fold_data"));
+
+  if (column.isValid()) {
+    foldData.setColumn(column.column());
+
+    //---
+
+    CQBaseModelType    columnType;
+    CQBaseModelType    columnBaseType;
+    CQChartsNameValues nameValues;
+
+    if (CQChartsModelUtil::columnValueType(charts_, model.data(), column, columnType,
+                                           columnBaseType, nameValues)) {
+      CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
+      const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+
+      if (typeData) {
+        if (typeData->isNumeric()) {
+          foldData.setType(CQBucketer::Type::REAL_AUTO);
+
+          if (argv.hasParseArg("bucket_delta"))
+            foldData.setDelta(argv.getParseReal("bucket_delta"));
+
+          if (argv.hasParseArg("bucket_count"))
+            foldData.setNumAuto(argv.getParseInt("bucket_count"));
+        }
+
+        if (typeData->isIntegral()) {
+          foldData.setIntegral(true);
+        }
+      }
+    }
+  }
+
+  CQFoldedModel *foldedModel = new CQFoldedModel(model.data(), foldData);
+
+  //---
+
+  QSortFilterProxyModel *foldProxyModel = new QSortFilterProxyModel;
+
+  foldProxyModel->setObjectName("foldProxyModel");
+
+  foldProxyModel->setSortRole(static_cast<int>(Qt::EditRole));
+
+  foldProxyModel->setSourceModel(foldedModel);
+
+  ModelP foldedModelP(foldProxyModel);
+
+  CQChartsModelData *foldedModelData = charts_->initModelData(foldedModelP);
+
+  //---
+
+  cmdBase_->setCmdRc(foldedModelData->ind());
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsBucketModelCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmds::createChartsBucketModelCmd");
+
+  argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
+  argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column to bucket");
+  argv.addCmdArg("-multi" , CQChartsCmdArg::Type::Boolean, "multiple bucket columns");
+  argv.addCmdArg("-start" , CQChartsCmdArg::Type::Real   , "bucket start");
+  argv.addCmdArg("-delta" , CQChartsCmdArg::Type::Real   , "bucket delta");
+  argv.addCmdArg("-min"   , CQChartsCmdArg::Type::Real   , "bucket min");
+  argv.addCmdArg("-max"   , CQChartsCmdArg::Type::Real   , "bucket max");
+  argv.addCmdArg("-count" , CQChartsCmdArg::Type::Integer, "number of buckets");
+
+  if (! argv.parse())
+    return false;
+
+  //---
+
+  // get model
+  int modelInd = argv.getParseInt("model", -1);
+
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
+
+  if (! modelData) {
+    charts_->errorMsg("No model data");
+    return false;
+  }
+
+  ModelP model = modelData->currentModel();
+
+  //---
+
+  // get column
+  CQChartsColumn column = argv.getParseColumn("column", model.data());
+
+  //------
+
+  CQBucketModel *bucketModel = new CQBucketModel(model.data());
+
+  if (argv.getParseBool("multi"))
+    bucketModel->setMultiColumn(true);
+
+  if (column.isValid()) {
+    bucketModel->setBucketColumn(column.column());
+
+    //---
+
+    CQBaseModelType    columnType;
+    CQBaseModelType    columnBaseType;
+    CQChartsNameValues nameValues;
+
+    if (CQChartsModelUtil::columnValueType(charts_, model.data(), column, columnType,
+                                           columnBaseType, nameValues)) {
+      CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
+      const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+
+      if (typeData) {
+        if (typeData->isNumeric()) {
+          if (argv.hasParseArg("start") || argv.hasParseArg("delta")) {
+            bucketModel->setBucketType(CQBucketer::Type::REAL_RANGE);
+
+            if (argv.hasParseArg("start"))
+              bucketModel->setBucketStart(argv.getParseReal("start"));
+
+            if (argv.hasParseArg("delta"))
+              bucketModel->setBucketDelta(argv.getParseReal("delta"));
+          }
+          else {
+            bucketModel->setBucketType(CQBucketer::Type::REAL_AUTO);
+
+            if (argv.hasParseArg("min"))
+              bucketModel->setBucketMin(argv.getParseReal("min"));
+
+            if (argv.hasParseArg("max"))
+              bucketModel->setBucketMax(argv.getParseReal("max"));
+
+            if (argv.hasParseArg("count"))
+              bucketModel->setBucketCount(argv.getParseInt("count"));
+          }
+        }
+
+        if (typeData->isIntegral()) {
+          bucketModel->setBucketIntegral(true);
+        }
+      }
+    }
+  }
+
+  ModelP bucketModelP(bucketModel);
+
+  CQChartsModelData *modelData1 = charts_->initModelData(bucketModelP);
 
   //---
 
@@ -2354,6 +2806,315 @@ createChartsSummaryModelCmd(CQChartsCmdArgs &argv)
   //---
 
   cmdBase_->setCmdRc(modelData1->ind());
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsCollapseModelCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmds::createChartsCollapseModelCmd");
+
+  argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
+  argv.addCmdArg("-sum"  , CQChartsCmdArg::Type::String , "columns to calculate sum");
+  argv.addCmdArg("-mean" , CQChartsCmdArg::Type::String , "columns to calculate mean");
+
+  if (! argv.parse())
+    return false;
+
+  //---
+
+  // get model
+  int modelInd = argv.getParseInt("model", -1);
+
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
+
+  if (! modelData) {
+    charts_->errorMsg("No model data");
+    return false;
+  }
+
+  ModelP model = modelData->currentModel();
+
+  //---
+
+  auto argStringToColumns = [&](const QString &name) {
+    std::vector<CQChartsColumn> columns;
+
+    QStringList columnsStrs = argv.getParseStrs(name);
+
+    for (int i = 0; i < columnsStrs.length(); ++i) {
+      const QString &columnsStr = columnsStrs[i];
+
+      if (! columnsStr.length())
+        continue;
+
+      std::vector<CQChartsColumn> columns1;
+
+      if (! CQChartsModelUtil::stringToColumns(model.data(), columnsStr, columns1)) {
+        charts_->errorMsg("Bad columns name '" + columnsStr + "'");
+        continue;
+      }
+
+      for (const auto &column : columns1)
+        columns.push_back(column);
+    }
+
+    return columns;
+  };
+
+  // sum columns
+  std::vector<CQChartsColumn> sumColumns  = argStringToColumns("sum" );
+  std::vector<CQChartsColumn> meanColumns = argStringToColumns("mean");
+
+  //---
+
+  CQCollapseModel *collapseModel = new CQCollapseModel(model.data());
+
+  //------
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
+  for (int c = 0; c < model->columnCount(); ++c) {
+    CQBaseModelType    columnType;
+    CQBaseModelType    columnBaseType;
+    CQChartsNameValues nameValues;
+
+    if (! CQChartsModelUtil::columnValueType(charts_, model.data(), c, columnType,
+                                             columnBaseType, nameValues))
+      continue;
+
+    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+    if (! typeData) continue;
+
+    if (typeData->isNumeric()) {
+      if (typeData->isIntegral())
+        collapseModel->setColumnType(c, CQBaseModelType::INTEGER);
+      else
+        collapseModel->setColumnType(c, CQBaseModelType::REAL);
+    }
+  }
+
+  for (const auto &column : sumColumns) {
+    int c = column.column();
+
+    collapseModel->setColumnCollapseOp(c, CQCollapseModel::CollapseOp::SUM);
+  }
+
+  for (const auto &column : meanColumns) {
+    int c = column.column();
+
+    collapseModel->setColumnCollapseOp(c, CQCollapseModel::CollapseOp::MEAN);
+  }
+
+  //------
+
+  QSortFilterProxyModel *collapseProxyModel = new QSortFilterProxyModel;
+
+  collapseProxyModel->setObjectName("collapseProxyModel");
+
+  collapseProxyModel->setSortRole(static_cast<int>(Qt::EditRole));
+
+  collapseProxyModel->setSourceModel(collapseModel);
+
+  ModelP collapseModelP(collapseProxyModel);
+
+  CQChartsModelData *collapseModelData = charts_->initModelData(collapseModelP);
+
+  //---
+
+  cmdBase_->setCmdRc(collapseModelData->ind());
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsStatsModelCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmds::createChartsStatsModelCmd");
+
+  argv.addCmdArg("-model"  , CQChartsCmdArg::Type::Integer, "model id");
+  argv.addCmdArg("-columns", CQChartsCmdArg::Type::String , "columns");
+
+  if (! argv.parse())
+    return false;
+
+  //---
+
+  // get model
+  int modelInd = argv.getParseInt("model", -1);
+
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
+
+  if (! modelData) {
+    charts_->errorMsg("No model data");
+    return false;
+  }
+
+  ModelP model = modelData->currentModel();
+
+  //---
+
+  int nc = model->columnCount();
+
+  //---
+
+  auto argStringToColumns = [&](const QString &name) {
+    std::vector<CQChartsColumn> columns;
+
+    QStringList columnsStrs = argv.getParseStrs(name);
+
+    for (int i = 0; i < columnsStrs.length(); ++i) {
+      const QString &columnsStr = columnsStrs[i];
+
+      if (! columnsStr.length())
+        continue;
+
+      std::vector<CQChartsColumn> columns1;
+
+      if (! CQChartsModelUtil::stringToColumns(model.data(), columnsStr, columns1)) {
+        charts_->errorMsg("Bad columns name '" + columnsStr + "'");
+        continue;
+      }
+
+      for (const auto &column : columns1)
+        columns.push_back(column);
+    }
+
+    return columns;
+  };
+
+  std::vector<CQChartsColumn> columns = argStringToColumns("columns");
+
+  using ColumnSet = std::set<int>;
+
+  ColumnSet columnSet;
+
+  for (const auto &column : columns)
+    columnSet.insert(column.column());
+
+  if (columnSet.empty()) {
+    for (int c = 0; c < nc; ++c)
+      columnSet.insert(c);
+  }
+
+  //---
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
+  CQChartsModelDetails *details = modelData->details();
+
+  //---
+
+  struct ColumnData {
+    int      column;
+    QString  name;
+    QVariant mean;
+    QVariant min;
+    QVariant lmedian;
+    QVariant median;
+    QVariant umedian;
+    QVariant max;
+    QVariant outliers;
+  };
+
+  using ColumnDatas = std::vector<ColumnData>;
+
+  ColumnDatas columnDatas;
+
+  for (int c = 0; c < nc; ++c) {
+    if (columnSet.find(c) == columnSet.end())
+      continue;
+
+    //---
+
+    CQBaseModelType    columnType;
+    CQBaseModelType    columnBaseType;
+    CQChartsNameValues nameValues;
+
+    if (! CQChartsModelUtil::columnValueType(charts_, model.data(), c, columnType,
+                                             columnBaseType, nameValues))
+      continue;
+
+    const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+    if (! typeData) continue;
+
+    if (! typeData->isNumeric() || typeData->isTime())
+      continue;
+
+    const CQChartsModelColumnDetails *columnDetails = details->columnDetails(c);
+
+    QModelIndex parent;
+
+    bool ok;
+
+    QVariant var = CQChartsModelUtil::modelHeaderValue(model.data(), c, Qt::DisplayRole, ok);
+
+    ColumnData data;
+
+    data.column   = c;
+    data.name     = var.toString();
+    data.mean     = columnDetails->meanValue();
+    data.min      = columnDetails->minValue();
+    data.lmedian  = columnDetails->lowerMedianValue();
+    data.median   = columnDetails->medianValue();
+    data.umedian  = columnDetails->upperMedianValue();
+    data.max      = columnDetails->maxValue();
+    data.outliers = columnDetails->outlierValues();
+
+    columnDatas.push_back(data);
+  }
+
+  //---
+
+  QStringList columnNames = QStringList() <<
+   "name" << "mean" << "min" << "lower_median" << "median" << "upper_median" << "max" << "outliers";
+
+  int nc1 = columnNames.size();
+  int nr1 = columnDatas.size();
+
+  CQDataModel *statsModel = new CQDataModel(nc1, nr1);
+
+  for (int c = 0; c < nc1; ++c) {
+    CQChartsModelUtil::setModelHeaderValue(statsModel, c, Qt::Horizontal, columnNames[c]);
+  }
+
+  for (int r = 0; r < nr1; ++r) {
+    const ColumnData &data = columnDatas[r];
+
+    CQChartsModelUtil::setModelValue(statsModel, r, 0, data.name    , Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, 1, data.mean    , Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, 2, data.min     , Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, 3, data.lmedian , Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, 4, data.median  , Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, 5, data.umedian , Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, 6, data.max     , Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, 7, data.outliers, Qt::DisplayRole);
+  }
+
+  //------
+
+  QSortFilterProxyModel *statsProxyModel = new QSortFilterProxyModel;
+
+  statsProxyModel->setObjectName("statsProxyModel");
+
+  statsProxyModel->setSortRole(static_cast<int>(Qt::EditRole));
+
+  statsProxyModel->setSourceModel(statsModel);
+
+  ModelP statsModelP(statsProxyModel);
+
+  CQChartsModelData *statsModelData = charts_->initModelData(statsModelP);
+
+  //---
+
+  cmdBase_->setCmdRc(statsModelData->ind());
 
   return true;
 }
@@ -5505,9 +6266,11 @@ addView()
 
 //------
 
+// comma separated list of '<name>=<value>' pairs where <value> is a
+// list of space separated columns
 QStringList
 CQChartsCmds::
-stringToColumns(const QString &str) const
+stringToNamedColumns(const QString &str) const
 {
   //QStringList strs = str.split(",", QString::SkipEmptyParts);
 

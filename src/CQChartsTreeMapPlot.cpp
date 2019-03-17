@@ -5,6 +5,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
 
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -56,6 +57,8 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
   setHeaderTextAlign(Qt::AlignLeft | Qt::AlignVCenter);
 
   setHeaderBorder(true);
+  setHeaderBorderAlpha(0.5);
+
   setHeaderFilled(true);
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
@@ -163,36 +166,41 @@ addProperties()
   CQChartsHierPlot::addProperties();
 
   // options
-  addProperty("options", this, "marginWidth");
+  addProperty("options", this, "marginWidth")->setDesc("Margin width");
 
   // header
-  addProperty("header", this, "titles"        , "visible"  );
-  addProperty("header", this, "titleMaxExtent", "maxExtent");
-  addProperty("header", this, "headerHeight"  , "height"   );
+  addProperty("header", this, "titles"        , "visible"  )->
+    setDesc("Show header title for each hierarchical group");
+  addProperty("header", this, "titleMaxExtent", "maxExtent")->
+    setDesc("Max extent of hierarchical group header");
+  addProperty("header", this, "headerHeight"  , "height"   )->
+    setDesc("Explicit hierarchical group header height");
 
   // header/fill
-  addProperty("header/fill", this, "headerFilled", "visible");
+  addProperty("header/fill", this, "headerFilled", "visible")->setDesc("Fill Headers");
 
   addFillProperties("header/fill", "headerFill");
 
   // header/stroke
-  addProperty("header/stroke", this, "headerBorder", "visible");
+  addProperty("header/stroke", this, "headerBorder", "visible")->setDesc("Stroke Headers");
 
   addLineProperties("header/stroke", "headerBorder");
 
   addAllTextProperties("header/text", "headerText");
 
   // fill
-  addProperty("fill", this, "filled", "visible");
+  addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
 
   addFillProperties("fill", "fill");
 
   // stroke
-  addProperty("stroke", this, "border", "visible");
+  addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
 
   addLineProperties("stroke", "border");
 
   // text
+  addProperty("text", this, "textVisible", "visible")->setDesc("Text visible");
+
   addAllTextProperties("text", "text");
 }
 
@@ -327,6 +335,9 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj,
 
     hierObj = new CQChartsTreeMapHierObj(this, hier, parentObj, rect, hier->depth(), maxDepth());
 
+    if (parentObj)
+      parentObj->addChild(hierObj);
+
     objs.push_back(hierObj);
   }
 
@@ -347,6 +358,9 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj,
 
     CQChartsTreeMapObj *obj =
       new CQChartsTreeMapObj(this, node, parentObj, rect, node->depth(), maxDepth());
+
+    if (parentObj)
+      parentObj->addChild(obj);
 
     objs.push_back(obj);
   }
@@ -994,6 +1008,9 @@ draw(QPainter *painter)
 
   QColor bc = plot_->interpHeaderBorderColor(0, 1);
 
+  if (isChildSelected())
+    bc.setAlphaF(1.0);
+
   QColor hierColor = hier_->interpColor(plot_, plot_->numColorIds());
 
   QColor c = plot_->interpHeaderFillColor(0, 1);
@@ -1051,17 +1068,28 @@ draw(QPainter *painter)
   //---
 
   // draw label
-  double tx = px1 + 4;
-  double ty = py1 + hh/2 + (fm.ascent() - fm.descent())/2;
+  bool visible = plot_->isTextVisible();
 
-  painter->setClipRect(qrect);
+  if (visible) {
+    double minTextWidth  = fm.width("X") + 4;
+    double minTextHeight = fm.height() + 4;
 
-  painter->setPen(tpen);
+    visible = (qrect.width() >= minTextWidth && qrect.height() >= minTextHeight);
+  }
 
-  if (plot_->isHeaderTextContrast())
-    CQChartsDrawUtil::drawContrastText(painter, tx, ty, name);
-  else
-    CQChartsDrawUtil::drawSimpleText(painter, tx, ty, name);
+  if (visible) {
+    double tx = px1 + 4;
+    double ty = py1 + hh/2 + (fm.ascent() - fm.descent())/2;
+
+    painter->setClipRect(qrect);
+
+    painter->setPen(tpen);
+
+    if (plot_->isHeaderTextContrast())
+      CQChartsDrawUtil::drawContrastText(painter, tx, ty, name);
+    else
+      CQChartsDrawUtil::drawSimpleText(painter, tx, ty, name);
+  }
 
   //---
 
@@ -1171,6 +1199,7 @@ draw(QPainter *painter)
   QBrush brush;
 
   QColor bc = plot_->interpBorderColor(0, 1);
+
   QColor fc = node_->interpColor(plot_, plot_->numColorIds());
 
   plot_->setPenBrush(pen, brush,
@@ -1217,23 +1246,51 @@ draw(QPainter *painter)
   //---
 
   // draw label
-  painter->setPen(tpen);
+  bool visible = plot_->isTextVisible();
 
-  CQChartsTextOptions textOptions;
+  if (visible) {
+    double minTextWidth  = fm.width("X") + 4;
+    double minTextHeight = fm.height() + 4;
 
-  textOptions.contrast  = plot_->isTextContrast();
-  textOptions.formatted = plot_->isTextFormatted();
-  textOptions.scaled    = plot_->isTextScaled();
-  textOptions.html      = plot_->isTextHtml();
-  textOptions.align     = plot_->textAlign();
+    visible = (qrect.width() >= minTextWidth && qrect.height() >= minTextHeight);
+  }
 
-  textOptions = plot_->adjustTextOptions(textOptions);
+  if (visible) {
+    painter->setPen(tpen);
 
-  CQChartsDrawUtil::drawTextInBox(painter, qrect, name, textOptions);
+    CQChartsTextOptions textOptions;
+
+    textOptions.contrast  = plot_->isTextContrast();
+    textOptions.formatted = plot_->isTextFormatted();
+    textOptions.scaled    = plot_->isTextScaled();
+    textOptions.html      = plot_->isTextHtml();
+    textOptions.align     = plot_->textAlign();
+
+    textOptions = plot_->adjustTextOptions(textOptions);
+
+    CQChartsDrawUtil::drawTextInBox(painter, qrect, name, textOptions);
+  }
 
   //---
 
   painter->restore();
+}
+
+bool
+CQChartsTreeMapObj::
+isChildSelected() const
+{
+  for (const auto &child : children_) {
+    if (child->isSelected())
+      return true;
+  }
+
+  for (const auto &child : children_) {
+    if (child->isChildSelected())
+      return true;
+  }
+
+  return false;
 }
 
 //------
@@ -1484,10 +1541,10 @@ QColor
 CQChartsTreeMapNode::
 interpColor(const CQChartsTreeMapPlot *plot, int n) const
 {
-  if      (colorId() >= 0)
-    return plot->interpPaletteColor(colorId(), n);
-  else if (color().isValid())
+  if      (color().isValid())
     return plot->charts()->interpColor(color(), 0, 1);
+  else if (colorId() >= 0)
+    return plot->interpPaletteColor(colorId(), n);
   else
     return plot->interpPaletteColor(0, 1);
 }

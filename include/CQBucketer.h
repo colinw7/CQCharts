@@ -3,7 +3,11 @@
 
 #include <QVariant>
 #include <cmath>
+#include <boost/optional.hpp>
 
+/*!
+ * \brief bucketer for model
+ */
 class CQBucketer {
  public:
   enum class Type {
@@ -12,6 +16,8 @@ class CQBucketer {
     REAL_RANGE,
     REAL_AUTO
   };
+
+  using OptReal = boost::optional<double>;
 
  public:
   CQBucketer();
@@ -30,16 +36,16 @@ class CQBucketer {
 
   // fixed bucket delta
 
-  double rstart() const { return rstart_; }
+  double rstart() const { return rstart_.value_or(rmin()); }
   void setRStart(double r) { rstart_ = r; }
 
   double rdelta() const { return rdelta_; }
   void setRDelta(double r) { rdelta_ = r; }
 
-  double istart() const { return int(rstart_); }
+  int istart() const { return int(rstart()); }
   void setIStart(int i) { rstart_ = i; }
 
-  double idelta() const { return int(rdelta_); }
+  int idelta() const { return int(rdelta_); }
   void setIDelta(int i) { rdelta_ = i; }
 
   //---
@@ -57,10 +63,10 @@ class CQBucketer {
   double rmax() const { return rmax_; }
   void setRMax(double r) { if (r != rmax_) { rmax_ = r; needsCalc_ = true; } }
 
-  double imin() const { return int(rmin_); }
+  int imin() const { return int(rmin_); }
   void setIMin(int i) { if (i != rmin_) { rmin_ = i; needsCalc_ = true; } }
 
-  double imax() const { return int(rmax_); }
+  int imax() const { return int(rmax_); }
   void setIMax(int i) { if (i != rmax_) { rmax_ = i; needsCalc_ = true; } }
 
   int numAuto() const { return numAuto_; }
@@ -91,6 +97,10 @@ class CQBucketer {
   static double varReal(const QVariant &var, bool &ok);
 
   //----
+
+  void bucketMinMax(int bucket, QVariant &min, QVariant &max) const;
+
+  //---
 
   QString bucketName(int bucket, bool utfArrow=false) const;
 
@@ -129,8 +139,8 @@ class CQBucketer {
   bool   integral_ { false };        // prefer integral buckets
 
   // manual
-  double rstart_  { 0.0 }; // manual bucktet start value
-  double rdelta_  { 1.0 }; // manual bucktet delta value
+  OptReal rstart_;          // manual bucket start value
+  double  rdelta_  { 1.0 }; // manual bucket delta value
 
   // auto bucket number of values
   int numAuto_ { 10 }; // num auto

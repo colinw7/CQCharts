@@ -74,6 +74,8 @@ CQChartsPlotType()
   addProperty("custom_x_range"       , "customXRange"      , "");
   addProperty("custom_y_range"       , "customXRange"      , "");
   addProperty("axes"                 , "hasAxes"           , "");
+  addProperty("xaxis"                , "hasXAxis"          , "");
+  addProperty("yaxis"                , "hasYAxis"          , "");
   addProperty("key"                  , "hasKey"            , "");
   addProperty("title"                , "hasTitle"          , "");
   addProperty("allow_x_axis_integral", "allowXAxisIntegral", "");

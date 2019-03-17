@@ -841,30 +841,30 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
                 int ig, int ng, PlotObjs &objs) const;
 
  private:
-  CQChartsColumn  xColumn_;                                   //! x column
-  CQChartsColumns yColumns_;                                  //! y columns
-  CQChartsColumn  nameColumn_;                                //! name column
-  CQChartsColumn  sizeColumn_;                                //! size column
-  CQChartsColumn  pointLabelColumn_;                          //! point label column
-  CQChartsColumn  pointColorColumn_;                          //! point color column
-  CQChartsColumn  pointSymbolColumn_;                         //! point symbol column
-  CQChartsColumn  vectorXColumn_;                             //! vector x direction column
-  CQChartsColumn  vectorYColumn_;                             //! vector y direction column
-  bool            pointLineSelect_      { true };             //! select line of point
-  int             pointDelta_           { -1 };               //! point delta
-  int             pointCount_           { -1 };               //! point count
-  int             pointStart_           { 0 };                //! point start
-                                                              //!  (0=start, -1=end, -2=middle)
-  bool            stacked_              { false };            //! is stacked
-  bool            cumulative_           { false };            //! cumulate values
-  bool            linesSelectable_      { false };            //! are lines selectable
-  bool            roundedLines_         { false };            //! draw rounded (smooth) lines
-  bool            fitted_               { false };            //! is fitted
-  FillUnderData   fillUnderData_;                             //! fill under data
-  CQChartsArrow*  arrowObj_             { nullptr };          //! vectors data
-  ColumnType      pointColorColumnType_ { ColumnType::NONE }; //! point color column type
-  double          symbolWidth_          { 1.0 };              //! current symbol width
-  double          symbolHeight_         { 1.0 };              //! current symbol height
+  CQChartsColumn  xColumn_;                                   //!< x column
+  CQChartsColumns yColumns_;                                  //!< y columns
+  CQChartsColumn  nameColumn_;                                //!< name column
+  CQChartsColumn  sizeColumn_;                                //!< size column
+  CQChartsColumn  pointLabelColumn_;                          //!< point label column
+  CQChartsColumn  pointColorColumn_;                          //!< point color column
+  CQChartsColumn  pointSymbolColumn_;                         //!< point symbol column
+  CQChartsColumn  vectorXColumn_;                             //!< vector x direction column
+  CQChartsColumn  vectorYColumn_;                             //!< vector y direction column
+  bool            pointLineSelect_      { true };             //!< select line of point
+  int             pointDelta_           { -1 };               //!< point delta
+  int             pointCount_           { -1 };               //!< point count
+  int             pointStart_           { 0 };                /*!< point start
+                                                                   (0=start, -1=end, -2=middle) */
+  bool            stacked_              { false };            //!< is stacked
+  bool            cumulative_           { false };            //!< cumulate values
+  bool            linesSelectable_      { false };            //!< are lines selectable
+  bool            roundedLines_         { false };            //!< draw rounded (smooth) lines
+  bool            fitted_               { false };            //!< is fitted
+  FillUnderData   fillUnderData_;                             //!< fill under data
+  CQChartsArrow*  arrowObj_             { nullptr };          //!< vectors data
+  ColumnType      pointColorColumnType_ { ColumnType::NONE }; //!< point color column type
+  double          symbolWidth_          { 1.0 };              //!< current symbol width
+  double          symbolHeight_         { 1.0 };              //!< current symbol height
 };
 
 #endif

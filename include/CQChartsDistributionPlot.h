@@ -58,12 +58,15 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   using ColorCount = std::map<int,int>;
   using ColorSet   = std::map<CQChartsColor,int>;
   using ColorRows  = std::set<int>;
+  using ColorSize  = std::pair<CQChartsColor,double>;
+  using ColorSizes = std::vector<ColorSize>;
 
   struct ColorData {
     ColorCount colorCount;
     ColorSet   colorSet;
     ColorRows  colorRows;
     int        nv { 0 };
+    ColorSizes colorSizes;
   };
 
  public:
@@ -661,6 +664,11 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   const Values *getGroupValues(int groupInd) const;
 
+  //---
+
+  double getPanX(bool is_shift) const override;
+  double getPanY(bool is_shift) const override;
+
  public slots:
   // set horizontal
   void setHorizontal(bool b) override;
@@ -758,6 +766,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   bool               bucketed_       { true };             //! is bucketed
   FilterStack        filterStack_;                         //! filter stack
   GroupData          groupData_;                           //! grouped value sets
+  double             barWidth_       { 1.0 };              //! bar width
   mutable std::mutex mutex_;                               //! mutex
 };
 

@@ -107,11 +107,16 @@ class CQChartsCmds : public QObject {
   bool filterChartsModelCmd (CQChartsCmdArgs &args);
   bool flattenChartsModelCmd(CQChartsCmdArgs &args);
   bool copyChartsModelCmd   (CQChartsCmdArgs &args);
+  bool writeChartsModelCmd  (CQChartsCmdArgs &args);
 
   bool createChartsCorrelationModelCmd(CQChartsCmdArgs &args);
+  bool createChartsFoldedModelCmd     (CQChartsCmdArgs &args);
+  bool createChartsBucketModelCmd     (CQChartsCmdArgs &args);
   bool createChartsSubsetModelCmd     (CQChartsCmdArgs &args);
   bool createChartsTransposeModelCmd  (CQChartsCmdArgs &args);
   bool createChartsSummaryModelCmd    (CQChartsCmdArgs &args);
+  bool createChartsCollapseModelCmd   (CQChartsCmdArgs &args);
+  bool createChartsStatsModelCmd      (CQChartsCmdArgs &args);
 
   bool exportChartsModelCmd(CQChartsCmdArgs &args);
 
@@ -184,7 +189,7 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  QStringList stringToColumns(const QString &str) const;
+  QStringList stringToNamedColumns(const QString &str) const;
 
  private:
   CQCharts*        charts_  { nullptr };
@@ -214,13 +219,18 @@ CQCHARTS_DEF_CMD(FoldChartsModel   , foldChartsModelCmd)
 CQCHARTS_DEF_CMD(FilterChartsModel , filterChartsModelCmd)
 CQCHARTS_DEF_CMD(FlattenChartsModel, flattenChartsModelCmd)
 CQCHARTS_DEF_CMD(CopyChartsModel   , copyChartsModelCmd)
+CQCHARTS_DEF_CMD(WriteChartsModel  , writeChartsModelCmd)
 
 //---
 
 CQCHARTS_DEF_CMD(CreateChartsCorrelationModel, createChartsCorrelationModelCmd)
+CQCHARTS_DEF_CMD(CreateChartsFoldedModel     , createChartsFoldedModelCmd)
+CQCHARTS_DEF_CMD(CreateChartsBucketModel     , createChartsBucketModelCmd)
 CQCHARTS_DEF_CMD(CreateChartsSubsetModel     , createChartsSubsetModelCmd)
 CQCHARTS_DEF_CMD(CreateChartsTransposeModel  , createChartsTransposeModelCmd)
 CQCHARTS_DEF_CMD(CreateChartsSummaryModel    , createChartsSummaryModelCmd)
+CQCHARTS_DEF_CMD(CreateChartsCollapseModel   , createChartsCollapseModelCmd)
+CQCHARTS_DEF_CMD(CreateChartsStatsModel      , createChartsStatsModelCmd)
 
 //---
 

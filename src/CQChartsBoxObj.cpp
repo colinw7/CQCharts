@@ -2,8 +2,11 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
-#include <CQPropertyViewModel.h>
 #include <CQChartsRoundedPolygon.h>
+
+#include <CQPropertyViewModel.h>
+#include <CQPropertyViewItem.h>
+
 #include <QPainter>
 
 CQChartsBoxObj::
@@ -43,24 +46,24 @@ void
 CQChartsBoxObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "margin" );
-  model->addProperty(path, this, "padding");
+  model->addProperty(path, this, "margin" )->setDesc("Outer margin");
+  model->addProperty(path, this, "padding")->setDesc("Inner padding");
 
   QString bgPath = path + "/fill";
 
-  model->addProperty(bgPath, this, "filled"     , "visible");
-  model->addProperty(bgPath, this, "fillColor"  , "color"  );
-  model->addProperty(bgPath, this, "fillAlpha"  , "alpha"  );
-  model->addProperty(bgPath, this, "fillPattern", "pattern");
+  model->addProperty(bgPath, this, "filled"     , "visible")->setDesc("Fill visible");
+  model->addProperty(bgPath, this, "fillColor"  , "color"  )->setDesc("Fill color");
+  model->addProperty(bgPath, this, "fillAlpha"  , "alpha"  )->setDesc("Fill alpha");
+  model->addProperty(bgPath, this, "fillPattern", "pattern")->setDesc("Fill pattern");
 
-  QString borderPath = path + "/border";
+  QString borderPath = path + "/stroke";
 
-  model->addProperty(borderPath, this, "border"     , "visible"   );
-  model->addProperty(borderPath, this, "borderColor", "color"     );
-  model->addProperty(borderPath, this, "borderAlpha", "alpha"     );
-  model->addProperty(borderPath, this, "borderWidth", "width"     );
-  model->addProperty(borderPath, this, "cornerSize" , "cornerSize");
-  model->addProperty(borderPath, this, "borderSides", "sides"     );
+  model->addProperty(borderPath, this, "border"     , "visible"   )->setDesc("Stroke visible");
+  model->addProperty(borderPath, this, "borderColor", "color"     )->setDesc("Stroke color");
+  model->addProperty(borderPath, this, "borderAlpha", "alpha"     )->setDesc("Stroke alpha");
+  model->addProperty(borderPath, this, "borderWidth", "width"     )->setDesc("Stroke width");
+  model->addProperty(borderPath, this, "cornerSize" , "cornerSize")->setDesc("Box corner size");
+  model->addProperty(borderPath, this, "borderSides", "sides"     )->setDesc("Box visible sides");
 }
 
 void

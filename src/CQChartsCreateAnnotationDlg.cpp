@@ -613,7 +613,7 @@ createRectAnnotation()
   shapeData.setBackground(background);
   shapeData.setBorder    (border);
 
-  boxData.setBorderSides(rectWidgets_.borderSidesEdit->sides ());
+  boxData.setBorderSides(rectWidgets_.borderSidesEdit->sides());
 
   //---
 

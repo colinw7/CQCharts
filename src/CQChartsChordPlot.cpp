@@ -8,6 +8,8 @@
 #include <CQCharts.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsNamePair.h>
+
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -177,29 +179,31 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "linkColumn" , "link" );
-  addProperty("columns", this, "valueColumn", "value");
-  addProperty("columns", this, "groupColumn", "group");
+  addProperty("columns", this, "linkColumn" , "link" )->setDesc("Link column");
+  addProperty("columns", this, "valueColumn", "value")->setDesc("Value column");
+  addProperty("columns", this, "groupColumn", "group")->setDesc("Grouping column");
 
   // options
-  addProperty("options", this, "sorted"     );
-  addProperty("options", this, "innerRadius");
+  addProperty("options", this, "sorted"     )->setDesc("Sort values by size");
+  addProperty("options", this, "innerRadius")->setDesc("Radius of inside of outer strip");
 
   // stroke
   addLineProperties("stroke", "border");
 
   // segment
-  addProperty("segment", this, "segmentAlpha", "alpha");
+  addProperty("segment", this, "segmentAlpha", "alpha")->setDesc("Alpha of segments");
 
   // arc
-  addProperty("arc", this, "arcAlpha"  , "alpha"     );
-  addProperty("arc", this, "gapAngle"  , "gapAngle"  );
-  addProperty("arc", this, "startAngle", "startAngle");
+  addProperty("arc", this, "arcAlpha"  , "alpha"     )->setDesc("Alpha for arcs");
+  addProperty("arc", this, "gapAngle"  , "gapAngle"  )->
+    setDesc("Angle for gap between strip segements");
+  addProperty("arc", this, "startAngle", "startAngle")->
+    setDesc("Angle for first strip segment");
 
   // label
   textBox_->addTextDataProperties(propertyModel(), "label");
 
-  addProperty("label", this, "labelRadius", "radius");
+  addProperty("label", this, "labelRadius", "radius")->setDesc("Radius for segment label");
 
   QString labelBoxPath = "label/box";
 

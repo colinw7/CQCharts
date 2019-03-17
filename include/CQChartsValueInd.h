@@ -20,6 +20,8 @@ class CQChartsValueInd {
     setName_ .clear();
   }
 
+  int calcId(const QVariant &var, CQBaseModelType type);
+
   int calcId(int i) {
     assert(type_ == Type::NONE || type_ == Type::INTEGER);
 

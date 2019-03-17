@@ -6,6 +6,7 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 #include <CMathRound.h>
 
@@ -238,7 +239,7 @@ addProperties()
   addProperty("options", this, "gapAngle"   );
 
   // fill
-  addProperty("fill", this, "filled", "visible");
+  addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
 
   addFillProperties("fill", "fill");
 

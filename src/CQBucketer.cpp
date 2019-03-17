@@ -160,6 +160,62 @@ varReal(const QVariant &var, bool &ok)
 
 //----
 
+void
+CQBucketer::
+bucketMinMax(int bucket, QVariant &min, QVariant &max) const
+{
+  if      (type() == Type::STRING) {
+    min = bucket;
+    max = bucket;
+  }
+  else if (type() == Type::INTEGER_RANGE) {
+    int imin = 0, imax = 0;
+
+    bucketIValues(bucket, imin, imax);
+
+    min = imin;
+    max = imax;
+  }
+  else if (type() == Type::REAL_RANGE) {
+    double rmin = 0.0, rmax = 0.0;
+
+    bucketRValues(bucket, rmin, rmax);
+
+    if (isIntegral()) {
+      int imin = rmin;
+      int imax = rmax;
+
+      min = imin;
+      max = imax;
+    }
+    else {
+      min = rmin;
+      max = rmax;
+    }
+  }
+  else if (type() == Type::REAL_AUTO) {
+    double rmin = 0.0, rmax = 0.0;
+
+    autoBucketValues(bucket, rmin, rmax);
+
+    if (isIntegral()) {
+      int imin = rmin;
+      int imax = rmax;
+
+      min = imin;
+      max = imax;
+    }
+    else {
+      min = rmin;
+      max = rmax;
+    }
+  }
+  else {
+    min = bucket;
+    max = bucket;
+  }
+}
+
 QString
 CQBucketer::
 bucketName(int bucket, bool utfArrow) const

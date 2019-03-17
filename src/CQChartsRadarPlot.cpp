@@ -7,6 +7,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
 
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -138,7 +139,7 @@ addProperties()
   addLineProperties("grid", "gridLines");
 
   // fill
-  addProperty("fill", this, "filled", "visible");
+  addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
 
   addFillProperties("fill", "fill");
 

@@ -633,6 +633,11 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
+  bool hasXAxis() const override;
+  bool hasYAxis() const override;
+
+  //---
+
  public slots:
   // set horizontal
   void setHorizontal(bool b);
@@ -706,9 +711,12 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   double             ymargin_           { 0.05 };                    //! y margin
   ColumnType         setType_           { ColumnType::NONE };        //! set column data type
   CQChartsValueInd   setValueInd_;                                   //! set value inds
+  ColumnType         xType_             { ColumnType::NONE };        //! x column data type
+  CQChartsValueInd   xValueInd_;                                     //! x value inds
   GroupSetWhiskerMap groupWhiskers_;                                 //! grouped whisker data
   WhiskerDataList    whiskerDataList_;                               //! whisker data
   bool               isWhiskersGrouped_ { false };                   //! is grouped whiskers
+  bool               forceNoYAxis_      { false };                   //! force no y axis
 };
 
 #endif

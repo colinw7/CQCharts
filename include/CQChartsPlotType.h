@@ -53,6 +53,8 @@ class CQChartsPlotType : public QObject {
   Q_PROPERTY(bool      customXRange       READ customXRange      )
   Q_PROPERTY(bool      customYRange       READ customYRange      )
   Q_PROPERTY(bool      hasAxes            READ hasAxes           )
+  Q_PROPERTY(bool      hasXAxis           READ hasXAxis          )
+  Q_PROPERTY(bool      hasYAxis           READ hasYAxis          )
   Q_PROPERTY(bool      hasKey             READ hasKey            )
   Q_PROPERTY(bool      hasTitle           READ hasTitle          )
   Q_PROPERTY(bool      hasColor           READ hasColor          )
@@ -99,6 +101,8 @@ class CQChartsPlotType : public QObject {
   virtual bool customYRange() const { return true; }
 
   virtual bool hasAxes () const { return true; }
+  virtual bool hasXAxis() const { return hasAxes(); }
+  virtual bool hasYAxis() const { return hasAxes(); }
   virtual bool hasKey  () const { return true; }
   virtual bool hasTitle() const { return true; }
   virtual bool hasColor() const { return true; }

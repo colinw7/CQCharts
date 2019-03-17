@@ -15,6 +15,8 @@
 #include <CQChartsTip.h>
 #include <CQChartsDensity.h>
 #include <CQChartsRand.h>
+
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -44,10 +46,10 @@ addParameters()
 
   // bucket
   addBoolParameter("bucketed", "Bucketed", "bucketed", true).
-   setTip("bucket grouped values");
+   setTip("Bucket grouped values");
 
   addBoolParameter("autoBucket", "Auto Bucket", "autoBucket", true).
-   setTip("automatically determine bucket ranges");
+   setTip("Automatically determine bucket ranges");
 
   addRealParameter("startBucketValue", "Start Value", "startBucketValue", 0.0).
     setRequired().setTip("Start value for manual bucket");
@@ -58,7 +60,7 @@ addParameters()
     setRequired().setTip("Number of auto buckets");
 
   // options
-  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
+  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("Draw bars horizontal");
 
   addEnumParameter("plotType", "Plot Type", "plotType").
     addNameValue("NORMAL"      , int(CQChartsDistributionPlot::PlotType::NORMAL      )).
@@ -78,11 +80,11 @@ addParameters()
    addNameValue("SUM"  , int(CQChartsDistributionPlot::ValueType::SUM  )).
    setTip("Bar value type");
 
-  addBoolParameter("percent"  , "Percent"   , "percent"  ).setTip("Show value is percentage");
-  addBoolParameter("skipEmpty", "Skip Empty", "skipEmpty").setTip("skip empty buckets");
-  addBoolParameter("sorted"   , "Sorted"    , "sorted"   ).setTip("sort by count");
-  addBoolParameter("dotLines" , "Dot Lines" , "dotLines" ).setTip("draw bars as lines with dot");
-  addBoolParameter("rug"      , "Rug"       , "rug"      ).setTip("draw rug points");
+  addBoolParameter("percent"  , "Percent"   , "percent"  ).setTip("Show value as percentage");
+  addBoolParameter("skipEmpty", "Skip Empty", "skipEmpty").setTip("Skip empty buckets");
+  addBoolParameter("sorted"   , "Sorted"    , "sorted"   ).setTip("Sort by count");
+  addBoolParameter("dotLines" , "Dot Lines" , "dotLines" ).setTip("Draw bars as lines with dot");
+  addBoolParameter("rug"      , "Rug"       , "rug"      ).setTip("Draw rug points");
 
   endParameterGroup();
 
@@ -308,41 +310,46 @@ addProperties()
 
   CQChartsBarPlot::addProperties();
 
-  addProperty("columns", this, "nameColumn", "name");
-  addProperty("columns", this, "dataColumn", "data");
+  addProperty("columns", this, "nameColumn", "name")->setDesc("Custom group name column");
+  addProperty("columns", this, "dataColumn", "data")->setDesc("Extra data column");
 
-  addProperty("bucket", this, "bucketed"        , "enabled");
-  addProperty("bucket", this, "autoBucket"      , "auto"   );
-  addProperty("bucket", this, "startBucketValue", "start"  );
-  addProperty("bucket", this, "deltaBucketValue", "delta"  );
-  addProperty("bucket", this, "numAutoBuckets"  , "num"    );
+  addProperty("bucket", this, "bucketed"        , "enabled")->setDesc("Bucket grouped values");
+  addProperty("bucket", this, "autoBucket"      , "auto"   )->
+    setDesc("Automatically determine bucket ranges");
+  addProperty("bucket", this, "startBucketValue", "start"  )->
+    setDesc("Start value for manual bucket");
+  addProperty("bucket", this, "deltaBucketValue", "delta"  )->
+    setDesc("Delta value for manual bucket");
+  addProperty("bucket", this, "numAutoBuckets"  , "num"    )->
+    setDesc("Number of auto buckets");
 
-  addProperty("options", this, "plotType" , "plotType" );
-  addProperty("options", this, "valueType", "valueType");
+  addProperty("options", this, "plotType" , "plotType" )->setDesc("Plot type");
+  addProperty("options", this, "valueType", "valueType")->setDesc("Bar value type");
 
-  addProperty("options", this, "percent"  );
-  addProperty("options", this, "skipEmpty");
-  addProperty("options", this, "sorted"   );
+  addProperty("options", this, "percent"  )->setDesc("Show value as percentage");
+  addProperty("options", this, "skipEmpty")->setDesc("Skip empty buckets");
+  addProperty("options", this, "sorted"   )->setDesc("Sort by count");
 
-  addProperty("density", this, "density"        , "enabled" );
-  addProperty("density", this, "densityOffset"  , "offset"  );
-  addProperty("density", this, "densitySamples" , "samples" );
-  addProperty("density", this, "densityGradient", "gradient");
-  addProperty("density", this, "densityBars"    , "bars"    );
+  addProperty("density", this, "density"        , "enabled" )->setDesc("Show density plot");
+  addProperty("density", this, "densityOffset"  , "offset"  )->setDesc("Density plot offset");
+  addProperty("density", this, "densitySamples" , "samples" )->setDesc("Density samples");
+  addProperty("density", this, "densityGradient", "gradient")->setDesc("Drag density gradient");
+  addProperty("density", this, "densityBars"    , "bars"    )->setDesc("Draw density bars");
 
-  addProperty("scatter", this, "scatter"      , "enabled");
-  addProperty("scatter", this, "scatterFactor", "factor" );
+  addProperty("scatter", this, "scatter"      , "enabled")->setDesc("Draw scatter points");
+  addProperty("scatter", this, "scatterFactor", "factor" )->setDesc("Scatter factor (0-1)");
 
-  addProperty("meanLine", this, "showMean", "visible");
+  addProperty("meanLine", this, "showMean", "visible")->setDesc("Show mean line");
 
   addLineProperties("meanLine/line", "meanLines");
 
-  addProperty("dotLines"     , this, "dotLines"    , "enabled");
-  addProperty("dotLines/line", this, "dotLineWidth", "width"  );
+  addProperty("dotLines"     , this, "dotLines"    , "enabled")->
+   setDesc("Draw bars as lines with dot");
+  addProperty("dotLines/line", this, "dotLineWidth", "width"  )->setDesc("Dot line width");
 
   addSymbolProperties("dotLines", "dot");
 
-  addProperty("rug", this, "rug", "enabled");
+  addProperty("rug", this, "rug", "enabled")->setDesc("Draw density points on x axis");
 
   addSymbolProperties("rug", "rug");
 
@@ -1102,6 +1109,8 @@ getGroupIndValues(int groupInd, const CQChartsModelIndex &ind) const
 
   //---
 
+  std::unique_lock<std::mutex> lock(mutex_);
+
   CQChartsDistributionPlot *th = const_cast<CQChartsDistributionPlot *>(this);
 
   CQChartsValueSet *valueSet = new CQChartsValueSet(this);
@@ -1111,7 +1120,11 @@ getGroupIndValues(int groupInd, const CQChartsModelIndex &ind) const
   auto pg1 = th->groupData_.groupValues.insert(groupData_.groupValues.end(),
                GroupValues::value_type(groupInd, new Values(valueSet)));
 
-  return (*pg1).second;
+  CQChartsDistributionPlot::Values *values = (*pg1).second;
+
+  //---
+
+  return values;
 }
 
 const CQChartsDistributionPlot::Values *
@@ -1225,6 +1238,8 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsDistributionPlot::createObjs");
 
+  CQChartsDistributionPlot *th = const_cast<CQChartsDistributionPlot *>(this);
+
   NoUpdate noUpdate(const_cast<CQChartsDistributionPlot *>(this));
 
   //---
@@ -1297,10 +1312,10 @@ createObjs(PlotObjs &objs) const
 
   Totals valueSetRunningTotal, groupTotals, valueSetTotals, groupMax;
 
-  double barWidth = 1.0;
+  th->barWidth_ = 1.0;
 
   if (isSideBySide() && ng > 0)
-    barWidth /= ng;
+    th->barWidth_ /= ng;
 
   //---
 
@@ -1637,8 +1652,8 @@ createObjs(PlotObjs &objs) const
               bbox = CQChartsGeom::BBox(v1, vpos1 - 0.5, v2, vpos1 + 0.5);
           }
           else if (isSideBySide()) {
-            double tpos1 = vpos1 - 0.5 + barWidth*gpos;
-            double tpos2 = tpos1 + barWidth;
+            double tpos1 = vpos1 - 0.5 + barWidth_*gpos;
+            double tpos2 = tpos1 + barWidth_;
 
             if (! isHorizontal())
               bbox = CQChartsGeom::BBox(tpos1, scale*barValue.n1, tpos2, scale*barValue.n2);
@@ -2528,6 +2543,22 @@ popTopSlot()
 
 //------
 
+double
+CQChartsDistributionPlot::
+getPanX(bool is_shift) const
+{
+  return windowToViewWidth(is_shift ? 2.0*barWidth_ : 1.0*barWidth_);
+}
+
+double
+CQChartsDistributionPlot::
+getPanY(bool is_shift) const
+{
+  return windowToViewHeight(is_shift ? 2.0*barWidth_ : 1.0*barWidth_);
+}
+
+//------
+
 CQChartsDistributionBarObj::
 CQChartsDistributionBarObj(const CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
                            int groupInd, int bucket, const BarValue &barValue,
@@ -2552,16 +2583,24 @@ QString
 CQChartsDistributionBarObj::
 calcTipId() const
 {
-  QString groupName = this->groupName();
-  QString bucketStr = this->bucketStr();
-
   CQChartsTableTip tableTip;
+
+  //---
+
+  QString groupName = this->groupName();
 
   if (groupName.length())
     tableTip.addTableRow("Group", groupName);
 
+  //---
+
+  QString bucketStr = this->bucketStr();
+
   tableTip.addTableRow("Bucket", bucketStr);
 
+  //---
+
+  // add value
   if      (plot_->isValueCount()) {
     tableTip.addTableRow("Count", count());
   }
@@ -2584,6 +2623,7 @@ calcTipId() const
 
   //---
 
+  // add color columns
   QStringList strs;
 
   QModelIndex parent;
@@ -2602,10 +2642,14 @@ calcTipId() const
 
     QString name = plot_->modelHeaderString(plot_->colorColumn(), ok);
 
-    if (name == "")
-      name = "Colors";
+    QString name1;
 
-    tableTip.addTableRow(name, strs.join(" "));
+    if (name != "")
+      name1 = QString("Color (%1)").arg(name);
+    else
+      name1 = "Colors";
+
+    tableTip.addTableRow(name1, strs.join(" "));
   }
 
   return tableTip.str();
@@ -2780,27 +2824,51 @@ draw(QPainter *painter)
   if (getBarColoredRects(colorData_)) {
     double size = (! plot_->isHorizontal() ? qrect.height() : qrect.width());
 
-    double dsize = size/colorData_.nv;
+    if      (plot_->isValueCount()) {
+      double dsize = size/colorData_.nv;
 
-    double pos1 = 0.0, pos2 = 0.0;
+      double pos1 = 0.0, pos2 = 0.0;
 
-    for (auto &p : colorData_.colorSet) {
-      const CQChartsColor &color = p.first;
-      int                  n     = colorData_.colorCount[p.second];
+      for (auto &p : colorData_.colorSet) {
+        const CQChartsColor &color = p.first;
+        int                  n     = colorData_.colorCount[p.second];
 
-      pos1 = pos2;
-      pos2 = pos1 + dsize*n;
+        pos1 = pos2;
+        pos2 = pos1 + dsize*n;
 
-      QRectF qrect1;
+        QRectF qrect1;
 
-      if (! plot_->isHorizontal())
-        qrect1 = QRectF(qrect.x(), qrect.bottom() - pos2, qrect.width(), pos2 - pos1);
-      else
-        qrect1 = QRectF(qrect.left() + pos1, qrect.y(), pos2 - pos1, qrect.height());
+        if (! plot_->isHorizontal())
+          qrect1 = QRectF(qrect.x(), qrect.bottom() - pos2, qrect.width(), pos2 - pos1);
+        else
+          qrect1 = QRectF(qrect.left() + pos1, qrect.y(), pos2 - pos1, qrect.height());
 
-      //---
+        //---
 
-      drawRect(painter, qrect1, color, useLine);
+        drawRect(painter, qrect1, color, useLine);
+      }
+    }
+    else if (plot_->isValueSum()) {
+      double pos1 = 0.0, pos2 = 0.0;
+
+      for (auto &cs : colorData_.colorSizes) {
+        const CQChartsColor &color = cs.first;
+        double               dsize = cs.second;
+
+        pos1 = pos2;
+        pos2 = pos1 + size*dsize;
+
+        QRectF qrect1;
+
+        if (! plot_->isHorizontal())
+          qrect1 = QRectF(qrect.x(), qrect.bottom() - pos2, qrect.width(), pos2 - pos1);
+        else
+          qrect1 = QRectF(qrect.left() + pos1, qrect.y(), pos2 - pos1, qrect.height());
+
+        //---
+
+        drawRect(painter, qrect1, color, useLine);
+      }
     }
   }
   else {
@@ -2928,20 +2996,54 @@ getBarColoredRects(ColorData &colorData) const
   if (! plot_->colorColumn().isValid())
     return false;
 
+  if (! plot_->isValueCount() && ! plot_->isValueSum())
+    return false;
+
   // get normal bar color
   QColor barColor = this->barColor();
+  QColor bgColor  = plot_->interpThemeColor(0.2);
 
   // get color of individual values
   colorData.nv = 0;
 
-  // get count of unique colors for values
+  // for count value type get count of unique colors for values
+  // for sum value type get fraction of total for values
   CQChartsDistributionPlot::VariantInds vinds;
 
   plot_->getInds(groupInd_, bucket_, vinds);
 
+  int nvi = vinds.size();
+
+  if (nvi <= 1)
+    return false;
+
+  double minAlpha = 0.4;
+  double maxAlpha = 1.0;
+
+  double bsize = 1.0/nvi;
+
   for (const auto &vind : vinds) {
     const CQChartsModelIndex &ind = vind.ind;
 
+    //---
+
+    // calc relative size
+    double bsize1 = bsize;
+
+    if (plot_->isValueSum()) {
+      bool ok;
+
+      double value = plot_->modelReal(ind, ok);
+
+      if (ok)
+        bsize1 = value/maxValue();
+      else
+        bsize1 = 0.0;
+    }
+
+    //---
+
+    // set color from value
     CQChartsColor color;
 
     if (plot_->columnColor(ind.row, ind.parent, color)) {
@@ -2951,9 +3053,17 @@ getBarColoredRects(ColorData &colorData) const
 
       color = c1;
     }
-    else
-      color = barColor;
+    else {
+      double alpha = (maxAlpha - minAlpha)*colorData.nv/(nvi - 1.0) + minAlpha;
 
+      QColor barColor1 = CQChartsUtil::blendColors(barColor, bgColor, alpha);
+
+      color = barColor1;
+    }
+
+    //---
+
+    // add unique colors to set
     auto p = colorData.colorSet.find(color);
 
     if (p == colorData.colorSet.end()) {
@@ -2966,6 +3076,10 @@ getBarColoredRects(ColorData &colorData) const
 
     ++colorData.colorCount[(*p).second];
 
+    //---
+
+    colorData.colorSizes.push_back(ColorSize(color, bsize1));
+
     ++colorData.nv;
   }
 
@@ -2973,6 +3087,8 @@ getBarColoredRects(ColorData &colorData) const
     colorData.colorSet[barColor] = 0;
 
     colorData.colorCount[0] = 1;
+
+    colorData.colorSizes.push_back(ColorSize(barColor, 1.0));
 
     colorData.nv = 1;
   }

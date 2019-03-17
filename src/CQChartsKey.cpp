@@ -9,6 +9,7 @@
 #include <CQChartsDrawUtil.h>
 
 #include <CQPropertyViewModel.h>
+#include <CQPropertyViewItem.h>
 
 #include <QScrollBar>
 #include <QPainter>
@@ -182,34 +183,44 @@ void
 CQChartsViewKey::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "visible"   );
-  model->addProperty(path, this, "selected"  );
-  model->addProperty(path, this, "horizontal");
-  model->addProperty(path, this, "autoHide"  );
-  model->addProperty(path, this, "clipped"   );
+  model->addProperty(path, this, "visible"   )->setDesc("Is visible");
+  model->addProperty(path, this, "selected"  )->setDesc("Is selected");
+  model->addProperty(path, this, "horizontal")->setDesc("Draw items horizontally");
+  model->addProperty(path, this, "autoHide"  )->setDesc("Auto hide key when too large");
+  model->addProperty(path, this, "clipped"   )->setDesc("Clip key to view");
 
-  model->addProperty(path, this, "location");
+  model->addProperty(path, this, "location")->setDesc("Key placement location");
 
-  model->addProperty(path, this, "interactive"  );
-  model->addProperty(path, this, "pressBehavior");
+  model->addProperty(path, this, "interactive"  )->setDesc("Key supports click");
+  model->addProperty(path, this, "pressBehavior")->setDesc("Key click behavior");
 
-  model->addProperty(path, this, "hiddenAlpha");
+  model->addProperty(path, this, "hiddenAlpha")->setDesc("Alpha for hidden items");
 
   //---
 
   // header text
   QString headerPath = path + "/header";
 
-  model->addProperty(headerPath, this, "header"             , "text"     );
-  model->addProperty(headerPath, this, "headerTextColor"    , "color"    );
-  model->addProperty(headerPath, this, "headerTextAlpha"    , "alpha"    );
-  model->addProperty(headerPath, this, "headerTextFont"     , "font"     );
-  model->addProperty(headerPath, this, "headerTextAngle"    , "angle"    );
-  model->addProperty(headerPath, this, "headerTextContrast" , "contrast" );
-  model->addProperty(headerPath, this, "headerTextAlign"    , "align"    );
-  model->addProperty(headerPath, this, "headerTextFormatted", "formatted");
-  model->addProperty(headerPath, this, "headerTextScaled"   , "scaled"   );
-  model->addProperty(headerPath, this, "headerTextHtml"     , "html"     );
+  model->addProperty(headerPath, this, "header"             , "text"     )->
+                      setDesc("Header text");
+  model->addProperty(headerPath, this, "headerTextColor"    , "color"    )->
+                      setDesc("Header text color");
+  model->addProperty(headerPath, this, "headerTextAlpha"    , "alpha"    )->
+                      setDesc("Header text alpha");
+  model->addProperty(headerPath, this, "headerTextFont"     , "font"     )->
+                      setDesc("Header text font");
+  model->addProperty(headerPath, this, "headerTextAngle"    , "angle"    )->
+                      setDesc("Header text angle");
+  model->addProperty(headerPath, this, "headerTextContrast" , "contrast" )->
+                      setDesc("Header text contrast");
+  model->addProperty(headerPath, this, "headerTextAlign"    , "align"    )->
+                      setDesc("Header text align");
+  model->addProperty(headerPath, this, "headerTextFormatted", "formatted")->
+                      setDesc("Header text formatted to box");
+  model->addProperty(headerPath, this, "headerTextScaled"   , "scaled"   )->
+                      setDesc("Header text scaled to box");
+  model->addProperty(headerPath, this, "headerTextHtml"     , "html"     )->
+                      setDesc("Header text is html");
 
   //---
 
@@ -221,10 +232,10 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   // key text
   QString textPath = path + "/text";
 
-  model->addProperty(textPath, this, "textColor", "color");
-  model->addProperty(textPath, this, "textAlpha", "alpha");
-  model->addProperty(textPath, this, "textFont" , "font" );
-  model->addProperty(textPath, this, "textAlign", "align");
+  model->addProperty(textPath, this, "textColor", "color")->setDesc("Text color");
+  model->addProperty(textPath, this, "textAlpha", "alpha")->setDesc("Text alpha");
+  model->addProperty(textPath, this, "textFont" , "font" )->setDesc("Text font");
+  model->addProperty(textPath, this, "textAlign", "align")->setDesc("Text align");
 }
 
 void
@@ -586,44 +597,54 @@ void
 CQChartsPlotKey::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "visible"   );
-  model->addProperty(path, this, "selected"  );
-  model->addProperty(path, this, "horizontal");
-  model->addProperty(path, this, "flipped"   );
-  model->addProperty(path, this, "autoHide"  );
-  model->addProperty(path, this, "clipped"   );
+  model->addProperty(path, this, "visible"   )->setDesc("Is visible");
+  model->addProperty(path, this, "selected"  )->setDesc("Is selected");
+  model->addProperty(path, this, "horizontal")->setDesc("Draw items horizontally");
+  model->addProperty(path, this, "flipped"   )->setDesc("Draw name value flipped");
+  model->addProperty(path, this, "autoHide"  )->setDesc("Auto hide key when too large");
+  model->addProperty(path, this, "clipped"   )->setDesc("Clip key to plot");
 
-  model->addProperty(path, this, "above"      );
-  model->addProperty(path, this, "insideX"    );
-  model->addProperty(path, this, "insideY"    );
-  model->addProperty(path, this, "location"   );
-  model->addProperty(path, this, "absPosition");
-  model->addProperty(path, this, "absRect"    );
+  model->addProperty(path, this, "above"      )->setDesc("Draw key above plot");
+  model->addProperty(path, this, "insideX"    )->setDesc("Key placed inside plot in x direction");
+  model->addProperty(path, this, "insideY"    )->setDesc("Key placed inside plot in y direction");
+  model->addProperty(path, this, "location"   )->setDesc("Key placement location");
+  model->addProperty(path, this, "absPosition")->setDesc("Key placement absolute position");
+  model->addProperty(path, this, "absRect"    )->setDesc("Key placement absolute rectangle");
 
-  model->addProperty(path, this, "interactive"  );
-  model->addProperty(path, this, "pressBehavior");
+  model->addProperty(path, this, "interactive"  )->setDesc("Key supports click");
+  model->addProperty(path, this, "pressBehavior")->setDesc("Key click behavior");
 
-  model->addProperty(path, this, "hiddenAlpha" );
-  model->addProperty(path, this, "maxRows"     );
-  model->addProperty(path, this, "spacing"     );
-  model->addProperty(path, this, "scrollWidth" );
-  model->addProperty(path, this, "scrollHeight");
+  model->addProperty(path, this, "hiddenAlpha" )->setDesc("Alpha for hidden items");
+  model->addProperty(path, this, "maxRows"     )->setDesc("Max rows for key");
+  model->addProperty(path, this, "spacing"     )->setDesc("Spacing between rows");
+  model->addProperty(path, this, "scrollWidth" )->setDesc("Scrolled fixed width");
+  model->addProperty(path, this, "scrollHeight")->setDesc("Scrolled fixed height");
 
   //---
 
   // header text
   QString headerPath = path + "/header";
 
-  model->addProperty(headerPath, this, "header"             , "text"     );
-  model->addProperty(headerPath, this, "headerTextColor"    , "color"    );
-  model->addProperty(headerPath, this, "headerTextAlpha"    , "alpha"    );
-  model->addProperty(headerPath, this, "headerTextFont"     , "font"     );
-  model->addProperty(headerPath, this, "headerTextAngle"    , "angle"    );
-  model->addProperty(headerPath, this, "headerTextContrast" , "contrast" );
-  model->addProperty(headerPath, this, "headerTextAlign"    , "align"    );
-  model->addProperty(headerPath, this, "headerTextFormatted", "formatted");
-  model->addProperty(headerPath, this, "headerTextScaled"   , "scaled"   );
-  model->addProperty(headerPath, this, "headerTextHtml"     , "html"     );
+  model->addProperty(headerPath, this, "header"             , "text"     )->
+                      setDesc("Header text");
+  model->addProperty(headerPath, this, "headerTextColor"    , "color"    )->
+                      setDesc("Header text color");
+  model->addProperty(headerPath, this, "headerTextAlpha"    , "alpha"    )->
+                      setDesc("Header text alpha");
+  model->addProperty(headerPath, this, "headerTextFont"     , "font"     )->
+                      setDesc("Header text font");
+  model->addProperty(headerPath, this, "headerTextAngle"    , "angle"    )->
+                      setDesc("Header text angle");
+  model->addProperty(headerPath, this, "headerTextContrast" , "contrast" )->
+                      setDesc("Header text contrast");
+  model->addProperty(headerPath, this, "headerTextAlign"    , "align"    )->
+                      setDesc("Header text align");
+  model->addProperty(headerPath, this, "headerTextFormatted", "formatted")->
+                      setDesc("Header text formatted to box");
+  model->addProperty(headerPath, this, "headerTextScaled"   , "scaled"   )->
+                      setDesc("Header text scaled to box");
+  model->addProperty(headerPath, this, "headerTextHtml"     , "html"     )->
+                      setDesc("eader text is html");
 
   //---
 
@@ -635,10 +656,10 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   // key text
   QString textPath = path + "/text";
 
-  model->addProperty(textPath, this, "textColor", "color");
-  model->addProperty(textPath, this, "textAlpha", "alpha");
-  model->addProperty(textPath, this, "textFont" , "font" );
-  model->addProperty(textPath, this, "textAlign", "align");
+  model->addProperty(textPath, this, "textColor", "color")->setDesc("Text color");
+  model->addProperty(textPath, this, "textAlpha", "alpha")->setDesc("Text alpha");
+  model->addProperty(textPath, this, "textFont" , "font" )->setDesc("Text font");
+  model->addProperty(textPath, this, "textAlign", "align")->setDesc("Text align");
 }
 
 void

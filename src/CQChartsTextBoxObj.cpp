@@ -6,6 +6,8 @@
 #include <CQChartsDrawUtil.h>
 
 #include <CQPropertyViewModel.h>
+#include <CQPropertyViewItem.h>
+
 #include <QPainter>
 
 CQChartsTextBoxObj::
@@ -51,9 +53,9 @@ void
 CQChartsTextBoxObj::
 addTextDataProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "textFont"    , "font"    );
-  model->addProperty(path, this, "textColor"   , "color"   );
-  model->addProperty(path, this, "textAlpha"   , "alpha"   );
+  model->addProperty(path, this, "textColor"   , "color"   )->setDesc("Text color");
+  model->addProperty(path, this, "textAlpha"   , "alpha"   )->setDesc("Text alpha");
+  model->addProperty(path, this, "textFont"    , "font"    )->setDesc("Text font");
   model->addProperty(path, this, "textAngle"   , "angle"   );
   model->addProperty(path, this, "textContrast", "contrast");
   model->addProperty(path, this, "textHtml"    , "html"    );

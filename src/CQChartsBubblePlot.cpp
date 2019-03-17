@@ -5,6 +5,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
 
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -132,22 +133,22 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "nameColumn" , "name" );
-  addProperty("columns", this, "valueColumn", "value");
+  addProperty("columns", this, "nameColumn" , "name" )->setDesc("Name column");
+  addProperty("columns", this, "valueColumn", "value")->setDesc("Value column");
 
   CQChartsGroupPlot::addProperties();
 
   // options
-  addProperty("options", this, "valueLabel");
-  addProperty("options", this, "sorted"    );
+  addProperty("options", this, "valueLabel")->setDesc("Show value label");
+  addProperty("options", this, "sorted"    )->setDesc("Sort values by size");
 
   // fill
-  addProperty("fill", this, "filled", "visible");
+  addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
 
   addFillProperties("fill", "fill");
 
   // stroke
-  addProperty("stroke", this, "border", "visible");
+  addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
 
   addLineProperties("stroke", "border");
 

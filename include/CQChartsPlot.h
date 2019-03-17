@@ -694,6 +694,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void getObjectPropertyNames(CQChartsPlotObj *plotObj, QStringList &names) const;
 
+  void hideProperty(const QString &path, QObject *object);
+
   //---
 
   void updateMargins(bool update=true);
@@ -1422,6 +1424,12 @@ class CQChartsPlot : public CQChartsObj,
   void setLayersChanged(bool update);
 
   void deselectAll1(bool &changed);
+
+  //---
+
+ public:
+  virtual bool hasXAxis() const;
+  virtual bool hasYAxis() const;
 
   //---
 

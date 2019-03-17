@@ -91,12 +91,19 @@ textChanged()
 {
   CQChartsColumn column;
 
-  if (model()) {
-    if (! CQChartsModelUtil::stringToColumn(model(), edit_->text(), column))
-      return;
+  QString text = edit_->text();
+
+  if (text.simplified() == "") {
+    column = CQChartsColumn();
   }
   else {
-    column = CQChartsColumn(edit_->text());
+    if (model()) {
+      if (! CQChartsModelUtil::stringToColumn(model(), text, column))
+        return;
+    }
+    else {
+      column = CQChartsColumn(text);
+    }
   }
 
   updateColumn(column, /*updateText*/ false);

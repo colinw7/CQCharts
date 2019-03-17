@@ -27,7 +27,7 @@ set order [get_charts_data -model $model1 -name property.sortOrder]
 
 echo "order: $order"
 
-process_charts_model -model $model1 -list -expr 10
+write_charts_model -model $model1 -max_rows 10
 
 set_charts_data -model $model1 -name property.sortOrder -value 1
 
@@ -35,4 +35,4 @@ set order [get_charts_data -model $model1 -name property.sortOrder]
 
 echo "order: $order"
 
-process_charts_model -model $model1 -list -expr 10
+write_charts_model -model $model1 -max_rows 10

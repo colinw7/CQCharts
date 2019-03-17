@@ -8,7 +8,9 @@
 #include <CQChartsSmooth.h>
 #include <CQChartsRoundedPolygon.h>
 #include <CQChartsTip.h>
+
 #include <CQUtil.h>
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -261,78 +263,96 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "xColumn"           , "x"          );
-  addProperty("columns", this, "yColumns"          , "y"          );
-  addProperty("columns", this, "nameColumn"        , "name"       );
-  addProperty("columns", this, "sizeColumn"        , "size"       );
-  addProperty("columns", this, "pointLabelColumn"  , "pointLabel" );
-  addProperty("columns", this, "pointColorColumn"  , "pointColor" );
-  addProperty("columns", this, "pointSymbolColumn" , "pointSymbol");
-  addProperty("columns", this, "vectorXColumn"     , "vectorX"    );
-  addProperty("columns", this, "vectorYColumn"     , "vectorY"    );
+  addProperty("columns", this, "xColumn"           , "x"          )->setDesc("X column");
+  addProperty("columns", this, "yColumns"          , "y"          )->setDesc("Y columns");
+  addProperty("columns", this, "nameColumn"        , "name"       )->setDesc("Name column");
+  addProperty("columns", this, "sizeColumn"        , "size"       )->setDesc("Size column");
+  addProperty("columns", this, "pointLabelColumn"  , "pointLabel" )->setDesc("Point label column");
+  addProperty("columns", this, "pointColorColumn"  , "pointColor" )->setDesc("Point color column");
+  addProperty("columns", this, "pointSymbolColumn" , "pointSymbol")->setDesc("Point symbol column");
+  addProperty("columns", this, "vectorXColumn"     , "vectorX"    )->setDesc("Vector x column");
+  addProperty("columns", this, "vectorYColumn"     , "vectorY"    )->setDesc("Vector y column");
 
   // bivariate
-  addProperty("bivariate", this, "bivariateLines", "visible");
+  addProperty("bivariate", this, "bivariateLines", "visible")->setDesc("Show bivariate lines");
 
   addLineProperties("bivariate", "bivariateLines");
 
   // stacked
-  addProperty("stacked", this, "stacked", "enabled");
+  addProperty("stacked", this, "stacked", "enabled")->setDesc("Stack y values");
 
   // cumulative
-  addProperty("cumulative", this, "cumulative", "enabled");
+  addProperty("cumulative", this, "cumulative", "enabled")->setDesc("Cumulative values");
 
   // points
-  addProperty("points", this, "points"         , "visible");
-  addProperty("points", this, "pointLineSelect", "lineSelect");
-  addProperty("points", this, "pointCount"     , "count");
-  addProperty("points", this, "pointDelta"     , "delta");
-  addProperty("points", this, "pointStart"     , "start");
+  addProperty("points", this, "points"         , "visible")->setDesc("Show point symbol");
+  addProperty("points", this, "pointLineSelect", "lineSelect")->
+    setDesc("Select point selects line");
+  addProperty("points", this, "pointCount"     , "count")->setDesc("Number of points to show");
+  addProperty("points", this, "pointDelta"     , "delta")->setDesc("Show points delta index");
+  addProperty("points", this, "pointStart"     , "start")->setDesc("Show points start index");
 
   addSymbolProperties("points/symbol");
 
   // lines
-  addProperty("lines", this, "lines"          , "visible"   );
-  addProperty("lines", this, "linesSelectable", "selectable");
-  addProperty("lines", this, "roundedLines"   , "rounded"   );
-  addProperty("lines", this, "fitted"         , "fitted"    );
+  addProperty("lines", this, "lines"          , "visible"   )->setDesc("Show lines");
+  addProperty("lines", this, "linesSelectable", "selectable")->setDesc("Lines selectable");
+  addProperty("lines", this, "roundedLines"   , "rounded"   )->setDesc("Smooth lines");
+  addProperty("lines", this, "fitted"         , "fitted"    )->setDesc("Fit lines");
 
   addLineProperties("lines", "lines");
 
   // fill under
-  addProperty("fillUnder", this, "fillUnderFilled"    , "visible"   );
-  addProperty("fillUnder", this, "fillUnderSelectable", "selectable");
-  addProperty("fillUnder", this, "fillUnderPos"       , "position"  );
-  addProperty("fillUnder", this, "fillUnderSide"      , "side"      );
+  addProperty("fillUnder", this, "fillUnderFilled"    , "visible"   )->
+    setDesc("Show fill under lines");
+  addProperty("fillUnder", this, "fillUnderSelectable", "selectable")->
+    setDesc("Fill under polygon selectable");
+  addProperty("fillUnder", this, "fillUnderPos"       , "position"  )->
+    setDesc("Fill under base position");
+  addProperty("fillUnder", this, "fillUnderSide"      , "side"      )->
+    setDesc("Fill under line side");
 
   addFillProperties("fillUnder", "fillUnderFill");
 
   // impulse
-  addProperty("impulse", this, "impulseLines", "visible");
+  addProperty("impulse", this, "impulseLines", "visible")->setDesc("Draw impulse lines");
 
   addLineProperties("impulse", "impulseLines");
 
   // vectors
-  addProperty("vectors", this     , "vectors"  , "visible"  );
-  addProperty("vectors", arrowObj_, "length"   , "length"   );
-  addProperty("vectors", arrowObj_, "angle"    , "angle"    );
-  addProperty("vectors", arrowObj_, "backAngle", "backAngle");
-  addProperty("vectors", arrowObj_, "fhead"    , "fhead"    );
-  addProperty("vectors", arrowObj_, "thead"    , "thead"    );
-  addProperty("vectors", arrowObj_, "lineEnds" , "lineEnds" );
-  addProperty("vectors", arrowObj_, "lineWidth", "lineWidth");
+  addProperty("vectors", this     , "vectors"  , "visible"  )->
+    setDesc("Draw vectors at points");
+  addProperty("vectors", arrowObj_, "length"   , "length"   )->
+    setDesc("Vector arrow length");
+  addProperty("vectors", arrowObj_, "angle"    , "angle"    )->
+    setDesc("Vector arrow angle");
+  addProperty("vectors", arrowObj_, "backAngle", "backAngle")->
+    setDesc("Vector arrow back angle");
+  addProperty("vectors", arrowObj_, "fhead"    , "fhead"    )->
+    setDesc("Show vector arrow front head");
+  addProperty("vectors", arrowObj_, "thead"    , "thead"    )->
+    setDesc("Show vector arrow tail head");
+  addProperty("vectors", arrowObj_, "filled"   , "filled"   )->
+    setDesc("Vector arrow is filled");
+  addProperty("vectors", arrowObj_, "lineEnds" , "lineEnds" )->
+    setDesc("Draw lines for vector end arrows");
+  addProperty("vectors", arrowObj_, "lineWidth", "lineWidth")->
+    setDesc("Vector arrow connecting line width");
 
-  addProperty("vectors/stroke", arrowObj_, "border"     , "visible");
-  addProperty("vectors/stroke", arrowObj_, "borderColor", "color"  );
-  addProperty("vectors/stroke", arrowObj_, "borderAlpha", "alpha"  );
-  addProperty("vectors/stroke", arrowObj_, "borderWidth", "width"  );
-  addProperty("vectors/fill"  , arrowObj_, "filled"     , "visible");
-  addProperty("vectors/fill"  , arrowObj_, "fillColor"  , "color"  );
-  addProperty("vectors/fill"  , arrowObj_, "fillAlpha"  , "alpha"  );
+  addProperty("vectors/fill", arrowObj_, "filled"   , "visible")->setDesc("Fill visible");
+  addProperty("vectors/fill", arrowObj_, "fillColor", "color"  )->setDesc("Fill color");
+  addProperty("vectors/fill", arrowObj_, "fillAlpha", "alpha"  )->setDesc("Fill alpha");
+
+  addProperty("vectors/stroke", arrowObj_, "border"     , "visible")->setDesc("Show stroke");
+  addProperty("vectors/stroke", arrowObj_, "borderColor", "color"  )->setDesc("Stroke color");
+  addProperty("vectors/stroke", arrowObj_, "borderAlpha", "alpha"  )->setDesc("Stroke alpha");
+  addProperty("vectors/stroke", arrowObj_, "borderWidth", "width"  )->setDesc("Stroke width");
 
   // data label
-  addProperty("dataLabel", this, "dataLabelTextAngle"  , "angle"  );
-  addProperty("dataLabel", this, "dataLabelTextVisible", "visible");
+  addProperty("dataLabel", this, "dataLabelTextVisible", "visible")->
+    setDesc("Data label visible");
+  addProperty("dataLabel", this, "dataLabelTextAngle"  , "angle"  )->
+    setDesc("Data label text angle");
 
   addAllTextProperties("dataLabel" , "dataLabelText");
 

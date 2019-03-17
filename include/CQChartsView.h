@@ -331,6 +331,8 @@ class CQChartsView : public QFrame,
 
   void getPropertyNames(QStringList &names) const;
 
+  void hideProperty(const QString &path, QObject *object);
+
   //---
 
   // view key

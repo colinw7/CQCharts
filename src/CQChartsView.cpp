@@ -101,63 +101,85 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  addProperty("", this, "title");
-  addProperty("", this, "mode" );
+  addProperty("", this, "title")->setDesc("View title");
+  addProperty("", this, "mode" )->setDesc("View mouse mode");
 
-  addProperty("", this, "antiAlias");
+  addProperty("", this, "antiAlias")->setDesc("Draw aliased shapes");
 
-  addProperty("", this, "id"            )->setHidden(true);
-  addProperty("", this, "currentPlotInd")->setHidden(true);
+  addProperty("", this, "id"            )->setHidden(true).setDesc("View id");
+  addProperty("", this, "currentPlotInd")->setHidden(true).setDesc("Current plot ind");
 
-  addProperty("", this, "viewSizeHint")->setHidden(true);
-  addProperty("", this, "zoomData"    )->setHidden(true);
-  addProperty("", this, "bufferLayers")->setHidden(true);
+  addProperty("", this, "viewSizeHint")->setHidden(true).setDesc("View size hint");
+  addProperty("", this, "zoomData"    )->setHidden(true).setDesc("Zoom data");
+  addProperty("", this, "bufferLayers")->setHidden(true).setDesc("Buffer Layer");
 
-  addProperty("", this, "showTable"   )->setHidden(true);
-  addProperty("", this, "showSettings")->setHidden(true);
+  addProperty("", this, "showTable"   )->setHidden(true).setDesc("Show table of value");
+  addProperty("", this, "showSettings")->setHidden(true).setDesc("Show settings panel");
 
   addProperty("theme", this, "theme", "name")->
-    setValues(QStringList() << "default" << "palette1" << "palette2");
-  addProperty("theme", this, "dark" , "dark");
+    setValues(QStringList() << "default" << "palette1" << "palette2").setDesc("View theme");
+  addProperty("theme", this, "dark" , "dark")->setDesc("View is dark");
 
-  addProperty("font", this, "scaleFont" , "scaled");
-  addProperty("font", this, "fontFactor", "factor");
+  addProperty("font", this, "scaleFont" , "scaled")->setDesc("Scale font to view size");
+  addProperty("font", this, "fontFactor", "factor")->setDesc("Global font scale");
 
-  addProperty("sizing", this, "autoSize" , "auto"     );
-  addProperty("sizing", this, "fixedSize", "fixedSize");
+  addProperty("sizing", this, "autoSize" , "auto"     )->setDesc("Auto scale to view size");
+  addProperty("sizing", this, "fixedSize", "fixedSize")->setDesc("Fixed view size");
 
-  addProperty("background", this, "backgroundFillData"   , "fill"   );
-  addProperty("background", this, "backgroundFillColor"  , "color"  );
-  addProperty("background", this, "backgroundFillPattern", "pattern");
+  addProperty("background", this, "backgroundFillData"   , "fill"   )->setDesc("Fill visible");
+  addProperty("background", this, "backgroundFillColor"  , "color"  )->setDesc("Fill color");
+  addProperty("background", this, "backgroundFillAlpha"  , "alpha"  )->setDesc("Fill alpha");
+  addProperty("background", this, "backgroundFillPattern", "pattern")->setDesc("Fill pattern");
 
-  addProperty("select"                 , this, "selectMode"         , "mode");
-  addProperty("select"                 , this, "selectInside"       , "inside");
-  addProperty("select/highlight"       , this, "selectedMode"       , "mode");
-  addProperty("select/highlight"       , this, "selectedShapeData"  , "style");
-  addProperty("select/highlight/stroke", this, "selectedBorder"     , "enabled");
-  addProperty("select/highlight/stroke", this, "selectedBorderColor", "color");
-  addProperty("select/highlight/stroke", this, "selectedBorderWidth", "width");
-  addProperty("select/highlight/stroke", this, "selectedBorderDash" , "dash");
-  addProperty("select/highlight/fill"  , this, "selectedFilled"     , "enabled");
-  addProperty("select/highlight/fill"  , this, "selectedFillColor"  , "color");
-  addProperty("select/highlight/fill"  , this, "selectedFillAlpha"  , "alpha");
+  addProperty("select"                 , this, "selectMode"         , "mode")->
+                setDesc("Selection Mode");
+  addProperty("select"                 , this, "selectInside"       , "inside")->
+                setDesc("Select when fully inside select rectangle");
+  addProperty("select/highlight"       , this, "selectedMode"       , "mode")->
+                setDesc("Highlight draw mode");
+  addProperty("select/highlight"       , this, "selectedShapeData"  , "style")->
+                setDesc("Highlight shape data");
+  addProperty("select/highlight/fill"  , this, "selectedFilled"     , "enabled")->
+                setDesc("Highlight is filled");
+  addProperty("select/highlight/fill"  , this, "selectedFillColor"  , "color")->
+                setDesc("Highlight fill color");
+  addProperty("select/highlight/fill"  , this, "selectedFillAlpha"  , "alpha")->
+                setDesc("Highlight fill alpha");
+  addProperty("select/highlight/stroke", this, "selectedBorder"     , "enabled")->
+                setDesc("Highlight stroked");
+  addProperty("select/highlight/stroke", this, "selectedBorderColor", "color")->
+                setDesc("Highlight stroke color");
+  addProperty("select/highlight/stroke", this, "selectedBorderWidth", "width")->
+                setDesc("Highlight stroke width");
+  addProperty("select/highlight/stroke", this, "selectedBorderDash" , "dash")->
+                setDesc("Highlight stroke dash");
 
-  addProperty("inside/highlight"       , this, "insideMode"       , "mode");
-  addProperty("inside/highlight"       , this, "insideShapeData"  , "style");
-  addProperty("inside/highlight/stroke", this, "insideBorder"     , "enabled");
-  addProperty("inside/highlight/stroke", this, "insideBorderColor", "color");
-  addProperty("inside/highlight/stroke", this, "insideBorderWidth", "width");
-  addProperty("inside/highlight/stroke", this, "insideBorderDash" , "dash");
-  addProperty("inside/highlight/fill"  , this, "insideFilled"     , "enabled");
-  addProperty("inside/highlight/fill"  , this, "insideFillColor"  , "color");
-  addProperty("inside/highlight/fill"  , this, "insideFillAlpha"  , "alpha");
+  addProperty("inside/highlight"       , this, "insideMode"       , "mode")->
+                setDesc("Inside draw mode");
+  addProperty("inside/highlight"       , this, "insideShapeData"  , "style")->
+                setDesc("Inside shape data");
+  addProperty("inside/highlight/fill"  , this, "insideFilled"     , "enabled")->
+                setDesc("Highlight is filled");
+  addProperty("inside/highlight/fill"  , this, "insideFillColor"  , "color")->
+                setDesc("Inside fill color");
+  addProperty("inside/highlight/fill"  , this, "insideFillAlpha"  , "alpha")->
+                setDesc("Inside fill alpha");
+  addProperty("inside/highlight/stroke", this, "insideBorder"     , "enabled")->
+                setDesc("Inside stroked");
+  addProperty("inside/highlight/stroke", this, "insideBorderColor", "color")->
+                setDesc("Inside stroke color");
+  addProperty("inside/highlight/stroke", this, "insideBorderWidth", "width")->
+                setDesc("Inside stroke width");
+  addProperty("inside/highlight/stroke", this, "insideBorderDash" , "dash")->
+                setDesc("Inside stroke dash");
 
-  addProperty("status", this, "posTextType", "posTextType");
+  addProperty("status", this, "posTextType", "posTextType")->setDesc("Position text type");
 
-  addProperty("scroll", this, "scrolled"      , "enabled" );
-  addProperty("scroll", this, "scrollDelta"   , "delta"   );
-  addProperty("scroll", this, "scrollNumPages", "numPages");
-  addProperty("scroll", this, "scrollPage"    , "page"    );
+  // TODO: remove or make more general
+  addProperty("scroll", this, "scrolled"      , "enabled" )->setDesc("Scrolling enabled");
+  addProperty("scroll", this, "scrollDelta"   , "delta"   )->setDesc("Scroll delta");
+  addProperty("scroll", this, "scrollNumPages", "numPages")->setDesc("Scroll number of pages");
+  addProperty("scroll", this, "scrollPage"    , "page"    )->setDesc("Scroll current page");
 
   if (key())
     key()->addProperties(propertyModel(), "key");
@@ -575,6 +597,13 @@ CQChartsView::
 getPropertyNames(QStringList &names) const
 {
   propertyModel()->objectNames(this, names);
+}
+
+void
+CQChartsView::
+hideProperty(const QString &path, QObject *object)
+{
+  propertyModel()->hideProperty(path, object);
 }
 
 //---
@@ -2676,7 +2705,7 @@ showMenu(const QPoint &p)
 
   //------
 
-  if (plotType && plotType->hasAxes()) {
+  if (currentPlot && currentPlot->hasXAxis()) {
     QMenu *xAxisMenu = new QMenu("X Axis", popupMenu_);
 
     //---
@@ -2740,9 +2769,11 @@ showMenu(const QPoint &p)
     //---
 
     popupMenu_->addMenu(xAxisMenu);
+  }
 
-    //------
+  //------
 
+  if (currentPlot && currentPlot->hasYAxis()) {
     QMenu *yAxisMenu = new QMenu("Y Axis", popupMenu_);
 
     //---

@@ -16,6 +16,7 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 #include <CMathCorrelation.h>
 #include <CMathRound.h>
@@ -659,57 +660,73 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "xColumn", "x");
-  addProperty("columns", this, "yColumn", "y");
+  addProperty("columns", this, "xColumn", "x")->setDesc("X column");
+  addProperty("columns", this, "yColumn", "y")->setDesc("Y column");
 
-  addProperty("columns", this, "nameColumn"      , "name"      );
-  addProperty("columns", this, "symbolTypeColumn", "symbolType");
-  addProperty("columns", this, "symbolSizeColumn", "symbolSize");
-  addProperty("columns", this, "fontSizeColumn"  , "fontSize"  );
+  addProperty("columns", this, "nameColumn"      , "name"      )->setDesc("Name column");
+  addProperty("columns", this, "symbolTypeColumn", "symbolType")->setDesc("Symbol type column");
+  addProperty("columns", this, "symbolSizeColumn", "symbolSize")->setDesc("Symbol size column");
+  addProperty("columns", this, "fontSizeColumn"  , "fontSize"  )->setDesc("Font size column");
 
   // best fit line and deviation fill
-  addProperty("bestFit", this, "bestFit"         , "enabled"  );
-  addProperty("bestFit", this, "bestFitDeviation", "deviation");
-  addProperty("bestFit", this, "bestFitOrder"    , "order"    );
+  addProperty("bestFit", this, "bestFit"         , "enabled"  )->setDesc("Show best fit");
+  addProperty("bestFit", this, "bestFitDeviation", "deviation")->
+    setDesc("Best fir standard deviation");
+  addProperty("bestFit", this, "bestFitOrder"    , "order"    )->setDesc("Best file curve order");
 
   addLineProperties("bestFit/stroke", "bestFitBorder");
   addFillProperties("bestFit/fill"  , "bestFitFill"  );
 
   // convex hull shape
-  addProperty("hull", this, "hull", "enabled");
+  addProperty("hull", this, "hull", "enabled")->setDesc("Show convex hull");
 
   addLineProperties("hull/stroke", "hullBorder");
   addFillProperties("hull/fill"  , "hullFill"  );
 
   // rug axis
-  addProperty("rug/x"     , this, "xRug"         , "enabled");
-  addProperty("rug/x"     , this, "xRugSide"     , "side"   );
-  addProperty("rug/y"     , this, "yRug"         , "enabled");
-  addProperty("rug/y"     , this, "yRugSide"     , "side"   );
-  addProperty("rug/symbol", this, "rugSymbolType", "type"   );
-  addProperty("rug/symbol", this, "rugSymbolSize", "size"   );
+  addProperty("rug/x"     , this, "xRug"         , "enabled")->
+    setDesc("Show x axis density symbols");
+  addProperty("rug/x"     , this, "xRugSide"     , "side"   )->
+    setDesc("X axis density symbols side");
+  addProperty("rug/y"     , this, "yRug"         , "enabled")->
+    setDesc("Show y axis symbols density");
+  addProperty("rug/y"     , this, "yRugSide"     , "side"   )->
+    setDesc("Y axis density symbols side");
+  addProperty("rug/symbol", this, "rugSymbolType", "type"   )->
+    setDesc("Axis density symbol type");
+  addProperty("rug/symbol", this, "rugSymbolSize", "size"   )->
+    setDesc("Axis density symbol size");
 
   // density axis
-  addProperty("density"     , this, "densityWidth", "width"  );
-  addProperty("density/x"   , this, "xDensity"    , "enabled");
-  addProperty("density/x"   , this, "xDensitySide", "side"   );
-  addProperty("density/y"   , this, "yDensity"    , "enabled");
-  addProperty("density/y"   , this, "yDensitySide", "side"   );
-  addProperty("density/fill", this, "densityAlpha", "alpha"  );
+  addProperty("density"     , this, "densityWidth", "width"  )->
+    setDesc("Axis density curve width");
+  addProperty("density/x"   , this, "xDensity"    , "enabled")->
+    setDesc("Show x axis density curve");
+  addProperty("density/x"   , this, "xDensitySide", "side"   )->
+    setDesc("X Axis density curve side");
+  addProperty("density/y"   , this, "yDensity"    , "enabled")->
+    setDesc("Show y axis density curve");
+  addProperty("density/y"   , this, "yDensitySide", "side"   )->
+    setDesc("Y Axis density curve side");
+  addProperty("density/fill", this, "densityAlpha", "alpha"  )->
+    setDesc("Axis density curve alpha");
 
   // density map
-  addProperty("densityMap" , this, "densityMap"        , "enabled" );
-  addProperty("densityMap" , this, "densityMapGridSize", "gridSize");
-  addProperty("densityMap" , this, "densityMapDelta"   , "delta"   );
+  addProperty("densityMap" , this, "densityMap"        , "enabled" )->
+    setDesc("Show density map");
+  addProperty("densityMap" , this, "densityMapGridSize", "gridSize")->
+    setDesc("Density map grid size");
+  addProperty("densityMap" , this, "densityMapDelta"   , "delta"   )->
+    setDesc("Density map delta");
 
   // whisker axis
-  addProperty("whisker"     , this, "whiskerWidth" , "width"  );
-  addProperty("whisker"     , this, "whiskerMargin", "margin" );
-  addProperty("whisker/x"   , this, "xWhisker"     , "enabled");
-  addProperty("whisker/x"   , this, "xWhiskerSide" , "side"   );
-  addProperty("whisker/y"   , this, "yWhisker"     , "enabled");
-  addProperty("whisker/y"   , this, "yWhiskerSide" , "side"   );
-  addProperty("whisker/fill", this, "whiskerAlpha" , "alpha"  );
+  addProperty("whisker"     , this, "whiskerWidth" , "width"  )->setDesc("Axis whisker width");
+  addProperty("whisker"     , this, "whiskerMargin", "margin" )->setDesc("Axis whisker margin");
+  addProperty("whisker/x"   , this, "xWhisker"     , "enabled")->setDesc("Show x axis whisker");
+  addProperty("whisker/x"   , this, "xWhiskerSide" , "side"   )->setDesc("X axis whisker side");
+  addProperty("whisker/y"   , this, "yWhisker"     , "enabled")->setDesc("Show y axis whisker");
+  addProperty("whisker/y"   , this, "yWhiskerSide" , "side"   )->setDesc("Y axis whisker side");
+  addProperty("whisker/fill", this, "whiskerAlpha" , "alpha"  )->setDesc("Axis whisker alpha");
 
   CQChartsGroupPlot::addProperties();
 
@@ -719,33 +736,47 @@ addProperties()
   dataLabel_->addPathProperties("dataLabel");
 
   // grid
-  addProperty("grid", this, "gridded" , "enabled");
-  addProperty("grid", this, "gridNumX", "nx"     );
-  addProperty("grid", this, "gridNumY", "ny"     );
+  addProperty("grid", this, "gridded" , "enabled")->setDesc("Grid points");
+  addProperty("grid", this, "gridNumX", "nx"     )->setDesc("Number of x grid cells");
+  addProperty("grid", this, "gridNumY", "ny"     )->setDesc("Number of y grid cells");
 
   addFillProperties("grid/fill"  , "gridCellFill"  );
-  addProperty      ("grid/stroke", this, "gridCellBorder", "visible");
+  addProperty      ("grid/stroke", this, "gridCellBorder", "visible")->setDesc("Grid cell border");
   addLineProperties("grid/stroke", "gridCellBorder");
 
   // symbol key
-  addProperty("symbol/key", this, "symbolMapKey"      , "visible");
-  addProperty("symbol/key", this, "symbolMapKeyAlpha" , "alpha"  );
-  addProperty("symbol/key", this, "symbolMapKeyMargin", "margin" );
+  addProperty("symbol/key", this, "symbolMapKey"      , "visible")->
+    setDesc("Show symbol size key");
+  addProperty("symbol/key", this, "symbolMapKeyAlpha" , "alpha"  )->
+    setDesc("Symbol size key alpha");
+  addProperty("symbol/key", this, "symbolMapKeyMargin", "margin" )->
+    setDesc("Symbol size key margin");
 
   // mapping for columns (symbol type, size, font size, color)
-  addProperty("symbol/map/type", this, "symbolTypeMapped", "enabled");
-  addProperty("symbol/map/type", this, "symbolTypeMapMin", "min"    );
-  addProperty("symbol/map/type", this, "symbolTypeMapMax", "max"    );
+  addProperty("symbol/map/type", this, "symbolTypeMapped", "enabled")->
+    setDesc("Symbol type values mapped");
+  addProperty("symbol/map/type", this, "symbolTypeMapMin", "min"    )->
+    setDesc("Symbol type map min value");
+  addProperty("symbol/map/type", this, "symbolTypeMapMax", "max"    )->
+    setDesc("Symbol type map max value");
 
-  addProperty("symbol/map/size", this, "symbolSizeMapped"  , "enabled");
-  addProperty("symbol/map/size", this, "symbolSizeMapMin"  , "min"    );
-  addProperty("symbol/map/size", this, "symbolSizeMapMax"  , "max"    );
-  addProperty("symbol/map/size", this, "symbolSizeMapUnits", "units"  );
+  addProperty("symbol/map/size", this, "symbolSizeMapped"  , "enabled")->
+    setDesc("Symbol size values mapped");
+  addProperty("symbol/map/size", this, "symbolSizeMapMin"  , "min"    )->
+    setDesc("Symbol size map min value");
+  addProperty("symbol/map/size", this, "symbolSizeMapMax"  , "max"    )->
+    setDesc("Symbol size map max value");
+  addProperty("symbol/map/size", this, "symbolSizeMapUnits", "units"  )->
+    setDesc("Symbol size map units");
 
-  addProperty("font/map/size", this, "fontSizeMapped"  , "enabled");
-  addProperty("font/map/size", this, "fontSizeMapMin"  , "min"    );
-  addProperty("font/map/size", this, "fontSizeMapMax"  , "max"    );
-  addProperty("font/map/size", this, "fontSizeMapUnits", "units"  );
+  addProperty("font/map/size", this, "fontSizeMapped"  , "enabled")->
+    setDesc("Font size value mapped");
+  addProperty("font/map/size", this, "fontSizeMapMin"  , "min"    )->
+    setDesc("Font size map min value");
+  addProperty("font/map/size", this, "fontSizeMapMax"  , "max"    )->
+    setDesc("Font size map max value");
+  addProperty("font/map/size", this, "fontSizeMapUnits", "units"  )->
+    setDesc("Font size map units");
 
   // color map
   addColorMapProperties();

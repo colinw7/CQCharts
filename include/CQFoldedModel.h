@@ -57,6 +57,9 @@ class CQFoldData {
 
 //---
 
+/*!
+ * fold model into hierarchical model using fold (bucketed) column
+ */
 class CQFoldedModel : public QAbstractProxyModel {
   Q_OBJECT
 
@@ -230,10 +233,15 @@ class CQFoldedModel : public QAbstractProxyModel {
   };
 
  private slots:
-  void fold();
+  void foldSlot();
 
  private:
   void doResetModel();
+
+  void fold();
+
+  void calcRMinMax(QAbstractItemModel *model, const QModelIndex &parent,
+                   bool &rset, double &rmin, double &rmax) const;
 
   // clear model
   void clear();

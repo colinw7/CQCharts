@@ -1,4 +1,5 @@
 #include <CQChartsBarPlot.h>
+#include <CQPropertyViewItem.h>
 
 CQChartsBarPlot::
 CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model) :
@@ -44,26 +45,26 @@ CQChartsBarPlot::
 addProperties()
 {
   // columns
-  addProperty("columns", this, "valueColumns", "values");
+  addProperty("columns", this, "valueColumns", "values")->setDesc("Value columns");
 
   // options
-  addProperty("options", this, "horizontal");
+  addProperty("options", this, "horizontal")->setDesc("Draw bars horizontally");
 
   // margins
-  addProperty("margins", this, "margin"     , "bar"  );
-  addProperty("margins", this, "groupMargin", "group");
+  addProperty("margins", this, "margin"     , "bar"  )->setDesc("Bar margin");
+  addProperty("margins", this, "groupMargin", "group")->setDesc("Grouped bar margin");
 
   // fill
-  addProperty("fill", this, "barFilled", "visible");
+  addProperty("fill", this, "barFilled", "visible")->setDesc("Bar fill visible");
 
   addFillProperties("fill", "barFill");
 
   // stroke
-  addProperty("stroke", this, "barBorder", "visible");
+  addProperty("stroke", this, "barBorder", "visible")->setDesc("Bar stroke visible");
 
   addLineProperties("stroke", "barBorder");
 
-  addProperty("stroke", this, "barCornerSize", "cornerSize");
+  addProperty("stroke", this, "barCornerSize", "cornerSize")->setDesc("Bar corner size");
 
   // color map
   addColorMapProperties();
