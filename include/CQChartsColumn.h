@@ -7,6 +7,18 @@
 #include <vector>
 #include <iostream>
 
+/*!
+ * \brief Class to store how column data is referenced from the model
+ *
+ * A column can be:
+ *  . column number for model data values in that column
+ *  . column number for single header data value
+ *  . Group id
+ *  . Expression
+ *  . Index into data from a column's values
+ *
+ * The column can also specify the role of the data extracted from the model
+ */
 class CQChartsColumn {
  public:
   enum class Type {

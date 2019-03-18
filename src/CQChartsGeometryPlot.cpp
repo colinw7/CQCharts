@@ -174,10 +174,10 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "nameColumn"    , "name"    );
-  addProperty("columns", this, "geometryColumn", "geometry");
-  addProperty("columns", this, "valueColumn"   , "value"   );
-  addProperty("columns", this, "styleColumn"   , "style"   );
+  addProperty("columns", this, "nameColumn"    , "name"    )->setDesc("Name column");
+  addProperty("columns", this, "geometryColumn", "geometry")->setDesc("Geometry column");
+  addProperty("columns", this, "valueColumn"   , "value"   )->setDesc("Value column");
+  addProperty("columns", this, "styleColumn"   , "style"   )->setDesc("Style column");
 
   // fill
   addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
@@ -185,7 +185,7 @@ addProperties()
   addFillProperties("fill", "fill");
 
   // stroke
-  addProperty("stroke", this, "border", "visible");
+  addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
 
   addLineProperties("stroke", "border");
 
@@ -193,8 +193,8 @@ addProperties()
   dataLabel_->addPathProperties("dataLabel");
 
   // value
-  addProperty("value", this, "minValue", "min");
-  addProperty("value", this, "maxValue", "max");
+  addProperty("value", this, "minValue", "min")->setDesc("Min value for color map");
+  addProperty("value", this, "maxValue", "max")->setDesc("Max value for color map");
 }
 
 CQChartsGeom::Range

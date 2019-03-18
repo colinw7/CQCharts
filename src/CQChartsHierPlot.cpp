@@ -1,5 +1,7 @@
 #include <CQChartsHierPlot.h>
 
+#include <CQPropertyViewItem.h>
+
 CQChartsHierPlot::
 CQChartsHierPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
  CQChartsPlot(view, type, model)
@@ -33,10 +35,10 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nameColumns", "names");
-  addProperty("columns", this, "valueColumn", "value");
+  addProperty("columns", this, "nameColumns", "names")->setDesc("Name columns");
+  addProperty("columns", this, "valueColumn", "value")->setDesc("Value column");
 
-  addProperty("options", this, "separator");
+  addProperty("options", this, "separator")->setDesc("Hierarchical separator");
 
   addColorMapProperties();
 }

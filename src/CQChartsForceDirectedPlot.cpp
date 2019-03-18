@@ -4,6 +4,8 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
+
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -187,18 +189,18 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nodeColumn"       , "node"      );
-  addProperty("columns", this, "connectionsColumn", "connection");
-  addProperty("columns", this, "nameColumn"       , "name"      );
+  addProperty("columns", this, "nodeColumn"       , "node"      )->setDesc("Node column");
+  addProperty("columns", this, "connectionsColumn", "connection")->setDesc("Connections column");
+  addProperty("columns", this, "nameColumn"       , "name"      )->setDesc("Name column");
 
-  addProperty("columns", this, "namePairColumn", "namePair");
-  addProperty("columns", this, "countColumn"   , "count"   );
+  addProperty("columns", this, "namePairColumn", "namePair")->setDesc("Name/pair column");
+  addProperty("columns", this, "countColumn"   , "count"   )->setDesc("Count column");
 
-  addProperty("columns", this, "groupIdColumn", "groupId");
+  addProperty("columns", this, "groupIdColumn", "groupId")->setDesc("Group id column");
 
-  addProperty("options", this, "running");
+  addProperty("options", this, "running")->setDesc("Is running");
 
-  addProperty("node", this, "nodeRadius", "radius");
+  addProperty("node", this, "nodeRadius", "radius")->setDesc("Node radius");
 
   addLineProperties("node/stroke", "nodeBorder");
   addFillProperties("node/fill"  , "nodeFill"  );

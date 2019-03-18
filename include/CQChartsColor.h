@@ -7,6 +7,16 @@
 
 class QObject;
 
+/*!
+ * \brief class to contain charts color.
+ *
+ * A charts color can be:
+ *  . An interpolated palette color.
+ *  . An explicit palette color.
+ *  . An interpolated interface color.
+ *  . An explicit interface color.
+ *  . An explicit rgb color
+ */
 class CQChartsColor {
  public:
   enum class Type {

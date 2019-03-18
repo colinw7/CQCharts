@@ -5,6 +5,7 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -55,14 +56,14 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("labels/x"   , this, "xLabels"        , "visible");
-  addProperty("labels/y"   , this, "yLabels"        , "visible");
-  addProperty("labels/cell", this, "cellLabels"     , "visible");
-  addProperty("labels/cell", this, "scaleCellLabels", "scaled" );
+  addProperty("labels/x"   , this, "xLabels"        , "visible")->setDesc("Show x labels");
+  addProperty("labels/y"   , this, "yLabels"        , "visible")->setDesc("Show y labels");
+  addProperty("labels/cell", this, "cellLabels"     , "visible")->setDesc("Show cell labels");
+  addProperty("labels/cell", this, "scaleCellLabels", "scaled" )->setDesc("Scale cell labels");
 
   addTextProperties("labels", "text");
 
-  addProperty("balloon", this, "balloon", "visible");
+  addProperty("balloon", this, "balloon", "visible")->setDesc("Show cell balloon");
 }
 
 //------

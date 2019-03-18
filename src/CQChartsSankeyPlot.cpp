@@ -7,6 +7,7 @@
 #include <CQChartsNamePair.h>
 #include <CQChartsDrawUtil.h>
 
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -124,32 +125,56 @@ clearNodesAndEdges()
 
 void
 CQChartsSankeyPlot::
+setLinkColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(linkColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+}
+
+void
+CQChartsSankeyPlot::
+setValueColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsSankeyPlot::
+setAlign(const Align &a)
+{
+  CQChartsUtil::testAndSet(align_, a, [&]() { queueUpdateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsSankeyPlot::
 addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "linkColumn" , "link" );
-  addProperty("columns", this, "valueColumn", "value");
+  addProperty("columns", this, "linkColumn" , "link" )->setDesc("Link column");
+  addProperty("columns", this, "valueColumn", "value")->setDesc("Value column");
 
-  addProperty("options", this, "align", "align");
-
-  addProperty("node/stroke", this, "nodeBorder", "visible");
+  addProperty("node/stroke", this, "nodeBorder", "visible")->setDesc("Node stroked");
 
   addLineProperties("node/stroke", "nodeBorder");
 
-  addProperty("node/fill", this, "nodeFilled", "visible");
+  addProperty("node/fill", this, "nodeFilled", "visible")->setDesc("Node filled");
 
   addFillProperties("node/fill", "nodeFill");
 
-  addProperty("edge/stroke", this, "edgeBorder", "visible");
+  addProperty("edge/stroke", this, "edgeBorder", "visible")->setDesc("Edge steoked");
 
   addLineProperties("edge/stroke", "edgeBorder");
 
-  addProperty("edge/fill", this, "edgeFilled", "visible");
+  addProperty("edge/fill", this, "edgeFilled", "visible")->setDesc("Edit filled");
 
   addFillProperties("edge/fill", "edgeFill");
 
-  addProperty("text", this, "textVisible" , "visible" );
+  addProperty("text", this, "textVisible", "visible")->setDesc("Text label visible");
+  addProperty("text", this, "align"      , "align"  )->setDesc("Text label align");
 
   addTextProperties("text", "text");
 }

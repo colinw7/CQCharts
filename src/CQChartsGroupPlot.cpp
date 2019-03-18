@@ -2,6 +2,8 @@
 #include <CQChartsColumnBucket.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
+
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 CQChartsGroupPlotType::
@@ -83,22 +85,23 @@ addProperties()
   CQChartsGroupPlotType *type = dynamic_cast<CQChartsGroupPlotType *>(this->type());
   assert(type);
 
-  addProperty("dataGrouping", this, "groupColumn", "group");
+  addProperty("dataGrouping", this, "groupColumn", "group")->setDesc("Group column");
 
   if (type->allowRowGrouping())
-    addProperty("dataGrouping", this, "rowGrouping", "rowGroups");
+    addProperty("dataGrouping", this, "rowGrouping", "rowGroups")->
+      setDesc("Group by rows instead of column headers");
 
   if (type->allowUsePath())
-    addProperty("dataGrouping", this, "usePath", "path");
+    addProperty("dataGrouping", this, "usePath", "path")->setDesc("Use path for group");
 
   if (type->allowUseRow())
-    addProperty("dataGrouping", this, "useRow", "row");
+    addProperty("dataGrouping", this, "useRow", "row")->setDesc("Use row number for grouping");
 
-  addProperty("dataGrouping/bucket", this, "exactValue", "exact"  );
-  addProperty("dataGrouping/bucket", this, "autoRange" , "auto"   );
-  addProperty("dataGrouping/bucket", this, "startValue", "start"  );
-  addProperty("dataGrouping/bucket", this, "deltaValue", "delta"  );
-  addProperty("dataGrouping/bucket", this, "numAuto"   , "numAuto");
+  addProperty("dataGrouping/bucket", this, "exactValue", "exact"  )->setDesc("Use exact value");
+  addProperty("dataGrouping/bucket", this, "autoRange" , "auto"   )->setDesc("Bucket auto range");
+  addProperty("dataGrouping/bucket", this, "startValue", "start"  )->setDesc("Bucket start value");
+  addProperty("dataGrouping/bucket", this, "deltaValue", "delta"  )->setDesc("Bucket delta value");
+  addProperty("dataGrouping/bucket", this, "numAuto"   , "numAuto")->setDesc("Num Auto");
 }
 
 void

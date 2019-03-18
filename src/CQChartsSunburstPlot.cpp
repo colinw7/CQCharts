@@ -135,15 +135,15 @@ addProperties()
   CQChartsHierPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "nameColumns", "names");
-  addProperty("columns", this, "valueColumn", "value");
+  addProperty("columns", this, "nameColumns", "names")->setDesc("Name columns");
+  addProperty("columns", this, "valueColumn", "value")->setDesc("Value columns");
 
   // options
-  addProperty("options", this, "separator");
-  addProperty("options", this, "innerRadius");
-  addProperty("options", this, "outerRadius");
-  addProperty("options", this, "startAngle" );
-  addProperty("options", this, "multiRoot"  );
+  addProperty("options", this, "separator"  )->setDesc("Name separator");
+  addProperty("options", this, "innerRadius")->setDesc("Inner radius");
+  addProperty("options", this, "outerRadius")->setDesc("Outer radius");
+  addProperty("options", this, "startAngle" )->setDesc("Angle for first segment");
+  addProperty("options", this, "multiRoot"  )->setDesc("Support multiple roots");
 
   // fill
   addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
@@ -151,7 +151,7 @@ addProperties()
   addFillProperties("fill", "fill");
 
   // stroke
-  addProperty("stroke", this, "border", "visible");
+  addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
 
   addLineProperties("stroke", "border");
 

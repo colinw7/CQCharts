@@ -102,7 +102,7 @@ addProperties()
   CQChartsHierPlot::addProperties();
 
   // options
-  addProperty("options", this, "valueLabel");
+  addProperty("options", this, "valueLabel")->setDesc("Show value label");
 
   // fill
   addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
@@ -110,7 +110,7 @@ addProperties()
   addFillProperties("fill", "fill");
 
   // stroke
-  addProperty("stroke", this, "border", "visible");
+  addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
 
   addLineProperties("stroke", "border");
 

@@ -6,6 +6,8 @@
 #include <CQChartsUtil.h>
 #include <CQChartsDataLabel.h>
 #include <CQCharts.h>
+
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -198,14 +200,14 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "xColumn"     , "x"     );
-  addProperty("columns", this, "yColumn"     , "y"     );
-  addProperty("columns", this, "nameColumn"  , "name"  );
-  addProperty("columns", this, "groupColumns", "groups");
+  addProperty("columns", this, "xColumn"     , "x"     )->setDesc("X column");
+  addProperty("columns", this, "yColumn"     , "y"     )->setDesc("Y column");
+  addProperty("columns", this, "nameColumn"  , "name"  )->setDesc("Name column");
+  addProperty("columns", this, "groupColumns", "groups")->setDesc("Group Columns");
 
   addSymbolProperties("symbol");
 
-  addProperty("font", this, "fontSize", "font");
+  addProperty("font", this, "fontSize", "font")->setDesc("Font size");
 
   // point data labels
   dataLabel_->addPathProperties("dataLabel");

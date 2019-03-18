@@ -3,6 +3,8 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQCharts.h>
+
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QPainter>
@@ -78,12 +80,12 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nameColumn" , "name" );
-  addProperty("columns", this, "valueColumn", "value");
+  addProperty("columns", this, "nameColumn" , "name" )->setDesc("Name column");
+  addProperty("columns", this, "valueColumn", "value")->setDesc("Value column");
 
-  addProperty("options", this, "textMargin", "textMargin");
+  addProperty("options", this, "textMargin", "textMargin")->setDesc("Text margin");
 
-  addProperty("node", this, "circleSize", "circleSize");
+  addProperty("node", this, "circleSize", "circleSize")->setDesc("Circle size");
 
   addLineProperties("node/stroke", "nodeBorder");
   addFillProperties("node/fill"  , "nodeFill"  );

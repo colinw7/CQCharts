@@ -126,15 +126,15 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "nameColumn"  , "name"  );
-  addProperty("columns", this, "valueColumns", "values");
+  addProperty("columns", this, "nameColumn"  , "name"  )->setDesc("Name column");
+  addProperty("columns", this, "valueColumns", "values")->setDesc("Value columns");
 
   // options
-  addProperty("options", this, "angleStart" );
-  addProperty("options", this, "angleExtent");
+  addProperty("options", this, "angleStart" )->setDesc("Angle start");
+  addProperty("options", this, "angleExtent")->setDesc("Angle extent");
 
   // grid
-  addProperty("grid", this, "gridLines", "visible");
+  addProperty("grid", this, "gridLines", "visible")->setDesc("Grid lines visible");
 
   addLineProperties("grid", "gridLines");
 
@@ -144,7 +144,7 @@ addProperties()
   addFillProperties("fill", "fill");
 
   // stroke
-  addProperty("stroke", this, "border", "visible");
+  addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
 
   addLineProperties("stroke", "border");
 

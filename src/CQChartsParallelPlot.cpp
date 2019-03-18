@@ -7,6 +7,7 @@
 #include <CQChartsDisplayRange.h>
 #include <CQChartsDrawUtil.h>
 
+#include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
 #include <QApplication>
@@ -130,19 +131,19 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "xColumn" , "x");
-  addProperty("columns", this, "yColumns", "y");
+  addProperty("columns", this, "xColumn" , "x")->setDesc("X column");
+  addProperty("columns", this, "yColumns", "y")->setDesc("Y columns");
 
-  addProperty("options", this, "horizontal");
+  addProperty("options", this, "horizontal")->setDesc("Draw horizontally");
 
   // points
-  addProperty("points", this, "points", "visible");
+  addProperty("points", this, "points", "visible")->setDesc("Show points");
 
   addSymbolProperties("points/symbol");
 
   // lines
-  addProperty("lines", this, "lines"          , "visible"   );
-  addProperty("lines", this, "linesSelectable", "selectable");
+  addProperty("lines", this, "lines"          , "visible"   )->setDesc("Show lines");
+  addProperty("lines", this, "linesSelectable", "selectable")->setDesc("Lines selectable");
 
   addLineProperties("lines", "lines");
 }

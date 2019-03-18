@@ -223,20 +223,20 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "valueColumns"  , "values"  );
-  addProperty("columns", this, "labelColumn"   , "label"   );
-  addProperty("columns", this, "radiusColumn"  , "radius"  );
-  addProperty("columns", this, "keyLabelColumn", "keyLabel");
+  addProperty("columns", this, "valueColumns"  , "values"  )->setDesc("Value columns");
+  addProperty("columns", this, "labelColumn"   , "label"   )->setDesc("Label column");
+  addProperty("columns", this, "radiusColumn"  , "radius"  )->setDesc("Radius column");
+  addProperty("columns", this, "keyLabelColumn", "keyLabel")->setDesc("Key label column");
 
   CQChartsGroupPlot::addProperties();
 
   // options
-  addProperty("options", this, "donut"      );
-  addProperty("options", this, "count"      );
-  addProperty("options", this, "innerRadius");
-  addProperty("options", this, "startAngle" );
-  addProperty("options", this, "angleExtent");
-  addProperty("options", this, "gapAngle"   );
+  addProperty("options", this, "donut"      )->setDesc("Display as donut using inner radius");
+  addProperty("options", this, "count"      )->setDesc("Show count of groups");
+  addProperty("options", this, "innerRadius")->setDesc("Inner radius");
+  addProperty("options", this, "startAngle" )->setDesc("Start angle for first segment");
+  addProperty("options", this, "angleExtent")->setDesc("Angle extent for pie segments");
+  addProperty("options", this, "gapAngle"   )->setDesc("Gap angle");
 
   // fill
   addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
@@ -244,26 +244,26 @@ addProperties()
   addFillProperties("fill", "fill");
 
   // stroke
-  addProperty("stroke", this, "border", "visible");
+  addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
 
   addLineProperties("stroke", "border");
 
   // grid
-  addProperty("grid", this, "gridLines", "visible");
+  addProperty("grid", this, "gridLines", "visible")->setDesc("Show grid lines");
 
   addLineProperties("grid", "gridLines");
 
   // explode
-  addProperty("explode", this, "explodeSelected", "selected");
-  addProperty("explode", this, "explodeRadius"  , "radius"  );
+  addProperty("explode", this, "explodeSelected", "selected")->setDesc("Explode selected segments");
+  addProperty("explode", this, "explodeRadius"  , "radius"  )->setDesc("Explode radius");
 
   // label
-  addProperty("label", textBox_, "textVisible", "visible");
+  addProperty("label", textBox_, "textVisible", "visible")->setDesc("Text visible");
 
   textBox_->addTextDataProperties(propertyModel(), "label");
 
-  addProperty("label", this, "labelRadius", "radius" );
-  addProperty("label", this, "rotatedText", "rotated");
+  addProperty("label", this, "labelRadius", "radius" )->setDesc("Label radius");
+  addProperty("label", this, "rotatedText", "rotated")->setDesc("Text rotated to segment angle");
 
   QString labelBoxPath = "label/box";
 

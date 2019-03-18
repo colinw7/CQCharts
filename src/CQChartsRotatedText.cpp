@@ -88,9 +88,12 @@ draw(QPainter *painter, double x, double y, const QString &text,
     // draw contrast border
     painter->setPen(icolor);
 
-    for (int dy = -2; dy <= 2; ++dy)
-      for (int dx = -2; dx <= 2; ++dx)
-        painter->drawText(QPointF(dx, dy), text);
+    for (int dy = -2; dy <= 2; ++dy) {
+      for (int dx = -2; dx <= 2; ++dx) {
+        if (dx != 0 || dy != 0)
+          painter->drawText(QPointF(dx, dy), text);
+      }
+    }
 
     // draw text
     painter->setPen(tc);

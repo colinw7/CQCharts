@@ -241,15 +241,15 @@ class CQChartsSankeyPlot : public CQChartsPlot,
   //---
 
   const CQChartsColumn &linkColumn() const { return linkColumn_; }
-  void setLinkColumn(const CQChartsColumn &c) { linkColumn_ = c; updateRangeAndObjs(); }
+  void setLinkColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c) { valueColumn_ = c; updateRangeAndObjs(); }
+  void setValueColumn(const CQChartsColumn &c);
 
   //---
 
   const Align &align() const { return align_; }
-  void setAlign(const Align &v) { align_ = v; updateMaxDepth(); updateRangeAndObjs(); }
+  void setAlign(const Align &a);
 
   //---
 
