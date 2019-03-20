@@ -1693,6 +1693,18 @@ getProperty(const QString &name, QVariant &value) const
   return propertyModel()->getProperty(this, name, value);
 }
 
+bool
+CQChartsPlot::
+getPropertyDesc(const QString &name, QString &desc) const
+{
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  if (! item) return false;
+
+  desc = item->desc();
+
+  return true;
+}
+
 CQPropertyViewItem *
 CQChartsPlot::
 addProperty(const QString &path, QObject *object, const QString &name, const QString &alias)

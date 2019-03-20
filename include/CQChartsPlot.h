@@ -688,6 +688,8 @@ class CQChartsPlot : public CQChartsObj,
   bool setProperty(const QString &name, const QVariant &value);
   bool getProperty(const QString &name, QVariant &value) const;
 
+  bool getPropertyDesc(const QString &name, QString &desc) const;
+
   void propertyItemSelected(QObject *obj, const QString &path);
 
   void getPropertyNames(QStringList &names) const;

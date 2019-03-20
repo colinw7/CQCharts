@@ -15,6 +15,9 @@ class CQChartsTriePatterns;
 
 //------
 
+/*!
+ * \brief class to store set of real values and returned cached data
+ */
 class CQChartsRValues {
  public:
   using OptReal = boost::optional<double>;
@@ -167,6 +170,9 @@ class CQChartsRValues {
 
 //---
 
+/*!
+ * \brief class to store set of integer values and returned cached data
+ */
 class CQChartsIValues {
  public:
   using OptInt  = boost::optional<int>;
@@ -315,6 +321,9 @@ class CQChartsIValues {
 
 //---
 
+/*!
+ * \brief class to store set of string values and returned cached data
+ */
 class CQChartsSValues {
  public:
   using OptString = boost::optional<QString>;
@@ -431,6 +440,9 @@ class CQChartsSValues {
 
 //---
 
+/*!
+ * \brief class to store set of color values and returned cached data
+ */
 class CQChartsCValues {
  public:
   using Values = std::vector<CQChartsColor>;
@@ -534,8 +546,11 @@ class CQChartsCValues {
 
 //------
 
-// set of real, integer or string values which will be grouped by their unique values.
-// Auto detects value type from input data
+/*!
+ * \brief set of real, integer or string values which will be grouped by their unique values.
+ *
+ * Auto detects value type from input data
+ */
 class CQChartsValueSet : public QObject {
   Q_OBJECT
 

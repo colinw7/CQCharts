@@ -580,22 +580,36 @@ addView(const QString &id)
 {
   CQChartsView *view = createView();
 
-  QString id1 = id;
+  if (id.length())
+    view->setId(id);
 
-  if (id1 == "")
-    id1 = QString("view%1").arg(views_.size() + 1);
-
-  assert(! getView(id1));
-
-  view->setId(id1);
-
-  view->setObjectName(view->id());
-
-  views_[id1] = view;
-
-  emit viewAdded(view);
+  addView(view);
 
   return view;
+}
+
+void
+CQCharts::
+addView(CQChartsView *view)
+{
+  connect(view, SIGNAL(plotAdded(CQChartsPlot *)), this, SIGNAL(plotAdded(CQChartsPlot *)));
+
+  //---
+
+  QString id = view->id();
+
+  if (id == "")
+    id = QString("view%1").arg(views_.size() + 1);
+
+  assert(! getView(id));
+
+  view->setId(id);
+
+  view->setObjectName(id);
+
+  views_[id] = view;
+
+  emit viewAdded(view);
 }
 
 CQChartsView *
@@ -603,8 +617,6 @@ CQCharts::
 createView()
 {
   CQChartsView *view = new CQChartsView(this);
-
-  connect(view, SIGNAL(plotAdded(CQChartsPlot *)), this, SIGNAL(plotAdded(CQChartsPlot *)));
 
   return view;
 }

@@ -1088,6 +1088,8 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "property name");
 
+  argv.addCmdArg("-desc", CQChartsCmdArg::Type::Boolean, "return property description");
+
   if (! argv.parse())
     return false;
 
@@ -1107,12 +1109,22 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
       return false;
     }
 
-    if (name == "?") {
+    if      (name == "?") {
       QStringList names;
 
       view->getPropertyNames(names);
 
       cmdBase_->setCmdRc(names);
+    }
+    else if (argv.hasParseArg("desc")) {
+      QString desc;
+
+      if (! view->getPropertyDesc(name, desc)) {
+        charts_->errorMsg("Failed to get view parameter '" + name + "'");
+        return false;
+      }
+
+      cmdBase_->setCmdRc(desc);
     }
     else {
       QVariant value;
@@ -1168,12 +1180,22 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
     }
     // plot property
     else {
-      if (name == "?") {
+      if      (name == "?") {
         QStringList names;
 
         plot->getPropertyNames(names);
 
         cmdBase_->setCmdRc(names);
+      }
+      else if (argv.hasParseArg("desc")) {
+        QString desc;
+
+        if (! plot->getPropertyDesc(name, desc)) {
+          charts_->errorMsg("Failed to get plot parameter '" + name + "'");
+          return false;
+        }
+
+        cmdBase_->setCmdRc(desc);
       }
       else {
         QVariant value;

@@ -4,6 +4,9 @@
 #include <CQBaseModelTypes.h>
 #include <CQChartsUtil.h>
 
+/*!
+ * \brief Class to store set of values and return unique id for each unique value
+ */
 class CQChartsValueInd {
  public:
   using Type = CQBaseModelType;

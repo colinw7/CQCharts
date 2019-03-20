@@ -168,6 +168,8 @@ class CQCharts : public QObject {
 
   CQChartsView *addView(const QString &id="");
 
+  void addView(CQChartsView *view);
+
   virtual CQChartsView *createView();
 
   CQChartsView *getView(const QString &id) const;
