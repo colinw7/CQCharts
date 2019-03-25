@@ -385,17 +385,15 @@ drawDelaunay(QPainter *painter) const
       auto *v2 = f->vertex(1);
       auto *v3 = f->vertex(2);
 
-      double px1, py1, px2, py2, px3, py3;
-
-      windowToPixel(v1->x(), v1->y(), px1, py1);
-      windowToPixel(v2->x(), v2->y(), px2, py2);
-      windowToPixel(v3->x(), v3->y(), px3, py3);
+      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(v1->x(), v1->y()));
+      CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(v2->x(), v2->y()));
+      CQChartsGeom::Point p3 = windowToPixel(CQChartsGeom::Point(v3->x(), v3->y()));
 
       QPainterPath path;
 
-      path.moveTo(px1, py1);
-      path.lineTo(px2, py2);
-      path.lineTo(px3, py3);
+      path.moveTo(p1.x, p1.y);
+      path.lineTo(p2.x, p2.y);
+      path.lineTo(p3.x, p3.y);
 
       path.closeSubpath();
 
@@ -426,13 +424,11 @@ drawVoronoi(QPainter *painter) const
       CQChartsHull3D::Vertex *v = f->getVoronoi();
       if (! v) continue;
 
-      double px, py;
-
-      windowToPixel(v->x(), v->y(), px, py);
+      CQChartsGeom::Point p = windowToPixel(CQChartsGeom::Point(v->x(), v->y()));
 
       double d = voronoiPointSize();
 
-      QRectF rect(px - d, py - d, 2.0*d, 2.0*d);
+      QRectF rect(p.x - d, p.y - d, 2.0*d, 2.0*d);
 
       painter->drawArc(rect, 0, 16*360);
     }
@@ -455,12 +451,10 @@ drawVoronoi(QPainter *painter) const
       auto *v1 = e->start();
       auto *v2 = e->end  ();
 
-      double px1, py1, px2, py2;
+      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(v1->x(), v1->y()));
+      CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(v2->x(), v2->y()));
 
-      windowToPixel(v1->x(), v1->y(), px1, py1);
-      windowToPixel(v2->x(), v2->y(), px2, py2);
-
-      painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
+      painter->drawLine(QPointF(p1.x, p1.y), QPointF(p2.x, p2.y));
     }
   }
 }
@@ -512,19 +506,15 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
-  double px, py;
-
-  plot_->windowToPixel(x_, y_, px, py);
+  CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(x_, y_));
 
   double sx, sy;
 
   plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
-  CQChartsGeom::BBox pbbox(px - sx, py - sy, px + sx, py + sy);
+  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
-  CQChartsGeom::Point pp;
-
-  plot_->windowToPixel(p, pp);
+  CQChartsGeom::Point pp = plot_->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -575,9 +565,7 @@ draw(QPainter *painter)
   //---
 
   // draw symbol
-  double px, py;
+  CQChartsGeom::Point p = plot_->windowToPixel(CQChartsGeom::Point(x_, y_));
 
-  plot_->windowToPixel(x_, y_, px, py);
-
-  plot_->drawSymbol(painter, QPointF(px, py), symbol, CMathUtil::avg(sx, sy), pen, brush);
+  plot_->drawSymbol(painter, p.qpoint(), symbol, CMathUtil::avg(sx, sy), pen, brush);
 }

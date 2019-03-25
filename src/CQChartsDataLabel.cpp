@@ -251,9 +251,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
 
   //---
 
-  CQChartsGeom::BBox wrect;
-
-  plot_->pixelToWindow(CQChartsUtil::fromQRect(prect), wrect);
+  CQChartsGeom::BBox wrect = plot_->pixelToWindow(CQChartsUtil::fromQRect(prect));
 
   if (plot_->showBoxes()) {
     plot_->drawWindowColorBox(painter, wrect);
@@ -354,9 +352,7 @@ calcRect(const QRectF &qrect, const QString &ystr, const Position &position) con
 
   //---
 
-  CQChartsGeom::BBox wrect;
-
-  plot_->pixelToWindow(CQChartsUtil::fromQRect(prect), wrect);
+  CQChartsGeom::BBox wrect = plot_->pixelToWindow(CQChartsUtil::fromQRect(prect));
 
   return wrect;
 }

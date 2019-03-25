@@ -1797,10 +1797,8 @@ drawBestFit(QPainter *painter) const
 
     //---
 
-    double pxl, pyl, pxr, pyr;
-
-    windowToPixel(fitData.xmin(), 0, pxl, pyl);
-    windowToPixel(fitData.xmax(), 0, pxr, pyr);
+    CQChartsGeom::Point pl = windowToPixel(CQChartsGeom::Point(fitData.xmin(), 0));
+    CQChartsGeom::Point pr = windowToPixel(CQChartsGeom::Point(fitData.xmax(), 0));
 
     //---
 
@@ -1821,30 +1819,26 @@ drawBestFit(QPainter *painter) const
     // calc fit shape
     QPolygonF bpoly, poly, tpoly;
 
-    for (int px = pxl; px <= pxr; ++px) {
+    for (int px = pl.x; px <= pr.x; ++px) {
       if (isInterrupt())
         return;
 
-      double x, y;
+      CQChartsGeom::Point p1 = pixelToWindow(CQChartsGeom::Point(px, 0.0));
 
-      pixelToWindow(px, 0.0, x, y);
+      double y2 = fitData.interp(p1.x);
 
-      double y2 = fitData.interp(x);
+      CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(p1.x, y2));
 
-      double px2, py2;
-
-      windowToPixel(x, y2, px2, py2);
-
-      poly << QPointF(px2, py2);
+      poly << QPointF(p2.x, p2.y);
 
       if (isBestFitDeviation()) {
-        windowToPixel(x, y2 - fitData.deviation(), px2, py2);
+        p2 = windowToPixel(CQChartsGeom::Point(p1.x, y2 - fitData.deviation()));
 
-        bpoly << QPointF(px2, py2);
+        bpoly << QPointF(p2.x, p2.y);
 
-        windowToPixel(x, y2 + fitData.deviation(), px2, py2);
+        p2 = windowToPixel(CQChartsGeom::Point(p1.x, y2 + fitData.deviation()));
 
-        tpoly << QPointF(px2, py2);
+        tpoly << QPointF(p2.x, p2.y);
       }
     }
 
@@ -2998,7 +2992,7 @@ drawSymbolMapKey(QPainter *painter) const
   //double vx = view()->viewportRange();
   //double vy = 0.0;
 
-  //view()->windowToPixel(vx, vy, px, py);
+  //CQChartsGeom::Point p = view()->windowToPixel(CQChartsGeom::Point(vx, vy));
 
   double px = pbbox.getXMax();
   double py = pbbox.getYMax();
@@ -3156,15 +3150,11 @@ inside(const CQChartsGeom::Point &p) const
   double sx = plot_->lengthPixelWidth (s);
   double sy = plot_->lengthPixelHeight(s);
 
-  double px, py;
+  CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(p_.x(), p_.y()));
 
-  plot_->windowToPixel(p_.x(), p_.y(), px, py);
+  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
-  CQChartsGeom::BBox pbbox(px - sx, py - sy, px + sx, py + sy);
-
-  CQChartsGeom::Point pp;
-
-  plot_->windowToPixel(p, pp);
+  CQChartsGeom::Point pp = plot_->windowToPixel(p);
 
   return pbbox.inside(pp);
 }

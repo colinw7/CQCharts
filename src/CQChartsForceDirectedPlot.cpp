@@ -713,10 +713,8 @@ drawParts(QPainter *painter) const
     const Springy::Vector &p1 = spring->point1()->p();
     const Springy::Vector &p2 = spring->point2()->p();
 
-    double px1, py1, px2, py2;
-
-    windowToPixel(p1.x(), p1.y(), px1, py1);
-    windowToPixel(p2.x(), p2.y(), px2, py2);
+    QPointF pp1 = windowToPixel(QPointF(p1.x(), p1.y()));
+    QPointF pp2 = windowToPixel(QPointF(p2.x(), p2.y()));
 
     if (isEdgeLinesValueWidth()) {
       QPen edgePen1 = edgePen;
@@ -730,7 +728,7 @@ drawParts(QPainter *painter) const
     else
       painter->setPen(edgePen);
 
-    painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
+    painter->drawLine(pp1, pp2);
 
     if (isTemp)
       delete spring;
@@ -742,9 +740,7 @@ drawParts(QPainter *painter) const
 
     const Springy::Vector &p1 = point->p();
 
-    double px, py;
-
-    windowToPixel(p1.x(), p1.y(), px, py);
+    CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(p1.x(), p1.y()));
 
     //---
 
@@ -768,7 +764,7 @@ drawParts(QPainter *painter) const
 
     double r = nodeRadius();
 
-    painter->drawEllipse(QRectF(px - r, py - r, 2*r, 2*r));
+    painter->drawEllipse(QRectF(p2.x - r, p2.y - r, 2*r, 2*r));
   }
 
   //---

@@ -270,9 +270,7 @@ annotationBBox() const
         double x = r*cos(ra);
         double y = r*sin(ra);
 
-        double px, py;
-
-        windowToPixel(x, y, px, py);
+        CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(x, y));
 
         //---
 
@@ -293,7 +291,8 @@ annotationBBox() const
           else if (y > 0)                align |= Qt::AlignBottom;
           else if (y < 0)                align |= Qt::AlignTop;
 
-          QRectF trect = CQChartsDrawUtil::calcAlignedTextRect(font, px, py, name, align, 2, 2);
+          QRectF trect =
+            CQChartsDrawUtil::calcAlignedTextRect(font, p1.x, p1.y, name, align, 2, 2);
 
           bbox += pixelToWindow(CQChartsUtil::fromQRect(trect));
         }
@@ -578,9 +577,7 @@ drawBackground(QPainter *painter) const
 
       //---
 
-      double px1, py1;
-
-      windowToPixel(0.0, 0.0, px1, py1);
+      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(0.0, 0.0));
 
       double a = angleStart();
 
@@ -590,11 +587,9 @@ drawBackground(QPainter *painter) const
         double x = valueRadius_*cos(ra);
         double y = valueRadius_*sin(ra);
 
-        double px2, py2;
+        CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(x, y));
 
-        windowToPixel(x, y, px2, py2);
-
-        painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
+        painter->drawLine(QPointF(p1.x, p1.y), QPointF(p2.x, p2.y));
 
         a -= da;
       }
@@ -634,11 +629,9 @@ drawBackground(QPainter *painter) const
         double x = r*cos(ra);
         double y = r*sin(ra);
 
-        double px, py;
+        CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(x, y));
 
-        windowToPixel(x, y, px, py);
-
-        poly << QPointF(px, py);
+        poly << QPointF(p1.x, p1.y);
 
         //---
 
@@ -663,7 +656,7 @@ drawBackground(QPainter *painter) const
           else if (y > 0)                align |= Qt::AlignBottom;
           else if (y < 0)                align |= Qt::AlignTop;
 
-          CQChartsDrawUtil::drawAlignedText(painter, px, py, name, align, 2, 2);
+          CQChartsDrawUtil::drawAlignedText(painter, p1.x, p1.y, name, align, 2, 2);
         }
 
         //---
@@ -788,9 +781,7 @@ draw(QPainter *painter)
   //---
 
   // get pixel origin
-  double pxo, pyo;
-
-  plot_->windowToPixel(0.0, 0.0, pxo, pyo);
+  CQChartsGeom::Point po = plot_->windowToPixel(CQChartsGeom::Point(0.0, 0.0));
 
   //---
 
@@ -801,11 +792,9 @@ draw(QPainter *painter)
     double x = poly_[i].x();
     double y = poly_[i].y();
 
-    double px, py;
+    CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(x, y));
 
-    plot_->windowToPixel(x, y, px, py);
-
-    ppoly << QPointF(px, py);
+    ppoly << QPointF(p1.x, p1.y);
   }
 
   ppoly << ppoly[0];
@@ -833,18 +822,18 @@ draw(QPainter *painter)
   if      (poly_.size() == 1) {
     const QPointF &p1 = ppoly[0]; // circle radius p1.x()
 
-    double r = p1.x() - pxo;
+    double r = p1.x() - po.x;
 
-    painter->drawEllipse(QRectF(pxo - r, pyo - r, 2*r, 2*r));
+    painter->drawEllipse(QRectF(po.x - r, po.y - r, 2*r, 2*r));
   }
   else if (poly_.size() == 2) {
     const QPointF &p1 = ppoly[0]; // circle radius p1.x() and p2.y()
     const QPointF &p2 = ppoly[1];
 
-    double xr = p1.x() - pxo;
-    double yr = p2.y() - pyo;
+    double xr = p1.x() - po.x;
+    double yr = p2.y() - po.y;
 
-    painter->drawEllipse(QRectF(pxo - xr, pyo - yr, 2*xr, 2*yr));
+    painter->drawEllipse(QRectF(po.x - xr, po.y - yr, 2*xr, 2*yr));
   }
   else if (poly_.size() >= 3) {
     painter->drawPolygon(ppoly);

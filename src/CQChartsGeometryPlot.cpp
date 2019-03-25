@@ -567,11 +567,9 @@ draw(QPainter *painter)
     QPolygonF ppoly;
 
     for (int i = 0; i < poly.count(); ++i) {
-      double px, py;
+      QPointF p1 = plot_->windowToPixel(poly[i]);
 
-      plot_->windowToPixel(poly[i].x(), poly[i].y(), px, py);
-
-      ppoly << QPointF(px, py);
+      ppoly << p1;
     }
 
     ppolygons_.push_back(ppoly);
@@ -642,9 +640,7 @@ void
 CQChartsGeometryObj::
 drawFg(QPainter *painter) const
 {
-  CQChartsGeom::BBox prect;
-
-  plot_->windowToPixel(rect(), prect);
+  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
   QRectF qrect = CQChartsUtil::toQRect(prect);
 

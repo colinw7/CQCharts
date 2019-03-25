@@ -593,9 +593,6 @@ class CQChartsView : public QFrame,
   //---
 
   // coordinate conversions
-  void windowToPixel(double wx, double wy, double &px, double &py) const;
-  void pixelToWindow(double px, double py, double &wx, double &wy) const;
-
   CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &w) const;
   CQChartsGeom::Point pixelToWindow(const CQChartsGeom::Point &p) const;
 
@@ -782,6 +779,9 @@ class CQChartsView : public QFrame,
   void initOverlayPlot(CQChartsPlot *firstPlot);
 
   int plotPos(CQChartsPlot *plot) const;
+
+  void windowToPixelI(double wx, double wy, double &px, double &py) const;
+  void pixelToWindowI(double px, double py, double &wx, double &wy) const;
 
  private:
   //! process all mouse point plots using lambda

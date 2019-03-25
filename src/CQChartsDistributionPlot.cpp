@@ -2492,9 +2492,7 @@ pushSlot()
 
     QPointF pos = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
 
-    CQChartsGeom::Point w;
-
-    pixelToWindow(CQChartsUtil::fromQPoint(pos), w);
+    CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(pos));
 
     plotObjsAtPoint(w, objs);
   }
@@ -3230,9 +3228,7 @@ calcRect() const
 
   //---
 
-  CQChartsGeom::BBox prect;
-
-  plot_->windowToPixel(rect_, prect);
+  CQChartsGeom::BBox prect = plot_->windowToPixel(rect_);
 
   double m1 = plot_->lengthPixelSize(plot_->margin(), ! plot_->isHorizontal());
   double m2 = m1;

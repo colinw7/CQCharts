@@ -2078,20 +2078,16 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
-  double px, py1, py2;
-
-  plot()->windowToPixel(x(), y1(), px, py1);
-  plot()->windowToPixel(x(), y2(), px, py2);
+  CQChartsGeom::Point p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
+  CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
 
   double sx, sy;
 
   plot()->pixelSymbolSize(plot()->symbolSize(), sx, sy);
 
-  CQChartsGeom::BBox pbbox(px - sx, py1 - sy, px + sx, py2 + sy);
+  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p2.x + sx, p2.y + sy);
 
-  CQChartsGeom::Point pp;
-
-  plot()->windowToPixel(p, pp);
+  CQChartsGeom::Point pp = plot()->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -2121,10 +2117,8 @@ draw(QPainter *painter)
   if (! visible())
     return;
 
-  double px, py1, py2;
-
-  plot()->windowToPixel(x(), y1(), px, py1);
-  plot()->windowToPixel(x(), y2(), px, py2);
+  CQChartsGeom::Point p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
+  CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
 
   if (plot()->isLines()) {
     // calc pen and brush
@@ -2146,7 +2140,7 @@ draw(QPainter *painter)
     //--
 
     // draw line
-    painter->drawLine(QPointF(px, py1), QPointF(px, py2));
+    painter->drawLine(QPointF(p1.x, p1.y), QPointF(p2.x, p2.y));
   }
 
   if (plot()->isPoints()) {
@@ -2173,8 +2167,8 @@ draw(QPainter *painter)
     //---
 
     // draw symbols
-    plot()->drawSymbol(painter, QPointF(px, py1), symbol, CMathUtil::avg(sx, sy), pen, brush);
-    plot()->drawSymbol(painter, QPointF(px, py2), symbol, CMathUtil::avg(sx, sy), pen, brush);
+    plot()->drawSymbol(painter, QPointF(p1.x, p1.y), symbol, CMathUtil::avg(sx, sy), pen, brush);
+    plot()->drawSymbol(painter, QPointF(p2.x, p2.y), symbol, CMathUtil::avg(sx, sy), pen, brush);
   }
 }
 
@@ -2240,20 +2234,16 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
-  double px1, py1, px2, py2;
-
-  plot()->windowToPixel(x(), y1(), px1, py1);
-  plot()->windowToPixel(x(), y2(), px2, py2);
+  CQChartsGeom::Point p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
+  CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
 
   double b = 2;
 
   double lw = std::max(plot()->lengthPixelWidth(plot()->impulseLinesWidth()), 2*b);
 
-  CQChartsGeom::BBox pbbox(px1 - lw/2, py1 - b, px2 + lw/2, py2 + b);
+  CQChartsGeom::BBox pbbox(p1.x - lw/2, p1.y - b, p2.x + lw/2, p2.y + b);
 
-  CQChartsGeom::Point pp;
-
-  plot()->windowToPixel(p, pp);
+  CQChartsGeom::Point pp = plot()->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -2318,16 +2308,14 @@ draw(QPainter *painter)
   //---
 
   // draw impulse
-  double px1, py1, px2, py2;
-
-  plot()->windowToPixel(x(), y1(), px1, py1);
-  plot()->windowToPixel(x(), y2(), px2, py2);
+  CQChartsGeom::Point p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y1()));
+  CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
 
   if (lw <= 1) {
-    painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
+    painter->drawLine(QPointF(p1.x, p1.y), QPointF(p2.x, p2.y));
   }
   else {
-    QRectF qrect(px1 - lw/2, py1, lw, py2 - py1);
+    QRectF qrect(p1.x - lw/2, p1.y, lw, p2.y - p1.y);
 
     CQChartsRoundedPolygon::draw(painter, qrect, 0, 0);
   }
@@ -2465,9 +2453,7 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
-  double px, py;
-
-  plot()->windowToPixel(x(), y(), px, py);
+  CQChartsGeom::Point p1 = plot()->windowToPixel(CQChartsGeom::Point(x(), y()));
 
   double sx = size();
   double sy = sx;
@@ -2475,11 +2461,9 @@ inside(const CQChartsGeom::Point &p) const
   if (sx <= 0)
     plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
-  CQChartsGeom::BBox pbbox(px - sx, py - sy, px + sx, py + sy);
+  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
-  CQChartsGeom::Point pp;
-
-  plot()->windowToPixel(p, pp);
+  CQChartsGeom::Point pp = plot()->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -2545,11 +2529,9 @@ draw(QPainter *painter)
 
   CQChartsGeom::Point pp = CQChartsUtil::fromQPoint(pos_);
 
-  double px, py;
+  CQChartsGeom::Point p = plot()->windowToPixel(pp);
 
-  plot()->windowToPixel(pp.x, pp.y, px, py);
-
-  plot()->drawSymbol(painter, QPointF(px, py), symbol, CMathUtil::avg(sx, sy), pen, brush);
+  plot()->drawSymbol(painter, QPointF(p.x, p.y), symbol, CMathUtil::avg(sx, sy), pen, brush);
 
   //---
 
@@ -2864,12 +2846,10 @@ draw(QPainter *painter)
     for (int i = 0; i < smooth_->numPoints(); ++i) {
       const CQChartsGeom::Point &p = smooth_->point(i);
 
-      double px, py;
-
-      plot()->windowToPixel(p.x, p.y, px, py);
+      CQChartsGeom::Point p1 = plot()->windowToPixel(p);
 
       if (i == 0)
-        path.moveTo(px, py);
+        path.moveTo(p1.x, p1.y);
       else {
         CQChartsSmooth::SegmentType type = smooth_->segmentType(i - 1);
 
@@ -2877,24 +2857,20 @@ draw(QPainter *painter)
           CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
           CQChartsGeom::Point c2 = smooth_->controlPoint2(i - 1);
 
-          double pcx1, pcy1, pcx2, pcy2;
+          CQChartsGeom::Point pc1 = plot()->windowToPixel(c1);
+          CQChartsGeom::Point pc2 = plot()->windowToPixel(c2);
 
-          plot()->windowToPixel(c1.x, c1.y, pcx1, pcy1);
-          plot()->windowToPixel(c2.x, c2.y, pcx2, pcy2);
-
-          path.cubicTo(pcx1, pcy1, pcx2, pcy2, px, py);
+          path.cubicTo(pc1.x, pc1.y, pc2.x, pc2.y, p1.x, p1.y);
         }
         else if (type == CQChartsSmooth::SegmentType::CURVE2) {
           CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
 
-          double pcx1, pcy1;
+          CQChartsGeom::Point pc1 = plot()->windowToPixel(c1);
 
-          plot()->windowToPixel(c1.x, c1.y, pcx1, pcy1);
-
-          path.quadTo(pcx1, pcy1, px, py);
+          path.quadTo(pc1.x, pc1.y, p1.x, p1.y);
         }
         else if (type == CQChartsSmooth::SegmentType::LINE) {
-          path.lineTo(px, py);
+          path.lineTo(p1.x, p1.y);
         }
       }
     }
@@ -2913,23 +2889,17 @@ draw(QPainter *painter)
   if (plot_->isFitted()) {
     QPolygonF poly;
 
-    double pxl, pyl, pxr, pyr;
+    CQChartsGeom::Point pl = plot_->windowToPixel(CQChartsGeom::Point(fit_.xmin(), 0));
+    CQChartsGeom::Point pr = plot_->windowToPixel(CQChartsGeom::Point(fit_.xmax(), 0));
 
-    plot_->windowToPixel(fit_.xmin(), 0, pxl, pyl);
-    plot_->windowToPixel(fit_.xmax(), 0, pxr, pyr);
+    for (int px = pl.x; px <= pr.x; ++px) {
+      CQChartsGeom::Point p1 = plot_->pixelToWindow(CQChartsGeom::Point(px, 0.0));
 
-    for (int px = pxl; px <= pxr; ++px) {
-      double x, y;
+      double y2 = fit_.interp(p1.x);
 
-      plot_->pixelToWindow(px, 0.0, x, y);
+      CQChartsGeom::Point p2 = plot_->windowToPixel(CQChartsGeom::Point(p1.x, y2));
 
-      double y2 = fit_.interp(x);
-
-      double px2, py2;
-
-      plot_->windowToPixel(x, y2, px2, py2);
-
-      poly << QPointF(px2, py2);
+      poly << QPointF(p2.x, p2.y);
     }
 
     //---
@@ -3092,22 +3062,19 @@ draw(QPainter *painter)
     QPainterPath path;
 
     if (np > 0) {
-      double px, py;
+      CQChartsGeom::Point p =
+        plot()->windowToPixel(CQChartsGeom::Point(poly_[0].x(), poly_[0].y()));
 
-      plot()->windowToPixel(poly_[0].x(), poly_[0].y(), px, py);
-
-      path.moveTo(px, py);
+      path.moveTo(p.x, p.y);
     }
 
     for (int i = 0; i < smooth_->numPoints(); ++i) {
       const CQChartsGeom::Point &p = smooth_->point(i);
 
-      double px, py;
-
-      plot()->windowToPixel(p.x, p.y, px, py);
+      CQChartsGeom::Point p1 = plot()->windowToPixel(p);
 
       if (i == 0)
-        path.lineTo(px, py);
+        path.lineTo(p1.x, p1.y);
       else {
         CQChartsSmooth::SegmentType type = smooth_->segmentType(i - 1);
 
@@ -3115,34 +3082,29 @@ draw(QPainter *painter)
           CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
           CQChartsGeom::Point c2 = smooth_->controlPoint2(i - 1);
 
-          double pcx1, pcy1, pcx2, pcy2;
+          CQChartsGeom::Point pc1 = plot()->windowToPixel(c1);
+          CQChartsGeom::Point pc2 = plot()->windowToPixel(c2);
 
-          plot()->windowToPixel(c1.x, c1.y, pcx1, pcy1);
-          plot()->windowToPixel(c2.x, c2.y, pcx2, pcy2);
-
-          path.cubicTo(pcx1, pcy1, pcx2, pcy2, px, py);
+          path.cubicTo(pc1.x, pc1.y, pc2.x, pc2.y, p1.x, p1.y);
         }
         else if (type == CQChartsSmooth::SegmentType::CURVE2) {
           CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
 
-          double pcx1, pcy1;
+          CQChartsGeom::Point pc1 = plot()->windowToPixel(c1);
 
-          plot()->windowToPixel(c1.x, c1.y, pcx1, pcy1);
-
-          path.quadTo(pcx1, pcy1, px, py);
+          path.quadTo(pc1.x, pc1.y, p1.x, p1.y);
         }
         else if (type == CQChartsSmooth::SegmentType::LINE) {
-          path.lineTo(px, py);
+          path.lineTo(p1.x, p1.y);
         }
       }
     }
 
     if (np > 0) {
-      double px, py;
+      CQChartsGeom::Point p =
+        plot()->windowToPixel(CQChartsGeom::Point(poly_[np - 1].x(), poly_[np - 1].y()));
 
-      plot()->windowToPixel(poly_[np - 1].x(), poly_[np - 1].y(), px, py);
-
-      path.lineTo(px, py);
+      path.lineTo(p.x, p.y);
     }
 
     path.closeSubpath();
@@ -3157,11 +3119,10 @@ draw(QPainter *painter)
     QPolygonF poly;
 
     for (int i = 0; i < np; ++i) {
-      double px, py;
+      CQChartsGeom::Point p =
+        plot()->windowToPixel(CQChartsGeom::Point(poly_[i].x(), poly_[i].y()));
 
-      plot()->windowToPixel(poly_[i].x(), poly_[i].y(), px, py);
-
-      poly << QPointF(px, py);
+      poly << QPointF(p.x, p.y);
     }
 
     painter->drawPolygon(poly);
@@ -3332,9 +3293,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
   //CQChartsXYPlot *xyKeyPlot = qobject_cast<CQChartsXYPlot *>(keyPlot);
   //if (! xyKeyPlot) xyKeyPlot = plot;
 
-  CQChartsGeom::BBox prect;
-
-  keyPlot->windowToPixel(rect, prect);
+  CQChartsGeom::BBox prect = keyPlot->windowToPixel(rect);
 
   QRectF prect1(QPointF(prect.getXMin() + 2, prect.getYMin() + 2),
                 QPointF(prect.getXMax() - 2, prect.getYMax() - 2));
@@ -3412,10 +3371,8 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
     double x2 = rect.getXMax() - dx;
     double y  = rect.getYMid();
 
-    double px1, px2, py;
-
-    keyPlot->windowToPixel(x1, y, px1, py);
-    keyPlot->windowToPixel(x2, y, px2, py);
+    CQChartsGeom::Point p1 = keyPlot->windowToPixel(CQChartsGeom::Point(x1, y));
+    CQChartsGeom::Point p2 = keyPlot->windowToPixel(CQChartsGeom::Point(x2, y));
 
     //---
 
@@ -3443,12 +3400,14 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
     plot->pixelSymbolSize(plot->symbolSize(), sx, sy);
 
     if (plot->isLines() || plot->isImpulseLines()) {
-      double px = CMathUtil::avg(px1, px2);
+      double px = CMathUtil::avg(p1.x, p2.x);
+      double py = CMathUtil::avg(p1.y, p2.y);
 
       plot_->drawSymbol(painter, QPointF(px, py), symbol, CMathUtil::avg(sx, sy), pen, brush);
     }
     else {
-      double px = CMathUtil::avg(px1, px2);
+      double px = CMathUtil::avg(p1.x, p2.x);
+      double py = CMathUtil::avg(p1.y, p2.y);
 
       plot_->drawSymbol(painter, QPointF(px, py), symbol, CMathUtil::avg(sx, sy), pen, brush);
     }

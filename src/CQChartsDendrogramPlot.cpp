@@ -417,9 +417,7 @@ drawNode(QPainter *painter, CQChartsDendrogram::HierNode *hier,
 {
   if (! node->isPlaced()) return;
 
-  double px1, py1;
-
-  windowToPixel(node->x(), node->yc(), px1, py1);
+  CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(node->x(), node->yc()));
 
   double cs = circleSize();
   double tm = textMargin();
@@ -428,12 +426,10 @@ drawNode(QPainter *painter, CQChartsDendrogram::HierNode *hier,
 
   // draw edge
   if (hier) {
-    double px2, py2;
+    CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(hier->x(), hier->yc()));
 
-    windowToPixel(hier->x(), hier->yc(), px2, py2);
-
-    double x1 = px2 + tm + cs/2.0 ; double y1 = py2;
-    double x4 = px1 - cs/2.0      ; double y4 = py1;
+    double x1 = p2.x + tm + cs/2.0; double y1 = p2.y;
+    double x4 = p1.x - cs/2.0     ; double y4 = p1.y;
     double x2 = x1 + (x4 - x1)/3.0; double y2 = y1;
     double x3 = x2 + (x4 - x1)/3.0; double y3 = y4;
 
@@ -502,9 +498,7 @@ CQChartsGeom::BBox
 CQChartsDendrogramNodeObj::
 textRect() const
 {
-  double px1, py1;
-
-  plot_->windowToPixel(node_->x(), node_->yc(), px1, py1);
+  CQChartsGeom::Point pn = plot_->windowToPixel(CQChartsGeom::Point(node_->x(), node_->yc()));
 
   double cs = plot_->circleSize();
 
@@ -525,18 +519,16 @@ textRect() const
   double dy = (fm.ascent() - fm.descent())/2;
 
   if (is_hier)
-    p = CQChartsGeom::Point(px1 - cs - fm.width(name), py1 + dy);
+    p = CQChartsGeom::Point(pn.x - cs - fm.width(name), pn.y + dy);
   else
-    p = CQChartsGeom::Point(px1 + cs, py1 + dy);
+    p = CQChartsGeom::Point(pn.x + cs, pn.y + dy);
 
   CQChartsGeom::Point p1(p.x                 , p.y - fm.ascent());
   CQChartsGeom::Point p2(p.x + fm.width(name), p.y + fm.ascent());
 
   CQChartsGeom::BBox pbbox(p1, p2);
 
-  CQChartsGeom::BBox wbbox;
-
-  plot_->pixelToWindow(pbbox, wbbox);
+  CQChartsGeom::BBox wbbox = plot_->pixelToWindow(pbbox);
 
   return wbbox;
 }
@@ -553,16 +545,14 @@ draw(QPainter *painter)
 {
   if (! node_->isPlaced()) return;
 
-  double px1, py1;
-
-  plot_->windowToPixel(node_->x(), node_->yc(), px1, py1);
+  CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(node_->x(), node_->yc()));
 
   double cs = plot_->circleSize();
   double tm = plot_->textMargin();
 
-  px1 += tm;
+  p1.x += tm;
 
-  QRectF qrect(px1 - cs/2.0, py1 - cs/2.0, cs, cs);
+  QRectF qrect(p1.x - cs/2.0, p1.y - cs/2.0, cs, cs);
 
   //---
 
@@ -618,9 +608,9 @@ draw(QPainter *painter)
   QPointF p;
 
   if (is_hier)
-    p = QPointF(px1 - cs - fm.width(name), py1 + dy);
+    p = QPointF(p1.x - cs - fm.width(name), p1.y + dy);
   else
-    p = QPointF(px1 + cs, py1 + dy);
+    p = QPointF(p1.x + cs, p1.y + dy);
 
   CQChartsDrawUtil::drawSimpleText(painter, p, name);
 }

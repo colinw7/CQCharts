@@ -835,9 +835,7 @@ pushSlot()
 
     QPointF pos = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
 
-    CQChartsGeom::Point w;
-
-    pixelToWindow(CQChartsUtil::fromQPoint(pos), w);
+    CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(pos));
 
     plotObjsAtPoint(w, objs);
   }
@@ -934,12 +932,10 @@ drawBounds(QPainter *painter, CQChartsHierBubbleHierNode *hier) const
 
   //---
 
-  double px1, py1, px2, py2;
+  CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(xc - r, yc + r));
+  CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(xc + r, yc - r));
 
-  windowToPixel(xc - r, yc + r, px1, py1);
-  windowToPixel(xc + r, yc - r, px2, py2);
-
-  QRectF qrect(px1, py1, px2 - px1, py2 - py1);
+  QRectF qrect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
 
   //---
 
@@ -1027,12 +1023,12 @@ draw(QPainter *painter)
 
   double r = hier_->radius();
 
-  double px1, py1, px2, py2;
+  CQChartsGeom::Point p1 =
+    plot_->windowToPixel(CQChartsGeom::Point(hier_->x() - r, hier_->y() + r));
+  CQChartsGeom::Point p2 =
+    plot_->windowToPixel(CQChartsGeom::Point(hier_->x() + r, hier_->y() - r));
 
-  plot_->windowToPixel(hier_->x() - r, hier_->y() + r, px1, py1);
-  plot_->windowToPixel(hier_->x() + r, hier_->y() - r, px2, py2);
-
-  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(px1, py2, px2, py1));
+  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y));
 
   //---
 
@@ -1148,12 +1144,12 @@ draw(QPainter *painter)
 {
   double r = node_->radius();
 
-  double px1, py1, px2, py2;
+  CQChartsGeom::Point p1 =
+    plot_->windowToPixel(CQChartsGeom::Point(node_->x() - r, node_->y() + r));
+  CQChartsGeom::Point p2 =
+    plot_->windowToPixel(CQChartsGeom::Point(node_->x() + r, node_->y() - r));
 
-  plot_->windowToPixel(node_->x() - r, node_->y() + r, px1, py1);
-  plot_->windowToPixel(node_->x() + r, node_->y() - r, px2, py2);
-
-  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(px1, py2, px2, py1));
+  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y));
 
   //---
 
@@ -1248,7 +1244,7 @@ draw(QPainter *painter)
   //---
 
   // calc text size and position
-  plot_->windowToPixel(node_->x(), node_->y(), px1, py1);
+  CQChartsGeom::Point pc = plot_->windowToPixel(CQChartsGeom::Point(node_->x(), node_->y()));
 
   //---
 
@@ -1264,7 +1260,7 @@ draw(QPainter *painter)
   painter->setPen(tpen);
 
   if      (strs.size() == 1) {
-    QPointF tp(px1, py1);
+    QPointF tp(pc.x, pc.y);
 
     CQChartsDrawUtil::drawTextAtPoint(painter, tp, name, textOptions);
   }
@@ -1273,8 +1269,8 @@ draw(QPainter *painter)
 
     double th = fm.height();
 
-    QPointF tp1(px1, py1 - th/2);
-    QPointF tp2(px1, py1 + th/2);
+    QPointF tp1(pc.x, pc.y - th/2);
+    QPointF tp2(pc.x, pc.y + th/2);
 
     CQChartsDrawUtil::drawTextAtPoint(painter, tp1, strs[0], textOptions);
     CQChartsDrawUtil::drawTextAtPoint(painter, tp2, strs[1], textOptions);

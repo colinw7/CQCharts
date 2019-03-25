@@ -674,15 +674,11 @@ inside(const CQChartsGeom::Point &p) const
 
   plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
-  double px, py;
+  QPointF p1 = plot_->windowToPixel(p_);
 
-  plot_->windowToPixel(p_.x(), p_.y(), px, py);
+  CQChartsGeom::BBox pbbox(p1.x() - sx, p1.y() - sy, p1.x() + sx, p1.y() + sy);
 
-  CQChartsGeom::BBox pbbox(px - sx, py - sy, px + sx, py + sy);
-
-  CQChartsGeom::Point pp;
-
-  plot_->windowToPixel(p, pp);
+  CQChartsGeom::Point pp = plot_->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -733,11 +729,9 @@ draw(QPainter *painter)
   //---
 
   // draw symbol
-  double px, py;
+  QPointF p1 = plot_->windowToPixel(p_);
 
-  plot_->windowToPixel(p_.x(), p_.y(), px, py);
-
-  QRectF erect(px - sx, py - sy, 2*sx, 2*sy);
+  QRectF erect(p1.x() - sx, p1.y() - sy, 2*sx, 2*sy);
 
   painter->drawEllipse(erect);
 

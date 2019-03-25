@@ -359,11 +359,9 @@ draw(QPainter *painter)
 
   //---
 
-  CQChartsGeom::BBox prect, pirect, ptrect;
-
-  plot_->windowToPixel(bbox_, prect);
-  plot_->windowToPixel(ibbox, pirect);
-  plot_->windowToPixel(tbbox, ptrect);
+//CQChartsGeom::BBox prect  = plot_->windowToPixel(bbox_);
+  CQChartsGeom::BBox pirect = plot_->windowToPixel(ibbox);
+  CQChartsGeom::BBox ptrect = plot_->windowToPixel(tbbox);
 
   //---
 

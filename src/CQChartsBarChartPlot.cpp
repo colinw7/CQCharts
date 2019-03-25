@@ -1506,9 +1506,7 @@ dataLabelRect() const
   if (! plot_->dataLabel()->isVisible())
     return CQChartsGeom::BBox();
 
-  CQChartsGeom::BBox prect;
-
-  plot_->windowToPixel(rect(), prect);
+  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
   QRectF qrect = CQChartsUtil::toQRect(prect);
 
@@ -1576,9 +1574,7 @@ draw(QPainter *painter)
 
   //---
 
-  CQChartsGeom::BBox prect;
-
-  plot_->windowToPixel(rect(), prect);
+  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
   QRectF qrect = CQChartsUtil::toQRect(prect);
 
@@ -1747,9 +1743,7 @@ drawFg(QPainter *painter) const
   if (! plot_->dataLabel()->isVisible())
     return;
 
-  CQChartsGeom::BBox prect;
-
-  plot_->windowToPixel(rect(), prect);
+  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
   QRectF qrect = CQChartsUtil::toQRect(prect);
 

@@ -804,3 +804,5 @@
  + Support sub coloring of distribution bar with summed values
  + Fix box plot bar positioning with explicit x values
  + Add commands to create folded model, collapsed model, bucket model and stat model
+# 3/24/2019
+ + cleanup pixelToWindow and windowToPixel conversions

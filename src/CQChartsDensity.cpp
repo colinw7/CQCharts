@@ -324,19 +324,19 @@ calcWhiskerPoly(QPolygonF &ppoly, const CQChartsPlot *plot, const CQChartsGeom::
       py = rect.getYMid();
   }
 
-  double px1, py1, px2, py2;
+  CQChartsGeom::Point p1, p2;
 
   if (orientation != Qt::Horizontal) {
-    plot->windowToPixel(px, xmin1, px1, py1);
-    plot->windowToPixel(px, xmax1, px2, py2);
+    p1 = plot->windowToPixel(CQChartsGeom::Point(px, xmin1));
+    p2 = plot->windowToPixel(CQChartsGeom::Point(px, xmax1));
   }
   else {
-    plot->windowToPixel(xmin1, py, px1, py1);
-    plot->windowToPixel(xmax1, py, px2, py2);
+    p1 = plot->windowToPixel(CQChartsGeom::Point(xmin1, py));
+    p2 = plot->windowToPixel(CQChartsGeom::Point(xmax1, py));
   }
 
-  ppoly[0     ] = QPointF(px1, py1);
-  ppoly[no + 1] = QPointF(px2, py2);
+  ppoly[0     ] = QPointF(p1.x, p1.y);
+  ppoly[no + 1] = QPointF(p2.x, p2.y);
 
   int ip = 0;
 
@@ -351,34 +351,34 @@ calcWhiskerPoly(QPolygonF &ppoly, const CQChartsPlot *plot, const CQChartsGeom::
     double y1 = (p.y() - ymin1)*vys;
 
     if (! opts.violin) {
-      double px1, py1;
+      CQChartsGeom::Point p1;
 
       if (orientation != Qt::Horizontal) {
         if (bottomLeft)
-          plot->windowToPixel(px - y1, py + x1, px1, py1);
+          p1 = plot->windowToPixel(CQChartsGeom::Point(px - y1, py + x1));
         else
-          plot->windowToPixel(px + y1, py + x1, px1, py1);
+          p1 = plot->windowToPixel(CQChartsGeom::Point(px + y1, py + x1));
       }
       else {
-        plot->windowToPixel(px + x1, py + y1, px1, py1);
+        p1 = plot->windowToPixel(CQChartsGeom::Point(px + x1, py + y1));
       }
 
-      ppoly[ip + 1] = QPointF(px1, py1);
+      ppoly[ip + 1] = QPointF(p1.x, p1.y);
     }
     else {
-      double px1, py1, px2, py2;
+      CQChartsGeom::Point p1, p2;
 
       if (orientation != Qt::Horizontal) {
-        plot->windowToPixel(px - y1, py + x1, px1, py1);
-        plot->windowToPixel(px + y1, py + x1, px2, py2);
+        p1 = plot->windowToPixel(CQChartsGeom::Point(px - y1, py + x1));
+        p2 = plot->windowToPixel(CQChartsGeom::Point(px + y1, py + x1));
       }
       else {
-        plot->windowToPixel(px + x1, py - y1, px1, py1);
-        plot->windowToPixel(px + x1, py + y1, px2, py2);
+        p1 = plot->windowToPixel(CQChartsGeom::Point(px + x1, py - y1));
+        p2 = plot->windowToPixel(CQChartsGeom::Point(px + x1, py + y1));
       }
 
-      ppoly[ip + 1     ] = QPointF(px1, py1);
-      ppoly[np - ip - 1] = QPointF(px2, py2);
+      ppoly[ip + 1     ] = QPointF(p1.x, p1.y);
+      ppoly[np - ip - 1] = QPointF(p2.x, p2.y);
     }
 
     ++ip;
@@ -409,23 +409,23 @@ drawCrossBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BB
     br = rect.getYMax();
   }
 
-  double px1, py1, px2, py2, px3, py3;
+  CQChartsGeom::Point p1, p2, p3;
 
   if (orientation != Qt::Horizontal) {
-    plot->windowToPixel(bl, lpos, px1, py1);
-    plot->windowToPixel(bl, mean, px2, py2);
-    plot->windowToPixel(br, tpos, px3, py3);
+    p1 = plot->windowToPixel(CQChartsGeom::Point(bl, lpos));
+    p2 = plot->windowToPixel(CQChartsGeom::Point(bl, mean));
+    p3 = plot->windowToPixel(CQChartsGeom::Point(br, tpos));
   }
   else {
-    plot->windowToPixel(lpos, bl, px1, py1);
-    plot->windowToPixel(mean, bl, px2, py2);
-    plot->windowToPixel(tpos, br, px3, py3);
+    p1 = plot->windowToPixel(CQChartsGeom::Point(lpos, bl));
+    p2 = plot->windowToPixel(CQChartsGeom::Point(mean, bl));
+    p3 = plot->windowToPixel(CQChartsGeom::Point(tpos, br));
   }
 
   //---
 
   // draw box
-  QRectF prect(px1, py1, px3 - px1, py3 - py1);
+  QRectF prect(p1.x, p1.y, p3.x - p1.x, p3.y - p1.y);
 
   double cxs = plot->lengthPixelWidth (cornerSize);
   double cys = plot->lengthPixelHeight(cornerSize);
@@ -436,9 +436,9 @@ drawCrossBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BB
 
   // draw mean line
   if (orientation != Qt::Horizontal)
-    painter->drawLine(QPointF(px1, py2), QPointF(px3, py2));
+    painter->drawLine(QPointF(p1.x, p2.y), QPointF(p3.x, p2.y));
   else
-    painter->drawLine(QPointF(px2, py1), QPointF(px2, py3));
+    painter->drawLine(QPointF(p2.x, p1.y), QPointF(p2.x, p3.y));
 }
 
 void
@@ -464,26 +464,26 @@ drawPointRange(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::
     bm = rect.getYMid();
   }
 
-  double px1, py1, px2, py2, px3, py3;
+  CQChartsGeom::Point p1, p2, p3;
 
   if (orientation != Qt::Horizontal) {
-    plot->windowToPixel(bm, lpos, px1, py1);
-    plot->windowToPixel(bm, mean, px2, py2);
-    plot->windowToPixel(bm, tpos, px3, py3);
+    p1 = plot->windowToPixel(CQChartsGeom::Point(bm, lpos));
+    p2 = plot->windowToPixel(CQChartsGeom::Point(bm, mean));
+    p3 = plot->windowToPixel(CQChartsGeom::Point(bm, tpos));
   }
   else {
-    plot->windowToPixel(lpos, bm, px1, py1);
-    plot->windowToPixel(mean, bm, px2, py2);
-    plot->windowToPixel(tpos, bm, px3, py3);
+    p1 = plot->windowToPixel(CQChartsGeom::Point(lpos, bm));
+    p2 = plot->windowToPixel(CQChartsGeom::Point(mean, bm));
+    p3 = plot->windowToPixel(CQChartsGeom::Point(tpos, bm));
   }
 
   //---
 
   // draw mid line
   if (orientation != Qt::Horizontal)
-    painter->drawLine(QPointF(px1, py1), QPointF(px1, py3));
+    painter->drawLine(QPointF(p1.x, p1.y), QPointF(p1.x, p3.y));
   else
-    painter->drawLine(QPointF(px1, py1), QPointF(px3, py1));
+    painter->drawLine(QPointF(p1.x, p1.y), QPointF(p3.x, p1.y));
 
   //---
 
@@ -492,7 +492,7 @@ drawPointRange(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::
 
   plot->pixelSymbolSize(symbol.size(), sx, sy);
 
-  plot->drawSymbol(painter, QPointF(px2, py2), symbol.type(), CMathUtil::avg(sx, sy), pen, brush);
+  plot->drawSymbol(painter, QPointF(p2.x, p2.y), symbol.type(), CMathUtil::avg(sx, sy), pen, brush);
 }
 
 void
@@ -519,31 +519,31 @@ drawErrorBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BB
     br = rect.getYMax();
   }
 
-  double px1, py1, px2, py2, px3, py3;
+  CQChartsGeom::Point p1, p2, p3;
 
   if (orientation != Qt::Horizontal) {
-    plot->windowToPixel(bl, lpos, px1, py1);
-    plot->windowToPixel(bm, lpos, px2, py2);
-    plot->windowToPixel(br, tpos, px3, py3);
+    p1 = plot->windowToPixel(CQChartsGeom::Point(bl, lpos));
+    p2 = plot->windowToPixel(CQChartsGeom::Point(bm, lpos));
+    p3 = plot->windowToPixel(CQChartsGeom::Point(br, tpos));
   }
   else {
-    plot->windowToPixel(lpos, bl, px1, py1);
-    plot->windowToPixel(lpos, bm, px2, py2);
-    plot->windowToPixel(tpos, br, px3, py3);
+    p1 = plot->windowToPixel(CQChartsGeom::Point(lpos, bl));
+    p2 = plot->windowToPixel(CQChartsGeom::Point(lpos, bm));
+    p3 = plot->windowToPixel(CQChartsGeom::Point(tpos, br));
   }
 
   //---
 
   // draw error bar
   if (orientation != Qt::Horizontal) {
-    painter->drawLine(QPointF(px1, py1), QPointF(px3, py1)); // htop
-    painter->drawLine(QPointF(px1, py3), QPointF(px3, py3)); // hbottom
-    painter->drawLine(QPointF(px2, py1), QPointF(px2, py3)); // vline
+    painter->drawLine(QPointF(p1.x, p1.y), QPointF(p3.x, p1.y)); // htop
+    painter->drawLine(QPointF(p1.x, p3.y), QPointF(p3.x, p3.y)); // hbottom
+    painter->drawLine(QPointF(p2.x, p1.y), QPointF(p2.x, p3.y)); // vline
   }
   else {
-    painter->drawLine(QPointF(px1, py1), QPointF(px1, py3)); // vleft
-    painter->drawLine(QPointF(px3, py1), QPointF(px2, py3)); // vright
-    painter->drawLine(QPointF(px1, py2), QPointF(px3, py2)); // hline
+    painter->drawLine(QPointF(p1.x, p1.y), QPointF(p1.x, p3.y)); // vleft
+    painter->drawLine(QPointF(p3.x, p1.y), QPointF(p2.x, p3.y)); // vright
+    painter->drawLine(QPointF(p1.x, p2.y), QPointF(p3.x, p2.y)); // hline
   }
 }
 
@@ -567,22 +567,22 @@ drawLineRange(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::B
     bm = rect.getYMid();
   }
 
-  double px1, py1, px2, py2;
+  CQChartsGeom::Point p1, p2;
 
   if (orientation != Qt::Horizontal) {
-    plot->windowToPixel(bm, lpos, px1, py1);
-    plot->windowToPixel(bm, tpos, px2, py2);
+    p1 = plot->windowToPixel(CQChartsGeom::Point(bm, lpos));
+    p2 = plot->windowToPixel(CQChartsGeom::Point(bm, tpos));
   }
   else {
-    plot->windowToPixel(lpos, bm, px1, py1);
-    plot->windowToPixel(tpos, bm, px2, py2);
+    p1 = plot->windowToPixel(CQChartsGeom::Point(lpos, bm));
+    p2 = plot->windowToPixel(CQChartsGeom::Point(tpos, bm));
   }
 
   //---
 
   // draw error line
   if (orientation != Qt::Horizontal)
-    painter->drawLine(QPointF(px1, py1), QPointF(px1, py2)); // vline
+    painter->drawLine(QPointF(p1.x, p1.y), QPointF(p1.x, p2.y)); // vline
   else
-    painter->drawLine(QPointF(px1, py1), QPointF(px2, py1)); // hline
+    painter->drawLine(QPointF(p1.x, p1.y), QPointF(p2.x, p1.y)); // hline
 }

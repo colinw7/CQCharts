@@ -1232,9 +1232,7 @@ annotationBBox() const
 
   // if full circle always draw text at center
   if (CMathUtil::realEq(std::abs(a21), 360.0)) {
-    CQChartsGeom::Point pc;
-
-    plot_->windowToPixel(c, pc);
+    CQChartsGeom::Point pc = plot_->windowToPixel(c);
 
     //---
 
@@ -1283,11 +1281,9 @@ annotationBBox() const
       double tx = center.x() + lr1*tc;
       double ty = center.y() + lr1*ts;
 
-      double ptx, pty;
+      CQChartsGeom::Point pt = plot_->windowToPixel(CQChartsGeom::Point(tx, ty));
 
-      plot_->windowToPixel(tx, ty, ptx, pty);
-
-      QPointF pt(ptx, pty);
+      QPointF pt1(pt.x, pt.y);
 
       // calc text angle
       double angle = 0.0;
@@ -1298,7 +1294,7 @@ annotationBBox() const
       // calc text box
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-      bbox = plot_->textBox()->bbox(pt, label(), angle, align);
+      bbox = plot_->textBox()->bbox(pt1, label(), angle, align);
     }
   }
 
@@ -1490,9 +1486,7 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
 
   // if full circle always draw text at center
   if (CMathUtil::realEq(std::abs(a21), 360.0)) {
-    CQChartsGeom::Point pc;
-
-    plot_->windowToPixel(c, pc);
+    CQChartsGeom::Point pc = plot_->windowToPixel(c);
 
     //---
 
@@ -1521,11 +1515,9 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
       double tx = center.x() + lr1*tc;
       double ty = center.y() + lr1*ts;
 
-      double ptx, pty;
+      CQChartsGeom::Point pt = plot_->windowToPixel(CQChartsGeom::Point(tx, ty));
 
-      plot_->windowToPixel(tx, ty, ptx, pty);
-
-      QPointF pt(ptx, pty);
+      QPointF pt1(pt.x, pt.y);
 
       // calc text angle
       double angle = 0.0;
@@ -1536,7 +1528,7 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
       // draw label
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-      plot_->textBox()->draw(painter, pt, label(), angle, align);
+      plot_->textBox()->draw(painter, pt1, label(), angle, align);
     }
   }
 }
@@ -1702,11 +1694,9 @@ drawFg(QPainter *painter) const
   double tx = c.getX() + 0.5*tc;
   double ty = c.getY() + 0.5*ts;
 
-  double ptx, pty;
+  CQChartsGeom::Point pt = plot_->windowToPixel(CQChartsGeom::Point(tx, ty));
 
-  plot_->windowToPixel(tx, ty, ptx, pty);
-
-  QPointF pt(ptx, pty);
+  QPointF pt1(pt.x, pt.y);
 
   QString label = QString("%1").arg(numValues());
 
@@ -1725,7 +1715,7 @@ drawFg(QPainter *painter) const
 
   CQChartsTextOptions textOptions = plot_->adjustTextOptions();
 
-  CQChartsDrawUtil::drawTextAtPoint(painter, pt, label, textOptions);
+  CQChartsDrawUtil::drawTextAtPoint(painter, pt1, label, textOptions);
 }
 
 QColor

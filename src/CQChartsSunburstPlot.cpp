@@ -823,9 +823,7 @@ pushSlot()
 
     QPointF pos = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
 
-    CQChartsGeom::Point w;
-
-    pixelToWindow(CQChartsUtil::fromQPoint(pos), w);
+    CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(pos));
 
     plotObjsAtPoint(w, objs);
   }
@@ -926,16 +924,13 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
     r2 = r1 + node->dr();
   }
 
-  double px11, py11, px21, py21;
-  double px12, py12, px22, py22;
+  CQChartsGeom::Point p11 = windowToPixel(CQChartsGeom::Point(xc - r1, yc - r1));
+  CQChartsGeom::Point p21 = windowToPixel(CQChartsGeom::Point(xc + r1, yc + r1));
+  CQChartsGeom::Point p12 = windowToPixel(CQChartsGeom::Point(xc - r2, yc - r2));
+  CQChartsGeom::Point p22 = windowToPixel(CQChartsGeom::Point(xc + r2, yc + r2));
 
-  windowToPixel(xc - r1, yc - r1, px11, py11);
-  windowToPixel(xc + r1, yc + r1, px21, py21);
-  windowToPixel(xc - r2, yc - r2, px12, py12);
-  windowToPixel(xc + r2, yc + r2, px22, py22);
-
-  QRectF qr1(px11, py21, px21 - px11, py11 - py21);
-  QRectF qr2(px12, py22, px22 - px12, py12 - py22);
+  QRectF qr1(p11.x, p21.y, p21.x - p11.x, p11.y - p21.y);
+  QRectF qr2(p12.x, p22.y, p22.x - p12.x, p12.y - p22.y);
 
   double a1 = node->a();
   double da = node->da();
@@ -1044,15 +1039,13 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
 
   Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-  double px, py;
-
-  windowToPixel(tx, ty, px, py);
+  CQChartsGeom::Point pt = windowToPixel(CQChartsGeom::Point(tx, ty));
 
   QString name = (! node->isFiller() ? node->name() : node->parent()->name());
 
   double ta1 = (c >= 0 ? ta : ta - 180);
 
-  CQChartsRotatedText::draw(painter, px, py, name, ta1, align, /*contrast*/false);
+  CQChartsRotatedText::draw(painter, pt.x, pt.y, name, ta1, align, /*contrast*/false);
 }
 
 //------

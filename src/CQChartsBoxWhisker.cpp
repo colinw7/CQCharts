@@ -32,42 +32,42 @@ drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerDa
   else
     pos = bbox.getXMid();
 
-  double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
+  CQChartsGeom::Point p1, p2, p3, p4, p5;
 
   if (orientation == Qt::Horizontal) {
-    plot->windowToPixel(data.min   , pos - ww/2, px1, py1);
-    plot->windowToPixel(data.lower , pos - ww/2, px2, py2);
-    plot->windowToPixel(data.median, pos       , px3, py3);
-    plot->windowToPixel(data.upper , pos + ww/2, px4, py4);
-    plot->windowToPixel(data.max   , pos + ww/2, px5, py5);
+    p1 = plot->windowToPixel(CQChartsGeom::Point(data.min   , pos - ww/2));
+    p2 = plot->windowToPixel(CQChartsGeom::Point(data.lower , pos - ww/2));
+    p3 = plot->windowToPixel(CQChartsGeom::Point(data.median, pos       ));
+    p4 = plot->windowToPixel(CQChartsGeom::Point(data.upper , pos + ww/2));
+    p5 = plot->windowToPixel(CQChartsGeom::Point(data.max   , pos + ww/2));
   }
   else {
-    plot->windowToPixel(pos - ww/2, data.min   , px1, py1);
-    plot->windowToPixel(pos - ww/2, data.lower , px2, py2);
-    plot->windowToPixel(pos       , data.median, px3, py3);
-    plot->windowToPixel(pos + ww/2, data.upper , px4, py4);
-    plot->windowToPixel(pos + ww/2, data.max   , px5, py5);
+    p1 = plot->windowToPixel(CQChartsGeom::Point(pos - ww/2, data.min   ));
+    p2 = plot->windowToPixel(CQChartsGeom::Point(pos - ww/2, data.lower ));
+    p3 = plot->windowToPixel(CQChartsGeom::Point(pos       , data.median));
+    p4 = plot->windowToPixel(CQChartsGeom::Point(pos + ww/2, data.upper ));
+    p5 = plot->windowToPixel(CQChartsGeom::Point(pos + ww/2, data.max   ));
   }
 
   double cxs = 0.0, cys = 0.0;
 
-  QRectF rect(px2, py2, px4 - px2, py4 - py2);
+  QRectF rect(p2.x, p2.y, p4.x - p2.x, p4.y - p2.y);
 
   CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
 
   if (orientation == Qt::Horizontal) {
-    painter->drawLine(px1, py1, px1, py5);
-    painter->drawLine(px5, py1, px5, py5);
+    painter->drawLine(p1.x, p1.y, p1.x, p5.y);
+    painter->drawLine(p5.x, p1.y, p5.x, p5.y);
 
-    painter->drawLine(px1, py3, px2, py3);
-    painter->drawLine(px4, py3, px5, py3);
+    painter->drawLine(p1.x, p3.y, p2.x, p3.y);
+    painter->drawLine(p4.x, p3.y, p5.x, p3.y);
   }
   else {
-    painter->drawLine(px1, py1, px5, py1);
-    painter->drawLine(px1, py5, px5, py5);
+    painter->drawLine(p1.x, p1.y, p5.x, p1.y);
+    painter->drawLine(p1.x, p5.y, p5.x, p5.y);
 
-    painter->drawLine(px3, py1, px3, py2);
-    painter->drawLine(px3, py4, px3, py5);
+    painter->drawLine(p3.x, p1.y, p3.x, p2.y);
+    painter->drawLine(p3.x, p4.y, p3.x, p5.y);
   }
 }
 
@@ -76,25 +76,25 @@ drawWhiskerBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsWhiske
                double pos, const Qt::Orientation &orientation,
                double ww, double bw, const CQChartsLength &cornerSize, bool notched)
 {
-  double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5, px6, py6, px7, py7;
+  CQChartsGeom::Point p1, p2, p3, p4, p5, p6, p7;
 
   if (orientation != Qt::Horizontal) {
-    plot->windowToPixel(pos - ww/2, data.min   , px1, py1);
-    plot->windowToPixel(pos - bw/2, data.lower , px2, py2);
-    plot->windowToPixel(pos       , data.median, px3, py3);
-    plot->windowToPixel(pos + bw/2, data.upper , px4, py4);
-    plot->windowToPixel(pos + ww/2, data.max   , px5, py5);
-    plot->windowToPixel(pos - ww/4, data.lnotch, px6, py6);
-    plot->windowToPixel(pos + ww/4, data.unotch, px7, py7);
+    p1 = plot->windowToPixel(CQChartsGeom::Point(pos - ww/2, data.min   ));
+    p2 = plot->windowToPixel(CQChartsGeom::Point(pos - bw/2, data.lower ));
+    p3 = plot->windowToPixel(CQChartsGeom::Point(pos       , data.median));
+    p4 = plot->windowToPixel(CQChartsGeom::Point(pos + bw/2, data.upper ));
+    p5 = plot->windowToPixel(CQChartsGeom::Point(pos + ww/2, data.max   ));
+    p6 = plot->windowToPixel(CQChartsGeom::Point(pos - ww/4, data.lnotch));
+    p7 = plot->windowToPixel(CQChartsGeom::Point(pos + ww/4, data.unotch));
   }
   else {
-    plot->windowToPixel(data.min   , pos - ww/2, px1, py1);
-    plot->windowToPixel(data.lower , pos - bw/2, px2, py2);
-    plot->windowToPixel(data.median, pos       , px3, py3);
-    plot->windowToPixel(data.upper , pos + bw/2, px4, py4);
-    plot->windowToPixel(data.max   , pos + ww/2, px5, py5);
-    plot->windowToPixel(data.lnotch, pos - ww/4, px6, py6);
-    plot->windowToPixel(data.unotch, pos + ww/4, px7, py7);
+    p1 = plot->windowToPixel(CQChartsGeom::Point(data.min   , pos - ww/2));
+    p2 = plot->windowToPixel(CQChartsGeom::Point(data.lower , pos - bw/2));
+    p3 = plot->windowToPixel(CQChartsGeom::Point(data.median, pos       ));
+    p4 = plot->windowToPixel(CQChartsGeom::Point(data.upper , pos + bw/2));
+    p5 = plot->windowToPixel(CQChartsGeom::Point(data.max   , pos + ww/2));
+    p6 = plot->windowToPixel(CQChartsGeom::Point(data.lnotch, pos - ww/4));
+    p7 = plot->windowToPixel(CQChartsGeom::Point(data.unotch, pos + ww/4));
   }
 
   //---
@@ -102,22 +102,22 @@ drawWhiskerBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsWhiske
   if (notched) {
     QPolygonF poly;
 
-    poly << QPointF(px2, py2);
-    poly << QPointF(px4, py2);
-    poly << QPointF(px4, py6);
-    poly << QPointF(px7, py3);
-    poly << QPointF(px4, py7);
-    poly << QPointF(px4, py4);
-    poly << QPointF(px2, py4);
-    poly << QPointF(px2, py7);
-    poly << QPointF(px6, py3);
-    poly << QPointF(px2, py6);
-    poly << QPointF(px2, py2);
+    poly << QPointF(p2.x, p2.y);
+    poly << QPointF(p4.x, p2.y);
+    poly << QPointF(p4.x, p6.y);
+    poly << QPointF(p7.x, p3.y);
+    poly << QPointF(p4.x, p7.y);
+    poly << QPointF(p4.x, p4.y);
+    poly << QPointF(p2.x, p4.y);
+    poly << QPointF(p2.x, p7.y);
+    poly << QPointF(p6.x, p3.y);
+    poly << QPointF(p2.x, p6.y);
+    poly << QPointF(p2.x, p2.y);
 
     painter->drawPolygon(poly);
   }
   else {
-    QRectF prect(px2, py2, px4 - px2, py4 - py2);
+    QRectF prect(p2.x, p2.y, p4.x - p2.x, p4.y - p2.y);
 
     double cxs = plot->lengthPixelWidth (cornerSize);
     double cys = plot->lengthPixelHeight(cornerSize);
@@ -129,29 +129,29 @@ drawWhiskerBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsWhiske
 
   // draw extent line
   if (orientation != Qt::Horizontal)
-    painter->drawLine(QPointF(px3, py1), QPointF(px3, py5));
+    painter->drawLine(QPointF(p3.x, p1.y), QPointF(p3.x, p5.y));
   else
-    painter->drawLine(QPointF(px1, py3), QPointF(px5, py3));
+    painter->drawLine(QPointF(p1.x, p3.y), QPointF(p5.x, p3.y));
 
   //---
 
   // draw lower/upper horizontal lines
   if (orientation != Qt::Horizontal) {
-    painter->drawLine(QPointF(px1, py1), QPointF(px5, py1));
-    painter->drawLine(QPointF(px1, py5), QPointF(px5, py5));
+    painter->drawLine(QPointF(p1.x, p1.y), QPointF(p5.x, p1.y));
+    painter->drawLine(QPointF(p1.x, p5.y), QPointF(p5.x, p5.y));
   }
   else {
-    painter->drawLine(QPointF(px1, py1), QPointF(px1, py5));
-    painter->drawLine(QPointF(px5, py1), QPointF(px5, py5));
+    painter->drawLine(QPointF(p1.x, p1.y), QPointF(p1.x, p5.y));
+    painter->drawLine(QPointF(p5.x, p1.y), QPointF(p5.x, p5.y));
   }
 
   //---
 
   // draw median line
   if (orientation != Qt::Horizontal)
-    painter->drawLine(QPointF(px2, py3), QPointF(px4, py3));
+    painter->drawLine(QPointF(p2.x, p3.y), QPointF(p4.x, p3.y));
   else
-    painter->drawLine(QPointF(px3, py2), QPointF(px3, py4));
+    painter->drawLine(QPointF(p3.x, p2.y), QPointF(p3.x, p4.y));
 }
 
 void
@@ -164,15 +164,15 @@ drawOutliers(const CQChartsPlot *plot, QPainter *painter, const std::vector<doub
   plot->pixelSymbolSize(symbol.size(), sx, sy);
 
   for (auto &o : ovalues) {
-    double px1, py1;
+    CQChartsGeom::Point p1;
 
     if (orientation != Qt::Horizontal)
-      plot->windowToPixel(pos, o, px1, py1);
+      p1 = plot->windowToPixel(CQChartsGeom::Point(pos, o));
     else
-      plot->windowToPixel(o, pos, px1, py1);
+      p1 = plot->windowToPixel(CQChartsGeom::Point(o, pos));
 
-    plot->drawSymbol(painter, QPointF(px1, py1), symbol.type(), CMathUtil::avg(sx, sy),
-                     pen, brush);
+    plot->drawSymbol(painter, QPointF(p1.x, p1.y), symbol.type(),
+                     CMathUtil::avg(sx, sy), pen, brush);
   }
 }
 

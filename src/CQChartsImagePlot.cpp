@@ -551,9 +551,7 @@ void
 CQChartsImageObj::
 draw(QPainter *painter)
 {
-  CQChartsGeom::BBox prect;
-
-  plot_->windowToPixel(rect(), prect);
+  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
   QRectF qrect = CQChartsUtil::toQRect(prect);
 

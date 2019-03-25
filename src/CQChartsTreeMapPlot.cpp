@@ -861,9 +861,7 @@ pushSlot()
 
     QPointF pos = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
 
-    CQChartsGeom::Point w;
-
-    pixelToWindow(CQChartsUtil::fromQPoint(pos), w);
+    CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(pos));
 
     plotObjsAtPoint(w, objs);
   }
@@ -993,12 +991,12 @@ void
 CQChartsTreeMapHierObj::
 draw(QPainter *painter)
 {
-  double px1, py1, px2, py2;
+  CQChartsGeom::Point p1 =
+    plot_->windowToPixel(CQChartsGeom::Point(hier_->x()             , hier_->y()             ));
+  CQChartsGeom::Point p2 =
+    plot_->windowToPixel(CQChartsGeom::Point(hier_->x() + hier_->w(), hier_->y() + hier_->h()));
 
-  plot_->windowToPixel(hier_->x()             , hier_->y()             , px1, py1);
-  plot_->windowToPixel(hier_->x() + hier_->w(), hier_->y() + hier_->h(), px2, py2);
-
-  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(px1, py2, px2, py1));
+  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y));
 
   //---
 
@@ -1059,7 +1057,8 @@ draw(QPainter *painter)
 
   QString name = hier_->name();
 
-  plot_->windowToPixel(hier_->x(), hier_->y() + hier_->h(), px1, py1);
+  CQChartsGeom::Point p3 =
+    plot_->windowToPixel(CQChartsGeom::Point(hier_->x(), hier_->y() + hier_->h()));
 
   //---
 
@@ -1078,8 +1077,8 @@ draw(QPainter *painter)
   }
 
   if (visible) {
-    double tx = px1 + 4;
-    double ty = py1 + hh/2 + (fm.ascent() - fm.descent())/2;
+    double tx = p3.x + 4;
+    double ty = p3.y + hh/2 + (fm.ascent() - fm.descent())/2;
 
     painter->setClipRect(qrect);
 
@@ -1185,12 +1184,12 @@ void
 CQChartsTreeMapObj::
 draw(QPainter *painter)
 {
-  double px1, py1, px2, py2;
+  CQChartsGeom::Point p1 =
+    plot_->windowToPixel(CQChartsGeom::Point(node_->x()             , node_->y()             ));
+  CQChartsGeom::Point p2 =
+    plot_->windowToPixel(CQChartsGeom::Point(node_->x() + node_->w(), node_->y() + node_->h()));
 
-  plot_->windowToPixel(node_->x()             , node_->y()             , px1, py1);
-  plot_->windowToPixel(node_->x() + node_->w(), node_->y() + node_->h(), px2, py2);
-
-  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(px1 + 1, py2 + 1, px2 - 1, py1 - 1));
+  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(p1.x + 1, p2.y + 1, p2.x - 1, p1.y - 1));
 
   //---
 

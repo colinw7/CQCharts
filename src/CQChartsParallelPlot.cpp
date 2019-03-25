@@ -659,13 +659,13 @@ drawFgAxes(QPainter *painter) const
     // draw set label
     QString label = axis->label();
 
-    double px = 0.0, py = 0.0;
+    CQChartsGeom::Point p;
 
     if (dataRange_.isSet()) {
       if (! isHorizontal())
-        windowToPixel(j, dataRange_.ymax(), px, py);
+        p = windowToPixel(CQChartsGeom::Point(j, dataRange_.ymax()));
       else
-        windowToPixel(dataRange_.xmax(), j, px, py);
+        p = windowToPixel(CQChartsGeom::Point(dataRange_.xmax(), j));
     }
 
     double tw = fm.width(label);
@@ -685,9 +685,9 @@ drawFgAxes(QPainter *painter) const
     QPointF tp;
 
     if (! isHorizontal())
-      tp = QPointF(px - tw/2.0, py - td - tm);
+      tp = QPointF(p.x - tw/2.0, p.y - td - tm);
     else
-      tp = QPointF(px + tm, py - (ta - td)/2);
+      tp = QPointF(p.x + tm, p.y - (ta - td)/2);
 
     CQChartsDrawUtil::drawSimpleText(painter, tp, label);
 
@@ -964,19 +964,15 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
-  double px, py;
-
-  plot_->windowToPixel(x_, y_, px, py);
+  CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(x_, y_));
 
   double sx, sy;
 
   plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
-  CQChartsGeom::BBox pbbox(px - sx, py - sy, px + sx, py + sy);
+  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
-  CQChartsGeom::Point pp;
-
-  plot_->windowToPixel(p, pp);
+  CQChartsGeom::Point pp = plot_->windowToPixel(p);
 
   return pbbox.inside(pp);
 }

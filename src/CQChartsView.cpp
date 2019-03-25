@@ -1481,10 +1481,10 @@ mouseMoveEvent(QMouseEvent *me)
     }
     else if (mode() == Mode::PAN) {
       if (mouseData_.plot) {
-        CQChartsGeom::Point w1, w2;
-
-        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(oldMovePoint        )), w1);
-        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseData_.movePoint)), w2);
+        CQChartsGeom::Point w1 =
+          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(oldMovePoint        )));
+        CQChartsGeom::Point w2 =
+          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseData_.movePoint)));
 
         double dx = w1.x - w2.x;
         double dy = w1.y - w2.y;
@@ -1550,10 +1550,10 @@ mouseReleaseEvent(QMouseEvent *me)
         }
         else {
           processMouseDataPlots([&](CQChartsPlot *plot, const CQChartsSelMod &selMod) {
-            CQChartsGeom::Point w1, w2;
-
-            plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.pressPoint), w1);
-            plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.movePoint ), w2);
+            CQChartsGeom::Point w1 =
+              plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.pressPoint));
+            CQChartsGeom::Point w2 =
+              plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.movePoint ));
 
             return plot->rectSelect(CQChartsGeom::BBox(w1, w2), selMod);
           }, mouseData_.selMod);
@@ -1570,10 +1570,10 @@ mouseReleaseEvent(QMouseEvent *me)
         return;
 
       if (mouseData_.plot) {
-        CQChartsGeom::Point w1, w2;
-
-        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPointF(mouseData_.pressPoint), w1);
-        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPointF(mouseData_.movePoint ), w2);
+        CQChartsGeom::Point w1 =
+          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPointF(mouseData_.pressPoint));
+        CQChartsGeom::Point w2 =
+          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPointF(mouseData_.movePoint ));
 
         CQChartsGeom::BBox bbox(w1, w2);
 
@@ -1772,9 +1772,7 @@ showProbeLines(const QPointF &p)
   int probeInd = 0;
 
   for (auto &plot : plots) {
-    CQChartsGeom::Point w;
-
-    plot->pixelToWindow(CQChartsUtil::fromQPoint(p), w);
+    CQChartsGeom::Point w = plot->pixelToWindow(CQChartsUtil::fromQPoint(p));
 
     //---
 
@@ -1793,14 +1791,12 @@ showProbeLines(const QPointF &p)
         probeData.yvals.emplace_back(w.y);
 
       // add probe lines from ymin to probed y values
-      CQChartsGeom::Point p1;
-
-      plot->windowToPixel(CQChartsGeom::Point(probeData.x, dataRange.getYMin()), p1);
+      CQChartsGeom::Point p1 =
+        plot->windowToPixel(CQChartsGeom::Point(probeData.x, dataRange.getYMin()));
 
       for (const auto &yval : probeData.yvals) {
-        CQChartsGeom::Point p2;
-
-        plot->windowToPixel(CQChartsGeom::Point(probeData.x, yval.value), p2);
+        CQChartsGeom::Point p2 =
+          plot->windowToPixel(CQChartsGeom::Point(probeData.x, yval.value));
 
         QString tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
 
@@ -1812,14 +1808,12 @@ showProbeLines(const QPointF &p)
         probeData.xvals.emplace_back(w.x);
 
       // add probe lines from xmin to probed x values
-      CQChartsGeom::Point p1;
-
-      plot->windowToPixel(CQChartsGeom::Point(dataRange.getXMin(), probeData.y), p1);
+      CQChartsGeom::Point p1 =
+        plot->windowToPixel(CQChartsGeom::Point(dataRange.getXMin(), probeData.y));
 
       for (const auto &xval : probeData.xvals) {
-        CQChartsGeom::Point p2;
-
-        plot->windowToPixel(CQChartsGeom::Point(xval.value, probeData.y), p2);
+        CQChartsGeom::Point p2 =
+          plot->windowToPixel(CQChartsGeom::Point(xval.value, probeData.y));
 
         QString tip = (xval.label.length() ? xval.label : plot->xStr(xval.value));
 
@@ -1975,9 +1969,7 @@ updatePosText(const QPointF &pos)
       basePlotsAt(w, plots);
 
     for (const auto &plot : plots) {
-      CQChartsGeom::Point w;
-
-      plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(pos)), w);
+      CQChartsGeom::Point w = plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(pos)));
 
       if (posStr.length())
         posStr += " ";
@@ -2382,9 +2374,6 @@ void
 CQChartsView::
 searchSlot()
 {
-  //QPointF p = mapFromGlobal(QCursor::pos());
-
-  //CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(p));
   CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(searchPos_));
 
   plotsAt(w, mouseData_.plots, mouseData_.plot, /*clear*/true, /*first*/true);
@@ -4061,14 +4050,14 @@ lengthPixelHeight(const CQChartsLength &len) const
 
 void
 CQChartsView::
-windowToPixel(double wx, double wy, double &px, double &py) const
+windowToPixelI(double wx, double wy, double &px, double &py) const
 {
   displayRange_->windowToPixel(wx, wy, &px, &py);
 }
 
 void
 CQChartsView::
-pixelToWindow(double px, double py, double &wx, double &wy) const
+pixelToWindowI(double px, double py, double &wx, double &wy) const
 {
   displayRange_->pixelToWindow(px, py, &wx, &wy);
 }
@@ -4079,7 +4068,7 @@ windowToPixel(const CQChartsGeom::Point &w) const
 {
   CQChartsGeom::Point p;
 
-  windowToPixel(w.x, w.y, p.x, p.y);
+  windowToPixelI(w.x, w.y, p.x, p.y);
 
   return p;
 }
@@ -4090,7 +4079,7 @@ pixelToWindow(const CQChartsGeom::Point &p) const
 {
   CQChartsGeom::Point w;
 
-  pixelToWindow(p.x, p.y, w.x, w.y);
+  pixelToWindowI(p.x, p.y, w.x, w.y);
 
   return w;
 }
@@ -4101,8 +4090,8 @@ windowToPixel(const CQChartsGeom::BBox &wrect) const
 {
   double px1, py1, px2, py2;
 
-  windowToPixel(wrect.getXMin(), wrect.getYMin(), px1, py2);
-  windowToPixel(wrect.getXMax(), wrect.getYMax(), px2, py1);
+  windowToPixelI(wrect.getXMin(), wrect.getYMin(), px1, py2);
+  windowToPixelI(wrect.getXMax(), wrect.getYMax(), px2, py1);
 
   return CQChartsGeom::BBox(px1, py1, px2, py2);
 }
@@ -4113,8 +4102,8 @@ pixelToWindow(const CQChartsGeom::BBox &prect) const
 {
   double wx1, wy1, wx2, wy2;
 
-  pixelToWindow(prect.getXMin(), prect.getYMin(), wx1, wy2);
-  pixelToWindow(prect.getXMax(), prect.getYMax(), wx2, wy1);
+  pixelToWindowI(prect.getXMin(), prect.getYMin(), wx1, wy2);
+  pixelToWindowI(prect.getXMax(), prect.getYMax(), wx2, wy1);
 
   return CQChartsGeom::BBox(wx1, wy1, wx2, wy2);
 }
@@ -4139,8 +4128,8 @@ pixelToWindowWidth(double pw) const
 {
   double wx1, wy1, wx2, wy2;
 
-  pixelToWindow( 0, 0, wx1, wy1);
-  pixelToWindow(pw, 0, wx2, wy2);
+  pixelToWindowI( 0, 0, wx1, wy1);
+  pixelToWindowI(pw, 0, wx2, wy2);
 
   return std::abs(wx2 - wx1);
 }
@@ -4151,8 +4140,8 @@ pixelToWindowHeight(double ph) const
 {
   double wx1, wy1, wx2, wy2;
 
-  pixelToWindow(0, 0 , wx1, wy1);
-  pixelToWindow(0, ph, wx2, wy2);
+  pixelToWindowI(0, 0 , wx1, wy1);
+  pixelToWindowI(0, ph, wx2, wy2);
 
   return std::abs(wy2 - wy1);
 }
@@ -4177,8 +4166,8 @@ windowToPixelWidth(double ww) const
 {
   double px1, py1, px2, py2;
 
-  windowToPixel( 0, 0, px1, py1);
-  windowToPixel(ww, 0, px2, py2);
+  windowToPixelI( 0, 0, px1, py1);
+  windowToPixelI(ww, 0, px2, py2);
 
   return std::abs(px2 - px1);
 }
@@ -4189,8 +4178,8 @@ windowToPixelHeight(double wh) const
 {
   double px1, py1, px2, py2;
 
-  windowToPixel(0, 0 , px1, py1);
-  windowToPixel(0, wh, px2, py2);
+  windowToPixelI(0, 0 , px1, py1);
+  windowToPixelI(0, wh, px2, py2);
 
   return std::abs(py2 - py1);
 }

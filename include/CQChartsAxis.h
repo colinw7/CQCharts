@@ -224,6 +224,11 @@ class CQChartsAxis : public CQChartsObj,
 
   //---
 
+  double majorTickIncrement() const;
+  double minorTickIncrement() const;
+
+  //---
+
   // used ?
   const double *tickSpaces() const { return &tickSpaces_[0]; }
   uint          numTickSpaces() const { return tickSpaces_.size(); }

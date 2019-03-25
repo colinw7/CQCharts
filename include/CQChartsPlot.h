@@ -929,20 +929,11 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void windowToPixel(double wx, double wy, double &px, double &py) const;
-  void windowToView (double wx, double wy, double &vx, double &vy) const;
-
   double windowToViewWidth (double wx) const;
   double windowToViewHeight(double wy) const;
 
   double viewToWindowWidth (double vx) const;
   double viewToWindowHeight(double vy) const;
-
-  void pixelToWindow(double px, double py, double &wx, double &wy) const;
-  void viewToWindow (double vx, double vy, double &wx, double &wy) const;
-
-  void windowToPixel(const CQChartsGeom::Point &w, CQChartsGeom::Point &p) const;
-  void pixelToWindow(const CQChartsGeom::Point &p, CQChartsGeom::Point &w) const;
 
   CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &w) const;
   CQChartsGeom::Point windowToView (const CQChartsGeom::Point &w) const;
@@ -953,9 +944,6 @@ class CQChartsPlot : public CQChartsObj,
   QPointF windowToView (const QPointF &w) const;
   QPointF pixelToWindow(const QPointF &p) const;
   QPointF viewToWindow (const QPointF &v) const;
-
-  void windowToPixel(const CQChartsGeom::BBox &wrect, CQChartsGeom::BBox &prect) const;
-  void pixelToWindow(const CQChartsGeom::BBox &prect, CQChartsGeom::BBox &wrect) const;
 
   CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &wrect) const;
   CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &prect) const;
@@ -979,8 +967,22 @@ class CQChartsPlot : public CQChartsObj,
   double windowToPixelWidth (double ww) const;
   double windowToPixelHeight(double wh) const;
 
+ private:
+  void windowToPixelI(const CQChartsGeom::Point &w, CQChartsGeom::Point &p) const;
+  void pixelToWindowI(const CQChartsGeom::Point &p, CQChartsGeom::Point &w) const;
+
+  void windowToPixelI(const CQChartsGeom::BBox &wrect, CQChartsGeom::BBox &prect) const;
+  void pixelToWindowI(const CQChartsGeom::BBox &prect, CQChartsGeom::BBox &wrect) const;
+
+  void pixelToWindowI(double px, double py, double &wx, double &wy) const;
+  void viewToWindowI (double vx, double vy, double &wx, double &wy) const;
+
+  void windowToPixelI(double wx, double wy, double &px, double &py) const;
+  void windowToViewI (double wx, double wy, double &vx, double &vy) const;
+
   //---
 
+ public:
   void plotSymbolSize (const CQChartsLength &s, double &sx, double &sy) const;
   void pixelSymbolSize(const CQChartsLength &s, double &sx, double &sy) const;
 

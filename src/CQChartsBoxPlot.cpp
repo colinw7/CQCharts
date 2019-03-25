@@ -2056,22 +2056,22 @@ draw(QPainter *painter)
     double wd1 = ww/2.0;
     double wd2 = bw/2.0;
 
-    double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
+    CQChartsGeom::Point p1, p2, p3, p4, p5;
 
     if (plot_->drawLayerType() == CQChartsLayer::Type::MID_PLOT) {
       if (! plot_->isHorizontal()) {
-        plot_->windowToPixel(pos - wd1, data.min   , px1, py1);
-        plot_->windowToPixel(pos - wd2, data.lower , px2, py2);
-        plot_->windowToPixel(pos      , data.median, px3, py3);
-        plot_->windowToPixel(pos + wd2, data.upper , px4, py4);
-        plot_->windowToPixel(pos + wd1, data.max   , px5, py5);
+        p1 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd1, data.min   ));
+        p2 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd2, data.lower ));
+        p3 = plot_->windowToPixel(CQChartsGeom::Point(pos      , data.median));
+        p4 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd2, data.upper ));
+        p5 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd1, data.max   ));
       }
       else {
-        plot_->windowToPixel(data.min   , pos - wd1, px1, py1);
-        plot_->windowToPixel(data.lower , pos - wd2, px2, py2);
-        plot_->windowToPixel(data.median, pos      , px3, py3);
-        plot_->windowToPixel(data.upper , pos + wd2, px4, py4);
-        plot_->windowToPixel(data.max   , pos + wd1, px5, py5);
+        p1 = plot_->windowToPixel(CQChartsGeom::Point(data.min   , pos - wd1));
+        p2 = plot_->windowToPixel(CQChartsGeom::Point(data.lower , pos - wd2));
+        p3 = plot_->windowToPixel(CQChartsGeom::Point(data.median, pos      ));
+        p4 = plot_->windowToPixel(CQChartsGeom::Point(data.upper , pos + wd2));
+        p5 = plot_->windowToPixel(CQChartsGeom::Point(data.max   , pos + wd1));
       }
 
       // draw labels
@@ -2100,27 +2100,27 @@ draw(QPainter *painter)
           QString strh = QString("%1").arg(this->max   ());
 
           if (! plot_->isHorizontal()) {
-            drawHText(painter, px1, px5, py1, strl, /*onLeft*/true );
-            drawHText(painter, px2, px4, py2, lstr, /*onLeft*/false);
-            drawHText(painter, px2, px4, py3, mstr, /*onLeft*/true );
-            drawHText(painter, px2, px4, py4, ustr, /*onLeft*/false);
-            drawHText(painter, px1, px5, py5, strh, /*onLeft*/true );
+            drawHText(painter, p1.x, p5.x, p1.y, strl, /*onLeft*/true );
+            drawHText(painter, p2.x, p4.x, p2.y, lstr, /*onLeft*/false);
+            drawHText(painter, p2.x, p4.x, p3.y, mstr, /*onLeft*/true );
+            drawHText(painter, p2.x, p4.x, p4.y, ustr, /*onLeft*/false);
+            drawHText(painter, p1.x, p5.x, p5.y, strh, /*onLeft*/true );
           }
           else {
-            drawVText(painter, py1, py5, px1, strl, /*onBottom*/false);
-            drawVText(painter, py2, py4, px2, lstr, /*onBottom*/true );
-            drawVText(painter, py2, py4, px3, mstr, /*onBottom*/false);
-            drawVText(painter, py2, py4, px4, ustr, /*onBottom*/true );
-            drawVText(painter, py1, py5, px5, strh, /*onBottom*/false);
+            drawVText(painter, p1.y, p5.y, p1.x, strl, /*onBottom*/false);
+            drawVText(painter, p2.y, p4.y, p2.x, lstr, /*onBottom*/true );
+            drawVText(painter, p2.y, p4.y, p3.x, mstr, /*onBottom*/false);
+            drawVText(painter, p2.y, p4.y, p4.x, ustr, /*onBottom*/true );
+            drawVText(painter, p1.y, p5.y, p5.x, strh, /*onBottom*/false);
           }
         }
         else {
           QString strl = QString("%1").arg(this->min());
 
           if (! plot_->isHorizontal())
-            drawHText(painter, px1, px5, py1, strl, /*onLeft*/true);
+            drawHText(painter, p1.x, p5.x, p1.y, strl, /*onLeft*/true);
           else
-            drawVText(painter, py1, py5, px1, strl, /*onBottom*/false);
+            drawVText(painter, p1.y, p5.y, p1.x, strl, /*onBottom*/false);
         }
       }
 
@@ -2178,21 +2178,21 @@ annotationBBox() const
   double wd1 = ww/2.0;
   double wd2 = bw/2.0;
 
-  double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
+  CQChartsGeom::Point p1, p2, p3, p4, p5;
 
   if (! plot_->isHorizontal()) {
-    plot_->windowToPixel(pos - wd1, remapPos(min   ()), px1, py1);
-    plot_->windowToPixel(pos - wd2, remapPos(lower ()), px2, py2);
-    plot_->windowToPixel(pos      , remapPos(median()), px3, py3);
-    plot_->windowToPixel(pos + wd2, remapPos(upper ()), px4, py4);
-    plot_->windowToPixel(pos + wd1, remapPos(max   ()), px5, py5);
+    p1 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd1, remapPos(min   ())));
+    p2 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd2, remapPos(lower ())));
+    p3 = plot_->windowToPixel(CQChartsGeom::Point(pos      , remapPos(median())));
+    p4 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd2, remapPos(upper ())));
+    p5 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd1, remapPos(max   ())));
   }
   else {
-    plot_->windowToPixel(remapPos(min   ()), pos - wd1, px1, py1);
-    plot_->windowToPixel(remapPos(lower ()), pos - wd2, px2, py2);
-    plot_->windowToPixel(remapPos(median()), pos      , px3, py3);
-    plot_->windowToPixel(remapPos(upper ()), pos + wd2, px4, py4);
-    plot_->windowToPixel(remapPos(max   ()), pos + wd1, px5, py5);
+    p1 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(min   ()), pos - wd1));
+    p2 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(lower ()), pos - wd2));
+    p3 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(median()), pos      ));
+    p4 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(upper ()), pos + wd2));
+    p5 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(max   ()), pos + wd1));
   }
 
   //---
@@ -2210,51 +2210,49 @@ annotationBBox() const
       QString strh = QString("%1").arg(max   ());
 
       if (! plot_->isHorizontal()) {
-        addHBBox(pbbox, px1, px5, py1, strl, /*onLeft*/false);
-        addHBBox(pbbox, px2, py4, py2, lstr, /*onLeft*/true );
-        addHBBox(pbbox, px2, px4, py3, mstr, /*onLeft*/false);
-        addHBBox(pbbox, px2, px4, py4, ustr, /*onLeft*/true );
-        addHBBox(pbbox, px1, px5, py5, strh, /*onLeft*/false);
+        addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
+        addHBBox(pbbox, p2.x, p4.x, p2.y, lstr, /*onLeft*/true );
+        addHBBox(pbbox, p2.x, p4.x, p3.y, mstr, /*onLeft*/false);
+        addHBBox(pbbox, p2.x, p4.x, p4.y, ustr, /*onLeft*/true );
+        addHBBox(pbbox, p1.x, p5.x, p5.y, strh, /*onLeft*/false);
       }
       else {
-        addVBBox(pbbox, py1, py5, px1, strl, /*onBottom*/true );
-        addVBBox(pbbox, py2, py4, px2, lstr, /*onBottom*/false);
-        addVBBox(pbbox, py2, py4, px3, mstr, /*onBottom*/true );
-        addVBBox(pbbox, py2, py4, px4, ustr, /*onBottom*/false);
-        addVBBox(pbbox, py1, py5, px5, strh, /*onBottom*/true );
+        addVBBox(pbbox, p1.y, p5.y, p1.x, strl, /*onBottom*/true );
+        addVBBox(pbbox, p2.y, p4.y, p2.x, lstr, /*onBottom*/false);
+        addVBBox(pbbox, p2.y, p4.y, p3.x, mstr, /*onBottom*/true );
+        addVBBox(pbbox, p2.y, p4.y, p4.x, ustr, /*onBottom*/false);
+        addVBBox(pbbox, p1.y, p5.y, p5.x, strh, /*onBottom*/true );
       }
     }
     else {
       QString strl = QString("%1").arg(min());
 
       if (! plot_->isHorizontal())
-        addHBBox(pbbox, px1, px5, py1, strl, /*onLeft*/false);
+        addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
       else
-        addVBBox(pbbox, py1, py5, px1, strl, /*onBottom*/true);
+        addVBBox(pbbox, p1.y, p5.y, p1.x, strl, /*onBottom*/true);
     }
   }
   else {
     if (! plot_->isHorizontal()) {
-      pbbox += CQChartsGeom::Point(px5, py1);
-      pbbox += CQChartsGeom::Point(px2, py2);
-      pbbox += CQChartsGeom::Point(px4, py3);
-      pbbox += CQChartsGeom::Point(px2, py4);
-      pbbox += CQChartsGeom::Point(px5, py5);
+      pbbox += CQChartsGeom::Point(p5.x, p1.y);
+      pbbox += CQChartsGeom::Point(p2.x, p2.y);
+      pbbox += CQChartsGeom::Point(p4.x, p3.y);
+      pbbox += CQChartsGeom::Point(p2.x, p4.y);
+      pbbox += CQChartsGeom::Point(p5.x, p5.y);
     }
     else {
-      pbbox += CQChartsGeom::Point(px1, py5);
-      pbbox += CQChartsGeom::Point(px2, py2);
-      pbbox += CQChartsGeom::Point(px3, py4);
-      pbbox += CQChartsGeom::Point(px4, py2);
-      pbbox += CQChartsGeom::Point(px5, py5);
+      pbbox += CQChartsGeom::Point(p1.x, p5.y);
+      pbbox += CQChartsGeom::Point(p2.x, p2.y);
+      pbbox += CQChartsGeom::Point(p3.x, p4.y);
+      pbbox += CQChartsGeom::Point(p4.x, p2.y);
+      pbbox += CQChartsGeom::Point(p5.x, p5.y);
     }
   }
 
   //---
 
-  CQChartsGeom::BBox bbox;
-
-  plot_->pixelToWindow(pbbox, bbox);
+  CQChartsGeom::BBox bbox = plot_->pixelToWindow(pbbox);
 
   return bbox;
 }
@@ -2529,21 +2527,21 @@ draw(QPainter *painter)
     double wd1 = ww/2.0;
     double wd2 = bw/2.0;
 
-    double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
+    CQChartsGeom::Point p1, p2, p3, p4, p5;
 
     if (! plot_->isHorizontal()) {
-      plot_->windowToPixel(pos - wd1, remapPos(data_.min   ), px1, py1);
-      plot_->windowToPixel(pos - wd2, remapPos(data_.lower ), px2, py2);
-      plot_->windowToPixel(pos      , remapPos(data_.median), px3, py3);
-      plot_->windowToPixel(pos + wd2, remapPos(data_.upper ), px4, py4);
-      plot_->windowToPixel(pos + wd1, remapPos(data_.max   ), px5, py5);
+      p1 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd1, remapPos(data_.min   )));
+      p2 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd2, remapPos(data_.lower )));
+      p3 = plot_->windowToPixel(CQChartsGeom::Point(pos      , remapPos(data_.median)));
+      p4 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd2, remapPos(data_.upper )));
+      p5 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd1, remapPos(data_.max   )));
     }
     else {
-      plot_->windowToPixel(remapPos(data_.min   ), pos - wd1, px1, py1);
-      plot_->windowToPixel(remapPos(data_.lower ), pos - wd2, px2, py2);
-      plot_->windowToPixel(remapPos(data_.median), pos      , px3, py3);
-      plot_->windowToPixel(remapPos(data_.upper ), pos + wd2, px4, py4);
-      plot_->windowToPixel(remapPos(data_.max   ), pos + wd1, px5, py5);
+      p1 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.min   ), pos - wd1));
+      p2 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.lower ), pos - wd2));
+      p3 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.median), pos      ));
+      p4 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.upper ), pos + wd2));
+      p5 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.max   ), pos + wd1));
     }
 
     //---
@@ -2569,18 +2567,18 @@ draw(QPainter *painter)
     QString strh = QString("%1").arg(data_.max   );
 
     if (! plot_->isHorizontal()) {
-      drawHText(painter, px1, px5, py1, strl, /*onLeft*/false);
-      drawHText(painter, px2, py4, py2, lstr, /*onLeft*/true );
-      drawHText(painter, px2, px4, py3, mstr, /*onLeft*/false);
-      drawHText(painter, px2, px4, py4, ustr, /*onLeft*/true );
-      drawHText(painter, px1, px5, py5, strh, /*onLeft*/false);
+      drawHText(painter, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
+      drawHText(painter, p2.x, p4.x, p2.y, lstr, /*onLeft*/true );
+      drawHText(painter, p2.x, p4.x, p3.y, mstr, /*onLeft*/false);
+      drawHText(painter, p2.x, p4.x, p4.y, ustr, /*onLeft*/true );
+      drawHText(painter, p1.x, p5.x, p5.y, strh, /*onLeft*/false);
     }
     else {
-      drawVText(painter, py1, py5, px1, strl, /*onBottom*/true );
-      drawVText(painter, py2, py4, px2, lstr, /*onBottom*/false);
-      drawVText(painter, py2, py4, px3, mstr, /*onBottom*/true );
-      drawVText(painter, py2, py4, px4, ustr, /*onBottom*/false);
-      drawVText(painter, py1, py5, px5, strh, /*onBottom*/true );
+      drawVText(painter, p1.y, p5.y, p1.x, strl, /*onBottom*/true );
+      drawVText(painter, p2.y, p4.y, p2.x, lstr, /*onBottom*/false);
+      drawVText(painter, p2.y, p4.y, p3.x, mstr, /*onBottom*/true );
+      drawVText(painter, p2.y, p4.y, p4.x, ustr, /*onBottom*/false);
+      drawVText(painter, p1.y, p5.y, p5.x, strh, /*onBottom*/true );
     }
   }
 
@@ -2631,21 +2629,21 @@ annotationBBox() const
   double wd1 = ww/2.0;
   double wd2 = bw/2.0;
 
-  double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
+  CQChartsGeom::Point p1, p2, p3, p4, p5;
 
   if (! plot_->isHorizontal()) {
-    plot_->windowToPixel(pos - wd1, remapPos(data_.min   ), px1, py1);
-    plot_->windowToPixel(pos - wd2, remapPos(data_.lower ), px2, py2);
-    plot_->windowToPixel(pos      , remapPos(data_.median), px3, py3);
-    plot_->windowToPixel(pos + wd2, remapPos(data_.upper ), px4, py4);
-    plot_->windowToPixel(pos + wd1, remapPos(data_.max   ), px5, py5);
+    p1 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd1, remapPos(data_.min   )));
+    p2 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd2, remapPos(data_.lower )));
+    p3 = plot_->windowToPixel(CQChartsGeom::Point(pos      , remapPos(data_.median)));
+    p4 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd2, remapPos(data_.upper )));
+    p5 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd1, remapPos(data_.max   )));
   }
   else {
-    plot_->windowToPixel(remapPos(data_.min   ), pos - wd1, px1, py1);
-    plot_->windowToPixel(remapPos(data_.lower ), pos - wd2, px2, py2);
-    plot_->windowToPixel(remapPos(data_.median), pos      , px3, py3);
-    plot_->windowToPixel(remapPos(data_.upper ), pos + wd2, px4, py4);
-    plot_->windowToPixel(remapPos(data_.max   ), pos + wd1, px5, py5);
+    p1 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.min   ), pos - wd1));
+    p2 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.lower ), pos - wd2));
+    p3 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.median), pos      ));
+    p4 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.upper ), pos + wd2));
+    p5 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.max   ), pos + wd1));
   }
 
   //---
@@ -2660,42 +2658,40 @@ annotationBBox() const
     QString strh = QString("%1").arg(data_.max   );
 
     if (! plot_->isHorizontal()) {
-      addHBBox(pbbox, px1, px5, py1, strl, /*onLeft*/false);
-      addHBBox(pbbox, px2, py4, py2, lstr, /*onLeft*/true );
-      addHBBox(pbbox, px2, px4, py3, mstr, /*onLeft*/false);
-      addHBBox(pbbox, px2, px4, py4, ustr, /*onLeft*/true );
-      addHBBox(pbbox, px1, px5, py5, strh, /*onLeft*/false);
+      addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
+      addHBBox(pbbox, p2.x, p4.x, p2.y, lstr, /*onLeft*/true );
+      addHBBox(pbbox, p2.x, p4.x, p3.y, mstr, /*onLeft*/false);
+      addHBBox(pbbox, p2.x, p4.x, p4.y, ustr, /*onLeft*/true );
+      addHBBox(pbbox, p1.x, p5.x, p5.y, strh, /*onLeft*/false);
     }
     else {
-      addVBBox(pbbox, py1, py5, px1, strl, /*onBottom*/true );
-      addVBBox(pbbox, py2, py4, px2, lstr, /*onBottom*/false);
-      addVBBox(pbbox, py2, py4, px3, mstr, /*onBottom*/true );
-      addVBBox(pbbox, py2, py4, px4, ustr, /*onBottom*/false);
-      addVBBox(pbbox, py1, py5, px5, strh, /*onBottom*/true );
+      addVBBox(pbbox, p1.y, p5.y, p1.x, strl, /*onBottom*/true );
+      addVBBox(pbbox, p2.y, p4.y, p2.x, lstr, /*onBottom*/false);
+      addVBBox(pbbox, p2.y, p4.y, p3.x, mstr, /*onBottom*/true );
+      addVBBox(pbbox, p2.y, p4.y, p4.x, ustr, /*onBottom*/false);
+      addVBBox(pbbox, p1.y, p5.y, p5.x, strh, /*onBottom*/true );
     }
   }
   else {
     if (! plot_->isHorizontal()) {
-      pbbox += CQChartsGeom::Point(px5, py1);
-      pbbox += CQChartsGeom::Point(px2, py2);
-      pbbox += CQChartsGeom::Point(px4, py3);
-      pbbox += CQChartsGeom::Point(px2, py4);
-      pbbox += CQChartsGeom::Point(px5, py5);
+      pbbox += CQChartsGeom::Point(p5.x, p1.y);
+      pbbox += CQChartsGeom::Point(p2.x, p2.y);
+      pbbox += CQChartsGeom::Point(p4.x, p3.y);
+      pbbox += CQChartsGeom::Point(p2.x, p4.y);
+      pbbox += CQChartsGeom::Point(p5.x, p5.y);
     }
     else {
-      pbbox += CQChartsGeom::Point(px1, py5);
-      pbbox += CQChartsGeom::Point(px2, py2);
-      pbbox += CQChartsGeom::Point(px3, py4);
-      pbbox += CQChartsGeom::Point(px4, py2);
-      pbbox += CQChartsGeom::Point(px5, py5);
+      pbbox += CQChartsGeom::Point(p1.x, p5.y);
+      pbbox += CQChartsGeom::Point(p2.x, p2.y);
+      pbbox += CQChartsGeom::Point(p3.x, p4.y);
+      pbbox += CQChartsGeom::Point(p4.x, p2.y);
+      pbbox += CQChartsGeom::Point(p5.x, p5.y);
     }
   }
 
   //---
 
-  CQChartsGeom::BBox bbox;
-
-  plot_->pixelToWindow(pbbox, bbox);
+  CQChartsGeom::BBox bbox = plot_->pixelToWindow(pbbox);
 
   return bbox;
 }
@@ -3050,15 +3046,11 @@ bool
 CQChartsBoxPlotPointObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  double px, py;
+  CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(p_.x(), p_.y()));
 
-  plot_->windowToPixel(p_.x(), p_.y(), px, py);
+  CQChartsGeom::BBox pbbox(p1.x - 4, p1.y - 4, p1.x + 4, p1.y + 4);
 
-  CQChartsGeom::BBox pbbox(px - 4, py - 4, px + 4, py + 4);
-
-  CQChartsGeom::Point pp;
-
-  plot_->windowToPixel(p, pp);
+  CQChartsGeom::Point pp = plot_->windowToPixel(p);
 
   return pbbox.inside(pp);
 }
@@ -3119,16 +3111,14 @@ draw(QPainter *painter)
 
   //---
 
-  double px, py;
-
-  plot_->windowToPixel(p_.x(), p_.y(), px, py);
+  CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(p_.x(), p_.y()));
 
   //---
 
   // draw symbol
-  QRectF erect(px - sx, py - sy, 2*sx, 2*sy);
+  QRectF erect(p1.x - sx, p1.y - sy, 2*sx, 2*sy);
 
-  plot_->drawSymbol(painter, QPointF(px, py), symbol, CMathUtil::avg(sx, sy), pen, brush);
+  plot_->drawSymbol(painter, QPointF(p1.x, p1.y), symbol, CMathUtil::avg(sx, sy), pen, brush);
 }
 
 //------

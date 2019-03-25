@@ -586,7 +586,7 @@ draw(QPainter *painter)
   CQChartsGeom::BBox prect;
 
   if      (plot())
-    plot()->windowToPixel(bbox_, prect);
+    prect = plot()->windowToPixel(bbox_);
   else if (view())
     prect = view()->windowToPixel(bbox_);
 
@@ -762,7 +762,7 @@ draw(QPainter *painter)
   CQChartsGeom::BBox prect;
 
   if      (plot())
-    plot()->windowToPixel(bbox_, prect);
+    prect = plot()->windowToPixel(bbox_);
   else if (view())
     prect = view()->windowToPixel(bbox_);
 
@@ -947,24 +947,24 @@ draw(QPainter *painter)
   // create path
   QPainterPath path;
 
-  double px = 0.0, py = 0.0;
+  CQChartsGeom::Point p1;
 
   if      (plot())
-    plot()->windowToPixel(polygon[0].x(), polygon[0].y(), px, py);
+    p1 = plot()->windowToPixel(CQChartsGeom::Point(polygon[0].x(), polygon[0].y()));
   else if (view())
-    view()->windowToPixel(polygon[0].x(), polygon[0].y(), px, py);
+    p1 = view()->windowToPixel(CQChartsGeom::Point(polygon[0].x(), polygon[0].y()));
 
-  path.moveTo(px, py);
+  path.moveTo(p1.x, p1.y);
 
   for (int i = 1; i < polygon.size(); ++i) {
-    double px = 0.0, py = 0.0;
+    CQChartsGeom::Point p2;
 
     if      (plot())
-      plot()->windowToPixel(polygon[i].x(), polygon[i].y(), px, py);
+      p2 = plot()->windowToPixel(CQChartsGeom::Point(polygon[i].x(), polygon[i].y()));
     else if (view())
-      view()->windowToPixel(polygon[i].x(), polygon[i].y(), px, py);
+      p2 = view()->windowToPixel(CQChartsGeom::Point(polygon[i].x(), polygon[i].y()));
 
-    path.lineTo(px, py);
+    path.lineTo(p2.x, p2.y);
   }
 
   path.closeSubpath();
@@ -1018,9 +1018,9 @@ write(std::ostream &os) const
     for (int i = 0; i < polygon.size(); ++i) {
       if (i > 0) os << " ";
 
-      const QPointF &p = polygon[i];
+      const QPointF &p1 = polygon[i];
 
-      os << "{" << p.x() << " " << p.y() << "}";
+      os << "{" << p1.x() << " " << p1.y() << "}";
     }
 
     os << "}";
@@ -1109,11 +1109,7 @@ bool
 CQChartsPolylineAnnotation::
 inside(const CQChartsGeom::Point &p) const
 {
-  double px, py;
-
-  plot()->windowToPixel(p.x, p.y, px, py);
-
-  CQChartsGeom::Point pp(px, py);
+  CQChartsGeom::Point pp = plot()->windowToPixel(p);
 
   const QPolygonF &polygon = polygon_.polygon();
 
@@ -1123,13 +1119,8 @@ inside(const CQChartsGeom::Point &p) const
     double x2 = polygon[i    ].x();
     double y2 = polygon[i    ].y();
 
-    double px1, py1, px2, py2;
-
-    plot()->windowToPixel(x1, y1, px1, py1);
-    plot()->windowToPixel(x2, y2, px2, py2);
-
-    CQChartsGeom::Point pl1(px1, py1);
-    CQChartsGeom::Point pl2(px2, py2);
+    CQChartsGeom::Point pl1 = plot()->windowToPixel(CQChartsGeom::Point(x1, y1));
+    CQChartsGeom::Point pl2 = plot()->windowToPixel(CQChartsGeom::Point(x2, y2));
 
     double d;
 
@@ -1168,24 +1159,24 @@ draw(QPainter *painter)
   // create path
   QPainterPath path;
 
-  double px = 0.0, py = 0.0;
+  CQChartsGeom::Point p1;
 
   if      (plot())
-    plot()->windowToPixel(polygon[0].x(), polygon[0].y(), px, py);
+    p1 = plot()->windowToPixel(CQChartsGeom::Point(polygon[0].x(), polygon[0].y()));
   else if (view())
-    view()->windowToPixel(polygon[0].x(), polygon[0].y(), px, py);
+    p1 = view()->windowToPixel(CQChartsGeom::Point(polygon[0].x(), polygon[0].y()));
 
-  path.moveTo(px, py);
+  path.moveTo(p1.x, p1.y);
 
   for (int i = 1; i < polygon.size(); ++i) {
-    double px = 0.0, py = 0.0;
+    CQChartsGeom::Point p2;
 
     if      (plot())
-      plot()->windowToPixel(polygon[i].x(), polygon[i].y(), px, py);
+      p2 = plot()->windowToPixel(CQChartsGeom::Point(polygon[i].x(), polygon[i].y()));
     else if (view())
-      view()->windowToPixel(polygon[i].x(), polygon[i].y(), px, py);
+      p2 = view()->windowToPixel(CQChartsGeom::Point(polygon[i].x(), polygon[i].y()));
 
-    path.lineTo(px, py);
+    path.lineTo(p2.x, p2.y);
   }
 
   //---
@@ -1557,7 +1548,7 @@ draw(QPainter *painter)
   CQChartsGeom::BBox prect;
 
   if      (plot())
-    plot()->windowToPixel(bbox_, prect);
+    prect = plot()->windowToPixel(bbox_);
   else if (view())
     prect = view()->windowToPixel(bbox_);
 
@@ -1955,7 +1946,7 @@ draw(QPainter *painter)
   CQChartsGeom::BBox prect;
 
   if      (plot())
-    plot()->windowToPixel(bbox_, prect);
+    prect = plot()->windowToPixel(bbox_);
   else if (view())
     prect = view()->windowToPixel(bbox_);
 
@@ -2150,7 +2141,7 @@ draw(QPainter *painter)
   CQChartsGeom::BBox prect;
 
   if      (plot())
-    plot()->windowToPixel(bbox_, prect);
+    prect = plot()->windowToPixel(bbox_);
   else if (view())
     prect = view()->windowToPixel(bbox_);
 

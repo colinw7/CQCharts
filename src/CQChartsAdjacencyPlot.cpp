@@ -750,9 +750,7 @@ CQChartsAdjacencyPlot::
 drawBackground(QPainter *painter) const
 {
   // calc text size
-  double pxo, pyo;
-
-  windowToPixel(0.0, 1.0, pxo, pyo);
+  CQChartsGeom::Point po = windowToPixel(CQChartsGeom::Point(0.0, 1.0));
 
   double pxs = windowToPixelWidth (scale());
   double pys = windowToPixelHeight(scale());
@@ -789,8 +787,8 @@ drawBackground(QPainter *painter) const
   double twMax = 0.0;
 
   // draw row labels
-  double px = pxo + lengthPixelWidth (bgMargin());
-  double py = pyo + lengthPixelHeight(bgMargin()) + yts;
+  double px = po.x + lengthPixelWidth (bgMargin());
+  double py = po.y + lengthPixelHeight(bgMargin()) + yts;
 
   for (auto &node : sortedNodes_) {
     const QString &str = node->name();
@@ -810,8 +808,8 @@ drawBackground(QPainter *painter) const
   th->nodeData_.drawFactor = twMax/std::min(maxLen()*pxs, maxLen()*pys);
 
   // draw column labels
-  px = pxo + lengthPixelWidth (bgMargin()) + xts;
-  py = pyo + lengthPixelHeight(bgMargin()) + yts;
+  px = po.x + lengthPixelWidth (bgMargin()) + xts;
+  py = po.y + lengthPixelHeight(bgMargin()) + yts;
 
   for (auto &node : sortedNodes_) {
     CQChartsRotatedText::draw(painter, px + pxs/2, py - 2, node->name(), 90,
@@ -825,8 +823,8 @@ drawBackground(QPainter *painter) const
 
   int nn = numNodes();
 
-  px = pxo + lengthPixelWidth (bgMargin()) + xts;
-  py = pyo + lengthPixelHeight(bgMargin()) + yts;
+  px = po.x + lengthPixelWidth (bgMargin()) + xts;
+  py = po.y + lengthPixelHeight(bgMargin()) + yts;
 
   //---
 
@@ -857,10 +855,10 @@ drawBackground(QPainter *painter) const
   double cxs = lengthPixelWidth (emptyCellCornerSize());
   double cys = lengthPixelHeight(emptyCellCornerSize());
 
-  py = pyo + lengthPixelHeight(bgMargin()) + yts;
+  py = po.y + lengthPixelHeight(bgMargin()) + yts;
 
   for (auto &node1 : sortedNodes_) {
-    double px = pxo + lengthPixelWidth(bgMargin()) + xts;
+    double px = po.x + lengthPixelWidth(bgMargin()) + xts;
 
     for (auto &node2 : sortedNodes_) {
       double value = node1->nodeValue(node2);

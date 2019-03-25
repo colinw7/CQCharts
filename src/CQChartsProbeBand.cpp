@@ -48,13 +48,11 @@ showVertical(CQChartsPlot *plot, const QString &text, double px, double py1, dou
 
   QPoint gpos = view_->mapToGlobal(pos);
 
-  double wx, wy;
-
-  view_->pixelToWindow(pos.x(), pos.y(), wx, wy);
+  CQChartsGeom::Point wpos = view_->pixelToWindow(CQChartsGeom::Point(pos.x(), pos.y()));
 
   CQChartsGeom::BBox bbox = view_->plotBBox(plot);
 
-  if (bbox.inside(CQChartsGeom::Point(wx, wy))) {
+  if (bbox.inside(wpos)) {
     QFontMetricsF fm(font());
 
     tip_->move(gpos);
@@ -92,13 +90,11 @@ showHorizontal(CQChartsPlot *plot, const QString &text, double px1, double px2, 
 
   QPoint gpos = view_->mapToGlobal(pos);
 
-  double wx, wy;
-
-  view_->pixelToWindow(pos.x(), pos.y(), wx, wy);
+  CQChartsGeom::Point wpos = view_->pixelToWindow(CQChartsGeom::Point(pos.x(), pos.y()));
 
   CQChartsGeom::BBox bbox = view_->plotBBox(plot);
 
-  if (bbox.inside(CQChartsGeom::Point(wx, wy))) {
+  if (bbox.inside(wpos)) {
     QFontMetricsF fm(font());
 
     tip_->move(gpos);

@@ -176,12 +176,12 @@ drawCalcConnectedRadialText(QPainter *painter, const QPointF &center, double ro,
   double tx = center.x() + lr*tc;
   double ty = center.y() + lr*ts;
 
-  double ptx = 0.0, pty = 0.0;
+  CQChartsGeom::Point pt;
 
   if      (plot())
-    plot()->windowToPixel(tx, ty, ptx, pty);
+    pt = plot()->windowToPixel(CQChartsGeom::Point(tx, ty));
   else if (view())
-    view()->windowToPixel(tx, ty, ptx, pty);
+    pt = view()->windowToPixel(CQChartsGeom::Point(tx, ty));
 
   //---
 
@@ -195,15 +195,15 @@ drawCalcConnectedRadialText(QPainter *painter, const QPointF &center, double ro,
     double lx2 = center.x() + lr*tc;
     double ly2 = center.y() + lr*ts;
 
-    double lpx1, lpy1, lpx2, lpy2;
+    CQChartsGeom::Point lp1, lp2;
 
     if       (plot()) {
-      plot()->windowToPixel(lx1, ly1, lpx1, lpy1);
-      plot()->windowToPixel(lx2, ly2, lpx2, lpy2);
+      lp1 = plot()->windowToPixel(CQChartsGeom::Point(lx1, ly1));
+      lp2 = plot()->windowToPixel(CQChartsGeom::Point(lx2, ly2));
     }
     else if (view()) {
-      view()->windowToPixel(lx1, ly1, lpx1, lpy1);
-      view()->windowToPixel(lx2, ly2, lpx2, lpy2);
+      lp1 = view()->windowToPixel(CQChartsGeom::Point(lx1, ly1));
+      lp2 = view()->windowToPixel(CQChartsGeom::Point(lx2, ly2));
     }
     else
       assert(false);
@@ -227,15 +227,15 @@ drawCalcConnectedRadialText(QPainter *painter, const QPointF &center, double ro,
     if (painter) {
       painter->setPen(lpen);
 
-      painter->drawLine(QPointF(lpx1, lpy1), QPointF(lpx2     , lpy2));
-      painter->drawLine(QPointF(lpx2, lpy2), QPointF(lpx2 + dx, lpy2));
+      painter->drawLine(QPointF(lp1.x, lp1.y), QPointF(lp2.x     , lp2.y));
+      painter->drawLine(QPointF(lp2.x, lp2.y), QPointF(lp2.x + dx, lp2.y));
     }
   }
 
   //---
 
   // draw text
-  QPointF pt(ptx + dx, pty);
+  QPointF pt1(pt.x + dx, pt.y);
 
   double angle = 0.0;
 
@@ -243,9 +243,9 @@ drawCalcConnectedRadialText(QPainter *painter, const QPointF &center, double ro,
     angle = (tc >= 0 ? ta : 180.0 + ta);
 
   if (painter)
-    draw(painter, pt, text, angle, align);
+    draw(painter, pt1, text, angle, align);
   else
-    tbbox = this->bbox(pt, text, angle, align);
+    tbbox = this->bbox(pt1, text, angle, align);
 
   //---
 

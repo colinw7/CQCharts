@@ -138,12 +138,10 @@ doLayout()
 
   //----
 
-  double px, py;
+  CQChartsGeom::Point p = view_->windowToPixel(CQChartsGeom::Point(x, y));
 
-  view_->windowToPixel(x, y, px, py);
-
-  //px += dx*bs;
-  //py += dy*bs;
+  //p.x += dx*bs;
+  //p.y += dy*bs;
 
   //---
 
@@ -168,13 +166,13 @@ doLayout()
 
   double pxr = 0.0, pyr = 0.0;
 
-  if      (location().onLeft   ()) pxr = px                   + margin();
-  else if (location().onHCenter()) pxr = px - size_.width()/2;
-  else if (location().onRight  ()) pxr = px - size_.width()   - margin();
+  if      (location().onLeft   ()) pxr = p.x                   + margin();
+  else if (location().onHCenter()) pxr = p.x - size_.width()/2;
+  else if (location().onRight  ()) pxr = p.x - size_.width()   - margin();
 
-  if      (location().onTop    ()) pyr = py                    + margin();
-  else if (location().onVCenter()) pyr = py - size_.height()/2;
-  else if (location().onBottom ()) pyr = py - size_.height()   - margin();
+  if      (location().onTop    ()) pyr = p.y                    + margin();
+  else if (location().onVCenter()) pyr = p.y - size_.height()/2;
+  else if (location().onBottom ()) pyr = p.y - size_.height()   - margin();
 
   position_ = QPointF(pxr, pyr);
 }
@@ -264,12 +262,10 @@ draw(QPainter *painter) const
 
   //---
 
-  double x1, y1, x2, y2;
+  CQChartsGeom::Point p1 = view_->pixelToWindow(CQChartsGeom::Point(px     , py     ));
+  CQChartsGeom::Point p2 = view_->pixelToWindow(CQChartsGeom::Point(px + pw, py + ph));
 
-  view_->pixelToWindow(px     , py     , x1, y1);
-  view_->pixelToWindow(px + pw, py + ph, x2, y2);
-
-  pbbox_ = CQChartsGeom::BBox(x1, y2, x2, y1);
+  pbbox_ = CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y);
 
   //---
 
@@ -320,12 +316,10 @@ draw(QPainter *painter) const
     //---
 
     // save view key item (plot) rect
-    double x1, y1, x2, y2;
+    CQChartsGeom::Point p1 = view_->pixelToWindow(CQChartsGeom::Point(px     , py1));
+    CQChartsGeom::Point p2 = view_->pixelToWindow(CQChartsGeom::Point(px + pw, py2));
 
-    view_->pixelToWindow(px     , py1, x1, y1);
-    view_->pixelToWindow(px + pw, py2, x2, y2);
-
-    CQChartsGeom::BBox prect(x1, y2, x2, y1);
+    CQChartsGeom::BBox prect(p1.x, p2.y, p2.x, p1.y);
 
     prects_.push_back(prect);
 
@@ -1252,12 +1246,10 @@ draw(QPainter *painter) const
   //---
 
   // calc pixel bounding box
-  double px1, py1, px2, py2;
+  CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(x    , y    ));
+  CQChartsGeom::Point p2 = plot_->windowToPixel(CQChartsGeom::Point(x + w, y - h));
 
-  plot_->windowToPixel(x    , y    , px1, py1);
-  plot_->windowToPixel(x + w, y - h, px2, py2);
-
-  QRectF pixelRect(px1, py1, px2 - px1, py2 - py1);
+  QRectF pixelRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
 
   //---
 
@@ -1307,8 +1299,8 @@ draw(QPainter *painter) const
   if (layoutData_.vscrolled) {
     scrollData_.vbar->show();
 
-    scrollData_.vbar->move(px2 - scrollData_.pixelBarSize - 1, py1 + phh);
-    scrollData_.vbar->resize(scrollData_.pixelBarSize - 2, py2 - py1 - phh - hsph - 1);
+    scrollData_.vbar->move(p2.x - scrollData_.pixelBarSize - 1, p1.y + phh);
+    scrollData_.vbar->resize(scrollData_.pixelBarSize - 2, p2.y - p1.y - phh - hsph - 1);
 
     //---
 
@@ -1354,8 +1346,8 @@ draw(QPainter *painter) const
   if (layoutData_.hscrolled) {
     scrollData_.hbar->show();
 
-    scrollData_.hbar->move(px1 + 1, py2 - scrollData_.pixelBarSize - 1);
-    scrollData_.hbar->resize(px2 - px1 - vspw, scrollData_.pixelBarSize - 2);
+    scrollData_.hbar->move(p1.x + 1, p2.y - scrollData_.pixelBarSize - 1);
+    scrollData_.hbar->resize(p2.x - p1.x - vspw, scrollData_.pixelBarSize - 2);
 
     //---
 
@@ -1385,7 +1377,7 @@ draw(QPainter *painter) const
 
   if (layoutData_.vscrolled || layoutData_.hscrolled) {
     clipped  = true;
-    clipRect = QRectF(px1, py1 + phh, px2 - px1 - vspw, py2 - py1 - phh - hsph);
+    clipRect = QRectF(p1.x, p1.y + phh, p2.x - p1.x - vspw, p2.y - p1.y - phh - hsph);
   }
   else {
     if (locationType != CQChartsKeyLocation::Type::ABS_POSITION &&
@@ -1699,25 +1691,25 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 
   painter->setPen(tc);
 
-  double px1, px2, py;
+  CQChartsGeom::Point p1 =
+    plot->windowToPixel(CQChartsGeom::Point(rect.getXMin(), rect.getYMin()));
+  CQChartsGeom::Point p2 =
+    plot->windowToPixel(CQChartsGeom::Point(rect.getXMax(), rect.getYMin()));
 
-  plot->windowToPixel(rect.getXMin(), rect.getYMin(), px1, py);
-  plot->windowToPixel(rect.getXMax(), rect.getYMin(), px2, py);
+  if (p1.x > p2.x)
+    std::swap(p1.x, p2.x);
 
-  if (px1 > px2)
-    std::swap(px1, px2);
-
-  double px = px1 + 2;
+  double px = p1.x + 2;
 
   if (key_->textAlign() & Qt::AlignRight)
-    px = px2 - 2 - fm.width(text_);
+    px = p2.x - 2 - fm.width(text_);
 
   QPointF tp;
 
   if (! plot->isInvertY())
-    tp = QPointF(px, py - fm.descent() - 2);
+    tp = QPointF(px, p1.y - fm.descent() - 2);
   else
-    tp = QPointF(px, py + fm.ascent() + 2);
+    tp = QPointF(px, p1.y + fm.ascent() + 2);
 
   CQChartsDrawUtil::drawSimpleText(painter, tp, text_);
 }
@@ -1762,9 +1754,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 {
   CQChartsPlot *plot = key_->plot();
 
-  CQChartsGeom::BBox prect;
-
-  plot->windowToPixel(rect, prect);
+  CQChartsGeom::BBox prect = plot->windowToPixel(rect);
 
   QRectF prect1(QPointF(prect.getXMin() + 2, prect.getYMin() + 2),
                 QPointF(prect.getXMax() - 2, prect.getYMax() - 2));

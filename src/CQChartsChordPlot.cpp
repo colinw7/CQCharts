@@ -817,16 +817,12 @@ draw(QPainter *painter)
   double ro = 1.0;
   double ri = std::min(std::max(plot_->innerRadius(), 0.01), 1.0);
 
-  CQChartsGeom::Point po1, po2, pi1, pi2;
+  CQChartsGeom::Point po1 = plot_->windowToPixel(CQChartsGeom::Point(-ro, -ro));
+  CQChartsGeom::Point po2 = plot_->windowToPixel(CQChartsGeom::Point( ro,  ro));
+  CQChartsGeom::Point pi1 = plot_->windowToPixel(CQChartsGeom::Point(-ri, -ri));
+  CQChartsGeom::Point pi2 = plot_->windowToPixel(CQChartsGeom::Point( ri,  ri));
 
-  plot_->windowToPixel(CQChartsGeom::Point(-ro, -ro), po1);
-  plot_->windowToPixel(CQChartsGeom::Point( ro,  ro), po2);
-  plot_->windowToPixel(CQChartsGeom::Point(-ri, -ri), pi1);
-  plot_->windowToPixel(CQChartsGeom::Point( ri,  ri), pi2);
-
-  CQChartsGeom::Point pc;
-
-  plot_->windowToPixel(CQChartsGeom::Point(0, 0), pc);
+  CQChartsGeom::Point pc = plot_->windowToPixel(CQChartsGeom::Point(0, 0));
 
   QRectF orect(CQChartsUtil::toQPoint(po1), CQChartsUtil::toQPoint(po2));
   QRectF irect(CQChartsUtil::toQPoint(pi1), CQChartsUtil::toQPoint(pi2));

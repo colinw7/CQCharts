@@ -37,14 +37,15 @@ CQChartsArrow::
 draw(QPainter *painter) const
 {
   auto windowToPixel = [&](double wx, double wy, double &px, double &py) {
+    CQChartsGeom::Point p(wx, wy);
+
     if      (plot_)
-      plot_->windowToPixel(wx, wy, px, py);
+      p = plot_->windowToPixel(CQChartsGeom::Point(wx, wy));
     else if (view_)
-      view_->windowToPixel(wx, wy, px, py);
-    else {
-      px = wx;
-      py = wy;
-    }
+      p = view_->windowToPixel(CQChartsGeom::Point(wx, wy));
+
+    px = p.x;
+    py = p.y;
   };
 
   auto lengthPixelWidth = [&](const CQChartsLength &l) {
@@ -571,14 +572,15 @@ CQChartsArrow::
 drawLine(const QPointF &point1, const QPointF &point2, double width, bool mapping) const
 {
   auto windowToPixel = [&](double wx, double wy, double &px, double &py) {
+    CQChartsGeom::Point p(wx, wy);
+
     if      (plot_)
-      plot_->windowToPixel(wx, wy, px, py);
+      p = plot_->windowToPixel(CQChartsGeom::Point(wx, wy));
     else if (view_)
-      view_->windowToPixel(wx, wy, px, py);
-    else {
-      px = wx;
-      py = wy;
-    }
+      p = view_->windowToPixel(CQChartsGeom::Point(wx, wy));
+
+    px = p.x;
+    py = p.x;
   };
 
   //---
