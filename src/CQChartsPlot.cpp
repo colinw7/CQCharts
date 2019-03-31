@@ -9370,7 +9370,9 @@ CQChartsGeom::Point
 CQChartsPlot::
 windowToPixel(const CQChartsGeom::Point &w) const
 {
-  CQChartsGeom::Point p = windowToPixel(w);
+  CQChartsGeom::Point p;
+
+  windowToPixelI(w.x, w.y, p.x, p.y);
 
   return p;
 }
@@ -9390,7 +9392,9 @@ CQChartsGeom::Point
 CQChartsPlot::
 pixelToWindow(const CQChartsGeom::Point &w) const
 {
-  CQChartsGeom::Point p = pixelToWindow(w);
+  CQChartsGeom::Point p;
+
+  pixelToWindowI(w.x, w.y, p.x, p.y);
 
   return p;
 }

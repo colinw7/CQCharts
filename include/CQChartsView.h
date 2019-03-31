@@ -687,6 +687,13 @@ class CQChartsView : public QFrame,
  public slots:
   void setAutoSize(bool b);
 
+  void selectModeSlot();
+  void zoomModeSlot();
+  void panModeSlot();
+  void probeModeSlot();
+  void queryModeSlot();
+  void editModeSlot();
+
   void plotModelChanged();
   void plotConnectDataChangedSlot();
 

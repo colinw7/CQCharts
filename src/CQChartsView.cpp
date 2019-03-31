@@ -102,7 +102,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   //---
 
   addProperty("", this, "title")->setDesc("View title");
-  addProperty("", this, "mode" )->setDesc("View mouse mode");
+  addProperty("", this, "mode" )->setHidden(true).setDesc("View mouse mode");
 
   addProperty("", this, "antiAlias")->setDesc("Draw aliased shapes");
 
@@ -176,10 +176,14 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("status", this, "posTextType", "posTextType")->setDesc("Position text type");
 
   // TODO: remove or make more general
-  addProperty("scroll", this, "scrolled"      , "enabled" )->setDesc("Scrolling enabled");
-  addProperty("scroll", this, "scrollDelta"   , "delta"   )->setDesc("Scroll delta");
-  addProperty("scroll", this, "scrollNumPages", "numPages")->setDesc("Scroll number of pages");
-  addProperty("scroll", this, "scrollPage"    , "page"    )->setDesc("Scroll current page");
+  addProperty("scroll", this, "scrolled"      , "enabled" )->
+    setHidden(true).setDesc("Scrolling enabled");
+  addProperty("scroll", this, "scrollDelta"   , "delta"   )->
+    setHidden(true).setDesc("Scroll delta");
+  addProperty("scroll", this, "scrollNumPages", "numPages")->
+    setHidden(true).setDesc("Scroll number of pages");
+  addProperty("scroll", this, "scrollPage"    , "page"    )->
+    setHidden(true).setDesc("Scroll current page");
 
   if (key())
     key()->addProperties(propertyModel(), "key");
@@ -436,6 +440,48 @@ currentPlotZoomPanChanged()
 }
 
 //---
+
+void
+CQChartsView::
+selectModeSlot()
+{
+  setMode(Mode::SELECT);
+}
+
+void
+CQChartsView::
+zoomModeSlot()
+{
+  setMode(Mode::ZOOM);
+}
+
+void
+CQChartsView::
+panModeSlot()
+{
+  setMode(Mode::PAN);
+}
+
+void
+CQChartsView::
+probeModeSlot()
+{
+  setMode(Mode::PROBE);
+}
+
+void
+CQChartsView::
+queryModeSlot()
+{
+  setMode(Mode::QUERY);
+}
+
+void
+CQChartsView::
+editModeSlot()
+{
+  setMode(Mode::EDIT);
+}
 
 void
 CQChartsView::
@@ -1618,43 +1664,43 @@ keyPressEvent(QKeyEvent *ke)
 
     if      (mode() == Mode::ZOOM) {
       if (! mouseData_.pressed)
-        setMode(Mode::SELECT);
+        selectModeSlot();
     }
     else if (mode() == Mode::PAN) {
       if (! mouseData_.pressed)
-        setMode(Mode::SELECT);
+        selectModeSlot();
     }
     else if (mode() == Mode::PROBE) {
-      setMode(Mode::SELECT);
+      selectModeSlot();
     }
     else if (mode() == Mode::QUERY) {
-      setMode(Mode::SELECT);
+      selectModeSlot();
     }
     else if (mode() == Mode::EDIT) {
-      setMode(Mode::SELECT);
+      selectModeSlot();
     }
 
     return;
   }
   else if (ke->key() == Qt::Key_Z) {
-    setMode(Mode::ZOOM);
+    zoomModeSlot();
 
     return;
   }
   else if (ke->key() == Qt::Key_Bar) {
-    setMode(Mode::PROBE);
+    probeModeSlot();
 
     // TODO: do mouse move to show probe immediately or add probe move API
 
     return;
   }
   else if (ke->key() == Qt::Key_Q) {
-    setMode(Mode::QUERY);
+    queryModeSlot();
 
     return;
   }
   else if (ke->key() == Qt::Key_Insert) {
-    setMode(Mode::EDIT);
+    editModeSlot();
   }
   else if (ke->key() == Qt::Key_Tab) {
     if (mode() == Mode::EDIT)
@@ -2439,26 +2485,61 @@ showMenu(const QPoint &p)
 
   //---
 
-  QAction *dataTableAction = new QAction("Show Table");
+  auto addMenu = [](QMenu *menu, const QString &name) {
+    QMenu *subMenu = new QMenu(name, menu);
 
-  dataTableAction->setCheckable(true);
-  dataTableAction->setChecked(isShowTable());
+    menu->addMenu(subMenu);
 
-  connect(dataTableAction, SIGNAL(triggered(bool)), this, SLOT(setShowTable(bool)));
+    return subMenu;
+  };
 
-  popupMenu_->addAction(dataTableAction);
+  auto createActionGroup = [](QMenu *menu) {
+    return new QActionGroup(menu);
+  };
+
+  auto addAction = [&](QMenu *menu, const QString &name, const char *slotName) {
+    QAction *action = new QAction(name, menu);
+
+    connect(action, SIGNAL(triggered()), this, slotName);
+
+    menu->addAction(action);
+
+    return action;
+  };
+
+  auto addCheckAction = [&](QMenu *menu, const QString &name, bool checked, const char *slotName) {
+    QAction *action = new QAction(name, menu);
+
+    action->setCheckable(true);
+    action->setChecked(checked);
+
+    connect(action, SIGNAL(triggered(bool)), this, slotName);
+
+    menu->addAction(action);
+
+    return action;
+  };
+
+  auto addGroupCheckAction = [&](QActionGroup *group, const QString &name, bool checked,
+                                 const char *slotName) {
+    QMenu *menu = qobject_cast<QMenu *>(group->parent());
+
+    QAction *action = new QAction(name, menu);
+
+    action->setCheckable(true);
+    action->setChecked(checked);
+
+    connect(action, SIGNAL(triggered()), this, slotName);
+
+    group->addAction(action);
+
+    return action;
+  };
 
   //---
 
-  QAction *viewSettingsAction = new QAction("Show Settings");
-
-  viewSettingsAction->setCheckable(true);
-
-  viewSettingsAction->setChecked(isShowSettings());
-
-  connect(viewSettingsAction, SIGNAL(triggered(bool)), this, SLOT(setShowSettings(bool)));
-
-  popupMenu_->addAction(viewSettingsAction);
+  addCheckAction(popupMenu_, "Show Table"   , isShowTable   (), SLOT(setShowTable(bool)));
+  addCheckAction(popupMenu_, "Show Settings", isShowSettings(), SLOT(setShowSettings(bool)));
 
   //---
 
@@ -2466,36 +2547,36 @@ showMenu(const QPoint &p)
 
   //---
 
-  QAction *autoResizeAction = new QAction("Auto Resize", popupMenu_);
+  QMenu *modeMenu = addMenu(popupMenu_, "Mode");
 
-  autoResizeAction->setCheckable(true);
-  autoResizeAction->setChecked(isAutoSize());
+  QActionGroup *modeActionGroup = createActionGroup(modeMenu);
 
-  connect(autoResizeAction, SIGNAL(triggered(bool)), this, SLOT(setAutoSize(bool)));
+  addGroupCheckAction(modeActionGroup, "Select", mode() == Mode::SELECT, SLOT(selectModeSlot()));
+  addGroupCheckAction(modeActionGroup, "Zoom"  , mode() == Mode::ZOOM  , SLOT(zoomModeSlot()));
+  addGroupCheckAction(modeActionGroup, "Pan"   , mode() == Mode::PAN   , SLOT(panModeSlot()));
+  addGroupCheckAction(modeActionGroup, "Probe" , mode() == Mode::PROBE , SLOT(probeModeSlot()));
+  addGroupCheckAction(modeActionGroup, "Query" , mode() == Mode::QUERY , SLOT(queryModeSlot()));
+  addGroupCheckAction(modeActionGroup, "Edit"  , mode() == Mode::EDIT  , SLOT(editModeSlot()));
 
-  popupMenu_->addAction(autoResizeAction);
+  modeMenu->addActions(modeActionGroup->actions());
 
-  if (! isAutoSize()) {
-    QAction *resizeViewAction = new QAction("Resize to View", popupMenu_);
+  //---
 
-    connect(resizeViewAction, SIGNAL(triggered()), this, SLOT(resizeToView()));
+  popupMenu_->addSeparator();
 
-    popupMenu_->addAction(resizeViewAction);
-  }
+  //---
+
+  addCheckAction(popupMenu_, "Auto Resize", isAutoSize(), SLOT(setAutoSize(bool)));
+
+  if (! isAutoSize())
+    addAction(popupMenu_, "Resize to View", SLOT(resizeToView()));
 
   //---
 
   if (key() && basePlots.size() > 1) {
-    QMenu *viewKeyMenu = new QMenu("View Key", popupMenu_);
+    QMenu *viewKeyMenu = addMenu(popupMenu_, "View Key");
 
-    QAction *viewKeyAction = new QAction("Visible");
-
-    viewKeyAction->setCheckable(true);
-    viewKeyAction->setChecked(key()->isVisible());
-
-    viewKeyMenu->addAction(viewKeyAction);
-
-    connect(viewKeyAction, SIGNAL(triggered(bool)), this, SLOT(viewKeyVisibleSlot(bool)));
+    addCheckAction(viewKeyMenu, "Visible", key()->isVisible(), SLOT(viewKeyVisibleSlot(bool)));
 
     //---
 
@@ -2503,9 +2584,9 @@ showMenu(const QPoint &p)
 
     KeyLocationActionMap keyLocationActionMap;
 
-    QMenu *keyLocationMenu = new QMenu("Location", viewKeyMenu);
+    QMenu *keyLocationMenu = addMenu(viewKeyMenu, "Location");
 
-    QActionGroup *keyLocationActionGroup = new QActionGroup(keyLocationMenu);
+    QActionGroup *keyLocationActionGroup = createActionGroup(keyLocationMenu);
 
     auto addKeyLocationGroupAction =
      [&](const QString &label, const CQChartsKeyLocation::Type &location) {
@@ -2542,47 +2623,28 @@ showMenu(const QPoint &p)
             this, SLOT(viewKeyPositionSlot(QAction *)));
 
     keyLocationMenu->addActions(keyLocationActionGroup->actions());
-
-    viewKeyMenu->addMenu(keyLocationMenu);
-
-    //---
-
-    popupMenu_->addMenu(viewKeyMenu);
   }
 
   //---
 
   if (allPlots.size() == 1) {
-    QAction *xRangeAction = new QAction("X Overview");
-    QAction *yRangeAction = new QAction("Y Overview");
-
-    xRangeAction->setCheckable(true);
-    yRangeAction->setCheckable(true);
-
-    xRangeAction->setChecked(window()->isXRangeMap());
-    yRangeAction->setChecked(window()->isYRangeMap());
-
-    connect(xRangeAction, SIGNAL(triggered(bool)), this, SLOT(xRangeMapSlot(bool)));
-    connect(yRangeAction, SIGNAL(triggered(bool)), this, SLOT(yRangeMapSlot(bool)));
-
-    popupMenu_->addAction(xRangeAction);
-    popupMenu_->addAction(yRangeAction);
+    addCheckAction(popupMenu_, "X Overview", window()->isXRangeMap(), SLOT(xRangeMapSlot(bool)));
+    addCheckAction(popupMenu_, "Y Overview", window()->isYRangeMap(), SLOT(yRangeMapSlot(bool)));
   }
 
   //---
 
   // Add plots
   if (allPlots.size() > 1) {
-    QMenu *plotsMenu = new QMenu("Plots", popupMenu_);
+    QMenu *plotsMenu = addMenu(popupMenu_, "Plots");
 
-    QActionGroup *plotsGroup = new QActionGroup(plotsMenu);
+    QActionGroup *plotsGroup = createActionGroup(plotsMenu);
 
     for (const auto &plot : allPlots) {
       int ind = plotInd(plot);
 
-      QAction *plotAction = new QAction(plot->id(), plotsMenu);
-
-      plotAction->setCheckable(true);
+      QAction *plotAction =
+        addGroupCheckAction(plotsGroup, plot->id(), false, SLOT(currentPlotSlot()));
 
       if (currentPlot)
         plotAction->setChecked(plot == currentPlot);
@@ -2590,21 +2652,15 @@ showMenu(const QPoint &p)
         plotAction->setChecked(currentPlotInd() == ind);
 
       plotAction->setData(ind);
-
-      plotsGroup->addAction(plotAction);
-
-      connect(plotAction, SIGNAL(triggered()), this, SLOT(currentPlotSlot()));
     }
 
     plotsMenu->addActions(plotsGroup->actions());
-
-    popupMenu_->addMenu(plotsMenu);
   }
 
   //------
 
   if (plotType && plotType->hasKey()) {
-    QMenu *plotKeyMenu = new QMenu("Plot Key", popupMenu_);
+    QMenu *plotKeyMenu = addMenu(popupMenu_, "Plot Key");
 
     //---
 
@@ -2643,9 +2699,9 @@ showMenu(const QPoint &p)
 
     KeyLocationActionMap keyLocationActionMap;
 
-    QMenu *keyLocationMenu = new QMenu("Location", plotKeyMenu);
+    QMenu *keyLocationMenu = addMenu(plotKeyMenu, "Location");
 
-    QActionGroup *keyLocationActionGroup = new QActionGroup(keyLocationMenu);
+    QActionGroup *keyLocationActionGroup = createActionGroup(keyLocationMenu);
 
     auto addKeyLocationGroupAction =
      [&](const QString &label, const CQChartsKeyLocation::Type &location) {
@@ -2685,8 +2741,6 @@ showMenu(const QPoint &p)
 
     keyLocationMenu->addActions(keyLocationActionGroup->actions());
 
-    plotKeyMenu->addMenu(keyLocationMenu);
-
     //---
 
     bool insideXChecked = (plotKey && plotKey->isInsideX());
@@ -2694,10 +2748,6 @@ showMenu(const QPoint &p)
 
     (void) addKeyCheckAction("Inside X", insideXChecked, SLOT(plotKeyInsideXSlot(bool)));
     (void) addKeyCheckAction("Inside Y", insideYChecked, SLOT(plotKeyInsideYSlot(bool)));
-
-    //---
-
-    popupMenu_->addMenu(plotKeyMenu);
   }
 
   //------
@@ -2707,41 +2757,30 @@ showMenu(const QPoint &p)
   //------
 
   if (currentPlot && currentPlot->hasXAxis()) {
-    QMenu *xAxisMenu = new QMenu("X Axis", popupMenu_);
+    QMenu *xAxisMenu = addMenu(popupMenu_, "X Axis");
 
     //---
 
-    QAction *xAxisVisibleAction = new QAction("Visible", popupMenu_);
-
-    xAxisVisibleAction->setCheckable(true);
+    QAction *xAxisVisibleAction =
+      addCheckAction(xAxisMenu, "Visible", false, SLOT(xAxisVisibleSlot(bool)));
 
     if (basePlot && basePlot->xAxis())
       xAxisVisibleAction->setChecked(basePlot->xAxis()->isVisible());
 
-    connect(xAxisVisibleAction, SIGNAL(triggered(bool)), this, SLOT(xAxisVisibleSlot(bool)));
-
-    xAxisMenu->addAction(xAxisVisibleAction);
-
     //---
 
-    QAction *xAxisGridAction = new QAction("Grid", popupMenu_);
-
-    xAxisGridAction->setCheckable(true);
+    QAction *xAxisGridAction = addCheckAction(xAxisMenu, "Grid", false, SLOT(xAxisGridSlot(bool)));
 
     if (basePlot && basePlot->xAxis())
       xAxisGridAction->setChecked(basePlot->xAxis()->isAxesMajorGridLines());
-
-    connect(xAxisGridAction, SIGNAL(triggered(bool)), this, SLOT(xAxisGridSlot(bool)));
-
-    xAxisMenu->addAction(xAxisGridAction);
 
     //---
 
     AxisSideActionMap xAxisSideActionMap;
 
-    QMenu *xAxisSideMenu = new QMenu("Side", xAxisMenu);
+    QMenu *xAxisSideMenu = addMenu(xAxisMenu, "Side");
 
-    QActionGroup *xAxisSideGroup = new QActionGroup(xAxisMenu);
+    QActionGroup *xAxisSideGroup = createActionGroup(xAxisMenu);
 
     auto addXAxisSideGroupAction = [&](const QString &label, const CQChartsAxisSide &side) {
       QAction *action = new QAction(label, xAxisSideMenu);
@@ -2764,52 +2803,35 @@ showMenu(const QPoint &p)
     connect(xAxisSideGroup, SIGNAL(triggered(QAction *)), this, SLOT(xAxisSideSlot(QAction *)));
 
     xAxisSideMenu->addActions(xAxisSideGroup->actions());
-
-    xAxisMenu->addMenu(xAxisSideMenu);
-
-    //---
-
-    popupMenu_->addMenu(xAxisMenu);
   }
 
   //------
 
   if (currentPlot && currentPlot->hasYAxis()) {
-    QMenu *yAxisMenu = new QMenu("Y Axis", popupMenu_);
+    QMenu *yAxisMenu = addMenu(popupMenu_, "Y Axis");
 
     //---
 
-    QAction *yAxisVisibleAction = new QAction("Visible", popupMenu_);
-
-    yAxisVisibleAction->setCheckable(true);
+    QAction *yAxisVisibleAction =
+      addCheckAction(yAxisMenu, "Visible", false, SLOT(yAxisVisibleSlot(bool)));
 
     if (basePlot && basePlot->yAxis())
       yAxisVisibleAction->setChecked(basePlot->yAxis()->isVisible());
 
-    connect(yAxisVisibleAction, SIGNAL(triggered(bool)), this, SLOT(yAxisVisibleSlot(bool)));
-
-    yAxisMenu->addAction(yAxisVisibleAction);
-
     //---
 
-    QAction *yAxisGridAction = new QAction("Grid", popupMenu_);
-
-    yAxisGridAction->setCheckable(true);
+    QAction *yAxisGridAction = addCheckAction(yAxisMenu, "Grid", false, SLOT(yAxisGridSlot(bool)));
 
     if (basePlot && basePlot->yAxis())
       yAxisGridAction->setChecked(basePlot->yAxis()->isAxesMajorGridLines());
-
-    connect(yAxisGridAction, SIGNAL(triggered(bool)), this, SLOT(yAxisGridSlot(bool)));
-
-    yAxisMenu->addAction(yAxisGridAction);
 
     //---
 
     AxisSideActionMap yAxisSideActionMap;
 
-    QMenu *yAxisSideMenu = new QMenu("Side", yAxisMenu);
+    QMenu *yAxisSideMenu = addMenu(yAxisMenu, "Side");
 
-    QActionGroup *yAxisSideGroup = new QActionGroup(yAxisMenu);
+    QActionGroup *yAxisSideGroup = createActionGroup(yAxisMenu);
 
     auto addYAxisSideGroupAction = [&](const QString &label, const CQChartsAxisSide &side) {
       QAction *action = new QAction(label, yAxisSideMenu);
@@ -2832,29 +2854,18 @@ showMenu(const QPoint &p)
     connect(yAxisSideGroup, SIGNAL(triggered(QAction *)), this, SLOT(yAxisSideSlot(QAction *)));
 
     yAxisSideMenu->addActions(yAxisSideGroup->actions());
-
-    yAxisMenu->addMenu(yAxisSideMenu);
-
-    //---
-
-    popupMenu_->addMenu(yAxisMenu);
   }
 
   //---
 
   if (plotType && plotType->hasTitle()) {
-    QMenu *titleMenu = new QMenu("Title", popupMenu_);
+    QMenu *titleMenu = addMenu(popupMenu_, "Title");
 
-    QAction *titleVisibleAction = new QAction("Visible", popupMenu_);
-
-    titleVisibleAction->setCheckable(true);
+    QAction *titleVisibleAction =
+      addCheckAction(titleMenu, "Visible", false, SLOT(titleVisibleSlot(bool)));
 
     if (basePlot && basePlot->title())
       titleVisibleAction->setChecked(basePlot->title()->isVisible());
-
-    connect(titleVisibleAction, SIGNAL(triggered(bool)), this, SLOT(titleVisibleSlot(bool)));
-
-    titleMenu->addAction(titleVisibleAction);
 
     //---
 
@@ -2862,9 +2873,9 @@ showMenu(const QPoint &p)
 
     TitleLocationActionMap titleLocationActionMap;
 
-    QMenu *titleLocationMenu = new QMenu("Location", titleMenu);
+    QMenu *titleLocationMenu = addMenu(titleMenu, "Location");
 
-    QActionGroup *titleLocationGroup = new QActionGroup(titleMenu);
+    QActionGroup *titleLocationGroup = createActionGroup(titleMenu);
 
     auto addTitleLocationGroupAction =
      [&](const QString &label, const CQChartsTitleLocation::Type &location) {
@@ -2891,47 +2902,28 @@ showMenu(const QPoint &p)
             this, SLOT(titleLocationSlot(QAction *)));
 
     titleLocationMenu->addActions(titleLocationGroup->actions());
-
-    titleMenu->addMenu(titleLocationMenu);
-
-    //---
-
-    popupMenu_->addMenu(titleMenu);
   }
 
   //------
 
-  QAction *invertXAction = new QAction("Invert X", popupMenu_);
-  QAction *invertYAction = new QAction("Invert Y", popupMenu_);
-
-  invertXAction->setCheckable(true);
-  invertYAction->setCheckable(true);
+  QAction *invertXAction = addCheckAction(popupMenu_, "Invert X", false, SLOT(invertXSlot(bool)));
+  QAction *invertYAction = addCheckAction(popupMenu_, "Invert Y", false, SLOT(invertYSlot(bool)));
 
   if (basePlot) {
     invertXAction->setChecked(basePlot->isInvertX());
     invertYAction->setChecked(basePlot->isInvertY());
   }
 
-  connect(invertXAction, SIGNAL(triggered(bool)), this, SLOT(invertXSlot(bool)));
-  connect(invertYAction, SIGNAL(triggered(bool)), this, SLOT(invertYSlot(bool)));
-
-  popupMenu_->addAction(invertXAction);
-  popupMenu_->addAction(invertYAction);
-
   //------
 
-  QAction *fitAction = new QAction("Fit", popupMenu_);
-
-  connect(fitAction, SIGNAL(triggered()), this, SLOT(fitSlot()));
-
-  popupMenu_->addAction(fitAction);
+  addAction(popupMenu_, "Fit", SLOT(fitSlot()));
 
   //---
 
-  QMenu *themeMenu = new QMenu("Theme", popupMenu_);
+  QMenu *themeMenu = addMenu(popupMenu_, "Theme");
 
-  QActionGroup *interfaceGroup = new QActionGroup(themeMenu);
-  QActionGroup *themeGroup     = new QActionGroup(themeMenu);
+  QActionGroup *interfaceGroup = createActionGroup(themeMenu);
+  QActionGroup *themeGroup     = createActionGroup(themeMenu);
 
   auto addInterfaceAction =
    [&](const QString &label, const char *slotName) {
@@ -2942,6 +2934,7 @@ showMenu(const QPoint &p)
     interfaceGroup->addAction(action);
 
     connect(action, SIGNAL(triggered()), this, slotName);
+
     return action;
   };
 
@@ -2954,6 +2947,7 @@ showMenu(const QPoint &p)
     themeGroup->addAction(action);
 
     connect(action, SIGNAL(triggered()), this, slotName);
+
     return action;
   };
 
@@ -2961,7 +2955,7 @@ showMenu(const QPoint &p)
   QAction *darkPaletteAction  = addInterfaceAction("Dark" , SLOT(darkPaletteSlot()));
 
   lightPaletteAction->setChecked(! isDark());
-  darkPaletteAction ->setChecked(isDark());
+  darkPaletteAction ->setChecked(  isDark());
 
   themeMenu->addActions(interfaceGroup->actions());
 
@@ -2975,8 +2969,6 @@ showMenu(const QPoint &p)
 
   themeMenu->addActions(themeGroup->actions());
 
-  popupMenu_->addMenu(themeMenu);
-
   //---
 
   // add Menus for current plot
@@ -2988,43 +2980,23 @@ showMenu(const QPoint &p)
 
   //---
 
-  QMenu *printMenu = new QMenu("Print", popupMenu_);
+  QMenu *printMenu = addMenu(popupMenu_, "Print");
 
-  QAction *pngAction = new QAction("PNG", popupMenu_);
-  QAction *svgAction = new QAction("SVG", popupMenu_);
-
-  printMenu->addAction(pngAction);
-  printMenu->addAction(svgAction);
-
-  connect(pngAction, SIGNAL(triggered()), this, SLOT(printPNGSlot()));
-  connect(svgAction, SIGNAL(triggered()), this, SLOT(printSVGSlot()));
-
-  popupMenu_->addMenu(printMenu);
+  addAction(printMenu, "PNG", SLOT(printPNGSlot()));
+  addAction(printMenu, "SVG", SLOT(printSVGSlot()));
 
   //---
 
   if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG", true)) {
-    QAction *showBoxesAction = new QAction("Show Boxes", popupMenu_);
-
-    showBoxesAction->setCheckable(true);
+    QAction *showBoxesAction =
+      addCheckAction(popupMenu_, "Show Boxes", false, SLOT(showBoxesSlot(bool)));
 
     if (basePlot)
       showBoxesAction->setChecked(basePlot->showBoxes());
 
-    popupMenu_->addAction(showBoxesAction);
-
-    connect(showBoxesAction, SIGNAL(triggered(bool)), this, SLOT(showBoxesSlot(bool)));
-
     //---
 
-    QAction *bufferLayersAction = new QAction("Buffer Layers", popupMenu_);
-
-    bufferLayersAction->setCheckable(true);
-    bufferLayersAction->setChecked(isBufferLayers());
-
-    popupMenu_->addAction(bufferLayersAction);
-
-    connect(bufferLayersAction, SIGNAL(triggered(bool)), this, SLOT(bufferLayersSlot(bool)));
+    addCheckAction(popupMenu_, "Buffer Layers", isBufferLayers(), SLOT(bufferLayersSlot(bool)));
   }
 
   //---

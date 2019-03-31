@@ -1430,10 +1430,10 @@ calcTipId() const
   QString valueStr = this->valueStr();
 
   if (groupStr.length())
-    tableTip.addTableRow("Group", tableTip.escapeText(groupStr));
+    tableTip.addTableRow("Group", groupStr);
 
   if (nameStr.length())
-    tableTip.addTableRow("Name", tableTip.escapeText(nameStr));
+    tableTip.addTableRow("Name", nameStr);
 
   tableTip.addTableRow("Value", valueStr);
 
@@ -1444,7 +1444,7 @@ calcTipId() const
     const QString &value = nameValue.second;
 
     if (value.length())
-      tableTip.addTableRow(name, tableTip.escapeText(value));
+      tableTip.addTableRow(name, value);
   }
 
   return tableTip.str();

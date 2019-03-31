@@ -1118,9 +1118,9 @@ calcTipId() const
   CQChartsTableTip tableTip;
 
   if (groupName.length())
-    tableTip.addTableRow("Group", tableTip.escapeText(groupName));
+    tableTip.addTableRow("Group", groupName);
 
-  tableTip.addTableRow("Name" , tableTip.escapeText(label));
+  tableTip.addTableRow("Name" , label);
   tableTip.addTableRow("Value", valueStr);
 
   if (radius()) {

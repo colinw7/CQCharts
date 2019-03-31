@@ -11,7 +11,7 @@ class CQChartsTableTip {
     if (inTable_)
       str_ += "</table>\n";
 
-    str_ += "<b>" + name + "</b>\n";
+    str_ += "<b>" + escapeText(name) + "</b>\n";
   }
 
   template<typename T>
@@ -19,18 +19,28 @@ class CQChartsTableTip {
     if (! inTable_)
       str_ += "<table>\n";
 
-    str_ += QString("<tr><th>%1</th><td>&nbsp;</td><td>%2</td></tr>\n").arg(name).arg(value);
+    str_ += QString("<tr><th>%1</th><td>&nbsp;</td><td>%2</td></tr>\n").
+              arg(escapeText(name)).arg(value);
 
     inTable_ = true;
   }
 
-  template<typename T1, typename T2>
-  void addTableRow(const QString &name, const T1 &value1, const T2 &value2) {
+  void addTableRow(const QString &name, const QString &value) {
+    if (! inTable_)
+      str_ += "<table>\n";
+
+    str_ += QString("<tr><th>%1</th><td>&nbsp;</td><td>%2</td></tr>\n").
+              arg(escapeText(name)).arg(escapeText(value));
+
+    inTable_ = true;
+  }
+
+  void addTableRow(const QString &name, const QString &value1, const QString &value2) {
     if (! inTable_)
       str_ += "<table>\n";
 
     str_ += QString("<tr><th>%1</th><td>&nbsp;</td><td>%2</td><td>%3</td></tr>\n").
-              arg(name).arg(value1).arg(value2);
+              arg(escapeText(name)).arg(escapeText(value1)).arg(escapeText(value2));
 
     inTable_ = true;
   }
@@ -42,6 +52,7 @@ class CQChartsTableTip {
     return str_;
   }
 
+ private:
   QString escapeText(const QString &str) const {
     QString str1;
 
