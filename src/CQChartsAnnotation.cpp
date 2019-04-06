@@ -189,6 +189,24 @@ getProperty(const QString &name, QVariant &value) const
 
 bool
 CQChartsAnnotation::
+getPropertyDesc(const QString &name, QString &desc) const
+{
+  const CQPropertyViewItem *item = nullptr;
+
+  if      (plot())
+    item = plot()->propertyModel()->propertyItem(this, name);
+  else if (view())
+    item = view()->propertyModel()->propertyItem(this, name);
+
+  if (! item) return false;
+
+  desc = item->desc();
+
+  return true;
+}
+
+bool
+CQChartsAnnotation::
 setProperty(const QString &name, const QVariant &value)
 {
   if      (plot())
@@ -475,10 +493,10 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "rect");
+  model->addProperty(path1, this, "rect")->setDesc("Rectangle");
 
-  model->addProperty(path1, this, "margin" );
-  model->addProperty(path1, this, "padding");
+  model->addProperty(path1, this, "margin" )->setDesc("Rectangle inner margin");
+  model->addProperty(path1, this, "padding")->setDesc("Rectangle outer padding");
 
   addStrokeFillProperties(model, path1);
 }
@@ -668,9 +686,9 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "center" );
-  model->addProperty(path1, this, "xRadius");
-  model->addProperty(path1, this, "yRadius");
+  model->addProperty(path1, this, "center" )->setDesc("Ellipse center point");
+  model->addProperty(path1, this, "xRadius")->setDesc("Ellipse X radius");
+  model->addProperty(path1, this, "yRadius")->setDesc("Ellipse Y radius");
 
   addStrokeFillProperties(model, path1);
 }
@@ -875,7 +893,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "polygon");
+  model->addProperty(path1, this, "polygon")->setDesc("Polygon points");
 
   addStrokeFillProperties(model, path1);
 }
@@ -1070,7 +1088,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "polygon");
+  model->addProperty(path1, this, "polygon")->setDesc("Polyline points");
 
   addStrokeProperties(model, path1);
 }
@@ -1367,23 +1385,23 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "position", "position");
-  model->addProperty(path1, this, "rect"    , "rect"    );
+  model->addProperty(path1, this, "position", "position")->setDesc("Text origin");
+  model->addProperty(path1, this, "rect"    , "rect"    )->setDesc("Text bounding rectangle");
 
-  model->addProperty(path1, this, "textData"     , "style"    );
-  model->addProperty(path1, this, "textStr"      , "text"     );
+  model->addProperty(path1, this, "textData"     , "style"    )->setDesc("Test style");
+  model->addProperty(path1, this, "textStr"      , "text"     )->setDesc("Test string");
   model->addProperty(path1, this, "textColor"    , "color"    )->setDesc("Text color");
   model->addProperty(path1, this, "textAlpha"    , "alpha"    )->setDesc("Text alpha");
   model->addProperty(path1, this, "textFont"     , "font"     )->setDesc("Text font");
-  model->addProperty(path1, this, "textAngle"    , "angle"    );
-  model->addProperty(path1, this, "textContrast" , "contrast" );
-  model->addProperty(path1, this, "textAlign"    , "align"    );
-  model->addProperty(path1, this, "textFormatted", "formatted");
-  model->addProperty(path1, this, "textScaled"   , "scaled"   );
-  model->addProperty(path1, this, "textHtml"     , "html"     );
+  model->addProperty(path1, this, "textAngle"    , "angle"    )->setDesc("Text angle");
+  model->addProperty(path1, this, "textContrast" , "contrast" )->setDesc("Text has contrast");
+  model->addProperty(path1, this, "textAlign"    , "align"    )->setDesc("Text align");
+  model->addProperty(path1, this, "textFormatted", "formatted")->setDesc("Text formatted");
+  model->addProperty(path1, this, "textScaled"   , "scaled"   )->setDesc("Text scaled");
+  model->addProperty(path1, this, "textHtml"     , "html"     )->setDesc("Text is html");
 
-  model->addProperty(path1, this, "margin" );
-  model->addProperty(path1, this, "padding");
+  model->addProperty(path1, this, "margin" )->setDesc("Text rectangle inner margin");
+  model->addProperty(path1, this, "padding")->setDesc("Text rectangle outer padding");
 
   addStrokeFillProperties(model, path1);
 }
@@ -1807,10 +1825,10 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   QString strokePath = path1 + "/stroke";
 
-  model->addProperty(strokePath, arrow_, "border"     , "visible");
+  model->addProperty(strokePath, arrow_, "border"     , "visible")->setDesc("Stroke visible");
   model->addProperty(strokePath, arrow_, "borderColor", "color"  )->setDesc("Stroke color");
   model->addProperty(strokePath, arrow_, "borderAlpha", "alpha"  )->setDesc("Stroke alpha");
-  model->addProperty(strokePath, arrow_, "borderWidth", "width"  );
+  model->addProperty(strokePath, arrow_, "borderWidth", "width"  )->setDesc("Stroke width");
 }
 
 QString
@@ -2051,8 +2069,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "position");
-  model->addProperty(path1, this, "type"    );
+  model->addProperty(path1, this, "position")->setDesc("Point position");
+  model->addProperty(path1, this, "type"    )->setDesc("Point symbol type");
 }
 
 QString

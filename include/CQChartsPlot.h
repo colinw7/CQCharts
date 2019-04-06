@@ -662,6 +662,7 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   void startAnimateTimer();
+  void stopAnimateTimer ();
 
   virtual void animateStep() { }
 

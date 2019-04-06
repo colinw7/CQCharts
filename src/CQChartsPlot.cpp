@@ -324,11 +324,22 @@ void
 CQChartsPlot::
 startAnimateTimer()
 {
-  animateData_.timer = new QTimer;
+  if (! animateData_.timer) {
+    animateData_.timer = new QTimer;
 
-  connect(animateData_.timer, SIGNAL(timeout()), this, SLOT(animateSlot()));
+    connect(animateData_.timer, SIGNAL(timeout()), this, SLOT(animateSlot()));
+  }
 
   animateData_.timer->start(animateData_.tickLen);
+}
+
+void
+CQChartsPlot::
+stopAnimateTimer()
+{
+  delete animateData_.timer;
+
+  animateData_.timer = nullptr;
 }
 
 void

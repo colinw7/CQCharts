@@ -126,6 +126,7 @@ class CQChartsCmds : public QObject {
   bool measureChartsTextCmd(CQChartsCmdArgs &args);
 
   bool createChartsViewCmd(CQChartsCmdArgs &args);
+  bool removeChartsViewCmd(CQChartsCmdArgs &args);
 
   bool createChartsPlotCmd(CQChartsCmdArgs &args);
   bool removeChartsPlotCmd(CQChartsCmdArgs &args);
@@ -244,6 +245,7 @@ CQCHARTS_DEF_CMD(PlaceChartsPlots, placeChartsPlotsCmd)
 CQCHARTS_DEF_CMD(MeasureChartsText, measureChartsTextCmd)
 
 CQCHARTS_DEF_CMD(CreateChartsView, createChartsViewCmd)
+CQCHARTS_DEF_CMD(RemoveChartsView, removeChartsViewCmd)
 
 CQCHARTS_DEF_CMD(CreateChartsPlot, createChartsPlotCmd)
 CQCHARTS_DEF_CMD(RemoveChartsPlot, removeChartsPlotCmd)

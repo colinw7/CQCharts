@@ -25,6 +25,7 @@ class CQChartsWindowMgr {
   static CQChartsWindowMgr *instance();
 
   CQChartsWindow *createWindow(CQChartsView *view);
+  void removeWindow(CQChartsWindow *window);
 
  ~CQChartsWindowMgr();
 
@@ -102,6 +103,8 @@ class CQChartsWindow : public QFrame {
   void addSearchSlot(const QString &text);
 
   void filterChangedSlot();
+
+  void removeViewSlot(CQChartsView *view);
 
   void plotSlot();
   void modeSlot();

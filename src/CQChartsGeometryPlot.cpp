@@ -410,6 +410,9 @@ bool
 CQChartsGeometryPlot::
 decodeGeometry(const QString &geomStr, Polygons &polygons) const
 {
+  if (geomStr.simplified() == "")
+    return true;
+
   // count leading braces
   int n = CQChartsUtil::countLeadingBraces(geomStr);
 

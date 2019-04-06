@@ -1,4 +1,5 @@
 High
+ + Optional Font and modifiers (+<n>, +-bold, ...)
  + Common text drawing to support all options
  + Font Editor
  + Use QThread

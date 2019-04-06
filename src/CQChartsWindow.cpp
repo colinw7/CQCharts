@@ -1,6 +1,7 @@
 #include <CQChartsWindow.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQCharts.h>
 #include <CQChartsViewExpander.h>
 #include <CQChartsViewSettings.h>
 #include <CQChartsViewStatus.h>
@@ -51,6 +52,30 @@ createWindow(CQChartsView *view)
   windows_.push_back(window);
 
   return window;
+}
+
+void
+CQChartsWindowMgr::
+removeWindow(CQChartsWindow *window)
+{
+  int i = 0;
+  int n = windows_.size();
+
+  for ( ; i < n; ++i) {
+    if (windows_[i] == window)
+      break;
+  }
+
+  assert(i < n);
+
+  ++i;
+
+  for ( ; i < n; ++i)
+    windows_[i - 1] = windows_[i];
+
+  windows_.pop_back();
+
+  delete window;
 }
 
 CQChartsWindow *
@@ -191,6 +216,9 @@ CQChartsWindow(CQChartsView *view) :
   viewSplitter->addWidget(tableFrame_);
 
   //---
+
+  connect(view_->charts(), SIGNAL(viewRemoved(CQChartsView *)),
+          this, SLOT(removeViewSlot(CQChartsView *)));
 
   connect(view_, SIGNAL(currentPlotChanged()), this, SLOT(plotSlot()));
 
@@ -404,6 +432,20 @@ filterChangedSlot()
   //if (! plot) return;
 
   //plot->queueUpdateRangeAndObjs();
+}
+
+void
+CQChartsWindow::
+removeViewSlot(CQChartsView *view)
+{
+  if (view_ != view)
+    return;
+
+  view_->setParent(nullptr);
+
+  view_ = nullptr;
+
+  deleteLater();
 }
 
 void

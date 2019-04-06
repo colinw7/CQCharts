@@ -2280,7 +2280,7 @@ applySlot()
   if (! view) {
     view = charts()->addView();
 
-    CQChartsWindow *window = new CQChartsWindow(view);
+    CQChartsWindow *window = charts()->createWindow(view);
 
     window->show();
 

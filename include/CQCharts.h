@@ -171,6 +171,7 @@ class CQCharts : public QObject {
   void addView(CQChartsView *view);
 
   virtual CQChartsView *createView();
+  virtual void deleteView(CQChartsView *view);
 
   CQChartsView *getView(const QString &id) const;
 
@@ -184,7 +185,8 @@ class CQCharts : public QObject {
 
   //---
 
-  CQChartsWindow *createWindow(CQChartsView *view);
+  virtual CQChartsWindow *createWindow(CQChartsView *view);
+  virtual void deleteWindow(CQChartsWindow *window);
 
   //---
 
@@ -222,8 +224,11 @@ class CQCharts : public QObject {
   void modelTypeChanged(int);
 
   void windowCreated(CQChartsWindow *window);
+  void windowRemoved(CQChartsWindow *window);
 
   void viewAdded(CQChartsView *view);
+
+  void viewRemoved(CQChartsView *view);
 
   void plotAdded(CQChartsPlot *plot);
 

@@ -621,6 +621,13 @@ createView()
   return view;
 }
 
+void
+CQCharts::
+deleteView(CQChartsView *view)
+{
+  delete view;
+}
+
 CQChartsView *
 CQCharts::
 getView(const QString &id) const
@@ -663,6 +670,8 @@ void
 CQCharts::
 removeView(CQChartsView *view)
 {
+  emit viewRemoved(view);
+
   views_.erase(view->id());
 }
 
@@ -677,6 +686,15 @@ createWindow(CQChartsView *view)
   emit windowCreated(window);
 
   return window;
+}
+
+void
+CQCharts::
+deleteWindow(CQChartsWindow *window)
+{
+  emit windowRemoved(window);
+
+  CQChartsWindowMgrInst->removeWindow(window);
 }
 
 //---

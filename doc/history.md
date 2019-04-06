@@ -806,3 +806,6 @@
  + Add commands to create folded model, collapsed model, bucket model and stat model
 # 3/24/2019
  + cleanup pixelToWindow and windowToPixel conversions
+# 4/6/2019
+ + Add more property descriptions
+ + Get property list for view, plot, annotation in get_charts_data command

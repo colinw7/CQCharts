@@ -91,6 +91,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   bool getProperty(const QString &name, QVariant &value) const;
   bool setProperty(const QString &name, const QVariant &value);
 
+  bool getPropertyDesc(const QString &name, QString &desc) const;
+
   //! get property names
   void getPropertyNames(QStringList &names) const;
 

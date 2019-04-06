@@ -111,8 +111,9 @@ addCommands()
     // measure text
     addCommand("measure_charts_text", new CQChartsMeasureChartsTextCmd(this));
 
-    // add view
+    // add/remove view
     addCommand("create_charts_view", new CQChartsCreateChartsViewCmd(this));
+    addCommand("remove_charts_view", new CQChartsRemoveChartsViewCmd(this));
 
     // add/remove plot
     addCommand("create_charts_plot", new CQChartsCreateChartsPlotCmd(this));
@@ -768,6 +769,37 @@ createChartsViewCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
+removeChartsViewCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmds::removeChartsViewCmd");
+
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view_id").setRequired();
+
+  if (! argv.parse())
+    return false;
+
+  //---
+
+  QString viewName = argv.getParseStr("view");
+
+  //---
+
+  CQChartsView *view = getViewByName(viewName);
+  if (! view) return false;
+
+  //---
+
+  CQChartsWindow *window = CQChartsWindowMgrInst->getWindowForView(view);
+
+  charts_->deleteWindow(window);
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
 createChartsPlotCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::createChartsPlotCmd");
@@ -1120,7 +1152,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
       QString desc;
 
       if (! view->getPropertyDesc(name, desc)) {
-        charts_->errorMsg("Failed to get view parameter '" + name + "'");
+        charts_->errorMsg("Failed to get view parameter description '" + name + "'");
         return false;
       }
 
@@ -1191,7 +1223,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         QString desc;
 
         if (! plot->getPropertyDesc(name, desc)) {
-          charts_->errorMsg("Failed to get plot parameter '" + name + "'");
+          charts_->errorMsg("Failed to get plot parameter description '" + name + "'");
           return false;
         }
 
@@ -1213,18 +1245,24 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
     QString annotationName = argv.getParseStr("annotation");
 
     CQChartsAnnotation *annotation = getAnnotationByName(annotationName);
+    if (! annotation) return false;
 
-    if (! annotation) {
-      charts_->errorMsg("Invalid annotation '" + annotationName + "'");
-      return false;
-    }
-
-    if (name == "?") {
+    if      (name == "?") {
       QStringList names;
 
       annotation->getPropertyNames(names);
 
       cmdBase_->setCmdRc(names);
+    }
+    else if (argv.hasParseArg("desc")) {
+      QString desc;
+
+      if (! annotation->getPropertyDesc(name, desc)) {
+        charts_->errorMsg("Failed to get annotation parameter description '" + name + "'");
+        return false;
+      }
+
+      cmdBase_->setCmdRc(desc);
     }
     else {
       QVariant value;
@@ -1300,11 +1338,7 @@ setChartsPropertyCmd(CQChartsCmdArgs &argv)
     QString annotationName = argv.getParseStr("annotation");
 
     CQChartsAnnotation *annotation = getAnnotationByName(annotationName);
-
-    if (! annotation) {
-      charts_->errorMsg("Invalid annotation '" + annotationName + "'");
-      return false;
-    }
+    if (! annotation) return false;
 
     if (! annotation->setProperty(name, value)) {
       charts_->errorMsg("Failed to set annotation parameter '" + name + "'");
@@ -3224,10 +3258,11 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
   CQPerfTrace trace("CQChartsCmds::getChartsDataCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
-  argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model index");
-  argv.addCmdArg("-view" , CQChartsCmdArg::Type::String , "view name");
-  argv.addCmdArg("-type" , CQChartsCmdArg::Type::String , "type name");
-  argv.addCmdArg("-plot" , CQChartsCmdArg::Type::String , "plot name");
+  argv.addCmdArg("-model"     , CQChartsCmdArg::Type::Integer, "model index");
+  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String , "view name");
+  argv.addCmdArg("-type"      , CQChartsCmdArg::Type::String , "type name");
+  argv.addCmdArg("-plot"      , CQChartsCmdArg::Type::String , "plot name");
+  argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String , "annotation name");
   argv.endCmdGroup();
 
   argv.addCmdArg("-object", CQChartsCmdArg::Type::String, "object id");
@@ -3669,10 +3704,17 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(p);
     }
+    else if (name == "properties") {
+      QStringList names;
+
+      view->getPropertyNames(names);
+
+      cmdBase_->setCmdRc(names);
+    }
     else if (name == "?") {
       QStringList names = QStringList() <<
        "plots" << "annotations" << "view_width" << "view_height" <<
-       "pixel_width" << "pixel_height" << "pixel_position";
+       "pixel_width" << "pixel_height" << "pixel_position" << "properties";
 
       cmdBase_->setCmdRc(names);
     }
@@ -3927,10 +3969,43 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(p);
     }
+    else if (name == "properties") {
+      QStringList names;
+
+      plot->getPropertyNames(names);
+
+      cmdBase_->setCmdRc(names);
+    }
     else if (name == "?") {
       QStringList names = QStringList() <<
        "model" << "value" << "map" << "annotations" << "objects" << "selected_objects" << "inds" <<
-       "plot_width" << "plot_height" << "pixel_width" << "pixel_height" << "pixel_position";
+       "plot_width" << "plot_height" << "pixel_width" << "pixel_height" << "pixel_position" <<
+       "properties";
+
+      cmdBase_->setCmdRc(names);
+    }
+    else {
+      cmdBase_->setCmdError("Invalid name '" + name + "' specified");
+      return false;
+    }
+  }
+  // annotation data
+  else if (argv.hasParseArg("annotation")) {
+    QString annotationName = argv.getParseStr("annotation");
+
+    CQChartsAnnotation *annotation = getAnnotationByName(annotationName);
+    if (! annotation) return false;
+
+    if      (name == "properties") {
+      QStringList names;
+
+      annotation->getPropertyNames(names);
+
+      cmdBase_->setCmdRc(names);
+    }
+    else if (name == "?") {
+      QStringList names = QStringList() <<
+       "properties";
 
       cmdBase_->setCmdRc(names);
     }
@@ -4000,9 +4075,14 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(modelData->ind());
     }
+    else if (name == "annotation_types") {
+      QStringList names = CQChartsAnnotation::typeNames();
+
+      cmdBase_->setCmdRc(names);
+    }
     else if (name == "?") {
       QStringList names = QStringList() <<
-       "models" << "views" << "types" << "plots" << "current_model";
+       "models" << "views" << "types" << "plots" << "current_model" << "annotation_types";
 
       cmdBase_->setCmdRc(names);
     }
@@ -4316,9 +4396,22 @@ createChartsRectAnnotationCmd(CQChartsCmdArgs &argv)
     else if (plot)
       annotation = plot->addRectAnnotation(rect);
   }
+  else {
+    CQChartsRect rect;
 
-  if (! annotation)
+    if      (view)
+      annotation = view->addRectAnnotation(rect);
+    else if (plot)
+      annotation = plot->addRectAnnotation(rect);
+
+    if (annotation)
+      annotation->setRect(CQChartsPosition(QPointF(0, 0)), CQChartsPosition(QPointF(1, 1)));
+  }
+
+  if (! annotation) {
+    charts_->errorMsg("Failed to create annotation");
     return false;
+  }
 
   if (id != "")
     annotation->setId(id);
@@ -4328,7 +4421,7 @@ createChartsRectAnnotationCmd(CQChartsCmdArgs &argv)
 
   annotation->setBoxData(boxData);
 
-  cmdBase_->setCmdRc(annotation->propertyId());
+  cmdBase_->setCmdRc(annotation->pathId());
 
   return true;
 }
@@ -4439,7 +4532,7 @@ createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
 
   annotation->setBoxData(boxData);
 
-  cmdBase_->setCmdRc(annotation->propertyId());
+  cmdBase_->setCmdRc(annotation->pathId());
 
   return true;
 }
@@ -4460,7 +4553,7 @@ createChartsPolygonAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
-  argv.addCmdArg("-points", CQChartsCmdArg::Type::Polygon, "points string");
+  argv.addCmdArg("-points", CQChartsCmdArg::Type::Polygon, "points string").setRequired();
 
   argv.addCmdArg("-background"        , CQChartsCmdArg::Type::SBool , "background visible");
   argv.addCmdArg("-background_color"  , CQChartsCmdArg::Type::Color , "background color");
@@ -4547,7 +4640,7 @@ createChartsPolygonAnnotationCmd(CQChartsCmdArgs &argv)
 
   annotation->setBoxData(boxData);
 
-  cmdBase_->setCmdRc(annotation->propertyId());
+  cmdBase_->setCmdRc(annotation->pathId());
 
   return true;
 }
@@ -4568,7 +4661,7 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
-  argv.addCmdArg("-points", CQChartsCmdArg::Type::Polygon, "points string");
+  argv.addCmdArg("-points", CQChartsCmdArg::Type::Polygon, "points string").setRequired();
 
   argv.addCmdArg("-background"        , CQChartsCmdArg::Type::SBool , "background visible");
   argv.addCmdArg("-background_color"  , CQChartsCmdArg::Type::Color , "background color");
@@ -4657,7 +4750,7 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 
   annotation->setBoxData(boxData);
 
-  cmdBase_->setCmdRc(annotation->propertyId());
+  cmdBase_->setCmdRc(annotation->pathId());
 
   return true;
 }
@@ -4784,9 +4877,19 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
     else if (plot)
       annotation = plot->addTextAnnotation(rect, text);
   }
+  else {
+    CQChartsPosition pos(QPointF(0, 0));
 
-  if (! annotation)
+    if      (view)
+      annotation = view->addTextAnnotation(pos, text);
+    else if (plot)
+      annotation = plot->addTextAnnotation(pos, text);
+  }
+
+  if (! annotation) {
+    charts_->errorMsg("Failed to create annotation");
     return false;
+  }
 
   if (id != "")
     annotation->setId(id);
@@ -4797,7 +4900,7 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
   annotation->setTextData(textData);
   annotation->setBoxData(boxData);
 
-  cmdBase_->setCmdRc(annotation->propertyId());
+  cmdBase_->setCmdRc(annotation->pathId());
 
   return true;
 }
@@ -4904,7 +5007,7 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
 
   annotation->arrow()->setShapeData(shapeData);
 
-  cmdBase_->setCmdRc(annotation->propertyId());
+  cmdBase_->setCmdRc(annotation->pathId());
 
   return true;
 }
@@ -5008,7 +5111,7 @@ createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
 
   annotation->setSymbolData(symbolData);
 
-  cmdBase_->setCmdRc(annotation->propertyId());
+  cmdBase_->setCmdRc(annotation->pathId());
 
   return true;
 }
@@ -5042,16 +5145,15 @@ removeChartsAnnotationCmd(CQChartsCmdArgs &argv)
     QString id = argv.getParseStr("id");
 
     CQChartsAnnotation *annotation = getAnnotationByName(id);
+    if (! annotation) return false;
 
-    if (annotation) {
-      CQChartsPlot *plot = annotation->plot();
-      CQChartsView *view = annotation->view();
+    CQChartsPlot *plot = annotation->plot();
+    CQChartsView *view = annotation->view();
 
-      if (plot)
-        plot->removeAnnotation(annotation);
-      else
-        view->removeAnnotation(annotation);
-    }
+    if (plot)
+      plot->removeAnnotation(annotation);
+    else
+      view->removeAnnotation(annotation);
   }
   else {
     CQChartsView *view = nullptr;
@@ -6280,7 +6382,6 @@ addView()
 
   // TODO: handle multiple windows
   CQChartsWindow *window = charts_->createWindow(view);
-
   assert(window);
 
   return view;
