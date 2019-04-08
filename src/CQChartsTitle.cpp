@@ -23,11 +23,11 @@ CQChartsTitle(CQChartsPlot *plot) :
 
   //---
 
-  QFont f = textData_.font();
+  CQChartsFont font;
 
-  f.setPointSizeF(1.2*textFont().pointSizeF());
+  font.incFontSize(1.2);
 
-  textData_.setFont(f);
+  textData_.setFont(font);
 
   //---
 

@@ -809,3 +809,5 @@
 # 4/6/2019
  + Add more property descriptions
  + Get property list for view, plot, annotation in get_charts_data command
+# 4/7/2019
+ + Add CQChartsFont to support inheritance

@@ -87,7 +87,7 @@ CQChartsHierBubblePlot::
 setTextFontSize(double s)
 {
   if (s != textData_.font().pointSizeF()) {
-    QFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
+    CQChartsFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
 
     queueDrawObjs();
   }

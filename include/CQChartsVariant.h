@@ -2,6 +2,7 @@
 #define CQChartsVariant_H
 
 #include <CQChartsUtil.h>
+#include <CQChartsFont.h>
 #include <CQChartsSymbol.h>
 #include <CQChartsLength.h>
 #include <CQUtil.h>
@@ -210,6 +211,26 @@ inline CQChartsColor toColor(const QVariant &var, bool &ok) {
   CQChartsColor color = QColor(var.toString());
   ok = color.isValid();
   return color;
+}
+
+inline CQChartsFont toFont(const QVariant &var, bool &ok) {
+  ok = true;
+
+  if (var.type() == QVariant::Font) {
+    CQChartsFont font(var.value<QFont>());
+    ok = font.isValid();
+    return font;
+  }
+
+  if (var.type() == QVariant::UserType && var.userType() == CQChartsFont::metaTypeId) {
+    CQChartsFont font = var.value<CQChartsFont>();
+    ok = font.isValid();
+    return font;
+  }
+
+  CQChartsFont font(var.toString());
+  ok = font.isValid();
+  return font;
 }
 
 //---

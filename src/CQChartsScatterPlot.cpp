@@ -448,7 +448,7 @@ setTextLabels(bool b)
 
 void
 CQChartsScatterPlot::
-setDataLabelFont(const QFont &font)
+setDataLabelFont(const CQChartsFont &font)
 {
   NoUpdate noUpdate(this);
 
@@ -3295,13 +3295,13 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
     //---
 
-    QFont font = dataLabel->textFont();
+    CQChartsFont font = dataLabel->textFont();
 
     if (fontSize > 0) {
       // scale to font size
       fontSize = plot_->limitFontSize(fontSize);
 
-      QFont font1 = font;
+      CQChartsFont font1 = font;
 
       font1.setPointSizeF(fontSize);
 

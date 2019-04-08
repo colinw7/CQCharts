@@ -32,12 +32,12 @@ setNameValues(CQChartsNameValues &nameValues) const
   if (! isVisible())
     nameValues.setNameValue("visible", isVisible());
 
-  nameValues.setNameValue("color", color().toString());
+  nameValues.setNameValueType<CQChartsColor>("color", color());
 
   if (alpha() != 1.0)
     nameValues.setNameValue("alpha", alpha());
 
-  nameValues.setNameValue("font", font());
+  nameValues.setNameValueType<CQChartsFont>("font", font());
 
   if (angle() != 0.0)
     nameValues.setNameValue("angle", angle());
@@ -115,7 +115,7 @@ setNameValues(CQChartsNameValues &nameValues) const
   if (! isVisible())
     nameValues.setNameValue("visible", isVisible());
 
-  nameValues.setNameValue("color", color().toString());
+  nameValues.setNameValueType<CQChartsColor>("color", color());
 
   if (alpha() != 1.0)
     nameValues.setNameValue("alpha", alpha());
@@ -347,7 +347,7 @@ setNameValues(CQChartsNameValues &nameValues) const
 {
   nameValues.setNameValue("filled", isVisible());
 
-  nameValues.setNameValue("fillColor", color().toString());
+  nameValues.setNameValueType<CQChartsColor>("fillColor", color());
 
   if (alpha() != 1.0)
     nameValues.setNameValue("fillAlpha", alpha());
@@ -408,7 +408,7 @@ setNameValues(CQChartsNameValues &nameValues) const
 {
   nameValues.setNameValue("stroked", isVisible());
 
-  nameValues.setNameValue("strokeColor", color().toString());
+  nameValues.setNameValueType<CQChartsColor>("strokeColor", color());
 
   if (alpha() != 1.0)
     nameValues.setNameValue("strokeAlpha", alpha());

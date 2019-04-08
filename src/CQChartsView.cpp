@@ -101,6 +101,10 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
+  font_.setFont(QFont());
+
+  //---
+
   addProperty("", this, "title")->setDesc("View title");
   addProperty("", this, "mode" )->setHidden(true).setDesc("View mouse mode");
 
@@ -122,6 +126,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   addProperty("font", this, "scaleFont" , "scaled")->setDesc("Scale font to view size");
   addProperty("font", this, "fontFactor", "factor")->setDesc("Global font scale");
+  addProperty("font", this, "font"      , "font"  )->setDesc("Global font");
 
   addProperty("sizing", this, "autoSize" , "auto"     )->setDesc("Auto scale to view size");
   addProperty("sizing", this, "fixedSize", "fixedSize")->setDesc("Fixed view size");
@@ -324,6 +329,15 @@ setFontFactor(double r)
 
 void
 CQChartsView::
+setFont(const CQChartsFont &f)
+{
+  CQChartsUtil::testAndSet(font_, f, [&]() { updatePlots(); } );
+}
+
+//---
+
+void
+CQChartsView::
 setPosTextType(const PosTextType &t)
 {
   CQChartsUtil::testAndSet(posTextType_, t, [&]() { updatePlots(); } );
@@ -333,9 +347,23 @@ setPosTextType(const PosTextType &t)
 
 void
 CQChartsView::
+setPainterFont(QPainter *painter, const CQChartsFont &font) const
+{
+  painter->setFont(viewFont(font));
+}
+
+void
+CQChartsView::
 setPainterFont(QPainter *painter, const QFont &font) const
 {
   painter->setFont(viewFont(font));
+}
+
+void
+CQChartsView::
+setPlotPainterFont(const CQChartsPlot *plot, QPainter *painter, const CQChartsFont &font) const
+{
+  painter->setFont(plotFont(plot, font));
 }
 
 void
@@ -347,12 +375,39 @@ setPlotPainterFont(const CQChartsPlot *plot, QPainter *painter, const QFont &fon
 
 QFont
 CQChartsView::
+viewFont(const CQChartsFont &font) const
+{
+  // Calc specified font from view font
+  QFont font1 = font.calcFont(font_.font());
+
+  if (isScaleFont())
+    return scaledFont(font1, this->size());
+  else
+    return font1;
+}
+
+QFont
+CQChartsView::
 viewFont(const QFont &font) const
 {
   if (isScaleFont())
     return scaledFont(font, this->size());
   else
     return font;
+}
+
+QFont
+CQChartsView::
+plotFont(const CQChartsPlot *plot, const CQChartsFont &font) const
+{
+  // adjust font by plot font and then by view font
+  CQChartsFont font1 = font.calcFont(plot->font());
+  QFont        font2 = font1.calcFont(font_.font());
+
+  if (isScaleFont())
+    return scaledFont(font2, plot->calcPixelSize());
+  else
+    return font2;
 }
 
 QFont
@@ -652,9 +707,9 @@ addProperty(const QString &path, QObject *object, const QString &name, const QSt
 
 void
 CQChartsView::
-getPropertyNames(QStringList &names) const
+getPropertyNames(QStringList &names, bool hidden) const
 {
-  propertyModel()->objectNames(this, names);
+  propertyModel()->objectNames(this, names, hidden);
 }
 
 void

@@ -296,9 +296,7 @@ CQChartsColorEdit(QWidget *parent) :
 
   valueLabel->setObjectName("valueLabel");
 
-  valueEdit_ = new CQRealSpin;
-
-  valueEdit_->setObjectName("valueEdit");
+  valueEdit_ = CQUtil::makeWidget<CQRealSpin>("valueEdit");
 
   connect(valueEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToColor()));
 
@@ -316,9 +314,7 @@ CQChartsColorEdit(QWidget *parent) :
 
   colorLabel->setObjectName("colorLabel");
 
-  colorEdit_ = new CQColorEdit;
-
-  colorEdit_->setObjectName("colorEdit");
+  colorEdit_ = CQUtil::makeWidget<CQColorEdit>("colorEdit");
 
   connect(colorEdit_, SIGNAL(colorChanged(const QColor &)), this, SLOT(widgetsToColor()));
 

@@ -113,8 +113,9 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(QSize fixedSize READ fixedSize  WRITE setFixedSize)
 
   // font scaling/factor
-  Q_PROPERTY(bool   scaleFont  READ isScaleFont WRITE setScaleFont )
-  Q_PROPERTY(double fontFactor READ fontFactor  WRITE setFontFactor)
+  Q_PROPERTY(bool         scaleFont  READ isScaleFont WRITE setScaleFont )
+  Q_PROPERTY(double       fontFactor READ fontFactor  WRITE setFontFactor)
+  Q_PROPERTY(CQChartsFont font       READ font        WRITE setFont      )
 
   Q_ENUMS(Mode)
   Q_ENUMS(SelectMode)
@@ -210,21 +211,6 @@ class CQChartsView : public QFrame,
 
   //---
 
-  void setPainterFont(QPainter *painter, const QFont &font) const;
-
-  void setPlotPainterFont(const CQChartsPlot *plot, QPainter *painter, const QFont &font) const;
-
-  QFont viewFont(const QFont &font) const;
-  QFont plotFont(const CQChartsPlot *plot, const QFont &font) const;
-
-  double calcFontScale(const QSizeF &size) const;
-
-  QFont scaledFont(const QFont &font, const QSizeF &size) const;
-
-  QFont scaledFont(const QFont &font, double s) const;
-
-  //---
-
   void setCurrentPlot(CQChartsPlot *plot);
 
   //---
@@ -278,15 +264,45 @@ class CQChartsView : public QFrame,
 
   //---
 
-  // font scaling
+  // font scaling/factor
   bool isScaleFont() const { return scaleFont_; }
   void setScaleFont(bool b);
 
   double fontFactor() const { return fontFactor_; }
   void setFontFactor(double r);
 
+  const CQChartsFont &font() const { return font_; }
+  void setFont(const CQChartsFont &f);
+
   //---
 
+  void setPainterFont(QPainter *painter, const CQChartsFont &font) const;
+
+  void setPlotPainterFont(const CQChartsPlot *plot, QPainter *painter,
+                          const CQChartsFont &font) const;
+
+  QFont viewFont(const CQChartsFont &font) const;
+
+  QFont plotFont(const CQChartsPlot *plot, const CQChartsFont &font) const;
+
+  double calcFontScale(const QSizeF &size) const;
+
+ private:
+  void setPainterFont(QPainter *painter, const QFont &font) const;
+
+  void setPlotPainterFont(const CQChartsPlot *plot, QPainter *painter,
+                          const QFont &font) const;
+
+  QFont viewFont(const QFont &font) const;
+
+  QFont plotFont(const CQChartsPlot *plot, const QFont &font) const;
+
+  QFont scaledFont(const QFont &font, const QSizeF &size) const;
+  QFont scaledFont(const QFont &font, double s) const;
+
+  //---
+
+ public:
   // position text type
   const PosTextType &posTextType() const { return posTextType_; }
   void setPosTextType(const PosTextType &t);
@@ -331,7 +347,7 @@ class CQChartsView : public QFrame,
   CQPropertyViewItem *addProperty(const QString &path, QObject *object,
                                   const QString &name, const QString &alias="");
 
-  void getPropertyNames(QStringList &names) const;
+  void getPropertyNames(QStringList &names, bool hidden=false) const;
 
   void hideProperty(const QString &path, QObject *object);
 
@@ -889,8 +905,9 @@ class CQChartsView : public QFrame,
   bool                  bufferLayers_     { true };              //! buffer draw layers
   bool                  preview_          { false };             //! preview
   bool                  scaleFont_        { true };              //! auto scale font
-  SizeData              sizeData_;                               //! size control
   double                fontFactor_       { 1.0 };               //! font scale factor
+  CQChartsFont          font_;                                   //! font
+  SizeData              sizeData_;                               //! size control
   PosTextType           posTextType_      { PosTextType::PLOT }; //! position text type
   CQChartsGeom::BBox    prect_            { 0, 0, 100, 100 };    //! plot rect
   double                aspect_           { 1.0 };               //! current aspect

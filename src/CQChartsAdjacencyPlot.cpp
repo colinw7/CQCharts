@@ -763,7 +763,7 @@ drawBackground(QPainter *painter) const
   // set font
   double ts = std::min(pxs, pys);
 
-  QFont font = this->textFont();
+  QFont font = this->textFont().calcFont();
 
   font.setPixelSize(ts >= 1 ? ts : 1.0);
 

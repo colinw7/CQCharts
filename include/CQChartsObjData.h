@@ -536,7 +536,7 @@ Q_PROPERTY(CQChartsTextData textData READ textData WRITE setTextData) \
 Q_PROPERTY(bool          textVisible   READ isTextVisible   WRITE setTextVisible  ) \
 Q_PROPERTY(CQChartsColor textColor     READ textColor       WRITE setTextColor    ) \
 Q_PROPERTY(double        textAlpha     READ textAlpha       WRITE setTextAlpha    ) \
-Q_PROPERTY(QFont         textFont      READ textFont        WRITE setTextFont     ) \
+Q_PROPERTY(CQChartsFont  textFont      READ textFont        WRITE setTextFont     ) \
 Q_PROPERTY(double        textAngle     READ textAngle       WRITE setTextAngle    ) \
 Q_PROPERTY(bool          textContrast  READ isTextContrast  WRITE setTextContrast ) \
 Q_PROPERTY(Qt::Alignment textAlign     READ textAlign       WRITE setTextAlign    ) \
@@ -573,8 +573,8 @@ class CQChartsObjTextData {
     return textDataObj_->charts()->interpColor(textColor(), i, n);
   }
 
-  const QFont &textFont() const { return textData_.font(); }
-  void setTextFont(const QFont &f) {
+  const CQChartsFont &textFont() const { return textData_.font(); }
+  void setTextFont(const CQChartsFont &f) {
     if (f != textData_.font()) {
       textData_.setFont(f); textDataInvalidate(); }
   }
@@ -646,7 +646,7 @@ Q_PROPERTY(CQChartsColor LNAME##TextColor \
            READ LNAME##TextColor         WRITE set##UNAME##TextColor    ) \
 Q_PROPERTY(double        LNAME##TextAlpha \
            READ LNAME##TextAlpha         WRITE set##UNAME##TextAlpha    ) \
-Q_PROPERTY(QFont         LNAME##TextFont \
+Q_PROPERTY(CQChartsFont  LNAME##TextFont \
            READ LNAME##TextFont          WRITE set##UNAME##TextFont     ) \
 Q_PROPERTY(double        LNAME##TextAngle \
            READ LNAME##TextAngle         WRITE set##UNAME##TextAngle    ) \
@@ -691,8 +691,8 @@ class CQChartsObj##UNAME##TextData { \
     return LNAME##TextDataObj_->charts()->interpColor(LNAME##TextColor(), i, n); \
   } \
 \
-  const QFont &LNAME##TextFont() const { return LNAME##TextData_.font(); } \
-  void set##UNAME##TextFont(const QFont &f) { \
+  const CQChartsFont &LNAME##TextFont() const { return LNAME##TextData_.font(); } \
+  void set##UNAME##TextFont(const CQChartsFont &f) { \
     if (f != LNAME##TextData_.font()) { \
       LNAME##TextData_.setFont(f); LNAME##TextDataInvalidate(); } \
   } \

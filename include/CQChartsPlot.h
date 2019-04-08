@@ -187,6 +187,9 @@ class CQChartsPlot : public CQChartsObj,
   // key
   Q_PROPERTY(bool keyVisible READ isKeyVisible WRITE setKeyVisible)
 
+  // font
+  Q_PROPERTY(CQChartsFont font READ font WRITE setFont)
+
   // scaled fonts
   Q_PROPERTY(double minScaleFontSize READ minScaleFontSize WRITE setMinScaleFontSize)
   Q_PROPERTY(double maxScaleFontSize READ maxScaleFontSize WRITE setMaxScaleFontSize)
@@ -433,6 +436,11 @@ class CQChartsPlot : public CQChartsObj,
   // fit area
   const CQChartsSides &fitBorderSides() const { return fitBorderSides_; }
   void setFitBorderSides(const CQChartsSides &s);
+
+  //---
+
+  const CQChartsFont &font() const { return font_; }
+  void setFont(const CQChartsFont &f);
 
   //---
 
@@ -693,7 +701,7 @@ class CQChartsPlot : public CQChartsObj,
 
   void propertyItemSelected(QObject *obj, const QString &path);
 
-  void getPropertyNames(QStringList &names) const;
+  void getPropertyNames(QStringList &names, bool hidden=false) const;
 
   void getObjectPropertyNames(CQChartsPlotObj *plotObj, QStringList &names) const;
 
@@ -1862,11 +1870,12 @@ class CQChartsPlot : public CQChartsObj,
   };
 
   struct DrawBusyData {
-    QColor      bgColor  { 255, 255, 255 };
-    QColor      fgColor  { 100, 200, 100 };
-    int         count    { 10 };
-    int         multiple { 10 };
-    mutable int ind      { 0 };
+    QColor       bgColor  { 255, 255, 255 };
+    QColor       fgColor  { 100, 200, 100 };
+    CQChartsFont font;
+    int          count    { 10 };
+    int          multiple { 10 };
+    mutable int  ind      { 0 };
   };
 
   struct UpdateData {
@@ -2060,6 +2069,7 @@ class CQChartsPlot : public CQChartsObj,
   ColorColumnData              colorColumnData_;                 //! color color data
   mutable std::mutex           colorMutex_;                      //! color mutex
   CQChartsColumn               imageColumn_;                     //! image column
+  CQChartsFont                 font_;                            //! font
   double                       minScaleFontSize_ { 6.0 };        //! min scaled font size
   double                       maxScaleFontSize_ { 48.0 };       //! max scaled font size
   bool                         equalScale_       { false };      //! equal scaled

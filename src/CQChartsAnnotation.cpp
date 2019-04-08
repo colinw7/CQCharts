@@ -219,12 +219,12 @@ setProperty(const QString &name, const QVariant &value)
 
 void
 CQChartsAnnotation::
-getPropertyNames(QStringList &names) const
+getPropertyNames(QStringList &names, bool hidden) const
 {
   if      (plot())
-    plot()->propertyModel()->objectNames(this, names);
+    plot()->propertyModel()->objectNames(this, names, hidden);
   else if (view())
-    view()->propertyModel()->objectNames(this, names);
+    view()->propertyModel()->objectNames(this, names, hidden);
 }
 
 //------

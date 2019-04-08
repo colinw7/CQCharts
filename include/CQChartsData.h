@@ -2,6 +2,7 @@
 #define CQChartsData_H
 
 #include <CQChartsColor.h>
+#include <CQChartsFont.h>
 #include <CQChartsLength.h>
 #include <CQChartsPosition.h>
 #include <CQChartsPlotSymbol.h>
@@ -9,7 +10,6 @@
 #include <CQChartsFillPattern.h>
 #include <CQChartsSides.h>
 #include <CQUtilMeta.h>
-#include <QFont>
 
 //------
 
@@ -39,8 +39,8 @@ class CQChartsTextData {
   double alpha() const { return alpha_; }
   void setAlpha(double r) { alpha_ = r; }
 
-  const QFont &font() const { return font_; }
-  void setFont(const QFont &v) { font_ = v; }
+  const CQChartsFont &font() const { return font_; }
+  void setFont(const CQChartsFont &v) { font_ = v; }
 
   double angle() const { return angle_; }
   void setAngle(double r) { angle_ = r; }
@@ -74,7 +74,7 @@ class CQChartsTextData {
   bool          visible_   { true };                                      //! is visible
   CQChartsColor color_     { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //! color
   double        alpha_     { 1.0 };                                       //! alpha
-  QFont         font_;                                                    //! font
+  CQChartsFont  font_;                                                    //! font
   double        angle_     { 0.0 };                                       //! angle
   bool          contrast_  { false };                                     //! contrast
   Qt::Alignment align_     { Qt::AlignLeft | Qt::AlignVCenter };          //! align

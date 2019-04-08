@@ -552,7 +552,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
-  void setDataLabelFont(const QFont &font);
+  void setDataLabelFont(const CQChartsFont &font);
 
   //---
 

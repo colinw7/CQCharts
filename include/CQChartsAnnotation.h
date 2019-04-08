@@ -94,7 +94,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   bool getPropertyDesc(const QString &name, QString &desc) const;
 
   //! get property names
-  void getPropertyNames(QStringList &names) const;
+  void getPropertyNames(QStringList &names, bool hidden=false) const;
 
   //---
 

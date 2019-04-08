@@ -1143,8 +1143,9 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
     if      (name == "?") {
       QStringList names;
+      bool        hidden = false;
 
-      view->getPropertyNames(names);
+      view->getPropertyNames(names, hidden);
 
       cmdBase_->setCmdRc(names);
     }
@@ -1214,8 +1215,9 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
     else {
       if      (name == "?") {
         QStringList names;
+        bool        hidden = false;
 
-        plot->getPropertyNames(names);
+        plot->getPropertyNames(names, hidden);
 
         cmdBase_->setCmdRc(names);
       }
@@ -1249,8 +1251,9 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
     if      (name == "?") {
       QStringList names;
+      bool        hidden = false;
 
-      annotation->getPropertyNames(names);
+      annotation->getPropertyNames(names, hidden);
 
       cmdBase_->setCmdRc(names);
     }
@@ -3277,6 +3280,8 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "option name").setRequired();
   argv.addCmdArg("-data", CQChartsCmdArg::Type::String, "option data");
 
+  argv.addCmdArg("-hidden", CQChartsCmdArg::Type::Boolean, "include hidden data");
+
   if (! argv.parse())
     return false;
 
@@ -3287,6 +3292,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
   bool    header = argv.getParseBool("header");
   QString name   = argv.getParseStr ("name");
   QString data   = argv.getParseStr ("data");
+  bool    hidden = argv.getParseBool("hidden");
 
   //---
 
@@ -3707,7 +3713,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     else if (name == "properties") {
       QStringList names;
 
-      view->getPropertyNames(names);
+      view->getPropertyNames(names, hidden);
 
       cmdBase_->setCmdRc(names);
     }
@@ -3820,6 +3826,12 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       }
 
       cmdBase_->setCmdRc(modelData->ind());
+    }
+    // get view ind
+    else if (name == "view") {
+      CQChartsView *view = plot->view();
+
+      cmdBase_->setCmdRc(view->id());
     }
     // get column header or row, column value
     else if (name == "value") {
@@ -3972,15 +3984,15 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     else if (name == "properties") {
       QStringList names;
 
-      plot->getPropertyNames(names);
+      plot->getPropertyNames(names, hidden);
 
       cmdBase_->setCmdRc(names);
     }
     else if (name == "?") {
       QStringList names = QStringList() <<
-       "model" << "value" << "map" << "annotations" << "objects" << "selected_objects" << "inds" <<
-       "plot_width" << "plot_height" << "pixel_width" << "pixel_height" << "pixel_position" <<
-       "properties";
+       "model" << "view" << "value" << "map" << "annotations" << "objects" <<
+       "selected_objects" << "inds" << "plot_width" << "plot_height" << "pixel_width" <<
+       "pixel_height" << "pixel_position" << "properties";
 
       cmdBase_->setCmdRc(names);
     }
@@ -3996,16 +4008,35 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     CQChartsAnnotation *annotation = getAnnotationByName(annotationName);
     if (! annotation) return false;
 
+    // get view ind
+    if      (name == "view") {
+      CQChartsView *view = annotation->view();
+
+      if (view)
+        cmdBase_->setCmdRc(view->id());
+      else
+        cmdBase_->setCmdRc(QString());
+    }
+    // get plot ind
+    else if (name == "plot") {
+      CQChartsPlot *plot = annotation->plot();
+
+      if (plot)
+        cmdBase_->setCmdRc(plot->id());
+      else
+        cmdBase_->setCmdRc(QString());
+    }
+    // get column header or row, column value
     if      (name == "properties") {
       QStringList names;
 
-      annotation->getPropertyNames(names);
+      annotation->getPropertyNames(names, hidden);
 
       cmdBase_->setCmdRc(names);
     }
     else if (name == "?") {
       QStringList names = QStringList() <<
-       "properties";
+       "view" << "plot" << "properties";
 
       cmdBase_->setCmdRc(names);
     }

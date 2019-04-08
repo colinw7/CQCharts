@@ -52,7 +52,7 @@ class CQChartsTextDataLineEdit : public CQChartsLineEditBase {
 class CQChartsColorLineEdit;
 class CQChartsAlphaEdit;
 class CQChartsTextDataEditPreview;
-class CQFontEdit;
+class CQChartsFontLineEdit;
 class CQAngleSpinBox;
 class CQAlignEdit;
 class CQGroupBox;
@@ -90,7 +90,7 @@ class CQChartsTextDataEdit : public CQChartsEditBase {
   CQChartsView*                view_          { nullptr };
   CQChartsTextData             data_;
   CQGroupBox*                  groupBox_      { nullptr };
-  CQFontEdit*                  fontEdit_      { nullptr };
+  CQChartsFontLineEdit*        fontEdit_      { nullptr };
   CQChartsColorLineEdit*       colorEdit_     { nullptr };
   CQChartsAlphaEdit*           alphaEdit_     { nullptr };
   CQAngleSpinBox*              angleEdit_     { nullptr };

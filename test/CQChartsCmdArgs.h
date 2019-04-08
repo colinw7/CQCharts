@@ -5,6 +5,7 @@
 #include <CQChartsPosition.h>
 #include <CQChartsRect.h>
 #include <CQChartsColor.h>
+#include <CQChartsFont.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsSides.h>
 
@@ -14,7 +15,6 @@
 #include <CQAlignEdit.h>
 #include <CQStrParse.h>
 
-#include <QFont>
 #include <boost/optional.hpp>
 #include <set>
 
@@ -195,6 +195,18 @@ class CQChartsCmdBaseArgs {
       return false;
 
     t = T(str);
+
+    return true;
+  }
+
+  // get font value of current option
+  bool getOptValue(CQChartsFont &f) {
+    QString str;
+
+    if (! getOptValue(str))
+      return false;
+
+    f = CQChartsFont(str);
 
     return true;
   }
@@ -735,21 +747,28 @@ class CQChartsCmdBaseArgs {
   }
 
   // get parsed font for option (default returned if not found)
+  CQChartsFont getParseFont(const QString &name, const CQChartsFont &def=CQChartsFont()) const {
+    return getParseValue<CQChartsFont>(name, def);
+  }
+
+  // get parsed font for option (default returned if not found)
   QFont getParseFont(const QString &name, const QFont &def=QFont()) const {
     return getParseValue<QFont>(name, def);
   }
 
-  // get parsed font for option (default returned if not found)
+  // get parsed color for option (default returned if not found)
   CQChartsColor
   getParseColor(const QString &name, const CQChartsColor &def=CQChartsColor()) const {
     return getParseValue<CQChartsColor>(name, def);
   }
 
+  // get parsed line dash for option (default returned if not found)
   CQChartsLineDash
   getParseLineDash(const QString &name, const CQChartsLineDash &def=CQChartsLineDash()) const {
     return getParseValue<CQChartsLineDash>(name, def);
   }
 
+  // get parsed line side for option (default returned if not found)
   CQChartsSides getParseSides(const QString &name, const CQChartsSides &def=CQChartsSides()) const {
     return getParseValue<CQChartsSides>(name, def);
   }

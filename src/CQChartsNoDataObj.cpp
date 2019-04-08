@@ -30,7 +30,7 @@ draw(QPainter *painter)
   // draw no data text
   QString msg = "NO DATA";
 
-  painter->setFont(view->font());
+  view->setPainterFont(painter, font());
 
   CQChartsDrawUtil::drawCenteredText(painter, c.qpoint(), msg);
 }

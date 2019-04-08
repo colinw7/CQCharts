@@ -5,6 +5,7 @@
 #include <QFont>
 
 class CQChartsColor;
+class CQChartsFont;
 
 class CQChartsNameValues {
  public:
@@ -41,6 +42,7 @@ class CQChartsNameValues {
   bool nameValueReal   (const QString &name, double &value) const;
   bool nameValueBool   (const QString &name, bool &value) const;
   bool nameValueColor  (const QString &name, CQChartsColor &color) const;
+  bool nameValueFont   (const QString &name, CQChartsFont &font) const;
   bool nameValueFont   (const QString &name, QFont &font) const;
   bool nameValueAlign  (const QString &name, Qt::Alignment &align) const;
 

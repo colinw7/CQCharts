@@ -1,5 +1,6 @@
 #include <CQChartsTextDataEdit.h>
 
+#include <CQChartsFontEdit.h>
 #include <CQChartsColorEdit.h>
 #include <CQChartsAlphaEdit.h>
 #include <CQChartsView.h>
@@ -10,7 +11,6 @@
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
 
-#include <CQFontEdit.h>
 #include <CQAngleSpinBox.h>
 #include <CQAlignEdit.h>
 #include <CQGroupBox.h>
@@ -244,9 +244,9 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   QLabel *fontLabel = new QLabel("Font");
   fontLabel->setObjectName("fontLabel");
 
-  fontEdit_ = new CQFontEdit;
+  fontEdit_ = new CQChartsFontLineEdit;
 
-  connect(fontEdit_, SIGNAL(fontChanged(const QFont &)), this, SLOT(widgetsToData()));
+  connect(fontEdit_, SIGNAL(fontChanged()), this, SLOT(widgetsToData()));
 
   groupLayout->addWidget(fontLabel, 0, 0);
   groupLayout->addWidget(fontEdit_, 0, 1);
@@ -421,7 +421,7 @@ dataToWidgets()
   if (groupBox_)
     disconnect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
 
-  disconnect(fontEdit_, SIGNAL(fontChanged(const QFont &)), this, SLOT(widgetsToData()));
+  disconnect(fontEdit_, SIGNAL(fontChanged()), this, SLOT(widgetsToData()));
   disconnect(colorEdit_, SIGNAL(colorChanged()), this, SLOT(widgetsToData()));
   disconnect(alphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
   disconnect(angleEdit_, SIGNAL(angleChanged(const CAngle &)), this, SLOT(widgetsToData()));
@@ -449,7 +449,7 @@ dataToWidgets()
   if (groupBox_)
     connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
 
-  connect(fontEdit_, SIGNAL(fontChanged(const QFont &)), this, SLOT(widgetsToData()));
+  connect(fontEdit_, SIGNAL(fontChanged()), this, SLOT(widgetsToData()));
   connect(colorEdit_, SIGNAL(colorChanged()), this, SLOT(widgetsToData()));
   connect(alphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
   connect(angleEdit_, SIGNAL(angleChanged(const CAngle &)), this, SLOT(widgetsToData()));
@@ -516,14 +516,14 @@ draw(QPainter *painter, const CQChartsTextData &data, const QRect &rect,
   //---
 
   // set font
-  painter->setFont(data.font());
+  painter->setFont(data.font().calcFont());
 
   //---
 
   // draw text
   // TODO: angle, align, formatted, scaled, html
 
-  QFontMetrics fm(data.font());
+  QFontMetrics fm(painter->font());
 
   int tx = rect.left() + 2;
   int ty = rect.center().y() + (fm.ascent() - fm.descent())/2;

@@ -136,6 +136,7 @@ CQChartsOptReal.cpp \
 CQChartsOptRect.cpp \
 \
 CQChartsColor.cpp \
+CQChartsFont.cpp \
 CQChartsNamePair.cpp \
 CQChartsPolygonList.cpp \
 CQChartsPosition.cpp \
@@ -197,6 +198,7 @@ CQChartsColumnEdit.cpp \
 CQChartsColumnsEdit.cpp \
 CQChartsFillDataEdit.cpp \
 CQChartsFillUnderEdit.cpp \
+CQChartsFontEdit.cpp \
 CQChartsLengthEdit.cpp \
 CQChartsLineDashEdit.cpp \
 CQChartsLineDataEdit.cpp \
@@ -392,6 +394,7 @@ HEADERS += \
 ../include/CQChartsRoundedPolygon.h \
 \
 ../include/CQChartsColor.h \
+../include/CQChartsFont.h \
 ../include/CQChartsNamePair.h \
 ../include/CQChartsPolygonList.h \
 ../include/CQChartsPosition.h \
@@ -420,6 +423,7 @@ HEADERS += \
 ../include/CQChartsArrowDataEdit.h \
 ../include/CQChartsBoxDataEdit.h \
 ../include/CQChartsColorEdit.h \
+../include/CQChartsFontEdit.h \
 ../include/CQChartsColumnEdit.h \
 ../include/CQChartsColumnsEdit.h \
 ../include/CQChartsFillDataEdit.h \

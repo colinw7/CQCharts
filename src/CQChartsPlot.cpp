@@ -902,6 +902,15 @@ setFitBorderSides(const CQChartsSides &s)
 
 //---
 
+void
+CQChartsPlot::
+setFont(const CQChartsFont &f)
+{
+  CQChartsUtil::testAndSet(font_, f, [&]() { queueDrawObjs(); } );
+}
+
+//---
+
 bool
 CQChartsPlot::
 isKeyVisible() const
@@ -1425,23 +1434,25 @@ CQChartsPlot::
 addProperties()
 {
   addProperty("", this, "viewId" , "view"   )->setDesc("Parent view id");
-  addProperty("", this, "typeStr", "type"   )->setDesc("Type name");
+  addProperty("", this, "typeStr", "type"   )->setDesc("Type name").setHidden(true);
   addProperty("", this, "visible", "visible")->setDesc("Plot visible");
+  addProperty("", this, "font"   , "font"   )->setDesc("Base font");
 
   addProperty("columns", this, "idColumn"     , "id"     )->setDesc("Id column");
   addProperty("columns", this, "tipColumns"   , "tips"   )->setDesc("Tips columns");
   addProperty("columns", this, "visibleColumn", "visible")->setDesc("Visible column");
   addProperty("columns", this, "colorColumn"  , "color"  )->setDesc("Color column");
-  addProperty("columns", this, "imageColumn"  , "image"  )->setDesc("Imahe column");
+  addProperty("columns", this, "imageColumn"  , "image"  )->setDesc("Image column");
 
   addProperty("range", this, "viewRect", "view")->setDesc("View Rectangle");
   addProperty("range", this, "dataRect", "data")->setDesc("Data Rectangle");
 
-  if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG", true)) {
-    addProperty("range", this, "innerViewRect", "innerView")->setDesc("Inner View Rectangle");
-    addProperty("range", this, "calcDataRect" , "calcData" )->setDesc("Calculated Data Rectangle");
-    addProperty("range", this, "outerDataRect", "outerData")->setDesc("Outer Data Rectangle");
-  }
+  addProperty("range", this, "innerViewRect", "innerView")->
+    setDesc("Inner View Rectangle").setHidden(true);
+  addProperty("range", this, "calcDataRect" , "calcData" )->
+    setDesc("Calculated Data Rectangle").setHidden(true);
+  addProperty("range", this, "outerDataRect", "outerData")->
+    setDesc("Outer Data Rectangle").setHidden(true);
 
   addProperty("range", this, "autoFit", "autoFit")->setDesc("Auto fit to data");
 
@@ -1450,20 +1461,27 @@ addProperties()
   if (type()->customYRange())
     addProperty("range", this, "ymin", "ymin")->setDesc("Explicit minimum y value");
   if (type()->customXRange())
-    addProperty("range", this, "xmax", "xmax")->setDesc("Explicit maxiumu x value");
+    addProperty("range", this, "xmax", "xmax")->setDesc("Explicit maximum x value");
   if (type()->customYRange())
-    addProperty("range", this, "ymax", "ymax")->setDesc("Explicit maxiumu y value");
+    addProperty("range", this, "ymax", "ymax")->setDesc("Explicit maximum y value");
 
   addProperty("scaling", this, "equalScale", "equal")->setDesc("Equal X/Y Scaling");
 
-  addProperty("scaling/data/scale" , this, "dataScaleX" , "x")->setDesc("x data scale");
-  addProperty("scaling/data/scale" , this, "dataScaleY" , "y")->setDesc("y data scale");
-  addProperty("scaling/data/offset", this, "dataOffsetX", "x")->setDesc("x data offset");
-  addProperty("scaling/data/offset", this, "dataOffsetY", "y")->setDesc("y data offset");
+  addProperty("scaling/data/scale" , this, "dataScaleX" , "x")->
+    setDesc("x data scale").setHidden(true);
+  addProperty("scaling/data/scale" , this, "dataScaleY" , "y")->
+    setDesc("y data scale").setHidden(true);
+  addProperty("scaling/data/offset", this, "dataOffsetX", "x")->
+    setDesc("x data offset").setHidden(true);
+  addProperty("scaling/data/offset", this, "dataOffsetY", "y")->
+    setDesc("y data offset").setHidden(true);
 
-  addProperty("grouping", this, "overlay")->setDesc("Overlay plots to shared range");
-  addProperty("grouping", this, "x1x2"   )->setDesc("Independent x axes, shared y axis");
-  addProperty("grouping", this, "y1y2"   )->setDesc("Independent y axes, shared x axis");
+  addProperty("grouping", this, "overlay")->
+    setDesc("Overlay plots to shared range").setHidden(true);
+  addProperty("grouping", this, "x1x2"   )->
+    setDesc("Independent x axes, shared y axis").setHidden(true);
+  addProperty("grouping", this, "y1y2"   )->
+    setDesc("Independent y axes, shared x axis").setHidden(true);
 
   addProperty("invert", this, "invertX", "x")->setDesc("Invert x values");
   addProperty("invert", this, "invertY", "y")->setDesc("Invert y values");
@@ -1555,12 +1573,17 @@ addProperties()
 
   //---
 
-  addProperty("every", this, "everyEnabled", "enabled")->setDesc("Enable every row filter");
-  addProperty("every", this, "everyStart"  , "start"  )->setDesc("Start of every row filter");
-  addProperty("every", this, "everyEnd"    , "end"    )->setDesc("End of every row filter");
-  addProperty("every", this, "everyStep"   , "step"   )->setDesc("Step of every row filter");
+  addProperty("every", this, "everyEnabled", "enabled")->
+    setDesc("Enable every row filter").setHidden(true);
+  addProperty("every", this, "everyStart"  , "start"  )->
+    setDesc("Start of every row filter").setHidden(true);
+  addProperty("every", this, "everyEnd"    , "end"    )->
+    setDesc("End of every row filter").setHidden(true);
+  addProperty("every", this, "everyStep"   , "step"   )->
+    setDesc("Step of every row filter").setHidden(true);
 
-  addProperty("filter", this, "filterStr", "expression")->setDesc("Filter expression");
+  addProperty("filter", this, "filterStr", "expression")->
+    setDesc("Filter expression").setHidden(true);
 
   //---
 
@@ -1797,9 +1820,9 @@ propertyItemSelected(QObject *obj, const QString &)
 
 void
 CQChartsPlot::
-getPropertyNames(QStringList &names) const
+getPropertyNames(QStringList &names, bool hidden) const
 {
-  propertyModel()->objectNames(this, names);
+  propertyModel()->objectNames(this, names, hidden);
 }
 
 void
@@ -5498,7 +5521,9 @@ drawBusy(QPainter *painter, const UpdateState &updateState) const
 
     painter->setPen(tc);
 
-    QFontMetricsF fm(view_->font());
+    QFont font = view_->viewFont(updateData_.drawBusy.font);
+
+    QFontMetricsF fm(font);
 
     double tw = fm.width(text);
     double ta = fm.ascent();

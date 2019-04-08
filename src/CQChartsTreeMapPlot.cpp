@@ -138,7 +138,7 @@ CQChartsTreeMapPlot::
 setHeaderTextFontSize(double s)
 {
   if (s != headerTextData_.font().pointSizeF()) {
-    QFont f = headerTextData_.font(); f.setPointSizeF(s); headerTextData_.setFont(f);
+    CQChartsFont f = headerTextData_.font(); f.setPointSizeF(s); headerTextData_.setFont(f);
 
     queueDrawObjs();
   }
@@ -151,7 +151,7 @@ CQChartsTreeMapPlot::
 setTextFontSize(double s)
 {
   if (s != textData_.font().pointSizeF()) {
-    QFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
+    CQChartsFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
 
     queueDrawObjs();
   }

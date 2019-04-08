@@ -173,6 +173,22 @@ nameValueColor(const QString &name, CQChartsColor &color) const
 
 bool
 CQChartsNameValues::
+nameValueFont(const QString &name, CQChartsFont &font) const
+{
+  QVariant var;
+
+  if (! nameValue(name, var))
+    return false;
+
+  bool ok;
+
+  font = CQChartsVariant::toFont(var, ok);
+
+  return ok;
+}
+
+bool
+CQChartsNameValues::
 nameValueFont(const QString &name, QFont &font) const
 {
   QVariant var;
