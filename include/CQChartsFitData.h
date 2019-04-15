@@ -3,22 +3,33 @@
 
 #include <CLeastSquaresFit.h>
 
+//! \brief least squares fit data
 class CQChartsFitData {
  public:
   CQChartsFitData() { }
+
+  //---
 
   bool isFitted() const { return fitted_; }
 
   void resetFitted() { fitted_ = false; }
 
+  //---
+
   double xmin() const { return xmin_; }
   double xmax() const { return xmax_; }
+
+  //---
 
   int numCoeffs() const { return num_coeffs_; }
 
   double coeff(int i) const { return coeffs_[i]; }
 
+  //---
+
   double deviation() const { return deviation_; }
+
+  //---
 
   double interp(double x) const {
     double y = 0.0;
@@ -28,6 +39,8 @@ class CQChartsFitData {
 
     return y;
   }
+
+  //---
 
   void calc(const std::vector<QPointF> &points, int order=-1) {
     int np = points.size();

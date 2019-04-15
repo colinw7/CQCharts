@@ -15,6 +15,7 @@ class QLineEdit;
 class QPushButton;
 class QStyleOptionComboBox;
 
+//! \brief model line edit base class
 class CQChartsLineEditBase : public QFrame {
   Q_OBJECT
 
@@ -84,6 +85,7 @@ class CQChartsLineEditBase : public QFrame {
   QLineEdit*                edit_             { nullptr };
   QPushButton*              button_           { nullptr };
   CQWidgetMenu*             menu_             { nullptr };
+  bool                      connected_        { false };
   mutable QColor            tc_;
 };
 
@@ -91,6 +93,7 @@ class CQChartsLineEditBase : public QFrame {
 
 #include <QLineEdit>
 
+//! \brief model edit line edit
 class CQChartsLineEditEdit : public QLineEdit {
   Q_OBJECT
 
@@ -107,6 +110,7 @@ class CQChartsLineEditEdit : public QLineEdit {
 
 #include <QPushButton>
 
+//! \brief model edit menu button
 class CQChartsLineEditMenuButton : public QPushButton {
   Q_OBJECT
 

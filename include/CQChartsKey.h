@@ -432,6 +432,9 @@ class CQChartsPlotKey : public CQChartsKey {
 
 //------
 
+/*!
+ * \brief Key Item base class
+ */
 class CQChartsKeyItem : public QObject {
   Q_OBJECT
 
@@ -505,6 +508,9 @@ class CQChartsPlot;
 
 //---
 
+/*!
+ * \brief Key Text Item base class
+ */
 class CQChartsKeyText : public CQChartsKeyItem {
   Q_OBJECT
 
@@ -527,6 +533,9 @@ class CQChartsKeyText : public CQChartsKeyItem {
 
 //---
 
+/*!
+ * \brief Key Color Box Item base class
+ */
 class CQChartsKeyColorBox : public CQChartsKeyItem {
   Q_OBJECT
 

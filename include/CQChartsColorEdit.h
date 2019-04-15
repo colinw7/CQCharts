@@ -6,6 +6,9 @@
 
 class CQChartsColorEdit;
 
+/*!
+ * \brief Color line edit
+ */
 class CQChartsColorLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
@@ -37,7 +40,7 @@ class CQChartsColorLineEdit : public CQChartsLineEditBase {
   void connectSlots(bool b) override;
 
  private:
-  CQChartsColorEdit* dataEdit_ { nullptr };
+  CQChartsColorEdit* dataEdit_ { nullptr }; //!< color data edit
 };
 
 //---
@@ -51,6 +54,9 @@ class CQCheckBox;
 class QComboBox;
 class QSpinBox;
 
+/*!
+ * \brief Color edit
+ */
 class CQChartsColorEdit : public CQChartsEditBase {
   Q_OBJECT
 
@@ -59,7 +65,7 @@ class CQChartsColorEdit : public CQChartsEditBase {
  public:
   CQChartsColorEdit(QWidget *parent=nullptr);
 
-  const CQChartsColor &color() const;
+  const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &c);
 
   void setNoFocus();
@@ -78,19 +84,20 @@ class CQChartsColorEdit : public CQChartsEditBase {
   void connectSlots(bool b);
 
  private:
-  CQChartsColor color_;
-  QComboBox*    typeCombo_  { nullptr };
-  QSpinBox*     indEdit_    { nullptr };
-  CQRealSpin*   valueEdit_  { nullptr };
-  CQColorEdit*  colorEdit_  { nullptr };
-  CQCheckBox*   scaleCheck_ { nullptr };
+  CQChartsColor color_;                  //!< color
+  QComboBox*    typeCombo_  { nullptr }; //!< type combo
+  QSpinBox*     indEdit_    { nullptr }; //!< index edit
+  CQRealSpin*   valueEdit_  { nullptr }; //!< value edit
+  CQColorEdit*  colorEdit_  { nullptr }; //!< color edit
+  CQCheckBox*   scaleCheck_ { nullptr }; //!< scale schec
+  bool          connected_  { false };   //!< is connected
 };
 
 //------
 
 #include <CQPropertyViewType.h>
 
-// type for CQChartsColor
+//! \brief type for CQChartsColor
 class CQChartsColorPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsColorPropertyViewType();
@@ -110,7 +117,7 @@ class CQChartsColorPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-// editor factory for CQChartsColor
+//! \brief editor factory for CQChartsColor
 class CQChartsColorPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsColorPropertyViewEditor();

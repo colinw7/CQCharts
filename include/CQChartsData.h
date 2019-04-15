@@ -523,6 +523,7 @@ CQUTIL_DCL_META_TYPE(CQChartsArrowData)
 #include <CQChartsRect.h>
 #include <CQChartsTitleLocation.h>
 
+//! \brief title data
 struct CQChartsTitleData {
   bool                  visible   { true };
   CQChartsTitleLocation location;
@@ -538,6 +539,7 @@ struct CQChartsTitleData {
 #include <CQChartsKeyPressBehavior.h>
 #include <CQChartsOptLength.h>
 
+//! \brief key data
 struct CQChartsKeyData {
   bool                     visible      { true };
   bool                     horizontal   { false };
@@ -566,6 +568,7 @@ struct CQChartsKeyData {
 #include <CQChartsAxisSide.h>
 #include <CQChartsOptReal.h>
 
+//! \brief axis data
 struct CQChartsAxisData {
   bool             visible        { true };
   Qt::Orientation  direction      { Qt::Horizontal };

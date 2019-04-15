@@ -7,6 +7,9 @@
 #include <QFont>
 #include <QRectF>
 
+/*!
+ * \brief Charts Text Box Object
+ */
 class CQChartsTextBoxObj : public CQChartsBoxObj,
  public CQChartsObjTextData<CQChartsTextBoxObj> {
   Q_OBJECT

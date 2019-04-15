@@ -7,6 +7,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
 
+#include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
@@ -694,7 +695,7 @@ QString
 CQChartsRadarObj::
 calcId() const
 {
-  return QString("poly:%1").arg(i_);
+  return QString("%1:%2").arg(typeName()).arg(i_);
 }
 
 QString
@@ -710,6 +711,26 @@ calcTipId() const
 
   return tableTip.str();
 }
+
+//---
+
+void
+CQChartsRadarObj::
+addProperties(CQPropertyViewModel *model, const QString &path)
+{
+  QString path1 = path + "/" + propertyId();
+
+  model->setObjectRoot(path1, this);
+
+  CQChartsPlotObj::addProperties(model, path1);
+
+  model->addProperty(path1, this, "rect"    )->setDesc("Bounding box");
+//model->addProperty(path1, this, "selected")->setDesc("Is selected");
+
+  model->addProperty(path1, this, "name")->setDesc("Name");
+}
+
+//---
 
 bool
 CQChartsRadarObj::

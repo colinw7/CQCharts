@@ -5,6 +5,7 @@
 #include <CQRealSpin.h>
 
 #include <QHBoxLayout>
+#include <cassert>
 
 CQChartsLengthEdit::
 CQChartsLengthEdit(QWidget *parent) :
@@ -119,14 +120,21 @@ void
 CQChartsLengthEdit::
 connectSlots(bool b)
 {
-  if (b) {
-    connect(edit_, SIGNAL(valueChanged(double)), this, SLOT(editChanged()));
-    connect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
-  }
-  else {
-    disconnect(edit_, SIGNAL(valueChanged(double)), this, SLOT(editChanged()));
-    disconnect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
-  }
+  assert(b != connected_);
+
+  connected_ = b;
+
+  //---
+
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      connect(w, from, this, to);
+    else
+      disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, edit_, SIGNAL(valueChanged(double)), SLOT(editChanged()));
+  connectDisconnect(b, unitsEdit_, SIGNAL(unitsChanged()), SLOT(unitsChanged()));
 }
 
 //------

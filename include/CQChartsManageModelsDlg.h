@@ -7,6 +7,7 @@ class CQCharts;
 class CQChartsModelWidgets;
 class CQChartsCreatePlotDlg;
 
+//! \brief dialog to manage charts models
 class CQChartsManageModelsDlg : public QDialog {
   Q_OBJECT
 

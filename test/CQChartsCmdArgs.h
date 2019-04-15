@@ -30,6 +30,7 @@ class CQChartsCmdBaseArgs {
   using OptInt  = boost::optional<int>;
   using OptBool = boost::optional<bool>;
 
+  //! \brief command argument
   class Arg {
    public:
     Arg(const QVariant &var=QVariant()) :

@@ -6,6 +6,7 @@
 
 class CQChartsWindow;
 class CQChartsView;
+class CQChartsPlot;
 class CQChartsViewExpander;
 class CQChartsViewSettings;
 class CQChartsFilterEdit;
@@ -86,6 +87,9 @@ class CQChartsWindow : public QFrame {
   void resizeEvent(QResizeEvent *) override;
 
   QSize sizeHint() const;
+
+ private:
+  CQChartsPlot *objectPlot(QObject *obj) const;
 
  signals:
   void interfacePaletteChanged();

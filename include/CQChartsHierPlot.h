@@ -6,6 +6,9 @@
 
 //----
 
+/*!
+ * \brief Hierarchical base plot
+ */
 class CQChartsHierPlot : public CQChartsPlot {
   Q_OBJECT
 

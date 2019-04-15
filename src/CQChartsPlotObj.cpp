@@ -1,4 +1,6 @@
 #include <CQChartsPlotObj.h>
+#include <CQChartsPlot.h>
+#include <CQPropertyViewModel.h>
 
 CQChartsPlotObj::
 CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect) :
@@ -18,6 +20,23 @@ calcColumnId(const QModelIndex &ind, QString &str) const
 
   return ok;
 }
+
+//---
+
+QString
+CQChartsPlotObj::
+propertyId() const
+{
+  return QString("object:%1").arg(id());
+}
+
+void
+CQChartsPlotObj::
+addProperties(CQPropertyViewModel *, const QString &)
+{
+}
+
+//---
 
 bool
 CQChartsPlotObj::

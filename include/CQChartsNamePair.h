@@ -3,6 +3,9 @@
 
 #include <CQChartsUtil.h>
 
+/*!
+ * \brief Name Pair class
+ */
 class CQChartsNamePair {
  public:
   static void registerMetaType();

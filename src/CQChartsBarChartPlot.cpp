@@ -8,6 +8,7 @@
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>
 
+#include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
@@ -1416,7 +1417,7 @@ QString
 CQChartsBarChartObj::
 calcId() const
 {
-  return QString("bar:%1:%2:%3").arg(iset_).arg(ival_).arg(isval_);
+  return QString("%1:%2:%3:%4").arg(typeName()).arg(iset_).arg(ival_).arg(isval_);
 }
 
 QString
@@ -1525,6 +1526,29 @@ dataLabelRect() const
 
   return plot_->dataLabel()->calcRect(qrect, label);
 }
+
+//---
+
+void
+CQChartsBarChartObj::
+addProperties(CQPropertyViewModel *model, const QString &path)
+{
+  QString path1 = path + "/" + propertyId();
+
+  model->setObjectRoot(path1, this);
+
+  CQChartsPlotObj::addProperties(model, path1);
+
+  model->addProperty(path1, this, "rect"    )->setDesc("Bounding box");
+//model->addProperty(path1, this, "selected")->setDesc("Is selected");
+
+  model->addProperty(path1, this, "group")->setDesc("Group");
+  model->addProperty(path1, this, "name" )->setDesc("Name");
+  model->addProperty(path1, this, "value")->setDesc("Value");
+  model->addProperty(path1, this, "color")->setDesc("Color");
+}
+
+//---
 
 void
 CQChartsBarChartObj::
@@ -1756,9 +1780,9 @@ drawFg(QPainter *painter) const
 
   CQChartsBarChartValue::ValueInd minInd, maxInd;
 
-  value->calcRange(minInd, maxInd);
-
   if (! plot_->labelColumn().isValid()) {
+    value->calcRange(minInd, maxInd);
+
     minLabel = plot_->valueStr(minInd.value);
     maxLabel = plot_->valueStr(maxInd.value);
   }
@@ -1766,10 +1790,11 @@ drawFg(QPainter *painter) const
   CQChartsDataLabel::Position pos = plot_->dataLabel()->position();
 
   if (minLabel == maxLabel) {
-    if (minInd.value < 0)
+    if (! plot_->labelColumn().isValid() && minInd.value < 0)
       pos = CQChartsDataLabel::flipPosition(pos);
 
-    plot_->dataLabel()->draw(painter, qrect, minLabel, pos);
+    if (minLabel != "")
+      plot_->dataLabel()->draw(painter, qrect, minLabel, pos);
   }
   else {
     if (plot_->dataLabel()->isPositionOutside()) {

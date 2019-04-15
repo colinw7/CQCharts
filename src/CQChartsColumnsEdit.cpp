@@ -28,7 +28,9 @@ CQChartsColumnsLineEdit(QWidget *parent) :
 
   menu_->setWidget(dataEdit_);
 
-  connect(dataEdit_, SIGNAL(columnsChanged()), this, SLOT(menuEditChanged()));
+  //---
+
+  connectSlots(true);
 }
 
 void
@@ -77,10 +79,10 @@ updateColumns(const CQChartsColumns &columns, bool updateText)
 
   dataEdit_->setColumns(columns);
 
+  connectSlots(true);
+
   if (updateText)
     columnsToWidgets();
-
-  connectSlots(true);
 
   emit columnsChanged();
 }

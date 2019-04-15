@@ -27,9 +27,9 @@ CQChartsTextBoxDataLineEdit(QWidget *parent) :
 
   menu_->setWidget(dataEdit_);
 
-  connect(dataEdit_, SIGNAL(textBoxDataChanged()), this, SLOT(menuEditChanged()));
-
   //---
+
+  connectSlots(true);
 
   textBoxDataToWidgets();
 }
@@ -56,10 +56,10 @@ updateTextBoxData(const CQChartsTextBoxData &textBoxData, bool updateText)
 
   dataEdit_->setData(textBoxData);
 
+  connectSlots(true);
+
   if (updateText)
     textBoxDataToWidgets();
-
-  connectSlots(true);
 
   emit textBoxDataChanged();
 }
@@ -268,9 +268,6 @@ CQChartsTextBoxDataEdit(QWidget *parent, bool tabbed) :
     layout->addWidget(boxEdit_, row, 0, 1, 2); ++row;
   }
 
-  connect(textEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
-  connect(boxEdit_ , SIGNAL(boxDataChanged()) , this, SLOT(widgetsToData()));
-
   //---
 
   // preview
@@ -283,6 +280,8 @@ CQChartsTextBoxDataEdit(QWidget *parent, bool tabbed) :
   layout->setRowStretch(row, 1);
 
   //---
+
+  connectSlots(true);
 
   dataToWidgets();
 }
@@ -338,19 +337,29 @@ setPreview(bool b)
 
 void
 CQChartsTextBoxDataEdit::
+connectSlots(bool b)
+{
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      QObject::connect(w, from, this, to);
+    else
+      QObject::disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, textEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, boxEdit_ , SIGNAL(boxDataChanged()) , SLOT(widgetsToData()));
+}
+
+void
+CQChartsTextBoxDataEdit::
 dataToWidgets()
 {
-  disconnect(textEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
-  disconnect(boxEdit_, SIGNAL(boxDataChanged()), this, SLOT(widgetsToData()));
+  connectSlots(false);
 
   textEdit_->setData(data_.text());
   boxEdit_ ->setData(data_.box());
 
   preview_->update();
-
-  connect(textEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
-  connect(boxEdit_, SIGNAL(boxDataChanged()), this, SLOT(widgetsToData()));
-
 }
 
 void

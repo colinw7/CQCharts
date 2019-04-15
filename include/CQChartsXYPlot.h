@@ -6,6 +6,7 @@
 #include <CQChartsFillUnder.h>
 #include <CQChartsFitData.h>
 #include <CQChartsUtil.h>
+#include <CQChartsStatData.h>
 
 class CQChartsXYPlot;
 class CQChartsArrow;
@@ -13,7 +14,7 @@ class CQChartsArrow;
 //---
 
 /*!
- * \brief xy plot type
+ * \brief XY plot type
  */
 class CQChartsXYPlotType : public CQChartsGroupPlotType {
  public:
@@ -37,7 +38,7 @@ class CQChartsXYPlotType : public CQChartsGroupPlotType {
 //---
 
 /*!
- * \brief xy bivariate line
+ * \brief XY Plot Bivariate Line object
  */
 class CQChartsXYBiLineObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -74,6 +75,8 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
   //---
 
+  QString typeName() const override { return "biline"; }
+
   QString calcId() const override;
 
   QString calcTipId() const override;
@@ -106,7 +109,7 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 //---
 
 /*!
- * \brief xy impulse line
+ * \brief XY Plot Impulse Line object
  */
 class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -143,6 +146,8 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
 
   //---
 
+  QString typeName() const override { return "impulse"; }
+
   QString calcId() const override;
 
   QString calcTipId() const override;
@@ -177,7 +182,7 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
 class CQChartsXYPolylineObj;
 
 /*!
- * \brief xy point
+ * \brief XY Plot Point object
  */
 class CQChartsXYPointObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -228,6 +233,8 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   //---
 
+  QString typeName() const override { return "point"; }
+
   QString calcId() const override;
 
   QString calcTipId() const override;
@@ -277,7 +284,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 //---
 
 /*!
- * \brief xy point label
+ * \brief XY Plot Point Label object
  */
 class CQChartsXYLabelObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -316,6 +323,8 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
 
   //---
 
+  QString typeName() const override { return "label"; }
+
   QString calcId() const override;
 
   QString calcTipId() const override;
@@ -351,7 +360,7 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
 class CQChartsSmooth;
 
 /*!
- * \brief xy polygon (connected line)
+ * \brief XY Plot Polyline object (connected line)
  */
 class CQChartsXYPolylineObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -380,6 +389,8 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   //---
 
+  QString typeName() const override { return "polyline"; }
+
   QString calcId() const override;
 
   QString calcTipId() const override;
@@ -394,6 +405,12 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   bool interpY(double x, std::vector<double> &yvals) const;
 
+  bool isOutlier(double y) const;
+
+  //---
+
+  void resetFit();
+
   //---
 
   void getSelectIndices(Indices &inds) const override;
@@ -403,6 +420,8 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
+  void initFit();
+  void initStats();
   void initSmooth();
 
  private:
@@ -416,12 +435,13 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   int                   ng_       { -1 };      //! num groups
   CQChartsSmooth*       smooth_   { nullptr }; //! smooth object
   CQChartsFitData       fit_;                  //! fit data
+  CQChartsStatData      statData_;             //! statistics data
 };
 
 //---
 
 /*!
- * \brief xy polygon (full under)
+ * \brief XY Plot Polygon object (fill under)
  */
 class CQChartsXYPolygonObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -449,6 +469,8 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   int ng() const { return ng_; }
 
   //---
+
+  QString typeName() const override { return "polygon"; }
 
   QString calcId() const override;
 
@@ -488,13 +510,15 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 #include <CQChartsKey.h>
 
 /*!
- * \brief key color box
+ * \brief XY Plot Key Color Box
  */
 class CQChartsXYKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
  public:
   CQChartsXYKeyColor(CQChartsXYPlot *plot, int is, int ns, int ig, int ng);
+
+  CQChartsXYPlot *plot() const { return plot_; }
 
   void doSelect(CQChartsSelMod selMod) override;
 
@@ -511,13 +535,15 @@ class CQChartsXYKeyColor : public CQChartsKeyColorBox {
 };
 
 /*!
- * \brief key line
+ * \brief XY Plot Key Item
  */
 class CQChartsXYKeyLine : public CQChartsKeyItem {
   Q_OBJECT
 
  public:
   CQChartsXYKeyLine(CQChartsXYPlot *plot, int is, int ns, int ig, int ng);
+
+  CQChartsXYPlot *plot() const { return plot_; }
 
   void doSelect(CQChartsSelMod selMod) override;
 
@@ -536,13 +562,15 @@ class CQChartsXYKeyLine : public CQChartsKeyItem {
 };
 
 /*!
- * \brief key text
+ * \brief XY Plot Key Text
  */
 class CQChartsXYKeyText : public CQChartsKeyText {
   Q_OBJECT
 
  public:
   CQChartsXYKeyText(CQChartsXYPlot *plot, const QString &text, int is, int ns, int ig, int ng);
+
+  CQChartsXYPlot *plot() const { return plot_; }
 
   QColor interpTextColor(int i, int n) const override;
 
@@ -556,13 +584,14 @@ class CQChartsXYKeyText : public CQChartsKeyText {
 
 //---
 
+CQCHARTS_NAMED_LINE_DATA(Fit,fit)
 CQCHARTS_NAMED_LINE_DATA(Impulse,impulse)
 CQCHARTS_NAMED_LINE_DATA(Bivariate,bivariate)
 CQCHARTS_NAMED_FILL_DATA(FillUnder,fillUnder)
 CQCHARTS_NAMED_TEXT_DATA(DataLabel,dataLabel)
 
 /*!
- * \brief xy plot
+ * \brief XY Plot
  *
  * Plot Type
  *   + \ref CQChartsXYPlotType
@@ -573,6 +602,8 @@ CQCHARTS_NAMED_TEXT_DATA(DataLabel,dataLabel)
 class CQChartsXYPlot : public CQChartsGroupPlot,
  public CQChartsObjLineData         <CQChartsXYPlot>,
  public CQChartsObjPointData        <CQChartsXYPlot>,
+ public CQChartsObjFitLineData      <CQChartsXYPlot>,
+ public CQChartsObjStatsLineData    <CQChartsXYPlot>,
  public CQChartsObjImpulseLineData  <CQChartsXYPlot>,
  public CQChartsObjBivariateLineData<CQChartsXYPlot>,
  public CQChartsObjFillUnderFillData<CQChartsXYPlot>,
@@ -596,13 +627,20 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   // stacked, cumulative
   Q_PROPERTY(bool stacked    READ isStacked    WRITE setStacked   )
   Q_PROPERTY(bool cumulative READ isCumulative WRITE setCumulative)
-  Q_PROPERTY(bool fitted     READ isFitted     WRITE setFitted    )
+
+  // fit
+  Q_PROPERTY(bool fitOutliers READ isFitOutliers WRITE setFitOutliers)
+
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Fit, fit)
+
+  // stats
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Stats, stats)
 
   // vectors
   Q_PROPERTY(bool vectors READ isVectors WRITE setVectors)
 
   // impulse
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Impulse,impulse)
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Impulse, impulse)
 
   // point: (display, symbol)
   CQCHARTS_POINT_DATA_PROPERTIES
@@ -707,6 +745,12 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   //---
 
+  // fit outliers
+  bool isFitOutliers() const { return fitOutliers_; }
+  void setFitOutliers(bool b);
+
+  //---
+
   // fill under
   bool isFillUnderSelectable() const { return fillUnderData_.selectable; }
   void setFillUnderSelectable(bool b);
@@ -723,9 +767,6 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   // vectors
   bool isVectors() const;
-
-  // fitted
-  bool isFitted() const { return fitted_; }
 
   //---
 
@@ -812,9 +853,6 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   // set vectors
   void setVectors(bool b);
 
-  // set fitted
-  void setFitted(bool b);
-
   // set fill under
   void setFillUnderFilledSlot(bool b);
 
@@ -859,7 +897,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   bool            cumulative_           { false };            //!< cumulate values
   bool            linesSelectable_      { false };            //!< are lines selectable
   bool            roundedLines_         { false };            //!< draw rounded (smooth) lines
-  bool            fitted_               { false };            //!< is fitted
+  bool            fitOutliers_          { true };             //!< fit outliers
   FillUnderData   fillUnderData_;                             //!< fill under data
   CQChartsArrow*  arrowObj_             { nullptr };          //!< vectors data
   ColumnType      pointColorColumnType_ { ColumnType::NONE }; //!< point color column type

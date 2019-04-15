@@ -10,6 +10,7 @@ class CQChartsPlot;
 class QRubberBand;
 class QLabel;
 
+//! \brief x/y rubber bands for probe
 class CQChartsProbeBand : public QObject {
   Q_OBJECT
 

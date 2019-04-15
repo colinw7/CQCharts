@@ -27,9 +27,9 @@ CQChartsShapeDataLineEdit(QWidget *parent) :
 
   menu_->setWidget(dataEdit_);
 
-  connect(dataEdit_, SIGNAL(shapeDataChanged()), this, SLOT(menuEditChanged()));
-
   //---
+
+  connectSlots(true);
 
   shapeDataToWidgets();
 }
@@ -56,10 +56,10 @@ updateShapeData(const CQChartsShapeData &shapeData, bool updateText)
 
   dataEdit_->setData(shapeData);
 
+  connectSlots(true);
+
   if (updateText)
     shapeDataToWidgets();
-
-  connectSlots(true);
 
   emit shapeDataChanged();
 }
@@ -267,9 +267,6 @@ CQChartsShapeDataEdit(QWidget *parent, bool tabbed) :
     layout->addWidget(strokeEdit_, row, 0, 1, 2); ++row;
   }
 
-  connect(fillEdit_  , SIGNAL(fillDataChanged())  , this, SLOT(widgetsToData()));
-  connect(strokeEdit_, SIGNAL(strokeDataChanged()), this, SLOT(widgetsToData()));
-
   //---
 
   // preview
@@ -282,6 +279,8 @@ CQChartsShapeDataEdit(QWidget *parent, bool tabbed) :
   layout->setRowStretch(row, 1);
 
   //---
+
+  connectSlots(true);
 
   dataToWidgets();
 }
@@ -337,18 +336,31 @@ setPreview(bool b)
 
 void
 CQChartsShapeDataEdit::
+connectSlots(bool b)
+{
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      QObject::connect(w, from, this, to);
+    else
+      QObject::disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, fillEdit_, SIGNAL(fillDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, strokeEdit_, SIGNAL(strokeDataChanged()), SLOT(widgetsToData()));
+}
+
+void
+CQChartsShapeDataEdit::
 dataToWidgets()
 {
-  disconnect(fillEdit_, SIGNAL(fillDataChanged()), this, SLOT(widgetsToData()));
-  disconnect(strokeEdit_, SIGNAL(strokeDataChanged()), this, SLOT(widgetsToData()));
+  connectSlots(false);
 
   fillEdit_  ->setData(data_.background());
   strokeEdit_->setData(data_.border());
 
   preview_->update();
 
-  connect(fillEdit_, SIGNAL(fillDataChanged()), this, SLOT(widgetsToData()));
-  connect(strokeEdit_, SIGNAL(strokeDataChanged()), this, SLOT(widgetsToData()));
+  connectSlots(true);
 
 }
 

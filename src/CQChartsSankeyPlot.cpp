@@ -1018,7 +1018,7 @@ calcId() const
 {
   double value = node_->edgeSum();
 
-  return QString("node:%1:%2").arg(node_->str()).arg(value);
+  return QString("%1:%2:%3").arg(typeName()).arg(node_->str()).arg(value);
 }
 
 void
@@ -1139,7 +1139,7 @@ QString
 CQChartsSankeyEdgeObj::
 calcId() const
 {
-  return QString("edge:%1:%2:%3").arg(edge_->srcNode()->str()).
+  return QString("%1:%2:%3:%4").arg(typeName()).arg(edge_->srcNode()->str()).
           arg(edge_->destNode()->str()).arg(edge_->value());
 }
 

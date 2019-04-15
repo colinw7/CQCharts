@@ -172,6 +172,7 @@ class CQChartsGradientPaletteControl : public QFrame {
 
 //---
 
+//! \brief gradient palatte color type combo
 class CQChartsGradientPaletteColorType : public QComboBox {
   Q_OBJECT
 
@@ -185,6 +186,7 @@ class CQChartsGradientPaletteColorType : public QComboBox {
 
 //---
 
+//! \brief gradient palatte color model combo
 class CQChartsGradientPaletteColorModel : public QComboBox {
   Q_OBJECT
 
@@ -198,6 +200,7 @@ class CQChartsGradientPaletteColorModel : public QComboBox {
 
 //---
 
+//! \brief gradient palatte model combo
 class CQChartsGradientPaletteModel : public QComboBox {
   Q_OBJECT
 
@@ -207,6 +210,7 @@ class CQChartsGradientPaletteModel : public QComboBox {
 
 //---
 
+//! \brief gradient palatte defined colors table
 class CQChartsGradientPaletteDefinedColors : public QTableWidget {
   Q_OBJECT
 

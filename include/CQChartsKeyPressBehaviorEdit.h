@@ -4,7 +4,7 @@
 #include <CQChartsKeyPressBehavior.h>
 #include <CQChartsEnumEdit.h>
 
-// editor for CQChartsKeyPressBehavior
+//! \brief editor for CQChartsKeyPressBehavior
 class CQChartsKeyPressBehaviorEdit : public CQChartsEnumEdit {
   Q_OBJECT
 
@@ -35,7 +35,7 @@ class CQChartsKeyPressBehaviorEdit : public CQChartsEnumEdit {
 
 //------
 
-// type for CQChartsKeyPressBehavior
+//! \brief type for CQChartsKeyPressBehavior
 class CQChartsKeyPressBehaviorPropertyViewType : public CQChartsEnumPropertyViewType {
  public:
   CQPropertyViewEditorFactory *getEditor() const override;
@@ -45,7 +45,7 @@ class CQChartsKeyPressBehaviorPropertyViewType : public CQChartsEnumPropertyView
 
 //---
 
-// editor factory for CQChartsKeyPressBehavior
+//! \brief editor factory for CQChartsKeyPressBehavior
 class CQChartsKeyPressBehaviorPropertyViewEditorFactory :
   public CQChartsEnumPropertyViewEditorFactory {
  public:

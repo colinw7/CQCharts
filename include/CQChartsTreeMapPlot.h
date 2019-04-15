@@ -9,6 +9,9 @@
 
 //---
 
+/*!
+ * \brief Tree Map Plot Type
+ */
 class CQChartsTreeMapPlotType : public CQChartsHierPlotType {
  public:
   CQChartsTreeMapPlotType();
@@ -35,6 +38,7 @@ class CQChartsTreeMapPlotType : public CQChartsHierPlotType {
 class CQChartsTreeMapPlot;
 class CQChartsTreeMapHierNode;
 
+//! \brief Tree Map Node
 class CQChartsTreeMapNode {
  private:
   static uint nextId() {
@@ -133,6 +137,7 @@ struct CQChartsTreeMapNodeCmp {
 
 //---
 
+//! \brief Tree Map Hier Node
 class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
  public:
   using Nodes    = std::vector<CQChartsTreeMapNode*>;
@@ -195,13 +200,22 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 
 class CQChartsTreeMapHierObj;
 
+/*!
+ * \brief Tree Map Plot object
+ */
 class CQChartsTreeMapObj : public CQChartsPlotObj {
+  Q_OBJECT
+
  public:
   CQChartsTreeMapObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *node,
                      CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
                      int i, int n);
 
   CQChartsTreeMapNode *node() const { return node_; }
+
+  //---
+
+  QString typeName() const override { return "cell"; }
 
   QString calcId() const override;
 
@@ -232,6 +246,7 @@ class CQChartsTreeMapObj : public CQChartsPlotObj {
 
 //---
 
+//! \brief Tree Map Hier Box Object
 class CQChartsTreeMapHierObj : public CQChartsTreeMapObj {
  public:
   CQChartsTreeMapHierObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
@@ -260,6 +275,9 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapObj {
 
 CQCHARTS_NAMED_SHAPE_DATA(Header,header)
 
+/*!
+ * \brief Tree Map Plot
+ */
 class CQChartsTreeMapPlot : public CQChartsHierPlot,
  public CQChartsObjHeaderShapeData<CQChartsTreeMapPlot>,
  public CQChartsObjHeaderTextData <CQChartsTreeMapPlot>,

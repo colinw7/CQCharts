@@ -32,6 +32,7 @@ class QItemSelectionModel;
 
 //---
 
+//! \brief Charts Tcl Commands
 class CQChartsCmds : public QObject {
   Q_OBJECT
 
@@ -199,6 +200,7 @@ class CQChartsCmds : public QObject {
 
 //---
 
+//! \brief Charts Tcl Command
 #define CQCHARTS_DEF_CMD(NAME, PROC) \
 class CQCharts##NAME##Cmd : public CQChartsCmdProc { \
  public: \

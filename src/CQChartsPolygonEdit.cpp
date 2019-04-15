@@ -27,7 +27,9 @@ CQChartsPolygonLineEdit(QWidget *parent) :
 
   menu_->setWidget(dataEdit_);
 
-  connect(dataEdit_, SIGNAL(polygonChanged()), this, SLOT(menuEditChanged()));
+  //---
+
+  connectSlots(true);
 }
 
 const CQChartsPolygon &
@@ -52,10 +54,10 @@ updatePolygon(const CQChartsPolygon &polygon, bool updateText)
 
   dataEdit_->setPolygon(polygon);
 
+  connectSlots(true);
+
   if (updateText)
     polygonToWidgets();
-
-  connectSlots(true);
 
   emit polygonChanged();
 }
@@ -336,9 +338,29 @@ setPolygon(const CQChartsPolygon &polygon)
 
 void
 CQChartsPolygonEdit::
+connectSlots(bool b)
+{
+  assert(b != connected_);
+
+  connected_ = b;
+
+  //---
+
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      connect(w, from, this, to);
+    else
+      disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, unitsEdit_, SIGNAL(unitsChanged()), SLOT(unitsChanged()));
+}
+
+void
+CQChartsPolygonEdit::
 polygonToWidgets()
 {
-  disconnect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
+  connectSlots(false);
 
   //---
 
@@ -356,7 +378,7 @@ polygonToWidgets()
 
   //---
 
-  connect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
+  connectSlots(true);
 }
 
 void

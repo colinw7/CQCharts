@@ -6,6 +6,7 @@
 #include <QStringList>
 #include <iostream>
 
+//! \brief fill under side
 class CQChartsFillUnderSide {
  public:
   enum Type {
@@ -96,6 +97,7 @@ class CQChartsFillUnderSide {
 
 //---
 
+//! \brief fill under position
 class CQChartsFillUnderPos {
  public:
   enum Type {

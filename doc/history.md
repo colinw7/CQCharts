@@ -811,3 +811,7 @@
  + Get property list for view, plot, annotation in get_charts_data command
 # 4/7/2019
  + Add CQChartsFont to support inheritance
+# 4/15/2019
+ + Add stats lines for xy and distribution plot
+ + Add under/over flow buckets for distribution plot
+ + Allow plot objects to be added to property tree

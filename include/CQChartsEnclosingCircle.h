@@ -5,8 +5,10 @@
 #include <algorithm>
 #include <cmath>
 
+//! \brief enclosign circle
 class CQChartsEnclosingCircle {
  public:
+  //! circle
   class Circle {
    public:
     Circle(double x=0.0, double y=0.0, double r=1.0) :
@@ -105,8 +107,8 @@ class CQChartsEnclosingCircle {
       double dx2 = b.x() - x;
       double dy2 = b.y() - y;
 
-      double d1 = sqrt(dx1*dx1 + dy1*dy1) + a.r();
-      double d2 = sqrt(dx2*dx2 + dy2*dy2) + b.r();
+      double d1 = std::hypot(dx1, dy1) + a.r();
+      double d2 = std::hypot(dx2, dy2) + b.r();
 
       return (d1 < d2);
     }
@@ -127,7 +129,7 @@ class CQChartsEnclosingCircle {
     double dx = circle1.x() - circle2.x();
     double dy = circle1.y() - circle2.y();
 
-    double d = sqrt(dx*dx + dy*dy);
+    double d = std::hypot(dx, dy);
 
     // Check if first circle lies entirely inside the second circle. If so we are
     // done so just return second circle.

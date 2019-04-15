@@ -9,7 +9,9 @@ class CQChartsColumnBucket;
 
 //---
 
-// box plot type
+/*!
+ * \brief Group Plot Type base class
+ */
 class CQChartsGroupPlotType : public CQChartsPlotType {
  public:
   CQChartsGroupPlotType();
@@ -33,6 +35,9 @@ class CQChartsGroupPlotType : public CQChartsPlotType {
 
 //---
 
+/*!
+ * \brief Group Plot base class
+ */
 class CQChartsGroupPlot : public CQChartsPlot {
   Q_OBJECT
 

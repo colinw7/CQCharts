@@ -7,6 +7,7 @@
 
 class CQChartsPlot;
 
+//! \brief Pen/Brush Style
 class CQChartsStyle {
  public:
   static void registerMetaType();

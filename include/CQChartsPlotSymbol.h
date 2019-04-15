@@ -11,6 +11,7 @@ class CQChartsPlotSymbolRenderer;
 
 //---
 
+//! \brief plot symbol
 struct CQChartsPlotSymbol {
   enum class Connect {
     NONE,
@@ -65,6 +66,7 @@ namespace CQChartsPlotSymbolMgr {
 
 //---
 
+//! \brief plot symbol renderer
 class CQChartsPlotSymbolRenderer {
  public:
   CQChartsPlotSymbolRenderer() { }
@@ -100,6 +102,7 @@ class CQChartsPlotSymbolRenderer {
 class CQChartsPlot;
 class QPainter;
 
+//! \brief plot symbol 2d renderer
 class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
  public:
   CQChartsSymbol2DRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s);

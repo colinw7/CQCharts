@@ -6,6 +6,9 @@
 
 class CQChartsView;
 
+/*!
+ * \brief Charts View Tooltip
+ */
 class CQChartsViewToolTip : public CQToolTipIFace {
  public:
   CQChartsViewToolTip(CQChartsView *view);

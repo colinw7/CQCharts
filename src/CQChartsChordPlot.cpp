@@ -732,9 +732,10 @@ CQChartsChordObj::
 calcId() const
 {
   if (data_.group().str != "")
-    return QString("chord:%1:%2:%3").arg(data_.name()).arg(data_.group().str).arg(data_.total());
+    return QString("%1:%2:%3:%4").arg(typeName()).arg(data_.name()).
+             arg(data_.group().str).arg(data_.total());
   else
-    return QString("chord:%1:%2").arg(data_.name()).arg(data_.total());
+    return QString("%1:%2:%3").arg(typeName()).arg(data_.name()).arg(data_.total());
 }
 
 QString

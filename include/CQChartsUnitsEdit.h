@@ -4,6 +4,7 @@
 #include <CQChartsTypes.h>
 #include <QComboBox>
 
+//! \brief units edit
 class CQChartsUnitsEdit : public QComboBox {
   Q_OBJECT
 

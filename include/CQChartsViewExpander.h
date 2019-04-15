@@ -7,6 +7,7 @@
 
 class QTimer;
 
+//! \brief view expander widget
 class CQChartsViewExpander : public QFrame {
   Q_OBJECT
 

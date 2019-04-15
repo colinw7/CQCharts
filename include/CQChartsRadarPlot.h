@@ -7,6 +7,9 @@
 
 //---
 
+/*!
+ * \brief Radar plot type
+ */
 class CQChartsRadarPlotType : public CQChartsPlotType {
  public:
   CQChartsRadarPlotType();
@@ -34,8 +37,13 @@ class CQChartsRadarPlotType : public CQChartsPlotType {
 
 class CQChartsRadarPlot;
 
+/*!
+ * \brief Radar Plot object
+ */
 class CQChartsRadarObj : public CQChartsPlotObj {
   Q_OBJECT
+
+  Q_PROPERTY(QString name READ name)
 
  public:
   using NameValues = std::map<QString,double>;
@@ -45,9 +53,15 @@ class CQChartsRadarObj : public CQChartsPlotObj {
                    const QString &name, const QPolygonF &poly, const NameValues &nameValues,
                    const QModelIndex &ind, int i, int n);
 
+  QString typeName() const override { return "poly"; }
+
+  const QString &name() const { return name_; }
+
   QString calcId() const override;
 
   QString calcTipId() const override;
+
+  void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -71,6 +85,9 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
 //---
 
+/*!
+ * \brief Radar Plot
+ */
 class CQChartsRadarPlot : public CQChartsPlot,
  public CQChartsObjShapeData   <CQChartsRadarPlot>,
  public CQChartsObjTextData    <CQChartsRadarPlot>,

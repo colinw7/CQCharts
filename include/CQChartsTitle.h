@@ -15,6 +15,9 @@ class CQChartsEditHandles;
 class CQPropertyViewModel;
 class QPainter;
 
+/*!
+ * \brief Title Object
+ */
 class CQChartsTitle : public CQChartsTextBoxObj {
   Q_OBJECT
 

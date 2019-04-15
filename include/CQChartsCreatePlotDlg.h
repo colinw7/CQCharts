@@ -33,6 +33,7 @@ class QRadioButton;
 class QToolButton;
 class QLabel;
 
+//! \brief dialog to create new plot
 class CQChartsCreatePlotDlg : public QDialog {
   Q_OBJECT
 

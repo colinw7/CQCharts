@@ -11,6 +11,7 @@
 #include <cmath>
 #include <sys/types.h>
 
+//! \brief Circle Pack Node
 class CQChartsCircleNode {
   public:
    CQChartsCircleNode(double r=1.0, double x=0.0, double y=0.0) :
@@ -42,6 +43,7 @@ class CQChartsCircleNode {
 
 //---
 
+//! \brief Circle Pack
 template<typename NODE>
 class CQChartsCirclePack {
  public:

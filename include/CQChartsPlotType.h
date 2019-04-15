@@ -15,6 +15,9 @@ class CQChartsView;
 class CQChartsPlot;
 class CQChartsModelColumnDetails;
 
+/*!
+ * \brief Plot Type manager
+ */
 class CQChartsPlotTypeMgr {
  public:
   using Types = std::vector<CQChartsPlotType*>;
@@ -41,6 +44,9 @@ class CQChartsPlotTypeMgr {
 
 //----
 
+/*!
+ * \brief Plot Type base class
+ */
 class CQChartsPlotType : public QObject {
   Q_OBJECT
 

@@ -1,6 +1,7 @@
 #ifndef CQChartsTip_H
 #define CQChartsTip_H
 
+//! \brief class to build tip text as an HTML table
 class CQChartsTableTip {
  public:
   CQChartsTableTip() {

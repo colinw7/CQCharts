@@ -12,6 +12,7 @@ class QToolButton;
 class CQIconCombo;
 class CQChartsLineDashEditAction;
 
+//! \brief line dash edit
 class CQChartsLineDashEdit : public QFrame {
   Q_OBJECT
 
@@ -55,6 +56,7 @@ class CQChartsLineDashEdit : public QFrame {
 
 //---
 
+//! \brief line dash edit action
 class CQChartsLineDashEditAction : public QAction {
  public:
   CQChartsLineDashEditAction(CQChartsLineDashEdit *parent, const std::string &id,
@@ -73,7 +75,7 @@ class CQChartsLineDashEditAction : public QAction {
 
 #include <CQPropertyViewType.h>
 
-// type for CQChartsLineDash
+//! \brief type for CQChartsLineDash
 class CQChartsLineDashPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsLineDashPropertyViewType();
@@ -93,7 +95,7 @@ class CQChartsLineDashPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-// editor factory for CQChartsLineDash
+//! \brief editor factory for CQChartsLineDash
 class CQChartsLineDashPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsLineDashPropertyViewEditor();

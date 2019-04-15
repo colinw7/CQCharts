@@ -8,6 +8,7 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 
+#include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
@@ -46,14 +47,14 @@ addParameters()
     setNumeric().setTip("X Value");
   addColumnParameter("min"        , "Min"         , "minColumn"        ).
     setNumeric().setTip("Min Value");
+  addColumnParameter("max"        , "Max"         , "maxColumn"        ).
+    setNumeric().setTip("Max Value");
   addColumnParameter("lowerMedian", "Lower Median", "lowerMedianColumn").
     setNumeric().setTip("Lower Median Value");
   addColumnParameter("median"     , "Median"      , "medianColumn"     ).
     setNumeric().setTip("Median Value");
   addColumnParameter("upperMedian", "Upper Median", "upperMedianColumn").
     setNumeric().setTip("Upper Median Value");
-  addColumnParameter("max"        , "Max"         , "maxColumn"        ).
-    setNumeric().setTip("Max Value");
   addColumnParameter("outliers"   , "Outliers"    , "outliersColumn"   ).
     setTip("Outlier Values");
 
@@ -103,8 +104,8 @@ description() const
          "<p>Values can be supplied using:</p>\n"
          "<ul>\n"
          "<li>Raw Values with X and Y values in <b>value</b> and <b>set</b> columns.</li>\n"
-         "<li>Calculated Values in the <b>min</b>, <b>lowerMedian</b>, <b>median</b>, "
-         "<b>upperMedian</b>, <b>max</b> and <b>outliers</b> columns.</li>\n"
+         "<li>Calculated Values in the <b>min</b>, <b>max</b>, <b>median</b>, "
+         "<b>lowerMedian</b>, <b>upperMedian</b> and <b>outliers</b> columns.</li>\n"
          "</ul>";
 }
 
@@ -310,14 +311,14 @@ addProperties()
                 setDesc("Precalculated x column");
   addProperty("columns/calculated", this, "minColumn"        , "min"        )->
                 setDesc("Precalculated min column");
-  addProperty("columns/calculated", this, "lowerMedianColumn", "lowerMedian")->
-                setDesc("Precalculated lower median column");
-  addProperty("columns/calculated", this, "medianColumn"     , "median"     )->
-                setDesc("Precalculated median column");
-  addProperty("columns/calculated", this, "upperMedianColumn", "upperMedian")->
-                setDesc("Precalculated upperx column");
   addProperty("columns/calculated", this, "maxColumn"        , "max"        )->
                 setDesc("Precalculated max column");
+  addProperty("columns/calculated", this, "medianColumn"     , "median"     )->
+                setDesc("Precalculated median column");
+  addProperty("columns/calculated", this, "lowerMedianColumn", "lowerMedian")->
+                setDesc("Precalculated lower median column");
+  addProperty("columns/calculated", this, "upperMedianColumn", "upperMedian")->
+                setDesc("Precalculated upperx column");
   addProperty("columns/calculated", this, "outliersColumn"   , "outlier"    )->
                 setDesc("Precalculated outliers column");
 
@@ -483,10 +484,10 @@ CQChartsBoxPlot::
 isPreCalc() const
 {
   return (minColumn        ().isValid() &&
-          lowerMedianColumn().isValid() &&
+          maxColumn        ().isValid() &&
           medianColumn     ().isValid() &&
-          upperMedianColumn().isValid() &&
-          maxColumn        ().isValid());
+          lowerMedianColumn().isValid() &&
+          upperMedianColumn().isValid());
 }
 
 CQChartsGeom::Range
@@ -884,14 +885,14 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
     data.x = vdata.row;
   }
 
-  data.min    = modelReal(vdata.row, minColumn        (), vdata.parent, ok);
-  data.lower  = modelReal(vdata.row, lowerMedianColumn(), vdata.parent, ok);
-  data.median = modelReal(vdata.row, medianColumn     (), vdata.parent, ok);
-  data.upper  = modelReal(vdata.row, upperMedianColumn(), vdata.parent, ok);
-  data.max    = modelReal(vdata.row, maxColumn        (), vdata.parent, ok);
+  data.statData.min         = modelReal(vdata.row, minColumn        (), vdata.parent, ok);
+  data.statData.lowerMedian = modelReal(vdata.row, lowerMedianColumn(), vdata.parent, ok);
+  data.statData.median      = modelReal(vdata.row, medianColumn     (), vdata.parent, ok);
+  data.statData.upperMedian = modelReal(vdata.row, upperMedianColumn(), vdata.parent, ok);
+  data.statData.max         = modelReal(vdata.row, maxColumn        (), vdata.parent, ok);
 
-  data.dataMin = data.min;
-  data.dataMax = data.max;
+  data.dataMin = data.statData.min;
+  data.dataMax = data.statData.max;
 
   if (isShowOutliers()) {
     data.outliers = modelReals(vdata.row, outliersColumn(), vdata.parent, ok);
@@ -904,12 +905,12 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
 
   if (! isNormalized()) {
     if (! isHorizontal()) {
-      dataRange.updateRange(data.x - 0.5, data.min);
-      dataRange.updateRange(data.x + 0.5, data.max);
+      dataRange.updateRange(data.x - 0.5, data.statData.min);
+      dataRange.updateRange(data.x + 0.5, data.statData.max);
     }
     else {
-      dataRange.updateRange(data.min, data.x - 0.5);
-      dataRange.updateRange(data.max, data.x + 0.5);
+      dataRange.updateRange(data.statData.min, data.x - 0.5);
+      dataRange.updateRange(data.statData.max, data.x + 0.5);
     }
   }
   else {
@@ -1193,9 +1194,11 @@ initRawObjs(PlotObjs &objs) const
 
         if (! isNormalized()) {
           if (! isHorizontal())
-            rect = CQChartsGeom::BBox(pos - sbw, whisker->lower(), pos + sbw, whisker->upper());
+            rect = CQChartsGeom::BBox(pos - sbw, whisker->lowerMedian(),
+                                      pos + sbw, whisker->upperMedian());
           else
-            rect = CQChartsGeom::BBox(whisker->lower(), pos - sbw, whisker->upper(), pos + sbw);
+            rect = CQChartsGeom::BBox(whisker->lowerMedian(), pos - sbw,
+                                      whisker->upperMedian(), pos + sbw);
         }
         else {
           if (! isHorizontal())
@@ -1468,9 +1471,11 @@ initCalcObjs(PlotObjs &objs) const
 
     if (! isNormalized()) {
       if (! isHorizontal())
-        rect = CQChartsGeom::BBox(pos - bw, whiskerData.lower, pos + bw, whiskerData.upper);
+        rect = CQChartsGeom::BBox(pos - bw, whiskerData.statData.lowerMedian,
+                                  pos + bw, whiskerData.statData.upperMedian);
       else
-        rect = CQChartsGeom::BBox(whiskerData.lower, pos - bw, whiskerData.upper, pos + bw);
+        rect = CQChartsGeom::BBox(whiskerData.statData.lowerMedian, pos - bw,
+                                  whiskerData.statData.upperMedian, pos + bw);
     }
     else {
       if (! isHorizontal())
@@ -1508,7 +1513,9 @@ initCalcObjs(PlotObjs &objs) const
         }
         else {
           double ovalue1 =
-            CMathUtil::map(ovalue, whiskerData.lower, whiskerData.upper, ymargin, 1.0 - ymargin);
+            CMathUtil::map(ovalue,
+                           whiskerData.statData.lowerMedian, whiskerData.statData.upperMedian,
+                           ymargin, 1.0 - ymargin);
 
           if (! isHorizontal())
             rect = CQChartsGeom::BBox(pos - osx, ovalue1 - osy, pos + osx, ovalue1 + osy);
@@ -1736,9 +1743,9 @@ min() const
 
 double
 CQChartsBoxPlotWhiskerObj::
-lower() const
+max() const
 {
-  return (whisker_ ? whisker_->lower() : 0.0);
+  return (whisker_ ? whisker_->max() : 0.0);
 }
 
 double
@@ -1750,16 +1757,16 @@ median() const
 
 double
 CQChartsBoxPlotWhiskerObj::
-upper() const
+lowerMedian() const
 {
-  return (whisker_ ? whisker_->upper() : 0.0);
+  return (whisker_ ? whisker_->lowerMedian() : 0.0);
 }
 
 double
 CQChartsBoxPlotWhiskerObj::
-max() const
+upperMedian() const
 {
-  return (whisker_ ? whisker_->max() : 0.0);
+  return (whisker_ ? whisker_->upperMedian() : 0.0);
 }
 
 double
@@ -1787,7 +1794,10 @@ QString
 CQChartsBoxPlotWhiskerObj::
 calcId() const
 {
-  return QString("%1:%2:%3").arg(typeName()).arg(setId_).arg(groupInd_);
+  if (setId_ >= 0)
+    return QString("%1:%2:%3").arg(typeName()).arg(setId_).arg(groupInd_);
+  else
+    return QString("%1:%2").arg(typeName()).arg(groupInd_);
 }
 
 QString
@@ -1821,15 +1831,43 @@ calcTipId() const
     tableTip.addTableRow("StdDev", stddev());
   }
   else {
-    tableTip.addTableRow("Min"   , min   ());
-    tableTip.addTableRow("Lower" , lower ());
-    tableTip.addTableRow("Median", median());
-    tableTip.addTableRow("Upper" , upper ());
-    tableTip.addTableRow("Max"   , max   ());
+    tableTip.addTableRow("Min"         , min        ());
+    tableTip.addTableRow("Max"         , max        ());
+    tableTip.addTableRow("Median"      , median     ());
+    tableTip.addTableRow("Lower Median", lowerMedian());
+    tableTip.addTableRow("Upper Median", upperMedian());
   }
 
   return tableTip.str();
 }
+
+//---
+
+void
+CQChartsBoxPlotWhiskerObj::
+addProperties(CQPropertyViewModel *model, const QString &path)
+{
+  QString path1 = path + "/" + propertyId();
+
+  model->setObjectRoot(path1, this);
+
+  CQChartsPlotObj::addProperties(model, path1);
+
+  model->addProperty(path1, this, "rect"    )->setDesc("Bounding box");
+//model->addProperty(path1, this, "selected")->setDesc("Is selected");
+
+  model->addProperty(path1, this, "pos")->setDesc("Position");
+  model->addProperty(path1, this, "min")->setDesc("Minumum");
+  model->addProperty(path1, this, "lowerMedian")->setDesc("Lower median");
+  model->addProperty(path1, this, "median")->setDesc("Median");
+  model->addProperty(path1, this, "upperMedian")->setDesc("Upper median");
+  model->addProperty(path1, this, "max")->setDesc("Maximum");
+  model->addProperty(path1, this, "mean")->setDesc("Mean");
+  model->addProperty(path1, this, "stddev")->setDesc("Standard deviation");
+  model->addProperty(path1, this, "notch")->setDesc("Notch");
+}
+
+//---
 
 void
 CQChartsBoxPlotWhiskerObj::
@@ -1927,15 +1965,16 @@ draw(QPainter *painter)
   double ww = plot_->whiskerExtent();
   double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal());
 
-  CQChartsWhiskerData data;
+  CQChartsStatData statData;
 
-  data.min    = remapPos(this->min   ());
-  data.lower  = remapPos(this->lower ());
-  data.median = remapPos(this->median());
-  data.upper  = remapPos(this->upper ());
-  data.max    = remapPos(this->max   ());
-  data.lnotch = remapPos(this->median() - this->notch());
-  data.unotch = remapPos(this->median() + this->notch());
+  statData.min         = remapPos(this->min());
+  statData.lowerMedian = remapPos(this->lowerMedian());
+  statData.median      = remapPos(this->median());
+  statData.upperMedian = remapPos(this->upperMedian());
+  statData.max         = remapPos(this->max());
+
+  statData.lnotch = remapPos(this->median() - this->notch());
+  statData.unotch = remapPos(this->median() + this->notch());
 
   //---
 
@@ -1951,9 +1990,9 @@ draw(QPainter *painter)
     CQChartsGeom::BBox rect;
 
     if (! plot_->isHorizontal())
-      rect = CQChartsGeom::BBox(pos - vw, data.min, pos + vw, data.max);
+      rect = CQChartsGeom::BBox(pos - vw, statData.min, pos + vw, statData.max);
     else
-      rect = CQChartsGeom::BBox(data.min, pos - vw, data.max, pos + vw);
+      rect = CQChartsGeom::BBox(statData.min, pos - vw, statData.max, pos + vw);
 
     CQChartsWhiskerOpts opts;
 
@@ -2044,7 +2083,7 @@ draw(QPainter *painter)
 
     //---
 
-    CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, painter, data, pos, orientation,
+    CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, painter, statData, pos, orientation,
                                            ww, bw, plot_->boxCornerSize(), plot_->isNotched());
   }
 
@@ -2060,18 +2099,18 @@ draw(QPainter *painter)
 
     if (plot_->drawLayerType() == CQChartsLayer::Type::MID_PLOT) {
       if (! plot_->isHorizontal()) {
-        p1 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd1, data.min   ));
-        p2 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd2, data.lower ));
-        p3 = plot_->windowToPixel(CQChartsGeom::Point(pos      , data.median));
-        p4 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd2, data.upper ));
-        p5 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd1, data.max   ));
+        p1 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd1, statData.min        ));
+        p2 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd2, statData.lowerMedian));
+        p3 = plot_->windowToPixel(CQChartsGeom::Point(pos      , statData.median     ));
+        p4 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd2, statData.upperMedian));
+        p5 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd1, statData.max        ));
       }
       else {
-        p1 = plot_->windowToPixel(CQChartsGeom::Point(data.min   , pos - wd1));
-        p2 = plot_->windowToPixel(CQChartsGeom::Point(data.lower , pos - wd2));
-        p3 = plot_->windowToPixel(CQChartsGeom::Point(data.median, pos      ));
-        p4 = plot_->windowToPixel(CQChartsGeom::Point(data.upper , pos + wd2));
-        p5 = plot_->windowToPixel(CQChartsGeom::Point(data.max   , pos + wd1));
+        p1 = plot_->windowToPixel(CQChartsGeom::Point(statData.min        , pos - wd1));
+        p2 = plot_->windowToPixel(CQChartsGeom::Point(statData.lowerMedian, pos - wd2));
+        p3 = plot_->windowToPixel(CQChartsGeom::Point(statData.median     , pos      ));
+        p4 = plot_->windowToPixel(CQChartsGeom::Point(statData.upperMedian, pos + wd2));
+        p5 = plot_->windowToPixel(CQChartsGeom::Point(statData.max        , pos + wd1));
       }
 
       // draw labels
@@ -2093,11 +2132,11 @@ draw(QPainter *painter)
         bool hasRange = (fabs(this->max() - this->min()) > 1E-6);
 
         if (hasRange) {
-          QString strl = QString("%1").arg(this->min   ());
-          QString lstr = QString("%1").arg(this->lower ());
-          QString mstr = QString("%1").arg(this->median());
-          QString ustr = QString("%1").arg(this->upper ());
-          QString strh = QString("%1").arg(this->max   ());
+          QString strl = QString("%1").arg(this->min        ());
+          QString lstr = QString("%1").arg(this->lowerMedian());
+          QString mstr = QString("%1").arg(this->median     ());
+          QString ustr = QString("%1").arg(this->upperMedian());
+          QString strh = QString("%1").arg(this->max        ());
 
           if (! plot_->isHorizontal()) {
             drawHText(painter, p1.x, p5.x, p1.y, strl, /*onLeft*/true );
@@ -2181,18 +2220,18 @@ annotationBBox() const
   CQChartsGeom::Point p1, p2, p3, p4, p5;
 
   if (! plot_->isHorizontal()) {
-    p1 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd1, remapPos(min   ())));
-    p2 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd2, remapPos(lower ())));
-    p3 = plot_->windowToPixel(CQChartsGeom::Point(pos      , remapPos(median())));
-    p4 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd2, remapPos(upper ())));
-    p5 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd1, remapPos(max   ())));
+    p1 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd1, remapPos(min        ())));
+    p2 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd2, remapPos(lowerMedian())));
+    p3 = plot_->windowToPixel(CQChartsGeom::Point(pos      , remapPos(median     ())));
+    p4 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd2, remapPos(upperMedian())));
+    p5 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd1, remapPos(max        ())));
   }
   else {
-    p1 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(min   ()), pos - wd1));
-    p2 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(lower ()), pos - wd2));
-    p3 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(median()), pos      ));
-    p4 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(upper ()), pos + wd2));
-    p5 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(max   ()), pos + wd1));
+    p1 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(min        ()), pos - wd1));
+    p2 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(lowerMedian()), pos - wd2));
+    p3 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(median     ()), pos      ));
+    p4 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(upperMedian()), pos + wd2));
+    p5 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(max        ()), pos + wd1));
   }
 
   //---
@@ -2203,11 +2242,11 @@ annotationBBox() const
     bool hasRange = (fabs(max() - min()) > 1E-6);
 
     if (hasRange) {
-      QString strl = QString("%1").arg(min   ());
-      QString lstr = QString("%1").arg(lower ());
-      QString mstr = QString("%1").arg(median());
-      QString ustr = QString("%1").arg(upper ());
-      QString strh = QString("%1").arg(max   ());
+      QString strl = QString("%1").arg(min        ());
+      QString lstr = QString("%1").arg(lowerMedian());
+      QString mstr = QString("%1").arg(median     ());
+      QString ustr = QString("%1").arg(upperMedian());
+      QString strh = QString("%1").arg(max        ());
 
       if (! plot_->isHorizontal()) {
         addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
@@ -2429,12 +2468,12 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  tableTip.addTableRow("Name"  , data_.name  );
-  tableTip.addTableRow("Min"   , data_.min   );
-  tableTip.addTableRow("Lower" , data_.lower );
-  tableTip.addTableRow("Median", data_.median);
-  tableTip.addTableRow("Upper" , data_.upper );
-  tableTip.addTableRow("Max"   , data_.max   );
+  tableTip.addTableRow("Name"        , data_.name                );
+  tableTip.addTableRow("Min"         , data_.min                 );
+  tableTip.addTableRow("Max"         , data_.max                 );
+  tableTip.addTableRow("Median"      , data_.statData.median     );
+  tableTip.addTableRow("Lower Median", data_.statData.lowerMedian);
+  tableTip.addTableRow("Upper Median", data_.statData.upperMedian);
 
   return tableTip.str();
 }
@@ -2445,10 +2484,10 @@ getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->xColumn          ());
   addColumnSelectIndex(inds, plot_->minColumn        ());
-  addColumnSelectIndex(inds, plot_->lowerMedianColumn());
-  addColumnSelectIndex(inds, plot_->medianColumn     ());
-  addColumnSelectIndex(inds, plot_->upperMedianColumn());
   addColumnSelectIndex(inds, plot_->maxColumn        ());
+  addColumnSelectIndex(inds, plot_->medianColumn     ());
+  addColumnSelectIndex(inds, plot_->lowerMedianColumn());
+  addColumnSelectIndex(inds, plot_->upperMedianColumn());
   addColumnSelectIndex(inds, plot_->outliersColumn   ());
 }
 
@@ -2509,15 +2548,15 @@ draw(QPainter *painter)
 
   painter->setPen(whiskerPen);
 
-  CQChartsWhiskerData data;
+  CQChartsStatData statData;
 
-  data.min    = remapPos(data_.min   );
-  data.lower  = remapPos(data_.lower );
-  data.median = remapPos(data_.median);
-  data.upper  = remapPos(data_.upper );
-  data.max    = remapPos(data_.max   );
+  statData.min         = remapPos(data_.statData.min);
+  statData.lowerMedian = remapPos(data_.statData.lowerMedian);
+  statData.median      = remapPos(data_.statData.median     );
+  statData.upperMedian = remapPos(data_.statData.upperMedian);
+  statData.max         = remapPos(data_.statData.max);
 
-  CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, painter, data, pos, orientation,
+  CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, painter, statData, pos, orientation,
                                          ww, bw, plot_->boxCornerSize(), /*isNotched*/false);
 
   //---
@@ -2527,22 +2566,18 @@ draw(QPainter *painter)
     double wd1 = ww/2.0;
     double wd2 = bw/2.0;
 
-    CQChartsGeom::Point p1, p2, p3, p4, p5;
+    auto posToRemapPixel = [&](double pos, double value) {
+      if (! plot_->isHorizontal())
+        return plot_->windowToPixel(CQChartsGeom::Point(pos, remapPos(value)));
+      else
+        return plot_->windowToPixel(CQChartsGeom::Point(remapPos(value), pos));
+    };
 
-    if (! plot_->isHorizontal()) {
-      p1 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd1, remapPos(data_.min   )));
-      p2 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd2, remapPos(data_.lower )));
-      p3 = plot_->windowToPixel(CQChartsGeom::Point(pos      , remapPos(data_.median)));
-      p4 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd2, remapPos(data_.upper )));
-      p5 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd1, remapPos(data_.max   )));
-    }
-    else {
-      p1 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.min   ), pos - wd1));
-      p2 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.lower ), pos - wd2));
-      p3 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.median), pos      ));
-      p4 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.upper ), pos + wd2));
-      p5 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.max   ), pos + wd1));
-    }
+    CQChartsGeom::Point p1 = posToRemapPixel(pos - wd1, data_.min                 );
+    CQChartsGeom::Point p2 = posToRemapPixel(pos - wd2, data_.statData.lowerMedian);
+    CQChartsGeom::Point p3 = posToRemapPixel(pos      , data_.statData.median     );
+    CQChartsGeom::Point p4 = posToRemapPixel(pos + wd2, data_.statData.upperMedian);
+    CQChartsGeom::Point p5 = posToRemapPixel(pos + wd1, data_.max                 );
 
     //---
 
@@ -2560,11 +2595,11 @@ draw(QPainter *painter)
 
     //---
 
-    QString strl = QString("%1").arg(data_.min   );
-    QString lstr = QString("%1").arg(data_.lower );
-    QString mstr = QString("%1").arg(data_.median);
-    QString ustr = QString("%1").arg(data_.upper );
-    QString strh = QString("%1").arg(data_.max   );
+    QString strl = QString("%1").arg(data_.min                 );
+    QString lstr = QString("%1").arg(data_.statData.lowerMedian);
+    QString mstr = QString("%1").arg(data_.statData.median     );
+    QString ustr = QString("%1").arg(data_.statData.upperMedian);
+    QString strh = QString("%1").arg(data_.max                 );
 
     if (! plot_->isHorizontal()) {
       drawHText(painter, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
@@ -2629,33 +2664,29 @@ annotationBBox() const
   double wd1 = ww/2.0;
   double wd2 = bw/2.0;
 
-  CQChartsGeom::Point p1, p2, p3, p4, p5;
+  auto posToRemapPixel = [&](double pos, double value) {
+    if (! plot_->isHorizontal())
+      return plot_->windowToPixel(CQChartsGeom::Point(pos, remapPos(value)));
+    else
+      return plot_->windowToPixel(CQChartsGeom::Point(remapPos(value), pos));
+  };
 
-  if (! plot_->isHorizontal()) {
-    p1 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd1, remapPos(data_.min   )));
-    p2 = plot_->windowToPixel(CQChartsGeom::Point(pos - wd2, remapPos(data_.lower )));
-    p3 = plot_->windowToPixel(CQChartsGeom::Point(pos      , remapPos(data_.median)));
-    p4 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd2, remapPos(data_.upper )));
-    p5 = plot_->windowToPixel(CQChartsGeom::Point(pos + wd1, remapPos(data_.max   )));
-  }
-  else {
-    p1 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.min   ), pos - wd1));
-    p2 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.lower ), pos - wd2));
-    p3 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.median), pos      ));
-    p4 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.upper ), pos + wd2));
-    p5 = plot_->windowToPixel(CQChartsGeom::Point(remapPos(data_.max   ), pos + wd1));
-  }
+  CQChartsGeom::Point p1 = posToRemapPixel(pos - wd1, data_.min                 );
+  CQChartsGeom::Point p2 = posToRemapPixel(pos - wd2, data_.statData.lowerMedian);
+  CQChartsGeom::Point p3 = posToRemapPixel(pos      , data_.statData.median     );
+  CQChartsGeom::Point p4 = posToRemapPixel(pos + wd2, data_.statData.upperMedian);
+  CQChartsGeom::Point p5 = posToRemapPixel(pos + wd1, data_.max                 );
 
   //---
 
   CQChartsGeom::BBox pbbox;
 
   if (plot_->isTextVisible()) {
-    QString strl = QString("%1").arg(data_.min   );
-    QString lstr = QString("%1").arg(data_.lower );
-    QString mstr = QString("%1").arg(data_.median);
-    QString ustr = QString("%1").arg(data_.upper );
-    QString strh = QString("%1").arg(data_.max   );
+    QString strl = QString("%1").arg(data_.min                 );
+    QString lstr = QString("%1").arg(data_.statData.lowerMedian);
+    QString mstr = QString("%1").arg(data_.statData.median     );
+    QString ustr = QString("%1").arg(data_.statData.upperMedian);
+    QString strh = QString("%1").arg(data_.max                 );
 
     if (! plot_->isHorizontal()) {
       addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);

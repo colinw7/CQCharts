@@ -129,8 +129,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   groupBox_->setChecked(data_.visible);
   groupBox_->setTitle("Visible");
 
-  connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-
   layout->addWidget(groupBox_);
 
   //---
@@ -156,8 +154,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   sideEdit_->setAxisSide(data_.side);
 
-  connect(sideEdit_, SIGNAL(axisSideChanged()), this, SLOT(widgetsToData()));
-
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Side", sideEdit_, row);
 
   //--
@@ -166,8 +162,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   integralEdit_ = CQUtil::makeWidget<CQCheckBox>("integralEdit");
 
   integralEdit_->setChecked(data_.integral);
-
-  connect(integralEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Integral", integralEdit_, row);
 
@@ -178,8 +172,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   dateEdit_->setChecked(data_.date);
 
-  connect(dateEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Date", dateEdit_, row);
 
   //--
@@ -188,8 +180,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   logEdit_ = CQUtil::makeWidget<CQCheckBox>("logEdit");
 
   logEdit_->setChecked(data_.log);
-
-  connect(logEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Log", logEdit_, row);
 
@@ -200,8 +190,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   formatEdit_->setText(data_.format);
 
-  connect(formatEdit_, SIGNAL(editingFinished()), this, SLOT(widgetsToData()));
-
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Format", formatEdit_, row);
 
   //--
@@ -210,8 +198,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   tickIncrementEdit_ = CQUtil::makeWidget<CQIntegerSpin>("tickIncrementEdit");
 
   tickIncrementEdit_->setValue(data_.tickIncrement);
-
-  connect(tickIncrementEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToData()));
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Tick Increment", tickIncrementEdit_, row);
 
@@ -222,8 +208,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   majorIncrementEdit_->setValue(data_.majorIncrement);
 
-  connect(majorIncrementEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Major Increment", majorIncrementEdit_, row);
 
   //--
@@ -232,8 +216,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   startEdit_ = CQUtil::makeWidget<CQRealSpin>("startEdit");
 
   startEdit_->setValue(data_.start);
-
-  connect(startEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Start", startEdit_, row);
 
@@ -244,8 +226,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   endEdit_->setValue(data_.end);
 
-  connect(endEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "End", endEdit_, row);
 
   //--
@@ -255,8 +235,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   includeZeroEdit_->setChecked(data_.includeZero);
 
-  connect(includeZeroEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Date", includeZeroEdit_, row);
 
   //--
@@ -265,8 +243,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   positionEdit_ = CQUtil::makeWidget<QLineEdit>("positionEdit");
 
   positionEdit_->setText(data_.position.toString());
-
-  connect(positionEdit_, SIGNAL(editingFinished()), this, SLOT(widgetsToData()));
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Position", positionEdit_, row);
 
@@ -280,8 +256,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   lineDataEdit_->setPlot(axis_->plot());
   lineDataEdit_->setView(axis_->view());
   lineDataEdit_->setData(data_.lineData);
-
-  connect(lineDataEdit_, SIGNAL(lineDataChanged()), this, SLOT(widgetsToData()));
 
   groupLayout->addWidget(lineDataEdit_, row, 0, 1, 2); ++row;
 
@@ -309,8 +283,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   labelTextDataEdit_->setView(axis_->view());
   labelTextDataEdit_->setData(data_.labelTextData);
 
-  connect(labelTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
-
   labelLayout->addWidget(labelTextDataEdit_);
 
   //--
@@ -330,8 +302,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   tickLabelTextDataEdit_->setPlot(axis_->plot());
   tickLabelTextDataEdit_->setView(axis_->view());
   tickLabelTextDataEdit_->setData(data_.tickLabelTextData);
-
-  connect(tickLabelTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
 
   tickLabelLayout->addWidget(tickLabelTextDataEdit_);
 
@@ -359,8 +329,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   majorGridLineDataEdit_->setView(axis_->view());
   majorGridLineDataEdit_->setData(data_.majorGridLineData);
 
-  connect(majorGridLineDataEdit_, SIGNAL(lineDataChanged()), this, SLOT(widgetsToData()));
-
   majorGridLineLayout->addWidget(majorGridLineDataEdit_);
 
   //---
@@ -380,8 +348,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   minorGridLineDataEdit_->setPlot(axis_->plot());
   minorGridLineDataEdit_->setView(axis_->view());
   minorGridLineDataEdit_->setData(data_.minorGridLineData);
-
-  connect(minorGridLineDataEdit_, SIGNAL(lineDataChanged()), this, SLOT(widgetsToData()));
 
   minorGridLineLayout->addWidget(minorGridLineDataEdit_);
 
@@ -403,8 +369,6 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   gridFillDataEdit_->setView(axis_->view());
   gridFillDataEdit_->setData(data_.gridFillData);
 
-  connect(gridFillDataEdit_, SIGNAL(fillDataChanged()), this, SLOT(widgetsToData()));
-
   gridFillLayout->addWidget(gridFillDataEdit_);
 
   //---
@@ -413,30 +377,52 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 
   //---
 
+  connectSlots(true);
+
   widgetsToData();
+}
+
+void
+CQChartsAxisEdit::
+connectSlots(bool b)
+{
+  assert(b != connected_);
+
+  connected_ = b;
+
+  //---
+
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      connect(w, from, this, to);
+    else
+      disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, integralEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, dateEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, logEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, formatEdit_, SIGNAL(editingFinished()), SLOT(widgetsToData()));
+  connectDisconnect(b, tickIncrementEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(b, majorIncrementEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(b, startEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(b, endEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(b, includeZeroEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, positionEdit_, SIGNAL(editingFinished()), SLOT(widgetsToData()));
+  connectDisconnect(b, lineDataEdit_, SIGNAL(lineDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, tickLabelTextDataEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, labelTextDataEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, majorGridLineDataEdit_, SIGNAL(lineDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, minorGridLineDataEdit_, SIGNAL(lineDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, gridFillDataEdit_, SIGNAL(fillDataChanged()), SLOT(widgetsToData()));
 }
 
 void
 CQChartsAxisEdit::
 dataToWidgets()
 {
-  disconnect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-  disconnect(integralEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  disconnect(dateEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  disconnect(logEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  disconnect(formatEdit_, SIGNAL(editingFinished()), this, SLOT(widgetsToData()));
-  disconnect(tickIncrementEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToData()));
-  disconnect(majorIncrementEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  disconnect(startEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  disconnect(endEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  disconnect(includeZeroEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  disconnect(positionEdit_, SIGNAL(editingFinished()), this, SLOT(widgetsToData()));
-  disconnect(lineDataEdit_, SIGNAL(lineDataChanged()), this, SLOT(widgetsToData()));
-  disconnect(tickLabelTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
-  disconnect(labelTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
-  disconnect(majorGridLineDataEdit_, SIGNAL(lineDataChanged()), this, SLOT(widgetsToData()));
-  disconnect(minorGridLineDataEdit_, SIGNAL(lineDataChanged()), this, SLOT(widgetsToData()));
-  disconnect(gridFillDataEdit_, SIGNAL(fillDataChanged()), this, SLOT(widgetsToData()));
+  connectSlots(false);
 
   groupBox_             ->setChecked(data_.visible);
 //directionEdit_        ->setDirection(data_.direction);
@@ -458,23 +444,7 @@ dataToWidgets()
   minorGridLineDataEdit_->setData(data_.minorGridLineData);
   gridFillDataEdit_     ->setData(data_.gridFillData);
 
-  connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-  connect(integralEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  connect(dateEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  connect(logEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  connect(formatEdit_, SIGNAL(editingFinished()), this, SLOT(widgetsToData()));
-  connect(tickIncrementEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToData()));
-  connect(majorIncrementEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  connect(startEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  connect(endEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  connect(includeZeroEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  connect(positionEdit_, SIGNAL(editingFinished()), this, SLOT(widgetsToData()));
-  connect(lineDataEdit_, SIGNAL(lineDataChanged()), this, SLOT(widgetsToData()));
-  connect(tickLabelTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
-  connect(labelTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
-  connect(majorGridLineDataEdit_, SIGNAL(lineDataChanged()), this, SLOT(widgetsToData()));
-  connect(minorGridLineDataEdit_, SIGNAL(lineDataChanged()), this, SLOT(widgetsToData()));
-  connect(gridFillDataEdit_, SIGNAL(fillDataChanged()), this, SLOT(widgetsToData()));
+  connectSlots(true);
 }
 
 void

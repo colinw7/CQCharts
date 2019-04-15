@@ -12,6 +12,9 @@ class CQChartsTree;
 class QStackedWidget;
 class QItemSelectionModel;
 
+/*!
+ * \brief Model View Widget
+ */
 class CQChartsModelView : public QFrame {
   Q_OBJECT
 

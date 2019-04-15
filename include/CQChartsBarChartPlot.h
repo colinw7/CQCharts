@@ -10,7 +10,7 @@ class CQChartsDataLabel;
 //---
 
 /*!
- * \brief bar chart plot type
+ * \brief Bar Chart plot type
  */
 class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
  public:
@@ -53,7 +53,7 @@ class CQChartsBarChartValue {
   struct ValueInd {
     double      value { 0.0 };
     QModelIndex ind;
-    int         vrow { -1 };
+    int         vrow  { -1 };
   };
 
   using ValueInds = std::vector<ValueInd>;
@@ -172,31 +172,43 @@ class CQChartsBarChartValueSet {
 //------
 
 /*!
- * \brief bar object
+ * \brief Bar Chart Bar object
  */
 class CQChartsBarChartObj : public CQChartsPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(QString group READ groupStr)
-  Q_PROPERTY(QString name  READ nameStr )
-  Q_PROPERTY(QString value READ valueStr)
+  Q_PROPERTY(QString       group READ groupStr)
+  Q_PROPERTY(QString       name  READ nameStr )
+  Q_PROPERTY(QString       value READ valueStr)
+  Q_PROPERTY(CQChartsColor color READ color    WRITE setColor)
 
  public:
   CQChartsBarChartObj(const CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
                       int iset, int nset, int ival, int nval, int isval, int nsval,
                       const QModelIndex &ind);
 
+  QString typeName() const override { return "bar"; }
+
   QString calcId() const override;
 
   QString calcTipId() const override;
+
+  //---
 
   QString groupStr() const;
   QString nameStr () const;
   QString valueStr() const;
 
+  const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &color) { color_ = color; }
 
   CQChartsGeom::BBox dataLabelRect() const;
+
+  //---
+
+  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+
+  //---
 
   void getSelectIndices(Indices &inds) const override;
 
@@ -225,14 +237,17 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 #include <CQChartsKey.h>
 
 /*!
- * \brief key color box
+ * \brief Bar Chart Plot Key Color Box
  */
 class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsColor color READ color WRITE setColor)
+
  public:
   CQChartsBarKeyColor(CQChartsBarChartPlot *plot, int i, int n);
 
+  const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &color) { color_ = color; }
 
   bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
@@ -250,7 +265,9 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   CQChartsColor         color_;             //! custom color
 };
 
-// key text
+/*!
+ * \brief Bar Chart Key Text
+ */
 class CQChartsBarKeyText : public CQChartsKeyText {
   Q_OBJECT
 

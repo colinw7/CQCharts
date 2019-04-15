@@ -140,7 +140,7 @@ class CQChartsFont {
 
   //---
 
-  double pointSizeF(const CQChartsFont &parentFont=CQChartsFont()) const;
+  double pointSizeF(double parentSize=-1) const;
   void setPointSizeF(double s);
 
   //---

@@ -13,6 +13,9 @@ class QAbstractItemModel;
 
 //---
 
+/*!
+ * \brief Model Expression Match class
+ */
 class CQChartsModelExprMatch {
  public:
   using Values = std::vector<QVariant>;

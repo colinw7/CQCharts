@@ -10,6 +10,7 @@
 
 class CQChartsTriePatterns;
 
+//! \brief Trie Node
 class CQChartsTrieNode {
  public:
   using CharNodeMap = std::map<QChar,CQChartsTrieNode *>;
@@ -69,6 +70,7 @@ class CQChartsTrieNode {
 
 //------
 
+//! \brief Trie
 class CQChartsTrie {
  public:
   using CharSet = std::set<QChar>;

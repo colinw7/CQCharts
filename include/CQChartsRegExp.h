@@ -3,6 +3,9 @@
 
 #include <QRegExp>
 
+/*!
+ * \brief Regular Expression class
+ */
 class CQChartsRegExp {
  public:
   CQChartsRegExp(const QString &pattern="", QRegExp::PatternSyntax syntax=QRegExp::Wildcard) :

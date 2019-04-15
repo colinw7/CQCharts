@@ -19,6 +19,7 @@ class CQTcl;
 
 //---
 
+//! \brief Expression model
 class CQChartsExprModel : public QAbstractProxyModel {
   Q_OBJECT
 

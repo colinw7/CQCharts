@@ -14,6 +14,9 @@ class CQSummaryModel;
 class QAbstractItemModel;
 class QItemSelectionModel;
 
+/*!
+ * \brief Model Data Objec
+ */
 class CQChartsModelData : public QObject {
   Q_OBJECT
 
@@ -45,9 +48,13 @@ class CQChartsModelData : public QObject {
 
   CQCharts *charts() const { return charts_; }
 
+  //---
+
   // get model
   ModelP &model() { return model_; }
   const ModelP &model() const { return model_; }
+
+  //---
 
   // get (unique) index
   int ind() const { return ind_; }
@@ -55,16 +62,24 @@ class CQChartsModelData : public QObject {
 
   QString id() const;
 
+  //---
+
   // get/set selection model
   QItemSelectionModel *selectionModel() const { return selectionModel_; }
   void setSelectionModel(QItemSelectionModel *p) { selectionModel_ = p; }
+
+  //---
 
   // get/set name
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
+  //---
+
   int currentColumn() const { return currentColumn_; }
   void setCurrentColumn(int i);
+
+  //---
 
 #ifdef CQCHARTS_FOLDED_MODEL
   // get associated fold models
@@ -76,11 +91,17 @@ class CQChartsModelData : public QObject {
   void foldClear(bool notify=true);
 #endif
 
+  //---
+
   // get details
   CQChartsModelDetails *details();
   const CQChartsModelDetails *details() const;
 
+  //---
+
   ModelP currentModel() const;
+
+  //---
 
   // add/get summary model
   CQSummaryModel *addSummaryModel();
@@ -94,7 +115,11 @@ class CQChartsModelData : public QObject {
 
   const ModelP &summaryModelP() const { return summaryModelP_; }
 
+  //---
+
   void write();
+
+  //---
 
   QAbstractItemModel *copy();
 

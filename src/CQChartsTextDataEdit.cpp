@@ -32,9 +32,9 @@ CQChartsTextDataLineEdit(QWidget *parent) :
 
   menu_->setWidget(dataEdit_);
 
-  connect(dataEdit_, SIGNAL(textDataChanged()), this, SLOT(menuEditChanged()));
-
   //---
+
+  connectSlots(true);
 
   textDataToWidgets();
 }
@@ -68,10 +68,10 @@ updateTextData(const CQChartsTextData &textData, bool updateText)
 
   dataEdit_->setData(textData);
 
+  connectSlots(true);
+
   if (updateText)
     textDataToWidgets();
-
-  connectSlots(true);
 
   emit textDataChanged();
 }
@@ -228,8 +228,6 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
     groupBox_->setChecked(false);
     groupBox_->setTitle("Visible");
 
-    connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-
     layout->addWidget(groupBox_);
   }
 
@@ -246,8 +244,6 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 
   fontEdit_ = new CQChartsFontLineEdit;
 
-  connect(fontEdit_, SIGNAL(fontChanged()), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(fontLabel, 0, 0);
   groupLayout->addWidget(fontEdit_, 0, 1);
 
@@ -257,8 +253,6 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 
   colorEdit_ = new CQChartsColorLineEdit;
 
-  connect(colorEdit_, SIGNAL(colorChanged()), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(colorLabel, 1, 0);
   groupLayout->addWidget(colorEdit_, 1, 1);
 
@@ -266,8 +260,6 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   QLabel *alphaLabel = new QLabel("Alpha");
 
   alphaEdit_ = new CQChartsAlphaEdit;
-
-  connect(alphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
 
   groupLayout->addWidget(alphaLabel, 2, 0);
   groupLayout->addWidget(alphaEdit_, 2, 1);
@@ -278,8 +270,6 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   angleLabel->setObjectName("angleLabel");
 
   angleEdit_ = new CQAngleSpinBox;
-
-  connect(angleEdit_, SIGNAL(angleChanged(const CAngle &)), this, SLOT(widgetsToData()));
 
   groupLayout->addWidget(angleLabel, 3, 0);
   groupLayout->addWidget(angleEdit_, 3, 1);
@@ -293,8 +283,6 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 
   contrastEdit_->setObjectName("contrastEdit");
 
-  connect(contrastEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(contrastLabel, 4, 0);
   groupLayout->addWidget(contrastEdit_, 4, 1);
 
@@ -306,8 +294,6 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   alignEdit_ = new CQAlignEdit;
 
   alignEdit_->setObjectName("alignEdit");
-
-  connect(alignEdit_, SIGNAL(valueChanged(Qt::Alignment)), this, SLOT(widgetsToData()));
 
   groupLayout->addWidget(alignLabel, 5, 0);
   groupLayout->addWidget(alignEdit_, 5, 1);
@@ -321,8 +307,6 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 
   formattedEdit_->setObjectName("formattedEdit");
 
-  connect(formattedEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(formattedLabel, 6, 0);
   groupLayout->addWidget(formattedEdit_, 6, 1);
 
@@ -335,8 +319,6 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 
   scaledEdit_->setObjectName("scaledEdit");
 
-  connect(scaledEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(scaledLabel, 7, 0);
   groupLayout->addWidget(scaledEdit_, 7, 1);
 
@@ -348,8 +330,6 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   htmlEdit_ = new CQCheckBox;
 
   htmlEdit_->setObjectName("htmlEdit");
-
-  connect(htmlEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
 
   groupLayout->addWidget(htmlLabel, 8, 0);
   groupLayout->addWidget(htmlEdit_, 8, 1);
@@ -367,6 +347,10 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   //---
 
   layout->addStretch(1);
+
+  //---
+
+  connectSlots(true);
 
   dataToWidgets();
 }
@@ -416,20 +400,40 @@ setNoFocus()
 
 void
 CQChartsTextDataEdit::
+connectSlots(bool b)
+{
+  assert(b != connected_);
+
+  connected_ = b;
+
+  //---
+
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      connect(w, from, this, to);
+    else
+      disconnect(w, from, this, to);
+  };
+
+  if (groupBox_)
+    connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
+
+  connectDisconnect(b, fontEdit_, SIGNAL(fontChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, colorEdit_, SIGNAL(colorChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, alphaEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(b, angleEdit_, SIGNAL(angleChanged(const CAngle &)), SLOT(widgetsToData()));
+  connectDisconnect(b, contrastEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(b, alignEdit_, SIGNAL(valueChanged(Qt::Alignment)), SLOT(widgetsToData()));
+  connectDisconnect(b, formattedEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(b, scaledEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(b, htmlEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+}
+
+void
+CQChartsTextDataEdit::
 dataToWidgets()
 {
-  if (groupBox_)
-    disconnect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-
-  disconnect(fontEdit_, SIGNAL(fontChanged()), this, SLOT(widgetsToData()));
-  disconnect(colorEdit_, SIGNAL(colorChanged()), this, SLOT(widgetsToData()));
-  disconnect(alphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  disconnect(angleEdit_, SIGNAL(angleChanged(const CAngle &)), this, SLOT(widgetsToData()));
-  disconnect(contrastEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
-  disconnect(alignEdit_, SIGNAL(valueChanged(Qt::Alignment)), this, SLOT(widgetsToData()));
-  disconnect(formattedEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
-  disconnect(scaledEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
-  disconnect(htmlEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
+  connectSlots(false);
 
   if (groupBox_)
     groupBox_->setChecked(data_.isVisible());
@@ -446,18 +450,7 @@ dataToWidgets()
 
   preview_->update();
 
-  if (groupBox_)
-    connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-
-  connect(fontEdit_, SIGNAL(fontChanged()), this, SLOT(widgetsToData()));
-  connect(colorEdit_, SIGNAL(colorChanged()), this, SLOT(widgetsToData()));
-  connect(alphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  connect(angleEdit_, SIGNAL(angleChanged(const CAngle &)), this, SLOT(widgetsToData()));
-  connect(contrastEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
-  connect(alignEdit_, SIGNAL(valueChanged(Qt::Alignment)), this, SLOT(widgetsToData()));
-  connect(formattedEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
-  connect(scaledEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
-  connect(htmlEdit_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToData()));
+  connectSlots(true);
 }
 
 void

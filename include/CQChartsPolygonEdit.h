@@ -6,6 +6,9 @@
 
 class CQChartsPolygonEdit;
 
+/*!
+ * \brief Polygon line edit
+ */
 class CQChartsPolygonLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
@@ -37,7 +40,7 @@ class CQChartsPolygonLineEdit : public CQChartsLineEditBase {
   void connectSlots(bool b) override;
 
  private:
-  CQChartsPolygonEdit* dataEdit_ { nullptr };
+  CQChartsPolygonEdit* dataEdit_ { nullptr }; //! polygon edit
 };
 
 //---
@@ -48,6 +51,9 @@ class CQChartsUnitsEdit;
 class CQPoint2DEdit;
 class QScrollArea;
 
+/*!
+ * \brief Polygon edit
+ */
 class CQChartsPolygonEdit : public CQChartsEditBase {
   Q_OBJECT
 
@@ -83,22 +89,25 @@ class CQChartsPolygonEdit : public CQChartsEditBase {
  private:
   void polygonToWidgets();
 
+  void connectSlots(bool b);
+
  private:
   using PointEdits = std::vector<CQPoint2DEdit *>;
 
-  CQChartsPolygon    polygon_;
-  CQChartsUnitsEdit* unitsEdit_    { nullptr };
-  QFrame*            controlFrame_ { nullptr };
-  QScrollArea*       scrollArea_   { nullptr };
-  QFrame*            pointsFrame_  { nullptr };
-  PointEdits         pointEdits_;
+  CQChartsPolygon    polygon_;                  //!< polygon
+  CQChartsUnitsEdit* unitsEdit_    { nullptr }; //!< units edit
+  QFrame*            controlFrame_ { nullptr }; //!< control frame
+  QScrollArea*       scrollArea_   { nullptr }; //!< scroll area
+  QFrame*            pointsFrame_  { nullptr }; //!< points frame
+  PointEdits         pointEdits_;               //!< point edits
+  bool               connected_    { false };   //!< is connected
 };
 
 //------
 
 #include <CQPropertyViewType.h>
 
-// type for CQChartsPolygon
+//! \brief type for CQChartsPolygon
 class CQChartsPolygonPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsPolygonPropertyViewType();
@@ -118,7 +127,7 @@ class CQChartsPolygonPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-// editor factory for CQChartsPolygon
+//! \brief editor factory for CQChartsPolygon
 class CQChartsPolygonPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsPolygonPropertyViewEditor();

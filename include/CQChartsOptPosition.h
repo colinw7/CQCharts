@@ -6,6 +6,7 @@
 
 #include <boost/optional.hpp>
 
+//! \brief Optional position
 class CQChartsOptPosition {
  public:
   static void registerMetaType();

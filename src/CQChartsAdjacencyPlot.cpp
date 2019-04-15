@@ -934,8 +934,8 @@ calcId() const
   QString groupStr1 = QString("(%1)").arg(node1_->group());
   QString groupStr2 = QString("(%1)").arg(node2_->group());
 
-  return QString("%1%2:%3%4:%5").arg(node1_->name()).arg(groupStr1).
-                                 arg(node2_->name()).arg(groupStr2).arg(value_);
+  return QString("%1:%2%3:%4%5:%6").arg(typeName()).
+           arg(node1_->name()).arg(groupStr1).arg(node2_->name()).arg(groupStr2).arg(value_);
 }
 
 QString

@@ -1119,7 +1119,7 @@ calcId() const
   if (calcColumnId(ind1, idStr))
     return idStr;
 
-  return QString("cell:%1:%2").arg(node_->name()).arg(node_->hierSize());
+  return QString("%1:%2:%3").arg(typeName()).arg(node_->name()).arg(node_->hierSize());
 }
 
 QString

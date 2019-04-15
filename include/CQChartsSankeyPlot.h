@@ -8,6 +8,9 @@
 
 //---
 
+/*!
+ * \brief Sankey plot type
+ */
 class CQChartsSankeyPlotType : public CQChartsPlotType {
  public:
   CQChartsSankeyPlotType();
@@ -39,6 +42,9 @@ class CQChartsSankeyPlotEdge;
 class CQChartsSankeyNodeObj;
 class CQChartsSankeyEdgeObj;
 
+/*!
+ * \brief Sankey plot node
+ */
 class CQChartsSankeyPlotNode {
  public:
   using Edges   = std::vector<CQChartsSankeyPlotEdge *>;
@@ -98,6 +104,9 @@ class CQChartsSankeyPlotNode {
 
 //---
 
+/*!
+ * \brief Sankey plot edge
+ */
 class CQChartsSankeyPlotEdge {
  public:
   CQChartsSankeyPlotEdge(const CQChartsSankeyPlot *plot, double value,
@@ -126,6 +135,9 @@ class CQChartsSankeyPlotEdge {
 
 //---
 
+/*!
+ * \brief Sankey Plot Node object
+ */
 class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -146,6 +158,8 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
     return (*p).second;
   }
+
+  QString typeName() const override { return "node"; }
 
   QString calcId() const override;
 
@@ -170,12 +184,17 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
 //---
 
+/*!
+ * \brief Sankey Plot Edge object
+ */
 class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
   CQChartsSankeyEdgeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &rect,
                         CQChartsSankeyPlotEdge *edge);
+
+  QString typeName() const override { return "edge"; }
 
   QString calcId() const override;
 
@@ -202,6 +221,9 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 
 CQCHARTS_NAMED_SHAPE_DATA(Edge,edge)
 
+/*!
+ * \brief Sankey Plot
+ */
 class CQChartsSankeyPlot : public CQChartsPlot,
  public CQChartsObjTextData<CQChartsSankeyPlot>,
  public CQChartsObjNodeShapeData<CQChartsSankeyPlot>,

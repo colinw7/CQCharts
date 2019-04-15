@@ -13,6 +13,9 @@ class CQChartsGrahamHull;
 
 //---
 
+/*!
+ * \brief Scatter plot type
+ */
 class CQChartsScatterPlotType : public CQChartsGroupPlotType {
  public:
   CQChartsScatterPlotType();
@@ -34,6 +37,9 @@ class CQChartsScatterPlotType : public CQChartsGroupPlotType {
 
 //---
 
+/*!
+ * \brief Scatter Plot Point object
+ */
 class CQChartsScatterPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -76,6 +82,10 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   const QModelIndex &ind() const { return ind_; }
   void setInd(const QModelIndex &i) { ind_ = i; }
 
+  //---
+
+  QString typeName() const override { return "point"; }
+
   QString calcId() const override;
 
   QString calcTipId() const override;
@@ -110,6 +120,9 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
 //---
 
+/*!
+ * \brief Scatter Plot Cell object
+ */
 class CQChartsScatterCellObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -130,6 +143,10 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
   int groupInd() const { return groupInd_; }
 
   const Points &points() const { return points_; }
+
+  //---
+
+  QString typeName() const override { return "cell"; }
 
   QString calcId() const override;
 
@@ -162,6 +179,9 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 
 #include <CQChartsKey.h>
 
+/*!
+ * \brief Scatter Plot Key Color Box
+ */
 class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
@@ -183,6 +203,9 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
   CQChartsColor color_;
 };
 
+/*!
+ * \brief Scatter Plot Key Item
+ */
 class CQChartsScatterGridKeyItem : public CQChartsKeyItem {
   Q_OBJECT
 
@@ -203,6 +226,9 @@ CQCHARTS_NAMED_SHAPE_DATA(BestFit,bestFit)
 CQCHARTS_NAMED_SHAPE_DATA(Hull,hull)
 CQCHARTS_NAMED_SHAPE_DATA(GridCell,gridCell)
 
+/*!
+ * \brief Scatter Plot
+ */
 class CQChartsScatterPlot : public CQChartsGroupPlot,
  public CQChartsObjPointData        <CQChartsScatterPlot>,
  public CQChartsObjBestFitShapeData <CQChartsScatterPlot>,

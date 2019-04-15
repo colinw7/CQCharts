@@ -12,6 +12,7 @@ class CQChartsResizeHandle;
 
 class QPainter;
 
+//! \brief object edit handles
 class CQChartsEditHandles : public QObject {
   Q_OBJECT
 

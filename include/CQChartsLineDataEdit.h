@@ -8,6 +8,9 @@ class CQChartsLineDataEdit;
 class CQChartsPlot;
 class CQChartsView;
 
+/*!
+ * \brief Line Data line edit
+ */
 class CQChartsLineDataLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
@@ -51,6 +54,9 @@ class CQChartsLineDashEdit;
 class CQChartsLineDataEditPreview;
 class CQGroupBox;
 
+/*!
+ * \brief Line data edit
+ */
 class CQChartsLineDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
@@ -70,23 +76,29 @@ class CQChartsLineDataEdit : public CQChartsEditBase {
  private:
   void dataToWidgets();
 
+  void connectSlots(bool b);
+
  private slots:
   void widgetsToData();
 
  private:
-  CQChartsPlot*                plot_      { nullptr };
-  CQChartsView*                view_      { nullptr };
-  CQChartsLineData             data_;
-  CQGroupBox*                  groupBox_  { nullptr };
-  CQChartsColorLineEdit*       colorEdit_ { nullptr };
-  CQChartsAlphaEdit*           alphaEdit_ { nullptr };
-  CQChartsLengthEdit*          widthEdit_ { nullptr };
-  CQChartsLineDashEdit*        dashEdit_  { nullptr };
-  CQChartsLineDataEditPreview* preview_   { nullptr };
+  CQChartsPlot*                plot_      { nullptr }; //!< parent plot
+  CQChartsView*                view_      { nullptr }; //!< parent view
+  CQChartsLineData             data_;                  //!< line data
+  CQGroupBox*                  groupBox_  { nullptr }; //!< group box
+  CQChartsColorLineEdit*       colorEdit_ { nullptr }; //!< color edit
+  CQChartsAlphaEdit*           alphaEdit_ { nullptr }; //!< alpha edit
+  CQChartsLengthEdit*          widthEdit_ { nullptr }; //!< width edit
+  CQChartsLineDashEdit*        dashEdit_  { nullptr }; //!< dash edit
+  CQChartsLineDataEditPreview* preview_   { nullptr }; //!< preview widget
+  bool                         connected_ { false };   //!< is connected
 };
 
 //---
 
+/*!
+ * \brief Line data edit preview
+ */
 class CQChartsLineDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
 
@@ -106,7 +118,7 @@ class CQChartsLineDataEditPreview : public CQChartsEditPreview {
 
 #include <CQChartsPropertyViewEditor.h>
 
-// type for CQChartsLineData
+//! \brief type for CQChartsLineData
 class CQChartsLineDataPropertyViewType : public CQChartsPropertyViewType {
  public:
   CQPropertyViewEditorFactory *getEditor() const override;
@@ -119,7 +131,7 @@ class CQChartsLineDataPropertyViewType : public CQChartsPropertyViewType {
 
 //---
 
-// editor factory for CQChartsLineData
+//! \brief editor factory for CQChartsLineData
 class CQChartsLineDataPropertyViewEditor : public CQChartsPropertyViewEditorFactory {
  public:
   CQChartsLineEditBase *createPropertyEdit(QWidget *parent);

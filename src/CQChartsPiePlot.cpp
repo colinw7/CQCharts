@@ -6,6 +6,7 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 
+#include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 #include <CMathRound.h>
@@ -1073,7 +1074,7 @@ QString
 CQChartsPieObj::
 calcId() const
 {
-  return QString("pie:%1").arg(colorInd());
+  return QString("%1:%2").arg(typeName()).arg(colorInd());
 }
 
 QString
@@ -1128,6 +1129,33 @@ calcTipId() const
   }
 
   return tableTip.str();
+}
+
+void
+CQChartsPieObj::
+addProperties(CQPropertyViewModel *model, const QString &path)
+{
+  QString path1 = path + "/" + propertyId();
+
+  model->setObjectRoot(path1, this);
+
+  CQChartsPlotObj::addProperties(model, path1);
+
+  model->addProperty(path1, this, "rect"    )->setDesc("Bounding box");
+//model->addProperty(path1, this, "selected")->setDesc("Is selected");
+
+  model->addProperty(path1, this, "colorInd")->setDesc("Color index");
+  model->addProperty(path1, this, "angle1")->setDesc("Start angle");
+  model->addProperty(path1, this, "angle2")->setDesc("End angle");
+  model->addProperty(path1, this, "innerRadius")->setDesc("Inner radius");
+  model->addProperty(path1, this, "outerRadius")->setDesc("Outer radius");
+  model->addProperty(path1, this, "label")->setDesc("Label");
+  model->addProperty(path1, this, "value")->setDesc("Value");
+  model->addProperty(path1, this, "missing")->setDesc("Value Missing");
+//model->addProperty(path1, this, "radius")->setDesc("Radius");
+  model->addProperty(path1, this, "keyLabel")->setDesc("Key Label");
+  model->addProperty(path1, this, "color")->setDesc("Color");
+  model->addProperty(path1, this, "exploded")->setDesc("Is Exploded");
 }
 
 bool

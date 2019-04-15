@@ -3,6 +3,7 @@
 
 #include <CQChartsEnum.h>
 
+//! \brief class for axis tick label placement
 class CQChartsAxisTickLabelPlacement : public CQChartsEnum {
  public:
   enum class Type {

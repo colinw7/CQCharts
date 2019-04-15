@@ -16,6 +16,9 @@ class CQChartsStrokeDataEdit;
 class CQChartsPlot;
 class CQChartsView;
 
+/*!
+ * \brief Stroke Data line edit
+ */
 class CQChartsStrokeDataLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
@@ -59,6 +62,9 @@ class CQChartsLineDashEdit;
 class CQChartsStrokeDataEditPreview;
 class CQGroupBox;
 
+/*!
+ * \brief Stroke data edit
+ */
 class CQChartsStrokeDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
@@ -79,25 +85,31 @@ class CQChartsStrokeDataEdit : public CQChartsEditBase {
  private:
   void dataToWidgets();
 
+  void connectSlots(bool b);
+
  private slots:
   void widgetsToData();
 
  private:
-  CQChartsStrokeDataEditConfig   config_;
-  CQChartsPlot*                  plot_       { nullptr };
-  CQChartsView*                  view_       { nullptr };
-  CQChartsStrokeData             data_;
-  CQGroupBox*                    groupBox_   { nullptr };
-  CQChartsColorLineEdit*         colorEdit_  { nullptr };
-  CQChartsAlphaEdit*             alphaEdit_  { nullptr };
-  CQChartsLengthEdit*            widthEdit_  { nullptr };
-  CQChartsLineDashEdit*          dashEdit_   { nullptr };
-  CQChartsLengthEdit*            cornerEdit_ { nullptr };
-  CQChartsStrokeDataEditPreview* preview_    { nullptr };
+  CQChartsStrokeDataEditConfig   config_;                 //<! edit config
+  CQChartsPlot*                  plot_       { nullptr }; //<! parent plot
+  CQChartsView*                  view_       { nullptr }; //<! parent view
+  CQChartsStrokeData             data_;                   //<! stroke data
+  CQGroupBox*                    groupBox_   { nullptr }; //<! group box
+  CQChartsColorLineEdit*         colorEdit_  { nullptr }; //<! color edit
+  CQChartsAlphaEdit*             alphaEdit_  { nullptr }; //<! alpha edit
+  CQChartsLengthEdit*            widthEdit_  { nullptr }; //<! width edit
+  CQChartsLineDashEdit*          dashEdit_   { nullptr }; //<! dash edit
+  CQChartsLengthEdit*            cornerEdit_ { nullptr }; //<! corner edit
+  CQChartsStrokeDataEditPreview* preview_    { nullptr }; //<! preview
+  bool                           connected_  { false };   //<! is connected
 };
 
 //---
 
+/*!
+ * \brief Stroke data edit preview
+ */
 class CQChartsStrokeDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
 
@@ -117,7 +129,7 @@ class CQChartsStrokeDataEditPreview : public CQChartsEditPreview {
 
 #include <CQChartsPropertyViewEditor.h>
 
-// type for CQChartsStrokeData
+//! \brief type for CQChartsStrokeData
 class CQChartsStrokeDataPropertyViewType : public CQChartsPropertyViewType {
  public:
   CQPropertyViewEditorFactory *getEditor() const override;
@@ -130,7 +142,7 @@ class CQChartsStrokeDataPropertyViewType : public CQChartsPropertyViewType {
 
 //---
 
-// editor factory for CQChartsStrokeData
+//! \brief editor factory for CQChartsStrokeData
 class CQChartsStrokeDataPropertyViewEditor : public CQChartsPropertyViewEditorFactory {
  public:
   CQChartsLineEditBase *createPropertyEdit(QWidget *parent);

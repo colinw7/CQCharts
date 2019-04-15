@@ -5,6 +5,9 @@
 #include <QString>
 #include <iostream>
 
+/*!
+ * \brief Length class
+ */
 class CQChartsLength {
  public:
   static void registerMetaType();

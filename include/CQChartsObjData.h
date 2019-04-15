@@ -1231,5 +1231,6 @@ class CQChartsObjBoxData {
 
 CQCHARTS_NAMED_FILL_DATA(Background,background)
 CQCHARTS_NAMED_TEXT_DATA(Header,header)
+CQCHARTS_NAMED_LINE_DATA(Stats,stats)
 
 #endif

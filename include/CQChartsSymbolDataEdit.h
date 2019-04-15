@@ -8,6 +8,9 @@ class CQChartsSymbolDataEdit;
 class CQChartsPlot;
 class CQChartsView;
 
+/*!
+ * \brief Symbol Data line edit
+ */
 class CQChartsSymbolDataLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
@@ -51,6 +54,9 @@ class CQChartsFillDataEdit;
 class CQChartsSymbolDataEditPreview;
 class CQGroupBox;
 
+/*!
+ * \brief Symbol data edit
+ */
 class CQChartsSymbolDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
@@ -73,23 +79,29 @@ class CQChartsSymbolDataEdit : public CQChartsEditBase {
  private:
   void dataToWidgets();
 
+  void connectSlots(bool b);
+
  private slots:
   void widgetsToData();
 
  private:
-  CQChartsPlot*                  plot_        { nullptr };
-  CQChartsView*                  view_        { nullptr };
-  CQChartsSymbolData             data_;
-  CQGroupBox*                    groupBox_    { nullptr };
-  CQChartsSymbolEdit*            symbolEdit_  { nullptr };
-  CQChartsLengthEdit*            sizeEdit_    { nullptr };
-  CQChartsStrokeDataEdit*        strokeEdit_  { nullptr };
-  CQChartsFillDataEdit*          fillEdit_    { nullptr };
-  CQChartsSymbolDataEditPreview* preview_     { nullptr };
+  CQChartsPlot*                  plot_       { nullptr }; //!< parent plot
+  CQChartsView*                  view_       { nullptr }; //!< parent view
+  CQChartsSymbolData             data_;                   //!< symbol data
+  CQGroupBox*                    groupBox_   { nullptr }; //!< group box
+  CQChartsSymbolEdit*            symbolEdit_ { nullptr }; //!< symbol edit
+  CQChartsLengthEdit*            sizeEdit_   { nullptr }; //!< length edit
+  CQChartsStrokeDataEdit*        strokeEdit_ { nullptr }; //!< stroke edit
+  CQChartsFillDataEdit*          fillEdit_   { nullptr }; //!< fill edit
+  CQChartsSymbolDataEditPreview* preview_    { nullptr }; //!< preview
+  bool                           connected_  { false };   //!< is connected
 };
 
 //---
 
+/*!
+ * \brief Symbol data edit preview
+ */
 class CQChartsSymbolDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
 
@@ -109,7 +121,7 @@ class CQChartsSymbolDataEditPreview : public CQChartsEditPreview {
 
 #include <CQChartsPropertyViewEditor.h>
 
-// type for CQChartsSymbolData
+//! \brief type for CQChartsSymbolData
 class CQChartsSymbolDataPropertyViewType : public CQChartsPropertyViewType {
  public:
   CQPropertyViewEditorFactory *getEditor() const override;
@@ -122,7 +134,7 @@ class CQChartsSymbolDataPropertyViewType : public CQChartsPropertyViewType {
 
 //---
 
-// editor factory for CQChartsSymbolData
+//! \brief editor factory for CQChartsSymbolData
 class CQChartsSymbolDataPropertyViewEditor : public CQChartsPropertyViewEditorFactory {
  public:
   CQChartsLineEditBase *createPropertyEdit(QWidget *parent);

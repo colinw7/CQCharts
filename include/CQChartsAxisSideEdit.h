@@ -4,7 +4,7 @@
 #include <CQChartsAxisSide.h>
 #include <CQChartsEnumEdit.h>
 
-// editor for CQChartsAxisSide
+//! \brief editor for CQChartsAxisSide
 class CQChartsAxisSideEdit : public CQChartsEnumEdit {
   Q_OBJECT
 
@@ -36,7 +36,7 @@ class CQChartsAxisSideEdit : public CQChartsEnumEdit {
 
 //------
 
-// type for CQChartsAxisSide
+//! \brief type for CQChartsAxisSide
 class CQChartsAxisSidePropertyViewType : public CQChartsEnumPropertyViewType {
  public:
   CQPropertyViewEditorFactory *getEditor() const override;
@@ -46,7 +46,7 @@ class CQChartsAxisSidePropertyViewType : public CQChartsEnumPropertyViewType {
 
 //---
 
-// editor factory for CQChartsAxisSide
+//! \brief editor factory for CQChartsAxisSide
 class CQChartsAxisSidePropertyViewEditorFactory :
   public CQChartsEnumPropertyViewEditorFactory {
  public:

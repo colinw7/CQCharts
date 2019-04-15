@@ -7,6 +7,7 @@ class CQChartsTitle;
 
 class CQChartsTitleEdit;
 
+//! \brief edit title dialog
 class CQChartsEditTitleDlg : public QDialog {
   Q_OBJECT
 
@@ -36,6 +37,7 @@ class CQChartsTextDataEdit;
 class CQCheckBox;
 class CQGroupBox;
 
+//! \brief title edit
 class CQChartsTitleEdit : public QFrame {
   Q_OBJECT
 
@@ -50,18 +52,21 @@ class CQChartsTitleEdit : public QFrame {
  private:
   void dataToWidgets();
 
+  void connectSlots(bool b);
+
  private slots:
   void widgetsToData();
 
  private:
-  CQChartsTitle*             title_        { nullptr };
-  CQChartsTitleData          data_;
-  CQGroupBox*                groupBox_     { nullptr };
-  CQChartsTitleLocationEdit* locationEdit_ { nullptr };
-  CQChartsPositionEdit*      positionEdit_ { nullptr };
-  CQChartsRectEdit*          rectEdit_     { nullptr };
-  CQCheckBox*                insideEdit_   { nullptr };
-  CQChartsTextDataEdit*      textEdit_     { nullptr };
+  CQChartsTitle*             title_        { nullptr }; //!< title
+  CQChartsTitleData          data_;                     //!< title daya
+  CQGroupBox*                groupBox_     { nullptr }; //!< group box
+  CQChartsTitleLocationEdit* locationEdit_ { nullptr }; //!< location edit
+  CQChartsPositionEdit*      positionEdit_ { nullptr }; //!< position edit
+  CQChartsRectEdit*          rectEdit_     { nullptr }; //!< rect edit
+  CQCheckBox*                insideEdit_   { nullptr }; //!< inside edit
+  CQChartsTextDataEdit*      textEdit_     { nullptr }; //!< text edit
+  bool                       connected_    { false };   //!< is connected
 };
 
 #endif

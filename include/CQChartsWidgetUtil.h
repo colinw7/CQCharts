@@ -15,6 +15,7 @@ void addGridLabelWidget(QGridLayout *playout, const QString &label, QWidget *wid
 
 class QPushButton;
 
+//! \brief dialog OK, Apply, Cancel buttons
 class CQChartsDialogButtons : public QFrame {
   Q_OBJECT
 

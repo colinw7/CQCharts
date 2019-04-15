@@ -11,6 +11,7 @@ class CQChartsColor;
 class CQChartsSymbol;
 class QPainter;
 
+//! \brief Custom delegate for table view
 class CQChartsTableDelegate : public QItemDelegate {
  public:
   struct ColumnData {

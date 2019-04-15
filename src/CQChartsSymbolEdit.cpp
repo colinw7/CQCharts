@@ -22,7 +22,21 @@ CQChartsSymbolEdit(QWidget *parent) :
 
   layout->addWidget(combo_);
 
-  connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(true);
+}
+
+void
+CQChartsSymbolEdit::
+connectSlots(bool b)
+{
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      QObject::connect(w, from, this, to);
+    else
+      QObject::disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, combo_, SIGNAL(currentIndexChanged(int)), SLOT(comboChanged()));
 }
 
 const CQChartsSymbol &
@@ -36,24 +50,24 @@ void
 CQChartsSymbolEdit::
 setSymbol(const CQChartsSymbol &symbol)
 {
-  disconnect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(false);
 
   symbol_ = symbol;
 
   combo_->setCurrentIndex(combo_->findText(symbol_.toString()));
 
-  connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(true);
 }
 
 void
 CQChartsSymbolEdit::
 comboChanged()
 {
-  disconnect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(false);
 
   symbol_ = CQChartsSymbol(combo_->currentText());
 
-  connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(true);
 
   emit symbolChanged();
 }

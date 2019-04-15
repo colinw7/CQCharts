@@ -29,9 +29,9 @@ CQChartsLineDataLineEdit(QWidget *parent) :
 
   menu_->setWidget(dataEdit_);
 
-  connect(dataEdit_, SIGNAL(lineDataChanged()), this, SLOT(menuEditChanged()));
-
   //---
+
+  connectSlots(true);
 
   lineDataToWidgets();
 }
@@ -58,10 +58,10 @@ updateLineData(const CQChartsLineData &lineData, bool updateText)
 
   dataEdit_->setData(lineData);
 
+  connectSlots(true);
+
   if (updateText)
     lineDataToWidgets();
-
-  connectSlots(true);
 
   emit lineDataChanged();
 }
@@ -210,8 +210,6 @@ CQChartsLineDataEdit(QWidget *parent) :
   groupBox_->setChecked(false);
   groupBox_->setTitle("Visible");
 
-  connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-
   layout->addWidget(groupBox_);
 
   //---
@@ -223,8 +221,6 @@ CQChartsLineDataEdit(QWidget *parent) :
 
   colorEdit_ = new CQChartsColorLineEdit;
 
-  connect(colorEdit_, SIGNAL(colorChanged()), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(colorLabel, 0, 0);
   groupLayout->addWidget(colorEdit_, 0, 1);
 
@@ -232,8 +228,6 @@ CQChartsLineDataEdit(QWidget *parent) :
   QLabel *alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alpha");
 
   alphaEdit_ = new CQChartsAlphaEdit;
-
-  connect(alphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
 
   groupLayout->addWidget(alphaLabel, 1, 0);
   groupLayout->addWidget(alphaEdit_, 1, 1);
@@ -243,8 +237,6 @@ CQChartsLineDataEdit(QWidget *parent) :
 
   widthEdit_ = new CQChartsLengthEdit;
 
-  connect(widthEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(widthLabel, 2, 0);
   groupLayout->addWidget(widthEdit_, 2, 1);
 
@@ -252,8 +244,6 @@ CQChartsLineDataEdit(QWidget *parent) :
   QLabel *dashLabel = CQUtil::makeLabelWidget<QLabel>("Dash", "dash");
 
   dashEdit_ = new CQChartsLineDashEdit;
-
-  connect(dashEdit_, SIGNAL(valueChanged(const CQChartsLineDash &)), this, SLOT(widgetsToData()));
 
   groupLayout->addWidget(dashLabel, 3, 0);
   groupLayout->addWidget(dashEdit_, 3, 1);
@@ -271,6 +261,10 @@ CQChartsLineDataEdit(QWidget *parent) :
   //---
 
   layout->addStretch(1);
+
+  //---
+
+  connectSlots(true);
 
   dataToWidgets();
 }
@@ -300,14 +294,34 @@ setPreview(bool b)
 
 void
 CQChartsLineDataEdit::
+connectSlots(bool b)
+{
+  assert(b != connected_);
+
+  connected_ = b;
+
+  //---
+
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      connect(w, from, this, to);
+    else
+      disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, colorEdit_, SIGNAL(colorChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, alphaEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(b, widthEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, dashEdit_, SIGNAL(valueChanged(const CQChartsLineDash &)),
+                    SLOT(widgetsToData()));
+}
+
+void
+CQChartsLineDataEdit::
 dataToWidgets()
 {
-  disconnect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-  disconnect(colorEdit_, SIGNAL(colorChanged()), this, SLOT(widgetsToData()));
-  disconnect(alphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  disconnect(widthEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
-  disconnect(dashEdit_, SIGNAL(valueChanged(const CQChartsLineDash &)),
-             this, SLOT(widgetsToData()));
+  connectSlots(false);
 
   groupBox_ ->setChecked (data_.isVisible());
   colorEdit_->setColor   (data_.color());
@@ -317,12 +331,7 @@ dataToWidgets()
 
   preview_->update();
 
-  connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-  connect(colorEdit_, SIGNAL(colorChanged()), this, SLOT(widgetsToData()));
-  connect(alphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  connect(widthEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
-  connect(dashEdit_, SIGNAL(valueChanged(const CQChartsLineDash &)),
-          this, SLOT(widgetsToData()));
+  connectSlots(true);
 }
 
 void

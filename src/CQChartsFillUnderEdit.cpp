@@ -29,7 +29,21 @@ CQChartsFillUnderSideEdit(QWidget *parent) :
 
   layout->addWidget(combo_);
 
-  connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(true);
+}
+
+void
+CQChartsFillUnderSideEdit::
+connectSlots(bool b)
+{
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      QObject::connect(w, from, this, to);
+    else
+      QObject::disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, combo_, SIGNAL(currentIndexChanged(int)), SLOT(comboChanged()));
 }
 
 const CQChartsFillUnderSide &
@@ -43,24 +57,24 @@ void
 CQChartsFillUnderSideEdit::
 setFillUnderSide(const CQChartsFillUnderSide &fillUnderSide)
 {
-  disconnect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(false);
 
   fillUnderSide_ = fillUnderSide;
 
   combo_->setCurrentIndex(combo_->findText(fillUnderSide_.toString()));
 
-  connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(true);
 }
 
 void
 CQChartsFillUnderSideEdit::
 comboChanged()
 {
-  disconnect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(false);
 
   fillUnderSide_ = CQChartsFillUnderSide(combo_->currentText());
 
-  connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(true);
 
   emit fillUnderSideChanged();
 }
@@ -185,7 +199,9 @@ CQChartsFillUnderPosLineEdit(QWidget *parent) :
 
   menu_->setWidget(dataEdit_);
 
-  connect(dataEdit_, SIGNAL(fillUnderPosChanged()), this, SLOT(menuEditChanged()));
+  //---
+
+  connectSlots(true);
 }
 
 const CQChartsFillUnderPos &
@@ -210,10 +226,10 @@ updateFillUnderPos(const CQChartsFillUnderPos &fillUnderPos, bool updateText)
 
   dataEdit_->setFillUnderPos(fillUnderPos);
 
+  connectSlots(true);
+
   if (updateText)
     fillUnderPosToWidgets();
-
-  connectSlots(true);
 
   emit fillUnderPosChanged();
 }

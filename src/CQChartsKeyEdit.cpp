@@ -123,8 +123,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   groupBox_->setChecked(data_.visible);
   groupBox_->setTitle("Visible");
 
-  connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-
   layout->addWidget(groupBox_);
 
   //---
@@ -141,8 +139,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   horizontalEdit_->setChecked(data_.horizontal);
 
-  connect(horizontalEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Horizontal", horizontalEdit_, row);
 
   //---
@@ -152,8 +148,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
     flippedEdit_ = CQUtil::makeWidget<CQCheckBox>("flippedEdit");
 
     flippedEdit_->setChecked(data_.flipped);
-
-    connect(flippedEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
 
     CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Flipped", flippedEdit_, row);
   }
@@ -165,8 +159,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   autoHideEdit_->setChecked(data_.autoHide);
 
-  connect(autoHideEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Auto Hide", autoHideEdit_, row);
 
   //--
@@ -175,8 +167,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   clippedEdit_ = CQUtil::makeWidget<CQCheckBox>("clippedEdit");
 
   clippedEdit_->setChecked(data_.clipped);
-
-  connect(clippedEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Clipped", clippedEdit_, row);
 
@@ -199,8 +189,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   aboveEdit_->setChecked(data_.above);
 
-  connect(aboveEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-
   CQChartsWidgetUtil::addGridLabelWidget(placementGroupLayout, "Above", aboveEdit_, placementRow);
 
   //--
@@ -211,8 +199,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
     insideXEdit_->setChecked(data_.insideX);
 
-    connect(insideXEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-
     CQChartsWidgetUtil::addGridLabelWidget(placementGroupLayout, "Inside X",
                                            insideXEdit_, placementRow);
 
@@ -222,8 +208,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
     insideYEdit_ = CQUtil::makeWidget<CQCheckBox>("insideYEdit");
 
     insideYEdit_->setChecked(data_.insideY);
-
-    connect(insideYEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
 
     CQChartsWidgetUtil::addGridLabelWidget(placementGroupLayout, "Inside Y",
                                            insideYEdit_, placementRow);
@@ -239,8 +223,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   CQChartsWidgetUtil::addGridLabelWidget(placementGroupLayout, "Location",
                                          locationEdit_, placementRow);
 
-  connect(locationEdit_, SIGNAL(keyLocationChanged()), this, SLOT(widgetsToData()));
-
   //--
 
   if (plotKey) {
@@ -248,8 +230,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
     absPositionEdit_ = CQUtil::makeWidget<CQPoint2DEdit>("absPositionEdit");
 
     absPositionEdit_->setValue(data_.absPosition);
-
-    connect(absPositionEdit_, SIGNAL(valueChanged()), this, SLOT(widgetsToData()));
 
     CQChartsWidgetUtil::addGridLabelWidget(placementGroupLayout, "Abs Position",
                                            absPositionEdit_, placementRow);
@@ -262,8 +242,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   interactiveEdit_->setChecked(data_.interactive);
 
-  connect(interactiveEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Interactive", interactiveEdit_, row);
 
   //--
@@ -275,16 +253,12 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Press Behavior", pressBehaviorEdit_, row);
 
-  connect(pressBehaviorEdit_, SIGNAL(keyPressBehaviorChanged()), this, SLOT(widgetsToData()));
-
   //--
 
   // hiddenAlpha
   hiddenAlphaEdit_ = CQUtil::makeWidget<CQChartsAlphaEdit>("hiddenAlphaEdit");
 
   hiddenAlphaEdit_->setValue(data_.hiddenAlpha);
-
-  connect(hiddenAlphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Hidden Alpha", hiddenAlphaEdit_, row);
 
@@ -294,8 +268,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   maxRowsEdit_ = CQUtil::makeWidget<CQIntegerSpin>("maxRowsEdit");
 
   maxRowsEdit_->setValue(data_.maxRows);
-
-  connect(maxRowsEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToData()));
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Max Rows", maxRowsEdit_, row);
 
@@ -307,8 +279,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
     spacingEdit_->setValue(data_.spacing);
 
-    connect(spacingEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToData()));
-
     CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Spacing", spacingEdit_, row);
 
     //---
@@ -318,8 +288,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
     scrollWidthEdit_->setText(data_.scrollWidth.toString());
 
-    connect(scrollWidthEdit_, SIGNAL(editingFinished()), this, SLOT(widgetsToData()));
-
     CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Scroll Width", scrollWidthEdit_, row);
 
     //---
@@ -328,8 +296,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
     scrollHeightEdit_ = CQUtil::makeWidget<QLineEdit>("scrollHeightEdit");
 
     scrollHeightEdit_->setText(data_.scrollHeight.toString());
-
-    connect(scrollHeightEdit_, SIGNAL(editingFinished()), this, SLOT(widgetsToData()));
 
     CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Scroll Height", scrollHeightEdit_, row);
   }
@@ -353,8 +319,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   headerEdit_->setText(data_.header);
 
-  connect(headerEdit_, SIGNAL(editingFinished()), this, SLOT(widgetsToData()));
-
   CQChartsWidgetUtil::addGridLabelWidget(headerGroupLayout, "Text", headerEdit_, headerRow);
 
   //--
@@ -366,8 +330,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   headerTextDataEdit_->setPlot(key_->plot());
   headerTextDataEdit_->setView(key_->view());
   headerTextDataEdit_->setData(data_.headerTextData);
-
-  connect(headerTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
 
   headerGroupLayout->addWidget(headerTextDataEdit_, headerRow, 0, 1, 2); ++headerRow;
 
@@ -381,8 +343,6 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   textBoxEdit_->setView(key_->view());
   textBoxEdit_->setData(data_.textBoxData);
 
-  connect(textBoxEdit_, SIGNAL(textBoxDataChanged()), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(textBoxEdit_, row, 0, 1, 2); ++row;
 
   //---
@@ -391,40 +351,65 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //---
 
+  connectSlots(true);
+
   widgetsToData();
+}
+
+void
+CQChartsKeyEdit::
+connectSlots(bool b)
+{
+  assert(b != connected_);
+
+  connected_ = b;
+
+  //---
+
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      connect(w, from, this, to);
+    else
+      disconnect(w, from, this, to);
+  };
+
+  CQChartsPlotKey *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
+
+  connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, horizontalEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, autoHideEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, clippedEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, aboveEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, locationEdit_, SIGNAL(keyLocationChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, hiddenAlphaEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(b, maxRowsEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
+  connectDisconnect(b, interactiveEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, pressBehaviorEdit_, SIGNAL(keyPressBehaviorChanged()),
+                    SLOT(widgetsToData()));
+  connectDisconnect(b, headerEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, headerTextDataEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
+
+  if (plotKey) {
+    connectDisconnect(b, absPositionEdit_, SIGNAL(valueChanged()), SLOT(widgetsToData()));
+    connectDisconnect(b, insideXEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+    connectDisconnect(b, insideYEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+    connectDisconnect(b, spacingEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
+    connectDisconnect(b, flippedEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+    connectDisconnect(b, scrollWidthEdit_, SIGNAL(textChanged(const QString &)),
+                      SLOT(widgetsToData()));
+    connectDisconnect(b, scrollHeightEdit_, SIGNAL(textChanged(const QString &)),
+                      SLOT(widgetsToData()));
+    connectDisconnect(b, textBoxEdit_, SIGNAL(textBoxDataChanged()), SLOT(widgetsToData()));
+  }
 }
 
 void
 CQChartsKeyEdit::
 dataToWidgets()
 {
+  connectSlots(false);
+
   CQChartsPlotKey *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
-
-  disconnect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-  disconnect(horizontalEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  disconnect(autoHideEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  disconnect(clippedEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  disconnect(aboveEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  disconnect(locationEdit_, SIGNAL(keyLocationChanged()), this, SLOT(widgetsToData()));
-  disconnect(hiddenAlphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  disconnect(maxRowsEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToData()));
-  disconnect(interactiveEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  disconnect(pressBehaviorEdit_, SIGNAL(keyPressBehaviorChanged()), this, SLOT(widgetsToData()));
-  disconnect(headerEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  disconnect(headerTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
-
-  if (plotKey) {
-    disconnect(absPositionEdit_, SIGNAL(valueChanged()), this, SLOT(widgetsToData()));
-    disconnect(insideXEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-    disconnect(insideYEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-    disconnect(spacingEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToData()));
-    disconnect(flippedEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-    disconnect(scrollWidthEdit_, SIGNAL(textChanged(const QString &)),
-               this, SLOT(widgetsToData()));
-    disconnect(scrollHeightEdit_, SIGNAL(textChanged(const QString &)),
-               this, SLOT(widgetsToData()));
-    disconnect(textBoxEdit_, SIGNAL(textBoxDataChanged()), this, SLOT(widgetsToData()));
-  }
 
   groupBox_          ->setChecked(data_.visible);
   horizontalEdit_    ->setChecked(data_.horizontal);
@@ -451,29 +436,7 @@ dataToWidgets()
 
   textBoxEdit_->setData(data_.textBoxData);
 
-  connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-  connect(horizontalEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  connect(autoHideEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  connect(clippedEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  connect(aboveEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  connect(locationEdit_, SIGNAL(keyLocationChanged()), this, SLOT(widgetsToData()));
-  connect(hiddenAlphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  connect(maxRowsEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToData()));
-  connect(interactiveEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  connect(pressBehaviorEdit_, SIGNAL(keyPressBehaviorChanged()), this, SLOT(widgetsToData()));
-  connect(headerEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-  connect(headerTextDataEdit_, SIGNAL(textDataChanged()), this, SLOT(widgetsToData()));
-
-  if (plotKey) {
-    connect(absPositionEdit_, SIGNAL(valueChanged()), this, SLOT(widgetsToData()));
-    connect(insideXEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-    connect(insideYEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-    connect(spacingEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToData()));
-    connect(flippedEdit_, SIGNAL(toggled(bool)), this, SLOT(widgetsToData()));
-    connect(scrollWidthEdit_, SIGNAL(textChanged(const QString &)), this, SLOT(widgetsToData()));
-    connect(scrollHeightEdit_, SIGNAL(textChanged(const QString &)), this, SLOT(widgetsToData()));
-    connect(textBoxEdit_, SIGNAL(textBoxDataChanged()), this, SLOT(widgetsToData()));
-  }
+  connectSlots(true);
 }
 
 void

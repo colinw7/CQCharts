@@ -1,5 +1,7 @@
 High
- + Optional Font and modifiers (+<n>, +-bold, ...)
+ + More plot object properties
+ + Inconsistent key click behavior
+ + Variable bin size for distribution
  + Common text drawing to support all options
  + Font Editor
  + Use QThread

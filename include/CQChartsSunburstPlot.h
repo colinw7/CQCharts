@@ -12,6 +12,9 @@ class CQChartsSunburstNode;
 
 //---
 
+/*!
+ * \brief Sunburst Plot Type
+ */
 class CQChartsSunburstPlotType : public CQChartsHierPlotType {
  public:
   CQChartsSunburstPlotType();
@@ -32,6 +35,9 @@ class CQChartsSunburstPlotType : public CQChartsHierPlotType {
 
 //---
 
+/*!
+ * \brief Sunburst Plot Node object
+ */
 class CQChartsSunburstNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -40,6 +46,10 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
                           CQChartsSunburstNode *node);
 
   CQChartsSunburstNode *node() const { return node_; }
+
+  //---
+
+  QString typeName() const override { return "node"; }
 
   QString calcId() const override;
 
@@ -60,6 +70,7 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
 
 //---
 
+//! \brief Sunburst Plot Node
 class CQChartsSunburstNode {
  private:
   static uint nextId() {
@@ -171,6 +182,7 @@ struct CQChartsSunburstNodeCountCmp {
 
 //---
 
+//! \brief Sunburst Plot Hierarchical Node
 class CQChartsSunburstHierNode : public CQChartsSunburstNode {
  public:
   enum class Order {
@@ -226,6 +238,7 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
 
 //---
 
+//! \brief Sunburst Plot Root Node
 class CQChartsSunburstRootNode : public CQChartsSunburstHierNode {
  public:
   CQChartsSunburstRootNode(const CQChartsSunburstPlot *plot, const QString &name="") :
@@ -249,6 +262,9 @@ class CQChartsSunburstRootNode : public CQChartsSunburstHierNode {
 
 //---
 
+/*!
+ * \brief Sunburst Plot
+ */
 class CQChartsSunburstPlot : public CQChartsHierPlot,
  public CQChartsObjShapeData<CQChartsSunburstPlot>,
  public CQChartsObjTextData <CQChartsSunburstPlot> {

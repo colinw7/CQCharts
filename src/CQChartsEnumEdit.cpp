@@ -20,7 +20,7 @@ CQChartsEnumEdit(QWidget *parent) :
 
   layout->addWidget(combo_);
 
-  QObject::connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(true);
 }
 
 void
@@ -32,24 +32,38 @@ init()
 
 void
 CQChartsEnumEdit::
+connectSlots(bool b)
+{
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      QObject::connect(w, from, this, to);
+    else
+      QObject::disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, combo_, SIGNAL(currentIndexChanged(int)), SLOT(comboChanged()));
+}
+
+void
+CQChartsEnumEdit::
 setEnumString(const QString &str)
 {
-  QObject::disconnect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(false);
 
   combo_->setCurrentIndex(combo_->findText(str));
 
-  QObject::connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(true);
 }
 
 void
 CQChartsEnumEdit::
 comboChanged()
 {
-  QObject::disconnect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(false);
 
   setEnumFromString(combo_->currentText());
 
-  QObject::connect(combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(comboChanged()));
+  connectSlots(true);
 
   emit enumChanged();
 }

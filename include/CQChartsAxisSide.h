@@ -3,6 +3,7 @@
 
 #include <CQChartsEnum.h>
 
+//! \brief Axis side
 class CQChartsAxisSide : public CQChartsEnum {
  public:
   enum class Type {

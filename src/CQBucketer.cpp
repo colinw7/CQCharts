@@ -218,7 +218,7 @@ bucketMinMax(int bucket, QVariant &min, QVariant &max) const
 
 QString
 CQBucketer::
-bucketName(int bucket, bool utfArrow) const
+bucketName(int bucket, NameFormat format) const
 {
   if      (type() == Type::STRING) {
     return bucketString(bucket);
@@ -228,7 +228,7 @@ bucketName(int bucket, bool utfArrow) const
 
     bucketIValues(bucket, imin, imax);
 
-    return bucketName(imin, imax, utfArrow);
+    return bucketName(imin, imax, format);
   }
   else if (type() == Type::REAL_RANGE) {
     double rmin = 0.0, rmax = 0.0;
@@ -240,12 +240,12 @@ bucketName(int bucket, bool utfArrow) const
       int imax = rmax;
 
       if (imax > imin + 1)
-        return bucketName(imin, imax, utfArrow);
+        return bucketName(imin, imax, format);
       else
         return QString("%1").arg(imin);
     }
 
-    return bucketName(rmin, rmax, utfArrow);
+    return bucketName(rmin, rmax, format);
   }
   else if (type() == Type::REAL_AUTO) {
     double rmin = 0.0, rmax = 0.0;
@@ -257,12 +257,12 @@ bucketName(int bucket, bool utfArrow) const
       int imax = rmax;
 
       if (imax > imin + 1)
-        return bucketName(imin, imax, utfArrow);
+        return bucketName(imin, imax, format);
       else
         return QString("%1").arg(imin);
     }
 
-    return bucketName(rmin, rmax, utfArrow);
+    return bucketName(rmin, rmax, format);
   }
   else
     return QString("%1").arg(bucket);
@@ -270,24 +270,34 @@ bucketName(int bucket, bool utfArrow) const
 
 QString
 CQBucketer::
-bucketName(int imin, int imax, bool utfArrow) const
+bucketName(int imin, int imax, NameFormat format) const
 {
   static QChar arrowChar(0x2192);
 
-  QChar dashChar = (utfArrow ? arrowChar : QChar('-'));
-
-  return QString("%1%2%3").arg(imin).arg(dashChar).arg(imax);
+  if      (format == NameFormat::DASH)
+    return QString("%1-%2").arg(imin).arg(imax);
+  else if (format == NameFormat::ARROW)
+    return QString("%1%2%3").arg(imin).arg(arrowChar).arg(imax);
+  else if (format == NameFormat::BRACKETED)
+    return QString("(%1,%2]").arg(imin).arg(imax);
+  else
+    assert(false);
 }
 
 QString
 CQBucketer::
-bucketName(double rmin, double rmax, bool utfArrow) const
+bucketName(double rmin, double rmax, NameFormat format) const
 {
   static QChar arrowChar(0x2192);
 
-  QChar dashChar = (utfArrow ? arrowChar : QChar('-'));
-
-  return QString("%1%2%3").arg(rmin).arg(dashChar).arg(rmax);
+  if      (format == NameFormat::DASH)
+    return QString("%1-%2").arg(rmin).arg(rmax);
+  else if (format == NameFormat::ARROW)
+    return QString("%1%2%3").arg(rmin).arg(arrowChar).arg(rmax);
+  else if (format == NameFormat::BRACKETED)
+    return QString("(%1,%2]").arg(rmin).arg(rmax);
+  else
+    assert(false);
 }
 
 //----

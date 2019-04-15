@@ -4,6 +4,7 @@
 #include <CQChartsBarPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsColor.h>
+#include <CQChartsStatData.h>
 
 class CQChartsDataLabel;
 class CQChartsDensity;
@@ -17,7 +18,72 @@ struct CQChartsDistributionBarValue {
 
 //---
 
-// distribution plot type
+class CQChartsDistributionBucket {
+ public:
+  enum class Type {
+    VALUE,
+    UNDERFLOW,
+    OVERFLOW
+  };
+
+  CQChartsDistributionBucket() { }
+
+  explicit
+  CQChartsDistributionBucket(int value) :
+   type_(Type::VALUE), value_(value) {
+  }
+
+  explicit
+  CQChartsDistributionBucket(Type type) :
+   type_(type) {
+  }
+
+  bool hasValue() const { return (type_ == Type::VALUE); }
+
+  int value() const { assert(type_ == Type::VALUE); return value_; }
+
+  bool isUnderflow() const { return (type_ == Type::UNDERFLOW); }
+  bool isOverflow () const { return (type_ == Type::OVERFLOW ); }
+
+  int outsideValue(int min, int max) const {
+    if (isUnderflow()) return min;
+    if (isOverflow ()) return max;
+    assert(false);
+  }
+
+  bool operator<(const CQChartsDistributionBucket &rhs) const {
+    if      (type_ == Type::UNDERFLOW) {
+      if (rhs.type_ == Type::UNDERFLOW)
+        return false;
+
+      return true;
+    }
+    else if (type_ == Type::OVERFLOW) {
+      if (rhs.type_ == Type::OVERFLOW)
+        return false;
+
+      return false;
+    }
+    else {
+      if      (rhs.type_ == Type::UNDERFLOW)
+        return false;
+      else if (rhs.type_ == Type::OVERFLOW)
+        return true;
+      else
+        return value_ < rhs.value_;
+    }
+  }
+
+ private:
+  Type type_  { Type::VALUE };
+  int  value_ { -1 };
+};
+
+//---
+
+/*!
+ * \brief Distribution plot type
+ */
 class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
  public:
   CQChartsDistributionPlotType();
@@ -44,7 +110,9 @@ class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
 
 class CQChartsDistributionPlot;
 
-// bar object
+/*!
+ * \brief Distribution Plot Bar object
+ */
 class CQChartsDistributionBarObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -70,21 +138,28 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   };
 
  public:
+  using Bucket   = CQChartsDistributionBucket;
   using BarValue = CQChartsDistributionBarValue;
 
   CQChartsDistributionBarObj(const CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
-                             int groupInd, int bucket, const BarValue &barValue,
+                             int groupInd, const Bucket &bucket, const BarValue &barValue,
                              int is, int ns, int iv, int nv);
 
   int groupInd() const { return groupInd_; }
 
-  int bucket() const { return bucket_; }
+  const Bucket &bucket() const { return bucket_; }
 
   //---
+
+  QString typeName() const override { return "bar"; }
 
   QString calcId() const override;
 
   QString calcTipId() const override;
+
+  //---
+
+  void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
   //---
 
@@ -134,7 +209,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
  private:
   const CQChartsDistributionPlot* plot_     { nullptr };
   int                             groupInd_ { -1 };
-  int                             bucket_   { -1 };
+  Bucket                          bucket_;
   BarValue                        barValue_;
   int                             is_       { -1 };
   int                             ns_       { -1 };
@@ -147,7 +222,9 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
 //---
 
-// density object
+/*!
+ * \brief Distribution Plot Density object
+ */
 class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -155,28 +232,29 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   Q_PROPERTY(int     numSamples READ numSamples)
 
  public:
+  using Bucket = CQChartsDistributionBucket;
+
   using Points = std::vector<QPointF>;
 
-  struct Bucket {
-    int bucket;
-    int n;
+  struct BucketCount {
+    Bucket bucket;
+    int    n;
 
-    Bucket(int bucket, int n) :
+    BucketCount(const Bucket &bucket, int n) :
      bucket(bucket), n(n) {
     }
   };
 
-  using Buckets = std::vector<Bucket>;
+  using BucketCounts = std::vector<BucketCount>;
 
   struct Data {
-    Points  points;
-    double  xmin { 0.0 };
-    double  xmax { 0.0 };
-    double  ymin { 0.0 };
-    double  ymax { 0.0 };
-    double  mean { 0.0 };
-    double  sum  { 0.0 };
-    Buckets buckets;
+    Points           points;
+    double           xmin { 0.0 };
+    double           xmax { 0.0 };
+    double           ymin { 0.0 };
+    double           ymax { 0.0 };
+    CQChartsStatData statData;
+    BucketCounts     buckets;
   };
 
  public:
@@ -187,6 +265,8 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   int groupInd() const { return groupInd_; }
 
   //---
+
+  QString typeName() const override { return "density"; }
 
   QString calcId() const override;
 
@@ -214,7 +294,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   void drawFg(QPainter *painter) const override;
 
-  void drawMeanLine(QPainter *painter) const;
+  void drawStatsLines(QPainter *painter) const;
 
   void drawRug(QPainter *painter) const;
 
@@ -235,20 +315,27 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
 //---
 
-// scatter box object
+/*!
+ * \brief Distribution Plot Scatter object
+ */
 class CQChartsDistributionScatterObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
+  using Bucket = CQChartsDistributionBucket;
+
+ public:
   CQChartsDistributionScatterObj(const CQChartsDistributionPlot *plot,
-                                 const CQChartsGeom::BBox &rect, int groupInd, int bucket,
-                                 int n, int is, int ns, int iv, int nv);
+                                 const CQChartsGeom::BBox &rect, int groupInd,
+                                 const Bucket &bucket, int n, int is, int ns, int iv, int nv);
 
   int groupInd() const { return groupInd_; }
 
-  int bucket() const { return bucket_; }
+  const Bucket &bucket() const { return bucket_; }
 
   //---
+
+  QString typeName() const override { return "scatter"; }
 
   QString calcId() const override;
 
@@ -269,7 +356,7 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
 
   const CQChartsDistributionPlot* plot_     { nullptr };
   int                             groupInd_ { -1 };
-  int                             bucket_   { -1 };
+  Bucket                          bucket_;
   int                             n_        { 0 };
   int                             is_       { -1 };
   int                             ns_       { -1 };
@@ -282,7 +369,9 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
 
 #include <CQChartsKey.h>
 
-// key color box
+/*!
+ * \brief Distribution Plot Key Color Box
+ */
 class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
   Q_OBJECT
 
@@ -305,7 +394,9 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
   CQChartsColor             color_; //! custom color
 };
 
-// key text
+/*!
+ * \brief Distribution Plot Key Text
+ */
 class CQChartsDistKeyText : public CQChartsKeyText {
   Q_OBJECT
 
@@ -319,13 +410,13 @@ class CQChartsDistKeyText : public CQChartsKeyText {
 
 //---
 
-CQCHARTS_NAMED_LINE_DATA(Mean,mean)
-
-// distribution plot
+/*!
+ * \brief Distribution plot
+ */
 class CQChartsDistributionPlot : public CQChartsBarPlot,
- public CQChartsObjMeanLineData<CQChartsDistributionPlot>,
- public CQChartsObjDotPointData<CQChartsDistributionPlot>,
- public CQChartsObjRugPointData<CQChartsDistributionPlot> {
+ public CQChartsObjStatsLineData<CQChartsDistributionPlot>,
+ public CQChartsObjDotPointData <CQChartsDistributionPlot>,
+ public CQChartsObjRugPointData <CQChartsDistributionPlot> {
   Q_OBJECT
 
   // style
@@ -358,10 +449,14 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   Q_PROPERTY(bool   scatter       READ isScatter     WRITE setScatter      )
   Q_PROPERTY(double scatterFactor READ scatterFactor WRITE setScatterFactor)
 
-  // mean line
-  Q_PROPERTY(bool showMean READ isShowMean WRITE setShowMean)
+  // stats stat
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Stats,stats)
 
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Mean,mean)
+  Q_PROPERTY(bool includeOutlier READ isIncludeOutlier WRITE setIncludeOutlier)
+
+  // underflow/overflow bucket
+  Q_PROPERTY(CQChartsOptReal underflowBucket READ underflowBucket WRITE setUnderflowBucket)
+  Q_PROPERTY(CQChartsOptReal overflowBucket  READ overflowBucket  WRITE setOverflowBucket )
 
   // min bar size
   Q_PROPERTY(double minBarSize READ minBarSize WRITE setMinBarSize)
@@ -414,6 +509,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     END,
     ALL
   };
+
+  using Bucket = CQChartsDistributionBucket;
 
  public:
   CQChartsDistributionPlot(CQChartsView *view, const ModelP &model);
@@ -506,21 +603,30 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  bool isShowMean() const { return showMean_; }
+  bool isIncludeOutlier() const { return includeOutlier_; }
+  void setIncludeOutlier(bool b);
+
+  //---
+
+  const CQChartsOptReal &underflowBucket() const { return underflowBucket_; }
+  void setUnderflowBucket(const CQChartsOptReal &r);
+
+  const CQChartsOptReal &overflowBucket() const { return overflowBucket_; }
+  void setOverflowBucket(const CQChartsOptReal &r);
 
   //---
 
   double minBarSize() const { return minBarSize_; }
-  void setMinBarSize(double s) { minBarSize_ = s; }
+  void setMinBarSize(double s);
 
   double scatterMargin() const { return scatterMargin_; }
-  void setScatterMargin(double m) { scatterMargin_ = m; }
+  void setScatterMargin(double m);
 
   //---
 
   bool checkFilter(int groupInd, const QVariant &value) const;
 
-  int calcBucket(int groupInd, double v) const;
+  Bucket calcBucket(int groupInd, double v) const;
 
   //---
 
@@ -564,16 +670,18 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   void drawForeground(QPainter *) const override;
 
-  void drawMeanLine(QPainter *) const;
+  void drawStatsLines(QPainter *) const;
 
   //---
 
-  virtual QString bucketValuesStr(int groupInd, int bucket,
+  virtual QString bucketValuesStr(int groupInd, const Bucket &bucket,
                                   BucketValueType type=BucketValueType::ALL) const;
 
-  QString bucketStr(int groupInd, int bucket, BucketValueType type=BucketValueType::ALL) const;
+  QString bucketStr(int groupInd, const Bucket &bucket,
+                    BucketValueType type=BucketValueType::ALL) const;
 
-  virtual void bucketValues(int groupInd, int bucket, double &value1, double &value2) const;
+  virtual void bucketValues(int groupInd, const Bucket &bucket,
+                            double &value1, double &value2) const;
 
   //---
 
@@ -596,11 +704,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   using VariantInds = std::vector<VariantInd>;
 
   struct VariantIndsData {
-    VariantInds inds;
-    double      min  { 0.0 };
-    double      max  { 0.0 };
-    double      mean { 0.0 };
-    double      sum  { 0.0 };
+    VariantInds      inds;
+    double           min  { 0.0 };
+    double           max  { 0.0 };
+    CQChartsStatData statData;
   };
 
   using BarValue = CQChartsDistributionBarValue;
@@ -610,24 +717,24 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   BarValue varIndsValue(const VariantIndsData &varInds) const;
 
-  void getInds(int groupInd, int bucket, VariantInds &inds) const;
+  void getInds(int groupInd, const Bucket &bucket, VariantInds &inds) const;
 
-  void getXVals(int groupInd, int bucket, std::vector<double> &xvals) const;
+  void getXVals(int groupInd, const Bucket &bucket, std::vector<double> &xvals) const;
 
-  bool getMeanValue(int groupInd, double &mean) const;
+  bool getStatData(int groupInd, CQChartsStatData &statData) const;
 
-  bool getRealValues(int groupInd, std::vector<double> &xvals, double &mean) const;
+  bool getRealValues(int groupInd, std::vector<double> &xvals, CQChartsStatData &statData) const;
 
  private:
   using Inds         = std::vector<CQChartsModelIndex>;
-  using BucketValues = std::map<int,VariantIndsData>;
+  using BucketValues = std::map<Bucket,VariantIndsData>;
 
   struct Values {
-    Inds              inds;                      //! value indices
-    CQChartsValueSet* valueSet      { nullptr }; //! value set
-    BucketValues      bucketValues;              //! bucketed values
-    CQChartsDensity*  densityData   { nullptr }; //! density data
-    double            mean          { 0.0 };     //! mean
+    Inds              inds;                      //!< value indices
+    CQChartsValueSet* valueSet      { nullptr }; //!< value set
+    BucketValues      bucketValues;              //!< bucketed values
+    CQChartsDensity*  densityData   { nullptr }; //!< density data
+    CQChartsStatData  statData;                  //!< stat data
 
     Values(CQChartsValueSet *valueSet);
    ~Values();
@@ -657,7 +764,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  QString bucketValuesStr(int groupInd, int bucket, const Values *values,
+  QString bucketValuesStr(int groupInd, const Bucket &bucket, const Values *values,
                           BucketValueType type=BucketValueType::ALL) const;
 
   Values *getGroupIndValues(int groupInd, const CQChartsModelIndex &ind) const;
@@ -713,8 +820,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   // set rug
   void setRug(bool b);
 
-  // set show mean
-  void setShowMean(bool b);
+  // set sho stats lines
+  void setStatsLinesSlot(bool b);
 
   // push to bar range
   void pushSlot();
@@ -746,28 +853,30 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     GroupBucketRange groupBucketRange; //! bucketer per group
   };
 
-  CQChartsColumn     nameColumn_;                          //! name column
-  CQChartsColumn     dataColumn_;                          //! data column
-  PlotType           plotType_       { PlotType::NORMAL }; //! plot type
-  ValueType          valueType_      { ValueType::COUNT }; //! show value count
-  bool               percent_        { false };            //! percent values
-  bool               skipEmpty_      { false };            //! skip empty buckets
-                                                           //! (non contiguous range)
-  bool               sorted_         { false };            //! sort by count
-  DensityData        densityData_;                         //! density data
-  ScatterData        scatterData_;                         //! scatter data
-  DotLineData        dotLineData_;                         //! show dot lines
-  bool               rug_            { false };            //! show rug
-  bool               showMean_       { false };            //! show mean
-  double             minBarSize_     { 3.0 };              //! min bar size
-  double             scatterMargin_  { 0.05 };             //! scatter point margin
-  CQChartsDataLabel* dataLabel_      { nullptr };          //! data label data
-  CQBucketer         bucketer_;                            //! shared bucketer
-  bool               bucketed_       { true };             //! is bucketed
-  FilterStack        filterStack_;                         //! filter stack
-  GroupData          groupData_;                           //! grouped value sets
-  double             barWidth_       { 1.0 };              //! bar width
-  mutable std::mutex mutex_;                               //! mutex
+  CQChartsColumn     nameColumn_;                          //!< name column
+  CQChartsColumn     dataColumn_;                          //!< data column
+  PlotType           plotType_       { PlotType::NORMAL }; //!< plot type
+  ValueType          valueType_      { ValueType::COUNT }; //!< show value count
+  bool               percent_        { false };            //!< percent values
+  bool               skipEmpty_      { false };            /*!< skip empty buckets
+                                                                (non contiguous range) */
+  bool               sorted_         { false };            //!< sort by count
+  DensityData        densityData_;                         //!< density data
+  ScatterData        scatterData_;                         //!< scatter data
+  DotLineData        dotLineData_;                         //!< show dot lines
+  bool               rug_            { false };            //!< show rug
+  bool               includeOutlier_ { true };             //!< include outlier values
+  CQChartsOptReal    underflowBucket_;                     //!< undeflow bucket threshhold
+  CQChartsOptReal    overflowBucket_;                      //!< overlow bucket threshhold
+  double             minBarSize_     { 3.0 };              //!< min bar size (pixels)
+  double             scatterMargin_  { 0.05 };             //!< scatter point margin
+  CQChartsDataLabel* dataLabel_      { nullptr };          //!< data label data
+  CQBucketer         bucketer_;                            //!< shared bucketer
+  bool               bucketed_       { true };             //!< is bucketed
+  FilterStack        filterStack_;                         //!< filter stack
+  GroupData          groupData_;                           //!< grouped value sets
+  double             barWidth_       { 1.0 };              //!< bar width
+  mutable std::mutex mutex_;                               //!< mutex
 };
 
 #endif

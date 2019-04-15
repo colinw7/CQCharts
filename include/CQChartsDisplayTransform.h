@@ -4,6 +4,7 @@
 #include <CQChartsGeom.h>
 #include <CQChartsDisplayRange.h>
 
+//! \brief class to represent display transform (zoom/pan)
 class CQChartsDisplayTransform {
  public:
   CQChartsDisplayTransform(const CQChartsDisplayRange *range) :

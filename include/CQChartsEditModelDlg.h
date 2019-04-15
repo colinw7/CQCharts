@@ -9,6 +9,7 @@ class CQChartsModelDataWidget;
 class CQChartsModelControl;
 class CQChartsCreatePlotDlg;
 
+//! \brief edit model dialog
 class CQChartsEditModelDlg : public QDialog {
   Q_OBJECT
 

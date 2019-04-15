@@ -7,6 +7,7 @@
 
 #include <boost/optional.hpp>
 
+//! \brief Charts Initialization Data
 struct CQChartsInitData {
   using FileNames = std::vector<QString>;
   using OptReal   = boost::optional<double>;

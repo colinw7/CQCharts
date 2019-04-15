@@ -8,6 +8,7 @@ class CQIconCombo;
 class CQSwitch;
 class QCheckBox;
 
+//! \brief filter edit
 class CQChartsFilterEdit : public QFrame {
   Q_OBJECT
 
@@ -52,6 +53,7 @@ class CQChartsFilterEdit : public QFrame {
 
 #include <CQLineEdit.h>
 
+//! \brief filter line edit
 class CQChartsFilterEditEdit : public CQLineEdit {
   Q_OBJECT
 

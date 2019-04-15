@@ -12,7 +12,7 @@ class CQChartsGradientPalette;
 
 #define CQChartsThemeMgrInst CQChartsThemeMgr::instance()
 
-// manager class for named palettes and named themes
+//! \brief manager class for named palettes and named themes
 class CQChartsThemeMgr {
  public:
   static CQChartsThemeMgr *instance();
@@ -44,7 +44,7 @@ class CQChartsThemeMgr {
 
 //------
 
-// theme (ordered set of named palettes)
+//! \brief theme (ordered set of named palettes)
 class CQChartsThemeObj : public QObject {
   Q_OBJECT
 
@@ -98,7 +98,7 @@ class CQChartsThemeObj : public QObject {
 
 //---
 
-// default theme
+//! \brief default theme
 class CQChartsDefaultTheme : public CQChartsThemeObj {
  public:
   CQChartsDefaultTheme();
@@ -106,7 +106,7 @@ class CQChartsDefaultTheme : public CQChartsThemeObj {
 
 //---
 
-// theme 1
+//! \brief theme 1
 class CQChartsTheme1 : public CQChartsThemeObj {
  public:
   CQChartsTheme1();
@@ -114,7 +114,7 @@ class CQChartsTheme1 : public CQChartsThemeObj {
 
 //---
 
-// theme 2
+//! \brief theme 2
 class CQChartsTheme2 : public CQChartsThemeObj {
  public:
   CQChartsTheme2();
@@ -122,6 +122,7 @@ class CQChartsTheme2 : public CQChartsThemeObj {
 
 //---
 
+//! \brief theme
 class CQChartsTheme {
  public:
   static void registerMetaType();
@@ -198,6 +199,7 @@ class CQChartsTheme {
 
 //---
 
+//! \brief interface theme
 class CQChartsInterfaceTheme {
  public:
   CQChartsInterfaceTheme();

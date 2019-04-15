@@ -523,6 +523,19 @@ selectPropertyObjects()
   for (auto &obj : selectedObjs)
     selectedObjSet.insert(obj);
 
+  CQChartsView::Plots plots;
+
+  view_->getPlots(plots);
+
+  for (auto &plot : plots) {
+    CQPropertyViewTree::Objs selectedObjs;
+
+    settings_->plotPropertyTree(plot)->getSelectedObjects(selectedObjs);
+
+    for (auto &obj : selectedObjs)
+      selectedObjSet.insert(obj);
+  }
+
   //---
 
   // get selected charts objects
@@ -530,16 +543,16 @@ selectPropertyObjects()
 
   view_->allSelectedObjs(objs);
 
-  CQChartsView::Plots plots;
+  CQChartsView::Plots selectedPlots;
 
-  view_->selectedPlots(plots);
+  view_->selectedPlots(selectedPlots);
 
   ObjSet objSet;
 
   for (auto &obj : objs)
     objSet.insert(obj);
 
-  for (auto &plot : plots)
+  for (auto &plot : selectedPlots)
     objSet.insert(plot);
 
   //---
@@ -562,8 +575,17 @@ selectPropertyObjects()
   if (changed) {
     settings_->viewPropertyTree()->deselectAllObjects();
 
-    for (auto &obj : objSet)
-      settings_->viewPropertyTree()->selectObject(obj);
+    for (auto &plot : plots)
+      settings_->plotPropertyTree(plot)->deselectAllObjects();
+
+    for (auto &obj : objSet) {
+      CQChartsPlot *plot = objectPlot(obj);
+
+      if (plot)
+        settings_->plotPropertyTree(plot)->selectObject(obj);
+      else
+        settings_->viewPropertyTree()->selectObject(obj);
+    }
   }
 
   //---
@@ -576,18 +598,28 @@ void
 CQChartsWindow::
 propertyItemSelected(QObject *obj, const QString &path)
 {
+  CQChartsPlot *plot = objectPlot(obj);
+
+  if (plot)
+    plot->propertyItemSelected(obj, path);
+}
+
+CQChartsPlot *
+CQChartsWindow::
+objectPlot(QObject *obj) const
+{
   QObject *obj1 = obj;
 
   while (obj1) {
     CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj1);
 
-    if (plot) {
-      plot->propertyItemSelected(obj, path);
-      return;
-    }
+    if (plot)
+      return plot;
 
     obj1 = obj1->parent();
   }
+
+  return nullptr;
 }
 
 QSize

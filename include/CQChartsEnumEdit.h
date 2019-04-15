@@ -5,6 +5,7 @@
 
 class QComboBox;
 
+//! \brief enumeration editor
 class CQChartsEnumEdit : public QFrame {
   Q_OBJECT
 
@@ -29,6 +30,9 @@ class CQChartsEnumEdit : public QFrame {
 
   virtual void connect(QObject *obj, const char *method) = 0;
 
+ private:
+  void connectSlots(bool b);
+
  signals:
   void enumChanged();
 
@@ -43,7 +47,7 @@ class CQChartsEnumEdit : public QFrame {
 
 #include <CQPropertyViewType.h>
 
-// type for CQChartsEnum
+//! \brief type for CQChartsEnum
 class CQChartsEnumPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsEnumPropertyViewType();
@@ -65,7 +69,7 @@ class CQChartsEnumPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-// editor factory for CQChartsEnum
+//! \brief editor factory for CQChartsEnum
 class CQChartsEnumPropertyViewEditorFactory : public CQPropertyViewEditorFactory {
  public:
   CQChartsEnumPropertyViewEditorFactory();

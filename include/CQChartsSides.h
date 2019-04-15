@@ -4,6 +4,7 @@
 #include <QString>
 #include <iostream>
 
+//! \brief Box sides class
 class CQChartsSides {
  public:
   enum class Side {

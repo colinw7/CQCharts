@@ -10,6 +10,9 @@ class CQTableWidget;
 class QTextEdit;
 class QPushButton;
 
+/*!
+ * \brief Model Details Widget
+ */
 class CQChartsModelDetailsWidget : public QFrame {
   Q_OBJECT
 

@@ -71,6 +71,7 @@ class QMenu;
 
 //----
 
+//! \brief Update plot timer
 class CQChartsPlotUpdateTimer : public QTimer {
  public:
   CQChartsPlotUpdateTimer(CQChartsPlot *plot) :
@@ -90,6 +91,9 @@ CQCHARTS_NAMED_SHAPE_DATA(Plot,plot)
 CQCHARTS_NAMED_SHAPE_DATA(Data,data)
 CQCHARTS_NAMED_SHAPE_DATA(Fit,fit)
 
+/*!
+ * \brief Base class for Plot
+ */
 class CQChartsPlot : public CQChartsObj,
  public CQChartsObjPlotShapeData<CQChartsPlot>,
  public CQChartsObjDataShapeData<CQChartsPlot>,

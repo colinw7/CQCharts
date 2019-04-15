@@ -3,6 +3,9 @@
 
 #include <CQChartsPlotType.h>
 
+/*!
+ * \brief Hierarchical Plot base plot type
+ */
 class CQChartsHierPlotType : public CQChartsPlotType {
  public:
   CQChartsHierPlotType();

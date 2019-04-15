@@ -3,6 +3,7 @@
 
 #include <CQChartsEnum.h>
 
+//! \brief key location
 class CQChartsKeyLocation : public CQChartsEnum {
  public:
   enum Type {

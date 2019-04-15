@@ -9,6 +9,9 @@ class QMenu;
 
 //---
 
+/*!
+ * \brief Image plot type
+ */
 class CQChartsImagePlotType : public CQChartsPlotType {
  public:
   CQChartsImagePlotType();
@@ -31,12 +34,17 @@ class CQChartsImagePlotType : public CQChartsPlotType {
 
 class CQChartsImagePlot;
 
+/*!
+ * \brief Image Plot object
+ */
 class CQChartsImageObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
   CQChartsImageObj(const CQChartsImagePlot *plot, const CQChartsGeom::BBox &rect,
                    int row, int col, double value, const QModelIndex &ind);
+
+  QString typeName() const override { return "image"; }
 
   QString calcId() const override;
 
@@ -58,6 +66,9 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
 //---
 
+/*!
+ * \brief Image Plot
+ */
 class CQChartsImagePlot : public CQChartsPlot,
  public CQChartsObjTextData<CQChartsImagePlot> {
   Q_OBJECT

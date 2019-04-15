@@ -144,7 +144,7 @@ class CQChartsChordData {
 //---
 
 /*!
- * \brief Chord Plot Object
+ * \brief Chord Plot object
  */
 class CQChartsChordObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -157,6 +157,8 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
   int i() const { return i_; }
   int n() const { return n_; }
+
+  QString typeName() const override { return "chord"; }
 
   QString calcId() const override;
 

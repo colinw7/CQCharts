@@ -6,6 +6,7 @@
 
 //---
 
+//! \brief Two Point Bezier
 class CQChartsBezier2 {
  public:
   CQChartsBezier2() :
@@ -230,6 +231,7 @@ class CQChartsBezier2 {
 
 //------
 
+//! \brief Three Point Bezier
 class CQChartsBezier3 {
  public:
   CQChartsBezier3() :
@@ -857,7 +859,7 @@ class CQChartsBezier3 {
 
 //------
 
-// smooth curve through set of points
+//! smooth curve through set of points
 class CQChartsSmooth {
  public:
   using Points = std::vector<CQChartsGeom::Point>;
@@ -1014,6 +1016,8 @@ class CQChartsSmooth {
     reset();
   }
 
+  //---
+
   void clearPoints() {
     points_.clear();
 
@@ -1036,11 +1040,15 @@ class CQChartsSmooth {
     smooth();
   }
 
+  //---
+
   void sort() {
     std::sort(points_.begin(), points_.end(),
               [](const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2) {
                 return p1.x < p2.x; });
   }
+
+  //---
 
   double interp(double x) {
     if (segments_.empty()) {

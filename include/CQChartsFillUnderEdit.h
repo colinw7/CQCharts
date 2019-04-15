@@ -6,6 +6,7 @@
 
 class QComboBox;
 
+//! \brief fill under side edit
 class CQChartsFillUnderSideEdit : public QFrame {
   Q_OBJECT
 
@@ -14,6 +15,9 @@ class CQChartsFillUnderSideEdit : public QFrame {
 
   const CQChartsFillUnderSide &fillUnderSide() const;
   void setFillUnderSide(const CQChartsFillUnderSide &side);
+
+ private:
+  void connectSlots(bool b);
 
  signals:
   void fillUnderSideChanged();
@@ -30,7 +34,7 @@ class CQChartsFillUnderSideEdit : public QFrame {
 
 #include <CQPropertyViewType.h>
 
-// type for CQChartsFillUnderSide
+//! \brief type for CQChartsFillUnderSide
 class CQChartsFillUnderSidePropertyViewType : public CQPropertyViewType {
  public:
   CQChartsFillUnderSidePropertyViewType();
@@ -50,7 +54,7 @@ class CQChartsFillUnderSidePropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-// editor factory for CQChartsFillUnderSide
+//! \brief editor factory for CQChartsFillUnderSide
 class CQChartsFillUnderSidePropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsFillUnderSidePropertyViewEditor();
@@ -68,6 +72,9 @@ class CQChartsFillUnderSidePropertyViewEditor : public CQPropertyViewEditorFacto
 
 class CQChartsFillUnderPosEdit;
 
+/*!
+ * \brief Fill Under Position line edit
+ */
 class CQChartsFillUnderPosLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
@@ -106,6 +113,9 @@ class CQChartsFillUnderPosLineEdit : public CQChartsLineEditBase {
 
 class CQRealSpin;
 
+/*!
+ * \brief Fill Under Position edit
+ */
 class CQChartsFillUnderPosEdit : public CQChartsEditBase {
   Q_OBJECT
 
@@ -142,7 +152,7 @@ class CQChartsFillUnderPosEdit : public CQChartsEditBase {
 
 #include <CQPropertyViewType.h>
 
-// type for CQChartsFillUnderPos
+//! \brief type for CQChartsFillUnderPos
 class CQChartsFillUnderPosPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsFillUnderPosPropertyViewType();
@@ -162,7 +172,7 @@ class CQChartsFillUnderPosPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-// editor factory for CQChartsFillUnderPos
+//! \brief editor factory for CQChartsFillUnderPos
 class CQChartsFillUnderPosPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsFillUnderPosPropertyViewEditor();

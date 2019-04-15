@@ -1,5 +1,6 @@
 #include <CQChartsNoDataObj.h>
 #include <CQChartsView.h>
+#include <CQChartsPlot.h>
 #include <CQChartsDrawUtil.h>
 
 #include <QPainter>

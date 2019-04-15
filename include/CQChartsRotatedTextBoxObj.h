@@ -3,6 +3,9 @@
 
 #include <CQChartsTextBoxObj.h>
 
+/*!
+ * \brief Charts Rotated Text Box Object
+ */
 class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
  public:
   CQChartsRotatedTextBoxObj(CQChartsPlot *plot);

@@ -3,6 +3,9 @@
 
 #include <CQHeaderView.h>
 
+/*!
+ * \brief charts table header view
+ */
 class CQChartsHeader : public CQHeaderView {
   Q_OBJECT
 

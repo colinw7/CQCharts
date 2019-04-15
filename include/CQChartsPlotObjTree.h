@@ -9,6 +9,9 @@
 class CQChartsPlot;
 class CQChartsPlotObj;
 
+/*!
+ * \brief Charts Plot object quad tree
+ */
 class CQChartsPlotObjTree {
  public:
   using Objs = std::vector<CQChartsPlotObj*>;

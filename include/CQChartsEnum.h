@@ -5,6 +5,7 @@
 #include <QStringList>
 #include <iostream>
 
+//! \brief Enum base class
 class CQChartsEnum {
  public:
   CQChartsEnum() { }

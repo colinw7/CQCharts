@@ -1063,7 +1063,7 @@ calcId() const
 {
   QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
 
-  return QString("node:%1:%2").arg(name).arg(node_->hierSize());
+  return QString("%1:%2:%3").arg(typeName()).arg(name).arg(node_->hierSize());
 }
 
 QString

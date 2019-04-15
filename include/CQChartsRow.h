@@ -1,6 +1,9 @@
 #ifndef CQChartsRow_H
 #define CQChartsRow_H
 
+/*!
+ * \brief Model row class
+ */
 class CQChartsRow {
  public:
   CQChartsRow(int row=-1) :

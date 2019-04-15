@@ -6,6 +6,7 @@
 #include <QPolygonF>
 #include <iostream>
 
+//! \brief Polygon class
 class CQChartsPolygon {
  public:
   static void registerMetaType();

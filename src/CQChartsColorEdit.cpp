@@ -29,9 +29,9 @@ CQChartsColorLineEdit(QWidget *parent) :
 
   menu_->setWidget(dataEdit_);
 
-  connect(dataEdit_, SIGNAL(colorChanged()), this, SLOT(menuEditChanged()));
-
   //---
+
+  connectSlots(true);
 
   colorToWidgets();
 }
@@ -65,10 +65,10 @@ updateColor(const CQChartsColor &color, bool updateText)
 
   dataEdit_->setColor(color);
 
+  connectSlots(true);
+
   if (updateText)
     colorToWidgets();
-
-  connectSlots(true);
 
   emit colorChanged();
 }
@@ -92,11 +92,11 @@ colorToWidgets()
   connectSlots(false);
 
   if (color().isValid())
-    edit_->setText(color().toString());
+    edit_->setText(color().colorStr());
   else
     edit_->setText("");
 
-  setToolTip(color().toString());
+  setToolTip(color().colorStr());
 
   connectSlots(true);
 }
@@ -132,7 +132,7 @@ drawPreview(QPainter *painter, const QRect &rect)
 
   //---
 
-  QString str = (color().isValid() ? color().toString() : "<none>");
+  QString str = (color().isValid() ? color().colorStr() : "<none>");
 
   drawCenteredText(painter, str);
 }
@@ -171,7 +171,7 @@ draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
 
   CQChartsColor color = value.value<CQChartsColor>();
 
-  QString str = color.toString();
+  QString str = color.colorStr();
 
   QFontMetricsF fm(option.font);
 
@@ -190,7 +190,7 @@ QString
 CQChartsColorPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsColor>().toString();
+  QString str = value.value<CQChartsColor>().colorStr();
 
   return str;
 }
@@ -218,7 +218,8 @@ connect(QWidget *w, QObject *obj, const char *method)
   CQChartsColorLineEdit *edit = qobject_cast<CQChartsColorLineEdit *>(w);
   assert(edit);
 
-  QObject::connect(edit, SIGNAL(colorChanged()), obj, method);
+  // TODO: why do we need direct connection for plot object to work ?
+  QObject::connect(edit, SIGNAL(colorChanged()), obj, method, Qt::DirectConnection);
 }
 
 QVariant
@@ -251,6 +252,8 @@ CQChartsColorEdit(QWidget *parent) :
 {
   setObjectName("colorEdit");
 
+  //---
+
   QVBoxLayout *layout = new QVBoxLayout(this);
   layout->setMargin(2); layout->setSpacing(2);
 
@@ -262,8 +265,6 @@ CQChartsColorEdit(QWidget *parent) :
 
   typeCombo_->addItems(QStringList() <<
     "None" << "Palette" << "Palette Value" << "Interface" << "Interface Value" << "Color");
-
-  connect(typeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToColor()));
 
   layout->addWidget(typeCombo_);
 
@@ -279,8 +280,6 @@ CQChartsColorEdit(QWidget *parent) :
   indEdit_ = new QSpinBox;
 
   indEdit_->setObjectName("indEdit");
-
-  connect(indEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToColor()));
 
   indLayout->addWidget(indLabel);
   indLayout->addWidget(indEdit_);
@@ -298,8 +297,6 @@ CQChartsColorEdit(QWidget *parent) :
 
   valueEdit_ = CQUtil::makeWidget<CQRealSpin>("valueEdit");
 
-  connect(valueEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToColor()));
-
   valueLayout->addWidget(valueLabel);
   valueLayout->addWidget(valueEdit_);
 
@@ -315,8 +312,6 @@ CQChartsColorEdit(QWidget *parent) :
   colorLabel->setObjectName("colorLabel");
 
   colorEdit_ = CQUtil::makeWidget<CQColorEdit>("colorEdit");
-
-  connect(colorEdit_, SIGNAL(colorChanged(const QColor &)), this, SLOT(widgetsToColor()));
 
   colorLayout->addWidget(colorLabel);
   colorLayout->addWidget(colorEdit_);
@@ -336,8 +331,6 @@ CQChartsColorEdit(QWidget *parent) :
 
   scaleCheck_->setObjectName("scaleCheck");
 
-  connect(scaleCheck_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToColor()));
-
   scaleLayout->addWidget(scaleLabel);
   scaleLayout->addWidget(scaleCheck_);
 
@@ -345,14 +338,9 @@ CQChartsColorEdit(QWidget *parent) :
 
   //---
 
-  updateState();
-}
+  connectSlots(true);
 
-const CQChartsColor &
-CQChartsColorEdit::
-color() const
-{
-  return color_;
+  updateState();
 }
 
 void
@@ -372,7 +360,7 @@ void
 CQChartsColorEdit::
 setNoFocus()
 {
-  colorEdit_->setNoFocus();
+  //colorEdit_->setNoFocus();
 
   typeCombo_ ->setFocusPolicy(Qt::NoFocus);
   indEdit_   ->setFocusPolicy(Qt::NoFocus);
@@ -384,20 +372,24 @@ void
 CQChartsColorEdit::
 connectSlots(bool b)
 {
-  if (b) {
-    connect(typeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToColor()));
-    connect(indEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToColor()));
-    connect(valueEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToColor()));
-    connect(colorEdit_, SIGNAL(colorChanged(const QColor &)), this, SLOT(widgetsToColor()));
-    connect(scaleCheck_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToColor()));
-  }
-  else {
-    disconnect(typeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToColor()));
-    disconnect(indEdit_, SIGNAL(valueChanged(int)), this, SLOT(widgetsToColor()));
-    disconnect(valueEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToColor()));
-    disconnect(colorEdit_, SIGNAL(colorChanged(const QColor &)), this, SLOT(widgetsToColor()));
-    disconnect(scaleCheck_, SIGNAL(stateChanged(int)), this, SLOT(widgetsToColor()));
-  }
+  assert(b != connected_);
+
+  connected_ = b;
+
+  //---
+
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      connect(w, from, this, to);
+    else
+      disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, typeCombo_ , SIGNAL(currentIndexChanged(int)), SLOT(widgetsToColor()));
+  connectDisconnect(b, indEdit_   , SIGNAL(valueChanged(int)), SLOT(widgetsToColor()));
+  connectDisconnect(b, valueEdit_ , SIGNAL(valueChanged(double)), SLOT(widgetsToColor()));
+  connectDisconnect(b, colorEdit_ , SIGNAL(colorChanged(const QColor &)), SLOT(widgetsToColor()));
+  connectDisconnect(b, scaleCheck_, SIGNAL(stateChanged(int)), SLOT(widgetsToColor()));
 }
 
 void
@@ -473,7 +465,10 @@ widgetsToColor()
   else if (typeInd == 5) {
     color = CQChartsColor(CQChartsColor::Type::COLOR);
 
-    color.setColor(colorEdit_->color());
+    QColor c = colorEdit_->color();
+
+    if (c.isValid())
+      color.setColor(c);
   }
 
   color_ = color;

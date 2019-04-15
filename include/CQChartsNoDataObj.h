@@ -2,7 +2,9 @@
 #define CQChartsNoDataObj_H
 
 #include <CQChartsPlotObj.h>
+#include <CQChartsFont.h>
 
+//! \brief no data object
 class CQChartsNoDataObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -11,7 +13,9 @@ class CQChartsNoDataObj : public CQChartsPlotObj {
  public:
   CQChartsNoDataObj(CQChartsPlot *plot);
 
-  QString calcId() const override { return "No Data"; }
+  QString typeName() const override { return "no_data"; }
+
+  QString calcId() const override { return typeName(); }
 
   const CQChartsFont &font() const { return font_; }
   void setFont(const CQChartsFont &f) { font_ = f; }

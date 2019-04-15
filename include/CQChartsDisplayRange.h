@@ -3,7 +3,7 @@
 
 #include <CQChartsGeom.h>
 
-// Class to represent a 2D mapping from window to pixel coordinates
+//! \brief Class to represent a 2D mapping from window to pixel coordinates
 class CQChartsDisplayRange {
  public:
   enum class HAlign {
@@ -295,12 +295,18 @@ class CQChartsDisplayRange {
 
   void pixelToWindow(double pixel_x, double pixel_y, double *window_x, double *window_y) const {
     if (equal_scale_) {
-      *window_x = (pixel_x - pixel_.xmin - pdx_)/factor_x1_ + window1_.xmin;
-      *window_y = (pixel_y - pixel_.ymax - pdy_)/factor_y1_ + window1_.ymin;
+      if (factor_x1_ != 0.0)
+        *window_x = (pixel_x - pixel_.xmin - pdx_)/factor_x1_ + window1_.xmin;
+
+      if (factor_y1_ != 0.0)
+        *window_y = (pixel_y - pixel_.ymax - pdy_)/factor_y1_ + window1_.ymin;
     }
     else {
-      *window_x = (pixel_x - pixel_.xmin)/factor_x_  + window1_.xmin;
-      *window_y = (pixel_y - pixel_.ymax)/factor_y_  + window1_.ymin;
+      if (factor_x_ != 0.0)
+        *window_x = (pixel_x - pixel_.xmin)/factor_x_  + window1_.xmin;
+
+      if (factor_y_ != 0.0)
+        *window_y = (pixel_y - pixel_.ymax)/factor_y_  + window1_.ymin;
     }
   }
 

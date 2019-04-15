@@ -11,6 +11,9 @@ class CQCharts;
 
 class QStackedWidget;
 
+/*!
+ * \brief Model Data Widget
+ */
 class CQChartsModelDataWidget : public QFrame {
   Q_OBJECT
 

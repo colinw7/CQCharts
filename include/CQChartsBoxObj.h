@@ -12,6 +12,7 @@ class CQCharts;
 class CQPropertyViewModel;
 class QPainter;
 
+//! \brief box object
 class CQChartsBoxObj : public CQChartsObj,
  public CQChartsObjBoxData<CQChartsBoxObj> {
   Q_OBJECT

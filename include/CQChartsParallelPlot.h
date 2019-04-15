@@ -8,6 +8,9 @@
 
 //---
 
+/*!
+ * \brief Parallel plot type
+ */
 class CQChartsParallelPlotType : public CQChartsPlotType {
  public:
   CQChartsParallelPlotType();
@@ -28,12 +31,17 @@ class CQChartsParallelPlotType : public CQChartsPlotType {
 
 class CQChartsParallelPlot;
 
+/*!
+ * \brief Parallel Plot Line object
+ */
 class CQChartsParallelLineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
   CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
                           const QPolygonF &poly, const QModelIndex &ind, int i, int n);
+
+  QString typeName() const override { return "line"; }
 
   QString calcId() const override;
 
@@ -62,6 +70,9 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
 //---
 
+/*!
+ * \brief Parallel Plot Point object
+ */
 class CQChartsParallelPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -69,6 +80,8 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
   CQChartsParallelPointObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
                            double yval, double x, double y, const QModelIndex &ind,
                            int iset, int nset, int i, int n);
+
+  QString typeName() const override { return "point"; }
 
   QString calcId() const override;
 
@@ -98,6 +111,9 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
 //---
 
+/*!
+ * \brief Parallel Plot
+ */
 class CQChartsParallelPlot : public CQChartsPlot,
  public CQChartsObjLineData <CQChartsParallelPlot>,
  public CQChartsObjPointData<CQChartsParallelPlot> {

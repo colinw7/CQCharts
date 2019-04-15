@@ -28,9 +28,9 @@ CQChartsFillDataLineEdit(QWidget *parent) :
 
   menu_->setWidget(dataEdit_);
 
-  connect(dataEdit_, SIGNAL(fillDataChanged()), this, SLOT(menuEditChanged()));
-
   //---
+
+  connectSlots(true);
 
   fillDataToWidgets();
 }
@@ -57,10 +57,10 @@ updateFillData(const CQChartsFillData &fillData, bool updateText)
 
   dataEdit_->setData(fillData);
 
+  connectSlots(true);
+
   if (updateText)
     fillDataToWidgets();
-
-  connectSlots(true);
 
   emit fillDataChanged();
 }
@@ -209,8 +209,6 @@ CQChartsFillDataEdit(QWidget *parent) :
   groupBox_->setChecked(false);
   groupBox_->setTitle("Visible");
 
-  connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-
   layout->addWidget(groupBox_);
 
   //---
@@ -222,8 +220,6 @@ CQChartsFillDataEdit(QWidget *parent) :
 
   colorEdit_ = new CQChartsColorLineEdit;
 
-  connect(colorEdit_, SIGNAL(colorChanged()), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(colorLabel, 0, 0);
   groupLayout->addWidget(colorEdit_, 0, 1);
 
@@ -232,8 +228,6 @@ CQChartsFillDataEdit(QWidget *parent) :
 
   alphaEdit_ = new CQChartsAlphaEdit;
 
-  connect(alphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(alphaLabel, 1, 0);
   groupLayout->addWidget(alphaEdit_, 1, 1);
 
@@ -241,8 +235,6 @@ CQChartsFillDataEdit(QWidget *parent) :
   QLabel *patternLabel = CQUtil::makeLabelWidget<QLabel>("Pattern", "pattern");
 
   patternEdit_ = new CQChartsFillPatternEdit;
-
-  connect(patternEdit_, SIGNAL(fillPatternChanged()), this, SLOT(widgetsToData()));
 
   groupLayout->addWidget(patternLabel, 2, 0);
   groupLayout->addWidget(patternEdit_, 2, 1);
@@ -260,6 +252,10 @@ CQChartsFillDataEdit(QWidget *parent) :
   //---
 
   layout->addStretch(1);
+
+  //---
+
+  connectSlots(true);
 
   dataToWidgets();
 }
@@ -289,12 +285,32 @@ setPreview(bool b)
 
 void
 CQChartsFillDataEdit::
+connectSlots(bool b)
+{
+  assert(b != connected_);
+
+  connected_ = b;
+
+  //---
+
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      connect(w, from, this, to);
+    else
+      disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, colorEdit_, SIGNAL(colorChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, alphaEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(b, patternEdit_, SIGNAL(fillPatternChanged()), SLOT(widgetsToData()));
+}
+
+void
+CQChartsFillDataEdit::
 dataToWidgets()
 {
-  disconnect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-  disconnect(colorEdit_, SIGNAL(colorChanged()), this, SLOT(widgetsToData()));
-  disconnect(alphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  disconnect(patternEdit_, SIGNAL(fillPatternChanged()), this, SLOT(widgetsToData()));
+  connectSlots(false);
 
   groupBox_->setChecked(data_.isVisible());
 
@@ -304,11 +320,7 @@ dataToWidgets()
 
   preview_->update();
 
-  connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-  connect(colorEdit_, SIGNAL(colorChanged()), this, SLOT(widgetsToData()));
-  connect(alphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  connect(patternEdit_, SIGNAL(fillPatternChanged()), this, SLOT(widgetsToData()));
-
+  connectSlots(true);
 }
 
 void

@@ -16,6 +16,9 @@ class QCheckBox;
 class QComboBox;
 class QLabel;
 
+/*!
+ * \brief Model Control Widget
+ */
 class CQChartsModelControl : public QFrame {
   Q_OBJECT
 

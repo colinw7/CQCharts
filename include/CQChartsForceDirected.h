@@ -3,6 +3,7 @@
 
 #include <CQChartsSpringy.h>
 
+//! \brief Force directed graph data
 class CQChartsForceDirected {
  public:
   CQChartsForceDirected() {

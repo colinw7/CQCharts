@@ -5,6 +5,7 @@
 
 class CQChartsExprModel;
 
+//! \brief Filter model
 class CQChartsFilterModel : public CQChartsModelFilter {
   Q_OBJECT
 

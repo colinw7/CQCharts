@@ -7,6 +7,7 @@
 class CQChartsUnitsEdit;
 class CQRectEdit;
 
+//! \brief rectangle edit
 class CQChartsRectEdit : public QFrame {
   Q_OBJECT
 
@@ -30,16 +31,17 @@ class CQChartsRectEdit : public QFrame {
   void connectSlots(bool b);
 
  private:
-  CQChartsRect       rect_;
-  CQRectEdit*        edit_       { nullptr };
-  CQChartsUnitsEdit* unitsEdit_ { nullptr };
+  CQChartsRect       rect_;                  //! rect data
+  CQRectEdit*        edit_      { nullptr }; //! rect edit
+  CQChartsUnitsEdit* unitsEdit_ { nullptr }; //! units edit
+  bool               connected_ { false };   //!< is connected
 };
 
 //------
 
 #include <CQPropertyViewType.h>
 
-// type for CQChartsRect
+//! \brief type for CQChartsRect
 class CQChartsRectPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsRectPropertyViewType();
@@ -59,7 +61,7 @@ class CQChartsRectPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-// editor factory for CQChartsRect
+//! \brief editor factory for CQChartsRect
 class CQChartsRectPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsRectPropertyViewEditor();

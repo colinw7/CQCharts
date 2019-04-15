@@ -11,6 +11,9 @@ class CQCharts;
 class CQChartsModelExprMatch;
 class QItemSelectionModel;
 
+/*!
+ * \brief Model Filter Data class
+ */
 class CQChartsModelFilterData {
  public:
   enum class Type {
@@ -88,6 +91,9 @@ class CQChartsModelFilterData {
 
 class CQChartsExprModel;
 
+/*!
+ * \brief Model Filter Model
+ */
 class CQChartsModelFilter : public QSortFilterProxyModel {
   Q_OBJECT
 

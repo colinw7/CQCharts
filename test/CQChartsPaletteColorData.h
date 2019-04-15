@@ -3,6 +3,7 @@
 
 #include <boost/optional.hpp>
 
+//! \brief Charts Defined Color
 struct CQChartsDefinedColor {
   double v { -1.0 };
   QColor c;
@@ -12,6 +13,7 @@ struct CQChartsDefinedColor {
   }
 };
 
+//! \brief Charts Palette Color Data
 struct CQChartsPaletteColorData {
   using OptReal       = boost::optional<double>;
   using OptInt        = boost::optional<int>;

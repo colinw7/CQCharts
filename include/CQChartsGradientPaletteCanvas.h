@@ -7,7 +7,7 @@ class CQChartsGradientPalette;
 class QPainter;
 class QLabel;
 
-// Gradient Plot
+//! \brief Gradient Plot
 class CQChartsGradientPaletteCanvas : public QFrame {
   Q_OBJECT
 

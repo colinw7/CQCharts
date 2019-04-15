@@ -7,6 +7,9 @@
 class CQChartsColor;
 class CQChartsFont;
 
+/*!
+ * \brief Name Values class
+ */
 class CQChartsNameValues {
  public:
   using NameValues = std::map<QString,QVariant>;

@@ -936,6 +936,39 @@ outlierValues() const
   return vars;
 }
 
+bool
+CQChartsModelColumnDetails::
+isOutlier(const QVariant &value) const
+{
+  initCache();
+
+  bool ok;
+
+  if      (type() == CQBaseModelType::INTEGER) {
+    long i = CQChartsVariant::toInt(value, ok);
+
+    return (ok && valueSet_->ivals().isOutlier(i));
+  }
+  else if (type() == CQBaseModelType::REAL) {
+    double r = CQChartsVariant::toReal(value, ok);
+
+    return (ok && valueSet_->rvals().isOutlier(r));
+  }
+  else if (type() == CQBaseModelType::STRING) {
+    return false;
+  }
+  else if (type() == CQBaseModelType::TIME) {
+    double r = CQChartsVariant::toReal(value, ok);
+
+    return (ok && valueSet_->tvals().isOutlier(r));
+  }
+  else if (type() == CQBaseModelType::COLOR) {
+    return false;
+  }
+
+  return false;
+}
+
 double
 CQChartsModelColumnDetails::
 map(const QVariant &var) const

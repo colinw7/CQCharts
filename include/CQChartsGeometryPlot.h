@@ -10,6 +10,9 @@ class CQChartsDataLabel;
 
 //---
 
+/*!
+ * \brief Geometry plot type
+ */
 class CQChartsGeometryPlotType : public CQChartsPlotType {
  public:
   CQChartsGeometryPlotType();
@@ -33,6 +36,9 @@ class CQChartsGeometryPlotType : public CQChartsPlotType {
 
 class CQChartsGeometryPlot;
 
+/*!
+ * \brief Geometry Plot object
+ */
 class CQChartsGeometryObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -47,6 +53,8 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
  public:
   CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
                       const Polygons &polygons, const QModelIndex &ind, int i, int n);
+
+  QString typeName() const override { return "geom"; }
 
   QString calcId() const override;
 
@@ -89,6 +97,9 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
 //---
 
+/*!
+ * \brief Geometry Plot
+ */
 class CQChartsGeometryPlot : public CQChartsPlot,
  public CQChartsObjShapeData<CQChartsGeometryPlot> {
   Q_OBJECT

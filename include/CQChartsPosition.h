@@ -6,6 +6,7 @@
 #include <QPointF>
 #include <iostream>
 
+//! Position class
 class CQChartsPosition {
  public:
   static void registerMetaType();

@@ -286,6 +286,7 @@ QStringList unitTipNames(bool includeNone=false);
 
 #include <functional>
 
+//! \brief Class to run function at end of scope
 class CQChartsScopeGuard {
  public:
   template<class Callable>

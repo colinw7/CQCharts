@@ -8,6 +8,9 @@
 #include <CQChartsConnectionList.h>
 #include <CQChartsForceDirected.h>
 
+/*!
+ * \brief Force Directed plot type
+ */
 class CQChartsForceDirectedPlotType : public CQChartsPlotType {
  public:
   CQChartsForceDirectedPlotType();
@@ -33,6 +36,9 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
 
 //---
 
+/*!
+ * \brief Force Directed Plot
+ */
 class CQChartsForceDirectedPlot : public CQChartsPlot,
  public CQChartsObjNodeShapeData<CQChartsForceDirectedPlot>,
  public CQChartsObjEdgeLineData <CQChartsForceDirectedPlot> {

@@ -11,7 +11,7 @@
 //---
 
 /*!
- * \brief bubble plot type
+ * \brief Bubble plot type
  */
 class CQChartsBubblePlotType : public CQChartsGroupPlotType {
  public:
@@ -201,13 +201,17 @@ class CQChartsBubbleHierNode : public CQChartsBubbleNode {
 class CQChartsBubbleHierObj;
 
 /*!
- * \brief bubble object
+ * \brief Bubble Plot Circle object
  */
 class CQChartsBubbleObj : public CQChartsPlotObj {
+  Q_OBJECT
+
  public:
   CQChartsBubbleObj(const CQChartsBubblePlot *plot, CQChartsBubbleNode *node,
                     CQChartsBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
                     int i, int n);
+
+  QString typeName() const override { return "bubble"; }
 
   CQChartsBubbleNode *node() const { return node_; }
 
@@ -265,7 +269,7 @@ class CQChartsBubbleHierObj : public CQChartsBubbleObj {
 //---
 
 /*!
- * \brief bubble plot
+ * \brief Bubble Plot
  *
  * columns:
  *   + name  : name

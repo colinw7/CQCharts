@@ -10,6 +10,7 @@ class CQChartsModelWidgets;
 class CQChartsLoadModelDlg;
 class QVBoxLayout;
 
+//! \brief Charts Test Application Window
 class CQChartsAppWindow : public CQAppWindow {
   Q_OBJECT
 

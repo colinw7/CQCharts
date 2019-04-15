@@ -12,6 +12,9 @@ class QRadioButton;
 class QCheckBox;
 class QStackedWidget;
 
+/*!
+ * \brief Charts View ToolBar
+ */
 class CQChartsViewToolBar : public QFrame {
   Q_OBJECT
 

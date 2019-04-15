@@ -14,6 +14,7 @@
 
 namespace CQChartsGeom {
 
+//! Point class
 class Point {
  public:
   Point() { }
@@ -306,7 +307,11 @@ class Point {
 
 namespace CQChartsGeom {
 
-// TODO: enforce min/max order always ? Same as BBox
+/*!
+ * \brief Range class
+ *
+ * TODO: enforce min/max order always ? Same as BBox
+ */
 class Range {
  public:
   Range() { }
@@ -490,6 +495,9 @@ class Range {
 
 namespace CQChartsGeom {
 
+/*!
+ * \brief Bounding Box class
+ */
 class BBox {
  public:
   BBox() :
@@ -924,10 +932,10 @@ class BBox {
   double getRadius() const {
     if (! set_) return 0.0;
 
-    double dx = fabs(pmax_.x - pmin_.x);
-    double dy = fabs(pmax_.y - pmin_.y);
+    double dx = std::abs(pmax_.x - pmin_.x);
+    double dy = std::abs(pmax_.y - pmin_.y);
 
-    return 0.5*sqrt(dx*dx + dy*dy);
+    return 0.5*std::hypot(dx, dy);
   }
 #endif
 
@@ -1053,6 +1061,9 @@ class BBox {
 
 namespace CQChartsGeom {
 
+/*!
+ * \brief Minumum/Maximum class
+ */
 template<typename T>
 class MinMax {
  public:
@@ -1102,14 +1113,16 @@ using IMinMax = MinMax<int>;
 
 namespace CQChartsGeom {
 
-/* / a b tx \ */
-/* | c d ty | */
-/* \ 0 0 1  / */
-
-/* / m00 m01 m02 \ */
-/* | m10 m11 m12 | */
-/* \ m20 m21 m22 / */
-
+/*!
+ * \brief Matrix class
+ * / a b tx \
+ * | c d ty |
+ * \ 0 0 1  /
+ *
+ * / m00 m01 m02 \
+ * | m10 m11 m12 |
+ * \ m20 m21 m22 /
+ */
 class Matrix {
  public:
   enum class Type {
@@ -1848,7 +1861,7 @@ class Matrix {
   }
 
   void setInnerReflection(double dx, double dy) {
-    double l = sqrt(dx*dx + dy*dy);
+    double l = std::hypot(dx, dy);
 
     setUnitInnerReflection(dx/l, dy/l);
   }

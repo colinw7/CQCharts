@@ -8,7 +8,7 @@
 namespace Springy {
   class Node;
 
-  // Vector
+  //! \brief Vector
   class Vector {
    public:
     static Vector random() {
@@ -42,7 +42,7 @@ namespace Springy {
     }
 
     double magnitude() const {
-      return sqrt(x_*x_ + y_*y_);
+      return std::hypot(x_, y_);
     }
 
     Vector normal() const {
@@ -63,7 +63,7 @@ namespace Springy {
     double y_ { 0.0 };
   };
 
-  // Point
+  //! \brief Point
   class Point {
    public:
     Point(const Vector &position, double mass) :
@@ -99,7 +99,7 @@ namespace Springy {
 
   //-----------
 
-  // Spring
+  //! \brief Spring
   class Spring {
    public:
     Spring(Point *point1, Point *point2, double length, double k) :
@@ -132,7 +132,7 @@ namespace Springy {
 
   //-----------
 
-  // Node
+  //! \brief Node
   class Node {
    public:
     Node(int id) :
@@ -170,7 +170,7 @@ namespace Springy {
 
   //-----------
 
-  // Edge
+  //! \brief Edge
   class Edge {
    public:
     Edge(int id, Node *source, Node *target) :
@@ -200,7 +200,7 @@ namespace Springy {
 
   //-----------
 
-  // Graph
+  //! \brief Graph
   class Graph {
    public:
     Graph() :
@@ -379,7 +379,7 @@ namespace Springy {
 
   //-----------
 
-  // Layout
+  //! \brief Layout
   class Layout {
    public:
     Layout(Graph *graph, double stiffness, double repulsion, double damping) :

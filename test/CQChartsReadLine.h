@@ -4,6 +4,7 @@
 #include <CQChartsTest.h>
 #include <CReadLine.h>
 
+//! \brief Charts ReadLine override
 class CQChartsReadLine : public CReadLine {
  public:
   CQChartsReadLine(CQChartsTest *test) :

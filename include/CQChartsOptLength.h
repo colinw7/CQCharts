@@ -6,6 +6,7 @@
 
 #include <boost/optional.hpp>
 
+//! \brief Optional length
 class CQChartsOptLength {
  public:
   static void registerMetaType();

@@ -6,6 +6,9 @@
 
 class CQChartsColumnsEdit;
 
+/*!
+ * \brief Columns line edit
+ */
 class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
@@ -54,6 +57,9 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
 class CQChartsColumnLineEdit;
 class QLabel;
 
+/*!
+ * \brief Columns edit
+ */
 class CQChartsColumnsEdit : public CQChartsEditBase {
   Q_OBJECT
 
@@ -101,7 +107,7 @@ class CQChartsColumnsEdit : public CQChartsEditBase {
 
 #include <CQPropertyViewType.h>
 
-// type for CQChartsColumn
+//! \brief type for CQChartsColumn
 class CQChartsColumnsPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsColumnsPropertyViewType();
@@ -121,7 +127,7 @@ class CQChartsColumnsPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-// editor factory for CQChartsColumn
+//! \brief editor factory for CQChartsColumn
 class CQChartsColumnsPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsColumnsPropertyViewEditor();

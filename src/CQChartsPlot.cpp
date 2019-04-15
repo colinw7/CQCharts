@@ -142,8 +142,6 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 CQChartsPlot::
 ~CQChartsPlot()
 {
-  delete propertyModel_;
-
   clearPlotObjects();
 
   for (auto &layer : layers_)
@@ -156,6 +154,8 @@ CQChartsPlot::
     delete annotation;
 
   delete plotObjTree_;
+
+  delete propertyModel_;
 
   delete displayRange_;
   delete displayTransform_;
@@ -1433,9 +1433,9 @@ void
 CQChartsPlot::
 addProperties()
 {
-  addProperty("", this, "viewId" , "view"   )->setDesc("Parent view id");
+  addProperty("", this, "viewId" , "view"   )->setDesc("Parent view id").setHidden(true);
   addProperty("", this, "typeStr", "type"   )->setDesc("Type name").setHidden(true);
-  addProperty("", this, "visible", "visible")->setDesc("Plot visible");
+  addProperty("", this, "visible", "visible")->setDesc("Plot visible").setHidden(true);
   addProperty("", this, "font"   , "font"   )->setDesc("Base font");
 
   addProperty("columns", this, "idColumn"     , "id"     )->setDesc("Id column");
@@ -1806,6 +1806,16 @@ propertyItemSelected(QObject *obj, const QString &)
         queueDrawForeground();
 
         changed = true;
+      }
+    }
+
+    if (! changed) {
+      for (auto &plotObj : plotObjects()) {
+        if (obj == plotObj) {
+          plotObj->setSelected(true);
+
+          changed = true;
+        }
       }
     }
   }
@@ -2826,6 +2836,12 @@ addPlotObject(CQChartsPlotObj *obj)
   assert(! plotObjTree_->isBusy());
 
   plotObjs_.push_back(obj);
+
+  obj->moveToThread(this->thread());
+
+  obj->setParent(this);
+
+  obj->addProperties(propertyModel(), "objects");
 }
 
 void
@@ -2980,8 +2996,11 @@ clearPlotObjects()
 
   std::swap(plotObjs, plotObjs_);
 
-  for (auto &plotObj : plotObjs)
+  for (auto &plotObj : plotObjs) {
+    propertyModel()->removeProperties("objects/" + plotObj->propertyId());
+
     delete plotObj;
+  }
 
   insideObjs_    .clear();
   sizeInsideObjs_.clear();
@@ -3825,6 +3844,14 @@ deselectAll1(bool &changed)
   for (auto &annotation : annotations()) {
     if (annotation->isSelected()) {
       annotation->setSelected(false);
+
+      updateChanged();
+    }
+  }
+
+  for (auto &plotObj : plotObjects()) {
+    if (plotObj->isSelected()) {
+      plotObj->setSelected(false);
 
       updateChanged();
     }

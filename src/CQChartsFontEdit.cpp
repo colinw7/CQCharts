@@ -30,9 +30,9 @@ CQChartsFontLineEdit(QWidget *parent) :
 
   menu_->setWidget(dataEdit_);
 
-  connectSlots(true);
-
   //---
+
+  connectSlots(true);
 
   fontToWidgets();
 }
@@ -66,10 +66,10 @@ updateFont(const CQChartsFont &font, bool updateText)
 
   dataEdit_->setFont(font);
 
+  connectSlots(true);
+
   if (updateText)
     fontToWidgets();
-
-  connectSlots(true);
 
   emit fontChanged();
 }

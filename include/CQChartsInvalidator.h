@@ -3,6 +3,7 @@
 
 class QObject;
 
+//! \brief class to forward invalidation to object
 class CQChartsInvalidator {
  public:
   CQChartsInvalidator(QObject *obj) :

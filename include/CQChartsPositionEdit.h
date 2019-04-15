@@ -7,6 +7,7 @@
 class CQChartsUnitsEdit;
 class CQPoint2DEdit;
 
+//! \brief position edit
 class CQChartsPositionEdit : public QFrame {
   Q_OBJECT
 
@@ -30,16 +31,17 @@ class CQChartsPositionEdit : public QFrame {
   void connectSlots(bool b);
 
  private:
-  CQChartsPosition   position_;
-  CQPoint2DEdit*     edit_       { nullptr };
-  CQChartsUnitsEdit* unitsEdit_ { nullptr };
+  CQChartsPosition   position_;              //!< position data
+  CQPoint2DEdit*     edit_      { nullptr }; //!< position edit
+  CQChartsUnitsEdit* unitsEdit_ { nullptr }; //!< units edit
+  bool               connected_ { false };   //!< is connected
 };
 
 //------
 
 #include <CQPropertyViewType.h>
 
-// type for CQChartsPosition
+//! \brief type for CQChartsPosition
 class CQChartsPositionPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsPositionPropertyViewType();
@@ -59,7 +61,7 @@ class CQChartsPositionPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-// editor factory for CQChartsPosition
+//! \brief editor factory for CQChartsPosition
 class CQChartsPositionPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsPositionPropertyViewEditor();

@@ -484,9 +484,9 @@ calcId() const
     name1 = plot_->yname();
 
   if (name1.length())
-    return QString("point:%1:%2:%3").arg(name1).arg(x_).arg(y_);
+    return QString("%1:%2:%3:%4").arg(typeName()).arg(name1).arg(x_).arg(y_);
   else
-    return QString("point:%1:%2:%3").arg(i_).arg(x_).arg(y_);
+    return QString("%1:%2:%3:%4").arg(typeName()).arg(i_).arg(x_).arg(y_);
 }
 
 bool

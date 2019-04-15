@@ -749,7 +749,7 @@ calcId() const
 
   QString xname = plot_->modelString(ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
-  return xname;
+  return QString("%1:%2").arg(typeName()).arg(xname);
 }
 
 QString
@@ -923,7 +923,7 @@ calcId() const
 
   QString yname = plot_->modelHeaderString(yColumn, ok);
 
-  return QString("point:%1:%2=%3").arg(xname).arg(yname).arg(yval_);
+  return QString("%1:%2:%3=%4").arg(typeName()).arg(xname).arg(yname).arg(yval_);
 }
 
 QString

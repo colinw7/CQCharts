@@ -29,9 +29,9 @@ CQChartsStrokeDataLineEdit(QWidget *parent) :
 
   menu_->setWidget(dataEdit_);
 
-  connect(dataEdit_, SIGNAL(strokeDataChanged()), this, SLOT(menuEditChanged()));
-
   //---
+
+  connectSlots(true);
 
   strokeDataToWidgets();
 }
@@ -58,10 +58,10 @@ updateStrokeData(const CQChartsStrokeData &strokeData, bool updateText)
 
   dataEdit_->setData(strokeData);
 
+  connectSlots(true);
+
   if (updateText)
     strokeDataToWidgets();
-
-  connectSlots(true);
 
   emit strokeDataChanged();
 }
@@ -210,8 +210,6 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
   groupBox_->setChecked(false);
   groupBox_->setTitle("Visible");
 
-  connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-
   layout->addWidget(groupBox_);
 
   //---
@@ -224,8 +222,6 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
 
   colorEdit_ = new CQChartsColorLineEdit;
 
-  connect(colorEdit_, SIGNAL(colorChanged()), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(colorLabel, 0, 0);
   groupLayout->addWidget(colorEdit_, 0, 1);
 
@@ -234,8 +230,6 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
   alphaLabel->setObjectName("alphaLabel");
 
   alphaEdit_ = new CQChartsAlphaEdit;
-
-  connect(alphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
 
   groupLayout->addWidget(alphaLabel, 1, 0);
   groupLayout->addWidget(alphaEdit_, 1, 1);
@@ -246,8 +240,6 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
 
   widthEdit_ = CQUtil::makeWidget<CQChartsLengthEdit>("widthEdit");
 
-  connect(widthEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(widthLabel, 2, 0);
   groupLayout->addWidget(widthEdit_, 2, 1);
 
@@ -256,8 +248,6 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
   dashLabel->setObjectName("dashLabel");
 
   dashEdit_ = new CQChartsLineDashEdit;
-
-  connect(dashEdit_, SIGNAL(valueChanged(const CQChartsLineDash &)), this, SLOT(widgetsToData()));
 
   groupLayout->addWidget(dashLabel, 3, 0);
   groupLayout->addWidget(dashEdit_, 3, 1);
@@ -268,8 +258,6 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
     cornerLabel->setObjectName("cornerLabel");
 
     cornerEdit_ = CQUtil::makeWidget<CQChartsLengthEdit>("cornerEdit");
-
-    connect(cornerEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
 
     groupLayout->addWidget(cornerLabel, 4, 0);
     groupLayout->addWidget(cornerEdit_, 4, 1);
@@ -288,6 +276,10 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
   //---
 
   layout->addStretch(1);
+
+  //---
+
+  connectSlots(true);
 
   dataToWidgets();
 }
@@ -317,17 +309,37 @@ setPreview(bool b)
 
 void
 CQChartsStrokeDataEdit::
-dataToWidgets()
+connectSlots(bool b)
 {
-  disconnect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-  disconnect(colorEdit_, SIGNAL(colorChanged()), this, SLOT(widgetsToData()));
-  disconnect(alphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  disconnect(widthEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
-  disconnect(dashEdit_, SIGNAL(valueChanged(const CQChartsLineDash &)),
-             this, SLOT(widgetsToData()));
+  assert(b != connected_);
+
+  connected_ = b;
+
+  //---
+
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      connect(w, from, this, to);
+    else
+      disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, colorEdit_, SIGNAL(colorChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, alphaEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(b, widthEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, dashEdit_, SIGNAL(valueChanged(const CQChartsLineDash &)),
+                    SLOT(widgetsToData()));
 
   if (cornerEdit_)
-    disconnect(cornerEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
+    connectDisconnect(b, cornerEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
+}
+
+void
+CQChartsStrokeDataEdit::
+dataToWidgets()
+{
+  connectSlots(false);
 
   groupBox_ ->setChecked (data_.isVisible());
   colorEdit_->setColor   (data_.color());
@@ -340,15 +352,7 @@ dataToWidgets()
 
   preview_->update();
 
-  connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-  connect(colorEdit_, SIGNAL(colorChanged()), this, SLOT(widgetsToData()));
-  connect(alphaEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  connect(widthEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
-  connect(dashEdit_, SIGNAL(valueChanged(const CQChartsLineDash &)),
-          this, SLOT(widgetsToData()));
-
-  if (cornerEdit_)
-    connect(cornerEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
+  connectSlots(true);
 }
 
 void

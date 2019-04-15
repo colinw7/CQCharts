@@ -7,6 +7,9 @@
 class CQChartsColumnEdit;
 class QAbstractItemModel;
 
+/*!
+ * \brief Column line edit
+ */
 class CQChartsColumnLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
@@ -53,6 +56,9 @@ class QLineEdit;
 class QComboBox;
 class QCheckBox;
 
+/*!
+ * \brief Column edit
+ */
 class CQChartsColumnEdit : public CQChartsEditBase {
   Q_OBJECT
 
@@ -106,7 +112,7 @@ class CQChartsColumnEdit : public CQChartsEditBase {
 
 #include <CQPropertyViewType.h>
 
-// type for CQChartsColumn
+//! \brief type for CQChartsColumn
 class CQChartsColumnPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsColumnPropertyViewType();
@@ -126,7 +132,7 @@ class CQChartsColumnPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-// editor factory for CQChartsColumn
+//! \brief editor factory for CQChartsColumn
 class CQChartsColumnPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsColumnPropertyViewEditor();

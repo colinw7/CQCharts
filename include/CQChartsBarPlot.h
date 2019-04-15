@@ -8,7 +8,7 @@
 CQCHARTS_NAMED_SHAPE_DATA(Bar,bar)
 
 /*!
- * \brief base class for bar type plots (bar chart and distribution)
+ * \brief base class for Bar type plots (bar chart and distribution)
  */
 class CQChartsBarPlot : public CQChartsGroupPlot,
  public CQChartsObjBarShapeData<CQChartsBarPlot> {

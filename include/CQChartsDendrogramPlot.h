@@ -10,6 +10,9 @@ class CQChartsDendrogramPlot;
 
 //---
 
+/*!
+ * \brief Dendogram plot type
+ */
 class CQChartsDendrogramPlotType : public CQChartsPlotType {
  public:
   CQChartsDendrogramPlotType();
@@ -34,10 +37,17 @@ class CQChartsDendrogramPlotType : public CQChartsPlotType {
 
 //---
 
+/*!
+ * \brief Dendrogram Plot Node object
+ */
 class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
+  Q_OBJECT
+
  public:
   CQChartsDendrogramNodeObj(const CQChartsDendrogramPlot *plot, CQChartsDendrogram::Node *node,
                             const CQChartsGeom::BBox &rect);
+
+  QString typeName() const override { return "node"; }
 
   QString calcId() const override;
 
@@ -56,6 +66,9 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
 //---
 
+/*!
+ * \brief Dendrogram Plot
+ */
 class CQChartsDendrogramPlot : public CQChartsPlot,
  public CQChartsObjNodeShapeData<CQChartsDendrogramPlot>,
  public CQChartsObjEdgeLineData <CQChartsDendrogramPlot>,

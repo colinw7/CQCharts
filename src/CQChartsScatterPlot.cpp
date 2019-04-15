@@ -3064,7 +3064,7 @@ calcId() const
   if (calcColumnId(ind1, idStr))
     return idStr;
 
-  return QString("point:%1:%2:%3").arg(ig_).arg(is_).arg(iv_);
+  return QString("%1:%2:%3:%4").arg(typeName()).arg(ig_).arg(is_).arg(iv_);
 }
 
 QString
@@ -3333,7 +3333,7 @@ QString
 CQChartsScatterCellObj::
 calcId() const
 {
-  return QString("point:%1:%2:%3:%4").arg(ig_).arg(is_).arg(ix_).arg(iy_);
+  return QString("%1:%2:%3:%4:%5").arg(typeName()).arg(ig_).arg(is_).arg(ix_).arg(iy_);
 }
 
 QString

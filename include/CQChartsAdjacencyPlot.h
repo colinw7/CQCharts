@@ -10,7 +10,7 @@
 //------
 
 /*!
- * \brief adjacency plot type
+ * \brief Adjacency plot type
  */
 class CQChartsAdjacencyPlotType : public CQChartsPlotType {
  public:
@@ -103,14 +103,18 @@ class CQChartsAdjacencyNode {
 class CQChartsAdjacencyPlot;
 
 /*!
- * \brief grid cell object
+ * \brief Adjacency Grid Cell object
  *
  * node1->node2 with connections count
  */
 class CQChartsAdjacencyObj : public CQChartsPlotObj {
+  Q_OBJECT
+
  public:
   CQChartsAdjacencyObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
                        CQChartsAdjacencyNode *node2, double value, const CQChartsGeom::BBox &rect);
+
+  QString typeName() const override { return "cell"; }
 
   QString calcId() const override;
 
@@ -133,8 +137,10 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
 //---
 
+CQCHARTS_NAMED_SHAPE_DATA(EmptyCell,emptyCell)
+
 /*!
- * \brief connectivity plot
+ * \brief Connectivity Plot
  *
  * made up of:
  *   + nodes             : number, name(opt), group(opt)
@@ -152,8 +158,6 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
  * Example
  *   + \image html adjacency.png
  */
-CQCHARTS_NAMED_SHAPE_DATA(EmptyCell,emptyCell)
-
 class CQChartsAdjacencyPlot : public CQChartsPlot,
  public CQChartsObjBackgroundFillData<CQChartsAdjacencyPlot>,
  public CQChartsObjShapeData         <CQChartsAdjacencyPlot>,

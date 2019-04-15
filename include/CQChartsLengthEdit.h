@@ -7,6 +7,7 @@
 class CQChartsUnitsEdit;
 class CQRealSpin;
 
+//! \brief length edit
 class CQChartsLengthEdit : public QFrame {
   Q_OBJECT
 
@@ -30,16 +31,17 @@ class CQChartsLengthEdit : public QFrame {
   void connectSlots(bool b);
 
  private:
-  CQChartsLength     length_;
-  CQRealSpin*        edit_      { nullptr };
-  CQChartsUnitsEdit* unitsEdit_ { nullptr };
+  CQChartsLength     length_;                //!< length data
+  CQRealSpin*        edit_      { nullptr }; //!< length edit
+  CQChartsUnitsEdit* unitsEdit_ { nullptr }; //!< units edit
+  bool               connected_ { false };   //!< is connected
 };
 
 //------
 
 #include <CQPropertyViewType.h>
 
-// type for CQChartsLength
+//! \brief type for CQChartsLength
 class CQChartsLengthPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsLengthPropertyViewType();
@@ -59,7 +61,7 @@ class CQChartsLengthPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-// editor factory for CQChartsLength
+//! \brief editor factory for CQChartsLength
 class CQChartsLengthPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsLengthPropertyViewEditor();

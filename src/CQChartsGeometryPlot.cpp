@@ -513,7 +513,7 @@ calcId() const
   if (! plot_->valueColumn().isValid())
     return name();
 
-  return QString("geom:%1:%2").arg(name()).arg(value());
+  return QString("%1:%2:%3").arg(typeName()).arg(name()).arg(value());
 }
 
 QString

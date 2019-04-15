@@ -148,7 +148,9 @@ class CQChartsColumn {
 
 //---
 
-// manage list of columns or single column
+/*!
+ * \brief manage list of columns or single column
+ */
 class CQChartsColumns {
  public:
   using Columns = std::vector<CQChartsColumn>;

@@ -10,7 +10,7 @@
 class CQChartsModelColumnDetails;
 class CQCharts;
 
-// column type parameter
+//! \brief column type parameter
 class CQChartsColumnTypeParam {
  public:
   using Type = CQBaseModelType;
@@ -46,10 +46,12 @@ class CQChartsColumnTypeParam {
 
 //---
 
-// column type base class
-//
-// supports one base parameter
-//  . key - is column a key (for grouping)
+/*!
+ * \brief column type base class
+ *
+ * supports one base parameter
+ *  . key - is column a key (for grouping)
+ */
 class CQChartsColumnType {
  public:
   using Type   = CQBaseModelType;
@@ -109,7 +111,7 @@ class CQChartsColumnType {
 
 //---
 
-// string column type class
+//! \brief string column type class
 class CQChartsColumnStringType : public CQChartsColumnType {
  public:
   CQChartsColumnStringType();
@@ -127,7 +129,7 @@ class CQChartsColumnStringType : public CQChartsColumnType {
 
 //---
 
-// boolean column type class
+//! \brief boolean column type class
 class CQChartsColumnBooleanType : public CQChartsColumnType {
  public:
   CQChartsColumnBooleanType();
@@ -147,13 +149,15 @@ class CQChartsColumnBooleanType : public CQChartsColumnType {
 
 //---
 
-// real column type class
-//
-// supports the following parameter
-//  . format       - output format
-//  . format_scale - scale factor for output format e.g. 0.001 for multiples of a thousand
-//  . min          - override calculated min value
-//  . max          - override calculated max value
+/*!
+ * \brief real column type class
+ *
+ * supports the following parameter
+ *  . format       - output format
+ *  . format_scale - scale factor for output format e.g. 0.001 for multiples of a thousand
+ *  . min          - override calculated min value
+ *  . max          - override calculated max value
+ */
 class CQChartsColumnRealType : public CQChartsColumnType {
  public:
   CQChartsColumnRealType();
@@ -182,12 +186,14 @@ class CQChartsColumnRealType : public CQChartsColumnType {
 
 //---
 
-// integer column type class
-//
-// supports the following parameter
-//  . format - output format
-//  . min    - override calculated min value
-//  . max    - override calculated max value
+/*!
+ * \brief integer column type class
+ *
+ * supports the following parameter
+ *  . format - output format
+ *  . min    - override calculated min value
+ *  . max    - override calculated max value
+ */
 class CQChartsColumnIntegerType : public CQChartsColumnType {
  public:
   CQChartsColumnIntegerType();
@@ -208,12 +214,14 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
 
 //---
 
-// time column type class
-//
-// supports the following parameter
-//  . iformat - input format to convert input data to model data (time)
-//  . oformat - output (display) format to convert time to string
-//  - format  - convenience parameter when iformat and oformat are the same
+/*!
+ * \brief time column type class
+ *
+ * supports the following parameter
+ *  . iformat - input format to convert input data to model data (time)
+ *  . oformat - output (display) format to convert time to string
+ *  - format  - convenience parameter when iformat and oformat are the same
+ */
 class CQChartsColumnTimeType : public CQChartsColumnType {
  public:
   CQChartsColumnTimeType();
@@ -241,7 +249,7 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
 
 //---
 
-// rect column type class
+//! \brief rect column type class
 class CQChartsColumnRectType : public CQChartsColumnType {
  public:
   CQChartsColumnRectType();
@@ -259,7 +267,7 @@ class CQChartsColumnRectType : public CQChartsColumnType {
 
 //---
 
-// polygon column type class
+//! \brief polygon column type class
 class CQChartsColumnPolygonType : public CQChartsColumnType {
  public:
   CQChartsColumnPolygonType();
@@ -277,7 +285,7 @@ class CQChartsColumnPolygonType : public CQChartsColumnType {
 
 //---
 
-// polygon list column type class
+//! \brief polygon list column type class
 class CQChartsColumnPolygonListType : public CQChartsColumnType {
  public:
   CQChartsColumnPolygonListType();
@@ -298,7 +306,7 @@ class CQChartsColumnPolygonListType : public CQChartsColumnType {
 
 //---
 
-// connection list column type class
+//! \brief connection list column type class
 class CQChartsColumnConnectionListType : public CQChartsColumnType {
  public:
   CQChartsColumnConnectionListType();
@@ -319,7 +327,7 @@ class CQChartsColumnConnectionListType : public CQChartsColumnType {
 
 //---
 
-// name pair column type class
+//! \brief name pair column type class
 class CQChartsColumnNamePairType : public CQChartsColumnType {
  public:
   CQChartsColumnNamePairType();
@@ -340,7 +348,7 @@ class CQChartsColumnNamePairType : public CQChartsColumnType {
 
 //---
 
-// path column type class
+//! \brief path column type class
 class CQChartsColumnPathType : public CQChartsColumnType {
  public:
   CQChartsColumnPathType();
@@ -358,7 +366,7 @@ class CQChartsColumnPathType : public CQChartsColumnType {
 
 //---
 
-// style column type class
+//! \brief style column type class
 class CQChartsColumnStyleType : public CQChartsColumnType {
  public:
   CQChartsColumnStyleType();
@@ -376,13 +384,15 @@ class CQChartsColumnStyleType : public CQChartsColumnType {
 
 //---
 
-// color column type class
-//
-// supports the following parameter
-//  . mapped  - is input data mapped to color (if not input data is taken as color name)
-//  . min     - override min value for numeric value map
-//  . max     - override max value for numeric value map
-//  . palette - specific palette to lookup color in
+/*!
+ * \brief color column type class
+ *
+ * supports the following parameter
+ *  . mapped  - is input data mapped to color (if not input data is taken as color name)
+ *  . min     - override min value for numeric value map
+ *  . max     - override max value for numeric value map
+ *  . palette - specific palette to lookup color in
+ */
 class CQChartsColumnColorType : public CQChartsColumnType {
  public:
   CQChartsColumnColorType();
@@ -404,7 +414,7 @@ class CQChartsColumnColorType : public CQChartsColumnType {
 
 //---
 
-// image column type class
+//! \brief image column type class
 class CQChartsColumnImageType : public CQChartsColumnType {
  public:
   CQChartsColumnImageType();
@@ -422,12 +432,14 @@ class CQChartsColumnImageType : public CQChartsColumnType {
 
 //---
 
-// symbol type column type class
-//
-// supports the following parameter
-//  . mapped - is input data mapped to symbol type (if not input data is taken as symbol name)
-//  . min    - override min value for numeric value map
-//  . max    - override max value for numeric value map
+/*!
+ * \brief symbol type column type class
+ *
+ * supports the following parameter
+ *  . mapped - is input data mapped to symbol type (if not input data is taken as symbol name)
+ *  . min    - override min value for numeric value map
+ *  . max    - override max value for numeric value map
+ */
 class CQChartsColumnSymbolTypeType : public CQChartsColumnType {
  public:
   CQChartsColumnSymbolTypeType();
@@ -449,14 +461,16 @@ class CQChartsColumnSymbolTypeType : public CQChartsColumnType {
 
 //---
 
-// symbol size column type class
-//
-// supports the following parameter
-//  . mapped   - is input data mapped to symbol size (if not input data is taken as symbol size)
-//  . min      - override input min value for numeric value map
-//  . max      - override input max value for numeric value map
-//  . size_min - override output min value for numeric value map
-//  . size_max - override output max value for numeric value map
+/*!
+ * \brief symbol size column type class
+ *
+ * supports the following parameter
+ *  . mapped   - is input data mapped to symbol size (if not input data is taken as symbol size)
+ *  . min      - override input min value for numeric value map
+ *  . max      - override input max value for numeric value map
+ *  . size_min - override output min value for numeric value map
+ *  . size_max - override output max value for numeric value map
+ */
 class CQChartsColumnSymbolSizeType : public CQChartsColumnType {
  public:
   CQChartsColumnSymbolSizeType();
@@ -478,14 +492,16 @@ class CQChartsColumnSymbolSizeType : public CQChartsColumnType {
 
 //---
 
-// font size column type class
-//
-// supports the following parameter
-//  . mapped   - is input data mapped to font size (if not input data is taken as font size)
-//  . min      - override input min value for numeric value map
-//  . max      - override input max value for numeric value map
-//  . size_min - override output min value for numeric value map
-//  . size_max - override output max value for numeric value map
+/*!
+ * \brief font size column type class
+ *
+ * supports the following parameter
+ *  . mapped   - is input data mapped to font size (if not input data is taken as font size)
+ *  . min      - override input min value for numeric value map
+ *  . max      - override input max value for numeric value map
+ *  . size_min - override output min value for numeric value map
+ *  . size_max - override output max value for numeric value map
+ */
 class CQChartsColumnFontSizeType : public CQChartsColumnType {
  public:
   CQChartsColumnFontSizeType();
@@ -507,7 +523,7 @@ class CQChartsColumnFontSizeType : public CQChartsColumnType {
 
 //---
 
-// column type manager
+//! \brief column type manager
 class CQChartsColumnTypeMgr : public QObject {
   Q_OBJECT
 

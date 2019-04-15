@@ -8,6 +8,9 @@ class CQChartsTextBoxDataEdit;
 class CQChartsPlot;
 class CQChartsView;
 
+/*!
+ * \brief Text Box Data line edit
+ */
 class CQChartsTextBoxDataLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
@@ -48,6 +51,9 @@ class CQChartsTextDataEdit;
 class CQChartsBoxDataEdit;
 class CQChartsTextBoxDataEditPreview;
 
+/*!
+ * \brief Text Box data edit
+ */
 class CQChartsTextBoxDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
@@ -70,6 +76,8 @@ class CQChartsTextBoxDataEdit : public CQChartsEditBase {
  private:
   void dataToWidgets();
 
+  void connectSlots(bool b);
+
  private slots:
   void widgetsToData();
 
@@ -85,6 +93,9 @@ class CQChartsTextBoxDataEdit : public CQChartsEditBase {
 
 //---
 
+/*!
+ * \brief Text Box data edit preview
+ */
 class CQChartsTextBoxDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
 
@@ -104,7 +115,7 @@ class CQChartsTextBoxDataEditPreview : public CQChartsEditPreview {
 
 #include <CQChartsPropertyViewEditor.h>
 
-// type for CQChartsTextBoxData
+//! \brief type for CQChartsTextBoxData
 class CQChartsTextBoxDataPropertyViewType : public CQChartsPropertyViewType {
  public:
   CQPropertyViewEditorFactory *getEditor() const override;
@@ -117,7 +128,7 @@ class CQChartsTextBoxDataPropertyViewType : public CQChartsPropertyViewType {
 
 //---
 
-// editor factory for CQChartsTextBoxData
+//! \brief editor factory for CQChartsTextBoxData
 class CQChartsTextBoxDataPropertyViewEditor : public CQChartsPropertyViewEditorFactory {
  public:
   CQChartsLineEditBase *createPropertyEdit(QWidget *parent);

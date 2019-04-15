@@ -507,7 +507,7 @@ QString
 CQChartsImageObj::
 calcId() const
 {
-  return QString("image:%1:%2").arg(row_).arg(col_);
+  return QString("%1:%2:%3").arg(typeName()).arg(row_).arg(col_);
 }
 
 QString

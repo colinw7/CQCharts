@@ -10,11 +10,11 @@ drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsBoxWhiske
             const CQChartsGeom::BBox &bbox, const CQChartsLength &width,
             const Qt::Orientation &orientation)
 {
-  drawWhisker(plot, painter, whisker.data(), bbox, width, orientation);
+  drawWhisker(plot, painter, whisker.statData(), bbox, width, orientation);
 }
 
 void
-drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerData &data,
+drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsStatData &statData,
             const CQChartsGeom::BBox &bbox, const CQChartsLength &width,
             const Qt::Orientation &orientation)
 {
@@ -32,22 +32,22 @@ drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerDa
   else
     pos = bbox.getXMid();
 
-  CQChartsGeom::Point p1, p2, p3, p4, p5;
+  //---
 
-  if (orientation == Qt::Horizontal) {
-    p1 = plot->windowToPixel(CQChartsGeom::Point(data.min   , pos - ww/2));
-    p2 = plot->windowToPixel(CQChartsGeom::Point(data.lower , pos - ww/2));
-    p3 = plot->windowToPixel(CQChartsGeom::Point(data.median, pos       ));
-    p4 = plot->windowToPixel(CQChartsGeom::Point(data.upper , pos + ww/2));
-    p5 = plot->windowToPixel(CQChartsGeom::Point(data.max   , pos + ww/2));
-  }
-  else {
-    p1 = plot->windowToPixel(CQChartsGeom::Point(pos - ww/2, data.min   ));
-    p2 = plot->windowToPixel(CQChartsGeom::Point(pos - ww/2, data.lower ));
-    p3 = plot->windowToPixel(CQChartsGeom::Point(pos       , data.median));
-    p4 = plot->windowToPixel(CQChartsGeom::Point(pos + ww/2, data.upper ));
-    p5 = plot->windowToPixel(CQChartsGeom::Point(pos + ww/2, data.max   ));
-  }
+  auto windowToPixel = [&](double pos, double value) {
+    if (orientation != Qt::Horizontal)
+      return plot->windowToPixel(CQChartsGeom::Point(pos, value));
+    else
+      return plot->windowToPixel(CQChartsGeom::Point(value, pos));
+  };
+
+  CQChartsGeom::Point p1 = windowToPixel(statData.min        , pos - ww/2);
+  CQChartsGeom::Point p2 = windowToPixel(statData.lowerMedian, pos - ww/2);
+  CQChartsGeom::Point p3 = windowToPixel(statData.median     , pos       );
+  CQChartsGeom::Point p4 = windowToPixel(statData.upperMedian, pos + ww/2);
+  CQChartsGeom::Point p5 = windowToPixel(statData.max        , pos + ww/2);
+
+  //---
 
   double cxs = 0.0, cys = 0.0;
 
@@ -72,30 +72,28 @@ drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerDa
 }
 
 void
-drawWhiskerBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerData &data,
+drawWhiskerBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsStatData &statData,
                double pos, const Qt::Orientation &orientation,
                double ww, double bw, const CQChartsLength &cornerSize, bool notched)
 {
-  CQChartsGeom::Point p1, p2, p3, p4, p5, p6, p7;
+  auto windowToPixel = [&](double pos, double value) {
+    if (orientation != Qt::Horizontal)
+      return plot->windowToPixel(CQChartsGeom::Point(pos, value));
+    else
+      return plot->windowToPixel(CQChartsGeom::Point(value, pos));
+  };
 
-  if (orientation != Qt::Horizontal) {
-    p1 = plot->windowToPixel(CQChartsGeom::Point(pos - ww/2, data.min   ));
-    p2 = plot->windowToPixel(CQChartsGeom::Point(pos - bw/2, data.lower ));
-    p3 = plot->windowToPixel(CQChartsGeom::Point(pos       , data.median));
-    p4 = plot->windowToPixel(CQChartsGeom::Point(pos + bw/2, data.upper ));
-    p5 = plot->windowToPixel(CQChartsGeom::Point(pos + ww/2, data.max   ));
-    p6 = plot->windowToPixel(CQChartsGeom::Point(pos - ww/4, data.lnotch));
-    p7 = plot->windowToPixel(CQChartsGeom::Point(pos + ww/4, data.unotch));
-  }
-  else {
-    p1 = plot->windowToPixel(CQChartsGeom::Point(data.min   , pos - ww/2));
-    p2 = plot->windowToPixel(CQChartsGeom::Point(data.lower , pos - bw/2));
-    p3 = plot->windowToPixel(CQChartsGeom::Point(data.median, pos       ));
-    p4 = plot->windowToPixel(CQChartsGeom::Point(data.upper , pos + bw/2));
-    p5 = plot->windowToPixel(CQChartsGeom::Point(data.max   , pos + ww/2));
-    p6 = plot->windowToPixel(CQChartsGeom::Point(data.lnotch, pos - ww/4));
-    p7 = plot->windowToPixel(CQChartsGeom::Point(data.unotch, pos + ww/4));
-  }
+  CQChartsGeom::Point p1 = windowToPixel(pos - ww/2, statData.min        );
+  CQChartsGeom::Point p2 = windowToPixel(pos - bw/2, statData.lowerMedian);
+  CQChartsGeom::Point p3 = windowToPixel(pos       , statData.median     );
+  CQChartsGeom::Point p4 = windowToPixel(pos + bw/2, statData.upperMedian);
+  CQChartsGeom::Point p5 = windowToPixel(pos + ww/2, statData.max        );
+
+  double lnotch = std::max(statData.lnotch, statData.lowerMedian);
+  double unotch = std::min(statData.unotch, statData.upperMedian);
+
+  CQChartsGeom::Point p6 = windowToPixel(pos - ww/4, lnotch);
+  CQChartsGeom::Point p7 = windowToPixel(pos + ww/4, unotch);
 
   //---
 

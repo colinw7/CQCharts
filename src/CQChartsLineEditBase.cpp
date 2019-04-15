@@ -176,6 +176,12 @@ void
 CQChartsLineEditBase::
 connectSlots(bool b)
 {
+  assert(b != connected_);
+
+  connected_ = b;
+
+  //---
+
   auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
     if (b)
       connect(w, from, this, to);

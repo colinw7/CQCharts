@@ -505,7 +505,7 @@ QString
 CQChartsRectAnnotation::
 propertyId() const
 {
-  return QString("rectAnnotation.%1").arg(ind());
+  return QString("rectAnnotation%1").arg(ind());
 }
 
 void
@@ -697,7 +697,7 @@ QString
 CQChartsEllipseAnnotation::
 propertyId() const
 {
-  return QString("ellipseAnnotation.%1").arg(ind());
+  return QString("ellipseAnnotation%1").arg(ind());
 }
 
 void
@@ -862,7 +862,7 @@ CQChartsPolygonAnnotation::
 CQChartsPolygonAnnotation(CQChartsView *view, const CQChartsPolygon &polygon) :
  CQChartsAnnotation(view, Type::POLYGON), polygon_(polygon)
 {
-  setObjectName(QString("poly.%1").arg(ind()));
+  setObjectName(QString("polygon.%1").arg(ind()));
 
   setBorder(true);
 
@@ -873,7 +873,7 @@ CQChartsPolygonAnnotation::
 CQChartsPolygonAnnotation(CQChartsPlot *plot, const CQChartsPolygon &polygon) :
  CQChartsAnnotation(plot, Type::POLYGON), polygon_(polygon)
 {
-  setObjectName(QString("poly.%1").arg(ind()));
+  setObjectName(QString("polygon.%1").arg(ind()));
 
   setBorder(true);
 
@@ -902,7 +902,7 @@ QString
 CQChartsPolygonAnnotation::
 propertyId() const
 {
-  return QString("polygonAnnotation.%1").arg(ind());
+  return QString("polygonAnnotation%1").arg(ind());
 }
 
 void
@@ -1057,7 +1057,7 @@ CQChartsPolylineAnnotation::
 CQChartsPolylineAnnotation(CQChartsView *view, const CQChartsPolygon &polygon) :
  CQChartsAnnotation(view, Type::POLYLINE), polygon_(polygon)
 {
-  setObjectName(QString("poly.%1").arg(ind()));
+  setObjectName(QString("polyline.%1").arg(ind()));
 
   setBorder(true);
 
@@ -1068,7 +1068,7 @@ CQChartsPolylineAnnotation::
 CQChartsPolylineAnnotation(CQChartsPlot *plot, const CQChartsPolygon &polygon) :
  CQChartsAnnotation(plot, Type::POLYLINE), polygon_(polygon)
 {
-  setObjectName(QString("poly.%1").arg(ind()));
+  setObjectName(QString("polyline.%1").arg(ind()));
 
   setBorder(true);
 
@@ -1097,7 +1097,7 @@ QString
 CQChartsPolylineAnnotation::
 propertyId() const
 {
-  return QString("polylineAnnotation.%1").arg(ind());
+  return QString("polylineAnnotation%1").arg(ind());
 }
 
 void
@@ -1410,7 +1410,7 @@ QString
 CQChartsTextAnnotation::
 propertyId() const
 {
-  return QString("textAnnotation.%1").arg(ind());
+  return QString("textAnnotation%1").arg(ind());
 }
 
 void
@@ -1835,7 +1835,7 @@ QString
 CQChartsArrowAnnotation::
 propertyId() const
 {
-  return QString("arrowAnnotation.%1").arg(ind());
+  return QString("arrowAnnotation%1").arg(ind());
 }
 
 void
@@ -2077,7 +2077,7 @@ QString
 CQChartsPointAnnotation::
 propertyId() const
 {
-  return QString("pointAnnotation.%1").arg(ind());
+  return QString("pointAnnotation%1").arg(ind());
 }
 
 void

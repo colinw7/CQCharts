@@ -7,6 +7,7 @@
 class CQRealSpin;
 class QComboBox;
 
+//! \brief symbol edit
 class CQChartsSymbolEdit : public QFrame {
   Q_OBJECT
 
@@ -15,6 +16,9 @@ class CQChartsSymbolEdit : public QFrame {
 
   const CQChartsSymbol &symbol() const;
   void setSymbol(const CQChartsSymbol &pos);
+
+ private:
+  void connectSlots(bool b);
 
  signals:
   void symbolChanged();
@@ -31,7 +35,7 @@ class CQChartsSymbolEdit : public QFrame {
 
 #include <CQPropertyViewType.h>
 
-// type for CQChartsSymbol
+//! \brief type for CQChartsSymbol
 class CQChartsSymbolPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsSymbolPropertyViewType();
@@ -51,7 +55,7 @@ class CQChartsSymbolPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-// editor factory for CQChartsSymbol
+//! \brief editor factory for CQChartsSymbol
 class CQChartsSymbolPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsSymbolPropertyViewEditor();

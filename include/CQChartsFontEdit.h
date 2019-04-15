@@ -6,6 +6,9 @@
 
 class CQChartsFontEdit;
 
+/*!
+ * \brief Font line edit
+ */
 class CQChartsFontLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
@@ -49,6 +52,9 @@ class CQCheckBox;
 class CQRealSpin;
 class QComboBox;
 
+/*!
+ * \brief Font edit
+ */
 class CQChartsFontEdit : public CQChartsEditBase {
   Q_OBJECT
 
@@ -90,7 +96,7 @@ class CQChartsFontEdit : public CQChartsEditBase {
 
 #include <CQPropertyViewType.h>
 
-// type for CQChartsFont
+//! \brief type for CQChartsFont
 class CQChartsFontPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsFontPropertyViewType();
@@ -110,7 +116,7 @@ class CQChartsFontPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-// editor factory for CQChartsFont
+//! \brief editor factory for CQChartsFont
 class CQChartsFontPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsFontPropertyViewEditor();

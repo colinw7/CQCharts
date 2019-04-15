@@ -9,6 +9,9 @@ class CQChartsEditTitleDlg;
 class CQChartsEditKeyDlg;
 class CQChartsEditAxisDlg;
 
+/*!
+ * \brief Charts Property View Tree
+ */
 class CQChartsPropertyViewTree : public CQPropertyViewTree {
   Q_OBJECT
 

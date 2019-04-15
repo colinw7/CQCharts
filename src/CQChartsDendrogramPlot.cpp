@@ -491,7 +491,7 @@ QString
 CQChartsDendrogramNodeObj::
 calcId() const
 {
-  return QString("node:%1").arg(node_->name());
+  return QString("%1:%2").arg(typeName()).arg(node_->name());
 }
 
 CQChartsGeom::BBox

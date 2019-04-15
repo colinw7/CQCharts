@@ -222,8 +222,6 @@ CQChartsView::
   delete ipainter_;
   delete image_;
 
-  delete propertyModel_;
-
   delete keyObj_;
 
   delete displayRange_;
@@ -236,6 +234,8 @@ CQChartsView::
 
   for (auto &probeBand : probeBands_)
     delete probeBand;
+
+  delete propertyModel_;
 
   delete popupMenu_;
 

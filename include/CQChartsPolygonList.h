@@ -4,6 +4,7 @@
 #include <CQChartsUtil.h>
 #include <QPolygonF>
 
+//! \brief polygon list
 class CQChartsPolygonList {
  public:
   using Polygons = std::vector<QPolygonF>;

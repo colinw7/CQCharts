@@ -4,6 +4,7 @@
 #include <QString>
 #include <vector>
 
+//! \brief Charts Tcl Command Argument
 class CQChartsCmdArg {
  public:
   enum class Type {

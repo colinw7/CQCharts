@@ -8,6 +8,9 @@ class CQChartsFillDataEdit;
 class CQChartsPlot;
 class CQChartsView;
 
+/*!
+ * \brief Fill Data line edit
+ */
 class CQChartsFillDataLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
 
@@ -50,6 +53,9 @@ class CQChartsFillPatternEdit;
 class CQChartsFillDataEditPreview;
 class CQGroupBox;
 
+/*!
+ * \brief Fill data edit
+ */
 class CQChartsFillDataEdit : public CQChartsEditBase {
   Q_OBJECT
 
@@ -69,22 +75,28 @@ class CQChartsFillDataEdit : public CQChartsEditBase {
  private:
   void dataToWidgets();
 
+  void connectSlots(bool b);
+
  private slots:
   void widgetsToData();
 
  private:
-  CQChartsPlot*                plot_        { nullptr };
-  CQChartsView*                view_        { nullptr };
-  CQChartsFillData             data_;
-  CQGroupBox*                  groupBox_    { nullptr };
-  CQChartsColorLineEdit*       colorEdit_   { nullptr };
-  CQChartsAlphaEdit*           alphaEdit_   { nullptr };
-  CQChartsFillPatternEdit*     patternEdit_ { nullptr };
-  CQChartsFillDataEditPreview* preview_     { nullptr };
+  CQChartsPlot*                plot_        { nullptr }; //!< parent plot
+  CQChartsView*                view_        { nullptr }; //!< parent view
+  CQChartsFillData             data_;                    //!< fill data
+  CQGroupBox*                  groupBox_    { nullptr }; //!< group box
+  CQChartsColorLineEdit*       colorEdit_   { nullptr }; //!< color edit
+  CQChartsAlphaEdit*           alphaEdit_   { nullptr }; //!< alpha edit
+  CQChartsFillPatternEdit*     patternEdit_ { nullptr }; //!< pattern edit
+  CQChartsFillDataEditPreview* preview_     { nullptr }; //!< preview widget
+  bool                         connected_   { false };   //!< is connected
 };
 
 //---
 
+/*!
+ * \brief Fill data edit preview
+ */
 class CQChartsFillDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
 
@@ -104,7 +116,7 @@ class CQChartsFillDataEditPreview : public CQChartsEditPreview {
 
 #include <CQChartsPropertyViewEditor.h>
 
-// type for CQChartsFillData
+//! \brief type for CQChartsFillData
 class CQChartsFillDataPropertyViewType : public CQChartsPropertyViewType {
  public:
   CQPropertyViewEditorFactory *getEditor() const override;
@@ -117,7 +129,7 @@ class CQChartsFillDataPropertyViewType : public CQChartsPropertyViewType {
 
 //---
 
-// editor factory for CQChartsFillData
+//! \brief editor factory for CQChartsFillData
 class CQChartsFillDataPropertyViewEditor : public CQChartsPropertyViewEditorFactory {
  public:
   CQChartsLineEditBase *createPropertyEdit(QWidget *parent);

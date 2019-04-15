@@ -1,5 +1,6 @@
 #include <CQChartsPlotObjTree.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsPlot.h>
 #include <CQPerfMonitor.h>
 #include <future>
 

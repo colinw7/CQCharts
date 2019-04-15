@@ -30,9 +30,9 @@ CQChartsBoxDataLineEdit(QWidget *parent) :
 
   menu_->setWidget(dataEdit_);
 
-  connect(dataEdit_, SIGNAL(boxDataChanged()), this, SLOT(menuEditChanged()));
-
   //---
+
+  connectSlots(true);
 
   boxDataToWidgets();
 }
@@ -59,10 +59,10 @@ updateBoxData(const CQChartsBoxData &boxData, bool updateText)
 
   dataEdit_->setData(boxData);
 
+  connectSlots(true);
+
   if (updateText)
     boxDataToWidgets();
-
-  connectSlots(true);
 
   emit boxDataChanged();
 }
@@ -214,8 +214,6 @@ CQChartsBoxDataEdit(QWidget *parent) :
   groupBox_->setChecked(false);
   groupBox_->setTitle("Visible");
 
-  connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-
   layout->addWidget(groupBox_);
 
   //---
@@ -231,14 +229,10 @@ CQChartsBoxDataEdit(QWidget *parent) :
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Margin", marginEdit_, row);
 
-  connect(marginEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-
   //--
 
   // padding
   paddingEdit_ = CQUtil::makeWidget<CQRealSpin>("paddingEdit");
-
-  connect(paddingEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Padding", paddingEdit_, row);
 
@@ -250,16 +244,12 @@ CQChartsBoxDataEdit(QWidget *parent) :
   shapeEdit_->setTitle("Shape");
   shapeEdit_->setPreview(false);
 
-  connect(shapeEdit_, SIGNAL(shapeDataChanged()), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(shapeEdit_, row, 0, 1, 2); ++row;
 
   //---
 
   // sides
   sidesEdit_ = new CQChartsSidesEdit;
-
-  connect(sidesEdit_, SIGNAL(sidesChanged()), this, SLOT(widgetsToData()));
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Sides", sidesEdit_, row);
 
@@ -274,6 +264,8 @@ CQChartsBoxDataEdit(QWidget *parent) :
   groupLayout->setRowStretch(row, 1);
 
   //---
+
+  connectSlots(true);
 
   dataToWidgets();
 }
@@ -323,13 +315,33 @@ setPreview(bool b)
 
 void
 CQChartsBoxDataEdit::
+connectSlots(bool b)
+{
+  assert(b != connected_);
+
+  connected_ = b;
+
+  //---
+
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      connect(w, from, this, to);
+    else
+      disconnect(w, from, this, to);
+  };
+
+  connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, marginEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(b, paddingEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(b, shapeEdit_, SIGNAL(shapeDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, sidesEdit_, SIGNAL(sidesChanged()), SLOT(widgetsToData()));
+}
+
+void
+CQChartsBoxDataEdit::
 dataToWidgets()
 {
-  disconnect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-  disconnect(marginEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  disconnect(paddingEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  disconnect(shapeEdit_, SIGNAL(shapeDataChanged()), this, SLOT(widgetsToData()));
-  disconnect(sidesEdit_, SIGNAL(sidesChanged()), this, SLOT(widgetsToData()));
+  connectSlots(false);
 
   groupBox_   ->setChecked(data_.isVisible());
   marginEdit_ ->setValue  (data_.margin());
@@ -339,11 +351,7 @@ dataToWidgets()
 
   preview_->update();
 
-  connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-  connect(marginEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  connect(paddingEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToData()));
-  connect(shapeEdit_, SIGNAL(shapeDataChanged()), this, SLOT(widgetsToData()));
-  connect(sidesEdit_, SIGNAL(sidesChanged()), this, SLOT(widgetsToData()));
+  connectSlots(true);
 }
 
 void

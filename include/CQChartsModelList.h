@@ -11,6 +11,9 @@ class QTabWidget;
 
 //---
 
+/*!
+ * \brief Model List Widget
+ */
 class CQChartsModelList : public QFrame {
   Q_OBJECT
 

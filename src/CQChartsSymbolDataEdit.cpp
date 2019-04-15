@@ -28,9 +28,9 @@ CQChartsSymbolDataLineEdit(QWidget *parent) :
 
   menu_->setWidget(dataEdit_);
 
-  connect(dataEdit_, SIGNAL(symbolDataChanged()), this, SLOT(menuEditChanged()));
-
   //---
+
+  connectSlots(true);
 
   symbolDataToWidgets();
 }
@@ -57,10 +57,10 @@ updateSymbolData(const CQChartsSymbolData &symbolData, bool updateText)
 
   dataEdit_->setData(symbolData);
 
+  connectSlots(true);
+
   if (updateText)
     symbolDataToWidgets();
-
-  connectSlots(true);
 
   emit symbolDataChanged();
 }
@@ -229,8 +229,6 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
     groupBox_->setChecked(false);
     groupBox_->setTitle("Visible");
 
-    connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-
     layout->addWidget(groupBox_);
   }
 
@@ -247,8 +245,6 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
 
   symbolEdit_ = new CQChartsSymbolEdit;
 
-  connect(symbolEdit_, SIGNAL(symbolChanged()), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(symbolLabel, 0, 0);
   groupLayout->addWidget(symbolEdit_, 0, 1);
 
@@ -257,8 +253,6 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
   sizeLabel->setObjectName("sizeLabel");
 
   sizeEdit_ = new CQChartsLengthEdit;
-
-  connect(sizeEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
 
   groupLayout->addWidget(sizeLabel, 1, 0);
   groupLayout->addWidget(sizeEdit_, 1, 1);
@@ -269,8 +263,6 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
   strokeEdit_->setTitle("Stroke");
   strokeEdit_->setPreview(false);
 
-  connect(strokeEdit_, SIGNAL(strokeDataChanged()), this, SLOT(widgetsToData()));
-
   groupLayout->addWidget(strokeEdit_, 2, 0, 1, 2);
 
   // fill
@@ -278,8 +270,6 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
 
   fillEdit_->setTitle("Fill");
   fillEdit_->setPreview(false);
-
-  connect(fillEdit_, SIGNAL(fillDataChanged()), this, SLOT(widgetsToData()));
 
   groupLayout->addWidget(fillEdit_, 3, 0, 1, 2);
 
@@ -296,6 +286,10 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
   //---
 
   layout->addStretch(1);
+
+  //---
+
+  connectSlots(true);
 
   dataToWidgets();
 }
@@ -352,15 +346,35 @@ setPreview(bool b)
 
 void
 CQChartsSymbolDataEdit::
+connectSlots(bool b)
+{
+  assert(b != connected_);
+
+  connected_ = b;
+
+  //---
+
+  auto connectDisconnect = [&](bool b, QWidget *w, const char *from, const char *to) {
+    if (b)
+      connect(w, from, this, to);
+    else
+      disconnect(w, from, this, to);
+  };
+
+  if (groupBox_)
+    connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
+
+  connectDisconnect(b, symbolEdit_, SIGNAL(symbolChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, sizeEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, strokeEdit_, SIGNAL(strokeDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, fillEdit_, SIGNAL(fillDataChanged()), SLOT(widgetsToData()));
+}
+
+void
+CQChartsSymbolDataEdit::
 dataToWidgets()
 {
-  if (groupBox_)
-    disconnect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-
-  disconnect(symbolEdit_, SIGNAL(symbolChanged()), this, SLOT(widgetsToData()));
-  disconnect(sizeEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
-  disconnect(strokeEdit_, SIGNAL(strokeDataChanged()), this, SLOT(widgetsToData()));
-  disconnect(fillEdit_, SIGNAL(fillDataChanged()), this, SLOT(widgetsToData()));
+  connectSlots(false);
 
   if (groupBox_)
     groupBox_->setChecked(data_.isVisible());
@@ -372,14 +386,7 @@ dataToWidgets()
 
   preview_->update();
 
-  if (groupBox_)
-    connect(groupBox_, SIGNAL(clicked(bool)), this, SLOT(widgetsToData()));
-
-  connect(symbolEdit_, SIGNAL(symbolChanged()), this, SLOT(widgetsToData()));
-  connect(sizeEdit_, SIGNAL(lengthChanged()), this, SLOT(widgetsToData()));
-  connect(strokeEdit_, SIGNAL(strokeDataChanged()), this, SLOT(widgetsToData()));
-  connect(fillEdit_, SIGNAL(fillDataChanged()), this, SLOT(widgetsToData()));
-
+  connectSlots(true);
 }
 
 void

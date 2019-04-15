@@ -11,6 +11,9 @@ class CQChartsTableSelectionModel;
 class CQChartsModelExprMatch;
 class CQChartsModelDetails;
 
+/*!
+ * \brief Charts Table View class
+ */
 class CQChartsTable : public CQTableView {
   Q_OBJECT
 

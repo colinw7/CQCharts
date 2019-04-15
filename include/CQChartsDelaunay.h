@@ -3,6 +3,7 @@
 
 #include <CQChartsHull3D.h>
 
+//! \brief Delaunay plot data
 class CQChartsDelaunay : public CQChartsHull3D {
  public:
   CQChartsDelaunay();

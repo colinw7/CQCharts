@@ -649,10 +649,10 @@ QString
 CQChartsHierScatterPointObj::
 calcId() const
 {
-  QString id = name_;
+  QString id = QString("%1:%2:").arg(typeName()).arg(name_);
 
-  id += QString(" %1=%2").arg(plot_->xname()).arg(p_.x());
-  id += QString(" %1=%2").arg(plot_->yname()).arg(p_.y());
+  id += QString("%1:%2").arg(plot_->xname()).arg(p_.x());
+  id += QString("%1:%2").arg(plot_->yname()).arg(p_.y());
 
   return id;
 }

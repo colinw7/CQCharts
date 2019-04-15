@@ -6,6 +6,7 @@
 
 #include <boost/optional.hpp>
 
+//! \brief Optional real
 class CQChartsOptReal {
  public:
   static void registerMetaType();

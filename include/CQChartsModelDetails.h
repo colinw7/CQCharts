@@ -12,6 +12,9 @@ class CQCharts;
 class CQChartsValueSet;
 class QAbstractItemModel;
 
+/*!
+ * \brief Model Column Details
+ */
 class CQChartsModelColumnDetails {
  public:
   using VariantList = QList<QVariant>;
@@ -83,6 +86,8 @@ class CQChartsModelColumnDetails {
 
   QVariantList outlierValues() const;
 
+  bool isOutlier(const QVariant &value) const;
+
   double map(const QVariant &var) const;
 
   virtual bool checkRow(const QVariant &) { return true; }
@@ -132,6 +137,9 @@ class CQChartsModelColumnDetails {
 
 //---
 
+/*!
+ * \brief Model Details
+ */
 class CQChartsModelDetails : public QObject {
   Q_OBJECT
 

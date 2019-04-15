@@ -1,20 +1,21 @@
 #ifndef CQChartsPlotObj_H
 #define CQChartsPlotObj_H
 
-#include <CQChartsPlot.h>
 #include <CQChartsObj.h>
 #include <CQChartsGeom.h>
-#include <QPen>
-#include <QBrush>
+#include <set>
 
+class CQChartsPlot;
+class CQPropertyViewModel;
+
+/*!
+ * \brief Plot Object base class
+ */
 class CQChartsPlotObj : public CQChartsObj {
   Q_OBJECT
 
   Q_PROPERTY(QString typeName READ typeName)
-  Q_PROPERTY(int     colorInd READ colorInd   WRITE setColorInd)
   Q_PROPERTY(bool    visible  READ isVisible  WRITE setVisible )
-  Q_PROPERTY(QBrush  fill     READ fill       WRITE setFill    )
-  Q_PROPERTY(QPen    stroke   READ stroke     WRITE setStroke  )
 
  public:
   using Indices = std::set<QModelIndex>;
@@ -26,30 +27,24 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  //! get parent plot
   CQChartsPlot *plot() const { return plot_; }
-
-  virtual QString typeName() const { return ""; }
 
   //---
 
-  // get id from idColumn for index (if defined)
+  //! get type name
+  virtual QString typeName() const = 0;
+
+  //---
+
+  //! get id from idColumn for index (if defined)
   bool calcColumnId(const QModelIndex &ind, QString &str) const;
 
   //---
 
-  virtual int colorInd() const { return colorInd_; }
-  void setColorInd(int i) { colorInd_ = i; }
-
-  //---
-
+  //! get/set visible
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
-
-  const QBrush &fill() const { return fill_; }
-  void setFill(const QBrush &b) { fill_ = b; }
-
-  const QPen &stroke() const { return stroke_; }
-  void setStroke(const QPen &p) { stroke_ = p; }
 
   //---
 
@@ -79,6 +74,15 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  //! get property path
+  virtual QString propertyId() const;
+
+  //! add properties
+  virtual void addProperties(CQPropertyViewModel *model, const QString &path);
+
+  //---
+
+  // select
   bool isSelectIndex(const QModelIndex &ind) const;
 
   void addSelectIndices();
@@ -96,6 +100,7 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  // draw
   virtual void drawBg(QPainter *) const { }
   virtual void drawFg(QPainter *) const { }
 
@@ -103,14 +108,14 @@ class CQChartsPlotObj : public CQChartsObj {
 
  protected:
   CQChartsPlot* plot_     { nullptr }; //! parent plot
-  int           colorInd_ { -1 };      //! color index
   bool          visible_  { true };    //! is visible
-  QBrush        fill_;                 //! fill brush
-  QPen          stroke_;               //! stroke pen
 };
 
 //------
 
+/*!
+ * \brief Group Plot object
+ */
 class CQChartsGroupObj : public CQChartsPlotObj {
   Q_OBJECT
 

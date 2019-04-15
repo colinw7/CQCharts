@@ -3,6 +3,9 @@
 
 #include <CQChartsBuffer.h>
 
+/*!
+ * \brief draw layer
+ */
 class CQChartsLayer {
  public:
   enum class Type {

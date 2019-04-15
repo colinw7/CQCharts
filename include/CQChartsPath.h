@@ -6,6 +6,7 @@
 
 class CQChartsPlot;
 
+//! \brief Geometric Path data
 class CQChartsPath {
  public:
   static void registerMetaType();

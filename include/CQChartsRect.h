@@ -7,6 +7,7 @@
 #include <QRectF>
 #include <iostream>
 
+//! Rectangle class
 class CQChartsRect {
  public:
   static void registerMetaType();

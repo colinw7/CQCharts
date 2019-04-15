@@ -15,6 +15,7 @@ class QLinearGradient;
 
 //---
 
+//! \brief color helix gradient
 class CCubeHelix {
  public:
   struct HSL {
@@ -105,6 +106,7 @@ class CCubeHelix {
 
 //---
 
+//! \brief gradient palette
 class CQChartsGradientPalette {
  public:
   enum class ColorType {

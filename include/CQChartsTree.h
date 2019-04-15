@@ -9,6 +9,9 @@ class CQCharts;
 class CQChartsTreeSelectionModel;
 class CQChartsModelDetails;
 
+/*!
+ * \brief Charts Tree View class
+ */
 class CQChartsTree : public CQTreeView {
   Q_OBJECT
 

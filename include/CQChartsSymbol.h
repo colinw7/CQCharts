@@ -6,6 +6,9 @@
 #include <QStringList>
 #include <cassert>
 
+/*!
+ * \brief Symbol Data
+ */
 class CQChartsSymbol {
  public:
   enum class Type {

@@ -3,6 +3,7 @@
 
 #include <CQChartsUtil.h>
 
+//! \brief connection list
 class CQChartsConnectionList {
  public:
   struct Connection {

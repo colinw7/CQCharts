@@ -60,6 +60,8 @@ class CQChartsViewSettings : public QFrame {
 
   CQChartsPropertyViewTree *viewPropertyTree() const;
 
+  CQChartsPropertyViewTree *plotPropertyTree(CQChartsPlot *plot) const;
+
  signals:
   void propertyItemSelected(QObject *obj, const QString &path);
 
@@ -239,6 +241,9 @@ class CQChartsViewSettings : public QFrame {
 
 //---
 
+/*!
+ * \brief View settings view properties widget
+ */
 class CQChartsViewSettingsViewPropertiesWidget : public QFrame {
   Q_OBJECT
 
@@ -263,6 +268,9 @@ class CQChartsViewSettingsViewPropertiesWidget : public QFrame {
 
 //---
 
+/*!
+ * \brief View settings plot properties widget
+ */
 class CQChartsViewSettingsPlotPropertiesWidget : public QFrame {
   Q_OBJECT
 
@@ -287,6 +295,9 @@ class CQChartsViewSettingsPlotPropertiesWidget : public QFrame {
 
 //---
 
+/*!
+ * \brief View settings filter edit widget
+ */
 class CQChartsViewSettingsFilterEdit : public QFrame {
   Q_OBJECT
 

@@ -141,9 +141,28 @@ setFontStr(const QString &str)
 
 double
 CQChartsFont::
-pointSizeF(const CQChartsFont &parentFont) const
+pointSizeF(double parentSize) const
 {
-  return calcFont(parentFont).pointSizeF();
+  if      (type_ == Type::FONT) {
+    return font_.pointSizeF();
+  }
+  else if (type_ == Type::INHERITED) {
+    if (data_.sizeType == SizeType::EXPLICIT)
+      return data_.size;
+    else {
+      double s = (parentSize > 0 ? parentSize : QFont().pointSizeF());
+
+      if      (data_.sizeType == SizeType::INCREMENT)
+        s += data_.size;
+      else if (data_.sizeType == SizeType::DECREMENT)
+        s -= data_.size;
+
+      return s;
+    }
+  }
+  else {
+    return QFont().pointSizeF();
+  }
 }
 
 void

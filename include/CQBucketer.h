@@ -19,6 +19,12 @@ class CQBucketer {
 
   using OptReal = boost::optional<double>;
 
+  enum class NameFormat {
+    DASH,
+    ARROW,
+    BRACKETED
+  };
+
  public:
   CQBucketer();
 
@@ -102,10 +108,10 @@ class CQBucketer {
 
   //---
 
-  QString bucketName(int bucket, bool utfArrow=false) const;
+  QString bucketName(int bucket, NameFormat format=NameFormat::DASH) const;
 
-  QString bucketName(int    imin, int    imax, bool utfArrow=false) const;
-  QString bucketName(double rmin, double rmax, bool utfArrow=false) const;
+  QString bucketName(int    imin, int    imax, NameFormat format=NameFormat::DASH) const;
+  QString bucketName(double rmin, double rmax, NameFormat format=NameFormat::DASH) const;
 
   //----
 

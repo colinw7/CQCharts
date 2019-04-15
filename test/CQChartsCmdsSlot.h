@@ -7,6 +7,7 @@ class CQChartsCmds;
 class CQChartsView;
 class CQChartsPlot;
 
+//! \brief Charts Tcl Command Callback Handler
 class CQChartsCmdsSlot : public QObject {
   Q_OBJECT
 

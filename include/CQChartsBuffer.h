@@ -7,6 +7,7 @@
 class QImage;
 class QPainter;
 
+//! \brief Draw image/pixmap buffer
 class CQChartsBuffer : public QObject {
   Q_OBJECT
 

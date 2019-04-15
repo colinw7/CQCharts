@@ -32,7 +32,7 @@ CQCHARTS_NAMED_LINE_DATA(AxesMajorGrid,axesMajorGrid)
 CQCHARTS_NAMED_LINE_DATA(AxesMinorGrid,axesMinorGrid)
 CQCHARTS_NAMED_FILL_DATA(AxesGrid,axesGrid)
 
-// Axis Data
+//! \brief Axis Data
 class CQChartsAxis : public CQChartsObj,
  public CQChartsObjAxesLineData         <CQChartsAxis>,
  public CQChartsObjAxesTickLabelTextData<CQChartsAxis>,

@@ -1259,6 +1259,23 @@ viewPropertyTree() const
   return propertiesWidgets_.viewPropertyTree->propertyTree();
 }
 
+CQChartsPropertyViewTree *
+CQChartsViewSettings::
+plotPropertyTree(CQChartsPlot *plot) const
+{
+  for (int i = 0; i < propertiesWidgets_.plotsTab->count(); ++i) {
+    CQChartsViewSettingsPlotPropertiesWidget *plotWidget =
+      qobject_cast<CQChartsViewSettingsPlotPropertiesWidget *>(
+        propertiesWidgets_.plotsTab->widget(i));
+    assert(plotWidget);
+
+    if (plotWidget->plot() == plot)
+      return plotWidget->propertyTree();
+  }
+
+  return nullptr;
+}
+
 //------
 
 void

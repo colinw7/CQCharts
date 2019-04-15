@@ -8,6 +8,9 @@
 
 //---
 
+/*!
+ * \brief Delaunay plot type
+ */
 class CQChartsDelaunayPlotType : public CQChartsPlotType {
  public:
   CQChartsDelaunayPlotType();
@@ -31,12 +34,17 @@ class CQChartsDelaunay;
 
 //---
 
+/*!
+ * \brief Delaunay Plot Point object
+ */
 class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
   CQChartsDelaunayPointObj(const CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &rect,
                            double x, double y, const QModelIndex &ind, int i, int n);
+
+  QString typeName() const override { return "point"; }
 
   QString calcId() const override;
 
@@ -61,6 +69,9 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
 //---
 
+/*!
+ * \brief Delaunay Plot
+ */
 class CQChartsDelaunayPlot : public CQChartsPlot,
  public CQChartsObjLineData <CQChartsDelaunayPlot>,
  public CQChartsObjPointData<CQChartsDelaunayPlot> {
