@@ -5,8 +5,8 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsFillUnder.h>
 #include <CQChartsFitData.h>
-#include <CQChartsUtil.h>
 #include <CQChartsStatData.h>
+#include <CQChartsUtil.h>
 
 class CQChartsXYPlot;
 class CQChartsArrow;
@@ -409,7 +409,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   //---
 
-  void resetFit();
+  void resetBestFit();
 
   //---
 
@@ -420,7 +420,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  void initFit();
+  void initBestFit();
   void initStats();
   void initSmooth();
 
@@ -434,7 +434,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   int                   ig_       { -1 };      //! group ind
   int                   ng_       { -1 };      //! num groups
   CQChartsSmooth*       smooth_   { nullptr }; //! smooth object
-  CQChartsFitData       fit_;                  //! fit data
+  CQChartsFitData       bestFit_;              //! best fit data
   CQChartsStatData      statData_;             //! statistics data
 };
 
@@ -584,7 +584,6 @@ class CQChartsXYKeyText : public CQChartsKeyText {
 
 //---
 
-CQCHARTS_NAMED_LINE_DATA(Fit,fit)
 CQCHARTS_NAMED_LINE_DATA(Impulse,impulse)
 CQCHARTS_NAMED_LINE_DATA(Bivariate,bivariate)
 CQCHARTS_NAMED_FILL_DATA(FillUnder,fillUnder)
@@ -602,7 +601,7 @@ CQCHARTS_NAMED_TEXT_DATA(DataLabel,dataLabel)
 class CQChartsXYPlot : public CQChartsGroupPlot,
  public CQChartsObjLineData         <CQChartsXYPlot>,
  public CQChartsObjPointData        <CQChartsXYPlot>,
- public CQChartsObjFitLineData      <CQChartsXYPlot>,
+ public CQChartsObjBestFitShapeData <CQChartsXYPlot>,
  public CQChartsObjStatsLineData    <CQChartsXYPlot>,
  public CQChartsObjImpulseLineData  <CQChartsXYPlot>,
  public CQChartsObjBivariateLineData<CQChartsXYPlot>,
@@ -628,10 +627,13 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool stacked    READ isStacked    WRITE setStacked   )
   Q_PROPERTY(bool cumulative READ isCumulative WRITE setCumulative)
 
-  // fit
-  Q_PROPERTY(bool fitOutliers READ isFitOutliers WRITE setFitOutliers)
+  // best fit
+  Q_PROPERTY(bool bestFit          READ isBestFit          WRITE setBestFit         )
+  Q_PROPERTY(bool bestFitOutliers  READ isBestFitOutliers  WRITE setBestFitOutliers )
+  Q_PROPERTY(int  bestFitOrder     READ bestFitOrder       WRITE setBestFitOrder    )
+  Q_PROPERTY(bool bestFitDeviation READ isBestFitDeviation WRITE setBestFitDeviation)
 
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Fit, fit)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(BestFit, bestFit)
 
   // stats
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Stats, stats)
@@ -745,12 +747,24 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   //---
 
-  // fit outliers
-  bool isFitOutliers() const { return fitOutliers_; }
-  void setFitOutliers(bool b);
+  // best fit
+  bool isBestFit() const { return bestFitData_.visible; }
+
+  bool isBestFitOutliers() const { return bestFitData_.includeOutliers; }
+  void setBestFitOutliers(bool b);
+
+  int bestFitOrder() const { return bestFitData_.order; }
+  void setBestFitOrder(int o);
+
+  bool isBestFitDeviation() const { return bestFitData_.showDeviation; }
+  void setBestFitDeviation(bool b);
+
+ private:
+  void resetBestFit();
 
   //---
 
+ public:
   // fill under
   bool isFillUnderSelectable() const { return fillUnderData_.selectable; }
   void setFillUnderSelectable(bool b);
@@ -856,6 +870,9 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   // set fill under
   void setFillUnderFilledSlot(bool b);
 
+  // set best fit
+  void setBestFit(bool b);
+
  private:
   struct IndPoly {
     using Inds = std::vector<QModelIndex>;
@@ -866,6 +883,13 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   using SetIndPoly      = std::vector<IndPoly>;
   using GroupSetIndPoly = std::map<int,SetIndPoly>;
+
+  struct BestFitData {
+    bool visible         { false }; //!< show fit
+    bool includeOutliers { true };  //!< include outliers
+    bool showDeviation   { false }; //!< show deviation
+    int  order           { 3 };     //!< fit order
+  };
 
  private:
   void initAxes();
@@ -897,7 +921,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   bool            cumulative_           { false };            //!< cumulate values
   bool            linesSelectable_      { false };            //!< are lines selectable
   bool            roundedLines_         { false };            //!< draw rounded (smooth) lines
-  bool            fitOutliers_          { true };             //!< fit outliers
+  BestFitData     bestFitData_;                               //!< best fit data
   FillUnderData   fillUnderData_;                             //!< fill under data
   CQChartsArrow*  arrowObj_             { nullptr };          //!< vectors data
   ColumnType      pointColorColumnType_ { ColumnType::NONE }; //!< point color column type

@@ -1,0 +1,3 @@
+# outliers
+ + min/max
+ + skip

@@ -140,7 +140,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   bool hasForeground() const override;
 
-  void drawForeground(QPainter *) const override;
+  void execDrawForeground(QPainter *) const override;
 
   void drawNodes(QPainter *painter, CQChartsDendrogram::HierNode *hier, int depth) const;
 

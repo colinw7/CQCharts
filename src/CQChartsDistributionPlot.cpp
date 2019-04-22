@@ -58,7 +58,7 @@ addParameters()
     setRequired().setTip("Delta value for manual bucket");
 
   addIntParameter("numAutoBuckets", "Num Auto Buckets", "numAutoBuckets", 10).
-    setRequired().setTip("Number of auto buckets");
+    setRequired().setTip("Number of automatic buckets");
 
   // options
   addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("Draw bars horizontal");
@@ -171,14 +171,14 @@ void
 CQChartsDistributionPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setDataColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(dataColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(dataColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -187,7 +187,7 @@ void
 CQChartsDistributionPlot::
 setBucketed(bool b)
 {
-  CQChartsUtil::testAndSet(bucketed_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(bucketed_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 bool
@@ -206,7 +206,7 @@ setAutoBucket(bool b)
   for (auto &ib : groupData_.groupBucketer)
     ib.second.setType(bucketer_.type());
 
-  queueUpdateRangeAndObjs();
+  updateRangeAndObjs();
 }
 
 double
@@ -225,7 +225,7 @@ setStartBucketValue(double r)
   for (auto &ib : groupData_.groupBucketer)
     ib.second.setRStart(r);
 
-  queueUpdateRangeAndObjs();
+  updateRangeAndObjs();
 }
 
 double
@@ -244,7 +244,7 @@ setDeltaBucketValue(double r)
   for (auto &ib : groupData_.groupBucketer)
     ib.second.setRDelta(r);
 
-  queueUpdateRangeAndObjs();
+  updateRangeAndObjs();
 }
 
 int
@@ -263,7 +263,7 @@ setNumAutoBuckets(int i)
   for (auto &ib : groupData_.groupBucketer)
     ib.second.setNumAuto(i);
 
-  queueUpdateRangeAndObjs();
+  updateRangeAndObjs();
 }
 
 //---
@@ -355,7 +355,7 @@ addProperties()
   addProperty("scatter", this, "scatterFactor", "factor" )->setDesc("Scatter factor (0-1)");
 
   // stats
-  addProperty("statsData", this, "statsLines", "visible")->setDesc("Show Statistic lines");
+  addProperty("statsData", this, "statsLines", "visible")->setDesc("Show statistic lines");
 
   addLineProperties("statsData", "statsLines");
 
@@ -390,7 +390,7 @@ setHorizontal(bool b)
   CQChartsUtil::testAndSet(horizontal_, b, [&]() {
     dataLabel_->setDirection(horizontal_ ? Qt::Horizontal : Qt::Vertical);
 
-    queueUpdateRangeAndObjs();
+    updateRangeAndObjs();
   } );
 }
 
@@ -398,7 +398,7 @@ void
 CQChartsDistributionPlot::
 setPlotType(PlotType type)
 {
-  CQChartsUtil::testAndSet(plotType_, type, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(plotType_, type, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -406,9 +406,9 @@ CQChartsDistributionPlot::
 setNormal(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -416,9 +416,9 @@ CQChartsDistributionPlot::
 setStacked(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::STACKED, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::STACKED, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -426,10 +426,9 @@ CQChartsDistributionPlot::
 setSideBySide(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::SIDE_BY_SIDE, [&]() {
-      queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::SIDE_BY_SIDE, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -437,23 +436,23 @@ CQChartsDistributionPlot::
 setOverlay(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::OVERLAY, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::OVERLAY, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setPercent(bool b)
 {
-  CQChartsUtil::testAndSet(percent_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(percent_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setSkipEmpty(bool b)
 {
-  CQChartsUtil::testAndSet(skipEmpty_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(skipEmpty_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -462,7 +461,7 @@ void
 CQChartsDistributionPlot::
 setValueType(ValueType type)
 {
-  CQChartsUtil::testAndSet(valueType_, type, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueType_, type, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -470,9 +469,9 @@ CQChartsDistributionPlot::
 setValueCount(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -480,9 +479,9 @@ CQChartsDistributionPlot::
 setValueRange(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::RANGE, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::RANGE, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -490,9 +489,9 @@ CQChartsDistributionPlot::
 setValueMin(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MIN, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::MIN, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -500,9 +499,9 @@ CQChartsDistributionPlot::
 setValueMax(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MAX, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::MAX, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -510,9 +509,9 @@ CQChartsDistributionPlot::
 setValueMean(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MEAN, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::MEAN, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -520,9 +519,9 @@ CQChartsDistributionPlot::
 setValueSum(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::SUM, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::SUM, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::COUNT, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -531,7 +530,7 @@ void
 CQChartsDistributionPlot::
 setSorted(bool b)
 {
-  CQChartsUtil::testAndSet(sorted_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(sorted_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -541,37 +540,37 @@ CQChartsDistributionPlot::
 setDensity(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::DENSITY, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::DENSITY, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setDensityOffset(double o)
 {
-  CQChartsUtil::testAndSet(densityData_.offset, o, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(densityData_.offset, o, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setDensitySamples(int n)
 {
-  CQChartsUtil::testAndSet(densityData_.numSamples, n, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(densityData_.numSamples, n, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setDensityGradient(bool b)
 {
-  CQChartsUtil::testAndSet(densityData_.gradient, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(densityData_.gradient, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setDensityBars(bool b)
 {
-  CQChartsUtil::testAndSet(densityData_.bars, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(densityData_.bars, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -581,16 +580,16 @@ CQChartsDistributionPlot::
 setScatter(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::SCATTER, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::SCATTER, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setScatterFactor(double f)
 {
-  CQChartsUtil::testAndSet(scatterData_.factor, f, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(scatterData_.factor, f, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -599,14 +598,14 @@ void
 CQChartsDistributionPlot::
 setDotLines(bool b)
 {
-  CQChartsUtil::testAndSet(dotLineData_.enabled, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(dotLineData_.enabled, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setDotLineWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(dotLineData_.width, l, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(dotLineData_.width, l, [&]() { drawObjs(); } );
 }
 
 //---
@@ -615,7 +614,7 @@ void
 CQChartsDistributionPlot::
 setIncludeOutlier(bool b)
 {
-  CQChartsUtil::testAndSet(includeOutlier_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(includeOutlier_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -624,14 +623,14 @@ void
 CQChartsDistributionPlot::
 setUnderflowBucket(const CQChartsOptReal &r)
 {
-  CQChartsUtil::testAndSet(underflowBucket_, r, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(underflowBucket_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setOverflowBucket(const CQChartsOptReal &r)
 {
-  CQChartsUtil::testAndSet(overflowBucket_, r, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(overflowBucket_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -640,14 +639,14 @@ void
 CQChartsDistributionPlot::
 setMinBarSize(double s)
 {
-  CQChartsUtil::testAndSet(minBarSize_, s, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(minBarSize_, s, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsDistributionPlot::
 setScatterMargin(double m)
 {
-  CQChartsUtil::testAndSet(scatterMargin_, m, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(scatterMargin_, m, [&]() { drawObjs(); } );
 }
 
 //---
@@ -656,7 +655,7 @@ void
 CQChartsDistributionPlot::
 setRug(bool b)
 {
-  CQChartsUtil::testAndSet(rug_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(rug_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -1001,8 +1000,10 @@ calcBucketRanges() const
     }
   }
   else if (isScatter()) {
-    dataRange.updateRange(   - 0.5,           - 0.5);
-    dataRange.updateRange(ng - 0.5, maxValues - 0.5);
+    if (maxValues > 0) {
+      dataRange.updateRange(   - 0.5,           - 0.5);
+      dataRange.updateRange(ng - 0.5, maxValues - 0.5);
+    }
   }
   else {
     // calc value range (bar height)
@@ -1340,6 +1341,9 @@ calcBucket(int groupInd, double value) const
   else {
     num = bucketer.autoRealBucket(value);
   }
+
+  if (num == INT_MIN)
+    return Bucket(-1);
 
   return Bucket(num);
 }
@@ -2529,7 +2533,7 @@ hasForeground() const
 
 void
 CQChartsDistributionPlot::
-drawForeground(QPainter *painter) const
+execDrawForeground(QPainter *painter) const
 {
   if (! hasForeground())
     return;
@@ -2656,7 +2660,7 @@ pushSlot()
 
   filterStack_.push_back(filters);
 
-  queueUpdateRangeAndObjs();
+  updateRangeAndObjs();
 }
 
 void
@@ -2666,7 +2670,7 @@ popSlot()
   if (! filterStack_.empty()) {
     filterStack_.pop_back();
 
-    queueUpdateRangeAndObjs();
+    updateRangeAndObjs();
   }
 }
 
@@ -2677,7 +2681,7 @@ popTopSlot()
   if (! filterStack_.empty()) {
     filterStack_.clear();
 
-    queueUpdateRangeAndObjs();
+    updateRangeAndObjs();
   }
 }
 
@@ -2811,8 +2815,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 //model->addProperty(path1, this, "selected")->setDesc("Is selected");
 
   model->addProperty(path1, this, "count"   )->setDesc("Number of values");
-  model->addProperty(path1, this, "minValue")->setDesc("Min Value");
-  model->addProperty(path1, this, "maxValue")->setDesc("Max Value");
+  model->addProperty(path1, this, "minValue")->setDesc("Min value");
+  model->addProperty(path1, this, "maxValue")->setDesc("Max value");
 }
 
 //---
@@ -3845,7 +3849,7 @@ selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
   setSetHidden(! isSetHidden());
 
-  plot_->queueUpdateRangeAndObjs();
+  plot_->updateRangeAndObjs();
 
   return true;
 }

@@ -277,8 +277,6 @@ CQChartsPolygonEdit(QWidget *parent) :
 
   unitsEdit_ = new CQChartsUnitsEdit;
 
-  connect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
-
   //---
 
   QToolButton *addButton    = new QToolButton; addButton   ->setObjectName("add");
@@ -312,6 +310,8 @@ CQChartsPolygonEdit(QWidget *parent) :
   layout->addWidget(scrollArea_);
 
   //---
+
+  connectSlots(true);
 
   updateState();
 }

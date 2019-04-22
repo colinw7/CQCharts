@@ -154,7 +154,7 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   bool hasBackground() const override;
 
-  void drawBackground(QPainter *) const override;
+  void execDrawBackground(QPainter *) const override;
 
  private:
   void addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const;

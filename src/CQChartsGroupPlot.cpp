@@ -75,8 +75,88 @@ void
 CQChartsGroupPlot::
 setGroupColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(groupColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
+
+//---
+
+void
+CQChartsGroupPlot::
+setRowGrouping(bool b)
+{
+  CQChartsUtil::testAndSet(groupData_.rowGrouping, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsGroupPlot::
+setUsePath(bool b)
+{
+  CQChartsUtil::testAndSet(groupData_.usePath, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsGroupPlot::
+setUseRow(bool b)
+{
+  CQChartsUtil::testAndSet(groupData_.useRow, b, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsGroupPlot::
+setExactValue(bool b)
+{
+  CQChartsUtil::testAndSet(groupData_.exactValue, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsGroupPlot::
+setAutoRange(bool b)
+{
+  CQBucketer::Type type = (b ? CQBucketer::Type::REAL_AUTO : CQBucketer::Type::REAL_RANGE);
+
+  if (type != groupData_.bucketer.type()) {
+    groupData_.bucketer.setType(type);
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsGroupPlot::
+setStartValue(double r)
+{
+  if (r != groupData_.bucketer.rstart()) {
+    groupData_.bucketer.setRStart(r);
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsGroupPlot::
+setDeltaValue(double r)
+{
+  if (r != groupData_.bucketer.rdelta()) {
+    groupData_.bucketer.setRDelta(r);
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsGroupPlot::
+setNumAuto(int i)
+{
+  if (i != groupData_.bucketer.numAuto()) {
+    groupData_.bucketer.setNumAuto(i);
+
+    updateRangeAndObjs();
+  }
+}
+
+//---
 
 void
 CQChartsGroupPlot::
@@ -97,11 +177,16 @@ addProperties()
   if (type->allowUseRow())
     addProperty("dataGrouping", this, "useRow", "row")->setDesc("Use row number for grouping");
 
-  addProperty("dataGrouping/bucket", this, "exactValue", "exact"  )->setDesc("Use exact value");
-  addProperty("dataGrouping/bucket", this, "autoRange" , "auto"   )->setDesc("Bucket auto range");
-  addProperty("dataGrouping/bucket", this, "startValue", "start"  )->setDesc("Bucket start value");
-  addProperty("dataGrouping/bucket", this, "deltaValue", "delta"  )->setDesc("Bucket delta value");
-  addProperty("dataGrouping/bucket", this, "numAuto"   , "numAuto")->setDesc("Num Auto");
+  addProperty("dataGrouping/bucket", this, "exactValue", "exact"  )->
+    setDesc("Use exact value");
+  addProperty("dataGrouping/bucket", this, "autoRange" , "auto"   )->
+    setDesc("Bucket auto range");
+  addProperty("dataGrouping/bucket", this, "startValue", "start"  )->
+    setDesc("Bucket start value");
+  addProperty("dataGrouping/bucket", this, "deltaValue", "delta"  )->
+    setDesc("Bucket delta value");
+  addProperty("dataGrouping/bucket", this, "numAuto"   , "numAuto")->
+    setDesc("Number of automatic buckets");
 }
 
 void

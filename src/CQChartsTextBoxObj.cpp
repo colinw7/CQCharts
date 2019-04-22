@@ -44,7 +44,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   QString textPath = path + "/text";
 
-  model->addProperty(textPath, this, "textStr", "text");
+  model->addProperty(textPath, this, "textStr", "text")->setDesc("Text string");
 
   addTextDataProperties(model, textPath);
 }
@@ -56,10 +56,10 @@ addTextDataProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "textColor"   , "color"   )->setDesc("Text color");
   model->addProperty(path, this, "textAlpha"   , "alpha"   )->setDesc("Text alpha");
   model->addProperty(path, this, "textFont"    , "font"    )->setDesc("Text font");
-  model->addProperty(path, this, "textAngle"   , "angle"   );
-  model->addProperty(path, this, "textContrast", "contrast");
-  model->addProperty(path, this, "textHtml"    , "html"    );
-  model->addProperty(path, this, "textAlign"   , "align"   );
+  model->addProperty(path, this, "textAngle"   , "angle"   )->setDesc("Text angle");
+  model->addProperty(path, this, "textContrast", "contrast")->setDesc("Text contrast");
+  model->addProperty(path, this, "textHtml"    , "html"    )->setDesc("Text is HTML");
+  model->addProperty(path, this, "textAlign"   , "align"   )->setDesc("Text alignment");
 }
 
 void

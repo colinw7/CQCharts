@@ -130,7 +130,7 @@ CQChartsBoxObj::
 boxDataInvalidate()
 {
   if      (plot())
-    plot()->queueDrawObjs();
+    plot()->drawObjs();
   else if (view())
     view()->update();
 }

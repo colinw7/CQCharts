@@ -120,42 +120,42 @@ void
 CQChartsForceDirectedPlot::
 setNodeColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nodeColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nodeColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsForceDirectedPlot::
 setConnectionsColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(connectionsColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(connectionsColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsForceDirectedPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsForceDirectedPlot::
 setNamePairColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(namePairColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(namePairColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsForceDirectedPlot::
 setCountColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(countColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(countColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsForceDirectedPlot::
 setGroupIdColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(groupIdColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(groupIdColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -171,14 +171,14 @@ void
 CQChartsForceDirectedPlot::
 setNodeRadius(double r)
 {
-  CQChartsUtil::testAndSet(nodeRadius_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(nodeRadius_, r, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsForceDirectedPlot::
 setEdgeLinesValueWidth(bool b)
 {
-  CQChartsUtil::testAndSet(edgeLinesValueWidth_, b, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(edgeLinesValueWidth_, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -585,7 +585,7 @@ animateStep()
     applyDataRange();
   }
 
-  queueDrawObjs();
+  drawObjs();
 }
 
 bool
@@ -599,7 +599,7 @@ selectPress(const CQChartsGeom::Point &p, SelMod /*selMod*/)
 
   pressed_ = true;
 
-  queueDrawObjs();
+  drawObjs();
 
   return true;
 }
@@ -612,7 +612,7 @@ selectMove(const CQChartsGeom::Point &p, bool first)
     if (forceDirected_->currentPoint())
       forceDirected_->currentPoint()->setP(Springy::Vector(p.x, p.y));
 
-    queueDrawObjs();
+    drawObjs();
 
     return true;
   }
@@ -638,7 +638,7 @@ selectRelease(const CQChartsGeom::Point &p)
 
   pressed_ = false;
 
-  queueDrawObjs();
+  drawObjs();
 
   return true;
 }

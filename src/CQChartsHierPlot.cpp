@@ -19,14 +19,14 @@ void
 CQChartsHierPlot::
 setNameColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(nameColumns_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsHierPlot::
 setValueColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void

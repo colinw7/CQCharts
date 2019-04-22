@@ -94,14 +94,14 @@ void
 CQChartsParallelPlot::
 setXColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsParallelPlot::
 setYColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(yColumns_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -110,7 +110,7 @@ void
 CQChartsParallelPlot::
 setHorizontal(bool b)
 {
-  CQChartsUtil::testAndSet(horizontal_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(horizontal_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -119,7 +119,7 @@ void
 CQChartsParallelPlot::
 setLinesSelectable(bool b)
 {
-  CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { drawObjs(); } );
 }
 
 //------

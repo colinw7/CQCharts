@@ -2108,7 +2108,7 @@ layersClickedSlot(int row, int column)
   if (buffer->type() != CQChartsBuffer::Type::MIDDLE)
     plot->invalidateLayer(buffer->type());
   else
-    plot->queueDrawObjs();
+    plot->drawObjs();
 }
 
 //------

@@ -107,28 +107,28 @@ void
 CQChartsGeometryPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsGeometryPlot::
 setGeometryColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(geometryColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(geometryColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsGeometryPlot::
 setValueColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsGeometryPlot::
 setStyleColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(styleColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(styleColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -145,7 +145,7 @@ CQChartsGeometryPlot::
 setMinValue(double r)
 {
   if (! minValue_ || r != minValue_.value()) {
-    minValue_ = r; queueDrawObjs();
+    minValue_ = r; drawObjs();
   }
 }
 
@@ -161,7 +161,7 @@ CQChartsGeometryPlot::
 setMaxValue(double r)
 {
   if (! maxValue_ || r != maxValue_.value()) {
-    maxValue_ = r; queueDrawObjs();
+    maxValue_ = r; drawObjs();
   }
 }
 

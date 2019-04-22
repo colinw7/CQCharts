@@ -360,7 +360,9 @@ intBucket(int i) const
   int idelta = this->idelta();
   int istart = this->calcIStart();
 
-  if (idelta > 0)
+  if      (i == istart)
+    return 0;
+  else if (idelta > 0)
     n = (i - istart)/idelta;
 
   return n;
@@ -375,7 +377,9 @@ realBucket(double r) const
   double rdelta = this->rdelta();
   double rstart = this->calcRStart();
 
-  if (rdelta > 0)
+  if      (r == rstart)
+    return 0;
+  else if (rdelta > 0)
     n = CMathRound::RoundDown((r - rstart)/rdelta);
 
   return n;
@@ -390,9 +394,12 @@ autoRealBucket(double r) const
   int n = INT_MIN; // optional ?
 
   double rdelta = this->calcDelta();
+  double rstart = this->calcMin();
 
-  if (rdelta > 0)
-    n = CMathRound::RoundDown((r - this->calcMin())/rdelta);
+  if      (r == rstart)
+    return 0;
+  else if (rdelta > 0)
+    n = CMathRound::RoundDown((r - rstart)/rdelta);
 
   return n;
 }

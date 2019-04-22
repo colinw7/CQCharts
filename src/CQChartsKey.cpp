@@ -62,7 +62,7 @@ setSelected(bool b)
     if      (view_)
       view_->update();
     else if (plot_)
-      plot_->queueDrawObjs();
+      plot_->drawObjs();
   } );
 }
 
@@ -487,8 +487,8 @@ CQChartsPlotKey::
 redraw(bool queued)
 {
   if (queued) {
-    plot_->queueDrawBackground();
-    plot_->queueDrawForeground();
+    plot_->drawBackground();
+    plot_->drawForeground();
   }
   else {
     plot_->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
@@ -1627,7 +1627,7 @@ doShow(CQChartsSelMod selMod)
   else if (selMod == CQChartsSelMod::TOGGLE)
     plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
-  plot->queueUpdateObjs();
+  plot->updateObjs();
 }
 
 void

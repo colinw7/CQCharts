@@ -100,21 +100,21 @@ void
 CQChartsChordPlot::
 setLinkColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(linkColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(linkColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsChordPlot::
 setValueColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsChordPlot::
 setGroupColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(groupColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -123,21 +123,21 @@ void
 CQChartsChordPlot::
 setSorted(bool b)
 {
-  CQChartsUtil::testAndSet(sorted_, b, [&]() { queueUpdateObjs(); } );
+  CQChartsUtil::testAndSet(sorted_, b, [&]() { updateObjs(); } );
 }
 
 void
 CQChartsChordPlot::
 setInnerRadius(double r)
 {
-  CQChartsUtil::testAndSet(innerRadius_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(innerRadius_, r, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsChordPlot::
 setLabelRadius(double r)
 {
-  CQChartsUtil::testAndSet(labelRadius_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(labelRadius_, r, [&]() { drawObjs(); } );
 }
 
 //---
@@ -146,28 +146,28 @@ void
 CQChartsChordPlot::
 setSegmentAlpha(double r)
 {
-  CQChartsUtil::testAndSet(segmentAlpha_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(segmentAlpha_, r, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsChordPlot::
 setArcAlpha(double r)
 {
-  CQChartsUtil::testAndSet(arcAlpha_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(arcAlpha_, r, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsChordPlot::
 setGapAngle(double r)
 {
-  CQChartsUtil::testAndSet(gapAngle_, r, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(gapAngle_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsChordPlot::
 setStartAngle(double r)
 {
-  CQChartsUtil::testAndSet(startAngle_, r, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(startAngle_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 //---

@@ -89,28 +89,28 @@ void
 CQChartsSunburstPlot::
 setInnerRadius(double r)
 {
-  CQChartsUtil::testAndSet(innerRadius_, r, [&]() { resetRoots(); queueUpdateObjs(); } );
+  CQChartsUtil::testAndSet(innerRadius_, r, [&]() { resetRoots(); updateObjs(); } );
 }
 
 void
 CQChartsSunburstPlot::
 setOuterRadius(double r)
 {
-  CQChartsUtil::testAndSet(outerRadius_, r, [&]() { resetRoots(); queueUpdateObjs(); } );
+  CQChartsUtil::testAndSet(outerRadius_, r, [&]() { resetRoots(); updateObjs(); } );
 }
 
 void
 CQChartsSunburstPlot::
 setStartAngle(double a)
 {
-  CQChartsUtil::testAndSet(startAngle_, a, [&]() { resetRoots(); queueUpdateObjs(); } );
+  CQChartsUtil::testAndSet(startAngle_, a, [&]() { resetRoots(); updateObjs(); } );
 }
 
 void
 CQChartsSunburstPlot::
 setMultiRoot(bool b)
 {
-  CQChartsUtil::testAndSet(multiRoot_, b, [&]() { resetRoots(); queueUpdateObjs(); } );
+  CQChartsUtil::testAndSet(multiRoot_, b, [&]() { resetRoots(); updateObjs(); } );
 }
 
 //----
@@ -122,7 +122,7 @@ setTextFontSize(double s)
   if (s != textData_.font().pointSizeF()) {
     CQChartsFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
 
-    queueDrawObjs();
+    drawObjs();
   }
 }
 
@@ -199,7 +199,7 @@ setCurrentRoot(CQChartsSunburstHierNode *hier, bool update)
   if (update) {
     replaceRoots();
 
-    queueUpdateObjs();
+    updateObjs();
   }
 }
 

@@ -288,11 +288,11 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   bool hasBackground() const override;
 
-  void drawBackground(QPainter *) const override;
+  void execDrawBackground(QPainter *) const override;
 
   bool hasForeground() const override;
 
-  void drawForeground(QPainter *) const override;
+  void execDrawForeground(QPainter *) const override;
 
  private:
   using Connections = CQChartsConnectionList::Connections;

@@ -97,7 +97,7 @@ void
 CQChartsTreeMapPlot::
 setTitleMaxExtent(double r)
 {
-  CQChartsUtil::testAndSet(titleMaxExtent_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(titleMaxExtent_, r, [&]() { drawObjs(); } );
 }
 
 void
@@ -140,7 +140,7 @@ setHeaderTextFontSize(double s)
   if (s != headerTextData_.font().pointSizeF()) {
     CQChartsFont f = headerTextData_.font(); f.setPointSizeF(s); headerTextData_.setFont(f);
 
-    queueDrawObjs();
+    drawObjs();
   }
 }
 
@@ -153,7 +153,7 @@ setTextFontSize(double s)
   if (s != textData_.font().pointSizeF()) {
     CQChartsFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
 
-    queueDrawObjs();
+    drawObjs();
   }
 }
 
@@ -177,12 +177,12 @@ addProperties()
     setDesc("Explicit hierarchical group header height");
 
   // header/fill
-  addProperty("header/fill", this, "headerFilled", "visible")->setDesc("Fill Headers");
+  addProperty("header/fill", this, "headerFilled", "visible")->setDesc("Fill headers");
 
   addFillProperties("header/fill", "headerFill");
 
   // header/stroke
-  addProperty("header/stroke", this, "headerBorder", "visible")->setDesc("Stroke Headers");
+  addProperty("header/stroke", this, "headerBorder", "visible")->setDesc("Stroke headers");
 
   addLineProperties("header/stroke", "headerBorder");
 
@@ -251,7 +251,7 @@ updateCurrentRoot()
 {
   replaceNodes();
 
-  queueUpdateObjs();
+  updateObjs();
 }
 
 CQChartsGeom::Range
@@ -928,7 +928,7 @@ postResize()
 
   replaceNodes();
 
-  queueUpdateObjs();
+  updateObjs();
 }
 
 //------

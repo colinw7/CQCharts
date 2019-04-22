@@ -3719,7 +3719,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     }
     else if (name == "?") {
       QStringList names = QStringList() <<
-       "plots" << "annotations" << "view_width" << "view_height" <<
+       "plots" << "annotations" << "selected_objects" << "view_width" << "view_height" <<
        "pixel_width" << "pixel_height" << "pixel_position" << "properties";
 
       cmdBase_->setCmdRc(names);
@@ -4290,9 +4290,9 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
       plot->setUpdatesEnabled(b);
 
       if (b) {
-        plot->queueUpdateRangeAndObjs();
+        plot->updateRangeAndObjs();
 
-        plot->queueDrawObjs();
+        plot->drawObjs();
       }
     }
     else if (name == "?") {

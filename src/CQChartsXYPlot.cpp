@@ -137,7 +137,7 @@ CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("xy"), model),
  CQChartsObjLineData         <CQChartsXYPlot>(this),
  CQChartsObjPointData        <CQChartsXYPlot>(this),
- CQChartsObjFitLineData      <CQChartsXYPlot>(this),
+ CQChartsObjBestFitShapeData <CQChartsXYPlot>(this),
  CQChartsObjStatsLineData    <CQChartsXYPlot>(this),
  CQChartsObjImpulseLineData  <CQChartsXYPlot>(this),
  CQChartsObjBivariateLineData<CQChartsXYPlot>(this),
@@ -161,8 +161,10 @@ CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
 
   setLinesWidth(CQChartsLength("3px"));
 
-  setFitLines(false);
-  setFitLinesDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
+  setBestFit(false);
+  setBestFitBorderDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
+  setBestFitFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setBestFitFillAlpha(0.5);
 
   setStatsLines(false);
   setStatsLinesDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
@@ -203,63 +205,227 @@ void
 CQChartsXYPlot::
 setXColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setYColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(yColumns_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setSizeColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(sizeColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(sizeColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setPointLabelColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(pointLabelColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(pointLabelColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setPointColorColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(pointColorColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(pointColorColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setPointSymbolColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(pointSymbolColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(pointSymbolColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setVectorXColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(vectorXColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(vectorXColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setVectorYColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(vectorYColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(vectorYColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsXYPlot::
+setBestFit(bool b)
+{
+  CQChartsUtil::testAndSet(bestFitData_.visible, b, [&]() {
+    bestFitData_.includeOutliers = b; resetBestFit(); drawObjs();
+  } );
+}
+
+void
+CQChartsXYPlot::
+setBestFitOutliers(bool b)
+{
+  CQChartsUtil::testAndSet(bestFitData_.includeOutliers, b, [&]() {
+    bestFitData_.includeOutliers = b; resetBestFit(); drawObjs();
+  } );
+}
+
+void
+CQChartsXYPlot::
+setBestFitDeviation(bool b)
+{
+  CQChartsUtil::testAndSet(bestFitData_.showDeviation, b, [&]() {
+    bestFitData_.includeOutliers = b; resetBestFit(); drawObjs();
+  } );
+}
+
+void
+CQChartsXYPlot::
+setBestFitOrder(int order)
+{
+  CQChartsUtil::testAndSet(bestFitData_.order, order, [&]() {
+    bestFitData_.order = order; resetBestFit(); drawObjs();
+  } );
+}
+
+void
+CQChartsXYPlot::
+resetBestFit()
+{
+  for (const auto &plotObj : plotObjs_) {
+    CQChartsXYPolylineObj *polyObj = dynamic_cast<CQChartsXYPolylineObj *>(plotObj);
+
+    if (polyObj)
+      polyObj->resetBestFit();
+  }
+}
+
+//---
+
+void
+CQChartsXYPlot::
+setStacked(bool b)
+{
+  CQChartsUtil::testAndSet(stacked_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setCumulative(bool b)
+{
+  CQChartsUtil::testAndSet(cumulative_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+bool
+CQChartsXYPlot::
+isVectors() const
+{
+  return arrowObj_->isVisible();
+}
+
+void
+CQChartsXYPlot::
+setVectors(bool b)
+{
+  if (b != isVectors()) {
+    disconnect(arrowObj_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+    arrowObj_->setVisible(b);
+
+    connect(arrowObj_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+    updateObjs();
+  }
+}
+
+//---
+
+void
+CQChartsXYPlot::
+setPointsSlot(bool b)
+{
+  setPoints(b);
+}
+
+void
+CQChartsXYPlot::
+setPointDelta(int i)
+{
+  CQChartsUtil::testAndSet(pointDelta_, i, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setPointCount(int i)
+{
+  CQChartsUtil::testAndSet(pointCount_, i, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setPointStart(int i)
+{
+  CQChartsUtil::testAndSet(pointStart_, i, [&]() { updateObjs(); } );
+}
+
+//---
+
+void
+CQChartsXYPlot::
+setLinesSlot(bool b)
+{
+  setLines(b);
+}
+
+void
+CQChartsXYPlot::
+setLinesSelectable(bool b)
+{
+  CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setRoundedLines(bool b)
+{
+  CQChartsUtil::testAndSet(roundedLines_, b, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsXYPlot::
+setFillUnderSelectable(bool b)
+{
+  CQChartsUtil::testAndSet(fillUnderData_.selectable, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setFillUnderPos(const CQChartsFillUnderPos &pos)
+{
+  CQChartsUtil::testAndSet(fillUnderData_.pos, pos, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setFillUnderSide(const CQChartsFillUnderSide &s)
+{
+  CQChartsUtil::testAndSet(fillUnderData_.side, s, [&]() { updateObjs(); } );
 }
 
 //---
@@ -309,16 +475,21 @@ addProperties()
 
   addLineProperties("lines", "lines");
 
-  // fit
-  addProperty("fitLine", this, "fitLines", "visible")->setDesc("Show Fit line");
+  // best fit line and deviation fill
+  addProperty("bestFit", this, "bestFit"         , "enabled"  )->
+    setDesc("Show best fit");
+  addProperty("bestFit", this, "bestFitOutliers" , "outliers" )->
+    setDesc("Best fit include outliers");
+  addProperty("bestFit", this, "bestFitOrder"    , "order"    )->
+    setDesc("Best fit curve order");
+  addProperty("bestFit", this, "bestFitDeviation", "deviation")->
+    setDesc("Best fit standard deviation");
 
-  addProperty("fitLine", this, "fitOutliers", "includeOutliers")->
-    setDesc("Include outliers in Fit");
-
-  addLineProperties("fitLine", "fitLines");
+  addLineProperties("bestFit/stroke", "bestFitBorder");
+  addFillProperties("bestFit/fill"  , "bestFitFill"  );
 
   // stats
-  addProperty("statsData", this, "statsLines", "visible")->setDesc("Show Statistic lines");
+  addProperty("statsData", this, "statsLines", "visible")->setDesc("Show statistic lines");
 
   addLineProperties("statsData", "statsLines");
 
@@ -377,140 +548,6 @@ addProperties()
   addAllTextProperties("dataLabel" , "dataLabelText");
 
   CQChartsGroupPlot::addProperties();
-}
-
-//---
-
-void
-CQChartsXYPlot::
-setStacked(bool b)
-{
-  CQChartsUtil::testAndSet(stacked_, b, [&]() { queueUpdateRangeAndObjs(); } );
-}
-
-void
-CQChartsXYPlot::
-setCumulative(bool b)
-{
-  CQChartsUtil::testAndSet(cumulative_, b, [&]() { queueUpdateRangeAndObjs(); } );
-}
-
-bool
-CQChartsXYPlot::
-isVectors() const
-{
-  return arrowObj_->isVisible();
-}
-
-void
-CQChartsXYPlot::
-setVectors(bool b)
-{
-  if (b != isVectors()) {
-    disconnect(arrowObj_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-    arrowObj_->setVisible(b);
-
-    connect(arrowObj_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-    queueUpdateObjs();
-  }
-}
-
-//---
-
-void
-CQChartsXYPlot::
-setPointsSlot(bool b)
-{
-  setPoints(b);
-}
-
-void
-CQChartsXYPlot::
-setPointDelta(int i)
-{
-  CQChartsUtil::testAndSet(pointDelta_, i, [&]() { queueUpdateObjs(); } );
-}
-
-void
-CQChartsXYPlot::
-setPointCount(int i)
-{
-  CQChartsUtil::testAndSet(pointCount_, i, [&]() { queueUpdateObjs(); } );
-}
-
-void
-CQChartsXYPlot::
-setPointStart(int i)
-{
-  CQChartsUtil::testAndSet(pointStart_, i, [&]() { queueUpdateObjs(); } );
-}
-
-//---
-
-void
-CQChartsXYPlot::
-setLinesSlot(bool b)
-{
-  setLines(b);
-}
-
-void
-CQChartsXYPlot::
-setLinesSelectable(bool b)
-{
-  CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { queueDrawObjs(); } );
-}
-
-void
-CQChartsXYPlot::
-setRoundedLines(bool b)
-{
-  CQChartsUtil::testAndSet(roundedLines_, b, [&]() { queueDrawObjs(); } );
-}
-
-//---
-
-void
-CQChartsXYPlot::
-setFitOutliers(bool b)
-{
-  if (b != fitOutliers_) {
-    fitOutliers_ = b;
-
-    for (const auto &plotObj : plotObjs_) {
-      CQChartsXYPolylineObj *polyObj = dynamic_cast<CQChartsXYPolylineObj *>(plotObj);
-
-      if (polyObj)
-        polyObj->resetFit();
-    }
-
-    queueDrawObjs();
-  }
-}
-
-//---
-
-void
-CQChartsXYPlot::
-setFillUnderSelectable(bool b)
-{
-  CQChartsUtil::testAndSet(fillUnderData_.selectable, b, [&]() { queueDrawObjs(); } );
-}
-
-void
-CQChartsXYPlot::
-setFillUnderPos(const CQChartsFillUnderPos &pos)
-{
-  CQChartsUtil::testAndSet(fillUnderData_.pos, pos, [&]() { queueUpdateObjs(); } );
-}
-
-void
-CQChartsXYPlot::
-setFillUnderSide(const CQChartsFillUnderSide &s)
-{
-  CQChartsUtil::testAndSet(fillUnderData_.side, s, [&]() { queueUpdateObjs(); } );
 }
 
 //---
@@ -2853,17 +2890,17 @@ initSmooth()
 
 void
 CQChartsXYPolylineObj::
-resetFit()
+resetBestFit()
 {
-  fit_.resetFitted();
+  bestFit_.resetFitted();
 }
 
 void
 CQChartsXYPolylineObj::
-initFit()
+initBestFit()
 {
-  if (! fit_.isFitted()) {
-    if (! plot()->isFitOutliers()) {
+  if (! bestFit_.isFitted()) {
+    if (! plot()->isBestFitOutliers()) {
       initStats();
 
       //---
@@ -2877,10 +2914,10 @@ initFit()
 
       //---
 
-      fit_.calc(poly);
+      bestFit_.calc(poly, plot()->bestFitOrder());
     }
     else
-      fit_.calc(poly_);
+      bestFit_.calc(poly_, plot()->bestFitOrder());
   }
 }
 
@@ -2904,7 +2941,7 @@ void
 CQChartsXYPolylineObj::
 draw(QPainter *painter)
 {
-  if (! visible() && ! plot()->isFitLines() && ! plot()->isStatsLines())
+  if (! visible() && ! plot()->isBestFit() && ! plot()->isStatsLines())
     return;
 
   //---
@@ -2939,6 +2976,9 @@ draw(QPainter *painter)
       QPainterPath path;
 
       for (int i = 0; i < smooth_->numPoints(); ++i) {
+        if (plot()->isInterrupt())
+          return;
+
         const CQChartsGeom::Point &p = smooth_->point(i);
 
         CQChartsGeom::Point p1 = plot()->windowToPixel(p);
@@ -2975,31 +3015,50 @@ draw(QPainter *painter)
     else {
       int np = poly_.count();
 
-      for (int i = 1; i < np; ++i)
+      for (int i = 1; i < np; ++i) {
+        if (plot()->isInterrupt())
+          return;
+
         painter->drawLine(plot()->windowToPixel(poly_[i - 1]), plot()->windowToPixel(poly_[i]));
+      }
     }
   }
 
   //---
 
-  if (plot()->isFitLines()) {
-    initFit();
+  if (plot()->isBestFit()) {
+    initBestFit();
 
     //---
 
-    QPolygonF poly;
+    // calc fit shape at each pixel
+    QPolygonF bpoly, poly, tpoly;
 
-    CQChartsGeom::Point pl = plot()->windowToPixel(CQChartsGeom::Point(fit_.xmin(), 0));
-    CQChartsGeom::Point pr = plot()->windowToPixel(CQChartsGeom::Point(fit_.xmax(), 0));
+    CQChartsGeom::Point pl = plot()->windowToPixel(CQChartsGeom::Point(bestFit_.xmin(), 0));
+    CQChartsGeom::Point pr = plot()->windowToPixel(CQChartsGeom::Point(bestFit_.xmax(), 0));
 
     for (int px = pl.x; px <= pr.x; ++px) {
+      if (plot()->isInterrupt())
+        return;
+
       CQChartsGeom::Point p1 = plot()->pixelToWindow(CQChartsGeom::Point(px, 0.0));
 
-      double y2 = fit_.interp(p1.x);
+      double y2 = bestFit_.interp(p1.x);
 
       CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(p1.x, y2));
 
       poly << QPointF(p2.x, p2.y);
+
+      // deviation curve above/below
+      if (plot()->isBestFitDeviation()) {
+        p2 = plot()->windowToPixel(CQChartsGeom::Point(p1.x, y2 - bestFit_.deviation()));
+
+        bpoly << QPointF(p2.x, p2.y);
+
+        p2 = plot()->windowToPixel(CQChartsGeom::Point(p1.x, y2 + bestFit_.deviation()));
+
+        tpoly << QPointF(p2.x, p2.y);
+      }
     }
 
     //---
@@ -3009,12 +3068,14 @@ draw(QPainter *painter)
       QPen   pen;
       QBrush brush;
 
-      QColor c = plot()->interpFitLinesColor(ic, nc);
+      QColor borderColor = plot()->interpBestFitBorderColor(ic, nc);
+      QColor fillColor   = plot()->interpBestFitFillColor  (ic, nc);
 
-      plot()->setPen(pen, true, c, plot()->fitLinesAlpha(),
-                     plot()->fitLinesWidth(), plot()->fitLinesDash());
+      plot()->setPen(pen, true, borderColor, plot()->bestFitBorderAlpha(),
+                     plot()->bestFitBorderWidth(), plot()->bestFitBorderDash());
 
-      plot()->setBrush(brush, false);
+      plot()->setBrush(brush, plot()->isBestFitFilled(), fillColor, plot()->bestFitFillAlpha(),
+                       plot()->bestFitFillPattern());
 
       plot()->updateObjPenBrushState(this, ic, nc, pen, brush, CQChartsPlot::DrawType::LINE);
 
@@ -3023,6 +3084,34 @@ draw(QPainter *painter)
 
       //---
 
+      // draw fit deviation shape
+      if (plot()->isBestFitDeviation()) {
+        QPolygonF dpoly;
+
+        for (int i = 0; i < bpoly.size(); ++i) {
+          if (plot()->isInterrupt())
+            return;
+
+          const QPointF &p = bpoly[i];
+
+          dpoly << p;
+        }
+
+        for (int i = tpoly.size() - 1; i >= 0; --i) {
+          if (plot()->isInterrupt())
+            return;
+
+          const QPointF &p = tpoly[i];
+
+          dpoly << p;
+        }
+
+        painter->drawPolygon(dpoly);
+      }
+
+      //---
+
+      // draw fit line
       QPainterPath path;
 
       const QPointF &p = poly[0];
@@ -3030,6 +3119,9 @@ draw(QPainter *painter)
       path.moveTo(p);
 
       for (int i = 1; i < poly.size(); ++i) {
+        if (plot()->isInterrupt())
+          return;
+
         const QPointF &p = poly[i];
 
         path.lineTo(p);
@@ -3475,7 +3567,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
     painter->fillRect(CQChartsUtil::toQRect(CQChartsGeom::BBox(x1, y1, x2, y2)), fillBrush);
   }
 
-  if (plot()->isLines() || plot()->isFitLines() || plot()->isImpulseLines()) {
+  if (plot()->isLines() || plot()->isBestFit() || plot()->isImpulseLines()) {
     double x1 = prect.getXMin() + 4;
     double x2 = prect.getXMax() - 4;
     double y  = prect.getYMid();
@@ -3491,14 +3583,14 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
       plot()->setPen(linePen, true, lineColor, plot()->linesAlpha(),
                      plot()->linesWidth(), plot()->linesDash());
     }
-    else if (plot()->isFitLines()) {
-      QColor fitColor = plot()->interpFitLinesColor(i_, n_);
+    else if (plot()->isBestFit()) {
+      QColor fitColor = plot()->interpBestFitBorderColor(i_, n_);
 
       if (plot()->isSetHidden(i_))
         fitColor = CQChartsUtil::blendColors(fitColor, hideBg, hideAlpha);
 
-      plot()->setPen(linePen, true, fitColor, plot()->impulseLinesAlpha(),
-                     plot()->impulseLinesWidth(), plot()->impulseLinesDash());
+      plot()->setPen(linePen, true, fitColor, plot()->bestFitBorderAlpha(),
+                     plot()->bestFitBorderWidth(), plot()->bestFitBorderDash());
     }
     else {
       QColor impulseColor = plot()->interpImpulseLinesColor(i_, n_);

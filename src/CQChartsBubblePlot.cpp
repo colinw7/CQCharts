@@ -92,14 +92,14 @@ void
 CQChartsBubblePlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBubblePlot::
 setValueColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //------
@@ -108,7 +108,7 @@ void
 CQChartsBubblePlot::
 setValueLabel(bool b)
 {
-  CQChartsUtil::testAndSet(valueLabel_, b, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(valueLabel_, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -120,7 +120,7 @@ setTextFontSize(double s)
   if (s != textData_.font().pointSizeF()) {
     CQChartsFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
 
-    queueDrawObjs();
+    drawObjs();
   }
 }
 
@@ -600,7 +600,7 @@ hasForeground() const
 
 void
 CQChartsBubblePlot::
-drawForeground(QPainter *painter) const
+execDrawForeground(QPainter *painter) const
 {
   drawBounds(painter, currentRoot());
 }

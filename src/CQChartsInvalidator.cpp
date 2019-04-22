@@ -14,9 +14,9 @@ invalidate(bool reload)
 
   if (plot) {
     if (reload)
-      plot->queueUpdateRangeAndObjs();
+      plot->updateRangeAndObjs();
     else
-      plot->queueDrawObjs();
+      plot->drawObjs();
 
     return;
   }
@@ -42,9 +42,9 @@ invalidate(bool reload)
   if (key) {
     if      (key->plot()) {
       if (reload)
-        key->plot()->queueUpdateRangeAndObjs();
+        key->plot()->updateRangeAndObjs();
       else
-        key->plot()->queueDrawObjs();
+        key->plot()->drawObjs();
     }
     else if (key->view()) {
       key->view()->update();
@@ -58,9 +58,9 @@ invalidate(bool reload)
   if (boxObj) {
     if      (boxObj->plot()) {
       if (reload)
-        boxObj->plot()->queueUpdateRangeAndObjs();
+        boxObj->plot()->updateRangeAndObjs();
       else
-        boxObj->plot()->queueDrawObjs();
+        boxObj->plot()->drawObjs();
     }
     else if (boxObj->view()) {
       boxObj->view()->update();
@@ -74,9 +74,9 @@ invalidate(bool reload)
   if (arrow) {
     if      (arrow->plot()) {
       if (reload)
-        arrow->plot()->queueUpdateRangeAndObjs();
+        arrow->plot()->updateRangeAndObjs();
       else
-        arrow->plot()->queueDrawObjs();
+        arrow->plot()->drawObjs();
     }
     else if (arrow->view()) {
       arrow->view()->update();

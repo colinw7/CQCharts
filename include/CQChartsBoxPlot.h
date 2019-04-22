@@ -70,11 +70,6 @@ struct CQChartsBoxWhiskerData {
   QModelIndex      ind;
   QString          name;
   double           x       { 0.0 };
-  double           min     { 0.0 };
-  double           max     { 1.0 };
-  double           mean    { 0.0 };
-  double           stddev  { 0.0 };
-  double           notch   { 0.0 };
   CQChartsStatData statData;
   Outliers         outliers;
   double           dataMin { 0.0 };
@@ -133,10 +128,10 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
   double pos        () const;
   double min        () const;
-  double max        () const;
-  double median     () const;
   double lowerMedian() const;
+  double median     () const;
   double upperMedian() const;
+  double max        () const;
   double mean       () const;
   double stddev     () const;
   double notch      () const;
@@ -375,10 +370,10 @@ CQCHARTS_NAMED_POINT_DATA(Jitter,jitter)
  * precalculated data columns:
  *   + x           : x column
  *   + min         : min column
- *   + max         : max column
- *   + median      : median column
  *   + lowerMedian : lower median column
+ *   + median      : median column
  *   + upperMedian : upper median column
+ *   + max         : max column
  *   + outliers    : outliers column
  *
  * Plot Type
@@ -403,10 +398,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   // pre-calc columns
   Q_PROPERTY(CQChartsColumn xColumn           READ xColumn           WRITE setXColumn          )
   Q_PROPERTY(CQChartsColumn minColumn         READ minColumn         WRITE setMinColumn        )
-  Q_PROPERTY(CQChartsColumn maxColumn         READ maxColumn         WRITE setMaxColumn        )
-  Q_PROPERTY(CQChartsColumn medianColumn      READ medianColumn      WRITE setMedianColumn     )
   Q_PROPERTY(CQChartsColumn lowerMedianColumn READ lowerMedianColumn WRITE setLowerMedianColumn)
+  Q_PROPERTY(CQChartsColumn medianColumn      READ medianColumn      WRITE setMedianColumn     )
   Q_PROPERTY(CQChartsColumn upperMedianColumn READ upperMedianColumn WRITE setUpperMedianColumn)
+  Q_PROPERTY(CQChartsColumn maxColumn         READ maxColumn         WRITE setMaxColumn        )
   Q_PROPERTY(CQChartsColumn outliersColumn    READ outliersColumn    WRITE setOutliersColumn   )
 
   // options
@@ -495,17 +490,17 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   const CQChartsColumn &minColumn() const { return minColumn_; }
   void setMinColumn(const CQChartsColumn &c);
 
-  const CQChartsColumn &maxColumn() const { return maxColumn_; }
-  void setMaxColumn(const CQChartsColumn &c);
+  const CQChartsColumn &lowerMedianColumn() const { return lowerMedianColumn_; }
+  void setLowerMedianColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &medianColumn() const { return medianColumn_; }
   void setMedianColumn(const CQChartsColumn &c);
 
-  const CQChartsColumn &lowerMedianColumn() const { return lowerMedianColumn_; }
-  void setLowerMedianColumn(const CQChartsColumn &c);
-
   const CQChartsColumn &upperMedianColumn() const { return upperMedianColumn_; }
   void setUpperMedianColumn(const CQChartsColumn &c);
+
+  const CQChartsColumn &maxColumn() const { return maxColumn_; }
+  void setMaxColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &outliersColumn() const { return outliersColumn_; }
   void setOutliersColumn(const CQChartsColumn &c);
@@ -688,10 +683,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   CQChartsColumn     xColumn_;                                       //!< x column
   CQChartsColumn     minColumn_;                                     //!< min column
-  CQChartsColumn     maxColumn_;                                     //!< max column
-  CQChartsColumn     medianColumn_;                                  //!< median column
   CQChartsColumn     lowerMedianColumn_;                             //!< lower median column
+  CQChartsColumn     medianColumn_;                                  //!< median column
   CQChartsColumn     upperMedianColumn_;                             //!< upper median column
+  CQChartsColumn     maxColumn_;                                     //!< max column
   CQChartsColumn     outliersColumn_;                                //!< outliers column
 
   bool               showOutliers_      { true };                    //!< show outliers

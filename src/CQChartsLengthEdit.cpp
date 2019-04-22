@@ -24,15 +24,15 @@ CQChartsLengthEdit(QWidget *parent) :
 
   layout->addWidget(edit_);
 
-  connect(edit_, SIGNAL(valueChanged(double)), this, SLOT(editChanged()));
-
   //---
 
   unitsEdit_ = new CQChartsUnitsEdit;
 
   layout->addWidget(unitsEdit_);
 
-  connect(unitsEdit_, SIGNAL(unitsChanged()), this, SLOT(unitsChanged()));
+  //---
+
+  connectSlots(true);
 }
 
 const CQChartsLength &

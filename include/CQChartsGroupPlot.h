@@ -67,37 +67,32 @@ class CQChartsGroupPlot : public CQChartsPlot {
   virtual void setGroupColumn(const CQChartsColumn &c);
 
   bool isRowGrouping() const { return groupData_.rowGrouping; }
-  void setRowGrouping(bool b) { groupData_.rowGrouping = b; updateRangeAndObjs(); }
+  void setRowGrouping(bool b);
 
   bool isUsePath() const { return groupData_.usePath; }
-  void setUsePath(bool b) { groupData_.usePath = b; updateRangeAndObjs(); }
+  void setUsePath(bool b);
 
   bool isUseRow() const { return groupData_.useRow; }
-  void setUseRow(bool b) { groupData_.useRow = b; updateRangeAndObjs(); }
+  void setUseRow(bool b);
 
   //---
 
   // bucketing
   bool isExactValue() const { return groupData_.exactValue; }
-  void setExactValue(bool b) { groupData_.exactValue = b; updateRangeAndObjs(); }
+  void setExactValue(bool b);
 
-  bool isAutoRange() const {
-    return groupData_.bucketer.type() == CQBucketer::Type::REAL_AUTO; }
+  bool isAutoRange() const { return groupData_.bucketer.type() == CQBucketer::Type::REAL_AUTO; }
 
-  void setAutoRange(bool b) {
-    groupData_.bucketer.setType(b ? CQBucketer::Type::REAL_AUTO :
-                                    CQBucketer::Type::REAL_RANGE);
-    updateRangeAndObjs();
-  }
+  void setAutoRange(bool b);
 
   double startValue() const { return groupData_.bucketer.rstart(); }
-  void setStartValue(double r) { groupData_.bucketer.setRStart(r); updateRangeAndObjs(); }
+  void setStartValue(double r);
 
   double deltaValue() const { return groupData_.bucketer.rdelta(); }
-  void setDeltaValue(double r) { groupData_.bucketer.setRDelta(r); updateRangeAndObjs(); }
+  void setDeltaValue(double r);
 
   int numAuto() const { return groupData_.bucketer.numAuto(); }
-  void setNumAuto(int i) { groupData_.bucketer.setNumAuto(i); updateRangeAndObjs(); }
+  void setNumAuto(int i);
 
   //---
 

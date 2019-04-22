@@ -92,14 +92,14 @@ void
 CQChartsRadarPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsRadarPlot::
 setValueColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //------
@@ -108,14 +108,14 @@ void
 CQChartsRadarPlot::
 setAngleStart(double r)
 {
-  CQChartsUtil::testAndSet(angleStart_, r, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(angleStart_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsRadarPlot::
 setAngleExtent(double r)
 {
-  CQChartsUtil::testAndSet(angleExtent_, r, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(angleExtent_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 //----
@@ -546,7 +546,7 @@ hasBackground() const
 
 void
 CQChartsRadarPlot::
-drawBackground(QPainter *painter) const
+execDrawBackground(QPainter *painter) const
 {
   int nv = valueColumns().count();
 

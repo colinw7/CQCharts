@@ -3,7 +3,6 @@
 #include <CQChartsUtil.h>
 #include <CQChartsTrie.h>
 #include <CQChartsVariant.h>
-#include <CQChartsBoxWhisker.h>
 
 CQChartsValueSet::
 CQChartsValueSet(const CQChartsPlot *plot) :
@@ -41,9 +40,9 @@ CQChartsValueSet::
 addProperties(const QString &path)
 {
   if (plot_) {
-    plot_->addProperty(path, this, "mapped", "mapped");
-    plot_->addProperty(path, this, "mapMin", "mapMin");
-    plot_->addProperty(path, this, "mapMax", "mapMax");
+    plot_->addProperty(path, this, "mapped", "mapped")->setDesc("Is mapped");
+    plot_->addProperty(path, this, "mapMin", "mapMin")->setDesc("Map min");
+    plot_->addProperty(path, this, "mapMax", "mapMax")->setDesc("Map max");
   }
 }
 #endif
@@ -638,6 +637,8 @@ calc()
 
   // get value to sort (skip null values)
   for (auto &v : values_) {
+    if (! v) continue;
+
     double r = *v;
 
     svalues_.push_back(r);

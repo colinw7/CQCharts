@@ -140,7 +140,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   bool hasForeground() const override;
 
-  void drawForeground(QPainter *painter) const override;
+  void execDrawForeground(QPainter *painter) const override;
 
  public slots:
   void setVoronoi(bool b);

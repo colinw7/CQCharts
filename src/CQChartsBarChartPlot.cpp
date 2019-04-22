@@ -134,14 +134,14 @@ void
 CQChartsBarChartPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBarChartPlot::
 setLabelColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -186,7 +186,7 @@ setHorizontal(bool b)
   CQChartsUtil::testAndSet(horizontal_, b, [&]() {
     dataLabel_->setDirection(horizontal_ ? Qt::Horizontal : Qt::Vertical);
 
-    queueUpdateRangeAndObjs();
+    updateRangeAndObjs();
   } );
 }
 
@@ -194,7 +194,7 @@ void
 CQChartsBarChartPlot::
 setPlotType(PlotType type)
 {
-  CQChartsUtil::testAndSet(plotType_, type, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(plotType_, type, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -202,9 +202,9 @@ CQChartsBarChartPlot::
 setNormal(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -212,16 +212,16 @@ CQChartsBarChartPlot::
 setStacked(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(plotType_, PlotType::STACKED, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::STACKED, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(plotType_, PlotType::NORMAL, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBarChartPlot::
 setPercent(bool b)
 {
-  CQChartsUtil::testAndSet(percent_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(percent_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -230,7 +230,7 @@ void
 CQChartsBarChartPlot::
 setValueType(ValueType type)
 {
-  CQChartsUtil::testAndSet(valueType_, type, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueType_, type, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -238,9 +238,9 @@ CQChartsBarChartPlot::
 setValueValue(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -248,9 +248,9 @@ CQChartsBarChartPlot::
 setValueRange(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::RANGE, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::RANGE, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -258,9 +258,9 @@ CQChartsBarChartPlot::
 setValueMin(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MIN, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::MIN, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -268,9 +268,9 @@ CQChartsBarChartPlot::
 setValueMax(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MAX, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::MAX, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -278,9 +278,9 @@ CQChartsBarChartPlot::
 setValueMean(bool b)
 {
   if (b)
-    CQChartsUtil::testAndSet(valueType_, ValueType::MEAN, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::MEAN, [&]() { updateRangeAndObjs(); } );
   else
-    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { queueUpdateRangeAndObjs(); } );
+    CQChartsUtil::testAndSet(valueType_, ValueType::VALUE, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -290,7 +290,7 @@ CQChartsBarChartPlot::
 setColorBySet(bool b)
 {
   CQChartsUtil::testAndSet(colorBySet_, b, [&]() {
-    resetSetHidden(); queueUpdateRangeAndObjs();
+    resetSetHidden(); updateRangeAndObjs();
   });
 }
 
@@ -298,14 +298,14 @@ void
 CQChartsBarChartPlot::
 setDotLines(bool b)
 {
-  CQChartsUtil::testAndSet(dotLines_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(dotLines_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBarChartPlot::
 setDotLineWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(dotLineWidth_, l, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(dotLineWidth_, l, [&]() { drawObjs(); } );
 }
 
 //---
@@ -1856,7 +1856,7 @@ selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod)
     setSetHidden(! isSetHidden());
   }
 
-  plot_->queueUpdateRangeAndObjs();
+  plot_->updateRangeAndObjs();
 
   return true;
 }

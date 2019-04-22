@@ -96,21 +96,21 @@ void
 CQChartsHierScatterPlot::
 setXColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsHierScatterPlot::
 setYColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(yColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsHierScatterPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -120,7 +120,7 @@ setGroupColumns(const CQChartsColumns &c)
   CQChartsUtil::testAndSet(groupColumns_, c, [&]() {
     initGroupValueSets();
 
-    queueUpdateRangeAndObjs();
+    updateRangeAndObjs();
   } );
 }
 
@@ -137,7 +137,7 @@ void
 CQChartsHierScatterPlot::
 setTextLabels(bool b)
 {
-  if (b != isTextLabels()) { dataLabel_->setVisible(b); queueDrawObjs(); }
+  if (b != isTextLabels()) { dataLabel_->setVisible(b); drawObjs(); }
 }
 
 //---
@@ -146,7 +146,7 @@ void
 CQChartsHierScatterPlot::
 setFontSize(double s)
 {
-  CQChartsUtil::testAndSet(fontSize_, s, [&]() { queueUpdateObjs(); } );
+  CQChartsUtil::testAndSet(fontSize_, s, [&]() { updateObjs(); } );
 }
 
 //---
@@ -187,9 +187,9 @@ setCurrentGroup(CQChartsHierScatterPointGroup *group)
 
   currentGroup_ = group;
 
-  queueUpdateRangeAndObjs();
+  updateRangeAndObjs();
 
-  //queueUpdateObjs();
+  //updateObjs();
 }
 
 //------
@@ -203,7 +203,7 @@ addProperties()
   addProperty("columns", this, "xColumn"     , "x"     )->setDesc("X column");
   addProperty("columns", this, "yColumn"     , "y"     )->setDesc("Y column");
   addProperty("columns", this, "nameColumn"  , "name"  )->setDesc("Name column");
-  addProperty("columns", this, "groupColumns", "groups")->setDesc("Group Columns");
+  addProperty("columns", this, "groupColumns", "groups")->setDesc("Group columns");
 
   addSymbolProperties("symbol");
 
@@ -762,7 +762,7 @@ selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 
   //plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
-  //plot->queueUpdateObjs();
+  //plot->updateObjs();
 
   if (group_->numGroups())
     plot->setCurrentGroup(group_);

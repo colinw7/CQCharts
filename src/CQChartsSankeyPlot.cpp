@@ -127,14 +127,14 @@ void
 CQChartsSankeyPlot::
 setLinkColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(linkColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(linkColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsSankeyPlot::
 setValueColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -143,7 +143,7 @@ void
 CQChartsSankeyPlot::
 setAlign(const Align &a)
 {
-  CQChartsUtil::testAndSet(align_, a, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(align_, a, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -476,7 +476,6 @@ adjustNodes() const
     th->bbox_ += node->obj()->rect();
   }
 
-  //updateRange();
   th->dataRange_ = calcRange();
 
   //---
@@ -754,7 +753,7 @@ keyPress(int key, int modifier)
   if (key == Qt::Key_A) {
     adjustNodes();
 
-    queueDrawObjs();
+    drawObjs();
   }
   else
     CQChartsPlot::keyPress(key, modifier);

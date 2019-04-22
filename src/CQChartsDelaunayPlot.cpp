@@ -86,21 +86,21 @@ void
 CQChartsDelaunayPlot::
 setXColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDelaunayPlot::
 setYColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(yColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDelaunayPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -109,14 +109,14 @@ void
 CQChartsDelaunayPlot::
 setVoronoi(bool b)
 {
-  CQChartsUtil::testAndSet(voronoi_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(voronoi_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDelaunayPlot::
 setVoronoiPointSize(double r)
 {
-  CQChartsUtil::testAndSet(voronoiPointSize_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(voronoiPointSize_, r, [&]() { drawObjs(); } );
 }
 
 //---
@@ -348,7 +348,7 @@ hasForeground() const
 
 void
 CQChartsDelaunayPlot::
-drawForeground(QPainter *painter) const
+execDrawForeground(QPainter *painter) const
 {
   painter->save();
 

@@ -115,7 +115,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   addProperty("", this, "viewSizeHint")->setHidden(true).setDesc("View size hint");
   addProperty("", this, "zoomData"    )->setHidden(true).setDesc("Zoom data");
-  addProperty("", this, "bufferLayers")->setHidden(true).setDesc("Buffer Layer");
+  addProperty("", this, "bufferLayers")->setHidden(true).setDesc("Buffer layer");
 
   addProperty("", this, "showTable"   )->setHidden(true).setDesc("Show table of value");
   addProperty("", this, "showSettings")->setHidden(true).setDesc("Show settings panel");
@@ -137,7 +137,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("background", this, "backgroundFillPattern", "pattern")->setDesc("Fill pattern");
 
   addProperty("select"                 , this, "selectMode"         , "mode")->
-                setDesc("Selection Mode");
+                setDesc("Selection mode");
   addProperty("select"                 , this, "selectInside"       , "inside")->
                 setDesc("Select when fully inside select rectangle");
   addProperty("select/highlight"       , this, "selectedMode"       , "mode")->
@@ -1227,10 +1227,6 @@ initOverlayPlot(CQChartsPlot *firstPlot)
   firstPlot->updateOverlay();
 
   firstPlot->updateObjs();
-
-  //---
-
-  firstPlot->applyDataRange();
 }
 
 void
@@ -3656,7 +3652,7 @@ CQChartsView::
 updatePlots()
 {
   for (auto &plot : plots_) {
-    plot->queueDrawObjs();
+    plot->drawObjs();
   }
 
   update();

@@ -210,7 +210,7 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(bool autoFit        READ isAutoFit      WRITE setAutoFit       )
   Q_PROPERTY(bool preview        READ isPreview      WRITE setPreview       )
   Q_PROPERTY(int  previewMaxRows READ previewMaxRows WRITE setPreviewMaxRows)
-  Q_PROPERTY(bool queueUpdate    READ queueUpdate    WRITE setQueueUpdate   )
+  Q_PROPERTY(bool queueUpdate    READ isQueueUpdate  WRITE setQueueUpdate   )
   Q_PROPERTY(bool showBoxes      READ showBoxes      WRITE setShowBoxes     )
 
  public:
@@ -323,12 +323,13 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void queueUpdateRange();
-  void queueUpdateRangeAndObjs();
-  void queueUpdateObjs();
-  void queueDrawBackground();
-  void queueDrawForeground();
-  void queueDrawObjs();
+  void updateRange();
+  void updateRangeAndObjs();
+  void updateObjs();
+
+  void drawBackground();
+  void drawForeground();
+  void drawObjs();
 
   void drawOverlay();
 
@@ -480,7 +481,7 @@ class CQChartsPlot : public CQChartsObj,
 
   bool isSequential() const { return sequential_; }
 
-  bool queueUpdate() const { return queueUpdate_; }
+  bool isQueueUpdate() const { return queueUpdate_; }
   void setQueueUpdate(bool b) { queueUpdate_ = b; }
 
   //---
@@ -1026,9 +1027,11 @@ class CQChartsPlot : public CQChartsObj,
 
   void resetRange();
 
+ private:
   // update data range (calls calcRange)
-  void updateRange();
+  void execUpdateRange();
 
+ public:
   virtual CQChartsGeom::Range calcRange() const = 0;
 
   virtual void postUpdateObjs() { }
@@ -1036,13 +1039,15 @@ class CQChartsPlot : public CQChartsObj,
   // update plot objects (clear objects, objects updated on next redraw)
   void updateGroupedObjs();
 
-  void updateObjs();
-
   // reset range and objects
   void clearRangeAndObjs();
 
+ private:
   // recalc range and clear objects (objects updated on next redraw)
-  void updateRangeAndObjs();
+  void execUpdateRangeAndObjs();
+
+  // update plot objects (clear objects, objects updated on next redraw)
+  void execUpdateObjs();
 
  private:
   void startThreadTimer();
@@ -1475,7 +1480,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual bool hasBackground() const;
 
-  virtual void drawBackground(QPainter *painter) const;
+  virtual void execDrawBackground(QPainter *painter) const;
 
   void drawBackgroundSides(QPainter *painter, const QRectF &rect,
                            const CQChartsSides &sides) const;
@@ -1503,7 +1508,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual bool hasObjs(const CQChartsLayer::Type &layerType) const;
 
-  virtual void drawObjs(QPainter *painter, const CQChartsLayer::Type &type) const;
+  void execDrawObjs(QPainter *painter, const CQChartsLayer::Type &type) const;
 
   //---
 
@@ -1538,7 +1543,7 @@ class CQChartsPlot : public CQChartsObj,
   // draw foreground
   virtual bool hasForeground() const;
 
-  virtual void drawForeground(QPainter *painter) const;
+  virtual void execDrawForeground(QPainter *painter) const;
 
   // draw debug boxes
   virtual bool hasGroupedBoxes() const;
@@ -2008,8 +2013,8 @@ class CQChartsPlot : public CQChartsObj,
     using StateFlag = std::map<UpdateState,int>;
 
     int       enabled            { 0 };     //! updates enabled
-    bool      updateRangeAndObjs { false }; //! call updateRangeAndObjs (on enable)
-    bool      updateObjs         { false }; //! call updateObjs (on enable)
+    bool      updateRangeAndObjs { false }; //! call execUpdateRangeAndObjs (on enable)
+    bool      updateObjs         { false }; //! call execUpdateObjs (on enable)
     bool      applyDataRange     { false }; //! call applyDataRange (on enable)
     bool      invalidateLayers   { false }; //! call needsInvalidate invalidate (on enable)
     StateFlag stateFlag;                    //! state flags

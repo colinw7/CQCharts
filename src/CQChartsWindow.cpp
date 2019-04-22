@@ -431,7 +431,7 @@ filterChangedSlot()
   //CQChartsPlot *plot = view_->currentPlot(/*remap*/false);
   //if (! plot) return;
 
-  //plot->queueUpdateRangeAndObjs();
+  //plot->updateRangeAndObjs();
 }
 
 void

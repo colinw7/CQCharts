@@ -20,18 +20,18 @@ void
 CQChartsDataLabel::
 addPathProperties(const QString &path)
 {
-  plot_->addProperty(path, this, "visible" );
-  plot_->addProperty(path, this, "position");
-  plot_->addProperty(path, this, "clip"    );
+  plot_->addProperty(path, this, "visible" )->setDesc("Data label is visible");
+  plot_->addProperty(path, this, "position")->setDesc("Data label position");
+  plot_->addProperty(path, this, "clip"    )->setDesc("Data label is clipped");
 
   QString textPath = path + "/text";
 
   plot_->addProperty(textPath, this, "textColor"   , "color"   )->setDesc("Text color");
   plot_->addProperty(textPath, this, "textAlpha"   , "alpha"   )->setDesc("Text alpha");
   plot_->addProperty(textPath, this, "textFont"    , "font"    )->setDesc("Text font");
-  plot_->addProperty(textPath, this, "textAngle"   , "angle"   );
-  plot_->addProperty(textPath, this, "textContrast", "contrast");
-  plot_->addProperty(textPath, this, "textHtml"    , "html"    );
+  plot_->addProperty(textPath, this, "textAngle"   , "angle"   )->setDesc("Text angle");
+  plot_->addProperty(textPath, this, "textContrast", "contrast")->setDesc("Text is contrast");
+  plot_->addProperty(textPath, this, "textHtml"    , "html"    )->setDesc("Text is HTML");
 
   QString boxPath = path + "/box";
 

@@ -687,8 +687,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   CQChartsAnnotation::addProperties(model, path1);
 
   model->addProperty(path1, this, "center" )->setDesc("Ellipse center point");
-  model->addProperty(path1, this, "xRadius")->setDesc("Ellipse X radius");
-  model->addProperty(path1, this, "yRadius")->setDesc("Ellipse Y radius");
+  model->addProperty(path1, this, "xRadius")->setDesc("Ellipse x radius");
+  model->addProperty(path1, this, "yRadius")->setDesc("Ellipse y radius");
 
   addStrokeFillProperties(model, path1);
 }

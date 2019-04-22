@@ -35,7 +35,7 @@ void
 CQChartsBarPlot::
 setValueColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -76,7 +76,7 @@ void
 CQChartsBarPlot::
 setHorizontal(bool b)
 {
-  CQChartsUtil::testAndSet(horizontal_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(horizontal_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -85,14 +85,14 @@ void
 CQChartsBarPlot::
 setMargin(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(margin_, l, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(margin_, l, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsBarPlot::
 setGroupMargin(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(groupMargin_, l, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(groupMargin_, l, [&]() { drawObjs(); } );
 }
 
 //---

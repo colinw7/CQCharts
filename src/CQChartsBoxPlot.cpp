@@ -47,14 +47,14 @@ addParameters()
     setNumeric().setTip("X Value");
   addColumnParameter("min"        , "Min"         , "minColumn"        ).
     setNumeric().setTip("Min Value");
-  addColumnParameter("max"        , "Max"         , "maxColumn"        ).
-    setNumeric().setTip("Max Value");
   addColumnParameter("lowerMedian", "Lower Median", "lowerMedianColumn").
     setNumeric().setTip("Lower Median Value");
   addColumnParameter("median"     , "Median"      , "medianColumn"     ).
     setNumeric().setTip("Median Value");
   addColumnParameter("upperMedian", "Upper Median", "upperMedianColumn").
     setNumeric().setTip("Upper Median Value");
+  addColumnParameter("max"        , "Max"         , "maxColumn"        ).
+    setNumeric().setTip("Max Value");
   addColumnParameter("outliers"   , "Outliers"    , "outliersColumn"   ).
     setTip("Outlier Values");
 
@@ -161,21 +161,21 @@ void
 CQChartsBoxPlot::
 setValueColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setSetColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(setColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(setColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -184,49 +184,49 @@ void
 CQChartsBoxPlot::
 setXColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setMinColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(minColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(minColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setLowerMedianColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(lowerMedianColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(lowerMedianColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setMedianColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(medianColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(medianColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setUpperMedianColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(upperMedianColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(upperMedianColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setMaxColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(maxColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(maxColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setOutliersColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(outliersColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(outliersColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -235,21 +235,21 @@ void
 CQChartsBoxPlot::
 setShowOutliers(bool b)
 {
-  CQChartsUtil::testAndSet(showOutliers_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(showOutliers_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setConnected(bool b)
 {
-  CQChartsUtil::testAndSet(connected_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(connected_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setBoxWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(boxWidth_, l, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(boxWidth_, l, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -258,7 +258,7 @@ void
 CQChartsBoxPlot::
 setColorBySet(bool b)
 {
-  CQChartsUtil::testAndSet(colorBySet_, b, [&]() { resetSetHidden(); queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(colorBySet_, b, [&]() { resetSetHidden(); updateRangeAndObjs(); } );
 }
 
 //---
@@ -267,14 +267,14 @@ void
 CQChartsBoxPlot::
 setWhiskerRange(double r)
 {
-  CQChartsUtil::testAndSet(whiskerRange_, r, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(whiskerRange_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setWhiskerExtent(double r)
 {
-  CQChartsUtil::testAndSet(whiskerExtent_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(whiskerExtent_, r, [&]() { drawObjs(); } );
 }
 
 //------
@@ -283,7 +283,7 @@ void
 CQChartsBoxPlot::
 setTextMargin(double r)
 {
-  CQChartsUtil::testAndSet(textMargin_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(textMargin_, r, [&]() { drawObjs(); } );
 }
 
 //------
@@ -292,7 +292,7 @@ void
 CQChartsBoxPlot::
 setYMargin(double r)
 {
-  CQChartsUtil::testAndSet(ymargin_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(ymargin_, r, [&]() { drawObjs(); } );
 }
 
 //---
@@ -311,14 +311,14 @@ addProperties()
                 setDesc("Precalculated x column");
   addProperty("columns/calculated", this, "minColumn"        , "min"        )->
                 setDesc("Precalculated min column");
-  addProperty("columns/calculated", this, "maxColumn"        , "max"        )->
-                setDesc("Precalculated max column");
-  addProperty("columns/calculated", this, "medianColumn"     , "median"     )->
-                setDesc("Precalculated median column");
   addProperty("columns/calculated", this, "lowerMedianColumn", "lowerMedian")->
                 setDesc("Precalculated lower median column");
+  addProperty("columns/calculated", this, "medianColumn"     , "median"     )->
+                setDesc("Precalculated median column");
   addProperty("columns/calculated", this, "upperMedianColumn", "upperMedian")->
                 setDesc("Precalculated upperx column");
+  addProperty("columns/calculated", this, "maxColumn"        , "max"        )->
+                setDesc("Precalculated max column");
   addProperty("columns/calculated", this, "outliersColumn"   , "outlier"    )->
                 setDesc("Precalculated outliers column");
 
@@ -331,7 +331,7 @@ addProperties()
   // options
   addProperty("options", this, "horizontal", "horizontal")->setDesc("Draw bar horizontal");
   addProperty("options", this, "normalized", "normalized")->setDesc("Normalize bar ranges to 0-1");
-  addProperty("options", this, "colorBySet")->setDesc("Color by set index");
+  addProperty("options", this, "colorBySet")->setDesc("Color by value set");
   addProperty("options", this, "ymargin")->setDesc("margin above/below bar");
 
   // jitter
@@ -395,21 +395,21 @@ void
 CQChartsBoxPlot::
 setHorizontal(bool b)
 {
-  CQChartsUtil::testAndSet(horizontal_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(horizontal_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setNormalized(bool b)
 {
-  CQChartsUtil::testAndSet(normalized_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(normalized_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setNotched(bool b)
 {
-  CQChartsUtil::testAndSet(notched_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(notched_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -419,7 +419,7 @@ CQChartsBoxPlot::
 setPointsJitter(bool b)
 {
   CQChartsUtil::testAndSet(pointsJitter_, b, [&]() {
-    queueUpdateRangeAndObjs();
+    updateRangeAndObjs();
 
     if (b)
       setPointsStacked(false);
@@ -431,7 +431,7 @@ CQChartsBoxPlot::
 setPointsStacked(bool b)
 {
   CQChartsUtil::testAndSet(pointsStacked_, b, [&]() {
-    queueUpdateRangeAndObjs();
+    updateRangeAndObjs();
 
     if (b)
       setPointsJitter(false);
@@ -444,21 +444,21 @@ void
 CQChartsBoxPlot::
 setViolin(bool b)
 {
-  CQChartsUtil::testAndSet(violin_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(violin_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setViolinWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(violinWidth_, l, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(violinWidth_, l, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setViolinBox(bool b)
 {
-  CQChartsUtil::testAndSet(violinBox_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(violinBox_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -467,14 +467,14 @@ void
 CQChartsBoxPlot::
 setErrorBar(bool b)
 {
-  CQChartsUtil::testAndSet(errorBar_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(errorBar_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBoxPlot::
 setErrorBarType(const ErrorBarType &t)
 {
-  CQChartsUtil::testAndSet(errorBarType_, t, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(errorBarType_, t, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -484,10 +484,10 @@ CQChartsBoxPlot::
 isPreCalc() const
 {
   return (minColumn        ().isValid() &&
-          maxColumn        ().isValid() &&
-          medianColumn     ().isValid() &&
           lowerMedianColumn().isValid() &&
-          upperMedianColumn().isValid());
+          medianColumn     ().isValid() &&
+          upperMedianColumn().isValid() &&
+          maxColumn        ().isValid());
 }
 
 CQChartsGeom::Range
@@ -1743,9 +1743,9 @@ min() const
 
 double
 CQChartsBoxPlotWhiskerObj::
-max() const
+lowerMedian() const
 {
-  return (whisker_ ? whisker_->max() : 0.0);
+  return (whisker_ ? whisker_->lowerMedian() : 0.0);
 }
 
 double
@@ -1757,16 +1757,16 @@ median() const
 
 double
 CQChartsBoxPlotWhiskerObj::
-lowerMedian() const
+upperMedian() const
 {
-  return (whisker_ ? whisker_->lowerMedian() : 0.0);
+  return (whisker_ ? whisker_->upperMedian() : 0.0);
 }
 
 double
 CQChartsBoxPlotWhiskerObj::
-upperMedian() const
+max() const
 {
-  return (whisker_ ? whisker_->upperMedian() : 0.0);
+  return (whisker_ ? whisker_->max() : 0.0);
 }
 
 double
@@ -1832,10 +1832,10 @@ calcTipId() const
   }
   else {
     tableTip.addTableRow("Min"         , min        ());
-    tableTip.addTableRow("Max"         , max        ());
-    tableTip.addTableRow("Median"      , median     ());
     tableTip.addTableRow("Lower Median", lowerMedian());
+    tableTip.addTableRow("Median"      , median     ());
     tableTip.addTableRow("Upper Median", upperMedian());
+    tableTip.addTableRow("Max"         , max        ());
   }
 
   return tableTip.str();
@@ -1856,15 +1856,15 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "rect"    )->setDesc("Bounding box");
 //model->addProperty(path1, this, "selected")->setDesc("Is selected");
 
-  model->addProperty(path1, this, "pos")->setDesc("Position");
-  model->addProperty(path1, this, "min")->setDesc("Minumum");
+  model->addProperty(path1, this, "pos"        )->setDesc("Position");
+  model->addProperty(path1, this, "min"        )->setDesc("Minumum");
   model->addProperty(path1, this, "lowerMedian")->setDesc("Lower median");
-  model->addProperty(path1, this, "median")->setDesc("Median");
+  model->addProperty(path1, this, "median"     )->setDesc("Median");
   model->addProperty(path1, this, "upperMedian")->setDesc("Upper median");
-  model->addProperty(path1, this, "max")->setDesc("Maximum");
-  model->addProperty(path1, this, "mean")->setDesc("Mean");
-  model->addProperty(path1, this, "stddev")->setDesc("Standard deviation");
-  model->addProperty(path1, this, "notch")->setDesc("Notch");
+  model->addProperty(path1, this, "max"        )->setDesc("Maximum");
+  model->addProperty(path1, this, "mean"       )->setDesc("Mean");
+  model->addProperty(path1, this, "stddev"     )->setDesc("Standard deviation");
+  model->addProperty(path1, this, "notch"      )->setDesc("Notch");
 }
 
 //---
@@ -2369,6 +2369,12 @@ getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->setColumn  ());
   addColumnSelectIndex(inds, plot_->groupColumn());
+
+  //---
+
+  const CQChartsBoxPlotValue &ovalue = whisker_->value(io_);
+
+  addSelectIndex(inds, ovalue.ind.row(), ovalue.ind.column(), ovalue.ind.parent());
 }
 
 void
@@ -2469,11 +2475,11 @@ calcTipId() const
   CQChartsTableTip tableTip;
 
   tableTip.addTableRow("Name"        , data_.name                );
-  tableTip.addTableRow("Min"         , data_.min                 );
-  tableTip.addTableRow("Max"         , data_.max                 );
-  tableTip.addTableRow("Median"      , data_.statData.median     );
+  tableTip.addTableRow("Min"         , data_.statData.min        );
   tableTip.addTableRow("Lower Median", data_.statData.lowerMedian);
+  tableTip.addTableRow("Median"      , data_.statData.median     );
   tableTip.addTableRow("Upper Median", data_.statData.upperMedian);
+  tableTip.addTableRow("Max"         , data_.statData.max        );
 
   return tableTip.str();
 }
@@ -2484,10 +2490,10 @@ getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->xColumn          ());
   addColumnSelectIndex(inds, plot_->minColumn        ());
-  addColumnSelectIndex(inds, plot_->maxColumn        ());
-  addColumnSelectIndex(inds, plot_->medianColumn     ());
   addColumnSelectIndex(inds, plot_->lowerMedianColumn());
+  addColumnSelectIndex(inds, plot_->medianColumn     ());
   addColumnSelectIndex(inds, plot_->upperMedianColumn());
+  addColumnSelectIndex(inds, plot_->maxColumn        ());
   addColumnSelectIndex(inds, plot_->outliersColumn   ());
 }
 
@@ -2573,11 +2579,11 @@ draw(QPainter *painter)
         return plot_->windowToPixel(CQChartsGeom::Point(remapPos(value), pos));
     };
 
-    CQChartsGeom::Point p1 = posToRemapPixel(pos - wd1, data_.min                 );
+    CQChartsGeom::Point p1 = posToRemapPixel(pos - wd1, data_.statData.min        );
     CQChartsGeom::Point p2 = posToRemapPixel(pos - wd2, data_.statData.lowerMedian);
     CQChartsGeom::Point p3 = posToRemapPixel(pos      , data_.statData.median     );
     CQChartsGeom::Point p4 = posToRemapPixel(pos + wd2, data_.statData.upperMedian);
-    CQChartsGeom::Point p5 = posToRemapPixel(pos + wd1, data_.max                 );
+    CQChartsGeom::Point p5 = posToRemapPixel(pos + wd1, data_.statData.max        );
 
     //---
 
@@ -2595,11 +2601,11 @@ draw(QPainter *painter)
 
     //---
 
-    QString strl = QString("%1").arg(data_.min                 );
+    QString strl = QString("%1").arg(data_.statData.min        );
     QString lstr = QString("%1").arg(data_.statData.lowerMedian);
     QString mstr = QString("%1").arg(data_.statData.median     );
     QString ustr = QString("%1").arg(data_.statData.upperMedian);
-    QString strh = QString("%1").arg(data_.max                 );
+    QString strh = QString("%1").arg(data_.statData.max        );
 
     if (! plot_->isHorizontal()) {
       drawHText(painter, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
@@ -2671,22 +2677,22 @@ annotationBBox() const
       return plot_->windowToPixel(CQChartsGeom::Point(remapPos(value), pos));
   };
 
-  CQChartsGeom::Point p1 = posToRemapPixel(pos - wd1, data_.min                 );
+  CQChartsGeom::Point p1 = posToRemapPixel(pos - wd1, data_.statData.min        );
   CQChartsGeom::Point p2 = posToRemapPixel(pos - wd2, data_.statData.lowerMedian);
   CQChartsGeom::Point p3 = posToRemapPixel(pos      , data_.statData.median     );
   CQChartsGeom::Point p4 = posToRemapPixel(pos + wd2, data_.statData.upperMedian);
-  CQChartsGeom::Point p5 = posToRemapPixel(pos + wd1, data_.max                 );
+  CQChartsGeom::Point p5 = posToRemapPixel(pos + wd1, data_.statData.max        );
 
   //---
 
   CQChartsGeom::BBox pbbox;
 
   if (plot_->isTextVisible()) {
-    QString strl = QString("%1").arg(data_.min                 );
+    QString strl = QString("%1").arg(data_.statData.min        );
     QString lstr = QString("%1").arg(data_.statData.lowerMedian);
     QString mstr = QString("%1").arg(data_.statData.median     );
     QString ustr = QString("%1").arg(data_.statData.upperMedian);
-    QString strh = QString("%1").arg(data_.max                 );
+    QString strh = QString("%1").arg(data_.statData.max        );
 
     if (! plot_->isHorizontal()) {
       addHBBox(pbbox, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
@@ -2893,7 +2899,7 @@ draw(QPainter *painter)
 
   //---
 
-  // draw median line
+  // draw connected line
   QPolygonF line;
 
   for (int i = 0; i < line_.count(); ++i)
@@ -3168,7 +3174,7 @@ selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 
   plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
-  plot->queueUpdateRangeAndObjs();
+  plot->updateRangeAndObjs();
 
   return true;
 }

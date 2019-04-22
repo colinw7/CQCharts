@@ -72,14 +72,14 @@ void
 CQChartsImagePlot::
 setMinValue(double r)
 {
-  CQChartsUtil::testAndSet(minValue_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(minValue_, r, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsImagePlot::
 setMaxValue(double r)
 {
-  CQChartsUtil::testAndSet(maxValue_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(maxValue_, r, [&]() { drawObjs(); } );
 }
 
 //---
@@ -88,35 +88,35 @@ void
 CQChartsImagePlot::
 setXLabels(bool b)
 {
-  CQChartsUtil::testAndSet(xLabels_, b, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(xLabels_, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsImagePlot::
 setYLabels(bool b)
 {
-  CQChartsUtil::testAndSet(yLabels_, b, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(yLabels_, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsImagePlot::
 setCellLabels(bool b)
 {
-  CQChartsUtil::testAndSet(cellLabels_, b, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(cellLabels_, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsImagePlot::
 setScaleCellLabels(bool b)
 {
-  CQChartsUtil::testAndSet(scaleCellLabels_, b, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(scaleCellLabels_, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsImagePlot::
 setBalloon(bool b)
 {
-  CQChartsUtil::testAndSet(balloon_, b, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(balloon_, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -301,7 +301,7 @@ hasForeground() const
 
 void
 CQChartsImagePlot::
-drawForeground(QPainter *painter) const
+execDrawForeground(QPainter *painter) const
 {
   if (isXLabels())
     drawXLabels(painter);

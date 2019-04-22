@@ -100,14 +100,14 @@ void
 CQChartsDendrogramPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsDendrogramPlot::
 setValueColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -116,14 +116,14 @@ void
 CQChartsDendrogramPlot::
 setCircleSize(double r)
 {
-  CQChartsUtil::testAndSet(circleSize_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(circleSize_, r, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsDendrogramPlot::
 setTextMargin(double r)
 {
-  CQChartsUtil::testAndSet(textMargin_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(textMargin_, r, [&]() { drawObjs(); } );
 }
 
 //---
@@ -379,7 +379,7 @@ hasForeground() const
 
 void
 CQChartsDendrogramPlot::
-drawForeground(QPainter *painter) const
+execDrawForeground(QPainter *painter) const
 {
   CQChartsDendrogram::HierNode *root = dendrogram_->root();
 
@@ -473,7 +473,7 @@ selectPress(const CQChartsGeom::Point &p, SelMod /*selMod*/)
 
   dendrogram_->placeNodes();
 
-  queueUpdateObjs();
+  updateObjs();
 
   return true;
 }

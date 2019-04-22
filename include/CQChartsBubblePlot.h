@@ -389,7 +389,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   bool hasForeground() const override;
 
-  void drawForeground(QPainter *painter) const override;
+  void execDrawForeground(QPainter *painter) const override;
 
  private:
   void initNodeObjs(CQChartsBubbleHierNode *hier, CQChartsBubbleHierObj *parentObj,

@@ -641,7 +641,7 @@ class CQChartsValueSet : public QObject {
   // map nth value to real range (min->max)
   double imap(int i, double min, double max) const;
 
-  // get/set allow nam values
+  // get/set allow NaN values
   bool isAllowNaN() const { return allowNaN_; }
   void setAllowNaN(bool b) { allowNaN_ = b; }
 

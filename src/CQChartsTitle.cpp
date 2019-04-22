@@ -7,6 +7,7 @@
 #include <CQChartsDrawUtil.h>
 
 #include <CQPropertyViewModel.h>
+#include <CQPropertyViewItem.h>
 
 #include <QPainter>
 #include <QRectF>
@@ -52,7 +53,7 @@ void
 CQChartsTitle::
 setSelected(bool b)
 {
-  CQChartsUtil::testAndSet(selected_, b, [&]() { plot_->queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(selected_, b, [&]() { plot_->drawObjs(); } );
 }
 
 void
@@ -60,7 +61,7 @@ CQChartsTitle::
 redraw(bool wait)
 {
   if (wait)
-    plot_->queueDrawForeground();
+    plot_->drawForeground();
   else
     plot_->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
 }
@@ -148,11 +149,11 @@ void
 CQChartsTitle::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "visible"    );
-  model->addProperty(path, this, "location"   );
-  model->addProperty(path, this, "absPosition");
-  model->addProperty(path, this, "absRect"    );
-  model->addProperty(path, this, "insidePlot" );
+  model->addProperty(path, this, "visible"    )->setDesc("Title is visible");
+  model->addProperty(path, this, "location"   )->setDesc("Title location");
+  model->addProperty(path, this, "absPosition")->setDesc("Title absolute position");
+  model->addProperty(path, this, "absRect"    )->setDesc("Title absolute rectange");
+  model->addProperty(path, this, "insidePlot" )->setDesc("Title is inside plot");
 
   CQChartsTextBoxObj::addProperties(model, path);
 }

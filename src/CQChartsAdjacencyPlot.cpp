@@ -158,42 +158,42 @@ void
 CQChartsAdjacencyPlot::
 setNodeColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nodeColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nodeColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsAdjacencyPlot::
 setConnectionsColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(connectionsColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(connectionsColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsAdjacencyPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsAdjacencyPlot::
 setNamePairColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(namePairColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(namePairColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsAdjacencyPlot::
 setCountColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(countColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(countColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsAdjacencyPlot::
 setGroupIdColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(groupIdColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(groupIdColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -202,7 +202,7 @@ void
 CQChartsAdjacencyPlot::
 setSortType(const SortType &t)
 {
-  CQChartsUtil::testAndSet(sortType_, t, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(sortType_, t, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -213,7 +213,7 @@ setBgMargin(const CQChartsLength &l)
 {
   bgMargin_ = l;
 
-  queueUpdateObjs();
+  updateObjs();
 }
 
 //---
@@ -723,7 +723,7 @@ autoFit()
   for (int i = 0; i < tries; ++i) {
     factor_ = drawFactor();
 
-    queueUpdateObjs();
+    updateObjs();
   }
 }
 
@@ -747,7 +747,7 @@ hasBackground() const
 
 void
 CQChartsAdjacencyPlot::
-drawBackground(QPainter *painter) const
+execDrawBackground(QPainter *painter) const
 {
   // calc text size
   CQChartsGeom::Point po = windowToPixel(CQChartsGeom::Point(0.0, 1.0));
@@ -885,7 +885,7 @@ drawBackground(QPainter *painter) const
 
     th->setInsideObj(nullptr);
 
-    th->queueDrawForeground();
+    th->drawForeground();
   }
 }
 
@@ -904,7 +904,7 @@ hasForeground() const
 
 void
 CQChartsAdjacencyPlot::
-drawForeground(QPainter *painter) const
+execDrawForeground(QPainter *painter) const
 {
   if (insideObj())
     insideObj()->draw(painter);
@@ -972,7 +972,7 @@ draw(QPainter *painter)
 
       plot->setInsideObj(this);
 
-      plot->queueDrawForeground();
+      plot->drawForeground();
     }
   }
 

@@ -815,3 +815,6 @@
  + Add stats lines for xy and distribution plot
  + Add under/over flow buckets for distribution plot
  + Allow plot objects to be added to property tree
+# 4/21/2019
+ + Cleanup description text
+ + rename plot queue routines

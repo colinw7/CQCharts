@@ -449,7 +449,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   Q_PROPERTY(bool   scatter       READ isScatter     WRITE setScatter      )
   Q_PROPERTY(double scatterFactor READ scatterFactor WRITE setScatterFactor)
 
-  // stats stat
+  // stats data
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Stats,stats)
 
   Q_PROPERTY(bool includeOutlier READ isIncludeOutlier WRITE setIncludeOutlier)
@@ -668,7 +668,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   bool hasForeground() const override;
 
-  void drawForeground(QPainter *) const override;
+  void execDrawForeground(QPainter *) const override;
 
   void drawStatsLines(QPainter *) const;
 
@@ -820,7 +820,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   // set rug
   void setRug(bool b);
 
-  // set sho stats lines
+  // set show stats lines
   void setStatsLinesSlot(bool b);
 
   // push to bar range

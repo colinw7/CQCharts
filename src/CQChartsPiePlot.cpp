@@ -106,14 +106,14 @@ void
 CQChartsPiePlot::
 setLabelColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setValueColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -122,14 +122,14 @@ void
 CQChartsPiePlot::
 setRadiusColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(radiusColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(radiusColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setKeyLabelColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(keyLabelColumn_, c, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(keyLabelColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -138,14 +138,14 @@ void
 CQChartsPiePlot::
 setDonut(bool b)
 {
-  CQChartsUtil::testAndSet(donut_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(donut_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setCount(bool b)
 {
-  CQChartsUtil::testAndSet(count_, b, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(count_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -154,42 +154,42 @@ void
 CQChartsPiePlot::
 setInnerRadius(double r)
 {
-  CQChartsUtil::testAndSet(innerRadius_, r, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(innerRadius_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setOuterRadius(double r)
 {
-  CQChartsUtil::testAndSet(outerRadius_, r, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(outerRadius_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setLabelRadius(double r)
 {
-  CQChartsUtil::testAndSet(labelRadius_, r, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(labelRadius_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setStartAngle(double r)
 {
-  CQChartsUtil::testAndSet(startAngle_, r, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(startAngle_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setAngleExtent(double r)
 {
-  CQChartsUtil::testAndSet(angleExtent_, r, [&]() { queueUpdateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(angleExtent_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setGapAngle(double r)
 {
-  CQChartsUtil::testAndSet(gapAngle_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(gapAngle_, r, [&]() { drawObjs(); } );
 }
 
 //---
@@ -198,21 +198,21 @@ void
 CQChartsPiePlot::
 setRotatedText(bool b)
 {
-  CQChartsUtil::testAndSet(rotatedText_, b, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(rotatedText_, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setExplodeSelected(bool b)
 {
-  CQChartsUtil::testAndSet(explodeSelected_, b, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(explodeSelected_, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setExplodeRadius(double r)
 {
-  CQChartsUtil::testAndSet(explodeRadius_, r, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(explodeRadius_, r, [&]() { drawObjs(); } );
 }
 
 //---
@@ -1151,11 +1151,11 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "outerRadius")->setDesc("Outer radius");
   model->addProperty(path1, this, "label")->setDesc("Label");
   model->addProperty(path1, this, "value")->setDesc("Value");
-  model->addProperty(path1, this, "missing")->setDesc("Value Missing");
+  model->addProperty(path1, this, "missing")->setDesc("Value missing");
 //model->addProperty(path1, this, "radius")->setDesc("Radius");
-  model->addProperty(path1, this, "keyLabel")->setDesc("Key Label");
+  model->addProperty(path1, this, "keyLabel")->setDesc("Key label");
   model->addProperty(path1, this, "color")->setDesc("Color");
-  model->addProperty(path1, this, "exploded")->setDesc("Is Exploded");
+  model->addProperty(path1, this, "exploded")->setDesc("Is exploded");
 }
 
 bool
@@ -1779,7 +1779,7 @@ selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 
   plot->setSetHidden(ih, ! plot->isSetHidden(ih));
 
-  plot->queueUpdateObjs();
+  plot->updateObjs();
 
   return true;
 }

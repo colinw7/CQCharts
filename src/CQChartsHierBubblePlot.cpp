@@ -77,7 +77,7 @@ void
 CQChartsHierBubblePlot::
 setValueLabel(bool b)
 {
-  CQChartsUtil::testAndSet(valueLabel_, b, [&]() { queueDrawObjs(); } );
+  CQChartsUtil::testAndSet(valueLabel_, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -89,7 +89,7 @@ setTextFontSize(double s)
   if (s != textData_.font().pointSizeF()) {
     CQChartsFont f = textData_.font(); f.setPointSizeF(s); textData_.setFont(f);
 
-    queueDrawObjs();
+    drawObjs();
   }
 }
 
@@ -162,7 +162,7 @@ updateCurrentRoot()
 {
   replaceNodes();
 
-  queueUpdateObjs();
+  updateObjs();
 }
 
 //---
@@ -917,7 +917,7 @@ hasForeground() const
 
 void
 CQChartsHierBubblePlot::
-drawForeground(QPainter *painter) const
+execDrawForeground(QPainter *painter) const
 {
   drawBounds(painter, currentRoot());
 }
