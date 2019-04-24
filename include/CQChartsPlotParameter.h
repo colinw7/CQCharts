@@ -102,9 +102,9 @@ class CQChartsPlotParameterAttributes {
   }
 
  private:
-  unsigned int flags_  { 0 };   //! flags
-  double       mapMin_ { 0.0 }; //! map min
-  double       mapMax_ { 1.0 }; //! map max
+  unsigned int flags_  { 0 };   //!< flags
+  double       mapMin_ { 0.0 }; //!< map min
+  double       mapMax_ { 1.0 }; //!< map max
 };
 
 //---
@@ -258,15 +258,15 @@ class CQChartsPlotParameter : public QObject {
 
   using Properties = std::map<QString,PropertyData>;
 
-  QString    name_;           //! name
-  QString    desc_;           //! description
-  Type       type_;           //! type
-  QString    propName_;       //! property name
-  Attributes attributes_;     //! attributes
-  int        groupId_ { -1 }; //! parent group id
-  QVariant   defValue_;       //! default value
-  QString    tip_;            //! tip
-  Properties properties_;     //! properties
+  QString    name_;           //!< name
+  QString    desc_;           //!< description
+  Type       type_;           //!< type
+  QString    propName_;       //!< property name
+  Attributes attributes_;     //!< attributes
+  int        groupId_ { -1 }; //!< parent group id
+  QVariant   defValue_;       //!< default value
+  QString    tip_;            //!< tip
+  Properties properties_;     //!< properties
 };
 
 //---
@@ -444,11 +444,11 @@ class CQChartsPlotParameterGroup : public QObject {
   void setParentGroupId(int i) { parentGroupId_ = i; }
 
  private:
-  Type    type_          { Type::NONE }; //! group type
-  QString name_;                         //! group name
-  int     groupId_       { -1 };         //! group id
-  int     otherGroupId_  { -1 };         //! other group id
-  int     parentGroupId_ { -1 };         //! parent group id
+  Type    type_          { Type::NONE }; //!< group type
+  QString name_;                         //!< group name
+  int     groupId_       { -1 };         //!< group id
+  int     otherGroupId_  { -1 };         //!< other group id
+  int     parentGroupId_ { -1 };         //!< parent group id
 };
 
 #endif

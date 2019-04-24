@@ -137,20 +137,20 @@ addProperties()
   // grid
   addProperty("grid", this, "gridLines", "visible")->setDesc("Grid lines visible");
 
-  addLineProperties("grid", "gridLines");
+  addLineProperties("grid", "gridLines", "Grid");
 
   // fill
   addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
 
-  addFillProperties("fill", "fill");
+  addFillProperties("fill", "fill", "");
 
   // stroke
   addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
 
-  addLineProperties("stroke", "border");
+  addLineProperties("stroke", "border", "");
 
   // text
-  addTextProperties("text", "text");
+  addTextProperties("text", "text", "");
 }
 
 CQChartsGeom::Range

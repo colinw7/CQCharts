@@ -169,74 +169,82 @@ class CQChartsViewSettings : public QFrame {
   void getSelectedAnnotations(Annotations &viewAnnotations, Annotations &plotAnnotations) const;
 
  private:
+  using FilterEdit           = CQChartsViewSettingsFilterEdit;
+  using ViewPropertiesWidget = CQChartsViewSettingsViewPropertiesWidget;
+  using ModelTable           = CQChartsViewSettingsModelTable;
+  using PlotTable            = CQChartsViewSettingsPlotTable;
+  using ViewAnnotationsTable = CQChartsViewSettingsViewAnnotationsTable;
+  using PlotAnnotationsTable = CQChartsViewSettingsPlotAnnotationsTable;
+  using LayerTable           = CQChartsViewSettingsLayerTable;
+
   struct PropertiesWidgets {
-    CQChartsViewSettingsFilterEdit*           viewFilterEdit   { nullptr }; //! view settings filter
-    CQChartsViewSettingsViewPropertiesWidget* viewPropertyTree { nullptr }; //! view settings tree
-    QTabWidget*                               plotsTab         { nullptr }; //! plots settings tab
+    FilterEdit*           viewFilterEdit   { nullptr }; //!< view settings filter
+    ViewPropertiesWidget* viewPropertyTree { nullptr }; //!< view settings tree
+    QTabWidget*           plotsTab         { nullptr }; //!< plots settings tab
   };
 
   struct ModelsWidgets {
-    CQChartsViewSettingsModelTable* modelTable    { nullptr }; //! model table
-    CQGroupBox*                     detailsGroup  { nullptr }; //! model details group box
-    CQChartsModelDetailsWidget*     detailsWidget { nullptr }; //! model details
-    QPushButton*                    editButton    { nullptr }; //! edit model
+    ModelTable*                 modelTable    { nullptr }; //!< model table
+    CQGroupBox*                 detailsGroup  { nullptr }; //!< model details group box
+    CQChartsModelDetailsWidget* detailsWidget { nullptr }; //!< model details
+    QPushButton*                editButton    { nullptr }; //!< edit model
   };
 
   struct PlotsWidgets {
-    CQChartsViewSettingsPlotTable* plotTable            { nullptr }; //! plot table
-    QCheckBox*                     overlayCheck         { nullptr }; //! overlay check
-    QCheckBox*                     x1x2Check            { nullptr }; //! x1x2 check
-    QCheckBox*                     y1y2Check            { nullptr }; //! y1y2 check
-    QRadioButton*                  placeVerticalRadio   { nullptr }; //! place vertical radio
-    QRadioButton*                  placeHorizontalRadio { nullptr }; //! place horizontal radio
-    QRadioButton*                  placeGridRadio       { nullptr }; //! place grid radio
-    CQIntegerSpin*                 placeRowsEdit        { nullptr }; //! grid number of rows edit
-    CQIntegerSpin*                 placeColumnsEdit     { nullptr }; //! grid number of columns edit
-    QPushButton*                   raiseButton          { nullptr }; //! raise plot button
-    QPushButton*                   lowerButton          { nullptr }; //! lower plot button
-    QPushButton*                   removeButton         { nullptr }; //! remove plot button
+    PlotTable*     plotTable            { nullptr }; //!< plot table
+    QCheckBox*     overlayCheck         { nullptr }; //!< overlay check
+    QCheckBox*     x1x2Check            { nullptr }; //!< x1x2 check
+    QCheckBox*     y1y2Check            { nullptr }; //!< y1y2 check
+    QRadioButton*  placeVerticalRadio   { nullptr }; //!< place vertical radio
+    QRadioButton*  placeHorizontalRadio { nullptr }; //!< place horizontal radio
+    QRadioButton*  placeGridRadio       { nullptr }; //!< place grid radio
+    CQIntegerSpin* placeRowsEdit        { nullptr }; //!< grid number of rows edit
+    CQIntegerSpin* placeColumnsEdit     { nullptr }; //!< grid number of columns edit
+    QPushButton*   raiseButton          { nullptr }; //!< raise plot button
+    QPushButton*   lowerButton          { nullptr }; //!< lower plot button
+    QPushButton*   removeButton         { nullptr }; //!< remove plot button
   };
 
   struct AnnotationsWidgets {
-    CQChartsViewSettingsViewAnnotationsTable* viewTable    { nullptr }; //! view annotations table
-    CQChartsViewSettingsPlotAnnotationsTable* plotTable    { nullptr }; //! plot annotations table
-    QPushButton*                              editButton   { nullptr }; //! edit button
-    QPushButton*                              removeButton { nullptr }; //! remove button
+    ViewAnnotationsTable* viewTable    { nullptr }; //!< view annotations table
+    PlotAnnotationsTable* plotTable    { nullptr }; //!< plot annotations table
+    QPushButton*          editButton   { nullptr }; //!< edit button
+    QPushButton*          removeButton { nullptr }; //!< remove button
   };
 
   struct ThemeWidgets {
-    QSpinBox*                       palettesSpin       { nullptr }; //! palettes index spin
-    QComboBox*                      palettesCombo      { nullptr }; //! palettes name combo
-    QPushButton*                    palettesLoadButton { nullptr }; //! load palette name button
-    CQChartsGradientPaletteCanvas*  palettesPlot       { nullptr }; //! current palette plot
-    CQChartsGradientPaletteControl* palettesControl    { nullptr }; //! current palette control
-    CQChartsGradientPaletteCanvas*  interfacePlot      { nullptr }; //! interface palette plot
-    CQChartsGradientPaletteControl* interfaceControl   { nullptr }; //! interface palette control
+    QSpinBox*                       palettesSpin       { nullptr }; //!< palettes index spin
+    QComboBox*                      palettesCombo      { nullptr }; //!< palettes name combo
+    QPushButton*                    palettesLoadButton { nullptr }; //!< load palette name button
+    CQChartsGradientPaletteCanvas*  palettesPlot       { nullptr }; //!< current palette plot
+    CQChartsGradientPaletteControl* palettesControl    { nullptr }; //!< current palette control
+    CQChartsGradientPaletteCanvas*  interfacePlot      { nullptr }; //!< interface palette plot
+    CQChartsGradientPaletteControl* interfaceControl   { nullptr }; //!< interface palette control
   };
 
   struct LayersWidgets {
-    CQChartsViewSettingsLayerTable* layerTable { nullptr }; //! layer table widget
+    LayerTable* layerTable { nullptr }; //!< layer table widget
   };
 
-  CQChartsWindow*              window_              { nullptr }; //! parent window
-  QTabWidget*                  tab_                 { nullptr }; //! settings/palette tab
-  PropertiesWidgets            propertiesWidgets_;               //! properties widgets
-  ModelsWidgets                modelsWidgets_;                   //! models widgets
-  PlotsWidgets                 plotsWidgets_;                    //! plots widgets
-  AnnotationsWidgets           annotationsWidgets_;              //! annotations widgets
-  ThemeWidgets                 themeWidgets_;                    //! theme widgets
-  LayersWidgets                layersWidgets_;                   //! layers widgets
-  CQChartsLoadModelDlg*        loadModelDlg_        { nullptr }; //! load dialog
-  CQChartsEditModelDlg*        editModelDlg_        { nullptr }; //! edit model dialog
-  CQChartsCreatePlotDlg*       createPlotDlg_       { nullptr }; //! plot dialog
-  CQChartsCreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //! create annotation dialog
-  CQChartsEditAnnotationDlg*   editAnnotationDlg_   { nullptr }; //! edit annotation dialog
-  CQChartsEditTitleDlg*        editTitleDlg_        { nullptr }; //! edit plot title dialog
-  CQChartsEditKeyDlg*          editKeyDlg_          { nullptr }; //! edit plot key dialog
-  CQChartsEditAxisDlg*         editXAxisDlg_        { nullptr }; //! edit plot x axis dialog
-  CQChartsEditAxisDlg*         editYAxisDlg_        { nullptr }; //! edit plot y axis dialog
-  QString                      plotId_;                          //! current plot id
-//bool                         modelDetailsValid_   { false };   //! model details valid
+  CQChartsWindow*              window_              { nullptr }; //!< parent window
+  QTabWidget*                  tab_                 { nullptr }; //!< settings/palette tab
+  PropertiesWidgets            propertiesWidgets_;               //!< properties widgets
+  ModelsWidgets                modelsWidgets_;                   //!< models widgets
+  PlotsWidgets                 plotsWidgets_;                    //!< plots widgets
+  AnnotationsWidgets           annotationsWidgets_;              //!< annotations widgets
+  ThemeWidgets                 themeWidgets_;                    //!< theme widgets
+  LayersWidgets                layersWidgets_;                   //!< layers widgets
+  CQChartsLoadModelDlg*        loadModelDlg_        { nullptr }; //!< load dialog
+  CQChartsEditModelDlg*        editModelDlg_        { nullptr }; //!< edit model dialog
+  CQChartsCreatePlotDlg*       createPlotDlg_       { nullptr }; //!< plot dialog
+  CQChartsCreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //!< create annotation dialog
+  CQChartsEditAnnotationDlg*   editAnnotationDlg_   { nullptr }; //!< edit annotation dialog
+  CQChartsEditTitleDlg*        editTitleDlg_        { nullptr }; //!< edit plot title dialog
+  CQChartsEditKeyDlg*          editKeyDlg_          { nullptr }; //!< edit plot key dialog
+  CQChartsEditAxisDlg*         editXAxisDlg_        { nullptr }; //!< edit plot x axis dialog
+  CQChartsEditAxisDlg*         editYAxisDlg_        { nullptr }; //!< edit plot y axis dialog
+  QString                      plotId_;                          //!< current plot id
+//bool                         modelDetailsValid_   { false };   //!< model details valid
 };
 
 //---

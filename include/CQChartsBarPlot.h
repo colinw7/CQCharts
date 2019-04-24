@@ -70,10 +70,10 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   virtual void setHorizontal(bool b);
 
  protected:
-  CQChartsColumns valueColumns_;           //! value columns
-  bool            horizontal_   { false }; //! horizontal bars
-  CQChartsLength  margin_       { "2px" }; //! bar margin
-  CQChartsLength  groupMargin_  { "4px" }; //! bar group margin
+  CQChartsColumns valueColumns_;           //!< value columns
+  bool            horizontal_   { false }; //!< horizontal bars
+  CQChartsLength  margin_       { "2px" }; //!< bar margin
+  CQChartsLength  groupMargin_  { "4px" }; //!< bar group margin
 };
 
 #endif

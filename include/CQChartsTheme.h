@@ -38,8 +38,8 @@ class CQChartsThemeMgr {
   using ThemeMap      = std::map<QString,CQChartsThemeObj*>;
   using NamedPalettes = std::map<QString,CQChartsGradientPalette*>;
 
-  NamedPalettes namedPalettes_; //! named palettes
-  ThemeMap      themes_;        //! named themes
+  NamedPalettes namedPalettes_; //!< named palettes
+  ThemeMap      themes_;        //!< named themes
 };
 
 //------
@@ -90,10 +90,10 @@ class CQChartsThemeObj : public QObject {
  protected:
   using Palettes = std::vector<CQChartsGradientPalette*>;
 
-  QString  name_;                       //! theme name
-  Palettes palettes_;                   //! theme palette list
-  QColor   selectColor_ { Qt::yellow }; //! selection color
-  QColor   insideColor_ { Qt::cyan };   //! inside color
+  QString  name_;                       //!< theme name
+  Palettes palettes_;                   //!< theme palette list
+  QColor   selectColor_ { Qt::yellow }; //!< selection color
+  QColor   insideColor_ { Qt::cyan };   //!< inside color
 };
 
 //---
@@ -214,12 +214,12 @@ class CQChartsInterfaceTheme {
   QColor interpColor(double r, bool scale) const;
 
  private:
-  CQChartsGradientPalette* palette_      { nullptr };   //! palette
-  bool                     isDark_       { false };     //! is dark
-  QColor                   lightBgColor_ { "#ffffff" }; //! light bg color
-  QColor                   lightFgColor_ { "#000000" }; //! light fg color
-  QColor                   darkBgColor_  { "#222222" }; //! dark bg color
-  QColor                   darkFgColor_  { "#dddddd" }; //! dark fg color
+  CQChartsGradientPalette* palette_      { nullptr };   //!< palette
+  bool                     isDark_       { false };     //!< is dark
+  QColor                   lightBgColor_ { "#ffffff" }; //!< light bg color
+  QColor                   lightFgColor_ { "#000000" }; //!< light fg color
+  QColor                   darkBgColor_  { "#222222" }; //!< dark bg color
+  QColor                   darkFgColor_  { "#dddddd" }; //!< dark fg color
 };
 
 //---

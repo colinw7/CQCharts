@@ -61,17 +61,17 @@ class CQChartsEditHandles : public QObject {
   CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &p) const;
 
  private:
-  const CQChartsView*   view_       { nullptr };                  //! parent view
-  const CQChartsPlot*   plot_       { nullptr };                  //! parent plot
-  Mode                  mode_       { Mode::RESIZE };             //! handle mode
-  CQChartsGeom::BBox    bbox_       { 0, 0, 1, 1 };               //! handle bbox
-  CQChartsResizeHandle* moveHandle_ { nullptr };                  //! move handle
-  CQChartsResizeHandle* llHandle_   { nullptr };                  //! lower left resize handle
-  CQChartsResizeHandle* lrHandle_   { nullptr };                  //! lower right resize handle
-  CQChartsResizeHandle* ulHandle_   { nullptr };                  //! upper left resize handle
-  CQChartsResizeHandle* urHandle_   { nullptr };                  //! upper right resize handle
-  CQChartsGeom::Point   dragPos_    { 0, 0 };                     //! drag position
-  CQChartsResizeSide    dragSide_   { CQChartsResizeSide::NONE }; //! drag side
+  const CQChartsView*   view_       { nullptr };                  //!< parent view
+  const CQChartsPlot*   plot_       { nullptr };                  //!< parent plot
+  Mode                  mode_       { Mode::RESIZE };             //!< handle mode
+  CQChartsGeom::BBox    bbox_       { 0, 0, 1, 1 };               //!< handle bbox
+  CQChartsResizeHandle* moveHandle_ { nullptr };                  //!< move handle
+  CQChartsResizeHandle* llHandle_   { nullptr };                  //!< lower left resize handle
+  CQChartsResizeHandle* lrHandle_   { nullptr };                  //!< lower right resize handle
+  CQChartsResizeHandle* ulHandle_   { nullptr };                  //!< upper left resize handle
+  CQChartsResizeHandle* urHandle_   { nullptr };                  //!< upper right resize handle
+  CQChartsGeom::Point   dragPos_    { 0, 0 };                     //!< drag position
+  CQChartsResizeSide    dragSide_   { CQChartsResizeSide::NONE }; //!< drag side
 };
 
 #endif

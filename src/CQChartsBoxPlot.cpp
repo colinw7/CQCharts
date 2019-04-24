@@ -104,8 +104,8 @@ description() const
          "<p>Values can be supplied using:</p>\n"
          "<ul>\n"
          "<li>Raw Values with X and Y values in <b>value</b> and <b>set</b> columns.</li>\n"
-         "<li>Calculated Values in the <b>min</b>, <b>max</b>, <b>median</b>, "
-         "<b>lowerMedian</b>, <b>upperMedian</b> and <b>outliers</b> columns.</li>\n"
+         "<li>Calculated Values in the <b>min</b>, <b>lowerMedian</b>, <b>median</b>, "
+         "<b>max</b>, <b>upperMedian</b> and <b>outliers</b> columns.</li>\n"
          "</ul>";
 }
 
@@ -360,33 +360,33 @@ addProperties()
   addProperty("box", this, "notched"     , "notched")->
                 setDesc("Box notched at median");
 
-  // whisker box stroke
-  addProperty("box/stroke", this, "boxBorder"    , "visible"   )->setDesc("Box border visible");
-  addProperty("box/stroke", this, "boxCornerSize", "cornerSize")->setDesc("Box corner size");
-
-  addLineProperties("box/stroke", "boxBorder");
-
   // whisker box fill
   addProperty("box/fill", this, "boxFilled", "visible")->setDesc("Box fill visible");
 
-  addFillProperties("box/fill", "boxFill");
+  addFillProperties("box/fill", "boxFill", "Box");
+
+  // whisker box stroke
+  addProperty("box/stroke", this, "boxBorder"    , "visible"   )->setDesc("Box stroke visible");
+  addProperty("box/stroke", this, "boxCornerSize", "cornerSize")->setDesc("Box corner size");
+
+  addLineProperties("box/stroke", "boxBorder", "Box");
 
   // whisker line
-  addLineProperties("whisker", "whiskerLines");
+  addLineProperties("whisker", "whiskerLines", "Whisker");
 
   addProperty("whisker", this, "whiskerExtent", "extent")->setDesc("Box whisker line extent");
 
   // value labels
-  addProperty("labels", this, "textVisible", "visible")->setDesc("Show value labels");
+  addProperty("labels", this, "textVisible", "visible")->setDesc("Value labels visible");
 
-  addTextProperties("labels", "text");
+  addTextProperties("labels", "text", "Value");
 
   addProperty("labels", this, "textMargin", "margin")->setDesc("Value text margin");
 
   // outlier
-  addProperty("outlier", this, "showOutliers", "visible")->setDesc("Show outlier points");
+  addProperty("outlier", this, "showOutliers", "visible")->setDesc("Outlier points visible");
 
-  addSymbolProperties("outlier/symbol", "outlier");
+  addSymbolProperties("outlier/symbol", "outlier", "Outlier");
 }
 
 //---
@@ -727,10 +727,27 @@ valueColumnName(const QString &def) const
   if (valueColumns().count() == 1 && ! yname.length())
     yname = modelHeaderString(valueColumns().column(), ok);
 
-  if (! ok)
+  if (! yname.length())
     yname = def;
 
   return yname;
+}
+
+QString
+CQChartsBoxPlot::
+groupColumnName(const QString &def) const
+{
+  bool ok;
+
+  QString groupName;
+
+  if (groupColumn().isValid())
+    groupName = modelHeaderString(groupColumn(), ok);
+
+  if (! groupName.length())
+    groupName = def;
+
+  return groupName;
 }
 
 bool

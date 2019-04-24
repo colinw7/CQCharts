@@ -148,11 +148,11 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
                 CQChartsDendrogram::Node *node) const;
 
  private:
-  CQChartsColumn      nameColumn_;              //! name column
-  CQChartsColumn      valueColumn_;             //! value column
-  CQChartsDendrogram* dendrogram_  { nullptr }; //! dendogram class
-  double              circleSize_  { 8.0 };     //! circle size
-  double              textMargin_  { 4.0 };     //! text margin
+  CQChartsColumn      nameColumn_;              //!< name column
+  CQChartsColumn      valueColumn_;             //!< value column
+  CQChartsDendrogram* dendrogram_  { nullptr }; //!< dendogram class
+  double              circleSize_  { 8.0 };     //!< circle size
+  double              textMargin_  { 4.0 };     //!< text margin
 };
 
 #endif

@@ -131,19 +131,19 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   void cancelSlot();
 
  private:
-  CQChartsView*   view_             { nullptr }; //! associated view
-  CQChartsPlot*   plot_             { nullptr }; //! associated plot
-  QComboBox*      typeCombo_        { nullptr }; //! type combo
-  CQLineEdit*     idEdit_           { nullptr }; //! id edit
-  CQLineEdit*     tipEdit_          { nullptr }; //! tip edit
-  QStackedWidget* typeStack_        { nullptr }; //! type stacked widget
-  RectWidgets     rectWidgets_;                  //! rect edit widgets
-  EllipseWidgets  ellipseWidgets_;               //! ellipse edit widgets
-  PolygonWidgets  polygonWidgets_;               //! polygon edit widgets
-  PolylineWidgets polylineWidgets_;              //! polyline edit widgets
-  TextWidgets     textWidgets_;                  //! text edit widgets
-  ArrowWidgets    arrowWidgets_;                 //! arrow edit widgets
-  PointWidgets    pointWidgets_;                 //! point edit widgets
+  CQChartsView*   view_             { nullptr }; //!< associated view
+  CQChartsPlot*   plot_             { nullptr }; //!< associated plot
+  QComboBox*      typeCombo_        { nullptr }; //!< type combo
+  CQLineEdit*     idEdit_           { nullptr }; //!< id edit
+  CQLineEdit*     tipEdit_          { nullptr }; //!< tip edit
+  QStackedWidget* typeStack_        { nullptr }; //!< type stacked widget
+  RectWidgets     rectWidgets_;                  //!< rect edit widgets
+  EllipseWidgets  ellipseWidgets_;               //!< ellipse edit widgets
+  PolygonWidgets  polygonWidgets_;               //!< polygon edit widgets
+  PolylineWidgets polylineWidgets_;              //!< polyline edit widgets
+  TextWidgets     textWidgets_;                  //!< text edit widgets
+  ArrowWidgets    arrowWidgets_;                 //!< arrow edit widgets
+  PointWidgets    pointWidgets_;                 //!< point edit widgets
 };
 
 #endif

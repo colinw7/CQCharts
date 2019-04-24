@@ -239,7 +239,7 @@ bucketName(int bucket, NameFormat format) const
       int imin = rmin;
       int imax = rmax;
 
-      if (imax > imin + 1)
+      if (imax > imin)
         return bucketName(imin, imax, format);
       else
         return QString("%1").arg(imin);
@@ -256,7 +256,7 @@ bucketName(int bucket, NameFormat format) const
       int imin = rmin;
       int imax = rmax;
 
-      if (imax > imin + 1)
+      if (imax > imin)
         return bucketName(imin, imax, format);
       else
         return QString("%1").arg(imin);
@@ -274,10 +274,18 @@ bucketName(int imin, int imax, NameFormat format) const
 {
   static QChar arrowChar(0x2192);
 
-  if      (format == NameFormat::DASH)
-    return QString("%1-%2").arg(imin).arg(imax);
-  else if (format == NameFormat::ARROW)
-    return QString("%1%2%3").arg(imin).arg(arrowChar).arg(imax);
+  if      (format == NameFormat::DASH) {
+    if (imax > imin + 1)
+      return QString("%1-%2").arg(imin).arg(imax);
+    else
+      return QString("%1").arg(imin);
+  }
+  else if (format == NameFormat::ARROW) {
+    if (imax > imin + 1)
+      return QString("%1%2%3").arg(imin).arg(arrowChar).arg(imax);
+    else
+      return QString("%1").arg(imin);
+  }
   else if (format == NameFormat::BRACKETED)
     return QString("(%1,%2]").arg(imin).arg(imax);
   else

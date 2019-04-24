@@ -247,16 +247,16 @@ class CQCharts : public QObject {
  private:
   using NameViews = std::map<QString,CQChartsView*>;
 
-  bool                   viewKey_         { true };    //! has view key
-  CQChartsPlotTypeMgr*   plotTypeMgr_     { nullptr }; //! plot type manager
-  CQChartsColumnTypeMgr* columnTypeMgr_   { nullptr }; //! column type manager
-  CQChartsInterfaceTheme interfaceTheme_;              //! interface theme
-  CQChartsTheme          plotTheme_;                   //! plot theme
-  int                    currentModelInd_ { -1 };      //! current model index
-  ModelDatas             modelDatas_;                  //! model datas
-  int                    lastModelInd_    { 0 };       //! last model ind
-  NameViews              views_;                       //! views
-  Procs                  procs_;                       //! tcl procs
+  bool                   viewKey_         { true };    //!< has view key
+  CQChartsPlotTypeMgr*   plotTypeMgr_     { nullptr }; //!< plot type manager
+  CQChartsColumnTypeMgr* columnTypeMgr_   { nullptr }; //!< column type manager
+  CQChartsInterfaceTheme interfaceTheme_;              //!< interface theme
+  CQChartsTheme          plotTheme_;                   //!< plot theme
+  int                    currentModelInd_ { -1 };      //!< current model index
+  ModelDatas             modelDatas_;                  //!< model datas
+  int                    lastModelInd_    { 0 };       //!< last model ind
+  NameViews              views_;                       //!< views
+  Procs                  procs_;                       //!< tcl procs
 };
 
 #endif

@@ -295,18 +295,18 @@ class CQChartsChordPlot : public CQChartsPlot,
   bool initHierObjs(PlotObjs &objs) const;
 
  private:
-  CQChartsColumn             linkColumn_;                 //! link column
-  CQChartsColumn             valueColumn_;                //! value column
-  CQChartsColumn             groupColumn_;                //! group column
-  bool                       sorted_         { false };   //! is sorted
-  double                     innerRadius_    { 0.9 };     //! inner radius
-  double                     labelRadius_    { 1.1 };     //! label radius
-  double                     segmentAlpha_   { 0.7 };     //! segment alpha
-  double                     arcAlpha_       { 0.3 };     //! arc alpha
-  double                     gapAngle_       { 2.0 };     //! gap angle
-  double                     startAngle_     { 90.0 };    //! start angle
-  CQChartsRotatedTextBoxObj* textBox_        { nullptr }; //! text box
-  double                     valueToDegrees_ { 1.0 };     //! value to degrees scale
+  CQChartsColumn             linkColumn_;                 //!< link column
+  CQChartsColumn             valueColumn_;                //!< value column
+  CQChartsColumn             groupColumn_;                //!< group column
+  bool                       sorted_         { false };   //!< is sorted
+  double                     innerRadius_    { 0.9 };     //!< inner radius
+  double                     labelRadius_    { 1.1 };     //!< label radius
+  double                     segmentAlpha_   { 0.7 };     //!< segment alpha
+  double                     arcAlpha_       { 0.3 };     //!< arc alpha
+  double                     gapAngle_       { 2.0 };     //!< gap angle
+  double                     startAngle_     { 90.0 };    //!< start angle
+  CQChartsRotatedTextBoxObj* textBox_        { nullptr }; //!< text box
+  double                     valueToDegrees_ { 1.0 };     //!< value to degrees scale
 };
 
 #endif

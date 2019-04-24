@@ -145,15 +145,15 @@ addProperties()
   // fill
   addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
 
-  addFillProperties("fill", "fill");
+  addFillProperties("fill", "fill", "");
 
   // stroke
   addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
 
-  addLineProperties("stroke", "border");
+  addLineProperties("stroke", "border", "");
 
   // text
-  addAllTextProperties("text", "text");
+  addAllTextProperties("text", "text", "");
 
   // color map
   addColorMapProperties();

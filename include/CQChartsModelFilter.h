@@ -78,13 +78,13 @@ class CQChartsModelFilterData {
   }
 
  private:
-  Type            type_           { Type::EXPRESSION }; //! type
-  QString         filter_;                              //! filter string
-  bool            invert_         { false };            //! invert filter
-  CQChartsRegExp  regexp_;                              //! cached regexp for REGEXP
-  QModelIndexList filterRows_;                          //! cached rows (for SELECTED)
-  ColumnFilterMap columnFilterMap_;                     //! column filters for SIMPLE
-  QString         filterExpr_;                          //! preprocessed filter for EXPRESSION
+  Type            type_           { Type::EXPRESSION }; //!< type
+  QString         filter_;                              //!< filter string
+  bool            invert_         { false };            //!< invert filter
+  CQChartsRegExp  regexp_;                              //!< cached regexp for REGEXP
+  QModelIndexList filterRows_;                          //!< cached rows (for SELECTED)
+  ColumnFilterMap columnFilterMap_;                     //!< column filters for SIMPLE
+  QString         filterExpr_;                          //!< preprocessed filter for EXPRESSION
 };
 
 //------

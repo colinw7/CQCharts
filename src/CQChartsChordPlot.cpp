@@ -188,7 +188,7 @@ addProperties()
   addProperty("options", this, "innerRadius")->setDesc("Radius of inside of outer strip");
 
   // stroke
-  addLineProperties("stroke", "border");
+  addLineProperties("stroke", "border", "");
 
   // segment
   addProperty("segment", this, "segmentAlpha", "alpha")->setDesc("Alpha of segments");

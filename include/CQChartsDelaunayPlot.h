@@ -150,13 +150,13 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   void drawVoronoi (QPainter *p) const;
 
  private:
-  CQChartsColumn    xColumn_;                      //! x column
-  CQChartsColumn    yColumn_;                      //! y column
-  CQChartsColumn    nameColumn_;                   //! name column
-  bool              voronoi_          { true };    //! is voronoi
-  double            voronoiPointSize_ { 2 };       //! voronoi point size
-  CQChartsDelaunay* delaunay_         { nullptr }; //! delaunay data
-  QString           yname_;                        //! y name
+  CQChartsColumn    xColumn_;                      //!< x column
+  CQChartsColumn    yColumn_;                      //!< y column
+  CQChartsColumn    nameColumn_;                   //!< name column
+  bool              voronoi_          { true };    //!< is voronoi
+  double            voronoiPointSize_ { 2 };       //!< voronoi point size
+  CQChartsDelaunay* delaunay_         { nullptr }; //!< delaunay data
+  QString           yname_;                        //!< y name
 };
 
 #endif

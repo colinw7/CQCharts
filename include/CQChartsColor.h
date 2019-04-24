@@ -165,11 +165,11 @@ class CQChartsColor {
   //---
 
  private:
-  Type   type_  { Type::NONE }; //! color type (palette, theme or color)
-  int    ind_   { 0 };          //! palette index
-  double value_ { 0.0 };        //! specific palette or theme value
-  QColor color_ { 0, 0, 0 };    //! specific color
-  bool   scale_ { false };      //! color scaled to palette defined color values (psuedo index)
+  Type   type_  { Type::NONE }; //!< color type (palette, theme or color)
+  int    ind_   { 0 };          //!< palette index
+  double value_ { 0.0 };        //!< specific palette or theme value
+  QColor color_ { 0, 0, 0 };    //!< specific color
+  bool   scale_ { false };      //!< color scaled to palette defined color values (psuedo index)
 };
 
 //---

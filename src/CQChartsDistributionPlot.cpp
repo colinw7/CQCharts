@@ -355,9 +355,9 @@ addProperties()
   addProperty("scatter", this, "scatterFactor", "factor" )->setDesc("Scatter factor (0-1)");
 
   // stats
-  addProperty("statsData", this, "statsLines", "visible")->setDesc("Show statistic lines");
+  addProperty("statsData", this, "statsLines", "visible")->setDesc("Statistic lines visible");
 
-  addLineProperties("statsData", "statsLines");
+  addLineProperties("statsData", "statsLines", "Statistic lines");
 
   addProperty("statsData", this, "includeOutlier", "includeOutlier")->
     setDesc("Include outlier points");
@@ -367,12 +367,12 @@ addProperties()
    setDesc("Draw bars as lines with dot");
   addProperty("dotLines/line", this, "dotLineWidth", "width"  )->setDesc("Dot line width");
 
-  addSymbolProperties("dotLines", "dot");
+  addSymbolProperties("dotLines", "dot", "Dot");
 
   // rug
   addProperty("rug", this, "rug", "enabled")->setDesc("Draw density points on x axis");
 
-  addSymbolProperties("rug", "rug");
+  addSymbolProperties("rug", "rug", "Rug");
 
   //---
 
@@ -993,7 +993,19 @@ calcBucketRanges() const
   // set range
   CQChartsGeom::Range dataRange;
 
+  auto updateRange = [&](double x, double y) {
+    if (! isHorizontal()) {
+      dataRange.updateRange(x, y);
+      dataRange.updateRange(x, y);
+    }
+    else {
+      dataRange.updateRange(y, x);
+      dataRange.updateRange(y, x);
+    }
+  };
+
   if      (isDensity()) {
+    // range already accounts for horizontal/vertical
     if (densityBBox.isSet()) {
       dataRange.updateRange(densityBBox.getXMin(), densityBBox.getYMin());
       dataRange.updateRange(densityBBox.getXMax(), densityBBox.getYMax());
@@ -1001,8 +1013,8 @@ calcBucketRanges() const
   }
   else if (isScatter()) {
     if (maxValues > 0) {
-      dataRange.updateRange(   - 0.5,           - 0.5);
-      dataRange.updateRange(ng - 0.5, maxValues - 0.5);
+      updateRange(          - 0.5,    - 0.5);
+      updateRange(maxValues - 0.5, ng - 0.5);
     }
   }
   else {
@@ -1038,14 +1050,8 @@ calcBucketRanges() const
       int bucket1 = bucketRange.min(0);
       int bucket2 = bucketRange.max(0);
 
-      if (! isHorizontal()) {
-        dataRange.updateRange(bucket1 - 1.0, n1);
-        dataRange.updateRange(bucket2 + 1.0, n2);
-      }
-      else {
-        dataRange.updateRange(n1, bucket1 - 1.0);
-        dataRange.updateRange(n2, bucket2 + 1.0);
-      }
+      updateRange(bucket1 - 1.0, n1);
+      updateRange(bucket2 + 1.0, n2);
     }
     else if (! isSkipEmpty()) {
       if      (isStacked() && isValueCount()) {
@@ -1054,47 +1060,23 @@ calcBucketRanges() const
         for (const auto &gt : valueSetRunningTotal)
           n = std::max(n, gt.second);
 
-        if (! isHorizontal()) {
-          if (isPercent()) {
-            dataRange.updateRange(          - 0.5, 0);
-            dataRange.updateRange(maxValues - 0.5, 1);
-          }
-          else {
-            dataRange.updateRange(          - 0.5, 0);
-            dataRange.updateRange(maxValues - 0.5, n);
-          }
+        if (isPercent()) {
+          updateRange(          - 0.5, 0);
+          updateRange(maxValues - 0.5, 1);
         }
         else {
-          if (isPercent()) {
-            dataRange.updateRange(0,           - 0.5);
-            dataRange.updateRange(1, maxValues - 0.5);
-          }
-          else {
-            dataRange.updateRange(0,           - 0.5);
-            dataRange.updateRange(n, maxValues - 0.5);
-          }
+          updateRange(          - 0.5, 0);
+          updateRange(maxValues - 0.5, n);
         }
       }
       else if (isSideBySide()) {
-        if (! isHorizontal()) {
-          if (isPercent() && isValueCount()) {
-            dataRange.updateRange(          - 0.5, 0);
-            dataRange.updateRange(maxValues - 0.5, 1);
-          }
-          else {
-            dataRange.updateRange(          - 0.5, n1);
-            dataRange.updateRange(maxValues - 0.5, n2);
-          }
+        if (isPercent() && isValueCount()) {
+          updateRange(          - 0.5, 0);
+          updateRange(maxValues - 0.5, 1);
         }
         else {
-          if (isPercent() && isValueCount()) {
-            dataRange.updateRange(0,           - 0.5);
-            dataRange.updateRange(1, maxValues - 0.5);
-          }
-          else {
-            dataRange.updateRange(n1,           - 0.5);
-            dataRange.updateRange(n2, maxValues - 0.5);
-          }
+          updateRange(          - 0.5, n1);
+          updateRange(maxValues - 0.5, n2);
         }
       }
       else {
@@ -1105,39 +1087,21 @@ calcBucketRanges() const
 
         int i1 = 0;
 
-        if (! isHorizontal()) {
-          if (isPercent() && isValueCount()) {
-            dataRange.updateRange(i1 - 1.0, 0);
-            dataRange.updateRange(nb      , 1);
-          }
-          else {
-            dataRange.updateRange(i1 - 1.0, n1);
-            dataRange.updateRange(nb      , n2);
-          }
+        if (isPercent() && isValueCount()) {
+          updateRange(i1 - 1.0, 0);
+          updateRange(nb      , 1);
         }
         else {
-          if (isPercent() && isValueCount()) {
-            dataRange.updateRange(0, i1 - 1.0);
-            dataRange.updateRange(1, nb      );
-          }
-          else {
-            dataRange.updateRange(n1, i1 - 1.0);
-            dataRange.updateRange(n2, nb      );
-          }
+          updateRange(i1 - 1.0, n1);
+          updateRange(nb      , n2);
         }
       }
     }
     else {
       int i1 = 0;
 
-      if (! isHorizontal()) {
-        dataRange.updateRange(i1 - 1.0, 0 );
-        dataRange.updateRange(i2      , n2);
-      }
-      else {
-        dataRange.updateRange(0 , i1 - 1.0);
-        dataRange.updateRange(n2, i2      );
-      }
+      updateRange(i1 - 1.0, 0 );
+      updateRange(i2      , n2);
     }
   }
 
@@ -1647,7 +1611,12 @@ createObjs(PlotObjs &objs) const
 
         int n = pVarsData->inds.size();
 
-        CQChartsGeom::BBox bbox = CQChartsGeom::BBox(ig - 0.5, iv - 0.5, ig + 0.5, iv + 0.5);
+        CQChartsGeom::BBox bbox;
+
+        if (! isHorizontal())
+          bbox = CQChartsGeom::BBox(iv - 0.5, ig - 0.5, iv + 0.5, ig + 0.5);
+        else
+          bbox = CQChartsGeom::BBox(ig - 0.5, iv - 0.5, ig + 0.5, iv + 0.5);
 
         CQChartsDistributionScatterObj *scatterObj =
           new CQChartsDistributionScatterObj(this, bbox, groupInd, sbucket, n, ig, ng, iv, nv);
@@ -2422,6 +2391,51 @@ groupBucketer(int groupInd)
 
 //------
 
+QString
+CQChartsDistributionPlot::
+posStr(const CQChartsGeom::Point &w) const
+{
+  if (isDensity() || isScatter())
+    return CQChartsPlot::posStr(w);
+
+  //---
+
+  if (! isHorizontal()) {
+    QString xstr = xStr(int(w.x));
+
+    for (const auto &plotObj : plotObjs_) {
+      CQChartsDistributionBarObj *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+
+      double value;
+
+      if (barObj && barObj->bucketXValue(w.x, value)) {
+        xstr = QString("%1").arg(value);
+        break;
+      }
+    }
+
+    return xstr + " " + yStr(w.y);
+  }
+  else {
+    QString ystr = yStr(int(w.y));
+
+    for (const auto &plotObj : plotObjs_) {
+      CQChartsDistributionBarObj *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+
+      double value;
+
+      if (barObj && barObj->bucketYValue(w.y, value)) {
+        ystr = QString("%1").arg(value);
+        break;
+      }
+    }
+
+    return xStr(w.x) + " " + ystr;
+  }
+}
+
+//------
+
 bool
 CQChartsDistributionPlot::
 addMenuItems(QMenu *menu)
@@ -2845,6 +2859,46 @@ bucketStr() const
     bucketStr = plot_->bucketValuesStr(groupInd_, bucket_);
 
   return bucketStr;
+}
+
+bool
+CQChartsDistributionBarObj::
+bucketXValue(double x, double &value) const
+{
+  if (! insideX(x))
+    return false;
+
+  if (! plot_->isBucketed())
+    value = groupInd_;
+  else {
+    double value1, value2;
+
+    plot_->bucketValues(groupInd_, bucket_, value1, value2);
+
+    value = CMathUtil::map(x, rect().getXMin(), rect().getXMax(), value1, value2);
+  }
+
+  return true;
+}
+
+bool
+CQChartsDistributionBarObj::
+bucketYValue(double y, double &value) const
+{
+  if (! insideY(y))
+    return false;
+
+  if (! plot_->isBucketed())
+    value = groupInd_;
+  else {
+    double value1, value2;
+
+    plot_->bucketValues(groupInd_, bucket_, value1, value2);
+
+    value = CMathUtil::map(y, rect().getYMin(), rect().getYMax(), value1, value2);
+  }
+
+  return true;
 }
 
 int
@@ -3812,13 +3866,25 @@ draw(QPainter *painter)
 
   QPointF tl = CQChartsUtil::toQRect(prect).topLeft();
 
-  for (const auto &point : points_) {
-    double px = plot_->windowToPixelWidth (point.x());
-    double py = plot_->windowToPixelHeight(point.y());
+  if (! plot_->isHorizontal()) {
+    for (const auto &point : points_) {
+      double px = plot_->windowToPixelWidth (point.x());
+      double py = plot_->windowToPixelHeight(point.y());
 
-    QPointF p(tl.x() + px, tl.y() + py);
+      QPointF p(tl.x() + px, tl.y() + py);
 
-    plot_->drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy), pen, brush);
+      plot_->drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy), pen, brush);
+    }
+  }
+  else {
+    for (const auto &point : points_) {
+      double px = plot_->windowToPixelWidth (point.y());
+      double py = plot_->windowToPixelHeight(point.x());
+
+      QPointF p(tl.x() + px, tl.y() + py);
+
+      plot_->drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy), pen, brush);
+    }
   }
 }
 

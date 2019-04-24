@@ -40,7 +40,7 @@ class CQChartsPolygonLineEdit : public CQChartsLineEditBase {
   void connectSlots(bool b) override;
 
  private:
-  CQChartsPolygonEdit* dataEdit_ { nullptr }; //! polygon edit
+  CQChartsPolygonEdit* dataEdit_ { nullptr }; //!< polygon edit
 };
 
 //---

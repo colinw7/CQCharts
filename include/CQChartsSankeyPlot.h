@@ -176,10 +176,10 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
  private:
   using EdgeRect = std::map<CQChartsSankeyPlotEdge *,CQChartsGeom::BBox>;
 
-  const CQChartsSankeyPlot* plot_ { nullptr }; //! parent plot
-  CQChartsSankeyPlotNode*   node_ { nullptr }; //! node
-  EdgeRect                  srcEdgeRect_;      //! edge to src
-  EdgeRect                  destEdgeRect_;     //! edge to dest
+  const CQChartsSankeyPlot* plot_ { nullptr }; //!< parent plot
+  CQChartsSankeyPlotNode*   node_ { nullptr }; //!< node
+  EdgeRect                  srcEdgeRect_;      //!< edge to src
+  EdgeRect                  destEdgeRect_;     //!< edge to dest
 };
 
 //---
@@ -210,11 +210,11 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  const CQChartsSankeyPlot* plot_     { nullptr }; //! parent plot
-  CQChartsSankeyPlotEdge*   edge_     { nullptr }; //! edge
-  CQChartsGeom::BBox        srcRect_;              //! src rect
-  CQChartsGeom::BBox        destRect_;             //! dest rect
-  QPainterPath              path_;                 //! painter path
+  const CQChartsSankeyPlot* plot_     { nullptr }; //!< parent plot
+  CQChartsSankeyPlotEdge*   edge_     { nullptr }; //!< edge
+  CQChartsGeom::BBox        srcRect_;              //!< src rect
+  CQChartsGeom::BBox        destRect_;             //!< dest rect
+  QPainterPath              path_;                 //!< painter path
 };
 
 //---
@@ -328,19 +328,19 @@ class CQChartsSankeyPlot : public CQChartsPlot,
  private:
   using PosNodesMap = std::map<int,IndNodeMap>;
 
-  CQChartsColumn     linkColumn_;                     //! link column
-  CQChartsColumn     valueColumn_;                    //! value column
-  Align              align_       { Align::JUSTIFY }; //! align
-  NameNodeMap        nameNodeMap_;                    //! name node map
-  IndNodeMap         indNodeMap_;                     //! ind node map
-  PosNodesMap        posNodesMap_;                    //! pos node map
-  Edges              edges_;                          //! edges
-  CQChartsGeom::BBox bbox_;                           //! bbox
-  int                maxHeight_   { 0 };              //! max height
-  int                maxDepth_    { 0 };              //! max depth
-  double             valueScale_  { 1.0 };            //! value scale
-  double             margin_      { 0.0 };            //! margin
-  bool               pressed_     { false };          //! mouse pressed
+  CQChartsColumn     linkColumn_;                     //!< link column
+  CQChartsColumn     valueColumn_;                    //!< value column
+  Align              align_       { Align::JUSTIFY }; //!< align
+  NameNodeMap        nameNodeMap_;                    //!< name node map
+  IndNodeMap         indNodeMap_;                     //!< ind node map
+  PosNodesMap        posNodesMap_;                    //!< pos node map
+  Edges              edges_;                          //!< edges
+  CQChartsGeom::BBox bbox_;                           //!< bbox
+  int                maxHeight_   { 0 };              //!< max height
+  int                maxDepth_    { 0 };              //!< max depth
+  double             valueScale_  { 1.0 };            //!< value scale
+  double             margin_      { 0.0 };            //!< margin
+  bool               pressed_     { false };          //!< mouse pressed
 };
 
 #endif

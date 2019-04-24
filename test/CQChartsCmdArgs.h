@@ -48,8 +48,8 @@ class CQChartsCmdBaseArgs {
     QString opt() const { assert(isOpt_); return toString(var_).mid(1); }
 
    private:
-    QVariant var_;             // arg value
-    bool     isOpt_ { false }; // is option
+    QVariant var_;             //!< arg value
+    bool     isOpt_ { false }; //!< is option
   };
 
   //---

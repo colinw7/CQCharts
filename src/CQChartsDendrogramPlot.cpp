@@ -87,11 +87,11 @@ addProperties()
 
   addProperty("node", this, "circleSize", "circleSize")->setDesc("Circle size");
 
-  addLineProperties("node/stroke", "nodeBorder");
-  addFillProperties("node/fill"  , "nodeFill"  );
-  addLineProperties("edge/stroke", "edgeLines" );
+  addFillProperties("node/fill"  , "nodeFill"  , "Node");
+  addLineProperties("node/stroke", "nodeBorder", "Node");
+  addLineProperties("edge/stroke", "edgeLines" , "Edge");
 
-  addTextProperties("text", "text");
+  addTextProperties("text", "text", "");
 }
 
 //---

@@ -115,14 +115,14 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   void updateLocation();
 
  private:
-  CQChartsTitleLocation      location_;                //! location type
-  CQChartsPosition           absPosition_;             //! position (relative to plot box)
-  CQChartsRect               absRect_;                 //! rect (relative to plot box)
-  bool                       insidePlot_  { false };   //! is placed inside plot
-  QPointF                    position_    { 0, 0 };    //! position
-  QSizeF                     size_;                    //! size
-  mutable CQChartsGeom::BBox bbox_;                    //! bbox
-  CQChartsEditHandles*       editHandles_ { nullptr }; //! edit handles
+  CQChartsTitleLocation      location_;                //!< location type
+  CQChartsPosition           absPosition_;             //!< position (relative to plot box)
+  CQChartsRect               absRect_;                 //!< rect (relative to plot box)
+  bool                       insidePlot_  { false };   //!< is placed inside plot
+  QPointF                    position_    { 0, 0 };    //!< position
+  QSizeF                     size_;                    //!< size
+  mutable CQChartsGeom::BBox bbox_;                    //!< bbox
+  CQChartsEditHandles*       editHandles_ { nullptr }; //!< edit handles
 };
 
 #endif

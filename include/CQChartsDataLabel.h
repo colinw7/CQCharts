@@ -108,10 +108,10 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   void dataChanged();
 
  private:
-  Position        position_   { Position::TOP_INSIDE }; //! position relative to parent
-  Qt::Orientation direction_  { Qt::Vertical };         //! parent object direction
-  bool            clip_       { false };                //! clip to parent
-  bool            sendSignal_ { false };                //! send signal on data change
+  Position        position_   { Position::TOP_INSIDE }; //!< position relative to parent
+  Qt::Orientation direction_  { Qt::Vertical };         //!< parent object direction
+  bool            clip_       { false };                //!< clip to parent
+  bool            sendSignal_ { false };                //!< send signal on data change
 };
 
 #endif

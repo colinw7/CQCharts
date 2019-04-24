@@ -66,25 +66,25 @@ class CQChartsAxisEdit : public QFrame {
  private:
   CQChartsAxis*         axis_                  { nullptr }; //!< parent axis
   CQChartsAxisData      data_;                              //!< axis data
-  CQGroupBox*           groupBox_              { nullptr }; //<! group box
-  CQHRadioButtons*      directionEdit_         { nullptr }; //<! direction edit
-  CQChartsAxisSideEdit* sideEdit_              { nullptr }; //<! side edit
-  CQCheckBox*           integralEdit_          { nullptr }; //<! is integral edit
-  CQCheckBox*           dateEdit_              { nullptr }; //<! is date edit
-  CQCheckBox*           logEdit_               { nullptr }; //<! is log edit
-  QLineEdit*            formatEdit_            { nullptr }; //<! format edit
-  CQIntegerSpin*        tickIncrementEdit_     { nullptr }; //<! tick increment edit
-  CQRealSpin*           majorIncrementEdit_    { nullptr }; //<! major increment edit
-  CQRealSpin*           startEdit_             { nullptr }; //<! start edit
-  CQRealSpin*           endEdit_               { nullptr }; //<! end edit
-  CQCheckBox*           includeZeroEdit_       { nullptr }; //<! include zero edit
-  QLineEdit*            positionEdit_          { nullptr }; //<! position edit
-  CQChartsLineDataEdit* lineDataEdit_          { nullptr }; //<! line data edit
-  CQChartsTextDataEdit* tickLabelTextDataEdit_ { nullptr }; //<! tick label text edit
-  CQChartsTextDataEdit* labelTextDataEdit_     { nullptr }; //<! label text edit
-  CQChartsLineDataEdit* majorGridLineDataEdit_ { nullptr }; //<! major grid line data edit
-  CQChartsLineDataEdit* minorGridLineDataEdit_ { nullptr }; //<! minor grid line data edit
-  CQChartsFillDataEdit* gridFillDataEdit_      { nullptr }; //<! grid fill data edit
+  CQGroupBox*           groupBox_              { nullptr }; //!< group box
+  CQHRadioButtons*      directionEdit_         { nullptr }; //!< direction edit
+  CQChartsAxisSideEdit* sideEdit_              { nullptr }; //!< side edit
+  CQCheckBox*           integralEdit_          { nullptr }; //!< is integral edit
+  CQCheckBox*           dateEdit_              { nullptr }; //!< is date edit
+  CQCheckBox*           logEdit_               { nullptr }; //!< is log edit
+  QLineEdit*            formatEdit_            { nullptr }; //!< format edit
+  CQIntegerSpin*        tickIncrementEdit_     { nullptr }; //!< tick increment edit
+  CQRealSpin*           majorIncrementEdit_    { nullptr }; //!< major increment edit
+  CQRealSpin*           startEdit_             { nullptr }; //!< start edit
+  CQRealSpin*           endEdit_               { nullptr }; //!< end edit
+  CQCheckBox*           includeZeroEdit_       { nullptr }; //!< include zero edit
+  QLineEdit*            positionEdit_          { nullptr }; //!< position edit
+  CQChartsLineDataEdit* lineDataEdit_          { nullptr }; //!< line data edit
+  CQChartsTextDataEdit* tickLabelTextDataEdit_ { nullptr }; //!< tick label text edit
+  CQChartsTextDataEdit* labelTextDataEdit_     { nullptr }; //!< label text edit
+  CQChartsLineDataEdit* majorGridLineDataEdit_ { nullptr }; //!< major grid line data edit
+  CQChartsLineDataEdit* minorGridLineDataEdit_ { nullptr }; //!< minor grid line data edit
+  CQChartsFillDataEdit* gridFillDataEdit_      { nullptr }; //!< grid fill data edit
   bool                  connected_             { false };   //!< is connected
 };
 

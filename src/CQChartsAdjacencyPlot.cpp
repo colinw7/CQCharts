@@ -236,20 +236,20 @@ addProperties()
   addProperty("options", this, "sortType", "sort"  )->setDesc("Sort type");
   addProperty("options", this, "bgMargin", "margin")->setDesc("Background margin");
 
-  addFillProperties("background/fill", "backgroundFill");
+  addFillProperties("background/fill", "backgroundFill", "Background");
 
-  addFillProperties("cell/fill"  , "fill"  );
-  addLineProperties("cell/stroke", "border");
+  addFillProperties("cell/fill"  , "fill"  , "Cell");
+  addLineProperties("cell/stroke", "border", "Cell");
 
   addProperty("cell/stroke", this, "cornerSize", "cornerSize")->setDesc("Cell box corner size");
 
-  addFillProperties("emptyCell/fill"  , "emptyCellFill"  );
-  addLineProperties("emptyCell/stroke", "emptyCellBorder");
+  addFillProperties("emptyCell/fill"  , "emptyCellFill"  , "Empty cell");
+  addLineProperties("emptyCell/stroke", "emptyCellBorder", "Empty cell");
 
   addProperty("emptyCell/stroke", this, "cornerSize", "cornerSize")->
     setDesc("Empty cell box corner size");
 
-  addTextProperties("text", "text");
+  addTextProperties("text", "text", "");
 }
 
 CQChartsGeom::Range

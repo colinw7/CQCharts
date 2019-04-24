@@ -202,9 +202,9 @@ addProperties()
 
   addProperty("node", this, "nodeRadius", "radius")->setDesc("Node radius");
 
-  addLineProperties("node/stroke", "nodeBorder");
-  addFillProperties("node/fill"  , "nodeFill"  );
-  addLineProperties("edge/stroke", "edgeLines" );
+  addFillProperties("node/fill"  , "nodeFill"  , "Node");
+  addLineProperties("node/stroke", "nodeBorder", "Node");
+  addLineProperties("edge/stroke", "edgeLines" , "Edge");
 }
 
 CQChartsGeom::Range

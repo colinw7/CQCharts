@@ -242,17 +242,17 @@ addProperties()
   // fill
   addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
 
-  addFillProperties("fill", "fill");
+  addFillProperties("fill", "fill", "");
 
   // stroke
   addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
 
-  addLineProperties("stroke", "border");
+  addLineProperties("stroke", "border", "");
 
   // grid
-  addProperty("grid", this, "gridLines", "visible")->setDesc("Show grid lines");
+  addProperty("grid", this, "gridLines", "visible")->setDesc("Grid lines visible");
 
-  addLineProperties("grid", "gridLines");
+  addLineProperties("grid", "gridLines", "Grid");
 
   // explode
   addProperty("explode", this, "explodeSelected", "selected")->setDesc("Explode selected segments");

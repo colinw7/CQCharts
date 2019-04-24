@@ -71,16 +71,16 @@ class CQChartsTextData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool          visible_   { true };                                      //! is visible
-  CQChartsColor color_     { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //! color
-  double        alpha_     { 1.0 };                                       //! alpha
-  CQChartsFont  font_;                                                    //! font
-  double        angle_     { 0.0 };                                       //! angle
-  bool          contrast_  { false };                                     //! contrast
-  Qt::Alignment align_     { Qt::AlignLeft | Qt::AlignVCenter };          //! align
-  bool          formatted_ { false };                                     //! formatted
-  bool          scaled_    { false };                                     //! scaled
-  bool          html_      { false };                                     //! html
+  bool          visible_   { true };                                      //!< is visible
+  CQChartsColor color_     { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //!< color
+  double        alpha_     { 1.0 };                                       //!< alpha
+  CQChartsFont  font_;                                                    //!< font
+  double        angle_     { 0.0 };                                       //!< angle
+  bool          contrast_  { false };                                     //!< contrast
+  Qt::Alignment align_     { Qt::AlignLeft | Qt::AlignVCenter };          //!< align
+  bool          formatted_ { false };                                     //!< formatted
+  bool          scaled_    { false };                                     //!< scaled
+  bool          html_      { false };                                     //!< html
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsTextData)
@@ -130,11 +130,11 @@ class CQChartsLineData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool             visible_ { true };                                      //! visible
-  CQChartsColor    color_   { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //! color
-  double           alpha_   { 1.0 };                                       //! alpha
-  CQChartsLength   width_   { "0px" };                                     //! width
-  CQChartsLineDash dash_    { };                                           //! dash
+  bool             visible_ { true };                                      //!< visible
+  CQChartsColor    color_   { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //!< color
+  double           alpha_   { 1.0 };                                       //!< alpha
+  CQChartsLength   width_   { "0px" };                                     //!< width
+  CQChartsLineDash dash_    { };                                           //!< dash
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsLineData)
@@ -181,10 +181,10 @@ class CQChartsFillData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool                visible_ { true };                             //! draw bg
-  CQChartsColor       color_   { CQChartsColor::Type::INTERFACE_VALUE, 0.0 }; //! bg fill color
-  double              alpha_   { 1.0 };                              //! bg fill color alpha
-  CQChartsFillPattern pattern_ { CQChartsFillPattern::Type::SOLID }; //! bg fill pattern
+  bool                visible_ { true };                             //!< draw bg
+  CQChartsColor       color_   { CQChartsColor::Type::INTERFACE_VALUE, 0.0 }; //!< bg fill color
+  double              alpha_   { 1.0 };                              //!< bg fill color alpha
+  CQChartsFillPattern pattern_ { CQChartsFillPattern::Type::SOLID }; //!< bg fill pattern
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsFillData)
@@ -237,12 +237,12 @@ class CQChartsStrokeData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool             visible_    { true };  //! draw border
-  CQChartsColor    color_      { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //! border color
-  double           alpha_      { 1.0 };   //! border color alpha
-  CQChartsLength   width_      { "0px" }; //! stroke width
-  CQChartsLineDash dash_       { };       //! stroke dash
-  CQChartsLength   cornerSize_ { "0px" }; //! border corner size
+  bool             visible_    { true };  //!< draw border
+  CQChartsColor    color_      { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //!< border color
+  double           alpha_      { 1.0 };   //!< border color alpha
+  CQChartsLength   width_      { "0px" }; //!< stroke width
+  CQChartsLineDash dash_       { };       //!< stroke dash
+  CQChartsLength   cornerSize_ { "0px" }; //!< border corner size
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsStrokeData)
@@ -285,8 +285,8 @@ class CQChartsShapeData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  CQChartsFillData   background_; //! background data
-  CQChartsStrokeData border_;     //! border data
+  CQChartsFillData   background_; //!< background data
+  CQChartsStrokeData border_;     //!< border data
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsShapeData)
@@ -339,11 +339,11 @@ class CQChartsBoxData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool              visible_     { true };   //! draw box
-  double            margin_      { 4 };      //! inside margin (pixels)
-  double            padding_     { 0 };      //! outside margin (pixels)
-  CQChartsShapeData shape_;                  //! shape data
-  CQChartsSides     borderSides_ { "tlbr" }; //! border sides to draw
+  bool              visible_     { true };   //!< draw box
+  double            margin_      { 4 };      //!< inside margin (pixels)
+  double            padding_     { 0 };      //!< outside margin (pixels)
+  CQChartsShapeData shape_;                  //!< shape data
+  CQChartsSides     borderSides_ { "tlbr" }; //!< border sides to draw
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsBoxData)
@@ -386,8 +386,8 @@ class CQChartsTextBoxData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  CQChartsTextData text_; //! text data
-  CQChartsBoxData  box_;  //! box data
+  CQChartsTextData text_; //!< text data
+  CQChartsBoxData  box_;  //!< box data
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsTextBoxData)
@@ -443,11 +443,11 @@ class CQChartsSymbolData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool               visible_ { true };  //! visible
-  CQChartsSymbol     type_;              //! symbol type
-  CQChartsLength     size_    { "5px" }; //! symbol size
-  CQChartsStrokeData stroke_;            //! symbol stroke
-  CQChartsFillData   fill_;              //! symbol fill
+  bool               visible_ { true };  //!< visible
+  CQChartsSymbol     type_;              //!< symbol type
+  CQChartsLength     size_    { "5px" }; //!< symbol size
+  CQChartsStrokeData stroke_;            //!< symbol stroke
+  CQChartsFillData   fill_;              //!< symbol fill
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsSymbolData)
@@ -506,14 +506,14 @@ class CQChartsArrowData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool           relative_  { false }; //! to point relative to from
-  CQChartsLength length_    { "1V" };  //! arrow length
-  double         angle_     { -1 };    //! arrow angle (default 45 if <= 0)
-  double         backAngle_ { -1 };    //! arrow back angle (default 90 if <= 0)
-  bool           fhead_     { false }; //! draw arrow head at front
-  bool           thead_     { true };  //! draw arrow head at tail
-  bool           lineEnds_  { false }; //! lines at end
-  CQChartsLength lineWidth_ { -1 };    //! connecting line width
+  bool           relative_  { false }; //!< to point relative to from
+  CQChartsLength length_    { "1V" };  //!< arrow length
+  double         angle_     { -1 };    //!< arrow angle (default 45 if <= 0)
+  double         backAngle_ { -1 };    //!< arrow back angle (default 90 if <= 0)
+  bool           fhead_     { false }; //!< draw arrow head at front
+  bool           thead_     { true };  //!< draw arrow head at tail
+  bool           lineEnds_  { false }; //!< lines at end
+  CQChartsLength lineWidth_ { -1 };    //!< connecting line width
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsArrowData)

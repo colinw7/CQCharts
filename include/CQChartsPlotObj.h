@@ -58,6 +58,18 @@ class CQChartsPlotObj : public CQChartsObj {
     return rect_.inside(p);
   }
 
+  // is x inside (override if not simple rect shape)
+  virtual bool insideX(double x) const {
+    if (! isVisible()) return false;
+    return rect_.insideX(x);
+  }
+
+  // is y inside (override if not simple rect shape)
+  virtual bool insideY(double y) const {
+    if (! isVisible()) return false;
+    return rect_.insideY(y);
+  }
+
   // is rect inside/touching (override if not simple rect shape)
   virtual bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const {
     if (! isVisible()) return false;
@@ -107,8 +119,8 @@ class CQChartsPlotObj : public CQChartsObj {
   virtual void draw(QPainter *) = 0;
 
  protected:
-  CQChartsPlot* plot_     { nullptr }; //! parent plot
-  bool          visible_  { true };    //! is visible
+  CQChartsPlot* plot_     { nullptr }; //!< parent plot
+  bool          visible_  { true };    //!< is visible
 };
 
 //------

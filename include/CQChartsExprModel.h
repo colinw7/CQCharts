@@ -140,16 +140,16 @@ class CQChartsExprModel : public QAbstractProxyModel {
   using Args       = std::vector<QString>;
 
   struct ExtraColumn {
-    QString           expr;                                 //! expression
-    QString           header;                               //! header
-    CQBaseModelType   type       { CQBaseModelType::NONE }; //! value type
-    CQBaseModelType   baseType   { CQBaseModelType::NONE }; //! value base type
-    QString           typeValues;                           //! type extra values
-    NameValues        nameValues;                           //! type named values
-    VariantMap        variantMap;                           //! calculated values
-    Values            values;                               //! assign values
-    Function          function   { Function::EVAL };        //! current eval function
-    std::atomic<bool> evaluating { false };                 //! is evaluating column
+    QString           expr;                                 //!< expression
+    QString           header;                               //!< header
+    CQBaseModelType   type       { CQBaseModelType::NONE }; //!< value type
+    CQBaseModelType   baseType   { CQBaseModelType::NONE }; //!< value base type
+    QString           typeValues;                           //!< type extra values
+    NameValues        nameValues;                           //!< type named values
+    VariantMap        variantMap;                           //!< calculated values
+    Values            values;                               //!< assign values
+    Function          function   { Function::EVAL };        //!< current eval function
+    std::atomic<bool> evaluating { false };                 //!< is evaluating column
 
     ExtraColumn(const QString &expr, const QString &header="") :
      expr(expr), header(header) {
@@ -157,9 +157,9 @@ class CQChartsExprModel : public QAbstractProxyModel {
   };
 
   struct ColumnData {
-    CQBucketer bucketer;   //! bucketer
-    OptInt     imin, imax; //! integer range
-    OptReal    rmin, rmax; //! real range
+    CQBucketer bucketer;   //!< bucketer
+    OptInt     imin, imax; //!< integer range
+    OptReal    rmin, rmax; //!< real range
   };
 
   using TclCmds = std::vector<CQChartsExprModelFn *>;
@@ -238,21 +238,21 @@ class CQChartsExprModel : public QAbstractProxyModel {
   using ColumnNames  = std::map<int,QString>;
   using NameColumns  = std::map<QString,int>;
 
-  CQCharts*            charts_     { nullptr }; //! charts
-  CQChartsModelFilter* filter_     { nullptr }; //! parent filter model
-  QAbstractItemModel*  model_      { nullptr }; //! child data model
-  CQChartsExprTcl*     qtcl_       { nullptr }; //! tcl expression
-  TclCmds              tclCmds_;                //! tcl commands
-  bool                 editable_   { true };    //! is editable
-  bool                 debug_      { false };   //! is debug
-  ExtraColumns         extraColumns_;           //! extra columns
-  mutable int          nr_         { 0 };       //! cached number of rows
-  mutable int          nc_         { 0 };       //! cached number of columns
-  mutable int          currentRow_ { 0 };       //! cached current row
-  mutable int          currentCol_ { 0 };       //! cached current column
-  ColumnDatas          columnDatas_;            //! cached column datas
-  ColumnNames          columnNames_;            //! cached column names
-  NameColumns          nameColumns_;            //! cached named columns
+  CQCharts*            charts_     { nullptr }; //!< charts
+  CQChartsModelFilter* filter_     { nullptr }; //!< parent filter model
+  QAbstractItemModel*  model_      { nullptr }; //!< child data model
+  CQChartsExprTcl*     qtcl_       { nullptr }; //!< tcl expression
+  TclCmds              tclCmds_;                //!< tcl commands
+  bool                 editable_   { true };    //!< is editable
+  bool                 debug_      { false };   //!< is debug
+  ExtraColumns         extraColumns_;           //!< extra columns
+  mutable int          nr_         { 0 };       //!< cached number of rows
+  mutable int          nc_         { 0 };       //!< cached number of columns
+  mutable int          currentRow_ { 0 };       //!< cached current row
+  mutable int          currentCol_ { 0 };       //!< cached current column
+  ColumnDatas          columnDatas_;            //!< cached column datas
+  ColumnNames          columnNames_;            //!< cached column names
+  NameColumns          nameColumns_;            //!< cached named columns
   mutable std::mutex   mutex_;
 };
 

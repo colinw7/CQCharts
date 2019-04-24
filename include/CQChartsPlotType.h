@@ -70,6 +70,7 @@ class CQChartsPlotType : public QObject {
   Q_PROPERTY(bool      allowYLog          READ allowYLog         )
   Q_PROPERTY(bool      isGroupType        READ isGroupType       )
   Q_PROPERTY(bool      isHierarchical     READ isHierarchical    )
+  Q_PROPERTY(bool      canProbe           READ canProbe          )
 
   Q_ENUMS(Dimension)
 
@@ -125,6 +126,8 @@ class CQChartsPlotType : public QObject {
   virtual bool isGroupType() const { return false; }
 
   virtual bool isHierarchical() const { return false; }
+
+  virtual bool canProbe() const { return false; }
 
   //---
 
@@ -243,10 +246,10 @@ class CQChartsPlotType : public QObject {
   using Properties        = std::map<QString,PropertyData>;
   using ParameterGroupIds = std::vector<int>;
 
-  Parameters        parameters_;        //! parameters
-  ParameterGroupMap parameterGroups_;   //! parameter groups
-  ParameterGroupIds parameterGroupIds_; //! parameter group stack
-  Properties        properties_;        //! properties
+  Parameters        parameters_;        //!< parameters
+  ParameterGroupMap parameterGroups_;   //!< parameter groups
+  ParameterGroupIds parameterGroupIds_; //!< parameter group stack
+  Properties        properties_;        //!< properties
 };
 
 #endif

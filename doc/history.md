@@ -818,3 +818,6 @@
 # 4/21/2019
  + Cleanup description text
  + rename plot queue routines
+# 4/23/2019
+ + Improve description text
+ + Add better mouse feedback for distribution plot

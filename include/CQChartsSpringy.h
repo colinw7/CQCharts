@@ -90,11 +90,11 @@ namespace Springy {
     }
 
    private:
-    Vector p_;               //! position
-    double mass_ { 1.0 };    //! mass
-    Vector v_;               //! velocity
-    Vector a_;               //! acceleration
-    bool   fixed_ { false }; //! is fixed
+    Vector p_;               //!< position
+    double mass_ { 1.0 };    //!< mass
+    Vector v_;               //!< velocity
+    Vector a_;               //!< acceleration
+    bool   fixed_ { false }; //!< is fixed
   };
 
   //-----------
@@ -122,10 +122,10 @@ namespace Springy {
 */
 
    private:
-    Point* point1_ { nullptr }; //! start point
-    Point* point2_ { nullptr }; //! end point
-    double length_ { 1.0 };     //! spring length at rest
-    double k_      { 1.0 };     //! spring constant (See Hooke's law) .. how stiff the spring is
+    Point* point1_ { nullptr }; //!< start point
+    Point* point2_ { nullptr }; //!< end point
+    double length_ { 1.0 };     //!< spring length at rest
+    double k_      { 1.0 };     //!< spring constant (See Hooke's law) .. how stiff the spring is
   };
 
   using NodePoint = std::pair<Node*,Point*>;
@@ -158,12 +158,12 @@ namespace Springy {
     void setFixed(bool b) { fixed_ = b; }
 
    private:
-    int     id_     { 0 };     //! id
-    Vector  pos_;              //! position
-    double  mass_   { 1.0 };   //! mass
-    QString label_;            //! label
-    double  value_  { 0.0 };   //! value
-    bool    fixed_  { false }; //! is fixed
+    int     id_     { 0 };     //!< id
+    Vector  pos_;              //!< position
+    double  mass_   { 1.0 };   //!< mass
+    QString label_;            //!< label
+    double  value_  { 0.0 };   //!< value
+    bool    fixed_  { false }; //!< is fixed
   };
 
   using Nodes = std::vector<Node*>;
@@ -189,11 +189,11 @@ namespace Springy {
     void setValue(double v) { value_ = v; }
 
    private:
-    int    id_     { 0 };       //! id
-    Node*  source_ { nullptr }; //! source node
-    Node*  target_ { nullptr }; //! target node
-    double length_ { 1.0 };     //! length
-    double value_  { 0.0 };     //! value
+    int    id_     { 0 };       //!< id
+    Node*  source_ { nullptr }; //!< source node
+    Node*  target_ { nullptr }; //!< target node
+    double length_ { 1.0 };     //!< length
+    double value_  { 0.0 };     //!< value
   };
 
   using Edges = std::vector<Edge*>;
@@ -606,13 +606,13 @@ namespace Springy {
     using NodePoints  = std::map<int,Point*>;
     using EdgeSprings = std::map<int,Spring*>;
 
-    Graph*      graph_              { nullptr }; //! parent graph
-    double      stiffness_          { 400.0 };   //! spring stiffness constant
-    double      repulsion_          { 400.0 };   //! repulsion constant
-    double      damping_            { 0.5 };     //! velocity damping factor
-//  double      minEnergyThreshold_ { 0.0 };
-    NodePoints  nodePoints_;                     //! keep track of points associated with nodes
-    EdgeSprings edgeSprings_;                    //! keep track of springs associated with edges
+    Graph*      graph_              { nullptr }; //!< parent graph
+    double      stiffness_          { 400.0 };   //!< spring stiffness constant
+    double      repulsion_          { 400.0 };   //!< repulsion constant
+    double      damping_            { 0.5 };     //!< velocity damping factor
+//  double      minEnergyThreshold_ { 0.0 };     //!< min energy threshold
+    NodePoints  nodePoints_;                     //!< keep track of points associated with nodes
+    EdgeSprings edgeSprings_;                    //!< keep track of springs associated with edges
   };
 }
 

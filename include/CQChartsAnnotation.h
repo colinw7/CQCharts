@@ -159,10 +159,10 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void dataChanged();
 
  protected:
-  Type                 type_        { Type::NONE }; //! type
-  int                  ind_         { 0 };          //! unique ind
-  CQChartsGeom::BBox   bbox_;                       //! bbox (plot coords)
-  CQChartsEditHandles* editHandles_ { nullptr };    //! edit handles
+  Type                 type_        { Type::NONE }; //!< type
+  int                  ind_         { 0 };          //!< unique ind
+  CQChartsGeom::BBox   bbox_;                       //!< bbox (plot coords)
+  CQChartsEditHandles* editHandles_ { nullptr };    //!< edit handles
 };
 
 //---
@@ -207,7 +207,7 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
-  CQChartsRect rect_; //! rectangle
+  CQChartsRect rect_; //!< rectangle
 };
 
 //---
@@ -254,9 +254,9 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
-  CQChartsPosition center_;          //! ellipse center
-  CQChartsLength   xRadius_ { 1.0 }; //! ellipse x radius
-  CQChartsLength   yRadius_ { 1.0 }; //! ellipse y radius
+  CQChartsPosition center_;          //!< ellipse center
+  CQChartsLength   xRadius_ { 1.0 }; //!< ellipse x radius
+  CQChartsLength   yRadius_ { 1.0 }; //!< ellipse y radius
 };
 
 //---
@@ -293,7 +293,7 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
-  CQChartsPolygon polygon_; //! polygon points
+  CQChartsPolygon polygon_; //!< polygon points
 };
 
 //---
@@ -330,7 +330,7 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
-  CQChartsPolygon polygon_; //! polyline points
+  CQChartsPolygon polygon_; //!< polyline points
 };
 
 //---
@@ -403,8 +403,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   void positionToBBox();
 
  private:
-  CQChartsOptPosition position_; //! text position
-  CQChartsOptRect     rect_;     //! text bounding rect
+  CQChartsOptPosition position_; //!< text position
+  CQChartsOptRect     rect_;     //!< text bounding rect
 };
 
 //---
@@ -454,9 +454,9 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   void write(std::ostream &os) const override;
 
  private:
-  CQChartsPosition start_ { QPointF(0, 0) }; //! arrow start
-  CQChartsPosition end_   { QPointF(1, 1) }; //! arrow end
-  CQChartsArrow*   arrow_ { nullptr };       //! arrow data
+  CQChartsPosition start_ { QPointF(0, 0) }; //!< arrow start
+  CQChartsPosition end_   { QPointF(1, 1) }; //!< arrow end
+  CQChartsArrow*   arrow_ { nullptr };       //!< arrow data
 };
 
 //---
@@ -498,7 +498,7 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   void write(std::ostream &os) const override;
 
  private:
-  CQChartsPosition position_; //! point position
+  CQChartsPosition position_; //!< point position
 };
 
 #endif

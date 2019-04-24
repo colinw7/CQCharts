@@ -28,6 +28,8 @@ class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
 
   Dimension dimension() const override { return Dimension::ONE_D; }
 
+  bool canProbe() const override { return true; }
+
   void addParameters() override;
 
   QString description() const override;
@@ -105,10 +107,10 @@ class CQChartsBarChartValue {
   }
 
  private:
-  ValueInds  valueInds_;  //! value indices
-  QString    valueName_;  //! value name
-  QString    groupName_;  //! group name
-  NameValues nameValues_; //! name values
+  ValueInds  valueInds_;  //!< value indices
+  QString    valueName_;  //!< value name
+  QString    groupName_;  //!< group name
+  NameValues nameValues_; //!< name values
 };
 
 //------
@@ -163,10 +165,10 @@ class CQChartsBarChartValueSet {
   }
 
  private:
-  QString name_;            //! group name
-  int     ind_      { 0 };  //! index
-  int     groupInd_ { -1 }; //! group ind
-  Values  values_;          //! value bars
+  QString name_;            //!< group name
+  int     ind_      { 0 };  //!< index
+  int     groupInd_ { -1 }; //!< group ind
+  Values  values_;          //!< value bars
 };
 
 //------
@@ -221,15 +223,15 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   const CQChartsBarChartValue *value() const;
 
  private:
-  const CQChartsBarChartPlot* plot_  { nullptr }; //! parent plot
-  int                         iset_  { -1 };      //! set number
-  int                         nset_  { -1 };      //! number of sets
-  int                         ival_  { -1 };      //! value number
-  int                         nval_  { -1 };      //! number of values
-  int                         isval_ { -1 };      //! sub set number
-  int                         nsval_ { -1 };      //! number of sub sets
-  QModelIndex                 ind_;               //! model index
-  CQChartsColor               color_;             //! custom color
+  const CQChartsBarChartPlot* plot_  { nullptr }; //!< parent plot
+  int                         iset_  { -1 };      //!< set number
+  int                         nset_  { -1 };      //!< number of sets
+  int                         ival_  { -1 };      //!< value number
+  int                         nval_  { -1 };      //!< number of values
+  int                         isval_ { -1 };      //!< sub set number
+  int                         nsval_ { -1 };      //!< number of sub sets
+  QModelIndex                 ind_;               //!< model index
+  CQChartsColor               color_;             //!< custom color
 };
 
 //---
@@ -261,8 +263,8 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   void setSetHidden(bool b);
 
  private:
-  CQChartsBarChartPlot* plot_  { nullptr }; //! plot
-  CQChartsColor         color_;             //! custom color
+  CQChartsBarChartPlot* plot_  { nullptr }; //!< plot
+  CQChartsColor         color_;             //!< custom color
 };
 
 /*!
@@ -456,8 +458,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   using ValueGroupInd = std::map<int,int>;
 
   struct ValueData {
-    ValueSets     valueSets;     //! value sets
-    ValueGroupInd valueGroupInd; //! group ind to value index map
+    ValueSets     valueSets;     //!< value sets
+    ValueGroupInd valueGroupInd; //!< group ind to value index map
 
     void clear() {
       valueSets    .clear();
@@ -482,18 +484,18 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   CQChartsBarChartValueSet *groupValueSet(int groupId);
 
  private:
-  CQChartsColumn     nameColumn_;                          //! name column
-  CQChartsColumn     labelColumn_;                         //! data label column
-  PlotType           plotType_       { PlotType::NORMAL }; //! plot type
-  ValueType          valueType_      { ValueType::VALUE }; //! bar value type
-  bool               percent_        { false };            //! percent values
-  bool               colorBySet_     { false };            //! color bars by set or value
-  bool               dotLines_       { false };            //! show dot lines
-  CQChartsLength     dotLineWidth_   { "3px" };            //! dot line width
-  CQChartsDataLabel* dataLabel_      { nullptr };          //! data label data
-  int                numVisible_     { 0 };                //! number of visible bars
-  double             barWidth_       { 1.0 };              //! bar width
-  ValueData          valueData_;                           //! value data
+  CQChartsColumn     nameColumn_;                          //!< name column
+  CQChartsColumn     labelColumn_;                         //!< data label column
+  PlotType           plotType_       { PlotType::NORMAL }; //!< plot type
+  ValueType          valueType_      { ValueType::VALUE }; //!< bar value type
+  bool               percent_        { false };            //!< percent values
+  bool               colorBySet_     { false };            //!< color bars by set or value
+  bool               dotLines_       { false };            //!< show dot lines
+  CQChartsLength     dotLineWidth_   { "3px" };            //!< dot line width
+  CQChartsDataLabel* dataLabel_      { nullptr };          //!< data label data
+  int                numVisible_     { 0 };                //!< number of visible bars
+  double             barWidth_       { 1.0 };              //!< bar width
+  ValueData          valueData_;                           //!< value data
 };
 
 #endif

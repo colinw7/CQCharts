@@ -69,16 +69,16 @@ class CQChartsCmdArg {
   const NameValues &nameValues() const { return nameValues_; }
 
  private:
-  int        ind_      { -1 };         // command ind
-  QString    name_;                    // arg name
-  bool       isOpt_    { false };      // is option
-  Type       type_     { Type::None }; // value type
-  QString    argDesc_;                 // short description
-  QString    desc_;                    // long description
-  bool       required_ { false };      // is required
-  bool       multiple_ { false };      // can have multiple values
-  int        groupInd_ { -1 };         // cmd group ind
-  NameValues nameValues_;              // enum name values
+  int        ind_      { -1 };         //!< command ind
+  QString    name_;                    //!< arg name
+  bool       isOpt_    { false };      //!< is option
+  Type       type_     { Type::None }; //!< value type
+  QString    argDesc_;                 //!< short description
+  QString    desc_;                    //!< long description
+  bool       required_ { false };      //!< is required
+  bool       multiple_ { false };      //!< can have multiple values
+  int        groupInd_ { -1 };         //!< cmd group ind
+  NameValues nameValues_;              //!< enum name values
 };
 
 #endif

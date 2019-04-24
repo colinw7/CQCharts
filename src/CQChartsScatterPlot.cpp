@@ -692,19 +692,19 @@ addProperties()
   addProperty("bestFit", this, "bestFitDeviation", "deviation")->
     setDesc("Best fit standard deviation");
 
-  addLineProperties("bestFit/stroke", "bestFitBorder");
-  addFillProperties("bestFit/fill"  , "bestFitFill"  );
+  addFillProperties("bestFit/fill"  , "bestFitFill"  , "Best fit");
+  addLineProperties("bestFit/stroke", "bestFitBorder", "Best fit");
 
   // stats
-  addProperty("statsData", this, "statsLines", "visible")->setDesc("Show statistic lines");
+  addProperty("statsData", this, "statsLines", "visible")->setDesc("Statistic lines visible");
 
-  addLineProperties("statsData", "statsLines");
+  addLineProperties("statsData", "statsLines", "Statistic lines");
 
   // convex hull shape
   addProperty("hull", this, "hull", "enabled")->setDesc("Show convex hull");
 
-  addLineProperties("hull/stroke", "hullBorder");
-  addFillProperties("hull/fill"  , "hullFill"  );
+  addFillProperties("hull/fill"  , "hullFill"  , "Convex hull");
+  addLineProperties("hull/stroke", "hullBorder", "Convex hull");
 
   // rug axis
   addProperty("rug/x"     , this, "xRug"         , "enabled")->
@@ -753,7 +753,7 @@ addProperties()
 
   CQChartsGroupPlot::addProperties();
 
-  addSymbolProperties("symbol");
+  addSymbolProperties("symbol", "", "");
 
   // point data labels
   dataLabel_->addPathProperties("dataLabel");
@@ -763,13 +763,14 @@ addProperties()
   addProperty("grid", this, "gridNumX", "nx"     )->setDesc("Number of x grid cells");
   addProperty("grid", this, "gridNumY", "ny"     )->setDesc("Number of y grid cells");
 
-  addFillProperties("grid/fill"  , "gridCellFill"  );
-  addProperty      ("grid/stroke", this, "gridCellBorder", "visible")->setDesc("Grid cell border");
-  addLineProperties("grid/stroke", "gridCellBorder");
+  addFillProperties("grid/fill"  , "gridCellFill"  , "Grid cell");
+  addProperty      ("grid/stroke", this, "gridCellBorder", "visible")->
+    setDesc("Grid cell stroke visible");
+  addLineProperties("grid/stroke", "gridCellBorder", "Grid cell");
 
   // symbol key
   addProperty("symbol/key", this, "symbolMapKey"      , "visible")->
-    setDesc("Show symbol size key");
+    setDesc("Symbol size key visible");
   addProperty("symbol/key", this, "symbolMapKeyAlpha" , "alpha"  )->
     setDesc("Symbol size key alpha");
   addProperty("symbol/key", this, "symbolMapKeyMargin", "margin" )->

@@ -415,16 +415,16 @@ class CQChartsSValues {
   using ValueSet  = std::map<QString,KeyCount>;
   using SetValues = std::map<int,QString>;
 
-  OptValues values_;        //! all string values
-  ValueSet  valset_;        //! unique indexed string values
-  SetValues setvals_;       //! index to string map
-  int       numNull_ { 0 }; //! number of null values
+  OptValues values_;        //!< all string values
+  ValueSet  valset_;        //!< unique indexed string values
+  SetValues setvals_;       //!< index to string map
+  int       numNull_ { 0 }; //!< number of null values
 
-  int                   initBuckets_  { 10 };      //! initial buckets
-  CQChartsTrie*         trie_         { nullptr }; //! string trie
-  CQChartsTriePatterns* spatterns_    { nullptr }; //! trie patterns
-  bool                  spatternsSet_ { false };   //! trie patterns set
-  mutable std::mutex    mutex_;                    //! mutex
+  int                   initBuckets_  { 10 };      //!< initial buckets
+  CQChartsTrie*         trie_         { nullptr }; //!< string trie
+  CQChartsTriePatterns* spatterns_    { nullptr }; //!< trie patterns
+  bool                  spatternsSet_ { false };   //!< trie patterns set
+  mutable std::mutex    mutex_;                    //!< mutex
 };
 
 //---
@@ -527,10 +527,10 @@ class CQChartsCValues {
   using ValueSet  = std::map<CQChartsColor,KeyCount,CQChartsUtil::ColorCmp>;
   using SetValues = std::map<int,CQChartsColor>;
 
-  Values    values_;        //! all color values
-  ValueSet  valset_;        //! unique indexed color values
-  SetValues setvals_;       //! index to color map
-  int       numNull_ { 0 }; //! number of null values
+  Values    values_;        //!< all color values
+  ValueSet  valset_;        //!< unique indexed color values
+  SetValues setvals_;       //!< index to color map
+  int       numNull_ { 0 }; //!< number of null values
 };
 
 //------
@@ -697,28 +697,28 @@ class CQChartsValueSet : public QObject {
  protected:
   using Values = std::vector<QVariant>;
 
-  const CQChartsPlot* plot_ { nullptr }; //! plot
+  const CQChartsPlot* plot_ { nullptr }; //!< plot
 
-  CQChartsColumn column_; //! associated model column
+  CQChartsColumn column_; //!< associated model column
 
-  bool   mapped_  { false }; //! is mapped
-  double map_min_ { 0.0 };   //! map min
-  double map_max_ { 1.0 };   //! map max
+  bool   mapped_  { false }; //!< is mapped
+  double map_min_ { 0.0 };   //!< map min
+  double map_max_ { 1.0 };   //!< map max
 
-  Values values_;                //! input values
-  bool   initialized_ { false }; //! are real, integer, string values initialized
+  Values values_;                //!< input values
+  bool   initialized_ { false }; //!< are real, integer, string values initialized
 
-  Type type_ { Type::NONE }; //! calculated type
+  Type type_ { Type::NONE }; //!< calculated type
 
-  CQChartsIValues ivals_; //! integer values
-  CQChartsRValues rvals_; //! real values
-  CQChartsSValues svals_; //! string values
-  CQChartsCValues cvals_; //! color values
-  CQChartsRValues tvals_; //! time values
+  CQChartsIValues ivals_; //!< integer values
+  CQChartsRValues rvals_; //!< real values
+  CQChartsSValues svals_; //!< string values
+  CQChartsCValues cvals_; //!< color values
+  CQChartsRValues tvals_; //!< time values
 
-  bool allowNaN_ { false }; //! allow NaN values
+  bool allowNaN_ { false }; //!< allow NaN values
 
-  mutable std::mutex mutex_; //! mutex
+  mutable std::mutex mutex_; //!< mutex
 };
 
 #endif

@@ -93,13 +93,13 @@ class CQChartsArrow : public QObject,
   void dataChanged();
 
  private:
-  CQChartsView*     view_    { nullptr }; //! parent view
-  CQChartsPlot*     plot_    { nullptr }; //! parent plot
-  bool              visible_ { true };    //! is visible
-  QPointF           from_    { 0, 0 };    //! start point
-  QPointF           to_      { 1, 1 };    //! end point
-  CQChartsArrowData data_;                //! arrow data
-  mutable QPainter* painter_ { nullptr }; //! painter
+  CQChartsView*     view_    { nullptr }; //!< parent view
+  CQChartsPlot*     plot_    { nullptr }; //!< parent plot
+  bool              visible_ { true };    //!< is visible
+  QPointF           from_    { 0, 0 };    //!< start point
+  QPointF           to_      { 1, 1 };    //!< end point
+  CQChartsArrowData data_;                //!< arrow data
+  mutable QPainter* painter_ { nullptr }; //!< painter
 };
 
 #endif

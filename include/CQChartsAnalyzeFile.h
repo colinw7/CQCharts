@@ -15,7 +15,7 @@ class CQChartsAnalyzeFile {
                   bool &firstLineHeader, bool &firstColumnHeader);
 
  private:
-  QString filename_; //! file name
+  QString filename_; //!< file name
 };
 
 #endif

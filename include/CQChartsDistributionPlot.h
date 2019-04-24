@@ -18,6 +18,9 @@ struct CQChartsDistributionBarValue {
 
 //---
 
+/*!
+ * \brief Distribution Plot Bucket
+ */
 class CQChartsDistributionBucket {
  public:
   enum class Type {
@@ -75,8 +78,8 @@ class CQChartsDistributionBucket {
   }
 
  private:
-  Type type_  { Type::VALUE };
-  int  value_ { -1 };
+  Type type_  { Type::VALUE }; //!< bucket type
+  int  value_ { -1 };          //!< bucket value
 };
 
 //---
@@ -98,6 +101,8 @@ class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
   bool allowXLog() const override { return false; }
 
   Dimension dimension() const override { return Dimension::ONE_D; }
+
+  bool canProbe() const override { return true; }
 
   void addParameters() override;
 
@@ -166,6 +171,9 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   QString groupName() const;
 
   QString bucketStr() const;
+
+  bool bucketXValue(double x, double &value) const;
+  bool bucketYValue(double y, double &value) const;
 
   int count() const;
 
@@ -390,8 +398,8 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
   void setSetHidden(bool b);
 
  private:
-  CQChartsDistributionPlot* plot_;  //! plot
-  CQChartsColor             color_; //! custom color
+  CQChartsDistributionPlot* plot_;  //!< plot
+  CQChartsColor             color_; //!< custom color
 };
 
 /*!
@@ -662,6 +670,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
+  QString posStr(const CQChartsGeom::Point &w) const;
+
+  //---
+
   bool addMenuItems(QMenu *) override;
 
   //---
@@ -832,25 +844,25 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
  private:
   struct DensityData {
-    double offset     { 0.0 };   //! offset
-    int    numSamples { 100 };   //! num samples
-    bool   gradient   { false }; //! gradient
-    bool   bars       { false }; //! show bars
+    double offset     { 0.0 };   //!< offset
+    int    numSamples { 100 };   //!< num samples
+    bool   gradient   { false }; //!< gradient
+    bool   bars       { false }; //!< show bars
   };
 
   struct ScatterData {
-    double factor { 1.0 }; //! factor
+    double factor { 1.0 }; //!< factor
   };
 
   struct DotLineData {
-    bool           enabled { false }; //! shown
-    CQChartsLength width   { "3px" }; //! width
+    bool           enabled { false }; //!< shown
+    CQChartsLength width   { "3px" }; //!< width
   };
 
   struct GroupData {
-    GroupValues      groupValues;      //! grouped value sets
-    GroupBucketer    groupBucketer;    //! group bucketer
-    GroupBucketRange groupBucketRange; //! bucketer per group
+    GroupValues      groupValues;      //!< grouped value sets
+    GroupBucketer    groupBucketer;    //!< group bucketer
+    GroupBucketRange groupBucketRange; //!< bucketer per group
   };
 
   CQChartsColumn     nameColumn_;                          //!< name column

@@ -123,17 +123,17 @@ class CQChartsEditAnnotationDlg : public QDialog {
   void cancelSlot();
 
  private:
-  CQChartsAnnotation* annotation_       { nullptr }; //! annotation
-  CQLineEdit*         idEdit_           { nullptr }; //! id edit
-  CQLineEdit*         tipEdit_          { nullptr }; //! tip edit
-  QVBoxLayout*        frameLayout_      { nullptr }; //! frame layout
-  RectWidgets         rectWidgets_;                  //! rect edit widgets
-  EllipseWidgets      ellipseWidgets_;               //! ellipse edit widgets
-  PolygonWidgets      polygonWidgets_;               //! polygon edit widgets
-  PolylineWidgets     polylineWidgets_;              //! polyline edit widgets
-  TextWidgets         textWidgets_;                  //! text edit widgets
-  ArrowWidgets        arrowWidgets_;                 //! arrow edit widgets
-  PointWidgets        pointWidgets_;                 //! point edit widgets
+  CQChartsAnnotation* annotation_       { nullptr }; //!< annotation
+  CQLineEdit*         idEdit_           { nullptr }; //!< id edit
+  CQLineEdit*         tipEdit_          { nullptr }; //!< tip edit
+  QVBoxLayout*        frameLayout_      { nullptr }; //!< frame layout
+  RectWidgets         rectWidgets_;                  //!< rect edit widgets
+  EllipseWidgets      ellipseWidgets_;               //!< ellipse edit widgets
+  PolygonWidgets      polygonWidgets_;               //!< polygon edit widgets
+  PolylineWidgets     polylineWidgets_;              //!< polyline edit widgets
+  TextWidgets         textWidgets_;                  //!< text edit widgets
+  ArrowWidgets        arrowWidgets_;                 //!< arrow edit widgets
+  PointWidgets        pointWidgets_;                 //!< point edit widgets
 };
 
 #endif

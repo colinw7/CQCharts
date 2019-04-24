@@ -56,14 +56,14 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("labels/x"   , this, "xLabels"        , "visible")->setDesc("Show x labels");
-  addProperty("labels/y"   , this, "yLabels"        , "visible")->setDesc("Show y labels");
-  addProperty("labels/cell", this, "cellLabels"     , "visible")->setDesc("Show cell labels");
+  addProperty("labels/x"   , this, "xLabels"        , "visible")->setDesc("X labels visible");
+  addProperty("labels/y"   , this, "yLabels"        , "visible")->setDesc("Y labels visible");
+  addProperty("labels/cell", this, "cellLabels"     , "visible")->setDesc("Cell labels visible");
   addProperty("labels/cell", this, "scaleCellLabels", "scaled" )->setDesc("Scale cell labels");
 
-  addTextProperties("labels", "text");
+  addTextProperties("labels", "text", "Labels");
 
-  addProperty("balloon", this, "balloon", "visible")->setDesc("Show cell balloon");
+  addProperty("balloon", this, "balloon", "visible")->setDesc("Cell balloon visible");
 }
 
 //------

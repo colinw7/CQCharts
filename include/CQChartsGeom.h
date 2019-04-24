@@ -701,6 +701,18 @@ class BBox {
             (bbox.pmin_.y >= pmin_.y && bbox.pmax_.y <= pmax_.y));
   }
 
+  bool insideX(double x) const {
+    if (! set_) return false;
+
+    return (x >= pmin_.x && x <= pmax_.x);
+  }
+
+  bool insideY(double y) const {
+    if (! set_) return false;
+
+    return (y >= pmin_.y && y <= pmax_.y);
+  }
+
   double distanceTo(const BBox &bbox) const {
     if (! set_) return 1E50; // assert
 

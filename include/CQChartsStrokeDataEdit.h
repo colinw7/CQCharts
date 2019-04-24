@@ -91,18 +91,18 @@ class CQChartsStrokeDataEdit : public CQChartsEditBase {
   void widgetsToData();
 
  private:
-  CQChartsStrokeDataEditConfig   config_;                 //<! edit config
-  CQChartsPlot*                  plot_       { nullptr }; //<! parent plot
-  CQChartsView*                  view_       { nullptr }; //<! parent view
-  CQChartsStrokeData             data_;                   //<! stroke data
-  CQGroupBox*                    groupBox_   { nullptr }; //<! group box
-  CQChartsColorLineEdit*         colorEdit_  { nullptr }; //<! color edit
-  CQChartsAlphaEdit*             alphaEdit_  { nullptr }; //<! alpha edit
-  CQChartsLengthEdit*            widthEdit_  { nullptr }; //<! width edit
-  CQChartsLineDashEdit*          dashEdit_   { nullptr }; //<! dash edit
-  CQChartsLengthEdit*            cornerEdit_ { nullptr }; //<! corner edit
-  CQChartsStrokeDataEditPreview* preview_    { nullptr }; //<! preview
-  bool                           connected_  { false };   //<! is connected
+  CQChartsStrokeDataEditConfig   config_;                 //!< edit config
+  CQChartsPlot*                  plot_       { nullptr }; //!< parent plot
+  CQChartsView*                  view_       { nullptr }; //!< parent view
+  CQChartsStrokeData             data_;                   //!< stroke data
+  CQGroupBox*                    groupBox_   { nullptr }; //!< group box
+  CQChartsColorLineEdit*         colorEdit_  { nullptr }; //!< color edit
+  CQChartsAlphaEdit*             alphaEdit_  { nullptr }; //!< alpha edit
+  CQChartsLengthEdit*            widthEdit_  { nullptr }; //!< width edit
+  CQChartsLineDashEdit*          dashEdit_   { nullptr }; //!< dash edit
+  CQChartsLengthEdit*            cornerEdit_ { nullptr }; //!< corner edit
+  CQChartsStrokeDataEditPreview* preview_    { nullptr }; //!< preview
+  bool                           connected_  { false };   //!< is connected
 };
 
 //---

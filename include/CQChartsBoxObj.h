@@ -53,9 +53,9 @@ class CQChartsBoxObj : public CQChartsObj,
   void draw(QPainter *painter, const QPolygonF &poly) const;
 
  protected:
-  CQChartsView* view_          { nullptr }; //! parent view
-  CQChartsPlot* plot_          { nullptr }; //! parent plot
-  bool          stateColoring_ { true };    //! color depending on inside/selected state
+  CQChartsView* view_          { nullptr }; //!< parent view
+  CQChartsPlot* plot_          { nullptr }; //!< parent plot
+  bool          stateColoring_ { true };    //!< color depending on inside/selected state
 };
 
 #endif

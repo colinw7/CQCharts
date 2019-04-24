@@ -89,13 +89,13 @@ class CQChartsAdjacencyNode {
   }
 
  private:
-  int         id_       { 0 };   //! id
-  QString     name_;             //! name
-  int         group_    { 0 };   //! group
-  QModelIndex ind_;              //! model index
-  double      count_    { 0.0 }; //! total connections
-  double      maxCount_ { 0.0 }; //! max connections to single node
-  NodeMap     nodes_;            //! connected nodes
+  int         id_       { 0 };   //!< id
+  QString     name_;             //!< name
+  int         group_    { 0 };   //!< group
+  QModelIndex ind_;              //!< model index
+  double      count_    { 0.0 }; //!< total connections
+  double      maxCount_ { 0.0 }; //!< max connections to single node
+  NodeMap     nodes_;            //!< connected nodes
 };
 
 //------
@@ -129,10 +129,10 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  const CQChartsAdjacencyPlot* plot_  { nullptr }; //! parent plot
-  CQChartsAdjacencyNode*       node1_ { nullptr }; //! row node
-  CQChartsAdjacencyNode*       node2_ { nullptr }; //! column node
-  double                       value_ { 0 };       //! connections value
+  const CQChartsAdjacencyPlot* plot_  { nullptr }; //!< parent plot
+  CQChartsAdjacencyNode*       node1_ { nullptr }; //!< row node
+  CQChartsAdjacencyNode*       node2_ { nullptr }; //!< column node
+  double                       value_ { 0 };       //!< connections value
 };
 
 //---
@@ -322,11 +322,11 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   using NodeArray = std::vector<CQChartsAdjacencyNode*>;
 
   struct NodeData {
-    double maxValue   { 0 };   //! max node value
-    int    maxGroup   { 0 };   //! max node group
-    int    maxLen     { 0 };   //! max text length
-    double scale      { 1.0 }; //! box size
-    double drawFactor { 1.0 }; //! saved font factor
+    double maxValue   { 0 };   //!< max node value
+    int    maxGroup   { 0 };   //!< max node group
+    int    maxLen     { 0 };   //!< max text length
+    double scale      { 1.0 }; //!< box size
+    double drawFactor { 1.0 }; //!< saved font factor
   };
 
  private:
@@ -337,22 +337,22 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   using AdjacencyObj = CQChartsAdjacencyObj;
 
-  CQChartsColumn nodeColumn_;                                 //! connection node column
-  CQChartsColumn connectionsColumn_;                          //! connections column
-  CQChartsColumn nameColumn_;                                 //! name column
-  CQChartsColumn namePairColumn_;                             //! name pairs column
-  CQChartsColumn countColumn_;                                //! count column
-  CQChartsColumn groupIdColumn_;                              //! group id column
-  SortType       sortType_              { SortType::GROUP };  //! sort type
-  CQChartsLength bgMargin_              { "2px" };            //! background margin
-  NodeMap        nodes_;                                      //! all nodes
-  NameNodeMap    nameNodeMap_;                                //! name node map
-  double         factor_                { 1.0 };              //! font factor
-  AdjacencyObj*  insideObj_             { nullptr };          //! last inside object
-  ColumnType     connectionsColumnType_ { ColumnType::NONE }; //! connection column type
-  ColumnType     namePairColumnType_    { ColumnType::NONE }; //! name pair column type
-  NodeArray      sortedNodes_;                                //! sorted nodes
-  NodeData       nodeData_;                                   //! node data
+  CQChartsColumn nodeColumn_;                                 //!< connection node column
+  CQChartsColumn connectionsColumn_;                          //!< connections column
+  CQChartsColumn nameColumn_;                                 //!< name column
+  CQChartsColumn namePairColumn_;                             //!< name pairs column
+  CQChartsColumn countColumn_;                                //!< count column
+  CQChartsColumn groupIdColumn_;                              //!< group id column
+  SortType       sortType_              { SortType::GROUP };  //!< sort type
+  CQChartsLength bgMargin_              { "2px" };            //!< background margin
+  NodeMap        nodes_;                                      //!< all nodes
+  NameNodeMap    nameNodeMap_;                                //!< name node map
+  double         factor_                { 1.0 };              //!< font factor
+  AdjacencyObj*  insideObj_             { nullptr };          //!< last inside object
+  ColumnType     connectionsColumnType_ { ColumnType::NONE }; //!< connection column type
+  ColumnType     namePairColumnType_    { ColumnType::NONE }; //!< name pair column type
+  NodeArray      sortedNodes_;                                //!< sorted nodes
+  NodeData       nodeData_;                                   //!< node data
 };
 
 #endif

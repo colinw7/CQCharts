@@ -271,7 +271,7 @@ CQChartsXYPlot::
 setBestFit(bool b)
 {
   CQChartsUtil::testAndSet(bestFitData_.visible, b, [&]() {
-    bestFitData_.includeOutliers = b; resetBestFit(); drawObjs();
+    bestFitData_.visible = b; resetBestFit(); drawObjs();
   } );
 }
 
@@ -289,7 +289,7 @@ CQChartsXYPlot::
 setBestFitDeviation(bool b)
 {
   CQChartsUtil::testAndSet(bestFitData_.showDeviation, b, [&]() {
-    bestFitData_.includeOutliers = b; resetBestFit(); drawObjs();
+    bestFitData_.showDeviation = b; resetBestFit(); drawObjs();
   } );
 }
 
@@ -448,9 +448,9 @@ addProperties()
   addProperty("columns", this, "vectorYColumn"     , "vectorY"    )->setDesc("Vector y column");
 
   // bivariate
-  addProperty("bivariate", this, "bivariateLines", "visible")->setDesc("Show bivariate lines");
+  addProperty("bivariate", this, "bivariateLines", "visible")->setDesc("Bivariate lines visible");
 
-  addLineProperties("bivariate", "bivariateLines");
+  addLineProperties("bivariate", "bivariateLines", "Bivariate");
 
   // stacked
   addProperty("stacked", this, "stacked", "enabled")->setDesc("Stack y values");
@@ -459,21 +459,21 @@ addProperties()
   addProperty("cumulative", this, "cumulative", "enabled")->setDesc("Cumulative values");
 
   // points
-  addProperty("points", this, "points"         , "visible")->setDesc("Show point symbol");
+  addProperty("points", this, "points"         , "visible")->setDesc("Point symbol visible");
   addProperty("points", this, "pointLineSelect", "lineSelect")->
     setDesc("Select point selects line");
   addProperty("points", this, "pointCount"     , "count")->setDesc("Number of points to show");
   addProperty("points", this, "pointDelta"     , "delta")->setDesc("Show points delta index");
   addProperty("points", this, "pointStart"     , "start")->setDesc("Show points start index");
 
-  addSymbolProperties("points/symbol");
+  addSymbolProperties("points/symbol", "", "Points");
 
   // lines
-  addProperty("lines", this, "lines"          , "visible"   )->setDesc("Show lines");
+  addProperty("lines", this, "lines"          , "visible"   )->setDesc("Lines visible");
   addProperty("lines", this, "linesSelectable", "selectable")->setDesc("Lines selectable");
   addProperty("lines", this, "roundedLines"   , "rounded"   )->setDesc("Smooth lines");
 
-  addLineProperties("lines", "lines");
+  addLineProperties("lines", "lines", "Lines");
 
   // best fit line and deviation fill
   addProperty("bestFit", this, "bestFit"         , "enabled"  )->
@@ -485,17 +485,17 @@ addProperties()
   addProperty("bestFit", this, "bestFitDeviation", "deviation")->
     setDesc("Best fit standard deviation");
 
-  addLineProperties("bestFit/stroke", "bestFitBorder");
-  addFillProperties("bestFit/fill"  , "bestFitFill"  );
+  addFillProperties("bestFit/fill"  , "bestFitFill"  , "Best fit");
+  addLineProperties("bestFit/stroke", "bestFitBorder", "Best fit");
 
   // stats
-  addProperty("statsData", this, "statsLines", "visible")->setDesc("Show statistic lines");
+  addProperty("statsData", this, "statsLines", "visible")->setDesc("Statistic lines visible");
 
-  addLineProperties("statsData", "statsLines");
+  addLineProperties("statsData", "statsLines", "Statistic lines");
 
   // fill under
   addProperty("fillUnder", this, "fillUnderFilled"    , "visible"   )->
-    setDesc("Show fill under lines");
+    setDesc("Fill under lines visible");
   addProperty("fillUnder", this, "fillUnderSelectable", "selectable")->
     setDesc("Fill under polygon selectable");
   addProperty("fillUnder", this, "fillUnderPos"       , "position"  )->
@@ -503,16 +503,16 @@ addProperties()
   addProperty("fillUnder", this, "fillUnderSide"      , "side"      )->
     setDesc("Fill under line side");
 
-  addFillProperties("fillUnder", "fillUnderFill");
+  addFillProperties("fillUnder", "fillUnderFill", "Fill under");
 
   // impulse
-  addProperty("impulse", this, "impulseLines", "visible")->setDesc("Draw impulse lines");
+  addProperty("impulse", this, "impulseLines", "visible")->setDesc("Impulse lines visible");
 
-  addLineProperties("impulse", "impulseLines");
+  addLineProperties("impulse", "impulseLines", "Impulse");
 
   // vectors
   addProperty("vectors", this     , "vectors"  , "visible"  )->
-    setDesc("Draw vectors at points");
+    setDesc("Vectors at points visible");
   addProperty("vectors", arrowObj_, "length"   , "length"   )->
     setDesc("Vector arrow length");
   addProperty("vectors", arrowObj_, "angle"    , "angle"    )->
@@ -534,7 +534,7 @@ addProperties()
   addProperty("vectors/fill", arrowObj_, "fillColor", "color"  )->setDesc("Fill color");
   addProperty("vectors/fill", arrowObj_, "fillAlpha", "alpha"  )->setDesc("Fill alpha");
 
-  addProperty("vectors/stroke", arrowObj_, "border"     , "visible")->setDesc("Show stroke");
+  addProperty("vectors/stroke", arrowObj_, "border"     , "visible")->setDesc("Stroke visible");
   addProperty("vectors/stroke", arrowObj_, "borderColor", "color"  )->setDesc("Stroke color");
   addProperty("vectors/stroke", arrowObj_, "borderAlpha", "alpha"  )->setDesc("Stroke alpha");
   addProperty("vectors/stroke", arrowObj_, "borderWidth", "width"  )->setDesc("Stroke width");
@@ -545,7 +545,7 @@ addProperties()
   addProperty("dataLabel", this, "dataLabelTextAngle"  , "angle"  )->
     setDesc("Data label text angle");
 
-  addAllTextProperties("dataLabel" , "dataLabelText");
+  addAllTextProperties("dataLabel" , "dataLabelText", "Data label");
 
   CQChartsGroupPlot::addProperties();
 }
@@ -2584,10 +2584,12 @@ draw(QPainter *painter)
     pen.setColor(strokeColor);
   }
 
+#if 0
   if (plot()->isStatsLines() && lineObj()->isOutlier(pos_.y())) {
     brush.setColor(Qt::red);
     pen  .setColor(Qt::red);
   }
+#endif
 
   plot()->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
@@ -2928,7 +2930,7 @@ initStats()
   if (! statData_.set) {
     std::vector<double> y;
 
-    for (int i = 0; i < poly_.length(); ++i)
+    for (int i = 0; i < poly_.size(); ++i)
       y.push_back(poly_[i].y());
 
     std::sort(y.begin(), y.end());
@@ -3578,7 +3580,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
       QColor lineColor = plot()->interpLinesColor(i_, n_);
 
       if (plot()->isSetHidden(i_))
-        lineColor = CQChartsUtil::blendColors(lineColor       , hideBg, hideAlpha);
+        lineColor = CQChartsUtil::blendColors(lineColor, hideBg, hideAlpha);
 
       plot()->setPen(linePen, true, lineColor, plot()->linesAlpha(),
                      plot()->linesWidth(), plot()->linesDash());

@@ -62,7 +62,7 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
   }
 
  protected:
-  QString textStr_; //! text
+  QString textStr_; //!< text
 };
 
 #endif

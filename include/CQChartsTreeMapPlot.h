@@ -110,21 +110,21 @@ class CQChartsTreeMapNode {
   virtual QColor interpColor(const CQChartsTreeMapPlot *plot, int n) const;
 
  protected:
-  const CQChartsTreeMapPlot* plot_    { nullptr }; //! parent plot
-  CQChartsTreeMapHierNode*   parent_  { nullptr }; //! parent hier node
-  uint                       id_      { 0 };       //! node id
-  QString                    name_;                //! node name
-  double                     size_    { 0.0 };     //! node size
-  double                     x_       { 0.0 };     //! node x
-  double                     y_       { 0.0 };     //! node y
-  double                     w_       { 1.0 };     //! node width
-  double                     h_       { 1.0 };     //! node height
-  int                        colorId_ { -1 };      //! node color index
-  CQChartsColor              color_   { };         //! node explicit color
-  QModelIndex                ind_;                 //! node model index
-  int                        depth_   { 0 };       //! node depth
-  bool                       filler_  { false };   //! is filler
-  bool                       placed_  { false };   //! is placed
+  const CQChartsTreeMapPlot* plot_    { nullptr }; //!< parent plot
+  CQChartsTreeMapHierNode*   parent_  { nullptr }; //!< parent hier node
+  uint                       id_      { 0 };       //!< node id
+  QString                    name_;                //!< node name
+  double                     size_    { 0.0 };     //!< node size
+  double                     x_       { 0.0 };     //!< node x
+  double                     y_       { 0.0 };     //!< node y
+  double                     w_       { 1.0 };     //!< node width
+  double                     h_       { 1.0 };     //!< node height
+  int                        colorId_ { -1 };      //!< node color index
+  CQChartsColor              color_   { };         //!< node explicit color
+  QModelIndex                ind_;                 //!< node model index
+  int                        depth_   { 0 };       //!< node depth
+  bool                       filler_  { false };   //!< is filler
+  bool                       placed_  { false };   //!< is placed
 };
 
 //---
@@ -191,9 +191,9 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
   QColor interpColor(const CQChartsTreeMapPlot *plot, int n) const override;
 
  private:
-  Nodes    nodes_;          //! child nodes
-  Children children_;       //! child hier nodes
-  int      hierInd_ { -1 }; //! hier index
+  Nodes    nodes_;          //!< child nodes
+  Children children_;       //!< child hier nodes
+  int      hierInd_ { -1 }; //!< hier index
 };
 
 //---
@@ -236,12 +236,12 @@ class CQChartsTreeMapObj : public CQChartsPlotObj {
  protected:
   using Children = std::vector<CQChartsTreeMapObj *>;
 
-  const CQChartsTreeMapPlot* plot_    { nullptr }; //! parent plot
-  CQChartsTreeMapNode*       node_    { nullptr }; //! associated tree node
-  CQChartsTreeMapHierObj*    hierObj_ { nullptr }; //! parent hierchical objects
-  Children                   children_;            //! child objects
-  int                        i_       { 0 };       //! index
-  int                        n_       { 0 };       //! number of indicies
+  const CQChartsTreeMapPlot* plot_    { nullptr }; //!< parent plot
+  CQChartsTreeMapNode*       node_    { nullptr }; //!< associated tree node
+  CQChartsTreeMapHierObj*    hierObj_ { nullptr }; //!< parent hierchical objects
+  Children                   children_;            //!< child objects
+  int                        i_       { 0 };       //!< index
+  int                        n_       { 0 };       //!< number of indicies
 };
 
 //---
@@ -268,7 +268,7 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapObj {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsTreeMapHierNode* hier_ { nullptr }; //! associated tree hier
+  CQChartsTreeMapHierNode* hier_ { nullptr }; //!< associated tree hier
 };
 
 //---
@@ -451,19 +451,19 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
  private:
   using Node = CQChartsTreeMapHierNode;
 
-  bool           titles_             { true };    //! show title bar (header)
-  double         titleMaxExtent_     { 0.5 };     //! title bar max extent (0-1)
-  CQChartsLength headerHeight_       { "0px" };   //! header height (should be font based)
-  CQChartsLength marginWidth_        { "2px" };   //! box margin
-  Node*          root_               { nullptr }; //! root node
-  Node*          firstHier_          { nullptr }; //! first hier node
-  QString        currentRootName_;                //! current root name
-  int            colorId_            { -1 };      //! current color id
-  int            numColorIds_        { 0 };       //! num used color ids
-  int            maxDepth_           { 1 };       //! max hier depth
-  int            hierInd_            { 0 };       //! current hier ind
-  double         windowHeaderHeight_ { 0.01 };    //! calculated window pixel header height
-  double         windowMarginWidth_  { 0.01 };    //! calculated window pixel margin width
+  bool           titles_             { true };    //!< show title bar (header)
+  double         titleMaxExtent_     { 0.5 };     //!< title bar max extent (0-1)
+  CQChartsLength headerHeight_       { "0px" };   //!< header height (should be font based)
+  CQChartsLength marginWidth_        { "2px" };   //!< box margin
+  Node*          root_               { nullptr }; //!< root node
+  Node*          firstHier_          { nullptr }; //!< first hier node
+  QString        currentRootName_;                //!< current root name
+  int            colorId_            { -1 };      //!< current color id
+  int            numColorIds_        { 0 };       //!< num used color ids
+  int            maxDepth_           { 1 };       //!< max hier depth
+  int            hierInd_            { 0 };       //!< current hier ind
+  double         windowHeaderHeight_ { 0.01 };    //!< calculated window pixel header height
+  double         windowMarginWidth_  { 0.01 };    //!< calculated window pixel margin width
 };
 
 #endif

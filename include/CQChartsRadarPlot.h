@@ -74,13 +74,13 @@ class CQChartsRadarObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  const CQChartsRadarPlot* plot_       { nullptr }; //! parent plot
-  QString                  name_;                   //! row name
-  QPolygonF                poly_;                   //! polygon
-  NameValues               nameValues_;             //! column values
-  QModelIndex              ind_;                    //! data index
-  int                      i_          { 0 };       //! value ind
-  int                      n_          { 1 };       //! value count
+  const CQChartsRadarPlot* plot_       { nullptr }; //!< parent plot
+  QString                  name_;                   //!< row name
+  QPolygonF                poly_;                   //!< polygon
+  NameValues               nameValues_;             //!< column values
+  QModelIndex              ind_;                    //!< data index
+  int                      i_          { 0 };       //!< value ind
+  int                      n_          { 1 };       //!< value count
 };
 
 //---
@@ -196,12 +196,12 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   using ValueDatas = std::map<int,ValueData>;
 
-  CQChartsColumn  nameColumn_;             //! name column
-  CQChartsColumns valueColumns_;           //! value columns
-  double          angleStart_   { 90.0 };  //! angle start
-  double          angleExtent_  { 360.0 }; //! angle extent
-  ValueDatas      valueDatas_;             //! value
-  double          valueRadius_  { 1.0 };   //! max value (radius)
+  CQChartsColumn  nameColumn_;             //!< name column
+  CQChartsColumns valueColumns_;           //!< value columns
+  double          angleStart_   { 90.0 };  //!< angle start
+  double          angleExtent_  { 360.0 }; //!< angle extent
+  ValueDatas      valueDatas_;             //!< value
+  double          valueRadius_  { 1.0 };   //!< max value (radius)
 };
 
 #endif

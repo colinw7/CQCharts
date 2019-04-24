@@ -170,38 +170,38 @@ addProperties()
 
   // header
   addProperty("header", this, "titles"        , "visible"  )->
-    setDesc("Show header title for each hierarchical group");
+    setDesc("Header title visible for each hierarchical group");
   addProperty("header", this, "titleMaxExtent", "maxExtent")->
     setDesc("Max extent of hierarchical group header");
   addProperty("header", this, "headerHeight"  , "height"   )->
     setDesc("Explicit hierarchical group header height");
 
   // header/fill
-  addProperty("header/fill", this, "headerFilled", "visible")->setDesc("Fill headers");
+  addProperty("header/fill", this, "headerFilled", "visible")->setDesc("Header fill visible");
 
-  addFillProperties("header/fill", "headerFill");
+  addFillProperties("header/fill", "headerFill", "Header");
 
   // header/stroke
-  addProperty("header/stroke", this, "headerBorder", "visible")->setDesc("Stroke headers");
+  addProperty("header/stroke", this, "headerBorder", "visible")->setDesc("Header stroke visible");
 
-  addLineProperties("header/stroke", "headerBorder");
+  addLineProperties("header/stroke", "headerBorder", "Header");
 
-  addAllTextProperties("header/text", "headerText");
+  addAllTextProperties("header/text", "headerText", "Header");
 
   // fill
   addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
 
-  addFillProperties("fill", "fill");
+  addFillProperties("fill", "fill", "");
 
   // stroke
   addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
 
-  addLineProperties("stroke", "border");
+  addLineProperties("stroke", "border", "");
 
   // text
   addProperty("text", this, "textVisible", "visible")->setDesc("Text visible");
 
-  addAllTextProperties("text", "text");
+  addAllTextProperties("text", "text", "");
 }
 
 //------

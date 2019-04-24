@@ -31,9 +31,9 @@ class CQChartsRectEdit : public QFrame {
   void connectSlots(bool b);
 
  private:
-  CQChartsRect       rect_;                  //! rect data
-  CQRectEdit*        edit_      { nullptr }; //! rect edit
-  CQChartsUnitsEdit* unitsEdit_ { nullptr }; //! units edit
+  CQChartsRect       rect_;                  //!< rect data
+  CQRectEdit*        edit_      { nullptr }; //!< rect edit
+  CQChartsUnitsEdit* unitsEdit_ { nullptr }; //!< units edit
   bool               connected_ { false };   //!< is connected
 };
 

@@ -42,7 +42,7 @@ class CQChartsTextDataLineEdit : public CQChartsLineEditBase {
   void connectSlots(bool b) override;
 
  private:
-  CQChartsTextDataEdit* dataEdit_ { nullptr }; //! text data edit widget
+  CQChartsTextDataEdit* dataEdit_ { nullptr }; //!< text data edit widget
 };
 
 //---

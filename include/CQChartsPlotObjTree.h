@@ -45,12 +45,12 @@ class CQChartsPlotObjTree {
   void waitTree() const;
 
  private:
-  CQChartsPlot*      plot_        { nullptr }; //! parent plot
-  PlotObjTree*       plotObjTree_ { nullptr }; //! object tree
-  PlotObjTreeFuture  plotObjTreeFuture_;       //! future
-  bool               wait_        { false };   //! wait for thread
-  std::atomic<bool>  busy_        { false };   //! busy flag
-  std::atomic<bool>  interrupt_   { false };   //! interrupt flag
+  CQChartsPlot*      plot_        { nullptr }; //!< parent plot
+  PlotObjTree*       plotObjTree_ { nullptr }; //!< object tree
+  PlotObjTreeFuture  plotObjTreeFuture_;       //!< future
+  bool               wait_        { false };   //!< wait for thread
+  std::atomic<bool>  busy_        { false };   //!< busy flag
+  std::atomic<bool>  interrupt_   { false };   //!< interrupt flag
 };
 
 #endif

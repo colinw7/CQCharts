@@ -57,12 +57,12 @@ addProperties()
   // fill
   addProperty("fill", this, "barFilled", "visible")->setDesc("Bar fill visible");
 
-  addFillProperties("fill", "barFill");
+  addFillProperties("fill", "barFill", "Bar");
 
   // stroke
   addProperty("stroke", this, "barBorder", "visible")->setDesc("Bar stroke visible");
 
-  addLineProperties("stroke", "barBorder");
+  addLineProperties("stroke", "barBorder", "Bar");
 
   addProperty("stroke", this, "barCornerSize", "cornerSize")->setDesc("Bar corner size");
 

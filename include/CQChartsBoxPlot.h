@@ -28,6 +28,8 @@ class CQChartsBoxPlotType : public CQChartsGroupPlotType {
 
   bool allowXLog() const override { return false; }
 
+  bool canProbe() const override { return true; }
+
   Dimension dimension() const override { return Dimension::ONE_D; }
 
   void addParameters() override;
@@ -509,6 +511,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   QString groupSetColumnName(const QString &def="") const;
   QString valueColumnName   (const QString &def="value") const;
+  QString groupColumnName   (const QString &def="") const;
 
   //---
 

@@ -205,7 +205,7 @@ addProperties()
   addProperty("columns", this, "nameColumn"  , "name"  )->setDesc("Name column");
   addProperty("columns", this, "groupColumns", "groups")->setDesc("Group columns");
 
-  addSymbolProperties("symbol");
+  addSymbolProperties("symbol", "", "");
 
   addProperty("font", this, "fontSize", "font")->setDesc("Font size");
 

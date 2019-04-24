@@ -110,7 +110,7 @@ class CQChartsArrowDataEditPreview : public CQChartsEditPreview {
                    CQChartsPlot *plot, CQChartsView *view);
 
  private:
-  CQChartsArrowDataEdit *edit_ { nullptr }; //! arrow data edit
+  CQChartsArrowDataEdit *edit_ { nullptr }; //!< arrow data edit
 };
 
 //------

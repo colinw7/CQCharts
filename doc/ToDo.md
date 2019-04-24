@@ -1,4 +1,10 @@
 High
+ + Tree map performance for large data (file tree) (small object opt)
+ + Pos for distribution plot (x for vertical) is meaningless for strings so turn off or remap
+   + get pos from axis data or separate mapping ?
+ + Color by anchor native (use discrete palette)
+ + Busy on top of existing plot (instead of replacing)
+ + Interrupt and wait for thread kill
  + More plot object properties
  + Inconsistent key click behavior
  + Variable bin size for distribution

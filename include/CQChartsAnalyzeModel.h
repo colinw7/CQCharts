@@ -28,9 +28,9 @@ class CQChartsAnalyzeModel {
   void print() const;
 
  private:
-  CQCharts*          charts_    { nullptr }; //! charts
-  CQChartsModelData* modelData_ { nullptr }; //! model data
-  TypeNameColumns    typeNameColumns_;       //! typed columns
+  CQCharts*          charts_    { nullptr }; //!< charts
+  CQChartsModelData* modelData_ { nullptr }; //!< model data
+  TypeNameColumns    typeNameColumns_;       //!< typed columns
 };
 
 #endif

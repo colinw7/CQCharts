@@ -137,15 +137,15 @@ addProperties()
   addProperty("options", this, "horizontal")->setDesc("Draw horizontally");
 
   // points
-  addProperty("points", this, "points", "visible")->setDesc("Show points");
+  addProperty("points", this, "points", "visible")->setDesc("Points visible");
 
-  addSymbolProperties("points/symbol");
+  addSymbolProperties("points/symbol", "", "Points");
 
   // lines
-  addProperty("lines", this, "lines"          , "visible"   )->setDesc("Show lines");
+  addProperty("lines", this, "lines"          , "visible"   )->setDesc("Lines visible");
   addProperty("lines", this, "linesSelectable", "selectable")->setDesc("Lines selectable");
 
-  addLineProperties("lines", "lines");
+  addLineProperties("lines", "lines", "");
 }
 
 CQChartsGeom::Range

@@ -164,7 +164,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("inside/highlight"       , this, "insideShapeData"  , "style")->
                 setDesc("Inside shape data");
   addProperty("inside/highlight/fill"  , this, "insideFilled"     , "enabled")->
-                setDesc("Highlight is filled");
+                setDesc("Inside is filled");
   addProperty("inside/highlight/fill"  , this, "insideFillColor"  , "color")->
                 setDesc("Inside fill color");
   addProperty("inside/highlight/fill"  , this, "insideFillAlpha"  , "alpha")->
@@ -1001,9 +1001,7 @@ removePlot(CQChartsPlot *plot)
   // remove plot
   QString id = plot->id();
 
-#if 0
   propertyModel()->removeProperties(id, plot);
-#endif
 
   std::swap(plots, plots_);
 
@@ -1031,10 +1029,8 @@ void
 CQChartsView::
 removeAllPlots()
 {
-#if 0
   for (auto &plot : plots_)
     propertyModel()->removeProperties(plot->id(), plot);
-#endif
 
   for (auto &plot : plots_)
     delete plot;
@@ -2607,9 +2603,12 @@ showMenu(const QPoint &p)
   addGroupCheckAction(modeActionGroup, "Select", mode() == Mode::SELECT, SLOT(selectModeSlot()));
   addGroupCheckAction(modeActionGroup, "Zoom"  , mode() == Mode::ZOOM  , SLOT(zoomModeSlot()));
   addGroupCheckAction(modeActionGroup, "Pan"   , mode() == Mode::PAN   , SLOT(panModeSlot()));
-  addGroupCheckAction(modeActionGroup, "Probe" , mode() == Mode::PROBE , SLOT(probeModeSlot()));
-  addGroupCheckAction(modeActionGroup, "Query" , mode() == Mode::QUERY , SLOT(queryModeSlot()));
-  addGroupCheckAction(modeActionGroup, "Edit"  , mode() == Mode::EDIT  , SLOT(editModeSlot()));
+
+  if (plotType && plotType->canProbe())
+    addGroupCheckAction(modeActionGroup, "Probe", mode() == Mode::PROBE, SLOT(probeModeSlot()));
+
+  addGroupCheckAction(modeActionGroup, "Query", mode() == Mode::QUERY, SLOT(queryModeSlot()));
+  addGroupCheckAction(modeActionGroup, "Edit" , mode() == Mode::EDIT , SLOT(editModeSlot()));
 
   modeMenu->addActions(modeActionGroup->actions());
 

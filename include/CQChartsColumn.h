@@ -308,8 +308,8 @@ class CQChartsColumns {
   bool fromString(const QString &s) { return setColumnsStr(s); }
 
  private:
-  CQChartsColumn column_;  //! single column
-  Columns        columns_; //! multiple columns
+  CQChartsColumn column_;  //!< single column
+  Columns        columns_; //!< multiple columns
 };
 
 //---

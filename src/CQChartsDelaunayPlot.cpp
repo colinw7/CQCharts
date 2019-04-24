@@ -136,14 +136,14 @@ addProperties()
     setDesc("Voronoi point symbol size");
 
   // points
-  addProperty("points", this, "points", "visible")->setDesc("Show center points");
+  addProperty("points", this, "points", "visible")->setDesc("Center points visible");
 
-  addSymbolProperties("points/symbol");
+  addSymbolProperties("points/symbol", "", "Center points");
 
   // lines
-  addProperty("lines", this, "lines", "visible")->setDesc("Show connecting lines");
+  addProperty("lines", this, "lines", "visible")->setDesc("Connecting lines visible");
 
-  addLineProperties("lines", "lines");
+  addLineProperties("lines", "lines", "Lines");
 }
 
 CQChartsGeom::Range

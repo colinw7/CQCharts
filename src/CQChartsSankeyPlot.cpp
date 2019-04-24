@@ -157,26 +157,26 @@ addProperties()
   addProperty("columns", this, "linkColumn" , "link" )->setDesc("Link column");
   addProperty("columns", this, "valueColumn", "value")->setDesc("Value column");
 
-  addProperty("node/stroke", this, "nodeBorder", "visible")->setDesc("Node stroked");
+  addProperty("node/stroke", this, "nodeBorder", "visible")->setDesc("Node stroke visible");
 
-  addLineProperties("node/stroke", "nodeBorder");
+  addLineProperties("node/stroke", "nodeBorder", "Node");
 
-  addProperty("node/fill", this, "nodeFilled", "visible")->setDesc("Node filled");
+  addProperty("node/fill", this, "nodeFilled", "visible")->setDesc("Node fill visible");
 
-  addFillProperties("node/fill", "nodeFill");
+  addFillProperties("node/fill", "nodeFill", "Node");
 
-  addProperty("edge/stroke", this, "edgeBorder", "visible")->setDesc("Edge steoked");
+  addProperty("edge/stroke", this, "edgeBorder", "visible")->setDesc("Edge steoke visible");
 
-  addLineProperties("edge/stroke", "edgeBorder");
+  addLineProperties("edge/stroke", "edgeBorder", "Edge");
 
-  addProperty("edge/fill", this, "edgeFilled", "visible")->setDesc("Edit filled");
+  addProperty("edge/fill", this, "edgeFilled", "visible")->setDesc("Edit fill visible");
 
-  addFillProperties("edge/fill", "edgeFill");
+  addFillProperties("edge/fill", "edgeFill", "Edge");
 
   addProperty("text", this, "textVisible", "visible")->setDesc("Text label visible");
   addProperty("text", this, "align"      , "align"  )->setDesc("Text label align");
 
-  addTextProperties("text", "text");
+  addTextProperties("text", "text", "");
 }
 
 CQChartsGeom::Range

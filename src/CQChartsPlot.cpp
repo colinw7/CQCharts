@@ -1507,12 +1507,12 @@ addProperties()
   addProperty(plotStyleStr, this, "plotShapeData", "shape")->setDesc("Plot background shape data");
 
   addProperty      (plotStyleFillStr, this, "plotFilled", "visible")->
-    setDesc("Plot background bounding box filled");
-  addFillProperties(plotStyleFillStr, "plotFill");
+    setDesc("Plot background bounding box fill visible");
+  addFillProperties(plotStyleFillStr, "plotFill", "Plot background");
 
   addProperty      (plotStyleStrokeStr, this, "plotBorder"     , "visible")->
-    setDesc("Plot background bounding box stroked");
-  addLineProperties(plotStyleStrokeStr, "plotBorder");
+    setDesc("Plot background bounding box stroke visible");
+  addLineProperties(plotStyleStrokeStr, "plotBorder", "Plot background");
   addProperty      (plotStyleStrokeStr, this, "plotBorderSides", "sides")->
     setDesc("Plot background bounding box stroked sides");
 
@@ -1526,12 +1526,12 @@ addProperties()
   addProperty(dataStyleStr, this, "dataShapeData", "shape")->setDesc("Data background shape data");
 
   addProperty      (dataStyleFillStr  , this, "dataFilled", "visible")->
-   setDesc("Data background bounding box filled");
-  addFillProperties(dataStyleFillStr, "dataFill");
+   setDesc("Data background bounding box fill visible");
+  addFillProperties(dataStyleFillStr, "dataFill", "Data background");
 
-  addProperty      (dataStyleStrokeStr, this, "dataBorder"     , "visible")->
-    setDesc("Data background bounding box stroked");
-  addLineProperties(dataStyleStrokeStr, "dataBorder");
+  addProperty      (dataStyleStrokeStr, this, "dataBorder", "visible")->
+    setDesc("Data background bounding box stroke visible");
+  addLineProperties(dataStyleStrokeStr, "dataBorder", "Data background");
   addProperty      (dataStyleStrokeStr, this, "dataBorderSides", "sides")->
     setDesc("Data background bounding box stroked sides");
 
@@ -1541,13 +1541,13 @@ addProperties()
   QString fitStyleFillStr   = fitStyleStr + "/fill";
   QString fitStyleStrokeStr = fitStyleStr + "/stroke";
 
-  addProperty(fitStyleFillStr  , this, "fitFilled"     , "visible")->
-    setDesc("Fit background bounding box filled");
-  addFillProperties(fitStyleFillStr  , "fitFill"  );
+  addProperty(fitStyleFillStr  , this, "fitFilled", "visible")->
+    setDesc("Fit background bounding box fill visible");
+  addFillProperties(fitStyleFillStr  , "fitFill", "Fit background");
 
-  addProperty(fitStyleStrokeStr, this, "fitBorder"     , "visible")->
-    setDesc("Fit background bounding box stroked");
-  addLineProperties(fitStyleStrokeStr, "fitBorder");
+  addProperty(fitStyleStrokeStr, this, "fitBorder", "visible")->
+    setDesc("Fit background bounding box stroke visible");
+  addLineProperties(fitStyleStrokeStr, "fitBorder", "Fit background");
   addProperty(fitStyleStrokeStr, this, "fitBorderSides", "sides"  )->
     setDesc("Fit background bounding box stroked sides");
 
@@ -1611,77 +1611,87 @@ addProperties()
 
 void
 CQChartsPlot::
-addSymbolProperties(const QString &path, const QString &prefix)
+addSymbolProperties(const QString &path, const QString &prefix, const QString &descPrefix)
 {
+  QString prefix1 = (descPrefix.length() ? descPrefix + " symbol" : "Symbol");
+
   QString strokePath = path + "/stroke";
   QString fillPath   = path + "/fill";
 
   QString symbolPrefix = (prefix.length() ? prefix + "Symbol" : "symbol");
 
-  addProperty(path, this, symbolPrefix + "Type", "type")->setDesc("Symbol type");
-  addProperty(path, this, symbolPrefix + "Size", "size")->setDesc("Symbol size");
+  addProperty(path, this, symbolPrefix + "Type", "type")->setDesc(prefix1 + " type");
+  addProperty(path, this, symbolPrefix + "Size", "size")->setDesc(prefix1 + " size");
 
   addProperty(fillPath, this, symbolPrefix + "Filled"     , "visible")->
-    setDesc("Symbol filled");
+    setDesc(prefix1 + " fill visible");
   addProperty(fillPath, this, symbolPrefix + "FillColor"  , "color"  )->
-    setDesc("Symbol fill color");
+    setDesc(prefix1 + " fill color");
   addProperty(fillPath, this, symbolPrefix + "FillAlpha"  , "alpha"  )->
-    setDesc("Symbol fill alpha");
+    setDesc(prefix1 + " fill alpha");
   addProperty(fillPath, this, symbolPrefix + "FillPattern", "pattern")->
-    setDesc("Symbol fill pattern");
+    setDesc(prefix1 + " fill pattern");
 
   addProperty(strokePath, this, symbolPrefix + "Stroked"    , "visible")->
-    setDesc("Symbol stroked");
+    setDesc(prefix1 + " stroke visible");
   addProperty(strokePath, this, symbolPrefix + "StrokeColor", "color"  )->
-    setDesc("Symbol stroke color");
+    setDesc(prefix1 + " stroke color");
   addProperty(strokePath, this, symbolPrefix + "StrokeAlpha", "alpha"  )->
-    setDesc("Symbol stroke alpha");
+    setDesc(prefix1 + " stroke alpha");
   addProperty(strokePath, this, symbolPrefix + "StrokeWidth", "width"  )->
-    setDesc("Symbol stroke width");
+    setDesc(prefix1 + " stroke width");
   addProperty(strokePath, this, symbolPrefix + "StrokeDash" , "dash"   )->
-    setDesc("Symbol stroke dash");
+    setDesc(prefix1 + " stroke dash");
 }
 
 void
 CQChartsPlot::
-addLineProperties(const QString &path, const QString &prefix)
+addLineProperties(const QString &path, const QString &prefix, const QString &descPrefix)
 {
-  addProperty(path, this, prefix + "Color", "color")->setDesc("Line color");
-  addProperty(path, this, prefix + "Alpha", "alpha")->setDesc("Line alpha");
-  addProperty(path, this, prefix + "Width", "width")->setDesc("Line width");
-  addProperty(path, this, prefix + "Dash" , "dash" )->setDesc("Line dash");
+  QString prefix1 = (descPrefix.length() ? descPrefix + " stroke" : "Stroke");
+
+  addProperty(path, this, prefix + "Color", "color")->setDesc(prefix1 + " color");
+  addProperty(path, this, prefix + "Alpha", "alpha")->setDesc(prefix1 + " alpha");
+  addProperty(path, this, prefix + "Width", "width")->setDesc(prefix1 + " width");
+  addProperty(path, this, prefix + "Dash" , "dash" )->setDesc(prefix1 + " dash");
 }
 
 void
 CQChartsPlot::
-addFillProperties(const QString &path, const QString &prefix)
+addFillProperties(const QString &path, const QString &prefix, const QString &descPrefix)
 {
-  addProperty(path, this, prefix + "Color"  , "color"  )->setDesc("Fill color");
-  addProperty(path, this, prefix + "Alpha"  , "alpha"  )->setDesc("Fill alpha");
-  addProperty(path, this, prefix + "Pattern", "pattern")->setDesc("Fill pattern");
+  QString prefix1 = (descPrefix.length() ? descPrefix + " fill" : "Fill");
+
+  addProperty(path, this, prefix + "Color"  , "color"  )->setDesc(prefix1 + " color");
+  addProperty(path, this, prefix + "Alpha"  , "alpha"  )->setDesc(prefix1 + " alpha");
+  addProperty(path, this, prefix + "Pattern", "pattern")->setDesc(prefix1 + " pattern");
 }
 
 void
 CQChartsPlot::
-addTextProperties(const QString &path, const QString &prefix)
+addTextProperties(const QString &path, const QString &prefix, const QString &descPrefix)
 {
-  addProperty(path, this, prefix + "Color"   , "color"   )->setDesc("Text color");
-  addProperty(path, this, prefix + "Alpha"   , "alpha"   )->setDesc("Text alpha");
-  addProperty(path, this, prefix + "Font"    , "font"    )->setDesc("Text font");
-  addProperty(path, this, prefix + "Angle"   , "angle"   )->setDesc("Text angle");
-  addProperty(path, this, prefix + "Contrast", "contrast")->setDesc("Text contrast");
-  addProperty(path, this, prefix + "Html"    , "html"    )->setDesc("Text html");
+  QString prefix1 = (descPrefix.length() ? descPrefix + " text" : "Text");
+
+  addProperty(path, this, prefix + "Color"   , "color"   )->setDesc(prefix1 + " color");
+  addProperty(path, this, prefix + "Alpha"   , "alpha"   )->setDesc(prefix1 + " alpha");
+  addProperty(path, this, prefix + "Font"    , "font"    )->setDesc(prefix1 + " font");
+  addProperty(path, this, prefix + "Angle"   , "angle"   )->setDesc(prefix1 + " angle");
+  addProperty(path, this, prefix + "Contrast", "contrast")->setDesc(prefix1 + " contrast");
+  addProperty(path, this, prefix + "Html"    , "html"    )->setDesc(prefix1 + " is HTML");
 }
 
 void
 CQChartsPlot::
-addAllTextProperties(const QString &path, const QString &prefix)
+addAllTextProperties(const QString &path, const QString &prefix, const QString &descPrefix)
 {
-  addTextProperties(path, prefix);
+  addTextProperties(path, prefix, descPrefix);
 
-  addProperty(path, this, prefix + "Align"    , "align"    )->setDesc("Text align");
-  addProperty(path, this, prefix + "Formatted", "formatted")->setDesc("Text formatted");
-  addProperty(path, this, prefix + "Scaled"   , "scaled"   )->setDesc("Text scaled");
+  QString prefix1 = (descPrefix.length() ? descPrefix + " text" : "Text");
+
+  addProperty(path, this, prefix + "Align"    , "align"    )->setDesc(prefix1 + " align");
+  addProperty(path, this, prefix + "Formatted", "formatted")->setDesc(prefix1 + " formatted");
+  addProperty(path, this, prefix + "Scaled"   , "scaled"   )->setDesc(prefix1 + " scaled");
 }
 
 void
