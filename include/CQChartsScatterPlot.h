@@ -729,9 +729,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
  private:
   struct SymbolMapKeyData {
-    bool   displayed { true };
-    double alpha     { 0.2 };
-    double margin    { 16.0 };
+    bool   displayed { true }; //! is displayed
+    double alpha     { 0.2 };  //! background alpha
+    double margin    { 16.0 }; //! margin in pixels
   };
 
   struct StatData {
@@ -811,9 +811,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   };
 
   struct FontSizeData {
-    CQChartsColumn column;
-    bool           valid    { false };
-    bool           mapped   { false };
+    CQChartsColumn column;             //!< font size column
+    bool           valid    { false }; //!< font size valid
+    bool           mapped   { false }; //!< font size values mapped
     double         data_min { 0.0 };   //!< map input min
     double         data_max { 1.0 };   //!< map input max
     double         map_min  { 0.0 };   //!< map output min

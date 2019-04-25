@@ -994,14 +994,10 @@ calcBucketRanges() const
   CQChartsGeom::Range dataRange;
 
   auto updateRange = [&](double x, double y) {
-    if (! isHorizontal()) {
+    if (! isHorizontal())
       dataRange.updateRange(x, y);
-      dataRange.updateRange(x, y);
-    }
-    else {
+    else
       dataRange.updateRange(y, x);
-      dataRange.updateRange(y, x);
-    }
   };
 
   if      (isDensity()) {

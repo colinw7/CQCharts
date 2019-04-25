@@ -160,6 +160,8 @@ class CQChartsViewSettings : public QFrame {
   void initThemeFrame      (QFrame *themeFrame);
   void initLayersFrame     (QFrame *layersFrame);
 
+  void updatePaletteWidgets();
+
   CQChartsPlot *getPropertiesPlot() const;
 
   CQChartsPlot *getSelectedPlot() const;

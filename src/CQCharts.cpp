@@ -268,7 +268,7 @@ interpColor(const CQChartsColor &c, int i, int n) const
 {
   double r = CMathUtil::norm(i, 0, n - 1);
 
-  return interpColorValue(c, i, n, r);
+  return interpColor(c, r);
 }
 
 QColor
@@ -280,20 +280,20 @@ interpColor(const CQChartsColor &c, double value) const
 
 QColor
 CQCharts::
-interpColorValue(const CQChartsColor &c, int i, int n, double value) const
+interpColorValue(const CQChartsColor &c, int ig, int ng, double value) const
 {
   assert(c.isValid());
 
   if      (c.type() == CQChartsColor::Type::COLOR)
     return c.color();
   else if (c.type() == CQChartsColor::Type::PALETTE) {
-    if (c.ind() == 0)
-      return interpPaletteColorValue(i, n, value);
+    if (c.ind() < 0)
+      return interpPaletteColorValue(ig, ng, value, c.isScale());
     else
-      return interpIndPaletteColorValue(c.ind(), i, n, value);
+      return interpIndPaletteColorValue(c.ind(), ig, ng, value, c.isScale());
   }
   else if (c.type() == CQChartsColor::Type::PALETTE_VALUE) {
-    if (c.ind() == 0)
+    if (c.ind() < 0)
       return interpPaletteColor(c.value(), c.isScale());
     else
       return interpIndPaletteColor(c.ind(), c.value(), c.isScale());
@@ -315,11 +315,31 @@ setPlotTheme(const CQChartsTheme &theme)
   CQChartsUtil::testAndSet(plotTheme_, theme, [&]() { emit themeChanged(); } );
 }
 
+//---
+
+QColor
+CQCharts::
+interpPaletteColor(int i, int n, bool scale) const
+{
+  double r = CMathUtil::norm(i, 0, n - 1);
+
+  return interpPaletteColor(r, scale);
+}
+
 QColor
 CQCharts::
 interpPaletteColor(double r, bool scale) const
 {
-  return interpIndPaletteColor(/*palette_ind*/0, r, scale);
+  return interpIndPaletteColor(/*palette_ind*/-1, r, scale);
+}
+
+QColor
+CQCharts::
+interpIndPaletteColor(int ind, int i, int n, bool scale) const
+{
+  double r = CMathUtil::norm(i, 0, n - 1);
+
+  return interpIndPaletteColor(ind, r, scale);
 }
 
 QColor
@@ -331,24 +351,49 @@ interpIndPaletteColor(int ind, double r, bool scale) const
 
 QColor
 CQCharts::
-interpPaletteColorValue(int i, int n, double r, bool scale) const
+interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale) const
 {
-  return interpIndPaletteColorValue(/*palette_ind*/0, i, n, r, scale);
+  double r = CMathUtil::norm(i, 0, n - 1);
+
+  return interpGroupPaletteColor(ig, ng, r, scale);
 }
 
 QColor
 CQCharts::
-interpIndPaletteColorValue(int ind, int i, int n, double r, bool scale) const
+interpGroupPaletteColor(int ig, int ng, double r, bool scale) const
+{
+  return themeGroupPalette(ig, ng)->getColor(r, scale);
+}
+
+QColor
+CQCharts::
+interpPaletteColorValue(int ig, int ng, int i, int n, bool scale) const
+{
+  double r = CMathUtil::norm(i, 0, n - 1);
+
+  return interpIndPaletteColorValue(/*palette_ind*/-1, ig, ng, r, scale);
+}
+
+QColor
+CQCharts::
+interpPaletteColorValue(int ig, int ng, double r, bool scale) const
+{
+  return interpIndPaletteColorValue(/*palette_ind*/-1, ig, ng, r, scale);
+}
+
+QColor
+CQCharts::
+interpIndPaletteColorValue(int ind, int ig, int ng, double r, bool scale) const
 {
   CQChartsGradientPalette *palette = this->themePalette(ind);
 
-  if (! palette->isDistinct() || n <= 0)
+  if (! palette->isDistinct() || ng <= 0)
     return palette->getColor(r, scale);
 
   int nc = palette->numColors();
   assert(nc > 0);
 
-  int i1 = (i % nc);
+  int i1 = (ig % nc);
 
   double r1 = CMathUtil::norm(i1, 0, nc - 1);
 
@@ -364,9 +409,9 @@ interpThemeColor(double r) const
 
 CQChartsGradientPalette *
 CQCharts::
-themeGroupPalette(int i, int /*n*/) const
+themeGroupPalette(int ig, int /*ng*/) const
 {
-  return themeObj()->palette(i);
+  return themeObj()->palette(ig);
 }
 
 CQChartsGradientPalette *
@@ -388,6 +433,25 @@ CQCharts::
 themeObj()
 {
   return plotTheme().obj();
+}
+
+CQChartsColor
+CQCharts::
+adjustDefaultPalette(const CQChartsColor &c, const QString &defaultPalette) const
+{
+  if ((c.type() == CQChartsColor::Type::PALETTE ||
+       c.type() == CQChartsColor::Type::PALETTE_VALUE) &&
+      c.ind() < 0) {
+    CQChartsColor c1 = c;
+
+    int ind = themeObj()->paletteInd(defaultPalette);
+
+    c1.setInd(ind);
+
+    return c1;
+  }
+
+  return c;
 }
 
 //---

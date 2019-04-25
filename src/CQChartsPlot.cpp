@@ -911,6 +911,15 @@ setFont(const CQChartsFont &f)
 
 //---
 
+void
+CQChartsPlot::
+setDefaultPalette(const QString &s)
+{
+  CQChartsUtil::testAndSet(defaultPalette_, s, [&]() { drawObjs(); } );
+}
+
+//---
+
 bool
 CQChartsPlot::
 isKeyVisible() const
@@ -1604,6 +1613,8 @@ addProperties()
 
   if (title())
     title()->addProperties(propertyModel(), "title");
+
+  addProperty("theme", this, "defaultPalette", "defaultPalette")->setDesc("Default palette");
 
   addProperty("scaledFont", this, "minScaleFontSize", "minSize")->setDesc("Min scaled font size");
   addProperty("scaledFont", this, "maxScaleFontSize", "maxSize")->setDesc("Max scaled font size");
@@ -7998,13 +8009,13 @@ selectedColor(const QColor &c) const
   return CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.6);
 }
 
+//------
+
 QColor
 CQChartsPlot::
 interpPaletteColor(int i, int n, bool scale) const
 {
-  double r = CMathUtil::norm(i, 0, n - 1);
-
-  return interpPaletteColor(r, scale);
+  return view()->interpPaletteColor(i, n, scale);
 }
 
 QColor
@@ -8016,18 +8027,9 @@ interpPaletteColor(double r, bool scale) const
 
 QColor
 CQChartsPlot::
-interpIndPaletteColor(int ind, double r, bool scale) const
-{
-  return view()->interpIndPaletteColor(ind, r, scale);
-}
-
-QColor
-CQChartsPlot::
 interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale) const
 {
-  double r = CMathUtil::norm(i + 1, 0, n  + 1);
-
-  return view()->interpGroupPaletteColor(ig, ng, r, scale);
+  return view()->interpGroupPaletteColor(ig, ng, i, n, scale);
 }
 
 QColor
@@ -8048,6 +8050,32 @@ CQChartsPlot::
 interpThemeColor(double r) const
 {
   return view()->interpThemeColor(r);
+}
+
+QColor
+CQChartsPlot::
+interpColor(const CQChartsColor &c, int i, int n) const
+{
+  if (defaultPalette_ != "") {
+    CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
+
+    return view()->interpColor(c1, i, n);
+  }
+
+  return view()->interpColor(c, i, n);
+}
+
+QColor
+CQChartsPlot::
+interpColor(const CQChartsColor &c, double r)
+{
+  if (defaultPalette_ != "") {
+    CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
+
+    return view()->interpColor(c1, r);
+  }
+
+  return view()->interpColor(c, r);
 }
 
 QColor
@@ -9406,7 +9434,7 @@ viewToWindowI(double vx, double vy, double &wx, double &wy) const
     if (isInvertY()) vy = ivy;
   }
 
-  double wx2, wy2;
+  double wx2 = 0.0, wy2 = 0.0;
 
   displayRange_->pixelToWindow(vx, vy, &wx2, &wy2);
 

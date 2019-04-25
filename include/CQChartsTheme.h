@@ -69,8 +69,16 @@ class CQChartsThemeObj : public QObject {
   // set nth palette to palette of specified name
   void setNamedPalette(int i, const QString &name);
 
+  // move palette to new position
+  void movePalette(const QString &name, int pos);
+
+  // get position of named palette
+  int paletteInd(const QString &name) const;
+
+#if 0
   // shift palettes by n places
   void shiftPalettes(int n);
+#endif
 
   // get/set select color
   const QColor &selectColor() const { return selectColor_; }

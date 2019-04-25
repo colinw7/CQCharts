@@ -124,6 +124,8 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
     setValues(QStringList() << "default" << "palette1" << "palette2").setDesc("View theme");
   addProperty("theme", this, "dark" , "dark")->setDesc("View is dark");
 
+  addProperty("theme", this, "defaultPalette", "defaultPalette")->setDesc("Default palette");
+
   addProperty("font", this, "scaleFont" , "scaled")->setDesc("Scale font to view size");
   addProperty("font", this, "fontFactor", "factor")->setDesc("Global font scale");
   addProperty("font", this, "font"      , "font"  )->setDesc("Global font");
@@ -332,6 +334,17 @@ CQChartsView::
 setFont(const CQChartsFont &f)
 {
   CQChartsUtil::testAndSet(font_, f, [&]() { updatePlots(); } );
+}
+
+//---
+
+//---
+
+void
+CQChartsView::
+setDefaultPalette(const QString &s)
+{
+  CQChartsUtil::testAndSet(defaultPalette_, s, [&]() { updatePlots(); } );
 }
 
 //---
@@ -1399,30 +1412,63 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
 
 QColor
 CQChartsView::
-interpPaletteColor(double r, bool scale) const
+interpPaletteColor(int i, int n, bool scale) const
 {
-  return interpIndPaletteColor(0, r, scale);
+  return charts()->interpPaletteColor(i, n, scale);
 }
 
 QColor
 CQChartsView::
-interpIndPaletteColor(int ind, double r, bool scale) const
+interpPaletteColor(double r, bool scale) const
 {
-  return charts()->themePalette(ind)->getColor(r, scale);
+  return charts()->interpPaletteColor(r, scale);
+}
+
+QColor
+CQChartsView::
+interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale) const
+{
+  return charts()->interpGroupPaletteColor(ig, ng, i, n, scale);
 }
 
 QColor
 CQChartsView::
 interpGroupPaletteColor(int ig, int ng, double r, bool scale) const
 {
-  return charts()->themeGroupPalette(ig, ng)->getColor(r, scale);
+  return charts()->interpGroupPaletteColor(ig, ng, r, scale);
 }
 
 QColor
 CQChartsView::
 interpThemeColor(double r) const
 {
-  return charts()->interfaceTheme().interpColor(r, /*scale*/true);
+  return charts()->interpThemeColor(r);
+}
+
+QColor
+CQChartsView::
+interpColor(const CQChartsColor &c, int i, int n) const
+{
+  if (defaultPalette_ != "") {
+    CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
+
+    return charts()->interpColor(c1, i, n);
+  }
+
+  return charts()->interpColor(c, i, n);
+}
+
+QColor
+CQChartsView::
+interpColor(const CQChartsColor &c, double r)
+{
+  if (defaultPalette_ != "") {
+    CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
+
+    return charts()->interpColor(c1, r);
+  }
+
+  return charts()->interpColor(c, r);
 }
 
 //------

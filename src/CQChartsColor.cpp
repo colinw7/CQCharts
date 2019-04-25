@@ -20,13 +20,13 @@ colorStr() const
     return "none";
 
   if      (type() == Type::PALETTE) {
-    if (ind() == 0)
+    if (ind() < 0)
       return "palette";
 
     return QString("palette#%1").arg(ind());
   }
   else if (type() == Type::PALETTE_VALUE) {
-    if (ind() == 0) {
+    if (ind() < 0) {
       if (isScale())
         return QString("palette:%1:s").arg(value());
       else

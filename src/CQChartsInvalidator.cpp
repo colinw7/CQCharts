@@ -5,30 +5,85 @@
 #include <CQChartsKey.h>
 #include <CQChartsBoxObj.h>
 #include <CQChartsArrow.h>
+#include <CQCharts.h>
+
+namespace {
+
+void
+getObjPlotViewChart(QObject *obj, CQChartsPlot* &plot, CQChartsView* &view, CQCharts* &charts) {
+  view   = nullptr;
+  charts = nullptr;
+
+  plot = qobject_cast<CQChartsPlot *>(obj);
+  if (plot) return;
+
+  view = qobject_cast<CQChartsView *>(obj);
+  if (view) return;
+
+  CQChartsAxis *axis = qobject_cast<CQChartsAxis *>(obj);
+
+  if (axis) {
+    plot = axis->plot();
+    if (plot) return;
+
+    charts = axis->charts();
+
+    return;
+  }
+
+  CQChartsKey *key = qobject_cast<CQChartsKey *>(obj);
+
+  if (key) {
+    plot = key->plot();
+    if (plot) return;
+
+    view = key->view();
+    if (view) return;
+
+    charts = key->charts();
+
+    return;
+  }
+
+  CQChartsBoxObj *boxObj = qobject_cast<CQChartsBoxObj *>(obj);
+
+  if (boxObj) {
+    plot = boxObj->plot();
+    if (plot) return;
+
+    view = boxObj->view();
+    if (view) return;
+
+    charts = boxObj->charts();
+
+    return;
+  }
+
+  CQChartsArrow *arrow = qobject_cast<CQChartsArrow *>(obj);
+
+  if (arrow) {
+    plot = arrow->plot();
+    if (plot) return;
+
+    view = arrow->view();
+    if (view) return;
+
+    charts = arrow->charts();
+
+    return;
+  }
+
+  assert(false);
+}
+
+}
+
+//---
 
 void
 CQChartsInvalidator::
 invalidate(bool reload)
 {
-  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj_);
-
-  if (plot) {
-    if (reload)
-      plot->updateRangeAndObjs();
-    else
-      plot->drawObjs();
-
-    return;
-  }
-
-  CQChartsView *view = qobject_cast<CQChartsView *>(obj_);
-
-  if (view) {
-    view->update();
-
-    return;
-  }
-
   CQChartsAxis *axis = qobject_cast<CQChartsAxis *>(obj_);
 
   if (axis) {
@@ -37,53 +92,63 @@ invalidate(bool reload)
     return;
   }
 
-  CQChartsKey *key = qobject_cast<CQChartsKey *>(obj_);
+  //---
 
-  if (key) {
-    if      (key->plot()) {
-      if (reload)
-        key->plot()->updateRangeAndObjs();
-      else
-        key->plot()->drawObjs();
-    }
-    else if (key->view()) {
-      key->view()->update();
-    }
+  CQChartsPlot *plot   = nullptr;
+  CQChartsView *view   = nullptr;
+  CQCharts     *charts = nullptr;
 
-    return;
+  getObjPlotViewChart(obj_, plot, view, charts);
+
+  if      (plot) {
+    if (reload)
+      plot->updateRangeAndObjs();
+    else
+      plot->drawObjs();
   }
-
-  CQChartsBoxObj *boxObj = qobject_cast<CQChartsBoxObj *>(obj_);
-
-  if (boxObj) {
-    if      (boxObj->plot()) {
-      if (reload)
-        boxObj->plot()->updateRangeAndObjs();
-      else
-        boxObj->plot()->drawObjs();
-    }
-    else if (boxObj->view()) {
-      boxObj->view()->update();
-    }
-
-    return;
+  else if (view) {
+    view->update();
   }
+}
 
-  CQChartsArrow *arrow = qobject_cast<CQChartsArrow *>(obj_);
+//---
 
-  if (arrow) {
-    if      (arrow->plot()) {
-      if (reload)
-        arrow->plot()->updateRangeAndObjs();
-      else
-        arrow->plot()->drawObjs();
-    }
-    else if (arrow->view()) {
-      arrow->view()->update();
-    }
+QColor
+CQChartsInterpolator::
+interpColor(const CQChartsColor &c, int i, int n) const
+{
+  CQChartsPlot *plot   = nullptr;
+  CQChartsView *view   = nullptr;
+  CQCharts     *charts = nullptr;
 
-    return;
-  }
+  getObjPlotViewChart(obj_, plot, view, charts);
 
-  assert(false);
+  if      (plot)
+    return plot->interpColor(c, i, n);
+  else if (view)
+    return view->interpColor(c, i, n);
+  else if (charts)
+    return charts->interpColor(c, i, n);
+
+  return QColor();
+}
+
+QColor
+CQChartsInterpolator::
+interpColor(const CQChartsColor &c, double r) const
+{
+  CQChartsPlot *plot   = nullptr;
+  CQChartsView *view   = nullptr;
+  CQCharts     *charts = nullptr;
+
+  getObjPlotViewChart(obj_, plot, view, charts);
+
+  if      (plot)
+    return plot->interpColor(c, r);
+  else if (view)
+    return view->interpColor(c, r);
+  else if (charts)
+    return charts->interpColor(c, r);
+
+  return QColor();
 }

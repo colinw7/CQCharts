@@ -861,17 +861,19 @@ calcRange() const
       QVariant var = plot_->modelValue(data.row, column, data.parent, ok);
       if (! var.isValid()) return -1;
 
-      return columnDetails(column)->uniqueId(var);
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(column);
+
+      return (columnDetails ? columnDetails->uniqueId(var) : -1);
     }
 
     CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) {
       if (! details_) {
         CQChartsModelData *modelData = plot_->getModelData();
 
-        details_ = modelData->details();
+        details_ = (modelData ? modelData->details() : nullptr);
       }
 
-      return details_->columnDetails(column);
+      return (details_ ? details_->columnDetails(column) : nullptr);
     }
 
     const CQChartsGeom::Range &range() const { return range_; }
@@ -993,13 +995,13 @@ initAxes(bool uniqueX, bool uniqueY)
   xAxis_->setColumn(xColumn());
   yAxis_->setColumn(yColumn());
 
-  if (xAxis_->label() != "") {
+  if (xAxis_->label() == "") {
     QString xname = xColumnName("");
 
     xAxis_->setLabel(xname);
   }
 
-  if (yAxis_->label() != "") {
+  if (yAxis_->label() == "") {
     QString yname = yColumnName("");
 
     yAxis_->setLabel(yname);
@@ -3341,6 +3343,11 @@ getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->xColumn());
   addColumnSelectIndex(inds, plot_->yColumn());
+
+  addColumnSelectIndex(inds, plot_->symbolTypeColumn());
+  addColumnSelectIndex(inds, plot_->symbolSizeColumn());
+  addColumnSelectIndex(inds, plot_->fontSizeColumn  ());
+  addColumnSelectIndex(inds, plot_->colorColumn     ());
 }
 
 void

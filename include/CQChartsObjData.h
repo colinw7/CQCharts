@@ -34,7 +34,7 @@ class CQChartsObjLineData {
   }
 
   QColor interpLinesColor(int i, int n) const {
-    return lineDataObj_->charts()->interpColor(linesColor(), i, n);
+    return CQChartsInterpolator(lineDataObj_).interpColor(linesColor(), i, n);
   }
 
   double linesAlpha() const { return lineData_.alpha(); }
@@ -113,7 +113,7 @@ class CQChartsObj##UNAME##LineData { \
   } \
 \
   QColor interp##UNAME##LinesColor(int i, int n) const { \
-    return LNAME##LineDataObj_->charts()->interpColor(LNAME##LinesColor(), i, n); \
+    return CQChartsInterpolator(LNAME##LineDataObj_).interpColor(LNAME##LinesColor(), i, n); \
   } \
 \
   double LNAME##LinesAlpha() const { return LNAME##LineData_.alpha(); } \
@@ -227,7 +227,7 @@ class CQChartsObjPointData {
   }
 
   QColor interpSymbolStrokeColor(int i, int n) const {
-    return pointDataObj_->charts()->interpColor(symbolStrokeColor(), i, n);
+    return CQChartsInterpolator(pointDataObj_).interpColor(symbolStrokeColor(), i, n);
   }
 
   double symbolStrokeAlpha() const { return pointData_.stroke().alpha(); }
@@ -261,11 +261,11 @@ class CQChartsObjPointData {
   }
 
   QColor interpSymbolFillColor(double r) const {
-    return pointDataObj_->charts()->interpColor(symbolFillColor(), r);
+    return CQChartsInterpolator(pointDataObj_).interpColor(symbolFillColor(), r);
   }
 
   QColor interpSymbolFillColor(int i, int n) const {
-    return pointDataObj_->charts()->interpColor(symbolFillColor(), i, n);
+    return CQChartsInterpolator(pointDataObj_).interpColor(symbolFillColor(), i, n);
   }
 
   double symbolFillAlpha() const { return pointData_.fill().alpha(); }
@@ -378,7 +378,8 @@ class CQChartsObj##UNAME##PointData { \
   } \
 \
   QColor interp##UNAME##SymbolStrokeColor(int i, int n) const { \
-    return LNAME##PointDataObj_->charts()->interpColor(LNAME##SymbolStrokeColor(), i, n); \
+    return CQChartsInterpolator(LNAME##PointDataObj_). \
+      interpColor(LNAME##SymbolStrokeColor(), i, n); \
   } \
 \
   double LNAME##SymbolStrokeAlpha() const { return LNAME##PointData_.stroke().alpha(); } \
@@ -414,11 +415,11 @@ class CQChartsObj##UNAME##PointData { \
   } \
 \
   QColor interp##UNAME##SymbolFillColor(double r) const { \
-    return LNAME##PointDataObj_->charts()->interpColor(LNAME##SymbolFillColor(), r); \
+    return CQChartsInterpolator(LNAME##PointDataObj_).interpColor(LNAME##SymbolFillColor(), r); \
   } \
 \
   QColor interp##UNAME##SymbolFillColor(int i, int n) const { \
-    return LNAME##PointDataObj_->charts()->interpColor(LNAME##SymbolFillColor(), i, n); \
+    return CQChartsInterpolator(LNAME##PointDataObj_).interpColor(LNAME##SymbolFillColor(), i, n); \
   } \
 \
   double LNAME##SymbolFillAlpha() const { return LNAME##PointData_.fill().alpha(); } \
@@ -495,7 +496,7 @@ class CQChartsObj##UNAME##FillData { \
   } \
 \
   QColor interp##UNAME##FillColor(int i, int n) const { \
-    return LNAME##FillDataObj_->charts()->interpColor(LNAME##FillColor(), i, n); \
+    return CQChartsInterpolator(LNAME##FillDataObj_).interpColor(LNAME##FillColor(), i, n); \
   } \
 \
   double LNAME##FillAlpha() const { return LNAME##FillData_.alpha(); } \
@@ -570,7 +571,7 @@ class CQChartsObjTextData {
   }
 
   QColor interpTextColor(int i, int n) const {
-    return textDataObj_->charts()->interpColor(textColor(), i, n);
+    return CQChartsInterpolator(textDataObj_).interpColor(textColor(), i, n);
   }
 
   const CQChartsFont &textFont() const { return textData_.font(); }
@@ -688,7 +689,7 @@ class CQChartsObj##UNAME##TextData { \
   } \
 \
   QColor interp##UNAME##TextColor(int i, int n) const { \
-    return LNAME##TextDataObj_->charts()->interpColor(LNAME##TextColor(), i, n); \
+    return CQChartsInterpolator(LNAME##TextDataObj_).interpColor(LNAME##TextColor(), i, n); \
   } \
 \
   const CQChartsFont &LNAME##TextFont() const { return LNAME##TextData_.font(); } \
@@ -810,7 +811,7 @@ class CQChartsObjStrokeData {
 
   QColor interpBorderColor(int i, int n) const {
     if (strokeDataObj_->charts())
-      return strokeDataObj_->charts()->interpColor(borderColor(), i, n);
+      return CQChartsInterpolator(strokeDataObj_).interpColor(borderColor(), i, n);
     else
       return borderColor().color();
   }
@@ -901,7 +902,7 @@ class CQChartsObjShapeData {
 
   QColor interpBorderColor(int i, int n) const {
     if (shapeDataObj_->charts())
-      return shapeDataObj_->charts()->interpColor(borderColor(), i, n);
+      return CQChartsInterpolator(shapeDataObj_).interpColor(borderColor(), i, n);
     else
       return borderColor().color();
   }
@@ -934,7 +935,7 @@ class CQChartsObjShapeData {
 
   QColor interpFillColor(int i, int n) const {
     if (shapeDataObj_->charts())
-      return shapeDataObj_->charts()->interpColor(fillColor(), i, n);
+      return CQChartsInterpolator(shapeDataObj_).interpColor(fillColor(), i, n);
     else
       return fillColor().color();
   }
@@ -1033,7 +1034,7 @@ class CQChartsObj##UNAME##ShapeData { \
   } \
 \
   QColor interp##UNAME##BorderColor(int i, int n) const { \
-    return LNAME##ShapeDataObj_->charts()->interpColor(LNAME##BorderColor(), i, n); \
+    return CQChartsInterpolator(LNAME##ShapeDataObj_).interpColor(LNAME##BorderColor(), i, n); \
   } \
 \
   bool is##UNAME##Filled() const { return LNAME##ShapeData_.background().isVisible(); } \
@@ -1062,7 +1063,7 @@ class CQChartsObj##UNAME##ShapeData { \
   } \
 \
   QColor interp##UNAME##FillColor(int i, int n) const { \
-    return LNAME##ShapeDataObj_->charts()->interpColor(LNAME##FillColor(), i, n); \
+    return CQChartsInterpolator(LNAME##ShapeDataObj_).interpColor(LNAME##FillColor(), i, n); \
   } \
 \
   const CQChartsShapeData &LNAME##ShapeData() const { return LNAME##ShapeData_; }; \
@@ -1169,7 +1170,7 @@ class CQChartsObjBoxData {
 
   QColor interpBorderColor(int i, int n) const {
     if (boxDataObj_->charts())
-      return boxDataObj_->charts()->interpColor(borderColor(), i, n);
+      return CQChartsInterpolator(boxDataObj_).interpColor(borderColor(), i, n);
     else
       return borderColor().color();
   }
@@ -1202,7 +1203,7 @@ class CQChartsObjBoxData {
 
   QColor interpFillColor(int i, int n) const {
     if (boxDataObj_->charts())
-      return boxDataObj_->charts()->interpColor(fillColor(), i, n);
+      return CQChartsInterpolator(boxDataObj_).interpColor(fillColor(), i, n);
     else
       return fillColor().color();
   }

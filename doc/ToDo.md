@@ -1,4 +1,9 @@
 High
+ + Theme
+   + Allow gradient interp by plot value (not normalized real/i of n)
+   + Theme tab needs to be able so set theme palette order and select individual slots
+   + Fix theme point editing
+   + Theme has value at stop points e.g. (-inf,0,inf)
  + Tree map performance for large data (file tree) (small object opt)
  + Pos for distribution plot (x for vertical) is meaningless for strings so turn off or remap
    + get pos from axis data or separate mapping ?

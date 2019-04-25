@@ -117,6 +117,9 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(double       fontFactor READ fontFactor  WRITE setFontFactor)
   Q_PROPERTY(CQChartsFont font       READ font        WRITE setFont      )
 
+  // default palette
+  Q_PROPERTY(QString defaultPalette READ defaultPalette WRITE setDefaultPalette)
+
   Q_ENUMS(Mode)
   Q_ENUMS(SelectMode)
   Q_ENUMS(HighlightDataMode)
@@ -287,6 +290,12 @@ class CQChartsView : public QFrame,
 
   double calcFontScale(const QSizeF &size) const;
 
+  //---
+
+  // default palette
+  const QString &defaultPalette() const { return defaultPalette_; }
+  void setDefaultPalette(const QString &s);
+
  private:
   void setPainterFont(QPainter *painter, const QFont &font) const;
 
@@ -430,11 +439,16 @@ class CQChartsView : public QFrame,
   //---
 
   // interp palette/theme color
+  QColor interpPaletteColor(int i, int n, bool scale=false) const;
   QColor interpPaletteColor(double r, bool scale=false) const;
-  QColor interpIndPaletteColor(int ind, double r, bool scale=false) const;
+
+  QColor interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale) const;
   QColor interpGroupPaletteColor(int ig, int ng, double r, bool scale) const;
 
   QColor interpThemeColor(double r) const;
+
+  QColor interpColor(const CQChartsColor &c, int i, int n) const;
+  QColor interpColor(const CQChartsColor &c, double r);
 
   //---
 
@@ -907,6 +921,7 @@ class CQChartsView : public QFrame,
   bool                  scaleFont_        { true };              //! auto scale font
   double                fontFactor_       { 1.0 };               //! font scale factor
   CQChartsFont          font_;                                   //! font
+  QString               defaultPalette_;                         //! default palette
   SizeData              sizeData_;                               //! size control
   PosTextType           posTextType_      { PosTextType::PLOT }; //! position text type
   CQChartsGeom::BBox    prect_            { 0, 0, 100, 100 };    //! plot rect

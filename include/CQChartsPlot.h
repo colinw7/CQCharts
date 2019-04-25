@@ -194,6 +194,9 @@ class CQChartsPlot : public CQChartsObj,
   // font
   Q_PROPERTY(CQChartsFont font READ font WRITE setFont)
 
+  // default palette
+  Q_PROPERTY(QString defaultPalette READ defaultPalette WRITE setDefaultPalette)
+
   // scaled fonts
   Q_PROPERTY(double minScaleFontSize READ minScaleFontSize WRITE setMinScaleFontSize)
   Q_PROPERTY(double maxScaleFontSize READ maxScaleFontSize WRITE setMaxScaleFontSize)
@@ -444,8 +447,15 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  // font
   const CQChartsFont &font() const { return font_; }
   void setFont(const CQChartsFont &f);
+
+  //---
+
+  // default palette
+  const QString &defaultPalette() const { return defaultPalette_; }
+  void setDefaultPalette(const QString &s);
 
   //---
 
@@ -1651,12 +1661,14 @@ class CQChartsPlot : public CQChartsObj,
   virtual QColor interpPaletteColor(int i, int n, bool scale=false) const;
 
   QColor interpPaletteColor(double r, bool scale=false) const;
-  QColor interpIndPaletteColor(int ind, double r, bool scale=false) const;
 
   virtual QColor interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale=false) const;
   QColor interpGroupPaletteColor(double r1, double r2, double dr) const;
 
   QColor interpThemeColor(double r) const;
+
+  QColor interpColor(const CQChartsColor &c, int i, int n) const;
+  QColor interpColor(const CQChartsColor &c, double r);
 
   //---
 
@@ -2079,6 +2091,7 @@ class CQChartsPlot : public CQChartsObj,
   mutable std::mutex           colorMutex_;                      //!< color mutex
   CQChartsColumn               imageColumn_;                     //!< image column
   CQChartsFont                 font_;                            //!< font
+  QString                      defaultPalette_;                  //!< default palette
   double                       minScaleFontSize_ { 6.0 };        //!< min scaled font size
   double                       maxScaleFontSize_ { 48.0 };       //!< max scaled font size
   bool                         equalScale_       { false };      //!< equal scaled

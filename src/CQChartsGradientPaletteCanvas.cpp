@@ -112,50 +112,48 @@ void
 CQChartsGradientPaletteCanvas::
 mouseMoveEvent(QMouseEvent *me)
 {
-  if (me->button() == Qt::LeftButton) {
-    mouseData_.movePos = pixelToWindow(me->pos());
+  mouseData_.movePos = pixelToWindow(me->pos());
 
-    //---
+  //---
 
-    if (mouseData_.movePos.x() >= 0.0 && mouseData_.movePos.x() <= 1.0) {
-      QColor bg = gradientPalette()->getColor(mouseData_.movePos.x());
-      QColor fg = CQChartsUtil::bwColor(bg);
+  if (mouseData_.movePos.x() >= 0.0 && mouseData_.movePos.x() <= 1.0) {
+    QColor bg = gradientPalette()->getColor(mouseData_.movePos.x());
+    QColor fg = CQChartsUtil::bwColor(bg);
 
-      tipText_->setText(QString("%1,%2").arg(mouseData_.movePos.x()).arg(mouseData_.movePos.y()));
+    tipText_->setText(QString("%1,%2").arg(mouseData_.movePos.x()).arg(mouseData_.movePos.y()));
 
-      QPalette palette = tipText_->palette();
+    QPalette palette = tipText_->palette();
 
-      palette.setColor(tipText_->backgroundRole(), bg);
-      palette.setColor(tipText_->foregroundRole(), fg);
+    palette.setColor(tipText_->backgroundRole(), bg);
+    palette.setColor(tipText_->foregroundRole(), fg);
 
-      tipText_->setPalette(palette);
+    tipText_->setPalette(palette);
 
-      showTipText();
+    showTipText();
+  }
+  else {
+    hideTipText();
+  }
+
+  //---
+
+  if (gradientPalette()->colorType() == CQChartsGradientPalette::ColorType::DEFINED) {
+    if (mouseData_.pressed) {
+      double dy = mouseData_.movePos.y() - mouseData_.pressPos.y();
+
+      moveNearestDefinedColor(nearestColor_, dy);
+
+      update();
     }
     else {
-      hideTipText();
-    }
+      NearestColor nearestColor;
 
-    //---
+      nearestDefinedColor(mouseData_.movePos, nearestColor);
 
-    if (gradientPalette()->colorType() == CQChartsGradientPalette::ColorType::DEFINED) {
-      if (mouseData_.pressed) {
-        double dy = mouseData_.movePos.y() - mouseData_.pressPos.y();
-
-        moveNearestDefinedColor(nearestColor_, dy);
+      if (nearestColor.i != nearestColor_.i || nearestColor.c != nearestColor_.c) {
+        nearestColor_ = nearestColor;
 
         update();
-      }
-      else {
-        NearestColor nearestColor;
-
-        nearestDefinedColor(mouseData_.movePos, nearestColor);
-
-        if (nearestColor.i != nearestColor_.i || nearestColor.c != nearestColor_.c) {
-          nearestColor_ = nearestColor;
-
-          update();
-        }
       }
     }
   }
@@ -488,9 +486,9 @@ paintEvent(QPaintEvent *)
 
       double dy = (nc > 0 ? (py1 - py2)/nc : 0.0);
 
-      int i = 0;
+      double y = py1;
 
-      for (double y = py1; y >= py2; y -= dy, ++i) {
+      for (int i = 0; i < nc; ++i, y -= dy) {
         QColor c = gradientPalette()->icolor(i);
 
         QBrush brush(c);

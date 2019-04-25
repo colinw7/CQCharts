@@ -821,3 +821,6 @@
 # 4/23/2019
  + Improve description text
  + Add better mouse feedback for distribution plot
+# 4/24/2019
+ + Support defaultPalette for plot and view when palette number not specified
+ + Fix edit of palette points

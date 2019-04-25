@@ -1166,6 +1166,10 @@ initThemeFrame(QFrame *themeFrame)
   interfaceSplitter->addWidget(themeWidgets_.interfaceControl);
 
   connect(themeWidgets_.interfaceControl, SIGNAL(stateChanged()), view, SLOT(updatePlots()));
+
+  //---
+
+  updatePaletteWidgets();
 }
 
 void
@@ -2024,6 +2028,25 @@ void
 CQChartsViewSettings::
 updatePalettes()
 {
+  updatePaletteWidgets();
+
+  CQChartsView *view = window_->view();
+
+  int i = themeWidgets_.palettesSpin->value();
+
+  CQChartsGradientPalette *palette = view->themeObj()->palette(i);
+
+  themeWidgets_.palettesPlot->setGradientPalette(palette);
+
+  themeWidgets_.palettesControl->updateState();
+
+  view->updatePlots();
+}
+
+void
+CQChartsViewSettings::
+updatePaletteWidgets()
+{
   CQChartsView *view = window_->view();
 
   themeWidgets_.palettesSpin      ->setEnabled(true);
@@ -2034,15 +2057,9 @@ updatePalettes()
 
   CQChartsGradientPalette *palette = view->themeObj()->palette(i);
 
-  themeWidgets_.palettesPlot->setGradientPalette(palette);
-
   int ind = themeWidgets_.palettesCombo->findText(palette->name());
 
   themeWidgets_.palettesCombo->setCurrentIndex(ind);
-
-  themeWidgets_.palettesControl->updateState();
-
-  view->updatePlots();
 }
 
 void
