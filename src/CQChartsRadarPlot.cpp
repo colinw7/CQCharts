@@ -503,8 +503,10 @@ addKeyItems(CQChartsPlotKey *key)
 
       CQChartsRadarPlot *plot = const_cast<CQChartsRadarPlot *>(plot_);
 
-      CQChartsKeyColorBox *color = new CQChartsKeyColorBox(plot, data.row, numRows());
-      CQChartsKeyText     *text  = new CQChartsKeyText(plot, name, data.row, numRows());
+      CQChartsKeyColorBox *color =
+        new CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ColorInd(data.row, numRows()));
+
+      CQChartsKeyText *text = new CQChartsKeyText(plot, name, data.row, numRows());
 
       color->setClickable(true);
 

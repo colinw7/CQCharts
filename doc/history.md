@@ -824,3 +824,11 @@
 # 4/24/2019
  + Support defaultPalette for plot and view when palette number not specified
  + Fix edit of palette points
+# 4/25/2019
+ + Add theme palette list editor
+# 4/28/2109
+ + Support different color interpolation types (set, group, index, x/y value)
+ + Use view/plot interpColor where appropriate
+ + Improve view settings theme editor
+ + Support auto maximize/restore using scrolled plots
+ + Update get_charts_palette and set_charts_palette commands

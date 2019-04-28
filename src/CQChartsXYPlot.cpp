@@ -2579,7 +2579,7 @@ draw(QPainter *painter)
   plot()->setSymbolPenBrush(pen, brush, is(), ns());
 
   if (edata_ && edata_->color.isValid()) {
-    QColor strokeColor = plot()->charts()->interpColor(edata_->color, 0, 1);
+    QColor strokeColor = plot()->interpColor(edata_->color, 0, 1);
 
     pen.setColor(strokeColor);
   }
@@ -3386,7 +3386,7 @@ draw(QPainter *painter)
 
 CQChartsXYKeyColor::
 CQChartsXYKeyColor(CQChartsXYPlot *plot, int is, int ns, int ig, int ng) :
- CQChartsKeyColorBox(plot, is, ns), plot_(plot), is_(is), ns_(ns), ig_(ig), ng_(ng)
+ CQChartsKeyColorBox(plot, ColorInd(is, ns), ColorInd(ig, ng), ColorInd()), plot_(plot)
 {
   setClickable(true);
 }
@@ -3399,7 +3399,7 @@ doSelect(CQChartsSelMod selMod)
   if (! obj) return;
 
   if      (selMod == CQChartsSelMod::REPLACE) {
-    for (int ig = 0; ig < ng_; ++ig) {
+    for (int ig = 0; ig < ig_.n; ++ig) {
       CQChartsPlotObj *obj1 = plot()->getGroupObj(ig);
 
       if (obj1)
@@ -3429,13 +3429,13 @@ fillBrush() const
   CQChartsFillPattern pattern = CQChartsFillPattern::Type::SOLID;
 
   if      (plot()->isBivariateLines()) {
-    c = plot()->interpBivariateLinesColor(is_, ns_);
+    c = plot()->interpBivariateLinesColor(is_.i, is_.n);
 
     alpha = plot()->bivariateLinesAlpha();
   }
   else if (plot()->isOverlay()) {
     if (plot()->prevPlot() || plot()->nextPlot()) {
-      c = plot()->interpLinesColor(is_, ns_);
+      c = plot()->interpLinesColor(is_.i, is_.n);
 
       alpha = plot()->linesAlpha();
     }
@@ -3445,7 +3445,7 @@ fillBrush() const
   else
     c = CQChartsKeyColorBox::fillBrush().color();
 
-  if (plot()->isSetHidden(is_))
+  if (plot()->isSetHidden(is_.i))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   plot()->setBrush(brush, true, c, alpha, pattern);
@@ -3457,10 +3457,10 @@ CQChartsPlotObj *
 CQChartsXYKeyColor::
 plotObj() const
 {
-  if (ng_ <= 1)
+  if (ig_.n <= 1)
     return nullptr;
 
-  CQChartsPlotObj *obj = plot()->getGroupObj(ig_);
+  CQChartsPlotObj *obj = plot()->getGroupObj(ig_.i);
 
   return obj;
 }

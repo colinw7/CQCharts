@@ -368,6 +368,13 @@ setCmdRc(const QString &rc)
 
 void
 CQChartsCmdBase::
+setCmdRc(const std::string &rc)
+{
+  qtcl()->setResult(QString(rc.c_str()));
+}
+
+void
+CQChartsCmdBase::
 setCmdRc(const QVariant &rc)
 {
   qtcl()->setResult(rc);

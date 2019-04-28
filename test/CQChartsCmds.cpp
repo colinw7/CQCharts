@@ -22,6 +22,8 @@
 #include <CQChartsArrow.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
+#include <CQChartsInterfaceTheme.h>
+#include <CQChartsTheme.h>
 
 #include <CQChartsLoadModelDlg.h>
 #include <CQChartsManageModelsDlg.h>
@@ -1358,47 +1360,238 @@ bool
 CQChartsCmds::
 getChartsPaletteCmd(CQChartsCmdArgs &argv)
 {
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
   CQPerfTrace trace("CQChartsCmds::getChartsPaletteCmd");
 
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
+  argv.addCmdArg("-theme"    , CQChartsCmdArg::Type::String , "get theme data");
+  argv.addCmdArg("-palette"  , CQChartsCmdArg::Type::String , "get named palette data");
+  argv.addCmdArg("-interface", CQChartsCmdArg::Type::Boolean, "get interface data");
+  argv.endCmdGroup();
 
-  argv.addCmdArg("-interface"      , CQChartsCmdArg::Type::Boolean, "get interface palette");
-  argv.addCmdArg("-palette"        , CQChartsCmdArg::Type::Integer, "get palette index");
-  argv.addCmdArg("-get_color"      , CQChartsCmdArg::Type::Real   , "get color value");
-  argv.addCmdArg("-get_color_scale", CQChartsCmdArg::Type::Boolean, "defined values");
+  argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "value name").setRequired();
+  argv.addCmdArg("-data", CQChartsCmdArg::Type::String, "value name data");
 
   if (! argv.parse())
     return false;
 
   //---
 
-  QString viewName = argv.getParseStr("view");
+  bool    themeFlag     = argv.hasParseArg ("theme"    );
+  QString themeStr      = argv.getParseStr ("theme"    );
+  bool    paletteFlag   = argv.hasParseArg ("palette"  );
+  QString paletteStr    = argv.getParseStr ("palette"  );
+  bool    interfaceFlag = argv.getParseBool("interface");
 
-  bool interface    = argv.getParseBool("interface");
-  int  paletteIndex = argv.getParseInt ("palette"  );
+  QString nameStr = argv.getParseStr("name");
 
-  bool   getColorFlag  = argv.hasParseArg("get_color");
-  double getColorValue = argv.getParseReal("get_color");
-  bool   getColorScale = argv.getParseBool("get_color_scale");
-
-  //---
-
-  CQChartsView *view = getViewByName(viewName);
-  if (! view) return false;
+  bool    dataFlag = argv.hasParseArg("data");
+  QString dataStr  = argv.getParseStr("data");
 
   //---
 
-  CQChartsGradientPalette *palette = nullptr;
+  // get global data
+  if      (! themeFlag && ! paletteFlag && ! interfaceFlag) {
+    if      (nameStr == "palettes") {
+      QStringList names;
 
-  if (interface)
-    interface = view->interfacePalette();
-  else
-    palette = view->themeObj()->palette(paletteIndex);
+      CQChartsThemeMgrInst->getPaletteNames(names);
 
-  if (getColorFlag) {
-    QColor c = palette->getColor(getColorValue, getColorScale);
+      cmdBase_->setCmdRc(names);
+    }
+    else if (nameStr == "themes") {
+      QStringList names;
 
-    cmdBase_->setCmdRc(c.name());
+      CQChartsThemeMgrInst->getThemeNames(names);
+
+      cmdBase_->setCmdRc(names);
+    }
+    else if (nameStr == "color_models") {
+      int n = CQChartsGradientPalette::numModels();
+
+      QStringList names;
+
+      for (int i = 0; i < n; ++i)
+        names << CQChartsGradientPalette::modelName(i).c_str();
+
+      cmdBase_->setCmdRc(names);
+    }
+    else if (nameStr == "?") {
+      QStringList names = QStringList() <<
+        "palettes" << "themes" << "color_models";
+
+      cmdBase_->setCmdRc(names);
+    }
+    else
+      return errorMsg(QString("Invalid theme value name '%1'").arg(nameStr));
+  }
+  // get theme data
+  else if (themeFlag) {
+    CQChartsTheme *theme = CQChartsThemeMgrInst->getTheme(themeStr);
+    if (! theme) errorMsg(QString("Invalid theme '%1'").arg(themeStr));
+
+    if      (nameStr == "name") {
+      cmdBase_->setCmdRc(theme->name());
+    }
+    else if (nameStr == "desc") {
+      cmdBase_->setCmdRc(theme->desc());
+    }
+    else if (nameStr == "palettes") {
+      int n = theme->numPalettes();
+
+      QStringList names;
+
+      for (int i = 0; i < n; ++i)
+        names << theme->palette(i)->name();
+
+      cmdBase_->setCmdRc(names);
+    }
+
+    else if (nameStr == "select_color") { cmdBase_->setCmdRc(theme->selectColor()); }
+    else if (nameStr == "inside_color") { cmdBase_->setCmdRc(theme->insideColor()); }
+
+    else if (nameStr == "?") {
+      QStringList names = QStringList() <<
+        "name" << "desc" << "palettes" << "select_color" << "inside_color";
+
+      cmdBase_->setCmdRc(names);
+    }
+    else
+      errorMsg(QString("Invalid theme value name '%1'").arg(nameStr));
+  }
+  // get palette data
+  else if (paletteFlag) {
+    CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(paletteStr);
+    if (! palette) return errorMsg(QString("Invalid palette '%1'").arg(themeStr));
+
+    if      (nameStr == "name") { cmdBase_->setCmdRc(palette->name()); }
+    else if (nameStr == "desc") { cmdBase_->setCmdRc(palette->desc()); }
+
+    else if (nameStr == "color_type") {
+      cmdBase_->setCmdRc(CQChartsGradientPalette::colorTypeToString(palette->colorType()));
+    }
+    else if (nameStr == "color_model") {
+      cmdBase_->setCmdRc(CQChartsGradientPalette::colorModelToString(palette->colorModel()));
+    }
+
+    // model
+    else if (nameStr == "red_model"     ) { cmdBase_->setCmdRc(palette->redModel       ()); }
+    else if (nameStr == "green_model"   ) { cmdBase_->setCmdRc(palette->greenModel     ()); }
+    else if (nameStr == "blue_model"    ) { cmdBase_->setCmdRc(palette->blueModel      ()); }
+    else if (nameStr == "gray"          ) { cmdBase_->setCmdRc(palette->isGray         ()); }
+    else if (nameStr == "red_negative"  ) { cmdBase_->setCmdRc(palette->isRedNegative  ()); }
+    else if (nameStr == "green_negative") { cmdBase_->setCmdRc(palette->isGreenNegative()); }
+    else if (nameStr == "blue_negative" ) { cmdBase_->setCmdRc(palette->isBlueNegative ()); }
+    else if (nameStr == "red_min"       ) { cmdBase_->setCmdRc(palette->redMin         ()); }
+    else if (nameStr == "red_max"       ) { cmdBase_->setCmdRc(palette->redMax         ()); }
+    else if (nameStr == "green_min"     ) { cmdBase_->setCmdRc(palette->greenMin       ()); }
+    else if (nameStr == "green_max"     ) { cmdBase_->setCmdRc(palette->greenMax       ()); }
+    else if (nameStr == "blue_min"      ) { cmdBase_->setCmdRc(palette->blueMin        ()); }
+    else if (nameStr == "blue_max"      ) { cmdBase_->setCmdRc(palette->blueMax        ()); }
+
+    // defined colors
+    else if (nameStr == "colors") {
+      int n = palette->numColors();
+
+      QStringList names;
+
+      for (int i = 0; i < n; ++i)
+        names << palette->icolor(i).name();
+
+      cmdBase_->setCmdRc(names);
+    }
+    else if (nameStr == "color") {
+      if (! dataFlag) return errorMsg("Missing data for palette color");
+
+      bool ok;
+
+      int i = CQChartsUtil::toInt(dataStr, ok);
+      if (! ok) return errorMsg(QString("Invalid color index '%1'").arg(dataStr));
+
+      int n = palette->numColors();
+
+      if (i < 0 || i >= n) return errorMsg(QString("Invalid color index '%1'").arg(dataStr));
+
+      cmdBase_->setCmdRc(palette->icolor(i));
+    }
+
+    else if (nameStr == "distinct") { cmdBase_->setCmdRc(palette->isDistinct()); }
+
+    else if (nameStr == "interp_color") {
+      if (! dataFlag) return errorMsg("Missing data for palette interp color");
+
+      bool ok;
+
+      double r = CQChartsUtil::toReal(dataStr, ok);
+      if (! ok) return errorMsg(QString("Invalid interp color value '%1'").arg(dataStr));
+
+      bool scale = false;
+
+      QColor c = palette->getColor(r, scale);
+
+      cmdBase_->setCmdRc(c);
+    }
+
+    else if (nameStr == "red_function"  ) { cmdBase_->setCmdRc(palette->redFunction  ()); }
+    else if (nameStr == "green_function") { cmdBase_->setCmdRc(palette->greenFunction()); }
+    else if (nameStr == "blue_function" ) { cmdBase_->setCmdRc(palette->blueFunction ()); }
+
+    else if (nameStr == "cube_start"     ) { cmdBase_->setCmdRc(palette->cbStart       ()); }
+    else if (nameStr == "cube_cycles"    ) { cmdBase_->setCmdRc(palette->cbCycles      ()); }
+    else if (nameStr == "cube_saturation") { cmdBase_->setCmdRc(palette->cbSaturation  ()); }
+    else if (nameStr == "cube_negative"  ) { cmdBase_->setCmdRc(palette->isCubeNegative()); }
+
+    else if (nameStr == "?") {
+      QStringList names = QStringList() <<
+        "name" << "desc" << "color_type" << "color_model" <<
+        "red_model" << "green_model" << "blue_model" << "gray" <<
+        "red_negative" << "green_negative" << "blue_negative" <<
+        "red_min" << "red_max" << "green_min" << "green_max" << "blue_min" << "blue_max" <<
+        "colors" << "color" << "distinct" << "interp_color" <<
+        "red_function" << "green_function" << "blue_function" <<
+        "cube_start" << "cube_cycles" << "cube_saturation" << "cube_negative";
+
+      cmdBase_->setCmdRc(names);
+    }
+    else
+      return errorMsg(QString("Invalid palette value name '%1'").arg(nameStr));
+  }
+  // get interface data
+  else if (interfaceFlag) {
+    CQChartsInterfaceTheme *interface = charts_->interfaceTheme();
+    assert(interface);
+
+    if      (nameStr == "is_dark") {
+      cmdBase_->setCmdRc(interface->isDark());
+    }
+    else if (nameStr == "interp_color") {
+      if (! dataFlag) return errorMsg("Missing data for interface interp color");
+
+      bool ok;
+
+      double r = CQChartsUtil::toReal(dataStr, ok);
+      if (! ok) return errorMsg(QString("Invalid interp color value '%1'").arg(dataStr));
+
+      bool scale = false;
+
+      QColor c = interface->interpColor(r, scale);
+
+      cmdBase_->setCmdRc(c);
+    }
+    else if (nameStr == "?") {
+      QStringList names = QStringList() <<
+        "is_dark" << "interp_color";
+
+      cmdBase_->setCmdRc(names);
+    }
+    else
+      return errorMsg(QString("Invalid interface value name '%1'").arg(nameStr));
   }
 
   return true;
@@ -1410,71 +1603,179 @@ bool
 CQChartsCmds::
 setChartsPaletteCmd(CQChartsCmdArgs &argv)
 {
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
   CQPerfTrace trace("CQChartsCmds::setChartsPaletteCmd");
 
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name").setRequired();
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
+  argv.addCmdArg("-theme"    , CQChartsCmdArg::Type::String , "get theme data");
+  argv.addCmdArg("-palette"  , CQChartsCmdArg::Type::String , "get named palette data");
+  argv.addCmdArg("-interface", CQChartsCmdArg::Type::Boolean, "get interface data");
+  argv.endCmdGroup();
 
-  argv.addCmdArg("-interface"   , CQChartsCmdArg::Type::Boolean, "set interface palette");
-  argv.addCmdArg("-palette"     , CQChartsCmdArg::Type::Integer, "set palette index");
-  argv.addCmdArg("-color_type"  , CQChartsCmdArg::Type::String , "color type");
-  argv.addCmdArg("-color_model" , CQChartsCmdArg::Type::String , "color model");
-  argv.addCmdArg("-red_model"   , CQChartsCmdArg::Type::Integer, "red model");
-  argv.addCmdArg("-green_model" , CQChartsCmdArg::Type::Integer, "green model");
-  argv.addCmdArg("-blue_model"  , CQChartsCmdArg::Type::Integer, "blue model");
-  argv.addCmdArg("-negate_red"  , CQChartsCmdArg::Type::SBool  , "negate red");
-  argv.addCmdArg("-negate_green", CQChartsCmdArg::Type::SBool  , "negate green");
-  argv.addCmdArg("-negate_blue" , CQChartsCmdArg::Type::SBool  , "negate blue");
-  argv.addCmdArg("-red_min"     , CQChartsCmdArg::Type::Real   , "red min value");
-  argv.addCmdArg("-green_min"   , CQChartsCmdArg::Type::Real   , "green min value");
-  argv.addCmdArg("-blue_min"    , CQChartsCmdArg::Type::Real   , "blue min value");
-  argv.addCmdArg("-red_max"     , CQChartsCmdArg::Type::Real   , "red max value");
-  argv.addCmdArg("-green_max"   , CQChartsCmdArg::Type::Real   , "green max value");
-  argv.addCmdArg("-blue_max"    , CQChartsCmdArg::Type::Real   , "blue max value");
-  argv.addCmdArg("-defined"     , CQChartsCmdArg::Type::String , "defined values");
+  argv.addCmdArg("-name" , CQChartsCmdArg::Type::String, "value name").setRequired();
+  argv.addCmdArg("-value", CQChartsCmdArg::Type::String, "value value").setRequired();
+  argv.addCmdArg("-data" , CQChartsCmdArg::Type::String, "value name data");
 
   if (! argv.parse())
     return false;
 
   //---
 
-  CQChartsPaletteColorData paletteData;
+  bool    themeFlag     = argv.hasParseArg ("theme"    );
+  QString themeStr      = argv.getParseStr ("theme"    );
+  bool    paletteFlag   = argv.hasParseArg ("palette"  );
+  QString paletteStr    = argv.getParseStr ("palette"  );
+  bool    interfaceFlag = argv.getParseBool("interface");
 
-  QString viewName = argv.getParseStr("view");
+  QString nameStr  = argv.getParseStr("name" );
+  QString valueStr = argv.getParseStr("value");
 
-  bool interface    = argv.getParseBool("interface");
-  int  paletteIndex = argv.getParseInt ("palette"  );
+//bool    dataFlag = argv.hasParseArg("data");
+//QString dataStr  = argv.getParseStr("data");
 
-  paletteData.colorTypeStr  = argv.getParseStr("color_type" , paletteData.colorTypeStr );
-  paletteData.colorModelStr = argv.getParseStr("color_model", paletteData.colorModelStr);
+  //---
 
-  // alias for redModel, greenModel, blueModel
-  paletteData.redModel   = argv.getParseOptInt("red_model"  );
-  paletteData.greenModel = argv.getParseOptInt("green_model");
-  paletteData.blueModel  = argv.getParseOptInt("blue_model" );
+  // set global data
+  if      (! themeFlag && ! paletteFlag && ! interfaceFlag) {
+    if (nameStr == "?") {
+      QStringList names;
 
-  // alias for negateRed, negateGreen, negateBlue
-  paletteData.negateRed  = argv.getParseOptBool("negate_red"  );
-  paletteData.negateGreen= argv.getParseOptBool("negate_green");
-  paletteData.negateBlue = argv.getParseOptBool("negate_blue" );
+      cmdBase_->setCmdRc(names);
+    }
+    else
+      return errorMsg(QString("Invalid value name '%1'").arg(nameStr));
+  }
+  // set theme data
+  else if (themeFlag) {
+    CQChartsTheme *theme = CQChartsThemeMgrInst->getTheme(themeStr);
+    if (! theme) errorMsg(QString("Invalid theme '%1'").arg(themeStr));
 
-  // alias for redMin, greenMin, blueMin, redMax, greenMax, blue_max
-  paletteData.redMin   = argv.getParseOptReal("red_min"  );
-  paletteData.greenMin = argv.getParseOptReal("green_min");
-  paletteData.blueMin  = argv.getParseOptReal("green_min");
+    if      (nameStr == "name") theme->setName(valueStr);
+    else if (nameStr == "desc") theme->setDesc(valueStr);
 
-  paletteData.redMax   = argv.getParseOptReal("red_max"  );
-  paletteData.greenMax = argv.getParseOptReal("green_max");
-  paletteData.blueMax  = argv.getParseOptReal("green_max");
+    else if (nameStr == "select_color") { theme->setSelectColor(QColor(valueStr)); }
+    else if (nameStr == "inside_color") { theme->setInsideColor(QColor(valueStr)); }
 
-  QString definedStr = argv.getParseStr("defined");
+    else if (nameStr == "?") {
+      QStringList names = QStringList() <<
+        "name" << "desc" << "select_color" << "inside_color";
 
-  if (definedStr.length()) {
-    QStringList strs = definedStr.split(" ", QString::SkipEmptyParts);
+      cmdBase_->setCmdRc(names);
+    }
+    else
+      return errorMsg(QString("Invalid theme value name '%1'").arg(nameStr));
+  }
+  // set palette data
+  else if (paletteFlag) {
+    CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(paletteStr);
+    if (! palette) return errorMsg(QString("Invalid palette '%1'").arg(themeStr));
 
-    if (strs.length()) {
+    if      (nameStr == "name") palette->setName(valueStr);
+    else if (nameStr == "desc") palette->setDesc(valueStr);
+
+    else if (nameStr == "color_type") {
+      palette->setColorType(CQChartsGradientPalette::stringToColorType(valueStr));
+    }
+    else if (nameStr == "color_model") {
+      palette->setColorModel(CQChartsGradientPalette::stringToColorModel(valueStr));
+    }
+
+    // model
+    else if (nameStr == "red_model" || nameStr == "green_model" || "blue_model") {
+      bool ok;
+
+      int i = CQChartsUtil::toInt(valueStr, ok);
+      if (! ok) return errorMsg(QString("Invalid model index '%1'").arg(valueStr));
+
+      if      (nameStr == "red_model"  ) palette->setRedModel  (i);
+      else if (nameStr == "green_model") palette->setGreenModel(i);
+      else if (nameStr == "blue_model" ) palette->setBlueModel (i);
+    }
+
+    else if (nameStr == "gray" || nameStr == "red_negative" ||
+             nameStr == "green_negative" || nameStr == "blue_negative") {
+      bool ok;
+
+      bool b = CQChartsUtil::stringToBool(valueStr, &ok);
+      if (! ok) return errorMsg(QString("Invalid boolean '%1'").arg(valueStr));
+
+      if      (nameStr == "gray"          ) palette->setGray         (b);
+      else if (nameStr == "red_negative"  ) palette->setRedNegative  (b);
+      else if (nameStr == "green_negative") palette->setGreenNegative(b);
+      else if (nameStr == "blue_negative" ) palette->setBlueNegative (b);
+    }
+
+    else if (nameStr == "red_min"   || nameStr == "red_max"   ||
+             nameStr == "green_min" || nameStr == "green_max" ||
+             nameStr == "blue_min"  || nameStr == "blue_max") {
+      bool ok;
+
+      double r = CQChartsUtil::toReal(valueStr, ok);
+      if (! ok) return errorMsg(QString("Invalid real '%1'").arg(valueStr));
+
+      if      (nameStr == "red_min"  ) palette->setRedMin  (r);
+      else if (nameStr == "red_max"  ) palette->setRedMax  (r);
+      else if (nameStr == "green_min") palette->setGreenMin(r);
+      else if (nameStr == "green_max") palette->setGreenMax(r);
+      else if (nameStr == "blue_min" ) palette->setBlueMin (r);
+      else if (nameStr == "blue_max" ) palette->setBlueMax (r);
+    }
+
+    else if (nameStr == "distinct") {
+      bool ok;
+
+      bool b = CQChartsUtil::stringToBool(valueStr, &ok);
+      if (! ok) return errorMsg(QString("Invalid boolean '%1'").arg(valueStr));
+
+      palette->setDistinct(b);
+    }
+
+    else if (nameStr == "red_function"  ) { palette->setRedFunction  (valueStr.toStdString()); }
+    else if (nameStr == "green_function") { palette->setGreenFunction(valueStr.toStdString()); }
+    else if (nameStr == "blue_function" ) { palette->setBlueFunction (valueStr.toStdString()); }
+
+    else if (nameStr == "cube_start" || nameStr == "cube_cycles" || nameStr == "cube_saturation") {
+      bool ok;
+
+      double r = CQChartsUtil::toReal(valueStr, ok);
+      if (! ok) return errorMsg(QString("Invalid real '%1'").arg(valueStr));
+
+      if      (nameStr == "cube_start"     ) { palette->setCbStart     (r); }
+      else if (nameStr == "cube_cycles"    ) { palette->setCbCycles    (r); }
+      else if (nameStr == "cube_saturation") { palette->setCbSaturation(r); }
+    }
+
+    else if (nameStr == "cube_negative") {
+      bool ok;
+
+      bool b = CQChartsUtil::stringToBool(valueStr, &ok);
+      if (! ok) return errorMsg(QString("Invalid boolean '%1'").arg(valueStr));
+
+      palette->setCubeNegative(b);
+    }
+
+    // set colors
+    else if (nameStr == "defined_colors") {
+      using DefinedColors = std::vector<CQChartsDefinedColor>;
+
+      //--
+
+      QString definedStr = argv.getParseStr("defined");
+
+      QStringList strs = definedStr.split(" ", QString::SkipEmptyParts);
+
+      if (! strs.length())
+        return errorMsg(QString("Invalid defined colors '%1'").arg(valueStr));
+
       double dv = (strs.length() > 1 ? 1.0/(strs.length() - 1) : 0.0);
 
-      paletteData.definedColors.clear();
+      DefinedColors definedColors;
 
       for (int j = 0; j < strs.length(); ++j) {
         int pos = strs[j].indexOf('=');
@@ -1494,30 +1795,61 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
         else
           c = QColor(strs[j]);
 
-        paletteData.definedColors.push_back(CQChartsDefinedColor(v, c));
+        definedColors.push_back(CQChartsDefinedColor(v, c));
+      }
+
+      if (! definedColors.empty()) {
+        palette->resetDefinedColors();
+
+        for (const auto &definedColor : definedColors)
+          palette->addDefinedColor(definedColor.v, definedColor.c);
       }
     }
+
+    else if (nameStr == "?") {
+      QStringList names = QStringList() <<
+        "name" << "desc" << "color_type" << "color_model" <<
+        "red_model" << "green_model" << "blue_model" <<
+        "red_min" << "red_max" << "green_min" << "green_max" << "blue_min" << "blue_max" <<
+        "distinct" << "red_function" << "green_function" << "blue_function" <<
+        "cube_start" << "cube_cycles" << "cube_saturation" << "cube_negative" <<
+        "defined_colors";
+
+      cmdBase_->setCmdRc(names);
+    }
+    else
+      return errorMsg(QString("Invalid palete value name '%1'").arg(nameStr));
+  }
+  // set interface data
+  else if (interfaceFlag) {
+    CQChartsInterfaceTheme *interface = charts_->interfaceTheme();
+    assert(interface);
+
+    if      (nameStr == "dark") {
+      bool ok;
+
+      bool b = CQChartsUtil::stringToBool(valueStr, &ok);
+      if (! ok) return errorMsg(QString("Invalid boolean '%1'").arg(valueStr));
+
+      interface->setDark(b);
+    }
+
+    else if (nameStr == "?") {
+      QStringList names = QStringList() <<
+        "dark";
+
+      cmdBase_->setCmdRc(names);
+    }
+    else
+      return errorMsg(QString("Invalid interface value name '%1'").arg(nameStr));
   }
 
-  //---
-
-  CQChartsView *view = getViewByName(viewName);
-  if (! view) return false;
-
-  //---
-
-  CQChartsGradientPalette *palette = nullptr;
-
-  if (interface)
-    interface = view->interfacePalette();
-  else
-    palette = view->themeObj()->palette(paletteIndex);
-
-  if (! setPaletteData(palette, paletteData))
+  if (! argv.parse())
     return false;
 
   //---
 
+#if 0
   view->updatePlots();
 
   CQChartsWindow *window = CQChartsWindowMgrInst->getWindowForView(view);
@@ -1528,6 +1860,7 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
     else
       window->updateThemePalettes();
   }
+#endif
 
   return true;
 }

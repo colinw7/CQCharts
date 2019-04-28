@@ -3,12 +3,19 @@
 #include <CQPropertyViewModel.h>
 
 CQChartsPlotObj::
-CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect) :
- CQChartsObj(nullptr, rect), plot_(plot)
+CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect, const ColorInd &is,
+                const ColorInd &ig, const ColorInd &iv) :
+ CQChartsObj(nullptr, rect), plot_(plot), is_(is), ig_(ig), iv_(iv)
 {
   assert(! CMathUtil::isNaN(rect.getXMin()) && ! CMathUtil::isNaN(rect.getYMin()) &&
          ! CMathUtil::isNaN(rect.getXMax()) && ! CMathUtil::isNaN(rect.getYMax()));
+
+  assert(is_.i >= 0 && is_.i < is_.n);
+  assert(ig_.i >= 0 && ig_.i < ig_.n);
+  assert(iv_.i >= 0 && iv_.i < iv_.n);
 }
+
+//---
 
 bool
 CQChartsPlotObj::
@@ -19,6 +26,50 @@ calcColumnId(const QModelIndex &ind, QString &str) const
   str = plot_->idColumnString(ind.row(), ind.parent(), ok);
 
   return ok;
+}
+
+//---
+
+double
+CQChartsPlotObj::
+xColorValue() const
+{
+  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+
+  return CMathUtil::map(rect_.getXMid(), dataRange.xmin(), dataRange.xmax(), 0.0, 1.0);
+}
+
+double
+CQChartsPlotObj::
+yColorValue() const
+{
+  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+
+  return CMathUtil::map(rect_.getYMid(), dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
+}
+
+//---
+
+CQChartsPlotObj::ColorInd
+CQChartsPlotObj::
+calcColorInd() const
+{
+  ColorInd colorInd;
+
+  if      (plot_->colorType() == CQChartsPlot::ColorType::AUTO)
+    colorInd = (is_.n <= 1 ? (ig_.n <= 1 ? iv_ : ig_) : is_);
+  else if (plot_->colorType() == CQChartsPlot::ColorType::SET)
+    colorInd = is_;
+  else if (plot_->colorType() == CQChartsPlot::ColorType::GROUP)
+    colorInd = ig_;
+  else if (plot_->colorType() == CQChartsPlot::ColorType::INDEX)
+    colorInd = iv_;
+  else if (plot_->colorType() == CQChartsPlot::ColorType::X_VALUE)
+    colorInd = ColorInd(xColorValue());
+  else if (plot_->colorType() == CQChartsPlot::ColorType::Y_VALUE)
+    colorInd = ColorInd(yColorValue());
+
+  return colorInd;
 }
 
 //---

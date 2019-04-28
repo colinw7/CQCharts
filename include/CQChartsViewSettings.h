@@ -20,6 +20,7 @@ class CQChartsAnnotation;
 class CQChartsFilterEdit;
 class CQChartsGradientPaletteCanvas;
 class CQChartsGradientPaletteControl;
+class CQChartsGradientPaletteList;
 class CQChartsLoadModelDlg;
 class CQChartsEditModelDlg;
 class CQChartsCreatePlotDlg;
@@ -80,11 +81,9 @@ class CQChartsViewSettings : public QFrame {
 
   void layerImageSlot();
 
-  void paletteIndexSlot(int ind);
-
-  void loadPaletteNameSlot();
-
   void updateSelection();
+
+  void updateView();
 
   //---
 
@@ -136,6 +135,11 @@ class CQChartsViewSettings : public QFrame {
   void writeAnnotationSlot();
 
   //---
+
+  void palettesComboSlot(int);
+  void palettesResetSlot();
+
+  void paletteColorsChangedSlot();
 
   void updatePalettes();
   void updateInterface();
@@ -215,13 +219,12 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct ThemeWidgets {
-    QSpinBox*                       palettesSpin       { nullptr }; //!< palettes index spin
-    QComboBox*                      palettesCombo      { nullptr }; //!< palettes name combo
-    QPushButton*                    palettesLoadButton { nullptr }; //!< load palette name button
-    CQChartsGradientPaletteCanvas*  palettesPlot       { nullptr }; //!< current palette plot
-    CQChartsGradientPaletteControl* palettesControl    { nullptr }; //!< current palette control
-    CQChartsGradientPaletteCanvas*  interfacePlot      { nullptr }; //!< interface palette plot
-    CQChartsGradientPaletteControl* interfaceControl   { nullptr }; //!< interface palette control
+    CQChartsGradientPaletteList*    palettesList     { nullptr }; //!< palettes list
+    QComboBox*                      palettesCombo    { nullptr }; //!< palettes name combo
+    CQChartsGradientPaletteCanvas*  palettesPlot     { nullptr }; //!< current palette plot
+    CQChartsGradientPaletteControl* palettesControl  { nullptr }; //!< current palette control
+    CQChartsGradientPaletteCanvas*  interfacePlot    { nullptr }; //!< interface palette plot
+    CQChartsGradientPaletteControl* interfaceControl { nullptr }; //!< interface palette control
   };
 
   struct LayersWidgets {

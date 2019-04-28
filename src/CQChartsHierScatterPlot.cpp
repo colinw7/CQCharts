@@ -750,7 +750,7 @@ draw(QPainter *painter)
 CQChartsHierScatterKeyColor::
 CQChartsHierScatterKeyColor(CQChartsHierScatterPlot *plot, CQChartsHierScatterPointGroup *group,
                             int i, int n) :
- CQChartsKeyColorBox(plot, i, n), group_(group)
+ CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ColorInd(i, n)), group_(group)
 {
 }
 

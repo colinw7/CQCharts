@@ -590,9 +590,9 @@ draw(QPainter *painter)
 
   if (color().isValid()) {
     if (n_ > 0)
-      fc = plot_->charts()->interpColor(color(), i_, n_);
+      fc = plot_->interpColor(color(), i_, n_);
     else
-      fc = plot_->charts()->interpColor(color(), dv);
+      fc = plot_->interpColor(color(), dv);
   }
   else {
     if (n_ > 0)

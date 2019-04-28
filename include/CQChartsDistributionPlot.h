@@ -14,6 +14,8 @@ class CQChartsDensity;
 struct CQChartsDistributionBarValue {
   double n1 { 0 };
   double n2 { 0 };
+  double xr { 0.0 };
+  double yr { 0.0 };
 };
 
 //---
@@ -142,13 +144,15 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
     ColorSizes colorSizes;
   };
 
+  using ColorInd = CQChartsPlot::ColorInd;
+
  public:
   using Bucket   = CQChartsDistributionBucket;
   using BarValue = CQChartsDistributionBarValue;
 
   CQChartsDistributionBarObj(const CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
                              int groupInd, const Bucket &bucket, const BarValue &barValue,
-                             int is, int ns, int iv, int nv);
+                             const ColorInd &ig, const ColorInd &iv);
 
   int groupInd() const { return groupInd_; }
 
@@ -214,15 +218,14 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   QColor barColor() const;
 
+  double xColorValue() const;
+  double yColorValue() const;
+
  private:
   const CQChartsDistributionPlot* plot_     { nullptr };
   int                             groupInd_ { -1 };
   Bucket                          bucket_;
   BarValue                        barValue_;
-  int                             is_       { -1 };
-  int                             ns_       { -1 };
-  int                             iv_       { -1 };
-  int                             nv_       { -1 };
   double                          value1_   { 0.0 };
   double                          value2_   { 1.0 };
   ColorData                       colorData_;
@@ -268,7 +271,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
  public:
   CQChartsDistributionDensityObj(const CQChartsDistributionPlot *plot,
                                  const CQChartsGeom::BBox &rect, int groupInd,
-                                 const Data &data, double doffset, int is, int ns);
+                                 const Data &data, double doffset, const ColorInd &is);
 
   int groupInd() const { return groupInd_; }
 
@@ -315,8 +318,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   int                             groupInd_    { -1 };
   Data                            data_;
   double                          doffset_     { 0.0 };
-  int                             is_          { -1 };
-  int                             ns_          { -1 };
+  ColorInd                        is_;
   QPolygonF                       poly_;
   double                          bucketScale_ { 1.0 };
 };
@@ -335,7 +337,8 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
  public:
   CQChartsDistributionScatterObj(const CQChartsDistributionPlot *plot,
                                  const CQChartsGeom::BBox &rect, int groupInd,
-                                 const Bucket &bucket, int n, int is, int ns, int iv, int nv);
+                                 const Bucket &bucket, int n,
+                                 const ColorInd &is, const ColorInd &iv);
 
   int groupInd() const { return groupInd_; }
 
@@ -366,10 +369,8 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
   int                             groupInd_ { -1 };
   Bucket                          bucket_;
   int                             n_        { 0 };
-  int                             is_       { -1 };
-  int                             ns_       { -1 };
-  int                             iv_       { -1 };
-  int                             nv_       { -1 };
+  ColorInd                        is_;
+  ColorInd                        iv_;
   Points                          points_;
 };
 
@@ -384,7 +385,8 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
   Q_OBJECT
 
  public:
-  CQChartsDistKeyColorBox(CQChartsDistributionPlot *plot, int i, int n);
+  CQChartsDistKeyColorBox(CQChartsDistributionPlot *plot, const ColorInd &ig, const ColorInd &iv,
+                          double xv, double yv);
 
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &v) { color_ = v; }
@@ -398,8 +400,8 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
   void setSetHidden(bool b);
 
  private:
-  CQChartsDistributionPlot* plot_;  //!< plot
-  CQChartsColor             color_; //!< custom color
+  CQChartsDistributionPlot* plot_ { nullptr }; //!< plot
+  CQChartsColor             color_;            //!< custom color
 };
 
 /*!
@@ -716,10 +718,11 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   using VariantInds = std::vector<VariantInd>;
 
   struct VariantIndsData {
-    VariantInds      inds;
-    double           min  { 0.0 };
-    double           max  { 0.0 };
-    CQChartsStatData statData;
+    VariantInds           inds;         //!< mode indices
+    double                min  { 0.0 }; //!< min value
+    double                max  { 0.0 }; //!< max value
+    CQChartsStatData      statData;     //!< stats data
+    CQChartsGeom::RMinMax valueRange;   //!< value range
   };
 
   using BarValue = CQChartsDistributionBarValue;
@@ -742,11 +745,13 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   using BucketValues = std::map<Bucket,VariantIndsData>;
 
   struct Values {
-    Inds              inds;                      //!< value indices
-    CQChartsValueSet* valueSet      { nullptr }; //!< value set
-    BucketValues      bucketValues;              //!< bucketed values
-    CQChartsDensity*  densityData   { nullptr }; //!< density data
-    CQChartsStatData  statData;                  //!< stat data
+    Inds                  inds;                      //!< value indices
+    CQChartsValueSet*     valueSet      { nullptr }; //!< value set
+    BucketValues          bucketValues;              //!< bucketed values
+    CQChartsDensity*      densityData   { nullptr }; //!< density data
+    CQChartsStatData      statData;                  //!< stat data
+    CQChartsGeom::RMinMax xValueRange;               //!< x value range
+    CQChartsGeom::RMinMax yValueRange;               //!< y value range
 
     Values(CQChartsValueSet *valueSet);
    ~Values();

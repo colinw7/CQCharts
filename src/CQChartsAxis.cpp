@@ -10,7 +10,6 @@
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
-#include <CMathRound.h>
 
 #include <QPainter>
 

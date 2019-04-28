@@ -57,12 +57,14 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   using OptReal = boost::optional<double>;
 
+  using ColorInd = CQChartsPlot::ColorInd;
+
  public:
   CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd,
                           const CQChartsGeom::BBox &rect, const QPointF &p,
                           const CQChartsSymbol &symbolType, const CQChartsLength &symbolSize,
                           const CQChartsLength &fontSize, const CQChartsColor &color,
-                          int ig, int ng, int is, int ns, int iv, int nv);
+                          const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
 
   int groupInd() const { return groupInd_; }
 
@@ -101,22 +103,21 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   void drawDir(QPainter *painter, const Dir &dir, bool flip=false) const;
 
+  //---
+
+  double xColorValue() const override;
+  double yColorValue() const override;
+
  private:
-  const CQChartsScatterPlot* plot_       { nullptr };
-  int                        groupInd_   { -1 };
-  QPointF                    p_;
-  CQChartsSymbol             symbolType_;
-  CQChartsLength             symbolSize_;
-  CQChartsLength             fontSize_;
-  CQChartsColor              color_;
-  int                        ig_         { -1 };
-  int                        ng_         { -1 };
-  int                        is_         { -1 };
-  int                        ns_         { -1 };
-  int                        iv_         { -1 };
-  int                        nv_         { -1 };
-  QString                    name_;
-  QModelIndex                ind_;
+  const CQChartsScatterPlot* plot_       { nullptr }; //!< scatter plot
+  int                        groupInd_   { -1 };      //!< plot group index
+  QPointF                    p_;                      //!< point position
+  CQChartsSymbol             symbolType_;             //!< symbol type
+  CQChartsLength             symbolSize_;             //!< symbol size
+  CQChartsLength             fontSize_;               //!< label font size
+  CQChartsColor              color_;                  //!< symbol color
+  QString                    name_;                   //!< label name
+  QModelIndex                ind_;                    //!< model index
 };
 
 //---
@@ -136,9 +137,11 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 
   using Points = std::vector<QPointF>;
 
+  using ColorInd = CQChartsPlot::ColorInd;
+
  public:
   CQChartsScatterCellObj(const CQChartsScatterPlot *plot, int groupInd,
-                         const CQChartsGeom::BBox &rect, int ig, int ng, int is, int ns,
+                         const CQChartsGeom::BBox &rect, const ColorInd &is, const ColorInd &ig,
                          int ix, int iy, const Points &points, int maxn);
 
   int groupInd() const { return groupInd_; }
@@ -164,16 +167,12 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
   void drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const;
 
  private:
-  const CQChartsScatterPlot* plot_     { nullptr };
-  int                        groupInd_ { -1 };
-  int                        ig_       { -1 };
-  int                        ng_       { -1 };
-  int                        is_       { -1 };
-  int                        ns_       { -1 };
-  int                        ix_       { -1 };
-  int                        iy_       { -1 };
-  Points                     points_;
-  int                        maxn_     { 0 };
+  const CQChartsScatterPlot* plot_     { nullptr }; //!< scatter plot
+  int                        groupInd_ { -1 };      //!< plot group inded
+  int                        ix_       { -1 };      //!< x index
+  int                        iy_       { -1 };      //!< y index
+  Points                     points_;               //!< cell points
+  int                        maxn_     { 0 };       //!< max number of points
 };
 
 //---

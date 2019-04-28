@@ -1242,7 +1242,7 @@ addPointObjects(PlotObjs &objs) const
 
         CQChartsScatterPointObj *pointObj =
           new CQChartsScatterPointObj(this, groupInd, bbox, p, symbolType, symbolSize, fontSize,
-                                      color, ig, ng, is, ns, iv, nv);
+                                      color, ColorInd(is, ns), ColorInd(ig, ng), ColorInd(iv, nv));
 
         //---
 
@@ -1337,7 +1337,8 @@ addGridObjects(PlotObjs &objs) const
           CQChartsGeom::BBox bbox(xmin, ymin, xmax, ymax);
 
           CQChartsScatterCellObj *cellObj =
-            new CQChartsScatterCellObj(this, groupInd, bbox, ig, ng, is, ns, ix, iy, points, maxN);
+            new CQChartsScatterCellObj(this, groupInd, bbox, ColorInd(is, ns), ColorInd(ig, ng),
+                                       ix, iy, points, maxN);
 
           objs.push_back(cellObj);
         }
@@ -3221,14 +3222,11 @@ CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd,
                         const CQChartsGeom::BBox &rect, const QPointF &p,
                         const CQChartsSymbol &symbolType, const CQChartsLength &symbolSize,
                         const CQChartsLength &fontSize, const CQChartsColor &color,
-                        int ig, int ng, int is, int ns, int iv, int nv) :
- CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
- p_(p), symbolType_(symbolType), symbolSize_(symbolSize), fontSize_(fontSize), color_(color),
- ig_(ig), ng_(ng), is_(is), ns_(ns), iv_(iv), nv_(nv)
+                        const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect, is, ig, iv), plot_(plot),
+ groupInd_(groupInd), p_(p), symbolType_(symbolType), symbolSize_(symbolSize),
+ fontSize_(fontSize), color_(color)
 {
-  assert(ig >= 0 && ig < ng);
-  assert(is >= 0 && is < ns);
-  assert(iv >= 0 && iv < nv);
 }
 
 QString
@@ -3242,7 +3240,7 @@ calcId() const
   if (calcColumnId(ind1, idStr))
     return idStr;
 
-  return QString("%1:%2:%3:%4").arg(typeName()).arg(ig_).arg(is_).arg(iv_);
+  return QString("%1:%2:%3:%4").arg(typeName()).arg(is_.i).arg(ig_.i).arg(iv_.i);
 }
 
 QString
@@ -3253,7 +3251,7 @@ calcTipId() const
 
   tableTip.addBoldLine(name_);
 
-  if (ng_ > 1) {
+  if (ig_.n > 1) {
     QString groupName = plot_->groupIndName(groupInd_);
 
     tableTip.addTableRow("Group", groupName);
@@ -3273,7 +3271,7 @@ calcTipId() const
 
   const CQChartsScatterPlot::Values &values = (*p).second.values;
 
-  const CQChartsScatterPlot::ValueData &valuePoint = values[iv_];
+  const CQChartsScatterPlot::ValueData &valuePoint = values[iv_.i];
 
   //---
 
@@ -3369,17 +3367,7 @@ void
 CQChartsScatterPointObj::
 drawDir(QPainter *painter, const Dir &dir, bool flip) const
 {
-  int ic = 0;
-  int nc = 0;
-
-  if (ng_ > 0) {
-    ic = ig_;
-    nc = ng_;
-  }
-  else {
-    ic = is_;
-    nc = ns_;
-  }
+  ColorInd ic = calcColorInd();
 
   //---
 
@@ -3387,10 +3375,13 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
   QPen   pen;
   QBrush brush;
 
-  plot_->setSymbolPenBrush(pen, brush, ic, nc);
+  if (ic.isInt)
+    plot_->setSymbolPenBrush(pen, brush, ic.i, ic.n);
+  else
+    plot_->setSymbolPenBrush(pen, brush, ic.r);
 
   if (color_.isValid()) {
-    QColor c = plot_->charts()->interpColor(color_, ic, nc);
+    QColor c = plot_->interpColor(color_, ic);
 
     c.setAlphaF(plot_->symbolFillAlpha());
 
@@ -3465,7 +3456,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
     QPen tpen;
 
-    QColor tc = dataLabel->interpTextColor(ic, nc);
+    QColor tc = dataLabel->interpTextColor(ic.i, ic.n);
 
     plot_->setPen(tpen, true, tc, dataLabel->textAlpha());
 
@@ -3499,24 +3490,40 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
   }
 }
 
+double
+CQChartsScatterPointObj::
+xColorValue() const
+{
+  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+
+  return CMathUtil::map(p_.x(), dataRange.xmin(), dataRange.xmax(), 0.0, 1.0);
+}
+
+double
+CQChartsScatterPointObj::
+yColorValue() const
+{
+  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+
+  return CMathUtil::map(p_.y(), dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
+}
+
 //------
 
 CQChartsScatterCellObj::
 CQChartsScatterCellObj(const CQChartsScatterPlot *plot, int groupInd,
-                       const CQChartsGeom::BBox &rect, int ig, int ng, int is, int ns,
+                       const CQChartsGeom::BBox &rect, const ColorInd &is, const ColorInd &ig,
                        int ix, int iy, const Points &points, int maxn) :
- CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
- ig_(ig), ng_(ng), is_(is), ns_(ns), ix_(ix), iy_(iy), points_(points), maxn_(maxn)
+ CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
+ groupInd_(groupInd), ix_(ix), iy_(iy), points_(points), maxn_(maxn)
 {
-  assert(ig >= 0 && ig < ng);
-  assert(is >= 0 && is < ns);
 }
 
 QString
 CQChartsScatterCellObj::
 calcId() const
 {
-  return QString("%1:%2:%3:%4:%5").arg(typeName()).arg(ig_).arg(is_).arg(ix_).arg(iy_);
+  return QString("%1:%2:%3:%4:%5").arg(typeName()).arg(is_.i).arg(ig_.i).arg(ix_).arg(iy_);
 }
 
 QString
@@ -3593,13 +3600,13 @@ drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const
   int ic = 0;
   int nc = 0;
 
-  if (ng_ > 0) {
-    ic = ig_;
-    nc = ng_;
+  if (ig_.n > 0) {
+    ic = ig_.i;
+    nc = ig_.n;
   }
   else {
-    ic = is_;
-    nc = ns_;
+    ic = is_.i;
+    nc = is_.n;
   }
 
   //---
@@ -3664,7 +3671,7 @@ drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const
 
 CQChartsScatterKeyColor::
 CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int groupInd, int i, int n) :
- CQChartsKeyColorBox(plot, i, n), groupInd_(groupInd)
+ CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ColorInd(i, n)), groupInd_(groupInd)
 {
 }
 
@@ -3699,7 +3706,7 @@ fillBrush() const
   QColor c;
 
   if (color_.isValid())
-    c = plot_->charts()->interpColor(color_, 0, 1);
+    c = plot_->interpColor(color_, 0, 1);
   else {
     c = plot->interpSymbolFillColor(i_, n_);
 

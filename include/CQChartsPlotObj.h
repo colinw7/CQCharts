@@ -10,6 +10,8 @@ class CQPropertyViewModel;
 
 /*!
  * \brief Plot Object base class
+ *
+ * Maintains three indices (set, group and value) and x, y values for color interpolation
  */
 class CQChartsPlotObj : public CQChartsObj {
   Q_OBJECT
@@ -18,10 +20,13 @@ class CQChartsPlotObj : public CQChartsObj {
   Q_PROPERTY(bool    visible  READ isVisible  WRITE setVisible )
 
  public:
-  using Indices = std::set<QModelIndex>;
+  using Indices  = std::set<QModelIndex>;
+  using ColorInd = CQChartsUtil::ColorInd;
 
  public:
-  CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect=CQChartsGeom::BBox());
+  CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect=CQChartsGeom::BBox(),
+                  const ColorInd &is=ColorInd(), const ColorInd &ig=ColorInd(),
+                  const ColorInd &iv=ColorInd());
 
   virtual ~CQChartsPlotObj() { }
 
@@ -32,7 +37,7 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
-  //! get type name
+  //! get type name (for id)
   virtual QString typeName() const = 0;
 
   //---
@@ -49,6 +54,13 @@ class CQChartsPlotObj : public CQChartsObj {
   //---
 
   virtual bool visible() const { return isVisible(); }
+
+  //---
+
+  virtual ColorInd calcColorInd() const;
+
+  virtual double xColorValue() const;
+  virtual double yColorValue() const;
 
   //---
 
@@ -121,6 +133,9 @@ class CQChartsPlotObj : public CQChartsObj {
  protected:
   CQChartsPlot* plot_     { nullptr }; //!< parent plot
   bool          visible_  { true };    //!< is visible
+  ColorInd      is_;                   //!< set index
+  ColorInd      ig_;                   //!< group index
+  ColorInd      iv_;                   //!< value index
 };
 
 //------

@@ -19,6 +19,7 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
+#include <CMathRound.h>
 
 #include <QPainter>
 #include <QMenu>
@@ -857,6 +858,8 @@ calcBucketRanges() const
   for (auto &groupValues : groupData_.groupValues) {
     if (ng > 1 && isSetHidden(ig)) { ++ig; continue; }
 
+    int maxValues1 = 0;
+
     //---
 
     int     groupInd = groupValues.first;
@@ -883,15 +886,26 @@ calcBucketRanges() const
         densityBBox.add(values->densityData->ymax1() + doffset, values->densityData->xmax1());
       }
 
+      values->xValueRange.add(values->densityData->xmin1());
+      values->xValueRange.add(values->densityData->xmax1());
+
+      values->yValueRange.add(values->densityData->ymin1() + doffset);
+      values->yValueRange.add(values->densityData->ymax1() + doffset);
+
       doffset += densityOffset();
     }
     // scatter is grid of num groups by num value sets
     else if (isScatter()) {
-      maxValues = std::max(maxValues, int(values->bucketValues.size()));
+      int nv = int(values->bucketValues.size());
+
+      maxValues1 = std::max(maxValues1, nv);
+
+      values->xValueRange.add(groupInd);
+      values->yValueRange.add(nv);
     }
     // normal is bar per value set
     else {
-      maxValues = std::max(maxValues, int(values->bucketValues.size()));
+      maxValues1 = std::max(maxValues1, int(values->bucketValues.size()));
 
       (void) getStatData(groupInd, values->statData);
 
@@ -903,6 +917,17 @@ calcBucketRanges() const
       for (auto &bucketValues : values->bucketValues) {
         const Bucket    &bucket   = bucketValues.first;
         VariantIndsData &varsData = bucketValues.second;
+
+        //---
+
+        double value1, value2;
+
+        this->bucketValues(groupInd, bucket, value1, value2);
+
+        values->xValueRange.add(value1);
+        values->xValueRange.add(value2);
+
+        //---
 
         // update bucket range
         if      (bucket.hasValue()) {
@@ -926,35 +951,43 @@ calcBucketRanges() const
 
         //---
 
+        auto addRangeValue = [&](double y) {
+          values->yValueRange.add(y);
+
+          varsData.valueRange.add(y);
+
+          valueRange.add(y);
+        };
+
         // update min/max per value set
         if      (isValueCount()) {
-          valueRange.add(n);
+          addRangeValue(n);
         }
         else if (isValueRange()) {
           calcVarIndsData(varsData);
 
-          valueRange.add(varsData.min);
-          valueRange.add(varsData.max);
+          addRangeValue(varsData.min);
+          addRangeValue(varsData.max);
         }
         else if (isValueMin()) {
           calcVarIndsData(varsData);
 
-          valueRange.add(varsData.min);
+          addRangeValue(varsData.min);
         }
         else if (isValueMax()) {
           calcVarIndsData(varsData);
 
-          valueRange.add(varsData.max);
+          addRangeValue(varsData.max);
         }
         else if (isValueMean()) {
           calcVarIndsData(varsData);
 
-          valueRange.add(varsData.statData.mean);
+          addRangeValue(varsData.statData.mean);
         }
         else if (isValueSum()) {
           calcVarIndsData(varsData);
 
-          valueRange.add(varsData.statData.sum);
+          addRangeValue(varsData.statData.sum);
         }
 
         //---
@@ -967,6 +1000,8 @@ calcBucketRanges() const
 
         ++iv;
       }
+
+      //---
 
       if (underFlow) {
         int bucket1 = bucketRange.min(0) - 1;
@@ -984,6 +1019,12 @@ calcBucketRanges() const
         th->groupData_.groupBucketRange[groupInd].add(bucket1);
       }
     }
+
+    //---
+
+    maxValues = std::max(maxValues, maxValues1);
+
+    //---
 
     ++ig;
   }
@@ -1564,7 +1605,7 @@ createObjs(PlotObjs &objs) const
 
       if (bbox.isSet()) {
         CQChartsDistributionDensityObj *barObj =
-          new CQChartsDistributionDensityObj(this, bbox, groupInd, data, doffset, ig, ng);
+          new CQChartsDistributionDensityObj(this, bbox, groupInd, data, doffset, ColorInd(ig, ng));
 
         objs.push_back(barObj);
       }
@@ -1615,7 +1656,8 @@ createObjs(PlotObjs &objs) const
           bbox = CQChartsGeom::BBox(ig - 0.5, iv - 0.5, ig + 0.5, iv + 0.5);
 
         CQChartsDistributionScatterObj *scatterObj =
-          new CQChartsDistributionScatterObj(this, bbox, groupInd, sbucket, n, ig, ng, iv, nv);
+          new CQChartsDistributionScatterObj(this, bbox, groupInd, sbucket, n,
+                                             ColorInd(ig, ng), ColorInd(iv, nv));
 
         objs.push_back(scatterObj);
 
@@ -1662,6 +1704,12 @@ createObjs(PlotObjs &objs) const
 
         const Bucket          &bucket   = bucketValues.first;
         const VariantIndsData &varsData = bucketValues.second;
+
+        //---
+
+        double value1, value2;
+
+        this->bucketValues(groupInd, bucket, value1, value2);
 
         //---
 
@@ -1773,8 +1821,14 @@ createObjs(PlotObjs &objs) const
                                       scale*barValue.n2, vpos + 0.5);
         }
 
+        barValue.xr = CMathUtil::map(value1,
+          values->xValueRange.min(), values->xValueRange.max(), 0.0, 1.0);
+        barValue.yr = CMathUtil::map(barValue.n2,
+          values->yValueRange.min(), values->yValueRange.max(), 0.0, 1.0);
+
         CQChartsDistributionBarObj *barObj =
-          new CQChartsDistributionBarObj(this, bbox, groupInd, sbucket, barValue, ig, ng, iv, nv);
+          new CQChartsDistributionBarObj(this, bbox, groupInd, sbucket, barValue,
+                                         ColorInd(ig, ng), ColorInd(iv, nv));
 
         objs.push_back(barObj);
 
@@ -2159,9 +2213,11 @@ addKeyItems(CQChartsPlotKey *key)
 {
   int row = key->maxRow();
 
-  auto addKeyRow = [&](int i, int n, const QString &name) {
-    CQChartsDistKeyColorBox *keyColor = new CQChartsDistKeyColorBox(this, i, n);
-    CQChartsDistKeyText     *keyText  = new CQChartsDistKeyText    (this, name, i, n);
+  auto addKeyRow = [&](int ig, int ng, int i, int n, double xv, double yv, const QString &name) {
+    CQChartsDistKeyColorBox *keyColor =
+      new CQChartsDistKeyColorBox(this, ColorInd(ig, ng), ColorInd(i, n), xv, yv);
+
+    CQChartsDistKeyText *keyText = new CQChartsDistKeyText(this, name, i, n);
 
     key->addItem(keyColor, row, 0);
     key->addItem(keyText , row, 1);
@@ -2184,7 +2240,7 @@ addKeyItems(CQChartsPlotKey *key)
 
       QString groupName = groupIndName(groupInd);
 
-      addKeyRow(ig, ng, groupName);
+      addKeyRow(ig, ng, 0, 1, 0.0, 0.0, groupName);
 
       ++ig;
     }
@@ -2204,14 +2260,15 @@ addKeyItems(CQChartsPlotKey *key)
       for (int iv = 0; iv < nv; ++iv) {
         QVariant value = columnDetails->uniqueValue(iv);
 
-        CQChartsDistKeyColorBox *colorBox = addKeyRow(iv, nv, value.toString()).first;
+        CQChartsDistKeyColorBox *colorBox =
+          addKeyRow(0, 1, iv, nv, 0.0, 0.0, value.toString()).first;
 
         bool ok;
 
         CQChartsColor c = CQChartsVariant::toColor(value, ok);
 
         if (ok) {
-          QColor c1 = charts()->interpColor(c, 0, 1);
+          QColor c1 = interpColor(c, 0, 1);
 
           c1.setAlphaF(barFillAlpha());
 
@@ -2233,11 +2290,18 @@ addKeyItems(CQChartsPlotKey *key)
 
       for (const auto &bucketValues : values->bucketValues) {
         const Bucket          &bucket   = bucketValues.first;
-      //const VariantIndsData &varsData = bucketValues.second;
+        const VariantIndsData &varsData = bucketValues.second;
+
+        BarValue barValue = varIndsValue(varsData);
 
         QString bucketName = bucketValuesStr(groupInd, bucket, values);
 
-        addKeyRow(iv, nv, bucketName);
+        double xv = CMathUtil::map(iv,
+          values->xValueRange.min(), values->xValueRange.max(), 0.0, 1.0);
+        double yv = CMathUtil::map(barValue.n2,
+          values->yValueRange.min(), values->yValueRange.max(), 0.0, 1.0);
+
+        addKeyRow(0, 1, iv, nv, xv, yv, bucketName);
 
         ++iv;
       }
@@ -2285,8 +2349,8 @@ bucketValuesStr(int groupInd, const Bucket &bucket, const Values *values,
 
     if      (type == BucketValueType::ALL) {
       if (bucketer.isIntegral()) {
-        int ivalue1 = value1;
-        int ivalue2 = value2 - 1;
+        int ivalue1 = CMathRound::RoundNearest(value1);
+        int ivalue2 = CMathRound::RoundNearest(value2);
 
         if (ivalue1 != ivalue2)
           return bucketer.bucketName(ivalue1, ivalue2, CQBucketer::NameFormat::BRACKETED);
@@ -2716,13 +2780,10 @@ getPanY(bool is_shift) const
 CQChartsDistributionBarObj::
 CQChartsDistributionBarObj(const CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
                            int groupInd, const Bucket &bucket, const BarValue &barValue,
-                           int is, int ns, int iv, int nv) :
- CQChartsPlotObj(const_cast<CQChartsDistributionPlot *>(plot), rect), plot_(plot),
- groupInd_(groupInd), bucket_(bucket), barValue_(barValue), is_(is), ns_(ns), iv_(iv), nv_(nv)
+                           const ColorInd &ig, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<CQChartsDistributionPlot *>(plot), rect, ColorInd(), ig, iv),
+ plot_(plot), groupInd_(groupInd), bucket_(bucket), barValue_(barValue)
 {
-  assert(is >= 0 && is < ns);
-  assert(iv >= 0 && iv < nv);
-
   plot_->bucketValues(groupInd_, bucket_, value1_, value2_);
 }
 
@@ -2730,7 +2791,7 @@ QString
 CQChartsDistributionBarObj::
 calcId() const
 {
-  return QString("%1:%2:%3").arg(typeName()).arg(is_).arg(iv_);
+  return QString("%1:%2:%3").arg(typeName()).arg(ig_.i).arg(iv_.i);
 }
 
 QString
@@ -2837,7 +2898,7 @@ groupName() const
 {
   QString groupName;
 
-  if (ns_ > 1)
+  if (ig_.n > 1)
     groupName = plot_->groupIndName(groupInd_);
 
   return groupName;
@@ -3154,8 +3215,8 @@ drawRug(QPainter *painter) const
   //---
 
   // set pen and brush
-  int ic = (ns_ > 1 ? is_ : iv_);
-  int nc = (ns_ > 1 ? ns_ : nv_);
+  int ic = (ig_.n > 1 ? ig_.i : iv_.i);
+  int nc = (ig_.n > 1 ? ig_.n : iv_.n);
 
   QPen   pen;
   QBrush brush;
@@ -3263,7 +3324,7 @@ getBarColoredRects(ColorData &colorData) const
     CQChartsColor color;
 
     if (plot_->columnColor(ind.row, ind.parent, color)) {
-      QColor c1 = plot_->charts()->interpColor(color, 0, 1);
+      QColor c1 = plot_->interpColor(color, 0, 1);
 
       c1.setAlphaF(plot_->barFillAlpha());
 
@@ -3321,7 +3382,7 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
   QBrush barBrush;
 
   QColor bc = plot_->interpBarBorderColor(0, 1);
-  QColor fc = plot_->charts()->interpColor(color, 0, 1);
+  QColor fc = plot_->interpColor(color, 0, 1);
 
   CQChartsLength bw = plot_->barBorderWidth();
 
@@ -3400,8 +3461,8 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
 
     plot_->pixelSymbolSize(plot_->dotSymbolSize(), sx, sy);
 
-    int ic = (ns_ > 1 ? is_ : iv_);
-    int nc = (ns_ > 1 ? ns_ : nv_);
+    int ic = (ig_.n > 1 ? ig_.i : iv_.i);
+    int nc = (ig_.n > 1 ? ig_.n : iv_.n);
 
     //---
 
@@ -3432,10 +3493,12 @@ QColor
 CQChartsDistributionBarObj::
 barColor() const
 {
-  int ic = (ns_ > 1 ? is_ : iv_);
-  int nc = (ns_ > 1 ? ns_ : nv_);
+  ColorInd colorInd = this->calcColorInd();
 
-  return plot_->interpBarFillColor(ic, nc);
+  if (colorInd.isInt)
+    return plot_->interpBarFillColor(colorInd.i, colorInd.n);
+  else
+    return plot_->interpBarFillColor(colorInd.r);
 }
 
 CQChartsGeom::BBox
@@ -3451,11 +3514,11 @@ calcRect() const
   double m1 = plot_->lengthPixelSize(plot_->margin(), ! plot_->isHorizontal());
   double m2 = m1;
 
-  if (ns_ > 1) {
+  if (ig_.n > 1) {
     if (! plot_->isStacked() && ! plot_->isSideBySide()) {
-      if      (iv_ == 0)
+      if      (iv_.i == 0)
         m1 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
-      else if (iv_ == nv_ - 1)
+      else if (iv_.i == iv_.n - 1)
         m2 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
     }
   }
@@ -3474,13 +3537,27 @@ calcRect() const
   return prect;
 }
 
+double
+CQChartsDistributionBarObj::
+xColorValue() const
+{
+  return barValue_.xr;
+}
+
+double
+CQChartsDistributionBarObj::
+yColorValue() const
+{
+  return barValue_.yr;
+}
+
 //------
 
 CQChartsDistributionDensityObj::
 CQChartsDistributionDensityObj(const CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
-                               int groupInd, const Data &data, double doffset, int is, int ns) :
+                               int groupInd, const Data &data, double doffset, const ColorInd &is) :
  CQChartsPlotObj(const_cast<CQChartsDistributionPlot *>(plot), rect), plot_(plot),
- groupInd_(groupInd), data_(data), doffset_(doffset), is_(is), ns_(ns)
+ groupInd_(groupInd), data_(data), doffset_(doffset), is_(is)
 {
   // create density polygon
   int np = data_.points.size();
@@ -3527,7 +3604,7 @@ QString
 CQChartsDistributionDensityObj::
 calcId() const
 {
-  return QString("%1:%2").arg(typeName()).arg(is_);
+  return QString("%1:%2").arg(typeName()).arg(is_.i);
 }
 
 QString
@@ -3591,8 +3668,8 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBarBorderColor(is_, ns_);
-  QColor fc = plot_->interpBarFillColor  (is_, ns_);
+  QColor bc = plot_->interpBarBorderColor(is_.i, is_.n);
+  QColor fc = plot_->interpBarFillColor  (is_.i, is_.n);
 
   plot_->setPenBrush(pen, brush,
     plot_->isBarBorder(), bc, plot_->barBorderAlpha(),
@@ -3736,7 +3813,7 @@ drawRug(QPainter *painter) const
   QPen   pen;
   QBrush brush;
 
-  QColor fillColor = plot_->interpBarFillColor(is_, ns_);
+  QColor fillColor = plot_->interpBarFillColor(is_.i, is_.n);
 
   plot_->setPen  (pen  , true, fillColor, 1.0);
   plot_->setBrush(brush, true, fillColor, 0.5);
@@ -3777,13 +3854,10 @@ drawRug(QPainter *painter) const
 CQChartsDistributionScatterObj::
 CQChartsDistributionScatterObj(const CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
                                int groupInd, const Bucket &bucket, int n,
-                               int is, int ns, int iv, int nv) :
+                               const ColorInd &is, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsDistributionPlot *>(plot), rect), plot_(plot),
- groupInd_(groupInd), bucket_(bucket), n_(n), is_(is), ns_(ns), iv_(iv), nv_(nv)
+ groupInd_(groupInd), bucket_(bucket), n_(n), is_(is), iv_(iv)
 {
-  assert(is >= 0 && is < ns);
-  assert(iv >= 0 && iv < nv);
-
   // get factored number of points
   int nf = CMathUtil::clamp(int(n_*plot_->scatterFactor()), 1, n_);
 
@@ -3803,7 +3877,7 @@ QString
 CQChartsDistributionScatterObj::
 calcId() const
 {
-  return QString("%1:%2:%3").arg(typeName()).arg(is_).arg(iv_);
+  return QString("%1:%2:%3").arg(typeName()).arg(is_.i).arg(iv_.i);
 }
 
 QString
@@ -3831,8 +3905,8 @@ draw(QPainter *painter)
 {
   // set pen brush
   // TODO: allow control of border color, alpha, and line width
-  int ic = (ns_ > 1 ? is_ : iv_);
-  int nc = (ns_ > 1 ? ns_ : nv_);
+  int ic = (is_.n > 1 ? is_.i : iv_.i);
+  int nc = (is_.n > 1 ? is_.n : iv_.n);
 
   QColor c = plot_->interpBarFillColor(ic, nc);
 
@@ -3899,10 +3973,10 @@ addColumnSelectIndex(Indices &, const CQChartsColumn &) const
 //------
 
 CQChartsDistKeyColorBox::
-CQChartsDistKeyColorBox(CQChartsDistributionPlot *plot, int i, int n) :
- CQChartsKeyColorBox(plot, i, n), plot_(plot)
+CQChartsDistKeyColorBox(CQChartsDistributionPlot *plot, const ColorInd &ig, const ColorInd &iv,
+                        double xv, double yv) :
+ CQChartsKeyColorBox(plot, ColorInd(), ig, iv, xv, yv), plot_(plot)
 {
-  assert(i >= 0 && i < n);
 }
 
 bool
@@ -3921,9 +3995,16 @@ CQChartsDistKeyColorBox::
 fillBrush() const
 {
   if (color_.isValid())
-    return plot_->charts()->interpColor(color_, 0, 1);
+    return plot_->interpColor(color_, 0, 1);
 
-  QColor c = plot_->interpBarFillColor(i_, n_);
+  ColorInd colorInd = this->calcColorInd();
+
+  QColor c;
+
+  if (colorInd.isInt)
+    c = plot_->interpBarFillColor(colorInd.i, colorInd.n);
+  else
+    c = plot_->interpBarFillColor(colorInd.r);
 
   if (isSetHidden())
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
@@ -3935,14 +4016,20 @@ bool
 CQChartsDistKeyColorBox::
 isSetHidden() const
 {
-  return plot_->CQChartsPlot::isSetHidden(i_);
+  if (ig_.n > 1)
+    return plot_->CQChartsPlot::isSetHidden(ig_.i);
+  else
+    return plot_->CQChartsPlot::isSetHidden(iv_.i);
 }
 
 void
 CQChartsDistKeyColorBox::
 setSetHidden(bool b)
 {
-  plot_->CQChartsPlot::setSetHidden(i_, b);
+  if (ig_.n > 1)
+    plot_->CQChartsPlot::setSetHidden(ig_.i, b);
+  else
+    plot_->CQChartsPlot::setSetHidden(iv_.i, b);
 }
 
 //------

@@ -543,7 +543,11 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   Q_PROPERTY(CQChartsColor  borderColor  READ borderColor  WRITE setBorderColor )
 
  public:
-  CQChartsKeyColorBox(CQChartsPlot *plot, int i, int n);
+  using ColorInd = CQChartsUtil::ColorInd;
+
+ public:
+  CQChartsKeyColorBox(CQChartsPlot *plot, const ColorInd &is, const ColorInd &ig,
+                      const ColorInd &iv, double xv=0.0, double yv=0.0);
 
   const CQChartsLength &cornerRadius() const { return boxData_.shape().border().cornerSize(); }
   void setCornerRadius(const CQChartsLength &r) { boxData_.shape().border().setCornerSize(r); }
@@ -559,9 +563,16 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   QColor interpBorderColor(int i, int n) const;
 
+  ColorInd calcColorInd() const;
+
  protected:
-  CQChartsPlot*   plot_      { nullptr }; //!< parent plot
-  CQChartsBoxData boxData_;               //!< box data
+  CQChartsPlot*   plot_     { nullptr }; //!< parent plot
+  CQChartsBoxData boxData_;              //!< box data
+  ColorInd        is_;                   //!< group index
+  ColorInd        ig_;                   //!< group index
+  ColorInd        iv_;                   //!< number of groups
+  double          xv_       { 0.0 };     //!< x value
+  double          yv_       { 0.0 };     //!< y value
 };
 
 #endif

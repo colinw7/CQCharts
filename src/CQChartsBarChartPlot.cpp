@@ -992,9 +992,11 @@ createObjs(PlotObjs &objs) const
       CQChartsBarChartObj *barObj = nullptr;
 
       if (ns > 1)
-        barObj = new CQChartsBarChartObj(this, brect, ivs, nvs, iv, nv, 0, 1, minInd.ind);
+        barObj = new CQChartsBarChartObj(this, brect,
+          ColorInd(ivs, nvs), ColorInd(iv, nv), ColorInd(0, 1), minInd.ind);
       else
-        barObj = new CQChartsBarChartObj(this, brect, 0, 1, iv, nv, ivs, nvs, minInd.ind);
+        barObj = new CQChartsBarChartObj(this, brect,
+          ColorInd(0, 1), ColorInd(iv, nv), ColorInd(ivs, nvs), minInd.ind);
 
       if (color.isValid())
         barObj->setColor(color);
@@ -1193,7 +1195,7 @@ addKeyItems(CQChartsPlotKey *key)
           CQChartsColor color;
 
           if (columnColor(ind0.vrow, parent, color))
-            c = charts()->interpColor(color, 0, 1);
+            c = interpColor(color, 0, 1);
         }
 
         addKeyRow(iv, nv, valueSet.name(), c);
@@ -1218,7 +1220,7 @@ addKeyItems(CQChartsPlotKey *key)
         CQChartsColor color;
 
         if (columnColor(ind0.vrow, parent, color))
-          c = charts()->interpColor(color, 0, 1);
+          c = interpColor(color, 0, 1);
 
         addKeyRow(iv, nv, ivalue.valueName(), c);
       }
@@ -1245,7 +1247,7 @@ addKeyItems(CQChartsPlotKey *key)
           CQChartsColor color;
 
           if (columnColor(ind0.vrow, parent, color))
-            c = charts()->interpColor(color, 0, 1);
+            c = interpColor(color, 0, 1);
         }
 
         addKeyRow(iv, nv, valueSet.name(), c);
@@ -1403,21 +1405,18 @@ getPanY(bool is_shift) const
 
 CQChartsBarChartObj::
 CQChartsBarChartObj(const CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
-                    int iset, int nset, int ival, int nval, int isval, int nsval,
+                    const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                     const QModelIndex &ind) :
- CQChartsPlotObj(const_cast<CQChartsBarChartPlot *>(plot), rect), plot_(plot),
- iset_(iset), nset_(nset), ival_(ival), nval_(nval), isval_(isval), nsval_(nsval), ind_(ind)
+ CQChartsPlotObj(const_cast<CQChartsBarChartPlot *>(plot), rect, is, ig, iv),
+ plot_(plot), ind_(ind)
 {
-  assert(iset  >= 0 && iset  < nset);
-  assert(ival  >= 0 && ival  < nval);
-  assert(isval >= 0 && isval < nsval);
 }
 
 QString
 CQChartsBarChartObj::
 calcId() const
 {
-  return QString("%1:%2:%3:%4").arg(typeName()).arg(iset_).arg(ival_).arg(isval_);
+  return QString("%1:%2:%3:%4").arg(typeName()).arg(is_.i).arg(ig_.i).arg(iv_.i);
 }
 
 QString
@@ -1557,9 +1556,9 @@ getSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, plot_->groupColumn());
 
   if (plot_->isStacked())
-    addColumnSelectIndex(inds, plot_->valueColumns().getColumn(ival_));
+    addColumnSelectIndex(inds, plot_->valueColumns().getColumn(ig_.i));
   else
-    addColumnSelectIndex(inds, plot_->valueColumns().getColumn(iset_));
+    addColumnSelectIndex(inds, plot_->valueColumns().getColumn(is_.i));
 
   addColumnSelectIndex(inds, plot_->nameColumn());
   addColumnSelectIndex(inds, plot_->labelColumn());
@@ -1578,11 +1577,11 @@ bool
 CQChartsBarChartObj::
 isHidden() const
 {
-  if (nset_ > 1) {
-    return plot_->isSetHidden(iset_);
+  if (is_.n > 1) {
+    return plot_->isSetHidden(is_.i);
   }
   else
-    return plot_->isSetHidden(ival_);
+    return plot_->isSetHidden(ig_.i);
   return true;
 }
 #endif
@@ -1613,16 +1612,16 @@ draw(QPainter *painter)
   double m2 = m1;
 
   if (! plot_->isStacked()) {
-    if      (nset_ > 1) {
-      if      (ival_ == 0)
+    if      (is_.n > 1) {
+      if      (ig_.i == 0)
         m1 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
-      else if (ival_ == nval_ - 1)
+      else if (ig_.i == ig_.n - 1)
         m2 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
     }
-    else if (nval_ > 1) {
-      if      (isval_ == 0)
+    else if (ig_.n > 1) {
+      if      (iv_.i == 0)
         m1 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
-      else if (isval_ == nsval_ - 1)
+      else if (iv_.i == iv_.n - 1)
         m2 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
     }
   }
@@ -1648,31 +1647,43 @@ draw(QPainter *painter)
   // calc bar color
   QColor barColor;
 
-  if (nset_ > 1) {
-    if (plot_->isColorBySet())
-      barColor = plot_->interpBarFillColor(ival_, nval_);
-    else
-      barColor = plot_->interpBarFillColor(iset_, nset_);
-  }
-  else {
-    if (! color_.isValid()) {
-      if      (nval_ > 1)
-        barColor = plot_->interpBarFillColor(ival_, nval_);
-      else if (nsval_ > 1)
-        barColor = plot_->interpBarFillColor(isval_, nsval_);
-      else {
-        QColor barColor1 = plot_->interpBarFillColor(ival_    , nval_ + 1);
-        QColor barColor2 = plot_->interpBarFillColor(ival_ + 1, nval_ + 1);
-
-        double f = (1.0*isval_)/nsval_;
-
-        barColor = CQChartsUtil::blendColors(barColor1, barColor2, f);
-      }
+  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    if (is_.n > 1) {
+      if (plot_->isColorBySet())
+        barColor = plot_->interpBarFillColor(ig_.i, ig_.n);
+      else
+        barColor = plot_->interpBarFillColor(is_.i, is_.n);
     }
     else {
-      barColor = plot_->charts()->interpColor(color_, 0.0);
+      if (! color_.isValid()) {
+        if      (ig_.n > 1)
+          barColor = plot_->interpBarFillColor(ig_.i, ig_.n);
+        else if (iv_.n > 1)
+          barColor = plot_->interpBarFillColor(iv_.i, iv_.n);
+        else {
+          QColor barColor1 = plot_->interpBarFillColor(ig_.i    , ig_.n + 1);
+          QColor barColor2 = plot_->interpBarFillColor(ig_.i + 1, ig_.n + 1);
+
+          double f = (1.0*iv_.i)/iv_.n;
+
+          barColor = CQChartsUtil::blendColors(barColor1, barColor2, f);
+        }
+      }
+      else {
+        barColor = plot_->interpColor(color_, 0.0);
+      }
     }
   }
+  else {
+    ColorInd colorInd = calcColorInd();
+
+    if (colorInd.isInt)
+      barColor = plot_->interpBarFillColor(colorInd.i, colorInd.n);
+    else
+      barColor = plot_->interpBarFillColor(colorInd.r);
+  }
+
+  //---
 
   // calc pen and brush
   QPen   pen;
@@ -1818,17 +1829,17 @@ const CQChartsBarChartValue *
 CQChartsBarChartObj::
 value() const
 {
-  if (nset_ > 1) {
-    const CQChartsBarChartValueSet &valueSet = plot_->valueSet(ival_);
+  if (is_.n > 1) {
+    const CQChartsBarChartValueSet &valueSet = plot_->valueSet(ig_.i);
 
-    const CQChartsBarChartValue &ivalue = valueSet.value(iset_);
+    const CQChartsBarChartValue &ivalue = valueSet.value(is_.i);
 
     return &ivalue;
   }
   else {
-    const CQChartsBarChartValueSet &valueSet = plot_->valueSet(ival_);
+    const CQChartsBarChartValueSet &valueSet = plot_->valueSet(ig_.i);
 
-    const CQChartsBarChartValue &ivalue = valueSet.value(isval_);
+    const CQChartsBarChartValue &ivalue = valueSet.value(iv_.i);
 
     return &ivalue;
   }
@@ -1838,7 +1849,7 @@ value() const
 
 CQChartsBarKeyColor::
 CQChartsBarKeyColor(CQChartsBarChartPlot *plot, int i, int n) :
- CQChartsKeyColorBox(plot, i, n), plot_(plot)
+ CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ColorInd(i, n)), plot_(plot)
 {
   assert(i >= 0 && i < n);
 }
@@ -1868,7 +1879,7 @@ fillBrush() const
   QColor c;
 
   if (color_.isValid())
-    c = plot_->charts()->interpColor(color_, 0.0);
+    c = plot_->interpColor(color_, 0.0);
   else
     c = plot_->interpBarFillColor(i_, n_);
 

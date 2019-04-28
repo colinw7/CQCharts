@@ -3,7 +3,7 @@
 
 #include <CQChartsObjData.h>
 #include <CQChartsGeom.h>
-#include <CQChartsTheme.h>
+#include <CQChartsThemeName.h>
 #include <CQChartsSymbol.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsPosition.h>
@@ -78,8 +78,8 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(bool       selectInside READ isSelectInside WRITE setSelectInside)
 
   // theme
-  Q_PROPERTY(CQChartsTheme theme READ theme  WRITE setTheme)
-  Q_PROPERTY(bool          dark  READ isDark WRITE setDark )
+  Q_PROPERTY(CQChartsThemeName theme READ theme  WRITE setTheme)
+  Q_PROPERTY(bool              dark  READ isDark WRITE setDark )
 
   // selection appearance
   Q_PROPERTY(HighlightDataMode selectedMode READ selectedMode WRITE setSelectedMode)
@@ -232,7 +232,7 @@ class CQChartsView : public QFrame,
   //---
 
   bool isScrolled() const { return scrollData_.active; }
-  void setScrolled(bool b) { scrollData_.active = b; }
+  void setScrolled(bool b);
 
   double scrollDelta() const { return scrollData_.delta; }
   void setScrollDelta(double r) { scrollData_.delta = r; }
@@ -319,11 +319,11 @@ class CQChartsView : public QFrame,
   //---
 
   // theme
-  CQChartsThemeObj *themeObj();
-  const CQChartsThemeObj *themeObj() const;
+  CQChartsTheme *themeObj();
+  const CQChartsTheme *themeObj() const;
 
-  const CQChartsTheme &theme() const;
-  void setTheme(const CQChartsTheme &name);
+  const CQChartsThemeName &theme() const;
+  void setTheme(const CQChartsThemeName &name);
 
   //---
 
@@ -448,7 +448,7 @@ class CQChartsView : public QFrame,
   QColor interpThemeColor(double r) const;
 
   QColor interpColor(const CQChartsColor &c, int i, int n) const;
-  QColor interpColor(const CQChartsColor &c, double r);
+  QColor interpColor(const CQChartsColor &c, double r) const;
 
   //---
 
@@ -714,6 +714,9 @@ class CQChartsView : public QFrame,
   // emitted when selection changed
   void selectionChanged();
 
+  // emitted when scrolled data changed
+  void scrollDataChanged();
+
  public slots:
   void setAutoSize(bool b);
 
@@ -884,10 +887,14 @@ class CQChartsView : public QFrame,
 
   //! structure containing the data for scrolled plots
   struct ScrollData {
-    bool   active   { false }; //! active
-    double delta    { 100 };   //! delta
-    int    numPages { 1 };     //! num pages
-    int    page     { 0 };     //! current page
+    using PlotBBox = std::map<QString,CQChartsGeom::BBox>;
+
+    bool     active      { false }; //!< active
+    double   delta       { 100 };   //!< delta percent
+    int      numPages    { 1 };     //!< num pages
+    int      page        { 0 };     //!< current page
+    bool     autoInit    { true };  //!< auto init plot placement on activate
+    PlotBBox plotBBoxMap;           //!< saved plot bbox
   };
 
   using ProbeBands = std::vector<CQChartsProbeBand*>;

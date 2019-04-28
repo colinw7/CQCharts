@@ -182,8 +182,8 @@ bucketMinMax(int bucket, QVariant &min, QVariant &max) const
     bucketRValues(bucket, rmin, rmax);
 
     if (isIntegral()) {
-      int imin = rmin;
-      int imax = rmax;
+      int imin = CMathRound::RoundNearest(rmin);
+      int imax = CMathRound::RoundNearest(rmax);
 
       min = imin;
       max = imax;
@@ -199,8 +199,8 @@ bucketMinMax(int bucket, QVariant &min, QVariant &max) const
     autoBucketValues(bucket, rmin, rmax);
 
     if (isIntegral()) {
-      int imin = rmin;
-      int imax = rmax;
+      int imin = CMathRound::RoundNearest(rmin);
+      int imax = CMathRound::RoundNearest(rmax);
 
       min = imin;
       max = imax;
@@ -236,8 +236,8 @@ bucketName(int bucket, NameFormat format) const
     bucketRValues(bucket, rmin, rmax);
 
     if (isIntegral()) {
-      int imin = rmin;
-      int imax = rmax;
+      int imin = CMathRound::RoundNearest(rmin);
+      int imax = CMathRound::RoundNearest(rmax);
 
       if (imax > imin)
         return bucketName(imin, imax, format);
@@ -253,8 +253,8 @@ bucketName(int bucket, NameFormat format) const
     autoBucketValues(bucket, rmin, rmax);
 
     if (isIntegral()) {
-      int imin = rmin;
-      int imax = rmax;
+      int imin = CMathRound::RoundNearest(rmin);
+      int imax = CMathRound::RoundNearest(rmax);
 
       if (imax > imin)
         return bucketName(imin, imax, format);

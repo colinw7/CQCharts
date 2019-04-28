@@ -70,6 +70,8 @@
 #include <CQChartsOptRect.h>
 #include <CQChartsColor.h>
 #include <CQChartsFont.h>
+#include <CQChartsInterfaceTheme.h>
+#include <CQChartsTheme.h>
 
 #include <CQPropertyView.h>
 #include <iostream>
@@ -115,19 +117,25 @@ CQCharts()
   CQChartsSymbol                ::registerMetaType();
   CQChartsTextBoxData           ::registerMetaType();
   CQChartsTextData              ::registerMetaType();
-  CQChartsTheme                 ::registerMetaType();
+  CQChartsThemeName             ::registerMetaType();
 
   //---
 
   // init theme
   plotTheme_.setName("default");
 
-  interfaceTheme().setDark(false);
+  //---
+
+  interfaceTheme_ = new CQChartsInterfaceTheme;
+
+  interfaceTheme()->setDark(false);
 }
 
 CQCharts::
 ~CQCharts()
 {
+  delete interfaceTheme_;
+
   for (auto &modelData : modelDatas_)
     delete modelData;
 
@@ -275,7 +283,7 @@ QColor
 CQCharts::
 interpColor(const CQChartsColor &c, double value) const
 {
-  return interpColorValue(c, 0, -1, value);
+  return interpColorValue(c, /*ig*/0, /*ng*/-1, value);
 }
 
 QColor
@@ -310,7 +318,7 @@ interpColorValue(const CQChartsColor &c, int ig, int ng, double value) const
 
 void
 CQCharts::
-setPlotTheme(const CQChartsTheme &theme)
+setPlotTheme(const CQChartsThemeName &theme)
 {
   CQChartsUtil::testAndSet(plotTheme_, theme, [&]() { emit themeChanged(); } );
 }
@@ -385,6 +393,10 @@ QColor
 CQCharts::
 interpIndPaletteColorValue(int ind, int ig, int ng, double r, bool scale) const
 {
+  // if ind unset then use default palette number
+  if (ind < 0)
+    ind = 0;
+
   CQChartsGradientPalette *palette = this->themePalette(ind);
 
   if (! palette->isDistinct() || ng <= 0)
@@ -404,7 +416,7 @@ QColor
 CQCharts::
 interpThemeColor(double r) const
 {
-  return this->interfaceTheme().interpColor(r, /*scale*/true);
+  return this->interfaceTheme()->interpColor(r, /*scale*/true);
 }
 
 CQChartsGradientPalette *
@@ -418,17 +430,21 @@ CQChartsGradientPalette *
 CQCharts::
 themePalette(int ind) const
 {
+  // if ind unset then use default palette number
+  if (ind < 0)
+    ind = 0;
+
   return themeObj()->palette(ind);
 }
 
-const CQChartsThemeObj *
+const CQChartsTheme *
 CQCharts::
 themeObj() const
 {
   return plotTheme().obj();
 }
 
-CQChartsThemeObj *
+CQChartsTheme *
 CQCharts::
 themeObj()
 {

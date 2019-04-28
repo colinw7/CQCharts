@@ -138,6 +138,16 @@ class CQChartsGradientPalette {
     return ColorType::NONE;
   }
 
+  static QString colorTypeToString(ColorType type) {
+    switch (type) {
+      case ColorType::MODEL    : return "model";
+      case ColorType::DEFINED  : return "defined";
+      case ColorType::FUNCTIONS: return "functions";
+      case ColorType::CUBEHELIX: return "cubehelix";
+      default                  : return "";
+    }
+  }
+
   static ColorModel stringToColorModel(const QString &str) {
     if      (str == "rgb") return ColorModel::RGB;
     else if (str == "hsv") return ColorModel::HSV;
@@ -148,6 +158,17 @@ class CQChartsGradientPalette {
     return ColorModel::NONE;
   }
 
+  static QString colorModelToString(ColorModel model) {
+    switch (model) {
+      case ColorModel::RGB: return "rgb";
+      case ColorModel::HSV: return "hsv";
+      case ColorModel::CMY: return "cmy";
+      case ColorModel::YIQ: return "yiq";
+      case ColorModel::XYZ: return "xyz";
+      default             : return "";
+    }
+  }
+
  public:
   CQChartsGradientPalette();
 
@@ -155,14 +176,19 @@ class CQChartsGradientPalette {
 
   virtual ~CQChartsGradientPalette();
 
+  CQChartsGradientPalette &operator=(const CQChartsGradientPalette &palette);
+
+  //---
+
+  CQChartsGradientPalette *dup() const { return new CQChartsGradientPalette(*this); }
+
   //---
 
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
-  //---
-
-  CQChartsGradientPalette *dup() const { return new CQChartsGradientPalette(*this); }
+  const QString &desc() const { return desc_; }
+  void setDesc(const QString &s) { desc_ = s; }
 
   //---
 
@@ -176,15 +202,10 @@ class CQChartsGradientPalette {
 
   //---
 
+#if 0
   // gamma correction : NOT USED yet
   double gamma() const { return gamma_; }
   void setGamma(double g) { gamma_ = g; }
-
-  //---
-
-#if 0
-  bool isPSAllCF() const { return psAllcF_; }
-  void setPSAllCF(bool b) { psAllcF_ = b; }
 #endif
 
   //---
@@ -256,24 +277,32 @@ class CQChartsGradientPalette {
 
   void resetDefinedColors();
 
+  // map/unmap defined x (in range 0.0->1.0) to/from min/max
   double mapDefinedColorX(double x) const;
   double unmapDefinedColorX(double x) const;
 
+#if 0
   // max defined colors : NOT USED yet
   int maxColors() const { return maxColors_; }
   void setMaxColors(int n) { maxColors_ = n; }
+#endif
 
   bool isDistinct() const { return distinct_; }
   void setDistinct(bool b) { distinct_ = b; }
 
   //---
 
+  // interpolate color at x (if scaled then input x has been adjusted to min/max range)
   QColor getColor(double x, bool scale=false) const;
 
+ private:
+  // interpolate color for model ind and x value
   double interpModel(int ind, double x) const;
 
   //---
 
+ public:
+  // color models
   static int numModels() { return 37; }
 
   static std::string modelName(int model);
@@ -311,16 +340,21 @@ class CQChartsGradientPalette {
 
   //---
 
+  // read file containing defined colors
   bool readFile(const std::string &filename);
 
+ private:
   bool readFileLines(const QStringList &lines);
 
   //---
 
+ public:
+  // unset palette
   void unset();
 
   //---
 
+  // set linear gradient
   void setLinearGradient(QLinearGradient &lg, double a=1.0) const;
 
   //---
@@ -334,78 +368,84 @@ class CQChartsGradientPalette {
   //---
 
   // util
+ private:
   static double interpValue(double v1, double v2, double f) {
     return v1*(1 - f) + v2*f;
   }
 
+ public:
+  // interpolate between two RGB colors
   static QColor interpRGB(const QColor &c1, const QColor &c2, double f) {
     return QColor::fromRgbF(interpValue(c1.redF  (), c2.redF  (), f),
                             interpValue(c1.greenF(), c2.greenF(), f),
                             interpValue(c1.blueF (), c2.blueF (), f));
   }
 
+  // interpolate between two HSV colors
   static QColor interpHSV(const QColor &c1, const QColor &c2, double f) {
     return QColor::fromHsvF(interpValue(c1.hueF       (), c2.hueF       (), f),
                             interpValue(c1.saturationF(), c2.saturationF(), f),
                             interpValue(c1.valueF     (), c2.valueF     (), f));
   }
 
- private:
+ protected:
   void init();
 
   void initFunctions();
 
   CQTcl *qtcl() const;
 
- private:
+ protected:
   struct ColorFn {
     std::string fn;
   };
 
-  QString    name_;
+  QString    name_;                               //!< name
+  QString    desc_;                               //!< description
 
   // Color Calculation Type
-  ColorType  colorType_     { ColorType::MODEL };
+  ColorType  colorType_     { ColorType::MODEL }; //!< color type
 
   // Color Model
-  ColorModel colorModel_    { ColorModel::RGB };
+  ColorModel colorModel_    { ColorModel::RGB };  //!< color model
 
   // Model
-  int        rModel_        { 7 };
-  int        gModel_        { 5 };
-  int        bModel_        { 15 };
-  bool       gray_          { false };
-  bool       redNegative_   { false };
-  bool       greenNegative_ { false };
-  bool       blueNegative_  { false };
-  double     redMin_        { 0.0 };
-  double     redMax_        { 1.0 };
-  double     greenMin_      { 0.0 };
-  double     greenMax_      { 1.0 };
-  double     blueMin_       { 0.0 };
-  double     blueMax_       { 1.0 };
+  int        rModel_        { 7 };                //!< red model number
+  int        gModel_        { 5 };                //!< green model number
+  int        bModel_        { 15 };               //!< blue model number
+  bool       gray_          { false };            //!< is gray
+  bool       redNegative_   { false };            //!< is red negated
+  bool       greenNegative_ { false };            //!< is green negated
+  bool       blueNegative_  { false };            //!< is blue negated
+  double     redMin_        { 0.0 };              //!< red minimum
+  double     redMax_        { 1.0 };              //!< red maximum
+  double     greenMin_      { 0.0 };              //!< green minimum
+  double     greenMax_      { 1.0 };              //!< green maximum
+  double     blueMin_       { 0.0 };              //!< blue minimum
+  double     blueMax_       { 1.0 };              //!< blue maximum
 
   // Functions
-  ColorFn    rf_;
-  ColorFn    gf_;
-  ColorFn    bf_;
+  ColorFn    rf_;                                 //!< red color tcl function
+  ColorFn    gf_;                                 //!< green color tcl function
+  ColorFn    bf_;                                 //!< blue color tcl function
 
   // CubeHelix
-  CCubeHelix cubeHelix_;
-  bool       cubeNegative_  { false };
+  CCubeHelix cubeHelix_;                          //!< cibe helix data
+  bool       cubeNegative_  { false };            //!< is cube helix negated
 
   // Defined
-  ColorMap   colors_;
-  int        maxColors_     { -1 };
-  double     colorsMin_     { 0.0 };
-  double     colorsMax_     { 0.0 };
-  bool       distinct_      { false };
+  ColorMap   colors_;                             //!< list of defined colors
+#if 0
+  int        maxColors_     { -1 };               //!< maximum number of colors
+#endif
+  double     colorsMin_     { 0.0 };              //!< colors min value (for scaling)
+  double     colorsMax_     { 0.0 };              //!< colors max value (for scaling)
+  bool       distinct_      { false };            //!< use distinct colors
 
   // Misc
-  CQTcl*     qtcl_          { nullptr };
-  double     gamma_         { 1.5 };
+  CQTcl*     qtcl_          { nullptr };          //!< qtcl pointer
 #if 0
-  bool       psAllcF_       { false };
+  double     gamma_         { 1.5 };              //!< gamma value
 #endif
 };
 

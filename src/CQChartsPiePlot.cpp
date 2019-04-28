@@ -1389,9 +1389,9 @@ draw(QPainter *painter)
   QColor fc;
 
   if      (color().isValid())
-    fc = plot_->charts()->interpColor(color(), colorInd(), no);
+    fc = plot_->interpColor(color(), colorInd(), no);
   else if (plot_->fillColor().type() != CQChartsColor::Type::PALETTE)
-    fc = plot_->charts()->interpColor(plot_->fillColor(), colorInd(), no);
+    fc = plot_->interpColor(plot_->fillColor(), colorInd(), no);
   else if (groupObj)
     fc = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
 
@@ -1757,7 +1757,7 @@ bgColor() const
 
 CQChartsPieKeyColor::
 CQChartsPieKeyColor(CQChartsPiePlot *plot, CQChartsPlotObj *obj) :
- CQChartsKeyColorBox(plot, 0, 1), obj_(obj)
+ CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ColorInd(0, 1)), obj_(obj)
 {
 }
 
@@ -1827,7 +1827,7 @@ fillBrush() const
   }
 
   if (obj && obj->color().isValid())
-    c = plot_->charts()->interpColor(obj->color(), obj->colorInd(), no);
+    c = plot_->interpColor(obj->color(), obj->colorInd(), no);
 
   return c;
 }

@@ -56,14 +56,65 @@ CQChartsGradientPalette::
 CQChartsGradientPalette(const CQChartsGradientPalette &palette)
 {
   *this = palette;
-
-  init();
 }
 
 CQChartsGradientPalette::
 ~CQChartsGradientPalette()
 {
   delete qtcl_;
+}
+
+CQChartsGradientPalette &
+CQChartsGradientPalette::
+operator=(const CQChartsGradientPalette &palette)
+{
+  struct ColorFn {
+    std::string fn;
+  };
+
+  colorType_  = palette.colorType_;
+  colorModel_ = palette.colorModel_;
+
+  rModel_        = palette.rModel_;
+  gModel_        = palette.gModel_;
+  bModel_        = palette.bModel_;
+  gray_          = palette.gray_;
+  redNegative_   = palette.redNegative_;
+  greenNegative_ = palette.greenNegative_;
+  blueNegative_  = palette.blueNegative_;
+  redMin_        = palette.redMin_;
+  redMax_        = palette.redMax_;
+  greenMin_      = palette.greenMin_;
+  greenMax_      = palette.greenMax_;
+  blueMin_       = palette.blueMin_;
+  blueMax_       = palette.blueMax_;
+
+  rf_ = palette.rf_;
+  gf_ = palette.gf_;
+  bf_ = palette.bf_;
+
+  cubeHelix_    = palette.cubeHelix_;
+  cubeNegative_ = palette.cubeNegative_;
+
+  colors_     = palette.colors_;
+#if 0
+  maxColors_  = palette.maxColors_;
+#endif
+  colorsMin_  = palette.colorsMin_;
+  colorsMax_  = palette.colorsMax_;
+  distinct_   = palette.distinct_;
+
+#if 0
+  gamma_= palette.gamma_;
+#endif
+
+  delete qtcl_;
+
+  qtcl_ = nullptr;
+
+  init();
+
+  return *this;
 }
 
 //---
@@ -514,10 +565,12 @@ unset()
   cubeHelix_.reset();
 
   // Misc
-  gamma_     = 1.5;
-  maxColors_ = -1;
 #if 0
-  psAllcF_   = false;
+  maxColors_ = -1;
+#endif
+
+#if 0
+  gamma_ = 1.5;
 #endif
 }
 
@@ -572,16 +625,11 @@ show(std::ostream &os) const
     os << "figure is " << (isCubeNegative() ? "NEGATIVE" : "POSITIVE") << std::endl;
 
 #if 0
-  if (psAllcF_)
-    os << "all color formulae ARE written into output postscript file" << std::endl;
-  else
-    os << "all color formulae ARE NOT written into output postscript file" << std::endl;
-#endif
-
   if (maxColors() <= 0)
     os << "allocating ALL remaining";
   else
     os << "allocating MAX " << maxColors();
+#endif
 
   os << " color positions for discrete palette terminals" << std::endl;
 
@@ -593,7 +641,9 @@ show(std::ostream &os) const
   else if (colorModel() == ColorModel::XYZ) os << "XYZ";
   os << std::endl;
 
+#if 0
   os << "gamma is " << gamma_ << std::endl;
+#endif
 }
 
 void

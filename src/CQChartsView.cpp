@@ -16,6 +16,8 @@
 #include <CQChartsDisplayRange.h>
 #include <CQChartsVariant.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsInterfaceTheme.h>
+#include <CQChartsTheme.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -184,7 +186,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   // TODO: remove or make more general
   addProperty("scroll", this, "scrolled"      , "enabled" )->
-    setHidden(true).setDesc("Scrolling enabled");
+    setDesc("Scrolling enabled");
   addProperty("scroll", this, "scrollDelta"   , "delta"   )->
     setHidden(true).setDesc("Scroll delta");
   addProperty("scroll", this, "scrollNumPages", "numPages")->
@@ -265,6 +267,58 @@ setTitle(const QString &s)
 
 void
 CQChartsView::
+setScrolled(bool b)
+{
+  if (b == scrollData_.active)
+    return;
+
+  scrollData_.active = b;
+
+  if (scrollData_.autoInit) {
+    scrollData_.plotBBoxMap.clear();
+
+    if (scrollData_.active) {
+      for (auto &plot : plots_)
+        scrollData_.plotBBoxMap[plot->id()] = plot->viewBBox();
+
+      int pos = 0;
+
+      for (auto &plot : plots_) {
+        plot->setViewBBox(CQChartsGeom::BBox(pos, 0, pos + 100, 100));
+
+        pos += 100;
+      }
+
+      scrollData_.numPages = plots_.size();
+    }
+    else {
+      bool allFound = true;
+
+      for (auto &plot : plots_) {
+        auto p = scrollData_.plotBBoxMap.find(plot->id());
+
+        if (p == scrollData_.plotBBoxMap.end()) {
+          allFound = false;
+          continue;
+        }
+
+        plot->setViewBBox((*p).second);
+      }
+
+      if (! allFound)
+        placePlots(plots_, /*vertical*/false, /*horizontal*/true, /*rows*/1, /*cols*/1);
+    }
+
+    updatePlots();
+  }
+
+  emit scrollDataChanged();
+}
+
+//---
+
+void
+CQChartsView::
 setAntiAlias(bool b)
 {
   CQChartsUtil::testAndSet(antiAlias_, b, [&]() { updatePlots(); } );
@@ -335,8 +389,6 @@ setFont(const CQChartsFont &f)
 {
   CQChartsUtil::testAndSet(font_, f, [&]() { updatePlots(); } );
 }
-
-//---
 
 //---
 
@@ -611,21 +663,21 @@ endSelection()
 
 //---
 
-CQChartsThemeObj *
+CQChartsTheme *
 CQChartsView::
 themeObj()
 {
   return theme().obj();
 }
 
-const CQChartsThemeObj *
+const CQChartsTheme *
 CQChartsView::
 themeObj() const
 {
   return theme().obj();
 }
 
-const CQChartsTheme &
+const CQChartsThemeName &
 CQChartsView::
 theme() const
 {
@@ -634,7 +686,7 @@ theme() const
 
 void
 CQChartsView::
-setTheme(const CQChartsTheme &theme)
+setTheme(const CQChartsThemeName &theme)
 {
   charts()->setPlotTheme(theme);
 
@@ -645,7 +697,7 @@ CQChartsGradientPalette *
 CQChartsView::
 interfacePalette() const
 {
-  return charts()->interfaceTheme().palette();
+  return charts()->interfaceTheme()->palette();
 }
 
 CQChartsGradientPalette *
@@ -1460,7 +1512,7 @@ interpColor(const CQChartsColor &c, int i, int n) const
 
 QColor
 CQChartsView::
-interpColor(const CQChartsColor &c, double r)
+interpColor(const CQChartsColor &c, double r) const
 {
   if (defaultPalette_ != "") {
     CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
@@ -3434,7 +3486,7 @@ void
 CQChartsView::
 themeSlot(const QString &name)
 {
-  setTheme(CQChartsTheme(name));
+  setTheme(CQChartsThemeName(name));
 
   updateTheme();
 }
@@ -3459,14 +3511,14 @@ bool
 CQChartsView::
 isDark() const
 {
-  return charts()->interfaceTheme().isDark();
+  return charts()->interfaceTheme()->isDark();
 }
 
 void
 CQChartsView::
 setDark(bool b)
 {
-  charts()->interfaceTheme().setDark(b);
+  charts()->interfaceTheme()->setDark(b);
 
   updatePlots();
 
@@ -3942,7 +3994,9 @@ updateScroll()
 
   displayRange_->setWindowRange(dx, 0, dx + vr, vr);
 
-  update();
+  updatePlots();
+
+  emit scrollDataChanged();
 }
 
 //------

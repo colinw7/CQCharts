@@ -4,6 +4,7 @@
 #include <QFrame>
 
 class CQChartsWindow;
+class CQChartsView;
 class CQChartsManageModelsDlg;
 class CQChartsCreatePlotDlg;
 class CQIconCombo;
@@ -21,16 +22,26 @@ class CQChartsViewToolBar : public QFrame {
  public:
   CQChartsViewToolBar(CQChartsWindow *window);
 
+  CQChartsWindow *window() const{ return window_; }
+
+  CQChartsView *view() const;
+
   void updateMode();
 
   QSize sizeHint() const override;
 
  private slots:
+  void updateState();
+
   void modeSlot(int ind);
 
   void selectButtonClicked(int);
 
   void selectInsideSlot(int state);
+
+  void viewSettingsSlot(bool b);
+
+  void viewTableSlot(bool b);
 
   void manageModelsSlot();
 
@@ -51,6 +62,8 @@ class CQChartsViewToolBar : public QFrame {
   QRadioButton*            selectPointButton_     { nullptr }; //!< select point radio
   QRadioButton*            selectRectButton_      { nullptr }; //!< select rect radio
   QCheckBox*               selectInsideCheck_     { nullptr }; //!< select index checkbox
+  QToolButton*             viewSettingsButton_    { nullptr }; //!< show/hide view settings button
+  QToolButton*             viewTableButton_       { nullptr }; //!< show/hide view table button
   QToolButton*             manageModelsDlgButton_ { nullptr }; //!< load model dlg button
   QToolButton*             createPlotDlgButton_   { nullptr }; //!< create plot dlg button
   QToolButton*             autoFitButton_         { nullptr }; //!< auto fit button

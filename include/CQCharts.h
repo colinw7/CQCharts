@@ -2,7 +2,7 @@
 #define CQCharts_H
 
 #include <CQBaseModelTypes.h>
-#include <CQChartsTheme.h>
+#include <CQChartsThemeName.h>
 
 #include <QObject>
 #include <QAbstractItemModel>
@@ -16,6 +16,8 @@ class CQChartsPlotType;
 class CQChartsPlot;
 class CQChartsModelData;
 class CQChartsColumnTypeMgr;
+class CQChartsInterfaceTheme;
+class CQChartsGradientPalette;
 class CQChartsColor;
 
 /*!
@@ -123,13 +125,13 @@ class CQCharts : public QObject {
 
   //---
 
-  const CQChartsInterfaceTheme &interfaceTheme() const { return interfaceTheme_; }
-  CQChartsInterfaceTheme &interfaceTheme() { return interfaceTheme_; }
+  const CQChartsInterfaceTheme *interfaceTheme() const { return interfaceTheme_; }
+  CQChartsInterfaceTheme *interfaceTheme() { return interfaceTheme_; }
 
-  const CQChartsTheme &plotTheme() const { return plotTheme_; }
-  CQChartsTheme &plotTheme() { return plotTheme_; }
+  const CQChartsThemeName &plotTheme() const { return plotTheme_; }
+  CQChartsThemeName &plotTheme() { return plotTheme_; }
 
-  void setPlotTheme(const CQChartsTheme &theme);
+  void setPlotTheme(const CQChartsThemeName &theme);
 
   //---
 
@@ -156,8 +158,8 @@ class CQCharts : public QObject {
 
   CQChartsGradientPalette *themePalette(int ind) const;
 
-  const CQChartsThemeObj *themeObj() const;
-  CQChartsThemeObj *themeObj();
+  const CQChartsTheme *themeObj() const;
+  CQChartsTheme *themeObj();
 
   CQChartsColor adjustDefaultPalette(const CQChartsColor &c, const QString &defaultPalette) const;
 
@@ -261,16 +263,16 @@ class CQCharts : public QObject {
  private:
   using NameViews = std::map<QString,CQChartsView*>;
 
-  bool                   viewKey_         { true };    //!< has view key
-  CQChartsPlotTypeMgr*   plotTypeMgr_     { nullptr }; //!< plot type manager
-  CQChartsColumnTypeMgr* columnTypeMgr_   { nullptr }; //!< column type manager
-  CQChartsInterfaceTheme interfaceTheme_;              //!< interface theme
-  CQChartsTheme          plotTheme_;                   //!< plot theme
-  int                    currentModelInd_ { -1 };      //!< current model index
-  ModelDatas             modelDatas_;                  //!< model datas
-  int                    lastModelInd_    { 0 };       //!< last model ind
-  NameViews              views_;                       //!< views
-  Procs                  procs_;                       //!< tcl procs
+  bool                    viewKey_         { true };    //!< has view key
+  CQChartsPlotTypeMgr*    plotTypeMgr_     { nullptr }; //!< plot type manager
+  CQChartsColumnTypeMgr*  columnTypeMgr_   { nullptr }; //!< column type manager
+  CQChartsInterfaceTheme* interfaceTheme_  { nullptr }; //!< interface theme
+  CQChartsThemeName       plotTheme_;                   //!< plot theme name
+  int                     currentModelInd_ { -1 };      //!< current model index
+  ModelDatas              modelDatas_;                  //!< model datas
+  int                     lastModelInd_    { 0 };       //!< last model ind
+  NameViews               views_;                       //!< views
+  Procs                   procs_;                       //!< tcl procs
 };
 
 #endif

@@ -287,9 +287,9 @@ interpColor(const CQChartsColor &color) const
   QColor c;
 
   if      (plot())
-    return plot()->charts()->interpColor(color, 0, 1);
+    return plot()->interpColor(color, 0, 1);
   else if (view())
-    return view()->charts()->interpColor(color, 0, 1);
+    return view()->interpColor(color, 0, 1);
   else
     return color.color();
 }

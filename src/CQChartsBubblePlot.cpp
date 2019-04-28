@@ -1164,7 +1164,7 @@ interpColor(const CQChartsBubblePlot *plot, int n) const
   if      (colorId() >= 0)
     return plot->interpPaletteColor(colorId(), n);
   else if (color().isValid())
-    return plot->charts()->interpColor(color(), 0, 1);
+    return plot->interpColor(color(), 0, 1);
   else
     return plot->interpPaletteColor(0, 1);
 }

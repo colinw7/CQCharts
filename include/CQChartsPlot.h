@@ -114,10 +114,11 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(CQChartsColumn  imageColumn   READ imageColumn   WRITE setImageColumn  )
 
   // color map
-  Q_PROPERTY(bool    colorMapped     READ isColorMapped   WRITE setColorMapped    )
-  Q_PROPERTY(double  colorMapMin     READ colorMapMin     WRITE setColorMapMin    )
-  Q_PROPERTY(double  colorMapMax     READ colorMapMax     WRITE setColorMapMax    )
-  Q_PROPERTY(QString colorMapPalette READ colorMapPalette WRITE setColorMapPalette)
+  Q_PROPERTY(ColorType colorType       READ colorType       WRITE setColorType      )
+  Q_PROPERTY(bool      colorMapped     READ isColorMapped   WRITE setColorMapped    )
+  Q_PROPERTY(double    colorMapMin     READ colorMapMin     WRITE setColorMapMin    )
+  Q_PROPERTY(double    colorMapMax     READ colorMapMax     WRITE setColorMapMax    )
+  Q_PROPERTY(QString   colorMapPalette READ colorMapPalette WRITE setColorMapPalette)
 
   // visible
   Q_PROPERTY(bool visible READ isVisible WRITE setVisible)
@@ -216,7 +217,18 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(bool queueUpdate    READ isQueueUpdate  WRITE setQueueUpdate   )
   Q_PROPERTY(bool showBoxes      READ showBoxes      WRITE setShowBoxes     )
 
+  Q_ENUMS(ColorType)
+
  public:
+  enum ColorType {
+    AUTO,
+    SET,
+    GROUP,
+    INDEX,
+    X_VALUE,
+    Y_VALUE
+  };
+
   using SelMod = CQChartsSelMod;
 
   // associated plot for overlay/y1y2
@@ -274,6 +286,8 @@ class CQChartsPlot : public CQChartsObj,
 
   using Buffers = std::map<CQChartsBuffer::Type,CQChartsBuffer *>;
   using Layers  = std::map<CQChartsLayer::Type,CQChartsLayer *>;
+
+  using ColorInd = CQChartsUtil::ColorInd;
 
  public:
   CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
@@ -1219,6 +1233,9 @@ class CQChartsPlot : public CQChartsObj,
   const CQChartsColumn &colorColumn() const;
   void setColorColumn(const CQChartsColumn &c);
 
+  const ColorType &colorType() const;
+  void setColorType(const ColorType &t);
+
   bool isColorMapped() const;
   void setColorMapped(bool b);
 
@@ -1667,8 +1684,9 @@ class CQChartsPlot : public CQChartsObj,
 
   QColor interpThemeColor(double r) const;
 
+  QColor interpColor(const CQChartsColor &c, const ColorInd &ind) const;
   QColor interpColor(const CQChartsColor &c, int i, int n) const;
-  QColor interpColor(const CQChartsColor &c, double r);
+  QColor interpColor(const CQChartsColor &c, double r) const;
 
   //---
 
@@ -1975,6 +1993,7 @@ class CQChartsPlot : public CQChartsObj,
   //! color column data
   struct ColorColumnData {
     CQChartsColumn column;
+    ColorType      colorType { ColorType::AUTO };
     bool           valid     { false };
     bool           mapped    { false };
     double         map_min   { 0.0 };

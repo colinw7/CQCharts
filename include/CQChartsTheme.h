@@ -7,27 +7,41 @@
 #include <map>
 #include <vector>
 
-class CQChartsThemeObj;
+class CQChartsTheme;
 class CQChartsGradientPalette;
 
 #define CQChartsThemeMgrInst CQChartsThemeMgr::instance()
 
 //! \brief manager class for named palettes and named themes
-class CQChartsThemeMgr {
+class CQChartsThemeMgr : public QObject {
+  Q_OBJECT
+
  public:
   static CQChartsThemeMgr *instance();
 
  ~CQChartsThemeMgr();
 
+  //! named palettes
   void addNamedPalette(const QString &name, CQChartsGradientPalette *palette);
 
   CQChartsGradientPalette *getNamedPalette(const QString &name) const;
 
   void getPaletteNames(QStringList &names) const;
 
-  void addTheme(const QString &name, CQChartsThemeObj *theme);
+  void resetPalette(const QString &name);
 
-  CQChartsThemeObj *getTheme(const QString &name) const;
+  //---
+
+  //! named themes
+  void addTheme(const QString &name, CQChartsTheme *theme);
+
+  CQChartsTheme *getTheme(const QString &name) const;
+
+  void getThemeNames(QStringList &names) const;
+
+ signals:
+  void palettesChanged();
+  void themesChanged();
 
  private:
   CQChartsThemeMgr();
@@ -35,8 +49,13 @@ class CQChartsThemeMgr {
   void init();
 
  private:
-  using ThemeMap      = std::map<QString,CQChartsThemeObj*>;
-  using NamedPalettes = std::map<QString,CQChartsGradientPalette*>;
+  struct PaletteData {
+    CQChartsGradientPalette *original { nullptr };
+    CQChartsGradientPalette *current  { nullptr };
+  };
+
+  using ThemeMap      = std::map<QString,CQChartsTheme*>;
+  using NamedPalettes = std::map<QString,PaletteData>;
 
   NamedPalettes namedPalettes_; //!< named palettes
   ThemeMap      themes_;        //!< named themes
@@ -45,19 +64,25 @@ class CQChartsThemeMgr {
 //------
 
 //! \brief theme (ordered set of named palettes)
-class CQChartsThemeObj : public QObject {
+class CQChartsTheme : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(QColor selectColor READ selectColor WRITE setSelectColor)
-  Q_PROPERTY(QColor insideColor READ insideColor WRITE setInsideColor)
+  Q_PROPERTY(QString name        READ name)
+  Q_PROPERTY(QString desc        READ desc        WRITE setDesc       )
+  Q_PROPERTY(QColor  selectColor READ selectColor WRITE setSelectColor)
+  Q_PROPERTY(QColor  insideColor READ insideColor WRITE setInsideColor)
 
  public:
-  CQChartsThemeObj();
- ~CQChartsThemeObj();
+  CQChartsTheme();
+ ~CQChartsTheme();
 
   // get/set theme name
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
+
+  // get/set theme description
+  const QString &desc() const { return desc_; }
+  void setDesc(const QString &s) { desc_ = s; }
 
   // number of palettes
   int numPalettes() const { return palettes_.size(); }
@@ -65,6 +90,12 @@ class CQChartsThemeObj : public QObject {
   // get/set nth palette
   CQChartsGradientPalette *palette(int i=0) const;
   void setPalette(int i, CQChartsGradientPalette *palette);
+
+  // add named palette
+  void addNamedPalette(const QString &name);
+
+  // remove named palette
+  void removeNamedPalette(const QString &name);
 
   // set nth palette to palette of specified name
   void setNamedPalette(int i, const QString &name);
@@ -92,13 +123,11 @@ class CQChartsThemeObj : public QObject {
   // initialize with all named palettes
   void addNamedPalettes();
 
-  // add named palette
-  void addNamedPalette(const QString &name);
-
  protected:
   using Palettes = std::vector<CQChartsGradientPalette*>;
 
   QString  name_;                       //!< theme name
+  QString  desc_;                       //!< theme description
   Palettes palettes_;                   //!< theme palette list
   QColor   selectColor_ { Qt::yellow }; //!< selection color
   QColor   insideColor_ { Qt::cyan };   //!< inside color
@@ -107,7 +136,7 @@ class CQChartsThemeObj : public QObject {
 //---
 
 //! \brief default theme
-class CQChartsDefaultTheme : public CQChartsThemeObj {
+class CQChartsDefaultTheme : public CQChartsTheme {
  public:
   CQChartsDefaultTheme();
 };
@@ -115,7 +144,7 @@ class CQChartsDefaultTheme : public CQChartsThemeObj {
 //---
 
 //! \brief theme 1
-class CQChartsTheme1 : public CQChartsThemeObj {
+class CQChartsTheme1 : public CQChartsTheme {
  public:
   CQChartsTheme1();
 };
@@ -123,117 +152,9 @@ class CQChartsTheme1 : public CQChartsThemeObj {
 //---
 
 //! \brief theme 2
-class CQChartsTheme2 : public CQChartsThemeObj {
+class CQChartsTheme2 : public CQChartsTheme {
  public:
   CQChartsTheme2();
 };
-
-//---
-
-//! \brief theme
-class CQChartsTheme {
- public:
-  static void registerMetaType();
-
-  static int metaTypeId;
-
- public:
-  CQChartsTheme(const QString &name="") {
-    setName(name);
-  }
-
-  CQChartsTheme(const CQChartsTheme &rhs) :
-    name_(rhs.name_), obj_(rhs.obj_) {
-  }
-
-  CQChartsTheme &operator=(const CQChartsTheme &rhs) {
-    name_ = rhs.name_;
-    obj_  = rhs.obj_;
-
-    return *this;
-  }
-
-  //--
-
-  const QString &name() const { return name_; }
-
-  bool setName(const QString &name) {
-    CQChartsThemeObj *obj = CQChartsThemeMgrInst->getTheme(name);
-    if (! obj) return false;
-
-    name_ = name;
-    obj_  = obj;
-
-    return true;
-  }
-
-  //--
-
-  CQChartsThemeObj *obj() const { return obj_; }
-
-  //---
-
-  QString toString() const { return name(); }
-  bool fromString(const QString &s) { return setName(s); }
-
-  //---
-
-  friend bool operator==(const CQChartsTheme &lhs, const CQChartsTheme &rhs) {
-    if (lhs.name_ != rhs.name_) return false;
-
-    return true;
-  }
-
-  friend bool operator!=(const CQChartsTheme &lhs, const CQChartsTheme &rhs) {
-    return ! operator==(lhs, rhs);
-  }
-
-  //---
-
-  void print(std::ostream &os) const {
-    os << name().toStdString();
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const CQChartsTheme &l) {
-    l.print(os);
-
-    return os;
-  }
-
- private:
-  QString           name_;
-  CQChartsThemeObj* obj_ { nullptr };
-};
-
-//---
-
-//! \brief interface theme
-class CQChartsInterfaceTheme {
- public:
-  CQChartsInterfaceTheme();
-
- ~CQChartsInterfaceTheme();
-
-  CQChartsGradientPalette *palette() const { return palette_; }
-
-  bool isDark() const { return isDark_; }
-  void setDark(bool b);
-
-  QColor interpColor(double r, bool scale) const;
-
- private:
-  CQChartsGradientPalette* palette_      { nullptr };   //!< palette
-  bool                     isDark_       { false };     //!< is dark
-  QColor                   lightBgColor_ { "#ffffff" }; //!< light bg color
-  QColor                   lightFgColor_ { "#000000" }; //!< light fg color
-  QColor                   darkBgColor_  { "#222222" }; //!< dark bg color
-  QColor                   darkFgColor_  { "#dddddd" }; //!< dark fg color
-};
-
-//---
-
-#include <CQUtilMeta.h>
-
-CQUTIL_DCL_META_TYPE(CQChartsTheme)
 
 #endif

@@ -1717,9 +1717,14 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 //------
 
 CQChartsKeyColorBox::
-CQChartsKeyColorBox(CQChartsPlot *plot, int i, int n) :
- CQChartsKeyItem(plot->key(), i, n), plot_(plot)
+CQChartsKeyColorBox(CQChartsPlot *plot, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
+                    double xv, double yv) :
+ CQChartsKeyItem(plot->key(), iv.i, iv.n), plot_(plot), is_(is), ig_(ig), iv_(iv), xv_(xv), yv_(yv)
 {
+  assert(is_.i >= 0 && is_.i < is_.n);
+  assert(ig_.i >= 0 && ig_.i < ig_.n);
+  assert(iv_.i >= 0 && iv_.i < iv_.n);
+
   setClickable(true);
 }
 
@@ -1727,7 +1732,7 @@ QColor
 CQChartsKeyColorBox::
 interpBorderColor(int i, int n) const
 {
-  return plot_->charts()->interpColor(borderColor(), i, n);
+  return plot_->interpColor(borderColor(), i, n);
 }
 
 QSizeF
@@ -1786,4 +1791,26 @@ fillBrush() const
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
+}
+
+CQChartsKeyColorBox::ColorInd
+CQChartsKeyColorBox::
+calcColorInd() const
+{
+  ColorInd colorInd;
+
+  if      (plot_->colorType() == CQChartsPlot::ColorType::AUTO)
+    colorInd = (is_.n <= 1 ? (ig_.n <= 1 ? iv_ : ig_) : is_);
+  else if (plot_->colorType() == CQChartsPlot::ColorType::SET)
+    colorInd = is_;
+  else if (plot_->colorType() == CQChartsPlot::ColorType::GROUP)
+    colorInd = ig_;
+  else if (plot_->colorType() == CQChartsPlot::ColorType::INDEX)
+    colorInd = iv_;
+  else if (plot_->colorType() == CQChartsPlot::ColorType::X_VALUE)
+    colorInd = ColorInd(xv_);
+  else if (plot_->colorType() == CQChartsPlot::ColorType::Y_VALUE)
+    colorInd = ColorInd(yv_);
+
+  return colorInd;
 }

@@ -530,10 +530,6 @@ class CQChartsXYKeyColor : public CQChartsKeyColorBox {
 
  protected:
   CQChartsXYPlot* plot_ { nullptr }; //!< parent plot
-  int             is_   { 0 };       //!< set index
-  int             ns_   { 0 };       //!< number of sets
-  int             ig_   { 0 };       //!< group index
-  int             ng_   { 0 };       //!< number of groups
 };
 
 /*!

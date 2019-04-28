@@ -46,6 +46,7 @@ class CQChartsCmdBase {
 
   void setCmdRc(int rc);
   void setCmdRc(double rc);
+  void setCmdRc(const std::string &rc);
   void setCmdRc(const QString &rc);
   void setCmdRc(const QVariant &rc);
   void setCmdRc(const QStringList &rc);

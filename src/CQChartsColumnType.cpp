@@ -10,6 +10,7 @@
 #include <CQChartsGradientPalette.h>
 #include <CQChartsPath.h>
 #include <CQChartsStyle.h>
+#include <CQChartsTheme.h>
 #include <CQCharts.h>
 #include <CQChartsTypes.h>
 #include <CQBaseModel.h>

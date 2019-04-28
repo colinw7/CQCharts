@@ -82,11 +82,14 @@ CQChartsDataLabel.cpp \
 CQChartsAxis.cpp \
 CQChartsKey.cpp \
 CQChartsTitle.cpp \
-CQChartsTheme.cpp \
 CQChartsAnnotation.cpp \
 CQChartsArrow.cpp \
 CQChartsEditHandles.cpp \
 CQChartsResizeHandle.cpp \
+\
+CQChartsTheme.cpp \
+CQChartsInterfaceTheme.cpp \
+CQChartsThemeName.cpp \
 \
 CQChartsColumnBucket.cpp \
 CQChartsValueSet.cpp \
@@ -124,6 +127,7 @@ CQChartsInvalidator.cpp \
 CQChartsGradientPaletteCanvas.cpp \
 CQChartsGradientPalette.cpp \
 CQChartsGradientPaletteControl.cpp \
+CQChartsGradientPaletteList.cpp \
 \
 CQChartsLineDash.cpp \
 \
@@ -310,11 +314,14 @@ HEADERS += \
 ../include/CQChartsAxis.h \
 ../include/CQChartsKey.h \
 ../include/CQChartsTitle.h \
-../include/CQChartsTheme.h \
 ../include/CQChartsAnnotation.h \
 ../include/CQChartsArrow.h \
 ../include/CQChartsEditHandles.h \
 ../include/CQChartsResizeHandle.h \
+\
+../include/CQChartsTheme.h \
+../include/CQChartsInterfaceTheme.h \
+../include/CQChartsThemeName.h \
 \
 ../include/CQChartsColumnBucket.h \
 ../include/CQChartsValueSet.h \
@@ -387,6 +394,7 @@ HEADERS += \
 ../include/CQChartsGradientPaletteCanvas.h \
 ../include/CQChartsGradientPalette.h \
 ../include/CQChartsGradientPaletteControl.h \
+../include/CQChartsGradientPaletteList.h \
 \
 ../include/CQChartsLineDash.h \
 \

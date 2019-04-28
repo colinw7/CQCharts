@@ -3179,7 +3179,7 @@ draw(QPainter *painter)
 
 CQChartsBoxKeyColor::
 CQChartsBoxKeyColor(CQChartsBoxPlot *plot, int i, int n) :
- CQChartsKeyColorBox(plot, i, n)
+ CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ColorInd(i, n))
 {
 }
 

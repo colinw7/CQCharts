@@ -106,6 +106,11 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
+  //! interp color
+  QColor interpColor(const CQChartsColor &c, int i, int n) const;
+
+  //---
+
   //! handle select press
   virtual bool selectPress(const CQChartsGeom::Point &);
 

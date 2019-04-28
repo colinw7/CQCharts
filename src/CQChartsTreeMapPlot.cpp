@@ -1541,7 +1541,7 @@ CQChartsTreeMapNode::
 interpColor(const CQChartsTreeMapPlot *plot, int n) const
 {
   if      (color().isValid())
-    return plot->charts()->interpColor(color(), 0, 1);
+    return plot->interpColor(color(), 0, 1);
   else if (colorId() >= 0)
     return plot->interpPaletteColor(colorId(), n);
   else

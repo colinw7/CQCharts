@@ -24,6 +24,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
+#include <CQChartsTheme.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -1614,7 +1615,8 @@ addProperties()
   if (title())
     title()->addProperties(propertyModel(), "title");
 
-  addProperty("theme", this, "defaultPalette", "defaultPalette")->setDesc("Default palette");
+  addProperty("color", this, "defaultPalette", "defaultPalette")->setDesc("Default palette");
+  addProperty("color", this, "colorType", "type")->setDesc("Color interpolation type");
 
   addProperty("scaledFont", this, "minScaleFontSize", "minSize")->setDesc("Min scaled font size");
   addProperty("scaledFont", this, "maxScaleFontSize", "maxSize")->setDesc("Max scaled font size");
@@ -4447,6 +4449,20 @@ CQChartsPlot::
 setColorColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(colorColumnData_.column, c, [&]() { updateObjs(); } );
+}
+
+const CQChartsPlot::ColorType &
+CQChartsPlot::
+colorType() const
+{
+  return colorColumnData_.colorType;
+}
+
+void
+CQChartsPlot::
+setColorType(const ColorType &t)
+{
+  CQChartsUtil::testAndSet(colorColumnData_.colorType, t, [&]() { updateObjs(); } );
 }
 
 bool
@@ -8036,7 +8052,7 @@ QColor
 CQChartsPlot::
 interpGroupPaletteColor(double r1, double r2, double dr) const
 {
-  CQChartsThemeObj *theme = view()->themeObj();
+  CQChartsTheme *theme = view()->themeObj();
 
   // r1 is parent color and r2 is child color
   QColor c1 = theme->palette()->getColor(r1 - dr/2.0);
@@ -8054,6 +8070,13 @@ interpThemeColor(double r) const
 
 QColor
 CQChartsPlot::
+interpColor(const CQChartsColor &c, const ColorInd &ind) const
+{
+  return (ind.isInt ? interpColor(c, ind.i, ind.n) : interpColor(c, ind.r));
+}
+
+QColor
+CQChartsPlot::
 interpColor(const CQChartsColor &c, int i, int n) const
 {
   if (defaultPalette_ != "") {
@@ -8067,7 +8090,7 @@ interpColor(const CQChartsColor &c, int i, int n) const
 
 QColor
 CQChartsPlot::
-interpColor(const CQChartsColor &c, double r)
+interpColor(const CQChartsColor &c, double r) const
 {
   if (defaultPalette_ != "") {
     CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);

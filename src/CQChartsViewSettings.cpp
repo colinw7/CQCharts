@@ -7,6 +7,7 @@
 #include <CQChartsPropertyViewTree.h>
 #include <CQChartsGradientPaletteCanvas.h>
 #include <CQChartsGradientPaletteControl.h>
+#include <CQChartsGradientPaletteList.h>
 #include <CQChartsLoadModelDlg.h>
 #include <CQChartsEditModelDlg.h>
 #include <CQChartsCreatePlotDlg.h>
@@ -22,6 +23,7 @@
 #include <CQCharts.h>
 #include <CQChartsVariant.h>
 #include <CQChartsUtil.h>
+#include <CQChartsTheme.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQTableWidget.h>
@@ -1056,6 +1058,13 @@ initThemeFrame(QFrame *themeFrame)
 
   themeFrameLayout->addWidget(themeSubTab);
 
+  // tab for theme
+  QFrame *themePalettesFrame = CQUtil::makeWidget<QFrame>("themePalettesFrame");
+
+  QVBoxLayout *themePalettesFrameLayout = CQUtil::makeLayout<QVBoxLayout>(themePalettesFrame, 2, 2);
+
+  themeSubTab->addTab(themePalettesFrame, "Theme");
+
   // tab for theme palettes
   QFrame *palettesFrame = CQUtil::makeWidget<QFrame>("palettesFrame");
 
@@ -1083,30 +1092,40 @@ initThemeFrame(QFrame *themeFrame)
   themeColorsLayout->addWidget(selColorLabel, 0, 0);
   themeColorsLayout->addWidget(selColorEdit , 0, 1);
 
+  QLabel*     insColorLabel = CQUtil::makeLabelWidget("Inside", "insColorLabel");
+  CQLineEdit* insColorEdit  = CQUtil::makeWidget<CQLineEdit>("insColorEdit");
+
+  themeColorsLayout->addWidget(insColorLabel, 1, 0);
+  themeColorsLayout->addWidget(insColorEdit , 1, 1);
+
   paletteLayout->addWidget(themeColorsFrame);
 #endif
 
   //--
 
+  CQChartsView *view = window_->view();
+
+  CQChartsTheme *themeObj = view->themeObj();
+
+  //--
+
+  // create palettes list
+  themeWidgets_.palettesList = new CQChartsGradientPaletteList(this);
+
+  themePalettesFrameLayout->addWidget(themeWidgets_.palettesList);
+
+  connect(themeWidgets_.palettesList, SIGNAL(palettesChanged()),
+          this, SLOT(updateView()));
+
+  //--
+
+  // create palettes frame
   QFrame *palettesControlFrame = CQUtil::makeWidget<QFrame>("control");
 
   QHBoxLayout *palettesControlFrameLayout =
     CQUtil::makeLayout<QHBoxLayout>(palettesControlFrame, 2, 2);
 
-  QLabel *spinLabel = CQUtil::makeLabelWidget<QLabel>("Index", "indexLabel");
-
-  themeWidgets_.palettesSpin = CQUtil::makeWidget<QSpinBox>("indexSpin");
-
-  CQChartsView *view = window_->view();
-
-  int np = view->themeObj()->numPalettes();
-
-  themeWidgets_.palettesSpin->setRange(0, np);
-
-  connect(themeWidgets_.palettesSpin, SIGNAL(valueChanged(int)), this, SLOT(paletteIndexSlot(int)));
-
-  palettesControlFrameLayout->addWidget(spinLabel);
-  palettesControlFrameLayout->addWidget(themeWidgets_.palettesSpin);
+  //--
 
   QLabel *paletteNameLabel = CQUtil::makeLabelWidget<QLabel>("Name", "paletteNameLabel");
 
@@ -1121,11 +1140,18 @@ initThemeFrame(QFrame *themeFrame)
   palettesControlFrameLayout->addWidget(paletteNameLabel);
   palettesControlFrameLayout->addWidget(themeWidgets_.palettesCombo);
 
-  themeWidgets_.palettesLoadButton = CQUtil::makeLabelWidget<QPushButton>("Load", "load");
+  connect(themeWidgets_.palettesCombo, SIGNAL(currentIndexChanged(int)),
+          this, SLOT(palettesComboSlot(int)));
 
-  connect(themeWidgets_.palettesLoadButton, SIGNAL(clicked()), this, SLOT(loadPaletteNameSlot()));
+  //--
 
-  palettesControlFrameLayout->addWidget(themeWidgets_.palettesLoadButton);
+  QPushButton *resetButton = CQUtil::makeLabelWidget<QPushButton>("Reset", "resetButton");
+
+  palettesControlFrameLayout->addWidget(resetButton);
+
+  connect(resetButton, SIGNAL(clicked()), this, SLOT(palettesResetSlot()));
+
+  //--
 
   palettesControlFrameLayout->addStretch(1);
 
@@ -1133,6 +1159,7 @@ initThemeFrame(QFrame *themeFrame)
 
   //----
 
+  // create palettes splitter and add canvas and control
   QSplitter *palettesSplitter = CQUtil::makeWidget<QSplitter>("splitter");
 
   palettesSplitter->setOrientation(Qt::Vertical);
@@ -1140,7 +1167,7 @@ initThemeFrame(QFrame *themeFrame)
   palettesFrameLayout->addWidget(palettesSplitter);
 
   themeWidgets_.palettesPlot    =
-    new CQChartsGradientPaletteCanvas(this, view->themeObj()->palette());
+    new CQChartsGradientPaletteCanvas(this, themeObj->palette());
   themeWidgets_.palettesControl =
     new CQChartsGradientPaletteControl(themeWidgets_.palettesPlot);
 
@@ -1149,8 +1176,11 @@ initThemeFrame(QFrame *themeFrame)
 
   connect(themeWidgets_.palettesControl, SIGNAL(stateChanged()), view, SLOT(updatePlots()));
 
+  connect(themeWidgets_.palettesPlot, SIGNAL(colorsChanged()),
+          this, SLOT(paletteColorsChangedSlot()));
   //----
 
+  // create interface splitter and add canvas and control
   QSplitter *interfaceSplitter = CQUtil::makeWidget<QSplitter>("splitter");
 
   interfaceSplitter->setOrientation(Qt::Vertical);
@@ -1167,9 +1197,13 @@ initThemeFrame(QFrame *themeFrame)
 
   connect(themeWidgets_.interfaceControl, SIGNAL(stateChanged()), view, SLOT(updatePlots()));
 
+  connect(themeWidgets_.interfacePlot, SIGNAL(colorsChanged()),
+          this, SLOT(paletteColorsChangedSlot()));
+
   //---
 
-  updatePaletteWidgets();
+  updatePalettes();
+  //updatePaletteWidgets();
 }
 
 void
@@ -1749,7 +1783,7 @@ removePlotsSlot()
   for (auto &plot : plots)
     view->removePlot(plot);
 
-  view->updatePlots();
+  updateView();
 }
 
 void
@@ -1958,7 +1992,7 @@ removeAnnotationsSlot()
       plot->removeAnnotation(annotation);
   }
 
-  view->updatePlots();
+  updateView();
 }
 
 void
@@ -1999,29 +2033,34 @@ updateSelection()
 
 void
 CQChartsViewSettings::
-paletteIndexSlot(int)
+palettesComboSlot(int)
 {
+  QString name = themeWidgets_.palettesCombo->currentText();
+
+  CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(name);
+
+  themeWidgets_.palettesPlot->setGradientPalette(palette);
+}
+
+void
+CQChartsViewSettings::
+palettesResetSlot()
+{
+  QString name = themeWidgets_.palettesCombo->currentText();
+
+  CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(name);
+  if (! palette) return;
+
+  CQChartsThemeMgrInst->resetPalette(name);
+
   updatePalettes();
 }
 
 void
 CQChartsViewSettings::
-loadPaletteNameSlot()
+paletteColorsChangedSlot()
 {
-  CQChartsView *view = window_->view();
-
-  QString name = themeWidgets_.palettesCombo->currentText();
-
-  CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(name);
-
-  if (! palette)
-    return;
-
-  int i = themeWidgets_.palettesSpin->value();
-
-  view->themeObj()->setPalette(i, palette->dup());
-
-  updatePalettes();
+  updateView();
 }
 
 void
@@ -2030,36 +2069,31 @@ updatePalettes()
 {
   updatePaletteWidgets();
 
-  CQChartsView *view = window_->view();
+  QString name = themeWidgets_.palettesCombo->currentText();
 
-  int i = themeWidgets_.palettesSpin->value();
-
-  CQChartsGradientPalette *palette = view->themeObj()->palette(i);
+  CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(name);
 
   themeWidgets_.palettesPlot->setGradientPalette(palette);
 
   themeWidgets_.palettesControl->updateState();
 
-  view->updatePlots();
+  updateView();
 }
 
 void
 CQChartsViewSettings::
 updatePaletteWidgets()
 {
+  themeWidgets_.palettesCombo->setEnabled(true);
+}
+
+void
+CQChartsViewSettings::
+updateView()
+{
   CQChartsView *view = window_->view();
 
-  themeWidgets_.palettesSpin      ->setEnabled(true);
-  themeWidgets_.palettesCombo     ->setEnabled(true);
-  themeWidgets_.palettesLoadButton->setEnabled(true);
-
-  int i = themeWidgets_.palettesSpin->value();
-
-  CQChartsGradientPalette *palette = view->themeObj()->palette(i);
-
-  int ind = themeWidgets_.palettesCombo->findText(palette->name());
-
-  themeWidgets_.palettesCombo->setCurrentIndex(ind);
+  view->updatePlots();
 }
 
 void

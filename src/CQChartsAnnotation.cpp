@@ -248,6 +248,20 @@ inside(const CQChartsGeom::Point &p) const
 
 //------
 
+QColor
+CQChartsAnnotation::
+interpColor(const CQChartsColor &c, int i, int n) const
+{
+  if      (plot())
+    return plot()->interpColor(c, i, n);
+  else if (view())
+    return view()->interpColor(c, i, n);
+  else
+    return charts()->interpColor(c, i, n);
+}
+
+//------
+
 bool
 CQChartsAnnotation::
 selectPress(const CQChartsGeom::Point &)
@@ -1578,7 +1592,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor c = charts()->interpColor(textColor(), 0, 1);
+  QColor c = interpColor(textColor(), 0, 1);
 
   if      (plot())
     plot()->setPen(pen, true, c, textAlpha());
@@ -2179,8 +2193,8 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor lineColor = charts()->interpColor(strokeData.color(), 0, 1);
-  QColor fillColor = charts()->interpColor(fillData  .color(), 0, 1);
+  QColor lineColor = interpColor(strokeData.color(), 0, 1);
+  QColor fillColor = interpColor(fillData  .color(), 0, 1);
 
   if      (plot())
     plot()->setPen(pen, strokeData.isVisible(), lineColor, strokeData.alpha(),

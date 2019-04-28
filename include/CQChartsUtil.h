@@ -332,4 +332,25 @@ void testAndSet(T &t, const T &v, NOTIFIER &&notifier) {
 
 //------
 
+namespace CQChartsUtil {
+
+struct ColorInd {
+  ColorInd(int i=0, int n=1) :
+   isInt(true), i(i), n(n) {
+  }
+
+  explicit ColorInd(double r) :
+   isInt(false), r(r) {
+  }
+
+  bool   isInt { true };
+  int    i     { 0 };
+  int    n     { 1 };
+  double r     { 0.0 };
+};
+
+}
+
+//------
+
 #endif
