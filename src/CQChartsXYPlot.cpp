@@ -1483,7 +1483,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotObjs &objs
 
         CQChartsXYPointObj *pointObj =
           new CQChartsXYPointObj(this, groupInd, bbox, x, y, size, xind1,
-                                 is, ns, ig, ng, ip, np);
+                                 ColorInd(is, ns), ColorInd(ig, ng), ColorInd(ip, np));
 
         pointObjs.push_back(pointObj);
 
@@ -2402,9 +2402,9 @@ draw(QPainter *painter)
 CQChartsXYPointObj::
 CQChartsXYPointObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                    double x, double y, double size, const QModelIndex &ind,
-                   int is, int ns, int ig, int ng, int i, int n) :
- CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect), plot_(plot), groupInd_(groupInd),
- pos_(x, y), size_(size), ind_(ind), is_(is), ns_(ns), ig_(ig), ng_(ng), i_(i), n_(n)
+                   const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ig, iv),
+ plot_(plot), groupInd_(groupInd), pos_(x, y), size_(size), ind_(ind)
 {
 }
 
@@ -2435,7 +2435,7 @@ calcId() const
   if (calcColumnId(ind1, idStr))
     return idStr;
 
-  return QString("%1:%2:%3").arg(typeName()).arg(is()).arg(i());
+  return QString("%1:%2:%3:%4").arg(typeName()).arg(is_.i).arg(ig_.i).arg(iv_.i);
 }
 
 QString
@@ -2451,13 +2451,13 @@ calcTipId() const
   if (calcColumnId(ind1, idStr))
     tableTip.addTableRow("Id", idStr);
 
-  if (ng_ > 1) {
-    QString groupName = plot()->groupIndName(ig_);
+  if (ig_.n > 1) {
+    QString groupName = plot()->groupIndName(ig_.i);
 
     tableTip.addTableRow("Group", groupName);
   }
 
-  QString name = plot()->valueName(is(), ns(), ind().row());
+  QString name = plot()->valueName(is_.i, is_.n, ind().row());
   QString xstr = plot()->xStr(x());
   QString ystr = plot()->yStr(y());
 
@@ -2552,7 +2552,7 @@ getSelectIndices(Indices &inds) const
     return;
 
   addColumnSelectIndex(inds, plot()->xColumn());
-  addColumnSelectIndex(inds, plot()->yColumns().getColumn(is()));
+  addColumnSelectIndex(inds, plot()->yColumns().getColumn(is_.i));
 }
 
 void
@@ -2576,7 +2576,14 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  plot()->setSymbolPenBrush(pen, brush, is(), ns());
+  ColorInd ic;
+
+  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO)
+    ic = is_;
+  else
+    ic = calcColorInd();
+
+  plot()->setSymbolPenBrush(pen, brush, ic);
 
   if (edata_ && edata_->color.isValid()) {
     QColor strokeColor = plot()->interpColor(edata_->color, 0, 1);

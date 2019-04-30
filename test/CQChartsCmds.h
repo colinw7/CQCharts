@@ -21,8 +21,6 @@ class CQChartsModelData;
 class CQChartsPlotType;
 class CQChartsAnnotation;
 
-struct CQChartsPaletteColorData;
-
 class CQChartsCmds;
 
 class CQTcl;
@@ -164,11 +162,6 @@ class CQChartsCmds : public QObject {
   //---
 
  private:
-  bool setPaletteData(CQChartsGradientPalette *palette,
-                      const CQChartsPaletteColorData &paletteData);
-
-  //---
-
   QAbstractItemModel *loadFile(const QString &filename, CQChartsFileType type,
                                const CQChartsInputData &inputData, bool &hierarchical);
 

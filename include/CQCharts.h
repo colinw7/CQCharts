@@ -131,7 +131,7 @@ class CQCharts : public QObject {
   const CQChartsThemeName &plotTheme() const { return plotTheme_; }
   CQChartsThemeName &plotTheme() { return plotTheme_; }
 
-  void setPlotTheme(const CQChartsThemeName &theme);
+  void setPlotTheme(const CQChartsThemeName &themeName);
 
   //---
 
@@ -158,8 +158,8 @@ class CQCharts : public QObject {
 
   CQChartsGradientPalette *themePalette(int ind) const;
 
-  const CQChartsTheme *themeObj() const;
-  CQChartsTheme *themeObj();
+  const CQChartsTheme *theme() const;
+  CQChartsTheme *theme();
 
   CQChartsColor adjustDefaultPalette(const CQChartsColor &c, const QString &defaultPalette) const;
 

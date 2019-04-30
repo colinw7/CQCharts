@@ -2237,6 +2237,8 @@ addTheme(const QString &name, CQChartsTheme *theme)
 
   themes_[name] = theme;
 
+  connect(theme, SIGNAL(themeChanged()), this, SLOT(themeChangedSlot()));
+
   emit themesChanged();
 }
 
@@ -2270,6 +2272,16 @@ resetPalette(const QString &name)
   PaletteData &paletteData = (*p).second;
 
   *paletteData.current = *paletteData.original;
+}
+
+void
+CQChartsThemeMgr::
+themeChangedSlot()
+{
+  CQChartsTheme *theme = qobject_cast<CQChartsTheme *>(sender());
+  if (! theme) return;
+
+  emit themeChanged(theme->name());
 }
 
 //------
@@ -2379,6 +2391,8 @@ setPalette(int i, CQChartsGradientPalette *palette)
   assert(i >= 0 && i < n);
 
   palettes_[i] = palette;
+
+  emit themeChanged();
 }
 
 void
@@ -2386,6 +2400,8 @@ CQChartsTheme::
 addNamedPalette(const QString &name)
 {
   palettes_.push_back(CQChartsThemeMgrInst->getNamedPalette(name));
+
+  emit themeChanged();
 }
 
 void
@@ -2401,6 +2417,10 @@ removeNamedPalette(const QString &name)
     palettes_[i - 1] = palettes_[i];
 
   palettes_.pop_back();
+
+  //---
+
+  emit themeChanged();
 }
 
 void
@@ -2443,6 +2463,10 @@ movePalette(const QString &name, int pos)
     palettes_[i] = palettes_[i - 1];
 
   palettes_[pos] = palette;
+
+  //---
+
+  emit themeChanged();
 }
 
 int
@@ -2477,8 +2501,28 @@ shiftPalettes(int n)
 
   for (int i = 0; i < n; ++i)
     palettes_[i + n1] = palettes[i];
+
+  emit themeChanged();
 }
 #endif
+
+void
+CQChartsTheme::
+setSelectColor(const QColor &c)
+{
+  selectColor_ = c;
+
+  emit themeChanged();
+}
+
+void
+CQChartsTheme::
+setInsideColor(const QColor &c)
+{
+  insideColor_ = c;
+
+  emit themeChanged();
+}
 
 //---
 

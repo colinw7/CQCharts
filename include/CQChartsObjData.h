@@ -284,6 +284,8 @@ class CQChartsObjPointData {
       pointData_.fill().setPattern(p); pointDataInvalidate(); }
   }
 
+  //---
+
   void setSymbolPenBrush(QPen &pen, QBrush &brush, int i, int n) const {
     pointDataObj_->setPenBrush(pen, brush,
       isSymbolStroked(), interpSymbolStrokeColor(i, n), symbolStrokeAlpha(),
@@ -296,6 +298,13 @@ class CQChartsObjPointData {
       isSymbolStroked(), interpSymbolStrokeColor(r), symbolStrokeAlpha(),
       symbolStrokeWidth(), symbolStrokeDash(),
       isSymbolFilled(), interpSymbolFillColor(r), symbolFillAlpha(), symbolFillPattern());
+  }
+
+  void setSymbolPenBrush(QPen &pen, QBrush &brush, CQChartsUtil::ColorInd &ind) const {
+    if (ind.isInt)
+      setSymbolPenBrush(pen, brush, ind.i, ind.n);
+    else
+      setSymbolPenBrush(pen, brush, ind.r);
   }
 
   //---

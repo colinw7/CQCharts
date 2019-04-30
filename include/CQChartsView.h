@@ -78,8 +78,8 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(bool       selectInside READ isSelectInside WRITE setSelectInside)
 
   // theme
-  Q_PROPERTY(CQChartsThemeName theme READ theme  WRITE setTheme)
-  Q_PROPERTY(bool              dark  READ isDark WRITE setDark )
+  Q_PROPERTY(CQChartsThemeName theme READ themeName WRITE setThemeName)
+  Q_PROPERTY(bool              dark  READ isDark    WRITE setDark     )
 
   // selection appearance
   Q_PROPERTY(HighlightDataMode selectedMode READ selectedMode WRITE setSelectedMode)
@@ -232,7 +232,7 @@ class CQChartsView : public QFrame,
   //---
 
   bool isScrolled() const { return scrollData_.active; }
-  void setScrolled(bool b);
+  void setScrolled(bool b, bool update=true);
 
   double scrollDelta() const { return scrollData_.delta; }
   void setScrollDelta(double r) { scrollData_.delta = r; }
@@ -319,11 +319,11 @@ class CQChartsView : public QFrame,
   //---
 
   // theme
-  CQChartsTheme *themeObj();
-  const CQChartsTheme *themeObj() const;
+  CQChartsTheme *theme();
+  const CQChartsTheme *theme() const;
 
-  const CQChartsThemeName &theme() const;
-  void setTheme(const CQChartsThemeName &name);
+  const CQChartsThemeName &themeName() const;
+  void setThemeName(const CQChartsThemeName &name);
 
   //---
 
@@ -586,6 +586,7 @@ class CQChartsView : public QFrame,
   // scroll left/right
   void scrollLeft();
   void scrollRight();
+
   void updateScroll();
 
   //---
@@ -736,6 +737,11 @@ class CQChartsView : public QFrame,
 
   void searchSlot();
 
+  void themeChangedSlot(const QString &);
+
+  void maximizePlotsSlot();
+  void restorePlotsSlot();
+
   void viewKeyVisibleSlot(bool b);
   void viewKeyPositionSlot(QAction *action);
 
@@ -765,9 +771,7 @@ class CQChartsView : public QFrame,
   void lightPaletteSlot();
   void darkPaletteSlot();
 
-  void defaultThemeSlot();
-  void palette1Slot();
-  void palette2Slot();
+  void themeNameSlot();
 
   void themeSlot(const QString &name);
 
@@ -845,14 +849,14 @@ class CQChartsView : public QFrame,
  private:
   //! structure for mouse interaction data
   struct MouseData {
-    Plots          plots;                                 //! plots at mouse point
-    CQChartsPlot*  plot      { nullptr };                 //! plot at mouse point
-    QPoint         pressPoint;                            //! press point
-    QPoint         movePoint;                             //! move point
-    bool           pressed   { false };                   //! is pressed
-    bool           escape    { false };                   //! escape pressed
-    int            button    { Qt::NoButton };            //! press button
-    CQChartsSelMod selMod    { CQChartsSelMod::REPLACE }; //! selection modifier
+    Plots          plots;                                 //!< plots at mouse point
+    CQChartsPlot*  plot      { nullptr };                 //!< plot at mouse point
+    QPoint         pressPoint;                            //!< press point
+    QPoint         movePoint;                             //!< move point
+    bool           pressed   { false };                   //!< is pressed
+    bool           escape    { false };                   //!< escape pressed
+    int            button    { Qt::NoButton };            //!< press button
+    CQChartsSelMod selMod    { CQChartsSelMod::REPLACE }; //!< selection modifier
 
     void reset() {
       plots.clear();
@@ -870,19 +874,19 @@ class CQChartsView : public QFrame,
     bool isOutline() const { return int(mode) & int(HighlightDataMode::OUTLINE); }
     bool isFill   () const { return int(mode) & int(HighlightDataMode::FILL   ); }
 
-    HighlightDataMode mode { HighlightDataMode::OUTLINE }; //! highlight mode
+    HighlightDataMode mode { HighlightDataMode::OUTLINE }; //!< highlight mode
   };
 
   //! structure containing the auto/fixed size data and associated scroll bars
   struct SizeData {
-    bool        autoSize { true };    //! is auto sized
-    bool        sizeSet  { false };   //! has specific size been set
-    int         width    { 800 };     //! specified width
-    int         height   { 800 };     //! specified height
-    QScrollBar* hbar     { nullptr }; //! horizontal scroll bar
-    QScrollBar* vbar     { nullptr }; //! vertical scroll bar
-    int         xpos     { 0 };       //! horizontal scroll bar position
-    int         ypos     { 0 };       //! vertical scroll bar position
+    bool        autoSize { true };    //!< is auto sized
+    bool        sizeSet  { false };   //!< has specific size been set
+    int         width    { 800 };     //!< specified width
+    int         height   { 800 };     //!< specified height
+    QScrollBar* hbar     { nullptr }; //!< horizontal scroll bar
+    QScrollBar* vbar     { nullptr }; //!< vertical scroll bar
+    int         xpos     { 0 };       //!< horizontal scroll bar position
+    int         ypos     { 0 };       //!< vertical scroll bar position
   };
 
   //! structure containing the data for scrolled plots
@@ -901,47 +905,47 @@ class CQChartsView : public QFrame,
 
   static QSize defSizeHint_;
 
-  CQCharts*             charts_           { nullptr };           //! parent charts
-  CQChartsWindow*       window_           { nullptr };           //! parent window
-  QImage*               image_            { nullptr };           //! image buffer
-  QPainter*             ipainter_         { nullptr };           //! image painter
-  CQChartsDisplayRange* displayRange_     { nullptr };           //! display range
-  CQPropertyViewModel*  propertyModel_    { nullptr };           //! property model
-  QString               id_;                                     //! view id
-  QString               title_;                                  //! view title
-  CQChartsViewKey*      keyObj_           { nullptr };           //! key object
-  Plots                 plots_;                                  //! child plots
-  int                   currentPlotInd_   { -1 };                //! current plot index
-  Annotations           annotations_;                            //! annotations
-  Mode                  mode_             { Mode::SELECT };      //! mouse mode
-  SelectMode            selectMode_       { SelectMode::RECT };  //! selection sub mode
-  bool                  selectInside_     { true };              //! select inside/touching
-  int                   selecting_        { 0 };                 //! selecting depth
-  HighlightData         selectedHighlight_;                      //! select highlight
-  HighlightData         insideHighlight_;                        //! inside highlight
-  bool                  zoomData_         { true };              //! zoom data
-  ScrollData            scrollData_;                             //! scroll data
-  bool                  antiAlias_        { true };              //! anti alias
-//bool                  showTable_        { false };             //! show table with plot
-  bool                  bufferLayers_     { true };              //! buffer draw layers
-  bool                  preview_          { false };             //! preview
-  bool                  scaleFont_        { true };              //! auto scale font
-  double                fontFactor_       { 1.0 };               //! font scale factor
-  CQChartsFont          font_;                                   //! font
-  QString               defaultPalette_;                         //! default palette
-  SizeData              sizeData_;                               //! size control
-  PosTextType           posTextType_      { PosTextType::PLOT }; //! position text type
-  CQChartsGeom::BBox    prect_            { 0, 0, 100, 100 };    //! plot rect
-  double                aspect_           { 1.0 };               //! current aspect
-  MouseData             mouseData_;                              //! mouse data
-  int                   searchTimeout_    { 10 };                //! search timeout
-  QTimer*               searchTimer_      { nullptr };           //! search timer
-  QPointF               searchPos_;                              //! search pos
-  QRubberBand*          regionBand_       { nullptr };           //! zoom region rubberband
-  ProbeBands            probeBands_;                             //! probe lines
-  QMenu*                popupMenu_        { nullptr };           //! context menu
-  QSize                 viewSizeHint_;                           //! view size hint
-  mutable std::mutex    painterMutex_;                           //! painter mutex
+  CQCharts*             charts_           { nullptr };           //!< parent charts
+  CQChartsWindow*       window_           { nullptr };           //!< parent window
+  QImage*               image_            { nullptr };           //!< image buffer
+  QPainter*             ipainter_         { nullptr };           //!< image painter
+  CQChartsDisplayRange* displayRange_     { nullptr };           //!< display range
+  CQPropertyViewModel*  propertyModel_    { nullptr };           //!< property model
+  QString               id_;                                     //!< view id
+  QString               title_;                                  //!< view title
+  CQChartsViewKey*      keyObj_           { nullptr };           //!< key object
+  Plots                 plots_;                                  //!< child plots
+  int                   currentPlotInd_   { -1 };                //!< current plot index
+  Annotations           annotations_;                            //!< annotations
+  Mode                  mode_             { Mode::SELECT };      //!< mouse mode
+  SelectMode            selectMode_       { SelectMode::RECT };  //!< selection sub mode
+  bool                  selectInside_     { true };              //!< select inside/touching
+  int                   selecting_        { 0 };                 //!< selecting depth
+  HighlightData         selectedHighlight_;                      //!< select highlight
+  HighlightData         insideHighlight_;                        //!< inside highlight
+  bool                  zoomData_         { true };              //!< zoom data
+  ScrollData            scrollData_;                             //!< scroll data
+  bool                  antiAlias_        { true };              //!< anti alias
+//bool                  showTable_        { false };             //!< show table with plot
+  bool                  bufferLayers_     { true };              //!< buffer draw layers
+  bool                  preview_          { false };             //!< preview
+  bool                  scaleFont_        { true };              //!< auto scale font
+  double                fontFactor_       { 1.0 };               //!< font scale factor
+  CQChartsFont          font_;                                   //!< font
+  QString               defaultPalette_;                         //!< default palette
+  SizeData              sizeData_;                               //!< size control
+  PosTextType           posTextType_      { PosTextType::PLOT }; //!< position text type
+  CQChartsGeom::BBox    prect_            { 0, 0, 100, 100 };    //!< plot rect
+  double                aspect_           { 1.0 };               //!< current aspect
+  MouseData             mouseData_;                              //!< mouse data
+  int                   searchTimeout_    { 10 };                //!< search timeout
+  QTimer*               searchTimer_      { nullptr };           //!< search timer
+  QPointF               searchPos_;                              //!< search pos
+  QRubberBand*          regionBand_       { nullptr };           //!< zoom region rubberband
+  ProbeBands            probeBands_;                             //!< probe lines
+  QMenu*                popupMenu_        { nullptr };           //!< context menu
+  QSize                 viewSizeHint_;                           //!< view size hint
+  mutable std::mutex    painterMutex_;                           //!< painter mutex
 };
 
 #endif

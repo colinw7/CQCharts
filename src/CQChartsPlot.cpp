@@ -8052,7 +8052,7 @@ QColor
 CQChartsPlot::
 interpGroupPaletteColor(double r1, double r2, double dr) const
 {
-  CQChartsTheme *theme = view()->themeObj();
+  CQChartsTheme *theme = view()->theme();
 
   // r1 is parent color and r2 is child color
   QColor c1 = theme->palette()->getColor(r1 - dr/2.0);

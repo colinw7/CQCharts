@@ -1105,7 +1105,7 @@ initThemeFrame(QFrame *themeFrame)
 
   CQChartsView *view = window_->view();
 
-  CQChartsTheme *themeObj = view->themeObj();
+  CQChartsTheme *theme = view->theme();
 
   //--
 
@@ -1167,7 +1167,7 @@ initThemeFrame(QFrame *themeFrame)
   palettesFrameLayout->addWidget(palettesSplitter);
 
   themeWidgets_.palettesPlot    =
-    new CQChartsGradientPaletteCanvas(this, themeObj->palette());
+    new CQChartsGradientPaletteCanvas(this, theme->palette());
   themeWidgets_.palettesControl =
     new CQChartsGradientPaletteControl(themeWidgets_.palettesPlot);
 

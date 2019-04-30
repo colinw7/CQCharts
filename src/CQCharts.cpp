@@ -318,9 +318,9 @@ interpColorValue(const CQChartsColor &c, int ig, int ng, double value) const
 
 void
 CQCharts::
-setPlotTheme(const CQChartsThemeName &theme)
+setPlotTheme(const CQChartsThemeName &themeName)
 {
-  CQChartsUtil::testAndSet(plotTheme_, theme, [&]() { emit themeChanged(); } );
+  CQChartsUtil::testAndSet(plotTheme_, themeName, [&]() { emit themeChanged(); } );
 }
 
 //---
@@ -423,7 +423,7 @@ CQChartsGradientPalette *
 CQCharts::
 themeGroupPalette(int ig, int /*ng*/) const
 {
-  return themeObj()->palette(ig);
+  return theme()->palette(ig);
 }
 
 CQChartsGradientPalette *
@@ -434,19 +434,19 @@ themePalette(int ind) const
   if (ind < 0)
     ind = 0;
 
-  return themeObj()->palette(ind);
+  return theme()->palette(ind);
 }
 
 const CQChartsTheme *
 CQCharts::
-themeObj() const
+theme() const
 {
   return plotTheme().obj();
 }
 
 CQChartsTheme *
 CQCharts::
-themeObj()
+theme()
 {
   return plotTheme().obj();
 }
@@ -460,7 +460,7 @@ adjustDefaultPalette(const CQChartsColor &c, const QString &defaultPalette) cons
       c.ind() < 0) {
     CQChartsColor c1 = c;
 
-    int ind = themeObj()->paletteInd(defaultPalette);
+    int ind = theme()->paletteInd(defaultPalette);
 
     c1.setInd(ind);
 

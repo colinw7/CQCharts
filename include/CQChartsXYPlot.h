@@ -196,7 +196,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
  public:
   CQChartsXYPointObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                      double x, double y, double size, const QModelIndex &ind,
-                     int is, int ns, int ig, int ng, int i, int n);
+                     const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
 
  ~CQChartsXYPointObj();
 
@@ -218,15 +218,6 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   void setSize(double r) { size_ = r; }
 
   const QModelIndex &ind() const { return ind_; }
-
-  int is() const { return is_; }
-  int ns() const { return ns_; }
-
-  int ig() const { return ig_; }
-  int ng() const { return ng_; }
-
-  int i() const { return i_; }
-  int n() const { return n_; }
 
   //---
 
@@ -273,12 +264,6 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   QPointF                      pos_;                  //!< position
   double                       size_     { -1 };      //!< size : TODO support units
   QModelIndex                  ind_;                  //!< model index
-  int                          is_       { -1 };      //!< set index
-  int                          ns_       { -1 };      //!< number of sets
-  int                          ig_       { -1 };      //!< group index
-  int                          ng_       { -1 };      //!< number of groups
-  int                          i_        { -1 };      //!< point index
-  int                          n_        { -1 };      //!< number of points
   ExtraData*                   edata_    { nullptr }; //!< extra data
   const CQChartsXYPolylineObj* lineObj_  { nullptr }; //!< line obj
 };

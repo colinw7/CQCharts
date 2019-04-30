@@ -144,8 +144,6 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
     ColorSizes colorSizes;
   };
 
-  using ColorInd = CQChartsPlot::ColorInd;
-
  public:
   using Bucket   = CQChartsDistributionBucket;
   using BarValue = CQChartsDistributionBarValue;

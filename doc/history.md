@@ -826,9 +826,13 @@
  + Fix edit of palette points
 # 4/25/2019
  + Add theme palette list editor
-# 4/28/2109
+# 4/28/2019
  + Support different color interpolation types (set, group, index, x/y value)
  + Use view/plot interpColor where appropriate
  + Improve view settings theme editor
  + Support auto maximize/restore using scrolled plots
  + Update get_charts_palette and set_charts_palette commands
+# 4/29/2019
+ + Add Maximize/Restore for multiple plots
+ + Add color type support to xy plot
+ + Update select/inside fill color on theme change

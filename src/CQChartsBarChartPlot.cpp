@@ -1135,9 +1135,12 @@ addKeyItems(CQChartsPlotKey *key)
 {
   int row = key->maxRow();
 
-  auto addKeyRow = [&](int i, int n, const QString &name, const QColor &c=QColor()) {
-    CQChartsBarKeyColor *keyColor = new CQChartsBarKeyColor(this, i, n);
-    CQChartsBarKeyText  *keyText  = new CQChartsBarKeyText (this, name, i, n);
+  auto addKeyRow = [&](const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
+                       const QString &name, const QColor &c=QColor()) {
+    CQChartsBarKeyColor *keyColor =
+      new CQChartsBarKeyColor(this, is, ig, iv);
+
+    CQChartsBarKeyText *keyText= new CQChartsBarKeyText(this, name, iv.i, iv.n);
 
     key->addItem(keyColor, row, 0);
     key->addItem(keyText , row, 1);
@@ -1159,18 +1162,18 @@ addKeyItems(CQChartsPlotKey *key)
       for (int iv = 0; iv < nv; ++iv) {
         const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
 
-        addKeyRow(iv, nv, valueSet.name());
+        addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), valueSet.name());
       }
     }
     else {
       const CQChartsBarChartValueSet &valueSet = this->valueSet(0);
 
-      int nv = valueSet.numValues();
+      int nvs = valueSet.numValues();
 
-      for (int iv = 0; iv < nv; ++iv) {
-        const CQChartsBarChartValue &value = valueSet.value(iv);
+      for (int ivs = 0; ivs < nvs; ++ivs) {
+        const CQChartsBarChartValue &value = valueSet.value(ivs);
 
-        addKeyRow(iv, nv, value.valueName());
+        addKeyRow(ColorInd(), ColorInd(), ColorInd(ivs, nvs), value.valueName());
       }
     }
   }
@@ -1198,16 +1201,16 @@ addKeyItems(CQChartsPlotKey *key)
             c = interpColor(color, 0, 1);
         }
 
-        addKeyRow(iv, nv, valueSet.name(), c);
+        addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), valueSet.name(), c);
       }
     }
     else if (nv == 1) {
       const CQChartsBarChartValueSet &valueSet = this->valueSet(0);
 
-      int nv = valueSet.numValues();
+      int nvs = valueSet.numValues();
 
-      for (int iv = 0; iv < nv; ++iv) {
-        const CQChartsBarChartValue &ivalue = valueSet.value(iv);
+      for (int ivs = 0; ivs < nvs; ++ivs) {
+        const CQChartsBarChartValue &ivalue = valueSet.value(ivs);
 
         const CQChartsBarChartValue::ValueInds &valueInds = ivalue.valueInds();
         assert(! valueInds.empty());
@@ -1222,7 +1225,7 @@ addKeyItems(CQChartsPlotKey *key)
         if (columnColor(ind0.vrow, parent, color))
           c = interpColor(color, 0, 1);
 
-        addKeyRow(iv, nv, ivalue.valueName(), c);
+        addKeyRow(ColorInd(), ColorInd(), ColorInd(ivs, nvs), ivalue.valueName(), c);
       }
     }
 
@@ -1250,7 +1253,7 @@ addKeyItems(CQChartsPlotKey *key)
             c = interpColor(color, 0, 1);
         }
 
-        addKeyRow(iv, nv, valueSet.name(), c);
+        addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), valueSet.name(), c);
       }
     }
     else {
@@ -1264,7 +1267,7 @@ addKeyItems(CQChartsPlotKey *key)
         title = yname;
       }
 
-      addKeyRow(0, 1, title);
+      addKeyRow(ColorInd(), ColorInd(), ColorInd(), title);
     }
 #endif
   }
@@ -1848,10 +1851,10 @@ value() const
 //------
 
 CQChartsBarKeyColor::
-CQChartsBarKeyColor(CQChartsBarChartPlot *plot, int i, int n) :
- CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ColorInd(i, n)), plot_(plot)
+CQChartsBarKeyColor(CQChartsBarChartPlot *plot, const ColorInd &is, const ColorInd &ig,
+                    const ColorInd &iv) :
+ CQChartsKeyColorBox(plot, is, ig, iv), plot_(plot)
 {
-  assert(i >= 0 && i < n);
 }
 
 bool
@@ -1859,8 +1862,8 @@ CQChartsBarKeyColor::
 selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod)
 {
   if (selMod == CQChartsSelMod::ADD) {
-    for (int i = 0; i < n_; ++i) {
-      plot_->CQChartsPlot::setSetHidden(i, i != i_);
+    for (int i = 0; i < iv_.n; ++i) {
+      plot_->CQChartsPlot::setSetHidden(i, i != iv_.i);
     }
   }
   else {
@@ -1880,8 +1883,19 @@ fillBrush() const
 
   if (color_.isValid())
     c = plot_->interpColor(color_, 0.0);
-  else
-    c = plot_->interpBarFillColor(i_, n_);
+  else {
+    ColorInd colorInd;
+
+    if (plot_->colorType() == CQChartsPlot::ColorType::AUTO)
+      colorInd = iv_;
+    else
+      colorInd = calcColorInd();
+
+    if (colorInd.isInt)
+      c = plot_->interpBarFillColor(colorInd.i, colorInd.n);
+    else
+      c = plot_->interpBarFillColor(colorInd.r);
+  }
 
   if (isSetHidden())
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
@@ -1902,7 +1916,7 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
 
   if (ns > 1) {
     if (plot_->isColorBySet()) {
-      const CQChartsBarChartValueSet &valueSet = plot_->valueSet(i_);
+      const CQChartsBarChartValueSet &valueSet = plot_->valueSet(iv_.i);
 
       valueSet.calcSums(posSum, negSum);
 
@@ -1916,7 +1930,7 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
       for (int i = 0; i < nv; ++i) {
         const CQChartsBarChartValueSet &valueSet = plot_->valueSet(i);
 
-        const CQChartsBarChartValue &ivalue = valueSet.value(i_);
+        const CQChartsBarChartValue &ivalue = valueSet.value(iv_.i);
 
         const CQChartsBarChartValue::ValueInds &valueInds = ivalue.valueInds();
         assert(! valueInds.empty());
@@ -1932,7 +1946,7 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
     int nv = plot_->numValueSets();
 
     if      (nv > 1) {
-      const CQChartsBarChartValueSet &valueSet = plot_->valueSet(i_);
+      const CQChartsBarChartValueSet &valueSet = plot_->valueSet(iv_.i);
 
       valueSet.calcSums(posSum, negSum);
 
@@ -1941,7 +1955,7 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
     else if (nv == 1) {
       const CQChartsBarChartValueSet &valueSet = plot_->valueSet(0);
 
-      const CQChartsBarChartValue &ivalue = valueSet.value(i_);
+      const CQChartsBarChartValue &ivalue = valueSet.value(iv_.i);
 
       const CQChartsBarChartValue::ValueInds &valueInds = ivalue.valueInds();
       assert(! valueInds.empty());
@@ -1987,14 +2001,14 @@ bool
 CQChartsBarKeyColor::
 isSetHidden() const
 {
-  return plot_->CQChartsPlot::isSetHidden(i_);
+  return plot_->CQChartsPlot::isSetHidden(iv_.i);
 }
 
 void
 CQChartsBarKeyColor::
 setSetHidden(bool b)
 {
-  plot_->CQChartsPlot::setSetHidden(i_, b);
+  plot_->CQChartsPlot::setSetHidden(iv_.i, b);
 }
 
 //------

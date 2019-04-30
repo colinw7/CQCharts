@@ -213,6 +213,11 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
     connect(searchTimer_, SIGNAL(timeout()), this, SLOT(searchSlot()));
   }
+
+  //---
+
+  connect(CQChartsThemeMgrInst, SIGNAL(themeChanged(const QString &)),
+          this, SLOT(themeChangedSlot(const QString &)));
 }
 
 CQChartsView::
@@ -267,7 +272,40 @@ setTitle(const QString &s)
 
 void
 CQChartsView::
-setScrolled(bool b)
+maximizePlotsSlot()
+{
+  CQChartsPlot *plot = currentPlot(/*remap*/false);
+
+  setScrolled(true, /*update*/false);
+
+  PlotSet basePlots;
+
+  this->basePlots(basePlots);
+
+  int i = 0;
+
+  for (auto &basePlot : basePlots) {
+    if (basePlot == plot) {
+      setScrollPage(i);
+      break;
+    }
+
+    ++i;
+  }
+
+  updateScroll();
+}
+
+void
+CQChartsView::
+restorePlotsSlot()
+{
+  setScrolled(false);
+}
+
+void
+CQChartsView::
+setScrolled(bool b, bool update)
 {
   if (b == scrollData_.active)
     return;
@@ -275,26 +313,30 @@ setScrolled(bool b)
   scrollData_.active = b;
 
   if (scrollData_.autoInit) {
-    scrollData_.plotBBoxMap.clear();
+    PlotSet basePlots;
+
+    this->basePlots(basePlots);
 
     if (scrollData_.active) {
-      for (auto &plot : plots_)
+      scrollData_.plotBBoxMap.clear();
+
+      for (auto &plot : basePlots)
         scrollData_.plotBBoxMap[plot->id()] = plot->viewBBox();
 
       int pos = 0;
 
-      for (auto &plot : plots_) {
+      for (auto &plot : basePlots) {
         plot->setViewBBox(CQChartsGeom::BBox(pos, 0, pos + 100, 100));
 
         pos += 100;
       }
 
-      scrollData_.numPages = plots_.size();
+      scrollData_.numPages = basePlots.size();
     }
     else {
       bool allFound = true;
 
-      for (auto &plot : plots_) {
+      for (auto &plot : basePlots) {
         auto p = scrollData_.plotBBoxMap.find(plot->id());
 
         if (p == scrollData_.plotBBoxMap.end()) {
@@ -309,7 +351,8 @@ setScrolled(bool b)
         placePlots(plots_, /*vertical*/false, /*horizontal*/true, /*rows*/1, /*cols*/1);
     }
 
-    updatePlots();
+    if (update)
+      updateScroll();
   }
 
   emit scrollDataChanged();
@@ -548,6 +591,29 @@ setCurrentPlotInd(int ind)
     if (currentPlot)
       connect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
 
+    //---
+
+    if (isScrolled()) {
+      PlotSet basePlots;
+
+      this->basePlots(basePlots);
+
+      int i = 0;
+
+      for (auto &basePlot : basePlots) {
+        if (basePlot == currentPlot) {
+          setScrollPage(i);
+          break;
+        }
+
+        ++i;
+      }
+
+      updateScroll();
+    }
+
+    //---
+
     emit currentPlotChanged();
   }
 }
@@ -665,28 +731,28 @@ endSelection()
 
 CQChartsTheme *
 CQChartsView::
-themeObj()
+theme()
 {
-  return theme().obj();
+  return themeName().obj();
 }
 
 const CQChartsTheme *
 CQChartsView::
-themeObj() const
+theme() const
 {
-  return theme().obj();
+  return themeName().obj();
 }
 
 const CQChartsThemeName &
 CQChartsView::
-theme() const
+themeName() const
 {
   return charts()->plotTheme();
 }
 
 void
 CQChartsView::
-setTheme(const CQChartsThemeName &theme)
+setThemeName(const CQChartsThemeName &theme)
 {
   charts()->setPlotTheme(theme);
 
@@ -704,14 +770,14 @@ CQChartsGradientPalette *
 CQChartsView::
 themeGroupPalette(int i, int /*n*/) const
 {
-  return themeObj()->palette(i);
+  return theme()->palette(i);
 }
 
 CQChartsGradientPalette *
 CQChartsView::
 themePalette(int ind) const
 {
-  return themeObj()->palette(ind);
+  return theme()->palette(ind);
 }
 
 //---
@@ -2591,6 +2657,18 @@ searchSlot()
 
 void
 CQChartsView::
+themeChangedSlot(const QString &name)
+{
+  if (name == theme()->name()) {
+    setSelectedFillColor(theme()->selectColor());
+    setInsideFillColor  (theme()->insideColor());
+  }
+}
+
+//------
+
+void
+CQChartsView::
 showMenu(const QPoint &p)
 {
   delete popupMenu_;
@@ -2720,6 +2798,15 @@ showMenu(const QPoint &p)
 
   if (! isAutoSize())
     addAction(popupMenu_, "Resize to View", SLOT(resizeToView()));
+
+  //---
+
+  if (basePlots.size() > 1) {
+    if (! isScrolled())
+      addAction(popupMenu_, "Maximize", SLOT(maximizePlotsSlot()));
+    else
+      addAction(popupMenu_, "Restore", SLOT(restorePlotsSlot()));
+  }
 
   //---
 
@@ -3109,13 +3196,21 @@ showMenu(const QPoint &p)
 
   themeMenu->addActions(interfaceGroup->actions());
 
-  QAction *defaultThemeAction = addThemeAction("Default"  , SLOT(defaultThemeSlot()));
-  QAction *palette1Action     = addThemeAction("Palette 1", SLOT(palette1Slot()));
-  QAction *palette2Action     = addThemeAction("Palette 2", SLOT(palette2Slot()));
+  //---
 
-  defaultThemeAction->setChecked(theme().name() == "default" );
-  palette1Action    ->setChecked(theme().name() == "palette1");
-  palette2Action    ->setChecked(theme().name() == "palette2");
+  QStringList themeNames;
+
+  CQChartsThemeMgrInst->getThemeNames(themeNames);
+
+  for (const auto &themeName : themeNames) {
+    CQChartsTheme *theme = CQChartsThemeMgrInst->getTheme(themeName) ;
+
+    QAction *themeAction = addThemeAction(theme->desc(), SLOT(themeNameSlot()));
+
+    themeAction->setData(theme->name());
+
+    themeAction->setChecked(this->themeName().name() == theme->name());
+  }
 
   themeMenu->addActions(themeGroup->actions());
 
@@ -3463,30 +3558,21 @@ darkPaletteSlot()
 
 void
 CQChartsView::
-defaultThemeSlot()
+themeNameSlot()
 {
-  themeSlot("default");
-}
+  QAction *action = qobject_cast<QAction *>(sender());
+  if (! action) return;
 
-void
-CQChartsView::
-palette1Slot()
-{
-  themeSlot("palette1");
-}
+  QString name = action->data().toString();
 
-void
-CQChartsView::
-palette2Slot()
-{
-  themeSlot("palette2");
+  themeSlot(name);
 }
 
 void
 CQChartsView::
 themeSlot(const QString &name)
 {
-  setTheme(CQChartsThemeName(name));
+  setThemeName(CQChartsThemeName(name));
 
   updateTheme();
 }
@@ -3495,9 +3581,9 @@ void
 CQChartsView::
 updateTheme()
 {
-  setSelectedFillColor(themeObj()->selectColor());
+  setSelectedFillColor(theme()->selectColor());
 
-  setInsideFillColor  (themeObj()->insideColor());
+  setInsideFillColor  (theme()->insideColor());
   setInsideBorderWidth(CQChartsLength("2px"));
 
   updatePlots();
@@ -3988,11 +4074,15 @@ void
 CQChartsView::
 updateScroll()
 {
-  double dx = scrollData_.page*scrollData_.delta;
-
   double vr = viewportRange();
 
-  displayRange_->setWindowRange(dx, 0, dx + vr, vr);
+  if (isScrolled()) {
+    double dx = scrollData_.page*scrollData_.delta;
+
+    displayRange_->setWindowRange(dx, 0, dx + vr, vr);
+  }
+  else
+    displayRange_->setWindowRange(0, 0, vr, vr);
 
   updatePlots();
 

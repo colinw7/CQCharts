@@ -66,7 +66,7 @@ place_charts_plots -horizontal $dist_plots
 
 #---
 
-set corrModel [create_correlation_model -model $model]
+set corrModel [create_charts_correlation_model -model $model]
 
 set view3 [create_charts_view]
 

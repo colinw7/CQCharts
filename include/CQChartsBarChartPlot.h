@@ -241,7 +241,8 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   Q_PROPERTY(CQChartsColor color READ color WRITE setColor)
 
  public:
-  CQChartsBarKeyColor(CQChartsBarChartPlot *plot, int i, int n);
+  CQChartsBarKeyColor(CQChartsBarChartPlot *plot, const ColorInd &is, const ColorInd &ig,
+                      const ColorInd &iv);
 
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &color) { color_ = color; }

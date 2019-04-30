@@ -13,7 +13,6 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsColor.h>
 #include <CQChartsLineDash.h>
-#include <CQChartsPaletteColorData.h>
 #include <CQChartsModelFilter.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsColumnType.h>
@@ -1434,7 +1433,7 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
   // get theme data
   else if (themeFlag) {
     CQChartsTheme *theme = CQChartsThemeMgrInst->getTheme(themeStr);
-    if (! theme) errorMsg(QString("Invalid theme '%1'").arg(themeStr));
+    if (! theme) return errorMsg(QString("Invalid theme '%1'").arg(themeStr));
 
     if      (nameStr == "name") {
       cmdBase_->setCmdRc(theme->name());
@@ -1463,7 +1462,7 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
       cmdBase_->setCmdRc(names);
     }
     else
-      errorMsg(QString("Invalid theme value name '%1'").arg(nameStr));
+      return errorMsg(QString("Invalid theme value name '%1'").arg(nameStr));
   }
   // get palette data
   else if (paletteFlag) {
@@ -1499,12 +1498,12 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
     else if (nameStr == "colors") {
       int n = palette->numColors();
 
-      QStringList names;
+      QVariantList colors;
 
       for (int i = 0; i < n; ++i)
-        names << palette->icolor(i).name();
+        colors << palette->icolor(i);
 
-      cmdBase_->setCmdRc(names);
+      cmdBase_->setCmdRc(colors);
     }
     else if (nameStr == "color") {
       if (! dataFlag) return errorMsg("Missing data for palette color");
@@ -1654,7 +1653,7 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
   // set theme data
   else if (themeFlag) {
     CQChartsTheme *theme = CQChartsThemeMgrInst->getTheme(themeStr);
-    if (! theme) errorMsg(QString("Invalid theme '%1'").arg(themeStr));
+    if (! theme) return errorMsg(QString("Invalid theme '%1'").arg(themeStr));
 
     if      (nameStr == "name") theme->setName(valueStr);
     else if (nameStr == "desc") theme->setDesc(valueStr);
@@ -1687,7 +1686,7 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
     }
 
     // model
-    else if (nameStr == "red_model" || nameStr == "green_model" || "blue_model") {
+    else if (nameStr == "red_model" || nameStr == "green_model" || nameStr == "blue_model") {
       bool ok;
 
       int i = CQChartsUtil::toInt(valueStr, ok);
@@ -1762,7 +1761,16 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
 
     // set colors
     else if (nameStr == "defined_colors") {
-      using DefinedColors = std::vector<CQChartsDefinedColor>;
+      struct DefinedColor {
+        double v { -1.0 };
+        QColor c;
+
+        DefinedColor(double v, const QColor &c) :
+         v(v), c(c) {
+        }
+      };
+
+      using DefinedColors = std::vector<DefinedColor>;
 
       //--
 
@@ -1770,8 +1778,7 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
 
       QStringList strs = definedStr.split(" ", QString::SkipEmptyParts);
 
-      if (! strs.length())
-        return errorMsg(QString("Invalid defined colors '%1'").arg(valueStr));
+      if (! strs.length()) return errorMsg(QString("Invalid defined colors '%1'").arg(valueStr));
 
       double dv = (strs.length() > 1 ? 1.0/(strs.length() - 1) : 0.0);
 
@@ -1795,7 +1802,7 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
         else
           c = QColor(strs[j]);
 
-        definedColors.push_back(CQChartsDefinedColor(v, c));
+        definedColors.push_back(DefinedColor(v, c));
       }
 
       if (! definedColors.empty()) {
@@ -1818,7 +1825,7 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
       cmdBase_->setCmdRc(names);
     }
     else
-      return errorMsg(QString("Invalid palete value name '%1'").arg(nameStr));
+      return errorMsg(QString("Invalid palette value name '%1'").arg(nameStr));
   }
   // set interface data
   else if (interfaceFlag) {
@@ -1843,9 +1850,6 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
     else
       return errorMsg(QString("Invalid interface value name '%1'").arg(nameStr));
   }
-
-  if (! argv.parse())
-    return false;
 
   //---
 
@@ -6157,67 +6161,6 @@ testEditCmd(CQChartsCmdArgs &argv)
 
   // show dialog
   dialog->show();
-
-  return true;
-}
-
-//------
-
-bool
-CQChartsCmds::
-setPaletteData(CQChartsGradientPalette *palette, const CQChartsPaletteColorData &paletteData)
-{
-  if (paletteData.colorTypeStr != "") {
-    CQChartsGradientPalette::ColorType colorType =
-      CQChartsGradientPalette::stringToColorType(paletteData.colorTypeStr);
-
-    if (colorType == CQChartsGradientPalette::ColorType::NONE) {
-      charts_->errorMsg("Illegal color type '" + paletteData.colorTypeStr + "'");
-      return false;
-    }
-
-    palette->setColorType(colorType);
-  }
-
-  //---
-
-  if (paletteData.colorModelStr != "") {
-    CQChartsGradientPalette::ColorModel colorModel =
-      CQChartsGradientPalette::stringToColorModel(paletteData.colorModelStr);
-
-    if (colorModel == CQChartsGradientPalette::ColorModel::NONE) {
-      charts_->errorMsg("Illegal color molde '" + paletteData.colorModelStr + "'");
-      return false;
-    }
-
-    palette->setColorModel(colorModel);
-  }
-
-  //---
-
-  if (paletteData.redModel  ) palette->setRedModel  (*paletteData.redModel  );
-  if (paletteData.greenModel) palette->setGreenModel(*paletteData.greenModel);
-  if (paletteData.blueModel ) palette->setBlueModel (*paletteData.blueModel );
-
-  if (paletteData.negateRed  ) palette->setRedNegative  (*paletteData.negateRed  );
-  if (paletteData.negateGreen) palette->setGreenNegative(*paletteData.negateGreen);
-  if (paletteData.negateBlue ) palette->setBlueNegative (*paletteData.negateBlue );
-
-  if (paletteData.redMin  ) palette->setRedMin  (*paletteData.redMin  );
-  if (paletteData.redMax  ) palette->setRedMax  (*paletteData.redMax  );
-  if (paletteData.greenMin) palette->setGreenMin(*paletteData.greenMin);
-  if (paletteData.greenMax) palette->setGreenMax(*paletteData.greenMax);
-  if (paletteData.blueMin ) palette->setBlueMin (*paletteData.blueMin );
-  if (paletteData.blueMax ) palette->setBlueMax (*paletteData.blueMax );
-
-  //---
-
-  if (! paletteData.definedColors.empty()) {
-    palette->resetDefinedColors();
-
-    for (const auto &definedColor : paletteData.definedColors)
-      palette->addDefinedColor(definedColor.v, definedColor.c);
-  }
 
   return true;
 }

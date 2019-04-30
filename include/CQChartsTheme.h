@@ -42,11 +42,15 @@ class CQChartsThemeMgr : public QObject {
  signals:
   void palettesChanged();
   void themesChanged();
+  void themeChanged(const QString &name);
 
  private:
   CQChartsThemeMgr();
 
   void init();
+
+ private slots:
+  void themeChangedSlot();
 
  private:
   struct PaletteData {
@@ -113,11 +117,14 @@ class CQChartsTheme : public QObject {
 
   // get/set select color
   const QColor &selectColor() const { return selectColor_; }
-  void setSelectColor(const QColor &c) { selectColor_ = c; }
+  void setSelectColor(const QColor &c);
 
   // get/set inside color
   const QColor &insideColor() const { return insideColor_; }
-  void setInsideColor(const QColor &c) { insideColor_ = c; }
+  void setInsideColor(const QColor &c);
+
+ signals:
+  void themeChanged();
 
  protected:
   // initialize with all named palettes

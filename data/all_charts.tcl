@@ -66,7 +66,7 @@ set plot10 [create_charts_plot -model $model10 -type geometry -columns "name=0,g
 
 set model11 [load_charts_model -csv data/winequality-white.csv -first_line_header -separator {;}]
 
-set corrModel11 [create_correlation_model -model $model11]
+set corrModel11 [create_charts_correlation_model -model $model11]
 
 set plot11 [create_charts_plot -model $corrModel11 -type image]
 

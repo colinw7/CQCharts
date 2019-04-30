@@ -42,6 +42,8 @@ CQChartsGradientPaletteList(QWidget *parent) :
 
   themesCombo_ = CQUtil::makeWidget<QComboBox>("themesCombo");
 
+  themesCombo_->setToolTip("Select Theme to Edit");
+
   connect(themesCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(themesComboSlot(int)));
 
   themeLayout->addWidget(themesCombo_);
@@ -70,6 +72,8 @@ CQChartsGradientPaletteList(QWidget *parent) :
 
   currentList_ = CQUtil::makeWidget<QListWidget>("currentList");
 
+  currentList_->setToolTip("List of Theme Palettes");
+
   currentGroupLayout->addWidget(currentList_);
 
   //----
@@ -95,6 +99,12 @@ CQChartsGradientPaletteList(QWidget *parent) :
   QToolButton *leftButton  = addToolButton("left" , "LEFT" , SLOT(leftSlot ()));
   QToolButton *rightButton = addToolButton("right", "RIGHT", SLOT(rightSlot()));
 
+  upButton   ->setToolTip("Move palette up in theme list");
+  downButton ->setToolTip("Move palette down in theme list");
+  leftButton ->setToolTip("Add palette to theme list (from unused)");
+  rightButton->setToolTip("Remove palette from theme list");
+
+
   controlLayout->addStretch(1);
   controlLayout->addWidget(upButton);
   controlLayout->addWidget(downButton);
@@ -106,7 +116,7 @@ CQChartsGradientPaletteList(QWidget *parent) :
   //----
 
   CQGroupBox *allGroup =
-    CQUtil::makeLabelWidget<CQGroupBox>("All Palettes", "allGroup");
+    CQUtil::makeLabelWidget<CQGroupBox>("Unused Palettes", "allGroup");
 
   QVBoxLayout *allGroupLayout = CQUtil::makeLayout<QVBoxLayout>(allGroup, 2, 2);
 
@@ -115,6 +125,8 @@ CQChartsGradientPaletteList(QWidget *parent) :
   //--
 
   allList_ = CQUtil::makeWidget<QListWidget>("allList");
+
+  allList_->setToolTip("List of Unused Palettes");
 
   allGroupLayout->addWidget(allList_);
 
@@ -137,8 +149,16 @@ CQChartsGradientPaletteList(QWidget *parent) :
   selectColorEdit_ = CQUtil::makeWidget<CQColorEdit>("selectColorEdit");
   insideColorEdit_ = CQUtil::makeWidget<CQColorEdit>("insideColorEdit");
 
+  selectColorEdit_->setToolTip("Set Selected Color");
+  insideColorEdit_->setToolTip("Set Inside Color");
+
   CQChartsWidgetUtil::addGridLabelWidget(colorsLayout, "Select Color", selectColorEdit_, row);
   CQChartsWidgetUtil::addGridLabelWidget(colorsLayout, "Inside Color", insideColorEdit_, row);
+
+  connect(selectColorEdit_, SIGNAL(colorChanged(const QColor &)),
+          this, SLOT(selectColorSlot(const QColor &)));
+  connect(insideColorEdit_, SIGNAL(colorChanged(const QColor &)),
+          this, SLOT(insideColorSlot(const QColor &)));
 
   //---
 
@@ -181,9 +201,7 @@ updateLists()
   //---
 
   CQChartsTheme *theme = currentTheme();
-
-  if (! theme)
-    return;
+  if (! theme) return;
 
   //---
 
@@ -234,9 +252,7 @@ CQChartsGradientPaletteList::
 updateData()
 {
   CQChartsTheme *theme = currentTheme();
-
-  if (! theme)
-    return;
+  if (! theme) return;
 
   selectColorEdit_->setColor(theme->selectColor());
   insideColorEdit_->setColor(theme->insideColor());
@@ -248,9 +264,7 @@ CQChartsGradientPaletteList::
 upSlot()
 {
   CQChartsTheme *theme = currentTheme();
-
-  if (! theme)
-    return;
+  if (! theme) return;
 
   //---
 
@@ -287,9 +301,7 @@ CQChartsGradientPaletteList::
 downSlot()
 {
   CQChartsTheme *theme = currentTheme();
-
-  if (! theme)
-    return;
+  if (! theme) return;
 
   //---
 
@@ -326,9 +338,7 @@ CQChartsGradientPaletteList::
 leftSlot()
 {
   CQChartsTheme *theme = currentTheme();
-
-  if (! theme)
-    return;
+  if (! theme) return;
 
   //---
 
@@ -368,9 +378,7 @@ CQChartsGradientPaletteList::
 rightSlot()
 {
   CQChartsTheme *theme = currentTheme();
-
-  if (! theme)
-    return;
+  if (! theme) return;
 
   //---
 
@@ -408,6 +416,26 @@ rightSlot()
   currentList_->setCurrentItem(item, QItemSelectionModel::ClearAndSelect);
 
   emit palettesChanged();
+}
+
+void
+CQChartsGradientPaletteList::
+selectColorSlot(const QColor &c)
+{
+  CQChartsTheme *theme = currentTheme();
+  if (! theme) return;
+
+  theme->setSelectColor(c);
+}
+
+void
+CQChartsGradientPaletteList::
+insideColorSlot(const QColor &c)
+{
+  CQChartsTheme *theme = currentTheme();
+  if (! theme) return;
+
+  theme->setInsideColor(c);
 }
 
 bool

@@ -39,6 +39,9 @@ class CQChartsGradientPaletteList : public QFrame {
   void leftSlot ();
   void rightSlot();
 
+  void selectColorSlot(const QColor &c);
+  void insideColorSlot(const QColor &c);
+
  private:
   QComboBox*   themesCombo_     { nullptr };
   QListWidget* currentList_     { nullptr };

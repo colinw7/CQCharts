@@ -3375,10 +3375,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
   QPen   pen;
   QBrush brush;
 
-  if (ic.isInt)
-    plot_->setSymbolPenBrush(pen, brush, ic.i, ic.n);
-  else
-    plot_->setSymbolPenBrush(pen, brush, ic.r);
+  plot_->setSymbolPenBrush(pen, brush, ic);
 
   if (color_.isValid()) {
     QColor c = plot_->interpColor(color_, ic);

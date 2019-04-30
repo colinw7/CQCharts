@@ -57,8 +57,6 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   using OptReal = boost::optional<double>;
 
-  using ColorInd = CQChartsPlot::ColorInd;
-
  public:
   CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd,
                           const CQChartsGeom::BBox &rect, const QPointF &p,
@@ -136,8 +134,6 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
   };
 
   using Points = std::vector<QPointF>;
-
-  using ColorInd = CQChartsPlot::ColorInd;
 
  public:
   CQChartsScatterCellObj(const CQChartsScatterPlot *plot, int groupInd,
