@@ -351,6 +351,9 @@ class Range {
   double xmax() const { assert(set_); return std::max(x1_, x2_); }
   double ymax() const { assert(set_); return std::max(y1_, y2_); }
 
+  double min(bool horizontal) const { return (horizontal ? xmin() : ymin()); }
+  double max(bool horizontal) const { return (horizontal ? xmax() : ymax()); }
+
   double left  () const { assert(set_); return x1_; }
   double bottom() const { assert(set_); return y1_; }
   double right () const { assert(set_); return x2_; }
@@ -363,6 +366,8 @@ class Range {
 
   double xsize() const { assert(set_); return fabs(x2_ - x1_); }
   double ysize() const { assert(set_); return fabs(y2_ - y1_); }
+
+  double size(bool horizontal) const { return (horizontal ? xsize() : ysize()); }
 
   bool isZero() const { return isXZero() || isYZero(); }
 
@@ -888,11 +893,14 @@ class BBox {
     set_    = true;
   }
 
-  double getMinExtent(bool horizontal) { return (horizontal ? getXMin() : getYMin()); }
-  double getMaxExtent(bool horizontal) { return (horizontal ? getXMax() : getYMax()); }
+  double getMinExtent(bool horizontal) const { return (horizontal ? getXMin() : getYMin()); }
+  double getMaxExtent(bool horizontal) const { return (horizontal ? getXMax() : getYMax()); }
 
-  void setExtent(double smin, double smax, bool horizontal) {
-    (horizontal ? setXRange(smin, smax) : setYRange(smin, smax));
+  void setMinExtent(bool horizontal, double e) { horizontal ? setXMin(e) : setYMin(e); }
+  void setMaxExtent(bool horizontal, double e) { horizontal ? setXMax(e) : setYMax(e); }
+
+  void setExtent(double emin, double emax, bool horizontal) {
+    (horizontal ? setXRange(emin, emax) : setYRange(emin, emax));
   }
 
   void expandExtent(double emin, double emax, bool horizontal) {

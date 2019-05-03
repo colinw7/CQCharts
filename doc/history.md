@@ -836,3 +836,6 @@
  + Add Maximize/Restore for multiple plots
  + Add color type support to xy plot
  + Update select/inside fill color on theme change
+# 5/2/2019
+ + Allow forced label tick positions
+ + Cleanup distribution plot type/value/empty/percent combinations

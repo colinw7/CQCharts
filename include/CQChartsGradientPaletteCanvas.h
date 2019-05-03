@@ -14,6 +14,7 @@ class CQChartsGradientPaletteCanvas : public QFrame {
   Q_PROPERTY(bool showPoints   READ isShowPoints   WRITE setShowPoints  )
   Q_PROPERTY(bool showLines    READ isShowLines    WRITE setShowLines   )
   Q_PROPERTY(bool showColorBar READ isShowColorBar WRITE setShowColorBar)
+  Q_PROPERTY(bool gray         READ isGray         WRITE setGray        )
 
  public:
   struct Margin {
@@ -37,6 +38,7 @@ class CQChartsGradientPaletteCanvas : public QFrame {
   bool isShowPoints  () const { return showPoints_  ; }
   bool isShowLines   () const { return showLines_   ; }
   bool isShowColorBar() const { return showColorBar_; }
+  bool isGray        () const { return gray_        ; }
 
   //---
 
@@ -47,7 +49,7 @@ class CQChartsGradientPaletteCanvas : public QFrame {
   void mouseMoveEvent   (QMouseEvent *) override;
   void mouseReleaseEvent(QMouseEvent *) override;
 
-  void contextMenuEvent(QContextMenuEvent *e);
+  void contextMenuEvent(QContextMenuEvent *e) override;
 
   void paintEvent(QPaintEvent *) override;
 
@@ -84,10 +86,11 @@ class CQChartsGradientPaletteCanvas : public QFrame {
   void windowToPixel(double wx, double wy, double &px, double &py) const;
   void pixelToWindow(double px, double py, double &wx, double &wy) const;
 
- private slots:
+ public slots:
   void setShowPoints(bool b);
   void setShowLines(bool b);
   void setShowColorBar(bool b);
+  void setGray(bool b);
 
  signals:
   void colorsChanged();
@@ -99,14 +102,15 @@ class CQChartsGradientPaletteCanvas : public QFrame {
     QPointF movePos;
   };
 
-  CQChartsGradientPalette* palette_       { nullptr };
-  Margin                   margin_;
-  QLabel*                  tipText_       { nullptr };
-  MouseData                mouseData_;
-  NearestColor             nearestColor_;
-  bool                     showPoints_    { true };
-  bool                     showLines_     { true };
-  bool                     showColorBar_  { true };
+  CQChartsGradientPalette* palette_       { nullptr }; //!< palette to edit
+  Margin                   margin_;                    //!< canvas margin
+  QLabel*                  tipText_       { nullptr }; //!< tip text widget
+  MouseData                mouseData_;                 //!< mouse state data
+  NearestColor             nearestColor_;              //!< nearest color
+  bool                     showPoints_    { true };    //!< show points on plot
+  bool                     showLines_     { true };    //!< show lines on plot
+  bool                     showColorBar_  { true };    //!< show color bar
+  bool                     gray_          { false };   //!< is gray
 };
 
 #endif

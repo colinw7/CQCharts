@@ -1,4 +1,5 @@
 #include <CQChartsWidgetUtil.h>
+#include <CQUtil.h>
 
 #include <QPushButton>
 #include <QLabel>
@@ -10,8 +11,7 @@ namespace CQChartsWidgetUtil {
 void
 addGridLabelWidget(QGridLayout *playout, const QString &label, QWidget *widget, int &row)
 {
-  QLabel *qlabel = new QLabel(label);
-  qlabel->setObjectName("label" + label);
+  QLabel *qlabel = CQUtil::makeLabelWidget<QLabel>(label, "label" + label);
 
   playout->addWidget(qlabel, row, 0);
   playout->addWidget(widget, row, 1);

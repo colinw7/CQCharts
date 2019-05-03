@@ -13,6 +13,7 @@ QMAKE_CXXFLAGS += \
 MOC_DIR = .moc
 
 CONFIG += staticlib
+CONFIG += c++14
 
 SOURCES += \
 CQCharts.cpp \

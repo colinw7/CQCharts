@@ -164,9 +164,9 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   QGridLayout *rangeGridLayout = new QGridLayout;
 
-  redMinMaxLabel_   = new QLabel("R"); redMinMaxLabel_  ->setObjectName("r");
-  greenMinMaxLabel_ = new QLabel("G"); greenMinMaxLabel_->setObjectName("g");
-  blueMinMaxLabel_  = new QLabel("B"); blueMinMaxLabel_ ->setObjectName("b");
+  redMinMaxLabel_   = CQUtil::makeLabelWidget<QLabel>("R", "r");
+  greenMinMaxLabel_ = CQUtil::makeLabelWidget<QLabel>("G", "g");
+  blueMinMaxLabel_  = CQUtil::makeLabelWidget<QLabel>("B", "b");
 
   rangeGridLayout->addWidget(redMinMaxLabel_  , 0, 0);
   rangeGridLayout->addWidget(greenMinMaxLabel_, 1, 0);
@@ -892,8 +892,7 @@ createColorTypeCombo(const QString &label, CQChartsGradientPaletteColorType **ty
 
   *type = new CQChartsGradientPaletteColorType;
 
-  QLabel *colorLabel = new QLabel(label);
-  colorLabel->setObjectName("label");
+  QLabel *colorLabel = CQUtil::makeLabelWidget<QLabel>(label, "labe;");
 
   layout->addWidget(colorLabel);
   layout->addWidget(*type);
@@ -914,8 +913,7 @@ createColorModelCombo(const QString &label, CQChartsGradientPaletteColorModel **
 
   *model = new CQChartsGradientPaletteColorModel;
 
-  QLabel *colorLabel = new QLabel(label);
-  colorLabel->setObjectName("label");
+  QLabel *colorLabel = CQUtil::makeLabelWidget<QLabel>(label, "label");
 
   layout->addWidget(colorLabel);
   layout->addWidget(*model);
@@ -929,8 +927,7 @@ CQChartsGradientPaletteControl::
 createModelCombo(QGridLayout *grid, int row, const QString &label,
                  QLabel **modelLabel, CQChartsGradientPaletteModel **modelCombo)
 {
-  *modelLabel = new QLabel(label);
-  (*modelLabel)->setObjectName("label");
+  *modelLabel = CQUtil::makeLabelWidget<QLabel>(label, "label");
 
   *modelCombo = new CQChartsGradientPaletteModel;
   (*modelCombo)->setObjectName("combo");
@@ -970,8 +967,7 @@ createRealEdit(QGridLayout *grid, int row, int col, bool stretch,
   *edit = new CQRealSpin;
   (*edit)->setObjectName("spin");
 
-  QLabel *editLabel = new QLabel(label);
-  editLabel->setObjectName("label");
+  QLabel *editLabel = CQUtil::makeLabelWidget<QLabel>(label, "label");
 
   grid->addWidget(editLabel, row, col);
   grid->addWidget(*edit    , row, col + 1);

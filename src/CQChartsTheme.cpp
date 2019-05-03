@@ -2117,6 +2117,7 @@ void
 CQChartsThemeMgr::
 init()
 {
+  // basic palettes
   addNamedPalette("default" , new CQChartsDefaultPalette );
   addNamedPalette("palette1", new CQChartsPalette1       );
   addNamedPalette("palette2", new CQChartsPalette2       );
@@ -2180,9 +2181,9 @@ init()
 
   //---
 
-  addTheme("default" , new CQChartsDefaultTheme);
-  addTheme("palette1", new CQChartsTheme1);
-  addTheme("palette2", new CQChartsTheme2);
+  addTheme("default", new CQChartsDefaultTheme);
+  addTheme("theme1" , new CQChartsTheme1);
+  addTheme("theme2" , new CQChartsTheme2);
 }
 
 void
@@ -2228,6 +2229,18 @@ getPaletteNames(QStringList &names) const
 
 void
 CQChartsThemeMgr::
+resetPalette(const QString &name)
+{
+  auto p = namedPalettes_.find(name);
+  assert(p != namedPalettes_.end());
+
+  PaletteData &paletteData = (*p).second;
+
+  *paletteData.current = *paletteData.original;
+}
+
+void
+CQChartsThemeMgr::
 addTheme(const QString &name, CQChartsTheme *theme)
 {
   auto p = themes_.find(name);
@@ -2260,18 +2273,6 @@ getThemeNames(QStringList &names) const
 {
   for (const auto &p : themes_)
     names.push_back(p.first);
-}
-
-void
-CQChartsThemeMgr::
-resetPalette(const QString &name)
-{
-  auto p = namedPalettes_.find(name);
-  assert(p != namedPalettes_.end());
-
-  PaletteData &paletteData = (*p).second;
-
-  *paletteData.current = *paletteData.original;
 }
 
 void

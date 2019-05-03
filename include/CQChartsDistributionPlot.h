@@ -716,7 +716,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   using VariantInds = std::vector<VariantInd>;
 
   struct VariantIndsData {
-    VariantInds           inds;         //!< mode indices
+    VariantInds           inds;         //!< model indices
     double                min  { 0.0 }; //!< min value
     double                max  { 0.0 }; //!< max value
     CQChartsStatData      statData;     //!< stats data
@@ -737,6 +737,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   bool getStatData(int groupInd, CQChartsStatData &statData) const;
 
   bool getRealValues(int groupInd, std::vector<double> &xvals, CQChartsStatData &statData) const;
+
+  bool hasGroups() const;
 
  private:
   using Inds         = std::vector<CQChartsModelIndex>;
@@ -790,6 +792,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   double getPanX(bool is_shift) const override;
   double getPanY(bool is_shift) const override;
+
+  //---
 
  public slots:
   // set horizontal

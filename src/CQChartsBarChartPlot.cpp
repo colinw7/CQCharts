@@ -36,7 +36,7 @@ addParameters()
     setString().setTip("Bar data label");
 
   // options
-  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
+  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("Draw bars horizontal");
 
   addEnumParameter("plotType", "Plot Type", "plotType").
     addNameValue("NORMAL" , int(CQChartsBarChartPlot::PlotType::NORMAL )).

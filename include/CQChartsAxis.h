@@ -52,6 +52,7 @@ class CQChartsAxis : public CQChartsObj,
   Q_PROPERTY(bool             date             READ isDate             WRITE setDate            )
   Q_PROPERTY(bool             log              READ isLog              WRITE setLog             )
   Q_PROPERTY(QString          format           READ format             WRITE setFormat          )
+  Q_PROPERTY(double           maxFitExtent     READ maxFitExtent       WRITE setMaxFitExtent    )
   Q_PROPERTY(double           tickIncrement    READ tickIncrement      WRITE setTickIncrement   )
   Q_PROPERTY(double           majorIncrement   READ majorIncrement     WRITE setMajorIncrement  )
   Q_PROPERTY(double           start            READ start              WRITE setStart           )
@@ -115,6 +116,8 @@ class CQChartsAxis : public CQChartsObj,
   Qt::Orientation direction() const { return direction_; }
   void setDirection(Qt::Orientation dir) { direction_ = dir; updatePlotPosition(); }
 
+  bool isHorizontal() const { return direction() == Qt::Horizontal; }
+
   CQChartsAxisSide side() const { return side_; }
   void setSide(CQChartsAxisSide side) { side_ = side; updatePlotPosition(); }
 
@@ -146,6 +149,10 @@ class CQChartsAxis : public CQChartsObj,
 
   QString format() const;
   bool setFormat(const QString &s);
+
+  double maxFitExtent() const { return maxFitExtent_; }
+  void setMaxFitExtent(double r) {
+    CQChartsUtil::testAndSet(maxFitExtent_, r, [&]() { redraw(); } ); }
 
   //---
 
@@ -282,7 +289,7 @@ class CQChartsAxis : public CQChartsObj,
 
   void updatePlotRange();
 
-  CQChartsEditHandles *editHandles() { return editHandles_; }
+  CQChartsEditHandles *editHandles() const;
 
   //---
 
@@ -326,6 +333,8 @@ class CQChartsAxis : public CQChartsObj,
   void drawTickLabel(const CQChartsPlot *plot, QPainter *painter,
                      double apos, double tpos, bool inside);
 
+  void drawAxisTickDrawDatas(const CQChartsPlot *plot, QPainter *painter);
+
   void drawAxisLabel(const CQChartsPlot *plot, QPainter *painter,
                      double apos, double amin, double amax, const QString &text);
 
@@ -345,15 +354,40 @@ class CQChartsAxis : public CQChartsObj,
     uint   numGapTicks { 0 };
   };
 
+  struct AxisTickDrawData {
+    AxisTickDrawData(const QPointF &p, const CQChartsGeom::BBox &bbox, const QString &text) :
+     p(p), bbox(bbox), text(text) {
+    }
+
+    AxisTickDrawData(const QPointF &p, const CQChartsGeom::BBox &bbox, const QString &text,
+                     double angle, Qt::Alignment align) :
+     p(p), bbox(bbox), text(text), angle(angle), align(align) {
+    }
+
+    QPointF            p;
+    CQChartsGeom::BBox bbox;
+    QString            text;
+    double             angle   { 0.0 };
+    Qt::Alignment      align   { Qt::AlignHCenter };
+    bool               visible { true };
+  };
+
+  using AxisTickDrawDatas = std::vector<AxisTickDrawData>;
+
+ private:
   void calcAndRedraw();
 
   void calc();
 
   void emitSelectionChanged();
 
+  CQChartsGeom::Point windowToPixel(const CQChartsPlot *plot, double x, double y) const;
+
  private:
   using TickSpaces = std::vector<double>;
   using TickLabels = std::map<int,QString>;
+
+  using CQChartsEditHandlesP = std::unique_ptr<CQChartsEditHandles>;
 
   const CQChartsPlot*  plot_                { nullptr }; //!< parent plot
 
@@ -367,6 +401,7 @@ class CQChartsAxis : public CQChartsObj,
   bool                 dataLabels_          { false };          //!< use data for labels
   CQChartsColumn       column_;                                 //!< associated column
   QString              formatStr_;                              //!< value format string
+  double               maxFitExtent_        { 10 };             //!< max extent percent for fit
 
   // label
   bool                 labelDisplayed_      { true }; //!< show label
@@ -404,12 +439,15 @@ class CQChartsAxis : public CQChartsObj,
   TickLabels           tickLabels_;                      //!< tick labels
   bool                 requireTickLabel_    { false };   //!< use tick label values even if empty
   CQChartsOptReal      position_;                        //!< axis position
-  CQChartsEditHandles* editHandles_         { nullptr }; //!< edit handles
+  CQChartsEditHandlesP editHandles_;                     //!< edit handles
 
   CQChartsGeom::BBox   bbox_;              //!< axis box
   CQChartsGeom::BBox   fitBBox_;           //!< fit box
+  CQChartsGeom::BBox   fitLBBox_;          //!< label fit box
+  CQChartsGeom::BBox   fitTLBBox_;         //!< tick label fit box
   CQChartsGeom::BBox   lbbox_;             //!< label box
-  CQChartsGeom::BBox   lastTickLabelRect_; //!< last tick box (for auto hide)
+//CQChartsGeom::BBox   lastTickLabelRect_; //!< last tick box (for auto hide)
+  AxisTickDrawDatas    axisTickDrawDatas_; //!< cache axis tick label draw data
 };
 
 #endif

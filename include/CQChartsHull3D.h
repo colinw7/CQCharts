@@ -12,22 +12,24 @@
 #include <iterator>
 #include <cstddef>
 
-// input iterator supports:
-//  . Default construct
-//  . Copy construct
-//  . Copy assign
-//  . Increment pre/post
-//  . ==, !=
-//  . * (dereference to value)
-//
-// single pass with a shared underlying iterator value for a class
-//
-// i.e  II i1, i2;
-//      i1 = o.begin();
-//      i2 = i1;
-//      ++i1
-//      assert(*i1 == *i2);
-//
+/*!
+ * input iterator supports:
+ *  . Default construct
+ *  . Copy construct
+ *  . Copy assign
+ *  . Increment pre/post
+ *  . ==, !=
+ *  . * (dereference to value)
+ *
+ * single pass with a shared underlying iterator value for a class
+ *
+ * i.e  II i1, i2;
+ *      i1 = o.begin();
+ *      i2 = i1;
+ *      ++i1
+ *      assert(*i1 == *i2);
+ *
+*/
 template<class STATE, class T, class DIST=ptrdiff_t>
 class CInputIterator : public std::iterator<std::input_iterator_tag,T,DIST> {
  public:
@@ -80,6 +82,7 @@ class CInputIterator : public std::iterator<std::input_iterator_tag,T,DIST> {
 
 //------
 
+//! linked list
 template<typename T>
 class CListLink {
  public:
@@ -120,6 +123,7 @@ class CListLink {
     }
   }
 
+  //! iterator state
   class IteratorState {
    public:
     IteratorState(const ListLink *list=0) :
@@ -166,6 +170,7 @@ class CListLink {
 
 //---
 
+//! Charts convex hull data
 class CQChartsHull3D {
  private:
   /* Define vertex indices. */
@@ -177,6 +182,7 @@ class CQChartsHull3D {
   class Edge;
   class Vertex;
 
+  //! hull vertex
   class Vertex : public CListLink<Vertex> {
    private:
     typedef CListLink<Vertex> ListLink;
@@ -271,6 +277,7 @@ class CQChartsHull3D {
 
   //-------
 
+  //! hull edge
   class Edge : public CListLink<Edge> {
    private:
     typedef CListLink<Edge> ListLink;
@@ -370,6 +377,7 @@ class CQChartsHull3D {
 
   //-------
 
+  //! hull face
   class Face : public CListLink<Face> {
    private:
     typedef CListLink<Face> ListLink;

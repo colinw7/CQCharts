@@ -1478,13 +1478,13 @@ addProperties()
   addProperty("scaling", this, "equalScale", "equal")->setDesc("Equal x/y scaling");
 
   addProperty("scaling/data/scale" , this, "dataScaleX" , "x")->
-    setDesc("x data scale").setHidden(true);
+    setDesc("X data scale").setHidden(true);
   addProperty("scaling/data/scale" , this, "dataScaleY" , "y")->
-    setDesc("y data scale").setHidden(true);
+    setDesc("Y data scale").setHidden(true);
   addProperty("scaling/data/offset", this, "dataOffsetX", "x")->
-    setDesc("x data offset").setHidden(true);
+    setDesc("X data offset").setHidden(true);
   addProperty("scaling/data/offset", this, "dataOffsetY", "y")->
-    setDesc("y data offset").setHidden(true);
+    setDesc("Y data offset").setHidden(true);
 
   addProperty("grouping", this, "overlay")->
     setDesc("Overlay plots to shared range").setHidden(true);
@@ -5376,8 +5376,11 @@ draw(QPainter *painter)
   if (! isSequential()) {
     if (drawLayers)
       this->drawLayers(painter);
-    else
+    else {
+      this->drawLayers(painter);
+
       this->drawBusy(painter, updateState);
+    }
   }
   else {
     this->drawLayers(painter);

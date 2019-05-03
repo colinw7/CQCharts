@@ -81,6 +81,9 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(CQChartsThemeName theme READ themeName WRITE setThemeName)
   Q_PROPERTY(bool              dark  READ isDark    WRITE setDark     )
 
+  // default palette
+  Q_PROPERTY(QString defaultPalette READ defaultPalette WRITE setDefaultPalette)
+
   // selection appearance
   Q_PROPERTY(HighlightDataMode selectedMode READ selectedMode WRITE setSelectedMode)
 
@@ -116,9 +119,6 @@ class CQChartsView : public QFrame,
   Q_PROPERTY(bool         scaleFont  READ isScaleFont WRITE setScaleFont )
   Q_PROPERTY(double       fontFactor READ fontFactor  WRITE setFontFactor)
   Q_PROPERTY(CQChartsFont font       READ font        WRITE setFont      )
-
-  // default palette
-  Q_PROPERTY(QString defaultPalette READ defaultPalette WRITE setDefaultPalette)
 
   Q_ENUMS(Mode)
   Q_ENUMS(SelectMode)
@@ -292,10 +292,6 @@ class CQChartsView : public QFrame,
 
   //---
 
-  // default palette
-  const QString &defaultPalette() const { return defaultPalette_; }
-  void setDefaultPalette(const QString &s);
-
  private:
   void setPainterFont(QPainter *painter, const QFont &font) const;
 
@@ -337,6 +333,10 @@ class CQChartsView : public QFrame,
   // is dark
   bool isDark() const;
   void setDark(bool b);
+
+  // default palette
+  const QString &defaultPalette() const { return defaultPalette_; }
+  void setDefaultPalette(const QString &s);
 
   //---
 
@@ -923,6 +923,7 @@ class CQChartsView : public QFrame,
   int                   selecting_        { 0 };                 //!< selecting depth
   HighlightData         selectedHighlight_;                      //!< select highlight
   HighlightData         insideHighlight_;                        //!< inside highlight
+  QString               defaultPalette_;                         //!< default palette
   bool                  zoomData_         { true };              //!< zoom data
   ScrollData            scrollData_;                             //!< scroll data
   bool                  antiAlias_        { true };              //!< anti alias
@@ -932,7 +933,6 @@ class CQChartsView : public QFrame,
   bool                  scaleFont_        { true };              //!< auto scale font
   double                fontFactor_       { 1.0 };               //!< font scale factor
   CQChartsFont          font_;                                   //!< font
-  QString               defaultPalette_;                         //!< default palette
   SizeData              sizeData_;                               //!< size control
   PosTextType           posTextType_      { PosTextType::PLOT }; //!< position text type
   CQChartsGeom::BBox    prect_            { 0, 0, 100, 100 };    //!< plot rect

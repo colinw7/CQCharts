@@ -1192,6 +1192,8 @@ initThemeFrame(QFrame *themeFrame)
   themeWidgets_.interfaceControl =
     new CQChartsGradientPaletteControl(themeWidgets_.interfacePlot);
 
+  themeWidgets_.interfacePlot->setGray(true);
+
   interfaceSplitter->addWidget(themeWidgets_.interfacePlot);
   interfaceSplitter->addWidget(themeWidgets_.interfaceControl);
 

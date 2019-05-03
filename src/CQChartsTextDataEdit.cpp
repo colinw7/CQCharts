@@ -10,6 +10,7 @@
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
+#include <CQUtil.h>
 
 #include <CQAngleSpinBox.h>
 #include <CQAlignEdit.h>
@@ -239,8 +240,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
     layout->addLayout(groupLayout);
 
   // font
-  QLabel *fontLabel = new QLabel("Font");
-  fontLabel->setObjectName("fontLabel");
+  QLabel *fontLabel = CQUtil::makeLabelWidget<QLabel>("Font", "fontLabel");
 
   fontEdit_ = new CQChartsFontLineEdit;
 
@@ -248,8 +248,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   groupLayout->addWidget(fontEdit_, 0, 1);
 
   // color
-  QLabel *colorLabel = new QLabel("Color");
-  colorLabel->setObjectName("colorLabel");
+  QLabel *colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "colorLabel");
 
   colorEdit_ = new CQChartsColorLineEdit;
 
@@ -257,7 +256,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   groupLayout->addWidget(colorEdit_, 1, 1);
 
   // alpha
-  QLabel *alphaLabel = new QLabel("Alpha");
+  QLabel *alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alphaLabel");
 
   alphaEdit_ = new CQChartsAlphaEdit;
 
@@ -265,9 +264,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   groupLayout->addWidget(alphaEdit_, 2, 1);
 
   // angle
-  QLabel *angleLabel = new QLabel("Angle");
-
-  angleLabel->setObjectName("angleLabel");
+  QLabel *angleLabel = CQUtil::makeLabelWidget<QLabel>("Angle", "angleLabel");
 
   angleEdit_ = new CQAngleSpinBox;
 
@@ -275,9 +272,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   groupLayout->addWidget(angleEdit_, 3, 1);
 
   // contrast
-  QLabel *contrastLabel = new QLabel("Contrast");
-
-  contrastLabel->setObjectName("contrastLabel");
+  QLabel *contrastLabel = CQUtil::makeLabelWidget<QLabel>("Contrast", "contrastLabel");
 
   contrastEdit_ = new CQCheckBox;
 
@@ -287,9 +282,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   groupLayout->addWidget(contrastEdit_, 4, 1);
 
   // align
-  QLabel *alignLabel = new QLabel("Align");
-
-  alignLabel->setObjectName("alignLabel");
+  QLabel *alignLabel = CQUtil::makeLabelWidget<QLabel>("Align", "alignLabel");
 
   alignEdit_ = new CQAlignEdit;
 
@@ -299,9 +292,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   groupLayout->addWidget(alignEdit_, 5, 1);
 
   // formatted
-  QLabel *formattedLabel = new QLabel("Formatted");
-
-  formattedLabel->setObjectName("formattedLabel");
+  QLabel *formattedLabel = CQUtil::makeLabelWidget<QLabel>("Formatted", "formattedLabel");
 
   formattedEdit_ = new CQCheckBox;
 
@@ -311,9 +302,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   groupLayout->addWidget(formattedEdit_, 6, 1);
 
   // scaled
-  QLabel *scaledLabel = new QLabel("Scaled");
-
-  scaledLabel->setObjectName("scaledLabel");
+  QLabel *scaledLabel = CQUtil::makeLabelWidget<QLabel>("Scaled", "scaledLabel");
 
   scaledEdit_ = new CQCheckBox;
 
@@ -323,9 +312,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   groupLayout->addWidget(scaledEdit_, 7, 1);
 
   // html
-  QLabel *htmlLabel = new QLabel("Html");
-
-  htmlLabel->setObjectName("htmlLabel");
+  QLabel *htmlLabel = CQUtil::makeLabelWidget<QLabel>("Html", "htmlLabel");
 
   htmlEdit_ = new CQCheckBox;
 

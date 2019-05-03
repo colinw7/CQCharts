@@ -10,6 +10,9 @@ class QComboBox;
 class QListWidget;
 class QListWidgetItem;
 
+/*!
+ * \brief Widget to control themes and associated lists of palettes
+ */
 class CQChartsGradientPaletteList : public QFrame {
   Q_OBJECT
 
@@ -43,11 +46,11 @@ class CQChartsGradientPaletteList : public QFrame {
   void insideColorSlot(const QColor &c);
 
  private:
-  QComboBox*   themesCombo_     { nullptr };
-  QListWidget* currentList_     { nullptr };
-  QListWidget* allList_         { nullptr };
-  CQColorEdit* selectColorEdit_ { nullptr };
-  CQColorEdit* insideColorEdit_ { nullptr };
+  QComboBox*   themesCombo_     { nullptr }; //!< theme combo box
+  QListWidget* currentList_     { nullptr }; //!< theme current palettes list
+  QListWidget* allList_         { nullptr }; //!< theme unused palettes list
+  CQColorEdit* selectColorEdit_ { nullptr }; //!< theme select color edit
+  CQColorEdit* insideColorEdit_ { nullptr }; //!< theme inside color edit
 };
 
 #endif

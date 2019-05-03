@@ -75,8 +75,8 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   fileEdit_ = new CQFilename;
   fileEdit_->setObjectName("fileEdit");
 
-  fileFrameLayout->addWidget(new QLabel("File"), row, 0);
-  fileFrameLayout->addWidget(fileEdit_         , row, 1);
+  fileFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("File", "fileLabel"), row, 0);
+  fileFrameLayout->addWidget(fileEdit_                                           , row, 1);
 
   connect(fileEdit_, SIGNAL(filenameChanged(const QString &)), this, SLOT(previewFileSlot()));
 
@@ -94,8 +94,8 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   typeCombo_->addItem("Data");
   typeCombo_->addItem("Expr");
 
-  fileFrameLayout->addWidget(new QLabel("Type"), row, 0);
-  fileFrameLayout->addWidget(typeCombo_        , row, 1);
+  fileFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Type", "typeLabel"), row, 0);
+  fileFrameLayout->addWidget(typeCombo_                                          , row, 1);
 
   connect(typeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(typeSlot()));
 
@@ -108,8 +108,8 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   numberEdit_->setText("100");
 
-  fileFrameLayout->addWidget(new QLabel("Num Rows"), row, 0);
-  fileFrameLayout->addWidget(numberEdit_           , row, 1);
+  fileFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Num Rows", "numRowsLabel"), row, 0);
+  fileFrameLayout->addWidget(numberEdit_                                                , row, 1);
 
   ++row;
 
@@ -144,8 +144,8 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   // Filter Edit
   filterEdit_ = CQUtil::makeWidget<CQLineEdit>("filterEdit");
 
-  fileFrameLayout->addWidget(new QLabel("Filter"), row, 0);
-  fileFrameLayout->addWidget(filterEdit_         , row, 1);
+  fileFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Filter", "filterLabel"), row, 0);
+  fileFrameLayout->addWidget(filterEdit_                                             , row, 1);
 
   ++row;
 

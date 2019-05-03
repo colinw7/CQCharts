@@ -37,10 +37,10 @@ addParameters()
       setTip("Use row number for group");
 
   addBoolParameter("exactValue", "Exact Value", "exactValue", true).
-   setTip("use exact value for grouping");
+   setTip("Use exact value for grouping");
 
   addBoolParameter("autoRange", "Auto Range", "autoRange", true).
-   setTip("automatically determine value range");
+   setTip("Automatically determine value range");
 
   addRealParameter("start", "Start", "startValue", 0.0).
     setRequired().setTip("Start value for manual range");

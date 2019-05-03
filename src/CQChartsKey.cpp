@@ -638,7 +638,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(headerPath, this, "headerTextScaled"   , "scaled"   )->
                       setDesc("Header text scaled to box");
   model->addProperty(headerPath, this, "headerTextHtml"     , "html"     )->
-                      setDesc("eader text is html");
+                      setDesc("Header text is html");
 
   //---
 

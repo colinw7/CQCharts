@@ -1,6 +1,7 @@
 #include <CQChartsGradientPaletteCanvas.h>
 #include <CQChartsGradientPalette.h>
 #include <CQChartsUtil.h>
+#include <CQUtil.h>
 
 #include <QLabel>
 #include <QMouseEvent>
@@ -9,18 +10,6 @@
 #include <QPainter>
 
 namespace Util {
-  inline double norm(double x, double low, double high) {
-    return (x - low)/(high - low);
-  }
-
-  inline double lerp(double value1, double value2, double amt) {
-    return value1 + (value2 - value1)*amt;
-  }
-
-  inline double map(double value, double low1, double high1, double low2, double high2) {
-    return lerp(low2, high2, norm(value, low1, high1));
-  }
-
   inline double rgbToGray(double r, double g, double b) {
     return r*0.3 + g*0.59 + b*0.11;
   }
@@ -58,7 +47,7 @@ init()
   //gradientPalette()->addDefinedColor(0, QColor(0,0,0));
   //gradientPalette()->addDefinedColor(1, QColor(255,255,255));
 
-  tipText_ = new QLabel(this);
+  tipText_ = CQUtil::makeLabelWidget<QLabel>(this, "", "tipText");
 
   tipText_->setAutoFillBackground(true);
 }
@@ -172,7 +161,7 @@ void
 CQChartsGradientPaletteCanvas::
 contextMenuEvent(QContextMenuEvent *e)
 {
-  QMenu *menu = new QMenu;
+  QMenu *menu = CQUtil::makeWidget<QMenu>("menu");
 
   //---
 
@@ -237,6 +226,15 @@ setShowColorBar(bool b)
 
 void
 CQChartsGradientPaletteCanvas::
+setGray(bool b)
+{
+  gray_ = b;
+
+  update();
+}
+
+void
+CQChartsGradientPaletteCanvas::
 nearestDefinedColor(const QPointF &p, NearestColor &nearestColor)
 {
   double mx = p.x();
@@ -254,26 +252,40 @@ nearestDefinedColor(const QPointF &p, NearestColor &nearestColor)
 
     const QColor &c1 = c.second;
 
-    double y[3];
+    if (! isGray()) {
+      double y[3];
 
-    if (gradientPalette()->colorModel() == CQChartsGradientPalette::ColorModel::HSV) {
-      y[0] = c1.hueF       ();
-      y[1] = c1.saturationF();
-      y[2] = c1.valueF     ();
+      if (gradientPalette()->colorModel() == CQChartsGradientPalette::ColorModel::HSV) {
+        y[0] = c1.hueF       ();
+        y[1] = c1.saturationF();
+        y[2] = c1.valueF     ();
+      }
+      else {
+        y[0] = c1.redF  ();
+        y[1] = c1.greenF();
+        y[2] = c1.blueF ();
+      }
+
+      for (int j = 0; j < 3; ++j) {
+        double d = std::hypot(mx - x, my - y[j]);
+
+        if (nearestColor.i < 0 || d < nearestColor.d) {
+          nearestColor.i     = i;
+          nearestColor.d     = d;
+          nearestColor.c     = j;
+          nearestColor.color = c1;
+        }
+      }
     }
     else {
-      y[0] = c1.redF  ();
-      y[1] = c1.greenF();
-      y[2] = c1.blueF ();
-    }
+      double g = Util::rgbToGray(c1.redF(), c1.greenF(), c1.blueF());
 
-    for (int j = 0; j < 3; ++j) {
-      double d = std::hypot(mx - x, my - y[j]);
+      double d = std::hypot(mx - x, my - g);
 
       if (nearestColor.i < 0 || d < nearestColor.d) {
         nearestColor.i     = i;
         nearestColor.d     = d;
-        nearestColor.c     = j;
+        nearestColor.c     = 0;
         nearestColor.color = c1;
       }
     }
@@ -293,9 +305,16 @@ moveNearestDefinedColor(const NearestColor &nearestColor, double dy)
     double s = newColor.saturationF();
     double v = newColor.valueF     ();
 
-    if      (nearestColor.c == 0) h += dy;
-    else if (nearestColor.c == 1) s += dy;
-    else if (nearestColor.c == 2) v += dy;
+    if (! isGray()) {
+      if      (nearestColor.c == 0) h += dy;
+      else if (nearestColor.c == 1) s += dy;
+      else if (nearestColor.c == 2) v += dy;
+    }
+    else {
+      h += dy;
+      s += dy;
+      v += dy;
+    }
 
     h = CMathUtil::clamp(h, 0.0, 1.0);
     s = CMathUtil::clamp(s, 0.0, 1.0);
@@ -308,9 +327,16 @@ moveNearestDefinedColor(const NearestColor &nearestColor, double dy)
     double g = newColor.greenF();
     double b = newColor.blueF ();
 
-    if      (nearestColor.c == 0) r += dy;
-    else if (nearestColor.c == 1) g += dy;
-    else if (nearestColor.c == 2) b += dy;
+    if (! isGray()) {
+      if      (nearestColor.c == 0) r += dy;
+      else if (nearestColor.c == 1) g += dy;
+      else if (nearestColor.c == 2) b += dy;
+    }
+    else {
+      r += dy;
+      g += dy;
+      b += dy;
+    }
 
     r = CMathUtil::clamp(r, 0.0, 1.0);
     g = CMathUtil::clamp(g, 0.0, 1.0);
@@ -429,15 +455,21 @@ paintEvent(QPaintEvent *)
       double px, py;
 
       if (first) {
-        windowToPixel(x2, r2, px, py); redPath  .moveTo(px, py);
-        windowToPixel(x2, g2, px, py); greenPath.moveTo(px, py);
-        windowToPixel(x2, b2, px, py); bluePath .moveTo(px, py);
+        if (! isGray()) {
+          windowToPixel(x2, r2, px, py); redPath  .moveTo(px, py);
+          windowToPixel(x2, g2, px, py); greenPath.moveTo(px, py);
+          windowToPixel(x2, b2, px, py); bluePath .moveTo(px, py);
+        }
+
         windowToPixel(x2, m2, px, py); blackPath.moveTo(px, py);
       }
       else {
-        windowToPixel(x2, r2, px, py); redPath  .lineTo(px, py);
-        windowToPixel(x2, g2, px, py); greenPath.lineTo(px, py);
-        windowToPixel(x2, b2, px, py); bluePath .lineTo(px, py);
+        if (! isGray()) {
+          windowToPixel(x2, r2, px, py); redPath  .lineTo(px, py);
+          windowToPixel(x2, g2, px, py); greenPath.lineTo(px, py);
+          windowToPixel(x2, b2, px, py); bluePath .lineTo(px, py);
+        }
+
         windowToPixel(x2, m2, px, py); blackPath.lineTo(px, py);
       }
 
@@ -447,9 +479,12 @@ paintEvent(QPaintEvent *)
     }
 
     // draw paths
-    painter.strokePath(redPath  , redPen  );
-    painter.strokePath(greenPath, greenPen);
-    painter.strokePath(bluePath , bluePen );
+    if (! isGray()) {
+      painter.strokePath(redPath  , redPen  );
+      painter.strokePath(greenPath, greenPen);
+      painter.strokePath(bluePath , bluePen );
+    }
+
     painter.strokePath(blackPath, blackPen);
   }
 
@@ -605,8 +640,8 @@ void
 CQChartsGradientPaletteCanvas::
 windowToPixel(double wx, double wy, double &px, double &py) const
 {
-  px = Util::map(wx, -margin_.left  , 1 + margin_.right, 0, width () - 1);
-  py = Util::map(wy, -margin_.bottom, 1 + margin_.top  , height() - 1, 0);
+  px = CMathUtil::map(wx, -margin_.left  , 1 + margin_.right, 0, width () - 1);
+  py = CMathUtil::map(wy, -margin_.bottom, 1 + margin_.top  , height() - 1, 0);
 }
 
 QPointF
@@ -624,8 +659,8 @@ void
 CQChartsGradientPaletteCanvas::
 pixelToWindow(double px, double py, double &wx, double &wy) const
 {
-  wx = Util::map(px, 0, width () - 1, -margin_.left  , 1 + margin_.right);
-  wy = Util::map(py, height() - 1, 0, -margin_.bottom, 1 + margin_.top  );
+  wx = CMathUtil::map(px, 0, width () - 1, -margin_.left  , 1 + margin_.right);
+  wy = CMathUtil::map(py, height() - 1, 0, -margin_.bottom, 1 + margin_.top  );
 }
 
 QSize

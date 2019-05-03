@@ -136,8 +136,7 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   //---
 
-  exprValueLabel_ = new QLabel("Expression");
-  exprValueLabel_->setObjectName("exprValueLabel");
+  exprValueLabel_ = CQUtil::makeLabelWidget<QLabel>("Expression", "exprValueLabel");
 
   exprValueEdit_ = CQUtil::makeWidget<CQLineEdit>("exprValueEdit");
 
@@ -153,8 +152,7 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   //----
 
-  exprColumnLabel_ = new QLabel("Column");
-  exprColumnLabel_->setObjectName("exprEditLabel");
+  exprColumnLabel_ = CQUtil::makeLabelWidget<QLabel>("Column", "exprEditLabel");
 
   exprColumnEdit_ = CQUtil::makeWidget<CQLineEdit>("exprColumnEdit");
 
@@ -167,8 +165,7 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   //----
 
-  exprNameLabel_ = new QLabel("Name");
-  exprNameLabel_->setObjectName("exprNameLabel");
+  exprNameLabel_ = CQUtil::makeLabelWidget<QLabel>("Name", "exprNameLabel");
 
   exprNameEdit_ = CQUtil::makeWidget<CQLineEdit>("exprNameEdit");
 
@@ -181,8 +178,7 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   //--
 
-  exprTypeLabel_ = new QLabel("Type");
-  exprTypeLabel_->setObjectName("exprTypeLabel");
+  exprTypeLabel_ = CQUtil::makeLabelWidget<QLabel>("Type", "exprTypeLabel");
 
   exprTypeEdit_ = CQUtil::makeWidget<CQLineEdit>("exprTypeEdit");
 
@@ -667,7 +663,7 @@ setColumnData(int column)
         ParamEdit paramEdit;
 
         paramEdit.row   = columnEditData_.row + paramInd;
-        paramEdit.label = new QLabel;
+        paramEdit.label = CQUtil::makeLabelWidget<QLabel>("", "label");
         paramEdit.edit  = new CQChartsParamEdit;
 
         columnEditData_.editLayout->addWidget(paramEdit.label, paramEdit.row, 0);

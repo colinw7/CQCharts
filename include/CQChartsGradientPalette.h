@@ -192,18 +192,18 @@ class CQChartsGradientPalette {
 
   //---
 
-  // color calculation type
+  //! get/set color calculation type
   ColorType colorType() const { return colorType_; }
   void setColorType(ColorType t) { colorType_ = t; }
 
-  // color model
+  //! get/set color model
   ColorModel colorModel() const { return colorModel_; }
   void setColorModel(ColorModel m) { colorModel_ = m; }
 
   //---
 
 #if 0
-  // gamma correction : NOT USED yet
+  //! get/set gamma correction : NOT USED yet
   double gamma() const { return gamma_; }
   void setGamma(double g) { gamma_ = g; }
 #endif
@@ -292,11 +292,11 @@ class CQChartsGradientPalette {
 
   //---
 
-  // interpolate color at x (if scaled then input x has been adjusted to min/max range)
+  //! interpolate color at x (if scaled then input x has been adjusted to min/max range)
   QColor getColor(double x, bool scale=false) const;
 
  private:
-  // interpolate color for model ind and x value
+  //! interpolate color for model ind and x value
   double interpModel(int ind, double x) const;
 
   //---
@@ -340,7 +340,7 @@ class CQChartsGradientPalette {
 
   //---
 
-  // read file containing defined colors
+  //! read file containing defined colors
   bool readFile(const std::string &filename);
 
  private:
@@ -349,12 +349,12 @@ class CQChartsGradientPalette {
   //---
 
  public:
-  // unset palette
+  //! unset palette
   void unset();
 
   //---
 
-  // set linear gradient
+  //! set linear gradient
   void setLinearGradient(QLinearGradient &lg, double a=1.0) const;
 
   //---
@@ -374,14 +374,14 @@ class CQChartsGradientPalette {
   }
 
  public:
-  // interpolate between two RGB colors
+  //! interpolate between two RGB colors
   static QColor interpRGB(const QColor &c1, const QColor &c2, double f) {
     return QColor::fromRgbF(interpValue(c1.redF  (), c2.redF  (), f),
                             interpValue(c1.greenF(), c2.greenF(), f),
                             interpValue(c1.blueF (), c2.blueF (), f));
   }
 
-  // interpolate between two HSV colors
+  //! interpolate between two HSV colors
   static QColor interpHSV(const QColor &c1, const QColor &c2, double f) {
     return QColor::fromHsvF(interpValue(c1.hueF       (), c2.hueF       (), f),
                             interpValue(c1.saturationF(), c2.saturationF(), f),
@@ -430,7 +430,7 @@ class CQChartsGradientPalette {
   ColorFn    bf_;                                 //!< blue color tcl function
 
   // CubeHelix
-  CCubeHelix cubeHelix_;                          //!< cibe helix data
+  CCubeHelix cubeHelix_;                          //!< cube helix data
   bool       cubeNegative_  { false };            //!< is cube helix negated
 
   // Defined
@@ -443,10 +443,12 @@ class CQChartsGradientPalette {
   bool       distinct_      { false };            //!< use distinct colors
 
   // Misc
-  CQTcl*     qtcl_          { nullptr };          //!< qtcl pointer
 #if 0
   double     gamma_         { 1.5 };              //!< gamma value
 #endif
+
+  // Tcl
+  CQTcl*     qtcl_          { nullptr };          //!< qtcl pointer
 };
 
 using CQChartsGradientPaletteP = std::unique_ptr<CQChartsGradientPalette>;

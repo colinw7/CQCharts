@@ -1,5 +1,7 @@
 High
- + Maximimze/restore on context menu
+ + Commands to create new theme, new palette and set colors in palette
+ + Edit interface gradient as single point (gray)
+ + Only send color changed from editor on mouse release (or use different signal)
  + Bar Chart Key using new color code
  + Axis fit should ignore labels > 10% of width ?
  + Decide what to do with scroll (generic function to zoom sub plot)

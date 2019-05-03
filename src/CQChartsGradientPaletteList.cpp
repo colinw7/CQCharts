@@ -60,7 +60,7 @@ CQChartsGradientPaletteList(QWidget *parent) :
 
   //----
 
-  // lists of palettes for current theme
+  // list of palettes for current theme
   CQGroupBox *currentGroup =
     CQUtil::makeLabelWidget<CQGroupBox>("Palettes", "currentGroup");
 
@@ -78,16 +78,17 @@ CQChartsGradientPaletteList(QWidget *parent) :
 
   //----
 
+  // control frame (move up/down, transfer left/right)
   QFrame *buttonsFrame = CQUtil::makeWidget<QFrame>("buttonsFrame");
 
   listLayout->addWidget(buttonsFrame);
 
   QVBoxLayout *controlLayout = CQUtil::makeLayout<QVBoxLayout>(buttonsFrame, 2, 2);
 
-  auto addToolButton = [&](const QString &name, const QString &icon, const char *slotName) {
+  auto addToolButton = [&](const QString &name, const QString &iconName, const char *slotName) {
     QToolButton *button = CQUtil::makeWidget<QToolButton>(name);
 
-    button->setIcon(CQPixmapCacheInst->getIcon(icon));
+    button->setIcon(CQPixmapCacheInst->getIcon(iconName));
 
     connect(button, SIGNAL(clicked()), this, slotName);
 
@@ -104,7 +105,6 @@ CQChartsGradientPaletteList(QWidget *parent) :
   leftButton ->setToolTip("Add palette to theme list (from unused)");
   rightButton->setToolTip("Remove palette from theme list");
 
-
   controlLayout->addStretch(1);
   controlLayout->addWidget(upButton);
   controlLayout->addWidget(downButton);
@@ -115,6 +115,7 @@ CQChartsGradientPaletteList(QWidget *parent) :
 
   //----
 
+  // list of unused palettes
   CQGroupBox *allGroup =
     CQUtil::makeLabelWidget<CQGroupBox>("Unused Palettes", "allGroup");
 

@@ -33,7 +33,7 @@ addParameters()
     setNumeric().setRequired().setTip("Y value columns");
 
   addBoolParameter("horizontal", "Horizontal", "horizontal").
-    setTip("draw horizontal");
+    setTip("Draw horizontal");
 
   endParameterGroup();
 

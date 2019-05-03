@@ -756,6 +756,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  //! plot model visitor
   class ModelVisitor : public CQChartsModelVisitor {
    public:
     ModelVisitor();

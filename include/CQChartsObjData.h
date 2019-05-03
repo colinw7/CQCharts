@@ -14,6 +14,9 @@ Q_PROPERTY(double           linesAlpha READ linesAlpha WRITE setLinesAlpha) \
 Q_PROPERTY(CQChartsLength   linesWidth READ linesWidth WRITE setLinesWidth) \
 Q_PROPERTY(CQChartsLineDash linesDash  READ linesDash  WRITE setLinesDash )
 
+/*!
+ * \brief Object line data
+ */
 template<class OBJ>
 class CQChartsObjLineData {
  public:
@@ -92,6 +95,9 @@ Q_PROPERTY(double           LNAME##LinesAlpha READ LNAME##LinesAlpha WRITE set##
 Q_PROPERTY(CQChartsLength   LNAME##LinesWidth READ LNAME##LinesWidth WRITE set##UNAME##LinesWidth) \
 Q_PROPERTY(CQChartsLineDash LNAME##LinesDash  READ LNAME##LinesDash  WRITE set##UNAME##LinesDash )
 
+/*!
+ * \brief Object named line data
+ */
 #define CQCHARTS_NAMED_LINE_DATA(UNAME,LNAME) \
 template<class OBJ> \
 class CQChartsObj##UNAME##LineData { \
@@ -189,6 +195,9 @@ Q_PROPERTY(double              symbolFillAlpha \
 Q_PROPERTY(CQChartsFillPattern symbolFillPattern \
            READ symbolFillPattern WRITE setSymbolFillPattern) \
 
+/*!
+ * \brief Object point data
+ */
 template<class OBJ>
 class CQChartsObjPointData {
  public:
@@ -358,6 +367,9 @@ Q_PROPERTY(double              LNAME##SymbolFillAlpha \
 Q_PROPERTY(CQChartsFillPattern LNAME##SymbolFillPattern \
            READ LNAME##SymbolFillPattern WRITE set##UNAME##SymbolFillPattern)
 
+/*!
+ * \brief Object named point data
+ */
 #define CQCHARTS_NAMED_POINT_DATA(UNAME,LNAME) \
 template<class OBJ> \
 class CQChartsObj##UNAME##PointData { \
@@ -495,6 +507,9 @@ Q_PROPERTY(double              LNAME##FillAlpha \
 Q_PROPERTY(CQChartsFillPattern LNAME##FillPattern \
            READ LNAME##FillPattern WRITE set##UNAME##FillPattern)
 
+/*!
+ * \brief Object named fill data
+ */
 #define CQCHARTS_NAMED_FILL_DATA(UNAME,LNAME) \
 template<class OBJ> \
 class CQChartsObj##UNAME##FillData { \
@@ -565,6 +580,9 @@ Q_PROPERTY(bool          textFormatted READ isTextFormatted WRITE setTextFormatt
 Q_PROPERTY(bool          textScaled    READ isTextScaled    WRITE setTextScaled   ) \
 Q_PROPERTY(bool          textHtml      READ isTextHtml      WRITE setTextHtml     )
 
+/*!
+ * \brief Object text data
+ */
 template<class OBJ>
 class CQChartsObjTextData {
  public:
@@ -682,6 +700,9 @@ Q_PROPERTY(bool          LNAME##TextScaled \
 Q_PROPERTY(bool          LNAME##TextHtml \
            READ is##UNAME##TextHtml      WRITE set##UNAME##TextHtml     )
 
+/*!
+ * \brief Object named text data
+ */
 #define CQCHARTS_NAMED_TEXT_DATA(UNAME,LNAME) \
 template<class OBJ> \
 class CQChartsObj##UNAME##TextData { \
@@ -784,6 +805,9 @@ Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth) \
 Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash ) \
 Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize )
 
+/*!
+ * \brief Object stroke data
+ */
 template<class OBJ>
 class CQChartsObjStrokeData {
  public:
@@ -875,6 +899,9 @@ Q_PROPERTY(CQChartsColor       fillColor   READ fillColor   WRITE setFillColor  
 Q_PROPERTY(double              fillAlpha   READ fillAlpha   WRITE setFillAlpha  ) \
 Q_PROPERTY(CQChartsFillPattern fillPattern READ fillPattern WRITE setFillPattern)
 
+/*!
+ * \brief Object shape data
+ */
 template<class OBJ>
 class CQChartsObjShapeData {
  public:
@@ -1008,6 +1035,9 @@ Q_PROPERTY(double              LNAME##FillAlpha \
 Q_PROPERTY(CQChartsFillPattern LNAME##FillPattern \
            READ LNAME##FillPattern WRITE set##UNAME##FillPattern)
 
+/*!
+ * \brief Object named shape data
+ */
 #define CQCHARTS_NAMED_SHAPE_DATA(UNAME,LNAME) \
 template<class OBJ> \
 class CQChartsObj##UNAME##ShapeData { \
@@ -1131,6 +1161,9 @@ Q_PROPERTY(CQChartsFillPattern fillPattern READ fillPattern WRITE setFillPattern
 \
 Q_PROPERTY(CQChartsSides borderSides READ borderSides WRITE setBorderSides)
 
+/*!
+ * \brief Object box data
+ */
 template<class OBJ>
 class CQChartsObjBoxData {
  public:

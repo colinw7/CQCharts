@@ -4,41 +4,6 @@
 
 #include <CQTclUtil.h>
 
-#include <COSNaN.h>
-
-namespace Util {
-  double clamp(double val, double low, double high) {
-    if (val < low ) return low;
-    if (val > high) return high;
-    return val;
-  }
-
-  double norm(double x, double low, double high) {
-    return (x - low)/(high - low);
-  }
-
-  double lerp(double value1, double value2, double amt) {
-    return value1 + (value2 - value1)*amt;
-  }
-
-  double map(double value, double low1, double high1, double low2, double high2) {
-    return lerp(low2, high2, norm(value, low1, high1));
-  }
-
-  double Deg2Rad(double d) {
-    return M_PI*d/180.0;
-  }
-
-  void addWords(const QString &str, std::vector<QString> &words) {
-    QStringList strs = str.split(" ", QString::SkipEmptyParts);
-
-    for (int i = 0; i < strs.length(); ++i)
-      words.push_back(strs[i]);
-  }
-}
-
-//------
-
 CQChartsGradientPalette::
 CQChartsGradientPalette()
 {
@@ -68,10 +33,6 @@ CQChartsGradientPalette &
 CQChartsGradientPalette::
 operator=(const CQChartsGradientPalette &palette)
 {
-  struct ColorFn {
-    std::string fn;
-  };
-
   colorType_  = palette.colorType_;
   colorModel_ = palette.colorModel_;
 
@@ -96,13 +57,13 @@ operator=(const CQChartsGradientPalette &palette)
   cubeHelix_    = palette.cubeHelix_;
   cubeNegative_ = palette.cubeNegative_;
 
-  colors_     = palette.colors_;
+  colors_    = palette.colors_;
 #if 0
-  maxColors_  = palette.maxColors_;
+  maxColors_ = palette.maxColors_;
 #endif
-  colorsMin_  = palette.colorsMin_;
-  colorsMax_  = palette.colorsMax_;
-  distinct_   = palette.distinct_;
+  colorsMin_ = palette.colorsMin_;
+  colorsMax_ = palette.colorsMax_;
+  distinct_  = palette.distinct_;
 
 #if 0
   gamma_= palette.gamma_;
@@ -289,7 +250,7 @@ getColor(double x, bool scale) const
   }
   else if (colorType() == ColorType::MODEL) {
     if (isGray()) {
-      double g = Util::clamp(x, 0.0, 1.0);
+      double g = CMathUtil::clamp(x, 0.0, 1.0);
 
       if (isRedNegative() || isGreenNegative() || isBlueNegative())
         g = 1.0 - g;
@@ -299,19 +260,19 @@ getColor(double x, bool scale) const
 
     //---
 
-    double x1 = Util::clamp(x, 0.0, 1.0);
+    double x1 = CMathUtil::clamp(x, 0.0, 1.0);
 
-    double r = Util::clamp(interpModel(redModel  (), x1), 0.0, 1.0);
-    double g = Util::clamp(interpModel(greenModel(), x1), 0.0, 1.0);
-    double b = Util::clamp(interpModel(blueModel (), x1), 0.0, 1.0);
+    double r = CMathUtil::clamp(interpModel(redModel  (), x1), 0.0, 1.0);
+    double g = CMathUtil::clamp(interpModel(greenModel(), x1), 0.0, 1.0);
+    double b = CMathUtil::clamp(interpModel(blueModel (), x1), 0.0, 1.0);
 
     if (isRedNegative  ()) r = 1.0 - r;
     if (isGreenNegative()) g = 1.0 - g;
     if (isBlueNegative ()) b = 1.0 - b;
 
-    r = Util::map(r, 0.0, 1.0, redMin  (), redMax  ());
-    g = Util::map(g, 0.0, 1.0, greenMin(), greenMax());
-    b = Util::map(b, 0.0, 1.0, blueMin (), blueMax ());
+    r = CMathUtil::map(r, 0.0, 1.0, redMin  (), redMax  ());
+    g = CMathUtil::map(g, 0.0, 1.0, greenMin(), greenMax());
+    b = CMathUtil::map(b, 0.0, 1.0, blueMin (), blueMax ());
 
     QColor c;
 
@@ -347,9 +308,9 @@ getColor(double x, bool scale) const
 
     QColor c;
 
-    r = Util::clamp(r, 0, 1);
-    g = Util::clamp(g, 0, 1);
-    b = Util::clamp(b, 0, 1);
+    r = CMathUtil::clamp(r, 0.0, 1.0);
+    g = CMathUtil::clamp(g, 0.0, 1.0);
+    b = CMathUtil::clamp(b, 0.0, 1.0);
 
     if      (colorModel() == ColorModel::RGB)
       c = QColor::fromRgbF(r, g, b);
@@ -385,18 +346,18 @@ interpModel(int ind, double x) const
     case  6: return pow(x, 4);
     case  7: return sqrt(x);
     case  8: return sqrt(sqrt(x));
-    case  9: return sin(Util::Deg2Rad(90*x));
-    case 10: return cos(Util::Deg2Rad(90*x));
+    case  9: return sin(CMathUtil::Deg2Rad(90*x));
+    case 10: return cos(CMathUtil::Deg2Rad(90*x));
     case 11: return fabs(x - 0.5);
     case 12: return pow(2*x - 1, 2);
-    case 13: return sin(Util::Deg2Rad(180*x));
-    case 14: return fabs(cos(Util::Deg2Rad(180*x)));
-    case 15: return sin(Util::Deg2Rad(360*x));
-    case 16: return cos(Util::Deg2Rad(360*x));
-    case 17: return fabs(sin(Util::Deg2Rad(360*x)));
-    case 18: return fabs(cos(Util::Deg2Rad(360*x)));
-    case 19: return fabs(sin(Util::Deg2Rad(720*x)));
-    case 20: return fabs(cos(Util::Deg2Rad(720*x)));
+    case 13: return sin(CMathUtil::Deg2Rad(180*x));
+    case 14: return fabs(cos(CMathUtil::Deg2Rad(180*x)));
+    case 15: return sin(CMathUtil::Deg2Rad(360*x));
+    case 16: return cos(CMathUtil::Deg2Rad(360*x));
+    case 17: return fabs(sin(CMathUtil::Deg2Rad(360*x)));
+    case 18: return fabs(cos(CMathUtil::Deg2Rad(360*x)));
+    case 19: return fabs(sin(CMathUtil::Deg2Rad(720*x)));
+    case 20: return fabs(cos(CMathUtil::Deg2Rad(720*x)));
     case 21: return 3*x;
     case 22: return 3*x - 1;
     case 23: return 3*x - 2;
@@ -494,6 +455,15 @@ bool
 CQChartsGradientPalette::
 readFileLines(const QStringList &lines)
 {
+  auto addWords = [](const QString &str, std::vector<QString> &words) {
+    QStringList strs = str.split(" ", QString::SkipEmptyParts);
+
+    for (int i = 0; i < strs.length(); ++i)
+      words.push_back(strs[i]);
+  };
+
+  //---
+
   setColorType(CQChartsGradientPalette::ColorType::DEFINED);
 
   resetDefinedColors();
@@ -505,7 +475,7 @@ readFileLines(const QStringList &lines)
 
     std::vector<QString> words;
 
-    Util::addWords(line, words);
+    addWords(line, words);
 
     double x = i;
 

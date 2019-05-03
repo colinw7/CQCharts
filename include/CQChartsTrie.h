@@ -145,6 +145,9 @@ class CQChartsTrie {
 
 //------
 
+/*!
+ * Class used to return matching patterns in Trie
+ */
 class CQChartsTriePatterns {
  public:
   using String     = QString;

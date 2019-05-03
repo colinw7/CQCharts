@@ -31,7 +31,7 @@ addParameters()
   CQChartsPlotParameterGroup *primaryGroup = startParameterGroup("Raw Values");
 
   addColumnsParameter("value", "Value", "valueColumns").
-    setNumeric().setRequired().setTip("value column(s)");
+    setNumeric().setRequired().setTip("Value column(s)");
   addColumnParameter ("name", "Name", "nameColumn").
     setString().setTip("Name column");
   addColumnParameter ("set", "Set", "setColumn").
@@ -70,19 +70,19 @@ addParameters()
 
   //---
 
-  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
-  addBoolParameter("normalized", "Normalized", "normalized").setTip("normalize data ranges");
-  addBoolParameter("notched"   , "Notched"   , "notched"   ).setTip("notch bar");
+  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("Draw bars horizontal");
+  addBoolParameter("normalized", "Normalized", "normalized").setTip("Normalize data ranges");
+  addBoolParameter("notched"   , "Notched"   , "notched"   ).setTip("Notch bar");
 
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
 
   addBoolParameter("pointsJitter" , "Points Jitter" , "pointsJitter" ).
-    setTip("jitter data points");
+    setTip("Jitter data points");
   addBoolParameter("pointsStacked", "Points Stacked", "pointsStacked").
-    setTip("stacked data points");
+    setTip("Stacked data points");
 
-  addBoolParameter("violin"  , "Violin"   , "violin"  ).setTip("violin border");
-  addBoolParameter("errorBar", "Error Bar", "errorBar").setTip("error bar");
+  addBoolParameter("violin"  , "Violin"   , "violin"  ).setTip("Violin border");
+  addBoolParameter("errorBar", "Error Bar", "errorBar").setTip("Error bar");
 
   //---
 
@@ -105,7 +105,7 @@ description() const
          "<ul>\n"
          "<li>Raw Values with X and Y values in <b>value</b> and <b>set</b> columns.</li>\n"
          "<li>Calculated Values in the <b>min</b>, <b>lowerMedian</b>, <b>median</b>, "
-         "<b>max</b>, <b>upperMedian</b> and <b>outliers</b> columns.</li>\n"
+         "<b>upperMedian</b>, <b>max</b> and <b>outliers</b> columns.</li>\n"
          "</ul>";
 }
 
@@ -332,7 +332,7 @@ addProperties()
   addProperty("options", this, "horizontal", "horizontal")->setDesc("Draw bar horizontal");
   addProperty("options", this, "normalized", "normalized")->setDesc("Normalize bar ranges to 0-1");
   addProperty("options", this, "colorBySet")->setDesc("Color by value set");
-  addProperty("options", this, "ymargin")->setDesc("margin above/below bar");
+  addProperty("options", this, "ymargin")->setDesc("Margin above/below bar");
 
   // jitter
   addProperty("points"       , this, "pointsJitter"    , "jitter" )->setDesc("Draw jitter points");

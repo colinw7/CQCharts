@@ -123,7 +123,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("", this, "showSettings")->setHidden(true).setDesc("Show settings panel");
 
   addProperty("theme", this, "theme", "name")->
-    setValues(QStringList() << "default" << "palette1" << "palette2").setDesc("View theme");
+    setValues(QStringList() << "default" << "theme1" << "theme2").setDesc("View theme");
   addProperty("theme", this, "dark" , "dark")->setDesc("View is dark");
 
   addProperty("theme", this, "defaultPalette", "defaultPalette")->setDesc("Default palette");
@@ -2710,7 +2710,7 @@ showMenu(const QPoint &p)
 
   //---
 
-  auto addMenu = [](QMenu *menu, const QString &name) {
+  auto addSubMenu = [](QMenu *menu, const QString &name) {
     QMenu *subMenu = new QMenu(name, menu);
 
     menu->addMenu(subMenu);
@@ -2772,7 +2772,7 @@ showMenu(const QPoint &p)
 
   //---
 
-  QMenu *modeMenu = addMenu(popupMenu_, "Mode");
+  QMenu *modeMenu = addSubMenu(popupMenu_, "Mode");
 
   QActionGroup *modeActionGroup = createActionGroup(modeMenu);
 
@@ -2811,7 +2811,7 @@ showMenu(const QPoint &p)
   //---
 
   if (key() && basePlots.size() > 1) {
-    QMenu *viewKeyMenu = addMenu(popupMenu_, "View Key");
+    QMenu *viewKeyMenu = addSubMenu(popupMenu_, "View Key");
 
     addCheckAction(viewKeyMenu, "Visible", key()->isVisible(), SLOT(viewKeyVisibleSlot(bool)));
 
@@ -2821,7 +2821,7 @@ showMenu(const QPoint &p)
 
     KeyLocationActionMap keyLocationActionMap;
 
-    QMenu *keyLocationMenu = addMenu(viewKeyMenu, "Location");
+    QMenu *keyLocationMenu = addSubMenu(viewKeyMenu, "Location");
 
     QActionGroup *keyLocationActionGroup = createActionGroup(keyLocationMenu);
 
@@ -2873,7 +2873,7 @@ showMenu(const QPoint &p)
 
   // Add plots
   if (allPlots.size() > 1) {
-    QMenu *plotsMenu = addMenu(popupMenu_, "Plots");
+    QMenu *plotsMenu = addSubMenu(popupMenu_, "Plots");
 
     QActionGroup *plotsGroup = createActionGroup(plotsMenu);
 
@@ -2897,7 +2897,7 @@ showMenu(const QPoint &p)
   //------
 
   if (plotType && plotType->hasKey()) {
-    QMenu *plotKeyMenu = addMenu(popupMenu_, "Plot Key");
+    QMenu *plotKeyMenu = addSubMenu(popupMenu_, "Plot Key");
 
     //---
 
@@ -2936,7 +2936,7 @@ showMenu(const QPoint &p)
 
     KeyLocationActionMap keyLocationActionMap;
 
-    QMenu *keyLocationMenu = addMenu(plotKeyMenu, "Location");
+    QMenu *keyLocationMenu = addSubMenu(plotKeyMenu, "Location");
 
     QActionGroup *keyLocationActionGroup = createActionGroup(keyLocationMenu);
 
@@ -2994,7 +2994,7 @@ showMenu(const QPoint &p)
   //------
 
   if (currentPlot && currentPlot->hasXAxis()) {
-    QMenu *xAxisMenu = addMenu(popupMenu_, "X Axis");
+    QMenu *xAxisMenu = addSubMenu(popupMenu_, "X Axis");
 
     //---
 
@@ -3015,7 +3015,7 @@ showMenu(const QPoint &p)
 
     AxisSideActionMap xAxisSideActionMap;
 
-    QMenu *xAxisSideMenu = addMenu(xAxisMenu, "Side");
+    QMenu *xAxisSideMenu = addSubMenu(xAxisMenu, "Side");
 
     QActionGroup *xAxisSideGroup = createActionGroup(xAxisMenu);
 
@@ -3045,7 +3045,7 @@ showMenu(const QPoint &p)
   //------
 
   if (currentPlot && currentPlot->hasYAxis()) {
-    QMenu *yAxisMenu = addMenu(popupMenu_, "Y Axis");
+    QMenu *yAxisMenu = addSubMenu(popupMenu_, "Y Axis");
 
     //---
 
@@ -3066,7 +3066,7 @@ showMenu(const QPoint &p)
 
     AxisSideActionMap yAxisSideActionMap;
 
-    QMenu *yAxisSideMenu = addMenu(yAxisMenu, "Side");
+    QMenu *yAxisSideMenu = addSubMenu(yAxisMenu, "Side");
 
     QActionGroup *yAxisSideGroup = createActionGroup(yAxisMenu);
 
@@ -3096,7 +3096,7 @@ showMenu(const QPoint &p)
   //---
 
   if (plotType && plotType->hasTitle()) {
-    QMenu *titleMenu = addMenu(popupMenu_, "Title");
+    QMenu *titleMenu = addSubMenu(popupMenu_, "Title");
 
     QAction *titleVisibleAction =
       addCheckAction(titleMenu, "Visible", false, SLOT(titleVisibleSlot(bool)));
@@ -3110,7 +3110,7 @@ showMenu(const QPoint &p)
 
     TitleLocationActionMap titleLocationActionMap;
 
-    QMenu *titleLocationMenu = addMenu(titleMenu, "Location");
+    QMenu *titleLocationMenu = addSubMenu(titleMenu, "Location");
 
     QActionGroup *titleLocationGroup = createActionGroup(titleMenu);
 
@@ -3157,13 +3157,12 @@ showMenu(const QPoint &p)
 
   //---
 
-  QMenu *themeMenu = addMenu(popupMenu_, "Theme");
+  QMenu *themeMenu = addSubMenu(popupMenu_, "Theme");
 
   QActionGroup *interfaceGroup = createActionGroup(themeMenu);
   QActionGroup *themeGroup     = createActionGroup(themeMenu);
 
-  auto addInterfaceAction =
-   [&](const QString &label, const char *slotName) {
+  auto addInterfaceAction = [&](const QString &label, const char *slotName) {
     QAction *action = new QAction(label, themeMenu);
 
     action->setCheckable(true);
@@ -3175,8 +3174,7 @@ showMenu(const QPoint &p)
     return action;
   };
 
-  auto addThemeAction =
-   [&](const QString &label, const char *slotName) {
+  auto addThemeAction = [&](const QString &label, const char *slotName) {
     QAction *action = new QAction(label, themeMenu);
 
     action->setCheckable(true);
@@ -3225,7 +3223,7 @@ showMenu(const QPoint &p)
 
   //---
 
-  QMenu *printMenu = addMenu(popupMenu_, "Print");
+  QMenu *printMenu = addSubMenu(popupMenu_, "Print");
 
   addAction(printMenu, "PNG", SLOT(printPNGSlot()));
   addAction(printMenu, "SVG", SLOT(printSVGSlot()));

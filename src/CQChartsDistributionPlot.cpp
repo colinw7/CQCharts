@@ -832,12 +832,25 @@ calcBucketRanges() const
 
   CQChartsDistributionPlot *th = const_cast<CQChartsDistributionPlot *>(this);
 
+  //---
+
+  bool isStackedActive    = false;
+  bool isOverlayActive    = false;
+  bool isSideBySideActive = false;
+
+  if (hasGroups()) {
+    isStackedActive    = isStacked();
+    isOverlayActive    = isOverlay();
+    isSideBySideActive = isSideBySide();
+  }
+
+  //---
+
   // calc range (number of bars and max height)
 
-  int i1 = 0;
   int i2 = 0;
 
-  CQChartsGeom::IMinMax nRange(i1);
+  CQChartsGeom::IMinMax nRange(0);
   CQChartsGeom::IMinMax bucketRange;
   CQChartsGeom::RMinMax valueRange;
   CQChartsGeom::BBox    densityBBox;
@@ -851,9 +864,9 @@ calcBucketRanges() const
 
   int maxValues = 0;
 
-  using Totals = std::map<int,int>;
+  using BucketTotals = std::map<Bucket,double>;
 
-  Totals valueSetRunningTotal;
+  BucketTotals valueSetRunningTotal;
 
   for (auto &groupValues : groupData_.groupValues) {
     if (ng > 1 && isSetHidden(ig)) { ++ig; continue; }
@@ -912,8 +925,6 @@ calcBucketRanges() const
       bool underFlow = false;
       bool overFlow  = false;
 
-      int iv = 0;
-
       for (auto &bucketValues : values->bucketValues) {
         const Bucket    &bucket   = bucketValues.first;
         VariantIndsData &varsData = bucketValues.second;
@@ -960,34 +971,38 @@ calcBucketRanges() const
         };
 
         // update min/max per value set
+        double value = 0;
+
         if      (isValueCount()) {
-          addRangeValue(n);
+          addRangeValue(value = n);
         }
         else if (isValueRange()) {
           calcVarIndsData(varsData);
 
           addRangeValue(varsData.min);
           addRangeValue(varsData.max);
+
+          value = varsData.max - varsData.min;
         }
         else if (isValueMin()) {
           calcVarIndsData(varsData);
 
-          addRangeValue(varsData.min);
+          addRangeValue(value = varsData.min);
         }
         else if (isValueMax()) {
           calcVarIndsData(varsData);
 
-          addRangeValue(varsData.max);
+          addRangeValue(value = varsData.max);
         }
         else if (isValueMean()) {
           calcVarIndsData(varsData);
 
-          addRangeValue(varsData.statData.mean);
+          addRangeValue(value = varsData.statData.mean);
         }
         else if (isValueSum()) {
           calcVarIndsData(varsData);
 
-          addRangeValue(varsData.statData.sum);
+          addRangeValue(value = varsData.statData.sum);
         }
 
         //---
@@ -996,9 +1011,7 @@ calcBucketRanges() const
 
         //---
 
-        valueSetRunningTotal[iv] += n;
-
-        ++iv;
+        valueSetRunningTotal[bucket] += value;
       }
 
       //---
@@ -1041,6 +1054,11 @@ calcBucketRanges() const
       dataRange.updateRange(y, x);
   };
 
+  auto updateRange2 = [&](double x1, double y1, double x2, double y2) {
+    updateRange(x1, y1);
+    updateRange(x2, y2);
+  };
+
   if      (isDensity()) {
     // range already accounts for horizontal/vertical
     if (densityBBox.isSet()) {
@@ -1050,95 +1068,104 @@ calcBucketRanges() const
   }
   else if (isScatter()) {
     if (maxValues > 0) {
-      updateRange(          - 0.5,    - 0.5);
-      updateRange(maxValues - 0.5, ng - 0.5);
+      updateRange2(-0.5, -0.5, maxValues - 0.5, ng - 0.5);
     }
   }
   else {
     // calc value range (bar height)
     double n1 = 0.0, n2 = 0.0;
 
-    if      (isValueCount()) {
-      n1 = 0;
-      n2 = std::max(nRange.max(), 1);
-    }
-    else if (isValueRange()) {
-      n1 = valueRange.min(0);
-      n2 = valueRange.max(0);
-    }
-    else if (isValueMin()) {
-      n1 = 0;
-      n2 = valueRange.max(0);
-    }
-    else if (isValueMax()) {
-      n1 = 0;
-      n2 = valueRange.max(0);
-    }
-    else if (isValueMean()) {
-      n1 = 0;
-      n2 = valueRange.max(0);
-    }
-    else if (isValueSum()) {
-      n1 = 0;
-      n2 = valueRange.max(0);
-    }
+    if      (isValueCount()) { n1 =                 0; n2 = std::max(nRange.max(), 1); }
+    else if (isValueRange()) { n1 = valueRange.min(0); n2 = valueRange.max(0); }
+    else if (isValueMin  ()) { n1 =                 0; n2 = valueRange.max(0); }
+    else if (isValueMax  ()) { n1 =                 0; n2 = valueRange.max(0); }
+    else if (isValueMean ()) { n1 =                 0; n2 = valueRange.max(0); }
+    else if (isValueSum  ()) { n1 =                 0; n2 = valueRange.max(0); }
 
-    if      (isOverlay()) {
-      int bucket1 = bucketRange.min(0);
-      int bucket2 = bucketRange.max(0);
+    if      (isStackedActive) {
+      double maxValue = 0;
 
-      updateRange(bucket1 - 1.0, n1);
-      updateRange(bucket2 + 1.0, n2);
-    }
-    else if (! isSkipEmpty()) {
-      if      (isStacked() && isValueCount()) {
-        int n = 0;
-
-        for (const auto &gt : valueSetRunningTotal)
-          n = std::max(n, gt.second);
-
-        if (isPercent()) {
-          updateRange(          - 0.5, 0);
-          updateRange(maxValues - 0.5, 1);
-        }
-        else {
-          updateRange(          - 0.5, 0);
-          updateRange(maxValues - 0.5, n);
-        }
-      }
-      else if (isSideBySide()) {
-        if (isPercent() && isValueCount()) {
-          updateRange(          - 0.5, 0);
-          updateRange(maxValues - 0.5, 1);
-        }
-        else {
-          updateRange(          - 0.5, n1);
-          updateRange(maxValues - 0.5, n2);
-        }
+      if (isPercent()) {
+        maxValue = 1;
       }
       else {
+        // calc max value of all stacked boxes
+        maxValue = 0;
+
+        for (const auto &gt : valueSetRunningTotal)
+          maxValue = std::max(maxValue, gt.second);
+      }
+
+      //---
+
+      if (! isSkipEmpty()) {
+        int bucket1 = bucketRange.min(0);
+        int bucket2 = bucketRange.max(0);
+
+        updateRange2(bucket1 - 1.0, 0, bucket2 + 1.0, maxValue);
+      }
+      else {
+        int nv = valueSetRunningTotal.size();
+
+        updateRange2(-0.5, 0, nv - 0.5, maxValue);
+      }
+    }
+    else if (isOverlayActive) {
+      if (! isSkipEmpty()) {
+        int bucket1 = bucketRange.min(0);
+        int bucket2 = bucketRange.max(0);
+
+        if (isPercent())
+          updateRange2(bucket1 - 1.0, 0, bucket2 + 1.0, 1);
+        else
+          updateRange2(bucket1 - 1.0, n1, bucket2 + 1.0, n2);
+      }
+      else {
+        int nv = valueSetRunningTotal.size();
+
+        if (isPercent())
+          updateRange2(-0.5, 0, nv - 0.5, 1);
+        else
+          updateRange2(-0.5, n1, nv - 0.5, n2);
+      }
+    }
+    else if (isSideBySideActive) {
+      if (! isSkipEmpty()) {
+        int bucket1 = bucketRange.min(0);
+        int bucket2 = bucketRange.max(0);
+
+        if (isPercent())
+          updateRange2(bucket1 - 1.0, 0, bucket2 + 1.0, 1);
+        else
+          updateRange2(bucket1 - 1.0, n1, bucket2 + 1.0, n2);
+      }
+      else {
+        int nv = valueSetRunningTotal.size();
+
+        if (isPercent())
+          updateRange2(-0.5, 0, nv - 0.5, 1);
+        else
+          updateRange2(-0.5, n1, nv - 0.5, n2);
+      }
+    }
+    else {
+      if (! isSkipEmpty()) {
         int nb = 0;
 
         for (auto &bucketRange : groupData_.groupBucketRange)
           nb += bucketRange.second.max(0) - bucketRange.second.min(0) + 1;
 
-        int i1 = 0;
-
-        if (isPercent() && isValueCount()) {
-          updateRange(i1 - 1.0, 0);
-          updateRange(nb      , 1);
-        }
-        else {
-          updateRange(i1 - 1.0, n1);
-          updateRange(nb      , n2);
-        }
+        if (isPercent())
+          updateRange2(-1.0, 0, nb, 1);
+        else
+          updateRange2(-1.0, n1, nb, n2);
       }
-    }
-    else {
-      int i1 = 0;
-
-      updateRange(i1 - 1.0, 0 );
-      updateRange(i2      , n2);
+      else {
+        if (isPercent())
+          updateRange2(-1.0, 0, i2, 1);
+        else
+          updateRange2(-1.0, 0, i2, n2);
+      }
     }
   }
 
@@ -1363,6 +1390,30 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  bool isStackedActive    = false;
+  bool isOverlayActive    = false;
+  bool isSideBySideActive = false;
+
+  if (hasGroups()) {
+    isStackedActive    = isStacked();
+    isOverlayActive    = isOverlay();
+    isSideBySideActive = isSideBySide();
+  }
+
+  //---
+
+  auto intIncrementForSize = [&](double size) {
+    CInterval interval;
+
+    interval.setStart   (0);
+    interval.setEnd     (size);
+    interval.setIntegral(true);
+
+    return std::max(CMathRound::RoundNearest(interval.calcIncrement()), 1);
+  };
+
+  //---
+
   // init color value set
 //initValueSets();
 
@@ -1370,6 +1421,12 @@ createObjs(PlotObjs &objs) const
 
   valueAxis()->clearTickLabels();
   countAxis()->clearTickLabels();
+
+  const CQChartsGeom::Range &dataRange = this->dataRange();
+
+  double size = dataRange.size(! isHorizontal());
+
+  int inc = intIncrementForSize(size);
 
   if      (isDensity()) {
     valueAxis()->setIntegral           (false);
@@ -1387,22 +1444,25 @@ createObjs(PlotObjs &objs) const
   else if (isScatter()) {
     valueAxis()->setIntegral           (true);
     valueAxis()->setGridMid            (false);
-    valueAxis()->setMajorIncrement     (1);
+    valueAxis()->setMajorIncrement     (inc);
     valueAxis()->setMinorTicksDisplayed(false);
     valueAxis()->setRequireTickLabel   (false);
 
     countAxis()->setIntegral           (true);
     countAxis()->setGridMid            (false);
-    countAxis()->setMajorIncrement     (1);
+    countAxis()->setMajorIncrement     (inc);
     countAxis()->setMinorTicksDisplayed(false);
     countAxis()->setRequireTickLabel   (false);
   }
   else {
     valueAxis()->setIntegral           (true);
     valueAxis()->setGridMid            (true);
-    valueAxis()->setMajorIncrement     (1);
+    valueAxis()->setStart              (dataRange.min(! isHorizontal()));
+    valueAxis()->setMajorIncrement     (inc);
     valueAxis()->setMinorTicksDisplayed(false);
-    valueAxis()->setRequireTickLabel   (true );
+    valueAxis()->setRequireTickLabel   (inc);
+
+    //---
 
     if (isValueCount())
       countAxis()->setIntegral(true);
@@ -1427,13 +1487,15 @@ createObjs(PlotObjs &objs) const
 
   double doffset = 0.0;
 
-  using Totals = std::map<int,int>;
+  using IndTotals    = std::map<int,int>;
+  using BucketTotals = std::map<Bucket,double>;
 
-  Totals valueSetRunningTotal, groupTotals, valueSetTotals, groupMax;
+  IndTotals    groupTotals, groupMax;
+  BucketTotals valueSetRunningTotal, valueSetTotals;
 
   th->barWidth_ = 1.0;
 
-  if (isSideBySide() && ng > 0)
+  if (isSideBySideActive && ng > 0)
     th->barWidth_ /= ng;
 
   //---
@@ -1448,7 +1510,7 @@ createObjs(PlotObjs &objs) const
   GroupBuckets      groupSortedBuckets;
 
   if (isSorted()) {
-    if (isStacked() || isSideBySide()) {
+    if (isStackedActive || isOverlayActive || isSideBySideActive) {
       // TODO
     }
     else {
@@ -1484,8 +1546,41 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  using BucketInd = std::map<Bucket,int>;
+
+  BucketInd bucketInd;
+
+  for (auto &groupValues : groupData_.groupValues) {
+    const Values *values = groupValues.second;
+
+    for (const auto &bucketValues : values->bucketValues) {
+      const Bucket &bucket = bucketValues.first;
+
+      bucketInd[bucket] = 0;
+    }
+
+    for (const auto &bucketValues : values->bucketValues) {
+      const Bucket          &bucket   = bucketValues.first;
+      const VariantIndsData &varsData = bucketValues.second;
+
+      int n = varsData.inds.size();
+
+      if (isSkipEmpty() && n == 0)
+        continue;
+
+      bucketInd[bucket] = 0;
+    }
+  }
+
+  int i = 0;
+
+  for (auto &p : bucketInd)
+    p.second = i++;
+
+  //---
+
   auto getSortedBuckets = [&](int groupInd) {
-    if (isStacked() || isSideBySide()) {
+    if (isStackedActive || isOverlayActive || isSideBySideActive) {
       auto p = groupSortedBuckets.begin();
       assert(p != groupSortedBuckets.end());
 
@@ -1527,6 +1622,7 @@ createObjs(PlotObjs &objs) const
 
         //---
 
+        const Bucket          &bucket   = bucketValues.first;
         const VariantIndsData &varsData = bucketValues.second;
 
         //---
@@ -1535,8 +1631,9 @@ createObjs(PlotObjs &objs) const
 
         BarValue barValue = varIndsValue(*pVarsData);
 
-        groupTotals   [ig] += barValue.n2;
-        valueSetTotals[iv] += barValue.n2;
+        groupTotals[ig] += barValue.n2;
+
+        valueSetTotals[bucket] += barValue.n2 - barValue.n1;
 
         if (barValue.n2 > groupMax[ig])
           groupMax[ig] = barValue.n2;
@@ -1550,14 +1647,19 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  auto makeBBox = [&](double xmin, double ymin, double xmax, double ymax) {
+    if (! isHorizontal())
+      return CQChartsGeom::BBox(xmin, ymin, xmax, ymax);
+    else
+      return CQChartsGeom::BBox(ymin, xmin, ymax, xmax);
+  };
+
+  //---
+
   int ig = 0;
 
   for (auto &groupValues : groupData_.groupValues) {
     if (ng > 1 && isSetHidden(ig)) { ++ig; continue; }
-
-    //---
-
-    int vpos1 = 0;
 
     //---
 
@@ -1627,7 +1729,7 @@ createObjs(PlotObjs &objs) const
         Bucket sbucket = bucket;
 
         if (isSorted()) {
-          if (isStacked() || isSideBySide()) {
+          if (isStackedActive || isOverlayActive || isSideBySideActive) {
             // TODO
           }
           else {
@@ -1648,12 +1750,7 @@ createObjs(PlotObjs &objs) const
 
         int n = pVarsData->inds.size();
 
-        CQChartsGeom::BBox bbox;
-
-        if (! isHorizontal())
-          bbox = CQChartsGeom::BBox(iv - 0.5, ig - 0.5, iv + 0.5, ig + 0.5);
-        else
-          bbox = CQChartsGeom::BBox(ig - 0.5, iv - 0.5, ig + 0.5, iv + 0.5);
+        CQChartsGeom::BBox bbox = makeBBox(iv - 0.5, ig - 0.5, iv + 0.5, ig + 0.5);
 
         CQChartsDistributionScatterObj *scatterObj =
           new CQChartsDistributionScatterObj(this, bbox, groupInd, sbucket, n,
@@ -1683,7 +1780,7 @@ createObjs(PlotObjs &objs) const
       int bucketMin = bucketRange.min(0);
       int bucketMax = bucketRange.max(0);
 
-      if (! isOverlay() && ! isSkipEmpty())
+      if (! isOverlayActive)
         offset = -bucketMin;
 
       //---
@@ -1718,7 +1815,7 @@ createObjs(PlotObjs &objs) const
         Bucket sbucket = bucket;
 
         if (isSorted()) {
-          if (isStacked() || isSideBySide()) {
+          if (isStackedActive || isOverlayActive || isSideBySideActive) {
             // TODO
           }
           else {
@@ -1755,9 +1852,9 @@ createObjs(PlotObjs &objs) const
 
         double scale = 1.0;
 
-        if (isPercent() && isValueCount()) {
-          if (isStacked() || isSideBySide()) {
-            int valueSetTotal = valueSetTotals[iv];
+        if (isPercent()) {
+          if (isStackedActive || isOverlayActive || isSideBySideActive) {
+            double valueSetTotal = valueSetTotals[bucket];
 
             if (valueSetTotal > 0)
               scale = 1.0/valueSetTotal;
@@ -1772,53 +1869,63 @@ createObjs(PlotObjs &objs) const
 
         //---
 
+        int vpos1 = 0;
+
+        if (isStackedActive || isOverlayActive || isSideBySideActive) {
+          if (isSkipEmpty()) {
+            int stackInd = bucketInd[bucket];
+
+            vpos1 = stackInd;
+          }
+        }
+
+        //---
+
         CQChartsGeom::BBox bbox;
 
-        if      (isOverlay()) {
-          if (! isHorizontal())
-            bbox = CQChartsGeom::BBox(bucketValue - 0.5, barValue.n1,
-                                      bucketValue + 0.5, barValue.n2);
+        if      (isStackedActive) {
+          double total = valueSetRunningTotal[bucket];
+
+          double v1 = (barValue.n1 + total)*scale;
+          double v2 = (barValue.n2 + total)*scale;
+
+          if (! isSkipEmpty())
+            bbox = makeBBox(bucketValue - 0.5, v1, bucketValue + 0.5, v2);
           else
-            bbox = CQChartsGeom::BBox(barValue.n1, bucketValue - 0.5,
-                                      barValue.n2, bucketValue + 0.5);
+            bbox = makeBBox(vpos1 - 0.5, v1, vpos1 + 0.5, v2);
         }
-        else if (! isSkipEmpty()) {
-          if      (isStacked() && isValueCount()) {
-            int total = valueSetRunningTotal[iv];
+        else if (isOverlayActive) {
+          double v1 = barValue.n1*scale;
+          double v2 = barValue.n2*scale;
 
-            double v1 = (barValue.n1 + total)*scale;
-            double v2 = (barValue.n2 + total)*scale;
+          if (! isSkipEmpty())
+            bbox = makeBBox(bucketValue - 0.5, v1, bucketValue + 0.5, v2);
+          else
+            bbox = makeBBox(vpos1 - 0.5, v1, vpos1 + 0.5, v2);
+        }
+        else if (isSideBySideActive) {
+          double tpos1;
 
-            if (! isHorizontal())
-              bbox = CQChartsGeom::BBox(vpos1 - 0.5, v1, vpos1 + 0.5, v2);
-            else
-              bbox = CQChartsGeom::BBox(v1, vpos1 - 0.5, v2, vpos1 + 0.5);
-          }
-          else if (isSideBySide()) {
-            double tpos1 = vpos1 - 0.5 + barWidth_*gpos;
-            double tpos2 = tpos1 + barWidth_;
+          if (! isSkipEmpty())
+            tpos1 = bucketValue - 0.5 + barWidth_*gpos;
+          else
+            tpos1 = vpos1 - 0.5 + barWidth_*gpos;
 
-            if (! isHorizontal())
-              bbox = CQChartsGeom::BBox(tpos1, scale*barValue.n1, tpos2, scale*barValue.n2);
-            else
-              bbox = CQChartsGeom::BBox(scale*barValue.n1, tpos1, scale*barValue.n2, tpos2);
-          }
-          else {
-            if (! isHorizontal())
-              bbox = CQChartsGeom::BBox(bucket1 - 0.5, scale*barValue.n1,
-                                        bucket1 + 0.5, scale*barValue.n2);
-            else
-              bbox = CQChartsGeom::BBox(scale*barValue.n1, bucket1 - 0.5,
-                                        scale*barValue.n2, bucket1 + 0.5);
-          }
+          double tpos2 = tpos1 + barWidth_;
+
+          double v1 = barValue.n1*scale;
+          double v2 = barValue.n2*scale;
+
+          bbox = makeBBox(tpos1, v1, tpos2, v2);
         }
         else {
-          if (! isHorizontal())
-            bbox = CQChartsGeom::BBox(vpos - 0.5, scale*barValue.n1,
-                                      vpos + 0.5, scale*barValue.n2);
+          double v1 = barValue.n1*scale;
+          double v2 = barValue.n2*scale;
+
+          if (! isSkipEmpty())
+            bbox = makeBBox(bucket1 - 0.5, v1, bucket1 + 0.5, v2);
           else
-            bbox = CQChartsGeom::BBox(scale*barValue.n1, vpos - 0.5,
-                                      scale*barValue.n2, vpos + 0.5);
+            bbox = makeBBox(vpos - 0.5, v1, vpos + 0.5, v2);
         }
 
         barValue.xr = CMathUtil::map(value1,
@@ -1840,80 +1947,69 @@ createObjs(PlotObjs &objs) const
           valueAxis()->setTickLabel(bucket1, groupName);
         }
         else if (isNumeric) {
+          int xm = CMathRound::RoundNearest(bbox.getXMid());
+
           if (valueAxis()->tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE) {
             QString bucketStr = bucketValuesStr(groupInd, sbucket, values);
 
-            if      (isOverlay())
-              valueAxis()->setTickLabel(bucketValue, bucketStr);
-            else if (! isSkipEmpty()) {
-              if      (isStacked())
-                valueAxis()->setTickLabel(vpos1, bucketStr);
-              else if (isSideBySide())
-                valueAxis()->setTickLabel(vpos1, bucketStr);
-              else
-                valueAxis()->setTickLabel(bucket1, bucketStr);
-            }
+            if      (isStackedActive)
+              valueAxis()->setTickLabel(xm, bucketStr);
+            else if (isOverlayActive)
+              valueAxis()->setTickLabel(xm, bucketStr);
+            else if (isSideBySideActive)
+              valueAxis()->setTickLabel(xm, bucketStr);
             else
-              valueAxis()->setTickLabel(vpos, bucketStr);
+              valueAxis()->setTickLabel(xm, bucketStr);
           }
           else {
             QString bucketStr1 = bucketValuesStr(groupInd, sbucket, values, BucketValueType::START);
             QString bucketStr2 = bucketValuesStr(groupInd, sbucket, values, BucketValueType::END  );
 
-            if      (isOverlay()) {
-              valueAxis()->setTickLabel(bucketValue    , bucketStr1);
-              valueAxis()->setTickLabel(bucketValue + 1, bucketStr2);
+            if      (isStackedActive) {
+              valueAxis()->setTickLabel(xm    , bucketStr1);
+              valueAxis()->setTickLabel(xm + 1, bucketStr2);
             }
-            else if (! isSkipEmpty()) {
-              if      (isStacked()) {
-                valueAxis()->setTickLabel(vpos1    , bucketStr1);
-                valueAxis()->setTickLabel(vpos1 + 1, bucketStr2);
-              }
-              else if (isSideBySide()) {
-                valueAxis()->setTickLabel(vpos1    , bucketStr1);
-                valueAxis()->setTickLabel(vpos1 + 1, bucketStr2);
-              }
-              else {
-                valueAxis()->setTickLabel(bucket1    , bucketStr1);
-                valueAxis()->setTickLabel(bucket1 + 1, bucketStr2);
-              }
+            else if (isOverlayActive) {
+              valueAxis()->setTickLabel(xm    , bucketStr1);
+              valueAxis()->setTickLabel(xm + 1, bucketStr2);
+            }
+            else if (isSideBySideActive) {
+              valueAxis()->setTickLabel(xm    , bucketStr1);
+              valueAxis()->setTickLabel(xm + 1, bucketStr2);
             }
             else {
-              valueAxis()->setTickLabel(vpos    , bucketStr1);
-              valueAxis()->setTickLabel(vpos + 1, bucketStr2);
+              valueAxis()->setTickLabel(xm    , bucketStr1);
+              valueAxis()->setTickLabel(xm + 1, bucketStr2);
             }
           }
         }
         else {
           QString bucketStr = bucketValuesStr(groupInd, sbucket, values, BucketValueType::START);
 
-          if      (isOverlay())
-            valueAxis()->setTickLabel(bucketValue, bucketStr);
-          else if (! isSkipEmpty()) {
-            if      (isStacked())
-              valueAxis()->setTickLabel(vpos1, bucketStr);
-            else if (isSideBySide())
-              valueAxis()->setTickLabel(vpos1, bucketStr);
-            else
-              valueAxis()->setTickLabel(bucket1, bucketStr);
-          }
+          double xm = bbox.getXMid();
+
+          if      (isStackedActive)
+            valueAxis()->setTickLabel(xm, bucketStr);
+          else if (isOverlayActive)
+            valueAxis()->setTickLabel(xm, bucketStr);
+          else if (isSideBySideActive)
+            valueAxis()->setTickLabel(xm, bucketStr);
           else
-            valueAxis()->setTickLabel(vpos, bucketStr);
+            valueAxis()->setTickLabel(xm, bucketStr);
         }
 
         //---
 
-        valueSetRunningTotal[iv] += barValue.n2;
+        valueSetRunningTotal[bucket] += barValue.n2 - barValue.n1;
 
         ++iv;
 
         ++vpos;
-        ++vpos1;
       }
 
       //---
 
-      if (! isOverlay() && ! isSkipEmpty())
+      if (! isOverlayActive)
         count += bucketRange.max(0) - bucketRange.min(0) + 1;
     }
 
@@ -1986,22 +2082,13 @@ createObjs(PlotObjs &objs) const
       countAxis()->setLabel(label1);
     };
 
-    if      (isValueCount()) {
-      if (isPercent())
-        setCountLabel("Percent");
-      else
-        setCountLabel("Count");
-    }
-    else if (isValueRange())
-      setCountLabel("Range");
-    else if (isValueMin())
-      setCountLabel("Min");
-    else if (isValueMax())
-      setCountLabel("Min");
-    else if (isValueMean())
-      setCountLabel("Mean");
-    else if (isValueSum())
-      setCountLabel("Sum");
+    if      (isPercent   ()) setCountLabel("Percent");
+    else if (isValueCount()) setCountLabel("Count");
+    else if (isValueRange()) setCountLabel("Range");
+    else if (isValueMin  ()) setCountLabel("Min");
+    else if (isValueMax  ()) setCountLabel("Min");
+    else if (isValueMean ()) setCountLabel("Mean");
+    else if (isValueSum  ()) setCountLabel("Sum");
   }
 
   if (yLabel().length())
@@ -2072,30 +2159,12 @@ varIndsValue(const VariantIndsData &varInds) const
 {
   BarValue barValue;
 
-  if      (isValueCount()) {
-    barValue.n1 = 0;
-    barValue.n2 = varInds.inds.size();
-  }
-  else if (isValueRange()) {
-    barValue.n1 = varInds.min;
-    barValue.n2 = varInds.max;
-  }
-  else if (isValueMin()) {
-    barValue.n1 = 0;
-    barValue.n2 = varInds.min;
-  }
-  else if (isValueMax()) {
-    barValue.n1 = 0;
-    barValue.n2 = varInds.max;
-  }
-  else if (isValueMean()) {
-    barValue.n1 = 0;
-    barValue.n2 = varInds.statData.mean;
-  }
-  else if (isValueSum()) {
-    barValue.n1 = 0;
-    barValue.n2 = varInds.statData.sum;
-  }
+  if      (isValueCount()) { barValue.n1 = 0          ; barValue.n2 = varInds.inds.size()  ; }
+  else if (isValueRange()) { barValue.n1 = varInds.min; barValue.n2 = varInds.max          ; }
+  else if (isValueMin  ()) { barValue.n1 = 0          ; barValue.n2 = varInds.min          ; }
+  else if (isValueMax  ()) { barValue.n1 = 0          ; barValue.n2 = varInds.max          ; }
+  else if (isValueMean ()) { barValue.n1 = 0          ; barValue.n2 = varInds.statData.mean; }
+  else if (isValueSum  ()) { barValue.n1 = 0          ; barValue.n2 = varInds.statData.sum ; }
 
   return barValue;
 }
@@ -2428,8 +2497,10 @@ groupBucketer(int groupInd)
   std::unique_lock<std::mutex> lock(mutex_);
 
   // use consistent bucketer when stacked/side by side
-  if (isStacked() || isSideBySide() || isScatter())
-    groupInd = 0;
+  if (hasGroups()) {
+    if (isStacked() || isOverlay() || isSideBySide() || isScatter())
+      groupInd = 0;
+  }
 
   auto p = groupData_.groupBucketer.find(groupInd);
 
@@ -2534,14 +2605,23 @@ addMenuItems(QMenu *menu)
 
   (void) addCheckedAction("Horizontal", isHorizontal(), SLOT(setHorizontal(bool)));
 
-  QMenu *typeMenu = new QMenu("Plot Type");
+  QMenu *typeMenu = nullptr;
 
-  (void) addMenuCheckedAction(typeMenu, "Normal"    , isNormal    (), SLOT(setNormal    (bool)));
-  (void) addMenuCheckedAction(typeMenu, "Stacked"   , isStacked   (), SLOT(setStacked   (bool)));
-  (void) addMenuCheckedAction(typeMenu, "SideBySide", isSideBySide(), SLOT(setSideBySide(bool)));
-  (void) addMenuCheckedAction(typeMenu, "Overlay"   , isOverlay   (), SLOT(setOverlay   (bool)));
-  (void) addMenuCheckedAction(typeMenu, "Scatter"   , isScatter   (), SLOT(setScatter   (bool)));
-  (void) addMenuCheckedAction(typeMenu, "Density"   , isDensity   (), SLOT(setDensity   (bool)));
+  if (hasGroups()) {
+    if (! typeMenu)
+      typeMenu = new QMenu("Plot Type");
+
+    (void) addMenuCheckedAction(typeMenu, "Normal"    , isNormal    (), SLOT(setNormal    (bool)));
+    (void) addMenuCheckedAction(typeMenu, "Stacked"   , isStacked   (), SLOT(setStacked   (bool)));
+    (void) addMenuCheckedAction(typeMenu, "Overlay"   , isOverlay   (), SLOT(setOverlay   (bool)));
+    (void) addMenuCheckedAction(typeMenu, "SideBySide", isSideBySide(), SLOT(setSideBySide(bool)));
+  }
+
+  if (! typeMenu)
+    typeMenu = new QMenu("Plot Type");
+
+  (void) addMenuCheckedAction(typeMenu, "Scatter", isScatter(), SLOT(setScatter(bool)));
+  (void) addMenuCheckedAction(typeMenu, "Density", isDensity(), SLOT(setDensity(bool)));
 
   menu->addMenu(typeMenu);
 
@@ -2773,6 +2853,15 @@ CQChartsDistributionPlot::
 getPanY(bool is_shift) const
 {
   return windowToViewHeight(is_shift ? 2.0*barWidth_ : 1.0*barWidth_);
+}
+
+//------
+
+bool
+CQChartsDistributionPlot::
+hasGroups() const
+{
+  return (groupData_.groupValues.size() > 1);
 }
 
 //------
@@ -3511,28 +3600,50 @@ calcRect() const
 
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect_);
 
-  double m1 = plot_->lengthPixelSize(plot_->margin(), ! plot_->isHorizontal());
-  double m2 = m1;
+  //---
 
-  if (ig_.n > 1) {
-    if (! plot_->isStacked() && ! plot_->isSideBySide()) {
+  // calc margins
+
+  double ml = plot_->lengthPixelSize(plot_->margin(), ! plot_->isHorizontal());
+  double mr = ml;
+
+  if (plot_->hasGroups()) {
+    if      (plot_->isStacked()) {
+    }
+    else if (plot_->isOverlay()) {
+    }
+    // tight packing for side by side
+    else if (plot_->isSideBySide()) {
+      ml = 0.0;
+      mr = 0.0;
+
+      if      (ig_.i == 0)
+        ml = 1.0;
+      else if (ig_.i == ig_.n - 1)
+        mr = 1.0;
+    }
+    else {
+      // adjust margins for first/last bar in group
       if      (iv_.i == 0)
-        m1 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
+        ml = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
       else if (iv_.i == iv_.n - 1)
-        m2 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
+        mr = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
     }
   }
 
+  //---
+
+  // adjust rect by margins
   double rs = prect.getSize(! plot_->isHorizontal());
 
-  double s1 = rs - 2*std::max(m1, m2);
+  double s1 = rs - 2*std::max(ml, mr);
 
   if (s1 < minSize) {
-    m1 = (rs - minSize)/2.0;
-    m2 = m1;
+    ml = (rs - minSize)/2.0;
+    mr = ml;
   }
 
-  prect.expandExtent(-m1, -m2, ! plot_->isHorizontal());
+  prect.expandExtent(-ml, -mr, ! plot_->isHorizontal());
 
   return prect;
 }

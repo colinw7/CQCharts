@@ -117,8 +117,7 @@ init()
 
   //----
 
-  msgLabel_ = new QLabel;
-  msgLabel_->setObjectName("msgLabel");
+  msgLabel_ = CQUtil::makeLabelWidget<QLabel>("", "msgLabel");
 
   layout->addWidget(msgLabel_);
 
@@ -246,8 +245,7 @@ createTypeDataFrame()
 
   typeLayout->addLayout(typeComboLayout);
 
-  QLabel *typeLabel = new QLabel("Type");
-  typeLabel->setObjectName("typeLabel");
+  QLabel *typeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "typeLabel");
 
   typeComboLayout->addWidget(typeLabel);
 
@@ -326,8 +324,7 @@ createTypeDataFrame()
 
   typeLayout->addLayout(whereLayout);
 
-  QLabel *whereLabel = new QLabel("Where");
-  whereLabel->setObjectName("whereLabel");
+  QLabel *whereLabel = CQUtil::makeLabelWidget<QLabel>("Where", "whereLabel");
 
   whereLayout->addWidget(whereLabel);
 
@@ -646,7 +643,7 @@ createSummaryFrame()
 
     connect(summaryMaxRows_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
 
-    summaryControlLayout->addWidget(new QLabel("Max Rows"));
+    summaryControlLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Max Rows", "maxRows"));
     summaryControlLayout->addWidget(summaryMaxRows_);
 
     //---
@@ -702,7 +699,7 @@ createSummaryFrame()
 
     connect(summarySortedColEdit_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
 
-    sortedTypeLayout->addWidget(new QLabel("Sort Column"));
+    sortedTypeLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Sort Column", "sortCol"));
     sortedTypeLayout->addWidget(summarySortedColEdit_);
 
     sortedTypeLayout->addStretch(1);
@@ -728,7 +725,7 @@ createSummaryFrame()
 
     connect(summaryPageSizeEdit_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
 
-    pageSizeTypeLayout->addWidget(new QLabel("Page Size"));
+    pageSizeTypeLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Page Size", "pointSize"));
     pageSizeTypeLayout->addWidget(summaryPageSizeEdit_);
 
     //--
@@ -743,7 +740,7 @@ createSummaryFrame()
 
     connect(summaryCurrentPageEdit_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
 
-    pageSizeTypeLayout->addWidget(new QLabel("Current Page"));
+    pageSizeTypeLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Current Page", "currentPage"));
     pageSizeTypeLayout->addWidget(summaryCurrentPageEdit_);
 
     pageSizeTypeLayout->addStretch(1);
@@ -1174,8 +1171,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   QSize is = formatEditData.formatUpdate->iconSize();
 
-  QLabel *attributesLabel = new QLabel;
-  attributesLabel->setObjectName("attributesLabel");
+  QLabel *attributesLabel = CQUtil::makeLabelWidget<QLabel>("", "attributesLabel");
 
   attributesLabel->setPixmap(CQPixmapCacheInst->getSizedPixmap("INFO", is));
   attributesLabel->setToolTip(parameter->attributes().summary());
@@ -1296,8 +1292,7 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   QSize is = formatEditData.formatUpdate->iconSize();
 
-  QLabel *attributesLabel = new QLabel;
-  attributesLabel->setObjectName("attributesLabel");
+  QLabel *attributesLabel = CQUtil::makeLabelWidget<QLabel>("", "attributesLabel");
 
   attributesLabel->setPixmap(CQPixmapCacheInst->getSizedPixmap("INFO", is));
   attributesLabel->setToolTip(parameter->attributes().summary());
@@ -1321,8 +1316,7 @@ addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
   QHBoxLayout *editLayout = new QHBoxLayout;
   editLayout->setMargin(0); editLayout->setSpacing(2);
 
-  QLabel *label = new QLabel(parameter->desc());
-  label->setObjectName(parameter->name() + "_label");
+  QLabel *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
 
   CQLineEdit *edit = CQUtil::makeWidget<CQLineEdit>(parameter->name() + "_edit");
 
@@ -1355,8 +1349,7 @@ addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
   QHBoxLayout *editLayout = new QHBoxLayout;
   editLayout->setMargin(0); editLayout->setSpacing(2);
 
-  QLabel *label = new QLabel(parameter->desc());
-  label->setObjectName(parameter->name() + "_label");
+  QLabel *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
 
   editLayout->addWidget(label);
 
@@ -1408,8 +1401,7 @@ addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
   QHBoxLayout *editLayout = new QHBoxLayout;
   editLayout->setMargin(0); editLayout->setSpacing(2);
 
-  QLabel *label = new QLabel(parameter->desc());
-  label->setObjectName(parameter->name() + "_label");
+  QLabel *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
 
   editLayout->addWidget(label);
 
@@ -1464,8 +1456,8 @@ addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
   QHBoxLayout *editLayout = new QHBoxLayout;
   editLayout->setMargin(0); editLayout->setSpacing(2);
 
-  QLabel *label = new QLabel(eparameter->desc());
-  label->setObjectName(eparameter->name() + "_label");
+  QLabel *label =
+    CQUtil::makeLabelWidget<QLabel>(eparameter->desc(), eparameter->name() + "_label");
 
   editLayout->addWidget(label);
 
@@ -1524,8 +1516,7 @@ addRealEdit(QLayout *layout, int &row, int &column, const QString &name,
   QLabel *label = nullptr;
 
   if (name != "") {
-    label = new QLabel(name);
-    label->setObjectName(objName + "Label");
+    label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
   }
 
   CQLineEdit *edit = CQUtil::makeWidget<CQLineEdit>(objName + "Edit");
@@ -1560,8 +1551,7 @@ addStringEdit(QLayout *layout, int &row, int &column, const QString &name,
   QLabel *label = nullptr;
 
   if (name != "") {
-    label = new QLabel(name);
-    label->setObjectName(objName + "Label");
+    label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
   }
 
   CQLineEdit *edit = CQUtil::makeWidget<CQLineEdit>(objName + "Edit");
@@ -1596,8 +1586,7 @@ addColumnEdit(QLayout *layout, int &row, int &column, const QString &name,
   QLabel *label = nullptr;
 
   if (name != "") {
-    label = new QLabel(name);
-    label->setObjectName(objName + "Label");
+    label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
   }
 
   CQChartsColumnLineEdit *edit = new CQChartsColumnLineEdit;
@@ -1633,8 +1622,7 @@ addColumnsEdit(QLayout *layout, int &row, int &column, const QString &name,
   QLabel *label = nullptr;
 
   if (name != "") {
-    label = new QLabel(name);
-    label->setObjectName(objName + "Label");
+    label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
   }
 
   CQChartsColumnsLineEdit *edit = new CQChartsColumnsLineEdit;

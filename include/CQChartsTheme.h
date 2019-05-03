@@ -80,46 +80,46 @@ class CQChartsTheme : public QObject {
   CQChartsTheme();
  ~CQChartsTheme();
 
-  // get/set theme name
+  //! get/set theme name
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
-  // get/set theme description
+  //! get/set theme description
   const QString &desc() const { return desc_; }
   void setDesc(const QString &s) { desc_ = s; }
 
-  // number of palettes
+  //! number of palettes
   int numPalettes() const { return palettes_.size(); }
 
-  // get/set nth palette
+  //! get/set nth palette
   CQChartsGradientPalette *palette(int i=0) const;
   void setPalette(int i, CQChartsGradientPalette *palette);
 
-  // add named palette
+  //! add named palette
   void addNamedPalette(const QString &name);
 
-  // remove named palette
+  //! remove named palette
   void removeNamedPalette(const QString &name);
 
-  // set nth palette to palette of specified name
+  //! set nth palette to palette of specified name
   void setNamedPalette(int i, const QString &name);
 
-  // move palette to new position
+  //! move palette to new position
   void movePalette(const QString &name, int pos);
 
-  // get position of named palette
+  //! get position of named palette
   int paletteInd(const QString &name) const;
 
 #if 0
-  // shift palettes by n places
+  //! shift palettes by n places
   void shiftPalettes(int n);
 #endif
 
-  // get/set select color
+  //! get/set select color
   const QColor &selectColor() const { return selectColor_; }
   void setSelectColor(const QColor &c);
 
-  // get/set inside color
+  //! get/set inside color
   const QColor &insideColor() const { return insideColor_; }
   void setInsideColor(const QColor &c);
 
@@ -127,7 +127,7 @@ class CQChartsTheme : public QObject {
   void themeChanged();
 
  protected:
-  // initialize with all named palettes
+  //! initialize with all named palettes
   void addNamedPalettes();
 
  protected:

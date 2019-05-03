@@ -5,25 +5,27 @@
 #include <list>
 #include <sys/types.h>
 
-// quad tree containing pointers to items of type DATA with an associated rect of type RECT
-//
-// the tree is split when the number of elements is greater than or equal to the auto
-// split limit
-//
-// tree does not take ownership of data. The application must ensure elements are not
-// deleted while in the tree and are deleted when required.
-//
-// DATA must support:
-//   const RECT &rect = data->rect();
-//
-// RECT must support:
-//   constructor RECT(l, b, r, t);
-//
-//   T l = rect.getXMin();
-//   T b = rect.getYMin();
-//   T r = rect.getXMax();
-//   T t = rect.getYMax();
-//
+/*!
+ * quad tree containing pointers to items of type DATA with an associated rect of type RECT
+ *
+ * the tree is split when the number of elements is greater than or equal to the auto
+ * split limit
+ *
+ * tree does not take ownership of data. The application must ensure elements are not
+ * deleted while in the tree and are deleted when required.
+ *
+ * DATA must support:
+ *   const RECT &rect = data->rect();
+ *
+ * RECT must support:
+ *   constructor RECT(l, b, r, t);
+ *
+ *   T l = rect.getXMin();
+ *   T b = rect.getYMin();
+ *   T r = rect.getXMax();
+ *   T t = rect.getYMax();
+ *
+ */
 template<typename DATA, typename RECT, typename T=double>
 class CQChartsQuadTree {
  public:
