@@ -7,6 +7,7 @@
 #include <CQColorEdit.h>
 #include <CQUtil.h>
 
+#include <svg/up_top_svg.h>
 #include <svg/up_svg.h>
 #include <svg/down_svg.h>
 #include <svg/left_svg.h>
@@ -95,17 +96,20 @@ CQChartsGradientPaletteList(QWidget *parent) :
     return button;
   };
 
-  QToolButton *upButton    = addToolButton("up"   , "UP"   , SLOT(upSlot   ()));
-  QToolButton *downButton  = addToolButton("down" , "DOWN" , SLOT(downSlot ()));
-  QToolButton *leftButton  = addToolButton("left" , "LEFT" , SLOT(leftSlot ()));
-  QToolButton *rightButton = addToolButton("right", "RIGHT", SLOT(rightSlot()));
+  QToolButton *upTopButton = addToolButton("upTip", "UP_TOP", SLOT(upTopSlot()));
+  QToolButton *upButton    = addToolButton("up"   , "UP"    , SLOT(upSlot   ()));
+  QToolButton *downButton  = addToolButton("down" , "DOWN"  , SLOT(downSlot ()));
+  QToolButton *leftButton  = addToolButton("left" , "LEFT"  , SLOT(leftSlot ()));
+  QToolButton *rightButton = addToolButton("right", "RIGHT" , SLOT(rightSlot()));
 
+  upTopButton->setToolTip("Move palette to top of theme list");
   upButton   ->setToolTip("Move palette up in theme list");
   downButton ->setToolTip("Move palette down in theme list");
   leftButton ->setToolTip("Add palette to theme list (from unused)");
   rightButton->setToolTip("Remove palette from theme list");
 
   controlLayout->addStretch(1);
+  controlLayout->addWidget(upTopButton);
   controlLayout->addWidget(upButton);
   controlLayout->addWidget(downButton);
   controlLayout->addStretch(1);
@@ -262,7 +266,15 @@ updateData()
 // move current item up
 void
 CQChartsGradientPaletteList::
-upSlot()
+upTopSlot()
+{
+  upSlot(/*top*/true);
+}
+
+// move current item up
+void
+CQChartsGradientPaletteList::
+upSlot(bool top)
 {
   CQChartsTheme *theme = currentTheme();
   if (! theme) return;
@@ -276,9 +288,9 @@ upSlot()
     return;
 
   if (row1 <= 0)
-     return;
+    return;
 
-  int row0 = row1 - 1;
+  int row0 = (! top ? row1 - 1 : 0);
 
   QListWidgetItem *item0 = currentList_->item(row0);
 

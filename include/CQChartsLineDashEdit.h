@@ -7,7 +7,7 @@
 #include <map>
 
 class QMenu;
-class QLineEdit;
+class CQLineEdit;
 class QToolButton;
 class CQIconCombo;
 class CQChartsLineDashEditAction;
@@ -47,7 +47,7 @@ class CQChartsLineDashEdit : public QFrame {
 
   bool             editable_ { false };
   CQChartsLineDash dash_;
-  QLineEdit*       edit_     { nullptr };
+  CQLineEdit*      edit_     { nullptr };
   QToolButton*     button_   { nullptr };
   QMenu*           menu_     { nullptr };
   CQIconCombo*     combo_    { nullptr };

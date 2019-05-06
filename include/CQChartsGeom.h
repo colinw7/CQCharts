@@ -101,8 +101,8 @@ class Point {
   //-----
 
   bool equal(const Point &rhs, double tol=1E-6) const {
-    double dx = fabs(x - rhs.x);
-    double dy = fabs(y - rhs.y);
+    double dx = std::abs(x - rhs.x);
+    double dy = std::abs(y - rhs.y);
 
     return (dx < tol && dy < tol);
   }
@@ -364,8 +364,8 @@ class Range {
   void setRight (double t) { set_ = true; x2_ = t; }
   void setTop   (double t) { set_ = true; y2_ = t; }
 
-  double xsize() const { assert(set_); return fabs(x2_ - x1_); }
-  double ysize() const { assert(set_); return fabs(y2_ - y1_); }
+  double xsize() const { assert(set_); return std::abs(x2_ - x1_); }
+  double ysize() const { assert(set_); return std::abs(y2_ - y1_); }
 
   double size(bool horizontal) const { return (horizontal ? xsize() : ysize()); }
 
@@ -964,11 +964,11 @@ class BBox {
   }
 
   double getWidth() const {
-    return fabs(getXMax() - getXMin());
+    return std::abs(getXMax() - getXMin());
   }
 
   double getHeight() const {
-    return fabs(getYMax() - getYMin());
+    return std::abs(getYMax() - getYMin());
   }
 
   BBox &moveXTo(double x) {
@@ -1553,7 +1553,7 @@ class Matrix {
   bool invert(Matrix &imatrix) const {
     double d = determinant();
 
-    if (::fabs(d) == 0.0)
+    if (std::abs(d) == 0.0)
       return false;
 
     double id = 1.0/d;
@@ -1625,7 +1625,7 @@ class Matrix {
   static bool solveAXeqB(const Matrix &a, Point &x, const Point &b) {
     double det_a = a.determinant();
 
-    if (::fabs(det_a) <= 0.0)
+    if (std::abs(det_a) <= 0.0)
       return false;
 
     double idet_a = 1.0/det_a;
@@ -1674,8 +1674,8 @@ class Matrix {
   }
 
   void getSize(double *sx, double *sy) const {
-    *sx = fabs(m00_ + m01_);
-    *sy = fabs(m10_ + m11_);
+    *sx = std::abs(m00_ + m01_);
+    *sy = std::abs(m10_ + m11_);
   }
 
   void getTranslate(double *tx, double *ty) const {
@@ -1931,7 +1931,7 @@ class Matrix {
 
  private:
   static bool realEq(double r1, double r2) {
-    return (fabs((r1) - (r2)) < 1E-5);
+    return (std::abs((r1) - (r2)) < 1E-5);
   }
 
   static double calcDeterminant(double m00, double m01, double m10, double m11) {
@@ -1942,6 +1942,27 @@ class Matrix {
   double m00_ { 0.0 }, m01_ { 0.0 }, m02_ { 0.0 };
   double m10_ { 0.0 }, m11_ { 0.0 }, m12_ { 0.0 };
   double m20_ { 0.0 }, m21_ { 0.0 }, m22_ { 0.0 };
+};
+
+}
+
+//------
+
+namespace CQChartsGeom {
+
+struct RangeValue {
+  RangeValue(double v=0.0, double min=0.0, double max=1.0) :
+   v(v), min(min), max(max) {
+  }
+
+  double map() const { return map(v); }
+
+  double map  (double v1) const { return CMathUtil::map(v1, min, max, 0.0, 1.0); }
+  double unmap(double v1) const { return CMathUtil::map(v1, 0.0, 1.0, min, max); }
+
+  double v   { 0.0 };
+  double min { 0.0 };
+  double max { 1.0 };
 };
 
 }

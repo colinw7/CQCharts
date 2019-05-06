@@ -179,14 +179,14 @@ void
 CQChartsScatterPlot::
 setXColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { resetAxes(); updateRangeAndObjs(); } );
 }
 
 void
 CQChartsScatterPlot::
 setYColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(yColumn_, c, [&]() { resetAxes(); updateRangeAndObjs(); } );
 }
 
 //---
@@ -985,6 +985,14 @@ initGridData(const CQChartsGeom::Range &dataRange)
 
 void
 CQChartsScatterPlot::
+resetAxes()
+{
+  xAxis_->setLabel("");
+  yAxis_->setLabel("");
+}
+
+void
+CQChartsScatterPlot::
 initAxes(bool uniqueX, bool uniqueY)
 {
   setXValueColumn(xColumn());
@@ -1428,7 +1436,9 @@ addNameValues() const
       QVariant var = plot_->modelValue(data.row, column, data.parent, ok);
       if (! var.isValid()) return -1;
 
-      return columnDetails(column)->uniqueId(var);
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(column);
+
+      return (columnDetails ? columnDetails->uniqueId(var) : -1);
     }
 
     CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) {
@@ -1507,8 +1517,10 @@ addPointKeyItems(CQChartsPlotKey *key)
 
       QString groupName = groupIndName(groupInd);
 
-      CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, groupInd , ig, ng);
-      CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, groupName, ig, ng);
+      ColorInd ic(ig, ng);
+
+      CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, groupInd , ic);
+      CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, groupName, ic);
 
       key->addItem(colorItem, ig, 0);
       key->addItem(textItem , ig, 1);
@@ -1545,8 +1557,10 @@ addPointKeyItems(CQChartsPlotKey *key)
         const QString &name   = nameValue.first;
         const Values  &values = nameValue.second.values;
 
-        CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, -1  , is, ns);
-        CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, name, is, ns);
+        ColorInd ic(is, ns);
+
+        CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, -1  , ic);
+        CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, name, ic);
 
         key->addItem(colorItem, is, 0);
         key->addItem(textItem , is, 1);
@@ -2124,13 +2138,15 @@ drawHull(QPainter *painter) const
 
     //---
 
+    QColor strokeColor = interpHullBorderColor(ig, ng);
+    QColor fillColor   = interpHullFillColor  (ig, ng);
+
     QPen   pen;
     QBrush brush;
 
     setPenBrush(pen, brush,
-      isHullBorder(), interpHullBorderColor(ig, ng), hullBorderAlpha(),
-      hullBorderWidth(), hullBorderDash(),
-      isHullFilled(), interpHullFillColor(ig, ng), hullFillAlpha(), hullFillPattern());
+      isHullBorder(), strokeColor, hullBorderAlpha(), hullBorderWidth(), hullBorderDash(),
+      isHullFilled(), fillColor, hullFillAlpha(), hullFillPattern());
 
     painter->setPen  (pen);
     painter->setBrush(brush);
@@ -2210,7 +2226,7 @@ drawXDensity(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawXDensityWhisker(painter, whiskerData, ig, ng);
+        drawXDensityWhisker(painter, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2231,7 +2247,7 @@ drawXDensity(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawXDensityWhisker(painter, whiskerData, ig, ng);
+        drawXDensityWhisker(painter, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2262,7 +2278,7 @@ drawYDensity(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawYDensityWhisker(painter, whiskerData, ig, ng);
+        drawYDensityWhisker(painter, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2283,7 +2299,7 @@ drawYDensity(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawYDensityWhisker(painter, whiskerData, ig, ng);
+        drawYDensityWhisker(painter, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2293,14 +2309,14 @@ drawYDensity(QPainter *painter) const
 
 void
 CQChartsScatterPlot::
-drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const
+drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, const ColorInd &ig) const
 {
   // calc pen/brush
   QPen   pen;
   QBrush brush;
 
-  QColor strokeColor = interpSymbolStrokeColor(ig, ng);
-  QColor fillColor   = interpSymbolFillColor  (ig, ng);
+  QColor strokeColor = interpSymbolStrokeColor(ig);
+  QColor fillColor   = interpSymbolFillColor  (ig);
 
   setPenBrush(pen, brush,
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
@@ -2329,14 +2345,14 @@ drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
 
 void
 CQChartsScatterPlot::
-drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const
+drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, const ColorInd &ig) const
 {
   // calc pen/brush
   QPen   pen;
   QBrush brush;
 
-  QColor strokeColor = interpSymbolStrokeColor(ig, ng);
-  QColor fillColor   = interpSymbolFillColor  (ig, ng);
+  QColor strokeColor = interpSymbolStrokeColor(ig);
+  QColor fillColor   = interpSymbolFillColor  (ig);
 
   setPenBrush(pen, brush,
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
@@ -2493,7 +2509,7 @@ drawXWhisker(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawXWhiskerWhisker(painter, whiskerData, ig, ng);
+        drawXWhiskerWhisker(painter, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2514,7 +2530,7 @@ drawXWhisker(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawXWhiskerWhisker(painter, whiskerData, ig, ng);
+        drawXWhiskerWhisker(painter, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2545,7 +2561,7 @@ drawYWhisker(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawYWhiskerWhisker(painter, whiskerData, ig, ng);
+        drawYWhiskerWhisker(painter, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2566,7 +2582,7 @@ drawYWhisker(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawYWhiskerWhisker(painter, whiskerData, ig, ng);
+        drawYWhiskerWhisker(painter, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2576,14 +2592,14 @@ drawYWhisker(QPainter *painter) const
 
 void
 CQChartsScatterPlot::
-drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const
+drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, const ColorInd &ig) const
 {
   // calc pen/brush
   QPen   pen;
   QBrush brush;
 
-  QColor strokeColor = interpSymbolStrokeColor(ig, ng);
-  QColor fillColor   = interpSymbolFillColor  (ig, ng);
+  QColor strokeColor = interpSymbolStrokeColor(ig);
+  QColor fillColor   = interpSymbolFillColor  (ig);
 
   setPenBrush(pen, brush,
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
@@ -2600,7 +2616,7 @@ drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
   const CQChartsGeom::Range &dataRange = this->dataRange();
 
   double pos = (xWhiskerSide() == YSide::BOTTOM ?
-    dataRange.ymin() - (ig + 1)*ww - wm : dataRange.ymax() + ig*ww + wm);
+    dataRange.ymin() - (ig.i + 1)*ww - wm : dataRange.ymax() + ig.i*ww + wm);
 
   CQChartsGeom::BBox rect(whiskerData.xWhisker.min(), pos, whiskerData.xWhisker.max(), pos + ww);
 
@@ -2610,14 +2626,14 @@ drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
 
 void
 CQChartsScatterPlot::
-drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const
+drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, const ColorInd &ig) const
 {
   // calc pen/brush
   QPen   pen;
   QBrush brush;
 
-  QColor strokeColor = interpSymbolStrokeColor(ig, ng);
-  QColor fillColor   = interpSymbolFillColor  (ig, ng);
+  QColor strokeColor = interpSymbolStrokeColor(ig);
+  QColor fillColor   = interpSymbolFillColor  (ig);
 
   setPenBrush(pen, brush,
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
@@ -2634,7 +2650,7 @@ drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
   const CQChartsGeom::Range &dataRange = this->dataRange();
 
   double pos = (yWhiskerSide() == XSide::LEFT ?
-    dataRange.xmin() - ig*ww - wm : dataRange.xmax() + (ig + 1)*ww + wm);
+    dataRange.xmin() - ig.i*ww - wm : dataRange.xmax() + (ig.i + 1)*ww + wm);
 
   CQChartsGeom::BBox rect(pos, whiskerData.yWhisker.min(), pos + ww, whiskerData.yWhisker.max());
 
@@ -3453,7 +3469,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
     QPen tpen;
 
-    QColor tc = dataLabel->interpTextColor(ic.i, ic.n);
+    QColor tc = dataLabel->interpTextColor(ic);
 
     plot_->setPen(tpen, true, tc, dataLabel->textAlpha());
 
@@ -3489,20 +3505,26 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
 double
 CQChartsScatterPointObj::
-xColorValue() const
+xColorValue(bool relative) const
 {
   const CQChartsGeom::Range &dataRange = plot_->dataRange();
 
-  return CMathUtil::map(p_.x(), dataRange.xmin(), dataRange.xmax(), 0.0, 1.0);
+  if (relative)
+    return CMathUtil::map(p_.x(), dataRange.xmin(), dataRange.xmax(), 0.0, 1.0);
+  else
+    return p_.x();
 }
 
 double
 CQChartsScatterPointObj::
-yColorValue() const
+yColorValue(bool relative) const
 {
   const CQChartsGeom::Range &dataRange = plot_->dataRange();
 
-  return CMathUtil::map(p_.y(), dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
+  if (relative)
+    return CMathUtil::map(p_.y(), dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
+  else
+    return p_.y();
 }
 
 //------
@@ -3594,17 +3616,7 @@ void
 CQChartsScatterCellObj::
 drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const
 {
-  int ic = 0;
-  int nc = 0;
-
-  if (ig_.n > 0) {
-    ic = ig_.i;
-    nc = ig_.n;
-  }
-  else {
-    ic = is_.i;
-    nc = is_.n;
-  }
+  ColorInd ic = (ig_.n > 1 ? ig_ : is_);
 
   //---
 
@@ -3612,7 +3624,7 @@ drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const
   QPen   pen;
   QBrush brush;
 
-  plot_->setSymbolPenBrush(pen, brush, ic, nc);
+  plot_->setSymbolPenBrush(pen, brush, ic);
 
   plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
@@ -3667,8 +3679,8 @@ drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const
 //------
 
 CQChartsScatterKeyColor::
-CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int groupInd, int i, int n) :
- CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ColorInd(i, n)), groupInd_(groupInd)
+CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int groupInd, const ColorInd &ic) :
+ CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ic), groupInd_(groupInd)
 {
 }
 
@@ -3681,7 +3693,7 @@ selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod)
   int ih = hideIndex();
 
   if (selMod == CQChartsSelMod::ADD) {
-    for (int i = 0; i < n_; ++i) {
+    for (int i = 0; i < ic_.n; ++i) {
       plot_->CQChartsPlot::setSetHidden(i, i != ih);
     }
   }
@@ -3705,7 +3717,7 @@ fillBrush() const
   if (color_.isValid())
     c = plot_->interpColor(color_, 0, 1);
   else {
-    c = plot->interpSymbolFillColor(i_, n_);
+    c = plot->interpSymbolFillColor(ic_);
 
     //c = CQChartsKeyColorBox::fillBrush().color();
   }
@@ -3724,14 +3736,14 @@ int
 CQChartsScatterKeyColor::
 hideIndex() const
 {
-  return (groupInd_ >= 0 ? groupInd_ : i_);
+  return (groupInd_ >= 0 ? groupInd_ : ic_.i);
 }
 
 //---
 
 CQChartsScatterGridKeyItem::
 CQChartsScatterGridKeyItem(CQChartsScatterPlot *plot) :
- CQChartsKeyItem(plot->key(), 0, 1), plot_(plot)
+ CQChartsKeyItem(plot->key(), ColorInd()), plot_(plot)
 {
 }
 

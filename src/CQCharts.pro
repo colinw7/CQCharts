@@ -141,6 +141,7 @@ CQChartsOptReal.cpp \
 CQChartsOptRect.cpp \
 \
 CQChartsColor.cpp \
+CQChartsColorStops.cpp \
 CQChartsFont.cpp \
 CQChartsNamePair.cpp \
 CQChartsPolygonList.cpp \
@@ -403,6 +404,7 @@ HEADERS += \
 ../include/CQChartsRoundedPolygon.h \
 \
 ../include/CQChartsColor.h \
+../include/CQChartsColorStops.h \
 ../include/CQChartsFont.h \
 ../include/CQChartsNamePair.h \
 ../include/CQChartsPolygonList.h \

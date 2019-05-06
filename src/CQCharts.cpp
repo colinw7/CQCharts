@@ -72,6 +72,7 @@
 #include <CQChartsFont.h>
 #include <CQChartsInterfaceTheme.h>
 #include <CQChartsTheme.h>
+#include <CQChartsColorStops.h>
 
 #include <CQPropertyView.h>
 #include <iostream>
@@ -85,6 +86,7 @@ CQCharts()
   CQChartsAxisTickLabelPlacement::registerMetaType();
   CQChartsBoxData               ::registerMetaType();
   CQChartsColor                 ::registerMetaType();
+  CQChartsColorStops            ::registerMetaType();
   CQChartsColumn                ::registerMetaType();
   CQChartsColumns               ::registerMetaType();
   CQChartsConnectionList        ::registerMetaType();
@@ -276,7 +278,7 @@ interpColor(const CQChartsColor &c, int i, int n) const
 {
   double r = CMathUtil::norm(i, 0, n - 1);
 
-  return interpColor(c, r);
+  return interpColorValue(c, /*ig*/i, /*ng*/n, r);
 }
 
 QColor

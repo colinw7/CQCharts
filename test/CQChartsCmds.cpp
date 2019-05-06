@@ -151,8 +151,9 @@ addCommands()
                new CQChartsRemoveChartsAnnotationCmd        (this));
 
     // theme/palette
-    addCommand("get_charts_palette", new CQChartsGetChartsPaletteCmd(this));
-    addCommand("set_charts_palette", new CQChartsSetChartsPaletteCmd(this));
+    addCommand("create_charts_palette", new CQChartsCreateChartsPaletteCmd(this));
+    addCommand("get_charts_palette"   , new CQChartsGetChartsPaletteCmd   (this));
+    addCommand("set_charts_palette"   , new CQChartsSetChartsPaletteCmd   (this));
 
     // connect
     addCommand("connect_charts_signal", new CQChartsConnectChartsSignalCmd(this));
@@ -1357,6 +1358,56 @@ setChartsPropertyCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
+createChartsPaletteCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsPaletteCmd");
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
+  argv.addCmdArg("-theme"  , CQChartsCmdArg::Type::String , "new theme name");
+  argv.addCmdArg("-palette", CQChartsCmdArg::Type::String , "new named name");
+  argv.endCmdGroup();
+
+  if (! argv.parse())
+    return false;
+
+  //---
+
+  bool    themeFlag     = argv.hasParseArg ("theme"    );
+  QString themeStr      = argv.getParseStr ("theme"    );
+  bool    paletteFlag   = argv.hasParseArg ("palette"  );
+  QString paletteStr    = argv.getParseStr ("palette"  );
+
+  if      (themeFlag) {
+    if (CQChartsThemeMgrInst->getTheme(themeStr))
+      return errorMsg(QString("Theme %1 already exists").arg(themeStr));
+
+    (void) CQChartsThemeMgrInst->createTheme(themeStr);
+
+    cmdBase_->setCmdRc(themeStr);
+  }
+  else if (paletteFlag) {
+    if (CQChartsThemeMgrInst->getNamedPalette(paletteStr))
+      return errorMsg(QString("Palette %1 already exists").arg(paletteStr));
+
+    (void) CQChartsThemeMgrInst->createPalette(paletteStr);
+
+    cmdBase_->setCmdRc(paletteStr);
+  }
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
 getChartsPaletteCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
@@ -1495,15 +1546,17 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
     else if (nameStr == "blue_max"      ) { cmdBase_->setCmdRc(palette->blueMax        ()); }
 
     // defined colors
-    else if (nameStr == "colors") {
-      int n = palette->numColors();
+    else if (nameStr == "defined_colors") {
+      QStringList strs;
 
-      QVariantList colors;
+      for (const auto &rc : palette->colors()) {
+        double        r = rc.first;
+        const QColor &c = rc.second;
 
-      for (int i = 0; i < n; ++i)
-        colors << palette->icolor(i);
+        strs << QString("%1=%2").arg(r).arg(c.name());
+      }
 
-      cmdBase_->setCmdRc(colors);
+      cmdBase_->setCmdRc(strs);
     }
     else if (nameStr == "color") {
       if (! dataFlag) return errorMsg("Missing data for palette color");
@@ -1661,6 +1714,15 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
     else if (nameStr == "select_color") { theme->setSelectColor(QColor(valueStr)); }
     else if (nameStr == "inside_color") { theme->setInsideColor(QColor(valueStr)); }
 
+    else if (nameStr == "palettes") {
+      QStringList strs;
+
+      cmdBase_->valueToStrs(valueStr, strs);
+
+      for (int i = 0; i < strs.size(); ++i)
+        theme->addNamedPalette(strs[i]);
+    }
+
     else if (nameStr == "?") {
       QStringList names = QStringList() <<
         "name" << "desc" << "select_color" << "inside_color";
@@ -1774,9 +1836,9 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
 
       //--
 
-      QString definedStr = argv.getParseStr("defined");
+      QStringList strs;
 
-      QStringList strs = definedStr.split(" ", QString::SkipEmptyParts);
+      cmdBase_->valueToStrs(valueStr, strs);
 
       if (! strs.length()) return errorMsg(QString("Invalid defined colors '%1'").arg(valueStr));
 
@@ -1797,15 +1859,34 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
           bool ok;
 
           v = CQChartsUtil::toReal(lhs, ok);
+
+          if (! ok) {
+            errorMsg(QString("Invalid color value '%1'").arg(lhs));
+            continue;
+          }
+
           c = QColor(rhs);
+
+          if (! c.isValid()) {
+            errorMsg(QString("Invalid color '%1'").arg(rhs));
+            continue;
+          }
         }
-        else
+        else {
           c = QColor(strs[j]);
+
+          if (! c.isValid()) {
+            errorMsg(QString("Invalid color '%1'").arg(strs[j]));
+            continue;
+          }
+        }
 
         definedColors.push_back(DefinedColor(v, c));
       }
 
       if (! definedColors.empty()) {
+        palette->setColorType(CQChartsGradientPalette::ColorType::DEFINED);
+
         palette->resetDefinedColors();
 
         for (const auto &definedColor : definedColors)

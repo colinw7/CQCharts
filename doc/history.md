@@ -839,3 +839,6 @@
 # 5/2/2019
  + Allow forced label tick positions
  + Cleanup distribution plot type/value/empty/percent combinations
+# 5/5/2019
+ + Use ColorInd data for more plot objects and keys
+ + Support plot x/y color stops to interpolate color from x/y value

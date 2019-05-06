@@ -12,10 +12,12 @@ class CQChartsDensity;
 //---
 
 struct CQChartsDistributionBarValue {
-  double n1 { 0 };
-  double n2 { 0 };
-  double xr { 0.0 };
-  double yr { 0.0 };
+  using RangeValue = CQChartsGeom::RangeValue;
+
+  double n1     { 0 };
+  double n2     { 0 };
+  RangeValue xr;
+  RangeValue yr;
 };
 
 //---
@@ -216,8 +218,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   QColor barColor() const;
 
-  double xColorValue() const;
-  double yColorValue() const;
+  double xColorValue(bool relative=true) const;
+  double yColorValue(bool relative=true) const;
 
  private:
   const CQChartsDistributionPlot* plot_     { nullptr };
@@ -384,7 +386,7 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
 
  public:
   CQChartsDistKeyColorBox(CQChartsDistributionPlot *plot, const ColorInd &ig, const ColorInd &iv,
-                          double xv, double yv);
+                          const RangeValue &xv, const RangeValue &yv);
 
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &v) { color_ = v; }
@@ -409,7 +411,7 @@ class CQChartsDistKeyText : public CQChartsKeyText {
   Q_OBJECT
 
  public:
-  CQChartsDistKeyText(CQChartsDistributionPlot *plot, const QString &text, int i, int n);
+  CQChartsDistKeyText(CQChartsDistributionPlot *plot, const QString &text, const ColorInd &iv);
 
   QColor interpTextColor(int i, int n) const override;
 
@@ -735,6 +737,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   void getXVals(int groupInd, const Bucket &bucket, std::vector<double> &xvals) const;
 
   bool getStatData(int groupInd, CQChartsStatData &statData) const;
+
+  double unmapXValue(double x, int groupInd) const;
 
   bool getRealValues(int groupInd, std::vector<double> &xvals, CQChartsStatData &statData) const;
 

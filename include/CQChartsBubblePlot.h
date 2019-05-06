@@ -52,6 +52,9 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
   }
 
  public:
+  using ColorInd = CQChartsUtil::ColorInd;
+
+ public:
   CQChartsBubbleNode(const CQChartsBubblePlot *plot, CQChartsBubbleHierNode *parent,
                      const QString &name, double size, const QModelIndex &ind);
 
@@ -112,7 +115,8 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
     return n1.r_ < n2.r_;
   }
 
-  virtual QColor interpColor(const CQChartsBubblePlot *plot, int n) const;
+  virtual QColor interpColor(const CQChartsBubblePlot *plot,
+                             const ColorInd &colorInd, int n) const;
 
  protected:
   const CQChartsBubblePlot* plot_    { nullptr }; //!< parent plot
@@ -187,7 +191,8 @@ class CQChartsBubbleHierNode : public CQChartsBubbleNode {
 
   void setPosition(double x, double y) override;
 
-  QColor interpColor(const CQChartsBubblePlot *plot, int n) const override;
+  QColor interpColor(const CQChartsBubblePlot *plot,
+                     const ColorInd &colorInd, int n) const override;
 
  protected:
   Nodes    nodes_;          //!< child nodes
@@ -203,19 +208,22 @@ class CQChartsBubbleHierObj;
 /*!
  * \brief Bubble Plot Circle object
  */
-class CQChartsBubbleObj : public CQChartsPlotObj {
+class CQChartsBubbleNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsBubbleObj(const CQChartsBubblePlot *plot, CQChartsBubbleNode *node,
-                    CQChartsBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
-                    int i, int n);
+  CQChartsBubbleNodeObj(const CQChartsBubblePlot *plot, CQChartsBubbleNode *node,
+                        CQChartsBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
+                        const ColorInd &is);
 
   QString typeName() const override { return "bubble"; }
 
   CQChartsBubbleNode *node() const { return node_; }
 
   CQChartsBubbleHierObj *parent() const { return hierObj_; }
+
+  int ind() const { return ind_; }
+  void setInd(int ind) { ind_ = ind; }
 
   QString calcId() const override;
 
@@ -233,8 +241,7 @@ class CQChartsBubbleObj : public CQChartsPlotObj {
   const CQChartsBubblePlot* plot_    { nullptr }; //!< parent plot
   CQChartsBubbleNode*       node_    { nullptr }; //!< associated node
   CQChartsBubbleHierObj*    hierObj_ { nullptr }; //!< parent hier obj
-  int                       i_       { 0 };       //!< data index
-  int                       n_       { 0 };       //!< data count
+  int                       ind_     { 0 };       //!< ind
 };
 
 //---
@@ -242,11 +249,11 @@ class CQChartsBubbleObj : public CQChartsPlotObj {
 /*!
  * \brief hierarchical bubble object
  */
-class CQChartsBubbleHierObj : public CQChartsBubbleObj {
+class CQChartsBubbleHierObj : public CQChartsBubbleNodeObj {
  public:
   CQChartsBubbleHierObj(const CQChartsBubblePlot *plot, CQChartsBubbleHierNode *hier,
                         CQChartsBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
-                        int i, int n);
+                        const ColorInd &is);
 
   CQChartsBubbleHierNode *hierNode() const { return hier_; }
 
@@ -293,6 +300,9 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   // options
   Q_PROPERTY(bool valueLabel READ isValueLabel WRITE setValueLabel)
   Q_PROPERTY(bool sorted     READ isSorted     WRITE setSorted    )
+
+  // color
+  Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
 
   // shape
   CQCHARTS_SHAPE_DATA_PROPERTIES
@@ -366,6 +376,11 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
     return colorData_.colorId;
   }
+
+  //---
+
+  bool isColorById() const { return colorById_; }
+  void setColorById(bool b);
 
   //---
 
@@ -454,6 +469,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   NodeData       nodeData_;              //!< node data
   PlaceData      placeData_;             //!< place data
   ColorData      colorData_;             //!< color data
+  bool           colorById_   { true };  //!< color by id
   GroupHierNodes groupHierNodes_;        //!< hier group nodes
 };
 

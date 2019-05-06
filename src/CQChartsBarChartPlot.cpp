@@ -1137,10 +1137,8 @@ addKeyItems(CQChartsPlotKey *key)
 
   auto addKeyRow = [&](const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                        const QString &name, const QColor &c=QColor()) {
-    CQChartsBarKeyColor *keyColor =
-      new CQChartsBarKeyColor(this, is, ig, iv);
-
-    CQChartsBarKeyText *keyText= new CQChartsBarKeyText(this, name, iv.i, iv.n);
+    CQChartsBarKeyColor *keyColor = new CQChartsBarKeyColor(this, is, ig, iv);
+    CQChartsBarKeyText  *keyText  = new CQChartsBarKeyText (this, name, iv);
 
     key->addItem(keyColor, row, 0);
     key->addItem(keyText , row, 1);
@@ -1653,19 +1651,22 @@ draw(QPainter *painter)
   if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
     if (is_.n > 1) {
       if (plot_->isColorBySet())
-        barColor = plot_->interpBarFillColor(ig_.i, ig_.n);
+        barColor = plot_->interpBarFillColor(ig_);
       else
-        barColor = plot_->interpBarFillColor(is_.i, is_.n);
+        barColor = plot_->interpBarFillColor(is_);
     }
     else {
       if (! color_.isValid()) {
         if      (ig_.n > 1)
-          barColor = plot_->interpBarFillColor(ig_.i, ig_.n);
+          barColor = plot_->interpBarFillColor(ig_);
         else if (iv_.n > 1)
-          barColor = plot_->interpBarFillColor(iv_.i, iv_.n);
+          barColor = plot_->interpBarFillColor(iv_);
         else {
-          QColor barColor1 = plot_->interpBarFillColor(ig_.i    , ig_.n + 1);
-          QColor barColor2 = plot_->interpBarFillColor(ig_.i + 1, ig_.n + 1);
+          ColorInd ig1(ig_.i    , ig_.n + 1);
+          ColorInd ig2(ig_.i + 1, ig_.n + 1);
+
+          QColor barColor1 = plot_->interpBarFillColor(ig1);
+          QColor barColor2 = plot_->interpBarFillColor(ig2);
 
           double f = (1.0*iv_.i)/iv_.n;
 
@@ -1680,10 +1681,7 @@ draw(QPainter *painter)
   else {
     ColorInd colorInd = calcColorInd();
 
-    if (colorInd.isInt)
-      barColor = plot_->interpBarFillColor(colorInd.i, colorInd.n);
-    else
-      barColor = plot_->interpBarFillColor(colorInd.r);
+    barColor = plot_->interpBarFillColor(colorInd);
   }
 
   //---
@@ -1891,10 +1889,7 @@ fillBrush() const
     else
       colorInd = calcColorInd();
 
-    if (colorInd.isInt)
-      c = plot_->interpBarFillColor(colorInd.i, colorInd.n);
-    else
-      c = plot_->interpBarFillColor(colorInd.r);
+    c = plot_->interpBarFillColor(colorInd);
   }
 
   if (isSetHidden())
@@ -2014,8 +2009,8 @@ setSetHidden(bool b)
 //------
 
 CQChartsBarKeyText::
-CQChartsBarKeyText(CQChartsBarChartPlot *plot, const QString &text, int i, int n) :
- CQChartsKeyText(plot, text, i, n)
+CQChartsBarKeyText(CQChartsBarChartPlot *plot, const QString &text, const ColorInd &ic) :
+ CQChartsKeyText(plot, text, ic)
 {
 }
 
@@ -2035,5 +2030,5 @@ bool
 CQChartsBarKeyText::
 isSetHidden() const
 {
-  return plot_->CQChartsPlot::isSetHidden(i_);
+  return plot_->CQChartsPlot::isSetHidden(ic_.i);
 }

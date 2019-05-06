@@ -17,6 +17,7 @@
 #include <CQChartsGeom.h>
 #include <CQChartsPlotMargin.h>
 #include <CQChartsOptReal.h>
+#include <CQChartsColorStops.h>
 #include <CQBaseModelTypes.h>
 #include <CHRTime.h>
 
@@ -42,6 +43,7 @@ class CQChartsKeyItem;
 class CQChartsTitle;
 class CQChartsPlotObj;
 class CQChartsPlotObjTree;
+class CQChartsKeyColorBox;
 class CQChartsAnnotation;
 class CQChartsTextAnnotation;
 class CQChartsArrowAnnotation;
@@ -114,11 +116,13 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(CQChartsColumn  imageColumn   READ imageColumn   WRITE setImageColumn  )
 
   // color map
-  Q_PROPERTY(ColorType colorType       READ colorType       WRITE setColorType      )
-  Q_PROPERTY(bool      colorMapped     READ isColorMapped   WRITE setColorMapped    )
-  Q_PROPERTY(double    colorMapMin     READ colorMapMin     WRITE setColorMapMin    )
-  Q_PROPERTY(double    colorMapMax     READ colorMapMax     WRITE setColorMapMax    )
-  Q_PROPERTY(QString   colorMapPalette READ colorMapPalette WRITE setColorMapPalette)
+  Q_PROPERTY(ColorType          colorType       READ colorType       WRITE setColorType      )
+  Q_PROPERTY(bool               colorMapped     READ isColorMapped   WRITE setColorMapped    )
+  Q_PROPERTY(double             colorMapMin     READ colorMapMin     WRITE setColorMapMin    )
+  Q_PROPERTY(double             colorMapMax     READ colorMapMax     WRITE setColorMapMax    )
+  Q_PROPERTY(QString            colorMapPalette READ colorMapPalette WRITE setColorMapPalette)
+  Q_PROPERTY(CQChartsColorStops colorXStops     READ colorXStops     WRITE setColorXStops    )
+  Q_PROPERTY(CQChartsColorStops colorYStops     READ colorYStops     WRITE setColorYStops    )
 
   // visible
   Q_PROPERTY(bool visible READ isVisible WRITE setVisible)
@@ -1249,6 +1253,14 @@ class CQChartsPlot : public CQChartsObj,
   const QString &colorMapPalette() const;
   void setColorMapPalette(const QString &s);
 
+  const CQChartsColorStops &colorXStops() const { return colorColumnData_.xStops; }
+  void setColorXStops(const CQChartsColorStops &s);
+
+  const CQChartsColorStops &colorYStops() const { return colorColumnData_.yStops; }
+  void setColorYStops(const CQChartsColorStops &s);
+
+  //---
+
   bool columnColor(int row, const QModelIndex &parent, CQChartsColor &color) const;
 
   //---
@@ -1675,6 +1687,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  QColor interpPaletteColor(const ColorInd &ind, bool scale=false) const;
+
   // get palette color for ith value of n values
   virtual QColor interpPaletteColor(int i, int n, bool scale=false) const;
 
@@ -1692,6 +1706,11 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   QColor calcTextColor(const QColor &bg) const;
+
+  //---
+
+  ColorInd calcColorInd(const CQChartsPlotObj *obj, const CQChartsKeyColorBox *keyBox,
+                        const ColorInd &is, const ColorInd &ig, const ColorInd &iv) const;
 
   //---
 
@@ -1993,15 +2012,17 @@ class CQChartsPlot : public CQChartsObj,
 
   //! color column data
   struct ColorColumnData {
-    CQChartsColumn column;
-    ColorType      colorType { ColorType::AUTO };
-    bool           valid     { false };
-    bool           mapped    { false };
-    double         map_min   { 0.0 };
-    double         map_max   { 1.0 };
-    double         data_min  { 0.0 };
-    double         data_max  { 1.0 };
-    QString        palette;
+    CQChartsColumn     column;
+    ColorType          colorType { ColorType::AUTO };
+    bool               valid     { false };
+    bool               mapped    { false };
+    double             map_min   { 0.0 };
+    double             map_max   { 1.0 };
+    double             data_min  { 0.0 };
+    double             data_max  { 1.0 };
+    QString            palette;
+    CQChartsColorStops xStops;
+    CQChartsColorStops yStops;
   };
 
   //! every row selection data

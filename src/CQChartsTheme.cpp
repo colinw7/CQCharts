@@ -2186,6 +2186,19 @@ init()
   addTheme("theme2" , new CQChartsTheme2);
 }
 
+CQChartsGradientPalette *
+CQChartsThemeMgr::
+createPalette(const QString &name)
+{
+  assert(! getNamedPalette(name));
+
+  CQChartsGradientPalette *palette = new CQChartsGradientPalette;
+
+  addNamedPalette(name, palette);
+
+  return palette;
+}
+
 void
 CQChartsThemeMgr::
 addNamedPalette(const QString &name, CQChartsGradientPalette *palette)
@@ -2239,6 +2252,23 @@ resetPalette(const QString &name)
   *paletteData.current = *paletteData.original;
 }
 
+//---
+
+CQChartsTheme *
+CQChartsThemeMgr::
+createTheme(const QString &name)
+{
+  assert(! getTheme(name));
+
+  CQChartsTheme *theme = new CQChartsTheme;
+
+  theme->setDesc(name);
+
+  addTheme(name, theme);
+
+  return theme;
+}
+
 void
 CQChartsThemeMgr::
 addTheme(const QString &name, CQChartsTheme *theme)
@@ -2290,7 +2320,6 @@ themeChangedSlot()
 CQChartsTheme::
 CQChartsTheme()
 {
-  addNamedPalettes();
 }
 
 void
@@ -2534,6 +2563,8 @@ CQChartsDefaultTheme()
 
   //---
 
+  addNamedPalettes();
+
   movePalette("set2"    , 0);
   movePalette("palette1", 1);
   movePalette("palette2", 2);
@@ -2551,6 +2582,8 @@ CQChartsTheme1()
 
   //---
 
+  addNamedPalettes();
+
   movePalette("palette1", 0);
   movePalette("palette2", 1);
   movePalette("set2"    , 2);
@@ -2567,6 +2600,8 @@ CQChartsTheme2()
   setDesc("Theme 2");
 
   //---
+
+  addNamedPalettes();
 
   movePalette("palette2", 0);
   movePalette("palette1", 1);

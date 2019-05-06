@@ -60,11 +60,14 @@ class CQChartsChordData {
 
   struct Group {
     QString str;
-    double  value { -1 };
+    int     i { 0 };
+    int     n { 0 };
 
-    Group(const QString &str="", double value=-1) :
-     str(str), value(value) {
+    Group(const QString &str="", int i=0, int n=1) :
+     str(str), i(i), n(n) {
     }
+
+    double value() const { return (n > 0 ? double(i)/n : 0.0); }
   };
 
   using Values = std::vector<Value>;
@@ -151,12 +154,9 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
  public:
   CQChartsChordObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
-                   const CQChartsChordData &data, int i, int n);
+                   const CQChartsChordData &data, const ColorInd &ig, const ColorInd &iv);
 
   const CQChartsChordData &data() { return data_; }
-
-  int i() const { return i_; }
-  int n() const { return n_; }
 
   QString typeName() const override { return "chord"; }
 
@@ -184,8 +184,6 @@ class CQChartsChordObj : public CQChartsPlotObj {
  private:
   const CQChartsChordPlot* plot_ { nullptr };
   CQChartsChordData        data_;
-  int                      i_    { 0 };
-  int                      n_    { 1 };
 };
 
 //---

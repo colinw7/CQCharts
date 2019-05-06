@@ -130,6 +130,15 @@ setTextFontSize(double s)
 
 void
 CQChartsSunburstPlot::
+setColorById(bool b)
+{
+  CQChartsUtil::testAndSet(colorById_, b, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsSunburstPlot::
 addProperties()
 {
   CQChartsHierPlot::addProperties();
@@ -144,6 +153,9 @@ addProperties()
   addProperty("options", this, "outerRadius")->setDesc("Outer radius");
   addProperty("options", this, "startAngle" )->setDesc("Angle for first segment");
   addProperty("options", this, "multiRoot"  )->setDesc("Support multiple roots");
+
+  // color
+  addProperty("color", this, "colorById", "colorById")->setDesc("Color by Id");
 
   // fill
   addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
@@ -270,24 +282,49 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  bool isUnnamedRoot = (roots_.size() == 1 && roots_[0]->name() == "");
+  int nr = roots_.size();
+
+  bool isUnnamedRoot = (nr == 1 && roots_[0]->name() == "");
 
   if (currentRoot()) {
-    if (! isUnnamedRoot || roots_[0] != currentRoot())
-      addPlotObj(currentRoot(), objs);
+    ColorInd ci(0, 1);
 
-    addPlotObjs(currentRoot(), objs);
+    if (! isUnnamedRoot || roots_[0] != currentRoot())
+      addPlotObj(currentRoot(), objs, ci);
+
+    addPlotObjs(currentRoot(), objs, ci);
   }
   else {
-    for (auto &root : roots_) {
-      if (! isUnnamedRoot)
-        addPlotObj(root, objs);
+    int ir = 0;
 
-      addPlotObjs(root, objs);
+    for (auto &root : roots_) {
+      ColorInd ci(ir, nr);
+
+      if (! isUnnamedRoot)
+        addPlotObj(root, objs, ci);
+
+      addPlotObjs(root, objs, ci);
+
+      ++ir;
     }
   }
 
   //---
+
+  int in = 0;
+
+  for (auto &obj : objs) {
+    CQChartsSunburstNodeObj *nodeObj = dynamic_cast<CQChartsSunburstNodeObj *>(obj);
+
+    if (nodeObj) { nodeObj->setInd(in); ++in; }
+  }
+
+  for (auto &obj : objs) {
+    CQChartsSunburstNodeObj *nodeObj = dynamic_cast<CQChartsSunburstNodeObj *>(obj);
+
+    if (nodeObj)
+      nodeObj->setIv(ColorInd(nodeObj->ind(), in));
+  }
 
   return true;
 }
@@ -750,22 +787,22 @@ childNode(CQChartsSunburstHierNode *parent, const QString &name) const
 
 void
 CQChartsSunburstPlot::
-addPlotObjs(CQChartsSunburstHierNode *hier, PlotObjs &objs) const
+addPlotObjs(CQChartsSunburstHierNode *hier, PlotObjs &objs, const ColorInd &ir) const
 {
   for (auto &node : hier->getNodes()) {
-    addPlotObj(node, objs);
+    addPlotObj(node, objs, ir);
   }
 
   for (auto &hierNode : hier->getChildren()) {
-    addPlotObj(hierNode, objs);
+    addPlotObj(hierNode, objs, ir);
 
-    addPlotObjs(hierNode, objs);
+    addPlotObjs(hierNode, objs, ir);
   }
 }
 
 void
 CQChartsSunburstPlot::
-addPlotObj(CQChartsSunburstNode *node, PlotObjs &objs) const
+addPlotObj(CQChartsSunburstNode *node, PlotObjs &objs, const ColorInd &ir) const
 {
   double r1 = node->r();
   double r2 = r1 + node->dr();
@@ -773,6 +810,8 @@ addPlotObj(CQChartsSunburstNode *node, PlotObjs &objs) const
   CQChartsGeom::BBox bbox(-r2, -r2, r2, r2);
 
   CQChartsSunburstNodeObj *obj = new CQChartsSunburstNodeObj(this, bbox, node);
+
+  obj->setIs(ir);
 
   node->setObj(obj);
 
@@ -976,13 +1015,16 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   //---
 
   // calc stroke and brush
+  ColorInd colorInd = nodeObj->calcColorInd();
+
   QPen   pen;
   QBrush brush;
 
-  QColor fc = node->interpColor(this, numColorIds());
+  QColor fc = node->interpColor(this, colorInd, numColorIds());
+  QColor bc = interpBorderColor(colorInd);
 
   setPenBrush(pen, brush,
-    isBorder(), interpBorderColor(0, 1), borderAlpha(), borderWidth(), borderDash(),
+    isBorder(), bc, borderAlpha(), borderWidth(), borderDash(),
     isFilled(), fc, fillAlpha(), fillPattern());
 
   QPen tpen;
@@ -1336,20 +1378,20 @@ removeNode(CQChartsSunburstNode *node)
 
 QColor
 CQChartsSunburstHierNode::
-interpColor(const CQChartsSunburstPlot *plot, int n) const
+interpColor(const CQChartsSunburstPlot *plot, const ColorInd &colorInd, int n) const
 {
   using Colors = std::vector<QColor>;
 
   Colors colors;
 
   for (auto &child : children_)
-    colors.push_back(child->interpColor(plot, n));
+    colors.push_back(child->interpColor(plot, colorInd, n));
 
   for (auto &node : nodes_)
-    colors.push_back(node->interpColor(plot, n));
+    colors.push_back(node->interpColor(plot, colorInd, n));
 
   if (colors.empty())
-    return plot->interpPaletteColor(0, 1);
+    return plot->interpPaletteColor(colorInd);
 
   return CQChartsUtil::blendColors(colors);
 }
@@ -1423,14 +1465,14 @@ pointInside(double x, double y)
 
 QColor
 CQChartsSunburstNode::
-interpColor(const CQChartsSunburstPlot *plot, int n) const
+interpColor(const CQChartsSunburstPlot *plot, const ColorInd &colorInd, int n) const
 {
-  if      (colorId() >= 0)
-    return plot->interpFillColor(colorId(), n);
-  else if (color().isValid())
+  if      (color().isValid())
     return plot->interpColor(color(), 0, 1);
+  else if (colorId() >= 0 && plot_->isColorById())
+    return plot->interpFillColor(ColorInd(colorId(), n));
   else
-    return plot->interpPaletteColor(0, 1);
+    return plot->interpPaletteColor(colorInd);
 }
 
 //------

@@ -6,9 +6,9 @@
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
 #include <CQGroupBox.h>
+#include <CQLineEdit.h>
 
 #include <QComboBox>
-#include <QLineEdit>
 #include <QCheckBox>
 #include <QLabel>
 #include <QHBoxLayout>
@@ -314,7 +314,7 @@ CQChartsColumnEdit(QWidget *parent) :
 
   roleLayout->addWidget(new QLabel("Role"));
 
-  roleEdit_ = new QLineEdit;
+  roleEdit_ = CQUtil::makeWidget<CQLineEdit>("edit");
 
   connect(roleEdit_, SIGNAL(textChanged(const QString &)),
           this, SLOT(roleTextChanged(const QString &)));
@@ -339,7 +339,7 @@ CQChartsColumnEdit(QWidget *parent) :
   QVBoxLayout *menuExprGroupLayout = new QVBoxLayout(menuExprGroup_);
   menuExprGroupLayout->setMargin(2); menuExprGroupLayout->setSpacing(2);
 
-  expressionEdit_ = new QLineEdit;
+  expressionEdit_ = CQUtil::makeWidget<CQLineEdit>("edit");
 
   connect(expressionEdit_, SIGNAL(textChanged(const QString &)),
           this, SLOT(expressionTextChanged(const QString &)));

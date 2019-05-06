@@ -42,7 +42,7 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
  public:
   CQChartsDelaunayPointObj(const CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &rect,
-                           double x, double y, const QModelIndex &ind, int i, int n);
+                           double x, double y, const QModelIndex &ind, const ColorInd &iv);
 
   QString typeName() const override { return "point"; }
 
@@ -63,8 +63,6 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   double                      x_    { 0.0 };
   double                      y_    { 0.0 };
   QModelIndex                 ind_;
-  int                         i_    { -1 };
-  int                         n_    { -1 };
 };
 
 //---

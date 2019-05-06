@@ -863,7 +863,7 @@ void
 CQChartsAxis::
 draw(const CQChartsPlot *plot, QPainter *painter)
 {
-  fitBBox_   = CQChartsGeom::BBox(); // fix box
+  fitBBox_   = CQChartsGeom::BBox(); // fit box
   fitLBBox_  = CQChartsGeom::BBox(); // label fit box
   fitTLBBox_ = CQChartsGeom::BBox(); // tick label fit box
 
@@ -925,7 +925,7 @@ draw(const CQChartsPlot *plot, QPainter *painter)
 
   //lastTickLabelRect_ = CQChartsGeom::BBox();
 
-  axisTickDrawDatas_.clear();
+  axisTickLabelDrawDatas_.clear();
 
   if (isRequireTickLabel() && tickLabels_.size()) {
     for (const auto &p : tickLabels_) {
@@ -1011,7 +1011,7 @@ draw(const CQChartsPlot *plot, QPainter *painter)
     }
   }
 
-  drawAxisTickDrawDatas(plot, painter);
+  drawAxisTickLabelDatas(plot, painter);
 
   //---
 
@@ -1506,7 +1506,7 @@ drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double t
           CQChartsDrawUtil::drawSimpleText(painter, p, text);
 #endif
 
-        axisTickDrawDatas_.push_back(AxisTickDrawData(p, tbbox, text));
+        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
       }
       else {
 #if 0
@@ -1515,7 +1515,7 @@ drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double t
                                     /*alignBox*/true, isAxesTickLabelTextContrast());
 #endif
 
-        axisTickDrawDatas_.push_back(AxisTickDrawData(pt, tbbox, text, angle, align));
+        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(pt, tbbox, text, angle, align));
       }
 
 #if 0
@@ -1619,7 +1619,7 @@ drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double t
           CQChartsDrawUtil::drawSimpleText(painter, p, text);
 #endif
 
-        axisTickDrawDatas_.push_back(AxisTickDrawData(p, tbbox, text));
+        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
       }
       else {
 #if 0
@@ -1628,7 +1628,7 @@ drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double t
                                     /*alignBox*/true, isAxesTickLabelTextContrast());
 #endif
 
-        axisTickDrawDatas_.push_back(AxisTickDrawData(pt, tbbox, text, angle, align));
+        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(pt, tbbox, text, angle, align));
       }
 
 #if 0
@@ -1762,7 +1762,7 @@ drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double t
           CQChartsDrawUtil::drawSimpleText(painter, p, text);
 #endif
 
-        axisTickDrawDatas_.push_back(AxisTickDrawData(p, tbbox, text));
+        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
       }
       else {
 #if 0
@@ -1771,7 +1771,7 @@ drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double t
                                     /*alignBox*/true, isAxesTickLabelTextContrast());
 #endif
 
-        axisTickDrawDatas_.push_back(AxisTickDrawData(pt, tbbox, text, angle, align));
+        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(pt, tbbox, text, angle, align));
       }
 
 #if 0
@@ -1876,7 +1876,7 @@ drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double t
           CQChartsDrawUtil::drawSimpleText(painter, p, text);
 #endif
 
-        axisTickDrawDatas_.push_back(AxisTickDrawData(p, tbbox, text));
+        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
       }
       else {
 #if 0
@@ -1885,7 +1885,7 @@ drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double t
                                     /*alignBox*/true, isAxesTickLabelTextContrast());
 #endif
 
-        axisTickDrawDatas_.push_back(AxisTickDrawData(pt, tbbox, text, angle, align));
+        axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(pt, tbbox, text, angle, align));
       }
 
 #if 0
@@ -1908,9 +1908,9 @@ drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double t
 
 void
 CQChartsAxis::
-drawAxisTickDrawDatas(const CQChartsPlot *plot, QPainter *painter)
+drawAxisTickLabelDatas(const CQChartsPlot *plot, QPainter *painter)
 {
-  int n = axisTickDrawDatas_.size();
+  int n = axisTickLabelDrawDatas_.size();
   if (n < 1) return;
 
   //---
@@ -1918,20 +1918,20 @@ drawAxisTickDrawDatas(const CQChartsPlot *plot, QPainter *painter)
   // clip overlapping labels
   if (isTickLabelAutoHide()) {
     if (n > 1) {
-      const CQChartsGeom::BBox &firstBBox = axisTickDrawDatas_[0    ].bbox;
-      const CQChartsGeom::BBox &lastBBox  = axisTickDrawDatas_[n - 1].bbox;
+      const CQChartsGeom::BBox &firstBBox = axisTickLabelDrawDatas_[0    ].bbox;
+      const CQChartsGeom::BBox &lastBBox  = axisTickLabelDrawDatas_[n - 1].bbox;
 
       // if first and last labels overlap then only draw first
       if (lastBBox.overlaps(firstBBox)) {
         for (int i = 1; i < n; ++i)
-          axisTickDrawDatas_[i].visible = false;
+          axisTickLabelDrawDatas_[i].visible = false;
       }
       // otherwise draw first and last and clip others
       else {
         CQChartsGeom::BBox prevBBox = firstBBox;
 
         for (int i = 1; i < n - 1; ++i) {
-          AxisTickDrawData &data = axisTickDrawDatas_[i];
+          AxisTickLabelDrawData &data = axisTickLabelDrawDatas_[i];
 
           if (data.bbox.overlaps(prevBBox) || data.bbox.overlaps(lastBBox))
             data.visible = false;
@@ -1953,9 +1953,11 @@ drawAxisTickDrawDatas(const CQChartsPlot *plot, QPainter *painter)
 
   painter->setPen(tpen);
 
+  //view()->setPlotPainterFont(plot, painter, axesTickLabelTextFont());
+
   //---
 
-  for (const auto &data : axisTickDrawDatas_) {
+  for (const auto &data : axisTickLabelDrawDatas_) {
     if (! data.visible)
       continue;
 
@@ -1967,7 +1969,7 @@ drawAxisTickDrawDatas(const CQChartsPlot *plot, QPainter *painter)
   }
 
   if (plot->showBoxes()) {
-    for (const auto &data : axisTickDrawDatas_) {
+    for (const auto &data : axisTickLabelDrawDatas_) {
       if (! data.visible)
         continue;
 

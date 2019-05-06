@@ -411,7 +411,7 @@ createObjs(PlotObjs &objs) const
     CQChartsGeom::BBox rect(center_.x - ro, center_.y - ro, center_.x + ro, center_.y + ro);
 
     CQChartsPieGroupObj *groupObj =
-      new CQChartsPieGroupObj(this, rect, groupInd, groupData.name, ig, ng);
+      new CQChartsPieGroupObj(this, rect, groupInd, groupData.name, ColorInd(ig, ng));
 
     groupObj->setColorInd(groupInd);
 
@@ -1565,9 +1565,9 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
 
 CQChartsPieGroupObj::
 CQChartsPieGroupObj(const CQChartsPiePlot *plot, const CQChartsGeom::BBox &bbox,
-                    int groupInd, const QString &name, int ig, int ng) :
- CQChartsGroupObj(const_cast<CQChartsPiePlot *>(plot), bbox), plot_(plot), groupInd_(groupInd),
- name_(name), ig_(ig), ng_(ng)
+                    int groupInd, const QString &name, const ColorInd &ig) :
+ CQChartsGroupObj(const_cast<CQChartsPiePlot *>(plot), bbox, ig),
+ plot_(plot), groupInd_(groupInd), name_(name)
 {
 }
 
@@ -1575,7 +1575,7 @@ QString
 CQChartsPieGroupObj::
 calcId() const
 {
-  return QString("group:%1").arg(ig_);
+  return QString("group:%1").arg(ig_.i);
 }
 
 QString
@@ -1750,7 +1750,7 @@ QColor
 CQChartsPieGroupObj::
 bgColor() const
 {
-  return plot_->interpPaletteColor(ig_, ng_);
+  return plot_->interpPaletteColor(ig_);
 }
 
 //------
@@ -1836,7 +1836,7 @@ fillBrush() const
 
 CQChartsPieKeyText::
 CQChartsPieKeyText(CQChartsPiePlot *plot, CQChartsPlotObj *plotObj) :
- CQChartsKeyText(plot, "", 0, 0), obj_(plotObj)
+ CQChartsKeyText(plot, "", ColorInd()), obj_(plotObj)
 {
   CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
   CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);

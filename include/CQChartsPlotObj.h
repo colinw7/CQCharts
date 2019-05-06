@@ -17,7 +17,7 @@ class CQChartsPlotObj : public CQChartsObj {
   Q_OBJECT
 
   Q_PROPERTY(QString typeName READ typeName)
-  Q_PROPERTY(bool    visible  READ isVisible  WRITE setVisible )
+  Q_PROPERTY(bool    visible  READ isVisible WRITE setVisible)
 
  public:
   using Indices  = std::set<QModelIndex>;
@@ -57,10 +57,19 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  const ColorInd &is() const { return is_; }
+  void setIs(const ColorInd &is) { is_ = is; }
+
+  const ColorInd &ig() const { return ig_; }
+  void setIg(const ColorInd &ig) { ig_ = ig; }
+
+  const ColorInd &iv() const { return iv_; }
+  void setIv(const ColorInd &iv) { iv_ = iv; }
+
   virtual ColorInd calcColorInd() const;
 
-  virtual double xColorValue() const;
-  virtual double yColorValue() const;
+  virtual double xColorValue(bool relative=true) const;
+  virtual double yColorValue(bool relative=true) const;
 
   //---
 
@@ -147,7 +156,8 @@ class CQChartsGroupObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsGroupObj(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox=CQChartsGeom::BBox());
+  CQChartsGroupObj(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox=CQChartsGeom::BBox(),
+                   const ColorInd &ig=ColorInd());
 };
 
 #endif

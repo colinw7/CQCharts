@@ -40,7 +40,6 @@ class QSpinBox;
 class QPushButton;
 class QRadioButton;
 class QCheckBox;
-class QLineEdit;
 class QLabel;
 
 /*!

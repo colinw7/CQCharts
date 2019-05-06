@@ -343,6 +343,13 @@ struct ColorInd {
    isInt(false), r(r) {
   }
 
+  friend bool operator==(const ColorInd &lhs, const ColorInd &rhs) {
+    return (lhs.isInt == rhs.isInt &&
+            lhs.i     == rhs.i     &&
+            lhs.n     == rhs.n     &&
+            lhs.r     == rhs.r);
+  }
+
   bool   isInt { true };
   int    i     { 0 };
   int    n     { 1 };

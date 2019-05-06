@@ -85,6 +85,81 @@ hasInd(int i) const
     return false;
 }
 
+int
+CQChartsValueSet::
+iset(const QVariant &value) const
+{
+  bool ok;
+
+  if      (type() == Type::INTEGER) {
+    int i = CQChartsVariant::toInt(value, ok);
+
+    if (ok)
+      return ivals_.id(i);
+  }
+  else if (type() == Type::REAL) {
+    double r = CQChartsVariant::toReal(value, ok);
+
+    if (! isAllowNaN() && CMathUtil::isNaN(r))
+      ok = false;
+
+    if (ok)
+      return rvals_.id(r);
+  }
+  else if (type() == Type::STRING) {
+    QString s;
+
+    CQChartsVariant::toString(value, s);
+
+    return svals_.id(s);
+  }
+  else if (type() == Type::COLOR) {
+    CQChartsColor c = CQChartsVariant::toColor(value, ok);
+
+    if (ok)
+      return cvals_.id(c);
+  }
+  else if (type() == Type::TIME) {
+    double t = CQChartsVariant::toReal(value, ok);
+
+    if (ok)
+      return rvals_.id(t);
+  }
+
+  return 0;
+}
+
+int
+CQChartsValueSet::
+numUnique() const
+{
+  if      (type() == Type::INTEGER)
+    return ivals_.numUnique();
+  else if (type() == Type::REAL)
+    return rvals_.numUnique();
+  else if (type() == Type::STRING)
+    return svals_.numUnique();
+  else if (type() == Type::COLOR)
+    return cvals_.numUnique();
+  else if (type() == Type::TIME)
+    return rvals_.numUnique();
+
+  return 0;
+}
+
+double
+CQChartsValueSet::
+imap(const QVariant &value) const
+{
+  int i = iset(value);
+  int n = numUnique();
+
+  if (n == 0)
+    return 0.0;
+
+  return (1.0*i)/n;
+}
+
 double
 CQChartsValueSet::
 imap(int i) const

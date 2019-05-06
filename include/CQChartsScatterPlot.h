@@ -103,8 +103,8 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   //---
 
-  double xColorValue() const override;
-  double yColorValue() const override;
+  double xColorValue(bool relative=true) const override;
+  double yColorValue(bool relative=true) const override;
 
  private:
   const CQChartsScatterPlot* plot_       { nullptr }; //!< scatter plot
@@ -182,7 +182,7 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
  public:
-  CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int groupInd, int i, int n);
+  CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int groupInd, const ColorInd &ic);
 
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &c) { color_ = c; }
@@ -639,6 +639,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
  private:
   void initGridData(const CQChartsGeom::Range &dataRange);
 
+  void resetAxes();
+
   void initAxes(bool uniqueX, bool uniqueY);
 
   void initSymbolTypeData() const;
@@ -681,14 +683,18 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   void drawXDensity(QPainter *painter) const;
   void drawYDensity(QPainter *painter) const;
 
-  void drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const;
-  void drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const;
+  void drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData,
+                           const ColorInd &ig) const;
+  void drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData,
+                           const ColorInd &ig) const;
 
   void drawXWhisker(QPainter *painter) const;
   void drawYWhisker(QPainter *painter) const;
 
-  void drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const;
-  void drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, int ng) const;
+  void drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData,
+                           const ColorInd &ig) const;
+  void drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData,
+                           const ColorInd &ig) const;
 
   void initWhiskerData() const;
 

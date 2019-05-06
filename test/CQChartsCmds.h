@@ -136,8 +136,9 @@ class CQChartsCmds : public QObject {
   bool getChartsDataCmd(CQChartsCmdArgs &args);
   bool setChartsDataCmd(CQChartsCmdArgs &args);
 
-  bool getChartsPaletteCmd(CQChartsCmdArgs &args);
-  bool setChartsPaletteCmd(CQChartsCmdArgs &args);
+  bool createChartsPaletteCmd(CQChartsCmdArgs &args);
+  bool getChartsPaletteCmd   (CQChartsCmdArgs &args);
+  bool setChartsPaletteCmd   (CQChartsCmdArgs &args);
 
   bool createChartsTextAnnotationCmd    (CQChartsCmdArgs &args);
   bool createChartsArrowAnnotationCmd   (CQChartsCmdArgs &args);
@@ -251,8 +252,9 @@ CQCHARTS_DEF_CMD(SetChartsProperty, setChartsPropertyCmd)
 CQCHARTS_DEF_CMD(GetChartsData, getChartsDataCmd)
 CQCHARTS_DEF_CMD(SetChartsData, setChartsDataCmd)
 
-CQCHARTS_DEF_CMD(GetChartsPalette, getChartsPaletteCmd)
-CQCHARTS_DEF_CMD(SetChartsPalette, setChartsPaletteCmd)
+CQCHARTS_DEF_CMD(CreateChartsPalette, createChartsPaletteCmd)
+CQCHARTS_DEF_CMD(GetChartsPalette   , getChartsPaletteCmd   )
+CQCHARTS_DEF_CMD(SetChartsPalette   , setChartsPaletteCmd   )
 
 //---
 

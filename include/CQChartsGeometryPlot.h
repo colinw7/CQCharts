@@ -52,7 +52,8 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
  public:
   CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
-                      const Polygons &polygons, const QModelIndex &ind, int i, int n);
+                      const Polygons &polygons, const QModelIndex &ind, const ColorInd &iv,
+                      bool hasValue);
 
   QString typeName() const override { return "geom"; }
 
@@ -83,16 +84,15 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   void drawFg(QPainter *painter) const override;
 
  private:
-  const CQChartsGeometryPlot* plot_  { nullptr }; //!< parent plot
-  Polygons                    polygons_;          //!< geometry polygons
-  double                      value_ { 0.0 };     //!< geometry value
-  QString                     name_;              //!< geometry name
-  CQChartsColor               color_;             //!< optional color
-  CQChartsStyle               style_;             //!< optional style
-  QModelIndex                 ind_;               //!< model index
-  int                         i_     { -1 };      //!< value index
-  int                         n_     { -1 };      //!< value count
-  Polygons                    ppolygons_;         //!< pixel polygons
+  const CQChartsGeometryPlot* plot_     { nullptr }; //!< parent plot
+  Polygons                    polygons_;             //!< geometry polygons
+  double                      value_    { 0.0 };     //!< geometry value
+  QString                     name_;                 //!< geometry name
+  CQChartsColor               color_;                //!< optional color
+  CQChartsStyle               style_;                //!< optional style
+  QModelIndex                 ind_;                  //!< model index
+  bool                        hasValue_ { false };   //!< has value
+  Polygons                    ppolygons_;            //!< pixel polygons
 };
 
 //---
@@ -109,6 +109,9 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsColumn geometryColumn READ geometryColumn WRITE setGeometryColumn)
   Q_PROPERTY(CQChartsColumn valueColumn    READ valueColumn    WRITE setValueColumn   )
   Q_PROPERTY(CQChartsColumn styleColumn    READ styleColumn    WRITE setStyleColumn   )
+
+  // color
+  Q_PROPERTY(bool colorByValue READ isColorByValue WRITE setColorByValue)
 
   // value range
   Q_PROPERTY(double minValue READ minValue WRITE setMinValue)
@@ -151,6 +154,11 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   //---
 
+  bool isColorByValue() const { return colorByValue_; }
+  void setColorByValue(bool b);
+
+  //---
+
   double minValue() const;
   void setMinValue(double r);
 
@@ -187,6 +195,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   CQChartsColumn        valueColumn_;                             //!< value column
   CQChartsColumn        styleColumn_;                             //!< style column
   CQChartsDataLabel*    dataLabel_          { nullptr };          //!< data label style
+  bool                  colorByValue_       { true };             //!< color by value
   OptReal               minValue_;                                //!< user min value
   OptReal               maxValue_;                                //!< user max value
   CQChartsGeom::RMinMax valueRange_;                              //!< data value range

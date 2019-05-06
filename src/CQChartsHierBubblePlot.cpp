@@ -240,14 +240,16 @@ CQChartsHierBubblePlot::
 initNodeObjs(CQChartsHierBubbleHierNode *hier, CQChartsHierBubbleHierObj *parentObj,
              int depth, PlotObjs &objs) const
 {
-  CQChartsHierBubbleHierObj *hierObj = 0;
+  CQChartsHierBubbleHierObj *hierObj = nullptr;
 
   if (hier != nodeData_.root) {
     double r = hier->radius();
 
     CQChartsGeom::BBox rect(hier->x() - r, hier->y() - r, hier->x() + r, hier->y() + r);
 
-    hierObj = new CQChartsHierBubbleHierObj(this, hier, parentObj, rect, hier->depth(), maxDepth());
+    ColorInd is(hier->depth(), maxDepth() + 1);
+
+    hierObj = new CQChartsHierBubbleHierObj(this, hier, parentObj, rect, is);
 
     objs.push_back(hierObj);
   }
@@ -269,8 +271,9 @@ initNodeObjs(CQChartsHierBubbleHierNode *hier, CQChartsHierBubbleHierObj *parent
 
     CQChartsGeom::BBox rect(node->x() - r, node->y() - r, node->x() + r, node->y() + r);
 
-    CQChartsHierBubbleObj *obj =
-      new CQChartsHierBubbleObj(this, node, parentObj, rect, node->depth(), maxDepth());
+    ColorInd is(node->depth(), maxDepth() + 1);
+
+    CQChartsHierBubbleNodeObj *obj = new CQChartsHierBubbleNodeObj(this, node, parentObj, rect, is);
 
     objs.push_back(obj);
   }
@@ -854,7 +857,7 @@ pushSlot()
       break;
     }
 
-    CQChartsHierBubbleObj *nodeObj = dynamic_cast<CQChartsHierBubbleObj *>(obj);
+    CQChartsHierBubbleNodeObj *nodeObj = dynamic_cast<CQChartsHierBubbleNodeObj *>(obj);
 
     if (nodeObj) {
       CQChartsHierBubbleNode *node = nodeObj->node();
@@ -957,8 +960,8 @@ drawBounds(QPainter *painter, CQChartsHierBubbleHierNode *hier) const
 CQChartsHierBubbleHierObj::
 CQChartsHierBubbleHierObj(const CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNode *hier,
                           CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
-                          int i, int n) :
- CQChartsHierBubbleObj(plot, hier, hierObj, rect, i, n), hier_(hier)
+                          const ColorInd &is) :
+ CQChartsHierBubbleNodeObj(plot, hier, hierObj, rect, is), hier_(hier)
 {
 }
 
@@ -967,7 +970,7 @@ CQChartsHierBubbleHierObj::
 calcId() const
 {
   //return QString("%1:%2").arg(hier_->name()).arg(hier_->hierSize());
-  return CQChartsHierBubbleObj::calcId();
+  return CQChartsHierBubbleNodeObj::calcId();
 }
 
 QString
@@ -975,7 +978,7 @@ CQChartsHierBubbleHierObj::
 calcTipId() const
 {
   //return QString("%1:%2").arg(hier_->hierName()).arg(hier_->hierSize());
-  return CQChartsHierBubbleObj::calcTipId();
+  return CQChartsHierBubbleNodeObj::calcTipId();
 }
 
 bool
@@ -1033,11 +1036,13 @@ draw(QPainter *painter)
   //---
 
   // calc stroke and brush
+  ColorInd colorInd = calcColorInd();
+
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBorderColor(0, 1);
-  QColor fc = hier_->interpColor(plot_, plot_->numColorIds());
+  QColor bc = plot_->interpBorderColor(colorInd);
+  QColor fc = hier_->interpColor(plot_, colorInd, plot_->numColorIds());
 
   plot_->setPenBrush(pen, brush,
     plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
@@ -1060,17 +1065,17 @@ draw(QPainter *painter)
 
 //------
 
-CQChartsHierBubbleObj::
-CQChartsHierBubbleObj(const CQChartsHierBubblePlot *plot, CQChartsHierBubbleNode *node,
-                      CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
-                      int i, int n) :
- CQChartsPlotObj(const_cast<CQChartsHierBubblePlot *>(plot), rect), plot_(plot),
- node_(node), hierObj_(hierObj), i_(i), n_(n)
+CQChartsHierBubbleNodeObj::
+CQChartsHierBubbleNodeObj(const CQChartsHierBubblePlot *plot, CQChartsHierBubbleNode *node,
+                          CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
+                          const ColorInd &is) :
+ CQChartsPlotObj(const_cast<CQChartsHierBubblePlot *>(plot), rect, is, ColorInd(), ColorInd()),
+ plot_(plot), node_(node), hierObj_(hierObj)
 {
 }
 
 QString
-CQChartsHierBubbleObj::
+CQChartsHierBubbleNodeObj::
 calcId() const
 {
   if (node_->isFiller())
@@ -1080,7 +1085,7 @@ calcId() const
 }
 
 QString
-CQChartsHierBubbleObj::
+CQChartsHierBubbleNodeObj::
 calcTipId() const
 {
   if (node_->isFiller())
@@ -1107,7 +1112,7 @@ calcTipId() const
 }
 
 bool
-CQChartsHierBubbleObj::
+CQChartsHierBubbleNodeObj::
 inside(const CQChartsGeom::Point &p) const
 {
   if (CQChartsUtil::PointPointDistance(p,
@@ -1118,7 +1123,7 @@ inside(const CQChartsGeom::Point &p) const
 }
 
 void
-CQChartsHierBubbleObj::
+CQChartsHierBubbleNodeObj::
 getSelectIndices(Indices &inds) const
 {
   for (const auto &c : plot_->nameColumns())
@@ -1128,7 +1133,7 @@ getSelectIndices(Indices &inds) const
 }
 
 void
-CQChartsHierBubbleObj::
+CQChartsHierBubbleNodeObj::
 addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 {
   if (column.isValid()) {
@@ -1139,7 +1144,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 }
 
 void
-CQChartsHierBubbleObj::
+CQChartsHierBubbleNodeObj::
 draw(QPainter *painter)
 {
   double r = node_->radius();
@@ -1154,11 +1159,13 @@ draw(QPainter *painter)
   //---
 
   // calc stroke and brush
+  ColorInd colorInd = calcColorInd();
+
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBorderColor(0, 1);
-  QColor fc = node_->interpColor(plot_, plot_->numColorIds());
+  QColor bc = plot_->interpBorderColor(colorInd);
+  QColor fc = node_->interpColor(plot_, colorInd, plot_->numColorIds());
 
   plot_->setPenBrush(pen, brush,
     plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
@@ -1417,20 +1424,20 @@ setPosition(double x, double y)
 
 QColor
 CQChartsHierBubbleHierNode::
-interpColor(const CQChartsHierBubblePlot *plot, int n) const
+interpColor(const CQChartsHierBubblePlot *plot, const ColorInd &colorInd, int n) const
 {
   using Colors = std::vector<QColor>;
 
   Colors colors;
 
   for (auto &child : children_)
-    colors.push_back(child->interpColor(plot, n));
+    colors.push_back(child->interpColor(plot, colorInd, n));
 
   for (auto &node : nodes_)
-    colors.push_back(node->interpColor(plot, n));
+    colors.push_back(node->interpColor(plot, colorInd, n));
 
   if (colors.empty())
-    return plot->interpPaletteColor(0, 1);
+    return plot->interpPaletteColor(colorInd);
 
   return CQChartsUtil::blendColors(colors);
 }
@@ -1478,12 +1485,12 @@ setPosition(double x, double y)
 
 QColor
 CQChartsHierBubbleNode::
-interpColor(const CQChartsHierBubblePlot *plot, int n) const
+interpColor(const CQChartsHierBubblePlot *plot, const ColorInd &colorInd, int n) const
 {
-  if      (colorId() >= 0)
-    return plot->interpPaletteColor(colorId(), n);
-  else if (color().isValid())
+  if      (color().isValid())
     return plot->interpColor(color(), 0, 1);
+  else if (colorId() >= 0)
+    return plot->interpPaletteColor(ColorInd(colorId(), n));
   else
-    return plot->interpPaletteColor(0, 1);
+    return plot->interpPaletteColor(colorInd);
 }

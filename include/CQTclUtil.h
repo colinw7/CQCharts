@@ -411,6 +411,25 @@ class CQTcl : public CTcl {
     return CQTclUtil::variantFromObj(interp(), obj);
   }
 
+  bool splitList(const QString &str, QStringList &strs) {
+    int    argc;
+    char **argv;
+
+    std::string cstr = str.toStdString();
+
+    int rc = Tcl_SplitList(interp(), cstr.c_str(), &argc, (const char ***) &argv);
+
+    if (rc != TCL_OK)
+      return false;
+
+    for (int i = 0; i < argc; ++i)
+      strs << QString(argv[i]);
+
+    Tcl_Free((char *) argv);
+
+    return true;
+  }
+
   void traceVar(const QString &name) {
     int flags = TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS | TCL_GLOBAL_ONLY;
 

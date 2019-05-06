@@ -22,6 +22,8 @@ class CQChartsThemeMgr : public QObject {
  ~CQChartsThemeMgr();
 
   //! named palettes
+  CQChartsGradientPalette *createPalette(const QString &name);
+
   void addNamedPalette(const QString &name, CQChartsGradientPalette *palette);
 
   CQChartsGradientPalette *getNamedPalette(const QString &name) const;
@@ -33,6 +35,8 @@ class CQChartsThemeMgr : public QObject {
   //---
 
   //! named themes
+  CQChartsTheme *createTheme(const QString &name);
+
   void addTheme(const QString &name, CQChartsTheme *theme);
 
   CQChartsTheme *getTheme(const QString &name) const;

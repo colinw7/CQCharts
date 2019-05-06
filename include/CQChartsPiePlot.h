@@ -195,7 +195,7 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
  public:
   CQChartsPieGroupObj(const CQChartsPiePlot *plot, const CQChartsGeom::BBox &bbox,
-                      int groupInd, const QString &name, int ig, int ng);
+                      int groupInd, const QString &name, const ColorInd &ig);
 
   const CQChartsPiePlot *plot() const { return plot_; }
 
@@ -270,8 +270,6 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   int                    groupInd_     { -1 };      //!< groupInd
   QString                name_;                     //!< group name
   int                    colorInd_     { -1 };      //!< color index
-  int                    ig_           { 0 };       //!< group index
-  int                    ng_           { 1 };       //!< num groups
   double                 dataTotal_    { 0.0 };     //!< value data total
   int                    numValues_    { 0 };       //!< num values
   double                 radiusMax_    { 0.0 };     //!< radius data max

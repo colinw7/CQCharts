@@ -343,6 +343,16 @@ stringToCmdData(const QString &str) const
   );
 }
 
+bool
+CQChartsCmdBase::
+valueToStrs(const QString &str, QStringList &strs) const
+{
+  if (str.length() >= 2 && str[0] == '{' && str[str.length() - 1] == '}')
+    return qtcl()->splitList(str.mid(1, str.length() - 2), strs);
+  else
+    return qtcl()->splitList(str, strs);
+}
+
 //------
 
 void

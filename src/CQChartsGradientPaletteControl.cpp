@@ -327,6 +327,8 @@ updateState()
   setColorType (pal->colorType ());
   setColorModel(pal->colorModel());
 
+  distinctCheck_->setChecked(pal->isDistinct());
+
   setRedModel  (pal->redModel  ());
   setGreenModel(pal->greenModel());
   setBlueModel (pal->blueModel ());

@@ -441,7 +441,10 @@ class CQChartsKeyItem : public QObject {
   Q_PROPERTY(bool clickable READ isClickable WRITE setClickable)
 
  public:
-  CQChartsKeyItem(CQChartsPlotKey *key, int i, int n);
+  using ColorInd = CQChartsUtil::ColorInd;
+
+ public:
+  CQChartsKeyItem(CQChartsPlotKey *key, const ColorInd &ic);
 
   virtual ~CQChartsKeyItem() { }
 
@@ -491,8 +494,7 @@ class CQChartsKeyItem : public QObject {
 
  protected:
   CQChartsPlotKey*           key_       { nullptr }; //!< parent key
-  int                        i_         { 0 };       //!< index
-  int                        n_         { 0 };       //!< number of indices
+  ColorInd                   ic_;                    //!< color index
   int                        row_       { 0 };       //!< row
   int                        col_       { 0 };       //!< col
   int                        rowSpan_   { 1 };       //!< row span
@@ -515,7 +517,7 @@ class CQChartsKeyText : public CQChartsKeyItem {
   Q_OBJECT
 
  public:
-  CQChartsKeyText(CQChartsPlot *plot, const QString &text, int i, int n);
+  CQChartsKeyText(CQChartsPlot *plot, const QString &text, const ColorInd &ic);
 
   const QString &text() const { return text_; }
   void setText(const QString &s) { text_ = s; }
@@ -543,11 +545,12 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   Q_PROPERTY(CQChartsColor  borderColor  READ borderColor  WRITE setBorderColor )
 
  public:
-  using ColorInd = CQChartsUtil::ColorInd;
+  using RangeValue = CQChartsGeom::RangeValue;
 
  public:
   CQChartsKeyColorBox(CQChartsPlot *plot, const ColorInd &is, const ColorInd &ig,
-                      const ColorInd &iv, double xv=0.0, double yv=0.0);
+                      const ColorInd &iv, const RangeValue &xv=RangeValue(),
+                      const RangeValue &yv=RangeValue());
 
   const CQChartsLength &cornerRadius() const { return boxData_.shape().border().cornerSize(); }
   void setCornerRadius(const CQChartsLength &r) { boxData_.shape().border().setCornerSize(r); }
@@ -565,14 +568,17 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   ColorInd calcColorInd() const;
 
+  virtual double xColorValue(bool relative=true) const;
+  virtual double yColorValue(bool relative=true) const;
+
  protected:
   CQChartsPlot*   plot_     { nullptr }; //!< parent plot
   CQChartsBoxData boxData_;              //!< box data
   ColorInd        is_;                   //!< group index
   ColorInd        ig_;                   //!< group index
   ColorInd        iv_;                   //!< number of groups
-  double          xv_       { 0.0 };     //!< x value
-  double          yv_       { 0.0 };     //!< y value
+  RangeValue      xv_;                   //!< x value
+  RangeValue      yv_;                   //!< y value
 };
 
 #endif

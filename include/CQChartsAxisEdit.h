@@ -41,7 +41,7 @@ class CQCheckBox;
 class CQGroupBox;
 class CQIntegerSpin;
 class CQRealSpin;
-class QLineEdit;
+class CQLineEdit;
 
 //! \brief axis edit
 class CQChartsAxisEdit : public QFrame {
@@ -72,13 +72,13 @@ class CQChartsAxisEdit : public QFrame {
   CQCheckBox*           integralEdit_          { nullptr }; //!< is integral edit
   CQCheckBox*           dateEdit_              { nullptr }; //!< is date edit
   CQCheckBox*           logEdit_               { nullptr }; //!< is log edit
-  QLineEdit*            formatEdit_            { nullptr }; //!< format edit
+  CQLineEdit*           formatEdit_            { nullptr }; //!< format edit
   CQIntegerSpin*        tickIncrementEdit_     { nullptr }; //!< tick increment edit
   CQRealSpin*           majorIncrementEdit_    { nullptr }; //!< major increment edit
   CQRealSpin*           startEdit_             { nullptr }; //!< start edit
   CQRealSpin*           endEdit_               { nullptr }; //!< end edit
   CQCheckBox*           includeZeroEdit_       { nullptr }; //!< include zero edit
-  QLineEdit*            positionEdit_          { nullptr }; //!< position edit
+  CQLineEdit*           positionEdit_          { nullptr }; //!< position edit
   CQChartsLineDataEdit* lineDataEdit_          { nullptr }; //!< line data edit
   CQChartsTextDataEdit* tickLabelTextDataEdit_ { nullptr }; //!< tick label text edit
   CQChartsTextDataEdit* labelTextDataEdit_     { nullptr }; //!< label text edit

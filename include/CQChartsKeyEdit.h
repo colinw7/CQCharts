@@ -39,7 +39,7 @@ class CQCheckBox;
 class CQGroupBox;
 class CQIntegerSpin;
 class CQPoint2DEdit;
-class QLineEdit;
+class CQLineEdit;
 
 //! \brief key edit
 class CQChartsKeyEdit : public QFrame {
@@ -79,10 +79,10 @@ class CQChartsKeyEdit : public QFrame {
   CQCheckBox*                   insideYEdit_        { nullptr }; //!< inside y edit
   CQIntegerSpin*                spacingEdit_        { nullptr }; //!< spacing edit
   CQCheckBox*                   flippedEdit_        { nullptr }; //!< flipped edit
-  QLineEdit*                    headerEdit_         { nullptr }; //!< header edit
+  CQLineEdit*                   headerEdit_         { nullptr }; //!< header edit
   CQChartsTextDataEdit*         headerTextDataEdit_ { nullptr }; //!< header text edit
-  QLineEdit*                    scrollWidthEdit_    { nullptr }; //!< scroll width edit
-  QLineEdit*                    scrollHeightEdit_   { nullptr }; //!< scroll height edit
+  CQLineEdit*                   scrollWidthEdit_    { nullptr }; //!< scroll width edit
+  CQLineEdit*                   scrollHeightEdit_   { nullptr }; //!< scroll height edit
   CQChartsTextBoxDataEdit*      textBoxEdit_        { nullptr }; //!< text box edit
   bool                          connected_          { false };   //!< is connected
 };

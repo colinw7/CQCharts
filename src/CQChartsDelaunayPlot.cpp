@@ -308,8 +308,13 @@ addPointObj(double x, double y, const QModelIndex &xind, int r, int nr, PlotObjs
 
   CQChartsGeom::BBox bbox(x - sw/2.0, y - sh/2.0, x + sw/2.0, y + sh/2.0);
 
+  ColorInd iv;
+
+  if (nr > 0)
+    iv = ColorInd(r, nr);
+
   CQChartsDelaunayPointObj *pointObj =
-    new CQChartsDelaunayPointObj(this, bbox, x, y, xind1, r, nr);
+    new CQChartsDelaunayPointObj(this, bbox, x, y, xind1, iv);
 
   objs.push_back(pointObj);
 }
@@ -463,9 +468,9 @@ drawVoronoi(QPainter *painter) const
 
 CQChartsDelaunayPointObj::
 CQChartsDelaunayPointObj(const CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &rect,
-                         double x, double y, const QModelIndex &ind, int i, int n) :
- CQChartsPlotObj(const_cast<CQChartsDelaunayPlot *>(plot), rect), plot_(plot),
- x_(x), y_(y), ind_(ind), i_(i), n_(n)
+                         double x, double y, const QModelIndex &ind, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<CQChartsDelaunayPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
+ plot_(plot), x_(x), y_(y), ind_(ind)
 {
 }
 
@@ -486,7 +491,7 @@ calcId() const
   if (name1.length())
     return QString("%1:%2:%3:%4").arg(typeName()).arg(name1).arg(x_).arg(y_);
   else
-    return QString("%1:%2:%3:%4").arg(typeName()).arg(i_).arg(x_).arg(y_);
+    return QString("%1:%2:%3:%4").arg(typeName()).arg(iv_.i).arg(x_).arg(y_);
 }
 
 bool
@@ -543,10 +548,12 @@ draw(QPainter *painter)
     return;
 
   // calc pen and brush
+  ColorInd colorInd = calcColorInd();
+
   QPen   pen;
   QBrush brush;
 
-  plot_->setSymbolPenBrush(pen, brush, 0, 1);
+  plot_->setSymbolPenBrush(pen, brush, colorInd);
 
   plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 

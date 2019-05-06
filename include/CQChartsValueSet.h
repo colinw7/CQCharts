@@ -635,6 +635,15 @@ class CQChartsValueSet : public QObject {
   // check if has value for specified index
   bool hasInd(int i) const;
 
+  // map value to set index
+  int iset(const QVariant &value) const;
+
+  // number of unique values
+  int numUnique() const;
+
+  // map value to index
+  double imap(const QVariant &value) const;
+
   // map nth value to real range (mapMin()->mapMax())
   double imap(int i) const;
 

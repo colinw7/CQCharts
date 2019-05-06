@@ -110,8 +110,8 @@ class CQBucketer {
 
   QString bucketName(int bucket, NameFormat format=NameFormat::DASH) const;
 
-  QString bucketName(int    imin, int    imax, NameFormat format=NameFormat::DASH) const;
-  QString bucketName(double rmin, double rmax, NameFormat format=NameFormat::DASH) const;
+  static QString bucketName(int    imin, int    imax, NameFormat format=NameFormat::DASH);
+  static QString bucketName(double rmin, double rmax, NameFormat format=NameFormat::DASH);
 
   //----
 

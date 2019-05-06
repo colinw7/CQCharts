@@ -51,7 +51,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
  public:
   CQChartsRadarObj(const CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect,
                    const QString &name, const QPolygonF &poly, const NameValues &nameValues,
-                   const QModelIndex &ind, int i, int n);
+                   const QModelIndex &ind, const ColorInd &iv);
 
   QString typeName() const override { return "poly"; }
 
@@ -79,8 +79,6 @@ class CQChartsRadarObj : public CQChartsPlotObj {
   QPolygonF                poly_;                   //!< polygon
   NameValues               nameValues_;             //!< column values
   QModelIndex              ind_;                    //!< data index
-  int                      i_          { 0 };       //!< value ind
-  int                      n_          { 1 };       //!< value count
 };
 
 //---

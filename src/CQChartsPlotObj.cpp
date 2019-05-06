@@ -32,20 +32,32 @@ calcColumnId(const QModelIndex &ind, QString &str) const
 
 double
 CQChartsPlotObj::
-xColorValue() const
+xColorValue(bool relative) const
 {
-  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+  double x = rect_.getXMid();
 
-  return CMathUtil::map(rect_.getXMid(), dataRange.xmin(), dataRange.xmax(), 0.0, 1.0);
+  if (relative) {
+    const CQChartsGeom::Range &dataRange = plot_->dataRange();
+
+    return CMathUtil::map(x, dataRange.xmin(), dataRange.xmax(), 0.0, 1.0);
+  }
+  else
+    return x;
 }
 
 double
 CQChartsPlotObj::
-yColorValue() const
+yColorValue(bool relative) const
 {
-  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+  double y = rect_.getYMid();
 
-  return CMathUtil::map(rect_.getYMid(), dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
+  if (relative) {
+    const CQChartsGeom::Range &dataRange = plot_->dataRange();
+
+    return CMathUtil::map(y, dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
+  }
+  else
+    return y;
 }
 
 //---
@@ -54,22 +66,7 @@ CQChartsPlotObj::ColorInd
 CQChartsPlotObj::
 calcColorInd() const
 {
-  ColorInd colorInd;
-
-  if      (plot_->colorType() == CQChartsPlot::ColorType::AUTO)
-    colorInd = (is_.n <= 1 ? (ig_.n <= 1 ? iv_ : ig_) : is_);
-  else if (plot_->colorType() == CQChartsPlot::ColorType::SET)
-    colorInd = is_;
-  else if (plot_->colorType() == CQChartsPlot::ColorType::GROUP)
-    colorInd = ig_;
-  else if (plot_->colorType() == CQChartsPlot::ColorType::INDEX)
-    colorInd = iv_;
-  else if (plot_->colorType() == CQChartsPlot::ColorType::X_VALUE)
-    colorInd = ColorInd(xColorValue());
-  else if (plot_->colorType() == CQChartsPlot::ColorType::Y_VALUE)
-    colorInd = ColorInd(yColorValue());
-
-  return colorInd;
+  return plot_->calcColorInd(this, nullptr, is_, ig_, iv_);
 }
 
 //---
@@ -166,7 +163,7 @@ addSelectIndex(Indices &inds, const QModelIndex &ind) const
 //------
 
 CQChartsGroupObj::
-CQChartsGroupObj(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox) :
- CQChartsPlotObj(plot, bbox)
+CQChartsGroupObj(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox, const ColorInd &ig) :
+ CQChartsPlotObj(plot, bbox, ColorInd(), ig, ColorInd())
 {
 }

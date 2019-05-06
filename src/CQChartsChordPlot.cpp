@@ -394,16 +394,21 @@ initTableObjs(PlotObjs &objs) const
 
     // set group
     if (groupColumn().isValid() && groupColumn().column() < nv) {
+      int igroup = groupColumn().column();
+
       QModelIndex groupInd  = modelIndex(ind.row(), groupColumn(), ind.parent());
       QModelIndex groupInd1 = normalizeIndex(groupInd);
 
-      QVariant var = indRowDatas[row].rowData[groupColumn().column()];
+      QVariant groupVar = indRowDatas[row].rowData[igroup];
 
-      QString group;
+      QString groupStr;
 
-      CQChartsVariant::toString(var, group);
+      CQChartsVariant::toString(groupVar, groupStr);
 
-      data.setGroup(CQChartsChordData::Group(group, groupValues.imap(row)));
+      int ig = groupValues.iset(groupVar);
+      int ng = groupValues.numUnique();
+
+      data.setGroup(CQChartsChordData::Group(groupStr, ig, ng));
 
       data.setInd(groupInd1);
     }
@@ -503,7 +508,10 @@ initTableObjs(PlotObjs &objs) const
 
     CQChartsGeom::BBox rect(-1, -1, 1, 1);
 
-    CQChartsChordObj *obj = new CQChartsChordObj(this, rect, data, row, nv);
+    ColorInd ig(data.group().i, data.group().n);
+    ColorInd iv(row, nv);
+
+    CQChartsChordObj *obj = new CQChartsChordObj(this, rect, data, ig, iv);
 
     objs.push_back(obj);
   }
@@ -586,11 +594,20 @@ initHierObjs(PlotObjs &objs) const
 
       // set group if specified
       if (plot_->groupColumn().isValid()) {
+        //int igroup = plot_->groupColumn().column();
+
         bool ok;
 
-        QString groupStr = plot_->modelString(data.row, plot_->groupColumn(), data.parent, ok);
+        QVariant groupVar = plot_->modelValue(data.row, plot_->groupColumn(), data.parent, ok);
 
-        (*ps).second.setGroup(CQChartsChordData::Group(groupStr, groupValues_.imap(data.row)));
+        QString groupStr;
+
+        CQChartsVariant::toString(groupVar, groupStr);
+
+        int ig = groupValues_.iset(groupVar);
+        int ng = groupValues_.numUnique();
+
+        (*ps).second.setGroup(CQChartsChordData::Group(groupStr, ig, ng));
       }
 
       return State::OK;
@@ -633,8 +650,8 @@ initHierObjs(PlotObjs &objs) const
   if (isSorted()) {
     std::sort(datas.begin(), datas.end(),
       [](const CQChartsChordData &lhs, const CQChartsChordData &rhs) {
-        if (lhs.group().value != rhs.group().value)
-          return lhs.group().value < rhs.group().value;
+        if (lhs.group().value() != rhs.group().value())
+          return lhs.group().value() < rhs.group().value();
 
         return lhs.total() < rhs.total();
       });
@@ -645,8 +662,8 @@ initHierObjs(PlotObjs &objs) const
   else {
     std::sort(datas.begin(), datas.end(),
       [](const CQChartsChordData &lhs, const CQChartsChordData &rhs) {
-        if (lhs.group().value != rhs.group().value)
-          return lhs.group().value < rhs.group().value;
+        if (lhs.group().value() != rhs.group().value())
+          return lhs.group().value() < rhs.group().value();
 
         return lhs.from() < rhs.from();
       });
@@ -698,7 +715,10 @@ initHierObjs(PlotObjs &objs) const
 
     CQChartsGeom::BBox rect(-1, -1, 1, 1);
 
-    CQChartsChordObj *obj = new CQChartsChordObj(this, rect, data, row, nv);
+    ColorInd ig(data.group().i, data.group().n);
+    ColorInd iv(row, nv);
+
+    CQChartsChordObj *obj = new CQChartsChordObj(this, rect, data, ig, iv);
 
     objs.push_back(obj);
   }
@@ -721,9 +741,9 @@ postResize()
 
 CQChartsChordObj::
 CQChartsChordObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
-                 const CQChartsChordData &data, int i, int n) :
- CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect), plot_(plot),
- data_(data), i_(i), n_(n)
+                 const CQChartsChordData &data, const ColorInd &ig, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect, ColorInd(), ig, iv),
+ plot_(plot), data_(data)
 {
 }
 
@@ -733,9 +753,9 @@ calcId() const
 {
   if (data_.group().str != "")
     return QString("%1:%2:%3:%4").arg(typeName()).arg(data_.name()).
-             arg(data_.group().str).arg(data_.total());
+             arg(data_.group().str).arg(iv_.i);
   else
-    return QString("%1:%2:%3").arg(typeName()).arg(data_.name()).arg(data_.total());
+    return QString("%1:%2:%3").arg(typeName()).arg(data_.name()).arg(iv_.i);
 }
 
 QString
@@ -855,17 +875,25 @@ draw(QPainter *painter)
   plot_->setPen(pen, true, segmentBorderColor, plot_->borderAlpha(),
                 plot_->borderWidth(), plot_->borderDash());
 
-  double gval = data_.group().value;
+  double gval = data_.group().value();
+
+  ColorInd colorInd = calcColorInd();
 
   QColor fromColor;
 
-  if (gval >= 0.0) {
-    double r = CMathUtil::norm(i(), 0, n());
+  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    if (gval >= 0.0) {
+      double r = CMathUtil::norm(iv_.i, 0, iv_.n);
 
-    fromColor = plot_->interpGroupPaletteColor(gval, r, 0.1);
+      fromColor = plot_->interpGroupPaletteColor(gval, r, 0.1);
+    }
+    else {
+      fromColor = plot_->interpPaletteColor(colorInd);
+    }
   }
-  else
-    fromColor = plot_->interpPaletteColor(i(), n());
+  else {
+    fromColor = plot_->interpPaletteColor(colorInd);
+  }
 
   double fromAlpha = 1.0;
 
@@ -953,7 +981,9 @@ draw(QPainter *painter)
     plot_->setPen(pen, true, arcBorderColor, plot_->borderAlpha(),
                   plot_->borderWidth(), plot_->borderDash());
 
-    QColor toColor = plot_->interpPaletteColor(toObj->i(), toObj->n());
+    ColorInd toColorInd = toObj->calcColorInd();
+
+    QColor toColor = plot_->interpPaletteColor(toColorInd);
 
     QColor c = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
 
@@ -1013,9 +1043,11 @@ drawFg(QPainter *painter) const
 
   // set connection line pen
   // TODO: separate text and line pen control
+  ColorInd colorInd = calcColorInd();
+
   QPen lpen;
 
-  QColor bg = plot_->interpPaletteColor(i_, n_);
+  QColor bg = plot_->interpPaletteColor(colorInd);
 
   plot_->setPen(lpen, true, bg, 1.0);
 

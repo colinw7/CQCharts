@@ -414,8 +414,10 @@ createObjs(PlotObjs &objs) const
       CQChartsGeom::BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
                          normalizedDataRange_.xmax(), normalizedDataRange_.ymax());
 
+    ColorInd is(i, n);
+
     CQChartsParallelLineObj *lineObj =
-      new CQChartsParallelLineObj(this, bbox, poly, xind1, i, n);
+      new CQChartsParallelLineObj(this, bbox, poly, xind1, is);
 
     objs.push_back(lineObj);
 
@@ -465,8 +467,11 @@ createObjs(PlotObjs &objs) const
 
       CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
 
+      ColorInd is(i, n);
+      ColorInd iv(j, nl);
+
       CQChartsParallelPointObj *pointObj =
-        new CQChartsParallelPointObj(this, bbox, p.y(), x, y, yind1, i, n, j, nl);
+        new CQChartsParallelPointObj(this, bbox, p.y(), x, y, yind1, is, iv);
 
       //bool ok;
 
@@ -735,9 +740,9 @@ setNormalizedRange()
 
 CQChartsParallelLineObj::
 CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
-                        const QPolygonF &poly, const QModelIndex &ind, int i, int n) :
- CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(plot), rect),
- plot_(plot), poly_(poly), ind_(ind), i_(i), n_(n)
+                        const QPolygonF &poly, const QModelIndex &ind, const ColorInd &is) :
+ CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(plot), rect, is, ColorInd(), ColorInd()),
+ plot_(plot), poly_(poly), ind_(ind)
 {
 }
 
@@ -858,7 +863,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  plot_->setLineDataPen(pen, i_, n_);
+  plot_->setLineDataPen(pen, is_);
 
   plot_->setBrush(brush, false);
 
@@ -905,9 +910,9 @@ getPolyLine(QPolygonF &poly) const
 CQChartsParallelPointObj::
 CQChartsParallelPointObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
                          double yval, double x, double y, const QModelIndex &ind,
-                         int iset, int nset, int i, int n) :
- CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(plot), rect), plot_(plot),
- yval_(yval), x_(x), y_(y), ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
+                         const ColorInd &is, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(plot), rect, is, ColorInd(), iv),
+ plot_(plot), yval_(yval), x_(x), y_(y), ind_(ind)
 {
 }
 
@@ -919,7 +924,7 @@ calcId() const
 
   QString xname = plot_->modelString(ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
-  const CQChartsColumn &yColumn = plot_->yColumns().getColumn(i_);
+  const CQChartsColumn &yColumn = plot_->yColumns().getColumn(iv_.i);
 
   QString yname = plot_->modelHeaderString(yColumn, ok);
 
@@ -938,7 +943,7 @@ calcTipId() const
 
   tableTip.addBoldLine(xname);
 
-  const CQChartsColumn &yColumn = plot_->yColumns().getColumn(i_);
+  const CQChartsColumn &yColumn = plot_->yColumns().getColumn(iv_.i);
 
   QString yname = plot_->modelHeaderString(yColumn, ok);
 
@@ -1011,7 +1016,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  plot_->setSymbolPenBrush(pen, brush, iset_, nset_);
+  plot_->setSymbolPenBrush(pen, brush, is_);
 
   plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 

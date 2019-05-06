@@ -186,7 +186,7 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   //--
 
   // format
-  formatEdit_ = CQUtil::makeWidget<QLineEdit>("formatEdit");
+  formatEdit_ = CQUtil::makeWidget<CQLineEdit>("formatEdit");
 
   formatEdit_->setText(data_.format);
 
@@ -240,7 +240,7 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   //--
 
   // position
-  positionEdit_ = CQUtil::makeWidget<QLineEdit>("positionEdit");
+  positionEdit_ = CQUtil::makeWidget<CQLineEdit>("positionEdit");
 
   positionEdit_->setText(data_.position.toString());
 

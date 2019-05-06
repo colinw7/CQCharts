@@ -50,6 +50,9 @@ class CQChartsHierBubbleNode : public CQChartsCircleNode {
   }
 
  public:
+  using ColorInd = CQChartsUtil::ColorInd;
+
+ public:
   CQChartsHierBubbleNode(const CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNode *parent,
                          const QString &name, double size, const QModelIndex &ind);
 
@@ -110,7 +113,8 @@ class CQChartsHierBubbleNode : public CQChartsCircleNode {
     return n1.r_ < n2.r_;
   }
 
-  virtual QColor interpColor(const CQChartsHierBubblePlot *plot, int n) const;
+  virtual QColor interpColor(const CQChartsHierBubblePlot *plot,
+                             const ColorInd &colorInd, int n) const;
 
  protected:
   const CQChartsHierBubblePlot* plot_    { nullptr }; //!< parent plot
@@ -176,7 +180,8 @@ class CQChartsHierBubbleHierNode : public CQChartsHierBubbleNode {
 
   void setPosition(double x, double y) override;
 
-  QColor interpColor(const CQChartsHierBubblePlot *plot, int n) const override;
+  QColor interpColor(const CQChartsHierBubblePlot *plot,
+                     const ColorInd &colorInd, int n) const override;
 
  protected:
   Nodes    nodes_;          //!< child nodes
@@ -192,13 +197,13 @@ class CQChartsHierBubbleHierObj;
 /*!
  * \brief Hierarchical Bubble Plot object
  */
-class CQChartsHierBubbleObj : public CQChartsPlotObj {
+class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsHierBubbleObj(const CQChartsHierBubblePlot *plot, CQChartsHierBubbleNode *node,
-                        CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
-                        int i, int n);
+  CQChartsHierBubbleNodeObj(const CQChartsHierBubblePlot *plot, CQChartsHierBubbleNode *node,
+                            CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
+                            const ColorInd &is);
 
   QString typeName() const override { return "bubble"; }
 
@@ -222,18 +227,16 @@ class CQChartsHierBubbleObj : public CQChartsPlotObj {
   const CQChartsHierBubblePlot* plot_    { nullptr }; //!< parent plot
   CQChartsHierBubbleNode*       node_    { nullptr }; //!< associated node
   CQChartsHierBubbleHierObj*    hierObj_ { nullptr }; //!< parent hier obj
-  int                           i_       { 0 };       //!< index
-  int                           n_       { 0 };       //!< index count
 };
 
 //---
 
 //! \brief Hierarchical Bubble Plot Hierarchical object
-class CQChartsHierBubbleHierObj : public CQChartsHierBubbleObj {
+class CQChartsHierBubbleHierObj : public CQChartsHierBubbleNodeObj {
  public:
   CQChartsHierBubbleHierObj(const CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNode *hier,
                             CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
-                            int i, int n);
+                            const ColorInd &is);
 
   CQChartsHierBubbleHierNode *hierNode() const { return hier_; }
 

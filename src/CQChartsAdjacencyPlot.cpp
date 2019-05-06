@@ -127,6 +127,8 @@ CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
   setEmptyCellFillColor  (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.1));
   setEmptyCellBorderColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.2));
 
+  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+
   setOuterMargin(0, 0, 0, 0);
 
   addTitle();
@@ -914,7 +916,9 @@ QColor
 CQChartsAdjacencyPlot::
 interpGroupColor(int group) const
 {
-  return interpPaletteColor((1.0*group)/maxGroup());
+  ColorInd ig(group, maxGroup() + 1);
+
+  return interpPaletteColor(ig);
 }
 
 //------
@@ -978,20 +982,34 @@ draw(QPainter *painter)
 
   //---
 
+  ColorInd colorInd = calcColorInd();
+
+  //---
+
+  auto interpGroupColor = [&](CQChartsAdjacencyNode *node) {
+    if (plot_->colorType() == CQChartsPlot::ColorType::AUTO)
+      return plot_->interpGroupColor(node->group());
+    else {
+      return plot_->interpFillColor(colorInd);
+    }
+  };
+
+  //---
+
   //int nn = plot_->numNodes();
 
   QColor bc = plot_->interpEmptyCellFillColor(0, 1);
 
   // node to self (diagonal)
   if (node1_ == node2_) {
-    bc = plot_->interpGroupColor(node1_->group());
+    bc = interpGroupColor(node1_);
   }
   // node to other node (scale to connections)
   else {
-    QColor c1 = plot_->interpGroupColor(node1_->group());
-    QColor c2 = plot_->interpGroupColor(node2_->group());
+    QColor c1 = interpGroupColor(node1_);
+    QColor c2 = interpGroupColor(node2_);
 
-    double s = (1.0*plot_->maxValue() - value_)/plot_->maxValue();
+    double s = CMathUtil::map(value_, 0.0, plot_->maxValue(), 0.0, 1.0);
 
     double r = (c1.redF  () + c2.redF  () + s*bc.redF  ())/3;
     double g = (c1.greenF() + c2.greenF() + s*bc.greenF())/3;
@@ -1006,10 +1024,9 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor pc = plot_->interpBorderColor(0, 1);
+  QColor pc = plot_->interpBorderColor(colorInd);
 
-  plot_->setPen(pen, true, pc, plot_->borderAlpha(),
-                plot_->borderWidth(), plot_->borderDash());
+  plot_->setPen(pen, true, pc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash());
 
   plot_->setBrush(brush, true, bc, plot_->fillAlpha(), plot_->fillPattern());
 
@@ -1034,4 +1051,21 @@ CQChartsAdjacencyObj::
 inside(const CQChartsGeom::Point &p) const
 {
   return rect().inside(p);
+}
+
+double
+CQChartsAdjacencyObj::
+xColorValue(bool relative) const
+{
+  if (! relative)
+    return value_;
+  else
+    return CMathUtil::map(value_, 0.0, plot_->maxValue(), 0.0, 1.0);
+}
+
+double
+CQChartsAdjacencyObj::
+yColorValue(bool relative) const
+{
+  return xColorValue(relative);
 }

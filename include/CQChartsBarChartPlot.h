@@ -269,7 +269,7 @@ class CQChartsBarKeyText : public CQChartsKeyText {
   Q_OBJECT
 
  public:
-  CQChartsBarKeyText(CQChartsBarChartPlot *plot, const QString &text, int i, int n);
+  CQChartsBarKeyText(CQChartsBarChartPlot *plot, const QString &text, const ColorInd &ic);
 
   QColor interpTextColor(int i, int n) const override;
 

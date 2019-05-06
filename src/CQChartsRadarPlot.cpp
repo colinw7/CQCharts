@@ -444,8 +444,10 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
 
   CQChartsGeom::BBox bbox(-1, -1, 1, 1);
 
+  ColorInd is(data.row, nr);
+
   CQChartsRadarObj *radarObj =
-    new CQChartsRadarObj(this, bbox, name, poly, nameValues, nameInd1, data.row, nr);
+    new CQChartsRadarObj(this, bbox, name, poly, nameValues, nameInd1, is);
 
   objs.push_back(radarObj);
 }
@@ -503,10 +505,10 @@ addKeyItems(CQChartsPlotKey *key)
 
       CQChartsRadarPlot *plot = const_cast<CQChartsRadarPlot *>(plot_);
 
-      CQChartsKeyColorBox *color =
-        new CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ColorInd(data.row, numRows()));
+      ColorInd ic(data.row, numRows());
 
-      CQChartsKeyText *text = new CQChartsKeyText(plot, name, data.row, numRows());
+      CQChartsKeyColorBox *color = new CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ic);
+      CQChartsKeyText     *text  = new CQChartsKeyText(plot, name, ic);
 
       color->setClickable(true);
 
@@ -686,18 +688,17 @@ execDrawBackground(QPainter *painter) const
 CQChartsRadarObj::
 CQChartsRadarObj(const CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect, const QString &name,
                  const QPolygonF &poly, const NameValues &nameValues, const QModelIndex &ind,
-                 int i, int n) :
- CQChartsPlotObj(const_cast<CQChartsRadarPlot *>(plot), rect), plot_(plot),
- name_(name), poly_(poly), nameValues_(nameValues), ind_(ind), i_(i), n_(n)
+                 const ColorInd &is) :
+ CQChartsPlotObj(const_cast<CQChartsRadarPlot *>(plot), rect, is, ColorInd(), ColorInd()),
+ plot_(plot), name_(name), poly_(poly), nameValues_(nameValues), ind_(ind)
 {
-  assert(i_ >= 0 && i < n_);
 }
 
 QString
 CQChartsRadarObj::
 calcId() const
 {
-  return QString("%1:%2").arg(typeName()).arg(i_);
+  return QString("%1:%2").arg(typeName()).arg(is_.i);
 }
 
 QString
@@ -825,14 +826,17 @@ draw(QPainter *painter)
   //---
 
   // calc stroke and brush
+  ColorInd colorInd = calcColorInd();
+
   QPen   pen;
   QBrush brush;
 
+  QColor strokeColor = plot_->interpBorderColor(colorInd);
+  QColor fillColor   = plot_->interpFillColor  (colorInd);
+
   plot_->setPenBrush(pen, brush,
-    plot_->isBorder(), plot_->interpBorderColor(i_, n_), plot_->borderAlpha(),
-    plot_->borderWidth(), plot_->borderDash(),
-    plot_->isFilled(), plot_->interpFillColor(i_, n_), plot_->fillAlpha(),
-    plot_->fillPattern());
+    plot_->isBorder(), strokeColor, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
+    plot_->isFilled(), fillColor, plot_->fillAlpha(), plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

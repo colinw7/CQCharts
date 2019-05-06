@@ -1225,7 +1225,8 @@ initRawObjs(PlotObjs &objs) const
         }
 
         CQChartsBoxPlotWhiskerObj *boxObj =
-          new CQChartsBoxPlotWhiskerObj(this, rect, setId, groupInd, whisker, ig, ng, is, ns);
+          new CQChartsBoxPlotWhiskerObj(this, rect, setId, groupInd, whisker,
+                                        ColorInd(is, ns), ColorInd(ig, ng));
 
         objs.push_back(boxObj);
 
@@ -1261,7 +1262,7 @@ initRawObjs(PlotObjs &objs) const
 
             CQChartsBoxPlotOutlierObj *outlierObj =
               new CQChartsBoxPlotOutlierObj(this, rect, setId, groupInd, whisker,
-                                            ig, ng, is, ns, o);
+                                            ColorInd(is, ns), ColorInd(ig, ng), o);
 
             objs.push_back(outlierObj);
           }
@@ -1289,7 +1290,7 @@ initRawObjs(PlotObjs &objs) const
       CQChartsGeom::BBox rect = getDataRange();
 
       CQChartsBoxPlotConnectedObj *connectedObj =
-        new CQChartsBoxPlotConnectedObj(this, rect, groupInd, ig, ng);
+        new CQChartsBoxPlotConnectedObj(this, rect, groupInd, ColorInd(ig, ng));
 
       objs.push_back(connectedObj);
     }
@@ -1355,7 +1356,7 @@ addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhiske
 
     CQChartsBoxPlotPointObj *pointObj =
       new CQChartsBoxPlotPointObj(this, rect, setId, groupInd, pos, value.ind,
-                                  ig, ng, is, ns, iv, nv);
+                                  ColorInd(is, ns), ColorInd(ig, ng), ColorInd(iv, nv));
 
     objs.push_back(pointObj);
   }
@@ -1458,12 +1459,12 @@ addStackedPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisk
       else
         ppos.setY(prect.getYMid());
 
-      pointObj = new CQChartsBoxPlotPointObj(this, prect, setId, groupInd, ppos,
-                                             value.ind, ig, ng, is, ns, iv, nv);
+      pointObj = new CQChartsBoxPlotPointObj(this, prect, setId, groupInd, ppos, value.ind,
+                                             ColorInd(is, ns), ColorInd(ig, ng), ColorInd(iv, nv));
     }
     else {
-      pointObj = new CQChartsBoxPlotPointObj(this, rect, setId, groupInd, pos,
-                                             value.ind, ig, ng, is, ns, iv, nv);
+      pointObj = new CQChartsBoxPlotPointObj(this, rect, setId, groupInd, pos, value.ind,
+                                              ColorInd(is, ns), ColorInd(ig, ng), ColorInd(iv, nv));
     }
 
     objs.push_back(pointObj);
@@ -1502,7 +1503,7 @@ initCalcObjs(PlotObjs &objs) const
     }
 
     CQChartsBoxPlotDataObj *boxObj =
-      new CQChartsBoxPlotDataObj(this, rect, whiskerData, is, ns);
+      new CQChartsBoxPlotDataObj(this, rect, whiskerData, ColorInd(is, ns));
 
     objs.push_back(boxObj);
 
@@ -1541,7 +1542,8 @@ initCalcObjs(PlotObjs &objs) const
         }
 
         CQChartsBoxPlotOutlierObj *outlierObj =
-          new CQChartsBoxPlotOutlierObj(this, rect, -1, -1, nullptr, 0, 1, is, ns, io);
+          new CQChartsBoxPlotOutlierObj(this, rect, -1, -1, nullptr,
+                                        ColorInd(is, ns), ColorInd(), io);
 
         objs.push_back(outlierObj);
 
@@ -1583,8 +1585,10 @@ addKeyItems(CQChartsPlotKey *key)
 
         QString setName = setIdName(setId);
 
-        CQChartsBoxKeyColor *color = new CQChartsBoxKeyColor(this, is, ns);
-        CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, setName, is, ns);
+        ColorInd sc(is, ns), gc;
+
+        CQChartsBoxKeyColor *color = new CQChartsBoxKeyColor(this, sc, gc);
+        CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, setName, sc, gc);
 
         key->addItem(color, is, 0);
         key->addItem(text , is, 1);
@@ -1601,8 +1605,10 @@ addKeyItems(CQChartsPlotKey *key)
 
         QString groupName = groupIndName(groupInd);
 
-        CQChartsBoxKeyColor *color = new CQChartsBoxKeyColor(this, ig, ng);
-        CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, groupName, ig, ng);
+        ColorInd sc, gc(ig, ng);
+
+        CQChartsBoxKeyColor *color = new CQChartsBoxKeyColor(this, sc, gc);
+        CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, groupName, sc, gc);
 
         key->addItem(color, ig, 0);
         key->addItem(text , ig, 1);
@@ -1629,8 +1635,10 @@ addKeyItems(CQChartsPlotKey *key)
 
       QString name = whisker->name();
 
-      CQChartsBoxKeyColor *color = new CQChartsBoxKeyColor(this, is, ns);
-      CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, name, is, ns);
+      ColorInd sc(is, ns), gc;
+
+      CQChartsBoxKeyColor *color = new CQChartsBoxKeyColor(this, sc, gc);
+      CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, name, sc, gc);
 
       key->addItem(color, is, 0);
       key->addItem(text , is, 1);
@@ -1738,9 +1746,9 @@ hasYAxis() const
 CQChartsBoxPlotWhiskerObj::
 CQChartsBoxPlotWhiskerObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect, int setId,
                           int groupInd, const CQChartsBoxPlotWhisker *whisker,
-                          int ig, int ng, int is, int ns) :
- CQChartsBoxPlotObj(plot, rect), setId_(setId), groupInd_(groupInd), whisker_(whisker),
- ig_(ig), ng_(ng), is_(is), ns_(ns)
+                          const ColorInd &is, const ColorInd &ig) :
+ CQChartsBoxPlotObj(plot, rect, is, ig, ColorInd()), setId_(setId), groupInd_(groupInd),
+ whisker_(whisker)
 {
 }
 
@@ -1930,15 +1938,10 @@ CQChartsBoxPlotWhiskerObj::
 draw(QPainter *painter)
 {
   // get color index
-  int ic = is_;
-  int nc = ns_;
+  ColorInd colorInd = this->calcColorInd();
 
-  if (ng_ > 1) {
-    if (! plot_->hasSets() || ! plot_->isColorBySet()) {
-      ic = ig_;
-      nc = ng_;
-    }
-  }
+  if (plot_->hasSets() && plot_->isColorBySet())
+    colorInd = is_;
 
   //---
 
@@ -1946,8 +1949,8 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBoxBorderColor(ic, nc);
-  QColor fc = plot_->interpBoxFillColor(ic, nc);
+  QColor bc = plot_->interpBoxBorderColor(colorInd);
+  QColor fc = plot_->interpBoxFillColor(colorInd);
 
   plot_->setPenBrush(pen, brush,
     plot_->isBoxBorder(), bc, plot_->boxBorderAlpha(),
@@ -1965,7 +1968,7 @@ draw(QPainter *painter)
   QPen   whiskerPen;
   QBrush whiskerBrush;
 
-  plot_->setWhiskerLineDataPen(whiskerPen, ic, nc);
+  plot_->setWhiskerLineDataPen(whiskerPen, colorInd.i, colorInd.n);
 
   plot_->setBrush(whiskerBrush, false);
 
@@ -2054,8 +2057,8 @@ draw(QPainter *painter)
       QPen   symbolPen;
       QBrush symbolBrush;
 
-      QColor boxColor    = plot_->interpBoxFillColor(ic, nc);
-      QColor borderColor = plot_->interpBoxBorderColor(ic, nc);
+      QColor boxColor    = plot_->interpBoxFillColor(colorInd);
+      QColor borderColor = plot_->interpBoxBorderColor(colorInd);
 
       plot_->setPen(symbolPen, /*stroked*/true, borderColor, plot_->boxBorderAlpha(),
                     plot_->boxBorderWidth(), plot_->boxBorderDash());
@@ -2138,7 +2141,7 @@ draw(QPainter *painter)
 
         QPen pen;
 
-        QColor tc = plot_->interpTextColor(ic, nc);
+        QColor tc = plot_->interpTextColor(colorInd);
 
         plot_->setPen(pen, true, tc, plot_->textAlpha());
 
@@ -2195,7 +2198,7 @@ draw(QPainter *painter)
         QPen   pen;
         QBrush brush;
 
-        plot_->setOutlierSymbolPenBrush(pen, brush, ic, nc);
+        plot_->setOutlierSymbolPenBrush(pen, brush, colorInd.i, colorInd.n);
 
         plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
@@ -2334,9 +2337,9 @@ remapPos(double y) const
 CQChartsBoxPlotOutlierObj::
 CQChartsBoxPlotOutlierObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect, int setId,
                           int groupInd, const CQChartsBoxPlotWhisker *whisker,
-                          int ig, int ng, int is, int ns, int io) :
- CQChartsBoxPlotObj(plot, rect), setId_(setId), groupInd_(groupInd), whisker_(whisker),
- ig_(ig), ng_(ng), is_(is), ns_(ns), io_(io)
+                          const ColorInd &is, const ColorInd &ig, int io) :
+ CQChartsBoxPlotObj(plot, rect, is, ig, ColorInd()), setId_(setId), groupInd_(groupInd),
+ whisker_(whisker), io_(io)
 {
 }
 
@@ -2410,15 +2413,10 @@ CQChartsBoxPlotOutlierObj::
 draw(QPainter *painter)
 {
   // get color index
-  int ic = is_;
-  int nc = ns_;
+  ColorInd colorInd = this->calcColorInd();
 
-  if (ng_ > 1) {
-    if (! plot_->hasSets() || ! plot_->isColorBySet()) {
-      ic = ig_;
-      nc = ng_;
-    }
-  }
+  if (plot_->hasSets() && plot_->isColorBySet())
+    colorInd = is_;
 
   //---
 
@@ -2426,7 +2424,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  plot_->setOutlierSymbolPenBrush(pen, brush, ic, nc);
+  plot_->setOutlierSymbolPenBrush(pen, brush, colorInd.i, colorInd.n);
 
   plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
@@ -2466,8 +2464,8 @@ remapPos(double y) const
 
 CQChartsBoxPlotDataObj::
 CQChartsBoxPlotDataObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
-                       const CQChartsBoxWhiskerData &data, int is, int ns) :
- CQChartsBoxPlotObj(plot, rect), data_(data), is_(is), ns_(ns)
+                       const CQChartsBoxWhiskerData &data, const ColorInd &is) :
+ CQChartsBoxPlotObj(plot, rect, is, ColorInd(), ColorInd()), data_(data)
 {
 }
 
@@ -2767,9 +2765,9 @@ remapPos(double y) const
 
 CQChartsBoxPlotConnectedObj::
 CQChartsBoxPlotConnectedObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
-                            int groupInd, int i, int n) :
- CQChartsPlotObj(const_cast<CQChartsBoxPlot *>(plot), rect), plot_(plot),
- groupInd_(groupInd), i_(i), n_(n)
+                            int groupInd, const ColorInd &ig) :
+ CQChartsPlotObj(const_cast<CQChartsBoxPlot *>(plot), rect, ColorInd(), ig, ColorInd()),
+ plot_(plot), groupInd_(groupInd)
 {
   initPolygon();
 }
@@ -2778,7 +2776,7 @@ QString
 CQChartsBoxPlotConnectedObj::
 calcId() const
 {
-  return QString("%1:%2").arg(typeName()).arg(i_);
+  return QString("%1:%2").arg(typeName()).arg(ig_.i);
 }
 
 QString
@@ -2841,7 +2839,7 @@ setWhiskerMap() const
   int i = 0;
 
   for (const auto &groupIdWhiskers : plot_->groupWhiskers()) {
-    if (i == i_)
+    if (i == ig_.i)
       return groupIdWhiskers.second;
 
     ++i;
@@ -2871,8 +2869,8 @@ draw(QPainter *painter)
     QPen   ppen;
     QBrush pbrush;
 
-    QColor bc = plot_->interpBoxBorderColor(i_, n_);
-    QColor fc = plot_->interpBoxFillColor(i_, n_);
+    QColor bc = plot_->interpBoxBorderColor(ig_);
+    QColor fc = plot_->interpBoxFillColor(ig_);
 
     plot_->setPenBrush(ppen, pbrush,
       plot_->isBoxBorder(), bc, plot_->boxBorderAlpha(),
@@ -2905,7 +2903,7 @@ draw(QPainter *painter)
   QPen   lpen;
   QBrush lbrush;
 
-  QColor lineColor = plot_->interpBoxBorderColor(i_, n_);
+  QColor lineColor = plot_->interpBoxBorderColor(ig_);
 
   plot_->setPen(lpen, true, lineColor, plot_->boxBorderAlpha(),
                 plot_->boxBorderWidth(), plot_->boxBorderDash());
@@ -2928,8 +2926,9 @@ draw(QPainter *painter)
 //------
 
 CQChartsBoxPlotObj::
-CQChartsBoxPlotObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect) :
- CQChartsPlotObj(const_cast<CQChartsBoxPlot *>(plot), rect), plot_(plot)
+CQChartsBoxPlotObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
+                   const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<CQChartsBoxPlot *>(plot), rect, is, ig, iv), plot_(plot)
 {
 }
 
@@ -3064,20 +3063,17 @@ addVBBox(CQChartsGeom::BBox &pbbox, double yb, double yt, double x,
 CQChartsBoxPlotPointObj::
 CQChartsBoxPlotPointObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
                         int setId, int groupInd, const QPointF &p, const QModelIndex &ind,
-                        int ig, int ng, int is, int ns, int iv, int nv) :
- CQChartsPlotObj(const_cast<CQChartsBoxPlot *>(plot), rect), plot_(plot), setId_(setId),
- groupInd_(groupInd), p_(p), ind_(ind), ig_(ig), ng_(ng), is_(is), ns_(ns), iv_(iv), nv_(nv)
+                        const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<CQChartsBoxPlot *>(plot), rect, is, ig, iv), plot_(plot),
+ setId_(setId), groupInd_(groupInd), p_(p), ind_(ind)
 {
-  assert(ig >= 0 && ig < ng);
-  assert(is >= 0 && is < ns);
-  assert(iv >= 0 && iv < nv);
 }
 
 QString
 CQChartsBoxPlotPointObj::
 calcId() const
 {
-  return QString("%1:%2:%3:%4").arg(typeName()).arg(ig_).arg(is_).arg(iv_);
+  return QString("%1:%2:%3:%4").arg(typeName()).arg(is_.i).arg(ig_.i).arg(iv_.i);
 }
 
 QString
@@ -3091,7 +3087,7 @@ calcTipId() const
 
   tableTip.addTableRow("Set"  , setName);
   tableTip.addTableRow("Group", groupName);
-  tableTip.addTableRow("Ind"  , iv_);
+  tableTip.addTableRow("Ind"  , iv_.i);
 
   return tableTip.str();
 }
@@ -3138,15 +3134,10 @@ draw(QPainter *painter)
   //---
 
   // get color index
-  int ic = is_;
-  int nc = ns_;
+  ColorInd colorInd = this->calcColorInd();
 
-  if (ng_ > 1) {
-    if (! plot_->hasSets() || ! plot_->isColorBySet()) {
-      ic = ig_;
-      nc = ng_;
-    }
-  }
+  if (plot_->hasSets() && plot_->isColorBySet())
+    colorInd = is_;
 
   //---
 
@@ -3154,8 +3145,8 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBoxBorderColor(ic, nc);
-  QColor fc = plot_->interpBoxFillColor(ic, nc);
+  QColor bc = plot_->interpBoxBorderColor(colorInd);
+  QColor fc = plot_->interpBoxFillColor(colorInd);
 
   plot_->setPenBrush(pen, brush,
     plot_->isOutlierSymbolStroked(), bc, /*alpha*/1.0, CQChartsLength(), CQChartsLineDash(),
@@ -3178,8 +3169,8 @@ draw(QPainter *painter)
 //------
 
 CQChartsBoxKeyColor::
-CQChartsBoxKeyColor(CQChartsBoxPlot *plot, int i, int n) :
- CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ColorInd(i, n))
+CQChartsBoxKeyColor(CQChartsBoxPlot *plot, const ColorInd &is, const ColorInd &ig) :
+ CQChartsKeyColorBox(plot, is, ig, ColorInd())
 {
 }
 
@@ -3189,7 +3180,9 @@ selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
   CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
-  plot->setSetHidden(i_, ! plot->isSetHidden(i_));
+  ColorInd ic = (is_.n > 1 ? is_ : ig_);
+
+  plot->setSetHidden(ic.i, ! plot->isSetHidden(ic.i));
 
   plot->updateRangeAndObjs();
 
@@ -3204,17 +3197,53 @@ fillBrush() const
 
   CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
-  if (plot->isSetHidden(i_))
+  ColorInd ic = (is_.n > 1 ? is_ : ig_);
+
+  if (plot->isSetHidden(ic.i))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
 }
 
+double
+CQChartsBoxKeyColor::
+xColorValue(bool relative) const
+{
+  CQChartsBoxPlotWhiskerObj *boxObj = this->boxObj();
+
+  return (boxObj ? boxObj->xColorValue(relative) : 0.0);
+}
+
+double
+CQChartsBoxKeyColor::
+yColorValue(bool relative) const
+{
+  CQChartsBoxPlotWhiskerObj *boxObj = this->boxObj();
+
+  return (boxObj ? boxObj->yColorValue(relative) : 0.0);
+}
+
+CQChartsBoxPlotWhiskerObj *
+CQChartsBoxKeyColor::
+boxObj() const
+{
+  for (const auto &plotObj : plot_->plotObjects()) {
+    CQChartsBoxPlotWhiskerObj *boxObj = dynamic_cast<CQChartsBoxPlotWhiskerObj *>(plotObj);
+    if (! boxObj) continue;
+
+    if (boxObj->is() == is_ && boxObj->ig() == ig_)
+      return boxObj;
+  }
+
+  return nullptr;
+}
+
 //------
 
 CQChartsBoxKeyText::
-CQChartsBoxKeyText(CQChartsBoxPlot *plot, const QString &text, int i, int n) :
- CQChartsKeyText(plot, text, i, n)
+CQChartsBoxKeyText(CQChartsBoxPlot *plot, const QString &text,
+                   const ColorInd &is, const ColorInd &ig) :
+ CQChartsKeyText(plot, text, (is.n > 1 ? is : ig))
 {
 }
 
@@ -3226,7 +3255,7 @@ interpTextColor(int i, int n) const
 
   QColor c = CQChartsKeyText::interpTextColor(i, n);
 
-  if (plot->isSetHidden(i_))
+  if (plot->isSetHidden(ic_.i))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;

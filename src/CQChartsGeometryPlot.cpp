@@ -133,6 +133,15 @@ setStyleColumn(const CQChartsColumn &c)
 
 //---
 
+void
+CQChartsGeometryPlot::
+setColorByValue(bool b)
+{
+  CQChartsUtil::testAndSet(colorByValue_, b, [&]() { drawObjs(); } );
+}
+
+//---
+
 double
 CQChartsGeometryPlot::
 minValue() const
@@ -178,6 +187,9 @@ addProperties()
   addProperty("columns", this, "geometryColumn", "geometry")->setDesc("Geometry column");
   addProperty("columns", this, "valueColumn"   , "value"   )->setDesc("Value column");
   addProperty("columns", this, "styleColumn"   , "style"   )->setDesc("Style column");
+
+  // color
+  addProperty("color", this, "colorByValue", "colorByValue")->setDesc("Color shapes by value");
 
   // fill
   addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
@@ -476,12 +488,12 @@ createObjs(PlotObjs &objs) const
 
     CQChartsGeom::BBox bbox = geometry.bbox;
 
-    CQChartsGeometryObj *geomObj;
+    bool hasValue = valueColumn().isValid();
 
-    if (! valueColumn().isValid())
-      geomObj = new CQChartsGeometryObj(this, bbox, geometry.polygons, geometry.ind, i, n);
-    else
-      geomObj = new CQChartsGeometryObj(this, bbox, geometry.polygons, geometry.ind, -1, -1);
+    ColorInd iv(i, n);
+
+    CQChartsGeometryObj *geomObj =
+      new CQChartsGeometryObj(this, bbox, geometry.polygons, geometry.ind, iv, hasValue);
 
     geomObj->setName (geometry.name);
     geomObj->setValue(geometry.value);
@@ -500,9 +512,10 @@ createObjs(PlotObjs &objs) const
 
 CQChartsGeometryObj::
 CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
-                    const Polygons &polygons, const QModelIndex &ind, int i, int n) :
- CQChartsPlotObj(const_cast<CQChartsGeometryPlot *>(plot), rect), plot_(plot),
- polygons_(polygons), ind_(ind), i_(i), n_(n)
+                    const Polygons &polygons, const QModelIndex &ind, const ColorInd &iv,
+                    bool hasValue) :
+ CQChartsPlotObj(const_cast<CQChartsGeometryPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
+ plot_(plot), polygons_(polygons), ind_(ind), hasValue_(hasValue)
 {
 }
 
@@ -588,20 +601,22 @@ draw(QPainter *painter)
 
   double dv = (value() - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
 
+  ColorInd colorInd = calcColorInd();
+
   if (color().isValid()) {
-    if (n_ > 0)
-      fc = plot_->interpColor(color(), i_, n_);
+    if (! hasValue_ || ! plot_->isColorByValue())
+      fc = plot_->interpColor(color(), colorInd);
     else
       fc = plot_->interpColor(color(), dv);
   }
   else {
-    if (n_ > 0)
-      fc = plot_->interpFillColor(i_, n_);
+    if (! hasValue_ || ! plot_->isColorByValue())
+      fc = plot_->interpFillColor(colorInd);
     else
       fc = plot_->interpPaletteColor(dv);
   }
 
-  QColor bc = plot_->interpBorderColor(0, 1);
+  QColor bc = plot_->interpBorderColor(colorInd);
 
   plot_->setPenBrush(pen, brush,
     plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),

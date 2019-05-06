@@ -2042,6 +2042,8 @@ palettesComboSlot(int)
   CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(name);
 
   themeWidgets_.palettesPlot->setGradientPalette(palette);
+
+  themeWidgets_.palettesControl->updateState();
 }
 
 void

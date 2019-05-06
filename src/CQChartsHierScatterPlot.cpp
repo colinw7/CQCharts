@@ -602,8 +602,10 @@ addKeyItems(CQChartsPlotKey *key)
 
     const QString &name = group->name();
 
-    CQChartsHierScatterKeyColor *color = new CQChartsHierScatterKeyColor(this, group, i, n);
-    CQChartsKeyText             *text  = new CQChartsKeyText            (this, name , i, n);
+    CQChartsHierScatterKeyColor *color =
+      new CQChartsHierScatterKeyColor(this, group, i, n);
+
+    CQChartsKeyText *text = new CQChartsKeyText(this, name, ColorInd(i, n));
 
     key->addItem(color, i, 0);
     key->addItem(text , i, 1);

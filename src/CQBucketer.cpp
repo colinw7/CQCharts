@@ -270,7 +270,7 @@ bucketName(int bucket, NameFormat format) const
 
 QString
 CQBucketer::
-bucketName(int imin, int imax, NameFormat format) const
+bucketName(int imin, int imax, NameFormat format)
 {
   static QChar arrowChar(0x2192);
 
@@ -294,7 +294,7 @@ bucketName(int imin, int imax, NameFormat format) const
 
 QString
 CQBucketer::
-bucketName(double rmin, double rmax, NameFormat format) const
+bucketName(double rmin, double rmax, NameFormat format)
 {
   static QChar arrowChar(0x2192);
 

@@ -48,6 +48,9 @@ class CQChartsTreeMapNode {
   }
 
  public:
+  using ColorInd = CQChartsUtil::ColorInd;
+
+ public:
   CQChartsTreeMapNode(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *parent,
                       const QString &name, double size, const QModelIndex &ind);
 
@@ -107,7 +110,8 @@ class CQChartsTreeMapNode {
     return n1.size_ < n2.size_;
   }
 
-  virtual QColor interpColor(const CQChartsTreeMapPlot *plot, int n) const;
+  virtual QColor interpColor(const CQChartsTreeMapPlot *plot,
+                             const ColorInd &colorInd, int n) const;
 
  protected:
   const CQChartsTreeMapPlot* plot_    { nullptr }; //!< parent plot
@@ -188,7 +192,8 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 
   void removeNode(CQChartsTreeMapNode *node);
 
-  QColor interpColor(const CQChartsTreeMapPlot *plot, int n) const override;
+  QColor interpColor(const CQChartsTreeMapPlot *plot,
+                     const ColorInd &colorInd, int n) const override;
 
  private:
   Nodes    nodes_;          //!< child nodes
@@ -201,17 +206,22 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 class CQChartsTreeMapHierObj;
 
 /*!
- * \brief Tree Map Plot object
+ * \brief Tree Map Plot Node object
  */
-class CQChartsTreeMapObj : public CQChartsPlotObj {
+class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsTreeMapObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *node,
-                     CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
-                     int i, int n);
+  CQChartsTreeMapNodeObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *node,
+                         CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
+                         const ColorInd &is);
 
   CQChartsTreeMapNode *node() const { return node_; }
+
+  CQChartsTreeMapHierObj *parent() const { return hierObj_; }
+
+  int ind() const { return i_; }
+  void setInd(int i) { i_ = i; }
 
   //---
 
@@ -221,7 +231,7 @@ class CQChartsTreeMapObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
-  void addChild(CQChartsTreeMapObj *child) { children_.push_back(child); }
+  void addChild(CQChartsTreeMapNodeObj *child) { children_.push_back(child); }
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -234,24 +244,23 @@ class CQChartsTreeMapObj : public CQChartsPlotObj {
   bool isChildSelected() const;
 
  protected:
-  using Children = std::vector<CQChartsTreeMapObj *>;
+  using Children = std::vector<CQChartsTreeMapNodeObj *>;
 
   const CQChartsTreeMapPlot* plot_    { nullptr }; //!< parent plot
   CQChartsTreeMapNode*       node_    { nullptr }; //!< associated tree node
   CQChartsTreeMapHierObj*    hierObj_ { nullptr }; //!< parent hierchical objects
   Children                   children_;            //!< child objects
-  int                        i_       { 0 };       //!< index
-  int                        n_       { 0 };       //!< number of indicies
+  int                        i_       { 0 };       //!< node index
 };
 
 //---
 
 //! \brief Tree Map Hier Box Object
-class CQChartsTreeMapHierObj : public CQChartsTreeMapObj {
+class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
  public:
   CQChartsTreeMapHierObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
                          CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
-                         int i, int n);
+                         const ColorInd &is);
 
   CQChartsTreeMapHierNode *hierNode() const { return hier_; }
 
@@ -289,6 +298,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   Q_PROPERTY(bool           titles         READ isTitles       WRITE setTitles        )
   Q_PROPERTY(double         titleMaxExtent READ titleMaxExtent WRITE setTitleMaxExtent)
   Q_PROPERTY(CQChartsLength headerHeight   READ headerHeight   WRITE setHeaderHeight  )
+  Q_PROPERTY(bool           colorById      READ isColorById    WRITE setColorById     )
 
   // header shape (border, fill)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Header,header)
@@ -326,6 +336,11 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   void setHeaderHeight(const CQChartsLength &l);
 
   double calcHeaderHeight() const;
+
+  //---
+
+  bool isColorById() const { return colorById_; }
+  void setColorById(bool b);
 
   //---
 
@@ -455,6 +470,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   double         titleMaxExtent_     { 0.5 };     //!< title bar max extent (0-1)
   CQChartsLength headerHeight_       { "0px" };   //!< header height (should be font based)
   CQChartsLength marginWidth_        { "2px" };   //!< box margin
+  bool           colorById_          { true };    //!< color by id
   Node*          root_               { nullptr }; //!< root node
   Node*          firstHier_          { nullptr }; //!< first hier node
   QString        currentRootName_;                //!< current root name
@@ -462,6 +478,8 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   int            numColorIds_        { 0 };       //!< num used color ids
   int            maxDepth_           { 1 };       //!< max hier depth
   int            hierInd_            { 0 };       //!< current hier ind
+  mutable int    ig_                 { 0 };       //!< current group index
+  mutable int    in_                 { 0 };       //!< current node index
   double         windowHeaderHeight_ { 0.01 };    //!< calculated window pixel header height
   double         windowMarginWidth_  { 0.01 };    //!< calculated window pixel margin width
 };

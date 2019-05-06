@@ -284,7 +284,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
     //---
 
     // scrollWidth
-    scrollWidthEdit_ = CQUtil::makeWidget<QLineEdit>("scrollWidthEdit");
+    scrollWidthEdit_ = CQUtil::makeWidget<CQLineEdit>("scrollWidthEdit");
 
     scrollWidthEdit_->setText(data_.scrollWidth.toString());
 
@@ -293,7 +293,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
     //---
 
     // scrollHeight
-    scrollHeightEdit_ = CQUtil::makeWidget<QLineEdit>("scrollHeightEdit");
+    scrollHeightEdit_ = CQUtil::makeWidget<CQLineEdit>("scrollHeightEdit");
 
     scrollHeightEdit_->setText(data_.scrollHeight.toString());
 
@@ -315,7 +315,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   //--
 
   // header
-  headerEdit_ = CQUtil::makeWidget<QLineEdit>("headerEdit");
+  headerEdit_ = CQUtil::makeWidget<CQLineEdit>("headerEdit");
 
   headerEdit_->setText(data_.header);
 

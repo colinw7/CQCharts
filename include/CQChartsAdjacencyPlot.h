@@ -128,6 +128,9 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
   void draw(QPainter *painter) override;
 
+  double xColorValue(bool relative) const override;
+  double yColorValue(bool relative) const override;
+
  private:
   const CQChartsAdjacencyPlot* plot_  { nullptr }; //!< parent plot
   CQChartsAdjacencyNode*       node1_ { nullptr }; //!< row node

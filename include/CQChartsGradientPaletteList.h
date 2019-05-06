@@ -37,7 +37,8 @@ class CQChartsGradientPaletteList : public QFrame {
  private slots:
   void themesComboSlot(int);
 
-  void upSlot   ();
+  void upTopSlot();
+  void upSlot   (bool top=false);
   void downSlot ();
   void leftSlot ();
   void rightSlot();

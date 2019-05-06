@@ -1,22 +1,10 @@
 High
- + Commands to create new theme, new palette and set colors in palette
- + Edit interface gradient as single point (gray)
+ + Hier colorInd. Color by Hier. virtual for ig/is to use parent color index
  + Only send color changed from editor on mouse release (or use different signal)
  + Bar Chart Key using new color code
- + Axis fit should ignore labels > 10% of width ?
- + Decide what to do with scroll (generic function to zoom sub plot)
-   + Auto place plots full screen side by side
-   + Save orginal placement
-   + scroll delta always 100 ?
- + Theme
-   + Allow gradient interp by plot value (not normalized real/i of n)
-   + Theme tab needs to be able so set theme palette order and select individual slots
-   + Theme has value at stop points e.g. (-inf,0,inf)
  + Tree map performance for large data (file tree) (small object opt)
  + Pos for distribution plot (x for vertical) is meaningless for strings so turn off or remap
    + get pos from axis data or separate mapping ?
- + Color by anchor native (use discrete palette)
- + Busy on top of existing plot (instead of replacing)
  + Interrupt and wait for thread kill
  + More plot object properties
  + Inconsistent key click behavior

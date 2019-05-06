@@ -1616,7 +1616,9 @@ addProperties()
     title()->addProperties(propertyModel(), "title");
 
   addProperty("color", this, "defaultPalette", "defaultPalette")->setDesc("Default palette");
-  addProperty("color", this, "colorType", "type")->setDesc("Color interpolation type");
+  addProperty("color", this, "colorType"     , "type")->setDesc("Color interpolation type");
+  addProperty("color", this, "colorXStops"   , "xStops")->setDesc("Color x stops");
+  addProperty("color", this, "colorYStops"   , "yStops")->setDesc("Color y stops");
 
   addProperty("scaledFont", this, "minScaleFontSize", "minSize")->setDesc("Min scaled font size");
   addProperty("scaledFont", this, "maxScaleFontSize", "maxSize")->setDesc("Max scaled font size");
@@ -4520,6 +4522,22 @@ setColorMapPalette(const QString &s)
 {
   CQChartsUtil::testAndSet(colorColumnData_.palette, s, [&]() { updateObjs(); } );
 }
+
+void
+CQChartsPlot::
+setColorXStops(const CQChartsColorStops &s)
+{
+  CQChartsUtil::testAndSet(colorColumnData_.xStops, s, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsPlot::
+setColorYStops(const CQChartsColorStops &s)
+{
+  CQChartsUtil::testAndSet(colorColumnData_.yStops, s, [&]() { updateObjs(); } );
+}
+
+//------
 
 void
 CQChartsPlot::
@@ -8032,6 +8050,16 @@ selectedColor(const QColor &c) const
 
 QColor
 CQChartsPlot::
+interpPaletteColor(const ColorInd &ind, bool scale) const
+{
+  if (ind.isInt)
+    return interpPaletteColor(ind.i, ind.n, scale);
+  else
+    return interpPaletteColor(ind.r, scale);
+}
+
+QColor
+CQChartsPlot::
 interpPaletteColor(int i, int n, bool scale) const
 {
   return view()->interpPaletteColor(i, n, scale);
@@ -8109,6 +8137,67 @@ CQChartsPlot::
 calcTextColor(const QColor &bg) const
 {
   return CQChartsUtil::bwColor(bg);
+}
+
+CQChartsPlot::ColorInd
+CQChartsPlot::
+calcColorInd(const CQChartsPlotObj *obj, const CQChartsKeyColorBox *keyBox,
+             const ColorInd &is, const ColorInd &ig, const ColorInd &iv) const
+{
+  ColorInd colorInd;
+
+  if      (colorType() == ColorType::AUTO)
+    colorInd = (is.n <= 1 ? (ig.n <= 1 ? iv : ig) : is);
+  else if (colorType() == ColorType::SET)
+    colorInd = is;
+  else if (colorType() == ColorType::GROUP)
+    colorInd = ig;
+  else if (colorType() == ColorType::INDEX)
+    colorInd = iv;
+  else if (colorType() == ColorType::X_VALUE) {
+    const CQChartsColorStops &stops = colorXStops();
+
+    bool hasStops = stops.isValid();
+    bool relative = (hasStops ? stops.isPercent() : true);
+
+    double x = 0.0;
+
+    if      (obj)
+      x = obj->xColorValue(relative);
+    else if (keyBox)
+      x = keyBox->xColorValue(relative);
+
+    if (hasStops) {
+      int ind = stops.ind(x);
+
+      colorInd = ColorInd(ind, stops.size() + 1);
+    }
+    else
+      colorInd = ColorInd(x);
+  }
+  else if (colorType() == ColorType::Y_VALUE) {
+    const CQChartsColorStops &stops = colorYStops();
+
+    bool hasStops = stops.isValid();
+    bool relative = (hasStops ? stops.isPercent() : true);
+
+    double y = 0.0;
+
+    if      (obj)
+      y = obj->yColorValue(relative);
+    else if (keyBox)
+      y = keyBox->yColorValue(relative);
+
+    if (hasStops) {
+      int ind = stops.ind(y);
+
+      colorInd = ColorInd(ind, stops.size() + 1);
+    }
+    else
+      colorInd = ColorInd(y);
+  }
+
+  return colorInd;
 }
 
 //------

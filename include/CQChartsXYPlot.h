@@ -52,7 +52,7 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
  public:
   CQChartsXYBiLineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                       double x, double y1, double y2, const QModelIndex &ind,
-                      int is, int ns, int i, int n);
+                      const ColorInd &is, const ColorInd &iv);
 
   //---
 
@@ -68,12 +68,6 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
   void setY2(double r) { y2_ = r; }
 
   const QModelIndex &ind() const { return ind_; }
-
-  int is() const { return is_; }
-  int ns() const { return ns_; }
-
-  int i() const { return i_; }
-  int n() const { return n_; }
 
   //---
 
@@ -102,10 +96,6 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
   double                y1_       { 0.0 };     //!< start y
   double                y2_       { 0.0 };     //!< end y
   QModelIndex           ind_;                  //!< model index
-  int                   is_       { -1 };      //!< set index
-  int                   ns_       { -1 };      //!< number of sets
-  int                   i_        { -1 };      //!< point index
-  int                   n_        { -1 };      //!< number of points
 };
 
 //---
@@ -123,7 +113,7 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
  public:
   CQChartsXYImpulseLineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                            double x, double y1, double y2, const QModelIndex &ind,
-                           int is, int ns, int i, int n);
+                           const ColorInd &is, const ColorInd &iv);
 
   //---
 
@@ -139,12 +129,6 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   void setY2(double r) { y2_ = r; }
 
   const QModelIndex &ind() const { return ind_; }
-
-  int is() const { return is_; }
-  int ns() const { return ns_; }
-
-  int i() const { return i_; }
-  int n() const { return n_; }
 
   //---
 
@@ -173,10 +157,6 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   double                y1_       { 0.0 };     //!< start y
   double                y2_       { 0.0 };     //!< end y
   QModelIndex           ind_;                  //!< model index
-  int                   is_       { -1 };      //!< set index
-  int                   ns_       { -1 };      //!< number of sets
-  int                   i_        { -1 };      //!< point index
-  int                   n_        { -1 };      //!< number of points
 };
 
 //---
@@ -283,7 +263,7 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
  public:
   CQChartsXYLabelObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                      double x, double y, const QString &label, const QModelIndex &ind,
-                     int is, int ns, int i, int n);
+                     const ColorInd &is, const ColorInd &iv);
 
  ~CQChartsXYLabelObj();
 
@@ -301,12 +281,6 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
   void setLabel(const QString &v) { label_ = v; }
 
   const QModelIndex &ind() const { return ind_; }
-
-  int is() const { return is_; }
-  int ns() const { return ns_; }
-
-  int i() const { return i_; }
-  int n() const { return n_; }
 
   //---
 
@@ -336,10 +310,6 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
   QPointF               pos_;                  //!< position
   QString               label_;                //!< label
   QModelIndex           ind_;                  //!< model index
-  int                   is_       { -1 };      //!< set index
-  int                   ns_       { -1 };      //!< number of sets
-  int                   i_        { -1 };      //!< points index
-  int                   n_        { -1 };      //!< points size
 };
 
 //---
@@ -357,7 +327,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
  public:
   CQChartsXYPolylineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                         const QPolygonF &poly, const QString &name,
-                        int is, int ns, int ig, int ng);
+                        const ColorInd &is, const ColorInd &ig);
 
  ~CQChartsXYPolylineObj();
 
@@ -367,12 +337,6 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
-
-  int is() const { return is_; }
-  int ns() const { return ns_; }
-
-  int ig() const { return ig_; }
-  int ng() const { return ng_; }
 
   //---
 
@@ -416,10 +380,6 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   int                   groupInd_ { -1 };      //!< group ind
   QPolygonF             poly_;                 //!< polygon
   QString               name_;                 //!< name
-  int                   is_       { -1 };      //!< set ind
-  int                   ns_       { -1 };      //!< num sets
-  int                   ig_       { -1 };      //!< group ind
-  int                   ng_       { -1 };      //!< num groups
   CQChartsSmooth*       smooth_   { nullptr }; //!< smooth object
   CQChartsFitData       bestFit_;              //!< best fit data
   CQChartsStatData      statData_;             //!< statistics data
@@ -438,7 +398,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
  public:
   CQChartsXYPolygonObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                        const QPolygonF &poly, const QString &name,
-                       int is, int ns, int ig, int ng);
+                       const ColorInd &is, const ColorInd &ig);
 
  ~CQChartsXYPolygonObj();
 
@@ -448,12 +408,6 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
-
-  int is() const { return is_; }
-  int ns() const { return ns_; }
-
-  int ig() const { return ig_; }
-  int ng() const { return ng_; }
 
   //---
 
@@ -485,10 +439,6 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   int                   groupInd_ { -1 };      //!< group ind
   QPolygonF             poly_;                 //!< polygon
   QString               name_;                 //!< name
-  int                   is_       { -1 };      //!< set ind
-  int                   ns_       { -1 };      //!< num sets
-  int                   ig_       { -1 };      //!< group ind
-  int                   ng_       { -1 };      //!< num groups
   CQChartsSmooth*       smooth_   { nullptr }; //!< smooth object
 };
 
@@ -503,7 +453,7 @@ class CQChartsXYKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
  public:
-  CQChartsXYKeyColor(CQChartsXYPlot *plot, int is, int ns, int ig, int ng);
+  CQChartsXYKeyColor(CQChartsXYPlot *plot, const ColorInd &is, const ColorInd &ig);
 
   CQChartsXYPlot *plot() const { return plot_; }
 
@@ -524,7 +474,7 @@ class CQChartsXYKeyLine : public CQChartsKeyItem {
   Q_OBJECT
 
  public:
-  CQChartsXYKeyLine(CQChartsXYPlot *plot, int is, int ns, int ig, int ng);
+  CQChartsXYKeyLine(CQChartsXYPlot *plot, const ColorInd &is, const ColorInd &ig);
 
   CQChartsXYPlot *plot() const { return plot_; }
 
@@ -538,10 +488,8 @@ class CQChartsXYKeyLine : public CQChartsKeyItem {
 
  protected:
   CQChartsXYPlot* plot_ { nullptr }; //!< parent plot
-  int             is_   { 0 };       //!< set index
-  int             ns_   { 0 };       //!< number of sets
-  int             ig_   { 0 };       //!< group index
-  int             ng_   { 0 };       //!< number of groups
+  ColorInd        is_   { 0 };       //!< set color index
+  ColorInd        ig_   { 0 };       //!< group color index
 };
 
 /*!
@@ -551,7 +499,8 @@ class CQChartsXYKeyText : public CQChartsKeyText {
   Q_OBJECT
 
  public:
-  CQChartsXYKeyText(CQChartsXYPlot *plot, const QString &text, int is, int ns, int ig, int ng);
+  CQChartsXYKeyText(CQChartsXYPlot *plot, const QString &text,
+                    const ColorInd &is, const ColorInd &ig);
 
   CQChartsXYPlot *plot() const { return plot_; }
 
@@ -559,10 +508,8 @@ class CQChartsXYKeyText : public CQChartsKeyText {
 
  protected:
   CQChartsXYPlot* plot_ { nullptr }; //!< parent plot
-  int             is_   { 0 };       //!< set index
-  int             ns_   { 0 };       //!< number of sets
-  int             ig_   { 0 };       //!< group index
-  int             ng_   { 0 };       //!< number of groups
+  ColorInd        is_   { 0 };       //!< set color index
+  ColorInd        ig_   { 0 };       //!< group color index
 };
 
 //---
@@ -784,13 +731,12 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   //---
 
-  CQChartsXYPolylineObj *addPolyLine(const QPolygonF &polyLine, int groupInd,
-                                     int is, int ns, int ig, int ng, const QString &name,
-                                     PlotObjs &pointObjs, PlotObjs &objs) const;
+  CQChartsXYPolylineObj *addPolyLine(const QPolygonF &polyLine, int groupInd, const ColorInd &is,
+                                     const ColorInd &ig, const QString &name, PlotObjs &pointObjs,
+                                     PlotObjs &objs) const;
 
-  void addPolygon(const QPolygonF &poly, int groupInd,
-                  int is, int ns, int ig, int ng, const QString &name,
-                  PlotObjs &objs) const;
+  void addPolygon(const QPolygonF &poly, int groupInd, const ColorInd &is, const ColorInd &ig,
+                  const QString &name, PlotObjs &objs) const;
 
   QString valueName(int is, int ns, int irow) const;
 

@@ -333,7 +333,7 @@ class CQChartsAxis : public CQChartsObj,
   void drawTickLabel(const CQChartsPlot *plot, QPainter *painter,
                      double apos, double tpos, bool inside);
 
-  void drawAxisTickDrawDatas(const CQChartsPlot *plot, QPainter *painter);
+  void drawAxisTickLabelDatas(const CQChartsPlot *plot, QPainter *painter);
 
   void drawAxisLabel(const CQChartsPlot *plot, QPainter *painter,
                      double apos, double amin, double amax, const QString &text);
@@ -354,13 +354,13 @@ class CQChartsAxis : public CQChartsObj,
     uint   numGapTicks { 0 };
   };
 
-  struct AxisTickDrawData {
-    AxisTickDrawData(const QPointF &p, const CQChartsGeom::BBox &bbox, const QString &text) :
+  struct AxisTickLabelDrawData {
+    AxisTickLabelDrawData(const QPointF &p, const CQChartsGeom::BBox &bbox, const QString &text) :
      p(p), bbox(bbox), text(text) {
     }
 
-    AxisTickDrawData(const QPointF &p, const CQChartsGeom::BBox &bbox, const QString &text,
-                     double angle, Qt::Alignment align) :
+    AxisTickLabelDrawData(const QPointF &p, const CQChartsGeom::BBox &bbox, const QString &text,
+                          double angle, Qt::Alignment align) :
      p(p), bbox(bbox), text(text), angle(angle), align(align) {
     }
 
@@ -372,7 +372,7 @@ class CQChartsAxis : public CQChartsObj,
     bool               visible { true };
   };
 
-  using AxisTickDrawDatas = std::vector<AxisTickDrawData>;
+  using AxisTickLabelDrawDatas = std::vector<AxisTickLabelDrawData>;
 
  private:
   void calcAndRedraw();
@@ -441,13 +441,13 @@ class CQChartsAxis : public CQChartsObj,
   CQChartsOptReal      position_;                        //!< axis position
   CQChartsEditHandlesP editHandles_;                     //!< edit handles
 
-  CQChartsGeom::BBox   bbox_;              //!< axis box
-  CQChartsGeom::BBox   fitBBox_;           //!< fit box
-  CQChartsGeom::BBox   fitLBBox_;          //!< label fit box
-  CQChartsGeom::BBox   fitTLBBox_;         //!< tick label fit box
-  CQChartsGeom::BBox   lbbox_;             //!< label box
-//CQChartsGeom::BBox   lastTickLabelRect_; //!< last tick box (for auto hide)
-  AxisTickDrawDatas    axisTickDrawDatas_; //!< cache axis tick label draw data
+  CQChartsGeom::BBox     bbox_;                   //!< axis box
+  CQChartsGeom::BBox     fitBBox_;                //!< fit box
+  CQChartsGeom::BBox     fitLBBox_;               //!< label fit box
+  CQChartsGeom::BBox     fitTLBBox_;              //!< tick label fit box
+  CQChartsGeom::BBox     lbbox_;                  //!< label box
+//CQChartsGeom::BBox     lastTickLabelRect_;      //!< last tick box (for auto hide)
+  AxisTickLabelDrawDatas axisTickLabelDrawDatas_; //!< cache axis tick label draw data
 };
 
 #endif

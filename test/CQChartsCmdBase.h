@@ -42,6 +42,8 @@ class CQChartsCmdBase {
 
   QStringList stringToCmdData(const QString &str) const;
 
+  bool valueToStrs(const QString &str, QStringList &strs) const;
+
   //---
 
   void setCmdRc(int rc);

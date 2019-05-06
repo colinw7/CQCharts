@@ -1,11 +1,11 @@
 #include <CQChartsLineDashEdit.h>
 #include <CQChartsUtil.h>
 #include <CQIconCombo.h>
+#include <CQLineEdit.h>
 #include <CQUtil.h>
 
 #include <QApplication>
 #include <QHBoxLayout>
-#include <QLineEdit>
 #include <QToolButton>
 #include <QMenu>
 #include <QPainter>
@@ -80,8 +80,7 @@ CQChartsLineDashEdit(QWidget *parent) :
 
   // editable controls
 
-  edit_ = new QLineEdit;
-  edit_->setObjectName("edit");
+  edit_ = CQUtil::makeWidget<CQLineEdit>("edit");
 
   edit_->setToolTip("Line Dash\n(List of Dash Lengths)");
 

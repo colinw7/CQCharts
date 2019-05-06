@@ -1584,8 +1584,8 @@ interpBgColor() const
 //------
 
 CQChartsKeyItem::
-CQChartsKeyItem(CQChartsPlotKey *key, int i, int n) :
- key_(key), i_(i), n_(n)
+CQChartsKeyItem(CQChartsPlotKey *key, const ColorInd &ic) :
+ key_(key), ic_(ic)
 {
 }
 
@@ -1617,15 +1617,15 @@ doShow(CQChartsSelMod selMod)
   CQChartsPlot *plot = key_->plot();
 
   if      (selMod == CQChartsSelMod::REPLACE) {
-    for (int i = 0; i < n_; ++i)
-      plot->setSetHidden(i, i != i_);
+    for (int i = 0; i < ic_.n; ++i)
+      plot->setSetHidden(i, i != ic_.i);
   }
   else if (selMod == CQChartsSelMod::ADD)
-    plot->setSetHidden(i_, false);
+    plot->setSetHidden(ic_.i, false);
   else if (selMod == CQChartsSelMod::REMOVE)
-    plot->setSetHidden(i_, true);
+    plot->setSetHidden(ic_.i, true);
   else if (selMod == CQChartsSelMod::TOGGLE)
-    plot->setSetHidden(i_, ! plot->isSetHidden(i_));
+    plot->setSetHidden(ic_.i, ! plot->isSetHidden(ic_.i));
 
   plot->updateObjs();
 }
@@ -1646,8 +1646,8 @@ tipText(const CQChartsGeom::Point &, QString &) const
 //------
 
 CQChartsKeyText::
-CQChartsKeyText(CQChartsPlot *plot, const QString &text, int i, int n) :
- CQChartsKeyItem(plot->key(), i, n), plot_(plot), text_(text)
+CQChartsKeyText(CQChartsPlot *plot, const QString &text, const ColorInd &ic) :
+ CQChartsKeyItem(plot->key(), ic), plot_(plot), text_(text)
 {
 }
 
@@ -1718,8 +1718,8 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 
 CQChartsKeyColorBox::
 CQChartsKeyColorBox(CQChartsPlot *plot, const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
-                    double xv, double yv) :
- CQChartsKeyItem(plot->key(), iv.i, iv.n), plot_(plot), is_(is), ig_(ig), iv_(iv), xv_(xv), yv_(yv)
+                    const RangeValue &xv, const RangeValue &yv) :
+ CQChartsKeyItem(plot->key(), iv), plot_(plot), is_(is), ig_(ig), iv_(iv), xv_(xv), yv_(yv)
 {
   assert(is_.i >= 0 && is_.i < is_.n);
   assert(ig_.i >= 0 && ig_.i < ig_.n);
@@ -1785,9 +1785,11 @@ fillBrush() const
 {
   CQChartsPlot *plot = key_->plot();
 
-  QColor c = plot->interpPaletteColor(i_, n_);
+  ColorInd ic = calcColorInd();
 
-  if (plot->isSetHidden(i_))
+  QColor c = plot->interpPaletteColor(ic);
+
+  if (plot->isSetHidden(ic.i))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
@@ -1797,20 +1799,19 @@ CQChartsKeyColorBox::ColorInd
 CQChartsKeyColorBox::
 calcColorInd() const
 {
-  ColorInd colorInd;
+  return plot_->calcColorInd(nullptr, this, is_, ig_, iv_);
+}
 
-  if      (plot_->colorType() == CQChartsPlot::ColorType::AUTO)
-    colorInd = (is_.n <= 1 ? (ig_.n <= 1 ? iv_ : ig_) : is_);
-  else if (plot_->colorType() == CQChartsPlot::ColorType::SET)
-    colorInd = is_;
-  else if (plot_->colorType() == CQChartsPlot::ColorType::GROUP)
-    colorInd = ig_;
-  else if (plot_->colorType() == CQChartsPlot::ColorType::INDEX)
-    colorInd = iv_;
-  else if (plot_->colorType() == CQChartsPlot::ColorType::X_VALUE)
-    colorInd = ColorInd(xv_);
-  else if (plot_->colorType() == CQChartsPlot::ColorType::Y_VALUE)
-    colorInd = ColorInd(yv_);
+double
+CQChartsKeyColorBox::
+xColorValue(bool relative) const
+{
+  return (relative ? xv_.map() : xv_.v);
+}
 
-  return colorInd;
+double
+CQChartsKeyColorBox::
+yColorValue(bool relative) const
+{
+  return (relative ? yv_.map() : yv_.v);
 }

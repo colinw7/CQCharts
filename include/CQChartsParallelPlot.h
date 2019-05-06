@@ -41,7 +41,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
  public:
   CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
-                          const QPolygonF &poly, const QModelIndex &ind, int i, int n);
+                          const QPolygonF &poly, const QModelIndex &ind, const ColorInd &is);
 
   QString typeName() const override { return "line"; }
 
@@ -66,8 +66,6 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   const CQChartsParallelPlot* plot_ { nullptr };
   QPolygonF                   poly_;
   QModelIndex                 ind_;
-  int                         i_    { -1 };
-  int                         n_    { -1 };
 };
 
 //---
@@ -81,7 +79,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
  public:
   CQChartsParallelPointObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
                            double yval, double x, double y, const QModelIndex &ind,
-                           int iset, int nset, int i, int n);
+                           const ColorInd &is, const ColorInd &iv);
 
   QString typeName() const override { return "point"; }
 
@@ -105,10 +103,6 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
   double                      x_     { 0.0 };
   double                      y_     { 0.0 };
   QModelIndex                 ind_;
-  int                         iset_  { -1 };
-  int                         nset_  { -1 };
-  int                         i_     { -1 };
-  int                         n_     { -1 };
 };
 
 //---

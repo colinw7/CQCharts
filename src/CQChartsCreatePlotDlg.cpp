@@ -55,8 +55,7 @@ CQChartsCreatePlotDlg::
 init()
 {
   auto createSep = [](const QString &name) -> QFrame * {
-    QFrame *sep = new QFrame;
-    sep->setObjectName(name);
+    QFrame *sep = CQUtil::makeWidget<QFrame>(name);
 
     sep->setFixedHeight(4);
     sep->setFrameStyle(QFrame::Panel | QFrame::Sunken);
@@ -81,13 +80,11 @@ init()
 
   //----
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //----
 
-  CQDividedArea *area = new CQDividedArea;
-  area->setObjectName("area");
+  CQDividedArea *area = CQUtil::makeWidget<CQDividedArea>("area");
 
   layout->addWidget(area);
 
@@ -130,8 +127,7 @@ init()
   //-------
 
   // OK, Apply, Cancel Buttons
-  QHBoxLayout *buttonLayout = new QHBoxLayout;
-  buttonLayout->setMargin(2); buttonLayout->setSpacing(2);
+  QHBoxLayout *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 2, 2);
 
   layout->addLayout(buttonLayout);
 
@@ -141,8 +137,7 @@ init()
 
   //--
 
-  okButton_ = new QPushButton("OK");
-  okButton_->setObjectName("ok");
+  okButton_ = CQUtil::makeLabelWidget<QPushButton>("OK", "ok");
 
   okButton_->setToolTip("Create Plot and close dialog");
 
@@ -152,8 +147,7 @@ init()
 
   //--
 
-  applyButton_ = new QPushButton("Apply");
-  applyButton_->setObjectName("apply");
+  applyButton_ = CQUtil::makeLabelWidget<QPushButton>("Apply", "apply");
 
   applyButton_->setToolTip("Create Plot");
 
@@ -163,8 +157,7 @@ init()
 
   //--
 
-  QPushButton *cancelButton = new QPushButton("Cancel");
-  cancelButton->setObjectName("cancel");
+  QPushButton *cancelButton = CQUtil::makeLabelWidget<QPushButton>("Cancel", "cancel");
 
   cancelButton->setToolTip("Close dialog");
 
@@ -183,16 +176,14 @@ QFrame *
 CQChartsCreatePlotDlg::
 createDataFrame()
 {
-  QFrame *dataFrame = new QFrame;
-  dataFrame->setObjectName("data");
+  QFrame *dataFrame = CQUtil::makeWidget<QFrame>("data");
 
-  QVBoxLayout *dataLayout = new QVBoxLayout(dataFrame);
-  dataLayout->setMargin(2); dataLayout->setSpacing(2);
+  QVBoxLayout *dataLayout = CQUtil::makeLayout<QVBoxLayout>(dataFrame, 2, 2);
 
   //--
 
-  QCheckBox *autoAnalyzeCheck = new QCheckBox("Auto Analyze");
-  autoAnalyzeCheck->setObjectName("autoAnalyzeCheck");
+  QCheckBox *autoAnalyzeCheck =
+    CQUtil::makeLabelWidget<QCheckBox>("Auto Analyze", "autoAnalyzeCheck");
 
   autoAnalyzeCheck->setChecked(isAutoAnalyzeModel());
   autoAnalyzeCheck->setToolTip("Automatically set columnds from model data");
@@ -203,8 +194,7 @@ createDataFrame()
 
   //--
 
-  QTabWidget *dataTab = new QTabWidget;
-  dataTab->setObjectName("dataTab");
+  QTabWidget *dataTab = CQUtil::makeWidget<QTabWidget>("dataTab");
 
   QFrame *typeFrame = createTypeDataFrame();
 
@@ -225,11 +215,9 @@ QFrame *
 CQChartsCreatePlotDlg::
 createTypeDataFrame()
 {
-  QFrame *typeFrame = new QFrame;
-  typeFrame->setObjectName("type");
+  QFrame *typeFrame = CQUtil::makeWidget<QFrame>("type");
 
-  QVBoxLayout *typeLayout = new QVBoxLayout(typeFrame);
-  typeLayout->setMargin(2); typeLayout->setSpacing(2);
+  QVBoxLayout *typeLayout = CQUtil::makeLayout<QVBoxLayout>(typeFrame, 2, 2);
 
   //--
 
@@ -240,8 +228,7 @@ createTypeDataFrame()
   //---
 
   // type combo
-  QHBoxLayout *typeComboLayout = new QHBoxLayout;
-  typeComboLayout->setMargin(0); typeComboLayout->setSpacing(2);
+  QHBoxLayout *typeComboLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
   typeLayout->addLayout(typeComboLayout);
 
@@ -249,8 +236,7 @@ createTypeDataFrame()
 
   typeComboLayout->addWidget(typeLabel);
 
-  CQCustomCombo *typeCombo = new CQCustomCombo;
-  typeCombo->setObjectName("typeCombo");
+  CQCustomCombo *typeCombo = CQUtil::makeWidget<CQCustomCombo>("typeCombo");
 
   typeComboLayout->addWidget(typeCombo);
 
@@ -295,14 +281,12 @@ createTypeDataFrame()
 
   //----
 
-  QTabWidget *typeTab = new QTabWidget;
-  typeTab->setObjectName("typeTab");
+  QTabWidget *typeTab = CQUtil::makeWidget<QTabWidget>("typeTab");
 
   typeLayout->addWidget(typeTab);
 
   // plot type widgets in stack (one per type)
-  stack_ = new QStackedWidget;
-  stack_->setObjectName("stack");
+  stack_ = CQUtil::makeWidget<QStackedWidget>("stack");
 
   for (std::size_t i = 0; i < plotTypes.size(); ++i)
     addPlotWidgets(plotTypes[i], i);
@@ -312,15 +296,13 @@ createTypeDataFrame()
   //---
 
   // plot type description
-  descText_ = new QTextEdit;
-  descText_->setObjectName("descText");
+  descText_ = CQUtil::makeWidget<QTextEdit>("descText");
 
   typeTab->addTab(descText_, "Description");
 
   //----
 
-  QHBoxLayout *whereLayout = new QHBoxLayout;
-  whereLayout->setMargin(0); whereLayout->setSpacing(2);
+  QHBoxLayout *whereLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
   typeLayout->addLayout(whereLayout);
 
@@ -387,11 +369,9 @@ QFrame *
 CQChartsCreatePlotDlg::
 createGeneralDataFrame()
 {
-  QFrame *genFrame = new QFrame;
-  genFrame->setObjectName("general");
+  QFrame *genFrame = CQUtil::makeWidget<QFrame>("general");
 
-  QGridLayout *genLayout = new QGridLayout(genFrame);
-  genLayout->setMargin(2); genLayout->setSpacing(2);
+  QGridLayout *genLayout = CQUtil::makeLayout<QGridLayout>(genFrame, 2, 2);
 
   //--
 
@@ -441,11 +421,9 @@ createGeneralDataFrame()
 
   ++row; column = 0;
 
-  QFrame *xRangeFrame = new QFrame;
-  xRangeFrame->setObjectName("xRangeFrame");
+  QFrame *xRangeFrame = CQUtil::makeWidget<QFrame>("xRangeFrame");
 
-  QHBoxLayout *xRangeFrameLayout = new QHBoxLayout(xRangeFrame);
-  xRangeFrameLayout->setMargin(0); xRangeFrameLayout->setSpacing(2);
+  QHBoxLayout *xRangeFrameLayout = CQUtil::makeLayout<QHBoxLayout>(xRangeFrame, 0, 2);
 
   genLayout->addWidget(xRangeFrame, row, column, 1, 5);
 
@@ -453,8 +431,7 @@ createGeneralDataFrame()
 
   xminEdit_ = addRealEdit(xRangeFrameLayout, row, column, "X Min", "xmin", "X Axis Minimum Value");
 
-  xminButton_ = new QToolButton;
-  xminButton_->setObjectName("xminButton");
+  xminButton_ = CQUtil::makeWidget<QToolButton>("xminButton");
 
   xminButton_->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
 
@@ -464,8 +441,7 @@ createGeneralDataFrame()
 
   yminEdit_ = addRealEdit(xRangeFrameLayout, row, column, "Y Min", "ymin", "Y Axis Minimum Value");
 
-  yminButton_ = new QToolButton;
-  yminButton_->setObjectName("yminButton");
+  yminButton_ = CQUtil::makeWidget<QToolButton>("yminButton");
 
   yminButton_->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
 
@@ -486,11 +462,9 @@ createGeneralDataFrame()
 
   ++row; column = 0;
 
-  QFrame *yRangeFrame = new QFrame;
-  yRangeFrame->setObjectName("yRangeFrame");
+  QFrame *yRangeFrame = CQUtil::makeWidget<QFrame>("yRangeFrame");
 
-  QHBoxLayout *yRangeFrameLayout = new QHBoxLayout(yRangeFrame);
-  yRangeFrameLayout->setMargin(0); yRangeFrameLayout->setSpacing(2);
+  QHBoxLayout *yRangeFrameLayout = CQUtil::makeLayout<QHBoxLayout>(yRangeFrame, 0, 2);
 
   genLayout->addWidget(yRangeFrame, row, column, 1, 5);
 
@@ -498,8 +472,7 @@ createGeneralDataFrame()
 
   xmaxEdit_ = addRealEdit(yRangeFrameLayout, row, column, "X Max", "xmax", "X Axis Maximum Value");
 
-  xmaxButton_ = new QToolButton;
-  xmaxButton_->setObjectName("xmaxButton");
+  xmaxButton_ = CQUtil::makeWidget<QToolButton>("xmaxButton");
 
   xmaxButton_->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
 
@@ -509,8 +482,7 @@ createGeneralDataFrame()
 
   ymaxEdit_ = addRealEdit(yRangeFrameLayout, row, column, "Y Max", "ymax", "Y Axis Maximum Value");
 
-  ymaxButton_ = new QToolButton;
-  ymaxButton_->setObjectName("ymaxButton");
+  ymaxButton_ = CQUtil::makeWidget<QToolButton>("ymaxButton");
 
   ymaxButton_->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
 
@@ -531,19 +503,15 @@ createGeneralDataFrame()
 
   ++row; column = 0;
 
-  QFrame *xyFrame = new QFrame;
-  xyFrame->setObjectName("xyFrame");
+  QFrame *xyFrame = CQUtil::makeWidget<QFrame>("xyFrame");
 
-  QHBoxLayout *xyFrameLayout = new QHBoxLayout(xyFrame);
-  xyFrameLayout->setMargin(0); xyFrameLayout->setSpacing(2);
+  QHBoxLayout *xyFrameLayout = CQUtil::makeLayout<QHBoxLayout>(xyFrame, 0, 2);
 
   genLayout->addWidget(xyFrame, row, column, 1, 5);
 
-  xintegralCheck_ = new QCheckBox("X Integral");
-  xintegralCheck_->setObjectName("xintegralCheck");
+  xintegralCheck_ = CQUtil::makeLabelWidget<QCheckBox>("X Integral", "xintegralCheck");
 
-  yintegralCheck_ = new QCheckBox("Y Integral");
-  yintegralCheck_->setObjectName("yintegralCheck");
+  yintegralCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Y Integral", "yintegralCheck");
 
   xintegralCheck_->setToolTip("X values are Integral");
   yintegralCheck_->setToolTip("Y values are Integral");
@@ -556,8 +524,7 @@ createGeneralDataFrame()
 
   //--
 
-  QFrame *xySpacer = new QFrame;
-  xySpacer->setObjectName("xySpacer");
+  QFrame *xySpacer = CQUtil::makeWidget<QFrame>("xySpacer");
 
   xySpacer->setFixedWidth(8);
 
@@ -565,11 +532,8 @@ createGeneralDataFrame()
 
   //--
 
-  xlogCheck_ = new QCheckBox("X Log");
-  xlogCheck_->setObjectName("xlogCheck");
-
-  ylogCheck_ = new QCheckBox("Y Log");
-  ylogCheck_->setObjectName("ylogCheck");
+  xlogCheck_ = CQUtil::makeLabelWidget<QCheckBox>("X Log", "xlogCheck");
+  ylogCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Y Log", "ylogCheck");
 
   xlogCheck_->setToolTip("Use log scale for X Axis");
   ylogCheck_->setToolTip("Use log scale for Y Axis");
@@ -599,11 +563,9 @@ QFrame *
 CQChartsCreatePlotDlg::
 createSummaryFrame()
 {
-  QFrame *summaryFrame = new QFrame;
-  summaryFrame->setObjectName("summary");
+  QFrame *summaryFrame = CQUtil::makeWidget<QFrame>("summary");
 
-  QVBoxLayout *summaryLayout = new QVBoxLayout(summaryFrame);
-  summaryLayout->setMargin(0); summaryLayout->setSpacing(2);
+  QVBoxLayout *summaryLayout = CQUtil::makeLayout<QVBoxLayout>(summaryFrame, 0, 2);
 
   //--
 
@@ -613,16 +575,13 @@ createSummaryFrame()
     int nr = model_.data()->rowCount();
     int nc = model_.data()->columnCount();
 
-    QFrame *summaryControl = new QFrame;
-    summaryControl->setObjectName("summaryControl");
+    QFrame *summaryControl = CQUtil::makeWidget<QFrame>("summaryControl");
 
-    QHBoxLayout *summaryControlLayout = new QHBoxLayout(summaryControl);
-    summaryControlLayout->setMargin(2); summaryControlLayout->setSpacing(2);
+    QHBoxLayout *summaryControlLayout = CQUtil::makeLayout<QHBoxLayout>(summaryControl, 2, 2);
 
     //---
 
-    summaryEnabledCheck_ = new QCheckBox("Summary");
-    summaryEnabledCheck_->setObjectName("summaryEnabled");
+    summaryEnabledCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Summary", "summaryEnabled");
 
     summaryEnabledCheck_->setChecked(modelData_->isSummaryEnabled());
 
@@ -632,8 +591,7 @@ createSummaryFrame()
 
     //---
 
-    summaryMaxRows_ = new CQIntegerSpin;
-    summaryMaxRows_->setObjectName("summaryMaxRows");
+    summaryMaxRows_ = CQUtil::makeWidget<CQIntegerSpin>("summaryMaxRows");
 
     summaryMaxRows_->setRange(1, nr);
     summaryMaxRows_->setToolTip(QString("Set Preview Row Count (1 -> %1)").arg(nr));
@@ -648,8 +606,7 @@ createSummaryFrame()
 
     //---
 
-    summaryTypeCombo_ = new QComboBox;
-    summaryTypeCombo_->setObjectName("summaryTypeCombo");
+    summaryTypeCombo_ = CQUtil::makeWidget<QComboBox>("summaryTypeCombo");
 
     summaryTypeCombo_->addItems(QStringList() << "Normal" << "Random" << "Sorted" << "Paged");
 
@@ -660,39 +617,33 @@ createSummaryFrame()
 
     //----
 
-    summaryTypeStack_ = new QStackedWidget;
-    summaryTypeStack_->setObjectName("summaryTypeStack");
+    summaryTypeStack_ = CQUtil::makeWidget<QStackedWidget>("summaryTypeStack");
 
     summaryControlLayout->addWidget(summaryTypeStack_);
 
     //---
 
-    QFrame *normalTypeFrame = new QFrame;
-    normalTypeFrame->setObjectName("normalTypeFrame");
+    QFrame *normalTypeFrame = CQUtil::makeWidget<QFrame>("normalTypeFrame");
 
     summaryTypeStack_->addWidget(normalTypeFrame);
 
     //---
 
-    QFrame *randomTypeFrame = new QFrame;
-    randomTypeFrame->setObjectName("randomTypeFrame");
+    QFrame *randomTypeFrame = CQUtil::makeWidget<QFrame>("randomTypeFrame");
 
     summaryTypeStack_->addWidget(randomTypeFrame);
 
     //---
 
-    QFrame *sortedTypeFrame = new QFrame;
-    sortedTypeFrame->setObjectName("sortedTypeFrame");
+    QFrame *sortedTypeFrame = CQUtil::makeWidget<QFrame>("sortedTypeFrame");
 
     summaryTypeStack_->addWidget(sortedTypeFrame);
 
-    QHBoxLayout *sortedTypeLayout = new QHBoxLayout(sortedTypeFrame);
-    sortedTypeLayout->setMargin(0); sortedTypeLayout->setSpacing(2);
+    QHBoxLayout *sortedTypeLayout = CQUtil::makeLayout<QHBoxLayout>(sortedTypeFrame, 0, 2);
 
     //--
 
-    summarySortedColEdit_ = new CQIntegerSpin;
-    summarySortedColEdit_->setObjectName("summarySortedColEdit");
+    summarySortedColEdit_ = CQUtil::makeWidget<CQIntegerSpin>("summarySortedColEdit");
 
     summarySortedColEdit_->setRange(0, nc - 1);
     summarySortedColEdit_->setToolTip(QString("Set Preview Sort Column (0 -> %1)").arg(nc - 1));
@@ -706,18 +657,15 @@ createSummaryFrame()
 
     //---
 
-    QFrame *pageSizeTypeFrame = new QFrame;
-    pageSizeTypeFrame->setObjectName("pageSizeTypeFrame");
+    QFrame *pageSizeTypeFrame = CQUtil::makeWidget<QFrame>("pageSizeTypeFrame");
 
     summaryTypeStack_->addWidget(pageSizeTypeFrame);
 
-    QHBoxLayout *pageSizeTypeLayout = new QHBoxLayout(pageSizeTypeFrame);
-    pageSizeTypeLayout->setMargin(0); pageSizeTypeLayout->setSpacing(2);
+    QHBoxLayout *pageSizeTypeLayout = CQUtil::makeLayout<QHBoxLayout>(pageSizeTypeFrame, 0, 2);
 
     //--
 
-    summaryPageSizeEdit_ = new CQIntegerSpin;
-    summaryPageSizeEdit_->setObjectName("summaryPageSizeEdit");
+    summaryPageSizeEdit_ = CQUtil::makeWidget<CQIntegerSpin>("summaryPageSizeEdit");
 
     summaryPageSizeEdit_->setRange(1, nr);
     summaryPageSizeEdit_->setValue(100);
@@ -730,8 +678,7 @@ createSummaryFrame()
 
     //--
 
-    summaryCurrentPageEdit_ = new CQIntegerSpin;
-    summaryCurrentPageEdit_->setObjectName("summaryCurrentPageEdit");
+    summaryCurrentPageEdit_ = CQUtil::makeWidget<CQIntegerSpin>("summaryCurrentPageEdit");
 
     int np = (nr + summaryPageSizeEdit_->value() - 1)/summaryPageSizeEdit_->value();
 
@@ -775,22 +722,17 @@ QFrame *
 CQChartsCreatePlotDlg::
 createPreviewFrame()
 {
-  QFrame *previewFrame = new QFrame;
-  previewFrame->setObjectName("preview");
+  QFrame *previewFrame = CQUtil::makeWidget<QFrame>("preview");
 
-  QVBoxLayout *previewLayout = new QVBoxLayout(previewFrame);
-  previewLayout->setMargin(0); previewLayout->setSpacing(2);
+  QVBoxLayout *previewLayout = CQUtil::makeLayout<QVBoxLayout>(previewFrame, 0, 2);
 
   //--
 
-  QFrame *previewControl = new QFrame;
-  previewControl->setObjectName("previewControl");
+  QFrame *previewControl = CQUtil::makeWidget<QFrame>("previewControl");
 
-  QHBoxLayout *previewControlLayout = new QHBoxLayout(previewControl);
-  previewControlLayout->setMargin(2); previewControlLayout->setSpacing(2);
+  QHBoxLayout *previewControlLayout = CQUtil::makeLayout<QHBoxLayout>(previewControl, 2, 2);
 
-  previewEnabledCheck_ = new QCheckBox("Enabled");
-  previewEnabledCheck_->setObjectName("previewEnabled");
+  previewEnabledCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Enabled", "previewEnabled");
 
   previewEnabledCheck_->setToolTip("Enable plot preview");
 
@@ -804,8 +746,7 @@ createPreviewFrame()
 
   //--
 
-  QTabWidget *previewTab = new QTabWidget;
-  previewTab->setObjectName("previewTab");
+  QTabWidget *previewTab = CQUtil::makeWidget<QTabWidget>("previewTab");
 
   previewLayout->addWidget(previewTab);
 
@@ -845,15 +786,13 @@ void
 CQChartsCreatePlotDlg::
 addPlotWidgets(CQChartsPlotType *type, int ind)
 {
-  QFrame *frame = new QFrame;
-  frame->setObjectName(type->name() + "_frame");
+  QFrame *frame = CQUtil::makeWidget<QFrame>(type->name() + "_frame");
 
   stack_->addWidget(frame);
 
   //---
 
-  QGridLayout *frameLayout = new QGridLayout(frame);
-  frameLayout->setMargin(2); frameLayout->setSpacing(2);
+  QGridLayout *frameLayout = CQUtil::makeLayout<QGridLayout>(frame, 2, 2);
 
   int row = 0;
 
@@ -901,8 +840,7 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData, QGridLayout *layou
     auto pg = groupTab.find(-1);
 
     if (pg == groupTab.end()) {
-      QTabWidget *parameterGroupTab = new QTabWidget;
-      parameterGroupTab->setObjectName("parameterGroupTab");
+      QTabWidget *parameterGroupTab = CQUtil::makeWidget<QTabWidget>("parameterGroupTab");
 
       layout->addWidget(parameterGroupTab, row, 0, 1, 5);
 
@@ -916,10 +854,10 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData, QGridLayout *layou
     //---
 
     // create frame for widgets and add to tab widget
-    QFrame *parameterGroupFrame = new QFrame;
-    parameterGroupFrame->setObjectName(parameterGroup->name());
+    QFrame *parameterGroupFrame = CQUtil::makeWidget<QFrame>(parameterGroup->name());
 
-    QGridLayout *parameterGroupLayout = new QGridLayout(parameterGroupFrame);
+    QGridLayout *parameterGroupLayout =
+      CQUtil::makeLayout<QGridLayout>(parameterGroupFrame, 2, 2);
 
     parameterGroupTab->addTab(parameterGroupFrame, parameterGroup->name());
 
@@ -942,8 +880,7 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData, QGridLayout *layou
       auto pg = groupTab.find(parameterGroup->groupId());
 
       if (pg == groupTab.end()) {
-        QTabWidget *parameterGroupTab1 = new QTabWidget;
-        parameterGroupTab1->setObjectName("parameterGroupTab");
+        QTabWidget *parameterGroupTab1 = CQUtil::makeWidget<QTabWidget>("parameterGroupTab");
 
         parameterGroupLayout->addWidget(parameterGroupTab1, row, 0);
 
@@ -959,10 +896,10 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData, QGridLayout *layou
 
       int row2 = 0;
 
-      QFrame *parameterGroupFrame1 = new QFrame;
-      parameterGroupFrame1->setObjectName(parameterGroup1->name());
+      QFrame *parameterGroupFrame1 = CQUtil::makeWidget<QFrame>(parameterGroup1->name());
 
-      QGridLayout *parameterGroupLayout1 = new QGridLayout(parameterGroupFrame1);
+      QGridLayout *parameterGroupLayout1 =
+        CQUtil::makeLayout<QGridLayout>(parameterGroupFrame1, 2, 2);
 
       parameterGroupTab1->addTab(parameterGroupFrame1, parameterGroup1->name());
 
@@ -1030,8 +967,7 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
 
   // add string and real edits
   if (nstr > 0 || nreal > 0 || nint > 0) {
-    QHBoxLayout *strLayout = new QHBoxLayout;
-    strLayout->setMargin(0); strLayout->setSpacing(2);
+    QHBoxLayout *strLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
     for (const auto &parameter : parameters) {
       if (parameter->type() == CQChartsPlotParameter::Type::STRING ||
@@ -1049,8 +985,7 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
 
   // add enum edits
   if (nenum > 0) {
-    QHBoxLayout *enumLayout = new QHBoxLayout;
-    enumLayout->setMargin(0); enumLayout->setSpacing(2);
+    QHBoxLayout *enumLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
     for (const auto &parameter : parameters) {
       if (parameter->type() == CQChartsPlotParameter::Type::ENUM)
@@ -1066,8 +1001,7 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
 
   // add bool edits
   if (nbool > 0) {
-    QHBoxLayout *boolLayout = new QHBoxLayout;
-    boolLayout->setMargin(0); boolLayout->setSpacing(2);
+    QHBoxLayout *boolLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
     for (const auto &parameter : parameters) {
       if (parameter->type() == CQChartsPlotParameter::Type::BOOLEAN)
@@ -1153,8 +1087,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   //--
 
-  formatEditData.formatUpdate = new QToolButton;
-  formatEditData.formatUpdate->setObjectName("formatUpdate");
+  formatEditData.formatUpdate = CQUtil::makeWidget<QToolButton>("formatUpdate");
 
   formatEditData.formatUpdate->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
 
@@ -1189,11 +1122,9 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
     col = 1;
 
-    QHBoxLayout *mapLayout = new QHBoxLayout;
-    mapLayout->setMargin(0); mapLayout->setSpacing(2);
+    QHBoxLayout *mapLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
-    mapEditData.mappedCheck = new QCheckBox("Mapped");
-    mapEditData.mappedCheck->setObjectName("mapped");
+    mapEditData.mappedCheck = CQUtil::makeLabelWidget<QCheckBox>("Mapped", "mapped");
 
     connect(mapEditData.mappedCheck, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
 
@@ -1201,11 +1132,8 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
     //--
 
-    mapEditData.mapMinSpin = new CQRealSpin;
-    mapEditData.mapMinSpin->setObjectName("mapMin");
-
-    mapEditData.mapMaxSpin = new CQRealSpin;
-    mapEditData.mapMaxSpin->setObjectName("mapMax");
+    mapEditData.mapMinSpin = CQUtil::makeWidget<CQRealSpin>("mapMin");
+    mapEditData.mapMaxSpin = CQUtil::makeWidget<CQRealSpin>("mapMax");
 
     connect(mapEditData.mapMinSpin, SIGNAL(valueChanged(double)), this, SLOT(validateSlot()));
     connect(mapEditData.mapMaxSpin, SIGNAL(valueChanged(double)), this, SLOT(validateSlot()));
@@ -1274,8 +1202,7 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   //--
 
-  formatEditData.formatUpdate = new QToolButton;
-  formatEditData.formatUpdate->setObjectName("formatUpdate");
+  formatEditData.formatUpdate = CQUtil::makeWidget<QToolButton>("formatUpdate");
 
   formatEditData.formatUpdate->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
 
@@ -1313,8 +1240,7 @@ addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
 
   QString str = CQChartsVariant::toString(parameter->defValue(), ok);
 
-  QHBoxLayout *editLayout = new QHBoxLayout;
-  editLayout->setMargin(0); editLayout->setSpacing(2);
+  QHBoxLayout *editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
   QLabel *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
 
@@ -1346,8 +1272,7 @@ addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
 
   double r = CQChartsVariant::toReal(parameter->defValue(), ok);
 
-  QHBoxLayout *editLayout = new QHBoxLayout;
-  editLayout->setMargin(0); editLayout->setSpacing(2);
+  QHBoxLayout *editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
   QLabel *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
 
@@ -1398,8 +1323,7 @@ addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
 
   long i = CQChartsVariant::toInt(parameter->defValue(), ok);
 
-  QHBoxLayout *editLayout = new QHBoxLayout;
-  editLayout->setMargin(0); editLayout->setSpacing(2);
+  QHBoxLayout *editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
   QLabel *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
 
@@ -1453,16 +1377,14 @@ addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
 
   long i = CQChartsVariant::toInt(eparameter->defValue(), ok);
 
-  QHBoxLayout *editLayout = new QHBoxLayout;
-  editLayout->setMargin(0); editLayout->setSpacing(2);
+  QHBoxLayout *editLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
   QLabel *label =
     CQUtil::makeLabelWidget<QLabel>(eparameter->desc(), eparameter->name() + "_label");
 
   editLayout->addWidget(label);
 
-  QComboBox *combo = new QComboBox;
-  combo->setObjectName(eparameter->name() + "_combo");
+  QComboBox *combo = CQUtil::makeWidget<QComboBox>(eparameter->name() + "_combo");
 
   QStringList names = eparameter->names();
 
@@ -1491,8 +1413,7 @@ addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
 {
   bool b = parameter->defValue().toBool();
 
-  QCheckBox *checkBox = new QCheckBox(parameter->desc());
-  checkBox->setObjectName(parameter->name());
+  QCheckBox *checkBox = CQUtil::makeLabelWidget<QCheckBox>(parameter->desc(), parameter->name());
 
   checkBox->setChecked(b);
 
@@ -1589,8 +1510,7 @@ addColumnEdit(QLayout *layout, int &row, int &column, const QString &name,
     label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
   }
 
-  CQChartsColumnLineEdit *edit = new CQChartsColumnLineEdit;
-  edit->setObjectName(objName + "Edit" );
+  CQChartsColumnLineEdit *edit = CQUtil::makeWidget<CQChartsColumnLineEdit>(objName + "Edit" );
 
   edit->setPlaceholderText(placeholderText);
 
@@ -1625,8 +1545,7 @@ addColumnsEdit(QLayout *layout, int &row, int &column, const QString &name,
     label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
   }
 
-  CQChartsColumnsLineEdit *edit = new CQChartsColumnsLineEdit;
-  edit->setObjectName(objName + "Edit" );
+  CQChartsColumnsLineEdit *edit = CQUtil::makeWidget<CQChartsColumnsLineEdit>(objName + "Edit" );
 
   edit->setPlaceholderText(placeholderText);
 
