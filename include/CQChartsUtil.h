@@ -343,6 +343,19 @@ struct ColorInd {
    isInt(false), r(r) {
   }
 
+  bool isValid() const {
+    if (isInt) return (i >= 0 && i < n);
+    // TODO (r >= 0.0 && r <= 1.0);
+    return true;
+  }
+
+  double value() const {
+    if (! isInt)
+      return r;
+    else
+      return CMathUtil::map(i, 0, n - 1, 0.0, 1.0);
+  }
+
   friend bool operator==(const ColorInd &lhs, const ColorInd &rhs) {
     return (lhs.isInt == rhs.isInt &&
             lhs.i     == rhs.i     &&

@@ -564,7 +564,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   virtual const CQChartsColor &borderColor() const { return boxData_.shape().border().color(); }
   virtual void setBorderColor(const CQChartsColor &c) { boxData_.shape().border().setColor(c); }
 
-  QColor interpBorderColor(int i, int n) const;
+  QColor interpBorderColor(const ColorInd &ic) const;
 
   ColorInd calcColorInd() const;
 

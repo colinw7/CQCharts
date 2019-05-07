@@ -14,8 +14,8 @@ class CQChartsDensity;
 struct CQChartsDistributionBarValue {
   using RangeValue = CQChartsGeom::RangeValue;
 
-  double n1     { 0 };
-  double n2     { 0 };
+  double     n1 { 0 };
+  double     n2 { 0 };
   RangeValue xr;
   RangeValue yr;
 };
@@ -737,8 +737,6 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   void getXVals(int groupInd, const Bucket &bucket, std::vector<double> &xvals) const;
 
   bool getStatData(int groupInd, CQChartsStatData &statData) const;
-
-  double unmapXValue(double x, int groupInd) const;
 
   bool getRealValues(int groupInd, std::vector<double> &xvals, CQChartsStatData &statData) const;
 

@@ -164,6 +164,8 @@ class CQChartsView : public QFrame,
   using PlotSet     = std::set<CQChartsPlot*>;
   using Annotations = std::vector<CQChartsAnnotation *>;
 
+  using ColorInd = CQChartsUtil::ColorInd;
+
  public:
   static double viewportRange() { return 100.0; }
 
@@ -442,7 +444,9 @@ class CQChartsView : public QFrame,
   QColor interpPaletteColor(int i, int n, bool scale=false) const;
   QColor interpPaletteColor(double r, bool scale=false) const;
 
+  QColor interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale) const;
   QColor interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale) const;
+
   QColor interpGroupPaletteColor(int ig, int ng, double r, bool scale) const;
 
   QColor interpThemeColor(double r) const;

@@ -361,6 +361,13 @@ interpIndPaletteColor(int ind, double r, bool scale) const
 
 QColor
 CQCharts::
+interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale) const
+{
+  return interpGroupPaletteColor(ig.i, ig.n, iv.value(), scale);
+}
+
+QColor
+CQCharts::
 interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale) const
 {
   double r = CMathUtil::norm(i, 0, n - 1);
@@ -425,6 +432,9 @@ CQChartsGradientPalette *
 CQCharts::
 themeGroupPalette(int ig, int /*ng*/) const
 {
+  if (ig < 0)
+    ig = 0;
+
   return theme()->palette(ig);
 }
 

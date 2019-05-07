@@ -1950,7 +1950,7 @@ drawBestFit(QPainter *painter) const
 
       setBrush(brush, isBestFitFilled(), fillColor, bestFitFillAlpha(), bestFitFillPattern());
 
-      updateObjPenBrushState(this, ig, ng, pen, brush, CQChartsPlot::DrawType::LINE);
+      updateObjPenBrushState(this, ColorInd(ig, ng), pen, brush, CQChartsPlot::DrawType::LINE);
 
       painter->setPen  (pen);
       painter->setBrush(brush);
@@ -2052,7 +2052,7 @@ drawStatsLines(QPainter *painter) const
 
     setBrush(brush, false);
 
-    updateObjPenBrushState(this, ig, ng, pen, brush, CQChartsPlot::DrawType::LINE);
+    updateObjPenBrushState(this, ColorInd(ig, ng), pen, brush, CQChartsPlot::DrawType::LINE);
 
     painter->setPen  (pen);
     painter->setBrush(brush);

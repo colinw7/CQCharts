@@ -49,7 +49,9 @@ drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
     for (int i = 0; i < strs.size(); ++i)
       tw = std::max(tw, fm.width(strs[i]));
 
-    double th = strs.size()*fm.height();
+    tw += 2*options.margin;
+
+    double th = strs.size()*fm.height() + 2*options.margin;
 
     if (options.scaled) {
       double sx = (tw > 0 ? rect.width ()/tw : 1);
@@ -269,7 +271,7 @@ void drawContrastText(QPainter *painter, double x, double y, const QString &text
 QSizeF calcTextSize(const QString &text, const QFont &font, const CQChartsTextOptions &options)
 {
   if (options.html)
-    return CQChartsDrawPrivate::calcHtmlTextSize(text, font);
+    return CQChartsDrawPrivate::calcHtmlTextSize(text, font, options.margin);
 
   //---
 
@@ -307,10 +309,11 @@ void drawSimpleText(QPainter *painter, const QPointF &pos, const QString &text)
 
 namespace CQChartsDrawPrivate {
 
-QSizeF calcHtmlTextSize(const QString &text, const QFont &font)
+QSizeF calcHtmlTextSize(const QString &text, const QFont &font, int margin)
 {
   QTextDocument td;
 
+  td.setDocumentMargin(margin);
   td.setHtml(text);
   td.setDefaultFont(font);
 
@@ -325,7 +328,7 @@ void drawScaledHtmlText(QPainter *painter, const QRectF &trect, const QString &t
                         const CQChartsTextOptions &options)
 {
   // calc scale
-  QSizeF psize = calcHtmlTextSize(text, painter->font());
+  QSizeF psize = calcHtmlTextSize(text, painter->font(), options.margin);
 
   double pw = psize.width ();
   double ph = psize.height();
@@ -361,6 +364,7 @@ void drawHtmlText(QPainter *painter, const QRectF &trect, const QString &text,
 
   QTextDocument td;
 
+  td.setDocumentMargin(options.margin);
   td.setHtml(text);
   td.setDefaultFont(painter->font());
 

@@ -55,8 +55,6 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
     XY = (X | Y)
   };
 
-  using OptReal = boost::optional<double>;
-
  public:
   CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd,
                           const CQChartsGeom::BBox &rect, const QPointF &p,

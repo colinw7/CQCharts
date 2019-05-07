@@ -1381,6 +1381,13 @@ draw(QPainter *painter)
   //---
 
   // calc stroke and brush
+  ColorInd ig;
+
+  if (groupObj)
+    ig = ColorInd(groupObj->colorInd(), ng);
+
+  ColorInd ic(colorInd(), no);
+
   QPen   pen;
   QBrush brush;
 
@@ -1389,11 +1396,11 @@ draw(QPainter *painter)
   QColor fc;
 
   if      (color().isValid())
-    fc = plot_->interpColor(color(), colorInd(), no);
+    fc = plot_->interpColor(color(), ic);
   else if (plot_->fillColor().type() != CQChartsColor::Type::PALETTE)
-    fc = plot_->interpColor(plot_->fillColor(), colorInd(), no);
+    fc = plot_->interpColor(plot_->fillColor(), ic);
   else if (groupObj)
-    fc = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
+    fc = plot_->interpGroupPaletteColor(ig, ic);
 
   plot_->setPenBrush(pen, brush,
     plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
@@ -1498,12 +1505,19 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
 
   // calc label pen
   // TODO: label alpha
+  ColorInd ig;
+
+  if (groupObj)
+    ig = ColorInd(groupObj->colorInd(), ng);
+
+  ColorInd ic(colorInd(), no);
+
   QPen lpen;
 
   QColor bg;
 
   if (groupObj)
-    bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
+    bg = plot_->interpGroupPaletteColor(ig, ic);
 
   plot_->setPen(lpen, true, bg, 1.0);
 
@@ -1575,7 +1589,7 @@ QString
 CQChartsPieGroupObj::
 calcId() const
 {
-  return QString("group:%1").arg(ig_.i);
+  return QString("%1:%2").arg(typeName()).arg(ig_.i);
 }
 
 QString
@@ -1826,8 +1840,11 @@ fillBrush() const
       c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
   }
 
-  if (obj && obj->color().isValid())
-    c = plot_->interpColor(obj->color(), obj->colorInd(), no);
+  if (obj && obj->color().isValid()) {
+    ColorInd ic(obj->colorInd(), no);
+
+    c = plot_->interpColor(obj->color(), ic);
+  }
 
   return c;
 }

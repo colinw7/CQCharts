@@ -1068,7 +1068,7 @@ calcBucketRanges() const
   }
   else if (isScatter()) {
     if (maxValues > 0) {
-      updateRange2(-0.5, -0.5, maxValues - 0.5, ng - 0.5);
+      updateRange2(-0.5, -0.5, ng - 0.5, maxValues - 0.5);
     }
   }
   else {
@@ -1402,6 +1402,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+#if 0
   auto intIncrementForSize = [&](double size) {
     CInterval interval;
 
@@ -1411,6 +1412,7 @@ createObjs(PlotObjs &objs) const
 
     return std::max(CMathRound::RoundNearest(interval.calcIncrement()), 1);
   };
+#endif
 
   //---
 
@@ -1422,11 +1424,13 @@ createObjs(PlotObjs &objs) const
   valueAxis()->clearTickLabels();
   countAxis()->clearTickLabels();
 
+#if 0
   const CQChartsGeom::Range &dataRange = this->dataRange();
 
   double size = dataRange.size(! isHorizontal());
 
   int inc = intIncrementForSize(size);
+#endif
 
   if      (isDensity()) {
     valueAxis()->setIntegral           (false);
@@ -1442,15 +1446,19 @@ createObjs(PlotObjs &objs) const
     countAxis()->setRequireTickLabel   (false);
   }
   else if (isScatter()) {
-    valueAxis()->setIntegral           (true);
+    valueAxis()->setIntegral           (false);
     valueAxis()->setGridMid            (false);
-    valueAxis()->setMajorIncrement     (inc);
+    valueAxis()->setMajorIncrement     (0);
     valueAxis()->setMinorTicksDisplayed(false);
     valueAxis()->setRequireTickLabel   (false);
 
-    countAxis()->setIntegral           (true);
+    if (isValueCount())
+      countAxis()->setIntegral(true);
+    else
+      countAxis()->setIntegral(false);
+
     countAxis()->setGridMid            (false);
-    countAxis()->setMajorIncrement     (inc);
+    countAxis()->setMajorIncrement     (0);
     countAxis()->setMinorTicksDisplayed(false);
     countAxis()->setRequireTickLabel   (false);
   }
@@ -1460,8 +1468,6 @@ createObjs(PlotObjs &objs) const
     valueAxis()->setMajorIncrement     (1);
     valueAxis()->setMinorTicksDisplayed(false);
     valueAxis()->setRequireTickLabel   (true);
-
-    //---
 
     if (isValueCount())
       countAxis()->setIntegral(true);
@@ -1748,7 +1754,7 @@ createObjs(PlotObjs &objs) const
 
         int n = pVarsData->inds.size();
 
-        CQChartsGeom::BBox bbox = makeBBox(iv - 0.5, ig - 0.5, iv + 0.5, ig + 0.5);
+        CQChartsGeom::BBox bbox = makeBBox(ig - 0.5, iv - 0.5, ig + 0.5, iv + 0.5);
 
         CQChartsDistributionScatterObj *scatterObj =
           new CQChartsDistributionScatterObj(this, bbox, groupInd, sbucket, n,
@@ -1765,7 +1771,7 @@ createObjs(PlotObjs &objs) const
 
       QString groupName = groupIndName(groupInd);
 
-      countAxis()->setTickLabel(iv, groupName);
+      countAxis()->setTickLabel(ig, groupName);
     }
     else {
       auto pb = groupData_.groupBucketRange.find(groupInd);
@@ -2062,8 +2068,6 @@ createObjs(PlotObjs &objs) const
   if      (isDensity()) {
     countAxis()->setLabel("Density");
   }
-  else if (isScatter()) {
-  }
   else {
     auto setCountLabel = [&](const QString &label) {
       QString label1 = label;
@@ -2200,15 +2204,6 @@ getXVals(int groupInd, const Bucket &bucket, std::vector<double> &xvals) const
     if (ok)
       xvals.push_back(r);
   }
-}
-
-double
-CQChartsDistributionPlot::
-unmapXValue(double x, int groupInd) const
-{
-  const Values *values = getGroupValues(groupInd);
-
-  return CMathUtil::map(x, 0.0, 1.0, values->xValueRange.min(), values->xValueRange.max());
 }
 
 bool

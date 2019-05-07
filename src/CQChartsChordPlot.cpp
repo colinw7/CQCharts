@@ -882,18 +882,13 @@ draw(QPainter *painter)
   QColor fromColor;
 
   if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    if (gval >= 0.0) {
-      double r = CMathUtil::norm(iv_.i, 0, iv_.n);
-
-      fromColor = plot_->interpGroupPaletteColor(gval, r, 0.1);
-    }
-    else {
+    if (gval >= 0.0)
+      fromColor = plot_->interpGroupPaletteColor(gval, iv_.value(), 0.1);
+    else
       fromColor = plot_->interpPaletteColor(colorInd);
-    }
   }
-  else {
+  else
     fromColor = plot_->interpPaletteColor(colorInd);
-  }
 
   double fromAlpha = 1.0;
 

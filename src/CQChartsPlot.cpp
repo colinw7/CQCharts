@@ -2683,7 +2683,9 @@ applyDataRange(bool propagate)
   }
 
   if (propagate) {
-    assert(isFirstPlot());
+    if (isOverlay()) {
+      assert(isFirstPlot());
+    }
 
     if      (isX1X2()) {
       CQChartsGeom::Range dataRange1 = CQChartsUtil::bboxRange(dataRange);
@@ -7849,46 +7851,46 @@ void
 CQChartsPlot::
 updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush, DrawType drawType) const
 {
-  updateObjPenBrushState(obj, 0, 1, pen, brush, drawType);
+  updateObjPenBrushState(obj, ColorInd(), pen, brush, drawType);
 }
 
 void
 CQChartsPlot::
-updateObjPenBrushState(const CQChartsObj *obj, int i, int n,
+updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
                        QPen &pen, QBrush &brush, DrawType drawType) const
 {
   if (! view_->isBufferLayers()) {
     // inside and selected
     if      (obj->isInside() && obj->isSelected()) {
-      updateSelectedObjPenBrushState(i, n, pen, brush, drawType);
-      updateInsideObjPenBrushState  (i, n, pen, brush, /*outline*/false, drawType);
+      updateSelectedObjPenBrushState(ic, pen, brush, drawType);
+      updateInsideObjPenBrushState  (ic, pen, brush, /*outline*/false, drawType);
     }
     // inside
     else if (obj->isInside()) {
-      updateInsideObjPenBrushState(i, n, pen, brush, /*outline*/true, drawType);
+      updateInsideObjPenBrushState(ic, pen, brush, /*outline*/true, drawType);
     }
     // selected
     else if (obj->isSelected()) {
-      updateSelectedObjPenBrushState(i, n, pen, brush, drawType);
+      updateSelectedObjPenBrushState(ic, pen, brush, drawType);
     }
   }
   else {
     // inside
     if      (drawLayer_ == CQChartsLayer::Type::MOUSE_OVER) {
       if (obj->isInside())
-        updateInsideObjPenBrushState(i, n, pen, brush, /*outline*/true, drawType);
+        updateInsideObjPenBrushState(ic, pen, brush, /*outline*/true, drawType);
     }
     // selected
     else if (drawLayer_ == CQChartsLayer::Type::SELECTION) {
       if (obj->isSelected())
-        updateSelectedObjPenBrushState(i, n, pen, brush, drawType);
+        updateSelectedObjPenBrushState(ic, pen, brush, drawType);
     }
   }
 }
 
 void
 CQChartsPlot::
-updateInsideObjPenBrushState(int i, int n, QPen &pen, QBrush &brush,
+updateInsideObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
                              bool outline, DrawType drawType) const
 {
   // fill and stroke
@@ -7902,7 +7904,7 @@ updateInsideObjPenBrushState(int i, int n, QPen &pen, QBrush &brush,
         QColor pc = pen.color();
 
         if (view()->isInsideBorder())
-          opc = view()->interpInsideBorderColor(i, n);
+          opc = view()->interpInsideBorderColor(ic);
         else
           opc = CQChartsUtil::invColor(pc);
 
@@ -7912,7 +7914,7 @@ updateInsideObjPenBrushState(int i, int n, QPen &pen, QBrush &brush,
         QColor bc = brush.color();
 
         if (view()->isInsideBorder())
-          opc = view()->interpInsideBorderColor(i, n);
+          opc = view()->interpInsideBorderColor(ic);
         else
           opc = CQChartsUtil::invColor(bc);
       }
@@ -7930,7 +7932,7 @@ updateInsideObjPenBrushState(int i, int n, QPen &pen, QBrush &brush,
       QColor ibc;
 
       if (view()->isInsideFilled())
-        ibc = view()->interpInsideFillColor(i, n);
+        ibc = view()->interpInsideFillColor(ic);
       else
         ibc = insideColor(bc);
 
@@ -7951,7 +7953,7 @@ updateInsideObjPenBrushState(int i, int n, QPen &pen, QBrush &brush,
     QColor opc;
 
     if (view()->isInsideBorder())
-      opc = view()->interpInsideBorderColor(i, n);
+      opc = view()->interpInsideBorderColor(ic);
     else
       opc = CQChartsUtil::invColor(pc);
 
@@ -7962,7 +7964,8 @@ updateInsideObjPenBrushState(int i, int n, QPen &pen, QBrush &brush,
 
 void
 CQChartsPlot::
-updateSelectedObjPenBrushState(int i, int n, QPen &pen, QBrush &brush, DrawType drawType) const
+updateSelectedObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
+                               DrawType drawType) const
 {
   // fill and stroke
   if      (drawType != DrawType::LINE) {
@@ -7975,7 +7978,7 @@ updateSelectedObjPenBrushState(int i, int n, QPen &pen, QBrush &brush, DrawType 
         QColor pc = pen.color();
 
         if (view()->isSelectedBorder())
-          opc = view()->interpSelectedBorderColor(i, n);
+          opc = view()->interpSelectedBorderColor(ic);
         else
           opc = selectedColor(pc);
 
@@ -7985,7 +7988,7 @@ updateSelectedObjPenBrushState(int i, int n, QPen &pen, QBrush &brush, DrawType 
         QColor bc = brush.color();
 
         if (view()->isSelectedBorder())
-          opc = view()->interpSelectedBorderColor(i, n);
+          opc = view()->interpSelectedBorderColor(ic);
         else
           opc = CQChartsUtil::invColor(bc);
       }
@@ -8002,7 +8005,7 @@ updateSelectedObjPenBrushState(int i, int n, QPen &pen, QBrush &brush, DrawType 
       QColor ibc;
 
       if (view()->isSelectedFilled())
-        ibc = view()->interpSelectedFillColor(i, n);
+        ibc = view()->interpSelectedFillColor(ic);
       else
         ibc = selectedColor(bc);
 
@@ -8023,7 +8026,7 @@ updateSelectedObjPenBrushState(int i, int n, QPen &pen, QBrush &brush, DrawType 
     QColor opc;
 
     if (view()->isSelectedBorder())
-      opc = view()->interpSelectedBorderColor(i, n);
+      opc = view()->interpSelectedBorderColor(ic);
     else
       opc = CQChartsUtil::invColor(pc);
 
@@ -8070,6 +8073,13 @@ CQChartsPlot::
 interpPaletteColor(double r, bool scale) const
 {
   return view()->interpPaletteColor(r, scale);
+}
+
+QColor
+CQChartsPlot::
+interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale) const
+{
+  return view()->interpGroupPaletteColor(ig, iv, scale);
 }
 
 QColor

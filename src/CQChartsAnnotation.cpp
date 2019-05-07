@@ -1633,8 +1633,8 @@ draw(QPainter *painter)
   //---
 
   // set box
-  double tx = prect.getXMin  () +   margin() +   padding();
-  double ty = prect.getYMin  () +   margin() +   padding();
+  double tx =          prect.getXMin  () +   margin() +   padding();
+  double ty =          prect.getYMin  () +   margin() +   padding();
   double tw = std::max(prect.getWidth () - 2*margin() - 2*padding(), 0.0);
   double th = std::max(prect.getHeight() - 2*margin() - 2*padding(), 0.0);
 

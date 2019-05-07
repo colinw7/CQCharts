@@ -1,8 +1,10 @@
 #ifndef CQCharts_H
 #define CQCharts_H
 
-#include <CQBaseModelTypes.h>
 #include <CQChartsThemeName.h>
+#include <CQChartsUtil.h>
+
+#include <CQBaseModelTypes.h>
 
 #include <QObject>
 #include <QAbstractItemModel>
@@ -89,6 +91,8 @@ class CQCharts : public QObject {
   using Views      = std::vector<CQChartsView *>;
   using Procs      = std::map<QString,ProcData>;
 
+  using ColorInd = CQChartsUtil::ColorInd;
+
  public:
   CQCharts();
 
@@ -142,6 +146,7 @@ class CQCharts : public QObject {
   QColor interpIndPaletteColor(int ind, int i, int n, bool scale=false) const;
   QColor interpIndPaletteColor(int ind, double r, bool scale=false) const;
 
+  QColor interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale=false) const;
   QColor interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale=false) const;
   QColor interpGroupPaletteColor(int ig, int ng, double r, bool scale=false) const;
 

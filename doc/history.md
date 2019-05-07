@@ -842,3 +842,6 @@
 # 5/5/2019
  + Use ColorInd data for more plot objects and keys
  + Support plot x/y color stops to interpolate color from x/y value
+# 5/6/2019
+ + ColorInd cleanup
+ + Key Header and Text support more text properties

@@ -1,4 +1,7 @@
 High
+ + Remove draw Simple Text calls
+ + Support View Key Header (or remove)
+ + Use more lambdas to simplify adding properties
  + Hier colorInd. Color by Hier. virtual for ig/is to use parent color index
  + Only send color changed from editor on mouse release (or use different signal)
  + Bar Chart Key using new color code

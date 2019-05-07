@@ -182,6 +182,20 @@ class CQChartsObj##UNAME##LineData { \
                                 LNAME##LinesWidth(), LNAME##LinesDash()); \
   } \
 \
+  void set##UNAME##LineDataPen(QPen &pen, double r) const { \
+    QColor lc = interp##UNAME##LinesColor(r); \
+\
+    LNAME##LineDataObj_->setPen(pen, is##UNAME##Lines(), lc, LNAME##LinesAlpha(), \
+                                LNAME##LinesWidth(), LNAME##LinesDash()); \
+  } \
+\
+  void set##UNAME##LineDataPen(QPen &pen, const CQChartsUtil::ColorInd &ind) const { \
+    if (ind.isInt) \
+      set##UNAME##LineDataPen(pen, ind.i, ind.n); \
+    else \
+      set##UNAME##LineDataPen(pen, ind.r); \
+  } \
+\
   const CQChartsLineData &LNAME##LineData() const { return LNAME##LineData_; } \
 \
   void set##UNAME##LineData(const CQChartsLineData &data) { \
@@ -534,6 +548,21 @@ class CQChartsObj##UNAME##PointData { \
       LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), LNAME##SymbolStrokeDash(), \
       is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(i, n), \
       LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern()); \
+  } \
+\
+  void set##UNAME##SymbolPenBrush(QPen &pen, QBrush &brush, double r) const { \
+    LNAME##PointDataObj_->setPenBrush(pen, brush, \
+      is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(r), \
+      LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), LNAME##SymbolStrokeDash(), \
+      is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(r), \
+      LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern()); \
+  } \
+\
+  void set##UNAME##SymbolPenBrush(QPen &pen, QBrush &brush, CQChartsUtil::ColorInd &ind) const { \
+    if (ind.isInt) \
+      set##UNAME##SymbolPenBrush(pen, brush, ind.i, ind.n); \
+    else \
+      set##UNAME##SymbolPenBrush(pen, brush, ind.r); \
   } \
 \
   const CQChartsSymbolData &LNAME##SymbolData() const { return LNAME##PointData_; } \

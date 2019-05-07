@@ -1082,11 +1082,11 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs) const
       const SetIndPoly &setPoly  = p.second;
 
       if      (isBivariateLines()) {
-        if (! addBivariateLines(groupInd, setPoly, ig, ng, objs))
+        if (! addBivariateLines(groupInd, setPoly, ColorInd(ig, ng), objs))
           return false;
       }
       else {
-        if (! addLines(groupInd, setPoly, ig, ng, objs))
+        if (! addLines(groupInd, setPoly, ColorInd(ig, ng), objs))
           return false;
       }
     }
@@ -1099,7 +1099,8 @@ createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs) const
 
 bool
 CQChartsXYPlot::
-addBivariateLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotObjs &objs) const
+addBivariateLines(int groupInd, const SetIndPoly &setPoly,
+                  const ColorInd &ig, PlotObjs &objs) const
 {
   double sw = symbolWidth ();
   double sh = symbolHeight();
@@ -1253,10 +1254,9 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotO
       QPolygonF &poly2 = polygons2[j - 1].poly;
 
       ColorInd is1(j - 1, ns - 1);
-      ColorInd ig1(ig, ng);
 
-      addPolyLine(poly1, groupInd, is1, ig1, name1, pointObjs, objs);
-      addPolyLine(poly2, groupInd, is1, ig1, name1, pointObjs, objs);
+      addPolyLine(poly1, groupInd, is1, ig, name1, pointObjs, objs);
+      addPolyLine(poly2, groupInd, is1, ig, name1, pointObjs, objs);
 
       int len = poly1.size();
 
@@ -1338,7 +1338,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotO
         poly1 = poly3;
       }
 
-      addPolygon(poly1, groupInd, is1, ig1, name1, objs);
+      addPolygon(poly1, groupInd, is1, ig, name1, objs);
     }
   }
 
@@ -1347,7 +1347,7 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotO
 
 bool
 CQChartsXYPlot::
-addLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotObjs &objs) const
+addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &objs) const
 {
   PlotObjs pointObjs;
 
@@ -1379,7 +1379,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotObjs &objs
 
     QString name = modelHeaderString(yColumn, ok);
 
-    if (ng > 1)
+    if (ig.n > 1)
       name = groupIndName(groupInd);
 
     //---
@@ -1450,9 +1450,8 @@ addLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotObjs &objs
           CMathUtil::isNaN(y) || CMathUtil::isInf(y)) {
         if (polyLine.count()) {
           ColorInd is1(is, ns);
-          ColorInd ig1(ig, ng);
 
-          addPolyLine(polyLine, groupInd, is1, ig1, name, pointObjs, objs);
+          addPolyLine(polyLine, groupInd, is1, ig, name, pointObjs, objs);
 
           pointObjs.clear();
 
@@ -1492,7 +1491,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotObjs &objs
 
         CQChartsXYPointObj *pointObj =
           new CQChartsXYPointObj(this, groupInd, bbox, x, y, size, xind1,
-                                 ColorInd(is, ns), ColorInd(ig, ng), ColorInd(ip, np));
+                                 ColorInd(is, ns), ig, ColorInd(ip, np));
 
         pointObjs.push_back(pointObj);
 
@@ -1664,9 +1663,8 @@ addLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotObjs &objs
 
     if (polyLine.count()) {
       ColorInd is1(is, ns);
-      ColorInd ig1(ig, ng);
 
-      addPolyLine(polyLine, groupInd, is1, ig1, name, pointObjs, objs);
+      addPolyLine(polyLine, groupInd, is1, ig, name, pointObjs, objs);
 
       pointObjs.clear();
 
@@ -1676,9 +1674,8 @@ addLines(int groupInd, const SetIndPoly &setPoly, int ig, int ng, PlotObjs &objs
     //---
 
     ColorInd is1(is, ns);
-    ColorInd ig1(ig, ng);
 
-    addPolygon(polyShape, groupInd, is1, ig1, name, objs);
+    addPolygon(polyShape, groupInd, is1, ig, name, objs);
   }
 
   return true;
@@ -2380,8 +2377,7 @@ draw(QPainter *painter)
 
   //---
 
-  int ic = (is_.n > 1 ? is_.i : iv_.i);
-  int nc = (is_.n > 1 ? is_.n : iv_.n);
+  ColorInd ic = (is_.n > 1 ? is_ : iv_);
 
   //---
 
@@ -2389,7 +2385,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor strokeColor = plot()->interpImpulseLinesColor(ic, nc);
+  QColor strokeColor = plot()->interpImpulseLinesColor(ic);
 
   double lw = plot()->lengthPixelWidth(plot()->impulseLinesWidth());
 
@@ -2985,8 +2981,7 @@ draw(QPainter *painter)
 
   //---
 
-  int ic = (ig_.n > 1 ? ig_.i : is_.i);
-  int nc = (ig_.n > 1 ? ig_.n : is_.n);
+  ColorInd ic = (ig_.n > 1 ? ig_ : is_);
 
   //---
 
@@ -2996,13 +2991,13 @@ draw(QPainter *painter)
     QPen   pen;
     QBrush brush;
 
-    QColor c = plot()->interpLinesColor(ic, nc);
+    QColor c = plot()->interpLinesColor(ic);
 
     plot()->setPen(pen, true, c, plot()->linesAlpha(), plot()->linesWidth(), plot()->linesDash());
 
     plot()->setBrush(brush, false);
 
-    plot()->updateObjPenBrushState(this, ic, nc, pen, brush, CQChartsPlot::DrawType::LINE);
+    plot()->updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
 
     painter->setPen  (pen);
     painter->setBrush(brush);
@@ -3107,8 +3102,8 @@ draw(QPainter *painter)
       QPen   pen;
       QBrush brush;
 
-      QColor borderColor = plot()->interpBestFitBorderColor(ic, nc);
-      QColor fillColor   = plot()->interpBestFitFillColor  (ic, nc);
+      QColor borderColor = plot()->interpBestFitBorderColor(ic);
+      QColor fillColor   = plot()->interpBestFitFillColor  (ic);
 
       plot()->setPen(pen, true, borderColor, plot()->bestFitBorderAlpha(),
                      plot()->bestFitBorderWidth(), plot()->bestFitBorderDash());
@@ -3116,7 +3111,7 @@ draw(QPainter *painter)
       plot()->setBrush(brush, plot()->isBestFitFilled(), fillColor, plot()->bestFitFillAlpha(),
                        plot()->bestFitFillPattern());
 
-      plot()->updateObjPenBrushState(this, ic, nc, pen, brush, CQChartsPlot::DrawType::LINE);
+      plot()->updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
 
       painter->setPen  (pen);
       painter->setBrush(brush);
@@ -3181,14 +3176,14 @@ draw(QPainter *painter)
     QPen   pen;
     QBrush brush;
 
-    QColor c = plot()->interpStatsLinesColor(ic, nc);
+    QColor c = plot()->interpStatsLinesColor(ic);
 
     plot()->setPen(pen, true, c, plot()->statsLinesAlpha(),
                    plot()->statsLinesWidth(), plot()->statsLinesDash());
 
     plot()->setBrush(brush, false);
 
-    plot()->updateObjPenBrushState(this, ic, nc, pen, brush, CQChartsPlot::DrawType::LINE);
+    plot()->updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
 
     painter->setPen  (pen);
     painter->setBrush(brush);
@@ -3321,8 +3316,7 @@ draw(QPainter *painter)
 
   //---
 
-  int ic = (ig_.n > 1 ? ig_.i : is_.i);
-  int nc = (ig_.n > 1 ? ig_.n : is_.n);
+  ColorInd ic = (ig_.n > 1 ? ig_ : is_);
 
   //---
 
@@ -3330,7 +3324,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor fillColor = plot()->interpFillUnderFillColor(ic, nc);
+  QColor fillColor = plot()->interpFillUnderFillColor(ic);
 
   plot()->setPen(pen, false);
 
@@ -3646,8 +3640,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
     CQChartsPlotObj *obj = plotObj();
 
     if (obj)
-      plot()->updateObjPenBrushState(obj, ig_.i, ig_.n, linePen, lineBrush,
-                                     CQChartsPlot::DrawType::LINE);
+      plot()->updateObjPenBrushState(obj, ig_, linePen, lineBrush, CQChartsPlot::DrawType::LINE);
 
     if (isInside())
       linePen = plot()->insideColor(linePen.color());
@@ -3691,8 +3684,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
     CQChartsPlotObj *obj = plotObj();
 
     if (obj)
-      plot()->updateObjPenBrushState(obj, ig_.i, ig_.n, pen, brush,
-                                     CQChartsPlot::DrawType::SYMBOL);
+      plot()->updateObjPenBrushState(obj, ig_, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
     //---
 

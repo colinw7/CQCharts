@@ -42,7 +42,7 @@ void drawSimpleText(QPainter *painter, const QPointF &pos, const QString &text);
 namespace CQChartsDrawPrivate {
 
 // private
-QSizeF calcHtmlTextSize(const QString &text, const QFont &font);
+QSizeF calcHtmlTextSize(const QString &text, const QFont &font, int margin=0);
 
 void drawScaledHtmlText(QPainter *painter, const QRectF &trect, const QString &text,
                         const CQChartsTextOptions &options);

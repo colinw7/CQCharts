@@ -1674,12 +1674,12 @@ class CQChartsPlot : public CQChartsObj,
   void updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush,
                               DrawType drawType=DrawType::BOX) const;
 
-  void updateObjPenBrushState(const CQChartsObj *obj, int i, int n, QPen &pen, QBrush &brush,
-                              DrawType drawType) const;
+  void updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
+                              QPen &pen, QBrush &brush, DrawType drawType) const;
 
-  void updateInsideObjPenBrushState  (int i, int n, QPen &pen, QBrush &brush,
+  void updateInsideObjPenBrushState  (const ColorInd &ic, QPen &pen, QBrush &brush,
                                       bool outline, DrawType drawType) const;
-  void updateSelectedObjPenBrushState(int i, int n, QPen &pen, QBrush &brush,
+  void updateSelectedObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
                                       DrawType drawType) const;
 
   QColor insideColor(const QColor &c) const;
@@ -1694,7 +1694,10 @@ class CQChartsPlot : public CQChartsObj,
 
   QColor interpPaletteColor(double r, bool scale=false) const;
 
+  virtual QColor interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv,
+                                         bool scale=false) const;
   virtual QColor interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale=false) const;
+
   QColor interpGroupPaletteColor(double r1, double r2, double dr) const;
 
   QColor interpThemeColor(double r) const;

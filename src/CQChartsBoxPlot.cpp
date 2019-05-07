@@ -1272,10 +1272,10 @@ initRawObjs(PlotObjs &objs) const
 
         // create jitter or stacked points
         if      (isPointsJitter()) {
-          addJitterPoints(groupInd, setId, pos, whisker, ig, ng, is, ns, objs);
+          addJitterPoints(groupInd, setId, pos, whisker, ColorInd(is, ns), ColorInd(ig, ng), objs);
         }
         else if (isPointsStacked()) {
-          addStackedPoints(groupInd, setId, pos, whisker, ig, ng, is, ns, objs);
+          addStackedPoints(groupInd, setId, pos, whisker, ColorInd(is, ns), ColorInd(ig, ng), objs);
         }
 
         //---
@@ -1308,7 +1308,7 @@ initRawObjs(PlotObjs &objs) const
 void
 CQChartsBoxPlot::
 addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisker *whisker,
-                int ig, int ng, int is, int ns, PlotObjs &objs) const
+                const ColorInd &is, const ColorInd &ig, PlotObjs &objs) const
 {
   double vw2 = lengthPlotSize(violinWidth(), ! isHorizontal())/2.0;
 
@@ -1356,7 +1356,7 @@ addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhiske
 
     CQChartsBoxPlotPointObj *pointObj =
       new CQChartsBoxPlotPointObj(this, rect, setId, groupInd, pos, value.ind,
-                                  ColorInd(is, ns), ColorInd(ig, ng), ColorInd(iv, nv));
+                                  is, ig, ColorInd(iv, nv));
 
     objs.push_back(pointObj);
   }
@@ -1365,7 +1365,7 @@ addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhiske
 void
 CQChartsBoxPlot::
 addStackedPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisker *whisker,
-                 int ig, int ng, int is, int ns, PlotObjs &objs) const
+                 const ColorInd &is, const ColorInd &ig, PlotObjs &objs) const
 {
   using Rects    = std::vector<CQChartsGeom::BBox>;
   using PosRects = std::map<int,Rects>;
@@ -1460,11 +1460,11 @@ addStackedPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisk
         ppos.setY(prect.getYMid());
 
       pointObj = new CQChartsBoxPlotPointObj(this, prect, setId, groupInd, ppos, value.ind,
-                                             ColorInd(is, ns), ColorInd(ig, ng), ColorInd(iv, nv));
+                                             is, ig, ColorInd(iv, nv));
     }
     else {
       pointObj = new CQChartsBoxPlotPointObj(this, rect, setId, groupInd, pos, value.ind,
-                                              ColorInd(is, ns), ColorInd(ig, ng), ColorInd(iv, nv));
+                                             is, ig, ColorInd(iv, nv));
     }
 
     objs.push_back(pointObj);
@@ -1968,7 +1968,7 @@ draw(QPainter *painter)
   QPen   whiskerPen;
   QBrush whiskerBrush;
 
-  plot_->setWhiskerLineDataPen(whiskerPen, colorInd.i, colorInd.n);
+  plot_->setWhiskerLineDataPen(whiskerPen, colorInd);
 
   plot_->setBrush(whiskerBrush, false);
 
@@ -2198,7 +2198,7 @@ draw(QPainter *painter)
         QPen   pen;
         QBrush brush;
 
-        plot_->setOutlierSymbolPenBrush(pen, brush, colorInd.i, colorInd.n);
+        plot_->setOutlierSymbolPenBrush(pen, brush, colorInd);
 
         plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
@@ -2424,7 +2424,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  plot_->setOutlierSymbolPenBrush(pen, brush, colorInd.i, colorInd.n);
+  plot_->setOutlierSymbolPenBrush(pen, brush, colorInd);
 
   plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
@@ -2529,7 +2529,7 @@ draw(QPainter *painter)
   QPen   whiskerPen;
   QBrush whiskerBrush;
 
-  plot_->setWhiskerLineDataPen(whiskerPen, 0, 1);
+  plot_->setWhiskerLineDataPen(whiskerPen, ColorInd());
 
   plot_->setBrush(whiskerBrush, false);
 

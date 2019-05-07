@@ -1578,12 +1578,10 @@ bool
 CQChartsBarChartObj::
 isHidden() const
 {
-  if (is_.n > 1) {
+  if (is_.n > 1)
     return plot_->isSetHidden(is_.i);
-  }
   else
     return plot_->isSetHidden(ig_.i);
-  return true;
 }
 #endif
 
@@ -1668,9 +1666,7 @@ draw(QPainter *painter)
           QColor barColor1 = plot_->interpBarFillColor(ig1);
           QColor barColor2 = plot_->interpBarFillColor(ig2);
 
-          double f = (1.0*iv_.i)/iv_.n;
-
-          barColor = CQChartsUtil::blendColors(barColor1, barColor2, f);
+          barColor = CQChartsUtil::blendColors(barColor1, barColor2, iv_.value());
         }
       }
       else {

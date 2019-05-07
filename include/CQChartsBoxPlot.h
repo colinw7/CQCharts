@@ -113,15 +113,15 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
 class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(double pos          READ pos        )
-  Q_PROPERTY(double min          READ min        )
-  Q_PROPERTY(double lowerMedian  READ lowerMedian)
-  Q_PROPERTY(double median       READ median     )
-  Q_PROPERTY(double upperMedian  READ upperMedian)
-  Q_PROPERTY(double max          READ max        )
-  Q_PROPERTY(double mean         READ mean       )
-  Q_PROPERTY(double stddev       READ stddev     )
-  Q_PROPERTY(double notch        READ notch      )
+  Q_PROPERTY(double pos         READ pos        )
+  Q_PROPERTY(double min         READ min        )
+  Q_PROPERTY(double lowerMedian READ lowerMedian)
+  Q_PROPERTY(double median      READ median     )
+  Q_PROPERTY(double upperMedian READ upperMedian)
+  Q_PROPERTY(double max         READ max        )
+  Q_PROPERTY(double mean        READ mean       )
+  Q_PROPERTY(double stddev      READ stddev     )
+  Q_PROPERTY(double notch       READ notch      )
 
  public:
   CQChartsBoxPlotWhiskerObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
@@ -657,9 +657,9 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   bool initCalcObjs(PlotObjs &objs) const;
 
   void addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisker *whisker,
-                       int ig, int ng, int is, int ns, PlotObjs &objs) const;
+                       const ColorInd &is, const ColorInd &ig, PlotObjs &objs) const;
   void addStackedPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisker *whisker,
-                        int ig, int ng, int is, int ns, PlotObjs &objs) const;
+                        const ColorInd &is, const ColorInd &ig, PlotObjs &objs) const;
 
   void clearRawWhiskers();
 

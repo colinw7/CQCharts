@@ -126,7 +126,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
     setValues(QStringList() << "default" << "theme1" << "theme2").setDesc("View theme");
   addProperty("theme", this, "dark" , "dark")->setDesc("View is dark");
 
-  addProperty("theme", this, "defaultPalette", "defaultPalette")->setDesc("Default palette");
+  addProperty("color", this, "defaultPalette", "defaultPalette")->setDesc("Default palette");
 
   addProperty("font", this, "scaleFont" , "scaled")->setDesc("Scale font to view size");
   addProperty("font", this, "fontFactor", "factor")->setDesc("Global font scale");
@@ -1540,6 +1540,13 @@ CQChartsView::
 interpPaletteColor(double r, bool scale) const
 {
   return charts()->interpPaletteColor(r, scale);
+}
+
+QColor
+CQChartsView::
+interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale) const
+{
+  return charts()->interpGroupPaletteColor(ig, iv, scale);
 }
 
 QColor

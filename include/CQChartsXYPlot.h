@@ -827,9 +827,9 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   bool createGroupSetObjs(const GroupSetIndPoly &groupSetIndPoly, PlotObjs &objs) const;
 
   bool addBivariateLines(int groupInd, const SetIndPoly &setPoly,
-                         int ig, int ng, PlotObjs &objs) const;
+                         const ColorInd &ig, PlotObjs &objs) const;
   bool addLines(int groupInd, const SetIndPoly &setPoly,
-                int ig, int ng, PlotObjs &objs) const;
+                const ColorInd &ig, PlotObjs &objs) const;
 
  private:
   CQChartsColumn  xColumn_;                                   //!< x column

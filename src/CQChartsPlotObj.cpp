@@ -10,9 +10,9 @@ CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect, const ColorI
   assert(! CMathUtil::isNaN(rect.getXMin()) && ! CMathUtil::isNaN(rect.getYMin()) &&
          ! CMathUtil::isNaN(rect.getXMax()) && ! CMathUtil::isNaN(rect.getYMax()));
 
-  assert(is_.i >= 0 && is_.i < is_.n);
-  assert(ig_.i >= 0 && ig_.i < ig_.n);
-  assert(iv_.i >= 0 && iv_.i < iv_.n);
+  assert(is_.isValid());
+  assert(ig_.isValid());
+  assert(iv_.isValid());
 }
 
 //---
