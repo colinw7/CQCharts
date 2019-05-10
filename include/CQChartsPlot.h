@@ -1705,10 +1705,10 @@ class CQChartsPlot : public CQChartsObj,
   virtual QColor interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv,
                                          bool scale=false) const;
 
+  QColor blendGroupPaletteColor(double r1, double r2, double dr) const;
+
  private:
   QColor interpGroupPaletteColorI(int ig, int ng, int i, int n, bool scale=false) const;
-
-  QColor interpGroupPaletteColorI(double r1, double r2, double dr) const;
 
  public:
   QColor interpThemeColor(const ColorInd &ind) const;

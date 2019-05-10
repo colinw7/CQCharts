@@ -619,13 +619,13 @@ draw(QPainter *painter)
     if (! hasValue_ || ! plot_->isColorByValue())
       fc = plot_->interpColor(color(), colorInd);
     else
-      fc = plot_->interpColor(color(), dv);
+      fc = plot_->interpColor(color(), ColorInd(dv));
   }
   else {
     if (! hasValue_ || ! plot_->isColorByValue())
       fc = plot_->interpFillColor(colorInd);
     else
-      fc = plot_->interpPaletteColor(dv);
+      fc = plot_->interpPaletteColor(ColorInd(dv));
   }
 
   QColor bc = plot_->interpBorderColor(colorInd);

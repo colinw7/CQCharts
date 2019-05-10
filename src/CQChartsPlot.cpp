@@ -8169,7 +8169,7 @@ interpGroupPaletteColorI(int ig, int ng, int i, int n, bool scale) const
 
 QColor
 CQChartsPlot::
-interpGroupPaletteColorI(double r1, double r2, double dr) const
+blendGroupPaletteColor(double r1, double r2, double dr) const
 {
   CQChartsTheme *theme = view()->theme();
 

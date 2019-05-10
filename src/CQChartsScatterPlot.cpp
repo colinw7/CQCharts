@@ -2483,7 +2483,7 @@ drawDensityMap(QPainter *painter) const
 
           QBrush brush;
 
-          QColor c = interpPaletteColor(v);
+          QColor c = interpPaletteColor(ColorInd(v));
 
           setBrush(brush, true, c, a, CQChartsFillPattern());
 
@@ -3215,7 +3215,7 @@ drawSymbolMapKey(QPainter *painter) const
 
   double pr2 = (pr1 + pr3)/2;
 
-  QColor borderColor = interpThemeColor(1.0);
+  QColor borderColor = interpThemeColor(ColorInd(1.0));
 
   painter->setPen(borderColor);
 
@@ -3848,7 +3848,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
   // set text pen
   QPen pen;
 
-  QColor tc = plot_->interpThemeColor(1.0);
+  QColor tc = plot_->interpThemeColor(ColorInd(1.0));
 
   plot_->setPen(pen, true, tc, 1.0);
 

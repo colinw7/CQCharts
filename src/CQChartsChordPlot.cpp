@@ -883,7 +883,7 @@ draw(QPainter *painter)
 
   if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
     if (gval >= 0.0)
-      fromColor = plot_->interpGroupPaletteColor(gval, iv_.value(), 0.1);
+      fromColor = plot_->blendGroupPaletteColor(gval, iv_.value(), 0.1);
     else
       fromColor = plot_->interpPaletteColor(colorInd);
   }

@@ -335,7 +335,9 @@ void testAndSet(T &t, const T &v, NOTIFIER &&notifier) {
 namespace CQChartsUtil {
 
 struct ColorInd {
-  ColorInd(int i=0, int n=1) :
+  ColorInd() { }
+
+  ColorInd(int i, int n) :
    isInt(true), i(i), n(n) {
   }
 

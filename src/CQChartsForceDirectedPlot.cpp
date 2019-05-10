@@ -748,7 +748,7 @@ drawParts(QPainter *painter) const
     QBrush brush;
 
     QColor pc = interpNodeBorderColor(ColorInd());
-    QColor fc = interpPaletteColor(node->value(), /*scale*/false);
+    QColor fc = interpPaletteColor(ColorInd(node->value()), /*scale*/false);
 
     if (node == forceDirected_->currentNode())
       fc = insideColor(fc);

@@ -560,7 +560,7 @@ draw(QPainter *painter)
   //---
 
   // set pen and brush
-  QColor c = plot_->interpPaletteColor(v);
+  QColor c = plot_->interpPaletteColor(ColorInd(v));
 
   QPen   pen;
   QBrush brush;
@@ -617,7 +617,7 @@ draw(QPainter *painter)
     QPen   pen;
     QBrush brush;
 
-    QColor c = plot_->interpPaletteColor(cs);
+    QColor c = plot_->interpPaletteColor(ColorInd(cs));
 
     plot_->setBrush(brush, true, c);
 

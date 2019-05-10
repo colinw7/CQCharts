@@ -3385,7 +3385,7 @@ getBarColoredRects(ColorData &colorData) const
 
   // get normal bar color
   QColor barColor = this->barColor();
-  QColor bgColor  = plot_->interpThemeColor(0.2);
+  QColor bgColor  = plot_->interpThemeColor(ColorInd(0.2));
 
   // get color of individual values
   colorData.nv = 0;
