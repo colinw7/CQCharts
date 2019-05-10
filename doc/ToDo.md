@@ -1,4 +1,6 @@
 High
+ + replace related bools with enums (axis real/integer/date/log)
+ + Distinct part of color def not palette
  + Remove draw Simple Text calls
  + Support View Key Header (or remove)
  + Use more lambdas to simplify adding properties

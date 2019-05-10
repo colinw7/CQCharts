@@ -413,7 +413,7 @@ class CQChartsDistKeyText : public CQChartsKeyText {
  public:
   CQChartsDistKeyText(CQChartsDistributionPlot *plot, const QString &text, const ColorInd &iv);
 
-  QColor interpTextColor(int i, int n) const override;
+  QColor interpTextColor(const ColorInd &ind) const override;
 
   bool isSetHidden() const;
 };
@@ -656,6 +656,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   //---
 
   void addProperties() override;
+
+  void getPropertyNames(QStringList &names, bool hidden) const override;
+
+  //---
 
   CQChartsGeom::Range calcRange() const override;
 

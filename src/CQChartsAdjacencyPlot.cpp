@@ -778,7 +778,7 @@ execDrawBackground(QPainter *painter) const
   // draw text
   QPen tpen;
 
-  QColor tc = interpTextColor(0, 1);
+  QColor tc = interpTextColor(ColorInd());
 
   setPen(tpen, true, tc, textAlpha());
 
@@ -832,7 +832,7 @@ execDrawBackground(QPainter *painter) const
 
   QBrush fillBrush;
 
-  QColor fc = interpBackgroundFillColor(0, 1);
+  QColor fc = interpBackgroundFillColor(ColorInd());
 
   setBrush(fillBrush, true, fc, backgroundFillAlpha(), backgroundFillPattern());
 
@@ -846,8 +846,8 @@ execDrawBackground(QPainter *painter) const
   QPen   emptyPen;
   QBrush emptyBrush;
 
-  QColor pc = interpEmptyCellBorderColor(0, 1);
-  QColor bc = interpEmptyCellFillColor  (0, 1);
+  QColor pc = interpEmptyCellBorderColor(ColorInd());
+  QColor bc = interpEmptyCellFillColor  (ColorInd());
 
   setPen(emptyPen, true, pc, emptyCellBorderAlpha(),
          emptyCellBorderWidth(), emptyCellBorderDash());
@@ -998,7 +998,7 @@ draw(QPainter *painter)
 
   //int nn = plot_->numNodes();
 
-  QColor bc = plot_->interpEmptyCellFillColor(0, 1);
+  QColor bc = plot_->interpEmptyCellFillColor(ColorInd());
 
   // node to self (diagonal)
   if (node1_ == node2_) {

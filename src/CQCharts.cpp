@@ -274,6 +274,13 @@ getPlotTypeNames(QStringList &names, QStringList &descs) const
 
 QColor
 CQCharts::
+interpColor(const CQChartsColor &c, const ColorInd &ind) const
+{
+  return (ind.isInt ? interpColor(c, ind.i, ind.n) : interpColor(c, ind.r));
+}
+
+QColor
+CQCharts::
 interpColor(const CQChartsColor &c, int i, int n) const
 {
   double r = CMathUtil::norm(i, 0, n - 1);
@@ -285,7 +292,7 @@ QColor
 CQCharts::
 interpColor(const CQChartsColor &c, double value) const
 {
-  return interpColorValue(c, /*ig*/0, /*ng*/-1, value);
+  return interpColorValue(c, /*ig*/0, /*ng*/1, value);
 }
 
 QColor
@@ -329,6 +336,13 @@ setPlotTheme(const CQChartsThemeName &themeName)
 
 QColor
 CQCharts::
+interpPaletteColor(const ColorInd &ind, bool scale) const
+{
+  return (ind.isInt ? interpPaletteColor(ind.i, ind.n, scale) : interpPaletteColor(ind.r, scale));
+}
+
+QColor
+CQCharts::
 interpPaletteColor(int i, int n, bool scale) const
 {
   double r = CMathUtil::norm(i, 0, n - 1);
@@ -356,7 +370,7 @@ QColor
 CQCharts::
 interpIndPaletteColor(int ind, double r, bool scale) const
 {
-  return interpIndPaletteColorValue(ind, 0, -1, r, scale);
+  return interpIndPaletteColorValue(ind, 0, 1, r, scale);
 }
 
 QColor
@@ -419,6 +433,22 @@ interpIndPaletteColorValue(int ind, int ig, int ng, double r, bool scale) const
   double r1 = CMathUtil::norm(i1, 0, nc - 1);
 
   return palette->getColor(r1, /*scale*/false);
+}
+
+QColor
+CQCharts::
+interpThemeColor(const ColorInd &ind) const
+{
+  return (ind.isInt ? interpThemeColor(ind.i, ind.n) : interpThemeColor(ind.r));
+}
+
+QColor
+CQCharts::
+interpThemeColor(int i, int n) const
+{
+  double r = CMathUtil::norm(i, 0, n - 1);
+
+  return this->interfaceTheme()->interpColor(r, /*scale*/true);
 }
 
 QColor

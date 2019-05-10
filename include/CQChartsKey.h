@@ -524,7 +524,7 @@ class CQChartsKeyText : public CQChartsKeyItem {
 
   QSizeF size() const override;
 
-  virtual QColor interpTextColor(int i, int n) const;
+  virtual QColor interpTextColor(const ColorInd &ind) const;
 
   void draw(QPainter *painter, const CQChartsGeom::BBox &rect) const override;
 

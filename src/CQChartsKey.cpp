@@ -310,7 +310,7 @@ draw(QPainter *painter) const
 
     //---
 
-    painter->setPen(interpTextColor(0, 1));
+    painter->setPen(interpTextColor(ColorInd()));
 
     QString name = plot->keyText();
 
@@ -361,7 +361,7 @@ drawCheckBox(QPainter *painter, double x, double y, int bs, bool checked) const
 
   QStylePainter spainter(&cimage, view_);
 
-  spainter.setPen(interpTextColor(0, 1));
+  spainter.setPen(interpTextColor(ColorInd()));
 
   QStyleOptionButton opt;
 
@@ -1475,7 +1475,7 @@ draw(QPainter *painter) const
     QPen   tpen;
     QBrush tbrush;
 
-    QColor tc = interpHeaderTextColor(0, 1);
+    QColor tc = interpHeaderTextColor(ColorInd());
 
     plot_->setPen(tpen, true, tc, headerTextAlpha());
 
@@ -1573,7 +1573,7 @@ CQChartsPlotKey::
 interpBgColor() const
 {
   if (isFilled())
-    return interpFillColor(0, 1);
+    return interpFillColor(ColorInd());
 
   CQChartsKeyLocation::Type locationType = this->location().type();
 
@@ -1581,14 +1581,14 @@ interpBgColor() const
       locationType != CQChartsKeyLocation::Type::ABS_RECT) {
     if      (isInsideX() && isInsideY()) {
       if (plot_->isDataFilled())
-        return plot_->interpDataFillColor(0, 1);
+        return plot_->interpDataFillColor(ColorInd());
     }
     else if (isInsideX()) {
       if (locationType == CQChartsKeyLocation::Type::CENTER_LEFT ||
           locationType == CQChartsKeyLocation::Type::CENTER_CENTER ||
           locationType == CQChartsKeyLocation::Type::CENTER_RIGHT) {
         if (plot_->isDataFilled())
-          return plot_->interpDataFillColor(0, 1);
+          return plot_->interpDataFillColor(ColorInd());
       }
     }
     else if (isInsideY()) {
@@ -1596,15 +1596,15 @@ interpBgColor() const
           locationType == CQChartsKeyLocation::Type::CENTER_CENTER ||
           locationType == CQChartsKeyLocation::Type::BOTTOM_CENTER) {
         if (plot_->isDataFilled())
-          return plot_->interpDataFillColor(0, 1);
+          return plot_->interpDataFillColor(ColorInd());
       }
     }
   }
 
   if (plot_->isPlotFilled())
-    return plot_->interpPlotFillColor(0, 1);
+    return plot_->interpPlotFillColor(ColorInd());
 
-  return plot_->interpThemeColor(0);
+  return plot_->interpThemeColor(ColorInd());
 }
 
 //------
@@ -1698,9 +1698,9 @@ size() const
 
 QColor
 CQChartsKeyText::
-interpTextColor(int i, int n) const
+interpTextColor(const ColorInd &ind) const
 {
-  return key_->interpTextColor(i, n);
+  return key_->interpTextColor(ind);
 }
 
 void
@@ -1711,7 +1711,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 
   plot->view()->setPlotPainterFont(plot, painter, key_->textFont());
 
-  QColor tc = interpTextColor(0, 1);
+  QColor tc = interpTextColor(ColorInd());
 
   painter->setPen(tc);
 

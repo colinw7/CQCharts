@@ -32,6 +32,9 @@ class CQChartsHierBubblePlotType : public CQChartsHierPlotType {
   bool hasAxes() const override { return false; }
   bool hasKey () const override { return false; }
 
+  bool allowXLog() const override { return false; }
+  bool allowYLog() const override { return false; }
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 

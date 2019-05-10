@@ -22,6 +22,9 @@ class CQChartsBoxObj : public CQChartsObj,
   CQCHARTS_BOX_DATA_PROPERTIES
 
  public:
+  using ColorInd = CQChartsUtil::ColorInd;
+
+ public:
   CQChartsBoxObj(CQChartsView *view);
   CQChartsBoxObj(CQChartsPlot *plot);
 

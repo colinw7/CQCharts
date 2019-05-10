@@ -681,7 +681,7 @@ drawFgAxes(QPainter *painter) const
 
     QPen tpen;
 
-    QColor tc = axis->interpAxesTickLabelTextColor(0, 1);
+    QColor tc = axis->interpAxesTickLabelTextColor(ColorInd());
 
     setPen(tpen, true, tc, axis->axesTickLabelTextAlpha());
 

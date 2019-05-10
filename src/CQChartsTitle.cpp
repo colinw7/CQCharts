@@ -373,7 +373,7 @@ draw(QPainter *painter)
   // set text pen
   QPen pen;
 
-  QColor tc = interpTextColor(0, 1);
+  QColor tc = interpTextColor(ColorInd());
 
   plot()->setPen(pen, true, tc, textAlpha());
 

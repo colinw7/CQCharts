@@ -382,6 +382,15 @@ addProperties()
   dataLabel_->addPathProperties("dataLabel");
 }
 
+void
+CQChartsDistributionPlot::
+getPropertyNames(QStringList &names, bool hidden) const
+{
+  CQChartsPlot::getPropertyNames(names, hidden);
+
+  propertyModel()->objectNames(dataLabel_, names, hidden);
+}
+
 //---
 
 void
@@ -2340,7 +2349,7 @@ addKeyItems(CQChartsPlotKey *key)
         CQChartsColor c = CQChartsVariant::toColor(value, ok);
 
         if (ok) {
-          QColor c1 = interpColor(c, 0, 1);
+          QColor c1 = interpColor(c, ColorInd());
 
           c1.setAlphaF(barFillAlpha());
 
@@ -2710,7 +2719,7 @@ CQChartsDistributionPlot::
 drawStatsLines(QPainter *painter) const
 {
   // set pen
-  QColor bc = interpStatsLinesColor(0, 1);
+  QColor bc = interpStatsLinesColor(ColorInd());
 
   QPen pen;
 
@@ -3422,7 +3431,7 @@ getBarColoredRects(ColorData &colorData) const
     CQChartsColor color;
 
     if (plot_->columnColor(ind.row, ind.parent, color)) {
-      QColor c1 = plot_->interpColor(color, 0, 1);
+      QColor c1 = plot_->interpColor(color, ColorInd());
 
       c1.setAlphaF(plot_->barFillAlpha());
 
@@ -3479,8 +3488,8 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
   QPen   pen;
   QBrush barBrush;
 
-  QColor bc = plot_->interpBarBorderColor(0, 1);
-  QColor fc = plot_->interpColor(color, 0, 1);
+  QColor bc = plot_->interpBarBorderColor(ColorInd());
+  QColor fc = plot_->interpColor(color, ColorInd());
 
   CQChartsLength bw = plot_->barBorderWidth();
 
@@ -3875,7 +3884,7 @@ CQChartsDistributionDensityObj::
 drawStatsLines(QPainter *painter) const
 {
   // set pen
-  QColor bc = plot_->interpStatsLinesColor(0, 1);
+  QColor bc = plot_->interpStatsLinesColor(ColorInd());
 
   QPen pen;
 
@@ -4111,7 +4120,7 @@ CQChartsDistKeyColorBox::
 fillBrush() const
 {
   if (color_.isValid())
-    return plot_->interpColor(color_, 0, 1);
+    return plot_->interpColor(color_, ColorInd());
 
   ColorInd colorInd = this->calcColorInd();
 
@@ -4153,9 +4162,9 @@ CQChartsDistKeyText(CQChartsDistributionPlot *plot, const QString &text, const C
 
 QColor
 CQChartsDistKeyText::
-interpTextColor(int i, int n) const
+interpTextColor(const ColorInd &ind) const
 {
-  QColor c = CQChartsKeyText::interpTextColor(i, n);
+  QColor c = CQChartsKeyText::interpTextColor(ind);
 
   if (isSetHidden())
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());

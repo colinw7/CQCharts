@@ -554,9 +554,12 @@ addProperties()
 
 QColor
 CQChartsXYPlot::
-interpPaletteColor(int i, int n, bool scale) const
+interpPaletteColor(const ColorInd &ind, bool scale) const
 {
   if (isOverlay()) {
+    int i = ind.i;
+    int n = ind.n;
+
     if (prevPlot() || nextPlot()) {
       CQChartsPlot *plot1 = prevPlot();
       CQChartsPlot *plot2 = nextPlot();
@@ -575,10 +578,10 @@ interpPaletteColor(int i, int n, bool scale) const
       plot1 = plot1->prevPlot();
     }
 
-    return CQChartsPlot::interpPaletteColor(i, n, scale);
+    return CQChartsPlot::interpPaletteColor(ColorInd(i, n), scale);
   }
   else {
-    return CQChartsPlot::interpPaletteColor(i, n, scale);
+    return CQChartsPlot::interpPaletteColor(ind, scale);
   }
 }
 
@@ -2611,7 +2614,7 @@ draw(QPainter *painter)
   plot()->setSymbolPenBrush(pen, brush, ic);
 
   if (edata_ && edata_->color.isValid()) {
-    QColor strokeColor = plot()->interpColor(edata_->color, 0, 1);
+    QColor strokeColor = plot()->interpColor(edata_->color, ColorInd());
 
     pen.setColor(strokeColor);
   }
@@ -2761,7 +2764,7 @@ draw(QPainter *painter)
   // set pen
   QPen tpen;
 
-  QColor tc = plot()->interpDataLabelTextColor(0, 1);
+  QColor tc = plot()->interpDataLabelTextColor(ColorInd());
 
   plot()->setPen(tpen, true, tc, plot()->dataLabelTextAlpha());
 
@@ -3734,9 +3737,9 @@ CQChartsXYKeyText(CQChartsXYPlot *plot, const QString &text,
 
 QColor
 CQChartsXYKeyText::
-interpTextColor(int i, int n) const
+interpTextColor(const ColorInd &ind) const
 {
-  QColor c = CQChartsKeyText::interpTextColor(i, n);
+  QColor c = CQChartsKeyText::interpTextColor(ind);
 
   if (plot()->isSetHidden(ic_.i))
     c = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), key_->hiddenAlpha());

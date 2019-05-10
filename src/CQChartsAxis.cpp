@@ -398,16 +398,16 @@ setFormat(const QString &typeStr)
 
 //---
 
-const QString &
+void
 CQChartsAxis::
-label() const
+setLabel(const QString &str)
 {
-  return label_;
+  CQChartsUtil::testAndSet(label_, str, [&]() { redraw(); } );
 }
 
 void
 CQChartsAxis::
-setLabel(const QString &str)
+setUserLabel(const QString &str)
 {
   CQChartsUtil::testAndSet(label_, str, [&]() { redraw(); } );
 }
@@ -744,7 +744,7 @@ drawGrid(const CQChartsPlot *plot, QPainter *painter)
 
     QBrush brush;
 
-    QColor fillColor = interpAxesGridFillColor(0, 1);
+    QColor fillColor = interpAxesGridFillColor(ColorInd());
 
     plot->setBrush(brush, true, fillColor, axesGridFillAlpha(), axesGridFillPattern());
 
@@ -1158,7 +1158,7 @@ calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const
   if (dataRange.isSet())
     dataRange += plot->annotationBBox();
   else
-    dataRange = CQChartsGeom::BBox(0, 0, 1, 1);
+    dataRange = CQChartsGeom::BBox(0.0, 0.0, 1.0, 1.0);
 
   //---
 
@@ -1192,7 +1192,7 @@ drawLine(const CQChartsPlot *plot, QPainter *painter, double apos, double amin, 
 {
   QPen pen;
 
-  QColor lc = interpAxesLinesColor(0, 1);
+  QColor lc = interpAxesLinesColor(ColorInd());
 
   plot_->setPen(pen, true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash());
 
@@ -1216,7 +1216,7 @@ drawMajorGridLine(const CQChartsPlot *plot, QPainter *painter, double apos,
 {
   QPen pen;
 
-  QColor lc = interpAxesMajorGridLinesColor(0, 1);
+  QColor lc = interpAxesMajorGridLinesColor(ColorInd());
 
   plot_->setPen(pen, true, lc, axesMajorGridLinesAlpha(),
                 axesMajorGridLinesWidth(), axesMajorGridLinesDash());
@@ -1241,7 +1241,7 @@ drawMinorGridLine(const CQChartsPlot *plot, QPainter *painter, double apos,
 {
   QPen pen;
 
-  QColor lc = interpAxesMinorGridLinesColor(0, 1);
+  QColor lc = interpAxesMinorGridLinesColor(ColorInd());
 
   plot_->setPen(pen, true, lc, axesMinorGridLinesAlpha(),
                 axesMinorGridLinesWidth(), axesMinorGridLinesDash());
@@ -1293,7 +1293,7 @@ drawTickLine(const CQChartsPlot *plot, QPainter *painter, double apos, double tp
 
   QPen pen;
 
-  QColor lc = interpAxesLinesColor(0, 1);
+  QColor lc = interpAxesLinesColor(ColorInd());
 
   plot_->setPen(pen, true, lc, axesLinesAlpha(), axesLinesWidth(), axesLinesDash());
 
@@ -1375,7 +1375,7 @@ drawTickLabel(const CQChartsPlot *plot, QPainter *painter, double apos, double t
 #if 0
   QPen tpen;
 
-  QColor tc = interpAxesTickLabelTextColor(0, 1);
+  QColor tc = interpAxesTickLabelTextColor(ColorInd());
 
   plot->setPen(tpen, true, tc, axesTickLabelTextAlpha());
 
@@ -1947,7 +1947,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, QPainter *painter)
 
   QPen tpen;
 
-  QColor tc = interpAxesTickLabelTextColor(0, 1);
+  QColor tc = interpAxesTickLabelTextColor(ColorInd());
 
   plot->setPen(tpen, true, tc, axesTickLabelTextAlpha());
 
@@ -1998,7 +1998,7 @@ drawAxisLabel(const CQChartsPlot *plot, QPainter *painter, double apos,
 
   QPen tpen;
 
-  QColor tc = interpAxesLabelTextColor(0, 1);
+  QColor tc = interpAxesLabelTextColor(ColorInd());
 
   plot->setPen(tpen, true, tc, axesLabelTextAlpha());
 

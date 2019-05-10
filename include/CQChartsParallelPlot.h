@@ -22,6 +22,8 @@ class CQChartsParallelPlotType : public CQChartsPlotType {
 
   bool canProbe() const override { return true; }
 
+  bool allowXLog() const override { return false; }
+
   void addParameters() override;
 
   QString description() const override;

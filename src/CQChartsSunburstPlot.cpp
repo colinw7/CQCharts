@@ -155,7 +155,7 @@ addProperties()
   addProperty("options", this, "multiRoot"  )->setDesc("Support multiple roots");
 
   // color
-  addProperty("color", this, "colorById", "colorById")->setDesc("Color by Id");
+  addProperty("color", this, "colorById", "colorById")->setDesc("Color by id");
 
   // fill
   addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
@@ -1029,7 +1029,7 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
 
   QPen tpen;
 
-  QColor tc = interpTextColor(0, 1);
+  QColor tc = interpTextColor(ColorInd());
 
   setPen(tpen, true, tc, textAlpha());
 
@@ -1468,7 +1468,7 @@ CQChartsSunburstNode::
 interpColor(const CQChartsSunburstPlot *plot, const ColorInd &colorInd, int n) const
 {
   if      (color().isValid())
-    return plot->interpColor(color(), 0, 1);
+    return plot->interpColor(color(), ColorInd());
   else if (colorId() >= 0 && plot_->isColorById())
     return plot->interpFillColor(ColorInd(colorId(), n));
   else

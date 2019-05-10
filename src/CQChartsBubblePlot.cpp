@@ -152,7 +152,7 @@ addProperties()
   addProperty("options", this, "sorted"    )->setDesc("Sort values by size");
 
   // color
-  addProperty("color", this, "colorById", "colorById")->setDesc("Color by Id");
+  addProperty("color", this, "colorById", "colorById")->setDesc("Color by id");
 
   // fill
   addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
@@ -666,7 +666,7 @@ drawBounds(QPainter *painter, CQChartsBubbleHierNode *hier) const
   //---
 
   // draw bubble
-  QColor bc = interpBorderColor(0, 1);
+  QColor bc = interpBorderColor(ColorInd());
 
   painter->setPen  (bc);
   painter->setBrush(Qt::NoBrush);
@@ -897,7 +897,7 @@ draw(QPainter *painter)
   // calc text pen
   QPen tpen;
 
-  QColor tc = plot_->interpTextColor(0, 1);
+  QColor tc = plot_->interpTextColor(ColorInd());
 
   plot_->setPen(tpen, true, tc, plot_->textAlpha());
 
@@ -1209,7 +1209,7 @@ CQChartsBubbleNode::
 interpColor(const CQChartsBubblePlot *plot, const ColorInd &colorInd, int n) const
 {
   if      (color().isValid())
-    return plot->interpColor(color(), 0, 1);
+    return plot->interpColor(color(), ColorInd());
   else if (colorId() >= 0 && plot_->isColorById())
     return plot->interpPaletteColor(ColorInd(colorId(), n));
   else

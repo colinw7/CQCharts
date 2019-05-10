@@ -504,7 +504,7 @@ class CQChartsXYKeyText : public CQChartsKeyText {
 
   CQChartsXYPlot *plot() const { return plot_; }
 
-  QColor interpTextColor(int i, int n) const override;
+  QColor interpTextColor(const ColorInd &ind) const override;
 
  protected:
   CQChartsXYPlot* plot_ { nullptr }; //!< parent plot
@@ -714,7 +714,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   //---
 
-  QColor interpPaletteColor(int i, int n, bool scale=false) const override;
+  QColor interpPaletteColor(const ColorInd &ind, bool scale=false) const override;
 
   //---
 

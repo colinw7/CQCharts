@@ -320,7 +320,7 @@ drawXLabels(QPainter *painter) const
 
   QPen tpen;
 
-  QColor tc = interpTextColor(0, 1);
+  QColor tc = interpTextColor(ColorInd());
 
   setPen(tpen, true, tc, textAlpha());
 
@@ -385,7 +385,7 @@ drawYLabels(QPainter *painter) const
 
   QPen tpen;
 
-  QColor tc = interpTextColor(0, 1);
+  QColor tc = interpTextColor(ColorInd());
 
   setPen(tpen, true, tc, textAlpha());
 
@@ -585,7 +585,7 @@ draw(QPainter *painter)
       QPen   tpen;
       QBrush tbrush;
 
-      QColor tc = plot_->interpTextColor(0, 1);
+      QColor tc = plot_->interpTextColor(ColorInd());
 
       plot_->setPen(tpen, true, tc, plot_->textAlpha());
 

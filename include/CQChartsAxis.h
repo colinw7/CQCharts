@@ -79,7 +79,8 @@ class CQChartsAxis : public CQChartsObj,
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(AxesTickLabel,axesTickLabel)
 
   // label
-  Q_PROPERTY(QString label READ label WRITE setLabel)
+  Q_PROPERTY(QString label     READ label     WRITE setLabel    )
+  Q_PROPERTY(QString userLabel READ userLabel WRITE setUserLabel)
 
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(AxesLabel,axesLabel)
 
@@ -90,6 +91,9 @@ class CQChartsAxis : public CQChartsObj,
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(AxesMajorGrid,axesMajorGrid)
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(AxesMinorGrid,axesMinorGrid)
   CQCHARTS_NAMED_FILL_DATA_PROPERTIES(AxesGrid,axesGrid)
+
+ public:
+  using ColorInd = CQChartsUtil::ColorInd;
 
  public:
   CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction=Qt::Horizontal,
@@ -156,9 +160,13 @@ class CQChartsAxis : public CQChartsObj,
 
   //---
 
-  // label
-  const QString &label() const;
+  // get/set label
+  const QString &label() const { return label_; }
   void setLabel(const QString &str);
+
+  // get/set user label
+  const QString &userLabel() const { return userLabel_; }
+  void setUserLabel(const QString &str);
 
   //---
 
@@ -406,6 +414,7 @@ class CQChartsAxis : public CQChartsObj,
   // label
   bool                 labelDisplayed_      { true }; //!< show label
   QString              label_;                        //!< label
+  QString              userLabel_;                    //!< user label
 
   // grid (lines and gap fill)
   bool                 gridMid_             { false }; //!< show grid at mid point

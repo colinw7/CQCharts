@@ -100,7 +100,7 @@ drawText(QPainter *painter, const QRectF &rect, const QString &text) const
 
   QFontMetricsF fm(painter->font());
 
-  QColor c = interpTextColor(0, 1);
+  QColor c = interpTextColor(ColorInd());
 
   QPen pen;
 

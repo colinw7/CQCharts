@@ -66,6 +66,24 @@ draw(QPainter *painter) const
       return l.value();
   };
 
+  auto lengthLocalWidth = [&](const CQChartsLength &l) {
+    if      (plot_)
+      return plot_->lengthPlotWidth(l);
+    else if (view_)
+      return view_->lengthViewWidth(l);
+    else
+      return l.value();
+  };
+
+  auto lengthLocalHeight = [&](const CQChartsLength &l) {
+    if      (plot_)
+      return plot_->lengthPlotHeight(l);
+    else if (view_)
+      return view_->lengthViewHeight(l);
+    else
+      return l.value();
+  };
+
   //---
 
   painter_ = painter;
@@ -285,8 +303,8 @@ draw(QPainter *painter) const
   if (linePoly) {
     std::vector<QPointF> midPoints1, midPoints2;
 
-    double xlw = lengthPixelWidth (lineWidth())/2.0;
-    double ylw = lengthPixelHeight(lineWidth())/2.0;
+    double xlw = lengthLocalWidth (lineWidth())/2.0;
+    double ylw = lengthLocalHeight(lineWidth())/2.0;
 
     double lx1 = x11 + lengthPixelWidth (xlw*s);
     double ly1 = y11 + lengthPixelHeight(ylw*c);
@@ -550,7 +568,7 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled) const
   if (filled) {
     QBrush brush;
 
-    QColor fc = interpFillColor(0, 1);
+    QColor fc = interpFillColor(ColorInd());
 
     CQChartsUtil::setBrush(brush, true, fc, fillAlpha(), fillPattern());
 
@@ -559,7 +577,7 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled) const
   else {
     QPen pen;
 
-    QColor sc = interpBorderColor(0, 1);
+    QColor sc = interpBorderColor(ColorInd());
 
     CQChartsUtil::setPen(pen, true, sc, borderAlpha(), width);
 
@@ -587,7 +605,7 @@ drawLine(const QPointF &point1, const QPointF &point2, double width, bool mappin
 
   QPen p = painter_->pen();
 
-  QColor sc = interpBorderColor(0, 1);
+  QColor sc = interpBorderColor(ColorInd());
 
   p.setColor (sc);
   p.setWidthF(width);
@@ -627,7 +645,7 @@ drawPointLabel(const QPointF &point, const QString &text, bool above, bool mappi
 
   QPen tpen;
 
-  QColor tc = interpDebugTextColor(0, 1);
+  QColor tc = interpDebugTextColor(ColorInd());
 
   CQChartsUtil::>setPen(tpen, true, tc, 1.0, CQChartsLength("1.0"));
 

@@ -174,6 +174,10 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   void addProperties() override;
 
+  void getPropertyNames(QStringList &names, bool hidden) const override;
+
+  //---
+
   CQChartsGeom::Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;

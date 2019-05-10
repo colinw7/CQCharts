@@ -16,6 +16,7 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 
+#include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 #include <CMathCorrelation.h>
@@ -804,6 +805,15 @@ addProperties()
 
   // color map
   addColorMapProperties();
+}
+
+void
+CQChartsScatterPlot::
+getPropertyNames(QStringList &names, bool hidden) const
+{
+  CQChartsPlot::getPropertyNames(names, hidden);
+
+  propertyModel()->objectNames(dataLabel_, names, hidden);
 }
 
 //---
@@ -1939,11 +1949,13 @@ drawBestFit(QPainter *painter) const
 
     if (poly.size()) {
       // set pen and brush
+      ColorInd ic(ig, ng);
+
       QPen   pen;
       QBrush brush;
 
-      QColor borderColor = interpBestFitBorderColor(ig, ng);
-      QColor fillColor   = interpBestFitFillColor  (ig, ng);
+      QColor borderColor = interpBestFitBorderColor(ic);
+      QColor fillColor   = interpBestFitFillColor  (ic);
 
       setPen(pen, isBestFitBorder(), borderColor, bestFitBorderAlpha(),
              bestFitBorderWidth(), bestFitBorderDash());
@@ -2043,10 +2055,12 @@ drawStatsLines(QPainter *painter) const
     //---
 
     // calc pen and brush
+    ColorInd ic(ig, ng);
+
     QPen   pen;
     QBrush brush;
 
-    QColor c = interpStatsLinesColor(ig, ng);
+    QColor c = interpStatsLinesColor(ic);
 
     setPen(pen, true, c, statsLinesAlpha(), statsLinesWidth(), statsLinesDash());
 
@@ -2138,8 +2152,10 @@ drawHull(QPainter *painter) const
 
     //---
 
-    QColor strokeColor = interpHullBorderColor(ig, ng);
-    QColor fillColor   = interpHullFillColor  (ig, ng);
+    ColorInd colorInd(ig, ng);
+
+    QColor strokeColor = interpHullBorderColor(colorInd);
+    QColor fillColor   = interpHullFillColor  (colorInd);
 
     QPen   pen;
     QBrush brush;
@@ -3589,17 +3605,18 @@ draw(QPainter *painter)
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
   // set pen and brush
+  ColorInd ic(points_.size(), maxn_);
+
   QPen   pen;
   QBrush brush;
 
-  QColor pc = plot_->interpGridCellBorderColor(0, 1);
-  QColor fc = plot_->interpPaletteColor(points_.size(), maxn_);
+  QColor pc = plot_->interpGridCellBorderColor(ColorInd());
+  QColor fc = plot_->interpPaletteColor(ic);
 
   plot_->setPenBrush(pen, brush,
     plot_->isGridCellBorder(), pc, plot_->gridCellBorderAlpha(),
     plot_->gridCellBorderWidth(), plot_->gridCellBorderDash(),
-    /*filled*/true, fc, plot_->gridCellFillAlpha(),
-    plot_->gridCellFillPattern());
+    /*filled*/true, fc, plot_->gridCellFillAlpha(), plot_->gridCellFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -3715,7 +3732,7 @@ fillBrush() const
   QColor c;
 
   if (color_.isValid())
-    c = plot_->interpColor(color_, 0, 1);
+    c = plot_->interpColor(color_, ColorInd());
   else {
     c = plot->interpSymbolFillColor(ic_);
 

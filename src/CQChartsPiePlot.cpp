@@ -413,7 +413,7 @@ createObjs(PlotObjs &objs) const
     CQChartsPieGroupObj *groupObj =
       new CQChartsPieGroupObj(this, rect, groupInd, groupData.name, ColorInd(ig, ng));
 
-    groupObj->setColorInd(groupInd);
+    groupObj->setColorIndex(groupInd);
 
     groupObj->setDataTotal(groupData.dataTotal);
     groupObj->setNumValues(groupData.numValues);
@@ -487,6 +487,22 @@ createObjs(PlotObjs &objs) const
   //---
 
   adjustObjAngles();
+
+  //---
+
+  for (auto &plotObj : objs) {
+    CQChartsPieObj *obj = dynamic_cast<CQChartsPieObj *>(plotObj);
+    if (! obj) continue;
+
+    CQChartsPieGroupObj *groupObj = obj->groupObj();
+
+    int i = obj->colorIndex();
+    int n = (groupObj ? groupObj->numObjs() : 0);
+
+    ColorInd iv(i, n);
+
+    obj->setIv(iv);
+  }
 
   //---
 
@@ -620,12 +636,14 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
 
     int objInd = (groupObj ? groupObj->numObjs() : 0);
 
-    obj = new CQChartsPieObj(this, rect, dataInd1);
+    ColorInd ig = (groupObj ? groupObj->ig() : ColorInd());
+
+    obj = new CQChartsPieObj(this, rect, dataInd1, ig);
 
     if (hidden)
       obj->setVisible(false);
 
-    obj->setColorInd(objInd);
+    obj->setColorIndex(objInd);
 
     obj->setInnerRadius(ri);
     obj->setOuterRadius(ro);
@@ -1065,8 +1083,9 @@ addMenuItems(QMenu *menu)
 
 CQChartsPieObj::
 CQChartsPieObj(const CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect,
-               const QModelIndex &ind) :
- CQChartsPlotObj(const_cast<CQChartsPiePlot *>(plot), rect), plot_(plot), ind_(ind)
+               const QModelIndex &ind, const ColorInd &ig) :
+ CQChartsPlotObj(const_cast<CQChartsPiePlot *>(plot), rect, ColorInd(), ig, ColorInd()),
+ plot_(plot), ind_(ind)
 {
 }
 
@@ -1074,7 +1093,7 @@ QString
 CQChartsPieObj::
 calcId() const
 {
-  return QString("%1:%2").arg(typeName()).arg(colorInd());
+  return QString("%1:%2").arg(typeName()).arg(colorIndex());
 }
 
 QString
@@ -1144,7 +1163,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "rect"    )->setDesc("Bounding box");
 //model->addProperty(path1, this, "selected")->setDesc("Is selected");
 
-  model->addProperty(path1, this, "colorInd")->setDesc("Color index");
+  model->addProperty(path1, this, "colorIndex")->setDesc("Color index");
   model->addProperty(path1, this, "angle1")->setDesc("Start angle");
   model->addProperty(path1, this, "angle2")->setDesc("End angle");
   model->addProperty(path1, this, "innerRadius")->setDesc("Inner radius");
@@ -1336,11 +1355,6 @@ draw(QPainter *painter)
   if (! visible())
     return;
 
-  CQChartsPieGroupObj *groupObj = this->groupObj();
-
-  int ng = plot_->numGroupObjs();
-  int no = (groupObj ? groupObj->numObjs() : 0);
-
   //---
 
   // get pie center, radii and angles
@@ -1365,7 +1379,7 @@ draw(QPainter *painter)
     QPen   pen;
     QBrush brush(Qt::NoBrush);
 
-    QColor gridColor = plot_->interpGridLinesColor(0, 1);
+    QColor gridColor = plot_->interpGridLinesColor(ColorInd());
 
     plot_->setPen(pen, true, gridColor, plot_->gridLinesAlpha(),
                   plot_->gridLinesWidth(), plot_->gridLinesDash());
@@ -1381,26 +1395,13 @@ draw(QPainter *painter)
   //---
 
   // calc stroke and brush
-  ColorInd ig;
-
-  if (groupObj)
-    ig = ColorInd(groupObj->colorInd(), ng);
-
-  ColorInd ic(colorInd(), no);
+  ColorInd colorInd = this->calcColorInd();
 
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBorderColor(0, 1);
-
-  QColor fc;
-
-  if      (color().isValid())
-    fc = plot_->interpColor(color(), ic);
-  else if (plot_->fillColor().type() != CQChartsColor::Type::PALETTE)
-    fc = plot_->interpColor(plot_->fillColor(), ic);
-  else if (groupObj)
-    fc = plot_->interpGroupPaletteColor(ig, ic);
+  QColor bc = plot_->interpBorderColor(colorInd);
+  QColor fc = fillColor();
 
   plot_->setPenBrush(pen, brush,
     plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
@@ -1474,8 +1475,6 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
 
   //---
 
-  CQChartsPieGroupObj *groupObj = this->groupObj();
-
   // calc label radius
   double ri = innerRadius();
   double ro = outerRadius();
@@ -1500,24 +1499,11 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
 
   //---
 
-  int ng = plot_->numGroupObjs();
-  int no = (groupObj ? groupObj->numObjs() : 0);
-
   // calc label pen
   // TODO: label alpha
-  ColorInd ig;
-
-  if (groupObj)
-    ig = ColorInd(groupObj->colorInd(), ng);
-
-  ColorInd ic(colorInd(), no);
-
   QPen lpen;
 
-  QColor bg;
-
-  if (groupObj)
-    bg = plot_->interpGroupPaletteColor(ig, ic);
+  QColor bg = fillColor();
 
   plot_->setPen(lpen, true, bg, 1.0);
 
@@ -1573,6 +1559,53 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
       plot_->textBox()->draw(painter, pt1, label(), angle, align);
     }
   }
+}
+
+QColor
+CQChartsPieObj::
+fillColor() const
+{
+  CQChartsPieGroupObj *groupObj = this->groupObj();
+
+  ColorInd colorInd = this->calcColorInd();
+
+  QColor fc;
+
+  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    if      (color().isValid())
+      fc = plot_->interpColor(color(), ColorInd());
+    else if (plot_->fillColor().type() != CQChartsColor::Type::PALETTE)
+      fc = plot_->interpColor(plot_->fillColor(), iv_);
+    else if (groupObj)
+      fc = plot_->interpGroupPaletteColor(ig_, iv_);
+  }
+  else {
+    fc = plot_->interpFillColor(colorInd);
+  }
+
+  return fc;
+}
+
+double
+CQChartsPieObj::
+xColorValue(bool relative) const
+{
+  double a1 = angle1();
+  double a2 = angle2();
+
+  double a21 = std::abs(a2 - a1);
+
+  if (relative)
+    a21 /= 360.0;
+
+  return a21;
+}
+
+double
+CQChartsPieObj::
+yColorValue(bool relative) const
+{
+  return xColorValue(relative);
 }
 
 //------
@@ -1695,7 +1728,7 @@ draw(QPainter *painter)
   // TODO: more customization support
 
   QColor bg = bgColor();
-  QColor fg = plot_->interpPlotBorderColor(0, 1);
+  QColor fg = plot_->interpPlotBorderColor(ColorInd());
 
   QPen   pen;
   QBrush brush;
@@ -1747,7 +1780,7 @@ drawFg(QPainter *painter) const
   // set text pen
   QPen pen;
 
-  QColor fg = plot_->interpPlotBorderColor(0, 1);
+  QColor fg = plot_->interpPlotBorderColor(ColorInd());
 
   plot_->setPen(pen, true, fg, 1.0);
 
@@ -1771,7 +1804,7 @@ bgColor() const
 
 CQChartsPieKeyColor::
 CQChartsPieKeyColor(CQChartsPiePlot *plot, CQChartsPlotObj *obj) :
- CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ColorInd(0, 1)), obj_(obj)
+ CQChartsKeyColorBox(plot, ColorInd(), ColorInd(), ColorInd()), obj_(obj)
 {
 }
 
@@ -1781,17 +1814,9 @@ selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
   CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
-  CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
-  CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+  int is = setIndex();
 
-  int ih = 0;
-
-  if      (group)
-    ih = group->groupInd();
-  else if (obj)
-    ih = obj->colorInd();
-
-  plot->setSetHidden(ih, ! plot->isSetHidden(ih));
+  plot->setSetHidden(is, ! plot->isSetHidden(is));
 
   plot->updateObjs();
 
@@ -1807,46 +1832,43 @@ fillBrush() const
   CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
   CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
 
-  int ng = plot->numGroups();
-
   QColor c;
-  int    no = 1;
 
   if      (group) {
     if (! plot->isCount()) {
       int ig = group->groupInd();
+      int ng = plot->numGroups();
 
-      no = group->numObjs();
-
-      c = plot->interpGroupPaletteColor(ig, ng, 0, no);
-
-      if (plot->isSetHidden(ig))
-        c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
+      c = plot->interpGroupPaletteColor(ColorInd(ig, ng), ColorInd());
     }
     else
       c = group->bgColor();
   }
   else if (obj) {
-    CQChartsPieGroupObj *group = obj->groupObj();
-
-    no = (group ? group->numObjs() : 1);
-
-    int ig = (group ? group->colorInd() : 0);
-    int io = obj->colorInd();
-
-    c = plot->interpGroupPaletteColor(ig, ng, io, no);
-
-    if (plot->isSetHidden(io))
-      c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
+    c = obj->fillColor();
   }
 
-  if (obj && obj->color().isValid()) {
-    ColorInd ic(obj->colorInd(), no);
+  int is = setIndex();
 
-    c = plot_->interpColor(obj->color(), ic);
-  }
+  if (plot->isSetHidden(is))
+    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
+}
+
+int
+CQChartsPieKeyColor::
+setIndex() const
+{
+  CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+
+  if      (group)
+    return group->groupInd();
+  else if (obj)
+    return obj->colorIndex();
+
+  return -1;
 }
 
 //------
@@ -1866,26 +1888,33 @@ CQChartsPieKeyText(CQChartsPiePlot *plot, CQChartsPlotObj *plotObj) :
 
 QColor
 CQChartsPieKeyText::
-interpTextColor(int i, int n) const
+interpTextColor(const ColorInd &ind) const
 {
   CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
-  CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
-  CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+  QColor c = CQChartsKeyText::interpTextColor(ind);
 
-  QColor c = CQChartsKeyText::interpTextColor(i, n);
+  int is = setIndex();
 
-  int ih = 0;
-
-  if      (group)
-    ih = group->groupInd();
-  else if (obj)
-    ih = obj->colorInd();
-
-  if (plot && plot->isSetHidden(ih))
+  if (plot && plot->isSetHidden(is))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
+}
+
+int
+CQChartsPieKeyText::
+setIndex() const
+{
+  CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+
+  if      (group)
+    return group->groupInd();
+  else if (obj)
+    return obj->colorIndex();
+
+  return -1;
 }
 
 //------

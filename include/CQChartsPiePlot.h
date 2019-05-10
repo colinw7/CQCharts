@@ -64,7 +64,7 @@ class CQChartsPieGroupObj;
 class CQChartsPieObj : public CQChartsPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(int           colorInd    READ colorInd    WRITE setColorInd   )
+  Q_PROPERTY(int           colorIndex  READ colorIndex  WRITE setColorIndex )
   Q_PROPERTY(double        angle1      READ angle1      WRITE setAngle1     )
   Q_PROPERTY(double        angle2      READ angle2      WRITE setAngle2     )
   Q_PROPERTY(double        innerRadius READ innerRadius WRITE setInnerRadius)
@@ -82,7 +82,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
  public:
   CQChartsPieObj(const CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect,
-                 const QModelIndex &ind);
+                 const QModelIndex &ind, const ColorInd &ig);
 
   //---
 
@@ -95,8 +95,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
   //---
 
   //! get/set color index
-  int colorInd() const { return colorInd_; }
-  void setColorInd(int i) { colorInd_ = i; }
+  int colorIndex() const { return colorIndex_; }
+  void setColorIndex(int i) { colorIndex_ = i; }
 
   //---
 
@@ -165,23 +165,30 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   CQChartsGeom::Point getCenter() const;
 
+  //---
+
+  QColor fillColor() const;
+
+  double xColorValue(bool relative) const override;
+  double yColorValue(bool relative) const override;
+
  protected:
-  const CQChartsPiePlot* plot_     { nullptr }; //!< parent plot
-  QModelIndex            ind_;                  //!< model index
-  int                    colorInd_ { -1 };      //!< color index
-  double                 angle1_   { 0 };       //!< wedge start angle
-  double                 angle2_   { 360 };     //!< wedge end angle
-  double                 ri_       { 0.0 };     //!< inner radius
-  double                 ro_       { 0.0 };     //!< outer radius
-  double                 rv_       { 0.0 };     //!< value radius
-  QString                label_    { "" };      //!< label
-  double                 value_    { 0 };       //!< value
-  bool                   missing_  { false };   //!< value missing
-  OptReal                radius_;               //!< radius
-  QString                keyLabel_ { "" };      //!< key label
-  CQChartsColor          color_;                //!< calculated color
-  CQChartsPieGroupObj*   groupObj_ { nullptr }; //!< parent group object
-  bool                   exploded_ { false };   //!< exploded
+  const CQChartsPiePlot* plot_       { nullptr }; //!< parent plot
+  QModelIndex            ind_;                    //!< model index
+  int                    colorIndex_ { -1 };      //!< color index
+  double                 angle1_     { 0 };       //!< wedge start angle
+  double                 angle2_     { 360 };     //!< wedge end angle
+  double                 ri_         { 0.0 };     //!< inner radius
+  double                 ro_         { 0.0 };     //!< outer radius
+  double                 rv_         { 0.0 };     //!< value radius
+  QString                label_      { "" };      //!< label
+  double                 value_      { 0 };       //!< value
+  bool                   missing_    { false };   //!< value missing
+  OptReal                radius_;                 //!< radius
+  QString                keyLabel_   { "" };      //!< key label
+  CQChartsColor          color_;                  //!< calculated color
+  CQChartsPieGroupObj*   groupObj_   { nullptr }; //!< parent group object
+  bool                   exploded_   { false };   //!< exploded
 };
 
 //---
@@ -210,8 +217,8 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   //---
 
   //! get/set color index
-  int colorInd() const { return colorInd_; }
-  void setColorInd(int i) { colorInd_ = i; }
+  int colorIndex() const { return colorIndex_; }
+  void setColorIndex(int i) { colorIndex_ = i; }
 
   //---
 
@@ -269,7 +276,7 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   const CQChartsPiePlot* plot_         { nullptr }; //!< parent plot
   int                    groupInd_     { -1 };      //!< groupInd
   QString                name_;                     //!< group name
-  int                    colorInd_     { -1 };      //!< color index
+  int                    colorIndex_   { -1 };      //!< color index
   double                 dataTotal_    { 0.0 };     //!< value data total
   int                    numValues_    { 0 };       //!< num values
   double                 radiusMax_    { 0.0 };     //!< radius data max
@@ -298,6 +305,8 @@ class CQChartsPieKeyColor : public CQChartsKeyColorBox {
 
   QBrush fillBrush() const override;
 
+  int setIndex() const;
+
  private:
   CQChartsPlotObj* obj_ { nullptr };
 };
@@ -311,7 +320,9 @@ class CQChartsPieKeyText : public CQChartsKeyText {
  public:
   CQChartsPieKeyText(CQChartsPiePlot *plot, CQChartsPlotObj *obj);
 
-  QColor interpTextColor(int i, int n) const override;
+  QColor interpTextColor(const ColorInd &ind) const override;
+
+  int setIndex() const;
 
  private:
   CQChartsPlotObj* obj_ { nullptr };

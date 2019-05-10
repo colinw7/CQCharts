@@ -30,7 +30,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     TEXT,
     ARROW,
     POINT
- };
+  };
+
+  using ColorInd = CQChartsUtil::ColorInd;
 
  public:
   static const QStringList &typeNames() {
@@ -91,10 +93,16 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   bool getProperty(const QString &name, QVariant &value) const;
   bool setProperty(const QString &name, const QVariant &value);
 
-  bool getPropertyDesc(const QString &name, QString &desc) const;
+  bool getTclProperty(const QString &name, QVariant &value) const;
+
+  bool getPropertyDesc  (const QString &name, QString  &desc) const;
+  bool getPropertyType  (const QString &name, QString  &type) const;
+  bool getPropertyObject(const QString &name, QObject* &type) const;
 
   //! get property names
-  void getPropertyNames(QStringList &names, bool hidden=false) const;
+  virtual void getPropertyNames(QStringList &names, bool hidden=false) const;
+
+  CQPropertyViewModel *propertyModel() const;
 
   //---
 
@@ -107,7 +115,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! interp color
-  QColor interpColor(const CQChartsColor &c, int i, int n) const;
+  QColor interpColor(const CQChartsColor &c, const ColorInd &ind) const;
 
   //---
 
@@ -447,6 +455,8 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   void setArrowData(const CQChartsArrowData &data);
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
+
+  void getPropertyNames(QStringList &names, bool hidden) const override;
 
   QString propertyId() const override;
 

@@ -32,6 +32,9 @@ class CQChartsArrow : public QObject,
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
  public:
+  using ColorInd = CQChartsUtil::ColorInd;
+
+ public:
   CQChartsArrow(CQChartsView *view, const QPointF &from=QPointF(0,0),
                 const QPointF &to=QPointF(1,1));
   CQChartsArrow(CQChartsPlot *plot, const QPointF &from=QPointF(0,0),

@@ -26,6 +26,8 @@ class CQChartsSankeyPlotType : public CQChartsPlotType {
 
   bool hasAxes() const override { return false; }
 
+  bool allowXLog() const override { return false; }
+
   QString description() const override;
 
   bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
@@ -143,7 +145,7 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
  public:
   CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &rect,
-                        CQChartsSankeyPlotNode *node);
+                        CQChartsSankeyPlotNode *node, const ColorInd &ind);
 
   const CQChartsGeom::BBox &srcEdgeRect(CQChartsSankeyPlotEdge *edge) const {
     auto p = srcEdgeRect_.find(edge);

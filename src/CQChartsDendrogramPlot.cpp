@@ -560,8 +560,8 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor borderColor = plot_->interpNodeBorderColor(0, 1);
-  QColor fillColor   = plot_->interpNodeFillColor  (0, 1);
+  QColor borderColor = plot_->interpNodeBorderColor(ColorInd());
+  QColor fillColor   = plot_->interpNodeFillColor  (ColorInd());
 
   plot_->setPen(pen, plot_->isNodeBorder(), borderColor, plot_->nodeBorderAlpha(),
                 plot_->plotBorderWidth(), plot_->nodeBorderDash());
@@ -585,7 +585,7 @@ draw(QPainter *painter)
   // draw node text
   QPen tpen;
 
-  QColor tc = plot_->interpTextColor(0, 1);
+  QColor tc = plot_->interpTextColor(ColorInd());
 
   plot_->setPen(tpen, /*stroked*/true, tc, plot_->textAlpha());
 

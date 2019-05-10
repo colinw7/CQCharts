@@ -353,12 +353,16 @@ class CQChartsView : public QFrame,
   bool setProperty(const QString &name, const QVariant &value);
   bool getProperty(const QString &name, QVariant &value) const;
 
-  bool getPropertyDesc(const QString &name, QString &desc) const;
+  bool getTclProperty(const QString &name, QVariant &value) const;
+
+  bool getPropertyDesc  (const QString &name, QString  &desc) const;
+  bool getPropertyType  (const QString &name, QString  &type) const;
+  bool getPropertyObject(const QString &name, QObject* &type) const;
 
   CQPropertyViewItem *addProperty(const QString &path, QObject *object,
                                   const QString &name, const QString &alias="");
 
-  void getPropertyNames(QStringList &names, bool hidden=false) const;
+  virtual void getPropertyNames(QStringList &names, bool hidden=false) const;
 
   void hideProperty(const QString &path, QObject *object);
 
@@ -441,6 +445,7 @@ class CQChartsView : public QFrame,
   //---
 
   // interp palette/theme color
+  QColor interpPaletteColor(const ColorInd &ind, bool scale=false) const;
   QColor interpPaletteColor(int i, int n, bool scale=false) const;
   QColor interpPaletteColor(double r, bool scale=false) const;
 
@@ -449,8 +454,11 @@ class CQChartsView : public QFrame,
 
   QColor interpGroupPaletteColor(int ig, int ng, double r, bool scale) const;
 
+  QColor interpThemeColor(const ColorInd &ind) const;
+  QColor interpThemeColor(int i, int n) const;
   QColor interpThemeColor(double r) const;
 
+  QColor interpColor(const CQChartsColor &c, const ColorInd &ind) const;
   QColor interpColor(const CQChartsColor &c, int i, int n) const;
   QColor interpColor(const CQChartsColor &c, double r) const;
 

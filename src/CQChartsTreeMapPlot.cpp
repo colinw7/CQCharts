@@ -179,14 +179,14 @@ addProperties()
 
   // header
   addProperty("header", this, "titles"        , "visible"  )->
-    setDesc("Header title visible for each hierarchical group");
+    setDesc("Header titles visible for each hierarchical group");
   addProperty("header", this, "titleMaxExtent", "maxExtent")->
     setDesc("Max extent of hierarchical group header");
   addProperty("header", this, "headerHeight"  , "height"   )->
     setDesc("Explicit hierarchical group header height");
 
   // color
-  addProperty("color", this, "colorById", "colorById");
+  addProperty("color", this, "colorById", "colorById")->setDesc("Color by id");
 
   // header/fill
   addProperty("header/fill", this, "headerFilled", "visible")->setDesc("Header fill visible");
@@ -1085,7 +1085,7 @@ draw(QPainter *painter)
   // set text pen
   QPen tpen;
 
-  QColor tc = plot_->interpHeaderTextColor(0, 1);
+  QColor tc = plot_->interpHeaderTextColor(ColorInd());
 
   plot_->setPen(tpen, true, tc, plot_->headerTextAlpha());
 
@@ -1273,7 +1273,7 @@ draw(QPainter *painter)
   // set text pen
   QPen tpen;
 
-  QColor tc = plot_->interpTextColor(0, 1);
+  QColor tc = plot_->interpTextColor(ColorInd());
 
   plot_->setPen(tpen, true, tc, plot_->textAlpha());
 
@@ -1602,9 +1602,9 @@ CQChartsTreeMapNode::
 interpColor(const CQChartsTreeMapPlot *plot, const ColorInd &colorInd, int n) const
 {
   if      (color().isValid())
-    return plot->interpColor(color(), 0, 1);
+    return plot->interpColor(color(), ColorInd());
   else if (colorId() >= 0 && plot_->isColorById())
-    return plot->interpPaletteColor(colorId(), n);
+    return plot->interpPaletteColor(ColorInd(colorId(), n));
   else
     return plot->interpPaletteColor(colorInd);
 }

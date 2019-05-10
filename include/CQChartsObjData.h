@@ -845,6 +845,17 @@ class CQChartsObj##UNAME##TextData { \
     return CQChartsInterpolator(LNAME##TextDataObj_).interpColor(LNAME##TextColor(), i, n); \
   } \
 \
+  QColor interp##UNAME##TextColor(double r) const { \
+    return CQChartsInterpolator(LNAME##TextDataObj_).interpColor(LNAME##TextColor(), r); \
+  } \
+\
+  QColor interp##UNAME##TextColor(const CQChartsUtil::ColorInd &ind) const { \
+    if (ind.isInt) \
+      return interp##UNAME##TextColor(ind.i, ind.n); \
+    else \
+      return interp##UNAME##TextColor(ind.r); \
+  } \
+\
   const CQChartsFont &LNAME##TextFont() const { return LNAME##TextData_.font(); } \
   void set##UNAME##TextFont(const CQChartsFont &f) { \
     if (f != LNAME##TextData_.font()) { \

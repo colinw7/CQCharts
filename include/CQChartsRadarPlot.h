@@ -23,6 +23,9 @@ class CQChartsRadarPlotType : public CQChartsPlotType {
 
   bool hasAxes() const override { return false; }
 
+  bool allowXLog() const override { return false; }
+  bool allowYLog() const override { return false; }
+
   QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;

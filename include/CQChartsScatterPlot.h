@@ -591,6 +591,10 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   void addProperties() override;
 
+  void getPropertyNames(QStringList &names, bool hidden) const override;
+
+  //---
+
   CQChartsGeom::Range calcRange() const override;
 
   void clearPlotObjects() override;

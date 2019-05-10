@@ -870,7 +870,7 @@ draw(QPainter *painter)
   // TODO: separate segment stroke/fill control
   QPen pen;
 
-  QColor segmentBorderColor = plot_->interpBorderColor(0, 1);
+  QColor segmentBorderColor = plot_->interpBorderColor(ColorInd());
 
   plot_->setPen(pen, true, segmentBorderColor, plot_->borderAlpha(),
                 plot_->borderWidth(), plot_->borderDash());
@@ -913,7 +913,7 @@ draw(QPainter *painter)
 
   // draw arcs between value sets
 
-  QColor arcBorderColor = plot_->interpBorderColor(0, 1);
+  QColor arcBorderColor = plot_->interpBorderColor(ColorInd());
 
   int from = data_.from();
 

@@ -177,6 +177,15 @@ addProperties()
   dataLabel_->addPathProperties("dataLabel");
 }
 
+void
+CQChartsBarChartPlot::
+getPropertyNames(QStringList &names, bool hidden) const
+{
+  CQChartsPlot::getPropertyNames(names, hidden);
+
+  propertyModel()->objectNames(dataLabel_, names, hidden);
+}
+
 //---
 
 void
@@ -1196,7 +1205,7 @@ addKeyItems(CQChartsPlotKey *key)
           CQChartsColor color;
 
           if (columnColor(ind0.vrow, parent, color))
-            c = interpColor(color, 0, 1);
+            c = interpColor(color, ColorInd());
         }
 
         addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), valueSet.name(), c);
@@ -1221,7 +1230,7 @@ addKeyItems(CQChartsPlotKey *key)
         CQChartsColor color;
 
         if (columnColor(ind0.vrow, parent, color))
-          c = interpColor(color, 0, 1);
+          c = interpColor(color, ColorInd());
 
         addKeyRow(ColorInd(), ColorInd(), ColorInd(ivs, nvs), ivalue.valueName(), c);
       }
@@ -1248,7 +1257,7 @@ addKeyItems(CQChartsPlotKey *key)
           CQChartsColor color;
 
           if (columnColor(ind0.vrow, parent, color))
-            c = interpColor(color, 0, 1);
+            c = interpColor(color, ColorInd());
         }
 
         addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), valueSet.name(), c);
@@ -1670,7 +1679,7 @@ draw(QPainter *painter)
         }
       }
       else {
-        barColor = plot_->interpColor(color_, 0.0);
+        barColor = plot_->interpColor(color_, ColorInd());
       }
     }
   }
@@ -1686,7 +1695,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush barBrush;
 
-  QColor bc = plot_->interpBarBorderColor(0, 1);
+  QColor bc = plot_->interpBarBorderColor(ColorInd());
 
   plot_->setPenBrush(pen, barBrush,
     plot_->isBarBorder() && ! skipBorder,
@@ -1876,7 +1885,7 @@ fillBrush() const
   QColor c;
 
   if (color_.isValid())
-    c = plot_->interpColor(color_, 0.0);
+    c = plot_->interpColor(color_, ColorInd());
   else {
     ColorInd colorInd;
 
@@ -2012,9 +2021,9 @@ CQChartsBarKeyText(CQChartsBarChartPlot *plot, const QString &text, const ColorI
 
 QColor
 CQChartsBarKeyText::
-interpTextColor(int i, int n) const
+interpTextColor(const ColorInd &ind) const
 {
-  QColor c = CQChartsKeyText::interpTextColor(i, n);
+  QColor c = CQChartsKeyText::interpTextColor(ind);
 
   if (isSetHidden())
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());

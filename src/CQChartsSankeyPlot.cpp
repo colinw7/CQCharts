@@ -284,7 +284,8 @@ createGraph(PlotObjs &objs) const
   //---
 
 //double xs = bbox_.getWidth ();
-  double ys = bbox_.getHeight();
+//double ys = bbox_.getHeight();
+  double ys = 2.0;
 
   //---
 
@@ -377,6 +378,8 @@ createNodes(const IndNodeMap &nodes) const
 
   //---
 
+  int numNodes = this->numNodes();
+
   double y1 = bbox_.getYMax() - (ys - height)/2.0;
 
   for (const auto &idNode : nodes) {
@@ -405,7 +408,10 @@ createNodes(const IndNodeMap &nodes) const
     else
       rect = CQChartsGeom::BBox(x - xm/2, y1, x + xm/2, y2);
 
-    CQChartsSankeyNodeObj *nodeObj = new CQChartsSankeyNodeObj(this, rect, node);
+    ColorInd iv(node->ind(), numNodes);
+
+    CQChartsSankeyNodeObj *nodeObj =
+      new CQChartsSankeyNodeObj(this, rect, node, iv);
 
     node->setObj(nodeObj);
 
@@ -975,8 +981,9 @@ setObj(CQChartsSankeyEdgeObj *obj)
 
 CQChartsSankeyNodeObj::
 CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &rect,
-                      CQChartsSankeyPlotNode *node) :
- CQChartsPlotObj(const_cast<CQChartsSankeyPlot *>(plot), rect), plot_(plot), node_(node)
+                      CQChartsSankeyPlotNode *node, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<CQChartsSankeyPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
+ plot_(plot), node_(node)
 {
   double x1 = rect.getXMin();
   double x2 = rect.getXMax();
@@ -1015,9 +1022,9 @@ QString
 CQChartsSankeyNodeObj::
 calcId() const
 {
-  double value = node_->edgeSum();
+  //double value = node_->edgeSum();
 
-  return QString("%1:%2:%3").arg(typeName()).arg(node_->str()).arg(value);
+  return QString("%1:%2").arg(typeName()).arg(iv_.i);
 }
 
 void
@@ -1039,14 +1046,16 @@ void
 CQChartsSankeyNodeObj::
 draw(QPainter *painter)
 {
-  int numNodes = plot_->numNodes();
+  //int numNodes = plot_->numNodes();
 
   // set fill and stroke
+  ColorInd ic = calcColorInd();
+
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpNodeBorderColor(node_->ind(), numNodes);
-  QColor fc = plot_->interpNodeFillColor(node_->ind(), numNodes);
+  QColor bc = plot_->interpNodeBorderColor(ic);
+  QColor fc = plot_->interpNodeFillColor  (ic);
 
   plot_->setPenBrush(pen, brush,
     plot_->isNodeBorder(), bc, plot_->nodeBorderAlpha(),
@@ -1089,7 +1098,7 @@ drawFg(QPainter *painter) const
 
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect_);
 
-  int numNodes = plot_->numNodes();
+  //int numNodes = plot_->numNodes();
 
   //---
 
@@ -1101,9 +1110,11 @@ drawFg(QPainter *painter) const
   //---
 
   // set text pen
+  ColorInd ic = calcColorInd();
+
   QPen pen;
 
-  QColor c = plot_->interpTextColor(node_->ind(), numNodes);
+  QColor c = plot_->interpTextColor(ic);
 
   plot_->setPen(pen, true, c, plot_->textAlpha());
 
@@ -1158,16 +1169,19 @@ draw(QPainter *painter)
   int numNodes = plot_->numNodes();
 
   // set fill and stroke
+  ColorInd ic1(edge_->srcNode ()->ind(), numNodes);
+  ColorInd ic2(edge_->destNode()->ind(), numNodes);
+
   QPen   pen;
   QBrush brush;
 
-  QColor fc1 = plot_->interpEdgeFillColor(edge_->srcNode ()->ind(), numNodes);
-  QColor fc2 = plot_->interpEdgeFillColor(edge_->destNode()->ind(), numNodes);
+  QColor fc1 = plot_->interpEdgeFillColor(ic1);
+  QColor fc2 = plot_->interpEdgeFillColor(ic2);
 
   QColor fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
 
-  QColor sc1 = plot_->interpEdgeBorderColor(edge_->srcNode ()->ind(), numNodes);
-  QColor sc2 = plot_->interpEdgeBorderColor(edge_->destNode()->ind(), numNodes);
+  QColor sc1 = plot_->interpEdgeBorderColor(ic1);
+  QColor sc2 = plot_->interpEdgeBorderColor(ic2);
 
   QColor sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
 

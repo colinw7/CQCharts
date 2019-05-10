@@ -70,7 +70,7 @@ draw(QPainter *painter, const QPointF &center, const QString &text, double angle
   //---
 
   // draw text
-  QColor c = interpTextColor(0, 1);
+  QColor c = interpTextColor(ColorInd());
 
   QPen pen;
 

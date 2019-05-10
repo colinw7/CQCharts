@@ -701,7 +701,7 @@ drawParts(QPainter *painter) const
   // draw edges
   QPen edgePen;
 
-  QColor edgeColor = this->interpEdgeLinesColor(0, 1);
+  QColor edgeColor = this->interpEdgeLinesColor(ColorInd());
 
   setPen(edgePen, true, edgeColor, edgeLinesAlpha(), edgeLinesWidth(), edgeLinesDash());
 
@@ -747,7 +747,7 @@ drawParts(QPainter *painter) const
     QPen   pen;
     QBrush brush;
 
-    QColor pc = interpNodeBorderColor(0, 1);
+    QColor pc = interpNodeBorderColor(ColorInd());
     QColor fc = interpPaletteColor(node->value(), /*scale*/false);
 
     if (node == forceDirected_->currentNode())

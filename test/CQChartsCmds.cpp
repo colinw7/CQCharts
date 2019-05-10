@@ -8,7 +8,9 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
+#include <CQChartsTitle.h>
 #include <CQChartsAxis.h>
+#include <CQChartsKey.h>
 #include <CQChartsAnnotation.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsColor.h>
@@ -19,6 +21,7 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsGradientPalette.h>
 #include <CQChartsArrow.h>
+#include <CQChartsDataLabel.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsInterfaceTheme.h>
@@ -1122,10 +1125,31 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "property name");
 
-  argv.addCmdArg("-desc", CQChartsCmdArg::Type::Boolean, "return property description");
+  argv.addCmdArg("-desc" , CQChartsCmdArg::Type::Boolean, "return property description");
+  argv.addCmdArg("-type" , CQChartsCmdArg::Type::Boolean, "return property type");
+  argv.addCmdArg("-owner", CQChartsCmdArg::Type::Boolean, "return property owner type");
 
   if (! argv.parse())
     return false;
+
+  //---
+
+  auto objToType = [](QObject *obj) {
+    assert(obj);
+
+    if (dynamic_cast<CQChartsView       *>(obj)) return QString("view");
+    if (dynamic_cast<CQChartsPlot       *>(obj)) return QString("plot");
+    if (dynamic_cast<CQChartsAnnotation *>(obj)) return QString("annotation");
+    if (dynamic_cast<CQChartsTitle      *>(obj)) return QString("title");
+    if (dynamic_cast<CQChartsAxis       *>(obj)) return QString("axis");
+    if (dynamic_cast<CQChartsKey        *>(obj)) return QString("key");
+    if (dynamic_cast<CQChartsArrow      *>(obj)) return QString("arrow");
+    if (dynamic_cast<CQChartsDataLabel  *>(obj)) return QString("data_label");
+
+    assert(false);
+
+    return QString();
+  };
 
   //---
 
@@ -1161,10 +1185,30 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(desc);
     }
+    else if (argv.hasParseArg("type")) {
+      QString type;
+
+      if (! view->getPropertyType(name, type)) {
+        charts_->errorMsg("Failed to get view parameter type '" + name + "'");
+        return false;
+      }
+
+      cmdBase_->setCmdRc(type);
+    }
+    else if (argv.hasParseArg("owner")) {
+      QObject *obj = nullptr;
+
+      if (! view->getPropertyObject(name, obj)) {
+        charts_->errorMsg("Failed to get view parameter owner '" + name + "'");
+        return false;
+      }
+
+      cmdBase_->setCmdRc(objToType(obj));
+    }
     else {
       QVariant value;
 
-      if (! view->getProperty(name, value)) {
+      if (! view->getTclProperty(name, value)) {
         charts_->errorMsg("Failed to get view parameter '" + name + "'");
         return false;
       }
@@ -1205,7 +1249,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
       else {
         QVariant value;
 
-        if (! CQUtil::getProperty(plotObj, name, value)) {
+        if (! CQUtil::getTclProperty(plotObj, name, value)) {
           charts_->errorMsg("Failed to get plot parameter '" + name + "'");
           return false;
         }
@@ -1233,10 +1277,30 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
         cmdBase_->setCmdRc(desc);
       }
+      else if (argv.hasParseArg("type")) {
+        QString type;
+
+        if (! plot->getPropertyType(name, type)) {
+          charts_->errorMsg("Failed to get plot parameter type '" + name + "'");
+          return false;
+        }
+
+        cmdBase_->setCmdRc(type);
+      }
+      else if (argv.hasParseArg("owner")) {
+        QObject *obj = nullptr;
+
+        if (! plot->getPropertyObject(name, obj)) {
+          charts_->errorMsg("Failed to get plot parameter owner '" + name + "'");
+          return false;
+        }
+
+        cmdBase_->setCmdRc(objToType(obj));
+      }
       else {
         QVariant value;
 
-        if (! plot->getProperty(name, value)) {
+        if (! plot->getTclProperty(name, value)) {
           charts_->errorMsg("Failed to get plot parameter '" + name + "'");
           return false;
         }
@@ -1269,10 +1333,30 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(desc);
     }
+    else if (argv.hasParseArg("type")) {
+      QString type;
+
+      if (! annotation->getPropertyType(name, type)) {
+        charts_->errorMsg("Failed to get annotation parameter type '" + name + "'");
+        return false;
+      }
+
+      cmdBase_->setCmdRc(type);
+    }
+    else if (argv.hasParseArg("owner")) {
+      QObject *obj = nullptr;
+
+      if (! annotation->getPropertyObject(name, obj)) {
+        charts_->errorMsg("Failed to get annotation parameter owner '" + name + "'");
+        return false;
+      }
+
+      cmdBase_->setCmdRc(objToType(obj));
+    }
     else {
       QVariant value;
 
-      if (! annotation->getProperty(name, value)) {
+      if (! annotation->getTclProperty(name, value)) {
         charts_->errorMsg("Failed to get annotation parameter '" + name + "'");
         return false;
       }
@@ -4026,7 +4110,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       QVariant value;
 
-      if (! CQUtil::getProperty(model.data(), name1, value)) {
+      if (! CQUtil::getTclProperty(model.data(), name1, value)) {
         charts_->errorMsg("Failed to get model property '" + name1 + "'");
         return false;
       }

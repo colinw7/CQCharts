@@ -444,7 +444,7 @@ drawVoronoi(QPainter *painter) const
   if (isLines()) {
     QPen pen;
 
-    QColor lc = interpLinesColor(0, 1);
+    QColor lc = interpLinesColor(ColorInd());
 
     setPen(pen, true, lc, linesAlpha(), linesWidth(), linesDash());
 

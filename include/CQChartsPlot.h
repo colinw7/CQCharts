@@ -433,11 +433,13 @@ class CQChartsPlot : public CQChartsObj,
   const QString &fileName() const { return fileName_; }
   void setFileName(const QString &s) { fileName_ = s; }
 
-  const QString &xLabel() const { return xLabel_; }
-  void setXLabel(const QString &s) { xLabel_ = s; }
+  //---
 
-  const QString &yLabel() const { return yLabel_; }
-  void setYLabel(const QString &s) { yLabel_ = s; }
+  QString xLabel() const;
+  void setXLabel(const QString &s);
+
+  QString yLabel() const;
+  void setYLabel(const QString &s);
 
   //---
 
@@ -730,11 +732,15 @@ class CQChartsPlot : public CQChartsObj,
   bool setProperty(const QString &name, const QVariant &value);
   bool getProperty(const QString &name, QVariant &value) const;
 
-  bool getPropertyDesc(const QString &name, QString &desc) const;
+  bool getTclProperty(const QString &name, QVariant &value) const;
+
+  bool getPropertyDesc  (const QString &name, QString  &desc) const;
+  bool getPropertyType  (const QString &name, QString  &type) const;
+  bool getPropertyObject(const QString &name, QObject* &type) const;
 
   void propertyItemSelected(QObject *obj, const QString &path);
 
-  void getPropertyNames(QStringList &names, bool hidden=false) const;
+  virtual void getPropertyNames(QStringList &names, bool hidden=false) const;
 
   void getObjectPropertyNames(CQChartsPlotObj *plotObj, QStringList &names) const;
 
@@ -1687,27 +1693,40 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  QColor interpPaletteColor(const ColorInd &ind, bool scale=false) const;
+ public:
+  // get palette color for index
+  virtual QColor interpPaletteColor(const ColorInd &ind, bool scale=false) const;
 
-  // get palette color for ith value of n values
-  virtual QColor interpPaletteColor(int i, int n, bool scale=false) const;
+ private:
+  QColor interpPaletteColorI(int i, int n, bool scale=false) const;
+  QColor interpPaletteColorI(double r, bool scale=false) const;
 
-  QColor interpPaletteColor(double r, bool scale=false) const;
-
+ public:
   virtual QColor interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv,
                                          bool scale=false) const;
-  virtual QColor interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale=false) const;
 
-  QColor interpGroupPaletteColor(double r1, double r2, double dr) const;
+ private:
+  QColor interpGroupPaletteColorI(int ig, int ng, int i, int n, bool scale=false) const;
 
-  QColor interpThemeColor(double r) const;
+  QColor interpGroupPaletteColorI(double r1, double r2, double dr) const;
 
+ public:
+  QColor interpThemeColor(const ColorInd &ind) const;
+
+ private:
+  QColor interpThemeColorI(int i, int n) const;
+  QColor interpThemeColorI(double r) const;
+
+ public:
   QColor interpColor(const CQChartsColor &c, const ColorInd &ind) const;
-  QColor interpColor(const CQChartsColor &c, int i, int n) const;
-  QColor interpColor(const CQChartsColor &c, double r) const;
+
+ private:
+  QColor interpColorI(const CQChartsColor &c, int i, int n) const;
+  QColor interpColorI(const CQChartsColor &c, double r) const;
 
   //---
 
+ public:
   QColor calcTextColor(const QColor &bg) const;
 
   //---
@@ -2119,8 +2138,6 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsSides                fitBorderSides_   { "tlbr" };     //!< fit border sides
   QString                      titleStr_;                        //!< title string
   QString                      fileName_;                        //!< associated data filename
-  QString                      xLabel_;                          //!< x label override
-  QString                      yLabel_;                          //!< y label override
   CQChartsAxis*                xAxis_            { nullptr };    //!< x axis object
   CQChartsAxis*                yAxis_            { nullptr };    //!< y axis object
   CQChartsPlotKey*             keyObj_           { nullptr };    //!< key object

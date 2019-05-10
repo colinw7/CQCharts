@@ -75,7 +75,7 @@ draw(QPainter *painter, const QRectF &rect) const
     QBrush brush;
     QPen   pen(Qt::NoPen);
 
-    QColor bgColor = interpFillColor(0, 1);
+    QColor bgColor = interpFillColor(ColorInd());
 
     if      (plot())
       plot()->setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
@@ -102,7 +102,7 @@ draw(QPainter *painter, const QRectF &rect) const
     QPen   pen;
     QBrush brush(Qt::NoBrush);
 
-    QColor borderColor = interpBorderColor(0, 1);
+    QColor borderColor = interpBorderColor(ColorInd());
 
     if      (plot())
       plot()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());
@@ -143,7 +143,7 @@ draw(QPainter *painter, const QPolygonF &poly) const
     QBrush brush;
     QPen   pen(Qt::NoPen);
 
-    QColor bgColor = interpFillColor(0, 1);
+    QColor bgColor = interpFillColor(ColorInd());
 
     if      (plot())
       plot()->setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
@@ -163,7 +163,7 @@ draw(QPainter *painter, const QPolygonF &poly) const
     QPen   pen;
     QBrush brush(Qt::NoBrush);
 
-    QColor borderColor = interpBorderColor(0, 1);
+    QColor borderColor = interpBorderColor(ColorInd());
 
     if      (plot())
       plot()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());

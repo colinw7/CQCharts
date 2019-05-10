@@ -610,7 +610,7 @@ execDrawBackground(QPainter *painter) const
 
     QPen tpen;
 
-    QColor tc = interpTextColor(0, 1);
+    QColor tc = interpTextColor(ColorInd());
 
     setPen(tpen, true, tc, textAlpha());
 

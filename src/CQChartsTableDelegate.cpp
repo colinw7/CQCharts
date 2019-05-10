@@ -199,7 +199,7 @@ drawColor(QPainter *painter, const QStyleOptionViewItem &option,
 
   rect.adjust(0, 1, -3, -2);
 
-  QColor c = table_->charts()->interpColor(color, 0, 1);
+  QColor c = table_->charts()->interpColor(color, CQChartsUtil::ColorInd());
 
   painter->fillRect(rect, QBrush(c));
 

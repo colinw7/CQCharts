@@ -2094,7 +2094,7 @@ draw(QPainter *painter)
     //---
 
     if (! drawBoxFilled) {
-      QColor boxColor = plot_->interpThemeColor(0.0);
+      QColor boxColor = plot_->interpThemeColor(ColorInd());
 
       brush.setColor(boxColor);
 
@@ -2541,8 +2541,8 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBoxBorderColor(0, 1);
-  QColor fc = plot_->interpBoxFillColor(0, 1);
+  QColor bc = plot_->interpBoxBorderColor(ColorInd());
+  QColor fc = plot_->interpBoxFillColor(ColorInd());
 
   plot_->setPenBrush(pen, brush,
     plot_->isBoxBorder(), bc, plot_->boxBorderAlpha(),
@@ -2608,7 +2608,7 @@ draw(QPainter *painter)
 
     QPen pen;
 
-    QColor tc = plot_->interpTextColor(0, 1);
+    QColor tc = plot_->interpTextColor(ColorInd());
 
     plot_->setPen(pen, true, tc, plot_->textAlpha());
 
@@ -3249,11 +3249,11 @@ CQChartsBoxKeyText(CQChartsBoxPlot *plot, const QString &text,
 
 QColor
 CQChartsBoxKeyText::
-interpTextColor(int i, int n) const
+interpTextColor(const ColorInd &ind) const
 {
   CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
-  QColor c = CQChartsKeyText::interpTextColor(i, n);
+  QColor c = CQChartsKeyText::interpTextColor(ind);
 
   if (plot->isSetHidden(ic_.i))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());

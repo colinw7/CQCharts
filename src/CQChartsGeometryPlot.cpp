@@ -9,6 +9,7 @@
 #include <CQCharts.h>
 #include <CQChartsTip.h>
 
+#include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
@@ -208,6 +209,17 @@ addProperties()
   addProperty("value", this, "minValue", "min")->setDesc("Min value for color map");
   addProperty("value", this, "maxValue", "max")->setDesc("Max value for color map");
 }
+
+void
+CQChartsGeometryPlot::
+getPropertyNames(QStringList &names, bool hidden) const
+{
+  CQChartsPlot::getPropertyNames(names, hidden);
+
+  propertyModel()->objectNames(dataLabel_, names, hidden);
+}
+
+//---
 
 CQChartsGeom::Range
 CQChartsGeometryPlot::

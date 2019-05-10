@@ -943,7 +943,7 @@ drawBounds(QPainter *painter, CQChartsHierBubbleHierNode *hier) const
   //---
 
   // draw bubble
-  QColor bc = interpBorderColor(0, 1);
+  QColor bc = interpBorderColor(ColorInd());
 
   painter->setPen  (bc);
   painter->setBrush(Qt::NoBrush);
@@ -1178,7 +1178,7 @@ draw(QPainter *painter)
   // set text pen
   QPen tpen;
 
-  QColor tc = plot_->interpTextColor(0, 1);
+  QColor tc = plot_->interpTextColor(ColorInd());
 
   plot_->setPen(tpen, true, tc, plot_->textAlpha());
 
@@ -1488,7 +1488,7 @@ CQChartsHierBubbleNode::
 interpColor(const CQChartsHierBubblePlot *plot, const ColorInd &colorInd, int n) const
 {
   if      (color().isValid())
-    return plot->interpColor(color(), 0, 1);
+    return plot->interpColor(color(), ColorInd());
   else if (colorId() >= 0)
     return plot->interpPaletteColor(ColorInd(colorId(), n));
   else

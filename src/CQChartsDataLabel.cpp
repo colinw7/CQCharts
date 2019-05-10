@@ -54,7 +54,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr, const Position
 
   QPen tpen;
 
-  QColor tc = interpTextColor(0, 1);
+  QColor tc = interpTextColor(ColorInd());
 
   plot_->setPen(tpen, true, tc, textAlpha());
 

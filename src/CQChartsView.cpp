@@ -817,12 +817,45 @@ getProperty(const QString &name, QVariant &value) const
 
 bool
 CQChartsView::
+getTclProperty(const QString &name, QVariant &value) const
+{
+  return propertyModel()->getTclProperty(this, name, value);
+}
+
+bool
+CQChartsView::
 getPropertyDesc(const QString &name, QString &desc) const
 {
   const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
   if (! item) return false;
 
   desc = item->desc();
+
+  return true;
+}
+
+bool
+CQChartsView::
+getPropertyType(const QString &name, QString &type) const
+{
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  if (! item) return false;
+
+  type = item->typeName();
+
+  return true;
+}
+
+bool
+CQChartsView::
+getPropertyObject(const QString &name, QObject* &object) const
+{
+  object = nullptr;
+
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  if (! item) return false;
+
+  object = item->object();
 
   return true;
 }
@@ -841,6 +874,9 @@ CQChartsView::
 getPropertyNames(QStringList &names, bool hidden) const
 {
   propertyModel()->objectNames(this, names, hidden);
+
+  if (key())
+    propertyModel()->objectNames(key(), names, hidden);
 }
 
 void
@@ -1544,6 +1580,13 @@ interpPaletteColor(double r, bool scale) const
 
 QColor
 CQChartsView::
+interpPaletteColor(const ColorInd &ind, bool scale) const
+{
+  return charts()->interpPaletteColor(ind, scale);
+}
+
+QColor
+CQChartsView::
 interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale) const
 {
   return charts()->interpGroupPaletteColor(ig, iv, scale);
@@ -1565,9 +1608,30 @@ interpGroupPaletteColor(int ig, int ng, double r, bool scale) const
 
 QColor
 CQChartsView::
+interpThemeColor(const ColorInd &ind) const
+{
+  return (ind.isInt ? interpThemeColor(ind.i, ind.n) : interpThemeColor(ind.r));
+}
+
+QColor
+CQChartsView::
+interpThemeColor(int i, int n) const
+{
+  return charts()->interpThemeColor(i, n);
+}
+
+QColor
+CQChartsView::
 interpThemeColor(double r) const
 {
   return charts()->interpThemeColor(r);
+}
+
+QColor
+CQChartsView::
+interpColor(const CQChartsColor &c, const ColorInd &ind) const
+{
+  return (ind.isInt ? interpColor(c, ind.i, ind.n) : interpColor(c, ind.r));
 }
 
 QColor
@@ -2562,7 +2626,7 @@ paint(QPainter *painter, CQChartsPlot *plot)
   // fill background
   QBrush brush;
 
-  setBrush(brush, true, interpBackgroundFillColor(0, 1),
+  setBrush(brush, true, interpBackgroundFillColor(ColorInd()),
            backgroundFillAlpha(), backgroundFillPattern());
 
   painter->fillRect(CQChartsUtil::toQRect(prect_), brush);

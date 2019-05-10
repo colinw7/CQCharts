@@ -271,7 +271,7 @@ class CQChartsBarKeyText : public CQChartsKeyText {
  public:
   CQChartsBarKeyText(CQChartsBarChartPlot *plot, const QString &text, const ColorInd &ic);
 
-  QColor interpTextColor(int i, int n) const override;
+  QColor interpTextColor(const ColorInd &ind) const override;
 
   bool isSetHidden() const;
 };
@@ -384,6 +384,10 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   //---
 
   void addProperties() override;
+
+  void getPropertyNames(QStringList &names, bool hidden) const override;
+
+  //---
 
   CQChartsGeom::Range calcRange() const override;
 

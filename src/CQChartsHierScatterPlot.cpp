@@ -7,6 +7,7 @@
 #include <CQChartsDataLabel.h>
 #include <CQCharts.h>
 
+#include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
@@ -207,11 +208,22 @@ addProperties()
 
   addSymbolProperties("symbol", "", "");
 
-  addProperty("font", this, "fontSize", "font")->setDesc("Font size");
+  addProperty("font", this, "fontSize", "size")->setDesc("Font size");
 
   // point data labels
   dataLabel_->addPathProperties("dataLabel");
 }
+
+void
+CQChartsHierScatterPlot::
+getPropertyNames(QStringList &names, bool hidden) const
+{
+  CQChartsPlot::getPropertyNames(names, hidden);
+
+  propertyModel()->objectNames(dataLabel_, names, hidden);
+}
+
+//------
 
 CQChartsGeom::Range
 CQChartsHierScatterPlot::
@@ -714,11 +726,13 @@ draw(QPainter *painter)
 
   // set pen and brush
   // TODO: allow full control of symbol fill and stroke
+  ColorInd ic(i_, n_);
+
   QPen   pen;
   QBrush brush;
 
-  QColor fillColor   = plot_->interpPaletteColor(i_, n_);
-  QColor strokeColor = plot_->interpPaletteColor(i_, n_);
+  QColor fillColor   = plot_->interpPaletteColor(ic);
+  QColor strokeColor = plot_->interpPaletteColor(ic);
 
   plot_->setPen  (pen  , true, strokeColor, 1.0);
   plot_->setBrush(brush, true, fillColor, 1.0);

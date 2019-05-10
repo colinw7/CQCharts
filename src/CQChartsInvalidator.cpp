@@ -123,12 +123,11 @@ interpColor(const CQChartsColor &c, int i, int n) const
 
   getObjPlotViewChart(obj_, plot, view, charts);
 
-  if      (plot)
-    return plot->interpColor(c, i, n);
-  else if (view)
-    return view->interpColor(c, i, n);
-  else if (charts)
-    return charts->interpColor(c, i, n);
+  CQChartsUtil::ColorInd ic(i, n);
+
+  if      (plot  ) return plot  ->interpColor(c, ic);
+  else if (view  ) return view  ->interpColor(c, ic);
+  else if (charts) return charts->interpColor(c, ic);
 
   return QColor();
 }
@@ -143,12 +142,11 @@ interpColor(const CQChartsColor &c, double r) const
 
   getObjPlotViewChart(obj_, plot, view, charts);
 
-  if      (plot)
-    return plot->interpColor(c, r);
-  else if (view)
-    return view->interpColor(c, r);
-  else if (charts)
-    return charts->interpColor(c, r);
+  CQChartsUtil::ColorInd ic(r);
+
+  if      (plot  ) return plot  ->interpColor(c, ic);
+  else if (view  ) return view  ->interpColor(c, ic);
+  else if (charts) return charts->interpColor(c, ic);
 
   return QColor();
 }

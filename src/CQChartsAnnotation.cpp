@@ -179,25 +179,30 @@ bool
 CQChartsAnnotation::
 getProperty(const QString &name, QVariant &value) const
 {
-  if      (plot())
-    return plot()->propertyModel()->getProperty(this, name, value);
-  else if (view())
-    return view()->propertyModel()->getProperty(this, name, value);
+  CQPropertyViewModel *propertyModel = this->propertyModel();
+  if (! propertyModel) return false;
 
-  return false;
+  return propertyModel->getProperty(this, name, value);
+}
+
+bool
+CQChartsAnnotation::
+getTclProperty(const QString &name, QVariant &value) const
+{
+  CQPropertyViewModel *propertyModel = this->propertyModel();
+  if (! propertyModel) return false;
+
+  return propertyModel->getTclProperty(this, name, value);
 }
 
 bool
 CQChartsAnnotation::
 getPropertyDesc(const QString &name, QString &desc) const
 {
-  const CQPropertyViewItem *item = nullptr;
+  CQPropertyViewModel *propertyModel = this->propertyModel();
+  if (! propertyModel) return false;
 
-  if      (plot())
-    item = plot()->propertyModel()->propertyItem(this, name);
-  else if (view())
-    item = view()->propertyModel()->propertyItem(this, name);
-
+  const CQPropertyViewItem *item = propertyModel->propertyItem(this, name);
   if (! item) return false;
 
   desc = item->desc();
@@ -207,24 +212,66 @@ getPropertyDesc(const QString &name, QString &desc) const
 
 bool
 CQChartsAnnotation::
+getPropertyType(const QString &name, QString &type) const
+{
+  CQPropertyViewModel *propertyModel = this->propertyModel();
+  if (! propertyModel) return false;
+
+  const CQPropertyViewItem *item = propertyModel->propertyItem(this, name);
+  if (! item) return false;
+
+  type = item->typeName();
+
+  return true;
+}
+
+bool
+CQChartsAnnotation::
+getPropertyObject(const QString &name, QObject* &object) const
+{
+  object = nullptr;
+
+  CQPropertyViewModel *propertyModel = this->propertyModel();
+  if (! propertyModel) return false;
+
+  const CQPropertyViewItem *item = propertyModel->propertyItem(this, name);
+  if (! item) return false;
+
+  object = item->object();
+
+  return true;
+}
+
+bool
+CQChartsAnnotation::
 setProperty(const QString &name, const QVariant &value)
 {
-  if      (plot())
-    return plot()->propertyModel()->setProperty(this, name, value);
-  else if (view())
-    return view()->propertyModel()->setProperty(this, name, value);
+  CQPropertyViewModel *propertyModel = this->propertyModel();
+  if (! propertyModel) return false;
 
-  return false;
+  return propertyModel->setProperty(this, name, value);
 }
 
 void
 CQChartsAnnotation::
 getPropertyNames(QStringList &names, bool hidden) const
 {
+  CQPropertyViewModel *propertyModel = this->propertyModel();
+  if (! propertyModel) return;
+
+  propertyModel->objectNames(this, names, hidden);
+}
+
+CQPropertyViewModel *
+CQChartsAnnotation::
+propertyModel() const
+{
   if      (plot())
-    plot()->propertyModel()->objectNames(this, names, hidden);
+    return plot()->propertyModel();
   else if (view())
-    view()->propertyModel()->objectNames(this, names, hidden);
+    return view()->propertyModel();
+  else
+    return nullptr;
 }
 
 //------
@@ -250,14 +297,14 @@ inside(const CQChartsGeom::Point &p) const
 
 QColor
 CQChartsAnnotation::
-interpColor(const CQChartsColor &c, int i, int n) const
+interpColor(const CQChartsColor &c, const ColorInd &ind) const
 {
   if      (plot())
-    return plot()->interpColor(c, i, n);
+    return plot()->interpColor(c, ind);
   else if (view())
-    return view()->interpColor(c, i, n);
+    return view()->interpColor(c, ind);
   else
-    return charts()->interpColor(c, i, n);
+    return charts()->interpColor(c, ind);
 }
 
 //------
@@ -813,14 +860,14 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bgColor = interpFillColor(0, 1);
+  QColor bgColor = interpFillColor(ColorInd());
 
   if      (plot())
     plot()->setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
   else if (view())
     view()->setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
 
-  QColor borderColor = interpBorderColor(0, 1);
+  QColor borderColor = interpBorderColor(ColorInd());
 
   if      (plot())
     plot()->setPen(pen, isBorder(), borderColor, borderAlpha(), borderWidth(), borderDash());
@@ -1007,14 +1054,14 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bgColor = interpFillColor(0, 1);
+  QColor bgColor = interpFillColor(ColorInd());
 
   if      (plot())
     plot()->setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
   else if (view())
     view()->setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
 
-  QColor borderColor = interpBorderColor(0, 1);
+  QColor borderColor = interpBorderColor(ColorInd());
 
   if      (plot())
     plot()->setPen(pen, isBorder(), borderColor, borderAlpha(), borderWidth(), borderDash());
@@ -1216,7 +1263,7 @@ draw(QPainter *painter)
   // set pen
   QPen pen;
 
-  QColor borderColor = interpBorderColor(0, 1);
+  QColor borderColor = interpBorderColor(ColorInd());
 
   if      (plot())
     plot()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());
@@ -1592,7 +1639,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor c = interpColor(textColor(), 0, 1);
+  QColor c = interpColor(textColor(), ColorInd());
 
   if      (plot())
     plot()->setPen(pen, true, c, textAlpha());
@@ -1845,6 +1892,20 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(strokePath, arrow_, "borderWidth", "width"  )->setDesc("Stroke width");
 }
 
+void
+CQChartsArrowAnnotation::
+getPropertyNames(QStringList &names, bool hidden) const
+{
+  CQChartsAnnotation::getPropertyNames(names, hidden);
+
+  names << "length" << "angle" << "backAngle" << "fhead" << "thead" <<
+           "filled" << "lineEnds" << "lineWidth";
+
+  names << "fill.visible" << "fill.color" << "fill.alpha";
+
+  names << "stroke.visible" << "stroke.color" << "stroke.alpha" << "stroke.width";
+}
+
 QString
 CQChartsArrowAnnotation::
 propertyId() const
@@ -2084,7 +2145,33 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   CQChartsAnnotation::addProperties(model, path1);
 
   model->addProperty(path1, this, "position")->setDesc("Point position");
-  model->addProperty(path1, this, "type"    )->setDesc("Point symbol type");
+
+  model->addProperty(path1, this, "symbolType")->setDesc("Point symbol type");
+  model->addProperty(path1, this, "symbolSize")->setDesc("Point symbol size");
+
+  QString fillPath = path1 + "/fill";
+
+  model->addProperty(path1, this, "symbolFilled"     , "visible")->
+    setDesc("Point symbol fill visible");
+  model->addProperty(path1, this, "symbolFillColor"  , "color")->
+    setDesc("Point symbol fill color");
+  model->addProperty(path1, this, "symbolFillAlpha"  , "alpha")->
+    setDesc("Point symbol fill alpha");
+  model->addProperty(path1, this, "symbolFillPattern", "pattern")->
+    setDesc("Point symbol fill pattern");
+
+  QString strokePath = path1 + "/stroke";
+
+  model->addProperty(path1, this, "symbolStroked"    , "visible")->
+    setDesc("Point symbol stroke visible");
+  model->addProperty(path1, this, "symbolStrokeColor", "color")->
+    setDesc("Point symbol stroke color");
+  model->addProperty(path1, this, "symbolStrokeAlpha", "alpha")->
+    setDesc("Point symbol stroke alpha");
+  model->addProperty(path1, this, "symbolStrokeWidth", "width")->
+    setDesc("Point symbol stroke width");
+  model->addProperty(path1, this, "symbolStrokeDash" , "dash")->
+    setDesc("Point symbol stroke dash");
 }
 
 QString
@@ -2193,8 +2280,8 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor lineColor = interpColor(strokeData.color(), 0, 1);
-  QColor fillColor = interpColor(fillData  .color(), 0, 1);
+  QColor lineColor = interpColor(strokeData.color(), ColorInd());
+  QColor fillColor = interpColor(fillData  .color(), ColorInd());
 
   if      (plot())
     plot()->setPen(pen, strokeData.isVisible(), lineColor, strokeData.alpha(),
@@ -2219,8 +2306,19 @@ draw(QPainter *painter)
   //---
 
   // draw symbol
+  double psw = 1.0, psh = 1.0;
+
+  if      (plot()) {
+    psw = plot()->lengthPixelWidth (sw);
+    psh = plot()->lengthPixelHeight(sh);
+  }
+  else if (view()) {
+    psw = view()->lengthPixelWidth (sw);
+    psh = view()->lengthPixelHeight(sh);
+  }
+
   CQChartsSymbol2DRenderer srenderer(painter, CQChartsGeom::Point(px, py),
-                                     CMathUtil::avg(sw, sh));
+                                     CMathUtil::avg(psw, psh));
 
   if (painter->brush().style() != Qt::NoBrush)
     CQChartsPlotSymbolMgr::fillSymbol(symbolData.type(), &srenderer);

@@ -342,7 +342,7 @@ class CQChartsBoxKeyText : public CQChartsKeyText {
   CQChartsBoxKeyText(CQChartsBoxPlot *plot, const QString &text,
                      const ColorInd &is, const ColorInd &ig);
 
-  QColor interpTextColor(int i, int n) const override;
+  QColor interpTextColor(const ColorInd &ind) const override;
 };
 
 //---

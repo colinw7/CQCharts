@@ -101,9 +101,9 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 
   displayRange_->setPixelAdjust(0.0);
 
-  setPixelRange(CQChartsGeom::BBox(0, 0, vr, vr));
+  setPixelRange(CQChartsGeom::BBox(0.0, 0.0, vr, vr));
 
-  setWindowRange(CQChartsGeom::BBox(0, 0, 1, 1));
+  setWindowRange(CQChartsGeom::BBox(0.0, 0.0, 1.0, 1.0));
 
   //---
 
@@ -862,6 +862,38 @@ setTitleStr(const QString &s)
 
 //---
 
+QString
+CQChartsPlot::
+xLabel() const
+{
+  return (xAxis() ? xAxis()->userLabel() : "");
+}
+
+void
+CQChartsPlot::
+setXLabel(const QString &s)
+{
+  if (xAxis())
+    xAxis()->setUserLabel(s);
+}
+
+QString
+CQChartsPlot::
+yLabel() const
+{
+  return (yAxis() ? yAxis()->userLabel() : "");
+}
+
+void
+CQChartsPlot::
+setYLabel(const QString &s)
+{
+  if (yAxis())
+    yAxis()->setUserLabel(s);
+}
+
+//---
+
 void
 CQChartsPlot::
 setPlotBorderSides(const CQChartsSides &s)
@@ -1446,7 +1478,8 @@ addProperties()
   addProperty("", this, "viewId" , "view"   )->setDesc("Parent view id").setHidden(true);
   addProperty("", this, "typeStr", "type"   )->setDesc("Type name").setHidden(true);
   addProperty("", this, "visible", "visible")->setDesc("Plot visible").setHidden(true);
-  addProperty("", this, "font"   , "font"   )->setDesc("Base font");
+
+  addProperty("font", this, "font", "font")->setDesc("Base font");
 
   addProperty("columns", this, "idColumn"     , "id"     )->setDesc("Id column");
   addProperty("columns", this, "tipColumns"   , "tips"   )->setDesc("Tips columns");
@@ -1600,13 +1633,13 @@ addProperties()
   if (xAxis()) {
     xAxis()->addProperties(propertyModel(), "xaxis");
 
-    addProperty("xaxis", this, "xLabel", "userLabel")->setDesc("User defined x axis label");
+    addProperty("xaxis", xAxis(), "userLabel", "userLabel")->setDesc("User defined x axis label");
   }
 
   if (yAxis()) {
     yAxis()->addProperties(propertyModel(), "yaxis");
 
-    addProperty("yaxis", this, "yLabel", "userLabel")->setDesc("User defined y axis label");
+    addProperty("yaxis", yAxis(), "userLabel", "userLabel")->setDesc("User defined y axis label");
   }
 
   if (key())
@@ -1754,12 +1787,45 @@ getProperty(const QString &name, QVariant &value) const
 
 bool
 CQChartsPlot::
+getTclProperty(const QString &name, QVariant &value) const
+{
+  return propertyModel()->getTclProperty(this, name, value);
+}
+
+bool
+CQChartsPlot::
 getPropertyDesc(const QString &name, QString &desc) const
 {
   const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
   if (! item) return false;
 
   desc = item->desc();
+
+  return true;
+}
+
+bool
+CQChartsPlot::
+getPropertyType(const QString &name, QString &type) const
+{
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  if (! item) return false;
+
+  type = item->typeName();
+
+  return true;
+}
+
+bool
+CQChartsPlot::
+getPropertyObject(const QString &name, QObject* &object) const
+{
+  object = nullptr;
+
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  if (! item) return false;
+
+  object = item->object();
 
   return true;
 }
@@ -1858,6 +1924,18 @@ CQChartsPlot::
 getPropertyNames(QStringList &names, bool hidden) const
 {
   propertyModel()->objectNames(this, names, hidden);
+
+  if (title())
+    propertyModel()->objectNames(title(), names, hidden);
+
+  if (xAxis())
+    propertyModel()->objectNames(xAxis(), names, hidden);
+
+  if (yAxis())
+    propertyModel()->objectNames(yAxis(), names, hidden);
+
+  if (key())
+    propertyModel()->objectNames(key(), names, hidden);
 }
 
 void
@@ -1888,7 +1966,7 @@ void
 CQChartsPlot::
 addXAxis()
 {
-  xAxis_ = new CQChartsAxis(this, Qt::Horizontal, 0, 1);
+  xAxis_ = new CQChartsAxis(this, Qt::Horizontal, 0.0, 1.0);
 
   xAxis_->setObjectName("xaxis");
 }
@@ -1897,7 +1975,7 @@ void
 CQChartsPlot::
 addYAxis()
 {
-  yAxis_ = new CQChartsAxis(this, Qt::Vertical, 0, 1);
+  yAxis_ = new CQChartsAxis(this, Qt::Vertical, 0.0, 1.0);
 
   yAxis_->setObjectName("yaxis");
 }
@@ -2599,7 +2677,7 @@ getDataRange() const
   if (dataRange_.isSet())
     return CQChartsUtil::rangeBBox(dataRange_);
   else
-    return CQChartsGeom::BBox(0, 0, 1, 1);
+    return CQChartsGeom::BBox(0.0, 0.0, 1.0, 1.0);
 }
 
 void
@@ -5936,7 +6014,7 @@ drawBackgroundLayer(QPainter *painter) const
     if (isPlotFilled()) {
       QBrush brush;
 
-      setBrush(brush, true, interpPlotFillColor(0, 1), plotFillAlpha(), plotFillPattern());
+      setBrush(brush, true, interpPlotFillColor(ColorInd()), plotFillAlpha(), plotFillPattern());
 
       painter->fillRect(plotRect, brush);
     }
@@ -5944,7 +6022,7 @@ drawBackgroundLayer(QPainter *painter) const
     if (isPlotBorder()) {
       QPen pen;
 
-      setPen(pen, true, interpPlotBorderColor(0, 1), plotBorderAlpha(),
+      setPen(pen, true, interpPlotBorderColor(ColorInd()), plotBorderAlpha(),
              plotBorderWidth(), plotBorderDash());
 
       painter->setPen(pen);
@@ -5959,7 +6037,7 @@ drawBackgroundLayer(QPainter *painter) const
     if (isFitFilled()) {
       QBrush brush;
 
-      setBrush(brush, true, interpFitFillColor(0, 1), fitFillAlpha(), fitFillPattern());
+      setBrush(brush, true, interpFitFillColor(ColorInd()), fitFillAlpha(), fitFillPattern());
 
       painter->fillRect(fitRect, brush);
     }
@@ -5967,7 +6045,7 @@ drawBackgroundLayer(QPainter *painter) const
     if (isFitBorder()) {
       QPen pen;
 
-      setPen(pen, true, interpFitBorderColor(0, 1), fitBorderAlpha(),
+      setPen(pen, true, interpFitBorderColor(ColorInd()), fitBorderAlpha(),
              fitBorderWidth(), fitBorderDash());
 
       painter->setPen(pen);
@@ -5982,7 +6060,7 @@ drawBackgroundLayer(QPainter *painter) const
     if (isDataFilled()) {
       QBrush brush;
 
-      setBrush(brush, true, interpDataFillColor(0, 1), dataFillAlpha(), dataFillPattern());
+      setBrush(brush, true, interpDataFillColor(ColorInd()), dataFillAlpha(), dataFillPattern());
 
       painter->fillRect(dataRect, brush);
     }
@@ -5990,7 +6068,7 @@ drawBackgroundLayer(QPainter *painter) const
     if (isDataBorder()) {
       QPen pen;
 
-      setPen(pen, true, interpDataBorderColor(0, 1), dataBorderAlpha(),
+      setPen(pen, true, interpDataBorderColor(ColorInd()), dataBorderAlpha(),
              dataBorderWidth(), dataBorderDash());
 
       painter->setPen(pen);
@@ -8055,25 +8133,25 @@ QColor
 CQChartsPlot::
 interpPaletteColor(const ColorInd &ind, bool scale) const
 {
-  if (ind.isInt)
-    return interpPaletteColor(ind.i, ind.n, scale);
-  else
-    return interpPaletteColor(ind.r, scale);
+  return (ind.isInt ?
+    interpPaletteColorI(ind.i, ind.n, scale) : interpPaletteColorI(ind.r, scale));
 }
 
 QColor
 CQChartsPlot::
-interpPaletteColor(int i, int n, bool scale) const
+interpPaletteColorI(int i, int n, bool scale) const
 {
   return view()->interpPaletteColor(i, n, scale);
 }
 
 QColor
 CQChartsPlot::
-interpPaletteColor(double r, bool scale) const
+interpPaletteColorI(double r, bool scale) const
 {
   return view()->interpPaletteColor(r, scale);
 }
+
+//---
 
 QColor
 CQChartsPlot::
@@ -8084,14 +8162,14 @@ interpGroupPaletteColor(const ColorInd &ig, const ColorInd &iv, bool scale) cons
 
 QColor
 CQChartsPlot::
-interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale) const
+interpGroupPaletteColorI(int ig, int ng, int i, int n, bool scale) const
 {
   return view()->interpGroupPaletteColor(ig, ng, i, n, scale);
 }
 
 QColor
 CQChartsPlot::
-interpGroupPaletteColor(double r1, double r2, double dr) const
+interpGroupPaletteColorI(double r1, double r2, double dr) const
 {
   CQChartsTheme *theme = view()->theme();
 
@@ -8104,7 +8182,21 @@ interpGroupPaletteColor(double r1, double r2, double dr) const
 
 QColor
 CQChartsPlot::
-interpThemeColor(double r) const
+interpThemeColor(const ColorInd &ind) const
+{
+  return (ind.isInt ? interpThemeColorI(ind.i, ind.n) : interpThemeColorI(ind.r));
+}
+
+QColor
+CQChartsPlot::
+interpThemeColorI(int i, int n) const
+{
+  return view()->interpThemeColor(i, n);
+}
+
+QColor
+CQChartsPlot::
+interpThemeColorI(double r) const
 {
   return view()->interpThemeColor(r);
 }
@@ -8113,12 +8205,12 @@ QColor
 CQChartsPlot::
 interpColor(const CQChartsColor &c, const ColorInd &ind) const
 {
-  return (ind.isInt ? interpColor(c, ind.i, ind.n) : interpColor(c, ind.r));
+  return (ind.isInt ? interpColorI(c, ind.i, ind.n) : interpColorI(c, ind.r));
 }
 
 QColor
 CQChartsPlot::
-interpColor(const CQChartsColor &c, int i, int n) const
+interpColorI(const CQChartsColor &c, int i, int n) const
 {
   if (defaultPalette_ != "") {
     CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
@@ -8131,7 +8223,7 @@ interpColor(const CQChartsColor &c, int i, int n) const
 
 QColor
 CQChartsPlot::
-interpColor(const CQChartsColor &c, double r) const
+interpColorI(const CQChartsColor &c, double r) const
 {
   if (defaultPalette_ != "") {
     CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
@@ -8141,6 +8233,8 @@ interpColor(const CQChartsColor &c, double r) const
 
   return view()->interpColor(c, r);
 }
+
+//---
 
 QColor
 CQChartsPlot::
@@ -9278,7 +9372,7 @@ CQChartsPlot::
 logValue(double x, int base) const
 {
   if (x >= 1E-6)
-    return std::log(x)/log(base);
+    return std::log(x)/std::log(base);
   else
     return CMathUtil::getNaN();
 }
@@ -9288,7 +9382,7 @@ CQChartsPlot::
 expValue(double x, int base) const
 {
   if (x <= 709.78271289)
-    return std::exp(x*log(base));
+    return std::exp(x*std::log(base));
   else
     return CMathUtil::getNaN();
 }
