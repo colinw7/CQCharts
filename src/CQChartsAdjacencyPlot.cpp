@@ -63,10 +63,11 @@ QString
 CQChartsAdjacencyPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Adjacency Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draws connectivity information between two different sets of data as a "
          "matrix where the color of the cells represents the group and connectivity.</p>\n"
-         "<h2>Columns</h2>\n"
+         "<h3>Columns</h3>\n"
          "<p>Connection information can be supplied using:</p>\n"
          "<ul>\n"
          "<li>A list of connections in the <b>Connections</b> column of the form "
@@ -447,7 +448,10 @@ initHierObjs(PlotObjs &objs) const
       if (node1 == node2 || ! CMathUtil::isZero(value)) {
         CQChartsGeom::BBox bbox(x, y - scale(), x + scale(), y);
 
-        CQChartsAdjacencyObj *obj = new CQChartsAdjacencyObj(this, node1, node2, value, bbox);
+        ColorInd ig(node1->group(), maxGroup() + 1);
+
+        CQChartsAdjacencyObj *obj =
+          new CQChartsAdjacencyObj(this, node1, node2, value, bbox, ig);
 
         objs.push_back(obj);
       }
@@ -542,9 +546,14 @@ initConnectionObjs(PlotObjs &objs) const
     th->nodeData_.maxLen = std::max(th->nodeData_.maxLen, int(node1->name().size()));
   }
 
+  //---
+
   int nn = numNodes();
 
-  th->nodeData_.scale = (1.0 - 2*std::max(xb, yb))/(nn + maxLen()*factor_);
+  if (nn + maxLen()*factor_ > 0)
+    th->nodeData_.scale = (1.0 - 2*std::max(xb, yb))/(nn + maxLen()*factor_);
+  else
+    th->nodeData_.scale = 1.0;
 
   double tsize = maxLen()*factor_*scale();
 
@@ -562,7 +571,10 @@ initConnectionObjs(PlotObjs &objs) const
       if (node1 == node2 || ! CMathUtil::isZero(value)) {
         CQChartsGeom::BBox bbox(x, y - scale(), x + scale(), y);
 
-        CQChartsAdjacencyObj *obj = new CQChartsAdjacencyObj(this, node1, node2, value, bbox);
+        ColorInd ig(node1->group(), maxGroup() + 1);
+
+        CQChartsAdjacencyObj *obj =
+          new CQChartsAdjacencyObj(this, node1, node2, value, bbox, ig);
 
         objs.push_back(obj);
       }
@@ -649,6 +661,7 @@ sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) cons
 
   nodeData.maxValue = 0;
   nodeData.maxGroup = 0;
+  nodeData.maxNode  = 0;
 
   for (auto &pnode : nodes) {
     CQChartsAdjacencyNode *node = const_cast<CQChartsAdjacencyNode *>(pnode.second);
@@ -657,6 +670,7 @@ sortNodes(const NodeMap &nodes, NodeArray &sortedNodes, NodeData &nodeData) cons
 
     nodeData.maxValue = std::max(nodeData.maxValue, node->maxCount());
     nodeData.maxGroup = std::max(nodeData.maxGroup, node->group());
+    nodeData.maxNode  = std::max(nodeData.maxNode , node->id());
   }
 
   if      (sortType() == SortType::NAME) {
@@ -925,9 +939,10 @@ interpGroupColor(int group) const
 
 CQChartsAdjacencyObj::
 CQChartsAdjacencyObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
-                     CQChartsAdjacencyNode *node2, double value, const CQChartsGeom::BBox &rect) :
- CQChartsPlotObj(const_cast<CQChartsAdjacencyPlot *>(plot), rect), plot_(plot),
- node1_(node1), node2_(node2), value_(value)
+                     CQChartsAdjacencyNode *node2, double value, const CQChartsGeom::BBox &rect,
+                     const ColorInd &ig) :
+ CQChartsPlotObj(const_cast<CQChartsAdjacencyPlot *>(plot), rect, ColorInd(), ig, ColorInd()),
+ plot_(plot), node1_(node1), node2_(node2), value_(value)
 {
 }
 
@@ -1058,14 +1073,17 @@ CQChartsAdjacencyObj::
 xColorValue(bool relative) const
 {
   if (! relative)
-    return value_;
+    return node1_->id();
   else
-    return CMathUtil::map(value_, 0.0, plot_->maxValue(), 0.0, 1.0);
+    return CMathUtil::map(node1_->id(), 0.0, plot_->maxNode(), 0.0, 1.0);
 }
 
 double
 CQChartsAdjacencyObj::
 yColorValue(bool relative) const
 {
-  return xColorValue(relative);
+  if (! relative)
+    return node2_->id();
+  else
+    return CMathUtil::map(node2_->id(), 0.0, plot_->maxNode(), 0.0, 1.0);
 }

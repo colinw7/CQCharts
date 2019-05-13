@@ -31,8 +31,7 @@ CQChartsEditKeyDlg(CQChartsKey *key) :
 
   //---
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(2); layout->setSpacing(2);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -81,8 +80,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 {
   setObjectName("keyEdit");
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(2); layout->setSpacing(2);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -127,8 +125,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //---
 
-  QGridLayout *groupLayout = new QGridLayout(groupBox_);
-  groupLayout->setMargin(2); groupLayout->setSpacing(2);
+  QGridLayout *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   int row = 0;
 
@@ -175,8 +172,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   CQGroupBox *placementGroup = new CQGroupBox("Placement");
   placementGroup->setObjectName("placementGroup");
 
-  QGridLayout *placementGroupLayout = new QGridLayout(placementGroup);
-  placementGroupLayout->setMargin(0); placementGroupLayout->setSpacing(2);
+  QGridLayout *placementGroupLayout = CQUtil::makeLayout<QGridLayout>(placementGroup, 0, 2);
 
   groupLayout->addWidget(placementGroup, row, 0, 1, 2); ++row;
 
@@ -305,8 +301,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   CQGroupBox *headerGroup = new CQGroupBox("Header");
   headerGroup->setObjectName("headerGroup");
 
-  QGridLayout *headerGroupLayout = new QGridLayout(headerGroup);
-  headerGroupLayout->setMargin(0); headerGroupLayout->setSpacing(2);
+  QGridLayout *headerGroupLayout = CQUtil::makeLayout<QGridLayout>(headerGroup, 0, 2);
 
   groupLayout->addWidget(headerGroup, row, 0, 1, 2); ++row;
 

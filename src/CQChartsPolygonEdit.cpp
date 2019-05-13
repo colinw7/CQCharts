@@ -260,16 +260,13 @@ CQChartsPolygonEdit(QWidget *parent) :
 {
   setObjectName("polygonEdit");
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
-  controlFrame_ = new QFrame;
-  controlFrame_->setObjectName("controlFrame");
+  controlFrame_ = CQUtil::makeWidget<QFrame>("controlFrame");
 
-  QHBoxLayout *controlFrameLayout = new QHBoxLayout(controlFrame_);
-  controlFrameLayout->setMargin(0); controlFrameLayout->setSpacing(2);
+  QHBoxLayout *controlFrameLayout = CQUtil::makeLayout<QHBoxLayout>(controlFrame_, 0, 2);
 
   layout->addWidget(controlFrame_);
 
@@ -279,8 +276,8 @@ CQChartsPolygonEdit(QWidget *parent) :
 
   //---
 
-  QToolButton *addButton    = new QToolButton; addButton   ->setObjectName("add");
-  QToolButton *removeButton = new QToolButton; removeButton->setObjectName("remove");
+  QToolButton *addButton    = CQUtil::makeWidget<QToolButton>("add");
+  QToolButton *removeButton = CQUtil::makeWidget<QToolButton>("remove");
 
   addButton   ->setIcon(CQPixmapCacheInst->getIcon("ADD"));
   removeButton->setIcon(CQPixmapCacheInst->getIcon("REMOVE"));
@@ -288,7 +285,7 @@ CQChartsPolygonEdit(QWidget *parent) :
   connect(addButton, SIGNAL(clicked()), this, SLOT(addSlot()));
   connect(removeButton, SIGNAL(clicked()), this, SLOT(removeSlot()));
 
-  controlFrameLayout->addWidget(new QLabel("Units"));
+  controlFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Units", "unitsLabel"));
   controlFrameLayout->addWidget(unitsEdit_);
   controlFrameLayout->addStretch(1);
   controlFrameLayout->addWidget(addButton);
@@ -296,14 +293,11 @@ CQChartsPolygonEdit(QWidget *parent) :
 
   //---
 
-  scrollArea_ = new QScrollArea;
-  scrollArea_->setObjectName("scrollArea");
+  scrollArea_ = CQUtil::makeWidget<QScrollArea>("scrollArea");
 
-  pointsFrame_ = new QFrame;
-  pointsFrame_->setObjectName("pointsFrame");
+  pointsFrame_ = CQUtil::makeWidget<QFrame>("pointsFrame");
 
-  QVBoxLayout *pointsFrameLayout = new QVBoxLayout(pointsFrame_);
-  pointsFrameLayout->setMargin(0); pointsFrameLayout->setSpacing(0);
+  (void) CQUtil::makeLayout<QVBoxLayout>(pointsFrame_, 0, 0);
 
   scrollArea_->setWidget(pointsFrame_);
 

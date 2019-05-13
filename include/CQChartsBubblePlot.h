@@ -118,7 +118,7 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
     return n1.r_ < n2.r_;
   }
 
-  virtual QColor interpColor(const CQChartsBubblePlot *plot,
+  virtual QColor interpColor(const CQChartsBubblePlot *plot, const CQChartsColor &c,
                              const ColorInd &colorInd, int n) const;
 
  protected:
@@ -194,7 +194,7 @@ class CQChartsBubbleHierNode : public CQChartsBubbleNode {
 
   void setPosition(double x, double y) override;
 
-  QColor interpColor(const CQChartsBubblePlot *plot,
+  QColor interpColor(const CQChartsBubblePlot *plot, const CQChartsColor &c,
                      const ColorInd &colorInd, int n) const override;
 
  protected:
@@ -446,6 +446,8 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   void drawBounds(QPainter *painter, CQChartsBubbleHierNode *hier) const;
 
  private:
+  using HierNode = CQChartsBubbleHierNode;
+
   struct PlaceData {
     CQChartsGeom::Point offset { 0, 0 }; //!< draw offset
     double              scale  { 1.0 };  //!< draw scale
@@ -457,13 +459,13 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   };
 
   struct NodeData {
-    CQChartsBubbleHierNode* root     { nullptr }; //!< root node
-    int                     maxDepth { 1 };       //!< max hier depth
-    int                     hierInd  { 0 };       //!< current hier ind
+    HierNode* root     { nullptr }; //!< root node
+    int       maxDepth { 1 };       //!< max hier depth
+    int       hierInd  { 0 };       //!< current hier ind
   };
 
  private:
-  using GroupHierNodes = std::map<int,CQChartsBubbleHierNode *>;
+  using GroupHierNodes = std::map<int,HierNode *>;
 
   CQChartsColumn nameColumn_;            //!< name column
   CQChartsColumn valueColumn_;           //!< value column

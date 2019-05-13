@@ -44,7 +44,8 @@ QString
 CQChartsDelaunayPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Delaunay Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draws delaunay triangulation for a set of points.<p>\n";
 }
 
@@ -377,7 +378,7 @@ drawDelaunay(QPainter *painter) const
   if (isLines()) {
     QPen pen;
 
-    setLineDataPen(pen, 0, 1);
+    setLineDataPen(pen, ColorInd());
 
     //---
 
@@ -418,7 +419,7 @@ drawVoronoi(QPainter *painter) const
     QPen   pen;
     QBrush brush;
 
-    setSymbolPenBrush(pen, brush, 0, 1);
+    setSymbolPenBrush(pen, brush, ColorInd());
 
     painter->setPen  (pen);
     painter->setBrush(brush);

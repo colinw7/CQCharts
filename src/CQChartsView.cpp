@@ -138,7 +138,8 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("background", this, "backgroundFillData"   , "fill"   )->setDesc("Fill visible");
   addProperty("background", this, "backgroundFillColor"  , "color"  )->setDesc("Fill color");
   addProperty("background", this, "backgroundFillAlpha"  , "alpha"  )->setDesc("Fill alpha");
-  addProperty("background", this, "backgroundFillPattern", "pattern")->setDesc("Fill pattern");
+  addProperty("background", this, "backgroundFillPattern", "pattern")->
+    setDesc("Fill pattern").setHidden(true);
 
   addProperty("select"                 , this, "selectMode"         , "mode")->
                 setDesc("Selection mode");
@@ -218,6 +219,12 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   connect(CQChartsThemeMgrInst, SIGNAL(themeChanged(const QString &)),
           this, SLOT(themeChangedSlot(const QString &)));
+  connect(CQChartsThemeMgrInst, SIGNAL(paletteChanged(const QString &)),
+          this, SLOT(paletteChangedSlot(const QString &)));
+
+  // TODO: only connect to current theme ?
+  connect(CQChartsThemeMgrInst, SIGNAL(themesChanged()), this, SLOT(updatePlots()));
+  connect(CQChartsThemeMgrInst, SIGNAL(palettesChanged()), this, SLOT(updatePlots()));
 }
 
 CQChartsView::
@@ -848,6 +855,18 @@ getPropertyType(const QString &name, QString &type) const
 
 bool
 CQChartsView::
+getPropertyUserType(const QString &name, QString &type) const
+{
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  if (! item) return false;
+
+  type = item->userTypeName();
+
+  return true;
+}
+
+bool
+CQChartsView::
 getPropertyObject(const QString &name, QObject* &object) const
 {
   object = nullptr;
@@ -1321,8 +1340,20 @@ initOverlay(const Plots &plots, bool reset)
 {
   assert(plots.size() >= 2);
 
-  if (reset)
+  if (reset) {
+    if (isScrolled())
+      setScrolled(false);
+
     resetConnections(/*notify*/false);
+  }
+
+#if 0
+  for (std::size_t i = 0; i < plots.size(); ++i) {
+    CQChartsPlot *plot = plots[i];
+
+    plot->syncRange();
+  }
+#endif
 
   CQChartsPlot *rootPlot = plots[0]->firstPlot();
 
@@ -1396,8 +1427,12 @@ void
 CQChartsView::
 initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
 {
-  if (reset)
+  if (reset) {
+    if (isScrolled())
+      setScrolled(false);
+
     resetConnections(/*notify*/false);
+  }
 
   assert(plot1 != plot2 && ! plot1->isOverlay() && ! plot2->isOverlay());
 
@@ -1444,8 +1479,12 @@ void
 CQChartsView::
 initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
 {
-  if (reset)
+  if (reset) {
+    if (isScrolled())
+      setScrolled(false);
+
     resetConnections(/*notify*/false);
+  }
 
   assert(plot1 != plot2 && ! plot1->isOverlay() && ! plot2->isOverlay());
 
@@ -1492,8 +1531,18 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
 
 void
 CQChartsView::
-placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int columns)
+placePlots(const Plots &plots, bool vertical, bool horizontal,
+           int rows, int columns, bool reset)
 {
+  if (reset) {
+    if (isScrolled())
+      setScrolled(false);
+
+    resetConnections(/*notify*/false);
+  }
+
+  //---
+
   int np = plots.size();
 
   if (np <= 0)
@@ -2734,6 +2783,12 @@ themeChangedSlot(const QString &name)
     setSelectedFillColor(theme()->selectColor());
     setInsideFillColor  (theme()->insideColor());
   }
+}
+
+void
+CQChartsView::
+paletteChangedSlot(const QString &)
+{
 }
 
 //------

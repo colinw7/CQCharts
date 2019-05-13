@@ -126,11 +126,11 @@ CQChartsAxis::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
   model->addProperty(path, this, "visible"  )->setDesc("Is axis visible");
-  model->addProperty(path, this, "direction")->setDesc("Axis direction").setHidden(true);
+  model->addProperty(path, this, "direction")->setDesc("Axis direction").
+    setEditable(false).setHidden(true);
   model->addProperty(path, this, "side"     )->setDesc("Axis plot side");
-  model->addProperty(path, this, "integral" )->setDesc("Axis uses integral values");
-  model->addProperty(path, this, "date"     )->setDesc("Axis uses date values");
-  model->addProperty(path, this, "log"      )->setDesc("Axis uses log values");
+  model->addProperty(path, this, "valueType")->setDesc("Axis value type").
+    setEditable(false).setHidden(true);
   model->addProperty(path, this, "format"   )->setDesc("Axis tick value format string");
 
   model->addProperty(path, this, "tickIncrement" )->setDesc("Axis tick increment");
@@ -146,9 +146,10 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   model->addProperty(posPath, this, "position", "value")->setDesc("Axis position");
 
-  QString linePath = path + "/line";
+  QString linePath = path + "/stroke";
 
-  model->addProperty(linePath, this, "axesLineData"  , "style"  )->setDesc("Axis line style");
+  model->addProperty(linePath, this, "axesLineData"  , "style"  )->
+    setDesc("Axis line style").setHidden(true);
   model->addProperty(linePath, this, "axesLines"     , "visible")->setDesc("Axis line is visible");
   model->addProperty(linePath, this, "axesLinesColor", "color"  )->setDesc("Axis line color");
   model->addProperty(linePath, this, "axesLinesAlpha", "alpha"  )->setDesc("Axis line alpha");
@@ -172,7 +173,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   QString ticksLabelPath = ticksPath + "/label";
 
   model->addProperty(ticksLabelPath, this, "axesTickLabelTextData"   , "style")->
-    setDesc("Axis tick label text style");
+    setDesc("Axis tick label text style").setHidden(true);
   model->addProperty(ticksLabelPath, this, "axesTickLabelTextVisible", "visible")->
     setDesc("Axis tick label text is visible");
   model->addProperty(ticksLabelPath, this, "axesTickLabelTextColor"  , "color")->
@@ -198,7 +199,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(labelPath, this, "label"               , "text"   )->
     setDesc("Axis label text string");
   model->addProperty(labelPath, this, "axesLabelTextData"   , "style"  )->
-    setDesc("Axis label text style");
+    setDesc("Axis label text style").setHidden(true);
   model->addProperty(labelPath, this, "axesLabelTextVisible", "visible")->
     setDesc("Axis label text is visible");
   model->addProperty(labelPath, this, "axesLabelTextColor"  , "color"  )->
@@ -208,45 +209,47 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(labelPath, this, "axesLabelTextFont"   , "font"   )->
     setDesc("Axis label text font");
 
-  QString gridPath          = path + "/grid";
-  QString gridLinePath      = gridPath + "/line";
-  QString gridMajorLinePath = gridLinePath + "/major";
-  QString gridMinorLinePath = gridLinePath + "/minor";
-  QString gridFillPath      = gridPath + "/fill";
+  QString gridPath            = path + "/grid";
+  QString gridLinePath        = gridPath + "/stroke";
+  QString gridMajorPath       = gridPath + "/major";
+  QString gridMajorStrokePath = gridMajorPath + "/stroke";
+  QString gridMinorPath       = gridPath + "/minor";
+  QString gridMinorStrokePath = gridMinorPath + "/stroke";
+  QString gridFillPath        = gridPath + "/fill";
 
   model->addProperty(gridPath, this, "gridMid"  , "middle")->
     setDesc("Grid at make tick mid point");
   model->addProperty(gridPath, this, "gridAbove", "above" )->
     setDesc("Grid is drawn above axes");
 
-  model->addProperty(gridMajorLinePath, this, "axesMajorGridLineData"  , "style"  )->
-    setDesc("Axis major grid line style");
-  model->addProperty(gridMajorLinePath, this, "axesMajorGridLines"     , "visible")->
+  model->addProperty(gridMajorStrokePath, this, "axesMajorGridLineData"  , "style"  )->
+    setDesc("Axis major grid line style").setHidden(true);
+  model->addProperty(gridMajorStrokePath, this, "axesMajorGridLines"     , "visible")->
     setDesc("Axis major grid line is visible");
-  model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesColor", "color"  )->
+  model->addProperty(gridMajorStrokePath, this, "axesMajorGridLinesColor", "color"  )->
     setDesc("Axis major grid line color");
-  model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesAlpha", "alpha"  )->
+  model->addProperty(gridMajorStrokePath, this, "axesMajorGridLinesAlpha", "alpha"  )->
     setDesc("Axis major grid line alpha");
-  model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesWidth", "width"  )->
+  model->addProperty(gridMajorStrokePath, this, "axesMajorGridLinesWidth", "width"  )->
     setDesc("Axis major grid line width");
-  model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesDash" , "dash"   )->
+  model->addProperty(gridMajorStrokePath, this, "axesMajorGridLinesDash" , "dash"   )->
     setDesc("Axis major grid line dash");
 
-  model->addProperty(gridMinorLinePath, this, "axesMinorGridLineData"  , "style"  )->
-    setDesc("Axis minor grid line style");
-  model->addProperty(gridMinorLinePath, this, "axesMinorGridLines"     , "visible")->
+  model->addProperty(gridMinorStrokePath, this, "axesMinorGridLineData"  , "style"  )->
+    setDesc("Axis minor grid line style").setHidden(true);
+  model->addProperty(gridMinorStrokePath, this, "axesMinorGridLines"     , "visible")->
     setDesc("Axis minor grid line is visible");
-  model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesColor", "color"  )->
+  model->addProperty(gridMinorStrokePath, this, "axesMinorGridLinesColor", "color"  )->
     setDesc("Axis minor grid line color");
-  model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesAlpha", "alpha"  )->
+  model->addProperty(gridMinorStrokePath, this, "axesMinorGridLinesAlpha", "alpha"  )->
     setDesc("Axis minor grid line alpha");
-  model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesWidth", "width"  )->
+  model->addProperty(gridMinorStrokePath, this, "axesMinorGridLinesWidth", "width"  )->
     setDesc("Axis minor grid line width");
-  model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesDash" , "dash"   )->
+  model->addProperty(gridMinorStrokePath, this, "axesMinorGridLinesDash" , "dash"   )->
     setDesc("Axis minor grid line  dash");
 
   model->addProperty(gridFillPath, this, "axesGridFillData"   , "style"  )->
-    setDesc("Axis grid fill style");
+    setDesc("Axis grid fill style").setHidden(true);
   model->addProperty(gridFillPath, this, "axesGridFilled"     , "visible")->
     setDesc("Axis grid fill is visible");
   model->addProperty(gridFillPath, this, "axesGridFillColor"  , "color"  )->
@@ -254,7 +257,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(gridFillPath, this, "axesGridFillAlpha"  , "alpha"  )->
     setDesc("Axis grid fill alpha");
   model->addProperty(gridFillPath, this, "axesGridFillPattern", "pattern")->
-    setDesc("Axis grid fill pattern");
+    setDesc("Axis grid fill pattern").setHidden(true);
 }
 
 void
@@ -427,23 +430,9 @@ setTickSpaces(double *tickSpaces, uint numTickSpaces)
 
 void
 CQChartsAxis::
-setIntegral(bool b)
+setValueType(const CQChartsAxisValueType &v)
 {
-  CQChartsUtil::testAndSet(integral_, b, [&]() { calcAndRedraw(); } );
-}
-
-void
-CQChartsAxis::
-setDate(bool b)
-{
-  CQChartsUtil::testAndSet(date_, b, [&]() { calcAndRedraw(); } );
-}
-
-void
-CQChartsAxis::
-setLog(bool b)
-{
-  CQChartsUtil::testAndSet(log_, b, [&]() { calcAndRedraw(); } );
+  CQChartsUtil::testAndSet(valueType_, v, [&]() { calcAndRedraw(); } );
 }
 
 //---

@@ -73,8 +73,7 @@ CQChartsLineDashEdit(QWidget *parent) :
 
   //---
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(0);
+  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
 
   //---
 
@@ -88,8 +87,7 @@ CQChartsLineDashEdit(QWidget *parent) :
 
   layout->addWidget(edit_);
 
-  button_ = new QToolButton;
-  button_->setObjectName("button");
+  button_ = CQUtil::makeWidget<QToolButton>("button");
 
   menu_ = new QMenu;
 

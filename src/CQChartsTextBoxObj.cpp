@@ -38,28 +38,32 @@ CQChartsTextBoxObj(CQChartsPlot *plot) :
 
 void
 CQChartsTextBoxObj::
-addProperties(CQPropertyViewModel *model, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &desc)
 {
-  CQChartsBoxObj::addProperties(model, path);
+  CQChartsBoxObj::addProperties(model, path, desc);
 
   QString textPath = path + "/text";
 
-  model->addProperty(textPath, this, "textStr", "text")->setDesc("Text string");
+  QString path1 = (path.length() ? desc + " text" : "Text");
 
-  addTextDataProperties(model, textPath);
+  model->addProperty(textPath, this, "textStr", "text")->setDesc(path1 + " string");
+
+  addTextDataProperties(model, textPath, desc);
 }
 
 void
 CQChartsTextBoxObj::
-addTextDataProperties(CQPropertyViewModel *model, const QString &path)
+addTextDataProperties(CQPropertyViewModel *model, const QString &path, const QString &desc)
 {
-  model->addProperty(path, this, "textColor"   , "color"   )->setDesc("Text color");
-  model->addProperty(path, this, "textAlpha"   , "alpha"   )->setDesc("Text alpha");
-  model->addProperty(path, this, "textFont"    , "font"    )->setDesc("Text font");
-  model->addProperty(path, this, "textAngle"   , "angle"   )->setDesc("Text angle");
-  model->addProperty(path, this, "textContrast", "contrast")->setDesc("Text contrast");
-  model->addProperty(path, this, "textHtml"    , "html"    )->setDesc("Text is HTML");
-  model->addProperty(path, this, "textAlign"   , "align"   )->setDesc("Text alignment");
+  QString desc1 = (path.length() ? desc + " text" : "Text");
+
+  model->addProperty(path, this, "textColor"   , "color"   )->setDesc(desc1 + " color");
+  model->addProperty(path, this, "textAlpha"   , "alpha"   )->setDesc(desc1 + " alpha");
+  model->addProperty(path, this, "textFont"    , "font"    )->setDesc(desc1 + " font");
+  model->addProperty(path, this, "textAngle"   , "angle"   )->setDesc(desc1 + " angle");
+  model->addProperty(path, this, "textContrast", "contrast")->setDesc(desc1 + " contrast");
+  model->addProperty(path, this, "textHtml"    , "html"    )->setDesc(desc1 + " is HTML");
+  model->addProperty(path, this, "textAlign"   , "align"   )->setDesc(desc1 + " alignment");
 }
 
 void

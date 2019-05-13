@@ -1,5 +1,6 @@
 #include <CQChartsRect.h>
 #include <CQChartsUtil.h>
+#include <CQPropertyView.h>
 #include <CQStrParse.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsRect, toString, fromString)
@@ -11,6 +12,8 @@ CQChartsRect::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsRect);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsRect", "rectangle");
 }
 
 bool

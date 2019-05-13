@@ -20,7 +20,7 @@ set view [get_charts_property -plot $plot1 -name viewId]
 
 set_charts_property -view $view -name title -value "Popular Fast Food Chains"
 
-set_charts_property -plot $plot1 -name "yaxis.grid.line.major.visible" -value 1
+set_charts_property -plot $plot1 -name "yaxis.grid.major.stroke.visible" -value 1
 
 set plot2 [create_charts_plot -model $model -type xy -columns "x=0,y=3" -ymin 0]
 

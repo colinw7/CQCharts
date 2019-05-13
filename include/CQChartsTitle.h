@@ -76,7 +76,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
 
   //---
 

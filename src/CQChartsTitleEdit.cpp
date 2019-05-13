@@ -25,8 +25,7 @@ CQChartsEditTitleDlg(CQChartsTitle *title) :
 
   //---
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(2); layout->setSpacing(2);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -75,8 +74,7 @@ CQChartsTitleEdit(QWidget *parent, CQChartsTitle *title) :
 {
   setObjectName("titleEdit");
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(2); layout->setSpacing(2);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -100,8 +98,7 @@ CQChartsTitleEdit(QWidget *parent, CQChartsTitle *title) :
 
   //---
 
-  QGridLayout *groupLayout = new QGridLayout(groupBox_);
-  groupLayout->setMargin(2); groupLayout->setSpacing(2);
+  QGridLayout *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   int row = 0;
 

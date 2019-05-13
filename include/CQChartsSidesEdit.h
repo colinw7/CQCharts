@@ -75,7 +75,7 @@ class CQChartsSidesEditMenuWidget : public QFrame {
 
 #include <CQPropertyViewType.h>
 
-//! \brief type for CQChartsLength
+//! \brief type for CQChartsSides
 class CQChartsSidesPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsSidesPropertyViewType();
@@ -89,13 +89,15 @@ class CQChartsSidesPropertyViewType : public CQPropertyViewType {
             const QVariant &value, bool inside) override;
 
   QString tip(const QVariant &value) const override;
+
+  QString userName() const override { return "sides"; }
 };
 
 //---
 
 #include <CQPropertyViewEditor.h>
 
-//! \brief editor factory for CQChartsLength
+//! \brief editor factory for CQChartsSides
 class CQChartsSidesPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsSidesPropertyViewEditor();

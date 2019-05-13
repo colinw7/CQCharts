@@ -77,7 +77,7 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //--
 
-  void addPathProperties(const QString &path);
+  void addPathProperties(const QString &path, const QString &desc);
 
   //---
 

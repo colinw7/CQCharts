@@ -44,7 +44,8 @@ QString
 CQChartsGeometryPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Geometry Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draw polygon list, polygon, rect or path shapes.</p>\n";
 }
 
@@ -203,7 +204,7 @@ addProperties()
   addLineProperties("stroke", "border", "");
 
   // data label
-  dataLabel_->addPathProperties("dataLabel");
+  dataLabel_->addPathProperties("labels", "Labels");
 
   // value
   addProperty("value", this, "minValue", "min")->setDesc("Min value for color map");
@@ -625,7 +626,7 @@ draw(QPainter *painter)
     if (! hasValue_ || ! plot_->isColorByValue())
       fc = plot_->interpFillColor(colorInd);
     else
-      fc = plot_->interpPaletteColor(ColorInd(dv));
+      fc = plot_->interpColor(plot_->fillColor(), ColorInd(dv));
   }
 
   QColor bc = plot_->interpBorderColor(colorInd);

@@ -5,6 +5,7 @@
 #include <CQRealSpin.h>
 #include <CQChartsUtil.h>
 #include <CQGroupBox.h>
+#include <CQUtil.h>
 
 #include <QComboBox>
 #include <QLabel>
@@ -18,14 +19,11 @@ CQChartsFillUnderSideEdit(QWidget *parent) :
 {
   setObjectName("fillUnderSide");
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
-  combo_ = new QComboBox;
+  combo_ = CQUtil::makeWidget<QComboBox>("combo");
 
   combo_->addItems(QStringList() << CQChartsFillUnderSide::sideNames());
-
-  combo_->setObjectName("combo");
 
   layout->addWidget(combo_);
 
@@ -406,8 +404,7 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 {
   setObjectName("fillUnderPos");
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(2); layout->setSpacing(2);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //----
 
@@ -418,30 +415,24 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 
   layout->addWidget(xGroup);
 
-  QGridLayout *xlayout = new QGridLayout(xGroup);
-  xlayout->setMargin(2); xlayout->setSpacing(2);
+  QGridLayout *xlayout = CQUtil::makeLayout<QGridLayout>(xGroup, 2, 2);
 
   //--
 
-  xtypeCombo_ = new QComboBox;
+  xtypeCombo_ = CQUtil::makeWidget<QComboBox>("xtypeCombo");
 
-  xtypeCombo_->setObjectName("xtypeCombo");
   xtypeCombo_->addItems(QStringList() << "None" << "Min" << "Max" << "Pos");
 
   connect(xtypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToFillUnderPos()));
 
-  QLabel *xtypeLabel = new QLabel("Type");
-
-  xtypeLabel->setObjectName("xtypeLabel");
+  QLabel *xtypeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "xtypeLabel");
 
   xlayout->addWidget(xtypeLabel , 0, 0);
   xlayout->addWidget(xtypeCombo_, 0, 1);
 
   //---
 
-  QLabel *xposLabel = new QLabel("Pos");
-
-  xposLabel->setObjectName("xposLabel");
+  QLabel *xposLabel = CQUtil::makeLabelWidget<QLabel>("Pos", "xposLabel");
 
   xposEdit_ = new CQRealSpin;
 
@@ -461,30 +452,24 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 
   layout->addWidget(yGroup);
 
-  QGridLayout *ylayout = new QGridLayout(yGroup);
-  ylayout->setMargin(2); ylayout->setSpacing(2);
+  QGridLayout *ylayout = CQUtil::makeLayout<QGridLayout>(yGroup, 2, 2);
 
   //--
 
-  ytypeCombo_ = new QComboBox;
+  ytypeCombo_ = CQUtil::makeWidget<QComboBox>("ytypeCombo");
 
-  ytypeCombo_->setObjectName("ytypeCombo");
   ytypeCombo_->addItems(QStringList() << "None" << "Min" << "Max" << "Pos");
 
   connect(ytypeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(widgetsToFillUnderPos()));
 
-  QLabel *ytypeLabel = new QLabel("Type");
-
-  ytypeLabel->setObjectName("ytypeLabel");
+  QLabel *ytypeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "ytypeLabel");
 
   ylayout->addWidget(ytypeLabel , 0, 0);
   ylayout->addWidget(ytypeCombo_, 0, 1);
 
   //---
 
-  QLabel *yposLabel = new QLabel("Pos");
-
-  yposLabel->setObjectName("yposLabel");
+  QLabel *yposLabel = CQUtil::makeLabelWidget<QLabel>("Pos", "yposLabel");
 
   yposEdit_ = new CQRealSpin;
 

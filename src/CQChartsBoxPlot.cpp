@@ -97,10 +97,11 @@ QString
 CQChartsBoxPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Box Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draws box and whiskers for the min, max, median and outlier values of the set "
          "of y values for rows with identical x values.\n"
-         "<h2>Columns</h2>\n"
+         "<h3>Columns</h3>\n"
          "<p>Values can be supplied using:</p>\n"
          "<ul>\n"
          "<li>Raw Values with X and Y values in <b>value</b> and <b>set</b> columns.</li>\n"
@@ -331,7 +332,6 @@ addProperties()
   // options
   addProperty("options", this, "horizontal", "horizontal")->setDesc("Draw bar horizontal");
   addProperty("options", this, "normalized", "normalized")->setDesc("Normalize bar ranges to 0-1");
-  addProperty("options", this, "colorBySet")->setDesc("Color by value set");
   addProperty("options", this, "ymargin")->setDesc("Margin above/below bar");
 
   // jitter
@@ -387,6 +387,9 @@ addProperties()
   addProperty("outlier", this, "showOutliers", "visible")->setDesc("Outlier points visible");
 
   addSymbolProperties("outlier/symbol", "outlier", "Outlier");
+
+  // color
+  addProperty("color", this, "colorBySet")->setDesc("Color by value set");
 }
 
 //---
@@ -499,10 +502,10 @@ calcRange() const
   CQChartsAxis *xAxis = (! isHorizontal() ? this->xAxis() : this->yAxis());
   CQChartsAxis *yAxis = (! isHorizontal() ? this->yAxis() : this->xAxis());
 
-  xAxis->setIntegral      (true);
+  xAxis->setValueType     (CQChartsAxisValueType::Type::INTEGER);
   xAxis->setMajorIncrement(1);
 
-  yAxis->setIntegral      (false);
+  yAxis->setValueType     (CQChartsAxisValueType::Type::REAL);
   yAxis->setMajorIncrement(0);
 
   //---
@@ -2653,7 +2656,7 @@ draw(QPainter *painter)
     QPen   pen;
     QBrush brush;
 
-    plot_->setOutlierSymbolPenBrush(pen, brush, 0, 1);
+    plot_->setOutlierSymbolPenBrush(pen, brush, ColorInd());
 
     plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 

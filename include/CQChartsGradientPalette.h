@@ -1,6 +1,7 @@
 #ifndef CQChartsGradientPalette_H
 #define CQChartsGradientPalette_H
 
+#include <QObject>
 #include <QColor>
 #include <QStringList>
 #include <COSNaN.h>
@@ -107,7 +108,12 @@ class CCubeHelix {
 //---
 
 //! \brief gradient palette
-class CQChartsGradientPalette {
+class CQChartsGradientPalette : public QObject {
+  Q_OBJECT
+
+  Q_PROPERTY(QString name READ name WRITE setName)
+  Q_PROPERTY(QString desc READ desc WRITE setDesc)
+
  public:
   enum class ColorType {
     NONE,
@@ -127,6 +133,17 @@ class CQChartsGradientPalette {
   };
 
   using ColorMap = std::map<double,QColor>;
+
+  struct DefinedColor {
+    double v { -1.0 };
+    QColor c;
+
+    DefinedColor(double v, const QColor &c) :
+     v(v), c(c) {
+    }
+  };
+
+  using DefinedColors = std::vector<DefinedColor>;
 
  public:
   static ColorType stringToColorType(const QString &str) {
@@ -172,15 +189,17 @@ class CQChartsGradientPalette {
  public:
   CQChartsGradientPalette();
 
-  CQChartsGradientPalette(const CQChartsGradientPalette &palette);
+  //CQChartsGradientPalette(const CQChartsGradientPalette &palette);
 
   virtual ~CQChartsGradientPalette();
 
-  CQChartsGradientPalette &operator=(const CQChartsGradientPalette &palette);
+  //CQChartsGradientPalette &operator=(const CQChartsGradientPalette &palette);
 
   //---
 
-  CQChartsGradientPalette *dup() const { return new CQChartsGradientPalette(*this); }
+  CQChartsGradientPalette *dup() const;
+
+  void assign(const CQChartsGradientPalette &palette);
 
   //---
 
@@ -276,6 +295,8 @@ class CQChartsGradientPalette {
   void addDefinedColor(double v, const QColor &c);
 
   void resetDefinedColors();
+
+  void setDefinedColors(const DefinedColors &colors);
 
   // map/unmap defined x (in range 0.0->1.0) to/from min/max
   double mapDefinedColorX(double x) const;
@@ -394,6 +415,9 @@ class CQChartsGradientPalette {
   void initFunctions();
 
   CQTcl *qtcl() const;
+
+ signals:
+  void colorsChanged();
 
  protected:
   struct ColorFn {

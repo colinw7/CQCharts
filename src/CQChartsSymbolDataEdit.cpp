@@ -11,6 +11,7 @@
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
 #include <CQGroupBox.h>
+#include <CQUtil.h>
 
 #include <QLabel>
 #include <QVBoxLayout>
@@ -216,8 +217,7 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
 {
   setObjectName("symbolDataEdit");
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
@@ -234,14 +234,13 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
 
   //---
 
-  QGridLayout *groupLayout = new QGridLayout(groupBox_);
+  QGridLayout *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   if (! optional)
     layout->addLayout(groupLayout);
 
   // symbol
-  QLabel *symbolLabel = new QLabel("Symbol");
-  symbolLabel->setObjectName("symbolLabel");
+  QLabel *symbolLabel = CQUtil::makeLabelWidget<QLabel>("Symbol", "symbolLabel");
 
   symbolEdit_ = new CQChartsSymbolEdit;
 
@@ -249,8 +248,7 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
   groupLayout->addWidget(symbolEdit_, 0, 1);
 
   // size
-  QLabel *sizeLabel = new QLabel("Size");
-  sizeLabel->setObjectName("sizeLabel");
+  QLabel *sizeLabel = CQUtil::makeLabelWidget<QLabel>("Size", "sizeLabel");
 
   sizeEdit_ = new CQChartsLengthEdit;
 

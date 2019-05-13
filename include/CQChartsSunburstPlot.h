@@ -149,7 +149,7 @@ class CQChartsSunburstNode {
 
   bool pointInside(double x, double y);
 
-  virtual QColor interpColor(const CQChartsSunburstPlot *plot,
+  virtual QColor interpColor(const CQChartsSunburstPlot *plot, const CQChartsColor &c,
                              const ColorInd &colorInd, int n) const;
 
  protected:
@@ -238,7 +238,7 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
 
   void removeNode(CQChartsSunburstNode *node);
 
-  QColor interpColor(const CQChartsSunburstPlot *plot,
+  QColor interpColor(const CQChartsSunburstPlot *plot, const CQChartsColor &c,
                      const ColorInd &colorInd, int n) const override;
 
  private:

@@ -29,7 +29,8 @@ QString
 CQChartsSunburstPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Sunburst Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draw hierarchical data as segments of concentric circles.</p>\n";
 }
 
@@ -1020,7 +1021,7 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   QPen   pen;
   QBrush brush;
 
-  QColor fc = node->interpColor(this, colorInd, numColorIds());
+  QColor fc = node->interpColor(this, fillColor(), colorInd, numColorIds());
   QColor bc = interpBorderColor(colorInd);
 
   setPenBrush(pen, brush,
@@ -1029,7 +1030,7 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
 
   QPen tpen;
 
-  QColor tc = interpTextColor(ColorInd());
+  QColor tc = interpTextColor(colorInd);
 
   setPen(tpen, true, tc, textAlpha());
 
@@ -1378,20 +1379,21 @@ removeNode(CQChartsSunburstNode *node)
 
 QColor
 CQChartsSunburstHierNode::
-interpColor(const CQChartsSunburstPlot *plot, const ColorInd &colorInd, int n) const
+interpColor(const CQChartsSunburstPlot *plot, const CQChartsColor &c,
+            const ColorInd &colorInd, int n) const
 {
   using Colors = std::vector<QColor>;
 
   Colors colors;
 
   for (auto &child : children_)
-    colors.push_back(child->interpColor(plot, colorInd, n));
+    colors.push_back(child->interpColor(plot, c, colorInd, n));
 
   for (auto &node : nodes_)
-    colors.push_back(node->interpColor(plot, colorInd, n));
+    colors.push_back(node->interpColor(plot, c, colorInd, n));
 
   if (colors.empty())
-    return plot->interpPaletteColor(colorInd);
+    return plot->interpColor(c, colorInd);
 
   return CQChartsUtil::blendColors(colors);
 }
@@ -1465,14 +1467,15 @@ pointInside(double x, double y)
 
 QColor
 CQChartsSunburstNode::
-interpColor(const CQChartsSunburstPlot *plot, const ColorInd &colorInd, int n) const
+interpColor(const CQChartsSunburstPlot *plot, const CQChartsColor &c,
+            const ColorInd &colorInd, int n) const
 {
   if      (color().isValid())
     return plot->interpColor(color(), ColorInd());
   else if (colorId() >= 0 && plot_->isColorById())
     return plot->interpFillColor(ColorInd(colorId(), n));
   else
-    return plot->interpPaletteColor(colorInd);
+    return plot->interpColor(c, colorInd);
 }
 
 //------

@@ -1,4 +1,5 @@
 #include <CQChartsKeyLocation.h>
+#include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsKeyLocation, toString, fromString)
 
@@ -9,6 +10,8 @@ CQChartsKeyLocation::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsKeyLocation);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsKeyLocation", "key_location");
 }
 
 QString

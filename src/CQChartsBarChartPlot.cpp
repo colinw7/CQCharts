@@ -68,9 +68,10 @@ QString
 CQChartsBarChartPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Bar Chart Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draws bars with heights from a set of values.</p>\n"
-         "<h2>Columns</h2>\n"
+         "<h3>Columns</h3>\n"
          "<p>The bar heights are taken from the values in the <b>Value</b> column.</p>\n"
          "<p>An optional name can be supplied in the <b>Name</b> column to specify the label "
          "to use on the axis below the bar.</p>\n"
@@ -78,12 +79,12 @@ description() const
          "the <b>Label</b> column.</p>\n"
          "<p>The color of the bar can be customized using the <b>Color</b> column.</p>\n"
          "<p>A custom id can specified using the <b>Id</b> column.</p>\n"
-         "<h2>Grouping</h2>\n"
+         "<h3>Grouping</h3>\n"
          "<p>Bars can be grouped using standard grouping controls so that related values "
          "can be placed next to each other.</p>\n"
          "<p>Enabling the <b>Row Grouping</b> option groups bars by column header name "
          "instead of the normal <b>Group</b> columns.</p>\n"
-         "<h2>Options</h2>\n"
+         "<h3>Options</h3>\n"
          "<p>Selecting the <b>Stacked</b> Plot Type places grouped bars on top of each other "
          "instead of the <b>Normal</b> side by side placement.</p>\n"
          "<p>Selecting the <b>Range</b> Value Type draws a bar for the range (min/max) of "
@@ -161,20 +162,21 @@ addProperties()
   addProperty("options", this, "valueType", "valueType")->setDesc("Value type");
 
   addProperty("options", this, "percent"   )->setDesc("Use percentage value");
-  addProperty("options", this, "colorBySet")->setDesc("Color by value set");
 
   addProperty("dotLines",        this, "dotLines"     , "enabled")->
     setDesc("Draw bars as lines with dot");
-  addProperty("dotLines/line",   this, "dotLineWidth" , "width"  )->
+  addProperty("dotLines/stroke", this, "dotLineWidth" , "width"  )->
     setDesc("Dot line width");
   addProperty("dotLines/symbol", this, "dotSymbolType", "type"   )->
     setDesc("Dot line symbol type");
   addProperty("dotLines/symbol", this, "dotSymbolSize", "size"   )->
     setDesc("Dot line symbol size");
 
+  addProperty("color", this, "colorBySet")->setDesc("Color by value set");
+
   CQChartsGroupPlot::addProperties();
 
-  dataLabel_->addPathProperties("dataLabel");
+  dataLabel_->addPathProperties("labels", "Labels");
 }
 
 void
@@ -298,9 +300,7 @@ void
 CQChartsBarChartPlot::
 setColorBySet(bool b)
 {
-  CQChartsUtil::testAndSet(colorBySet_, b, [&]() {
-    resetSetHidden(); updateRangeAndObjs();
-  });
+  CQChartsUtil::testAndSet(colorBySet_, b, [&]() { resetSetHidden(); updateRangeAndObjs(); });
 }
 
 void
@@ -844,7 +844,6 @@ createObjs(PlotObjs &objs) const
   //---
 
   int ns = (isValueValue() ? this->valueColumns().count() : 1);
-
   int nv = numValueSets();
 
   //---
@@ -998,14 +997,22 @@ createObjs(PlotObjs &objs) const
         th->barWidth_ = std::min(th->barWidth_, brect.getHeight());
       }
 
-      CQChartsBarChartObj *barObj = nullptr;
+      CQChartsBarChartObj *barObj;
 
-      if (ns > 1)
+      if (ns > 1) {
+        // multiple sets:
+        //  . set per value column
+        //  . group per group column unique value
         barObj = new CQChartsBarChartObj(this, brect,
-          ColorInd(ivs, nvs), ColorInd(iv, nv), ColorInd(0, 1), minInd.ind);
-      else
+          ColorInd(ivs, nvs), ColorInd(iv, nv), ColorInd(), minInd.ind);
+      }
+      else {
+        // single set:
+        //  . group per group column unique value
+        //  . value per grouped values
         barObj = new CQChartsBarChartObj(this, brect,
-          ColorInd(0, 1), ColorInd(iv, nv), ColorInd(ivs, nvs), minInd.ind);
+          ColorInd(), ColorInd(iv, nv), ColorInd(ivs, nvs), minInd.ind);
+      }
 
       if (color.isValid())
         barObj->setColor(color);
@@ -1054,13 +1061,13 @@ initObjAxes()
   xAxis->clearTickLabels();
   yAxis->clearTickLabels();
 
-  xAxis->setIntegral           (true);
+  xAxis->setValueType          (CQChartsAxisValueType::Type::INTEGER);
   xAxis->setGridMid            (true);
 //xAxis->setMajorIncrement     (1);
   xAxis->setMinorTicksDisplayed(false);
 //xAxis->setDataLabels         (true);
 
-  yAxis->setIntegral           (false);
+  yAxis->setValueType          (CQChartsAxisValueType::Type::REAL);
   yAxis->setGridMid            (false);
 //yAxis->setMajorIncrement     (0);
   yAxis->setMinorTicksDisplayed(true);
@@ -1069,7 +1076,6 @@ initObjAxes()
   //---
 
   int ns = (isValueValue() ? this->valueColumns().count() : 1);
-
   int nv = numValueSets();
 
   //---
@@ -1131,6 +1137,15 @@ initObjAxes()
 
 QString
 CQChartsBarChartPlot::
+valueName() const
+{
+  CQChartsAxis *yAxis = (! isHorizontal() ? this->yAxis() : this->xAxis());
+
+  return yAxis->label();
+}
+
+QString
+CQChartsBarChartPlot::
 valueStr(double v) const
 {
   CQChartsAxis *yAxis = (! isHorizontal() ? this->yAxis() : this->xAxis());
@@ -1143,29 +1158,37 @@ CQChartsBarChartPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
   int row = key->maxRow();
+  int col = key->maxCol();
 
   auto addKeyRow = [&](const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                        const QString &name, const QColor &c=QColor()) {
     CQChartsBarKeyColor *keyColor = new CQChartsBarKeyColor(this, is, ig, iv);
     CQChartsBarKeyText  *keyText  = new CQChartsBarKeyText (this, name, iv);
 
-    key->addItem(keyColor, row, 0);
-    key->addItem(keyText , row, 1);
-
     if (c.isValid())
       keyColor->setColor(c);
 
-    ++row;
+    if (! key->isHorizontal()) {
+      key->addItem(keyColor, row, 0);
+      key->addItem(keyText , row, 1);
+
+      ++row;
+    }
+    else {
+      key->addItem(keyColor, 0, col++);
+      key->addItem(keyText , 0, col++);
+    }
   };
 
   //---
 
   int ns = (isValueValue() ? this->valueColumns().count() : 1);
+  int nv = numValueSets();
 
   if (ns > 1) {
+    // ivs is 'value set' index (group)
+    // iv is 'value set' value index
     if (isColorBySet()) {
-      int nv = numValueSets();
-
       for (int iv = 0; iv < nv; ++iv) {
         const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
 
@@ -1185,30 +1208,33 @@ addKeyItems(CQChartsPlotKey *key)
     }
   }
   else {
-    int nv = numValueSets();
-
     if      (nv > 1) {
-      for (int iv = 0; iv < nv; ++iv) {
-        const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
+      if (isColorBySet()) {
+        addKeyRow(ColorInd(), ColorInd(), ColorInd(), valueName());
+      }
+      else {
+        for (int iv = 0; iv < nv; ++iv) {
+          const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
 
-        QColor c;
+          QColor c;
 
-        if (valueSet.numValues() == 1) {
-          const CQChartsBarChartValue &ivalue = valueSet.value(0);
+          if (valueSet.numValues() == 1) {
+            const CQChartsBarChartValue &ivalue = valueSet.value(0);
 
-          const CQChartsBarChartValue::ValueInds &valueInds = ivalue.valueInds();
-          assert(! valueInds.empty());
+            const CQChartsBarChartValue::ValueInds &valueInds = ivalue.valueInds();
+            assert(! valueInds.empty());
 
-          const CQChartsBarChartValue::ValueInd &ind0 = valueInds[0];
+            const CQChartsBarChartValue::ValueInd &ind0 = valueInds[0];
 
-          QModelIndex   parent; // TODO
-          CQChartsColor color;
+            QModelIndex   parent; // TODO
+            CQChartsColor color;
 
-          if (columnColor(ind0.vrow, parent, color))
-            c = interpColor(color, ColorInd());
+            if (columnColor(ind0.vrow, parent, color))
+              c = interpColor(color, ColorInd());
+          }
+
+          addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), valueSet.name(), c);
         }
-
-        addKeyRow(ColorInd(), ColorInd(iv, nv), ColorInd(), valueSet.name(), c);
       }
     }
     else if (nv == 1) {
@@ -1238,8 +1264,6 @@ addKeyItems(CQChartsPlotKey *key)
 
 #if 0
     if (isGroupHeaders()) {
-      int nv = numValueSets();
-
       for (int iv = 0; iv < nv; ++iv) {
         const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
 
@@ -1289,7 +1313,6 @@ CQChartsBarChartPlot::
 isSetHidden(int i) const
 {
   int ns = (isValueValue() ? this->valueColumns().count() : 1);
-
   int nv = numValueSets();
 
   if      (ns > 1) {
@@ -1325,7 +1348,6 @@ CQChartsBarChartPlot::
 isValueHidden(int i) const
 {
   int ns = (isValueValue() ? this->valueColumns().count() : 1);
-
   int nv = numValueSets();
 
   if      (ns > 1) {
@@ -1653,41 +1675,9 @@ draw(QPainter *painter)
   //---
 
   // calc bar color
-  QColor barColor;
+  ColorInd colorInd = calcColorInd();
 
-  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    if (is_.n > 1) {
-      if (plot_->isColorBySet())
-        barColor = plot_->interpBarFillColor(ig_);
-      else
-        barColor = plot_->interpBarFillColor(is_);
-    }
-    else {
-      if (! color_.isValid()) {
-        if      (ig_.n > 1)
-          barColor = plot_->interpBarFillColor(ig_);
-        else if (iv_.n > 1)
-          barColor = plot_->interpBarFillColor(iv_);
-        else {
-          ColorInd ig1(ig_.i    , ig_.n + 1);
-          ColorInd ig2(ig_.i + 1, ig_.n + 1);
-
-          QColor barColor1 = plot_->interpBarFillColor(ig1);
-          QColor barColor2 = plot_->interpBarFillColor(ig2);
-
-          barColor = CQChartsUtil::blendColors(barColor1, barColor2, iv_.value());
-        }
-      }
-      else {
-        barColor = plot_->interpColor(color_, ColorInd());
-      }
-    }
-  }
-  else {
-    ColorInd colorInd = calcColorInd();
-
-    barColor = plot_->interpBarFillColor(colorInd);
-  }
+  QColor barColor = calcBarColor();
 
   //---
 
@@ -1695,7 +1685,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush barBrush;
 
-  QColor bc = plot_->interpBarBorderColor(ColorInd());
+  QColor bc = plot_->interpBarBorderColor(colorInd);
 
   plot_->setPenBrush(pen, barBrush,
     plot_->isBarBorder() && ! skipBorder,
@@ -1775,6 +1765,52 @@ draw(QPainter *painter)
 
     plot_->drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy), pen, barBrush);
   }
+}
+
+QColor
+CQChartsBarChartObj::
+calcBarColor() const
+{
+  // calc bar color
+  ColorInd colorInd = calcColorInd();
+
+  QColor barColor;
+
+  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    int ns = (plot_->isValueValue() ? plot_->valueColumns().count() : 1);
+
+    if (ns > 1) {
+      if (plot_->isColorBySet())
+        barColor = plot_->interpBarFillColor(ig_);
+      else
+        barColor = plot_->interpBarFillColor(is_);
+    }
+    else {
+      if (! color_.isValid()) {
+        if      (ig_.n > 1)
+          barColor = plot_->interpBarFillColor(ig_);
+        else if (iv_.n > 1)
+          barColor = plot_->interpBarFillColor(iv_);
+        else {
+          ColorInd ig1(ig_.i    , ig_.n + 1);
+          ColorInd ig2(ig_.i + 1, ig_.n + 1);
+
+          QColor barColor1 = plot_->interpBarFillColor(ig1);
+          QColor barColor2 = plot_->interpBarFillColor(ig2);
+
+          barColor = CQChartsUtil::blendColors(barColor1, barColor2, iv_.value());
+        }
+      }
+      else {
+        barColor = plot_->interpColor(color_, colorInd);
+      }
+    }
+  }
+  else {
+    barColor = plot_->interpBarFillColor(colorInd);
+  }
+
+  return barColor;
 }
 
 void
@@ -1882,25 +1918,51 @@ QBrush
 CQChartsBarKeyColor::
 fillBrush() const
 {
-  QColor c;
+  // calc bar color
+  ColorInd colorInd = calcColorInd();
 
-  if (color_.isValid())
-    c = plot_->interpColor(color_, ColorInd());
+  QColor barColor;
+
+  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    int ns = (plot_->isValueValue() ? plot_->valueColumns().count() : 1);
+
+    if (ns > 1) {
+      if (plot_->isColorBySet())
+        barColor = plot_->interpBarFillColor(ig_);
+      else
+        barColor = plot_->interpBarFillColor(is_);
+    }
+    else {
+      if (! color_.isValid()) {
+        if      (ig_.n > 1)
+          barColor = plot_->interpBarFillColor(ig_);
+        else if (iv_.n > 1)
+          barColor = plot_->interpBarFillColor(iv_);
+        else {
+          ColorInd ig1(ig_.i    , ig_.n + 1);
+          ColorInd ig2(ig_.i + 1, ig_.n + 1);
+
+          QColor barColor1 = plot_->interpBarFillColor(ig1);
+          QColor barColor2 = plot_->interpBarFillColor(ig2);
+
+          barColor = CQChartsUtil::blendColors(barColor1, barColor2, iv_.value());
+        }
+      }
+      else {
+        barColor = plot_->interpColor(color_, colorInd);
+      }
+    }
+  }
   else {
-    ColorInd colorInd;
-
-    if (plot_->colorType() == CQChartsPlot::ColorType::AUTO)
-      colorInd = iv_;
-    else
-      colorInd = calcColorInd();
-
-    c = plot_->interpBarFillColor(colorInd);
+    barColor = plot_->interpBarFillColor(colorInd);
   }
 
-  if (isSetHidden())
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
+  //---
 
-  return c;
+  if (isSetHidden())
+    barColor = CQChartsUtil::blendColors(barColor, key_->interpBgColor(), key_->hiddenAlpha());
+
+  return barColor;
 }
 
 bool
@@ -1913,6 +1975,7 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
   double value  = 0.0;
 
   int ns = (plot_->isValueValue() ? plot_->valueColumns().count() : 1);
+  int nv = plot_->numValueSets();
 
   if (ns > 1) {
     if (plot_->isColorBySet()) {
@@ -1924,8 +1987,6 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
     }
     else {
       count = plot_->numSetValues();
-
-      int nv = plot_->numValueSets();
 
       for (int i = 0; i < nv; ++i) {
         const CQChartsBarChartValueSet &valueSet = plot_->valueSet(i);
@@ -1943,8 +2004,6 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
     }
   }
   else {
-    int nv = plot_->numValueSets();
-
     if      (nv > 1) {
       const CQChartsBarChartValueSet &valueSet = plot_->valueSet(iv_.i);
 

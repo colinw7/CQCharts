@@ -1,5 +1,6 @@
 #include <CQChartsLength.h>
 #include <CQChartsUtil.h>
+#include <CQPropertyView.h>
 #include <CQStrParse.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsLength, toString, fromString)
@@ -11,6 +12,8 @@ CQChartsLength::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsLength);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsLength", "length");
 }
 
 bool

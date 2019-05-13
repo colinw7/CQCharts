@@ -125,6 +125,8 @@ class CQChartsFillDataPropertyViewType : public CQChartsPropertyViewType {
                    CQChartsPlot *plot, CQChartsView *view) override;
 
   QString tip(const QVariant &value) const override;
+
+  QString userName() const override { return "fill_data"; }
 };
 
 //---

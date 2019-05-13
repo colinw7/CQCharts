@@ -18,8 +18,7 @@ CQChartsFilterEdit(QWidget *parent) :
 {
   setObjectName("filterEdit");
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   edit_ = new CQChartsFilterEditEdit;
 
@@ -40,12 +39,9 @@ CQChartsFilterEdit(QWidget *parent) :
 
   layout->addWidget(combo_);
 
-  QFrame *opFrame = new QFrame;
+  QFrame *opFrame = CQUtil::makeWidget<QFrame>("opFrame");
 
-  opFrame->setObjectName("opFrame");
-
-  QHBoxLayout *opLayout = new QHBoxLayout(opFrame);
-  opLayout->setMargin(0); opLayout->setSpacing(2);
+  QHBoxLayout *opLayout = CQUtil::makeLayout<QHBoxLayout>(opFrame, 0, 2);
 
   addReplaceSwitch_ = new CQSwitch("Replace", "Add");
 

@@ -1,5 +1,8 @@
 High
- + replace related bools with enums (axis real/integer/date/log)
+ + Summarize properties using box,shape,fill,stroke abstractions
+ + Hide pattern
+ + Adjacency Plot bad draw on resize (not all layers drawn)
+ + hasSet for plot type
  + Distinct part of color def not palette
  + Remove draw Simple Text calls
  + Support View Key Header (or remove)

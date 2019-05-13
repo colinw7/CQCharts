@@ -1,6 +1,7 @@
 #include <CQChartsStyle.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
+#include <CQPropertyView.h>
 
 #include <CQStrParse.h>
 
@@ -13,6 +14,8 @@ CQChartsStyle::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsStyle);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsStyle", "style");
 }
 
 QString

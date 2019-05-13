@@ -115,7 +115,8 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
  public:
   CQChartsAdjacencyObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
-                       CQChartsAdjacencyNode *node2, double value, const CQChartsGeom::BBox &rect);
+                       CQChartsAdjacencyNode *node2, double value, const CQChartsGeom::BBox &rect,
+                       const ColorInd &ig);
 
   QString typeName() const override { return "cell"; }
 
@@ -253,10 +254,9 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   //---
 
   double maxValue() const { return nodeData_.maxValue; }
-
-  int maxGroup() const { return nodeData_.maxGroup; }
-
-  int maxLen() const { return nodeData_.maxLen; }
+  int    maxGroup() const { return nodeData_.maxGroup; }
+  int    maxNode () const { return nodeData_.maxNode ; }
+  int    maxLen  () const { return nodeData_.maxLen  ; }
 
   double scale() const { return nodeData_.scale; }
 
@@ -330,6 +330,7 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   struct NodeData {
     double maxValue   { 0 };   //!< max node value
     int    maxGroup   { 0 };   //!< max node group
+    int    maxNode    { 0 };   //!< max node ind
     int    maxLen     { 0 };   //!< max text length
     double scale      { 1.0 }; //!< box size
     double drawFactor { 1.0 }; //!< saved font factor

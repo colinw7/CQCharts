@@ -36,6 +36,7 @@ class CQChartsObjLineData {
       lineData_.setColor(c); lineDataInvalidate(); }
   }
 
+#if 0
   QColor interpLinesColor(int i, int n) const {
     return CQChartsInterpolator(lineDataObj_).interpColor(linesColor(), i, n);
   }
@@ -43,12 +44,10 @@ class CQChartsObjLineData {
   QColor interpLinesColor(double r) const {
     return CQChartsInterpolator(lineDataObj_).interpColor(linesColor(), r);
   }
+#endif
 
   QColor interpLinesColor(const CQChartsUtil::ColorInd &ind) const {
-    if (ind.isInt)
-      return interpLinesColor(ind.i, ind.n);
-    else
-      return interpLinesColor(ind.r);
+    return CQChartsInterpolator(lineDataObj_).interpColor(linesColor(), ind);
   }
 
   double linesAlpha() const { return lineData_.alpha(); }
@@ -60,7 +59,7 @@ class CQChartsObjLineData {
   const CQChartsLength &linesWidth() const { return lineData_.width(); }
   void setLinesWidth(const CQChartsLength &l) {
     if (l != lineData_.width()) {
-      lineData_.setWidth(l); lineDataInvalidate(); }
+      lineData_.setWidth(l); lineDataInvalidate(/*reload*/true); }
    }
 
   const CQChartsLineDash &linesDash() const { return lineData_.dash(); }
@@ -69,6 +68,7 @@ class CQChartsObjLineData {
       lineData_.setDash(d); lineDataInvalidate(); }
   }
 
+#if 0
   void setLineDataPen(QPen &pen, int i, int n) const {
     QColor lc = interpLinesColor(i, n);
 
@@ -80,12 +80,12 @@ class CQChartsObjLineData {
 
     lineDataObj_->setPen(pen, isLines(), lc, linesAlpha(), linesWidth(), linesDash());
   }
+#endif
 
   void setLineDataPen(QPen &pen, const CQChartsUtil::ColorInd &ind) const {
-    if (ind.isInt)
-      setLineDataPen(pen, ind.i, ind.n);
-    else
-      setLineDataPen(pen, ind.r);
+    QColor lc = interpLinesColor(ind);
+
+    lineDataObj_->setPen(pen, isLines(), lc, linesAlpha(), linesWidth(), linesDash());
   }
 
   //---
@@ -93,7 +93,7 @@ class CQChartsObjLineData {
   const CQChartsLineData &lineData() const { return lineData_; }
 
   void setLineData(const CQChartsLineData &data) {
-    lineData_ = data; lineDataInvalidate();
+    lineData_ = data; lineDataInvalidate(/*reload*/true);
   };
 
  private:
@@ -151,10 +151,7 @@ class CQChartsObj##UNAME##LineData { \
   } \
 \
   QColor interp##UNAME##LinesColor(const CQChartsUtil::ColorInd &ind) const { \
-    if (ind.isInt) \
-      return interp##UNAME##LinesColor(ind.i, ind.n); \
-    else \
-      return interp##UNAME##LinesColor(ind.r); \
+    return CQChartsInterpolator(LNAME##LineDataObj_).interpColor(LNAME##LinesColor(), ind); \
   } \
 \
   double LNAME##LinesAlpha() const { return LNAME##LineData_.alpha(); } \
@@ -190,10 +187,10 @@ class CQChartsObj##UNAME##LineData { \
   } \
 \
   void set##UNAME##LineDataPen(QPen &pen, const CQChartsUtil::ColorInd &ind) const { \
-    if (ind.isInt) \
-      set##UNAME##LineDataPen(pen, ind.i, ind.n); \
-    else \
-      set##UNAME##LineDataPen(pen, ind.r); \
+    QColor lc = interp##UNAME##LinesColor(ind); \
+\
+    LNAME##LineDataObj_->setPen(pen, is##UNAME##Lines(), lc, LNAME##LinesAlpha(), \
+                                LNAME##LinesWidth(), LNAME##LinesDash()); \
   } \
 \
   const CQChartsLineData &LNAME##LineData() const { return LNAME##LineData_; } \
@@ -284,6 +281,7 @@ class CQChartsObjPointData {
       pointData_.stroke().setColor(c); pointDataInvalidate(); }
   }
 
+#if 0
   QColor interpSymbolStrokeColor(int i, int n) const {
     return CQChartsInterpolator(pointDataObj_).interpColor(symbolStrokeColor(), i, n);
   }
@@ -291,12 +289,10 @@ class CQChartsObjPointData {
   QColor interpSymbolStrokeColor(double r) const {
     return CQChartsInterpolator(pointDataObj_).interpColor(symbolStrokeColor(), r);
   }
+#endif
 
   QColor interpSymbolStrokeColor(const CQChartsUtil::ColorInd &ind) const {
-    if (ind.isInt)
-      return interpSymbolStrokeColor(ind.i, ind.n);
-    else
-      return interpSymbolStrokeColor(ind.r);
+    return CQChartsInterpolator(pointDataObj_).interpColor(symbolStrokeColor(), ind);
   }
 
   double symbolStrokeAlpha() const { return pointData_.stroke().alpha(); }
@@ -329,6 +325,7 @@ class CQChartsObjPointData {
       pointData_.fill().setColor(c); pointDataInvalidate(); }
   }
 
+#if 0
   QColor interpSymbolFillColor(int i, int n) const {
     return CQChartsInterpolator(pointDataObj_).interpColor(symbolFillColor(), i, n);
   }
@@ -336,12 +333,10 @@ class CQChartsObjPointData {
   QColor interpSymbolFillColor(double r) const {
     return CQChartsInterpolator(pointDataObj_).interpColor(symbolFillColor(), r);
   }
+#endif
 
   QColor interpSymbolFillColor(const CQChartsUtil::ColorInd &ind) const {
-    if (ind.isInt)
-      return interpSymbolFillColor(ind.i, ind.n);
-    else
-      return interpSymbolFillColor(ind.r);
+    return CQChartsInterpolator(pointDataObj_).interpColor(symbolFillColor(), ind);
   }
 
   double symbolFillAlpha() const { return pointData_.fill().alpha(); }
@@ -358,6 +353,7 @@ class CQChartsObjPointData {
 
   //---
 
+#if 0
   void setSymbolPenBrush(QPen &pen, QBrush &brush, int i, int n) const {
     pointDataObj_->setPenBrush(pen, brush,
       isSymbolStroked(), interpSymbolStrokeColor(i, n), symbolStrokeAlpha(),
@@ -371,12 +367,13 @@ class CQChartsObjPointData {
       symbolStrokeWidth(), symbolStrokeDash(),
       isSymbolFilled(), interpSymbolFillColor(r), symbolFillAlpha(), symbolFillPattern());
   }
+#endif
 
-  void setSymbolPenBrush(QPen &pen, QBrush &brush, CQChartsUtil::ColorInd &ind) const {
-    if (ind.isInt)
-      setSymbolPenBrush(pen, brush, ind.i, ind.n);
-    else
-      setSymbolPenBrush(pen, brush, ind.r);
+  void setSymbolPenBrush(QPen &pen, QBrush &brush, const CQChartsUtil::ColorInd &ind) const {
+    pointDataObj_->setPenBrush(pen, brush,
+      isSymbolStroked(), interpSymbolStrokeColor(ind), symbolStrokeAlpha(),
+      symbolStrokeWidth(), symbolStrokeDash(),
+      isSymbolFilled(), interpSymbolFillColor(ind), symbolFillAlpha(), symbolFillPattern());
   }
 
   //---
@@ -483,10 +480,8 @@ class CQChartsObj##UNAME##PointData { \
   } \
 \
   QColor interp##UNAME##SymbolStrokeColor(const CQChartsUtil::ColorInd &ind) const { \
-    if (ind.isInt) \
-      return interp##UNAME##SymbolStrokeColor(ind.i, ind.n); \
-    else \
-      return interp##UNAME##SymbolStrokeColor(ind.r); \
+    return CQChartsInterpolator(LNAME##PointDataObj_). \
+      interpColor(LNAME##SymbolStrokeColor(), ind); \
   } \
 \
   double LNAME##SymbolStrokeAlpha() const { return LNAME##PointData_.stroke().alpha(); } \
@@ -529,6 +524,10 @@ class CQChartsObj##UNAME##PointData { \
     return CQChartsInterpolator(LNAME##PointDataObj_).interpColor(LNAME##SymbolFillColor(), r); \
   } \
 \
+  QColor interp##UNAME##SymbolFillColor(const CQChartsUtil::ColorInd &ind) const { \
+    return CQChartsInterpolator(LNAME##PointDataObj_).interpColor(LNAME##SymbolFillColor(), ind); \
+  } \
+\
   double LNAME##SymbolFillAlpha() const { return LNAME##PointData_.fill().alpha(); } \
   void set##UNAME##SymbolFillAlpha(double a) { \
     if (a != LNAME##PointData_.fill().alpha()) { \
@@ -558,11 +557,13 @@ class CQChartsObj##UNAME##PointData { \
       LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern()); \
   } \
 \
-  void set##UNAME##SymbolPenBrush(QPen &pen, QBrush &brush, CQChartsUtil::ColorInd &ind) const { \
-    if (ind.isInt) \
-      set##UNAME##SymbolPenBrush(pen, brush, ind.i, ind.n); \
-    else \
-      set##UNAME##SymbolPenBrush(pen, brush, ind.r); \
+  void set##UNAME##SymbolPenBrush(QPen &pen, QBrush &brush, \
+                                  const CQChartsUtil::ColorInd &ind) const { \
+    LNAME##PointDataObj_->setPenBrush(pen, brush, \
+      is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(ind), \
+      LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), LNAME##SymbolStrokeDash(), \
+      is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(ind), \
+      LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern()); \
   } \
 \
   const CQChartsSymbolData &LNAME##SymbolData() const { return LNAME##PointData_; } \
@@ -629,10 +630,7 @@ class CQChartsObj##UNAME##FillData { \
   } \
 \
   QColor interp##UNAME##FillColor(const CQChartsUtil::ColorInd &ind) const { \
-    if (ind.isInt) \
-      return interp##UNAME##FillColor(ind.i, ind.n); \
-    else \
-      return interp##UNAME##FillColor(ind.r); \
+    return CQChartsInterpolator(LNAME##FillDataObj_).interpColor(LNAME##FillColor(), ind); \
   } \
 \
   double LNAME##FillAlpha() const { return LNAME##FillData_.alpha(); } \
@@ -709,6 +707,7 @@ class CQChartsObjTextData {
       textData_.setAlpha(a); textDataInvalidate(); }
   }
 
+#if 0
   QColor interpTextColor(int i, int n) const {
     return CQChartsInterpolator(textDataObj_).interpColor(textColor(), i, n);
   }
@@ -716,12 +715,10 @@ class CQChartsObjTextData {
   QColor interpTextColor(double r) const {
     return CQChartsInterpolator(textDataObj_).interpColor(textColor(), r);
   }
+#endif
 
   QColor interpTextColor(const CQChartsUtil::ColorInd &ind) const {
-    if (ind.isInt)
-      return interpTextColor(ind.i, ind.n);
-    else
-      return interpTextColor(ind.r);
+    return CQChartsInterpolator(textDataObj_).interpColor(textColor(), ind);
   }
 
   const CQChartsFont &textFont() const { return textData_.font(); }
@@ -850,10 +847,7 @@ class CQChartsObj##UNAME##TextData { \
   } \
 \
   QColor interp##UNAME##TextColor(const CQChartsUtil::ColorInd &ind) const { \
-    if (ind.isInt) \
-      return interp##UNAME##TextColor(ind.i, ind.n); \
-    else \
-      return interp##UNAME##TextColor(ind.r); \
+    return CQChartsInterpolator(LNAME##TextDataObj_).interpColor(LNAME##TextColor(), ind); \
   } \
 \
   const CQChartsFont &LNAME##TextFont() const { return LNAME##TextData_.font(); } \
@@ -976,6 +970,7 @@ class CQChartsObjStrokeData {
       strokeData_.setCornerSize(l); strokeDataInvalidate(); }
   }
 
+#if 0
   QColor interpBorderColor(int i, int n) const {
     if (strokeDataObj_)
       return CQChartsInterpolator(strokeDataObj_).interpColor(borderColor(), i, n);
@@ -989,12 +984,13 @@ class CQChartsObjStrokeData {
     else
       return borderColor().color();
   }
+#endif
 
   QColor interpBorderColor(const CQChartsUtil::ColorInd &ind) const {
-    if (ind.isInt)
-      return interpBorderColor(ind.i, ind.n);
+    if (strokeDataObj_)
+      return CQChartsInterpolator(strokeDataObj_).interpColor(borderColor(), ind);
     else
-      return interpBorderColor(ind.r);
+      return borderColor().color();
   }
 
   //---
@@ -1084,6 +1080,7 @@ class CQChartsObjShapeData {
       shapeData_.border().setCornerSize(l); shapeDataInvalidate(); }
   }
 
+#if 0
   QColor interpBorderColor(int i, int n) const {
     if (shapeDataObj_)
       return CQChartsInterpolator(shapeDataObj_).interpColor(borderColor(), i, n);
@@ -1097,12 +1094,13 @@ class CQChartsObjShapeData {
     else
       return borderColor().color();
   }
+#endif
 
   QColor interpBorderColor(const CQChartsUtil::ColorInd &ind) const {
-    if (ind.isInt)
-      return interpBorderColor(ind.i, ind.n);
+    if (shapeDataObj_)
+      return CQChartsInterpolator(shapeDataObj_).interpColor(borderColor(), ind);
     else
-      return interpBorderColor(ind.r);
+      return borderColor().color();
   }
 
   //---
@@ -1131,6 +1129,7 @@ class CQChartsObjShapeData {
       shapeData_.background().setPattern(p); shapeDataInvalidate(); }
   }
 
+#if 0
   QColor interpFillColor(int i, int n) const {
     if (shapeDataObj_)
       return CQChartsInterpolator(shapeDataObj_).interpColor(fillColor(), i, n);
@@ -1144,12 +1143,13 @@ class CQChartsObjShapeData {
     else
       return fillColor().color();
   }
+#endif
 
   QColor interpFillColor(const CQChartsUtil::ColorInd &ind) const {
-    if (ind.isInt)
-      return interpFillColor(ind.i, ind.n);
+    if (shapeDataObj_)
+      return CQChartsInterpolator(shapeDataObj_).interpColor(fillColor(), ind);
     else
-      return interpFillColor(ind.r);
+      return fillColor().color();
   }
 
   //---
@@ -1257,10 +1257,7 @@ class CQChartsObj##UNAME##ShapeData { \
   } \
 \
   QColor interp##UNAME##BorderColor(const CQChartsUtil::ColorInd &ind) const { \
-    if (ind.isInt) \
-      return interp##UNAME##BorderColor(ind.i, ind.n); \
-    else \
-      return interp##UNAME##BorderColor(ind.r); \
+    return CQChartsInterpolator(LNAME##ShapeDataObj_).interpColor(LNAME##BorderColor(), ind); \
   } \
 \
   bool is##UNAME##Filled() const { return LNAME##ShapeData_.background().isVisible(); } \
@@ -1297,10 +1294,7 @@ class CQChartsObj##UNAME##ShapeData { \
   } \
 \
   QColor interp##UNAME##FillColor(const CQChartsUtil::ColorInd &ind) const { \
-    if (ind.isInt) \
-      return interp##UNAME##FillColor(ind.i, ind.n); \
-    else \
-      return interp##UNAME##FillColor(ind.r); \
+    return CQChartsInterpolator(LNAME##ShapeDataObj_).interpColor(LNAME##FillColor(), ind); \
   } \
 \
   const CQChartsShapeData &LNAME##ShapeData() const { return LNAME##ShapeData_; } \
@@ -1408,6 +1402,7 @@ class CQChartsObjBoxData {
       boxData_.shape().border().setCornerSize(l); boxDataInvalidate(); }
   }
 
+#if 0
   QColor interpBorderColor(int i, int n) const {
     if (boxDataObj_)
       return CQChartsInterpolator(boxDataObj_).interpColor(borderColor(), i, n);
@@ -1421,12 +1416,13 @@ class CQChartsObjBoxData {
     else
       return borderColor().color();
   }
+#endif
 
   QColor interpBorderColor(const CQChartsUtil::ColorInd &ind) const {
-    if (ind.isInt)
-      return interpBorderColor(ind.i, ind.n);
+    if (boxDataObj_)
+      return CQChartsInterpolator(boxDataObj_).interpColor(borderColor(), ind);
     else
-      return interpBorderColor(ind.r);
+      return borderColor().color();
   }
 
   //---
@@ -1455,6 +1451,7 @@ class CQChartsObjBoxData {
       boxData_.shape().background().setPattern(p); boxDataInvalidate(); }
   }
 
+#if 0
   QColor interpFillColor(int i, int n) const {
     if (boxDataObj_)
       return CQChartsInterpolator(boxDataObj_).interpColor(fillColor(), i, n);
@@ -1468,12 +1465,13 @@ class CQChartsObjBoxData {
     else
       return fillColor().color();
   }
+#endif
 
   QColor interpFillColor(const CQChartsUtil::ColorInd &ind) const {
-    if (ind.isInt)
-      return interpFillColor(ind.i, ind.n);
+    if (boxDataObj_)
+      return CQChartsInterpolator(boxDataObj_).interpColor(fillColor(), ind);
     else
-      return interpFillColor(ind.r);
+      return fillColor().color();
   }
 
   //---

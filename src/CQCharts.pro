@@ -169,6 +169,7 @@ CQChartsAxisSide.cpp \
 CQChartsAxisSideEdit.cpp \
 CQChartsAxisTickLabelPlacement.cpp \
 CQChartsAxisTickLabelPlacementEdit.cpp \
+CQChartsAxisValueType.cpp \
 CQChartsKeyLocation.cpp \
 CQChartsKeyLocationEdit.cpp \
 CQChartsKeyPressBehavior.cpp \
@@ -343,6 +344,7 @@ HEADERS += \
 ../include/CQChartsAxisSideEdit.h \
 ../include/CQChartsAxisTickLabelPlacement.h \
 ../include/CQChartsAxisTickLabelPlacementEdit.h \
+../include/CQChartsAxisValueType.h \
 ../include/CQChartsKeyLocation.h \
 ../include/CQChartsKeyLocationEdit.h \
 ../include/CQChartsKeyPressBehavior.h \

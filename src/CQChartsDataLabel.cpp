@@ -18,24 +18,34 @@ CQChartsDataLabel(CQChartsPlot *plot) :
 
 void
 CQChartsDataLabel::
-addPathProperties(const QString &path)
+addPathProperties(const QString &path, const QString &desc)
 {
-  plot_->addProperty(path, this, "visible" )->setDesc("Data label is visible");
-  plot_->addProperty(path, this, "position")->setDesc("Data label position");
-  plot_->addProperty(path, this, "clip"    )->setDesc("Data label is clipped");
+  QString desc1 = (desc.length() ? desc : "Data label");
+
+  plot_->addProperty(path, this, "visible" )->setDesc(desc + " is visible");
+  plot_->addProperty(path, this, "position")->setDesc(desc + " position");
+  plot_->addProperty(path, this, "clip"    )->setDesc(desc + " is clipped");
 
   QString textPath = path + "/text";
 
-  plot_->addProperty(textPath, this, "textColor"   , "color"   )->setDesc("Text color");
-  plot_->addProperty(textPath, this, "textAlpha"   , "alpha"   )->setDesc("Text alpha");
-  plot_->addProperty(textPath, this, "textFont"    , "font"    )->setDesc("Text font");
-  plot_->addProperty(textPath, this, "textAngle"   , "angle"   )->setDesc("Text angle");
-  plot_->addProperty(textPath, this, "textContrast", "contrast")->setDesc("Text is contrast");
-  plot_->addProperty(textPath, this, "textHtml"    , "html"    )->setDesc("Text is HTML");
+  QString textDesc = (desc.length() ? desc + " text" : "Text");
+
+  plot_->addProperty(textPath, this, "textColor"   , "color"   )->
+    setDesc(textDesc + " color");
+  plot_->addProperty(textPath, this, "textAlpha"   , "alpha"   )->
+    setDesc(textDesc + " alpha");
+  plot_->addProperty(textPath, this, "textFont"    , "font"    )->
+    setDesc(textDesc + " font");
+  plot_->addProperty(textPath, this, "textAngle"   , "angle"   )->
+    setDesc(textDesc + " angle");
+  plot_->addProperty(textPath, this, "textContrast", "contrast")->
+    setDesc(textDesc + " is contrast");
+  plot_->addProperty(textPath, this, "textHtml"    , "html"    )->
+    setDesc(textDesc + " is HTML");
 
   QString boxPath = path + "/box";
 
-  CQChartsBoxObj::addProperties(plot_->propertyModel(), boxPath);
+  CQChartsBoxObj::addProperties(plot_->propertyModel(), boxPath, desc);
 }
 
 void

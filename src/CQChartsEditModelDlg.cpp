@@ -42,20 +42,17 @@ CQChartsEditModelDlg(CQCharts *charts, CQChartsModelData *modelData) :
   //---
 
   // Bottom Buttons
-  QHBoxLayout *buttonLayout = new QHBoxLayout;
+  QHBoxLayout *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
-  QPushButton *writeButton = new QPushButton("Write");
-  writeButton->setObjectName("write");
+  QPushButton *writeButton = CQUtil::makeLabelWidget<QPushButton>("Write", "write");
 
   connect(writeButton, SIGNAL(clicked()), this, SLOT(writeSlot()));
 
-  QPushButton *plotButton = new QPushButton("Plot");
-  plotButton->setObjectName("plot");
+  QPushButton *plotButton = CQUtil::makeLabelWidget<QPushButton>("Plot", "plot");
 
   connect(plotButton, SIGNAL(clicked()), this, SLOT(plotSlot()));
 
-  QPushButton *doneButton = new QPushButton("Done");
-  doneButton->setObjectName("done");
+  QPushButton *doneButton = CQUtil::makeLabelWidget<QPushButton>("Done", "done");
 
   connect(doneButton, SIGNAL(clicked()), this, SLOT(cancelSlot()));
 

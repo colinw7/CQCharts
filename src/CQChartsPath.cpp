@@ -1,4 +1,5 @@
 #include <CQChartsPath.h>
+#include <CQPropertyView.h>
 #include <CQStrParse.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsPath, toString, fromString)
@@ -10,6 +11,8 @@ CQChartsPath::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsPath);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsPath", "path");
 }
 
 QString

@@ -107,7 +107,7 @@ class CQChartsColumnsEdit : public CQChartsEditBase {
 
 #include <CQPropertyViewType.h>
 
-//! \brief type for CQChartsColumn
+//! \brief type for CQChartsColumns
 class CQChartsColumnsPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsColumnsPropertyViewType();
@@ -121,6 +121,8 @@ class CQChartsColumnsPropertyViewType : public CQPropertyViewType {
             const QVariant &value, bool inside) override;
 
   QString tip(const QVariant &value) const override;
+
+  QString userName() const override { return "column_list"; }
 };
 
 //---

@@ -2,6 +2,7 @@
 #include <CQChartsModelList.h>
 #include <CQChartsModelControl.h>
 #include <CQCharts.h>
+#include <CQUtil.h>
 
 #include <QVBoxLayout>
 
@@ -11,7 +12,7 @@ CQChartsModelWidgets(CQCharts *charts, QWidget *parent) :
 {
   setObjectName("modelWidgets");
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   // create models list
   modelList_ = new CQChartsModelList(charts_);

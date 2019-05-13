@@ -11,6 +11,7 @@
 #include <CQChartsGradientPaletteControl.h>
 #include <CQChartsPropertyViewTree.h>
 #include <CQPixmapCache.h>
+#include <CQUtil.h>
 
 #include <svg/charts_svg.h>
 
@@ -108,8 +109,7 @@ CQChartsWindow(CQChartsView *view) :
 
   //---
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(0);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
 
   //---
 
@@ -119,9 +119,8 @@ CQChartsWindow(CQChartsView *view) :
 
   //---
 
-  QSplitter *settingsSplitter = new QSplitter;
+  QSplitter *settingsSplitter = CQUtil::makeWidget<QSplitter>("hsplitter");
 
-  settingsSplitter->setObjectName("hsplitter");
   settingsSplitter->setOrientation(Qt::Horizontal);
 
   layout->addWidget(settingsSplitter);
@@ -134,9 +133,8 @@ CQChartsWindow(CQChartsView *view) :
 
   //----
 
-  QSplitter *viewSplitter = new QSplitter;
+  QSplitter *viewSplitter = CQUtil::makeWidget<QSplitter>("vsplitter");
 
-  viewSplitter->setObjectName("vsplitter");
   viewSplitter->setOrientation(Qt::Vertical);
 
   settingsSplitter->addWidget(viewSplitter);
@@ -152,11 +150,9 @@ CQChartsWindow(CQChartsView *view) :
 
   //---
 
-  QFrame *viewFrame = new QFrame;
+  QFrame *viewFrame = CQUtil::makeWidget<QFrame>("viewFrame");
 
-  viewFrame->setObjectName("viewFrame");
-
-  QGridLayout *viewLayout = new QGridLayout(viewFrame);
+  QGridLayout *viewLayout = CQUtil::makeLayout<QGridLayout>(viewFrame, 2, 2);
 
   viewSplitter->addWidget(viewFrame);
 
@@ -181,14 +177,11 @@ CQChartsWindow(CQChartsView *view) :
 
   //---
 
-  tableFrame_ = new QFrame(this);
-
-  tableFrame_->setObjectName("tableFrame");
+  tableFrame_ = CQUtil::makeWidget<QFrame>(this, "tableFrame");
 
   tableFrame_->setAutoFillBackground(true);
 
-  QVBoxLayout *tableLayout = new QVBoxLayout(tableFrame_);
-  tableLayout->setMargin(0); tableLayout->setSpacing(2);
+  QVBoxLayout *tableLayout = CQUtil::makeLayout<QVBoxLayout>(tableFrame_, 0, 2);
 
   filterEdit_ = new CQChartsFilterEdit;
 

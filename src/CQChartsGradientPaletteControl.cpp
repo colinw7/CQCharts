@@ -31,15 +31,13 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   //---
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(2); layout->setSpacing(2);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   CQChartsGradientPalette *pal = palette_->gradientPalette();
 
   //---
 
-  QHBoxLayout *controlLayout = new QHBoxLayout;
-  controlLayout->setMargin(2); controlLayout->setSpacing(2);
+  QHBoxLayout *controlLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
   //---
 
@@ -63,9 +61,8 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   //---
 
-  distinctCheck_ = new QCheckBox("Distinct");
+  distinctCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Distinct", "distinct");
 
-  distinctCheck_->setObjectName("distinct");
   distinctCheck_->setChecked(isDistinct());
 
   connect(distinctCheck_, SIGNAL(stateChanged(int)), this, SLOT(distinctChanged(int)));
@@ -82,16 +79,13 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   //---
 
-  stack_ = new QStackedWidget;
-  stack_->setObjectName("stack");
+  stack_ = CQUtil::makeWidget<QStackedWidget>("stack");
 
   //---
 
-  QFrame *modelFrame = new QFrame;
-  modelFrame->setObjectName("modelFrame");
+  QFrame *modelFrame = CQUtil::makeWidget<QFrame>("modelFrame");
 
-  QVBoxLayout *modelLayout = new QVBoxLayout(modelFrame);
-  modelLayout->setMargin(2); modelLayout->setSpacing(2);
+  QVBoxLayout *modelLayout = CQUtil::makeLayout<QVBoxLayout>(modelFrame, 2, 2);
 
   //---
 
@@ -101,8 +95,7 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   functionGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
 
-  QGridLayout *functionGroupLayout = new QGridLayout(functionGroupBox);
-  functionGroupLayout->setMargin(0); functionGroupLayout->setSpacing(2);
+  QGridLayout *functionGroupLayout = CQUtil::makeLayout<QGridLayout>(functionGroupBox, 0, 2);
 
   modelLayout->addWidget(functionGroupBox);
 
@@ -126,19 +119,13 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   negateGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
 
-  QHBoxLayout *negateGroupLayout = new QHBoxLayout(negateGroupBox);
-  negateGroupLayout->setMargin(0); negateGroupLayout->setSpacing(2);
+  QHBoxLayout *negateGroupLayout = CQUtil::makeLayout<QHBoxLayout>(negateGroupBox, 0, 2);
 
   modelLayout->addWidget(negateGroupBox);
 
-  modelRNegativeCheck_ = new QCheckBox("R");
-  modelRNegativeCheck_->setObjectName("rnegative");
-
-  modelGNegativeCheck_ = new QCheckBox("G");
-  modelGNegativeCheck_->setObjectName("gnegative");
-
-  modelBNegativeCheck_ = new QCheckBox("B");
-  modelBNegativeCheck_->setObjectName("bnegative");
+  modelRNegativeCheck_ = CQUtil::makeLabelWidget<QCheckBox>("R", "rnegative");
+  modelGNegativeCheck_ = CQUtil::makeLabelWidget<QCheckBox>("G", "gnegative");
+  modelBNegativeCheck_ = CQUtil::makeLabelWidget<QCheckBox>("B", "bnegative");
 
   connect(modelRNegativeCheck_, SIGNAL(stateChanged(int)), this, SLOT(modelRNegativeChecked(int)));
   connect(modelGNegativeCheck_, SIGNAL(stateChanged(int)), this, SLOT(modelGNegativeChecked(int)));
@@ -157,12 +144,11 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   rangeGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
 
-  QHBoxLayout *rangeGroupLayout = new QHBoxLayout(rangeGroupBox);
-  rangeGroupLayout->setMargin(0); rangeGroupLayout->setSpacing(2);
+  QHBoxLayout *rangeGroupLayout = CQUtil::makeLayout<QHBoxLayout>(rangeGroupBox, 0, 2);
 
   modelLayout->addWidget(rangeGroupBox);
 
-  QGridLayout *rangeGridLayout = new QGridLayout;
+  QGridLayout *rangeGridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   redMinMaxLabel_   = CQUtil::makeLabelWidget<QLabel>("R", "r");
   greenMinMaxLabel_ = CQUtil::makeLabelWidget<QLabel>("G", "g");
@@ -204,11 +190,9 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   //---
 
-  QFrame *definedFrame = new QFrame;
-  definedFrame->setObjectName("definedFrame");
+  QFrame *definedFrame = CQUtil::makeWidget<QFrame>("definedFrame");
 
-  QVBoxLayout *definedFrameLayout = new QVBoxLayout(definedFrame);
-  definedFrameLayout->setMargin(2); definedFrameLayout->setSpacing(2);
+  QVBoxLayout *definedFrameLayout = CQUtil::makeLayout<QVBoxLayout>(definedFrame, 2, 2);
 
   definedColors_ = new CQChartsGradientPaletteDefinedColors;
 
@@ -218,20 +202,13 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   connect(definedColors_, SIGNAL(colorsChanged()), this, SLOT(colorsChanged()));
 
-  QFrame *definedButtonsFrame = new QFrame;
-  definedButtonsFrame->setObjectName("definedButtonsFrame");
+  QFrame *definedButtonsFrame = CQUtil::makeWidget<QFrame>("definedButtonsFrame");
 
-  QHBoxLayout *definedButtonsLayout = new QHBoxLayout(definedButtonsFrame);
-  definedButtonsLayout->setMargin(2); definedButtonsLayout->setSpacing(2);
+  QHBoxLayout *definedButtonsLayout = CQUtil::makeLayout<QHBoxLayout>(definedButtonsFrame, 2, 2);
 
-  addColorButton_ = new QPushButton("Add");
-  addColorButton_->setObjectName("add");
-
-  removeColorButton_ = new QPushButton("Remove");
-  removeColorButton_->setObjectName("remove");
-
-  loadColorsButton_ = new QPushButton("Load");
-  loadColorsButton_->setObjectName("load");
+  addColorButton_    = CQUtil::makeLabelWidget<QPushButton>("Add"   , "add"   );
+  removeColorButton_ = CQUtil::makeLabelWidget<QPushButton>("Remove", "remove");
+  loadColorsButton_  = CQUtil::makeLabelWidget<QPushButton>("Load"  , "load"  );
 
   definedButtonsLayout->addWidget(addColorButton_);
   definedButtonsLayout->addWidget(removeColorButton_);
@@ -248,11 +225,9 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   //---
 
-  QFrame *functionsFrame = new QFrame;
-  functionsFrame->setObjectName("functionsFrame");
+  QFrame *functionsFrame = CQUtil::makeWidget<QFrame>("functionsFrame");
 
-  QGridLayout *functionsGridLayout = new QGridLayout(functionsFrame);
-  functionsGridLayout->setMargin(2); functionsGridLayout->setSpacing(2);
+  QGridLayout *functionsGridLayout = CQUtil::makeLayout<QGridLayout>(functionsFrame, 2, 2);
 
   createFunctionEdit(functionsGridLayout, 0, "R", &redFunctionLabel_  , &redFunctionEdit_  );
   createFunctionEdit(functionsGridLayout, 1, "G", &greenFunctionLabel_, &greenFunctionEdit_);
@@ -272,18 +247,15 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   //---
 
-  QFrame *cubeFrame = new QFrame;
-  cubeFrame->setObjectName("cubeFrame");
+  QFrame *cubeFrame = CQUtil::makeWidget<QFrame>("cubeFrame");
 
-  QGridLayout *cubeGridLayout = new QGridLayout(cubeFrame);
-  cubeGridLayout->setMargin(2); cubeGridLayout->setSpacing(2);
+  QGridLayout *cubeGridLayout = CQUtil::makeLayout<QGridLayout>(cubeFrame, 2, 2);
 
   createRealEdit(cubeGridLayout, 0, "Start"     , &cubeStart_     );
   createRealEdit(cubeGridLayout, 1, "Cycles"    , &cubeCycles_    );
   createRealEdit(cubeGridLayout, 2, "Saturation", &cubeSaturation_);
 
-  cubeNegativeCheck_ = new QCheckBox("Negative");
-  cubeNegativeCheck_->setObjectName("negative");
+  cubeNegativeCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Negative", "negative");
 
   connect(cubeNegativeCheck_, SIGNAL(stateChanged(int)), this, SLOT(cubeNegativeChecked(int)));
 
@@ -886,11 +858,9 @@ QFrame *
 CQChartsGradientPaletteControl::
 createColorTypeCombo(const QString &label, CQChartsGradientPaletteColorType **type)
 {
-  QFrame *frame = new QFrame;
-  frame->setObjectName("frame");
+  QFrame *frame = CQUtil::makeWidget<QFrame>("frame");
 
-  QHBoxLayout *layout = new QHBoxLayout(frame);
-  layout->setMargin(2); layout->setSpacing(2);
+  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(frame, 2, 2);
 
   *type = new CQChartsGradientPaletteColorType;
 
@@ -907,11 +877,9 @@ QFrame *
 CQChartsGradientPaletteControl::
 createColorModelCombo(const QString &label, CQChartsGradientPaletteColorModel **model)
 {
-  QFrame *frame = new QFrame;
-  frame->setObjectName("frame");
+  QFrame *frame = CQUtil::makeWidget<QFrame>("frame");
 
-  QHBoxLayout *layout = new QHBoxLayout(frame);
-  layout->setMargin(2); layout->setSpacing(2);
+  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(frame, 2, 2);
 
   *model = new CQChartsGradientPaletteColorModel;
 

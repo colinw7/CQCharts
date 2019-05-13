@@ -254,14 +254,11 @@ CQChartsColorEdit(QWidget *parent) :
 
   //---
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(2); layout->setSpacing(2);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
-  typeCombo_ = new QComboBox;
-
-  typeCombo_->setObjectName("typeCombo");
+  typeCombo_ = CQUtil::makeWidget<QComboBox>("typeCombo");
 
   typeCombo_->addItems(QStringList() <<
     "None" << "Palette" << "Palette Value" << "Interface" << "Interface Value" << "Color");
@@ -270,16 +267,11 @@ CQChartsColorEdit(QWidget *parent) :
 
   //---
 
-  QHBoxLayout *indLayout = new QHBoxLayout;
-  indLayout->setMargin(0); indLayout->setSpacing(2);
+  QHBoxLayout *indLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
-  QLabel *indLabel = new QLabel("Index");
+  QLabel *indLabel = CQUtil::makeLabelWidget<QLabel>("Index", "indLabel");
 
-  indLabel->setObjectName("indLabel");
-
-  indEdit_ = new QSpinBox;
-
-  indEdit_->setObjectName("indEdit");
+  indEdit_ = CQUtil::makeWidget<QSpinBox>("indEdit");
 
   indLayout->addWidget(indLabel);
   indLayout->addWidget(indEdit_);
@@ -288,12 +280,9 @@ CQChartsColorEdit(QWidget *parent) :
 
   //---
 
-  QHBoxLayout *valueLayout = new QHBoxLayout;
-  valueLayout->setMargin(0); valueLayout->setSpacing(2);
+  QHBoxLayout *valueLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
-  QLabel *valueLabel = new QLabel("Value");
-
-  valueLabel->setObjectName("valueLabel");
+  QLabel *valueLabel = CQUtil::makeLabelWidget<QLabel>("Value", "valueLabel");
 
   valueEdit_ = CQUtil::makeWidget<CQRealSpin>("valueEdit");
 
@@ -304,12 +293,9 @@ CQChartsColorEdit(QWidget *parent) :
 
   //---
 
-  QHBoxLayout *colorLayout = new QHBoxLayout;
-  colorLayout->setMargin(0); colorLayout->setSpacing(2);
+  QHBoxLayout *colorLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
-  QLabel *colorLabel = new QLabel("Color");
-
-  colorLabel->setObjectName("colorLabel");
+  QLabel *colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "colorLabel");
 
   colorEdit_ = CQUtil::makeWidget<CQColorEdit>("colorEdit");
 
@@ -320,12 +306,9 @@ CQChartsColorEdit(QWidget *parent) :
 
   //---
 
-  QHBoxLayout *scaleLayout = new QHBoxLayout;
-  scaleLayout->setMargin(0); scaleLayout->setSpacing(2);
+  QHBoxLayout *scaleLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
-  QLabel *scaleLabel = new QLabel("Scale");
-
-  scaleLabel->setObjectName("scaleLabel");
+  QLabel *scaleLabel = CQUtil::makeLabelWidget<QLabel>("Scale", "scaleLabel");
 
   scaleCheck_ = new CQCheckBox;
 

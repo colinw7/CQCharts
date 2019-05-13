@@ -1,5 +1,6 @@
 #include <CQChartsPolygon.h>
 #include <CQChartsUtil.h>
+#include <CQPropertyView.h>
 #include <CQStrParse.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsPolygon, toString, fromString)
@@ -11,6 +12,8 @@ CQChartsPolygon::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsPolygon);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsPolygon", "polygon");
 }
 
 bool

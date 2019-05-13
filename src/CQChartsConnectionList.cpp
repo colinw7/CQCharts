@@ -1,4 +1,5 @@
 #include <CQChartsConnectionList.h>
+#include <CQPropertyView.h>
 #include <CQStrParse.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsConnectionList, toString, fromString)
@@ -10,6 +11,8 @@ CQChartsConnectionList::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsConnectionList);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsConnectionList", "connection_list");
 }
 
 bool

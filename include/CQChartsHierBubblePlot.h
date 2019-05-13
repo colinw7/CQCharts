@@ -116,7 +116,7 @@ class CQChartsHierBubbleNode : public CQChartsCircleNode {
     return n1.r_ < n2.r_;
   }
 
-  virtual QColor interpColor(const CQChartsHierBubblePlot *plot,
+  virtual QColor interpColor(const CQChartsHierBubblePlot *plot, const CQChartsColor &c,
                              const ColorInd &colorInd, int n) const;
 
  protected:
@@ -183,7 +183,7 @@ class CQChartsHierBubbleHierNode : public CQChartsHierBubbleNode {
 
   void setPosition(double x, double y) override;
 
-  QColor interpColor(const CQChartsHierBubblePlot *plot,
+  QColor interpColor(const CQChartsHierBubblePlot *plot, const CQChartsColor &c,
                      const ColorInd &colorInd, int n) const override;
 
  protected:
@@ -214,6 +214,9 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
 
   CQChartsHierBubbleHierObj *parent() const { return hierObj_; }
 
+  int ind() const { return ind_; }
+  void setInd(int ind) { ind_ = ind; }
+
   QString calcId() const override;
 
   QString calcTipId() const override;
@@ -230,6 +233,7 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
   const CQChartsHierBubblePlot* plot_    { nullptr }; //!< parent plot
   CQChartsHierBubbleNode*       node_    { nullptr }; //!< associated node
   CQChartsHierBubbleHierObj*    hierObj_ { nullptr }; //!< parent hier obj
+  int                           ind_     { 0 };       //!< ind
 };
 
 //---
@@ -271,6 +275,10 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   // options
   Q_PROPERTY(bool valueLabel READ isValueLabel WRITE setValueLabel)
+  Q_PROPERTY(bool sorted     READ isSorted     WRITE setSorted    )
+
+  // color
+  Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
 
   // shape
   CQCHARTS_SHAPE_DATA_PROPERTIES
@@ -290,6 +298,11 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   bool isValueLabel() const { return valueLabel_; }
   void setValueLabel(bool b);
+
+  //---
+
+  bool isSorted() const { return sorted_; }
+  void setSorted(bool b) { sorted_ = b; }
 
   //---
 
@@ -331,6 +344,11 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
     return colorData_.colorId;
   }
+
+  //---
+
+  bool isColorById() const { return colorById_; }
+  void setColorById(bool b);
 
   //---
 
@@ -437,10 +455,12 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
  private:
   bool      valueLabel_      { false }; //!< draw value with name
+  bool      sorted_          { false }; //!< sort nodes by value
   QString   currentRootName_;           //!< current root name
   NodeData  nodeData_;                  //!< node data
   PlaceData placeData_;                 //!< place data
   ColorData colorData_;                 //!< color data
+  bool      colorById_       { true };  //!< color by id
 };
 
 #endif

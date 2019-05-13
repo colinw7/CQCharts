@@ -7,7 +7,6 @@
 #include <CQChartsOptLength.h>
 #include <CQChartsGeom.h>
 #include <CQChartsTypes.h>
-#include <QFont>
 #include <QSizeF>
 
 #include <map>
@@ -173,7 +172,8 @@ class CQChartsViewKey : public CQChartsKey {
 
   void updateLayout() override;
 
-  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
 
   void draw(QPainter *painter) const override;
 
@@ -222,6 +222,14 @@ class CQChartsPlotKey : public CQChartsKey {
  ~CQChartsPlotKey();
 
   CQChartsPlot *plot() const { return plot_; }
+
+  //---
+
+  bool isEmpty() const;
+
+  bool isVisibleAndNonEmpty() const;
+
+  bool isOverlayVisible() const;
 
   //---
 
@@ -274,7 +282,8 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
 
   void clearItems();
 
@@ -321,8 +330,6 @@ class CQChartsPlotKey : public CQChartsKey {
   bool contains(const CQChartsGeom::Point &p) const;
 
   CQChartsKeyItem *getItemAt(const CQChartsGeom::Point &p) const;
-
-  bool isEmpty() const;
 
   //---
 

@@ -1,4 +1,5 @@
 #include <CQChartsKeyPressBehavior.h>
+#include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsKeyPressBehavior, toString, fromString)
 
@@ -9,6 +10,8 @@ CQChartsKeyPressBehavior::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsKeyPressBehavior);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsKeyPressBehavior", "key_press_behavior");
 }
 
 QString

@@ -282,8 +282,7 @@ CQChartsColumnEdit(QWidget *parent) :
 {
   setObjectName("columnEdit");
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(2); layout->setSpacing(2);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -298,21 +297,20 @@ CQChartsColumnEdit(QWidget *parent) :
 
   //--
 
-  QVBoxLayout *menuColumnGroupLayout = new QVBoxLayout(columnGroup_);
-  menuColumnGroupLayout->setMargin(2); menuColumnGroupLayout->setSpacing(2);
+  QVBoxLayout *menuColumnGroupLayout = CQUtil::makeLayout<QVBoxLayout>(columnGroup_, 2, 2);
 
-  columnCombo_ = new QComboBox;
+  columnCombo_ = CQUtil::makeWidget<QComboBox>("columnCombo");
 
   connect(columnCombo_, SIGNAL(currentIndexChanged(int)),
           this, SLOT(menuColumnChanged(int)));
 
   menuColumnGroupLayout->addWidget(columnCombo_);
 
-  QFrame *roleFrame = new QFrame;
+  QFrame *roleFrame = CQUtil::makeWidget<QFrame>("roleFrame");
 
-  QHBoxLayout *roleLayout = new QHBoxLayout(roleFrame);
+  QHBoxLayout *roleLayout = CQUtil::makeLayout<QHBoxLayout>(roleFrame, 2, 2);
 
-  roleLayout->addWidget(new QLabel("Role"));
+  roleLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Role", "roleLabel"));
 
   roleEdit_ = CQUtil::makeWidget<CQLineEdit>("edit");
 
@@ -336,8 +334,7 @@ CQChartsColumnEdit(QWidget *parent) :
 
   //--
 
-  QVBoxLayout *menuExprGroupLayout = new QVBoxLayout(menuExprGroup_);
-  menuExprGroupLayout->setMargin(2); menuExprGroupLayout->setSpacing(2);
+  QVBoxLayout *menuExprGroupLayout = CQUtil::makeLayout<QVBoxLayout>(menuExprGroup_, 2, 2);
 
   expressionEdit_ = CQUtil::makeWidget<CQLineEdit>("edit");
 
@@ -348,7 +345,7 @@ CQChartsColumnEdit(QWidget *parent) :
 
   //---
 
-  vheaderCheck_ = new QCheckBox("Vertical Header");
+  vheaderCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Vertical Header", "vheaderCheck");
 
   connect(vheaderCheck_, SIGNAL(clicked(bool)), this, SLOT(vheaderCheckClicked(bool)));
 

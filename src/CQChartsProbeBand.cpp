@@ -1,8 +1,9 @@
 #include <CQChartsProbeBand.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
-#include <QRubberBand>
+#include <CQUtil.h>
 
+#include <QRubberBand>
 #include <QLabel>
 
 CQChartsProbeBand::
@@ -11,7 +12,7 @@ CQChartsProbeBand(CQChartsView *view) :
 {
   vband_ = new QRubberBand(QRubberBand::Line, view);
   hband_ = new QRubberBand(QRubberBand::Line, view);
-  tip_   = new QLabel;
+  tip_   = CQUtil::makeLabelWidget<QLabel>("", "tipLabel");
 
   tip_->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::X11BypassWindowManagerHint);
 }

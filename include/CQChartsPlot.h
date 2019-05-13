@@ -492,6 +492,8 @@ class CQChartsPlot : public CQChartsObj,
   bool isKeyVisible() const;
   void setKeyVisible(bool b);
 
+  bool isKeyVisibleAndNonEmpty() const;
+
   //---
 
   bool isEqualScale() const { return equalScale_; }
@@ -734,9 +736,10 @@ class CQChartsPlot : public CQChartsObj,
 
   bool getTclProperty(const QString &name, QVariant &value) const;
 
-  bool getPropertyDesc  (const QString &name, QString  &desc) const;
-  bool getPropertyType  (const QString &name, QString  &type) const;
-  bool getPropertyObject(const QString &name, QObject* &type) const;
+  bool getPropertyDesc    (const QString &name, QString  &desc) const;
+  bool getPropertyType    (const QString &name, QString  &type) const;
+  bool getPropertyUserType(const QString &name, QString  &type) const;
+  bool getPropertyObject  (const QString &name, QObject* &obj ) const;
 
   void propertyItemSelected(QObject *obj, const QString &path);
 
@@ -1104,6 +1107,10 @@ class CQChartsPlot : public CQChartsObj,
 
   void interruptRange();
 
+ public:
+  void syncRange();
+
+ private:
   void waitRange();
   void waitRange1();
 
@@ -1981,6 +1988,8 @@ class CQChartsPlot : public CQChartsObj,
 
   UpdateState updateState() { return (UpdateState) updateData_.state.load(); }
   void setUpdateState(UpdateState state);
+
+  UpdateState calcNextState() const;
 
   void setInterrupt(bool b=true);
 

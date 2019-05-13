@@ -42,7 +42,8 @@ QString
 CQChartsChordPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Chord Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draw connections using radial plot with sized path arcs.</p>\n"
          "<p>The size of each arc is equivalent to the number of connections "
          "from that section.</p>\n";
@@ -200,14 +201,14 @@ addProperties()
   addProperty("arc", this, "startAngle", "startAngle")->
     setDesc("Angle for first strip segment");
 
-  // label
-  textBox_->addTextDataProperties(propertyModel(), "label");
+  // labels
+  textBox_->addTextDataProperties(propertyModel(), "labels", "Labels");
 
-  addProperty("label", this, "labelRadius", "radius")->setDesc("Radius for segment label");
+  addProperty("labels", this, "labelRadius", "radius")->setDesc("Radius for segment label");
 
-  QString labelBoxPath = "label/box";
+  QString labelBoxPath = "labels/box";
 
-  textBox_->CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath);
+  textBox_->CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath, "Labels");
 }
 
 CQChartsGeom::Range

@@ -62,6 +62,8 @@ class CQChartsEnumPropertyViewType : public CQPropertyViewType {
 
   QString tip(const QVariant &value) const override;
 
+  QString userName() const override { return "enum"; }
+
   virtual QString variantToString(const QVariant &var) const = 0;
 };
 

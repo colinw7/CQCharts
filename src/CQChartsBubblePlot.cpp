@@ -38,7 +38,8 @@ QString
 CQChartsBubblePlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Bubble Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draws circles represent a set of data values and packs then into the "
          "smallest enclosing circle.</p>\n";
 }
@@ -471,6 +472,36 @@ loadModel() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
+      QString     name;
+      QModelIndex nameInd;
+
+      (void) getName(data, name, nameInd);
+
+      //---
+
+      double size = 1.0;
+
+      if (! getSize(data, size))
+        return State::SKIP;
+
+      //---
+
+      QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
+
+      CQChartsBubbleNode *node = plot_->addNode(parentHier(data), name, size, nameInd1);
+
+      if (node) {
+        CQChartsColor color;
+
+        if (plot_->columnColor(data.row, data.parent, color))
+          node->setColor(color);
+      }
+
+      return State::OK;
+    }
+
+   private:
+    CQChartsBubbleHierNode *parentHier(const VisitData &data) const {
       CQChartsModelIndex ind(data.row, plot_->valueColumn(), data.parent);
 
       std::vector<int> groupInds = plot_->rowHierGroupInds(ind);
@@ -483,39 +514,25 @@ loadModel() const
         hierNode = plot_->groupHierNode(hierNode, groupInd);
       }
 
-      //---
-
-      bool ok1;
-
-      QString name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok1);
-
-      //---
-
-      double size = 1.0;
-
-      if (! getSize(data, size))
-        return State::SKIP;
-
-      //---
-
-      QModelIndex nameInd  = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
-      QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
-
-      CQChartsBubblePlot *plot = const_cast<CQChartsBubblePlot *>(plot_);
-
-      CQChartsBubbleNode *node = plot->addNode(hierNode, name, size, nameInd1);
-
-      if (node) {
-        CQChartsColor color;
-
-        if (plot->columnColor(data.row, data.parent, color))
-          node->setColor(color);
-      }
-
-      return State::OK;
+      return hierNode;
     }
 
-   private:
+    bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
+      if (plot_->nameColumn().isValid())
+        nameInd = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
+      else
+        nameInd = plot_->modelIndex(data.row, plot_->idColumn(), data.parent);
+
+      bool ok;
+
+      if (plot_->nameColumn().isValid())
+        name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok);
+      else
+        name = plot_->modelString(data.row, plot_->idColumn(), data.parent, ok);
+
+      return ok;
+    }
+
     bool getSize(const VisitData &data, double &size) const {
       size = 1.0;
 
@@ -763,7 +780,7 @@ draw(QPainter *painter)
   QBrush brush;
 
   QColor bc = plot_->interpBorderColor(colorInd);
-  QColor fc = hier_->interpColor(plot_, colorInd, plot_->numColorIds());
+  QColor fc = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
   plot_->setPenBrush(pen, brush,
     plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
@@ -884,7 +901,7 @@ draw(QPainter *painter)
   QBrush brush;
 
   QColor bc = plot_->interpBorderColor(colorInd);
-  QColor fc = node_->interpColor(plot_, colorInd, plot_->numColorIds());
+  QColor fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
   plot_->setPenBrush(pen, brush,
     plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
@@ -894,10 +911,10 @@ draw(QPainter *painter)
 
   //---
 
-  // calc text pen
+  // set text pen
   QPen tpen;
 
-  QColor tc = plot_->interpTextColor(ColorInd());
+  QColor tc = plot_->interpTextColor(colorInd);
 
   plot_->setPen(tpen, true, tc, plot_->textAlpha());
 
@@ -1145,20 +1162,21 @@ setPosition(double x, double y)
 
 QColor
 CQChartsBubbleHierNode::
-interpColor(const CQChartsBubblePlot *plot, const ColorInd &colorInd, int n) const
+interpColor(const CQChartsBubblePlot *plot, const CQChartsColor &c,
+            const ColorInd &colorInd, int n) const
 {
   using Colors = std::vector<QColor>;
 
   Colors colors;
 
   for (auto &child : children_)
-    colors.push_back(child->interpColor(plot, colorInd, n));
+    colors.push_back(child->interpColor(plot, c, colorInd, n));
 
   for (auto &node : nodes_)
-    colors.push_back(node->interpColor(plot, colorInd, n));
+    colors.push_back(node->interpColor(plot, c, colorInd, n));
 
   if (colors.empty())
-    return plot->interpPaletteColor(colorInd);
+    return plot->interpColor(c, colorInd);
 
   return CQChartsUtil::blendColors(colors);
 }
@@ -1206,12 +1224,13 @@ setPosition(double x, double y)
 
 QColor
 CQChartsBubbleNode::
-interpColor(const CQChartsBubblePlot *plot, const ColorInd &colorInd, int n) const
+interpColor(const CQChartsBubblePlot *plot, const CQChartsColor &c,
+            const ColorInd &colorInd, int n) const
 {
   if      (color().isValid())
     return plot->interpColor(color(), ColorInd());
   else if (colorId() >= 0 && plot_->isColorById())
-    return plot->interpPaletteColor(ColorInd(colorId(), n));
+    return plot->interpColor(c, ColorInd(colorId(), n));
   else
-    return plot->interpPaletteColor(colorInd);
+    return plot->interpColor(c, colorInd);
 }

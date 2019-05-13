@@ -39,9 +39,11 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc) override;
 
-  void addTextDataProperties(CQPropertyViewModel *model, const QString &path);
+  void addTextDataProperties(CQPropertyViewModel *model, const QString &path,
+                             const QString &desc);
 
   //---
 

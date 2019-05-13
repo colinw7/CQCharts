@@ -41,9 +41,10 @@ QString
 CQChartsRadarPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Radar Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draws polygon for each row with a point for each value column.<p>\n"
-         "<h2>Columns</h2>\n"
+         "<h3>Columns</h3>\n"
          "<p>The <b>Name</b> column specifies the name for the value set.</p>\n"
          "<p>The column headers specify the name of the indiviidual values.</p>\n";
 }

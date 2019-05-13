@@ -4,7 +4,6 @@
 #include <QDialog>
 
 class CQChartsAxis;
-
 class CQChartsAxisEdit;
 
 //! \brief edit axis dialog
@@ -42,6 +41,7 @@ class CQGroupBox;
 class CQIntegerSpin;
 class CQRealSpin;
 class CQLineEdit;
+class QComboBox;
 
 //! \brief axis edit
 class CQChartsAxisEdit : public QFrame {
@@ -69,9 +69,7 @@ class CQChartsAxisEdit : public QFrame {
   CQGroupBox*           groupBox_              { nullptr }; //!< group box
   CQHRadioButtons*      directionEdit_         { nullptr }; //!< direction edit
   CQChartsAxisSideEdit* sideEdit_              { nullptr }; //!< side edit
-  CQCheckBox*           integralEdit_          { nullptr }; //!< is integral edit
-  CQCheckBox*           dateEdit_              { nullptr }; //!< is date edit
-  CQCheckBox*           logEdit_               { nullptr }; //!< is log edit
+  QComboBox*            valueTypeCombo_        { nullptr }; //!< value type combo
   CQLineEdit*           formatEdit_            { nullptr }; //!< format edit
   CQIntegerSpin*        tickIncrementEdit_     { nullptr }; //!< tick increment edit
   CQRealSpin*           majorIncrementEdit_    { nullptr }; //!< major increment edit

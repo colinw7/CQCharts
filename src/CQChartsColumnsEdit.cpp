@@ -361,20 +361,16 @@ CQChartsColumnsEdit(QWidget *parent) :
 {
   setObjectName("columnsEdit");
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(2); layout->setSpacing(2);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
-  controlFrame_ = new QFrame;
-  controlFrame_->setObjectName("controlFrame");
+  controlFrame_ = CQUtil::makeWidget<QFrame>("controlFrame");
 
-  QHBoxLayout *controlFrameLayout = new QHBoxLayout(controlFrame_);
-  controlFrameLayout->setMargin(2); controlFrameLayout->setSpacing(2);
+  QHBoxLayout *controlFrameLayout = CQUtil::makeLayout<QHBoxLayout>(controlFrame_, 2, 2);
 
-  countLabel_ = new QLabel;
-  countLabel_->setObjectName("countLabel");
+  countLabel_ = CQUtil::makeLabelWidget<QLabel>("", "countLabel");
 
-  QToolButton *addButton    = new QToolButton; addButton   ->setObjectName("add");
-  QToolButton *removeButton = new QToolButton; removeButton->setObjectName("remove");
+  QToolButton *addButton    = CQUtil::makeWidget<QToolButton>("add");
+  QToolButton *removeButton = CQUtil::makeWidget<QToolButton>("remove");
 
   addButton   ->setIcon(CQPixmapCacheInst->getIcon("ADD"));
   removeButton->setIcon(CQPixmapCacheInst->getIcon("REMOVE"));
@@ -389,11 +385,9 @@ CQChartsColumnsEdit(QWidget *parent) :
 
   layout->addWidget(controlFrame_);
 
-  columnsFrame_ = new QFrame;
-  columnsFrame_->setObjectName("columnsFrame");
+  columnsFrame_ = CQUtil::makeWidget<QFrame>("columnsFrame");
 
-  QVBoxLayout *columnsFrameLayout = new QVBoxLayout(columnsFrame_);
-  columnsFrameLayout->setMargin(2); columnsFrameLayout->setSpacing(2);
+  (void) CQUtil::makeLayout<QVBoxLayout>(columnsFrame_, 2, 2);
 
   layout->addWidget(columnsFrame_);
 

@@ -179,7 +179,7 @@ doLayout()
 
 void
 CQChartsViewKey::
-addProperties(CQPropertyViewModel *model, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   auto addProperty = [&](const QString &name, const QString &desc) {
     model->addProperty(path, this, name)->setDesc(desc);
@@ -221,7 +221,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   //---
 
   // border, fill
-  CQChartsBoxObj::addProperties(model, path);
+  CQChartsBoxObj::addProperties(model, path, "");
 
   //---
 
@@ -483,6 +483,35 @@ CQChartsPlotKey::
 
 //---
 
+bool
+CQChartsPlotKey::
+isEmpty() const
+{
+  return items_.empty();
+}
+
+bool
+CQChartsPlotKey::
+isVisibleAndNonEmpty() const
+{
+  return isVisible() && ! isEmpty();
+}
+
+bool
+CQChartsPlotKey::
+isOverlayVisible() const
+{
+  if (plot_->isOverlay()) {
+    const CQChartsPlotKey *key = plot_->getFirstPlotKey();
+
+    return (key == this);
+  }
+
+  return isVisibleAndNonEmpty();
+}
+
+//---
+
 void
 CQChartsPlotKey::
 hscrollSlot(int v)
@@ -608,7 +637,7 @@ updateLocation(const CQChartsGeom::BBox &bbox)
 
 void
 CQChartsPlotKey::
-addProperties(CQPropertyViewModel *model, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   auto addProperty = [&](const QString &name, const QString &desc) {
     model->addProperty(path, this, name)->setDesc(desc);
@@ -660,7 +689,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   //---
 
   // border, fill
-  CQChartsBoxObj::addProperties(model, path);
+  CQChartsBoxObj::addProperties(model, path, "");
 
   //---
 
@@ -999,7 +1028,7 @@ bool
 CQChartsPlotKey::
 contains(const CQChartsGeom::Point &p) const
 {
-  if (! isVisible() || isEmpty())
+  if (! isOverlayVisible() || isEmpty())
     return false;
 
   return bbox().inside(p);
@@ -1009,7 +1038,7 @@ CQChartsKeyItem *
 CQChartsPlotKey::
 getItemAt(const CQChartsGeom::Point &p) const
 {
-  if (! isVisible())
+  if (! isOverlayVisible())
     return nullptr;
 
   for (auto &item : items_) {
@@ -1018,13 +1047,6 @@ getItemAt(const CQChartsGeom::Point &p) const
   }
 
   return nullptr;
-}
-
-bool
-CQChartsPlotKey::
-isEmpty() const
-{
-  return items_.empty();
 }
 
 //------
@@ -1225,7 +1247,7 @@ void
 CQChartsPlotKey::
 draw(QPainter *painter) const
 {
-  if (! isVisible() || isEmpty()) {
+  if (! isOverlayVisible() || isEmpty()) {
     scrollData_.hbar->hide();
     scrollData_.vbar->hide();
     return;

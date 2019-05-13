@@ -37,7 +37,8 @@ QString
 CQChartsDendrogramPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Dendrogram Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draw hierarchical data using collapsible tree.</p>\n";
 }
 

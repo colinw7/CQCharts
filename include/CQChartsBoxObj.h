@@ -48,7 +48,8 @@ class CQChartsBoxObj : public CQChartsObj,
 
   //---
 
-  virtual void addProperties(CQPropertyViewModel *model, const QString &path);
+  virtual void addProperties(CQPropertyViewModel *model, const QString &path,
+                             const QString &desc);
 
   //---
 

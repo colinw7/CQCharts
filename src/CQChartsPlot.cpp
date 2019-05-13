@@ -957,7 +957,7 @@ bool
 CQChartsPlot::
 isKeyVisible() const
 {
-  return (key() ? key()->isVisible() : false);
+  return (key() && key()->isVisible());
 }
 
 void
@@ -966,6 +966,13 @@ setKeyVisible(bool b)
 {
   if (key())
     key()->setVisible(b);
+}
+
+bool
+CQChartsPlot::
+isKeyVisibleAndNonEmpty() const
+{
+  return (key() && key()->isVisibleAndNonEmpty());
 }
 
 //---
@@ -1442,7 +1449,11 @@ CQChartsPlot::
 setLogX(bool b)
 {
   if (xAxis()) {
-    CQChartsUtil::testAndSet(logX_, b, [&]() { xAxis()->setLog(b); updateRangeAndObjs(); });
+    CQChartsUtil::testAndSet(logX_, b, [&]() {
+      xAxis()->setValueType(b ? CQChartsAxisValueType::Type::LOG :
+                                CQChartsAxisValueType::Type::REAL);
+      updateRangeAndObjs();
+    });
   }
 }
 
@@ -1451,7 +1462,11 @@ CQChartsPlot::
 setLogY(bool b)
 {
   if (yAxis()) {
-    CQChartsUtil::testAndSet(logY_, b, [&]() { yAxis()->setLog(b); updateRangeAndObjs(); });
+    CQChartsUtil::testAndSet(logY_, b, [&]() {
+      yAxis()->setValueType(b ? CQChartsAxisValueType::Type::LOG :
+                                CQChartsAxisValueType::Type::REAL);
+      updateRangeAndObjs();
+    });
   }
 }
 
@@ -1678,7 +1693,7 @@ addSymbolProperties(const QString &path, const QString &prefix, const QString &d
   addProperty(fillPath, this, symbolPrefix + "FillAlpha"  , "alpha"  )->
     setDesc(prefix1 + " fill alpha");
   addProperty(fillPath, this, symbolPrefix + "FillPattern", "pattern")->
-    setDesc(prefix1 + " fill pattern");
+    setDesc(prefix1 + " fill pattern").setHidden(true);
 
   addProperty(strokePath, this, symbolPrefix + "Stroked"    , "visible")->
     setDesc(prefix1 + " stroke visible");
@@ -1712,7 +1727,8 @@ addFillProperties(const QString &path, const QString &prefix, const QString &des
 
   addProperty(path, this, prefix + "Color"  , "color"  )->setDesc(prefix1 + " color");
   addProperty(path, this, prefix + "Alpha"  , "alpha"  )->setDesc(prefix1 + " alpha");
-  addProperty(path, this, prefix + "Pattern", "pattern")->setDesc(prefix1 + " pattern");
+  addProperty(path, this, prefix + "Pattern", "pattern")->
+    setDesc(prefix1 + " pattern").setHidden(true);
 }
 
 void
@@ -1812,6 +1828,18 @@ getPropertyType(const QString &name, QString &type) const
   if (! item) return false;
 
   type = item->typeName();
+
+  return true;
+}
+
+bool
+CQChartsPlot::
+getPropertyUserType(const QString &name, QString &type) const
+{
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  if (! item) return false;
+
+  type = item->userTypeName();
 
   return true;
 }
@@ -2050,44 +2078,8 @@ threadTimerSlot()
 
   //---
 
-  if (isUpdatesEnabled()) {
-    // check queued updates to determine required state
-    if      (updatesData_.stateFlag[UpdateState::UPDATE_RANGE] > 0) {
-      if (debugUpdate_)
-        std::cerr << "UpdateState::UPDATE_RANGE : " <<
-          updatesData_.stateFlag[UpdateState::UPDATE_RANGE] << "\n";
-
-      nextState = UpdateState::UPDATE_RANGE;
-    }
-    else if (updatesData_.stateFlag[UpdateState::UPDATE_OBJS] > 0) {
-      if (debugUpdate_)
-        std::cerr << "UpdateState::UPDATE_OBJS : " <<
-          updatesData_.stateFlag[UpdateState::UPDATE_OBJS] << "\n";
-
-      nextState = UpdateState::UPDATE_OBJS;
-    }
-    else if (updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS] > 0) {
-      if (debugUpdate_)
-        std::cerr << "UpdateState::UPDATE_DRAW_OBJS : " <<
-          updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS] << "\n";
-
-      nextState = UpdateState::UPDATE_DRAW_OBJS;
-    }
-    else if (updatesData_.stateFlag[UpdateState::UPDATE_DRAW_BACKGROUND] > 0) {
-      if (debugUpdate_)
-        std::cerr << "UpdateState::UPDATE_DRAW_BACKGROUND : " <<
-          updatesData_.stateFlag[UpdateState::UPDATE_DRAW_BACKGROUND] << "\n";
-
-      nextState = UpdateState::UPDATE_DRAW_BACKGROUND;
-    }
-    else if (updatesData_.stateFlag[UpdateState::UPDATE_DRAW_FOREGROUND] > 0) {
-      if (debugUpdate_)
-        std::cerr << "UpdateState::UPDATE_DRAW_FOREGROUND : " <<
-          updatesData_.stateFlag[UpdateState::UPDATE_DRAW_FOREGROUND] << "\n";
-
-      nextState = UpdateState::UPDATE_DRAW_FOREGROUND;
-    }
-  }
+  if (isUpdatesEnabled())
+    nextState = calcNextState();
 
   //---
 
@@ -2222,6 +2214,54 @@ threadTimerSlot()
 
   if (updateView)
     view_->update();
+}
+
+CQChartsPlot::UpdateState
+CQChartsPlot::
+calcNextState() const
+{
+  CQChartsPlot *th = const_cast<CQChartsPlot *>(this);
+
+  UpdateState nextState = UpdateState::INVALID;
+
+  // check queued updates to determine required state
+  if      (th->updatesData_.stateFlag[UpdateState::UPDATE_RANGE] > 0) {
+    if (debugUpdate_)
+      std::cerr << "UpdateState::UPDATE_RANGE : " <<
+        th->updatesData_.stateFlag[UpdateState::UPDATE_RANGE] << "\n";
+
+    nextState = UpdateState::UPDATE_RANGE;
+  }
+  else if (th->updatesData_.stateFlag[UpdateState::UPDATE_OBJS] > 0) {
+    if (debugUpdate_)
+      std::cerr << "UpdateState::UPDATE_OBJS : " <<
+        th->updatesData_.stateFlag[UpdateState::UPDATE_OBJS] << "\n";
+
+    nextState = UpdateState::UPDATE_OBJS;
+  }
+  else if (th->updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS] > 0) {
+    if (debugUpdate_)
+      std::cerr << "UpdateState::UPDATE_DRAW_OBJS : " <<
+        th->updatesData_.stateFlag[UpdateState::UPDATE_DRAW_OBJS] << "\n";
+
+    nextState = UpdateState::UPDATE_DRAW_OBJS;
+  }
+  else if (th->updatesData_.stateFlag[UpdateState::UPDATE_DRAW_BACKGROUND] > 0) {
+    if (debugUpdate_)
+      std::cerr << "UpdateState::UPDATE_DRAW_BACKGROUND : " <<
+        th->updatesData_.stateFlag[UpdateState::UPDATE_DRAW_BACKGROUND] << "\n";
+
+    nextState = UpdateState::UPDATE_DRAW_BACKGROUND;
+  }
+  else if (th->updatesData_.stateFlag[UpdateState::UPDATE_DRAW_FOREGROUND] > 0) {
+    if (debugUpdate_)
+      std::cerr << "UpdateState::UPDATE_DRAW_FOREGROUND : " <<
+        th->updatesData_.stateFlag[UpdateState::UPDATE_DRAW_FOREGROUND] << "\n";
+
+    nextState = UpdateState::UPDATE_DRAW_FOREGROUND;
+  }
+
+  return nextState;
 }
 
 void
@@ -2398,6 +2438,21 @@ interruptRange()
   waitDraw ();
 
   setInterrupt(false);
+}
+
+void
+CQChartsPlot::
+syncRange()
+{
+  if (isOverlay() && ! isFirstPlot())
+    return;
+
+  UpdateState updateState = this->updateState();
+
+  if (updateState == UpdateState::INVALID)
+    threadTimerSlot();
+
+  waitRange();
 }
 
 void
@@ -2749,6 +2804,10 @@ applyDataRange(bool propagate)
       //processOverlayPlots([&](CQChartsPlot *plot) {
       //  plot->setWindowRange(dataRange);
       //});
+
+      processOverlayPlots([&](CQChartsPlot *plot) {
+        plot->setWindowRange(dataRange);
+      });
     }
   }
   else {
@@ -4286,7 +4345,7 @@ void
 CQChartsPlot::
 editObjs(Objs &objs)
 {
-  if (key() && key()->isVisible())
+  if (isKeyVisibleAndNonEmpty())
     objs.push_back(key());
 
   if (title() && title()->isDrawn())
@@ -5391,7 +5450,7 @@ void
 CQChartsPlot::
 updateKeyPosition(bool force)
 {
-  if (! key() || ! key()->isVisible())
+  if (! isKeyVisibleAndNonEmpty())
     return;
 
   if (isOverlay() && ! isFirstPlot())
@@ -6232,23 +6291,23 @@ drawBgKey(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawBgKey");
 
-  CQChartsPlotKey *key1 = nullptr;
-
   if (isOverlay()) {
     // only draw key under first plot - use first plot key (for overlay)
-    const CQChartsPlot *plot = firstPlot();
+    //const CQChartsPlot *plot = firstPlot();
 
-    if (plot)
-      key1 = plot->getFirstPlotKey();
+    processOverlayPlots([&](const CQChartsPlot *plot) {
+      CQChartsPlotKey *key = plot->key();
+
+      if (key)
+        key->draw(painter);
+    });
   }
   else {
-    key1 = this->key();
+    CQChartsPlotKey *key = this->key();
+
+    if (key)
+      key->draw(painter);
   }
-
-  //---
-
-  if (key1)
-    key1->draw(painter);
 }
 
 bool
@@ -6535,23 +6594,23 @@ drawFgKey(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawFgKey");
 
-  CQChartsPlotKey *key1 = nullptr;
-
   if (isOverlay()) {
     // only draw key above last plot - use first plot key (for overlay)
-    const CQChartsPlot *plot = lastPlot();
+    //const CQChartsPlot *plot = lastPlot();
 
-    if (plot)
-      key1 = plot->getFirstPlotKey();
+    processOverlayPlots([&](const CQChartsPlot *plot) {
+      CQChartsPlotKey *key = plot->key();
+
+      if (key)
+        key->draw(painter);
+    });
   }
   else {
-    key1 = this->key();
+    CQChartsPlotKey *key = this->key();
+
+    if (key)
+      key->draw(painter);
   }
-
-  //---
-
-  if (key1)
-    key1->draw(painter);
 }
 
 bool
@@ -7127,7 +7186,7 @@ keyFitBBox() const
 {
   CQChartsGeom::BBox bbox;
 
-  if (key() && key()->isVisible()) {
+  if (isKeyVisibleAndNonEmpty()) {
     CQChartsGeom::BBox bbox1 = key()->bbox();
 
     if (bbox1.isSet()) {
@@ -7634,9 +7693,18 @@ CQChartsPlotKey *
 CQChartsPlot::
 getFirstPlotKey() const
 {
-  const CQChartsPlot *plot1 = firstPlot();
+  const CQChartsPlot *plot = firstPlot();
 
-  return (plot1 ? plot1->key() : nullptr);
+  while (plot) {
+    CQChartsPlotKey *key = plot->key();
+
+    if (key && key->isVisibleAndNonEmpty())
+      return key;
+
+    plot = plot->nextPlot();
+  }
+
+  return nullptr;
 }
 
 //------

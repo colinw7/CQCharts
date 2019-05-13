@@ -20,63 +20,63 @@ data directory.
 Chart types supported 
   + Adjacency
     + tabular connectivity table (needs special column value syntax for connections)
-    ![adjacency](adjacency.png "Adjacency Plot")
+    ![adjacency](images/adjacency.png "Adjacency Plot")
   + BarChart
     + 1d bar chart for column values
-    ![barchart](barchart.png "Bar Chart")
+    ![barchart](images/barchart.png "Bar Chart")
   + Box
     + Box plot of aggregated values from value and group columns
     ![boxplot](boxplot.png "Box Plot")
-    ![connected_boxplot](boxplot_connected.png "Connected Box Plot")
+    ![connected_boxplot](images/boxplot_connected.png "Connected Box Plot")
   + Bubble
     + Bubble plot where circle is size of column value
-    ![bubble](bubbleplot.png "Bubble Plot")
+    ![bubble](images/bubbleplot.png "Bubble Plot")
   + Chord
     + Circlular connectivity chart (needs special column value syntax for connections)
-    ![chord](chord_plot.png "Chord Plot")
+    ![chord](images/chord_plot.png "Chord Plot")
   + Delaunay
     + Delaunay/Voronoi geometric connectivity chart
-    ![delaunay](delaunay.png "Delaunay Plot")
+    ![delaunay](images/delaunay.png "Delaunay Plot")
   + Distribution
     + Distribution count of range based column values
-    ![distribution](distribution.png "Distribution Plot")
+    ![distribution](images/distribution.png "Distribution Plot")
   + ForceDirected
     + Force directed connectivity chart
-    ![forcedirected](forcedirected.png "Force Directed Plot")
+    ![forcedirected](images/forcedirected.png "Force Directed Plot")
   + Geometry
     + General polygon geometry colored by value
-    ![geometry](geometryplot.png "Geometry Plot")
+    ![geometry](images/geometryplot.png "Geometry Plot")
   + HierBubble
     + Hierarchical bubble plot where circle is size of column value
-    ![hierbubble](hierbubble.png "Hierarchical Bubble Plot")
+    ![hierbubble](images/hierbubble.png "Hierarchical Bubble Plot")
   + Image
     + Image/regular grid plot (x, y, color)
-    ![image](imageplot.png "Image Plot")
+    ![image](images/imageplot.png "Image Plot")
   + Parallel
     + Parallel lines plot using multiple connected value sets
-    ![parallel](parallelplot.png "Parallel Plot")
+    ![parallel](images/parallelplot.png "Parallel Plot")
   + Pie
     + Pie chart
-    ![piechart](piechart.png "Pie Chart")
+    ![piechart](images/piechart.png "Pie Chart")
   + Radar
     + Radar (polygon pie chart)
-    ![radar](radar.png "Radar Plot")
+    ![radar](images/radar.png "Radar Plot")
   + Sankey
     + Sankey plot of connected values
-    ![sankey](sankey.png "Sankey Plot")
+    ![sankey](images/sankey.png "Sankey Plot")
   + Scatter
     + Scatter plot of disparate x/y column values
-    ![scatterplot](scatterplot.png "Scatter Plot")
+    ![scatterplot](images/scatterplot.png "Scatter Plot")
   + Sunburst
     + Hierarchical pie chart plot
-    ![sunburst](sunburst.png "Sunburst Plot")
+    ![sunburst](images/sunburst.png "Sunburst Plot")
   + TreeMap
     + Hierarchical tree map
-    ![treemap](treemap.png "Treemap Plot")
+    ![treemap](images/treemap.png "Treemap Plot")
   + XY
     + x/y monotonic value plot
-    ![xychart](xychart.png "XY Multi Line")
-    ![goal_scorers](goal_scorers.png "XY Grouped")
+    ![xychart](images/xychart.png "XY Multi Line")
+    ![goal_scorers](images/goal_scorers.png "XY Grouped")
 
 ### Adjacency
 

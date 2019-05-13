@@ -32,22 +32,15 @@ CQChartsManageModelsDlg(CQCharts *charts) :
   //---
 
   // Bottom Buttons
-  QHBoxLayout *buttonLayout = new QHBoxLayout;
+  QHBoxLayout *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
-  QPushButton *writeButton = new QPushButton("Write");
-  writeButton->setObjectName("write");
+  QPushButton *writeButton = CQUtil::makeLabelWidget<QPushButton>("Write", "write");
+  QPushButton *plotButton  = CQUtil::makeLabelWidget<QPushButton>("Plot" , "plot" );
+  QPushButton *doneButton  = CQUtil::makeLabelWidget<QPushButton>("Done" , "done" );
 
   connect(writeButton, SIGNAL(clicked()), this, SLOT(writeSlot()));
-
-  QPushButton *plotButton = new QPushButton("Plot");
-  plotButton->setObjectName("plot");
-
-  connect(plotButton, SIGNAL(clicked()), this, SLOT(plotSlot()));
-
-  QPushButton *doneButton = new QPushButton("Done");
-  doneButton->setObjectName("done");
-
-  connect(doneButton, SIGNAL(clicked()), this, SLOT(cancelSlot()));
+  connect(plotButton , SIGNAL(clicked()), this, SLOT(plotSlot()));
+  connect(doneButton , SIGNAL(clicked()), this, SLOT(cancelSlot()));
 
   buttonLayout->addWidget(writeButton);
   buttonLayout->addWidget(plotButton);

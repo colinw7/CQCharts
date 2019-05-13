@@ -52,8 +52,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //---
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   //---
 
@@ -129,20 +128,17 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
-  QHBoxLayout *selectControlsLayout = new QHBoxLayout(selectControls);
-  selectControlsLayout->setMargin(0); selectControlsLayout->setSpacing(2);
+  QHBoxLayout *selectControlsLayout = CQUtil::makeLayout<QHBoxLayout>(selectControls, 0, 2);
 
   QButtonGroup *selectButtonGroup = new QButtonGroup(this);
 
-  selectPointButton_ = new QRadioButton("Point");
+  selectPointButton_ = CQUtil::makeLabelWidget<QRadioButton>("Point", "point");
 
-  selectPointButton_->setObjectName("point");
   selectPointButton_->setFocusPolicy(Qt::NoFocus);
   selectPointButton_->setToolTip("Select objects at point");
 
-  selectRectButton_ = new QRadioButton("Rect");
+  selectRectButton_ = CQUtil::makeLabelWidget<QRadioButton>("Rect", "rect");
 
-  selectRectButton_->setObjectName("rect");
   selectRectButton_->setFocusPolicy(Qt::NoFocus);
   selectRectButton_->setToolTip("Select objects inside/touching rectangle");
 
@@ -161,9 +157,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //--
 
-  selectInsideCheck_ = new QCheckBox("Inside");
+  selectInsideCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Inside", "selectInside");
 
-  selectInsideCheck_->setObjectName("rect");
   selectInsideCheck_->setFocusPolicy(Qt::NoFocus);
   selectInsideCheck_->setToolTip("Rectangle intersect inside (checked) or touching (unchecked)");
 
@@ -179,13 +174,10 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
-  QHBoxLayout *zoomControlsLayout = new QHBoxLayout(zoomControls);
-  zoomControlsLayout->setMargin(0); zoomControlsLayout->setSpacing(2);
+  QHBoxLayout *zoomControlsLayout = CQUtil::makeLayout<QHBoxLayout>(zoomControls, 0, 2);
 
-  QPushButton *zoomButton = CQUtil::makeWidget<QPushButton>("reset");
+  QPushButton *zoomButton = CQUtil::makeLabelWidget<QPushButton>("Reset", "reset");
 
-  zoomButton->setObjectName("reset");
-  zoomButton->setText("Reset");
   zoomButton->setFocusPolicy(Qt::NoFocus);
   zoomButton->setToolTip("Reset Zoom");
 
@@ -195,12 +187,10 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //-----
 
-  QHBoxLayout *panControlsLayout = new QHBoxLayout(panControls);
-  panControlsLayout->setMargin(0); panControlsLayout->setSpacing(2);
+  QHBoxLayout *panControlsLayout = CQUtil::makeLayout<QHBoxLayout>(panControls, 0, 2);
 
-  QPushButton *panButton = CQUtil::makeWidget<QPushButton>("reset");
+  QPushButton *panButton = CQUtil::makeLabelWidget<QPushButton>("Reset", "reset");
 
-  panButton->setText("Reset");
   panButton->setFocusPolicy(Qt::NoFocus);
   panButton->setToolTip("Reset Pan");
 

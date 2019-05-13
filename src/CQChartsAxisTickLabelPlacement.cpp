@@ -1,4 +1,5 @@
 #include <CQChartsAxisTickLabelPlacement.h>
+#include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsAxisTickLabelPlacement, toString, fromString)
 
@@ -9,6 +10,8 @@ CQChartsAxisTickLabelPlacement::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsAxisTickLabelPlacement);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsAxisTickLabelPlacement", "axis_tick_label_placement");
 }
 
 QString

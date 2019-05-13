@@ -1,6 +1,7 @@
 #include <CQChartsSymbolEdit.h>
 
 #include <CQPropertyView.h>
+#include <CQUtil.h>
 
 #include <QComboBox>
 #include <QHBoxLayout>
@@ -11,14 +12,11 @@ CQChartsSymbolEdit(QWidget *parent) :
 {
   setObjectName("symbol");
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
-  combo_ = new QComboBox;
+  combo_ = CQUtil::makeWidget<QComboBox>("combo");
 
   combo_->addItems(CQChartsSymbol::typeNames());
-
-  combo_->setObjectName("combo");
 
   layout->addWidget(combo_);
 

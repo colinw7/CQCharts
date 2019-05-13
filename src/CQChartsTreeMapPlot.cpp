@@ -27,7 +27,8 @@ QString
 CQChartsTreeMapPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Tree Map Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draw hierarchical data values using sized boxes.</p>\n";
 }
 
@@ -1067,7 +1068,7 @@ draw(QPainter *painter)
   if (isChildSelected())
     bc.setAlphaF(1.0);
 
-  QColor hierColor = hier_->interpColor(plot_, colorInd, plot_->numColorIds());
+  QColor hierColor = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
   QColor c = plot_->interpHeaderFillColor(colorInd);
 
@@ -1260,7 +1261,7 @@ draw(QPainter *painter)
 
   QColor bc = plot_->interpBorderColor(colorInd);
 
-  QColor fc = node_->interpColor(plot_, colorInd, plot_->numColorIds());
+  QColor fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
   plot_->setPenBrush(pen, brush,
     plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
@@ -1273,7 +1274,7 @@ draw(QPainter *painter)
   // set text pen
   QPen tpen;
 
-  QColor tc = plot_->interpTextColor(ColorInd());
+  QColor tc = plot_->interpTextColor(colorInd);
 
   plot_->setPen(tpen, true, tc, plot_->textAlpha());
 
@@ -1525,20 +1526,21 @@ removeNode(CQChartsTreeMapNode *node)
 
 QColor
 CQChartsTreeMapHierNode::
-interpColor(const CQChartsTreeMapPlot *plot, const ColorInd &colorInd, int n) const
+interpColor(const CQChartsTreeMapPlot *plot, const CQChartsColor &c,
+            const ColorInd &colorInd, int n) const
 {
   using Colors = std::vector<QColor>;
 
   Colors colors;
 
   for (auto &child : children_)
-    colors.push_back(child->interpColor(plot, colorInd, n));
+    colors.push_back(child->interpColor(plot, c, colorInd, n));
 
   for (auto &node : nodes_)
-    colors.push_back(node->interpColor(plot, colorInd, n));
+    colors.push_back(node->interpColor(plot, c, colorInd, n));
 
   if (colors.empty())
-    return plot->interpPaletteColor(colorInd);
+    return plot->interpColor(c, colorInd);
 
   return CQChartsUtil::blendColors(colors);
 }
@@ -1599,12 +1601,13 @@ rootNode(CQChartsTreeMapHierNode *root) const
 
 QColor
 CQChartsTreeMapNode::
-interpColor(const CQChartsTreeMapPlot *plot, const ColorInd &colorInd, int n) const
+interpColor(const CQChartsTreeMapPlot *plot, const CQChartsColor &c,
+            const ColorInd &colorInd, int n) const
 {
   if      (color().isValid())
     return plot->interpColor(color(), ColorInd());
   else if (colorId() >= 0 && plot_->isColorById())
-    return plot->interpPaletteColor(ColorInd(colorId(), n));
+    return plot->interpColor(c, ColorInd(colorId(), n));
   else
-    return plot->interpPaletteColor(colorInd);
+    return plot->interpColor(c, colorInd);
 }

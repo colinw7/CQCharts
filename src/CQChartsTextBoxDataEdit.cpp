@@ -196,8 +196,7 @@ CQChartsTextBoxDataEdit(QWidget *parent, bool tabbed) :
 {
   setObjectName("textBoxDataEdit");
 
-  QGridLayout *layout = new QGridLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  QGridLayout *layout = CQUtil::makeLayout<QGridLayout>(this, 0, 2);
 
   int row = 0;
 
@@ -213,8 +212,7 @@ CQChartsTextBoxDataEdit(QWidget *parent, bool tabbed) :
     // text frame
     QFrame *textFrame = CQUtil::makeWidget<QFrame>("textFrame");
 
-    QVBoxLayout *textFrameLayout = new QVBoxLayout(textFrame);
-    textFrameLayout->setMargin(0); textFrameLayout->setSpacing(2);
+    QVBoxLayout *textFrameLayout = CQUtil::makeLayout<QVBoxLayout>(textFrame, 0, 2);
 
     tab->addTab(textFrame, "Text");
 
@@ -232,8 +230,7 @@ CQChartsTextBoxDataEdit(QWidget *parent, bool tabbed) :
     // box frame
     QFrame *boxFrame = CQUtil::makeWidget<QFrame>("boxFrame");
 
-    QVBoxLayout *boxFrameLayout = new QVBoxLayout(boxFrame);
-    boxFrameLayout->setMargin(0); boxFrameLayout->setSpacing(2);
+    QVBoxLayout *boxFrameLayout = CQUtil::makeLayout<QVBoxLayout>(boxFrame, 0, 2);
 
     tab->addTab(boxFrame, "Box");
 

@@ -1,5 +1,6 @@
 #include <CQChartsColor.h>
 #include <CQChartsUtil.h>
+#include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsColor, toString, fromString)
 
@@ -10,6 +11,8 @@ CQChartsColor::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsColor);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsColor", "color");
 }
 
 QString

@@ -42,7 +42,8 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
  public:
   CQChartsImageObj(const CQChartsImagePlot *plot, const CQChartsGeom::BBox &rect,
-                   int row, int col, double value, const QModelIndex &ind);
+                   int row, int col, double value, const QModelIndex &ind,
+                   const ColorInd &iv);
 
   QString typeName() const override { return "image"; }
 
@@ -55,6 +56,9 @@ class CQChartsImageObj : public CQChartsPlotObj {
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
   void draw(QPainter *painter) override;
+
+  double xColorValue(bool relative) const override;
+  double yColorValue(bool relative) const override;
 
  private:
   const CQChartsImagePlot* plot_  { nullptr };
@@ -85,6 +89,11 @@ class CQChartsImagePlot : public CQChartsPlot,
 
  public:
   CQChartsImagePlot(CQChartsView *view, const ModelP &model);
+
+  //---
+
+  int numRows() const { return nr_; }
+  int numColumns() const { return nc_; }
 
   //---
 

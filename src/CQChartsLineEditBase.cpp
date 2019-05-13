@@ -6,6 +6,7 @@
 #include <CQChartsPropertyViewTree.h>
 
 #include <CQWidgetMenu.h>
+#include <CQUtil.h>
 
 #include <QHBoxLayout>
 #include <QStylePainter>
@@ -25,8 +26,7 @@ CQChartsLineEditBase(QWidget *parent) :
 
   //---
 
-  layout_ = new QHBoxLayout(this);
-  layout_->setMargin(0); layout_->setSpacing(2);
+  layout_ = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   //---
 

@@ -1,5 +1,6 @@
 #include <CQChartsFont.h>
 #include <CQChartsUtil.h>
+#include <CQPropertyView.h>
 #include <CQStrParse.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsFont, toString, fromString)
@@ -11,6 +12,8 @@ CQChartsFont::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsFont);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsFont", "font");
 }
 
 QString

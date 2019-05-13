@@ -34,13 +34,13 @@ for {set c 0} {$c < $nc} {incr c} {
 
   lappend box_plots $plot
 
-  set_charts_property -plot $plot -name box.width                     -value 0.4
-  set_charts_property -plot $plot -name xaxis.visible                 -value 0
-  set_charts_property -plot $plot -name yaxis.grid.line.major.visible -value 1
-  set_charts_property -plot $plot -name key.visible                   -value 0
-  set_charts_property -plot $plot -name labels.visible                -value 0
-  set_charts_property -plot $plot -name box.fill.color                -value green
-  set_charts_property -plot $plot -name outlier.symbol.fill.color     -value green
+  set_charts_property -plot $plot -name box.width                       -value 0.4
+  set_charts_property -plot $plot -name xaxis.visible                   -value 0
+  set_charts_property -plot $plot -name yaxis.grid.major.stroke.visible -value 1
+  set_charts_property -plot $plot -name key.visible                     -value 0
+  set_charts_property -plot $plot -name labels.visible                  -value 0
+  set_charts_property -plot $plot -name box.fill.color                  -value green
+  set_charts_property -plot $plot -name outlier.symbol.fill.color       -value green
 }
 
 place_charts_plots -horizontal $box_plots
@@ -56,10 +56,10 @@ for {set c 0} {$c < $nc} {incr c} {
 
   lappend dist_plots $plot
 
-  set_charts_property -plot $plot -name bucket.auto                   -value 1
-  set_charts_property -plot $plot -name key.visible                   -value 0
-  set_charts_property -plot $plot -name yaxis.grid.line.major.visible -value 1
-  set_charts_property -plot $plot -name yaxis.label.visible           -value 0
+  set_charts_property -plot $plot -name bucket.auto                     -value 1
+  set_charts_property -plot $plot -name key.visible                     -value 0
+  set_charts_property -plot $plot -name yaxis.grid.major.stroke.visible -value 1
+  set_charts_property -plot $plot -name yaxis.label.visible             -value 0
 }
 
 place_charts_plots -horizontal $dist_plots

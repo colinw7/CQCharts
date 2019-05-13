@@ -3,6 +3,7 @@
 
 #include <CQPropertyView.h>
 #include <CQRectEdit.h>
+#include <CQUtil.h>
 
 #include <QHBoxLayout>
 
@@ -12,8 +13,7 @@ CQChartsRectEdit(QWidget *parent) :
 {
   setObjectName("rectEdit");
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   //---
 

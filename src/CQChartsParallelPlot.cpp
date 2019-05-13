@@ -46,7 +46,8 @@ QString
 CQChartsParallelPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Parallel Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draws lines through values of multiple column values for each row.\n";
 }
 
@@ -860,10 +861,12 @@ draw(QPainter *painter)
   //---
 
   // set pen and brush
+  ColorInd colorInd = calcColorInd();
+
   QPen   pen;
   QBrush brush;
 
-  plot_->setLineDataPen(pen, is_);
+  plot_->setLineDataPen(pen, colorInd);
 
   plot_->setBrush(brush, false);
 
@@ -1013,10 +1016,12 @@ draw(QPainter *painter)
   //---
 
   // set pen and brush
+  ColorInd colorInd = calcColorInd();
+
   QPen   pen;
   QBrush brush;
 
-  plot_->setSymbolPenBrush(pen, brush, is_);
+  plot_->setSymbolPenBrush(pen, brush, colorInd);
 
   plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 

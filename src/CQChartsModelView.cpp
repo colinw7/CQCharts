@@ -1,6 +1,7 @@
 #include <CQChartsModelView.h>
 #include <CQChartsTable.h>
 #include <CQChartsTree.h>
+#include <CQUtil.h>
 
 #include <QStackedWidget>
 #include <QVBoxLayout>
@@ -11,11 +12,9 @@ CQChartsModelView(CQCharts *charts, QWidget *parent) :
 {
   setObjectName("modelView");
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
-  stack_ = new QStackedWidget;
-
-  stack_->setObjectName("stack");
+  stack_ = CQUtil::makeWidget<QStackedWidget>("stack");
 
   table_ = new CQChartsTable(charts_, this);
 

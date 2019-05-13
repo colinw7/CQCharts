@@ -113,7 +113,7 @@ class CQChartsTreeMapNode {
     return n1.size_ < n2.size_;
   }
 
-  virtual QColor interpColor(const CQChartsTreeMapPlot *plot,
+  virtual QColor interpColor(const CQChartsTreeMapPlot *plot, const CQChartsColor &c,
                              const ColorInd &colorInd, int n) const;
 
  protected:
@@ -195,7 +195,7 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 
   void removeNode(CQChartsTreeMapNode *node);
 
-  QColor interpColor(const CQChartsTreeMapPlot *plot,
+  QColor interpColor(const CQChartsTreeMapPlot *plot, const CQChartsColor &c,
                      const ColorInd &colorInd, int n) const override;
 
  private:

@@ -44,9 +44,17 @@ class CQChartsThemeMgr : public QObject {
   void getThemeNames(QStringList &names) const;
 
  signals:
-  void palettesChanged();
+  // sent when manager's themes changed (added or content changed)
   void themesChanged();
+
+  // sent when manager's palettes changed (added or content changed)
+  void palettesChanged();
+
+  // sent when managed theme changed
   void themeChanged(const QString &name);
+
+  // sent when managed palette changed
+  void paletteChanged(const QString &name);
 
  private:
   CQChartsThemeMgr();
@@ -55,6 +63,8 @@ class CQChartsThemeMgr : public QObject {
 
  private slots:
   void themeChangedSlot();
+
+  void paletteChangedSlot();
 
  private:
   struct PaletteData {
@@ -98,6 +108,9 @@ class CQChartsTheme : public QObject {
   //! get/set nth palette
   CQChartsGradientPalette *palette(int i=0) const;
   void setPalette(int i, CQChartsGradientPalette *palette);
+
+  //! set named palettes
+  void setNamedPalettes(const QStringList &names);
 
   //! add named palette
   void addNamedPalette(const QString &name);

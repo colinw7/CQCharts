@@ -27,12 +27,12 @@
 
 #include <CQPropertyViewItem.h>
 #include <CQTableWidget.h>
+#include <CQTabWidget.h>
 #include <CQIconCombo.h>
 #include <CQIntegerSpin.h>
 #include <CQUtil.h>
 #include <CQGroupBox.h>
 
-#include <QTabWidget>
 #include <QTextBrowser>
 #include <QHeaderView>
 #include <QSpinBox>
@@ -498,7 +498,7 @@ addWidgets()
 {
   QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
-  tab_ = CQUtil::makeWidget<QTabWidget>("tab");
+  tab_ = CQUtil::makeWidget<CQTabWidget>("tab");
 
   layout->addWidget(tab_);
 
@@ -639,7 +639,7 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   //--
 
-  propertiesWidgets_.plotsTab = CQUtil::makeWidget<QTabWidget>("tab");
+  propertiesWidgets_.plotsTab = CQUtil::makeWidget<CQTabWidget>("tab");
 
   plotsGroupLayout->addWidget(propertiesWidgets_.plotsTab);
 
@@ -1054,7 +1054,7 @@ initThemeFrame(QFrame *themeFrame)
 
   //--
 
-  QTabWidget *themeSubTab = CQUtil::makeWidget<QTabWidget>("themeSubTab");
+  CQTabWidget *themeSubTab = CQUtil::makeWidget<CQTabWidget>("themeSubTab");
 
   themeFrameLayout->addWidget(themeSubTab);
 
@@ -1114,8 +1114,7 @@ initThemeFrame(QFrame *themeFrame)
 
   themePalettesFrameLayout->addWidget(themeWidgets_.palettesList);
 
-  connect(themeWidgets_.palettesList, SIGNAL(palettesChanged()),
-          this, SLOT(updateView()));
+  //connect(themeWidgets_.palettesList, SIGNAL(palettesChanged()), this, SLOT(updateView()));
 
   //--
 
@@ -1463,7 +1462,9 @@ updatePlots()
       connect(plotWidget, SIGNAL(propertyItemSelected(QObject *, const QString &)),
               this, SIGNAL(propertyItemSelected(QObject *, const QString &)));
 
-      propertiesWidgets_.plotsTab->addTab(plotWidget, plot->id());
+      ind = propertiesWidgets_.plotsTab->addTab(plotWidget, plot->id());
+
+      propertiesWidgets_.plotsTab->setTabToolTip(ind, plot->type()->description());
     }
   }
 
@@ -1747,7 +1748,7 @@ placePlotsSlot()
   int  rows       = plotsWidgets_.placeRowsEdit       ->value();
   int  columns    = plotsWidgets_.placeColumnsEdit    ->value();
 
-  view->placePlots(plots, vertical, horizontal, rows, columns);
+  view->placePlots(plots, vertical, horizontal, rows, columns, /*reset*/true);
 }
 
 void

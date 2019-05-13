@@ -1,4 +1,5 @@
 #include <CQChartsData.h>
+#include <CQPropertyView.h>
 #include <CQUtil.h>
 
 // TODO: only save if value not default
@@ -12,6 +13,8 @@ CQChartsTextData::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsTextData);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsTextData", "text_data");
 }
 
 QString
@@ -95,6 +98,8 @@ CQChartsLineData::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsLineData);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsLineData", "line_data");
 }
 
 QString
@@ -160,6 +165,8 @@ CQChartsShapeData::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsShapeData);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsShapeData", "shape_data");
 }
 
 QString
@@ -211,6 +218,8 @@ CQChartsBoxData::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsBoxData);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsBoxData", "box_data");
 }
 
 QString
@@ -277,6 +286,8 @@ CQChartsTextBoxData::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsTextBoxData);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsTextBoxData", "text_box_data");
 }
 
 QString
@@ -328,6 +339,8 @@ CQChartsFillData::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsFillData);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsFillData", "fill_data");
 }
 
 QString
@@ -389,6 +402,8 @@ CQChartsStrokeData::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsStrokeData);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsStrokeData", "stroke_data");
 }
 
 QString
@@ -460,6 +475,8 @@ CQChartsSymbolData::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsSymbolData);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsSymbolData", "symbol_data");
 }
 
 QString
@@ -521,6 +538,8 @@ CQChartsArrowData::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsArrowData);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsArrowData", "arrow_data");
 }
 
 QString

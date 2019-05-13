@@ -1,4 +1,5 @@
 #include <CQChartsSymbol.h>
+#include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsSymbol, toString, fromString)
 
@@ -76,6 +77,8 @@ CQChartsSymbol::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsSymbol);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsSymbol", "symbol");
 }
 
 CQChartsSymbol::

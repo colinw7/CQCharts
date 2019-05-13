@@ -100,9 +100,10 @@ QString
 CQChartsDistributionPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Distribution Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draws bars with heights for the counts of set of values.</p>\n"
-         "<h2>Columns</h2>\n"
+         "<h3>Columns</h3>\n"
          "<p>The values to be counted are taken from the <b>Value</b> columns "
          "and grouped depending on the column value type. By default integer "
          "values are grouped by matching value, real values are automatically "
@@ -111,10 +112,10 @@ description() const
          "the <b>autoBucket</b> parameter and specifying the <b>startBucketValue</b> and "
          "<b>deltaBucketValue</b> parameters.</p>"
          "<p>The color of the bar can be overridden using the <b>Color</b> column.</p>\n"
-         "<h2>Options</h2>\n"
+         "<h3>Options</h3>\n"
          "<p>Enabling the <b>Horizontal</b> otpions draws the bars horizontally "
          "of vertically.</p>"
-         "<h2>Grouping</h2>\n"
+         "<h3>Grouping</h3>\n"
          "<p>Standard grouping can be applied to the values to split the values to be "
          "grouped into individual value sets before final grouping. This second level "
          "if grouping creates multiple sets of grouped values which can be displayed "
@@ -364,9 +365,9 @@ addProperties()
     setDesc("Include outlier points");
 
   // dot lines
-  addProperty("dotLines"     , this, "dotLines"    , "enabled")->
+  addProperty("dotLines"       , this, "dotLines"    , "enabled")->
    setDesc("Draw bars as lines with dot");
-  addProperty("dotLines/line", this, "dotLineWidth", "width"  )->setDesc("Dot line width");
+  addProperty("dotLines/stroke", this, "dotLineWidth", "width"  )->setDesc("Dot line width");
 
   addSymbolProperties("dotLines", "dot", "Dot Line");
 
@@ -379,7 +380,7 @@ addProperties()
 
   CQChartsGroupPlot::addProperties();
 
-  dataLabel_->addPathProperties("dataLabel");
+  dataLabel_->addPathProperties("labels", "Labels");
 }
 
 void
@@ -1442,29 +1443,29 @@ createObjs(PlotObjs &objs) const
 #endif
 
   if      (isDensity()) {
-    valueAxis()->setIntegral           (false);
+    valueAxis()->setValueType          (CQChartsAxisValueType::Type::REAL);
     valueAxis()->setGridMid            (false);
     valueAxis()->setMajorIncrement     (0);
     valueAxis()->setMinorTicksDisplayed(true);
     valueAxis()->setRequireTickLabel   (false);
 
-    countAxis()->setIntegral           (false);
+    countAxis()->setValueType          (CQChartsAxisValueType::Type::REAL);
     countAxis()->setGridMid            (false);
     countAxis()->setMajorIncrement     (0);
     countAxis()->setMinorTicksDisplayed(true);
     countAxis()->setRequireTickLabel   (false);
   }
   else if (isScatter()) {
-    valueAxis()->setIntegral           (false);
+    valueAxis()->setValueType          (CQChartsAxisValueType::Type::REAL);
     valueAxis()->setGridMid            (false);
     valueAxis()->setMajorIncrement     (0);
     valueAxis()->setMinorTicksDisplayed(false);
     valueAxis()->setRequireTickLabel   (false);
 
     if (isValueCount())
-      countAxis()->setIntegral(true);
+      countAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER);
     else
-      countAxis()->setIntegral(false);
+      countAxis()->setValueType(CQChartsAxisValueType::Type::REAL);
 
     countAxis()->setGridMid            (false);
     countAxis()->setMajorIncrement     (0);
@@ -1472,16 +1473,16 @@ createObjs(PlotObjs &objs) const
     countAxis()->setRequireTickLabel   (false);
   }
   else {
-    valueAxis()->setIntegral           (true);
+    valueAxis()->setValueType          (CQChartsAxisValueType::Type::INTEGER);
     valueAxis()->setGridMid            (true);
     valueAxis()->setMajorIncrement     (1);
     valueAxis()->setMinorTicksDisplayed(false);
     valueAxis()->setRequireTickLabel   (true);
 
     if (isValueCount())
-      countAxis()->setIntegral(true);
+      countAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER);
     else
-      countAxis()->setIntegral(false);
+      countAxis()->setValueType(CQChartsAxisValueType::Type::REAL);
 
     countAxis()->setGridMid            (false);
     countAxis()->setMajorIncrement     (0);
@@ -2292,16 +2293,23 @@ CQChartsDistributionPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
   int row = key->maxRow();
+  int col = key->maxCol();
 
   auto addKeyRow = [&](const ColorInd &ig, const ColorInd &iv, const CQChartsGeom::RangeValue &xv,
                        const CQChartsGeom::RangeValue &yv, const QString &name) {
     CQChartsDistKeyColorBox *keyColor = new CQChartsDistKeyColorBox(this, ig, iv, xv, yv);
     CQChartsDistKeyText     *keyText  = new CQChartsDistKeyText    (this, name, iv);
 
-    key->addItem(keyColor, row, 0);
-    key->addItem(keyText , row, 1);
+    if (! key->isHorizontal()) {
+      key->addItem(keyColor, row, 0);
+      key->addItem(keyText , row, 1);
 
-    ++row;
+      ++row;
+    }
+    else {
+      key->addItem(keyColor, 0, col++);
+      key->addItem(keyText , 0, col++);
+    }
 
     return std::pair<CQChartsDistKeyColorBox *,CQChartsDistKeyText*>(keyColor, keyText);
   };
@@ -3322,13 +3330,12 @@ drawRug(QPainter *painter) const
   //---
 
   // set pen and brush
-  int ic = (ig_.n > 1 ? ig_.i : iv_.i);
-  int nc = (ig_.n > 1 ? ig_.n : iv_.n);
+  ColorInd ic = (ig_.n > 1 ? ig_ : iv_);
 
   QPen   pen;
   QBrush brush;
 
-  plot_->setRugSymbolPenBrush(pen, brush, ic, nc);
+  plot_->setRugSymbolPenBrush(pen, brush, ic);
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -3568,8 +3575,7 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
 
     plot_->pixelSymbolSize(plot_->dotSymbolSize(), sx, sy);
 
-    int ic = (ig_.n > 1 ? ig_.i : iv_.i);
-    int nc = (ig_.n > 1 ? ig_.n : iv_.n);
+    ColorInd ic = (ig_.n > 1 ? ig_ : iv_);
 
     //---
 
@@ -3577,7 +3583,7 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
     QPen   dotPen;
     QBrush dotBrush;
 
-    plot_->setDotSymbolPenBrush(dotPen, dotBrush, ic, nc);
+    plot_->setDotSymbolPenBrush(dotPen, dotBrush, ic);
 
     painter->setPen  (dotPen);
     painter->setBrush(dotBrush);

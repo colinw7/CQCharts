@@ -566,29 +566,28 @@ struct CQChartsKeyData {
 //------
 
 #include <CQChartsAxisSide.h>
+#include <CQChartsAxisValueType.h>
 #include <CQChartsOptReal.h>
 
 //! \brief axis data
 struct CQChartsAxisData {
-  bool             visible        { true };
-  Qt::Orientation  direction      { Qt::Horizontal };
-  CQChartsAxisSide side;
-  bool             integral       { false };
-  bool             date           { false };
-  bool             log            { false };
-  QString          format         { false };
-  int              tickIncrement  { 0 };
-  double           majorIncrement { 0.0 };
-  double           start          { 0.0 };
-  double           end            { 0.0 };
-  bool             includeZero;
-  CQChartsOptReal  position;
-  CQChartsLineData lineData;
-  CQChartsTextData tickLabelTextData;
-  CQChartsTextData labelTextData;
-  CQChartsLineData majorGridLineData;
-  CQChartsLineData minorGridLineData;
-  CQChartsFillData gridFillData;
+  bool                  visible        { true };
+  Qt::Orientation       direction      { Qt::Horizontal };
+  CQChartsAxisSide      side;
+  CQChartsAxisValueType valueType;
+  QString               format         { false };
+  int                   tickIncrement  { 0 };
+  double                majorIncrement { 0.0 };
+  double                start          { 0.0 };
+  double                end            { 0.0 };
+  bool                  includeZero;
+  CQChartsOptReal       position;
+  CQChartsLineData      lineData;
+  CQChartsTextData      tickLabelTextData;
+  CQChartsTextData      labelTextData;
+  CQChartsLineData      majorGridLineData;
+  CQChartsLineData      minorGridLineData;
+  CQChartsFillData      gridFillData;
 };
 
 #endif

@@ -8,7 +8,6 @@
 #include <CQChartsOptPosition.h>
 #include <CQChartsPolygon.h>
 #include <CQChartsGeom.h>
-#include <QFont>
 
 class CQChartsEditHandles;
 
@@ -78,7 +77,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   virtual QString propertyId() const = 0;
 
   //! add properties
-  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
 
   //! add stroke and fill properties
   void addStrokeFillProperties(CQPropertyViewModel *model, const QString &path);
@@ -95,9 +95,10 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   bool getTclProperty(const QString &name, QVariant &value) const;
 
-  bool getPropertyDesc  (const QString &name, QString  &desc) const;
-  bool getPropertyType  (const QString &name, QString  &type) const;
-  bool getPropertyObject(const QString &name, QObject* &type) const;
+  bool getPropertyDesc    (const QString &name, QString  &desc) const;
+  bool getPropertyType    (const QString &name, QString  &type) const;
+  bool getPropertyUserType(const QString &name, QString  &type) const;
+  bool getPropertyObject  (const QString &name, QObject* &obj ) const;
 
   //! get property names
   virtual void getPropertyNames(QStringList &names, bool hidden=false) const;
@@ -209,7 +210,8 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
   CQChartsPosition end() const;
   void setEnd(const CQChartsPosition &p);
 
-  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
 
   QString propertyId() const override;
 
@@ -254,7 +256,8 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   const CQChartsLength &yRadius() const { return yRadius_; }
   void setYRadius(const CQChartsLength &r) { yRadius_ = r; }
 
-  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
 
   QString propertyId() const override;
 
@@ -293,7 +296,8 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   const CQChartsPolygon &polygon() const { return polygon_; }
   void setPolygon(const CQChartsPolygon &polygon) { polygon_ = polygon; emit dataChanged(); }
 
-  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
 
   QString propertyId() const override;
 
@@ -330,7 +334,8 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
   const CQChartsPolygon &polygon() const { return polygon_; }
   void setPolygon(const CQChartsPolygon &polygon) { polygon_ = polygon; emit dataChanged(); }
 
-  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
 
   QString propertyId() const override;
 
@@ -386,7 +391,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
 
   QString propertyId() const override;
 
@@ -454,7 +460,8 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   const CQChartsArrowData &arrowData() const;
   void setArrowData(const CQChartsArrowData &data);
 
-  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
 
   void getPropertyNames(QStringList &names, bool hidden) const override;
 
@@ -500,7 +507,8 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
   const CQChartsPosition &position() const { return position_; }
   void setPosition(const CQChartsPosition &p) { position_ = p; emit dataChanged(); }
 
-  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
 
   QString propertyId() const override;
 

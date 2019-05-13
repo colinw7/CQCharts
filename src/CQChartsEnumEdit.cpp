@@ -1,6 +1,7 @@
 #include <CQChartsEnumEdit.h>
 
 #include <CQPropertyView.h>
+#include <CQUtil.h>
 
 #include <QComboBox>
 #include <QHBoxLayout>
@@ -11,12 +12,9 @@ CQChartsEnumEdit(QWidget *parent) :
 {
   setObjectName("enumEdit");
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
-  combo_ = new QComboBox;
-
-  combo_->setObjectName("combo");
+  combo_ = CQUtil::makeWidget<QComboBox>("combo");
 
   layout->addWidget(combo_);
 

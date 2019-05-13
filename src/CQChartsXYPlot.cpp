@@ -83,11 +83,12 @@ QString
 CQChartsXYPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>XY Plot Type</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draws points at x and y coordinate pairs and connects them with a continuous "
          "line.</p>\n"
          "<p>The x coordinates should be monotonic.</p>\n"
-         "<h2>Columns</h2>\n"
+         "<h3>Columns</h3>\n"
          "<p>The x and y values come from the values in the <b>X</b> and <b>Y</b> columns. "
          "Multiple <b>Y</b> columns can be specified to create a stack of lines.</p>\n"
          "<p>An optional <b>Name</b> column can be specified to supply a name for the "
@@ -102,7 +103,7 @@ description() const
          "the point.</p>\n"
          "<p>Optional <b>VectorX</b> and <b>VectorY</b> columns can be specified to draw a "
          "vector at the point.</p>\n"
-         "<h2>Options</h2>\n"
+         "<h3>Options</h3>\n"
          "<p>The <b>Lines</b> option determines whether the points are connected with a line. "
          "The default line style can be separately customized.</p>"
          "<p>The <b>Points</b> option determines whether the points are drawn. The default point "
@@ -113,12 +114,12 @@ description() const
          "<p>Enabling the <b>Stacked</b> option stacks the y values on top of each other "
          "so the next set of y values adds onto the previous set of y values.</p>\n"
          "<p>Enabling the <b>Cumulative</b> option treats the y values as an increment "
-         "from the previews y value (in each set).</p>\n"
+         "from the previous y value (in each set).</p>\n"
          "<p>Enabling the <b>FillUnder</b> option fills the area under the plot. The "
          "fill under style (fill/stroke) can be separately customized.<p>\n"
          "<p>Enabling the <b>Impulse</b> option draws a line from zero to the "
          "points y value. The impulse line style can be separately customized.</p> "
-         "<p>Enabling the <b>Fitted</b> option draws a best fit line between the points.<p>\n"
+         "<p>Enabling the <b>Best Fit</b> option draws a best fit line between the points.<p>\n"
          "<p>The <b>Vectors</b> option detemines whether the vector specified by the "
          "<b>VectorX</b> and <b>VectorY</b> columns are drawn.</p>\n";
 }
@@ -540,12 +541,12 @@ addProperties()
   addProperty("vectors/stroke", arrowObj_, "borderWidth", "width"  )->setDesc("Stroke width");
 
   // data label
-  addProperty("dataLabel", this, "dataLabelTextVisible", "visible")->
+  addProperty("labels", this, "dataLabelTextVisible", "visible")->
     setDesc("Data label visible");
-  addProperty("dataLabel", this, "dataLabelTextAngle"  , "angle"  )->
+  addProperty("labels", this, "dataLabelTextAngle"  , "angle"  )->
     setDesc("Data label text angle");
 
-  addAllTextProperties("dataLabel" , "dataLabelText", "Data label");
+  addAllTextProperties("labels" , "dataLabelText", "Labels");
 
   CQChartsGroupPlot::addProperties();
 }
@@ -731,7 +732,7 @@ initAxes()
     ColumnType xColumnType = columnValueType(xColumn());
 
     if (xColumnType == CQBaseModelType::TIME)
-      xAxis()->setDate(true);
+      xAxis()->setValueType(CQChartsAxisValueType::Type::DATE);
   }
 
   // set y axis name(s)
@@ -1587,10 +1588,12 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
         // add impulse line (down to or up to zero)
         if (! isStacked() && isImpulseLines()) {
+          double w = lengthPlotWidth(impulseLinesWidth());
+
           double ys = std::min(y, 0.0);
           double ye = std::max(y, 0.0);
 
-          CQChartsGeom::BBox bbox(x - sw/2, ys, x + sw/2, ye);
+          CQChartsGeom::BBox bbox(x - w/2, ys, x + w/2, ye);
 
           ColorInd is1(is, ns);
           ColorInd iv1(ip, np);
@@ -1828,16 +1831,26 @@ void
 CQChartsXYPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  int row, col;
+  int row = key->maxRow();
+  int col = key->maxCol();
 
-  if (! key->isHorizontal()) {
-    row = key->maxRow();
-    col = 0;
-  }
-  else {
-    row = 0;
-    col = key->maxCol();
-  }
+  auto addKeyItem = [&](const QString &name, const ColorInd &is, const ColorInd &ig) {
+    CQChartsXYKeyColor *color = new CQChartsXYKeyColor(this, is, ig);
+    CQChartsXYKeyText  *text  = new CQChartsXYKeyText (this, name, is, ig);
+
+    if (! key->isHorizontal()) {
+      key->addItem(color, row, col    );
+      key->addItem(text , row, col + 1);
+
+      ++row;
+    }
+    else {
+      key->addItem(color, 0, col++);
+      key->addItem(text , 0, col++);
+    }
+  };
+
+  //---
 
   int ns = yColumns().count();
   int ng = numGroups();
@@ -1863,11 +1876,7 @@ addKeyItems(CQChartsPlotKey *key)
 
     ColorInd is, ig;
 
-    CQChartsXYKeyColor *color = new CQChartsXYKeyColor(this, is, ig);
-    CQChartsXYKeyText  *text  = new CQChartsXYKeyText (this, name, is, ig);
-
-    key->addItem(color, row, col    );
-    key->addItem(text , row, col + 1);
+    addKeyItem(name, is, ig);
   }
   else if (isStacked()) {
     for (int i = 0; i < ns; ++i) {
@@ -1879,11 +1888,7 @@ addKeyItems(CQChartsPlotKey *key)
 
       ColorInd is(i, ns), ig;
 
-      CQChartsXYKeyLine *line = new CQChartsXYKeyLine(this, is, ig);
-      CQChartsXYKeyText *text = new CQChartsXYKeyText(this, name, is, ig);
-
-      key->addItem(line, row + i, col    );
-      key->addItem(text, row + i, col + 1);
+      addKeyItem(name, is, ig);
     }
   }
   else {
@@ -1914,17 +1919,7 @@ addKeyItems(CQChartsPlotKey *key)
 
         ColorInd is(i, ns), ig;
 
-        CQChartsXYKeyLine *line = new CQChartsXYKeyLine(this, is, ig);
-        CQChartsXYKeyText *text = new CQChartsXYKeyText(this, name, is, ig);
-
-        if (! key->isHorizontal()) {
-          key->addItem(line, row + i, col    );
-          key->addItem(text, row + i, col + 1);
-        }
-        else {
-          key->addItem(line, row, col + 2*i    );
-          key->addItem(text, row, col + 2*i + 1);
-        }
+        addKeyItem(name, is, ig);
       }
     }
     else if (ng > 1) {
@@ -1933,18 +1928,18 @@ addKeyItems(CQChartsPlotKey *key)
 
         ColorInd is, ig(i, ng);
 
-        CQChartsXYKeyLine *line = new CQChartsXYKeyLine(this, is, ig);
-        CQChartsXYKeyText *text = new CQChartsXYKeyText(this, name, is, ig);
-
-        if (! key->isHorizontal()) {
-          key->addItem(line, row + i, col    );
-          key->addItem(text, row + i, col + 1);
-        }
-        else {
-          key->addItem(line, row, col + 2*i    );
-          key->addItem(text, row, col + 2*i + 1);
-        }
+        addKeyItem(name, is, ig);
       }
+    }
+    else {
+      QString name = groupIndName(0);
+
+      if (name == "")
+        name = yAxisName();
+
+      ColorInd is, ig;
+
+      addKeyItem(name, is, ig);
     }
   }
 

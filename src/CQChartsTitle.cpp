@@ -147,7 +147,7 @@ updateLocation()
 
 void
 CQChartsTitle::
-addProperties(CQPropertyViewModel *model, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   model->addProperty(path, this, "visible"    )->setDesc("Title is visible");
   model->addProperty(path, this, "location"   )->setDesc("Title location");
@@ -155,7 +155,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "absRect"    )->setDesc("Title absolute rectange");
   model->addProperty(path, this, "insidePlot" )->setDesc("Title is inside plot");
 
-  CQChartsTextBoxObj::addProperties(model, path);
+  CQChartsTextBoxObj::addProperties(model, path, "");
 }
 
 QPointF

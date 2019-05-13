@@ -1,4 +1,5 @@
 #include <CQChartsPosition.h>
+#include <CQPropertyView.h>
 #include <CQStrParse.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsPosition, toString, fromString)
@@ -10,6 +11,8 @@ CQChartsPosition::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsPosition);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsPosition", "position");
 }
 
 bool

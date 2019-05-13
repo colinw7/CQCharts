@@ -324,8 +324,8 @@ bool
 CQChartsCmdBase::
 helpCmd(CQChartsCmdArgs &)
 {
-  for (auto &name : commandNames_)
-    std::cout << name.toStdString() << "\n";
+  for (auto &p : commandProcs_)
+    std::cout << p.first.toStdString() << "\n";
 
   return true;
 }

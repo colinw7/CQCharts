@@ -218,8 +218,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   QColor barColor() const;
 
-  double xColorValue(bool relative=true) const;
-  double yColorValue(bool relative=true) const;
+  double xColorValue(bool relative=true) const override;
+  double yColorValue(bool relative=true) const override;
 
  private:
   const CQChartsDistributionPlot* plot_     { nullptr };

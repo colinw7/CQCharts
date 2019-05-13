@@ -138,6 +138,8 @@ class CQChartsStrokeDataPropertyViewType : public CQChartsPropertyViewType {
                    CQChartsPlot *plot, CQChartsView *view) override;
 
   QString tip(const QVariant &value) const override;
+
+  QString userName() const override { return "stroke_data"; }
 };
 
 //---

@@ -59,7 +59,8 @@ QString
 CQChartsForceDirectedPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Force Directed Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draw connected data using animated nodes connected by springs.</p>\n";
 }
 

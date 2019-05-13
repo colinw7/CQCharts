@@ -55,6 +55,8 @@ class CQChartsLengthPropertyViewType : public CQPropertyViewType {
             const QVariant &value, bool inside) override;
 
   QString tip(const QVariant &value) const override;
+
+  QString userName() const override { return "length"; }
 };
 
 //---

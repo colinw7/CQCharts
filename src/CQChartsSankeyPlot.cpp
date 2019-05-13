@@ -40,7 +40,8 @@ QString
 CQChartsSankeyPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Sankey Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draw connected objects as a connected flow graph.</p>\n";
 }
 

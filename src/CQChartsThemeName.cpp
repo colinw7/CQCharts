@@ -1,5 +1,6 @@
 #include <CQChartsThemeName.h>
 #include <CQChartsTheme.h>
+#include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsThemeName, toString, fromString)
 
@@ -10,6 +11,8 @@ CQChartsThemeName::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsThemeName);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsThemeName", "theme_name");
 }
 
 bool

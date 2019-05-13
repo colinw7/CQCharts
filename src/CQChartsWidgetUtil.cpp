@@ -29,11 +29,11 @@ CQChartsDialogButtons(QWidget *parent) :
 {
   setObjectName("dialogButtons");
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
+  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 2, 2);
 
-  okButton_     = new QPushButton("OK"    ); okButton_    ->setObjectName("ok");
-  applyButton_  = new QPushButton("Apply" ); applyButton_ ->setObjectName("apply");
-  cancelButton_ = new QPushButton("Cancel"); cancelButton_->setObjectName("cancel");
+  okButton_     = CQUtil::makeLabelWidget<QPushButton>("OK"    , "ok"    );
+  applyButton_  = CQUtil::makeLabelWidget<QPushButton>("Apply" , "apply" );
+  cancelButton_ = CQUtil::makeLabelWidget<QPushButton>("Cancel", "cancel");
 
   layout->addStretch(1);
   layout->addWidget (okButton_);

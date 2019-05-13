@@ -1,6 +1,8 @@
 #include <CQChartsViewStatus.h>
 #include <CQChartsWindow.h>
 #include <CQChartsView.h>
+#include <CQUtil.h>
+
 #include <QHBoxLayout>
 #include <QMenu>
 #include <QActionGroup>
@@ -20,8 +22,7 @@ CQChartsViewStatus(CQChartsWindow *window) :
 
   //---
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   statusLabel_ = new CQChartsViewStatusStatus(this);
   posLabel_    = new CQChartsViewStatusPos   (this);
@@ -29,7 +30,8 @@ CQChartsViewStatus(CQChartsWindow *window) :
 
   QFontMetricsF fm(font());
 
-  QFrame *selSpacer = new QFrame;
+  QFrame *selSpacer = CQUtil::makeWidget<QFrame>("selSpacer");
+
   selSpacer->setFixedWidth(fm.width("XX"));
 
   layout->addWidget (statusLabel_);

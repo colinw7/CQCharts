@@ -1,4 +1,5 @@
 #include <CQChartsNamePair.h>
+#include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsNamePair, toString, fromString)
 
@@ -9,6 +10,8 @@ CQChartsNamePair::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsNamePair);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsNamePair", "name_pair");
 }
 
 bool

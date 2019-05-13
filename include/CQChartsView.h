@@ -355,9 +355,10 @@ class CQChartsView : public QFrame,
 
   bool getTclProperty(const QString &name, QVariant &value) const;
 
-  bool getPropertyDesc  (const QString &name, QString  &desc) const;
-  bool getPropertyType  (const QString &name, QString  &type) const;
-  bool getPropertyObject(const QString &name, QObject* &type) const;
+  bool getPropertyDesc    (const QString &name, QString  &desc) const;
+  bool getPropertyType    (const QString &name, QString  &type) const;
+  bool getPropertyUserType(const QString &name, QString  &type) const;
+  bool getPropertyObject  (const QString &name, QObject* &obj ) const;
 
   CQPropertyViewItem *addProperty(const QString &path, QObject *object,
                                   const QString &name, const QString &alias="");
@@ -440,7 +441,8 @@ class CQChartsView : public QFrame,
   //---
 
   // place plots
-  void placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int columns);
+  void placePlots(const Plots &plots, bool vertical, bool horizontal,
+                  int rows, int columns, bool reset=false);
 
   //---
 
@@ -750,6 +752,7 @@ class CQChartsView : public QFrame,
   void searchSlot();
 
   void themeChangedSlot(const QString &);
+  void paletteChangedSlot(const QString &);
 
   void maximizePlotsSlot();
   void restorePlotsSlot();

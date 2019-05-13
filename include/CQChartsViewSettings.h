@@ -31,10 +31,10 @@ class CQChartsEditKeyDlg;
 class CQChartsEditAxisDlg;
 class CQChartsPropertyViewTree;
 
+class CQTabWidget;
 class CQIntegerSpin;
 class CQGroupBox;
 
-class QTabWidget;
 class QComboBox;
 class QSpinBox;
 class QPushButton;
@@ -185,7 +185,7 @@ class CQChartsViewSettings : public QFrame {
   struct PropertiesWidgets {
     FilterEdit*           viewFilterEdit   { nullptr }; //!< view settings filter
     ViewPropertiesWidget* viewPropertyTree { nullptr }; //!< view settings tree
-    QTabWidget*           plotsTab         { nullptr }; //!< plots settings tab
+    CQTabWidget*          plotsTab         { nullptr }; //!< plots settings tab
   };
 
   struct ModelsWidgets {
@@ -231,7 +231,7 @@ class CQChartsViewSettings : public QFrame {
   };
 
   CQChartsWindow*              window_              { nullptr }; //!< parent window
-  QTabWidget*                  tab_                 { nullptr }; //!< settings/palette tab
+  CQTabWidget*                 tab_                 { nullptr }; //!< settings/palette tab
   PropertiesWidgets            propertiesWidgets_;               //!< properties widgets
   ModelsWidgets                modelsWidgets_;                   //!< models widgets
   PlotsWidgets                 plotsWidgets_;                    //!< plots widgets

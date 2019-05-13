@@ -2215,6 +2215,8 @@ addNamedPalette(const QString &name, CQChartsGradientPalette *palette)
 
   namedPalettes_[name] = paletteData;
 
+  connect(palette, SIGNAL(colorsChanged()), this, SLOT(paletteChangedSlot()));
+
   emit palettesChanged();
 }
 
@@ -2249,7 +2251,7 @@ resetPalette(const QString &name)
 
   PaletteData &paletteData = (*p).second;
 
-  *paletteData.current = *paletteData.original;
+  paletteData.current->assign(*paletteData.original);
 }
 
 //---
@@ -2310,9 +2312,23 @@ CQChartsThemeMgr::
 themeChangedSlot()
 {
   CQChartsTheme *theme = qobject_cast<CQChartsTheme *>(sender());
-  if (! theme) return;
 
-  emit themeChanged(theme->name());
+  if (theme)
+    emit themeChanged(theme->name());
+
+  emit themesChanged();
+}
+
+void
+CQChartsThemeMgr::
+paletteChangedSlot()
+{
+  CQChartsGradientPalette *palette = qobject_cast<CQChartsGradientPalette *>(sender());
+
+  if (palette)
+    emit paletteChanged(palette->name());
+
+  emit palettesChanged();
 }
 
 //------
@@ -2427,9 +2443,28 @@ setPalette(int i, CQChartsGradientPalette *palette)
 
 void
 CQChartsTheme::
+setNamedPalettes(const QStringList &names)
+{
+  palettes_.clear();
+
+  for (int i = 0; i < names.length(); ++i) {
+    CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(names[i]);
+    assert(palette);
+
+    palettes_.push_back(palette);
+  }
+
+  emit themeChanged();
+}
+
+void
+CQChartsTheme::
 addNamedPalette(const QString &name)
 {
-  palettes_.push_back(CQChartsThemeMgrInst->getNamedPalette(name));
+  CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(name);
+  assert(palette);
+
+  palettes_.push_back(palette);
 
   emit themeChanged();
 }

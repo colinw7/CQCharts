@@ -220,6 +220,8 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   void drawFg(QPainter *painter) const override;
 
+  QColor calcBarColor() const;
+
   const CQChartsBarChartValue *value() const;
 
  private:
@@ -362,6 +364,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
+  // when multiple columns and grouped then color by value in value set (group)
   bool isColorBySet() const { return colorBySet_; }
   void setColorBySet(bool b);
 
@@ -395,6 +398,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
+  QString valueName() const;
   QString valueStr(double v) const;
 
   void addKeyItems(CQChartsPlotKey *key) override;

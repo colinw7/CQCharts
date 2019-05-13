@@ -1,5 +1,6 @@
 #include <CQChartsColumn.h>
 #include <CQChartsUtil.h>
+#include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsColumn, toString, fromString)
 
@@ -10,6 +11,8 @@ CQChartsColumn::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsColumn);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsColumn", "column");
 }
 
 CQChartsColumn::
@@ -367,4 +370,6 @@ CQChartsColumns::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsColumns);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsColumns", "column_list");
 }

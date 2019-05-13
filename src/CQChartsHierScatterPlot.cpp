@@ -48,7 +48,8 @@ QString
 CQChartsHierScatterPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Hierarchical Scatter Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draws scatter plot x, y points with support for customization of"
          "point size, color and label font.\n";
 }
@@ -211,7 +212,7 @@ addProperties()
   addProperty("font", this, "fontSize", "size")->setDesc("Font size");
 
   // point data labels
-  dataLabel_->addPathProperties("dataLabel");
+  dataLabel_->addPathProperties("labels", "Labels");
 }
 
 void
@@ -731,8 +732,8 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor fillColor   = plot_->interpPaletteColor(ic);
-  QColor strokeColor = plot_->interpPaletteColor(ic);
+  QColor fillColor   = plot_->interpColor(plot_->symbolFillColor  (), ic);
+  QColor strokeColor = plot_->interpColor(plot_->symbolStrokeColor(), ic);
 
   plot_->setPen  (pen  , true, strokeColor, 1.0);
   plot_->setBrush(brush, true, fillColor, 1.0);

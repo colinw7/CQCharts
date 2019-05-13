@@ -83,6 +83,7 @@ CQCharts()
   // register variant meta types
   CQChartsArrowData             ::registerMetaType();
   CQChartsAxisSide              ::registerMetaType();
+  CQChartsAxisValueType         ::registerMetaType();
   CQChartsAxisTickLabelPlacement::registerMetaType();
   CQChartsBoxData               ::registerMetaType();
   CQChartsColor                 ::registerMetaType();

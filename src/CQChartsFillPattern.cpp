@@ -1,4 +1,5 @@
 #include <CQChartsFillPattern.h>
+#include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsFillPattern, toString, fromString)
 
@@ -9,6 +10,8 @@ CQChartsFillPattern::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsFillPattern);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsFillPattern", "fill_pattern");
 }
 
 QString

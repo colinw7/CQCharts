@@ -637,10 +637,10 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   const CQChartsColumn &pointSymbolColumn() const { return pointSymbolColumn_; }
   void setPointSymbolColumn(const CQChartsColumn &c);
 
-  const CQChartsColumn & vectorXColumn() const { return vectorXColumn_; }
+  const CQChartsColumn &vectorXColumn() const { return vectorXColumn_; }
   void setVectorXColumn(const CQChartsColumn &c);
 
-  const CQChartsColumn & vectorYColumn() const { return vectorYColumn_; }
+  const CQChartsColumn &vectorYColumn() const { return vectorYColumn_; }
   void setVectorYColumn(const CQChartsColumn &c);
 
   //---

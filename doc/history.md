@@ -845,3 +845,8 @@
 # 5/6/2019
  + ColorInd cleanup
  + Key Header and Text support more text properties
+# 5/12/2019
+ + More ColorInd cleanup
+ + Add more property description test
+ + Rename some properties
+ + Add user name for types and add to property view

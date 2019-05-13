@@ -53,7 +53,8 @@ QString
 CQChartsPiePlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Pie Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draw circle segments with diameter from a set of values.</p>\n"
          "<p>The segments can be restricted to an inner radius and a label"
          "can be displated at the center of the circle.\n";
@@ -258,17 +259,17 @@ addProperties()
   addProperty("explode", this, "explodeSelected", "selected")->setDesc("Explode selected segments");
   addProperty("explode", this, "explodeRadius"  , "radius"  )->setDesc("Explode radius");
 
-  // label
-  addProperty("label", textBox_, "textVisible", "visible")->setDesc("Text visible");
+  // labels
+  addProperty("labels", textBox_, "textVisible", "visible")->setDesc("Text visible");
 
-  textBox_->addTextDataProperties(propertyModel(), "label");
+  textBox_->addTextDataProperties(propertyModel(), "labels", "Labels");
 
-  addProperty("label", this, "labelRadius", "radius" )->setDesc("Label radius");
-  addProperty("label", this, "rotatedText", "rotated")->setDesc("Text rotated to segment angle");
+  addProperty("labels", this, "labelRadius", "radius" )->setDesc("Label radius");
+  addProperty("labels", this, "rotatedText", "rotated")->setDesc("Text rotated to segment angle");
 
-  QString labelBoxPath = "label/box";
+  QString labelBoxPath = "labels/box";
 
-  textBox_->CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath);
+  textBox_->CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath, "Labels");
 
   // color map
   addColorMapProperties();
@@ -1797,7 +1798,7 @@ QColor
 CQChartsPieGroupObj::
 bgColor() const
 {
-  return plot_->interpPaletteColor(ig_);
+  return plot_->interpColor(plot_->fillColor(), ig_);
 }
 
 //------

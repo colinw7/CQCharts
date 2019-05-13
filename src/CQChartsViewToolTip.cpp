@@ -3,6 +3,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsKey.h>
 #include <CQChartsUtil.h>
+#include <CQUtil.h>
 #include <QLabel>
 
 CQChartsViewToolTip::
@@ -21,7 +22,7 @@ CQChartsViewToolTip::
 showWidget(const QPoint &gpos)
 {
   if (! widget_)
-    widget_ = new QLabel;
+    widget_ = CQUtil::makeLabelWidget<QLabel>("", "label");
 
   if (! updateWidget(gpos))
     return nullptr;

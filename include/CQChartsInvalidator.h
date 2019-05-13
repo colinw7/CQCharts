@@ -1,6 +1,7 @@
 #ifndef CQChartsInvalidator_H
 #define CQChartsInvalidator_H
 
+#include <CQChartsUtil.h>
 #include <QColor>
 
 class CQChartsColor;
@@ -28,6 +29,7 @@ class CQChartsInterpolator {
 
   QColor interpColor(const CQChartsColor &c, int i, int n) const;
   QColor interpColor(const CQChartsColor &c, double r) const;
+  QColor interpColor(const CQChartsColor &c, const CQChartsUtil::ColorInd &ind) const;
 
  private:
   QObject* obj_ { nullptr };

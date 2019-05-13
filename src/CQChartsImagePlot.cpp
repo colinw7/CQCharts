@@ -27,7 +27,8 @@ QString
 CQChartsImagePlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
+  return "<h2>Image Plot</h2>\n"
+         "<h3>Summary</h3>\n"
          "<p>Draw 2d grid of 'pixels' from values in 2d table.</p>\n";
 }
 
@@ -255,7 +256,10 @@ addImageObj(int row, int col, double x, double y, double dx, double dy, double v
 
   CQChartsGeom::BBox bbox(x, y, x + dx, y + dy);
 
-  CQChartsImageObj *imageObj = new CQChartsImageObj(this, bbox, row, col, value, ind1);
+  double rv = CMathUtil::map(value, minValue(), maxValue(), 0.0, 1.0);
+
+  CQChartsImageObj *imageObj =
+    new CQChartsImageObj(this, bbox, row, col, value, ind1, ColorInd(rv));
 
   objs.push_back(imageObj);
 }
@@ -343,7 +347,7 @@ drawXLabels(QPainter *painter) const
 //double th = fm.height();
   double tm = 4;
 
-  for (int col = 0; col < nc_; ++col) {
+  for (int col = 0; col < numColumns(); ++col) {
     bool ok;
 
     QString name = modelHeaderString(col, Qt::Horizontal, ok);
@@ -352,7 +356,7 @@ drawXLabels(QPainter *painter) const
     tw = std::max(tw, fm.width(name));
   }
 
-  for (int col = 0; col < nc_; ++col) {
+  for (int col = 0; col < numColumns(); ++col) {
     bool ok;
 
     QString name = modelHeaderString(col, Qt::Horizontal, ok);
@@ -408,7 +412,7 @@ drawYLabels(QPainter *painter) const
   double th = fm.height();
   double tm = 4;
 
-  for (int row = 0; row < nr_; ++row) {
+  for (int row = 0; row < numRows(); ++row) {
     bool ok;
 
     QString name = modelHeaderString(row, Qt::Vertical, ok);
@@ -417,7 +421,7 @@ drawYLabels(QPainter *painter) const
     tw = std::max(tw, fm.width(name));
   }
 
-  for (int row = 0; row < nr_; ++row) {
+  for (int row = 0; row < numRows(); ++row) {
     bool ok;
 
     QString name = modelHeaderString(row, Qt::Vertical, ok);
@@ -455,7 +459,7 @@ annotationBBox() const
   if (isXLabels()) {
     double tw = 0.0;
 
-    for (int col = 0; col < nc_; ++col) {
+    for (int col = 0; col < numColumns(); ++col) {
       bool ok;
 
       QString name = modelHeaderString(col, Qt::Horizontal, ok);
@@ -466,7 +470,7 @@ annotationBBox() const
 
     double tw1 = pixelToWindowHeight(tw + tm);
 
-    CQChartsGeom::BBox tbbox(0, -tw1, nc_, 0);
+    CQChartsGeom::BBox tbbox(0, -tw1, numColumns(), 0);
 
     bbox += tbbox;
   }
@@ -474,7 +478,7 @@ annotationBBox() const
   if (isYLabels()) {
     double tw = 0.0;
 
-    for (int row = 0; row < nr_; ++row) {
+    for (int row = 0; row < numRows(); ++row) {
       bool ok;
 
       QString name = modelHeaderString(row, Qt::Vertical, ok);
@@ -485,7 +489,7 @@ annotationBBox() const
 
     double tw1 = pixelToWindowWidth(tw + tm);
 
-    CQChartsGeom::BBox tbbox(-tw1, 0, 0, nr_);
+    CQChartsGeom::BBox tbbox(-tw1, 0, 0, numRows());
 
     bbox += tbbox;
   }
@@ -497,9 +501,9 @@ annotationBBox() const
 
 CQChartsImageObj::
 CQChartsImageObj(const CQChartsImagePlot *plot, const CQChartsGeom::BBox &rect,
-                 int row, int col, double value, const QModelIndex &ind) :
- CQChartsPlotObj(const_cast<CQChartsImagePlot *>(plot), rect), plot_(plot),
- row_(row), col_(col), value_(value), ind_(ind)
+                 int row, int col, double value, const QModelIndex &ind, const ColorInd &iv) :
+ CQChartsPlotObj(const_cast<CQChartsImagePlot *>(plot), rect, ColorInd(), ColorInd(), iv),
+ plot_(plot), row_(row), col_(col), value_(value), ind_(ind)
 {
 }
 
@@ -555,12 +559,22 @@ draw(QPainter *painter)
 
   QRectF qrect = CQChartsUtil::toQRect(prect);
 
-  double v = CMathUtil::norm(value_, plot_->minValue(), plot_->maxValue());
+  //---
+
+  ColorInd ic;
+
+  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    double v = CMathUtil::norm(value_, plot_->minValue(), plot_->maxValue());
+
+    ic = ColorInd(v);
+  }
+  else
+    ic = calcColorInd();
 
   //---
 
-  // set pen and brush
-  QColor c = plot_->interpPaletteColor(ColorInd(v));
+  // set pen and brush (TODO: config fill color)
+  QColor c = plot_->interpPaletteColor(ic);
 
   QPen   pen;
   QBrush brush;
@@ -585,7 +599,7 @@ draw(QPainter *painter)
       QPen   tpen;
       QBrush tbrush;
 
-      QColor tc = plot_->interpTextColor(ColorInd());
+      QColor tc = plot_->interpTextColor(ic);
 
       plot_->setPen(tpen, true, tc, plot_->textAlpha());
 
@@ -611,13 +625,23 @@ draw(QPainter *painter)
     }
   }
   else {
-    double cs = CMathUtil::map(value_, plot_->minValue(), plot_->maxValue(), 0.0, 1.0);
+    ColorInd ic;
 
-    // set pen
+    if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+      double cs = CMathUtil::map(value_, plot_->minValue(), plot_->maxValue(), 0.0, 1.0);
+
+      ic = ColorInd(cs);
+    }
+    else
+      ic = calcColorInd();
+
+    //---
+
+    // set pen (TODO: config fill color)
     QPen   pen;
     QBrush brush;
 
-    QColor c = plot_->interpPaletteColor(ColorInd(cs));
+    QColor c = plot_->interpPaletteColor(ic);
 
     plot_->setBrush(brush, true, c);
 
@@ -641,4 +665,24 @@ draw(QPainter *painter)
 
     painter->drawEllipse(QRectF(center.x() - s1/2, center.y() - s1/2, s1, s1));
   }
+}
+
+double
+CQChartsImageObj::
+xColorValue(bool relative) const
+{
+  if (! relative)
+    return col_;
+  else
+    return CMathUtil::map(col_, 0.0, 1.0*plot_->numColumns(), 0.0, 1.0);
+}
+
+double
+CQChartsImageObj::
+yColorValue(bool relative) const
+{
+  if (! relative)
+    return col_;
+  else
+    return CMathUtil::map(row_, 0.0, 1.0*plot_->numRows(), 0.0, 1.0);
 }

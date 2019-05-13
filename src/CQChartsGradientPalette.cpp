@@ -17,11 +17,14 @@ init()
   initFunctions();
 }
 
+#if 0
 CQChartsGradientPalette::
-CQChartsGradientPalette(const CQChartsGradientPalette &palette)
+CQChartsGradientPalette(const CQChartsGradientPalette &palette) :
+ QObject()
 {
   *this = palette;
 }
+#endif
 
 CQChartsGradientPalette::
 ~CQChartsGradientPalette()
@@ -29,9 +32,20 @@ CQChartsGradientPalette::
   delete qtcl_;
 }
 
+#if 0
 CQChartsGradientPalette &
 CQChartsGradientPalette::
 operator=(const CQChartsGradientPalette &palette)
+{
+  assign(palette);
+
+  return *this;
+}
+#endif
+
+void
+CQChartsGradientPalette::
+assign(const CQChartsGradientPalette &palette)
 {
   colorType_  = palette.colorType_;
   colorModel_ = palette.colorModel_;
@@ -74,8 +88,17 @@ operator=(const CQChartsGradientPalette &palette)
   qtcl_ = nullptr;
 
   init();
+}
 
-  return *this;
+CQChartsGradientPalette *
+CQChartsGradientPalette::
+dup() const
+{
+  CQChartsGradientPalette *palette = new CQChartsGradientPalette;
+
+  palette->assign(*this);
+
+  return palette;
 }
 
 //---
@@ -180,6 +203,20 @@ resetDefinedColors()
 
   colorsMin_ = 0.0;
   colorsMax_ = 0.0;
+}
+
+void
+CQChartsGradientPalette::
+setDefinedColors(const DefinedColors &colors)
+{
+  setColorType(CQChartsGradientPalette::ColorType::DEFINED);
+
+  resetDefinedColors();
+
+  for (const auto &c : colors)
+    addDefinedColor(c.v, c.c);
+
+  emit colorsChanged();
 }
 
 double

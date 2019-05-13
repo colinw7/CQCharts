@@ -1,4 +1,5 @@
 #include <CQChartsSides.h>
+#include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsSides, toString, fromString)
 
@@ -9,6 +10,8 @@ CQChartsSides::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsSides);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsSides", "sides");
 }
 
 bool

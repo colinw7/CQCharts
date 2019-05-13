@@ -3,6 +3,7 @@
 
 #include <CQPropertyView.h>
 #include <CQRealSpin.h>
+#include <CQUtil.h>
 
 #include <QHBoxLayout>
 #include <cassert>
@@ -13,8 +14,7 @@ CQChartsLengthEdit(QWidget *parent) :
 {
   setObjectName("lengthEdit");
 
-  QHBoxLayout *layout = new QHBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   //---
 

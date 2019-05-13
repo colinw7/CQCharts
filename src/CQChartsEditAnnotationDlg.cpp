@@ -42,11 +42,11 @@ void
 CQChartsEditAnnotationDlg::
 initWidgets()
 {
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //----
 
-  QGridLayout *gridLayout = new QGridLayout;
+  QGridLayout *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   layout->addLayout(gridLayout);
 
@@ -71,7 +71,7 @@ initWidgets()
   //----
 
   // create widgets for annotation type
-  frameLayout_ = new QVBoxLayout;
+  frameLayout_ = CQUtil::makeLayout<QVBoxLayout>(2, 2);
 
   if      (annotation_->type() == CQChartsAnnotation::Type::RECT)
     createRectFrame();
@@ -112,11 +112,11 @@ createRectFrame()
 
   frameLayout_->addWidget(rectWidgets_.frame);
 
-  QVBoxLayout *frameLayout = new QVBoxLayout(rectWidgets_.frame);
+  QVBoxLayout *frameLayout = CQUtil::makeLayout<QVBoxLayout>(rectWidgets_.frame, 2, 2);
 
   //---
 
-  QGridLayout *gridLayout = new QGridLayout;
+  QGridLayout *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -175,7 +175,7 @@ createEllipseFrame()
 
   frameLayout_->addWidget(ellipseWidgets_.frame);
 
-  QVBoxLayout *frameLayout = new QVBoxLayout(ellipseWidgets_.frame);
+  QVBoxLayout *frameLayout = CQUtil::makeLayout<QVBoxLayout>(ellipseWidgets_.frame, 2, 2);
 
   //---
 
@@ -191,7 +191,7 @@ createEllipseFrame()
 
   //---
 
-  QGridLayout *gridLayout = new QGridLayout;
+  QGridLayout *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -227,7 +227,7 @@ createPolygonFrame()
 
   frameLayout_->addWidget(polygonWidgets_.frame);
 
-  QVBoxLayout *frameLayout = new QVBoxLayout(polygonWidgets_.frame);
+  QVBoxLayout *frameLayout = CQUtil::makeLayout<QVBoxLayout>(polygonWidgets_.frame, 2, 2);
 
   //---
 
@@ -261,7 +261,7 @@ createPolyLineFrame()
 
   frameLayout_->addWidget(polylineWidgets_.frame);
 
-  QVBoxLayout *frameLayout = new QVBoxLayout(polylineWidgets_.frame);
+  QVBoxLayout *frameLayout = CQUtil::makeLayout<QVBoxLayout>(polylineWidgets_.frame, 2, 2);
 
   //---
 
@@ -295,16 +295,16 @@ createTextFrame()
 
   frameLayout_->addWidget(textWidgets_.frame);
 
-  QVBoxLayout *frameLayout = new QVBoxLayout(textWidgets_.frame);
+  QVBoxLayout *frameLayout = CQUtil::makeLayout<QVBoxLayout>(textWidgets_.frame, 2, 2);
 
   //---
 
-  QFrame *positionRectFrame = new QFrame;
+  QFrame *positionRectFrame = CQUtil::makeWidget<QFrame>("positionRectFrame");
 
-  QHBoxLayout *positionRectLayout = new QHBoxLayout(positionRectFrame);
+  QHBoxLayout *positionRectLayout = CQUtil::makeLayout<QHBoxLayout>(positionRectFrame, 2, 2);
 
-  textWidgets_.positionRadio = new QRadioButton("Position");
-  textWidgets_.rectRadio     = new QRadioButton("Rect");
+  textWidgets_.positionRadio = CQUtil::makeLabelWidget<QRadioButton>("Position", "positionRadio");
+  textWidgets_.rectRadio     = CQUtil::makeLabelWidget<QRadioButton>("Rect", "rectRadio");
 
   positionRectLayout->addWidget(textWidgets_.positionRadio);
   positionRectLayout->addWidget(textWidgets_.rectRadio);
@@ -333,7 +333,7 @@ createTextFrame()
 
   //---
 
-  QGridLayout *gridLayout1 = new QGridLayout;
+  QGridLayout *gridLayout1 = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout1);
 
@@ -352,7 +352,7 @@ createTextFrame()
 
   //---
 
-  QGridLayout *gridLayout = new QGridLayout;
+  QGridLayout *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -403,11 +403,11 @@ createArrowFrame()
 
   frameLayout_->addWidget(arrowWidgets_.frame);
 
-  QVBoxLayout *frameLayout = new QVBoxLayout(arrowWidgets_.frame);
+  QVBoxLayout *frameLayout = CQUtil::makeLayout<QVBoxLayout>(arrowWidgets_.frame, 2, 2);
 
   //----
 
-  QGridLayout *gridLayout = new QGridLayout;
+  QGridLayout *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -438,7 +438,7 @@ createArrowFrame()
 
   //---
 
-  QGridLayout *gridLayout1 = new QGridLayout;
+  QGridLayout *gridLayout1 = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout1);
 
@@ -483,11 +483,11 @@ createPointFrame()
 
   frameLayout_->addWidget(pointWidgets_.frame);
 
-  QVBoxLayout *frameLayout = new QVBoxLayout(pointWidgets_.frame);
+  QVBoxLayout *frameLayout = CQUtil::makeLayout<QVBoxLayout>(pointWidgets_.frame, 2, 2);
 
   //---
 
-  QGridLayout *gridLayout = new QGridLayout;
+  QGridLayout *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   frameLayout->addLayout(gridLayout);
 
@@ -569,7 +569,7 @@ addSidesWidget(Widgets &widgets, QBoxLayout *playout)
 
   //---
 
-  QGridLayout *gridLayout = new QGridLayout;
+  QGridLayout *gridLayout = CQUtil::makeLayout<QGridLayout>(2, 2);
 
   playout->addLayout(gridLayout);
 
@@ -584,11 +584,9 @@ QHBoxLayout *
 CQChartsEditAnnotationDlg::
 addLabelWidget(QBoxLayout *playout, const QString &label, QWidget *widget)
 {
-  QHBoxLayout *layout = new QHBoxLayout;
-  layout->setMargin(0); layout->setSpacing(2);
+  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
-  QLabel *qlabel = new QLabel(label);
-  qlabel->setObjectName("label" + label);
+  QLabel *qlabel = CQUtil::makeLabelWidget<QLabel>(label, "label" + label);
 
   layout->addWidget (qlabel);
   layout->addWidget (widget);

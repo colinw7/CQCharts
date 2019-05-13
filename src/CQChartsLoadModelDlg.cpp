@@ -49,7 +49,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   setWindowTitle("Load Model");
   //setWindowIcon(QIcon()); TODO
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
@@ -60,10 +60,9 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //----
 
-  QFrame *fileFrame = new QFrame;
-  fileFrame->setObjectName("file");
+  QFrame *fileFrame = CQUtil::makeWidget<QFrame>("file");
 
-  QGridLayout *fileFrameLayout = new QGridLayout(fileFrame);
+  QGridLayout *fileFrameLayout = CQUtil::makeLayout<QGridLayout>(fileFrame, 2, 2);
 
   area->addWidget(fileFrame, "File");
 
@@ -85,8 +84,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   //--
 
   // Type Combo
-  typeCombo_ = new QComboBox;
-  typeCombo_->setObjectName("typeCombo");
+  typeCombo_ = CQUtil::makeWidget<QComboBox>("typeCombo");
 
   typeCombo_->addItem("CSV");
   typeCombo_->addItem("TSV");
@@ -116,20 +114,20 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   //--
 
   // Option Checks
-  QHBoxLayout *optionLayout = new QHBoxLayout;
+  QHBoxLayout *optionLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
-  commentHeaderCheck_ = new QCheckBox("Comment Header");
-  commentHeaderCheck_->setObjectName("commentHeaderCheck");
+  commentHeaderCheck_ =
+    CQUtil::makeLabelWidget<QCheckBox>("Comment Header", "commentHeaderCheck");
 
   optionLayout->addWidget(commentHeaderCheck_);
 
-  firstLineHeaderCheck_ = new QCheckBox("First Line Header");
-  firstLineHeaderCheck_->setObjectName("firstLineHeaderCheck");
+  firstLineHeaderCheck_ =
+    CQUtil::makeLabelWidget<QCheckBox>("First Line Header", "firstLineHeaderCheck");
 
   optionLayout->addWidget(firstLineHeaderCheck_);
 
-  firstColumnHeaderCheck_ = new QCheckBox("First Column Header");
-  firstColumnHeaderCheck_->setObjectName("firstColumnHeaderCheck");
+  firstColumnHeaderCheck_ =
+    CQUtil::makeLabelWidget<QCheckBox>("First Column Header", "firstColumnHeaderCheck");
 
   optionLayout->addWidget(firstColumnHeaderCheck_);
 
@@ -155,17 +153,15 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //----
 
-  QFrame *previewFrame = new QFrame;
-  previewFrame->setObjectName("preview");
+  QFrame *previewFrame = CQUtil::makeWidget<QFrame>("preview");
 
-  QVBoxLayout *previewFrameLayout = new QVBoxLayout(previewFrame);
+  QVBoxLayout *previewFrameLayout = CQUtil::makeLayout<QVBoxLayout>(previewFrame, 2, 2);
 
   area->addWidget(previewFrame, "Preview");
 
   //--
 
-  previewText_ = new QTextEdit;
-  previewText_->setObjectName("previewText");
+  previewText_ = CQUtil::makeWidget<QTextEdit>("previewText");
 
   previewFrameLayout->addWidget(previewText_);
 
@@ -178,16 +174,12 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   //----
 
   // Bottom Buttons
-  QHBoxLayout *buttonLayout = new QHBoxLayout;
+  QHBoxLayout *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
-  okButton_ = new QPushButton("OK");
-  okButton_->setObjectName("ok");
+  okButton_    = CQUtil::makeLabelWidget<QPushButton>("OK"   , "ok"   );
+  applyButton_ = CQUtil::makeLabelWidget<QPushButton>("Apply", "apply");
 
-  applyButton_ = new QPushButton("Apply");
-  applyButton_->setObjectName("apply");
-
-  QPushButton *cancelButton = new QPushButton("Cancel");
-  cancelButton->setObjectName("cancel");
+  QPushButton *cancelButton = CQUtil::makeLabelWidget<QPushButton>("Cancel", "cancel");
 
   connect(okButton_   , SIGNAL(clicked()), this, SLOT(okSlot()));
   connect(applyButton_, SIGNAL(clicked()), this, SLOT(applySlot()));

@@ -397,11 +397,11 @@ namespace Springy {
     Graph *graph() const { return graph_; }
 
     Point *nodePoint(Node *node) const {
-      auto p = nodePoints_.find(node->id());
+      Layout *th = const_cast<Layout *>(this);
 
-      if (p == nodePoints_.end()) {
-        Layout *th = const_cast<Layout *>(this);
+      auto p = th->nodePoints_.find(node->id());
 
+      if (p == th->nodePoints_.end()) {
         auto point = new Point(node->position(), node->mass());
 
         if (node->isFixed())

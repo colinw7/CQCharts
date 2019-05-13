@@ -78,8 +78,9 @@ QString
 CQChartsScatterPlotType::
 description() const
 {
-  return "<h2>Summary</h2>\n"
-         "<p>Draws scatter plot x, y points with support for customization of"
+  return "<h2>Scatter Plot</h2>\n"
+         "<h3>Summary</h3>\n"
+         "<p>Draws scatter plot x, y points with support for customization of "
          "point size, color and label font.\n";
 }
 
@@ -757,7 +758,7 @@ addProperties()
   addSymbolProperties("symbol", "", "");
 
   // point data labels
-  dataLabel_->addPathProperties("dataLabel");
+  dataLabel_->addPathProperties("labels", "Labels");
 
   // grid
   addProperty("grid", this, "gridded" , "enabled")->setDesc("Grid points");
@@ -1025,15 +1026,17 @@ initAxes(bool uniqueX, bool uniqueY)
     yAxis_->setLabel(yname);
   }
 
-  xAxis_->setIntegral(uniqueX);
-  yAxis_->setIntegral(uniqueY);
+  xAxis_->setValueType(uniqueX ? CQChartsAxisValueType::Type::INTEGER :
+                                 CQChartsAxisValueType::Type::REAL);
+  yAxis_->setValueType(uniqueY ? CQChartsAxisValueType::Type::INTEGER :
+                                 CQChartsAxisValueType::Type::REAL);
 
   //---
 
   ColumnType xColumnType = columnValueType(xColumn());
 
   if (xColumnType == CQBaseModelType::TIME)
-    xAxis()->setDate(true);
+    xAxis()->setValueType(CQChartsAxisValueType::Type::DATE);
 }
 
 QString
@@ -3228,9 +3231,9 @@ drawSymbolMapKey(QPainter *painter) const
 
   double a = symbolMapKeyAlpha();
 
-  QColor fillColor1 = interpSymbolFillColor(1.0); fillColor1.setAlphaF(a);
-  QColor fillColor2 = interpSymbolFillColor(0.5); fillColor2.setAlphaF(a);
-  QColor fillColor3 = interpSymbolFillColor(0.0); fillColor3.setAlphaF(a);
+  QColor fillColor1 = interpSymbolFillColor(ColorInd(1.0)); fillColor1.setAlphaF(a);
+  QColor fillColor2 = interpSymbolFillColor(ColorInd(0.5)); fillColor2.setAlphaF(a);
+  QColor fillColor3 = interpSymbolFillColor(ColorInd(0.0)); fillColor3.setAlphaF(a);
 
   painter->setBrush(fillColor1); painter->drawEllipse(r1);
   painter->setBrush(fillColor2); painter->drawEllipse(r2);

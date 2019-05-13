@@ -1,5 +1,6 @@
 #include <CQChartsFillUnder.h>
 #include <CQChartsUtil.h>
+#include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsFillUnderSide, toString, fromString)
 
@@ -10,6 +11,8 @@ CQChartsFillUnderSide::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsFillUnderSide);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsFillUnderSide", "full_under_side");
 }
 
 QString
@@ -59,6 +62,8 @@ CQChartsFillUnderPos::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsFillUnderPos);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsFillUnderPos", "fill_under_position");
 }
 
 QString

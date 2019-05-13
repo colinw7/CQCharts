@@ -136,7 +136,7 @@ initRect()
 
 void
 CQChartsAnnotation::
-addProperties(CQPropertyViewModel *model, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   model->setObjectRoot(path, this);
 }
@@ -158,7 +158,8 @@ addFillProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(bgPath, this, "filled"     , "visible")->setDesc("Fill visible");
   model->addProperty(bgPath, this, "fillColor"  , "color"  )->setDesc("Fill color");
   model->addProperty(bgPath, this, "fillAlpha"  , "alpha"  )->setDesc("Fill alpha");
-  model->addProperty(bgPath, this, "fillPattern", "pattern")->setDesc("Fill pattern");
+  model->addProperty(bgPath, this, "fillPattern", "pattern")->
+    setDesc("Fill pattern").setHidden(true);
 }
 
 void
@@ -221,6 +222,21 @@ getPropertyType(const QString &name, QString &type) const
   if (! item) return false;
 
   type = item->typeName();
+
+  return true;
+}
+
+bool
+CQChartsAnnotation::
+getPropertyUserType(const QString &name, QString &type) const
+{
+  CQPropertyViewModel *propertyModel = this->propertyModel();
+  if (! propertyModel) return false;
+
+  const CQPropertyViewItem *item = propertyModel->propertyItem(this, name);
+  if (! item) return false;
+
+  type = item->userTypeName();
 
   return true;
 }
@@ -548,7 +564,7 @@ setEnd(const CQChartsPosition &p)
 
 void
 CQChartsRectAnnotation::
-addProperties(CQPropertyViewModel *model, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   QString path1 = path + "/" + propertyId();
 
@@ -741,7 +757,7 @@ CQChartsEllipseAnnotation::
 
 void
 CQChartsEllipseAnnotation::
-addProperties(CQPropertyViewModel *model, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   QString path1 = path + "/" + propertyId();
 
@@ -948,7 +964,7 @@ CQChartsPolygonAnnotation::
 
 void
 CQChartsPolygonAnnotation::
-addProperties(CQPropertyViewModel *model, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   QString path1 = path + "/" + propertyId();
 
@@ -1143,7 +1159,7 @@ CQChartsPolylineAnnotation::
 
 void
 CQChartsPolylineAnnotation::
-addProperties(CQPropertyViewModel *model, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   QString path1 = path + "/" + propertyId();
 
@@ -1440,7 +1456,7 @@ rectToBBox()
 
 void
 CQChartsTextAnnotation::
-addProperties(CQPropertyViewModel *model, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   QString path1 = path + "/" + propertyId();
 
@@ -1861,7 +1877,7 @@ setArrowData(const CQChartsArrowData &data)
 
 void
 CQChartsArrowAnnotation::
-addProperties(CQPropertyViewModel *model, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   QString path1 = path + "/" + propertyId();
 
@@ -2138,7 +2154,7 @@ CQChartsPointAnnotation::
 
 void
 CQChartsPointAnnotation::
-addProperties(CQPropertyViewModel *model, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   QString path1 = path + "/" + propertyId();
 
@@ -2158,7 +2174,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "symbolFillAlpha"  , "alpha")->
     setDesc("Point symbol fill alpha");
   model->addProperty(path1, this, "symbolFillPattern", "pattern")->
-    setDesc("Point symbol fill pattern");
+    setDesc("Point symbol fill pattern").setHidden(true);
 
   QString strokePath = path1 + "/stroke";
 

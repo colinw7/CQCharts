@@ -21,8 +21,7 @@ class CQChartsParamEdit : public QFrame {
  public:
   CQChartsParamEdit(QWidget *parent=nullptr) :
    QFrame(parent) {
-    layout_ = new QHBoxLayout(this);
-    layout_->setMargin(0); layout_->setSpacing(0);
+    layout_ = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
   }
 
   void setString(const QString &str="") {
@@ -38,7 +37,7 @@ class CQChartsParamEdit : public QFrame {
   void setBool(bool b=false) {
     reset();
 
-    check_ = new QCheckBox;
+    check_ = CQUtil::makeLabelWidget<QCheckBox>("", "check");
 
     check_->setChecked(b);
 
@@ -77,8 +76,7 @@ CQChartsModelControl::
 CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
  charts_(charts)
 {
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setMargin(0); layout->setSpacing(2);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
@@ -94,15 +92,13 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   controlTab->addTab(exprFrame, "Expression");
 
-  QVBoxLayout *exprFrameLayout = new QVBoxLayout(exprFrame);
-  exprFrameLayout->setMargin(0); exprFrameLayout->setSpacing(2);
+  QVBoxLayout *exprFrameLayout = CQUtil::makeLayout<QVBoxLayout>(exprFrame, 0, 2);
 
   //--
 
   QFrame *exprModeFrame = CQUtil::makeWidget<QFrame>("exprMode");
 
-  QHBoxLayout *exprModeLayout = new QHBoxLayout(exprModeFrame);
-  exprModeLayout->setMargin(0); exprModeLayout->setSpacing(2);
+  QHBoxLayout *exprModeLayout = CQUtil::makeLayout<QHBoxLayout>(exprModeFrame, 0, 2);
 
   exprFrameLayout->addWidget(exprModeFrame);
 
@@ -127,8 +123,7 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   //--
 
-  QGridLayout *exprGridLayout = new QGridLayout;
-  exprGridLayout->setMargin(0); exprGridLayout->setSpacing(2);
+  QGridLayout *exprGridLayout = CQUtil::makeLayout<QGridLayout>(0, 2);
 
   exprFrameLayout->addLayout(exprGridLayout);
 
@@ -195,14 +190,11 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   //--
 
-  QHBoxLayout *exprButtonLayout = new QHBoxLayout;
-  exprButtonLayout->setMargin(0); exprButtonLayout->setSpacing(2);
+  QHBoxLayout *exprButtonLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
   exprFrameLayout->addLayout(exprButtonLayout);
 
-  QPushButton *exprApplyButton = CQUtil::makeWidget<QPushButton>("exprApply");
-
-  exprApplyButton->setText("Apply");
+  QPushButton *exprApplyButton = CQUtil::makeLabelWidget<QPushButton>("Apply", "exprApply");
 
   connect(exprApplyButton, SIGNAL(clicked()), this, SLOT(exprApplySlot()));
 
@@ -216,13 +208,11 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   controlTab->addTab(foldFrame, "Fold");
 
-  QVBoxLayout *foldFrameLayout = new QVBoxLayout(foldFrame);
-  foldFrameLayout->setMargin(0); foldFrameLayout->setSpacing(2);
+  QVBoxLayout *foldFrameLayout = CQUtil::makeLayout<QVBoxLayout>(foldFrame, 0, 2);
 
   //---
 
-  QGridLayout *foldWidgetsLayout = new QGridLayout;
-  foldWidgetsLayout->setMargin(0); foldWidgetsLayout->setSpacing(2);
+  QGridLayout *foldWidgetsLayout = CQUtil::makeLayout<QGridLayout>(0, 2);
 
   foldFrameLayout->addLayout(foldWidgetsLayout);
 
@@ -249,20 +239,15 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   //--
 
-  QHBoxLayout *foldButtonLayout = new QHBoxLayout;
-  foldButtonLayout->setMargin(0); foldButtonLayout->setSpacing(2);
+  QHBoxLayout *foldButtonLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
   foldFrameLayout->addLayout(foldButtonLayout);
 
-  QPushButton *foldApplyButton = CQUtil::makeWidget<QPushButton>("foldApply");
-
-  foldApplyButton->setText("Apply");
+  QPushButton *foldApplyButton = CQUtil::makeLabelWidget<QPushButton>("Apply", "foldApply");
 
   connect(foldApplyButton, SIGNAL(clicked()), this, SLOT(foldApplySlot()));
 
-  QPushButton *foldClearButton = CQUtil::makeWidget<QPushButton>("foldClear");
-
-  foldClearButton->setText("Clear");
+  QPushButton *foldClearButton = CQUtil::makeLabelWidget<QPushButton>("Clear", "foldClear");
 
   connect(foldClearButton, SIGNAL(clicked()), this, SLOT(foldClearSlot()));
 
@@ -283,8 +268,7 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   columnEditData_.editFrame = CQUtil::makeWidget<QFrame>("columnEditFrame");
 
-  columnEditData_.editLayout = new QGridLayout(columnEditData_.editFrame);
-  columnEditData_.editLayout->setMargin(0); columnEditData_.editLayout->setSpacing(2);
+  columnEditData_.editLayout = CQUtil::makeLayout<QGridLayout>(columnEditData_.editFrame, 0, 2);
 
   columnDataLayout->addWidget(columnEditData_.editFrame);
 
@@ -316,14 +300,11 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   //---
 
-  QHBoxLayout *columnButtonLayout = new QHBoxLayout;
-  columnButtonLayout->setMargin(0); columnButtonLayout->setSpacing(2);
+  QHBoxLayout *columnButtonLayout = CQUtil::makeLayout<QHBoxLayout>(0, 2);
 
   columnDataLayout->addLayout(columnButtonLayout);
 
-  QPushButton *typeApplyButton = CQUtil::makeWidget<QPushButton>("typeApply");
-
-  typeApplyButton->setText("Apply");
+  QPushButton *typeApplyButton = CQUtil::makeLabelWidget<QPushButton>("Apply", "typeApply");
 
   connect(typeApplyButton, SIGNAL(clicked()), this, SLOT(typeApplySlot()));
 
@@ -343,7 +324,7 @@ CQLineEdit *
 CQChartsModelControl::
 addLineEdit(QGridLayout *grid, int &row, const QString &name, const QString &objName) const
 {
-  QLabel     *label = CQUtil::makeWidget<QLabel    >(objName + "Label");
+  QLabel     *label = CQUtil::makeLabelWidget<QLabel>("", objName + "Label");
   CQLineEdit *edit  = CQUtil::makeWidget<CQLineEdit>(objName + "Edit" );
 
   label->setText(name);
@@ -360,8 +341,8 @@ QComboBox *
 CQChartsModelControl::
 addComboBox(QGridLayout *grid, int &row, const QString &name, const QString &objName) const
 {
-  QLabel    *label = CQUtil::makeWidget<QLabel   >(objName + "Label");
-  QComboBox *combo  = CQUtil::makeWidget<QComboBox>(objName + "Combo");
+  QLabel    *label = CQUtil::makeLabelWidget<QLabel>("", objName + "Label");
+  QComboBox *combo = CQUtil::makeWidget<QComboBox>(objName + "Combo");
 
   label->setText(name);
 

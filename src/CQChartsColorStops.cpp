@@ -1,4 +1,5 @@
 #include <CQChartsColorStops.h>
+#include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsColorStops, toString, fromString)
 
@@ -9,6 +10,8 @@ CQChartsColorStops::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsColorStops);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsColorStops", "color_stops");
 }
 
 QString

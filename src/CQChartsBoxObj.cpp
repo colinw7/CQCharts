@@ -44,26 +44,40 @@ view() const
 
 void
 CQChartsBoxObj::
-addProperties(CQPropertyViewModel *model, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &desc)
 {
-  model->addProperty(path, this, "margin" )->setDesc("Outer margin");
-  model->addProperty(path, this, "padding")->setDesc("Inner padding");
+  model->addProperty(path, this, "margin" )->
+    setDesc(desc.length() ? desc + " outer margin" : "Outer margin");
+  model->addProperty(path, this, "padding")->
+    setDesc(desc.length() ? desc + " inner padding" : "Inner padding");
 
   QString bgPath = path + "/fill";
 
-  model->addProperty(bgPath, this, "filled"     , "visible")->setDesc("Fill visible");
-  model->addProperty(bgPath, this, "fillColor"  , "color"  )->setDesc("Fill color");
-  model->addProperty(bgPath, this, "fillAlpha"  , "alpha"  )->setDesc("Fill alpha");
-  model->addProperty(bgPath, this, "fillPattern", "pattern")->setDesc("Fill pattern");
+  QString fillDesc = (desc.length() ? desc + " fill" : "Fill");
+
+  model->addProperty(bgPath, this, "filled"     , "visible")->setDesc(fillDesc + " visible");
+  model->addProperty(bgPath, this, "fillColor"  , "color"  )->setDesc(fillDesc + " color");
+  model->addProperty(bgPath, this, "fillAlpha"  , "alpha"  )->setDesc(fillDesc + " alpha");
+  model->addProperty(bgPath, this, "fillPattern", "pattern")->
+    setDesc(fillDesc + " pattern").setHidden(true);
 
   QString borderPath = path + "/stroke";
 
-  model->addProperty(borderPath, this, "border"     , "visible"   )->setDesc("Stroke visible");
-  model->addProperty(borderPath, this, "borderColor", "color"     )->setDesc("Stroke color");
-  model->addProperty(borderPath, this, "borderAlpha", "alpha"     )->setDesc("Stroke alpha");
-  model->addProperty(borderPath, this, "borderWidth", "width"     )->setDesc("Stroke width");
-  model->addProperty(borderPath, this, "cornerSize" , "cornerSize")->setDesc("Box corner size");
-  model->addProperty(borderPath, this, "borderSides", "sides"     )->setDesc("Box visible sides");
+  QString strokeDesc = (desc.length() ? desc + " stroke" : "Stroke");
+
+  model->addProperty(borderPath, this, "border"     , "visible"   )->
+    setDesc(strokeDesc + " visible");
+  model->addProperty(borderPath, this, "borderColor", "color"     )->
+    setDesc(strokeDesc + " color");
+  model->addProperty(borderPath, this, "borderAlpha", "alpha"     )->
+    setDesc(strokeDesc + " alpha");
+  model->addProperty(borderPath, this, "borderWidth", "width"     )->
+    setDesc(strokeDesc + " width");
+
+  model->addProperty(borderPath, this, "cornerSize" , "cornerSize")->
+    setDesc(desc.length() ? desc + "box corner size" : "Box corner size");
+  model->addProperty(borderPath, this, "borderSides", "sides"     )->
+    setDesc(desc.length() ? desc + "box visible sides" : "Box visible sides");
 }
 
 void

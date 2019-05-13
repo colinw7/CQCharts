@@ -1,5 +1,6 @@
 #include <CQChartsLineDash.h>
 #include <CQUtil.h>
+#include <CQPropertyView.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsLineDash, toString, fromString)
 
@@ -10,6 +11,8 @@ CQChartsLineDash::
 registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsLineDash);
+
+  CQPropertyViewMgrInst->setUserName("CQChartsLineDash", "line_dash");
 }
 
 CQChartsLineDash::
