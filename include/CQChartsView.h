@@ -355,10 +355,11 @@ class CQChartsView : public QFrame,
 
   bool getTclProperty(const QString &name, QVariant &value) const;
 
-  bool getPropertyDesc    (const QString &name, QString  &desc) const;
-  bool getPropertyType    (const QString &name, QString  &type) const;
-  bool getPropertyUserType(const QString &name, QString  &type) const;
-  bool getPropertyObject  (const QString &name, QObject* &obj ) const;
+  bool getPropertyDesc    (const QString &name, QString  &desc, bool hidden=false) const;
+  bool getPropertyType    (const QString &name, QString  &type, bool hidden=false) const;
+  bool getPropertyUserType(const QString &name, QString  &type, bool hidden=false) const;
+  bool getPropertyObject  (const QString &name, QObject* &obj , bool hidden=false) const;
+  bool getPropertyHidden  (const QString &name, bool &hidden) const;
 
   CQPropertyViewItem *addProperty(const QString &path, QObject *object,
                                   const QString &name, const QString &alias="");
@@ -831,6 +832,8 @@ class CQChartsView : public QFrame,
   void updateAnnotationSlot();
 
  private:
+  void addProperties();
+
   void selectPointPress();
 
   void resetConnections(bool notify);

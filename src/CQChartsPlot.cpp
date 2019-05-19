@@ -866,30 +866,30 @@ QString
 CQChartsPlot::
 xLabel() const
 {
-  return (xAxis() ? xAxis()->userLabel() : "");
+  return (mappedXAxis() ? mappedXAxis()->userLabel() : "");
 }
 
 void
 CQChartsPlot::
 setXLabel(const QString &s)
 {
-  if (xAxis())
-    xAxis()->setUserLabel(s);
+  if (mappedXAxis())
+    mappedXAxis()->setUserLabel(s);
 }
 
 QString
 CQChartsPlot::
 yLabel() const
 {
-  return (yAxis() ? yAxis()->userLabel() : "");
+  return (mappedYAxis() ? mappedYAxis()->userLabel() : "");
 }
 
 void
 CQChartsPlot::
 setYLabel(const QString &s)
 {
-  if (yAxis())
-    yAxis()->setUserLabel(s);
+  if (mappedYAxis())
+    mappedYAxis()->setUserLabel(s);
 }
 
 //---
@@ -1444,16 +1444,32 @@ setInvertY(bool b)
   drawObjs();
 }
 
+//------
+
+bool
+CQChartsPlot::
+isLogX() const
+{
+  // return logX_;
+  return (mappedXAxis() && mappedXAxis()->valueType() == CQChartsAxisValueType::Type::LOG);
+}
+
+bool
+CQChartsPlot::
+isLogY() const
+{
+  // return logY_;
+  return (mappedYAxis() && mappedYAxis()->valueType() == CQChartsAxisValueType::Type::LOG);
+}
+
 void
 CQChartsPlot::
 setLogX(bool b)
 {
-  if (xAxis()) {
-    CQChartsUtil::testAndSet(logX_, b, [&]() {
-      xAxis()->setValueType(b ? CQChartsAxisValueType::Type::LOG :
-                                CQChartsAxisValueType::Type::REAL);
-      updateRangeAndObjs();
-    });
+  if (mappedXAxis() && b != isLogX()) {
+    mappedXAxis()->setValueType(b ? CQChartsAxisValueType::Type::LOG :
+                                    CQChartsAxisValueType::Type::REAL);
+    updateRangeAndObjs();
   }
 }
 
@@ -1461,12 +1477,10 @@ void
 CQChartsPlot::
 setLogY(bool b)
 {
-  if (yAxis()) {
-    CQChartsUtil::testAndSet(logY_, b, [&]() {
-      yAxis()->setValueType(b ? CQChartsAxisValueType::Type::LOG :
-                                CQChartsAxisValueType::Type::REAL);
-      updateRangeAndObjs();
-    });
+  if (mappedYAxis() && b != isLogY()) {
+    mappedYAxis()->setValueType(b ? CQChartsAxisValueType::Type::LOG :
+                                    CQChartsAxisValueType::Type::REAL);
+    updateRangeAndObjs();
   }
 }
 
@@ -1490,192 +1504,206 @@ void
 CQChartsPlot::
 addProperties()
 {
-  addProperty("", this, "viewId" , "view"   )->setDesc("Parent view id").setHidden(true);
-  addProperty("", this, "typeStr", "type"   )->setDesc("Type name").setHidden(true);
-  addProperty("", this, "visible", "visible")->setDesc("Plot visible").setHidden(true);
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
 
-  addProperty("font", this, "font", "font")->setDesc("Base font");
+  // data
+  addProp("", "viewId" , "view"   , "Parent view id")->setHidden(true);
+  addProp("", "typeStr", "type"   , "Type name"     )->setHidden(true);
+  addProp("", "visible", "visible", "Plot visible"  )->setHidden(true);
 
-  addProperty("columns", this, "idColumn"     , "id"     )->setDesc("Id column");
-  addProperty("columns", this, "tipColumns"   , "tips"   )->setDesc("Tips columns");
-  addProperty("columns", this, "visibleColumn", "visible")->setDesc("Visible column");
-  addProperty("columns", this, "colorColumn"  , "color"  )->setDesc("Color column");
-  addProperty("columns", this, "imageColumn"  , "image"  )->setDesc("Image column");
+  // font
+  addProp("font", "font", "font", "Base font");
 
-  addProperty("range", this, "viewRect", "view")->setDesc("View rectangle");
-  addProperty("range", this, "dataRect", "data")->setDesc("Data rectangle");
+  // columns
+  addProp("columns", "idColumn"     , "id"     , "Id column");
+  addProp("columns", "tipColumns"   , "tips"   , "Tips columns");
+  addProp("columns", "visibleColumn", "visible", "Visible column");
+  addProp("columns", "colorColumn"  , "color"  , "Color column");
+  addProp("columns", "imageColumn"  , "image"  , "Image column");
 
-  addProperty("range", this, "innerViewRect", "innerView")->
-    setDesc("Inner view rectangle").setHidden(true);
-  addProperty("range", this, "calcDataRect" , "calcData" )->
-    setDesc("Calculated data rectangle").setHidden(true);
-  addProperty("range", this, "outerDataRect", "outerData")->
-    setDesc("Outer data rectangle").setHidden(true);
+  // range
+  addProp("range", "viewRect", "view", "View rectangle");
+  addProp("range", "dataRect", "data", "Data rectangle");
 
-  addProperty("range", this, "autoFit", "autoFit")->setDesc("Auto fit to data");
+  addProp("range", "innerViewRect", "innerView", "Inner view rectangle"     )->setHidden(true);
+  addProp("range", "calcDataRect" , "calcData" , "Calculated data rectangle")->setHidden(true);
+  addProp("range", "outerDataRect", "outerData", "Outer data rectangle"     )->setHidden(true);
 
-  if (type()->customXRange())
-    addProperty("range", this, "xmin", "xmin")->setDesc("Explicit minimum x value");
-  if (type()->customYRange())
-    addProperty("range", this, "ymin", "ymin")->setDesc("Explicit minimum y value");
-  if (type()->customXRange())
-    addProperty("range", this, "xmax", "xmax")->setDesc("Explicit maximum x value");
-  if (type()->customYRange())
-    addProperty("range", this, "ymax", "ymax")->setDesc("Explicit maximum y value");
+  addProp("range", "autoFit", "autoFit", "Auto fit to data");
 
-  addProperty("scaling", this, "equalScale", "equal")->setDesc("Equal x/y scaling");
+  if (type()->customXRange()) addProp("range", "xmin", "xmin", "Explicit minimum x value");
+  if (type()->customYRange()) addProp("range", "ymin", "ymin", "Explicit minimum y value");
+  if (type()->customXRange()) addProp("range", "xmax", "xmax", "Explicit maximum x value");
+  if (type()->customYRange()) addProp("range", "ymax", "ymax", "Explicit maximum y value");
 
-  addProperty("scaling/data/scale" , this, "dataScaleX" , "x")->
-    setDesc("X data scale").setHidden(true);
-  addProperty("scaling/data/scale" , this, "dataScaleY" , "y")->
-    setDesc("Y data scale").setHidden(true);
-  addProperty("scaling/data/offset", this, "dataOffsetX", "x")->
-    setDesc("X data offset").setHidden(true);
-  addProperty("scaling/data/offset", this, "dataOffsetY", "y")->
-    setDesc("Y data offset").setHidden(true);
+  // scaling
+  addProp("scaling", "equalScale", "equal", "Equal x/y scaling");
 
-  addProperty("grouping", this, "overlay")->
-    setDesc("Overlay plots to shared range").setHidden(true);
-  addProperty("grouping", this, "x1x2"   )->
-    setDesc("Independent x axes, shared y axis").setHidden(true);
-  addProperty("grouping", this, "y1y2"   )->
-    setDesc("Independent y axes, shared x axis").setHidden(true);
+  addProp("scaling/data/scale" , "dataScaleX" , "x", "X data scale" )->setHidden(true);
+  addProp("scaling/data/scale" , "dataScaleY" , "y", "Y data scale" )->setHidden(true);
+  addProp("scaling/data/offset", "dataOffsetX", "x", "X data offset")->setHidden(true);
+  addProp("scaling/data/offset", "dataOffsetY", "y", "Y data offset")->setHidden(true);
 
-  addProperty("invert", this, "invertX", "x")->setDesc("Invert x values");
-  addProperty("invert", this, "invertY", "y")->setDesc("Invert y values");
+  // grouping
+  addProp("grouping", "overlay", "", "Overlay plots to shared range"    )->setHidden(true);
+  addProp("grouping", "x1x2"   , "", "Independent x axes, shared y axis")->setHidden(true);
+  addProp("grouping", "y1y2"   , "", "Independent y axes, shared x axis")->setHidden(true);
 
-  if (type()->allowXLog())
-    addProperty("log", this, "logX", "x")->setDesc("Use log x axis");
+  // invert
+  addProp("invert", "invertX", "x", "Invert x values");
+  addProp("invert", "invertY", "y", "Invert y values");
 
-  if (type()->allowYLog())
-    addProperty("log", this, "logY", "y")->setDesc("Use log y axis");
+#if 0
+  // log
+  if (type()->allowXLog()) addProp("log", "logX", "x", "Use log x axis");
+  if (type()->allowYLog()) addProp("log", "logY", "y", "Use log y axis");
+#endif
 
+  // debug
   if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG", true)) {
-    addProperty("debug", this, "showBoxes"  )->setDesc("Show object bounding boxes");
-    addProperty("debug", this, "followMouse")->setDesc("Enable mouse tracking");
+    addProp("debug", "showBoxes"  , "", "Show object bounding boxes");
+    addProp("debug", "followMouse", "", "Enable mouse tracking");
   }
 
   //------
 
-  QString plotStyleStr       = "plotBackground";
+  // plot box
+  QString plotStyleStr       = "plotBox";
   QString plotStyleFillStr   = plotStyleStr + "/fill";
   QString plotStyleStrokeStr = plotStyleStr + "/stroke";
 
-  addProperty(plotStyleStr, this, "plotClip"     , "clip" )->setDesc("Clip to plot bounding box");
-  addProperty(plotStyleStr, this, "plotShapeData", "shape")->setDesc("Plot background shape data");
+  addProp(plotStyleStr, "plotClip"     , "clip" , "Clip to plot bounding box");
+  addProp(plotStyleStr, "plotShapeData", "shape", "Plot background shape data");
 
-  addProperty      (plotStyleFillStr, this, "plotFilled", "visible")->
-    setDesc("Plot background bounding box fill visible");
+  addProp(plotStyleFillStr, "plotFilled", "visible", "Plot background bounding box fill visible");
+
   addFillProperties(plotStyleFillStr, "plotFill", "Plot background");
 
-  addProperty      (plotStyleStrokeStr, this, "plotBorder"     , "visible")->
-    setDesc("Plot background bounding box stroke visible");
+  addProp(plotStyleStrokeStr, "plotBorder", "visible",
+          "Plot background bounding box stroke visible");
+
   addLineProperties(plotStyleStrokeStr, "plotBorder", "Plot background");
-  addProperty      (plotStyleStrokeStr, this, "plotBorderSides", "sides")->
-    setDesc("Plot background bounding box stroked sides");
+
+  addProp(plotStyleStrokeStr, "plotBorderSides", "sides",
+          "Plot background bounding box stroked sides");
 
   //---
 
-  QString dataStyleStr       = "dataBackground";
+  // data box
+  QString dataStyleStr       = "dataBox";
   QString dataStyleFillStr   = dataStyleStr + "/fill";
   QString dataStyleStrokeStr = dataStyleStr + "/stroke";
 
-  addProperty(dataStyleStr, this, "dataClip"     , "clip" )->setDesc("Clip to data bounding box");
-  addProperty(dataStyleStr, this, "dataShapeData", "shape")->setDesc("Data background shape data");
+  addProp(dataStyleStr, "dataClip"     , "clip" , "Clip to data bounding box");
+  addProp(dataStyleStr, "dataShapeData", "shape", "Data background shape data");
 
-  addProperty      (dataStyleFillStr  , this, "dataFilled", "visible")->
-   setDesc("Data background bounding box fill visible");
+  addProp(dataStyleFillStr, "dataFilled", "visible", "Data background bounding box fill visible");
+
   addFillProperties(dataStyleFillStr, "dataFill", "Data background");
 
-  addProperty      (dataStyleStrokeStr, this, "dataBorder", "visible")->
-    setDesc("Data background bounding box stroke visible");
+  addProp(dataStyleStrokeStr, "dataBorder", "visible",
+    "Data background bounding box stroke visible");
+
   addLineProperties(dataStyleStrokeStr, "dataBorder", "Data background");
-  addProperty      (dataStyleStrokeStr, this, "dataBorderSides", "sides")->
-    setDesc("Data background bounding box stroked sides");
+
+  addProp(dataStyleStrokeStr, "dataBorderSides", "sides",
+    "Data background bounding box stroked sides");
 
   //---
 
-  QString fitStyleStr       = "fitBackground";
+  // fit box
+  QString fitStyleStr       = "fitBox";
   QString fitStyleFillStr   = fitStyleStr + "/fill";
   QString fitStyleStrokeStr = fitStyleStr + "/stroke";
 
-  addProperty(fitStyleFillStr  , this, "fitFilled", "visible")->
-    setDesc("Fit background bounding box fill visible");
-  addFillProperties(fitStyleFillStr  , "fitFill", "Fit background");
+  addProp(fitStyleFillStr, "fitFilled", "visible",
+          "Fit background bounding box fill visible")->setHidden(true);
 
-  addProperty(fitStyleStrokeStr, this, "fitBorder", "visible")->
-    setDesc("Fit background bounding box stroke visible");
-  addLineProperties(fitStyleStrokeStr, "fitBorder", "Fit background");
-  addProperty(fitStyleStrokeStr, this, "fitBorderSides", "sides"  )->
-    setDesc("Fit background bounding box stroked sides");
+  addFillProperties(fitStyleFillStr, "fitFill", "Fit background", /*hidden*/true);
 
-  //---
+  addProp(fitStyleStrokeStr, "fitBorder", "visible",
+          "Fit background bounding box stroke visible")->setHidden(true);
 
-  addProperty("margin/inner", this, "innerMarginLeft"  , "left"  )->
-    setDesc("Size of inner margin at left of plot");
-  addProperty("margin/inner", this, "innerMarginTop"   , "top"   )->
-    setDesc("Size of inner margin at top of plot");
-  addProperty("margin/inner", this, "innerMarginRight" , "right" )->
-    setDesc("Size of inner margin at right of plot");
-  addProperty("margin/inner", this, "innerMarginBottom", "bottom")->
-    setDesc("Size of inner margin at bottom of plot");
+  addLineProperties(fitStyleStrokeStr, "fitBorder", "Fit background", /*hidden*/true);
 
-  addProperty("margin/outer", this, "outerMarginLeft"  , "left"  )->
-    setDesc("Size of outer margin at left of plot");
-  addProperty("margin/outer", this, "outerMarginTop"   , "top"   )->
-    setDesc("Size of outer margin at top of plot");
-  addProperty("margin/outer", this, "outerMarginRight" , "right" )->
-    setDesc("Size of outer margin at right of plot");
-  addProperty("margin/outer", this, "outerMarginBottom", "bottom")->
-    setDesc("Size of outer margin at bottom of plot");
+  addProp(fitStyleStrokeStr, "fitBorderSides", "sides",
+          "Fit background bounding box stroked sides")->setHidden(true);
 
   //---
 
-  addProperty("every", this, "everyEnabled", "enabled")->
-    setDesc("Enable every row filter").setHidden(true);
-  addProperty("every", this, "everyStart"  , "start"  )->
-    setDesc("Start of every row filter").setHidden(true);
-  addProperty("every", this, "everyEnd"    , "end"    )->
-    setDesc("End of every row filter").setHidden(true);
-  addProperty("every", this, "everyStep"   , "step"   )->
-    setDesc("Step of every row filter").setHidden(true);
+  // margin
+  addProp("margin/inner", "innerMarginLeft"  , "left"  , "Size of inner margin at left of plot");
+  addProp("margin/inner", "innerMarginTop"   , "top"   , "Size of inner margin at top of plot");
+  addProp("margin/inner", "innerMarginRight" , "right" , "Size of inner margin at right of plot");
+  addProp("margin/inner", "innerMarginBottom", "bottom", "Size of inner margin at bottom of plot");
 
-  addProperty("filter", this, "filterStr", "expression")->
-    setDesc("Filter expression").setHidden(true);
+  addProp("margin/outer", "outerMarginLeft"  , "left"  , "Size of outer margin at left of plot");
+  addProp("margin/outer", "outerMarginTop"   , "top"   , "Size of outer margin at top of plot");
+  addProp("margin/outer", "outerMarginRight" , "right" , "Size of outer margin at right of plot");
+  addProp("margin/outer", "outerMarginBottom", "bottom", "Size of outer margin at bottom of plot");
 
   //---
 
+  // every
+  addProp("every", "everyEnabled", "enabled", "Enable every row filter"  )->setHidden(true);
+  addProp("every", "everyStart"  , "start"  , "Start of every row filter")->setHidden(true);
+  addProp("every", "everyEnd"    , "end"    , "End of every row filter"  )->setHidden(true);
+  addProp("every", "everyStep"   , "step"   , "Step of every row filter" )->setHidden(true);
+
+  // filter
+  addProp("filter", "filterStr", "expression", "Filter expression")->setHidden(true);
+
+  //---
+
+  // xaxis
   if (xAxis()) {
     xAxis()->addProperties(propertyModel(), "xaxis");
 
-    addProperty("xaxis", xAxis(), "userLabel", "userLabel")->setDesc("User defined x axis label");
+    addProperty("xaxis", xAxis(), "userLabel", "userLabel")->
+      setDesc("User defined x axis label");
   }
 
+  // yaxis
   if (yAxis()) {
     yAxis()->addProperties(propertyModel(), "yaxis");
 
-    addProperty("yaxis", yAxis(), "userLabel", "userLabel")->setDesc("User defined y axis label");
+    addProperty("yaxis", yAxis(), "userLabel", "userLabel")->
+      setDesc("User defined y axis label");
   }
 
+  // key
   if (key())
     key()->addProperties(propertyModel(), "key");
 
+  // title
   if (title())
     title()->addProperties(propertyModel(), "title");
 
-  addProperty("color", this, "defaultPalette", "defaultPalette")->setDesc("Default palette");
-  addProperty("color", this, "colorType"     , "type")->setDesc("Color interpolation type");
-  addProperty("color", this, "colorXStops"   , "xStops")->setDesc("Color x stops");
-  addProperty("color", this, "colorYStops"   , "yStops")->setDesc("Color y stops");
+  // color
+  addProp("color", "defaultPalette", "defaultPalette", "Default palette");
+  addProp("color", "colorType"     , "type"          , "Color interpolation type");
+  addProp("color", "colorXStops"   , "xStops"        , "Color x stops");
+  addProp("color", "colorYStops"   , "yStops"        , "Color y stops");
 
-  addProperty("scaledFont", this, "minScaleFontSize", "minSize")->setDesc("Min scaled font size");
-  addProperty("scaledFont", this, "maxScaleFontSize", "maxSize")->setDesc("Max scaled font size");
+  // scaled font
+  addProp("scaledFont", "minScaleFontSize", "minSize", "Min scaled font size")->setHidden(true);
+  addProp("scaledFont", "maxScaleFontSize", "maxSize", "Max scaled font size")->setHidden(true);
 }
 
 void
 CQChartsPlot::
 addSymbolProperties(const QString &path, const QString &prefix, const QString &descPrefix)
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   QString prefix1 = (descPrefix.length() ? descPrefix + " symbol" : "Symbol");
 
   QString strokePath = path + "/stroke";
@@ -1683,90 +1711,120 @@ addSymbolProperties(const QString &path, const QString &prefix, const QString &d
 
   QString symbolPrefix = (prefix.length() ? prefix + "Symbol" : "symbol");
 
-  addProperty(path, this, symbolPrefix + "Type", "type")->setDesc(prefix1 + " type");
-  addProperty(path, this, symbolPrefix + "Size", "size")->setDesc(prefix1 + " size");
+  addProp(path, symbolPrefix + "Type", "type", prefix1 + " type");
+  addProp(path, symbolPrefix + "Size", "size", prefix1 + " size");
 
-  addProperty(fillPath, this, symbolPrefix + "Filled"     , "visible")->
-    setDesc(prefix1 + " fill visible");
-  addProperty(fillPath, this, symbolPrefix + "FillColor"  , "color"  )->
-    setDesc(prefix1 + " fill color");
-  addProperty(fillPath, this, symbolPrefix + "FillAlpha"  , "alpha"  )->
-    setDesc(prefix1 + " fill alpha");
-  addProperty(fillPath, this, symbolPrefix + "FillPattern", "pattern")->
-    setDesc(prefix1 + " fill pattern").setHidden(true);
+  addProp(fillPath, symbolPrefix + "Filled"     , "visible", prefix1 + " fill visible");
+  addProp(fillPath, symbolPrefix + "FillColor"  , "color"  , prefix1 + " fill color");
+  addProp(fillPath, symbolPrefix + "FillAlpha"  , "alpha"  , prefix1 + " fill alpha");
+  addProp(fillPath, symbolPrefix + "FillPattern", "pattern",
+          prefix1 + " fill pattern")->setHidden(true);
 
-  addProperty(strokePath, this, symbolPrefix + "Stroked"    , "visible")->
-    setDesc(prefix1 + " stroke visible");
-  addProperty(strokePath, this, symbolPrefix + "StrokeColor", "color"  )->
-    setDesc(prefix1 + " stroke color");
-  addProperty(strokePath, this, symbolPrefix + "StrokeAlpha", "alpha"  )->
-    setDesc(prefix1 + " stroke alpha");
-  addProperty(strokePath, this, symbolPrefix + "StrokeWidth", "width"  )->
-    setDesc(prefix1 + " stroke width");
-  addProperty(strokePath, this, symbolPrefix + "StrokeDash" , "dash"   )->
-    setDesc(prefix1 + " stroke dash");
+  addProp(strokePath, symbolPrefix + "Stroked"    , "visible", prefix1 + " stroke visible");
+  addProp(strokePath, symbolPrefix + "StrokeColor", "color"  , prefix1 + " stroke color");
+  addProp(strokePath, symbolPrefix + "StrokeAlpha", "alpha"  , prefix1 + " stroke alpha");
+  addProp(strokePath, symbolPrefix + "StrokeWidth", "width"  , prefix1 + " stroke width");
+  addProp(strokePath, symbolPrefix + "StrokeDash" , "dash"   , prefix1 + " stroke dash");
 }
 
 void
 CQChartsPlot::
-addLineProperties(const QString &path, const QString &prefix, const QString &descPrefix)
+addLineProperties(const QString &path, const QString &prefix,
+                  const QString &descPrefix, bool hidden)
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   QString prefix1 = (descPrefix.length() ? descPrefix + " stroke" : "Stroke");
 
-  addProperty(path, this, prefix + "Color", "color")->setDesc(prefix1 + " color");
-  addProperty(path, this, prefix + "Alpha", "alpha")->setDesc(prefix1 + " alpha");
-  addProperty(path, this, prefix + "Width", "width")->setDesc(prefix1 + " width");
-  addProperty(path, this, prefix + "Dash" , "dash" )->setDesc(prefix1 + " dash");
+  addProp(path, prefix + "Color", "color", prefix1 + " color")->setHidden(hidden);
+  addProp(path, prefix + "Alpha", "alpha", prefix1 + " alpha")->setHidden(hidden);
+  addProp(path, prefix + "Width", "width", prefix1 + " width")->setHidden(hidden);
+  addProp(path, prefix + "Dash" , "dash" , prefix1 + " dash" )->setHidden(hidden);
 }
 
 void
 CQChartsPlot::
-addFillProperties(const QString &path, const QString &prefix, const QString &descPrefix)
+addFillProperties(const QString &path, const QString &prefix,
+                  const QString &descPrefix, bool hidden)
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   QString prefix1 = (descPrefix.length() ? descPrefix + " fill" : "Fill");
 
-  addProperty(path, this, prefix + "Color"  , "color"  )->setDesc(prefix1 + " color");
-  addProperty(path, this, prefix + "Alpha"  , "alpha"  )->setDesc(prefix1 + " alpha");
-  addProperty(path, this, prefix + "Pattern", "pattern")->
-    setDesc(prefix1 + " pattern").setHidden(true);
+  addProp(path, prefix + "Color"  , "color"  , prefix1 + " color"  )->setHidden(hidden);
+  addProp(path, prefix + "Alpha"  , "alpha"  , prefix1 + " alpha"  )->setHidden(hidden);
+  addProp(path, prefix + "Pattern", "pattern", prefix1 + " pattern")->setHidden(true);
 }
 
 void
 CQChartsPlot::
 addTextProperties(const QString &path, const QString &prefix, const QString &descPrefix)
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   QString prefix1 = (descPrefix.length() ? descPrefix + " text" : "Text");
 
-  addProperty(path, this, prefix + "Color"   , "color"   )->setDesc(prefix1 + " color");
-  addProperty(path, this, prefix + "Alpha"   , "alpha"   )->setDesc(prefix1 + " alpha");
-  addProperty(path, this, prefix + "Font"    , "font"    )->setDesc(prefix1 + " font");
-  addProperty(path, this, prefix + "Angle"   , "angle"   )->setDesc(prefix1 + " angle");
-  addProperty(path, this, prefix + "Contrast", "contrast")->setDesc(prefix1 + " contrast");
-  addProperty(path, this, prefix + "Html"    , "html"    )->setDesc(prefix1 + " is HTML");
+  addProp(path, prefix + "Color"   , "color"   , prefix1 + " color");
+  addProp(path, prefix + "Alpha"   , "alpha"   , prefix1 + " alpha");
+  addProp(path, prefix + "Font"    , "font"    , prefix1 + " font");
+  addProp(path, prefix + "Angle"   , "angle"   , prefix1 + " angle");
+  addProp(path, prefix + "Contrast", "contrast", prefix1 + " contrast");
+  addProp(path, prefix + "Html"    , "html"    , prefix1 + " is HTML");
 }
 
 void
 CQChartsPlot::
 addAllTextProperties(const QString &path, const QString &prefix, const QString &descPrefix)
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   addTextProperties(path, prefix, descPrefix);
 
   QString prefix1 = (descPrefix.length() ? descPrefix + " text" : "Text");
 
-  addProperty(path, this, prefix + "Align"    , "align"    )->setDesc(prefix1 + " align");
-  addProperty(path, this, prefix + "Formatted", "formatted")->setDesc(prefix1 + " formatted");
-  addProperty(path, this, prefix + "Scaled"   , "scaled"   )->setDesc(prefix1 + " scaled");
+  addProp(path, prefix + "Align"    , "align"    , prefix1 + " align");
+  addProp(path, prefix + "Formatted", "formatted", prefix1 + " formatted");
+  addProp(path, prefix + "Scaled"   , "scaled"   , prefix1 + " scaled");
 }
 
 void
 CQChartsPlot::
 addColorMapProperties()
 {
-  addProperty("color/map", this, "colorMapped"    , "enabled")->setDesc("Color values mapped");
-  addProperty("color/map", this, "colorMapMin"    , "min"    )->setDesc("Color value map min");
-  addProperty("color/map", this, "colorMapMax"    , "max"    )->setDesc("Color value map max");
-  addProperty("color/map", this, "colorMapPalette", "palette")->setDesc("Color map palette");
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
+  addProp("color/map", "colorMapped"    , "enabled", "Color values mapped");
+  addProp("color/map", "colorMapMin"    , "min"    , "Color value map min");
+  addProp("color/map", "colorMapMax"    , "max"    , "Color value map max");
+  addProp("color/map", "colorMapPalette", "palette", "Color map palette");
 }
+
+//---
 
 bool
 CQChartsPlot::
@@ -1810,9 +1868,9 @@ getTclProperty(const QString &name, QVariant &value) const
 
 bool
 CQChartsPlot::
-getPropertyDesc(const QString &name, QString &desc) const
+getPropertyDesc(const QString &name, QString &desc, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
   if (! item) return false;
 
   desc = item->desc();
@@ -1822,9 +1880,9 @@ getPropertyDesc(const QString &name, QString &desc) const
 
 bool
 CQChartsPlot::
-getPropertyType(const QString &name, QString &type) const
+getPropertyType(const QString &name, QString &type, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
   if (! item) return false;
 
   type = item->typeName();
@@ -1834,9 +1892,9 @@ getPropertyType(const QString &name, QString &type) const
 
 bool
 CQChartsPlot::
-getPropertyUserType(const QString &name, QString &type) const
+getPropertyUserType(const QString &name, QString &type, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
   if (! item) return false;
 
   type = item->userTypeName();
@@ -1846,14 +1904,28 @@ getPropertyUserType(const QString &name, QString &type) const
 
 bool
 CQChartsPlot::
-getPropertyObject(const QString &name, QObject* &object) const
+getPropertyObject(const QString &name, QObject* &object, bool hidden) const
 {
   object = nullptr;
 
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
   if (! item) return false;
 
   object = item->object();
+
+  return true;
+}
+
+bool
+CQChartsPlot::
+getPropertyHidden(const QString &name, bool &hidden) const
+{
+  hidden = false;
+
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, /*hidden*/true);
+  if (! item) return false;
+
+  hidden = item->isHidden();
 
   return true;
 }
@@ -2315,6 +2387,15 @@ setInterrupt(bool b)
 
     updateData_.interrupt--;
   }
+}
+
+bool
+CQChartsPlot::
+isReady() const
+{
+  UpdateState updateState = const_cast<CQChartsPlot *>(this)->updateState();
+
+  return (updateState == UpdateState::READY || updateState == UpdateState::DRAWN);
 }
 
 //------
@@ -3322,6 +3403,8 @@ bool
 CQChartsPlot::
 selectMousePress(const QPointF &p, SelMod selMod)
 {
+  if (! isReady()) return false;
+
   CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(p)));
 
   return selectPress(w, selMod);
@@ -3526,6 +3609,8 @@ bool
 CQChartsPlot::
 selectMouseMove(const QPointF &pos, bool first)
 {
+  if (! isReady()) return false;
+
   CQChartsGeom::Point p = CQChartsUtil::fromQPoint(pos);
   CQChartsGeom::Point w = pixelToWindow(p);
 
@@ -3575,6 +3660,8 @@ bool
 CQChartsPlot::
 selectMouseRelease(const QPointF &p)
 {
+  if (! isReady()) return false;
+
   CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(p)));
 
   return selectRelease(w);
@@ -3611,6 +3698,8 @@ bool
 CQChartsPlot::
 editMousePress(const QPointF &pos, bool inside)
 {
+  if (! isReady()) return false;
+
   CQChartsGeom::Point p = CQChartsUtil::fromQPoint(pos);
   CQChartsGeom::Point w = pixelToWindow(p);
 
@@ -4060,6 +4149,8 @@ bool
 CQChartsPlot::
 editMouseMove(const QPointF &pos, bool first)
 {
+  if (! isReady()) return false;
+
   CQChartsGeom::Point p = CQChartsUtil::fromQPoint(pos);
   CQChartsGeom::Point w = pixelToWindow(p);
 
@@ -4210,6 +4301,8 @@ bool
 CQChartsPlot::
 editMouseMotion(const QPointF &pos)
 {
+  if (! isReady()) return false;
+
   CQChartsGeom::Point p = CQChartsUtil::fromQPoint(pos);
   CQChartsGeom::Point w = pixelToWindow(p);
 
@@ -4272,6 +4365,8 @@ bool
 CQChartsPlot::
 editMouseRelease(const QPointF &pos)
 {
+  if (! isReady()) return false;
+
   CQChartsGeom::Point p = CQChartsUtil::fromQPoint(pos);
   CQChartsGeom::Point w = pixelToWindow(p);
 
@@ -4530,9 +4625,9 @@ void
 CQChartsPlot::
 setXValueColumn(const CQChartsColumn &c)
 {
-  if (xAxis()) {
+  if (mappedXAxis()) {
     // calls drawBackground and drawForeground
-    CQChartsUtil::testAndSet(xValueColumn_, c, [&]() { xAxis()->setColumn(xValueColumn_); } );
+    CQChartsUtil::testAndSet(xValueColumn_, c, [&]() { mappedXAxis()->setColumn(xValueColumn_); } );
   }
 }
 
@@ -4540,9 +4635,9 @@ void
 CQChartsPlot::
 setYValueColumn(const CQChartsColumn &c)
 {
-  if (yAxis()) {
+  if (mappedYAxis()) {
     // calls drawBackground and drawForeground
-    CQChartsUtil::testAndSet(yValueColumn_, c, [&]() { yAxis()->setColumn(yValueColumn_); } );
+    CQChartsUtil::testAndSet(yValueColumn_, c, [&]() { mappedYAxis()->setColumn(yValueColumn_); } );
   }
 }
 
@@ -4559,7 +4654,7 @@ void
 CQChartsPlot::
 setTipColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(tipColumns_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(tipColumns_, c, [&]() { resetObjTips(); } );
 }
 
 void
@@ -4934,9 +5029,9 @@ CQChartsPlot::
 getPanX(bool is_shift) const
 {
   // get pan x in view coords
-  if (xAxis()) {
-    return windowToViewWidth(! is_shift ? xAxis()->minorTickIncrement() :
-                                          xAxis()->majorTickIncrement());
+  if (mappedXAxis()) {
+    return windowToViewWidth(! is_shift ? mappedXAxis()->minorTickIncrement() :
+                                          mappedXAxis()->majorTickIncrement());
   }
   else {
     return (! is_shift ? 0.125 : 0.25);
@@ -4948,9 +5043,9 @@ CQChartsPlot::
 getPanY(bool is_shift) const
 {
   // get pan y in view coords
-  if (yAxis()) {
-    return windowToViewHeight(! is_shift ? yAxis()->minorTickIncrement() :
-                                           yAxis()->majorTickIncrement());
+  if (mappedYAxis()) {
+    return windowToViewHeight(! is_shift ? mappedYAxis()->minorTickIncrement() :
+                                           mappedYAxis()->majorTickIncrement());
   }
   else {
     return (! is_shift ? 0.125 : 0.25);
@@ -5340,6 +5435,14 @@ addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const
   }
 }
 
+void
+CQChartsPlot::
+resetObjTips()
+{
+  for (auto &obj : plotObjects())
+    obj->resetTipId();
+}
+
 //------
 
 void
@@ -5408,6 +5511,20 @@ objsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const
       objs.push_back(plotObj);
   }
 }
+
+bool
+CQChartsPlot::
+objNearestPoint(const CQChartsGeom::Point &p, CQChartsPlotObj* &obj) const
+{
+  obj = nullptr;
+
+  double tx = dataRange_.xsize()/32.0;
+  double ty = dataRange_.ysize()/32.0;
+
+  return plotObjTree_->objectNearest(p, tx, ty, obj);
+}
+
+//---
 
 void
 CQChartsPlot::

@@ -88,9 +88,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //---
 
-  modeCombo_ = new CQIconCombo;
-
-  modeCombo_->setObjectName("modeCombo");
+  modeCombo_ = CQUtil::makeWidget<CQIconCombo>("modeCombo");
 
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("SELECT_LIGHT", "SELECT_DARK"), "Select");
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("ZOOM_LIGHT"  , "ZOOM_DARK"  ), "Zoom"  );

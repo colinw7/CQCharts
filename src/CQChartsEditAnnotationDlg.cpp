@@ -449,7 +449,7 @@ createArrowFrame()
   // border width, border color, filled and fill color
   arrowWidgets_.borderWidthEdit = new CQChartsLengthEdit;
   arrowWidgets_.borderColorEdit = new CQChartsColorLineEdit;
-  arrowWidgets_.filledCheck     = new CQCheckBox;
+  arrowWidgets_.filledCheck     = CQUtil::makeWidget<CQCheckBox>("filledCheck");
   arrowWidgets_.fillColorEdit   = new CQChartsColorLineEdit;
 
   arrowWidgets_.borderWidthEdit->setLength  (border.width());

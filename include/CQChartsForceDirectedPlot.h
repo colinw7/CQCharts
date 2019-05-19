@@ -29,6 +29,8 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
   bool allowXLog() const override { return false; }
   bool allowYLog() const override { return false; }
 
+  bool canProbe() const override { return false; }
+
   QString description() const override;
 
   bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,

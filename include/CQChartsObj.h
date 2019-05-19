@@ -55,6 +55,7 @@ class CQChartsObj : public QObject {
 
   const QString &tipId() const;
   void setTipId(const QString &s) { tipId_ = s; }
+  void resetTipId() { tipId_ = OptString(); }
 
   // calculate tip id (on demand)
   virtual QString calcTipId() const { return calcId(); }

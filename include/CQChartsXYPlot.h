@@ -25,14 +25,14 @@ class CQChartsXYPlotType : public CQChartsGroupPlotType {
 
   Dimension dimension() const override { return Dimension::TWO_D; }
 
-  bool canProbe() const override { return true; }
-
   void addParameters() override;
-
-  QString description() const override;
 
   QString xColumnName() const override { return "x"; }
   QString yColumnName() const override { return "y"; }
+
+  bool canProbe() const override { return true; }
+
+  QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };

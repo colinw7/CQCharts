@@ -4,6 +4,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -27,9 +28,10 @@ QString
 CQChartsImagePlotType::
 description() const
 {
-  return "<h2>Image Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draw 2d grid of 'pixels' from values in 2d table.</p>\n";
+  return CQChartsHtml().
+   h2("Image Plot").
+    h3("Summary").
+     p("Draw 2d grid of 'pixels' from values in 2d table.");
 }
 
 CQChartsPlot *
@@ -55,16 +57,25 @@ void
 CQChartsImagePlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
-  addProperty("labels/x"   , this, "xLabels"        , "visible")->setDesc("X labels visible");
-  addProperty("labels/y"   , this, "yLabels"        , "visible")->setDesc("Y labels visible");
-  addProperty("labels/cell", this, "cellLabels"     , "visible")->setDesc("Cell labels visible");
-  addProperty("labels/cell", this, "scaleCellLabels", "scaled" )->setDesc("Scale cell labels");
+  // data labels
+  addProp("labels/x"   , "xLabels"        , "visible", "X labels visible");
+  addProp("labels/y"   , "yLabels"        , "visible", "Y labels visible");
+  addProp("labels/cell", "cellLabels"     , "visible", "Cell labels visible");
+  addProp("labels/cell", "scaleCellLabels", "scaled" , "Scale cell labels");
 
-  addTextProperties("labels", "text", "Labels");
+  addTextProperties("labels/text", "text", "Labels");
 
-  addProperty("balloon", this, "balloon", "visible")->setDesc("Cell balloon visible");
+  // balloon (TODO: enum for shape)
+  addProp("balloon", "balloon", "visible", "Cell balloon visible");
 }
 
 //------

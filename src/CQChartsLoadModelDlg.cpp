@@ -53,8 +53,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //---
 
-  CQDividedArea *area = new CQDividedArea;
-  area->setObjectName("area");
+  CQDividedArea *area = CQUtil::makeWidget<CQDividedArea>("area");
 
   layout->addWidget(area);
 
@@ -71,8 +70,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   int row = 0;
 
   // File Prompt
-  fileEdit_ = new CQFilename;
-  fileEdit_->setObjectName("fileEdit");
+  fileEdit_ = CQUtil::makeWidget<CQFilename>("fileEdit");
 
   fileFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("File", "fileLabel"), row, 0);
   fileFrameLayout->addWidget(fileEdit_                                           , row, 1);

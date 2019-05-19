@@ -10,6 +10,7 @@
 #include <CQChartsGeom.h>
 
 class CQChartsEditHandles;
+class CQPropertyViewItem;
 
 /*!
  * \brief base class for view/plot annotation
@@ -89,21 +90,26 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //! add fill properties
   void addFillProperties(CQPropertyViewModel *model, const QString &path);
 
+  bool setProperties(const QString &properties);
+
   //! get/set property
   bool getProperty(const QString &name, QVariant &value) const;
   bool setProperty(const QString &name, const QVariant &value);
 
   bool getTclProperty(const QString &name, QVariant &value) const;
 
-  bool getPropertyDesc    (const QString &name, QString  &desc) const;
-  bool getPropertyType    (const QString &name, QString  &type) const;
-  bool getPropertyUserType(const QString &name, QString  &type) const;
-  bool getPropertyObject  (const QString &name, QObject* &obj ) const;
+  bool getPropertyDesc    (const QString &name, QString  &desc, bool hidden=false) const;
+  bool getPropertyType    (const QString &name, QString  &type, bool hidden=false) const;
+  bool getPropertyUserType(const QString &name, QString  &type, bool hidden=false) const;
+  bool getPropertyObject  (const QString &name, QObject* &obj , bool hidden=false) const;
+  bool getPropertyHidden  (const QString &name, bool &hidden) const;
 
   //! get property names
   virtual void getPropertyNames(QStringList &names, bool hidden=false) const;
 
   CQPropertyViewModel *propertyModel() const;
+
+  const CQPropertyViewItem *propertyItem(const QString &name, bool hidden=false) const;
 
   //---
 

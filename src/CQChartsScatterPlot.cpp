@@ -15,6 +15,7 @@
 #include <CQChartsGrahamHull.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -37,17 +38,19 @@ addParameters()
   startParameterGroup("Scatter");
 
   // columns
-  addColumnParameter("x", "X", "xColumn").
-    setTip("X Value").setRequired().setNumeric();
-  addColumnParameter("y", "Y", "yColumn").
-    setTip("Y Value").setRequired().setNumeric();
+  addColumnParameter("x", "X", "xColumn").setTip("X Value").setRequired().setNumeric();
+  addColumnParameter("y", "Y", "yColumn").setTip("Y Value").setRequired().setNumeric();
 
-  addColumnParameter("name", "Name", "nameColumn").
-    setTip("Value Name").setString();
+  addColumnParameter("name", "Name", "nameColumn").setTip("Value Name").setString();
 
   endParameterGroup();
 
   //---
+
+  addEnumParameter("plotType", "Plot Type", "plotType").
+    addNameValue("SYMBOLS"   , int(CQChartsScatterPlot::PlotType::SYMBOLS   )).
+    addNameValue("GRID_CELLS", int(CQChartsScatterPlot::PlotType::GRID_CELLS)).
+    setTip("Plot type");
 
   // custom columns/map
   startParameterGroup("Points");
@@ -78,10 +81,30 @@ QString
 CQChartsScatterPlotType::
 description() const
 {
-  return "<h2>Scatter Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draws scatter plot x, y points with support for customization of "
-         "point size, color and label font.\n";
+  auto B = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+
+  return CQChartsHtml().
+   h2("Scatter Plot").
+    h3("Summary").
+     p("Draws scatter plot of x, y points with support for customization of point symbol type, "
+       "symbol size and symbol color.").
+     p("The points can have individual labels in which case the label font size can "
+       "also be customized.").
+    h3("Columns").
+     p("The points are specified by the " + B("X") + " and " + B("Y") + " columns.").
+     p("The symbol type can be specified using the " + B("SymbolType") + " column, "
+       "the symbol size can be specified using the " + B("SymbolSize") + " column, "
+       "the symbol color can be specified using the " + B("Color") + " column.").
+     p("The point label can be specified using the " + B("Name") + " column.").
+     p("The font size of the label can be specified using the " + B("FontSize") + " column.").
+    h3("Customization").
+     p("When there a lot of points in the data an NxM grid can be created as an alternative "
+       "display where the grid cell is colored by the number of points in each cell.").
+     p("The points can have an overlaid best fit line, convex hull, statistic lines "
+       " and/or a density map.").
+     p("The x and y axes can have rug lines, density plot and/or whisker plot.").
+    h3("Limitations").
+     p("None.");
 }
 
 CQChartsPlot *
@@ -192,13 +215,6 @@ setYColumn(const CQChartsColumn &c)
 }
 
 //---
-
-void
-CQChartsScatterPlot::
-setGridded(bool b)
-{
-  CQChartsUtil::testAndSet(gridData_.enabled, b, [&]() { updateRangeAndObjs(); } );
-}
 
 void
 CQChartsScatterPlot::
@@ -441,6 +457,54 @@ setFontSizeMapUnits(const QString &s)
 
 //---
 
+void
+CQChartsScatterPlot::
+setPlotType(PlotType type)
+{
+  CQChartsUtil::testAndSet(plotType_, type, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsScatterPlot::
+setSymbols(bool)
+{
+  if (isOverlay()) {
+    processOverlayPlots([&](CQChartsPlot *plot) {
+      CQChartsScatterPlot *splot = qobject_cast<CQChartsScatterPlot *>(plot);
+
+      if (splot)
+        splot->plotType_ = PlotType::SYMBOLS;
+    });
+
+    updateRangeAndObjs();
+  }
+  else {
+    CQChartsUtil::testAndSet(plotType_, PlotType::SYMBOLS, [&]() { updateRangeAndObjs(); } );
+  }
+}
+
+void
+CQChartsScatterPlot::
+setGridCells(bool b)
+{
+  if (isOverlay()) {
+    processOverlayPlots([&](CQChartsPlot *plot) {
+      CQChartsScatterPlot *splot = qobject_cast<CQChartsScatterPlot *>(plot);
+
+      if (splot)
+        splot->plotType_ = (b ? PlotType::GRID_CELLS : PlotType::SYMBOLS);
+    });
+
+    updateRangeAndObjs();
+  }
+  else {
+    CQChartsUtil::testAndSet(plotType_,
+     (b ? PlotType::GRID_CELLS : PlotType::SYMBOLS), [&]() { updateRangeAndObjs(); } );
+  }
+}
+
+//---
+
 bool
 CQChartsScatterPlot::
 isTextLabels() const
@@ -507,6 +571,19 @@ CQChartsScatterPlot::
 setHull(bool b)
 {
   CQChartsUtil::testAndSet(hullData_.visible, b, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsScatterPlot::
+setStatsLinesSlot(bool b)
+{
+  if (b != isStatsLines()) {
+    setStatsLines(b);
+
+    drawObjs();
+  }
 }
 
 //---
@@ -673,136 +750,112 @@ void
 CQChartsScatterPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "xColumn", "x")->setDesc("X column");
-  addProperty("columns", this, "yColumn", "y")->setDesc("Y column");
+  addProp("columns", "xColumn", "x", "X column");
+  addProp("columns", "yColumn", "y", "Y column");
 
-  addProperty("columns", this, "nameColumn"      , "name"      )->setDesc("Name column");
-  addProperty("columns", this, "symbolTypeColumn", "symbolType")->setDesc("Symbol type column");
-  addProperty("columns", this, "symbolSizeColumn", "symbolSize")->setDesc("Symbol size column");
-  addProperty("columns", this, "fontSizeColumn"  , "fontSize"  )->setDesc("Font size column");
+  addProp("columns", "nameColumn"      , "name"      , "Name column");
+  addProp("columns", "symbolTypeColumn", "symbolType", "Symbol type column");
+  addProp("columns", "symbolSizeColumn", "symbolSize", "Symbol size column");
+  addProp("columns", "fontSizeColumn"  , "fontSize"  , "Font size column");
+
+  // options
+  addProp("options", "plotType", "plotType", "Plot type");
 
   // best fit line and deviation fill
-  addProperty("bestFit", this, "bestFit"         , "enabled"  )->
-    setDesc("Show best fit");
-  addProperty("bestFit", this, "bestFitOutliers" , "outliers" )->
-    setDesc("Best fit include outliers");
-  addProperty("bestFit", this, "bestFitOrder"    , "order"    )->
-    setDesc("Best fit curve order");
-  addProperty("bestFit", this, "bestFitDeviation", "deviation")->
-    setDesc("Best fit standard deviation");
+  addProp("bestFit", "bestFit"         , "visible"  , "Show best fit overlay");
+  addProp("bestFit", "bestFitOutliers" , "outliers" , "Best fit include outliers");
+  addProp("bestFit", "bestFitOrder"    , "order"    , "Best fit curve order");
+  addProp("bestFit", "bestFitDeviation", "deviation", "Best fit standard deviation");
 
   addFillProperties("bestFit/fill"  , "bestFitFill"  , "Best fit");
   addLineProperties("bestFit/stroke", "bestFitBorder", "Best fit");
 
   // stats
-  addProperty("statsData", this, "statsLines", "visible")->setDesc("Statistic lines visible");
+  addProp("statsData", "statsLines", "visible", "Statistic lines visible");
 
-  addLineProperties("statsData", "statsLines", "Statistic lines");
+  addLineProperties("statsData/stroke", "statsLines", "Statistic lines");
 
   // convex hull shape
-  addProperty("hull", this, "hull", "enabled")->setDesc("Show convex hull");
+  addProp("hull", "hull", "visible", "Show convex hull overlay");
 
   addFillProperties("hull/fill"  , "hullFill"  , "Convex hull");
   addLineProperties("hull/stroke", "hullBorder", "Convex hull");
 
+  // density map
+  addProp("densityMap", "densityMap"        , "visible" , "Show density map overlay");
+  addProp("densityMap", "densityMapGridSize", "gridSize", "Density map grid size");
+  addProp("densityMap", "densityMapDelta"   , "delta"   , "Density map delta");
+
   // rug axis
-  addProperty("rug/x"     , this, "xRug"         , "enabled")->
-    setDesc("Show x axis density symbols");
-  addProperty("rug/x"     , this, "xRugSide"     , "side"   )->
-    setDesc("X axis density symbols side");
-  addProperty("rug/y"     , this, "yRug"         , "enabled")->
-    setDesc("Show y axis symbols density");
-  addProperty("rug/y"     , this, "yRugSide"     , "side"   )->
-    setDesc("Y axis density symbols side");
-  addProperty("rug/symbol", this, "rugSymbolType", "type"   )->
-    setDesc("Axis density symbol type");
-  addProperty("rug/symbol", this, "rugSymbolSize", "size"   )->
-    setDesc("Axis density symbol size");
+  addProp("rug/x"     , "xRug"         , "visible", "Show x axis density symbols");
+  addProp("rug/x"     , "xRugSide"     , "side"   , "X axis density symbols side");
+  addProp("rug/y"     , "yRug"         , "visible", "Show y axis symbols density");
+  addProp("rug/y"     , "yRugSide"     , "side"   , "Y axis density symbols side");
+  addProp("rug/symbol", "rugSymbolType", "type"   , "Axis density symbol type");
+  addProp("rug/symbol", "rugSymbolSize", "size"   , "Axis density symbol size");
 
   // density axis
-  addProperty("density"     , this, "densityWidth", "width"  )->
-    setDesc("Axis density curve width");
-  addProperty("density/x"   , this, "xDensity"    , "enabled")->
-    setDesc("Show x axis density curve");
-  addProperty("density/x"   , this, "xDensitySide", "side"   )->
-    setDesc("X axis density curve side");
-  addProperty("density/y"   , this, "yDensity"    , "enabled")->
-    setDesc("Show y axis density curve");
-  addProperty("density/y"   , this, "yDensitySide", "side"   )->
-    setDesc("Y axis density curve side");
-  addProperty("density/fill", this, "densityAlpha", "alpha"  )->
-    setDesc("Axis density curve alpha");
-
-  // density map
-  addProperty("densityMap" , this, "densityMap"        , "enabled" )->
-    setDesc("Show density map");
-  addProperty("densityMap" , this, "densityMapGridSize", "gridSize")->
-    setDesc("Density map grid size");
-  addProperty("densityMap" , this, "densityMapDelta"   , "delta"   )->
-    setDesc("Density map delta");
+  addProp("density"     , "densityWidth", "width"  , "Axis density curve width");
+  addProp("density/x"   , "xDensity"    , "visible", "Show x axis density curve");
+  addProp("density/x"   , "xDensitySide", "side"   , "X axis density curve side");
+  addProp("density/y"   , "yDensity"    , "visible", "Show y axis density curve");
+  addProp("density/y"   , "yDensitySide", "side"   , "Y axis density curve side");
+  addProp("density/fill", "densityAlpha", "alpha"  , "Axis density curve alpha");
 
   // whisker axis
-  addProperty("whisker"     , this, "whiskerWidth" , "width"  )->setDesc("Axis whisker width");
-  addProperty("whisker"     , this, "whiskerMargin", "margin" )->setDesc("Axis whisker margin");
-  addProperty("whisker/x"   , this, "xWhisker"     , "enabled")->setDesc("Show x axis whisker");
-  addProperty("whisker/x"   , this, "xWhiskerSide" , "side"   )->setDesc("X axis whisker side");
-  addProperty("whisker/y"   , this, "yWhisker"     , "enabled")->setDesc("Show y axis whisker");
-  addProperty("whisker/y"   , this, "yWhiskerSide" , "side"   )->setDesc("Y axis whisker side");
-  addProperty("whisker/fill", this, "whiskerAlpha" , "alpha"  )->setDesc("Axis whisker alpha");
+  addProp("whisker"     , "whiskerWidth" , "width"  , "Axis whisker width");
+  addProp("whisker"     , "whiskerMargin", "margin" , "Axis whisker margin");
+  addProp("whisker/x"   , "xWhisker"     , "visible", "Show x axis whisker");
+  addProp("whisker/x"   , "xWhiskerSide" , "side"   , "X axis whisker side");
+  addProp("whisker/y"   , "yWhisker"     , "visible", "Show y axis whisker");
+  addProp("whisker/y"   , "yWhiskerSide" , "side"   , "Y axis whisker side");
+  addProp("whisker/fill", "whiskerAlpha" , "alpha"  , "Axis whisker alpha");
 
   CQChartsGroupPlot::addProperties();
 
+  // symbol
   addSymbolProperties("symbol", "", "");
 
   // point data labels
   dataLabel_->addPathProperties("labels", "Labels");
 
   // grid
-  addProperty("grid", this, "gridded" , "enabled")->setDesc("Grid points");
-  addProperty("grid", this, "gridNumX", "nx"     )->setDesc("Number of x grid cells");
-  addProperty("grid", this, "gridNumY", "ny"     )->setDesc("Number of y grid cells");
+  addProp("gridCells", "gridNumX", "nx", "Number of x grid cells");
+  addProp("gridCells", "gridNumY", "ny", "Number of y grid cells");
 
-  addFillProperties("grid/fill"  , "gridCellFill"  , "Grid cell");
-  addProperty      ("grid/stroke", this, "gridCellBorder", "visible")->
-    setDesc("Grid cell stroke visible");
-  addLineProperties("grid/stroke", "gridCellBorder", "Grid cell");
+  addFillProperties("gridCells/fill"  , "gridCellFill"  , "Grid cell");
+  addProp          ("gridCells/stroke", "gridCellBorder", "visible", "Grid cell stroke visible");
+  addLineProperties("gridCells/stroke", "gridCellBorder", "Grid cell");
 
   // symbol key
-  addProperty("symbol/key", this, "symbolMapKey"      , "visible")->
-    setDesc("Symbol size key visible");
-  addProperty("symbol/key", this, "symbolMapKeyAlpha" , "alpha"  )->
-    setDesc("Symbol size key alpha");
-  addProperty("symbol/key", this, "symbolMapKeyMargin", "margin" )->
-    setDesc("Symbol size key margin");
+  addProp("symbol/key"     , "symbolMapKey"      , "visible", "Symbol size key visible");
+  addProp("symbol/key"     , "symbolMapKeyMargin", "margin" , "Symbol size key margin");
+  addProp("symbol/key/fill", "symbolMapKeyAlpha" , "alpha"  , "Symbol size key fill alpha");
 
   // mapping for columns (symbol type, size, font size, color)
-  addProperty("symbol/map/type", this, "symbolTypeMapped", "enabled")->
-    setDesc("Symbol type values mapped");
-  addProperty("symbol/map/type", this, "symbolTypeMapMin", "min"    )->
-    setDesc("Symbol type map min value");
-  addProperty("symbol/map/type", this, "symbolTypeMapMax", "max"    )->
-    setDesc("Symbol type map max value");
+  addProp("symbol/map/type", "symbolTypeMapped", "enabled", "Symbol type values mapped");
+  addProp("symbol/map/type", "symbolTypeMapMin", "min"    , "Symbol type map min value");
+  addProp("symbol/map/type", "symbolTypeMapMax", "max"    , "Symbol type map max value");
 
-  addProperty("symbol/map/size", this, "symbolSizeMapped"  , "enabled")->
-    setDesc("Symbol size values mapped");
-  addProperty("symbol/map/size", this, "symbolSizeMapMin"  , "min"    )->
-    setDesc("Symbol size map min value");
-  addProperty("symbol/map/size", this, "symbolSizeMapMax"  , "max"    )->
-    setDesc("Symbol size map max value");
-  addProperty("symbol/map/size", this, "symbolSizeMapUnits", "units"  )->
-    setDesc("Symbol size map units");
+  addProp("symbol/map/size", "symbolSizeMapped"  , "enabled", "Symbol size values mapped");
+  addProp("symbol/map/size", "symbolSizeMapMin"  , "min"    , "Symbol size map min value");
+  addProp("symbol/map/size", "symbolSizeMapMax"  , "max"    , "Symbol size map max value");
+  addProp("symbol/map/size", "symbolSizeMapUnits", "units"  , "Symbol size map units");
 
-  addProperty("font/map/size", this, "fontSizeMapped"  , "enabled")->
-    setDesc("Font size value mapped");
-  addProperty("font/map/size", this, "fontSizeMapMin"  , "min"    )->
-    setDesc("Font size map min value");
-  addProperty("font/map/size", this, "fontSizeMapMax"  , "max"    )->
-    setDesc("Font size map max value");
-  addProperty("font/map/size", this, "fontSizeMapUnits", "units"  )->
-    setDesc("Font size map units");
+  addProp("font/map/size", "fontSizeMapped"  , "enabled", "Font size value mapped");
+  addProp("font/map/size", "fontSizeMapMin"  , "min"    , "Font size map min value");
+  addProp("font/map/size", "fontSizeMapMax"  , "max"    , "Font size map max value");
+  addProp("font/map/size", "fontSizeMapUnits", "units"  , "Font size map units");
 
   // color map
   addColorMapProperties();
@@ -849,10 +902,12 @@ calcRange() const
       bool hidden = (hasGroups_ && plot_->isSetHidden(groupInd));
 
       if (! hidden) {
-        bool ok1, ok2;
+        double x, y;
 
-        double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
-        double y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, ok2);
+        bool ok1 = plot_->modelMappedReal(data.row, plot_->xColumn(), data.parent,
+                                          x, plot_->isLogX(), data.row);
+        bool ok2 = plot_->modelMappedReal(data.row, plot_->yColumn(), data.parent,
+                                          y, plot_->isLogY(), data.row);
 
         if (! ok1) { x = uniqueId(data, plot_->xColumn()); ++uniqueX_; }
         if (! ok2) { y = uniqueId(data, plot_->yColumn()); ++uniqueY_; }
@@ -956,7 +1011,7 @@ calcRange() const
 
   //---
 
-  if (isGridded()) {
+  if (isGridCells()) {
     if (dataRange.isSet()) {
       dataRange.updateRange(gridData_.xinterval.calcStart(), gridData_.yinterval.calcStart());
       dataRange.updateRange(gridData_.xinterval.calcEnd  (), gridData_.yinterval.calcEnd  ());
@@ -966,6 +1021,8 @@ calcRange() const
   //---
 
   th->initAxes(uniqueX, uniqueY);
+
+  //---
 
   return dataRange;
 }
@@ -1026,17 +1083,23 @@ initAxes(bool uniqueX, bool uniqueY)
     yAxis_->setLabel(yname);
   }
 
-  xAxis_->setValueType(uniqueX ? CQChartsAxisValueType::Type::INTEGER :
-                                 CQChartsAxisValueType::Type::REAL);
-  yAxis_->setValueType(uniqueY ? CQChartsAxisValueType::Type::INTEGER :
-                                 CQChartsAxisValueType::Type::REAL);
+  CQChartsAxisValueType xType = (isLogX() ?
+    CQChartsAxisValueType::Type::LOG : CQChartsAxisValueType::Type::REAL);
+  CQChartsAxisValueType yType = (isLogY() ?
+    CQChartsAxisValueType::Type::LOG : CQChartsAxisValueType::Type::REAL);
+
+  if (uniqueX) xType = CQChartsAxisValueType::Type::INTEGER;
+  if (uniqueY) yType = CQChartsAxisValueType::Type::INTEGER;
+
+  xAxis_->setValueType(xType);
+  yAxis_->setValueType(yType);
 
   //---
 
   ColumnType xColumnType = columnValueType(xColumn());
 
   if (xColumnType == CQBaseModelType::TIME)
-    xAxis()->setValueType(CQChartsAxisValueType::Type::DATE);
+    xAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
 }
 
 QString
@@ -1396,10 +1459,12 @@ addNameValues() const
       QModelIndex xInd  = plot_->modelIndex(data.row, plot_->xColumn(), data.parent);
       QModelIndex xInd1 = plot_->normalizeIndex(xInd);
 
-      bool ok1, ok2;
+      double x, y;
 
-      double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
-      double y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, ok2);
+      bool ok1 = plot_->modelMappedReal(data.row, plot_->xColumn(), data.parent,
+                                        x, plot_->isLogX(), data.row);
+      bool ok2 = plot_->modelMappedReal(data.row, plot_->yColumn(), data.parent,
+                                        y, plot_->isLogY(), data.row);
 
       if (! ok1) x = uniqueId(data, plot_->xColumn());
       if (! ok2) y = uniqueId(data, plot_->yColumn());
@@ -1479,7 +1544,7 @@ CQChartsScatterPlot::
 addNameValue(int groupInd, const QString &name, double x, double y, int row,
              const QModelIndex &xind, const CQChartsColor &color)
 {
-  if (isGridded()) {
+  if (isGridCells()) {
     int ix = gridData_.xinterval.valueInterval(x);
     int iy = gridData_.yinterval.valueInterval(y);
 
@@ -1507,7 +1572,10 @@ void
 CQChartsScatterPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  if (! isGridded())
+  if (isOverlay() && ! isFirstPlot())
+    return;
+
+  if (! isGridCells())
     addPointKeyItems(key);
   else
     addGridKeyItems(key);
@@ -1610,13 +1678,36 @@ addGridKeyItems(CQChartsPlotKey *key)
   key->addItem(item, 0, 0);
 }
 
-//------
+//---
+
+bool
+CQChartsScatterPlot::
+probe(ProbeData &probeData) const
+{
+  CQChartsPlotObj *obj;
+
+  if (! objNearestPoint(probeData.p, obj))
+    return false;
+
+  CQChartsGeom::Point c = obj->rect().getCenter();
+
+  probeData.p    = c;
+  probeData.both = true;
+
+  probeData.xvals.push_back(c.x);
+  probeData.yvals.push_back(c.y);
+
+  return true;
+}
+
+//---
 
 bool
 CQChartsScatterPlot::
 addMenuItems(QMenu *menu)
 {
-  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) -> QAction *{
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
+                                  bool isSet, const char *slot) -> QAction *{
     QAction *action = new QAction(name, menu);
 
     action->setCheckable(true);
@@ -1629,18 +1720,47 @@ addMenuItems(QMenu *menu)
     return action;
   };
 
+  //---
+
   menu->addSeparator();
 
-  (void) addCheckedAction("Best Fit"   , isBestFit   (), SLOT(setBestFit   (bool)));
-  (void) addCheckedAction("Hull"       , isHull      (), SLOT(setHull      (bool)));
-  (void) addCheckedAction("X Rug"      , isXRug      (), SLOT(setXRug      (bool)));
-  (void) addCheckedAction("Y Rug"      , isYRug      (), SLOT(setYRug      (bool)));
-  (void) addCheckedAction("X Density"  , isXDensity  (), SLOT(setXDensity  (bool)));
-  (void) addCheckedAction("Y Density"  , isYDensity  (), SLOT(setYDensity  (bool)));
-  (void) addCheckedAction("Density Map", isDensityMap(), SLOT(setDensityMap(bool)));
-  (void) addCheckedAction("X Whisker"  , isXWhisker  (), SLOT(setXWhisker  (bool)));
-  (void) addCheckedAction("Y Whisker"  , isYWhisker  (), SLOT(setYWhisker  (bool)));
-  (void) addCheckedAction("Gridded"    , isGridded   (), SLOT(setGridded   (bool)));
+  QMenu *typeMenu = new QMenu("Plot Type");
+
+  (void) addMenuCheckedAction(typeMenu, "Symbols"   , isSymbols  (), SLOT(setSymbols(bool)));
+  (void) addMenuCheckedAction(typeMenu, "Grid Cells", isGridCells(), SLOT(setGridCells(bool)));
+
+  menu->addMenu(typeMenu);
+
+  //---
+
+  QMenu *overlaysMenu = new QMenu("Overlays");
+
+  (void) addMenuCheckedAction(overlaysMenu, "Best Fit"   ,
+                              isBestFit   (), SLOT(setBestFit       (bool)));
+  (void) addMenuCheckedAction(overlaysMenu, "Hull"       ,
+                              isHull      (), SLOT(setHull          (bool)));
+  (void) addMenuCheckedAction(overlaysMenu, "Statistic Lines",
+                              isStatsLines(), SLOT(setStatsLinesSlot(bool)));
+  (void) addMenuCheckedAction(overlaysMenu, "Density Map",
+                              isDensityMap(), SLOT(setDensityMap    (bool)));
+
+  menu->addMenu(overlaysMenu);
+
+  //---
+
+  QMenu *xMenu = new QMenu("X Axis Annotation");
+  QMenu *yMenu = new QMenu("Y Axis Annotation");
+
+  (void) addMenuCheckedAction(xMenu, "Rug"    , isXRug    (), SLOT(setXRug    (bool)));
+  (void) addMenuCheckedAction(xMenu, "Density", isXDensity(), SLOT(setXDensity(bool)));
+  (void) addMenuCheckedAction(xMenu, "Whisker", isXWhisker(), SLOT(setXWhisker(bool)));
+
+  (void) addMenuCheckedAction(yMenu, "Rug"    , isYRug    (), SLOT(setYRug    (bool)));
+  (void) addMenuCheckedAction(yMenu, "Density", isYDensity(), SLOT(setYDensity(bool)));
+  (void) addMenuCheckedAction(yMenu, "Whisker", isYWhisker(), SLOT(setYWhisker(bool)));
+
+  menu->addMenu(xMenu);
+  menu->addMenu(yMenu);
 
   return true;
 }
@@ -1747,11 +1867,9 @@ bool
 CQChartsScatterPlot::
 hasBackground() const
 {
-  if (isHull()) return true;
-
+  if (isHull      ()) return true;
   if (isBestFit   ()) return true;
   if (isStatsLines()) return true;
-
   if (isDensityMap()) return true;
 
   if (isXRug    ()) return true;
@@ -1771,15 +1889,9 @@ execDrawBackground(QPainter *painter) const
 {
   CQChartsPlot::execDrawBackground(painter);
 
-  if (isHull())
-    drawHull(painter);
-
-  if (isBestFit())
-    drawBestFit(painter);
-
-  if (isStatsLines())
-    drawStatsLines(painter);
-
+  if (isHull      ()) drawHull      (painter);
+  if (isBestFit   ()) drawBestFit   (painter);
+  if (isStatsLines()) drawStatsLines(painter);
   if (isDensityMap()) drawDensityMap(painter);
 
   if (isXRug    ()) drawXRug    (painter);
@@ -2230,7 +2342,7 @@ drawXDensity(QPainter *painter) const
 
   //---
 
-  if (! isGridded()) {
+  if (! isGridCells()) {
     int ig = 0;
     int ng = groupNameValues_.size();
 
@@ -2282,7 +2394,7 @@ drawYDensity(QPainter *painter) const
 
   //---
 
-  if (! isGridded()) {
+  if (! isGridCells()) {
     int ig = 0;
     int ng = groupNameValues_.size();
 
@@ -2513,7 +2625,7 @@ drawXWhisker(QPainter *painter) const
 
   //---
 
-  if (! isGridded()) {
+  if (! isGridCells()) {
     int ig = 0;
     int ng = groupNameValues_.size();
 
@@ -2565,7 +2677,7 @@ drawYWhisker(QPainter *painter) const
 
   //---
 
-  if (! isGridded()) {
+  if (! isGridCells()) {
     int ig = 0;
     int ng = groupNameValues_.size();
 
@@ -3356,14 +3468,13 @@ bool
 CQChartsScatterPointObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  const CQChartsLength &s = this->symbolSize(); // TODO: ensure not a crazy number
+  double sx, sy;
 
-  double sx = plot_->lengthPixelWidth (s);
-  double sy = plot_->lengthPixelHeight(s);
+  plot_->pixelSymbolSize(this->symbolSize(), sx, sy);
 
-  CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(p_.x(), p_.y()));
+  QPointF p1 = plot_->windowToPixel(p_);
 
-  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
+  CQChartsGeom::BBox pbbox(p1.x() - sx, p1.y() - sy, p1.x() + sx, p1.y() + sy);
 
   CQChartsGeom::Point pp = plot_->windowToPixel(p);
 
@@ -3406,7 +3517,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
   //---
 
-  // calc stroke and brush
+  // calc pen and brush
   QPen   pen;
   QBrush brush;
 
@@ -3797,15 +3908,22 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 
   QFontMetricsF fm(painter->font());
 
+//double fw = fm.width("X");
   double fh = fm.height();
 
   int n = plot_->gridData().maxN;
 
-  double tw = plot_->pixelToWindowWidth(fm.width(QString("%1").arg(n)) - 3);
+  double tw  = fm.width(QString("%1").arg(n));
+  double wtw = plot_->pixelToWindowWidth(tw);
+
+  double wxm = plot_->pixelToWindowWidth (2);
+  double wym = plot_->pixelToWindowHeight(fh/2 + 2);
 
   // calc left/right boxes
-  CQChartsGeom::BBox lrect(rect.getXMin(), rect.getYMin(), rect.getXMax() - tw, rect.getYMax());
-  CQChartsGeom::BBox rrect(rect.getXMax() - tw, rect.getYMin(), rect.getXMax(), rect.getYMax());
+  CQChartsGeom::BBox lrect(rect.getXMin() + wxm, rect.getYMin() + wym,
+                           rect.getXMax() - wtw - 2*wxm, rect.getYMax() - wym);
+  CQChartsGeom::BBox rrect(rect.getXMax() - wtw - wxm, rect.getYMin() + wym,
+                           rect.getXMax() - wxm, rect.getYMax() - wym);
 
   CQChartsGeom::BBox lprect = plot_->windowToPixel(lrect);
   CQChartsGeom::BBox rprect = plot_->windowToPixel(rrect);
@@ -3813,8 +3931,8 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
   //---
 
   // draw gradient in left box
-  QPointF pg1 = QPointF(lprect.getXMin() + 2, lprect.getYMax() - 2 - fh/2);
-  QPointF pg2 = QPointF(lprect.getXMin() + 2, lprect.getYMin() + 2 + fh/2);
+  QPointF pg1 = QPointF(lprect.getXMin(), lprect.getYMax());
+  QPointF pg2 = QPointF(lprect.getXMin(), lprect.getYMin());
 
   QLinearGradient lg(pg1.x(), pg1.y(), pg2.x(), pg2.y());
 
@@ -3822,7 +3940,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 
   QBrush brush(lg);
 
-  QRectF frect(pg1.x(), pg2.y(), lprect.getWidth() - 4, lprect.getHeight() - 4 - fh);
+  QRectF frect(pg1.x(), pg2.y(), lprect.getWidth(), lprect.getHeight());
 
   painter->fillRect(frect, brush);
 
@@ -3838,8 +3956,8 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
   int n4 = n5 - dn;
   int n3 = (n5 + n1)/2.0;
 
-  double y1 = rprect.getYMax() - 2 - fh/2;
-  double y5 = rprect.getYMin() + 2 + fh/2;
+  double y1 = rprect.getYMax();
+  double y5 = rprect.getYMin();
   double dy = (y1 - y5)/4.0;
 
   double y2 = y1 - dy;
@@ -3862,9 +3980,9 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
   // draw key labels
   double df = (fm.ascent() - fm.descent())/2.0;
 
-  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin() + 1, y1 + df, QString("%1").arg(n1));
-  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin() + 1, y2 + df, QString("%1").arg(n2));
-  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin() + 1, y3 + df, QString("%1").arg(n3));
-  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin() + 1, y4 + df, QString("%1").arg(n4));
-  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin() + 1, y5 + df, QString("%1").arg(n5));
+  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin(), y1 + df, QString("%1").arg(n1));
+  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin(), y2 + df, QString("%1").arg(n2));
+  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin(), y3 + df, QString("%1").arg(n3));
+  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin(), y4 + df, QString("%1").arg(n4));
+  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin(), y5 + df, QString("%1").arg(n5));
 }

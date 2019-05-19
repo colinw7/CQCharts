@@ -72,7 +72,7 @@ class CQChartsAxisEdit : public QFrame {
   QComboBox*            valueTypeCombo_        { nullptr }; //!< value type combo
   CQLineEdit*           formatEdit_            { nullptr }; //!< format edit
   CQIntegerSpin*        tickIncrementEdit_     { nullptr }; //!< tick increment edit
-  CQRealSpin*           majorIncrementEdit_    { nullptr }; //!< major increment edit
+  CQIntegerSpin*        majorIncrementEdit_    { nullptr }; //!< major increment edit
   CQRealSpin*           startEdit_             { nullptr }; //!< start edit
   CQRealSpin*           endEdit_               { nullptr }; //!< end edit
   CQCheckBox*           includeZeroEdit_       { nullptr }; //!< include zero edit

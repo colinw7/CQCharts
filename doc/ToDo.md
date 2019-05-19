@@ -1,16 +1,19 @@
 High
+ + addTipColumns() for all plots
+ + Scrolled key not clipping properly
+ + If overlay of same type apply changes to all plots ?
+ + More html documentation update
+ + visible property at all levels (box, fill, stroke) or single value
+ + Better tcl list support for command option data
  + Summarize properties using box,shape,fill,stroke abstractions
- + Hide pattern
- + Adjacency Plot bad draw on resize (not all layers drawn)
- + hasSet for plot type
- + Distinct part of color def not palette
+ + Hide fill pattern by default
+ + hasSet/hasGroup for plot type
+ + Distinct is property of color def not palette
  + Remove draw Simple Text calls
  + Support View Key Header (or remove)
- + Use more lambdas to simplify adding properties
  + Hier colorInd. Color by Hier. virtual for ig/is to use parent color index
  + Only send color changed from editor on mouse release (or use different signal)
- + Bar Chart Key using new color code
- + Tree map performance for large data (file tree) (small object opt)
+ + Bar Chart Key using new color code, all key items connected to objects
  + Pos for distribution plot (x for vertical) is meaningless for strings so turn off or remap
    + get pos from axis data or separate mapping ?
  + Interrupt and wait for thread kill
@@ -46,7 +49,6 @@ High
  + document expression handling (process, filter)
  + density axis plot scaling for multiple plots ?
  + Common Code for Data->Pen/Brush
- + Tree Map title (max) depth
  + Allow write to model value (tcl ?) not extra (extra option ?)
  + Consistent property names and hierarchy
  + More Variants in Model (QImage/QIcon could supply custom symbol !)
@@ -290,6 +292,7 @@ Combined Plots
  + Better builtin support for split plots
 
 Adjacency Plot
+ + Adjacency Plot bad draw on resize (not all layers drawn)
  + X Border Width
  + Better Text Placement/Sizing
  + Hierarchical Adjacency (H/V headers are hierarchical trees)
@@ -358,6 +361,9 @@ Sunburst
  + Push/Pop
 
 Tree map
+ + Filter to visible (keep placement, don't show) 
+ + Tree map performance for large data (file tree) (small object opt)
+ + Tree Map title (max) depth
  + Support Hier Value and Child Values (include in sum, total size)
  + Auto font size
  + Color Key

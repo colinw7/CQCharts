@@ -221,12 +221,10 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   //---
 
   if (optional) {
-    groupBox_ = new CQGroupBox;
+    groupBox_ = CQUtil::makeLabelWidget<CQGroupBox>("Visible", "groupBox");
 
-    groupBox_->setObjectName("groupBox");
     groupBox_->setCheckable(true);
     groupBox_->setChecked(false);
-    groupBox_->setTitle("Visible");
 
     layout->addWidget(groupBox_);
   }
@@ -265,7 +263,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   // angle
   QLabel *angleLabel = CQUtil::makeLabelWidget<QLabel>("Angle", "angleLabel");
 
-  angleEdit_ = new CQAngleSpinBox;
+  angleEdit_ = CQUtil::makeWidget<CQAngleSpinBox>("angleEdit");
 
   groupLayout->addWidget(angleLabel, 3, 0);
   groupLayout->addWidget(angleEdit_, 3, 1);
@@ -273,9 +271,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   // contrast
   QLabel *contrastLabel = CQUtil::makeLabelWidget<QLabel>("Contrast", "contrastLabel");
 
-  contrastEdit_ = new CQCheckBox;
-
-  contrastEdit_->setObjectName("contrastEdit");
+  contrastEdit_ = CQUtil::makeWidget<CQCheckBox>("contrastEdit");
 
   groupLayout->addWidget(contrastLabel, 4, 0);
   groupLayout->addWidget(contrastEdit_, 4, 1);
@@ -283,9 +279,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   // align
   QLabel *alignLabel = CQUtil::makeLabelWidget<QLabel>("Align", "alignLabel");
 
-  alignEdit_ = new CQAlignEdit;
-
-  alignEdit_->setObjectName("alignEdit");
+  alignEdit_ = CQUtil::makeWidget<CQAlignEdit>("alignEdit");
 
   groupLayout->addWidget(alignLabel, 5, 0);
   groupLayout->addWidget(alignEdit_, 5, 1);
@@ -293,9 +287,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   // formatted
   QLabel *formattedLabel = CQUtil::makeLabelWidget<QLabel>("Formatted", "formattedLabel");
 
-  formattedEdit_ = new CQCheckBox;
-
-  formattedEdit_->setObjectName("formattedEdit");
+  formattedEdit_ = CQUtil::makeWidget<CQCheckBox>("formattedEdit");
 
   groupLayout->addWidget(formattedLabel, 6, 0);
   groupLayout->addWidget(formattedEdit_, 6, 1);
@@ -303,9 +295,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   // scaled
   QLabel *scaledLabel = CQUtil::makeLabelWidget<QLabel>("Scaled", "scaledLabel");
 
-  scaledEdit_ = new CQCheckBox;
-
-  scaledEdit_->setObjectName("scaledEdit");
+  scaledEdit_ = CQUtil::makeWidget<CQCheckBox>("scaledEdit");
 
   groupLayout->addWidget(scaledLabel, 7, 0);
   groupLayout->addWidget(scaledEdit_, 7, 1);
@@ -313,9 +303,7 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   // html
   QLabel *htmlLabel = CQUtil::makeLabelWidget<QLabel>("Html", "htmlLabel");
 
-  htmlEdit_ = new CQCheckBox;
-
-  htmlEdit_->setObjectName("htmlEdit");
+  htmlEdit_ = CQUtil::makeWidget<CQCheckBox>("htmlEdit");
 
   groupLayout->addWidget(htmlLabel, 8, 0);
   groupLayout->addWidget(htmlEdit_, 8, 1);

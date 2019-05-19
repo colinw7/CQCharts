@@ -8,6 +8,7 @@
 #include <CQCharts.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsNamePair.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -42,11 +43,11 @@ QString
 CQChartsChordPlotType::
 description() const
 {
-  return "<h2>Chord Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draw connections using radial plot with sized path arcs.</p>\n"
-         "<p>The size of each arc is equivalent to the number of connections "
-         "from that section.</p>\n";
+  return CQChartsHtml().
+   h2("Chord Plot").
+    h3("Summary").
+    p("Draw connections using radial plot with sized path arcs.").
+    p("The size of each arc is equivalent to the number of connections from that section.");
 }
 
 bool
@@ -177,34 +178,39 @@ void
 CQChartsChordPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "linkColumn" , "link" )->setDesc("Link column");
-  addProperty("columns", this, "valueColumn", "value")->setDesc("Value column");
-  addProperty("columns", this, "groupColumn", "group")->setDesc("Grouping column");
+  addProp("columns", "linkColumn" , "link" , "Link column");
+  addProp("columns", "valueColumn", "value", "Value column");
+  addProp("columns", "groupColumn", "group", "Grouping column");
 
   // options
-  addProperty("options", this, "sorted"     )->setDesc("Sort values by size");
-  addProperty("options", this, "innerRadius")->setDesc("Radius of inside of outer strip");
+  addProp("options", "sorted"     , "", "Sort values by size");
+  addProp("options", "innerRadius", "", "Radius of inside of outer strip");
 
   // stroke
   addLineProperties("stroke", "border", "");
 
   // segment
-  addProperty("segment", this, "segmentAlpha", "alpha")->setDesc("Alpha of segments");
+  addProp("segment/fill", "segmentAlpha", "alpha", "Alpha of segment fill");
 
   // arc
-  addProperty("arc", this, "arcAlpha"  , "alpha"     )->setDesc("Alpha for arcs");
-  addProperty("arc", this, "gapAngle"  , "gapAngle"  )->
-    setDesc("Angle for gap between strip segements");
-  addProperty("arc", this, "startAngle", "startAngle")->
-    setDesc("Angle for first strip segment");
+  addProp("arc"     , "gapAngle"  , "gapAngle"  , "Angle for gap between strip segements");
+  addProp("arc"     , "startAngle", "startAngle", "Angle for first strip segment");
+  addProp("arc/fill", "arcAlpha"  , "alpha"     , "Alpha for arc fill");
 
   // labels
   textBox_->addTextDataProperties(propertyModel(), "labels", "Labels");
 
-  addProperty("labels", this, "labelRadius", "radius")->setDesc("Radius for segment label");
+  addProp("labels", "labelRadius", "radius", "Radius for segment label");
 
   QString labelBoxPath = "labels/box";
 

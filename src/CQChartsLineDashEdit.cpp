@@ -109,9 +109,7 @@ CQChartsLineDashEdit(QWidget *parent) :
 
   // combo control
 
-  combo_ = new CQIconCombo;
-
-  combo_->setObjectName("combo");
+  combo_ = CQUtil::makeWidget<CQIconCombo>("combo");
 
   combo_->setIconWidth(5*is);
 

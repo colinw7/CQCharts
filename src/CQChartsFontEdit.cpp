@@ -270,9 +270,7 @@ CQChartsFontEdit(QWidget *parent) :
 
   QLabel *fontLabel = CQUtil::makeLabelWidget<QLabel>("Font", "fontLabel");
 
-  fontEdit_ = new CQFontEdit;
-
-  fontEdit_->setObjectName("fontEdit");
+  fontEdit_ = CQUtil::makeWidget<CQFontEdit>("fontEdit");
 
   fontLayout->addWidget(fontLabel);
   fontLayout->addWidget(fontEdit_);

@@ -18,9 +18,7 @@ CQChartsLengthEdit(QWidget *parent) :
 
   //---
 
-  edit_ = new CQRealSpin;
-
-  edit_->setObjectName("real");
+  edit_ = CQUtil::makeWidget<CQRealSpin>("real");
 
   layout->addWidget(edit_);
 

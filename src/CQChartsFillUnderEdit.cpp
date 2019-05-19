@@ -408,10 +408,7 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 
   //----
 
-  CQGroupBox *xGroup = new CQGroupBox;
-
-  xGroup->setObjectName("xGroup");
-  xGroup->setTitle("X");
+  CQGroupBox *xGroup = CQUtil::makeLabelWidget<CQGroupBox>("X", "xGroup");
 
   layout->addWidget(xGroup);
 
@@ -434,9 +431,7 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 
   QLabel *xposLabel = CQUtil::makeLabelWidget<QLabel>("Pos", "xposLabel");
 
-  xposEdit_ = new CQRealSpin;
-
-  xposEdit_->setObjectName("xposEdit");
+  xposEdit_ = CQUtil::makeWidget<CQRealSpin>("xposEdit");
 
   connect(xposEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToFillUnderPos()));
 
@@ -445,10 +440,7 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 
   //----
 
-  CQGroupBox *yGroup = new CQGroupBox;
-
-  yGroup->setObjectName("yGroup");
-  yGroup->setTitle("Y");
+  CQGroupBox *yGroup = CQUtil::makeLabelWidget<CQGroupBox>("Y", "yGroup");
 
   layout->addWidget(yGroup);
 
@@ -471,9 +463,7 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 
   QLabel *yposLabel = CQUtil::makeLabelWidget<QLabel>("Pos", "yposLabel");
 
-  yposEdit_ = new CQRealSpin;
-
-  yposEdit_->setObjectName("yposEdit");
+  yposEdit_ = CQUtil::makeWidget<CQRealSpin>("yposEdit");
 
   connect(yposEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToFillUnderPos()));
 

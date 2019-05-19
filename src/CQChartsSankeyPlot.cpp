@@ -6,6 +6,7 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsNamePair.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -40,9 +41,10 @@ QString
 CQChartsSankeyPlotType::
 description() const
 {
-  return "<h2>Sankey Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draw connected objects as a connected flow graph.</p>\n";
+  return CQChartsHtml().
+   h2("Sankey Plot").
+    h3("Summary").
+     p("Draw connected objects as a connected flow graph.");
 }
 
 bool
@@ -153,29 +155,36 @@ void
 CQChartsSankeyPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "linkColumn" , "link" )->setDesc("Link column");
-  addProperty("columns", this, "valueColumn", "value")->setDesc("Value column");
+  addProp("columns", "linkColumn" , "link" , "Link column");
+  addProp("columns", "valueColumn", "value", "Value column");
 
-  addProperty("node/stroke", this, "nodeBorder", "visible")->setDesc("Node stroke visible");
+  addProp("node/stroke", "nodeBorder", "visible", "Node stroke visible");
 
   addLineProperties("node/stroke", "nodeBorder", "Node");
 
-  addProperty("node/fill", this, "nodeFilled", "visible")->setDesc("Node fill visible");
+  addProp("node/fill", "nodeFilled", "visible", "Node fill visible");
 
   addFillProperties("node/fill", "nodeFill", "Node");
 
-  addProperty("edge/stroke", this, "edgeBorder", "visible")->setDesc("Edge steoke visible");
+  addProp("edge/stroke", "edgeBorder", "visible", "Edge steoke visible");
 
   addLineProperties("edge/stroke", "edgeBorder", "Edge");
 
-  addProperty("edge/fill", this, "edgeFilled", "visible")->setDesc("Edit fill visible");
+  addProp("edge/fill", "edgeFilled", "visible", "Edit fill visible");
 
   addFillProperties("edge/fill", "edgeFill", "Edge");
 
-  addProperty("text", this, "textVisible", "visible")->setDesc("Text label visible");
-  addProperty("text", this, "align"      , "align"  )->setDesc("Text label align");
+  addProp("text", "textVisible", "visible", "Text label visible");
+  addProp("text", "align"      , "align"  , "Text label align");
 
   addTextProperties("text", "text", "");
 }

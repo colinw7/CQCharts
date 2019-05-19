@@ -27,10 +27,10 @@ class CQTsvModel : public CQDataModel {
   void save(std::ostream &os);
   void save(QAbstractItemModel *model, std::ostream &os);
 
+  static QString encodeString(const QString &str);
+
  protected:
   std::string encodeVariant(const QVariant &var) const;
-
-  QString encodeString(const QString &str) const;
 
  protected:
   QString filename_;                    // input filename

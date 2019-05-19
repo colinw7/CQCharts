@@ -27,9 +27,7 @@ CQChartsFilterEdit(QWidget *parent) :
 
   layout->addWidget(edit_);
 
-  combo_ = new CQIconCombo;
-
-  combo_->setObjectName("combo");
+  combo_ = CQUtil::makeWidget<CQIconCombo>("combo");
 
   combo_->addItem(CQPixmapCacheInst->getIcon("FILTER_LIGHT", "FILTER_DARK"), "Filter");
   combo_->addItem(CQPixmapCacheInst->getIcon("SEARCH_LIGHT", "SEARCH_DARK"), "Search");

@@ -101,7 +101,7 @@ interruptTree()
   interrupt_.store(false);
 }
 
-void
+bool
 CQChartsPlotObjTree::
 waitTree() const
 {
@@ -112,23 +112,23 @@ waitTree() const
 
     assert(! th->plotObjTreeFuture_.valid());
   }
+
+  return plotObjTree_;
 }
 
 void
 CQChartsPlotObjTree::
 objectsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const
 {
-  waitTree();
+  if (! waitTree()) return;
 
-  if (plotObjTree_) {
-    PlotObjTree::DataList dataList;
+  PlotObjTree::DataList dataList;
 
-    static_cast<PlotObjTree *>(plotObjTree_)->dataAtPoint(p.x, p.y, dataList);
+  static_cast<PlotObjTree *>(plotObjTree_)->dataAtPoint(p.x, p.y, dataList);
 
-    for (const auto &obj : dataList) {
-      if (obj->inside(p))
-        objs.push_back(obj);
-    }
+  for (const auto &obj : dataList) {
+    if (obj->inside(p))
+      objs.push_back(obj);
   }
 }
 
@@ -136,19 +136,46 @@ void
 CQChartsPlotObjTree::
 objectsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const
 {
-  waitTree();
+  if (! waitTree()) return;
 
-  if (plotObjTree_) {
-    PlotObjTree::DataList dataList;
+  PlotObjTree::DataList dataList;
 
-    if (inside)
-      static_cast<PlotObjTree *>(plotObjTree_)->dataInsideRect(r, dataList);
-    else
-      static_cast<PlotObjTree *>(plotObjTree_)->dataTouchingRect(r, dataList);
+  if (inside)
+    static_cast<PlotObjTree *>(plotObjTree_)->dataInsideRect(r, dataList);
+  else
+    static_cast<PlotObjTree *>(plotObjTree_)->dataTouchingRect(r, dataList);
 
-    for (const auto &obj : dataList) {
-      if (obj->rectIntersect(r, inside))
-        objs.push_back(obj);
+  for (const auto &obj : dataList) {
+    if (obj->rectIntersect(r, inside))
+      objs.push_back(obj);
+  }
+}
+
+bool
+CQChartsPlotObjTree::
+objectNearest(const CQChartsGeom::Point &p, double searchX, double searchY,
+              CQChartsPlotObj* &obj) const
+{
+  obj = nullptr;
+
+  if (! waitTree()) return false;
+
+  CQChartsGeom::BBox bbox(p.x - searchX, p.y - searchY, p.x + searchX, p.y + searchY);
+
+  Objs objs;
+
+  objectsIntersectRect(bbox, objs, /*inside*/false);
+
+  double r = 0.0;
+
+  for (const auto &obj1 : objs) {
+    double r1 = obj1->rect().distanceTo(p);
+
+    if (! obj || r1 < r) {
+      obj = obj1;
+      r   = r1;
     }
   }
+
+  return obj;
 }

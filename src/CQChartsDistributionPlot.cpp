@@ -15,6 +15,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsDensity.h>
 #include <CQChartsRand.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -100,26 +101,29 @@ QString
 CQChartsDistributionPlotType::
 description() const
 {
-  return "<h2>Distribution Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draws bars with heights for the counts of set of values.</p>\n"
-         "<h3>Columns</h3>\n"
-         "<p>The values to be counted are taken from the <b>Value</b> columns "
-         "and grouped depending on the column value type. By default integer "
-         "values are grouped by matching value, real values are automatically "
-         "bucketed into ranges and strings are grouped by matching value.</p>\n"
-         "<p>The automatic bucketing of real values can overridden by turning off using "
-         "the <b>autoBucket</b> parameter and specifying the <b>startBucketValue</b> and "
-         "<b>deltaBucketValue</b> parameters.</p>"
-         "<p>The color of the bar can be overridden using the <b>Color</b> column.</p>\n"
-         "<h3>Options</h3>\n"
-         "<p>Enabling the <b>Horizontal</b> otpions draws the bars horizontally "
-         "of vertically.</p>"
-         "<h3>Grouping</h3>\n"
-         "<p>Standard grouping can be applied to the values to split the values to be "
-         "grouped into individual value sets before final grouping. This second level "
-         "if grouping creates multiple sets of grouped values which can be displayed "
-         "sequentially or overlaid with common buckets.</p>";
+  auto B = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+
+  return CQChartsHtml().
+   h2("Distribution Plot").
+    h3("Summary").
+     p("Draws bars with heights for the counts of set of values.").
+    h3("Columns").
+     p("The values to be counted are taken from the " + B("Value") + " columns and "
+       "grouped depending on the column value type. By default integer values are "
+       "grouped by matching value, real values are automatically bucketed into ranges "
+       "and strings are grouped by matching value.").
+     p("The automatic bucketing of real values can overridden by turning it off using "
+       "the " + B("autoBucket") + " parameter and specifying the " + B("startBucketValue") +
+       " and " + B("deltaBucketValue") + " parameters.").
+     p("The color of the bar can be overridden using the " + B("Color") + " column.").
+    h3("Options").
+     p("Enabling the " + B("Horizontal") + " otpions draws the bars horizontally "
+       "of vertically.").
+    h3("Grouping").
+     p("Standard grouping can be applied to the values to split the values to be "
+       "grouped into individual value sets before final grouping. This second level "
+       "if grouping creates multiple sets of grouped values which can be displayed "
+       "sequentially or overlaid with common buckets.");
 }
 
 CQChartsPlot *
@@ -312,69 +316,68 @@ void
 CQChartsDistributionPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
   CQChartsBarPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "nameColumn", "name")->setDesc("Custom group name column");
-  addProperty("columns", this, "dataColumn", "data")->setDesc("Extra data column");
+  addProp("columns", "nameColumn", "name", "Custom group name column");
+  addProp("columns", "dataColumn", "data", "Extra data column");
 
   // bucketing
-  addProperty("bucket", this, "bucketed"        , "enabled")->setDesc("Bucket grouped values");
-  addProperty("bucket", this, "autoBucket"      , "auto"   )->
-    setDesc("Automatically determine bucket ranges");
-  addProperty("bucket", this, "startBucketValue", "start"  )->
-    setDesc("Start value for manual bucket");
-  addProperty("bucket", this, "deltaBucketValue", "delta"  )->
-    setDesc("Delta value for manual bucket");
-  addProperty("bucket", this, "numAutoBuckets"  , "num"    )->
-    setDesc("Number of auto buckets");
+  addProp("bucket", "bucketed"        , "enabled", "Bucket grouped values");
+  addProp("bucket", "autoBucket"      , "auto"   , "Automatically determine bucket ranges");
+  addProp("bucket", "startBucketValue", "start"  , "Start value for manual bucket");
+  addProp("bucket", "deltaBucketValue", "delta"  , "Delta value for manual bucket");
+  addProp("bucket", "numAutoBuckets"  , "num"    , "Number of auto buckets");
 
-  addProperty("bucket", this, "underflowBucket", "underflow")->
-    setDesc("Underflow bucket threshhold");
-  addProperty("bucket", this, "overflowBucket" , "overflow")->
-    setDesc("Overflow bucket threshhold");
+  addProp("bucket", "underflowBucket", "underflow", "Underflow bucket threshhold");
+  addProp("bucket", "overflowBucket" , "overflow" , "Overflow bucket threshhold");
 
   // options
-  addProperty("options", this, "plotType" , "plotType" )->setDesc("Plot type");
-  addProperty("options", this, "valueType", "valueType")->setDesc("Bar value type");
+  addProp("options", "plotType" , "plotType" , "Plot type");
+  addProp("options", "valueType", "valueType", "Bar value type");
 
-  addProperty("options", this, "percent"   )->setDesc("Show value as percentage");
-  addProperty("options", this, "skipEmpty" )->setDesc("Skip empty buckets");
-  addProperty("options", this, "sorted"    )->setDesc("Sort by count");
-  addProperty("options", this, "minBarSize")->setDesc("Minimum bar size").setHidden(true);
+  addProp("options", "percent"   , "", "Show value as percentage");
+  addProp("options", "skipEmpty" , "", "Skip empty buckets");
+  addProp("options", "sorted"    , "", "Sort by count");
+  addProp("options", "minBarSize", "", "Minimum bar size")->setHidden(true);
 
   // density
-  addProperty("density", this, "density"        , "enabled" )->setDesc("Show density plot");
-  addProperty("density", this, "densityOffset"  , "offset"  )->setDesc("Density plot offset");
-  addProperty("density", this, "densitySamples" , "samples" )->setDesc("Density samples");
-  addProperty("density", this, "densityGradient", "gradient")->setDesc("Drag density gradient");
-  addProperty("density", this, "densityBars"    , "bars"    )->setDesc("Draw density bars");
+  addProp("density", "density"        , "visible" , "Show density plot");
+  addProp("density", "densityOffset"  , "offset"  , "Density plot offset");
+  addProp("density", "densitySamples" , "samples" , "Density samples");
+  addProp("density", "densityGradient", "gradient", "Drag density gradient");
+  addProp("density", "densityBars"    , "bars"    , "Draw density bars");
 
   // scatter
-  addProperty("scatter", this, "scatter"      , "enabled")->setDesc("Draw scatter points");
-  addProperty("scatter", this, "scatterFactor", "factor" )->setDesc("Scatter factor (0-1)");
+  addProp("scatter", "scatter"      , "visible", "Draw scatter points");
+  addProp("scatter", "scatterFactor", "factor" , "Scatter factor (0-1)");
 
   // stats
-  addProperty("statsData", this, "statsLines", "visible")->setDesc("Statistic lines visible");
+  addProp("statsData", "statsLines", "visible", "Statistic lines visible");
 
-  addLineProperties("statsData", "statsLines", "Statistic lines");
+  addLineProperties("statsData/stroke", "statsLines", "Statistic lines");
 
-  addProperty("statsData", this, "includeOutlier", "includeOutlier")->
-    setDesc("Include outlier points");
+  addProp("statsData", "includeOutlier", "includeOutlier", "Include outlier points");
 
   // dot lines
-  addProperty("dotLines"       , this, "dotLines"    , "enabled")->
-   setDesc("Draw bars as lines with dot");
-  addProperty("dotLines/stroke", this, "dotLineWidth", "width"  )->setDesc("Dot line width");
+  addProp("dotLines"       , "dotLines"    , "visible", "Draw bars as lines with dot");
+  addProp("dotLines/stroke", "dotLineWidth", "width"  , "Dot line width");
 
-  addSymbolProperties("dotLines", "dot", "Dot Line");
+  addSymbolProperties("dotLines/symbol", "dot", "Dot Line");
 
   // rug
-  addProperty("rug", this, "rug", "enabled")->setDesc("Draw density points on x axis");
+  addProp("rug", "rug", "visible", "Draw density points on x axis");
 
-  addSymbolProperties("rug", "rug", "Rug");
+  addSymbolProperties("rug/symbol", "rug", "Rug");
 
   //---
 
@@ -731,30 +734,104 @@ bucketGroupValues() const
 {
   CQPerfTrace trace("CQChartsDistributionPlot::bucketGroupValues");
 
-  // bucket grouped sets of values
+  CQChartsDistributionPlot *th = const_cast<CQChartsDistributionPlot *>(this);
+
+  if (isConsistentBucketer()) {
+    // calculate type for bucketer
+    CQChartsValueSet::Type type = CQChartsValueSet::Type::NONE;
+
+    for (auto &groupValues : groupData_.groupValues) {
+      Values *values = groupValues.second;
+
+      CQChartsValueSet::Type type1 = values->valueSet->type();
+
+      if (type == CQChartsValueSet::Type::NONE)
+        type = type1;
+
+      if (type1 == type)
+        continue;
+
+      if      (type1 == CQChartsValueSet::Type::STRING)
+        type = type1;
+      else if (type1 == CQChartsValueSet::Type::REAL) {
+        if (type1 == CQChartsValueSet::Type::INTEGER)
+          type = type1;
+      }
+    }
+
+    //---
+
+    // set bucketer range from all group value
+    int iv = 0;
+
+    CQBucketer &bucketer = th->groupBucketer(0);
+
+    for (auto &groupValues : groupData_.groupValues) {
+      Values *values = groupValues.second;
+
+      //---
+
+      if      (type == CQChartsValueSet::Type::INTEGER) {
+        if (iv == 0) {
+          bucketer.setIntegral(true);
+          bucketer.setIMin    (values->valueSet->imin());
+          bucketer.setIMax    (values->valueSet->imax());
+        }
+        else {
+          bucketer.setIMin(std::min(bucketer.imin(), values->valueSet->imin()));
+          bucketer.setIMax(std::max(bucketer.imax(), values->valueSet->imax()));
+        }
+      }
+      else if (type == CQChartsValueSet::Type::REAL) {
+        if (iv == 0) {
+          bucketer.setIntegral(false);
+          bucketer.setRMin    (values->valueSet->rmin());
+          bucketer.setRMax    (values->valueSet->rmax());
+        }
+        else {
+          bucketer.setRMin(std::min(bucketer.rmin(), values->valueSet->rmin()));
+          bucketer.setRMax(std::max(bucketer.rmax(), values->valueSet->rmax()));
+        }
+      }
+
+      ++iv;
+    }
+  }
+  else {
+    // set bucketer range for each grouped set of values
+    for (auto &groupValues : groupData_.groupValues) {
+      int     groupInd = groupValues.first;
+      Values *values   = groupValues.second;
+
+      CQBucketer &bucketer = th->groupBucketer(groupInd);
+
+      //---
+
+      // set bucketer range
+      CQChartsValueSet::Type type = values->valueSet->type();
+
+      if      (type == CQChartsValueSet::Type::INTEGER) {
+        bucketer.setIntegral(true);
+        bucketer.setIMin    (values->valueSet->imin());
+        bucketer.setIMax    (values->valueSet->imax());
+      }
+      else if (type == CQChartsValueSet::Type::REAL) {
+        bucketer.setIntegral(false);
+        bucketer.setRMin    (values->valueSet->rmin());
+        bucketer.setRMax    (values->valueSet->rmax());
+      }
+    }
+  }
+
+  //---
+
   for (auto &groupValues : groupData_.groupValues) {
     int     groupInd = groupValues.first;
     Values *values   = groupValues.second;
 
-    // init group bucketer
-    CQChartsDistributionPlot *th = const_cast<CQChartsDistributionPlot *>(this);
-
-    CQBucketer &bucketer = th->groupBucketer(groupInd);
-
     CQChartsValueSet::Type type = values->valueSet->type();
 
-    if      (type == CQChartsValueSet::Type::INTEGER) {
-      bucketer.setIntegral(true);
-      bucketer.setIMin    (values->valueSet->imin());
-      bucketer.setIMax    (values->valueSet->imax());
-    }
-    else if (type == CQChartsValueSet::Type::REAL) {
-      bucketer.setIntegral(false);
-      bucketer.setRMin    (values->valueSet->rmin());
-      bucketer.setRMax    (values->valueSet->rmax());
-    }
-
-    bool hierValue = isHierarchical();
+    //---
 
     // add each index to associated bucket
     for (auto &ind : values->inds) {
@@ -793,6 +870,8 @@ bucketGroupValues() const
         else {
           QString str;
 
+          bool hierValue = isHierarchical();
+
           if (hierValue) {
             QVariant value = modelRootValue(ind.row, ind.column, ind.parent, Qt::DisplayRole, ok);
 
@@ -803,6 +882,8 @@ bucketGroupValues() const
           }
 
           if (! ok) continue;
+
+          CQBucketer &bucketer = th->groupBucketer(groupInd);
 
           bucket = Bucket(bucketer.stringBucket(str));
           value  = QVariant(str);
@@ -1243,10 +1324,10 @@ CQChartsDistributionPlot::Values *
 CQChartsDistributionPlot::
 getGroupIndValues(int groupInd, const CQChartsModelIndex &ind) const
 {
-  auto pg = groupData_.groupValues.find(groupInd);
+  Values *values = const_cast<Values *>(getGroupValues(groupInd));
 
-  if (pg != groupData_.groupValues.end())
-    return (*pg).second;
+  if (values)
+    return values;
 
   //---
 
@@ -1258,10 +1339,10 @@ getGroupIndValues(int groupInd, const CQChartsModelIndex &ind) const
 
   valueSet->setColumn(ind.column);
 
-  auto pg1 = th->groupData_.groupValues.insert(groupData_.groupValues.end(),
-               GroupValues::value_type(groupInd, new Values(valueSet)));
+  auto pg = th->groupData_.groupValues.insert(th->groupData_.groupValues.end(),
+              GroupValues::value_type(groupInd, new Values(valueSet)));
 
-  CQChartsDistributionPlot::Values *values = (*pg1).second;
+  values = (*pg).second;
 
   //---
 
@@ -1443,51 +1524,55 @@ createObjs(PlotObjs &objs) const
 #endif
 
   if      (isDensity()) {
-    valueAxis()->setValueType          (CQChartsAxisValueType::Type::REAL);
-    valueAxis()->setGridMid            (false);
-    valueAxis()->setMajorIncrement     (0);
-    valueAxis()->setMinorTicksDisplayed(true);
-    valueAxis()->setRequireTickLabel   (false);
+    valueAxis()->setValueType       (CQChartsAxisValueType::Type::REAL, /*notify*/false);
+    valueAxis()->setGridMid         (false);
+    valueAxis()->setMajorIncrement  (0);
+    valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
+    valueAxis()->setRequireTickLabel(false);
 
-    countAxis()->setValueType          (CQChartsAxisValueType::Type::REAL);
-    countAxis()->setGridMid            (false);
-    countAxis()->setMajorIncrement     (0);
-    countAxis()->setMinorTicksDisplayed(true);
-    countAxis()->setRequireTickLabel   (false);
+    countAxis()->setValueType       (CQChartsAxisValueType::Type::REAL, /*notify*/false);
+    countAxis()->setGridMid         (false);
+    countAxis()->setMajorIncrement  (0);
+    countAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
+    countAxis()->setRequireTickLabel(false);
   }
   else if (isScatter()) {
-    valueAxis()->setValueType          (CQChartsAxisValueType::Type::REAL);
-    valueAxis()->setGridMid            (false);
-    valueAxis()->setMajorIncrement     (0);
-    valueAxis()->setMinorTicksDisplayed(false);
-    valueAxis()->setRequireTickLabel   (false);
+    valueAxis()->setValueType       (CQChartsAxisValueType::Type::REAL, /*notify*/false);
+    valueAxis()->setGridMid         (false);
+    valueAxis()->setMajorIncrement  (0);
+    valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
+    valueAxis()->setRequireTickLabel(false);
 
     if (isValueCount())
-      countAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER);
+      countAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
     else
-      countAxis()->setValueType(CQChartsAxisValueType::Type::REAL);
+      countAxis()->setValueType(CQChartsAxisValueType::Type::REAL, /*notify*/false);
 
-    countAxis()->setGridMid            (false);
-    countAxis()->setMajorIncrement     (0);
-    countAxis()->setMinorTicksDisplayed(false);
-    countAxis()->setRequireTickLabel   (false);
+    countAxis()->setGridMid         (false);
+    countAxis()->setMajorIncrement  (0);
+    countAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
+    countAxis()->setRequireTickLabel(false);
   }
   else {
-    valueAxis()->setValueType          (CQChartsAxisValueType::Type::INTEGER);
-    valueAxis()->setGridMid            (true);
-    valueAxis()->setMajorIncrement     (1);
-    valueAxis()->setMinorTicksDisplayed(false);
-    valueAxis()->setRequireTickLabel   (true);
+    valueAxis()->setValueType       (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+    valueAxis()->setGridMid         (true);
+    valueAxis()->setMajorIncrement  (1);
+    valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
+    valueAxis()->setRequireTickLabel(true);
 
-    if (isValueCount())
-      countAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER);
+    if (! isLogY()) {
+      if (isValueCount())
+        countAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+      else
+        countAxis()->setValueType(CQChartsAxisValueType::Type::REAL, /*notify*/false);
+    }
     else
-      countAxis()->setValueType(CQChartsAxisValueType::Type::REAL);
+      countAxis()->setValueType(CQChartsAxisValueType::Type::LOG, /*notify*/false);
 
-    countAxis()->setGridMid            (false);
-    countAxis()->setMajorIncrement     (0);
-    countAxis()->setMinorTicksDisplayed(false);
-    countAxis()->setRequireTickLabel   (false);
+    countAxis()->setGridMid         (false);
+    countAxis()->setMajorIncrement  (0);
+    countAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
+    countAxis()->setRequireTickLabel(false);
   }
 
   //---
@@ -2278,22 +2363,22 @@ CQChartsAxis *
 CQChartsDistributionPlot::
 valueAxis() const
 {
-  return (! isHorizontal() ? xAxis_ : yAxis_);
+  return (! isHorizontal() ? xAxis() : yAxis());
 }
 
 CQChartsAxis *
 CQChartsDistributionPlot::
 countAxis() const
 {
-  return (! isHorizontal() ? yAxis_ : xAxis_);
+  return (! isHorizontal() ? yAxis() : xAxis());
 }
 
 void
 CQChartsDistributionPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  int row = key->maxRow();
-  int col = key->maxCol();
+  int row = (! key->isHorizontal() ? key->maxRow() : 0);
+  int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
   auto addKeyRow = [&](const ColorInd &ig, const ColorInd &iv, const CQChartsGeom::RangeValue &xv,
                        const CQChartsGeom::RangeValue &yv, const QString &name) {
@@ -2408,12 +2493,12 @@ QString
 CQChartsDistributionPlot::
 bucketValuesStr(int groupInd, const Bucket &bucket, BucketValueType type) const
 {
-  for (const auto &groupValues : groupData_.groupValues) {
-    if (groupInd == groupValues.first)
-      return bucketValuesStr(groupInd, bucket, groupValues.second, type);
-  }
+  const Values *values = getGroupValues(groupInd);
 
-  return "";
+  if (! values)
+    return "";
+
+  return bucketValuesStr(groupInd, bucket, values, type);
 }
 
 QString
@@ -2521,10 +2606,8 @@ groupBucketer(int groupInd)
   std::unique_lock<std::mutex> lock(mutex_);
 
   // use consistent bucketer when stacked/side by side
-  if (hasGroups()) {
-    if (isStacked() || isOverlay() || isSideBySide() || isScatter())
-      groupInd = 0;
-  }
+  if (isConsistentBucketer())
+    groupInd = 0;
 
   auto p = groupData_.groupBucketer.find(groupInd);
 
@@ -2542,6 +2625,19 @@ groupBucketer(int groupInd)
   }
 
   return (*p).second;
+}
+
+bool
+CQChartsDistributionPlot::
+isConsistentBucketer() const
+{
+  // use consistent bucketer when stacked/side by side
+  if (hasGroups()) {
+    if (isStacked() || isOverlay() || isSideBySide() || isScatter())
+      return true;
+  }
+
+  return false;
 }
 
 //------
@@ -3320,8 +3416,7 @@ drawRug(QPainter *painter) const
   CQChartsSymbol symbol = plot_->rugSymbolType();
 
   if (symbol == CQChartsSymbol::Type::NONE)
-    symbol = (! plot_->isHorizontal() ? CQChartsSymbol::Type::VLINE :
-                                        CQChartsSymbol::Type::HLINE);
+    symbol = (! plot_->isHorizontal() ? CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
 
   double sx, sy;
 
@@ -3931,8 +4026,7 @@ drawRug(QPainter *painter) const
   CQChartsSymbol symbol = plot_->rugSymbolType();
 
   if (symbol == CQChartsSymbol::Type::NONE)
-    symbol = (! plot_->isHorizontal() ? CQChartsSymbol::Type::VLINE :
-                                        CQChartsSymbol::Type::HLINE);
+    symbol = (! plot_->isHorizontal() ? CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
 
   double sx, sy;
 

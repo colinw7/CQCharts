@@ -32,6 +32,7 @@
 #include <CQIntegerSpin.h>
 #include <CQUtil.h>
 #include <CQGroupBox.h>
+#include <CQToolTip.h>
 
 #include <QTextBrowser>
 #include <QHeaderView>
@@ -40,9 +41,143 @@
 #include <QRadioButton>
 #include <QCheckBox>
 #include <QPushButton>
+#include <QToolButton>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QPainter>
+
+#include <svg/info_svg.h>
+
+class CQChartsPlotTipLabel : public QLabel {
+ public:
+  CQChartsPlotTipLabel() {
+    setWordWrap(true);
+  }
+
+  void setText(const QString &text) {
+    QLabel::setText(text);
+
+    updateSize();
+  }
+
+  void updateSize() {
+    setWordWrap(false);
+
+    QFontMetrics fm(font());
+
+    QSize s = QLabel::sizeHint();
+
+    int w = std::min(s.width(), fm.width("X")*50);
+
+    setMaximumWidth(w);
+
+    setWordWrap(true);
+
+    size_ = QLabel::sizeHint();
+
+    setMaximumWidth(QWIDGETSIZE_MAX);
+
+    resize(size_);
+  }
+
+  QSize sizeHint() const {
+    return size_;
+  }
+
+ public:
+  QSize size_;
+};
+
+class CQChartsPlotTip : public CQToolTipIFace {
+ public:
+  CQChartsPlotTip() :
+   CQToolTipIFace() {
+  }
+
+ ~CQChartsPlotTip() {
+    delete widget_;
+  }
+
+  void setPlot(CQChartsPlot *plot) { plot_ = plot; }
+
+  QWidget *showWidget(const QPoint &p) override {
+    if (! widget_)
+      widget_ = new CQChartsPlotTipLabel;
+
+    updateWidget(p);
+
+    return widget_;
+  }
+
+  void hideWidget() override {
+    delete widget_;
+
+    widget_ = nullptr;
+  }
+
+  //bool trackMouse() const override { return true; }
+
+  bool updateWidget(const QPoint &) override {
+    if (! widget_) return false;
+
+    if (plot_.isNull()) return false;
+
+    QString text;
+
+    QString desc = plot_->type()->description();
+
+    int pos = desc.indexOf("</h2>");
+
+    if (pos > 0) {
+      QString lhs = desc.mid(0, pos);
+      QString rhs = desc.mid(pos);
+
+      if (! expanded_)
+        text = lhs + " (" + plot_->id() + ")</h2>\n<p>(<b>PageDown</b> to expand)</p>";
+      else
+        text = lhs + " (" + plot_->id() + ")" + rhs + "\n<p>(<b>PageUp</b> to collapse)</p>";
+    }
+    else
+      text = plot_->id();
+
+    widget_->setText(text);
+
+    return true;
+  }
+
+  bool isHideKey(int key, Qt::KeyboardModifiers mod) const override {
+    if (key == Qt::Key_PageUp || key == Qt::Key_PageDown)
+      return false;
+
+    return CQToolTipIFace::isHideKey(key, mod);
+  }
+
+  bool keyPress(int key, Qt::KeyboardModifiers mod) override {
+    if (! expanded_) {
+      if (key == Qt::Key_PageDown) {
+        expanded_ = true;
+        return true;
+      }
+    }
+    else {
+      if (key == Qt::Key_PageUp) {
+        expanded_ = false;
+        return true;
+      }
+    }
+
+    return CQToolTipIFace::keyPress(key, mod);
+  }
+
+ private:
+  using PlotP = QPointer<CQChartsPlot>;
+
+  PlotP                 plot_;
+  CQChartsPlotTipLabel* widget_   { nullptr };
+  bool                  expanded_ { false };
+};
+
+//------
 
 class CQChartsViewSettingsModelTable : public CQTableWidget {
  public:
@@ -490,6 +625,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
 CQChartsViewSettings::
 ~CQChartsViewSettings()
 {
+  delete propertiesWidgets_.plotTip;
 }
 
 void
@@ -643,6 +779,8 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   plotsGroupLayout->addWidget(propertiesWidgets_.plotsTab);
 
+  connect(propertiesWidgets_.plotsTab, SIGNAL(currentChanged(int)),
+          this, SLOT(plotsTabChangedSlot()));
   //--
 
   QFrame *plotEditFrame = CQUtil::makeWidget<QFrame>("plotEditFrame");
@@ -671,7 +809,22 @@ initPropertiesFrame(QFrame *propertiesFrame)
 
   //--
 
-  splitter->setSizes(QList<int>({INT_MAX, INT_MAX}));
+  propertiesWidgets_.plotTip = new CQChartsPlotTip;
+
+  propertiesWidgets_.plotTipButton = new QToolButton;
+
+  propertiesWidgets_.plotTipButton->setIcon(CQPixmapCacheInst->getIcon("INFO"));
+
+  plotsGroup->setCornerWidget(propertiesWidgets_.plotTipButton);
+
+  CQToolTip::setToolTip(propertiesWidgets_.plotTipButton, propertiesWidgets_.plotTip);
+
+  //---
+
+  int i1 = INT_MAX*0.4;
+  int i2 = INT_MAX - i1;
+
+  splitter->setSizes(QList<int>({i1, i2}));
 }
 
 void
@@ -1265,6 +1418,8 @@ class CQChartsViewSettingsLayerImage : public QDialog {
   QImage image_;
 };
 
+//------
+
 void
 CQChartsViewSettings::
 layerImageSlot()
@@ -1410,6 +1565,22 @@ writeViewSlot()
 
 void
 CQChartsViewSettings::
+plotsTabChangedSlot()
+{
+  int ind = propertiesWidgets_.plotsTab->currentIndex();
+
+  CQChartsViewSettingsPlotPropertiesWidget *plotWidget =
+    qobject_cast<CQChartsViewSettingsPlotPropertiesWidget *>(
+      propertiesWidgets_.plotsTab->widget(ind));
+  assert(plotWidget);
+
+  propertiesWidgets_.plotTip->setPlot(plotWidget->plot());
+}
+
+//------
+
+void
+CQChartsViewSettings::
 updatePlots()
 {
   CQChartsView *view = window_->view();
@@ -1464,7 +1635,7 @@ updatePlots()
 
       ind = propertiesWidgets_.plotsTab->addTab(plotWidget, plot->id());
 
-      propertiesWidgets_.plotsTab->setTabToolTip(ind, plot->type()->description());
+      //propertiesWidgets_.plotsTab->setTabToolTip(ind, plot->type()->description());
     }
   }
 
@@ -1491,6 +1662,10 @@ updatePlots()
 
     delete plotWidget;
   }
+
+  //---
+
+  plotsSelectionChangeSlot();
 }
 
 void

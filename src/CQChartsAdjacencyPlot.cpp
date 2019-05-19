@@ -9,6 +9,7 @@
 #include <CQChartsNamePair.h>
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -49,7 +50,7 @@ addParameters()
   endParameterGroup();
 
   addColumnParameter("name", "Name", "nameColumn").
-   setString().setTip("Name For Id");
+   setString().setTip("Name For Node Id");
 
   addColumnParameter("groupId", "Group Id", "groupIdColumn").
    setNumeric().setTip("Group Id for Color");
@@ -63,21 +64,35 @@ QString
 CQChartsAdjacencyPlotType::
 description() const
 {
-  return "<h2>Adjacency Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draws connectivity information between two different sets of data as a "
-         "matrix where the color of the cells represents the group and connectivity.</p>\n"
-         "<h3>Columns</h3>\n"
-         "<p>Connection information can be supplied using:</p>\n"
-         "<ul>\n"
-         "<li>A list of connections in the <b>Connections</b> column of the form "
-         "{{&lt;id&gt; &lt;count&gt;} ...}.</li>\n"
-         "<li>A name pair using <b>NamePair</b> column in the form &lt;id1&gt;/&lt;id2&gt; "
-         "and a count using the <b>Count</b> column.</li>\n"
-         "</ul>\n"
-         "<p>The column id is taken from the <b>Id</b> column and an optional "
-         "name for the id can be supplied in the <b>Name</b> column.</p>\n"
-         "<p>The group is specified using the <b>Group</b> column.</p>";
+  auto B    = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto PARM = [](const QString &str) { return CQChartsHtml::Str::angled(str); };
+  auto LI   = [](const QString &str) { return CQChartsHtml::Str(str); };
+//auto BR   = []() { return CQChartsHtml::Str(CQChartsHtml::Str::Type::BR); };
+
+  return CQChartsHtml().
+   h2("Adjacency Plot").
+    h3("Summary").
+     p("Draws connectivity information between two different sets of data as a "
+       "matrix where the color of the cells represents the group and connectivity.").
+    h3("Columns").
+     p("Connection information can be supplied using:").
+     ul({ LI("A list of connections in the " + B("Connections") + " column with the "
+             "associated node numbers in the " + B("Node") + " column."),
+          LI("A name pair using " + B("NamePair") + " column and a count using the " +
+             B("Count") + " column.") }).
+     p("The connections column is in the form {{" + PARM("id") + " " + PARM("count") + "} ...}.").
+     p("The name pair column is in the form " + PARM("id1") + "/" + PARM("id2")).
+     p("The column id is taken from the " + B("Id") + " column and an optional "
+       "name for the id can be supplied in the " + B("Name") + " column.").
+     p("The group is specified using the " + B("Group") + " column.").
+    h3("Options").
+     p("The nodes can be sorted by group, name or count using the " + B("sortType") + " option").
+     p("The maring around the plot can be specified using the " + B("bgMargin") + " option").
+    h3("Styling").
+     p("The styling (fill, stroke) of the connection cells, empty (no connection) cell "
+       "and background can be set").
+    h3("Limitations").
+     p("The plot does not support axes, key or logarithmic scales");
 }
 
 bool
@@ -227,30 +242,43 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nodeColumn"       , "node"       )->setDesc("Node column");
-  addProperty("columns", this, "connectionsColumn", "connections")->setDesc("Connections column");
-  addProperty("columns", this, "nameColumn"       , "name"       )->setDesc("Name column");
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
 
-  addProperty("columns", this, "namePairColumn", "namePair")->setDesc("Name/Value column");
-  addProperty("columns", this, "countColumn"   , "count"   )->setDesc("Count column");
+  //---
 
-  addProperty("columns", this, "groupIdColumn", "groupId")->setDesc("Grouping column");
+  // columns
+  addProp("columns", "nodeColumn"       , "node"       , "Node column");
+  addProp("columns", "connectionsColumn", "connections", "Connections column");
+  addProp("columns", "nameColumn"       , "name"       , "Node name column");
 
-  addProperty("options", this, "sortType", "sort"  )->setDesc("Sort type");
-  addProperty("options", this, "bgMargin", "margin")->setDesc("Background margin");
+  addProp("columns", "namePairColumn", "namePair", "Name/Value column");
+  addProp("columns", "countColumn"   , "count"   , "Count column");
 
+  addProp("columns", "groupIdColumn", "groupId", "Grouping column");
+
+  // options
+  addProp("options", "sortType", "sort"  , "Sort type");
+  addProp("options", "bgMargin", "margin", "Background margin");
+
+  // background
   addFillProperties("background/fill", "backgroundFill", "Background");
 
+  // cell style
   addFillProperties("cell/fill"  , "fill"  , "Cell");
   addLineProperties("cell/stroke", "border", "Cell");
 
-  addProperty("cell/stroke", this, "cornerSize", "cornerSize")->setDesc("Cell box corner size");
+  addProp("cell/stroke", "cornerSize", "cornerSize", "Cell box corner size");
 
+  // empty cell style
   addFillProperties("emptyCell/fill"  , "emptyCellFill"  , "Empty cell");
   addLineProperties("emptyCell/stroke", "emptyCellBorder", "Empty cell");
 
-  addProperty("emptyCell/stroke", this, "cornerSize", "cornerSize")->
-    setDesc("Empty cell box corner size");
+  addProp("emptyCell/stroke", "cornerSize", "cornerSize", "Empty cell box corner size");
+
+  //---
 
   addTextProperties("text", "text", "");
 }

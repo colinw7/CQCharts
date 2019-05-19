@@ -8,6 +8,7 @@
 #include <CQChartsDataLabel.h>
 #include <CQCharts.h>
 #include <CQChartsTip.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -44,9 +45,23 @@ QString
 CQChartsGeometryPlotType::
 description() const
 {
-  return "<h2>Geometry Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draw polygon list, polygon, rect or path shapes.</p>\n";
+  auto B  = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto BR = []() { return CQChartsHtml::Str(CQChartsHtml::Str::Type::BR); };
+
+  return CQChartsHtml().
+   h2("Geometry Plot").
+    h3("Summary").
+     p("Draws polygon list, polygon, rect or path shapes.").
+    h3("Columns").
+     p("The shape geometry is specified in the " + B("Geometry") + " column.").
+     p("The optional shape name can be specified in the " + B("Name") + " column.").
+     p("The optional shape value can be specified in the " + B("Value") + " column "
+       "and can be used to color the shape by enabling the " + B("colorByValue") + " option." +
+       BR() + "This value can be normalized using the " + B("minValue") + " and " +
+       B("maxValue") + " values.").
+     p("The optional style (fill, stroke) can be specified in the " + B("Style") + " column.").
+    h3("Limitations").
+     p("None.");
 }
 
 bool
@@ -182,33 +197,40 @@ void
 CQChartsGeometryPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "nameColumn"    , "name"    )->setDesc("Name column");
-  addProperty("columns", this, "geometryColumn", "geometry")->setDesc("Geometry column");
-  addProperty("columns", this, "valueColumn"   , "value"   )->setDesc("Value column");
-  addProperty("columns", this, "styleColumn"   , "style"   )->setDesc("Style column");
+  addProp("columns", "nameColumn"    , "name"    , "Name column");
+  addProp("columns", "geometryColumn", "geometry", "Geometry column");
+  addProp("columns", "valueColumn"   , "value"   , "Value column");
+  addProp("columns", "styleColumn"   , "style"   , "Style column");
 
   // color
-  addProperty("color", this, "colorByValue", "colorByValue")->setDesc("Color shapes by value");
+  addProp("color", "colorByValue", "colorByValue", "Color shapes by value");
 
   // fill
-  addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
+  addProp("fill", "filled", "visible", "Fill visible");
 
   addFillProperties("fill", "fill", "");
 
   // stroke
-  addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
+  addProp("stroke", "border", "visible", "Stroke visible");
 
   addLineProperties("stroke", "border", "");
 
   // data label
   dataLabel_->addPathProperties("labels", "Labels");
 
-  // value
-  addProperty("value", this, "minValue", "min")->setDesc("Min value for color map");
-  addProperty("value", this, "maxValue", "max")->setDesc("Max value for color map");
+  // value normalization
+  addProp("value", "minValue", "min", "Min value for color map");
+  addProp("value", "maxValue", "max", "Max value for color map");
 }
 
 void
@@ -373,16 +395,14 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
   // get geometry associated value
   bool ok3;
 
-  geometry.value = modelReal(data.row, valueColumn(), data.parent, ok3);
+  double value = modelReal(data.row, valueColumn(), data.parent, ok3);
 
-  if (! ok3)
-    geometry.value = data.row;
-
-  if (CMathUtil::isNaN(geometry.value))
-    return;
+  if (ok3 && ! CMathUtil::isNaN(value))
+    geometry.value = value;
 
   // update value range
-  th->valueRange_.add(geometry.value);
+  if (geometry.value)
+    th->valueRange_.add(*geometry.value);
 
   //---
 
@@ -501,17 +521,17 @@ createObjs(PlotObjs &objs) const
 
     CQChartsGeom::BBox bbox = geometry.bbox;
 
-    bool hasValue = valueColumn().isValid();
-
     ColorInd iv(i, n);
 
     CQChartsGeometryObj *geomObj =
-      new CQChartsGeometryObj(this, bbox, geometry.polygons, geometry.ind, iv, hasValue);
+      new CQChartsGeometryObj(this, bbox, geometry.polygons, geometry.ind, iv);
 
     geomObj->setName (geometry.name);
-    geomObj->setValue(geometry.value);
     geomObj->setColor(geometry.color);
     geomObj->setStyle(geometry.style);
+
+    if (geometry.value)
+      geomObj->setValue(*geometry.value);
 
     objs.push_back(geomObj);
   }
@@ -521,14 +541,35 @@ createObjs(PlotObjs &objs) const
   return true;
 }
 
+//---
+
+bool
+CQChartsGeometryPlot::
+probe(ProbeData &probeData) const
+{
+  CQChartsPlotObj *obj;
+
+  if (! objNearestPoint(probeData.p, obj))
+    return false;
+
+  CQChartsGeom::Point c = obj->rect().getCenter();
+
+  probeData.p    = c;
+  probeData.both = true;
+
+  probeData.xvals.push_back(c.x);
+  probeData.yvals.push_back(c.y);
+
+  return true;
+}
+
 //------
 
 CQChartsGeometryObj::
 CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
-                    const Polygons &polygons, const QModelIndex &ind, const ColorInd &iv,
-                    bool hasValue) :
+                    const Polygons &polygons, const QModelIndex &ind, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsGeometryPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
- plot_(plot), polygons_(polygons), ind_(ind), hasValue_(hasValue)
+ plot_(plot), polygons_(polygons), ind_(ind)
 {
 }
 
@@ -554,6 +595,8 @@ calcTipId() const
   return tableTip.str();
 }
 
+//---
+
 bool
 CQChartsGeometryObj::
 inside(const CQChartsGeom::Point &p) const
@@ -567,6 +610,8 @@ inside(const CQChartsGeom::Point &p) const
 
   return false;
 }
+
+//---
 
 void
 CQChartsGeometryObj::
@@ -585,6 +630,8 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
   if (column.isValid())
     addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
+
+//---
 
 void
 CQChartsGeometryObj::

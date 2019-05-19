@@ -233,7 +233,7 @@ encodeVariant(const QVariant &var) const
 
 QString
 CQTsvModel::
-encodeString(const QString &str) const
+encodeString(const QString &str)
 {
   // TOD0: handle tab in string
   return str;

@@ -4,6 +4,7 @@
 #include <CQCharts.h>
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -27,10 +28,11 @@ QString
 CQChartsHierBubblePlotType::
 description() const
 {
-  return "<h2>Hierarchical Bubble Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draws circles represent a set of data values and packs then into the "
-         "smallest enclosing circle.</p>\n";
+  return CQChartsHtml().
+   h2("Hierarchical Bubble Plot").
+    h3("Summary").
+     p("Draws circles represent a set of data values and packs then into the "
+       "smallest enclosing circle.");
 }
 
 CQChartsPlot *
@@ -113,22 +115,29 @@ void
 CQChartsHierBubblePlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsHierPlot::addProperties();
 
   // options
-  addProperty("options", this, "valueLabel")->setDesc("Show value label");
-  addProperty("options", this, "sorted"    )->setDesc("Sort values by size");
+  addProp("options", "valueLabel", "", "Show value label");
+  addProp("options", "sorted"    , "", "Sort values by size");
 
   // color
-  addProperty("color", this, "colorById", "colorById")->setDesc("Color by id");
+  addProp("color", "colorById", "colorById", "Color by id");
 
   // fill
-  addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
+  addProp("fill", "filled", "visible", "Fill visible");
 
   addFillProperties("fill", "fill", "");
 
   // stroke
-  addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
+  addProp("stroke", "border", "visible", "Stroke visible");
 
   addLineProperties("stroke", "border", "");
 

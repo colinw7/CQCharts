@@ -7,6 +7,7 @@
 #include <CQChartsDataLabel.h>
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -68,37 +69,42 @@ QString
 CQChartsBarChartPlotType::
 description() const
 {
-  return "<h2>Bar Chart Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draws bars with heights from a set of values.</p>\n"
-         "<h3>Columns</h3>\n"
-         "<p>The bar heights are taken from the values in the <b>Value</b> column.</p>\n"
-         "<p>An optional name can be supplied in the <b>Name</b> column to specify the label "
-         "to use on the axis below the bar.</p>\n"
-         "<p>An optional label can be drawn with the bar to show extra values using "
-         "the <b>Label</b> column.</p>\n"
-         "<p>The color of the bar can be customized using the <b>Color</b> column.</p>\n"
-         "<p>A custom id can specified using the <b>Id</b> column.</p>\n"
-         "<h3>Grouping</h3>\n"
-         "<p>Bars can be grouped using standard grouping controls so that related values "
-         "can be placed next to each other.</p>\n"
-         "<p>Enabling the <b>Row Grouping</b> option groups bars by column header name "
-         "instead of the normal <b>Group</b> columns.</p>\n"
-         "<h3>Options</h3>\n"
-         "<p>Selecting the <b>Stacked</b> Plot Type places grouped bars on top of each other "
-         "instead of the <b>Normal</b> side by side placement.</p>\n"
-         "<p>Selecting the <b>Range</b> Value Type draws a bar for the range (min/max) of "
-         "the grouped values, selecting the <b>Min</b> Value Type draws a bar to the "
-         "minimum of the grouped values and selecting the <b>Max</b> Value Type draws a "
-         "bar to the maximum of the grouped values.</p>\n"
-         "<p>Enabling the <b>Percent</b> option rescales the values to a percentage of the "
-         "maximum and minimum of the values.</p>\n"
-         "<p>Enabling the <b>Horizontal</b> option draws the bars horizontally instead "
-         "of vertically.</p>\n"
-         "<p>Enabling the <b>Dot Lines</b> option draws the bars as a single line with a "
-         "circle symbol at the end.</p>\n"
-         "<p>Enabling the <b>Color by Set</b> option colors bars in the same group the same "
-         "color instead using different colors for each bar in the group.</p>\n";
+  auto B = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+
+  return CQChartsHtml().
+   h2("Bar Chart Plot").
+    h3("Summary").
+     p("Draws bars with heights from a set of values.").
+    h3("Columns").
+     p("The bar heights are taken from the values in the " + B("Value") + " column.").
+     p("An optional name can be supplied in the " + B("Name") + " column to specify the label "
+       "to use on the axis below the bar.").
+     p("An optional label can be drawn with the bar to show extra values using "
+       "the " + B("Label") + " column.").
+     p("The color of the bar can be customized using the " + B("Color") + " column.").
+     p("A custom id can specified using the " + B("Id") + " column.").
+    h3("Grouping").
+     p("Bars can be grouped using standard grouping controls so that related values "
+       "can be placed next to each other.").
+     p("Enabling the " + B("Row Grouping") + " option groups bars by column header name "
+       "instead of the normal " + B("Group") + " columns.").
+    h3("Options").
+     p("Selecting the " + B("Stacked") + " Plot Type places grouped bars on top of each other "
+      "instead of the " + B("Normal") + " side by side placement.").
+     p("Selecting the " + B("Range") + " Value Type draws a bar for the range (min/max) of "
+       "the grouped values, selecting the " + B("Min") + " Value Type draws a bar to the "
+       "minimum of the grouped values and selecting the " + B("Max") + " Value Type draws a "
+       "bar to the maximum of the grouped values.").
+     p("Enabling the " + B("Percent") + " option rescales the values to a percentage of the "
+       "maximum and minimum of the values.").
+     p("Enabling the " + B("Horizontal") + " option draws the bars horizontally instead "
+       "of vertically.").
+     p("Enabling the " + B("Dot Lines") + " option draws the bars as a single line with a "
+       "circle symbol at the end.").
+     p("Enabling the " + B("Color by Set") + " option colors bars in the same group the same "
+      "color instead using different colors for each bar in the group.").
+    h3("Limitations").
+     p("The plot does not support logarithmic x scales");
 }
 
 CQChartsPlot *
@@ -151,28 +157,36 @@ void
 CQChartsBarChartPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
   CQChartsBarPlot::addProperties();
 
-  addProperty("columns", this, "nameColumn" , "name" )->setDesc("Name column");
-  addProperty("columns", this, "labelColumn", "label")->setDesc("Label column");
+  // columns
+  addProp("columns", "nameColumn" , "name" , "Name column");
+  addProp("columns", "labelColumn", "label", "Label column");
 
-  addProperty("options", this, "plotType" , "plotType" )->setDesc("Plot type");
-  addProperty("options", this, "valueType", "valueType")->setDesc("Value type");
+  // options
+  addProp("options", "plotType" , "plotType" , "Plot type");
+  addProp("options", "valueType", "valueType", "Value type");
+  addProp("options", "percent"  , ""         , "Use percentage value");
 
-  addProperty("options", this, "percent"   )->setDesc("Use percentage value");
+  // dot lines
+  addProp("dotLines",        "dotLines"     , "visible", "Draw bars as lines with dot");
+  addProp("dotLines/stroke", "dotLineWidth" , "width"  , "Dot line width");
 
-  addProperty("dotLines",        this, "dotLines"     , "enabled")->
-    setDesc("Draw bars as lines with dot");
-  addProperty("dotLines/stroke", this, "dotLineWidth" , "width"  )->
-    setDesc("Dot line width");
-  addProperty("dotLines/symbol", this, "dotSymbolType", "type"   )->
-    setDesc("Dot line symbol type");
-  addProperty("dotLines/symbol", this, "dotSymbolSize", "size"   )->
-    setDesc("Dot line symbol size");
+  addSymbolProperties("dotLines/symbol", "dot", "Dot Line");
 
-  addProperty("color", this, "colorBySet")->setDesc("Color by value set");
+  // color
+  addProp("color", "colorBySet", "", "Color by value set");
+
+  //---
 
   CQChartsGroupPlot::addProperties();
 
@@ -196,6 +210,8 @@ setHorizontal(bool b)
 {
   CQChartsUtil::testAndSet(horizontal_, b, [&]() {
     dataLabel_->setDirection(horizontal_ ? Qt::Horizontal : Qt::Vertical);
+
+    CQChartsAxis::swap(xAxis(), yAxis());
 
     updateRangeAndObjs();
   } );
@@ -307,14 +323,14 @@ void
 CQChartsBarChartPlot::
 setDotLines(bool b)
 {
-  CQChartsUtil::testAndSet(dotLines_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(dotLineData_.enabled, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBarChartPlot::
 setDotLineWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(dotLineWidth_, l, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(dotLineData_.width, l, [&]() { drawObjs(); } );
 }
 
 //---
@@ -333,10 +349,16 @@ calcRange() const
 
   CQChartsGeom::Range dataRange;
 
-  if (! isHorizontal())
-    dataRange.updateRange(-0.5, 0);
-  else
-    dataRange.updateRange(0, -0.5);
+  auto updateRange = [&](double x, double y) {
+    if (! isHorizontal())
+      dataRange.updateRange(x, y);
+    else
+      dataRange.updateRange(y, x);
+  };
+
+  //---
+
+  updateRange(-0.5, 0);
 
   //---
 
@@ -410,23 +432,18 @@ calcRange() const
   //---
 
   if (ng > 0) {
-    if (! isHorizontal())
-      dataRange.updateRange(numVisible - 0.5, dataRange.ymin());
-    else
-      dataRange.updateRange(dataRange.xmin(), numVisible - 0.5);
+    double ymin = (! isHorizontal() ? dataRange.ymin() : dataRange.xmin());
+
+    updateRange(numVisible - 0.5, ymin);
 
     if (nv == 0) {
-      if (! isHorizontal())
-        dataRange.updateRange(dataRange.xmin(), 1.0);
-      else
-        dataRange.updateRange(1.0, dataRange.ymin());
+      double xmin = (! isHorizontal() ? dataRange.xmin() : dataRange.ymin());
+
+      updateRange(xmin, 1.0);
     }
   }
   else {
-    if (! isHorizontal())
-      dataRange.updateRange(0.5, 1.0);
-    else
-      dataRange.updateRange(1.0, 0.5);
+    updateRange(0.5, 1.0);
   }
 
   //---
@@ -464,8 +481,8 @@ initRangeAxes()
   //---
 
   // set axis column and labels
-  CQChartsAxis *xAxis = (! isHorizontal() ? this->xAxis() : this->yAxis());
-  CQChartsAxis *yAxis = (! isHorizontal() ? this->yAxis() : this->xAxis());
+  CQChartsAxis *xAxis = mappedXAxis();
+  CQChartsAxis *yAxis = mappedYAxis();
 
   xAxis->setColumn(groupColumn().isValid() ? groupColumn() : nameColumn());
 
@@ -529,6 +546,15 @@ CQChartsBarChartPlot::
 addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns,
              CQChartsGeom::Range &dataRange) const
 {
+  auto updateRange = [&](double x, double y) {
+    if (! isHorizontal())
+      dataRange.updateRange(x, y);
+    else
+      dataRange.updateRange(y, x);
+  };
+
+  //---
+
   CQChartsModelIndex ind;
 
   if (isValueValue()) {
@@ -735,25 +761,13 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   //---
 
   // update range for scale and sums
-  if (! isHorizontal()) {
-    if (isStacked()) {
-      dataRange.updateRange(0, scale*posSum);
-      dataRange.updateRange(0, scale*negSum);
-    }
-    else {
-      for (const auto &valueInd : valueInds)
-        dataRange.updateRange(0, scale*valueInd.value);
-    }
+  if (isStacked()) {
+    updateRange(0, scale*posSum);
+    updateRange(0, scale*negSum);
   }
   else {
-    if (isStacked()) {
-      dataRange.updateRange(scale*posSum, 0);
-      dataRange.updateRange(scale*negSum, 0);
-    }
-    else {
-      for (const auto &valueInd : valueInds)
-        dataRange.updateRange(scale*valueInd.value, 0);
-    }
+    for (const auto &valueInd : valueInds)
+      updateRange(0, scale*valueInd.value);
   }
 }
 
@@ -980,22 +994,15 @@ createObjs(PlotObjs &objs) const
         }
       }
 
-      if (! isHorizontal()) {
-        if (isStacked())
-          brect = CQChartsGeom::BBox(bx, value1, bx + 1.0, value2);
-        else
-          brect = CQChartsGeom::BBox(bx1, value1, bx1 + bw1, value2);
+      if (isStacked())
+        brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx, value1, bx + 1.0, value2);
+      else
+        brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx1, value1, bx1 + bw1, value2);
 
+      if (! isHorizontal())
         th->barWidth_ = std::min(th->barWidth_, brect.getWidth());
-      }
-      else {
-        if (isStacked())
-          brect = CQChartsGeom::BBox(value1, bx, value2, bx + 1.0);
-        else
-          brect = CQChartsGeom::BBox(value1, bx1, value2, bx1 + bw1);
-
+      else
         th->barWidth_ = std::min(th->barWidth_, brect.getHeight());
-      }
 
       CQChartsBarChartObj *barObj;
 
@@ -1055,23 +1062,24 @@ CQChartsBarChartPlot::
 initObjAxes()
 {
   // init axes
-  CQChartsAxis *xAxis = (! isHorizontal() ? this->xAxis() : this->yAxis());
-  CQChartsAxis *yAxis = (! isHorizontal() ? this->yAxis() : this->xAxis());
+  CQChartsAxis *xAxis = mappedXAxis();
+  CQChartsAxis *yAxis = mappedYAxis();
 
   xAxis->clearTickLabels();
   yAxis->clearTickLabels();
 
-  xAxis->setValueType          (CQChartsAxisValueType::Type::INTEGER);
-  xAxis->setGridMid            (true);
-//xAxis->setMajorIncrement     (1);
-  xAxis->setMinorTicksDisplayed(false);
-//xAxis->setDataLabels         (true);
+  xAxis->setValueType     (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+  xAxis->setGridMid       (true);
+//xAxis->setMajorIncrement(1);
+  xAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
+//xAxis->setDataLabels    (true);
 
-  yAxis->setValueType          (CQChartsAxisValueType::Type::REAL);
-  yAxis->setGridMid            (false);
-//yAxis->setMajorIncrement     (0);
-  yAxis->setMinorTicksDisplayed(true);
-//yAxis->setDataLabels         (true);
+  yAxis->setValueType     (isLogY() ? CQChartsAxisValueType::Type::LOG :
+                                           CQChartsAxisValueType::Type::REAL, /*notify*/false);
+  yAxis->setGridMid       (false);
+//yAxis->setMajorIncrement(0);
+  yAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
+//yAxis->setDataLabels    (true);
 
   //---
 
@@ -1139,26 +1147,36 @@ QString
 CQChartsBarChartPlot::
 valueName() const
 {
-  CQChartsAxis *yAxis = (! isHorizontal() ? this->yAxis() : this->xAxis());
-
-  return yAxis->label();
+  return mappedYAxis()->label();
 }
 
 QString
 CQChartsBarChartPlot::
 valueStr(double v) const
 {
-  CQChartsAxis *yAxis = (! isHorizontal() ? this->yAxis() : this->xAxis());
+  return mappedYAxis()->valueStr(v);
+}
 
-  return yAxis->valueStr(v);
+CQChartsAxis *
+CQChartsBarChartPlot::
+mappedXAxis() const
+{
+  return (! isHorizontal() ? xAxis() : yAxis());
+}
+
+CQChartsAxis *
+CQChartsBarChartPlot::
+mappedYAxis() const
+{
+  return (! isHorizontal() ? yAxis() : xAxis());
 }
 
 void
 CQChartsBarChartPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  int row = key->maxRow();
-  int col = key->maxCol();
+  int row = (! key->isHorizontal() ? key->maxRow() : 0);
+  int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
   auto addKeyRow = [&](const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                        const QString &name, const QColor &c=QColor()) {

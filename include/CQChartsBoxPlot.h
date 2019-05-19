@@ -22,6 +22,10 @@ class CQChartsBoxPlotType : public CQChartsGroupPlotType {
   QString name() const override { return "boxplot"; }
   QString desc() const override { return "BoxPlot"; }
 
+  Dimension dimension() const override { return Dimension::ONE_D; }
+
+  void addParameters() override;
+
   QString yColumnName() const override { return "value"; }
 
   bool allowXAxisIntegral() const override { return false; }
@@ -29,10 +33,6 @@ class CQChartsBoxPlotType : public CQChartsGroupPlotType {
   bool allowXLog() const override { return false; }
 
   bool canProbe() const override { return true; }
-
-  Dimension dimension() const override { return Dimension::ONE_D; }
-
-  void addParameters() override;
 
   QString description() const override;
 
@@ -405,9 +405,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool notched      READ isNotched      WRITE setNotched     )
   Q_PROPERTY(bool colorBySet   READ isColorBySet   WRITE setColorBySet  )
 
-  // jitter
-  Q_PROPERTY(bool pointsJitter  READ isPointsJitter  WRITE setPointsJitter )
-  Q_PROPERTY(bool pointsStacked READ isPointsStacked WRITE setPointsStacked)
+  // jitter/stacked points
+  Q_PROPERTY(PointsType pointsType  READ pointsType WRITE setPointsType)
 
   CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Jitter,jitter)
 
@@ -443,9 +442,16 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   // outliers
   CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Outlier,outlier)
 
+  Q_ENUMS(PointsType)
   Q_ENUMS(ErrorBarType)
 
  public:
+  enum class PointsType {
+    NONE,
+    JITTER,
+    STACKED
+  };
+
   enum class ErrorBarType {
     CROSS_BAR,
     ERROR_BAR,
@@ -531,9 +537,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   //---
 
   // points
-  bool isPointsJitter() const { return pointsJitter_; }
+  PointsType pointsType() const { return pointsType_; }
 
-  bool isPointsStacked() const { return pointsStacked_; }
+  bool isPointsJitter () const { return pointsType_ == PointsType::JITTER ; }
+  bool isPointsStacked() const { return pointsType_ == PointsType::STACKED; }
 
   //---
 
@@ -609,6 +616,11 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
+  CQChartsAxis *mappedXAxis() const override;
+  CQChartsAxis *mappedYAxis() const override;
+
+  //---
+
   CQChartsGeom::BBox annotationBBox() const override;
 
   bool createObjs(PlotObjs &objs) const override;
@@ -642,6 +654,9 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   // set jitter stacked
   void setPointsStacked(bool b);
+
+  // set points type
+  void setPointsType(const PointsType &pointsType);
 
   // set notched
   void setNotched(bool b);
@@ -687,8 +702,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   bool               connected_         { false };                   //!< connect boxes
   bool               horizontal_        { false };                   //!< horizontal bars
   bool               normalized_        { false };                   //!< normalized values
-  bool               pointsJitter_      { false };                   //!< show jitter points
-  bool               pointsStacked_     { false };                   //!< show stacked points
+  PointsType         pointsType_        { PointsType::NONE };        //!< show points type
   bool               notched_           { false };                   //!< show notch
   bool               violin_            { false };                   //!< show violin
   CQChartsLength     violinWidth_       { 0.6 };                     //!< violin width

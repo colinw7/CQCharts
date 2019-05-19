@@ -222,9 +222,8 @@ CQChartsSymbolDataEdit(QWidget *parent, bool optional) :
   //---
 
   if (optional) {
-    groupBox_ = new CQGroupBox;
+    groupBox_ = CQUtil::makeLabelWidget<CQGroupBox>("Visible", "groupBox");
 
-    groupBox_->setObjectName("groupBox");
     groupBox_->setCheckable(true);
     groupBox_->setChecked(false);
     groupBox_->setTitle("Visible");

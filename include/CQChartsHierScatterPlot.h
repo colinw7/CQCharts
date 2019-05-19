@@ -25,6 +25,8 @@ class CQChartsHierScatterPlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
+  bool canProbe() const override { return true; }
+
   QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
@@ -168,7 +170,7 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
 
  public:
   CQChartsHierScatterPointObj(const CQChartsHierScatterPlot *plot, const CQChartsGeom::BBox &rect,
-                              const QPointF &p, int i, int n);
+                              const QPointF &p, const ColorInd &iv);
 
   QString typeName() const override { return "point"; }
 
@@ -196,8 +198,6 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
  private:
   const CQChartsHierScatterPlot* plot_ { nullptr };
   QPointF                        p_;
-  int                            i_    { -1 };
-  int                            n_    { -1 };
   QString                        name_;
   QModelIndex                    ind_;
   CQChartsHierScatterPointGroup* group_ { nullptr };
@@ -215,7 +215,7 @@ class CQChartsHierScatterKeyColor : public CQChartsKeyColorBox {
 
  public:
   CQChartsHierScatterKeyColor(CQChartsHierScatterPlot *plot, CQChartsHierScatterPointGroup *group,
-                              int i, int n);
+                              const ColorInd &ic);
 
   bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
 
@@ -324,6 +324,15 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   //---
 
   bool addMenuItems(QMenu *menu) override;
+
+ private:
+  void resetAxes();
+
+  void initAxes();
+
+  //---
+
+  bool probe(ProbeData &probeData) const;
 
  public slots:
   void popCurrentGroup();

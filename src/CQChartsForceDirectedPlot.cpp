@@ -4,6 +4,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -59,9 +60,10 @@ QString
 CQChartsForceDirectedPlotType::
 description() const
 {
-  return "<h2>Force Directed Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draw connected data using animated nodes connected by springs.</p>\n";
+  return CQChartsHtml().
+   h2("Force Directed Plot").
+    h3("Summary").
+     p("Draw connected data using animated nodes connected by springs.");
 }
 
 bool
@@ -188,20 +190,30 @@ void
 CQChartsForceDirectedPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nodeColumn"       , "node"      )->setDesc("Node column");
-  addProperty("columns", this, "connectionsColumn", "connection")->setDesc("Connections column");
-  addProperty("columns", this, "nameColumn"       , "name"      )->setDesc("Name column");
+  // columns
+  addProp("columns", "nodeColumn"       , "node"      , "Node column");
+  addProp("columns", "connectionsColumn", "connection", "Connections column");
+  addProp("columns", "nameColumn"       , "name"      , "Name column");
 
-  addProperty("columns", this, "namePairColumn", "namePair")->setDesc("Name/pair column");
-  addProperty("columns", this, "countColumn"   , "count"   )->setDesc("Count column");
+  addProp("columns", "namePairColumn", "namePair", "Name/pair column");
+  addProp("columns", "countColumn"   , "count"   , "Count column");
 
-  addProperty("columns", this, "groupIdColumn", "groupId")->setDesc("Group id column");
+  addProp("columns", "groupIdColumn", "groupId", "Group id column");
 
-  addProperty("options", this, "running")->setDesc("Is running");
+  // options
+  addProp("options", "running", "", "Is running");
 
-  addProperty("node", this, "nodeRadius", "radius")->setDesc("Node radius");
+  // node/edge
+  addProp("node", "nodeRadius", "radius", "Node radius");
 
   addFillProperties("node/fill"  , "nodeFill"  , "Node");
   addLineProperties("node/stroke", "nodeBorder", "Node");

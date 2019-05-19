@@ -6,6 +6,7 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -41,12 +42,15 @@ QString
 CQChartsRadarPlotType::
 description() const
 {
-  return "<h2>Radar Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draws polygon for each row with a point for each value column.<p>\n"
-         "<h3>Columns</h3>\n"
-         "<p>The <b>Name</b> column specifies the name for the value set.</p>\n"
-         "<p>The column headers specify the name of the indiviidual values.</p>\n";
+  auto B = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+
+  return CQChartsHtml().
+   h2("Radar Plot").
+    h3("Summary").
+     p("Draws polygon for each row with a point for each value column.").
+    h3("Columns").
+    p("The " + B("Name") + " column specifies the name for the value set.").
+    p("The column headers specify the name of the indiviidual values.");
 }
 
 CQChartsPlot *
@@ -125,28 +129,35 @@ void
 CQChartsRadarPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "nameColumn"  , "name"  )->setDesc("Name column");
-  addProperty("columns", this, "valueColumns", "values")->setDesc("Value columns");
+  addProp("columns", "nameColumn"  , "name"  , "Name column");
+  addProp("columns", "valueColumns", "values", "Value columns");
 
   // options
-  addProperty("options", this, "angleStart" )->setDesc("Angle start");
-  addProperty("options", this, "angleExtent")->setDesc("Angle extent");
+  addProp("options", "angleStart" , "", "Angle start");
+  addProp("options", "angleExtent", "", "Angle extent");
 
   // grid
-  addProperty("grid", this, "gridLines", "visible")->setDesc("Grid lines visible");
+  addProp("grid", "gridLines", "visible", "Grid lines visible");
 
-  addLineProperties("grid", "gridLines", "Grid");
+  addLineProperties("grid/stroke", "gridLines", "Grid");
 
   // fill
-  addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
+  addProp("fill", "filled", "visible", "Fill visible");
 
   addFillProperties("fill", "fill", "");
 
   // stroke
-  addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
+  addProp("stroke", "border", "visible", "Stroke visible");
 
   addLineProperties("stroke", "border", "");
 

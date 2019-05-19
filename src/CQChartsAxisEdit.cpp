@@ -120,8 +120,8 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   data_.side           = axis->side();
   data_.valueType      = axis->valueType();
   data_.format         = axis->format();
-  data_.tickIncrement  = axis->tickIncrement();
-  data_.majorIncrement = axis->majorIncrement();
+  data_.tickIncrement  = axis->tickIncrement ().integerOr(0);
+  data_.majorIncrement = axis->majorIncrement().integerOr(0);
   data_.start          = axis->start();
   data_.end            = axis->end();
   data_.includeZero    = axis->isIncludeZero();
@@ -201,7 +201,7 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   //--
 
   // majorIncrement
-  majorIncrementEdit_ = CQUtil::makeWidget<CQRealSpin>("majorIncrementEdit");
+  majorIncrementEdit_ = CQUtil::makeWidget<CQIntegerSpin>("majorIncrementEdit");
 
   majorIncrementEdit_->setValue(data_.majorIncrement);
 
@@ -444,7 +444,7 @@ widgetsToData()
   data_.side              = sideEdit_->axisSide();
   data_.valueType         = indToValueType(valueTypeCombo_->currentIndex());
   data_.format            = formatEdit_->text();
-  data_.tickIncrement     = tickIncrementEdit_->value();
+  data_.tickIncrement     = tickIncrementEdit_ ->value();
   data_.majorIncrement    = majorIncrementEdit_->value();
   data_.start             = startEdit_->value();
   data_.end               = endEdit_->value();

@@ -90,13 +90,8 @@ class Point {
 
   //-----
 
-  Point operator+() const {
-    return Point(x, y);
-  }
-
-  Point operator-() const {
-    return Point(-x, -y);
-  }
+  Point operator+() const { return Point( x,  y); }
+  Point operator-() const { return Point(-x, -y); }
 
   //-----
 
@@ -122,96 +117,46 @@ class Point {
   // Addition of points makes no mathematical sense but
   // is useful for weighted sum
 
-  Point &operator+=(const Point &rhs) {
-    x += rhs.x; y += rhs.y;
+  Point &operator+=(const Point &rhs) { x += rhs.x; y += rhs.y; return *this; }
 
-    return *this;
-  }
+  Point &operator+=(double rhs) { x += rhs; y += rhs; return *this; }
 
-  Point &operator+=(double rhs) {
-    x += rhs; y += rhs;
+  Point operator+(const Point &rhs) const { return Point(x + rhs.x, y + rhs.y); }
 
-    return *this;
-  }
+  friend Point operator+(const Point &lhs, double rhs) { return Point(lhs.x + rhs, lhs.y + rhs); }
 
-  Point operator+(const Point &rhs) const {
-    return Point(x + rhs.x, y + rhs.y);
-  }
-
-  friend Point operator+(const Point &lhs, double rhs) {
-    return Point(lhs.x + rhs, lhs.y + rhs);
-  }
-
-  friend Point operator+(double lhs, const Point &rhs) {
-    return Point(rhs.x + lhs, rhs.y + lhs);
-  }
+  friend Point operator+(double lhs, const Point &rhs) { return Point(rhs.x + lhs, rhs.y + lhs); }
 
   //------
 
   // Subtraction of points makes no mathematical sense but is useful for weighted sum
-  Point &operator-=(const Point &rhs) {
-    x -= rhs.x; y -= rhs.y;
+  Point &operator-=(const Point &rhs) { x -= rhs.x; y -= rhs.y; return *this; }
 
-    return *this;
-  }
+  Point &operator-=(double rhs) { x -= rhs; y -= rhs; return *this; }
 
-  Point &operator-=(double rhs) {
-    x -= rhs; y -= rhs;
-
-    return *this;
-  }
-
-  Point operator-(const Point &rhs) const {
-    return Point(x - rhs.x, y - rhs.y);
-  }
+  Point operator-(const Point &rhs) const { return Point(x - rhs.x, y - rhs.y); }
 
   //------
 
   // Multiplication of points makes no mathematical sense but is useful for weighted sum
-  Point &operator*=(double rhs) {
-    x *= rhs; y *= rhs;
+  Point &operator*=(double rhs) { x *= rhs; y *= rhs; return *this; }
 
-    return *this;
-  }
+  Point &operator*=(const Point &rhs) { x *= rhs.x; y *= rhs.y; return *this; }
 
-  Point &operator*=(const Point &rhs) {
-    x *= rhs.x; y *= rhs.y;
+  Point operator*(const Point &rhs) const { return Point(x*rhs.x, y*rhs.y); }
 
-    return *this;
-  }
+  friend Point operator*(const Point &lhs, double rhs) { return Point(lhs.x*rhs, lhs.y*rhs); }
 
-  Point operator*(const Point &rhs) const {
-    return Point(x*rhs.x, y*rhs.y);
-  }
-
-  friend Point operator*(const Point &lhs, double rhs) {
-    return Point(lhs.x*rhs, lhs.y*rhs);
-  }
-
-  friend Point operator*(double lhs, const Point &rhs) {
-    return Point(rhs.x*lhs, rhs.y*lhs);
-  }
+  friend Point operator*(double lhs, const Point &rhs) { return Point(rhs.x*lhs, rhs.y*lhs); }
 
   //------
 
   // Division of points makes no mathematical sense but is useful for weighted sum
-  Point &operator/=(double rhs) {
-    double irhs = 1.0/rhs;
+  Point &operator/=(double rhs) { double irhs = 1.0/rhs; x *= irhs; y *= irhs; return *this; }
 
-    x *= irhs; y *= irhs;
+  Point &operator/=(const Point &rhs) { x /= rhs.x; y /= rhs.y; return *this; }
 
-    return *this;
-  }
-
-  Point &operator/=(const Point &rhs) {
-    x /= rhs.x; y /= rhs.y;
-
-    return *this;
-  }
-
-  Point operator/(const Point &rhs) const {
-    return Point(x/rhs.x, y/rhs.y);
-  }
+  Point operator/(const Point &rhs) const { return Point(x/rhs.x, y/rhs.y); }
 
   friend Point operator/(const Point &lhs, double rhs) {
     double irhs = 1.0/rhs;
@@ -219,19 +164,12 @@ class Point {
     return Point(lhs.x*irhs, lhs.y*irhs);
   }
 
-  friend Point operator/(double lhs, const Point &rhs) {
-    return Point(lhs/rhs.x, lhs/rhs.y);
-  }
+  friend Point operator/(double lhs, const Point &rhs) { return Point(lhs/rhs.x, lhs/rhs.y); }
 
   //------
 
-  double minComponent() const {
-    return std::min(x, y);
-  }
-
-  double maxComponent() const {
-    return std::max(x, y);
-  }
+  double minComponent() const { return std::min(x, y); }
+  double maxComponent() const { return std::max(x, y); }
 
   //-----
 
@@ -718,6 +656,24 @@ class BBox {
     return (y >= pmin_.y && y <= pmax_.y);
   }
 
+  double distanceTo(const Point &p) const {
+    if      (p.x < pmin_.x) {
+      if      (p.y < pmin_.y) return getLL().distanceTo(p);
+      else if (p.y > pmax_.y) return getUL().distanceTo(p);
+      else                    return pmin_.x - p.x;
+    }
+    else if (p.x > pmax_.x) {
+      if      (p.y < pmin_.y) return getLR().distanceTo(p);
+      else if (p.y > pmax_.y) return getUR().distanceTo(p);
+      else                    return p.x - pmax_.x;
+    }
+    else {
+      if      (p.y < pmin_.y) return pmin_.y - p.y;
+      else if (p.y > pmax_.y) return p.y - pmax_.y;
+      else                    return 0.0;
+    }
+  }
+
   double distanceTo(const BBox &bbox) const {
     if (! set_) return 1E50; // assert
 
@@ -824,9 +780,7 @@ class BBox {
 
   double getXYMid(bool horizontal) const { return (horizontal ? getXMid() : getYMid()); }
 
-  Point getCenter() const {
-    return 0.5*(getMin() + getMax());
-  }
+  Point getCenter() const { return 0.5*(getMin() + getMax()); }
 
   void setCenter(const Point &point) {
     double dx = point.x - getCenter().x;
@@ -959,17 +913,10 @@ class BBox {
   }
 #endif
 
-  double getSize(bool horizontal) const {
-    return (horizontal ? getWidth() : getHeight());
-  }
+  double getSize(bool horizontal) const { return (horizontal ? getWidth() : getHeight()); }
 
-  double getWidth() const {
-    return std::abs(getXMax() - getXMin());
-  }
-
-  double getHeight() const {
-    return std::abs(getYMax() - getYMin());
-  }
+  double getWidth () const { return std::abs(getXMax() - getXMin()); }
+  double getHeight() const { return std::abs(getYMax() - getYMin()); }
 
   BBox &moveXTo(double x) {
     assert(set_);
@@ -1074,6 +1021,13 @@ class BBox {
   Point pmax_;
   bool  set_ { false };
 };
+
+inline BBox makeDirBBox(bool flipped, double x1, double y1, double x2, double y2) {
+  if (! flipped)
+    return BBox(x1, y1, x2, y2);
+  else
+    return BBox(y1, x1, y2, x2);
+}
 
 }
 

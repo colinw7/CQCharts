@@ -20,11 +20,11 @@ class CQChartsParallelPlotType : public CQChartsPlotType {
 
   Dimension dimension() const override { return Dimension::TWO_D; }
 
-  bool canProbe() const override { return true; }
+  void addParameters() override;
 
   bool allowXLog() const override { return false; }
 
-  void addParameters() override;
+  bool canProbe() const override { return true; }
 
   QString description() const override;
 

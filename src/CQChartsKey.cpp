@@ -181,8 +181,8 @@ void
 CQChartsViewKey::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
-  auto addProperty = [&](const QString &name, const QString &desc) {
-    model->addProperty(path, this, name)->setDesc(desc);
+  auto addProperty = [&](const QString &name, const QString &desc, bool hidden=false) {
+    model->addProperty(path, this, name)->setDesc(desc).setHidden(hidden);
   };
 
   addProperty("visible"   , "Is visible");
@@ -193,21 +193,22 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   addProperty("location", "Key placement location");
 
-  addProperty("interactive"  , "Key supports click");
-  addProperty("pressBehavior", "Key click behavior");
+  addProperty("interactive"  , "Key supports click", true);
+  addProperty("pressBehavior", "Key click behavior", true);
 
   addProperty("hiddenAlpha", "Alpha for hidden items");
 
   //---
 
   // header text
-  QString headerPath = path + "/header";
+  QString headerPath     = path + "/header";
+  QString headerTextPath = headerPath + "/text";
 
   auto addHeaderProperty = [&](const QString &name, const QString &alias, const QString &desc) {
-    model->addProperty(headerPath, this, name, alias)->setDesc("Key header text " + desc);
+    model->addProperty(headerTextPath, this, name, alias)->setDesc("Key header text " + desc);
   };
 
-  addHeaderProperty("header"             , "text"     , "string");
+  addHeaderProperty("header"             , "string"   , "string");
   addHeaderProperty("headerTextColor"    , "color"    , "color");
   addHeaderProperty("headerTextAlpha"    , "alpha"    , "alpha");
   addHeaderProperty("headerTextFont"     , "font"     , "font");
@@ -663,19 +664,29 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProperty("hiddenAlpha" , "Alpha for hidden items");
   addProperty("maxRows"     , "Max rows for key");
   addProperty("spacing"     , "Spacing between rows");
-  addProperty("scrollWidth" , "Scrolled fixed width");
-  addProperty("scrollHeight", "Scrolled fixed height");
+
+  //---
+
+  QString scrollPath = path + "/scroll";
+
+  auto addScrollProperty = [&](const QString &name, const QString &alias, const QString &desc) {
+    model->addProperty(scrollPath, this, name, alias)->setDesc(desc);
+  };
+
+  addScrollProperty("scrollWidth" , "width" , "Key has fixed width and will scroll when larger");
+  addScrollProperty("scrollHeight", "height", "Key has fixed height and will scroll when larger");
 
   //---
 
   // header text
-  QString headerPath = path + "/header";
+  QString headerPath     = path + "/header";
+  QString headerTextPath = headerPath + "/text";
 
   auto addHeaderProperty = [&](const QString &name, const QString &alias, const QString &desc) {
-    model->addProperty(headerPath, this, name, alias)->setDesc("Key header text " + desc);
+    model->addProperty(headerTextPath, this, name, alias)->setDesc("Key header text " + desc);
   };
 
-  addHeaderProperty("header"             , "text"     , "string ");
+  addHeaderProperty("header"             , "string"   , "string");
   addHeaderProperty("headerTextColor"    , "color"    , "color");
   addHeaderProperty("headerTextAlpha"    , "alpha"    , "alpha");
   addHeaderProperty("headerTextFont"     , "font"     , "font");

@@ -98,17 +98,17 @@ class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
   QString name() const override { return "distribution"; }
   QString desc() const override { return "Distribution"; }
 
+  Dimension dimension() const override { return Dimension::ONE_D; }
+
+  void addParameters() override;
+
   QString yColumnName() const override { return "value"; }
 
   bool allowXAxisIntegral() const override { return false; }
 
   bool allowXLog() const override { return false; }
 
-  Dimension dimension() const override { return Dimension::ONE_D; }
-
   bool canProbe() const override { return true; }
-
-  void addParameters() override;
 
   QString description() const override;
 
@@ -429,7 +429,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
  public CQChartsObjRugPointData <CQChartsDistributionPlot> {
   Q_OBJECT
 
-  // style
+  // columns
   Q_PROPERTY(CQChartsColumn nameColumn READ nameColumn WRITE setNameColumn)
   Q_PROPERTY(CQChartsColumn dataColumn READ dataColumn WRITE setDataColumn)
 
@@ -706,6 +706,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   CQBucketer &groupBucketer(int groupInd);
   const CQBucketer &groupBucketer(int groupInd) const;
 
+  bool isConsistentBucketer() const;
+
   //---
 
  public:
@@ -888,7 +890,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   bool               sorted_         { false };            //!< sort by count
   DensityData        densityData_;                         //!< density data
   ScatterData        scatterData_;                         //!< scatter data
-  DotLineData        dotLineData_;                         //!< show dot lines
+  DotLineData        dotLineData_;                         //!< dot line data
   bool               rug_            { false };            //!< show rug
   bool               includeOutlier_ { true };             //!< include outlier values
   CQChartsOptReal    underflowBucket_;                     //!< undeflow bucket threshhold

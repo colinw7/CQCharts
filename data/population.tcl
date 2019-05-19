@@ -23,7 +23,7 @@ proc annotationSlot { viewId id } {
 
 proc plotYear { year } {
   if {$::viewId != ""} {
-    remove_plot -view $::viewId -all
+    remove_charts_plot -view $::viewId -all
   }
 
   set filter "sex:1,year:$year"
@@ -98,23 +98,23 @@ puts $tx
 
 set ty 97
 
-set text1Id [create_charts_text_annotation -view $::viewId -id prev -position [list $tx $ty] -text "Prev" -border 1 -background 1]
+set text1Id [create_charts_text_annotation -view $::viewId -id prev -position [list $tx $ty] -text "Prev" -stroked 1 -filled 1]
 
 set tw [measure_charts_text -view $::viewId -name width -text "Prev"]
 set tx [expr {$tx + $tw + $dtx}]
 puts $tx
 
-set text2Id [create_charts_text_annotation -view $::viewId -id next -position [list $tx $ty] -text "Next" -border 1 -background 1]
+set text2Id [create_charts_text_annotation -view $::viewId -id next -position [list $tx $ty] -text "Next" -stroked 1 -filled 1]
 
 set tw [measure_charts_text -view $::viewId -name width -text "Next"]
 set tx [expr {$tx + $tw + 2*$dtx}]
 puts $tx
 
-set text3Id [create_charts_text_annotation -view $::viewId -id overlay -position [list $tx $ty] -text "Overlay" -border 1 -background 1]
+set text3Id [create_charts_text_annotation -view $::viewId -id overlay -position [list $tx $ty] -text "Overlay" -stroked 1 -filled 1]
 
 set tw [measure_charts_text -view $::viewId -name width -text "Overlay"]
 set tx [expr {$tx + $tw + $dtx}]
 puts $tx
 
-set text4Id [create_charts_text_annotation -view $::viewId -id sidebyside -position [list $tx $ty] -text "Side By Side" -border 1 -background 1]
+set text4Id [create_charts_text_annotation -view $::viewId -id sidebyside -position [list $tx $ty] -text "Side By Side" -stroked 1 -filled 1]
 connect_charts_signal -view $::viewId -from annotationIdPressed -to annotationSlot

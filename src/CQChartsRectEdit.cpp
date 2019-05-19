@@ -17,9 +17,7 @@ CQChartsRectEdit(QWidget *parent) :
 
   //---
 
-  edit_ = new CQRectEdit;
-
-  edit_->setObjectName("rect");
+  edit_ = CQUtil::makeWidget<CQRectEdit>("rect");
 
   layout->addWidget(edit_);
 

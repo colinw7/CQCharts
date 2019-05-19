@@ -127,7 +127,7 @@ class CQChartsPlotType : public QObject {
 
   virtual bool isHierarchical() const { return false; }
 
-  virtual bool canProbe() const { return false; }
+  virtual bool canProbe() const = 0;
 
   //---
 

@@ -4,6 +4,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsDelaunay.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -44,9 +45,10 @@ QString
 CQChartsDelaunayPlotType::
 description() const
 {
-  return "<h2>Delaunay Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draws delaunay triangulation for a set of points.<p>\n";
+  return CQChartsHtml().
+   h2("Delaunay Plot").
+    h3("Summary").
+     p("Draws delaunay triangulation for a set of points.");
 }
 
 CQChartsPlot *
@@ -126,25 +128,32 @@ void
 CQChartsDelaunayPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "xColumn", "x")->setDesc("X column");
-  addProperty("columns", this, "yColumn", "y")->setDesc("Y column");
+  // columns
+  addProp("columns", "xColumn", "x", "X column");
+  addProp("columns", "yColumn", "y", "Y column");
 
-  addProperty("voronoi", this, "voronoi"         , "enabled"  )->
-    setDesc("Show voronoi connections");
-  addProperty("voronoi", this, "voronoiPointSize", "pointSize")->
-    setDesc("Voronoi point symbol size");
+  // voronoi
+  addProp("voronoi", "voronoi"         , "visible"  , "Show voronoi connections");
+  addProp("voronoi", "voronoiPointSize", "pointSize", "Voronoi point symbol size");
 
   // points
-  addProperty("points", this, "points", "visible")->setDesc("Center points visible");
+  addProp("points", "points", "visible", "Center points visible");
 
   addSymbolProperties("points/symbol", "", "Center points");
 
   // lines
-  addProperty("lines", this, "lines", "visible")->setDesc("Connecting lines visible");
+  addProp("lines", "lines", "visible", "Connecting lines visible");
 
-  addLineProperties("lines", "lines", "Lines");
+  addLineProperties("lines/stroke", "lines", "Lines");
 }
 
 CQChartsGeom::Range

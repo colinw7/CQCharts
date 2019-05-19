@@ -286,7 +286,7 @@ CQChartsColumnEdit(QWidget *parent) :
 
   //---
 
-  columnGroup_ = new CQGroupBox("Column");
+  columnGroup_ = CQUtil::makeLabelWidget<CQGroupBox>("Column", "columnGroup");
 
   columnGroup_->setCheckable(true);
   columnGroup_->setChecked(true);
@@ -323,7 +323,7 @@ CQChartsColumnEdit(QWidget *parent) :
 
   //---
 
-  menuExprGroup_ = new CQGroupBox("Expression");
+  menuExprGroup_ = CQUtil::makeLabelWidget<CQGroupBox>("Expression", "menuExprGroup");
 
   menuExprGroup_->setCheckable(true);
   menuExprGroup_->setChecked(false);

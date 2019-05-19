@@ -44,18 +44,22 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &de
 
   QString textPath = path + "/text";
 
-  QString path1 = (path.length() ? desc + " text" : "Text");
+  QString path1 = (desc.length() ? desc + " text" : "Text");
 
-  model->addProperty(textPath, this, "textStr", "text")->setDesc(path1 + " string");
+  model->addProperty(textPath, this, "textStr", "string")->setDesc(path1 + " string");
 
   addTextDataProperties(model, textPath, desc);
 }
 
 void
 CQChartsTextBoxObj::
-addTextDataProperties(CQPropertyViewModel *model, const QString &path, const QString &desc)
+addTextDataProperties(CQPropertyViewModel *model, const QString &path, const QString &desc,
+                      bool addVisible)
 {
-  QString desc1 = (path.length() ? desc + " text" : "Text");
+  QString desc1 = (desc.length() ? desc + " text" : "Text");
+
+  if (addVisible)
+    model->addProperty(path, this, "textVisible", "visible")->setDesc(desc1 + " visible");
 
   model->addProperty(path, this, "textColor"   , "color"   )->setDesc(desc1 + " color");
   model->addProperty(path, this, "textAlpha"   , "alpha"   )->setDesc(desc1 + " alpha");

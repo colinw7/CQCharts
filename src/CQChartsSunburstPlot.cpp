@@ -4,6 +4,7 @@
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsTip.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -29,9 +30,10 @@ QString
 CQChartsSunburstPlotType::
 description() const
 {
-  return "<h2>Sunburst Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draw hierarchical data as segments of concentric circles.</p>\n";
+  return CQChartsHtml().
+   h2("Sunburst Plot").
+    h3("Summary").
+     p("Draw hierarchical data as segments of concentric circles.");
 }
 
 CQChartsPlot *
@@ -142,29 +144,36 @@ void
 CQChartsSunburstPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsHierPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "nameColumns", "names")->setDesc("Name columns");
-  addProperty("columns", this, "valueColumn", "value")->setDesc("Value columns");
+  addProp("columns", "nameColumns", "names", "Name columns");
+  addProp("columns", "valueColumn", "value", "Value columns");
 
   // options
-  addProperty("options", this, "separator"  )->setDesc("Name separator");
-  addProperty("options", this, "innerRadius")->setDesc("Inner radius");
-  addProperty("options", this, "outerRadius")->setDesc("Outer radius");
-  addProperty("options", this, "startAngle" )->setDesc("Angle for first segment");
-  addProperty("options", this, "multiRoot"  )->setDesc("Support multiple roots");
+  addProp("options", "separator"  , "", "Name separator");
+  addProp("options", "innerRadius", "", "Inner radius");
+  addProp("options", "outerRadius", "", "Outer radius");
+  addProp("options", "startAngle" , "", "Angle for first segment");
+  addProp("options", "multiRoot"  , "", "Support multiple roots");
 
   // color
-  addProperty("color", this, "colorById", "colorById")->setDesc("Color by id");
+  addProp("color", "colorById", "colorById", "Color by id");
 
   // fill
-  addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
+  addProp("fill", "filled", "visible", "Fill visible");
 
   addFillProperties("fill", "fill", "");
 
   // stroke
-  addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
+  addProp("stroke", "border", "visible", "Stroke visible");
 
   addLineProperties("stroke", "border", "");
 

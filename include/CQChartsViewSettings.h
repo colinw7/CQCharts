@@ -11,6 +11,7 @@ class CQChartsViewSettingsPlotTable;
 class CQChartsViewSettingsViewAnnotationsTable;
 class CQChartsViewSettingsPlotAnnotationsTable;
 class CQChartsViewSettingsLayerTable;
+class CQChartsPlotTip;
 
 class CQChartsModelDetailsWidget;
 class CQChartsWindow;
@@ -38,6 +39,7 @@ class CQGroupBox;
 class QComboBox;
 class QSpinBox;
 class QPushButton;
+class QToolButton;
 class QRadioButton;
 class QCheckBox;
 class QLabel;
@@ -70,6 +72,8 @@ class CQChartsViewSettings : public QFrame {
 
   void invalidateModelDetails();
 //void updateModelDetails();
+
+  void plotsTabChangedSlot();
 
   void updatePlots();
   void updateCurrentPlot();
@@ -186,6 +190,8 @@ class CQChartsViewSettings : public QFrame {
     FilterEdit*           viewFilterEdit   { nullptr }; //!< view settings filter
     ViewPropertiesWidget* viewPropertyTree { nullptr }; //!< view settings tree
     CQTabWidget*          plotsTab         { nullptr }; //!< plots settings tab
+    CQChartsPlotTip*      plotTip          { nullptr }; //!< current plot tip
+    QToolButton*          plotTipButton    { nullptr }; //!< current plot tip button
   };
 
   struct ModelsWidgets {

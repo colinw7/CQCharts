@@ -25,6 +25,8 @@ class CQChartsImagePlotType : public CQChartsPlotType {
 
   bool hasAxes() const override { return false; }
 
+  bool canProbe() const override { return true; }
+
   QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;

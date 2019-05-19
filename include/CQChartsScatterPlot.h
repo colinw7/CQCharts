@@ -28,10 +28,12 @@ class CQChartsScatterPlotType : public CQChartsGroupPlotType {
 
   void addParameters() override;
 
-  QString description() const override;
-
   QString xColumnName() const override { return "x"; }
   QString yColumnName() const override { return "y"; }
+
+  bool canProbe() const override { return true; }
+
+  QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -239,6 +241,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsColumn symbolSizeColumn READ symbolSizeColumn WRITE setSymbolSizeColumn)
   Q_PROPERTY(CQChartsColumn fontSizeColumn   READ fontSizeColumn   WRITE setFontSizeColumn  )
 
+  // options
+  Q_PROPERTY(PlotType plotType READ plotType WRITE setPlotType)
+
   // best fit
   Q_PROPERTY(bool bestFit          READ isBestFit          WRITE setBestFit         )
   Q_PROPERTY(bool bestFitOutliers  READ isBestFitOutliers  WRITE setBestFitOutliers )
@@ -288,10 +293,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   // symbol
   CQCHARTS_POINT_DATA_PROPERTIES
 
-  // grid
-  Q_PROPERTY(bool gridded  READ isGridded WRITE setGridded )
-  Q_PROPERTY(int  gridNumX READ gridNumX  WRITE setGridNumX)
-  Q_PROPERTY(int  gridNumY READ gridNumY  WRITE setGridNumY)
+  // grid cells
+  Q_PROPERTY(int gridNumX READ gridNumX WRITE setGridNumX)
+  Q_PROPERTY(int gridNumY READ gridNumY WRITE setGridNumY)
 
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(GridCell,gridCell)
 
@@ -319,10 +323,18 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   Q_PROPERTY(bool textLabels READ isTextLabels WRITE setTextLabels)
 
+  Q_ENUMS(PlotType)
+
   Q_ENUMS(XSide)
   Q_ENUMS(YSide)
 
  public:
+  enum class PlotType {
+    SYMBOLS,
+    GRID_CELLS,
+    DENSITY_MAP
+  };
+
   struct ValueData {
     QPointF       p;
     int           row { -1 };
@@ -359,7 +371,6 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   using GroupNameGridData = std::map<int,NameGridData>;
 
   struct GridData {
-    bool      enabled   { false };
     CInterval xinterval;
     CInterval yinterval;
     int       nx        { 40 };
@@ -395,10 +406,18 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   const CQChartsColumn &yColumn() const { return yColumn_; }
   void setYColumn(const CQChartsColumn &c);
 
-  //---
+  //--
 
   QString xColumnName(const QString &def="x") const;
   QString yColumnName(const QString &def="y") const;
+
+  //---
+
+  // plot type
+  PlotType plotType() const { return plotType_; }
+
+  bool isSymbols  () const { return (plotType() == PlotType::SYMBOLS    ); }
+  bool isGridCells() const { return (plotType() == PlotType::GRID_CELLS ); }
 
   //---
 
@@ -483,9 +502,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
-  // gridded
-  bool isGridded() const { return gridData_.enabled; }
-
+  // grid cells
   int gridNumX() const { return gridData_.nx; }
   void setGridNumX(int n);
 
@@ -664,6 +681,10 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
+  bool probe(ProbeData &probeData) const;
+
+  //---
+
   void initGroupBestFit(int groupInd) const;
   void initGroupStats  (int groupInd) const;
 
@@ -711,21 +732,28 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   //---
 
  public slots:
-  void setBestFit(bool b);
-  void setHull   (bool b);
+  // set plot type
+  void setPlotType(PlotType plotType);
 
-  void setXRug(bool b);
-  void setYRug(bool b);
+  // set symbols, grid cells
+  void setSymbols  (bool b);
+  void setGridCells(bool b);
 
+  // overlays
+  void setBestFit       (bool b);
+  void setHull          (bool b);
+  void setStatsLinesSlot(bool b);
+  void setDensityMap    (bool b);
+
+  // x axis annotations
+  void setXRug    (bool b);
   void setXDensity(bool b);
-  void setYDensity(bool b);
-
   void setXWhisker(bool b);
+
+  // y axis annotations
+  void setYRug    (bool b);
+  void setYDensity(bool b);
   void setYWhisker(bool b);
-
-  void setDensityMap(bool b);
-
-  void setGridded(bool b);
 
  private slots:
   void dataLabelChanged();
@@ -824,34 +852,35 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
     QString        units    { "px" };  //!< map units
   };
 
-  CQChartsColumn     xColumn_;                        //!< x column
-  CQChartsColumn     yColumn_;                        //!< y column
-  CQChartsColumn     nameColumn_;                     //!< name column
-  SymbolTypeData     symbolTypeData_;                 //!< symbol size column
-  SymbolSizeData     symbolSizeData_;                 //!< symbol size column
-  FontSizeData       fontSizeData_;                   //!< font size column
-  BestFitData        bestFitData_;                    //!< best fit data
-  HullData           hullData_;                       //!< hull data
-  AxisRugData        axisRugData_;                    //!< axis rug data
-  AxisDensityData    axisDensityData_;                //!< axis density data
-  DensityMapData     densityMapData_;                 //!< density map data
-  AxisWhiskerData    axisWhiskerData_;                //!< axis whisker data
-  CQChartsDataLabel* dataLabel_          { nullptr }; //!< data label style
-  GroupNameValues    groupNameValues_;                //!< name values
-  GroupNameGridData  groupNameGridData_;              //!< grid values
-  GridData           gridData_;                       //!< grid data
-  QString            xname_;                          //!< x column header
-  QString            yname_;                          //!< y column header
-  QString            symbolTypeName_;                 //!< symbol type column header
-  QString            symbolSizeName_;                 //!< symbol size column header
-  QString            fontSizeName_;                   //!< font size column header
-  QString            colorName_;                      //!< color column header
-  SymbolMapKeyData   symbolMapKeyData_;               //!< symbol map key data
-  GroupPoints        groupPoints_;                    //!< group fit points
-  GroupFitData       groupFitData_;                   //!< group fit data
-  GroupStatData      groupStatData_;                  //!< group stat data
-  GroupHull          groupHull_;                      //!< group hull
-  GroupWhiskers      groupWhiskers_;                  //!< group whiskers
+  CQChartsColumn     xColumn_;                                  //!< x column
+  CQChartsColumn     yColumn_;                                  //!< y column
+  CQChartsColumn     nameColumn_;                               //!< name column
+  PlotType           plotType_           { PlotType::SYMBOLS }; //!< plot type
+  SymbolTypeData     symbolTypeData_;                           //!< symbol size column
+  SymbolSizeData     symbolSizeData_;                           //!< symbol size column
+  FontSizeData       fontSizeData_;                             //!< font size column
+  BestFitData        bestFitData_;                              //!< best fit data
+  HullData           hullData_;                                 //!< hull data
+  AxisRugData        axisRugData_;                              //!< axis rug data
+  AxisDensityData    axisDensityData_;                          //!< axis density data
+  DensityMapData     densityMapData_;                           //!< density map data
+  AxisWhiskerData    axisWhiskerData_;                          //!< axis whisker data
+  CQChartsDataLabel* dataLabel_          { nullptr };           //!< data label style
+  GroupNameValues    groupNameValues_;                          //!< name values
+  GroupNameGridData  groupNameGridData_;                        //!< grid values
+  GridData           gridData_;                                 //!< grid data
+  QString            xname_;                                    //!< x column header
+  QString            yname_;                                    //!< y column header
+  QString            symbolTypeName_;                           //!< symbol type column header
+  QString            symbolSizeName_;                           //!< symbol size column header
+  QString            fontSizeName_;                             //!< font size column header
+  QString            colorName_;                                //!< color column header
+  SymbolMapKeyData   symbolMapKeyData_;                         //!< symbol map key data
+  GroupPoints        groupPoints_;                              //!< group fit points
+  GroupFitData       groupFitData_;                             //!< group fit data
+  GroupStatData      groupStatData_;                            //!< group stat data
+  GroupHull          groupHull_;                                //!< group hull
+  GroupWhiskers      groupWhiskers_;                            //!< group whiskers
 };
 
 #endif

@@ -26,6 +26,8 @@ class CQChartsRadarPlotType : public CQChartsPlotType {
   bool allowXLog() const override { return false; }
   bool allowYLog() const override { return false; }
 
+  bool canProbe() const override { return false; }
+
   QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;

@@ -394,7 +394,7 @@ encodeVariant(const QVariant &var) const
   else {
     QString qstr = var.toString();
 
-    str = encodeString(qstr).toStdString();
+    str = encodeString(qstr, separator()).toStdString();
   }
 
   return str;
@@ -402,11 +402,11 @@ encodeVariant(const QVariant &var) const
 
 QString
 CQCsvModel::
-encodeString(const QString &str) const
+encodeString(const QString &str, const QChar &separator)
 {
   bool quote = false;
 
-  int i = str.indexOf(separator());
+  int i = str.indexOf(separator);
 
   if (i >= 0)
     quote = true;

@@ -577,7 +577,7 @@ struct CQChartsAxisData {
   CQChartsAxisValueType valueType;
   QString               format         { false };
   int                   tickIncrement  { 0 };
-  double                majorIncrement { 0.0 };
+  int                   majorIncrement { 0 };
   double                start          { 0.0 };
   double                end            { 0.0 };
   bool                  includeZero;

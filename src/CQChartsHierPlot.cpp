@@ -33,12 +33,19 @@ void
 CQChartsHierPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nameColumns", "names")->setDesc("Name columns");
-  addProperty("columns", this, "valueColumn", "value")->setDesc("Value column");
+  addProp("columns", "nameColumns", "names", "Name columns");
+  addProp("columns", "valueColumn", "value", "Data value column");
 
-  addProperty("options", this, "separator")->setDesc("Hierarchical separator");
+  addProp("options", "separator", "", "Separator for hierarchical path in name column");
 
   addColorMapProperties();
 }

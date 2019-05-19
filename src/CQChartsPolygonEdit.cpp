@@ -463,7 +463,7 @@ updatePointEdits()
   int ne = pointEdits_.size();
 
   while (ne < n) {
-    CQPoint2DEdit *edit = new CQPoint2DEdit;
+    CQPoint2DEdit *edit = CQUtil::makeWidget<CQPoint2DEdit>("edit");
 
     connect(edit, SIGNAL(valueChanged()), this, SLOT(pointSlot()));
 

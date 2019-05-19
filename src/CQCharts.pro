@@ -135,6 +135,7 @@ CQChartsLineDash.cpp \
 CQChartsRotatedText.cpp \
 CQChartsRoundedPolygon.cpp \
 \
+CQChartsOptInt.cpp \
 CQChartsOptLength.cpp \
 CQChartsOptPosition.cpp \
 CQChartsOptReal.cpp \
@@ -161,20 +162,13 @@ CQChartsBoxWhisker.cpp \
 CQChartsDensity.cpp \
 CQChartsGrahamHull.cpp \
 \
-CQChartsFillPattern.cpp \
-CQChartsFillPatternEdit.cpp \
-CQChartsTitleLocation.cpp \
-CQChartsTitleLocationEdit.cpp \
 CQChartsAxisSide.cpp \
-CQChartsAxisSideEdit.cpp \
 CQChartsAxisTickLabelPlacement.cpp \
-CQChartsAxisTickLabelPlacementEdit.cpp \
 CQChartsAxisValueType.cpp \
+CQChartsFillPattern.cpp \
 CQChartsKeyLocation.cpp \
-CQChartsKeyLocationEdit.cpp \
 CQChartsKeyPressBehavior.cpp \
-CQChartsKeyPressBehaviorEdit.cpp \
-CQChartsEnumEdit.cpp \
+CQChartsTitleLocation.cpp \
 \
 CQChartsModelUtil.cpp \
 CQChartsTrie.cpp \
@@ -199,13 +193,20 @@ CQChartsAxisEdit.cpp \
 \
 CQChartsAlphaEdit.cpp \
 CQChartsArrowDataEdit.cpp \
+CQChartsAxisSideEdit.cpp \
+CQChartsAxisTickLabelPlacementEdit.cpp \
+CQChartsAxisValueTypeEdit.cpp \
 CQChartsBoxDataEdit.cpp \
 CQChartsColorEdit.cpp \
 CQChartsColumnEdit.cpp \
 CQChartsColumnsEdit.cpp \
+CQChartsEditBase.cpp \
 CQChartsFillDataEdit.cpp \
+CQChartsFillPatternEdit.cpp \
 CQChartsFillUnderEdit.cpp \
 CQChartsFontEdit.cpp \
+CQChartsKeyLocationEdit.cpp \
+CQChartsKeyPressBehaviorEdit.cpp \
 CQChartsLengthEdit.cpp \
 CQChartsLineDashEdit.cpp \
 CQChartsLineDataEdit.cpp \
@@ -220,8 +221,10 @@ CQChartsSymbolDataEdit.cpp \
 CQChartsSymbolEdit.cpp \
 CQChartsTextBoxDataEdit.cpp \
 CQChartsTextDataEdit.cpp \
+CQChartsTitleLocationEdit.cpp \
 CQChartsUnitsEdit.cpp \
-CQChartsEditBase.cpp \
+\
+CQChartsEnumEdit.cpp \
 \
 CQChartsPropertyViewTree.cpp \
 CQChartsPropertyViewEditor.cpp \
@@ -337,19 +340,12 @@ HEADERS += \
 ../include/CQChartsGrahamHull.h \
 \
 ../include/CQChartsFillPattern.h \
-../include/CQChartsFillPatternEdit.h \
 ../include/CQChartsTitleLocation.h \
-../include/CQChartsTitleLocationEdit.h \
 ../include/CQChartsAxisSide.h \
-../include/CQChartsAxisSideEdit.h \
 ../include/CQChartsAxisTickLabelPlacement.h \
-../include/CQChartsAxisTickLabelPlacementEdit.h \
 ../include/CQChartsAxisValueType.h \
 ../include/CQChartsKeyLocation.h \
-../include/CQChartsKeyLocationEdit.h \
 ../include/CQChartsKeyPressBehavior.h \
-../include/CQChartsKeyPressBehaviorEdit.h \
-../include/CQChartsEnumEdit.h \
 \
 ../include/CQChartsModelUtil.h \
 ../include/CQChartsTrie.h \
@@ -419,6 +415,7 @@ HEADERS += \
 ../include/CQChartsSides.h \
 ../include/CQChartsFillUnder.h \
 \
+../include/CQChartsOptInt.h \
 ../include/CQChartsOptLength.h \
 ../include/CQChartsOptPosition.h \
 ../include/CQChartsOptReal.h \
@@ -434,13 +431,20 @@ HEADERS += \
 \
 ../include/CQChartsAlphaEdit.h \
 ../include/CQChartsArrowDataEdit.h \
+../include/CQChartsAxisSideEdit.h \
+../include/CQChartsAxisTickLabelPlacementEdit.h \
+../include/CQChartsAxisValueTypeEdit.h \
 ../include/CQChartsBoxDataEdit.h \
 ../include/CQChartsColorEdit.h \
-../include/CQChartsFontEdit.h \
 ../include/CQChartsColumnEdit.h \
 ../include/CQChartsColumnsEdit.h \
+../include/CQChartsEditBase.h \
 ../include/CQChartsFillDataEdit.h \
+../include/CQChartsFillPatternEdit.h \
 ../include/CQChartsFillUnderEdit.h \
+../include/CQChartsFontEdit.h \
+../include/CQChartsKeyLocationEdit.h \
+../include/CQChartsKeyPressBehaviorEdit.h \
 ../include/CQChartsLengthEdit.h \
 ../include/CQChartsLineDashEdit.h \
 ../include/CQChartsLineDataEdit.h \
@@ -455,8 +459,10 @@ HEADERS += \
 ../include/CQChartsSymbolEdit.h \
 ../include/CQChartsTextBoxDataEdit.h \
 ../include/CQChartsTextDataEdit.h \
+../include/CQChartsTitleLocationEdit.h \
 ../include/CQChartsUnitsEdit.h \
-../include/CQChartsEditBase.h \
+\
+../include/CQChartsEnumEdit.h \
 \
 ../include/CQChartsPropertyViewTree.h \
 ../include/CQChartsPropertyViewEditor.h \

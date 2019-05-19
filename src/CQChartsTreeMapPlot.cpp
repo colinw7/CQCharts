@@ -4,6 +4,7 @@
 #include <CQCharts.h>
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -27,9 +28,24 @@ QString
 CQChartsTreeMapPlotType::
 description() const
 {
-  return "<h2>Tree Map Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draw hierarchical data values using sized boxes.</p>\n";
+  auto B = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+
+  return CQChartsHtml().
+   h2("Tree Map Plot").
+    h3("Summary").
+     p("Draw hierarchical data values using sized boxes.").
+     p("Each level of the tree map can have an optional title (if large enough) "
+       "and can be separatel colored.").
+     p("The use can push into, or pop out of, a level of hierarchy by selecting the node "
+       "and using the Push and Pop operations on the context menu.").
+    h3("Columns").
+     p("The hierarchical data comes from the " + B("Names") + " columns and " +
+       B("Value") + " column.").
+     p("If the name columns is a hierarchical path then the separator can be specified width "
+       "the " + B("Separator") + " option (default '/').").
+    h3("Limitations").
+     p("This plot does not support a user specified range, axes, logarithm scales, "
+       "or probing.");
 }
 
 CQChartsPlot *
@@ -96,31 +112,35 @@ setTitles(bool b)
 
 void
 CQChartsTreeMapPlot::
-setTitleMaxExtent(double r)
+setTitleMaxExtent(const CQChartsOptReal &r)
 {
   CQChartsUtil::testAndSet(titleMaxExtent_, r, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsTreeMapPlot::
-setHeaderHeight(const CQChartsLength &l)
+setTitleHeight(const CQChartsOptLength &l)
 {
-  CQChartsUtil::testAndSet(headerHeight_, l, [&]() { updateCurrentRoot(); } );
+  CQChartsUtil::testAndSet(titleHeight_, l, [&]() { updateCurrentRoot(); } );
 }
 
 //----
 
 double
 CQChartsTreeMapPlot::
-calcHeaderHeight() const
+calcTitleHeight() const
 {
   QFont font = view()->plotFont(this, headerTextFont());
 
   QFontMetricsF fm(font);
 
-  double hh = lengthPixelHeight(headerHeight());
+  if (titleHeight().isSet()) {
+    double hh = lengthPixelHeight(*titleHeight().value());
 
-  return std::max(hh, fm.height() + 4);
+    return std::max(hh, 4.0);
+  }
+
+  return fm.height() + 4.0;
 }
 
 //----
@@ -173,46 +193,53 @@ void
 CQChartsTreeMapPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsHierPlot::addProperties();
 
   // options
-  addProperty("options", this, "marginWidth")->setDesc("Margin width");
+  addProp("options", "marginWidth", "width", "Margin size for tree map boxes");
 
   // header
-  addProperty("header", this, "titles"        , "visible"  )->
-    setDesc("Header titles visible for each hierarchical group");
-  addProperty("header", this, "titleMaxExtent", "maxExtent")->
-    setDesc("Max extent of hierarchical group header");
-  addProperty("header", this, "headerHeight"  , "height"   )->
-    setDesc("Explicit hierarchical group header height");
+  addProp("header", "titles"        , "visible"  ,
+          "Header titles visible for each hierarchical group");
+  addProp("header", "titleMaxExtent", "maxExtent",
+          "Max extent of hierarchical group header (0.0 - 1.0)");
+  addProp("header", "titleHeight"  , "height"   ,
+          "Explicit hierarchical group header height");
 
   // color
-  addProperty("color", this, "colorById", "colorById")->setDesc("Color by id");
+  addProp("color", "colorById", "colorById", "Color by id");
 
   // header/fill
-  addProperty("header/fill", this, "headerFilled", "visible")->setDesc("Header fill visible");
+  addProp("header/fill", "headerFilled", "visible", "Header fill visible");
 
   addFillProperties("header/fill", "headerFill", "Header");
 
   // header/stroke
-  addProperty("header/stroke", this, "headerBorder", "visible")->setDesc("Header stroke visible");
+  addProp("header/stroke", "headerBorder", "visible", "Header stroke visible");
 
   addLineProperties("header/stroke", "headerBorder", "Header");
 
   addAllTextProperties("header/text", "headerText", "Header");
 
   // fill
-  addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
+  addProp("fill", "filled", "visible", "Fill visible");
 
   addFillProperties("fill", "fill", "");
 
   // stroke
-  addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
+  addProp("stroke", "border", "visible", "Stroke visible");
 
   addLineProperties("stroke", "border", "");
 
   // text
-  addProperty("text", this, "textVisible", "visible")->setDesc("Text visible");
+  addProp("text", "textVisible", "visible", "Text visible");
 
   addAllTextProperties("text", "text", "");
 }
@@ -262,7 +289,7 @@ void
 CQChartsTreeMapPlot::
 updateCurrentRoot()
 {
-  replaceNodes();
+  //replaceNodes();
 
   updateObjs();
 }
@@ -319,6 +346,8 @@ createObjs(PlotObjs &objs) const
 
   if (! root())
     initNodes();
+  else
+    replaceNodes();
 
   //---
 
@@ -347,7 +376,8 @@ createObjs(PlotObjs &objs) const
       hierObj->setIv(ColorInd(hierObj->ind(), ig_));
     }
     else if (nodeObj) {
-      nodeObj->setIg(ColorInd(nodeObj->parent()->ind(), ig_));
+      if (nodeObj->parent())
+        nodeObj->setIg(ColorInd(nodeObj->parent()->ind(), ig_));
 
       nodeObj->setIv(ColorInd(nodeObj->ind(), in_));
     }
@@ -473,7 +503,7 @@ replaceNodes() const
 {
   CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
 
-  th->windowHeaderHeight_ = pixelToWindowHeight(calcHeaderHeight());
+  th->windowHeaderHeight_ = pixelToWindowHeight(calcTitleHeight());
 //th->windowMarginWidth_  = lengthPixelWidth   (marginWidth());
   th->windowMarginWidth_  = lengthPlotWidth    (marginWidth());
 
@@ -983,7 +1013,7 @@ postResize()
 {
   CQChartsPlot::postResize();
 
-  replaceNodes();
+  //replaceNodes();
 
   updateObjs();
 }
@@ -1112,8 +1142,6 @@ draw(QPainter *painter)
   //---
 
   // calc text size and position
-  QFontMetricsF fm(painter->font());
-
   QString name = hier_->name();
 
   CQChartsGeom::Point p3 =
@@ -1121,7 +1149,7 @@ draw(QPainter *painter)
 
   //---
 
-  double hh = plot_->calcHeaderHeight();
+  double hh = plot_->calcTitleHeight();
 
   //---
 
@@ -1129,6 +1157,8 @@ draw(QPainter *painter)
   bool visible = plot_->isTextVisible();
 
   if (visible) {
+    QFontMetricsF fm(painter->font());
+
     double minTextWidth  = fm.width("X") + 4;
     double minTextHeight = fm.height() + 4;
 
@@ -1136,6 +1166,8 @@ draw(QPainter *painter)
   }
 
   if (visible) {
+    QFontMetricsF fm(painter->font());
+
     double tx = p3.x + 4;
     double ty = p3.y + hh/2 + (fm.ascent() - fm.descent())/2;
 
@@ -1204,6 +1236,12 @@ calcTipId() const
     tableTip.addTableRow("Color", colorStr);
   }
 
+  //---
+
+  plot()->addTipColumns(tableTip, node_->ind());
+
+  //---
+
   return tableTip.str();
 }
 
@@ -1249,7 +1287,18 @@ draw(QPainter *painter)
   CQChartsGeom::Point p2 =
     plot_->windowToPixel(CQChartsGeom::Point(node_->x() + node_->w(), node_->y() + node_->h()));
 
-  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(p1.x + 1, p2.y + 1, p2.x - 1, p1.y - 1));
+  double pw = p2.x - p1.x - 2;
+  double ph = p1.y - p2.y - 2;
+
+  QRectF  qrect;
+  QPointF qpoint;
+
+  bool isPoint = (pw <= 1.5 || ph <= 1.5);
+
+  if (isPoint)
+    qpoint = QPointF((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
+  else
+    qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(p1.x + 1, p2.y + 1, p2.x - 1, p1.y - 1));
 
   //---
 
@@ -1271,7 +1320,26 @@ draw(QPainter *painter)
 
   //---
 
-  // set text pen
+  // draw rectangle
+  painter->setPen  (pen);
+  painter->setBrush(brush);
+
+  if (isPoint)
+    painter->drawPoint(qpoint);
+  else
+    painter->drawRect(qrect);
+
+  //---
+
+  if (isPoint)
+    return;
+
+  if (! plot_->isTextVisible())
+    return;
+
+  //---
+
+  // calc text pen
   QPen tpen;
 
   QColor tc = plot_->interpTextColor(colorInd);
@@ -1286,36 +1354,22 @@ draw(QPainter *painter)
 
   //---
 
-  // draw rectangle
-  painter->setPen  (pen);
-  painter->setBrush(brush);
-
-  painter->drawRect(qrect);
-
-  //---
-
   // set font
   plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
 
   //---
 
-  // calc text size and position
+  // check if text visible
   QFontMetricsF fm(painter->font());
 
-  QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
+  double minTextWidth  = fm.width("X") + 4;
+  double minTextHeight = fm.height() + 4;
+
+  bool visible = (qrect.width() >= minTextWidth && qrect.height() >= minTextHeight);
 
   //---
 
   // draw label
-  bool visible = plot_->isTextVisible();
-
-  if (visible) {
-    double minTextWidth  = fm.width("X") + 4;
-    double minTextHeight = fm.height() + 4;
-
-    visible = (qrect.width() >= minTextWidth && qrect.height() >= minTextHeight);
-  }
-
   if (visible) {
     painter->setPen(tpen);
 
@@ -1328,6 +1382,8 @@ draw(QPainter *painter)
     textOptions.align     = plot_->textAlign();
 
     textOptions = plot_->adjustTextOptions(textOptions);
+
+    QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
 
     CQChartsDrawUtil::drawTextInBox(painter, qrect, name, textOptions);
   }
@@ -1397,7 +1453,14 @@ packNodes(double x, double y, double w, double h)
   double whh = plot()->windowHeaderHeight();
   double wmw = plot()->windowMarginWidth();
 
-  double maxExtent = CMathUtil::clamp(plot()->titleMaxExtent(), 0.0, 1.0);
+  //---
+
+  double maxExtent = 0.2;
+
+  if (plot()->titleMaxExtent().isSet())
+    maxExtent = CMathUtil::clamp(*plot()->titleMaxExtent().value(), 0.0, 1.0);
+
+  //---
 
   bool showTitle = (plot()->isTitles() && h*maxExtent > whh);
 
@@ -1416,7 +1479,7 @@ packNodes(double x, double y, double w, double h)
   for (const auto &node : nodes_)
     nodes.push_back(node);
 
-  // sort nodes by size
+  // sort nodes by size (largest to smallest)
   std::sort(nodes.begin(), nodes.end(), CQChartsTreeMapNodeCmp());
 
   //std::cerr << name() << "\n";
@@ -1435,10 +1498,35 @@ packSubNodes(double x, double y, double w, double h, const Nodes &nodes)
   if (n == 0) return;
 
   if (n >= 2) {
-    int n1 = n/2;
-
     Nodes  nodes1, nodes2;
     double size1 = 0.0, size2 = 0.0;
+
+#if 1
+    double size12 = 0.0;
+
+    for (int i = 0; i < n; ++i)
+      size12 += nodes[i]->hierSize();
+
+    double hsize = size12/2;
+
+    int i = 0;
+
+    for ( ; i < n - 1; ++i) {
+      if (size1 > hsize)
+        break;
+
+      size1 += nodes[i]->hierSize();
+
+      nodes1.push_back(nodes[i]);
+    }
+
+    for ( ; i < n; ++i) {
+      size2 += nodes[i]->hierSize();
+
+      nodes2.push_back(nodes[i]);
+    }
+#else
+    int n1 = n/2;
 
     for (int i = 0; i < n1; ++i) {
       size1 += nodes[i]->hierSize();
@@ -1452,16 +1540,19 @@ packSubNodes(double x, double y, double w, double h, const Nodes &nodes)
       nodes2.push_back(nodes[i]);
     }
 
+    double size12 = size1 + size2;
+#endif
+
     // split area = (w*h) if largest direction
     // e.g. split at w1. area1 = w1*h; area2 = (w - w1)*h;
     // area1/area2 = w1/(w - w1) = size1/size2;
     // w1*size2 = w*size1 - w1*size1;
     // w1 = (w*size1)/(size1 + size2);
 
-    double size12 = size1 + size2;
-
     if (size12 == 0.0)
       return;
+
+    assert(nodes1.size() > 0 && nodes2.size() > 0);
 
     double f = size1/size12;
 

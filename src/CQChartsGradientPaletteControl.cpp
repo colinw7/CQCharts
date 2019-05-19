@@ -90,8 +90,7 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   //---
 
   // red, green, blue function combos
-  CQGroupBox *functionGroupBox = new CQGroupBox("Function");
-  functionGroupBox->setObjectName("function");
+  CQGroupBox *functionGroupBox = CQUtil::makeLabelWidget<CQGroupBox>("Function", "function");
 
   functionGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
 
@@ -114,8 +113,7 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   //---
 
   // red, green, blue negative check boxes
-  CQGroupBox *negateGroupBox = new CQGroupBox("Negate");
-  negateGroupBox->setObjectName("negate");
+  CQGroupBox *negateGroupBox = CQUtil::makeLabelWidget<CQGroupBox>("Negate", "negate");
 
   negateGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
 
@@ -139,8 +137,7 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   //---
 
   // red, green, blue min/max edits
-  CQGroupBox *rangeGroupBox = new CQGroupBox("Range");
-  rangeGroupBox->setObjectName("range");
+  CQGroupBox *rangeGroupBox = CQUtil::makeLabelWidget<CQGroupBox>("Range", "range");
 
   rangeGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
 
@@ -899,8 +896,7 @@ createModelCombo(QGridLayout *grid, int row, const QString &label,
 {
   *modelLabel = CQUtil::makeLabelWidget<QLabel>(label, "label");
 
-  *modelCombo = new CQChartsGradientPaletteModel;
-  (*modelCombo)->setObjectName("combo");
+  *modelCombo = CQUtil::makeWidget<CQChartsGradientPaletteModel>("combo");
 
   grid->addWidget(*modelLabel, row, 0);
   grid->addWidget(*modelCombo, row, 1);
@@ -934,8 +930,7 @@ CQChartsGradientPaletteControl::
 createRealEdit(QGridLayout *grid, int row, int col, bool stretch,
                const QString &label, CQRealSpin **edit)
 {
-  *edit = new CQRealSpin;
-  (*edit)->setObjectName("spin");
+  *edit = CQUtil::makeWidget<CQRealSpin>("spin");
 
   QLabel *editLabel = CQUtil::makeLabelWidget<QLabel>(label, "label");
 
@@ -1156,16 +1151,14 @@ createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIn
   const CQChartsGradientPaletteDefinedColors::RealColor &realColor = colors_->realColor(ind.row());
 
   if       (ind.column() == 0) {
-    CQRealSpin *edit = new CQRealSpin(parent);
-    edit->setObjectName("spin");
+    CQRealSpin *edit = CQUtil::makeWidget<CQRealSpin>(parent, "spin");
 
     edit->setValue(realColor.r);
 
     return edit;
   }
   else if (ind.column() == 1) {
-    CQColorChooser *edit = new CQColorChooser(parent);
-    edit->setObjectName("color");
+    CQColorChooser *edit = CQUtil::makeWidget<CQColorChooser>(parent, "color");
 
     edit->setStyles(CQColorChooser::Text | CQColorChooser::ColorButton);
 

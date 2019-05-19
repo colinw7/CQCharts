@@ -107,96 +107,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  addProperty("", this, "title")->setDesc("View title");
-  addProperty("", this, "mode" )->setHidden(true).setDesc("View mouse mode");
-
-  addProperty("", this, "antiAlias")->setDesc("Draw aliased shapes");
-
-  addProperty("", this, "id"            )->setHidden(true).setDesc("View id");
-  addProperty("", this, "currentPlotInd")->setHidden(true).setDesc("Current plot ind");
-
-  addProperty("", this, "viewSizeHint")->setHidden(true).setDesc("View size hint");
-  addProperty("", this, "zoomData"    )->setHidden(true).setDesc("Zoom data");
-  addProperty("", this, "bufferLayers")->setHidden(true).setDesc("Buffer layer");
-
-  addProperty("", this, "showTable"   )->setHidden(true).setDesc("Show table of value");
-  addProperty("", this, "showSettings")->setHidden(true).setDesc("Show settings panel");
-
-  addProperty("theme", this, "theme", "name")->
-    setValues(QStringList() << "default" << "theme1" << "theme2").setDesc("View theme");
-  addProperty("theme", this, "dark" , "dark")->setDesc("View is dark");
-
-  addProperty("color", this, "defaultPalette", "defaultPalette")->setDesc("Default palette");
-
-  addProperty("font", this, "scaleFont" , "scaled")->setDesc("Scale font to view size");
-  addProperty("font", this, "fontFactor", "factor")->setDesc("Global font scale");
-  addProperty("font", this, "font"      , "font"  )->setDesc("Global font");
-
-  addProperty("sizing", this, "autoSize" , "auto"     )->setDesc("Auto scale to view size");
-  addProperty("sizing", this, "fixedSize", "fixedSize")->setDesc("Fixed view size");
-
-  addProperty("background", this, "backgroundFillData"   , "fill"   )->setDesc("Fill visible");
-  addProperty("background", this, "backgroundFillColor"  , "color"  )->setDesc("Fill color");
-  addProperty("background", this, "backgroundFillAlpha"  , "alpha"  )->setDesc("Fill alpha");
-  addProperty("background", this, "backgroundFillPattern", "pattern")->
-    setDesc("Fill pattern").setHidden(true);
-
-  addProperty("select"                 , this, "selectMode"         , "mode")->
-                setDesc("Selection mode");
-  addProperty("select"                 , this, "selectInside"       , "inside")->
-                setDesc("Select when fully inside select rectangle");
-  addProperty("select/highlight"       , this, "selectedMode"       , "mode")->
-                setDesc("Highlight draw mode");
-  addProperty("select/highlight"       , this, "selectedShapeData"  , "style")->
-                setDesc("Highlight shape data");
-  addProperty("select/highlight/fill"  , this, "selectedFilled"     , "enabled")->
-                setDesc("Highlight is filled");
-  addProperty("select/highlight/fill"  , this, "selectedFillColor"  , "color")->
-                setDesc("Highlight fill color");
-  addProperty("select/highlight/fill"  , this, "selectedFillAlpha"  , "alpha")->
-                setDesc("Highlight fill alpha");
-  addProperty("select/highlight/stroke", this, "selectedBorder"     , "enabled")->
-                setDesc("Highlight stroked");
-  addProperty("select/highlight/stroke", this, "selectedBorderColor", "color")->
-                setDesc("Highlight stroke color");
-  addProperty("select/highlight/stroke", this, "selectedBorderWidth", "width")->
-                setDesc("Highlight stroke width");
-  addProperty("select/highlight/stroke", this, "selectedBorderDash" , "dash")->
-                setDesc("Highlight stroke dash");
-
-  addProperty("inside/highlight"       , this, "insideMode"       , "mode")->
-                setDesc("Inside draw mode");
-  addProperty("inside/highlight"       , this, "insideShapeData"  , "style")->
-                setDesc("Inside shape data");
-  addProperty("inside/highlight/fill"  , this, "insideFilled"     , "enabled")->
-                setDesc("Inside is filled");
-  addProperty("inside/highlight/fill"  , this, "insideFillColor"  , "color")->
-                setDesc("Inside fill color");
-  addProperty("inside/highlight/fill"  , this, "insideFillAlpha"  , "alpha")->
-                setDesc("Inside fill alpha");
-  addProperty("inside/highlight/stroke", this, "insideBorder"     , "enabled")->
-                setDesc("Inside stroked");
-  addProperty("inside/highlight/stroke", this, "insideBorderColor", "color")->
-                setDesc("Inside stroke color");
-  addProperty("inside/highlight/stroke", this, "insideBorderWidth", "width")->
-                setDesc("Inside stroke width");
-  addProperty("inside/highlight/stroke", this, "insideBorderDash" , "dash")->
-                setDesc("Inside stroke dash");
-
-  addProperty("status", this, "posTextType", "posTextType")->setDesc("Position text type");
-
-  // TODO: remove or make more general
-  addProperty("scroll", this, "scrolled"      , "enabled" )->
-    setDesc("Scrolling enabled");
-  addProperty("scroll", this, "scrollDelta"   , "delta"   )->
-    setHidden(true).setDesc("Scroll delta");
-  addProperty("scroll", this, "scrollNumPages", "numPages")->
-    setHidden(true).setDesc("Scroll number of pages");
-  addProperty("scroll", this, "scrollPage"    , "page"    )->
-    setHidden(true).setDesc("Scroll current page");
-
-  if (key())
-    key()->addProperties(propertyModel(), "key");
+  addProperties();
 
   //---
 
@@ -273,6 +184,97 @@ CQChartsView::
 setTitle(const QString &s)
 {
   CQChartsUtil::testAndSet(title_, s, [&]() { setWindowTitle(title_); } );
+}
+
+//---
+
+void
+CQChartsView::
+addProperties()
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                    const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  // data
+  addProp("", "mode"          , "", "View mouse mode" )->setHidden(true);
+  addProp("", "id"            , "", "View id"         )->setHidden(true);
+  addProp("", "currentPlotInd", "", "Current plot ind")->setHidden(true);
+
+  addProp("", "viewSizeHint", "", "View size hint")->setHidden(true);
+  addProp("", "zoomData"    , "", "Zoom data"     )->setHidden(true);
+  addProp("", "bufferLayers", "", "Buffer layer"  )->setHidden(true);
+
+  addProp("", "showTable"   , "", "Show table of value")->setHidden(true);
+  addProp("", "showSettings", "", "Show settings panel")->setHidden(true);
+
+  // options
+  addProp("options", "antiAlias", "", "Draw aliased shapes")->setHidden(true);
+
+  // title
+  addProp("title", "title", "string", "View title string");
+
+  // theme
+  addProp("theme", "theme", "name", "View theme")->
+    setValues(QStringList() << "default" << "theme1" << "theme2");
+  addProp("theme", "dark" , "dark", "View interface is dark");
+
+  // color
+  addProp("color", "defaultPalette", "defaultPalette", "Default palette");
+
+  // text
+  addProp("text", "scaleFont" , "scaled", "Scale font to view size");
+  addProp("text", "fontFactor", "factor", "Global text scale factor");
+  addProp("text", "font"      , "font"  , "Global text font");
+
+  // sizing
+  addProp("sizing", "autoSize" , "auto"     , "Auto scale to view size");
+  addProp("sizing", "fixedSize", "fixedSize", "Fixed view size");
+
+  // background fill
+  addProp("background/fill", "backgroundFillData"   , "style"  , "Fill style"  )->setHidden(true);
+  addProp("background/fill", "backgroundFillColor"  , "color"  , "Fill color"  );
+  addProp("background/fill", "backgroundFillAlpha"  , "alpha"  , "Fill alpha"  )->setHidden(true);
+  addProp("background/fill", "backgroundFillPattern", "pattern", "Fill pattern")->setHidden(true);
+
+  // select mode
+  addProp("select", "selectMode"  , "mode"  , "Selection mode");
+  addProp("select", "selectInside", "inside", "Select when fully inside select rectangle");
+
+  // select highlight
+  addProp("select/highlight"       , "selectedMode"       , "mode"   , "Highlight draw mode");
+  addProp("select/highlight"       , "selectedShapeData"  , "style"  , "Highlight shape data");
+  addProp("select/highlight/fill"  , "selectedFilled"     , "visible", "Highlight fill is visible");
+  addProp("select/highlight/fill"  , "selectedFillColor"  , "color"  , "Highlight fill color");
+  addProp("select/highlight/fill"  , "selectedFillAlpha"  , "alpha"  , "Highlight fill alpha");
+  addProp("select/highlight/stroke", "selectedBorder"     , "visible", "Highlight stroke visible");
+  addProp("select/highlight/stroke", "selectedBorderColor", "color"  , "Highlight stroke color");
+  addProp("select/highlight/stroke", "selectedBorderWidth", "width"  , "Highlight stroke width");
+  addProp("select/highlight/stroke", "selectedBorderDash" , "dash"   , "Highlight stroke dash");
+
+  // inside highlight
+  addProp("inside/highlight"       , "insideMode"       , "mode"   , "Inside draw mode");
+  addProp("inside/highlight"       , "insideShapeData"  , "style"  , "Inside shape data");
+  addProp("inside/highlight/fill"  , "insideFilled"     , "visible", "Inside fill is visible");
+  addProp("inside/highlight/fill"  , "insideFillColor"  , "color"  , "Inside fill color");
+  addProp("inside/highlight/fill"  , "insideFillAlpha"  , "alpha"  , "Inside fill alpha");
+  addProp("inside/highlight/stroke", "insideBorder"     , "visible", "Inside strok is visible");
+  addProp("inside/highlight/stroke", "insideBorderColor", "color"  , "Inside stroke color");
+  addProp("inside/highlight/stroke", "insideBorderWidth", "width"  , "Inside stroke width");
+  addProp("inside/highlight/stroke", "insideBorderDash" , "dash"   , "Inside stroke dash");
+
+  // status
+  addProp("status", "posTextType", "posTextType", "Position text type")->setHidden(true);
+
+  // TODO: remove or make more general
+  addProp("scroll", "scrolled"      , "enabled" , "Scrolling enabled");
+  addProp("scroll", "scrollDelta"   , "delta"   , "Scroll delta"          )->setHidden(true);
+  addProp("scroll", "scrollNumPages", "numPages", "Scroll number of pages")->setHidden(true);
+  addProp("scroll", "scrollPage"    , "page"    , "Scroll current page"   )->setHidden(true);
+
+  if (key())
+    key()->addProperties(propertyModel(), "key");
 }
 
 //---
@@ -831,9 +833,9 @@ getTclProperty(const QString &name, QVariant &value) const
 
 bool
 CQChartsView::
-getPropertyDesc(const QString &name, QString &desc) const
+getPropertyDesc(const QString &name, QString &desc, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
   if (! item) return false;
 
   desc = item->desc();
@@ -843,9 +845,9 @@ getPropertyDesc(const QString &name, QString &desc) const
 
 bool
 CQChartsView::
-getPropertyType(const QString &name, QString &type) const
+getPropertyType(const QString &name, QString &type, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
   if (! item) return false;
 
   type = item->typeName();
@@ -855,9 +857,9 @@ getPropertyType(const QString &name, QString &type) const
 
 bool
 CQChartsView::
-getPropertyUserType(const QString &name, QString &type) const
+getPropertyUserType(const QString &name, QString &type, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
   if (! item) return false;
 
   type = item->userTypeName();
@@ -867,14 +869,28 @@ getPropertyUserType(const QString &name, QString &type) const
 
 bool
 CQChartsView::
-getPropertyObject(const QString &name, QObject* &object) const
+getPropertyObject(const QString &name, QObject* &object, bool hidden) const
 {
   object = nullptr;
 
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name);
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
   if (! item) return false;
 
   object = item->object();
+
+  return true;
+}
+
+bool
+CQChartsView::
+getPropertyHidden(const QString &name, bool &hidden) const
+{
+  hidden = false;
+
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, /*hidden*/true);
+  if (! item) return false;
+
+  hidden = item->isHidden();
 
   return true;
 }
@@ -2157,25 +2173,53 @@ showProbeLines(const QPointF &p)
 
     CQChartsPlot::ProbeData probeData;
 
-    probeData.x = w.x;
-    probeData.y = w.y;
+    probeData.p = w;
 
     if (! plot->probe(probeData))
       continue;
 
+    if (probeData.xvals.empty()) probeData.xvals.emplace_back(w.x);
+    if (probeData.yvals.empty()) probeData.yvals.emplace_back(w.y);
+
     CQChartsGeom::BBox dataRange = plot->calcDataRange();
 
-    if (probeData.direction == Qt::Vertical) {
-      if (probeData.yvals.empty())
-        probeData.yvals.emplace_back(w.y);
+    if      (probeData.both) {
+      // add probe lines from xmin to probed x values and from ymin to probed y values
+      CQChartsGeom::Point px1 =
+        plot->windowToPixel(CQChartsGeom::Point(dataRange.getXMin(), probeData.p.y));
+      CQChartsGeom::Point py1 =
+        plot->windowToPixel(CQChartsGeom::Point(probeData.p.x, dataRange.getYMin()));
 
+      int nx = probeData.xvals.size();
+      int ny = probeData.yvals.size();
+
+      int n = std::min(nx, ny);
+
+      for (int i = 0; i < n; ++i) {
+        const auto &xval = probeData.xvals[i];
+        const auto &yval = probeData.yvals[i];
+
+        CQChartsGeom::Point px2 =
+          plot->windowToPixel(CQChartsGeom::Point(xval.value, probeData.p.y));
+        CQChartsGeom::Point py2 =
+          plot->windowToPixel(CQChartsGeom::Point(probeData.p.x, yval.value));
+
+        QString tip = QString("%1, %2").
+          arg(xval.label.length() ? xval.label : plot->xStr(xval.value)).
+          arg(yval.label.length() ? yval.label : plot->yStr(yval.value));
+
+        addVerticalProbeBand  (probeInd, plot, tip, py1.x, py1.y, py2.y);
+        addHorizontalProbeBand(probeInd, plot, "" , px1.x, px2.x, px2.y);
+      }
+    }
+    else if (probeData.direction == Qt::Vertical) {
       // add probe lines from ymin to probed y values
       CQChartsGeom::Point p1 =
-        plot->windowToPixel(CQChartsGeom::Point(probeData.x, dataRange.getYMin()));
+        plot->windowToPixel(CQChartsGeom::Point(probeData.p.x, dataRange.getYMin()));
 
       for (const auto &yval : probeData.yvals) {
         CQChartsGeom::Point p2 =
-          plot->windowToPixel(CQChartsGeom::Point(probeData.x, yval.value));
+          plot->windowToPixel(CQChartsGeom::Point(probeData.p.x, yval.value));
 
         QString tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
 
@@ -2183,16 +2227,13 @@ showProbeLines(const QPointF &p)
       }
     }
     else {
-      if (probeData.xvals.empty())
-        probeData.xvals.emplace_back(w.x);
-
       // add probe lines from xmin to probed x values
       CQChartsGeom::Point p1 =
-        plot->windowToPixel(CQChartsGeom::Point(dataRange.getXMin(), probeData.y));
+        plot->windowToPixel(CQChartsGeom::Point(dataRange.getXMin(), probeData.p.y));
 
       for (const auto &xval : probeData.xvals) {
         CQChartsGeom::Point p2 =
-          plot->windowToPixel(CQChartsGeom::Point(xval.value, probeData.y));
+          plot->windowToPixel(CQChartsGeom::Point(xval.value, probeData.p.y));
 
         QString tip = (xval.label.length() ? xval.label : plot->xStr(xval.value));
 
@@ -3120,6 +3161,8 @@ showMenu(const QPoint &p)
   //------
 
   if (currentPlot && currentPlot->hasXAxis()) {
+    CQChartsAxis *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
+
     QMenu *xAxisMenu = addSubMenu(popupMenu_, "X Axis");
 
     //---
@@ -3127,15 +3170,15 @@ showMenu(const QPoint &p)
     QAction *xAxisVisibleAction =
       addCheckAction(xAxisMenu, "Visible", false, SLOT(xAxisVisibleSlot(bool)));
 
-    if (basePlot && basePlot->xAxis())
-      xAxisVisibleAction->setChecked(basePlot->xAxis()->isVisible());
+    if (xAxis)
+      xAxisVisibleAction->setChecked(xAxis->isVisible());
 
     //---
 
     QAction *xAxisGridAction = addCheckAction(xAxisMenu, "Grid", false, SLOT(xAxisGridSlot(bool)));
 
-    if (basePlot && basePlot->xAxis())
-      xAxisGridAction->setChecked(basePlot->xAxis()->isAxesMajorGridLines());
+    if (xAxis)
+      xAxisGridAction->setChecked(xAxis->isMajorGridLinesDisplayed());
 
     //---
 
@@ -3160,8 +3203,8 @@ showMenu(const QPoint &p)
     addXAxisSideGroupAction("Bottom", CQChartsAxisSide::Type::BOTTOM_LEFT);
     addXAxisSideGroupAction("Top"   , CQChartsAxisSide::Type::TOP_RIGHT  );
 
-    if (basePlot && basePlot->xAxis())
-      xAxisSideActionMap[basePlot->xAxis()->side()]->setChecked(true);
+    if (xAxis)
+      xAxisSideActionMap[xAxis->side()]->setChecked(true);
 
     connect(xAxisSideGroup, SIGNAL(triggered(QAction *)), this, SLOT(xAxisSideSlot(QAction *)));
 
@@ -3171,6 +3214,8 @@ showMenu(const QPoint &p)
   //------
 
   if (currentPlot && currentPlot->hasYAxis()) {
+    CQChartsAxis *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
+
     QMenu *yAxisMenu = addSubMenu(popupMenu_, "Y Axis");
 
     //---
@@ -3178,15 +3223,15 @@ showMenu(const QPoint &p)
     QAction *yAxisVisibleAction =
       addCheckAction(yAxisMenu, "Visible", false, SLOT(yAxisVisibleSlot(bool)));
 
-    if (basePlot && basePlot->yAxis())
-      yAxisVisibleAction->setChecked(basePlot->yAxis()->isVisible());
+    if (yAxis)
+      yAxisVisibleAction->setChecked(yAxis->isVisible());
 
     //---
 
     QAction *yAxisGridAction = addCheckAction(yAxisMenu, "Grid", false, SLOT(yAxisGridSlot(bool)));
 
-    if (basePlot && basePlot->yAxis())
-      yAxisGridAction->setChecked(basePlot->yAxis()->isAxesMajorGridLines());
+    if (yAxis)
+      yAxisGridAction->setChecked(yAxis->isMajorGridLinesDisplayed());
 
     //---
 
@@ -3211,8 +3256,8 @@ showMenu(const QPoint &p)
     addYAxisSideGroupAction("Left" , CQChartsAxisSide::Type::BOTTOM_LEFT);
     addYAxisSideGroupAction("Right", CQChartsAxisSide::Type::TOP_RIGHT  );
 
-    if (basePlot && basePlot->yAxis())
-      yAxisSideActionMap[basePlot->yAxis()->side()]->setChecked(true);
+    if (yAxis)
+      yAxisSideActionMap[yAxis->side()]->setChecked(true);
 
     connect(yAxisSideGroup, SIGNAL(triggered(QAction *)), this, SLOT(yAxisSideSlot(QAction *)));
 
@@ -3222,13 +3267,15 @@ showMenu(const QPoint &p)
   //---
 
   if (plotType && plotType->hasTitle()) {
+    CQChartsTitle *title = (basePlot ? basePlot->title() : nullptr);
+
     QMenu *titleMenu = addSubMenu(popupMenu_, "Title");
 
     QAction *titleVisibleAction =
       addCheckAction(titleMenu, "Visible", false, SLOT(titleVisibleSlot(bool)));
 
-    if (basePlot && basePlot->title())
-      titleVisibleAction->setChecked(basePlot->title()->isVisible());
+    if (title)
+      titleVisibleAction->setChecked(title->isVisible());
 
     //---
 
@@ -3258,8 +3305,8 @@ showMenu(const QPoint &p)
     addTitleLocationGroupAction("Bottom"  , CQChartsTitleLocation::Type::BOTTOM );
     addTitleLocationGroupAction("Absolute", CQChartsTitleLocation::Type::ABS_POS);
 
-    if (basePlot && basePlot->title())
-      titleLocationActionMap[basePlot->title()->location().type()]->setChecked(true);
+    if (title)
+      titleLocationActionMap[title->location().type()]->setChecked(true);
 
     connect(titleLocationGroup, SIGNAL(triggered(QAction *)),
             this, SLOT(titleLocationSlot(QAction *)));
@@ -3527,8 +3574,10 @@ xAxisVisibleSlot(bool b)
 
   CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
 
-  if (basePlot && basePlot->xAxis())
-    basePlot->xAxis()->setVisible(b);
+  CQChartsAxis *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
+
+  if (xAxis)
+    xAxis->setVisible(b);
 }
 
 void
@@ -3539,8 +3588,11 @@ xAxisGridSlot(bool b)
 
   CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
 
-  if (basePlot && basePlot->xAxis())
-    basePlot->xAxis()->setAxesMajorGridLines(b);
+  CQChartsAxis *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
+
+  if (xAxis)
+    xAxis->setGridLinesDisplayed(b ? CQChartsAxis::GridLinesDisplayed::MAJOR :
+                                     CQChartsAxis::GridLinesDisplayed::NONE);
 }
 
 void
@@ -3551,11 +3603,13 @@ xAxisSideSlot(QAction *action)
 
   CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
 
-  if (basePlot && basePlot->xAxis()) {
+  CQChartsAxis *xAxis = (basePlot ? basePlot->xAxis() : nullptr);
+
+  if (xAxis) {
     if      (action->text() == "Bottom")
-      basePlot->xAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+      xAxis->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
     else if (action->text() == "Top")
-      basePlot->xAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+      xAxis->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
   }
 }
 
@@ -3567,8 +3621,10 @@ yAxisVisibleSlot(bool b)
 
   CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
 
-  if (basePlot && basePlot->yAxis())
-    basePlot->yAxis()->setVisible(b);
+  CQChartsAxis *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
+
+  if (yAxis)
+    yAxis->setVisible(b);
 }
 
 void
@@ -3579,8 +3635,11 @@ yAxisGridSlot(bool b)
 
   CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
 
-  if (basePlot && basePlot->yAxis())
-    basePlot->yAxis()->setAxesMajorGridLines(b);
+  CQChartsAxis *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
+
+  if (yAxis)
+    yAxis->setGridLinesDisplayed(b ? CQChartsAxis::GridLinesDisplayed::MAJOR :
+                                     CQChartsAxis::GridLinesDisplayed::NONE);
 }
 
 void
@@ -3591,11 +3650,13 @@ yAxisSideSlot(QAction *action)
 
   CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
 
-  if (basePlot && basePlot->yAxis()) {
+  CQChartsAxis *yAxis = (basePlot ? basePlot->yAxis() : nullptr);
+
+  if (yAxis) {
     if      (action->text() == "Left")
-      basePlot->yAxis()->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
+      yAxis->setSide(CQChartsAxisSide::Type::BOTTOM_LEFT);
     else if (action->text() == "Right")
-      basePlot->yAxis()->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
+      yAxis->setSide(CQChartsAxisSide::Type::TOP_RIGHT);
   }
 }
 
@@ -3607,8 +3668,10 @@ titleVisibleSlot(bool b)
 
   CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
 
-  if (basePlot && basePlot->yAxis())
-    basePlot->title()->setVisible(b);
+  CQChartsTitle *title = (basePlot ? basePlot->title() : nullptr);
+
+  if (title)
+    title->setVisible(b);
 }
 
 void
@@ -3619,15 +3682,17 @@ titleLocationSlot(QAction *action)
 
   CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
 
-  if (basePlot && basePlot->title()) {
+  CQChartsTitle *title = (basePlot ? basePlot->title() : nullptr);
+
+  if (title) {
     if      (action->text() == "Top")
-      basePlot->title()->setLocation(CQChartsTitleLocation::Type::TOP);
+      title->setLocation(CQChartsTitleLocation::Type::TOP);
     else if (action->text() == "Center")
-      basePlot->title()->setLocation(CQChartsTitleLocation::Type::CENTER);
+      title->setLocation(CQChartsTitleLocation::Type::CENTER);
     else if (action->text() == "Bottom")
-      basePlot->title()->setLocation(CQChartsTitleLocation::Type::BOTTOM);
+      title->setLocation(CQChartsTitleLocation::Type::BOTTOM);
     else if (action->text() == "Absolute")
-      basePlot->title()->setLocation(CQChartsTitleLocation::Type::ABS_POS);
+      title->setLocation(CQChartsTitleLocation::Type::ABS_POS);
   }
 }
 

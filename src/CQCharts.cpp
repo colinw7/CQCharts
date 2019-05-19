@@ -30,6 +30,7 @@
 #include <CQChartsArrowDataEdit.h>
 #include <CQChartsAxisSideEdit.h>
 #include <CQChartsAxisTickLabelPlacementEdit.h>
+#include <CQChartsAxisValueTypeEdit.h>
 #include <CQChartsBoxDataEdit.h>
 #include <CQChartsColorEdit.h>
 #include <CQChartsColumnEdit.h>
@@ -64,10 +65,12 @@
 #include <CQChartsPath.h>
 #include <CQChartsVariant.h>
 
+#include <CQChartsOptInt.h>
 #include <CQChartsOptLength.h>
 #include <CQChartsOptPosition.h>
 #include <CQChartsOptReal.h>
 #include <CQChartsOptRect.h>
+
 #include <CQChartsColor.h>
 #include <CQChartsFont.h>
 #include <CQChartsInterfaceTheme.h>
@@ -103,6 +106,7 @@ CQCharts()
   CQChartsLineDash              ::registerMetaType();
   CQChartsLineData              ::registerMetaType();
   CQChartsNamePair              ::registerMetaType();
+  CQChartsOptInt                ::registerMetaType();
   CQChartsOptLength             ::registerMetaType();
   CQChartsOptPosition           ::registerMetaType();
   CQChartsOptReal               ::registerMetaType();
@@ -215,6 +219,7 @@ init()
     viewMgr->addType("CQChartsAxisSide"        , new CQChartsAxisSidePropertyViewType        );
     viewMgr->addType("CQChartsAxisTickLabelPlacement",
                      new CQChartsAxisTickLabelPlacementPropertyViewType);
+    viewMgr->addType("CQChartsAxisValueType"   , new CQChartsAxisValueTypePropertyViewType   );
     viewMgr->addType("CQChartsBoxData"         , new CQChartsBoxDataPropertyViewType         );
     viewMgr->addType("CQChartsColor"           , new CQChartsColorPropertyViewType           );
     viewMgr->addType("CQChartsColumn"          , new CQChartsColumnPropertyViewType          );

@@ -52,12 +52,12 @@ class CQCsvModel : public CQDataModel {
   void save(std::ostream &os);
   void save(QAbstractItemModel *model, std::ostream &os);
 
+  //! encode string (suitable for CSV value)
+  static QString encodeString(const QString &str, const QChar &separator=',');
+
  protected:
   //! encode variant (suitable for CSV value)
   std::string encodeVariant(const QVariant &var) const;
-
-  //! encode string (suitable for CSV value)
-  QString encodeString(const QString &str) const;
 
  protected:
   QString     filename_;                    //! input filename

@@ -3,6 +3,7 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQCharts.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -37,9 +38,10 @@ QString
 CQChartsDendrogramPlotType::
 description() const
 {
-  return "<h2>Dendrogram Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draw hierarchical data using collapsible tree.</p>\n";
+  return CQChartsHtml().
+   h2("Dendrogram Plot").
+    h3("Summary").
+     p("Draw hierarchical data using collapsible tree.");
 }
 
 CQChartsPlot *
@@ -79,14 +81,24 @@ void
 CQChartsDendrogramPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nameColumn" , "name" )->setDesc("Name column");
-  addProperty("columns", this, "valueColumn", "value")->setDesc("Value column");
+  // columns
+  addProp("columns", "nameColumn" , "name" , "Name column");
+  addProp("columns", "valueColumn", "value", "Value column");
 
-  addProperty("options", this, "textMargin", "textMargin")->setDesc("Text margin");
+  // options
+  addProp("options", "textMargin", "textMargin", "Text margin");
 
-  addProperty("node", this, "circleSize", "circleSize")->setDesc("Circle size");
+  // node
+  addProp("node", "circleSize", "circleSize", "Circle size");
 
   addFillProperties("node/fill"  , "nodeFill"  , "Node");
   addLineProperties("node/stroke", "nodeBorder", "Node");

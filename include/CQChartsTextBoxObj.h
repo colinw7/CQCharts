@@ -43,7 +43,7 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
                      const QString &desc) override;
 
   void addTextDataProperties(CQPropertyViewModel *model, const QString &path,
-                             const QString &desc);
+                             const QString &desc, bool addVisible=false);
 
   //---
 

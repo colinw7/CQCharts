@@ -22,6 +22,8 @@ class CQChartsDelaunayPlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
+  bool canProbe() const override { return false; }
+
   QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;

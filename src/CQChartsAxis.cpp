@@ -49,15 +49,12 @@ CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction, double start, 
   setAxesLinesColor(themeGray1);
 
   // init grid
-  setAxesMajorGridLines     (false);
   setAxesMajorGridLinesColor(themeGray2);
   setAxesMajorGridLinesDash (CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
 
-  setAxesMinorGridLines     (false);
   setAxesMinorGridLinesColor(themeGray2);
   setAxesMinorGridLinesDash (CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
 
-  setAxesGridFilled   (false);
   setAxesGridFillColor(themeGray3);
   setAxesGridFillAlpha(0.5);
 
@@ -68,6 +65,69 @@ CQChartsAxis::
 ~CQChartsAxis()
 {
 }
+
+//---
+
+namespace {
+
+template<typename T>
+void swapT(CQChartsAxis *lhs, CQChartsAxis *rhs) {
+  std::swap(*(T*)(lhs), *(T*)(rhs));
+}
+
+}
+void
+CQChartsAxis::
+swap(CQChartsAxis *lhs, CQChartsAxis *rhs)
+{
+  std::swap(lhs->visible_     , rhs->visible_     );
+  std::swap(lhs->side_        , rhs->side_        );
+  std::swap(lhs->position_    , rhs->position_    );
+  std::swap(lhs->valueType_   , rhs->valueType_   );
+  std::swap(lhs->dataLabels_  , rhs->dataLabels_  );
+  std::swap(lhs->column_      , rhs->column_      );
+  std::swap(lhs->formatStr_   , rhs->formatStr_   );
+  std::swap(lhs->maxFitExtent_, rhs->maxFitExtent_);
+
+  std::swap(lhs->labelDisplayed_, rhs->labelDisplayed_);
+  std::swap(lhs->label_         , rhs->label_         );
+  std::swap(lhs->userLabel_     , rhs->userLabel_     );
+
+  std::swap(lhs->gridLinesDisplayed_, rhs->gridLinesDisplayed_);
+  std::swap(lhs->gridFillDisplayed_ , rhs->gridFillDisplayed_ );
+
+  std::swap(lhs->gridMid_  , rhs->gridMid_  );
+  std::swap(lhs->gridAbove_, rhs->gridAbove_);
+
+  std::swap(lhs->ticksDisplayed_, rhs->ticksDisplayed_);
+  std::swap(lhs->majorTickLen_  , rhs->majorTickLen_  );
+  std::swap(lhs->minorTickLen_  , rhs->minorTickLen_  );
+  std::swap(lhs->tickInside_    , rhs->tickInside_    );
+  std::swap(lhs->mirrorTicks_   , rhs->mirrorTicks_   );
+
+  std::swap(lhs->tickLabelAutoHide_ , rhs->tickLabelAutoHide_ );
+  std::swap(lhs->tickLabelPlacement_, rhs->tickLabelPlacement_);
+
+  std::swap(lhs->start_         , rhs->start_         );
+  std::swap(lhs->end_           , rhs->end_           );
+  std::swap(lhs->includeZero_   , rhs->includeZero_   );
+  std::swap(lhs->maxMajorTicks_ , rhs->maxMajorTicks_ );
+  std::swap(lhs->tickIncrement_ , rhs->tickIncrement_ );
+  std::swap(lhs->majorIncrement_, rhs->majorIncrement_);
+
+  std::swap(lhs->tickSpaces_      , rhs->tickSpaces_      );
+  std::swap(lhs->tickLabels_      , rhs->tickLabels_      );
+  std::swap(lhs->requireTickLabel_, rhs->requireTickLabel_);
+
+  swapT<CQChartsObjAxesLineData         <CQChartsAxis>>(lhs, rhs);
+  swapT<CQChartsObjAxesTickLabelTextData<CQChartsAxis>>(lhs, rhs);
+  swapT<CQChartsObjAxesLabelTextData    <CQChartsAxis>>(lhs, rhs);
+  swapT<CQChartsObjAxesMajorGridLineData<CQChartsAxis>>(lhs, rhs);
+  swapT<CQChartsObjAxesMinorGridLineData<CQChartsAxis>>(lhs, rhs);
+  swapT<CQChartsObjAxesGridFillData     <CQChartsAxis>>(lhs, rhs);
+}
+
+//---
 
 CQCharts *
 CQChartsAxis::
@@ -125,139 +185,138 @@ void
 CQChartsAxis::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "visible"  )->setDesc("Is axis visible");
-  model->addProperty(path, this, "direction")->setDesc("Axis direction").
-    setEditable(false).setHidden(true);
-  model->addProperty(path, this, "side"     )->setDesc("Axis plot side");
-  model->addProperty(path, this, "valueType")->setDesc("Axis value type").
-    setEditable(false).setHidden(true);
-  model->addProperty(path, this, "format"   )->setDesc("Axis tick value format string");
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
 
-  model->addProperty(path, this, "tickIncrement" )->setDesc("Axis tick increment");
-  model->addProperty(path, this, "majorIncrement")->setDesc("Axis tick major increment");
-  model->addProperty(path, this, "start"         )->setDesc("Axis start position");
-  model->addProperty(path, this, "end"           )->setDesc("Axis end position");
-  model->addProperty(path, this, "includeZero"   )->setDesc("Axis force include zero");
+  addProp(path, "direction", "", "Axis direction")->setHidden(true).setEditable(false);
 
-  model->addProperty(path, this, "maxFitExtent")->
-    setDesc("Axis maximum extent percent for auto fit");
+  addProp(path, "visible"  , "", "Is axis visible");
+  addProp(path, "side"     , "", "Axis plot side");
+  addProp(path, "valueType", "", "Axis value type");
+  addProp(path, "format"   , "", "Axis tick value format string");
+
+  addProp(path, "tickIncrement" , "", "Axis tick increment");
+  addProp(path, "majorIncrement", "", "Axis tick major increment");
+  addProp(path, "start"         , "", "Axis start position");
+  addProp(path, "end"           , "", "Axis end position");
+  addProp(path, "includeZero"   , "", "Axis force include zero")->setHidden(true);
+
+  addProp(path, "maxFitExtent", "", "Axis maximum extent percent for auto fit");
+
+  //---
 
   QString posPath = path + "/position";
 
-  model->addProperty(posPath, this, "position", "value")->setDesc("Axis position");
+  addProp(posPath, "position", "value", "Axis position");
+
+  //---
 
   QString linePath = path + "/stroke";
 
-  model->addProperty(linePath, this, "axesLineData"  , "style"  )->
-    setDesc("Axis line style").setHidden(true);
-  model->addProperty(linePath, this, "axesLines"     , "visible")->setDesc("Axis line is visible");
-  model->addProperty(linePath, this, "axesLinesColor", "color"  )->setDesc("Axis line color");
-  model->addProperty(linePath, this, "axesLinesAlpha", "alpha"  )->setDesc("Axis line alpha");
-  model->addProperty(linePath, this, "axesLinesWidth", "width"  )->setDesc("Axis line width");
-  model->addProperty(linePath, this, "axesLinesDash" , "dash"   )->setDesc("Axis line dash");
+  addProp(linePath, "axesLineData"  , "style"  , "Axis stroke style")->setHidden(true);
+  addProp(linePath, "axesLines"     , "visible", "Axis stroke visible");
+  addProp(linePath, "axesLinesColor", "color"  , "Axis stroke color");
+  addProp(linePath, "axesLinesAlpha", "alpha"  , "Axis stroke alpha");
+  addProp(linePath, "axesLinesWidth", "width"  , "Axis stroke width");
+  addProp(linePath, "axesLinesDash" , "dash"   , "Axis stroke dash");
+
+  //---
 
   QString ticksPath = path + "/ticks";
+
+  addProp(ticksPath, "ticksDisplayed", "lines", "Axis major and/or minor ticks visible");
 
   QString majorTicksPath = ticksPath + "/major";
   QString minorTicksPath = ticksPath + "/minor";
 
-  model->addProperty(majorTicksPath, this, "majorTicksDisplayed", "visible")->
-    setDesc("Axis major ticks visible");
-  model->addProperty(majorTicksPath, this, "majorTickLen"       , "length" )->
-    setDesc("Axis major ticks pixel length");
-  model->addProperty(minorTicksPath, this, "minorTicksDisplayed", "visible")->
-    setDesc("Axis minor ticks visible");
-  model->addProperty(minorTicksPath, this, "minorTickLen"       , "length" )->
-    setDesc("Axis minor ticks pixel length");
+  addProp(majorTicksPath, "majorTickLen", "length", "Axis major ticks pixel length");
+  addProp(minorTicksPath, "minorTickLen", "length", "Axis minor ticks pixel length");
 
-  QString ticksLabelPath = ticksPath + "/label";
+  //---
 
-  model->addProperty(ticksLabelPath, this, "axesTickLabelTextData"   , "style")->
-    setDesc("Axis tick label text style").setHidden(true);
-  model->addProperty(ticksLabelPath, this, "axesTickLabelTextVisible", "visible")->
-    setDesc("Axis tick label text is visible");
-  model->addProperty(ticksLabelPath, this, "axesTickLabelTextColor"  , "color")->
-    setDesc("Axis tick label text color");
-  model->addProperty(ticksLabelPath, this, "axesTickLabelTextAlpha"  , "alpha")->
-    setDesc("Axis tick label text alpha");
-  model->addProperty(ticksLabelPath, this, "axesTickLabelTextFont"   , "font")->
-    setDesc("Axis tick label text font");
-  model->addProperty(ticksLabelPath, this, "axesTickLabelTextAngle"  , "angle")->
-    setDesc("Axis tick label text angle");
-  model->addProperty(ticksLabelPath, this, "tickLabelAutoHide"       , "autoHide")->
-    setDesc("Axis tick label text is auto hide");
-  model->addProperty(ticksLabelPath, this, "tickLabelPlacement"      , "placement")->
-    setDesc("Axis tick label text placement");
+  QString ticksLabelPath     = ticksPath + "/label";
+  QString ticksLabelTextPath = ticksLabelPath + "/text";
 
-  model->addProperty(ticksPath, this, "tickInside" , "inside")->
-    setDesc("Axis ticks drawn inside plot");
-  model->addProperty(ticksPath, this, "mirrorTicks", "mirror")->
-    setDesc("Axis tick are mirrored on other side of plot");
+  addProp(ticksLabelPath, "tickLabelAutoHide" , "autoHide", "Axis tick label text is auto hide");
+  addProp(ticksLabelPath, "tickLabelPlacement", "placement", "Axis tick label text placement");
 
-  QString labelPath = path + "/label";
+  addProp(ticksLabelTextPath, "axesTickLabelTextData"   , "style",
+          "Axis tick label text style")->setHidden(true);
+  addProp(ticksLabelTextPath, "axesTickLabelTextVisible", "visible",
+          "Axis tick label text is visible");
+  addProp(ticksLabelTextPath, "axesTickLabelTextColor"  , "color",
+          "Axis tick label text color");
+  addProp(ticksLabelTextPath, "axesTickLabelTextAlpha"  , "alpha",
+          "Axis tick label text alpha");
+  addProp(ticksLabelTextPath, "axesTickLabelTextFont"   , "font",
+          "Axis tick label text font");
+  addProp(ticksLabelTextPath, "axesTickLabelTextAngle"  , "angle",
+          "Axis tick label text angle");
 
-  model->addProperty(labelPath, this, "label"               , "text"   )->
-    setDesc("Axis label text string");
-  model->addProperty(labelPath, this, "axesLabelTextData"   , "style"  )->
-    setDesc("Axis label text style").setHidden(true);
-  model->addProperty(labelPath, this, "axesLabelTextVisible", "visible")->
-    setDesc("Axis label text is visible");
-  model->addProperty(labelPath, this, "axesLabelTextColor"  , "color"  )->
-    setDesc("Axis label text color");
-  model->addProperty(labelPath, this, "axesLabelTextAlpha"  , "alpha"  )->
-    setDesc("Axis label text alpha");
-  model->addProperty(labelPath, this, "axesLabelTextFont"   , "font"   )->
-    setDesc("Axis label text font");
+  addProp(ticksPath, "tickInside" , "inside", "Axis ticks drawn inside plot");
+  addProp(ticksPath, "mirrorTicks", "mirror", "Axis tick are mirrored on other side of plot");
+
+  //---
+
+  QString labelPath     = path + "/label";
+  QString labelTextPath = labelPath + "/text";
+
+  addProp(labelTextPath, "label"               , "string" , "Axis label text string");
+  addProp(labelTextPath, "axesLabelTextData"   , "style"  ,
+          "Axis label text style")->setHidden(true);
+  addProp(labelTextPath, "axesLabelTextVisible", "visible", "Axis label text is visible");
+  addProp(labelTextPath, "axesLabelTextColor"  , "color"  , "Axis label text color");
+  addProp(labelTextPath, "axesLabelTextAlpha"  , "alpha"  , "Axis label text alpha");
+  addProp(labelTextPath, "axesLabelTextFont"   , "font"   , "Axis label text font");
+
+  //---
 
   QString gridPath            = path + "/grid";
   QString gridLinePath        = gridPath + "/stroke";
   QString gridMajorPath       = gridPath + "/major";
   QString gridMajorStrokePath = gridMajorPath + "/stroke";
+  QString gridMajorFillPath   = gridMajorPath + "/fill";
   QString gridMinorPath       = gridPath + "/minor";
   QString gridMinorStrokePath = gridMinorPath + "/stroke";
-  QString gridFillPath        = gridPath + "/fill";
 
-  model->addProperty(gridPath, this, "gridMid"  , "middle")->
-    setDesc("Grid at make tick mid point");
-  model->addProperty(gridPath, this, "gridAbove", "above" )->
-    setDesc("Grid is drawn above axes");
+  addProp(gridPath, "gridMid"  , "middle", "Grid at make tick mid point");
+  addProp(gridPath, "gridAbove", "above" , "Grid is drawn above axes");
 
-  model->addProperty(gridMajorStrokePath, this, "axesMajorGridLineData"  , "style"  )->
-    setDesc("Axis major grid line style").setHidden(true);
-  model->addProperty(gridMajorStrokePath, this, "axesMajorGridLines"     , "visible")->
-    setDesc("Axis major grid line is visible");
-  model->addProperty(gridMajorStrokePath, this, "axesMajorGridLinesColor", "color"  )->
-    setDesc("Axis major grid line color");
-  model->addProperty(gridMajorStrokePath, this, "axesMajorGridLinesAlpha", "alpha"  )->
-    setDesc("Axis major grid line alpha");
-  model->addProperty(gridMajorStrokePath, this, "axesMajorGridLinesWidth", "width"  )->
-    setDesc("Axis major grid line width");
-  model->addProperty(gridMajorStrokePath, this, "axesMajorGridLinesDash" , "dash"   )->
-    setDesc("Axis major grid line dash");
+  addProp(gridPath, "gridLinesDisplayed", "lines",
+          "Axis major and/or minor grid lines visible");
+  addProp(gridPath, "gridFillDisplayed" , "fill",
+          "Axis major and/or minor fill visible");
 
-  model->addProperty(gridMinorStrokePath, this, "axesMinorGridLineData"  , "style"  )->
-    setDesc("Axis minor grid line style").setHidden(true);
-  model->addProperty(gridMinorStrokePath, this, "axesMinorGridLines"     , "visible")->
-    setDesc("Axis minor grid line is visible");
-  model->addProperty(gridMinorStrokePath, this, "axesMinorGridLinesColor", "color"  )->
-    setDesc("Axis minor grid line color");
-  model->addProperty(gridMinorStrokePath, this, "axesMinorGridLinesAlpha", "alpha"  )->
-    setDesc("Axis minor grid line alpha");
-  model->addProperty(gridMinorStrokePath, this, "axesMinorGridLinesWidth", "width"  )->
-    setDesc("Axis minor grid line width");
-  model->addProperty(gridMinorStrokePath, this, "axesMinorGridLinesDash" , "dash"   )->
-    setDesc("Axis minor grid line  dash");
+  addProp(gridMajorStrokePath, "axesMajorGridLineData"  , "style"  ,
+          "Axis major grid stroke style")->setHidden(true);
+  addProp(gridMajorStrokePath, "axesMajorGridLinesColor", "color"  ,
+          "Axis major grid stroke color");
+  addProp(gridMajorStrokePath, "axesMajorGridLinesAlpha", "alpha"  ,
+          "Axis major grid stroke alpha");
+  addProp(gridMajorStrokePath, "axesMajorGridLinesWidth", "width"  ,
+          "Axis major grid stroke width");
+  addProp(gridMajorStrokePath, "axesMajorGridLinesDash" , "dash"   ,
+          "Axis major grid stroke dash");
 
-  model->addProperty(gridFillPath, this, "axesGridFillData"   , "style"  )->
-    setDesc("Axis grid fill style").setHidden(true);
-  model->addProperty(gridFillPath, this, "axesGridFilled"     , "visible")->
-    setDesc("Axis grid fill is visible");
-  model->addProperty(gridFillPath, this, "axesGridFillColor"  , "color"  )->
-    setDesc("Axis grid fill color");
-  model->addProperty(gridFillPath, this, "axesGridFillAlpha"  , "alpha"  )->
-    setDesc("Axis grid fill alpha");
-  model->addProperty(gridFillPath, this, "axesGridFillPattern", "pattern")->
-    setDesc("Axis grid fill pattern").setHidden(true);
+  addProp(gridMinorStrokePath, "axesMinorGridLineData"  , "style"  ,
+          "Axis minor grid stroke style")->setHidden(true);
+  addProp(gridMinorStrokePath, "axesMinorGridLinesColor", "color"  ,
+          "Axis minor grid stroke color");
+  addProp(gridMinorStrokePath, "axesMinorGridLinesAlpha", "alpha"  ,
+          "Axis minor grid stroke alpha");
+  addProp(gridMinorStrokePath, "axesMinorGridLinesWidth", "width"  ,
+          "Axis minor grid stroke width");
+  addProp(gridMinorStrokePath, "axesMinorGridLinesDash" , "dash"   ,
+          "Axis minor grid stroke dash");
+
+  addProp(gridMajorFillPath, "axesGridFillData"   , "style"  ,
+          "Axis grid fill style")->setHidden(true);
+  addProp(gridMajorFillPath, "axesGridFillColor"  , "color"  , "Axis grid fill color");
+  addProp(gridMajorFillPath, "axesGridFillAlpha"  , "alpha"  , "Axis grid fill alpha");
+  addProp(gridMajorFillPath, "axesGridFillPattern", "pattern",
+          "Axis grid fill pattern")->setHidden(true);
 }
 
 void
@@ -272,14 +331,14 @@ setRange(double start, double end)
 
 void
 CQChartsAxis::
-setMajorIncrement(double i)
+setMajorIncrement(const CQChartsOptInt &i)
 {
   CQChartsUtil::testAndSet(majorIncrement_, i, [&]() { calcAndRedraw(); } );
 }
 
 void
 CQChartsAxis::
-setTickIncrement(uint i)
+setTickIncrement(const CQChartsOptInt &i)
 {
   CQChartsUtil::testAndSet(tickIncrement_, i, [&]() { calcAndRedraw(); } );
 }
@@ -412,7 +471,32 @@ void
 CQChartsAxis::
 setUserLabel(const QString &str)
 {
-  CQChartsUtil::testAndSet(label_, str, [&]() { redraw(); } );
+  CQChartsUtil::testAndSet(userLabel_, str, [&]() { redraw(); } );
+}
+
+//---
+
+void
+CQChartsAxis::
+setGridLinesDisplayed(const GridLinesDisplayed &d)
+{
+  CQChartsUtil::testAndSet(gridLinesDisplayed_, d, [&]() { redraw(); } );
+}
+
+void
+CQChartsAxis::
+setGridFillDisplayed(const GridFillDisplayed &d)
+{
+  CQChartsUtil::testAndSet(gridFillDisplayed_, d, [&]() { redraw(); } );
+}
+
+//---
+
+void
+CQChartsAxis::
+setTicksDisplayed(const TicksDisplayed &d)
+{
+  CQChartsUtil::testAndSet(ticksDisplayed_, d, [&]() { redraw(); } );
 }
 
 //---
@@ -430,9 +514,18 @@ setTickSpaces(double *tickSpaces, uint numTickSpaces)
 
 void
 CQChartsAxis::
-setValueType(const CQChartsAxisValueType &v)
+setIncludeZero(bool b)
 {
-  CQChartsUtil::testAndSet(valueType_, v, [&]() { calcAndRedraw(); } );
+  CQChartsUtil::testAndSet(includeZero_, b, [&]() { updatePlotRange(); } );
+}
+
+//---
+
+void
+CQChartsAxis::
+setValueType(const CQChartsAxisValueType &v, bool notify)
+{
+  CQChartsUtil::testAndSet(valueType_, v, [&]() { if (notify) updatePlotRangeAndObjs(); } );
 }
 
 //---
@@ -455,15 +548,24 @@ calc()
 
   interval_.setIntegral(isIntegral());
   interval_.setDate    (isDate    ());
+  interval_.setLog     (isLog     ());
 
-  interval_.setMajorIncrement(majorIncrement());
-  interval_.setTickIncrement (tickIncrement ());
+  if (majorIncrement().isSet())
+    interval_.setMajorIncrement(majorIncrement().integer());
+  else
+    interval_.setMajorIncrement(0);
+
+  if (tickIncrement().isSet())
+    interval_.setTickIncrement(tickIncrement().integer());
+  else
+    interval_.setTickIncrement(0);
 
   numMajorTicks_ = std::max(interval_.calcNumMajor(), 1);
   numMinorTicks_ = std::max(interval_.calcNumMinor(), 1);
   calcIncrement_ = interval_.calcIncrement();
   calcStart_     = interval_.calcStart    ();
   calcEnd_       = interval_.calcEnd      ();
+
 //std::cerr << "numMajorTicks: " << numMajorTicks_  << "\n";
 //std::cerr << "numMinorTicks: " << numMinorTicks_  << "\n";
 //std::cerr << "calcIncrement: " << calcIncrement() << "\n";
@@ -592,6 +694,15 @@ updatePlotRange()
   plot->updateRange();
 }
 
+void
+CQChartsAxis::
+updatePlotRangeAndObjs()
+{
+  CQChartsPlot *plot = const_cast<CQChartsPlot *>(plot_);
+
+  plot->updateRangeAndObjs();
+}
+
 CQChartsEditHandles *
 CQChartsAxis::
 editHandles() const
@@ -681,7 +792,7 @@ bool
 CQChartsAxis::
 isDrawGrid() const
 {
-  return (isAxesMajorGridLines() || isAxesMinorGridLines() || isAxesGridFilled());
+  return (isMajorGridLinesDisplayed() || isMinorGridLinesDisplayed() || isMajorGridFilled());
 }
 
 void
@@ -724,7 +835,7 @@ drawGrid(const CQChartsPlot *plot, QPainter *painter)
   //---
 
   // draw fill
-  if (isAxesGridFilled()) {
+  if (isMajorGridFilled()) {
     QRectF dataRect = CQChartsUtil::toQRect(plot->calcDataPixelRect());
 
     painter->setClipRect(dataRect);
@@ -793,7 +904,7 @@ drawGrid(const CQChartsPlot *plot, QPainter *painter)
   //---
 
   // draw grid lines
-  if (isAxesMajorGridLines() || isAxesMinorGridLines()) {
+  if (isMajorGridLinesDisplayed() || isMinorGridLinesDisplayed()) {
     if (numMajorTicks() < maxMajorTicks()) {
       double pos1;
 
@@ -810,17 +921,19 @@ drawGrid(const CQChartsPlot *plot, QPainter *painter)
           pos1 += inc/2.0;
       }
 
+      // TODO: draw minor then major in case of overlap (e.g. log axis)
+
       for (uint i = 0; i < numMajorTicks() + 1; i++) {
         // draw major line (grid and tick)
         if (pos1 >= amin && pos1 <= amax) {
           // draw major grid line if major or minor displayed
-          if      (isAxesMajorGridLines())
+          if      (isMajorGridLinesDisplayed())
             drawMajorGridLine(plot, painter, pos1, dmin, dmax);
-          else if (isAxesMinorGridLines())
+          else if (isMinorGridLinesDisplayed())
             drawMinorGridLine(plot, painter, pos1, dmin, dmax);
         }
 
-        if (isAxesMinorGridLines()) {
+        if (isMinorGridLinesDisplayed()) {
           for (uint j = 1; j < numMinorTicks(); j++) {
             double pos2 = pos1 + (isLog() ? plot->logValue(j*inc1) : j*inc1);
 

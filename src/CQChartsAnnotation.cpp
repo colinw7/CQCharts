@@ -145,20 +145,18 @@ void
 CQChartsAnnotation::
 addStrokeFillProperties(CQPropertyViewModel *model, const QString &path)
 {
-  addStrokeProperties(model, path);
-  addFillProperties  (model, path);
+  addStrokeProperties(model, path + "/stroke");
+  addFillProperties  (model, path + "/fill"  );
 }
 
 void
 CQChartsAnnotation::
 addFillProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString bgPath = path + "/fill";
-
-  model->addProperty(bgPath, this, "filled"     , "visible")->setDesc("Fill visible");
-  model->addProperty(bgPath, this, "fillColor"  , "color"  )->setDesc("Fill color");
-  model->addProperty(bgPath, this, "fillAlpha"  , "alpha"  )->setDesc("Fill alpha");
-  model->addProperty(bgPath, this, "fillPattern", "pattern")->
+  model->addProperty(path, this, "filled"     , "visible")->setDesc("Fill visible");
+  model->addProperty(path, this, "fillColor"  , "color"  )->setDesc("Fill color");
+  model->addProperty(path, this, "fillAlpha"  , "alpha"  )->setDesc("Fill alpha");
+  model->addProperty(path, this, "fillPattern", "pattern")->
     setDesc("Fill pattern").setHidden(true);
 }
 
@@ -166,14 +164,12 @@ void
 CQChartsAnnotation::
 addStrokeProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString borderPath = path + "/stroke";
-
-  model->addProperty(borderPath, this, "border"     , "visible"   )->setDesc("Stroke visible");
-  model->addProperty(borderPath, this, "borderColor", "color"     )->setDesc("Stroke color");
-  model->addProperty(borderPath, this, "borderAlpha", "alpha"     )->setDesc("Stroke alpha");
-  model->addProperty(borderPath, this, "borderWidth", "width"     )->setDesc("Stroke width");
-  model->addProperty(borderPath, this, "cornerSize" , "cornerSize")->setDesc("Box corner size");
-  model->addProperty(borderPath, this, "borderSides", "sides"     )->setDesc("Box visible sides");
+  model->addProperty(path, this, "border"     , "visible"   )->setDesc("Stroke visible");
+  model->addProperty(path, this, "borderColor", "color"     )->setDesc("Stroke color");
+  model->addProperty(path, this, "borderAlpha", "alpha"     )->setDesc("Stroke alpha");
+  model->addProperty(path, this, "borderWidth", "width"     )->setDesc("Stroke width");
+  model->addProperty(path, this, "cornerSize" , "cornerSize")->setDesc("Box corner size");
+  model->addProperty(path, this, "borderSides", "sides"     )->setDesc("Box visible sides");
 }
 
 bool
@@ -198,12 +194,9 @@ getTclProperty(const QString &name, QVariant &value) const
 
 bool
 CQChartsAnnotation::
-getPropertyDesc(const QString &name, QString &desc) const
+getPropertyDesc(const QString &name, QString &desc, bool hidden) const
 {
-  CQPropertyViewModel *propertyModel = this->propertyModel();
-  if (! propertyModel) return false;
-
-  const CQPropertyViewItem *item = propertyModel->propertyItem(this, name);
+  const CQPropertyViewItem *item = propertyItem(name, hidden);
   if (! item) return false;
 
   desc = item->desc();
@@ -213,12 +206,9 @@ getPropertyDesc(const QString &name, QString &desc) const
 
 bool
 CQChartsAnnotation::
-getPropertyType(const QString &name, QString &type) const
+getPropertyType(const QString &name, QString &type, bool hidden) const
 {
-  CQPropertyViewModel *propertyModel = this->propertyModel();
-  if (! propertyModel) return false;
-
-  const CQPropertyViewItem *item = propertyModel->propertyItem(this, name);
+  const CQPropertyViewItem *item = propertyItem(name, hidden);
   if (! item) return false;
 
   type = item->typeName();
@@ -228,12 +218,9 @@ getPropertyType(const QString &name, QString &type) const
 
 bool
 CQChartsAnnotation::
-getPropertyUserType(const QString &name, QString &type) const
+getPropertyUserType(const QString &name, QString &type, bool hidden) const
 {
-  CQPropertyViewModel *propertyModel = this->propertyModel();
-  if (! propertyModel) return false;
-
-  const CQPropertyViewItem *item = propertyModel->propertyItem(this, name);
+  const CQPropertyViewItem *item = propertyItem(name, hidden);
   if (! item) return false;
 
   type = item->userTypeName();
@@ -243,19 +230,49 @@ getPropertyUserType(const QString &name, QString &type) const
 
 bool
 CQChartsAnnotation::
-getPropertyObject(const QString &name, QObject* &object) const
+getPropertyObject(const QString &name, QObject* &object, bool hidden) const
 {
   object = nullptr;
 
-  CQPropertyViewModel *propertyModel = this->propertyModel();
-  if (! propertyModel) return false;
-
-  const CQPropertyViewItem *item = propertyModel->propertyItem(this, name);
+  const CQPropertyViewItem *item = propertyItem(name, hidden);
   if (! item) return false;
 
   object = item->object();
 
   return true;
+}
+
+bool
+CQChartsAnnotation::
+getPropertyHidden(const QString &name, bool &hidden) const
+{
+  hidden = false;
+
+  const CQPropertyViewItem *item = propertyItem(name, /*hidden*/true);
+  if (! item) return false;
+
+  hidden = item->isHidden();
+
+  return true;
+}
+
+bool
+CQChartsAnnotation::
+setProperties(const QString &properties)
+{
+  bool rc = true;
+
+  CQChartsNameValues nameValues(properties);
+
+  for (const auto &nv : nameValues.nameValues()) {
+    const QString  &name  = nv.first;
+    const QVariant &value = nv.second;
+
+    if (! setProperty(name, value))
+      rc = false;
+  }
+
+  return rc;
 }
 
 bool
@@ -288,6 +305,19 @@ propertyModel() const
     return view()->propertyModel();
   else
     return nullptr;
+}
+
+const CQPropertyViewItem *
+CQChartsAnnotation::
+propertyItem(const QString &name, bool hidden) const
+{
+  CQPropertyViewModel *propertyModel = this->propertyModel();
+  if (! propertyModel) return nullptr;
+
+  const CQPropertyViewItem *item = propertyModel->propertyItem(this, name, hidden);
+  if (! item) return nullptr;
+
+  return item;
 }
 
 //------
@@ -570,8 +600,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "rect")->setDesc("Rectangle");
-
+  model->addProperty(path1, this, "rect"   )->setDesc("Rectangle");
   model->addProperty(path1, this, "margin" )->setDesc("Rectangle inner margin");
   model->addProperty(path1, this, "padding")->setDesc("Rectangle outer padding");
 
@@ -1167,7 +1196,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   model->addProperty(path1, this, "polygon")->setDesc("Polyline points");
 
-  addStrokeProperties(model, path1);
+  addStrokeProperties(model, path1 + "/stroke");
 }
 
 QString
@@ -1465,17 +1494,30 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   model->addProperty(path1, this, "position", "position")->setDesc("Text origin");
   model->addProperty(path1, this, "rect"    , "rect"    )->setDesc("Text bounding rectangle");
 
-  model->addProperty(path1, this, "textData"     , "style"    )->setDesc("Test style");
-  model->addProperty(path1, this, "textStr"      , "text"     )->setDesc("Test string");
-  model->addProperty(path1, this, "textColor"    , "color"    )->setDesc("Text color");
-  model->addProperty(path1, this, "textAlpha"    , "alpha"    )->setDesc("Text alpha");
-  model->addProperty(path1, this, "textFont"     , "font"     )->setDesc("Text font");
-  model->addProperty(path1, this, "textAngle"    , "angle"    )->setDesc("Text angle");
-  model->addProperty(path1, this, "textContrast" , "contrast" )->setDesc("Text has contrast");
-  model->addProperty(path1, this, "textAlign"    , "align"    )->setDesc("Text align");
-  model->addProperty(path1, this, "textFormatted", "formatted")->setDesc("Text formatted");
-  model->addProperty(path1, this, "textScaled"   , "scaled"   )->setDesc("Text scaled");
-  model->addProperty(path1, this, "textHtml"     , "html"     )->setDesc("Text is html");
+  QString textPath = path1 + "/text";
+
+  model->addProperty(textPath, this, "textData"     , "style"    )->
+    setDesc("Text style").setHidden(true);
+  model->addProperty(textPath, this, "textStr"      , "string"   )->
+    setDesc("Text string");
+  model->addProperty(textPath, this, "textColor"    , "color"    )->
+    setDesc("Text color");
+  model->addProperty(textPath, this, "textAlpha"    , "alpha"    )->
+    setDesc("Text alpha");
+  model->addProperty(textPath, this, "textFont"     , "font"     )->
+    setDesc("Text font");
+  model->addProperty(textPath, this, "textAngle"    , "angle"    )->
+    setDesc("Text angle");
+  model->addProperty(textPath, this, "textContrast" , "contrast" )->
+    setDesc("Text has contrast");
+  model->addProperty(textPath, this, "textAlign"    , "align"    )->
+    setDesc("Text align");
+  model->addProperty(textPath, this, "textFormatted", "formatted")->
+    setDesc("Text formatted");
+  model->addProperty(textPath, this, "textScaled"   , "scaled"   )->
+    setDesc("Text scaled");
+  model->addProperty(textPath, this, "textHtml"     , "html"     )->
+    setDesc("Text is HTML");
 
   model->addProperty(path1, this, "margin" )->setDesc("Text rectangle inner margin");
   model->addProperty(path1, this, "padding")->setDesc("Text rectangle outer padding");
@@ -1883,29 +1925,50 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this  , "start"    )->setDesc("Arrow start point");
-  model->addProperty(path1, this  , "end"      )->setDesc("Arrow end point");
-  model->addProperty(path1, arrow_, "length"   )->setDesc("Arrow line length");
-  model->addProperty(path1, arrow_, "angle"    )->setDesc("Arrow angle");
-  model->addProperty(path1, arrow_, "backAngle")->setDesc("Arrow back angle");
-  model->addProperty(path1, arrow_, "fhead"    )->setDesc("Show arrow front head");
-  model->addProperty(path1, arrow_, "thead"    )->setDesc("Show arrow tail head");
-  model->addProperty(path1, arrow_, "filled"   )->setDesc("Arrow is filled");
-  model->addProperty(path1, arrow_, "lineEnds" )->setDesc("Draw lines for end arrows");
-  model->addProperty(path1, arrow_, "lineWidth")->setDesc("Arrow connecting line width");
+  model->addProperty(path1, this, "start")->setDesc("Arrow start point");
+  model->addProperty(path1, this, "end"  )->setDesc("Arrow end point");
+
+  QString headPath = path1 + "/head";
+
+  model->addProperty(headPath, arrow_, "length"   )->
+    setDesc("Arrow head length");
+  model->addProperty(headPath, arrow_, "angle"    )->
+    setDesc("Arrow head angle");
+  model->addProperty(headPath, arrow_, "backAngle")->
+    setDesc("Arrow head back angle");
+  model->addProperty(headPath, arrow_, "filled"   )->
+    setDesc("Arrow head is filled");
+  model->addProperty(headPath, arrow_, "lineEnds" , "line")->
+    setDesc("Arrow head is drawn using lines");
+
+  QString linePath = path1 + "/line";
+
+  model->addProperty(linePath, arrow_, "lineWidth", "width")->
+    setDesc("Arrow connecting line width");
+  model->addProperty(linePath, arrow_, "fhead"    , "frontHead")->
+    setDesc("Show arrow head at front of connecting line");
+  model->addProperty(linePath, arrow_, "thead"    , "tailHead")->
+    setDesc("Show arrow head at tail of connecting line");
 
   QString fillPath = path1 + "/fill";
 
-  model->addProperty(fillPath, arrow_, "filled"   , "visible")->setDesc("Fill visible");
-  model->addProperty(fillPath, arrow_, "fillColor", "color"  )->setDesc("Fill color");
-  model->addProperty(fillPath, arrow_, "fillAlpha", "alpha"  )->setDesc("Fill alpha");
+  model->addProperty(fillPath, arrow_, "filled"   , "visible")->
+    setDesc("Arrow fill visible");
+  model->addProperty(fillPath, arrow_, "fillColor", "color"  )->
+    setDesc("Arrow fill color");
+  model->addProperty(fillPath, arrow_, "fillAlpha", "alpha"  )->
+    setDesc("Arrow fill alpha");
 
   QString strokePath = path1 + "/stroke";
 
-  model->addProperty(strokePath, arrow_, "border"     , "visible")->setDesc("Stroke visible");
-  model->addProperty(strokePath, arrow_, "borderColor", "color"  )->setDesc("Stroke color");
-  model->addProperty(strokePath, arrow_, "borderAlpha", "alpha"  )->setDesc("Stroke alpha");
-  model->addProperty(strokePath, arrow_, "borderWidth", "width"  )->setDesc("Stroke width");
+  model->addProperty(strokePath, arrow_, "border"     , "visible")->
+    setDesc("Arrow stroke visible");
+  model->addProperty(strokePath, arrow_, "borderColor", "color"  )->
+    setDesc("Arrow stroke color");
+  model->addProperty(strokePath, arrow_, "borderAlpha", "alpha"  )->
+    setDesc("Arrow stroke alpha");
+  model->addProperty(strokePath, arrow_, "borderWidth", "width"  )->
+    setDesc("Arrow stroke width");
 }
 
 void
@@ -1914,12 +1977,21 @@ getPropertyNames(QStringList &names, bool hidden) const
 {
   CQChartsAnnotation::getPropertyNames(names, hidden);
 
-  names << "length" << "angle" << "backAngle" << "fhead" << "thead" <<
-           "filled" << "lineEnds" << "lineWidth";
+  names << "head.length" << "head.angle" << "head.backAngle" << "head.filled" << "head.line";
+
+  names << "line.width" << "line.frontHead" << "line.tailHead";
 
   names << "fill.visible" << "fill.color" << "fill.alpha";
 
   names << "stroke.visible" << "stroke.color" << "stroke.alpha" << "stroke.width";
+
+#if 0
+  // can't use objectNames as root is wrong
+  CQPropertyMolde *propertyModel = this->propertyModel();
+  if (! propertyModel) return;
+
+  propertyModel->objectNames(arrow_, names);
+#endif
 }
 
 QString

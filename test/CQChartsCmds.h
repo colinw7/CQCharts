@@ -57,8 +57,9 @@ class CQChartsCmds : public QObject {
 
   static QString fixTypeName(const QString &typeName);
 
-  void setViewProperties(CQChartsView *view, const QString &properties);
-  void setPlotProperties(CQChartsPlot *plot, const QString &properties);
+  void setViewProperties      (CQChartsView       *view      , const QString &properties);
+  void setPlotProperties      (CQChartsPlot       *plot      , const QString &properties);
+  void setAnnotationProperties(CQChartsAnnotation *annotation, const QString &properties);
 
   //---
 
@@ -123,6 +124,7 @@ class CQChartsCmds : public QObject {
   bool placeChartsPlotsCmd(CQChartsCmdArgs &args);
 
   bool measureChartsTextCmd(CQChartsCmdArgs &args);
+  bool encodeChartsTextCmd (CQChartsCmdArgs &args);
 
   bool createChartsViewCmd(CQChartsCmdArgs &args);
   bool removeChartsViewCmd(CQChartsCmdArgs &args);
@@ -239,6 +241,7 @@ CQCHARTS_DEF_CMD(GroupChartsPlots, groupChartsPlotsCmd)
 CQCHARTS_DEF_CMD(PlaceChartsPlots, placeChartsPlotsCmd)
 
 CQCHARTS_DEF_CMD(MeasureChartsText, measureChartsTextCmd)
+CQCHARTS_DEF_CMD(EncodeChartsText , encodeChartsTextCmd )
 
 CQCHARTS_DEF_CMD(CreateChartsView, createChartsViewCmd)
 CQCHARTS_DEF_CMD(RemoveChartsView, removeChartsViewCmd)

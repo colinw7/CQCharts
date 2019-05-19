@@ -5,6 +5,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -53,11 +54,12 @@ QString
 CQChartsPiePlotType::
 description() const
 {
-  return "<h2>Pie Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draw circle segments with diameter from a set of values.</p>\n"
-         "<p>The segments can be restricted to an inner radius and a label"
-         "can be displated at the center of the circle.\n";
+  return CQChartsHtml().
+   h2("Pie Plot").
+    h3("Summary").
+     p("Draw circle segments with diameter from a set of values.").
+     p("The segments can be restricted to an inner radius and a label "
+       "can be displated at the center of the circle.");
 }
 
 CQChartsPlot *
@@ -222,50 +224,55 @@ void
 CQChartsPiePlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "valueColumns"  , "values"  )->setDesc("Value columns");
-  addProperty("columns", this, "labelColumn"   , "label"   )->setDesc("Label column");
-  addProperty("columns", this, "radiusColumn"  , "radius"  )->setDesc("Radius column");
-  addProperty("columns", this, "keyLabelColumn", "keyLabel")->setDesc("Key label column");
+  addProp("columns", "valueColumns"  , "values"  , "Value columns");
+  addProp("columns", "labelColumn"   , "label"   , "Label column");
+  addProp("columns", "radiusColumn"  , "radius"  , "Radius column");
+  addProp("columns", "keyLabelColumn", "keyLabel", "Key label column");
 
   CQChartsGroupPlot::addProperties();
 
   // options
-  addProperty("options", this, "donut"      )->setDesc("Display as donut using inner radius");
-  addProperty("options", this, "count"      )->setDesc("Show count of groups");
-  addProperty("options", this, "innerRadius")->setDesc("Inner radius");
-  addProperty("options", this, "startAngle" )->setDesc("Start angle for first segment");
-  addProperty("options", this, "angleExtent")->setDesc("Angle extent for pie segments");
-  addProperty("options", this, "gapAngle"   )->setDesc("Gap angle");
+  addProp("options", "donut"      , "", "Display as donut using inner radius");
+  addProp("options", "count"      , "", "Show count of groups");
+  addProp("options", "innerRadius", "", "Inner radius");
+  addProp("options", "startAngle" , "", "Start angle for first segment");
+  addProp("options", "angleExtent", "", "Angle extent for pie segments");
+  addProp("options", "gapAngle"   , "", "Gap angle");
 
   // fill
-  addProperty("fill", this, "filled", "visible")->setDesc("Fill visible");
+  addProp("fill", "filled", "visible", "Fill visible");
 
   addFillProperties("fill", "fill", "");
 
   // stroke
-  addProperty("stroke", this, "border", "visible")->setDesc("Stroke visible");
+  addProp("stroke", "border", "visible", "Stroke visible");
 
   addLineProperties("stroke", "border", "");
 
   // grid
-  addProperty("grid", this, "gridLines", "visible")->setDesc("Grid lines visible");
+  addProp("grid", "gridLines", "visible", "Grid lines visible");
 
-  addLineProperties("grid", "gridLines", "Grid");
+  addLineProperties("grid/stroke", "gridLines", "Grid");
 
   // explode
-  addProperty("explode", this, "explodeSelected", "selected")->setDesc("Explode selected segments");
-  addProperty("explode", this, "explodeRadius"  , "radius"  )->setDesc("Explode radius");
+  addProp("explode", "explodeSelected", "selected", "Explode selected segments");
+  addProp("explode", "explodeRadius"  , "radius"  , "Explode radius");
 
   // labels
-  addProperty("labels", textBox_, "textVisible", "visible")->setDesc("Text visible");
+  textBox_->addTextDataProperties(propertyModel(), "labels", "Labels", /*addVisible*/true);
 
-  textBox_->addTextDataProperties(propertyModel(), "labels", "Labels");
-
-  addProperty("labels", this, "labelRadius", "radius" )->setDesc("Label radius");
-  addProperty("labels", this, "rotatedText", "rotated")->setDesc("Text rotated to segment angle");
+  addProp("labels", "labelRadius", "radius" , "Label radius");
+  addProp("labels", "rotatedText", "rotated", "Text rotated to segment angle");
 
   QString labelBoxPath = "labels/box";
 
@@ -1164,18 +1171,18 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "rect"    )->setDesc("Bounding box");
 //model->addProperty(path1, this, "selected")->setDesc("Is selected");
 
-  model->addProperty(path1, this, "colorIndex")->setDesc("Color index");
-  model->addProperty(path1, this, "angle1")->setDesc("Start angle");
-  model->addProperty(path1, this, "angle2")->setDesc("End angle");
+  model->addProperty(path1, this, "colorIndex" )->setDesc("Color index");
+  model->addProperty(path1, this, "angle1"     )->setDesc("Start angle");
+  model->addProperty(path1, this, "angle2"     )->setDesc("End angle");
   model->addProperty(path1, this, "innerRadius")->setDesc("Inner radius");
   model->addProperty(path1, this, "outerRadius")->setDesc("Outer radius");
-  model->addProperty(path1, this, "label")->setDesc("Label");
-  model->addProperty(path1, this, "value")->setDesc("Value");
-  model->addProperty(path1, this, "missing")->setDesc("Value missing");
-//model->addProperty(path1, this, "radius")->setDesc("Radius");
-  model->addProperty(path1, this, "keyLabel")->setDesc("Key label");
-  model->addProperty(path1, this, "color")->setDesc("Color");
-  model->addProperty(path1, this, "exploded")->setDesc("Is exploded");
+  model->addProperty(path1, this, "label"      )->setDesc("Label");
+  model->addProperty(path1, this, "value"      )->setDesc("Value");
+  model->addProperty(path1, this, "missing"    )->setDesc("Value missing");
+//model->addProperty(path1, this, "radius"     )->setDesc("Radius");
+  model->addProperty(path1, this, "keyLabel"   )->setDesc("Key label");
+  model->addProperty(path1, this, "color"      )->setDesc("Color");
+  model->addProperty(path1, this, "exploded"   )->setDesc("Is exploded");
 }
 
 bool

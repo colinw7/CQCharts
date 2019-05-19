@@ -32,6 +32,8 @@ class CQChartsAdjacencyPlotType : public CQChartsPlotType {
   bool allowXLog() const override { return false; }
   bool allowYLog() const override { return false; }
 
+  bool canProbe() const override { return false; }
+
   QString description() const override;
 
   bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
@@ -344,11 +346,15 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   using AdjacencyObj = CQChartsAdjacencyObj;
 
+  // node+connections columns
   CQChartsColumn nodeColumn_;                                 //!< connection node column
   CQChartsColumn connectionsColumn_;                          //!< connections column
+
+  // name+name pait columns
   CQChartsColumn nameColumn_;                                 //!< name column
   CQChartsColumn namePairColumn_;                             //!< name pairs column
   CQChartsColumn countColumn_;                                //!< count column
+
   CQChartsColumn groupIdColumn_;                              //!< group id column
   SortType       sortType_              { SortType::GROUP };  //!< sort type
   CQChartsLength bgMargin_              { "2px" };            //!< background margin

@@ -24,6 +24,8 @@ class CQChartsGeometryPlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
+  bool canProbe() const override { return true; }
+
   QString description() const override;
 
   bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
@@ -52,17 +54,13 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
  public:
   CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
-                      const Polygons &polygons, const QModelIndex &ind, const ColorInd &iv,
-                      bool hasValue);
+                      const Polygons &polygons, const QModelIndex &ind, const ColorInd &iv);
 
   QString typeName() const override { return "geom"; }
 
   QString calcId() const override;
 
   QString calcTipId() const override;
-
-  double value() const { return value_; }
-  void setValue(double r) { value_ = r; }
 
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
@@ -72,6 +70,9 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
   const CQChartsStyle &style() const { return style_; }
   void setStyle(const CQChartsStyle &s) { style_ = s; }
+
+  double value() const { return value_; }
+  void setValue(double r) { value_ = r; hasValue_ = true; }
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -86,12 +87,12 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
  private:
   const CQChartsGeometryPlot* plot_     { nullptr }; //!< parent plot
   Polygons                    polygons_;             //!< geometry polygons
-  double                      value_    { 0.0 };     //!< geometry value
   QString                     name_;                 //!< geometry name
   CQChartsColor               color_;                //!< optional color
   CQChartsStyle               style_;                //!< optional style
-  QModelIndex                 ind_;                  //!< model index
+  double                      value_    { 0.0 };     //!< geometry value
   bool                        hasValue_ { false };   //!< has value
+  QModelIndex                 ind_;                  //!< model index
   Polygons                    ppolygons_;            //!< pixel polygons
 };
 
@@ -122,15 +123,17 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
  public:
   using Polygons = std::vector<QPolygonF>;
+  using OptReal  = boost::optional<double>;
 
+  //! geometry data
   struct Geometry {
-    QString            name;
-    Polygons           polygons;
-    double             value { 0.0 };
-    CQChartsColor      color;
-    CQChartsStyle      style;
-    CQChartsGeom::BBox bbox;
-    QModelIndex        ind;
+    QString            name;     //!< name
+    Polygons           polygons; //!< polygon list
+    OptReal            value;    //!< value
+    CQChartsColor      color;    //!< custom color
+    CQChartsStyle      style;    //!< custom style
+    CQChartsGeom::BBox bbox;     //!< bounding box
+    QModelIndex        ind;      //!< associated model index
   };
 
  public:
@@ -184,6 +187,8 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   //---
 
+  bool probe(ProbeData &probeData) const override;
+
  private:
   void addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
               CQChartsGeom::Range &dataRange) const;
@@ -192,7 +197,6 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
  private:
   using Geometries = std::vector<Geometry>;
-  using OptReal    = boost::optional<double>;
 
   CQChartsColumn        nameColumn_;                              //!< name column
   CQChartsColumn        geometryColumn_;                          //!< geometry column

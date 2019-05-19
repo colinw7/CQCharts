@@ -25,8 +25,8 @@ set textAnnotationId3 [create_charts_text_annotation -plot $plotId -id three -re
 
 set textAnnotationId4 [create_charts_text_annotation -plot $plotId -id four -rect {0 -30 200 -20} -text "Four"  -color blue  -angle 45]
 
-set textAnnotationId5 [create_charts_text_annotation -plot $plotId -id long -rect {-200 0 200 40} -text "The rain in spain falls mainly on the plain. She sell sea shells on the sea shore. The quick brown fox jumps over the lazy dog." -border 1 -background 1 -corner_size 12]
+set textAnnotationId5 [create_charts_text_annotation -plot $plotId -id long -rect {-200 0 200 40} -text "The rain in spain falls mainly on the plain. She sell sea shells on the sea shore. The quick brown fox jumps over the lazy dog." -stroked 1 -filled 1 -corner_size 12]
 
-set textAnnotationId6 [create_charts_text_annotation -plot $plotId -id long -rect {100 100 400 400 pixel} -text "<table><tr><td>One</td><td>Two</td></tr><tr><td>Three</td><td>Four</td></tr></table>" -border 1 -background 1 -corner_size 12 -html]
+set textAnnotationId6 [create_charts_text_annotation -plot $plotId -id long -rect {100 100 400 400 pixel} -text "<table><tr><td>One</td><td>Two</td></tr><tr><td>Three</td><td>Four</td></tr></table>" -stroked 1 -filled 1 -corner_size 12 -html]
 
 connect_charts_signal -plot $plotId -from annotationIdPressed -to annotationSlot

@@ -8,6 +8,7 @@
 #include <CQChartsSmooth.h>
 #include <CQChartsRoundedPolygon.h>
 #include <CQChartsTip.h>
+#include <CQChartsHtml.h>
 
 #include <CQUtil.h>
 #include <CQPropertyViewItem.h>
@@ -83,45 +84,47 @@ QString
 CQChartsXYPlotType::
 description() const
 {
-  return "<h2>XY Plot Type</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draws points at x and y coordinate pairs and connects them with a continuous "
-         "line.</p>\n"
-         "<p>The x coordinates should be monotonic.</p>\n"
-         "<h3>Columns</h3>\n"
-         "<p>The x and y values come from the values in the <b>X</b> and <b>Y</b> columns. "
-         "Multiple <b>Y</b> columns can be specified to create a stack of lines.</p>\n"
-         "<p>An optional <b>Name</b> column can be specified to supply a name for the "
-         "coordinate.</p>\n"
-         "<p>An optional <b>Size</b> column can be specified to supply the size of the symbol "
-         "drawn at the point.</p>\n"
-         "<p>An optional <b>PointLabel</b> column can be specified to add a label next to a "
-         "point.</p>\n"
-         "<p>An optional <b>PointColor</b> column can be specified to specify the color of "
-         "the point symbol.</p>\n"
-         "<p>An optional <b>PointSymbol</b> column can be specified to specify the symbol of "
-         "the point.</p>\n"
-         "<p>Optional <b>VectorX</b> and <b>VectorY</b> columns can be specified to draw a "
-         "vector at the point.</p>\n"
-         "<h3>Options</h3>\n"
-         "<p>The <b>Lines</b> option determines whether the points are connected with a line. "
-         "The default line style can be separately customized.</p>"
-         "<p>The <b>Points</b> option determines whether the points are drawn. The default point "
-         "symbol can be separately customized.</p>"
-         "<p>Enabling the <b>Bivariate</b> option fills the area between adjacent sets of x, y "
-         "coordinates (two or more y column values should be specified). The bivariate line "
-         "style can be separately customized.</p>"
-         "<p>Enabling the <b>Stacked</b> option stacks the y values on top of each other "
-         "so the next set of y values adds onto the previous set of y values.</p>\n"
-         "<p>Enabling the <b>Cumulative</b> option treats the y values as an increment "
-         "from the previous y value (in each set).</p>\n"
-         "<p>Enabling the <b>FillUnder</b> option fills the area under the plot. The "
-         "fill under style (fill/stroke) can be separately customized.<p>\n"
-         "<p>Enabling the <b>Impulse</b> option draws a line from zero to the "
-         "points y value. The impulse line style can be separately customized.</p> "
-         "<p>Enabling the <b>Best Fit</b> option draws a best fit line between the points.<p>\n"
-         "<p>The <b>Vectors</b> option detemines whether the vector specified by the "
-         "<b>VectorX</b> and <b>VectorY</b> columns are drawn.</p>\n";
+  auto B = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+
+  return CQChartsHtml().
+   h2("XY Plot Type</h2>").
+    h3("Summary").
+     p("Draws points at x and y coordinate pairs and connects them with a continuous line.").
+     p("The x coordinates should be monotonic.").
+    h3("Columns").
+     p("The x and y values come from the values in the " + B("X") + " and " + B("Y") + " columns. "
+       "Multiple " + B("Y") + " columns can be specified to create a stack of lines.").
+     p("An optional " + B("Name") + " column can be specified to supply a name for the "
+       "coordinate.").
+     p("An optional " + B("Size") + " column can be specified to supply the size of the symbol "
+       "drawn at the point.").
+     p("An optional " + B("PointLabel") + " column can be specified to add a label next to a "
+       "point.").
+     p("An optional " + B("PointColor") + " column can be specified to specify the color of "
+       "the point symbol.").
+     p("An optional " + B("PointSymbol") + " column can be specified to specify the symbol of "
+       "the point.").
+     p("Optional " + B("VectorX") + " and " + B("VectorY") + " columns can be specified to draw a "
+       "vector at the point.").
+    h3("Options").
+     p("The " + B("Lines") + " option determines whether the points are connected with a line. "
+       "The default line style can be separately customized.").
+     p("The " + B("Points") + " option determines whether the points are drawn. The default point "
+       "symbol can be separately customized.").
+     p("Enabling the " + B("Bivariate") + " option fills the area between adjacent sets of x, y "
+       "coordinates (two or more y column values should be specified). The bivariate line "
+       "style can be separately customized.").
+     p("Enabling the " + B("Stacked") + " option stacks the y values on top of each other "
+       "so the next set of y values adds onto the previous set of y values.").
+     p("Enabling the " + B("Cumulative") + " option treats the y values as an increment "
+       "from the previous y value (in each set).").
+     p("Enabling the " + B("FillUnder") + " option fills the area under the plot. The "
+       "fill under style (fill/stroke) can be separately customized.").
+     p("Enabling the " + B("Impulse") + " option draws a line from zero to the "
+       "points y value. The impulse line style can be separately customized.").
+     p("Enabling the " + B("Best Fit") + " option draws a best fit line between the points.").
+     p("The " + B("Vectors") + " option detemines whether the vector specified by the "
+       "" + B("VectorX") + " and " + B("VectorY") + " columns are drawn.");
 }
 
 CQChartsPlot *
@@ -435,118 +438,111 @@ void
 CQChartsXYPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  auto addArrowProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc) {
+    return &(this->addProperty(path, arrowObj_, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "xColumn"           , "x"          )->setDesc("X column");
-  addProperty("columns", this, "yColumns"          , "y"          )->setDesc("Y columns");
-  addProperty("columns", this, "nameColumn"        , "name"       )->setDesc("Name column");
-  addProperty("columns", this, "sizeColumn"        , "size"       )->setDesc("Size column");
-  addProperty("columns", this, "pointLabelColumn"  , "pointLabel" )->setDesc("Point label column");
-  addProperty("columns", this, "pointColorColumn"  , "pointColor" )->setDesc("Point color column");
-  addProperty("columns", this, "pointSymbolColumn" , "pointSymbol")->setDesc("Point symbol column");
-  addProperty("columns", this, "vectorXColumn"     , "vectorX"    )->setDesc("Vector x column");
-  addProperty("columns", this, "vectorYColumn"     , "vectorY"    )->setDesc("Vector y column");
+  addProp("columns", "xColumn"           , "x"          , "X column");
+  addProp("columns", "yColumns"          , "y"          , "Y columns");
+  addProp("columns", "nameColumn"        , "name"       , "Name column");
+  addProp("columns", "sizeColumn"        , "size"       , "Size column");
+  addProp("columns", "pointLabelColumn"  , "pointLabel" , "Point label column");
+  addProp("columns", "pointColorColumn"  , "pointColor" , "Point color column");
+  addProp("columns", "pointSymbolColumn" , "pointSymbol", "Point symbol column");
+  addProp("columns", "vectorXColumn"     , "vectorX"    , "Vector x column");
+  addProp("columns", "vectorYColumn"     , "vectorY"    , "Vector y column");
 
   // bivariate
-  addProperty("bivariate", this, "bivariateLines", "visible")->setDesc("Bivariate lines visible");
+  addProp("bivariate", "bivariateLines", "visible", "Bivariate lines visible");
 
-  addLineProperties("bivariate", "bivariateLines", "Bivariate");
+  addLineProperties("bivariate/stroke", "bivariateLines", "Bivariate");
 
   // stacked
-  addProperty("stacked", this, "stacked", "enabled")->setDesc("Stack y values");
+  addProp("stacked", "stacked", "enabled", "Stack y values");
 
   // cumulative
-  addProperty("cumulative", this, "cumulative", "enabled")->setDesc("Cumulative values");
+  addProp("cumulative", "cumulative", "enabled", "Cumulative values");
 
   // points
-  addProperty("points", this, "points"         , "visible")->setDesc("Point symbol visible");
-  addProperty("points", this, "pointLineSelect", "lineSelect")->
-    setDesc("Select point selects line");
-  addProperty("points", this, "pointCount"     , "count")->setDesc("Number of points to show");
-  addProperty("points", this, "pointDelta"     , "delta")->setDesc("Show points delta index");
-  addProperty("points", this, "pointStart"     , "start")->setDesc("Show points start index");
+  addProp("points", "points"         , "visible", "Point symbol visible");
+  addProp("points", "pointLineSelect", "lineSelect", "Select point selects line");
+  addProp("points", "pointCount"     , "count", "Number of points to show");
+  addProp("points", "pointDelta"     , "delta", "Show points delta index");
+  addProp("points", "pointStart"     , "start", "Show points start index");
 
   addSymbolProperties("points/symbol", "", "Points");
 
   // lines
-  addProperty("lines", this, "lines"          , "visible"   )->setDesc("Lines visible");
-  addProperty("lines", this, "linesSelectable", "selectable")->setDesc("Lines selectable");
-  addProperty("lines", this, "roundedLines"   , "rounded"   )->setDesc("Smooth lines");
+  addProp("lines", "lines"          , "visible"   , "Lines visible");
+  addProp("lines", "linesSelectable", "selectable", "Lines selectable");
+  addProp("lines", "roundedLines"   , "rounded"   , "Smooth lines");
 
-  addLineProperties("lines", "lines", "Lines");
+  addLineProperties("lines/stroke", "lines", "Lines");
 
   // best fit line and deviation fill
-  addProperty("bestFit", this, "bestFit"         , "enabled"  )->
-    setDesc("Show best fit");
-  addProperty("bestFit", this, "bestFitOutliers" , "outliers" )->
-    setDesc("Best fit include outliers");
-  addProperty("bestFit", this, "bestFitOrder"    , "order"    )->
-    setDesc("Best fit curve order");
-  addProperty("bestFit", this, "bestFitDeviation", "deviation")->
-    setDesc("Best fit standard deviation");
+  addProp("bestFit", "bestFit"         , "visible"  , "Show best fit");
+  addProp("bestFit", "bestFitOutliers" , "outliers" , "Best fit include outliers");
+  addProp("bestFit", "bestFitOrder"    , "order"    , "Best fit curve order");
+  addProp("bestFit", "bestFitDeviation", "deviation", "Best fit standard deviation");
 
   addFillProperties("bestFit/fill"  , "bestFitFill"  , "Best fit");
   addLineProperties("bestFit/stroke", "bestFitBorder", "Best fit");
 
   // stats
-  addProperty("statsData", this, "statsLines", "visible")->setDesc("Statistic lines visible");
+  addProp("statsData", "statsLines", "visible", "Statistic lines visible");
 
-  addLineProperties("statsData", "statsLines", "Statistic lines");
+  addLineProperties("statsData/stroke", "statsLines", "Statistic lines");
 
   // fill under
-  addProperty("fillUnder", this, "fillUnderFilled"    , "visible"   )->
-    setDesc("Fill under lines visible");
-  addProperty("fillUnder", this, "fillUnderSelectable", "selectable")->
-    setDesc("Fill under polygon selectable");
-  addProperty("fillUnder", this, "fillUnderPos"       , "position"  )->
-    setDesc("Fill under base position");
-  addProperty("fillUnder", this, "fillUnderSide"      , "side"      )->
-    setDesc("Fill under line side");
+  addProp("fillUnder", "fillUnderFilled"    , "visible"   , "Fill under lines visible");
+  addProp("fillUnder", "fillUnderSelectable", "selectable", "Fill under polygon selectable");
+  addProp("fillUnder", "fillUnderPos"       , "position"  , "Fill under base position");
+  addProp("fillUnder", "fillUnderSide"      , "side"      , "Fill under line side");
 
-  addFillProperties("fillUnder", "fillUnderFill", "Fill under");
+  addFillProperties("fillUnder/fill", "fillUnderFill", "Fill under");
 
   // impulse
-  addProperty("impulse", this, "impulseLines", "visible")->setDesc("Impulse lines visible");
+  addProp("impulse", "impulseLines", "visible", "Impulse lines visible");
 
-  addLineProperties("impulse", "impulseLines", "Impulse");
+  addLineProperties("impulse/stroke", "impulseLines", "Impulse");
 
   // vectors
-  addProperty("vectors", this     , "vectors"  , "visible"  )->
-    setDesc("Vectors at points visible");
-  addProperty("vectors", arrowObj_, "length"   , "length"   )->
-    setDesc("Vector arrow length");
-  addProperty("vectors", arrowObj_, "angle"    , "angle"    )->
-    setDesc("Vector arrow angle");
-  addProperty("vectors", arrowObj_, "backAngle", "backAngle")->
-    setDesc("Vector arrow back angle");
-  addProperty("vectors", arrowObj_, "fhead"    , "fhead"    )->
-    setDesc("Show vector arrow front head");
-  addProperty("vectors", arrowObj_, "thead"    , "thead"    )->
-    setDesc("Show vector arrow tail head");
-  addProperty("vectors", arrowObj_, "filled"   , "filled"   )->
-    setDesc("Vector arrow is filled");
-  addProperty("vectors", arrowObj_, "lineEnds" , "lineEnds" )->
-    setDesc("Draw lines for vector end arrows");
-  addProperty("vectors", arrowObj_, "lineWidth", "lineWidth")->
-    setDesc("Vector arrow connecting line width");
+  addProp("vectors", "vectors", "visible", "Vectors at points visible");
 
-  addProperty("vectors/fill", arrowObj_, "filled"   , "visible")->setDesc("Fill visible");
-  addProperty("vectors/fill", arrowObj_, "fillColor", "color"  )->setDesc("Fill color");
-  addProperty("vectors/fill", arrowObj_, "fillAlpha", "alpha"  )->setDesc("Fill alpha");
+  addArrowProp("vectors", "length"   , "length"   , "Vector arrow length");
+  addArrowProp("vectors", "angle"    , "angle"    , "Vector arrow angle");
+  addArrowProp("vectors", "backAngle", "backAngle", "Vector arrow back angle");
+  addArrowProp("vectors", "fhead"    , "fhead"    , "Show vector arrow front head");
+  addArrowProp("vectors", "thead"    , "thead"    , "Show vector arrow tail head");
+  addArrowProp("vectors", "filled"   , "filled"   , "Vector arrow is filled");
+  addArrowProp("vectors", "lineEnds" , "lineEnds" , "Draw lines for vector end arrows");
+  addArrowProp("vectors", "lineWidth", "lineWidth", "Vector arrow connecting line width");
 
-  addProperty("vectors/stroke", arrowObj_, "border"     , "visible")->setDesc("Stroke visible");
-  addProperty("vectors/stroke", arrowObj_, "borderColor", "color"  )->setDesc("Stroke color");
-  addProperty("vectors/stroke", arrowObj_, "borderAlpha", "alpha"  )->setDesc("Stroke alpha");
-  addProperty("vectors/stroke", arrowObj_, "borderWidth", "width"  )->setDesc("Stroke width");
+  addArrowProp("vectors/fill", "filled"   , "visible", "Fill visible");
+  addArrowProp("vectors/fill", "fillColor", "color"  , "Fill color");
+  addArrowProp("vectors/fill", "fillAlpha", "alpha"  , "Fill alpha");
+
+  addArrowProp("vectors/stroke", "border"     , "visible", "Stroke visible");
+  addArrowProp("vectors/stroke", "borderColor", "color"  , "Stroke color");
+  addArrowProp("vectors/stroke", "borderAlpha", "alpha"  , "Stroke alpha");
+  addArrowProp("vectors/stroke", "borderWidth", "width"  , "Stroke width");
 
   // data label
-  addProperty("labels", this, "dataLabelTextVisible", "visible")->
-    setDesc("Data label visible");
-  addProperty("labels", this, "dataLabelTextAngle"  , "angle"  )->
-    setDesc("Data label text angle");
+  addProp("labels/text", "dataLabelTextVisible", "visible", "Data label visible");
+  addProp("labels/text", "dataLabelTextAngle"  , "angle"  , "Data label text angle");
 
-  addAllTextProperties("labels" , "dataLabelText", "Labels");
+  addAllTextProperties("labels/text", "dataLabelText", "Labels");
 
   CQChartsGroupPlot::addProperties();
 }
@@ -732,7 +728,7 @@ initAxes()
     ColumnType xColumnType = columnValueType(xColumn());
 
     if (xColumnType == CQBaseModelType::TIME)
-      xAxis()->setValueType(CQChartsAxisValueType::Type::DATE);
+      xAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
   }
 
   // set y axis name(s)
@@ -1831,8 +1827,8 @@ void
 CQChartsXYPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  int row = key->maxRow();
-  int col = key->maxCol();
+  int row = (! key->isHorizontal() ? key->maxRow() : 0);
+  int col = (! key->isHorizontal() ? 0 : key->maxCol());
 
   auto addKeyItem = [&](const QString &name, const ColorInd &is, const ColorInd &ig) {
     CQChartsXYKeyColor *color = new CQChartsXYKeyColor(this, is, ig);
@@ -1946,13 +1942,15 @@ addKeyItems(CQChartsPlotKey *key)
   key->plot()->updateKeyPosition(/*force*/true);
 }
 
+//---
+
 bool
 CQChartsXYPlot::
 probe(ProbeData &probeData) const
 {
   std::vector<double> yvals;
 
-  if (! interpY(probeData.x, yvals))
+  if (! interpY(probeData.p.x, yvals))
     return false;
 
   for (const auto &yval : yvals)

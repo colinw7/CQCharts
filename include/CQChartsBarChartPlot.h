@@ -19,6 +19,10 @@ class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
   QString name() const override { return "barchart"; }
   QString desc() const override { return "BarChart"; }
 
+  Dimension dimension() const override { return Dimension::ONE_D; }
+
+  void addParameters() override;
+
   QString yColumnName() const override { return "value"; }
 
   bool allowXAxisIntegral() const override { return false; }
@@ -26,11 +30,7 @@ class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
 
   bool allowXLog() const override { return false; }
 
-  Dimension dimension() const override { return Dimension::ONE_D; }
-
   bool canProbe() const override { return true; }
-
-  void addParameters() override;
 
   QString description() const override;
 
@@ -370,9 +370,9 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
-  bool isDotLines() const { return dotLines_; }
+  bool isDotLines() const { return dotLineData_.enabled; }
 
-  const CQChartsLength &dotLineWidth() const { return dotLineWidth_; }
+  const CQChartsLength &dotLineWidth() const { return dotLineData_.width; }
   void setDotLineWidth(const CQChartsLength &l);
 
   //---
@@ -400,6 +400,9 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   QString valueName() const;
   QString valueStr(double v) const;
+
+  CQChartsAxis *mappedXAxis() const override;
+  CQChartsAxis *mappedYAxis() const override;
 
   void addKeyItems(CQChartsPlotKey *key) override;
 
@@ -487,13 +490,18 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   CQChartsBarChartValueSet *groupValueSet(int groupId);
 
  private:
+  struct DotLineData {
+    bool           enabled { false }; //!< shown
+    CQChartsLength width   { "3px" }; //!< width
+  };
+
   CQChartsColumn     nameColumn_;                          //!< name column
   CQChartsColumn     labelColumn_;                         //!< data label column
   PlotType           plotType_       { PlotType::NORMAL }; //!< plot type
   ValueType          valueType_      { ValueType::VALUE }; //!< bar value type
   bool               percent_        { false };            //!< percent values
   bool               colorBySet_     { false };            //!< color bars by set or value
-  bool               dotLines_       { false };            //!< show dot lines
+  DotLineData        dotLineData_;                         //!< dot line data
   CQChartsLength     dotLineWidth_   { "3px" };            //!< dot line width
   CQChartsDataLabel* dataLabel_      { nullptr };          //!< data label data
   int                numVisible_     { 0 };                //!< number of visible bars

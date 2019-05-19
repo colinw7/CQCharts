@@ -1284,7 +1284,7 @@ addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
   QWidget *edit = nullptr;
 
   if (parameter->isRequired()) {
-    spinEdit = new CQRealSpin;
+    spinEdit = CQUtil::makeWidget<CQRealSpin>("spinEdit");
     edit     = spinEdit;
 
     spinEdit->setValue(r);
@@ -1335,7 +1335,7 @@ addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
   QWidget *edit = nullptr;
 
   if (parameter->isRequired()) {
-    spinEdit = new CQIntegerSpin;
+    spinEdit = CQUtil::makeWidget<CQIntegerSpin>("spinEdit");
     edit     = spinEdit;
 
     spinEdit->setValue(i);

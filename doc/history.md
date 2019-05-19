@@ -850,3 +850,14 @@
  + Add more property description test
  + Rename some properties
  + Add user name for types and add to property view
+# 5/19/2019
+ + Improve plot tip descriptions using new HTML builder class
+ + Improve tip widget to allow expand/collapse
+ + Add -properties to create_charts_annotation commands
+ + Update create_charts_annotation command options to use consistent option names (fill/stroke)
+ + Swap axis data when plot orientation changed so style options are retained
+ + Use more optional types for user customization properties
+ + Add axis tick and grid line enums to replace booleans
+ + Add probe support to scatter and geometry plot
+ + Add separator scatter points style options
+ + Add log support to scatter and barchart plots

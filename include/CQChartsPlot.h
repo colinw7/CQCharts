@@ -213,8 +213,8 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(bool y1y2           READ isY1Y2         WRITE setY1Y2          )
   Q_PROPERTY(bool invertX        READ isInvertX      WRITE setInvertX       )
   Q_PROPERTY(bool invertY        READ isInvertY      WRITE setInvertY       )
-  Q_PROPERTY(bool logX           READ isLogX         WRITE setLogX          )
-  Q_PROPERTY(bool logY           READ isLogY         WRITE setLogY          )
+//Q_PROPERTY(bool logX           READ isLogX         WRITE setLogX          )
+//Q_PROPERTY(bool logY           READ isLogY         WRITE setLogY          )
   Q_PROPERTY(bool autoFit        READ isAutoFit      WRITE setAutoFit       )
   Q_PROPERTY(bool preview        READ isPreview      WRITE setPreview       )
   Q_PROPERTY(int  previewMaxRows READ previewMaxRows WRITE setPreviewMaxRows)
@@ -268,11 +268,11 @@ class CQChartsPlot : public CQChartsObj,
   struct ProbeData {
     using Values = std::vector<ProbeValue>;
 
-    double          x         { 0.0 };
-    double          y         { 0.0 };
-    Values          xvals;
-    Values          yvals;
-    Qt::Orientation direction { Qt::Vertical };
+    CQChartsGeom::Point p;
+    Values              xvals;
+    Values              yvals;
+    Qt::Orientation     direction { Qt::Vertical };
+    bool                both      { false };
   };
 
   using ModelP          = QSharedPointer<QAbstractItemModel>;
@@ -602,6 +602,11 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsAxis *xAxis() const { return xAxis_; }
   CQChartsAxis *yAxis() const { return yAxis_; }
 
+  virtual CQChartsAxis *mappedXAxis() const { return xAxis(); }
+  virtual CQChartsAxis *mappedYAxis() const { return yAxis(); }
+
+  //---
+
   CQChartsPlotKey *key() const { return keyObj_; }
 
   CQChartsTitle *title() const { return titleObj_; }
@@ -629,10 +634,10 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  bool isLogX() const { return logX_; }
+  bool isLogX() const;
   void setLogX(bool b);
 
-  bool isLogY() const { return logY_; }
+  bool isLogY() const;
   void setLogY(bool b);
 
   //---
@@ -721,8 +726,10 @@ class CQChartsPlot : public CQChartsObj,
 
   void addSymbolProperties(const QString &path, const QString &prefix, const QString &descPrefix);
 
-  void addLineProperties(const QString &path, const QString &prefix, const QString &descPrefix);
-  void addFillProperties(const QString &path, const QString &prefix, const QString &descPrefix);
+  void addLineProperties(const QString &path, const QString &prefix,
+                         const QString &descPrefix, bool hidden=false);
+  void addFillProperties(const QString &path, const QString &prefix,
+                         const QString &descPrefix, bool hidden=false);
 
   void addTextProperties   (const QString &path, const QString &prefix, const QString &descPrefix);
   void addAllTextProperties(const QString &path, const QString &prefix, const QString &descPrefix);
@@ -736,10 +743,11 @@ class CQChartsPlot : public CQChartsObj,
 
   bool getTclProperty(const QString &name, QVariant &value) const;
 
-  bool getPropertyDesc    (const QString &name, QString  &desc) const;
-  bool getPropertyType    (const QString &name, QString  &type) const;
-  bool getPropertyUserType(const QString &name, QString  &type) const;
-  bool getPropertyObject  (const QString &name, QObject* &obj ) const;
+  bool getPropertyDesc    (const QString &name, QString  &desc, bool hidden=false) const;
+  bool getPropertyType    (const QString &name, QString  &type, bool hidden=false) const;
+  bool getPropertyUserType(const QString &name, QString  &type, bool hidden=false) const;
+  bool getPropertyObject  (const QString &name, QObject* &obj , bool hidden=false) const;
+  bool getPropertyHidden  (const QString &name, bool &hidden) const;
 
   void propertyItemSelected(QObject *obj, const QString &path);
 
@@ -1107,6 +1115,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void interruptRange();
 
+  bool isReady() const;
+
  public:
   void syncRange();
 
@@ -1328,6 +1338,8 @@ class CQChartsPlot : public CQChartsObj,
   virtual bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
 
   void addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const;
+
+  void resetObjTips();
 
   // handle rect select
   bool rectSelect(const CQChartsGeom::BBox &r, SelMod selMod);
@@ -1894,26 +1906,31 @@ class CQChartsPlot : public CQChartsObj,
   void connectModel();
   void disconnectModel();
 
+  //---
+
   void objsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const;
 
   void plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const;
 
   void objsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const;
 
+  bool objNearestPoint(const CQChartsGeom::Point &p, CQChartsPlotObj* &obj) const;
+
  protected:
+  //*! update state
   enum class UpdateState {
-    INVALID,                // invalid state
-    CALC_RANGE,             // calculating range
-    CALC_OBJS,              // calculating objects
-    DRAW_OBJS,              // drawing objects
-    READY,                  // ready to draw
-    UPDATE_RANGE,           // needs range update
-    UPDATE_OBJS,            // needs objs update
-    UPDATE_DRAW_OBJS,       // needs draw objects
-    UPDATE_DRAW_BACKGROUND, // needs draw background
-    UPDATE_DRAW_FOREGROUND, // needs draw foreground
-    UPDATE_VIEW,            // update view
-    DRAWN                   // drawn
+    INVALID,                //!< invalid state
+    CALC_RANGE,             //!< calculating range
+    CALC_OBJS,              //!< calculating objects
+    DRAW_OBJS,              //!< drawing objects
+    READY,                  //!< ready to draw
+    UPDATE_RANGE,           //!< needs range update
+    UPDATE_OBJS,            //!< needs objs update
+    UPDATE_DRAW_OBJS,       //!< needs draw objects
+    UPDATE_DRAW_BACKGROUND, //!< needs draw background
+    UPDATE_DRAW_FOREGROUND, //!< needs draw foreground
+    UPDATE_VIEW,            //!< update view
+    DRAWN                   //!< drawn
   };
 
   struct ThreadData {
@@ -2178,8 +2195,8 @@ class CQChartsPlot : public CQChartsObj,
   bool                         overview_         { false };      //!< is overview
   bool                         invertX_          { false };      //!< x values inverted
   bool                         invertY_          { false };      //!< y values inverted
-  bool                         logX_             { false };      //!< x values log scaled
-  bool                         logY_             { false };      //!< y values log scaled
+//bool                         logX_             { false };      //!< x values log scaled
+//bool                         logY_             { false };      //!< y values log scaled
   bool                         noData_           { false };      //!< is no data
   bool                         debugUpdate_      { false };      //!< debug update
   ConnectData                  connectData_;                     //!< associated plot data

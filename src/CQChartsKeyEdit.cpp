@@ -169,8 +169,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //----
 
-  CQGroupBox *placementGroup = new CQGroupBox("Placement");
-  placementGroup->setObjectName("placementGroup");
+  CQGroupBox *placementGroup = CQUtil::makeLabelWidget<CQGroupBox>("Placement", "placementGroup");
 
   QGridLayout *placementGroupLayout = CQUtil::makeLayout<QGridLayout>(placementGroup, 0, 2);
 
@@ -298,8 +297,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //----
 
-  CQGroupBox *headerGroup = new CQGroupBox("Header");
-  headerGroup->setObjectName("headerGroup");
+  CQGroupBox *headerGroup = CQUtil::makeLabelWidget<CQGroupBox>("Header", "headerGroup");
 
   QGridLayout *headerGroupLayout = CQUtil::makeLayout<QGridLayout>(headerGroup, 0, 2);
 

@@ -19,17 +19,19 @@ class CQChartsTreeMapPlotType : public CQChartsHierPlotType {
   QString name() const override { return "treemap"; }
   QString desc() const override { return "TreeMap"; }
 
+  Dimension dimension() const override { return Dimension::ONE_D; }
+
   void addParameters() override;
 
   bool customXRange() const override { return false; }
   bool customYRange() const override { return false; }
 
-  Dimension dimension() const override { return Dimension::ONE_D; }
-
   bool hasAxes() const override { return false; }
 
   bool allowXLog() const override { return false; }
   bool allowYLog() const override { return false; }
+
+  bool canProbe() const override { return false; }
 
   QString description() const override;
 
@@ -110,7 +112,11 @@ class CQChartsTreeMapNode {
   CQChartsTreeMapHierNode *rootNode(CQChartsTreeMapHierNode *root) const;
 
   friend bool operator<(const CQChartsTreeMapNode &n1, const CQChartsTreeMapNode &n2) {
-    return n1.size_ < n2.size_;
+    return n1.hierSize() < n2.hierSize();
+  }
+
+  friend bool operator>(const CQChartsTreeMapNode &n1, const CQChartsTreeMapNode &n2) {
+    return n1.hierSize() > n2.hierSize();
   }
 
   virtual QColor interpColor(const CQChartsTreeMapPlot *plot, const CQChartsColor &c,
@@ -138,7 +144,7 @@ class CQChartsTreeMapNode {
 
 struct CQChartsTreeMapNodeCmp {
   bool operator()(const CQChartsTreeMapNode *n1, const CQChartsTreeMapNode *n2) {
-    return (*n1) < (*n2);
+    return (*n1) > (*n2);
   }
 };
 
@@ -298,10 +304,12 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   Q_OBJECT
 
   // title/header shown and height
-  Q_PROPERTY(bool           titles         READ isTitles       WRITE setTitles        )
-  Q_PROPERTY(double         titleMaxExtent READ titleMaxExtent WRITE setTitleMaxExtent)
-  Q_PROPERTY(CQChartsLength headerHeight   READ headerHeight   WRITE setHeaderHeight  )
-  Q_PROPERTY(bool           colorById      READ isColorById    WRITE setColorById     )
+  Q_PROPERTY(bool              titles         READ isTitles       WRITE setTitles        )
+  Q_PROPERTY(CQChartsOptReal   titleMaxExtent READ titleMaxExtent WRITE setTitleMaxExtent)
+  Q_PROPERTY(CQChartsOptLength titleHeight    READ titleHeight    WRITE setTitleHeight   )
+
+  // color
+  Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
 
   // header shape (border, fill)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Header,header)
@@ -332,13 +340,13 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   bool isTitles() const { return titles_; }
   void setTitles(bool b);
 
-  double titleMaxExtent() const { return titleMaxExtent_; }
-  void setTitleMaxExtent(double r);
+  const CQChartsOptReal &titleMaxExtent() const { return titleMaxExtent_; }
+  void setTitleMaxExtent(const CQChartsOptReal &r);
 
-  const CQChartsLength &headerHeight() const { return headerHeight_; }
-  void setHeaderHeight(const CQChartsLength &l);
+  const CQChartsOptLength &titleHeight() const { return titleHeight_; }
+  void setTitleHeight(const CQChartsOptLength &l);
 
-  double calcHeaderHeight() const;
+  double calcTitleHeight() const;
 
   //---
 
@@ -469,22 +477,22 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
  private:
   using Node = CQChartsTreeMapHierNode;
 
-  bool           titles_             { true };    //!< show title bar (header)
-  double         titleMaxExtent_     { 0.5 };     //!< title bar max extent (0-1)
-  CQChartsLength headerHeight_       { "0px" };   //!< header height (should be font based)
-  CQChartsLength marginWidth_        { "2px" };   //!< box margin
-  bool           colorById_          { true };    //!< color by id
-  Node*          root_               { nullptr }; //!< root node
-  Node*          firstHier_          { nullptr }; //!< first hier node
-  QString        currentRootName_;                //!< current root name
-  int            colorId_            { -1 };      //!< current color id
-  int            numColorIds_        { 0 };       //!< num used color ids
-  int            maxDepth_           { 1 };       //!< max hier depth
-  int            hierInd_            { 0 };       //!< current hier ind
-  mutable int    ig_                 { 0 };       //!< current group index
-  mutable int    in_                 { 0 };       //!< current node index
-  double         windowHeaderHeight_ { 0.01 };    //!< calculated window pixel header height
-  double         windowMarginWidth_  { 0.01 };    //!< calculated window pixel margin width
+  bool              titles_             { true };    //!< show title bar (header)
+  CQChartsOptReal   titleMaxExtent_;                 //!< user specified title bar max extent (0-1)
+  CQChartsOptLength titleHeight_;                    //!< user specified title height
+  CQChartsLength    marginWidth_        { "2px" };   //!< box margin
+  bool              colorById_          { true };    //!< color by id
+  Node*             root_               { nullptr }; //!< root node
+  Node*             firstHier_          { nullptr }; //!< first hier node
+  QString           currentRootName_;                //!< current root name
+  int               colorId_            { -1 };      //!< current color id
+  int               numColorIds_        { 0 };       //!< num used color ids
+  int               maxDepth_           { 1 };       //!< max hier depth
+  int               hierInd_            { 0 };       //!< current hier ind
+  mutable int       ig_                 { 0 };       //!< current group index
+  mutable int       in_                 { 0 };       //!< current node index
+  double            windowHeaderHeight_ { 0.01 };    //!< calculated window pixel header height
+  double            windowMarginWidth_  { 0.01 };    //!< calculated window pixel margin width
 };
 
 #endif

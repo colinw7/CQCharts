@@ -6,6 +6,7 @@
 #include <CQChartsColumn.h>
 #include <CQChartsGeom.h>
 #include <CQChartsUtil.h>
+#include <CQChartsOptInt.h>
 #include <CQChartsOptReal.h>
 #include <CQChartsAxisTickLabelPlacement.h>
 #include <CInterval.h>
@@ -43,8 +44,10 @@ class CQChartsAxis : public CQChartsObj,
   Q_OBJECT
 
   // general
+  Q_PROPERTY(Qt::Orientation direction READ direction WRITE setDirection)
+
+  // options
   Q_PROPERTY(bool             visible          READ isVisible          WRITE setVisible         )
-  Q_PROPERTY(Qt::Orientation  direction        READ direction          WRITE setDirection       )
   Q_PROPERTY(CQChartsAxisSide side             READ side               WRITE setSide            )
   Q_PROPERTY(CQChartsOptReal  position         READ position           WRITE setPosition        )
   Q_PROPERTY(bool             requireTickLabel READ isRequireTickLabel WRITE setRequireTickLabel)
@@ -53,8 +56,8 @@ class CQChartsAxis : public CQChartsObj,
 
   Q_PROPERTY(QString          format           READ format             WRITE setFormat          )
   Q_PROPERTY(double           maxFitExtent     READ maxFitExtent       WRITE setMaxFitExtent    )
-  Q_PROPERTY(double           tickIncrement    READ tickIncrement      WRITE setTickIncrement   )
-  Q_PROPERTY(double           majorIncrement   READ majorIncrement     WRITE setMajorIncrement  )
+  Q_PROPERTY(CQChartsOptInt   tickIncrement    READ tickIncrement      WRITE setTickIncrement   )
+  Q_PROPERTY(CQChartsOptInt   majorIncrement   READ majorIncrement     WRITE setMajorIncrement  )
   Q_PROPERTY(double           start            READ start              WRITE setStart           )
   Q_PROPERTY(double           end              READ end                WRITE setEnd             )
   Q_PROPERTY(bool             includeZero      READ isIncludeZero      WRITE setIncludeZero     )
@@ -63,12 +66,11 @@ class CQChartsAxis : public CQChartsObj,
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Axes,axes)
 
   // ticks
-  Q_PROPERTY(bool minorTicksDisplayed READ isMinorTicksDisplayed WRITE setMinorTicksDisplayed)
-  Q_PROPERTY(bool majorTicksDisplayed READ isMajorTicksDisplayed WRITE setMajorTicksDisplayed)
-  Q_PROPERTY(int  minorTickLen        READ minorTickLen          WRITE setMinorTickLen       )
-  Q_PROPERTY(int  majorTickLen        READ majorTickLen          WRITE setMajorTickLen       )
-  Q_PROPERTY(bool tickInside          READ isTickInside          WRITE setTickInside         )
-  Q_PROPERTY(bool mirrorTicks         READ isMirrorTicks         WRITE setMirrorTicks        )
+  Q_PROPERTY(TicksDisplayed ticksDisplayed READ ticksDisplayed WRITE setTicksDisplayed)
+  Q_PROPERTY(int            majorTickLen   READ majorTickLen   WRITE setMajorTickLen  )
+  Q_PROPERTY(int            minorTickLen   READ minorTickLen   WRITE setMinorTickLen  )
+  Q_PROPERTY(bool           tickInside     READ isTickInside   WRITE setTickInside    )
+  Q_PROPERTY(bool           mirrorTicks    READ isMirrorTicks  WRITE setMirrorTicks   )
 
   // ticks label
   Q_PROPERTY(bool                           tickLabelAutoHide
@@ -85,6 +87,11 @@ class CQChartsAxis : public CQChartsObj,
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(AxesLabel,axesLabel)
 
   // grid line/fill
+  Q_PROPERTY(GridLinesDisplayed gridLinesDisplayed
+             READ gridLinesDisplayed WRITE setGridLinesDisplayed)
+  Q_PROPERTY(GridFillDisplayed  gridFillDisplayed
+             READ gridFillDisplayed  WRITE setGridFillDisplayed )
+
   Q_PROPERTY(bool gridMid   READ isGridMid   WRITE setGridMid  )
   Q_PROPERTY(bool gridAbove READ isGridAbove WRITE setGridAbove)
 
@@ -92,7 +99,28 @@ class CQChartsAxis : public CQChartsObj,
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(AxesMinorGrid,axesMinorGrid)
   CQCHARTS_NAMED_FILL_DATA_PROPERTIES(AxesGrid,axesGrid)
 
+  Q_ENUMS(TicksDisplayed)
+  Q_ENUMS(GridLinesDisplayed)
+  Q_ENUMS(GridFillDisplayed)
+
  public:
+  enum class TicksDisplayed {
+    NONE,
+    MAJOR,
+    MAJOR_AND_MINOR
+  };
+
+  enum class GridLinesDisplayed {
+    NONE,
+    MAJOR,
+    MAJOR_AND_MINOR
+  };
+
+  enum class GridFillDisplayed {
+    NONE,
+    MAJOR
+  };
+
   using ColorInd = CQChartsUtil::ColorInd;
 
  public:
@@ -101,9 +129,17 @@ class CQChartsAxis : public CQChartsObj,
 
   virtual ~CQChartsAxis();
 
+  //---
+
+  static void swap(CQChartsAxis *lhs, CQChartsAxis *rhs);
+
+  //---
+
   CQCharts *charts() const;
 
   QString calcId() const override;
+
+  //---
 
   CQChartsPlot *plot() { return const_cast<CQChartsPlot *>(plot_); }
   const CQChartsPlot *plot() const { return plot_; }
@@ -112,18 +148,35 @@ class CQChartsAxis : public CQChartsObj,
   CQChartsView *view();
   const CQChartsView *view() const;
 
-  bool isVisible() const { return visible_; }
-  void setVisible(bool b);
+  //---
 
-  void setSelected(bool b) override;
-
+  // get/set direction (TODO: allow set direction)
   Qt::Orientation direction() const { return direction_; }
   void setDirection(Qt::Orientation dir) { direction_ = dir; updatePlotPosition(); }
 
   bool isHorizontal() const { return direction() == Qt::Horizontal; }
 
+  //---
+
+  // get/set visible
+  bool isVisible() const { return visible_; }
+  void setVisible(bool b);
+
+  //---
+
+  void setSelected(bool b) override;
+
+  //---
+
   CQChartsAxisSide side() const { return side_; }
   void setSide(CQChartsAxisSide side) { side_ = side; updatePlotPosition(); }
+
+  //---
+
+  const CQChartsOptReal &position() const { return position_; }
+  void setPosition(const CQChartsOptReal &r);
+
+  //---
 
   double start() const { return start_; }
   void setStart(double start) { setRange(start, end_); }
@@ -131,15 +184,19 @@ class CQChartsAxis : public CQChartsObj,
   double end() const { return end_; }
   void setEnd(double end) { setRange(start_, end); }
 
+  //---
+
   bool isIncludeZero() const { return includeZero_; }
-  void setIncludeZero(bool b) { includeZero_ = b; updatePlotRange(); }
+  void setIncludeZero(bool b);
+
+  //---
 
   void setRange(double start, double end);
 
   //---
 
   const CQChartsAxisValueType &valueType() const { return valueType_; }
-  void setValueType(const CQChartsAxisValueType &v);
+  void setValueType(const CQChartsAxisValueType &v, bool notify=true);
 
   bool isIntegral() const { return (valueType_.type() == CQChartsAxisValueType::Type::INTEGER); }
   bool isDate    () const { return (valueType_.type() == CQChartsAxisValueType::Type::DATE); }
@@ -172,6 +229,24 @@ class CQChartsAxis : public CQChartsObj,
 
   //---
 
+  // grid lines displayed
+  const GridLinesDisplayed &gridLinesDisplayed() const { return gridLinesDisplayed_; }
+  void setGridLinesDisplayed(const GridLinesDisplayed &d);
+
+  bool isMajorGridLinesDisplayed() const {
+    return gridLinesDisplayed_ == GridLinesDisplayed::MAJOR ||
+           gridLinesDisplayed_ == GridLinesDisplayed::MAJOR_AND_MINOR; }
+  bool isMinorGridLinesDisplayed() const {
+    return gridLinesDisplayed_ == GridLinesDisplayed::MAJOR_AND_MINOR; }
+
+  // grid fill displayed
+  const GridFillDisplayed &gridFillDisplayed() const { return gridFillDisplayed_; }
+  void setGridFillDisplayed(const GridFillDisplayed &d);
+
+  bool isMajorGridFilled() const { return gridFillDisplayed_ == GridFillDisplayed::MAJOR; }
+
+  //---
+
   // grid
   bool isGridMid() const { return gridMid_; }
   void setGridMid(bool b) { CQChartsUtil::testAndSet(gridMid_, b, [&]() { redraw(); } ); }
@@ -179,22 +254,26 @@ class CQChartsAxis : public CQChartsObj,
   bool isGridAbove() const { return gridAbove_; }
   void setGridAbove(bool b) { CQChartsUtil::testAndSet(gridAbove_, b, [&]() { redraw(); } ); }
 
-  //----
+  //---
 
-  // ticks
-  bool isMinorTicksDisplayed() const { return minorTicksDisplayed_; }
-  void setMinorTicksDisplayed(bool b) {
-    CQChartsUtil::testAndSet(minorTicksDisplayed_, b, [&]() { redraw(); } ); }
+  // ticks displayed
+  const TicksDisplayed &ticksDisplayed() const { return ticksDisplayed_; }
+  void setTicksDisplayed(const TicksDisplayed &d);
 
-  bool isMajorTicksDisplayed() const { return majorTicksDisplayed_; }
-  void setMajorTicksDisplayed(bool b) {
-    CQChartsUtil::testAndSet(majorTicksDisplayed_, b, [&]() { redraw(); } ); }
+  bool isMajorTicksDisplayed() const {
+    return ticksDisplayed_ == TicksDisplayed::MAJOR ||
+           ticksDisplayed_ == TicksDisplayed::MAJOR_AND_MINOR; }
+  bool isMinorTicksDisplayed() const {
+    return ticksDisplayed_ == TicksDisplayed::MAJOR_AND_MINOR; }
+
+  //---
+
+  // major/minor ticks
+  int majorTickLen() const { return majorTickLen_; }
+  void setMajorTickLen(int i) { CQChartsUtil::testAndSet(majorTickLen_, i, [&]() { redraw(); } ); }
 
   int minorTickLen() const { return minorTickLen_; }
   void setMinorTickLen(int i) { CQChartsUtil::testAndSet(minorTickLen_, i, [&]() { redraw(); } ); }
-
-  int majorTickLen() const { return majorTickLen_; }
-  void setMajorTickLen(int i) { CQChartsUtil::testAndSet(majorTickLen_, i, [&]() { redraw(); } ); }
 
   bool isTickInside() const { return tickInside_; }
   void setTickInside(bool b) { CQChartsUtil::testAndSet(tickInside_, b, [&]() { redraw(); } ); }
@@ -215,25 +294,31 @@ class CQChartsAxis : public CQChartsObj,
 
   //---
 
-  uint numMajorTicks() const { return numMajorTicks_; }
-  void setNumMajorTicks(uint n) {
-    CQChartsUtil::testAndSet(numMajorTicks_, n, [&]() { redraw(); } ); }
-
   uint maxMajorTicks() const { return maxMajorTicks_; }
-
-  uint numMinorTicks() const { return numMinorTicks_; }
-  void setNumMinorTicks(uint n) {
-    CQChartsUtil::testAndSet(numMinorTicks_, n, [&]() { redraw(); } ); }
-
-  uint tickIncrement() const { return tickIncrement_; }
-  void setTickIncrement(uint tickIncrement);
 
   double minorIncrement() const;
 
-  double majorIncrement() const { return majorIncrement_; }
-  void setMajorIncrement(double i);
+  //---
+
+  // user specified ticl increment
+  const CQChartsOptInt &tickIncrement() const { return tickIncrement_; }
+  void setTickIncrement(const CQChartsOptInt &tickIncrement);
+
+  void setTickIncrement(int i) { setTickIncrement(CQChartsOptInt(i)); }
 
   //---
+
+  // user specified major increment
+  const CQChartsOptInt &majorIncrement() const { return majorIncrement_; }
+  void setMajorIncrement(const CQChartsOptInt &i);
+
+  void setMajorIncrement(int i) { setMajorIncrement(CQChartsOptInt(i)); }
+
+  //---
+
+  // internal calculation data
+  uint numMajorTicks() const { return numMajorTicks_; }
+  uint numMinorTicks() const { return numMinorTicks_; }
 
   double calcStart    () const { return calcStart_    ; }
   double calcEnd      () const { return calcEnd_      ; }
@@ -268,11 +353,6 @@ class CQChartsAxis : public CQChartsObj,
 
   //---
 
-  const CQChartsOptReal &position() const { return position_; }
-  void setPosition(const CQChartsOptReal &r);
-
-  //---
-
   QString valueStr(double pos) const;
 
   QString valueStr(const CQChartsPlot *plot, double pos) const;
@@ -298,6 +378,7 @@ class CQChartsAxis : public CQChartsObj,
   void redraw(bool wait=true);
 
   void updatePlotRange();
+  void updatePlotRangeAndObjs();
 
   CQChartsEditHandles *editHandles() const;
 
@@ -400,59 +481,68 @@ class CQChartsAxis : public CQChartsObj,
 
   using CQChartsEditHandlesP = std::unique_ptr<CQChartsEditHandles>;
 
-  const CQChartsPlot*   plot_                { nullptr }; //!< parent plot
+  // basic state
+  const CQChartsPlot*   plot_                { nullptr };        //!< parent plot
+  Qt::Orientation       direction_           { Qt::Horizontal }; //!< direction
 
   // general
-  bool                  visible_             { true };            //!< is visible
-  Qt::Orientation       direction_           { Qt::Horizontal };  //!< direction
-  CQChartsAxisSide      side_;                                    //!< axis plot side
-  CQChartsAxisValueType valueType_;                               //!< value type
-  bool                  date_                { false };           //!< are values dates
-  bool                  log_                 { false };           //!< is log values
-  bool                  dataLabels_          { false };           //!< use data for labels
-  CQChartsColumn        column_;                                  //!< associated column
-  QString               formatStr_;                               //!< value format string
-  double                maxFitExtent_        { 10 };              //!< max extent percent for fit
+  bool                  visible_             { true };  //!< axis is visible
+  CQChartsAxisSide      side_;                          //!< axis plot placement side
+  CQChartsOptReal       position_;                      //!< axis custom position
+  CQChartsAxisValueType valueType_;                     //!< value type
+  bool                  dataLabels_          { false }; //!< use data for labels
+  CQChartsColumn        column_;                        //!< associated column
+  QString               formatStr_;                     //!< value format string
+  double                maxFitExtent_        { 10 };    //!< max extent percent for fit
 
   // label
-  bool                  labelDisplayed_      { true }; //!< show label
-  QString               label_;                        //!< label
-  QString               userLabel_;                    //!< user label
+  bool                  labelDisplayed_      { true };  //!< show label
+  QString               label_;                         //!< label
+  QString               userLabel_;                     //!< user label
 
   // grid (lines and gap fill)
+  GridLinesDisplayed gridLinesDisplayed_ { GridLinesDisplayed::NONE }; //!< grid lines displayed
+  GridFillDisplayed  gridFillDisplayed_  { GridFillDisplayed::NONE  }; //!< grid fill displayed
+
   bool                  gridMid_             { false }; //!< show grid at mid point
   bool                  gridAbove_           { false }; //!< is grid above plot
 
   // ticks
-  bool                  minorTicksDisplayed_ { true };  //!< minor ticks displayed
-  bool                  majorTicksDisplayed_ { true };  //!< major ticks displayed
-  int                   minorTickLen_        { 4 };     //!< minor tick length
+  TicksDisplayed ticksDisplayed_ { TicksDisplayed::MAJOR_AND_MINOR }; //!< ticks displayed
+
   int                   majorTickLen_        { 8 };     //!< major tick length
+  int                   minorTickLen_        { 4 };     //!< minor tick length
   bool                  tickInside_          { false }; //!< tick inside plot
   bool                  mirrorTicks_         { false }; //!< mirror ticks
 
-  bool                  tickLabelAutoHide_  { true }; //!< tick auto hide
-  TickLabelPlacement    tickLabelPlacement_;          //!< tick placement
+  bool                  tickLabelAutoHide_   { true };  //!< tick auto hide
+  TickLabelPlacement    tickLabelPlacement_;            //!< tick placement
 
-  // state
-  double                start_               { 0.0 };     //!< axis start
-  double                end_                 { 1.0 };     //!< axis end
-  bool                  includeZero_         { false };   //!< include zero in range
-  uint                  numMajorTicks_       { 1 };       //!< num major ticks
-  uint                  maxMajorTicks_       { 1000 };    //!< max major ticks
-  uint                  numMinorTicks_       { 0 };       //!< num minor ticks
-  uint                  tickIncrement_       { 0 };       //!< tick increment
-  double                majorIncrement_      { 0 };       //!< major increment
-  double                calcStart_           { 0 };       //!< calculated axis start
-  double                calcEnd_             { 1 };       //!< calculated axis end
-  double                calcIncrement_       { 0 };       //!< calculated axis increment
-  CInterval             interval_;                        //!< interval data
-  TickSpaces            tickSpaces_;                      //!< tick spaces (?)
-  TickLabels            tickLabels_;                      //!< tick labels
-  bool                  requireTickLabel_    { false };   //!< use tick label values even if empty
-  CQChartsOptReal       position_;                        //!< axis position
-  CQChartsEditHandlesP  editHandles_;                     //!< edit handles
+  // placement state
+  double                start_               { 0.0 };   //!< axis start
+  double                end_                 { 1.0 };   //!< axis end
+  bool                  includeZero_         { false }; //!< include zero in range
+  uint                  maxMajorTicks_       { 1000 };  //!< max major ticks
+  CQChartsOptInt        tickIncrement_;                 //!< user specified tick increment
+  CQChartsOptInt        majorIncrement_;                //!< user specified major increment
 
+  // internal calculation data
+  CInterval             interval_;                      //!< interval data
+  uint                  numMajorTicks_       { 1 };     //!< num major ticks
+  uint                  numMinorTicks_       { 0 };     //!< num minor ticks
+  double                calcIncrement_       { 0 };     //!< calculated axis increment
+  double                calcStart_           { 0 };     //!< calculated axis start
+  double                calcEnd_             { 1 };     //!< calculated axis end
+
+  // tick customization
+  TickSpaces            tickSpaces_;                    //!< tick spaces (?)
+  TickLabels            tickLabels_;                    //!< tick labels
+  bool                  requireTickLabel_    { false }; //!< use tick label values even if empty
+
+  // edit state
+  CQChartsEditHandlesP  editHandles_; //!< edit handles
+
+  // bbox draw state
   CQChartsGeom::BBox     bbox_;                   //!< axis box
   CQChartsGeom::BBox     fitBBox_;                //!< fit box
   CQChartsGeom::BBox     fitLBBox_;               //!< label fit box

@@ -17,9 +17,7 @@ CQChartsPositionEdit(QWidget *parent) :
 
   //---
 
-  edit_ = new CQPoint2DEdit;
-
-  edit_->setObjectName("point");
+  edit_ = CQUtil::makeWidget<CQPoint2DEdit>("point");
 
   layout->addWidget(edit_);
 

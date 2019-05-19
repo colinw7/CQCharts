@@ -6,6 +6,7 @@
 #include <CQCharts.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
@@ -46,9 +47,10 @@ QString
 CQChartsParallelPlotType::
 description() const
 {
-  return "<h2>Parallel Plot</h2>\n"
-         "<h3>Summary</h3>\n"
-         "<p>Draws lines through values of multiple column values for each row.\n";
+  return CQChartsHtml().
+   h2("Parallel Plot").
+    h3("Summary").
+     p("Draws lines through values of multiple column values for each row.");
 }
 
 CQChartsPlot *
@@ -129,24 +131,32 @@ void
 CQChartsParallelPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "xColumn" , "x")->setDesc("X column");
-  addProperty("columns", this, "yColumns", "y")->setDesc("Y columns");
+  addProp("columns", "xColumn" , "x", "X column");
+  addProp("columns", "yColumns", "y", "Y columns");
 
-  addProperty("options", this, "horizontal")->setDesc("Draw horizontally");
+  // options
+  addProp("options", "horizontal", "", "Draw horizontally");
 
   // points
-  addProperty("points", this, "points", "visible")->setDesc("Points visible");
+  addProp("points", "points", "visible", "Points visible");
 
   addSymbolProperties("points/symbol", "", "Points");
 
   // lines
-  addProperty("lines", this, "lines"          , "visible"   )->setDesc("Lines visible");
-  addProperty("lines", this, "linesSelectable", "selectable")->setDesc("Lines selectable");
+  addProp("lines", "lines"          , "visible"   , "Lines visible");
+  addProp("lines", "linesSelectable", "selectable", "Lines selectable");
 
-  addLineProperties("lines", "lines", "");
+  addLineProperties("lines/stroke", "lines", "");
 }
 
 CQChartsGeom::Range
@@ -262,15 +272,18 @@ calcRange() const
 
   CQChartsGeom::Range dataRange;
 
+  auto updateRange = [&](double x, double y) {
+    if (! isHorizontal())
+      dataRange.updateRange(x, y);
+    else
+      dataRange.updateRange(y, x);
+  };
+
+  //---
+
   // set plot range
-  if (! isHorizontal()) {
-    dataRange.updateRange(   - 0.5, 0);
-    dataRange.updateRange(ns - 0.5, 1);
-  }
-  else {
-    dataRange.updateRange(0,    - 0.5);
-    dataRange.updateRange(1, ns - 0.5);
-  }
+  updateRange(   - 0.5, 0);
+  updateRange(ns - 0.5, 1);
 
   th->normalizedDataRange_ = dataRange;
 
@@ -516,30 +529,30 @@ probe(ProbeData &probeData) const
   int n = yColumns().count();
 
   if (! isHorizontal()) {
-    int x = std::round(probeData.x);
+    int x = std::round(probeData.p.x);
 
     x = std::max(x, 0    );
     x = std::min(x, n - 1);
 
     const CQChartsGeom::Range &range = setRanges_[x];
 
-    probeData.x = x;
+    probeData.p.x = x;
 
-    probeData.yvals.emplace_back(probeData.y,
-      QString("%1").arg(probeData.y*range.ysize() + range.ymin()));
+    probeData.yvals.emplace_back(probeData.p.y,
+      QString("%1").arg(probeData.p.y*range.ysize() + range.ymin()));
   }
   else {
-    int y = std::round(probeData.y);
+    int y = std::round(probeData.p.y);
 
     y = std::max(y, 0    );
     y = std::min(y, n - 1);
 
     const CQChartsGeom::Range &range = setRanges_[y];
 
-    probeData.y = y;
+    probeData.p.y = y;
 
-    probeData.xvals.emplace_back(probeData.x,
-      QString("%1").arg(probeData.x*range.xsize() + range.xmin()));
+    probeData.xvals.emplace_back(probeData.p.x,
+      QString("%1").arg(probeData.p.x*range.xsize() + range.xmin()));
   }
 
   return true;

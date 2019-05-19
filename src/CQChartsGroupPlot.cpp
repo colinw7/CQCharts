@@ -162,31 +162,32 @@ void
 CQChartsGroupPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   CQChartsGroupPlotType *type = dynamic_cast<CQChartsGroupPlotType *>(this->type());
   assert(type);
 
-  addProperty("dataGrouping", this, "groupColumn", "group")->setDesc("Group column");
+  addProp("dataGrouping", "groupColumn", "group", "Group column");
 
   if (type->allowRowGrouping())
-    addProperty("dataGrouping", this, "rowGrouping", "rowGroups")->
-      setDesc("Group by rows instead of column headers");
+    addProp("dataGrouping", "rowGrouping", "rowGroups", "Group by rows instead of column headers");
 
   if (type->allowUsePath())
-    addProperty("dataGrouping", this, "usePath", "path")->setDesc("Use path for group");
+    addProp("dataGrouping", "usePath", "path", "Use path for group");
 
   if (type->allowUseRow())
-    addProperty("dataGrouping", this, "useRow", "row")->setDesc("Use row number for grouping");
+    addProp("dataGrouping", "useRow", "row", "Use row number for grouping");
 
-  addProperty("dataGrouping/bucket", this, "exactValue", "exact"  )->
-    setDesc("Use exact value");
-  addProperty("dataGrouping/bucket", this, "autoRange" , "auto"   )->
-    setDesc("Bucket auto range");
-  addProperty("dataGrouping/bucket", this, "startValue", "start"  )->
-    setDesc("Bucket start value");
-  addProperty("dataGrouping/bucket", this, "deltaValue", "delta"  )->
-    setDesc("Bucket delta value");
-  addProperty("dataGrouping/bucket", this, "numAuto"   , "numAuto")->
-    setDesc("Number of automatic buckets");
+  addProp("dataGrouping/bucket", "exactValue", "exact"  , "Use exact value");
+  addProp("dataGrouping/bucket", "autoRange" , "auto"   , "Bucket auto range");
+  addProp("dataGrouping/bucket", "startValue", "start"  , "Bucket start value");
+  addProp("dataGrouping/bucket", "deltaValue", "delta"  , "Bucket delta value");
+  addProp("dataGrouping/bucket", "numAuto"   , "numAuto", "Number of automatic buckets");
 }
 
 void

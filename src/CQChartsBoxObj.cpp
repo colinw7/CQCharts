@@ -47,17 +47,20 @@ CQChartsBoxObj::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &desc)
 {
   model->addProperty(path, this, "margin" )->
-    setDesc(desc.length() ? desc + " outer margin" : "Outer margin");
+    setDesc(desc.length() ? desc + " inner margin" : "Inner margin");
   model->addProperty(path, this, "padding")->
-    setDesc(desc.length() ? desc + " inner padding" : "Inner padding");
+    setDesc(desc.length() ? desc + " outer padding" : "Outer padding");
 
   QString bgPath = path + "/fill";
 
   QString fillDesc = (desc.length() ? desc + " fill" : "Fill");
 
-  model->addProperty(bgPath, this, "filled"     , "visible")->setDesc(fillDesc + " visible");
-  model->addProperty(bgPath, this, "fillColor"  , "color"  )->setDesc(fillDesc + " color");
-  model->addProperty(bgPath, this, "fillAlpha"  , "alpha"  )->setDesc(fillDesc + " alpha");
+  model->addProperty(bgPath, this, "filled"     , "visible")->
+    setDesc(fillDesc + " visible");
+  model->addProperty(bgPath, this, "fillColor"  , "color"  )->
+    setDesc(fillDesc + " color");
+  model->addProperty(bgPath, this, "fillAlpha"  , "alpha"  )->
+    setDesc(fillDesc + " alpha");
   model->addProperty(bgPath, this, "fillPattern", "pattern")->
     setDesc(fillDesc + " pattern").setHidden(true);
 

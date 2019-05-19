@@ -44,27 +44,34 @@ void
 CQChartsBarPlot::
 addProperties()
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  //---
+
   // columns
-  addProperty("columns", this, "valueColumns", "values")->setDesc("Value columns");
+  addProp("columns", "valueColumns", "values", "Value columns");
 
   // options
-  addProperty("options", this, "horizontal")->setDesc("Draw bars horizontally");
+  addProp("options", "horizontal", "", "Draw bars horizontally");
 
   // margins
-  addProperty("margins", this, "margin"     , "bar"  )->setDesc("Bar margin");
-  addProperty("margins", this, "groupMargin", "group")->setDesc("Grouped bar margin");
+  addProp("margins", "margin"     , "bar"  , "Bar margin");
+  addProp("margins", "groupMargin", "group", "Grouped bar margin");
 
   // fill
-  addProperty("fill", this, "barFilled", "visible")->setDesc("Bar fill visible");
+  addProp("fill", "barFilled", "visible", "Bar fill visible");
 
   addFillProperties("fill", "barFill", "Bar");
 
   // stroke
-  addProperty("stroke", this, "barBorder", "visible")->setDesc("Bar stroke visible");
+  addProp("stroke", "barBorder", "visible", "Bar stroke visible");
 
   addLineProperties("stroke", "barBorder", "Bar");
 
-  addProperty("stroke", this, "barCornerSize", "cornerSize")->setDesc("Bar corner size");
+  addProp("stroke", "barCornerSize", "cornerSize", "Bar corner size");
 
   // color map
   addColorMapProperties();
@@ -109,24 +116,24 @@ probe(ProbeData &probeData) const
   if (! isHorizontal()) {
     probeData.direction = Qt::Vertical;
 
-    if (probeData.x < dataRange.xmin() + 0.5)
-      probeData.x = dataRange.xmin() + 0.5;
+    if (probeData.p.x < dataRange.xmin() + 0.5)
+      probeData.p.x = dataRange.xmin() + 0.5;
 
-    if (probeData.x > dataRange.xmax() - 0.5)
-      probeData.x = dataRange.xmax() - 0.5;
+    if (probeData.p.x > dataRange.xmax() - 0.5)
+      probeData.p.x = dataRange.xmax() - 0.5;
 
-    probeData.x = std::round(probeData.x);
+    probeData.p.x = std::round(probeData.p.x);
   }
   else {
     probeData.direction = Qt::Horizontal;
 
-    if (probeData.y < dataRange.ymin() + 0.5)
-      probeData.y = dataRange.ymin() + 0.5;
+    if (probeData.p.y < dataRange.ymin() + 0.5)
+      probeData.p.y = dataRange.ymin() + 0.5;
 
-    if (probeData.y > dataRange.ymax() - 0.5)
-      probeData.y = dataRange.ymax() - 0.5;
+    if (probeData.p.y > dataRange.ymax() - 0.5)
+      probeData.p.y = dataRange.ymax() - 0.5;
 
-    probeData.y = std::round(probeData.y);
+    probeData.p.y = std::round(probeData.p.y);
   }
 
   return true;

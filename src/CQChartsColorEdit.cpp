@@ -310,9 +310,7 @@ CQChartsColorEdit(QWidget *parent) :
 
   QLabel *scaleLabel = CQUtil::makeLabelWidget<QLabel>("Scale", "scaleLabel");
 
-  scaleCheck_ = new CQCheckBox;
-
-  scaleCheck_->setObjectName("scaleCheck");
+  scaleCheck_ = CQUtil::makeWidget<CQCheckBox>("scaleCheck");
 
   scaleLayout->addWidget(scaleLabel);
   scaleLayout->addWidget(scaleCheck_);

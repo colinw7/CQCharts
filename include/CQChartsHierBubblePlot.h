@@ -24,8 +24,6 @@ class CQChartsHierBubblePlotType : public CQChartsHierPlotType {
 
   void addParameters() override;
 
-  QString description() const override;
-
   bool customXRange() const override { return false; }
   bool customYRange() const override { return false; }
 
@@ -34,6 +32,10 @@ class CQChartsHierBubblePlotType : public CQChartsHierPlotType {
 
   bool allowXLog() const override { return false; }
   bool allowYLog() const override { return false; }
+
+  bool canProbe() const override { return false; }
+
+  QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
