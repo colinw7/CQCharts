@@ -114,8 +114,8 @@ struct CQChartsStatData {
 
       //---
 
-      // calc notch
-      notch = 1.58*(upperMedian - lowerMedian)/sqrt(nv);
+      // calc notch (confidence interval around the median +/- 1.57 x IQR/sqrt of n).
+      notch = 1.57*(upperMedian - lowerMedian)/sqrt(nv);
 
       lnotch = median - notch;
       unotch = median + notch;

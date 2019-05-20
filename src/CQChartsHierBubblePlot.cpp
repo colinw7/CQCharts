@@ -1161,6 +1161,12 @@ calcTipId() const
     tableTip.addTableRow("Color", colorStr);
   }
 
+  //---
+
+  plot()->addTipColumns(tableTip, node_->ind());
+
+  //---
+
   return tableTip.str();
 }
 

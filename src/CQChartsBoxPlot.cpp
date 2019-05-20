@@ -109,6 +109,19 @@ description() const
           LI("Calculated Values in the " + B("x") + ", " + B("min") + ", " +
              B("lowerMedian") + ", " + B("median") + ", " + B("upperMedian") + ", " +
              B("max") + " and " + B("outliers") + " columns.") }).
+     p("The x value name can be supplied using this " + B("name") + " column.").
+    h3("Options").
+     p("The outliers values can be shown or hidden..").
+     p("Multiple boxes (for each unique x value) can be connected by their y value.").
+     p("The box can be drawn vertically or horizontally.").
+     p("The y values can be normals to the range 0-1 so whiskers with different y ranges "
+       "can be compared.").
+     p("The box can be notched to show the confidence interval around the median.").
+     p("The individual points can be displayed (if supplied) using jiier or stacked points.").
+     p("The box can be drawn with a violin shape using the distribution curve.").
+     p("The box can be drawn as an error bar.").
+    h3("Customization").
+     p("The box, outlier and data points can be styled (fill and stroke)").
     h3("Limitations").
      p("The plot does not support logarithmic x values.");
 }
@@ -1868,6 +1881,12 @@ calcTipId() const
     tableTip.addTableRow("Max"         , max        ());
   }
 
+  //---
+
+  //plot()->addTipColumns(tableTip, node1_->ind());
+
+  //---
+
   return tableTip.str();
 }
 
@@ -2356,9 +2375,20 @@ calcTipId() const
   if (name.length())
     tableTip.addTableRow("Name", name);
 
-  double ovalue = whisker_->rvalue(io_);
+  //---
 
-  tableTip.addTableRow("Value", ovalue);
+  const CQChartsBoxPlotValue &ovalue = whisker_->value(io_);
+
+  double rvalue = double(ovalue);
+
+  tableTip.addTableRow("Value", rvalue);
+
+
+  //---
+
+  plot()->addTipColumns(tableTip, ovalue.ind);
+
+  //---
 
   return tableTip.str();
 }
@@ -2475,6 +2505,12 @@ calcTipId() const
   tableTip.addTableRow("Median"      , data_.statData.median     );
   tableTip.addTableRow("Upper Median", data_.statData.upperMedian);
   tableTip.addTableRow("Max"         , data_.statData.max        );
+
+  //---
+
+  plot()->addTipColumns(tableTip, data_.ind);
+
+  //---
 
   return tableTip.str();
 }
@@ -2764,6 +2800,12 @@ calcTipId() const
 
   tableTip.addTableRow("Group"   , groupName);
   tableTip.addTableRow("Num Sets", ns);
+
+  //---
+
+  //plot()->addTipColumns(tableTip, node1_->ind());
+
+  //---
 
   return tableTip.str();
 }
@@ -3059,6 +3101,12 @@ calcTipId() const
   tableTip.addTableRow("Set"  , setName);
   tableTip.addTableRow("Group", groupName);
   tableTip.addTableRow("Ind"  , iv_.i);
+
+  //---
+
+  plot()->addTipColumns(tableTip, ind_);
+
+  //---
 
   return tableTip.str();
 }

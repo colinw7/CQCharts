@@ -3461,6 +3461,12 @@ calcTipId() const
   if (valuePoint.color.isValid())
     tableTip.addTableRow(plot_->colorName(), valuePoint.color.colorStr());
 
+  //---
+
+  plot()->addTipColumns(tableTip, ind_);
+
+  //---
+
   return tableTip.str();
 }
 
@@ -3689,6 +3695,12 @@ calcTipId() const
   tableTip.addTableRow("X Range", QString("%1 %2").arg(xmin).arg(xmax));
   tableTip.addTableRow("Y Range", QString("%1 %2").arg(ymin).arg(ymax));
   tableTip.addTableRow("Count"  , points_.size());
+
+  //---
+
+  //plot()->addTipColumns(tableTip, ind);
+
+  //---
 
   return tableTip.str();
 }

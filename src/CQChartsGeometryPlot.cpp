@@ -592,6 +592,12 @@ calcTipId() const
   tableTip.addTableRow("Name" , name ());
   tableTip.addTableRow("Value", value());
 
+  //---
+
+  plot()->addTipColumns(tableTip, ind_);
+
+  //---
+
   return tableTip.str();
 }
 

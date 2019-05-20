@@ -1,4 +1,5 @@
 High
+ + probe supports x/y strings as well as reals (variant)
  + addTipColumns() for all plots
  + Scrolled key not clipping properly
  + If overlay of same type apply changes to all plots ?
@@ -331,7 +332,8 @@ Hier Bubble Plot
  + How handle non-cumulative values (percentages)
 
 Image Plot
- + separate x/y and cell text styles
+ + Allow sub set of model ?
+ + Search and only matching (like tree map)
 
 Parallel Plot
  + Parallel needs x axis labels

@@ -55,8 +55,8 @@ struct CQChartsBoxPlotValue {
 
   operator double() const { return value; }
 
-  double      value { 0.0 };
-  QModelIndex ind;
+  double      value { 0.0 }; //!< value
+  QModelIndex ind;           //!< model index
 };
 
 //---
@@ -69,13 +69,13 @@ using CQChartsBoxPlotWhisker = CQChartsBoxWhiskerT<CQChartsBoxPlotValue>;
 struct CQChartsBoxWhiskerData {
   using Outliers = std::vector<double>;
 
-  QModelIndex      ind;
-  QString          name;
-  double           x       { 0.0 };
-  CQChartsStatData statData;
-  Outliers         outliers;
-  double           dataMin { 0.0 };
-  double           dataMax { 1.0 };
+  QModelIndex      ind;             //!< model index
+  QString          name;            //!< x value name
+  double           x       { 0.0 }; //!< x value
+  CQChartsStatData statData;        //!< stats data
+  Outliers         outliers;        //!< outlier y values
+  double           dataMin { 0.0 }; //!< min data value
+  double           dataMax { 1.0 }; //!< max data value
 };
 
 //---

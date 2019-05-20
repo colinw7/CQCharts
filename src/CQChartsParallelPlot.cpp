@@ -795,6 +795,12 @@ calcTipId() const
     tableTip.addTableRow(yname, poly_[j].y());
   }
 
+  //---
+
+  //plot()->addTipColumns(tableTip, ind);
+
+  //---
+
   return tableTip.str();
 }
 
@@ -964,6 +970,12 @@ calcTipId() const
   QString yname = plot_->modelHeaderString(yColumn, ok);
 
   tableTip.addTableRow(yname, yval_);
+
+  //---
+
+  plot()->addTipColumns(tableTip, ind_);
+
+  //---
 
   return tableTip.str();
 }

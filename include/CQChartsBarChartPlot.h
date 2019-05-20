@@ -191,6 +191,8 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   QString typeName() const override { return "bar"; }
 
+  //---
+
   QString calcId() const override;
 
   QString calcTipId() const override;
@@ -200,6 +202,10 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   QString groupStr() const;
   QString nameStr () const;
   QString valueStr() const;
+
+  //---
+
+  const QModelIndex &ind() const { return ind_; }
 
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &color) { color_ = color; }

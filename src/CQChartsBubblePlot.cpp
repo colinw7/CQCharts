@@ -43,7 +43,18 @@ description() const
    h2("Bubble Plot").
     h3("Summary").
      p("Draws circles represent a set of data values and packs then into the "
-       "smallest enclosing circle.");
+       "smallest enclosing circle.").
+    h3("Columns").
+     p("The values are taken from the value column. The value name can be specified "
+       "in th name column.").
+    h3("Options").
+     p("The value can be displayed at the center of the bubble along with the name.").
+     p("Bubbles can be sorted by value or displayed in model order.").
+    h3("Customization").
+     p("The bubble style (fill and stroke) and text style can be specified.").
+    h3("Limitation").
+     p("A user defined range cannot be specified, no axes or key are displayed, "
+       "logarithmic values are not supported and probing is not allowed.");
 }
 
 CQChartsPlot *
@@ -854,6 +865,14 @@ calcTipId() const
 
     tableTip.addTableRow("Color", colorStr);
   }
+
+  //---
+
+  const QModelIndex &ind = node_->ind();
+
+  plot()->addTipColumns(tableTip, ind);
+
+  //---
 
   return tableTip.str();
 }

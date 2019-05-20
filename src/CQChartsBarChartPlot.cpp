@@ -1497,6 +1497,12 @@ calcTipId() const
       tableTip.addTableRow(name, value);
   }
 
+  //---
+
+  plot()->addTipColumns(tableTip, ind());
+
+  //---
+
   return tableTip.str();
 }
 

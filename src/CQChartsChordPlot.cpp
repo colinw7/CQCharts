@@ -46,8 +46,24 @@ description() const
   return CQChartsHtml().
    h2("Chord Plot").
     h3("Summary").
-    p("Draw connections using radial plot with sized path arcs.").
-    p("The size of each arc is equivalent to the number of connections from that section.");
+     p("Draw connections using radial plot with sized path arcs.").
+     p("The size of each arc is equivalent to the number of connections from that section.").
+    h3("Columns").
+     p("The link column specifies the node name and index (row) and the group column "
+       "specifies the parent group. The remaining columns contain the connection value for "
+       "each connected node i.e. the should be N rows and N + 1 or N + 2 columns depending "
+       "on whether a group is specified").
+    h3("Options").
+     p("The inner radius (0-1) can be specified to adjust the with of the ring and connection "
+       "area. The radius for the label can be specified ((0-1) inside, >1 outside) and the "
+       "nodes can be sorted by value or use the original model order").
+    h3("Customization").
+     p("The border style and segment and arc fill alpha can be specified. The start angle "
+       "and gap between nodes (in degress) can be specified. The label text style can be "
+       "specified.").
+    h3("Limitations").
+     p("A user defined range cannot be specified, no axes or key is supported, logarithmic "
+       "values are not allowed and probing is not available.");
 }
 
 bool
@@ -777,6 +793,12 @@ calcTipId() const
     tableTip.addTableRow("Group", data_.group().str);
 
   tableTip.addTableRow("Total", data_.total());
+
+  //---
+
+  //plot()->addTipColumns(tableTip, node1_->ind());
+
+  //---
 
   return tableTip.str();
 }

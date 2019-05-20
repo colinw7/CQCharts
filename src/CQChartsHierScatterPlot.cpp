@@ -771,6 +771,12 @@ calcTipId() const
   tableTip.addTableRow("Group", group()->name());
   tableTip.addTableRow("Name" , name());
 
+  //---
+
+  //plot()->addTipColumns(tableTip, ind);
+
+  //---
+
   return tableTip.str();
 }
 

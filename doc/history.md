@@ -861,3 +861,6 @@
  + Add probe support to scatter and geometry plot
  + Add separator scatter points style options
  + Add log support to scatter and barchart plots
+ + Add more support for tip columns in plot object tooltip
+ + Cleanup image style and options
+ + More plot help descriptions

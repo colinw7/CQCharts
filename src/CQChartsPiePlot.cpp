@@ -1155,6 +1155,12 @@ calcTipId() const
     tableTip.addTableRow("Radius", *radius());
   }
 
+  //---
+
+  plot()->addTipColumns(tableTip, ind_);
+
+  //---
+
   return tableTip.str();
 }
 
@@ -1641,6 +1647,12 @@ calcTipId() const
 
   tableTip.addTableRow("Name" , name());
   tableTip.addTableRow("Count", numValues());
+
+  //---
+
+  //plot()->addTipColumns(tableTip, ind);
+
+  //---
 
   return tableTip.str();
 }

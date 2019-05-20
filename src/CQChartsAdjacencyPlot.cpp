@@ -998,6 +998,12 @@ calcTipId() const
   tableTip.addTableRow("To"   , node2_->name(), groupStr2);
   tableTip.addTableRow("Value", value_);
 
+  //---
+
+  //plot()->addTipColumns(tableTip, node1_->ind());
+
+  //---
+
   return tableTip.str();
 }
 

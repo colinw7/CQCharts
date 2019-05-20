@@ -2156,6 +2156,12 @@ calcTipId() const
   tableTip.addTableRow("Y1" , y1str);
   tableTip.addTableRow("Y2" , y2str);
 
+  //---
+
+  plot()->addTipColumns(tableTip, ind_);
+
+  //---
+
   return tableTip.str();
 }
 
@@ -2314,6 +2320,12 @@ calcTipId() const
   tableTip.addTableRow(xname, xstr );
   tableTip.addTableRow("Y1" , y1str);
   tableTip.addTableRow("Y2" , y2str);
+
+  //---
+
+  plot()->addTipColumns(tableTip, ind_);
+
+  //---
 
   return tableTip.str();
 }
@@ -2694,6 +2706,12 @@ calcTipId() const
 
   tableTip.addTableRow("Label", label_);
 
+  //---
+
+  plot()->addTipColumns(tableTip, ind_);
+
+  //---
+
   return tableTip.str();
 }
 
@@ -2805,6 +2823,12 @@ calcTipId() const
   CQChartsTableTip tableTip;
 
   tableTip.addTableRow("Name", name());
+
+  //---
+
+  //plot()->addTipColumns(tableTip, ind);
+
+  //---
 
   return tableTip.str();
 }
@@ -3235,6 +3259,12 @@ calcTipId() const
 
   tableTip.addTableRow("Name", name());
   tableTip.addTableRow("Area", CQUtil::polygonArea(poly_));
+
+  //---
+
+  //plot()->addTipColumns(tableTip, ind);
+
+  //---
 
   return tableTip.str();
 }

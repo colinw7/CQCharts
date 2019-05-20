@@ -3078,6 +3078,12 @@ calcTipId() const
     tableTip.addTableRow(name1, strs.join(" "));
   }
 
+  //---
+
+  //plot()->addTipColumns(tableTip, ind);
+
+  //---
+
   return tableTip.str();
 }
 
@@ -3848,6 +3854,12 @@ calcTipId() const
   tableTip.addTableRow("Min"    , data_.xmin);
   tableTip.addTableRow("Max"    , data_.xmax);
 
+  //---
+
+  //plot()->addTipColumns(tableTip, ind);
+
+  //---
+
   return tableTip.str();
 }
 
@@ -4121,6 +4133,12 @@ calcTipId() const
   tableTip.addTableRow("Bucket", bucketStr);
 
   tableTip.addTableRow("Num Values", n_);
+
+  //---
+
+  //plot()->addTipColumns(tableTip, ind);
+
+  //---
 
   return tableTip.str();
 }

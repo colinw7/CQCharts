@@ -138,15 +138,15 @@ class CQChartsChordData {
   }
 
  private:
-  int         from_       { -1 };
-  QString     name_;
-  Group       group_;
-  Values      values_;
-  QModelIndex ind_;
-  double      a_          { 0.0 };
-  double      da_         { 0.0 };
-  double      total_      { 0.0 };
-  double      totalValid_ { false };
+  int         from_       { -1 };    //!< from node
+  QString     name_;                 //!< value name
+  Group       group_;                //!< group
+  Values      values_;               //!< connection values
+  QModelIndex ind_;                  //!< model index
+  double      a_          { 0.0 };   //!< start angle
+  double      da_         { 0.0 };   //!< delta angle
+  double      total_      { 0.0 };   //!< value total
+  double      totalValid_ { false }; //!< is total valid
 };
 
 //---
@@ -187,8 +187,8 @@ class CQChartsChordObj : public CQChartsPlotObj {
   void valueAngles(int ind, double &a, double &da) const;
 
  private:
-  const CQChartsChordPlot* plot_ { nullptr };
-  CQChartsChordData        data_;
+  const CQChartsChordPlot* plot_ { nullptr }; //!< parent plot
+  CQChartsChordData        data_;             //!< chord data
 };
 
 //---
