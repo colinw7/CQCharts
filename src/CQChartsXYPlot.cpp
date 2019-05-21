@@ -124,7 +124,9 @@ description() const
        "points y value. The impulse line style can be separately customized.").
      p("Enabling the " + B("Best Fit") + " option draws a best fit line between the points.").
      p("The " + B("Vectors") + " option detemines whether the vector specified by the "
-       "" + B("VectorX") + " and " + B("VectorY") + " columns are drawn.");
+       "" + B("VectorX") + " and " + B("VectorY") + " columns are drawn.").
+    h3("Limitations").
+     p("None");
 }
 
 CQChartsPlot *
@@ -628,11 +630,8 @@ calcRange() const
 
       //---
 
-      if      (plot_->isBivariateLines()) {
-        for (int i = 0; i < ny; ++i)
-          range_.updateRange(x, y[i]);
-      }
-      else if (plot_->isStacked()) {
+      if     (plot_->isStacked()) {
+        // TODO: support stacked and cmulative
         double sum1 = 0.0;
 
         for (int i = 0; i < ny; ++i)
@@ -641,18 +640,18 @@ calcRange() const
         range_.updateRange(x, 0.0);
         range_.updateRange(x, sum1);
       }
-      else {
+      else if (plot_->isCumulative()) {
         for (int i = 0; i < ny; ++i) {
-          double y1 = y[i];
+          double y1 = y[i] + lastSum_[i];
 
-          if (plot_->isCumulative()) {
-            y1 = y[i] + lastSum_[i];
-
-            sum_[i] += y[i];
-          }
+          sum_[i] += y[i];
 
           range_.updateRange(x, y1);
         }
+      }
+      else {
+        for (int i = 0; i < ny; ++i)
+          range_.updateRange(x, y[i]);
       }
 
       return State::OK;
