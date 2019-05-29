@@ -658,7 +658,7 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
 
     CQChartsGeom::BBox bbox(p.x() - sx, p.y() - sy, p.x() + sx, p.y() + sy);
 
-    ColorInd iv(i, n);
+    ColorInd iv = (i > 0 ? ColorInd(i, n) : ColorInd());
 
     CQChartsHierScatterPointObj *pointObj =
       new CQChartsHierScatterPointObj(this, bbox, p, iv);

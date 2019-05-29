@@ -17,21 +17,13 @@ foreach tvar $tvars {
   echo "$typeName : $nameColumns"
 
   if {[llength $nameColumns] > 0} {
-    set i 0
-
-    set columns ""
+    set columns {}
 
     foreach nameColumn $nameColumns {
       set name   [lindex $nameColumn 0]
       set column [lindex $nameColumn 1]
 
-      if {$i > 0} {
-        append columns ","
-      }
-
-      append columns "$name=$column"
-
-      incr i
+      lappend columns [list $name $column]
     }
 
     set plot [create_charts_plot -type $typeName -model $model -columns $columns -title $typeName]

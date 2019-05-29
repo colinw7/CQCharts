@@ -27,7 +27,8 @@ set legendaryColumn1 [process_charts_model -model $model -add -expr "column($leg
 
 # use box plot
 if {0} {
-set plot1 [create_charts_plot -type boxplot -columns "group=$legendaryColumn1,value=$totalColumn"]
+set plot1 [create_charts_plot -type boxplot \
+  -columns [list [list group $legendaryColumn1] [list value $totalColumn]]]
 
 set_charts_property -plot $plot1 -name "xaxis.label.text" -value "is Legendary"
 set_charts_property -plot $plot1 -name "yaxis.label.text" -value "Strength"
@@ -44,8 +45,10 @@ set type12Column [process_charts_model -model $model -add -expr $type12Expr -hea
 
 sort_model -model $model -column $totalColumn
 
-filter_model -model $model -expr "column($legendaryColumn1) == 1"
+filter_charts_model -model $model -expr "column($legendaryColumn1) == 1"
 
-set plot2 [create_charts_plot -type distribution -columns "value=$type12Column,color=$generationColumn" -parameter "horizontal=1"]
+set plot2 [create_charts_plot -type distribution \
+  -columns [list [list value $type12Column] [list color $generationColumn]] \
+  -parameter "horizontal=1"]
 
 set_charts_property -plot $plot2 -name "color.map.enabled" -value 1

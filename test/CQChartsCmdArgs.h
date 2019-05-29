@@ -12,6 +12,7 @@
 #include <CQChartsCmdArg.h>
 #include <CQChartsCmdGroup.h>
 
+#include <CQTclUtil.h>
 #include <CQAlignEdit.h>
 #include <CQStrParse.h>
 
@@ -930,7 +931,9 @@ class CQChartsCmdBaseArgs {
         strs.push_back(str);
       }
 
-      return "{" + strs.join(" ") + "}";
+      CQTcl tcl;
+
+      return tcl.mergeList(strs);
     }
     else
       return var.toString();

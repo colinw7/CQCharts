@@ -430,6 +430,28 @@ class CQTcl : public CTcl {
     return true;
   }
 
+  QString mergeList(const QStringList &strs) {
+    int argc = strs.size();
+
+    std::vector<char *> argv;
+
+    argv.resize(argc);
+
+    for (int i = 0; i < argc; ++i)
+      argv[i] = strdup(strs[i].toLatin1().constData());
+
+    char *res = Tcl_Merge(argc, &argv[0]);
+
+    QString str(res);
+
+    for (int i = 0; i < argc; ++i)
+      free(argv[i]);
+
+    Tcl_Free((char *) res);
+
+    return str;
+  }
+
   void traceVar(const QString &name) {
     int flags = TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS | TCL_GLOBAL_ONLY;
 

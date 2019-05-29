@@ -508,7 +508,6 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   bool               percent_        { false };            //!< percent values
   bool               colorBySet_     { false };            //!< color bars by set or value
   DotLineData        dotLineData_;                         //!< dot line data
-  CQChartsLength     dotLineWidth_   { "3px" };            //!< dot line width
   CQChartsDataLabel* dataLabel_      { nullptr };          //!< data label data
   int                numVisible_     { 0 };                //!< number of visible bars
   double             barWidth_       { 1.0 };              //!< bar width

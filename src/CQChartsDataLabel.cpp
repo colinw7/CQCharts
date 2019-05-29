@@ -20,28 +20,24 @@ void
 CQChartsDataLabel::
 addPathProperties(const QString &path, const QString &desc)
 {
-  QString desc1 = (desc.length() ? desc : "Data label");
-
   plot_->addProperty(path, this, "visible" )->setDesc(desc + " is visible");
   plot_->addProperty(path, this, "position")->setDesc(desc + " position");
   plot_->addProperty(path, this, "clip"    )->setDesc(desc + " is clipped");
 
   QString textPath = path + "/text";
 
-  QString textDesc = (desc.length() ? desc + " text" : "Text");
-
   plot_->addProperty(textPath, this, "textColor"   , "color"   )->
-    setDesc(textDesc + " color");
+    setDesc(desc + " text color");
   plot_->addProperty(textPath, this, "textAlpha"   , "alpha"   )->
-    setDesc(textDesc + " alpha");
+    setDesc(desc + " text alpha");
   plot_->addProperty(textPath, this, "textFont"    , "font"    )->
-    setDesc(textDesc + " font");
+    setDesc(desc + " text font");
   plot_->addProperty(textPath, this, "textAngle"   , "angle"   )->
-    setDesc(textDesc + " angle");
+    setDesc(desc + " text angle");
   plot_->addProperty(textPath, this, "textContrast", "contrast")->
-    setDesc(textDesc + " is contrast");
+    setDesc(desc + " text is contrast");
   plot_->addProperty(textPath, this, "textHtml"    , "html"    )->
-    setDesc(textDesc + " is HTML");
+    setDesc(desc + " text is HTML");
 
   QString boxPath = path + "/box";
 

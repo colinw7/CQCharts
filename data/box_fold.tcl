@@ -1,28 +1,20 @@
 set model [load_charts_model -csv data/boxplot.csv -first_line_header]
 
-set fold_model [fold_model -model $model -column 0]
+set fold_model [fold_charts_model -model $model -column 0]
 
 set tvars [process_charts_model -model $fold_model -analyze -type barchart]
 
-set columns ""
+set columns {}
 
 foreach tvar $tvars {
   set nameColumns [lindex $tvar 1]
 
   if {[llength $nameColumns] > 0} {
-    set i 0
-
     foreach nameColumn $nameColumns {
       set name   [lindex $nameColumn 0]
       set column [lindex $nameColumn 1]
 
-      if {$i > 0} {
-        append columns ","
-      }
-
-      append columns "$name=$column"
-
-      incr i
+      lappend columns [list $name $column]
     }
   }
 }

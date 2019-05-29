@@ -1803,8 +1803,8 @@ addAllTextProperties(const QString &path, const QString &prefix, const QString &
   QString prefix1 = (descPrefix.length() ? descPrefix + " text" : "Text");
 
   addProp(path, prefix + "Align"    , "align"    , prefix1 + " align");
-  addProp(path, prefix + "Formatted", "formatted", prefix1 + " formatted");
-  addProp(path, prefix + "Scaled"   , "scaled"   , prefix1 + " scaled");
+  addProp(path, prefix + "Formatted", "formatted", prefix1 + " formatted to fit box");
+  addProp(path, prefix + "Scaled"   , "scaled"   , prefix1 + " scaled to box");
 }
 
 void

@@ -73,11 +73,11 @@ addParameters()
 
   addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("Draw bars horizontal");
   addBoolParameter("normalized", "Normalized", "normalized").setTip("Normalize data ranges");
-  addBoolParameter("notched"   , "Notched"   , "notched"   ).setTip("Notch bar");
+  addBoolParameter("notched"   , "Notched"   , "notched"   ).setTip("Draw notch on bar");
 
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
 
-  addBoolParameter("pointsType" , "Points Type" , "pointsType").setTip("Show data points type");
+  addBoolParameter("pointsType", "Points Type", "pointsType").setTip("Show data points type");
 
   addBoolParameter("violin"  , "Violin"   , "violin"  ).setTip("Violin border");
   addBoolParameter("errorBar", "Error Bar", "errorBar").setTip("Error bar");
@@ -414,7 +414,11 @@ void
 CQChartsBoxPlot::
 setHorizontal(bool b)
 {
-  CQChartsUtil::testAndSet(horizontal_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(horizontal_, b, [&]() {
+    CQChartsAxis::swap(xAxis(), yAxis());
+
+    updateRangeAndObjs();
+  } );
 }
 
 void
@@ -2382,7 +2386,6 @@ calcTipId() const
   double rvalue = double(ovalue);
 
   tableTip.addTableRow("Value", rvalue);
-
 
   //---
 

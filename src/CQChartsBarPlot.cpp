@@ -1,4 +1,5 @@
 #include <CQChartsBarPlot.h>
+#include <CQChartsAxis.h>
 #include <CQPropertyViewItem.h>
 
 CQChartsBarPlot::
@@ -83,7 +84,11 @@ void
 CQChartsBarPlot::
 setHorizontal(bool b)
 {
-  CQChartsUtil::testAndSet(horizontal_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(horizontal_, b, [&]() {
+    CQChartsAxis::swap(xAxis(), yAxis());
+
+    updateRangeAndObjs();
+  } );
 }
 
 //---

@@ -112,7 +112,7 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(YLabel,yLabel)
 
-  Q_ENUMS(CellStyle);
+  Q_ENUMS(CellStyle)
 
  public:
   enum class CellStyle {
@@ -174,7 +174,7 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   //---
 
-  bool probe(ProbeData &probeData) const;
+  bool probe(ProbeData &probeData) const override;
 
   //---
 

@@ -5,4 +5,4 @@ process_charts_model -model $model -add -expr "rnorm(58)" -header "M"
 
 #manage_models_dlg
 
-set plot [create_charts_plot -model $model -type distribution -columns "value=1 2"]
+set plot [create_charts_plot -model $model -type distribution -columns {{value {1 2}}}]

@@ -10,7 +10,7 @@ set model [load_charts_model -var font_data -transpose]
 #set_charts_data -model $model -column 2 -name column_type -value "fontSize:mapped=1"
 
 set plot [create_charts_plot -model $model -type scatter \
-  -columns "x=0,y=1,name=2,fontSize=3" \
+  -columns {{x 0} {y 1} {name 2} {fontSize 3}} \
   -parameter "textLabels=1"]
 
 set_charts_property -plot $plot -name margin.inner.left   -value 50px

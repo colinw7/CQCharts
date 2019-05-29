@@ -12,7 +12,7 @@ set view [create_charts_view]
 set_charts_property -view $view -name inside.highlight.mode -value FILL
 set_charts_property -view $view -name inside.highlight.fill.color -value red
 
-set plot1 [create_charts_plot -model $model -type bar -columns "name=0,value=1" -ymax $max]
+set plot1 [create_charts_plot -model $model -type bar -columns {{name 0} {value 1}} -ymax $max]
 
 set_charts_data -plot $plot1 -name updates_enabled -value 0
 
@@ -22,7 +22,7 @@ set_charts_property -view $view -name title -value "Popular Fast Food Chains"
 
 set_charts_property -plot $plot1 -name "yaxis.grid.major.stroke.visible" -value 1
 
-set plot2 [create_charts_plot -model $model -type xy -columns "x=0,y=3" -ymin 0]
+set plot2 [create_charts_plot -model $model -type xy -columns {{x 0} {y 3}} -ymin 0]
 
 set_charts_data -plot $plot2 -name updates_enabled -value 0
 

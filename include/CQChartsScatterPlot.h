@@ -200,7 +200,7 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
 };
 
 /*!
- * \brief Scatter Plot Key Item
+ * \brief Scatter Plot Grid Key Item
  */
 class CQChartsScatterGridKeyItem : public CQChartsKeyItem {
   Q_OBJECT
@@ -321,6 +321,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   Q_PROPERTY(double  fontSizeMapMax   READ fontSizeMapMax   WRITE setFontSizeMapMax  )
   Q_PROPERTY(QString fontSizeMapUnits READ fontSizeMapUnits WRITE setFontSizeMapUnits)
 
+  // test labels
   Q_PROPERTY(bool textLabels READ isTextLabels WRITE setTextLabels)
 
   Q_ENUMS(PlotType)
@@ -406,7 +407,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   const CQChartsColumn &yColumn() const { return yColumn_; }
   void setYColumn(const CQChartsColumn &c);
 
-  //--
+  //---
 
   QString xColumnName(const QString &def="x") const;
   QString yColumnName(const QString &def="y") const;
@@ -681,7 +682,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
-  bool probe(ProbeData &probeData) const;
+  bool probe(ProbeData &probeData) const override;
 
   //---
 
@@ -760,9 +761,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
  private:
   struct SymbolMapKeyData {
-    bool   displayed { true }; //! is displayed
-    double alpha     { 0.2 };  //! background alpha
-    double margin    { 16.0 }; //! margin in pixels
+    bool   displayed { true }; //! is symbol map key displayed
+    double alpha     { 0.2 };  //! symbol map key background alpha
+    double margin    { 16.0 }; //! symbol map key margin in pixels
   };
 
   struct StatData {
@@ -823,33 +824,33 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
     CQChartsColumn column;             //!< symbol type column
     bool           valid    { false }; //!< symbol type valid
     bool           mapped   { false }; //!< symbol type values mapped
-    int            data_min { 0 };     //!< map input min
-    int            data_max { 1 };     //!< map input max
-    int            map_min  { 0 };     //!< map output min
-    int            map_max  { 1 };     //!< map output max
+    int            data_min { 0 };     //!< model data min
+    int            data_max { 1 };     //!< model data max
+    int            map_min  { 0 };     //!< mapped size min
+    int            map_max  { 1 };     //!< mapped size max
   };
 
   struct SymbolSizeData {
     CQChartsColumn column;              //!< symbol size column
     bool           valid     { false }; //!< symbol size valid
     bool           mapped    { false }; //!< symbol size values mapped
-    double         data_min  { 0.0 };   //!< map input min
-    double         data_max  { 1.0 };   //!< map input map
-    double         data_mean { 0.0 };   //!< map input mean
-    double         map_min   { 0.0 };   //!< map output min
-    double         map_max   { 1.0 };   //!< map output max
-    QString        units     { "px" };  //!< map units
+    double         data_min  { 0.0 };   //!< model data min
+    double         data_max  { 1.0 };   //!< model data map
+    double         data_mean { 0.0 };   //!< model data mean
+    double         map_min   { 0.0 };   //!< mapped size min
+    double         map_max   { 1.0 };   //!< mapped size max
+    QString        units     { "px" };  //!< mapped size units
   };
 
   struct FontSizeData {
     CQChartsColumn column;             //!< font size column
     bool           valid    { false }; //!< font size valid
     bool           mapped   { false }; //!< font size values mapped
-    double         data_min { 0.0 };   //!< map input min
-    double         data_max { 1.0 };   //!< map input max
-    double         map_min  { 0.0 };   //!< map output min
-    double         map_max  { 1.0 };   //!< map output max
-    QString        units    { "px" };  //!< map units
+    double         data_min { 0.0 };   //!< model data min
+    double         data_max { 1.0 };   //!< model data max
+    double         map_min  { 0.0 };   //!< mapped size min
+    double         map_max  { 1.0 };   //!< mapped size max
+    QString        units    { "px" };  //!< mapped size units
   };
 
   CQChartsColumn     xColumn_;                                  //!< x column

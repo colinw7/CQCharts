@@ -50,6 +50,9 @@ bool columnTypeStr(CQCharts *charts, const QAbstractItemModel *model,
 
 bool setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &columnTypes);
 
+bool setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model,
+                           int i, const QString &columnType);
+
 bool setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,
                       const CQChartsColumn &column, const QString &typeStr);
 

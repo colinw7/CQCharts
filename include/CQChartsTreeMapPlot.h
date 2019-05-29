@@ -43,7 +43,9 @@ class CQChartsTreeMapPlotType : public CQChartsHierPlotType {
 class CQChartsTreeMapPlot;
 class CQChartsTreeMapHierNode;
 
-//! \brief Tree Map Node
+/*!
+ * \brief Tree Map Node
+ */
 class CQChartsTreeMapNode {
  private:
   static uint nextId() {

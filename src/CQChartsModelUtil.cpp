@@ -337,38 +337,51 @@ setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &co
     if (! typeStr.length())
       continue;
 
-    // default column to index
-    CQChartsColumn column(i);
-
-    // if #<col> then use that for column index
-    int pos = typeStr.indexOf("#");
-
-    if (pos >= 0) {
-      QString columnStr = typeStr.mid(0, pos).simplified();
-
-      CQChartsColumn column1;
-
-      if (stringToColumn(model, columnStr, column1))
-        column = column1;
-      else {
-        charts->errorMsg("Bad column name '" + columnStr + "'");
-        rc = false;
-      }
-
-      typeStr = typeStr.mid(pos + 1).simplified();
-    }
-
-    //---
-
-    if (! setColumnTypeStr(charts, model, column, typeStr)) {
-      charts->errorMsg(QString("Invalid type '" + typeStr + "' for column '%1'").
-                         arg(column.toString()));
+    if (! setColumnTypeIndexStr(charts, model, i, typeStr))
       rc = false;
-      continue;
-    }
   }
 
   return rc;
+}
+
+bool
+setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model,
+                      int i, const QString &typeStr)
+{
+  QString typeStr1 = typeStr;
+
+  // default column to index
+  CQChartsColumn column(i);
+
+  // if #<col> then use that for column index
+  int pos = typeStr1.indexOf("#");
+
+  if (pos >= 0) {
+    QString columnStr = typeStr1.mid(0, pos).simplified();
+
+    CQChartsColumn column1;
+
+    if (stringToColumn(model, columnStr, column1))
+      column = column1;
+    else {
+      charts->errorMsg("Bad column name '" + columnStr + "'");
+      return false;
+    }
+
+    typeStr1 = typeStr1.mid(pos + 1).simplified();
+  }
+
+  //---
+
+  if (! setColumnTypeStr(charts, model, column, typeStr1)) {
+    charts->errorMsg(QString("Invalid type '" + typeStr + "' for column '%1'").
+                       arg(column.toString()));
+    return false;
+  }
+
+  //---
+
+  return true;
 }
 
 // set type string for column (type name and name values)

@@ -30,7 +30,7 @@ proc plotYear { year } {
   set model1Id [load_charts_model -csv data/population.csv -first_line_header -filter $filter]
 
   #set model1Id [load_charts_model -csv data/population.csv -first_line_header]
-  #filter_model -model $model1Id -expr "\$sex == 1 || \$year == $year"
+  #filter_charts_model -model $model1Id -expr "\$sex == 1 || \$year == $year"
 
   if       {$::place == "sidebyside"} {
     set title "Male $year"
@@ -38,7 +38,7 @@ proc plotYear { year } {
     set title "Male and Female $year"
   }
 
-  set ::plot1Id [create_charts_plot -type barchart -columns "name=1,value=3" -title $title]
+  set ::plot1Id [create_charts_plot -type barchart -columns {{name 1} {value 3}} -title $title]
 
   set_charts_property -plot $::plot1Id -name fill.color -value "#4444aa"
   set_charts_property -plot $::plot1Id -name fill.alpha -value 0.5
@@ -48,7 +48,7 @@ proc plotYear { year } {
   set model2Id [load_charts_model -csv data/population.csv -first_line_header -filter $filter]
 
   #set model2Id [load_charts_model -csv data/population.csv -first_line_header]
-  #filter_model -model $model2Id -expr "\$sex == 2 || \$year == $year"
+  #filter_charts_model -model $model2Id -expr "\$sex == 2 || \$year == $year"
 
   if       {$::place == "sidebyside"} {
     set title "Female $year"
@@ -56,7 +56,7 @@ proc plotYear { year } {
     set title ""
   }
 
-  set ::plot2Id [create_charts_plot -type barchart -columns "name=1,value=3" -title $title]
+  set ::plot2Id [create_charts_plot -type barchart -columns {{name 1} {value 3}} -title $title]
 
   set_charts_property -plot $::plot2Id -name fill.color -value "#aa4444"
   set_charts_property -plot $::plot2Id -name fill.alpha -value 0.5

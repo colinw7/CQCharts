@@ -10,7 +10,8 @@ set model [load_charts_model -csv data/diamonds.csv -first_line_header]
 
 set view [create_charts_view]
 
-set plot [create_charts_plot -view $view -model $model -type scatter -columns "x=carat,y=price"]
+set plot [create_charts_plot -view $view -model $model -type scatter \
+ -columns {{x carat} {y price}}]
 
 set_charts_property -plot $plot -name grid.enabled -value 1
 

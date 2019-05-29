@@ -3,8 +3,8 @@ set model [load_charts_model -csv data/goalScorers.csv -first_line_header -colum
 set view [create_charts_view]
 
 set plot [create_charts_plot -view $view -type xy \
- -columns "x=date,y=G,group=name" \
- -columns "tips=age mins played G NPG G90 NPG90" \
+ -columns {{x date} {y G} {group name}} \
+ -columns {{tips {age mins played G NPG G90 NPG90}}} \
  -title "Goal Scorers" \
  -parameter "points=1"]
 

@@ -8,6 +8,6 @@ proc objPressed { view plot id } {
 
 set model [load_charts_model -tsv data/multi_series.tsv -comment_header -column_type "time:format=%Y%m%d,oformat=%F"]
 
-set plot [create_charts_plot -type scatter -columns "x=0,y=1" -title "Scatter Plot"]
+set plot [create_charts_plot -type scatter -columns {{x 0} {y 1}} -title "Scatter Plot"]
 
 connect_charts_signal -plot $plot -from objIdPressed -to objPressed

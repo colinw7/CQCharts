@@ -51,4 +51,6 @@ proc create_stat_model { model } {
 
 set stat_model [create_stat_model $model]
 
-set plot [create_charts_plot -model $stat_model -type boxplot -columns "min=1,lowerMedian=2,median=3,upperMedian=4,max=5,outliers=6" -properties "options.horizontal=1,options.normalized=1"]
+set plot [create_charts_plot -model $stat_model -type boxplot \
+  -columns {{min 1} {lowerMedian 2} {median 3} {upperMedian 4} {max 5} {outliers 6}} \
+  -properties {{options.horizontal 1} {options.normalized 1}}]

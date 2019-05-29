@@ -1,7 +1,7 @@
 set model [load_charts_model -csv data/log.csv -comment_header]
 
-set plot1 [create_charts_plot -type xy -columns "x=0,y=1" -title "Log Scale"]
-set plot2 [create_charts_plot -type xy -columns "x=0,y=1" -title "Linear Scale"]
+set plot1 [create_charts_plot -type xy -columns {{x 0} {y 1}} -title "Log Scale"]
+set plot2 [create_charts_plot -type xy -columns {{x 0} {y 1}} -title "Linear Scale"]
 
 set_charts_property -plot $plot1 -name "yaxis.valueType"            -value "LOG"
 set_charts_property -plot $plot1 -name "lines.stroke.width"         -value "2px"

@@ -46,7 +46,7 @@ set model [load_charts_model -csv data/ToothGrowth.csv -first_line_header]
 set view [create_charts_view]
 qt_sync
 
-set plot1 [create_charts_plot -view $view -model $model -type boxplot -columns "group=dose,value=len"]
+set plot1 [create_charts_plot -view $view -model $model -type boxplot -columns {{group dose} {value len}}]
 qt_sync
 
 connect_charts_signal -plot $plot1 -from plotObjsAdded -to addAnnotations

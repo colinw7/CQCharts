@@ -30,14 +30,14 @@ addParameters()
   addColumnsParameter("value", "Value", "valueColumns").
     setRequired().setNumeric().setTip("Value column(s)");
 
-  addColumnParameter("label", "Label", "labelColumn").
-    setString().setTip("Custom label");
+  addColumnParameter("labels", "Labels", "labelColumn").
+    setString().setTip("Custom labels column");
 
   addColumnParameter("radius", "Radius", "radiusColumn").
-    setNumeric().setTip("Custom radius");
+    setNumeric().setTip("Custom radius column");
 
-  addColumnParameter("keyLabel", "Key Label", "keyLabelColumn").
-    setString().setTip("Custom key label");
+  addColumnParameter("keyLabels", "Key Labels", "keyLabelColumn").
+    setString().setTip("Custom key labels column");
 
   addBoolParameter("donut", "Donut", "donut").setTip("Draw donut");
   addBoolParameter("count", "Count", "count").setTip("Display value counts");
@@ -234,10 +234,10 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProp("columns", "valueColumns"  , "values"  , "Value columns");
-  addProp("columns", "labelColumn"   , "label"   , "Label column");
-  addProp("columns", "radiusColumn"  , "radius"  , "Radius column");
-  addProp("columns", "keyLabelColumn", "keyLabel", "Key label column");
+  addProp("columns", "valueColumns"  , "values"   , "Value columns");
+  addProp("columns", "labelColumn"   , "labels"   , "Labels column");
+  addProp("columns", "radiusColumn"  , "radius"   , "Radius column");
+  addProp("columns", "keyLabelColumn", "keyLabels", "Key labels column");
 
   CQChartsGroupPlot::addProperties();
 
@@ -269,10 +269,10 @@ addProperties()
   addProp("explode", "explodeRadius"  , "radius"  , "Explode radius");
 
   // labels
-  textBox_->addTextDataProperties(propertyModel(), "labels", "Labels", /*addVisible*/true);
+  addProp("labels", "labelRadius", "radius" , "Radius labels are drawn at");
+  addProp("labels", "rotatedText", "rotated", "Labels text is rotated to segment angle");
 
-  addProp("labels", "labelRadius", "radius" , "Label radius");
-  addProp("labels", "rotatedText", "rotated", "Text rotated to segment angle");
+  textBox_->addTextDataProperties(propertyModel(), "labels/text", "Labels", /*addVisible*/true);
 
   QString labelBoxPath = "labels/box";
 

@@ -215,7 +215,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 //addHeaderProperty("headerTextAngle"    , "angle"    , "angle");
   addHeaderProperty("headerTextContrast" , "contrast" , "contrast");
   addHeaderProperty("headerTextAlign"    , "align"    , "align");
-  addHeaderProperty("headerTextFormatted", "formatted", "formatted to box");
+  addHeaderProperty("headerTextFormatted", "formatted", "formatted to fit box");
   addHeaderProperty("headerTextScaled"   , "scaled"   , "scaled to box");
   addHeaderProperty("headerTextHtml"     , "html"     , "is html");
 
@@ -239,7 +239,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 //addTextProperty("textAngle"    , "angle"    , "angle");
   addTextProperty("textContrast" , "contrast" , "contrast");
   addTextProperty("textAlign"    , "align"    , "align");
-  addTextProperty("textFormatted", "formatted", "formatted to box");
+  addTextProperty("textFormatted", "formatted", "formatted to fit box");
   addTextProperty("textScaled"   , "scaled"   , "scaled to box");
   addTextProperty("textHtml"     , "html"     , "is html");
 }
@@ -693,7 +693,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 //addHeaderProperty("headerTextAngle"    , "angle"    , "angle");
   addHeaderProperty("headerTextContrast" , "contrast" , "contrast");
   addHeaderProperty("headerTextAlign"    , "align"    , "align");
-  addHeaderProperty("headerTextFormatted", "formatted", "formatted to box");
+  addHeaderProperty("headerTextFormatted", "formatted", "formatted to fit box");
   addHeaderProperty("headerTextScaled"   , "scaled"   , "scaled to box");
   addHeaderProperty("headerTextHtml"     , "html"     , "is html");
 
@@ -717,7 +717,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 //addTextProperty("textAngle"    , "angle"    , "angle");
   addTextProperty("textContrast" , "contrast" , "contrast");
   addTextProperty("textAlign"    , "align"    , "align");
-  addTextProperty("textFormatted", "formatted", "formatted to box");
+  addTextProperty("textFormatted", "formatted", "formatted to fit box");
   addTextProperty("textScaled"   , "scaled"   , "scaled to box");
   addTextProperty("textHtml"     , "html"     , "is html");
 }

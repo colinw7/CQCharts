@@ -75,5 +75,4 @@ class CQChartsHtml {
   Str str_;
 };
 
-
 #endif

@@ -178,10 +178,10 @@ addProperties()
   addProp("options", "percent"  , ""         , "Use percentage value");
 
   // dot lines
-  addProp("dotLines",        "dotLines"     , "visible", "Draw bars as lines with dot");
-  addProp("dotLines/stroke", "dotLineWidth" , "width"  , "Dot line width");
+  addProp("dotLines",        "dotLines"    , "visible", "Draw bars as lines with dot");
+  addProp("dotLines/stroke", "dotLineWidth", "width"  , "Dot line width");
 
-  addSymbolProperties("dotLines/symbol", "dot", "Dot Line");
+  addSymbolProperties("dotLines/symbol", "dot", "Dot line");
 
   // color
   addProp("color", "colorBySet", "", "Color by value set");
@@ -318,6 +318,8 @@ setColorBySet(bool b)
 {
   CQChartsUtil::testAndSet(colorBySet_, b, [&]() { resetSetHidden(); updateRangeAndObjs(); });
 }
+
+//---
 
 void
 CQChartsBarChartPlot::
@@ -1004,7 +1006,7 @@ createObjs(PlotObjs &objs) const
       else
         th->barWidth_ = std::min(th->barWidth_, brect.getHeight());
 
-      CQChartsBarChartObj *barObj;
+      CQChartsBarChartObj *barObj = nullptr;
 
       if (ns > 1) {
         // multiple sets:

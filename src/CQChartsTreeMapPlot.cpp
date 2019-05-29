@@ -203,11 +203,11 @@ addProperties()
   CQChartsHierPlot::addProperties();
 
   // options
-  addProp("options", "marginWidth", "width", "Margin size for tree map boxes");
+  addProp("options", "marginWidth", "margin", "Margin size for tree map boxes");
 
   // header
   addProp("header", "titles"        , "visible"  ,
-          "Header titles visible for each hierarchical group");
+          "Header title visible for each hierarchical group");
   addProp("header", "titleMaxExtent", "maxExtent",
           "Max extent of hierarchical group header (0.0 - 1.0)");
   addProp("header", "titleHeight"  , "height"   ,

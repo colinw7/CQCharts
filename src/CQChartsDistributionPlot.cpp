@@ -13,7 +13,6 @@
 #include <CQChartsDensity.h>
 #include <CQChartsRoundedPolygon.h>
 #include <CQChartsTip.h>
-#include <CQChartsDensity.h>
 #include <CQChartsRand.h>
 #include <CQChartsHtml.h>
 
@@ -404,6 +403,8 @@ setHorizontal(bool b)
   CQChartsUtil::testAndSet(horizontal_, b, [&]() {
     dataLabel_->setDirection(horizontal_ ? Qt::Horizontal : Qt::Vertical);
 
+    CQChartsAxis::swap(xAxis(), yAxis());
+
     updateRangeAndObjs();
   } );
 }
@@ -736,8 +737,14 @@ bucketGroupValues() const
 
   CQChartsDistributionPlot *th = const_cast<CQChartsDistributionPlot *>(this);
 
+  // initialize bucketers to value range
   if (isConsistentBucketer()) {
-    // calculate type for bucketer
+    // get consistent bucketer
+    CQBucketer &bucketer = th->groupBucketer(0);
+
+    //---
+
+    // get consistent type
     CQChartsValueSet::Type type = CQChartsValueSet::Type::NONE;
 
     for (auto &groupValues : groupData_.groupValues) {
@@ -751,25 +758,22 @@ bucketGroupValues() const
       if (type1 == type)
         continue;
 
-      if      (type1 == CQChartsValueSet::Type::STRING)
+      if      (type1 == CQChartsValueSet::Type::STRING) {
         type = type1;
+      }
       else if (type1 == CQChartsValueSet::Type::REAL) {
-        if (type1 == CQChartsValueSet::Type::INTEGER)
+        if (type == CQChartsValueSet::Type::INTEGER)
           type = type1;
       }
     }
 
     //---
 
-    // set bucketer range from all group value
+    // updated bucketer with all values
     int iv = 0;
-
-    CQBucketer &bucketer = th->groupBucketer(0);
 
     for (auto &groupValues : groupData_.groupValues) {
       Values *values = groupValues.second;
-
-      //---
 
       if      (type == CQChartsValueSet::Type::INTEGER) {
         if (iv == 0) {
@@ -798,11 +802,12 @@ bucketGroupValues() const
     }
   }
   else {
-    // set bucketer range for each grouped set of values
+    // init each group bucketer from value ranges
     for (auto &groupValues : groupData_.groupValues) {
       int     groupInd = groupValues.first;
       Values *values   = groupValues.second;
 
+      // init group bucketer
       CQBucketer &bucketer = th->groupBucketer(groupInd);
 
       //---
@@ -825,11 +830,10 @@ bucketGroupValues() const
 
   //---
 
+  // bucket grouped sets of values
   for (auto &groupValues : groupData_.groupValues) {
     int     groupInd = groupValues.first;
     Values *values   = groupValues.second;
-
-    CQChartsValueSet::Type type = values->valueSet->type();
 
     //---
 
@@ -843,6 +847,8 @@ bucketGroupValues() const
       bool ok;
 
       if (isBucketed()) {
+        CQChartsValueSet::Type type = values->valueSet->type();
+
         if      (type == CQChartsValueSet::Type::REAL) {
           double r = modelReal(ind, ok);
           if (! ok || CMathUtil::isNaN(r)) continue;
@@ -868,9 +874,9 @@ bucketGroupValues() const
           value  = QVariant(i);
         }
         else {
-          QString str;
-
           bool hierValue = isHierarchical();
+
+          QString str;
 
           if (hierValue) {
             QVariant value = modelRootValue(ind.row, ind.column, ind.parent, Qt::DisplayRole, ok);
@@ -1149,6 +1155,8 @@ calcBucketRanges() const
     updateRange(x1, y1);
     updateRange(x2, y2);
   };
+
+  //---
 
   if      (isDensity()) {
     // range already accounts for horizontal/vertical

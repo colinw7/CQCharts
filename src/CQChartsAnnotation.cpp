@@ -1513,9 +1513,9 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   model->addProperty(textPath, this, "textAlign"    , "align"    )->
     setDesc("Text align");
   model->addProperty(textPath, this, "textFormatted", "formatted")->
-    setDesc("Text formatted");
+    setDesc("Text formatted to fit box");
   model->addProperty(textPath, this, "textScaled"   , "scaled"   )->
-    setDesc("Text scaled");
+    setDesc("Text scaled to box");
   model->addProperty(textPath, this, "textHtml"     , "html"     )->
     setDesc("Text is HTML");
 

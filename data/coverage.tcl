@@ -9,11 +9,11 @@ set modelId [load_charts_model -csv data/coverage.csv -first_line_header]
 
 set_charts_data -model $modelId -name column_type -value "0#time:format=%m/%d/%Y,oformat=%F"
 
-set plotId1 [create_charts_plot -type xy -columns "id=0,x=0,y=1"]
+set plotId1 [create_charts_plot -type xy -columns {{id 0} {x 0} {y 1}}]
 
 set viewId [get_charts_property -plot $plotId1 -name viewId]
 
-set plotId2 [create_charts_plot -type xy -columns "id=0,x=0,y=2"]
+set plotId2 [create_charts_plot -type xy -columns {{id 0} {x 0} {y 2}}]
 
 set_charts_property -plot $plotId1 -name impulse.visible -value 1
 set_charts_property -plot $plotId1 -name impulse.color   -value palette

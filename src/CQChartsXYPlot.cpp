@@ -507,7 +507,7 @@ addProperties()
   addLineProperties("statsData/stroke", "statsLines", "Statistic lines");
 
   // fill under
-  addProp("fillUnder", "fillUnderFilled"    , "visible"   , "Fill under lines visible");
+  addProp("fillUnder", "fillUnderFilled"    , "visible"   , "Fill under polygon visible");
   addProp("fillUnder", "fillUnderSelectable", "selectable", "Fill under polygon selectable");
   addProp("fillUnder", "fillUnderPos"       , "position"  , "Fill under base position");
   addProp("fillUnder", "fillUnderSide"      , "side"      , "Fill under line side");
@@ -517,7 +517,7 @@ addProperties()
   // impulse
   addProp("impulse", "impulseLines", "visible", "Impulse lines visible");
 
-  addLineProperties("impulse/stroke", "impulseLines", "Impulse");
+  addLineProperties("impulse/stroke", "impulseLines", "Impulse lines");
 
   // vectors
   addProp("vectors", "vectors", "visible", "Vectors at points visible");
@@ -541,10 +541,10 @@ addProperties()
   addArrowProp("vectors/stroke", "borderWidth", "width"  , "Stroke width");
 
   // data label
-  addProp("labels/text", "dataLabelTextVisible", "visible", "Data label visible");
-  addProp("labels/text", "dataLabelTextAngle"  , "angle"  , "Data label text angle");
+  addProp("labels/text", "dataLabelTextVisible", "visible", "Data labels visible");
+  addProp("labels/text", "dataLabelTextAngle"  , "angle"  , "Data labels text angle");
 
-  addAllTextProperties("labels/text", "dataLabelText", "Labels");
+  addAllTextProperties("labels/text", "dataLabelText", "Data labels");
 
   CQChartsGroupPlot::addProperties();
 }

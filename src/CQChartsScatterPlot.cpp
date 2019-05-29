@@ -130,6 +130,7 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
 
   //---
 
+  // create a data label (shared state for all data labels)
   dataLabel_ = new CQChartsDataLabel(this);
 
   dataLabel_->setSendSignal(true);
@@ -740,7 +741,7 @@ void
 CQChartsScatterPlot::
 dataLabelChanged()
 {
-  // TODO: not enough detail to update data label depending on change
+  // TODO: not enough info to optimize behavior so reload all objects
   updateObjs();
 }
 
@@ -2077,7 +2078,7 @@ drawBestFit(QPainter *painter) const
 
       setBrush(brush, isBestFitFilled(), fillColor, bestFitFillAlpha(), bestFitFillPattern());
 
-      updateObjPenBrushState(this, ColorInd(ig, ng), pen, brush, CQChartsPlot::DrawType::LINE);
+      updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
 
       painter->setPen  (pen);
       painter->setBrush(brush);
@@ -2181,7 +2182,7 @@ drawStatsLines(QPainter *painter) const
 
     setBrush(brush, false);
 
-    updateObjPenBrushState(this, ColorInd(ig, ng), pen, brush, CQChartsPlot::DrawType::LINE);
+    updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
 
     painter->setPen  (pen);
     painter->setBrush(brush);
@@ -3603,6 +3604,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
     //---
 
+    // text font color
     QPen tpen;
 
     QColor tc = dataLabel->interpTextColor(ic);
@@ -3611,6 +3613,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
     //---
 
+    // set font size
     double fontSize = dataLabel->textFont().pointSizeF();
 
     if (fontSize_.isValid())
@@ -3618,6 +3621,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
     //---
 
+    // set (temp) font
     CQChartsFont font = dataLabel->textFont();
 
     if (fontSize > 0) {
@@ -3631,8 +3635,13 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
       const_cast<CQChartsScatterPlot *>(plot_)->setDataLabelFont(font1);
     }
 
+    //---
+
     dataLabel->draw(painter, erect, name_, dataLabel->position(), tpen);
 
+    //---
+
+    // reset font
     if (fontSize > 0) {
       const_cast<CQChartsScatterPlot *>(plot_)->setDataLabelFont(font);
     }

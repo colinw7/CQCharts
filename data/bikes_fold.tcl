@@ -37,11 +37,13 @@ write_charts_model -model $model3
 
 #set view1 [create_charts_view]
 
-#set plot1 [create_charts_plot -view $view1 -type barchart -model $model2 -columns "value=3 4 5 6 7 8 9 10,name=0"]
+#set plot1 [create_charts_plot -view $view1 -type barchart -model $model2 \
+# -columns {{value {3 4 5 6 7 8 9 10}} {name 0}}]
 
 set view2 [create_charts_view]
 
-set plot2 [create_charts_plot -view $view2 -type distribution -model $model2 -columns "value=3 4 5 6 7 8 9 10,name=0,color=0"]
+set plot2 [create_charts_plot -view $view2 -type distribution -model $model2 \
+ -columns {{value {3 4 5 6 7 8 9 10}} {name 0} {color 0}}]
 
 set_charts_property -plot $plot2 -name bucket.enabled    -value false
 set_charts_property -plot $plot2 -name options.valueType -value SUM
@@ -49,4 +51,6 @@ set_charts_property -plot $plot2 -name options.valueType -value SUM
 
 #set view3 [create_charts_view]
 
-#set plot3 [create_charts_plot -view $view3 -type boxplot -model $model3 -columns "x=name,min=min,lowerMedian=lower_median,median=median,upperMedian=upper_median,max=max,outliers=outliers"]
+#set plot3 [create_charts_plot -view $view3 -type boxplot -model $model3 \
+#  -columns {{x name} {min min} {lowerMedian lower_median} {median median} \
+#            {upperMedian upper_median} {max max} {outliers outliers}}]

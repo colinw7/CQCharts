@@ -347,10 +347,22 @@ bool
 CQChartsCmdBase::
 valueToStrs(const QString &str, QStringList &strs) const
 {
+#if 0
   if (str.length() >= 2 && str[0] == '{' && str[str.length() - 1] == '}')
     return qtcl()->splitList(str.mid(1, str.length() - 2), strs);
   else
     return qtcl()->splitList(str, strs);
+#endif
+  return qtcl()->splitList(str, strs);
+}
+
+bool
+CQChartsCmdBase::
+strsToValue(const QStringList &strs, QString &str) const
+{
+  str = qtcl()->mergeList(strs);
+
+  return true;
 }
 
 //------
