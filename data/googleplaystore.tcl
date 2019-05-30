@@ -11,7 +11,7 @@ define_charts_proc fixSize { value } {
 
 echo "Size"
 process_charts_model -model $model -column "Size" -modify -expr "fixSize(@v)" -force
-set_charts_data -model $model -column "Size" -name column_type -value real
+set_charts_data -model $model -column "Size" -name column_type -value {{real}}
 
 define_charts_proc fixInstalls { value } {
   regsub {\+$} $value {} value
@@ -42,11 +42,12 @@ define_charts_proc fixAndroidVer { value } {
 echo "Android Ver"
 process_charts_model -model $model -column "Android Ver" -modify -expr "fixAndroidVer(@v)" -force
 
-set_charts_data -model $model -column "Rating"       -name column_type -value real
-set_charts_data -model $model -column "Installs"     -name column_type -value real
-set_charts_data -model $model -column "Price"        -name column_type -value real
-set_charts_data -model $model -column "Last Updated" -name column_type -value "time:format=%B %d\\, %Y"
-set_charts_data -model $model -column "Android Ver"  -name column_type -value real
+set_charts_data -model $model -column "Rating"       -name column_type -value {{real}}
+set_charts_data -model $model -column "Installs"     -name column_type -value {{real}}
+set_charts_data -model $model -column "Price"        -name column_type -value {{real}}
+set_charts_data -model $model -column "Last Updated" -name column_type \
+  -value {{time} {format %B %d\\, %Y}}
+set_charts_data -model $model -column "Android Ver"  -name column_type -value {{real}}
 
 proc cat_dist { model } {
   set view [create_charts_view]

@@ -7,7 +7,7 @@ set legendaryColumn  [get_charts_data -model $model -name column_index -data Leg
 set totalColumn      [get_charts_data -model $model -name column_index -data Total]
 set generationColumn [get_charts_data -model $model -name column_index -data Generation]
 
-set_charts_data -model $model -column $legendaryColumn -name column_type -value boolean
+set_charts_data -model $model -column $legendaryColumn -name column_type -value {{boolean}}
 
 # create new Type 2 row with empty rows set to Type 1 value
 set type2Column1 [process_charts_model -model $model -add -expr "column($type2Column)" -header "Type 2a"]

@@ -1,4 +1,5 @@
-set modelId [load_charts_model -tsv data/cities1.dat -comment_header -column_type "2#real:min=0"]
+set modelId [load_charts_model -tsv data/cities1.dat -comment_header \
+  -column_type {{{2 real} {min 0}}}]
 puts $modelId
 
 set nr [get_charts_data -model $modelId -name num_rows]

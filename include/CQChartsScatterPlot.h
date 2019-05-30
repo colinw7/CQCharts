@@ -332,8 +332,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
  public:
   enum class PlotType {
     SYMBOLS,
-    GRID_CELLS,
-    DENSITY_MAP
+    GRID_CELLS
   };
 
   struct ValueData {

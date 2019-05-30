@@ -6,7 +6,8 @@
 
 #set plot2 [create_charts_plot -model $model2 -type sunburst -columns {{names 0} {value 1}} -title "sunburst"]
 
-set model3 [load_charts_model -tsv data/coffee.tsv -first_line_header -column_type "1#color"]
+set model3 [load_charts_model -tsv data/coffee.tsv -first_line_header \
+  -column_type {{{1 color}}}]
 
 set plot3 [create_charts_plot -model $model3 -type sunburst \
   -columns {{names 0} {color 1}} -title "coffee characteristics" \

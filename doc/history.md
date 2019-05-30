@@ -864,3 +864,10 @@
  + Add more support for tip columns in plot object tooltip
  + Cleanup image style and options
  + More plot help descriptions
+# 5/28/2019
+ + Fix missing axis swap code
+ + Use tcl format for command arguments (column_type and properties)
+ + Improve descriptions
+# 5/30/2019
+ + Use tcl format for more column type for more code
+ + Fix format for axes

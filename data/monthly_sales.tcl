@@ -1,6 +1,9 @@
 # Bar chart key click should hide all
 
-set model [load_charts_model -tsv data/monthly_sales.tsv -comment_header -column_type {{1#real:format=$%gK,format_scale=0.001} {2#real:format=$%gK,format_scale=0.001} {3#real:format=$%gK,format_scale=0.001}}]
+set model [load_charts_model -tsv data/monthly_sales.tsv -comment_header \
+  -column_type {{{1 real} {format $%gK} {format_scale 0.001}} \
+                {{2 real} {format $%gK} {format_scale 0.001}} \
+                {{3 real} {format $%gK} {format_scale 0.001}}}]
 
 set plot1 [create_charts_plot -type barchart -columns {{group 0} {value 1} {label 4}} -title "Actual Sales" -ymax 80000]
 

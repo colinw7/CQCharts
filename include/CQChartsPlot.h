@@ -1762,9 +1762,11 @@ class CQChartsPlot : public CQChartsObj,
                        ColumnType &columnBaseType, CQChartsNameValues &nameValues,
                        const ColumnType &defType=ColumnType::STRING) const;
 
+#if 0
   bool columnTypeStr(const CQChartsColumn &column, QString &typeStr) const;
 
   bool setColumnTypeStr(const CQChartsColumn &column, const QString &typeStr);
+#endif
 
   bool columnDetails(const CQChartsColumn &column, QString &typeName,
                      QVariant &minValue, QVariant &maxValue) const;

@@ -7,7 +7,7 @@ set symbol_data [list \
 set model [load_charts_model -var symbol_data -transpose]
 
 # map symbol directly in model
-#set_charts_data -model $model -column 2 -name column_type -value "symbolSize:mapped=1"
+#set_charts_data -model $model -column 2 -name column_type -value {{symbolSize:mapped 1}}
 
 set plot [create_charts_plot -model $model -type scatter \
   -columns {{x 0} {y 1} {symbolSize 2}}]

@@ -245,7 +245,7 @@ addProperties()
   // select highlight
   addProp("select/highlight"       , "selectedMode"       , "mode"   , "Highlight draw mode");
   addProp("select/highlight"       , "selectedShapeData"  , "style"  , "Highlight shape data");
-  addProp("select/highlight/fill"  , "selectedFilled"     , "visible", "Highlight fill is visible");
+  addProp("select/highlight/fill"  , "selectedFilled"     , "visible", "Highlight fill visible");
   addProp("select/highlight/fill"  , "selectedFillColor"  , "color"  , "Highlight fill color");
   addProp("select/highlight/fill"  , "selectedFillAlpha"  , "alpha"  , "Highlight fill alpha");
   addProp("select/highlight/stroke", "selectedBorder"     , "visible", "Highlight stroke visible");
@@ -256,10 +256,10 @@ addProperties()
   // inside highlight
   addProp("inside/highlight"       , "insideMode"       , "mode"   , "Inside draw mode");
   addProp("inside/highlight"       , "insideShapeData"  , "style"  , "Inside shape data");
-  addProp("inside/highlight/fill"  , "insideFilled"     , "visible", "Inside fill is visible");
+  addProp("inside/highlight/fill"  , "insideFilled"     , "visible", "Inside fill visible");
   addProp("inside/highlight/fill"  , "insideFillColor"  , "color"  , "Inside fill color");
   addProp("inside/highlight/fill"  , "insideFillAlpha"  , "alpha"  , "Inside fill alpha");
-  addProp("inside/highlight/stroke", "insideBorder"     , "visible", "Inside strok is visible");
+  addProp("inside/highlight/stroke", "insideBorder"     , "visible", "Inside stroke visible");
   addProp("inside/highlight/stroke", "insideBorderColor", "color"  , "Inside stroke color");
   addProp("inside/highlight/stroke", "insideBorderWidth", "width"  , "Inside stroke width");
   addProp("inside/highlight/stroke", "insideBorderDash" , "dash"   , "Inside stroke dash");

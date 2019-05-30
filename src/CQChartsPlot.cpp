@@ -8542,6 +8542,7 @@ columnValueType(const CQChartsColumn &column, ColumnType &columnType, ColumnType
   return true;
 }
 
+#if 0
 bool
 CQChartsPlot::
 columnTypeStr(const CQChartsColumn &column, QString &typeStr) const
@@ -8561,6 +8562,7 @@ setColumnTypeStr(const CQChartsColumn &column, const QString &typeStr)
 
   return CQChartsModelUtil::setColumnTypeStr(charts(), model, column, typeStr);
 }
+#endif
 
 bool
 CQChartsPlot::

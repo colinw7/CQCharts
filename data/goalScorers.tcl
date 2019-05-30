@@ -1,4 +1,5 @@
-set model [load_charts_model -csv data/goalScorers.csv -first_line_header -column_type "date#time:format=%Y-%m-%d,oformat=%F"]
+set model [load_charts_model -csv data/goalScorers.csv -first_line_header \
+  -column_type {{{date time} {format %Y-%m-%d} {oformat %F}}}]
 
 set view [create_charts_view]
 

@@ -76,9 +76,12 @@ proc mapValues { modelId } {
 
 #set modelId [load_charts_model -tsv data/digits.tsv -first_line_header]
 #set modelId [load_charts_model -csv data/aster_data.csv -first_line_header]
-#set modelId [load_charts_model -csv data/cities.csv -first_line_header -column_type "3#real:min=0,max=1;4#color"]
-set modelId [load_charts_model -tsv data/multi_series.tsv -comment_header -column_type "0#time:format=%Y%m%d"]
-#set modelId [load_charts_model -tsv data/cities1.dat -comment_header -column_type "2#real:min=0"]
+#set modelId [load_charts_model -csv data/cities.csv -first_line_header \
+#  -column_type {{{3 real} {min 0} {max 1}} {{4 color}}}]
+set modelId [load_charts_model -tsv data/multi_series.tsv -comment_header \
+  -column_type {{{0 time} {format %Y%m%d}}}]
+#set modelId [load_charts_model -tsv data/cities1.dat -comment_header \
+#  -column_type {{{2 real} {min 0}}}]
 
 modelDetails $modelId
 

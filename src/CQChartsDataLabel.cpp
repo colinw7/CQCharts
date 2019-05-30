@@ -20,7 +20,7 @@ void
 CQChartsDataLabel::
 addPathProperties(const QString &path, const QString &desc)
 {
-  plot_->addProperty(path, this, "visible" )->setDesc(desc + " is visible");
+  plot_->addProperty(path, this, "visible" )->setDesc(desc + " visible");
   plot_->addProperty(path, this, "position")->setDesc(desc + " position");
   plot_->addProperty(path, this, "clip"    )->setDesc(desc + " is clipped");
 

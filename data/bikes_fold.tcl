@@ -2,7 +2,7 @@
 
 set model [load_charts_model -csv data/bikes.csv -first_line_header]
 
-set_charts_data -model $model -column 0 -name column_type -value "time:format=%d/%m/%Y"
+set_charts_data -model $model -column 0 -name column_type -value {{time} {format %d/%m/%Y}}
 
 #---
 

@@ -61,6 +61,8 @@
 #include <QFont>
 #include <fstream>
 
+//------
+
 CQChartsCmds::
 CQChartsCmds(CQCharts *charts) :
  charts_(charts)
@@ -266,7 +268,7 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
 
   QString columnsStr = argv.getParseStr("columns");
 
-  if (! cmdBase_->valueToStrs(columnsStr, inputData.columns))
+  if (! CQTcl::splitList(columnsStr, inputData.columns))
     return errorMsg(QString("Invalid columns string '%1'").arg(columnsStr));
 
   inputData.transpose = argv.getParseBool("transpose");
@@ -317,15 +319,8 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
     for (int i = 0; i < columnTypes.length(); ++i) {
       const QString &columnType = columnTypes[i];
 
-      QStringList strs;
-
-      if (! cmdBase_->valueToStrs(columnType, strs))
+      if (! CQChartsModelUtil::setColumnTypeStrs(charts_, model.data(), columnType))
         return errorMsg(QString("Invalid column type string '%1'").arg(columnType));
-
-      for (int j = 0; j < strs.length(); ++j) {
-        if (! CQChartsModelUtil::setColumnTypeIndexStr(charts_, model.data(), j, strs[j]))
-          return errorMsg(QString("Invalid column type sub string '%1'").arg(strs[j]));
-      }
     }
   }
 
@@ -416,7 +411,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
 
     if (type.length()) {
       if (! CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), column, type))
-        return errorMsg(QString("Invalid type '" + type + "' for column '%1'").arg(column));
+        return errorMsg(QString("Invalid column type '%1'").arg(type));
     }
 
     cmdBase_->setCmdRc(column);
@@ -466,8 +461,7 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
 
     if (type.length()) {
       if (! CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), column, type))
-        return errorMsg(QString("Invalid type '" + type + "' for column '%1'").
-                         arg(column.column()));
+        return errorMsg(QString("Invalid column type '%1'").arg(type));
     }
 
     cmdBase_->setCmdRc(column.column());
@@ -920,7 +914,7 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
 
     QStringList strs;
 
-    if (! cmdBase_->valueToStrs(columnsStr, strs))
+    if (! CQTcl::splitList(columnsStr, strs))
       return errorMsg(QString("Invalid columns string '%1'").arg(columnsStr));
 
     //QStringList strs = stringToNamedColumns(columnsStr);
@@ -931,7 +925,7 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
 #if 1
       QStringList strs1;
 
-      if (! cmdBase_->valueToStrs(nameValue, strs1))
+      if (! CQTcl::splitList(nameValue, strs1))
         return errorMsg(QString("Invalid column name/value string '%1'").arg(nameValue));
 
       if (strs1.length() != 2)
@@ -966,7 +960,7 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
 #if 1
     QStringList strs1;
 
-    if (! cmdBase_->valueToStrs(parameterStr, strs1))
+    if (! CQTcl::splitList(parameterStr, strs1))
       return errorMsg(QString("Invalid parameter name/value string '%1'").arg(parameterStr));
 
     if (strs1.length() != 2)
@@ -1013,7 +1007,7 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
   if (positionStr != "") {
     QStringList positionStrs;
 
-    if (! cmdBase_->valueToStrs(positionStr, positionStrs))
+    if (! CQTcl::splitList(positionStr, positionStrs))
       return errorMsg(QString("Invalid position string '%1'").arg(positionStr));
 
     if (positionStrs.length() != 4)
@@ -1112,13 +1106,13 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
   for (int i = 0; i < properties.length(); ++i) {
     QStringList strs;
 
-    if (! cmdBase_->valueToStrs(properties[i], strs))
+    if (! CQTcl::splitList(properties[i], strs))
       return errorMsg(QString("Invalid properties string '%1'").arg(properties[i]));
 
     for (int j = 0; j < strs.length(); ++j) {
       QStringList strs1;
 
-      if (! cmdBase_->valueToStrs(strs[j], strs1))
+      if (! CQTcl::splitList(strs[j], strs1))
         return errorMsg(QString("Invalid property string '%1'").arg(strs[j]));
 
       if (strs1.size() != 2)
@@ -1917,7 +1911,7 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
     else if (nameStr == "palettes") {
       QStringList strs;
 
-      cmdBase_->valueToStrs(valueStr, strs);
+      CQTcl::splitList(valueStr, strs);
 
       for (int i = 0; i < strs.length(); ++i) {
         CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(strs[i]);
@@ -2035,7 +2029,7 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
 
       QStringList strs;
 
-      cmdBase_->valueToStrs(valueStr, strs);
+      CQTcl::splitList(valueStr, strs);
 
       if (! strs.length()) return errorMsg(QString("Invalid defined colors '%1'").arg(valueStr));
 
@@ -2048,7 +2042,7 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
 #if 1
         QStringList strs1;
 
-        if (! cmdBase_->valueToStrs(strs[j], strs1))
+        if (! CQTcl::splitList(strs[j], strs1))
           return errorMsg(QString("Invalid defined color string '%1'").arg(strs[j]));
 
         if (strs1.length() != 1 && strs1.length() != 2)
@@ -4866,18 +4860,13 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
       }
     }
     else if (name == "column_type") {
-      if (column.isValid())
-        CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), column, value);
+      if (column.isValid()) {
+        if (! CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), column, value))
+          return errorMsg(QString("Invalid column type '%1'").arg(value));
+      }
       else {
-        QStringList strs;
-
-        if (! cmdBase_->valueToStrs(value, strs))
+        if (! CQChartsModelUtil::setColumnTypeStrs(charts_, model.data(), value))
           return errorMsg(QString("Invalid column type string '%1'").arg(value));
-
-        for (int j = 0; j < strs.length(); ++j) {
-          if (! CQChartsModelUtil::setColumnTypeIndexStr(charts_, model.data(), j, strs[j]))
-            return errorMsg(QString("Invalid column type sub string '%1'").arg(strs[j]));
-        }
       }
     }
     else if (name == "name") {

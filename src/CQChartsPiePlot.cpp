@@ -269,10 +269,12 @@ addProperties()
   addProp("explode", "explodeRadius"  , "radius"  , "Explode radius");
 
   // labels
+  addProp("labels", "textVisible", "visible", "Labels visible");
+
   addProp("labels", "labelRadius", "radius" , "Radius labels are drawn at");
   addProp("labels", "rotatedText", "rotated", "Labels text is rotated to segment angle");
 
-  textBox_->addTextDataProperties(propertyModel(), "labels/text", "Labels", /*addVisible*/true);
+  textBox_->addTextDataProperties(propertyModel(), "labels", "Labels");
 
   QString labelBoxPath = "labels/box";
 

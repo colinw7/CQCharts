@@ -223,16 +223,34 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
 //  TODO: separate format string from column type to remove dependence
 bool
 formatColumnTypeValue(CQCharts *charts, const QAbstractItemModel *model,
-                      const CQChartsColumn &column, const QString &typeStr,
+                      const CQChartsColumn &column, const QString &formatStr,
                       double value, QString &str) {
+#if 0
   CQChartsNameValues nameValues;
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
-  const CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
+  const CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(formatStr, nameValues);
 
   if (! typeData)
     return false;
+#else
+  CQBaseModelType    columnType;
+  CQBaseModelType    columnBaseType;
+  CQChartsNameValues nameValues;
+
+  if (! columnValueType(charts, model, column, columnType, columnBaseType, nameValues))
+    return false;
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+
+  const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+
+  if (! typeData)
+    return false;
+
+  nameValues.setNameValue(typeData->formatName(), formatStr);
+#endif
 
   return formatColumnTypeValue(charts, model, column, typeData, nameValues, value, str);
 }
@@ -299,6 +317,7 @@ columnUserData(CQCharts *charts, const QAbstractItemModel *model, const CQCharts
   return var1;
 }
 
+#if 0
 // get type string for column (type name and name values)
 bool
 columnTypeStr(CQCharts *charts, const QAbstractItemModel *model,
@@ -316,7 +335,38 @@ columnTypeStr(CQCharts *charts, const QAbstractItemModel *model,
 
   return true;
 }
+#endif
 
+// get type string for column (type name and name values)
+bool
+columnTypeStr(CQCharts *charts, const QAbstractItemModel *model,
+              const CQChartsColumn &column, QString &typeStr) {
+  CQBaseModelType    columnType;
+  CQBaseModelType    columnBaseType;
+  CQChartsNameValues nameValues;
+
+  if (! columnValueType(charts, model, column, columnType, columnBaseType, nameValues))
+    return false;
+
+  QStringList strs;
+
+  strs << CQBaseModel::typeName(columnType);
+
+  for (const auto &nv : nameValues.nameValues()) {
+    QStringList strs1;
+
+    strs1 << nv.first;
+    strs1 << nv.second.toString();
+
+    strs << CQTcl::mergeList(strs1);
+  }
+
+  typeStr = CQTcl::mergeList(strs);
+
+  return true;
+}
+
+#if 0
 // column_types: <column_type>;<column_type>;...
 // column_type : <column>#<type> | <type>
 // type        : <base_type>:<name_values> | <base_type>
@@ -343,7 +393,33 @@ setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &co
 
   return rc;
 }
+#endif
 
+bool
+setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &columnTypes)
+{
+  bool rc = true;
+
+  // split into multiple column type definitions
+  QStringList fstrs;
+
+  if (! CQTcl::splitList(columnTypes, fstrs))
+    return false;
+
+  for (int i = 0; i < fstrs.length(); ++i) {
+    QString typeStr = fstrs[i].simplified();
+
+    if (! typeStr.length())
+      continue;
+
+    if (! setColumnTypeIndexStr(charts, model, i, typeStr))
+      rc = false;
+  }
+
+  return rc;
+}
+
+#if 0
 bool
 setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model,
                       int i, const QString &typeStr)
@@ -383,7 +459,9 @@ setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model,
 
   return true;
 }
+#endif
 
+#if 0
 // set type string for column (type name and name values)
 bool
 setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
@@ -405,6 +483,118 @@ setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColu
     return false;
 
   return true;
+}
+#endif
+
+bool
+setColumnTypeI(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+               const QString &typeName, const QString &typeStr, const QStringList &strs,
+               QString &errorMsg) {
+  CQChartsNameValues nameValues;
+
+  for (int i = 0; i < strs.length(); ++i) {
+    QStringList strs1;
+
+    if (! CQTcl::splitList(strs[i], strs1)) {
+      errorMsg = QString("Invalid column type string '%1'").arg(strs[i]);
+      return false;
+    }
+
+    if (strs1.length() != 2) {
+      errorMsg = QString("Invalid column type string '%1'").arg(strs[i]);
+      return false;
+    }
+
+    nameValues.setNameValue(strs1[0], strs1[1]);
+  }
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+
+  const CQChartsColumnType *typeData = columnTypeMgr->getType(CQBaseModel::nameType(typeName));
+
+  if (! typeData) {
+    errorMsg = QString("Invalid column type '%1'").arg(typeName);
+    return false;
+  }
+
+  // store in model
+  CQBaseModelType columnType = typeData->type();
+
+  if (! columnTypeMgr->setModelColumnType(model, column, columnType, nameValues)) {
+    errorMsg = QString("Failed to set column type '%1'").arg(typeStr);
+    return false;
+  }
+
+  return true;
+}
+
+bool
+setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model, int ind,
+                      const QString &typeStr)
+{
+  QString errorMsg;
+
+  // { type         {name value} ...}
+  // {{column type} {name value} ...}
+  QStringList strs;
+
+  if (! CQTcl::splitList(typeStr, strs)) {
+    errorMsg = QString("Invalid column type string '%1'").arg(typeStr);
+    return false;
+  }
+
+  if (strs.length() < 1) {
+    errorMsg = QString("Invalid column type string '%1'").arg(typeStr);
+    return false;
+  }
+
+  CQChartsColumn column;
+  QString        typeName;
+
+  QStringList strs1;
+
+  if (CQTcl::splitList(strs[0], strs1) && strs1.length() > 1) {
+    if (strs1.length() != 2) {
+      errorMsg = QString("Invalid column type string '%1'").arg(strs[0]);
+      return false;
+    }
+
+    if (! CQChartsModelUtil::stringToColumn(model, strs1[0], column)) {
+      errorMsg = QString("Invalid column string '%1'").arg(strs1[0]);
+      return false;
+    }
+
+    typeName = strs1[1];
+  }
+  else {
+    column   = CQChartsColumn(ind);
+    typeName = strs[0];
+  }
+
+  return setColumnTypeI(charts, model, column, typeName, typeStr, strs.mid(1), errorMsg);
+}
+
+bool
+setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                 const QString &typeStr) {
+  QString errorMsg;
+
+  // {type {name value} ...}
+  QStringList strs;
+
+  if (! CQTcl::splitList(typeStr, strs)) {
+    errorMsg = QString("Invalid column type string '%1'").arg(typeStr);
+    return false;
+  }
+
+  if (strs.length() < 1) {
+    errorMsg = QString("Invalid column type string '%1'").arg(typeStr);
+    return false;
+  }
+
+  QString typeName = strs[0];
+
+  return setColumnTypeI(charts, model, column, typeName, typeStr, strs.mid(1), errorMsg);
 }
 
 }

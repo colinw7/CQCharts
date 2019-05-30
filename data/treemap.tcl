@@ -13,7 +13,8 @@ set plot1 [create_charts_plot -model $model1 -type treemap \
 
 #set plot3 [create_charts_plot -model $model3 -type treemap -columns {{names 0} {color 1}} -title "coffee characteristics"]
 
-#set model4 [load_charts_model -tsv data/coffee.tsv -first_line_header -column_type "1#color"]
+#set model4 [load_charts_model -tsv data/coffee.tsv -first_line_header \
+#  -column_type {{{1 color}}}]
 
 #set plot4 [create_charts_plot -model $model4 -type treemap -columns {{names 0} {color 1}} -title "coffee characteristics"]
 

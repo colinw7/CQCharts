@@ -6,7 +6,8 @@ proc objPressed { view plot id } {
   echo "$inds"
 }
 
-set model [load_charts_model -csv data/ages.csv -first_line_header -column_type "1#integer"]
+set model [load_charts_model -csv data/ages.csv -first_line_header \
+  -column_type {{{1 integer}}}]
 
 set view [create_charts_view]
 

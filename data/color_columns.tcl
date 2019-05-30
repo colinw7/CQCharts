@@ -7,7 +7,8 @@ set color_data [list \
 set model [load_charts_model -var color_data -transpose]
 
 # map color directly in model
-#set_charts_data -model $model -column 3 -name column_type -value "color:mapped=1,palette=plasma"
+#set_charts_data -model $model -column 3 -name column_type \
+#  -value {{color:mapped 1} {palette plasma}}
 
 set plot [create_charts_plot -model $model -type barchart \
   -columns {{name 0} {value 1} {color 3}}]

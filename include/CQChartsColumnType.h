@@ -74,6 +74,8 @@ class CQChartsColumnType {
   virtual bool isBoolean () const { return false; }
   virtual bool isTime    () const { return false; }
 
+  virtual QString formatName() const { return "format"; }
+
   const Params &params() const { return params_; }
 
   bool hasParam(const QString &name) const;
@@ -228,6 +230,8 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
 
   bool isNumeric() const override { return true; }
   bool isTime   () const override { return true; }
+
+  QString formatName() const override { return "oformat"; }
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -538,10 +542,12 @@ class CQChartsColumnTypeMgr : public QObject {
 
   void addType(Type type, CQChartsColumnType *data);
 
+#if 0
   const CQChartsColumnType *decodeTypeData(const QString &type,
                                            CQChartsNameValues &nameValues) const;
 
   QString encodeTypeData(Type type, const CQChartsNameValues &nameValues) const;
+#endif
 
   const CQChartsColumnType *getType(Type type) const;
 

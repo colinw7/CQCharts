@@ -149,7 +149,7 @@ void
 CQChartsTitle::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
-  model->addProperty(path, this, "visible"    )->setDesc("Title is visible");
+  model->addProperty(path, this, "visible"    )->setDesc("Title visible");
   model->addProperty(path, this, "location"   )->setDesc("Title location");
   model->addProperty(path, this, "absPosition")->setDesc("Title absolute position");
   model->addProperty(path, this, "absRect"    )->setDesc("Title absolute rectange");

@@ -44,9 +44,9 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &de
 
   QString textPath = path + "/text";
 
-  QString path1 = (desc.length() ? desc + " text" : "Text");
+  QString desc1 = (desc.length() ? desc + " text" : "Text");
 
-  model->addProperty(textPath, this, "textStr", "string")->setDesc(path1 + " string");
+  model->addProperty(textPath, this, "textStr", "string")->setDesc(desc1 + " string");
 
   addTextDataProperties(model, textPath, desc);
 }

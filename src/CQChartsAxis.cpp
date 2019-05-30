@@ -192,7 +192,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   addProp(path, "direction", "", "Axis direction")->setHidden(true).setEditable(false);
 
-  addProp(path, "visible"  , "", "Is axis visible");
+  addProp(path, "visible"  , "", "Axis visible");
   addProp(path, "side"     , "", "Axis plot side");
   addProp(path, "valueType", "", "Axis value type");
   addProp(path, "format"   , "", "Axis tick value format string");
@@ -245,7 +245,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   addProp(ticksLabelTextPath, "axesTickLabelTextData"   , "style",
           "Axis tick label text style")->setHidden(true);
   addProp(ticksLabelTextPath, "axesTickLabelTextVisible", "visible",
-          "Axis tick label text is visible");
+          "Axis tick label text visible");
   addProp(ticksLabelTextPath, "axesTickLabelTextColor"  , "color",
           "Axis tick label text color");
   addProp(ticksLabelTextPath, "axesTickLabelTextAlpha"  , "alpha",
@@ -266,7 +266,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   addProp(labelTextPath, "label"               , "string" , "Axis label text string");
   addProp(labelTextPath, "axesLabelTextData"   , "style"  ,
           "Axis label text style")->setHidden(true);
-  addProp(labelTextPath, "axesLabelTextVisible", "visible", "Axis label text is visible");
+  addProp(labelTextPath, "axesLabelTextVisible", "visible", "Axis label text visible");
   addProp(labelTextPath, "axesLabelTextColor"  , "color"  , "Axis label text color");
   addProp(labelTextPath, "axesLabelTextAlpha"  , "alpha"  , "Axis label text alpha");
   addProp(labelTextPath, "axesLabelTextFont"   , "font"   , "Axis label text font");
@@ -424,8 +424,7 @@ format() const
   if (formatStr_.length())
     return formatStr_;
 
-  //---
-
+#if 0
   if (column().isValid()) {
     QString typeStr;
 
@@ -434,26 +433,27 @@ format() const
 
     return typeStr;
   }
-
-  //---
+#endif
 
   return "";
 }
 
 bool
 CQChartsAxis::
-setFormat(const QString &typeStr)
+setFormat(const QString &formatStr)
 {
-  formatStr_ = typeStr;
+  CQChartsUtil::testAndSet(formatStr_, formatStr, [&]() {
+#if 0
+    if (column().isValid()) {
+      CQChartsPlot *plot = const_cast<CQChartsPlot *>(plot_);
 
-  //---
+      if (! plot->setColumnTypeStr(column(), typeStr))
+        return false;
+    }
+#endif
 
-  if (column().isValid()) {
-    CQChartsPlot *plot = const_cast<CQChartsPlot *>(plot_);
-
-    if (! plot->setColumnTypeStr(column(), typeStr))
-      return false;
-  }
+    redraw();
+  } );
 
   return true;
 }

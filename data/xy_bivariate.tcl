@@ -7,7 +7,7 @@ proc objPressed { view plot id } {
 }
 
 set model [load_charts_model -tsv data/bivariate.tsv -comment_header \
- -column_type "0#time:iformat=%Y%m%d,oformat=%F"]
+ -column_type {{{0 time} {iformat %Y%m%d} {oformat %F}}}]
 
 set plot [create_charts_plot -model $model -type xy \
   -columns {{x 0} {y {1 2}}} \

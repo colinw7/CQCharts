@@ -85,7 +85,7 @@ set plot12 [create_charts_plot -model $model12 -type parallel \
 
 # Pie Plot
 
-set model13 [load_charts_model -csv data/ages.csv -first_line_header -column_type "1#integer"]
+set model13 [load_charts_model -csv data/ages.csv -first_line_header -column_type {{{1 integer}}}]
 
 set plot13 [create_charts_plot -model $model13 -type pie \
   -columns {{label 0} {value 1}} -title "pie chart"]
@@ -135,7 +135,7 @@ set plot19 [create_charts_plot -model $model19 -type treemap \
 # XY Plot
 
 set model20 [load_charts_model -tsv data/multi_series.tsv -comment_header \
-  -column_type "time:format=%Y%m%d,oformat=%F"]
+  -column_type {{{time} {format %Y%m%d} {oformat %F}}}]
 
 set plot20 [create_charts_plot -model $model20 -type xy -columns {{x 0} {y 1}} -title "XY Plot"]
 

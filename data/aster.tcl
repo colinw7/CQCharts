@@ -14,7 +14,7 @@ for {set i 0} {$i < $nr} {incr i} {
 
 set average [expr {$total/$nr}]
 
-set_charts_data -model $modelId -name column_type -value "4#color"
+set_charts_data -model $modelId -name column_type -column 4 -value {{color}}
 
 set plotId [create_charts_plot -type pie -columns {{id 0} {radius 2} {value 3} {label 5} {color 4}} -title "Aster"]
 

@@ -7,7 +7,8 @@ proc plotSlot { viewId  plotId rowId } {
 
 set modelId [load_charts_model -csv data/coverage.csv -first_line_header]
 
-set_charts_data -model $modelId -name column_type -value "0#time:format=%m/%d/%Y,oformat=%F"
+set_charts_data -model $modelId -name column_type -column 0 \
+  -value {{time} {format %m/%d/%Y} {oformat %F}}
 
 set plotId1 [create_charts_plot -type xy -columns {{id 0} {x 0} {y 1}}]
 

@@ -411,13 +411,13 @@ class CQTcl : public CTcl {
     return CQTclUtil::variantFromObj(interp(), obj);
   }
 
-  bool splitList(const QString &str, QStringList &strs) {
+  static bool splitList(const QString &str, QStringList &strs) {
     int    argc;
     char **argv;
 
     std::string cstr = str.toStdString();
 
-    int rc = Tcl_SplitList(interp(), cstr.c_str(), &argc, (const char ***) &argv);
+    int rc = Tcl_SplitList(0, cstr.c_str(), &argc, (const char ***) &argv);
 
     if (rc != TCL_OK)
       return false;
@@ -430,7 +430,7 @@ class CQTcl : public CTcl {
     return true;
   }
 
-  QString mergeList(const QStringList &strs) {
+  static QString mergeList(const QStringList &strs) {
     int argc = strs.size();
 
     std::vector<char *> argv;

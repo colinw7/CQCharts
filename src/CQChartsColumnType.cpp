@@ -117,6 +117,7 @@ addType(Type type, CQChartsColumnType *data)
   typeData_[type] = data;
 }
 
+#if 0
 const CQChartsColumnType *
 CQChartsColumnTypeMgr::
 decodeTypeData(const QString &typeStr, CQChartsNameValues &nameValues) const
@@ -144,6 +145,7 @@ encodeTypeData(Type type, const CQChartsNameValues &nameValues) const
 
   return lstr + ":" + rstr;
 }
+#endif
 
 const CQChartsColumnType *
 CQChartsColumnTypeMgr::
