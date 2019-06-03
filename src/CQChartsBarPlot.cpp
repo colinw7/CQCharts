@@ -12,7 +12,7 @@ CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &mo
   setBarFilled   (true);
   setBarFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
-  setBarBorder(true);
+  setBarStroked(true);
 
   //---
 
@@ -68,9 +68,9 @@ addProperties()
   addFillProperties("fill", "barFill", "Bar");
 
   // stroke
-  addProp("stroke", "barBorder", "visible", "Bar stroke visible");
+  addProp("stroke", "barStroked", "visible", "Bar stroke visible");
 
-  addLineProperties("stroke", "barBorder", "Bar");
+  addLineProperties("stroke", "barStroke", "Bar");
 
   addProp("stroke", "barCornerSize", "cornerSize", "Bar corner size");
 

@@ -47,7 +47,7 @@ set plot2 [create_charts_plot -view $view2 -type distribution -model $model2 \
 
 set_charts_property -plot $plot2 -name bucket.enabled    -value false
 set_charts_property -plot $plot2 -name options.valueType -value SUM
-#set_charts_property -plot $plot2 -name color.map.enabled -value 1
+#set_charts_property -plot $plot2 -name mapping.color.enabled -value 1
 
 #set view3 [create_charts_view]
 

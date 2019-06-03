@@ -183,8 +183,8 @@ addProperties()
 
   addSymbolProperties("dotLines/symbol", "dot", "Dot line");
 
-  // color
-  addProp("color", "colorBySet", "", "Color by value set");
+  // coloring
+  addProp("coloring", "colorBySet", "", "Color by value set");
 
   //---
 
@@ -1711,11 +1711,11 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush barBrush;
 
-  QColor bc = plot_->interpBarBorderColor(colorInd);
+  QColor bc = plot_->interpBarStrokeColor(colorInd);
 
   plot_->setPenBrush(pen, barBrush,
-    plot_->isBarBorder() && ! skipBorder,
-    bc, plot_->barBorderAlpha(), plot_->barBorderWidth(), plot_->barBorderDash(),
+    plot_->isBarStroked() && ! skipBorder,
+    bc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(), plot_->barStrokeDash(),
     plot_->isBarFilled(), barColor, plot_->barFillAlpha(), plot_->barFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, barBrush);
@@ -1734,7 +1734,7 @@ draw(QPainter *painter)
       CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
     }
     else {
-      if (! plot_->isBarBorder()) {
+      if (! plot_->isBarStroked()) {
         painter->setPen(barBrush.color());
         painter->setBrush(Qt::NoBrush);
       }

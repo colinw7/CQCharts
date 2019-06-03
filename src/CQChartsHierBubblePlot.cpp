@@ -58,8 +58,8 @@ CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
-  setBorder(true);
-  setFilled(true);
+  setFilled (true);
+  setStroked(true);
 
   setTextContrast(true);
   setTextFontSize(12.0);
@@ -128,8 +128,8 @@ addProperties()
   addProp("options", "valueLabel", "", "Show value label");
   addProp("options", "sorted"    , "", "Sort values by size");
 
-  // color
-  addProp("color", "colorById", "colorById", "Color by id");
+  // coloring
+  addProp("coloring", "colorById", "colorById", "Color by id");
 
   // fill
   addProp("fill", "filled", "visible", "Fill visible");
@@ -137,9 +137,9 @@ addProperties()
   addFillProperties("fill", "fill", "");
 
   // stroke
-  addProp("stroke", "border", "visible", "Stroke visible");
+  addProp("stroke", "stroked", "visible", "Stroke visible");
 
-  addLineProperties("stroke", "border", "");
+  addLineProperties("stroke", "stroke", "");
 
   // text
   addAllTextProperties("text", "text", "");
@@ -853,27 +853,31 @@ bool
 CQChartsHierBubblePlot::
 addMenuItems(QMenu *menu)
 {
+  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) -> QAction *{
+    QAction *action = new QAction(name, menu);
+
+    connect(action, SIGNAL(triggered()), this, slot);
+
+    menu->addAction(action);
+
+    return action;
+  };
+
+  //---
+
   PlotObjs objs;
 
   selectedPlotObjs(objs);
 
-  QAction *pushAction   = new QAction("Push"   , menu);
-  QAction *popAction    = new QAction("Pop"    , menu);
-  QAction *popTopAction = new QAction("Pop Top", menu);
+  menu->addSeparator();
 
-  connect(pushAction  , SIGNAL(triggered()), this, SLOT(pushSlot()));
-  connect(popAction   , SIGNAL(triggered()), this, SLOT(popSlot()));
-  connect(popTopAction, SIGNAL(triggered()), this, SLOT(popTopSlot()));
+  QAction *pushAction   = addMenuAction(menu, "Push"   , SLOT(pushSlot()));
+  QAction *popAction    = addMenuAction(menu, "Pop"    , SLOT(popSlot()));
+  QAction *popTopAction = addMenuAction(menu, "Pop Top", SLOT(popTopSlot()));
 
   pushAction  ->setEnabled(! objs.empty());
   popAction   ->setEnabled(currentRoot() != nodeData_.root);
   popTopAction->setEnabled(currentRoot() != nodeData_.root);
-
-  menu->addSeparator();
-
-  menu->addAction(pushAction  );
-  menu->addAction(popAction   );
-  menu->addAction(popTopAction);
 
   return true;
 }
@@ -996,7 +1000,7 @@ drawBounds(QPainter *painter, CQChartsHierBubbleHierNode *hier) const
   //---
 
   // draw bubble
-  QColor bc = interpBorderColor(ColorInd());
+  QColor bc = interpStrokeColor(ColorInd());
 
   painter->setPen  (bc);
   painter->setBrush(Qt::NoBrush);
@@ -1094,11 +1098,11 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBorderColor(colorInd);
+  QColor bc = plot_->interpStrokeColor(colorInd);
   QColor fc = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
   plot_->setPenBrush(pen, brush,
-    plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
+    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
     plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
@@ -1223,11 +1227,11 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBorderColor(colorInd);
+  QColor bc = plot_->interpStrokeColor(colorInd);
   QColor fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
   plot_->setPenBrush(pen, brush,
-    plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
+    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
     plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);

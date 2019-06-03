@@ -71,7 +71,7 @@ CQChartsImagePlot(CQChartsView *view, const ModelP &model) :
   addTitle();
 
   setCellFillColor     (CQChartsColor(CQChartsColor::Type::PALETTE));
-  setCellBorder        (false);
+  setCellStroked       (false);
   setCellLabelTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
   setXLabelTextAlign   (Qt::AlignHCenter | Qt::AlignVCenter);
   setYLabelTextAlign   (Qt::AlignHCenter | Qt::AlignVCenter);
@@ -102,9 +102,9 @@ addProperties()
   addFillProperties("cell/fill", "cellFill", "Cell");
 
   // cell stroke
-  addProp("cell/stroke", "cellBorder", "visible", "Cell stroke visible");
+  addProp("cell/stroke", "cellStroked", "visible", "Cell stroke visible");
 
-  addLineProperties("cell/stroke", "cellBorder", "Cell");
+  addLineProperties("cell/stroke", "cellStroke", "Cell");
 
   // cell label text
   addProp("cell/text", "cellLabels", "visible", "Cell text label visible");
@@ -703,13 +703,13 @@ draw(QPainter *painter)
 
   // set pen and brush
   QColor fc = plot_->interpCellFillColor  (ic);
-  QColor bc = plot_->interpCellBorderColor(ic);
+  QColor bc = plot_->interpCellStrokeColor(ic);
 
   QPen   pen;
   QBrush brush;
 
-  plot_->setPen(pen, plot_->isCellBorder(), bc, plot_->cellBorderAlpha(),
-                plot_->cellBorderWidth(), plot_->cellBorderDash());
+  plot_->setPen(pen, plot_->isCellStroked(), bc, plot_->cellStrokeAlpha(),
+                plot_->cellStrokeWidth(), plot_->cellStrokeDash());
 
   plot_->setBrush(brush, plot_->isCellFilled(), fc, plot_->cellFillAlpha(),
                   plot_->cellFillPattern());

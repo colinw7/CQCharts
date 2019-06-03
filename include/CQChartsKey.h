@@ -352,7 +352,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  bool setInside(CQChartsKeyItem *item);
+  bool setInsideItem(CQChartsKeyItem *item);
 
   //---
 
@@ -549,7 +549,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsLength cornerRadius READ cornerRadius WRITE setCornerRadius)
-  Q_PROPERTY(CQChartsColor  borderColor  READ borderColor  WRITE setBorderColor )
+  Q_PROPERTY(CQChartsColor  strokeColor  READ strokeColor  WRITE setStrokeColor )
 
  public:
   using RangeValue = CQChartsGeom::RangeValue;
@@ -559,8 +559,8 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
                       const ColorInd &iv, const RangeValue &xv=RangeValue(),
                       const RangeValue &yv=RangeValue());
 
-  const CQChartsLength &cornerRadius() const { return boxData_.shape().border().cornerSize(); }
-  void setCornerRadius(const CQChartsLength &r) { boxData_.shape().border().setCornerSize(r); }
+  const CQChartsLength &cornerRadius() const { return boxData_.shape().stroke().cornerSize(); }
+  void setCornerRadius(const CQChartsLength &r) { boxData_.shape().stroke().setCornerSize(r); }
 
   QSizeF size() const override;
 
@@ -568,10 +568,10 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   virtual QBrush fillBrush() const;
 
-  virtual const CQChartsColor &borderColor() const { return boxData_.shape().border().color(); }
-  virtual void setBorderColor(const CQChartsColor &c) { boxData_.shape().border().setColor(c); }
+  virtual const CQChartsColor &strokeColor() const { return boxData_.shape().stroke().color(); }
+  virtual void setStrokeColor(const CQChartsColor &c) { boxData_.shape().stroke().setColor(c); }
 
-  QColor interpBorderColor(const ColorInd &ic) const;
+  QColor interpStrokeColor(const ColorInd &ic) const;
 
   ColorInd calcColorInd() const;
 

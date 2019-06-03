@@ -2,8 +2,13 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsFilterModel.h>
+#include <CQCharts.h>
+
 #include <CQSummaryModel.h>
 #include <CQDataModel.h>
+#include <CQCsvModel.h>
+#include <CQTsvModel.h>
+#include <CQTclUtil.h>
 
 #ifdef CQCHARTS_FOLDED_MODEL
 #include <CQFoldedModel.h>
@@ -451,8 +456,74 @@ addSummaryModel()
 
 void
 CQChartsModelData::
-write()
+write(std::ostream &os) const
 {
+  QAbstractItemModel *model = model_.data();
+  if (! model) return;
+
+  os << "set model [load_charts_model ";
+
+  const CQDataModel *dataModel = CQChartsModelUtil::getDataModel(model);
+
+  const CQCsvModel *csvModel = dynamic_cast<const CQCsvModel *>(dataModel);
+  const CQTsvModel *tsvModel = dynamic_cast<const CQTsvModel *>(dataModel);
+
+  if      (csvModel) {
+    if (csvModel->filename().length())
+      os << "-csv {" << csvModel->filename().toStdString() << "}";
+
+    if (csvModel->isCommentHeader    ()) os << " -comment_header";
+    if (csvModel->isFirstLineHeader  ()) os << " -first_line_header";
+    if (csvModel->isFirstColumnHeader()) os << " -first_column_header";
+  }
+  else if (tsvModel) {
+    if (tsvModel->filename().length())
+      os << "-tsv {" << tsvModel->filename().toStdString() << "}";
+
+    if (tsvModel->isCommentHeader    ()) os << " -comment_header";
+    if (tsvModel->isFirstLineHeader  ()) os << " -first_line_header";
+    if (tsvModel->isFirstColumnHeader()) os << " -first_column_header";
+  }
+
+  //---
+
+  const CQChartsModelDetails *details = this->details();
+
+  int nc = details->numColumns();
+
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
+  for (int i = 0; i < nc; ++i) {
+    CQChartsColumn column(i);
+
+    CQBaseModelType    columnType;
+    CQBaseModelType    columnBaseType;
+    CQChartsNameValues nameValues;
+
+    if (! columnTypeMgr->getModelColumnType(model, column, columnType, columnBaseType, nameValues))
+      continue;
+
+    os << " -column_type {{";
+
+    os << "{" << i << " " << CQBaseModel::typeName(columnType).toStdString() << "}";
+
+    for (const auto &nv : nameValues.nameValues()) {
+      if (! nv.second.isValid())
+        continue;
+
+      QStringList strs;
+
+      strs << nv.first;
+      strs << nv.second.toString();
+
+      os << " {" << CQTcl::mergeList(strs).toStdString() << "}";
+    }
+
+    os << "}}";
+  }
+
+  os << "]\n";
 }
 
 QAbstractItemModel *

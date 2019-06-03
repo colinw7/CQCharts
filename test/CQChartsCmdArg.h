@@ -42,6 +42,8 @@ class CQChartsCmdArg {
     }
   }
 
+  int ind() const { return ind_; }
+
   const QString &name() const { return name_; }
 
   bool isOpt() const { return isOpt_; }

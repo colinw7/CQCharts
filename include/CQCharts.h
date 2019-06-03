@@ -19,8 +19,10 @@ class CQChartsPlot;
 class CQChartsModelData;
 class CQChartsColumnTypeMgr;
 class CQChartsInterfaceTheme;
-class CQChartsGradientPalette;
+class CQColorsPalette;
 class CQChartsColor;
+
+class CQPropertyViewItem;
 
 /*!
  * \mainpage Charts Package
@@ -159,16 +161,20 @@ class CQCharts : public QObject {
   QColor interpIndPaletteColorValue(int ind, int ig, int ng, double r, bool scale) const;
 
  public:
+  QColor indexPaletteColor(int i, int n) const;
+  QColor indexIndPaletteColor(int ind, int i, int n) const;
+
+ public:
   QColor interpThemeColor(const ColorInd &ind) const;
   QColor interpThemeColor(int i, int n) const;
   QColor interpThemeColor(double r) const;
 
-  CQChartsGradientPalette *themeGroupPalette(int i, int n) const;
+  CQColorsPalette *themeGroupPalette(int i, int n) const;
 
-  CQChartsGradientPalette *themePalette(int ind) const;
+  CQColorsPalette *themePalette(int ind) const;
 
-  const CQChartsTheme *theme() const;
-  CQChartsTheme *theme();
+  const CQColorsTheme *theme() const;
+  CQColorsTheme *theme();
 
   CQChartsColor adjustDefaultPalette(const CQChartsColor &c, const QString &defaultPalette) const;
 
@@ -234,6 +240,14 @@ class CQCharts : public QObject {
   // get next free model index and set it into the model
   // (only fails if can't set property in model)
   bool assignModelInd(QAbstractItemModel *model, int &ind);
+
+  //---
+
+  static void setItemIsStyle(CQPropertyViewItem *item);
+  static bool getItemIsStyle(const CQPropertyViewItem *item);
+
+  static void setItemIsHidden(CQPropertyViewItem *item);
+  static bool getItemIsHidden(const CQPropertyViewItem *item);
 
   //---
 

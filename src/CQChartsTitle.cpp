@@ -32,8 +32,8 @@ CQChartsTitle(CQChartsPlot *plot) :
 
   //---
 
-  setBorder(false);
-  setFilled(false);
+  setFilled (false);
+  setStroked(false);
 }
 
 CQChartsTitle::

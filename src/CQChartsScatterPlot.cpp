@@ -4,7 +4,6 @@
 #include <CQChartsKey.h>
 #include <CQChartsTitle.h>
 #include <CQChartsValueSet.h>
-#include <CQChartsGradientPalette.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
@@ -19,6 +18,7 @@
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
+#include <CQColorsPalette.h>
 #include <CQPerfMonitor.h>
 #include <CMathCorrelation.h>
 #include <CMathRound.h>
@@ -165,14 +165,14 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   setRugSymbolSize(CQChartsLength("5px"));
 
   setBestFit(false);
-  setBestFitBorderDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
+  setBestFitStrokeDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
   setBestFitFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
   setBestFitFillAlpha(0.5);
 
   setStatsLines(false);
   setStatsLinesDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
 
-  setGridCellBorderColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.1));
+  setGridCellStrokeColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.1));
 
   //---
 
@@ -756,6 +756,13 @@ addProperties()
     return &(this->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    return item;
+  };
+
   //---
 
   CQChartsPlot::addProperties();
@@ -779,7 +786,7 @@ addProperties()
   addProp("bestFit", "bestFitDeviation", "deviation", "Best fit standard deviation");
 
   addFillProperties("bestFit/fill"  , "bestFitFill"  , "Best fit");
-  addLineProperties("bestFit/stroke", "bestFitBorder", "Best fit");
+  addLineProperties("bestFit/stroke", "bestFitStroke", "Best fit");
 
   // stats
   addProp("statsData", "statsLines", "visible", "Statistic lines visible");
@@ -790,7 +797,7 @@ addProperties()
   addProp("hull", "hull", "visible", "Show convex hull overlay");
 
   addFillProperties("hull/fill"  , "hullFill"  , "Convex hull");
-  addLineProperties("hull/stroke", "hullBorder", "Convex hull");
+  addLineProperties("hull/stroke", "hullStroke", "Convex hull");
 
   // density map
   addProp("densityMap", "densityMap"        , "visible" , "Show density map overlay");
@@ -798,29 +805,32 @@ addProperties()
   addProp("densityMap", "densityMapDelta"   , "delta"   , "Density map delta");
 
   // rug axis
-  addProp("rug/x"     , "xRug"         , "visible", "Show x axis density symbols");
-  addProp("rug/x"     , "xRugSide"     , "side"   , "X axis density symbols side");
-  addProp("rug/y"     , "yRug"         , "visible", "Show y axis symbols density");
-  addProp("rug/y"     , "yRugSide"     , "side"   , "Y axis density symbols side");
-  addProp("rug/symbol", "rugSymbolType", "type"   , "Axis density symbol type");
-  addProp("rug/symbol", "rugSymbolSize", "size"   , "Axis density symbol size");
+  addProp("rug/x", "xRug"         , "visible", "Show x axis density symbols");
+  addProp("rug/x", "xRugSide"     , "side"   , "X axis density symbols side");
+  addProp("rug/y", "yRug"         , "visible", "Show y axis symbols density");
+  addProp("rug/y", "yRugSide"     , "side"   , "Y axis density symbols side");
+
+  addProp("rug/symbol", "rugSymbolType", "type", "Axis density symbol type");
+  addProp("rug/symbol", "rugSymbolSize", "size", "Axis density symbol size");
 
   // density axis
-  addProp("density"     , "densityWidth", "width"  , "Axis density curve width");
-  addProp("density/x"   , "xDensity"    , "visible", "Show x axis density curve");
-  addProp("density/x"   , "xDensitySide", "side"   , "X axis density curve side");
-  addProp("density/y"   , "yDensity"    , "visible", "Show y axis density curve");
-  addProp("density/y"   , "yDensitySide", "side"   , "Y axis density curve side");
-  addProp("density/fill", "densityAlpha", "alpha"  , "Axis density curve alpha");
+  addProp("density"  , "densityWidth", "width"  , "Axis density curve width");
+  addProp("density/x", "xDensity"    , "visible", "Show x axis density curve");
+  addProp("density/x", "xDensitySide", "side"   , "X axis density curve side");
+  addProp("density/y", "yDensity"    , "visible", "Show y axis density curve");
+  addProp("density/y", "yDensitySide", "side"   , "Y axis density curve side");
+
+  addStyleProp("density/fill", "densityAlpha", "alpha"  , "Axis density curve alpha");
 
   // whisker axis
-  addProp("whisker"     , "whiskerWidth" , "width"  , "Axis whisker width");
-  addProp("whisker"     , "whiskerMargin", "margin" , "Axis whisker margin");
-  addProp("whisker/x"   , "xWhisker"     , "visible", "Show x axis whisker");
-  addProp("whisker/x"   , "xWhiskerSide" , "side"   , "X axis whisker side");
-  addProp("whisker/y"   , "yWhisker"     , "visible", "Show y axis whisker");
-  addProp("whisker/y"   , "yWhiskerSide" , "side"   , "Y axis whisker side");
-  addProp("whisker/fill", "whiskerAlpha" , "alpha"  , "Axis whisker alpha");
+  addProp("whisker"  , "whiskerWidth" , "width"  , "Axis whisker width");
+  addProp("whisker"  , "whiskerMargin", "margin" , "Axis whisker margin");
+  addProp("whisker/x", "xWhisker"     , "visible", "Show x axis whisker");
+  addProp("whisker/x", "xWhiskerSide" , "side"   , "X axis whisker side");
+  addProp("whisker/y", "yWhisker"     , "visible", "Show y axis whisker");
+  addProp("whisker/y", "yWhiskerSide" , "side"   , "Y axis whisker side");
+
+  addStyleProp("whisker/fill", "whiskerAlpha" , "alpha"  , "Axis whisker alpha");
 
   CQChartsGroupPlot::addProperties();
 
@@ -834,29 +844,29 @@ addProperties()
   addProp("gridCells", "gridNumX", "nx", "Number of x grid cells");
   addProp("gridCells", "gridNumY", "ny", "Number of y grid cells");
 
-  addFillProperties("gridCells/fill"  , "gridCellFill"  , "Grid cell");
-  addProp          ("gridCells/stroke", "gridCellBorder", "visible", "Grid cell stroke visible");
-  addLineProperties("gridCells/stroke", "gridCellBorder", "Grid cell");
+  addFillProperties("gridCells/fill"  , "gridCellFill"   , "Grid cell");
+  addStyleProp     ("gridCells/stroke", "gridCellStroked", "visible", "Grid cell stroke visible");
+  addLineProperties("gridCells/stroke", "gridCellStroke" , "Grid cell");
 
   // symbol key
-  addProp("symbol/key"     , "symbolMapKey"      , "visible", "Symbol size key visible");
-  addProp("symbol/key"     , "symbolMapKeyMargin", "margin" , "Symbol size key margin");
-  addProp("symbol/key/fill", "symbolMapKeyAlpha" , "alpha"  , "Symbol size key fill alpha");
+  addProp     ("symbol/key"     , "symbolMapKey"      , "visible", "Symbol size key visible");
+  addProp     ("symbol/key"     , "symbolMapKeyMargin", "margin" , "Symbol size key margin");
+  addStyleProp("symbol/key/fill", "symbolMapKeyAlpha" , "alpha"  , "Symbol size key fill alpha");
 
   // mapping for columns (symbol type, size, font size, color)
-  addProp("symbol/map/type", "symbolTypeMapped", "enabled", "Symbol type values mapped");
-  addProp("symbol/map/type", "symbolTypeMapMin", "min"    , "Symbol type map min value");
-  addProp("symbol/map/type", "symbolTypeMapMax", "max"    , "Symbol type map max value");
+  addProp("mapping/symbol_type", "symbolTypeMapped", "enabled", "Symbol type values mapped");
+  addProp("mapping/symbol_type", "symbolTypeMapMin", "min"    , "Symbol type map min value");
+  addProp("mapping/symbol_type", "symbolTypeMapMax", "max"    , "Symbol type map max value");
 
-  addProp("symbol/map/size", "symbolSizeMapped"  , "enabled", "Symbol size values mapped");
-  addProp("symbol/map/size", "symbolSizeMapMin"  , "min"    , "Symbol size map min value");
-  addProp("symbol/map/size", "symbolSizeMapMax"  , "max"    , "Symbol size map max value");
-  addProp("symbol/map/size", "symbolSizeMapUnits", "units"  , "Symbol size map units");
+  addProp("mapping/symbol_size", "symbolSizeMapped"  , "enabled", "Symbol size values mapped");
+  addProp("mapping/symbol_size", "symbolSizeMapMin"  , "min"    , "Symbol size map min value");
+  addProp("mapping/symbol_size", "symbolSizeMapMax"  , "max"    , "Symbol size map max value");
+  addProp("mapping/symbol_size", "symbolSizeMapUnits", "units"  , "Symbol size map units");
 
-  addProp("font/map/size", "fontSizeMapped"  , "enabled", "Font size value mapped");
-  addProp("font/map/size", "fontSizeMapMin"  , "min"    , "Font size map min value");
-  addProp("font/map/size", "fontSizeMapMax"  , "max"    , "Font size map max value");
-  addProp("font/map/size", "fontSizeMapUnits", "units"  , "Font size map units");
+  addProp("mapping/font_size", "fontSizeMapped"  , "enabled", "Font size value mapped");
+  addProp("mapping/font_size", "fontSizeMapMin"  , "min"    , "Font size map min value");
+  addProp("mapping/font_size", "fontSizeMapMax"  , "max"    , "Font size map max value");
+  addProp("mapping/font_size", "fontSizeMapUnits", "units"  , "Font size map units");
 
   // color map
   addColorMapProperties();
@@ -2070,11 +2080,11 @@ drawBestFit(QPainter *painter) const
       QPen   pen;
       QBrush brush;
 
-      QColor borderColor = interpBestFitBorderColor(ic);
+      QColor strokeColor = interpBestFitStrokeColor(ic);
       QColor fillColor   = interpBestFitFillColor  (ic);
 
-      setPen(pen, isBestFitBorder(), borderColor, bestFitBorderAlpha(),
-             bestFitBorderWidth(), bestFitBorderDash());
+      setPen(pen, isBestFitStroked(), strokeColor, bestFitStrokeAlpha(),
+             bestFitStrokeWidth(), bestFitStrokeDash());
 
       setBrush(brush, isBestFitFilled(), fillColor, bestFitFillAlpha(), bestFitFillPattern());
 
@@ -2270,14 +2280,14 @@ drawHull(QPainter *painter) const
 
     ColorInd colorInd(ig, ng);
 
-    QColor strokeColor = interpHullBorderColor(colorInd);
+    QColor strokeColor = interpHullStrokeColor(colorInd);
     QColor fillColor   = interpHullFillColor  (colorInd);
 
     QPen   pen;
     QBrush brush;
 
     setPenBrush(pen, brush,
-      isHullBorder(), strokeColor, hullBorderAlpha(), hullBorderWidth(), hullBorderDash(),
+      isHullStroked(), strokeColor, hullStrokeAlpha(), hullStrokeWidth(), hullStrokeDash(),
       isHullFilled(), fillColor, hullFillAlpha(), hullFillPattern());
 
     painter->setPen  (pen);
@@ -3331,9 +3341,9 @@ drawSymbolMapKey(QPainter *painter) const
 
   double pr2 = (pr1 + pr3)/2;
 
-  QColor borderColor = interpThemeColor(ColorInd(1.0));
+  QColor strokeColor = interpThemeColor(ColorInd(1.0));
 
-  painter->setPen(borderColor);
+  painter->setPen(strokeColor);
 
   double xm = px - pr1 - pm;
   double ym = py - pm;
@@ -3745,12 +3755,12 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor pc = plot_->interpGridCellBorderColor(ColorInd());
+  QColor pc = plot_->interpGridCellStrokeColor(ColorInd());
   QColor fc = plot_->interpPaletteColor(ic);
 
   plot_->setPenBrush(pen, brush,
-    plot_->isGridCellBorder(), pc, plot_->gridCellBorderAlpha(),
-    plot_->gridCellBorderWidth(), plot_->gridCellBorderDash(),
+    plot_->isGridCellStroked(), pc, plot_->gridCellStrokeAlpha(),
+    plot_->gridCellStrokeWidth(), plot_->gridCellStrokeDash(),
     /*filled*/true, fc, plot_->gridCellFillAlpha(), plot_->gridCellFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);

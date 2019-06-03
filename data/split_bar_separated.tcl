@@ -12,32 +12,32 @@ set_charts_property -plot $plotInd1 -name range.view -value {0 0 50 100}
 set_charts_property -plot $plotInd1 -name options.horizontal -value 1
 set_charts_property -plot $plotInd1 -name invert.x -value 1
 set_charts_property -plot $plotInd1 -name invert.y -value 1
-set_charts_property -plot $plotInd1 -name plotStyle.fill.visible -value 0
-set_charts_property -plot $plotInd1 -name dataStyle.fill.visible -value 0
+set_charts_property -plot $plotInd1 -name plotBox.fill.visible -value 0
+set_charts_property -plot $plotInd1 -name dataBox.fill.visible -value 0
 set_charts_property -plot $plotInd1 -name xaxis.side -value TOP_RIGHT
-set_charts_property -plot $plotInd1 -name xaxis.grid.line.major.visible -value 1
-set_charts_property -plot $plotInd1 -name xaxis.ticks.label.angle -value 30
-set_charts_property -plot $plotInd1 -name yaxis.label.visible -value 0
+set_charts_property -plot $plotInd1 -name xaxis.grid.lines -value MAJOR
+set_charts_property -plot $plotInd1 -name xaxis.ticks.label.text.angle -value 30
+set_charts_property -plot $plotInd1 -name yaxis.label.text.visible -value 0
 set_charts_property -plot $plotInd1 -name key.visible -value 0
-set_charts_property -plot $plotInd1 -name title.text.text -value "Male"
+set_charts_property -plot $plotInd1 -name title.text.string -value "Male"
 set_charts_property -plot $plotInd1 -name title.location -value BOTTOM
-set_charts_property -plot $plotInd1 -name fill.color -value palette:0.5
-set_charts_property -plot $plotInd1 -name margin.right -value 5
-set_charts_property -plot $plotInd1 -name options.barMargin -value 12px
+set_charts_property -plot $plotInd1 -name fill.color -value {palette 0.5}
+set_charts_property -plot $plotInd1 -name margins.outer.right -value 5%
+set_charts_property -plot $plotInd1 -name margins.bar -value 12px
 
 set_charts_property -plot $plotInd2 -name range.view -value {50 0 100 100}
 set_charts_property -plot $plotInd2 -name options.horizontal -value 1
 set_charts_property -plot $plotInd2 -name invert.y -value 1
-set_charts_property -plot $plotInd2 -name plotStyle.fill.visible -value 0
-set_charts_property -plot $plotInd2 -name dataStyle.fill.visible -value 0
+set_charts_property -plot $plotInd2 -name plotBox.fill.visible -value 0
+set_charts_property -plot $plotInd2 -name dataBox.fill.visible -value 0
 set_charts_property -plot $plotInd2 -name xaxis.side -value TOP_RIGHT
-set_charts_property -plot $plotInd2 -name xaxis.grid.line.major.visible -value 1
-set_charts_property -plot $plotInd2 -name xaxis.ticks.label.angle -value 30
-set_charts_property -plot $plotInd2 -name yaxis.label.visible -value 0
-set_charts_property -plot $plotInd2 -name yaxis.ticks.label.visible -value 0
+set_charts_property -plot $plotInd2 -name xaxis.grid.lines -value MAJOR
+set_charts_property -plot $plotInd2 -name xaxis.ticks.label.text.angle -value 30
+set_charts_property -plot $plotInd2 -name yaxis.label.text.visible -value 0
+set_charts_property -plot $plotInd2 -name yaxis.ticks.label.text.visible -value 0
 set_charts_property -plot $plotInd2 -name key.visible -value 0
-set_charts_property -plot $plotInd2 -name title.text.text -value "Female"
+set_charts_property -plot $plotInd2 -name title.text.string -value "Female"
 set_charts_property -plot $plotInd2 -name title.location -value BOTTOM
-set_charts_property -plot $plotInd2 -name fill.color -value palette:0.8
-set_charts_property -plot $plotInd2 -name margin.left -value 5
-set_charts_property -plot $plotInd2 -name options.barMargin -value 12px
+set_charts_property -plot $plotInd2 -name fill.color -value {palette 0.8}
+set_charts_property -plot $plotInd2 -name margins.outer.left -value 5%
+set_charts_property -plot $plotInd2 -name margins.bar -value 12px

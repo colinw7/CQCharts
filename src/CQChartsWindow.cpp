@@ -8,7 +8,6 @@
 #include <CQChartsViewToolBar.h>
 #include <CQChartsFilterEdit.h>
 #include <CQChartsModelView.h>
-#include <CQChartsGradientPaletteControl.h>
 #include <CQChartsPropertyViewTree.h>
 #include <CQPixmapCache.h>
 #include <CQUtil.h>

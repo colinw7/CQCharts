@@ -147,7 +147,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   //---
 
-  void addProperties(CQPropertyViewModel *model, const QString &path);
+  void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
   //---
 
@@ -438,7 +438,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   CQChartsGeom::BBox annotationBBox() const override;
 
-  bool createObjs(PlotObjs &objs) const;
+  bool createObjs(PlotObjs &objs) const override;
 
   //---
 

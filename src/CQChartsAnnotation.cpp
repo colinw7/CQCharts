@@ -97,13 +97,13 @@ CQChartsAnnotation::
 writeFill(std::ostream &os) const
 {
   if (isFilled()) {
-    os << " -background 1";
+    os << " -filled 1";
 
     if (fillColor().isValid())
-      os << " -background_color " << fillColor().toString().toStdString();
+      os << " -fill_color " << fillColor().toString().toStdString();
 
     if (fillAlpha() != 1.0)
-      os << " -background_alpha " << fillAlpha();
+      os << " -fill_alpha " << fillAlpha();
   }
 }
 
@@ -111,20 +111,20 @@ void
 CQChartsAnnotation::
 writeStroke(std::ostream &os) const
 {
-  if (isBorder()) {
-    os << " -border 1";
+  if (isStroked()) {
+    os << " -stroked 1";
 
-    if (borderColor().isValid())
-      os << " -border_color " << borderColor().toString().toStdString();
+    if (strokeColor().isValid())
+      os << " -stroke_color " << strokeColor().toString().toStdString();
 
-    if (borderAlpha() != 1.0)
-      os << " -border_alpha " << borderAlpha();
+    if (strokeAlpha() != 1.0)
+      os << " -stroke_alpha " << strokeAlpha();
 
-    if (borderWidth().isSet())
-      os << " -border_width " << borderWidth().toString().toStdString();
+    if (strokeWidth().isSet())
+      os << " -stroke_width " << strokeWidth().toString().toStdString();
 
-    if (! borderDash().isSolid())
-      os << " -border_dash " << borderDash().toString().toStdString();
+    if (! strokeDash().isSolid())
+      os << " -stroke_dash " << strokeDash().toString().toStdString();
   }
 }
 
@@ -153,23 +153,45 @@ void
 CQChartsAnnotation::
 addFillProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "filled"     , "visible")->setDesc("Fill visible");
-  model->addProperty(path, this, "fillColor"  , "color"  )->setDesc("Fill color");
-  model->addProperty(path, this, "fillAlpha"  , "alpha"  )->setDesc("Fill alpha");
-  model->addProperty(path, this, "fillPattern", "pattern")->
-    setDesc("Fill pattern").setHidden(true);
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc, bool hidden=false) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  //---
+
+  addStyleProp(path, "filled"     , "visible", "Fill visible");
+  addStyleProp(path, "fillColor"  , "color"  , "Fill color"  );
+  addStyleProp(path, "fillAlpha"  , "alpha"  , "Fill alpha"  );
+  addStyleProp(path, "fillPattern", "pattern", "Fill pattern", true);
 }
 
 void
 CQChartsAnnotation::
 addStrokeProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "border"     , "visible"   )->setDesc("Stroke visible");
-  model->addProperty(path, this, "borderColor", "color"     )->setDesc("Stroke color");
-  model->addProperty(path, this, "borderAlpha", "alpha"     )->setDesc("Stroke alpha");
-  model->addProperty(path, this, "borderWidth", "width"     )->setDesc("Stroke width");
-  model->addProperty(path, this, "cornerSize" , "cornerSize")->setDesc("Box corner size");
-  model->addProperty(path, this, "borderSides", "sides"     )->setDesc("Box visible sides");
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc) {
+    CQPropertyViewItem *item = model->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    CQCharts::setItemIsStyle(item);
+    return item;
+  };
+
+  addStyleProp(path, "stroked"    , "visible"   , "Stroke visible"   );
+  addStyleProp(path, "strokeColor", "color"     , "Stroke color"     );
+  addStyleProp(path, "strokeAlpha", "alpha"     , "Stroke alpha"     );
+  addStyleProp(path, "strokeWidth", "width"     , "Stroke width"     );
+  addStyleProp(path, "cornerSize" , "cornerSize", "Box corner size"  );
+  addStyleProp(path, "borderSides", "sides"     , "Box visible sides");
 }
 
 bool
@@ -244,14 +266,28 @@ getPropertyObject(const QString &name, QObject* &object, bool hidden) const
 
 bool
 CQChartsAnnotation::
-getPropertyHidden(const QString &name, bool &hidden) const
+getPropertyIsHidden(const QString &name, bool &is_hidden) const
 {
-  hidden = false;
+  is_hidden = false;
 
   const CQPropertyViewItem *item = propertyItem(name, /*hidden*/true);
   if (! item) return false;
 
-  hidden = item->isHidden();
+  is_hidden = CQCharts::getItemIsHidden(item);
+
+  return true;
+}
+
+bool
+CQChartsAnnotation::
+getPropertyIsStyle(const QString &name, bool &is_style) const
+{
+  is_style = false;
+
+  const CQPropertyViewItem *item = propertyItem(name, /*hidden*/true);
+  if (! item) return false;
+
+  is_style = CQCharts::getItemIsStyle(item);
 
   return true;
 }
@@ -473,7 +509,7 @@ CQChartsRectAnnotation(CQChartsView *view, const CQChartsRect &rect) :
 {
   setObjectName(QString("rect.%1").arg(ind()));
 
-  setBorder(true);
+  setStroked(true);
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -484,7 +520,7 @@ CQChartsRectAnnotation(CQChartsPlot *plot, const CQChartsRect &rect) :
 {
   setObjectName(QString("rect.%1").arg(ind()));
 
-  setBorder(true);
+  setStroked(true);
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -596,13 +632,18 @@ void
 CQChartsRectAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
   QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "rect"   )->setDesc("Rectangle");
-  model->addProperty(path1, this, "margin" )->setDesc("Rectangle inner margin");
-  model->addProperty(path1, this, "padding")->setDesc("Rectangle outer padding");
+  addProp(path1, "rect"   , "", "Rectangle");
+  addProp(path1, "margin" , "", "Rectangle inner margin");
+  addProp(path1, "padding", "", "Rectangle outer padding");
 
   addStrokeFillProperties(model, path1);
 }
@@ -726,7 +767,7 @@ void
 CQChartsRectAnnotation::
 write(std::ostream &os) const
 {
-  writeKeys(os, "create_rect_annotation");
+  writeKeys(os, "create_charts_rect_annotation");
 
   if (start().isSet())
     os << " -start {" << start().toString().toStdString() << "}";
@@ -734,18 +775,18 @@ write(std::ostream &os) const
   if (end().isSet())
     os << " -end {" << end().toString().toStdString() << "}";
 
+  if (margin() != 0.0)
+    os << " -margin "  << margin ();
+
+  if (padding() != 0.0)
+    os << " -padding " << padding();
+
   writeFill(os);
 
   writeStroke(os);
 
   if (cornerSize().isSet())
     os << " -corner_size " << cornerSize();
-
-  if (margin() != 0.0)
-    os << " -margin "  << margin ();
-
-  if (padding() != 0.0)
-    os << " -padding " << padding();
 
   if (! borderSides().isAll())
     os << " -border_sides " << borderSides().toString().toStdString();
@@ -762,7 +803,7 @@ CQChartsEllipseAnnotation(CQChartsView *view, const CQChartsPosition &center,
 {
   setObjectName(QString("ellipse.%1").arg(ind()));
 
-  setBorder(true);
+  setStroked(true);
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -774,7 +815,7 @@ CQChartsEllipseAnnotation(CQChartsPlot *plot, const CQChartsPosition &center,
 {
   setObjectName(QString("ellipse.%1").arg(ind()));
 
-  setBorder(true);
+  setStroked(true);
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -788,13 +829,18 @@ void
 CQChartsEllipseAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
   QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "center" )->setDesc("Ellipse center point");
-  model->addProperty(path1, this, "xRadius")->setDesc("Ellipse x radius");
-  model->addProperty(path1, this, "yRadius")->setDesc("Ellipse y radius");
+  addProp(path1, "center" , "", "Ellipse center point");
+  addProp(path1, "xRadius", "", "Ellipse x radius");
+  addProp(path1, "yRadius", "", "Ellipse y radius");
 
   addStrokeFillProperties(model, path1);
 }
@@ -912,12 +958,12 @@ draw(QPainter *painter)
   else if (view())
     view()->setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
 
-  QColor borderColor = interpBorderColor(ColorInd());
+  QColor strokeColor = interpStrokeColor(ColorInd());
 
   if      (plot())
-    plot()->setPen(pen, isBorder(), borderColor, borderAlpha(), borderWidth(), borderDash());
+    plot()->setPen(pen, isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
   else if (view())
-    view()->setPen(pen, isBorder(), borderColor, borderAlpha(), borderWidth(), borderDash());
+    view()->setPen(pen, isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
 
   if (plot())
     plot()->updateObjPenBrushState(this, pen, brush);
@@ -938,7 +984,7 @@ void
 CQChartsEllipseAnnotation::
 write(std::ostream &os) const
 {
-  writeKeys(os, "create_ellipse_annotation");
+  writeKeys(os, "create_charts_ellipse_annotation");
 
   if (center().isSet())
     os << " -center {" << center().toString().toStdString() << "}";
@@ -970,7 +1016,7 @@ CQChartsPolygonAnnotation(CQChartsView *view, const CQChartsPolygon &polygon) :
 {
   setObjectName(QString("polygon.%1").arg(ind()));
 
-  setBorder(true);
+  setStroked(true);
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -981,7 +1027,7 @@ CQChartsPolygonAnnotation(CQChartsPlot *plot, const CQChartsPolygon &polygon) :
 {
   setObjectName(QString("polygon.%1").arg(ind()));
 
-  setBorder(true);
+  setStroked(true);
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -995,11 +1041,16 @@ void
 CQChartsPolygonAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
   QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "polygon")->setDesc("Polygon points");
+  addProp(path1, "polygon", "", "Polygon points");
 
   addStrokeFillProperties(model, path1);
 }
@@ -1106,12 +1157,12 @@ draw(QPainter *painter)
   else if (view())
     view()->setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
 
-  QColor borderColor = interpBorderColor(ColorInd());
+  QColor strokeColor = interpStrokeColor(ColorInd());
 
   if      (plot())
-    plot()->setPen(pen, isBorder(), borderColor, borderAlpha(), borderWidth(), borderDash());
+    plot()->setPen(pen, isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
   else if (view())
-    view()->setPen(pen, isBorder(), borderColor, borderAlpha(), borderWidth(), borderDash());
+    view()->setPen(pen, isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
 
   if (plot())
     plot()->updateObjPenBrushState(this, pen, brush);
@@ -1134,7 +1185,7 @@ write(std::ostream &os) const
 {
   const QPolygonF &polygon = polygon_.polygon();
 
-  writeKeys(os, "create_polygon_annotation");
+  writeKeys(os, "create_charts_polygon_annotation");
 
   if (polygon.size()) {
     os << " -points {";
@@ -1165,7 +1216,7 @@ CQChartsPolylineAnnotation(CQChartsView *view, const CQChartsPolygon &polygon) :
 {
   setObjectName(QString("polyline.%1").arg(ind()));
 
-  setBorder(true);
+  setStroked(true);
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -1176,7 +1227,7 @@ CQChartsPolylineAnnotation(CQChartsPlot *plot, const CQChartsPolygon &polygon) :
 {
   setObjectName(QString("polyline.%1").arg(ind()));
 
-  setBorder(true);
+  setStroked(true);
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -1190,11 +1241,16 @@ void
 CQChartsPolylineAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
   QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "polygon")->setDesc("Polyline points");
+  addProp(path1, "polygon", "", "Polyline points");
 
   addStrokeProperties(model, path1 + "/stroke");
 }
@@ -1308,12 +1364,12 @@ draw(QPainter *painter)
   // set pen
   QPen pen;
 
-  QColor borderColor = interpBorderColor(ColorInd());
+  QColor strokeColor = interpStrokeColor(ColorInd());
 
   if      (plot())
-    plot()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());
+    plot()->setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
   else if (view())
-    view()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());
+    view()->setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
 
   //---
 
@@ -1330,7 +1386,7 @@ void
 CQChartsPolylineAnnotation::
 write(std::ostream &os) const
 {
-  writeKeys(os, "create_polyline_annotation");
+  writeKeys(os, "create_charts_polyline_annotation");
 
   const QPolygonF &polygon = polygon_.polygon();
 
@@ -1411,8 +1467,8 @@ init(const QString &textStr)
   setTextStr  (textStr);
   setTextColor(themeFg);
 
-  setBorder(false);
-  setFilled(false);
+  setStroked(false);
+  setFilled (false);
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -1487,40 +1543,44 @@ void
 CQChartsTextAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc, bool hidden=false) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  //---
+
   QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "position", "position")->setDesc("Text origin");
-  model->addProperty(path1, this, "rect"    , "rect"    )->setDesc("Text bounding rectangle");
+  addProp(path1, "position", "position", "Text origin");
+  addProp(path1, "rect"    , "rect"    , "Text bounding rectangle");
 
   QString textPath = path1 + "/text";
 
-  model->addProperty(textPath, this, "textData"     , "style"    )->
-    setDesc("Text style").setHidden(true);
-  model->addProperty(textPath, this, "textStr"      , "string"   )->
-    setDesc("Text string");
-  model->addProperty(textPath, this, "textColor"    , "color"    )->
-    setDesc("Text color");
-  model->addProperty(textPath, this, "textAlpha"    , "alpha"    )->
-    setDesc("Text alpha");
-  model->addProperty(textPath, this, "textFont"     , "font"     )->
-    setDesc("Text font");
-  model->addProperty(textPath, this, "textAngle"    , "angle"    )->
-    setDesc("Text angle");
-  model->addProperty(textPath, this, "textContrast" , "contrast" )->
-    setDesc("Text has contrast");
-  model->addProperty(textPath, this, "textAlign"    , "align"    )->
-    setDesc("Text align");
-  model->addProperty(textPath, this, "textFormatted", "formatted")->
-    setDesc("Text formatted to fit box");
-  model->addProperty(textPath, this, "textScaled"   , "scaled"   )->
-    setDesc("Text scaled to box");
-  model->addProperty(textPath, this, "textHtml"     , "html"     )->
-    setDesc("Text is HTML");
+  addStyleProp(textPath, "textData"     , "style"    , "Text style", true);
+  addStyleProp(textPath, "textStr"      , "string"   , "Text string");
+  addStyleProp(textPath, "textColor"    , "color"    , "Text color");
+  addStyleProp(textPath, "textAlpha"    , "alpha"    , "Text alpha");
+  addStyleProp(textPath, "textFont"     , "font"     , "Text font");
+  addStyleProp(textPath, "textAngle"    , "angle"    , "Text angle");
+  addStyleProp(textPath, "textContrast" , "contrast" , "Text has contrast");
+  addStyleProp(textPath, "textAlign"    , "align"    , "Text align");
+  addStyleProp(textPath, "textFormatted", "formatted", "Text formatted to fit box");
+  addStyleProp(textPath, "textScaled"   , "scaled"   , "Text scaled to box");
+  addStyleProp(textPath, "textHtml"     , "html"     , "Text is HTML");
 
-  model->addProperty(path1, this, "margin" )->setDesc("Text rectangle inner margin");
-  model->addProperty(path1, this, "padding")->setDesc("Text rectangle outer padding");
+  addProp(path1, "margin" , "", "Text rectangle inner margin");
+  addProp(path1, "padding", "", "Text rectangle outer padding");
 
   addStrokeFillProperties(model, path1);
 }
@@ -1820,7 +1880,7 @@ void
 CQChartsTextAnnotation::
 write(std::ostream &os) const
 {
-  writeKeys(os, "create_text_annotation");
+  writeKeys(os, "create_charts_text_annotation");
 
   if (rect_.isSet()) {
     if (rectValue().isSet())
@@ -1843,11 +1903,14 @@ write(std::ostream &os) const
   if (textAlpha() != 1.0)
     os << " -alpha " << textAlpha();
 
-  if (isTextContrast())
-    os << " -contrast 1";
+  if (textAngle() != 1.0)
+    os << " -angle " << textAngle();
 
   if (textAlign() != (Qt::AlignLeft | Qt::AlignVCenter))
     os << " -align {" << CQUtil::alignToString(textAlign()).toStdString() << "}";
+
+  if (isTextContrast())
+    os << " -contrast 1";
 
   if (isTextHtml())
     os << " -html";
@@ -1921,54 +1984,59 @@ void
 CQChartsArrowAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  auto addArrowProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc) {
+    return &(model->addProperty(path, arrow_, name, alias)->setDesc(desc));
+  };
+
+  auto addArrowStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                               const QString &desc) {
+    CQPropertyViewItem *item = addArrowProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    return item;
+  };
+
+  //---
+
   QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "start")->setDesc("Arrow start point");
-  model->addProperty(path1, this, "end"  )->setDesc("Arrow end point");
+  addProp(path1, "start", "", "Arrow start point");
+  addProp(path1, "end"  , "", "Arrow end point");
 
   QString headPath = path1 + "/head";
 
-  model->addProperty(headPath, arrow_, "length"   )->
-    setDesc("Arrow head length");
-  model->addProperty(headPath, arrow_, "angle"    )->
-    setDesc("Arrow head angle");
-  model->addProperty(headPath, arrow_, "backAngle")->
-    setDesc("Arrow head back angle");
-  model->addProperty(headPath, arrow_, "filled"   )->
-    setDesc("Arrow head is filled");
-  model->addProperty(headPath, arrow_, "lineEnds" , "line")->
-    setDesc("Arrow head is drawn using lines");
+  addArrowStyleProp(headPath, "length"   , ""    , "Arrow head length");
+  addArrowStyleProp(headPath, "angle"    , ""    , "Arrow head angle");
+  addArrowStyleProp(headPath, "backAngle", ""    , "Arrow head back angle");
+  addArrowStyleProp(headPath, "filled"   , ""    , "Arrow head is filled");
+  addArrowStyleProp(headPath, "lineEnds" , "line", "Arrow head is drawn using lines");
 
   QString linePath = path1 + "/line";
 
-  model->addProperty(linePath, arrow_, "lineWidth", "width")->
-    setDesc("Arrow connecting line width");
-  model->addProperty(linePath, arrow_, "fhead"    , "frontHead")->
-    setDesc("Show arrow head at front of connecting line");
-  model->addProperty(linePath, arrow_, "thead"    , "tailHead")->
-    setDesc("Show arrow head at tail of connecting line");
+  addArrowStyleProp(linePath, "lineWidth", "width", "Arrow connecting line width");
+
+  addArrowProp(linePath, "fhead", "frontHead", "Show arrow head at front of connecting line");
+  addArrowProp(linePath, "thead", "tailHead" , "Show arrow head at tail of connecting line");
 
   QString fillPath = path1 + "/fill";
 
-  model->addProperty(fillPath, arrow_, "filled"   , "visible")->
-    setDesc("Arrow fill visible");
-  model->addProperty(fillPath, arrow_, "fillColor", "color"  )->
-    setDesc("Arrow fill color");
-  model->addProperty(fillPath, arrow_, "fillAlpha", "alpha"  )->
-    setDesc("Arrow fill alpha");
+  addArrowStyleProp(fillPath, "filled"   , "visible", "Arrow fill visible");
+  addArrowStyleProp(fillPath, "fillColor", "color"  , "Arrow fill color");
+  addArrowStyleProp(fillPath, "fillAlpha", "alpha"  , "Arrow fill alpha");
 
   QString strokePath = path1 + "/stroke";
 
-  model->addProperty(strokePath, arrow_, "border"     , "visible")->
-    setDesc("Arrow stroke visible");
-  model->addProperty(strokePath, arrow_, "borderColor", "color"  )->
-    setDesc("Arrow stroke color");
-  model->addProperty(strokePath, arrow_, "borderAlpha", "alpha"  )->
-    setDesc("Arrow stroke alpha");
-  model->addProperty(strokePath, arrow_, "borderWidth", "width"  )->
-    setDesc("Arrow stroke width");
+  addArrowStyleProp(strokePath, "stroked"    , "visible", "Arrow stroke visible");
+  addArrowStyleProp(strokePath, "strokeColor", "color"  , "Arrow stroke color");
+  addArrowStyleProp(strokePath, "strokeAlpha", "alpha"  , "Arrow stroke alpha");
+  addArrowStyleProp(strokePath, "strokeWidth", "width"  , "Arrow stroke width");
 }
 
 void
@@ -2155,7 +2223,7 @@ void
 CQChartsArrowAnnotation::
 write(std::ostream &os) const
 {
-  writeKeys(os, "create_arrow_annotation");
+  writeKeys(os, "create_charts_arrow_annotation");
 
   if (start().isSet())
     os << " -start {" << start().toString().toStdString() << "}";
@@ -2178,17 +2246,23 @@ write(std::ostream &os) const
   if (arrow()->isTHead())
     os << " -thead 1";
 
-  if (arrow()->borderWidth().isSet())
-    os << " -line_width {" << arrow()->borderWidth().toString().toStdString() << "}";
+  if (arrow()->isLineEnds())
+    os << " -line_ends 1";
 
-  if (arrow()->borderColor().isValid())
-    os << " -stroke_color {" << arrow()->borderColor().toString().toStdString() << "}";
+  if (arrow()->strokeWidth().isSet())
+    os << " -line_width {" << arrow()->strokeWidth().toString().toStdString() << "}";
 
   if (arrow()->isFilled())
     os << " -filled 1";
 
   if (arrow()->fillColor().isValid())
     os << " -fill_color {" << arrow()->fillColor().toString().toStdString() << "}";
+
+  if (arrow()->strokeColor().isValid())
+    os << " -stroke_color {" << arrow()->strokeColor().toString().toStdString() << "}";
+
+  if (arrow()->strokeWidth().isValid())
+    os << " -stroke_width {" << arrow()->strokeWidth().toString().toStdString() << "}";
 
   os << "\n";
 }
@@ -2228,38 +2302,44 @@ void
 CQChartsPointAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc, bool hidden=false) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  //---
+
   QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  model->addProperty(path1, this, "position")->setDesc("Point position");
+  addProp(path1, "position", "", "Point position");
 
-  model->addProperty(path1, this, "symbolType")->setDesc("Point symbol type");
-  model->addProperty(path1, this, "symbolSize")->setDesc("Point symbol size");
+  addProp(path1, "symbolType", "", "Point symbol type");
+  addProp(path1, "symbolSize", "", "Point symbol size");
 
   QString fillPath = path1 + "/fill";
 
-  model->addProperty(path1, this, "symbolFilled"     , "visible")->
-    setDesc("Point symbol fill visible");
-  model->addProperty(path1, this, "symbolFillColor"  , "color")->
-    setDesc("Point symbol fill color");
-  model->addProperty(path1, this, "symbolFillAlpha"  , "alpha")->
-    setDesc("Point symbol fill alpha");
-  model->addProperty(path1, this, "symbolFillPattern", "pattern")->
-    setDesc("Point symbol fill pattern").setHidden(true);
+  addStyleProp(path1, "symbolFilled"     , "visible", "Point symbol fill visible");
+  addStyleProp(path1, "symbolFillColor"  , "color"  , "Point symbol fill color");
+  addStyleProp(path1, "symbolFillAlpha"  , "alpha"  , "Point symbol fill alpha");
+  addStyleProp(path1, "symbolFillPattern", "pattern", "Point symbol fill pattern", true);
 
   QString strokePath = path1 + "/stroke";
 
-  model->addProperty(path1, this, "symbolStroked"    , "visible")->
-    setDesc("Point symbol stroke visible");
-  model->addProperty(path1, this, "symbolStrokeColor", "color")->
-    setDesc("Point symbol stroke color");
-  model->addProperty(path1, this, "symbolStrokeAlpha", "alpha")->
-    setDesc("Point symbol stroke alpha");
-  model->addProperty(path1, this, "symbolStrokeWidth", "width")->
-    setDesc("Point symbol stroke width");
-  model->addProperty(path1, this, "symbolStrokeDash" , "dash")->
-    setDesc("Point symbol stroke dash");
+  addStyleProp(path1, "symbolStroked"    , "visible", "Point symbol stroke visible");
+  addStyleProp(path1, "symbolStrokeColor", "color"  , "Point symbol stroke color");
+  addStyleProp(path1, "symbolStrokeAlpha", "alpha"  , "Point symbol stroke alpha");
+  addStyleProp(path1, "symbolStrokeWidth", "width"  , "Point symbol stroke width");
+  addStyleProp(path1, "symbolStrokeDash" , "dash"   , "Point symbol stroke dash");
 }
 
 QString
@@ -2424,7 +2504,7 @@ void
 CQChartsPointAnnotation::
 write(std::ostream &os) const
 {
-  writeKeys(os, "create_point_annotation");
+  writeKeys(os, "create_charts_point_annotation");
 
   const CQChartsSymbolData &symbolData = this->symbolData();
 
@@ -2437,26 +2517,26 @@ write(std::ostream &os) const
   if (symbolData.size().isSet())
     os << " -size {" << symbolData.size().toString().toStdString() << "}";
 
-  if (isBorder())
-    os << " -stroked 1";
-
   if (isFilled())
     os << " -filled 1";
-
-  if (borderWidth().isSet())
-    os << " -line_width {" << borderWidth().toString().toStdString() << "}";
-
-  if (borderColor().isValid())
-    os << " -line_color {" << borderColor().toString().toStdString() << "}";
-
-  if (borderAlpha() != 1.0)
-    os << " -line_alpha " << borderAlpha();
 
   if (fillColor().isValid())
     os << " -fill_color {" << fillColor().toString().toStdString() << "}";
 
   if (fillAlpha() != 1.0)
     os << " -fill_alpha " << fillAlpha();
+
+  if (isStroked())
+    os << " -stroked 1";
+
+  if (strokeColor().isValid())
+    os << " -stroke_color {" << strokeColor().toString().toStdString() << "}";
+
+  if (strokeAlpha() != 1.0)
+    os << " -stroke_alpha " << strokeAlpha();
+
+  if (strokeWidth().isSet())
+    os << " -stroke_width {" << strokeWidth().toString().toStdString() << "}";
 
   os << "\n";
 }

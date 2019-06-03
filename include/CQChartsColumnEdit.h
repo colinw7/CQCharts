@@ -26,7 +26,7 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
   const CQChartsColumn &column() const;
   void setColumn(const CQChartsColumn &c);
 
-  void drawPreview(QPainter *painter, const QRect &rect);
+  void drawPreview(QPainter *painter, const QRect &rect) override;
 
  signals:
   void columnChanged();

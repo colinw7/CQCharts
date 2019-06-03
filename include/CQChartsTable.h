@@ -46,7 +46,7 @@ class CQChartsTable : public CQTableView {
 
   CQChartsModelDetails *getDetails();
 
-  void scrollTo(const QModelIndex &index, ScrollHint hint=EnsureVisible);
+  void scrollTo(const QModelIndex &index, ScrollHint hint=EnsureVisible) override;
 
   QSize sizeHint() const override;
 

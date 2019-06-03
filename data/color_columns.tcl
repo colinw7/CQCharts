@@ -13,5 +13,5 @@ set model [load_charts_model -var color_data -transpose]
 set plot [create_charts_plot -model $model -type barchart \
   -columns {{name 0} {value 1} {color 3}}]
 
-set_charts_property -plot $plot -name color.map.enabled -value 1
-set_charts_property -plot $plot -name color.map.palette -value plasma
+set_charts_property -plot $plot -name mapping.color.enabled -value 1
+set_charts_property -plot $plot -name mapping.color.palette -value plasma

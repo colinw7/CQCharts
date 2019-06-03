@@ -76,8 +76,8 @@ CQChartsRadarPlot(CQChartsView *view, const ModelP &model) :
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
   setFillAlpha(0.5);
 
-  setBorder(true);
-  setFilled(true);
+  setFilled (true);
+  setStroked(true);
 
   setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
 
@@ -157,9 +157,9 @@ addProperties()
   addFillProperties("fill", "fill", "");
 
   // stroke
-  addProp("stroke", "border", "visible", "Stroke visible");
+  addProp("stroke", "stroked", "visible", "Stroke visible");
 
-  addLineProperties("stroke", "border", "");
+  addLineProperties("stroke", "stroke", "");
 
   // text
   addTextProperties("text", "text", "");
@@ -849,11 +849,12 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor strokeColor = plot_->interpBorderColor(colorInd);
+  QColor strokeColor = plot_->interpStrokeColor(colorInd);
   QColor fillColor   = plot_->interpFillColor  (colorInd);
 
   plot_->setPenBrush(pen, brush,
-    plot_->isBorder(), strokeColor, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
+    plot_->isStroked(), strokeColor, plot_->strokeAlpha(),
+    plot_->strokeWidth(), plot_->strokeDash(),
     plot_->isFilled(), fillColor, plot_->fillAlpha(), plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);

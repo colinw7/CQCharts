@@ -165,7 +165,7 @@ writeSlot()
   //---
 
   // TODO: write what ?
-  modelData_->write();
+  modelData_->write(std::cerr);
 }
 
 void

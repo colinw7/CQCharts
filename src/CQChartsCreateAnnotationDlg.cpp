@@ -401,16 +401,16 @@ createArrowFrame()
 
   //--
 
-  // border width, border color, filled and fill color
-  arrowWidgets_.borderWidthEdit = new CQChartsLengthEdit;
-  arrowWidgets_.borderColorEdit = new CQChartsColorLineEdit;
+  // stroke width, stroke color, filled and fill color
+  arrowWidgets_.strokeWidthEdit = new CQChartsLengthEdit;
+  arrowWidgets_.strokeColorEdit = new CQChartsColorLineEdit;
   arrowWidgets_.filledCheck     = CQUtil::makeWidget<CQCheckBox>("filledCheck");
   arrowWidgets_.fillColorEdit   = new CQChartsColorLineEdit;
 
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Border Width",
-    arrowWidgets_.borderWidthEdit, row1);
-  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Border Color",
-    arrowWidgets_.borderColorEdit, row1);
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Stroke Width",
+    arrowWidgets_.strokeWidthEdit, row1);
+  CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Stroke Color",
+    arrowWidgets_.strokeColorEdit, row1);
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Filled"      ,
     arrowWidgets_.filledCheck    , row1);
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Fill Color"  ,
@@ -472,13 +472,13 @@ void
 CQChartsCreateAnnotationDlg::
 addStrokeWidgets(Widgets &widgets, QBoxLayout *playout, bool cornerSize)
 {
-  widgets.borderDataEdit =
+  widgets.strokeDataEdit =
     new CQChartsStrokeDataEdit(nullptr,
           CQChartsStrokeDataEditConfig().setCornerSize(cornerSize));
 
-  widgets.borderDataEdit->setTitle("Border");
+  widgets.strokeDataEdit->setTitle("Stroke");
 
-  playout->addWidget(widgets.borderDataEdit);
+  playout->addWidget(widgets.strokeDataEdit);
 }
 
 void
@@ -590,11 +590,11 @@ createRectAnnotation()
   boxData.setMargin (rectWidgets_.marginEdit ->value());
   boxData.setPadding(rectWidgets_.paddingEdit->value());
 
-  CQChartsFillData   background = rectWidgets_.backgroundDataEdit->data();
-  CQChartsStrokeData border     = rectWidgets_.borderDataEdit    ->data();
+  CQChartsFillData   fill   = rectWidgets_.backgroundDataEdit->data();
+  CQChartsStrokeData stroke = rectWidgets_.strokeDataEdit    ->data();
 
-  shapeData.setBackground(background);
-  shapeData.setBorder    (border);
+  shapeData.setFill  (fill);
+  shapeData.setStroke(stroke);
 
   boxData.setBorderSides(rectWidgets_.borderSidesEdit->sides());
 
@@ -632,11 +632,11 @@ createEllipseAnnotation()
   CQChartsLength   rx     = ellipseWidgets_.rxEdit->length();
   CQChartsLength   ry     = ellipseWidgets_.ryEdit->length();
 
-  CQChartsFillData   background = ellipseWidgets_.backgroundDataEdit->data();
-  CQChartsStrokeData border     = ellipseWidgets_.borderDataEdit    ->data();
+  CQChartsFillData   fill   = ellipseWidgets_.backgroundDataEdit->data();
+  CQChartsStrokeData stroke = ellipseWidgets_.strokeDataEdit    ->data();
 
-  shapeData.setBackground(background);
-  shapeData.setBorder    (border);
+  shapeData.setFill  (fill);
+  shapeData.setStroke(stroke);
 
   boxData.setBorderSides(ellipseWidgets_.borderSidesEdit->sides());
 
@@ -672,11 +672,11 @@ createPolygonAnnotation()
 
   CQChartsPolygon polygon = polygonWidgets_.pointsEdit->polygon();
 
-  CQChartsFillData   background = polygonWidgets_.backgroundDataEdit->data();
-  CQChartsStrokeData border     = polygonWidgets_.borderDataEdit    ->data();
+  CQChartsFillData   fill   = polygonWidgets_.backgroundDataEdit->data();
+  CQChartsStrokeData stroke = polygonWidgets_.strokeDataEdit    ->data();
 
-  shapeData.setBackground(background);
-  shapeData.setBorder    (border);
+  shapeData.setFill  (fill);
+  shapeData.setStroke(stroke);
 
   //---
 
@@ -710,11 +710,11 @@ createPolylineAnnotation()
 
   CQChartsPolygon polygon = polylineWidgets_.pointsEdit->polygon();
 
-  CQChartsFillData   background = polygonWidgets_.backgroundDataEdit->data();
-  CQChartsStrokeData border     = polygonWidgets_.borderDataEdit    ->data();
+  CQChartsFillData   fill   = polygonWidgets_.backgroundDataEdit->data();
+  CQChartsStrokeData stroke = polygonWidgets_.strokeDataEdit    ->data();
 
-  shapeData.setBackground(background);
-  shapeData.setBorder    (border);
+  shapeData.setFill  (fill);
+  shapeData.setStroke(stroke);
 
   //---
 
@@ -753,11 +753,11 @@ createTextAnnotation()
 
   const CQChartsTextData &textData = textWidgets_.dataEdit->data();
 
-  CQChartsFillData   background = textWidgets_.backgroundDataEdit->data();
-  CQChartsStrokeData border     = textWidgets_.borderDataEdit    ->data();
+  CQChartsFillData   fill   = textWidgets_.backgroundDataEdit->data();
+  CQChartsStrokeData stroke = textWidgets_.strokeDataEdit    ->data();
 
-  shapeData.setBackground(background);
-  shapeData.setBorder    (border);
+  shapeData.setFill  (fill);
+  shapeData.setStroke(stroke);
 
   boxData.setBorderSides(textWidgets_.borderSidesEdit->sides());
 
@@ -793,8 +793,8 @@ createArrowAnnotation()
 {
   CQChartsShapeData shapeData;
 
-  CQChartsStrokeData &stroke = shapeData.border();
-  CQChartsFillData   &fill   = shapeData.background();
+  CQChartsStrokeData &stroke = shapeData.stroke();
+  CQChartsFillData   &fill   = shapeData.fill();
 
   //---
 
@@ -806,8 +806,8 @@ createArrowAnnotation()
 
   const CQChartsArrowData &arrowData = arrowWidgets_.dataEdit->data();
 
-  stroke.setWidth(arrowWidgets_.borderWidthEdit->length());
-  stroke.setColor(arrowWidgets_.borderColorEdit->color());
+  stroke.setWidth(arrowWidgets_.strokeWidthEdit->length());
+  stroke.setColor(arrowWidgets_.strokeColorEdit->color());
 
   fill.setVisible(arrowWidgets_.filledCheck->isChecked());
   fill.setColor  (arrowWidgets_.fillColorEdit->color());

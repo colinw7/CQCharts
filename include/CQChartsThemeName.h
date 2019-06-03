@@ -3,7 +3,7 @@
 
 #include <QString>
 
-class CQChartsTheme;
+class CQColorsTheme;
 
 //! \brief theme name
 class CQChartsThemeName {
@@ -36,7 +36,7 @@ class CQChartsThemeName {
 
   //--
 
-  CQChartsTheme *obj() const { return obj_; }
+  CQColorsTheme *obj() const { return obj_; }
 
   //---
 
@@ -69,7 +69,7 @@ class CQChartsThemeName {
 
  private:
   QString        name_;
-  CQChartsTheme* obj_ { nullptr };
+  CQColorsTheme* obj_ { nullptr };
 };
 
 //---

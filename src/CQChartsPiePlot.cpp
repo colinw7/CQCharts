@@ -255,9 +255,9 @@ addProperties()
   addFillProperties("fill", "fill", "");
 
   // stroke
-  addProp("stroke", "border", "visible", "Stroke visible");
+  addProp("stroke", "stroked", "visible", "Stroke visible");
 
-  addLineProperties("stroke", "border", "");
+  addLineProperties("stroke", "stroke", "");
 
   // grid
   addProp("grid", "gridLines", "visible", "Grid lines visible");
@@ -1416,11 +1416,11 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBorderColor(colorInd);
+  QColor bc = plot_->interpStrokeColor(colorInd);
   QColor fc = fillColor();
 
   plot_->setPenBrush(pen, brush,
-    plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
+    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
     plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
@@ -1750,7 +1750,7 @@ draw(QPainter *painter)
   // TODO: more customization support
 
   QColor bg = bgColor();
-  QColor fg = plot_->interpPlotBorderColor(ColorInd());
+  QColor fg = plot_->interpPlotStrokeColor(ColorInd());
 
   QPen   pen;
   QBrush brush;
@@ -1802,7 +1802,7 @@ drawFg(QPainter *painter) const
   // set text pen
   QPen pen;
 
-  QColor fg = plot_->interpPlotBorderColor(ColorInd());
+  QColor fg = plot_->interpPlotStrokeColor(ColorInd());
 
   plot_->setPen(pen, true, fg, 1.0);
 

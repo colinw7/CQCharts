@@ -49,6 +49,7 @@ INCLUDEPATH += \
 . \
 ../include \
 ../../CQPropertyView/include \
+../../CQColors/include \
 ../../CQUtil/include \
 ../../CQPerfMonitor/include \
 ../../CImageLib/include \
@@ -64,6 +65,7 @@ INCLUDEPATH += \
 unix:LIBS += \
 -L../lib \
 -L../../CQPropertyView/lib \
+-L../../CQColors/lib \
 -L../../CQDividedArea/lib \
 -L../../CQCustomCombo/lib \
 -L../../CQUtil/lib \
@@ -80,7 +82,7 @@ unix:LIBS += \
 -L../../CRegExp/lib \
 -L../../CStrUtil/lib \
 -L../../COS/lib \
--lCQCharts -lCQPropertyView -lCQDividedArea -lCQCustomCombo -lCQUtil \
+-lCQCharts -lCQPropertyView -lCQColors -lCQDividedArea -lCQCustomCombo -lCQUtil \
 -lCQPerfMonitor -lCJson \
 -lCConfig -lCImageLib -lCFont -lCMath \
 -lCReadLine -lCFileUtil -lCFile -lCRegExp \

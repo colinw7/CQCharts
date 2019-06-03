@@ -2,7 +2,6 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
-#include <CQChartsGradientPalette.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsModelDetails.h>
@@ -18,6 +17,7 @@
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
+#include <CQColorsPalette.h>
 #include <CQPerfMonitor.h>
 #include <CMathRound.h>
 
@@ -3604,10 +3604,10 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
   QPen   pen;
   QBrush barBrush;
 
-  QColor bc = plot_->interpBarBorderColor(ColorInd());
+  QColor bc = plot_->interpBarStrokeColor(ColorInd());
   QColor fc = plot_->interpColor(color, ColorInd());
 
-  CQChartsLength bw = plot_->barBorderWidth();
+  CQChartsLength bw = plot_->barStrokeWidth();
 
   if (useLine) {
     bw = CQChartsLength("0px");
@@ -3617,7 +3617,7 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
   }
 
   plot_->setPenBrush(pen, barBrush,
-    plot_->isBarBorder(), bc, plot_->barBorderAlpha(), bw, plot_->barBorderDash(),
+    plot_->isBarStroked(), bc, plot_->barStrokeAlpha(), bw, plot_->barStrokeDash(),
     plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, barBrush);
@@ -3915,12 +3915,12 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBarBorderColor(is_);
+  QColor bc = plot_->interpBarStrokeColor(is_);
   QColor fc = plot_->interpBarFillColor  (is_);
 
   plot_->setPenBrush(pen, brush,
-    plot_->isBarBorder(), bc, plot_->barBorderAlpha(),
-    plot_->barBorderWidth(), plot_->barBorderDash(),
+    plot_->isBarStroked(), bc, plot_->barStrokeAlpha(),
+    plot_->barStrokeWidth(), plot_->barStrokeDash(),
     plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
 
   //---
@@ -4156,7 +4156,7 @@ CQChartsDistributionScatterObj::
 draw(QPainter *painter)
 {
   // set pen brush
-  // TODO: allow control of border color, alpha, and line width
+  // TODO: allow control of stroke color, alpha, and line width
   ColorInd ic = (is_.n > 1 ? is_ : iv_);
 
   QColor c = plot_->interpBarFillColor(ic);

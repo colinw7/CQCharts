@@ -248,7 +248,7 @@ void drawContrastText(QPainter *painter, double x, double y, const QString &text
 
   //---
 
-  // draw contrast border
+  // draw contrast outline
   painter->setPen(icolor);
 
   for (int dy = -2; dy <= 2; ++dy) {

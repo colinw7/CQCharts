@@ -261,7 +261,8 @@ CQChartsColorEdit(QWidget *parent) :
   typeCombo_ = CQUtil::makeWidget<QComboBox>("typeCombo");
 
   typeCombo_->addItems(QStringList() <<
-    "None" << "Palette" << "Palette Value" << "Interface" << "Interface Value" << "Color");
+    "None" << "Palette" << "Palette Value" << "Indexed Palette" << "Indexed Palette Value" <<
+    "Interface" << "Interface Value" << "Color");
 
   layout->addWidget(typeCombo_);
 
@@ -394,16 +395,30 @@ colorToWidgets()
 
       scaleCheck_->setChecked(color_.isScale());
     }
-    else if (color_.type() == CQChartsColor::Type::INTERFACE) {
+    else if (color_.type() == CQChartsColor::Type::INDEXED) {
       typeCombo_->setCurrentIndex(3);
+
+      indEdit_->setValue(color_.ind());
+    }
+    else if (color_.type() == CQChartsColor::Type::INDEXED_VALUE) {
+      typeCombo_->setCurrentIndex(4);
+
+      indEdit_->setValue(color_.ind());
+
+      valueEdit_->setValue(color_.value());
+
+      scaleCheck_->setChecked(color_.isScale());
+    }
+    else if (color_.type() == CQChartsColor::Type::INTERFACE) {
+      typeCombo_->setCurrentIndex(5);
     }
     else if (color_.type() == CQChartsColor::Type::INTERFACE_VALUE) {
-      typeCombo_->setCurrentIndex(4);
+      typeCombo_->setCurrentIndex(6);
 
       valueEdit_->setValue(color_.value());
     }
     else if (color_.type() == CQChartsColor::Type::COLOR) {
-      typeCombo_->setCurrentIndex(5);
+      typeCombo_->setCurrentIndex(7);
 
       colorEdit_->setColor(color_.color());
     }
@@ -431,19 +446,29 @@ widgetsToColor()
   else if (typeInd == 2) {
     color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE);
 
-    color.setInd  (indEdit_   ->value    ());
-    color.setValue(CQChartsColor::Type::PALETTE_VALUE, valueEdit_ ->value());
-    color.setScale(scaleCheck_->isChecked());
+    color.setInd  (indEdit_->value());
+    color.setValue(CQChartsColor::Type::PALETTE_VALUE, valueEdit_->value());
   }
   else if (typeInd == 3) {
-    color = CQChartsColor(CQChartsColor::Type::INTERFACE);
+    color = CQChartsColor(CQChartsColor::Type::INDEXED);
+
+    color.setInd(indEdit_->value());
   }
   else if (typeInd == 4) {
+    color = CQChartsColor(CQChartsColor::Type::INDEXED_VALUE);
+
+    color.setInd  (indEdit_->value());
+    color.setValue(CQChartsColor::Type::INDEXED_VALUE, valueEdit_->value());
+  }
+  else if (typeInd == 5) {
+    color = CQChartsColor(CQChartsColor::Type::INTERFACE);
+  }
+  else if (typeInd == 6) {
     color = CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE);
 
     color.setValue(CQChartsColor::Type::INTERFACE_VALUE, valueEdit_->value());
   }
-  else if (typeInd == 5) {
+  else if (typeInd == 7) {
     color = CQChartsColor(CQChartsColor::Type::COLOR);
 
     QColor c = colorEdit_->color();
@@ -478,6 +503,13 @@ updateState()
       indEdit_   ->setEnabled(true);
       valueEdit_ ->setEnabled(true);
       scaleCheck_->setEnabled(true);
+    }
+    else if (color_.type() == CQChartsColor::Type::INDEXED) {
+      indEdit_->setEnabled(true);
+    }
+    else if (color_.type() == CQChartsColor::Type::INDEXED_VALUE) {
+      indEdit_  ->setEnabled(true);
+      valueEdit_->setEnabled(true);
     }
     else if (color_.type() == CQChartsColor::Type::INTERFACE) {
     }

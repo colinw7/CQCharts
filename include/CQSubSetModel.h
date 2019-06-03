@@ -28,8 +28,8 @@ class CQSubSetModel : public QSortFilterProxyModel {
   void setTopLeft    (const QModelIndex &tl);
   void setBottomRight(const QModelIndex &br);
 
-  bool filterAcceptsColumn(int column, const QModelIndex &parent) const;
-  bool filterAcceptsRow   (int row   , const QModelIndex &parent) const;
+  bool filterAcceptsColumn(int column, const QModelIndex &parent) const override;
+  bool filterAcceptsRow   (int row   , const QModelIndex &parent) const override;
 
  private:
   QPersistentModelIndex tl_;

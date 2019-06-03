@@ -219,7 +219,7 @@ CQChartsShapeDataEdit(QWidget *parent, bool tabbed) :
 
     //--
 
-    // background
+    // fill
     fillEdit_ = new CQChartsFillDataEdit;
 
     fillEdit_->setPreview(false);
@@ -237,7 +237,7 @@ CQChartsShapeDataEdit(QWidget *parent, bool tabbed) :
 
     //--
 
-    // border
+    // stroke
     strokeEdit_ = new CQChartsStrokeDataEdit;
 
     strokeEdit_->setPreview(false);
@@ -245,7 +245,7 @@ CQChartsShapeDataEdit(QWidget *parent, bool tabbed) :
     strokeFrameLayout->addWidget(strokeEdit_);
   }
   else {
-    // background
+    // fill
     fillEdit_ = new CQChartsFillDataEdit;
 
     fillEdit_->setTitle("Fill");
@@ -255,7 +255,7 @@ CQChartsShapeDataEdit(QWidget *parent, bool tabbed) :
 
     //--
 
-    // border
+    // stroke
     strokeEdit_ = new CQChartsStrokeDataEdit;
 
     strokeEdit_->setTitle("Stroke");
@@ -352,8 +352,8 @@ dataToWidgets()
 {
   connectSlots(false);
 
-  fillEdit_  ->setData(data_.background());
-  strokeEdit_->setData(data_.border());
+  fillEdit_  ->setData(data_.fill());
+  strokeEdit_->setData(data_.stroke());
 
   preview_->update();
 
@@ -365,8 +365,8 @@ void
 CQChartsShapeDataEdit::
 widgetsToData()
 {
-  data_.setBackground(fillEdit_  ->data());
-  data_.setBorder    (strokeEdit_->data());
+  data_.setFill  (fillEdit_  ->data());
+  data_.setStroke(strokeEdit_->data());
 
   preview_->update();
 
@@ -396,20 +396,20 @@ draw(QPainter *painter, const CQChartsShapeData &data, const QRect &rect,
      CQChartsPlot *plot, CQChartsView *view)
 {
   // set pen and brush
-  QColor pc = interpColor(plot, view, data.border    ().color());
-  QColor fc = interpColor(plot, view, data.background().color());
+  QColor pc = interpColor(plot, view, data.stroke().color());
+  QColor fc = interpColor(plot, view, data.fill  ().color());
 
-  double width = CQChartsUtil::limitLineWidth(data.border().width().value());
+  double width = CQChartsUtil::limitLineWidth(data.stroke().width().value());
 
   QPen pen;
 
-  CQChartsUtil::setPen(pen, data.border().isVisible(), pc, data.border().alpha(),
-                       width, data.border().dash());
+  CQChartsUtil::setPen(pen, data.stroke().isVisible(), pc, data.stroke().alpha(),
+                       width, data.stroke().dash());
 
   QBrush brush;
 
-  CQChartsUtil::setBrush(brush, data.background().isVisible(), fc, data.background().alpha(),
-                         data.background().pattern());
+  CQChartsUtil::setBrush(brush, data.fill().isVisible(), fc, data.fill().alpha(),
+                         data.fill().pattern());
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -417,8 +417,8 @@ draw(QPainter *painter, const CQChartsShapeData &data, const QRect &rect,
   //---
 
   // draw shape
-  double cxs = data.border().cornerSize().value();
-  double cys = data.border().cornerSize().value();
+  double cxs = data.stroke().cornerSize().value();
+  double cys = data.stroke().cornerSize().value();
 
   CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
 }

@@ -101,7 +101,7 @@ addProperties()
   addProp("node", "circleSize", "circleSize", "Circle size");
 
   addFillProperties("node/fill"  , "nodeFill"  , "Node");
-  addLineProperties("node/stroke", "nodeBorder", "Node");
+  addLineProperties("node/stroke", "nodeStroke", "Node");
   addLineProperties("edge/stroke", "edgeLines" , "Edge");
 
   addTextProperties("text", "text", "");
@@ -573,11 +573,11 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor borderColor = plot_->interpNodeBorderColor(ColorInd());
+  QColor strokeColor = plot_->interpNodeStrokeColor(ColorInd());
   QColor fillColor   = plot_->interpNodeFillColor  (ColorInd());
 
-  plot_->setPen(pen, plot_->isNodeBorder(), borderColor, plot_->nodeBorderAlpha(),
-                plot_->plotBorderWidth(), plot_->nodeBorderDash());
+  plot_->setPen(pen, plot_->isNodeStroked(), strokeColor, plot_->nodeStrokeAlpha(),
+                plot_->plotStrokeWidth(), plot_->nodeStrokeDash());
 
   bool filled = (node_->hasChildren() && ! node_->isOpen());
 

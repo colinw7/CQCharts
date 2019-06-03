@@ -12,7 +12,6 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsDisplayTransform.h>
 #include <CQChartsDisplayRange.h>
-#include <CQChartsGradientPalette.h>
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
@@ -24,12 +23,15 @@
 #include <CQChartsTip.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
-#include <CQChartsTheme.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
+#include <CQColors.h>
+#include <CQColorsTheme.h>
+#include <CQColorsPalette.h>
 #include <CQPerfMonitor.h>
 #include <CQUtil.h>
+#include <CQTclUtil.h>
 
 #include <CMathUtil.h>
 #include <CMathRound.h>
@@ -82,9 +84,9 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
   //--
 
   // plot, data, fit background
-  setPlotFilled(true ); setPlotBorder(false);
-  setDataFilled(true ); setDataBorder(false);
-  setFitFilled (false); setFitBorder (false);
+  setPlotFilled(true ); setPlotStroked(false);
+  setDataFilled(true ); setDataStroked(false);
+  setFitFilled (false); setFitStroked (false);
 
   setDataClip(true);
 
@@ -1505,17 +1507,26 @@ CQChartsPlot::
 addProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+                     const QString &desc, bool hidden=false) {
+    CQPropertyViewItem *item = &(this->addProperty(path, this, name, alias)->setDesc(desc));
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc, bool hidden=false) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc, hidden);
+    CQCharts::setItemIsStyle(item);
+    return item;
   };
 
   // data
-  addProp("", "viewId" , "view"   , "Parent view id")->setHidden(true);
-  addProp("", "typeStr", "type"   , "Type name"     )->setHidden(true);
-  addProp("", "visible", "visible", "Plot visible"  )->setHidden(true);
+  addProp("", "viewId" , "view"   , "Parent view id", true);
+  addProp("", "typeStr", "type"   , "Type name"     , true);
+  addProp("", "visible", "visible", "Plot visible"  , true);
 
   // font
-  addProp("font", "font", "font", "Base font");
+  addStyleProp("font", "font", "font", "Base font");
 
   // columns
   addProp("columns", "idColumn"     , "id"     , "Id column");
@@ -1528,9 +1539,9 @@ addProperties()
   addProp("range", "viewRect", "view", "View rectangle");
   addProp("range", "dataRect", "data", "Data rectangle");
 
-  addProp("range", "innerViewRect", "innerView", "Inner view rectangle"     )->setHidden(true);
-  addProp("range", "calcDataRect" , "calcData" , "Calculated data rectangle")->setHidden(true);
-  addProp("range", "outerDataRect", "outerData", "Outer data rectangle"     )->setHidden(true);
+  addProp("range", "innerViewRect", "innerView", "Inner view rectangle"     , true);
+  addProp("range", "calcDataRect" , "calcData" , "Calculated data rectangle", true);
+  addProp("range", "outerDataRect", "outerData", "Outer data rectangle"     , true);
 
   addProp("range", "autoFit", "autoFit", "Auto fit to data");
 
@@ -1542,15 +1553,15 @@ addProperties()
   // scaling
   addProp("scaling", "equalScale", "equal", "Equal x/y scaling");
 
-  addProp("scaling/data/scale" , "dataScaleX" , "x", "X data scale" )->setHidden(true);
-  addProp("scaling/data/scale" , "dataScaleY" , "y", "Y data scale" )->setHidden(true);
-  addProp("scaling/data/offset", "dataOffsetX", "x", "X data offset")->setHidden(true);
-  addProp("scaling/data/offset", "dataOffsetY", "y", "Y data offset")->setHidden(true);
+  addProp("scaling/data/scale" , "dataScaleX" , "x", "X data scale" , true);
+  addProp("scaling/data/scale" , "dataScaleY" , "y", "Y data scale" , true);
+  addProp("scaling/data/offset", "dataOffsetX", "x", "X data offset", true);
+  addProp("scaling/data/offset", "dataOffsetY", "y", "Y data offset", true);
 
   // grouping
-  addProp("grouping", "overlay", "", "Overlay plots to shared range"    )->setHidden(true);
-  addProp("grouping", "x1x2"   , "", "Independent x axes, shared y axis")->setHidden(true);
-  addProp("grouping", "y1y2"   , "", "Independent y axes, shared x axis")->setHidden(true);
+  addProp("grouping", "overlay", "", "Overlay plots to shared range"    , true);
+  addProp("grouping", "x1x2"   , "", "Independent x axes, shared y axis", true);
+  addProp("grouping", "y1y2"   , "", "Independent y axes, shared x axis", true);
 
   // invert
   addProp("invert", "invertX", "x", "Invert x values");
@@ -1563,7 +1574,7 @@ addProperties()
 #endif
 
   // debug
-  if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG", true)) {
+  if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG")) {
     addProp("debug", "showBoxes"  , "", "Show object bounding boxes");
     addProp("debug", "followMouse", "", "Enable mouse tracking");
   }
@@ -1575,20 +1586,22 @@ addProperties()
   QString plotStyleFillStr   = plotStyleStr + "/fill";
   QString plotStyleStrokeStr = plotStyleStr + "/stroke";
 
-  addProp(plotStyleStr, "plotClip"     , "clip" , "Clip to plot bounding box");
-  addProp(plotStyleStr, "plotShapeData", "shape", "Plot background shape data");
+  addProp(plotStyleStr, "plotClip", "clip" , "Clip to plot bounding box");
 
-  addProp(plotStyleFillStr, "plotFilled", "visible", "Plot background bounding box fill visible");
+  addProp(plotStyleStr, "plotShapeData", "shape", "Plot background shape data", true);
+
+  addStyleProp(plotStyleFillStr, "plotFilled", "visible",
+               "Plot background bounding box fill visible");
 
   addFillProperties(plotStyleFillStr, "plotFill", "Plot background");
 
-  addProp(plotStyleStrokeStr, "plotBorder", "visible",
-          "Plot background bounding box stroke visible");
+  addStyleProp(plotStyleStrokeStr, "plotStroked", "visible",
+               "Plot background bounding box stroke visible");
 
-  addLineProperties(plotStyleStrokeStr, "plotBorder", "Plot background");
+  addLineProperties(plotStyleStrokeStr, "plotStroke", "Plot background");
 
-  addProp(plotStyleStrokeStr, "plotBorderSides", "sides",
-          "Plot background bounding box stroked sides");
+  addStyleProp(plotStyleStrokeStr, "plotBorderSides", "sides",
+               "Plot background bounding box stroked sides");
 
   //---
 
@@ -1597,20 +1610,22 @@ addProperties()
   QString dataStyleFillStr   = dataStyleStr + "/fill";
   QString dataStyleStrokeStr = dataStyleStr + "/stroke";
 
-  addProp(dataStyleStr, "dataClip"     , "clip" , "Clip to data bounding box");
-  addProp(dataStyleStr, "dataShapeData", "shape", "Data background shape data");
+  addProp(dataStyleStr, "dataClip", "clip" , "Clip to data bounding box");
 
-  addProp(dataStyleFillStr, "dataFilled", "visible", "Data background bounding box fill visible");
+  addProp(dataStyleStr, "dataShapeData", "shape", "Data background shape data", true);
+
+  addStyleProp(dataStyleFillStr, "dataFilled", "visible",
+               "Data background bounding box fill visible");
 
   addFillProperties(dataStyleFillStr, "dataFill", "Data background");
 
-  addProp(dataStyleStrokeStr, "dataBorder", "visible",
-    "Data background bounding box stroke visible");
+  addStyleProp(dataStyleStrokeStr, "dataStroked", "visible",
+               "Data background bounding box stroke visible");
 
-  addLineProperties(dataStyleStrokeStr, "dataBorder", "Data background");
+  addLineProperties(dataStyleStrokeStr, "dataStroke", "Data background");
 
-  addProp(dataStyleStrokeStr, "dataBorderSides", "sides",
-    "Data background bounding box stroked sides");
+  addStyleProp(dataStyleStrokeStr, "dataBorderSides", "sides",
+               "Data background bounding box stroked sides");
 
   //---
 
@@ -1619,42 +1634,42 @@ addProperties()
   QString fitStyleFillStr   = fitStyleStr + "/fill";
   QString fitStyleStrokeStr = fitStyleStr + "/stroke";
 
-  addProp(fitStyleFillStr, "fitFilled", "visible",
-          "Fit background bounding box fill visible")->setHidden(true);
+  addStyleProp(fitStyleFillStr, "fitFilled", "visible",
+               "Fit background bounding box fill visible", true);
 
   addFillProperties(fitStyleFillStr, "fitFill", "Fit background", /*hidden*/true);
 
-  addProp(fitStyleStrokeStr, "fitBorder", "visible",
-          "Fit background bounding box stroke visible")->setHidden(true);
+  addStyleProp(fitStyleStrokeStr, "fitStroked", "visible",
+               "Fit background bounding box stroke visible", true);
 
-  addLineProperties(fitStyleStrokeStr, "fitBorder", "Fit background", /*hidden*/true);
+  addLineProperties(fitStyleStrokeStr, "fitStroke", "Fit background", /*hidden*/true);
 
-  addProp(fitStyleStrokeStr, "fitBorderSides", "sides",
-          "Fit background bounding box stroked sides")->setHidden(true);
+  addStyleProp(fitStyleStrokeStr, "fitBorderSides", "sides",
+               "Fit background bounding box stroked sides", true);
 
   //---
 
   // margin
-  addProp("margin/inner", "innerMarginLeft"  , "left"  , "Size of inner margin at left of plot");
-  addProp("margin/inner", "innerMarginTop"   , "top"   , "Size of inner margin at top of plot");
-  addProp("margin/inner", "innerMarginRight" , "right" , "Size of inner margin at right of plot");
-  addProp("margin/inner", "innerMarginBottom", "bottom", "Size of inner margin at bottom of plot");
+  addProp("margins/inner", "innerMarginLeft"  , "left"  , "Size of inner margin at left of plot");
+  addProp("margins/inner", "innerMarginTop"   , "top"   , "Size of inner margin at top of plot");
+  addProp("margins/inner", "innerMarginRight" , "right" , "Size of inner margin at right of plot");
+  addProp("margins/inner", "innerMarginBottom", "bottom", "Size of inner margin at bottom of plot");
 
-  addProp("margin/outer", "outerMarginLeft"  , "left"  , "Size of outer margin at left of plot");
-  addProp("margin/outer", "outerMarginTop"   , "top"   , "Size of outer margin at top of plot");
-  addProp("margin/outer", "outerMarginRight" , "right" , "Size of outer margin at right of plot");
-  addProp("margin/outer", "outerMarginBottom", "bottom", "Size of outer margin at bottom of plot");
+  addProp("margins/outer", "outerMarginLeft"  , "left"  , "Size of outer margin at left of plot");
+  addProp("margins/outer", "outerMarginTop"   , "top"   , "Size of outer margin at top of plot");
+  addProp("margins/outer", "outerMarginRight" , "right" , "Size of outer margin at right of plot");
+  addProp("margins/outer", "outerMarginBottom", "bottom", "Size of outer margin at bottom of plot");
 
   //---
 
   // every
-  addProp("every", "everyEnabled", "enabled", "Enable every row filter"  )->setHidden(true);
-  addProp("every", "everyStart"  , "start"  , "Start of every row filter")->setHidden(true);
-  addProp("every", "everyEnd"    , "end"    , "End of every row filter"  )->setHidden(true);
-  addProp("every", "everyStep"   , "step"   , "Step of every row filter" )->setHidden(true);
+  addProp("every", "everyEnabled", "enabled", "Enable every row filter"  , true);
+  addProp("every", "everyStart"  , "start"  , "Start of every row filter", true);
+  addProp("every", "everyEnd"    , "end"    , "End of every row filter"  , true);
+  addProp("every", "everyStep"   , "step"   , "Step of every row filter" , true);
 
   // filter
-  addProp("filter", "filterStr", "expression", "Filter expression")->setHidden(true);
+  addProp("filter", "filterStr", "expression", "Filter expression", true);
 
   //---
 
@@ -1682,15 +1697,15 @@ addProperties()
   if (title())
     title()->addProperties(propertyModel(), "title");
 
-  // color
-  addProp("color", "defaultPalette", "defaultPalette", "Default palette");
-  addProp("color", "colorType"     , "type"          , "Color interpolation type");
-  addProp("color", "colorXStops"   , "xStops"        , "Color x stops");
-  addProp("color", "colorYStops"   , "yStops"        , "Color y stops");
+  // coloring
+  addProp("coloring", "defaultPalette", "defaultPalette", "Default palette");
+  addProp("coloring", "colorType"     , "type"          , "Color interpolation type");
+  addProp("coloring", "colorXStops"   , "xStops"        , "Color x stops");
+  addProp("coloring", "colorYStops"   , "yStops"        , "Color y stops");
 
   // scaled font
-  addProp("scaledFont", "minScaleFontSize", "minSize", "Min scaled font size")->setHidden(true);
-  addProp("scaledFont", "maxScaleFontSize", "maxSize", "Max scaled font size")->setHidden(true);
+  addProp("scaledFont", "minScaleFontSize", "minSize", "Min scaled font size", true);
+  addProp("scaledFont", "maxScaleFontSize", "maxSize", "Max scaled font size", true);
 }
 
 void
@@ -1714,17 +1729,26 @@ addSymbolProperties(const QString &path, const QString &prefix, const QString &d
   addProp(path, symbolPrefix + "Type", "type", prefix1 + " type");
   addProp(path, symbolPrefix + "Size", "size", prefix1 + " size");
 
-  addProp(fillPath, symbolPrefix + "Filled"     , "visible", prefix1 + " fill visible");
-  addProp(fillPath, symbolPrefix + "FillColor"  , "color"  , prefix1 + " fill color");
-  addProp(fillPath, symbolPrefix + "FillAlpha"  , "alpha"  , prefix1 + " fill alpha");
-  addProp(fillPath, symbolPrefix + "FillPattern", "pattern",
-          prefix1 + " fill pattern")->setHidden(true);
+  //---
 
-  addProp(strokePath, symbolPrefix + "Stroked"    , "visible", prefix1 + " stroke visible");
-  addProp(strokePath, symbolPrefix + "StrokeColor", "color"  , prefix1 + " stroke color");
-  addProp(strokePath, symbolPrefix + "StrokeAlpha", "alpha"  , prefix1 + " stroke alpha");
-  addProp(strokePath, symbolPrefix + "StrokeWidth", "width"  , prefix1 + " stroke width");
-  addProp(strokePath, symbolPrefix + "StrokeDash" , "dash"   , prefix1 + " stroke dash");
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc, bool hidden=false) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  addStyleProp(fillPath, symbolPrefix + "Filled"     , "visible", prefix1 + " fill visible");
+  addStyleProp(fillPath, symbolPrefix + "FillColor"  , "color"  , prefix1 + " fill color");
+  addStyleProp(fillPath, symbolPrefix + "FillAlpha"  , "alpha"  , prefix1 + " fill alpha");
+  addStyleProp(fillPath, symbolPrefix + "FillPattern", "pattern", prefix1 + " fill pattern", true);
+
+  addStyleProp(strokePath, symbolPrefix + "Stroked"    , "visible", prefix1 + " stroke visible");
+  addStyleProp(strokePath, symbolPrefix + "StrokeColor", "color"  , prefix1 + " stroke color");
+  addStyleProp(strokePath, symbolPrefix + "StrokeAlpha", "alpha"  , prefix1 + " stroke alpha");
+  addStyleProp(strokePath, symbolPrefix + "StrokeWidth", "width"  , prefix1 + " stroke width");
+  addStyleProp(strokePath, symbolPrefix + "StrokeDash" , "dash"   , prefix1 + " stroke dash");
 }
 
 void
@@ -1732,19 +1756,23 @@ CQChartsPlot::
 addLineProperties(const QString &path, const QString &prefix,
                   const QString &descPrefix, bool hidden)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc, bool hidden) {
+    CQPropertyViewItem *item = this->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    CQCharts::setItemIsStyle(item);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
   //---
 
   QString prefix1 = (descPrefix.length() ? descPrefix + " stroke" : "Stroke");
 
-  addProp(path, prefix + "Color", "color", prefix1 + " color")->setHidden(hidden);
-  addProp(path, prefix + "Alpha", "alpha", prefix1 + " alpha")->setHidden(hidden);
-  addProp(path, prefix + "Width", "width", prefix1 + " width")->setHidden(hidden);
-  addProp(path, prefix + "Dash" , "dash" , prefix1 + " dash" )->setHidden(hidden);
+  addStyleProp(path, prefix + "Color", "color", prefix1 + " color", hidden);
+  addStyleProp(path, prefix + "Alpha", "alpha", prefix1 + " alpha", hidden);
+  addStyleProp(path, prefix + "Width", "width", prefix1 + " width", hidden);
+  addStyleProp(path, prefix + "Dash" , "dash" , prefix1 + " dash" , hidden);
 }
 
 void
@@ -1752,39 +1780,46 @@ CQChartsPlot::
 addFillProperties(const QString &path, const QString &prefix,
                   const QString &descPrefix, bool hidden)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc, bool hidden) {
+    CQPropertyViewItem *item = this->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    CQCharts::setItemIsStyle(item);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
   };
 
   //---
 
   QString prefix1 = (descPrefix.length() ? descPrefix + " fill" : "Fill");
 
-  addProp(path, prefix + "Color"  , "color"  , prefix1 + " color"  )->setHidden(hidden);
-  addProp(path, prefix + "Alpha"  , "alpha"  , prefix1 + " alpha"  )->setHidden(hidden);
-  addProp(path, prefix + "Pattern", "pattern", prefix1 + " pattern")->setHidden(true);
+  addStyleProp(path, prefix + "Color"  , "color"  , prefix1 + " color"  , hidden);
+  addStyleProp(path, prefix + "Alpha"  , "alpha"  , prefix1 + " alpha"  , hidden);
+  addStyleProp(path, prefix + "Pattern", "pattern", prefix1 + " pattern", true  );
 }
 
 void
 CQChartsPlot::
 addTextProperties(const QString &path, const QString &prefix, const QString &descPrefix)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc) {
+    CQPropertyViewItem *item = this->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    CQCharts::setItemIsStyle(item);
+    return item;
   };
 
   //---
 
   QString prefix1 = (descPrefix.length() ? descPrefix + " text" : "Text");
 
-  addProp(path, prefix + "Color"   , "color"   , prefix1 + " color");
-  addProp(path, prefix + "Alpha"   , "alpha"   , prefix1 + " alpha");
-  addProp(path, prefix + "Font"    , "font"    , prefix1 + " font");
-  addProp(path, prefix + "Angle"   , "angle"   , prefix1 + " angle");
-  addProp(path, prefix + "Contrast", "contrast", prefix1 + " contrast");
-  addProp(path, prefix + "Html"    , "html"    , prefix1 + " is HTML");
+  addStyleProp(path, prefix + "Color"   , "color"   , prefix1 + " color");
+  addStyleProp(path, prefix + "Alpha"   , "alpha"   , prefix1 + " alpha");
+  addStyleProp(path, prefix + "Font"    , "font"    , prefix1 + " font");
+  addStyleProp(path, prefix + "Angle"   , "angle"   , prefix1 + " angle");
+  addStyleProp(path, prefix + "Contrast", "contrast", prefix1 + " contrast");
+  addStyleProp(path, prefix + "Html"    , "html"    , prefix1 + " is HTML");
 }
 
 void
@@ -1793,7 +1828,10 @@ addAllTextProperties(const QString &path, const QString &prefix, const QString &
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc) {
-    return &(this->addProperty(path, this, name, alias)->setDesc(desc));
+    CQPropertyViewItem *item = this->addProperty(path, this, name, alias);
+    item->setDesc(desc);
+    CQCharts::setItemIsStyle(item);
+    return item;
   };
 
   //---
@@ -1818,10 +1856,10 @@ addColorMapProperties()
 
   //---
 
-  addProp("color/map", "colorMapped"    , "enabled", "Color values mapped");
-  addProp("color/map", "colorMapMin"    , "min"    , "Color value map min");
-  addProp("color/map", "colorMapMax"    , "max"    , "Color value map max");
-  addProp("color/map", "colorMapPalette", "palette", "Color map palette");
+  addProp("mapping/color", "colorMapped"    , "enabled", "Color values mapped");
+  addProp("mapping/color", "colorMapMin"    , "min"    , "Color value map min");
+  addProp("mapping/color", "colorMapMax"    , "max"    , "Color value map max");
+  addProp("mapping/color", "colorMapPalette", "palette", "Color map palette");
 }
 
 //---
@@ -1918,14 +1956,28 @@ getPropertyObject(const QString &name, QObject* &object, bool hidden) const
 
 bool
 CQChartsPlot::
-getPropertyHidden(const QString &name, bool &hidden) const
+getPropertyIsHidden(const QString &name, bool &is_hidden) const
 {
-  hidden = false;
+  is_hidden = false;
 
   const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, /*hidden*/true);
   if (! item) return false;
 
-  hidden = item->isHidden();
+  is_hidden = CQCharts::getItemIsHidden(item);
+
+  return true;
+}
+
+bool
+CQChartsPlot::
+getPropertyIsStyle(const QString &name, bool &is_style) const
+{
+  is_style = false;
+
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, /*hidden*/true);
+  if (! item) return false;
+
+  is_style = CQCharts::getItemIsStyle(item);
 
   return true;
 }
@@ -4860,7 +4912,7 @@ columnColor(int row, const QModelIndex &parent, CQChartsColor &color) const
         return false;
 
       if (colorColumnData_.palette != "")
-        color = CQChartsThemeMgrInst->getNamedPalette(colorColumnData_.palette)->getColor(r1);
+        color = CQColorsMgrInst->getNamedPalette(colorColumnData_.palette)->getColor(r1);
       else
         color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r1);
     }
@@ -4880,7 +4932,7 @@ columnColor(int row, const QModelIndex &parent, CQChartsColor &color) const
         double r = (n > 1 ? double(i)/(n - 1) : 0.0);
 
         if (colorColumnData_.palette != "")
-          color = CQChartsThemeMgrInst->getNamedPalette(colorColumnData_.palette)->getColor(r);
+          color = CQColorsMgrInst->getNamedPalette(colorColumnData_.palette)->getColor(r);
         else
           color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
       }
@@ -6157,9 +6209,9 @@ hasBackgroundLayer() const
 
   //---
 
-  bool hasPlotBackground = (isPlotFilled() || isPlotBorder());
-  bool hasDataBackground = (isDataFilled() || isDataBorder());
-  bool hasFitBackground  = (isFitFilled () || isFitBorder ());
+  bool hasPlotBackground = (isPlotFilled() || isPlotStroked());
+  bool hasDataBackground = (isDataFilled() || isDataStroked());
+  bool hasFitBackground  = (isFitFilled () || isFitStroked ());
   bool hasBackground     = this->hasBackground();
 
   if (! hasPlotBackground && ! hasDataBackground && ! hasFitBackground && ! hasBackground)
@@ -6177,9 +6229,9 @@ drawBackgroundLayer(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawBackgroundLayer");
 
-  bool hasPlotBackground = (isPlotFilled() || isPlotBorder());
-  bool hasDataBackground = (isDataFilled() || isDataBorder());
-  bool hasFitBackground  = (isFitFilled () || isFitBorder ());
+  bool hasPlotBackground = (isPlotFilled() || isPlotStroked());
+  bool hasDataBackground = (isDataFilled() || isDataStroked());
+  bool hasFitBackground  = (isFitFilled () || isFitStroked ());
   bool hasBackground     = this->hasBackground();
 
   //---
@@ -6195,11 +6247,11 @@ drawBackgroundLayer(QPainter *painter) const
       painter->fillRect(plotRect, brush);
     }
 
-    if (isPlotBorder()) {
+    if (isPlotStroked()) {
       QPen pen;
 
-      setPen(pen, true, interpPlotBorderColor(ColorInd()), plotBorderAlpha(),
-             plotBorderWidth(), plotBorderDash());
+      setPen(pen, true, interpPlotStrokeColor(ColorInd()), plotStrokeAlpha(),
+             plotStrokeWidth(), plotStrokeDash());
 
       painter->setPen(pen);
 
@@ -6218,11 +6270,11 @@ drawBackgroundLayer(QPainter *painter) const
       painter->fillRect(fitRect, brush);
     }
 
-    if (isFitBorder()) {
+    if (isFitStroked()) {
       QPen pen;
 
-      setPen(pen, true, interpFitBorderColor(ColorInd()), fitBorderAlpha(),
-             fitBorderWidth(), fitBorderDash());
+      setPen(pen, true, interpFitStrokeColor(ColorInd()), fitStrokeAlpha(),
+             fitStrokeWidth(), fitStrokeDash());
 
       painter->setPen(pen);
 
@@ -6241,11 +6293,11 @@ drawBackgroundLayer(QPainter *painter) const
       painter->fillRect(dataRect, brush);
     }
 
-    if (isDataBorder()) {
+    if (isDataStroked()) {
       QPen pen;
 
-      setPen(pen, true, interpDataBorderColor(ColorInd()), dataBorderAlpha(),
-             dataBorderWidth(), dataBorderDash());
+      setPen(pen, true, interpDataStrokeColor(ColorInd()), dataStrokeAlpha(),
+             dataStrokeWidth(), dataStrokeDash());
 
       painter->setPen(pen);
 
@@ -8166,8 +8218,8 @@ updateInsideObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
       if (pen.style() != Qt::NoPen) {
         QColor pc = pen.color();
 
-        if (view()->isInsideBorder())
-          opc = view()->interpInsideBorderColor(ic);
+        if (view()->isInsideStroked())
+          opc = view()->interpInsideStrokeColor(ic);
         else
           opc = CQChartsUtil::invColor(pc);
 
@@ -8176,14 +8228,14 @@ updateInsideObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
       else {
         QColor bc = brush.color();
 
-        if (view()->isInsideBorder())
-          opc = view()->interpInsideBorderColor(ic);
+        if (view()->isInsideStroked())
+          opc = view()->interpInsideStrokeColor(ic);
         else
           opc = CQChartsUtil::invColor(bc);
       }
 
       setPen(pen, true, opc, alpha,
-             view()->insideBorderWidth(), view()->insideBorderDash());
+             view()->insideStrokeWidth(), view()->insideStrokeDash());
 
       if (outline)
         setBrush(brush, false);
@@ -8215,13 +8267,13 @@ updateInsideObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
 
     QColor opc;
 
-    if (view()->isInsideBorder())
-      opc = view()->interpInsideBorderColor(ic);
+    if (view()->isInsideStroked())
+      opc = view()->interpInsideStrokeColor(ic);
     else
       opc = CQChartsUtil::invColor(pc);
 
     setPen(pen, true, opc, pc.alphaF(),
-           view()->insideBorderWidth(), view()->insideBorderDash());
+           view()->insideStrokeWidth(), view()->insideStrokeDash());
   }
 }
 
@@ -8240,8 +8292,8 @@ updateSelectedObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
       if (pen.style() != Qt::NoPen) {
         QColor pc = pen.color();
 
-        if (view()->isSelectedBorder())
-          opc = view()->interpSelectedBorderColor(ic);
+        if (view()->isSelectedStroked())
+          opc = view()->interpSelectedStrokeColor(ic);
         else
           opc = selectedColor(pc);
 
@@ -8250,14 +8302,14 @@ updateSelectedObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
       else {
         QColor bc = brush.color();
 
-        if (view()->isSelectedBorder())
-          opc = view()->interpSelectedBorderColor(ic);
+        if (view()->isSelectedStroked())
+          opc = view()->interpSelectedStrokeColor(ic);
         else
           opc = CQChartsUtil::invColor(bc);
       }
 
       setPen(pen, true, opc, alpha,
-             view()->selectedBorderWidth(), view()->selectedBorderDash());
+             view()->selectedStrokeWidth(), view()->selectedStrokeDash());
 
       setBrush(brush, false);
     }
@@ -8288,13 +8340,13 @@ updateSelectedObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
 
     QColor opc;
 
-    if (view()->isSelectedBorder())
-      opc = view()->interpSelectedBorderColor(ic);
+    if (view()->isSelectedStroked())
+      opc = view()->interpSelectedStrokeColor(ic);
     else
       opc = CQChartsUtil::invColor(pc);
 
     setPen(pen, true, opc, pc.alphaF(),
-           view()->selectedBorderWidth(), view()->selectedBorderDash());
+           view()->selectedStrokeWidth(), view()->selectedStrokeDash());
   }
 }
 
@@ -8356,7 +8408,7 @@ QColor
 CQChartsPlot::
 blendGroupPaletteColor(double r1, double r2, double dr) const
 {
-  CQChartsTheme *theme = view()->theme();
+  CQColorsTheme *theme = view()->theme();
 
   // r1 is parent color and r2 is child color
   QColor c1 = theme->palette()->getColor(r1 - dr/2.0);
@@ -10178,15 +10230,14 @@ void
 CQChartsPlot::
 write(std::ostream &os) const
 {
-  CQChartsModelData *modelData = getModelData();
+  //CQChartsModelData *modelData = getModelData();
 
-  os << "set plot [create_plot -model " << modelData->ind() <<
-    " -type " << type_->name().toStdString();
+  os << "set plot [create_charts_plot -model $model -type " << type_->name().toStdString();
 
   //---
 
   // add columns, parameters
-  QString columnsStr, parametersStr;
+  QStringList columnsStrs, parametersStrs;
 
   for (const auto &param : type()->parameters()) {
     QString defStr;
@@ -10207,26 +10258,27 @@ write(std::ostream &os) const
     if (str == defStr)
       continue;
 
+    QStringList strs1;
+
+    strs1 << param->name() << str;
+
     if (param->type() == CQChartsPlotParameter::Type::COLUMN ||
         param->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
-      if (columnsStr.length())
-        columnsStr += ",";
-
-      columnsStr += param->name() + "=" + str;
+      columnsStrs += "{" + CQTcl::mergeList(strs1) + "}";
     }
     else {
-      if (parametersStr.length())
-        parametersStr += ",";
-
-      parametersStr += param->name() + "=" + str;
+      parametersStrs += "{" + CQTcl::mergeList(strs1) + "}";
     }
   }
 
-  if (columnsStr.length())
-    os << " \\\n  -columns \"" << columnsStr.toStdString() << "\"";
+  if (columnsStrs.length())
+    os << " -columns {" << columnsStrs.join(" ").toStdString() + "}";
 
-  if (parametersStr.length())
-    os << " \\\n  -parameters \"" << parametersStr.toStdString() << "\"";
+  for (int i = 0; i < parametersStrs.length(); ++i)
+    os << " -parameter " << parametersStrs[i].toStdString();
+
+   if (titleStr() != "")
+     os << " -title {" << titleStr().toStdString() + "}";
 
   //---
 

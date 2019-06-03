@@ -722,7 +722,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   CQChartsGeom::Range calcRange() const override;
 
-  bool createObjs(PlotObjs &objs) const;
+  bool createObjs(PlotObjs &objs) const override;
 
   //---
 

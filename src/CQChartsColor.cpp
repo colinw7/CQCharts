@@ -1,6 +1,7 @@
 #include <CQChartsColor.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyView.h>
+#include <CQTclUtil.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsColor, toString, fromString)
 
@@ -22,34 +23,53 @@ colorStr() const
   if (! isValid())
     return "none";
 
+  QStringList strs;
+
   if      (type() == Type::PALETTE) {
     if (ind() < 0)
-      return "palette";
-
-    return QString("palette#%1").arg(ind());
+      strs << "palette";
+    else
+      strs << QString("palette#%1").arg(ind());
   }
   else if (type() == Type::PALETTE_VALUE) {
-    if (ind() < 0) {
-      if (isScale())
-        return QString("palette:%1:s").arg(value());
-      else
-        return QString("palette:%1").arg(value());
-    }
-    else {
-      if (isScale())
-        return QString("palette#%1:%2:s").arg(ind()).arg(value());
-      else
-        return QString("palette#%1:%2").arg(ind()).arg(value());
-    }
+    if (ind() < 0)
+      strs << "palette";
+    else
+      strs << QString("palette#%1").arg(ind());
+
+    strs << QString("%1").arg(value());
+
+    if (isScale())
+      strs << "s";
+  }
+  else if (type() == Type::INDEXED) {
+    if (ind() < 0)
+      strs << "ind_palette";
+    else
+      strs << QString("ind_palette#%1").arg(ind());
+  }
+  else if (type() == Type::INDEXED_VALUE) {
+    if (ind() < 0)
+      strs << "ind_palette";
+    else
+      strs << QString("ind_palette#%1").arg(ind());
+
+    strs << QString("%1").arg(value());
+
+    if (isScale())
+      strs << "s";
   }
   else if (type() == Type::INTERFACE) {
-    return "interface";
+    strs << "interface";
   }
   else if (type() == Type::INTERFACE_VALUE) {
-    return QString("interface:%1").arg(value());
+    strs << "interface" << QString("%1").arg(value());
+  }
+  else {
+    strs << color().name();
   }
 
-  return color().name();
+  return CQTcl::mergeList(strs);
 }
 
 bool
@@ -67,98 +87,114 @@ setColorStr(const QString &str)
 
   //---
 
+  // reset
+  type_  = Type::NONE;
+  ind_   = -1;
+  value_ = 0.0;
+  color_ = QColor();
   scale_ = false;
+
+  //---
+
+  // get strings
+  QStringList strs;
+
+  if (! CQTcl::splitList(str, strs))
+    return false;
+
+  if (strs.length() == 0 || (strs.length() == 1 && strs[0].simplified() == ""))
+    return true;
+
+  //---
 
   QString rhs;
 
-  if      (str == "palette") {
-    setValue(Type::PALETTE, 0.0);
-  }
-  else if (startsWith(str, "palette#", rhs)) {
-    int pos = rhs.indexOf(':');
-
-    if (pos > 0) {
-      bool scale = false;
-
-      QString lhs1 = rhs.mid(0, pos);
-      QString rhs1 = rhs.mid(pos + 1);
-
+  if      (strs[0] == "palette") {
+    if (strs.length() > 1) {
       bool ok;
 
-      long ind = CQChartsUtil::toInt(lhs1, ok);
+      double value = CQChartsUtil::toReal(strs[1], ok);
+      if (! ok) return false;
 
-      if (! ok)
-        return false;
+      bool scale = false;
 
-      int pos1 = rhs1.indexOf(':');
-
-      if (pos1 >= 0) {
-        QString rhs2 = rhs1.mid(pos1 + 1);
-
-        if (rhs2 == "s")
+      if (strs.length() > 2) {
+        if (strs[2][0] == 's')
           scale = true;
-
-        rhs1 = rhs1.mid(0, pos);
       }
 
-      bool ok1;
+      setScaleValue(Type::PALETTE_VALUE, value, scale);
+    }
+    else
+      setValue(Type::PALETTE, 0.0);
+  }
+  else if (startsWith(strs[0], "palette#", rhs)) {
+    bool ok;
 
-      double value = CQChartsUtil::toReal(rhs1, ok1);
+    long ind = CQChartsUtil::toInt(rhs, ok);
+    if (! ok) return false;
 
-      if (! ok1)
-        return false;
+    if (strs.length() > 1) {
+      bool ok;
+
+      double value = CQChartsUtil::toReal(strs[1], ok);
+      if (! ok) return false;
+
+      bool scale = false;
+
+      if (strs.length() > 2) {
+        if (strs[2][0] == 's')
+          scale = true;
+      }
 
       setIndScaleValue(Type::PALETTE_VALUE, ind, value, scale);
     }
-    else {
+    else
+      setIndValue(Type::PALETTE, ind, 0.0);
+  }
+  else if (strs[0] == "ind_palette") {
+    if (strs.length() > 1) {
       bool ok;
 
-      long ind = CQChartsUtil::toInt(rhs, ok);
+      int value = CQChartsUtil::toInt(strs[1], ok);
+      if (! ok) return false;
 
-      if (! ok)
-        return false;
-
-      setIndValue(Type::PALETTE, ind, 0.0);
+      setValue(Type::INDEXED_VALUE, value);
     }
+    else
+      setValue(Type::INDEXED, 0);
   }
-  else if (startsWith(str, "palette:", rhs)) {
-    bool scale = false;
-
-    int pos = rhs.indexOf(':');
-
-    if (pos >= 0) {
-      QString rhs1 = rhs.mid(pos + 1);
-
-      if (rhs == "s")
-        scale = true;
-
-      rhs = rhs.mid(0, pos);
-    }
-
+  else if (startsWith(strs[0], "ind_palette#", rhs)) {
     bool ok;
 
-    double value = CQChartsUtil::toReal(rhs, ok);
+    long ind = CQChartsUtil::toInt(rhs, ok);
+    if (! ok) return false;
 
-    if (! ok)
-      return false;
+    if (strs.length() > 1) {
+      bool ok;
 
-    setScaleValue(Type::PALETTE_VALUE, value, scale);
+      int value = CQChartsUtil::toInt(strs[1], ok);
+      if (! ok) return false;
+
+      setIndValue(Type::INDEXED_VALUE, ind, value);
+    }
+    else
+      setIndValue(Type::INDEXED, ind, 0);
   }
-  else if (str == "interface") {
-    setValue(Type::INTERFACE, 0.0);
-  }
-  else if (startsWith(str, "interface:", rhs)) {
-    bool ok;
+  else if (strs[0] == "interface") {
+    if (strs.length() > 1) {
+      bool ok;
 
-    double value = CQChartsUtil::toReal(rhs, ok);
+      double value = CQChartsUtil::toReal(strs[1], ok);
+      if (! ok) return false;
 
-    if (! ok)
-      return false;
-
-    setValue(Type::INTERFACE_VALUE, value);
+      setValue(Type::INTERFACE_VALUE, value);
+    }
+    else
+      setValue(Type::INTERFACE, 0.0);
   }
   else {
-    QColor c(str);
+    QColor c(strs[0]);
 
     if (! c.isValid())
       return false;

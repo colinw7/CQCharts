@@ -19,8 +19,8 @@ CQChartsTextBoxObj(CQChartsView *view) :
 
   setTextColor(themeFg);
 
-  setBorder(false);
-  setFilled(false);
+  setFilled (false);
+  setStroked(false);
 }
 
 CQChartsTextBoxObj::
@@ -32,8 +32,8 @@ CQChartsTextBoxObj(CQChartsPlot *plot) :
 
   setTextColor(themeFg);
 
-  setBorder(false);
-  setFilled(false);
+  setFilled (false);
+  setStroked(false);
 }
 
 void
@@ -56,18 +56,32 @@ CQChartsTextBoxObj::
 addTextDataProperties(CQPropertyViewModel *model, const QString &path, const QString &desc,
                       bool addVisible)
 {
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    return item;
+  };
+
+  //---
+
   QString desc1 = (desc.length() ? desc + " text" : "Text");
 
   if (addVisible)
-    model->addProperty(path, this, "textVisible", "visible")->setDesc(desc1 + " visible");
+    addProp(path, "textVisible", "visible", desc1 + " visible");
 
-  model->addProperty(path, this, "textColor"   , "color"   )->setDesc(desc1 + " color");
-  model->addProperty(path, this, "textAlpha"   , "alpha"   )->setDesc(desc1 + " alpha");
-  model->addProperty(path, this, "textFont"    , "font"    )->setDesc(desc1 + " font");
-  model->addProperty(path, this, "textAngle"   , "angle"   )->setDesc(desc1 + " angle");
-  model->addProperty(path, this, "textContrast", "contrast")->setDesc(desc1 + " contrast");
-  model->addProperty(path, this, "textHtml"    , "html"    )->setDesc(desc1 + " is HTML");
-  model->addProperty(path, this, "textAlign"   , "align"   )->setDesc(desc1 + " alignment");
+  addStyleProp(path, "textColor"   , "color"   , desc1 + " color");
+  addStyleProp(path, "textAlpha"   , "alpha"   , desc1 + " alpha");
+  addStyleProp(path, "textFont"    , "font"    , desc1 + " font");
+  addStyleProp(path, "textAngle"   , "angle"   , desc1 + " angle");
+  addStyleProp(path, "textContrast", "contrast", desc1 + " contrast");
+  addStyleProp(path, "textHtml"    , "html"    , desc1 + " is HTML");
+  addStyleProp(path, "textAlign"   , "align"   , desc1 + " alignment");
 }
 
 void

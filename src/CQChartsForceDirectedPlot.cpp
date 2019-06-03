@@ -108,7 +108,7 @@ CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model) :
 
   setOuterMargin(0, 0, 0, 0);
 
-  setNodeBorderAlpha(0.5);
+  setNodeStrokeAlpha(0.5);
 }
 
 CQChartsForceDirectedPlot::
@@ -216,7 +216,7 @@ addProperties()
   addProp("node", "nodeRadius", "radius", "Node radius");
 
   addFillProperties("node/fill"  , "nodeFill"  , "Node");
-  addLineProperties("node/stroke", "nodeBorder", "Node");
+  addLineProperties("node/stroke", "nodeStroke", "Node");
   addLineProperties("edge/stroke", "edgeLines" , "Edge");
 }
 
@@ -760,13 +760,13 @@ drawParts(QPainter *painter) const
     QPen   pen;
     QBrush brush;
 
-    QColor pc = interpNodeBorderColor(ColorInd());
+    QColor pc = interpNodeStrokeColor(ColorInd());
     QColor fc = interpPaletteColor(ColorInd(node->value()), /*scale*/false);
 
     if (node == forceDirected_->currentNode())
       fc = insideColor(fc);
 
-    setPen(pen, true, pc, nodeBorderAlpha(), nodeBorderWidth(), nodeBorderDash());
+    setPen(pen, true, pc, nodeStrokeAlpha(), nodeStrokeWidth(), nodeStrokeDash());
 
     setBrush(brush, true, fc, nodeFillAlpha(), nodeFillPattern());
 

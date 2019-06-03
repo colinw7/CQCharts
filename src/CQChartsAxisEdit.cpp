@@ -395,7 +395,7 @@ connectSlots(bool b)
   connectDisconnect(b, valueTypeCombo_, SIGNAL(currentIndexChanged(int)), SLOT(widgetsToData()));
   connectDisconnect(b, formatEdit_, SIGNAL(editingFinished()), SLOT(widgetsToData()));
   connectDisconnect(b, tickIncrementEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
-  connectDisconnect(b, majorIncrementEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(b, majorIncrementEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
   connectDisconnect(b, startEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
   connectDisconnect(b, endEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
   connectDisconnect(b, includeZeroEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));

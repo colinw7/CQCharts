@@ -20,7 +20,7 @@ set view [get_charts_data -plot $plot -name view]
 
 set_charts_property -view $view -name theme.name -value theme3
 
-set_charts_property -plot $plot -name color.xStops         -value "6.0"
-set_charts_property -plot $plot -name color.yStops         -value "3.0"
-set_charts_property -plot $plot -name color.type           -value X_VALUE
-set_charts_property -plot $plot -name color.defaultPalette -value red_green
+set_charts_property -plot $plot -name coloring.xStops         -value "6.0"
+set_charts_property -plot $plot -name coloring.yStops         -value "3.0"
+set_charts_property -plot $plot -name coloring.type           -value X_VALUE
+set_charts_property -plot $plot -name coloring.defaultPalette -value red_green

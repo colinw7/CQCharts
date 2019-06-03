@@ -49,7 +49,7 @@ class CQChartsKeyLocation : public CQChartsEnum {
 
   //---
 
-  QStringList enumNames() const;
+  QStringList enumNames() const override;
 
   //---
 

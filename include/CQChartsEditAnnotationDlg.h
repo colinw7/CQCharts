@@ -40,7 +40,7 @@ class CQChartsEditAnnotationDlg : public QDialog {
   struct Widgets {
     QFrame*                 frame              { nullptr };
     CQChartsFillDataEdit*   backgroundDataEdit { nullptr };
-    CQChartsStrokeDataEdit* borderDataEdit     { nullptr };
+    CQChartsStrokeDataEdit* strokeDataEdit     { nullptr };
     CQChartsSidesEdit*      borderSidesEdit    { nullptr };
   };
 
@@ -78,8 +78,8 @@ class CQChartsEditAnnotationDlg : public QDialog {
     CQChartsPositionEdit*  startEdit       { nullptr };
     CQChartsPositionEdit*  endEdit         { nullptr };
     CQChartsArrowDataEdit* dataEdit        { nullptr };
-    CQChartsLengthEdit*    borderWidthEdit { nullptr };
-    CQChartsColorLineEdit* borderColorEdit { nullptr };
+    CQChartsLengthEdit*    strokeWidthEdit { nullptr };
+    CQChartsColorLineEdit* strokeColorEdit { nullptr };
     CQCheckBox*            filledCheck     { nullptr };
     CQChartsColorLineEdit* fillColorEdit   { nullptr };
   };

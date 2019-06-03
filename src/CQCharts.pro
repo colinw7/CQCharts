@@ -88,7 +88,6 @@ CQChartsArrow.cpp \
 CQChartsEditHandles.cpp \
 CQChartsResizeHandle.cpp \
 \
-CQChartsTheme.cpp \
 CQChartsInterfaceTheme.cpp \
 CQChartsThemeName.cpp \
 \
@@ -124,11 +123,6 @@ CQChartsModelVisitor.cpp \
 \
 CQChartsData.cpp \
 CQChartsInvalidator.cpp \
-\
-CQChartsGradientPaletteCanvas.cpp \
-CQChartsGradientPalette.cpp \
-CQChartsGradientPaletteControl.cpp \
-CQChartsGradientPaletteList.cpp \
 \
 CQChartsLineDash.cpp \
 \
@@ -325,7 +319,6 @@ HEADERS += \
 ../include/CQChartsEditHandles.h \
 ../include/CQChartsResizeHandle.h \
 \
-../include/CQChartsTheme.h \
 ../include/CQChartsInterfaceTheme.h \
 ../include/CQChartsThemeName.h \
 \
@@ -390,11 +383,6 @@ HEADERS += \
 ../include/CQChartsObjData.h \
 ../include/CQChartsData.h \
 ../include/CQChartsInvalidator.h \
-\
-../include/CQChartsGradientPaletteCanvas.h \
-../include/CQChartsGradientPalette.h \
-../include/CQChartsGradientPaletteControl.h \
-../include/CQChartsGradientPaletteList.h \
 \
 ../include/CQChartsLineDash.h \
 \
@@ -499,6 +487,7 @@ INCLUDEPATH += \
 . \
 ../include \
 ../../CQPropertyView/include \
+../../CQColors/include \
 ../../CQDividedArea/include \
 ../../CQCustomCombo/include \
 ../../CQUtil/include \

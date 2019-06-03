@@ -13,10 +13,10 @@ set model [load_charts_model -var symbol_data -transpose]
 set plot [create_charts_plot -model $model -type scatter \
   -columns {{x 0} {y 1} {symbolType 3}}]
 
-set_charts_property -plot $plot -name margin.inner.left   -value 20px
-set_charts_property -plot $plot -name margin.inner.right  -value 20px
-set_charts_property -plot $plot -name margin.inner.bottom -value 20px
-set_charts_property -plot $plot -name margin.inner.top    -value 20px
+set_charts_property -plot $plot -name margins.inner.left   -value 20px
+set_charts_property -plot $plot -name margins.inner.right  -value 20px
+set_charts_property -plot $plot -name margins.inner.bottom -value 20px
+set_charts_property -plot $plot -name margins.inner.top    -value 20px
 
-#set_charts_property -plot $plot -name symbol.map.type.enabled -value 1
-#set_charts_property -plot $plot -name symbol.type.map.symbols -value "triangle,circle,square"
+#set_charts_property -plot $plot -name mapping.symbol_type.enabled -value 1
+#set_charts_property -plot $plot -name mapping.symbol.type.symbols -value "triangle,circle,square"

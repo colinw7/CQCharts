@@ -140,7 +140,7 @@ CQChartsTitleEdit(QWidget *parent, CQChartsTitle *title) :
 
   //--
 
-  // box (margin, passing, fill, border, text)
+  // box (margin, passing, fill, stroke, text)
   textEdit_ = CQUtil::makeWidget<CQChartsTextDataEdit>("textEdit");
 
   textEdit_->setTitle("Box");

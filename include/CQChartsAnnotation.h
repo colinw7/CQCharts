@@ -102,7 +102,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   bool getPropertyType    (const QString &name, QString  &type, bool hidden=false) const;
   bool getPropertyUserType(const QString &name, QString  &type, bool hidden=false) const;
   bool getPropertyObject  (const QString &name, QObject* &obj , bool hidden=false) const;
-  bool getPropertyHidden  (const QString &name, bool &hidden) const;
+  bool getPropertyIsHidden(const QString &name, bool &is_hidden) const;
+  bool getPropertyIsStyle (const QString &name, bool &is_style) const;
 
   //! get property names
   virtual void getPropertyNames(QStringList &names, bool hidden=false) const;

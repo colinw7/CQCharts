@@ -184,8 +184,8 @@ void
 CQChartsShapeData::
 setNameValues(CQChartsNameValues &nameValues) const
 {
-  background_.setNameValues(nameValues);
-  border_    .setNameValues(nameValues);
+  fill_  .setNameValues(nameValues);
+  stroke_.setNameValues(nameValues);
 }
 
 bool
@@ -201,8 +201,8 @@ bool
 CQChartsShapeData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
-  background_.getNameValues(nameValues);
-  border_    .getNameValues(nameValues);
+  fill_  .getNameValues(nameValues);
+  stroke_.getNameValues(nameValues);
 
   return true;
 }

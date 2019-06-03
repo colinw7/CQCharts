@@ -31,10 +31,10 @@ class CQChartsPolygonAnnotation;
 class CQChartsPolylineAnnotation;
 class CQChartsPointAnnotation;
 class CQChartsProbeBand;
-class CQChartsGradientPalette;
 class CQChartsDisplayRange;
 class CQPropertyViewModel;
 class CQPropertyViewItem;
+class CQColorsPalette;
 
 struct CQChartsTextOptions;
 
@@ -317,8 +317,8 @@ class CQChartsView : public QFrame,
   //---
 
   // theme
-  CQChartsTheme *theme();
-  const CQChartsTheme *theme() const;
+  CQColorsTheme *theme();
+  const CQColorsTheme *theme() const;
 
   const CQChartsThemeName &themeName() const;
   void setThemeName(const CQChartsThemeName &name);
@@ -326,11 +326,11 @@ class CQChartsView : public QFrame,
   //---
 
   // palettes
-  CQChartsGradientPalette *interfacePalette() const;
+  CQColorsPalette *interfacePalette() const;
 
-  CQChartsGradientPalette *themeGroupPalette(int i, int n) const;
+  CQColorsPalette *themeGroupPalette(int i, int n) const;
 
-  CQChartsGradientPalette *themePalette(int ind=0) const;
+  CQColorsPalette *themePalette(int ind=0) const;
 
   // is dark
   bool isDark() const;
@@ -359,7 +359,8 @@ class CQChartsView : public QFrame,
   bool getPropertyType    (const QString &name, QString  &type, bool hidden=false) const;
   bool getPropertyUserType(const QString &name, QString  &type, bool hidden=false) const;
   bool getPropertyObject  (const QString &name, QObject* &obj , bool hidden=false) const;
-  bool getPropertyHidden  (const QString &name, bool &hidden) const;
+  bool getPropertyIsHidden(const QString &name, bool &is_hidden) const;
+  bool getPropertyIsStyle (const QString &name, bool &is_style) const;
 
   CQPropertyViewItem *addProperty(const QString &path, QObject *object,
                                   const QString &name, const QString &alias="");

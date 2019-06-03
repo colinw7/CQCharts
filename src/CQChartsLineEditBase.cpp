@@ -158,7 +158,7 @@ CQChartsLineEditBase::
 hideMenuSlot()
 {
   if (propertyViewTree_)
-    propertyViewTree_->closeEditor();
+    propertyViewTree_->closeCurrentEditor();
 }
 
 void

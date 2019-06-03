@@ -137,11 +137,11 @@ CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
 
   setBackgroundFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.2));
 
-  setBorderColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
-  setBorderAlpha(0.5);
+  setStrokeColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
+  setStrokeAlpha(0.5);
 
   setEmptyCellFillColor  (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.1));
-  setEmptyCellBorderColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.2));
+  setEmptyCellStrokeColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.2));
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
@@ -268,13 +268,13 @@ addProperties()
 
   // cell style
   addFillProperties("cell/fill"  , "fill"  , "Cell");
-  addLineProperties("cell/stroke", "border", "Cell");
+  addLineProperties("cell/stroke", "stroke", "Cell");
 
   addProp("cell/stroke", "cornerSize", "cornerSize", "Cell box corner size");
 
   // empty cell style
   addFillProperties("emptyCell/fill"  , "emptyCellFill"  , "Empty cell");
-  addLineProperties("emptyCell/stroke", "emptyCellBorder", "Empty cell");
+  addLineProperties("emptyCell/stroke", "emptyCellStroke", "Empty cell");
 
   addProp("emptyCell/stroke", "cornerSize", "cornerSize", "Empty cell box corner size");
 
@@ -888,11 +888,11 @@ execDrawBackground(QPainter *painter) const
   QPen   emptyPen;
   QBrush emptyBrush;
 
-  QColor pc = interpEmptyCellBorderColor(ColorInd());
+  QColor pc = interpEmptyCellStrokeColor(ColorInd());
   QColor bc = interpEmptyCellFillColor  (ColorInd());
 
-  setPen(emptyPen, true, pc, emptyCellBorderAlpha(),
-         emptyCellBorderWidth(), emptyCellBorderDash());
+  setPen(emptyPen, true, pc, emptyCellStrokeAlpha(),
+         emptyCellStrokeWidth(), emptyCellStrokeDash());
 
   setBrush(emptyBrush, true, bc, emptyCellFillAlpha(), emptyCellFillPattern());
 
@@ -1073,9 +1073,9 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor pc = plot_->interpBorderColor(colorInd);
+  QColor pc = plot_->interpStrokeColor(colorInd);
 
-  plot_->setPen(pen, true, pc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash());
+  plot_->setPen(pen, true, pc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash());
 
   plot_->setBrush(brush, true, bc, plot_->fillAlpha(), plot_->fillPattern());
 

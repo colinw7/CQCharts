@@ -20,24 +20,32 @@ void
 CQChartsDataLabel::
 addPathProperties(const QString &path, const QString &desc)
 {
-  plot_->addProperty(path, this, "visible" )->setDesc(desc + " visible");
-  plot_->addProperty(path, this, "position")->setDesc(desc + " position");
-  plot_->addProperty(path, this, "clip"    )->setDesc(desc + " is clipped");
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(plot_->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    return item;
+  };
+
+  //---
+
+  addProp(path, "visible" , "", desc + " visible");
+  addProp(path, "position", "", desc + " position");
+  addProp(path, "clip"    , "", desc + " is clipped");
 
   QString textPath = path + "/text";
 
-  plot_->addProperty(textPath, this, "textColor"   , "color"   )->
-    setDesc(desc + " text color");
-  plot_->addProperty(textPath, this, "textAlpha"   , "alpha"   )->
-    setDesc(desc + " text alpha");
-  plot_->addProperty(textPath, this, "textFont"    , "font"    )->
-    setDesc(desc + " text font");
-  plot_->addProperty(textPath, this, "textAngle"   , "angle"   )->
-    setDesc(desc + " text angle");
-  plot_->addProperty(textPath, this, "textContrast", "contrast")->
-    setDesc(desc + " text is contrast");
-  plot_->addProperty(textPath, this, "textHtml"    , "html"    )->
-    setDesc(desc + " text is HTML");
+  addStyleProp(textPath, "textColor"   , "color"   , desc + " text color");
+  addStyleProp(textPath, "textAlpha"   , "alpha"   , desc + " text alpha");
+  addStyleProp(textPath, "textFont"    , "font"    , desc + " text font");
+  addStyleProp(textPath, "textAngle"   , "angle"   , desc + " text angle");
+  addStyleProp(textPath, "textContrast", "contrast", desc + " text is contrast");
+  addStyleProp(textPath, "textHtml"    , "html"    , desc + " text is HTML");
 
   QString boxPath = path + "/box";
 

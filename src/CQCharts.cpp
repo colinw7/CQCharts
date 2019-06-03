@@ -60,7 +60,6 @@
 #include <CQChartsNamePair.h>
 #include <CQChartsSides.h>
 #include <CQChartsFillUnder.h>
-#include <CQChartsGradientPalette.h>
 #include <CQChartsWindow.h>
 #include <CQChartsPath.h>
 #include <CQChartsVariant.h>
@@ -74,10 +73,13 @@
 #include <CQChartsColor.h>
 #include <CQChartsFont.h>
 #include <CQChartsInterfaceTheme.h>
-#include <CQChartsTheme.h>
 #include <CQChartsColorStops.h>
+#include <CQColorsPalette.h>
 
 #include <CQPropertyView.h>
+#include <CQPropertyViewItem.h>
+#include <CQColors.h>
+#include <CQColorsTheme.h>
 #include <iostream>
 
 CQCharts::
@@ -305,7 +307,8 @@ QColor
 CQCharts::
 interpColorValue(const CQChartsColor &c, int ig, int ng, double value) const
 {
-  assert(c.isValid());
+  if (! c.isValid())
+    return QColor();
 
   if      (c.type() == CQChartsColor::Type::COLOR)
     return c.color();
@@ -320,6 +323,18 @@ interpColorValue(const CQChartsColor &c, int ig, int ng, double value) const
       return interpPaletteColor(c.value(), c.isScale());
     else
       return interpIndPaletteColor(c.ind(), c.value(), c.isScale());
+  }
+  else if (c.type() == CQChartsColor::Type::INDEXED) {
+    if (c.ind() < 0)
+      return indexPaletteColor(ig, ng);
+    else
+      return indexIndPaletteColor(c.ind(), ig, ng);
+  }
+  else if (c.type() == CQChartsColor::Type::INDEXED_VALUE) {
+    if (c.ind() < 0)
+      return indexPaletteColor(int(c.value()), ng);
+    else
+      return indexIndPaletteColor(c.ind(), int(c.value()), ng);
   }
   else if (c.type() == CQChartsColor::Type::INTERFACE)
     return interpThemeColor(value);
@@ -420,25 +435,48 @@ interpPaletteColorValue(int ig, int ng, double r, bool scale) const
 
 QColor
 CQCharts::
-interpIndPaletteColorValue(int ind, int ig, int ng, double r, bool scale) const
+interpIndPaletteColorValue(int ind, int /*ig*/, int /*ng*/, double r, bool scale) const
 {
   // if ind unset then use default palette number
   if (ind < 0)
     ind = 0;
 
-  CQChartsGradientPalette *palette = this->themePalette(ind);
+  CQColorsPalette *palette = this->themePalette(ind);
 
-  if (! palette->isDistinct() || ng <= 0)
-    return palette->getColor(r, scale);
+#if 0
+  if (palette->isDistinct() && ng > 0) {
+    int nc = palette->numDefinedColors();
+    assert(nc > 0);
 
-  int nc = palette->numColors();
-  assert(nc > 0);
+    int i1 = (ig % nc);
 
-  int i1 = (ig % nc);
+    double r1 = CMathUtil::norm(i1, 0, nc - 1);
 
-  double r1 = CMathUtil::norm(i1, 0, nc - 1);
+    return palette->getColor(r1, /*scale*/false);
+  }
+#endif
 
-  return palette->getColor(r1, /*scale*/false);
+  return palette->getColor(r, scale);
+}
+
+QColor
+CQCharts::
+indexPaletteColor(int i, int n) const
+{
+  return indexIndPaletteColor(0, i, n);
+}
+
+QColor
+CQCharts::
+indexIndPaletteColor(int ind, int i, int n) const
+{
+  // if ind unset then use default palette number
+  if (ind < 0)
+    ind = 0;
+
+  CQColorsPalette *palette = this->themePalette(ind);
+
+  return palette->getColor(i, n, CQColorsPalette::WrapMode::REPEAT);
 }
 
 QColor
@@ -464,7 +502,7 @@ interpThemeColor(double r) const
   return this->interfaceTheme()->interpColor(r, /*scale*/true);
 }
 
-CQChartsGradientPalette *
+CQColorsPalette *
 CQCharts::
 themeGroupPalette(int ig, int /*ng*/) const
 {
@@ -474,7 +512,7 @@ themeGroupPalette(int ig, int /*ng*/) const
   return theme()->palette(ig);
 }
 
-CQChartsGradientPalette *
+CQColorsPalette *
 CQCharts::
 themePalette(int ind) const
 {
@@ -485,14 +523,14 @@ themePalette(int ind) const
   return theme()->palette(ind);
 }
 
-const CQChartsTheme *
+const CQColorsTheme *
 CQCharts::
 theme() const
 {
   return plotTheme().obj();
 }
 
-CQChartsTheme *
+CQColorsTheme *
 CQCharts::
 theme()
 {
@@ -845,6 +883,38 @@ CQCharts::
 emitModelTypeChanged(int modelId)
 {
   emit modelTypeChanged(modelId);
+}
+
+//---
+
+void
+CQCharts::
+setItemIsStyle(CQPropertyViewItem *item)
+{
+  item->setProperty("style_prop", true);
+}
+
+bool
+CQCharts::
+getItemIsStyle(const CQPropertyViewItem *item)
+{
+  return item->property("style_prop").isValid();
+}
+
+void
+CQCharts::
+setItemIsHidden(CQPropertyViewItem *item)
+{
+  item->setHidden(true);
+
+  item->setProperty("hidden_prop", true);
+}
+
+bool
+CQCharts::
+getItemIsHidden(const CQPropertyViewItem *item)
+{
+  return item->property("hidden_prop").isValid();
 }
 
 //---

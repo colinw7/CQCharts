@@ -6,6 +6,6 @@ set plot [create_charts_plot -model $model -type scatter \
  -columns {{x 4} {y 3} {name 0} {fontSize 5}} \
  -parameter "textLabels=1" \
  -parameter "key=0" \
- -properties {{font.map.size.enabled 1}} \
+ -properties {{mapping.font_size.enabled 1}} \
  -properties {{dataLabel.position CENTER}} \
 ]

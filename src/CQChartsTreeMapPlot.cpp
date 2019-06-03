@@ -73,16 +73,16 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
   setHeaderTextFontSize(12.0);
   setHeaderTextAlign(Qt::AlignLeft | Qt::AlignVCenter);
 
-  setHeaderBorder(true);
-  setHeaderBorderAlpha(0.5);
+  setHeaderStroked(true);
+  setHeaderStrokeAlpha(0.5);
 
   setHeaderFilled(true);
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
   setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
 
-  setBorder(true);
-  setFilled(true);
+  setFilled (true);
+  setStroked(true);
 
   setTextFontSize(14.0);
   setTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
@@ -202,8 +202,8 @@ addProperties()
 
   CQChartsHierPlot::addProperties();
 
-  // options
-  addProp("options", "marginWidth", "margin", "Margin size for tree map boxes");
+  // margins
+  addProp("margins", "marginWidth", "box", "Margin size for tree map boxes");
 
   // header
   addProp("header", "titles"        , "visible"  ,
@@ -213,8 +213,8 @@ addProperties()
   addProp("header", "titleHeight"  , "height"   ,
           "Explicit hierarchical group header height");
 
-  // color
-  addProp("color", "colorById", "colorById", "Color by id");
+  // coloring
+  addProp("coloring", "colorById", "colorById", "Color by id");
 
   // header/fill
   addProp("header/fill", "headerFilled", "visible", "Header fill visible");
@@ -222,9 +222,9 @@ addProperties()
   addFillProperties("header/fill", "headerFill", "Header");
 
   // header/stroke
-  addProp("header/stroke", "headerBorder", "visible", "Header stroke visible");
+  addProp("header/stroke", "headerStroked", "visible", "Header stroke visible");
 
-  addLineProperties("header/stroke", "headerBorder", "Header");
+  addLineProperties("header/stroke", "headerStroke", "Header");
 
   addAllTextProperties("header/text", "headerText", "Header");
 
@@ -234,9 +234,9 @@ addProperties()
   addFillProperties("fill", "fill", "");
 
   // stroke
-  addProp("stroke", "border", "visible", "Stroke visible");
+  addProp("stroke", "stroked", "visible", "Stroke visible");
 
-  addLineProperties("stroke", "border", "");
+  addLineProperties("stroke", "stroke", "");
 
   // text
   addProp("text", "textVisible", "visible", "Text visible");
@@ -910,27 +910,31 @@ bool
 CQChartsTreeMapPlot::
 addMenuItems(QMenu *menu)
 {
+  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) -> QAction *{
+    QAction *action = new QAction(name, menu);
+
+    connect(action, SIGNAL(triggered()), this, slot);
+
+    menu->addAction(action);
+
+    return action;
+  };
+
+  //---
+
   PlotObjs objs;
 
   selectedPlotObjs(objs);
 
-  QAction *pushAction   = new QAction("Push"   , menu);
-  QAction *popAction    = new QAction("Pop"    , menu);
-  QAction *popTopAction = new QAction("Pop Top", menu);
+  menu->addSeparator();
 
-  connect(pushAction  , SIGNAL(triggered()), this, SLOT(pushSlot()));
-  connect(popAction   , SIGNAL(triggered()), this, SLOT(popSlot()));
-  connect(popTopAction, SIGNAL(triggered()), this, SLOT(popTopSlot()));
+  QAction *pushAction   = addMenuAction(menu, "Push"   , SLOT(pushSlot()));
+  QAction *popAction    = addMenuAction(menu, "Pop"    , SLOT(popSlot()));
+  QAction *popTopAction = addMenuAction(menu, "Pop Top", SLOT(popTopSlot()));
 
   pushAction  ->setEnabled(! objs.empty());
   popAction   ->setEnabled(currentRoot() != firstHier());
   popTopAction->setEnabled(currentRoot() != firstHier());
-
-  menu->addSeparator();
-
-  menu->addAction(pushAction  );
-  menu->addAction(popAction   );
-  menu->addAction(popTopAction);
 
   return true;
 }
@@ -1093,7 +1097,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpHeaderBorderColor(colorInd);
+  QColor bc = plot_->interpHeaderStrokeColor(colorInd);
 
   if (isChildSelected())
     bc.setAlphaF(1.0);
@@ -1105,8 +1109,8 @@ draw(QPainter *painter)
   QColor fc = CQChartsUtil::blendColors(c, hierColor, 0.8);
 
   plot_->setPenBrush(pen, brush,
-    plot_->isHeaderBorder(), bc, plot_->headerBorderAlpha(),
-    plot_->headerBorderWidth(), plot_->headerBorderDash(),
+    plot_->isHeaderStroked(), bc, plot_->headerStrokeAlpha(),
+    plot_->headerStrokeWidth(), plot_->headerStrokeDash(),
     plot_->isHeaderFilled(), fc, plot_->headerFillAlpha(), plot_->headerFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
@@ -1308,12 +1312,12 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBorderColor(colorInd);
+  QColor bc = plot_->interpStrokeColor(colorInd);
 
   QColor fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
   plot_->setPenBrush(pen, brush,
-    plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
+    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
     plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);

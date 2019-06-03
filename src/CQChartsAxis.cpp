@@ -190,6 +190,16 @@ addProperties(CQPropertyViewModel *model, const QString &path)
     return &(model->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc, bool hidden=false) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  //---
+
   addProp(path, "direction", "", "Axis direction")->setHidden(true).setEditable(false);
 
   addProp(path, "visible"  , "", "Axis visible");
@@ -215,12 +225,12 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   QString linePath = path + "/stroke";
 
-  addProp(linePath, "axesLineData"  , "style"  , "Axis stroke style")->setHidden(true);
-  addProp(linePath, "axesLines"     , "visible", "Axis stroke visible");
-  addProp(linePath, "axesLinesColor", "color"  , "Axis stroke color");
-  addProp(linePath, "axesLinesAlpha", "alpha"  , "Axis stroke alpha");
-  addProp(linePath, "axesLinesWidth", "width"  , "Axis stroke width");
-  addProp(linePath, "axesLinesDash" , "dash"   , "Axis stroke dash");
+  addStyleProp(linePath, "axesLineData"  , "style"  , "Axis stroke style", true);
+  addStyleProp(linePath, "axesLines"     , "visible", "Axis stroke visible");
+  addStyleProp(linePath, "axesLinesColor", "color"  , "Axis stroke color");
+  addStyleProp(linePath, "axesLinesAlpha", "alpha"  , "Axis stroke alpha");
+  addStyleProp(linePath, "axesLinesWidth", "width"  , "Axis stroke width");
+  addStyleProp(linePath, "axesLinesDash" , "dash"   , "Axis stroke dash");
 
   //---
 
@@ -242,18 +252,18 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   addProp(ticksLabelPath, "tickLabelAutoHide" , "autoHide", "Axis tick label text is auto hide");
   addProp(ticksLabelPath, "tickLabelPlacement", "placement", "Axis tick label text placement");
 
-  addProp(ticksLabelTextPath, "axesTickLabelTextData"   , "style",
-          "Axis tick label text style")->setHidden(true);
-  addProp(ticksLabelTextPath, "axesTickLabelTextVisible", "visible",
-          "Axis tick label text visible");
-  addProp(ticksLabelTextPath, "axesTickLabelTextColor"  , "color",
-          "Axis tick label text color");
-  addProp(ticksLabelTextPath, "axesTickLabelTextAlpha"  , "alpha",
-          "Axis tick label text alpha");
-  addProp(ticksLabelTextPath, "axesTickLabelTextFont"   , "font",
-          "Axis tick label text font");
-  addProp(ticksLabelTextPath, "axesTickLabelTextAngle"  , "angle",
-          "Axis tick label text angle");
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextData"   , "style",
+               "Axis tick label text style", true);
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextVisible", "visible",
+               "Axis tick label text visible");
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextColor"  , "color",
+               "Axis tick label text color");
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextAlpha"  , "alpha",
+               "Axis tick label text alpha");
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextFont"   , "font",
+               "Axis tick label text font");
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextAngle"  , "angle",
+               "Axis tick label text angle");
 
   addProp(ticksPath, "tickInside" , "inside", "Axis ticks drawn inside plot");
   addProp(ticksPath, "mirrorTicks", "mirror", "Axis tick are mirrored on other side of plot");
@@ -263,13 +273,14 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   QString labelPath     = path + "/label";
   QString labelTextPath = labelPath + "/text";
 
-  addProp(labelTextPath, "label"               , "string" , "Axis label text string");
-  addProp(labelTextPath, "axesLabelTextData"   , "style"  ,
-          "Axis label text style")->setHidden(true);
-  addProp(labelTextPath, "axesLabelTextVisible", "visible", "Axis label text visible");
-  addProp(labelTextPath, "axesLabelTextColor"  , "color"  , "Axis label text color");
-  addProp(labelTextPath, "axesLabelTextAlpha"  , "alpha"  , "Axis label text alpha");
-  addProp(labelTextPath, "axesLabelTextFont"   , "font"   , "Axis label text font");
+  addProp(labelTextPath, "label", "string" , "Axis label text string");
+
+  addStyleProp(labelTextPath, "axesLabelTextData"   , "style"  ,
+               "Axis label text style", true);
+  addStyleProp(labelTextPath, "axesLabelTextVisible", "visible", "Axis label text visible");
+  addStyleProp(labelTextPath, "axesLabelTextColor"  , "color"  , "Axis label text color");
+  addStyleProp(labelTextPath, "axesLabelTextAlpha"  , "alpha"  , "Axis label text alpha");
+  addStyleProp(labelTextPath, "axesLabelTextFont"   , "font"   , "Axis label text font");
 
   //---
 
@@ -284,39 +295,37 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   addProp(gridPath, "gridMid"  , "middle", "Grid at make tick mid point");
   addProp(gridPath, "gridAbove", "above" , "Grid is drawn above axes");
 
-  addProp(gridPath, "gridLinesDisplayed", "lines",
-          "Axis major and/or minor grid lines visible");
-  addProp(gridPath, "gridFillDisplayed" , "fill",
-          "Axis major and/or minor fill visible");
+  addProp(gridPath, "gridLinesDisplayed", "lines", "Axis major and/or minor grid lines visible");
+  addProp(gridPath, "gridFillDisplayed" , "fill" , "Axis major and/or minor fill visible");
 
-  addProp(gridMajorStrokePath, "axesMajorGridLineData"  , "style"  ,
-          "Axis major grid stroke style")->setHidden(true);
-  addProp(gridMajorStrokePath, "axesMajorGridLinesColor", "color"  ,
-          "Axis major grid stroke color");
-  addProp(gridMajorStrokePath, "axesMajorGridLinesAlpha", "alpha"  ,
-          "Axis major grid stroke alpha");
-  addProp(gridMajorStrokePath, "axesMajorGridLinesWidth", "width"  ,
-          "Axis major grid stroke width");
-  addProp(gridMajorStrokePath, "axesMajorGridLinesDash" , "dash"   ,
-          "Axis major grid stroke dash");
+  addStyleProp(gridMajorStrokePath, "axesMajorGridLineData"  , "style"  ,
+               "Axis major grid stroke style", true);
+  addStyleProp(gridMajorStrokePath, "axesMajorGridLinesColor", "color"  ,
+               "Axis major grid stroke color");
+  addStyleProp(gridMajorStrokePath, "axesMajorGridLinesAlpha", "alpha"  ,
+               "Axis major grid stroke alpha");
+  addStyleProp(gridMajorStrokePath, "axesMajorGridLinesWidth", "width"  ,
+               "Axis major grid stroke width");
+  addStyleProp(gridMajorStrokePath, "axesMajorGridLinesDash" , "dash"   ,
+               "Axis major grid stroke dash");
 
-  addProp(gridMinorStrokePath, "axesMinorGridLineData"  , "style"  ,
-          "Axis minor grid stroke style")->setHidden(true);
-  addProp(gridMinorStrokePath, "axesMinorGridLinesColor", "color"  ,
-          "Axis minor grid stroke color");
-  addProp(gridMinorStrokePath, "axesMinorGridLinesAlpha", "alpha"  ,
-          "Axis minor grid stroke alpha");
-  addProp(gridMinorStrokePath, "axesMinorGridLinesWidth", "width"  ,
-          "Axis minor grid stroke width");
-  addProp(gridMinorStrokePath, "axesMinorGridLinesDash" , "dash"   ,
-          "Axis minor grid stroke dash");
+  addStyleProp(gridMinorStrokePath, "axesMinorGridLineData"  , "style"  ,
+               "Axis minor grid stroke style", true);
+  addStyleProp(gridMinorStrokePath, "axesMinorGridLinesColor", "color"  ,
+               "Axis minor grid stroke color");
+  addStyleProp(gridMinorStrokePath, "axesMinorGridLinesAlpha", "alpha"  ,
+               "Axis minor grid stroke alpha");
+  addStyleProp(gridMinorStrokePath, "axesMinorGridLinesWidth", "width"  ,
+               "Axis minor grid stroke width");
+  addStyleProp(gridMinorStrokePath, "axesMinorGridLinesDash" , "dash"   ,
+               "Axis minor grid stroke dash");
 
-  addProp(gridMajorFillPath, "axesGridFillData"   , "style"  ,
-          "Axis grid fill style")->setHidden(true);
-  addProp(gridMajorFillPath, "axesGridFillColor"  , "color"  , "Axis grid fill color");
-  addProp(gridMajorFillPath, "axesGridFillAlpha"  , "alpha"  , "Axis grid fill alpha");
-  addProp(gridMajorFillPath, "axesGridFillPattern", "pattern",
-          "Axis grid fill pattern")->setHidden(true);
+  addStyleProp(gridMajorFillPath, "axesGridFillData"   , "style"  ,
+               "Axis grid fill style", true);
+  addStyleProp(gridMajorFillPath, "axesGridFillColor"  , "color"  , "Axis grid fill color");
+  addStyleProp(gridMajorFillPath, "axesGridFillAlpha"  , "alpha"  , "Axis grid fill alpha");
+  addStyleProp(gridMajorFillPath, "axesGridFillPattern", "pattern",
+               "Axis grid fill pattern", true);
 }
 
 void
@@ -428,7 +437,7 @@ format() const
   if (column().isValid()) {
     QString typeStr;
 
-    if (plot()->columnTypeStr(column(), typeStr))
+    if (! plot()->columnTypeStr(column(), typeStr))
       return "";
 
     return typeStr;

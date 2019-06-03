@@ -391,35 +391,34 @@ draw(QPainter *painter, const CQChartsBoxData &data, const QRect &rect,
      CQChartsPlot *plot, CQChartsView *view)
 {
   // set pen
-  QColor pc = interpColor(plot, view, data.shape().border().color());
+  QColor pc = interpColor(plot, view, data.shape().stroke().color());
 
   QPen pen;
 
-  double width = CQChartsUtil::limitLineWidth(data.shape().border().width().value());
+  double width = CQChartsUtil::limitLineWidth(data.shape().stroke().width().value());
 
-  CQChartsUtil::setPen(pen, data.shape().border().isVisible(), pc,
-                       data.shape().border().alpha(), width, data.shape().border().dash());
+  CQChartsUtil::setPen(pen, data.shape().stroke().isVisible(), pc,
+                       data.shape().stroke().alpha(), width, data.shape().stroke().dash());
 
   painter->setPen(pen);
 
   //---
 
   // set brush
-  QColor fc = interpColor(plot, view, data.shape().background().color());
+  QColor fc = interpColor(plot, view, data.shape().fill().color());
 
   QBrush brush;
 
-  CQChartsUtil::setBrush(brush, data.shape().background().isVisible(), fc,
-                         data.shape().background().alpha(),
-                         data.shape().background().pattern());
+  CQChartsUtil::setBrush(brush, data.shape().fill().isVisible(), fc,
+                         data.shape().fill().alpha(), data.shape().fill().pattern());
 
   painter->setBrush(brush);
 
   //---
 
   // draw box
-  double cxs = data.shape().border().cornerSize().value();
-  double cys = data.shape().border().cornerSize().value();
+  double cxs = data.shape().stroke().cornerSize().value();
+  double cys = data.shape().stroke().cornerSize().value();
 
   CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
 }

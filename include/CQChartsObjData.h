@@ -915,11 +915,11 @@ class CQChartsObj##UNAME##TextData { \
 #define CQCHARTS_STROKE_DATA_PROPERTIES \
 Q_PROPERTY(CQChartsStrokeData strokeData READ strokeData WRITE setStrokeData) \
 \
-Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     ) \
-Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor) \
-Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha) \
-Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth) \
-Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash ) \
+Q_PROPERTY(bool             stroked     READ isStroked   WRITE setStroked    ) \
+Q_PROPERTY(CQChartsColor    strokeColor READ strokeColor WRITE setStrokeColor) \
+Q_PROPERTY(double           strokeAlpha READ strokeAlpha WRITE setStrokeAlpha) \
+Q_PROPERTY(CQChartsLength   strokeWidth READ strokeWidth WRITE setStrokeWidth) \
+Q_PROPERTY(CQChartsLineDash strokeDash  READ strokeDash  WRITE setStrokeDash ) \
 Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize )
 
 /*!
@@ -934,32 +934,32 @@ class CQChartsObjStrokeData {
 
   //---
 
-  bool isBorder() const { return strokeData_.isVisible(); }
-  void setBorder(bool b) {
+  bool isStroked() const { return strokeData_.isVisible(); }
+  void setStroked(bool b) {
     if (b != strokeData_.isVisible()) {
       strokeData_.setVisible(b); strokeDataInvalidate(); }
   }
 
-  const CQChartsColor &borderColor() const { return strokeData_.color(); }
-  void setBorderColor(const CQChartsColor &c) {
+  const CQChartsColor &strokeColor() const { return strokeData_.color(); }
+  void setStrokeColor(const CQChartsColor &c) {
     if (c != strokeData_.color()) {
       strokeData_.setColor(c); strokeDataInvalidate(); }
   }
 
-  double borderAlpha() const { return strokeData_.alpha(); }
-  void setBorderAlpha(double a) {
+  double strokeAlpha() const { return strokeData_.alpha(); }
+  void setStrokeAlpha(double a) {
     if (a != strokeData_.alpha()) {
       strokeData_.setAlpha(a); strokeDataInvalidate(); }
   }
 
-  const CQChartsLength &borderWidth() const { return strokeData_.width(); }
-  void setBorderWidth(const CQChartsLength &l) {
+  const CQChartsLength &strokeWidth() const { return strokeData_.width(); }
+  void setStrokeWidth(const CQChartsLength &l) {
     if (l != strokeData_.width()) {
       strokeData_.setWidth(l); strokeDataInvalidate(); }
   }
 
-  const CQChartsLineDash &borderDash() const { return strokeData_.dash(); }
-  void setBorderDash(const CQChartsLineDash &d) {
+  const CQChartsLineDash &strokeDash() const { return strokeData_.dash(); }
+  void setStrokeDash(const CQChartsLineDash &d) {
     if (d != strokeData_.dash()) {
       strokeData_.setDash(d); strokeDataInvalidate(); }
   }
@@ -971,26 +971,26 @@ class CQChartsObjStrokeData {
   }
 
 #if 0
-  QColor interpBorderColor(int i, int n) const {
+  QColor interpStrokeColor(int i, int n) const {
     if (strokeDataObj_)
-      return CQChartsInterpolator(strokeDataObj_).interpColor(borderColor(), i, n);
+      return CQChartsInterpolator(strokeDataObj_).interpColor(strokeColor(), i, n);
     else
-      return borderColor().color();
+      return strokeColor().color();
   }
 
-  QColor interpBorderColor(double r) const {
+  QColor interpStrokeColor(double r) const {
     if (strokeDataObj_)
-      return CQChartsInterpolator(strokeDataObj_).interpColor(borderColor(), r);
+      return CQChartsInterpolator(strokeDataObj_).interpColor(strokeColor(), r);
     else
-      return borderColor().color();
+      return strokeColor().color();
   }
 #endif
 
-  QColor interpBorderColor(const CQChartsUtil::ColorInd &ind) const {
+  QColor interpStrokeColor(const CQChartsUtil::ColorInd &ind) const {
     if (strokeDataObj_)
-      return CQChartsInterpolator(strokeDataObj_).interpColor(borderColor(), ind);
+      return CQChartsInterpolator(strokeDataObj_).interpColor(strokeColor(), ind);
     else
-      return borderColor().color();
+      return strokeColor().color();
   }
 
   //---
@@ -1020,11 +1020,11 @@ class CQChartsObjStrokeData {
 #define CQCHARTS_SHAPE_DATA_PROPERTIES \
 Q_PROPERTY(CQChartsShapeData shapeData READ shapeData WRITE setShapeData) \
 \
-Q_PROPERTY(bool              border      READ isBorder    WRITE setBorder     ) \
-Q_PROPERTY(CQChartsColor     borderColor READ borderColor WRITE setBorderColor) \
-Q_PROPERTY(double            borderAlpha READ borderAlpha WRITE setBorderAlpha) \
-Q_PROPERTY(CQChartsLength    borderWidth READ borderWidth WRITE setBorderWidth) \
-Q_PROPERTY(CQChartsLineDash  borderDash  READ borderDash  WRITE setBorderDash ) \
+Q_PROPERTY(bool              stroked     READ isStroked   WRITE setStroked    ) \
+Q_PROPERTY(CQChartsColor     strokeColor READ strokeColor WRITE setStrokeColor) \
+Q_PROPERTY(double            strokeAlpha READ strokeAlpha WRITE setStrokeAlpha) \
+Q_PROPERTY(CQChartsLength    strokeWidth READ strokeWidth WRITE setStrokeWidth) \
+Q_PROPERTY(CQChartsLineDash  strokeDash  READ strokeDash  WRITE setStrokeDash ) \
 Q_PROPERTY(CQChartsLength    cornerSize  READ cornerSize  WRITE setCornerSize ) \
 \
 Q_PROPERTY(bool                filled      READ isFilled    WRITE setFilled     ) \
@@ -1044,89 +1044,89 @@ class CQChartsObjShapeData {
 
   //---
 
-  bool isBorder() const { return shapeData_.border().isVisible(); }
-  void setBorder(bool b) {
-    if (b != shapeData_.border().isVisible()) {
-      shapeData_.border().setVisible(b); shapeDataInvalidate(); }
+  bool isStroked() const { return shapeData_.stroke().isVisible(); }
+  void setStroked(bool b) {
+    if (b != shapeData_.stroke().isVisible()) {
+      shapeData_.stroke().setVisible(b); shapeDataInvalidate(); }
   }
 
-  const CQChartsColor &borderColor() const { return shapeData_.border().color(); }
-  void setBorderColor(const CQChartsColor &c) {
-    if (c != shapeData_.border().color()) {
-      shapeData_.border().setColor(c); shapeDataInvalidate(); }
+  const CQChartsColor &strokeColor() const { return shapeData_.stroke().color(); }
+  void setStrokeColor(const CQChartsColor &c) {
+    if (c != shapeData_.stroke().color()) {
+      shapeData_.stroke().setColor(c); shapeDataInvalidate(); }
   }
 
-  double borderAlpha() const { return shapeData_.border().alpha(); }
-  void setBorderAlpha(double a) {
-    if (a != shapeData_.border().alpha()) {
-      shapeData_.border().setAlpha(a); shapeDataInvalidate(); }
+  double strokeAlpha() const { return shapeData_.stroke().alpha(); }
+  void setStrokeAlpha(double a) {
+    if (a != shapeData_.stroke().alpha()) {
+      shapeData_.stroke().setAlpha(a); shapeDataInvalidate(); }
   }
 
-  const CQChartsLength &borderWidth() const { return shapeData_.border().width(); }
-  void setBorderWidth(const CQChartsLength &l) {
-    if (l != shapeData_.border().width()) {
-      shapeData_.border().setWidth(l); shapeDataInvalidate(); }
+  const CQChartsLength &strokeWidth() const { return shapeData_.stroke().width(); }
+  void setStrokeWidth(const CQChartsLength &l) {
+    if (l != shapeData_.stroke().width()) {
+      shapeData_.stroke().setWidth(l); shapeDataInvalidate(); }
   }
 
-  const CQChartsLineDash &borderDash() const { return shapeData_.border().dash(); }
-  void setBorderDash(const CQChartsLineDash &d) {
-    if (d != shapeData_.border().dash()) {
-      shapeData_.border().setDash(d); shapeDataInvalidate(); }
+  const CQChartsLineDash &strokeDash() const { return shapeData_.stroke().dash(); }
+  void setStrokeDash(const CQChartsLineDash &d) {
+    if (d != shapeData_.stroke().dash()) {
+      shapeData_.stroke().setDash(d); shapeDataInvalidate(); }
   }
 
-  const CQChartsLength &cornerSize() const { return shapeData_.border().cornerSize(); }
+  const CQChartsLength &cornerSize() const { return shapeData_.stroke().cornerSize(); }
   void setCornerSize(const CQChartsLength &l) {
-    if (l != shapeData_.border().cornerSize()) {
-      shapeData_.border().setCornerSize(l); shapeDataInvalidate(); }
+    if (l != shapeData_.stroke().cornerSize()) {
+      shapeData_.stroke().setCornerSize(l); shapeDataInvalidate(); }
   }
 
 #if 0
-  QColor interpBorderColor(int i, int n) const {
+  QColor interpStrokeColor(int i, int n) const {
     if (shapeDataObj_)
-      return CQChartsInterpolator(shapeDataObj_).interpColor(borderColor(), i, n);
+      return CQChartsInterpolator(shapeDataObj_).interpColor(strokeColor(), i, n);
     else
-      return borderColor().color();
+      return strokeColor().color();
   }
 
-  QColor interpBorderColor(double r) const {
+  QColor interpStrokeColor(double r) const {
     if (shapeDataObj_)
-      return CQChartsInterpolator(shapeDataObj_).interpColor(borderColor(), r);
+      return CQChartsInterpolator(shapeDataObj_).interpColor(strokeColor(), r);
     else
-      return borderColor().color();
+      return strokeColor().color();
   }
 #endif
 
-  QColor interpBorderColor(const CQChartsUtil::ColorInd &ind) const {
+  QColor interpStrokeColor(const CQChartsUtil::ColorInd &ind) const {
     if (shapeDataObj_)
-      return CQChartsInterpolator(shapeDataObj_).interpColor(borderColor(), ind);
+      return CQChartsInterpolator(shapeDataObj_).interpColor(strokeColor(), ind);
     else
-      return borderColor().color();
+      return strokeColor().color();
   }
 
   //---
 
-  bool isFilled() const { return shapeData_.background().isVisible(); }
+  bool isFilled() const { return shapeData_.fill().isVisible(); }
   void setFilled(bool b) {
-    if (b != shapeData_.background().isVisible()) {
-      shapeData_.background().setVisible(b); shapeDataInvalidate(); }
+    if (b != shapeData_.fill().isVisible()) {
+      shapeData_.fill().setVisible(b); shapeDataInvalidate(); }
   }
 
-  const CQChartsColor &fillColor() const { return shapeData_.background().color(); }
+  const CQChartsColor &fillColor() const { return shapeData_.fill().color(); }
   void setFillColor(const CQChartsColor &c) {
-    if (c != shapeData_.background().color()) {
-      shapeData_.background().setColor(c); shapeDataInvalidate(); }
+    if (c != shapeData_.fill().color()) {
+      shapeData_.fill().setColor(c); shapeDataInvalidate(); }
   }
 
-  double fillAlpha() const { return shapeData_.background().alpha(); }
+  double fillAlpha() const { return shapeData_.fill().alpha(); }
   void setFillAlpha(double a) {
-    if (a != shapeData_.background().alpha()) {
-      shapeData_.background().setAlpha(a); shapeDataInvalidate(); }
+    if (a != shapeData_.fill().alpha()) {
+      shapeData_.fill().setAlpha(a); shapeDataInvalidate(); }
   }
 
-  const CQChartsFillPattern &fillPattern() const { return shapeData_.background().pattern(); }
+  const CQChartsFillPattern &fillPattern() const { return shapeData_.fill().pattern(); }
   void setFillPattern(const CQChartsFillPattern &p) {
-    if (p != shapeData_.background().pattern()) {
-      shapeData_.background().setPattern(p); shapeDataInvalidate(); }
+    if (p != shapeData_.fill().pattern()) {
+      shapeData_.fill().setPattern(p); shapeDataInvalidate(); }
   }
 
 #if 0
@@ -1178,16 +1178,16 @@ class CQChartsObjShapeData {
 Q_PROPERTY(CQChartsShapeData LNAME##ShapeData \
            READ LNAME##ShapeData WRITE set##UNAME##ShapeData) \
 \
-Q_PROPERTY(bool             LNAME##Border \
-           READ is##UNAME##Border  WRITE set##UNAME##Border     ) \
-Q_PROPERTY(CQChartsColor    LNAME##BorderColor \
-           READ LNAME##BorderColor WRITE set##UNAME##BorderColor) \
-Q_PROPERTY(double           LNAME##BorderAlpha \
-           READ LNAME##BorderAlpha WRITE set##UNAME##BorderAlpha) \
-Q_PROPERTY(CQChartsLength   LNAME##BorderWidth \
-           READ LNAME##BorderWidth WRITE set##UNAME##BorderWidth) \
-Q_PROPERTY(CQChartsLineDash LNAME##BorderDash \
-           READ LNAME##BorderDash  WRITE set##UNAME##BorderDash ) \
+Q_PROPERTY(bool             LNAME##Stroked \
+           READ is##UNAME##Stroked WRITE set##UNAME##Stroked    ) \
+Q_PROPERTY(CQChartsColor    LNAME##StrokeColor \
+           READ LNAME##StrokeColor WRITE set##UNAME##StrokeColor) \
+Q_PROPERTY(double           LNAME##StrokeAlpha \
+           READ LNAME##StrokeAlpha WRITE set##UNAME##StrokeAlpha) \
+Q_PROPERTY(CQChartsLength   LNAME##StrokeWidth \
+           READ LNAME##StrokeWidth WRITE set##UNAME##StrokeWidth) \
+Q_PROPERTY(CQChartsLineDash LNAME##StrokeDash \
+           READ LNAME##StrokeDash  WRITE set##UNAME##StrokeDash ) \
 Q_PROPERTY(CQChartsLength   LNAME##CornerSize \
            READ LNAME##CornerSize  WRITE set##UNAME##CornerSize ) \
 \
@@ -1211,78 +1211,78 @@ class CQChartsObj##UNAME##ShapeData { \
    LNAME##ShapeDataObj_(obj) { \
   } \
 \
-  bool is##UNAME##Border() const { return LNAME##ShapeData_.border().isVisible(); } \
-  void set##UNAME##Border(bool b) { \
-    if (b != LNAME##ShapeData_.border().isVisible()) { \
-      LNAME##ShapeData_.border().setVisible(b); LNAME##ShapeDataInvalidate(); } \
+  bool is##UNAME##Stroked() const { return LNAME##ShapeData_.stroke().isVisible(); } \
+  void set##UNAME##Stroked(bool b) { \
+    if (b != LNAME##ShapeData_.stroke().isVisible()) { \
+      LNAME##ShapeData_.stroke().setVisible(b); LNAME##ShapeDataInvalidate(); } \
   } \
 \
-  const CQChartsColor &LNAME##BorderColor() const { return LNAME##ShapeData_.border().color(); } \
-  void set##UNAME##BorderColor(const CQChartsColor &c) { \
-    if (c != LNAME##ShapeData_.border().color()) { \
-      LNAME##ShapeData_.border().setColor(c); LNAME##ShapeDataInvalidate(); } \
+  const CQChartsColor &LNAME##StrokeColor() const { return LNAME##ShapeData_.stroke().color(); } \
+  void set##UNAME##StrokeColor(const CQChartsColor &c) { \
+    if (c != LNAME##ShapeData_.stroke().color()) { \
+      LNAME##ShapeData_.stroke().setColor(c); LNAME##ShapeDataInvalidate(); } \
   } \
 \
-  double LNAME##BorderAlpha() const { return LNAME##ShapeData_.border().alpha(); } \
-  void set##UNAME##BorderAlpha(double a) { \
-    if (a != LNAME##ShapeData_.border().alpha()) { \
-      LNAME##ShapeData_.border().setAlpha(a); LNAME##ShapeDataInvalidate(); } \
+  double LNAME##StrokeAlpha() const { return LNAME##ShapeData_.stroke().alpha(); } \
+  void set##UNAME##StrokeAlpha(double a) { \
+    if (a != LNAME##ShapeData_.stroke().alpha()) { \
+      LNAME##ShapeData_.stroke().setAlpha(a); LNAME##ShapeDataInvalidate(); } \
   } \
 \
-  const CQChartsLength &LNAME##BorderWidth() const { return LNAME##ShapeData_.border().width(); } \
-  void set##UNAME##BorderWidth(const CQChartsLength &l) { \
-    if (l != LNAME##ShapeData_.border().width()) { \
-      LNAME##ShapeData_.border().setWidth(l); LNAME##ShapeDataInvalidate(); } \
+  const CQChartsLength &LNAME##StrokeWidth() const { return LNAME##ShapeData_.stroke().width(); } \
+  void set##UNAME##StrokeWidth(const CQChartsLength &l) { \
+    if (l != LNAME##ShapeData_.stroke().width()) { \
+      LNAME##ShapeData_.stroke().setWidth(l); LNAME##ShapeDataInvalidate(); } \
   } \
 \
-  const CQChartsLineDash &LNAME##BorderDash() const { return LNAME##ShapeData_.border().dash(); } \
-  void set##UNAME##BorderDash(const CQChartsLineDash &d) { \
-    if (d != LNAME##ShapeData_.border().dash()) { \
-      LNAME##ShapeData_.border().setDash(d); LNAME##ShapeDataInvalidate(); } \
+  const CQChartsLineDash &LNAME##StrokeDash() const { return LNAME##ShapeData_.stroke().dash(); } \
+  void set##UNAME##StrokeDash(const CQChartsLineDash &d) { \
+    if (d != LNAME##ShapeData_.stroke().dash()) { \
+      LNAME##ShapeData_.stroke().setDash(d); LNAME##ShapeDataInvalidate(); } \
   } \
 \
   const CQChartsLength &LNAME##CornerSize() const { \
-    return LNAME##ShapeData_.border().cornerSize(); } \
+    return LNAME##ShapeData_.stroke().cornerSize(); } \
   void set##UNAME##CornerSize(const CQChartsLength &l) { \
-    if (l != LNAME##ShapeData_.border().cornerSize()) { \
-      LNAME##ShapeData_.border().setCornerSize(l); LNAME##ShapeDataInvalidate(); } \
+    if (l != LNAME##ShapeData_.stroke().cornerSize()) { \
+      LNAME##ShapeData_.stroke().setCornerSize(l); LNAME##ShapeDataInvalidate(); } \
   } \
 \
-  QColor interp##UNAME##BorderColor(int i, int n) const { \
-    return CQChartsInterpolator(LNAME##ShapeDataObj_).interpColor(LNAME##BorderColor(), i, n); \
+  QColor interp##UNAME##StrokeColor(int i, int n) const { \
+    return CQChartsInterpolator(LNAME##ShapeDataObj_).interpColor(LNAME##StrokeColor(), i, n); \
   } \
 \
-  QColor interp##UNAME##BorderColor(double r) const { \
-    return CQChartsInterpolator(LNAME##ShapeDataObj_).interpColor(LNAME##BorderColor(), r); \
+  QColor interp##UNAME##StrokeColor(double r) const { \
+    return CQChartsInterpolator(LNAME##ShapeDataObj_).interpColor(LNAME##StrokeColor(), r); \
   } \
 \
-  QColor interp##UNAME##BorderColor(const CQChartsUtil::ColorInd &ind) const { \
-    return CQChartsInterpolator(LNAME##ShapeDataObj_).interpColor(LNAME##BorderColor(), ind); \
+  QColor interp##UNAME##StrokeColor(const CQChartsUtil::ColorInd &ind) const { \
+    return CQChartsInterpolator(LNAME##ShapeDataObj_).interpColor(LNAME##StrokeColor(), ind); \
   } \
 \
-  bool is##UNAME##Filled() const { return LNAME##ShapeData_.background().isVisible(); } \
+  bool is##UNAME##Filled() const { return LNAME##ShapeData_.fill().isVisible(); } \
   void set##UNAME##Filled(bool b) { \
-    if (b != LNAME##ShapeData_.background().isVisible()) { \
-      LNAME##ShapeData_.background().setVisible(b); LNAME##ShapeDataInvalidate(true); } \
+    if (b != LNAME##ShapeData_.fill().isVisible()) { \
+      LNAME##ShapeData_.fill().setVisible(b); LNAME##ShapeDataInvalidate(true); } \
   } \
 \
-  const CQChartsColor &LNAME##FillColor() const { return LNAME##ShapeData_.background().color(); } \
+  const CQChartsColor &LNAME##FillColor() const { return LNAME##ShapeData_.fill().color(); } \
   void set##UNAME##FillColor(const CQChartsColor &c) { \
-    if (c != LNAME##ShapeData_.background().color()) { \
-      LNAME##ShapeData_.background().setColor(c); LNAME##ShapeDataInvalidate(); } \
+    if (c != LNAME##ShapeData_.fill().color()) { \
+      LNAME##ShapeData_.fill().setColor(c); LNAME##ShapeDataInvalidate(); } \
   } \
 \
-  double LNAME##FillAlpha() const { return LNAME##ShapeData_.background().alpha(); } \
+  double LNAME##FillAlpha() const { return LNAME##ShapeData_.fill().alpha(); } \
   void set##UNAME##FillAlpha(double a) { \
-    if (a != LNAME##ShapeData_.background().alpha()) { \
-      LNAME##ShapeData_.background().setAlpha(a); LNAME##ShapeDataInvalidate(); } \
+    if (a != LNAME##ShapeData_.fill().alpha()) { \
+      LNAME##ShapeData_.fill().setAlpha(a); LNAME##ShapeDataInvalidate(); } \
   } \
 \
   const CQChartsFillPattern &LNAME##FillPattern() const { \
-    return LNAME##ShapeData_.background().pattern(); } \
+    return LNAME##ShapeData_.fill().pattern(); } \
   void set##UNAME##FillPattern(const CQChartsFillPattern &p) { \
-    if (p != LNAME##ShapeData_.background().pattern()) { \
-      LNAME##ShapeData_.background().setPattern(p); LNAME##ShapeDataInvalidate(); } \
+    if (p != LNAME##ShapeData_.fill().pattern()) { \
+      LNAME##ShapeData_.fill().setPattern(p); LNAME##ShapeDataInvalidate(); } \
   } \
 \
   QColor interp##UNAME##FillColor(int i, int n) const { \
@@ -1324,11 +1324,11 @@ Q_PROPERTY(bool   visible READ isVisible WRITE setVisible) \
 Q_PROPERTY(double margin  READ margin    WRITE setMargin ) \
 Q_PROPERTY(double padding READ padding   WRITE setPadding) \
 \
-Q_PROPERTY(bool              border      READ isBorder    WRITE setBorder     ) \
-Q_PROPERTY(CQChartsColor     borderColor READ borderColor WRITE setBorderColor) \
-Q_PROPERTY(double            borderAlpha READ borderAlpha WRITE setBorderAlpha) \
-Q_PROPERTY(CQChartsLength    borderWidth READ borderWidth WRITE setBorderWidth) \
-Q_PROPERTY(CQChartsLineDash  borderDash  READ borderDash  WRITE setBorderDash ) \
+Q_PROPERTY(bool              stroked     READ isStroked   WRITE setStroked    ) \
+Q_PROPERTY(CQChartsColor     strokeColor READ strokeColor WRITE setStrokeColor) \
+Q_PROPERTY(double            strokeAlpha READ strokeAlpha WRITE setStrokeAlpha) \
+Q_PROPERTY(CQChartsLength    strokeWidth READ strokeWidth WRITE setStrokeWidth) \
+Q_PROPERTY(CQChartsLineDash  strokeDash  READ strokeDash  WRITE setStrokeDash ) \
 Q_PROPERTY(CQChartsLength    cornerSize  READ cornerSize  WRITE setCornerSize ) \
 \
 Q_PROPERTY(bool                filled      READ isFilled    WRITE setFilled     ) \
@@ -1366,89 +1366,89 @@ class CQChartsObjBoxData {
 
   //---
 
-  bool isBorder() const { return boxData_.shape().border().isVisible(); }
-  void setBorder(bool b) {
-    if (b != boxData_.shape().border().isVisible()) {
-      boxData_.shape().border().setVisible(b); boxDataInvalidate(); }
+  bool isStroked() const { return boxData_.shape().stroke().isVisible(); }
+  void setStroked(bool b) {
+    if (b != boxData_.shape().stroke().isVisible()) {
+      boxData_.shape().stroke().setVisible(b); boxDataInvalidate(); }
   }
 
-  const CQChartsColor &borderColor() const { return boxData_.shape().border().color(); }
-  void setBorderColor(const CQChartsColor &c) {
-    if (c != boxData_.shape().border().color()) {
-      boxData_.shape().border().setColor(c); boxDataInvalidate(); }
+  const CQChartsColor &strokeColor() const { return boxData_.shape().stroke().color(); }
+  void setStrokeColor(const CQChartsColor &c) {
+    if (c != boxData_.shape().stroke().color()) {
+      boxData_.shape().stroke().setColor(c); boxDataInvalidate(); }
   }
 
-  double borderAlpha() const { return boxData_.shape().border().alpha(); }
-  void setBorderAlpha(double a) {
-    if (a != boxData_.shape().border().alpha()) {
-      boxData_.shape().border().setAlpha(a); boxDataInvalidate(); }
+  double strokeAlpha() const { return boxData_.shape().stroke().alpha(); }
+  void setStrokeAlpha(double a) {
+    if (a != boxData_.shape().stroke().alpha()) {
+      boxData_.shape().stroke().setAlpha(a); boxDataInvalidate(); }
   }
 
-  const CQChartsLength &borderWidth() const { return boxData_.shape().border().width(); }
-  void setBorderWidth(const CQChartsLength &l) {
-    if (l != boxData_.shape().border().width()) {
-      boxData_.shape().border().setWidth(l); boxDataInvalidate(); }
+  const CQChartsLength &strokeWidth() const { return boxData_.shape().stroke().width(); }
+  void setStrokeWidth(const CQChartsLength &l) {
+    if (l != boxData_.shape().stroke().width()) {
+      boxData_.shape().stroke().setWidth(l); boxDataInvalidate(); }
   }
 
-  const CQChartsLineDash &borderDash() const { return boxData_.shape().border().dash(); }
-  void setBorderDash(const CQChartsLineDash &d) {
-    if (d != boxData_.shape().border().dash()) {
-      boxData_.shape().border().setDash(d); boxDataInvalidate(); }
+  const CQChartsLineDash &strokeDash() const { return boxData_.shape().stroke().dash(); }
+  void setStrokeDash(const CQChartsLineDash &d) {
+    if (d != boxData_.shape().stroke().dash()) {
+      boxData_.shape().stroke().setDash(d); boxDataInvalidate(); }
   }
 
-  const CQChartsLength &cornerSize() const { return boxData_.shape().border().cornerSize(); }
+  const CQChartsLength &cornerSize() const { return boxData_.shape().stroke().cornerSize(); }
   void setCornerSize(const CQChartsLength &l) {
-    if (l != boxData_.shape().border().cornerSize()) {
-      boxData_.shape().border().setCornerSize(l); boxDataInvalidate(); }
+    if (l != boxData_.shape().stroke().cornerSize()) {
+      boxData_.shape().stroke().setCornerSize(l); boxDataInvalidate(); }
   }
 
 #if 0
-  QColor interpBorderColor(int i, int n) const {
+  QColor interpStrokeColor(int i, int n) const {
     if (boxDataObj_)
-      return CQChartsInterpolator(boxDataObj_).interpColor(borderColor(), i, n);
+      return CQChartsInterpolator(boxDataObj_).interpColor(strokeColor(), i, n);
     else
-      return borderColor().color();
+      return strokeColor().color();
   }
 
-  QColor interpBorderColor(double r) const {
+  QColor interpStrokeColor(double r) const {
     if (boxDataObj_)
-      return CQChartsInterpolator(boxDataObj_).interpColor(borderColor(), r);
+      return CQChartsInterpolator(boxDataObj_).interpColor(strokeColor(), r);
     else
-      return borderColor().color();
+      return strokeColor().color();
   }
 #endif
 
-  QColor interpBorderColor(const CQChartsUtil::ColorInd &ind) const {
+  QColor interpStrokeColor(const CQChartsUtil::ColorInd &ind) const {
     if (boxDataObj_)
-      return CQChartsInterpolator(boxDataObj_).interpColor(borderColor(), ind);
+      return CQChartsInterpolator(boxDataObj_).interpColor(strokeColor(), ind);
     else
-      return borderColor().color();
+      return strokeColor().color();
   }
 
   //---
 
-  bool isFilled() const { return boxData_.shape().background().isVisible(); }
+  bool isFilled() const { return boxData_.shape().fill().isVisible(); }
   void setFilled(bool b) {
-    if (b != boxData_.shape().background().isVisible()) {
-      boxData_.shape().background().setVisible(b); boxDataInvalidate(); }
+    if (b != boxData_.shape().fill().isVisible()) {
+      boxData_.shape().fill().setVisible(b); boxDataInvalidate(); }
   }
 
-  const CQChartsColor &fillColor() const { return boxData_.shape().background().color(); }
+  const CQChartsColor &fillColor() const { return boxData_.shape().fill().color(); }
   void setFillColor(const CQChartsColor &c) {
-    if (c != boxData_.shape().background().color()) {
-      boxData_.shape().background().setColor(c); boxDataInvalidate(); }
+    if (c != boxData_.shape().fill().color()) {
+      boxData_.shape().fill().setColor(c); boxDataInvalidate(); }
   }
 
-  double fillAlpha() const { return boxData_.shape().background().alpha(); }
+  double fillAlpha() const { return boxData_.shape().fill().alpha(); }
   void setFillAlpha(double a) {
-    if (a != boxData_.shape().background().alpha()) {
-      boxData_.shape().background().setAlpha(a); boxDataInvalidate(); }
+    if (a != boxData_.shape().fill().alpha()) {
+      boxData_.shape().fill().setAlpha(a); boxDataInvalidate(); }
   }
 
-  const CQChartsFillPattern &fillPattern() const { return boxData_.shape().background().pattern(); }
+  const CQChartsFillPattern &fillPattern() const { return boxData_.shape().fill().pattern(); }
   void setFillPattern(const CQChartsFillPattern &p) {
-    if (p != boxData_.shape().background().pattern()) {
-      boxData_.shape().background().setPattern(p); boxDataInvalidate(); }
+    if (p != boxData_.shape().fill().pattern()) {
+      boxData_.shape().fill().setPattern(p); boxDataInvalidate(); }
   }
 
 #if 0

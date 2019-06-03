@@ -3,7 +3,7 @@
 
 #include <QColor>
 
-class CQChartsGradientPalette;
+class CQColorsPalette;
 
 //! \brief interface theme
 class CQChartsInterfaceTheme {
@@ -12,7 +12,7 @@ class CQChartsInterfaceTheme {
 
  ~CQChartsInterfaceTheme();
 
-  CQChartsGradientPalette *palette() const { return palette_; }
+  CQColorsPalette *palette() const { return palette_; }
 
   bool isDark() const { return isDark_; }
   void setDark(bool b);
@@ -20,12 +20,12 @@ class CQChartsInterfaceTheme {
   QColor interpColor(double r, bool scale) const;
 
  private:
-  CQChartsGradientPalette* palette_      { nullptr };   //!< palette
-  bool                     isDark_       { false };     //!< is dark
-  QColor                   lightBgColor_ { "#ffffff" }; //!< light bg color
-  QColor                   lightFgColor_ { "#000000" }; //!< light fg color
-  QColor                   darkBgColor_  { "#222222" }; //!< dark bg color
-  QColor                   darkFgColor_  { "#dddddd" }; //!< dark fg color
+  CQColorsPalette* palette_      { nullptr };   //!< palette
+  bool             isDark_       { false };     //!< is dark
+  QColor           lightBgColor_ { "#ffffff" }; //!< light bg color
+  QColor           lightFgColor_ { "#000000" }; //!< light fg color
+  QColor           darkBgColor_  { "#222222" }; //!< dark bg color
+  QColor           darkFgColor_  { "#dddddd" }; //!< dark fg color
 };
 
 #endif

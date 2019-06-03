@@ -58,7 +58,7 @@ description() const
        "area. The radius for the label can be specified ((0-1) inside, >1 outside) and the "
        "nodes can be sorted by value or use the original model order").
     h3("Customization").
-     p("The border style and segment and arc fill alpha can be specified. The start angle "
+     p("The stroke style, segment fill alpha, and arc fill alpha can be specified. The start angle "
        "and gap between nodes (in degress) can be specified. The label text style can be "
        "specified.").
     h3("Limitations").
@@ -99,7 +99,7 @@ CQChartsChordPlot(CQChartsView *view, const ModelP &model) :
 
   textBox_ = new CQChartsRotatedTextBoxObj(this);
 
-  setBorderAlpha(0.3);
+  setStrokeAlpha(0.3);
 
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
@@ -199,6 +199,13 @@ addProperties()
     return &(this->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    return item;
+  };
+
   //---
 
   CQChartsPlot::addProperties();
@@ -213,15 +220,16 @@ addProperties()
   addProp("options", "innerRadius", "", "Radius of inside of outer strip");
 
   // stroke
-  addLineProperties("stroke", "border", "");
+  addLineProperties("stroke", "stroke", "");
 
   // segment
-  addProp("segment/fill", "segmentAlpha", "alpha", "Alpha of segment fill");
+  addStyleProp("segment/fill", "segmentAlpha", "alpha", "Alpha of segment fill");
 
   // arc
-  addProp("arc"     , "gapAngle"  , "gapAngle"  , "Angle for gap between strip segements");
-  addProp("arc"     , "startAngle", "startAngle", "Angle for first strip segment");
-  addProp("arc/fill", "arcAlpha"  , "alpha"     , "Alpha for arc fill");
+  addProp("arc", "gapAngle"  , "gapAngle"  , "Angle for gap between strip segements");
+  addProp("arc", "startAngle", "startAngle", "Angle for first strip segment");
+
+  addStyleProp("arc/fill", "arcAlpha"  , "alpha"     , "Alpha for arc fill");
 
   // labels
   textBox_->addTextDataProperties(propertyModel(), "labels", "Labels");
@@ -899,10 +907,10 @@ draw(QPainter *painter)
   // TODO: separate segment stroke/fill control
   QPen pen;
 
-  QColor segmentBorderColor = plot_->interpBorderColor(ColorInd());
+  QColor segmentStrokeColor = plot_->interpStrokeColor(ColorInd());
 
-  plot_->setPen(pen, true, segmentBorderColor, plot_->borderAlpha(),
-                plot_->borderWidth(), plot_->borderDash());
+  plot_->setPen(pen, true, segmentStrokeColor, plot_->strokeAlpha(),
+                plot_->strokeWidth(), plot_->strokeDash());
 
   double gval = data_.group().value();
 
@@ -942,7 +950,7 @@ draw(QPainter *painter)
 
   // draw arcs between value sets
 
-  QColor arcBorderColor = plot_->interpBorderColor(ColorInd());
+  QColor arcStrokeColor = plot_->interpStrokeColor(ColorInd());
 
   int from = data_.from();
 
@@ -1002,8 +1010,8 @@ draw(QPainter *painter)
     // TODO: separate arc stroke/fill control
     QPen pen;
 
-    plot_->setPen(pen, true, arcBorderColor, plot_->borderAlpha(),
-                  plot_->borderWidth(), plot_->borderDash());
+    plot_->setPen(pen, true, arcStrokeColor, plot_->strokeAlpha(),
+                  plot_->strokeWidth(), plot_->strokeDash());
 
     ColorInd toColorInd = toObj->calcColorInd();
 

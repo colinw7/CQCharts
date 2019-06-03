@@ -13,6 +13,8 @@ class QObject;
  * A charts color can be:
  *  . An interpolated palette color.
  *  . An explicit palette color.
+ *  . An indexed palette color.
+ *  . An explicit indexed palette color.
  *  . An interpolated interface color.
  *  . An explicit interface color.
  *  . An explicit rgb color
@@ -23,6 +25,8 @@ class CQChartsColor {
     NONE,
     PALETTE,
     PALETTE_VALUE,
+    INDEXED,
+    INDEXED_VALUE,
     INTERFACE,
     INTERFACE_VALUE,
     COLOR

@@ -1,6 +1,7 @@
 #include <CQChartsColumn.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyView.h>
+#include <CQTclUtil.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsColumn, toString, fromString)
 
@@ -184,9 +185,12 @@ bool
 CQChartsColumn::
 stringToColumns(const QString &str, Columns &columns)
 {
-  bool rc = true;
+  QStringList strs;
 
-  QStringList strs = str.split(" ", QString::SkipEmptyParts);
+  if (! CQTcl::splitList(str, strs))
+    return false;
+
+  bool rc = true;
 
   for (int i = 0; i < strs.length(); ++i) {
     CQChartsColumn c(strs[i]);

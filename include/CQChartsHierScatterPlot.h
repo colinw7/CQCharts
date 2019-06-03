@@ -332,7 +332,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   //---
 
-  bool probe(ProbeData &probeData) const;
+  bool probe(ProbeData &probeData) const override;
 
  public slots:
   void popCurrentGroup();

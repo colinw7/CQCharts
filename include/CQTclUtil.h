@@ -304,6 +304,40 @@ inline QVariant getResult(Tcl_Interp *interp) {
   return var;
 }
 
+inline double toReal(const QVariant &var, bool &ok) {
+  ok = true;
+
+  if (var.type() == QVariant::Double)
+    return var.value<double>();
+
+  QString str = var.toString();
+
+  return str.toDouble(&ok);
+}
+
+inline long toInt(const QVariant &var, bool &ok) {
+  ok = true;
+
+  if (var.type() == QVariant::Int)
+    return var.value<int>();
+
+  if (var.type() == QVariant::Double) {
+    double r = var.value<double>();
+
+//  if (isInteger(r))
+    return int(r);
+  }
+
+  QString str = var.toString();
+
+  if (! ok)
+    return 0;
+
+  int i = var.toInt(&ok);
+
+  return i;
+}
+
 }
 
 //---

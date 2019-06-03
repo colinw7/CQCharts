@@ -79,7 +79,7 @@ addParameters()
 
   addBoolParameter("pointsType", "Points Type", "pointsType").setTip("Show data points type");
 
-  addBoolParameter("violin"  , "Violin"   , "violin"  ).setTip("Violin border");
+  addBoolParameter("violin"  , "Violin"   , "violin"  ).setTip("Draw distribution outline");
   addBoolParameter("errorBar", "Error Bar", "errorBar").setTip("Error bar");
 
   //---
@@ -148,8 +148,8 @@ CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
 
   setBoxFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
-  setBoxBorder(true);
-  setBoxFilled(true);
+  setBoxStroked(true);
+  setBoxFilled (true);
 
   setOutlierSymbolType(CQChartsSymbol::Type::CIRCLE);
   setOutlierSymbolSize(CQChartsLength("4px"));
@@ -355,7 +355,9 @@ addProperties()
   addProp("options", "connected" , "connected" , "Connect across multiple whiskers");
   addProp("options", "horizontal", "horizontal", "Draw bar horizontal");
   addProp("options", "normalized", "normalized", "Normalize bar ranges to 0-1");
-  addProp("options", "ymargin"   , ""          , "Margin above/below bar");
+
+  // margins
+  addProp("margins", "ymargin", "ybar", "Margin above/below bar");
 
   // jitter
   addProp("points", "pointsType", "type", "Draw jitter or scatter points");
@@ -382,10 +384,10 @@ addProperties()
   addFillProperties("box/fill", "boxFill", "Box");
 
   // whisker box stroke
-  addProp("box/stroke", "boxBorder"    , "visible"   , "Box stroke visible");
+  addProp("box/stroke", "boxStroked"   , "visible"   , "Box stroke visible");
   addProp("box/stroke", "boxCornerSize", "cornerSize", "Box corner size");
 
-  addLineProperties("box/stroke", "boxBorder", "Box");
+  addLineProperties("box/stroke", "boxStroke", "Box");
 
   // whisker line
   addLineProperties("whisker/stroke", "whiskerLines", "Whisker");
@@ -404,8 +406,8 @@ addProperties()
 
   addSymbolProperties("outlier/symbol", "outlier", "Outlier");
 
-  // color
-  addProp("color", "colorBySet", "", "Color by value set");
+  // coloring
+  addProp("coloring", "colorBySet", "", "Color by value set");
 }
 
 //---
@@ -1977,12 +1979,12 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBoxBorderColor(colorInd);
+  QColor bc = plot_->interpBoxStrokeColor(colorInd);
   QColor fc = plot_->interpBoxFillColor(colorInd);
 
   plot_->setPenBrush(pen, brush,
-    plot_->isBoxBorder(), bc, plot_->boxBorderAlpha(),
-    plot_->boxBorderWidth(), plot_->boxBorderDash(),
+    plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
+    plot_->boxStrokeWidth(), plot_->boxStrokeDash(),
     plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
@@ -2078,10 +2080,10 @@ draw(QPainter *painter)
       QBrush symbolBrush;
 
       QColor boxColor    = plot_->interpBoxFillColor(colorInd);
-      QColor borderColor = plot_->interpBoxBorderColor(colorInd);
+      QColor strokeColor = plot_->interpBoxStrokeColor(colorInd);
 
-      plot_->setPen(symbolPen, /*stroked*/true, borderColor, plot_->boxBorderAlpha(),
-                    plot_->boxBorderWidth(), plot_->boxBorderDash());
+      plot_->setPen(symbolPen, /*stroked*/true, strokeColor, plot_->boxStrokeAlpha(),
+                    plot_->boxStrokeWidth(), plot_->boxStrokeDash());
 
       plot_->setBrush(symbolBrush, /*filled*/true, boxColor, plot_->boxFillAlpha(),
                       plot_->boxFillPattern());
@@ -2560,12 +2562,12 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBoxBorderColor(ColorInd());
+  QColor bc = plot_->interpBoxStrokeColor(ColorInd());
   QColor fc = plot_->interpBoxFillColor(ColorInd());
 
   plot_->setPenBrush(pen, brush,
-    plot_->isBoxBorder(), bc, plot_->boxBorderAlpha(),
-    plot_->boxBorderWidth(), plot_->boxBorderDash(),
+    plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
+    plot_->boxStrokeWidth(), plot_->boxStrokeDash(),
     plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
@@ -2885,12 +2887,12 @@ draw(QPainter *painter)
     QPen   ppen;
     QBrush pbrush;
 
-    QColor bc = plot_->interpBoxBorderColor(ig_);
+    QColor bc = plot_->interpBoxStrokeColor(ig_);
     QColor fc = plot_->interpBoxFillColor(ig_);
 
     plot_->setPenBrush(ppen, pbrush,
-      plot_->isBoxBorder(), bc, plot_->boxBorderAlpha(),
-      plot_->boxBorderWidth(), plot_->boxBorderDash(),
+      plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
+      plot_->boxStrokeWidth(), plot_->boxStrokeDash(),
       plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern());
 
     plot_->updateObjPenBrushState(this, ppen, pbrush);
@@ -2919,10 +2921,10 @@ draw(QPainter *painter)
   QPen   lpen;
   QBrush lbrush;
 
-  QColor lineColor = plot_->interpBoxBorderColor(ig_);
+  QColor lineColor = plot_->interpBoxStrokeColor(ig_);
 
-  plot_->setPen(lpen, true, lineColor, plot_->boxBorderAlpha(),
-                plot_->boxBorderWidth(), plot_->boxBorderDash());
+  plot_->setPen(lpen, true, lineColor, plot_->boxStrokeAlpha(),
+                plot_->boxStrokeWidth(), plot_->boxStrokeDash());
 
   plot_->updateObjPenBrushState(this, lpen, lbrush);
 

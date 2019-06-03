@@ -11,6 +11,7 @@
 #include <CQDataModel.h>
 #include <CQPerfMonitor.h>
 #include <CQStrParse.h>
+#include <CQTclUtil.h>
 
 #include <QSortFilterProxyModel>
 
@@ -548,6 +549,10 @@ setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model, int ind,
     return false;
   }
 
+  // skip empty definition
+  if (strs.length() == 1 && strs[0].simplified() == "")
+    return true;
+
   CQChartsColumn column;
   QString        typeName;
 
@@ -576,7 +581,8 @@ setColumnTypeIndexStr(CQCharts *charts, QAbstractItemModel *model, int ind,
 
 bool
 setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
-                 const QString &typeStr) {
+                 const QString &typeStr)
+{
   QString errorMsg;
 
   // {type {name value} ...}
@@ -591,6 +597,10 @@ setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColu
     errorMsg = QString("Invalid column type string '%1'").arg(typeStr);
     return false;
   }
+
+  // skip empty definition
+  if (strs.length() == 1 && strs[0].simplified() == "")
+    return true;
 
   QString typeName = strs[0];
 
@@ -1432,9 +1442,12 @@ bool stringToColumn(const QAbstractItemModel *model, const QString &str, CQChart
 
 bool stringToColumns(const QAbstractItemModel *model, const QString &str,
                      std::vector<CQChartsColumn> &columns) {
-  bool rc = true;
+  QStringList strs;
 
-  QStringList strs = str.split(" ", QString::SkipEmptyParts);
+  if (! CQTcl::splitList(str, strs))
+    return false;
+
+  bool rc = true;
 
   for (int i = 0; i < strs.length(); ++i) {
     const QString &str = strs[i];

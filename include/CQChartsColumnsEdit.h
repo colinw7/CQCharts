@@ -25,7 +25,7 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
   const CQChartsColumns &columns() const;
   void setColumns(const CQChartsColumns &c);
 
-  void drawPreview(QPainter *painter, const QRect &rect);
+  void drawPreview(QPainter *painter, const QRect &rect) override;
 
  signals:
   void columnsChanged();
@@ -42,7 +42,7 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
 
   void columnsToWidgets();
 
-  void connectSlots(bool b);
+  void connectSlots(bool b) override;
 
   bool textToColumns(const QString &str, CQChartsColumns &columns) const;
 

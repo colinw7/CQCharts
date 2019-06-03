@@ -19,19 +19,21 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsValueSet.h>
-#include <CQChartsGradientPalette.h>
 #include <CQChartsArrow.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsInterfaceTheme.h>
-#include <CQChartsTheme.h>
 
 #include <CQChartsLoadModelDlg.h>
 #include <CQChartsManageModelsDlg.h>
 #include <CQChartsCreatePlotDlg.h>
 #include <CQChartsFilterModel.h>
 #include <CQChartsAnalyzeModel.h>
+
+#include <CQColors.h>
+#include <CQColorsTheme.h>
+#include <CQColorsPalette.h>
 
 #include <CQDataModel.h>
 #include <CQSortModel.h>
@@ -1285,13 +1287,27 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
         cmdBase_->setCmdRc(objToType(obj));
       }
-      else if (data == "hidden") {
+      else if (data == "is_hidden") {
         bool hidden = false;
 
-        if (! view->getPropertyHidden(name, hidden))
+        if (! view->getPropertyIsHidden(name, hidden))
           return errorMsg("Failed to get view parameter hidden '" + name + "'");
 
         cmdBase_->setCmdRc(hidden);
+      }
+      else if (data == "is_style") {
+        bool hidden = false;
+
+        if (! view->getPropertyIsStyle(name, hidden))
+          return errorMsg("Failed to get plot parameter is_style '" + name + "'");
+
+        cmdBase_->setCmdRc(hidden);
+      }
+      else if (data == "?") {
+        QStringList names = QStringList() <<
+          "desc" << "type" << "user_type" << "owner" << "is_hidden" << "is_style";
+
+        cmdBase_->setCmdRc(names);
       }
       else
         return errorMsg("Invalid view property name data '" + data + "'");
@@ -1384,13 +1400,27 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
           cmdBase_->setCmdRc(objToType(obj));
         }
-        else if (data == "hidden") {
+        else if (data == "is_hidden") {
           bool hidden = false;
 
-          if (! plot->getPropertyHidden(name, hidden))
-            return errorMsg("Failed to get plot parameter hidden '" + name + "'");
+          if (! plot->getPropertyIsHidden(name, hidden))
+            return errorMsg("Failed to get plot parameter is_hidden '" + name + "'");
 
           cmdBase_->setCmdRc(hidden);
+        }
+        else if (data == "is_style") {
+          bool hidden = false;
+
+          if (! plot->getPropertyIsStyle(name, hidden))
+            return errorMsg("Failed to get plot parameter is_style '" + name + "'");
+
+          cmdBase_->setCmdRc(hidden);
+        }
+        else if (data == "?") {
+          QStringList names = QStringList() <<
+            "desc" << "type" << "user_type" << "owner" << "is_hidden" << "is_style";
+
+          cmdBase_->setCmdRc(names);
         }
         else
           return errorMsg("Invalid plot property name data '" + data + "'");
@@ -1453,13 +1483,27 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
 
         cmdBase_->setCmdRc(objToType(obj));
       }
-      else if (data == "hidden") {
+      else if (data == "is_hidden") {
         bool hidden = false;
 
-        if (! annotation->getPropertyHidden(name, hidden))
+        if (! annotation->getPropertyIsHidden(name, hidden))
           return errorMsg("Failed to get annotation parameter hidden '" + name + "'");
 
         cmdBase_->setCmdRc(hidden);
+      }
+      else if (data == "is_style") {
+        bool hidden = false;
+
+        if (! annotation->getPropertyIsStyle(name, hidden))
+          return errorMsg("Failed to get plot parameter is_style '" + name + "'");
+
+        cmdBase_->setCmdRc(hidden);
+      }
+      else if (data == "?") {
+        QStringList names = QStringList() <<
+          "desc" << "type" << "user_type" << "owner" << "is_hidden" << "is_style";
+
+        cmdBase_->setCmdRc(names);
       }
       else
         return errorMsg("Invalid annotation property name data '" + data + "'");
@@ -1575,18 +1619,18 @@ createChartsPaletteCmd(CQChartsCmdArgs &argv)
   QString paletteStr  = argv.getParseStr("palette");
 
   if      (themeFlag) {
-    if (CQChartsThemeMgrInst->getTheme(themeStr))
+    if (CQColorsMgrInst->getNamedTheme(themeStr))
       return errorMsg(QString("Theme %1 already exists").arg(themeStr));
 
-    (void) CQChartsThemeMgrInst->createTheme(themeStr);
+    (void) CQColorsMgrInst->createTheme(themeStr);
 
     cmdBase_->setCmdRc(themeStr);
   }
   else if (paletteFlag) {
-    if (CQChartsThemeMgrInst->getNamedPalette(paletteStr))
+    if (CQColorsMgrInst->getNamedPalette(paletteStr))
       return errorMsg(QString("Palette %1 already exists").arg(paletteStr));
 
-    (void) CQChartsThemeMgrInst->createPalette(paletteStr);
+    (void) CQColorsMgrInst->createPalette(paletteStr);
 
     cmdBase_->setCmdRc(paletteStr);
   }
@@ -1641,24 +1685,24 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
     if      (nameStr == "palettes") {
       QStringList names;
 
-      CQChartsThemeMgrInst->getPaletteNames(names);
+      CQColorsMgrInst->getPaletteNames(names);
 
       cmdBase_->setCmdRc(names);
     }
     else if (nameStr == "themes") {
       QStringList names;
 
-      CQChartsThemeMgrInst->getThemeNames(names);
+      CQColorsMgrInst->getThemeNames(names);
 
       cmdBase_->setCmdRc(names);
     }
     else if (nameStr == "color_models") {
-      int n = CQChartsGradientPalette::numModels();
+      int n = CQColorsPalette::numModels();
 
       QStringList names;
 
       for (int i = 0; i < n; ++i)
-        names << CQChartsGradientPalette::modelName(i).c_str();
+        names << CQColorsPalette::modelName(i).c_str();
 
       cmdBase_->setCmdRc(names);
     }
@@ -1673,7 +1717,7 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
   }
   // get theme data
   else if (themeFlag) {
-    CQChartsTheme *theme = CQChartsThemeMgrInst->getTheme(themeStr);
+    CQColorsTheme *theme = CQColorsMgrInst->getNamedTheme(themeStr);
     if (! theme) return errorMsg(QString("Invalid theme '%1'").arg(themeStr));
 
     if      (nameStr == "name") {
@@ -1693,12 +1737,19 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
       cmdBase_->setCmdRc(names);
     }
 
+#if 0
     else if (nameStr == "select_color") { cmdBase_->setCmdRc(theme->selectColor()); }
     else if (nameStr == "inside_color") { cmdBase_->setCmdRc(theme->insideColor()); }
+#endif
 
     else if (nameStr == "?") {
+#if 0
       QStringList names = QStringList() <<
         "name" << "desc" << "palettes" << "select_color" << "inside_color";
+#else
+      QStringList names = QStringList() <<
+        "name" << "desc" << "palettes";
+#endif
 
       cmdBase_->setCmdRc(names);
     }
@@ -1707,17 +1758,17 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
   }
   // get palette data
   else if (paletteFlag) {
-    CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(paletteStr);
+    CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(paletteStr);
     if (! palette) return errorMsg(QString("Invalid palette '%1'").arg(themeStr));
 
     if      (nameStr == "name") { cmdBase_->setCmdRc(palette->name()); }
     else if (nameStr == "desc") { cmdBase_->setCmdRc(palette->desc()); }
 
     else if (nameStr == "color_type") {
-      cmdBase_->setCmdRc(CQChartsGradientPalette::colorTypeToString(palette->colorType()));
+      cmdBase_->setCmdRc(CQColorsPalette::colorTypeToString(palette->colorType()));
     }
     else if (nameStr == "color_model") {
-      cmdBase_->setCmdRc(CQChartsGradientPalette::colorModelToString(palette->colorModel()));
+      cmdBase_->setCmdRc(CQColorsPalette::colorModelToString(palette->colorModel()));
     }
 
     // model
@@ -1739,7 +1790,7 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
     else if (nameStr == "defined_colors") {
       QVariantList vars;
 
-      for (const auto &rc : palette->colors()) {
+      for (const auto &rc : palette->definedValueColors()) {
         double        r = rc.first;
         const QColor &c = rc.second;
 
@@ -1760,11 +1811,11 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
       int i = CQChartsUtil::toInt(dataStr, ok);
       if (! ok) return errorMsg(QString("Invalid color index '%1'").arg(dataStr));
 
-      int n = palette->numColors();
+      int n = palette->numDefinedColors();
 
       if (i < 0 || i >= n) return errorMsg(QString("Invalid color index '%1'").arg(dataStr));
 
-      cmdBase_->setCmdRc(palette->icolor(i));
+      cmdBase_->setCmdRc(palette->definedColor(i));
     }
 
     else if (nameStr == "distinct") { cmdBase_->setCmdRc(palette->isDistinct()); }
@@ -1899,14 +1950,16 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
   }
   // set theme data
   else if (themeFlag) {
-    CQChartsTheme *theme = CQChartsThemeMgrInst->getTheme(themeStr);
+    CQColorsTheme *theme = CQColorsMgrInst->getNamedTheme(themeStr);
     if (! theme) return errorMsg(QString("Invalid theme '%1'").arg(themeStr));
 
     if      (nameStr == "name") theme->setName(valueStr);
     else if (nameStr == "desc") theme->setDesc(valueStr);
 
+#if 0
     else if (nameStr == "select_color") { theme->setSelectColor(QColor(valueStr)); }
     else if (nameStr == "inside_color") { theme->setInsideColor(QColor(valueStr)); }
+#endif
 
     else if (nameStr == "palettes") {
       QStringList strs;
@@ -1914,15 +1967,20 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
       CQTcl::splitList(valueStr, strs);
 
       for (int i = 0; i < strs.length(); ++i) {
-        CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(strs[i]);
+        CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(strs[i]);
         if (! palette) return errorMsg(QString("Invalid palette '%1'").arg(strs[i]));
       }
 
       theme->setNamedPalettes(strs);
     }
     else if (nameStr == "?") {
+#if 0
       QStringList names = QStringList() <<
         "name" << "desc" << "select_color" << "inside_color";
+#else
+      QStringList names = QStringList() <<
+        "name" << "desc";
+#endif
 
       cmdBase_->setCmdRc(names);
     }
@@ -1931,17 +1989,17 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
   }
   // set palette data
   else if (paletteFlag) {
-    CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(paletteStr);
+    CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(paletteStr);
     if (! palette) return errorMsg(QString("Invalid palette '%1'").arg(themeStr));
 
     if      (nameStr == "name") palette->setName(valueStr);
     else if (nameStr == "desc") palette->setDesc(valueStr);
 
     else if (nameStr == "color_type") {
-      palette->setColorType(CQChartsGradientPalette::stringToColorType(valueStr));
+      palette->setColorType(CQColorsPalette::stringToColorType(valueStr));
     }
     else if (nameStr == "color_model") {
-      palette->setColorModel(CQChartsGradientPalette::stringToColorModel(valueStr));
+      palette->setColorModel(CQColorsPalette::stringToColorModel(valueStr));
     }
 
     // model
@@ -2020,8 +2078,8 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
 
     // set colors
     else if (nameStr == "defined_colors") {
-      using DefinedColor  = CQChartsGradientPalette::DefinedColor;
-      using DefinedColors = CQChartsGradientPalette::DefinedColors;
+      using DefinedColor  = CQColorsPalette::DefinedColor;
+      using DefinedColors = CQColorsPalette::DefinedColors;
 
       DefinedColors definedColors;
 
@@ -3803,7 +3861,7 @@ createChartsStatsModelCmd(CQChartsCmdArgs &argv)
 
     const CQChartsModelColumnDetails *columnDetails = details->columnDetails(c);
 
-    QModelIndex parent;
+    //QModelIndex parent;
 
     bool ok;
 
@@ -5016,8 +5074,8 @@ createChartsRectAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsBoxData boxData;
 
-  CQChartsFillData   &fill   = boxData.shape().background();
-  CQChartsStrokeData &stroke = boxData.shape().border();
+  CQChartsFillData   &fill   = boxData.shape().fill();
+  CQChartsStrokeData &stroke = boxData.shape().stroke();
 
   stroke.setVisible(true);
 
@@ -5178,8 +5236,8 @@ createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsBoxData boxData;
 
-  CQChartsFillData   &fill   = boxData.shape().background();
-  CQChartsStrokeData &stroke = boxData.shape().border();
+  CQChartsFillData   &fill   = boxData.shape().fill();
+  CQChartsStrokeData &stroke = boxData.shape().stroke();
 
   stroke.setVisible(true);
 
@@ -5306,8 +5364,8 @@ createChartsPolygonAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsShapeData &shapeData = boxData.shape();
 
-  CQChartsFillData   &fill   = shapeData.background();
-  CQChartsStrokeData &stroke = shapeData.border();
+  CQChartsFillData   &fill   = shapeData.fill();
+  CQChartsStrokeData &stroke = shapeData.stroke();
 
   stroke.setVisible(true);
 
@@ -5432,8 +5490,8 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsShapeData &shapeData = boxData.shape();
 
-  CQChartsFillData   &fill   = shapeData.background();
-  CQChartsStrokeData &stroke = shapeData.border();
+  CQChartsFillData   &fill   = shapeData.fill();
+  CQChartsStrokeData &stroke = shapeData.stroke();
 
   stroke.setVisible(true);
 
@@ -5571,8 +5629,8 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsTextData textData;
   CQChartsBoxData  boxData;
 
-  CQChartsFillData   &fill   = boxData.shape().background();
-  CQChartsStrokeData &stroke = boxData.shape().border();
+  CQChartsFillData   &fill   = boxData.shape().fill();
+  CQChartsStrokeData &stroke = boxData.shape().stroke();
 
   fill  .setVisible(false);
   stroke.setVisible(false);
@@ -5738,8 +5796,8 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsShapeData shapeData;
 
-  CQChartsFillData   &fill   = shapeData.background();
-  CQChartsStrokeData &stroke = shapeData.border();
+  CQChartsFillData   &fill   = shapeData.fill();
+  CQChartsStrokeData &stroke = shapeData.stroke();
 
   fill.setVisible(argv.getParseBool ("filled"    , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color", fill.color    ()));

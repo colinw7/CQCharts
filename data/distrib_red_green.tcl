@@ -16,7 +16,7 @@ process_charts_model -model $model -add -expr "color_value(column(0))" -header "
 
 set plot [create_charts_plot -model $model -type distribution \
   -columns {{value 0} {color 1}} \
-  -properties {{color.map.enabled 0}} \
+  -properties {{mapping.color.enabled 0}} \
   -properties {{dataLabel.visible 1} {dataLabel.position TOP_OUTSIDE}} \
   -title "color split distribution"]
 

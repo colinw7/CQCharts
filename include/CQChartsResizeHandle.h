@@ -17,7 +17,7 @@ class CQChartsResizeHandle : QObject {
 
   Q_PROPERTY(QColor fillColor   READ fillColor   WRITE setFillColor  )
   Q_PROPERTY(double fillAlpha   READ fillAlpha   WRITE setFillAlpha  )
-  Q_PROPERTY(QColor borderColor READ borderColor WRITE setBorderColor)
+  Q_PROPERTY(QColor strokeColor READ strokeColor WRITE setStrokeColor)
 
  public:
   CQChartsResizeHandle() = default;
@@ -42,8 +42,8 @@ class CQChartsResizeHandle : QObject {
   double fillAlpha() const { return fillAlpha_; }
   void setFillAlpha(double r) { fillAlpha_ = r; }
 
-  const QColor &borderColor() const { return borderColor_; }
-  void setBorderColor(const QColor &v) { borderColor_ = v; }
+  const QColor &strokeColor() const { return strokeColor_; }
+  void setStrokeColor(const QColor &v) { strokeColor_ = v; }
 
   void draw(QPainter *painter) const;
 
@@ -62,7 +62,7 @@ class CQChartsResizeHandle : QObject {
   bool                 selected_    { false };
   QColor               fillColor_   { "#4444aa" };
   double               fillAlpha_   { 0.5 };
-  QColor               borderColor_ { Qt::black };
+  QColor               strokeColor_ { Qt::black };
   QPointF              pos_         { 0, 0 };
   mutable QPainterPath path_;
 };

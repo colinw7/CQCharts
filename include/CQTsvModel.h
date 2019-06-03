@@ -6,12 +6,16 @@
 class CQTsvModel : public CQDataModel {
   Q_OBJECT
 
-  Q_PROPERTY(bool commentHeader     READ isCommentHeader     WRITE setCommentHeader    )
-  Q_PROPERTY(bool firstLineHeader   READ isFirstLineHeader   WRITE setFirstLineHeader  )
-  Q_PROPERTY(bool firstColumnHeader READ isFirstColumnHeader WRITE setFirstColumnHeader)
+  Q_PROPERTY(QString filename          READ filename            WRITE setFilename         )
+  Q_PROPERTY(bool    commentHeader     READ isCommentHeader     WRITE setCommentHeader    )
+  Q_PROPERTY(bool    firstLineHeader   READ isFirstLineHeader   WRITE setFirstLineHeader  )
+  Q_PROPERTY(bool    firstColumnHeader READ isFirstColumnHeader WRITE setFirstColumnHeader)
 
  public:
   CQTsvModel();
+
+  const QString &filename() const { return filename_; }
+  void setFilename(const QString &v) { filename_ = v; }
 
   bool isCommentHeader() const { return commentHeader_; }
   void setCommentHeader(bool b) { commentHeader_ = b; }

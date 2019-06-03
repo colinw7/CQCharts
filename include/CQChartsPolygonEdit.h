@@ -20,9 +20,9 @@ class CQChartsPolygonLineEdit : public CQChartsLineEditBase {
   const CQChartsPolygon &polygon() const;
   void setPolygon(const CQChartsPolygon &pos);
 
-  void updateMenu();
+  void updateMenu() override;
 
-  void drawPreview(QPainter *painter, const QRect &rect);
+  void drawPreview(QPainter *painter, const QRect &rect) override;
 
  signals:
   void polygonChanged();

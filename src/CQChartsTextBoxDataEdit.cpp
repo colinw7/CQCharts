@@ -400,34 +400,34 @@ draw(QPainter *painter, const CQChartsTextBoxData &data, const QRect &rect,
   //---
 
   // set pen
-  QColor pc = interpColor(plot, view, shape.border().color());
+  QColor pc = interpColor(plot, view, shape.stroke().color());
 
   QPen pen;
 
-  double width = CQChartsUtil::limitLineWidth(shape.border().width().value());
+  double width = CQChartsUtil::limitLineWidth(shape.stroke().width().value());
 
-  CQChartsUtil::setPen(pen, shape.border().isVisible(), pc,
-                       shape.border().alpha(), width, shape.border().dash());
+  CQChartsUtil::setPen(pen, shape.stroke().isVisible(), pc,
+                       shape.stroke().alpha(), width, shape.stroke().dash());
 
   painter->setPen(pen);
 
   //---
 
   // set brush
-  QColor fc = interpColor(plot, view, shape.background().color());
+  QColor fc = interpColor(plot, view, shape.fill().color());
 
   QBrush brush;
 
-  CQChartsUtil::setBrush(brush, shape.background().isVisible(), fc,
-                         shape.background().alpha(), shape.background().pattern());
+  CQChartsUtil::setBrush(brush, shape.fill().isVisible(), fc,
+                         shape.fill().alpha(), shape.fill().pattern());
 
   painter->setBrush(brush);
 
   //---
 
   // draw text box
-  double cxs = shape.border().cornerSize().value();
-  double cys = shape.border().cornerSize().value();
+  double cxs = shape.stroke().cornerSize().value();
+  double cys = shape.stroke().cornerSize().value();
 
   CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
 }

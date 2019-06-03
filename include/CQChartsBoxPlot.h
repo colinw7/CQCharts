@@ -143,7 +143,7 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   QString calcId   () const override;
   QString calcTipId() const override;
 
-  void addProperties(CQPropertyViewModel *model, const QString &path);
+  void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 

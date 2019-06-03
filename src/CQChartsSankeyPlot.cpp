@@ -88,15 +88,15 @@ CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
   setNodeFillColor(bg);
   setNodeFillAlpha(1.00);
 
-  setNodeBorder(true);
-  setNodeBorderAlpha(0.2);
+  setNodeStroked(true);
+  setNodeStrokeAlpha(0.2);
 
   setEdgeFilled(true);
   setEdgeFillColor(bg);
   setEdgeFillAlpha(0.25);
 
-  setEdgeBorder(true);
-  setEdgeBorderAlpha(0.2);
+  setEdgeStroked(true);
+  setEdgeStrokeAlpha(0.2);
 
   //---
 
@@ -167,17 +167,17 @@ addProperties()
   addProp("columns", "linkColumn" , "link" , "Link column");
   addProp("columns", "valueColumn", "value", "Value column");
 
-  addProp("node/stroke", "nodeBorder", "visible", "Node stroke visible");
+  addProp("node/stroke", "nodeStroked", "visible", "Node stroke visible");
 
-  addLineProperties("node/stroke", "nodeBorder", "Node");
+  addLineProperties("node/stroke", "nodeStroke", "Node");
 
   addProp("node/fill", "nodeFilled", "visible", "Node fill visible");
 
   addFillProperties("node/fill", "nodeFill", "Node");
 
-  addProp("edge/stroke", "edgeBorder", "visible", "Edge steoke visible");
+  addProp("edge/stroke", "edgeStroked", "visible", "Edge steoke visible");
 
-  addLineProperties("edge/stroke", "edgeBorder", "Edge");
+  addLineProperties("edge/stroke", "edgeStroke", "Edge");
 
   addProp("edge/fill", "edgeFilled", "visible", "Edit fill visible");
 
@@ -1064,12 +1064,12 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpNodeBorderColor(ic);
+  QColor bc = plot_->interpNodeStrokeColor(ic);
   QColor fc = plot_->interpNodeFillColor  (ic);
 
   plot_->setPenBrush(pen, brush,
-    plot_->isNodeBorder(), bc, plot_->nodeBorderAlpha(),
-    plot_->nodeBorderWidth(), plot_->nodeBorderDash(),
+    plot_->isNodeStroked(), bc, plot_->nodeStrokeAlpha(),
+    plot_->nodeStrokeWidth(), plot_->nodeStrokeDash(),
     plot_->isNodeFilled(), fc, plot_->nodeFillAlpha(), plot_->nodeFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
@@ -1190,14 +1190,14 @@ draw(QPainter *painter)
 
   QColor fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
 
-  QColor sc1 = plot_->interpEdgeBorderColor(ic1);
-  QColor sc2 = plot_->interpEdgeBorderColor(ic2);
+  QColor sc1 = plot_->interpEdgeStrokeColor(ic1);
+  QColor sc2 = plot_->interpEdgeStrokeColor(ic2);
 
   QColor sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
 
   plot_->setPenBrush(pen, brush,
-    plot_->isEdgeBorder(), sc, plot_->edgeBorderAlpha(),
-    plot_->edgeBorderWidth(), plot_->edgeBorderDash(),
+    plot_->isEdgeStroked(), sc, plot_->edgeStrokeAlpha(),
+    plot_->edgeStrokeWidth(), plot_->edgeStrokeDash(),
     plot_->isEdgeFilled(), fc, plot_->edgeFillAlpha(), plot_->edgeFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);

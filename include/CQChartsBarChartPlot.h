@@ -293,7 +293,7 @@ class CQChartsBarKeyText : public CQChartsKeyText {
  *   + x     : name
  *   + y     : value(s)
  *   + group : group(s)
- *   + bar   : custom color, stacked, percent, range, horizontal, margin, border, fill
+ *   + bar   : custom color, stacked, percent, range, horizontal, margin, stroke, fill
  *
  * Plot Type
  *   + \ref CQChartsBarChartPlotType

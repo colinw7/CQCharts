@@ -313,7 +313,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   // color
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
 
-  // header shape (border, fill)
+  // header shape (stroke, fill)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Header,header)
 
   // header font, color
@@ -361,7 +361,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   //---
 
-  // box margin, border, fill, font
+  // box margin, stroke, fill, font
   const CQChartsLength &marginWidth() const { return marginWidth_; }
   void setMarginWidth(const CQChartsLength &l);
 

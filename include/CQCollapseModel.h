@@ -78,8 +78,8 @@ class CQCollapseModel : public QAbstractProxyModel {
   QModelIndex mapToSource(const QModelIndex &proxyIndex) const override;
 
  private:
-  class ColumnConfig;
-  class VariantData;
+  struct ColumnConfig;
+  class  VariantData;
 
   ColumnConfig &getColumnConfig(int c);
 

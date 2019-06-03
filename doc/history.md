@@ -871,3 +871,9 @@
 # 5/30/2019
  + Use tcl format for more column type for more code
  + Fix format for axes
+# 6/2/2019
+ + Move gradient/theme classes and editors into new CQColors/CQColorsEdit classes
+ + Support color value by interpolation and by index
+ + Improve view/plot/annotation write
+ + Support marking properties as style and allow show/hide style properties
+ + Tcl parsing support for color definition

@@ -1,6 +1,6 @@
 #include <CQChartsThemeName.h>
-#include <CQChartsTheme.h>
 #include <CQPropertyView.h>
+#include <CQColors.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsThemeName, toString, fromString)
 
@@ -19,7 +19,7 @@ bool
 CQChartsThemeName::
 setName(const QString &name)
 {
-  CQChartsTheme *obj = CQChartsThemeMgrInst->getTheme(name);
+  CQColorsTheme *obj = CQColorsMgrInst->getNamedTheme(name);
   if (! obj) return false;
 
   name_ = name;

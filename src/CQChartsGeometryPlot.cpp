@@ -102,8 +102,8 @@ CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
-  setFilled(true);
-  setBorder(true);
+  setFilled (true);
+  setStroked(true);
 
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
@@ -212,8 +212,8 @@ addProperties()
   addProp("columns", "valueColumn"   , "value"   , "Value column");
   addProp("columns", "styleColumn"   , "style"   , "Style column");
 
-  // color
-  addProp("color", "colorByValue", "colorByValue", "Color shapes by value");
+  // coloring
+  addProp("coloring", "colorByValue", "colorByValue", "Color shapes by value");
 
   // fill
   addProp("fill", "filled", "visible", "Fill visible");
@@ -221,9 +221,9 @@ addProperties()
   addFillProperties("fill", "fill", "");
 
   // stroke
-  addProp("stroke", "border", "visible", "Stroke visible");
+  addProp("stroke", "stroked", "visible", "Stroke visible");
 
-  addLineProperties("stroke", "border", "");
+  addLineProperties("stroke", "stroke", "");
 
   // data label
   dataLabel_->addPathProperties("labels", "Labels");
@@ -682,10 +682,10 @@ draw(QPainter *painter)
       fc = plot_->interpColor(plot_->fillColor(), ColorInd(dv));
   }
 
-  QColor bc = plot_->interpBorderColor(colorInd);
+  QColor bc = plot_->interpStrokeColor(colorInd);
 
   plot_->setPenBrush(pen, brush,
-    plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
+    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
     plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
 
   if (style().isValid()) {

@@ -80,8 +80,8 @@ CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
-  setBorder(true);
-  setFilled(true);
+  setStroked(true);
+  setFilled (true);
 
   setTextContrast(true);
   setTextFontSize(12.0);
@@ -172,8 +172,8 @@ addProperties()
   addProp("options", "valueLabel", "", "Show value label");
   addProp("options", "sorted"    , "", "Sort values by size");
 
-  // color
-  addProp("color", "colorById", "colorById", "Color by id");
+  // coloring
+  addProp("coloring", "colorById", "colorById", "Color by id");
 
   // fill
   addProp("fill", "filled", "visible", "Fill visible");
@@ -181,9 +181,9 @@ addProperties()
   addFillProperties("fill", "fill", "");
 
   // stroke
-  addProp("stroke", "border", "visible", "Stroke visible");
+  addProp("stroke", "stroked", "visible", "Stroke visible");
 
-  addLineProperties("stroke", "border", "");
+  addLineProperties("stroke", "stroke", "");
 
   // text
   addAllTextProperties("text", "text", "");
@@ -703,7 +703,7 @@ drawBounds(QPainter *painter, CQChartsBubbleHierNode *hier) const
   //---
 
   // draw bubble
-  QColor bc = interpBorderColor(ColorInd());
+  QColor bc = interpStrokeColor(ColorInd());
 
   painter->setPen  (bc);
   painter->setBrush(Qt::NoBrush);
@@ -799,11 +799,11 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBorderColor(colorInd);
+  QColor bc = plot_->interpStrokeColor(colorInd);
   QColor fc = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
   plot_->setPenBrush(pen, brush,
-    plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
+    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
     plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
@@ -928,11 +928,11 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bc = plot_->interpBorderColor(colorInd);
+  QColor bc = plot_->interpStrokeColor(colorInd);
   QColor fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
   plot_->setPenBrush(pen, brush,
-    plot_->isBorder(), bc, plot_->borderAlpha(), plot_->borderWidth(), plot_->borderDash(),
+    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
     plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);

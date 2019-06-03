@@ -88,7 +88,7 @@ class CQChartsFillUnderPosLineEdit : public CQChartsLineEditBase {
   const CQChartsFillUnderPos &fillUnderPos() const;
   void setFillUnderPos(const CQChartsFillUnderPos &fillUnderPos);
 
-  void drawPreview(QPainter*, const QRect&);
+  void drawPreview(QPainter *painter, const QRect &rect) override;
 
  signals:
   void fillUnderPosChanged();
@@ -129,7 +129,7 @@ class CQChartsFillUnderPosEdit : public CQChartsEditBase {
   const CQChartsFillUnderPos &fillUnderPos() const;
   void setFillUnderPos(const CQChartsFillUnderPos &fillUnderPos);
 
-  void drawPreview(QPainter*, const QRect&);
+  void drawPreview(QPainter *painter, const QRect &rect);
 
  signals:
   void fillUnderPosChanged();

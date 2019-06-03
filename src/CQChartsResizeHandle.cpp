@@ -24,7 +24,7 @@ draw(QPainter *painter) const
   QPen   pen;
   QBrush brush;
 
-  QColor pc = borderColor();
+  QColor pc = strokeColor();
   QColor bc = fillColor();
 
   if (isSelected())

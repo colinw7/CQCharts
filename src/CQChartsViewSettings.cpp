@@ -5,9 +5,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsFilterEdit.h>
 #include <CQChartsPropertyViewTree.h>
-#include <CQChartsGradientPaletteCanvas.h>
-#include <CQChartsGradientPaletteControl.h>
-#include <CQChartsGradientPaletteList.h>
 #include <CQChartsLoadModelDlg.h>
 #include <CQChartsEditModelDlg.h>
 #include <CQChartsCreatePlotDlg.h>
@@ -23,7 +20,12 @@
 #include <CQCharts.h>
 #include <CQChartsVariant.h>
 #include <CQChartsUtil.h>
-#include <CQChartsTheme.h>
+
+#include <CQColorsEditCanvas.h>
+#include <CQColorsEditControl.h>
+#include <CQColorsEditList.h>
+#include <CQColors.h>
+#include <CQColorsTheme.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQTableWidget.h>
@@ -45,8 +47,12 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QPainter>
+#include <QFileDialog>
+#include <QDir>
 
 #include <svg/info_svg.h>
+#include <fstream>
+#include <iostream>
 
 class CQChartsPlotTipLabel : public QLabel {
  public:
@@ -1258,12 +1264,12 @@ initThemeFrame(QFrame *themeFrame)
 
   CQChartsView *view = window_->view();
 
-  CQChartsTheme *theme = view->theme();
+  CQColorsTheme *theme = view->theme();
 
   //--
 
   // create palettes list
-  themeWidgets_.palettesList = new CQChartsGradientPaletteList(this);
+  themeWidgets_.palettesList = new CQColorsEditList(this);
 
   themePalettesFrameLayout->addWidget(themeWidgets_.palettesList);
 
@@ -1285,7 +1291,7 @@ initThemeFrame(QFrame *themeFrame)
 
   QStringList paletteNames;
 
-  CQChartsThemeMgrInst->getPaletteNames(paletteNames);
+  CQColorsMgrInst->getPaletteNames(paletteNames);
 
   themeWidgets_.palettesCombo->addItems(paletteNames);
 
@@ -1318,10 +1324,8 @@ initThemeFrame(QFrame *themeFrame)
 
   palettesFrameLayout->addWidget(palettesSplitter);
 
-  themeWidgets_.palettesPlot    =
-    new CQChartsGradientPaletteCanvas(this, theme->palette());
-  themeWidgets_.palettesControl =
-    new CQChartsGradientPaletteControl(themeWidgets_.palettesPlot);
+  themeWidgets_.palettesPlot    = new CQColorsEditCanvas(this, theme->palette());
+  themeWidgets_.palettesControl = new CQColorsEditControl(themeWidgets_.palettesPlot);
 
   palettesSplitter->addWidget(themeWidgets_.palettesPlot);
   palettesSplitter->addWidget(themeWidgets_.palettesControl);
@@ -1339,10 +1343,8 @@ initThemeFrame(QFrame *themeFrame)
 
   interfaceFrameLayout->addWidget(interfaceSplitter);
 
-  themeWidgets_.interfacePlot    =
-    new CQChartsGradientPaletteCanvas(this, view->interfacePalette());
-  themeWidgets_.interfaceControl =
-    new CQChartsGradientPaletteControl(themeWidgets_.interfacePlot);
+  themeWidgets_.interfacePlot    = new CQColorsEditCanvas(this, view->interfacePalette());
+  themeWidgets_.interfaceControl = new CQColorsEditControl(themeWidgets_.interfacePlot);
 
   themeWidgets_.interfacePlot->setGray(true);
 
@@ -1556,9 +1558,17 @@ CQChartsViewSettings::
 writeViewSlot()
 {
   CQChartsView *view = window_->view();
+  if (! view) return;
 
-  if (view)
-    view->write(std::cerr);
+  QString dir = QDir::current().dirName() + "/view.tcl";
+
+  QString fileName = QFileDialog::getSaveFileName(this, "Write View", dir, "Files (*.tcl)");
+
+  auto fs = std::ofstream(fileName.toStdString(), std::ofstream::out);
+
+  //---
+
+  view->write(fs);
 }
 
 //------
@@ -1990,12 +2000,26 @@ CQChartsViewSettings::
 writePlotSlot()
 {
   CQChartsPlot *plot = getPropertiesPlot();
+  if (! plot) return;
 
-  //CQChartsView *view = window_->view();
-  //CQChartsPlot *plot = (view ? view->currentPlot() : nullptr();
+  QString dir = QDir::current().dirName() + "/plot.tcl";
 
-  if (plot)
-    plot->write(std::cerr);
+  QString fileName = QFileDialog::getSaveFileName(this, "Write View", dir, "Files (*.tcl)");
+
+  auto fs = std::ofstream(fileName.toStdString(), std::ofstream::out);
+
+  //---
+
+  CQChartsView *view = plot->view();
+
+  view->write(fs);
+
+  CQChartsModelData *modelData = plot->getModelData();
+
+  if (modelData)
+    modelData->write(fs);
+
+  plot->write(fs);
 }
 
 //------
@@ -2178,11 +2202,20 @@ CQChartsViewSettings::
 writeAnnotationSlot()
 {
   CQChartsView *view = window_->view();
+  if (! view) return;
+
+  QString dir = QDir::current().dirName() + "/annotation.tcl";
+
+  QString fileName = QFileDialog::getSaveFileName(this, "Write View", dir, "Files (*.tcl)");
+
+  auto fs = std::ofstream(fileName.toStdString(), std::ofstream::out);
+
+  //---
 
   const CQChartsView::Annotations &viewAnnotations = view->annotations();
 
   for (const auto &annotation : viewAnnotations)
-    annotation->write(std::cerr);
+    annotation->write(fs);
 
   //---
 
@@ -2194,7 +2227,7 @@ writeAnnotationSlot()
     const CQChartsPlot::Annotations &plotAnnotations = plot->annotations();
 
     for (const auto &annotation : plotAnnotations)
-      annotation->write(std::cerr);
+      annotation->write(fs);
   }
 }
 
@@ -2215,9 +2248,9 @@ palettesComboSlot(int)
 {
   QString name = themeWidgets_.palettesCombo->currentText();
 
-  CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(name);
+  CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(name);
 
-  themeWidgets_.palettesPlot->setGradientPalette(palette);
+  themeWidgets_.palettesPlot->setPalette(palette);
 
   themeWidgets_.palettesControl->updateState();
 }
@@ -2228,10 +2261,10 @@ palettesResetSlot()
 {
   QString name = themeWidgets_.palettesCombo->currentText();
 
-  CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(name);
+  CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(name);
   if (! palette) return;
 
-  CQChartsThemeMgrInst->resetPalette(name);
+  CQColorsMgrInst->resetPalette(name);
 
   updatePalettes();
 }
@@ -2251,9 +2284,9 @@ updatePalettes()
 
   QString name = themeWidgets_.palettesCombo->currentText();
 
-  CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(name);
+  CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(name);
 
-  themeWidgets_.palettesPlot->setGradientPalette(palette);
+  themeWidgets_.palettesPlot->setPalette(palette);
 
   themeWidgets_.palettesControl->updateState();
 
@@ -2282,9 +2315,9 @@ updateInterface()
 {
   CQChartsView *view = window_->view();
 
-  CQChartsGradientPalette *palette = view->interfacePalette();
+  CQColorsPalette *palette = view->interfacePalette();
 
-  themeWidgets_.interfacePlot->setGradientPalette(palette);
+  themeWidgets_.interfacePlot->setPalette(palette);
 
   themeWidgets_.interfaceControl->updateState();
 }

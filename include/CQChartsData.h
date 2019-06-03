@@ -237,12 +237,12 @@ class CQChartsStrokeData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool             visible_    { true };  //!< draw border
-  CQChartsColor    color_      { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //!< border color
-  double           alpha_      { 1.0 };   //!< border color alpha
+  bool             visible_    { true };  //!< draw stroke
+  CQChartsColor    color_      { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //!< stroke color
+  double           alpha_      { 1.0 };   //!< stroke color alpha
   CQChartsLength   width_      { "0px" }; //!< stroke width
   CQChartsLineDash dash_       { };       //!< stroke dash
-  CQChartsLength   cornerSize_ { "0px" }; //!< border corner size
+  CQChartsLength   cornerSize_ { "0px" }; //!< corner size
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsStrokeData)
@@ -251,7 +251,7 @@ CQUTIL_DCL_META_TYPE(CQChartsStrokeData)
 
 /*!
  * \brief Shape Properties
- *  background, border
+ *  fill, stroke
  */
 class CQChartsShapeData {
  public:
@@ -266,17 +266,17 @@ class CQChartsShapeData {
     (void) fromString(str);
   }
 
-  CQChartsFillData &background() { return background_; }
-  const CQChartsFillData &background() const { return background_; }
-  void setBackground(const CQChartsFillData &v) { background_ = v; }
+  CQChartsFillData &fill() { return fill_; }
+  const CQChartsFillData &fill() const { return fill_; }
+  void setFill(const CQChartsFillData &v) { fill_ = v; }
 
-  CQChartsStrokeData &border() { return border_; }
-  const CQChartsStrokeData &border() const { return border_; }
-  void setBorder(const CQChartsStrokeData &v) { border_ = v; }
+  CQChartsStrokeData &stroke() { return stroke_; }
+  const CQChartsStrokeData &stroke() const { return stroke_; }
+  void setStroke(const CQChartsStrokeData &v) { stroke_ = v; }
 
   //---
 
-  bool isValid() const { return background_.isValid() && border_.isValid(); }
+  bool isValid() const { return fill_.isValid() && stroke_.isValid(); }
 
   QString toString() const;
   bool fromString(const QString &s);
@@ -285,8 +285,8 @@ class CQChartsShapeData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  CQChartsFillData   background_; //!< background data
-  CQChartsStrokeData border_;     //!< border data
+  CQChartsFillData   fill_;   //!< fill data
+  CQChartsStrokeData stroke_; //!< stroke data
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsShapeData)

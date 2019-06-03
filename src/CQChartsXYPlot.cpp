@@ -168,7 +168,7 @@ CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
   setLinesWidth(CQChartsLength("3px"));
 
   setBestFit(false);
-  setBestFitBorderDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
+  setBestFitStrokeDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
   setBestFitFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
   setBestFitFillAlpha(0.5);
 
@@ -445,9 +445,23 @@ addProperties()
     return &(this->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    return item;
+  };
+
   auto addArrowProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc) {
     return &(this->addProperty(path, arrowObj_, name, alias)->setDesc(desc));
+  };
+
+  auto addArrowStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                               const QString &desc) {
+    CQPropertyViewItem *item = addArrowProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    return item;
   };
 
   //---
@@ -488,7 +502,8 @@ addProperties()
   // lines
   addProp("lines", "lines"          , "visible"   , "Lines visible");
   addProp("lines", "linesSelectable", "selectable", "Lines selectable");
-  addProp("lines", "roundedLines"   , "rounded"   , "Smooth lines");
+
+  addStyleProp("lines", "roundedLines", "rounded", "Smooth lines");
 
   addLineProperties("lines/stroke", "lines", "Lines");
 
@@ -499,7 +514,7 @@ addProperties()
   addProp("bestFit", "bestFitDeviation", "deviation", "Best fit standard deviation");
 
   addFillProperties("bestFit/fill"  , "bestFitFill"  , "Best fit");
-  addLineProperties("bestFit/stroke", "bestFitBorder", "Best fit");
+  addLineProperties("bestFit/stroke", "bestFitStroke", "Best fit");
 
   // stats
   addProp("statsData", "statsLines", "visible", "Statistic lines visible");
@@ -522,27 +537,30 @@ addProperties()
   // vectors
   addProp("vectors", "vectors", "visible", "Vectors at points visible");
 
-  addArrowProp("vectors", "length"   , "length"   , "Vector arrow length");
-  addArrowProp("vectors", "angle"    , "angle"    , "Vector arrow angle");
-  addArrowProp("vectors", "backAngle", "backAngle", "Vector arrow back angle");
-  addArrowProp("vectors", "fhead"    , "fhead"    , "Show vector arrow front head");
-  addArrowProp("vectors", "thead"    , "thead"    , "Show vector arrow tail head");
-  addArrowProp("vectors", "filled"   , "filled"   , "Vector arrow is filled");
-  addArrowProp("vectors", "lineEnds" , "lineEnds" , "Draw lines for vector end arrows");
-  addArrowProp("vectors", "lineWidth", "lineWidth", "Vector arrow connecting line width");
+  addArrowStyleProp("vectors", "length"   , "length"   , "Vector arrow length");
+  addArrowStyleProp("vectors", "angle"    , "angle"    , "Vector arrow angle");
+  addArrowStyleProp("vectors", "backAngle", "backAngle", "Vector arrow back angle");
 
-  addArrowProp("vectors/fill", "filled"   , "visible", "Fill visible");
-  addArrowProp("vectors/fill", "fillColor", "color"  , "Fill color");
-  addArrowProp("vectors/fill", "fillAlpha", "alpha"  , "Fill alpha");
+  addArrowProp("vectors", "fhead", "fhead", "Show vector arrow front head");
+  addArrowProp("vectors", "thead", "thead", "Show vector arrow tail head");
 
-  addArrowProp("vectors/stroke", "border"     , "visible", "Stroke visible");
-  addArrowProp("vectors/stroke", "borderColor", "color"  , "Stroke color");
-  addArrowProp("vectors/stroke", "borderAlpha", "alpha"  , "Stroke alpha");
-  addArrowProp("vectors/stroke", "borderWidth", "width"  , "Stroke width");
+  addArrowStyleProp("vectors", "filled"   , "filled"   , "Vector arrow is filled");
+  addArrowStyleProp("vectors", "lineEnds" , "lineEnds" , "Draw lines for vector end arrows");
+  addArrowStyleProp("vectors", "lineWidth", "lineWidth", "Vector arrow connecting line width");
+
+  addArrowStyleProp("vectors/fill", "filled"   , "visible", "Vector fill visible");
+  addArrowStyleProp("vectors/fill", "fillColor", "color"  , "Vector fill color");
+  addArrowStyleProp("vectors/fill", "fillAlpha", "alpha"  , "Vector fill alpha");
+
+  addArrowStyleProp("vectors/stroke", "stroked"    , "visible", "Vector stroke visible");
+  addArrowStyleProp("vectors/stroke", "strokeColor", "color"  , "Vector stroke color");
+  addArrowStyleProp("vectors/stroke", "strokeAlpha", "alpha"  , "Vector stroke alpha");
+  addArrowStyleProp("vectors/stroke", "strokeWidth", "width"  , "Vector stroke width");
 
   // data label
   addProp("labels/text", "dataLabelTextVisible", "visible", "Data labels visible");
-  addProp("labels/text", "dataLabelTextAngle"  , "angle"  , "Data labels text angle");
+
+  addStyleProp("labels/text", "dataLabelTextAngle", "angle", "Data labels text angle");
 
   addAllTextProperties("labels/text", "dataLabelText", "Data labels");
 
@@ -2027,69 +2045,44 @@ bool
 CQChartsXYPlot::
 addMenuItems(QMenu *menu)
 {
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
+                                  bool isSet, const char *slot) -> QAction *{
+    QAction *action = new QAction(name, menu);
+
+    action->setCheckable(true);
+    action->setChecked(isSet);
+
+    connect(action, SIGNAL(triggered(bool)), this, slot);
+
+    menu->addAction(action);
+
+    return action;
+  };
+
+  //--
+
   int ns = yColumns().count();
 
   menu->addSeparator();
 
   //---
 
-  if (ns > 1) {
-    QAction *bivariateAction  = new QAction("Bivariate" , menu);
-
-    bivariateAction->setCheckable(true);
-    bivariateAction->setChecked(isBivariateLines());
-
-    connect(bivariateAction, SIGNAL(triggered(bool)), this, SLOT(setBivariateLinesSlot(bool)));
-
-    menu->addAction(bivariateAction);
-  }
+  if (ns > 1)
+    addMenuCheckedAction(menu, "Bivariate", isBivariateLines(), SLOT(setBivariateLinesSlot(bool)));
 
   //---
 
-  QAction *pointsAction = new QAction("Points", menu);
-  QAction *linesAction  = new QAction("Lines" , menu);
-
-  pointsAction->setCheckable(true);
-  pointsAction->setChecked(isPoints());
-
-  linesAction->setCheckable(true);
-  linesAction->setChecked(isLines());
-
-  menu->addAction(pointsAction);
-  menu->addAction(linesAction);
+  addMenuCheckedAction(menu, "Points", isPoints(), SLOT(setPointsSlot(bool)));
+  addMenuCheckedAction(menu, "Lines" , isLines (), SLOT(setLinesSlot(bool)));
 
   menu->addSeparator();
 
   //---
 
-  QAction *stackedAction    = new QAction("Stacked"   , menu);
-  QAction *cumulativeAction = new QAction("Cumulative", menu);
-  QAction *impulseAction    = new QAction("Impulse"   , menu);
-  QAction *fillUnderAction  = new QAction("Fill Under", menu);
-
-  stackedAction->setCheckable(true);
-  stackedAction->setChecked(isStacked());
-
-  cumulativeAction->setCheckable(true);
-  cumulativeAction->setChecked(isCumulative());
-
-  impulseAction->setCheckable(true);
-  impulseAction->setChecked(isImpulseLines());
-
-  fillUnderAction->setCheckable(true);
-  fillUnderAction->setChecked(isFillUnderFilled());
-
-  connect(pointsAction    , SIGNAL(triggered(bool)), this, SLOT(setPointsSlot(bool)));
-  connect(linesAction     , SIGNAL(triggered(bool)), this, SLOT(setLinesSlot(bool)));
-  connect(stackedAction   , SIGNAL(triggered(bool)), this, SLOT(setStacked(bool)));
-  connect(cumulativeAction, SIGNAL(triggered(bool)), this, SLOT(setCumulative(bool)));
-  connect(impulseAction   , SIGNAL(triggered(bool)), this, SLOT(setImpulseLinesSlot(bool)));
-  connect(fillUnderAction , SIGNAL(triggered(bool)), this, SLOT(setFillUnderFilledSlot(bool)));
-
-  menu->addAction(stackedAction);
-  menu->addAction(cumulativeAction);
-  menu->addAction(impulseAction);
-  menu->addAction(fillUnderAction);
+  addMenuCheckedAction(menu, "Stacked"   , isStacked        (), SLOT(setStacked(bool)));
+  addMenuCheckedAction(menu, "Cumulative", isCumulative     (), SLOT(setCumulative(bool)));
+  addMenuCheckedAction(menu, "Impulse"   , isImpulseLines   (), SLOT(setImpulseLinesSlot(bool)));
+  addMenuCheckedAction(menu, "Fill Under", isFillUnderFilled(), SLOT(setFillUnderFilledSlot(bool)));
 
   return true;
 }
@@ -3121,11 +3114,11 @@ draw(QPainter *painter)
       QPen   pen;
       QBrush brush;
 
-      QColor borderColor = plot()->interpBestFitBorderColor(ic);
+      QColor strokeColor = plot()->interpBestFitStrokeColor(ic);
       QColor fillColor   = plot()->interpBestFitFillColor  (ic);
 
-      plot()->setPen(pen, true, borderColor, plot()->bestFitBorderAlpha(),
-                     plot()->bestFitBorderWidth(), plot()->bestFitBorderDash());
+      plot()->setPen(pen, true, strokeColor, plot()->bestFitStrokeAlpha(),
+                     plot()->bestFitStrokeWidth(), plot()->bestFitStrokeDash());
 
       plot()->setBrush(brush, plot()->isBestFitFilled(), fillColor, plot()->bestFitFillAlpha(),
                        plot()->bestFitFillPattern());
@@ -3642,13 +3635,13 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
                      plot()->linesWidth(), plot()->linesDash());
     }
     else if (plot()->isBestFit()) {
-      QColor fitColor = plot()->interpBestFitBorderColor(ic_);
+      QColor fitColor = plot()->interpBestFitStrokeColor(ic_);
 
       if (plot()->isSetHidden(ic_.i))
         fitColor = CQChartsUtil::blendColors(fitColor, hideBg, hideAlpha);
 
-      plot()->setPen(linePen, true, fitColor, plot()->bestFitBorderAlpha(),
-                     plot()->bestFitBorderWidth(), plot()->bestFitBorderDash());
+      plot()->setPen(linePen, true, fitColor, plot()->bestFitStrokeAlpha(),
+                     plot()->bestFitStrokeWidth(), plot()->bestFitStrokeDash());
     }
     else {
       QColor impulseColor = plot()->interpImpulseLinesColor(ic_);

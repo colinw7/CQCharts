@@ -86,7 +86,7 @@ class CQChartsWindow : public QFrame {
 
   void resizeEvent(QResizeEvent *) override;
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
  private:
   CQChartsPlot *objectPlot(QObject *obj) const;

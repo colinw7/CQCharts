@@ -676,7 +676,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  QString posStr(const CQChartsGeom::Point &w) const;
+  QString posStr(const CQChartsGeom::Point &w) const override;
 
   //---
 

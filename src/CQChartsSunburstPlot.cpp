@@ -55,8 +55,8 @@ CQChartsSunburstPlot(CQChartsView *view, const ModelP &model) :
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
-  setBorder(true);
-  setFilled(true);
+  setFilled (true);
+  setStroked(true);
 
   setTextFontSize(8.0);
 
@@ -164,8 +164,8 @@ addProperties()
   addProp("options", "startAngle" , "", "Angle for first segment");
   addProp("options", "multiRoot"  , "", "Support multiple roots");
 
-  // color
-  addProp("color", "colorById", "colorById", "Color by id");
+  // coloring
+  addProp("coloring", "colorById", "colorById", "Color by id");
 
   // fill
   addProp("fill", "filled", "visible", "Fill visible");
@@ -173,9 +173,9 @@ addProperties()
   addFillProperties("fill", "fill", "");
 
   // stroke
-  addProp("stroke", "border", "visible", "Stroke visible");
+  addProp("stroke", "stroked", "visible", "Stroke visible");
 
-  addLineProperties("stroke", "border", "");
+  addLineProperties("stroke", "stroke", "");
 
   // text
   addTextProperties("text", "text", "");
@@ -834,27 +834,31 @@ bool
 CQChartsSunburstPlot::
 addMenuItems(QMenu *menu)
 {
+  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) -> QAction *{
+    QAction *action = new QAction(name, menu);
+
+    connect(action, SIGNAL(triggered()), this, slot);
+
+    menu->addAction(action);
+
+    return action;
+  };
+
+  //---
+
   PlotObjs objs;
 
   selectedPlotObjs(objs);
 
-  QAction *pushAction   = new QAction("Push"   , menu);
-  QAction *popAction    = new QAction("Pop"    , menu);
-  QAction *popTopAction = new QAction("Pop Top", menu);
+  menu->addSeparator();
 
-  connect(pushAction  , SIGNAL(triggered()), this, SLOT(pushSlot()));
-  connect(popAction   , SIGNAL(triggered()), this, SLOT(popSlot()));
-  connect(popTopAction, SIGNAL(triggered()), this, SLOT(popTopSlot()));
+  QAction *pushAction   = addMenuAction(menu, "Push"   , SLOT(pushSlot()));
+  QAction *popAction    = addMenuAction(menu, "Pop"    , SLOT(popSlot()));
+  QAction *popTopAction = addMenuAction(menu, "Pop Top", SLOT(popTopSlot()));
 
   pushAction  ->setEnabled(! objs.empty());
   popAction   ->setEnabled(currentRoot() != nullptr);
   popTopAction->setEnabled(currentRoot() != nullptr);
-
-  menu->addSeparator();
-
-  menu->addAction(pushAction  );
-  menu->addAction(popAction   );
-  menu->addAction(popTopAction);
 
   return true;
 }
@@ -1031,10 +1035,10 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   QBrush brush;
 
   QColor fc = node->interpColor(this, fillColor(), colorInd, numColorIds());
-  QColor bc = interpBorderColor(colorInd);
+  QColor bc = interpStrokeColor(colorInd);
 
   setPenBrush(pen, brush,
-    isBorder(), bc, borderAlpha(), borderWidth(), borderDash(),
+    isStroked(), bc, strokeAlpha(), strokeWidth(), strokeDash(),
     isFilled(), fc, fillAlpha(), fillPattern());
 
   QPen tpen;

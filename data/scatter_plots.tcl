@@ -22,8 +22,8 @@ foreach group $groups {
   set plot [create_charts_plot -model $model -type scatter \
     -columns {{x petalLength} {y sepalLength}} \
     -where "@{species}=={$group}" \
-    -properties {xaxis.userLabel {Petal Length}} {yaxis.userLabel {{Sepal Length}}} \
-    -properties [list [list symbol.fill.color palette:$c]] \
+    -properties {{xaxis.userLabel {Petal Length}} {yaxis.userLabel {Sepal Length}}} \
+    -properties [list [list symbol.fill.color [list palette $c]]] \
     -title "$group"]
 
   connect_charts_signal -plot $plot -from objIdPressed -to objPressed

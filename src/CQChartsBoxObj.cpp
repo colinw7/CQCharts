@@ -46,41 +46,46 @@ void
 CQChartsBoxObj::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &desc)
 {
-  model->addProperty(path, this, "margin" )->
-    setDesc(desc.length() ? desc + " inner margin" : "Inner margin");
-  model->addProperty(path, this, "padding")->
-    setDesc(desc.length() ? desc + " outer padding" : "Outer padding");
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc, bool hidden=false) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  //---
+
+  addProp(path, "margin" , "", desc.length() ? desc + " inner margin" : "Inner margin");
+  addProp(path, "padding", "", desc.length() ? desc + " outer padding" : "Outer padding");
 
   QString bgPath = path + "/fill";
 
   QString fillDesc = (desc.length() ? desc + " fill" : "Fill");
 
-  model->addProperty(bgPath, this, "filled"     , "visible")->
-    setDesc(fillDesc + " visible");
-  model->addProperty(bgPath, this, "fillColor"  , "color"  )->
-    setDesc(fillDesc + " color");
-  model->addProperty(bgPath, this, "fillAlpha"  , "alpha"  )->
-    setDesc(fillDesc + " alpha");
-  model->addProperty(bgPath, this, "fillPattern", "pattern")->
-    setDesc(fillDesc + " pattern").setHidden(true);
+  addStyleProp(bgPath, "filled"     , "visible", fillDesc + " visible");
+  addStyleProp(bgPath, "fillColor"  , "color"  , fillDesc + " color");
+  addStyleProp(bgPath, "fillAlpha"  , "alpha"  , fillDesc + " alpha");
+  addStyleProp(bgPath, "fillPattern", "pattern", fillDesc + " pattern", true);
 
-  QString borderPath = path + "/stroke";
+  QString strokePath = path + "/stroke";
 
   QString strokeDesc = (desc.length() ? desc + " stroke" : "Stroke");
 
-  model->addProperty(borderPath, this, "border"     , "visible"   )->
-    setDesc(strokeDesc + " visible");
-  model->addProperty(borderPath, this, "borderColor", "color"     )->
-    setDesc(strokeDesc + " color");
-  model->addProperty(borderPath, this, "borderAlpha", "alpha"     )->
-    setDesc(strokeDesc + " alpha");
-  model->addProperty(borderPath, this, "borderWidth", "width"     )->
-    setDesc(strokeDesc + " width");
+  addStyleProp(strokePath, "stroked"    , "visible", strokeDesc + " visible");
+  addStyleProp(strokePath, "strokeColor", "color"  , strokeDesc + " color");
+  addStyleProp(strokePath, "strokeAlpha", "alpha"  , strokeDesc + " alpha");
+  addStyleProp(strokePath, "strokeWidth", "width"  , strokeDesc + " width");
 
-  model->addProperty(borderPath, this, "cornerSize" , "cornerSize")->
-    setDesc(desc.length() ? desc + "box corner size" : "Box corner size");
-  model->addProperty(borderPath, this, "borderSides", "sides"     )->
-    setDesc(desc.length() ? desc + "box visible sides" : "Box visible sides");
+  addStyleProp(strokePath, "cornerSize" , "cornerSize",
+               desc.length() ? desc + "box corner size" : "Box corner size");
+  addStyleProp(strokePath, "borderSides", "sides"     ,
+               desc.length() ? desc + "box visible sides" : "Box visible sides");
 }
 
 void
@@ -107,24 +112,24 @@ draw(QPainter *painter, const QRectF &rect) const
 
     //---
 
-    // fill border
+    // fill box
     double cxs = (plot() ? plot()->lengthPixelWidth (cornerSize()) : 0.0);
     double cys = (plot() ? plot()->lengthPixelHeight(cornerSize()) : 0.0);
 
     CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
   }
 
-  if (isBorder()) {
+  if (isStroked()) {
     // set pen and brush
     QPen   pen;
     QBrush brush(Qt::NoBrush);
 
-    QColor borderColor = interpBorderColor(ColorInd());
+    QColor strokeColor = interpStrokeColor(ColorInd());
 
     if      (plot())
-      plot()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());
+      plot()->setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
     else if (view())
-      view()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());
+      view()->setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
 
     if (plot() && isStateColoring())
       plot()->updateObjPenBrushState(this, pen, brush);
@@ -134,7 +139,7 @@ draw(QPainter *painter, const QRectF &rect) const
 
     //---
 
-    // draw border
+    // stroke box
     double cxs = (plot() ? plot()->lengthPixelWidth (cornerSize()) : 0.0);
     double cys = (plot() ? plot()->lengthPixelHeight(cornerSize()) : 0.0);
 
@@ -176,16 +181,16 @@ draw(QPainter *painter, const QPolygonF &poly) const
     CQChartsRoundedPolygon::draw(painter, poly, cxs, cys);
   }
 
-  if (isBorder()) {
+  if (isStroked()) {
     QPen   pen;
     QBrush brush(Qt::NoBrush);
 
-    QColor borderColor = interpBorderColor(ColorInd());
+    QColor strokeColor = interpStrokeColor(ColorInd());
 
     if      (plot())
-      plot()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());
+      plot()->setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
     else if (view())
-      view()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());
+      view()->setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
 
     painter->setPen  (pen);
     painter->setBrush(brush);

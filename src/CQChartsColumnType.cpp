@@ -7,13 +7,14 @@
 #include <CQChartsConnectionList.h>
 #include <CQChartsNamePair.h>
 #include <CQChartsSymbol.h>
-#include <CQChartsGradientPalette.h>
 #include <CQChartsPath.h>
 #include <CQChartsStyle.h>
-#include <CQChartsTheme.h>
 #include <CQCharts.h>
 #include <CQChartsTypes.h>
+
 #include <CQBaseModel.h>
+#include <CQColors.h>
+#include <CQColorsPalette.h>
 
 //------
 
@@ -1432,7 +1433,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
       CQChartsColor color;
 
       if (palette != "")
-        color = CQChartsThemeMgrInst->getNamedPalette(palette)->getColor(r1);
+        color = CQColorsMgrInst->getNamedPalette(palette)->getColor(r1);
       else
         color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r1);
 
@@ -1457,7 +1458,7 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
         CQChartsColor color;
 
         if (palette != "")
-          color = CQChartsThemeMgrInst->getNamedPalette(palette)->getColor(r);
+          color = CQColorsMgrInst->getNamedPalette(palette)->getColor(r);
         else
           color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
 

@@ -51,4 +51,4 @@ set plot2 [create_charts_plot -type distribution \
   -columns [list [list value $type12Column] [list color $generationColumn]] \
   -parameter "horizontal=1"]
 
-set_charts_property -plot $plot2 -name "color.map.enabled" -value 1
+set_charts_property -plot $plot2 -name "mapping.color.enabled" -value 1

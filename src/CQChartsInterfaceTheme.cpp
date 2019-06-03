@@ -1,10 +1,10 @@
 #include <CQChartsInterfaceTheme.h>
-#include <CQChartsGradientPalette.h>
+#include <CQColorsPalette.h>
 
 CQChartsInterfaceTheme::
 CQChartsInterfaceTheme()
 {
-  palette_ = new CQChartsGradientPalette();
+  palette_ = new CQColorsPalette();
 }
 
 CQChartsInterfaceTheme::
@@ -19,7 +19,7 @@ setDark(bool b)
 {
   isDark_ = b;
 
-  palette_->setColorType(CQChartsGradientPalette::ColorType::DEFINED);
+  palette_->setColorType(CQColorsPalette::ColorType::DEFINED);
 
   palette_->resetDefinedColors();
 

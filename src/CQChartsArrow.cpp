@@ -98,8 +98,8 @@ draw(QPainter *painter) const
   windowToPixel(from.x(), from.y(), fx, fy);
   windowToPixel(to  .x(), to  .y(), tx, ty);
 
-  double xw = (borderWidth().value() > 0 ? lengthPixelWidth (borderWidth()) : 4);
-  double yw = (borderWidth().value() > 0 ? lengthPixelHeight(borderWidth()) : 4);
+  double xw = (strokeWidth().value() > 0 ? lengthPixelWidth (strokeWidth()) : 4);
+  double yw = (strokeWidth().value() > 0 ? lengthPixelHeight(strokeWidth()) : 4);
 
   double a = atan2(ty - fy, tx - fx);
 
@@ -577,9 +577,9 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled) const
   else {
     QPen pen;
 
-    QColor sc = interpBorderColor(ColorInd());
+    QColor sc = interpStrokeColor(ColorInd());
 
-    CQChartsUtil::setPen(pen, true, sc, borderAlpha(), width);
+    CQChartsUtil::setPen(pen, true, sc, strokeAlpha(), width);
 
     painter_->strokePath(path, pen);
   }
@@ -605,7 +605,7 @@ drawLine(const QPointF &point1, const QPointF &point2, double width, bool mappin
 
   QPen p = painter_->pen();
 
-  QColor sc = interpBorderColor(ColorInd());
+  QColor sc = interpStrokeColor(ColorInd());
 
   p.setColor (sc);
   p.setWidthF(width);

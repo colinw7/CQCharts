@@ -31,31 +31,31 @@ puts [lindex [lindex $colors 2] 1]
 set_charts_property -view $view -name inside.highlight.mode -value OUTLINE
 
 set_charts_property -plot $plot1 -name margins.bar                -value 8px
-#set_charts_property -plot $plot1 -name fill.color                 -value "palette:0:s"
-set_charts_property -plot $plot1 -name color.colorBySet           -value 1
-set_charts_property -plot $plot1 -name color.type                 -value SET
+#set_charts_property -plot $plot1 -name fill.color                 -value {palette 0 s}
+set_charts_property -plot $plot1 -name coloring.colorBySet        -value 1
+set_charts_property -plot $plot1 -name coloring.type              -value SET
 set_charts_property -plot $plot1 -name labels.visible             -value 1
 set_charts_property -plot $plot1 -name labels.position            -value TOP_OUTSIDE
-#set_charts_property -plot $plot1 -name labels.color               -value "interface:1"
-#set_charts_property -plot $plot1 -name plotStyle.fill.color       -value "interface:0"
-#set_charts_property -plot $plot1 -name dataStyle.fill.color       -value "interface:0"
+#set_charts_property -plot $plot1 -name labels.color               -value {interface 1}
+#set_charts_property -plot $plot1 -name plotStyle.fill.color       -value {interface 0}
+#set_charts_property -plot $plot1 -name dataStyle.fill.color       -value {interface 0}
 set_charts_property -plot $plot1 -name "xaxis.majorIncrement"     -value 1
 set_charts_property -plot $plot1 -name "xaxis.label.text.string"  -value ""
-#set_charts_property -plot $plot1 -name "xaxis.label.color"        -value "interface:1"
-#set_charts_property -plot $plot1 -name "xaxis.ticks.label.color"  -value "interface:1"
+#set_charts_property -plot $plot1 -name "xaxis.label.color"        -value {interface 1}
+#set_charts_property -plot $plot1 -name "xaxis.ticks.label.color"  -value {interface 1}
 set_charts_property -plot $plot1 -name "yaxis.grid.lines"         -value MAJOR
-#set_charts_property -plot $plot1 -name "yaxis.grid.major.stroke.color"   -value "interface:1"
-#set_charts_property -plot $plot1 -name "yaxis.label.color"        -value "interface:1"
-#set_charts_property -plot $plot1 -name "yaxis.ticks.label.color"  -value "interface:1"
+#set_charts_property -plot $plot1 -name "yaxis.grid.major.stroke.color"   -value {interface 1}
+#set_charts_property -plot $plot1 -name "yaxis.label.color"        -value {interface 1}
+#set_charts_property -plot $plot1 -name "yaxis.ticks.label.color"  -value {interface 1}
 #set_charts_property -plot $plot1 -name key.visible                -value 0
 set_charts_property -plot $plot1 -name key.insideY                -value 1
 set_charts_property -plot $plot1 -name key.location               -value bc
 set_charts_property -plot $plot1 -name key.horizontal             -value 1
 set_charts_property -plot $plot1 -name key.fill.visible           -value 0
 set_charts_property -plot $plot1 -name key.stroke.visible         -value 0
-#set_charts_property -plot $plot1 -name key.text.color             -value "interface:1"
+#set_charts_property -plot $plot1 -name key.text.color             -value {interface 1}
 set_charts_property -plot $plot1 -name title.text.font            -value "FreeSans,18,-1,5,63,0,0,0,0,0"
-#set_charts_property -plot $plot1 -name title.text.color           -value "interface:1"
+#set_charts_property -plot $plot1 -name title.text.color           -value {interface 1}
 
 ###---
 
@@ -64,26 +64,26 @@ set plot2 [create_charts_plot -type xy -columns {{x 0} {y 2}} -title "Expected S
 set_charts_property -plot $plot2 -name points.symbol.type           -value circle
 set_charts_property -plot $plot2 -name points.symbol.size           -value 6px
 set_charts_property -plot $plot2 -name points.symbol.fill.visible   -value 1
-set_charts_property -plot $plot2 -name points.symbol.fill.color     -value "palette:1:s"
+set_charts_property -plot $plot2 -name points.symbol.fill.color     -value {palette 1 s}
 set_charts_property -plot $plot2 -name points.symbol.stroke.visible -value 0
 
 set_charts_property -plot $plot2 -name lines.stroke.width -value 3px
 set_charts_property -plot $plot2 -name lines.rounded      -value 1
-set_charts_property -plot $plot2 -name lines.stroke.color -value "palette:1:s"
+set_charts_property -plot $plot2 -name lines.stroke.color -value {palette 1 s}
 
 ###---
 
 set plot3 [create_charts_plot -type xy -columns {{x 0} {y 3}} -title "Profit"]
 
 set_charts_property -plot $plot3 -name fillUnder.visible    -value 1
-set_charts_property -plot $plot3 -name fillUnder.fill.color -value "palette:2:s"
+set_charts_property -plot $plot3 -name fillUnder.fill.color -value {palette 2 s}
 
 set_charts_property -plot $plot3 -name points.symbol.type         -value circle
 set_charts_property -plot $plot3 -name points.symbol.size         -value 6px
 set_charts_property -plot $plot3 -name points.symbol.stroke.color -value white
 set_charts_property -plot $plot3 -name points.symbol.stroke.width -value 3px
 set_charts_property -plot $plot3 -name points.symbol.fill.visible -value 1
-set_charts_property -plot $plot3 -name points.symbol.fill.color   -value "palette:2:s"
+set_charts_property -plot $plot3 -name points.symbol.fill.color   -value {palette 2 s}
 set_charts_property -plot $plot3 -name lines.rounded              -value 1
 
 ###---

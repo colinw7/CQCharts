@@ -22,7 +22,7 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsLength margin      READ margin       WRITE setMargin     )
   Q_PROPERTY(CQChartsLength groupMargin READ groupMargin  WRITE setGroupMargin)
 
-  // bar border
+  // bar fill, stroke
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Bar,bar)
 
  public:

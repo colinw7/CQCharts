@@ -19,9 +19,6 @@ class CQChartsView;
 class CQChartsPlot;
 class CQChartsAnnotation;
 class CQChartsFilterEdit;
-class CQChartsGradientPaletteCanvas;
-class CQChartsGradientPaletteControl;
-class CQChartsGradientPaletteList;
 class CQChartsLoadModelDlg;
 class CQChartsEditModelDlg;
 class CQChartsCreatePlotDlg;
@@ -31,6 +28,10 @@ class CQChartsEditTitleDlg;
 class CQChartsEditKeyDlg;
 class CQChartsEditAxisDlg;
 class CQChartsPropertyViewTree;
+
+class CQColorsEditCanvas;
+class CQColorsEditControl;
+class CQColorsEditList;
 
 class CQTabWidget;
 class CQIntegerSpin;
@@ -148,15 +149,11 @@ class CQChartsViewSettings : public QFrame {
   void updateInterface();
 
  private:
-  CQChartsGradientPaletteCanvas  *interfacePlot   () const {
-    return themeWidgets_.interfacePlot; }
-  CQChartsGradientPaletteControl *interfaceControl() const {
-    return themeWidgets_.interfaceControl; }
+  CQColorsEditCanvas  *interfacePlot   () const { return themeWidgets_.interfacePlot; }
+  CQColorsEditControl *interfaceControl() const { return themeWidgets_.interfaceControl; }
 
-  CQChartsGradientPaletteCanvas  *palettesPlot   () const {
-    return themeWidgets_.palettesPlot; }
-  CQChartsGradientPaletteControl *palettesControl() const {
-    return themeWidgets_.palettesControl; }
+  CQColorsEditCanvas  *palettesPlot   () const { return themeWidgets_.palettesPlot; }
+  CQColorsEditControl *palettesControl() const { return themeWidgets_.palettesControl; }
 
   void addWidgets();
 
@@ -224,12 +221,12 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct ThemeWidgets {
-    CQChartsGradientPaletteList*    palettesList     { nullptr }; //!< palettes list
-    QComboBox*                      palettesCombo    { nullptr }; //!< palettes name combo
-    CQChartsGradientPaletteCanvas*  palettesPlot     { nullptr }; //!< current palette plot
-    CQChartsGradientPaletteControl* palettesControl  { nullptr }; //!< current palette control
-    CQChartsGradientPaletteCanvas*  interfacePlot    { nullptr }; //!< interface palette plot
-    CQChartsGradientPaletteControl* interfaceControl { nullptr }; //!< interface palette control
+    CQColorsEditList*    palettesList     { nullptr }; //!< palettes list
+    QComboBox*           palettesCombo    { nullptr }; //!< palettes name combo
+    CQColorsEditCanvas*  palettesPlot     { nullptr }; //!< current palette plot
+    CQColorsEditControl* palettesControl  { nullptr }; //!< current palette control
+    CQColorsEditCanvas*  interfacePlot    { nullptr }; //!< interface palette plot
+    CQColorsEditControl* interfaceControl { nullptr }; //!< interface palette control
   };
 
   struct LayersWidgets {

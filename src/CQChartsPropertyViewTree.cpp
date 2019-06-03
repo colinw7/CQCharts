@@ -30,26 +30,41 @@ void
 CQChartsPropertyViewTree::
 addMenuItems(QMenu *menu)
 {
+  auto addMenuAction = [&](QMenu *menu, const QString &name, const char *slot) -> QAction *{
+    QAction *action = new QAction(name, menu);
+
+    connect(action, SIGNAL(triggered()), this, slot);
+
+    menu->addAction(action);
+
+    return action;
+  };
+
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
+                                  bool isSet, const char *slot) -> QAction *{
+    QAction *action = new QAction(name, menu);
+
+    action->setCheckable(true);
+    action->setChecked(isSet);
+
+    connect(action, SIGNAL(triggered(bool)), this, slot);
+
+    menu->addAction(action);
+
+    return action;
+  };
+
+  //--
+
   CQPropertyViewItem *item = CQPropertyViewTree::menuItem();
 
-  if (item) {
-    QAction *editAction = new QAction("Edit");
+  if (item)
+    addMenuAction(menu, "Edit", SLOT(editSlot()));
 
-    connect(editAction, SIGNAL(triggered()), this, SLOT(editSlot()));
-
-    menu->addAction(editAction);
-  }
-
-  //---
-
-  QAction *showHideAction = new QAction("Show Filter");
-
-  showHideAction->setCheckable(true);
-  showHideAction->setChecked(isFilterDisplayed());
-
-  connect(showHideAction, SIGNAL(triggered(bool)), this, SLOT(showHideFilterSlot(bool)));
-
-  menu->addAction(showHideAction);
+  addMenuCheckedAction(menu, "Show Filter", isFilterDisplayed(),
+                       SLOT(showHideFilterSlot(bool)));
+  addMenuCheckedAction(menu, "Show Style Items", isShowStyleItems(),
+                       SLOT(showHideStyleItemsSlot(bool)));
 
   //---
 
@@ -193,6 +208,40 @@ CQChartsPropertyViewTree::
 showHideFilterSlot(bool b)
 {
   setFilterDisplayed(b);
+}
+
+void
+CQChartsPropertyViewTree::
+setShowStyleItems(bool show)
+{
+  showStyleItems_ = show;
+
+  CQPropertyViewItem *item = propertyModel()->root();
+
+  showStyleItems(item, show);
+}
+
+void
+CQChartsPropertyViewTree::
+showStyleItems(CQPropertyViewItem *item, bool show)
+{
+  if (CQCharts::getItemIsStyle(item)) {
+    if (! CQCharts::getItemIsHidden(item))
+      item->setHidden(! show);
+  }
+
+  for (auto &child : propertyModel()->itemChildren(item, /*hidden*/true)) {
+    showStyleItems(child, show);
+  }
+
+  propertyModel()->reset();
+}
+
+void
+CQChartsPropertyViewTree::
+showHideStyleItemsSlot(bool b)
+{
+  setShowStyleItems(b);
 }
 
 void

@@ -12,15 +12,16 @@
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
 #include <CQChartsEnv.h>
-#include <CQChartsGradientPalette.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsVariant.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsInterfaceTheme.h>
-#include <CQChartsTheme.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
+#include <CQColors.h>
+#include <CQColorsTheme.h>
+#include <CQColorsPalette.h>
 
 #include <QSvgGenerator>
 #include <QFileDialog>
@@ -128,14 +129,14 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  connect(CQChartsThemeMgrInst, SIGNAL(themeChanged(const QString &)),
+  connect(CQColorsMgrInst, SIGNAL(themeChanged(const QString &)),
           this, SLOT(themeChangedSlot(const QString &)));
-  connect(CQChartsThemeMgrInst, SIGNAL(paletteChanged(const QString &)),
+  connect(CQColorsMgrInst, SIGNAL(paletteChanged(const QString &)),
           this, SLOT(paletteChangedSlot(const QString &)));
 
   // TODO: only connect to current theme ?
-  connect(CQChartsThemeMgrInst, SIGNAL(themesChanged()), this, SLOT(updatePlots()));
-  connect(CQChartsThemeMgrInst, SIGNAL(palettesChanged()), this, SLOT(updatePlots()));
+  connect(CQColorsMgrInst, SIGNAL(themesChanged()), this, SLOT(updatePlots()));
+  connect(CQColorsMgrInst, SIGNAL(palettesChanged()), this, SLOT(updatePlots()));
 }
 
 CQChartsView::
@@ -197,6 +198,16 @@ addProperties()
     return &(this->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc, bool hidden=false) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  //---
+
   // data
   addProp("", "mode"          , "", "View mouse mode" )->setHidden(true);
   addProp("", "id"            , "", "View id"         )->setHidden(true);
@@ -210,65 +221,74 @@ addProperties()
   addProp("", "showSettings", "", "Show settings panel")->setHidden(true);
 
   // options
-  addProp("options", "antiAlias", "", "Draw aliased shapes")->setHidden(true);
+  addStyleProp("options", "antiAlias", "", "Draw aliased shapes", true);
 
   // title
   addProp("title", "title", "string", "View title string");
 
   // theme
-  addProp("theme", "theme", "name", "View theme")->
+  addStyleProp("theme", "theme", "name", "View theme")->
     setValues(QStringList() << "default" << "theme1" << "theme2");
-  addProp("theme", "dark" , "dark", "View interface is dark");
+  addStyleProp("theme", "dark" , "dark", "View interface is dark");
 
-  // color
-  addProp("color", "defaultPalette", "defaultPalette", "Default palette");
+  // coloring
+  addStyleProp("coloring", "defaultPalette", "defaultPalette", "Default palette");
 
   // text
-  addProp("text", "scaleFont" , "scaled", "Scale font to view size");
-  addProp("text", "fontFactor", "factor", "Global text scale factor");
-  addProp("text", "font"      , "font"  , "Global text font");
+  addStyleProp("text", "scaleFont" , "scaled", "Scale font to view size");
+  addStyleProp("text", "fontFactor", "factor", "Global text scale factor");
+  addStyleProp("text", "font"      , "font"  , "Global text font");
 
   // sizing
   addProp("sizing", "autoSize" , "auto"     , "Auto scale to view size");
   addProp("sizing", "fixedSize", "fixedSize", "Fixed view size");
 
   // background fill
-  addProp("background/fill", "backgroundFillData"   , "style"  , "Fill style"  )->setHidden(true);
-  addProp("background/fill", "backgroundFillColor"  , "color"  , "Fill color"  );
-  addProp("background/fill", "backgroundFillAlpha"  , "alpha"  , "Fill alpha"  )->setHidden(true);
-  addProp("background/fill", "backgroundFillPattern", "pattern", "Fill pattern")->setHidden(true);
+  addStyleProp("background/fill", "backgroundFillData"   , "style"  , "Fill style"  , true);
+  addStyleProp("background/fill", "backgroundFillColor"  , "color"  , "Fill color"  );
+  addStyleProp("background/fill", "backgroundFillAlpha"  , "alpha"  , "Fill alpha"  , true);
+  addStyleProp("background/fill", "backgroundFillPattern", "pattern", "Fill pattern", true);
 
   // select mode
   addProp("select", "selectMode"  , "mode"  , "Selection mode");
   addProp("select", "selectInside", "inside", "Select when fully inside select rectangle");
 
   // select highlight
-  addProp("select/highlight"       , "selectedMode"       , "mode"   , "Highlight draw mode");
-  addProp("select/highlight"       , "selectedShapeData"  , "style"  , "Highlight shape data");
-  addProp("select/highlight/fill"  , "selectedFilled"     , "visible", "Highlight fill visible");
-  addProp("select/highlight/fill"  , "selectedFillColor"  , "color"  , "Highlight fill color");
-  addProp("select/highlight/fill"  , "selectedFillAlpha"  , "alpha"  , "Highlight fill alpha");
-  addProp("select/highlight/stroke", "selectedBorder"     , "visible", "Highlight stroke visible");
-  addProp("select/highlight/stroke", "selectedBorderColor", "color"  , "Highlight stroke color");
-  addProp("select/highlight/stroke", "selectedBorderWidth", "width"  , "Highlight stroke width");
-  addProp("select/highlight/stroke", "selectedBorderDash" , "dash"   , "Highlight stroke dash");
+  addStyleProp("select/highlight"       , "selectedMode"       , "mode"   ,
+               "Highlight draw mode");
+  addStyleProp("select/highlight"       , "selectedShapeData"  , "style"  ,
+               "Highlight shape data");
+  addStyleProp("select/highlight/fill"  , "selectedFilled"     , "visible",
+               "Highlight fill visible");
+  addStyleProp("select/highlight/fill"  , "selectedFillColor"  , "color"  ,
+               "Highlight fill color");
+  addStyleProp("select/highlight/fill"  , "selectedFillAlpha"  , "alpha"  ,
+               "Highlight fill alpha");
+  addStyleProp("select/highlight/stroke", "selectedStroked"    , "visible",
+               "Highlight stroke visible");
+  addStyleProp("select/highlight/stroke", "selectedStrokeColor", "color"  ,
+               "Highlight stroke color");
+  addStyleProp("select/highlight/stroke", "selectedStrokeWidth", "width"  ,
+               "Highlight stroke width");
+  addStyleProp("select/highlight/stroke", "selectedStrokeDash" , "dash"   ,
+               "Highlight stroke dash");
 
   // inside highlight
-  addProp("inside/highlight"       , "insideMode"       , "mode"   , "Inside draw mode");
-  addProp("inside/highlight"       , "insideShapeData"  , "style"  , "Inside shape data");
-  addProp("inside/highlight/fill"  , "insideFilled"     , "visible", "Inside fill visible");
-  addProp("inside/highlight/fill"  , "insideFillColor"  , "color"  , "Inside fill color");
-  addProp("inside/highlight/fill"  , "insideFillAlpha"  , "alpha"  , "Inside fill alpha");
-  addProp("inside/highlight/stroke", "insideBorder"     , "visible", "Inside stroke visible");
-  addProp("inside/highlight/stroke", "insideBorderColor", "color"  , "Inside stroke color");
-  addProp("inside/highlight/stroke", "insideBorderWidth", "width"  , "Inside stroke width");
-  addProp("inside/highlight/stroke", "insideBorderDash" , "dash"   , "Inside stroke dash");
+  addStyleProp("inside/highlight"       , "insideMode"       , "mode"   , "Inside draw mode");
+  addStyleProp("inside/highlight"       , "insideShapeData"  , "style"  , "Inside shape data");
+  addStyleProp("inside/highlight/fill"  , "insideFilled"     , "visible", "Inside fill visible");
+  addStyleProp("inside/highlight/fill"  , "insideFillColor"  , "color"  , "Inside fill color");
+  addStyleProp("inside/highlight/fill"  , "insideFillAlpha"  , "alpha"  , "Inside fill alpha");
+  addStyleProp("inside/highlight/stroke", "insideStroked"    , "visible", "Inside stroke visible");
+  addStyleProp("inside/highlight/stroke", "insideStrokeColor", "color"  , "Inside stroke color");
+  addStyleProp("inside/highlight/stroke", "insideStrokeWidth", "width"  , "Inside stroke width");
+  addStyleProp("inside/highlight/stroke", "insideStrokeDash" , "dash"   , "Inside stroke dash");
 
   // status
-  addProp("status", "posTextType", "posTextType", "Position text type")->setHidden(true);
+  addStyleProp("status", "posTextType", "posTextType", "Position text type", true);
 
   // TODO: remove or make more general
-  addProp("scroll", "scrolled"      , "enabled" , "Scrolling enabled");
+  addProp("scroll", "scrolled"      , "enabled" , "Scrolling enabled"     )->setHidden(true);
   addProp("scroll", "scrollDelta"   , "delta"   , "Scroll delta"          )->setHidden(true);
   addProp("scroll", "scrollNumPages", "numPages", "Scroll number of pages")->setHidden(true);
   addProp("scroll", "scrollPage"    , "page"    , "Scroll current page"   )->setHidden(true);
@@ -738,14 +758,14 @@ endSelection()
 
 //---
 
-CQChartsTheme *
+CQColorsTheme *
 CQChartsView::
 theme()
 {
   return themeName().obj();
 }
 
-const CQChartsTheme *
+const CQColorsTheme *
 CQChartsView::
 theme() const
 {
@@ -768,21 +788,21 @@ setThemeName(const CQChartsThemeName &theme)
   updateTheme();
 }
 
-CQChartsGradientPalette *
+CQColorsPalette *
 CQChartsView::
 interfacePalette() const
 {
   return charts()->interfaceTheme()->palette();
 }
 
-CQChartsGradientPalette *
+CQColorsPalette *
 CQChartsView::
 themeGroupPalette(int i, int /*n*/) const
 {
   return theme()->palette(i);
 }
 
-CQChartsGradientPalette *
+CQColorsPalette *
 CQChartsView::
 themePalette(int ind) const
 {
@@ -883,14 +903,28 @@ getPropertyObject(const QString &name, QObject* &object, bool hidden) const
 
 bool
 CQChartsView::
-getPropertyHidden(const QString &name, bool &hidden) const
+getPropertyIsHidden(const QString &name, bool &is_hidden) const
 {
-  hidden = false;
+  is_hidden = false;
 
   const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, /*hidden*/true);
   if (! item) return false;
 
-  hidden = item->isHidden();
+  is_hidden = CQCharts::getItemIsHidden(item);
+
+  return true;
+}
+
+bool
+CQChartsView::
+getPropertyIsStyle(const QString &name, bool &is_style) const
+{
+  is_style = false;
+
+  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, /*hidden*/true);
+  if (! item) return false;
+
+  is_style = CQCharts::getItemIsStyle(item);
 
   return true;
 }
@@ -2820,10 +2854,14 @@ void
 CQChartsView::
 themeChangedSlot(const QString &name)
 {
+#if 0
   if (name == theme()->name()) {
     setSelectedFillColor(theme()->selectColor());
     setInsideFillColor  (theme()->insideColor());
   }
+#else
+  Q_UNUSED(name);
+#endif
 }
 
 void
@@ -3371,10 +3409,10 @@ showMenu(const QPoint &p)
 
   QStringList themeNames;
 
-  CQChartsThemeMgrInst->getThemeNames(themeNames);
+  CQColorsMgrInst->getThemeNames(themeNames);
 
   for (const auto &themeName : themeNames) {
-    CQChartsTheme *theme = CQChartsThemeMgrInst->getTheme(themeName) ;
+    CQColorsTheme *theme = CQColorsMgrInst->getNamedTheme(themeName) ;
 
     QAction *themeAction = addThemeAction(theme->desc(), SLOT(themeNameSlot()));
 
@@ -3770,10 +3808,12 @@ void
 CQChartsView::
 updateTheme()
 {
+#if 0
   setSelectedFillColor(theme()->selectColor());
-
   setInsideFillColor  (theme()->insideColor());
-  setInsideBorderWidth(CQChartsLength("2px"));
+#endif
+
+  setInsideStrokeWidth(CQChartsLength("2px"));
 
   updatePlots();
 
@@ -4284,7 +4324,7 @@ void
 CQChartsView::
 write(std::ostream &os) const
 {
-  os << "set view [create_view]\n";
+  os << "set view [create_charts_view]\n";
 
   CQPropertyViewModel::NameValues nameValues;
 

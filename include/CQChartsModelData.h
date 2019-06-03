@@ -117,7 +117,7 @@ class CQChartsModelData : public QObject {
 
   //---
 
-  void write();
+  void write(std::ostream &os) const;
 
   //---
 

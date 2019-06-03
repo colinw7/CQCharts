@@ -221,7 +221,7 @@ class CQChartsChordPlot : public CQChartsPlot,
   Q_PROPERTY(double innerRadius READ innerRadius WRITE setInnerRadius)
   Q_PROPERTY(double labelRadius READ labelRadius WRITE setLabelRadius)
 
-  // border
+  // stroke
   CQCHARTS_STROKE_DATA_PROPERTIES
 
   // style

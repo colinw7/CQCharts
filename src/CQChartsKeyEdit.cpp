@@ -328,7 +328,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   //--
 
-  // box (margin, passing, fill, border, text)
+  // box (margin, passing, fill, stroke, text)
   textBoxEdit_ = new CQChartsTextBoxDataEdit(nullptr, /*tabbed*/true);
 
   textBoxEdit_->setPreview(false);
