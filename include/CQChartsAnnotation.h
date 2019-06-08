@@ -161,14 +161,22 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! write details (command to recreate)
-  virtual void write(std::ostream &os) const = 0;
+  virtual void write(std::ostream &os, const QString &parentVarName="",
+                     const QString &varName="") const = 0;
 
   //! write key values
-  void writeKeys(std::ostream &os, const QString &cmd) const;
+  void writeKeys(std::ostream &os, const QString &cmd, const QString &parentVarName="",
+                 const QString &varName="") const;
 
   //! write fill, stroke values
   void writeFill  (std::ostream &os) const;
   void writeStroke(std::ostream &os) const;
+
+  //! write polygon points
+  void writePoints(std::ostream &os, const QPolygonF &polygon) const;
+
+  //! write properties
+  void writeProperties(std::ostream &os, const QString &varName="") const;
 
   //---
 
@@ -226,7 +234,8 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
 
   void draw(QPainter *painter) override;
 
-  void write(std::ostream &os) const override;
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
 
  private:
   CQChartsRect rect_; //!< rectangle
@@ -274,7 +283,8 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
   void draw(QPainter *painter) override;
 
-  void write(std::ostream &os) const override;
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
 
  private:
   CQChartsPosition center_;          //!< ellipse center
@@ -314,7 +324,8 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
 
   void draw(QPainter *painter) override;
 
-  void write(std::ostream &os) const override;
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
 
  private:
   CQChartsPolygon polygon_; //!< polygon points
@@ -352,7 +363,8 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
 
   void draw(QPainter *painter) override;
 
-  void write(std::ostream &os) const override;
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
 
  private:
   CQChartsPolygon polygon_; //!< polyline points
@@ -411,7 +423,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   void draw(QPainter *painter) override;
 
-  void write(std::ostream &os) const override;
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
 
   //---
 
@@ -480,7 +493,8 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   void draw(QPainter *painter) override;
 
-  void write(std::ostream &os) const override;
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
 
  private:
   CQChartsPosition start_ { QPointF(0, 0) }; //!< arrow start
@@ -525,7 +539,8 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
 
   void draw(QPainter *painter) override;
 
-  void write(std::ostream &os) const override;
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
 
  private:
   CQChartsPosition position_; //!< point position

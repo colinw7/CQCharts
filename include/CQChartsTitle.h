@@ -21,10 +21,12 @@ class QPainter;
 class CQChartsTitle : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsTitleLocation location    READ location     WRITE setLocation   )
-  Q_PROPERTY(CQChartsPosition      absPosition READ absPosition  WRITE setAbsPosition)
-  Q_PROPERTY(CQChartsRect          absRect     READ absRect      WRITE setAbsRect    )
-  Q_PROPERTY(bool                  insidePlot  READ isInsidePlot WRITE setInsidePlot )
+  Q_PROPERTY(CQChartsTitleLocation location          READ location     WRITE setLocation  )
+  Q_PROPERTY(CQChartsPosition      absolutePosition  READ absolutePosition
+                                                     WRITE setAbsolutePosition)
+  Q_PROPERTY(CQChartsRect          absoluteRectangle READ absoluteRectangle
+                                                     WRITE setAbsoluteRectangle)
+  Q_PROPERTY(bool                  insidePlot        READ isInsidePlot WRITE setInsidePlot)
 
  public:
   CQChartsTitle(CQChartsPlot *plot);
@@ -39,11 +41,11 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   const CQChartsTitleLocation &location() const { return location_; }
   void setLocation(const CQChartsTitleLocation &l) { location_ = l; redraw(); }
 
-  const CQChartsPosition &absPosition() const { return absPosition_; }
-  void setAbsPosition(const CQChartsPosition &p) { absPosition_ = p; redraw(); }
+  const CQChartsPosition &absolutePosition() const { return absolutePosition_; }
+  void setAbsolutePosition(const CQChartsPosition &p) { absolutePosition_ = p; redraw(); }
 
-  const CQChartsRect &absRect() const { return absRect_; }
-  void setAbsRect(const CQChartsRect &r) { absRect_ = r; redraw(); }
+  const CQChartsRect &absoluteRectangle() const { return absoluteRectangle_; }
+  void setAbsoluteRectangle(const CQChartsRect &r) { absoluteRectangle_ = r; redraw(); }
 
   bool isInsidePlot() const { return insidePlot_; }
   void setInsidePlot(bool b) { insidePlot_ = b; }
@@ -62,8 +64,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  QPointF absPlotPosition() const;
-  void setAbsPlotPosition(const QPointF &p);
+  QPointF absolutePlotPosition() const;
+  void setAbsolutePlotPosition(const QPointF &p);
 
   //---
 
@@ -116,14 +118,14 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   void updateLocation();
 
  private:
-  CQChartsTitleLocation      location_;                //!< location type
-  CQChartsPosition           absPosition_;             //!< position (relative to plot box)
-  CQChartsRect               absRect_;                 //!< rect (relative to plot box)
-  bool                       insidePlot_  { false };   //!< is placed inside plot
-  QPointF                    position_    { 0, 0 };    //!< position
-  QSizeF                     size_;                    //!< size
-  mutable CQChartsGeom::BBox bbox_;                    //!< bbox
-  CQChartsEditHandles*       editHandles_ { nullptr }; //!< edit handles
+  CQChartsTitleLocation      location_;                      //!< location type
+  CQChartsPosition           absolutePosition_;              //!< position (relative to plot box)
+  CQChartsRect               absoluteRectangle_;             //!< rect (relative to plot box)
+  bool                       insidePlot_        { false };   //!< is placed inside plot
+  QPointF                    position_          { 0, 0 };    //!< position
+  QSizeF                     size_;                          //!< size
+  mutable CQChartsGeom::BBox bbox_;                          //!< bbox
+  CQChartsEditHandles*       editHandles_       { nullptr }; //!< edit handles
 };
 
 #endif

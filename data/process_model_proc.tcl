@@ -12,4 +12,4 @@ define_charts_proc toProc { arg } {
 process_charts_model -model $modelId -add -expr "fromProc(column(0))" -header "From"
 process_charts_model -model $modelId -add -expr "toProc(column(0))" -header "To"
 
-manage_models_dlg
+show_charts_manage_models_dlg

@@ -62,29 +62,29 @@ class CQChartsKeyEdit : public QFrame {
   void widgetsToData();
 
  private:
-  CQChartsKey*                  key_                { nullptr }; //!< parent key
-  CQChartsKeyData               data_;                           //!< key data
-  CQGroupBox*                   groupBox_           { nullptr }; //!< group box
-  CQCheckBox*                   horizontalEdit_     { nullptr }; //!< horizontal edit
-  CQCheckBox*                   autoHideEdit_       { nullptr }; //!< auto hide edit
-  CQCheckBox*                   clippedEdit_        { nullptr }; //!< clipped edit
-  CQCheckBox*                   aboveEdit_          { nullptr }; //!< above edit
-  CQCheckBox*                   interactiveEdit_    { nullptr }; //!< interactive edit
-  CQChartsKeyLocationEdit*      locationEdit_       { nullptr }; //!< location edit
-  CQChartsAlphaEdit*            hiddenAlphaEdit_    { nullptr }; //!< hidden alpha edit
-  CQIntegerSpin*                maxRowsEdit_        { nullptr }; //!< max rows edit
-  CQChartsKeyPressBehaviorEdit* pressBehaviorEdit_  { nullptr }; //!< press behavior edit
-  CQPoint2DEdit*                absPositionEdit_    { nullptr }; //!< absolute position edit
-  CQCheckBox*                   insideXEdit_        { nullptr }; //!< inside x edit
-  CQCheckBox*                   insideYEdit_        { nullptr }; //!< inside y edit
-  CQIntegerSpin*                spacingEdit_        { nullptr }; //!< spacing edit
-  CQCheckBox*                   flippedEdit_        { nullptr }; //!< flipped edit
-  CQLineEdit*                   headerEdit_         { nullptr }; //!< header edit
-  CQChartsTextDataEdit*         headerTextDataEdit_ { nullptr }; //!< header text edit
-  CQLineEdit*                   scrollWidthEdit_    { nullptr }; //!< scroll width edit
-  CQLineEdit*                   scrollHeightEdit_   { nullptr }; //!< scroll height edit
-  CQChartsTextBoxDataEdit*      textBoxEdit_        { nullptr }; //!< text box edit
-  bool                          connected_          { false };   //!< is connected
+  CQChartsKey*                  key_                  { nullptr }; //!< parent key
+  CQChartsKeyData               data_;                             //!< key data
+  CQGroupBox*                   groupBox_             { nullptr }; //!< group box
+  CQCheckBox*                   horizontalEdit_       { nullptr }; //!< horizontal edit
+  CQCheckBox*                   autoHideEdit_         { nullptr }; //!< auto hide edit
+  CQCheckBox*                   clippedEdit_          { nullptr }; //!< clipped edit
+  CQCheckBox*                   aboveEdit_            { nullptr }; //!< above edit
+  CQCheckBox*                   interactiveEdit_      { nullptr }; //!< interactive edit
+  CQChartsKeyLocationEdit*      locationEdit_         { nullptr }; //!< location edit
+  CQChartsAlphaEdit*            hiddenAlphaEdit_      { nullptr }; //!< hidden alpha edit
+  CQIntegerSpin*                maxRowsEdit_          { nullptr }; //!< max rows edit
+  CQChartsKeyPressBehaviorEdit* pressBehaviorEdit_    { nullptr }; //!< press behavior edit
+  CQPoint2DEdit*                absolutePositionEdit_ { nullptr }; //!< absolute position edit
+  CQCheckBox*                   insideXEdit_          { nullptr }; //!< inside x edit
+  CQCheckBox*                   insideYEdit_          { nullptr }; //!< inside y edit
+  CQIntegerSpin*                spacingEdit_          { nullptr }; //!< spacing edit
+  CQCheckBox*                   flippedEdit_          { nullptr }; //!< flipped edit
+  CQLineEdit*                   headerEdit_           { nullptr }; //!< header edit
+  CQChartsTextDataEdit*         headerTextDataEdit_   { nullptr }; //!< header text edit
+  CQLineEdit*                   scrollWidthEdit_      { nullptr }; //!< scroll width edit
+  CQLineEdit*                   scrollHeightEdit_     { nullptr }; //!< scroll height edit
+  CQChartsTextBoxDataEdit*      textBoxEdit_          { nullptr }; //!< text box edit
+  bool                          connected_            { false };   //!< is connected
 };
 
 #endif

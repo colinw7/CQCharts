@@ -89,7 +89,7 @@ class CQChartsColorEdit : public CQChartsEditBase {
   QSpinBox*     indEdit_    { nullptr }; //!< index edit
   CQRealSpin*   valueEdit_  { nullptr }; //!< value edit
   CQColorEdit*  colorEdit_  { nullptr }; //!< color edit
-  CQCheckBox*   scaleCheck_ { nullptr }; //!< scale schec
+  CQCheckBox*   scaleCheck_ { nullptr }; //!< scale check
   bool          connected_  { false };   //!< is connected
 };
 

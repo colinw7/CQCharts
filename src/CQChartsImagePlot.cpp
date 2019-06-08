@@ -746,7 +746,7 @@ draw(QPainter *painter)
 
       //---
 
-      QString valueStr = CQChartsUtil::toString(value_);
+      QString valueStr = CQChartsUtil::formatReal(value_);
 
       CQChartsTextOptions textOptions;
 

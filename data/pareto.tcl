@@ -1,6 +1,6 @@
 set model [load_charts_model -csv data/pareto.csv -comment_header]
 
-process_charts_model -add -header Sum -expr "column(1)+cell(@r-1,@c,0)" -type "real"
+process_charts_model -add -header Sum -expr "column(1)+cell(@r-1,@c,0)" -type {real}
 process_charts_model -add -header Percent -expr "100.0*column(1)/cell(@nr-1,2)" \
   -type {real {format %g%%}}
 

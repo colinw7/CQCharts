@@ -653,9 +653,9 @@ valueStr(const CQChartsPlot *plot, double pos) const
   }
 
   if (isIntegral())
-    return CQChartsUtil::toString(long(pos));
-
-  return CQChartsUtil::toString(pos);
+    return CQChartsUtil::formatInteger(long(pos));
+  else
+    return CQChartsUtil::formatReal(pos);
 }
 
 void

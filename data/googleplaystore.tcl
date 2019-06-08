@@ -1,6 +1,6 @@
 set model [load_charts_model -csv data/googleplaystore.csv -first_line_header]
 
-manage_models_dlg
+show_charts_manage_models_dlg
 
 define_charts_proc fixSize { value } {
   if {"$value" == "Varies with device"} { return "NaN" }

@@ -23,6 +23,7 @@ class CQChartsModelData : public QObject {
   Q_PROPERTY(int     ind            READ ind              WRITE setInd           )
   Q_PROPERTY(QString id             READ id                                      )
   Q_PROPERTY(QString name           READ name             WRITE setName          )
+  Q_PROPERTY(QString fileName       READ fileName         WRITE setFileName      )
   Q_PROPERTY(bool    summaryEnabled READ isSummaryEnabled WRITE setSummaryEnabled)
   Q_PROPERTY(int     currentColumn  READ currentColumn    WRITE setCurrentColumn )
 
@@ -76,6 +77,12 @@ class CQChartsModelData : public QObject {
 
   //---
 
+  // get/set file name
+  const QString &fileName() const { return fileName_; }
+  void setFileName(const QString &s) { fileName_ = s; }
+
+  //---
+
   int currentColumn() const { return currentColumn_; }
   void setCurrentColumn(int i);
 
@@ -117,7 +124,7 @@ class CQChartsModelData : public QObject {
 
   //---
 
-  void write(std::ostream &os) const;
+  void write(std::ostream &os, const QString &varName="") const;
 
   //---
 
@@ -158,6 +165,7 @@ class CQChartsModelData : public QObject {
   int                   ind_              { -1 };      //!< model ind
   QItemSelectionModel*  selectionModel_   { nullptr }; //!< selection model
   QString               name_;                         //!< model name
+  QString               fileName_;                     //!< model file name
   int                   currentColumn_    { -1 };      //!< current column
   CQChartsModelDetails* details_          { nullptr }; //!< model details
 #ifdef CQCHARTS_FOLDED_MODEL

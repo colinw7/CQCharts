@@ -2,12 +2,15 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsFilterModel.h>
+#include <CQChartsVarsModel.h>
+#include <CQChartsExprDataModel.h>
 #include <CQCharts.h>
 
 #include <CQSummaryModel.h>
-#include <CQDataModel.h>
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
+#include <CQJsonModel.h>
+#include <CQGnuDataModel.h>
 #include <CQTclUtil.h>
 
 #ifdef CQCHARTS_FOLDED_MODEL
@@ -456,21 +459,35 @@ addSummaryModel()
 
 void
 CQChartsModelData::
-write(std::ostream &os) const
+write(std::ostream &os, const QString &varName) const
 {
   QAbstractItemModel *model = model_.data();
   if (! model) return;
 
-  os << "set model [load_charts_model ";
+  if (varName != "")
+    os << "set " << varName.toStdString();
+  else
+    os << "set model";
 
-  const CQDataModel *dataModel = CQChartsModelUtil::getDataModel(model);
+  os << " [load_charts_model";
 
-  const CQCsvModel *csvModel = dynamic_cast<const CQCsvModel *>(dataModel);
-  const CQTsvModel *tsvModel = dynamic_cast<const CQTsvModel *>(dataModel);
+  const CQChartsExprModel  *exprModel = CQChartsModelUtil::getExprModel(model);
+  const CQDataModel        *dataModel = CQChartsModelUtil::getDataModel(model);
+  const QAbstractItemModel *baseModel = CQChartsModelUtil::getBaseModel(model);
+
+  const CQChartsVarsModel *varsModel = dynamic_cast<const CQChartsVarsModel *>(dataModel);
+
+  const CQChartsExprDataModel *exprDataModel =
+    dynamic_cast<const CQChartsExprDataModel *>(dataModel);
+
+  const CQCsvModel     *csvModel  = dynamic_cast<const CQCsvModel     *>(dataModel);
+  const CQTsvModel     *tsvModel  = dynamic_cast<const CQTsvModel     *>(dataModel);
+  const CQGnuDataModel *gnuModel  = dynamic_cast<const CQGnuDataModel *>(dataModel);
+  const CQJsonModel    *jsonModel = dynamic_cast<const CQJsonModel    *>(baseModel);
 
   if      (csvModel) {
     if (csvModel->filename().length())
-      os << "-csv {" << csvModel->filename().toStdString() << "}";
+      os << " -csv {" << csvModel->filename().toStdString() << "}";
 
     if (csvModel->isCommentHeader    ()) os << " -comment_header";
     if (csvModel->isFirstLineHeader  ()) os << " -first_line_header";
@@ -478,11 +495,58 @@ write(std::ostream &os) const
   }
   else if (tsvModel) {
     if (tsvModel->filename().length())
-      os << "-tsv {" << tsvModel->filename().toStdString() << "}";
+      os << " -tsv {" << tsvModel->filename().toStdString() << "}";
 
     if (tsvModel->isCommentHeader    ()) os << " -comment_header";
     if (tsvModel->isFirstLineHeader  ()) os << " -first_line_header";
     if (tsvModel->isFirstColumnHeader()) os << " -first_column_header";
+  }
+  else if (jsonModel) {
+    if (jsonModel->filename().length())
+      os << " -json {" << jsonModel->filename().toStdString() << "}";
+  }
+  else if (gnuModel) {
+    if (gnuModel->filename().length())
+      os << " -data {" << gnuModel->filename().toStdString() << "}";
+
+    if (gnuModel->isCommentHeader    ()) os << " -comment_header";
+    if (gnuModel->isFirstLineHeader  ()) os << " -first_line_header";
+    if (gnuModel->isFirstColumnHeader()) os << " -first_column_header";
+  }
+  else if (varsModel) {
+    QStringList varNames = varsModel->varNames();
+
+    os << " -var {";
+
+    for (int i = 0; i < varNames.length(); ++i) {
+      if (i > 0)
+        os << " ";
+
+      os << varNames[i].toStdString();
+    }
+
+    os << "}";
+
+    if (varsModel->isTranspose())
+      os << " -transpose";
+
+    if (varsModel->isFirstColumnHeader())
+      os << " -first_column_header";
+
+    if (varsModel->isFirstLineHeader())
+      os << " -first_line_header";
+  }
+  else if (exprDataModel) {
+    os << " -expr -num_rows " << exprDataModel->n();
+  }
+  else {
+    QString name = model->objectName();
+
+    os << " -model {" << name.toStdString() << "}";
+  }
+
+  if (name() != "") {
+    os << " -name {" << name().toStdString() << "}";
   }
 
   //---
@@ -491,10 +555,14 @@ write(std::ostream &os) const
 
   int nc = details->numColumns();
 
+  int numExtra = 0;
+
+  if (exprModel)
+    numExtra = exprModel->numExtraColumns();
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-  for (int i = 0; i < nc; ++i) {
+  for (int i = 0; i < nc - numExtra; ++i) {
     CQChartsColumn column(i);
 
     CQBaseModelType    columnType;
@@ -504,26 +572,104 @@ write(std::ostream &os) const
     if (! columnTypeMgr->getModelColumnType(model, column, columnType, columnBaseType, nameValues))
       continue;
 
-    os << " -column_type {{";
+    if (columnType != CQBaseModelType::STRING || ! nameValues.nameValues().empty()) {
+      const CQChartsColumnType *columnTypePtr = columnTypeMgr->getType(columnType);
 
-    os << "{" << i << " " << CQBaseModel::typeName(columnType).toStdString() << "}";
+      os << " -column_type {{";
 
-    for (const auto &nv : nameValues.nameValues()) {
-      if (! nv.second.isValid())
-        continue;
+      os << "{" << i << " " << columnTypePtr->name().toStdString() << "}";
 
-      QStringList strs;
+      for (const auto &nv : nameValues.nameValues()) {
+        const QString  &name = nv.first;
+        const QVariant &var  = nv.second;
 
-      strs << nv.first;
-      strs << nv.second.toString();
+        if (! var.isValid())
+          continue;
 
-      os << " {" << CQTcl::mergeList(strs).toStdString() << "}";
+        const CQChartsColumnTypeParam *param = columnTypePtr->getParam(name);
+
+        if (var != param->def()) {
+          QStringList strs;
+
+          strs << name;
+          strs << var.toString();
+
+          os << " {" << CQTcl::mergeList(strs).toStdString() << "}";
+        }
+      }
+
+      os << "}}";
     }
-
-    os << "}}";
   }
 
   os << "]\n";
+
+  //---
+
+  if (exprModel) {
+    int nc = exprModel->columnCount();
+
+    for (int i = nc - exprModel->numExtraColumns(); i < nc; ++i) {
+      CQChartsColumn column(i);
+
+      //---
+
+      QString header, expr;
+
+      exprModel->getExtraColumnDetails(i, header, expr);
+
+      os << "\n";
+
+      os << "process_charts_model -add";
+
+      if (header != "")
+        os << " -header {" << header.toStdString() << "}";
+
+      if (expr != "")
+        os << " -expr {" << expr.toStdString() << "}";
+
+      //---
+
+      CQBaseModelType    columnType;
+      CQBaseModelType    columnBaseType;
+      CQChartsNameValues nameValues;
+
+      if (! columnTypeMgr->getModelColumnType(model, column, columnType, columnBaseType,
+                                              nameValues))
+        continue;
+
+      if (columnType != CQBaseModelType::STRING || ! nameValues.nameValues().empty()) {
+        const CQChartsColumnType *columnTypePtr = columnTypeMgr->getType(columnType);
+
+        os << " -type {";
+
+        os << "{" << columnTypePtr->name().toStdString() << "}";
+
+        for (const auto &nv : nameValues.nameValues()) {
+          const QString  &name = nv.first;
+          const QVariant &var  = nv.second;
+
+          if (! var.isValid())
+            continue;
+
+          const CQChartsColumnTypeParam *param = columnTypePtr->getParam(name);
+
+          if (var != param->def()) {
+            QStringList strs;
+
+            strs << name;
+            strs << var.toString();
+
+            os << " {" << CQTcl::mergeList(strs).toStdString() << "}";
+          }
+        }
+
+        os << "}";
+      }
+
+      os << "\n";
+    }
+  }
 }
 
 QAbstractItemModel *

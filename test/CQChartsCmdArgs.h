@@ -308,7 +308,8 @@ class CQChartsCmdBaseArgs {
 
     //---
 
-    bool help = false;
+    bool help       = false;
+    bool showHidden = false;
 
     while (! eof()) {
       // get next arg
@@ -324,6 +325,12 @@ class CQChartsCmdBaseArgs {
         // flag if help option
         if (opt == "help") {
           help = true;
+          continue;
+        }
+
+        // flag if hidden option
+        if (opt == "hidden") {
+          showHidden = true;
           continue;
         }
 
@@ -560,7 +567,7 @@ class CQChartsCmdBaseArgs {
 
     // if help option specified ignore other options and process help
     if (help) {
-      this->help();
+      this->help(showHidden);
 
       if (! isDebug()) {
         rc = true;
@@ -812,7 +819,7 @@ class CQChartsCmdBaseArgs {
   //---
 
   // display help
-  void help() const {
+  void help(bool showHidden) const {
     using GroupIds = std::set<int>;
 
     GroupIds groupInds;
@@ -820,6 +827,9 @@ class CQChartsCmdBaseArgs {
     std::cerr << cmdName_.toStdString() << "\n";
 
     for (auto &cmdArg : cmdArgs_) {
+      if (! showHidden && cmdArg.isHidden())
+        continue;
+
       int groupInd = cmdArg.groupInd();
 
       if (groupInd > 0) {
@@ -828,7 +838,7 @@ class CQChartsCmdBaseArgs {
         if (p == groupInds.end()) {
           std::cerr << "  ";
 
-          helpGroup(groupInd);
+          helpGroup(groupInd, showHidden);
 
           std::cerr << "\n";
 
@@ -841,7 +851,7 @@ class CQChartsCmdBaseArgs {
         std::cerr << "  ";
 
         if (! cmdArg.isRequired())
-         std::cerr << "[";
+          std::cerr << "[";
 
         helpArg(cmdArg);
 
@@ -856,7 +866,7 @@ class CQChartsCmdBaseArgs {
   }
 
   // display help for group
-  void helpGroup(int groupInd) const {
+  void helpGroup(int groupInd, bool showHidden) const {
     const CQChartsCmdGroup &cmdGroup = cmdGroups_[groupInd - 1];
 
     if (! cmdGroup.isRequired())
@@ -869,6 +879,9 @@ class CQChartsCmdBaseArgs {
     int i = 0;
 
     for (const auto &cmdArg : cmdArgs) {
+      if (! showHidden && cmdArg.isHidden())
+        continue;
+
       if (i > 0)
         std::cerr << "|";
 

@@ -549,7 +549,7 @@ struct CQChartsKeyData {
   CQChartsKeyLocation      location;
   bool                     insideX      { false };
   bool                     insideY      { false };
-  QPointF                  absPosition;
+  QPointF                  absolutePosition;
   double                   hiddenAlpha  { 0.3 };
   int                      maxRows;
   bool                     interactive  { false };

@@ -260,7 +260,9 @@ CQChartsFontEdit(QWidget *parent) :
 
   typeCombo_ = CQUtil::makeWidget<QComboBox>("typeCombo");
 
-  typeCombo_->addItems(QStringList() << "None" << "Font" << "Inherited");
+  typeCombo_->addItems(QStringList() << "Font" << "Inherited");
+
+  typeCombo_->setToolTip("Font value type");
 
   layout->addWidget(typeCombo_);
 
@@ -271,6 +273,8 @@ CQChartsFontEdit(QWidget *parent) :
   QLabel *fontLabel = CQUtil::makeLabelWidget<QLabel>("Font", "fontLabel");
 
   fontEdit_ = CQUtil::makeWidget<CQFontEdit>("fontEdit");
+
+  typeCombo_->setToolTip("Font name");
 
   fontLayout->addWidget(fontLabel);
   fontLayout->addWidget(fontEdit_);
@@ -291,17 +295,23 @@ CQChartsFontEdit(QWidget *parent) :
 
   normalCheck_ = CQUtil::makeWidget<CQCheckBox>("normalCheck");
 
+  normalCheck_->setToolTip("Reset style to normal");
+
   addInheritedWidget("Normal", normalCheck_);
 
   //--
 
   boldCheck_ = CQUtil::makeWidget<CQCheckBox>("boldCheck");
 
+  boldCheck_->setToolTip("Add bold style");
+
   addInheritedWidget("Bold", boldCheck_);
 
   //--
 
   italicCheck_ = CQUtil::makeWidget<CQCheckBox>("italicCheck");
+
+  italicCheck_->setToolTip("Add italic style");
 
   addInheritedWidget("Italic", italicCheck_);
 
@@ -311,11 +321,15 @@ CQChartsFontEdit(QWidget *parent) :
 
   sizeTypeCombo_->addItems(QStringList() << "None" << "Explicit" << "Increment" << "Decrement");
 
+  sizeTypeCombo_->setToolTip("Size modifier type");
+
   addInheritedWidget("Size Type", sizeTypeCombo_);
 
   //--
 
   sizeEdit_ = CQUtil::makeWidget<CQRealSpin>("sizeEdit");
+
+  sizeEdit_->setToolTip("Size value or delat");
 
   addInheritedWidget("Size", sizeEdit_);
 
@@ -389,12 +403,10 @@ fontToWidgets()
 
   if (font_.isValid()) {
     if      (font_.type() == CQChartsFont::Type::FONT) {
-      typeCombo_->setCurrentIndex(1);
-
-      fontEdit_->setFont(font_.font());
+      typeCombo_->setCurrentIndex(0);
     }
     else if (font_.type() == CQChartsFont::Type::INHERITED) {
-      typeCombo_->setCurrentIndex(2);
+      typeCombo_->setCurrentIndex(1);
 
       normalCheck_->setChecked(font_.data().normal);
       boldCheck_  ->setChecked(font_.data().bold  );
@@ -410,9 +422,11 @@ fontToWidgets()
       else if (font_.data().sizeType == CQChartsFont::SizeType::DECREMENT)
         sizeTypeCombo_->setCurrentIndex(3);
     }
+
+    fontEdit_->setFont(font_.font());
   }
   else {
-    typeCombo_->setCurrentIndex(0);
+    typeCombo_->setCurrentIndex(1);
   }
 
   connectSlots(true);
@@ -426,10 +440,10 @@ widgetsToFont()
 
   CQChartsFont font;
 
-  if      (typeInd == 1) {
+  if      (typeInd == 0) {
     font = CQChartsFont(fontEdit_->font());
   }
-  else if (typeInd == 2) {
+  else if (typeInd == 1) {
     CQChartsFont::InheritData inheritData;
 
     inheritData.normal = normalCheck_->isChecked();

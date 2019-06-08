@@ -81,12 +81,12 @@ class CQDataModel : public CQBaseModel {
 
   bool readOnly_ { false };
 
-  Cells       hheader_;                // horizontal header values
-  Cells       vheader_;                // vertical header values
-  Data        data_;                   // row values
-  QString     filter_;                 // filter text
-  bool        filterInited_ { false }; // filter initialized
-  FilterDatas filterDatas_;            // filter datas
+  Cells       hheader_;                //!< horizontal header values
+  Cells       vheader_;                //!< vertical header values
+  Data        data_;                   //!< row values
+  QString     filter_;                 //!< filter text
+  bool        filterInited_ { false }; //!< filter initialized
+  FilterDatas filterDatas_;            //!< filter datas
 };
 
 #endif

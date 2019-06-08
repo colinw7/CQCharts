@@ -788,6 +788,21 @@ getDataModel(QAbstractItemModel *model) {
   return dataModel;
 }
 
+QAbstractItemModel *
+getBaseModel(QAbstractItemModel *model) {
+  QAbstractItemModel *sourceModel = model;
+
+  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(sourceModel);
+
+  while (proxyModel) {
+    sourceModel = proxyModel->sourceModel();
+
+    proxyModel = qobject_cast<QSortFilterProxyModel *>(sourceModel);
+  }
+
+  return sourceModel;
+}
+
 QVariant
 modelMetaValue(const QAbstractItemModel *model, const QString &name)
 {

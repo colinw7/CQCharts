@@ -4,6 +4,8 @@
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsFilterModel.h>
 #include <CQChartsExprModel.h>
+#include <CQChartsVarsModel.h>
+#include <CQChartsExprDataModel.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsColumnType.h>
 #include <CQCharts.h>
@@ -12,7 +14,6 @@
 #include <CQTsvModel.h>
 #include <CQGnuDataModel.h>
 #include <CQJsonModel.h>
-#include <CQDataModel.h>
 
 #include <CQPerfMonitor.h>
 #include <CQTclUtil.h>
@@ -219,19 +220,14 @@ createExprModel(int n)
 {
   CQPerfTrace trace("CQChartsLoader::createExprModel");
 
-  int nc = 1;
-  int nr = n;
-
-  CQDataModel *dataModel = new CQDataModel(nc, nr);
+  CQChartsExprDataModel *dataModel = new CQChartsExprDataModel(n);
 
   QModelIndex parent;
 
-  for (int r = 0; r < nr; ++r) {
-    for (int c = 0; c < nc; ++c) {
-      QModelIndex ind = dataModel->index(r, c, parent);
+  for (int r = 0; r < n; ++r) {
+    QModelIndex ind = dataModel->index(r, 0, parent);
 
-      dataModel->setData(ind, QVariant(r*nc + c));
-    }
+    dataModel->setData(ind, QVariant(r));
   }
 
   CQChartsFilterModel *data = new CQChartsFilterModel(charts_, dataModel);
@@ -250,12 +246,21 @@ createVarsModel(const CQChartsInputData &inputData)
 
   VarColumns varColumns;
 
+  //---
+
   int nv = inputData.vars.size();
+
+  QStringList varNames;
+
+  for (int i = 0; i < nv; ++i)
+    varNames << inputData.vars[i].toString();
+
+  //---
 
   int nr = -1;
 
   if (nv == 1) {
-    QString varName = inputData.vars[0].toString();
+    QString varName = varNames[0];
 
     ColumnValues columnValues;
 
@@ -331,7 +336,7 @@ createVarsModel(const CQChartsInputData &inputData)
   }
   else {
     for (int i = 0; i < nv; ++i) {
-      QString varName = inputData.vars[i].toString();
+      QString varName = varNames[i];
 
       ColumnValues columnValues;
 
@@ -364,9 +369,15 @@ createVarsModel(const CQChartsInputData &inputData)
 
   int nc = varColumns.size();
 
-  CQDataModel *dataModel = new CQDataModel(nc - ic, nr - ir);
+  int nc1 = nc - ic;
+  int nr1 = nr - ir;
 
-  CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, dataModel);
+  if (nc1 < 0 || nr1 < 0)
+    return nullptr;
+
+  CQChartsVarsModel *varsModel = new CQChartsVarsModel(nc1, nr1);
+
+  CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, varsModel);
 
   QModelIndex parent;
 
@@ -374,14 +385,14 @@ createVarsModel(const CQChartsInputData &inputData)
     const ColumnValues &columnValues = varColumns[0];
 
     for (int r = ir; r < nr; ++r)
-      dataModel->setHeaderData(r - ir, Qt::Vertical, columnValues[r]);
+      varsModel->setHeaderData(r - ir, Qt::Vertical, columnValues[r]);
   }
 
   if (inputData.firstLineHeader) {
     for (int c = ic; c < nc; ++c) {
       const ColumnValues &columnValues = varColumns[c];
 
-      dataModel->setHeaderData(c - ic, Qt::Horizontal, columnValues[0]);
+      varsModel->setHeaderData(c - ic, Qt::Horizontal, columnValues[0]);
     }
   }
 
@@ -389,11 +400,17 @@ createVarsModel(const CQChartsInputData &inputData)
     const ColumnValues &columnValues = varColumns[c];
 
     for (int r = ir; r < nr; ++r) {
-      QModelIndex ind = dataModel->index(r - ir, c - ic, parent);
+      QModelIndex ind = varsModel->index(r - ir, c - ic, parent);
 
-      dataModel->setData(ind, columnValues[r]);
+      varsModel->setData(ind, columnValues[r]);
     }
   }
+
+  varsModel->setTranspose        (inputData.transpose);
+  varsModel->setFirstColumnHeader(inputData.firstColumnHeader);
+  varsModel->setFirstLineHeader  (inputData.firstLineHeader);
+
+  varsModel->setVarNames(varNames);
 
   return filterModel;
 }

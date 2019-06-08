@@ -844,6 +844,7 @@ addProperties()
   addProp("gridCells", "gridNumX", "nx", "Number of x grid cells");
   addProp("gridCells", "gridNumY", "ny", "Number of y grid cells");
 
+  addStyleProp     ("gridCells/fill"  , "gridCellFilled" , "visible", "Grid cell fill visible");
   addFillProperties("gridCells/fill"  , "gridCellFill"   , "Grid cell");
   addStyleProp     ("gridCells/stroke", "gridCellStroked", "visible", "Grid cell stroke visible");
   addLineProperties("gridCells/stroke", "gridCellStroke" , "Grid cell");
@@ -3761,7 +3762,7 @@ draw(QPainter *painter)
   plot_->setPenBrush(pen, brush,
     plot_->isGridCellStroked(), pc, plot_->gridCellStrokeAlpha(),
     plot_->gridCellStrokeWidth(), plot_->gridCellStrokeDash(),
-    /*filled*/true, fc, plot_->gridCellFillAlpha(), plot_->gridCellFillPattern());
+    plot_->isGridCellFilled(), fc, plot_->gridCellFillAlpha(), plot_->gridCellFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

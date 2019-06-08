@@ -4,6 +4,7 @@
 #include <CQChartsArrow.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -76,14 +77,33 @@ pathId() const
 
 void
 CQChartsAnnotation::
-writeKeys(std::ostream &os, const QString &cmd) const
+writeKeys(std::ostream &os, const QString &cmd, const QString &parentVarName,
+          const QString &varName) const
 {
-  os << cmd.toStdString();
+  auto parentName = [&]() {
+    if (parentVarName == "") {
+      if      (view())
+        return view()->id();
+      else if (plot())
+        return plot()->id();
+      else
+        return QString("$parent");
+    }
+    else
+      return QString("$") + parentVarName;
+  };
 
-  if      (view())
-    os << " -view " << view()->id().toStdString();
-  else if (plot())
-    os << " -plot " << plot()->id().toStdString();
+  auto annotationName = [&]() {
+    return (varName != "" ? varName : "plot");
+  };
+
+  os << "set " << annotationName().toStdString();
+  os << " [" << cmd.toStdString();
+
+  if      (plot())
+    os << " -plot " << parentName().toStdString();
+  else if (view())
+    os << " -view " << parentName().toStdString();
 
   if (id() != "")
     os << " -id " << id().toStdString();
@@ -92,6 +112,7 @@ writeKeys(std::ostream &os, const QString &cmd) const
     os << " -tip \"" << tipId().toStdString() << "\"";
 }
 
+#if 0
 void
 CQChartsAnnotation::
 writeFill(std::ostream &os) const
@@ -106,7 +127,9 @@ writeFill(std::ostream &os) const
       os << " -fill_alpha " << fillAlpha();
   }
 }
+#endif
 
+#if 0
 void
 CQChartsAnnotation::
 writeStroke(std::ostream &os) const
@@ -125,6 +148,51 @@ writeStroke(std::ostream &os) const
 
     if (! strokeDash().isSolid())
       os << " -stroke_dash " << strokeDash().toString().toStdString();
+  }
+}
+#endif
+
+void
+CQChartsAnnotation::
+writePoints(std::ostream &os, const QPolygonF &polygon) const
+{
+  if (polygon.size()) {
+    os << " -points {";
+
+    for (int i = 0; i < polygon.size(); ++i) {
+      if (i > 0) os << " ";
+
+      const QPointF &p1 = polygon[i];
+
+      os << "{" << p1.x() << " " << p1.y() << "}";
+    }
+
+    os << "}";
+  }
+}
+
+void
+CQChartsAnnotation::
+writeProperties(std::ostream &os, const QString &varName) const
+{
+  CQPropertyViewModel::NameValues nameValues;
+
+  propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
+
+  if (nameValues.empty())
+    return;
+
+  os << "\n";
+
+  for (const auto &nv : nameValues) {
+    QString str;
+
+    if (! CQChartsVariant::toString(nv.second, str))
+      str = "";
+
+    os << "set_charts_property -annotation $" << varName.toStdString();
+
+    os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
   }
 }
 
@@ -765,33 +833,49 @@ draw(QPainter *painter)
 
 void
 CQChartsRectAnnotation::
-write(std::ostream &os) const
+write(std::ostream &os, const QString &parentVarName, const QString &varName) const
 {
-  writeKeys(os, "create_charts_rect_annotation");
+  // -view/-plot -id -tip
+  writeKeys(os, "create_charts_rect_annotation", parentVarName, varName);
 
+#if 0
   if (start().isSet())
     os << " -start {" << start().toString().toStdString() << "}";
 
   if (end().isSet())
     os << " -end {" << end().toString().toStdString() << "}";
+#endif
 
+  if (rect().isSet())
+    os << " -rect {" << rect().toString().toStdString() << "}";
+
+#if 0
   if (margin() != 0.0)
     os << " -margin "  << margin ();
 
   if (padding() != 0.0)
     os << " -padding " << padding();
+#endif
 
+#if 0
   writeFill(os);
 
   writeStroke(os);
+#endif
 
+#if 0
   if (cornerSize().isSet())
     os << " -corner_size " << cornerSize();
 
   if (! borderSides().isAll())
     os << " -border_sides " << borderSides().toString().toStdString();
+#endif
 
-  os << "\n";
+  os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
 }
 
 //---
@@ -982,9 +1066,10 @@ draw(QPainter *painter)
 
 void
 CQChartsEllipseAnnotation::
-write(std::ostream &os) const
+write(std::ostream &os, const QString &parentVarName, const QString &varName) const
 {
-  writeKeys(os, "create_charts_ellipse_annotation");
+  // -view/-plot -id -tip
+  writeKeys(os, "create_charts_ellipse_annotation", parentVarName, varName);
 
   if (center().isSet())
     os << " -center {" << center().toString().toStdString() << "}";
@@ -995,17 +1080,25 @@ write(std::ostream &os) const
   if (yRadius().isSet())
     os << " -ry {" << yRadius().toString().toStdString() << "}";
 
+#if 0
   writeFill(os);
 
   writeStroke(os);
+#endif
 
+#if 0
   if (cornerSize().isSet())
     os << " -corner_size " << cornerSize();
 
   if (! borderSides().isAll())
     os << " -border_sides " << borderSides().toString().toStdString();
+#endif
 
-  os << "\n";
+  os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
 }
 
 //---
@@ -1181,31 +1274,24 @@ draw(QPainter *painter)
 
 void
 CQChartsPolygonAnnotation::
-write(std::ostream &os) const
+write(std::ostream &os, const QString &parentVarName, const QString &varName) const
 {
-  const QPolygonF &polygon = polygon_.polygon();
+  // -view/-plot -id -tip
+  writeKeys(os, "create_charts_polygon_annotation", parentVarName, varName);
 
-  writeKeys(os, "create_charts_polygon_annotation");
+  writePoints(os, polygon_.polygon());
 
-  if (polygon.size()) {
-    os << " -points {";
-
-    for (int i = 0; i < polygon.size(); ++i) {
-      if (i > 0) os << " ";
-
-      const QPointF &p1 = polygon[i];
-
-      os << "{" << p1.x() << " " << p1.y() << "}";
-    }
-
-    os << "}";
-  }
-
+#if 0
   writeFill(os);
 
   writeStroke(os);
+#endif
 
-  os << "\n";
+  os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
 }
 
 //---
@@ -1384,31 +1470,24 @@ draw(QPainter *painter)
 
 void
 CQChartsPolylineAnnotation::
-write(std::ostream &os) const
+write(std::ostream &os, const QString &parentVarName, const QString &varName) const
 {
-  writeKeys(os, "create_charts_polyline_annotation");
+  // -view/-plot -id -tip
+  writeKeys(os, "create_charts_polyline_annotation", parentVarName, varName);
 
-  const QPolygonF &polygon = polygon_.polygon();
+  writePoints(os, polygon_.polygon());
 
-  if (polygon.size()) {
-    os << " -points {";
-
-    for (int i = 0; i < polygon.size(); ++i) {
-      if (i > 0) os << " ";
-
-      const QPointF &p = polygon[i];
-
-      os << "{" << p.x() << " " << p.y() << "}";
-    }
-
-    os << "}";
-  }
-
+#if 0
   writeFill(os);
 
   writeStroke(os);
+#endif
 
-  os << "\n";
+  os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
 }
 
 //---
@@ -1567,8 +1646,9 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   QString textPath = path1 + "/text";
 
+  addProp(textPath, "textStr", "string", "Text string");
+
   addStyleProp(textPath, "textData"     , "style"    , "Text style", true);
-  addStyleProp(textPath, "textStr"      , "string"   , "Text string");
   addStyleProp(textPath, "textColor"    , "color"    , "Text color");
   addStyleProp(textPath, "textAlpha"    , "alpha"    , "Text alpha");
   addStyleProp(textPath, "textFont"     , "font"     , "Text font");
@@ -1618,7 +1698,6 @@ calcTextSize(QSizeF &psize, QSizeF &wsize) const
     wsize = view()->pixelToWindowSize(psize);
   else
     wsize = psize;
-
 }
 
 void
@@ -1878,9 +1957,10 @@ positionToBBox()
 
 void
 CQChartsTextAnnotation::
-write(std::ostream &os) const
+write(std::ostream &os, const QString &parentVarName, const QString &varName) const
 {
-  writeKeys(os, "create_charts_text_annotation");
+  // -view/-plot -id -tip
+  writeKeys(os, "create_charts_text_annotation", parentVarName, varName);
 
   if (rect_.isSet()) {
     if (rectValue().isSet())
@@ -1906,26 +1986,34 @@ write(std::ostream &os) const
   if (textAngle() != 1.0)
     os << " -angle " << textAngle();
 
-  if (textAlign() != (Qt::AlignLeft | Qt::AlignVCenter))
-    os << " -align {" << CQUtil::alignToString(textAlign()).toStdString() << "}";
-
   if (isTextContrast())
     os << " -contrast 1";
+
+  if (textAlign() != (Qt::AlignLeft | Qt::AlignVCenter))
+    os << " -align {" << CQUtil::alignToString(textAlign()).toStdString() << "}";
 
   if (isTextHtml())
     os << " -html";
 
+#if 0
   writeFill(os);
 
   writeStroke(os);
+#endif
 
+#if 0
   if (cornerSize().isSet())
     os << " -corner_size " << cornerSize();
 
   if (! borderSides().isAll())
     os << " -border_sides " << borderSides().toString().toStdString();
+#endif
 
-  os << "\n";
+  os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
 }
 
 //---
@@ -2055,7 +2143,7 @@ getPropertyNames(QStringList &names, bool hidden) const
 
 #if 0
   // can't use objectNames as root is wrong
-  CQPropertyMolde *propertyModel = this->propertyModel();
+  CQPropertyModel *propertyModel = this->propertyModel();
   if (! propertyModel) return;
 
   propertyModel->objectNames(arrow_, names);
@@ -2221,9 +2309,10 @@ draw(QPainter *painter)
 
 void
 CQChartsArrowAnnotation::
-write(std::ostream &os) const
+write(std::ostream &os, const QString &parentVarName, const QString &varName) const
 {
-  writeKeys(os, "create_charts_arrow_annotation");
+  // -view/-plot -id -tip
+  writeKeys(os, "create_charts_arrow_annotation", parentVarName, varName);
 
   if (start().isSet())
     os << " -start {" << start().toString().toStdString() << "}";
@@ -2249,22 +2338,54 @@ write(std::ostream &os) const
   if (arrow()->isLineEnds())
     os << " -line_ends 1";
 
-  if (arrow()->strokeWidth().isSet())
-    os << " -line_width {" << arrow()->strokeWidth().toString().toStdString() << "}";
+  if (arrow()->lineWidth().isSet())
+    os << " -line_width {" << arrow()->lineWidth().toString().toStdString() << "}";
 
+#if 0
   if (arrow()->isFilled())
     os << " -filled 1";
 
   if (arrow()->fillColor().isValid())
     os << " -fill_color {" << arrow()->fillColor().toString().toStdString() << "}";
 
+  if (arrow()->isStroked())
+    os << " -stroked 1";
+
   if (arrow()->strokeColor().isValid())
     os << " -stroke_color {" << arrow()->strokeColor().toString().toStdString() << "}";
 
   if (arrow()->strokeWidth().isValid())
     os << " -stroke_width {" << arrow()->strokeWidth().toString().toStdString() << "}";
+#endif
+
+  os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
+
+  //---
+
+  // write arrow properties
+  CQPropertyViewModel::NameValues nameValues;
+
+  propertyModel()->getChangedNameValues(this, arrow_, nameValues, /*tcl*/true);
+
+  if (nameValues.empty())
+    return;
 
   os << "\n";
+
+  for (const auto &nv : nameValues) {
+    QString str;
+
+    if (! CQChartsVariant::toString(nv.second, str))
+      str = "";
+
+    os << "set_charts_property -annotation $" << varName.toStdString();
+
+    os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
+  }
 }
 
 //---
@@ -2323,23 +2444,25 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   addProp(path1, "position", "", "Point position");
 
-  addProp(path1, "symbolType", "", "Point symbol type");
-  addProp(path1, "symbolSize", "", "Point symbol size");
+  QString symbolPath = path1 + "/symbol";
+
+  addProp(symbolPath, "symbolType", "type", "Point symbol type");
+  addProp(symbolPath, "symbolSize", "size", "Point symbol size");
 
   QString fillPath = path1 + "/fill";
 
-  addStyleProp(path1, "symbolFilled"     , "visible", "Point symbol fill visible");
-  addStyleProp(path1, "symbolFillColor"  , "color"  , "Point symbol fill color");
-  addStyleProp(path1, "symbolFillAlpha"  , "alpha"  , "Point symbol fill alpha");
-  addStyleProp(path1, "symbolFillPattern", "pattern", "Point symbol fill pattern", true);
+  addStyleProp(fillPath, "symbolFilled"     , "visible", "Point symbol fill visible");
+  addStyleProp(fillPath, "symbolFillColor"  , "color"  , "Point symbol fill color");
+  addStyleProp(fillPath, "symbolFillAlpha"  , "alpha"  , "Point symbol fill alpha");
+  addStyleProp(fillPath, "symbolFillPattern", "pattern", "Point symbol fill pattern", true);
 
   QString strokePath = path1 + "/stroke";
 
-  addStyleProp(path1, "symbolStroked"    , "visible", "Point symbol stroke visible");
-  addStyleProp(path1, "symbolStrokeColor", "color"  , "Point symbol stroke color");
-  addStyleProp(path1, "symbolStrokeAlpha", "alpha"  , "Point symbol stroke alpha");
-  addStyleProp(path1, "symbolStrokeWidth", "width"  , "Point symbol stroke width");
-  addStyleProp(path1, "symbolStrokeDash" , "dash"   , "Point symbol stroke dash");
+  addStyleProp(strokePath, "symbolStroked"    , "visible", "Point symbol stroke visible");
+  addStyleProp(strokePath, "symbolStrokeColor", "color"  , "Point symbol stroke color");
+  addStyleProp(strokePath, "symbolStrokeAlpha", "alpha"  , "Point symbol stroke alpha");
+  addStyleProp(strokePath, "symbolStrokeWidth", "width"  , "Point symbol stroke width");
+  addStyleProp(strokePath, "symbolStrokeDash" , "dash"   , "Point symbol stroke dash");
 }
 
 QString
@@ -2502,9 +2625,10 @@ draw(QPainter *painter)
 
 void
 CQChartsPointAnnotation::
-write(std::ostream &os) const
+write(std::ostream &os, const QString &parentVarName, const QString &varName) const
 {
-  writeKeys(os, "create_charts_point_annotation");
+  // -view/-plot -id -tip
+  writeKeys(os, "create_charts_point_annotation", parentVarName, varName);
 
   const CQChartsSymbolData &symbolData = this->symbolData();
 
@@ -2538,5 +2662,9 @@ write(std::ostream &os) const
   if (strokeWidth().isSet())
     os << " -stroke_width {" << strokeWidth().toString().toStdString() << "}";
 
-  os << "\n";
+  os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
 }

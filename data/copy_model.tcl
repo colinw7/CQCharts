@@ -8,4 +8,4 @@ filter_charts_model -model $model  -expr {$Sex=="Female"}
 
 set model2 [copy_model -model $model]
 
-manage_models_dlg
+show_charts_manage_models_dlg

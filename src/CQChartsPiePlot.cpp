@@ -30,14 +30,14 @@ addParameters()
   addColumnsParameter("value", "Value", "valueColumns").
     setRequired().setNumeric().setTip("Value column(s)");
 
-  addColumnParameter("labels", "Labels", "labelColumn").
-    setString().setTip("Custom labels column");
+  addColumnParameter("label", "Label", "labelColumn").
+    setString().setTip("Custom label column");
 
   addColumnParameter("radius", "Radius", "radiusColumn").
     setNumeric().setTip("Custom radius column");
 
   addColumnParameter("keyLabels", "Key Labels", "keyLabelColumn").
-    setString().setTip("Custom key labels column");
+    setString().setTip("Custom key label column");
 
   addBoolParameter("donut", "Donut", "donut").setTip("Draw donut");
   addBoolParameter("count", "Count", "count").setTip("Display value counts");
@@ -235,9 +235,9 @@ addProperties()
 
   // columns
   addProp("columns", "valueColumns"  , "values"   , "Value columns");
-  addProp("columns", "labelColumn"   , "labels"   , "Labels column");
+  addProp("columns", "labelColumn"   , "label"    , "Label column");
   addProp("columns", "radiusColumn"  , "radius"   , "Radius column");
-  addProp("columns", "keyLabelColumn", "keyLabels", "Key labels column");
+  addProp("columns", "keyLabelColumn", "keyLabels", "Key label column");
 
   CQChartsGroupPlot::addProperties();
 
@@ -269,12 +269,12 @@ addProperties()
   addProp("explode", "explodeRadius"  , "radius"  , "Explode radius");
 
   // labels
-  addProp("labels", "textVisible", "visible", "Labels visible");
+  //addProp("labels", "textVisible", "visible", "Labels visible");
 
   addProp("labels", "labelRadius", "radius" , "Radius labels are drawn at");
   addProp("labels", "rotatedText", "rotated", "Labels text is rotated to segment angle");
 
-  textBox_->addTextDataProperties(propertyModel(), "labels", "Labels");
+  textBox_->addTextDataProperties(propertyModel(), "labels", "Labels", /*addVisible*/true);
 
   QString labelBoxPath = "labels/box";
 

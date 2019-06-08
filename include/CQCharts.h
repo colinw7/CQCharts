@@ -195,6 +195,8 @@ class CQCharts : public QObject {
 
   void setModelName(CQChartsModelData *modelData, const QString &name);
 
+  void setModelFileName(CQChartsModelData *modelData, const QString &fileName);
+
   //---
 
   CQChartsView *addView(const QString &id="");

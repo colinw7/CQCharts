@@ -80,8 +80,8 @@ CQChartsTitleEdit(QWidget *parent, CQChartsTitle *title) :
 
   data_.visible    = title->isVisible();
   data_.location   = title->location();
-  data_.position   = title->absPosition();
-  data_.rect       = title->absRect();
+  data_.position   = title->absolutePosition();
+  data_.rect       = title->absoluteRectangle();
   data_.insidePlot = title->isInsidePlot();
   data_.textData   = title->textData();
 
@@ -221,10 +221,10 @@ void
 CQChartsTitleEdit::
 applyData()
 {
-  title_->setVisible    (data_.visible);
-  title_->setLocation   (data_.location);
-  title_->setAbsPosition(data_.position);
-  title_->setAbsRect    (data_.rect);
-  title_->setInsidePlot (data_.insidePlot);
-  title_->setTextData   (data_.textData);
+  title_->setVisible          (data_.visible);
+  title_->setLocation         (data_.location);
+  title_->setAbsolutePosition (data_.position);
+  title_->setAbsoluteRectangle(data_.rect);
+  title_->setInsidePlot       (data_.insidePlot);
+  title_->setTextData         (data_.textData);
 }

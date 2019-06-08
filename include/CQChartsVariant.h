@@ -19,10 +19,10 @@ inline bool toString(const QVariant &var, QString &str) {
     str = var.toString();
   }
   else if (var.type() == QVariant::Double) {
-    str = CQChartsUtil::toString(var.toDouble());
+    str = CQChartsUtil::formatReal(var.toDouble());
   }
   else if (var.type() == QVariant::Int) {
-    str = CQChartsUtil::toString((long) var.toInt());
+    str = CQChartsUtil::formatInteger((long) var.toInt());
   }
   else if (var.type() == QVariant::PointF) {
     QPointF point = var.value<QPointF>();

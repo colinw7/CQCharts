@@ -285,7 +285,7 @@ addProperties()
   addStyleProp("inside/highlight/stroke", "insideStrokeDash" , "dash"   , "Inside stroke dash");
 
   // status
-  addStyleProp("status", "posTextType", "posTextType", "Position text type", true);
+  addProp("status", "posTextType", "posTextType", "Position text type")->setHidden(true);
 
   // TODO: remove or make more general
   addProp("scroll", "scrolled"      , "enabled" , "Scrolling enabled"     )->setHidden(true);
@@ -1770,7 +1770,7 @@ mousePressEvent(QMouseEvent *me)
 
   mouseData_.reset();
 
-  mouseData_.pressPoint = me->pos();
+  mouseData_.pressPoint = adjustMousePos(me->pos());
   mouseData_.button     = me->button();
   mouseData_.pressed    = true;
   mouseData_.movePoint  = mouseData_.pressPoint;
@@ -1825,7 +1825,7 @@ mouseMoveEvent(QMouseEvent *me)
 
   QPointF oldMovePoint = mouseData_.movePoint;
 
-  mouseData_.movePoint = me->pos();
+  mouseData_.movePoint = adjustMousePos(me->pos());
 
   // select mode and move (not pressed) - update plot positions
   if (mode() == Mode::SELECT && ! mouseData_.pressed) {
@@ -1948,7 +1948,7 @@ mouseReleaseEvent(QMouseEvent *me)
 
 //QPointF oldMovePoint = mouseData_.movePoint;
 
-  mouseData_.movePoint = me->pos();
+  mouseData_.movePoint = adjustMousePos(me->pos());
 
   CQChartsScopeGuard resetMouseData([&]() { mouseData_.reset(); });
 
@@ -2028,6 +2028,13 @@ mouseReleaseEvent(QMouseEvent *me)
   }
   else if (mouseData_.button == Qt::RightButton) {
   }
+}
+
+QPoint
+CQChartsView::
+adjustMousePos(const QPoint &pos) const
+{
+  return QPoint(pos.x() + sizeData_.xpos, pos.y() + sizeData_.ypos);
 }
 
 //------
@@ -2991,6 +2998,8 @@ showMenu(const QPoint &p)
   addGroupCheckAction(modeActionGroup, "Query", mode() == Mode::QUERY, SLOT(queryModeSlot()));
   addGroupCheckAction(modeActionGroup, "Edit" , mode() == Mode::EDIT , SLOT(editModeSlot()));
 
+  modeActionGroup->setExclusive(true);
+
   modeMenu->addActions(modeActionGroup->actions());
 
   //---
@@ -3053,7 +3062,7 @@ showMenu(const QPoint &p)
     addKeyLocationGroupAction("Bottom Center"    , CQChartsKeyLocation::Type::BOTTOM_CENTER);
     addKeyLocationGroupAction("Bottom Right"     , CQChartsKeyLocation::Type::BOTTOM_RIGHT );
     addKeyLocationGroupAction("Absolute Position", CQChartsKeyLocation::Type::ABS_POSITION );
-    addKeyLocationGroupAction("Absolute Rect"    , CQChartsKeyLocation::Type::ABS_RECT      );
+    addKeyLocationGroupAction("Absolute Rect"    , CQChartsKeyLocation::Type::ABS_RECT     );
 
     keyLocationActionGroup->setExclusive(true);
 
@@ -4328,9 +4337,10 @@ write(std::ostream &os) const
 
   CQPropertyViewModel::NameValues nameValues;
 
-  propertyModel()->getChangedNameValues(this, nameValues);
+  propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
 
-  QString propertiesStr;
+  if (nameValues.size())
+    os << "\n";
 
   for (const auto &nv : nameValues) {
     QString str;

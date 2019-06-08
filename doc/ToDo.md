@@ -429,18 +429,11 @@ Interactivity
 
 Parameters
  + Description
+ + Link to property
 
 Optimization
  + Get more data direct from model instead of cached
  + Use H Tree (V Tree) for bars and other ordered data structures
-
-Gradient Palette
- + Probe show color value at vertical line and on gradient
- + Interp vertical graph, horizontal gradient
- + Interp show RGB values
- + Min/Max, Negate controls on non-model data ?
- + Support indexed palette (1-N colors) with different color values
-   + Interp or index select with wrap
 
 Data Processing
  + Sources

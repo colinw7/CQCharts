@@ -208,14 +208,14 @@ class CQChartsViewKey : public CQChartsKey {
 class CQChartsPlotKey : public CQChartsKey {
   Q_OBJECT
 
-  Q_PROPERTY(bool              flipped      READ isFlipped    WRITE setFlipped     )
-  Q_PROPERTY(bool              insideX      READ isInsideX    WRITE setInsideX     )
-  Q_PROPERTY(bool              insideY      READ isInsideY    WRITE setInsideY     )
-  Q_PROPERTY(QPointF           absPosition  READ absPosition  WRITE setAbsPosition )
-  Q_PROPERTY(QRectF            absRect      READ absRect      WRITE setAbsRect     )
-  Q_PROPERTY(int               spacing      READ spacing      WRITE setSpacing     )
-  Q_PROPERTY(CQChartsOptLength scrollWidth  READ scrollWidth  WRITE setScrollWidth )
-  Q_PROPERTY(CQChartsOptLength scrollHeight READ scrollHeight WRITE setScrollHeight)
+  Q_PROPERTY(bool              flipped           READ isFlipped         WRITE setFlipped          )
+  Q_PROPERTY(bool              insideX           READ isInsideX         WRITE setInsideX          )
+  Q_PROPERTY(bool              insideY           READ isInsideY         WRITE setInsideY          )
+  Q_PROPERTY(QPointF           absolutePosition  READ absolutePosition  WRITE setAbsolutePosition )
+  Q_PROPERTY(QRectF            absoluteRectangle READ absoluteRectangle WRITE setAbsoluteRectangle)
+  Q_PROPERTY(int               spacing           READ spacing           WRITE setSpacing          )
+  Q_PROPERTY(CQChartsOptLength scrollWidth       READ scrollWidth       WRITE setScrollWidth      )
+  Q_PROPERTY(CQChartsOptLength scrollHeight      READ scrollHeight      WRITE setScrollHeight     )
 
  public:
   CQChartsPlotKey(CQChartsPlot *plot);
@@ -252,12 +252,14 @@ class CQChartsPlotKey : public CQChartsKey {
   //---
 
   // absolute position
-  const QPointF &absPosition() const { return locationData_.absPosition; }
-  void setAbsPosition(const QPointF &p) { locationData_.absPosition = p; updatePosition(); }
+  const QPointF &absolutePosition() const { return locationData_.absolutePosition; }
+  void setAbsolutePosition(const QPointF &p) {
+    locationData_.absolutePosition = p; updatePosition(); }
 
   // absolute rect
-  const QRectF &absRect() const { return locationData_.absRect; }
-  void setAbsRect(const QRectF &r) { locationData_.absRect = r; updatePosition(); }
+  const QRectF &absoluteRectangle() const { return locationData_.absoluteRectangle; }
+  void setAbsoluteRectangle(const QRectF &r) {
+    locationData_.absoluteRectangle = r; updatePosition(); }
 
   //---
 
@@ -305,11 +307,11 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  QPointF absPlotPosition() const;
-  void setAbsPlotPosition(const QPointF &p);
+  QPointF absolutePlotPosition() const;
+  void setAbsolutePlotPosition(const QPointF &p);
 
-  QRectF absPlotRect() const;
-  void setAbsPlotRect(const QRectF &p);
+  QRectF absolutePlotRect() const;
+  void setAbsolutePlotRect(const QRectF &p);
 
   //---
 
@@ -385,10 +387,10 @@ class CQChartsPlotKey : public CQChartsKey {
   };
 
   struct Location {
-    QPointF absPosition;          //!< absolute position
-    QRectF  absRect;              //!< absolute rect
-    bool    insideX     { true }; //!< inside plot in x
-    bool    insideY     { true }; //!< inside plot in y
+    QPointF absolutePosition;           //!< absolute position
+    QRectF  absoluteRectangle;          //!< absolute rectangle
+    bool    insideX           { true }; //!< inside plot in x
+    bool    insideY           { true }; //!< inside plot in y
   };
 
   // layout data (all data in window units)

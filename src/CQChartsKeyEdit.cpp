@@ -100,13 +100,13 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   CQChartsPlotKey *plotKey = dynamic_cast<CQChartsPlotKey *>(key_);
 
   if (plotKey) {
-    data_.flipped      = plotKey->isFlipped();
-    data_.insideX      = plotKey->isInsideX();
-    data_.insideY      = plotKey->isInsideY();
-    data_.absPosition  = plotKey->absPosition();
-    data_.spacing      = plotKey->spacing();
-    data_.scrollWidth  = plotKey->scrollWidth();
-    data_.scrollHeight = plotKey->scrollHeight();
+    data_.flipped          = plotKey->isFlipped();
+    data_.insideX          = plotKey->isInsideX();
+    data_.insideY          = plotKey->isInsideY();
+    data_.absolutePosition = plotKey->absolutePosition();
+    data_.spacing          = plotKey->spacing();
+    data_.scrollWidth      = plotKey->scrollWidth();
+    data_.scrollHeight     = plotKey->scrollHeight();
   }
 
   data_.textBoxData.setText(key_->textData());
@@ -221,13 +221,13 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   //--
 
   if (plotKey) {
-    // absPosition
-    absPositionEdit_ = CQUtil::makeWidget<CQPoint2DEdit>("absPositionEdit");
+    // absolutePosition
+    absolutePositionEdit_ = CQUtil::makeWidget<CQPoint2DEdit>("absolutePositionEdit");
 
-    absPositionEdit_->setValue(data_.absPosition);
+    absolutePositionEdit_->setValue(data_.absolutePosition);
 
     CQChartsWidgetUtil::addGridLabelWidget(placementGroupLayout, "Abs Position",
-                                           absPositionEdit_, placementRow);
+                                           absolutePositionEdit_, placementRow);
   }
 
   //----
@@ -383,7 +383,7 @@ connectSlots(bool b)
   connectDisconnect(b, headerTextDataEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
 
   if (plotKey) {
-    connectDisconnect(b, absPositionEdit_, SIGNAL(valueChanged()), SLOT(widgetsToData()));
+    connectDisconnect(b, absolutePositionEdit_, SIGNAL(valueChanged()), SLOT(widgetsToData()));
     connectDisconnect(b, insideXEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
     connectDisconnect(b, insideYEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
     connectDisconnect(b, spacingEdit_, SIGNAL(valueChanged(int)), SLOT(widgetsToData()));
@@ -418,13 +418,13 @@ dataToWidgets()
   headerTextDataEdit_->setData(data_.headerTextData);
 
   if (plotKey) {
-    absPositionEdit_ ->setValue(data_.absPosition);
-    insideXEdit_     ->setChecked(data_.insideX);
-    insideYEdit_     ->setChecked(data_.insideY);
-    spacingEdit_     ->setValue(data_.spacing);
-    flippedEdit_     ->setChecked(data_.flipped);
-    scrollWidthEdit_ ->setText(data_.scrollWidth.toString());
-    scrollHeightEdit_->setText(data_.scrollHeight.toString());
+    absolutePositionEdit_->setValue(data_.absolutePosition);
+    insideXEdit_         ->setChecked(data_.insideX);
+    insideYEdit_         ->setChecked(data_.insideY);
+    spacingEdit_         ->setValue(data_.spacing);
+    flippedEdit_         ->setChecked(data_.flipped);
+    scrollWidthEdit_     ->setText(data_.scrollWidth.toString());
+    scrollHeightEdit_    ->setText(data_.scrollHeight.toString());
   }
 
   textBoxEdit_->setData(data_.textBoxData);
@@ -452,7 +452,7 @@ widgetsToData()
   data_.headerTextData = headerTextDataEdit_->data();
 
   if (plotKey) {
-    data_.absPosition  = absPositionEdit_->getQValue();
+    data_.absolutePosition  = absolutePositionEdit_->getQValue();
     data_.insideX      = insideXEdit_->isChecked();
     data_.insideY      = insideYEdit_->isChecked();
     data_.spacing      = spacingEdit_->value();
@@ -487,13 +487,13 @@ applyData()
   key_->setHeaderTextData(data_.headerTextData);
 
   if (plotKey) {
-    plotKey->setAbsPosition (data_.absPosition);
-    plotKey->setInsideX     (data_.insideX);
-    plotKey->setInsideY     (data_.insideY);
-    plotKey->setSpacing     (data_.spacing);
-    plotKey->setFlipped     (data_.flipped);
-    plotKey->setScrollWidth (data_.scrollWidth);
-    plotKey->setScrollHeight(data_.scrollHeight);
+    plotKey->setAbsolutePosition(data_.absolutePosition);
+    plotKey->setInsideX         (data_.insideX);
+    plotKey->setInsideY         (data_.insideY);
+    plotKey->setSpacing         (data_.spacing);
+    plotKey->setFlipped         (data_.flipped);
+    plotKey->setScrollWidth     (data_.scrollWidth);
+    plotKey->setScrollHeight    (data_.scrollHeight);
   }
 
   key_->setTextData(data_.textBoxData.text());

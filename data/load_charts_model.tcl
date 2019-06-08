@@ -25,4 +25,4 @@ set nc [get_charts_data -model $model3 -name num_columns]
 assert {$nr == 53940}
 assert {$nc == 3}
 
-#manage_models_dlg
+#show_charts_manage_models_dlg

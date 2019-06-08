@@ -478,6 +478,8 @@ class CQChartsView : public QFrame,
 
   void keyPressEvent(QKeyEvent *ke) override;
 
+  QPoint adjustMousePos(const QPoint &pos) const;
+
   //---
 
   // handle resize

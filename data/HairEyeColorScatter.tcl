@@ -9,4 +9,4 @@ set plot2 [create_charts_plot -model $model -type scatter \
 
 place_charts_plots -horizontal [list $plot1 $plot2]
 
-#manage_models_dlg
+#show_charts_manage_models_dlg

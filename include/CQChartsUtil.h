@@ -34,8 +34,9 @@ long toInt(const char *str, bool &ok, const char **rstr);
 
 //------
 
-QString toString(double r, const QString &fmt="%g" );
-QString toString(long   i, const QString &fmt="%ld");
+QString formatVar    (const QVariant &var, const QString &fmt);
+QString formatReal   (double r, const QString &fmt="%g" );
+QString formatInteger(long   i, const QString &fmt="%ld");
 
 //------
 

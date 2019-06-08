@@ -13,9 +13,9 @@ set tranposeModel [create_charts_transpose_model -model $scaleModel]
 
 set plot [create_charts_plot -model $corrModel -type image]
 
-set_charts_property -plot $plot -name labels.x.visible -value 1
-set_charts_property -plot $plot -name labels.y.visible -value 1
+set_charts_property -plot $plot -name xaxis.text.visible -value 1
+set_charts_property -plot $plot -name yaxis.text.visible -value 1
 
-manage_models_dlg
+show_charts_manage_models_dlg
 
 #set plot [create_charts_plot -type xy -columns {{group 0} {x 1} {y 2}} -title "Group XY Plot"]

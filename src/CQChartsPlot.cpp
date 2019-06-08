@@ -493,19 +493,23 @@ setUpdatesEnabled(bool b, bool update)
 
     if (isUpdatesEnabled()) {
       if (update) {
+        // calc range and objs
         if      (updatesData_.updateRangeAndObjs) {
           updateRangeAndObjs();
 
           drawObjs();
         }
+        // calc objs
         else if (updatesData_.updateObjs) {
           updateObjs();
 
           drawObjs();
         }
+        // apply range
         else if (updatesData_.applyDataRange) {
           applyDataRangeAndDraw();
         }
+        // draw objs
         else if (updatesData_.invalidateLayers) {
           drawObjs();
         }
@@ -948,9 +952,9 @@ setFont(const CQChartsFont &f)
 
 void
 CQChartsPlot::
-setDefaultPalette(const QString &s)
+setDefaultPalette(const QString &name)
 {
-  CQChartsUtil::testAndSet(defaultPalette_, s, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(defaultPalette_, name, [&]() { drawObjs(); } );
 }
 
 //---
@@ -1826,8 +1830,8 @@ void
 CQChartsPlot::
 addAllTextProperties(const QString &path, const QString &prefix, const QString &descPrefix)
 {
-  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
-                     const QString &desc) {
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc) {
     CQPropertyViewItem *item = this->addProperty(path, this, name, alias);
     item->setDesc(desc);
     CQCharts::setItemIsStyle(item);
@@ -1840,9 +1844,9 @@ addAllTextProperties(const QString &path, const QString &prefix, const QString &
 
   QString prefix1 = (descPrefix.length() ? descPrefix + " text" : "Text");
 
-  addProp(path, prefix + "Align"    , "align"    , prefix1 + " align");
-  addProp(path, prefix + "Formatted", "formatted", prefix1 + " formatted to fit box");
-  addProp(path, prefix + "Scaled"   , "scaled"   , prefix1 + " scaled to box");
+  addStyleProp(path, prefix + "Align"    , "align"    , prefix1 + " align");
+  addStyleProp(path, prefix + "Formatted", "formatted", prefix1 + " formatted to fit box");
+  addStyleProp(path, prefix + "Scaled"   , "scaled"   , prefix1 + " scaled to box");
 }
 
 void
@@ -4985,7 +4989,7 @@ xStr(double x) const
   if (xValueColumn().isValid())
     return columnStr(xValueColumn(), x);
   else
-    return CQChartsUtil::toString(x);
+    return CQChartsUtil::formatReal(x);
 }
 
 QString
@@ -4998,7 +5002,7 @@ yStr(double y) const
   if (yValueColumn().isValid())
     return columnStr(yValueColumn(), y);
   else
-    return CQChartsUtil::toString(y);
+    return CQChartsUtil::formatReal(y);
 }
 
 QString
@@ -5006,17 +5010,17 @@ CQChartsPlot::
 columnStr(const CQChartsColumn &column, double x) const
 {
   if (! column.isValid())
-    return CQChartsUtil::toString(x);
+    return CQChartsUtil::formatReal(x);
 
   QAbstractItemModel *model = this->model().data();
 
   if (! model)
-    return CQChartsUtil::toString(x);
+    return CQChartsUtil::formatReal(x);
 
   QString str;
 
   if (! CQChartsModelUtil::formatColumnValue(charts(), model, column, x, str))
-    return CQChartsUtil::toString(x);
+    return CQChartsUtil::formatReal(x);
 
   return str;
 }
@@ -10228,16 +10232,27 @@ getParameter(CQChartsPlotParameter *param, QVariant &value) const
 
 void
 CQChartsPlot::
-write(std::ostream &os) const
+write(std::ostream &os, const QString &varName, const QString &modelVarName) const
 {
+  auto plotName = [&]() {
+    return (varName != "" ? varName : "plot");
+  };
+
+  auto modelName = [&]() {
+    return (modelVarName != "" ? modelVarName : "model");
+  };
+
   //CQChartsModelData *modelData = getModelData();
 
-  os << "set plot [create_charts_plot -model $model -type " << type_->name().toStdString();
+  os << "set " << plotName().toStdString();
+  os << " [create_charts_plot -model $" << modelName().toStdString() <<
+        " -type " << type_->name().toStdString();
 
   //---
 
-  // add columns, parameters
-  QStringList columnsStrs, parametersStrs;
+  // add columns
+  QStringList columnsStrs;
+//QStringList parametersStrs;
 
   for (const auto &param : type()->parameters()) {
     QString defStr;
@@ -10266,19 +10281,23 @@ write(std::ostream &os) const
         param->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
       columnsStrs += "{" + CQTcl::mergeList(strs1) + "}";
     }
+#if 0
     else {
       parametersStrs += "{" + CQTcl::mergeList(strs1) + "}";
     }
+#endif
   }
 
   if (columnsStrs.length())
     os << " -columns {" << columnsStrs.join(" ").toStdString() + "}";
 
+#if 0
   for (int i = 0; i < parametersStrs.length(); ++i)
     os << " -parameter " << parametersStrs[i].toStdString();
+#endif
 
-   if (titleStr() != "")
-     os << " -title {" << titleStr().toStdString() + "}";
+  if (titleStr() != "")
+    os << " -title {" << titleStr().toStdString() + "}";
 
   //---
 
@@ -10288,7 +10307,10 @@ write(std::ostream &os) const
 
   CQPropertyViewModel::NameValues nameValues;
 
-  propertyModel()->getChangedNameValues(this, nameValues);
+  propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
+
+  if (! nameValues.empty())
+    os << "\n";
 
   for (const auto &nv : nameValues) {
     QString str;
@@ -10296,8 +10318,9 @@ write(std::ostream &os) const
     if (! CQChartsVariant::toString(nv.second, str))
       str = "";
 
-    os << "set_charts_property -plot $plot -name " << nv.first.toStdString() <<
-          " -value {" << str.toStdString() << "}\n";
+    os << "set_charts_property -plot $" << plotName().toStdString();
+
+    os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
   }
 }
 

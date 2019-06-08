@@ -32,7 +32,8 @@ CQChartsLineEditBase(QWidget *parent) :
 
   edit_ = new CQChartsLineEditEdit(this);
 
-  connect(edit_, SIGNAL(textChanged(const QString &)), this, SLOT(textChangedSlot()));
+//connect(edit_, SIGNAL(textChanged(const QString &)), this, SLOT(textChangedSlot()));
+  connect(edit_, SIGNAL(editingFinished()), this, SLOT(textChangedSlot()));
 
   layout_->addWidget(edit_);
 
@@ -189,8 +190,8 @@ connectSlots(bool b)
       disconnect(w, from, this, to);
   };
 
-  connectDisconnect(b, edit_, SIGNAL(textChanged(const QString &)),
-                    SLOT(textChangedSlot()));
+//connectDisconnect(b, edit_, SIGNAL(textChanged(const QString &)), SLOT(textChangedSlot()));
+  connectDisconnect(b, edit_, SIGNAL(editingFinished()), SLOT(textChangedSlot()));
 }
 
 void

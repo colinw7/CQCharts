@@ -739,7 +739,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   QString format;
 
   if (! CQChartsColumnUtil::nameValueString(nameValues, "format", format))
-    return CQChartsUtil::toString(r);
+    return CQChartsUtil::formatReal(r);
 
   //---
 
@@ -752,7 +752,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   //---
 
   // convert value using format
-  return CQChartsUtil::toString(r, format);
+  return CQChartsUtil::formatVar(var, format);
 }
 
 QVariant
@@ -867,12 +867,12 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   QString format;
 
   if (! CQChartsColumnUtil::nameValueString(nameValues, "format", format))
-    return CQChartsUtil::toString(l);
+    return CQChartsUtil::formatInteger(l);
 
   //---
 
   // convert value using format
-  return CQChartsUtil::toString(l, format);
+  return CQChartsUtil::formatVar(var, format);
 }
 
 //------
@@ -936,7 +936,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   QString fmt = getOFormat(nameValues);
 
   if (! fmt.length())
-    return CQChartsUtil::toString(t);
+    return CQChartsUtil::formatReal(t);
 
   return CQChartsUtil::timeToString(fmt, t);
 }
@@ -1780,7 +1780,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   //---
 
-  return CQChartsUtil::toString(r);
+  return CQChartsUtil::formatReal(r);
 }
 
 bool
@@ -1904,7 +1904,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   //---
 
-  return CQChartsUtil::toString(r);
+  return CQChartsUtil::formatReal(r);
 }
 
 bool

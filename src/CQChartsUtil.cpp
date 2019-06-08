@@ -9,6 +9,7 @@
 #include <CQUtil.h>
 #include <CQStrUtil.h>
 #include <CQStrParse.h>
+#include <CPrintF.h>
 
 #include <QPainter>
 #include <QFontMetricsF>
@@ -45,7 +46,74 @@ long toInt(const char *str, bool &ok, const char **rstr) {
   return CQStrUtil::toInt(str, ok, rstr);
 }
 
-QString toString(double r, const QString &fmt) {
+//---
+
+QString toString(const std::vector<CQChartsColumn> &columns) {
+  QString str;
+
+  for (std::size_t i = 0; i < columns.size(); ++i) {
+    if (str.length())
+      str += " ";
+
+    str += QString("%1").arg(columns[i].toString());
+  }
+
+  return str;
+}
+
+bool fromString(const QString &str, std::vector<CQChartsColumn> &columns) {
+  bool ok = true;
+
+  columns.clear();
+
+  QStringList strs = str.split(" ", QString::SkipEmptyParts);
+
+  for (int i = 0; i < strs.size(); ++i) {
+    bool ok1;
+
+    long col = toInt(strs[i], ok1);
+
+    if (ok1)
+      columns.push_back(col);
+    else
+      ok = false;
+  }
+
+  return ok;
+}
+
+//------
+
+QString formatVar(const QVariant &var, const QString &fmt) {
+  class VarPrintF : public CPrintF {
+   public:
+    VarPrintF(const QVariant &var, const QString &fmt) :
+     CPrintF(fmt.toStdString()), var_(var) {
+    }
+
+    int   getInt     () const { bool ok; return var_.toInt(&ok); }
+    long  getLong    () const { bool ok; return var_.toInt(&ok); }
+    LLong getLongLong() const { bool ok; return var_.toInt(&ok); }
+
+    double getDouble() const {
+      bool ok;
+      double r = var_.toDouble(&ok);
+      if (CMathUtil::isZero(r)) r = 0.0;
+      return r;
+    }
+
+    std::string getString() const { return var_.toString().toStdString(); }
+
+   private:
+    QVariant var_;
+  };
+
+  VarPrintF p(var, fmt);
+
+  return p.format().c_str();
+}
+
+QString formatReal(double r, const QString &fmt) {
 #ifdef ALLOW_NAN
   if (COS::is_nan(real))
     return "NaN";
@@ -56,6 +124,7 @@ QString toString(double r, const QString &fmt) {
 
   static char buffer[128];
 
+#if 0
   if (fmt == "%T") {
     // format real in buffer
     bool negative = (r < 0);
@@ -104,56 +173,20 @@ QString toString(double r, const QString &fmt) {
 
     return lhs + rhs;
   }
-  else {
-    // format real in buffer
-    ::sprintf(buffer, fmt.toLatin1().constData(), r);
+#endif
 
-    return buffer;
-  }
+  // format real in buffer
+  ::sprintf(buffer, fmt.toLatin1().constData(), r);
+
+  return buffer;
 }
 
-QString toString(long i, const QString &fmt) {
+QString formatInteger(long i, const QString &fmt) {
   static char buffer[64];
 
   ::sprintf(buffer, fmt.toLatin1().constData(), i);
 
   return buffer;
-}
-
-//---
-
-QString toString(const std::vector<CQChartsColumn> &columns) {
-  QString str;
-
-  for (std::size_t i = 0; i < columns.size(); ++i) {
-    if (str.length())
-      str += " ";
-
-    str += QString("%1").arg(columns[i].toString());
-  }
-
-  return str;
-}
-
-bool fromString(const QString &str, std::vector<CQChartsColumn> &columns) {
-  bool ok = true;
-
-  columns.clear();
-
-  QStringList strs = str.split(" ", QString::SkipEmptyParts);
-
-  for (int i = 0; i < strs.size(); ++i) {
-    bool ok1;
-
-    long col = toInt(strs[i], ok1);
-
-    if (ok1)
-      columns.push_back(col);
-    else
-      ok = false;
-  }
-
-  return ok;
 }
 
 }

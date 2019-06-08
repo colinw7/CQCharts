@@ -742,6 +742,13 @@ setModelName(CQChartsModelData *modelData, const QString &name)
   emit modelNameChanged(name);
 }
 
+void
+CQCharts::
+setModelFileName(CQChartsModelData *modelData, const QString &fileName)
+{
+  modelData->setFileName(fileName);
+}
+
 //---
 
 CQChartsView *

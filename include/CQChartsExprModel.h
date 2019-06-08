@@ -88,6 +88,10 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool columnRange(int column, double &minVal, double &maxVal) const;
   bool columnRange(int column, int &minVal, int &maxVal) const;
 
+  int numExtraColumns() const { return extraColumns_.size(); }
+
+  bool getExtraColumnDetails(int column, QString &header, QString &expr) const;
+
   //---
 
   int columnCount(const QModelIndex &parent=QModelIndex()) const override;
@@ -172,8 +176,6 @@ class CQChartsExprModel : public QAbstractProxyModel {
   CQTcl *qtcl() const;
 
   //---
-
-  int numExtraColumns() const { return extraColumns_.size(); }
 
   const ExtraColumn &extraColumn(int i) const { return *extraColumns_[i]; }
 

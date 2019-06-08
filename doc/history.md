@@ -877,3 +877,7 @@
  + Improve view/plot/annotation write
  + Support marking properties as style and allow show/hide style properties
  + Tcl parsing support for color definition
+# 6/8/2019
+ + Update write code for mode input data and output annotation properties
+ + Add safe user format from variant
+ + Make some command options hidden

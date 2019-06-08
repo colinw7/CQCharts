@@ -6,6 +6,7 @@ class CQChartsTableTip {
  public:
   CQChartsTableTip() {
     //str_ += "<b></b>\n";
+    str_ += "<style>p { margin: 0 0 0 0 }</style><p style='white-space:pre'>\n";
   }
 
   void addBoldLine(const QString &name) {

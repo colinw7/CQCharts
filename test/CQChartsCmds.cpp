@@ -143,20 +143,20 @@ addCommands()
     addCommand("set_charts_data", new CQChartsSetChartsDataCmd(this));
 
     // annotations
-    addCommand("create_charts_text_annotation"    ,
-               new CQChartsCreateChartsTextAnnotationCmd    (this));
     addCommand("create_charts_arrow_annotation"   ,
                new CQChartsCreateChartsArrowAnnotationCmd   (this));
-    addCommand("create_charts_rect_annotation"    ,
-               new CQChartsCreateChartsRectAnnotationCmd    (this));
     addCommand("create_charts_ellipse_annotation" ,
                new CQChartsCreateChartsEllipseAnnotationCmd (this));
+    addCommand("create_charts_point_annotation"   ,
+               new CQChartsCreateChartsPointAnnotationCmd   (this));
     addCommand("create_charts_polygon_annotation" ,
                new CQChartsCreateChartsPolygonAnnotationCmd (this));
     addCommand("create_charts_polyline_annotation",
                new CQChartsCreateChartsPolylineAnnotationCmd(this));
-    addCommand("create_charts_point_annotation"   ,
-               new CQChartsCreateChartsPointAnnotationCmd   (this));
+    addCommand("create_charts_rect_annotation"    ,
+               new CQChartsCreateChartsRectAnnotationCmd    (this));
+    addCommand("create_charts_text_annotation"    ,
+               new CQChartsCreateChartsTextAnnotationCmd    (this));
     addCommand("remove_charts_annotation"         ,
                new CQChartsRemoveChartsAnnotationCmd        (this));
 
@@ -213,21 +213,25 @@ loadChartsModelCmd(CQChartsCmdArgs &argv)
 
   // input data type
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-csv" , CQChartsCmdArg::Type::Boolean);
-  argv.addCmdArg("-tsv" , CQChartsCmdArg::Type::Boolean);
-  argv.addCmdArg("-json", CQChartsCmdArg::Type::Boolean);
-  argv.addCmdArg("-data", CQChartsCmdArg::Type::Boolean);
-  argv.addCmdArg("-expr", CQChartsCmdArg::Type::Boolean);
-  argv.addCmdArg("-var" , CQChartsCmdArg::Type::String, "variable name");
+  argv.addCmdArg("-csv" , CQChartsCmdArg::Type::Boolean, "load csv file");
+  argv.addCmdArg("-tsv" , CQChartsCmdArg::Type::Boolean, "load tsv file");
+  argv.addCmdArg("-json", CQChartsCmdArg::Type::Boolean, "load json file");
+  argv.addCmdArg("-data", CQChartsCmdArg::Type::Boolean, "load gnuplot file");
+  argv.addCmdArg("-expr", CQChartsCmdArg::Type::Boolean, "use expression model");
+  argv.addCmdArg("-var" , CQChartsCmdArg::Type::String , "load from tcl variable(s)");
   argv.endCmdGroup();
 
   // input data control
-  argv.addCmdArg("-comment_header"     , CQChartsCmdArg::Type::Boolean);
-  argv.addCmdArg("-first_line_header"  , CQChartsCmdArg::Type::Boolean);
-  argv.addCmdArg("-first_column_header", CQChartsCmdArg::Type::Boolean);
-  argv.addCmdArg("-separator"          , CQChartsCmdArg::Type::String );
-  argv.addCmdArg("-columns"            , CQChartsCmdArg::Type::String );
-  argv.addCmdArg("-transpose"          , CQChartsCmdArg::Type::Boolean);
+  argv.addCmdArg("-comment_header"     , CQChartsCmdArg::Type::Boolean,
+                 "first comment is horizontal header");
+  argv.addCmdArg("-first_line_header"  , CQChartsCmdArg::Type::Boolean,
+                 "first line is horizontal header");
+  argv.addCmdArg("-first_column_header", CQChartsCmdArg::Type::Boolean,
+                 "first column is vertical header");
+
+  argv.addCmdArg("-separator", CQChartsCmdArg::Type::String , "separator char for csv");
+  argv.addCmdArg("-columns"  , CQChartsCmdArg::Type::String , "column types");
+  argv.addCmdArg("-transpose", CQChartsCmdArg::Type::Boolean, "transpose tcl data");
 
   argv.addCmdArg("-num_rows"   , CQChartsCmdArg::Type::Integer, "number of expression rows");
   argv.addCmdArg("-max_rows"   , CQChartsCmdArg::Type::Integer, "maximum number of file rows");
@@ -368,8 +372,10 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-force", CQChartsCmdArg::Type::Boolean, "force modify of original data");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -599,8 +605,10 @@ defineChartsProcCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("args", CQChartsCmdArg::Type::String, "proc args").setRequired();
   argv.addCmdArg("body", CQChartsCmdArg::Type::String, "proc body").setRequired();
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   const Vars &pargs = argv.getParseArgs();
 
@@ -644,8 +652,10 @@ measureChartsTextCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-text", CQChartsCmdArg::Type::String , "text string");
   argv.addCmdArg("-html", CQChartsCmdArg::Type::Boolean, "is html");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -756,8 +766,10 @@ encodeChartsTextCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-text", CQChartsCmdArg::Type::String, "text string");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -785,8 +797,10 @@ createChartsViewCmd(CQChartsCmdArgs &argv)
 {
   CQPerfTrace trace("CQChartsCmds::createChartsViewCmd");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -809,8 +823,10 @@ removeChartsViewCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view_id").setRequired();
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -865,8 +881,10 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-xmax"      , CQChartsCmdArg::Type::Real  , "x");
   argv.addCmdArg("-ymax"      , CQChartsCmdArg::Type::Real  , "y");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -1153,8 +1171,10 @@ removeChartsPlotCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-all" , CQChartsCmdArg::Type::Boolean);
   argv.endCmdGroup();
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -1206,8 +1226,10 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-data"  , CQChartsCmdArg::Type::String , "return property name data");
   argv.addCmdArg("-hidden", CQChartsCmdArg::Type::Boolean, "include hidden data");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -1296,12 +1318,12 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         cmdBase_->setCmdRc(hidden);
       }
       else if (data == "is_style") {
-        bool hidden = false;
+        bool is_style = false;
 
-        if (! view->getPropertyIsStyle(name, hidden))
+        if (! view->getPropertyIsStyle(name, is_style))
           return errorMsg("Failed to get plot parameter is_style '" + name + "'");
 
-        cmdBase_->setCmdRc(hidden);
+        cmdBase_->setCmdRc(is_style);
       }
       else if (data == "?") {
         QStringList names = QStringList() <<
@@ -1409,12 +1431,12 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
           cmdBase_->setCmdRc(hidden);
         }
         else if (data == "is_style") {
-          bool hidden = false;
+          bool is_style = false;
 
-          if (! plot->getPropertyIsStyle(name, hidden))
+          if (! plot->getPropertyIsStyle(name, is_style))
             return errorMsg("Failed to get plot parameter is_style '" + name + "'");
 
-          cmdBase_->setCmdRc(hidden);
+          cmdBase_->setCmdRc(is_style);
         }
         else if (data == "?") {
           QStringList names = QStringList() <<
@@ -1492,12 +1514,12 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
         cmdBase_->setCmdRc(hidden);
       }
       else if (data == "is_style") {
-        bool hidden = false;
+        bool is_style = false;
 
-        if (! annotation->getPropertyIsStyle(name, hidden))
+        if (! annotation->getPropertyIsStyle(name, is_style))
           return errorMsg("Failed to get plot parameter is_style '" + name + "'");
 
-        cmdBase_->setCmdRc(hidden);
+        cmdBase_->setCmdRc(is_style);
       }
       else if (data == "?") {
         QStringList names = QStringList() <<
@@ -1545,8 +1567,10 @@ setChartsPropertyCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-name" , CQChartsCmdArg::Type::String, "property name");
   argv.addCmdArg("-value", CQChartsCmdArg::Type::String, "property view");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -1608,8 +1632,10 @@ createChartsPaletteCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-palette", CQChartsCmdArg::Type::String , "new named name");
   argv.endCmdGroup();
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -1662,8 +1688,10 @@ getChartsPaletteCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "value name").setRequired();
   argv.addCmdArg("-data", CQChartsCmdArg::Type::String, "value name data");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -1919,8 +1947,10 @@ setChartsPaletteCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-value", CQChartsCmdArg::Type::String, "value").setRequired();
   argv.addCmdArg("-data" , CQChartsCmdArg::Type::String, "value name data");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -2240,8 +2270,10 @@ groupChartsPlotsCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-y1y2"   , CQChartsCmdArg::Type::Boolean, "use shared y axis");
   argv.addCmdArg("-overlay", CQChartsCmdArg::Type::Boolean, "overlay");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -2304,8 +2336,10 @@ placeChartsPlotsCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-rows"      , CQChartsCmdArg::Type::Integer, "place using n rows");
   argv.addCmdArg("-columns"   , CQChartsCmdArg::Type::Integer, "place using n columns");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -2353,8 +2387,10 @@ foldChartsModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column to fold");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -2422,8 +2458,10 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-sum"  , CQChartsCmdArg::Type::Boolean, "calc sum of column values");
   argv.endCmdGroup();
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -2677,8 +2715,10 @@ copyChartsModelCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -2727,8 +2767,10 @@ writeChartsModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-max_width", CQChartsCmdArg::Type::Integer, "maximum column width");
   argv.addCmdArg("-hier"     , CQChartsCmdArg::Type::SBool  , "output hierarchically");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -3000,8 +3042,10 @@ sortChartsModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-column"    , CQChartsCmdArg::Type::Column , "column to sort");
   argv.addCmdArg("-decreasing", CQChartsCmdArg::Type::Boolean, "invert sort");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -3049,8 +3093,10 @@ filterChartsModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column");
   argv.addCmdArg("-type"  , CQChartsCmdArg::Type::String , "filter type");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -3136,8 +3182,10 @@ createChartsCorrelationModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-flip" , CQChartsCmdArg::Type::Boolean, "correlate rows instead of columns");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -3192,8 +3240,10 @@ createChartsFoldedModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-bucket_count", CQChartsCmdArg::Type::Integer, "bucket count");
   argv.addCmdArg("-bucket_delta", CQChartsCmdArg::Type::Real   , "bucket delta");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -3302,8 +3352,10 @@ createChartsBucketModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-max"   , CQChartsCmdArg::Type::Real   , "bucket max");
   argv.addCmdArg("-count" , CQChartsCmdArg::Type::Integer, "number of buckets");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -3408,8 +3460,10 @@ createChartsSubsetModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-top"   , CQChartsCmdArg::Type::Integer, "top (start) row");
   argv.addCmdArg("-bottom", CQChartsCmdArg::Type::Integer, "bottom (end) row");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -3476,8 +3530,10 @@ createChartsTransposeModelCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -3534,8 +3590,10 @@ createChartsSummaryModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-page_size"  , CQChartsCmdArg::Type::Integer, "page size");
   argv.addCmdArg("-page_number", CQChartsCmdArg::Type::Integer, "page number");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -3630,8 +3688,10 @@ createChartsCollapseModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-sum"  , CQChartsCmdArg::Type::String , "columns to calculate sum");
   argv.addCmdArg("-mean" , CQChartsCmdArg::Type::String , "columns to calculate mean");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -3755,8 +3815,10 @@ createChartsStatsModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-model"  , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-columns", CQChartsCmdArg::Type::String , "columns");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -3951,8 +4013,10 @@ exportChartsModelCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-hheader", CQChartsCmdArg::Type::SBool  , "output horizontal header");
   argv.addCmdArg("-vheader", CQChartsCmdArg::Type::SBool  , "output vertical header");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -4042,8 +4106,10 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-hidden", CQChartsCmdArg::Type::Boolean, "include hidden data");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -4851,8 +4917,10 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-name"  , CQChartsCmdArg::Type::String , "data name");
   argv.addCmdArg("-value" , CQChartsCmdArg::Type::String , "data value");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -5026,31 +5094,43 @@ createChartsRectAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
-  argv.addCmdArg("-start", CQChartsCmdArg::Type::Position, "start");
-  argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Position, "end"  );
-  argv.addCmdArg("-rect" , CQChartsCmdArg::Type::Rect    , "rect" );
+  argv.addCmdArg("-rect" , CQChartsCmdArg::Type::Rect, "rect");
 
-  argv.addCmdArg("-margin" , CQChartsCmdArg::Type::Real, "margin");
-  argv.addCmdArg("-padding", CQChartsCmdArg::Type::Real, "padding");
+  argv.addCmdArg("-start", CQChartsCmdArg::Type::Position, "start").setHidden();
+  argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Position, "end"  ).setHidden();
 
-  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool , "background is filled");
-  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color , "background fill color");
-  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  , "background fill alpha");
-//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String, "background fill pattern");
+  argv.addCmdArg("-margin" , CQChartsCmdArg::Type::Real, "margin" ).setHidden();
+  argv.addCmdArg("-padding", CQChartsCmdArg::Type::Real, "padding").setHidden();
 
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   , "border is stroked");
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   , "border stroke color");
-  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    , "border stroke alpha");
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  , "border stroke width");
-  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash, "border stroke dash");
+  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool ,
+                 "background is filled"   ).setHidden();
+  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color ,
+                 "background fill color"  ).setHidden();
+  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  ,
+                 "background fill alpha"  ).setHidden();
+//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String,
+//               "background fill pattern").setHidden();
 
-  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size");
-  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::Sides , "border sides");
+  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   ,
+                 "border is stroked"  ).setHidden();
+  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   ,
+                 "border stroke color").setHidden();
+  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    ,
+                 "border stroke alpha").setHidden();
+  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  ,
+                 "border stroke width").setHidden();
+  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash,
+                 "border stroke dash" ).setHidden();
+
+  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size" ).setHidden();
+  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::Sides , "border sides").setHidden();
 
   argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -5195,24 +5275,35 @@ createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-rx", CQChartsCmdArg::Type::Length, "x radius");
   argv.addCmdArg("-ry", CQChartsCmdArg::Type::Length, "y radius");
 
-  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool , "background is visible");
-  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color , "background fill color");
-  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  , "background fill alpha");
-//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String, "background fill pattern");
+  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool ,
+                 "background is filled"   ).setHidden();
+  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color ,
+                 "background fill color"  ).setHidden();
+  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  ,
+                 "background fill alpha"  ).setHidden();
+//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String,
+//               "background fill pattern").setHidden();
 
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   , "border is stroked");
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   , "border stroke color");
-  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    , "border stroke alpha");
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  , "border stroke width");
-  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash, "border stroke dash");
+  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   ,
+                 "border is stroked"  ).setHidden();
+  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   ,
+                 "border stroke color").setHidden();
+  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    ,
+                 "border stroke alpha").setHidden();
+  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  ,
+                 "border stroke width").setHidden();
+  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash,
+                 "border stroke dash" ).setHidden();
 
-  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size");
-  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::Sides , "border sides");
+  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size" ).setHidden();
+  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::Sides , "border sides").setHidden();
 
   argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -5324,21 +5415,32 @@ createChartsPolygonAnnotationCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-points", CQChartsCmdArg::Type::Polygon, "points string").setRequired();
 
-  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool , "background is visible");
-  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color , "background fill color");
-  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  , "background fill alpha");
-//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String, "background fill pattern");
+  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool ,
+                 "background is filled"   ).setHidden();
+  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color ,
+                 "background fill color"  ).setHidden();
+  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  ,
+                 "background fill alpha"  ).setHidden();
+//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String,
+//               "background fill pattern").setHidden();
 
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   , "border is stroked");
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   , "border stroke color");
-  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    , "border stroke alpha");
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  , "border stroke width");
-  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash, "border stroke dash");
+  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   ,
+                 "border is stroked"  ).setHidden();
+  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   ,
+                 "border stroke color").setHidden();
+  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    ,
+                 "border stroke alpha").setHidden();
+  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  ,
+                 "border stroke width").setHidden();
+  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash,
+                 "border stroke dash" ).setHidden();
 
   argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -5450,21 +5552,32 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-points", CQChartsCmdArg::Type::Polygon, "points string").setRequired();
 
-  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool , "background is visible");
-  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color , "background fill color");
-  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  , "background fill alpha");
-//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String, "background fill pattern");
+  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool ,
+                 "background is filled"   ).setHidden();
+  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color ,
+                 "background fill color"  ).setHidden();
+  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  ,
+                 "background fill alpha"  ).setHidden();
+//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String,
+//               "background fill pattern").setHidden();
 
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   , "border is stroked");
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   , "border stroke color");
-  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    , "border stroke alpha");
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  , "border stroke width");
-  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash, "border stroke dash");
+  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   ,
+                 "border is stroked"  ).setHidden();
+  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   ,
+                 "border stroke color").setHidden();
+  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    ,
+                 "border stroke alpha").setHidden();
+  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  ,
+                 "border stroke width").setHidden();
+  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash,
+                 "border stroke dash" ).setHidden();
 
   argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -5587,24 +5700,35 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-align"   , CQChartsCmdArg::Type::Align  , "align string");
   argv.addCmdArg("-html"    , CQChartsCmdArg::Type::Boolean, "html text");
 
-  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool , "background is visible");
-  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color , "background fill color");
-  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  , "background fill alpha");
-//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String, "background fill pattern");
+  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool ,
+                 "background is filled"   ).setHidden();
+  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color ,
+                 "background fill color"  ).setHidden();
+  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  ,
+                 "background fill alpha"  ).setHidden();
+//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String,
+//               "background fill pattern").setHidden();
 
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   , "border is stroked");
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   , "border stroke color");
-  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    , "border stroke alpha");
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  , "border stroke width");
-  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash, "border stroke dash");
+  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   ,
+                 "border is stroked"  ).setHidden();
+  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   ,
+                 "border stroke color").setHidden();
+  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    ,
+                 "border stroke alpha").setHidden();
+  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  ,
+                 "border stroke width").setHidden();
+  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash,
+                 "border stroke dash" ).setHidden();
 
-  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size");
-  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::Sides , "border sides");
+  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size" ).setHidden();
+  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::Sides , "border sides").setHidden();
 
   argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -5747,16 +5871,24 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-line_ends" , CQChartsCmdArg::Type::SBool , "use line for arrow head");
   argv.addCmdArg("-line_width", CQChartsCmdArg::Type::Length, "connecting line width");
 
-  argv.addCmdArg("-filled"    , CQChartsCmdArg::Type::SBool , "is filled");
-  argv.addCmdArg("-fill_color", CQChartsCmdArg::Type::Color , "fill color");
+  argv.addCmdArg("-filled"    , CQChartsCmdArg::Type::SBool,
+                 "background is filled" ).setHidden();
+  argv.addCmdArg("-fill_color", CQChartsCmdArg::Type::Color,
+                 "background fill color").setHidden();
 
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color , "border stroke color");
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length, "border stroke width");
+  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool ,
+                 "border is stroked"  ).setHidden();
+  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color ,
+                 "border stroke color").setHidden();
+  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length,
+                 "border stroke width").setHidden();
 
   argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -5802,8 +5934,9 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
   fill.setVisible(argv.getParseBool ("filled"    , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color", fill.color    ()));
 
-  stroke.setColor(argv.getParseColor ("stroke_color", stroke.color()));
-  stroke.setWidth(argv.getParseLength(view, plot, "stroke_width", stroke.width()));
+  stroke.setVisible(argv.getParseBool  ("stroked"     , stroke.isVisible()));
+  stroke.setColor  (argv.getParseColor ("stroke_color", stroke.color()));
+  stroke.setWidth  (argv.getParseLength(view, plot, "stroke_width", stroke.width()));
 
   //---
 
@@ -5863,19 +5996,28 @@ createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-type", CQChartsCmdArg::Type::String, "symbol type");
   argv.addCmdArg("-size", CQChartsCmdArg::Type::Length, "symbol size");
 
-  argv.addCmdArg("-filled"    , CQChartsCmdArg::Type::SBool, "symbol fill visible");
-  argv.addCmdArg("-fill_color", CQChartsCmdArg::Type::Color, "symbol fill color");
-  argv.addCmdArg("-fill_alpha", CQChartsCmdArg::Type::Real , "symbol fill alpha");
+  argv.addCmdArg("-filled"    , CQChartsCmdArg::Type::SBool,
+                 "symbol background is filled" ).setHidden();
+  argv.addCmdArg("-fill_color", CQChartsCmdArg::Type::Color,
+                 "symbol background fill color").setHidden();
+  argv.addCmdArg("-fill_alpha", CQChartsCmdArg::Type::Real ,
+                 "symbol background fill alpha").setHidden();
 
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool , "symbol stroke visible");
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color , "symbol stroke color");
-  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real  , "symbol stroke alpha");
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length, "symbol stroke width");
+  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool ,
+                 "symbol border stroke visible").setHidden();
+  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color ,
+                 "symbol border stroke color"  ).setHidden();
+  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real  ,
+                 "symbol border stroke alpha"  ).setHidden();
+  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length,
+                 "symbol border stroke width"  ).setHidden();
 
   argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -5984,8 +6126,10 @@ removeChartsAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-all", CQChartsCmdArg::Type::Boolean, "all annotations");
   argv.endCmdGroup();
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -6055,8 +6199,10 @@ connectChartsSignalCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-from", CQChartsCmdArg::Type::String, "from connection name");
   argv.addCmdArg("-to"  , CQChartsCmdArg::Type::String, "to procedure name");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -6156,8 +6302,10 @@ printChartsImageCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-layer", CQChartsCmdArg::Type::String, "layer name");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -6224,8 +6372,10 @@ writeChartsDataCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-type", CQChartsCmdArg::Type::String, "type");
   argv.addCmdArg("-file", CQChartsCmdArg::Type::String, "filename");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -6322,8 +6472,10 @@ showChartsLoadModelDlgCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   bool modal = argv.getParseBool("modal");
 
@@ -6351,8 +6503,10 @@ showChartsManageModelsDlgCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   bool modal = argv.getParseBool("modal");
 
@@ -6387,8 +6541,10 @@ showChartsCreatePlotDlgCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-view" , CQChartsCmdArg::Type::String , "view name" );
   argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   bool modal = argv.getParseBool("modal");
 
@@ -6472,8 +6628,10 @@ testEditCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-editable", CQChartsCmdArg::Type::SBool, "editable");
 
-  if (! argv.parse())
-    return false;
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
 
   //---
 
@@ -7107,7 +7265,7 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
 
   //---
 
-  charts_->setModelName(modelData, filename);
+  charts_->setModelFileName(modelData, filename);
 
   return true;
 }

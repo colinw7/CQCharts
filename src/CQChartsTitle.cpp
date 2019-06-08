@@ -137,7 +137,7 @@ updateLocation()
   QPointF kp(kx, ky);
 
   if      (location == CQChartsTitleLocation::Type::ABS_POS) {
-    kp = absPlotPosition();
+    kp = absolutePlotPosition();
   }
   else if (location == CQChartsTitleLocation::Type::ABS_RECT) {
   }
@@ -149,27 +149,27 @@ void
 CQChartsTitle::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
-  model->addProperty(path, this, "visible"    )->setDesc("Title visible");
-  model->addProperty(path, this, "location"   )->setDesc("Title location");
-  model->addProperty(path, this, "absPosition")->setDesc("Title absolute position");
-  model->addProperty(path, this, "absRect"    )->setDesc("Title absolute rectange");
-  model->addProperty(path, this, "insidePlot" )->setDesc("Title is inside plot");
+  model->addProperty(path, this, "visible"          )->setDesc("Title visible");
+  model->addProperty(path, this, "location"         )->setDesc("Title location");
+  model->addProperty(path, this, "absolutePosition" )->setDesc("Title absolute position");
+  model->addProperty(path, this, "absoluteRectangle")->setDesc("Title absolute rectange");
+  model->addProperty(path, this, "insidePlot"       )->setDesc("Title is inside plot");
 
   CQChartsTextBoxObj::addProperties(model, path, "");
 }
 
 QPointF
 CQChartsTitle::
-absPlotPosition() const
+absolutePlotPosition() const
 {
-  return plot_->positionToPlot(absPosition());
+  return plot_->positionToPlot(absolutePosition());
 }
 
 void
 CQChartsTitle::
-setAbsPlotPosition(const QPointF &p)
+setAbsolutePlotPosition(const QPointF &p)
 {
-  setAbsPosition(CQChartsPosition(plot_->windowToView(p), CQChartsUnits::VIEW));
+  setAbsolutePosition(CQChartsPosition(plot_->windowToView(p), CQChartsUnits::VIEW));
 }
 
 QSizeF
@@ -226,7 +226,7 @@ editPress(const CQChartsGeom::Point &p)
       location() != CQChartsTitleLocation::Type::ABS_RECT) {
     setLocation(CQChartsTitleLocation::Type::ABS_POS);
 
-    setAbsPlotPosition(position_);
+    setAbsolutePlotPosition(position_);
   }
 
   return true;
@@ -246,7 +246,7 @@ editMove(const CQChartsGeom::Point &p)
       dragSide == CQChartsResizeSide::MOVE) {
     setLocation(CQChartsTitleLocation::Type::ABS_POS);
 
-    setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
+    setAbsolutePlotPosition(absolutePlotPosition() + QPointF(dx, dy));
   }
   else {
     setLocation(CQChartsTitleLocation::Type::ABS_RECT);
@@ -255,7 +255,7 @@ editMove(const CQChartsGeom::Point &p)
 
     bbox_ = editHandles_->bbox();
 
-    setAbsRect(CQChartsUtil::toQRect(bbox_));
+    setAbsoluteRectangle(CQChartsUtil::toQRect(bbox_));
   }
 
   editHandles_->setDragPos(p);
@@ -285,7 +285,7 @@ editMoveBy(const QPointF &d)
 {
   setLocation(CQChartsTitleLocation::Type::ABS_POS);
 
-  setAbsPlotPosition(position_ + d);
+  setAbsolutePlotPosition(position_ + d);
 
   redraw(/*wait*/false);
 }

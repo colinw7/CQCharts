@@ -18,6 +18,9 @@ class CQJsonModel : public CQBaseModel {
 
   bool load(const QString &filename);
 
+  const QString &filename() const { return filename_; }
+  void setFilename(const QString &s) { filename_ = s; }
+
   bool isHierarchical() const { return hier_; }
   void setHierarchical(bool b) { hier_ = b; };
 

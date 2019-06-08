@@ -264,6 +264,8 @@ CQChartsColorEdit(QWidget *parent) :
     "None" << "Palette" << "Palette Value" << "Indexed Palette" << "Indexed Palette Value" <<
     "Interface" << "Interface Value" << "Color");
 
+  typeCombo_->setToolTip("Color value type");
+
   layout->addWidget(typeCombo_);
 
   //---
@@ -273,6 +275,10 @@ CQChartsColorEdit(QWidget *parent) :
   QLabel *indLabel = CQUtil::makeLabelWidget<QLabel>("Index", "indLabel");
 
   indEdit_ = CQUtil::makeWidget<QSpinBox>("indEdit");
+
+  indEdit_->setRange(-1, 99);
+
+  indEdit_->setToolTip("Theme palette index");
 
   indLayout->addWidget(indLabel);
   indLayout->addWidget(indEdit_);
@@ -287,6 +293,8 @@ CQChartsColorEdit(QWidget *parent) :
 
   valueEdit_ = CQUtil::makeWidget<CQRealSpin>("valueEdit");
 
+  valueEdit_->setToolTip("Palette or interface value");
+
   valueLayout->addWidget(valueLabel);
   valueLayout->addWidget(valueEdit_);
 
@@ -300,6 +308,8 @@ CQChartsColorEdit(QWidget *parent) :
 
   colorEdit_ = CQUtil::makeWidget<CQColorEdit>("colorEdit");
 
+  colorEdit_->setToolTip("Color name");
+
   colorLayout->addWidget(colorLabel);
   colorLayout->addWidget(colorEdit_);
 
@@ -312,6 +322,8 @@ CQChartsColorEdit(QWidget *parent) :
   QLabel *scaleLabel = CQUtil::makeLabelWidget<QLabel>("Scale", "scaleLabel");
 
   scaleCheck_ = CQUtil::makeWidget<CQCheckBox>("scaleCheck");
+
+  scaleCheck_->setToolTip("Is palette value scaled from palette x range");
 
   scaleLayout->addWidget(scaleLabel);
   scaleLayout->addWidget(scaleCheck_);
@@ -342,11 +354,11 @@ void
 CQChartsColorEdit::
 setNoFocus()
 {
-  //colorEdit_->setNoFocus();
+//colorEdit_->setNoFocus();
 
   typeCombo_ ->setFocusPolicy(Qt::NoFocus);
-  indEdit_   ->setFocusPolicy(Qt::NoFocus);
-  valueEdit_ ->setFocusPolicy(Qt::NoFocus);
+//indEdit_   ->setFocusPolicy(Qt::NoFocus);
+//valueEdit_ ->setFocusPolicy(Qt::NoFocus);
   scaleCheck_->setFocusPolicy(Qt::NoFocus);
 }
 
@@ -446,8 +458,12 @@ widgetsToColor()
   else if (typeInd == 2) {
     color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE);
 
-    color.setInd  (indEdit_->value());
-    color.setValue(CQChartsColor::Type::PALETTE_VALUE, valueEdit_->value());
+    color.setInd(indEdit_->value());
+
+    if (scaleCheck_->isChecked())
+      color.setScaleValue(CQChartsColor::Type::PALETTE_VALUE, valueEdit_->value(), true);
+    else
+      color.setValue(CQChartsColor::Type::PALETTE_VALUE, valueEdit_->value());
   }
   else if (typeInd == 3) {
     color = CQChartsColor(CQChartsColor::Type::INDEXED);

@@ -1,3 +1,3 @@
 set model [load_charts_model -csv data/cities.csv -first_line_header]
 
-manage_models_dlg
+show_charts_manage_models_dlg

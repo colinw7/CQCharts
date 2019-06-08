@@ -647,10 +647,10 @@ updateLocation(const CQChartsGeom::BBox &bbox)
   CQChartsKeyLocation::Type locationType = this->location().type();
 
   if      (locationType == CQChartsKeyLocation::Type::ABS_POSITION) {
-    kp = absPlotPosition();
+    kp = absolutePlotPosition();
   }
   else if (locationType == CQChartsKeyLocation::Type::ABS_RECT) {
-    kp = absPlotRect().bottomLeft();
+    kp = absolutePlotRect().bottomLeft();
   }
 
   setPosition(kp);
@@ -679,12 +679,13 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp("autoHide"  , "Auto hide key when too large");
   addProp("clipped"   , "Clip key to plot");
 
-  addProp("above"      , "Draw key above plot");
-  addProp("insideX"    , "Key placed inside plot in x direction");
-  addProp("insideY"    , "Key placed inside plot in y direction");
-  addProp("location"   , "Key placement location");
-  addProp("absPosition", "Key placement absolute position");
-  addProp("absRect"    , "Key placement absolute rectangle");
+  addProp("above"   , "Draw key above plot");
+  addProp("insideX" , "Key placed inside plot in x direction");
+  addProp("insideY" , "Key placed inside plot in y direction");
+  addProp("location", "Key placement location");
+
+  addProp("absolutePosition" , "Key placement absolute position");
+  addProp("absoluteRectangle", "Key placement absolute rectangle");
 
   addProp("interactive"  , "Key supports click");
   addProp("pressBehavior", "Key click behavior");
@@ -1045,30 +1046,30 @@ doLayout()
 
 QPointF
 CQChartsPlotKey::
-absPlotPosition() const
+absolutePlotPosition() const
 {
-  return plot_->viewToWindow(absPosition());
+  return plot_->viewToWindow(absolutePosition());
 }
 
 void
 CQChartsPlotKey::
-setAbsPlotPosition(const QPointF &p)
+setAbsolutePlotPosition(const QPointF &p)
 {
-  setAbsPosition(plot_->windowToView(p));
+  setAbsolutePosition(plot_->windowToView(p));
 }
 
 QRectF
 CQChartsPlotKey::
-absPlotRect() const
+absolutePlotRect() const
 {
-  return plot_->viewToWindow(absRect());
+  return plot_->viewToWindow(absoluteRectangle());
 }
 
 void
 CQChartsPlotKey::
-setAbsPlotRect(const QRectF &r)
+setAbsolutePlotRect(const QRectF &r)
 {
-  setAbsRect(plot_->windowToView(r));
+  setAbsoluteRectangle(plot_->windowToView(r));
 }
 
 QSizeF
@@ -1153,7 +1154,7 @@ editPress(const CQChartsGeom::Point &p)
       locationType != CQChartsKeyLocation::Type::ABS_RECT) {
     location_ = CQChartsKeyLocation::Type::ABS_POSITION;
 
-    setAbsPlotPosition(position_);
+    setAbsolutePlotPosition(position_);
   }
 
   return true;
@@ -1172,7 +1173,7 @@ editMove(const CQChartsGeom::Point &p)
   if (dragSide == CQChartsResizeSide::MOVE) {
     location_ = CQChartsKeyLocation::Type::ABS_POSITION;
 
-    setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
+    setAbsolutePlotPosition(absolutePlotPosition() + QPointF(dx, dy));
   }
   else {
     location_ = CQChartsKeyLocation::Type::ABS_RECT;
@@ -1181,7 +1182,7 @@ editMove(const CQChartsGeom::Point &p)
 
     wbbox_ = editHandles_->bbox();
 
-    setAbsPlotRect(wbbox_.qrect());
+    setAbsolutePlotRect(wbbox_.qrect());
 
     CQChartsLength width (wbbox_.getWidth ()                           , CQChartsUnits::PLOT);
     CQChartsLength height(wbbox_.getHeight() - layoutData_.headerHeight, CQChartsUnits::PLOT);
@@ -1223,7 +1224,7 @@ editMoveBy(const QPointF &f)
       locationType != CQChartsKeyLocation::Type::ABS_RECT) {
     location_ = CQChartsKeyLocation::Type::ABS_POSITION;
 
-    setAbsPlotPosition(position_ + f);
+    setAbsolutePlotPosition(position_ + f);
   }
 
   updatePosition();

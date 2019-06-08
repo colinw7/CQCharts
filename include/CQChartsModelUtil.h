@@ -84,6 +84,8 @@ CQChartsExprModel *getExprModel(QAbstractItemModel *model);
 const CQDataModel *getDataModel(const QAbstractItemModel *model);
 CQDataModel *getDataModel(QAbstractItemModel *model);
 
+QAbstractItemModel *getBaseModel(QAbstractItemModel *model);
+
 QVariant modelMetaValue(const QAbstractItemModel *model, const QString &name);
 
 }

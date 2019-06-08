@@ -475,7 +475,7 @@ class CQChartsPlot : public CQChartsObj,
 
   // default palette
   const QString &defaultPalette() const { return defaultPalette_; }
-  void setDefaultPalette(const QString &s);
+  void setDefaultPalette(const QString &name);
 
   //---
 
@@ -1825,7 +1825,7 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // write details to output
-  void write(std::ostream &os) const;
+  void write(std::ostream &os, const QString &varName="", const QString &modelName="") const;
 
   //---
 

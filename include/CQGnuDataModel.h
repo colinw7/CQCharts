@@ -60,6 +60,9 @@ class CQGnuDataModel : public CQDataModel {
   bool isKeepQuotes() const { return keepQuotes_; }
   void setKeepQuotes(bool b) { keepQuotes_ = b; }
 
+  const QString &filename() const { return filename_; }
+  void setFilename(const QString &v) { filename_ = v; }
+
   bool load(const QString &filename);
 
   //---

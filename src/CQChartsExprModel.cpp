@@ -421,6 +421,27 @@ queryColumn(int column, const QString &expr, Rows &rows) const
   return rc;
 }
 
+bool
+CQChartsExprModel::
+getExtraColumnDetails(int column, QString &header, QString &expr) const
+{
+  nc_ = columnCount();
+
+  int numNonExtra = nc_ - numExtraColumns();
+
+  int ecolumn = column - numNonExtra;
+
+  if (ecolumn < 0 || ecolumn >= numExtraColumns())
+    return false;
+
+  ExtraColumn *extraColumn = extraColumns_[ecolumn];
+
+  header = extraColumn->header;
+  expr   = extraColumn->expr;
+
+  return true;
+}
+
 void
 CQChartsExprModel::
 initCalc() const
