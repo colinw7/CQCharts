@@ -881,3 +881,6 @@
  + Update write code for mode input data and output annotation properties
  + Add safe user format from variant
  + Make some command options hidden
+# 6/10/2019
+ + Fix interp Hsv issue with gray color
+ + Show colors in table delegate

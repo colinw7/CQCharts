@@ -687,7 +687,7 @@ addWidgets()
   // Theme Tab
   QFrame *themeFrame = CQUtil::makeWidget<QFrame>("themeFrame");
 
-  tab_->addTab(themeFrame, "Theme");
+  tab_->addTab(themeFrame, "Colors");
 
   initThemeFrame(themeFrame);
 

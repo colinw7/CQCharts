@@ -152,7 +152,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   model->addProperty(path, this, "visible"          )->setDesc("Title visible");
   model->addProperty(path, this, "location"         )->setDesc("Title location");
   model->addProperty(path, this, "absolutePosition" )->setDesc("Title absolute position");
-  model->addProperty(path, this, "absoluteRectangle")->setDesc("Title absolute rectange");
+  model->addProperty(path, this, "absoluteRectangle")->setDesc("Title absolute rectangle");
   model->addProperty(path, this, "insidePlot"       )->setDesc("Title is inside plot");
 
   CQChartsTextBoxObj::addProperties(model, path, "");

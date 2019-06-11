@@ -868,11 +868,13 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-where"     , CQChartsCmdArg::Type::String, "filter");
   argv.addCmdArg("-columns"   , CQChartsCmdArg::Type::String, "columns");
-  argv.addCmdArg("-parameter" , CQChartsCmdArg::Type::String, "name value");
-  argv.addCmdArg("-xintegral" , CQChartsCmdArg::Type::SBool);
-  argv.addCmdArg("-yintegral" , CQChartsCmdArg::Type::SBool);
-  argv.addCmdArg("-xlog"      , CQChartsCmdArg::Type::SBool);
-  argv.addCmdArg("-ylog"      , CQChartsCmdArg::Type::SBool);
+  argv.addCmdArg("-parameter" , CQChartsCmdArg::Type::String, "name value").setHidden(true);
+
+  argv.addCmdArg("-xintegral" , CQChartsCmdArg::Type::SBool).setHidden(true);
+  argv.addCmdArg("-yintegral" , CQChartsCmdArg::Type::SBool).setHidden(true);
+  argv.addCmdArg("-xlog"      , CQChartsCmdArg::Type::SBool).setHidden(true);
+  argv.addCmdArg("-ylog"      , CQChartsCmdArg::Type::SBool).setHidden(true);
+
   argv.addCmdArg("-title"     , CQChartsCmdArg::Type::String, "title");
   argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
   argv.addCmdArg("-position"  , CQChartsCmdArg::Type::String, "position box");
@@ -1224,7 +1226,7 @@ getChartsPropertyCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-object", CQChartsCmdArg::Type::String , "object id");
   argv.addCmdArg("-name"  , CQChartsCmdArg::Type::String , "property name");
   argv.addCmdArg("-data"  , CQChartsCmdArg::Type::String , "return property name data");
-  argv.addCmdArg("-hidden", CQChartsCmdArg::Type::Boolean, "include hidden data");
+  argv.addCmdArg("-hidden", CQChartsCmdArg::Type::Boolean, "include hidden data").setHidden(true);
 
   bool rc;
 
@@ -4104,7 +4106,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "option name").setRequired();
   argv.addCmdArg("-data", CQChartsCmdArg::Type::String, "option data");
 
-  argv.addCmdArg("-hidden", CQChartsCmdArg::Type::Boolean, "include hidden data");
+  argv.addCmdArg("-hidden", CQChartsCmdArg::Type::Boolean, "include hidden data").setHidden(true);
 
   bool rc;
 

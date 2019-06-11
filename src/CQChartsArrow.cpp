@@ -598,7 +598,7 @@ drawLine(const QPointF &point1, const QPointF &point2, double width, bool mappin
       p = view_->windowToPixel(CQChartsGeom::Point(wx, wy));
 
     px = p.x;
-    py = p.x;
+    py = p.y;
   };
 
   //---

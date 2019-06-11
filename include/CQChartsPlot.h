@@ -1733,16 +1733,8 @@ class CQChartsPlot : public CQChartsObj,
  public:
   QColor interpThemeColor(const ColorInd &ind) const;
 
- private:
-  QColor interpThemeColorI(int i, int n) const;
-  QColor interpThemeColorI(double r) const;
-
  public:
   QColor interpColor(const CQChartsColor &c, const ColorInd &ind) const;
-
- private:
-  QColor interpColorI(const CQChartsColor &c, int i, int n) const;
-  QColor interpColorI(const CQChartsColor &c, double r) const;
 
   //---
 

@@ -3233,7 +3233,7 @@ addNoDataObj()
 {
   CQPerfTrace trace("CQChartsPlot::addNoDataObj");
 
-  // if no objects than add a no data object
+  // if no objects then add a no data object
   noData_ = false;
 
   if (plotObjs_.empty()) {
@@ -6603,7 +6603,7 @@ execDrawObjs(QPainter *painter, const CQChartsLayer::Type &layerType) const
 
     //---
 
-    // skip objects not inside plor
+    // skip objects not inside plot
     if (! bbox.overlaps(plotObj->rect()))
       continue;
 
@@ -7928,8 +7928,7 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, do
         ! cmpBrush(painter->brush(), imageBuffer.brush)) {
       imageBuffer.symbol = symbol;
       imageBuffer.size   = size;
-      imageBuffer.isize  =
-        CMathRound::RoundUp(2*(size + std::max(painter->pen().widthF(), 1.0)));
+      imageBuffer.isize  = CMathRound::RoundUp(2*(size + std::max(painter->pen().widthF(), 1.0)));
       imageBuffer.pen    = painter->pen  ();
       imageBuffer.brush  = painter->brush();
       imageBuffer.image  =
@@ -8425,54 +8424,19 @@ QColor
 CQChartsPlot::
 interpThemeColor(const ColorInd &ind) const
 {
-  return (ind.isInt ? interpThemeColorI(ind.i, ind.n) : interpThemeColorI(ind.r));
-}
-
-QColor
-CQChartsPlot::
-interpThemeColorI(int i, int n) const
-{
-  return view()->interpThemeColor(i, n);
-}
-
-QColor
-CQChartsPlot::
-interpThemeColorI(double r) const
-{
-  return view()->interpThemeColor(r);
+  return view()->interpThemeColor(ind);
 }
 
 QColor
 CQChartsPlot::
 interpColor(const CQChartsColor &c, const ColorInd &ind) const
 {
-  return (ind.isInt ? interpColorI(c, ind.i, ind.n) : interpColorI(c, ind.r));
-}
+  if (defaultPalette_ == "")
+    return view()->interpColor(c, ind);
 
-QColor
-CQChartsPlot::
-interpColorI(const CQChartsColor &c, int i, int n) const
-{
-  if (defaultPalette_ != "") {
-    CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
+  CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
 
-    return view()->interpColor(c1, i, n);
-  }
-
-  return view()->interpColor(c, i, n);
-}
-
-QColor
-CQChartsPlot::
-interpColorI(const CQChartsColor &c, double r) const
-{
-  if (defaultPalette_ != "") {
-    CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
-
-    return view()->interpColor(c1, r);
-  }
-
-  return view()->interpColor(c, r);
+  return view()->interpColor(c1, ind);
 }
 
 //---
@@ -8668,7 +8632,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &na
   QAbstractItemModel *model = this->model().data();
   assert(model);
 
-  // single column (seperated names)
+  // single column (separated names)
   if (nameColumns.count() == 1) {
     const CQChartsColumn &nameColumn = nameColumns.column();
 
