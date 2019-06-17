@@ -168,9 +168,11 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void writeKeys(std::ostream &os, const QString &cmd, const QString &parentVarName="",
                  const QString &varName="") const;
 
+#if 0
   //! write fill, stroke values
   void writeFill  (std::ostream &os) const;
   void writeStroke(std::ostream &os) const;
+#endif
 
   //! write polygon points
   void writePoints(std::ostream &os, const QPolygonF &polygon) const;

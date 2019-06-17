@@ -2,6 +2,7 @@
 #define CQChartsEval_H
 
 #include <CQTclUtil.h>
+#include <mutex>
 
 #define CQChartsEvalInst CQChartsEval::instance()
 
@@ -25,7 +26,8 @@ class CQChartsEval {
   static int colorCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
 
  private:
-  CQTcl* qtcl_ { nullptr };
+  CQTcl*             qtcl_ { nullptr };
+  mutable std::mutex mutex_;
 };
 
 #endif

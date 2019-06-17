@@ -29,7 +29,7 @@ drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
     QFontMetricsF fm(painter->font());
 
     if (options.clipped)
-      painter->setClipRect(rect);
+      painter->setClipRect(rect, Qt::IntersectClip);
 
     painter->setPen(pen);
 
@@ -372,7 +372,7 @@ void drawHtmlText(QPainter *painter, const QRectF &trect, const QString &text,
 
   painter->translate(trect.x(), trect.y());
 
-  painter->setClipRect(trect1);
+  painter->setClipRect(trect1, Qt::IntersectClip);
 
   QAbstractTextDocumentLayout::PaintContext ctx;
 

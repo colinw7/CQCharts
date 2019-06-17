@@ -755,7 +755,7 @@ QString rectToString(const QRectF &rect) {
   const QPointF &tl = rect.topLeft    ();
   const QPointF &br = rect.bottomRight();
 
-  return QString("{%1 %2 %3 %4}").arg(tl.x()).arg(tl.y()).arg(br.x()).arg(br.y());
+  return QString("{%1 %2} {%3 %4}").arg(tl.x()).arg(tl.y()).arg(br.x()).arg(br.y());
 }
 
 QString polygonToString(const QPolygonF &poly) {

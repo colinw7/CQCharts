@@ -31,16 +31,18 @@ class CQTsvModel : public CQDataModel {
   void save(std::ostream &os);
   void save(QAbstractItemModel *model, std::ostream &os);
 
+  //---
+
   static QString encodeString(const QString &str);
 
  protected:
   std::string encodeVariant(const QVariant &var) const;
 
  protected:
-  QString filename_;                    // input filename
-  bool    commentHeader_     { false }; // first comment line has column names
-  bool    firstLineHeader_   { false }; // first non-comment line has column names
-  bool    firstColumnHeader_ { false }; // first column in each line is row name
+  QString filename_;                    //!< input filename
+  bool    commentHeader_     { false }; //!< first comment line has column names
+  bool    firstLineHeader_   { false }; //!< first non-comment line has column names
+  bool    firstColumnHeader_ { false }; //!< first column in each line is row name
 };
 
 #endif

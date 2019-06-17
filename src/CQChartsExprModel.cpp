@@ -228,12 +228,12 @@ removeExtraColumn(int column)
   if (ecolumn < 0 || ecolumn >= numExtraColumns())
     return false;
 
+  delete extraColumns_[ecolumn];
+
   beginRemoveColumns(QModelIndex(), column, column);
 
   for (int i = ecolumn + 1; i < numExtraColumns(); ++i)
     extraColumns_[i - 1] = extraColumns_[i];
-
-  delete extraColumns_.back();
 
   extraColumns_.pop_back();
 
@@ -434,7 +434,7 @@ getExtraColumnDetails(int column, QString &header, QString &expr) const
   if (ecolumn < 0 || ecolumn >= numExtraColumns())
     return false;
 
-  ExtraColumn *extraColumn = extraColumns_[ecolumn];
+  const ExtraColumn *extraColumn = extraColumns_[ecolumn];
 
   header = extraColumn->header;
   expr   = extraColumn->expr;

@@ -1570,8 +1570,13 @@ draw(QPainter *painter) const
 
   //---
 
-  if (clipped)
+  if (clipped) {
+    //painter->setPen(Qt::red);
+    //painter->drawRect(clipRect);
+    //painter->setPen(Qt::black);
+
     painter->setClipRect(clipRect);
+  }
 
   //---
 

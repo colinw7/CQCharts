@@ -1655,8 +1655,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addStyleProp(textPath, "textAngle"    , "angle"    , "Text angle");
   addStyleProp(textPath, "textContrast" , "contrast" , "Text has contrast");
   addStyleProp(textPath, "textAlign"    , "align"    , "Text align");
-  addStyleProp(textPath, "textFormatted", "formatted", "Text formatted to fit box");
-  addStyleProp(textPath, "textScaled"   , "scaled"   , "Text scaled to box");
+  addStyleProp(textPath, "textFormatted", "formatted", "Text formatted to fit in box");
+  addStyleProp(textPath, "textScaled"   , "scaled"   , "Text scaled to fit box");
   addStyleProp(textPath, "textHtml"     , "html"     , "Text is HTML");
 
   addProp(path1, "margin" , "", "Text rectangle inner margin");
@@ -2641,6 +2641,7 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   if (symbolData.size().isSet())
     os << " -size {" << symbolData.size().toString().toStdString() << "}";
 
+#if 0
   if (isFilled())
     os << " -filled 1";
 
@@ -2661,6 +2662,7 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
 
   if (strokeWidth().isSet())
     os << " -stroke_width {" << strokeWidth().toString().toStdString() << "}";
+#endif
 
   os << "]\n";
 

@@ -695,8 +695,13 @@ copy()
     static_cast<int>(CQBaseModelRole::SortOrder)
   }};
 
+  std::vector<int> vroles = {{
+    static_cast<int>(Qt::DisplayRole),
+  }};
+
   CQDataModel *dataModel = new CQDataModel(nc, nr);
 
+  // copy horizontal header data
   for (int c = 0; c < nc; ++c) {
     for (const auto &role : hroles) {
       QVariant var = model->headerData(c, Qt::Horizontal, role);
@@ -706,13 +711,17 @@ copy()
     }
   }
 
+  // copy vertical header data
   for (int r = 0; r < nr; ++r) {
-    QVariant var = model->headerData(r, Qt::Vertical);
+    for (const auto &role : vroles) {
+      QVariant var = model->headerData(r, Qt::Vertical, role);
 
-    if (var.isValid())
-      dataModel->setHeaderData(r, Qt::Vertical, var);
+      if (var.isValid())
+        dataModel->setHeaderData(r, Qt::Vertical, var, role);
+    }
   }
 
+  // copy model data
   for (int r = 0; r < nr; ++r) {
     for (int c = 0; c < nc; ++c) {
       QModelIndex ind1 = model    ->index(r, c);
@@ -725,6 +734,7 @@ copy()
     }
   }
 
+  // create model
   CQChartsFilterModel *filterModel = new CQChartsFilterModel(charts_, dataModel);
 
   return filterModel;

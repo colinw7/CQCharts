@@ -68,11 +68,11 @@ class CTcl {
     interp_ = Tcl_CreateInterp();
   }
 
- ~CTcl() {
+  virtual ~CTcl() {
     Tcl_DeleteInterp(interp_);
   }
 
-  Tcl_Interp *interp() const { return interp_; }
+   virtual Tcl_Interp *interp() const { return interp_; }
 
   void setResult(int rc) {
     Tcl_SetObjResult(interp(), Tcl_NewIntObj(rc));

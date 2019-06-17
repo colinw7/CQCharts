@@ -9,12 +9,12 @@
 #include <CQChartsTitle.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsAnnotation.h>
+#include <CQChartsModelData.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
 #include <CQChartsEnv.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsVariant.h>
-#include <CQChartsDrawUtil.h>
 #include <CQChartsInterfaceTheme.h>
 
 #include <CQPropertyViewModel.h>
@@ -4329,6 +4329,124 @@ updateScroll()
 
 //------
 
+void
+CQChartsView::
+writeAll(std::ostream &os) const
+{
+  this->write(os);
+
+  const CQChartsView::Annotations &viewAnnotations = this->annotations();
+
+  int annotationId = 1;
+
+  for (const auto &annotation : viewAnnotations) {
+    os << "\n";
+
+    annotation->write(os, "view", QString("annotation%1").arg(annotationId));
+
+    ++annotationId;
+  }
+
+  //---
+
+  Plots plots;
+
+  this->getPlots(plots);
+
+  using ModelVars = std::map<QString,QString>;
+  using PlotVars  = std::map<CQChartsPlot*,QString>;
+
+  ModelVars modelVars;
+  PlotVars  plotVars;
+
+  for (const auto &plot : plots) {
+    CQChartsModelData *modelData = plot->getModelData();
+
+    QString modelVarName;
+
+    if (modelData) {
+      QString id = modelData->id();
+
+      auto p = modelVars.find(id);
+
+      if (p == modelVars.end()) {
+        os << "\n";
+
+        QString modelVarName = QString("model%1").arg(modelVars.size() + 1);
+
+        p = modelVars.insert(p, ModelVars::value_type(id, modelVarName));
+
+        modelData->write(os, modelVarName);
+      }
+
+      modelVarName = (*p).second;
+    }
+
+    os << "\n";
+
+    QString plotVarName = QString("plot%1").arg(plotVars.size() + 1);
+
+    plotVars[plot] = plotVarName;
+
+    plot->write(os, plotVarName, modelVarName);
+
+    //---
+
+    const CQChartsPlot::Annotations &plotAnnotations = plot->annotations();
+
+    for (const auto &annotation : plotAnnotations) {
+      os << "\n";
+
+      annotation->write(os, plotVarName, QString("annotation%1").arg(annotationId));
+
+      ++annotationId;
+    }
+  }
+
+  CQChartsView::PlotSet basePlots;
+
+  this->basePlots(basePlots);
+
+  for (const auto &plot : basePlots) {
+    if      (plot->isX1X2()) {
+      CQChartsPlot *plot1, *plot2;
+
+      plot->x1x2Plots(plot1, plot2);
+
+      os << "\n";
+      os << "group_charts_plots -x1x2 -overlay";
+
+      os << " $" << plotVars[plot1].toStdString();
+      os << " $" << plotVars[plot2].toStdString();
+      os << "\n";
+    }
+    else if (plot->isY1Y2()) {
+      CQChartsPlot *plot1, *plot2;
+
+      plot->y1y2Plots(plot1, plot2);
+
+      os << "\n";
+      os << "group_charts_plots -y1y2 -overlay";
+
+      os << " $" << plotVars[plot1].toStdString();
+      os << " $" << plotVars[plot2].toStdString();
+      os << "\n";
+    }
+    else if (plot->isOverlay()) {
+      Plots oplots;
+
+      plot->overlayPlots(oplots);
+
+      os << "\n";
+      os << "group_charts_plots -overlay ";
+
+      for (const auto &oplot : oplots)
+        os << " $" << plotVars[oplot].toStdString();
+
+      os << "\n";
+    }
+  }
+}
 void
 CQChartsView::
 write(std::ostream &os) const

@@ -620,7 +620,10 @@ class CQChartsView : public QFrame,
 
   //---
 
-  // write details to output
+  // write all details to output (model, view, plots and annotations)
+  void writeAll(std::ostream &os) const;
+
+  // write view details to output
   void write(std::ostream &os) const;
 
   //---

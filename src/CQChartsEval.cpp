@@ -33,6 +33,8 @@ bool
 CQChartsEval::
 evalExpr(int row, const QString &exprStr, QVariant &var)
 {
+  std::unique_lock<std::mutex> lock(mutex_);
+
   qtcl()->createVar("x", row);
 
   return qtcl()->evalExpr(exprStr, var);
@@ -42,6 +44,8 @@ void
 CQChartsEval::
 addFunc(const QString &name, CQTcl::ObjCmdProc proc)
 {
+  std::unique_lock<std::mutex> lock(mutex_);
+
   qtcl_->createExprCommand(name, proc, (CQTcl::ObjCmdData) this);
 }
 

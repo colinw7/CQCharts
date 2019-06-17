@@ -25,7 +25,7 @@ load(const QString &filename)
 
   csv.setCommentHeader  (isCommentHeader());
   csv.setFirstLineHeader(isFirstLineHeader());
-  csv.setSeparator      (separator());
+  csv.setSeparator      (separator().toLatin1());
 
   if (! csv.load())
     return false;
@@ -333,7 +333,7 @@ save(QAbstractItemModel *model, std::ostream &os)
       if (output)
         os << ",";
 
-      os << encodeVariant(var);
+      os << encodeVariant(var, separator());
 
       output = true;
     }
@@ -351,7 +351,7 @@ save(QAbstractItemModel *model, std::ostream &os)
     if (isFirstColumnHeader() && hasVHeader) {
       QVariant var = model->headerData(r, Qt::Vertical);
 
-      os << encodeVariant(var);
+      os << encodeVariant(var, separator());
 
       output = true;
     }
@@ -366,7 +366,7 @@ save(QAbstractItemModel *model, std::ostream &os)
       if (output)
         os << ",";
 
-      os << encodeVariant(var);
+      os << encodeVariant(var, separator());
 
       output = true;
     }
@@ -377,7 +377,7 @@ save(QAbstractItemModel *model, std::ostream &os)
 
 std::string
 CQCsvModel::
-encodeVariant(const QVariant &var) const
+encodeVariant(const QVariant &var, const QChar &separator)
 {
   std::string str;
 
@@ -394,7 +394,7 @@ encodeVariant(const QVariant &var) const
   else {
     QString qstr = var.toString();
 
-    str = encodeString(qstr, separator()).toStdString();
+    str = encodeString(qstr, separator).toStdString();
   }
 
   return str;

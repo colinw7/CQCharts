@@ -9,8 +9,10 @@
 #include <QPointF>
 #include <QRectF>
 #include <QPolygonF>
+//#include <mutex>
 
 namespace CQTclUtil {
+
 
 using Vars = std::vector<QVariant>;
 
@@ -532,6 +534,12 @@ class CQTcl : public CTcl {
     return CTclUtil::errorInfo(interp(), rc).c_str();
   }
 
+  Tcl_Interp *interp() const {
+    //std::unique_lock<std::mutex> lock(mutex);
+
+    return CTcl::interp();
+  }
+
  private:
   static char *traceProc(ClientData data, Tcl_Interp *, const char *name1,
                          const char *, int flags) {
@@ -542,6 +550,9 @@ class CQTcl : public CTcl {
 
     return 0;
   }
+
+ private:
+  //mutable std::mutex mutex;
 };
 
 #endif

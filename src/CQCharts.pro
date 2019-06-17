@@ -21,6 +21,8 @@ CQCharts.cpp \
 CQChartsFilterModel.cpp \
 CQChartsExprModel.cpp \
 CQChartsExprModelFn.cpp \
+CQChartsVarsModel.cpp \
+CQChartsExprDataModel.cpp \
 \
 CQChartsColumn.cpp \
 CQChartsColumnType.cpp \
@@ -252,6 +254,8 @@ HEADERS += \
 ../include/CQChartsFilterModel.h \
 ../include/CQChartsExprModel.h \
 ../include/CQChartsExprModelFn.h \
+../include/CQChartsVarsModel.h \
+../include/CQChartsExprDataModel.h \
 \
 ../include/CQChartsColumn.h \
 ../include/CQChartsColumnType.h \
