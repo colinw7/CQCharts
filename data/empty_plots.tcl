@@ -1,6 +1,6 @@
 set model [load_charts_model -csv data/empty.csv -first_line_header]
 
-set types [get_charts_data -name types]
+set types [get_charts_data -name plot_types]
 
 set plots {}
 
@@ -14,7 +14,7 @@ foreach type $types {
   }
 
   if {[get_charts_data -type $type -name title]} {
-    set_charts_property -plot $plot -name title.text.text -value $type
+    set_charts_property -plot $plot -name title.text.string -value $type
   }
 
   lappend plots $plot

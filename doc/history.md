@@ -884,6 +884,9 @@
 # 6/10/2019
  + Fix interp Hsv issue with gray color
  + Show colors in table delegate
-# 6/17/2010
+# 6/17/2019
  + Improve write code
  + add mutex in tcl eval
+# 6/23/2019
+ + add help dialog
+ + improve clipping and handling of small text in hier bubble plot and sunburst plot

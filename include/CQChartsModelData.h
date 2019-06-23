@@ -15,7 +15,7 @@ class QAbstractItemModel;
 class QItemSelectionModel;
 
 /*!
- * \brief Model Data Objec
+ * \brief Model Data Object
  */
 class CQChartsModelData : public QObject {
   Q_OBJECT
@@ -41,6 +41,10 @@ class CQChartsModelData : public QObject {
     double  delta  { 1.0 };
     int     count  { 20 };
   };
+
+ public:
+  static QString description();
+  static QString typeDescription(const QString &type);
 
  public:
   CQChartsModelData(CQCharts *charts, ModelP &model);

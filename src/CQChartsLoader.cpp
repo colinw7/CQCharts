@@ -107,7 +107,8 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
     return model;
   }
   else {
-    charts_->errorMsg("Bad file type specified '" + fileTypeToString(type) + "'");
+    charts_->errorMsg("Bad file type specified '" +
+                      CQChartsFileTypeUtil::fileTypeToString(type) + "'");
     return nullptr;
   }
 }

@@ -1217,7 +1217,18 @@ draw(QPainter *painter)
   CQChartsGeom::Point p2 =
     plot_->windowToPixel(CQChartsGeom::Point(node_->x() + r, node_->y() - r));
 
-  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y));
+  double pw = std::abs(p2.x - p1.x) - 2;
+  double ph = std::abs(p2.y - p1.y) - 2;
+
+  QRectF  qrect;
+  QPointF qpoint;
+
+  bool isPoint = (pw <= 1.5 || ph <= 1.5);
+
+  if (isPoint)
+    qpoint = QPointF((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
+  else
+    qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y));
 
   //---
 
@@ -1238,7 +1249,44 @@ draw(QPainter *painter)
 
   //---
 
-  // set text pen
+  // draw bubble
+  painter->setPen  (pen);
+  painter->setBrush(brush);
+
+  if (isPoint)
+    painter->drawPoint(qpoint);
+  else {
+    QPainterPath path;
+
+    path.addEllipse(qrect);
+
+    painter->drawPath(path);
+  }
+
+  //---
+
+  if (isPoint)
+    return;
+
+  if (! plot_->isTextVisible())
+    return;
+
+  //---
+
+  // get labels (name and optional size)
+  QStringList strs;
+
+  QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
+
+  strs.push_back(name);
+
+  if (plot_->isValueLabel() && ! node_->isFiller()) {
+    strs.push_back(QString("%1").arg(node_->size()));
+  }
+
+  //---
+
+  // calc text pen
   QPen tpen;
 
   QColor tc = plot_->interpTextColor(colorInd);
@@ -1250,30 +1298,6 @@ draw(QPainter *painter)
   //---
 
   painter->save();
-
-  //---
-
-  // draw bubble
-  painter->setPen  (pen);
-  painter->setBrush(brush);
-
-  QPainterPath path;
-
-  path.addEllipse(qrect);
-
-  painter->drawPath(path);
-
-  //---
-
-  QStringList strs;
-
-  QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
-
-  strs.push_back(name);
-
-  if (plot_->isValueLabel() && ! node_->isFiller()) {
-    strs.push_back(QString("%1").arg(node_->size()));
-  }
 
   //---
 
@@ -1313,7 +1337,7 @@ draw(QPainter *painter)
 
   //---
 
-  // calc text size and position
+  // calc text position
   CQChartsGeom::Point pc = plot_->windowToPixel(CQChartsGeom::Point(node_->x(), node_->y()));
 
   //---
@@ -1325,6 +1349,8 @@ draw(QPainter *painter)
 
   textOptions.contrast  = plot_->isTextContrast ();
   textOptions.formatted = plot_->isTextFormatted();
+  textOptions.html      = plot_->isTextHtml();
+//textOptions.align     = plot_->textAlign();
 
   textOptions = plot_->adjustTextOptions(textOptions);
 

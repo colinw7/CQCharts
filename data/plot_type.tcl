@@ -1,4 +1,4 @@
-set types [get_charts_data -name types]
+set types [get_charts_data -name plot_types]
 
 foreach type $types {
 # set names [get_charts_data -type $type -name properties]

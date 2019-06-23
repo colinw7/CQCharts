@@ -16,7 +16,7 @@ proc dump_properties { hidden } {
 
   set model [load_charts_model -csv data/boxplot.csv -first_line_header]
 
-  set types [get_charts_data -name types]
+  set types [get_charts_data -name plot_types]
 
   set view_checked 0
 

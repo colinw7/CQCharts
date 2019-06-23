@@ -1,6 +1,6 @@
 # Loading Data #
 
-To load data use the _load\_model_ tcl command.
+To load data use the charts_\_load\_model\_ tcl command.
 
 This command supports loading files in the following formats:
  + csv

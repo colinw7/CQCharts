@@ -172,6 +172,8 @@ class CQChartsView : public QFrame,
   static const QSize &defSizeHint() { return defSizeHint_; }
   static void setDefSizeHint(const QSize &s) { defSizeHint_ = s; }
 
+  static QString description();
+
  public:
   CQChartsView(CQCharts *charts, QWidget *parent=nullptr);
 

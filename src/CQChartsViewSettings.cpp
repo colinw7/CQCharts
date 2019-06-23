@@ -1401,6 +1401,7 @@ initLayersFrame(QFrame *layersFrame)
 class CQChartsViewSettingsLayerImage : public QDialog {
  public:
   CQChartsViewSettingsLayerImage() {
+    setWindowTitle("Layer Image");
   }
 
   void setImage(const QImage &image) {

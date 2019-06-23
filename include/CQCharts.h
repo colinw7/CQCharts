@@ -96,6 +96,9 @@ class CQCharts : public QObject {
   using ColorInd = CQChartsUtil::ColorInd;
 
  public:
+  static QString description();
+
+ public:
   CQCharts();
 
   virtual ~CQCharts();
@@ -106,6 +109,10 @@ class CQCharts : public QObject {
 
   bool hasViewKey() const { return viewKey_; }
   void setViewKey(bool b) { viewKey_ = b; }
+
+  //---
+
+  void getModelTypeNames(QStringList &names) const;
 
   //---
 

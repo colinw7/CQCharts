@@ -16,6 +16,7 @@
 #include <CQChartsDisplayRange.h>
 #include <CQChartsVariant.h>
 #include <CQChartsInterfaceTheme.h>
+#include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -42,6 +43,19 @@ namespace {
     else
       return CQChartsSelMod::REPLACE;
   }
+}
+
+//---
+
+QString
+CQChartsView::
+description()
+{
+  return CQChartsHtml().
+   h2("View").
+   p("A view is a container for one or more plots").
+   p("Plots can be placed side by side or in a grid or overlaid with shared x and/or "
+     "coordinates.");
 }
 
 //---

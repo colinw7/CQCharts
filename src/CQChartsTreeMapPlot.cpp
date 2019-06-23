@@ -1291,8 +1291,8 @@ draw(QPainter *painter)
   CQChartsGeom::Point p2 =
     plot_->windowToPixel(CQChartsGeom::Point(node_->x() + node_->w(), node_->y() + node_->h()));
 
-  double pw = p2.x - p1.x - 2;
-  double ph = p1.y - p2.y - 2;
+  double pw = std::abs(p2.x - p1.x) - 2;
+  double ph = std::abs(p2.y - p1.y) - 2;
 
   QRectF  qrect;
   QPointF qpoint;
@@ -1313,7 +1313,6 @@ draw(QPainter *painter)
   QBrush brush;
 
   QColor bc = plot_->interpStrokeColor(colorInd);
-
   QColor fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
   plot_->setPenBrush(pen, brush,

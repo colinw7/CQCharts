@@ -369,14 +369,27 @@ CQChartsColumnsEdit(QWidget *parent) :
 
   countLabel_ = CQUtil::makeLabelWidget<QLabel>("", "countLabel");
 
-  QToolButton *addButton    = CQUtil::makeWidget<QToolButton>("add");
-  QToolButton *removeButton = CQUtil::makeWidget<QToolButton>("remove");
+  //--
 
-  addButton   ->setIcon(CQPixmapCacheInst->getIcon("ADD"));
-  removeButton->setIcon(CQPixmapCacheInst->getIcon("REMOVE"));
+  auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
+                          const char *receiver) {
+    QToolButton *button = CQUtil::makeWidget<QToolButton>(name);
 
-  connect(addButton, SIGNAL(clicked()), this, SLOT(addSlot()));
-  connect(removeButton, SIGNAL(clicked()), this, SLOT(removeSlot()));
+    button->setIcon(CQPixmapCacheInst->getIcon(iconName));
+
+    connect(button, SIGNAL(clicked()), this, receiver);
+
+    button->setToolTip(tip);
+
+    return button;
+  };
+
+  //--
+
+  QToolButton *addButton    =
+    createButton("add"   , "ADD"   , "Add column"   , SLOT(addSlot()));
+  QToolButton *removeButton =
+    createButton("remove", "REMOVE", "Remove column", SLOT(removeSlot()));
 
   controlFrameLayout->addWidget(countLabel_);
   controlFrameLayout->addStretch(1);

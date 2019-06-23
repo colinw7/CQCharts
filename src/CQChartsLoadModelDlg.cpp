@@ -82,13 +82,13 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   //--
 
   // Type Combo
+  QStringList modelTypeNames;
+
+  charts_->getModelTypeNames(modelTypeNames);
+
   typeCombo_ = CQUtil::makeWidget<QComboBox>("typeCombo");
 
-  typeCombo_->addItem("CSV");
-  typeCombo_->addItem("TSV");
-  typeCombo_->addItem("Json");
-  typeCombo_->addItem("Data");
-  typeCombo_->addItem("Expr");
+  typeCombo_->addItems(modelTypeNames);
 
   fileFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Type", "typeLabel"), row, 0);
   fileFrameLayout->addWidget(typeCombo_                                          , row, 1);
@@ -322,7 +322,7 @@ applySlot()
 
   //----
 
-  CQChartsFileType fileType = stringToFileType(type);
+  CQChartsFileType fileType = CQChartsFileTypeUtil::stringToFileType(type);
 
   if (fileType == CQChartsFileType::NONE)
     return false;

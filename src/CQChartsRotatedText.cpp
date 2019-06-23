@@ -17,7 +17,7 @@ draw(QPainter *painter, double x, double y, const QString &text,
   double th = fm.height();
   double tw = fm.width(text);
 
-  double a1 = M_PI*angle/180.0;
+  double a1 = CMathUtil::Deg2Rad(angle);
 
   double c = cos(-a1);
   double s = sin(-a1);
@@ -142,7 +142,7 @@ bboxData(double x, double y, const QString &text, const QFont &font, double angl
   double th = fm.height()    + 2*border;
   double tw = fm.width(text) + 2*border;
 
-  double a1 = M_PI*angle/180.0;
+  double a1 = CMathUtil::Deg2Rad(angle);
 
   double c = cos(-a1);
   double s = sin(-a1);

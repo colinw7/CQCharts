@@ -274,16 +274,25 @@ CQChartsPolygonEdit(QWidget *parent) :
 
   unitsEdit_ = new CQChartsUnitsEdit;
 
-  //---
+  //--
 
-  QToolButton *addButton    = CQUtil::makeWidget<QToolButton>("add");
-  QToolButton *removeButton = CQUtil::makeWidget<QToolButton>("remove");
+  auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
+                          const char *receiver) {
+    QToolButton *button = CQUtil::makeWidget<QToolButton>(name);
 
-  addButton   ->setIcon(CQPixmapCacheInst->getIcon("ADD"));
-  removeButton->setIcon(CQPixmapCacheInst->getIcon("REMOVE"));
+    button->setIcon(CQPixmapCacheInst->getIcon(iconName));
 
-  connect(addButton, SIGNAL(clicked()), this, SLOT(addSlot()));
-  connect(removeButton, SIGNAL(clicked()), this, SLOT(removeSlot()));
+    connect(button, SIGNAL(clicked()), this, receiver);
+
+    button->setToolTip(tip);
+
+    return button;
+  };
+
+  //--
+
+  QToolButton *addButton    = createButton("add"   , "ADD"   , "Add point"   , SLOT(addSlot()));
+  QToolButton *removeButton = createButton("remove", "REMOVE", "Remove point", SLOT(removeSlot()));
 
   controlFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Units", "unitsLabel"));
   controlFrameLayout->addWidget(unitsEdit_);

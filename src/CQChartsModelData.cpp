@@ -5,6 +5,7 @@
 #include <CQChartsVarsModel.h>
 #include <CQChartsExprDataModel.h>
 #include <CQCharts.h>
+#include <CQChartsHtml.h>
 
 #include <CQSummaryModel.h>
 #include <CQCsvModel.h>
@@ -18,6 +19,75 @@
 #endif
 
 #include <QSortFilterProxyModel>
+
+QString
+CQChartsModelData::
+description()
+{
+  auto LI  = [](const QString &str) { return CQChartsHtml::Str(str); };
+//auto A   = [](const QString &ref, const QString &str) { return CQChartsHtml::Str::a(ref, str); };
+  auto CMD = [](const QString &str) {
+    return CQChartsHtml::Str::a("charts://command/" + str, str); };
+
+  return CQChartsHtml().
+   h2("Loading Data").
+   p("To load data use the " + CMD("charts_load_model") + " tcl command.").
+   p("This command supports loading files in the following formats:").
+   ul({ LI("csv : Comma Separated Value data"),
+        LI("tsv : Tab Separated Value Data"),
+        LI("json : JSON Data"),
+        LI("data : GNUPlot like data (space separated)") }).
+   p("and also allows the data to be generated from a tcl expression or read "
+     "from a tcl variable (list of lists).").
+   p("For csv, csv and data formats the reader recognises lines starting with # as "
+     "comments. Headers for the columns can be take from the first non-comment "
+     "line or first comment line.").
+   p("csv defaults to using a comma for the value separator. This can be changed "
+     "to any character to support other separator types.").
+   p("csv format also supports specially formated comments to support meta data "
+     "for specifying additional column data e.g. column types and formats.").
+   p("The tcl expression is run on a specified number of rows (default 100).").
+   p("The data processed can be limited by specifying a maximum number of rows, "
+     "a tcl filter expression or specific columns.").
+   p("The types of the columns can be specified.").
+   p("The command returns a unique identifier the for model which can be used in "
+      "other commands e.g. as the input model for a plot.");
+}
+
+QString
+CQChartsModelData::
+typeDescription(const QString &type)
+{
+  if      (type == "CSV") {
+    return CQChartsHtml().
+     h2("CSV");
+  }
+  else if (type == "TSV") {
+    return CQChartsHtml().
+     h2("CSV");
+  }
+  else if (type == "Json") {
+    return CQChartsHtml().
+     h2("Json");
+  }
+  else if (type == "Data") {
+    return CQChartsHtml().
+     h2("Data");
+  }
+  else if (type == "Expr") {
+    return CQChartsHtml().
+     h2("Expr");
+  }
+  else if (type == "Vars") {
+    return CQChartsHtml().
+     h2("Vars");
+  }
+  else {
+    return CQChartsHtml();
+  }
+}
+
+//---
 
 CQChartsModelData::
 CQChartsModelData(CQCharts *charts, ModelP &model) :

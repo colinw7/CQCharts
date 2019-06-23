@@ -43,6 +43,8 @@ CQChartsCreatePlotDlg::
 CQChartsCreatePlotDlg(CQCharts *charts, CQChartsModelData *modelData) :
  charts_(charts), modelData_(modelData)
 {
+  setWindowTitle("Create Plot");
+
   assert(modelData_);
 
   model_ = modelData->currentModel();
@@ -429,34 +431,37 @@ createGeneralDataFrame()
 
   //--
 
-  xminEdit_ = addRealEdit(xRangeFrameLayout, row, column, "X Min", "xmin", "X Axis Minimum Value");
+  auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
+                          const char *receiver) {
+    QToolButton *button = CQUtil::makeWidget<QToolButton>(name);
 
-  xminButton_ = CQUtil::makeWidget<QToolButton>("xminButton");
+    button->setIcon(CQPixmapCacheInst->getIcon(iconName));
 
-  xminButton_->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
+    connect(button, SIGNAL(clicked()), this, receiver);
 
-  xminButton_->setToolTip("Get minimum value for x column");
+    button->setToolTip(tip);
+
+    return button;
+  };
+
+  //--
+
+  xminEdit_ =
+    addRealEdit(xRangeFrameLayout, row, column, "X Min", "xmin", "Custom X Axis Minimum Value");
+  xminButton_ =
+    createButton("xminButton", "REFRESH", "Get minimum value for x column", SLOT(xminSlot()));
 
   xRangeFrameLayout->addWidget(xminButton_);
 
-  yminEdit_ = addRealEdit(xRangeFrameLayout, row, column, "Y Min", "ymin", "Y Axis Minimum Value");
-
-  yminButton_ = CQUtil::makeWidget<QToolButton>("yminButton");
-
-  yminButton_->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
-
-  yminButton_->setToolTip("Get minimum value for y column");
+  yminEdit_ =
+    addRealEdit(xRangeFrameLayout, row, column, "Y Min", "ymin", "Custom Y Axis Minimum Value");
+  yminButton_ =
+    createButton("yminButton", "REFRESH", "Get minimum value for y column", SLOT(yminSlot()));
 
   xRangeFrameLayout->addWidget(yminButton_);
 
-  xminEdit_->setToolTip("Custom X Axis Minimum Value");
-  yminEdit_->setToolTip("Custom Y Axis Minimum Value");
-
   connect(xminEdit_, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
   connect(yminEdit_, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
-
-  connect(xminButton_, SIGNAL(clicked()), this, SLOT(xminSlot()));
-  connect(yminButton_, SIGNAL(clicked()), this, SLOT(yminSlot()));
 
   //--
 
@@ -470,34 +475,22 @@ createGeneralDataFrame()
 
   //--
 
-  xmaxEdit_ = addRealEdit(yRangeFrameLayout, row, column, "X Max", "xmax", "X Axis Maximum Value");
-
-  xmaxButton_ = CQUtil::makeWidget<QToolButton>("xmaxButton");
-
-  xmaxButton_->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
-
-  xmaxButton_->setToolTip("Get maximum value for x column");
+  xmaxEdit_ =
+    addRealEdit(yRangeFrameLayout, row, column, "X Max", "xmax", "Custom X Axis Maximum Value");
+  xmaxButton_ =
+    createButton("xmaxButton", "REFRESH", "Get maximum value for x column", SLOT(xmaxSlot()));
 
   yRangeFrameLayout->addWidget(xmaxButton_);
 
-  ymaxEdit_ = addRealEdit(yRangeFrameLayout, row, column, "Y Max", "ymax", "Y Axis Maximum Value");
-
-  ymaxButton_ = CQUtil::makeWidget<QToolButton>("ymaxButton");
-
-  ymaxButton_->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
-
-  ymaxButton_->setToolTip("Get maximum value for y column");
+  ymaxEdit_ =
+    addRealEdit(yRangeFrameLayout, row, column, "Y Max", "ymax", "Custom Y Axis Maximum Value");
+  ymaxButton_ =
+    createButton("ymaxButton", "REFRESH", "Get maximum value for y column", SLOT(ymaxSlot()));
 
   yRangeFrameLayout->addWidget(ymaxButton_);
 
-  xmaxEdit_->setToolTip("Custom X Axis Maximum Value");
-  ymaxEdit_->setToolTip("Custom Y Axis Maximum Value");
-
   connect(xmaxEdit_, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
   connect(ymaxEdit_, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
-
-  connect(xmaxButton_, SIGNAL(clicked()), this, SLOT(xmaxSlot()));
-  connect(ymaxButton_, SIGNAL(clicked()), this, SLOT(ymaxSlot()));
 
   //----
 

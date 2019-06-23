@@ -847,11 +847,7 @@ doLayout()
   //---
 
   // get max number of rows
-  int numRows = numRows_;
-
-  // limit rows if height (and this scrolled) not defined
-  if (! scrollData_.height.isSet())
-    numRows = std::min(numRows, maxRows());
+  int numRows = calcNumRows();
 
   //---
 
@@ -1070,6 +1066,22 @@ CQChartsPlotKey::
 setAbsolutePlotRect(const QRectF &r)
 {
   setAbsoluteRectangle(plot_->windowToView(r));
+}
+
+int
+CQChartsPlotKey::
+calcNumRows() const
+{
+  // get max number of rows
+  int numRows = numRows_;
+
+#if 0
+  // limit rows if height (and this scrolled) not defined
+  if (! scrollData_.height.isSet())
+    numRows = std::min(numRows, maxRows());
+#endif
+
+  return numRows;
 }
 
 QSizeF
@@ -1382,6 +1394,11 @@ draw(QPainter *painter) const
 
   //---
 
+  // get max number of rows
+  int numRows = calcNumRows();
+
+  //---
+
   painter->save();
 
   //---
@@ -1413,7 +1430,7 @@ draw(QPainter *painter) const
     int    scrollRows   = 0;
     double scrollHeight = sh - 2*ym_ - layoutData_.hbarHeight;
 
-    for (int i = 0; i < numRows_; ++i) {
+    for (int i = 0; i < numRows; ++i) {
       if (scrollHeight <= 0)
         break;
 
@@ -1430,7 +1447,7 @@ draw(QPainter *painter) const
     if (scrollData_.vbar->pageStep() != scrollRows)
       scrollData_.vbar->setPageStep(scrollRows);
 
-    int smax = std::max(numRows_ - scrollRows, 1);
+    int smax = std::max(numRows - scrollRows, 1);
 
     if (scrollData_.vbar->maximum() != smax)
       scrollData_.vbar->setRange(0, smax);
@@ -1642,7 +1659,8 @@ drawEditHandles(QPainter *painter) const
 
   CQChartsPlotKey *th = const_cast<CQChartsPlotKey *>(this);
 
-  if (scrollData_.height.isSet())
+  if (scrollData_.height.isSet() || scrollData_.width.isSet() ||
+      layoutData_.vscrolled || layoutData_.hscrolled)
     th->editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
   else
     th->editHandles_->setMode(CQChartsEditHandles::Mode::MOVE);

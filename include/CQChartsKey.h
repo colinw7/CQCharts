@@ -315,6 +315,8 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
+  int calcNumRows() const;
+
   QSizeF calcSize();
 
   //---

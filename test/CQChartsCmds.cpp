@@ -30,6 +30,8 @@
 #include <CQChartsCreatePlotDlg.h>
 #include <CQChartsFilterModel.h>
 #include <CQChartsAnalyzeModel.h>
+#include <CQChartsHelpDlg.h>
+
 
 #include <CQColors.h>
 #include <CQColorsTheme.h>
@@ -176,9 +178,11 @@ addCommands()
     addCommand("show_charts_load_model_dlg"   , new CQChartsShowChartsLoadModelDlgCmd(this));
     addCommand("show_charts_manage_models_dlg", new CQChartsShowChartsManageModelsDlgCmd(this));
     addCommand("show_charts_create_plot_dlg"  , new CQChartsShowChartsCreatePlotDlgCmd(this));
+    addCommand("show_charts_help_dlg"         , new CQChartsShowChartsHelpDlgCmd(this));
 
     // test
-    addCommand("charts::test_edit", new CQChartsTestEditCmd(this));
+    //addCommand("charts::test_edit", new CQChartsTestEditCmd(this));
+    addCommand("test_charts_edit", new CQChartsTestEditCmd(this));
 
     //---
 
@@ -193,6 +197,8 @@ CQChartsCmds::
 addCommand(const QString &name, CQChartsCmdProc *proc)
 {
   cmdBase_->addCommand(name, proc);
+
+  CQChartsHelpDlgMgrInst->addTclCommand(name);
 }
 
 //------
@@ -4839,7 +4845,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(vars);
     }
-    else if (name == "types") {
+    else if (name == "plot_types") {
       QStringList names, descs;
 
       charts_->getPlotTypeNames(names, descs);
@@ -4872,6 +4878,39 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(modelData->ind());
     }
+    else if (name == "column_types") {
+      CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
+      QStringList names;
+
+      columnTypeMgr->typeNames(names);
+
+      cmdBase_->setCmdRc(names);
+    }
+    else if (name == "column_type.names" || name == "column_type.descs") {
+       if (! argv.hasParseArg("model"))
+         return errorMsg("Missing data for '" + name + "'");
+
+      QString dataStr = argv.getParseStr("data");
+
+      CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
+      const CQChartsColumnType *columnType = columnTypeMgr->getNamedType(dataStr);
+      if (! columnType) return errorMsg("Invalid type '" + dataStr + "' for '" + name + "'");
+
+      QStringList names;
+
+      if (name == "column_type.names") {
+        for (const auto &param : columnType->params())
+          names << param.name();
+      }
+      else {
+        for (const auto &param : columnType->params())
+          names << param.tip();
+      }
+
+      cmdBase_->setCmdRc(names);
+    }
     else if (name == "annotation_types") {
       QStringList names = CQChartsAnnotation::typeNames();
 
@@ -4879,7 +4918,8 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     }
     else if (name == "?") {
       QStringList names = QStringList() <<
-       "models" << "views" << "types" << "plots" << "current_model" << "annotation_types";
+       "models" << "views" << "plot_types" << "plots" << "current_model" <<
+       "column_types" << "column_type.names" << "column_type.descs" << "annotation_types";
 
       cmdBase_->setCmdRc(names);
     }
@@ -6577,6 +6617,26 @@ showChartsCreatePlotDlgCmd(CQChartsCmdArgs &argv)
   CQChartsPlot *plot = dlg->plot();
 
   cmdBase_->setCmdRc(plot ? plot->pathId() : "");
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+showChartsHelpDlgCmd(CQChartsCmdArgs &argv)
+{
+  CQPerfTrace trace("CQChartsCmds::showChartsHelpDlgCmd");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsHelpDlgMgrInst->showDialog(charts_);
 
   return true;
 }

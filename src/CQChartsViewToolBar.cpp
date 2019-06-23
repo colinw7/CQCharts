@@ -5,6 +5,7 @@
 #include <CQChartsManageModelsDlg.h>
 #include <CQChartsCreatePlotDlg.h>
 #include <CQChartsModelData.h>
+#include <CQChartsHelpDlg.h>
 #include <CQPixmapCache.h>
 #include <CQIconCombo.h>
 #include <CQUtil.h>
@@ -31,6 +32,7 @@
 #include <svg/models_dark_svg.h>
 #include <svg/options_svg.h>
 #include <svg/table_svg.h>
+#include <svg/info_svg.h>
 
 #include <QStackedWidget>
 #include <QToolButton>
@@ -223,12 +225,22 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   layout->addWidget(createPlotDlgButton_);
 
   autoFitButton_ = createButton("fit"  , "ZOOM_FIT", "Zoom Fit"    , SLOT(autoFitSlot()));
-  leftButton_    = createButton("left" , "LEFT"    , "Scroll Left" , SLOT(leftSlot()));
-  rightButton_   = createButton("right", "RIGHT"   , "Scroll Right", SLOT(rightSlot()));
 
   layout->addWidget(autoFitButton_);
+
+  //---
+
+  leftButton_  = createButton("left" , "LEFT"    , "Scroll Left" , SLOT(leftSlot()));
+  rightButton_ = createButton("right", "RIGHT"   , "Scroll Right", SLOT(rightSlot()));
+
   layout->addWidget(leftButton_);
   layout->addWidget(rightButton_);
+
+  //---
+
+  QToolButton *helpButton = createButton("help", "INFO", "Help" , SLOT(helpSlot()));
+
+  layout->addWidget(helpButton);
 
   //---
 
@@ -417,6 +429,15 @@ CQChartsViewToolBar::
 rightSlot()
 {
   view()->scrollRight();
+}
+
+void
+CQChartsViewToolBar::
+helpSlot()
+{
+  CQCharts *charts = view()->charts();
+
+  CQChartsHelpDlgMgrInst->showDialog(charts);
 }
 
 QSize

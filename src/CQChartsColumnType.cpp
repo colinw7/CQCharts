@@ -11,6 +11,7 @@
 #include <CQChartsStyle.h>
 #include <CQCharts.h>
 #include <CQChartsTypes.h>
+#include <CQChartsHtml.h>
 
 #include <CQBaseModel.h>
 #include <CQColors.h>
@@ -74,6 +75,46 @@ double varReal(const QVariant &var, double def) {
 }
 
 //------
+
+QString
+CQChartsColumnTypeMgr::
+description()
+{
+  auto LI = [](const QString &str) { return CQChartsHtml::Str(str); };
+  auto A  = [](const QString &ref, const QString &str) { return CQChartsHtml::Str::a(ref, str); };
+
+  return CQChartsHtml().
+   h2("Column Types").
+    p("The following column types are supported:").
+    ul({LI(A("charts://column_type/string"          , "string"          )),
+        LI(A("charts://column_type/boolean"         , "boolean"         )),
+        LI(A("charts://column_type/real"            , "real"            )),
+        LI(A("charts://column_type/integer"         , "integer"         )),
+        LI(A("charts://column_type/time"            , "time"            )),
+        LI(A("charts://column_type/rect"            , "rect"            )),
+        LI(A("charts://column_type/polygon"         , "polygon"         )),
+        LI(A("charts://column_type/polygon list"    , "polygon list"    )),
+        LI(A("charts://column_type/connections list", "connections list")),
+        LI(A("charts://column_type/name pair"       , "name pair"       )),
+        LI(A("charts://column_type/path"            , "path"            )),
+        LI(A("charts://column_type/style"           , "style"           )),
+        LI(A("charts://column_type/color"           , "color"           )),
+        LI(A("charts://column_type/image"           , "image"           )),
+        LI(A("charts://column_type/symbol type"     , "symbol type"     )),
+        LI(A("charts://column_type/symbol size"     , "symbol size"     )),
+        LI(A("charts://column_type/font size"       , "font size"       )) }).
+    p("Values can be converted in the model (edit role) or in the plot (display role).").
+    p("For example time values are usually stored as date strings in the input data so "
+      "to store the actual UNIX time value in the edit role of the model they need to "
+      "be converted using the column 'iformat' name value. To display the time in the "
+      "plot (e.g. on axis tick labels) this converted time needs to be converted back "
+      "to a string using the 'oformat' name value.").
+    p("Color values can either be stored as color names in the input data or can "
+      "be mapped into a palette from numeric values or discrete strings. Usually "
+      "mapping takes place on data that can be used for other parts of the plot "
+      "so it is better to convert the value in the plot rather than the model so "
+      "the original data can still be accessed.");
+}
 
 CQChartsColumnTypeMgr::
 CQChartsColumnTypeMgr(CQCharts *charts) :
@@ -158,6 +199,20 @@ getType(Type type) const
     return nullptr;
 
   return (*p).second;
+}
+
+const CQChartsColumnType *
+CQChartsColumnTypeMgr::
+getNamedType(const QString &name) const
+{
+  for (const auto &typeData : typeData_) {
+    QString name1 = CQBaseModel::typeName(typeData.first);
+
+    if (name == name1)
+      return typeData.second;
+  }
+
+  return nullptr;
 }
 
 // convert variant into user data
@@ -611,6 +666,13 @@ CQChartsColumnStringType() :
 {
 }
 
+QString
+CQChartsColumnStringType::
+description() const
+{
+  return CQChartsHtml();
+}
+
 QVariant
 CQChartsColumnStringType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
@@ -642,6 +704,13 @@ CQChartsColumnBooleanType::
 CQChartsColumnBooleanType() :
  CQChartsColumnType(Type::BOOLEAN)
 {
+}
+
+QString
+CQChartsColumnBooleanType::
+description() const
+{
+  return CQChartsHtml();
 }
 
 QVariant
@@ -683,6 +752,13 @@ CQChartsColumnRealType() :
 
   params_.emplace_back("min", Type::REAL, (int) CQBaseModelRole::Min, "Min Value", 0.0);
   params_.emplace_back("max", Type::REAL, (int) CQBaseModelRole::Max, "Max Value", 1.0);
+}
+
+QString
+CQChartsColumnRealType::
+description() const
+{
+  return CQChartsHtml();
 }
 
 QVariant
@@ -811,6 +887,13 @@ CQChartsColumnIntegerType() :
   params_.emplace_back("max", Type::INTEGER, (int) CQBaseModelRole::Max, "Max Value", 100);
 }
 
+QString
+CQChartsColumnIntegerType::
+description() const
+{
+  return CQChartsHtml();
+}
+
 QVariant
 CQChartsColumnIntegerType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
@@ -884,6 +967,13 @@ CQChartsColumnTimeType() :
   params_.emplace_back("format" , Type::STRING, "Input/Output Format", "");
   params_.emplace_back("iformat", Type::STRING, "Input Format", "");
   params_.emplace_back("oformat", Type::STRING, "Output Format", "");
+}
+
+QString
+CQChartsColumnTimeType::
+description() const
+{
+  return CQChartsHtml();
 }
 
 QVariant
@@ -1006,6 +1096,13 @@ CQChartsColumnRectType() :
 {
 }
 
+QString
+CQChartsColumnRectType::
+description() const
+{
+  return CQChartsHtml();
+}
+
 QVariant
 CQChartsColumnRectType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
@@ -1058,6 +1155,13 @@ CQChartsColumnPolygonType() :
 {
 }
 
+QString
+CQChartsColumnPolygonType::
+description() const
+{
+  return CQChartsHtml();
+}
+
 QVariant
 CQChartsColumnPolygonType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
@@ -1108,6 +1212,13 @@ CQChartsColumnPolygonListType::
 CQChartsColumnPolygonListType() :
  CQChartsColumnType(Type::POLYGON_LIST)
 {
+}
+
+QString
+CQChartsColumnPolygonListType::
+description() const
+{
+  return CQChartsHtml();
 }
 
 QVariant
@@ -1172,6 +1283,13 @@ CQChartsColumnConnectionListType() :
 {
 }
 
+QString
+CQChartsColumnConnectionListType::
+description() const
+{
+  return CQChartsHtml();
+}
+
 QVariant
 CQChartsColumnConnectionListType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
@@ -1232,6 +1350,13 @@ CQChartsColumnNamePairType::
 CQChartsColumnNamePairType() :
  CQChartsColumnType(Type::NAME_PAIR)
 {
+}
+
+QString
+CQChartsColumnNamePairType::
+description() const
+{
+  return CQChartsHtml();
 }
 
 QVariant
@@ -1302,6 +1427,13 @@ CQChartsColumnPathType() :
 {
 }
 
+QString
+CQChartsColumnPathType::
+description() const
+{
+  return CQChartsHtml();
+}
+
 QVariant
 CQChartsColumnPathType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
@@ -1346,6 +1478,13 @@ CQChartsColumnStyleType::
 CQChartsColumnStyleType() :
  CQChartsColumnType(Type::STYLE)
 {
+}
+
+QString
+CQChartsColumnStyleType::
+description() const
+{
+  return CQChartsHtml();
 }
 
 QVariant
@@ -1400,6 +1539,13 @@ CQChartsColumnColorType() :
 
   // get color from named palette
   params_.emplace_back("palette", Type::STRING, "Palette", "");
+}
+
+QString
+CQChartsColumnColorType::
+description() const
+{
+  return CQChartsHtml();
 }
 
 QVariant
@@ -1546,6 +1692,13 @@ CQChartsColumnImageType() :
 {
 }
 
+QString
+CQChartsColumnImageType::
+description() const
+{
+  return CQChartsHtml();
+}
+
 QVariant
 CQChartsColumnImageType::
 userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
@@ -1598,6 +1751,13 @@ CQChartsColumnSymbolTypeType() :
 
   params_.emplace_back("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0);
   params_.emplace_back("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0);
+}
+
+QString
+CQChartsColumnSymbolTypeType::
+description() const
+{
+  return CQChartsHtml();
 }
 
 QVariant
@@ -1711,6 +1871,13 @@ CQChartsColumnSymbolSizeType() :
 
   params_.emplace_back("size_min", Type::REAL, "Symbol Size Min", 0.0);
   params_.emplace_back("size_max", Type::REAL, "Symbol Size Max", 1.0);
+}
+
+QString
+CQChartsColumnSymbolSizeType::
+description() const
+{
+  return CQChartsHtml();
 }
 
 QVariant
@@ -1835,6 +2002,13 @@ CQChartsColumnFontSizeType() :
 
   params_.emplace_back("size_min", Type::REAL, "Font Size Min", 0.0);
   params_.emplace_back("size_max", Type::REAL, "Font Size Max", 1.0);
+}
+
+QString
+CQChartsColumnFontSizeType::
+description() const
+{
+  return CQChartsHtml();
 }
 
 QVariant

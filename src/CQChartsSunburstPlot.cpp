@@ -192,7 +192,7 @@ currentRoot() const
 {
   CQChartsSunburstHierNode *currentRoot = nullptr;
 
-  QStringList names = currentRootName_.split(separator(), QString::SkipEmptyParts);
+  QStringList names = currentRootName_.split('@', QString::SkipEmptyParts);
 
   if (names.empty())
     return currentRoot;
@@ -214,7 +214,7 @@ CQChartsSunburstPlot::
 setCurrentRoot(CQChartsSunburstHierNode *hier, bool update)
 {
   if (hier)
-    currentRootName_ = hier->hierName();
+    currentRootName_ = hier->hierName('@');
   else
     currentRootName_ = "";
 
@@ -775,6 +775,17 @@ CQChartsSunburstHierNode *
 CQChartsSunburstPlot::
 childHierNode(CQChartsSunburstHierNode *parent, const QString &name) const
 {
+  if (! parent) {
+    for (const auto &root : roots_) {
+      CQChartsSunburstHierNode *hier = childHierNode(root, name);
+      if (hier) return hier;
+    }
+
+    return nullptr;
+  }
+
+  //--
+
   for (const auto &child : parent->getChildren())
     if (child->name() == name)
       return child;
@@ -786,6 +797,8 @@ CQChartsSunburstNode *
 CQChartsSunburstPlot::
 childNode(CQChartsSunburstHierNode *parent, const QString &name) const
 {
+  assert(parent);
+
   for (const auto &node : parent->getNodes())
     if (node->name() == name)
       return node;
@@ -1034,23 +1047,15 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   QPen   pen;
   QBrush brush;
 
-  QColor fc = node->interpColor(this, fillColor(), colorInd, numColorIds());
   QColor bc = interpStrokeColor(colorInd);
+  QColor fc = node->interpColor(this, fillColor(), colorInd, numColorIds());
 
   setPenBrush(pen, brush,
     isStroked(), bc, strokeAlpha(), strokeWidth(), strokeDash(),
     isFilled(), fc, fillAlpha(), fillPattern());
 
-  QPen tpen;
-
-  QColor tc = interpTextColor(colorInd);
-
-  setPen(tpen, true, tc, textAlpha());
-
-  if (nodeObj) {
-    updateObjPenBrushState(nodeObj, pen , brush);
-    updateObjPenBrushState(nodeObj, tpen, brush);
-  }
+  if (nodeObj)
+    updateObjPenBrushState(nodeObj, pen, brush);
 
   //---
 
@@ -1062,11 +1067,52 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
 
   //---
 
-  // draw node label
-  painter->setPen(tpen);
+  // calc text pen
+  QPen tpen;
 
+  QColor tc = interpTextColor(colorInd);
+
+  setPen(tpen, true, tc, textAlpha());
+
+  if (nodeObj)
+    updateObjPenBrushState(nodeObj, tpen, brush);
+
+  //---
+
+  // set font
   view()->setPlotPainterFont(this, painter, textFont());
 
+  //---
+
+  // check if text visible (see treemap)
+  if (! isCircle) {
+    double c1 = cos(CMathUtil::Deg2Rad(a1));
+    double s1 = sin(CMathUtil::Deg2Rad(a1));
+    double c2 = cos(CMathUtil::Deg2Rad(a2));
+    double s2 = sin(CMathUtil::Deg2Rad(a2));
+
+    QPointF pw1(r2*c1, r2*s1);
+    QPointF pw2(r2*c2, r2*s2);
+
+    QPointF pp1 = windowToPixel(pw1);
+    QPointF pp2 = windowToPixel(pw2);
+
+    double d = std::hypot(pp2.x() - pp1.x(), pp2.y() - pp1.y());
+
+    if (d < 1.5)
+      return;
+  }
+
+  //---
+
+  painter->save();
+
+  if (! isCircle)
+    painter->setClipPath(path);
+
+  //---
+
+  // draw node label
   double ta, c, s;
 
   if (isCircle) {
@@ -1076,8 +1122,8 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   }
   else {
     ta = a1 + da/2.0;
-    c  = cos(ta*M_PI/180.0);
-    s  = sin(ta*M_PI/180.0);
+    c  = cos(CMathUtil::Deg2Rad(ta));
+    s  = sin(CMathUtil::Deg2Rad(ta));
   }
 
   double tx, ty;
@@ -1093,6 +1139,8 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
     ty = r3*s;
   }
 
+  painter->setPen(tpen);
+
   Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
   CQChartsGeom::Point pt = windowToPixel(CQChartsGeom::Point(tx, ty));
@@ -1102,6 +1150,10 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   double ta1 = (c >= 0 ? ta : ta - 180);
 
   CQChartsRotatedText::draw(painter, pt.x, pt.y, name, ta1, align, /*contrast*/false);
+
+  //---
+
+  painter->restore();
 }
 
 //------
@@ -1428,10 +1480,10 @@ CQChartsSunburstNode(const CQChartsSunburstPlot *plot, CQChartsSunburstHierNode 
 
 QString
 CQChartsSunburstNode::
-hierName() const
+hierName(const QChar &separator) const
 {
   if (parent() && (plot()->isMultiRoot() || parent() != plot()->roots()[0]))
-    return parent()->hierName() + "/" + name();
+    return parent()->hierName(separator) + separator + name();
   else
     return name();
 }
@@ -1456,7 +1508,7 @@ pointInside(double x, double y)
 
   if (r < r_ || r > r_ + dr_) return false;
 
-  double a = normalizeAngle(180.0*atan2(y, x)/M_PI);
+  double a = normalizeAngle(CMathUtil::Rad2Deg(atan2(y, x)));
 
   double a1 = normalizeAngle(a_);
   double a2 = a1 + da_;

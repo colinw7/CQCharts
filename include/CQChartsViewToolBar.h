@@ -56,6 +56,8 @@ class CQChartsViewToolBar : public QFrame {
   void leftSlot();
   void rightSlot();
 
+  void helpSlot();
+
  private:
   CQChartsWindow*          window_                { nullptr }; //!< parent window
   CQIconCombo*             modeCombo_             { nullptr }; //!< plot mode

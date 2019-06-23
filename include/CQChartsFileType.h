@@ -2,6 +2,7 @@
 #define CQChartsFileType_H
 
 #include <QString>
+#include <QStringList>
 
 enum class CQChartsFileType {
   NONE,
@@ -13,7 +14,11 @@ enum class CQChartsFileType {
   VARS
 };
 
-namespace {
+namespace CQChartsFileTypeUtil {
+
+inline QStringList fileTypeNames() {
+  return QStringList() << "CSV" << "TSV" << "Json" << "Data" << "Expr" << "Vars";
+}
 
 inline CQChartsFileType stringToFileType(const QString &str) {
   QString lstr = str.toLower();
