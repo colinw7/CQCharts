@@ -1004,15 +1004,15 @@ addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
   return arrowAnnotation;
 }
 
-CQChartsRectAnnotation *
+CQChartsRectangleAnnotation *
 CQChartsView::
-addRectAnnotation(const CQChartsRect &rect)
+addRectangleAnnotation(const CQChartsRect &rect)
 {
-  CQChartsRectAnnotation *rectAnnotation = new CQChartsRectAnnotation(this, rect);
+  CQChartsRectangleAnnotation *rectangleAnnotation = new CQChartsRectangleAnnotation(this, rect);
 
-  addAnnotation(rectAnnotation);
+  addAnnotation(rectangleAnnotation);
 
-  return rectAnnotation;
+  return rectangleAnnotation;
 }
 
 CQChartsEllipseAnnotation *

@@ -179,6 +179,10 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 
   //---
 
+  void addChild(CQChartsTreeMapHierNode *child);
+
+  void removeChild(CQChartsTreeMapHierNode *child);
+
   bool hasChildren() const { return ! children_.empty(); }
 
   int numChildren() const { return children_.size(); }
@@ -319,6 +323,9 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   // header font, color
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header,header)
 
+  // options
+  Q_PROPERTY(bool valueLabel READ isValueLabel WRITE setValueLabel)
+
   // box margin
   Q_PROPERTY(CQChartsLength marginWidth READ marginWidth WRITE setMarginWidth)
 
@@ -358,6 +365,11 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   //---
 
   void setHeaderTextFontSize(double s);
+
+  //---
+
+  bool isValueLabel() const { return valueLabel_; }
+  void setValueLabel(bool b);
 
   //---
 
@@ -482,6 +494,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   bool              titles_             { true };    //!< show title bar (header)
   CQChartsOptReal   titleMaxExtent_;                 //!< user specified title bar max extent (0-1)
   CQChartsOptLength titleHeight_;                    //!< user specified title height
+  bool              valueLabel_         { false };   //!< draw value with name
   CQChartsLength    marginWidth_        { "2px" };   //!< box margin
   bool              colorById_          { true };    //!< color by id
   Node*             root_               { nullptr }; //!< root node

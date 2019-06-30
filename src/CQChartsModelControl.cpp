@@ -655,20 +655,20 @@ setColumnData(int column)
 
       ParamEdit &paramEdit = columnEditData_.paramEdits[paramInd];
 
-      paramEdit.label->setText(param.name());
+      paramEdit.label->setText(param->name());
 
       QVariant var;
 
-      nameValues.nameValue(param.name(), var);
+      nameValues.nameValue(param->name(), var);
 
-      if (param.type() == CQBaseModelType::BOOLEAN)
+      if (param->type() == CQBaseModelType::BOOLEAN)
         paramEdit.edit->setBool(var.toBool());
       else
         paramEdit.edit->setString(var.toString());
 
-      paramEdit.label->setObjectName(param.name() + "_label");
-      paramEdit.edit ->setObjectName(param.name() + "_edit" );
-      paramEdit.edit ->setToolTip(param.tip());
+      paramEdit.label->setObjectName(param->name() + "_label");
+      paramEdit.edit ->setObjectName(param->name() + "_edit" );
+      paramEdit.edit ->setToolTip(param->tip());
 
       ++paramInd;
     }

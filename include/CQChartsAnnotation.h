@@ -37,7 +37,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
  public:
   static const QStringList &typeNames() {
     static QStringList names = QStringList() <<
-      "rect" << "ellipse" << "polygon" << "polyline" << "text" << "arrow" << "point";
+      "rectangle" << "ellipse" << "polygon" << "polyline" << "text" << "arrow" << "point";
 
     return names;
   }
@@ -201,20 +201,20 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 /*!
  * \brief rectangle annotation
  */
-class CQChartsRectAnnotation : public CQChartsAnnotation {
+class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsRect     rect  READ rect  WRITE setRect )
-  Q_PROPERTY(CQChartsPosition start READ start WRITE setStart)
-  Q_PROPERTY(CQChartsPosition end   READ end   WRITE setEnd  )
+  Q_PROPERTY(CQChartsRect     rectangle READ rect  WRITE setRect )
+  Q_PROPERTY(CQChartsPosition start     READ start WRITE setStart)
+  Q_PROPERTY(CQChartsPosition end       READ end   WRITE setEnd  )
 
  public:
-  CQChartsRectAnnotation(CQChartsView *view, const CQChartsRect &rect=CQChartsRect());
-  CQChartsRectAnnotation(CQChartsPlot *plot, const CQChartsRect &rect=CQChartsRect());
+  CQChartsRectangleAnnotation(CQChartsView *view, const CQChartsRect &rect=CQChartsRect());
+  CQChartsRectangleAnnotation(CQChartsPlot *plot, const CQChartsRect &rect=CQChartsRect());
 
-  virtual ~CQChartsRectAnnotation();
+  virtual ~CQChartsRectangleAnnotation();
 
-  const char *typeName() const override { return "rect"; }
+  const char *typeName() const override { return "rectangle"; }
 
   const CQChartsRect &rect() const { return rect_; }
   void setRect(const CQChartsRect &rect);
@@ -380,8 +380,8 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
 class CQChartsTextAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsOptPosition position READ position WRITE setPosition)
-  Q_PROPERTY(CQChartsOptRect     rect     READ rect     WRITE setRect    )
+  Q_PROPERTY(CQChartsOptPosition position  READ position WRITE setPosition)
+  Q_PROPERTY(CQChartsOptRect     rectangle READ rect     WRITE setRect    )
 
  public:
   CQChartsTextAnnotation(CQChartsView *view, const CQChartsPosition &p=CQChartsPosition(),

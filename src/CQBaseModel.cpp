@@ -23,10 +23,10 @@ void initTypes() {
     addType(CQBaseModelType::INTEGER        , "integer"        );
     addType(CQBaseModelType::REAL           , "real"           );
     addType(CQBaseModelType::STRING         , "string"         );
-    addType(CQBaseModelType::STRINGS        , "strings"        );
+    addType(CQBaseModelType::STRINGS        , "string_list"    );
     addType(CQBaseModelType::POINT          , "point"          );
     addType(CQBaseModelType::LINE           , "line"           );
-    addType(CQBaseModelType::RECT           , "rect"           );
+    addType(CQBaseModelType::RECT           , "rectangle"      );
     addType(CQBaseModelType::SIZE           , "size"           );
     addType(CQBaseModelType::POLYGON        , "polygon"        );
     addType(CQBaseModelType::POLYGON_LIST   , "polygon_list"   );

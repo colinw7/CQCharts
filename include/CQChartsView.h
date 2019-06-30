@@ -25,7 +25,7 @@ class CQChartsViewKey;
 class CQChartsAnnotation;
 class CQChartsTextAnnotation;
 class CQChartsArrowAnnotation;
-class CQChartsRectAnnotation;
+class CQChartsRectangleAnnotation;
 class CQChartsEllipseAnnotation;
 class CQChartsPolygonAnnotation;
 class CQChartsPolylineAnnotation;
@@ -409,20 +409,20 @@ class CQChartsView : public QFrame,
   // annotations
   const Annotations &annotations() const { return annotations_; }
 
-  CQChartsTextAnnotation     *addTextAnnotation    (const CQChartsPosition &pos,
-                                                    const QString &text);
-  CQChartsTextAnnotation     *addTextAnnotation    (const CQChartsRect &rect,
-                                                    const QString &text);
-  CQChartsArrowAnnotation    *addArrowAnnotation   (const CQChartsPosition &start,
-                                                    const CQChartsPosition &end);
-  CQChartsRectAnnotation     *addRectAnnotation    (const CQChartsRect &rect);
-  CQChartsEllipseAnnotation  *addEllipseAnnotation (const CQChartsPosition &center,
-                                                    const CQChartsLength &xRadius,
-                                                    const CQChartsLength &yRadius);
-  CQChartsPolygonAnnotation  *addPolygonAnnotation (const CQChartsPolygon &polygon);
-  CQChartsPolylineAnnotation *addPolylineAnnotation(const CQChartsPolygon &polygon);
-  CQChartsPointAnnotation    *addPointAnnotation   (const CQChartsPosition &pos,
-                                                    const CQChartsSymbol &type);
+  CQChartsTextAnnotation      *addTextAnnotation     (const CQChartsPosition &pos,
+                                                      const QString &text);
+  CQChartsTextAnnotation      *addTextAnnotation     (const CQChartsRect &rect,
+                                                      const QString &text);
+  CQChartsArrowAnnotation     *addArrowAnnotation    (const CQChartsPosition &start,
+                                                      const CQChartsPosition &end);
+  CQChartsRectangleAnnotation *addRectangleAnnotation(const CQChartsRect &rect);
+  CQChartsEllipseAnnotation   *addEllipseAnnotation  (const CQChartsPosition &center,
+                                                      const CQChartsLength &xRadius,
+                                                      const CQChartsLength &yRadius);
+  CQChartsPolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
+  CQChartsPolylineAnnotation  *addPolylineAnnotation (const CQChartsPolygon &polygon);
+  CQChartsPointAnnotation     *addPointAnnotation    (const CQChartsPosition &pos,
+                                                      const CQChartsSymbol &type);
 
   void addAnnotation(CQChartsAnnotation *annotation);
 

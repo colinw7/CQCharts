@@ -104,7 +104,8 @@ void
 CQChartsEditAnnotationDlg::
 createRectFrame()
 {
-  CQChartsRectAnnotation *annotation = dynamic_cast<CQChartsRectAnnotation *>(annotation_);
+  CQChartsRectangleAnnotation *annotation =
+    dynamic_cast<CQChartsRectangleAnnotation *>(annotation_);
 
   //---
 
@@ -626,7 +627,7 @@ applySlot()
   bool rc = false;
 
   if      (annotation_->type() == CQChartsAnnotation::Type::RECT)
-    rc = updateRectAnnotation();
+    rc = updateRectangleAnnotation();
   else if (annotation_->type() == CQChartsAnnotation::Type::ELLIPSE)
     rc = updateEllipseAnnotation();
   else if (annotation_->type() == CQChartsAnnotation::Type::POLYGON)
@@ -645,7 +646,7 @@ applySlot()
 
 bool
 CQChartsEditAnnotationDlg::
-updateRectAnnotation()
+updateRectangleAnnotation()
 {
   CQChartsBoxData boxData;
 
@@ -671,7 +672,8 @@ updateRectAnnotation()
 
   //---
 
-  CQChartsRectAnnotation *annotation = dynamic_cast<CQChartsRectAnnotation *>(annotation_);
+  CQChartsRectangleAnnotation *annotation =
+    dynamic_cast<CQChartsRectangleAnnotation *>(annotation_);
 
   annotation->setId(id);
   annotation->setTipId(tipId);

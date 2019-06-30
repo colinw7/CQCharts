@@ -145,22 +145,22 @@ addCommands()
     addCommand("set_charts_data", new CQChartsSetChartsDataCmd(this));
 
     // annotations
-    addCommand("create_charts_arrow_annotation"   ,
-               new CQChartsCreateChartsArrowAnnotationCmd   (this));
-    addCommand("create_charts_ellipse_annotation" ,
-               new CQChartsCreateChartsEllipseAnnotationCmd (this));
-    addCommand("create_charts_point_annotation"   ,
-               new CQChartsCreateChartsPointAnnotationCmd   (this));
-    addCommand("create_charts_polygon_annotation" ,
-               new CQChartsCreateChartsPolygonAnnotationCmd (this));
-    addCommand("create_charts_polyline_annotation",
-               new CQChartsCreateChartsPolylineAnnotationCmd(this));
-    addCommand("create_charts_rect_annotation"    ,
-               new CQChartsCreateChartsRectAnnotationCmd    (this));
-    addCommand("create_charts_text_annotation"    ,
-               new CQChartsCreateChartsTextAnnotationCmd    (this));
-    addCommand("remove_charts_annotation"         ,
-               new CQChartsRemoveChartsAnnotationCmd        (this));
+    addCommand("create_charts_arrow_annotation"    ,
+               new CQChartsCreateChartsArrowAnnotationCmd    (this));
+    addCommand("create_charts_ellipse_annotation"  ,
+               new CQChartsCreateChartsEllipseAnnotationCmd  (this));
+    addCommand("create_charts_point_annotation"    ,
+               new CQChartsCreateChartsPointAnnotationCmd    (this));
+    addCommand("create_charts_polygon_annotation"  ,
+               new CQChartsCreateChartsPolygonAnnotationCmd  (this));
+    addCommand("create_charts_polyline_annotation" ,
+               new CQChartsCreateChartsPolylineAnnotationCmd (this));
+    addCommand("create_charts_rectangle_annotation",
+               new CQChartsCreateChartsRectangleAnnotationCmd(this));
+    addCommand("create_charts_text_annotation"     ,
+               new CQChartsCreateChartsTextAnnotationCmd     (this));
+    addCommand("remove_charts_annotation"          ,
+               new CQChartsRemoveChartsAnnotationCmd         (this));
 
     // theme/palette
     addCommand("create_charts_palette", new CQChartsCreateChartsPaletteCmd(this));
@@ -4902,11 +4902,11 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       if (name == "column_type.names") {
         for (const auto &param : columnType->params())
-          names << param.name();
+          names << param->name();
       }
       else {
         for (const auto &param : columnType->params())
-          names << param.tip();
+          names << param->tip();
       }
 
       cmdBase_->setCmdRc(names);
@@ -5117,7 +5117,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-createChartsRectAnnotationCmd(CQChartsCmdArgs &argv)
+createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts_->errorMsg(msg);
@@ -5126,7 +5126,7 @@ createChartsRectAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQPerfTrace trace("CQChartsCmds::createChartsRectAnnotationCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsRectangleAnnotationCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -5136,7 +5136,7 @@ createChartsRectAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
-  argv.addCmdArg("-rect" , CQChartsCmdArg::Type::Rect, "rect");
+  argv.addCmdArg("-rectangle" , CQChartsCmdArg::Type::Rect, "rectangle bounding box");
 
   argv.addCmdArg("-start", CQChartsCmdArg::Type::Position, "start").setHidden();
   argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Position, "end"  ).setHidden();
@@ -5224,7 +5224,7 @@ createChartsRectAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsRectAnnotation *annotation = nullptr;
+  CQChartsRectangleAnnotation *annotation = nullptr;
 
   if      (argv.hasParseArg("start") || argv.hasParseArg("end")) {
     CQChartsPosition start = argv.getParsePosition(view, plot, "start");
@@ -5233,28 +5233,28 @@ createChartsRectAnnotationCmd(CQChartsCmdArgs &argv)
     CQChartsRect rect;
 
     if      (view)
-      annotation = view->addRectAnnotation(rect);
+      annotation = view->addRectangleAnnotation(rect);
     else if (plot)
-      annotation = plot->addRectAnnotation(rect);
+      annotation = plot->addRectangleAnnotation(rect);
 
     if (annotation)
       annotation->setRect(start, end);
   }
-  else if (argv.hasParseArg("rect")) {
-    CQChartsRect rect = argv.getParseRect(view, plot, "rect");
+  else if (argv.hasParseArg("rectangle")) {
+    CQChartsRect rect = argv.getParseRect(view, plot, "rectangle");
 
     if      (view)
-      annotation = view->addRectAnnotation(rect);
+      annotation = view->addRectangleAnnotation(rect);
     else if (plot)
-      annotation = plot->addRectAnnotation(rect);
+      annotation = plot->addRectangleAnnotation(rect);
   }
   else {
     CQChartsRect rect;
 
     if      (view)
-      annotation = view->addRectAnnotation(rect);
+      annotation = view->addRectangleAnnotation(rect);
     else if (plot)
-      annotation = plot->addRectAnnotation(rect);
+      annotation = plot->addRectangleAnnotation(rect);
 
     if (annotation)
       annotation->setRect(CQChartsPosition(QPointF(0, 0)), CQChartsPosition(QPointF(1, 1)));
@@ -5729,8 +5729,8 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
-  argv.addCmdArg("-position", CQChartsCmdArg::Type::Position, "position");
-  argv.addCmdArg("-rect"    , CQChartsCmdArg::Type::Rect    , "rect");
+  argv.addCmdArg("-position" , CQChartsCmdArg::Type::Position, "position");
+  argv.addCmdArg("-rectangle", CQChartsCmdArg::Type::Rect    , "rectangle bounding box");
 
   argv.addCmdArg("-text", CQChartsCmdArg::Type::String, "text");
 
@@ -5841,8 +5841,8 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
     else if (plot)
       annotation = plot->addTextAnnotation(pos, text);
   }
-  else if (argv.hasParseArg("rect")) {
-    CQChartsRect rect = argv.getParseRect(view, plot, "rect");
+  else if (argv.hasParseArg("rectangle")) {
+    CQChartsRect rect = argv.getParseRect(view, plot, "rectangle");
 
     if      (view)
       annotation = view->addTextAnnotation(rect, text);
@@ -6023,6 +6023,12 @@ bool
 CQChartsCmds::
 createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
 {
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
   CQPerfTrace trace("CQChartsCmds::createChartsPointAnnotationCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -6093,8 +6099,22 @@ createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
 
   QString typeStr = argv.getParseStr("type");
 
-  if (typeStr.length())
-    symbolData.setType(CQChartsSymbol::nameToType(typeStr));
+  if (typeStr.length()) {
+    if (typeStr == "?") {
+      QStringList typeNames = CQChartsSymbol::typeNames();
+
+      cmdBase_->setCmdRc(typeNames);
+
+      return true;
+    }
+
+    CQChartsSymbol::Type type = CQChartsSymbol::nameToType(typeStr);
+
+    if (type == CQChartsSymbol::Type::NONE)
+      return errorMsg(QString("Invalid symbol type '%1'").arg(typeStr));
+
+    symbolData.setType(type);
+  }
 
   symbolData.setSize(argv.getParseLength(view, plot, "size", symbolData.size()));
 
@@ -6836,7 +6856,7 @@ testEditCmd(CQChartsCmdArgs &argv)
     else if (type == "position") {
       CQChartsPositionEdit *edit = new CQChartsPositionEdit; addEdit(edit, type);
     }
-    else if (type == "rect") {
+    else if (type == "rectangle") {
       CQChartsRectEdit *edit = new CQChartsRectEdit; addEdit(edit, type);
     }
     else if (type == "shape_data") {

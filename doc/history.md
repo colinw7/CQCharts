@@ -890,3 +890,7 @@
 # 6/23/2019
  + add help dialog
  + improve clipping and handling of small text in hier bubble plot and sunburst plot
+# 6/30/2019
+ + rename rect to rectangle
+ + support size in tree map plot label
+ + improve consistency between symbol fill and stroke shapes

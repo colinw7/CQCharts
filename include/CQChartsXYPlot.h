@@ -841,7 +841,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   CQChartsColumn  pointSymbolColumn_;                         //!< point symbol column
   CQChartsColumn  vectorXColumn_;                             //!< vector x direction column
   CQChartsColumn  vectorYColumn_;                             //!< vector y direction column
-  bool            pointLineSelect_      { true };             //!< select line of point
+  bool            pointLineSelect_      { false };            //!< select line of point
   int             pointDelta_           { -1 };               //!< point delta
   int             pointCount_           { -1 };               //!< point count
   int             pointStart_           { 0 };                /*!< point start

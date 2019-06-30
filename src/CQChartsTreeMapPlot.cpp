@@ -105,6 +105,15 @@ CQChartsTreeMapPlot::
 
 void
 CQChartsTreeMapPlot::
+setValueLabel(bool b)
+{
+  CQChartsUtil::testAndSet(valueLabel_, b, [&]() { drawObjs(); } );
+}
+
+//---
+
+void
+CQChartsTreeMapPlot::
 setTitles(bool b)
 {
   CQChartsUtil::testAndSet(titles_, b, [&]() { updateCurrentRoot(); } );
@@ -201,6 +210,9 @@ addProperties()
   //---
 
   CQChartsHierPlot::addProperties();
+
+  // options
+  addProp("options", "valueLabel", "", "Show value label");
 
   // margins
   addProp("margins", "marginWidth", "box", "Margin size for tree map boxes");
@@ -578,9 +590,14 @@ loadHier() const
     }
 
     State hierPostVisit(const QAbstractItemModel *, const VisitData &) override {
+      CQChartsTreeMapHierNode *node = hierStack_.back();
+
       hierStack_.pop_back();
 
       assert(! hierStack_.empty());
+
+      if (node->hierSize() == 0)
+        node->parent()->removeChild(node);
 
       return State::OK;
     }
@@ -1342,6 +1359,19 @@ draw(QPainter *painter)
 
   //---
 
+  // get labels (name and optional size)
+  QStringList strs;
+
+  QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
+
+  strs.push_back(name);
+
+  if (plot_->isValueLabel() && ! node_->isFiller()) {
+    strs.push_back(QString("%1").arg(node_->size()));
+  }
+
+  //---
+
   // calc text pen
   QPen tpen;
 
@@ -1386,9 +1416,25 @@ draw(QPainter *painter)
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
-    QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
+    if      (strs.size() == 1) {
+      CQChartsDrawUtil::drawTextInBox(painter, qrect, name, textOptions);
+    }
+    else if (strs.size() == 2) {
+      QFontMetricsF fm(painter->font());
 
-    CQChartsDrawUtil::drawTextInBox(painter, qrect, name, textOptions);
+      double th = fm.height();
+
+      QPointF pc = qrect.center();
+
+      QPointF tp1(pc.x(), pc.y() - th/2);
+      QPointF tp2(pc.x(), pc.y() + th/2);
+
+      CQChartsDrawUtil::drawTextAtPoint(painter, tp1, strs[0], textOptions);
+      CQChartsDrawUtil::drawTextAtPoint(painter, tp2, strs[1], textOptions);
+    }
+    else {
+      assert(false);
+    }
   }
 
   //---
@@ -1421,7 +1467,7 @@ CQChartsTreeMapHierNode(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode
  CQChartsTreeMapNode(plot, parent, name, 0.0, ind)
 {
   if (parent_)
-    parent_->children_.push_back(this);
+    parent_->addChild(this);
 }
 
 CQChartsTreeMapHierNode::
@@ -1447,6 +1493,35 @@ hierSize() const
     s += node->hierSize();
 
   return s;
+}
+
+void
+CQChartsTreeMapHierNode::
+addChild(CQChartsTreeMapHierNode *child)
+{
+  children_.push_back(child);
+}
+
+void
+CQChartsTreeMapHierNode::
+removeChild(CQChartsTreeMapHierNode *child)
+{
+  int nc = children_.size();
+
+  int i = 0;
+
+  for ( ; i < nc; ++i)
+    if (children_[i] == child)
+      break;
+
+  if (i < nc) {
+    delete children_[i];
+
+    ++i;
+
+    for ( ; i < nc; ++i)
+      children_[i - 1] = children_[i];
+  }
 }
 
 void

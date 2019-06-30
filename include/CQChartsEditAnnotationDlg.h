@@ -107,13 +107,13 @@ class CQChartsEditAnnotationDlg : public QDialog {
 
   QHBoxLayout *addLabelWidget(QBoxLayout *playout, const QString &label, QWidget *widget);
 
-  bool updateRectAnnotation    ();
-  bool updateEllipseAnnotation ();
-  bool updatePolygonAnnotation ();
-  bool updatePolylineAnnotation();
-  bool updateTextAnnotation    ();
-  bool updateArrowAnnotation   ();
-  bool updatePointAnnotation   ();
+  bool updateRectangleAnnotation();
+  bool updateEllipseAnnotation  ();
+  bool updatePolygonAnnotation  ();
+  bool updatePolylineAnnotation ();
+  bool updateTextAnnotation     ();
+  bool updateArrowAnnotation    ();
+  bool updatePointAnnotation    ();
 
  private slots:
   void textPositionSlot(bool);

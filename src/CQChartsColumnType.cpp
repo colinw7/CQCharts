@@ -91,7 +91,7 @@ description()
         LI(A("charts://column_type/real"            , "real"            )),
         LI(A("charts://column_type/integer"         , "integer"         )),
         LI(A("charts://column_type/time"            , "time"            )),
-        LI(A("charts://column_type/rect"            , "rect"            )),
+        LI(A("charts://column_type/rect"            , "rectangle"       )),
         LI(A("charts://column_type/polygon"         , "polygon"         )),
         LI(A("charts://column_type/polygon list"    , "polygon list"    )),
         LI(A("charts://column_type/connections list", "connections list")),
@@ -423,12 +423,12 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
 
   if (typeData) {
     for (const auto &param : typeData->params()) {
-      if (param.role() != vrole) {
+      if (param->role() != vrole) {
         bool ok;
 
-        QVariant var = CQChartsModelUtil::modelHeaderValue(model, column, param.role(), ok);
+        QVariant var = CQChartsModelUtil::modelHeaderValue(model, column, param->role(), ok);
 
-        nameValues.setNameValue(param.name(), var);
+        nameValues.setNameValue(param->name(), var);
       }
     }
   }
@@ -481,14 +481,14 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
     for (const auto &param : typeData->params()) {
       QVariant value;
 
-      if (! nameValues.nameValue(param.name(), value))
+      if (! nameValues.nameValue(param->name(), value))
         continue;
 
-      if (param.role() == vrole) {
-        nameValues1.setNameValue(param.name(), value);
+      if (param->role() == vrole) {
+        nameValues1.setNameValue(param->name(), value);
       }
       else {
-        bool rc = CQChartsModelUtil::setModelHeaderValue(model, column, value, param.role());
+        bool rc = CQChartsModelUtil::setModelHeaderValue(model, column, value, param->role());
 
         if (rc)
           changed = true;
@@ -613,7 +613,14 @@ CQChartsColumnType::
 CQChartsColumnType(Type type) :
  type_(type)
 {
-  params_.emplace_back("key", Type::BOOLEAN, (int) CQBaseModelRole::Key, "Is Key", false);
+  addParam("key", Type::BOOLEAN, (int) CQBaseModelRole::Key, "Is Key", false);
+}
+
+CQChartsColumnType::
+~CQChartsColumnType()
+{
+  for (const auto &param : params_)
+    delete param;
 }
 
 QString
@@ -623,12 +630,34 @@ name() const
   return CQBaseModel::typeName(type_);
 }
 
+CQChartsColumnTypeParam *
+CQChartsColumnType::
+addParam(const QString &name, Type type, int role, const QString &tip, const QVariant &def)
+{
+  CQChartsColumnTypeParam *param = new CQChartsColumnTypeParam(name, type, role, tip, def);
+
+  params_.push_back(param);
+
+  return param;
+}
+
+CQChartsColumnTypeParam *
+CQChartsColumnType::
+addParam(const QString &name, Type type, const QString &tip, const QVariant &def)
+{
+  CQChartsColumnTypeParam *param = new CQChartsColumnTypeParam(name, type, tip, def);
+
+  params_.push_back(param);
+
+  return param;
+}
+
 bool
 CQChartsColumnType::
 hasParam(const QString &name) const
 {
   for (const auto &param : params_)
-    if (param.name() == name)
+    if (param->name() == name)
       return true;
 
   return false;
@@ -639,8 +668,8 @@ CQChartsColumnType::
 getParam(const QString &name) const
 {
   for (const auto &param : params_)
-    if (param.name() == name)
-      return &param;
+    if (param->name() == name)
+      return param;
 
   return nullptr;
 }
@@ -747,11 +776,11 @@ CQChartsColumnRealType::
 CQChartsColumnRealType() :
  CQChartsColumnType(Type::REAL)
 {
-  params_.emplace_back("format"      , Type::STRING, "Output Format", "");
-  params_.emplace_back("format_scale", Type::REAL  , "Format Scale Factor", 1.0);
+  addParam("format"      , Type::STRING, "Output Format", "");
+  addParam("format_scale", Type::REAL  , "Format Scale Factor", 1.0);
 
-  params_.emplace_back("min", Type::REAL, (int) CQBaseModelRole::Min, "Min Value", 0.0);
-  params_.emplace_back("max", Type::REAL, (int) CQBaseModelRole::Max, "Max Value", 1.0);
+  addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Min Value", 0.0);
+  addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Max Value", 1.0);
 }
 
 QString
@@ -881,10 +910,10 @@ CQChartsColumnIntegerType::
 CQChartsColumnIntegerType() :
  CQChartsColumnType(Type::INTEGER)
 {
-  params_.emplace_back("format", Type::INTEGER, "Output Format", "");
+  addParam("format", Type::INTEGER, "Output Format", "");
 
-  params_.emplace_back("min", Type::INTEGER, (int) CQBaseModelRole::Min, "Min Value",   0);
-  params_.emplace_back("max", Type::INTEGER, (int) CQBaseModelRole::Max, "Max Value", 100);
+  addParam("min", Type::INTEGER, (int) CQBaseModelRole::Min, "Min Value",   0);
+  addParam("max", Type::INTEGER, (int) CQBaseModelRole::Max, "Max Value", 100);
 }
 
 QString
@@ -964,9 +993,9 @@ CQChartsColumnTimeType::
 CQChartsColumnTimeType() :
  CQChartsColumnType(Type::TIME)
 {
-  params_.emplace_back("format" , Type::STRING, "Input/Output Format", "");
-  params_.emplace_back("iformat", Type::STRING, "Input Format", "");
-  params_.emplace_back("oformat", Type::STRING, "Output Format", "");
+  addParam("format" , Type::STRING, "Input/Output Format", "");
+  addParam("iformat", Type::STRING, "Input Format", "");
+  addParam("oformat", Type::STRING, "Output Format", "");
 }
 
 QString
@@ -1532,13 +1561,13 @@ CQChartsColumnColorType() :
  CQChartsColumnType(Type::COLOR)
 {
   // map from model value to 0.0 -> 1.0
-  params_.emplace_back("mapped", Type::BOOLEAN, "Value Mapped", false);
+  addParam("mapped", Type::BOOLEAN, "Value Mapped", false);
 
-  params_.emplace_back("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0);
-  params_.emplace_back("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0);
+  addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0);
+  addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0);
 
   // get color from named palette
-  params_.emplace_back("palette", Type::STRING, "Palette", "");
+  addParam("palette", Type::STRING, "Palette", "");
 }
 
 QString
@@ -1747,10 +1776,10 @@ CQChartsColumnSymbolTypeType() :
  CQChartsColumnType(Type::SYMBOL)
 {
   // map from model value to fixed symbol type range
-  params_.emplace_back("mapped", Type::BOOLEAN, "Value Mapped", false);
+  addParam("mapped", Type::BOOLEAN, "Value Mapped", false);
 
-  params_.emplace_back("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0);
-  params_.emplace_back("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0);
+  addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0);
+  addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0);
 }
 
 QString
@@ -1864,13 +1893,13 @@ CQChartsColumnSymbolSizeType() :
  CQChartsColumnType(Type::SYMBOL_SIZE)
 {
   // map from model value to symbol size min/max
-  params_.emplace_back("mapped", Type::BOOLEAN, "Value Mapped", false);
+  addParam("mapped", Type::BOOLEAN, "Value Mapped", false);
 
-  params_.emplace_back("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0);
-  params_.emplace_back("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0);
+  addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0);
+  addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0);
 
-  params_.emplace_back("size_min", Type::REAL, "Symbol Size Min", 0.0);
-  params_.emplace_back("size_max", Type::REAL, "Symbol Size Max", 1.0);
+  addParam("size_min", Type::REAL, "Symbol Size Min", 0.0);
+  addParam("size_max", Type::REAL, "Symbol Size Max", 1.0);
 }
 
 QString
@@ -1995,13 +2024,13 @@ CQChartsColumnFontSizeType() :
  CQChartsColumnType(Type::FONT_SIZE)
 {
   // map from model value to font size min/max
-  params_.emplace_back("mapped", Type::BOOLEAN, "Value Mapped", false);
+  addParam("mapped", Type::BOOLEAN, "Value Mapped", false);
 
-  params_.emplace_back("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0);
-  params_.emplace_back("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0);
+  addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0);
+  addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0);
 
-  params_.emplace_back("size_min", Type::REAL, "Font Size Min", 0.0);
-  params_.emplace_back("size_max", Type::REAL, "Font Size Max", 1.0);
+  addParam("size_min", Type::REAL, "Font Size Min", 0.0);
+  addParam("size_max", Type::REAL, "Font Size Max", 1.0);
 }
 
 QString

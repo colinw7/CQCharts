@@ -113,13 +113,13 @@ class CQChartsCreateAnnotationDlg : public QDialog {
 
   QHBoxLayout *addLabelWidget(QBoxLayout *playout, const QString &label, QWidget *widget);
 
-  bool createRectAnnotation    ();
-  bool createEllipseAnnotation ();
-  bool createPolygonAnnotation ();
-  bool createPolylineAnnotation();
-  bool createTextAnnotation    ();
-  bool createArrowAnnotation   ();
-  bool createPointAnnotation   ();
+  bool createRectangleAnnotation();
+  bool createEllipseAnnotation  ();
+  bool createPolygonAnnotation  ();
+  bool createPolylineAnnotation ();
+  bool createTextAnnotation     ();
+  bool createArrowAnnotation    ();
+  bool createPointAnnotation    ();
 
  private slots:
   void typeSlot(int ind);

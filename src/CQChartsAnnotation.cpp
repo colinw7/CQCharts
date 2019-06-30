@@ -571,8 +571,8 @@ view() const
 
 //---
 
-CQChartsRectAnnotation::
-CQChartsRectAnnotation(CQChartsView *view, const CQChartsRect &rect) :
+CQChartsRectangleAnnotation::
+CQChartsRectangleAnnotation(CQChartsView *view, const CQChartsRect &rect) :
  CQChartsAnnotation(view, Type::RECT), rect_(rect)
 {
   setObjectName(QString("rect.%1").arg(ind()));
@@ -582,8 +582,8 @@ CQChartsRectAnnotation(CQChartsView *view, const CQChartsRect &rect) :
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
-CQChartsRectAnnotation::
-CQChartsRectAnnotation(CQChartsPlot *plot, const CQChartsRect &rect) :
+CQChartsRectangleAnnotation::
+CQChartsRectangleAnnotation(CQChartsPlot *plot, const CQChartsRect &rect) :
  CQChartsAnnotation(plot, Type::RECT), rect_(rect)
 {
   setObjectName(QString("rect.%1").arg(ind()));
@@ -593,13 +593,13 @@ CQChartsRectAnnotation(CQChartsPlot *plot, const CQChartsRect &rect) :
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
-CQChartsRectAnnotation::
-~CQChartsRectAnnotation()
+CQChartsRectangleAnnotation::
+~CQChartsRectangleAnnotation()
 {
 }
 
 void
-CQChartsRectAnnotation::
+CQChartsRectangleAnnotation::
 setRect(const CQChartsRect &rect)
 {
   rect_ = rect;
@@ -608,7 +608,7 @@ setRect(const CQChartsRect &rect)
 }
 
 void
-CQChartsRectAnnotation::
+CQChartsRectangleAnnotation::
 setRect(const CQChartsPosition &start, const CQChartsPosition &end)
 {
   QPointF pstart, pend;
@@ -635,7 +635,7 @@ setRect(const CQChartsPosition &start, const CQChartsPosition &end)
 }
 
 CQChartsPosition
-CQChartsRectAnnotation::
+CQChartsRectangleAnnotation::
 start() const
 {
   QPointF p(rect_.rect().left(), rect_.rect().top());
@@ -644,7 +644,7 @@ start() const
 }
 
 void
-CQChartsRectAnnotation::
+CQChartsRectangleAnnotation::
 setStart(const CQChartsPosition &p)
 {
   QPointF start, end;
@@ -666,7 +666,7 @@ setStart(const CQChartsPosition &p)
 }
 
 CQChartsPosition
-CQChartsRectAnnotation::
+CQChartsRectangleAnnotation::
 end() const
 {
   QPointF p(rect_.rect().right(), rect_.rect().bottom());
@@ -675,7 +675,7 @@ end() const
 }
 
 void
-CQChartsRectAnnotation::
+CQChartsRectangleAnnotation::
 setEnd(const CQChartsPosition &p)
 {
   QPointF start, end;
@@ -697,7 +697,7 @@ setEnd(const CQChartsPosition &p)
 }
 
 void
-CQChartsRectAnnotation::
+CQChartsRectangleAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
@@ -709,22 +709,24 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "rect"   , "", "Rectangle");
-  addProp(path1, "margin" , "", "Rectangle inner margin");
-  addProp(path1, "padding", "", "Rectangle outer padding");
+  addProp(path1, "rectangle", "", "Rectangle bounding box");
+  addProp(path1, "start"    , "", "Rectangle bottom left")->setHidden(true);
+  addProp(path1, "end"      , "", "Rectangle top right")->setHidden(true);
+  addProp(path1, "margin"   , "", "Rectangle inner margin")->setHidden(true);
+  addProp(path1, "padding"  , "", "Rectangle outer padding")->setHidden(true);
 
   addStrokeFillProperties(model, path1);
 }
 
 QString
-CQChartsRectAnnotation::
+CQChartsRectangleAnnotation::
 propertyId() const
 {
-  return QString("rectAnnotation%1").arg(ind());
+  return QString("rectangleAnnotation%1").arg(ind());
 }
 
 void
-CQChartsRectAnnotation::
+CQChartsRectangleAnnotation::
 setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
   QPointF start, end;
@@ -771,7 +773,7 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 }
 
 void
-CQChartsRectAnnotation::
+CQChartsRectangleAnnotation::
 draw(QPainter *painter)
 {
   // calc box
@@ -832,11 +834,11 @@ draw(QPainter *painter)
 }
 
 void
-CQChartsRectAnnotation::
+CQChartsRectangleAnnotation::
 write(std::ostream &os, const QString &parentVarName, const QString &varName) const
 {
   // -view/-plot -id -tip
-  writeKeys(os, "create_charts_rect_annotation", parentVarName, varName);
+  writeKeys(os, "create_charts_rectangle_annotation", parentVarName, varName);
 
 #if 0
   if (start().isSet())
@@ -1641,8 +1643,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "position", "position", "Text origin");
-  addProp(path1, "rect"    , "rect"    , "Text bounding rectangle");
+  addProp(path1, "position" , "position" , "Text origin");
+  addProp(path1, "rectangle", "rectangle", "Text bounding box");
 
   QString textPath = path1 + "/text";
 

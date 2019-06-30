@@ -72,6 +72,8 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   // File Prompt
   fileEdit_ = CQUtil::makeWidget<CQFilename>("fileEdit");
 
+  fileEdit_->setToolTip("File name to load");
+
   fileFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("File", "fileLabel"), row, 0);
   fileFrameLayout->addWidget(fileEdit_                                           , row, 1);
 
@@ -89,6 +91,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   typeCombo_ = CQUtil::makeWidget<QComboBox>("typeCombo");
 
   typeCombo_->addItems(modelTypeNames);
+  typeCombo_->setToolTip("File type");
 
   fileFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Type", "typeLabel"), row, 0);
   fileFrameLayout->addWidget(typeCombo_                                          , row, 1);
@@ -102,7 +105,8 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   // Number Edit
   numberEdit_ = CQUtil::makeWidget<CQLineEdit>("numerEdit");
 
-  numberEdit_->setText("100");
+  numberEdit_->setText(QString("%1").arg(expressionLines()));
+  numberEdit_->setToolTip("Number of rows to generate for expression");
 
   fileFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Num Rows", "numRowsLabel"), row, 0);
   fileFrameLayout->addWidget(numberEdit_                                                , row, 1);
@@ -117,15 +121,21 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   commentHeaderCheck_ =
     CQUtil::makeLabelWidget<QCheckBox>("Comment Header", "commentHeaderCheck");
 
+  commentHeaderCheck_->setToolTip("Use first comment for horizontal header");
+
   optionLayout->addWidget(commentHeaderCheck_);
 
   firstLineHeaderCheck_ =
     CQUtil::makeLabelWidget<QCheckBox>("First Line Header", "firstLineHeaderCheck");
 
+  firstLineHeaderCheck_->setToolTip("Use first non-comment line for horizontal header");
+
   optionLayout->addWidget(firstLineHeaderCheck_);
 
   firstColumnHeaderCheck_ =
     CQUtil::makeLabelWidget<QCheckBox>("First Column Header", "firstColumnHeaderCheck");
+
+  firstColumnHeaderCheck_->setToolTip("Use first column for vertical header");
 
   optionLayout->addWidget(firstColumnHeaderCheck_);
 
@@ -139,6 +149,8 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   // Filter Edit
   filterEdit_ = CQUtil::makeWidget<CQLineEdit>("filterEdit");
+
+  filterEdit_->setToolTip("Filter expression for data");
 
   fileFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Filter", "filterLabel"), row, 0);
   fileFrameLayout->addWidget(filterEdit_                                             , row, 1);
@@ -161,6 +173,8 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   previewText_ = CQUtil::makeWidget<QTextEdit>("previewText");
 
+  previewText_->setToolTip("File contents preview");
+
   previewFrameLayout->addWidget(previewText_);
 
   QFont fixedFont = getMonospaceFont();
@@ -179,6 +193,10 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   QPushButton *cancelButton = CQUtil::makeLabelWidget<QPushButton>("Cancel", "cancel");
 
+  okButton_   ->setToolTip("Load model and close dialog");
+  applyButton_->setToolTip("Load model and keep dialog open");
+  cancelButton->setToolTip("Close dialog without loading model");
+
   connect(okButton_   , SIGNAL(clicked()), this, SLOT(okSlot()));
   connect(applyButton_, SIGNAL(clicked()), this, SLOT(applySlot()));
   connect(cancelButton, SIGNAL(clicked()), this, SLOT(cancelSlot()));
@@ -190,6 +208,10 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   buttonLayout->addWidget(cancelButton);
 
   layout->addLayout(buttonLayout);
+
+  //----
+
+  typeSlot();
 }
 
 CQChartsLoadModelDlg::
@@ -227,7 +249,7 @@ numRows() const
   int n = CQChartsUtil::toInt(numberEdit_->text(), ok);
 
   if (! ok)
-    n = 100;
+    n = expressionLines();
 
   return n;
 }
@@ -245,11 +267,9 @@ previewFileSlot()
 {
   QString fileName = fileEdit_->name();
 
-  std::size_t maxLines = 10;
-
   QStringList lines;
 
-  if (! CQChartsUtil::fileToLines(fileName, lines, maxLines))
+  if (! CQChartsUtil::fileToLines(fileName, lines, previewLines()))
     return;
 
   QString text;

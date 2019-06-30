@@ -274,7 +274,7 @@ CQChartsFontEdit(QWidget *parent) :
 
   fontEdit_ = CQUtil::makeWidget<CQFontEdit>("fontEdit");
 
-  typeCombo_->setToolTip("Font name");
+  fontEdit_->setToolTip("Font name");
 
   fontLayout->addWidget(fontLabel);
   fontLayout->addWidget(fontEdit_);
@@ -329,7 +329,7 @@ CQChartsFontEdit(QWidget *parent) :
 
   sizeEdit_ = CQUtil::makeWidget<CQRealSpin>("sizeEdit");
 
-  sizeEdit_->setToolTip("Size value or delat");
+  sizeEdit_->setToolTip("Size value or delta");
 
   addInheritedWidget("Size", sizeEdit_);
 
@@ -426,7 +426,11 @@ fontToWidgets()
     fontEdit_->setFont(font_.font());
   }
   else {
-    typeCombo_->setCurrentIndex(1);
+    QFont font;
+
+    fontEdit_->setFont(font);
+
+    typeCombo_->setCurrentIndex(0);
   }
 
   connectSlots(true);

@@ -561,7 +561,7 @@ applySlot()
 
   bool rc = false;
 
-  if      (ind == 0) rc = createRectAnnotation();
+  if      (ind == 0) rc = createRectangleAnnotation();
   else if (ind == 1) rc = createEllipseAnnotation();
   else if (ind == 2) rc = createPolygonAnnotation();
   else if (ind == 3) rc = createPolylineAnnotation();
@@ -574,7 +574,7 @@ applySlot()
 
 bool
 CQChartsCreateAnnotationDlg::
-createRectAnnotation()
+createRectangleAnnotation()
 {
   CQChartsBoxData boxData;
 
@@ -600,12 +600,12 @@ createRectAnnotation()
 
   //---
 
-  CQChartsRectAnnotation *annotation = nullptr;
+  CQChartsRectangleAnnotation *annotation = nullptr;
 
   if      (view_)
-    annotation = view_->addRectAnnotation(rect);
+    annotation = view_->addRectangleAnnotation(rect);
   else if (plot_)
-    annotation = plot_->addRectAnnotation(rect);
+    annotation = plot_->addRectangleAnnotation(rect);
 
   annotation->setId(id);
   annotation->setTipId(tipId);

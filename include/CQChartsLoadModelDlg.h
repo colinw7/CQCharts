@@ -21,6 +21,9 @@ class QPushButton;
 class CQChartsLoadModelDlg : public QDialog {
   Q_OBJECT
 
+  Q_PROPERTY(int previewLines    READ previewLines    WRITE setPreviewLines   )
+  Q_PROPERTY(int expressionLines READ expressionLines WRITE setExpressionLines)
+
  public:
   using ModelP = QSharedPointer<QAbstractItemModel>;
 
@@ -29,6 +32,12 @@ class CQChartsLoadModelDlg : public QDialog {
  ~CQChartsLoadModelDlg();
 
   CQCharts *charts() const { return charts_; }
+
+  int previewLines() const { return previewLines_; }
+  void setPreviewLines(int i) { previewLines_ = i; }
+
+  int expressionLines() const { return expressionLines_; }
+  void setExpressionLines(int i) { expressionLines_ = i; }
 
   bool isCommentHeader() const;
   bool isFirstLineHeader() const;
@@ -72,6 +81,8 @@ class CQChartsLoadModelDlg : public QDialog {
   QTextEdit*   previewText_            { nullptr };
   QPushButton* okButton_               { nullptr };
   QPushButton* applyButton_            { nullptr };
+  int          previewLines_           { 20 };
+  int          expressionLines_        { 100 };
 };
 
 #endif

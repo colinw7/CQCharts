@@ -55,12 +55,12 @@ class CQChartsColumnTypeParam {
 class CQChartsColumnType {
  public:
   using Type   = CQBaseModelType;
-  using Params = std::vector<CQChartsColumnTypeParam>;
+  using Params = std::vector<CQChartsColumnTypeParam *>;
 
  public:
   CQChartsColumnType(Type type);
 
-  virtual ~CQChartsColumnType() { }
+  virtual ~CQChartsColumnType();
 
   Type type() const { return type_; }
 
@@ -75,6 +75,11 @@ class CQChartsColumnType {
   virtual bool isTime    () const { return false; }
 
   virtual QString formatName() const { return "format"; }
+
+  CQChartsColumnTypeParam *addParam(const QString &name, Type type, int role, const QString &tip,
+                                    const QVariant &def=QVariant());
+  CQChartsColumnTypeParam *addParam(const QString &name, Type type, const QString &tip,
+                                    const QVariant &def=QVariant());
 
   const Params &params() const { return params_; }
 
