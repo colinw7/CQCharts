@@ -22,10 +22,10 @@ class CQChartsInterfaceTheme {
  private:
   CQColorsPalette* palette_      { nullptr };   //!< palette
   bool             isDark_       { false };     //!< is dark
-  QColor           lightBgColor_ { "#ffffff" }; //!< light bg color
-  QColor           lightFgColor_ { "#000000" }; //!< light fg color
-  QColor           darkBgColor_  { "#222222" }; //!< dark bg color
-  QColor           darkFgColor_  { "#dddddd" }; //!< dark fg color
+  QColor           lightBgColor_ { "#ffffff" }; //!< light background color
+  QColor           lightFgColor_ { "#000000" }; //!< light foreground color
+  QColor           darkBgColor_  { "#222222" }; //!< dark background color
+  QColor           darkFgColor_  { "#dddddd" }; //!< dark foreground color
 };
 
 #endif

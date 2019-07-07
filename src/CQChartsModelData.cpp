@@ -195,9 +195,11 @@ void
 CQChartsModelData::
 modelDataChangedSlot(const QModelIndex & /*tl*/, const QModelIndex & /*br*/)
 {
+#if 0
   // TODO: check if model uses changed columns
-  //int column1 = tl.column();
-  //int column2 = br.column();
+  int column1 = tl.column();
+  int column2 = br.column();
+#endif
 
   if (details_)
     details_->reset();

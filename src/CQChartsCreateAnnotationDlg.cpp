@@ -31,15 +31,15 @@
 #include <QVBoxLayout>
 
 CQChartsCreateAnnotationDlg::
-CQChartsCreateAnnotationDlg(CQChartsView *view) :
- QDialog(), view_(view)
+CQChartsCreateAnnotationDlg(QWidget *parent, CQChartsView *view) :
+ QDialog(parent), view_(view)
 {
   initWidgets();
 }
 
 CQChartsCreateAnnotationDlg::
-CQChartsCreateAnnotationDlg(CQChartsPlot *plot) :
- QDialog(), plot_(plot)
+CQChartsCreateAnnotationDlg(QWidget *parent, CQChartsPlot *plot) :
+ QDialog(parent), plot_(plot)
 {
   initWidgets();
 }
@@ -110,24 +110,11 @@ initWidgets()
   //---
 
   // OK, Apply, Cancel Buttons
-  QFrame *buttonFrame = CQUtil::makeWidget<QFrame>("buttonFrame");
+  CQChartsDialogButtons *buttons = CQUtil::makeWidget<CQChartsDialogButtons>("buttons");
 
-  QHBoxLayout *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(buttonFrame, 2, 2);
+  buttons->connect(this, SLOT(okSlot()), SLOT(applySlot()), SLOT(cancelSlot()));
 
-  QPushButton *okButton     = CQUtil::makeLabelWidget<QPushButton>("OK"    , "ok");
-  QPushButton *applyButton  = CQUtil::makeLabelWidget<QPushButton>("Apply" , "apply");
-  QPushButton *cancelButton = CQUtil::makeLabelWidget<QPushButton>("Cancel", "cancel");
-
-  buttonLayout->addStretch(1);
-  buttonLayout->addWidget (okButton);
-  buttonLayout->addWidget (applyButton);
-  buttonLayout->addWidget (cancelButton);
-
-  connect(okButton    , SIGNAL(clicked()), this, SLOT(okSlot()));
-  connect(applyButton , SIGNAL(clicked()), this, SLOT(applySlot()));
-  connect(cancelButton, SIGNAL(clicked()), this, SLOT(cancelSlot()));
-
-  layout->addWidget(buttonFrame);
+  layout->addWidget(buttons);
 }
 
 void
@@ -463,7 +450,7 @@ addFillWidgets(Widgets &widgets, QBoxLayout *playout)
 {
   widgets.backgroundDataEdit = new CQChartsFillDataEdit;
 
-  widgets.backgroundDataEdit->setTitle("Background");
+  widgets.backgroundDataEdit->setTitle("Fill");
 
   playout->addWidget(widgets.backgroundDataEdit);
 }
@@ -606,6 +593,8 @@ createRectangleAnnotation()
     annotation = view_->addRectangleAnnotation(rect);
   else if (plot_)
     annotation = plot_->addRectangleAnnotation(rect);
+  else
+    return false;
 
   annotation->setId(id);
   annotation->setTipId(tipId);
@@ -648,6 +637,8 @@ createEllipseAnnotation()
     annotation = view_->addEllipseAnnotation(center, rx, ry);
   else if (plot_)
     annotation = plot_->addEllipseAnnotation(center, rx, ry);
+  else
+    return false;
 
   annotation->setId(id);
   annotation->setTipId(tipId);
@@ -686,6 +677,8 @@ createPolygonAnnotation()
     annotation = view_->addPolygonAnnotation(polygon);
   else if (plot_)
     annotation = plot_->addPolygonAnnotation(polygon);
+  else
+    return false;
 
   annotation->setId(id);
   annotation->setTipId(tipId);
@@ -710,8 +703,8 @@ createPolylineAnnotation()
 
   CQChartsPolygon polygon = polylineWidgets_.pointsEdit->polygon();
 
-  CQChartsFillData   fill   = polygonWidgets_.backgroundDataEdit->data();
-  CQChartsStrokeData stroke = polygonWidgets_.strokeDataEdit    ->data();
+  CQChartsFillData   fill   = polylineWidgets_.backgroundDataEdit->data();
+  CQChartsStrokeData stroke = polylineWidgets_.strokeDataEdit    ->data();
 
   shapeData.setFill  (fill);
   shapeData.setStroke(stroke);
@@ -724,6 +717,8 @@ createPolylineAnnotation()
     annotation = view_->addPolylineAnnotation(polygon);
   else if (plot_)
     annotation = plot_->addPolylineAnnotation(polygon);
+  else
+    return false;
 
   annotation->setId(id);
   annotation->setTipId(tipId);
@@ -773,10 +768,13 @@ createTextAnnotation()
   }
   else if (plot_) {
     if (textWidgets_.positionRadio->isChecked())
-      annotation = plot_->addTextAnnotation(pos, text);
+      annotation = view_->addTextAnnotation(pos, text);
     else
       annotation = view_->addTextAnnotation(rect, text);
   }
+
+  if (! annotation)
+    return false;
 
   annotation->setId(id);
   annotation->setTipId(tipId);
@@ -820,6 +818,8 @@ createArrowAnnotation()
     annotation = view_->addArrowAnnotation(start, end);
   else if (plot_)
     annotation = plot_->addArrowAnnotation(start, end);
+  else
+    return false;
 
   annotation->setId(id);
   annotation->setTipId(tipId);
@@ -849,6 +849,8 @@ createPointAnnotation()
     annotation = view_->addPointAnnotation(pos, symbolData.type());
   else if (plot_)
     annotation = plot_->addPointAnnotation(pos, symbolData.type());
+  else
+    return false;
 
   annotation->setId(id);
   annotation->setTipId(tipId);

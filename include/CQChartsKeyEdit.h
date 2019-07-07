@@ -12,7 +12,7 @@ class CQChartsEditKeyDlg : public QDialog {
   Q_OBJECT
 
  public:
-  CQChartsEditKeyDlg(CQChartsKey *key);
+  CQChartsEditKeyDlg(QWidget *parent, CQChartsKey *key);
 
  private slots:
   void okSlot();

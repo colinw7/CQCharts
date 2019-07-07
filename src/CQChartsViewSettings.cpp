@@ -346,6 +346,7 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
     setObjectName("viewTable");
 
     horizontalHeader()->setStretchLastSection(true);
+    verticalHeader()->setVisible(false);
 
     setSelectionBehavior(QAbstractItemView::SelectRows);
   }
@@ -405,6 +406,7 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
     setObjectName("plotTable");
 
     horizontalHeader()->setStretchLastSection(true);
+    verticalHeader()->setVisible(false);
 
     setSelectionBehavior(QAbstractItemView::SelectRows);
   }
@@ -1794,7 +1796,7 @@ editViewKeySlot()
   if (editKeyDlg_)
     delete editKeyDlg_;
 
-  editKeyDlg_ = new CQChartsEditKeyDlg(view->key());
+  editKeyDlg_ = new CQChartsEditKeyDlg(this, view->key());
 
   editKeyDlg_->show();
 }
@@ -1812,7 +1814,7 @@ editPlotTitleSlot()
   if (editTitleDlg_)
     delete editTitleDlg_;
 
-  editTitleDlg_ = new CQChartsEditTitleDlg(plot->title());
+  editTitleDlg_ = new CQChartsEditTitleDlg(this, plot->title());
 
   editTitleDlg_->show();
 }
@@ -1830,7 +1832,7 @@ editPlotKeySlot()
   if (editKeyDlg_)
     delete editKeyDlg_;
 
-  editKeyDlg_ = new CQChartsEditKeyDlg(plot->key());
+  editKeyDlg_ = new CQChartsEditKeyDlg(this, plot->key());
 
   editKeyDlg_->show();
 }
@@ -1848,7 +1850,7 @@ editPlotXAxisSlot()
   if (editXAxisDlg_)
     delete editXAxisDlg_;
 
-  editXAxisDlg_ = new CQChartsEditAxisDlg(plot->xAxis());
+  editXAxisDlg_ = new CQChartsEditAxisDlg(this, plot->xAxis());
 
   editXAxisDlg_->show();
 }
@@ -1866,7 +1868,7 @@ editPlotYAxisSlot()
   if (editYAxisDlg_)
     delete editYAxisDlg_;
 
-  editYAxisDlg_ = new CQChartsEditAxisDlg(plot->yAxis());
+  editYAxisDlg_ = new CQChartsEditAxisDlg(this, plot->yAxis());
 
   editYAxisDlg_->show();
 }
@@ -2143,7 +2145,7 @@ createAnnotationSlot()
   if (createAnnotationDlg_)
     delete createAnnotationDlg_;
 
-  createAnnotationDlg_ = new CQChartsCreateAnnotationDlg(plot);
+  createAnnotationDlg_ = new CQChartsCreateAnnotationDlg(this, plot);
 
   createAnnotationDlg_->show();
 }
@@ -2169,7 +2171,7 @@ editAnnotationSlot()
   if (editAnnotationDlg_)
     delete editAnnotationDlg_;
 
-  editAnnotationDlg_ = new CQChartsEditAnnotationDlg(annotation);
+  editAnnotationDlg_ = new CQChartsEditAnnotationDlg(this, annotation);
 
   editAnnotationDlg_->show();
 }

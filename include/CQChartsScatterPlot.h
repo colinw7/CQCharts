@@ -164,7 +164,7 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 
  private:
   const CQChartsScatterPlot* plot_     { nullptr }; //!< scatter plot
-  int                        groupInd_ { -1 };      //!< plot group inded
+  int                        groupInd_ { -1 };      //!< plot group index
   int                        ix_       { -1 };      //!< x index
   int                        iy_       { -1 };      //!< y index
   Points                     points_;               //!< cell points

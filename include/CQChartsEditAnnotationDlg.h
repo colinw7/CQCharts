@@ -34,7 +34,7 @@ class CQChartsEditAnnotationDlg : public QDialog {
   Q_OBJECT
 
  public:
-  CQChartsEditAnnotationDlg(CQChartsAnnotation *annotation);
+  CQChartsEditAnnotationDlg(QWidget *parent, CQChartsAnnotation *annotation);
 
  private:
   struct Widgets {

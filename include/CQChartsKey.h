@@ -124,11 +124,33 @@ class CQChartsKey : public CQChartsBoxObj,
 
   virtual void updateKeyItems() { }
 
-  virtual void redraw(bool /*queued*/=true) = 0;
+  //---
+
+  virtual bool selectPress  (const CQChartsGeom::Point &, CQChartsSelMod) = 0;
+  virtual bool selectMove   (const CQChartsGeom::Point &) = 0;;
+  virtual bool selectRelease(const CQChartsGeom::Point &) = 0;
+
+  virtual bool editPress  (const CQChartsGeom::Point &) = 0;
+  virtual bool editMove   (const CQChartsGeom::Point &) = 0;
+  virtual bool editMotion (const CQChartsGeom::Point &) = 0;
+  virtual bool editRelease(const CQChartsGeom::Point &) = 0;
 
   //---
 
+  virtual bool contains(const CQChartsGeom::Point &p) const = 0;
+
+  //---
+
+  virtual void redraw(bool /*queued*/=true) = 0;
+
   virtual void draw(QPainter *painter) const;
+
+  //---
+
+  CQChartsEditHandles *editHandles() { return editHandles_; }
+
+ protected:
+  void init();
 
  protected:
   struct ScrollData {
@@ -142,17 +164,18 @@ class CQChartsKey : public CQChartsBoxObj,
     QScrollBar*       vbar         { nullptr }; //!< vertical scroll bar
   };
 
-  bool                     horizontal_     { false }; //!< is laid out horizontally
-  bool                     above_          { true };  //!< draw above view/plot
-  CQChartsKeyLocation      location_;                 //!< key location
-  QString                  header_;                   //!< header
-  bool                     autoHide_       { true };  //!< auto hide if too big
-  bool                     clipped_        { true };  //!< clipped to parent
-  bool                     interactive_    { true };  //!< is interactive
-  double                   hiddenAlpha_    { 0.3 };   //!< alpha for hidden item
-  int                      maxRows_        { 100 };   //!< max rows
-  CQChartsKeyPressBehavior pressBehavior_;            //!< press behavior
-  mutable ScrollData       scrollData_;               //!< scrollbar data
+  bool                     horizontal_     { false };   //!< is laid out horizontally
+  bool                     above_          { true };    //!< draw above view/plot
+  CQChartsKeyLocation      location_;                   //!< key location
+  QString                  header_;                     //!< header
+  bool                     autoHide_       { true };    //!< auto hide if too big
+  bool                     clipped_        { true };    //!< clipped to parent
+  bool                     interactive_    { true };    //!< is interactive
+  double                   hiddenAlpha_    { 0.3 };     //!< alpha for hidden item
+  int                      maxRows_        { 100 };     //!< max rows
+  CQChartsKeyPressBehavior pressBehavior_;              //!< press behavior
+  mutable ScrollData       scrollData_;                 //!< scrollbar data
+  CQChartsEditHandles*     editHandles_    { nullptr }; //!< edit handles
 };
 
 //------
@@ -168,6 +191,13 @@ class CQChartsViewKey : public CQChartsKey {
 
  ~CQChartsViewKey();
 
+  //---
+
+  const CQChartsGeom::BBox &bbox() const { return wbbox_; }
+  void setBBox(const CQChartsGeom::BBox &b) { wbbox_ = b; }
+
+  //---
+
   void updatePosition(bool queued=true) override;
 
   void updateLayout() override;
@@ -175,16 +205,29 @@ class CQChartsViewKey : public CQChartsKey {
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
-  void draw(QPainter *painter) const override;
+  bool contains(const CQChartsGeom::Point &p) const override;
 
-  void drawCheckBox(QPainter *painter, double x, double y, int bs, bool checked) const;
+  bool selectPress  (const CQChartsGeom::Point &w, CQChartsSelMod selMod) override;
+  bool selectMove   (const CQChartsGeom::Point &w) override;
+  bool selectRelease(const CQChartsGeom::Point &w) override;
 
-  bool isInside(const CQChartsGeom::Point &w) const;
-
-  void selectPress(const CQChartsGeom::Point &w, CQChartsSelMod selMod);
+  bool editPress  (const CQChartsGeom::Point &w) override;
+  bool editMove   (const CQChartsGeom::Point &w) override;
+  bool editMotion (const CQChartsGeom::Point &w) override;
+  bool editRelease(const CQChartsGeom::Point &w) override;
 
   virtual void doShow  (int i, CQChartsSelMod selMod);
   virtual void doSelect(int i, CQChartsSelMod selMod);
+
+  //---
+
+  void draw(QPainter *painter) const override;
+
+  void drawEditHandles(QPainter *painter) const;
+
+  void drawCheckBox(QPainter *painter, double x, double y, int bs, bool checked) const;
+
+  //---
 
   void redraw(bool queued=true) override;
 
@@ -192,12 +235,15 @@ class CQChartsViewKey : public CQChartsKey {
   void doLayout();
 
  private:
-  using Rects = std::vector<CQChartsGeom::BBox>;
+  using BBox  = CQChartsGeom::BBox;
+  using Rects = std::vector<BBox>;
 
-  QPointF                    position_ { 0, 0 }; //!< pixel position
-  QSizeF                     size_;              //!< pixel size
-  mutable CQChartsGeom::BBox pbbox_;             //!< view pixel bounding box
-  mutable Rects              prects_;            //!< plot key item rects
+  QPointF       pposition_ { 0, 0 }; //!< pixel position
+  QPointF       wposition_ { 0, 0 }; //!< view position
+  QSizeF        size_;               //!< pixel size
+  mutable BBox  wbbox_;              //!< view bounding box
+  mutable BBox  pbbox_;              //!< view pixel bounding box
+  mutable Rects prects_;             //!< plot key item rects
 };
 
 //------
@@ -321,6 +367,8 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
+  bool contains(const CQChartsGeom::Point &p) const override;
+
   void boxDataInvalidate() override { redraw(); }
 
   void redraw(bool queued=true) override;
@@ -331,26 +379,22 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void updateLayout() override;
 
-  bool contains(const CQChartsGeom::Point &p) const;
-
   CQChartsKeyItem *getItemAt(const CQChartsGeom::Point &p) const;
 
   //---
 
   bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
 
-  CQChartsEditHandles *editHandles() { return editHandles_; }
-
   //---
 
-  virtual bool selectPress  (const CQChartsGeom::Point &, CQChartsSelMod) { return false; }
-  virtual bool selectMove   (const CQChartsGeom::Point &);
-  virtual bool selectRelease(const CQChartsGeom::Point &) { return false; }
+  bool selectPress  (const CQChartsGeom::Point &w, CQChartsSelMod selMod) override;
+  bool selectMove   (const CQChartsGeom::Point &w) override;
+  bool selectRelease(const CQChartsGeom::Point &w) override;
 
-  virtual bool editPress  (const CQChartsGeom::Point &);
-  virtual bool editMove   (const CQChartsGeom::Point &);
-  virtual bool editMotion (const CQChartsGeom::Point &);
-  virtual bool editRelease(const CQChartsGeom::Point &);
+  bool editPress  (const CQChartsGeom::Point &w) override;
+  bool editMove   (const CQChartsGeom::Point &w) override;
+  bool editMotion (const CQChartsGeom::Point &w) override;
+  bool editRelease(const CQChartsGeom::Point &w) override;
 
   virtual void editMoveBy(const QPointF &d);
 
@@ -428,7 +472,6 @@ class CQChartsPlotKey : public CQChartsKey {
   LayoutData                 layoutData_;                //!< layout data
   int                        numRows_       { 0 };       //!< number of rows
   int                        numCols_       { 0 };       //!< number of columns
-  CQChartsEditHandles*       editHandles_   { nullptr }; //!< edit handles
   mutable CQChartsGeom::BBox wbbox_;                     //!< window bounding box
   mutable RowHeights         rowHeights_;                //!< row heights
   mutable ColWidths          colWidths_;                 //!< column widths
@@ -530,6 +573,8 @@ class CQChartsKeyText : public CQChartsKeyItem {
  public:
   CQChartsKeyText(CQChartsPlot *plot, const QString &text, const ColorInd &ic);
 
+  CQChartsPlot *plot() const { return plot_; }
+
   const QString &text() const { return text_; }
   void setText(const QString &s) { text_ = s; }
 
@@ -562,6 +607,8 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   CQChartsKeyColorBox(CQChartsPlot *plot, const ColorInd &is, const ColorInd &ig,
                       const ColorInd &iv, const RangeValue &xv=RangeValue(),
                       const RangeValue &yv=RangeValue());
+
+  CQChartsPlot *plot() const { return plot_; }
 
   const CQChartsLength &cornerRadius() const { return boxData_.shape().stroke().cornerSize(); }
   void setCornerRadius(const CQChartsLength &r) { boxData_.shape().stroke().setCornerSize(r); }

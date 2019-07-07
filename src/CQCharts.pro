@@ -242,7 +242,6 @@ CQBucketModel.cpp \
 CQCollapseModel.cpp \
 CQBucketer.cpp \
 \
-CQHistoryLineEdit.cpp \
 CQFilename.cpp \
 CQRangeScroll.cpp \
 \
@@ -476,7 +475,6 @@ HEADERS += \
 ../include/CQCollapseModel.h \
 ../include/CQBucketer.h \
 \
-../include/CQHistoryLineEdit.h \
 ../include/CQFilename.h \
 ../include/CQRangeScroll.h \
 \

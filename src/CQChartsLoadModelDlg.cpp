@@ -3,6 +3,7 @@
 #include <CQChartsLoader.h>
 #include <CQChartsInputData.h>
 #include <CQChartsModelData.h>
+#include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
 #include <CQDividedArea.h>
@@ -186,28 +187,18 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   //----
 
   // Bottom Buttons
-  QHBoxLayout *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
+  CQChartsDialogButtons *buttons = new CQChartsDialogButtons(this);
 
-  okButton_    = CQUtil::makeLabelWidget<QPushButton>("OK"   , "ok"   );
-  applyButton_ = CQUtil::makeLabelWidget<QPushButton>("Apply", "apply");
+  buttons->connect(this, SLOT(okSlot()), SLOT(applySlot()), SLOT(cancelSlot()));
 
-  QPushButton *cancelButton = CQUtil::makeLabelWidget<QPushButton>("Cancel", "cancel");
+  buttons->setToolTips("Load model and close dialog",
+                       "Load model and keep dialog open",
+                       "Close dialog without loading model");
 
-  okButton_   ->setToolTip("Load model and close dialog");
-  applyButton_->setToolTip("Load model and keep dialog open");
-  cancelButton->setToolTip("Close dialog without loading model");
+  okButton_    = buttons->okButton();
+  applyButton_ = buttons->applyButton();
 
-  connect(okButton_   , SIGNAL(clicked()), this, SLOT(okSlot()));
-  connect(applyButton_, SIGNAL(clicked()), this, SLOT(applySlot()));
-  connect(cancelButton, SIGNAL(clicked()), this, SLOT(cancelSlot()));
-
-  buttonLayout->addStretch(1);
-
-  buttonLayout->addWidget(okButton_);
-  buttonLayout->addWidget(applyButton_);
-  buttonLayout->addWidget(cancelButton);
-
-  layout->addLayout(buttonLayout);
+  layout->addWidget(buttons);
 
   //----
 

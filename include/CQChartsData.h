@@ -181,10 +181,12 @@ class CQChartsFillData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool                visible_ { true };                             //!< draw bg
-  CQChartsColor       color_   { CQChartsColor::Type::INTERFACE_VALUE, 0.0 }; //!< bg fill color
-  double              alpha_   { 1.0 };                              //!< bg fill color alpha
-  CQChartsFillPattern pattern_ { CQChartsFillPattern::Type::SOLID }; //!< bg fill pattern
+  bool                visible_ { true };                             //!< draw background
+  CQChartsColor       color_   {
+                        CQChartsColor::Type::INTERFACE_VALUE, 0.0 }; //!< background fill color
+  double              alpha_   { 1.0 };                              //!< background fill alpha
+  CQChartsFillPattern pattern_ {
+                        CQChartsFillPattern::Type::SOLID };          //!< background fill pattern
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsFillData)

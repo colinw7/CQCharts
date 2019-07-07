@@ -36,8 +36,8 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   Q_OBJECT
 
  public:
-  CQChartsCreateAnnotationDlg(CQChartsView *view);
-  CQChartsCreateAnnotationDlg(CQChartsPlot *plot);
+  CQChartsCreateAnnotationDlg(QWidget *parent, CQChartsView *view);
+  CQChartsCreateAnnotationDlg(QWidget *parent, CQChartsPlot *plot);
 
   CQChartsView *view() const { return view_; }
   CQChartsPlot *plot() const { return plot_; }

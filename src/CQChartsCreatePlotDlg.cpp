@@ -13,6 +13,7 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsAnalyzeModel.h>
+#include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 
 #include <CQSummaryModel.h>
@@ -43,8 +44,6 @@ CQChartsCreatePlotDlg::
 CQChartsCreatePlotDlg(CQCharts *charts, CQChartsModelData *modelData) :
  charts_(charts), modelData_(modelData)
 {
-  setWindowTitle("Create Plot");
-
   assert(modelData_);
 
   model_ = modelData->currentModel();
@@ -69,10 +68,8 @@ init()
 
   setObjectName("plotDlg");
 
-  setWindowTitle("Create Plot");
-  //setWindowIcon(QIcon()); TODO
-
   setWindowTitle(QString("Create Plot (Model %1)").arg(modelData_->ind()));
+//setWindowIcon(QIcon()); TODO
 
   //----
 
@@ -129,43 +126,18 @@ init()
   //-------
 
   // OK, Apply, Cancel Buttons
-  QHBoxLayout *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 2, 2);
+  CQChartsDialogButtons *buttons = new CQChartsDialogButtons(this);
 
-  layout->addLayout(buttonLayout);
+  buttons->connect(this, SLOT(okSlot()), SLOT(applySlot()), SLOT(cancelSlot()));
 
-  //--
+  buttons->setToolTips("Create Plot and close dialog",
+                       "Create plot and keep dialog open",
+                       "Close dialog without creating plot");
 
-  buttonLayout->addStretch(1);
+  okButton_    = buttons->okButton();
+  applyButton_ = buttons->applyButton();
 
-  //--
-
-  okButton_ = CQUtil::makeLabelWidget<QPushButton>("OK", "ok");
-
-  okButton_->setToolTip("Create Plot and close dialog");
-
-  connect(okButton_, SIGNAL(clicked()), this, SLOT(okSlot()));
-
-  buttonLayout->addWidget(okButton_);
-
-  //--
-
-  applyButton_ = CQUtil::makeLabelWidget<QPushButton>("Apply", "apply");
-
-  applyButton_->setToolTip("Create Plot");
-
-  connect(applyButton_, SIGNAL(clicked()), this, SLOT(applySlot()));
-
-  buttonLayout->addWidget(applyButton_);
-
-  //--
-
-  QPushButton *cancelButton = CQUtil::makeLabelWidget<QPushButton>("Cancel", "cancel");
-
-  cancelButton->setToolTip("Close dialog");
-
-  connect(cancelButton, SIGNAL(clicked()), this, SLOT(cancelSlot()));
-
-  buttonLayout->addWidget(cancelButton);
+  layout->addWidget(buttons);
 
   //--
 

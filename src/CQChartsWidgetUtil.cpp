@@ -13,6 +13,8 @@ addGridLabelWidget(QGridLayout *playout, const QString &label, QWidget *widget, 
 {
   QLabel *qlabel = CQUtil::makeLabelWidget<QLabel>(label, "label" + label);
 
+  qlabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+
   playout->addWidget(qlabel, row, 0);
   playout->addWidget(widget, row, 1);
 
@@ -35,6 +37,8 @@ CQChartsDialogButtons(QWidget *parent) :
   applyButton_  = CQUtil::makeLabelWidget<QPushButton>("Apply" , "apply" );
   cancelButton_ = CQUtil::makeLabelWidget<QPushButton>("Cancel", "cancel");
 
+  applyButton_->setDefault(true);
+
   layout->addStretch(1);
   layout->addWidget (okButton_);
   layout->addWidget (applyButton_);
@@ -52,4 +56,13 @@ connect(QWidget *w, const char *okSlot, const char *applySlot, const char *cance
   QObject::connect(okButton_    , SIGNAL(clicked()), w, okSlot);
   QObject::connect(applyButton_ , SIGNAL(clicked()), w, applySlot);
   QObject::connect(cancelButton_, SIGNAL(clicked()), w, cancelSlot);
+}
+
+void
+CQChartsDialogButtons::
+setToolTips(const QString &okTip, const QString &applyTip, const QString &cancelTip)
+{
+  okButton_    ->setToolTip(okTip);
+  applyButton_ ->setToolTip(applyTip);
+  cancelButton_->setToolTip(cancelTip);
 }

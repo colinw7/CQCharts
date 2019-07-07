@@ -104,8 +104,12 @@ draw(QPainter *painter, const QRectF &rect) const
     else if (view())
       view()->setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
 
-    if (plot() && isStateColoring())
-      plot()->updateObjPenBrushState(this, pen, brush);
+    if (isStateColoring()) {
+      if      (plot())
+        plot()->updateObjPenBrushState(this, pen, brush);
+      else if (view())
+        view()->updateObjPenBrushState(this, pen, brush);
+    }
 
     painter->setPen  (pen);
     painter->setBrush(brush);
@@ -116,7 +120,7 @@ draw(QPainter *painter, const QRectF &rect) const
     double cxs = (plot() ? plot()->lengthPixelWidth (cornerSize()) : 0.0);
     double cys = (plot() ? plot()->lengthPixelHeight(cornerSize()) : 0.0);
 
-    CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
+    CQChartsRoundedPolygon::draw(painter, rect, cxs, cys, borderSides());
   }
 
   if (isStroked()) {
@@ -131,8 +135,12 @@ draw(QPainter *painter, const QRectF &rect) const
     else if (view())
       view()->setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
 
-    if (plot() && isStateColoring())
-      plot()->updateObjPenBrushState(this, pen, brush);
+    if (isStateColoring()) {
+      if      (plot())
+        plot()->updateObjPenBrushState(this, pen, brush);
+      else if (view())
+        view()->updateObjPenBrushState(this, pen, brush);
+    }
 
     painter->setPen  (pen);
     painter->setBrush(brush);
@@ -143,7 +151,7 @@ draw(QPainter *painter, const QRectF &rect) const
     double cxs = (plot() ? plot()->lengthPixelWidth (cornerSize()) : 0.0);
     double cys = (plot() ? plot()->lengthPixelHeight(cornerSize()) : 0.0);
 
-    CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
+    CQChartsRoundedPolygon::draw(painter, rect, cxs, cys, borderSides());
   }
 }
 

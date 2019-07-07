@@ -29,8 +29,8 @@
 #include <QVBoxLayout>
 
 CQChartsEditAnnotationDlg::
-CQChartsEditAnnotationDlg(CQChartsAnnotation *annotation) :
- QDialog(), annotation_(annotation)
+CQChartsEditAnnotationDlg(QWidget *parent, CQChartsAnnotation *annotation) :
+ QDialog(parent), annotation_(annotation)
 {
   setWindowTitle(QString("Edit %1 Annotation (%2)").
     arg(annotation->typeName()).arg(annotation_->id()));
@@ -106,6 +106,7 @@ createRectFrame()
 {
   CQChartsRectangleAnnotation *annotation =
     dynamic_cast<CQChartsRectangleAnnotation *>(annotation_);
+  assert(annotation);
 
   //---
 
@@ -169,6 +170,7 @@ CQChartsEditAnnotationDlg::
 createEllipseFrame()
 {
   CQChartsEllipseAnnotation *annotation = dynamic_cast<CQChartsEllipseAnnotation *>(annotation_);
+  assert(annotation);
 
   //---
 
@@ -221,6 +223,7 @@ CQChartsEditAnnotationDlg::
 createPolygonFrame()
 {
   CQChartsPolygonAnnotation *annotation = dynamic_cast<CQChartsPolygonAnnotation *>(annotation_);
+  assert(annotation);
 
   //---
 
@@ -255,6 +258,7 @@ CQChartsEditAnnotationDlg::
 createPolyLineFrame()
 {
   CQChartsPolylineAnnotation *annotation = dynamic_cast<CQChartsPolylineAnnotation *>(annotation_);
+  assert(annotation);
 
   //---
 
@@ -272,7 +276,7 @@ createPolyLineFrame()
 
   //---
 
-  polygonWidgets_.pointsEdit->setPolygon(annotation->polygon());
+  polylineWidgets_.pointsEdit->setPolygon(annotation->polygon());
 
   //---
 
@@ -289,6 +293,7 @@ CQChartsEditAnnotationDlg::
 createTextFrame()
 {
   CQChartsTextAnnotation *annotation = dynamic_cast<CQChartsTextAnnotation *>(annotation_);
+  assert(annotation);
 
   //---
 
@@ -392,6 +397,7 @@ CQChartsEditAnnotationDlg::
 createArrowFrame()
 {
   CQChartsArrowAnnotation *annotation = dynamic_cast<CQChartsArrowAnnotation *>(annotation_);
+  assert(annotation);
 
   CQChartsArrow *arrow = annotation->arrow();
 
@@ -477,6 +483,7 @@ CQChartsEditAnnotationDlg::
 createPointFrame()
 {
   CQChartsPointAnnotation *annotation = dynamic_cast<CQChartsPointAnnotation *>(annotation_);
+  assert(annotation);
 
   //---
 
@@ -530,7 +537,7 @@ addFillWidgets(Widgets &widgets, QBoxLayout *playout)
 
   widgets.backgroundDataEdit = new CQChartsFillDataEdit;
 
-  widgets.backgroundDataEdit->setTitle("Background");
+  widgets.backgroundDataEdit->setTitle("Fill");
   widgets.backgroundDataEdit->setData(fillData);
 
   playout->addWidget(widgets.backgroundDataEdit);
@@ -674,6 +681,7 @@ updateRectangleAnnotation()
 
   CQChartsRectangleAnnotation *annotation =
     dynamic_cast<CQChartsRectangleAnnotation *>(annotation_);
+  assert(annotation);
 
   annotation->setId(id);
   annotation->setTipId(tipId);
@@ -713,6 +721,7 @@ updateEllipseAnnotation()
   //---
 
   CQChartsEllipseAnnotation *annotation = dynamic_cast<CQChartsEllipseAnnotation *>(annotation_);
+  assert(annotation);
 
   annotation->setId(id);
   annotation->setTipId(tipId);
@@ -750,6 +759,7 @@ updatePolygonAnnotation()
   //---
 
   CQChartsPolygonAnnotation *annotation = dynamic_cast<CQChartsPolygonAnnotation *>(annotation_);
+  assert(annotation);
 
   annotation->setId(id);
   annotation->setTipId(tipId);
@@ -785,6 +795,7 @@ updatePolylineAnnotation()
   //---
 
   CQChartsPolylineAnnotation *annotation = dynamic_cast<CQChartsPolylineAnnotation *>(annotation_);
+  assert(annotation);
 
   annotation->setId(id);
   annotation->setTipId(tipId);
@@ -827,6 +838,7 @@ updateTextAnnotation()
   //---
 
   CQChartsTextAnnotation *annotation = dynamic_cast<CQChartsTextAnnotation *>(annotation_);
+  assert(annotation);
 
   annotation->setId(id);
   annotation->setTipId(tipId);
@@ -868,6 +880,7 @@ updateArrowAnnotation()
   //---
 
   CQChartsArrowAnnotation *annotation = dynamic_cast<CQChartsArrowAnnotation *>(annotation_);
+  assert(annotation);
 
   annotation->setId(id);
   annotation->setTipId(tipId);
@@ -887,6 +900,7 @@ CQChartsEditAnnotationDlg::
 updatePointAnnotation()
 {
   CQChartsPointAnnotation *annotation = dynamic_cast<CQChartsPointAnnotation *>(annotation_);
+  assert(annotation);
 
   //---
 

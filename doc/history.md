@@ -894,3 +894,7 @@
  + rename rect to rectangle
  + support size in tree map plot label
  + improve consistency between symbol fill and stroke shapes
+# 7/7/2019
+ + Support select and edit of view annotations and key
+ + Fix border sides drawing in box object
+ + Remove unused CQChartsDisplayTransform

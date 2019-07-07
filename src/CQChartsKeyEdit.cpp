@@ -21,8 +21,8 @@
 #include <QVBoxLayout>
 
 CQChartsEditKeyDlg::
-CQChartsEditKeyDlg(CQChartsKey *key) :
- QDialog(), key_(key)
+CQChartsEditKeyDlg(QWidget *parent, CQChartsKey *key) :
+ QDialog(parent), key_(key)
 {
   if (key_->plot())
     setWindowTitle(QString("Edit Plot Key (%1)").arg(key_->plot()->id()));
@@ -379,7 +379,7 @@ connectSlots(bool b)
   connectDisconnect(b, interactiveEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
   connectDisconnect(b, pressBehaviorEdit_, SIGNAL(keyPressBehaviorChanged()),
                     SLOT(widgetsToData()));
-  connectDisconnect(b, headerEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
+  connectDisconnect(b, headerEdit_, SIGNAL(textChanged(const QString &)), SLOT(widgetsToData()));
   connectDisconnect(b, headerTextDataEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
 
   if (plotKey) {

@@ -78,7 +78,7 @@ class CQChartsObj : public QObject {
   void drawDebugRect(const CQChartsPlot *plot, QPainter *painter);
 
  signals:
-  //! emitted whn object id changed
+  //! emitted when object id changed
   void idChanged();
 
  protected:

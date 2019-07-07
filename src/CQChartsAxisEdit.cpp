@@ -40,8 +40,8 @@ CQChartsAxisValueType indToValueType(int ind) {
 }
 
 CQChartsEditAxisDlg::
-CQChartsEditAxisDlg(CQChartsAxis *axis) :
- QDialog(), axis_(axis)
+CQChartsEditAxisDlg(QWidget *parent, CQChartsAxis *axis) :
+ QDialog(parent), axis_(axis)
 {
   setWindowTitle(QString("Edit Plot Axis (%1)").arg(axis->plot()->id()));
 

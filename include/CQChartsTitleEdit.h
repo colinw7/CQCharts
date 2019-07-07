@@ -12,7 +12,7 @@ class CQChartsEditTitleDlg : public QDialog {
   Q_OBJECT
 
  public:
-  CQChartsEditTitleDlg(CQChartsTitle *title);
+  CQChartsEditTitleDlg(QWidget *parent, CQChartsTitle *title);
 
  private slots:
   void okSlot();
@@ -59,7 +59,7 @@ class CQChartsTitleEdit : public QFrame {
 
  private:
   CQChartsTitle*             title_        { nullptr }; //!< title
-  CQChartsTitleData          data_;                     //!< title daya
+  CQChartsTitleData          data_;                     //!< title data
   CQGroupBox*                groupBox_     { nullptr }; //!< group box
   CQChartsTitleLocationEdit* locationEdit_ { nullptr }; //!< location edit
   CQChartsPositionEdit*      positionEdit_ { nullptr }; //!< position edit

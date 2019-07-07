@@ -500,8 +500,12 @@ editMove(const CQChartsGeom::Point &p)
     plot()->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
     plot()->invalidateLayer(CQChartsBuffer::Type::OVERLAY);
   }
-  else if (view())
+  else if (view()) {
+    view()->invalidateObjects();
+    view()->invalidateOverlay();
+
     view()->update();
+  }
 
   return true;
 }
@@ -542,11 +546,8 @@ editMoveBy(const QPointF &f)
 
 void
 CQChartsAnnotation::
-draw(QPainter *painter)
+draw(QPainter *)
 {
-  // draw edit handles for view (TODO: used ?)
-  if (! plot() && view()->mode() == CQChartsView::Mode::EDIT && isSelected())
-    drawEditHandles(painter);
 }
 
 void
@@ -1051,8 +1052,10 @@ draw(QPainter *painter)
   else if (view())
     view()->setPen(pen, isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
 
-  if (plot())
+  if      (plot())
     plot()->updateObjPenBrushState(this, pen, brush);
+  else if (view())
+    view()->updateObjPenBrushState(this, pen, brush);
 
   //---
 
@@ -1259,8 +1262,10 @@ draw(QPainter *painter)
   else if (view())
     view()->setPen(pen, isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
 
-  if (plot())
+  if      (plot())
     plot()->updateObjPenBrushState(this, pen, brush);
+  else if (view())
+    view()->updateObjPenBrushState(this, pen, brush);
 
   //---
 
@@ -1847,8 +1852,10 @@ draw(QPainter *painter)
 
   brush.setStyle(Qt::NoBrush);
 
-  if (plot())
+  if      (plot())
     plot()->updateObjPenBrushState(this, pen, brush);
+  else if (view())
+    view()->updateObjPenBrushState(this, pen, brush);
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -2211,15 +2218,15 @@ bool
 CQChartsArrowAnnotation::
 inside(const CQChartsGeom::Point &p) const
 {
-  QPointF start, end;
+  CQChartsGeom::Point ps, pe;
 
   if      (plot()) {
-    start = plot()->positionToPlot(start_);
-    end   = plot()->positionToPlot(end_  );
+    ps = plot()->windowToPixel(plot()->positionToPlot(start_));
+    pe = plot()->windowToPixel(plot()->positionToPlot(end_  ));
   }
   else if (view()) {
-    start = view()->positionToView(start_);
-    end   = view()->positionToView(end_  );
+    ps = view()->windowToPixel(view()->positionToView(start_));
+    pe = view()->windowToPixel(view()->positionToView(end_  ));
   }
 
   CQChartsGeom::Point p1;
@@ -2228,9 +2235,6 @@ inside(const CQChartsGeom::Point &p) const
     p1 = plot()->windowToPixel(p);
   else if (view())
     p1 = view()->windowToPixel(p);
-
-  CQChartsGeom::Point ps = CQChartsUtil::fromQPoint(start);
-  CQChartsGeom::Point pe = CQChartsUtil::fromQPoint(end  );
 
   double d;
 
@@ -2590,8 +2594,10 @@ draw(QPainter *painter)
     view()->setBrush(brush, fillData.isVisible(), fillColor, fillData.alpha(),
                      fillData.pattern());
 
-  if (plot())
+  if      (plot())
     plot()->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
+  else if (view())
+    view()->updateObjPenBrushState(this, pen, brush);
 
   painter->setPen  (pen);
   painter->setBrush(brush);

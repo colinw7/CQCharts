@@ -150,7 +150,7 @@ editSlot()
   if      (title) {
     delete titleDlg_;
 
-    titleDlg_ = new CQChartsEditTitleDlg(title);
+    titleDlg_ = new CQChartsEditTitleDlg(this, title);
 
     if (modal) {
       titleDlg_->exec();
@@ -165,7 +165,7 @@ editSlot()
   else if (key) {
     delete keyDlg_;
 
-    keyDlg_ = new CQChartsEditKeyDlg(key);
+    keyDlg_ = new CQChartsEditKeyDlg(this, key);
 
     if (modal) {
       keyDlg_->exec();
@@ -180,7 +180,7 @@ editSlot()
   else if (axis) {
     delete axisDlg_;
 
-    axisDlg_ = new CQChartsEditAxisDlg(axis);
+    axisDlg_ = new CQChartsEditAxisDlg(this, axis);
 
     if (modal) {
       axisDlg_->exec();

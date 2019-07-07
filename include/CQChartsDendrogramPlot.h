@@ -11,7 +11,7 @@ class CQChartsDendrogramPlot;
 //---
 
 /*!
- * \brief Dendogram plot type
+ * \brief Dendrogram plot type
  */
 class CQChartsDendrogramPlotType : public CQChartsPlotType {
  public:

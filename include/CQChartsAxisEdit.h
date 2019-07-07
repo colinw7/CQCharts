@@ -11,7 +11,7 @@ class CQChartsEditAxisDlg : public QDialog {
   Q_OBJECT
 
  public:
-  CQChartsEditAxisDlg(CQChartsAxis *axis);
+  CQChartsEditAxisDlg(QWidget *parent, CQChartsAxis *axis);
 
   QSize sizeHint() const;
 

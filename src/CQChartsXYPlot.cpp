@@ -3463,7 +3463,7 @@ doSelect(CQChartsSelMod selMod)
   else if (selMod == CQChartsSelMod::TOGGLE)
     obj->setSelected(! obj->isSelected());
 
-  plot()->drawOverlay();
+  plot()->invalidateOverlay();
 
   key_->redraw(/*wait*/ true);
 }
@@ -3568,7 +3568,7 @@ doSelect(CQChartsSelMod selMod)
   else if (selMod == CQChartsSelMod::TOGGLE)
     obj->setSelected(! obj->isSelected());
 
-  plot()->drawOverlay();
+  plot()->invalidateOverlay();
 
   key_->redraw(/*wait*/ true);
 }

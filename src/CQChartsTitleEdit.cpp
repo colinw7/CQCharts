@@ -18,8 +18,8 @@
 #include <QVBoxLayout>
 
 CQChartsEditTitleDlg::
-CQChartsEditTitleDlg(CQChartsTitle *title) :
- QDialog(), title_(title)
+CQChartsEditTitleDlg(QWidget *parent, CQChartsTitle *title) :
+ QDialog(parent), title_(title)
 {
   setWindowTitle(QString("Edit Plot Title (%1)").arg(title->plot()->id()));
 
@@ -184,7 +184,7 @@ connectSlots(bool b)
   connectDisconnect(b, positionEdit_, SIGNAL(positionChanged()), SLOT(widgetsToData()));
   connectDisconnect(b, rectEdit_, SIGNAL(rectChanged()), SLOT(widgetsToData()));
   connectDisconnect(b, insideEdit_, SIGNAL(toggled(bool)), SLOT(widgetsToData()));
-  connectDisconnect(b, textEdit_, SIGNAL(boxDataChanged()), SLOT(widgetsToData()));
+  connectDisconnect(b, textEdit_, SIGNAL(textDataChanged()), SLOT(widgetsToData()));
 }
 
 void

@@ -19,7 +19,7 @@ void
 CQChartsDendrogramPlotType::
 addParameters()
 {
-  startParameterGroup("Dendogram");
+  startParameterGroup("Dendrogram");
 
   addColumnParameter("name", "name", "nameColumn").
    setString().setRequired().setTip("Name column");

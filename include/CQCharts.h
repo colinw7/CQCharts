@@ -40,7 +40,7 @@ class CQPropertyViewItem;
  *  parameters of \ref CQChartsPlotParameter and properties using standard QVariant values.
  *  The plot also can have any number of plot annotations of \ref CQChartsAnnotation.
  *
- *  Plots can optionlly have axes of \ref CQChartsAxis, a title of \ref CQChartsTitle
+ *  Plots can optionally have axes of \ref CQChartsAxis, a title of \ref CQChartsTitle
  *  and key of \ref CQChartsPlotKey.
  *
  *  Plot Types are:

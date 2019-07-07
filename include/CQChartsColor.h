@@ -196,7 +196,7 @@ class CQChartsColor {
   int    ind_   { -1 };         //!< palette index
   double value_ { 0.0 };        //!< specific palette or theme value
   QColor color_ { 0, 0, 0 };    //!< specific color
-  bool   scale_ { false };      //!< color scaled to palette defined color values (psuedo index)
+  bool   scale_ { false };      //!< color scaled to palette defined color values (pseudo index)
 };
 
 //---

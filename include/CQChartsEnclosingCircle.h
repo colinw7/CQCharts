@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-//! \brief enclosign circle
+//! \brief enclosing circle
 class CQChartsEnclosingCircle {
  public:
   //! circle

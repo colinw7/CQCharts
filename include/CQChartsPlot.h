@@ -1,6 +1,7 @@
 #ifndef CQChartsPlot_H
 #define CQChartsPlot_H
 
+#include <CQChartsView.h>
 #include <CQChartsObj.h>
 #include <CQChartsColor.h>
 #include <CQChartsPlotSymbol.h>
@@ -55,7 +56,6 @@ class CQChartsPointAnnotation;
 class CQChartsPlotParameter;
 class CQChartsObj;
 class CQChartsDisplayRange;
-class CQChartsDisplayTransform;
 class CQChartsValueSet;
 class CQChartsModelColumnDetails;
 class CQChartsModelExprMatch;
@@ -293,6 +293,8 @@ class CQChartsPlot : public CQChartsObj,
 
   using ColorInd = CQChartsUtil::ColorInd;
 
+  using DrawType = CQChartsView::DrawType;
+
  public:
   CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
 
@@ -352,15 +354,12 @@ class CQChartsPlot : public CQChartsObj,
   void drawForeground();
   void drawObjs();
 
-  void drawOverlay();
+  void invalidateOverlay();
 
   //---
 
   const CQChartsDisplayRange &displayRange() const;
   void setDisplayRange(const CQChartsDisplayRange &r);
-
-  const CQChartsDisplayTransform &displayTransform() const;
-  void setDisplayTransform(const CQChartsDisplayTransform &t);
 
   const CQChartsGeom::Range &dataRange() const { return dataRange_; }
   void setDataRange(const CQChartsGeom::Range &r, bool update=true);
@@ -1202,8 +1201,6 @@ class CQChartsPlot : public CQChartsObj,
 
   void applyDataRange(bool propagate=true);
 
-  void applyDisplayTransform(bool propagate=true);
-
   CQChartsGeom::Range adjustDataRange(const CQChartsGeom::Range &range) const;
 
   //---
@@ -1691,12 +1688,6 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  enum class DrawType {
-    LINE,
-    BOX,
-    SYMBOL
-  };
-
   void updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush,
                               DrawType drawType=DrawType::BOX) const;
 
@@ -1800,8 +1791,7 @@ class CQChartsPlot : public CQChartsObj,
   // draw all layers
   void drawLayers(QPainter *painter) const;
 
-  // draw plot layer type
-  const CQChartsLayer::Type &drawLayerType() const { return drawLayer_; }
+  const CQChartsLayer::Type &drawLayerType() const;
 
   //---
 
@@ -2140,8 +2130,6 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsPlotMargin           innerMargin_      { 0, 0, 0, 0 }; //!< inner margin
   CQChartsPlotMargin           outerMargin_      { 10, 10, 10, 10 }; //!< outer margin
   CQChartsDisplayRange*        displayRange_     { nullptr };    //!< value range mapping
-  CQChartsDisplayTransform*    displayTransform_ { nullptr };    //!< value range transform
-                                                                 //!< (zoom/pan)
   CQChartsGeom::Range          calcDataRange_;                   //!< calc data range
   CQChartsGeom::Range          dataRange_;                       //!< data range
   CQChartsGeom::Range          outerDataRange_;                  //!< outer data range
@@ -2207,7 +2195,6 @@ class CQChartsPlot : public CQChartsObj,
   Buffers                      buffers_;                         //!< draw layer buffers
   Layers                       layers_;                          //!< draw layers
   mutable CQChartsBuffer::Type drawBuffer_;                      //!< objects draw buffer
-  mutable CQChartsLayer::Type  drawLayer_;                       //!< objects draw layer
   IdHidden                     idHidden_;                        //!< hidden object ids
   IndexColumnRows              selIndexColumnRows_;              //!< sel model indices (by col/row)
   QItemSelection               itemSelection_;                   //!< selected model indices

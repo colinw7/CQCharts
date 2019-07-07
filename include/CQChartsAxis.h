@@ -300,7 +300,7 @@ class CQChartsAxis : public CQChartsObj,
 
   //---
 
-  // user specified ticl increment
+  // user specified tick increment
   const CQChartsOptInt &tickIncrement() const { return tickIncrement_; }
   void setTickIncrement(const CQChartsOptInt &tickIncrement);
 

@@ -2086,14 +2086,26 @@ bool
 CQChartsBarKeyColor::
 isSetHidden() const
 {
-  return plot_->CQChartsPlot::isSetHidden(iv_.i);
+  if      (is_.n > 1)
+    return plot_->CQChartsPlot::isSetHidden(is_.i);
+  else if (ig_.n > 1)
+    return plot_->CQChartsPlot::isSetHidden(ig_.i);
+  else if (iv_.n > 1)
+    return plot_->CQChartsPlot::isSetHidden(iv_.i);
+  else
+    return false;
 }
 
 void
 CQChartsBarKeyColor::
 setSetHidden(bool b)
 {
-  plot_->CQChartsPlot::setSetHidden(iv_.i, b);
+  if      (is_.n > 1)
+    plot_->CQChartsPlot::setSetHidden(is_.i, b);
+  else if (ig_.n > 1)
+    plot_->CQChartsPlot::setSetHidden(ig_.i, b);
+  else if (iv_.n > 1)
+    plot_->CQChartsPlot::setSetHidden(iv_.i, b);
 }
 
 //------

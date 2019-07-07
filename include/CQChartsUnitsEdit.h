@@ -23,7 +23,7 @@ class CQChartsUnitsEdit : public QComboBox {
   void indexChanged();
 
  private:
-  CQChartsUnits units_;
+  CQChartsUnits units_ { CQChartsUnits::NONE };
 };
 
 #endif

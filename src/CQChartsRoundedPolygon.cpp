@@ -42,7 +42,8 @@ void interpLine(const QPointF &p1, const QPointF &p2, double xsize, double ysize
 namespace CQChartsRoundedPolygon {
 
 void
-draw(QPainter *painter, const QRectF &rect, double xsize, double ysize)
+draw(QPainter *painter, const QRectF &rect, double xsize, double ysize,
+     const CQChartsSides &sides)
 {
   if (xsize > 0 || ysize > 0) {
     QPainterPath path;
@@ -54,7 +55,33 @@ draw(QPainter *painter, const QRectF &rect, double xsize, double ysize)
     //painter->drawRoundedRect(rect, xsize, ysize);
   }
   else {
-    painter->drawRect(rect);
+    QPainterPath path;
+
+    if (sides.isAll()) {
+      path.moveTo(rect.topLeft    ());
+      path.lineTo(rect.topRight   ());
+      path.lineTo(rect.bottomRight());
+      path.lineTo(rect.bottomLeft ());
+
+      path.closeSubpath();
+
+      painter->drawPath(path);
+    }
+    else {
+      painter->fillRect(rect, painter->brush());
+
+      if (sides.isLeft())
+        painter->drawLine(rect.topLeft(), rect.bottomLeft());
+
+      if (sides.isRight())
+        painter->drawLine(rect.topRight(), rect.bottomRight());
+
+      if (sides.isTop())
+        painter->drawLine(rect.topLeft(), rect.topRight());
+
+      if (sides.isBottom())
+        painter->drawLine(rect.bottomLeft(), rect.bottomRight());
+    }
   }
 }
 

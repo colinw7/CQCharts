@@ -1,7 +1,14 @@
 High
+ + Improve edit arrow annotation preview
+ + Create View or Plot Annotation
+ + Edit View Annotation with mouse
+ + Border Sides
+ + Multiline text in box formatting (tree map/bubble text + value)
+   + Standard library for this
+ + Move Layer painter to standard library
+   + Use in CQSchem ...
+ + Missing tooltips in dialogs
  + probe supports x/y strings as well as reals (variant)
- + addTipColumns() for all plots
- + Scrolled key not clipping properly
  + If overlay of same type apply changes to all plots ?
  + More html documentation update
  + visible property at all levels (box, fill, stroke) or single value
