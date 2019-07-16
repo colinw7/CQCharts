@@ -898,3 +898,5 @@
  + Support select and edit of view annotations and key
  + Fix border sides drawing in box object
  + Remove unused CQChartsDisplayTransform
+# 7/16/2019
+ + Add hidden parameters

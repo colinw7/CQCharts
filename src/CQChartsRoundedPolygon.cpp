@@ -19,10 +19,10 @@ void interpLine(const QPointF &p1, const QPointF &p2, double xsize, double ysize
     return;
   }
 
-  double mx1 = std::min(dx/2, xsize)/l;
+  double mx1 = (xsize < l/2 ? xsize/l : 0.5);
   double mx2 = 1.0 - mx1;
 
-  double my1 = std::min(dy/2, ysize)/l;
+  double my1 = (ysize < l/2 ? ysize/l : 0.5);
   double my2 = 1.0 - my1;
 
   double x1 = p1.x() + mx1*dx;

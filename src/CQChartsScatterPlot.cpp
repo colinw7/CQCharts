@@ -43,14 +43,16 @@ addParameters()
 
   addColumnParameter("name", "Name", "nameColumn").setTip("Value Name").setString();
 
-  endParameterGroup();
-
-  //---
+  //--
 
   addEnumParameter("plotType", "Plot Type", "plotType").
     addNameValue("SYMBOLS"   , int(CQChartsScatterPlot::PlotType::SYMBOLS   )).
     addNameValue("GRID_CELLS", int(CQChartsScatterPlot::PlotType::GRID_CELLS)).
     setTip("Plot type");
+
+  endParameterGroup();
+
+  //---
 
   // custom columns/map
   startParameterGroup("Points");

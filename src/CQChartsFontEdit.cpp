@@ -368,7 +368,7 @@ void
 CQChartsFontEdit::
 setNoFocus()
 {
-  fontEdit_->setNoFocus();
+//fontEdit_->setNoFocus();
 
   typeCombo_  ->setFocusPolicy(Qt::NoFocus);
   boldCheck_  ->setFocusPolicy(Qt::NoFocus);

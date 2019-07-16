@@ -324,8 +324,6 @@ inline std::vector<double> toReals(const QVariant &var, bool &ok) {
     reals.push_back(r);
   }
   else {
-    std::vector<double> reals;
-
     QString str;
 
     if (! toString(var, str))

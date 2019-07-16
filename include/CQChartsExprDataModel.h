@@ -3,6 +3,9 @@
 
 #include <CQDataModel.h>
 
+/*!
+ * \brief Wrapper class for CQDataModel to remember number of rows
+ */
 class CQChartsExprDataModel : public CQDataModel {
  public:
   CQChartsExprDataModel(int n);

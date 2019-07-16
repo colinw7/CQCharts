@@ -49,7 +49,11 @@ addParameters()
 
   //---
 
+  startParameterGroup("Group");
+
   addColumnParameter("groupId", "Group Id", "groupIdColumn");
+
+  endParameterGroup();
 
   //---
 

@@ -12,6 +12,9 @@ class QTextBrowser;
 
 #define CQChartsHelpDlgMgrInst CQChartsHelpDlgMgr::instance()
 
+/*!
+ * \brief Help Dialog Manager singleton
+ */
 class CQChartsHelpDlgMgr {
  public:
   using TclCommands = std::vector<QString>;
@@ -46,6 +49,9 @@ class CQChartsHelpDlgMgr {
 
 //---
 
+/*!
+ * \brief Help Dialog
+ */
 class CQChartsHelpDlg : public QDialog {
   Q_OBJECT
 

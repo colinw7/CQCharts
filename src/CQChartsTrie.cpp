@@ -164,121 +164,121 @@ CQChartsTrieNode::String
 CQChartsTrieNode::
 pattern() const
 {
-String childStr  = childPattern ();
-String parentStr = parentPattern();
+  String childStr  = childPattern ();
+  String parentStr = parentPattern();
 
-return parentStr + childStr;
+  return parentStr + childStr;
 }
 
 CQChartsTrieNode::String
 CQChartsTrieNode::
 parentPattern() const
 {
-CQChartsTrieNode *pnode = parent();
+  CQChartsTrieNode *pnode = parent();
 
-if (! pnode) // root
-  return "";
+  if (! pnode) // root
+    return "";
 
-return pnode->parentPattern() + pnode->nodesPattern();
+  return pnode->parentPattern() + pnode->nodesPattern();
 }
 
 CQChartsTrieNode::String
 CQChartsTrieNode::
 childPattern() const
 {
-String pattern = nodesPattern();
+  String pattern = nodesPattern();
 
-using NodeSet = std::set<CQChartsTrieNode *>;
+  using NodeSet = std::set<CQChartsTrieNode *>;
 
-NodeSet nodeSet;
+  NodeSet nodeSet;
 
-for (const auto &node : nodes_)
-  nodeSet.insert(node.second);
+  for (const auto &node : nodes_)
+    nodeSet.insert(node.second);
 
-if (nodeSet.empty())
-  return pattern;
+  if (nodeSet.empty())
+    return pattern;
 
-if (nodeSet.size() == 1)
-  return (*nodeSet.begin())->childPattern();
+  if (nodeSet.size() == 1)
+    return (*nodeSet.begin())->childPattern();
 
-return pattern + "*";
+  return pattern + "*";
 }
 
 CQChartsTrieNode::String
 CQChartsTrieNode::
 nodesPattern() const
 {
-if (nodes_.empty())
-  return "";
-
-if (nodes_.size() == 1) {
-  auto p = nodes_.begin();
-
-  QChart c = (*p).first;
-
-  if (! c)
+  if (nodes_.empty())
     return "";
 
-  return String(&c, 1);
-}
+  if (nodes_.size() == 1) {
+    auto p = nodes_.begin();
 
-CharSet charSet;
+    QChart c = (*p).first;
 
-nodeChars(charSet);
+    if (! c)
+      return "";
 
-//---
-
-String pattern = "[";
-
-QChar firstChar = 0;
-QChar lastChar  = 0;
-
-for (const auto &c : charSet) {
-  if (! lastChar.isNull() && lastChar + 1 == c) {
-    lastChar = c;
+    return String(&c, 1);
   }
-  else {
-    if (firstChar != 0) {
-      QChar c1 = firstChar;
-      QChar c2 = lastChar;
 
-      pattern += c1;
+  CharSet charSet;
 
-      if (c1 != c2) {
-        pattern += "-";
-        pattern += c2;
-      }
+  nodeChars(charSet);
+
+  //---
+
+  String pattern = "[";
+
+  QChar firstChar = 0;
+  QChar lastChar  = 0;
+
+  for (const auto &c : charSet) {
+    if (! lastChar.isNull() && lastChar + 1 == c) {
+      lastChar = c;
     }
+    else {
+      if (firstChar != 0) {
+        QChar c1 = firstChar;
+        QChar c2 = lastChar;
 
-    firstChar = c;
-    lastChar  = c;
+        pattern += c1;
+
+        if (c1 != c2) {
+          pattern += "-";
+          pattern += c2;
+        }
+      }
+
+      firstChar = c;
+      lastChar  = c;
+    }
   }
-}
 
-if (firstChar != 0) {
-  QChar c1 = firstChar;
-  QChar c2 = lastChar;
+  if (firstChar != 0) {
+    QChar c1 = firstChar;
+    QChar c2 = lastChar;
 
-  pattern += c1;
+    pattern += c1;
 
-  if (c1 != c2) {
-    pattern += "-";
-    pattern += c2;
+    if (c1 != c2) {
+      pattern += "-";
+      pattern += c2;
+    }
   }
-}
 
-pattern += "]";
+  pattern += "]";
 
-return pattern;
+  return pattern;
 }
 
 void
 CQChartsTrieNode::
 nodeChars(CharSet &charSet) const
 {
-for (const auto &node : nodes_) {
-  charSet.insert(node.first);
-}
+  for (const auto &node : nodes_) {
+    charSet.insert(node.first);
+  }
 }
 #endif
 int

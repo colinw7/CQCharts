@@ -843,6 +843,8 @@ updateTextAnnotation()
   annotation->setId(id);
   annotation->setTipId(tipId);
 
+  annotation->setTextStr(text);
+
   if (textWidgets_.positionRadio->isChecked())
     annotation->setPosition(pos);
   else

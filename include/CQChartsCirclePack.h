@@ -36,9 +36,9 @@ class CQChartsCircleNode {
    }
 
   protected:
-   double r_ { 1.0 };
-   double x_ { 0.0 };
-   double y_ { 0.0 };
+   double r_ { 1.0 }; //!< node radius
+   double x_ { 0.0 }; //!< node x
+   double y_ { 0.0 }; //!< node y
 };
 
 //---
@@ -301,9 +301,9 @@ class CQChartsCirclePack {
   }
 
  private:
-  Nodes       nodes_;
-  mutable int ind1_;
-  mutable int ind2_;
+  Nodes       nodes_; //!< nodes
+  mutable int ind1_;  //!< previous index 1
+  mutable int ind2_;  //!< previous index 2
 };
 
 #endif

@@ -3,6 +3,9 @@
 
 #include <CQDataModel.h>
 
+/*!
+ * \brief Wrapper class for CQDataModel to remember tcl variable data
+ */
 class CQChartsVarsModel : public CQDataModel {
  public:
   CQChartsVarsModel(int numCols, int numRows);

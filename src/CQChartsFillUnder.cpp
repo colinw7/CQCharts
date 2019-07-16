@@ -12,7 +12,7 @@ registerMetaType()
 {
   metaTypeId = CQUTIL_REGISTER_META(CQChartsFillUnderSide);
 
-  CQPropertyViewMgrInst->setUserName("CQChartsFillUnderSide", "full_under_side");
+  CQPropertyViewMgrInst->setUserName("CQChartsFillUnderSide", "fill_under_side");
 }
 
 QString

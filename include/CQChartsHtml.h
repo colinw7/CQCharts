@@ -1,8 +1,12 @@
 #ifndef CQChartsHtml_H
 #define CQChartsHtml_H
 
+/*!
+ * \brief Helper class to build HTML string
+ */
 class CQChartsHtml {
  public:
+  //! Intermediate class for string part of HTML string
   class Str {
    public:
     enum class Type {
@@ -41,7 +45,7 @@ class CQChartsHtml {
     static Str bold  (const Str &str) { return Str("<b>") + str + Str("</b>"); }
     static Str italic(const Str &str) { return Str("<i>") + str + Str("</i>"); }
 
-    static Str image(const Str &src) { return Str("<image src=\"") + src + Str("\"/>"); }
+    static Str img(const Str &src) { return Str("<img src=\"") + src + Str("\"/>"); }
 
     static Str a(const Str &ref, const Str &str) {
       return Str("<a href=\"") + ref + Str("\">") + str + Str("</a>"); }

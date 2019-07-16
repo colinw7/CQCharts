@@ -49,11 +49,17 @@ addParameters()
 
   endParameterGroup();
 
+  //---
+
+  startParameterGroup("General");
+
   addColumnParameter("name", "Name", "nameColumn").
    setString().setTip("Name For Node Id");
 
   addColumnParameter("groupId", "Group Id", "groupIdColumn").
    setNumeric().setTip("Group Id for Color");
+
+  endParameterGroup();
 
   //---
 

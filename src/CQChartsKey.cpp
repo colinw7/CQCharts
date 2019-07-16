@@ -601,6 +601,9 @@ CQChartsPlotKey(CQChartsPlot *plot) :
 CQChartsPlotKey::
 ~CQChartsPlotKey()
 {
+  delete scrollData_.hbar;
+  delete scrollData_.vbar;
+
   for (auto &item : items_)
     delete item;
 }
@@ -730,7 +733,7 @@ updateLocation(const CQChartsGeom::BBox &bbox)
       ky = bbox.getYMax() + ks.height() + ym;
   }
   else if (location().onVCenter()) {
-    ky = bbox.getYMid() - ks.height()/2;
+    ky = bbox.getYMid() + ks.height()/2;
   }
   else if (location().onBottom()) {
     if (isInsideY())

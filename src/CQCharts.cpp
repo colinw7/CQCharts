@@ -88,8 +88,8 @@ QString
 CQCharts::
 description()
 {
-  auto LI    = [](const QString &str) { return CQChartsHtml::Str(str); };
-  auto IMAGE = [](const QString &src) { return CQChartsHtml::Str::image(src); };
+  auto LI  = [](const QString &str) { return CQChartsHtml::Str(str); };
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
    h2("Introduction").
@@ -107,42 +107,42 @@ description()
     p("Chart types supported:").
     ul({
      LI("Adjacency : tabular connectivity table (needs special column value syntax "
-        "for connections) " + IMAGE("images/adjacency.png")),
-     LI("BarChart : 1d bar chart for column values " + IMAGE("images/barchart.png")),
+        "for connections) " + IMG("images/adjacency.png")),
+     LI("BarChart : 1d bar chart for column values " + IMG("images/barchart.png")),
      LI("Box : Box plot of aggregated values from value and group columns " +
-        IMAGE("images/boxplot.png") + IMAGE("images/boxplot_connected.png")),
+        IMG("images/boxplot.png") + IMG("images/boxplot_connected.png")),
      LI("Bubble : Bubble plot where circle is size of column value" +
-        IMAGE("images/bubbleplot.png")),
+        IMG("images/bubbleplot.png")),
      LI("Chord : Circlular connectivity chart (needs special column value syntax for "
-        "connections) " + IMAGE("images/chord_plot.png")),
+        "connections) " + IMG("images/chord_plot.png")),
      LI("Delaunay : Delaunay/Voronoi geometric connectivity chart" +
-        IMAGE("images/delaunay.png")),
+        IMG("images/delaunay.png")),
      LI("Distribution : Distribution count of range based column values" +
-        IMAGE("images/distribution.png")),
+        IMG("images/distribution.png")),
      LI("ForceDirected : Force directed connectivity chart" +
-        IMAGE("images/forcedirected.png")),
+        IMG("images/forcedirected.png")),
      LI("Geometry : General polygon geometry colored by value" +
-        IMAGE("images/geometryplot.png")),
+        IMG("images/geometryplot.png")),
      LI("HierBubble : Hierarchical bubble plot where circle is size of column value" +
-        IMAGE("images/hierbubble.png")),
+        IMG("images/hierbubble.png")),
      LI("Image : Image/regular grid plot (x, y, color)" +
-        IMAGE("images/imageplot.png")),
+        IMG("images/imageplot.png")),
      LI("Parallel : Parallel lines plot using multiple connected value sets" +
-        IMAGE("images/parallelplot.png")),
+        IMG("images/parallelplot.png")),
      LI("Pie : Pie chart" +
-        IMAGE("images/piechart.png")),
+        IMG("images/piechart.png")),
      LI("Radar : Radar (polygon pie chart)" +
-        IMAGE("images/radar.png")),
+        IMG("images/radar.png")),
      LI("Sankey : Sankey plot of connected values" +
-        IMAGE("images/sankey.png")),
+        IMG("images/sankey.png")),
      LI("Scatter : Scatter plot of disparate x/y column values" +
-        IMAGE("images/scatterplot.png")),
+        IMG("images/scatterplot.png")),
      LI("Sunburst : Hierarchical pie chart plot" +
-        IMAGE("images/sunburst.png")),
+        IMG("images/sunburst.png")),
      LI("TreeMap : Hierarchical tree map" +
-        IMAGE("images/treemap.png")),
+        IMG("images/treemap.png")),
      LI("XY : x/y monotonic value plot" +
-        IMAGE("images/xychart.png") + IMAGE("images/goal_scorers.png")) }).
+        IMG("images/xychart.png") + IMG("images/goal_scorers.png")) }).
    h3("Adjacency").
     p("Uses table cell coloring to show number of connections between two items.").
     p("Items names are displayed in the row and column headers and the number of connections "

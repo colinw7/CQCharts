@@ -302,7 +302,7 @@ CQChartsPlotSymbolList symbols({
      { 1.0,  0.0,  0.0, -1.0, CQChartsPlotSymbol::Connect::LINE  },
      { 0.0, -1.0, -1.0,  0.0, CQChartsPlotSymbol::Connect::FILL  }} },
   { CQChartsSymbol::Type::STAR5    ,
-    {{ 0.0,  0.0,  0.0,  1.0, CQChartsPlotSymbol::Connect::STROKE},
+    {{ 0.0,  0.0,  0.0     ,  1.0     , CQChartsPlotSymbol::Connect::STROKE},
      { 0.0,  0.0, -0.951057,  0.309017, CQChartsPlotSymbol::Connect::STROKE},
      { 0.0,  0.0,  0.951057,  0.309017, CQChartsPlotSymbol::Connect::STROKE},
      { 0.0,  0.0, -0.587785, -0.809017, CQChartsPlotSymbol::Connect::STROKE},

@@ -786,10 +786,15 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData, QGridLayout *layou
   for (const auto &p : type->parameterGroups()) {
     CQChartsPlotParameterGroup *parameterGroup = p.second;
 
+    if (parameterGroup->isHidden())
+      continue;
+
     if (parameterGroup->parentGroupId() >= 0) {
       childGroups.push_back(parameterGroup);
       continue;
     }
+
+    //---
 
     CQChartsPlotType::Parameters parameters =
       type->groupParameters(parameterGroup->groupId());
@@ -831,6 +836,9 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData, QGridLayout *layou
     //---
 
     for (const auto &parameterGroup1 : parameterGroups) {
+      if (parameterGroup1->isHidden())
+        continue;
+
       CQChartsPlotType::Parameters parameters1 =
         type->groupParameters(parameterGroup1->groupId());
 
@@ -913,6 +921,9 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
   int nbool = 0;
 
   for (const auto &parameter : parameters) {
+    if (parameter->isHidden())
+      continue;
+
     if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN ||
              parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST)
       addParameterEdit(plotData, layout, row, parameter);
@@ -935,6 +946,9 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
     QHBoxLayout *strLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
     for (const auto &parameter : parameters) {
+      if (parameter->isHidden())
+        continue;
+
       if (parameter->type() == CQChartsPlotParameter::Type::STRING ||
           parameter->type() == CQChartsPlotParameter::Type::REAL ||
           parameter->type() == CQChartsPlotParameter::Type::INTEGER)
@@ -953,6 +967,9 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
     QHBoxLayout *enumLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
     for (const auto &parameter : parameters) {
+      if (parameter->isHidden())
+        continue;
+
       if (parameter->type() == CQChartsPlotParameter::Type::ENUM)
         addParameterEdit(plotData, enumLayout, parameter);
     }
@@ -969,6 +986,9 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
     QHBoxLayout *boolLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
 
     for (const auto &parameter : parameters) {
+      if (parameter->isHidden())
+        continue;
+
       if (parameter->type() == CQChartsPlotParameter::Type::BOOLEAN)
         addParameterEdit(plotData, boolLayout, parameter);
     }
@@ -1617,6 +1637,9 @@ setXYMin(const QString &id)
   if (colName == "") return;
 
   for (const auto &parameter : type->parameters()) {
+    if (parameter->isHidden())
+      continue;
+
     if (parameter->name() != colName)
       continue;
 
@@ -1947,6 +1970,9 @@ validate(QStringList &msgs)
   int num_valid = 0;
 
   for (const auto &parameter : type->parameters()) {
+    if (parameter->isHidden())
+      continue;
+
     if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
       CQChartsColumn column = parameter->defValue().value<CQChartsColumn>();
 
@@ -2216,6 +2242,9 @@ applyPlot(CQChartsPlot *plot, bool preview)
   PlotData &plotData = typePlotData_[type->name()];
 
   for (const auto &parameter : type->parameters()) {
+    if (parameter->isHidden())
+      continue;
+
     if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
       CQChartsColumn column = parameter->defValue().value<CQChartsColumn>();
 
@@ -2384,8 +2413,11 @@ applyPlot(CQChartsPlot *plot, bool preview)
   if (yLabelEdit_->text().length())
     plot->setYLabel(yLabelEdit_->text());
 
-  plot->xAxis()->setValueType(CQChartsAxisValueType::Type::REAL);
-  plot->yAxis()->setValueType(CQChartsAxisValueType::Type::REAL);
+  if (plot->xAxis())
+    plot->xAxis()->setValueType(CQChartsAxisValueType::Type::REAL);
+
+  if (plot->yAxis())
+    plot->yAxis()->setValueType(CQChartsAxisValueType::Type::REAL);
 
   if (plot->xAxis() && type->allowXAxisIntegral()) {
     if (xintegralCheck_->isChecked())
