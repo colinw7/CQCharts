@@ -81,7 +81,13 @@ class CQChartsArrow : public QObject,
   const CQChartsArrowData &data() const { return data_; }
   void setData(const CQChartsArrowData &data) { data_ = data; emit dataChanged(); }
 
+  //---
+
   void draw(QPainter *painter) const;
+
+  //---
+
+  void write(std::ostream &os, const QString &varName) const;
 
  private:
   void drawPolygon(const std::vector<QPointF> &points, double w, bool filled) const;

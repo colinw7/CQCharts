@@ -124,7 +124,7 @@ class CQChartsWindow : public QFrame {
   CQChartsView*              view_         { nullptr }; //!< parent view
   bool                       xRangeMap_    { false };   //!< xrange map
   bool                       yRangeMap_    { false };   //!< xrange map
-  bool                       dataTable_    { true };    //!< data table
+  bool                       dataTable_    { false };   //!< data table
   bool                       viewSettings_ { true };    //!< view settings
   CQChartsWindowRangeScroll* xrangeScroll_ { nullptr }; //!< xrange scroll
   CQChartsWindowRangeScroll* yrangeScroll_ { nullptr }; //!< yrange scroll

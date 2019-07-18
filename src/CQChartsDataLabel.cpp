@@ -4,7 +4,9 @@
 #include <CQChartsUtil.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsVariant.h>
 
+#include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 
 #include <QPainter>
@@ -406,4 +408,33 @@ textBoxDataInvalidate()
     emit dataChanged();
   else
     CQChartsTextBoxObj::textBoxDataInvalidate();
+}
+
+//---
+
+void
+CQChartsDataLabel::
+write(std::ostream &os, const QString &varName) const
+{
+  auto plotName = [&]() {
+    return (varName != "" ? varName : "plot");
+  };
+
+  CQPropertyViewModel::NameValues nameValues;
+
+  plot_->propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
+
+  if (! nameValues.empty())
+    os << "\n";
+
+  for (const auto &nv : nameValues) {
+    QString str;
+
+    if (! CQChartsVariant::toString(nv.second, str))
+      str = "";
+
+    os << "set_charts_property -plot $" << plotName().toStdString();
+
+    os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
+  }
 }

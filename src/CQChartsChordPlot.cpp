@@ -768,6 +768,17 @@ postResize()
   resetDataRange(/*updateRange*/true, /*updateObjs*/false);
 }
 
+//---
+
+void
+CQChartsChordPlot::
+write(std::ostream &os, const QString &varName, const QString &modelName) const
+{
+  CQChartsPlot::write(os, varName, modelName);
+
+  textBox_->write(os, varName);
+}
+
 //------
 
 CQChartsChordObj::

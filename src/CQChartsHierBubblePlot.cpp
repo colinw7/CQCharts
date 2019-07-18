@@ -142,6 +142,8 @@ addProperties()
   addLineProperties("stroke", "stroke", "");
 
   // text
+  addProp("text", "textVisible", "visible", "Text visible");
+
   addAllTextProperties("text", "text", "");
 }
 
@@ -1241,9 +1243,21 @@ draw(QPainter *painter)
   QColor bc = plot_->interpStrokeColor(colorInd);
   QColor fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
-  plot_->setPenBrush(pen, brush,
-    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
-    plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
+  if (isPoint) {
+    if      (plot_->isFilled())
+      plot_->setPenBrush(pen, brush,
+        true, fc, plot_->fillAlpha(), 0.0, CQChartsLineDash(),
+        true, fc, plot_->fillAlpha(), plot_->fillPattern());
+    else if (plot_->isStroked())
+      plot_->setPenBrush(pen, brush,
+        true, bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
+        true, bc, plot_->strokeAlpha(), CQChartsFillPattern());
+  }
+  else {
+    plot_->setPenBrush(pen, brush,
+      plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
+      plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
+  }
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -1553,7 +1567,8 @@ void
 CQChartsHierBubbleNode::
 initRadius()
 {
-  r_ = sqrt(hierSize()/(2*M_PI));
+  // area = PI*r*r; r = sqrt(area/PI)
+  r_ = sqrt(hierSize()/M_PI);
 }
 
 QString

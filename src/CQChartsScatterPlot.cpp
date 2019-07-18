@@ -3376,6 +3376,17 @@ drawSymbolMapKey(QPainter *painter) const
   drawText(painter, QPointF(r3.center().x(), r3.top()), QString("%1").arg(min ));
 }
 
+//---
+
+void
+CQChartsScatterPlot::
+write(std::ostream &os, const QString &varName, const QString &modelName) const
+{
+  CQChartsPlot::write(os, varName, modelName);
+
+  dataLabel_->write(os, varName);
+}
+
 //------
 
 CQChartsScatterPointObj::

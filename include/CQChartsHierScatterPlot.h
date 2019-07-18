@@ -325,6 +325,11 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   bool addMenuItems(QMenu *menu) override;
 
+  //---
+
+  void write(std::ostream &os, const QString &varName="",
+             const QString &modelName="") const override;
+
  private:
   void resetAxes();
 

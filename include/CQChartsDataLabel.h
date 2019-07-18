@@ -104,6 +104,10 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   void textBoxDataInvalidate() override;
 
+  //---
+
+  void write(std::ostream &os, const QString &varName) const;
+
  signals:
   void dataChanged();
 

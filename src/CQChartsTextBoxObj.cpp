@@ -2,6 +2,7 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 
@@ -159,4 +160,33 @@ CQChartsTextBoxObj::
 textBoxDataInvalidate()
 {
   boxDataInvalidate();
+}
+
+//---
+
+void
+CQChartsTextBoxObj::
+write(std::ostream &os, const QString &varName) const
+{
+  auto plotName = [&]() {
+    return (varName != "" ? varName : "plot");
+  };
+
+  CQPropertyViewModel::NameValues nameValues;
+
+  plot_->propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
+
+  if (! nameValues.empty())
+    os << "\n";
+
+  for (const auto &nv : nameValues) {
+    QString str;
+
+    if (! CQChartsVariant::toString(nv.second, str))
+      str = "";
+
+    os << "set_charts_property -plot $" << plotName().toStdString();
+
+    os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
+  }
 }

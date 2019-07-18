@@ -1453,6 +1453,17 @@ getPanY(bool is_shift) const
   return windowToViewHeight(is_shift ? 2.0*barWidth_ : 1.0*barWidth_);
 }
 
+//---
+
+void
+CQChartsBarChartPlot::
+write(std::ostream &os, const QString &varName, const QString &modelName) const
+{
+  CQChartsPlot::write(os, varName, modelName);
+
+  dataLabel_->write(os, varName);
+}
+
 //------
 
 CQChartsBarChartObj::
@@ -1755,7 +1766,7 @@ draw(QPainter *painter)
       else {
         QRectF qrect1(xc - lw/2, qrect.top(), lw, qrect.height());
 
-        CQChartsRoundedPolygon::draw(painter, qrect1, 0, 0);
+        CQChartsRoundedPolygon::draw(painter, qrect1);
       }
     }
     else {
@@ -1766,7 +1777,7 @@ draw(QPainter *painter)
       else {
         QRectF qrect1(qrect.left(), yc - lw/2, qrect.width(), lw);
 
-        CQChartsRoundedPolygon::draw(painter, qrect1, 0, 0);
+        CQChartsRoundedPolygon::draw(painter, qrect1);
       }
     }
 
@@ -1953,10 +1964,18 @@ fillBrush() const
     int ns = (plot_->isValueValue() ? plot_->valueColumns().count() : 1);
 
     if (ns > 1) {
-      if (plot_->isColorBySet())
-        barColor = plot_->interpBarFillColor(ig_);
-      else
-        barColor = plot_->interpBarFillColor(is_);
+      if (plot_->isColorBySet()) {
+        if (ig_.n > 1)
+          barColor = plot_->interpBarFillColor(ig_);
+        else
+          barColor = plot_->interpBarFillColor(iv_);
+      }
+      else {
+        if (is_.n > 1)
+          barColor = plot_->interpBarFillColor(is_);
+        else
+          barColor = plot_->interpBarFillColor(iv_);
+      }
     }
     else {
       if (! color_.isValid()) {

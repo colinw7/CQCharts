@@ -77,6 +77,11 @@ CQChartsImagePlot(CQChartsView *view, const ModelP &model) :
   setYLabelTextAlign   (Qt::AlignHCenter | Qt::AlignVCenter);
 }
 
+CQChartsImagePlot::
+~CQChartsImagePlot()
+{
+}
+
 void
 CQChartsImagePlot::
 addProperties()

@@ -2994,6 +2994,17 @@ hasGroups() const
   return (groupData_.groupValues.size() > 1);
 }
 
+//---
+
+void
+CQChartsDistributionPlot::
+write(std::ostream &os, const QString &varName, const QString &modelName) const
+{
+  CQChartsPlot::write(os, varName, modelName);
+
+  dataLabel_->write(os, varName);
+}
+
 //------
 
 CQChartsDistributionBarObj::
@@ -3660,7 +3671,7 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
       else {
         QRectF qrect1(xc - lw/2, qrect.top(), lw, qrect.height());
 
-        CQChartsRoundedPolygon::draw(painter, qrect1, 0, 0);
+        CQChartsRoundedPolygon::draw(painter, qrect1);
       }
     }
     else {
@@ -3671,7 +3682,7 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
       else {
         QRectF qrect1(qrect.left(), yc - lw/2, qrect.width(), lw);
 
-        CQChartsRoundedPolygon::draw(painter, qrect1, 0, 0);
+        CQChartsRoundedPolygon::draw(painter, qrect1);
       }
     }
 

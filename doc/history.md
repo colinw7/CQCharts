@@ -900,3 +900,7 @@
  + Remove unused CQChartsDisplayTransform
 # 7/16/2019
  + Add hidden parameters
+# 7/18/2019
+ + Fix missing data in write plot
+ + Tree map text rendering improvements
+ + XY show vector even if no points

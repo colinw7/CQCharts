@@ -1807,7 +1807,8 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // write details to output
-  void write(std::ostream &os, const QString &varName="", const QString &modelName="") const;
+  virtual void write(std::ostream &os, const QString &varName="",
+                     const QString &modelName="") const;
 
   //---
 

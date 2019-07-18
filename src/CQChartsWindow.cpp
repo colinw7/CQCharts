@@ -207,6 +207,8 @@ CQChartsWindow(CQChartsView *view) :
 
   viewSplitter->addWidget(tableFrame_);
 
+  tableFrame_->setVisible(dataTable_);
+
   //---
 
   connect(view_->charts(), SIGNAL(viewRemoved(CQChartsView *)),
@@ -618,7 +620,12 @@ QSize
 CQChartsWindow::
 sizeHint() const
 {
-  return QSize(1400, 1200);
+  QFontMetrics fm(font());
+
+  int w = fm.width("X")*150;
+  int h = fm.height()*80;
+
+  return QSize(w, h);
 }
 
 //------

@@ -460,6 +460,10 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
 
   bool selectInvalidateObjs() const override { return true; }
 
+  //---
+
+  void write(std::ostream &os, const QString &varName, const QString &modelName) const override;
+
  public slots:
   void setDonut(bool b);
 

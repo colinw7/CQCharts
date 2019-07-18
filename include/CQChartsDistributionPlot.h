@@ -748,6 +748,11 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   bool hasGroups() const;
 
+  //---
+
+  void write(std::ostream &os, const QString &varName="",
+             const QString &modelName="") const override;
+
  private:
   using Inds         = std::vector<CQChartsModelIndex>;
   using BucketValues = std::map<Bucket,VariantIndsData>;

@@ -774,6 +774,10 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   // object for group
   CQChartsPlotObj *getGroupObj(int ig) const;
 
+  //---
+
+  void write(std::ostream &os, const QString &varName, const QString &modelName) const override;
+
  public slots:
   // set points visible
   void setPointsSlot(bool b);

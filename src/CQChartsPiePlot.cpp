@@ -1089,6 +1089,17 @@ addMenuItems(QMenu *menu)
   return true;
 }
 
+//---
+
+void
+CQChartsPiePlot::
+write(std::ostream &os, const QString &varName, const QString &modelName) const
+{
+  CQChartsPlot::write(os, varName, modelName);
+
+  textBox_->write(os, varName);
+}
+
 //------
 
 CQChartsPieObj::

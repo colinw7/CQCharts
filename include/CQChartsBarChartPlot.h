@@ -428,6 +428,9 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
+  void write(std::ostream &os, const QString &varName="",
+             const QString &modelName="") const override;
+
  public slots:
   // set horizontal
   void setHorizontal(bool b) override;

@@ -1,4 +1,5 @@
 High
+ + Scaled rotated text
  + Improve edit arrow annotation preview
  + Create View or Plot Annotation
  + Edit View Annotation with mouse

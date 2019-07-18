@@ -745,6 +745,17 @@ addMenuItems(QMenu *menu)
   return true;
 }
 
+//---
+
+void
+CQChartsHierScatterPlot::
+write(std::ostream &os, const QString &varName, const QString &modelName) const
+{
+  CQChartsPlot::write(os, varName, modelName);
+
+  dataLabel_->write(os, varName);
+}
+
 //------
 
 CQChartsHierScatterPointObj::

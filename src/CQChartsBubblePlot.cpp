@@ -186,6 +186,8 @@ addProperties()
   addLineProperties("stroke", "stroke", "");
 
   // text
+  addProp("text", "textVisible", "visible", "Text visible");
+
   addAllTextProperties("text", "text", "");
 
   // color map

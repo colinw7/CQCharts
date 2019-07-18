@@ -58,6 +58,10 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   virtual void textBoxDataInvalidate();
 
+  //---
+
+  void write(std::ostream &os, const QString &varName) const;
+
  protected:
   void textDataInvalidate(bool) override {
     textBoxDataInvalidate();

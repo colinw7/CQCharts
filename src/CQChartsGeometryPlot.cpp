@@ -563,6 +563,17 @@ probe(ProbeData &probeData) const
   return true;
 }
 
+//---
+
+void
+CQChartsGeometryPlot::
+write(std::ostream &os, const QString &varName, const QString &modelName) const
+{
+  CQChartsPlot::write(os, varName, modelName);
+
+  dataLabel_->write(os, varName);
+}
+
 //------
 
 CQChartsGeometryObj::

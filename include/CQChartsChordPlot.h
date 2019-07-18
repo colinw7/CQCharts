@@ -293,6 +293,8 @@ class CQChartsChordPlot : public CQChartsPlot,
 
   //---
 
+  void write(std::ostream &os, const QString &varName, const QString &modelName) const override;
+
  private:
   bool initTableObjs(PlotObjs &objs) const;
   bool initHierObjs(PlotObjs &objs) const;

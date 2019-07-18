@@ -107,6 +107,9 @@ drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
     }
   }
   else {
+    if (options.clipped)
+      painter->setClipRect(rect, Qt::IntersectClip);
+
     drawRotatedTextInBox(painter, rect, text, pen, options);
   }
 

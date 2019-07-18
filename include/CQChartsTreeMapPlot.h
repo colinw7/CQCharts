@@ -169,6 +169,11 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 
   //---
 
+  bool isShowTitle() const { return showTitle_; }
+  void setShowTitle(bool b) { showTitle_ = b; }
+
+  //---
+
   double hierSize() const override;
 
   //---
@@ -211,9 +216,10 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
                      const ColorInd &colorInd, int n) const override;
 
  private:
-  Nodes    nodes_;          //!< child nodes
-  Children children_;       //!< child hier nodes
-  int      hierInd_ { -1 }; //!< hier index
+  Nodes    nodes_;               //!< child nodes
+  Children children_;            //!< child hier nodes
+  int      hierInd_   { -1 };    //!< hier index
+  bool     showTitle_ { false }; //!< show title
 };
 
 //---
@@ -310,9 +316,11 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   Q_OBJECT
 
   // title/header shown and height
-  Q_PROPERTY(bool              titles         READ isTitles       WRITE setTitles        )
-  Q_PROPERTY(CQChartsOptReal   titleMaxExtent READ titleMaxExtent WRITE setTitleMaxExtent)
-  Q_PROPERTY(CQChartsOptLength titleHeight    READ titleHeight    WRITE setTitleHeight   )
+  Q_PROPERTY(bool              titles           READ isTitles           WRITE setTitles          )
+  Q_PROPERTY(CQChartsOptReal   titleMaxExtent   READ titleMaxExtent     WRITE setTitleMaxExtent  )
+  Q_PROPERTY(CQChartsOptLength titleHeight      READ titleHeight        WRITE setTitleHeight     )
+  Q_PROPERTY(bool              titleHierName    READ isTitleHierName    WRITE setTitleHierName   )
+  Q_PROPERTY(bool              titleTextClipped READ isTitleTextClipped WRITE setTitleTextClipped)
 
   // color
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
@@ -334,6 +342,9 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   // text
   CQCHARTS_TEXT_DATA_PROPERTIES
+
+  Q_PROPERTY(bool hierName    READ isHierName    WRITE setHierName   )
+  Q_PROPERTY(bool textClipped READ isTextClipped WRITE setTextClipped)
 
  public:
   using Nodes = std::vector<CQChartsTreeMapNode*>;
@@ -368,8 +379,27 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   //---
 
+  // get/set value label
   bool isValueLabel() const { return valueLabel_; }
   void setValueLabel(bool b);
+
+  //---
+
+  // get/set title hierarchical name
+  bool isTitleHierName() const { return titleHierName_; }
+  void setTitleHierName(bool b);
+
+  // get/set header text clipped
+  bool isTitleTextClipped() const { return titleTextClipped_; }
+  void setTitleTextClipped(bool b);
+
+  // get/set node hierarchical name
+  bool isHierName() const { return hierName_; }
+  void setHierName(bool b);
+
+  // get/set node text clipped
+  bool isTextClipped() const { return textClipped_; }
+  void setTextClipped(bool b);
 
   //---
 
@@ -494,7 +524,11 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   bool              titles_             { true };    //!< show title bar (header)
   CQChartsOptReal   titleMaxExtent_;                 //!< user specified title bar max extent (0-1)
   CQChartsOptLength titleHeight_;                    //!< user specified title height
+  bool              titleHierName_      { false };   //!< title hierarchical name
+  bool              titleTextClipped_   { true };    //!< title text clipped
   bool              valueLabel_         { false };   //!< draw value with name
+  bool              hierName_           { false };   //!< node hierarchical name
+  bool              textClipped_        { true };    //!< node text clipped
   CQChartsLength    marginWidth_        { "2px" };   //!< box margin
   bool              colorById_          { true };    //!< color by id
   Node*             root_               { nullptr }; //!< root node

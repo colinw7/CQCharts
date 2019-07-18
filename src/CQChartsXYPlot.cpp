@@ -2103,6 +2103,17 @@ drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2) const
   arrowObj_->draw(painter);
 }
 
+//---
+
+void
+CQChartsXYPlot::
+write(std::ostream &os, const QString &varName, const QString &modelName) const
+{
+  CQChartsPlot::write(os, varName, modelName);
+
+  arrowObj_->write(os, varName);
+}
+
 //------
 
 CQChartsXYBiLineObj::
@@ -2418,7 +2429,7 @@ draw(QPainter *painter)
   else {
     QRectF qrect(p1.x - lw/2, p1.y, lw, p2.y - p1.y);
 
-    CQChartsRoundedPolygon::draw(painter, qrect, 0, 0);
+    CQChartsRoundedPolygon::draw(painter, qrect);
   }
 }
 
@@ -2592,7 +2603,9 @@ void
 CQChartsXYPointObj::
 draw(QPainter *painter)
 {
-  if (! visible())
+  bool isVector = (edata_ && edata_->vector);
+
+  if (! visible() && ! isVector)
     return;
 
   //---
@@ -2630,28 +2643,30 @@ draw(QPainter *painter)
 
   //---
 
-  // draw symbol
-  CQChartsSymbol symbol = plot()->symbolType();
-
-  if (edata_ && edata_->symbol.type() != CQChartsSymbol::Type::NONE)
-    symbol = edata_->symbol;
-
-  double sx = size();
-  double sy = sx;
-
-  if (sx <= 0)
-    plot()->pixelSymbolSize(plot()->symbolSize(), sx, sy);
-
   CQChartsGeom::Point pp = CQChartsUtil::fromQPoint(pos_);
 
-  CQChartsGeom::Point p = plot()->windowToPixel(pp);
+  // draw symbol
+  if (visible()) {
+    CQChartsSymbol symbol = plot()->symbolType();
 
-  plot()->drawSymbol(painter, QPointF(p.x, p.y), symbol, CMathUtil::avg(sx, sy), pen, brush);
+    if (edata_ && edata_->symbol.type() != CQChartsSymbol::Type::NONE)
+      symbol = edata_->symbol;
+
+    double sx = size();
+    double sy = sx;
+
+    if (sx <= 0)
+      plot()->pixelSymbolSize(plot()->symbolSize(), sx, sy);
+
+    CQChartsGeom::Point p = plot()->windowToPixel(pp);
+
+    plot()->drawSymbol(painter, QPointF(p.x, p.y), symbol, CMathUtil::avg(sx, sy), pen, brush);
+  }
 
   //---
 
   // draw optional vector
-  if (edata_ && edata_->vector) {
+  if (isVector) {
     QPointF p1(pp.x, pp.y);
 
     QPointF p2 = p1 + QPointF(*edata_->vector);

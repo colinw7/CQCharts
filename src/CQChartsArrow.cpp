@@ -1,7 +1,10 @@
 #include <CQChartsArrow.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
+
+#include <CQPropertyViewModel.h>
 
 #include <QPainter>
 #include <QPainterPath>
@@ -662,3 +665,34 @@ drawPointLabel(const QPointF &point, const QString &text, bool above, bool mappi
   CQChartsDrawUtil::drawSimpleText(painter_, px - w/2, py + (above ? -h : h), text);
 }
 #endif
+
+//---
+
+void
+CQChartsArrow::
+write(std::ostream &os, const QString &varName) const
+{
+  assert(plot_);
+
+  auto plotName = [&]() {
+    return (varName != "" ? varName : "plot");
+  };
+
+  CQPropertyViewModel::NameValues nameValues;
+
+  plot_->propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
+
+  if (! nameValues.empty())
+    os << "\n";
+
+  for (const auto &nv : nameValues) {
+    QString str;
+
+    if (! CQChartsVariant::toString(nv.second, str))
+      str = "";
+
+    os << "set_charts_property -plot $" << plotName().toStdString();
+
+    os << " -name " << nv.first.toStdString() << " -value {" << str.toStdString() << "}\n";
+  }
+}

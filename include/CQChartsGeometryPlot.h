@@ -189,6 +189,11 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   bool probe(ProbeData &probeData) const override;
 
+  //---
+
+  void write(std::ostream &os, const QString &varName="",
+             const QString &modelName="") const override;
+
  private:
   void addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
               CQChartsGeom::Range &dataRange) const;

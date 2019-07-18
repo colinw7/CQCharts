@@ -42,20 +42,25 @@ class CQBucketer {
 
   // fixed bucket delta
 
+  //! get/set real start point (of range or one of the buckets)
   double rstart() const { return rstart_.value_or(rmin()); }
   void setRStart(double r) { rstart_ = r; }
 
+  //! get/set real bucket delta size
   double rdelta() const { return rdelta_; }
   void setRDelta(double r) { rdelta_ = r; }
 
+  //! get/set integer start point (of range or one of the buckets)
   int istart() const { return int(rstart()); }
   void setIStart(int i) { rstart_ = i; }
 
+  //! get/set integer bucket delta size
   int idelta() const { return int(rdelta_); }
   void setIDelta(int i) { rdelta_ = i; }
 
   //---
 
+  //! get/set is integral range
   bool isIntegral() const { return integral_; }
   void setIntegral(bool b) { if (b != integral_) { integral_ = b; needsCalc_ = true; } }
 
@@ -63,18 +68,23 @@ class CQBucketer {
 
   // auto bucket delta
 
+  //! get/set real minimum
   double rmin() const { return rmin_; }
   void setRMin(double r) { if (r != rmin_) { rmin_ = r; needsCalc_ = true; } }
 
+  //! get/set real maximum
   double rmax() const { return rmax_; }
   void setRMax(double r) { if (r != rmax_) { rmax_ = r; needsCalc_ = true; } }
 
+  //! get/set integer minimum
   int imin() const { return int(rmin_); }
   void setIMin(int i) { if (i != rmin_) { rmin_ = i; needsCalc_ = true; } }
 
+  //! get/set integer maximum
   int imax() const { return int(rmax_); }
   void setIMax(int i) { if (i != rmax_) { rmax_ = i; needsCalc_ = true; } }
 
+  //! get/set number of automatic buckets
   int numAuto() const { return numAuto_; }
   void setNumAuto(int i) { if (i != numAuto_) { numAuto_ = i; needsCalc_ = true; } }
 
@@ -87,7 +97,7 @@ class CQBucketer {
 
   //---
 
-  // get bucket for generic value
+  //! get bucket for generic value
   int bucket(const QVariant &var) const;
 
   bool bucketValues(int bucket, double &min, double &max) const;
@@ -139,26 +149,26 @@ class CQBucketer {
   using IndString = std::map<int,QString>;
 
   // data
-  Type   type_     { Type::STRING }; // data type
-  double rmin_     { 0.0 };          // actual min value
-  double rmax_     { 1.0 };          // actual max value
-  bool   integral_ { false };        // prefer integral buckets
+  Type   type_     { Type::STRING }; //!< data type
+  double rmin_     { 0.0 };          //!< actual min value
+  double rmax_     { 1.0 };          //!< actual max value
+  bool   integral_ { false };        //!< prefer integral buckets
 
   // manual
-  OptReal rstart_;          // manual bucket start value
-  double  rdelta_  { 1.0 }; // manual bucket delta value
+  OptReal rstart_;          //!< manual bucket start value
+  double  rdelta_  { 1.0 }; //!< manual bucket delta value
 
   // auto bucket number of values
-  int numAuto_ { 10 }; // num auto
+  int numAuto_ { 10 }; //!< num auto
 
   // cached data
-  mutable bool      needsCalc_ { true }; // needs auto calc
-  mutable double    calcMin_   { 0.0 };  // calculated min value
-  mutable double    calcMax_   { 0.0 };  // calculated max value
-  mutable double    calcDelta_ { 1.0 };  // calculated delta value
-  mutable int       calcN_     { 0 };    // calculated delta value
-  mutable StringInd stringInd_;          // string to ind map
-  mutable IndString indString_;          // ind to string map
+  mutable bool      needsCalc_ { true }; //!< needs auto calc
+  mutable double    calcMin_   { 0.0 };  //!< calculated min value
+  mutable double    calcMax_   { 0.0 };  //!< calculated max value
+  mutable double    calcDelta_ { 1.0 };  //!< calculated delta value
+  mutable int       calcN_     { 0 };    //!< calculated delta value
+  mutable StringInd stringInd_;          //!< string to ind map
+  mutable IndString indString_;          //!< ind to string map
 };
 
 #endif

@@ -418,8 +418,19 @@ double
 CQBucketer::
 calcRStart() const
 {
-  double rstart = std::min(rmin(), this->rstart());
+  // adjust start to be less than min
+  double rstart = this->rstart();
 
+  if (rmin() < rstart) {
+    if (rdelta() > 0) {
+      int n = CMathRound::RoundUp((rstart - rmin())/rdelta());
+      assert(n > 0);
+
+      rstart -= n*rdelta();
+    }
+  }
+
+  // round start
   double d = rdelta()/100;
 
   if (d > 0.0) {

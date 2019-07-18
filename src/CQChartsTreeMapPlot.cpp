@@ -110,6 +110,36 @@ setValueLabel(bool b)
   CQChartsUtil::testAndSet(valueLabel_, b, [&]() { drawObjs(); } );
 }
 
+//----
+
+void
+CQChartsTreeMapPlot::
+setTitleHierName(bool b)
+{
+  CQChartsUtil::testAndSet(titleHierName_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setTitleTextClipped(bool b)
+{
+  CQChartsUtil::testAndSet(titleTextClipped_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setHierName(bool b)
+{
+  CQChartsUtil::testAndSet(hierName_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setTextClipped(bool b)
+{
+  CQChartsUtil::testAndSet(textClipped_, b, [&]() { drawObjs(); } );
+}
+
 //---
 
 void
@@ -217,6 +247,11 @@ addProperties()
   // margins
   addProp("margins", "marginWidth", "box", "Margin size for tree map boxes");
 
+  // coloring
+  addProp("coloring", "colorById", "colorById", "Color by id");
+
+  //---
+
   // header
   addProp("header", "titles"        , "visible"  ,
           "Header title visible for each hierarchical group");
@@ -224,9 +259,6 @@ addProperties()
           "Max extent of hierarchical group header (0.0 - 1.0)");
   addProp("header", "titleHeight"  , "height"   ,
           "Explicit hierarchical group header height");
-
-  // coloring
-  addProp("coloring", "colorById", "colorById", "Color by id");
 
   // header/fill
   addProp("header/fill", "headerFilled", "visible", "Header fill visible");
@@ -238,7 +270,12 @@ addProperties()
 
   addLineProperties("header/stroke", "headerStroke", "Header");
 
+  addProp("header/text", "titleHierName"   , "hierName", "Show hierarchical name on title");
+  addProp("header/text", "titleTextClipped", "clipped" , "Clip text to header");
+
   addAllTextProperties("header/text", "headerText", "Header");
+
+  //---
 
   // fill
   addProp("fill", "filled", "visible", "Fill visible");
@@ -252,6 +289,9 @@ addProperties()
 
   // text
   addProp("text", "textVisible", "visible", "Text visible");
+
+  addProp("text", "hierName"   , "hierName", "Show hierarchical name in box");
+  addProp("text", "textClipped", "clipped" , "Clip text to box");
 
   addAllTextProperties("text", "text", "");
 }
@@ -1134,6 +1174,19 @@ draw(QPainter *painter)
 
   //---
 
+  // draw rectangle
+  painter->setPen  (pen);
+  painter->setBrush(brush);
+
+  painter->drawRect(qrect);
+
+  //---
+
+  if (! hier_->isShowTitle())
+    return;
+
+  //---
+
   // set text pen
   QPen tpen;
 
@@ -1149,24 +1202,16 @@ draw(QPainter *painter)
 
   //---
 
-  // draw rectangle
-  painter->setPen  (pen);
-  painter->setBrush(brush);
-
-  painter->drawRect(qrect);
-
-  //---
-
   // set font
   plot_->view()->setPlotPainterFont(plot_, painter, plot_->headerTextFont());
 
   //---
 
   // calc text size and position
-  QString name = hier_->name();
+  QString name = (plot_->isTitleHierName() ? hier_->hierName() : hier_->name());
 
-  CQChartsGeom::Point p3 =
-    plot_->windowToPixel(CQChartsGeom::Point(hier_->x(), hier_->y() + hier_->h()));
+//CQChartsGeom::Point p3 =
+//  plot_->windowToPixel(CQChartsGeom::Point(hier_->x(), hier_->y() + hier_->h()));
 
   //---
 
@@ -1187,19 +1232,25 @@ draw(QPainter *painter)
   }
 
   if (visible) {
-    QFontMetricsF fm(painter->font());
+    CQChartsTextOptions textOptions;
 
-    double tx = p3.x + 4;
-    double ty = p3.y + hh/2 + (fm.ascent() - fm.descent())/2;
+    textOptions.angle     = plot_->headerTextAngle();
+    textOptions.contrast  = plot_->isHeaderTextContrast();
+    textOptions.formatted = plot_->isHeaderTextFormatted();
+    textOptions.scaled    = plot_->isHeaderTextScaled();
+    textOptions.html      = plot_->isHeaderTextHtml();
+    textOptions.clipped   = plot_->isTitleTextClipped();
+    textOptions.align     = plot_->headerTextAlign();
 
-    painter->setClipRect(qrect);
+    textOptions = plot_->adjustTextOptions(textOptions);
 
     painter->setPen(tpen);
 
-    if (plot_->isHeaderTextContrast())
-      CQChartsDrawUtil::drawContrastText(painter, tx, ty, name);
-    else
-      CQChartsDrawUtil::drawSimpleText(painter, tx, ty, name);
+    double m = 3; // margin
+
+    QRectF qrect1(qrect.left() + m, qrect.top(), qrect.width() - 2*m, hh);
+
+    CQChartsDrawUtil::drawTextInBox(painter, qrect1, name, textOptions);
   }
 
   //---
@@ -1332,9 +1383,21 @@ draw(QPainter *painter)
   QColor bc = plot_->interpStrokeColor(colorInd);
   QColor fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
-  plot_->setPenBrush(pen, brush,
-    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
-    plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
+  if (isPoint) {
+    if      (plot_->isFilled())
+      plot_->setPenBrush(pen, brush,
+        true, fc, plot_->fillAlpha(), 0.0, CQChartsLineDash(),
+        true, fc, plot_->fillAlpha(), plot_->fillPattern());
+    else if (plot_->isStroked())
+      plot_->setPenBrush(pen, brush,
+        true, bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
+        true, bc, plot_->strokeAlpha(), CQChartsFillPattern());
+  }
+  else {
+    plot_->setPenBrush(pen, brush,
+      plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
+      plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
+  }
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -1362,7 +1425,12 @@ draw(QPainter *painter)
   // get labels (name and optional size)
   QStringList strs;
 
-  QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
+  QString name;
+
+  if (plot_->isHierName())
+    name = (! node_->isFiller() ? node_->hierName() : node_->parent()->hierName());
+  else
+    name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
 
   strs.push_back(name);
 
@@ -1408,10 +1476,12 @@ draw(QPainter *painter)
 
     CQChartsTextOptions textOptions;
 
+    textOptions.angle     = plot_->textAngle();
     textOptions.contrast  = plot_->isTextContrast();
     textOptions.formatted = plot_->isTextFormatted();
     textOptions.scaled    = plot_->isTextScaled();
     textOptions.html      = plot_->isTextHtml();
+    textOptions.clipped   = plot_->isTextClipped();
     textOptions.align     = plot_->textAlign();
 
     textOptions = plot_->adjustTextOptions(textOptions);
@@ -1420,6 +1490,9 @@ draw(QPainter *painter)
       CQChartsDrawUtil::drawTextInBox(painter, qrect, name, textOptions);
     }
     else if (strs.size() == 2) {
+      if (plot_->isTextClipped())
+        painter->setClipRect(qrect);
+
       QFontMetricsF fm(painter->font());
 
       double th = fm.height();
@@ -1540,12 +1613,12 @@ packNodes(double x, double y, double w, double h)
 
   //---
 
-  bool showTitle = (plot()->isTitles() && h*maxExtent > whh);
+  showTitle_ = (plot()->isTitles() && h*maxExtent > whh);
 
   if (! parent())
-    showTitle = false;
+    showTitle_ = false;
 
-  double dh = (showTitle ? whh : 0.0);
+  double dh = (showTitle_ ? whh : 0.0);
   double m  = (w > wmw ? wmw : 0.0);
 
   // make single list of nodes to pack

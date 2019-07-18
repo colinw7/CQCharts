@@ -649,6 +649,11 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   const GridData &gridData() const { return gridData_; }
 
+  //---
+
+  void write(std::ostream &os, const QString &varName="",
+             const QString &modelName="") const override;
+
  private:
   struct WhiskerData {
     CQChartsBoxWhisker xWhisker;

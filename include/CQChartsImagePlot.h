@@ -122,6 +122,8 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   CQChartsImagePlot(CQChartsView *view, const ModelP &model);
 
+ ~CQChartsImagePlot();
+
   //---
 
   // dimension
