@@ -490,6 +490,8 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   CQChartsTreeMapHierNode *addHierNode(CQChartsTreeMapHierNode *parent, const QString &name,
                                        const QModelIndex &nameInd) const;
 
+  void removeHierNode(CQChartsTreeMapHierNode *hier);
+
   CQChartsTreeMapNode *addNode(CQChartsTreeMapHierNode *parent, const QString &name,
                                double size, const QModelIndex &nameInd) const;
 

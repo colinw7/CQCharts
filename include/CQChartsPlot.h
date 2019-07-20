@@ -2054,6 +2054,7 @@ class CQChartsPlot : public CQChartsObj,
     double             map_max   { 1.0 };
     double             data_min  { 0.0 };
     double             data_max  { 1.0 };
+    CQBaseModelType    modelType;
     QString            palette;
     CQChartsColorStops xStops;
     CQChartsColorStops yStops;

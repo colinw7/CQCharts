@@ -50,6 +50,11 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   Q_PROPERTY(QPointF point    READ point   )
   Q_PROPERTY(QString name     READ name    )
 
+  Q_PROPERTY(CQChartsSymbol symbolType READ symbolType WRITE setSymbolType)
+  Q_PROPERTY(CQChartsLength symbolSize READ symbolSize WRITE setSymbolSize)
+  Q_PROPERTY(CQChartsLength fontSize   READ fontSize   WRITE setFontSize  )
+  Q_PROPERTY(CQChartsColor  color      READ color      WRITE setColor     )
+
  public:
   enum Dir {
     X  = (1<<0),
@@ -60,28 +65,28 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
  public:
   CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd,
                           const CQChartsGeom::BBox &rect, const QPointF &p,
-                          const CQChartsSymbol &symbolType, const CQChartsLength &symbolSize,
-                          const CQChartsLength &fontSize, const CQChartsColor &color,
                           const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
+
+  const CQChartsScatterPlot *plot() const { return plot_; }
 
   int groupInd() const { return groupInd_; }
 
-  const QPointF &point() const { return p_; }
+  //---
 
-  const CQChartsSymbol &symbolType() const { return symbolType_; }
-  void setSymbolType(const CQChartsSymbol &s) { symbolType_ = s; }
+  // position
+  const QPointF &point() const { return pos_; }
 
-  const CQChartsLength &symbolSize() const { return symbolSize_; }
-  void setSymbolSize(const CQChartsLength &s);
+  //---
 
-  const CQChartsLength &fontSize() const { return fontSize_; }
-  void setFontSize(const CQChartsLength &s);
-
-  const QString &name() const { return name_; }
-  void setName(const QString &s) { name_ = s; }
-
+  // model index
   const QModelIndex &ind() const { return ind_; }
   void setInd(const QModelIndex &i) { ind_ = i; }
+
+  //---
+
+  // name
+  const QString &name() const { return name_; }
+  void setName(const QString &s) { name_ = s; }
 
   //---
 
@@ -90,6 +95,26 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   QString calcId() const override;
 
   QString calcTipId() const override;
+
+  //---
+
+  // symbol type
+  CQChartsSymbol symbolType() const;
+  void setSymbolType(const CQChartsSymbol &s) { extraData().symbolType = s; }
+
+  // symbol size
+  CQChartsLength symbolSize() const;
+  void setSymbolSize(const CQChartsLength &s) { extraData().symbolSize = s; }
+
+  // font size
+  CQChartsLength fontSize() const;
+  void setFontSize(const CQChartsLength &s) { extraData().fontSize = s; }
+
+  // color
+  CQChartsColor color() const;
+  void setColor(const CQChartsColor &c) { extraData().color = c; }
+
+  //---
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -107,15 +132,24 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   double yColorValue(bool relative=true) const override;
 
  private:
+  struct ExtraData {
+    CQChartsSymbol symbolType { CQChartsSymbol::Type::NONE }; //!< symbol type
+    CQChartsLength symbolSize { CQChartsUnits::NONE, 0.0 };   //!< symbol size
+    CQChartsLength fontSize   { CQChartsUnits::NONE, 0.0 };   //!< font size
+    CQChartsColor  color;                                     //!< symbol fill color
+  };
+
+ private:
+  const ExtraData &extraData() const { return edata_; };
+  ExtraData &extraData() { return edata_; };
+
+ private:
   const CQChartsScatterPlot* plot_       { nullptr }; //!< scatter plot
   int                        groupInd_   { -1 };      //!< plot group index
-  QPointF                    p_;                      //!< point position
-  CQChartsSymbol             symbolType_;             //!< symbol type
-  CQChartsLength             symbolSize_;             //!< symbol size
-  CQChartsLength             fontSize_;               //!< label font size
-  CQChartsColor              color_;                  //!< symbol color
-  QString                    name_;                   //!< label name
+  QPointF                    pos_;                    //!< point position
   QModelIndex                ind_;                    //!< model index
+  ExtraData                  edata_;                  //!< extra data
+  QString                    name_;                   //!< label name
 };
 
 //---
@@ -239,6 +273,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsColumn nameColumn       READ nameColumn       WRITE setNameColumn      )
   Q_PROPERTY(CQChartsColumn symbolTypeColumn READ symbolTypeColumn WRITE setSymbolTypeColumn)
   Q_PROPERTY(CQChartsColumn symbolSizeColumn READ symbolSizeColumn WRITE setSymbolSizeColumn)
+  Q_PROPERTY(CQChartsColumn labelColumn      READ labelColumn      WRITE setLabelColumn     )
   Q_PROPERTY(CQChartsColumn fontSizeColumn   READ fontSizeColumn   WRITE setFontSizeColumn  )
 
   // options
@@ -321,8 +356,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   Q_PROPERTY(double  fontSizeMapMax   READ fontSizeMapMax   WRITE setFontSizeMapMax  )
   Q_PROPERTY(QString fontSizeMapUnits READ fontSizeMapUnits WRITE setFontSizeMapUnits)
 
-  // test labels
-  Q_PROPERTY(bool textLabels READ isTextLabels WRITE setTextLabels)
+  // text labels
+  Q_PROPERTY(bool pointLabels READ isPointLabels WRITE setPointLabels)
 
   Q_ENUMS(PlotType)
 
@@ -341,7 +376,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
     QModelIndex   ind;
     CQChartsColor color;
 
-    ValueData(const QPointF &p, int row, const QModelIndex &ind,
+    ValueData(const QPointF &p=QPointF(), int row=-1, const QModelIndex &ind=QModelIndex(),
               const CQChartsColor &color=CQChartsColor()) :
      p(p), row(row), ind(ind), color(color) {
     }
@@ -556,7 +591,13 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
-  // font size column and map
+  // label column and map
+  const CQChartsColumn &labelColumn() const { return labelColumn_; }
+  void setLabelColumn(const CQChartsColumn &c);
+
+  //---
+
+  // label font size column and map
   const CQChartsColumn &fontSizeColumn() const;
   void setFontSizeColumn(const CQChartsColumn &c);
 
@@ -586,23 +627,20 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   const QString &yname         () const { return yname_         ; }
   const QString &symbolTypeName() const { return symbolTypeName_; }
   const QString &symbolSizeName() const { return symbolSizeName_; }
+  const QString &labelName     () const { return labelName_     ; }
   const QString &fontSizeName  () const { return fontSizeName_  ; }
   const QString &colorName     () const { return colorName_     ; }
 
   //---
 
-  bool isTextLabels() const;
-  void setTextLabels(bool b);
-
-  //---
-
-  void setDataLabelFont(const CQChartsFont &font);
-
-  //---
-
-  // data label
+  // data labels
   const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
   CQChartsDataLabel *dataLabel() { return dataLabel_; }
+
+  bool isPointLabels() const;
+  void setPointLabels(bool b);
+
+  void setDataLabelFont(const CQChartsFont &font);
 
   //---
 
@@ -765,9 +803,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
  private:
   struct SymbolMapKeyData {
-    bool   displayed { true }; //! is symbol map key displayed
-    double alpha     { 0.2 };  //! symbol map key background alpha
-    double margin    { 16.0 }; //! symbol map key margin in pixels
+    bool   displayed { false }; //!< is symbol map key displayed
+    double alpha     { 0.2 };   //!< symbol map key background alpha
+    double margin    { 16.0 };  //!< symbol map key margin in pixels
   };
 
   struct StatData {
@@ -839,7 +877,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
     bool           valid     { false }; //!< symbol size valid
     bool           mapped    { false }; //!< symbol size values mapped
     double         data_min  { 0.0 };   //!< model data min
-    double         data_max  { 1.0 };   //!< model data map
+    double         data_max  { 1.0 };   //!< model data max
     double         data_mean { 0.0 };   //!< model data mean
     double         map_min   { 0.0 };   //!< mapped size min
     double         map_max   { 1.0 };   //!< mapped size max
@@ -863,7 +901,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   PlotType           plotType_           { PlotType::SYMBOLS }; //!< plot type
   SymbolTypeData     symbolTypeData_;                           //!< symbol size column
   SymbolSizeData     symbolSizeData_;                           //!< symbol size column
-  FontSizeData       fontSizeData_;                             //!< font size column
+  CQChartsColumn     labelColumn_;                              //!< label column
+  FontSizeData       fontSizeData_;                             //!< label font size column
   BestFitData        bestFitData_;                              //!< best fit data
   HullData           hullData_;                                 //!< hull data
   AxisRugData        axisRugData_;                              //!< axis rug data
@@ -878,7 +917,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   QString            yname_;                                    //!< y column header
   QString            symbolTypeName_;                           //!< symbol type column header
   QString            symbolSizeName_;                           //!< symbol size column header
-  QString            fontSizeName_;                             //!< font size column header
+  QString            labelName_;                                //!< label column header
+  QString            fontSizeName_;                             //!< label font size column header
   QString            colorName_;                                //!< color column header
   SymbolMapKeyData   symbolMapKeyData_;                         //!< symbol map key data
   GroupPoints        groupPoints_;                              //!< group fit points

@@ -10,6 +10,7 @@
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
+#include <CMathRound.h>
 
 #include <QApplication>
 #include <QPainter>
@@ -533,10 +534,44 @@ probe(ProbeData &probeData) const
   int n = yColumns().count();
 
   if (! isHorizontal()) {
-    int x = std::round(probeData.p.x);
+#if 0
+    int x1 = std::min(std::max(CMathRound::RoundDown(probeData.p.x), 0), n - 1);
+    int x2 = std::min(std::max(CMathRound::RoundUp  (probeData.p.x), 0), n - 1);
 
-    x = std::max(x, 0    );
-    x = std::min(x, n - 1);
+    const CQChartsGeom::Range &range1 = setRanges_[x1];
+    const CQChartsGeom::Range &range2 = setRanges_[x2];
+
+    for (const auto &plotObj : plotObjs_) {
+      CQChartsParallelLineObj *obj = dynamic_cast<CQChartsParallelLineObj *>(plotObj);
+      if (! obj) continue;
+
+      std::vector<double> yvals;
+
+      // interpolate to normalized (0-1) y
+      if (! obj->interpY(probeData.p.x, yvals))
+        continue;
+
+      for (const auto &y : yvals) {
+        double y1 = y*range1.ysize() + range1.ymin();
+        double y2 = y*range2.ysize() + range2.ymin();
+
+        double dx1 = probeData.p.x - x1;
+        double dx2 = x2 - probeData.p.x;
+
+        double yi;
+
+        if (x1 != x2)
+          yi = y1*(1 - dx1) + y2*(1 - dx2);
+        else
+          yi = y1;
+
+        probeData.yvals.emplace_back(y, QString("%1").arg(yi));
+      }
+    }
+#else
+    int x = CMathRound::RoundNearest(probeData.p.x);
+
+    x = std::min(std::max(x, 0), n - 1);
 
     const CQChartsGeom::Range &range = setRanges_[x];
 
@@ -544,9 +579,10 @@ probe(ProbeData &probeData) const
 
     probeData.yvals.emplace_back(probeData.p.y,
       QString("%1").arg(probeData.p.y*range.ysize() + range.ymin()));
+#endif
   }
   else {
-    int y = std::round(probeData.p.y);
+    int y = CMathRound::RoundNearest(probeData.p.y);
 
     y = std::max(y, 0    );
     y = std::min(y, n - 1);
@@ -854,7 +890,34 @@ inside(const CQChartsGeom::Point &p) const
   return false;
 }
 
-// TODO : interpY
+#if 0
+bool
+CQChartsParallelLineObj::
+interpY(double x, std::vector<double> &yvals) const
+{
+  if (! visible())
+    return false;
+
+  QPolygonF poly;
+
+  getPolyLine(poly);
+
+  for (int i = 1; i < poly.count(); ++i) {
+    double x1 = poly[i - 1].x();
+    double y1 = poly[i - 1].y();
+    double x2 = poly[i    ].x();
+    double y2 = poly[i    ].y();
+
+    if (x >= x1 && x <= x2) {
+      double y = (y2 - y1)*(x - x1)/(x2 - x1) + y1;
+
+      yvals.push_back(y);
+    }
+  }
+
+  return ! yvals.empty();
+}
+#endif
 
 void
 CQChartsParallelLineObj::

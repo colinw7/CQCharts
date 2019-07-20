@@ -4916,6 +4916,32 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       cmdBase_->setCmdRc(names);
     }
+    else if (name == "symbols") {
+      QStringList typeNames = CQChartsSymbol::typeNames();
+
+      cmdBase_->setCmdRc(typeNames);
+    }
+    else if (name == "procs") {
+      QStringList procs;
+
+      charts_->getProcs(procs);
+
+      cmdBase_->setCmdRc(procs);
+    }
+    else if (name == "proc_data") {
+       if (! argv.hasParseArg("model"))
+         return errorMsg("Missing data for '" + name + "'");
+
+      QString dataStr = argv.getParseStr("data");
+
+      QString args, body;
+
+      charts_->getProcData(dataStr, args, body);
+
+      QStringList strs = QStringList() << args << body;
+
+      cmdBase_->setCmdRc(strs);
+    }
     else if (name == "?") {
       QStringList names = QStringList() <<
        "models" << "views" << "plot_types" << "plots" << "current_model" <<

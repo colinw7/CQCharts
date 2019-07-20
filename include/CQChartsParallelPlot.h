@@ -55,6 +55,8 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
+  //bool interpY(double x, std::vector<double> &yvals) const;
+
   void getSelectIndices(Indices &inds) const override;
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;

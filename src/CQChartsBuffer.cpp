@@ -1,5 +1,6 @@
 #include <CQChartsBuffer.h>
 #include <CQChartsEnv.h>
+#include <CQChartsUtil.h>
 #include <CMathRound.h>
 
 #include <QPainter>
@@ -176,7 +177,7 @@ updateSize()
     if (usePixmap_)
       pixmap_ = new QPixmap(size_);
     else
-      image_ = new QImage(size_, QImage::Format_ARGB32);
+      image_ = CQChartsUtil::newImage(size_);
 
     ipainter_ = nullptr;
 

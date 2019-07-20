@@ -387,8 +387,14 @@ realBucket(double r) const
 
   if      (r == rstart)
     return 0;
-  else if (rdelta > 0)
-    n = CMathRound::RoundDown((r - rstart)/rdelta);
+  else if (rdelta > 0) {
+    double nr = (r - rstart)/rdelta;
+
+    if (nr > INT_MAX)
+      return INT_MAX;
+
+    n = CMathRound::RoundDown(nr);
+  }
 
   return n;
 }
@@ -406,8 +412,14 @@ autoRealBucket(double r) const
 
   if      (r == rstart)
     return 0;
-  else if (rdelta > 0)
-    n = CMathRound::RoundDown((r - rstart)/rdelta);
+  else if (rdelta > 0) {
+    double nr = (r - rstart)/rdelta;
+
+    if (nr > INT_MAX)
+      return INT_MAX;
+
+    n = CMathRound::RoundDown(nr);
+  }
 
   return n;
 }

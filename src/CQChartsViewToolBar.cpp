@@ -67,9 +67,9 @@ CQChartsViewToolBar(CQChartsWindow *window) :
     else
       button->setIcon(CQPixmapCacheInst->getIcon(iconName));
 
-    if (checked) {
+    if (checkable) {
       button->setCheckable(true);
-      button->setChecked(checkable);
+      button->setChecked(checked);
     }
 
     button->setFocusPolicy(Qt::NoFocus);

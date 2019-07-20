@@ -769,7 +769,7 @@ bucketGroupValues() const
 
     //---
 
-    // updated bucketer with all values
+    // update bucketer with all values
     int iv = 0;
 
     for (auto &groupValues : groupData_.groupValues) {

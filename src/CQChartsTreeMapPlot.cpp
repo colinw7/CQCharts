@@ -636,8 +636,11 @@ loadHier() const
 
       assert(! hierStack_.empty());
 
-      if (node->hierSize() == 0)
-        node->parent()->removeChild(node);
+      if (node->hierSize() == 0) {
+        CQChartsTreeMapPlot *plot = const_cast<CQChartsTreeMapPlot *>(plot_);
+
+        plot->removeHierNode(node);
+      }
 
       return State::OK;
     }
@@ -741,6 +744,14 @@ addHierNode(CQChartsTreeMapHierNode *hier, const QString &name, const QModelInde
   th->maxDepth_ = std::max(maxDepth_, depth1);
 
   return hier1;
+}
+
+void
+CQChartsTreeMapPlot::
+removeHierNode(CQChartsTreeMapHierNode *hier)
+{
+  if (hier->parent())
+    hier->parent()->removeChild(hier);
 }
 
 CQChartsTreeMapNode *
@@ -1493,8 +1504,6 @@ draw(QPainter *painter)
       if (plot_->isTextClipped())
         painter->setClipRect(qrect);
 
-      QFontMetricsF fm(painter->font());
-
       double th = fm.height();
 
       QPointF pc = qrect.center();
@@ -1587,14 +1596,16 @@ removeChild(CQChartsTreeMapHierNode *child)
     if (children_[i] == child)
       break;
 
-  if (i < nc) {
-    delete children_[i];
+  assert(i < nc);
 
-    ++i;
+  delete children_[i];
 
-    for ( ; i < nc; ++i)
-      children_[i - 1] = children_[i];
-  }
+  ++i;
+
+  for ( ; i < nc; ++i)
+    children_[i - 1] = children_[i];
+
+  children_.pop_back();
 }
 
 void

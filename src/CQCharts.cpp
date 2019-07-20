@@ -1036,6 +1036,34 @@ addProc(const QString &name, const QString &args, const QString &body)
   procs_[name] = ProcData(name, args, body);
 }
 
+void
+CQCharts::
+removeProc(const QString &name)
+{
+  procs_.erase(name);
+}
+
+void
+CQCharts::
+getProcs(QStringList &names)
+{
+  for (const auto &proc : procs_)
+    names.push_back(proc.first);
+}
+
+bool
+CQCharts::
+getProcData(const QString &name, QString &args, QString &body) const
+{
+  auto p = procs_.find(name);
+  if (p == procs_.end()) return false;
+
+  args = p->second.args;
+  body = p->second.body;
+
+  return true;
+}
+
 //---
 
 void

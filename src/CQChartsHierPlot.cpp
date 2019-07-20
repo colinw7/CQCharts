@@ -42,7 +42,7 @@ addProperties()
 
   CQChartsPlot::addProperties();
 
-  addProp("columns", "nameColumns", "names", "Name columns");
+  addProp("columns", "nameColumns", "name" , "Name columns");
   addProp("columns", "valueColumn", "value", "Data value column");
 
   addProp("options", "separator", "", "Separator for hierarchical path in name column");

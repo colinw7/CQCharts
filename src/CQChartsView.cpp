@@ -2935,7 +2935,7 @@ resizeEvent(QResizeEvent *)
   int iw = std::min(std::max((! isAutoSize() ? sizeData_.width  : w), 1), 16384);
   int ih = std::min(std::max((! isAutoSize() ? sizeData_.height : h), 1), 16384);
 
-  image_ = new QImage(QSize(iw, ih), QImage::Format_ARGB32);
+  image_ = CQChartsUtil::newImage(QSize(iw, ih));
 
   image_->fill(QColor(0,0,0,0));
 
@@ -4629,7 +4629,7 @@ printPNG(const QString &filename, CQChartsPlot *plot)
   int w = width ();
   int h = height();
 
-  QImage image = QImage(QSize(w, h), QImage::Format_ARGB32);
+  QImage image = CQChartsUtil::initImage(QSize(w, h));
 
   QPainter painter;
 

@@ -418,7 +418,7 @@ void
 CQChartsViewKey::
 drawCheckBox(QPainter *painter, double x, double y, int bs, bool checked) const
 {
-  QImage cimage(QSize(bs, bs), QImage::Format_ARGB32);
+  QImage cimage = CQChartsUtil::initImage(QSize(bs, bs));
 
   cimage.fill(QColor(0,0,0,0));
 

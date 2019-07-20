@@ -4857,6 +4857,8 @@ initColorColumnData()
                             colorColumnData_.data_min, colorColumnData_.data_max,
                             colorColumnData_.palette);
     }
+
+    colorColumnData_.modelType = columnType;
   }
 
   colorColumnData_.valid = true;
@@ -7853,8 +7855,7 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, do
       imageBuffer.isize  = CMathRound::RoundUp(2*(size + std::max(painter->pen().widthF(), 1.0)));
       imageBuffer.pen    = painter->pen  ();
       imageBuffer.brush  = painter->brush();
-      imageBuffer.image  =
-        QImage(QSize(imageBuffer.isize, imageBuffer.isize), QImage::Format_ARGB32);
+      imageBuffer.image  = CQChartsUtil::initImage(QSize(imageBuffer.isize, imageBuffer.isize));
 
       imageBuffer.image.fill(QColor(0,0,0,0));
 

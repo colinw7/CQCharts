@@ -650,7 +650,7 @@ drawPointLabel(const QPointF &point, const QString &text, bool above, bool mappi
 
   QColor tc = interpDebugTextColor(ColorInd());
 
-  CQChartsUtil::>setPen(tpen, true, tc, 1.0, CQChartsLength("1.0"));
+  CQChartsUtil::setPen(tpen, true, tc, 1.0, CQChartsLength("1.0"));
 
   painter_->setPen(tpen);
 

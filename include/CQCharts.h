@@ -232,6 +232,12 @@ class CQCharts : public QObject {
 
   void addProc(const QString &name, const QString &args, const QString &body);
 
+  void removeProc(const QString &name);
+
+  void getProcs(QStringList &names);
+
+  bool getProcData(const QString &name, QString &args, QString &body) const;
+
   const Procs &procs() const { return procs_; }
 
   //---

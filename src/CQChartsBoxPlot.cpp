@@ -2037,7 +2037,8 @@ draw(QPainter *painter)
 
     double vw = plot_->lengthPlotSize(plot_->violinWidth(), plot_->isHorizontal())/2.0;
 
-    CQChartsGeom::BBox rect = CQChartsGeom::makeDirBBox(/*flipped*/plot_->isHorizontal(),
+    CQChartsGeom::BBox rect =
+      CQChartsGeom::makeDirBBox(/*flipped*/plot_->isHorizontal(),
                                 pos - vw, statData.min, pos + vw, statData.max);
 
     CQChartsWhiskerOpts opts;
@@ -2064,7 +2065,8 @@ draw(QPainter *painter)
     double dev1 = remapPos(this->mean() - this->stddev());
     double dev2 = remapPos(this->mean() + this->stddev());
 
-    CQChartsGeom::BBox rect = CQChartsGeom::makeDirBBox(/*flipped*/plot_->isHorizontal(),
+    CQChartsGeom::BBox rect =
+      CQChartsGeom::makeDirBBox(/*flipped*/plot_->isHorizontal(),
                                 pos - bw/2.0, dev1, pos + bw/2.0, dev2);
 
     if      (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::CROSS_BAR) {

@@ -376,4 +376,20 @@ struct ColorInd {
 
 //------
 
+namespace CQChartsUtil {
+
+inline QImage *newImage(const QSize &size) {
+//return new QImage(size, QImage::Format_ARGB32);
+  return new QImage(size, QImage::Format_ARGB32_Premultiplied);
+}
+
+inline QImage initImage(const QSize &size) {
+//return QImage(size, QImage::Format_ARGB32);
+  return QImage(size, QImage::Format_ARGB32_Premultiplied);
+}
+
+}
+
+//------
+
 #endif

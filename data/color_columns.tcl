@@ -1,7 +1,7 @@
 set color_data [list \
- [list 1 10 red fred] \
+ [list 1 10 red   fred] \
  [list 2 20 green bill] \
- [list 3 30 blue harry] \
+ [list 3 30 blue  harry] \
 ]
 
 set model [load_charts_model -var color_data -transpose]

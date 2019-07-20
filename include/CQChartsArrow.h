@@ -1,5 +1,5 @@
-#ifndef CQArrow_H
-#define CQArrow_H
+#ifndef CQChartsArrow_H
+#define CQChartsArrow_H
 
 #include <CQChartsObjData.h>
 #include <QObject>
