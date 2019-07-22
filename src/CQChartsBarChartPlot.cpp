@@ -69,7 +69,8 @@ QString
 CQChartsBarChartPlotType::
 description() const
 {
-  auto B = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto B   = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
    h2("Bar Chart Plot").
@@ -104,7 +105,9 @@ description() const
      p("Enabling the " + B("Color by Set") + " option colors bars in the same group the same "
       "color instead using different colors for each bar in the group.").
     h3("Limitations").
-     p("The plot does not support logarithmic x scales");
+     p("The plot does not support logarithmic x scales").
+    h3("Example").
+     p(IMG("images/barchart.png"));
 }
 
 CQChartsPlot *

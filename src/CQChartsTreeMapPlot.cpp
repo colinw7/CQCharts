@@ -28,7 +28,8 @@ QString
 CQChartsTreeMapPlotType::
 description() const
 {
-  auto B = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto B   = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
    h2("Tree Map Plot").
@@ -45,7 +46,9 @@ description() const
        "the " + B("Separator") + " option (default '/').").
     h3("Limitations").
      p("This plot does not support a user specified range, axes, logarithm scales, "
-       "or probing.");
+       "or probing.").
+    h3("Example").
+     p(IMG("images/treemap.png"));
 }
 
 CQChartsPlot *

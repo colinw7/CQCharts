@@ -45,7 +45,8 @@ class CQChartsHtml {
     static Str bold  (const Str &str) { return Str("<b>") + str + Str("</b>"); }
     static Str italic(const Str &str) { return Str("<i>") + str + Str("</i>"); }
 
-    static Str img(const Str &src) { return Str("<img src=\"") + src + Str("\"/>"); }
+    static Str img(const Str &src) {
+      return Str("<img src=\"@CHARTS_DOC_PATH@/") + src + Str("\"/>"); }
 
     static Str a(const Str &ref, const Str &str) {
       return Str("<a href=\"") + ref + Str("\">") + str + Str("</a>"); }

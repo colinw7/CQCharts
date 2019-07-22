@@ -39,6 +39,8 @@ QString
 CQChartsBubblePlotType::
 description() const
 {
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
+
   return CQChartsHtml().
    h2("Bubble Plot").
     h3("Summary").
@@ -52,9 +54,11 @@ description() const
      p("Bubbles can be sorted by value or displayed in model order.").
     h3("Customization").
      p("The bubble style (fill and stroke) and text style can be specified.").
-    h3("Limitation").
+    h3("Limitations").
      p("A user defined range cannot be specified, no axes or key are displayed, "
-       "logarithmic values are not supported and probing is not allowed.");
+       "logarithmic values are not supported and probing is not allowed.").
+    h3("Example").
+     p(IMG("images/bubbleplot.png"));
 }
 
 CQChartsPlot *

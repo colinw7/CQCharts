@@ -41,10 +41,16 @@ QString
 CQChartsSankeyPlotType::
 description() const
 {
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
+
   return CQChartsHtml().
    h2("Sankey Plot").
     h3("Summary").
-     p("Draw connected objects as a connected flow graph.");
+     p("Draw connected objects as a connected flow graph.").
+    h3("Limitations").
+     p("None.").
+    h3("Example").
+     p(IMG("images/sankey.png"));
 }
 
 bool

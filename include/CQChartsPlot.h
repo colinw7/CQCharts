@@ -1769,6 +1769,23 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  // cached column names
+  QString columnHeaderName(const CQChartsColumn &column) const {
+    auto p = columnNames_.find(column);
+    assert(p != columnNames_.end());
+    return (*p).second;
+  }
+
+  QString idHeaderName   () const { return columnHeaderName(idColumn()); }
+  QString colorHeaderName() const { return columnHeaderName(colorColumn()); }
+  QString imageHeaderName() const { return columnHeaderName(imageColumn()); }
+
+  virtual void updateColumnNames();
+
+  void setColumnHeaderName(const CQChartsColumn &column, const QString &def);
+
+  //---
+
   // get/set/reset id hidden
   bool isSetHidden(int id) const;
 
@@ -2117,6 +2134,8 @@ class CQChartsPlot : public CQChartsObj,
     }
   };
 
+  using ColumnNames = std::map<CQChartsColumn,QString>;
+
   //---
 
  protected:
@@ -2162,6 +2181,7 @@ class CQChartsPlot : public CQChartsObj,
   ColorColumnData              colorColumnData_;                 //!< color color data
   mutable std::mutex           colorMutex_;                      //!< color mutex
   CQChartsColumn               imageColumn_;                     //!< image column
+  ColumnNames                  columnNames_;                     //!< column header names
   CQChartsFont                 font_;                            //!< font
   QString                      defaultPalette_;                  //!< default palette
   double                       minScaleFontSize_ { 6.0 };        //!< min scaled font size
@@ -2180,8 +2200,6 @@ class CQChartsPlot : public CQChartsObj,
   bool                         overview_         { false };      //!< is overview
   bool                         invertX_          { false };      //!< x values inverted
   bool                         invertY_          { false };      //!< y values inverted
-//bool                         logX_             { false };      //!< x values log scaled
-//bool                         logY_             { false };      //!< y values log scaled
   bool                         noData_           { false };      //!< is no data
   bool                         debugUpdate_      { false };      //!< debug update
   ConnectData                  connectData_;                     //!< associated plot data

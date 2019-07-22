@@ -43,6 +43,8 @@ QString
 CQChartsChordPlotType::
 description() const
 {
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
+
   return CQChartsHtml().
    h2("Chord Plot").
     h3("Summary").
@@ -63,7 +65,9 @@ description() const
        "specified.").
     h3("Limitations").
      p("A user defined range cannot be specified, no axes or key is supported, logarithmic "
-       "values are not allowed and probing is not available.");
+       "values are not allowed and probing is not available.").
+    h3("Example").
+     p(IMG("images/chord_plot.png"));
 }
 
 bool

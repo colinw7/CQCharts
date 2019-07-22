@@ -29,6 +29,8 @@ QString
 CQChartsImagePlotType::
 description() const
 {
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
+
   return CQChartsHtml().
    h2("Image Plot").
     h3("Summary").
@@ -46,7 +48,9 @@ description() const
      p("Labels can be added to each grid cell and the labels can be scaled "
        "to represent the size of the associated value.").
     h3("Limitations").
-     p("Does not support axes.");
+     p("Does not support axes.").
+    h3("Example").
+     p(IMG("images/imageplot.png"));
 }
 
 CQChartsPlot *

@@ -74,6 +74,7 @@ description() const
   auto PARM = [](const QString &str) { return CQChartsHtml::Str::angled(str); };
   auto LI   = [](const QString &str) { return CQChartsHtml::Str(str); };
 //auto BR   = []() { return CQChartsHtml::Str(CQChartsHtml::Str::Type::BR); };
+  auto IMG  = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
    h2("Adjacency Plot").
@@ -98,7 +99,9 @@ description() const
      p("The styling (fill, stroke) of the connection cells, empty (no connection) cell "
        "and background can be set").
     h3("Limitations").
-     p("The plot does not support axes, key or logarithmic scales");
+     p("The plot does not support axes, key or logarithmic scales").
+    h3("Example").
+     p(IMG("images/adjacency.png"));
 }
 
 bool

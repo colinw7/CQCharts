@@ -54,12 +54,18 @@ QString
 CQChartsPiePlotType::
 description() const
 {
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
+
   return CQChartsHtml().
    h2("Pie Plot").
     h3("Summary").
      p("Draw circle segments with diameter from a set of values.").
      p("The segments can be restricted to an inner radius and a label "
-       "can be displated at the center of the circle.");
+       "can be displated at the center of the circle.").
+    h3("Limitations").
+     p("None.").
+    h3("Example").
+     p(IMG("images/piechart.png"));
 }
 
 CQChartsPlot *

@@ -28,11 +28,17 @@ QString
 CQChartsHierBubblePlotType::
 description() const
 {
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
+
   return CQChartsHtml().
    h2("Hierarchical Bubble Plot").
     h3("Summary").
      p("Draws circles represent a set of data values and packs then into the "
-       "smallest enclosing circle.");
+       "smallest enclosing circle.").
+    h3("Limitations").
+     p("None.").
+    h3("Example").
+     p(IMG("images/hierbubble.png"));
 }
 
 CQChartsPlot *

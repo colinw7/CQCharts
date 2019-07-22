@@ -58,7 +58,7 @@ CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction, double start, 
   setAxesGridFillColor(themeGray3);
   setAxesGridFillAlpha(0.5);
 
-  calc();
+  needsCalc_ = true;
 }
 
 CQChartsAxis::
@@ -534,7 +534,11 @@ void
 CQChartsAxis::
 setValueType(const CQChartsAxisValueType &v, bool notify)
 {
-  CQChartsUtil::testAndSet(valueType_, v, [&]() { if (notify) updatePlotRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(valueType_, v, [&]() {
+    needsCalc_ = true;
+
+    if (notify) updatePlotRangeAndObjs();
+  } );
 }
 
 //---
@@ -543,9 +547,22 @@ void
 CQChartsAxis::
 calcAndRedraw()
 {
-  calc();
+  needsCalc_ = true;
 
   redraw();
+}
+
+void
+CQChartsAxis::
+updateCalc() const
+{
+  if (needsCalc_) {
+    CQChartsAxis *th = const_cast<CQChartsAxis *>(this);
+
+    th->needsCalc_ = false;
+
+    th->calc();
+  }
 }
 
 void

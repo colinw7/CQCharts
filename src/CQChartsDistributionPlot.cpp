@@ -100,7 +100,8 @@ QString
 CQChartsDistributionPlotType::
 description() const
 {
-  auto B = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto B   = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
    h2("Distribution Plot").
@@ -122,7 +123,11 @@ description() const
      p("Standard grouping can be applied to the values to split the values to be "
        "grouped into individual value sets before final grouping. This second level "
        "if grouping creates multiple sets of grouped values which can be displayed "
-       "sequentially or overlaid with common buckets.");
+       "sequentially or overlaid with common buckets.").
+    h3("Limitations").
+     p("None.").
+    h3("Example").
+     p(IMG("images/distribution.png"));
 }
 
 CQChartsPlot *

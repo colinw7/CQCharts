@@ -246,6 +246,10 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   CQChartsColor color() const;
   void setColor(const CQChartsColor &c) { extraData()->color = c; }
 
+  // Image
+  QImage image() const;
+  void setImage(const QImage &i) { extraData()->image = i; }
+
   // vector
   bool isVector() const;
   QPointF vector() const;
@@ -272,6 +276,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
     CQChartsLength fontSize   { CQChartsUnits::NONE, 0.0 };   //!< font size
     CQChartsColor  color;                                     //!< symbol fill color
     OptPoint       vector;                                    //!< optional vector
+    QImage         image;                                     //!< image
   };
 
  private:
@@ -588,10 +593,9 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   // columns
   Q_PROPERTY(CQChartsColumn  xColumn          READ xColumn          WRITE setXColumn         )
   Q_PROPERTY(CQChartsColumns yColumns         READ yColumns         WRITE setYColumns        )
-  Q_PROPERTY(CQChartsColumn  nameColumn       READ nameColumn       WRITE setNameColumn      )
+  Q_PROPERTY(CQChartsColumn  labelColumn      READ labelColumn      WRITE setLabelColumn     )
   Q_PROPERTY(CQChartsColumn  symbolTypeColumn READ symbolTypeColumn WRITE setSymbolTypeColumn)
   Q_PROPERTY(CQChartsColumn  symbolSizeColumn READ symbolSizeColumn WRITE setSymbolSizeColumn)
-  Q_PROPERTY(CQChartsColumn  labelColumn      READ labelColumn      WRITE setLabelColumn     )
   Q_PROPERTY(CQChartsColumn  fontSizeColumn   READ fontSizeColumn   WRITE setFontSizeColumn  )
   Q_PROPERTY(CQChartsColumn  vectorXColumn    READ vectorXColumn    WRITE setVectorXColumn   )
   Q_PROPERTY(CQChartsColumn  vectorYColumn    READ vectorYColumn    WRITE setVectorYColumn   )
@@ -665,8 +669,8 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   const CQChartsColumns &yColumns() const { return yColumns_; }
   void setYColumns(const CQChartsColumns &c);
 
-  const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c);
+  const CQChartsColumn &labelColumn() const { return labelColumn_; }
+  void setLabelColumn(const CQChartsColumn &c);
 
   // symbol columns
   // TODO: mapping data
@@ -675,9 +679,6 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   const CQChartsColumn &symbolSizeColumn() const { return symbolSizeColumn_; }
   void setSymbolSizeColumn(const CQChartsColumn &c);
-
-  const CQChartsColumn &labelColumn() const { return labelColumn_; }
-  void setLabelColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &fontSizeColumn() const { return fontSizeColumn_; }
   void setFontSizeColumn(const CQChartsColumn &c);
@@ -784,6 +785,10 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   CQChartsGeom::Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
+
+  //---
+
+  void updateColumnNames() override;
 
   //---
 
@@ -902,10 +907,9 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
  private:
   CQChartsColumn     xColumn_;                       //!< x column
   CQChartsColumns    yColumns_;                      //!< y columns
-  CQChartsColumn     nameColumn_;                    //!< name column
+  CQChartsColumn     labelColumn_;                   //!< label column
   CQChartsColumn     symbolTypeColumn_;              //!< symbol type column
   CQChartsColumn     symbolSizeColumn_;              //!< symbol size column
-  CQChartsColumn     labelColumn_;                   //!< label column
   CQChartsColumn     fontSizeColumn_;                //!< label font size column
   CQChartsColumn     vectorXColumn_;                 //!< vector x direction column
   CQChartsColumn     vectorYColumn_;                 //!< vector y direction column

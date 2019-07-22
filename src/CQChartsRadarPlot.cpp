@@ -42,7 +42,8 @@ QString
 CQChartsRadarPlotType::
 description() const
 {
-  auto B = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto B   = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
    h2("Radar Plot").
@@ -50,7 +51,11 @@ description() const
      p("Draws polygon for each row with a point for each value column.").
     h3("Columns").
     p("The " + B("Name") + " column specifies the name for the value set.").
-    p("The column headers specify the name of the indiviidual values.");
+    p("The column headers specify the name of the indiviidual values.").
+    h3("Limitations").
+     p("None.").
+    h3("Example").
+     p(IMG("images/radar.png"));
 }
 
 CQChartsPlot *

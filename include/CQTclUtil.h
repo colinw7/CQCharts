@@ -9,6 +9,7 @@
 #include <QPointF>
 #include <QRectF>
 #include <QPolygonF>
+#include <set>
 //#include <mutex>
 
 namespace CQTclUtil {
@@ -349,11 +350,15 @@ class CQTcl : public CTcl {
   using Vars       = std::vector<QVariant>;
   using ObjCmdProc = Tcl_ObjCmdProc *;
   using ObjCmdData = ClientData;
+  using Traces     = std::set<QString>;
 
  public:
   CQTcl() { }
 
-  virtual ~CQTcl() { }
+  virtual ~CQTcl() {
+    for (const auto &name : traces_)
+      untraceVar(name);
+  }
 
   void createVar(const QString &name, const QVariant &var) {
     CQTclUtil::createVar(interp(), name, var);
@@ -497,6 +502,17 @@ class CQTcl : public CTcl {
     if (! data)
       Tcl_TraceVar(interp(), name.toLatin1().constData(), flags,
         &CQTcl::traceProc, (ClientData) this);
+
+    traces_.insert(name);
+  }
+
+  void untraceVar(const QString &name) {
+    int flags = TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS | TCL_GLOBAL_ONLY;
+
+    Tcl_UntraceVar(interp(), name.toLatin1().constData(), flags,
+      &CQTcl::traceProc, (ClientData) this);
+
+    traces_.erase(name);
   }
 
   virtual void handleTrace(const char *name, int flags) {
@@ -535,7 +551,7 @@ class CQTcl : public CTcl {
   }
 
   Tcl_Interp *interp() const {
-    //std::unique_lock<std::mutex> lock(mutex);
+    //std::unique_lock<std::mutex> lock(mutex_);
 
     return CTcl::interp();
   }
@@ -552,7 +568,8 @@ class CQTcl : public CTcl {
   }
 
  private:
-  //mutable std::mutex mutex;
+  Traces             traces_;
+//mutable std::mutex mutex_;
 };
 
 #endif

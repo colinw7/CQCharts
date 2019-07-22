@@ -317,12 +317,14 @@ class CQChartsAxis : public CQChartsObj,
   //---
 
   // internal calculation data
-  uint numMajorTicks() const { return numMajorTicks_; }
-  uint numMinorTicks() const { return numMinorTicks_; }
+  uint numMajorTicks() const { updateCalc(); return numMajorTicks_; }
+  uint numMinorTicks() const { updateCalc(); return numMinorTicks_; }
 
-  double calcStart    () const { return calcStart_    ; }
-  double calcEnd      () const { return calcEnd_      ; }
-  double calcIncrement() const { return calcIncrement_; }
+  double calcStart    () const { updateCalc(); return calcStart_    ; }
+  double calcEnd      () const { updateCalc(); return calcEnd_      ; }
+  double calcIncrement() const { updateCalc(); return calcIncrement_; }
+
+  void updateCalc();
 
   //---
 
@@ -468,6 +470,8 @@ class CQChartsAxis : public CQChartsObj,
  private:
   void calcAndRedraw();
 
+  void updateCalc() const;
+
   void calc();
 
   void emitSelectionChanged();
@@ -525,6 +529,7 @@ class CQChartsAxis : public CQChartsObj,
   uint                  maxMajorTicks_       { 1000 };  //!< max major ticks
   CQChartsOptInt        tickIncrement_;                 //!< user specified tick increment
   CQChartsOptInt        majorIncrement_;                //!< user specified major increment
+  bool                  needsCalc_           { true };  //!< needs tick calc
 
   // internal calculation data
   CInterval             interval_;                      //!< interval data

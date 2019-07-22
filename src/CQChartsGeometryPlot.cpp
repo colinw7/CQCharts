@@ -45,8 +45,9 @@ QString
 CQChartsGeometryPlotType::
 description() const
 {
-  auto B  = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
-  auto BR = []() { return CQChartsHtml::Str(CQChartsHtml::Str::Type::BR); };
+  auto B   = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto BR  = []() { return CQChartsHtml::Str(CQChartsHtml::Str::Type::BR); };
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
    h2("Geometry Plot").
@@ -61,7 +62,9 @@ description() const
        B("maxValue") + " values.").
      p("The optional style (fill, stroke) can be specified in the " + B("Style") + " column.").
     h3("Limitations").
-     p("None.");
+     p("None.").
+    h3("Example").
+     p(IMG("images/geometryplot.png"));
 }
 
 bool

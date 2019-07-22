@@ -48,11 +48,17 @@ QString
 CQChartsHierScatterPlotType::
 description() const
 {
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
+
   return CQChartsHtml().
    h2("Hierarchical Scatter Plot").
     h3("Summary").
      p("Draws scatter plot x, y points with support for customization of point symbol type, "
-       "symbol size and symbol color.");
+       "symbol size and symbol color.").
+    h3("Limitations").
+     p("None.").
+    h3("Example").
+     p(IMG("images/hierscatter.png"));
 }
 
 CQChartsPlot *
@@ -646,7 +652,7 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
 
   double sx, sy;
 
-  pixelSymbolSize(symbolSize(), sx, sy);
+  plotSymbolSize(symbolSize(), sx, sy);
 
   //---
 

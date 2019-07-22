@@ -9,6 +9,7 @@ class CQCharts;
 class QTreeWidget;
 class QTreeWidgetItem;
 class QTextBrowser;
+class QToolButton;
 
 #define CQChartsHelpDlgMgrInst CQChartsHelpDlgMgr::instance()
 
@@ -55,15 +56,30 @@ class CQChartsHelpDlgMgr {
 class CQChartsHelpDlg : public QDialog {
   Q_OBJECT
 
+  Q_PROPERTY(QString section READ currentSection WRITE setCurrentSection)
+
  public:
   CQChartsHelpDlg(CQCharts *charts, QWidget *parent=nullptr);
 
   CQCharts *charts() const { return charts_; }
 
+  QString currentSection() const { return currentSection_; }
+  bool setCurrentSection(const QString &section, bool updateUndoRedo=true);
+
   QSize sizeHint() const override;
 
  private:
   void addItems();
+
+  QTreeWidgetItem *getTreeItem(QTreeWidgetItem *parent, const QStringList &parts, int i) const;
+
+  void updateCurrentSection(const QString &section, bool updateUndoRedo=true);
+
+  void updatePrevNext();
+
+  QString itemPath(QTreeWidgetItem *item) const;
+
+  void loadSectionText();
 
   void setHtml(const QString &text);
 
@@ -75,14 +91,19 @@ class CQChartsHelpDlg : public QDialog {
 
   void treeAnchorSlot(const QUrl &url);
 
-  void selectTreeItem(const QString &path) const;
-
-  QTreeWidgetItem *getTreeItem(QTreeWidgetItem *parent, const QStringList &parts, int i) const;
+  void selectTreeItem(const QString &path);
 
  private:
-  CQCharts*     charts_ { nullptr };
-  QTreeWidget*  tree_   { nullptr };
-  QTextBrowser *text_   { nullptr };
+  using Sections = std::vector<QString>;
+
+  CQCharts*     charts_         { nullptr }; //!< charts
+  QTreeWidget*  tree_           { nullptr }; //!< index tree
+  QTextBrowser *text_           { nullptr }; //!< text browser
+  QToolButton  *prevButton_     { nullptr }; //!< previous section button
+  QToolButton  *nextButton_     { nullptr }; //!< next section button
+  QString       currentSection_;             //!< current section
+  Sections      undoSections_;
+  Sections      redoSections_;
 };
 
 #endif

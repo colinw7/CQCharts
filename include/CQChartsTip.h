@@ -49,7 +49,7 @@ class CQChartsTableTip {
 
   QString str() {
     if (inTable_)
-      str_ += "</table>\n";
+      str_ += "</table>";
 
     return str_;
   }

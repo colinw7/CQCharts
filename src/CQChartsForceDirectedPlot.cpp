@@ -64,10 +64,16 @@ QString
 CQChartsForceDirectedPlotType::
 description() const
 {
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
+
   return CQChartsHtml().
    h2("Force Directed Plot").
     h3("Summary").
-     p("Draw connected data using animated nodes connected by springs.");
+     p("Draw connected data using animated nodes connected by springs.").
+    h3("Limitations").
+     p("None.").
+    h3("Example").
+     p(IMG("images/forcedirected.png"));
 }
 
 bool

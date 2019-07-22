@@ -35,12 +35,12 @@ addParameters()
   addColumnsParameter("y", "Y", "yColumns").
     setRequired().setNumeric().setTip("Y Value Columns");
 
-  addColumnParameter("name", "Name", "nameColumn").
-    setString().setTip("Optional Name Column");
+  addColumnParameter("label", "Label", "labelColumn").
+    setString().setTip("Optional Label Column");
 
   //---
 
-  // bool parameters
+  // options
   addBoolParameter("lines"     , "Lines"     , "lines", true    ).setTip("Draw Lines");
   addBoolParameter("points"    , "Points"    , "points"         ).setTip("Draw Points");
   addBoolParameter("bivariate" , "Bivariate" , "bivariateLines" ).setTip("Draw Bivariate Lines");
@@ -63,9 +63,6 @@ addParameters()
   addColumnParameter("symbolSize", "Symbol Size", "symbolSizeColumn").
    setTip("Custom Symbol Size").setMapped().
    setMapMinMax(CQChartsSymbolSize::minValue(), CQChartsSymbolSize::maxValue());
-
-  addColumnParameter("label", "Label", "labelColumn").
-   setTip("Custom Label").setString();
 
   addColumnParameter("fontSize", "Font Size", "fontSizeColumn").
    setTip("Custom Font Size for Label").setMapped().
@@ -94,26 +91,26 @@ QString
 CQChartsXYPlotType::
 description() const
 {
-  auto B = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto B   = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
    h2("XY Plot Type</h2>").
     h3("Summary").
-     p("Draws points at x and y coordinate pairs and connects them with a continuous line.").
-     p("The x coordinates should be monotonic.").
+     p("Draws points at x and y coordinate pairs and optionally connects them with a "
+       "continuous line. The connecting lines can be straight or rounded.").
+     p("Ideally the x coordinates should be monotonic but this is not required.").
     h3("Columns").
      p("The x and y values come from the values in the " + B("X") + " and " + B("Y") + " columns. "
        "Multiple " + B("Y") + " columns can be specified to create a stack of lines.").
-     p("An optional " + B("Name") + " column can be specified to supply a name for the "
-       "coordinate.").
      p("An optional " + B("SymbolType") + " column can be specified to supply the type of the "
        "symbol drawn at the point. An optional " + B("SymbolSize") + " column can be specified "
-       "to supply the size of the symbol drawn at the point. An optional " + B("Color") +
-       " column can be specified to supply the fill color of the symbol drawn at the point.").
-     p("The point label can be specified using the " + B("Label") + " column. The font size "
-       "of the label can be specified using the " + B("FontSize") + " column.").
-     p("Optional " + B("VectorX") + " and " + B("VectorY") + " columns can be specified to draw a "
-       "vector at the point.").
+       "to supply the size of the symbol drawn at the point. An optional " + B("Color") + " "
+       "column can be specified to supply the fill color of the symbol drawn at the point.").
+     p("An optional point label can be specified using the " + B("Label") + " column. The "
+       "font size of the label can be specified using the " + B("FontSize") + " column.").
+     p("Optional " + B("VectorX") + " and " + B("VectorY") + " columns can be specified to draw "
+       "a vector at the point.").
     h3("Options").
      p("The " + B("Lines") + " option determines whether the points are connected with a line. "
        "The default line style can be separately customized.").
@@ -133,8 +130,15 @@ description() const
      p("Enabling the " + B("Best Fit") + " option draws a best fit line between the points.").
      p("The " + B("Vectors") + " option detemines whether the vector specified by the "
        "" + B("VectorX") + " and " + B("VectorY") + " columns are drawn.").
+    h3("Customization").
+     p("The area under the curve can be filled.").
+     p("Impulse lines (from point to y minimum) curve can be added.").
+     p("Bivariate lines (between pairs of y values) curve can be added.").
+     p("The points can have an overlaid best fit line, statistic lines.").
     h3("Limitations").
-     p("None");
+     p("None").
+    h3("Example").
+     p(IMG("images/xychart.png"));
 }
 
 CQChartsPlot *
@@ -241,9 +245,9 @@ setYColumns(const CQChartsColumns &c)
 
 void
 CQChartsXYPlot::
-setNameColumn(const CQChartsColumn &c)
+setLabelColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -262,15 +266,6 @@ CQChartsXYPlot::
 setSymbolSizeColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(symbolSizeColumn_, c, [&]() { updateRangeAndObjs(); } );
-}
-
-//---
-
-void
-CQChartsXYPlot::
-setLabelColumn(const CQChartsColumn &c)
-{
-  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -541,10 +536,9 @@ addProperties()
   addProp("columns", "xColumn" , "x", "X column" );
   addProp("columns", "yColumns", "y", "Y columns");
 
-  addProp("columns", "nameColumn"      , "name"      , "Name column");
+  addProp("columns", "labelColumn"     , "label"     , "Label column");
   addProp("columns", "symbolTypeColumn", "symbolType", "Symbol type column");
   addProp("columns", "symbolSizeColumn", "symbolSize", "Symbol size column");
-  addProp("columns", "labelColumn"     , "label"     , "Label column");
   addProp("columns", "fontSizeColumn"  , "fontSize"  , "Font size column");
 
   addProp("columns", "vectorXColumn", "vectorX", "Vector x column");
@@ -1018,6 +1012,10 @@ createObjs(PlotObjs &objs) const
 
   //---
 
+  th->updateColumnNames();
+
+  //---
+
   GroupSetIndPoly groupSetIndPoly;
 
   createGroupSetIndPoly(groupSetIndPoly);
@@ -1027,6 +1025,19 @@ createObjs(PlotObjs &objs) const
   //---
 
   return true;
+}
+
+void
+CQChartsXYPlot::
+updateColumnNames()
+{
+  // set column header names
+  CQChartsPlot::updateColumnNames();
+
+  setColumnHeaderName(labelColumn     (), "Label"     );
+  setColumnHeaderName(symbolTypeColumn(), "SymbolType");
+  setColumnHeaderName(symbolSizeColumn(), "SymbolSize");
+  setColumnHeaderName(fontSizeColumn  (), "FontSize"  );
 }
 
 void
@@ -1576,7 +1587,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
         double sx, sy;
 
-        pixelSymbolSize(symbolSize.isValid() ? symbolSize : this->symbolSize(), sx, sy);
+        plotSymbolSize(symbolSize.isValid() ? symbolSize : this->symbolSize(), sx, sy);
 
         //---
 
@@ -1679,6 +1690,23 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
           labelObj->setPointObj(pointObj);
           pointObj->setLabelObj(labelObj);
         }
+
+        //---
+
+        // set optional image
+        QImage image;
+
+        if (imageColumn().isValid()) {
+          bool ok;
+
+          QVariant imageVar = modelValue(ip, imageColumn(), xind1.parent(), ok);
+
+          if (ok && imageVar.type() == QVariant::Image)
+            image = imageVar.value<QImage>();
+        }
+
+        if (! image.isNull())
+          pointObj->setImage(image);
 
         //---
 
@@ -1931,12 +1959,12 @@ valueName(int is, int ns, int irow) const
     name = modelHeaderString(yColumn, ok);
   }
 
-  if (nameColumn().isValid()) {
+  if (labelColumn().isValid()) {
     QModelIndex parent; // TODO: parent
 
     bool ok;
 
-    QString name1 = modelString(irow, nameColumn(), parent, ok);
+    QString name1 = modelString(irow, labelColumn(), parent, ok);
 
     if (ok)
       return name1;
@@ -2631,6 +2659,18 @@ color() const
   return color;
 }
 
+QImage
+CQChartsXYPointObj::
+image() const
+{
+  QImage image;
+
+  if (extraData())
+    image = extraData()->image;
+
+  return image;
+}
+
 bool
 CQChartsXYPointObj::
 isVector() const
@@ -2699,27 +2739,42 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
+  // add label (name column) as header
   if (labelObj_ && labelObj_->label().length())
     tableTip.addBoldLine(labelObj_->label());
 
+  //---
+
+  // add id column
   QModelIndex ind1 = plot()->unnormalizeIndex(ind());
 
   QString idStr;
 
   if (calcColumnId(ind1, idStr))
-    tableTip.addTableRow("Id", idStr);
+    tableTip.addTableRow(plot()->idHeaderName(), idStr);
 
+  //---
+
+  // add group column
   if (ig_.n > 1) {
     QString groupName = plot()->groupIndName(ig_.i);
 
     tableTip.addTableRow("Group", groupName);
   }
 
-  QString name = plot()->valueName(is_.i, is_.n, ind().row());
+  //---
 
-  if (name.length())
-    tableTip.addTableRow("Name", name);
+  // add name column (TODO: needed or combine with header)
+  if (! labelObj_ || ! labelObj_->label().length()) {
+    QString name = plot()->valueName(is_.i, is_.n, ind().row());
 
+    if (name.length())
+      tableTip.addTableRow("Name", name);
+  }
+
+  //---
+
+  // add x, y columns
   QString xstr = plot()->xStr(x());
   QString ystr = plot()->yStr(y());
 
@@ -2728,51 +2783,28 @@ calcTipId() const
 
   //---
 
-  if (plot_->symbolTypeColumn().isValid()) {
+  auto addColumnRowValue = [&](const CQChartsColumn &column) {
+    if (! column.isValid()) return;
+
     bool ok;
 
-    QString symbolTypeStr =
-      plot_->modelString(ind_.row(), plot_->symbolTypeColumn(), ind_.parent(), ok);
+    QString str = plot_->modelString(ind_.row(), column, ind_.parent(), ok);
+    if (! ok) return;
 
-    if (ok)
-      tableTip.addTableRow("Symbol" /*plot_->symbolTypeName()*/, symbolTypeStr);
-  }
+    tableTip.addTableRow(plot_->columnHeaderName(column), str);
+  };
 
   //---
 
-  if (plot_->symbolSizeColumn().isValid()) {
-    bool ok;
-
-    QString symbolSizeStr =
-      plot_->modelString(ind_.row(), plot_->symbolSizeColumn(), ind_.parent(), ok);
-
-    if (ok)
-      tableTip.addTableRow("Size" /*plot_->symbolSizeName()*/, symbolSizeStr);
-  }
+  // add symbol type, symbol size and font size columns
+  addColumnRowValue(plot_->symbolTypeColumn());
+  addColumnRowValue(plot_->symbolSizeColumn());
+  addColumnRowValue(plot_->fontSizeColumn  ());
 
   //---
 
-  if (plot_->fontSizeColumn().isValid()) {
-    bool ok;
-
-    QString fontSizeStr =
-      plot_->modelString(ind_.row(), plot_->fontSizeColumn(), ind_.parent(), ok);
-
-    if (ok)
-      tableTip.addTableRow("FontSize" /*plot_->fontSizeName()*/, fontSizeStr);
-  }
-
-  //---
-
-  if (plot_->colorColumn().isValid()) {
-    bool ok;
-
-    QString colorStr =
-      plot_->modelString(ind_.row(), plot_->colorColumn(), ind_.parent(), ok);
-
-    if (ok)
-      tableTip.addTableRow("Color" /*plot_->colorName()*/, colorStr);
-  }
+  // add color column
+  addColumnRowValue(plot_->colorColumn());
 
   //---
 
@@ -2892,8 +2924,16 @@ draw(QPainter *painter)
 
     plot()->pixelSymbolSize(symbolSize, sx, sy);
 
-    // draw symbol
-    plot()->drawSymbol(painter, ps, symbolType, CMathUtil::avg(sx, sy), pen, brush);
+    // draw symbol or image
+    QImage image = this->image();
+
+    if (image.isNull())
+      plot()->drawSymbol(painter, ps, symbolType, CMathUtil::avg(sx, sy), pen, brush);
+    else {
+      QRectF irect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
+
+      painter->drawImage(irect, image.scaled(sx, sy, Qt::IgnoreAspectRatio));
+    }
   }
 
   //---
@@ -2944,7 +2984,7 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  tableTip.addTableRow("Label", label_);
+  tableTip.addTableRow(plot_->columnHeaderName(plot_->labelColumn()), label_);
 
   //---
 

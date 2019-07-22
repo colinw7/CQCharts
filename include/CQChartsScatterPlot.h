@@ -90,6 +90,12 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   //---
 
+  // make
+  const QImage &image() const { return image_; }
+  void setImage(const QImage &i) { image_ = i; }
+
+  //---
+
   QString typeName() const override { return "point"; }
 
   QString calcId() const override;
@@ -150,6 +156,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   QModelIndex                ind_;                    //!< model index
   ExtraData                  edata_;                  //!< extra data
   QString                    name_;                   //!< label name
+  QImage                     image_;                  //!< image name
 };
 
 //---
@@ -271,9 +278,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsColumn xColumn          READ xColumn          WRITE setXColumn         )
   Q_PROPERTY(CQChartsColumn yColumn          READ yColumn          WRITE setYColumn         )
   Q_PROPERTY(CQChartsColumn nameColumn       READ nameColumn       WRITE setNameColumn      )
+  Q_PROPERTY(CQChartsColumn labelColumn      READ labelColumn      WRITE setLabelColumn     )
   Q_PROPERTY(CQChartsColumn symbolTypeColumn READ symbolTypeColumn WRITE setSymbolTypeColumn)
   Q_PROPERTY(CQChartsColumn symbolSizeColumn READ symbolSizeColumn WRITE setSymbolSizeColumn)
-  Q_PROPERTY(CQChartsColumn labelColumn      READ labelColumn      WRITE setLabelColumn     )
   Q_PROPERTY(CQChartsColumn fontSizeColumn   READ fontSizeColumn   WRITE setFontSizeColumn  )
 
   // options
@@ -435,6 +442,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
   void setNameColumn(const CQChartsColumn &c);
 
+  const CQChartsColumn &labelColumn() const { return labelColumn_; }
+  void setLabelColumn(const CQChartsColumn &c);
+
   const CQChartsColumn &xColumn() const { return xColumn_; }
   void setXColumn(const CQChartsColumn &c);
 
@@ -591,12 +601,6 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
-  // label column and map
-  const CQChartsColumn &labelColumn() const { return labelColumn_; }
-  void setLabelColumn(const CQChartsColumn &c);
-
-  //---
-
   // label font size column and map
   const CQChartsColumn &fontSizeColumn() const;
   void setFontSizeColumn(const CQChartsColumn &c);
@@ -619,17 +623,6 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
                     const QModelIndex &xind, const CQChartsColor &color=CQChartsColor());
 
   const GroupNameValues &groupNameValues() const { return groupNameValues_; }
-
-  //---
-
-  // cached column names
-  const QString &xname         () const { return xname_         ; }
-  const QString &yname         () const { return yname_         ; }
-  const QString &symbolTypeName() const { return symbolTypeName_; }
-  const QString &symbolSizeName() const { return symbolSizeName_; }
-  const QString &labelName     () const { return labelName_     ; }
-  const QString &fontSizeName  () const { return fontSizeName_  ; }
-  const QString &colorName     () const { return colorName_     ; }
 
   //---
 
@@ -660,6 +653,13 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   void addGridObjects(PlotObjs &objs) const;
 
   void addNameValues() const;
+
+  //---
+
+  QString xHeaderName() const { return columnHeaderName(xColumn()); }
+  QString yHeaderName() const { return columnHeaderName(yColumn()); }
+
+  void updateColumnNames() override;
 
   //---
 
@@ -898,10 +898,10 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   CQChartsColumn     xColumn_;                                  //!< x column
   CQChartsColumn     yColumn_;                                  //!< y column
   CQChartsColumn     nameColumn_;                               //!< name column
+  CQChartsColumn     labelColumn_;                              //!< name column
   PlotType           plotType_           { PlotType::SYMBOLS }; //!< plot type
   SymbolTypeData     symbolTypeData_;                           //!< symbol size column
   SymbolSizeData     symbolSizeData_;                           //!< symbol size column
-  CQChartsColumn     labelColumn_;                              //!< label column
   FontSizeData       fontSizeData_;                             //!< label font size column
   BestFitData        bestFitData_;                              //!< best fit data
   HullData           hullData_;                                 //!< hull data
@@ -913,13 +913,6 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   GroupNameValues    groupNameValues_;                          //!< name values
   GroupNameGridData  groupNameGridData_;                        //!< grid values
   GridData           gridData_;                                 //!< grid data
-  QString            xname_;                                    //!< x column header
-  QString            yname_;                                    //!< y column header
-  QString            symbolTypeName_;                           //!< symbol type column header
-  QString            symbolSizeName_;                           //!< symbol size column header
-  QString            labelName_;                                //!< label column header
-  QString            fontSizeName_;                             //!< label font size column header
-  QString            colorName_;                                //!< color column header
   SymbolMapKeyData   symbolMapKeyData_;                         //!< symbol map key data
   GroupPoints        groupPoints_;                              //!< group fit points
   GroupFitData       groupFitData_;                             //!< group fit data

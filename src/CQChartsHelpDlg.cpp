@@ -82,11 +82,11 @@ CQChartsHelpDlg(CQCharts *charts, QWidget *parent) :
 
   //--
 
-  QToolButton *prevButton = createButton("prev", "LEFT" , "Previous section", SLOT(prevSlot()));
-  QToolButton *nextButton = createButton("next", "RIGHT", "Next section"    , SLOT(nextSlot()));
+  prevButton_ = createButton("prev", "LEFT" , "Previous section", SLOT(prevSlot()));
+  nextButton_ = createButton("next", "RIGHT", "Next section"    , SLOT(nextSlot()));
 
-  controlLayout->addWidget(prevButton);
-  controlLayout->addWidget(nextButton);
+  controlLayout->addWidget(prevButton_);
+  controlLayout->addWidget(nextButton_);
   controlLayout->addStretch(1);
 
   //---
@@ -128,6 +128,12 @@ CQChartsHelpDlg(CQCharts *charts, QWidget *parent) :
   //---
 
   addItems();
+
+  //---
+
+  setCurrentSection("introduction", false);
+
+  updatePrevNext();
 }
 
 void
@@ -163,7 +169,7 @@ addItems()
   charts_->getModelTypeNames(modelTypeNames);
 
   for (const auto &name : modelTypeNames)
-    addItem(modelsItem, name, "model_type");
+    addItem(modelsItem, name, name);
 
   QTreeWidgetItem *columnTypesItem = addItem(modelsItem, "Types", "column_types");
 
@@ -174,7 +180,7 @@ addItems()
   columnTypeMgr->typeNames(columnTypeNames);
 
   for (const auto &name : columnTypeNames)
-    addItem(columnTypesItem, name, "column_type");
+    addItem(columnTypesItem, name, name);
 
   //---
 
@@ -190,7 +196,7 @@ addItems()
   charts_->getPlotTypeNames(names, descs);
 
   for (const auto &name : names)
-    addItem(plotsItem, name, "plot_type");
+    addItem(plotsItem, name, name);
 
   //---
 
@@ -202,19 +208,97 @@ addItems()
   QTreeWidgetItem *commandsItem = addTopItem("Commands", "commands");
 
   for (const auto &command : CQChartsHelpDlgMgrInst->tclCommands())
-    addItem(commandsItem, command, "tcl_command");
+    addItem(commandsItem, command, command);
+}
+
+bool
+CQChartsHelpDlg::
+setCurrentSection(const QString &section, bool updateUndoRedo)
+{
+  QStringList parts = section.split("/");
+
+  QTreeWidgetItem *item = getTreeItem(nullptr, parts, 0);
+
+  if (! item)
+    return false;
+
+  //---
+
+  disconnect(tree_, SIGNAL(itemSelectionChanged()), this, SLOT(treeItemSlot()));
+
+  tree_->setCurrentItem(item, 0, QItemSelectionModel::ClearAndSelect);
+
+  connect(tree_, SIGNAL(itemSelectionChanged()), this, SLOT(treeItemSlot()));
+
+  loadSectionText();
+
+  //---
+
+  updateCurrentSection(section, updateUndoRedo);
+
+  return true;
+}
+
+void
+CQChartsHelpDlg::
+updateCurrentSection(const QString &section, bool updateUndoRedo)
+{
+  if (section != currentSection_) {
+    if (updateUndoRedo) {
+      if (currentSection_ != "") {
+        undoSections_.push_back(currentSection_);
+        redoSections_.clear();
+
+        updatePrevNext();
+      }
+    }
+
+    currentSection_ = section;
+  }
 }
 
 void
 CQChartsHelpDlg::
 prevSlot()
 {
+  if (undoSections_.empty())
+    return;
+
+  QString section = undoSections_.back();
+
+  undoSections_.pop_back();
+
+  redoSections_.push_back(currentSection_);
+
+  setCurrentSection(section, /*updateUndoRedo*/false);
+
+  updatePrevNext();
 }
 
 void
 CQChartsHelpDlg::
 nextSlot()
 {
+  if (redoSections_.empty())
+    return;
+
+  QString section = redoSections_.back();
+
+  redoSections_.pop_back();
+
+  undoSections_.push_back(currentSection_);
+
+  setCurrentSection(section, /*updateUndoRedo*/false);
+
+  updatePrevNext();
+}
+
+void
+CQChartsHelpDlg::
+updatePrevNext()
+{
+  prevButton_->setEnabled(! undoSections_.empty());
+  nextButton_->setEnabled(! redoSections_.empty());
 }
 
 void
@@ -226,7 +310,32 @@ treeItemSlot()
 
   QTreeWidgetItem *item = items[0];
 
+  updateCurrentSection(itemPath(item));
+
+  //---
+
+  loadSectionText();
+}
+
+void
+CQChartsHelpDlg::
+loadSectionText()
+{
+  QList<QTreeWidgetItem *> items = tree_->selectedItems();
+  if (items.count() == 0) return;
+
+  QTreeWidgetItem *item = items[0];
+
   QString id = item->data(0, Qt::UserRole).toString();
+
+  QString parentId;
+
+  QTreeWidgetItem *parent = item->parent();
+
+  if (parent)
+    parentId = parent->data(0, Qt::UserRole).toString();
+
+  //---
 
   if      (id == "introduction") {
     setHtml(CQCharts::description());
@@ -234,44 +343,72 @@ treeItemSlot()
   else if (id == "models") {
     setHtml(CQChartsModelData::description());
   }
-  else if (id == "model_type") {
-    QString typeName = item->text(0);
-
-    setHtml(CQChartsModelData::typeDescription(typeName));
-  }
   else if (id == "column_types") {
     setHtml(CQChartsColumnTypeMgr::description());
-  }
-  else if (id == "column_type") {
-    QString typeName = item->text(0);
-
-    CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
-
-    const CQChartsColumnType *type = columnTypeMgr->getNamedType(typeName);
-    assert(type);
-
-    setHtml(type->description());
   }
   else if (id == "view") {
     setHtml(CQChartsView::description());
   }
-  else if (id == "plot_type") {
-    QString typeName = item->text(0);
+  else if (id == "commands") {
+  }
+  else if (parentId == "models") {
+    setHtml(CQChartsModelData::typeDescription(id));
+  }
+  else if (parentId == "column_types") {
+    CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-    CQChartsPlotType *type = charts_->plotType(typeName);
+    const CQChartsColumnType *type = columnTypeMgr->getNamedType(id);
     assert(type);
 
     setHtml(type->description());
   }
+  else if (parentId == "plot_types") {
+    CQChartsPlotType *type = charts_->plotType(id);
+    assert(type);
+
+    setHtml(type->description());
+  }
+  else if (parentId == "commands") {
+  }
+}
+
+QString
+CQChartsHelpDlg::
+itemPath(QTreeWidgetItem *item) const
+{
+  QString name = item->data(0, Qt::UserRole).toString();
+
+  QTreeWidgetItem *parent = item->parent();
+
+  if (parent)
+    name = itemPath(parent) + "/" + name;
+
+  return name;
 }
 
 void
 CQChartsHelpDlg::
 setHtml(const QString &text)
 {
-  text_->setHtml(text);
+  int pos = text.indexOf("@CHARTS_DOC_PATH@");
 
-std::cerr << text.toStdString() << "\n";
+  if (pos >= 0) {
+    QString text1 = text;
+
+    while (pos >= 0) {
+      QString lhs = text1.mid(0, pos);
+      QString rhs = text1.mid(pos + 17, pos);
+
+      text1 = lhs + "/home/colinw/dev/progs/charts/doc/CQCharts" + rhs;
+
+      pos = text1.indexOf("@CHARTS_DOC_PATH@");
+    }
+
+    text_->setHtml(text1);
+  }
+  else
+    text_->setHtml(text);
+//std::cerr << text.toStdString() << "\n";
 }
 
 void
@@ -281,7 +418,7 @@ treeAnchorSlot(const QUrl &url)
   QString chartsPrefix("charts://");
 
   QString str = url.toString();
-std::cerr << str.toStdString() << "\n";
+//std::cerr << str.toStdString() << "\n";
 
   if (str.startsWith(chartsPrefix)) {
     QString str1 = str.mid(chartsPrefix.length());
@@ -289,21 +426,16 @@ std::cerr << str.toStdString() << "\n";
     if (str1.startsWith("column_type/")) {
       QString dest = str1.mid(12);
 
-      selectTreeItem("Models/Types/" + dest);
+      setCurrentSection("Models/Types/" + dest);
     }
   }
 }
 
 void
 CQChartsHelpDlg::
-selectTreeItem(const QString &path) const
+selectTreeItem(const QString &path)
 {
-  QStringList parts = path.split("/");
-
-  QTreeWidgetItem *item = getTreeItem(nullptr, parts, 0);
-
-  if (item)
-    tree_->setCurrentItem(item, 0, QItemSelectionModel::ClearAndSelect);
+  setCurrentSection(path);
 }
 
 QTreeWidgetItem *
@@ -321,7 +453,9 @@ getTreeItem(QTreeWidgetItem *parent, const QStringList &parts, int ind) const
     for (int i = 0; i < n; ++i) {
       QTreeWidgetItem *item = tree_->topLevelItem(i);
 
-      if (item->text(0) == part)
+      QString id = item->data(0, Qt::UserRole).toString();
+
+      if (part == id)
         return getTreeItem(item, parts, ind + 1);
     }
   }
@@ -331,7 +465,9 @@ getTreeItem(QTreeWidgetItem *parent, const QStringList &parts, int ind) const
     for (int i = 0; i < n; ++i) {
       QTreeWidgetItem *item = parent->child(i);
 
-      if (item->text(0) == part)
+      QString id = item->data(0, Qt::UserRole).toString();
+
+      if (part == id)
         return getTreeItem(item, parts, ind + 1);
     }
   }

@@ -30,10 +30,16 @@ QString
 CQChartsSunburstPlotType::
 description() const
 {
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
+
   return CQChartsHtml().
    h2("Sunburst Plot").
     h3("Summary").
-     p("Draw hierarchical data as segments of concentric circles.");
+     p("Draw hierarchical data as segments of concentric circles.").
+    h3("Limitations").
+     p("None.").
+    h3("Example").
+     p(IMG("images/sunburst.png"));
 }
 
 CQChartsPlot *

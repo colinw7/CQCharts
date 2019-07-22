@@ -95,8 +95,9 @@ QString
 CQChartsBoxPlotType::
 description() const
 {
-  auto B  = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
-  auto LI = [](const QString &str) { return CQChartsHtml::Str(str); };
+  auto B   = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto LI  = [](const QString &str) { return CQChartsHtml::Str(str); };
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
    h2("Box Plot").
@@ -123,7 +124,9 @@ description() const
     h3("Customization").
      p("The box, outlier and data points can be styled (fill and stroke)").
     h3("Limitations").
-     p("The plot does not support logarithmic x values.");
+     p("The plot does not support logarithmic x values.").
+    h3("Example").
+     p(IMG("images/boxplot.png"));
 }
 
 CQChartsPlot *

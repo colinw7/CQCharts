@@ -1,13 +1,13 @@
-# date,value,indexLabel,markerColor,markerType
+# date,value,indexLabel,symbolColor,symbolType,fontSize,image
 20120101,450
 20120201,414
 20120301,520,highest,#ff0000,triangle,30
 20120401,460
 20120501,450
-20120601,500
+20120601,500,,,,,data/zoomin.png
 20120701,480
 20120801,480
 20120901,410,lowest,#3b3b3b,cross,20
 20121001,500
-20121101,480
+20121101,480,,,,,data/zoomout.png
 20121201,510

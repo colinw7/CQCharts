@@ -699,7 +699,9 @@ QString
 CQChartsColumnStringType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("String").
+    p("Specifies that the column values are strings.");
 }
 
 QVariant
@@ -739,7 +741,9 @@ QString
 CQChartsColumnBooleanType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Boolean").
+    p("Specifies that the column values are booleans.");
 }
 
 QVariant
@@ -787,7 +791,9 @@ QString
 CQChartsColumnRealType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Real").
+    p("Specifies that the column values are real (double precision) numbers.");
 }
 
 QVariant
@@ -920,7 +926,9 @@ QString
 CQChartsColumnIntegerType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Real").
+    p("Specifies that the column values are integer numbers.");
 }
 
 QVariant
@@ -1002,7 +1010,9 @@ QString
 CQChartsColumnTimeType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Time").
+    p("Specifies that the column values are time values.");
 }
 
 QVariant
@@ -1129,7 +1139,9 @@ QString
 CQChartsColumnRectType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Rectangle").
+    p("Specifies that the column values are rectangle values.");
 }
 
 QVariant
@@ -1188,7 +1200,9 @@ QString
 CQChartsColumnPolygonType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Polygon").
+    p("Specifies that the column values are polygon values.");
 }
 
 QVariant
@@ -1247,7 +1261,9 @@ QString
 CQChartsColumnPolygonListType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Polygon List").
+    p("Specifies that the column values are lists of polygon values.");
 }
 
 QVariant
@@ -1316,7 +1332,9 @@ QString
 CQChartsColumnConnectionListType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Connection List").
+    p("Specifies that the column values are connection lists.");
 }
 
 QVariant
@@ -1385,7 +1403,9 @@ QString
 CQChartsColumnNamePairType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Name Pair").
+    p("Specifies that the column values are name value pairs.");
 }
 
 QVariant
@@ -1460,7 +1480,9 @@ QString
 CQChartsColumnPathType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Path").
+    p("Specifies that the column values are path definitions.");
 }
 
 QVariant
@@ -1513,7 +1535,9 @@ QString
 CQChartsColumnStyleType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Style").
+    p("Specifies that the column values are style definitions.");
 }
 
 QVariant
@@ -1574,7 +1598,9 @@ QString
 CQChartsColumnColorType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Color").
+    p("Specifies that the column values are color names.");
 }
 
 QVariant
@@ -1725,7 +1751,9 @@ QString
 CQChartsColumnImageType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Image").
+    p("Specifies that the column values are image names.");
 }
 
 QVariant
@@ -1786,7 +1814,9 @@ QString
 CQChartsColumnSymbolTypeType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Symbol Type").
+    p("Specifies that the column values are symbol types.");
 }
 
 QVariant
@@ -1906,7 +1936,9 @@ QString
 CQChartsColumnSymbolSizeType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Symbol Size").
+    p("Specifies that the column values are symbol sizes.");
 }
 
 QVariant
@@ -2037,7 +2069,9 @@ QString
 CQChartsColumnFontSizeType::
 description() const
 {
-  return CQChartsHtml();
+  return CQChartsHtml().
+   h2("Font Size").
+    p("Specifies that the column values are font sizes.");
 }
 
 QVariant

@@ -904,3 +904,7 @@
  + Fix missing data in write plot
  + Tree map text rendering improvements
  + XY show vector even if no points
+# 7/21/2019
+ + Improve conistency between xy and scatter plots
+ + Support interp on xy smoothed line
+ + Support images for xy and scatter symbols

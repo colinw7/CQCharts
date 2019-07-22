@@ -45,10 +45,16 @@ QString
 CQChartsDelaunayPlotType::
 description() const
 {
+  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
+
   return CQChartsHtml().
    h2("Delaunay Plot").
     h3("Summary").
-     p("Draws delaunay triangulation for a set of points.");
+     p("Draws delaunay triangulation for a set of points.").
+    h3("Limitations").
+     p("None.").
+    h3("Example").
+     p(IMG("images/delaunay.png"));
 }
 
 CQChartsPlot *

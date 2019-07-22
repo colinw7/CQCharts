@@ -3252,6 +3252,27 @@ createObjs()
 
 void
 CQChartsPlot::
+updateColumnNames()
+{
+  setColumnHeaderName(idColumn   (), "Id"   );
+  setColumnHeaderName(colorColumn(), "Color");
+  setColumnHeaderName(imageColumn(), "Image");
+}
+
+void
+CQChartsPlot::
+setColumnHeaderName(const CQChartsColumn &column, const QString &def)
+{
+  bool ok;
+
+  QString str = modelHeaderString(column, ok);
+  if (! str.length()) str = def;
+
+  columnNames_[column] = str;
+}
+
+void
+CQChartsPlot::
 initObjTree()
 {
   CQPerfTrace trace("CQChartsPlot::initObjTree");

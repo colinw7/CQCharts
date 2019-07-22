@@ -1,9 +1,10 @@
 High
+ + Pivot chart
+ + Add base class for shared code between xy/scatter
  + Scaled rotated text
  + Improve edit arrow annotation preview
  + Create View or Plot Annotation
  + Edit View Annotation with mouse
- + Border Sides
  + Multiline text in box formatting (tree map/bubble text + value)
    + Standard library for this
  + Move Layer painter to standard library
