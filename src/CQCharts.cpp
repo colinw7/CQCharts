@@ -805,6 +805,15 @@ removeModelData(ModelP &model)
   if (! modelData)
     return false;
 
+  return removeModelData(modelData);
+}
+
+bool
+CQCharts::
+removeModelData(CQChartsModelData *modelData)
+{
+  int ind = modelData->ind();
+
   int i = 0;
   int n = modelDatas_.size();
 
@@ -824,6 +833,8 @@ removeModelData(ModelP &model)
   modelDatas_.pop_back();
 
   delete modelData;
+
+  emit modelDataRemoved(ind);
 
   return true;
 }

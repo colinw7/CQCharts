@@ -14,12 +14,15 @@
 
 namespace CQTclUtil {
 
-
 using Vars = std::vector<QVariant>;
+
+//---
 
 inline int eval(Tcl_Interp *interp, const QString &str) {
   return Tcl_EvalEx(interp, str.toLatin1().constData(), -1, 0);
 }
+
+//---
 
 inline QString modelIndexToString(const QModelIndex &ind) {
   int row = ind.row   ();
@@ -27,6 +30,8 @@ inline QString modelIndexToString(const QModelIndex &ind) {
 
   return QString("%1:%2").arg(row).arg(col);
 }
+
+//---
 
 inline bool stringToModelIndex(const QString &str, int &row, int &col) {
   int pos = str.indexOf(':');
@@ -44,6 +49,8 @@ inline bool stringToModelIndex(const QString &str, int &row, int &col) {
 
   return (ok1 && ok2);
 }
+
+//---
 
 inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   if      (var.type() == QVariant::Double) {
@@ -157,6 +164,8 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   }
 }
 
+//---
+
 inline QVariant variantFromObj(Tcl_Interp *interp, const Tcl_Obj *obj) {
   static const Tcl_ObjType *itype;
   static const Tcl_ObjType *rtype;
@@ -231,6 +240,8 @@ inline QVariant variantFromObj(Tcl_Interp *interp, const Tcl_Obj *obj) {
   return var;
 }
 
+//---
+
 inline void createVar(Tcl_Interp *interp, const QString &name, const QVariant &var) {
   if (var.isValid()) {
     Tcl_Obj *nameObj  = variantToObj(interp, name);
@@ -241,6 +252,8 @@ inline void createVar(Tcl_Interp *interp, const QString &name, const QVariant &v
     Tcl_IncrRefCount(nameObj); Tcl_DecrRefCount(nameObj);
   }
 }
+
+//---
 
 inline QVariant getVar(Tcl_Interp *interp, const QString &name) {
   Tcl_Obj *nameObj = variantToObj(interp, name);
@@ -254,6 +267,8 @@ inline QVariant getVar(Tcl_Interp *interp, const QString &name) {
 
   return variantFromObj(interp, obj);
 }
+
+//---
 
 inline Vars getListVar(Tcl_Interp *interp, const QString &name) {
   Tcl_Obj *obj = Tcl_ObjGetVar2(interp, variantToObj(interp, name), nullptr, TCL_GLOBAL_ONLY);
@@ -278,10 +293,14 @@ inline Vars getListVar(Tcl_Interp *interp, const QString &name) {
   return vars;
 }
 
+//---
+
 inline void setResult(Tcl_Interp *interp, const QVariant &var) {
   if (var.isValid())
     Tcl_SetObjResult(interp, variantToObj(interp, var));
 }
+
+//---
 
 inline void setResult(Tcl_Interp *interp, const QStringList &strs) {
   Tcl_Obj *obj = variantToObj(interp, strs);
@@ -289,11 +308,15 @@ inline void setResult(Tcl_Interp *interp, const QStringList &strs) {
   Tcl_SetObjResult(interp, obj);
 }
 
+//---
+
 inline void setResult(Tcl_Interp *interp, const QVariantList &vars) {
   Tcl_Obj *obj = variantToObj(interp, vars);
 
   Tcl_SetObjResult(interp, obj);
 }
+
+//---
 
 inline QVariant getResult(Tcl_Interp *interp) {
   Tcl_Obj *res = Tcl_GetObjResult(interp);
@@ -307,6 +330,8 @@ inline QVariant getResult(Tcl_Interp *interp) {
   return var;
 }
 
+//---
+
 inline double toReal(const QVariant &var, bool &ok) {
   ok = true;
 
@@ -317,6 +342,8 @@ inline double toReal(const QVariant &var, bool &ok) {
 
   return str.toDouble(&ok);
 }
+
+//---
 
 inline long toInt(const QVariant &var, bool &ok) {
   ok = true;
@@ -499,11 +526,12 @@ class CQTcl : public CTcl {
     ClientData data =
       Tcl_VarTraceInfo(interp(), name.toLatin1().constData(), flags, &CQTcl::traceProc, 0);
 
-    if (! data)
+    if (! data) {
       Tcl_TraceVar(interp(), name.toLatin1().constData(), flags,
         &CQTcl::traceProc, (ClientData) this);
 
-    traces_.insert(name);
+      traces_.insert(name);
+    }
   }
 
   void untraceVar(const QString &name) {

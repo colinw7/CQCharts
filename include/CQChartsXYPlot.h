@@ -216,7 +216,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   //---
 
-  // get/set associated line object
+  // get/set associated label object
   const CQChartsXYLabelObj *labelObj() const { return labelObj_; }
   void setLabelObj(const CQChartsXYLabelObj *obj) { labelObj_ = obj; }
 

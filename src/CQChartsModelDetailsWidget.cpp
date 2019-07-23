@@ -56,7 +56,7 @@ setDetails(const CQChartsModelDetails *details)
   if (details_)
     disconnect(details_, SIGNAL(detailsReset()), this, SLOT(invalidateSlot()));
 
-  details_ = details;
+  details_ = const_cast<CQChartsModelDetails *>(details);
 
   if (details_)
     connect(details_, SIGNAL(detailsReset()), this, SLOT(invalidateSlot()));

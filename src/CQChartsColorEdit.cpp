@@ -163,7 +163,7 @@ setEditorData(CQPropertyViewItem *item, const QVariant &value)
 
 void
 CQChartsColorPropertyViewType::
-draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
+draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
      const QStyleOptionViewItem &option, const QModelIndex &ind,
      const QVariant &value, bool inside)
 {
@@ -171,17 +171,42 @@ draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
 
   CQChartsColor color = value.value<CQChartsColor>();
 
+  int x = option.rect.left();
+
+  //---
+
+  // draw color if can be directly determined
+  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(item->object());
+
+  if (plot && color.isDirect()) {
+    QRect rect = option.rect;
+
+    rect.setWidth(option.rect.height());
+
+    rect.adjust(0, 1, -3, -2);
+
+    painter->fillRect(rect, QBrush(plot->interpColor(color, CQChartsUtil::ColorInd())));
+
+    painter->setPen(QColor(0,0,0)); // TODO: contrast border
+
+    painter->drawRect(rect);
+
+    x = rect.right() + 2;
+  }
+
+  //---
+
   QString str = color.colorStr();
 
-  QFontMetricsF fm(option.font);
+  QFontMetrics fm(option.font);
 
-  double w = fm.width(str);
+  int w = fm.width(str);
 
   //---
 
   QStyleOptionViewItem option1 = option;
 
-  option1.rect.setRight(option1.rect.left() + w + 8);
+  option1.rect = QRect(x, option1.rect.top(), w + 8, option1.rect.height());
 
   delegate->drawString(painter, option1, str, ind, inside);
 }

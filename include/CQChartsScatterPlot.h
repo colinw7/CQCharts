@@ -90,7 +90,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   //---
 
-  // make
+  // image
   const QImage &image() const { return image_; }
   void setImage(const QImage &i) { image_ = i; }
 

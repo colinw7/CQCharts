@@ -20,6 +20,7 @@
 #include <CQChartsEditHandles.h>
 #include <CQChartsVariant.h>
 #include <CQChartsTip.h>
+#include <CQChartsDrawUtil.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
 
@@ -7887,20 +7888,7 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, do
       ipainter.setPen  (imageBuffer.pen  );
       ipainter.setBrush(imageBuffer.brush);
 
-      QPointF p1(size, size);
-
-      CQChartsSymbol2DRenderer srenderer(&ipainter, CQChartsUtil::fromQPoint(p1), size);
-
-      if (painter->brush().style() != Qt::NoBrush) {
-        CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer);
-
-        if (painter->pen().style() != Qt::NoPen)
-          CQChartsPlotSymbolMgr::strokeSymbol(symbol, &srenderer);
-      }
-      else {
-        if (painter->pen().style() != Qt::NoPen)
-          CQChartsPlotSymbolMgr::drawSymbol(symbol, &srenderer);
-      }
+      CQChartsDrawUtil::drawSymbol(&ipainter, symbol, QPointF(size, size), QSizeF(size, size));
     }
 
     double is = imageBuffer.isize/2.0;
@@ -7908,18 +7896,7 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, do
     painter->drawImage(p.x() - is, p.y() - is, imageBuffer.image);
   }
   else {
-    CQChartsSymbol2DRenderer srenderer(painter, CQChartsUtil::fromQPoint(p), size);
-
-    if (painter->brush().style() != Qt::NoBrush) {
-      CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer);
-
-      if (painter->pen().style() != Qt::NoPen)
-        CQChartsPlotSymbolMgr::strokeSymbol(symbol, &srenderer);
-    }
-    else {
-      if (painter->pen().style() != Qt::NoPen)
-        CQChartsPlotSymbolMgr::drawSymbol(symbol, &srenderer);
-    }
+    CQChartsDrawUtil::drawSymbol(painter, symbol, p, QSizeF(size, size));
   }
 }
 

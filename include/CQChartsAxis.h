@@ -324,8 +324,6 @@ class CQChartsAxis : public CQChartsObj,
   double calcEnd      () const { updateCalc(); return calcEnd_      ; }
   double calcIncrement() const { updateCalc(); return calcIncrement_; }
 
-  void updateCalc();
-
   //---
 
   double majorTickIncrement() const;

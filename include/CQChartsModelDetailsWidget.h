@@ -2,6 +2,7 @@
 #define CQChartsModelDetailsWidget_H
 
 #include <QFrame>
+#include <QPointer>
 
 class CQChartsModelDetails;
 class CQCharts;
@@ -30,11 +31,13 @@ class CQChartsModelDetailsWidget : public QFrame {
   void updateSlot();
 
  private:
-  CQCharts*                   charts_       { nullptr };
-  const CQChartsModelDetails* details_      { nullptr };
-  QPushButton*                updateButton_ { nullptr };
-  QTextEdit*                  detailsText_  { nullptr };
-  CQTableWidget*              detailsTable_ { nullptr };
+  using ModelDetailsP = QPointer<CQChartsModelDetails>;
+
+  CQCharts*      charts_       { nullptr };
+  ModelDetailsP  details_;
+  QPushButton*   updateButton_ { nullptr };
+  QTextEdit*     detailsText_  { nullptr };
+  CQTableWidget* detailsTable_ { nullptr };
 };
 
 #endif

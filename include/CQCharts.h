@@ -204,6 +204,8 @@ class CQCharts : public QObject {
 
   void setModelFileName(CQChartsModelData *modelData, const QString &fileName);
 
+  bool removeModelData(CQChartsModelData *modelData);
+
   //---
 
   CQChartsView *addView(const QString &id="");
@@ -270,6 +272,7 @@ class CQCharts : public QObject {
 
  signals:
   void modelDataAdded(int);
+  void modelDataRemoved(int);
 
   void currentModelChanged(int);
 

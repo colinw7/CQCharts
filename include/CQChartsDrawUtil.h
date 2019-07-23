@@ -2,6 +2,7 @@
 #define CQChartsDrawUtil_H
 
 #include <CQChartsTextOptions.h>
+#include <CQChartsSymbol.h>
 #include <QString>
 #include <QRectF>
 #include <QFont>
@@ -34,6 +35,12 @@ void drawCenteredText(QPainter *painter, const QPointF &pos, const QString &text
 void drawSimpleText(QPainter *painter, double x, double y, const QString &text);
 
 void drawSimpleText(QPainter *painter, const QPointF &pos, const QString &text);
+
+void drawSymbol(QPainter *painter, const CQChartsSymbol &symbol, const QRectF &rect);
+void drawSymbol(QPainter *painter, const CQChartsSymbol &symbol,
+                const QPointF &c, const QSizeF &size);
+void drawSymbol(QPainter *painter, const CQChartsSymbol &symbol,
+                double cx, double cy, double sw, double sh);
 
 }
 

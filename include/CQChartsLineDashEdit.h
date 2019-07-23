@@ -29,7 +29,7 @@ class CQChartsLineDashEdit : public QFrame {
 
   void addDashOption(const std::string &id, const CQChartsLineDash &dash);
 
-  static QIcon dashIcon(const CQChartsLineDash &dash);
+  static QIcon dashIcon(const CQChartsLineDash &dash, bool bg=true);
 
  private:
   void updateState();
@@ -84,7 +84,7 @@ class CQChartsLineDashPropertyViewType : public CQPropertyViewType {
 
   bool setEditorData(CQPropertyViewItem *item, const QVariant &value) override;
 
-  void draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
+  void draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
             const QStyleOptionViewItem &option, const QModelIndex &index,
             const QVariant &value, bool inside) override;
 

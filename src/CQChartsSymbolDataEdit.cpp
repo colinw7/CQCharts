@@ -6,6 +6,7 @@
 #include <CQChartsFillDataEdit.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsDrawUtil.h>
 #include <CQCharts.h>
 
 #include <CQPropertyView.h>
@@ -452,20 +453,9 @@ draw(QPainter *painter, const CQChartsSymbolData &data, const QRect &rect,
   //---
 
   // draw symbol
-  CQChartsGeom::Point p(rect.center().x(), rect.center().y());
+  QPointF p(rect.center().x(), rect.center().y());
 
   double size = data.size().value();
 
-  CQChartsSymbol2DRenderer srenderer(painter, p, size);
-
-  if (data.fill().isVisible()) {
-    CQChartsPlotSymbolMgr::fillSymbol(data.type(), &srenderer);
-
-    if (data.stroke().isVisible())
-      CQChartsPlotSymbolMgr::strokeSymbol(data.type(), &srenderer);
-  }
-  else {
-    if (data.stroke().isVisible())
-      CQChartsPlotSymbolMgr::drawSymbol(data.type(), &srenderer);
-  }
+  CQChartsDrawUtil::drawSymbol(painter, data.type(), p, QSizeF(size, size));
 }

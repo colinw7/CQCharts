@@ -4,6 +4,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsModelUtil.h>
+#include <CQChartsDrawUtil.h>
 #include <CQCharts.h>
 
 #include <QCheckBox>
@@ -232,20 +233,11 @@ drawSymbol(QPainter *painter, const QStyleOptionViewItem &option,
 
   painter->setPen(QColor(0,0,0)); // TODO: contrast border
 
-  CQChartsGeom::Point c = CQChartsUtil::fromQPoint(rect.center());
-
   if (symbol.isValid()) {
-    CQChartsSymbol2DRenderer srenderer(painter, c, rect.height()/2.0);
+    painter->setBrush(Qt::NoBrush);
 
-    bool filled = false;
-
-    if (filled) {
-      CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer);
-
-      CQChartsPlotSymbolMgr::strokeSymbol(symbol, &srenderer);
-    }
-    else
-      CQChartsPlotSymbolMgr::drawSymbol(symbol, &srenderer);
+    CQChartsDrawUtil::drawSymbol(painter, symbol, QPointF(rect.center()),
+                                 QSizeF(rect.height(), rect.height()));
   }
 
   QFontMetrics fm(painter->font());

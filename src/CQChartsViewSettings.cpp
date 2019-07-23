@@ -604,6 +604,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   CQCharts *charts = view->charts();
 
   connect(charts, SIGNAL(modelDataAdded(int)), this, SLOT(updateModels()));
+  connect(charts, SIGNAL(modelDataRemoved(int)), this, SLOT(updateModels()));
   connect(charts, SIGNAL(currentModelChanged(int)), this, SLOT(invalidateModelDetails()));
   connect(charts, SIGNAL(modelNameChanged(const QString &)), this, SLOT(updateModels()));
 

@@ -2616,14 +2616,7 @@ draw(QPainter *painter)
     psh = view()->lengthPixelHeight(sh);
   }
 
-  CQChartsSymbol2DRenderer srenderer(painter, CQChartsGeom::Point(px, py),
-                                     CMathUtil::avg(psw, psh));
-
-  if (painter->brush().style() != Qt::NoBrush)
-    CQChartsPlotSymbolMgr::fillSymbol(symbolData.type(), &srenderer);
-
-  if (painter->pen().style() != Qt::NoPen)
-    CQChartsPlotSymbolMgr::drawSymbol(symbolData.type(), &srenderer);
+  CQChartsDrawUtil::drawSymbol(painter, symbolData.type(), px, py, psw, psh);
 
   //---
 

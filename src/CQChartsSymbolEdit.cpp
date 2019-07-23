@@ -1,10 +1,12 @@
 #include <CQChartsSymbolEdit.h>
+#include <CQChartsDrawUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQUtil.h>
 
 #include <QComboBox>
 #include <QHBoxLayout>
+#include <QPainter>
 
 CQChartsSymbolEdit::
 CQChartsSymbolEdit(QWidget *parent) :
@@ -96,7 +98,7 @@ setEditorData(CQPropertyViewItem *item, const QVariant &value)
 
 void
 CQChartsSymbolPropertyViewType::
-draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
+draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *painter,
      const QStyleOptionViewItem &option, const QModelIndex &ind,
      const QVariant &value, bool inside)
 {
@@ -104,17 +106,34 @@ draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
 
   CQChartsSymbol symbol = value.value<CQChartsSymbol>();
 
+  //---
+
+  // draw symbol
+  int ss = std::max(option.rect.height()/2 - 1, 1);
+
+  QRect rect1(option.rect.left(), option.rect.center().y() - ss, 2*ss, 2*ss);
+
+  painter->setPen  (Qt::black);
+  painter->setBrush(Qt::white);
+
+  CQChartsDrawUtil::drawSymbol(painter, symbol, rect1);
+
+  int x = rect1.right() + 2;
+
+  //--
+
+  // draw symbol name
   QString str = symbol.toString();
 
-  QFontMetricsF fm(option.font);
+  QFontMetrics fm(option.font);
 
-  double w = fm.width(str);
+  int w = fm.width(str);
 
   //---
 
   QStyleOptionViewItem option1 = option;
 
-  option1.rect.setRight(option1.rect.left() + w + 8);
+  option1.rect = QRect(x, option1.rect.top(), w + 8, option1.rect.height());
 
   delegate->drawString(painter, option1, str, ind, inside);
 }

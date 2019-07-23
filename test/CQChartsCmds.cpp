@@ -98,6 +98,7 @@ addCommands()
     addCommand("copy_charts_model"   , new CQChartsCopyChartsModelCmd   (this));
     addCommand("export_charts_model" , new CQChartsExportChartsModelCmd (this));
     addCommand("write_charts_model"  , new CQChartsWriteChartsModelCmd  (this));
+    addCommand("remove_charts_model" , new CQChartsRemoveChartsModelCmd (this));
 
     // define charts tcl proc
     addCommand("define_charts_proc", new CQChartsDefineChartsProcCmd(this));
@@ -4070,6 +4071,48 @@ exportChartsModelCmd(CQChartsCmdArgs &argv)
   }
   else
     return errorMsg("Invalid output format");
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+removeChartsModelCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::removeChartsModelCmd");
+
+  argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  int modelInd = argv.getParseInt("model" , -1);
+
+  //------
+
+  // get model
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
+
+  if (! modelData)
+    return errorMsg("No model data");
+
+  if (! charts_->removeModelData(modelData))
+    return errorMsg("Failed to remove model");
+
+  //---
 
   return true;
 }

@@ -119,6 +119,15 @@ class CQChartsColor {
 
   //---
 
+  bool isDirect() const {
+    return (type_ == Type::PALETTE_VALUE   ||
+            type_ == Type::INDEXED_VALUE   ||
+            type_ == Type::INTERFACE_VALUE ||
+            type_ == Type::COLOR);
+  }
+
+  //---
+
   //! get/set color string
   QString colorStr() const;
   bool setColorStr(const QString &str);
