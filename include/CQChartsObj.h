@@ -8,6 +8,8 @@
 #include <boost/optional.hpp>
 
 class CQChartsPlot;
+class CQCharts;
+
 class QPainter;
 
 /*!
@@ -23,7 +25,11 @@ class CQChartsObj : public QObject {
   Q_PROPERTY(bool    inside   READ isInside   WRITE setInside  )
 
  public:
-  CQChartsObj(QObject *parent=nullptr, const CQChartsGeom::BBox &rect=CQChartsGeom::BBox());
+  CQChartsObj(CQCharts *charts, const CQChartsGeom::BBox &rect=CQChartsGeom::BBox());
+
+  //---
+
+  CQCharts *charts() const { return charts_; }
 
   //---
 
@@ -84,12 +90,13 @@ class CQChartsObj : public QObject {
  protected:
   using OptString = boost::optional<QString>;
 
-  OptString          id_;                 //!< id
-  CQChartsGeom::BBox rect_;               //!< bbox
-  OptString          tipId_;              //!< tip id
-  bool               selected_ { false }; //!< is selected
-  bool               inside_   { false }; //!< is mouse inside
-  mutable std::mutex mutex_;              //!< mutex
+  CQCharts*          charts_   { nullptr }; //!< charts
+  OptString          id_;                   //!< id
+  CQChartsGeom::BBox rect_;                 //!< bbox
+  OptString          tipId_;                //!< tip id
+  bool               selected_ { false };   //!< is selected
+  bool               inside_   { false };   //!< is mouse inside
+  mutable std::mutex mutex_;                //!< mutex
 };
 
 #endif

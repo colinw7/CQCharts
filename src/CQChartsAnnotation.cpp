@@ -177,7 +177,10 @@ writeProperties(std::ostream &os, const QString &varName) const
 {
   CQPropertyViewModel::NameValues nameValues;
 
-  propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
+  CQPropertyViewModel *propertyModel = this->propertyModel();
+
+  if (propertyModel)
+    propertyModel->getChangedNameValues(this, nameValues, /*tcl*/true);
 
   if (nameValues.empty())
     return;
@@ -2373,9 +2376,12 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   //---
 
   // write arrow properties
+  CQPropertyViewModel *propertyModel = this->propertyModel();
+
   CQPropertyViewModel::NameValues nameValues;
 
-  propertyModel()->getChangedNameValues(this, arrow_, nameValues, /*tcl*/true);
+  if (propertyModel)
+    propertyModel->getChangedNameValues(this, arrow_, nameValues, /*tcl*/true);
 
   if (nameValues.empty())
     return;

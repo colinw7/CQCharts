@@ -5,7 +5,7 @@
 CQChartsPlotObj::
 CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect, const ColorInd &is,
                 const ColorInd &ig, const ColorInd &iv) :
- CQChartsObj(nullptr, rect), plot_(plot), is_(is), ig_(ig), iv_(iv)
+ CQChartsObj(plot->charts(), rect), plot_(plot), is_(is), ig_(ig), iv_(iv)
 {
   assert(! CMathUtil::isNaN(rect.getXMin()) && ! CMathUtil::isNaN(rect.getYMin()) &&
          ! CMathUtil::isNaN(rect.getXMax()) && ! CMathUtil::isNaN(rect.getYMax()));

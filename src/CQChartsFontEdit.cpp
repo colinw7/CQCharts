@@ -1,7 +1,10 @@
 #include <CQChartsFontEdit.h>
 #include <CQChartsPlot.h>
+#include <CQChartsView.h>
+#include <CQChartsBoxObj.h>
 #include <CQChartsUtil.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsDrawUtil.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -166,7 +169,7 @@ setEditorData(CQPropertyViewItem *item, const QVariant &value)
 
 void
 CQChartsFontPropertyViewType::
-draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *painter,
+draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
      const QStyleOptionViewItem &option, const QModelIndex &ind,
      const QVariant &value, bool inside)
 {
@@ -174,19 +177,57 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   CQChartsFont font = value.value<CQChartsFont>();
 
+  int x = option.rect.left();
+
+  //---
+
   QString str = font.toString();
 
   QFontMetricsF fm(option.font);
 
   double w = fm.width(str);
 
-  //---
-
   QStyleOptionViewItem option1 = option;
 
   option1.rect.setRight(option1.rect.left() + w + 8);
 
   delegate->drawString(painter, option1, str, ind, inside);
+
+  //---
+
+  CQChartsView   *view = qobject_cast<CQChartsView   *>(item->object());
+  CQChartsPlot   *plot = qobject_cast<CQChartsPlot   *>(item->object());
+  CQChartsBoxObj *box  = qobject_cast<CQChartsBoxObj *>(item->object());
+
+  if (box) {
+    plot = box->plot();
+    view = box->view();
+  }
+
+  //---
+
+  painter->save();
+
+  x = option1.rect.right();
+
+  option1.rect = QRect(x, option.rect.top(), option.rect.width() - w - 8, option.rect.height());
+
+  CQChartsTextOptions textOptions;
+
+  textOptions.scaled  = true;
+  textOptions.align   = Qt::AlignLeft | Qt::AlignVCenter;
+  textOptions.clipped = true;
+
+  if      (plot)
+    painter->setFont(plot->view()->plotFont(plot, font));
+  else if (view)
+    painter->setFont(view->viewFont(font));
+  else
+    painter->setFont(font.font());
+
+  CQChartsDrawUtil::drawTextInBox(painter, option1.rect, "Abc", textOptions);
+
+  painter->restore();
 }
 
 QString

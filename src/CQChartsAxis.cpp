@@ -24,7 +24,7 @@ int boolFactor(bool b) { return (b ? 1 : -1); }
 
 CQChartsAxis::
 CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction, double start, double end) :
- CQChartsObj(const_cast<CQChartsPlot *>(plot)),
+ CQChartsObj(plot->charts()),
  CQChartsObjAxesLineData         <CQChartsAxis>(this),
  CQChartsObjAxesTickLabelTextData<CQChartsAxis>(this),
  CQChartsObjAxesLabelTextData    <CQChartsAxis>(this),

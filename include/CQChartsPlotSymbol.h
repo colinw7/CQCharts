@@ -91,6 +91,9 @@ class CQChartsPlotSymbolRenderer {
 
   virtual double lineWidth() const { return 0.0; }
 
+  virtual void save   () const { }
+  virtual void restore() const { }
+
   void drawSymbol  (CQChartsSymbol type);
   void strokeSymbol(CQChartsSymbol type);
   void fillSymbol  (CQChartsSymbol type);
@@ -130,6 +133,9 @@ class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
 
   double lineWidth() const override;
 
+  void save   () const;
+  void restore() const;
+
  private:
   QPainter*           painter_ { nullptr };  //!< painter
   CQChartsGeom::Point p_       { 0.0, 0.0 }; //!< symbol center
@@ -138,6 +144,7 @@ class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
   QPainterPath        path_;                 //!< path
   QPen                strokePen_;            //!< stroke pen
   QBrush              fillBrush_;            //!< fill brush
+  mutable bool        saved_   { false };    //!< saved
 };
 
 #endif

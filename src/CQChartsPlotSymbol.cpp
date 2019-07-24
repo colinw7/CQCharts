@@ -144,6 +144,8 @@ class CQChartsPlotSymbolList {
 
     const CQChartsPlotSymbol &s = getSymbol(type);
 
+    renderer->save();
+
     bool connect = false;
 
     for (const auto &l : s.fillLines) {
@@ -175,6 +177,8 @@ class CQChartsPlotSymbolList {
       else
         connect = true;
     }
+
+    renderer->restore();
   }
 
   void drawWideLine(CQChartsPlotSymbolRenderer *renderer, const CQChartsPlotSymbol::Line &l,
@@ -454,6 +458,8 @@ void
 CQChartsSymbol2DRenderer::
 stroke()
 {
+  assert(saved_);
+
   painter_->strokePath(path_, strokePen_);
 }
 
@@ -461,6 +467,8 @@ void
 CQChartsSymbol2DRenderer::
 fill()
 {
+  assert(saved_);
+
   painter_->fillPath(path_, fillBrush_);
 }
 
@@ -470,13 +478,13 @@ drawPoint(double x, double y) const
 {
   QPointF p(p_.x + x*s_, p_.y + y*s_);
 
-  painter_->save();
+  save();
 
   painter_->setPen(strokePen_);
 
   painter_->drawPoint(p);
 
-  painter_->restore();
+  restore();
 }
 
 void
@@ -486,13 +494,13 @@ drawLine(double x1, double y1, double x2, double y2) const
   QPointF p1(p_.x + x1*s_, p_.y + y1*s_);
   QPointF p2(p_.x + x2*s_, p_.y + y2*s_);
 
-  painter_->save();
+  save();
 
   painter_->setPen(strokePen_);
 
   painter_->drawLine(p1, p2);
 
-  painter_->restore();
+  restore();
 }
 
 void
@@ -501,14 +509,14 @@ fillRect(double x1, double y1, double x2, double y2) const
 {
   QRectF rect(p_.x + x1*s_, p_.y + y1*s_, (x2 - x1)*s_, (y2 - y1)*s_);
 
-  painter_->save();
+  save();
 
   painter_->setBrush(fillBrush_);
   painter_->setPen  (Qt::NoPen);
 
   painter_->drawRect(rect);
 
-  painter_->restore();
+  restore();
 }
 
 void
@@ -517,14 +525,14 @@ strokeCircle(double x, double y, double r) const
 {
   QRectF rect(p_.x + (x - r)*s_, p_.y + (y - r)*s_, 2*r*s_, 2*r*s_);
 
-  painter_->save();
+  save();
 
   painter_->setBrush(Qt::NoBrush);
   painter_->setPen  (strokePen_);
 
   painter_->drawEllipse(rect);
 
-  painter_->restore();
+  restore();
 }
 
 void
@@ -533,14 +541,14 @@ fillCircle(double x, double y, double r) const
 {
   QRectF rect(p_.x + (x - r)*s_, p_.y + (y - r)*s_, 2*r*s_, 2*r*s_);
 
-  painter_->save();
+  save();
 
   painter_->setBrush(fillBrush_);
   painter_->setPen  (Qt::NoPen);
 
   painter_->drawEllipse(rect);
 
-  painter_->restore();
+  restore();
 }
 
 double
@@ -548,4 +556,26 @@ CQChartsSymbol2DRenderer::
 lineWidth() const
 {
   return w_;
+}
+
+void
+CQChartsSymbol2DRenderer::
+save() const
+{
+  assert(! saved_);
+
+  painter_->save();
+
+  saved_ = true;
+}
+
+void
+CQChartsSymbol2DRenderer::
+restore() const
+{
+  assert(saved_);
+
+  painter_->restore();
+
+  saved_ = false;
 }

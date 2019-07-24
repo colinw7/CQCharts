@@ -246,9 +246,9 @@ calcFont(const QFont &parentFont) const
     double pointSize = 0.0;
 
     if      (data_.sizeType == SizeType::INCREMENT)
-      pointSize = font.pointSize() + data_.size;
+      pointSize = font.pointSizeF() + data_.size;
     else if (data_.sizeType == SizeType::DECREMENT)
-      pointSize = font.pointSize() - data_.size;
+      pointSize = font.pointSizeF() - data_.size;
     else if (data_.sizeType == SizeType::EXPLICIT)
       pointSize = data_.size;
 

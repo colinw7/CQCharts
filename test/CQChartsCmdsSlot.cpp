@@ -8,7 +8,7 @@
 CQChartsCmdsSlot::
 CQChartsCmdsSlot(CQChartsCmds *cmds, CQChartsView *view, CQChartsPlot *plot,
                  const QString &procName) :
- cmds_(cmds), view_(view), plot_(plot), procName_(procName)
+ QObject(cmds), cmds_(cmds), view_(view), plot_(plot), procName_(procName)
 {
 }
 

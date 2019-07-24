@@ -908,3 +908,5 @@
  + Improve conistency between xy and scatter plots
  + Support interp on xy smoothed line
  + Support images for xy and scatter symbols
+# 7/24/2019
+ + improve draw of color, symbol, font and column editors

@@ -5,7 +5,6 @@
 #include <CQChartsKey.h>
 #include <CQChartsTitle.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsPlotSymbol.h>
 #include <CQChartsPlotObjTree.h>
 #include <CQChartsNoDataObj.h>
 #include <CQChartsAnnotation.h>
@@ -45,6 +44,7 @@
 
 CQChartsPlot::
 CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
+ CQChartsObj(view->charts()),
  CQChartsObjPlotShapeData<CQChartsPlot>(this),
  CQChartsObjDataShapeData<CQChartsPlot>(this),
  CQChartsObjFitShapeData <CQChartsPlot>(this),
@@ -3249,6 +3249,21 @@ createObjs()
     addPlotObject(obj);
 
   return true;
+}
+
+QString
+CQChartsPlot::
+columnHeaderName(const CQChartsColumn &column) const
+{
+  auto p = columnNames_.find(column);
+  if (p != columnNames_.end()) return (*p).second;
+
+  bool ok;
+
+  QString str = modelHeaderString(column, ok);
+  if (! ok) return "";
+
+  return str;
 }
 
 void

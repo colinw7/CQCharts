@@ -109,14 +109,20 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
   //---
 
   // draw symbol
-  int ss = std::max(option.rect.height()/2 - 1, 1);
+  painter->save();
+
+  int ss = std::max(option.rect.height()/2 - 2, 1);
 
   QRect rect1(option.rect.left(), option.rect.center().y() - ss, 2*ss, 2*ss);
+
+  painter->setClipRect(rect1.adjusted(-1, -1, 1, 1));
 
   painter->setPen  (Qt::black);
   painter->setBrush(Qt::white);
 
   CQChartsDrawUtil::drawSymbol(painter, symbol, rect1);
+
+  painter->restore();
 
   int x = rect1.right() + 2;
 

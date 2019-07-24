@@ -11,7 +11,7 @@
 
 CQChartsBoxObj::
 CQChartsBoxObj(CQChartsView *view) :
- CQChartsObj(view),
+ CQChartsObj(view->charts()),
  CQChartsObjBoxData<CQChartsBoxObj>(this),
  view_(view)
 {
@@ -19,7 +19,7 @@ CQChartsBoxObj(CQChartsView *view) :
 
 CQChartsBoxObj::
 CQChartsBoxObj(CQChartsPlot *plot) :
- CQChartsObj(plot),
+ CQChartsObj(plot->charts()),
  CQChartsObjBoxData<CQChartsBoxObj>(this),
  plot_(plot)
 {

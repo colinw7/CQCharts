@@ -262,21 +262,39 @@ setEditorData(CQPropertyViewItem *item, const QVariant &value)
 
 void
 CQChartsColumnsPropertyViewType::
-draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *painter,
+draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter *painter,
      const QStyleOptionViewItem &option, const QModelIndex &ind,
      const QVariant &value, bool inside)
 {
   delegate->drawBackground(painter, option, ind, inside);
 
   CQChartsColumns columns = value.value<CQChartsColumns>();
+  if (! columns.isValid()) return;
+
+  //---
 
   QString str = columns.toString();
+
+  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(item->object());
+
+  if (plot) {
+    QString str1;
+
+    for (const auto &column : columns.columns()) {
+      if (! str1.length())
+        str1 += ", ";
+
+      str1 += plot->columnHeaderName(column);
+    }
+
+    str += " (" + str1 + ")";
+  }
+
+  //---
 
   QFontMetricsF fm(option.font);
 
   double w = fm.width(str);
-
-  //---
 
   QStyleOptionViewItem option1 = option;
 
