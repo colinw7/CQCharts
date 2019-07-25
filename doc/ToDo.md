@@ -1,4 +1,5 @@
 High
+ + More help content
  + Pivot model and chart
  + Add base class for shared code between xy/scatter
  + Scaled rotated text

@@ -11,7 +11,9 @@
 #include <cmath>
 #include <sys/types.h>
 
-//! \brief Circle Pack Node
+/*!
+ * \brief Circle Pack Node
+ */
 class CQChartsCircleNode {
   public:
    CQChartsCircleNode(double r=1.0, double x=0.0, double y=0.0) :
@@ -36,14 +38,16 @@ class CQChartsCircleNode {
    }
 
   protected:
-   double r_ { 1.0 }; //!< node radius
-   double x_ { 0.0 }; //!< node x
-   double y_ { 0.0 }; //!< node y
+   double r_ { 1.0 }; //!< circle radius
+   double x_ { 0.0 }; //!< placed circle x
+   double y_ { 0.0 }; //!< placed circle y
 };
 
 //---
 
-//! \brief Circle Pack
+/*!
+ * \brief Pack circle nodes into smallest space
+ */
 template<typename NODE>
 class CQChartsCirclePack {
  public:
@@ -301,9 +305,9 @@ class CQChartsCirclePack {
   }
 
  private:
-  Nodes       nodes_; //!< nodes
-  mutable int ind1_;  //!< previous index 1
-  mutable int ind2_;  //!< previous index 2
+  Nodes       nodes_; //!< circle nodes
+  mutable int ind1_;  //!< last but one placed circle node index
+  mutable int ind2_;  //!< last placed circle node index
 };
 
 #endif

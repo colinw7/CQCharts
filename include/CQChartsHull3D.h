@@ -266,11 +266,11 @@ class CQChartsHull3D {
    private:
     static uint count_;
 
-    double v_[3];                  //! vertices
-    uint   num_       { 0 };       //! vertex number
-    Edge*  duplicate_ { nullptr }; //! pointer to incident cone edge (or NULL)
-    bool   onHull_    { false };   //! true iff point on hull.
-    bool   mark_      { false };   //! true iff point already processed.
+    double v_[3];                  //!< vertices
+    uint   num_       { 0 };       //!< vertex number
+    Edge*  duplicate_ { nullptr }; //!< pointer to incident cone edge (or NULL)
+    bool   onHull_    { false };   //!< true iff point on hull.
+    bool   mark_      { false };   //!< true iff point already processed.
   };
 
   typedef Vertex *PVertex;
@@ -458,12 +458,12 @@ class CQChartsHull3D {
     }
 
    private:
-    Edge*   edge_  [3];           //! edges
-    Vertex* vertex_[3];           //! vertices
-    bool    visible_ { false };   //! true iff face visible from new point
-    bool    lower_   { false };   //! true iff is lower face
-    int     color_   { -1 };      //! face color
-    Vertex* vv_      { nullptr }; //! voronoi vertex
+    Edge*   edge_  [3];           //!< edges
+    Vertex* vertex_[3];           //!< vertices
+    bool    visible_ { false };   //!< true iff face visible from new point
+    bool    lower_   { false };   //!< true iff is lower face
+    int     color_   { -1 };      //!< face color
+    Vertex* vv_      { nullptr }; //!< voronoi vertex
   };
 
   typedef Face *PFace;

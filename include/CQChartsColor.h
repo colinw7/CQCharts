@@ -119,6 +119,7 @@ class CQChartsColor {
 
   //---
 
+  //! can color be calculated directly (with no additional state)
   bool isDirect() const {
     return (type_ == Type::PALETTE_VALUE   ||
             type_ == Type::INDEXED_VALUE   ||

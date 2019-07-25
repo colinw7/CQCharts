@@ -65,10 +65,10 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
  private:
   const CQChartsImagePlot* plot_  { nullptr }; //!< parent plot
-  int                      row_   { -1 };      //<! row
-  int                      col_   { -1 };      //<! column
-  double                   value_ { 0.0 };     //<! value
-  QModelIndex              ind_;               //<! model index
+  int                      row_   { -1 };      //!< row
+  int                      col_   { -1 };      //!< column
+  double                   value_ { 0.0 };     //!< value
+  QModelIndex              ind_;               //!< model index
 };
 
 //---

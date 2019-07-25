@@ -88,6 +88,8 @@ class CQTransposeModel : public QAbstractProxyModel {
   // connect/disconnect model slots
   void connectSlots();
   void disconnectSlots();
+
+  void connectDisconnectSlots(bool b);
 };
 
 #endif

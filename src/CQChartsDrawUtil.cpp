@@ -311,8 +311,8 @@ void drawSimpleText(QPainter *painter, const QPointF &pos, const QString &text)
 
 void drawSymbol(QPainter *painter, const CQChartsSymbol &symbol,
                 double cx, double cy, double sw, double sh) {
-  CQChartsSymbol2DRenderer srenderer(painter, CQChartsGeom::Point(cx, cy),
-                                     CMathUtil::avg(sw, sh));
+  CQChartsPlotSymbolRenderer srenderer(painter, CQChartsGeom::Point(cx, cy),
+                                       CMathUtil::avg(sw, sh));
 
   if (painter->brush().style() != Qt::NoBrush) {
     CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer);

@@ -66,72 +66,43 @@ namespace CQChartsPlotSymbolMgr {
 
 //---
 
-//! \brief plot symbol renderer
-class CQChartsPlotSymbolRenderer {
- public:
-  CQChartsPlotSymbolRenderer() { }
-
-  virtual void moveTo(double x, double y) = 0;
-  virtual void lineTo(double x, double y) = 0;
-
-  virtual void closePath() = 0;
-
-  virtual void stroke() = 0;
-
-  virtual void fill() = 0;
-
-  virtual void drawPoint(double x, double y) const = 0;
-
-  virtual void drawLine(double x1, double y1, double x2, double y2) const = 0;
-
-  virtual void fillRect(double x1, double y1, double x2, double y2) const = 0;
-
-  virtual void strokeCircle(double x, double y, double r) const = 0;
-  virtual void fillCircle  (double x, double y, double r) const = 0;
-
-  virtual double lineWidth() const { return 0.0; }
-
-  virtual void save   () const { }
-  virtual void restore() const { }
-
-  void drawSymbol  (CQChartsSymbol type);
-  void strokeSymbol(CQChartsSymbol type);
-  void fillSymbol  (CQChartsSymbol type);
-};
-
-//------
-
 #include <CQChartsGeom.h>
 #include <QPainterPath>
 
 class CQChartsPlot;
 class QPainter;
 
-//! \brief plot symbol 2d renderer
-class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
+//! \brief plot symbol renderer
+class CQChartsPlotSymbolRenderer {
  public:
-  CQChartsSymbol2DRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s);
+  CQChartsPlotSymbolRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s);
 
-  void moveTo(double x, double y) override;
+  void drawSymbol  (CQChartsSymbol type);
+  void strokeSymbol(CQChartsSymbol type);
+  void fillSymbol  (CQChartsSymbol type);
 
-  void lineTo(double x, double y) override;
+  //---
 
-  void closePath() override;
+  void moveTo(double x, double y);
 
-  void stroke() override;
+  void lineTo(double x, double y);
 
-  void fill() override;
+  void closePath();
 
-  void drawPoint(double x, double y) const override;
+  void stroke();
 
-  void drawLine(double x1, double y1, double x2, double y2) const override;
+  void fill();
 
-  void fillRect(double x1, double y1, double x2, double y2) const override;
+  void drawPoint(double x, double y) const;
 
-  void strokeCircle(double x, double y, double r) const override;
-  void fillCircle  (double x, double y, double r) const override;
+  void drawLine(double x1, double y1, double x2, double y2) const;
 
-  double lineWidth() const override;
+  void fillRect(double x1, double y1, double x2, double y2) const;
+
+  void strokeCircle(double x, double y, double r) const;
+  void fillCircle  (double x, double y, double r) const;
+
+  double lineWidth() const;
 
   void save   () const;
   void restore() const;

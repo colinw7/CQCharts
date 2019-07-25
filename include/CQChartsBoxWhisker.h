@@ -187,21 +187,21 @@ class CQChartsBoxWhiskerT {
   }
 
  private:
-  QString                   name_;                  //! name
-  Values                    values_;                //! values
-  double                    range_        { 1.5 };  //! outlier range scale
-  double                    fraction_     { 0.95 }; //! fraction ? TODO
+  QString                   name_;                  //!< name
+  Values                    values_;                //!< values
+  double                    range_        { 1.5 };  //!< outlier range scale
+  double                    fraction_     { 0.95 }; //!< fraction ? TODO
 
   // calculated data
-  mutable std::atomic<bool> calcValid_    { false }; //! calc valid
-  mutable std::mutex        calcMutex_;              //! calc mutex
-  CQChartsStatData          statData_;               //! calc stats data
-  Outliers                  outliers_;               //! calc outliers
+  mutable std::atomic<bool> calcValid_    { false }; //!< calc valid
+  mutable std::mutex        calcMutex_;              //!< calc mutex
+  CQChartsStatData          statData_;               //!< calc stats data
+  Outliers                  outliers_;               //!< calc outliers
 
   // calculated density
-  Density                   density_;                //! density data
-  mutable std::atomic<bool> densityValid_ { false }; //! density data valid
-  mutable std::mutex        densityMutex_;           //! density data mutex
+  Density                   density_;                //!< density data
+  mutable std::atomic<bool> densityValid_ { false }; //!< density data valid
+  mutable std::mutex        densityMutex_;           //!< density data mutex
 };
 
 using CQChartsBoxWhisker = CQChartsBoxWhiskerT<double>;

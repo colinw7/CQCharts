@@ -97,7 +97,9 @@ class CQChartsColorEdit : public CQChartsEditBase {
 
 #include <CQPropertyViewType.h>
 
-//! \brief type for CQChartsColor
+/*!
+ * \brief type for CQChartsColor
+ */
 class CQChartsColorPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsColorPropertyViewType();
@@ -119,7 +121,9 @@ class CQChartsColorPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-//! \brief editor factory for CQChartsColor
+/*!
+ * \brief editor factory for CQChartsColor
+ */
 class CQChartsColorPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsColorPropertyViewEditor();

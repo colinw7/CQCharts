@@ -307,7 +307,7 @@ class CQChartsDisplayRange {
       if (factor_y1_ != 0.0)
         *window_y = (pixel_y - pixel_.ymax - pdy_)/factor_y1_ + window1_.ymin;
       else
-        *window_x = window1_.ymin;
+        *window_y = window1_.ymin;
     }
     else {
       if (factor_x_ != 0.0)
@@ -318,7 +318,7 @@ class CQChartsDisplayRange {
       if (factor_y_ != 0.0)
         *window_y = (pixel_y - pixel_.ymax)/factor_y_  + window1_.ymin;
       else
-        *window_x = window1_.ymin;
+        *window_y = window1_.ymin;
     }
   }
 

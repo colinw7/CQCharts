@@ -24,9 +24,9 @@ class CQChartsVarsModel : public CQDataModel {
 
  private:
   QStringList varNames_;                    //!< input variable names
-  bool        transpose_         { false }; //! first line header
-  bool        firstColumnHeader_ { false }; //! first column header
-  bool        firstLineHeader_   { false }; //! first line header
+  bool        transpose_         { false }; //!< first line header
+  bool        firstColumnHeader_ { false }; //!< first column header
+  bool        firstLineHeader_   { false }; //!< first line header
 };
 
 #endif

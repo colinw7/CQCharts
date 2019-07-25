@@ -191,7 +191,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
       painter->fillRect(rect, QBrush(c));
 
-      painter->setPen(CQChartsUtil::bwColor(c)); // TODO: contrast border
+      painter->setPen(CQChartsUtil::bwColor(c));
 
       painter->drawRect(rect);
 
@@ -306,7 +306,7 @@ CQChartsColorEdit(QWidget *parent) :
 
   indEdit_->setRange(-1, 99);
 
-  indEdit_->setToolTip("Theme palette index");
+  indEdit_->setToolTip("Palette index in theme");
 
   indLayout->addWidget(indLabel);
   indLayout->addWidget(indEdit_);
@@ -321,7 +321,7 @@ CQChartsColorEdit(QWidget *parent) :
 
   valueEdit_ = CQUtil::makeWidget<CQRealSpin>("valueEdit");
 
-  valueEdit_->setToolTip("Palette or interface value");
+  valueEdit_->setToolTip("Palette or interface value (0-1 if not scaled)");
 
   valueLayout->addWidget(valueLabel);
   valueLayout->addWidget(valueEdit_);
@@ -336,7 +336,7 @@ CQChartsColorEdit(QWidget *parent) :
 
   colorEdit_ = CQUtil::makeWidget<CQColorEdit>("colorEdit");
 
-  colorEdit_->setToolTip("Color name");
+  colorEdit_->setToolTip("Explicit color name");
 
   colorLayout->addWidget(colorLabel);
   colorLayout->addWidget(colorEdit_);
@@ -351,7 +351,7 @@ CQChartsColorEdit(QWidget *parent) :
 
   scaleCheck_ = CQUtil::makeWidget<CQCheckBox>("scaleCheck");
 
-  scaleCheck_->setToolTip("Is palette value scaled from palette x range");
+  scaleCheck_->setToolTip("Rescale value from palette x range");
 
   scaleLayout->addWidget(scaleLabel);
   scaleLayout->addWidget(scaleCheck_);

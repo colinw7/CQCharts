@@ -565,13 +565,13 @@ class CQChartsQuadTree {
   }
 
  private:
-  CQChartsQuadTree* parent_  { nullptr }; //! parent tree (0 if root)
-  RECT              rect_;                //! bounding rect of tree
-  DataList          dataList_;            //! data list
-  CQChartsQuadTree* bl_tree_ { nullptr }; //! bottom left sub tree
-  CQChartsQuadTree* br_tree_ { nullptr }; //! bottom right sub tree
-  CQChartsQuadTree* tl_tree_ { nullptr }; //! top left sub tree
-  CQChartsQuadTree* tr_tree_ { nullptr }; //! top right sub tree
+  CQChartsQuadTree* parent_  { nullptr }; //!< parent tree (0 if root)
+  RECT              rect_;                //!< bounding rect of tree
+  DataList          dataList_;            //!< data list
+  CQChartsQuadTree* bl_tree_ { nullptr }; //!< bottom left sub tree
+  CQChartsQuadTree* br_tree_ { nullptr }; //!< bottom right sub tree
+  CQChartsQuadTree* tl_tree_ { nullptr }; //!< top left sub tree
+  CQChartsQuadTree* tr_tree_ { nullptr }; //!< top right sub tree
 };
 
 #endif

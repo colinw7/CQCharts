@@ -37,98 +37,78 @@ void
 CQTransposeModel::
 connectSlots()
 {
-  QAbstractItemModel *model = this->sourceModel();
-
-  connect(model, SIGNAL(columnsAboutToBeInserted(const QModelIndex&, int, int)),
-          this, SLOT(columnsAboutToBeInsertedSlot(const QModelIndex&, int, int)));
-  connect(model, SIGNAL(columnsInserted(const QModelIndex&, int, int)),
-          this, SLOT(columnsInsertedSlot(const QModelIndex&, int, int)));
-  connect(model, SIGNAL(columnsAboutToBeMoved(const QModelIndex&, int, int,
-                                              const QModelIndex&, int)),
-          this, SLOT(columnsAboutToBeMovedSlot(const QModelIndex&, int, int,
-                                               const QModelIndex&, int)));
-  connect(model, SIGNAL(columnsMoved(const QModelIndex&, int, int, const QModelIndex&, int)),
-          this, SLOT(columnsMovedSlot(const QModelIndex&, int, int, const QModelIndex&, int)));
-  connect(model, SIGNAL(columnsAboutToBeRemoved(const QModelIndex&, int, int)),
-          this, SLOT(columnsAboutToBeRemovedSlot(const QModelIndex&, int, int)));
-  connect(model, SIGNAL(columnsRemoved(const QModelIndex&, int, int)),
-          this, SLOT(columnsRemovedSlot(const QModelIndex&, int, int)));
-
-  connect(model, SIGNAL(rowsAboutToBeInserted(const QModelIndex&, int, int)),
-          this, SLOT(rowsAboutToBeInsertedSlot(const QModelIndex&, int, int)));
-  connect(model, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
-          this, SLOT(rowsInsertedSlot(const QModelIndex&, int, int)));
-  connect(model, SIGNAL(rowsAboutToBeMoved(const QModelIndex&, int, int,
-                                           const QModelIndex&, int)),
-          this, SLOT(rowsAboutToBeMovedSlot(const QModelIndex&, int, int,
-                                           const QModelIndex&, int)));
-  connect(model, SIGNAL(rowsMoved(const QModelIndex&, int, int, const QModelIndex&, int)),
-          this, SLOT(rowsMovedSlot(const QModelIndex&, int, int, const QModelIndex&, int)));
-  connect(model, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
-          this, SLOT(rowsAboutToBeRemovedSlot(const QModelIndex&, int, int)));
-  connect(model, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
-          this, SLOT(rowsRemovedSlot(const QModelIndex&, int, int)));
-
-  connect(model, SIGNAL(dataChanged(const QModelIndex&, const QModelIndex&)),
-          this, SLOT(dataChangedSlot(const QModelIndex&, const QModelIndex&)));
-  connect(model, SIGNAL(headerDataChanged(Qt::Orientation, int, int)),
-          this, SLOT(headerDataChangedSlot(Qt::Orientation, int, int)));
-
-  connect(model, SIGNAL(modelAboutToBeReset()),
-          this, SLOT(modelAboutToBeResetSlot()));
-  connect(model, SIGNAL(modelReset()),
-          this, SLOT(modelResetSlot()));
+  connectDisconnectSlots(true);
 }
 
 void
 CQTransposeModel::
 disconnectSlots()
 {
+  connectDisconnectSlots(false);
+}
+
+void
+CQTransposeModel::
+connectDisconnectSlots(bool b)
+{
   QAbstractItemModel *model = this->sourceModel();
 
-  disconnect(model, SIGNAL(columnsAboutToBeInserted(const QModelIndex&, int, int)),
-             this, SLOT(columnsAboutToBeInsertedSlot(const QModelIndex&, int, int)));
-  disconnect(model, SIGNAL(columnsInserted(const QModelIndex&, int, int)),
-             this, SLOT(columnsInsertedSlot(const QModelIndex&, int, int)));
-  disconnect(model, SIGNAL(columnsAboutToBeMoved(const QModelIndex&, int, int,
-                                                 const QModelIndex&, int)),
-             this, SLOT(columnsAboutToBeMovedSlot(const QModelIndex&, int, int,
-                                                  const QModelIndex&, int)));
-  disconnect(model, SIGNAL(columnsMoved(const QModelIndex&, int, int,
-                                        const QModelIndex&, int)),
-             this, SLOT(columnsMovedSlot(const QModelIndex&, int, int,
-                                         const QModelIndex&, int)));
-  disconnect(model, SIGNAL(columnsAboutToBeRemoved(const QModelIndex&, int, int)),
-             this, SLOT(columnsAboutToBeRemovedSlot(const QModelIndex&, int, int)));
-  disconnect(model, SIGNAL(columnsRemoved(const QModelIndex&, int, int)),
-             this, SLOT(columnsRemovedSlot(const QModelIndex&, int, int)));
+  auto connectDisconnect = [&](bool b, const char *from, const char *to) {
+    if (b)
+      connect(model, from, this, to);
+    else
+      disconnect(model, from, this, to);
+  };
 
-  disconnect(model, SIGNAL(rowsAboutToBeInserted(const QModelIndex&, int, int)),
-             this, SLOT(rowsAboutToBeInsertedSlot(const QModelIndex&, int, int)));
-  disconnect(model, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
-             this, SLOT(rowsInsertedSlot(const QModelIndex&, int, int)));
-  disconnect(model, SIGNAL(rowsAboutToBeMoved(const QModelIndex&, int, int,
-                                               const QModelIndex&, int)),
-             this, SLOT(rowsAboutToBeMovedSlot(const QModelIndex&, int, int,
-                                               const QModelIndex&, int)));
-  disconnect(model, SIGNAL(rowsMoved(const QModelIndex&, int, int, const QModelIndex&, int)),
-             this, SLOT(rowsMovedSlot(const QModelIndex&, int, int, const QModelIndex&, int)));
-  disconnect(model, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
-             this, SLOT(rowsAboutToBeRemovedSlot(const QModelIndex&, int, int)));
-  disconnect(model, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
-             this, SLOT(rowsRemovedSlot(const QModelIndex&, int, int)));
+  connectDisconnect(b,
+    SIGNAL(columnsAboutToBeInserted(const QModelIndex&, int, int)),
+    SLOT(columnsAboutToBeInsertedSlot(const QModelIndex&, int, int)));
+  connectDisconnect(b,
+    SIGNAL(columnsInserted(const QModelIndex&, int, int)),
+    SLOT(columnsInsertedSlot(const QModelIndex&, int, int)));
+  connectDisconnect(b,
+    SIGNAL(columnsAboutToBeMoved(const QModelIndex&, int, int, const QModelIndex&, int)),
+    SLOT(columnsAboutToBeMovedSlot(const QModelIndex&, int, int, const QModelIndex&, int)));
+  connectDisconnect(b,
+    SIGNAL(columnsMoved(const QModelIndex&, int, int, const QModelIndex&, int)),
+    SLOT(columnsMovedSlot(const QModelIndex&, int, int, const QModelIndex&, int)));
+  connectDisconnect(b,
+    SIGNAL(columnsAboutToBeRemoved(const QModelIndex&, int, int)),
+    SLOT(columnsAboutToBeRemovedSlot(const QModelIndex&, int, int)));
+  connectDisconnect(b,
+    SIGNAL(columnsRemoved(const QModelIndex&, int, int)),
+    SLOT(columnsRemovedSlot(const QModelIndex&, int, int)));
 
-  disconnect(model, SIGNAL(dataChanged(const QModelIndex&, const QModelIndex&)),
-             this, SLOT(dataChangedSlot(const QModelIndex&, const QModelIndex&)));
-  disconnect(model, SIGNAL(headerDataChanged(Qt::Orientation, int, int)),
-             this, SLOT(headerDataChangedSlot(Qt::Orientation, int, int)));
-  disconnect(model, SIGNAL(layoutChanged()),
-             this, SLOT(layoutChangedSlot()));
+  connectDisconnect(b,
+    SIGNAL(rowsAboutToBeInserted(const QModelIndex&, int, int)),
+    SLOT(rowsAboutToBeInsertedSlot(const QModelIndex&, int, int)));
+  connectDisconnect(b,
+    SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+    SLOT(rowsInsertedSlot(const QModelIndex&, int, int)));
+  connectDisconnect(b,
+    SIGNAL(rowsAboutToBeMoved(const QModelIndex&, int, int, const QModelIndex&, int)),
+    SLOT(rowsAboutToBeMovedSlot(const QModelIndex&, int, int, const QModelIndex&, int)));
+  connectDisconnect(b,
+    SIGNAL(rowsMoved(const QModelIndex&, int, int, const QModelIndex&, int)),
+    SLOT(rowsMovedSlot(const QModelIndex&, int, int, const QModelIndex&, int)));
+  connectDisconnect(b,
+    SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+    SLOT(rowsAboutToBeRemovedSlot(const QModelIndex&, int, int)));
+  connectDisconnect(b,
+    SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+    SLOT(rowsRemovedSlot(const QModelIndex&, int, int)));
 
-  disconnect(model, SIGNAL(modelAboutToBeReset()),
-             this, SLOT(modelAboutToBeResetSlot()));
-  disconnect(model, SIGNAL(modelReset()),
-             this, SLOT(modelResetSlot()));
+  connectDisconnect(b,
+    SIGNAL(dataChanged(const QModelIndex&, const QModelIndex&)),
+    SLOT(dataChangedSlot(const QModelIndex&, const QModelIndex&)));
+  connectDisconnect(b,
+    SIGNAL(headerDataChanged(Qt::Orientation, int, int)),
+    SLOT(headerDataChangedSlot(Qt::Orientation, int, int)));
+
+  connectDisconnect(b,
+    SIGNAL(modelAboutToBeReset()), SLOT(modelAboutToBeResetSlot()));
+  connectDisconnect(b,
+    SIGNAL(modelReset()), SLOT(modelResetSlot()));
 }
 
 // get number of columns

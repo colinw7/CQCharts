@@ -400,6 +400,16 @@ fillSymbol(CQChartsSymbol type, CQChartsPlotSymbolRenderer *renderer)
   return symbols.fillSymbol(type, renderer);
 }
 
+//------
+
+CQChartsPlotSymbolRenderer::
+CQChartsPlotSymbolRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s) :
+ painter_(painter), p_(p), s_(s)
+{
+  strokePen_ = painter_->pen  ();
+  fillBrush_ = painter_->brush();
+}
+
 //---
 
 void
@@ -423,39 +433,31 @@ fillSymbol(CQChartsSymbol type)
   CQChartsPlotSymbolMgr::fillSymbol(type, this);
 }
 
-//------
-
-CQChartsSymbol2DRenderer::
-CQChartsSymbol2DRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s) :
- painter_(painter), p_(p), s_(s)
-{
-  strokePen_ = painter_->pen  ();
-  fillBrush_ = painter_->brush();
-}
+//---
 
 void
-CQChartsSymbol2DRenderer::
+CQChartsPlotSymbolRenderer::
 moveTo(double x, double y)
 {
   path_.moveTo(p_.x + x*s_, p_.y - y*s_);
 }
 
 void
-CQChartsSymbol2DRenderer::
+CQChartsPlotSymbolRenderer::
 lineTo(double x, double y)
 {
   path_.lineTo(p_.x + x*s_, p_.y - y*s_);
 }
 
 void
-CQChartsSymbol2DRenderer::
+CQChartsPlotSymbolRenderer::
 closePath()
 {
   path_.closeSubpath();
 }
 
 void
-CQChartsSymbol2DRenderer::
+CQChartsPlotSymbolRenderer::
 stroke()
 {
   assert(saved_);
@@ -464,7 +466,7 @@ stroke()
 }
 
 void
-CQChartsSymbol2DRenderer::
+CQChartsPlotSymbolRenderer::
 fill()
 {
   assert(saved_);
@@ -473,7 +475,7 @@ fill()
 }
 
 void
-CQChartsSymbol2DRenderer::
+CQChartsPlotSymbolRenderer::
 drawPoint(double x, double y) const
 {
   QPointF p(p_.x + x*s_, p_.y + y*s_);
@@ -488,7 +490,7 @@ drawPoint(double x, double y) const
 }
 
 void
-CQChartsSymbol2DRenderer::
+CQChartsPlotSymbolRenderer::
 drawLine(double x1, double y1, double x2, double y2) const
 {
   QPointF p1(p_.x + x1*s_, p_.y + y1*s_);
@@ -504,7 +506,7 @@ drawLine(double x1, double y1, double x2, double y2) const
 }
 
 void
-CQChartsSymbol2DRenderer::
+CQChartsPlotSymbolRenderer::
 fillRect(double x1, double y1, double x2, double y2) const
 {
   QRectF rect(p_.x + x1*s_, p_.y + y1*s_, (x2 - x1)*s_, (y2 - y1)*s_);
@@ -520,7 +522,7 @@ fillRect(double x1, double y1, double x2, double y2) const
 }
 
 void
-CQChartsSymbol2DRenderer::
+CQChartsPlotSymbolRenderer::
 strokeCircle(double x, double y, double r) const
 {
   QRectF rect(p_.x + (x - r)*s_, p_.y + (y - r)*s_, 2*r*s_, 2*r*s_);
@@ -536,7 +538,7 @@ strokeCircle(double x, double y, double r) const
 }
 
 void
-CQChartsSymbol2DRenderer::
+CQChartsPlotSymbolRenderer::
 fillCircle(double x, double y, double r) const
 {
   QRectF rect(p_.x + (x - r)*s_, p_.y + (y - r)*s_, 2*r*s_, 2*r*s_);
@@ -552,14 +554,14 @@ fillCircle(double x, double y, double r) const
 }
 
 double
-CQChartsSymbol2DRenderer::
+CQChartsPlotSymbolRenderer::
 lineWidth() const
 {
   return w_;
 }
 
 void
-CQChartsSymbol2DRenderer::
+CQChartsPlotSymbolRenderer::
 save() const
 {
   assert(! saved_);
@@ -570,7 +572,7 @@ save() const
 }
 
 void
-CQChartsSymbol2DRenderer::
+CQChartsPlotSymbolRenderer::
 restore() const
 {
   assert(saved_);
