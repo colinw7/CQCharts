@@ -443,6 +443,7 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 {
   bool changed = false;
 
+  // store role in model or cache if not supported
   int role = static_cast<int>(CQBaseModelRole::Type);
 
   bool rc1 = CQChartsModelUtil::setModelHeaderValue(model, column, static_cast<int>(type), role);
@@ -452,6 +453,7 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 
     const CacheData &cacheData = getModelCacheData(model, ok);
 
+    // if in cache, update cache
     if (ok) {
       CacheData &cacheData1 = const_cast<CacheData &>(cacheData);
 
@@ -471,6 +473,7 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 
   //---
 
+  // store parameter values in model (by parameter role)
   int vrole = static_cast<int>(CQBaseModelRole::TypeValues);
 
   CQChartsNameValues nameValues1;
@@ -496,6 +499,7 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
     }
   }
 
+  // store name values in model (as encoded string)
   if (! nameValues1.empty()) {
     QString str = nameValues1.toString();
 
@@ -614,6 +618,15 @@ CQChartsColumnType(Type type) :
  type_(type)
 {
   addParam("key", Type::BOOLEAN, (int) CQBaseModelRole::Key, "Is Key", false);
+
+  // specific palette to get color from
+  addParam("palette", Type::STRING, "Color Palette", "");
+
+  // draw color for table view
+  addParam("draw_color", Type::STRING, "Table Draw Color", "");
+
+  // draw type for table view
+  addParam("draw_type", Type::STRING , "Table Draw Type", "");
 }
 
 CQChartsColumnType::
@@ -685,6 +698,51 @@ columnDetails(CQCharts *charts, const QAbstractItemModel *model, const CQChartsC
   if (! details) return nullptr;
 
   return details->columnDetails(column);
+}
+
+CQChartsColumnType::ColorPalette
+CQChartsColumnType::
+drawPalette(const CQChartsNameValues &nameValues) const
+{
+  ColorPalette colorPalette;
+
+  QString paletteName;
+
+  if (! CQChartsColumnUtil::nameValueString(nameValues, "palette", paletteName))
+    paletteName = "";
+
+  if (paletteName.simplified().length())
+    colorPalette.palette = CQColorsMgrInst->getNamedPalette(paletteName);
+
+  QString colorName;
+
+  if (! CQChartsColumnUtil::nameValueString(nameValues, "draw_color", colorName))
+    colorName = "";
+
+  colorPalette.color = CQChartsColor(colorName);
+
+  return colorPalette;
+}
+
+CQChartsColumnType::DrawType
+CQChartsColumnType::
+drawType(const CQChartsNameValues &nameValues) const
+{
+  QString typeName;
+
+  if (! CQChartsColumnUtil::nameValueString(nameValues, "draw_type", typeName))
+    typeName = "";
+
+  typeName = typeName.toLower();
+
+  if      (typeName == "normal")
+    return CQChartsColumnType::DrawType::NORMAL;
+  else if (typeName == "barchart")
+    return CQChartsColumnType::DrawType::BARCHART;
+  else if (typeName == "col_heatmap")
+    return CQChartsColumnType::DrawType::COL_HEATMAP;
+  else
+    return CQChartsColumnType::DrawType::NORMAL;
 }
 
 //------
@@ -1589,9 +1647,6 @@ CQChartsColumnColorType() :
 
   addParam("min", Type::REAL, (int) CQBaseModelRole::Min, "Map Min", 0.0);
   addParam("max", Type::REAL, (int) CQBaseModelRole::Max, "Map Max", 1.0);
-
-  // get color from named palette
-  addParam("palette", Type::STRING, "Palette", "");
 }
 
 QString
@@ -1615,9 +1670,9 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
 
   bool    mapped = false;
   double  min    = 0.0, max = 1.0;
-  QString palette;
+  QString paletteName;
 
-  getMapData(charts, model, column, nameValues, mapped, min, max, palette);
+  getMapData(charts, model, column, nameValues, mapped, min, max, paletteName);
 
   if (mapped) {
     if (CQChartsVariant::isNumeric(var)) {
@@ -1633,8 +1688,14 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
 
       CQChartsColor color;
 
-      if (palette != "")
-        color = CQColorsMgrInst->getNamedPalette(palette)->getColor(r1);
+      if (paletteName.simplified().length()) {
+        CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(paletteName);
+
+        if (palette)
+          color = palette->getColor(r1);
+        else
+          color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r1);
+      }
       else
         color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r1);
 
@@ -1658,8 +1719,14 @@ userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn
 
         CQChartsColor color;
 
-        if (palette != "")
-          color = CQColorsMgrInst->getNamedPalette(palette)->getColor(r);
+        if (paletteName.simplified().length()) {
+          CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(paletteName);
+
+          if (palette)
+            color = palette->getColor(r);
+          else
+            color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
+        }
         else
           color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
 
@@ -1707,16 +1774,16 @@ bool
 CQChartsColumnColorType::
 getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
            const CQChartsNameValues &nameValues, bool &mapped,
-           double &map_min, double &map_max, QString &palette) const
+           double &map_min, double &map_max, QString &paletteName) const
 {
-  mapped  = false;
+  if (! CQChartsColumnUtil::nameValueBool(nameValues, "mapped", mapped))
+    mapped = false;
+
+  if (! CQChartsColumnUtil::nameValueString(nameValues, "palette", paletteName))
+    paletteName = "";
+
   map_min = 0.0;
   map_max = 1.0;
-  palette = "";
-
-  (void) CQChartsColumnUtil::nameValueBool(nameValues, "mapped", mapped);
-
-  (void) CQChartsColumnUtil::nameValueString(nameValues, "palette", palette);
 
   if (! CQChartsColumnUtil::nameValueReal(nameValues, "min", map_min)) {
     if (mapped) {

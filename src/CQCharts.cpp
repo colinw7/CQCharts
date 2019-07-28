@@ -17,6 +17,7 @@
 #include <CQChartsImagePlot.h>
 #include <CQChartsParallelPlot.h>
 #include <CQChartsPiePlot.h>
+#include <CQChartsPivotPlot.h>
 #include <CQChartsRadarPlot.h>
 #include <CQChartsSankeyPlot.h>
 #include <CQChartsScatterPlot.h>
@@ -319,6 +320,7 @@ init()
   plotTypeMgr_->addType("image"        , new CQChartsImagePlotType        );
   plotTypeMgr_->addType("parallel"     , new CQChartsParallelPlotType     );
   plotTypeMgr_->addType("pie"          , new CQChartsPiePlotType          );
+  plotTypeMgr_->addType("pivot"        , new CQChartsPivotPlotType        );
   plotTypeMgr_->addType("radar"        , new CQChartsRadarPlotType        );
   plotTypeMgr_->addType("sankey"       , new CQChartsSankeyPlotType       );
   plotTypeMgr_->addType("scatter"      , new CQChartsScatterPlotType      );

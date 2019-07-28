@@ -1,6 +1,7 @@
 #ifndef CQChartsColumnType_H
 #define CQChartsColumnType_H
 
+#include <CQChartsColor.h>
 #include <CQChartsUtil.h>
 #include <CQBaseModelTypes.h>
 #include <QObject>
@@ -9,6 +10,7 @@
 
 class CQChartsModelColumnDetails;
 class CQCharts;
+class CQColorsPalette;
 
 //! \brief column type parameter
 class CQChartsColumnTypeParam {
@@ -37,11 +39,11 @@ class CQChartsColumnTypeParam {
   const QVariant &def() const { return def_; }
 
  private:
-  QString  name_;
-  Type     type_ { CQBaseModelType::STRING };
-  int      role_ { -1 };
-  QString  tip_;
-  QVariant def_;
+  QString  name_;                             //!< name
+  Type     type_ { CQBaseModelType::STRING }; //!< type
+  int      role_ { -1 };                      //!< model role
+  QString  tip_;                              //!< tip string
+  QVariant def_;                              //!< default value
 };
 
 //---
@@ -56,6 +58,19 @@ class CQChartsColumnType {
  public:
   using Type   = CQBaseModelType;
   using Params = std::vector<CQChartsColumnTypeParam *>;
+
+  enum class DrawType {
+    NORMAL,
+    BARCHART,
+    HEATMAP,
+    COL_HEATMAP,
+    ROW_HEATMAP
+  };
+
+  struct ColorPalette {
+    CQChartsColor    color;
+    CQColorsPalette* palette { nullptr };
+  };
 
  public:
   CQChartsColumnType(Type type);
@@ -111,6 +126,9 @@ class CQChartsColumnType {
 
   CQChartsModelColumnDetails *columnDetails(CQCharts *charts, const QAbstractItemModel *model,
                                             const CQChartsColumn &column) const;
+
+  ColorPalette drawPalette(const CQChartsNameValues &nameValues) const;
+  DrawType     drawType   (const CQChartsNameValues &nameValues) const;
 
  protected:
   Type   type_;       //!< base type

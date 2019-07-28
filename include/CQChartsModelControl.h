@@ -8,6 +8,9 @@
 class CQCharts;
 class CQChartsModelData;
 class CQChartsParamEdit;
+
+class CQPropertyViewModel;
+class CQPropertyViewTree;
 class CQLineEdit;
 
 class QGridLayout;
@@ -86,27 +89,29 @@ class CQChartsModelControl : public QFrame {
     ParamEdits   paramEdits;
   };
 
-  CQCharts*          charts_          { nullptr };
-  CQChartsModelData* modelData_       { nullptr };
-  Mode               exprMode_        { Mode::ADD };
-  QRadioButton*      exprAddRadio_    { nullptr };
-  QRadioButton*      exprRemoveRadio_ { nullptr };
-  QRadioButton*      exprModifyRadio_ { nullptr };
-  QLabel*            exprValueLabel_  { nullptr };
-  CQLineEdit*        exprValueEdit_   { nullptr };
-  QLabel*            exprColumnLabel_ { nullptr };
-  CQLineEdit*        exprColumnEdit_  { nullptr };
-  QLabel*            exprNameLabel_   { nullptr };
-  CQLineEdit*        exprNameEdit_    { nullptr };
-  QLabel*            exprTypeLabel_   { nullptr };
-  CQLineEdit*        exprTypeEdit_    { nullptr };
+  CQCharts*            charts_          { nullptr };
+  CQChartsModelData*   modelData_       { nullptr };
+  Mode                 exprMode_        { Mode::ADD };
+  QRadioButton*        exprAddRadio_    { nullptr };
+  QRadioButton*        exprRemoveRadio_ { nullptr };
+  QRadioButton*        exprModifyRadio_ { nullptr };
+  QLabel*              exprValueLabel_  { nullptr };
+  CQLineEdit*          exprValueEdit_   { nullptr };
+  QLabel*              exprColumnLabel_ { nullptr };
+  CQLineEdit*          exprColumnEdit_  { nullptr };
+  QLabel*              exprNameLabel_   { nullptr };
+  CQLineEdit*          exprNameEdit_    { nullptr };
+  QLabel*              exprTypeLabel_   { nullptr };
+  CQLineEdit*          exprTypeEdit_    { nullptr };
 #ifdef CQCHARTS_FOLDED_MODEL
-  CQLineEdit*        foldColumnEdit_  { nullptr };
-  QCheckBox*         foldAutoCheck_   { nullptr };
-  CQLineEdit*        foldDeltaEdit_   { nullptr };
-  CQLineEdit*        foldCountEdit_   { nullptr };
+  CQLineEdit*          foldColumnEdit_  { nullptr };
+  QCheckBox*           foldAutoCheck_   { nullptr };
+  CQLineEdit*          foldDeltaEdit_   { nullptr };
+  CQLineEdit*          foldCountEdit_   { nullptr };
 #endif
-  ColumnEditData     columnEditData_;
+  CQPropertyViewModel* propertyModel_   { nullptr };
+  CQPropertyViewTree*  propertyTree_    { nullptr };
+  ColumnEditData       columnEditData_;
 };
 
 #endif

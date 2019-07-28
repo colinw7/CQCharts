@@ -15,6 +15,7 @@ CQChartsModelDetails::
 CQChartsModelDetails(CQChartsModelData *data) :
  data_(data)
 {
+  connect(data_->charts(), SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
 }
 
 CQChartsModelDetails::
@@ -173,6 +174,19 @@ updateFull()
   }
 }
 
+void
+CQChartsModelDetails::
+modelTypeChangedSlot(int modelInd)
+{
+  if (data_->ind() == modelInd) {
+    for (int c = 0; c < numColumns_; ++c) {
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
+
+      columnDetails->resetTypeInitialized();
+    }
+  }
+}
+
 CQChartsColumns
 CQChartsModelDetails::
 numericColumns() const
@@ -289,6 +303,8 @@ CQChartsModelColumnDetails::
 CQChartsModelColumnDetails(CQChartsModelDetails *details, const CQChartsColumn &column) :
  details_(details), column_(column)
 {
+  assert(details_);
+
   valueSet_ = new CQChartsValueSet;
 }
 
@@ -1437,8 +1453,6 @@ calcType()
 
   //---
 
-  std::unique_lock<std::mutex> lock(mutex_);
-
   QAbstractItemModel *model = details_->data()->currentModel().data();
   if (! model) return false;
 
@@ -1458,6 +1472,8 @@ calcType()
   //---
 
   if (! typeInitialized_) {
+    std::unique_lock<std::mutex> lock(mutex_);
+
     // get column type and name values
     // TODO: calls CQChartsModelVisitor, integrate into this visitor
     CQCharts *charts = details_->data()->charts();
@@ -1482,6 +1498,13 @@ calcType()
       baseType_ = CQBaseModelType::STRING;
       typeName_ = "string";
     }
+
+    //---
+
+    tableDrawPalette_ = columnType->drawPalette(nameValues_);
+    tableDrawType_    = columnType->drawType   (nameValues_);
+
+    //---
 
     typeInitialized_ = true;
   }

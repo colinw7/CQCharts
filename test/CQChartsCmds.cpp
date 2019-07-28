@@ -32,7 +32,6 @@
 #include <CQChartsAnalyzeModel.h>
 #include <CQChartsHelpDlg.h>
 
-
 #include <CQColors.h>
 #include <CQColorsTheme.h>
 #include <CQColorsPalette.h>
@@ -45,6 +44,7 @@
 #include <CQTransposeModel.h>
 #include <CQSummaryModel.h>
 #include <CQCollapseModel.h>
+#include <CQPivotModel.h>
 #include <CQPerfMonitor.h>
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
@@ -103,7 +103,7 @@ addCommands()
     // define charts tcl proc
     addCommand("define_charts_proc", new CQChartsDefineChartsProcCmd(this));
 
-    // correlation, bucket, folded, subset, transpose, summary, collapse, stats
+    // correlation, bucket, folded, subset, transpose, summary, collapse, pivot, stats
     addCommand("create_charts_correlation_model",
                new CQChartsCreateChartsCorrelationModelCmd(this));
     addCommand("create_charts_bucket_model"     ,
@@ -118,7 +118,9 @@ addCommands()
                new CQChartsCreateChartsSummaryModelCmd    (this));
     addCommand("create_charts_collapse_model"   ,
                new CQChartsCreateChartsCollapseModelCmd   (this));
-    addCommand("create_charts_stats_model"   ,
+    addCommand("create_charts_pivot_model"      ,
+               new CQChartsCreateChartsPivotModelCmd      (this));
+    addCommand("create_charts_stats_model"      ,
                new CQChartsCreateChartsStatsModelCmd      (this));
 
     // measure/encode text
@@ -3481,10 +3483,8 @@ createChartsSubsetModelCmd(CQChartsCmdArgs &argv)
 
   CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
 
-  if (! modelData) {
+  if (! modelData)
     return errorMsg("No model data");
-    return false;
-  }
 
   QAbstractItemModel *model = modelData->currentModel().data();
 
@@ -3805,6 +3805,111 @@ createChartsCollapseModelCmd(CQChartsCmdArgs &argv)
 
   return true;
 }
+
+//------
+
+bool
+CQChartsCmds::
+createChartsPivotModelCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsPivotModelCmd");
+
+  argv.addCmdArg("-model"   , CQChartsCmdArg::Type::Integer, "model id");
+  argv.addCmdArg("-hcolumns", CQChartsCmdArg::Type::String , "horizontal columns");
+  argv.addCmdArg("-vcolumns", CQChartsCmdArg::Type::String , "vertical columns");
+  argv.addCmdArg("-dcolumn" , CQChartsCmdArg::Type::String , "data column");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  // get model
+  int modelInd = argv.getParseInt("model", -1);
+
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
+
+  if (! modelData)
+    return errorMsg("No model data");
+
+  ModelP model = modelData->currentModel();
+
+  //---
+
+  auto argStringToColumns = [&](const QString &name) {
+    CQPivotModel::Columns columns;
+
+    QStringList columnsStrs = argv.getParseStrs(name);
+
+    for (int i = 0; i < columnsStrs.length(); ++i) {
+      const QString &columnsStr = columnsStrs[i];
+
+      if (! columnsStr.length())
+        continue;
+
+      std::vector<CQChartsColumn> columns1;
+
+      if (! CQChartsModelUtil::stringToColumns(model.data(), columnsStr, columns1)) {
+        (void) errorMsg("Bad columns name '" + columnsStr + "'");
+        continue;
+      }
+
+      for (const auto &column : columns1)
+        columns.push_back(column.column());
+    }
+
+    return columns;
+  };
+
+  CQPivotModel::Columns hColumns = argStringToColumns("hcolumns" );
+  CQPivotModel::Columns vColumns = argStringToColumns("vcolumns");
+
+  CQChartsColumn dcolumn;
+
+  QString dcolumnStr = argv.getParseStr("dcolumn");
+
+  if (! CQChartsModelUtil::stringToColumn(model.data(), dcolumnStr, dcolumn))
+    dcolumn = CQChartsColumn();
+
+  //------
+
+  CQPivotModel *pivotModel = new CQPivotModel(model.data());
+
+  pivotModel->setHColumns(hColumns);
+  pivotModel->setVColumns(vColumns);
+
+  pivotModel->setValueColumn(dcolumn.column());
+
+  //---
+
+  QSortFilterProxyModel *pivotProxyModel = new QSortFilterProxyModel;
+
+  pivotProxyModel->setObjectName("pivotProxyModel");
+
+  pivotProxyModel->setSortRole(static_cast<int>(Qt::EditRole));
+
+  pivotProxyModel->setSourceModel(pivotModel);
+
+  ModelP pivotModelP(pivotProxyModel);
+
+  CQChartsModelData *pivotModelData = charts_->initModelData(pivotModelP);
+
+  //---
+
+  cmdBase_->setCmdRc(pivotModelData->ind());
+
+  return true;
+}
+
 
 //------
 
@@ -4436,7 +4541,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       CQChartsColumn column;
 
       if (! CQChartsModelUtil::stringToColumn(model.data(), data, column))
-        column = -1;
+        column = CQChartsColumn();
 
       cmdBase_->setCmdRc(column.column());
     }

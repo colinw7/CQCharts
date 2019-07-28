@@ -9,15 +9,14 @@
 class CQChartsTable;
 class CQChartsColor;
 class CQChartsSymbol;
+class CQChartsModelColumnDetails;
 class QPainter;
 
 //! \brief Custom delegate for table view
 class CQChartsTableDelegate : public QItemDelegate {
  public:
   struct ColumnData {
-    CQBaseModelType    type;
-    CQBaseModelType    baseType;
-    CQChartsNameValues nameValues;
+    CQChartsModelColumnDetails* details { nullptr };
   };
 
  public:
@@ -32,6 +31,8 @@ class CQChartsTableDelegate : public QItemDelegate {
   void click(const QModelIndex &index) const;
 
   void getColumnData(const QModelIndex &index, ColumnData &data) const;
+
+  void resetColumnData();
 
   void drawCheckInside(QPainter *painter, const QStyleOptionViewItem &option,
                        bool checked, const QModelIndex &index) const;

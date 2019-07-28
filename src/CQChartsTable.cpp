@@ -90,7 +90,7 @@ void
 CQChartsTable::
 modelTypeChangedSlot(int modelId)
 {
-  CQChartsModelData *modelData = charts_->getModelData(model_.data());
+  CQChartsModelData *modelData = getModelData();
 
   if (modelData && modelData->ind() == modelId)
     delegate_->clearColumnTypes();
@@ -170,6 +170,8 @@ setModelP(const ModelP &model)
 
     setSelectionModel(sm_);
   }
+
+  resetModelData();
 
   //---
 
@@ -502,14 +504,34 @@ exportSlot(QAction *action)
   }
 }
 
+CQChartsModelData *
+CQChartsTable::
+getModelData()
+{
+  if (! modelData_) {
+    modelData_ = charts_->getModelData(model_.data());
+    assert(modelData_);
+
+    connect(modelData_, SIGNAL(modelChanged()), this, SLOT(resetModelData()));
+  }
+
+  return modelData_;
+}
+
 CQChartsModelDetails *
 CQChartsTable::
 getDetails()
 {
-  CQChartsModelData *modelData = charts_->getModelData(model_.data());
-  assert(modelData);
+  return getModelData()->details();
+}
 
-  return modelData->details();
+void
+CQChartsTable::
+resetModelData()
+{
+  modelData_ = nullptr;
+
+  delegate_->resetColumnData();
 }
 
 QSize

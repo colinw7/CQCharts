@@ -63,6 +63,7 @@ CQChartsHierScatterPlot.cpp \
 CQChartsImagePlot.cpp \
 CQChartsParallelPlot.cpp \
 CQChartsPiePlot.cpp \
+CQChartsPivotPlot.cpp \
 CQChartsRadarPlot.cpp \
 CQChartsSankeyPlot.cpp \
 CQChartsScatterPlot.cpp \
@@ -240,6 +241,7 @@ CQSubSetModel.cpp \
 CQTransposeModel.cpp \
 CQBucketModel.cpp \
 CQCollapseModel.cpp \
+CQPivotModel.cpp \
 CQBucketer.cpp \
 \
 CQFilename.cpp \
@@ -296,6 +298,7 @@ HEADERS += \
 ../include/CQChartsImagePlot.h \
 ../include/CQChartsParallelPlot.h \
 ../include/CQChartsPiePlot.h \
+../include/CQChartsPivotPlot.h \
 ../include/CQChartsRadarPlot.h \
 ../include/CQChartsSankeyPlot.h \
 ../include/CQChartsScatterPlot.h \
@@ -473,6 +476,7 @@ HEADERS += \
 ../include/CQTransposeModel.h \
 ../include/CQBucketModel.h \
 ../include/CQCollapseModel.h \
+../include/CQPivotModel.h \
 ../include/CQBucketer.h \
 \
 ../include/CQFilename.h \

@@ -5,8 +5,6 @@
 
 //---
 
-CQCHARTS_NAMED_SHAPE_DATA(Bar,bar)
-
 /*!
  * \brief base class for Bar type plots (bar chart and distribution)
  */

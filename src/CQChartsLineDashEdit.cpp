@@ -165,6 +165,12 @@ CQChartsLineDashEdit(QWidget *parent) :
   updateState();
 }
 
+CQChartsLineDashEdit::
+~CQChartsLineDashEdit()
+{
+  delete menu_;
+}
+
 void
 CQChartsLineDashEdit::
 setEditable(bool edit)

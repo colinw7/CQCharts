@@ -59,6 +59,14 @@ CQChartsAxis(const CQChartsPlot *plot, Qt::Orientation direction, double start, 
   setAxesGridFillAlpha(0.5);
 
   needsCalc_ = true;
+
+  //---
+
+  CQChartsFont font;
+
+  font.decFontSize(4);
+
+  setAxesTickLabelTextFont(font);
 }
 
 CQChartsAxis::

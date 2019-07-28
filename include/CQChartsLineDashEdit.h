@@ -20,6 +20,7 @@ class CQChartsLineDashEdit : public QFrame {
 
  public:
   CQChartsLineDashEdit(QWidget *parent=0);
+ ~CQChartsLineDashEdit();
 
   bool editable() const { return editable_; }
   void setEditable(bool b);

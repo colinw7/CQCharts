@@ -26,7 +26,7 @@ CQChartsTitle(CQChartsPlot *plot) :
 
   CQChartsFont font;
 
-  font.incFontSize(1.2);
+  font.incFontSize(4);
 
   textData_.setFont(font);
 

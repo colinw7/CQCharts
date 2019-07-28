@@ -910,3 +910,6 @@
  + Support images for xy and scatter symbols
 # 7/24/2019
  + improve draw of color, symbol, font and column editors
+# 7/28/2019
+ + Add pivot model and plot
+ + Support custom color/palette for coloring column background or barchart

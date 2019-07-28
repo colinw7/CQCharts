@@ -2,6 +2,7 @@
 #define CQChartsModelDetails_H
 
 #include <CQChartsColumn.h>
+#include <CQChartsColumnType.h>
 #include <CQBaseModelTypes.h>
 #include <CQChartsUtil.h>
 #include <future>
@@ -10,6 +11,8 @@ class CQChartsModelDetails;
 class CQChartsModelData;
 class CQCharts;
 class CQChartsValueSet;
+
+class CQColorsPalette;
 class QAbstractItemModel;
 
 /*!
@@ -17,7 +20,9 @@ class QAbstractItemModel;
  */
 class CQChartsModelColumnDetails {
  public:
-  using VariantList = QList<QVariant>;
+  using VariantList   = QList<QVariant>;
+  using TableDrawType = CQChartsColumnType::DrawType;
+  using ColorPalette  = CQChartsColumnType::ColorPalette;
 
  public:
   CQChartsModelColumnDetails(CQChartsModelDetails *details, const CQChartsColumn &column);
@@ -90,9 +95,17 @@ class CQChartsModelColumnDetails {
 
   double map(const QVariant &var) const;
 
+  const ColorPalette &tableDrawPalette() const { return tableDrawPalette_; }
+  void setTableDrawPalette(const ColorPalette &p) { tableDrawPalette_ = p; }
+
+  const TableDrawType &tableDrawType() const { return tableDrawType_; }
+  void setTableDrawType(const TableDrawType &t) { tableDrawType_ = t; }
+
   virtual bool checkRow(const QVariant &) { return true; }
 
   void initCache() const;
+
+  void resetTypeInitialized() { typeInitialized_ = false; }
 
  private:
   bool initData();
@@ -119,20 +132,30 @@ class CQChartsModelColumnDetails {
 
   CQChartsModelDetails* details_         { nullptr };
   CQChartsColumn        column_;
-  QString               typeName_;
-  CQBaseModelType       type_            { CQBaseModelType::NONE };
-  CQBaseModelType       baseType_        { CQBaseModelType::NONE };
-  CQChartsNameValues    nameValues_;
-  QVariant              minValue_;
-  QVariant              maxValue_;
-  int                   numRows_         { 0 };
-  bool                  monotonic_       { true };
-  bool                  increasing_      { true };
-  bool                  initialized_     { false };
-  bool                  typeInitialized_ { false };
-  CQChartsValueSet*     valueSet_        { nullptr };
-  VariantInds           valueInds_;
-  mutable std::mutex    mutex_;
+
+  // cached type data
+  bool                  typeInitialized_ { false };                 //!< is type data set
+  CQBaseModelType       type_            { CQBaseModelType::NONE }; //!< column data type
+  CQBaseModelType       baseType_        { CQBaseModelType::NONE }; //!< column data base type
+  CQChartsNameValues    nameValues_;                                //!< name values
+  QString               typeName_;                                  //!< type name
+
+  // cached data
+  bool                  initialized_     { false };   //!< is data set
+  QVariant              minValue_;                    //!< min value (as variant)
+  QVariant              maxValue_;                    //!< max value (as variant)
+  int                   numRows_         { 0 };       //!< number of rows
+  bool                  monotonic_       { true };    //!< values are monotonic
+  bool                  increasing_      { true };    //!< values are increasing
+  CQChartsValueSet*     valueSet_        { nullptr }; //!< values
+  VariantInds           valueInds_;                   //!< unique values
+
+  // table render data
+  ColorPalette          tableDrawPalette_;
+  TableDrawType         tableDrawType_   { TableDrawType::COL_HEATMAP };
+
+  // mutex
+  mutable std::mutex    mutex_; //!< mutex
 };
 
 //---
@@ -175,6 +198,9 @@ class CQChartsModelDetails : public QObject {
  signals:
   void detailsReset();
 
+ private slots:
+  void modelTypeChangedSlot(int modelInd);
+
  private:
   void resetValues();
 
@@ -199,13 +225,17 @@ class CQChartsModelDetails : public QObject {
  private:
   using ColumnDetails = std::map<CQChartsColumn,CQChartsModelColumnDetails *>;
 
-  CQChartsModelData* data_         { nullptr };
-  Initialized        initialized_  { Initialized::NONE };
-  int                numColumns_   { 0 };
-  int                numRows_      { 0 };
-  bool               hierarchical_ { false };
-  ColumnDetails      columnDetails_;
-  mutable std::mutex mutex_;
+  CQChartsModelData* data_ { nullptr }; //!< model data
+
+  // cached data
+  Initialized   initialized_  { Initialized::NONE }; //!< is initialized
+  int           numColumns_   { 0 };                 //!< model number of columns
+  int           numRows_      { 0 };                 //!< model number of rows
+  bool          hierarchical_ { false };             //!< model is hierarchical
+  ColumnDetails columnDetails_;                      //!< model column details
+
+  // mutex
+  mutable std::mutex    mutex_; //!< mutex
 };
 
 #endif

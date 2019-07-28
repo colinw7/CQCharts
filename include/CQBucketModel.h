@@ -139,6 +139,8 @@ class CQBucketModel : public QAbstractProxyModel {
   void connectSlots();
   void disconnectSlots();
 
+  void connectDisconnectSlots(bool b);
+
   int mapColumn(int c) const;
   int unmapColumn(int c) const;
 

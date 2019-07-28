@@ -4,10 +4,15 @@
 #include <CQChartsExprModel.h>
 #include <CQChartsModelUtil.h>
 #include <CQCharts.h>
+
+#include <CQPropertyViewModel.h>
+#include <CQPropertyViewTree.h>
+#include <CQPivotModel.h>
 #include <CQBaseModel.h>
 #include <CQLineEdit.h>
 #include <CQUtil.h>
 
+#include <QSortFilterProxyModel>
 #include <QVBoxLayout>
 #include <QTabWidget>
 #include <QStackedWidget>
@@ -311,7 +316,23 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
   columnButtonLayout->addStretch(1);
   columnButtonLayout->addWidget(typeApplyButton);
 
+  //------
+
+  QFrame *propertyFrame = CQUtil::makeWidget<QFrame>("propertyFrame");
+
+  controlTab->addTab(propertyFrame, "Properties");
+
+  QVBoxLayout *propertyFrameLayout = CQUtil::makeLayout<QVBoxLayout>(propertyFrame, 2, 2);
+
   //---
+
+  propertyModel_ = new CQPropertyViewModel;
+
+  propertyTree_ = new CQPropertyViewTree(this, propertyModel_);
+
+  propertyFrameLayout->addWidget(propertyTree_);
+
+  //------
 
   setModelData(modelData);
 
@@ -501,6 +522,23 @@ setModelData(CQChartsModelData *modelData)
 
     if (modelData_)
       connect(modelData_, SIGNAL(currentColumnChanged(int)), this, SLOT(setColumnData(int)));
+
+    //---
+
+    if (modelData_) {
+      propertyModel_->clear();
+
+      ModelP model = modelData_->currentModel();
+
+      QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model.data());
+
+      CQPivotModel *pivotModel =
+        (proxyModel ? qobject_cast<CQPivotModel *>(proxyModel->sourceModel()) : nullptr);
+
+      if (pivotModel) {
+        propertyModel_->addProperty("", pivotModel, "valueType", "");
+      }
+    }
   }
 }
 

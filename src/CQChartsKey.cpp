@@ -49,6 +49,14 @@ init()
   setObjectName("key");
 
   setHeaderTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
+
+  //---
+
+  CQChartsFont font;
+
+  font.decFontSize(4);
+
+  setTextFont(font);
 }
 
 CQChartsKey::

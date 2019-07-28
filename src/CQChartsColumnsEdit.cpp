@@ -281,7 +281,7 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
     QString str1;
 
     for (const auto &column : columns.columns()) {
-      if (! str1.length())
+      if (str1.length())
         str1 += ", ";
 
       str1 += plot->columnHeaderName(column);

@@ -52,6 +52,7 @@ CQTransposeModel::
 connectDisconnectSlots(bool b)
 {
   QAbstractItemModel *model = this->sourceModel();
+  if (! model) return;
 
   auto connectDisconnect = [&](bool b, const char *from, const char *to) {
     if (b)

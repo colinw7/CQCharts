@@ -196,50 +196,47 @@ void
 CQBucketModel::
 connectSlots()
 {
-  QAbstractItemModel *model = this->sourceModel();
-
-  if (model) {
-    connect(model, SIGNAL(columnsInserted(const QModelIndex &, int, int)),
-            this, SLOT(bucketSlot()));
-    connect(model, SIGNAL(columnsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-            this, SLOT(bucketSlot()));
-    connect(model, SIGNAL(columnsRemoved(const QModelIndex &, int, int)),
-            this, SLOT(bucketSlot()));
-
-    connect(model, SIGNAL(modelReset()), this, SLOT(bucketSlot()));
-
-    connect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)),
-            this, SLOT(bucketSlot()));
-    connect(model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-            this, SLOT(bucketSlot()));
-    connect(model, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-            this, SLOT(bucketSlot()));
-  }
+  connectDisconnectSlots(true);
 }
 
 void
 CQBucketModel::
 disconnectSlots()
 {
+  connectDisconnectSlots(false);
+}
+
+void
+CQBucketModel::
+connectDisconnectSlots(bool b)
+{
   QAbstractItemModel *model = this->sourceModel();
+  if (! model) return;
 
-  if (model) {
-    disconnect(model, SIGNAL(columnsInserted(const QModelIndex &, int, int)),
-               this, SLOT(bucketSlot()));
-    disconnect(model, SIGNAL(columnsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-               this, SLOT(bucketSlot()));
-    disconnect(model, SIGNAL(columnsRemoved(const QModelIndex &, int, int)),
-               this, SLOT(bucketSlot()));
+  auto connectDisconnect = [&](bool b, const char *from, const char *to) {
+    if (b)
+      connect(model, from, this, to);
+    else
+      disconnect(model, from, this, to);
+  };
 
-    disconnect(model, SIGNAL(modelReset()), this, SLOT(bucketSlot()));
+  connectDisconnect(b,
+    SIGNAL(columnsInserted(const QModelIndex &, int, int)), SLOT(bucketSlot()));
+  connectDisconnect(b,
+    SIGNAL(columnsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+    SLOT(bucketSlot()));
+  connectDisconnect(b,
+    SIGNAL(columnsRemoved(const QModelIndex &, int, int)), SLOT(bucketSlot()));
 
-    disconnect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)),
-               this, SLOT(bucketSlot()));
-    disconnect(model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-               this, SLOT(bucketSlot()));
-    disconnect(model, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-               this, SLOT(bucketSlot()));
-  }
+  connectDisconnect(b,
+    SIGNAL(modelReset()), SLOT(bucketSlot()));
+
+  connectDisconnect(b,
+    SIGNAL(rowsInserted(const QModelIndex &, int, int)), SLOT(bucketSlot()));
+  connectDisconnect(b,
+    SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)), SLOT(bucketSlot()));
+  connectDisconnect(b,
+    SIGNAL(rowsRemoved(const QModelIndex &, int, int)), SLOT(bucketSlot()));
 }
 
 void
@@ -442,7 +439,7 @@ data(const QModelIndex &index, int role) const
       if      (role == Qt::DisplayRole) {
         return bucketer_.bucketName(bucket);
       }
-      if      (role == Qt::DisplayRole) {
+      else if (role == Qt::EditRole) {
         return bucket;
       }
       else if (role == Qt::ToolTipRole) {

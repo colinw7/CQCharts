@@ -1857,6 +1857,7 @@ void
 CQChartsBarChartObj::
 drawFg(QPainter *painter) const
 {
+  // draw data label on foreground layers
   if (! plot_->dataLabel()->isVisible())
     return;
 

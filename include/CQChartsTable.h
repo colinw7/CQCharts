@@ -9,6 +9,7 @@ class CQCharts;
 class CQChartsTableDelegate;
 class CQChartsTableSelectionModel;
 class CQChartsModelExprMatch;
+class CQChartsModelData;
 class CQChartsModelDetails;
 
 /*!
@@ -56,6 +57,8 @@ class CQChartsTable : public CQTableView {
 
   void addMenuActions(QMenu *menu) override;
 
+  CQChartsModelData *getModelData();
+
  signals:
   void columnClicked(int);
 
@@ -75,6 +78,8 @@ class CQChartsTable : public CQTableView {
 
   void exportSlot(QAction *action);
 
+  void resetModelData();
+
  private:
   using Matches = std::vector<QString>;
 
@@ -82,6 +87,7 @@ class CQChartsTable : public CQTableView {
   ModelP                       model_;
   CQChartsTableSelectionModel* sm_           { nullptr };
   CQChartsTableDelegate*       delegate_     { nullptr };
+  CQChartsModelData*           modelData_    { nullptr };
   bool                         isExprFilter_ { true };
   CQChartsModelExprMatch*      match_        { nullptr };
   Matches                      matches_;

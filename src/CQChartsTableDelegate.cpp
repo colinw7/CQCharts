@@ -1,11 +1,14 @@
 #include <CQChartsTableDelegate.h>
 #include <CQChartsTable.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsVariant.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQCharts.h>
+
+#include <CQColorsPalette.h>
 
 #include <QCheckBox>
 #include <QPainter>
@@ -23,12 +26,16 @@ paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &
 
   getColumnData(index, columnData);
 
-  if      (columnData.type == CQBaseModelType::BOOLEAN) {
+  CQBaseModelType type = columnData.details->type();
+
+  CQChartsModelColumnDetails::TableDrawType tableDrawType = columnData.details->tableDrawType();
+
+  if      (type == CQBaseModelType::BOOLEAN) {
     QVariant var = table_->modelP()->data(index);
 
     drawCheckInside(painter, option, var.toBool(), index);
   }
-  else if (columnData.type == CQBaseModelType::COLOR) {
+  else if (type == CQBaseModelType::COLOR) {
     QVariant var = table_->modelP()->data(index, Qt::EditRole);
 
     if (! var.isValid())
@@ -37,13 +44,13 @@ paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &
     CQChartsColumnTypeMgr *columnTypeMgr = table_->charts()->columnTypeMgr();
 
     const CQChartsColumnColorType *colorType =
-      dynamic_cast<const CQChartsColumnColorType *>(columnTypeMgr->getType(columnData.type));
+      dynamic_cast<const CQChartsColumnColorType *>(columnTypeMgr->getType(type));
 
     bool converted;
 
     QVariant cvar =
       colorType->userData(table_->charts(), table_->modelP().data(), index.column(),
-                          var, columnData.nameValues, converted);
+                          var, columnData.details->nameValues(), converted);
 
     bool ok;
 
@@ -54,7 +61,7 @@ paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &
     else
       QItemDelegate::paint(painter, option, index);
   }
-  else if (columnData.type == CQBaseModelType::SYMBOL) {
+  else if (type == CQBaseModelType::SYMBOL) {
     QVariant var = table_->modelP()->data(index, Qt::EditRole);
 
     if (! var.isValid())
@@ -68,6 +75,126 @@ paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &
       drawSymbol(painter, option, symbol, index);
     else
       QItemDelegate::paint(painter, option, index);
+  }
+  else if (type == CQBaseModelType::REAL || type == CQBaseModelType::INTEGER) {
+    QVariant var = table_->modelP()->data(index);
+
+    bool ok;
+
+    double r = var.toReal(&ok);
+
+    if (ok) {
+      QStyleOptionViewItem option1 = option;
+
+      auto initSelected = [&]() {
+        QColor c = option.palette.color(QPalette::Highlight);
+
+        option1.palette.setColor(QPalette::Highlight, QColor(0,0,0,0));
+        option1.palette.setColor(QPalette::HighlightedText, c);
+        option1.palette.setColor(QPalette::Text, c);
+
+        option1.state &= ~QStyle::State_Selected;
+      };
+
+      auto drawSelected = [&]() {
+        painter->setPen(option.palette.color(QPalette::Highlight));
+
+        painter->drawRect(option.rect);
+      };
+
+      const CQChartsColumnType::ColorPalette &colorPalette =
+        columnData.details->tableDrawPalette();
+
+      double min = columnData.details->minValue().toReal(&ok);
+      double max = columnData.details->maxValue().toReal(&ok);
+
+      double norm = (max > min ? (r - min)/(max - min) : 0.0);
+
+      if      (tableDrawType == CQChartsModelColumnDetails::TableDrawType::COL_HEATMAP) {
+        QColor bg(255, 0, 0);
+
+        if (colorPalette.palette) {
+          bg = colorPalette.palette->getColor(norm);
+        }
+        else if (colorPalette.color.isValid()) {
+          QColor bg1 = table_->charts()->interpColor(colorPalette.color, 0, 1);
+          QColor bg2 = option.palette.color(QPalette::Window);
+
+          bg = CQChartsUtil::blendColors(bg1, bg2, norm);
+        }
+
+        painter->fillRect(option.rect, bg);
+
+        if (option.state & QStyle::State_Selected)
+          initSelected();
+        else {
+          QColor tc = CQChartsUtil::bwColor(bg);
+
+          option1.palette.setColor(QPalette::Text, tc);
+        }
+
+        QItemDelegate::drawDisplay(painter, option1, option.rect, QString("%1").arg(r));
+
+        if (option.state & QStyle::State_Selected)
+          drawSelected();
+
+        QItemDelegate::drawFocus(painter, option, option.rect);
+      }
+      else if (tableDrawType == CQChartsModelColumnDetails::TableDrawType::BARCHART) {
+        double lw =      norm *option.rect.width();
+        double rw = (1 - norm)*option.rect.width();
+
+        // draw bar
+        QColor bg1(160, 160, 160);
+        QColor bg2 = option.palette.color(QPalette::Window);
+
+        if      (colorPalette.palette)
+          bg1 = colorPalette.palette->getColor(0.0);
+        else if (colorPalette.color.isValid())
+          bg1 = table_->charts()->interpColor(colorPalette.color, 0, 1);
+
+        QRectF lrect(option.rect.left()     , option.rect.top(), lw, option.rect.height());
+        QRectF rrect(option.rect.left() + lw, option.rect.top(), rw, option.rect.height());
+
+        painter->fillRect(lrect.adjusted(1, 1, -1, -1), bg1);
+        painter->fillRect(rrect.adjusted(1, 1, -1, -1), bg2);
+
+        QColor tc1, tc2;
+
+        if (option.state & QStyle::State_Selected) {
+          initSelected();
+
+          tc1 = option1.palette.color(QPalette::Text);
+          tc2 = tc1;
+        }
+        else {
+          tc1 = CQChartsUtil::bwColor(bg1);
+          tc2 = CQChartsUtil::bwColor(bg2);
+        }
+
+        painter->save();
+
+        painter->setClipRect(lrect);
+        option1.palette.setColor(QPalette::Text, tc1);
+        QItemDelegate::drawDisplay(painter, option1, option.rect, QString("%1").arg(r));
+
+        painter->setClipRect(rrect);
+        option1.palette.setColor(QPalette::Text, tc2);
+        QItemDelegate::drawDisplay(painter, option1, option.rect, QString("%1").arg(r));
+
+        painter->restore();
+
+        if (option.state & QStyle::State_Selected)
+          drawSelected();
+
+        QItemDelegate::drawFocus(painter, option, option.rect);
+      }
+      else
+        QItemDelegate::paint(painter, option, index);
+    }
+    else {
+      QItemDelegate::paint(painter, option, index);
+    }
   }
   else {
     QVariant var = table_->modelP()->data(index);
@@ -92,7 +219,9 @@ createEditor(QWidget *parent, const QStyleOptionViewItem &item, const QModelInde
 
   getColumnData(index, columnData);
 
-  if (columnData.type == CQBaseModelType::BOOLEAN) {
+  CQBaseModelType type = columnData.details->type();
+
+  if (type == CQBaseModelType::BOOLEAN) {
     QVariant var = table_->modelP()->data(index);
 
     QCheckBox *check = CQUtil::makeLabelWidget<QCheckBox>(parent, "", "check");
@@ -123,7 +252,9 @@ click(const QModelIndex &index) const
 
   getColumnData(index, columnData);
 
-  if (columnData.type == CQBaseModelType::BOOLEAN) {
+  CQBaseModelType type = columnData.details->type();
+
+  if (type == CQBaseModelType::BOOLEAN) {
     QVariant var = table_->modelP()->data(index);
 
     table_->modelP()->setData(index, ! var.toBool());
@@ -134,8 +265,6 @@ void
 CQChartsTableDelegate::
 getColumnData(const QModelIndex &index, ColumnData &data) const
 {
-  QAbstractItemModel *model = table_->modelP().data();
-
   auto p = columnDataMap_.find(index.column());
 
   if (p != columnDataMap_.end()) {
@@ -147,12 +276,22 @@ getColumnData(const QModelIndex &index, ColumnData &data) const
 
   std::unique_lock<std::mutex> lock(mutex_);
 
-  (void) CQChartsModelUtil::columnValueType(table_->charts(), model, index.column(),
-                                            data.type, data.baseType, data.nameValues);
+  data.details = table_->getDetails()->columnDetails(index.column());
 
   CQChartsTableDelegate *th = const_cast<CQChartsTableDelegate *>(this);
 
   th->columnDataMap_[index.column()] = data;
+}
+
+void
+CQChartsTableDelegate::
+resetColumnData()
+{
+  std::unique_lock<std::mutex> lock(mutex_);
+
+  CQChartsTableDelegate *th = const_cast<CQChartsTableDelegate *>(this);
+
+  th->columnDataMap_.clear();
 }
 
 void

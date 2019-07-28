@@ -158,23 +158,13 @@ headerData(int section, Qt::Orientation orientation, int role) const
       if (hheader_[section].toString().length())
         return hheader_[section];
 
-      QVariant var = CQBaseModel::headerData(section, orientation, role);
-
-      if (var.isValid())
-        return var;
-
-      return "";
+      return CQBaseModel::headerData(section, orientation, role);
     }
     else if (role == Qt::EditRole) {
       if (hheader_[section].toString().length())
         return hheader_[section];
 
-      QVariant var = CQBaseModel::headerData(section, orientation, role);
-
-      if (var.isValid())
-        return var;
-
-      return "";
+      return CQBaseModel::headerData(section, orientation, role);
     }
     else if (role == Qt::ToolTipRole) {
       QVariant var = hheader_[section];

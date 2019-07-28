@@ -33,7 +33,7 @@ addParameters()
   addColumnParameter ("x", "X", "xColumn").
     setRequired().setMonotonic().setNumeric().setTip("X Value Column");
   addColumnsParameter("y", "Y", "yColumns").
-    setRequired().setNumeric().setTip("Y Value Columns");
+    setRequired().setNumeric().setTip("Y Value Column(s)");
 
   addColumnParameter("label", "Label", "labelColumn").
     setString().setTip("Optional Label Column");
@@ -533,8 +533,8 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProp("columns", "xColumn" , "x", "X column" );
-  addProp("columns", "yColumns", "y", "Y columns");
+  addProp("columns", "xColumn" , "x", "X value column" );
+  addProp("columns", "yColumns", "y", "Y value column(s)");
 
   addProp("columns", "labelColumn"     , "label"     , "Label column");
   addProp("columns", "symbolTypeColumn", "symbolType", "Symbol type column");
