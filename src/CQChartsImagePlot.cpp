@@ -461,7 +461,6 @@ drawXLabels(QPainter *painter) const
   textOptions.html      = isXLabelTextHtml();
   textOptions.align     = xLabelTextAlign();
   textOptions.angle     = xLabelTextAngle();
-  textOptions.scaled    = isXLabelTextScaled();
 
   //---
 
@@ -531,7 +530,6 @@ drawYLabels(QPainter *painter) const
   textOptions.html      = isYLabelTextHtml();
   textOptions.align     = yLabelTextAlign();
   textOptions.angle     = yLabelTextAngle();
-  textOptions.scaled    = isYLabelTextScaled();
 
   //---
 
@@ -764,7 +762,6 @@ draw(QPainter *painter)
       textOptions.scaled    = plot_->isCellLabelTextScaled();
       textOptions.html      = plot_->isCellLabelTextHtml();
       textOptions.align     = plot_->cellLabelTextAlign();
-      textOptions.scaled    = plot_->isCellLabelTextScaled();
 
       textOptions = plot_->adjustTextOptions(textOptions);
 

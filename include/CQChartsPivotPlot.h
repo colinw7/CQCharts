@@ -6,6 +6,8 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsGeom.h>
 
+class CQChartsDataLabel;
+
 //---
 
 /*!
@@ -59,11 +61,19 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
   //---
 
+  CQChartsGeom::BBox dataLabelRect() const;
+
+  //---
+
   void getSelectIndices(Indices &inds) const override;
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
+  //---
+
   void draw(QPainter *painter) override;
+
+  void drawFg(QPainter *painter) const override;
 
   //---
 
@@ -297,11 +307,25 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
   //---
 
+  // data label
+  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
+  CQChartsDataLabel *dataLabel() { return dataLabel_; }
+
+  //---
+
   void updatePivot();
 
   //---
 
+  CQChartsGeom::BBox annotationBBox() const;
+
+  //---
+
   void addProperties() override;
+
+  void getPropertyNames(QStringList &names, bool hidden) const;
+
+  //---
 
   CQChartsGeom::Range calcRange() const override;
 
@@ -319,6 +343,9 @@ class CQChartsPivotPlot : public CQChartsPlot,
   bool addMenuItems(QMenu *menu) override;
 
   //---
+
+  void write(std::ostream &os, const QString &varName="",
+             const QString &modelName="") const override;
 
  private:
   std::vector<PlotType> plotTypes() const { return
@@ -341,13 +368,14 @@ class CQChartsPivotPlot : public CQChartsPlot,
   void setValueTypeSlot(bool b);
 
  private:
-  CQChartsColumns xColumns_;                      //!< x columns
-  CQChartsColumns yColumns_;                      //!< y columns
-  CQChartsColumn  valueColumn_;                   //!< value columns
-  PlotType        plotType_   { PlotType::BAR };  //!< plot type
-  ValueType       valueType_  { ValueType::SUM }; //!< value type
-  bool            horizontal_ { false };          //!< horizontal
-  CQPivotModel*   pivotModel_ { nullptr };        //!< pivot model
+  CQChartsColumns    xColumns_;                       //!< x columns
+  CQChartsColumns    yColumns_;                       //!< y columns
+  CQChartsColumn     valueColumn_;                    //!< value columns
+  PlotType           plotType_    { PlotType::BAR };  //!< plot type
+  ValueType          valueType_   { ValueType::SUM }; //!< value type
+  bool               horizontal_  { false };          //!< horizontal
+  CQPivotModel*      pivotModel_  { nullptr };        //!< pivot model
+  CQChartsDataLabel* dataLabel_   { nullptr };        //!< data label data
 };
 
 #endif

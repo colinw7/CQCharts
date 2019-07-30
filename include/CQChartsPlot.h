@@ -1770,6 +1770,7 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // cached column names
+  QString columnsHeaderName(const CQChartsColumns &columns) const;
   QString columnHeaderName(const CQChartsColumn &column) const;
 
   QString idHeaderName   () const { return columnHeaderName(idColumn()); }

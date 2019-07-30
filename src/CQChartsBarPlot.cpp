@@ -1,5 +1,8 @@
 #include <CQChartsBarPlot.h>
 #include <CQChartsAxis.h>
+#include <CQChartsDataLabel.h>
+
+#include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 
 CQChartsBarPlot::
@@ -16,7 +19,11 @@ CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &mo
 
   //---
 
+  dataLabel_ = new CQChartsDataLabel(this);
+
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
+
+  //---
 
   addAxes();
 
@@ -28,6 +35,7 @@ CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &mo
 CQChartsBarPlot::
 ~CQChartsBarPlot()
 {
+  delete dataLabel_;
 }
 
 //---
@@ -76,6 +84,19 @@ addProperties()
 
   // color map
   addColorMapProperties();
+
+  //---
+
+  dataLabel_->addPathProperties("labels", "Labels");
+}
+
+void
+CQChartsBarPlot::
+getPropertyNames(QStringList &names, bool hidden) const
+{
+  CQChartsPlot::getPropertyNames(names, hidden);
+
+  propertyModel()->objectNames(dataLabel_, names, hidden);
 }
 
 //---
@@ -85,6 +106,8 @@ CQChartsBarPlot::
 setHorizontal(bool b)
 {
   CQChartsUtil::testAndSet(horizontal_, b, [&]() {
+    dataLabel_->setDirection(horizontal_ ? Qt::Horizontal : Qt::Vertical);
+
     CQChartsAxis::swap(xAxis(), yAxis());
 
     updateRangeAndObjs();
@@ -142,4 +165,15 @@ probe(ProbeData &probeData) const
   }
 
   return true;
+}
+
+//---
+
+void
+CQChartsBarPlot::
+write(std::ostream &os, const QString &varName, const QString &modelName) const
+{
+  CQChartsPlot::write(os, varName, modelName);
+
+  dataLabel_->write(os, varName);
 }

@@ -6,7 +6,6 @@
 #include <CQChartsColor.h>
 #include <CQChartsStatData.h>
 
-class CQChartsDataLabel;
 class CQChartsDensity;
 
 //---
@@ -640,9 +639,6 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
-  CQChartsDataLabel *dataLabel() { return dataLabel_; }
-
   CQChartsGeom::BBox annotationBBox() const override;
 
   //---
@@ -656,8 +652,6 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   //---
 
   void addProperties() override;
-
-  void getPropertyNames(QStringList &names, bool hidden) const override;
 
   //---
 
@@ -748,11 +742,6 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   bool hasGroups() const;
 
-  //---
-
-  void write(std::ostream &os, const QString &varName="",
-             const QString &modelName="") const override;
-
  private:
   using Inds         = std::vector<CQChartsModelIndex>;
   using BucketValues = std::map<Bucket,VariantIndsData>;
@@ -809,9 +798,6 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   //---
 
  public slots:
-  // set horizontal
-  void setHorizontal(bool b) override;
-
   // set plot type
   void setPlotType(PlotType plotType);
 
@@ -902,7 +888,6 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   CQChartsOptReal    overflowBucket_;                      //!< overlow bucket threshhold
   double             minBarSize_     { 3.0 };              //!< min bar size (pixels)
   double             scatterMargin_  { 0.05 };             //!< scatter point margin
-  CQChartsDataLabel* dataLabel_      { nullptr };          //!< data label data
   CQBucketer         bucketer_;                            //!< shared bucketer
   bool               bucketed_       { true };             //!< is bucketed
   FilterStack        filterStack_;                         //!< filter stack

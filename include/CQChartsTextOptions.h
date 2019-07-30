@@ -10,7 +10,7 @@ struct CQChartsTextOptions {
   bool          scaled           { false }; //!< text scaled
   bool          html             { false }; //!< text html
   bool          clipped          { true };  //!< text clipped
-  int           margin           { 0 };     //!< text margin
+  int           margin           { 0 };     //!< text margin (pixels)
   Qt::Alignment align            { Qt::AlignHCenter | Qt::AlignVCenter }; //!< text align
   double        minScaleFontSize { 6.0 };   //!< min scaled font size
   double        maxScaleFontSize { 48.0 };  //!< max scaled font size

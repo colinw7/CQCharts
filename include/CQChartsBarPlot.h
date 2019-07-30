@@ -3,6 +3,8 @@
 
 #include <CQChartsGroupPlot.h>
 
+class CQChartsDataLabel;
+
 //---
 
 /*!
@@ -30,6 +32,7 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
 
   //---
 
+  // value columns
   const CQChartsColumns &valueColumns() const { return valueColumns_; }
   void setValueColumns(const CQChartsColumns &c);
 
@@ -57,21 +60,35 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
 
   //---
 
+  // data label
+  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
+  CQChartsDataLabel *dataLabel() { return dataLabel_; }
+
+  //---
+
   void addProperties() override;
+
+  void getPropertyNames(QStringList &names, bool hidden) const;
 
   //---
 
   bool probe(ProbeData &probeData) const override;
+
+  //---
+
+  void write(std::ostream &os, const QString &varName="",
+             const QString &modelName="") const override;
 
  public slots:
   // set horizontal
   virtual void setHorizontal(bool b);
 
  protected:
-  CQChartsColumns valueColumns_;           //!< value columns
-  bool            horizontal_   { false }; //!< horizontal bars
-  CQChartsLength  margin_       { "2px" }; //!< bar margin
-  CQChartsLength  groupMargin_  { "4px" }; //!< bar group margin
+  CQChartsColumns    valueColumns_;             //!< value columns
+  bool               horizontal_   { false };   //!< horizontal bars
+  CQChartsLength     margin_       { "2px" };   //!< bar margin
+  CQChartsLength     groupMargin_  { "4px" };   //!< bar group margin
+  CQChartsDataLabel* dataLabel_    { nullptr }; //!< data label data
 };
 
 #endif

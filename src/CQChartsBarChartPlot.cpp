@@ -126,7 +126,7 @@ CQChartsBarChartPlot(CQChartsView *view, const ModelP &model) :
 {
   NoUpdate noUpdate(this);
 
-  dataLabel_ = new CQChartsDataLabel(this);
+  //---
 
   setDotSymbolType(CQChartsSymbol::Type::CIRCLE);
   setDotSymbolSize(CQChartsLength("7px"));
@@ -135,7 +135,6 @@ CQChartsBarChartPlot(CQChartsView *view, const ModelP &model) :
 CQChartsBarChartPlot::
 ~CQChartsBarChartPlot()
 {
-  delete dataLabel_;
 }
 
 //---
@@ -192,33 +191,9 @@ addProperties()
   //---
 
   CQChartsGroupPlot::addProperties();
-
-  dataLabel_->addPathProperties("labels", "Labels");
-}
-
-void
-CQChartsBarChartPlot::
-getPropertyNames(QStringList &names, bool hidden) const
-{
-  CQChartsPlot::getPropertyNames(names, hidden);
-
-  propertyModel()->objectNames(dataLabel_, names, hidden);
 }
 
 //---
-
-void
-CQChartsBarChartPlot::
-setHorizontal(bool b)
-{
-  CQChartsUtil::testAndSet(horizontal_, b, [&]() {
-    dataLabel_->setDirection(horizontal_ ? Qt::Horizontal : Qt::Vertical);
-
-    CQChartsAxis::swap(xAxis(), yAxis());
-
-    updateRangeAndObjs();
-  } );
-}
 
 void
 CQChartsBarChartPlot::
@@ -1077,14 +1052,12 @@ initObjAxes()
   xAxis->setGridMid       (true);
 //xAxis->setMajorIncrement(1);
   xAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
-//xAxis->setDataLabels    (true);
 
   yAxis->setValueType     (isLogY() ? CQChartsAxisValueType::Type::LOG :
                                            CQChartsAxisValueType::Type::REAL, /*notify*/false);
   yAxis->setGridMid       (false);
 //yAxis->setMajorIncrement(0);
   yAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR_AND_MINOR);
-//yAxis->setDataLabels    (true);
 
   //---
 
@@ -1456,17 +1429,6 @@ getPanY(bool is_shift) const
   return windowToViewHeight(is_shift ? 2.0*barWidth_ : 1.0*barWidth_);
 }
 
-//---
-
-void
-CQChartsBarChartPlot::
-write(std::ostream &os, const QString &varName, const QString &modelName) const
-{
-  CQChartsPlot::write(os, varName, modelName);
-
-  dataLabel_->write(os, varName);
-}
-
 //------
 
 CQChartsBarChartObj::
@@ -1498,10 +1460,23 @@ calcTipId() const
   if (groupStr.length())
     tableTip.addTableRow("Group", groupStr);
 
-  if (nameStr.length())
-    tableTip.addTableRow("Name", nameStr);
+  if (nameStr.length()) {
+    QString headerStr("Name");
 
-  tableTip.addTableRow("Value", valueStr);
+    if (plot_->nameColumn().isValid())
+      headerStr = plot_->columnHeaderName(plot_->nameColumn());
+
+    tableTip.addTableRow(headerStr, nameStr);
+  }
+
+  if (valueStr.length()) {
+    QString headerStr("Value");
+
+    if (plot_->valueColumns().isValid())
+      headerStr = plot_->columnsHeaderName(plot_->valueColumns());
+
+    tableTip.addTableRow(headerStr, valueStr);
+  }
 
   const CQChartsBarChartValue *value = this->value();
 

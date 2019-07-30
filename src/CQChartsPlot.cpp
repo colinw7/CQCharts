@@ -3253,6 +3253,25 @@ createObjs()
 
 QString
 CQChartsPlot::
+columnsHeaderName(const CQChartsColumns &columns) const
+{
+  QString str;
+
+  for (const auto &column : columns.columns()) {
+    QString str1 = columnHeaderName(column);
+    if (! str1.length()) continue;
+
+    if (str.length())
+      str += ", ";
+
+    str += str1;
+  }
+
+  return str;
+}
+
+QString
+CQChartsPlot::
 columnHeaderName(const CQChartsColumn &column) const
 {
   auto p = columnNames_.find(column);

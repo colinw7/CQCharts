@@ -2,6 +2,7 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsTip.h>
+#include <CQChartsDataLabel.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
@@ -84,6 +85,12 @@ CQChartsPivotPlot(CQChartsView *view, const ModelP &model) :
 
   //---
 
+  dataLabel_ = new CQChartsDataLabel(this);
+
+  setLayerActive(CQChartsLayer::Type::FG_PLOT, true); // for data label
+
+  //---
+
   setBarFilled   (true);
   setBarFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
@@ -109,6 +116,7 @@ CQChartsPivotPlot(CQChartsView *view, const ModelP &model) :
 CQChartsPivotPlot::
 ~CQChartsPivotPlot()
 {
+  delete dataLabel_;
   delete pivotModel_;
 }
 
@@ -156,6 +164,8 @@ CQChartsPivotPlot::
 setHorizontal(bool b)
 {
   CQChartsUtil::testAndSet(horizontal_, b, [&]() {
+    dataLabel_->setDirection(horizontal_ ? Qt::Horizontal : Qt::Vertical);
+
     CQChartsAxis::swap(xAxis(), yAxis());
 
     updateRangeAndObjs();
@@ -199,7 +209,18 @@ addProperties()
 
   addProp("stroke", "barCornerSize", "cornerSize", "Bar corner size");
 
-  //addAllTextProperties("text", "labelText", "label");
+  //---
+
+  dataLabel_->addPathProperties("labels", "Labels");
+}
+
+void
+CQChartsPivotPlot::
+getPropertyNames(QStringList &names, bool hidden) const
+{
+  CQChartsPlot::getPropertyNames(names, hidden);
+
+  propertyModel()->objectNames(dataLabel_, names, hidden);
 }
 
 //------
@@ -270,39 +291,62 @@ calcRange() const
   int nr = pivotModel()->rowCount   ();
   int nc = pivotModel()->columnCount();
 
-  for (int r = 0; r < nr; ++r) {
-    for (int c = 1; c < nc; ++c) {
-      QModelIndex ind = pivotModel()->index(r, c, QModelIndex());
+  if (plotType() == PlotType::STACKED_BAR) {
+    for (int r = 0; r < nr; ++r) {
+      double sum = 0.0;
 
-      QVariant var = pivotModel()->data(ind, Qt::EditRole);
+      for (int c = 1; c < nc; ++c) {
+        QModelIndex ind = pivotModel()->index(r, c, QModelIndex());
 
-      bool ok;
+        QVariant var = pivotModel()->data(ind, Qt::EditRole);
 
-      double value = var.toDouble(&ok);
-      if (! ok) continue;
+        bool ok;
 
-      int c1 = c - 1;
+        double value = var.toDouble(&ok);
+        if (! ok) continue;
 
-      if      (plotType() == PlotType::GRID) {
-        updateRange(r - 0.5, c1 - 0.5);
-        updateRange(r + 0.5, c1 + 0.5);
+        sum += value;
       }
-      else if (plotType() == PlotType::LINES || plotType() == PlotType::AREA) {
-        updateRange(r, 0.0);
-        updateRange(r, value);
-      }
-      else if (plotType() == PlotType::POINTS) {
-        double ss = 5.0;
 
-        double sx = pixelToWindowWidth (ss);
-        double sy = pixelToWindowHeight(ss);
+      updateRange(r - 0.5, 0.0);
+      updateRange(r + 0.5, sum);
+    }
+  }
+  else {
+    for (int r = 0; r < nr; ++r) {
+      for (int c = 1; c < nc; ++c) {
+        QModelIndex ind = pivotModel()->index(r, c, QModelIndex());
 
-        updateRange(r - sx, value - sy);
-        updateRange(r + sx, value + sy);
-      }
-      else {
-        updateRange(r - 0.5, 0.0  );
-        updateRange(r + 0.5, value);
+        QVariant var = pivotModel()->data(ind, Qt::EditRole);
+
+        bool ok;
+
+        double value = var.toDouble(&ok);
+        if (! ok) continue;
+
+        int c1 = c - 1;
+
+        if      (plotType() == PlotType::GRID) {
+          updateRange(r - 0.5, c1 - 0.5);
+          updateRange(r + 0.5, c1 + 0.5);
+        }
+        else if (plotType() == PlotType::LINES || plotType() == PlotType::AREA) {
+          updateRange(r, 0.0);
+          updateRange(r, value);
+        }
+        else if (plotType() == PlotType::POINTS) {
+          double ss = 5.0;
+
+          double sx = pixelToWindowWidth (ss);
+          double sy = pixelToWindowHeight(ss);
+
+          updateRange(r - sx, value - sy);
+          updateRange(r + sx, value + sy);
+        }
+        else {
+          updateRange(r - 0.5, 0.0  );
+          updateRange(r + 0.5, value);
+        }
       }
     }
   }
@@ -310,6 +354,31 @@ calcRange() const
   //---
 
   return dataRange;
+}
+
+//------
+
+CQChartsGeom::BBox
+CQChartsPivotPlot::
+annotationBBox() const
+{
+  CQChartsGeom::BBox bbox;
+
+  CQChartsDataLabel::Position position = dataLabel()->position();
+
+  if (position != CQChartsDataLabel::TOP_OUTSIDE && position != CQChartsDataLabel::BOTTOM_OUTSIDE)
+    return bbox;
+
+  if (dataLabel()->isVisible()) {
+    for (const auto &plotObj : plotObjs_) {
+      CQChartsPivotBarObj *barObj = dynamic_cast<CQChartsPivotBarObj *>(plotObj);
+
+      if (barObj)
+        bbox += barObj->dataLabelRect();
+    }
+  }
+
+  return bbox;
 }
 
 //------
@@ -788,6 +857,17 @@ valueTypeName(const ValueType &valueType) const
   };
 }
 
+//---
+
+void
+CQChartsPivotPlot::
+write(std::ostream &os, const QString &varName, const QString &modelName) const
+{
+  CQChartsPlot::write(os, varName, modelName);
+
+  dataLabel_->write(os, varName);
+}
+
 //------
 
 CQChartsPivotBarObj::
@@ -798,6 +878,8 @@ CQChartsPivotBarObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rec
  plot_(plot), ind_(ind), value_(value)
 {
 }
+
+//---
 
 QString
 CQChartsPivotBarObj::
@@ -825,6 +907,26 @@ calcTipId() const
   return tableTip.str();
 }
 
+//---
+
+CQChartsGeom::BBox
+CQChartsPivotBarObj::
+dataLabelRect() const
+{
+  if (! plot_->dataLabel()->isVisible())
+    return CQChartsGeom::BBox();
+
+  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
+
+  QRectF qrect = CQChartsUtil::toQRect(prect);
+
+  QString label = QString("%1").arg(value_);
+
+  return plot_->dataLabel()->calcRect(qrect, label);
+}
+
+//---
+
 void
 CQChartsPivotBarObj::
 getSelectIndices(Indices &inds) const
@@ -843,6 +945,8 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
   if (column.isValid())
     addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
+
+//---
 
 void
 CQChartsPivotBarObj::
@@ -887,6 +991,28 @@ draw(QPainter *painter)
   double cys = plot_->lengthPixelHeight(plot_->barCornerSize());
 
   CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
+}
+
+void
+CQChartsPivotBarObj::
+drawFg(QPainter *painter) const
+{
+  // draw data label on foreground layers
+  if (! plot_->dataLabel()->isVisible())
+    return;
+
+  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
+
+  QRectF qrect = CQChartsUtil::toQRect(prect);
+
+  //---
+
+  QString label = QString("%1").arg(value_);
+
+  CQChartsDataLabel::Position pos = plot_->dataLabel()->position();
+
+  if (label != "")
+    plot_->dataLabel()->draw(painter, qrect, label, pos);
 }
 
 //------
@@ -1385,16 +1511,20 @@ draw(QPainter *painter)
 
     CQChartsTextOptions textOptions;
 
-    textOptions.contrast  = false;
+    textOptions.angle     = 0.0;
+    textOptions.contrast  = plot_->dataLabel()->isTextContrast();
     textOptions.formatted = false;
-    textOptions.scaled    = false;
+    textOptions.scaled    = plot_->dataLabel()->isTextScaled();
     textOptions.html      = false;
+    textOptions.clipped   = false;
+    textOptions.margin    = 0;
     textOptions.align     = Qt::AlignHCenter | Qt::AlignVCenter;
-    textOptions.scaled    = false;
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
     painter->setPen(CQChartsUtil::bwColor(vbg));
+
+    plot_->view()->setPlotPainterFont(plot_, painter, plot_->dataLabel()->textFont());
 
     CQChartsDrawUtil::drawTextInBox(painter, qrectt, valueStr, textOptions);
   }

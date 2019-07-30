@@ -148,8 +148,6 @@ CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
 {
   NoUpdate noUpdate(this);
 
-  dataLabel_ = new CQChartsDataLabel(this);
-
   setAutoBucket    (true);
   setNumAutoBuckets(20);
 
@@ -171,8 +169,6 @@ CQChartsDistributionPlot::
 ~CQChartsDistributionPlot()
 {
   clearGroupValues();
-
-  delete dataLabel_;
 }
 
 //---
@@ -386,33 +382,9 @@ addProperties()
   //---
 
   CQChartsGroupPlot::addProperties();
-
-  dataLabel_->addPathProperties("labels", "Labels");
-}
-
-void
-CQChartsDistributionPlot::
-getPropertyNames(QStringList &names, bool hidden) const
-{
-  CQChartsPlot::getPropertyNames(names, hidden);
-
-  propertyModel()->objectNames(dataLabel_, names, hidden);
 }
 
 //---
-
-void
-CQChartsDistributionPlot::
-setHorizontal(bool b)
-{
-  CQChartsUtil::testAndSet(horizontal_, b, [&]() {
-    dataLabel_->setDirection(horizontal_ ? Qt::Horizontal : Qt::Vertical);
-
-    CQChartsAxis::swap(xAxis(), yAxis());
-
-    updateRangeAndObjs();
-  } );
-}
 
 void
 CQChartsDistributionPlot::
@@ -2997,17 +2969,6 @@ CQChartsDistributionPlot::
 hasGroups() const
 {
   return (groupData_.groupValues.size() > 1);
-}
-
-//---
-
-void
-CQChartsDistributionPlot::
-write(std::ostream &os, const QString &varName, const QString &modelName) const
-{
-  CQChartsPlot::write(os, varName, modelName);
-
-  dataLabel_->write(os, varName);
 }
 
 //------

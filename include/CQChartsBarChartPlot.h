@@ -5,8 +5,6 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsColor.h>
 
-class CQChartsDataLabel;
-
 //---
 
 /*!
@@ -222,11 +220,15 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
+  //---
+
   void draw(QPainter *painter) override;
 
   void drawFg(QPainter *painter) const override;
 
   QColor calcBarColor() const;
+
+  //---
 
   const CQChartsBarChartValue *value() const;
 
@@ -383,18 +385,11 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   //---
 
-  const CQChartsDataLabel *dataLabel() const { return dataLabel_; }
-  CQChartsDataLabel *dataLabel() { return dataLabel_; }
-
-  //---
-
   CQChartsGeom::BBox annotationBBox() const override;
 
   //---
 
   void addProperties() override;
-
-  void getPropertyNames(QStringList &names, bool hidden) const override;
 
   //---
 
@@ -426,15 +421,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   double getPanX(bool is_shift) const override;
   double getPanY(bool is_shift) const override;
 
-  //---
-
-  void write(std::ostream &os, const QString &varName="",
-             const QString &modelName="") const override;
-
  public slots:
-  // set horizontal
-  void setHorizontal(bool b) override;
-
   // set plot type
   void setPlotType(PlotType plotType);
 
@@ -504,17 +491,16 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
     CQChartsLength width   { "3px" }; //!< width
   };
 
-  CQChartsColumn     nameColumn_;                          //!< name column
-  CQChartsColumn     labelColumn_;                         //!< data label column
-  PlotType           plotType_       { PlotType::NORMAL }; //!< plot type
-  ValueType          valueType_      { ValueType::VALUE }; //!< bar value type
-  bool               percent_        { false };            //!< percent values
-  bool               colorBySet_     { false };            //!< color bars by set or value
-  DotLineData        dotLineData_;                         //!< dot line data
-  CQChartsDataLabel* dataLabel_      { nullptr };          //!< data label data
-  int                numVisible_     { 0 };                //!< number of visible bars
-  double             barWidth_       { 1.0 };              //!< bar width
-  ValueData          valueData_;                           //!< value data
+  CQChartsColumn nameColumn_;                        //!< name column
+  CQChartsColumn labelColumn_;                       //!< data label column
+  PlotType       plotType_     { PlotType::NORMAL }; //!< plot type
+  ValueType      valueType_    { ValueType::VALUE }; //!< bar value type
+  bool           percent_      { false };            //!< percent values
+  bool           colorBySet_   { false };            //!< color bars by set or value
+  DotLineData    dotLineData_;                       //!< dot line data
+  int            numVisible_   { 0 };                //!< number of visible bars
+  double         barWidth_     { 1.0 };              //!< bar width
+  ValueData      valueData_;                         //!< value data
 };
 
 #endif
