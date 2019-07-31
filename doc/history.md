@@ -913,3 +913,5 @@
 # 7/28/2019
  + Add pivot model and plot
  + Support custom color/palette for coloring column background or barchart
+# 7/30/2019
+ + Common code for CQChartsPlotObj model indices

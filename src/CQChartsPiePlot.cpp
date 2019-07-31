@@ -1112,8 +1112,9 @@ CQChartsPieObj::
 CQChartsPieObj(const CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect,
                const QModelIndex &ind, const ColorInd &ig) :
  CQChartsPlotObj(const_cast<CQChartsPiePlot *>(plot), rect, ColorInd(), ig, ColorInd()),
- plot_(plot), ind_(ind)
+ plot_(plot)
 {
+  setModelInd(ind);
 }
 
 QString
@@ -1127,7 +1128,7 @@ QString
 CQChartsPieObj::
 calcTipId() const
 {
-  QModelIndex ind = plot_->unnormalizeIndex(ind_);
+  QModelIndex ind = plot_->unnormalizeIndex(modelInd());
 
   // get group name and label
   bool hasGroup = (plot_->numGroups() > 1 && groupObj_);
@@ -1155,7 +1156,7 @@ calcTipId() const
   //---
 
   // get value string
-  int valueColumn = ind_.column();
+  int valueColumn = modelInd().column();
 
   QString valueStr = plot_->columnStr(valueColumn, value_);
 
@@ -1176,7 +1177,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, ind_);
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -1264,14 +1265,6 @@ getSelectIndices(Indices &inds) const
 
   for (const auto &c : plot_->valueColumns())
     addColumnSelectIndex(inds, c);
-}
-
-void
-CQChartsPieObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 bool

@@ -56,15 +56,12 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
  private:
   const CQChartsDelaunayPlot* plot_ { nullptr };
   double                      x_    { 0.0 };
   double                      y_    { 0.0 };
-  QModelIndex                 ind_;
 };
 
 //---

@@ -67,8 +67,6 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   //---
 
   void draw(QPainter *painter) override;
@@ -79,7 +77,6 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
  protected:
   const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot
-  QModelIndex              ind_;               //!< model index
   double                   value_ { 0.0 };     //!< value
 };
 
@@ -90,9 +87,6 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
  */
 class CQChartsPivotLineObj : public CQChartsPlotObj {
   Q_OBJECT
-
- public:
-  using ModelIndices = std::vector<QModelIndex>;
 
  public:
   CQChartsPivotLineObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rect,
@@ -113,15 +107,12 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
   //---
 
  protected:
   const CQChartsPivotPlot* plot_     { nullptr }; //!< parent plot
-  ModelIndices             inds_;                 //!< model index
   QPolygonF                polygon_;              //!< values
   QString                  name_;                 //!< name
 };
@@ -153,17 +144,14 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
   //---
 
  protected:
-  const CQChartsPivotPlot* plot_   { nullptr }; //!< parent plot
-  QModelIndex              ind_;                //!< model index
-  QPointF                  p_;                  //!< position
-  double                   value_  { 0.0 };     //!< value
+  const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot
+  QPointF                  p_;                 //!< position
+  double                   value_ { 0.0 };     //!< value
 };
 
 //---
@@ -192,15 +180,12 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
   //---
 
  protected:
   const CQChartsPivotPlot* plot_    { nullptr }; //!< parent plot
-  QModelIndex              ind_;                 //!< model index
   QString                  name_;                //!< name
   double                   value_   { 0.0 };     //!< value
   double                   hnorm_   { 0.0 };     //!< value normalized to horizontal value range

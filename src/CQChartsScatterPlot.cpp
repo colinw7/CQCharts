@@ -1363,7 +1363,7 @@ addPointObjects(PlotObjs &objs) const
         CQChartsScatterPointObj *pointObj =
           new CQChartsScatterPointObj(this, groupInd, bbox, p, is1, ig1, iv1);
 
-        pointObj->setInd(valuePoint.ind);
+        pointObj->setModelInd(valuePoint.ind);
 
         if (symbolSize.isValid())
           pointObj->setSymbolSize(symbolSize);
@@ -3553,7 +3553,7 @@ QString
 CQChartsScatterPointObj::
 calcId() const
 {
-  QModelIndex ind1 = plot_->unnormalizeIndex(ind_);
+  QModelIndex ind1 = plot_->unnormalizeIndex(modelInd());
 
   QString idStr;
 
@@ -3618,7 +3618,7 @@ calcTipId() const
 
     bool ok;
 
-    QString str = plot_->modelString(ind_.row(), column, ind_.parent(), ok);
+    QString str = plot_->modelString(modelInd().row(), column, modelInd().parent(), ok);
     if (! ok) return;
 
     tableTip.addTableRow(plot_->columnHeaderName(column), str);
@@ -3641,7 +3641,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, ind_);
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -3678,14 +3678,6 @@ getSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, plot_->symbolSizeColumn());
   addColumnSelectIndex(inds, plot_->fontSizeColumn  ());
   addColumnSelectIndex(inds, plot_->colorColumn     ());
-}
-
-void
-CQChartsScatterPointObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 //---
@@ -3913,12 +3905,6 @@ inside(const CQChartsGeom::Point &p) const
 void
 CQChartsScatterCellObj::
 getSelectIndices(Indices &) const
-{
-}
-
-void
-CQChartsScatterCellObj::
-addColumnSelectIndex(Indices &, const CQChartsColumn &) const
 {
 }
 

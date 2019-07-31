@@ -875,8 +875,9 @@ CQChartsPivotBarObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rec
                     const QModelIndex &ind, const ColorInd &ir, const ColorInd &ic,
                     double value) :
  CQChartsPlotObj(const_cast<CQChartsPivotPlot *>(plot), rect, ColorInd(), ic, ir),
- plot_(plot), ind_(ind), value_(value)
+ plot_(plot), value_(value)
 {
+  setModelInd(ind);
 }
 
 //---
@@ -885,7 +886,7 @@ QString
 CQChartsPivotBarObj::
 calcId() const
 {
-  return QString("%1:%2:%3").arg(typeName()).arg(ind_.row()).arg(ind_.column());
+  return QString("%1:%2:%3").arg(typeName()).arg(modelInd().row()).arg(modelInd().column());
 }
 
 QString
@@ -902,7 +903,7 @@ calcTipId() const
   tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
   tableTip.addTableRow(plot_->pivotModel()->vheader(), hkeyValue);
 
-  plot()->addTipColumns(tableTip, ind_);
+  plot()->addTipColumns(tableTip, modelInd());
 
   return tableTip.str();
 }
@@ -936,14 +937,6 @@ getSelectIndices(Indices &inds) const
 
   for (const auto &c : plot_->yColumns())
     addColumnSelectIndex(inds, c);
-}
-
-void
-CQChartsPivotBarObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 //---
@@ -1022,8 +1015,9 @@ CQChartsPivotLineObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &re
                      const ModelIndices &inds, const ColorInd &ic, const QPolygonF &polygon,
                      const QString &name) :
  CQChartsPlotObj(const_cast<CQChartsPivotPlot *>(plot), rect, ColorInd(), ic, ColorInd()),
- plot_(plot), inds_(inds), polygon_(polygon), name_(name)
+ plot_(plot), polygon_(polygon), name_(name)
 {
+  setModelInds(inds);
 }
 
 QString
@@ -1041,7 +1035,7 @@ calcTipId() const
 
   tableTip.addTableRow("Name", name_);
 
-  //plot()->addTipColumns(tableTip, ind_);
+  //plot()->addTipColumns(tableTip, modelInd());
 
   return tableTip.str();
 }
@@ -1107,16 +1101,6 @@ getSelectIndices(Indices &inds) const
 
   for (const auto &c : plot_->yColumns())
     addColumnSelectIndex(inds, c);
-}
-
-void
-CQChartsPivotLineObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid()) {
-    for (const auto &ind : inds_)
-      addSelectIndex(inds, ind.row(), column, ind.parent());
-  }
 }
 
 void
@@ -1249,8 +1233,9 @@ CQChartsPivotPointObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &r
                      const QModelIndex &ind, const ColorInd &ir, const ColorInd &ic,
                      const QPointF &p, double value) :
  CQChartsPlotObj(const_cast<CQChartsPivotPlot *>(plot), rect, ColorInd(), ic, ir),
- plot_(plot), ind_(ind), p_(p), value_(value)
+ plot_(plot), p_(p), value_(value)
 {
+  setModelInd(ind);
 }
 
 QString
@@ -1274,7 +1259,7 @@ calcTipId() const
   tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
   tableTip.addTableRow(plot_->pivotModel()->vheader(), hkeyValue);
 
-  plot()->addTipColumns(tableTip, ind_);
+  plot()->addTipColumns(tableTip, modelInd());
 
   return tableTip.str();
 }
@@ -1301,14 +1286,6 @@ getSelectIndices(Indices &inds) const
 
   for (const auto &c : plot_->yColumns())
     addColumnSelectIndex(inds, c);
-}
-
-void
-CQChartsPivotPointObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void
@@ -1361,10 +1338,12 @@ CQChartsPivotCellObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &re
                      const QString &name, double value, double hnorm, double vnorm,
                      bool valid) :
  CQChartsPlotObj(const_cast<CQChartsPivotPlot *>(plot), rect, ColorInd(), ic, ir),
- plot_(plot), ind_(ind), name_(name), value_(value), hnorm_(hnorm), vnorm_(vnorm), valid_(valid)
+ plot_(plot), name_(name), value_(value), hnorm_(hnorm), vnorm_(vnorm), valid_(valid)
 {
+  setModelInd(ind);
+
   // get column palette and bg color
-  CQChartsModelColumnDetails *columnDetails = plot_->columnDetails(ind_.column());
+  CQChartsModelColumnDetails *columnDetails = plot_->columnDetails(modelInd().column());
 
   const CQChartsColumnType::ColorPalette &colorPalette = columnDetails->tableDrawPalette();
 
@@ -1399,7 +1378,7 @@ calcTipId() const
   tableTip.addTableRow("Row %"   , 100*hnorm_);
   tableTip.addTableRow("Column %", 100*vnorm_);
 
-  plot()->addTipColumns(tableTip, ind_);
+  plot()->addTipColumns(tableTip, modelInd());
 
   return tableTip.str();
 }
@@ -1413,14 +1392,6 @@ getSelectIndices(Indices &inds) const
 
   for (const auto &c : plot_->yColumns())
     addColumnSelectIndex(inds, c);
-}
-
-void
-CQChartsPivotCellObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void

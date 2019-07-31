@@ -22,12 +22,10 @@ class CQChartsNoDataObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &) const override { }
 
-  void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
-
   void draw(QPainter *) override;
 
  private:
-  CQChartsFont font_;
+  CQChartsFont font_; //!< label font
 };
 
 #endif

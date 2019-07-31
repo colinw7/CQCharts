@@ -1600,7 +1600,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         CQChartsXYPointObj *pointObj =
           new CQChartsXYPointObj(this, groupInd, bbox, p, is1, ig, iv1);
 
-        pointObj->setInd(xind1);
+        pointObj->setModelInd(xind1);
 
         if (symbolSize.isValid())
           pointObj->setSymbolSize(symbolSize);
@@ -2256,15 +2256,16 @@ CQChartsXYBiLineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom
                     double x, double y1, double y2, const QModelIndex &ind,
                     const ColorInd &is, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ColorInd(), iv), plot_(plot),
- groupInd_(groupInd), x_(x), y1_(y1), y2_(y2), ind_(ind)
+ groupInd_(groupInd), x_(x), y1_(y1), y2_(y2)
 {
+  setModelInd(ind);
 }
 
 QString
 CQChartsXYBiLineObj::
 calcId() const
 {
-  QModelIndex ind1 = plot_->unnormalizeIndex(ind());
+  QModelIndex ind1 = plot_->unnormalizeIndex(modelInd());
 
   QString idStr;
 
@@ -2278,7 +2279,7 @@ QString
 CQChartsXYBiLineObj::
 calcTipId() const
 {
-  QString name  = plot()->valueName(-1, -1, ind().row());
+  QString name  = plot()->valueName(-1, -1, modelInd().row());
   QString xstr  = plot()->xStr(x());
   QString y1str = plot()->yStr(y1());
   QString y2str = plot()->yStr(y2());
@@ -2296,7 +2297,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, ind_);
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -2341,15 +2342,7 @@ getSelectIndices(Indices &inds) const
   if (! visible())
     return;
 
-  addColumnSelectIndex(inds, ind().column());
-}
-
-void
-CQChartsXYBiLineObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind().row(), column, ind().parent());
+  addColumnSelectIndex(inds, modelInd().column());
 }
 
 void
@@ -2421,15 +2414,16 @@ CQChartsXYImpulseLineObj(const CQChartsXYPlot *plot, int groupInd, const CQChart
                          double x, double y1, double y2, const QModelIndex &ind,
                          const ColorInd &is, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ColorInd(), iv), plot_(plot),
- groupInd_(groupInd), x_(x), y1_(y1), y2_(y2), ind_(ind)
+ groupInd_(groupInd), x_(x), y1_(y1), y2_(y2)
 {
+  setModelInd(ind);
 }
 
 QString
 CQChartsXYImpulseLineObj::
 calcId() const
 {
-  QModelIndex ind1 = plot()->unnormalizeIndex(ind());
+  QModelIndex ind1 = plot()->unnormalizeIndex(modelInd());
 
   QString idStr;
 
@@ -2443,7 +2437,7 @@ QString
 CQChartsXYImpulseLineObj::
 calcTipId() const
 {
-  QString name  = plot()->valueName(is_.i, is_.n, ind().row());
+  QString name  = plot()->valueName(is_.i, is_.n, modelInd().row());
   QString xstr  = plot()->xStr(x());
   QString y1str = plot()->yStr(y1());
   QString y2str = plot()->yStr(y2());
@@ -2461,7 +2455,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, ind_);
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -2503,15 +2497,7 @@ getSelectIndices(Indices &inds) const
   if (! visible())
     return;
 
-  addColumnSelectIndex(inds, ind().column());
-}
-
-void
-CQChartsXYImpulseLineObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind().row(), column, ind().parent());
+  addColumnSelectIndex(inds, modelInd().column());
 }
 
 void
@@ -2723,7 +2709,7 @@ QString
 CQChartsXYPointObj::
 calcId() const
 {
-  QModelIndex ind1 = plot()->unnormalizeIndex(ind());
+  QModelIndex ind1 = plot()->unnormalizeIndex(modelInd());
 
   QString idStr;
 
@@ -2746,7 +2732,7 @@ calcTipId() const
   //---
 
   // add id column
-  QModelIndex ind1 = plot()->unnormalizeIndex(ind());
+  QModelIndex ind1 = plot()->unnormalizeIndex(modelInd());
 
   QString idStr;
 
@@ -2766,7 +2752,7 @@ calcTipId() const
 
   // add name column (TODO: needed or combine with header)
   if (! labelObj_ || ! labelObj_->label().length()) {
-    QString name = plot()->valueName(is_.i, is_.n, ind().row());
+    QString name = plot()->valueName(is_.i, is_.n, modelInd().row());
 
     if (name.length())
       tableTip.addTableRow("Name", name);
@@ -2788,7 +2774,7 @@ calcTipId() const
 
     bool ok;
 
-    QString str = plot_->modelString(ind_.row(), column, ind_.parent(), ok);
+    QString str = plot_->modelString(modelInd().row(), column, modelInd().parent(), ok);
     if (! ok) return;
 
     tableTip.addTableRow(plot_->columnHeaderName(column), str);
@@ -2808,7 +2794,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, ind());
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -2851,14 +2837,6 @@ getSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, plot_->symbolSizeColumn());
   addColumnSelectIndex(inds, plot_->fontSizeColumn  ());
   addColumnSelectIndex(inds, plot_->colorColumn     ());
-}
-
-void
-CQChartsXYPointObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind().row(), column, ind().parent());
 }
 
 //---
@@ -2955,8 +2933,9 @@ CQChartsXYLabelObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeom:
                    double x, double y, const QString &label, const QModelIndex &ind,
                    const ColorInd &is, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ColorInd(), iv), plot_(plot),
- groupInd_(groupInd), pos_(x, y), label_(label), ind_(ind)
+ groupInd_(groupInd), pos_(x, y), label_(label)
 {
+  setModelInd(ind);
 }
 
 CQChartsXYLabelObj::
@@ -2968,7 +2947,7 @@ QString
 CQChartsXYLabelObj::
 calcId() const
 {
-  QModelIndex ind1 = plot()->unnormalizeIndex(ind());
+  QModelIndex ind1 = plot()->unnormalizeIndex(modelInd());
 
   QString idStr;
 
@@ -2988,7 +2967,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, ind_);
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -3034,14 +3013,6 @@ getSelectIndices(Indices &inds) const
 
   addColumnSelectIndex(inds, plot()->xColumn());
   addColumnSelectIndex(inds, plot()->yColumns().getColumn(is_.i));
-}
-
-void
-CQChartsXYLabelObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind().row(), column, ind().parent());
 }
 
 void

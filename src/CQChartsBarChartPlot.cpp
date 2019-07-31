@@ -1436,8 +1436,9 @@ CQChartsBarChartObj(const CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &
                     const ColorInd &is, const ColorInd &ig, const ColorInd &iv,
                     const QModelIndex &ind) :
  CQChartsPlotObj(const_cast<CQChartsBarChartPlot *>(plot), rect, is, ig, iv),
- plot_(plot), ind_(ind)
+ plot_(plot)
 {
+  setModelInd(ind);
 }
 
 QString
@@ -1490,7 +1491,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, ind());
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -1609,14 +1610,6 @@ getSelectIndices(Indices &inds) const
 
   addColumnSelectIndex(inds, plot_->nameColumn());
   addColumnSelectIndex(inds, plot_->labelColumn());
-}
-
-void
-CQChartsBarChartObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 #if 0

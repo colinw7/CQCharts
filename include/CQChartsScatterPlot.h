@@ -78,12 +78,6 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   //---
 
-  // model index
-  const QModelIndex &ind() const { return ind_; }
-  void setInd(const QModelIndex &i) { ind_ = i; }
-
-  //---
-
   // name
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
@@ -126,8 +120,6 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
   void drawDir(QPainter *painter, const Dir &dir, bool flip=false) const;
@@ -153,7 +145,6 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   const CQChartsScatterPlot* plot_       { nullptr }; //!< scatter plot
   int                        groupInd_   { -1 };      //!< plot group index
   QPointF                    pos_;                    //!< point position
-  QModelIndex                ind_;                    //!< model index
   ExtraData                  edata_;                  //!< extra data
   QString                    name_;                   //!< label name
   QImage                     image_;                  //!< image name
@@ -196,8 +187,6 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &inds) const override;
-
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
   void draw(QPainter *painter) override;
 

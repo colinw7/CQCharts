@@ -583,8 +583,9 @@ CQChartsGeometryObj::
 CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
                     const Polygons &polygons, const QModelIndex &ind, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsGeometryPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
- plot_(plot), polygons_(polygons), ind_(ind)
+ plot_(plot), polygons_(polygons)
 {
+  setModelInd(ind);
 }
 
 QString
@@ -608,7 +609,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, ind_);
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -641,14 +642,6 @@ getSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, plot_->geometryColumn());
   addColumnSelectIndex(inds, plot_->valueColumn   ());
   addColumnSelectIndex(inds, plot_->styleColumn   ());
-}
-
-void
-CQChartsGeometryObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 //---

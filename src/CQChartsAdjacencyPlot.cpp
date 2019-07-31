@@ -981,6 +981,8 @@ CQChartsAdjacencyObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *n
  CQChartsPlotObj(const_cast<CQChartsAdjacencyPlot *>(plot), rect, ColorInd(), ig, ColorInd()),
  plot_(plot), node1_(node1), node2_(node2), value_(value)
 {
+  addModelInd(node1->ind());
+  addModelInd(node2->ind());
 }
 
 QString
@@ -1020,8 +1022,8 @@ void
 CQChartsAdjacencyObj::
 getSelectIndices(Indices &inds) const
 {
-  inds.insert(node1_->ind());
-  inds.insert(node2_->ind());
+  for (auto &ind : modelInds())
+    inds.insert(ind);
 }
 
 void

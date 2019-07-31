@@ -227,8 +227,6 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
  protected:
@@ -256,8 +254,6 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleNodeObj {
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &inds) const override;
-
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
   void draw(QPainter *painter) override;
 

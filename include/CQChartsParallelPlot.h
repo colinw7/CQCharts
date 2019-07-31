@@ -59,8 +59,6 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
  private:
@@ -69,7 +67,6 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
  private:
   const CQChartsParallelPlot* plot_ { nullptr };
   QPolygonF                   poly_;
-  QModelIndex                 ind_;
 };
 
 //---
@@ -97,8 +94,6 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
  private:
@@ -106,7 +101,6 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
   double                      yval_  { 0.0 };
   double                      x_     { 0.0 };
   double                      y_     { 0.0 };
-  QModelIndex                 ind_;
 };
 
 //---

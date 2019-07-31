@@ -707,8 +707,9 @@ CQChartsRadarObj(const CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect, 
                  const QPolygonF &poly, const NameValues &nameValues, const QModelIndex &ind,
                  const ColorInd &is) :
  CQChartsPlotObj(const_cast<CQChartsRadarPlot *>(plot), rect, is, ColorInd(), ColorInd()),
- plot_(plot), name_(name), poly_(poly), nameValues_(nameValues), ind_(ind)
+ plot_(plot), name_(name), poly_(poly), nameValues_(nameValues)
 {
+  setModelInd(ind);
 }
 
 QString
@@ -731,7 +732,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, ind_);
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -807,15 +808,7 @@ getSelectIndices(Indices &inds) const
   for (const auto &valueColumn : plot_->valueColumns())
     addColumnSelectIndex(inds, valueColumn);
 
-  addColumnSelectIndex(inds, ind_.column());
-}
-
-void
-CQChartsRadarObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind_.row(), column, ind_.parent());
+  addColumnSelectIndex(inds, modelInd().column());
 }
 
 void

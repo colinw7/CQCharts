@@ -632,8 +632,9 @@ CQChartsImageObj::
 CQChartsImageObj(const CQChartsImagePlot *plot, const CQChartsGeom::BBox &rect,
                  int row, int col, double value, const QModelIndex &ind, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsImagePlot *>(plot), rect, ColorInd(), ColorInd(), iv),
- plot_(plot), row_(row), col_(col), value_(value), ind_(ind)
+ plot_(plot), row_(row), col_(col), value_(value)
 {
+  setModelInd(ind);
 }
 
 QString
@@ -651,8 +652,8 @@ calcTipId() const
 
   bool ok;
 
-  QString xname = plot_->modelHeaderString(ind_.column(), ok);
-  QString yname = plot_->modelHeaderString(ind_.row(), Qt::Vertical, ok);
+  QString xname = plot_->modelHeaderString(modelInd().column(), ok);
+  QString yname = plot_->modelHeaderString(modelInd().row(), Qt::Vertical, ok);
 
   if (xname.length())
     tableTip.addTableRow("X", xname);
@@ -664,7 +665,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, ind_);
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -675,15 +676,7 @@ void
 CQChartsImageObj::
 getSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, ind_.column());
-}
-
-void
-CQChartsImageObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind_.row(), column, ind_.parent());
+  addColumnSelectIndex(inds, modelInd().column());
 }
 
 void

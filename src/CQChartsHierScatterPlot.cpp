@@ -671,9 +671,9 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
 
     //---
 
-    pointObj->setName (point.name);
-    pointObj->setInd  (point.ind);
-    pointObj->setGroup(point.group);
+    pointObj->setName    (point.name);
+    pointObj->setModelInd(point.ind);
+    pointObj->setGroup   (point.group);
 
     objs.push_back(pointObj);
   }
@@ -790,7 +790,7 @@ calcTipId() const
 
   //---
 
-  //plot()->addTipColumns(tableTip, ind);
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -820,14 +820,6 @@ getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->xColumn());
   addColumnSelectIndex(inds, plot_->yColumn());
-}
-
-void
-CQChartsHierScatterPointObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void

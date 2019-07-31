@@ -3,7 +3,7 @@
 set model1 [load_charts_model -json data/flare.json]
 
 set plot1 [create_charts_plot -model $model1 -type treemap \
-  -columns {{names 0} {value 1}} -title "tree map"]
+  -columns {{name 0} {value 1}} -title "tree map"]
 
 #set model2 [load_charts_model -csv data/flare.csv -comment_header]
 

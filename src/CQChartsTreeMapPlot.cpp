@@ -1101,6 +1101,7 @@ CQChartsTreeMapHierObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode 
                        const ColorInd &is) :
  CQChartsTreeMapNodeObj(plot, hier, hierObj, rect, is), hier_(hier)
 {
+  setModelInd(hier_->ind());
 }
 
 QString
@@ -1136,17 +1137,6 @@ CQChartsTreeMapHierObj::
 getSelectIndices(Indices &inds) const
 {
   return addColumnSelectIndex(inds, plot_->valueColumn());
-}
-
-void
-CQChartsTreeMapHierObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid()) {
-    const QModelIndex &ind = hier_->ind();
-
-    addSelectIndex(inds, ind.row(), column, ind.parent());
-  }
 }
 
 void
@@ -1281,6 +1271,7 @@ CQChartsTreeMapNodeObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *nod
  CQChartsPlotObj(const_cast<CQChartsTreeMapPlot *>(plot), rect, is, ColorInd(), ColorInd()),
  plot_(plot), node_(node), hierObj_(hierObj)
 {
+  setModelInd(node_->ind());
 }
 
 QString
@@ -1351,17 +1342,6 @@ getSelectIndices(Indices &inds) const
     addColumnSelectIndex(inds, c);
 
   addColumnSelectIndex(inds, plot_->valueColumn());
-}
-
-void
-CQChartsTreeMapNodeObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid()) {
-    const QModelIndex &ind = node_->ind();
-
-    addSelectIndex(inds, ind.row(), column, ind.parent());
-  }
 }
 
 void

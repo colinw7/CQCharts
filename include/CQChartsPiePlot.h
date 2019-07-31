@@ -155,8 +155,6 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   CQChartsGeom::BBox annotationBBox() const;
 
   void draw(QPainter *painter) override;
@@ -176,7 +174,6 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
  protected:
   const CQChartsPiePlot* plot_       { nullptr }; //!< parent plot
-  QModelIndex            ind_;                    //!< model index
   int                    colorIndex_ { -1 };      //!< color index
   double                 angle1_     { 0 };       //!< wedge start angle
   double                 angle2_     { 360 };     //!< wedge end angle
@@ -263,8 +260,6 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   QString calcTipId() const override;
 
   void getSelectIndices(Indices &) const override { }
-
-  void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
   bool inside(const CQChartsGeom::Point &p) const override;
 

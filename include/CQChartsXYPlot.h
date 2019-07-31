@@ -70,8 +70,6 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
   double y2() const { return y2_; }
   void setY2(double r) { y2_ = r; }
 
-  const QModelIndex &ind() const { return ind_; }
-
   //---
 
   QString typeName() const override { return "biline"; }
@@ -88,8 +86,6 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
  private:
@@ -98,7 +94,6 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
   double                x_        { 0.0 };     //!< x
   double                y1_       { 0.0 };     //!< start y
   double                y2_       { 0.0 };     //!< end y
-  QModelIndex           ind_;                  //!< model index
 };
 
 //---
@@ -131,8 +126,6 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   double y2() const { return y2_; }
   void setY2(double r) { y2_ = r; }
 
-  const QModelIndex &ind() const { return ind_; }
-
   //---
 
   QString typeName() const override { return "impulse"; }
@@ -149,8 +142,6 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
  private:
@@ -159,7 +150,6 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   double                x_        { 0.0 };     //!< x
   double                y1_       { 0.0 };     //!< start y
   double                y2_       { 0.0 };     //!< end y
-  QModelIndex           ind_;                  //!< model index
 };
 
 //---
@@ -201,12 +191,6 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   double y() const { return pos_.y(); }
   void setY(double r) { pos_.setY(r); }
-
-  //---
-
-  // model index
-  const QModelIndex &ind() const { return ind_; }
-  void setInd(const QModelIndex &i) { ind_ = i; }
 
   //---
 
@@ -263,8 +247,6 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
  private:
@@ -287,7 +269,6 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   const CQChartsXYPlot*        plot_     { nullptr }; //!< parent plot
   int                          groupInd_ { -1 };      //!< group ind
   QPointF                      pos_;                  //!< position
-  QModelIndex                  ind_;                  //!< model index
   ExtraData*                   edata_    { nullptr }; //!< extra data
   const CQChartsXYLabelObj*    labelObj_ { nullptr }; //!< label obj
   const CQChartsXYPolylineObj* lineObj_  { nullptr }; //!< line obj
@@ -325,8 +306,6 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
   const QString &label() const { return label_; }
   void setLabel(const QString &v) { label_ = v; }
 
-  const QModelIndex &ind() const { return ind_; }
-
   //---
 
   // get/set associated point object
@@ -349,8 +328,6 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
  private:
@@ -360,7 +337,6 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
   int                       groupInd_ { -1 };      //!< group ind
   QPointF                   pos_;                  //!< position
   QString                   label_;                //!< label
-  QModelIndex               ind_;                  //!< model index
   const CQChartsXYPointObj* pointObj_ { nullptr }; //!< point obj
 };
 
@@ -417,8 +393,6 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   //---
 
   void getSelectIndices(Indices &inds) const override;
-
-  void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
   void draw(QPainter *painter) override;
 
@@ -479,8 +453,6 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
 
   void getSelectIndices(Indices &inds) const override;
-
-  void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
   void draw(QPainter *painter) override;
 

@@ -729,6 +729,7 @@ CQChartsBubbleHierObj(const CQChartsBubblePlot *plot, CQChartsBubbleHierNode *hi
                       const ColorInd &is) :
  CQChartsBubbleNodeObj(plot, hier, hierObj, rect, is), hier_(hier)
 {
+  setModelInd(hier_->ind());
 }
 
 QString
@@ -764,17 +765,6 @@ getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->nameColumn ());
   addColumnSelectIndex(inds, plot_->valueColumn());
-}
-
-void
-CQChartsBubbleHierObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid()) {
-    const QModelIndex &ind = hier_->ind();
-
-    addSelectIndex(inds, ind.row(), column, ind.parent());
-  }
 }
 
 void
@@ -836,6 +826,7 @@ CQChartsBubbleNodeObj(const CQChartsBubblePlot *plot, CQChartsBubbleNode *node,
  CQChartsPlotObj(const_cast<CQChartsBubblePlot *>(plot), rect, is, ColorInd(), ColorInd()),
  plot_(plot), node_(node), hierObj_(hierObj)
 {
+  setModelInd(node_->ind());
 }
 
 QString
@@ -900,17 +891,6 @@ getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->nameColumn ());
   addColumnSelectIndex(inds, plot_->valueColumn());
-}
-
-void
-CQChartsBubbleNodeObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid()) {
-    const QModelIndex &ind = node_->ind();
-
-    addSelectIndex(inds, ind.row(), column, ind.parent());
-  }
 }
 
 void

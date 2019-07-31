@@ -134,6 +134,16 @@ getHierSelectIndices(Indices &inds) const
 
 void
 CQChartsPlotObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid()) {
+    for (const auto &ind : modelInds())
+      addSelectIndex(inds, ind.row(), column, ind.parent());
+  }
+}
+
+void
+CQChartsPlotObj::
 addSelectIndex(Indices &inds, const CQChartsModelIndex &ind) const
 {
   addSelectIndex(inds, ind.row, ind.column, ind.parent);

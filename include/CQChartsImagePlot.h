@@ -56,8 +56,6 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
   double xColorValue(bool relative) const override;
@@ -68,7 +66,6 @@ class CQChartsImageObj : public CQChartsPlotObj {
   int                      row_   { -1 };      //!< row
   int                      col_   { -1 };      //!< column
   double                   value_ { 0.0 };     //!< value
-  QModelIndex              ind_;               //!< model index
 };
 
 //---

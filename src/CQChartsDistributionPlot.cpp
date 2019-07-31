@@ -3880,12 +3880,6 @@ getSelectIndices(Indices &) const
 
 void
 CQChartsDistributionDensityObj::
-addColumnSelectIndex(Indices &, const CQChartsColumn &) const
-{
-}
-
-void
-CQChartsDistributionDensityObj::
 draw(QPainter *painter)
 {
   // set pen and brush
@@ -4189,12 +4183,6 @@ draw(QPainter *painter)
 void
 CQChartsDistributionScatterObj::
 getSelectIndices(Indices &) const
-{
-}
-
-void
-CQChartsDistributionScatterObj::
-addColumnSelectIndex(Indices &, const CQChartsColumn &) const
 {
 }
 

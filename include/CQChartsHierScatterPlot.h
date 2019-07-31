@@ -177,9 +177,6 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
-  const QModelIndex &ind() const { return ind_; }
-  void setInd(const QModelIndex &i) { ind_ = i; }
-
   CQChartsHierScatterPointGroup *group() const { return group_; }
   void setGroup(CQChartsHierScatterPointGroup *p) { group_ = p; }
 
@@ -191,15 +188,12 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
  private:
   const CQChartsHierScatterPlot* plot_ { nullptr };
   QPointF                        p_;
   QString                        name_;
-  QModelIndex                    ind_;
   CQChartsHierScatterPointGroup* group_ { nullptr };
 };
 

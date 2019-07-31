@@ -1777,6 +1777,8 @@ CQChartsBoxPlotWhiskerObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox 
  CQChartsBoxPlotObj(plot, rect, is, ig, ColorInd()), setId_(setId), groupInd_(groupInd),
  whisker_(whisker)
 {
+  for (auto &value : whisker_->values())
+    addModelInd(value.ind);
 }
 
 double
@@ -1940,17 +1942,6 @@ getSelectIndices(Indices &inds) const
       addSelectIndex(inds, value.ind.row(), value.ind.column(), value.ind.parent());
   }
 #endif
-}
-
-void
-CQChartsBoxPlotWhiskerObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid()) {
-    for (auto &value : whisker_->values()) {
-      addSelectIndex(inds, value.ind.row(), column, value.ind.parent());
-    }
-  }
 }
 
 bool
@@ -2351,6 +2342,9 @@ CQChartsBoxPlotOutlierObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox 
  CQChartsBoxPlotObj(plot, rect, is, ig, ColorInd()), setId_(setId), groupInd_(groupInd),
  whisker_(whisker), io_(io)
 {
+  const CQChartsBoxPlotValue &ovalue = whisker_->value(io_);
+
+  setModelInd(ovalue.ind);
 }
 
 QString
@@ -2419,17 +2413,6 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsBoxPlotOutlierObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid()) {
-    const CQChartsBoxPlotValue &ovalue = whisker_->value(io_);
-
-    addSelectIndex(inds, ovalue.ind.row(), column, ovalue.ind.parent());
-  }
-}
-
-void
-CQChartsBoxPlotOutlierObj::
 draw(QPainter *painter)
 {
   // get color index
@@ -2487,6 +2470,7 @@ CQChartsBoxPlotDataObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &re
                        const CQChartsBoxWhiskerData &data, const ColorInd &is) :
  CQChartsBoxPlotObj(plot, rect, is, ColorInd(), ColorInd()), data_(data)
 {
+  setModelInd(data_.ind);
 }
 
 double
@@ -2536,15 +2520,6 @@ getSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, plot_->upperMedianColumn());
   addColumnSelectIndex(inds, plot_->maxColumn        ());
   addColumnSelectIndex(inds, plot_->outliersColumn   ());
-}
-
-void
-CQChartsBoxPlotDataObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid()) {
-    addSelectIndex(inds, data_.ind.row(), column, data_.ind.parent());
-  }
 }
 
 void
@@ -3088,8 +3063,9 @@ CQChartsBoxPlotPointObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &r
                         int setId, int groupInd, const QPointF &p, const QModelIndex &ind,
                         const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsBoxPlot *>(plot), rect, is, ig, iv), plot_(plot),
- setId_(setId), groupInd_(groupInd), p_(p), ind_(ind)
+ setId_(setId), groupInd_(groupInd), p_(p)
 {
+  setModelInd(ind);
 }
 
 QString
@@ -3114,7 +3090,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, ind_);
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -3138,16 +3114,7 @@ void
 CQChartsBoxPlotPointObj::
 getSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, ind_.column());
-}
-
-void
-CQChartsBoxPlotPointObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid()) {
-    addSelectIndex(inds, ind_.row(), column, ind_.parent());
-  }
+  addColumnSelectIndex(inds, modelInd().column());
 }
 
 void

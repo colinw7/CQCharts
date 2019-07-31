@@ -149,8 +149,6 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
   CQChartsGeom::BBox annotationBBox() const;
@@ -184,8 +182,6 @@ class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
   QString calcTipId() const override;
 
   void getSelectIndices(Indices &inds) const override;
-
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
   void draw(QPainter *painter) override;
 
@@ -222,8 +218,6 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
   CQChartsGeom::BBox annotationBBox() const;
@@ -255,8 +249,6 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &) const override { }
-
-  void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
   void draw(QPainter *painter) override;
 
@@ -296,8 +288,6 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &) const override;
 
-  void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override;
-
   void draw(QPainter *painter) override;
 
  private:
@@ -305,7 +295,6 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
   int                    setId_    { -1 };      //!< set id
   int                    groupInd_ { -1 };      //!< group id
   QPointF                p_;                    //!< point
-  QModelIndex            ind_;                  //!< model index
 };
 
 //---

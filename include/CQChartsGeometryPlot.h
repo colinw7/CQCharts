@@ -78,8 +78,6 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
   void drawFg(QPainter *painter) const override;
@@ -92,7 +90,6 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   CQChartsStyle               style_;                //!< optional style
   double                      value_    { 0.0 };     //!< geometry value
   bool                        hasValue_ { false };   //!< has value
-  QModelIndex                 ind_;                  //!< model index
   Polygons                    ppolygons_;            //!< pixel polygons
 };
 

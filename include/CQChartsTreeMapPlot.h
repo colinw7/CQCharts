@@ -258,8 +258,6 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
   bool isChildSelected() const;
@@ -292,8 +290,6 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &inds) const override;
-
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
   void draw(QPainter *painter) override;
 

@@ -802,8 +802,9 @@ CQChartsParallelLineObj::
 CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
                         const QPolygonF &poly, const QModelIndex &ind, const ColorInd &is) :
  CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(plot), rect, is, ColorInd(), ColorInd()),
- plot_(plot), poly_(poly), ind_(ind)
+ plot_(plot), poly_(poly)
 {
+  setModelInd(ind);
 }
 
 QString
@@ -812,7 +813,7 @@ calcId() const
 {
   bool ok;
 
-  QString xname = plot_->modelString(ind_.row(), plot_->xColumn(), ind_.parent(), ok);
+  QString xname = plot_->modelString(modelInd().row(), plot_->xColumn(), modelInd().parent(), ok);
 
   return QString("%1:%2").arg(typeName()).arg(xname);
 }
@@ -823,7 +824,7 @@ calcTipId() const
 {
   bool ok;
 
-  QString xname = plot_->modelString(ind_.row(), plot_->xColumn(), ind_.parent(), ok);
+  QString xname = plot_->modelString(modelInd().row(), plot_->xColumn(), modelInd().parent(), ok);
 
   CQChartsTableTip tableTip;
 
@@ -843,7 +844,7 @@ calcTipId() const
 
   //---
 
-  //plot()->addTipColumns(tableTip, ind);
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -937,14 +938,6 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsParallelLineObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind_.row(), column, ind_.parent());
-}
-
-void
-CQChartsParallelLineObj::
 draw(QPainter *painter)
 {
   if (! visible())
@@ -1007,8 +1000,9 @@ CQChartsParallelPointObj(const CQChartsParallelPlot *plot, const CQChartsGeom::B
                          double yval, double x, double y, const QModelIndex &ind,
                          const ColorInd &is, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(plot), rect, is, ColorInd(), iv),
- plot_(plot), yval_(yval), x_(x), y_(y), ind_(ind)
+ plot_(plot), yval_(yval), x_(x), y_(y)
 {
+  setModelInd(ind);
 }
 
 QString
@@ -1017,7 +1011,7 @@ calcId() const
 {
   bool ok;
 
-  QString xname = plot_->modelString(ind_.row(), plot_->xColumn(), ind_.parent(), ok);
+  QString xname = plot_->modelString(modelInd().row(), plot_->xColumn(), modelInd().parent(), ok);
 
   const CQChartsColumn &yColumn = plot_->yColumns().getColumn(iv_.i);
 
@@ -1034,7 +1028,7 @@ calcTipId() const
 
   bool ok;
 
-  QString xname = plot_->modelString(ind_.row(), plot_->xColumn(), ind_.parent(), ok);
+  QString xname = plot_->modelString(modelInd().row(), plot_->xColumn(), modelInd().parent(), ok);
 
   tableTip.addBoldLine(xname);
 
@@ -1046,7 +1040,7 @@ calcTipId() const
 
   //---
 
-  plot()->addTipColumns(tableTip, ind_);
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -1087,15 +1081,7 @@ void
 CQChartsParallelPointObj::
 getSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, ind_.column());
-}
-
-void
-CQChartsParallelPointObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind_.row(), column, ind_.parent());
+  addColumnSelectIndex(inds, modelInd().column());
 }
 
 void

@@ -20,8 +20,9 @@ class CQChartsPlotObj : public CQChartsObj {
   Q_PROPERTY(bool    visible  READ isVisible WRITE setVisible)
 
  public:
-  using Indices  = std::set<QModelIndex>;
-  using ColorInd = CQChartsUtil::ColorInd;
+  using ModelIndices = std::vector<QModelIndex>;
+  using Indices      = std::set<QModelIndex>;
+  using ColorInd     = CQChartsUtil::ColorInd;
 
  public:
   CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect=CQChartsGeom::BBox(),
@@ -70,6 +71,18 @@ class CQChartsPlotObj : public CQChartsObj {
 
   virtual double xColorValue(bool relative=true) const;
   virtual double yColorValue(bool relative=true) const;
+
+  //---
+
+  QModelIndex modelInd() const {
+    return (! modelInds_.empty() ? modelInds_[0] : QModelIndex()); }
+  void setModelInd(const QModelIndex &ind) {
+    modelInds_.clear(); addModelInd(ind); }
+
+  const ModelIndices &modelInds() const { return modelInds_; }
+  void setModelInds(const ModelIndices &inds) { modelInds_ = inds; }
+
+  void addModelInd(const QModelIndex &ind) { modelInds_.push_back(ind); }
 
   //---
 
@@ -124,7 +137,7 @@ class CQChartsPlotObj : public CQChartsObj {
 
   virtual void getSelectIndices(Indices &inds) const = 0;
 
-  virtual void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const = 0;
+  virtual void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const;
 
   void addSelectIndex(Indices &inds, const CQChartsModelIndex &ind) const;
   void addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
@@ -145,6 +158,7 @@ class CQChartsPlotObj : public CQChartsObj {
   ColorInd      is_;                   //!< set index
   ColorInd      ig_;                   //!< group index
   ColorInd      iv_;                   //!< value index
+  ModelIndices  modelInds_;            //!< associated model indices
 };
 
 //------

@@ -296,8 +296,6 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   //---
 
   void draw(QPainter *painter) override;
@@ -358,8 +356,6 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
   //---
 
   void getSelectIndices(Indices &inds) const override;
-
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
  private:
   using Points = std::vector<QPointF>;

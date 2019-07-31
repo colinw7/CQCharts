@@ -791,6 +791,7 @@ CQChartsChordObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
  CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect, ColorInd(), ig, iv),
  plot_(plot), data_(data)
 {
+  setModelInd(data.ind());
 }
 
 QString
@@ -819,7 +820,7 @@ calcTipId() const
 
   //---
 
-  //plot()->addTipColumns(tableTip, node1_->ind());
+  plot()->addTipColumns(tableTip, modelInd());
 
   //---
 
@@ -869,17 +870,6 @@ getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->linkColumn ());
   addColumnSelectIndex(inds, plot_->groupColumn());
-}
-
-void
-CQChartsChordObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid()) {
-    const QModelIndex &ind = data_.ind();
-
-    addSelectIndex(inds, ind.row(), column, ind.parent());
-  }
 }
 
 void

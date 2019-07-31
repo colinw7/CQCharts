@@ -130,8 +130,6 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
-
   void draw(QPainter *painter) override;
 
   double xColorValue(bool relative) const override;
@@ -346,11 +344,11 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   using AdjacencyObj = CQChartsAdjacencyObj;
 
-  // node+connections columns
+  // node, connections columns
   CQChartsColumn nodeColumn_;                                 //!< connection node column
   CQChartsColumn connectionsColumn_;                          //!< connections column
 
-  // name+name pait columns
+  // name, name pairs columns
   CQChartsColumn nameColumn_;                                 //!< name column
   CQChartsColumn namePairColumn_;                             //!< name pairs column
   CQChartsColumn countColumn_;                                //!< count column

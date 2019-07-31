@@ -1169,6 +1169,7 @@ CQChartsSunburstNodeObj(const CQChartsSunburstPlot *plot, const CQChartsGeom::BB
                         CQChartsSunburstNode *node) :
  CQChartsPlotObj(const_cast<CQChartsSunburstPlot *>(plot), rect), plot_(plot), node_(node)
 {
+  setModelInd(node_->ind());
 }
 
 QString
@@ -1261,17 +1262,6 @@ getSelectIndices(Indices &inds) const
     addColumnSelectIndex(inds, c);
 
   addColumnSelectIndex(inds, plot_->valueColumn());
-}
-
-void
-CQChartsSunburstNodeObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid()) {
-    const QModelIndex &ind = node_->ind();
-
-    addSelectIndex(inds, ind.row(), column, ind.parent());
-  }
 }
 
 void

@@ -486,8 +486,9 @@ CQChartsDelaunayPointObj::
 CQChartsDelaunayPointObj(const CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &rect,
                          double x, double y, const QModelIndex &ind, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsDelaunayPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
- plot_(plot), x_(x), y_(y), ind_(ind)
+ plot_(plot), x_(x), y_(y)
 {
+  setModelInd(ind);
 }
 
 QString
@@ -499,7 +500,7 @@ calcId() const
   if (plot_->nameColumn().isValid()) {
     bool ok;
 
-    name1 = plot_->modelString(ind_.row(), plot_->nameColumn(), ind_.parent(), ok);
+    name1 = plot_->modelString(modelInd().row(), plot_->nameColumn(), modelInd().parent(), ok);
   }
   else
     name1 = plot_->yname();
@@ -546,14 +547,6 @@ getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->xColumn());
   addColumnSelectIndex(inds, plot_->yColumn());
-}
-
-void
-CQChartsDelaunayPointObj::
-addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
-{
-  if (column.isValid())
-    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void

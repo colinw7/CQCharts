@@ -74,8 +74,6 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
-
   void draw(QPainter *painter) override;
 
  private:
@@ -83,7 +81,6 @@ class CQChartsRadarObj : public CQChartsPlotObj {
   QString                  name_;                   //!< row name
   QPolygonF                poly_;                   //!< polygon
   NameValues               nameValues_;             //!< column values
-  QModelIndex              ind_;                    //!< data index
 };
 
 //---

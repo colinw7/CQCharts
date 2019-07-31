@@ -203,8 +203,6 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   //---
 
-  const QModelIndex &ind() const { return ind_; }
-
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &color) { color_ = color; }
 
@@ -217,8 +215,6 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   //---
 
   void getSelectIndices(Indices &inds) const override;
-
-  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
   //---
 
@@ -234,7 +230,6 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
  private:
   const CQChartsBarChartPlot* plot_  { nullptr }; //!< parent plot
-  QModelIndex                 ind_;               //!< model index
   CQChartsColor               color_;             //!< custom color
 };
 
