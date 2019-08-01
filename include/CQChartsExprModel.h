@@ -23,6 +23,8 @@ class CQTcl;
 class CQChartsExprModel : public QAbstractProxyModel {
   Q_OBJECT
 
+  Q_PROPERTY(bool debug READ debug WRITE setDebug)
+
  public:
   enum class Function {
     EVAL,

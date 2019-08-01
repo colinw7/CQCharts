@@ -773,12 +773,14 @@ getExprModel(QAbstractItemModel *model)
 }
 
 const CQDataModel *
-getDataModel(const QAbstractItemModel *model) {
+getDataModel(const QAbstractItemModel *model)
+{
   return getDataModel(const_cast<QAbstractItemModel *>(model));
 }
 
 CQDataModel *
-getDataModel(QAbstractItemModel *model) {
+getDataModel(QAbstractItemModel *model)
+{
   CQChartsModelFilter *modelFilter = dynamic_cast<CQChartsModelFilter *>(model);
   if (! modelFilter) return nullptr;
 
@@ -789,7 +791,8 @@ getDataModel(QAbstractItemModel *model) {
 }
 
 QAbstractItemModel *
-getBaseModel(QAbstractItemModel *model) {
+getBaseModel(QAbstractItemModel *model)
+{
   QAbstractItemModel *sourceModel = model;
 
   QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(sourceModel);

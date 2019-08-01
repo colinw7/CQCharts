@@ -36,6 +36,9 @@ class CQChartsColumnTypeParam {
 
   const QString &tip() const { return tip_; }
 
+  const QString &desc() const { return desc_; }
+  void setDesc(const QString &desc) { desc_ = desc; }
+
   const QVariant &def() const { return def_; }
 
  private:
@@ -43,6 +46,7 @@ class CQChartsColumnTypeParam {
   Type     type_ { CQBaseModelType::STRING }; //!< type
   int      role_ { -1 };                      //!< model role
   QString  tip_;                              //!< tip string
+  QString  desc_;                             //!< description string
   QVariant def_;                              //!< default value
 };
 
@@ -102,7 +106,7 @@ class CQChartsColumnType {
 
   const CQChartsColumnTypeParam *getParam(const QString &name) const;
 
-  virtual QString description() const = 0;
+  virtual QString desc() const = 0;
 
   // input variant to data variant for edit
   virtual QVariant userData(CQCharts *charts, const QAbstractItemModel *model,
@@ -143,7 +147,7 @@ class CQChartsColumnStringType : public CQChartsColumnType {
  public:
   CQChartsColumnStringType();
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -165,7 +169,7 @@ class CQChartsColumnBooleanType : public CQChartsColumnType {
 
   bool isBoolean() const override { return true; }
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -195,7 +199,7 @@ class CQChartsColumnRealType : public CQChartsColumnType {
 
   bool isNumeric() const override { return true; }
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -234,7 +238,7 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
   bool isNumeric () const override { return true; }
   bool isIntegral() const override { return true; }
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -266,7 +270,7 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
 
   QString formatName() const override { return "oformat"; }
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -293,7 +297,7 @@ class CQChartsColumnRectType : public CQChartsColumnType {
  public:
   CQChartsColumnRectType();
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -313,7 +317,7 @@ class CQChartsColumnPolygonType : public CQChartsColumnType {
  public:
   CQChartsColumnPolygonType();
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -333,7 +337,7 @@ class CQChartsColumnPolygonListType : public CQChartsColumnType {
  public:
   CQChartsColumnPolygonListType();
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -356,7 +360,7 @@ class CQChartsColumnConnectionListType : public CQChartsColumnType {
  public:
   CQChartsColumnConnectionListType();
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -379,7 +383,7 @@ class CQChartsColumnNamePairType : public CQChartsColumnType {
  public:
   CQChartsColumnNamePairType();
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -402,7 +406,7 @@ class CQChartsColumnPathType : public CQChartsColumnType {
  public:
   CQChartsColumnPathType();
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -422,7 +426,7 @@ class CQChartsColumnStyleType : public CQChartsColumnType {
  public:
   CQChartsColumnStyleType();
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -450,7 +454,7 @@ class CQChartsColumnColorType : public CQChartsColumnType {
  public:
   CQChartsColumnColorType();
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -474,7 +478,7 @@ class CQChartsColumnImageType : public CQChartsColumnType {
  public:
   CQChartsColumnImageType();
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -501,7 +505,7 @@ class CQChartsColumnSymbolTypeType : public CQChartsColumnType {
  public:
   CQChartsColumnSymbolTypeType();
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -534,7 +538,7 @@ class CQChartsColumnSymbolSizeType : public CQChartsColumnType {
  public:
   CQChartsColumnSymbolSizeType();
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -567,7 +571,7 @@ class CQChartsColumnFontSizeType : public CQChartsColumnType {
  public:
   CQChartsColumnFontSizeType();
 
-  QString description() const override;
+  QString desc() const override;
 
   // input variant to data variant for edit
   QVariant userData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,

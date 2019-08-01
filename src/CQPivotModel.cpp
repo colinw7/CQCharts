@@ -555,6 +555,58 @@ typeValue(const Values &values) const
   }
 }
 
+QStringList
+CQPivotModel::
+hkeys() const
+{
+  updateModel();
+
+  QStringList strs;
+
+  for (const auto &ph : hKeysCol_)
+    strs << ph.first;
+
+  return strs;
+}
+
+QStringList
+CQPivotModel::
+vkeys() const
+{
+  updateModel();
+
+  QStringList strs;
+
+  for (const auto &ph : vKeysRow_)
+    strs << ph.first;
+
+  return strs;
+}
+
+int
+CQPivotModel::
+hkeyCol(const QString &key) const
+{
+  updateModel();
+
+  auto p = hKeysCol_.find(key);
+  if (p == hKeysCol_.end()) return -1;
+
+  return (*p).second;
+}
+
+int
+CQPivotModel::
+vkeyRow(const QString &key) const
+{
+  updateModel();
+
+  auto p = vKeysRow_.find(key);
+  if (p == vKeysRow_.end()) return -1;
+
+  return (*p).second;
+}
+
 double
 CQPivotModel::
 hmin(int c) const

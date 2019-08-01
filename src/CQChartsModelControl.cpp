@@ -9,6 +9,7 @@
 #include <CQPropertyViewTree.h>
 #include <CQPivotModel.h>
 #include <CQBaseModel.h>
+#include <CQDataModel.h>
 #include <CQLineEdit.h>
 #include <CQUtil.h>
 
@@ -294,8 +295,8 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   columnEditData_.typeCombo->addItems(typeNames);
 
-  columnEditData_.numEdit ->setToolTip("Column Number");
-  columnEditData_.nameEdit->setToolTip("Column Name");
+  columnEditData_.numEdit  ->setToolTip("Column Number");
+  columnEditData_.nameEdit ->setToolTip("Column Name");
   columnEditData_.typeCombo->setToolTip("Column Type");
 
   columnEditData_.editLayout->setRowStretch(columnEditData_.row, 1);
@@ -532,11 +533,33 @@ setModelData(CQChartsModelData *modelData)
 
       QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model.data());
 
+      CQBaseModel *baseModel =
+        (proxyModel ? qobject_cast<CQBaseModel  *>(proxyModel->sourceModel()) : nullptr);
+
+      CQDataModel *dataModel = CQChartsModelUtil::getDataModel(model.data());
+
+      CQChartsExprModel *exprModel = CQChartsModelUtil::getExprModel(model.data());
+
       CQPivotModel *pivotModel =
         (proxyModel ? qobject_cast<CQPivotModel *>(proxyModel->sourceModel()) : nullptr);
 
+      if (baseModel) {
+        propertyModel_->addProperty("", baseModel, "title"      , "");
+        propertyModel_->addProperty("", baseModel, "maxTypeRows", "");
+      }
+
+      if (dataModel) {
+        propertyModel_->addProperty("", dataModel, "readOnly", "");
+        propertyModel_->addProperty("", dataModel, "filter"  , "");
+      }
+
+      if (exprModel) {
+        propertyModel_->addProperty("", exprModel, "debug", "");
+      }
+
       if (pivotModel) {
-        propertyModel_->addProperty("", pivotModel, "valueType", "");
+        propertyModel_->addProperty("", pivotModel, "valueType"    , "");
+        propertyModel_->addProperty("", pivotModel, "includeTotals", "");
       }
     }
   }

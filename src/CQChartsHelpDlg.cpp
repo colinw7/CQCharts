@@ -360,7 +360,7 @@ loadSectionText()
     const CQChartsColumnType *type = columnTypeMgr->getNamedType(id);
     assert(type);
 
-    setHtml(type->description());
+    setHtml(type->desc());
   }
   else if (parentId == "plot_types") {
     CQChartsPlotType *type = charts_->plotType(id);

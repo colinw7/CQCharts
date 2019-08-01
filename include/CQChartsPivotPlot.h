@@ -237,6 +237,7 @@ class CQChartsPivotPlot : public CQChartsPlot,
   Q_PROPERTY(PlotType        plotType    READ plotType     WRITE setPlotType   )
   Q_PROPERTY(ValueType       valueType   READ valueType    WRITE setValueType  )
   Q_PROPERTY(bool            horizontal  READ isHorizontal WRITE setHorizontal )
+  Q_PROPERTY(bool            gridBars    READ isGridBars   WRITE setGridBars   )
 
   // bar fill, stroke
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Bar,bar)
@@ -285,6 +286,9 @@ class CQChartsPivotPlot : public CQChartsPlot,
   void setValueType(const ValueType &v);
 
   bool isHorizontal() const { return horizontal_; }
+
+  bool isGridBars() const { return gridBars_; }
+  void setGridBars(bool b);
 
   //--
 
@@ -359,6 +363,7 @@ class CQChartsPivotPlot : public CQChartsPlot,
   PlotType           plotType_    { PlotType::BAR };  //!< plot type
   ValueType          valueType_   { ValueType::SUM }; //!< value type
   bool               horizontal_  { false };          //!< horizontal
+  bool               gridBars_    { true };           //!< draw bars on grid
   CQPivotModel*      pivotModel_  { nullptr };        //!< pivot model
   CQChartsDataLabel* dataLabel_   { nullptr };        //!< data label data
 };

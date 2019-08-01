@@ -91,6 +91,12 @@ class CQPivotModel : public CQBaseModel {
 
   //---
 
+  QStringList hkeys() const;
+  QStringList vkeys() const;
+
+  int hkeyCol(const QString &key) const;
+  int vkeyRow(const QString &key) const;
+
   double hmin(int c) const;
   double hmax(int c) const;
 
