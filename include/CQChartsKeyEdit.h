@@ -7,7 +7,10 @@ class CQChartsKey;
 
 class CQChartsKeyEdit;
 
-//! \brief edit key dialog
+/*!
+ * \brief edit key dialog
+ * \ingroup Charts
+ */
 class CQChartsEditKeyDlg : public QDialog {
   Q_OBJECT
 
@@ -41,7 +44,10 @@ class CQIntegerSpin;
 class CQPoint2DEdit;
 class CQLineEdit;
 
-//! \brief key edit
+/*!
+ * \brief key edit
+ * \ingroup Charts
+ */
 class CQChartsKeyEdit : public QFrame {
   Q_OBJECT
 

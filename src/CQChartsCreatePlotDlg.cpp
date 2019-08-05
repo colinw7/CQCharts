@@ -735,20 +735,6 @@ CQChartsCreatePlotDlg::
 
 void
 CQChartsCreatePlotDlg::
-setSelectionModel(QItemSelectionModel *sm)
-{
-  selectionModel_ = sm;
-}
-
-QItemSelectionModel *
-CQChartsCreatePlotDlg::
-selectionModel() const
-{
-  return selectionModel_.data();
-}
-
-void
-CQChartsCreatePlotDlg::
 addPlotWidgets(CQChartsPlotType *type, int ind)
 {
   QFrame *frame = CQUtil::makeWidget<QFrame>(type->name() + "_frame");
@@ -2187,9 +2173,6 @@ applySlot()
 
   // create plot
   plot_ = type->create(view, model_);
-
-  if (selectionModel())
-    plot_->setSelectionModel(selectionModel());
 
   //---
 

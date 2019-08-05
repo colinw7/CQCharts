@@ -11,7 +11,10 @@ class CQChartsPlotSymbolRenderer;
 
 //---
 
-//! \brief plot symbol
+/*!
+ * \brief plot symbol
+ * \ingroup Charts
+ */
 struct CQChartsPlotSymbol {
   enum class Connect {
     NONE,
@@ -72,7 +75,10 @@ namespace CQChartsPlotSymbolMgr {
 class CQChartsPlot;
 class QPainter;
 
-//! \brief plot symbol renderer
+/*!
+ * \brief plot symbol renderer
+ * \ingroup Charts
+ */
 class CQChartsPlotSymbolRenderer {
  public:
   CQChartsPlotSymbolRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s);

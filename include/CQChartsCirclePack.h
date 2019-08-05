@@ -13,6 +13,7 @@
 
 /*!
  * \brief Circle Pack Node
+ * \ingroup Charts
  */
 class CQChartsCircleNode {
   public:
@@ -47,6 +48,7 @@ class CQChartsCircleNode {
 
 /*!
  * \brief Pack circle nodes into smallest space
+ * \ingroup Charts
  */
 template<typename NODE>
 class CQChartsCirclePack {

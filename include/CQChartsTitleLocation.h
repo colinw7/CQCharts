@@ -3,7 +3,10 @@
 
 #include <CQChartsEnum.h>
 
-//! \brief title location
+/*!
+ * \brief title location
+ * \ingroup Charts
+ */
 class CQChartsTitleLocation : public CQChartsEnum {
  public:
   enum Type {

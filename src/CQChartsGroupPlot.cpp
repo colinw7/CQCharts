@@ -7,7 +7,8 @@
 #include <CQPerfMonitor.h>
 
 CQChartsGroupPlotType::
-CQChartsGroupPlotType()
+CQChartsGroupPlotType() :
+ CQChartsPlotType()
 {
 }
 

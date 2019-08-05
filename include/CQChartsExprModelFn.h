@@ -9,7 +9,10 @@ class CQTcl;
 
 #include <tcl.h>
 
-//! \brief Expression model function base class
+/*!
+ * \brief Expression model function base class
+ * \ingroup Charts
+ */
 class CQChartsExprModelFn {
  public:
   using Values = std::vector<QVariant>;

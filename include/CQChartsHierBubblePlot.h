@@ -12,6 +12,7 @@
 
 /*!
  * \brief Hierarchical Bubble Plot Type
+ * \ingroup Charts
  */
 class CQChartsHierBubblePlotType : public CQChartsHierPlotType {
  public:
@@ -45,7 +46,10 @@ class CQChartsHierBubblePlotType : public CQChartsHierPlotType {
 class CQChartsHierBubblePlot;
 class CQChartsHierBubbleHierNode;
 
-//! \brief Hierarchical Bubble Plot Node
+/*!
+ * \brief Hierarchical Bubble Plot Node
+ * \ingroup Charts
+ */
 class CQChartsHierBubbleNode : public CQChartsCircleNode {
  protected:
   static uint nextId() {
@@ -145,7 +149,10 @@ struct CQChartsHierBubbleNodeCmp {
 
 //---
 
-//! \brief Hierarchical Bubble Plot Hierarchical Node
+/*!
+ * \brief Hierarchical Bubble Plot Hierarchical Node
+ * \ingroup Charts
+ */
 class CQChartsHierBubbleHierNode : public CQChartsHierBubbleNode {
  public:
   using Nodes    = std::vector<CQChartsHierBubbleNode*>;
@@ -201,6 +208,7 @@ class CQChartsHierBubbleHierObj;
 
 /*!
  * \brief Hierarchical Bubble Plot object
+ * \ingroup Charts
  */
 class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -238,7 +246,10 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
 
 //---
 
-//! \brief Hierarchical Bubble Plot Hierarchical object
+/*!
+ * \brief Hierarchical Bubble Plot Hierarchical object
+ * \ingroup Charts
+ */
 class CQChartsHierBubbleHierObj : public CQChartsHierBubbleNodeObj {
  public:
   CQChartsHierBubbleHierObj(const CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNode *hier,
@@ -265,6 +276,7 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleNodeObj {
 
 /*!
  * \brief Hierarchical Bubble Plot
+ * \ingroup Charts
  */
 class CQChartsHierBubblePlot : public CQChartsHierPlot,
  public CQChartsObjShapeData<CQChartsHierBubblePlot>,

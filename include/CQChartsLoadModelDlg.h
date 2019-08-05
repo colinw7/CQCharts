@@ -17,7 +17,10 @@ class QCheckBox;
 class QTextEdit;
 class QPushButton;
 
-//! \brief dialog to load new charts model
+/*!
+ * \brief dialog to load new charts model
+ * \ingroup Charts
+ */
 class CQChartsLoadModelDlg : public QDialog {
   Q_OBJECT
 

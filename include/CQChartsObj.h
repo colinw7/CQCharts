@@ -14,6 +14,7 @@ class QPainter;
 
 /*!
  * \brief Charts object base class
+ * \ingroup Charts
  */
 class CQChartsObj : public QObject {
   Q_OBJECT

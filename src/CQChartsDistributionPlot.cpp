@@ -10,7 +10,7 @@
 #include <CQChartsValueSet.h>
 #include <CQCharts.h>
 #include <CQChartsDensity.h>
-#include <CQChartsRoundedPolygon.h>
+#include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
 #include <CQChartsRand.h>
 #include <CQChartsHtml.h>
@@ -3610,7 +3610,7 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
       double cxs = plot_->lengthPixelWidth (plot_->barCornerSize());
       double cys = plot_->lengthPixelHeight(plot_->barCornerSize());
 
-      CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
+      CQChartsDrawUtil::drawRoundedPolygon(painter, qrect, cxs, cys);
     }
     else {
       if (! plot_->isHorizontal()) {
@@ -3637,7 +3637,7 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
       else {
         QRectF qrect1(xc - lw/2, qrect.top(), lw, qrect.height());
 
-        CQChartsRoundedPolygon::draw(painter, qrect1);
+        CQChartsDrawUtil::drawRoundedPolygon(painter, qrect1);
       }
     }
     else {
@@ -3648,7 +3648,7 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
       else {
         QRectF qrect1(qrect.left(), yc - lw/2, qrect.width(), lw);
 
-        CQChartsRoundedPolygon::draw(painter, qrect1);
+        CQChartsDrawUtil::drawRoundedPolygon(painter, qrect1);
       }
     }
 

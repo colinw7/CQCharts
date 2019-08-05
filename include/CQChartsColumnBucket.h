@@ -7,7 +7,10 @@
 
 class CQChartsValueSet;
 
-//! \brief bucket of values keyed off header, column or path
+/*!
+ * \brief bucket of values keyed off header, column or path
+ * \ingroup Charts
+ */
 class CQChartsColumnBucket {
  public:
   using ColumnType = CQBaseModelType;

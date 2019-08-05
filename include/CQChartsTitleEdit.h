@@ -7,7 +7,10 @@ class CQChartsTitle;
 
 class CQChartsTitleEdit;
 
-//! \brief edit title dialog
+/*!
+ * \brief edit title dialog
+ * \ingroup Charts
+ */
 class CQChartsEditTitleDlg : public QDialog {
   Q_OBJECT
 
@@ -37,7 +40,10 @@ class CQChartsTextDataEdit;
 class CQCheckBox;
 class CQGroupBox;
 
-//! \brief title edit
+/*!
+ * \brief title edit
+ * \ingroup Charts
+ */
 class CQChartsTitleEdit : public QFrame {
   Q_OBJECT
 

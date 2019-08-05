@@ -6,7 +6,10 @@
 
 #define CQChartsEvalInst CQChartsEval::instance()
 
-//! \brief class to evaluate tcl expression
+/*!
+ * \brief class to evaluate tcl expression
+ * \ingroup Charts
+ */
 class CQChartsEval {
  public:
   static CQChartsEval *instance();

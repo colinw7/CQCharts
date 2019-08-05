@@ -120,9 +120,6 @@ createPlotSlot()
 
   CQChartsCreatePlotDlg *createPlotDlg = new CQChartsCreatePlotDlg(charts_, modelData);
 
-  if (modelData->selectionModel())
-    createPlotDlg->setSelectionModel(modelData->selectionModel());
-
   if (! createPlotDlg->exec())
     return;
 

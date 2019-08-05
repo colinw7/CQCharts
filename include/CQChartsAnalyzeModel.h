@@ -10,6 +10,7 @@ class CQChartsModelData;
 
 /*!
  * \brief analyze a model to auto determine best plot type and columns
+ * \ingroup Charts
  */
 class CQChartsAnalyzeModel {
  public:

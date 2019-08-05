@@ -5,6 +5,7 @@
 
 /*!
  * \brief Wrapper class for CQDataModel to remember tcl variable data
+ * \ingroup Charts
  */
 class CQChartsVarsModel : public CQDataModel {
  public:

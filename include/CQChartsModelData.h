@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QSharedPointer>
 #include <QModelIndex>
+#include <QItemSelection>
+#include <QPointer>
 #include <future>
 
 class CQChartsModelDetails;
@@ -16,6 +18,7 @@ class QItemSelectionModel;
 
 /*!
  * \brief Model Data Object
+ * \ingroup Charts
  */
 class CQChartsModelData : public QObject {
   Q_OBJECT
@@ -69,9 +72,7 @@ class CQChartsModelData : public QObject {
 
   //---
 
-  // get/set selection model
-  QItemSelectionModel *selectionModel() const { return selectionModel_; }
-  void setSelectionModel(QItemSelectionModel *p) { selectionModel_ = p; }
+  void select(const QItemSelection &sel);
 
   //---
 
@@ -114,6 +115,12 @@ class CQChartsModelData : public QObject {
 
   //---
 
+  // add selection model
+  void addSelectionModel(QItemSelectionModel *model);
+  void removeSelectionModel(QItemSelectionModel *model);
+
+  //---
+
   // add/get summary model
   CQSummaryModel *addSummaryModel();
 
@@ -149,6 +156,8 @@ class CQChartsModelData : public QObject {
   void modelColumnsInsertedSlot();
   void modelColumnsRemovedSlot();
 
+  void selectionSlot();
+
  signals:
   // model changed
   void modelChanged();
@@ -159,7 +168,13 @@ class CQChartsModelData : public QObject {
   // current model column changed
   void currentColumnChanged(int);
 
+  // selection changed
+  void selectionChanged(QItemSelectionModel *sm);
+
  private:
+  using SelectionModelP = QPointer<QItemSelectionModel>;
+  using SelectionModels = std::vector<SelectionModelP>;
+
 #ifdef CQCHARTS_FOLDED_MODEL
   using FoldedModelPs = std::vector<ModelP>;
 #endif
@@ -167,11 +182,11 @@ class CQChartsModelData : public QObject {
   CQCharts*             charts_           { nullptr }; //!< parent charts
   ModelP                model_;                        //!< model
   int                   ind_              { -1 };      //!< model ind
-  QItemSelectionModel*  selectionModel_   { nullptr }; //!< selection model
   QString               name_;                         //!< model name
   QString               fileName_;                     //!< model file name
   int                   currentColumn_    { -1 };      //!< current column
   CQChartsModelDetails* details_          { nullptr }; //!< model details
+  SelectionModels       selectionModels_;              //!< selection models
 #ifdef CQCHARTS_FOLDED_MODEL
   ModelP                foldProxyModel_;               //!< folded proxy model
   FoldedModelPs         foldedModels_;                 //!< folded models

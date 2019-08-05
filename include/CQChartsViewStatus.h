@@ -11,6 +11,7 @@ class CQChartsViewStatusSel;
 
 /*!
  * \brief View status widget
+ * \ingroup Charts
  */
 class CQChartsViewStatus : public QFrame {
   Q_OBJECT
@@ -46,6 +47,7 @@ class CQChartsViewStatus : public QFrame {
 
 /*!
  * \brief View status label widget
+ * \ingroup Charts
  */
 class CQChartsViewStatusStatus : public QLabel {
   Q_OBJECT
@@ -71,6 +73,7 @@ class CQChartsViewStatusStatus : public QLabel {
 
 /*!
  * \brief View status position widget
+ * \ingroup Charts
  */
 class CQChartsViewStatusPos : public QLabel {
   Q_OBJECT
@@ -97,6 +100,7 @@ class CQChartsViewStatusPos : public QLabel {
 
 /*!
  * \brief View status selection widget
+ * \ingroup Charts
  */
 class CQChartsViewStatusSel : public QLabel {
   Q_OBJECT

@@ -3,7 +3,10 @@
 
 #include <CQChartsEnum.h>
 
-//! \brief fill pattern
+/*!
+ * \brief fill pattern
+ * \ingroup Charts
+ */
 class CQChartsFillPattern : public CQChartsEnum {
  public:
   enum class Type {

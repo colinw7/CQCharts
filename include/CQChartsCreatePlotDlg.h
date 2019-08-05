@@ -33,7 +33,10 @@ class QRadioButton;
 class QToolButton;
 class QLabel;
 
-//! \brief dialog to create new plot
+/*!
+ * \brief dialog to create new plot
+ * \ingroup Charts
+ */
 class CQChartsCreatePlotDlg : public QDialog {
   Q_OBJECT
 
@@ -44,9 +47,6 @@ class CQChartsCreatePlotDlg : public QDialog {
  public:
   CQChartsCreatePlotDlg(CQCharts *charts, CQChartsModelData *modelData);
  ~CQChartsCreatePlotDlg();
-
-  void setSelectionModel(QItemSelectionModel *sm);
-  QItemSelectionModel *selectionModel() const;
 
   CQCharts *charts() const { return charts_; }
 
@@ -223,7 +223,7 @@ class CQChartsCreatePlotDlg : public QDialog {
   CQCharts*          charts_                 { nullptr }; //!< parent charts
   CQChartsModelData* modelData_              { nullptr }; //!< model data
   ModelP             model_;                              //!< model
-  SelectionModelP    selectionModel_;                     //!< selection model
+//SelectionModelP    selectionModel_;                     //!< selection model
   QComboBox*         combo_                  { nullptr }; //!< type combo
   QStackedWidget*    stack_                  { nullptr }; //!< widget stack
   QTextEdit*         descText_               { nullptr }; //!< type description

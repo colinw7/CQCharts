@@ -5,7 +5,10 @@
 
 class CQColorsPalette;
 
-//! \brief interface theme
+/*!
+ * \brief interface theme
+ * \ingroup Charts
+ */
 class CQChartsInterfaceTheme {
  public:
   CQChartsInterfaceTheme();

@@ -10,13 +10,13 @@
 #include <CQChartsModelView.h>
 #include <CQChartsPropertyViewTree.h>
 #include <CQPixmapCache.h>
+#include <CQTabSplit.h>
 #include <CQUtil.h>
 
 #include <svg/charts_svg.h>
 
 #include <QStackedWidget>
 #include <QVBoxLayout>
-#include <QSplitter>
 #include <QPainter>
 
 CQChartsWindowMgr *
@@ -132,9 +132,9 @@ CQChartsWindow(CQChartsView *view) :
 
   //----
 
-  QSplitter *viewSplitter = CQUtil::makeWidget<QSplitter>("vsplitter");
+  CQTabSplit *viewSplitter = CQUtil::makeWidget<CQTabSplit>("vsplitter");
 
-  viewSplitter->setOrientation(Qt::Vertical);
+  viewSplitter->setState(CQTabSplit::State::VSPLIT);
 
   settingsSplitter->addWidget(viewSplitter);
 
@@ -151,9 +151,11 @@ CQChartsWindow(CQChartsView *view) :
 
   QFrame *viewFrame = CQUtil::makeWidget<QFrame>("viewFrame");
 
+  viewFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
   QGridLayout *viewLayout = CQUtil::makeLayout<QGridLayout>(viewFrame, 2, 2);
 
-  viewSplitter->addWidget(viewFrame);
+  viewSplitter->addWidget(viewFrame, "View");
 
   viewLayout->addWidget(view, 0, 0);
 
@@ -205,7 +207,7 @@ CQChartsWindow(CQChartsView *view) :
 
   tableLayout->addWidget(modelView_);
 
-  viewSplitter->addWidget(tableFrame_);
+  viewSplitter->addWidget(tableFrame_, "Table");
 
   tableFrame_->setVisible(dataTable_);
 
@@ -453,17 +455,10 @@ plotSlot()
   else
     setWindowTitle(QString("Window: View %1, Plot <none>").arg(view_->id()));
 
-  if (tableFrame_->isVisible() && plot) {
+  if (tableFrame_->isVisible() && plot)
     modelView_->setModel(plot->model(), plot->isHierarchical());
-
-    plot->setSelectionModel(modelView_->selectionModel());
-  }
-  else {
+  else
     modelView_->setModel(CQChartsModelView::ModelP(), false);
-
-    if (plot)
-      plot->setSelectionModel(nullptr);
-  }
 }
 
 void

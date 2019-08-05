@@ -23,7 +23,7 @@ set plot1 [create_charts_plot -model $model -type scatter \
   -title "Scatter Symbol Type"]
 
 set_charts_property -plot $plot1 -name mapping.symbolType.enabled -value 0
-#set_charts_property -plot $plot1 -name mapping.symbol.type.symbols -value "triangle,circle,square"
+#set_charts_property -plot $plot1 -name mapping.symbolType.symbols -value "triangle,circle,square"
 
 set_charts_property -plot $plot1 -name margins.inner.left   -value 20px
 set_charts_property -plot $plot1 -name margins.inner.right  -value 20px

@@ -11,6 +11,7 @@
 
 /*!
  * \brief Adjacency plot type
+ * \ingroup Charts
  */
 class CQChartsAdjacencyPlotType : public CQChartsPlotType {
  public:
@@ -46,6 +47,7 @@ class CQChartsAdjacencyPlotType : public CQChartsPlotType {
 
 /*!
  * \brief node data
+ * \ingroup Charts
  */
 class CQChartsAdjacencyNode {
  public:
@@ -109,6 +111,7 @@ class CQChartsAdjacencyPlot;
 
 /*!
  * \brief Adjacency Grid Cell object
+ * \ingroup Charts
  *
  * node1->node2 with connections count
  */
@@ -148,6 +151,7 @@ CQCHARTS_NAMED_SHAPE_DATA(EmptyCell,emptyCell)
 
 /*!
  * \brief Connectivity Plot
+ * \ingroup Charts
  *
  * made up of:
  *   + nodes             : number, name(opt), group(opt)

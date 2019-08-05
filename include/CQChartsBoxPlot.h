@@ -14,6 +14,7 @@
 
 /*!
  * \brief Box plot type
+ * \ingroup Charts
  */
 class CQChartsBoxPlotType : public CQChartsGroupPlotType {
  public:
@@ -45,6 +46,7 @@ class CQChartsBoxPlot;
 
 /*!
  * \brief box value
+ * \ingroup Charts
  */
 struct CQChartsBoxPlotValue {
   CQChartsBoxPlotValue() = default;
@@ -65,6 +67,7 @@ using CQChartsBoxPlotWhisker = CQChartsBoxWhiskerT<CQChartsBoxPlotValue>;
 
 /*!
  * \brief whisker data
+ * \ingroup Charts
  */
 struct CQChartsBoxWhiskerData {
   using Outliers = std::vector<double>;
@@ -82,6 +85,7 @@ struct CQChartsBoxWhiskerData {
 
 /*!
  * \brief Box Plot Base object
+ * \ingroup Charts
  */
 class CQChartsBoxPlotObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -167,6 +171,7 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
 /*!
  * \brief box plot whisker outlier object
+ * \ingroup Charts
  */
 class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
   Q_OBJECT
@@ -199,6 +204,7 @@ class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
 
 /*!
  * \brief box plot whisker object
+ * \ingroup Charts
  */
 class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
   Q_OBJECT
@@ -233,6 +239,7 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
 
 /*!
  * \brief Box Plot Connected object
+ * \ingroup Charts
  */
 class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -270,6 +277,7 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
 
 /*!
  * \brief Box Plot Point object
+ * \ingroup Charts
  */
 class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -303,6 +311,7 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
 
 /*!
  * \brief Box Plot Key Color Box
+ * \ingroup Charts
  */
 class CQChartsBoxKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
@@ -323,6 +332,7 @@ class CQChartsBoxKeyColor : public CQChartsKeyColorBox {
 
 /*!
  * \brief Box Plot Key Text
+ * \ingroup Charts
  */
 class CQChartsBoxKeyText : public CQChartsKeyText {
   Q_OBJECT
@@ -343,6 +353,7 @@ CQCHARTS_NAMED_POINT_DATA(Jitter,jitter)
 
 /*!
  * \brief Box Plot
+ * \ingroup Charts
  *
  * data columns:
  *   + value : value columns

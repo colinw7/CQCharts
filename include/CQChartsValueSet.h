@@ -18,6 +18,7 @@ class CQChartsTriePatterns;
 
 /*!
  * \brief class to store set of real values and returned cached data
+ * \ingroup Charts
  */
 class CQChartsRValues {
  public:
@@ -167,6 +168,7 @@ class CQChartsRValues {
 
 /*!
  * \brief class to store set of integer values and returned cached data
+ * \ingroup Charts
  */
 class CQChartsIValues {
  public:
@@ -312,6 +314,7 @@ class CQChartsIValues {
 
 /*!
  * \brief class to store set of string values and returned cached data
+ * \ingroup Charts
  */
 class CQChartsSValues {
  public:
@@ -431,6 +434,7 @@ class CQChartsSValues {
 
 /*!
  * \brief class to store set of color values and returned cached data
+ * \ingroup Charts
  */
 class CQChartsCValues {
  public:
@@ -537,6 +541,7 @@ class CQChartsCValues {
 
 /*!
  * \brief set of real, integer or string values which will be grouped by their unique values.
+ * \ingroup Charts
  *
  * Auto detects value type from input data
  */

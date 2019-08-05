@@ -10,6 +10,7 @@
 
 /*!
  * \brief Force Directed plot type
+ * \ingroup Charts
  */
 class CQChartsForceDirectedPlotType : public CQChartsPlotType {
  public:
@@ -43,6 +44,7 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
 
 /*!
  * \brief Force Directed Plot
+ * \ingroup Charts
  */
 class CQChartsForceDirectedPlot : public CQChartsPlot,
  public CQChartsObjNodeShapeData<CQChartsForceDirectedPlot>,

@@ -14,6 +14,7 @@ class QItemSelectionModel;
 
 /*!
  * \brief Model View Widget
+ * \ingroup Charts
  */
 class CQChartsModelView : public QFrame {
   Q_OBJECT

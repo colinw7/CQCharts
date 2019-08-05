@@ -1,45 +1,14 @@
 #include <CQChartsTree.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
+#include <CQChartsSelectionModel.h>
 #include <CQCharts.h>
 
 #include <QHeaderView>
 #include <QSortFilterProxyModel>
-#include <QItemSelectionModel>
 #include <QMenu>
 #include <QActionGroup>
 #include <cassert>
-
-class CQChartsTreeSelectionModel : public QItemSelectionModel {
- public:
-  CQChartsTreeSelectionModel(CQChartsTree *tree) :
-   QItemSelectionModel(tree->CQTreeView::model()), tree_(tree) {
-    setObjectName("treeSelectionModel");
-  }
-
-  void select(const QModelIndex &ind, SelectionFlags flags) {
-    QItemSelectionModel::select(ind, adjustFlags(flags));
-  }
-
-  void select(const QItemSelection &selection, SelectionFlags flags) {
-    QItemSelectionModel::select(selection, adjustFlags(flags));
-  }
-
- private:
-  SelectionFlags adjustFlags(SelectionFlags flags) const {
-    if     (tree_->selectionBehavior() == QAbstractItemView::SelectRows)
-      flags |= Rows;
-    else if (tree_->selectionBehavior() == QAbstractItemView::SelectColumns)
-      flags |= Columns;
-
-    return flags;
-  }
-
- private:
-  CQChartsTree *tree_ { nullptr };
-};
-
-//------
 
 CQChartsTree::
 CQChartsTree(CQCharts *charts, QWidget *parent) :
@@ -59,6 +28,36 @@ CQChartsTree(CQCharts *charts, QWidget *parent) :
 
   connect(this, SIGNAL(clicked(const QModelIndex &)),
           this, SLOT(itemClickedSlot(const QModelIndex &)));
+
+  //---
+
+  //delegate_ = new CQChartsTreeDelegate(this);
+
+  //setItemDelegate(delegate_);
+
+  //---
+
+  connect(charts_, SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
+}
+
+CQChartsTree::
+~CQChartsTree()
+{
+  if (modelData_ && sm_)
+    modelData_->removeSelectionModel(sm_);
+
+//delete delegate_
+}
+
+void
+CQChartsTree::
+modelTypeChangedSlot(int modelId)
+{
+  CQChartsModelData *modelData = getModelData();
+
+  if (modelData && modelData->ind() == modelId) {
+    //delegate_->clearColumnTypes();
+  }
 }
 
 void
@@ -67,11 +66,15 @@ addMenuActions(QMenu *menu)
 {
   CQTreeView::addMenuActions(menu);
 
-  QActionGroup *actionGroup = new QActionGroup(menu);
+  //---
 
-  QAction *selectItems   = new QAction("Select Items"  , menu);
-  QAction *selectRows    = new QAction("Select Rows"   , menu);
-  QAction *selectColumns = new QAction("Select Columns", menu);
+  QMenu *selectMenu = new QMenu("Select");
+
+  QActionGroup *selectActionGroup = new QActionGroup(menu);
+
+  QAction *selectItems   = new QAction("Items"  , selectMenu);
+  QAction *selectRows    = new QAction("Rows"   , selectMenu);
+  QAction *selectColumns = new QAction("Columns", selectMenu);
 
   selectItems  ->setCheckable(true);
   selectRows   ->setCheckable(true);
@@ -81,14 +84,16 @@ addMenuActions(QMenu *menu)
   selectRows   ->setChecked(selectionBehavior() == SelectRows);
   selectColumns->setChecked(selectionBehavior() == SelectColumns);
 
-  actionGroup->addAction(selectItems);
-  actionGroup->addAction(selectRows);
-  actionGroup->addAction(selectColumns);
+  selectActionGroup->addAction(selectItems);
+  selectActionGroup->addAction(selectRows);
+  selectActionGroup->addAction(selectColumns);
 
-  connect(actionGroup, SIGNAL(triggered(QAction *)),
+  connect(selectActionGroup, SIGNAL(triggered(QAction *)),
           this, SLOT(selectionBehaviorSlot(QAction *)));
 
-  menu->addActions(actionGroup->actions());
+  selectMenu->addActions(selectActionGroup->actions());
+
+  menu->addMenu(selectMenu);
 
   //---
 
@@ -125,10 +130,20 @@ setModelP(const ModelP &model)
   CQTreeView::setModel(model_.data());
 
   if (model_.data()) {
-    sm_ = new CQChartsTreeSelectionModel(this);
+    CQChartsModelData *modelData = getModelData();
+
+    if (modelData) {
+      sm_ = new CQChartsSelectionModel(this, modelData);
+
+      modelData->addSelectionModel(sm_);
+    }
+    else
+      sm_ = new CQChartsSelectionModel(this, model_.data());
 
     setSelectionModel(sm_);
   }
+
+  resetModelData();
 
   //---
 
@@ -171,6 +186,7 @@ void
 CQChartsTree::
 itemClickedSlot(const QModelIndex &)
 {
+  //delegate_->click(index);
 }
 
 void
@@ -189,11 +205,11 @@ void
 CQChartsTree::
 selectionBehaviorSlot(QAction *action)
 {
-  if      (action->text() == "Select Items")
+  if      (action->text() == "Items")
     setSelectionBehavior(SelectItems);
-  else if (action->text() == "Select Rows")
+  else if (action->text() == "Rows")
     setSelectionBehavior(SelectRows);
-  else if (action->text() == "Select Columns")
+  else if (action->text() == "Columns")
     setSelectionBehavior(SelectColumns);
   else
     assert(false);
@@ -214,14 +230,39 @@ exportSlot(QAction *action)
   }
 }
 
+CQChartsModelData *
+CQChartsTree::
+getModelData()
+{
+  if (! modelData_) {
+    modelData_ = charts_->getModelData(model_.data());
+
+    if (modelData_)
+      connect(modelData_, SIGNAL(modelChanged()), this, SLOT(resetModelData()));
+  }
+
+  return modelData_;
+}
+
 CQChartsModelDetails *
 CQChartsTree::
 getDetails()
 {
-  CQChartsModelData *modelData = charts_->getModelData(model_.data());
-  assert(modelData);
+  CQChartsModelData *modelData = getModelData();
 
-  return modelData->details();
+  return (modelData ? modelData->details() : nullptr);
+}
+
+void
+CQChartsTree::
+resetModelData()
+{
+  if (modelData_)
+    disconnect(modelData_, SIGNAL(modelChanged()), this, SLOT(resetModelData()));
+
+  modelData_ = nullptr;
+
+//delegate_->resetColumnData();
 }
 
 QSize

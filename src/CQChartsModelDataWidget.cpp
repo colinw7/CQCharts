@@ -195,24 +195,14 @@ reloadModel()
     return;
 
   if (modelData_->details()->isHierarchical()) {
-    if (tree_) {
+    if (tree_)
       tree_->setModelP(modelData_->currentModel());
-
-      modelData_->setSelectionModel(tree_->selectionModel());
-    }
-    else
-      modelData_->setSelectionModel(nullptr);
 
     stack_->setCurrentIndex(0);
   }
   else {
-    if (table_) {
+    if (table_)
       table_->setModelP(modelData_->currentModel());
-
-      modelData_->setSelectionModel(table_->selectionModel());
-    }
-    else
-      modelData_->setSelectionModel(nullptr);
 
     stack_->setCurrentIndex(1);
   }

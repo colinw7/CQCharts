@@ -5,7 +5,10 @@
 
 class CQChartsExprModel;
 
-//! \brief Filter model
+/*!
+ * \brief Filter model
+ * \ingroup Charts
+ */
 class CQChartsFilterModel : public CQChartsModelFilter {
   Q_OBJECT
 

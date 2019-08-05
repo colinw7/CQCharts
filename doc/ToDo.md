@@ -1,4 +1,9 @@
 High
+ + add unchecked support for all annotations
+ + access set hidden from tcl
+   + Should be able to create fully functional key from annotations
+ + more code in point plot (base class for scatter/xy)
+ + plot selection behavior -> select out, select in, none, both
  + table per column coloring
  + More help content
  + Pivot model and chart

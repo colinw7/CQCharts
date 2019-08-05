@@ -8,6 +8,7 @@ class CQChartsPolygonEdit;
 
 /*!
  * \brief Polygon line edit
+ * \ingroup Charts
  */
 class CQChartsPolygonLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
@@ -53,6 +54,7 @@ class QScrollArea;
 
 /*!
  * \brief Polygon edit
+ * \ingroup Charts
  */
 class CQChartsPolygonEdit : public CQChartsEditBase {
   Q_OBJECT
@@ -107,7 +109,10 @@ class CQChartsPolygonEdit : public CQChartsEditBase {
 
 #include <CQPropertyViewType.h>
 
-//! \brief type for CQChartsPolygon
+/*!
+ * \brief type for CQChartsPolygon
+ * \ingroup Charts
+ */
 class CQChartsPolygonPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsPolygonPropertyViewType();
@@ -129,7 +134,10 @@ class CQChartsPolygonPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-//! \brief editor factory for CQChartsPolygon
+/*!
+ * \brief editor factory for CQChartsPolygon
+ * \ingroup Charts
+ */
 class CQChartsPolygonPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsPolygonPropertyViewEditor();

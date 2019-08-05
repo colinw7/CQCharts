@@ -10,6 +10,7 @@
 
 /*!
  * \brief Delaunay plot type
+ * \ingroup Charts
  */
 class CQChartsDelaunayPlotType : public CQChartsPlotType {
  public:
@@ -38,6 +39,7 @@ class CQChartsDelaunay;
 
 /*!
  * \brief Delaunay Plot Point object
+ * \ingroup Charts
  */
 class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -68,6 +70,7 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
 /*!
  * \brief Delaunay Plot
+ * \ingroup Charts
  */
 class CQChartsDelaunayPlot : public CQChartsPlot,
  public CQChartsObjLineData <CQChartsDelaunayPlot>,

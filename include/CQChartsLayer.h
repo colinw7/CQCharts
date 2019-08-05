@@ -5,6 +5,7 @@
 
 /*!
  * \brief draw layer
+ * \ingroup Charts
  */
 class CQChartsLayer {
  public:

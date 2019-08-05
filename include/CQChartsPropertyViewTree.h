@@ -11,6 +11,7 @@ class CQChartsEditAxisDlg;
 
 /*!
  * \brief Charts Property View Tree
+ * \ingroup Charts
  */
 class CQChartsPropertyViewTree : public CQPropertyViewTree {
   Q_OBJECT

@@ -8,6 +8,7 @@ class CQChartsView;
 
 /*!
  * \brief Charts View Tooltip
+ * \ingroup Charts
  */
 class CQChartsViewToolTip : public CQToolTipIFace {
  public:

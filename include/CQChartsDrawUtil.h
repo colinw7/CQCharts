@@ -3,6 +3,7 @@
 
 #include <CQChartsTextOptions.h>
 #include <CQChartsSymbol.h>
+#include <CQChartsSides.h>
 #include <QString>
 #include <QRectF>
 #include <QFont>
@@ -10,6 +11,11 @@
 class QPainter;
 
 namespace CQChartsDrawUtil {
+
+void drawRoundedPolygon(QPainter *painter, const QRectF &qrect, double xsize=0.0, double ysize=0.0,
+                        const CQChartsSides &sides=CQChartsSides(CQChartsSides::Side::ALL));
+void drawRoundedPolygon(QPainter *painter, const QPolygonF &poly,
+                        double xsize=0.0, double ysize=0.0);
 
 void drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
                    const CQChartsTextOptions &options);

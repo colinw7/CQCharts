@@ -8,6 +8,7 @@ class CQChartsColumnsEdit;
 
 /*!
  * \brief Columns line edit
+ * \ingroup Charts
  */
 class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
@@ -59,6 +60,7 @@ class QLabel;
 
 /*!
  * \brief Columns edit
+ * \ingroup Charts
  */
 class CQChartsColumnsEdit : public CQChartsEditBase {
   Q_OBJECT
@@ -107,7 +109,10 @@ class CQChartsColumnsEdit : public CQChartsEditBase {
 
 #include <CQPropertyViewType.h>
 
-//! \brief type for CQChartsColumns
+/*!
+ * \brief type for CQChartsColumns
+ * \ingroup Charts
+ */
 class CQChartsColumnsPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsColumnsPropertyViewType();
@@ -129,7 +134,10 @@ class CQChartsColumnsPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-//! \brief editor factory for CQChartsColumn
+/*!
+ * \brief editor factory for CQChartsColumn
+ * \ingroup Charts
+ */
 class CQChartsColumnsPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsColumnsPropertyViewEditor();

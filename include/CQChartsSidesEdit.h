@@ -6,7 +6,10 @@
 
 class QStyleOptionComboBox;
 
-//! \brief rectangle sides edit
+/*!
+ * \brief rectangle sides edit
+ * \ingroup Charts
+ */
 class CQChartsSidesEdit : public QFrame {
   Q_OBJECT
 
@@ -35,7 +38,10 @@ class CQChartsSidesEdit : public QFrame {
 
 //------
 
-//! \brief rectangle sides menu widget
+/*!
+ * \brief rectangle sides menu widget
+ * \ingroup Charts
+ */
 class CQChartsSidesEditMenuWidget : public QFrame {
   Q_OBJECT
 
@@ -75,7 +81,10 @@ class CQChartsSidesEditMenuWidget : public QFrame {
 
 #include <CQPropertyViewType.h>
 
-//! \brief type for CQChartsSides
+/*!
+ * \brief type for CQChartsSides
+ * \ingroup Charts
+ */
 class CQChartsSidesPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsSidesPropertyViewType();
@@ -97,7 +106,10 @@ class CQChartsSidesPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-//! \brief editor factory for CQChartsSides
+/*!
+ * \brief editor factory for CQChartsSides
+ * \ingroup Charts
+ */
 class CQChartsSidesPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsSidesPropertyViewEditor();

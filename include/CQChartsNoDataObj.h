@@ -4,7 +4,10 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsFont.h>
 
-//! \brief no data object
+/*!
+ * \brief no data object
+ * \ingroup Charts
+ */
 class CQChartsNoDataObj : public CQChartsPlotObj {
   Q_OBJECT
 

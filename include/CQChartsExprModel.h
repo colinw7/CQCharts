@@ -19,7 +19,10 @@ class CQTcl;
 
 //---
 
-//! \brief Expression model
+/*!
+ * \brief Expression model
+ * \ingroup Charts
+ */
 class CQChartsExprModel : public QAbstractProxyModel {
   Q_OBJECT
 
@@ -200,28 +203,45 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   bool evaluateExpression(const QString &expr, QVariant &var) const;
 
+  //---
+
+  // get/set model data
   QVariant columnCmd   (const Values &values) const;
   QVariant rowCmd      (const Values &values) const;
   QVariant cellCmd     (const Values &values) const;
   QVariant setColumnCmd(const Values &values);
   QVariant setRowCmd   (const Values &values);
   QVariant setCellCmd  (const Values &values);
+
+  // get/set header data
   QVariant headerCmd   (const Values &values) const;
   QVariant setHeaderCmd(const Values &values);
-  QVariant typeCmd     (const Values &values) const;
-  QVariant setTypeCmd  (const Values &values);
-  QVariant mapCmd      (const Values &values) const;
-  QVariant bucketCmd   (const Values &values) const;
-  QVariant normCmd     (const Values &values) const;
-  QVariant scaleCmd    (const Values &values) const;
-  QVariant randCmd     (const Values &values) const;
-  QVariant rnormCmd    (const Values &values) const;
-//QVariant keyCmd      (const Values &values) const;
-//QVariant concatCmd   (const Values &values) const;
-  QVariant colorCmd    (const Values &values) const;
 
-  QVariant remapCmd    (const Values &values);
-  QVariant timevalCmd  (const Values &values);
+  // get/set column type
+  QVariant typeCmd   (const Values &values) const;
+  QVariant setTypeCmd(const Values &values);
+
+  // map values
+  QVariant mapCmd   (const Values &values) const;
+  QVariant remapCmd (const Values &values);
+  QVariant bucketCmd(const Values &values) const;
+  QVariant normCmd  (const Values &values) const;
+  QVariant scaleCmd (const Values &values) const;
+
+  // random
+  QVariant randCmd (const Values &values) const;
+  QVariant rnormCmd(const Values &values) const;
+
+  // string
+  QVariant matchCmd(const Values &values) const;
+
+  // color
+  QVariant colorCmd(const Values &values) const;
+
+  // time
+  QVariant timevalCmd(const Values &values);
+
+  //---
 
   QString replaceExprColumns(const QString &expr, int row, int column) const;
 

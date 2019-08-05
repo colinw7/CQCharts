@@ -5,6 +5,7 @@
 
 /*!
  * \brief Wrapper class for CQDataModel to remember number of rows
+ * \ingroup Charts
  */
 class CQChartsExprDataModel : public CQDataModel {
  public:

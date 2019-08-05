@@ -4,7 +4,10 @@
 #include <QString>
 #include <vector>
 
-//! \brief Charts Tcl Command Argument
+/*!
+ * \brief Charts Tcl Command Argument
+ * \ingroup Charts
+ */
 class CQChartsCmdArg {
  public:
   //! types

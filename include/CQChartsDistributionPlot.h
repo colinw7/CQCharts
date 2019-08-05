@@ -23,6 +23,7 @@ struct CQChartsDistributionBarValue {
 
 /*!
  * \brief Distribution Plot Bucket
+ * \ingroup Charts
  */
 class CQChartsDistributionBucket {
  public:
@@ -89,6 +90,7 @@ class CQChartsDistributionBucket {
 
 /*!
  * \brief Distribution plot type
+ * \ingroup Charts
  */
 class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
  public:
@@ -120,6 +122,7 @@ class CQChartsDistributionPlot;
 
 /*!
  * \brief Distribution Plot Bar object
+ * \ingroup Charts
  */
 class CQChartsDistributionBarObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -234,6 +237,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
 /*!
  * \brief Distribution Plot Density object
+ * \ingroup Charts
  */
 class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -324,6 +328,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
 /*!
  * \brief Distribution Plot Scatter object
+ * \ingroup Charts
  */
 class CQChartsDistributionScatterObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -375,6 +380,7 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
 
 /*!
  * \brief Distribution Plot Key Color Box
+ * \ingroup Charts
  */
 class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
   Q_OBJECT
@@ -390,8 +396,8 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
 
   QBrush fillBrush() const override;
 
+  // get/set hidden
   bool isSetHidden() const;
-
   void setSetHidden(bool b);
 
  private:
@@ -401,6 +407,7 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
 
 /*!
  * \brief Distribution Plot Key Text
+ * \ingroup Charts
  */
 class CQChartsDistKeyText : public CQChartsKeyText {
   Q_OBJECT
@@ -417,6 +424,7 @@ class CQChartsDistKeyText : public CQChartsKeyText {
 
 /*!
  * \brief Distribution plot
+ * \ingroup Charts
  */
 class CQChartsDistributionPlot : public CQChartsBarPlot,
  public CQChartsObjStatsLineData<CQChartsDistributionPlot>,

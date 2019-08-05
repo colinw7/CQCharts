@@ -10,7 +10,8 @@ class CQChartsViewSettingsModelTable;
 class CQChartsViewSettingsPlotTable;
 class CQChartsViewSettingsViewAnnotationsTable;
 class CQChartsViewSettingsPlotAnnotationsTable;
-class CQChartsViewSettingsLayerTable;
+class CQChartsViewSettingsViewLayerTable;
+class CQChartsViewSettingsPlotLayerTable;
 class CQChartsPlotTip;
 
 class CQChartsModelDetailsWidget;
@@ -47,6 +48,7 @@ class QLabel;
 
 /*!
  * \brief View settings widget
+ * \ingroup Charts
  */
 class CQChartsViewSettings : public QFrame {
   Q_OBJECT
@@ -83,7 +85,8 @@ class CQChartsViewSettings : public QFrame {
 
   void updateLayers();
 
-  void layerImageSlot();
+  void viewLayerImageSlot();
+  void plotLayerImageSlot();
 
   void updateSelection();
 
@@ -98,8 +101,11 @@ class CQChartsViewSettings : public QFrame {
 
   //---
 
-  void layersSelectionChangeSlot();
-  void layersClickedSlot(int, int);
+  void viewLayersSelectionChangeSlot();
+  void viewLayersClickedSlot(int, int);
+
+  void plotLayersSelectionChangeSlot();
+  void plotLayersClickedSlot(int, int);
 
   //---
 
@@ -181,19 +187,20 @@ class CQChartsViewSettings : public QFrame {
   using PlotTable            = CQChartsViewSettingsPlotTable;
   using ViewAnnotationsTable = CQChartsViewSettingsViewAnnotationsTable;
   using PlotAnnotationsTable = CQChartsViewSettingsPlotAnnotationsTable;
-  using LayerTable           = CQChartsViewSettingsLayerTable;
+  using ViewLayerTable       = CQChartsViewSettingsViewLayerTable;
+  using PlotLayerTable       = CQChartsViewSettingsPlotLayerTable;
 
   struct PropertiesWidgets {
     FilterEdit*           viewFilterEdit   { nullptr }; //!< view settings filter
     ViewPropertiesWidget* viewPropertyTree { nullptr }; //!< view settings tree
     CQTabWidget*          plotsTab         { nullptr }; //!< plots settings tab
-    CQChartsPlotTip*      plotTip          { nullptr }; //!< current plot tip
-    QToolButton*          plotTipButton    { nullptr }; //!< current plot tip button
+//  CQChartsPlotTip*      plotTip          { nullptr }; //!< current plot tip
+//  QToolButton*          plotTipButton    { nullptr }; //!< current plot tip button
   };
 
   struct ModelsWidgets {
     ModelTable*                 modelTable    { nullptr }; //!< model table
-    CQGroupBox*                 detailsGroup  { nullptr }; //!< model details group box
+    QFrame*                     detailsFrame  { nullptr }; //!< model details frame
     CQChartsModelDetailsWidget* detailsWidget { nullptr }; //!< model details
     QPushButton*                editButton    { nullptr }; //!< edit model
   };
@@ -230,7 +237,8 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct LayersWidgets {
-    LayerTable* layerTable { nullptr }; //!< layer table widget
+    ViewLayerTable* viewLayerTable { nullptr }; //!< view layer table widget
+    PlotLayerTable* plotLayerTable { nullptr }; //!< plot layer table widget
   };
 
   CQChartsWindow*              window_              { nullptr }; //!< parent window
@@ -258,6 +266,7 @@ class CQChartsViewSettings : public QFrame {
 
 /*!
  * \brief View settings view properties widget
+ * \ingroup Charts
  */
 class CQChartsViewSettingsViewPropertiesWidget : public QFrame {
   Q_OBJECT
@@ -285,6 +294,7 @@ class CQChartsViewSettingsViewPropertiesWidget : public QFrame {
 
 /*!
  * \brief View settings plot properties widget
+ * \ingroup Charts
  */
 class CQChartsViewSettingsPlotPropertiesWidget : public QFrame {
   Q_OBJECT
@@ -312,6 +322,7 @@ class CQChartsViewSettingsPlotPropertiesWidget : public QFrame {
 
 /*!
  * \brief View settings filter edit widget
+ * \ingroup Charts
  */
 class CQChartsViewSettingsFilterEdit : public QFrame {
   Q_OBJECT

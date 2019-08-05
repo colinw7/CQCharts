@@ -7,7 +7,10 @@
 class CQRealSpin;
 class QComboBox;
 
-//! \brief key location edit
+/*!
+ * \brief key location edit
+ * \ingroup Charts
+ */
 class CQChartsKeyLocationEdit : public CQChartsEnumEdit {
   Q_OBJECT
 
@@ -38,7 +41,10 @@ class CQChartsKeyLocationEdit : public CQChartsEnumEdit {
 
 //------
 
-//! \brief type for CQChartsKeyLocation
+/*!
+ * \brief type for CQChartsKeyLocation
+ * \ingroup Charts
+ */
 class CQChartsKeyLocationPropertyViewType : public CQChartsEnumPropertyViewType {
  public:
   CQPropertyViewEditorFactory *getEditor() const override;
@@ -48,7 +54,10 @@ class CQChartsKeyLocationPropertyViewType : public CQChartsEnumPropertyViewType 
 
 //---
 
-//! \brief editor factory for CQChartsKeyLocation
+/*!
+ * \brief editor factory for CQChartsKeyLocation
+ * \ingroup Charts
+ */
 class CQChartsKeyLocationPropertyViewEditor :
   public CQChartsEnumPropertyViewEditorFactory {
  public:

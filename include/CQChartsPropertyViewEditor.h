@@ -17,7 +17,10 @@ void getPropertyItemPlotView(CQPropertyViewItem *item, CQChartsPlot* &plot, CQCh
 
 class QRect;
 
-//! \brief property view type
+/*!
+ * \brief property view type
+ * \ingroup Charts
+ */
 class CQChartsPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsPropertyViewType() { }
@@ -40,7 +43,10 @@ class CQChartsPropertyViewType : public CQPropertyViewType {
 
 class CQChartsLineEditBase;
 
-//! \brief property view editor factory
+/*!
+ * \brief property view editor factory
+ * \ingroup Charts
+ */
 class CQChartsPropertyViewEditorFactory : public CQPropertyViewEditorFactory {
  public:
   CQChartsPropertyViewEditorFactory() { }

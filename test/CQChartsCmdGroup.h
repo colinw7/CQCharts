@@ -1,7 +1,10 @@
 #ifndef CQChartsCmdGroup_H
 #define CQChartsCmdGroup_H
 
-//! \brief Charts Tcl Command Argument Group
+/*!
+ * \brief Charts Tcl Command Argument Group
+ * \ingroup Charts
+ */
 class CQChartsCmdGroup {
  public:
   enum class Type {

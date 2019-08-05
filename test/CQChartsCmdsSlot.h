@@ -7,7 +7,10 @@ class CQChartsCmds;
 class CQChartsView;
 class CQChartsPlot;
 
-//! \brief Charts Tcl Command Callback Handler
+/*!
+ * \brief Charts Tcl Command Callback Handler
+ * \ingroup Charts
+ */
 class CQChartsCmdsSlot : public QObject {
   Q_OBJECT
 

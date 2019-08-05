@@ -17,6 +17,7 @@ class QPainter;
 
 /*!
  * \brief Title Object
+ * \ingroup Charts
  */
 class CQChartsTitle : public CQChartsTextBoxObj {
   Q_OBJECT

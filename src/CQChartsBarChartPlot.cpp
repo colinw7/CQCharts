@@ -6,7 +6,7 @@
 #include <CQChartsVariant.h>
 #include <CQChartsDataLabel.h>
 #include <CQCharts.h>
-#include <CQChartsRoundedPolygon.h>
+#include <CQChartsDrawUtil.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -1628,8 +1628,6 @@ void
 CQChartsBarChartObj::
 draw(QPainter *painter)
 {
-  static double minBarSize = 1.0/64.0;
-
   //if (isHidden())
   //  return;
 
@@ -1709,21 +1707,10 @@ draw(QPainter *painter)
 
   if (! plot_->isDotLines()) {
     // draw rect
-    if (qrect.width() > minBarSize && qrect.height() > minBarSize) {
-      double cxs = plot_->lengthPixelWidth (plot_->barCornerSize());
-      double cys = plot_->lengthPixelHeight(plot_->barCornerSize());
+    double cxs = plot_->lengthPixelWidth (plot_->barCornerSize());
+    double cys = plot_->lengthPixelHeight(plot_->barCornerSize());
 
-      CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
-    }
-    else {
-      if (! plot_->isBarStroked()) {
-        painter->setPen(barBrush.color());
-        painter->setBrush(Qt::NoBrush);
-      }
-
-      painter->drawLine(QPointF(qrect.left (), qrect.bottom()),
-                        QPointF(qrect.right(), qrect.top   ()));
-    }
+    CQChartsDrawUtil::drawRoundedPolygon(painter, qrect, cxs, cys);
   }
   else {
     // draw line
@@ -1737,7 +1724,7 @@ draw(QPainter *painter)
       else {
         QRectF qrect1(xc - lw/2, qrect.top(), lw, qrect.height());
 
-        CQChartsRoundedPolygon::draw(painter, qrect1);
+        CQChartsDrawUtil::drawRoundedPolygon(painter, qrect1);
       }
     }
     else {
@@ -1748,7 +1735,7 @@ draw(QPainter *painter)
       else {
         QRectF qrect1(qrect.left(), yc - lw/2, qrect.width(), lw);
 
-        CQChartsRoundedPolygon::draw(painter, qrect1);
+        CQChartsDrawUtil::drawRoundedPolygon(painter, qrect1);
       }
     }
 

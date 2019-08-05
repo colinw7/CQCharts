@@ -6,7 +6,10 @@
 
 class CQChartsPlot;
 
-//! \brief Geometric Path data
+/*!
+ * \brief Geometric Path data
+ * \ingroup Charts
+ */
 class CQChartsPath {
  public:
   static void registerMetaType();

@@ -10,6 +10,7 @@
 
 /*!
  * \brief Parallel plot type
+ * \ingroup Charts
  */
 class CQChartsParallelPlotType : public CQChartsPlotType {
  public:
@@ -37,6 +38,7 @@ class CQChartsParallelPlot;
 
 /*!
  * \brief Parallel Plot Line object
+ * \ingroup Charts
  */
 class CQChartsParallelLineObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -73,6 +75,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
 /*!
  * \brief Parallel Plot Point object
+ * \ingroup Charts
  */
 class CQChartsParallelPointObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -107,6 +110,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
 /*!
  * \brief Parallel Plot
+ * \ingroup Charts
  */
 class CQChartsParallelPlot : public CQChartsPlot,
  public CQChartsObjLineData <CQChartsParallelPlot>,

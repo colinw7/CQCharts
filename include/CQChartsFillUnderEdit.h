@@ -6,7 +6,10 @@
 
 class QComboBox;
 
-//! \brief fill under side edit
+/*!
+ * \brief fill under side edit
+ * \ingroup Charts
+ */
 class CQChartsFillUnderSideEdit : public QFrame {
   Q_OBJECT
 
@@ -34,7 +37,10 @@ class CQChartsFillUnderSideEdit : public QFrame {
 
 #include <CQPropertyViewType.h>
 
-//! \brief type for CQChartsFillUnderSide
+/*!
+ * \brief type for CQChartsFillUnderSide
+ * \ingroup Charts
+ */
 class CQChartsFillUnderSidePropertyViewType : public CQPropertyViewType {
  public:
   CQChartsFillUnderSidePropertyViewType();
@@ -56,7 +62,10 @@ class CQChartsFillUnderSidePropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-//! \brief editor factory for CQChartsFillUnderSide
+/*!
+ * \brief editor factory for CQChartsFillUnderSide
+ * \ingroup Charts
+ */
 class CQChartsFillUnderSidePropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsFillUnderSidePropertyViewEditor();
@@ -76,6 +85,7 @@ class CQChartsFillUnderPosEdit;
 
 /*!
  * \brief Fill Under Position line edit
+ * \ingroup Charts
  */
 class CQChartsFillUnderPosLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
@@ -117,6 +127,7 @@ class CQRealSpin;
 
 /*!
  * \brief Fill Under Position edit
+ * \ingroup Charts
  */
 class CQChartsFillUnderPosEdit : public CQChartsEditBase {
   Q_OBJECT
@@ -154,7 +165,10 @@ class CQChartsFillUnderPosEdit : public CQChartsEditBase {
 
 #include <CQPropertyViewType.h>
 
-//! \brief type for CQChartsFillUnderPos
+/*!
+ * \brief type for CQChartsFillUnderPos
+ * \ingroup Charts
+ */
 class CQChartsFillUnderPosPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsFillUnderPosPropertyViewType();
@@ -176,7 +190,10 @@ class CQChartsFillUnderPosPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-//! \brief editor factory for CQChartsFillUnderPos
+/*!
+ * \brief editor factory for CQChartsFillUnderPos
+ * \ingroup Charts
+ */
 class CQChartsFillUnderPosPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsFillUnderPosPropertyViewEditor();

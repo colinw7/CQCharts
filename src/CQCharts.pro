@@ -23,6 +23,7 @@ CQChartsExprModel.cpp \
 CQChartsExprModelFn.cpp \
 CQChartsVarsModel.cpp \
 CQChartsExprDataModel.cpp \
+CQChartsSelectionModel.cpp \
 \
 CQChartsColumn.cpp \
 CQChartsColumnType.cpp \
@@ -47,6 +48,8 @@ CQChartsPlot.cpp \
 CQChartsHierPlot.cpp \
 CQChartsHierPlotType.cpp \
 CQChartsGroupPlot.cpp \
+CQChartsPointPlot.cpp \
+\
 CQChartsBarPlot.cpp \
 CQChartsAdjacencyPlot.cpp \
 CQChartsBarChartPlot.cpp \
@@ -244,6 +247,7 @@ CQCollapseModel.cpp \
 CQPivotModel.cpp \
 CQBucketer.cpp \
 \
+CQTabSplit.cpp \
 CQFilename.cpp \
 CQRangeScroll.cpp \
 \
@@ -258,6 +262,7 @@ HEADERS += \
 ../include/CQChartsExprModelFn.h \
 ../include/CQChartsVarsModel.h \
 ../include/CQChartsExprDataModel.h \
+../include/CQChartsSelectionModel.h \
 \
 ../include/CQChartsColumn.h \
 ../include/CQChartsColumnType.h \
@@ -282,6 +287,8 @@ HEADERS += \
 ../include/CQChartsHierPlot.h \
 ../include/CQChartsHierPlotType.h \
 ../include/CQChartsGroupPlot.h \
+../include/CQChartsPointPlot.h \
+\
 ../include/CQChartsBarPlot.h \
 ../include/CQChartsAdjacencyPlot.h \
 ../include/CQChartsBarChartPlot.h \
@@ -479,6 +486,7 @@ HEADERS += \
 ../include/CQPivotModel.h \
 ../include/CQBucketer.h \
 \
+../include/CQTabSplit.h \
 ../include/CQFilename.h \
 ../include/CQRangeScroll.h \
 \

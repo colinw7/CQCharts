@@ -9,6 +9,7 @@ class CQChartsFont;
 
 /*!
  * \brief Name Values class
+ * \ingroup Charts
  */
 class CQChartsNameValues {
  public:

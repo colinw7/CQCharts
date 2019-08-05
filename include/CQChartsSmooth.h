@@ -6,7 +6,10 @@
 
 //---
 
-//! \brief Two Point Bezier
+/*!
+ * \brief Two Point Bezier
+ * \ingroup Charts
+ */
 class CQChartsBezier2 {
  public:
   CQChartsBezier2() :
@@ -231,7 +234,10 @@ class CQChartsBezier2 {
 
 //------
 
-//! \brief Three Point Bezier
+/*!
+ * \brief Three Point Bezier
+ * \ingroup Charts
+ */
 class CQChartsBezier3 {
  public:
   CQChartsBezier3() :

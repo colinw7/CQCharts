@@ -9,6 +9,7 @@
 
 /*!
  * \brief Charts Text Box Object
+ * \ingroup Charts
  */
 class CQChartsTextBoxObj : public CQChartsBoxObj,
  public CQChartsObjTextData<CQChartsTextBoxObj> {

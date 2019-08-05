@@ -10,6 +10,7 @@ class CQPropertyViewModel;
 
 /*!
  * \brief Plot Object base class
+ * \ingroup Charts
  *
  * Maintains three indices (set, group and value) and x, y values for color interpolation
  */
@@ -165,6 +166,7 @@ class CQChartsPlotObj : public CQChartsObj {
 
 /*!
  * \brief Group Plot object
+ * \ingroup Charts
  */
 class CQChartsGroupObj : public CQChartsPlotObj {
   Q_OBJECT

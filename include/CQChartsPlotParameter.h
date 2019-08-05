@@ -7,7 +7,10 @@
 #include <QStringList>
 #include <QVariant>
 
-//! \brief plot parameter attributes
+/*!
+ * \brief plot parameter attributes
+ * \ingroup Charts
+ */
 class CQChartsPlotParameterAttributes {
  public:
   enum Flags {
@@ -109,7 +112,10 @@ class CQChartsPlotParameterAttributes {
 
 //---
 
-//! \brief plot parameter object
+/*!
+ * \brief plot parameter object
+ * \ingroup Charts
+ */
 class CQChartsPlotParameter : public QObject {
   Q_OBJECT
 
@@ -315,7 +321,10 @@ class CQChartsPlotParameter : public QObject {
 
 //---
 
-//! \brief column parameter
+/*!
+ * \brief column parameter
+ * \ingroup Charts
+ */
 class CQChartsColumnParameter : public CQChartsPlotParameter {
   Q_OBJECT
 
@@ -331,7 +340,10 @@ class CQChartsColumnParameter : public CQChartsPlotParameter {
 
 //---
 
-//! \brief columns parameter
+/*!
+ * \brief columns parameter
+ * \ingroup Charts
+ */
 class CQChartsColumnsParameter : public CQChartsPlotParameter {
   Q_OBJECT
 
@@ -349,7 +361,10 @@ class CQChartsColumnsParameter : public CQChartsPlotParameter {
 
 //---
 
-//! \brief string parameter
+/*!
+ * \brief string parameter
+ * \ingroup Charts
+ */
 class CQChartsStringParameter : public CQChartsPlotParameter {
   Q_OBJECT
 
@@ -362,7 +377,10 @@ class CQChartsStringParameter : public CQChartsPlotParameter {
 
 //---
 
-//! \brief real parameter
+/*!
+ * \brief real parameter
+ * \ingroup Charts
+ */
 class CQChartsRealParameter : public CQChartsPlotParameter {
   Q_OBJECT
 
@@ -375,7 +393,10 @@ class CQChartsRealParameter : public CQChartsPlotParameter {
 
 //---
 
-//! \brief integer parameter
+/*!
+ * \brief integer parameter
+ * \ingroup Charts
+ */
 class CQChartsIntParameter : public CQChartsPlotParameter {
   Q_OBJECT
 
@@ -388,7 +409,10 @@ class CQChartsIntParameter : public CQChartsPlotParameter {
 
 //---
 
-//! \brief enum parameter
+/*!
+ * \brief enum parameter
+ * \ingroup Charts
+ */
 class CQChartsEnumParameter : public CQChartsPlotParameter {
   Q_OBJECT
 
@@ -438,7 +462,10 @@ class CQChartsEnumParameter : public CQChartsPlotParameter {
 
 //---
 
-//! \brief boolean parameter
+/*!
+ * \brief boolean parameter
+ * \ingroup Charts
+ */
 class CQChartsBoolParameter : public CQChartsPlotParameter {
   Q_OBJECT
 
@@ -451,7 +478,10 @@ class CQChartsBoolParameter : public CQChartsPlotParameter {
 
 //------
 
-//! \brief plot parameter group
+/*!
+ * \brief plot parameter group
+ * \ingroup Charts
+ */
 class CQChartsPlotParameterGroup : public QObject {
   Q_OBJECT
 

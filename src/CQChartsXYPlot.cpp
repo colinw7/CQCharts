@@ -5,7 +5,7 @@
 #include <CQChartsArrow.h>
 #include <CQChartsSmooth.h>
 #include <CQChartsDataLabel.h>
-#include <CQChartsRoundedPolygon.h>
+#include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
 #include <CQChartsHtml.h>
 #include <CQCharts.h>
@@ -53,22 +53,7 @@ addParameters()
 
   //---
 
-  // custom columns/map
-  startParameterGroup("Points");
-
-  addColumnParameter("symbolType", "Symbol Type", "symbolTypeColumn").
-   setTip("Custom Symbol Type").setMapped().
-   setMapMinMax(CQChartsSymbol::minFillValue(), CQChartsSymbol::maxFillValue());
-
-  addColumnParameter("symbolSize", "Symbol Size", "symbolSizeColumn").
-   setTip("Custom Symbol Size").setMapped().
-   setMapMinMax(CQChartsSymbolSize::minValue(), CQChartsSymbolSize::maxValue());
-
-  addColumnParameter("fontSize", "Font Size", "fontSizeColumn").
-   setTip("Custom Font Size for Label").setMapped().
-   setMapMinMax(CQChartsFontSize::minValue(), CQChartsFontSize::maxValue());
-
-  endParameterGroup();
+  addMappingParameters();
 
   //---
 
@@ -84,7 +69,7 @@ addParameters()
 
   //---
 
-  CQChartsGroupPlotType::addParameters();
+  CQChartsPointPlotType::addParameters();
 }
 
 QString
@@ -152,7 +137,7 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsXYPlot::
 CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
- CQChartsGroupPlot(view, view->charts()->plotType("xy"), model),
+ CQChartsPointPlot(view, view->charts()->plotType("xy"), model),
  CQChartsObjLineData         <CQChartsXYPlot>(this),
  CQChartsObjPointData        <CQChartsXYPlot>(this),
  CQChartsObjBestFitShapeData <CQChartsXYPlot>(this),
@@ -162,15 +147,6 @@ CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjFillUnderFillData<CQChartsXYPlot>(this)
 {
   NoUpdate noUpdate(this);
-
-  //---
-
-  // create a data label (shared state for all data labels)
-  dataLabel_ = new CQChartsDataLabel(this);
-
-  dataLabel_->setSendSignal(true);
-
-  connect(dataLabel_, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
 
   //---
 
@@ -223,8 +199,6 @@ CQChartsXYPlot::
 ~CQChartsXYPlot()
 {
   delete arrowObj_;
-
-  delete dataLabel_;
 }
 
 //---
@@ -254,33 +228,6 @@ setLabelColumn(const CQChartsColumn &c)
 
 void
 CQChartsXYPlot::
-setSymbolTypeColumn(const CQChartsColumn &c)
-{
-  CQChartsUtil::testAndSet(symbolTypeColumn_, c, [&]() { updateRangeAndObjs(); } );
-}
-
-//---
-
-void
-CQChartsXYPlot::
-setSymbolSizeColumn(const CQChartsColumn &c)
-{
-  CQChartsUtil::testAndSet(symbolSizeColumn_, c, [&]() { updateRangeAndObjs(); } );
-}
-
-//---
-
-void
-CQChartsXYPlot::
-setFontSizeColumn(const CQChartsColumn &c)
-{
-  CQChartsUtil::testAndSet(fontSizeColumn_, c, [&]() { updateRangeAndObjs(); } );
-}
-
-//---
-
-void
-CQChartsXYPlot::
 setVectorXColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(vectorXColumn_, c, [&]() { updateRangeAndObjs(); } );
@@ -291,37 +238,6 @@ CQChartsXYPlot::
 setVectorYColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(vectorYColumn_, c, [&]() { updateRangeAndObjs(); } );
-}
-
-//---
-
-bool
-CQChartsXYPlot::
-isPointLabels() const
-{
-  return dataLabel_->isVisible();
-}
-
-void
-CQChartsXYPlot::
-setPointLabels(bool b)
-{
-  if (b != isPointLabels()) { dataLabel()->setVisible(b); drawObjs(); }
-}
-
-void
-CQChartsXYPlot::
-setDataLabelFont(const CQChartsFont &font)
-{
-  NoUpdate noUpdate(this);
-
-  CQChartsDataLabel *dataLabel = this->dataLabel();
-
-  disconnect(dataLabel, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
-
-  dataLabel->setTextFont(font);
-
-  connect(dataLabel, SIGNAL(dataChanged()), this, SLOT(dataLabelChanged()));
 }
 
 //---
@@ -492,28 +408,11 @@ setFillUnderSide(const CQChartsFillUnderSide &s)
 
 void
 CQChartsXYPlot::
-dataLabelChanged()
-{
-  // TODO: not enough info to optimize behavior so reload all objects
-  updateObjs();
-}
-
-//---
-
-void
-CQChartsXYPlot::
 addProperties()
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc) {
     return &(this->addProperty(path, this, name, alias)->setDesc(desc));
-  };
-
-  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc) {
-    CQPropertyViewItem *item = addProp(path, name, alias, desc);
-    CQCharts::setItemIsStyle(item);
-    return item;
   };
 
   auto addArrowProp = [&](const QString &path, const QString &name, const QString &alias,
@@ -533,13 +432,9 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProp("columns", "xColumn" , "x", "X value column" );
-  addProp("columns", "yColumns", "y", "Y value column(s)");
-
-  addProp("columns", "labelColumn"     , "label"     , "Label column");
-  addProp("columns", "symbolTypeColumn", "symbolType", "Symbol type column");
-  addProp("columns", "symbolSizeColumn", "symbolSize", "Symbol size column");
-  addProp("columns", "fontSizeColumn"  , "fontSize"  , "Font size column");
+  addProp("columns", "xColumn"    , "x"    , "X value column" );
+  addProp("columns", "yColumns"   , "y"    , "Y value column(s)");
+  addProp("columns", "labelColumn", "label", "Label column");
 
   addProp("columns", "vectorXColumn", "vectorX", "Vector x column");
   addProp("columns", "vectorYColumn", "vectorY", "Vector y column");
@@ -567,8 +462,7 @@ addProperties()
   // lines
   addProp("lines", "lines"          , "visible"   , "Lines visible");
   addProp("lines", "linesSelectable", "selectable", "Lines selectable");
-
-  addStyleProp("lines", "roundedLines", "rounded", "Smooth lines");
+  addProp("lines", "roundedLines"   , "rounded"   , "Smooth lines");
 
   addLineProperties("lines/stroke", "lines", "Lines");
 
@@ -623,20 +517,18 @@ addProperties()
   addArrowStyleProp("vectors/stroke", "strokeWidth", "width"  , "Vector stroke width");
 
   // data labels
-  dataLabel_->addPathProperties("labels", "Labels");
+  dataLabel()->addPathProperties("labels", "Labels");
 
   //---
 
-  CQChartsGroupPlot::addProperties();
-}
+  CQChartsPointPlot::addProperties();
 
-void
-CQChartsXYPlot::
-getPropertyNames(QStringList &names, bool hidden) const
-{
-  CQChartsPlot::getPropertyNames(names, hidden);
+  //---
 
-  propertyModel()->objectNames(dataLabel_, names, hidden);
+  CQChartsPointPlot::addPointProperties();
+
+  // color map
+  addColorMapProperties();
 }
 
 //---
@@ -721,7 +613,7 @@ calcRange() const
       //---
 
       if     (plot_->isStacked()) {
-        // TODO: support stacked and cmulative
+        // TODO: support stacked and cumulative
         double sum1 = 0.0;
 
         for (int i = 0; i < ny; ++i)
@@ -1450,6 +1342,12 @@ bool
 CQChartsXYPlot::
 addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &objs) const
 {
+  initSymbolTypeData();
+  initSymbolSizeData();
+  initFontSizeData  ();
+
+  //---
+
   PlotObjs pointObjs;
 
   double sw = symbolWidth ();
@@ -1577,12 +1475,8 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         CQChartsLength symbolSize(CQChartsUnits::NONE, 0.0);
 
         if (symbolSizeColumn().isValid()) {
-          bool ok;
-
-          double size = modelReal(ip, symbolSizeColumn(), xind1.parent(), ok);
-
-          if (ok && size > 0.0)
-            symbolSize = CQChartsLength(CQChartsUnits::PIXEL, size);
+          if (! columnSymbolSize(ip, xind1.parent(), symbolSize))
+            symbolSize = CQChartsLength(CQChartsUnits::NONE, 0.0);
         }
 
         double sx, sy;
@@ -1615,12 +1509,8 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         CQChartsSymbol symbolType(CQChartsSymbol::Type::NONE);
 
         if (symbolTypeColumn().isValid()) {
-          bool ok;
-
-          QString symbolTypeStr = modelString(ip, symbolTypeColumn(), xind1.parent(), ok);
-
-          if (ok && symbolTypeStr.length())
-            symbolType = CQChartsSymbol::nameToType(symbolTypeStr);
+          if (! columnSymbolType(ip, xind1.parent(), symbolType))
+             symbolType = CQChartsSymbol(CQChartsSymbol::Type::NONE);
         }
 
         if (symbolType.isValid())
@@ -1632,12 +1522,8 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         CQChartsLength fontSize(CQChartsUnits::NONE, 0.0);
 
         if (fontSizeColumn().isValid()) {
-          bool ok;
-
-          double size = modelReal(ip, fontSizeColumn(), xind1.parent(), ok);
-
-          if (ok && size > 0.0)
-            fontSize = CQChartsLength(CQChartsUnits::PIXEL, size);
+          if (! columnFontSize(ip, xind1.parent(), fontSize))
+            fontSize = CQChartsLength(CQChartsUnits::NONE, 0.0);
         }
 
         if (fontSize.isValid())
@@ -1649,17 +1535,8 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
         CQChartsColor symbolColor(CQChartsColor::Type::NONE);
 
         if (colorColumn().isValid()) {
-          bool ok;
-
-          if (colorColumnData_.modelType == CQBaseModelType::COLOR) {
-            symbolColor = modelColor(ip, colorColumn(), xind1.parent(), ok);
-          }
-          else {
-            QString str = modelString(ip, colorColumn(), xind1.parent(), ok);
-
-            if (ok && str.length())
-              symbolColor = CQChartsColor(str);
-          }
+          if (! columnColor(ip, xind1.parent(), symbolColor))
+             symbolColor = CQChartsColor(CQChartsColor::Type::NONE);
         }
 
         if (symbolColor.isValid())
@@ -2242,9 +2119,7 @@ void
 CQChartsXYPlot::
 write(std::ostream &os, const QString &varName, const QString &modelName) const
 {
-  CQChartsPlot::write(os, varName, modelName);
-
-  dataLabel_->write(os, varName);
+  CQChartsPointPlot::write(os, varName, modelName);
 
   arrowObj_->write(os, varName);
 }
@@ -2550,7 +2425,7 @@ draw(QPainter *painter)
   else {
     QRectF qrect(p1.x - lw/2, p1.y, lw, p2.y - p1.y);
 
-    CQChartsRoundedPolygon::draw(painter, qrect);
+    CQChartsDrawUtil::drawRoundedPolygon(painter, qrect);
   }
 }
 

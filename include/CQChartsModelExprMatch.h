@@ -15,6 +15,7 @@ class QAbstractItemModel;
 
 /*!
  * \brief Model Expression Match class
+ * \ingroup Charts
  */
 class CQChartsModelExprMatch {
  public:
@@ -67,11 +68,23 @@ class CQChartsModelExprMatch {
 
   void setVar(const QModelIndex &ind);
 
+  //---
+
+  // get model data
   QVariant columnCmd(const Values &values) const;
   QVariant rowCmd   (const Values &values) const;
   QVariant cellCmd  (const Values &values) const;
+
+  // get header data
   QVariant headerCmd(const Values &values) const;
-  QVariant isnanCmd (const Values &values) const;
+
+  // string
+  QVariant matchCmd(const Values &values) const;
+
+  // math
+  QVariant isnanCmd(const Values &values) const;
+
+  //---
 
   int currentRow() const { return currentRow_; }
   int currentCol() const { return currentCol_; }

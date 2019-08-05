@@ -1624,6 +1624,7 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
         else
           expr1 += "@v";
       }
+      // @{<name>} named column value
       else if (parse.isChar('{')) {
         int pos = parse.getPos();
 

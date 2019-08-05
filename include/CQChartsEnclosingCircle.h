@@ -5,7 +5,10 @@
 #include <algorithm>
 #include <cmath>
 
-//! \brief enclosing circle
+/*!
+ * \brief enclosing circle
+ * \ingroup Charts
+ */
 class CQChartsEnclosingCircle {
  public:
   //! circle

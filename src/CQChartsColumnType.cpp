@@ -929,7 +929,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   //---
 
   // convert value using format
-  return CQChartsUtil::formatVar(var, format);
+  return CQChartsUtil::formatVar(QVariant(r), format);
 }
 
 QVariant

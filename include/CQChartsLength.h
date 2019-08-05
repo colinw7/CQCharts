@@ -8,6 +8,7 @@
 
 /*!
  * \brief Length class
+ * \ingroup Charts
  */
 class CQChartsLength {
  public:

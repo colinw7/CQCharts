@@ -11,6 +11,7 @@ class QMenu;
 
 /*!
  * \brief Image plot type
+ * \ingroup Charts
  */
 class CQChartsImagePlotType : public CQChartsPlotType {
  public:
@@ -39,6 +40,7 @@ class CQChartsImagePlot;
 
 /*!
  * \brief Image Plot cell object
+ * \ingroup Charts
  */
 class CQChartsImageObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -77,6 +79,7 @@ CQCHARTS_NAMED_TEXT_DATA(YLabel,yLabel)
 
 /*!
  * \brief Image Plot
+ * \ingroup Charts
  */
 class CQChartsImagePlot : public CQChartsPlot,
  public CQChartsObjCellShapeData    <CQChartsImagePlot>,

@@ -9,6 +9,7 @@
 
 /*!
  * \brief Bar Chart plot type
+ * \ingroup Charts
  */
 class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
  public:
@@ -115,6 +116,7 @@ class CQChartsBarChartValue {
 
 /*!
  * \brief set of value bars for group
+ * \ingroup Charts
  */
 class CQChartsBarChartValueSet {
  public:
@@ -173,6 +175,7 @@ class CQChartsBarChartValueSet {
 
 /*!
  * \brief Bar Chart Bar object
+ * \ingroup Charts
  */
 class CQChartsBarChartObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -239,6 +242,7 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
 /*!
  * \brief Bar Chart Plot Key Color Box
+ * \ingroup Charts
  */
 class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
@@ -258,8 +262,8 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
 
   bool tipText(const CQChartsGeom::Point &p, QString &tip) const override;
 
+  // get/set hidden
   bool isSetHidden() const;
-
   void setSetHidden(bool b);
 
  private:
@@ -269,6 +273,7 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
 
 /*!
  * \brief Bar Chart Key Text
+ * \ingroup Charts
  */
 class CQChartsBarKeyText : public CQChartsKeyText {
   Q_OBJECT
@@ -285,6 +290,7 @@ class CQChartsBarKeyText : public CQChartsKeyText {
 
 /*!
  * \brief bar chart plot
+ * \ingroup Charts
  *
  * columns:
  *   + x     : name

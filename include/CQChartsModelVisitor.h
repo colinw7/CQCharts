@@ -10,7 +10,10 @@ class QAbstractItemModel;
 
 //---
 
-//! \brief Visitor class for model data
+/*!
+ * \brief Visitor class for model data
+ * \ingroup Charts
+ */
 class CQChartsModelVisitor {
  public:
   enum class State {

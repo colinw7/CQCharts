@@ -4,7 +4,10 @@
 #include <QString>
 #include <map>
 
-//! \brief Charts Name Value Data
+/*!
+ * \brief Charts Name Value Data
+ * \ingroup Charts
+ */
 struct CQChartsNameValueData {
   using NameValues = std::map<QString,QString>;
   using NameBools  = std::map<QString,bool>;

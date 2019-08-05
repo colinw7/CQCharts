@@ -9,6 +9,7 @@ class QObject;
 
 /*!
  * \brief class to contain charts font.
+ * \ingroup Charts
  *
  * A charts font can be:
  *  . An explicit font

@@ -9,7 +9,10 @@
 class CQChartsPlot;
 class QPainter;
 
-//! \brief Convex hull using Graham's algorithm
+/*!
+ * \brief Convex hull using Graham's algorithm
+ * \ingroup Charts
+ */
 class CQChartsGrahamHull {
  public:
   typedef std::vector<QPointF> Points;

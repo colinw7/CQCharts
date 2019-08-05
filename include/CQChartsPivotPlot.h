@@ -12,6 +12,7 @@ class CQChartsDataLabel;
 
 /*!
  * \brief Pivot Plot type
+ * \ingroup Charts
  */
 class CQChartsPivotPlotType : public CQChartsPlotType {
  public:
@@ -42,13 +43,14 @@ class CQChartsPivotPlot;
 
 /*!
  * \brief Pivot Plot Bar Object
+ * \ingroup Charts
  */
 class CQChartsPivotBarObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
   CQChartsPivotBarObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rect,
-                      const QModelIndex &ind, const ColorInd &ir, const ColorInd &ic,
+                      const ModelIndices &inds, const ColorInd &ir, const ColorInd &ic,
                       double value);
 
   //---
@@ -84,6 +86,7 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
 /*!
  * \brief Pivot Plot Line Object
+ * \ingroup Charts
  */
 class CQChartsPivotLineObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -121,6 +124,7 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
 
 /*!
  * \brief Pivot Plot Point Object
+ * \ingroup Charts
  */
 class CQChartsPivotPointObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -158,6 +162,7 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
 
 /*!
  * \brief Pivot Plot Cell Object
+ * \ingroup Charts
  */
 class CQChartsPivotCellObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -201,6 +206,7 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
 
 /*!
  * \brief Pivot Plot Key Color Box
+ * \ingroup Charts
  */
 class CQChartsPivotKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
@@ -211,6 +217,7 @@ class CQChartsPivotKeyColor : public CQChartsKeyColorBox {
 
 /*!
  * \brief Pivot Plot Key Text
+ * \ingroup Charts
  */
 class CQChartsPivotKeyText : public CQChartsKeyText {
   Q_OBJECT
@@ -225,6 +232,7 @@ class CQPivotModel;
 
 /*!
  * \brief Pivot Chart Plot
+ * \ingroup Charts
  */
 class CQChartsPivotPlot : public CQChartsPlot,
  public CQChartsObjBarShapeData<CQChartsPivotPlot> {
@@ -306,13 +314,13 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsGeom::BBox annotationBBox() const;
+  CQChartsGeom::BBox annotationBBox() const override;
 
   //---
 
   void addProperties() override;
 
-  void getPropertyNames(QStringList &names, bool hidden) const;
+  void getPropertyNames(QStringList &names, bool hidden) const override;
 
   //---
 
@@ -322,14 +330,16 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsAxis *mappedXAxis() const;
-  CQChartsAxis *mappedYAxis() const;
+  CQChartsAxis *mappedXAxis() const override;
+  CQChartsAxis *mappedYAxis() const override;
 
   //---
 
   void addKeyItems(CQChartsPlotKey *key) override;
 
   bool addMenuItems(QMenu *menu) override;
+
+  void postObjTree() override;
 
   //---
 

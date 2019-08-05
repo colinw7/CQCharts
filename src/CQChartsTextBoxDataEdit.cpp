@@ -2,7 +2,7 @@
 
 #include <CQChartsTextDataEdit.h>
 #include <CQChartsBoxDataEdit.h>
-#include <CQChartsRoundedPolygon.h>
+#include <CQChartsDrawUtil.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
@@ -429,5 +429,5 @@ draw(QPainter *painter, const CQChartsTextBoxData &data, const QRect &rect,
   double cxs = shape.stroke().cornerSize().value();
   double cys = shape.stroke().cornerSize().value();
 
-  CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
+  CQChartsDrawUtil::drawRoundedPolygon(painter, rect, cxs, cys);
 }

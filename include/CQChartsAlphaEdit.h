@@ -5,6 +5,7 @@
 
 /*!
  * \brief alpha value edit
+ * \ingroup Charts
  */
 class CQChartsAlphaEdit : public CQRealSpin {
   Q_OBJECT

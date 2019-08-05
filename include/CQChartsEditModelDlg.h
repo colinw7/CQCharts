@@ -9,7 +9,10 @@ class CQChartsModelDataWidget;
 class CQChartsModelControl;
 class CQChartsCreatePlotDlg;
 
-//! \brief edit model dialog
+/*!
+ * \brief edit model dialog
+ * \ingroup Charts
+ */
 class CQChartsEditModelDlg : public QDialog {
   Q_OBJECT
 

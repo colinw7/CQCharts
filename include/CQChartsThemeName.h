@@ -5,7 +5,10 @@
 
 class CQColorsTheme;
 
-//! \brief theme name
+/*!
+ * \brief theme name
+ * \ingroup Charts
+ */
 class CQChartsThemeName {
  public:
   static void registerMetaType();

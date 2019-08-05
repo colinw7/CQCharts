@@ -7,7 +7,10 @@
 class CQChartsUnitsEdit;
 class CQRealSpin;
 
-//! \brief length edit
+/*!
+ * \brief length edit
+ * \ingroup Charts
+ */
 class CQChartsLengthEdit : public QFrame {
   Q_OBJECT
 
@@ -41,7 +44,10 @@ class CQChartsLengthEdit : public QFrame {
 
 #include <CQPropertyViewType.h>
 
-//! \brief type for CQChartsLength
+/*!
+ * \brief type for CQChartsLength
+ * \ingroup Charts
+ */
 class CQChartsLengthPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsLengthPropertyViewType();
@@ -63,7 +69,10 @@ class CQChartsLengthPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-//! \brief editor factory for CQChartsLength
+/*!
+ * \brief editor factory for CQChartsLength
+ * \ingroup Charts
+ */
 class CQChartsLengthPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsLengthPropertyViewEditor();

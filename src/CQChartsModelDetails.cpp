@@ -84,9 +84,13 @@ CQChartsModelDetails::
 initSimpleData() const
 {
   if (initialized_ == Initialized::NONE) {
-    CQChartsModelDetails *th = const_cast<CQChartsModelDetails *>(this);
+    std::unique_lock<std::mutex> lock(mutex_);
 
-    th->updateSimple();
+    if (initialized_ == Initialized::NONE) {
+      CQChartsModelDetails *th = const_cast<CQChartsModelDetails *>(this);
+
+      th->updateSimple();
+    }
   }
 }
 
@@ -95,9 +99,13 @@ CQChartsModelDetails::
 initFullData() const
 {
   if (initialized_ != Initialized::FULL) {
-    CQChartsModelDetails *th = const_cast<CQChartsModelDetails *>(this);
+    std::unique_lock<std::mutex> lock(mutex_);
 
-    th->updateFull();
+    if (initialized_ != Initialized::FULL) {
+      CQChartsModelDetails *th = const_cast<CQChartsModelDetails *>(this);
+
+      th->updateFull();
+    }
   }
 }
 
@@ -105,9 +113,11 @@ void
 CQChartsModelDetails::
 reset()
 {
+  {
   std::unique_lock<std::mutex> lock(mutex_);
 
   resetValues();
+  }
 
   emit detailsReset();
 }
@@ -129,26 +139,20 @@ resetValues()
 
 void
 CQChartsModelDetails::
-updateSimple(bool lock)
+updateSimple()
 {
   CQPerfTrace trace("CQChartsModelDetails::updateSimple");
 
-  if (lock)
-    mutex_.lock();
+  assert(initialized_ == Initialized::NONE);
 
-  if (initialized_ != Initialized::SIMPLE) {
-    QAbstractItemModel *model = data_->currentModel().data();
+  QAbstractItemModel *model = data_->currentModel().data();
 
-    hierarchical_ = CQChartsModelUtil::isHierarchical(model);
+  hierarchical_ = CQChartsModelUtil::isHierarchical(model);
 
-    numColumns_ = model->columnCount();
-    numRows_    = model->rowCount   ();
+  numColumns_ = model->columnCount();
+  numRows_    = model->rowCount   ();
 
-    initialized_ = Initialized::SIMPLE;
-  }
-
-  if (lock)
-    mutex_.unlock();
+  initialized_ = Initialized::SIMPLE;
 }
 
 void
@@ -157,21 +161,20 @@ updateFull()
 {
   CQPerfTrace trace("CQChartsModelDetails::updateFull");
 
-  std::unique_lock<std::mutex> lock(mutex_);
+  assert(initialized_ != Initialized::FULL);
 
-  if (initialized_ != Initialized::FULL) {
-    resetValues();
+  resetValues();
 
-    updateSimple(/*lock*/false);
+  if (initialized_ == Initialized::NONE)
+    updateSimple();
 
-    for (int c = 0; c < numColumns_; ++c) {
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
+  for (int c = 0; c < numColumns_; ++c) {
+    CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
 
-      numRows_ = std::max(numRows_, columnDetails->numRows());
-    }
-
-    initialized_ = Initialized::FULL;
+    numRows_ = std::max(numRows_, columnDetails->numRows());
   }
+
+  initialized_ = Initialized::FULL;
 }
 
 void
@@ -1024,9 +1027,13 @@ CQChartsModelColumnDetails::
 initCache() const
 {
   if (! initialized_) {
-    CQChartsModelColumnDetails *th = const_cast<CQChartsModelColumnDetails *>(this);
+    std::unique_lock<std::mutex> lock(mutex_);
 
-    (void) th->initData();
+    if (! initialized_) {
+      CQChartsModelColumnDetails *th = const_cast<CQChartsModelColumnDetails *>(this);
+
+      (void) th->initData();
+    }
   }
 }
 
@@ -1036,14 +1043,16 @@ initData()
 {
   CQPerfTrace trace("CQChartsModelColumnDetails::initData");
 
-  initialized_ = true;
-
-  if (! calcType())
-    return false;
+  assert(! initialized_);
 
   //---
 
-  std::unique_lock<std::mutex> lock(mutex_);
+  if (! typeInitialized_) {
+    if (! calcType())
+      return false;
+  }
+
+  //---
 
   QAbstractItemModel *model = details_->data()->currentModel().data();
   if (! model) return false;
@@ -1431,6 +1440,10 @@ initData()
   if (modelFilter)
     modelFilter->setMapping(true);
 
+  //---
+
+  initialized_ = true;
+
   return true;
 }
 
@@ -1439,9 +1452,13 @@ CQChartsModelColumnDetails::
 initType() const
 {
   if (! typeInitialized_) {
-    CQChartsModelColumnDetails *th = const_cast<CQChartsModelColumnDetails *>(this);
+    std::unique_lock<std::mutex> lock(mutex_);
 
-    (void) th->calcType();
+    if (! typeInitialized_) {
+      CQChartsModelColumnDetails *th = const_cast<CQChartsModelColumnDetails *>(this);
+
+      (void) th->calcType();
+    }
   }
 }
 
@@ -1450,6 +1467,8 @@ CQChartsModelColumnDetails::
 calcType()
 {
   CQPerfTrace trace("CQChartsModelColumnDetails::calcType");
+
+  assert(! typeInitialized_);
 
   //---
 
@@ -1471,43 +1490,39 @@ calcType()
 
   //---
 
-  if (! typeInitialized_) {
-    std::unique_lock<std::mutex> lock(mutex_);
+  // get column type and name values
+  // TODO: calls CQChartsModelVisitor, integrate into this visitor
+  CQCharts *charts = details_->data()->charts();
 
-    // get column type and name values
-    // TODO: calls CQChartsModelVisitor, integrate into this visitor
-    CQCharts *charts = details_->data()->charts();
-
-    if (! CQChartsModelUtil::columnValueType(charts, model, column_, type_,
-                                             baseType_, nameValues_)) {
-      type_     = CQBaseModelType::NONE;
-      baseType_ = CQBaseModelType::NONE;
-    }
-
-    //---
-
-    CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
-
-    const CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
-
-    if (columnType) {
-      typeName_ = columnType->name();
-    }
-    else {
-      type_     = CQBaseModelType::STRING;
-      baseType_ = CQBaseModelType::STRING;
-      typeName_ = "string";
-    }
-
-    //---
-
-    tableDrawPalette_ = columnType->drawPalette(nameValues_);
-    tableDrawType_    = columnType->drawType   (nameValues_);
-
-    //---
-
-    typeInitialized_ = true;
+  if (! CQChartsModelUtil::columnValueType(charts, model, column_, type_,
+                                           baseType_, nameValues_)) {
+    type_     = CQBaseModelType::NONE;
+    baseType_ = CQBaseModelType::NONE;
   }
+
+  //---
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+
+  const CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
+
+  if (columnType) {
+    typeName_ = columnType->name();
+  }
+  else {
+    type_     = CQBaseModelType::STRING;
+    baseType_ = CQBaseModelType::STRING;
+    typeName_ = "string";
+  }
+
+  //---
+
+  tableDrawPalette_ = columnType->drawPalette(nameValues_);
+  tableDrawType_    = columnType->drawType   (nameValues_);
+
+  //---
+
+  typeInitialized_ = true;
 
   return true;
 }

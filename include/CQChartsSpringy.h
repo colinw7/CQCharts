@@ -8,7 +8,10 @@
 namespace Springy {
   class Node;
 
-  //! \brief Vector
+  /*!
+   * \brief Vector
+   * \ingroup Charts
+   */
   class Vector {
    public:
     static Vector random() {
@@ -63,7 +66,10 @@ namespace Springy {
     double y_ { 0.0 };
   };
 
-  //! \brief Point
+  /*!
+   * \brief Point
+   * \ingroup Charts
+   */
   class Point {
    public:
     Point(const Vector &position, double mass) :
@@ -99,7 +105,10 @@ namespace Springy {
 
   //-----------
 
-  //! \brief Spring
+  /*!
+   * \brief Spring
+   * \ingroup Charts
+   */
   class Spring {
    public:
     Spring(Point *point1, Point *point2, double length, double k) :
@@ -132,7 +141,10 @@ namespace Springy {
 
   //-----------
 
-  //! \brief Node
+  /*!
+   * \brief Node
+   * \ingroup Charts
+   */
   class Node {
    public:
     Node(int id) :
@@ -170,7 +182,10 @@ namespace Springy {
 
   //-----------
 
-  //! \brief Edge
+  /*!
+   * \brief Edge
+   * \ingroup Charts
+   */
   class Edge {
    public:
     Edge(int id, Node *source, Node *target) :
@@ -200,7 +215,10 @@ namespace Springy {
 
   //-----------
 
-  //! \brief Graph
+  /*!
+   * \brief Graph
+   * \ingroup Charts
+   */
   class Graph {
    public:
     Graph() :
@@ -379,7 +397,10 @@ namespace Springy {
 
   //-----------
 
-  //! \brief Layout
+  /*!
+   * \brief Layout
+   * \ingroup Charts
+   */
   class Layout {
    public:
     Layout(Graph *graph, double stiffness, double repulsion, double damping) :

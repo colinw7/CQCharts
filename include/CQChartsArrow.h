@@ -12,6 +12,7 @@ class QPainter;
 
 /*!
  * \brief class for arrow object
+ * \ingroup Charts
  */
 class CQChartsArrow : public QObject,
  public CQChartsObjShapeData<CQChartsArrow> {

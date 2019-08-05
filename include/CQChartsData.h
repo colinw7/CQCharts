@@ -15,6 +15,8 @@
 
 /*!
  * \brief Text Properties
+ * \ingroup Charts
+ *
  *   visible, color, alpha, font, angle, contrast (shadow), formatted, scaled
  */
 class CQChartsTextData {
@@ -89,6 +91,8 @@ CQUTIL_DCL_META_TYPE(CQChartsTextData)
 
 /*!
  * \brief Line Properties
+ * \ingroup Charts
+ *
  *   visible, color, alpha, width, dash
  */
 class CQChartsLineData {
@@ -143,6 +147,8 @@ CQUTIL_DCL_META_TYPE(CQChartsLineData)
 
 /*!
  * \brief Fill Properties
+ * \ingroup Charts
+ *
  *   visible, color, alpha, pattern
  */
 class CQChartsFillData {
@@ -195,6 +201,8 @@ CQUTIL_DCL_META_TYPE(CQChartsFillData)
 
 /*!
  * \brief Stroke Properties
+ * \ingroup Charts
+ *
  *   visible, color, alpha, width, dash, corner size
  */
 class CQChartsStrokeData {
@@ -253,6 +261,8 @@ CQUTIL_DCL_META_TYPE(CQChartsStrokeData)
 
 /*!
  * \brief Shape Properties
+ * \ingroup Charts
+ *
  *  fill, stroke
  */
 class CQChartsShapeData {
@@ -297,6 +307,8 @@ CQUTIL_DCL_META_TYPE(CQChartsShapeData)
 
 /*!
  * \brief Box Properties
+ * \ingroup Charts
+ *
  *  visible, inner margin, outer margin, shape, sides
  *
  *  \todo border corners
@@ -354,6 +366,8 @@ CQUTIL_DCL_META_TYPE(CQChartsBoxData)
 
 /*!
  * \brief Text in Box Properties
+ * \ingroup Charts
+ *
  *   text, box
  */
 class CQChartsTextBoxData {
@@ -398,6 +412,8 @@ CQUTIL_DCL_META_TYPE(CQChartsTextBoxData)
 
 /*!
  * \brief Symbol Properties
+ * \ingroup Charts
+ *
  *   visible, type, size, stroke, fill
  */
 class CQChartsSymbolData {
@@ -458,6 +474,8 @@ CQUTIL_DCL_META_TYPE(CQChartsSymbolData)
 
 /*!
  * \brief Arrow Properties
+ * \ingroup Charts
+ *
  *   relative, length, angle, back angle, front head, tail head, line edits, line width
  */
 class CQChartsArrowData {
@@ -525,7 +543,10 @@ CQUTIL_DCL_META_TYPE(CQChartsArrowData)
 #include <CQChartsRect.h>
 #include <CQChartsTitleLocation.h>
 
-//! \brief title data
+/*!
+ * \brief title data
+ * \ingroup Charts
+ */
 struct CQChartsTitleData {
   bool                  visible   { true };
   CQChartsTitleLocation location;
@@ -541,7 +562,10 @@ struct CQChartsTitleData {
 #include <CQChartsKeyPressBehavior.h>
 #include <CQChartsOptLength.h>
 
-//! \brief key data
+/*!
+ * \brief key data
+ * \ingroup Charts
+ */
 struct CQChartsKeyData {
   bool                     visible      { true };
   bool                     horizontal   { false };
@@ -571,7 +595,10 @@ struct CQChartsKeyData {
 #include <CQChartsAxisValueType.h>
 #include <CQChartsOptReal.h>
 
-//! \brief axis data
+/*!
+ * \brief axis data
+ * \ingroup Charts
+ */
 struct CQChartsAxisData {
   bool                  visible        { true };
   Qt::Orientation       direction      { Qt::Horizontal };

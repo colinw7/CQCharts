@@ -13,6 +13,7 @@
 
 /*!
  * \brief Pie Plot type
+ * \ingroup Charts
  */
 class CQChartsPiePlotType : public CQChartsGroupPlotType {
  public:
@@ -45,6 +46,7 @@ class CQChartsPiePlot;
 
 /*!
  * \brief Pie Plot Text object
+ * \ingroup Charts
  */
 class CQChartsPieTextObj : public CQChartsRotatedTextBoxObj {
  public:
@@ -62,6 +64,7 @@ class CQChartsPieGroupObj;
 
 /*!
  * \brief Pie Plot object
+ * \ingroup Charts
  */
 class CQChartsPieObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -194,6 +197,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
 /*!
  * \brief Pie Plot Group object
+ * \ingroup Charts
  */
 class CQChartsPieGroupObj : public CQChartsGroupObj {
  public:
@@ -291,6 +295,7 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
 /*!
  * \brief Pie Plot Key Color Box
+ * \ingroup Charts
  */
 class CQChartsPieKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
@@ -310,6 +315,7 @@ class CQChartsPieKeyColor : public CQChartsKeyColorBox {
 
 /*!
  * \brief Pie Plot Key Text
+ * \ingroup Charts
  */
 class CQChartsPieKeyText : public CQChartsKeyText {
   Q_OBJECT
@@ -329,6 +335,7 @@ class CQChartsPieKeyText : public CQChartsKeyText {
 
 /*!
  * \brief Pie Chart Plot
+ * \ingroup Charts
  */
 class CQChartsPiePlot : public CQChartsGroupPlot,
  public CQChartsObjShapeData   <CQChartsPiePlot>,

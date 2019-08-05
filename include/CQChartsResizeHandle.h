@@ -11,7 +11,10 @@ class CQChartsView;
 class CQChartsPlot;
 class QPainter;
 
-//! \brief edit object resize handle
+/*!
+ * \brief edit object resize handle
+ * \ingroup Charts
+ */
 class CQChartsResizeHandle : QObject {
   Q_OBJECT
 

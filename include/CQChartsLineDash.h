@@ -9,7 +9,10 @@
 #include <vector>
 #include <sstream>
 
-//! \brief line dash
+/*!
+ * \brief line dash
+ * \ingroup Charts
+ */
 class CQChartsLineDash {
  public:
   using QLengths = QVector<qreal>;

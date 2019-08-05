@@ -12,7 +12,10 @@ class CQCharts;
 class CQPropertyViewModel;
 class QPainter;
 
-//! \brief box object
+/*!
+ * \brief box object
+ * \ingroup Charts
+ */
 class CQChartsBoxObj : public CQChartsObj,
  public CQChartsObjBoxData<CQChartsBoxObj> {
   Q_OBJECT

@@ -12,6 +12,7 @@ class CQChartsRotatedTextBoxObj;
 
 /*!
  * \brief Chord Plot Type
+ * \ingroup Charts
  */
 class CQChartsChordPlotType : public CQChartsPlotType {
  public:
@@ -51,6 +52,7 @@ class CQChartsChordPlot;
 
 /*!
  * \brief Chord Data
+ * \ingroup Charts
  */
 class CQChartsChordData {
  public:
@@ -153,6 +155,7 @@ class CQChartsChordData {
 
 /*!
  * \brief Chord Plot object
+ * \ingroup Charts
  */
 class CQChartsChordObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -193,6 +196,7 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
 /*!
  * \brief Chord Plot
+ * \ingroup Charts
  *
  * columns:
  *   + link  : link

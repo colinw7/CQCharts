@@ -7,6 +7,7 @@
 #include <CQChartsRegExp.h>
 #include <CQChartsVariant.h>
 #include <CQChartsModelVisitor.h>
+#include <CQChartsSelectionModel.h>
 #include <CQCharts.h>
 
 #include <CQCsvModel.h>
@@ -14,42 +15,9 @@
 
 #include <QHeaderView>
 #include <QSortFilterProxyModel>
-#include <QItemSelectionModel>
-#include <QItemDelegate>
 #include <QMenu>
 #include <QActionGroup>
 #include <cassert>
-
-class CQChartsTableSelectionModel : public QItemSelectionModel {
- public:
-  CQChartsTableSelectionModel(CQChartsTable *table) :
-   QItemSelectionModel(table->CQTableView::model()), table_(table) {
-    setObjectName("tableSelectionModel");
-  }
-
-  void select(const QModelIndex &ind, SelectionFlags flags) {
-    QItemSelectionModel::select(ind, adjustFlags(flags));
-  }
-
-  void select(const QItemSelection &selection, SelectionFlags flags) {
-    QItemSelectionModel::select(selection, adjustFlags(flags));
-  }
-
- private:
-  SelectionFlags adjustFlags(SelectionFlags flags) const {
-    if     (table_->selectionBehavior() == QAbstractItemView::SelectRows)
-      flags |= Rows;
-    else if (table_->selectionBehavior() == QAbstractItemView::SelectColumns)
-      flags |= Columns;
-
-    return flags;
-  }
-
- private:
-  CQChartsTable *table_ { nullptr };
-};
-
-//------
 
 CQChartsTable::
 CQChartsTable(CQCharts *charts, QWidget *parent) :
@@ -72,9 +40,13 @@ CQChartsTable(CQCharts *charts, QWidget *parent) :
   connect(this, SIGNAL(clicked(const QModelIndex &)),
           this, SLOT(itemClickedSlot(const QModelIndex &)));
 
+  //---
+
   delegate_ = new CQChartsTableDelegate(this);
 
   setItemDelegate(delegate_);
+
+  //---
 
   connect(charts_, SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
 }
@@ -82,6 +54,9 @@ CQChartsTable(CQCharts *charts, QWidget *parent) :
 CQChartsTable::
 ~CQChartsTable()
 {
+  if (modelData_ && sm_)
+    modelData_->removeSelectionModel(sm_);
+
   delete delegate_;
   delete match_;
 }
@@ -92,8 +67,9 @@ modelTypeChangedSlot(int modelId)
 {
   CQChartsModelData *modelData = getModelData();
 
-  if (modelData && modelData->ind() == modelId)
-    delegate_->clearColumnTypes();
+  if (modelData && modelData->ind() == modelId) {
+    //delegate_->clearColumnTypes();
+  }
 }
 
 void
@@ -166,7 +142,15 @@ setModelP(const ModelP &model)
   CQTableView::setModel(model_.data());
 
   if (model_.data()) {
-    sm_ = new CQChartsTableSelectionModel(this);
+    CQChartsModelData *modelData = getModelData();
+
+    if (modelData) {
+      sm_ = new CQChartsSelectionModel(this, modelData);
+
+      modelData->addSelectionModel(sm_);
+    }
+    else
+      sm_ = new CQChartsSelectionModel(this, model_.data());
 
     setSelectionModel(sm_);
   }
@@ -510,9 +494,9 @@ getModelData()
 {
   if (! modelData_) {
     modelData_ = charts_->getModelData(model_.data());
-    assert(modelData_);
 
-    connect(modelData_, SIGNAL(modelChanged()), this, SLOT(resetModelData()));
+    if (modelData_)
+      connect(modelData_, SIGNAL(modelChanged()), this, SLOT(resetModelData()));
   }
 
   return modelData_;
@@ -522,13 +506,18 @@ CQChartsModelDetails *
 CQChartsTable::
 getDetails()
 {
-  return getModelData()->details();
+  CQChartsModelData *modelData = getModelData();
+
+  return (modelData ? modelData->details() : nullptr);
 }
 
 void
 CQChartsTable::
 resetModelData()
 {
+  if (modelData_)
+    disconnect(modelData_, SIGNAL(modelChanged()), this, SLOT(resetModelData()));
+
   modelData_ = nullptr;
 
   delegate_->resetColumnData();

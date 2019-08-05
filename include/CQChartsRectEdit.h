@@ -7,7 +7,10 @@
 class CQChartsUnitsEdit;
 class CQRectEdit;
 
-//! \brief rectangle edit
+/*!
+ * \brief rectangle edit
+ * \ingroup Charts
+ */
 class CQChartsRectEdit : public QFrame {
   Q_OBJECT
 
@@ -41,7 +44,10 @@ class CQChartsRectEdit : public QFrame {
 
 #include <CQPropertyViewType.h>
 
-//! \brief type for CQChartsRect
+/*!
+ * \brief type for CQChartsRect
+ * \ingroup Charts
+ */
 class CQChartsRectPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsRectPropertyViewType();
@@ -63,7 +69,10 @@ class CQChartsRectPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-//! \brief editor factory for CQChartsRect
+/*!
+ * \brief editor factory for CQChartsRect
+ * \ingroup Charts
+ */
 class CQChartsRectPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsRectPropertyViewEditor();

@@ -13,6 +13,7 @@ class QPushButton;
 
 /*!
  * \brief Model Details Widget
+ * \ingroup Charts
  */
 class CQChartsModelDetailsWidget : public QFrame {
   Q_OBJECT

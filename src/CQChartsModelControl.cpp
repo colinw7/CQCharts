@@ -2,6 +2,7 @@
 #include <CQChartsModelData.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsExprModel.h>
+#include <CQChartsModelFilter.h>
 #include <CQChartsModelUtil.h>
 #include <CQCharts.h>
 
@@ -540,6 +541,8 @@ setModelData(CQChartsModelData *modelData)
 
       CQChartsExprModel *exprModel = CQChartsModelUtil::getExprModel(model.data());
 
+      CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(model.data());
+
       CQPivotModel *pivotModel =
         (proxyModel ? qobject_cast<CQPivotModel *>(proxyModel->sourceModel()) : nullptr);
 
@@ -555,6 +558,12 @@ setModelData(CQChartsModelData *modelData)
 
       if (exprModel) {
         propertyModel_->addProperty("", exprModel, "debug", "");
+      }
+
+      if (modelFilter) {
+        propertyModel_->addProperty("", modelFilter, "filter", "");
+        propertyModel_->addProperty("", modelFilter, "type"  , "");
+        propertyModel_->addProperty("", modelFilter, "invert", "");
       }
 
       if (pivotModel) {

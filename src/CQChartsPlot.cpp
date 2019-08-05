@@ -76,7 +76,8 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 
   animateData_.tickLen = CQChartsEnv::getInt("CQ_CHARTS_TICK_LEN", animateData_.tickLen);
 
-  debugUpdate_ = CQChartsEnv::getBool("CQ_CHARTS_DEBUG_UPDATE", debugUpdate_);
+  debugUpdate_   = CQChartsEnv::getBool("CQ_CHARTS_DEBUG_UPDATE"   , debugUpdate_  );
+  debugQuadTree_ = CQChartsEnv::getBool("CQ_CHARTS_DEBUG_QUAD_TREE", debugQuadTree_);
 
   editHandles_ = new CQChartsEditHandles(view);
 
@@ -239,83 +240,87 @@ void
 CQChartsPlot::
 connectModel()
 {
-  if (! model_.data())
-    return;
-
-  CQChartsModelData *modelData = getModelData();
-
-  modelNameSet_ = false;
-
-  if (modelData) {
-    if (! modelData->name().length() && this->hasId()) {
-      charts()->setModelName(modelData, this->id());
-
-      modelNameSet_ = true;
-    }
-
-    connect(modelData, SIGNAL(modelChanged()), this, SLOT(modelChangedSlot()));
-
-    connect(modelData, SIGNAL(currentModelChanged()), this, SLOT(currentModelChangedSlot()));
-  }
-  else {
-    // TODO: check if model uses changed columns
-    //int column1 = tl.column();
-    //int column2 = br.column();
-    connect(model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
-            this, SLOT(modelChangedSlot()));
-
-    connect(model_.data(), SIGNAL(layoutChanged()),
-            this, SLOT(modelChangedSlot()));
-    connect(model_.data(), SIGNAL(modelReset()),
-            this, SLOT(modelChangedSlot()));
-
-    connect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
-            this, SLOT(modelChangedSlot()));
-    connect(model_.data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
-            this, SLOT(modelChangedSlot()));
-    connect(model_.data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
-            this, SLOT(modelChangedSlot()));
-    connect(model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
-            this, SLOT(modelChangedSlot()));
-  }
+  connectDisconnectModel(true);
 }
 
 void
 CQChartsPlot::
 disconnectModel()
 {
+  connectDisconnectModel(false);
+}
+
+void
+CQChartsPlot::
+connectDisconnectModel(bool isConnect)
+{
   if (! model_.data())
     return;
 
   CQChartsModelData *modelData = getModelData();
 
-  if (modelData) {
-    if (modelNameSet_) {
-      charts()->setModelName(modelData, this->id());
+  //---
 
-      modelNameSet_ = false;
+  auto connectDisconnect = [&](bool b, QObject *obj, const char *from, const char *to) {
+    if (b)
+      connect(obj, from, this, to);
+    else
+      disconnect(obj, from, this, to);
+  };
+
+  //---
+
+  if (modelData) {
+    if (isConnect) {
+      if (! modelData->name().length() && this->hasId()) {
+        charts()->setModelName(modelData, this->id());
+
+        modelNameSet_ = true;
+      }
+      else
+        modelNameSet_ = false;
+    }
+    else {
+      if (modelNameSet_) {
+        charts()->setModelName(modelData, this->id());
+
+        modelNameSet_ = false;
+      }
     }
 
-    disconnect(modelData, SIGNAL(modelChanged()), this, SLOT(modelChangedSlot()));
+    connectDisconnect(isConnect, modelData, SIGNAL(modelChanged()),
+                      SLOT(modelChangedSlot()));
 
-    disconnect(modelData, SIGNAL(currentModelChanged()), this, SLOT(modelChangedSlot()));
+    connectDisconnect(isConnect, modelData, SIGNAL(currentModelChanged()),
+                      SLOT(currentModelChangedSlot()));
+
+    connectDisconnect(isConnect, modelData, SIGNAL(selectionChanged(QItemSelectionModel *)),
+                      SLOT(selectionSlot(QItemSelectionModel *)));
   }
   else {
-    disconnect(model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
-               this, SLOT(modelChangedSlot()));
-    disconnect(model_.data(), SIGNAL(layoutChanged()),
-               this, SLOT(modelChangedSlot()));
-    disconnect(model_.data(), SIGNAL(modelReset()),
-               this, SLOT(modelChangedSlot()));
+    modelNameSet_ = false;
 
-    disconnect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
-               this, SLOT(modelChangedSlot()));
-    disconnect(model_.data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
-               this, SLOT(modelChangedSlot()));
-    disconnect(model_.data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
-               this, SLOT(modelChangedSlot()));
-    disconnect(model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
-               this, SLOT(modelChangedSlot()));
+    // TODO: on connect, check if model uses changed columns
+    //int column1 = tl.column();
+    //int column2 = br.column();
+
+    connectDisconnect(isConnect,
+                      model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+                      SLOT(modelChangedSlot()));
+
+    connectDisconnect(isConnect, model_.data(), SIGNAL(layoutChanged()),
+                      SLOT(modelChangedSlot()));
+    connectDisconnect(isConnect, model_.data(), SIGNAL(modelReset()),
+                      SLOT(modelChangedSlot()));
+
+    connectDisconnect(isConnect, model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
+                      SLOT(modelChangedSlot()));
+    connectDisconnect(isConnect, model_.data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
+                      SLOT(modelChangedSlot()));
+    connectDisconnect(isConnect, model_.data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
+                      SLOT(modelChangedSlot()));
+    connectDisconnect(isConnect, model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
+                      SLOT(modelChangedSlot()));
   }
 }
 
@@ -378,35 +383,8 @@ currentModelChangedSlot()
 
 void
 CQChartsPlot::
-setSelectionModel(QItemSelectionModel *sm)
+selectionSlot(QItemSelectionModel *sm)
 {
-  QItemSelectionModel *sm1 = this->selectionModel();
-
-  if (sm1)
-    disconnect(sm1, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-               this, SLOT(selectionSlot()));
-
-  selectionModel_ = sm;
-
-  if (sm)
-    connect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-            this, SLOT(selectionSlot()));
-}
-
-QItemSelectionModel *
-CQChartsPlot::
-selectionModel() const
-{
-  return selectionModel_.data();
-}
-
-void
-CQChartsPlot::
-selectionSlot()
-{
-  QItemSelectionModel *sm = this->selectionModel();
-  if (! sm) return;
-
   QModelIndexList indices = sm->selectedIndexes();
   if (indices.empty()) return;
 
@@ -2208,6 +2186,9 @@ threadTimerSlot()
       // need post update range
       applyDataRange();
 
+      // post update range
+      postUpdateRange();
+
       // reset state
       setGroupedUpdateState(UpdateState::INVALID);
     }
@@ -2245,6 +2226,9 @@ threadTimerSlot()
       if (isOverlay())
         waitDraw();
 
+      // post draw
+      postDraw();
+
       // move to ready state (all done)
       setGroupedUpdateState(UpdateState::READY);
 
@@ -2265,9 +2249,21 @@ threadTimerSlot()
     //  nextState = UpdateState::UPDATE_RANGE;
     //}
   }
-  else if (updateState != UpdateState::DRAWN) {
+  else if (updateState == UpdateState::DRAWN) {
+    if (! isPlotObjTreeSet())
+      plotObjTree_->waitTree();
+  }
+  else {
     updateView = true;
   }
+  }
+
+  //---
+
+  if (plotObjTreeNotify_) {
+    plotObjTreeNotify_ = false;
+
+    postObjTree();
   }
 
   //---
@@ -2540,12 +2536,23 @@ updateAndApplyPlotRange1(bool updateObjs)
     updateRangeThread();
 
     if (updateObjs) {
+      // calc range
       applyDataRange();
 
+      postUpdateRange();
+
+      //---
+
+      // add objects
       this->updateObjs();
+
+      postUpdateObjs();
     }
 
+    // draw objects
     drawObjs();
+
+    postDraw();
   }
 }
 
@@ -2713,9 +2720,18 @@ updatePlotObjs()
     startThreadTimer();
   }
   else {
+    // add objs
+    // TODO: non threaded version ?
     updateObjsThread();
 
+    postUpdateObjs();
+
+    //---
+
+    // draw objs
     drawObjs();
+
+    postDraw();
   }
 }
 
@@ -3338,6 +3354,13 @@ clearPlotObjects()
 
   insideObjs_    .clear();
   sizeInsideObjs_.clear();
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+findEmptyBBox(double w, double h) const
+{
+  return plotObjTree_->findEmptyBBox(w, h);
 }
 
 //------
@@ -4702,6 +4725,18 @@ selectedPlotObjs(PlotObjs &plotObjs) const
   }
 }
 
+void
+CQChartsPlot::
+setPlotObjTreeSet(bool b)
+{
+  if (b != plotObjTreeSet_) {
+    plotObjTreeSet_ = b;
+
+    if (b)
+      plotObjTreeNotify_ = true;
+  }
+}
+
 //------
 
 void
@@ -5759,7 +5794,10 @@ updateDraw()
     }
   }
   else {
+    // draw objs
     drawThread();
+
+    postDraw();
 
     view()->update();
   }
@@ -6004,6 +6042,14 @@ drawBackgroundParts(QPainter *painter) const
 
     if (bgKey)
       drawBgKey(painter1);
+
+    //---
+
+    if (debugQuadTree_) {
+      painter->setPen(Qt::black);
+
+      plotObjTree_->draw(painter1);
+    }
   }
 
   //---
@@ -7380,28 +7426,6 @@ calcFitPixelRect() const
 
 //------
 
-CQChartsTextAnnotation *
-CQChartsPlot::
-addTextAnnotation(const CQChartsPosition &pos, const QString &text)
-{
-  CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, pos, text);
-
-  addAnnotation(textAnnotation);
-
-  return textAnnotation;
-}
-
-CQChartsTextAnnotation *
-CQChartsPlot::
-addTextAnnotation(const CQChartsRect &rect, const QString &text)
-{
-  CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, rect, text);
-
-  addAnnotation(textAnnotation);
-
-  return textAnnotation;
-}
-
 CQChartsArrowAnnotation *
 CQChartsPlot::
 addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
@@ -7411,17 +7435,6 @@ addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
   addAnnotation(arrowAnnotation);
 
   return arrowAnnotation;
-}
-
-CQChartsRectangleAnnotation *
-CQChartsPlot::
-addRectangleAnnotation(const CQChartsRect &rect)
-{
-  CQChartsRectangleAnnotation *rectangleAnnotation = new CQChartsRectangleAnnotation(this, rect);
-
-  addAnnotation(rectangleAnnotation);
-
-  return rectangleAnnotation;
 }
 
 CQChartsEllipseAnnotation *
@@ -7435,6 +7448,50 @@ addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadi
   addAnnotation(ellipseAnnotation);
 
   return ellipseAnnotation;
+}
+
+CQChartsImageAnnotation *
+CQChartsPlot::
+addImageAnnotation(const CQChartsPosition &pos, const QImage &image)
+{
+  CQChartsImageAnnotation *imageAnnotation = new CQChartsImageAnnotation(this, pos, image);
+
+  addAnnotation(imageAnnotation);
+
+  return imageAnnotation;
+}
+
+CQChartsImageAnnotation *
+CQChartsPlot::
+addImageAnnotation(const CQChartsRect &rect, const QImage &image)
+{
+  CQChartsImageAnnotation *imageAnnotation = new CQChartsImageAnnotation(this, rect, image);
+
+  addAnnotation(imageAnnotation);
+
+  return imageAnnotation;
+}
+
+CQChartsRectangleAnnotation *
+CQChartsPlot::
+addRectangleAnnotation(const CQChartsRect &rect)
+{
+  CQChartsRectangleAnnotation *rectangleAnnotation = new CQChartsRectangleAnnotation(this, rect);
+
+  addAnnotation(rectangleAnnotation);
+
+  return rectangleAnnotation;
+}
+
+CQChartsPointAnnotation *
+CQChartsPlot::
+addPointAnnotation(const CQChartsPosition &pos, const CQChartsSymbol &type)
+{
+  CQChartsPointAnnotation *pointAnnotation = new CQChartsPointAnnotation(this, pos, type);
+
+  addAnnotation(pointAnnotation);
+
+  return pointAnnotation;
 }
 
 CQChartsPolygonAnnotation *
@@ -7459,15 +7516,26 @@ addPolylineAnnotation(const CQChartsPolygon &points)
   return polyAnnotation;
 }
 
-CQChartsPointAnnotation *
+CQChartsTextAnnotation *
 CQChartsPlot::
-addPointAnnotation(const CQChartsPosition &pos, const CQChartsSymbol &type)
+addTextAnnotation(const CQChartsPosition &pos, const QString &text)
 {
-  CQChartsPointAnnotation *pointAnnotation = new CQChartsPointAnnotation(this, pos, type);
+  CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, pos, text);
 
-  addAnnotation(pointAnnotation);
+  addAnnotation(textAnnotation);
 
-  return pointAnnotation;
+  return textAnnotation;
+}
+
+CQChartsTextAnnotation *
+CQChartsPlot::
+addTextAnnotation(const CQChartsRect &rect, const QString &text)
+{
+  CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, rect, text);
+
+  addAnnotation(textAnnotation);
+
+  return textAnnotation;
 }
 
 void
@@ -8797,12 +8865,12 @@ CQChartsPlot::
 modelMappedReal(int row, const CQChartsColumn &column, const QModelIndex &parent,
                 double &r, bool log, double def) const
 {
+  bool ok = false;
+
   if (column.isValid()) {
-    bool ok1;
+    r = modelReal(row, column, parent, ok);
 
-    r = modelReal(row, column, parent, ok1);
-
-    if (! ok1)
+    if (! ok)
       r = def;
 
     if (CMathUtil::isNaN(r) || CMathUtil::isInf(r))
@@ -8814,7 +8882,7 @@ modelMappedReal(int row, const CQChartsColumn &column, const QModelIndex &parent
   if (log)
     r = logValue(r);
 
-  return true;
+  return ok;
 }
 
 //------
@@ -9434,8 +9502,6 @@ CQChartsPlot::
 beginSelectIndex()
 {
   selIndexColumnRows_.clear();
-
-//itemSelection_ = QItemSelection();
 }
 
 void
@@ -9466,25 +9532,18 @@ addSelectIndex(const QModelIndex &ind)
 
   // add to map ordered by parent, column, row
   selIndexColumnRows_[ind1.parent()][ind1.column()].insert(ind1.row());
-
-//itemSelection_.select(ind1, ind1);
 }
 
 void
 CQChartsPlot::
 endSelectIndex()
 {
-  QItemSelectionModel *sm = this->selectionModel();
-  if (! sm) return;
-
-  disconnect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-             this, SLOT(selectionSlot()));
+//QAbstractItemModel *model = this->model().data();
+//assert(model);
 
   //---
 
-  QAbstractItemModel *model = this->model().data();
-  assert(model);
-
+  // build new selection
   QItemSelection optItemSelection;
 
   // build row range per index column
@@ -9528,15 +9587,14 @@ endSelectIndex()
     }
   }
 
-  if (optItemSelection.length())
-    sm->select(optItemSelection, QItemSelectionModel::ClearAndSelect);
-
-//sm->select(itemSelection_, QItemSelectionModel::ClearAndSelect);
-
   //---
 
-  connect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-          this, SLOT(selectionSlot()));
+  if (optItemSelection.length()) {
+    CQChartsModelData *modelData = getModelData();
+
+    if (modelData)
+      modelData->select(optItemSelection);
+  }
 }
 
 //------

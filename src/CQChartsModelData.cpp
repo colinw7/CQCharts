@@ -19,6 +19,7 @@
 #endif
 
 #include <QSortFilterProxyModel>
+#include <QItemSelectionModel>
 
 QString
 CQChartsModelData::
@@ -278,6 +279,71 @@ currentModel() const
 
   return model_;
 }
+
+//---
+
+void
+CQChartsModelData::
+addSelectionModel(QItemSelectionModel *model)
+{
+  connect(model, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+          this, SLOT(selectionSlot()));
+
+  selectionModels_.push_back(SelectionModelP(model));
+}
+
+void
+CQChartsModelData::
+removeSelectionModel(QItemSelectionModel *model)
+{
+  int i   = 0;
+  int len = selectionModels_.size();
+
+  for ( ; i < len; ++i) {
+    if (selectionModels_[i] == model)
+      break;
+  }
+
+  if (i >= len)
+    return;
+
+  disconnect(model, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+             this, SLOT(selectionSlot()));
+
+  ++i;
+
+  for ( ; i < len; ++i)
+    selectionModels_[i - i] = selectionModels_[i];
+
+  selectionModels_.pop_back();
+}
+
+void
+CQChartsModelData::
+select(const QItemSelection &sel)
+{
+  for (auto &sm : selectionModels_) {
+    disconnect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+               this, SLOT(selectionSlot()));
+
+    sm->select(sel, QItemSelectionModel::ClearAndSelect);
+
+    connect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+            this, SLOT(selectionSlot()));
+  }
+}
+
+void
+CQChartsModelData::
+selectionSlot()
+{
+  QItemSelectionModel *sm = qobject_cast<QItemSelectionModel *>(sender());
+  assert(sm);
+
+  emit selectionChanged(sm);
+}
+
+//---
 
 #ifdef CQCHARTS_FOLDED_MODEL
 void

@@ -6,7 +6,10 @@
 
 #include <boost/optional.hpp>
 
-//! \brief Optional rectangle
+/*!
+ * \brief Optional rectangle
+ * \ingroup Charts
+ */
 class CQChartsOptRect {
  public:
   static void registerMetaType();

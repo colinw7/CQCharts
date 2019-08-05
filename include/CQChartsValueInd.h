@@ -6,6 +6,7 @@
 
 /*!
  * \brief Class to store set of values and return unique id for each unique value
+ * \ingroup Charts
  */
 class CQChartsValueInd {
  public:

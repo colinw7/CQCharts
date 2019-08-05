@@ -11,6 +11,7 @@ class CQChartsColumnBucket;
 
 /*!
  * \brief Group Plot Type base class
+ * \ingroup Charts
  */
 class CQChartsGroupPlotType : public CQChartsPlotType {
  public:
@@ -37,6 +38,7 @@ class CQChartsGroupPlotType : public CQChartsPlotType {
 
 /*!
  * \brief Group Plot base class
+ * \ingroup Charts
  */
 class CQChartsGroupPlot : public CQChartsPlot {
   Q_OBJECT

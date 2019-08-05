@@ -5,6 +5,7 @@
 
 /*!
  * \brief Regular Expression class
+ * \ingroup Charts
  */
 class CQChartsRegExp {
  public:

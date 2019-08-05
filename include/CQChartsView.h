@@ -24,13 +24,14 @@ class CQChartsPlot;
 class CQChartsObj;
 class CQChartsViewKey;
 class CQChartsAnnotation;
-class CQChartsTextAnnotation;
 class CQChartsArrowAnnotation;
-class CQChartsRectangleAnnotation;
 class CQChartsEllipseAnnotation;
+class CQChartsImageAnnotation;
+class CQChartsPointAnnotation;
 class CQChartsPolygonAnnotation;
 class CQChartsPolylineAnnotation;
-class CQChartsPointAnnotation;
+class CQChartsRectangleAnnotation;
+class CQChartsTextAnnotation;
 class CQChartsProbeBand;
 class CQChartsDisplayRange;
 class CQChartsEditAnnotationDlg;
@@ -55,6 +56,7 @@ CQCHARTS_NAMED_SHAPE_DATA(Inside,inside)
 
 /*!
  * \brief View widget in which plots are positioned and displayed
+ * \ingroup Charts
  *
  * This view widget is a container for plots and is in charge of
  * positioning and drawing them.
@@ -418,20 +420,24 @@ class CQChartsView : public QFrame,
   // annotations
   const Annotations &annotations() const { return annotations_; }
 
+  CQChartsArrowAnnotation     *addArrowAnnotation    (const CQChartsPosition &start,
+                                                      const CQChartsPosition &end);
+  CQChartsEllipseAnnotation   *addEllipseAnnotation  (const CQChartsPosition &center,
+                                                      const CQChartsLength &xRadius,
+                                                      const CQChartsLength &yRadius);
+  CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsPosition &pos,
+                                                      const QImage &image);
+  CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsRect &rect,
+                                                      const QImage &image);
+  CQChartsPointAnnotation     *addPointAnnotation    (const CQChartsPosition &pos,
+                                                      const CQChartsSymbol &type);
+  CQChartsPolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
+  CQChartsPolylineAnnotation  *addPolylineAnnotation (const CQChartsPolygon &polygon);
+  CQChartsRectangleAnnotation *addRectangleAnnotation(const CQChartsRect &rect);
   CQChartsTextAnnotation      *addTextAnnotation     (const CQChartsPosition &pos,
                                                       const QString &text);
   CQChartsTextAnnotation      *addTextAnnotation     (const CQChartsRect &rect,
                                                       const QString &text);
-  CQChartsArrowAnnotation     *addArrowAnnotation    (const CQChartsPosition &start,
-                                                      const CQChartsPosition &end);
-  CQChartsRectangleAnnotation *addRectangleAnnotation(const CQChartsRect &rect);
-  CQChartsEllipseAnnotation   *addEllipseAnnotation  (const CQChartsPosition &center,
-                                                      const CQChartsLength &xRadius,
-                                                      const CQChartsLength &yRadius);
-  CQChartsPolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
-  CQChartsPolylineAnnotation  *addPolylineAnnotation (const CQChartsPolygon &polygon);
-  CQChartsPointAnnotation     *addPointAnnotation    (const CQChartsPosition &pos,
-                                                      const CQChartsSymbol &type);
 
   void addAnnotation(CQChartsAnnotation *annotation);
 
@@ -512,6 +518,12 @@ class CQChartsView : public QFrame,
   void drawKey(QPainter *painter, const CQChartsLayer::Type &layerType);
 
   void lockPainter(bool lock);
+
+  //---
+
+  // get buffers
+  CQChartsBuffer *objectsBuffer() const { return objectsBuffer_; }
+  CQChartsBuffer *overlayBuffer() const { return overlayBuffer_; }
 
   // get/set draw layer type
   const CQChartsLayer::Type &drawLayerType() const { return drawLayerType_; }
@@ -595,7 +607,22 @@ class CQChartsView : public QFrame,
   // show context menu
   void showMenu(const QPoint &p);
 
-  QPointF menuPos() const { return mouseData_.pressPoint; }
+  QPointF menuPos() const { return mousePressPoint(); }
+
+  //---
+
+  // mouse data
+  const Plots &mousePlots() const { return mouseData_.plots; }
+  const CQChartsPlot *mousePlot() const { return mouseData_.plot; }
+
+  QPoint mousePressPoint() const { return mouseData_.pressPoint; }
+  QPoint mouseMovePoint () const { return mouseData_.movePoint; }
+
+  bool mousePressed() const { return mouseData_.pressed; }
+  int  mouseButton () const { return mouseData_.button; }
+
+  CQChartsSelMod mouseSelMod  () const { return mouseData_.selMod; }
+  CQChartsSelMod mouseClickMod() const { return mouseData_.clickMod; }
 
   //---
 
@@ -912,13 +939,13 @@ class CQChartsView : public QFrame,
   //! process all mouse point plots using lambda
   template<typename FUNCTION, typename DATA=int>
   bool processMouseDataPlots(FUNCTION f, const DATA &data=DATA()) const {
-    if (mouseData_.plot) {
+    if (mousePlot()) {
       if (f(mouseData_.plot, data))
         return true;
     }
 
-    for (auto &plot : mouseData_.plots) {
-      if (plot == mouseData_.plot) continue;
+    for (auto &plot : mousePlots()) {
+      if (plot == mousePlot()) continue;
 
       if (f(plot, data))
         return true;
@@ -1042,8 +1069,8 @@ class CQChartsView : public QFrame,
   ProbeBands            probeBands_;                              //!< probe lines
   QMenu*                popupMenu_         { nullptr };           //!< context menu
   QSize                 viewSizeHint_;                            //!< view size hint
-  CQChartsBuffer        objectsBuffer_;                           //!< buffer for view objects
-  CQChartsBuffer        overlayBuffer_;                           //!< buffer for view overlays
+  CQChartsBuffer*       objectsBuffer_     { nullptr };           //!< buffer for view objects
+  CQChartsBuffer*       overlayBuffer_     { nullptr };           //!< buffer for view overlays
   CQChartsLayer::Type   drawLayerType_;                           //!< current draw layer type
   mutable std::mutex    painterMutex_;                            //!< painter mutex
   EditAnnotationDlg*    editAnnotationDlg_ { nullptr };           //!< edit annotation dialog

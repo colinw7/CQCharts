@@ -29,6 +29,7 @@ class QGridLayout;
 
 /*!
  * \brief dialog to create a new annotation
+ * \ingroup Charts
  */
 class CQChartsEditAnnotationDlg : public QDialog {
   Q_OBJECT

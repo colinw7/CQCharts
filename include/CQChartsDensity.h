@@ -15,7 +15,10 @@ struct CQChartsWhiskerOpts {
   bool fitTail { false };
 };
 
-//! \brief Density plot data
+/*!
+ * \brief Density plot data
+ * \ingroup Charts
+ */
 class CQChartsDensity {
  public:
   using XVals  = std::vector<double>;

@@ -193,15 +193,10 @@ data(const QModelIndex &index, int role) const
 
     const Values &values = (*p1).second;
 
-    if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::ToolTipRole) {
-      if (values.count() == 0)
-        return QVariant();
+    if (values.count() == 0)
+      return QVariant();
 
-      return typeValue(values);
-    }
-    else {
-      return CQBaseModel::data(index, role);
-    }
+    return typeValue(values);
   }
   else {
     return CQBaseModel::data(index, role);
@@ -340,6 +335,25 @@ flags(const QModelIndex &index) const
 
 //------
 
+bool
+CQPivotModel::
+modelInds(const QString &hkey, const QString &vkey, Inds &inds) const
+{
+  auto p = values_.find(hkey);
+  if (p == values_.end()) return false;
+
+  auto p1 = (*p).second.find(vkey);
+  if (p1 == (*p).second.end()) return false;
+
+  const Values &values = (*p1).second;
+
+  inds = values.inds();
+
+  return true;
+}
+
+//------
+
 void
 CQPivotModel::
 updateModel() const
@@ -374,9 +388,12 @@ updateModel()
     Keys hkeys;
 
     for (auto &column : hColumns_) {
-      QString value = sm->data(sm->index(row, column)).toString();
+      QModelIndex ind = sm->index(row, column);
 
-      hkeys.add(value);
+      QVariant data = sm->data(ind);
+
+      if (data.isValid())
+        hkeys.add(data.toString());
     }
 
     //---
@@ -384,9 +401,12 @@ updateModel()
     Keys vkeys;
 
     for (auto &column : vColumns_) {
-      QString value = sm->data(sm->index(row, column)).toString();
+      QModelIndex ind = sm->index(row, column);
 
-      vkeys.add(value);
+      QVariant data = sm->data(ind).toString();
+
+      if (data.isValid())
+        vkeys.add(data.toString());
     }
 
     //---
@@ -409,16 +429,22 @@ updateModel()
       vRowKeys_[row        ] = vkeys;
     }
 
-    QVariant data = sm->data(sm->index(row, valueColumn_));
+    QModelIndex ind = sm->index(row, valueColumn_);
 
-    bool ok;
+    QVariant data = sm->data(ind);
 
-    double r = data.toReal(&ok);
+    if (data.isValid()) {
+      Values &values = values_[hkeys.key()][vkeys.key()];
 
-    if (ok)
-      values_[hkeys.key()][vkeys.key()].add(r);
+      bool ok;
 
-    uniqueValues_[hkeys.key()][vkeys.key()]++;
+      double r = data.toReal(&ok);
+
+      if (ok)
+        values.add(r);
+
+      values.add(ind, data.toString());
+    }
   }
 
   //---

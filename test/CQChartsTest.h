@@ -40,7 +40,10 @@ class QStackedWidget;
 
 //------
 
-//! \brief Charts Test Object
+/*!
+ * \brief Charts Test Object
+ * \ingroup Charts
+ */
 class CQChartsTest : public QObject {
   Q_OBJECT
 

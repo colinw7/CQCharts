@@ -12,6 +12,7 @@ class CQChartsDendrogramPlot;
 
 /*!
  * \brief Dendrogram plot type
+ * \ingroup Charts
  */
 class CQChartsDendrogramPlotType : public CQChartsPlotType {
  public:
@@ -44,6 +45,7 @@ class CQChartsDendrogramPlotType : public CQChartsPlotType {
 
 /*!
  * \brief Dendrogram Plot Node object
+ * \ingroup Charts
  */
 class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -71,6 +73,7 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
 /*!
  * \brief Dendrogram Plot
+ * \ingroup Charts
  */
 class CQChartsDendrogramPlot : public CQChartsPlot,
  public CQChartsObjNodeShapeData<CQChartsDendrogramPlot>,

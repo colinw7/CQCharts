@@ -8,9 +8,11 @@
 
 class CQChartsPlot;
 class CQChartsPlotObj;
+class QPainter;
 
 /*!
  * \brief Charts Plot object quad tree
+ * \ingroup Charts
  */
 class CQChartsPlotObjTree {
  public:
@@ -34,6 +36,12 @@ class CQChartsPlotObjTree {
 
   bool isBusy() const { return busy_.load(); }
 
+  CQChartsGeom::BBox findEmptyBBox(double w, double h) const;
+
+  bool waitTree() const;
+
+  void draw(QPainter *painter);
+
  private:
   using PlotObjTree       = CQChartsQuadTree<CQChartsPlotObj,CQChartsGeom::BBox>;
   using PlotObjTreeFuture = std::future<PlotObjTree*>;
@@ -44,8 +52,6 @@ class CQChartsPlotObjTree {
   PlotObjTree *addObjectsThread();
 
   void interruptTree();
-
-  bool waitTree() const;
 
  private:
   CQChartsPlot*      plot_              { nullptr }; //!< parent plot

@@ -5,7 +5,6 @@
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
-#include <CQChartsRoundedPolygon.h>
 #include <CQChartsNamePair.h>
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
@@ -924,7 +923,7 @@ execDrawBackground(QPainter *painter) const
 
         QRectF cellRect(px, py, pxs, pys);
 
-        CQChartsRoundedPolygon::draw(painter, cellRect, cxs, cys);
+        CQChartsDrawUtil::drawRoundedPolygon(painter, cellRect, cxs, cys);
       }
 
       px += pxs;
@@ -1103,7 +1102,7 @@ draw(QPainter *painter)
   double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
   double cys = plot_->lengthPixelHeight(plot_->cornerSize());
 
-  CQChartsRoundedPolygon::draw(painter, CQChartsUtil::toQRect(prect), cxs, cys);
+  CQChartsDrawUtil::drawRoundedPolygon(painter, CQChartsUtil::toQRect(prect), cxs, cys);
 }
 
 bool

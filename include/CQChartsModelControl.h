@@ -21,6 +21,7 @@ class QLabel;
 
 /*!
  * \brief Model Control Widget
+ * \ingroup Charts
  */
 class CQChartsModelControl : public QFrame {
   Q_OBJECT

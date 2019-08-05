@@ -3,7 +3,10 @@
 
 #include <CQChartsEnum.h>
 
-//! \brief key press behavior
+/*!
+ * \brief key press behavior
+ * \ingroup Charts
+ */
 class CQChartsKeyPressBehavior : public CQChartsEnum {
  public:
   enum class Type {

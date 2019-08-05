@@ -1,7 +1,10 @@
 #ifndef CQChartsTip_H
 #define CQChartsTip_H
 
-//! \brief class to build tip text as an HTML table
+/*!
+ * \brief class to build tip text as an HTML table
+ * \ingroup Charts
+ */
 class CQChartsTableTip {
  public:
   CQChartsTableTip() {

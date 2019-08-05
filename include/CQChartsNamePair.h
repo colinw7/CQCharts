@@ -5,6 +5,7 @@
 
 /*!
  * \brief Name Pair class
+ * \ingroup Charts
  */
 class CQChartsNamePair {
  public:

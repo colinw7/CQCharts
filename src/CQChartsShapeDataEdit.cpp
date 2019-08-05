@@ -4,8 +4,8 @@
 #include <CQChartsFillDataEdit.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsDrawUtil.h>
 #include <CQCharts.h>
-#include <CQChartsRoundedPolygon.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -420,5 +420,5 @@ draw(QPainter *painter, const CQChartsShapeData &data, const QRect &rect,
   double cxs = data.stroke().cornerSize().value();
   double cys = data.stroke().cornerSize().value();
 
-  CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
+  CQChartsDrawUtil::drawRoundedPolygon(painter, rect, cxs, cys);
 }

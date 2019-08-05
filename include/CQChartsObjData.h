@@ -16,6 +16,7 @@ Q_PROPERTY(CQChartsLineDash linesDash  READ linesDash  WRITE setLinesDash )
 
 /*!
  * \brief Object line data
+ * \ingroup Charts
  */
 template<class OBJ>
 class CQChartsObjLineData {
@@ -121,6 +122,7 @@ Q_PROPERTY(CQChartsLineDash LNAME##LinesDash  READ LNAME##LinesDash  WRITE set##
 
 /*!
  * \brief Object named line data
+ * \ingroup Charts
  */
 #define CQCHARTS_NAMED_LINE_DATA(UNAME,LNAME) \
 template<class OBJ> \
@@ -243,6 +245,7 @@ Q_PROPERTY(CQChartsFillPattern symbolFillPattern \
 
 /*!
  * \brief Object point data
+ * \ingroup Charts
  */
 template<class OBJ>
 class CQChartsObjPointData {
@@ -429,6 +432,7 @@ Q_PROPERTY(CQChartsFillPattern LNAME##SymbolFillPattern \
 
 /*!
  * \brief Object named point data
+ * \ingroup Charts
  */
 #define CQCHARTS_NAMED_POINT_DATA(UNAME,LNAME) \
 template<class OBJ> \
@@ -600,6 +604,7 @@ Q_PROPERTY(CQChartsFillPattern LNAME##FillPattern \
 
 /*!
  * \brief Object named fill data
+ * \ingroup Charts
  */
 #define CQCHARTS_NAMED_FILL_DATA(UNAME,LNAME) \
 template<class OBJ> \
@@ -681,6 +686,7 @@ Q_PROPERTY(bool          textHtml      READ isTextHtml      WRITE setTextHtml   
 
 /*!
  * \brief Object text data
+ * \ingroup Charts
  */
 template<class OBJ>
 class CQChartsObjTextData {
@@ -811,6 +817,7 @@ Q_PROPERTY(bool          LNAME##TextHtml \
 
 /*!
  * \brief Object named text data
+ * \ingroup Charts
  */
 #define CQCHARTS_NAMED_TEXT_DATA(UNAME,LNAME) \
 template<class OBJ> \
@@ -924,6 +931,7 @@ Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize )
 
 /*!
  * \brief Object stroke data
+ * \ingroup Charts
  */
 template<class OBJ>
 class CQChartsObjStrokeData {
@@ -1034,6 +1042,7 @@ Q_PROPERTY(CQChartsFillPattern fillPattern READ fillPattern WRITE setFillPattern
 
 /*!
  * \brief Object shape data
+ * \ingroup Charts
  */
 template<class OBJ>
 class CQChartsObjShapeData {
@@ -1202,6 +1211,7 @@ Q_PROPERTY(CQChartsFillPattern LNAME##FillPattern \
 
 /*!
  * \brief Object named shape data
+ * \ingroup Charts
  */
 #define CQCHARTS_NAMED_SHAPE_DATA(UNAME,LNAME) \
 template<class OBJ> \
@@ -1340,6 +1350,7 @@ Q_PROPERTY(CQChartsSides borderSides READ borderSides WRITE setBorderSides)
 
 /*!
  * \brief Object box data
+ * \ingroup Charts
  */
 template<class OBJ>
 class CQChartsObjBoxData {

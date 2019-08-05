@@ -69,6 +69,7 @@ class CQPropertyViewItem;
 
 /*!
  * \brief Charts base class
+ * \ingroup Charts
  */
 class CQCharts : public QObject {
   Q_OBJECT

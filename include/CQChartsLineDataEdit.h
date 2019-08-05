@@ -10,6 +10,7 @@ class CQChartsView;
 
 /*!
  * \brief Line Data line edit
+ * \ingroup Charts
  */
 class CQChartsLineDataLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
@@ -56,6 +57,7 @@ class CQGroupBox;
 
 /*!
  * \brief Line data edit
+ * \ingroup Charts
  */
 class CQChartsLineDataEdit : public CQChartsEditBase {
   Q_OBJECT
@@ -98,6 +100,7 @@ class CQChartsLineDataEdit : public CQChartsEditBase {
 
 /*!
  * \brief Line data edit preview
+ * \ingroup Charts
  */
 class CQChartsLineDataEditPreview : public CQChartsEditPreview {
   Q_OBJECT
@@ -118,7 +121,10 @@ class CQChartsLineDataEditPreview : public CQChartsEditPreview {
 
 #include <CQChartsPropertyViewEditor.h>
 
-//! \brief type for CQChartsLineData
+/*!
+ * \brief type for CQChartsLineData
+ * \ingroup Charts
+ */
 class CQChartsLineDataPropertyViewType : public CQChartsPropertyViewType {
  public:
   CQPropertyViewEditorFactory *getEditor() const override;
@@ -133,7 +139,10 @@ class CQChartsLineDataPropertyViewType : public CQChartsPropertyViewType {
 
 //---
 
-//! \brief editor factory for CQChartsLineData
+/*!
+ * \brief editor factory for CQChartsLineData
+ * \ingroup Charts
+ */
 class CQChartsLineDataPropertyViewEditor : public CQChartsPropertyViewEditorFactory {
  public:
   CQChartsLineEditBase *createPropertyEdit(QWidget *parent);

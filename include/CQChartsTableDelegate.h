@@ -12,7 +12,10 @@ class CQChartsSymbol;
 class CQChartsModelColumnDetails;
 class QPainter;
 
-//! \brief Custom delegate for table view
+/*!
+ * \brief Custom delegate for table view
+ * \ingroup Charts
+ */
 class CQChartsTableDelegate : public QItemDelegate {
  public:
   struct ColumnData {

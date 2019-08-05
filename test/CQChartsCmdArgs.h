@@ -23,6 +23,7 @@
 
 /*!
  * \brief base class for handling command arguments
+ * \ingroup Charts
  */
 class CQChartsCmdBaseArgs {
  public:
@@ -31,7 +32,10 @@ class CQChartsCmdBaseArgs {
   using OptInt  = boost::optional<int>;
   using OptBool = boost::optional<bool>;
 
-  //! \brief command argument
+  /*!
+   * \brief command argument
+   * \ingroup Charts
+   */
   class Arg {
    public:
     Arg(const QVariant &var=QVariant()) :
@@ -1251,6 +1255,7 @@ modelStringToValue(const QString &str, QAbstractItemModel *model) {
 
 /*!
  * \brief derived class for handling command arguments (adds charts classes)
+ * \ingroup Charts
  */
 class CQChartsCmdArgs : public CQChartsCmdBaseArgs {
  public:

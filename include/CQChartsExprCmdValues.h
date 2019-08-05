@@ -6,7 +6,10 @@
 #include <QVariant>
 #include <vector>
 
-//! \brief expression model command values
+/*!
+ * \brief expression model command values
+ * \ingroup Charts
+ */
 class CQChartsExprCmdValues {
  public:
   using Values = std::vector<QVariant>;

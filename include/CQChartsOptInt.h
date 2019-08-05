@@ -6,7 +6,10 @@
 
 #include <boost/optional.hpp>
 
-//! \brief Optional integer
+/*!
+ * \brief Optional integer
+ * \ingroup Charts
+ */
 class CQChartsOptInt {
  public:
   static void registerMetaType();

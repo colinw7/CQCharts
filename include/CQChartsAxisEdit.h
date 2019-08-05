@@ -6,7 +6,10 @@
 class CQChartsAxis;
 class CQChartsAxisEdit;
 
-//! \brief edit axis dialog
+/*!
+ * \brief edit axis dialog
+ * \ingroup Charts
+ */
 class CQChartsEditAxisDlg : public QDialog {
   Q_OBJECT
 
@@ -43,7 +46,10 @@ class CQRealSpin;
 class CQLineEdit;
 class QComboBox;
 
-//! \brief axis edit
+/*!
+ * \brief axis edit
+ * \ingroup Charts
+ */
 class CQChartsAxisEdit : public QFrame {
   Q_OBJECT
 

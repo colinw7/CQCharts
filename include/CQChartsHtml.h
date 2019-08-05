@@ -3,6 +3,7 @@
 
 /*!
  * \brief Helper class to build HTML string
+ * \ingroup Charts
  */
 class CQChartsHtml {
  public:
@@ -77,6 +78,14 @@ class CQChartsHtml {
       str_ += Str("<li>") + s + Str("</li>\n");
 
     str_ += Str("</ul>\n");
+
+    return *this;
+  }
+
+  CQChartsHtml &pre(const CQChartsHtml &html) {
+    str_ += Str("<pre>\n");
+    str_ += html.str_;
+    str_ += Str("\n</pre>\n");
 
     return *this;
   }

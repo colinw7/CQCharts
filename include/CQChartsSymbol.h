@@ -8,6 +8,7 @@
 
 /*!
  * \brief Symbol Data
+ * \ingroup Charts
  */
 class CQChartsSymbol {
  public:

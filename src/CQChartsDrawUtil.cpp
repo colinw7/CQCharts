@@ -1,6 +1,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsPlotSymbol.h>
+#include <CQChartsRoundedPolygon.h>
 #include <CQChartsUtil.h>
 
 #include <CMathUtil.h>
@@ -10,6 +11,64 @@
 #include <QAbstractTextDocumentLayout>
 
 namespace CQChartsDrawUtil {
+
+void
+drawRoundedPolygon(QPainter *painter, const QRectF &qrect, double xsize, double ysize,
+                   const CQChartsSides &sides)
+{
+  static double minSize1 = 2.5; // pixels
+  static double minSize2 = 1.5; // pixels
+
+  double minSize = std::min(qrect.width(), qrect.height());
+
+  if      (minSize >= minSize1) {
+    CQChartsRoundedPolygon::draw(painter, qrect, xsize, ysize, sides);
+  }
+  else if (minSize >= minSize2) {
+    QPen pen = painter->pen();
+
+    QColor pc = pen.color();
+    double f  = (minSize - minSize2)/(minSize1 - minSize2);
+
+    pc.setAlphaF(f*pc.alphaF());
+
+    pen.setColor(pc);
+
+    painter->setPen(pen);
+
+    CQChartsRoundedPolygon::draw(painter, qrect, xsize, ysize, sides);
+  }
+  else {
+    QColor bc = painter->brush().color();
+
+    painter->setPen(bc);
+    painter->setBrush(Qt::NoBrush);
+
+    painter->drawLine(QPointF(qrect.left (), qrect.bottom()),
+                      QPointF(qrect.right(), qrect.top   ()));
+  }
+}
+
+void
+drawRoundedPolygon(QPainter *painter, const QPolygonF &poly, double xsize, double ysize)
+{
+  static double minSize = 2.5; // pixels
+
+  QRectF qrect = poly.boundingRect();
+
+  if (qrect.width() > minSize && qrect.height() > minSize) {
+    CQChartsRoundedPolygon::draw(painter, poly, xsize, ysize);
+  }
+  else {
+    QColor bc = painter->brush().color();
+
+    painter->setPen(bc);
+    painter->setBrush(Qt::NoBrush);
+
+    painter->drawLine(QPointF(qrect.left (), qrect.bottom()),
+                      QPointF(qrect.right(), qrect.top   ()));
+  }
+}
 
 void
 drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,

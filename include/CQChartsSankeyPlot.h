@@ -10,6 +10,7 @@
 
 /*!
  * \brief Sankey plot type
+ * \ingroup Charts
  */
 class CQChartsSankeyPlotType : public CQChartsPlotType {
  public:
@@ -48,6 +49,7 @@ class CQChartsSankeyEdgeObj;
 
 /*!
  * \brief Sankey plot node
+ * \ingroup Charts
  */
 class CQChartsSankeyPlotNode {
  public:
@@ -110,6 +112,7 @@ class CQChartsSankeyPlotNode {
 
 /*!
  * \brief Sankey plot edge
+ * \ingroup Charts
  */
 class CQChartsSankeyPlotEdge {
  public:
@@ -141,6 +144,7 @@ class CQChartsSankeyPlotEdge {
 
 /*!
  * \brief Sankey Plot Node object
+ * \ingroup Charts
  */
 class CQChartsSankeyNodeObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -188,6 +192,7 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
 /*!
  * \brief Sankey Plot Edge object
+ * \ingroup Charts
  */
 class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -223,6 +228,7 @@ CQCHARTS_NAMED_SHAPE_DATA(Edge,edge)
 
 /*!
  * \brief Sankey Plot
+ * \ingroup Charts
  */
 class CQChartsSankeyPlot : public CQChartsPlot,
  public CQChartsObjTextData<CQChartsSankeyPlot>,

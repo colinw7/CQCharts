@@ -72,28 +72,44 @@ addBuiltinFunctions()
   qtcl_->createVar("pi" , QVariant(M_PI));
   qtcl_->createVar("NaN", QVariant(COSNaN::get_nan()));
 
+  // get/set model data (TODO: hierarchical)
   addFunction("column"   );
   addFunction("row"      );
   addFunction("cell"     );
   addFunction("setColumn");
   addFunction("setRow"   );
   addFunction("setCell"  );
+
+  // get/set header data
   addFunction("header"   );
   addFunction("setHeader");
-  addFunction("type"     );
-  addFunction("setType"  );
-  addFunction("map"      );
-  addFunction("bucket"   );
-  addFunction("norm"     );
-  addFunction("scale"    );
-  addFunction("rand"     );
-  addFunction("rnorm"    );
+
+  // get/set column type
+  addFunction("type"   );
+  addFunction("setType");
+
+  // map values
+  addFunction("map"   );
+  addFunction("remap" );
+  addFunction("bucket");
+  addFunction("norm"  );
+  addFunction("scale" );
+
+  // random
+  addFunction("rand" );
+  addFunction("rnorm");
+
+  // string
+  addFunction("match");
+
+  // color
+  addFunction("color");
+
+  // time
+  addFunction("timeval");
+
 //addFunction("key"      );
 //addFunction("concat"   );
-  addFunction("color"    );
-
-  addFunction("remap"    );
-  addFunction("timeval"  );
 }
 
 CQTcl *
@@ -463,6 +479,10 @@ initCalc()
   columnNames_.clear();
   nameColumns_.clear();
 
+  //---
+
+  // add user defined functions
+  // TODO: only add if needed ? (traces)
   for (const auto &np : charts_->procs()) {
     const auto &proc = np.second;
 
@@ -470,6 +490,9 @@ initCalc()
                  arg(proc.name).arg(proc.args).arg(proc.body));
   }
 
+  //---
+
+  // add traces for column names
   for (int column = 0; column < nc_; ++column) {
     QVariant var = this->headerData(column, Qt::Horizontal);
 
@@ -1134,30 +1157,46 @@ QVariant
 CQChartsExprModel::
 processCmd(const QString &name, const Values &values)
 {
+  // get/set model data
   if      (name == "column"   ) return columnCmd   (values);
   else if (name == "row"      ) return rowCmd      (values);
   else if (name == "cell"     ) return cellCmd     (values);
   else if (name == "setColumn") return setColumnCmd(values);
   else if (name == "setRow"   ) return setRowCmd   (values);
   else if (name == "setCell"  ) return setCellCmd  (values);
+
+  // get/set header data
   else if (name == "header"   ) return headerCmd   (values);
   else if (name == "setHeader") return setHeaderCmd(values);
-  else if (name == "type"     ) return typeCmd     (values);
-  else if (name == "setType"  ) return setTypeCmd  (values);
-  else if (name == "map"      ) return mapCmd      (values);
-  else if (name == "bucket"   ) return bucketCmd   (values);
-  else if (name == "norm"     ) return normCmd     (values);
-  else if (name == "scale"    ) return scaleCmd    (values);
-  else if (name == "rand"     ) return randCmd     (values);
-  else if (name == "rnorm"    ) return rnormCmd    (values);
-//else if (name == "key"      ) return keyCmd      (values);
-//else if (name == "concat"   ) return concatCmd   (values);
-  else if (name == "color"    ) return colorCmd    (values);
 
-  else if (name == "remap"    ) return remapCmd    (values);
-  else if (name == "timeval"  ) return timevalCmd  (values);
+  // get/set column type
+  else if (name == "type"   ) return typeCmd   (values);
+  else if (name == "setType") return setTypeCmd(values);
 
-  else                          return QVariant(false);
+  // map values
+  else if (name == "map"   ) return mapCmd   (values);
+  else if (name == "remap" ) return remapCmd (values);
+  else if (name == "bucket") return bucketCmd(values);
+  else if (name == "norm"  ) return normCmd  (values);
+  else if (name == "scale" ) return scaleCmd (values);
+
+  // random
+  else if (name == "rand" ) return randCmd (values);
+  else if (name == "rnorm") return rnormCmd(values);
+
+  // string
+  else if (name == "match") return matchCmd(values);
+
+  // color
+  else if (name == "color") return colorCmd(values);
+
+  // time
+  else if (name == "timeval") return timevalCmd(values);
+
+//else if (name == "key"   ) return keyCmd   (values);
+//else if (name == "concat") return concatCmd(values);
+
+  else return QVariant(false);
 }
 
 //------
@@ -1888,6 +1927,26 @@ concatCmd(const Values &values) const
   return QVariant(str);
 }
 #endif
+
+//---
+
+// match string to regexp:
+//   match(name, regexp)
+QVariant
+CQChartsExprModel::
+matchCmd(const Values &values) const
+{
+  if (values.size() == 2) {
+    QString str     = values[0].toString();
+    QString pattern = values[1].toString();
+
+    QRegExp regexp(pattern);
+
+    return regexp.exactMatch(str);
+  }
+
+  return QVariant();
+}
 
 //---
 

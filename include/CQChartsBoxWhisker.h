@@ -12,6 +12,7 @@
 
 /*!
  * \brief box whisker
+ * \ingroup Charts
  */
 template<typename VALUE>
 class CQChartsBoxWhiskerT {
@@ -216,6 +217,7 @@ class QPainter;
 
 /*!
  * \brief box whisker utility functions
+ * \ingroup Charts
  */
 namespace CQChartsBoxWhiskerUtil {
 

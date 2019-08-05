@@ -23,6 +23,7 @@ class QScrollBar;
 
 /*!
  * \brief Base Key class
+ * \ingroup Charts
  */
 class CQChartsKey : public CQChartsBoxObj,
  public CQChartsObjTextData      <CQChartsKey>,
@@ -182,6 +183,7 @@ class CQChartsKey : public CQChartsBoxObj,
 
 /*!
  * \brief View Key class
+ * \ingroup Charts
  */
 class CQChartsViewKey : public CQChartsKey {
   Q_OBJECT
@@ -250,6 +252,7 @@ class CQChartsViewKey : public CQChartsKey {
 
 /*!
  * \brief Plot Key class
+ * \ingroup Charts
  */
 class CQChartsPlotKey : public CQChartsKey {
   Q_OBJECT
@@ -488,6 +491,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
 /*!
  * \brief Key Item base class
+ * \ingroup Charts
  */
 class CQChartsKeyItem : public QObject {
   Q_OBJECT
@@ -566,6 +570,7 @@ class CQChartsPlot;
 
 /*!
  * \brief Key Text Item base class
+ * \ingroup Charts
  */
 class CQChartsKeyText : public CQChartsKeyItem {
   Q_OBJECT
@@ -593,6 +598,7 @@ class CQChartsKeyText : public CQChartsKeyItem {
 
 /*!
  * \brief Key Color Box Item base class
+ * \ingroup Charts
  */
 class CQChartsKeyColorBox : public CQChartsKeyItem {
   Q_OBJECT

@@ -8,6 +8,7 @@ class CQChartsPlot;
 
 /*!
  * \brief class for plot text box object
+ * \ingroup Charts
  */
 class CQChartsDataLabel : public CQChartsTextBoxObj {
   Q_OBJECT

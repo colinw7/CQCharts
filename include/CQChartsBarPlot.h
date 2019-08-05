@@ -9,6 +9,7 @@ class CQChartsDataLabel;
 
 /*!
  * \brief base class for Bar type plots (bar chart and distribution)
+ * \ingroup Charts
  */
 class CQChartsBarPlot : public CQChartsGroupPlot,
  public CQChartsObjBarShapeData<CQChartsBarPlot> {

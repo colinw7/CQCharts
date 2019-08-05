@@ -3,6 +3,8 @@
 
 #include <cassert>
 #include <list>
+#include <map>
+#include <vector>
 #include <sys/types.h>
 
 /*!
@@ -499,6 +501,24 @@ class CQChartsQuadTree {
     if (tr_tree_) tr_tree_->process(proc);
   }
 
+  template<typename PROC>
+  void processRect(PROC &proc) {
+    int n = dataList_.size();
+
+    proc(rect_, n);
+
+    for (auto data : dataList_) {
+      const RECT &rect1 = data->rect();
+
+      proc(rect1, 0);
+    }
+
+    if (bl_tree_) bl_tree_->processRect(proc);
+    if (br_tree_) br_tree_->processRect(proc);
+    if (tl_tree_) tl_tree_->processRect(proc);
+    if (tr_tree_) tr_tree_->processRect(proc);
+  }
+
   //-------
 
  public:
@@ -548,6 +568,80 @@ class CQChartsQuadTree {
     }
     else
       return 0;
+  }
+
+ public:
+  using Trees    = std::vector<const CQChartsQuadTree *>;
+  using FitTrees = std::map<int,Trees>;
+
+  RECT fitRect(double w, double h) const {
+    FitTrees fitTrees;
+
+    addFitTrees(w, h, fitTrees);
+
+    if (fitTrees.empty())
+      return rect_;
+
+    const Trees &trees = (*fitTrees.begin()).second;
+
+    assert(! trees.empty());
+
+    if (trees.size() == 1)
+      return trees[0]->rect_;
+
+    const CQChartsQuadTree *minTree { nullptr };
+    double                  minArea { 0.0 };
+
+    for (const auto &tree : trees) {
+      const RECT &r = tree->rect_;
+
+      double xmid = (r.getXMin() + r.getXMax())/2.0;
+      double ymid = (r.getYMin() + r.getYMax())/2.0;
+
+      RECT r1(xmid - w/2, ymid - h/2, xmid + w/2, ymid + h/2);
+
+      double area = 0.0;
+
+      if (tree->parent_) {
+        for (auto data : tree->parent_->dataList_) {
+          const RECT &r2 = data->rect();
+
+          double xo = std::max(0.0,
+            std::min(r1.getXMax(), r2.getXMax()) - std::max(r1.getXMin(), r2.getXMin()));
+          double yo = std::max(0.0,
+            std::min(r1.getYMax(), r2.getYMax()) - std::max(r1.getYMin(), r2.getYMin()));
+
+          area += xo*yo;
+        }
+      }
+
+      if (! minTree || area < minArea) {
+        minTree = tree;
+        minArea = area;
+      }
+    }
+
+    assert(minTree);
+
+    return minTree->rect_;
+  }
+
+ private:
+  void addFitTrees(double w, double h, FitTrees &fitTrees) const {
+    double w1 = rect_.getXMax() - rect_.getXMin();
+    double h1 = rect_.getYMax() - rect_.getYMin();
+
+    if (w > w1 || h > h1)
+      return;
+
+    int n = numElements();
+
+    fitTrees[n].push_back(this);
+
+    if (bl_tree_) bl_tree_->addFitTrees(w, h, fitTrees);
+    if (br_tree_) br_tree_->addFitTrees(w, h, fitTrees);
+    if (tl_tree_) tl_tree_->addFitTrees(w, h, fitTrees);
+    if (tr_tree_) tr_tree_->addFitTrees(w, h, fitTrees);
   }
 
  private:

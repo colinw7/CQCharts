@@ -3,7 +3,10 @@
 
 #include <CQChartsGeom.h>
 
-//! \brief Class to represent a 2D mapping from window to pixel coordinates
+/*!
+ * \brief Class to represent a 2D mapping from window to pixel coordinates
+ * \ingroup Charts
+ */
 class CQChartsDisplayRange {
  public:
   enum class HAlign {

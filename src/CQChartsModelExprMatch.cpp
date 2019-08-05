@@ -110,11 +110,19 @@ addBuiltinFunctions()
   qtcl_->createVar("pi" , QVariant(M_PI));
   qtcl_->createVar("NaN", QVariant(COSNaN::get_nan()));
 
+  // get model data
   addFunction("column");
   addFunction("row"   );
   addFunction("cell"  );
+
+  // get header data
   addFunction("header");
-  addFunction("isnan" );
+
+  // string
+  addFunction("match");
+
+  // math
+  addFunction("isnan");
 }
 
 void
@@ -206,12 +214,21 @@ QVariant
 CQChartsModelExprMatch::
 processCmd(const QString &name, const Values &values)
 {
+  // get model data
   if      (name == "column") return columnCmd(values);
   else if (name == "row"   ) return rowCmd   (values);
   else if (name == "cell"  ) return cellCmd  (values);
+
+  // get header data
   else if (name == "header") return headerCmd(values);
-  else if (name == "isnan" ) return isnanCmd (values);
-  else                       return QVariant(false);
+
+  // string
+  else if (name == "match") return matchCmd(values);
+
+  // match
+  else if (name == "isnan") return isnanCmd(values);
+
+  else return QVariant(false);
 }
 
 //------
@@ -346,7 +363,33 @@ headerCmd(const Values &values) const
 
 //---
 
-// isnan()
+// match string to regexp:
+//   match(name, regexp)
+QVariant
+CQChartsModelExprMatch::
+matchCmd(const Values &values) const
+{
+  CQChartsExprCmdValues cmdValues(values);
+
+  QString str;
+
+  if (! cmdValues.getStr(str))
+    return QVariant();
+
+  QString pattern;
+
+  if (! cmdValues.getStr(pattern))
+    return QVariant();
+
+  QRegExp regexp(pattern);
+
+  return regexp.exactMatch(str);
+}
+
+//---
+
+// real is nan
+//  isnan(<value>)
 QVariant
 CQChartsModelExprMatch::
 isnanCmd(const Values &values) const

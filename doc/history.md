@@ -915,3 +915,17 @@
  + Support custom color/palette for coloring column background or barchart
 # 7/30/2019
  + Common code for CQChartsPlotObj model indices
+# 8/4/2019
+ + Common code for drawing thin plot bars
+ + Add image annotation and cleanup common code
+ + Support checkable/checked for annotation
+ + Move selection model tracking from plot to model data and share across all model views
+ + Add match tcl function for process/search
+ + Add auto placement support for key using quad tree
+ + Improve pivot plot support when no y column
+ + Move move common scatter/xy plot to point plot base class
+ + Support full mapping for symbol size, symbol type and font in xy plot (from base class)
+ + Use tab/splitter widget to replace some splitters
+ + Add view layers to layers tab
+ + Add tcl access to mouse data
+ + Add tcl support for set hidden

@@ -3,7 +3,10 @@
 
 #include <CLeastSquaresFit.h>
 
-//! \brief least squares fit data
+/*!
+ * \brief least squares fit data
+ * \ingroup Charts
+ */
 class CQChartsFitData {
  public:
   CQChartsFitData() { }

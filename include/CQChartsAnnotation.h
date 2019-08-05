@@ -1,6 +1,7 @@
 #ifndef CQChartsAnnotation_H
 #define CQChartsAnnotation_H
 
+#include <CQChartsView.h>
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsSymbol.h>
 #include <CQChartsData.h>
@@ -14,11 +15,14 @@ class CQPropertyViewItem;
 
 /*!
  * \brief base class for view/plot annotation
+ * \ingroup Charts
  */
 class CQChartsAnnotation : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(int ind READ ind WRITE setInd)
+  Q_PROPERTY(int  ind       READ ind         WRITE setInd      )
+  Q_PROPERTY(bool checkable READ isCheckable WRITE setCheckable)
+  Q_PROPERTY(bool checked   READ isChecked   WRITE setChecked  )
 
  public:
   enum class Type {
@@ -28,16 +32,19 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     POLYGON,
     POLYLINE,
     TEXT,
+    IMAGE,
     ARROW,
     POINT
   };
 
   using ColorInd = CQChartsUtil::ColorInd;
+  using DrawType = CQChartsView::DrawType;
 
  public:
   static const QStringList &typeNames() {
     static QStringList names = QStringList() <<
-      "rectangle" << "ellipse" << "polygon" << "polyline" << "text" << "arrow" << "point";
+      "rectangle" << "ellipse" << "polygon" << "polyline" <<
+      "text" << "arrow" << "point" << "image";
 
     return names;
   }
@@ -47,6 +54,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   CQChartsAnnotation(CQChartsPlot *plot, Type type);
 
   virtual ~CQChartsAnnotation();
+
+  //---
 
   //! get/set ind
   int ind() const { return ind_; }
@@ -58,13 +67,26 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //! calculate tip
   QString calcTipId() const override;
 
+  //! get path id
+  QString pathId() const;
+
+  //---
+
   //! get type and type name
   const Type &type() const { return type_; }
 
   virtual const char *typeName() const = 0;
 
-  //! get path id
-  QString pathId() const;
+  //---
+
+  // checkable/checked
+  bool isCheckable() const { return checkable_; }
+  void setCheckable(bool b);
+
+  bool isChecked() const { return checked_; }
+  void setChecked(bool b);
+
+  //---
 
   //! get bounding box
   const CQChartsGeom::BBox &bbox() const { return bbox_; }
@@ -147,6 +169,22 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //! handle box obj data changed
   void boxDataInvalidate() override { emit dataChanged(); }
 
+  void invalidate();
+
+  //---
+
+  // set pen/brush
+  void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha=1.0,
+              const CQChartsLength &strokeWidth=CQChartsLength("0px"),
+              const CQChartsLineDash &strokeDash=CQChartsLineDash()) const;
+
+  void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(), double fillAlpha=1.0,
+                const CQChartsFillPattern &pattern=CQChartsFillPattern()) const;
+
+  void updatePenBrushState(QPen &pen, QBrush &brush, DrawType drawType=DrawType::BOX) const;
+
+  //---
+
   //! draw
   virtual void draw(QPainter *painter);
 
@@ -157,6 +195,24 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //! get parent view
   CQChartsView *view() const;
+
+  //---
+
+  QPointF positionToParent(const CQChartsPosition &pos) const;
+
+  double lengthParentWidth (const CQChartsLength &len) const;
+  double lengthParentHeight(const CQChartsLength &len) const;
+
+  double lengthPixelWidth (const CQChartsLength &len) const;
+  double lengthPixelHeight(const CQChartsLength &len) const;
+
+  CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &w) const;
+  CQChartsGeom::BBox  windowToPixel(const CQChartsGeom::BBox  &w) const;
+
+  double pixelToWindowWidth (double pw) const;
+  double pixelToWindowHeight(double ph) const;
+
+  QColor backgroundColor() const;
 
   //---
 
@@ -192,6 +248,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
  protected:
   Type                 type_        { Type::NONE }; //!< type
   int                  ind_         { 0 };          //!< unique ind
+  bool                 checkable_   { false };      //!< is checkable
+  bool                 checked_     { false };      //!< is checked
   CQChartsGeom::BBox   bbox_;                       //!< bbox (plot coords)
   CQChartsEditHandles* editHandles_ { nullptr };    //!< edit handles
 };
@@ -200,6 +258,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
 /*!
  * \brief rectangle annotation
+ * \ingroup Charts
  */
 class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -247,6 +306,7 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
 
 /*!
  * \brief ellipse annotation
+ * \ingroup Charts
  */
 class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -298,6 +358,7 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
 /*!
  * \brief polygon annotation
+ * \ingroup Charts
  */
 class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -337,6 +398,7 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
 
 /*!
  * \brief polyline annotation
+ * \ingroup Charts
  */
 class CQChartsPolylineAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -376,6 +438,7 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
 
 /*!
  * \brief text annotation
+ * \ingroup Charts
  */
 class CQChartsTextAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -450,10 +513,90 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
 //---
 
+/*!
+ * \brief image annotation
+ * \ingroup Charts
+ */
+class CQChartsImageAnnotation : public CQChartsAnnotation {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsOptPosition position  READ position WRITE setPosition)
+  Q_PROPERTY(CQChartsOptRect     rectangle READ rect     WRITE setRect    )
+
+ public:
+  CQChartsImageAnnotation(CQChartsView *view, const CQChartsPosition &p=CQChartsPosition(),
+                         const QImage &image=QImage());
+  CQChartsImageAnnotation(CQChartsPlot *plot, const CQChartsPosition &p=CQChartsPosition(),
+                         const QImage &image=QImage());
+
+  CQChartsImageAnnotation(CQChartsView *view, const CQChartsRect &r=CQChartsRect(),
+                         const QImage &image=QImage());
+  CQChartsImageAnnotation(CQChartsPlot *plot, const CQChartsRect &r=CQChartsRect(),
+                         const QImage &image=QImage());
+
+  virtual ~CQChartsImageAnnotation();
+
+  const char *typeName() const override { return "image"; }
+
+  const CQChartsOptPosition &position() const { return position_; }
+  void setPosition(const CQChartsOptPosition &p);
+
+  CQChartsPosition positionValue() const;
+  void setPosition(const CQChartsPosition &p);
+
+  const CQChartsOptRect &rect() const { return rect_; }
+  void setRect(const CQChartsOptRect &r);
+
+  CQChartsRect rectValue() const;
+  void setRect(const CQChartsRect &r);
+
+  //---
+
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
+
+  QString propertyId() const override;
+
+  //---
+
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+
+  bool inside(const CQChartsGeom::Point &p) const override;
+
+  void draw(QPainter *painter) override;
+
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
+
+  //---
+
+  void initRect() override;
+
+ private:
+  void init(const QImage &image);
+
+  void calcImageSize(QSizeF &psize, QSizeF &wsize) const;
+
+  void positionToLL(double w, double h, double &x, double &y) const;
+
+  void rectToBBox();
+
+  void positionToBBox();
+
+ private:
+  CQChartsOptPosition position_;      //!< image position
+  CQChartsOptRect     rect_;          //!< image bounding rect
+  QImage              image_;         //!< image
+  QImage              disabledImage_; //!< disabled image
+};
+
+//---
+
 class CQChartsArrow;
 
 /*!
  * \brief arrow annotation
+ * \ingroup Charts
  */
 class CQChartsArrowAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -508,6 +651,7 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
 /*!
  * \brief point annotation
+ * \ingroup Charts
  */
 class CQChartsPointAnnotation : public CQChartsAnnotation,
  public CQChartsObjPointData<CQChartsPointAnnotation> {

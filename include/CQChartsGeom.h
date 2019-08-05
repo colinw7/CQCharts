@@ -247,6 +247,7 @@ namespace CQChartsGeom {
 
 /*!
  * \brief Range class
+ * \ingroup Charts
  *
  * TODO: enforce min/max order always ? Same as BBox
  */
@@ -440,6 +441,7 @@ namespace CQChartsGeom {
 
 /*!
  * \brief Bounding Box class
+ * \ingroup Charts
  */
 class BBox {
  public:
@@ -1037,6 +1039,7 @@ namespace CQChartsGeom {
 
 /*!
  * \brief Minumum/Maximum class
+ * \ingroup Charts
  */
 template<typename T>
 class MinMax {
@@ -1089,6 +1092,7 @@ namespace CQChartsGeom {
 
 /*!
  * \brief Matrix class
+ * \ingroup Charts
  * / a b tx \
  * | c d ty |
  * \ 0 0 1  /

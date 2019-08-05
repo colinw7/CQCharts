@@ -6,7 +6,10 @@
 
 #include <boost/optional.hpp>
 
-//! \brief Optional position
+/*!
+ * \brief Optional position
+ * \ingroup Charts
+ */
 class CQChartsOptPosition {
  public:
   static void registerMetaType();

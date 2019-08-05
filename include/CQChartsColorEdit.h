@@ -8,6 +8,7 @@ class CQChartsColorEdit;
 
 /*!
  * \brief Color line edit
+ * \ingroup Charts
  */
 class CQChartsColorLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
@@ -56,6 +57,7 @@ class QSpinBox;
 
 /*!
  * \brief Color edit
+ * \ingroup Charts
  */
 class CQChartsColorEdit : public CQChartsEditBase {
   Q_OBJECT
@@ -99,6 +101,7 @@ class CQChartsColorEdit : public CQChartsEditBase {
 
 /*!
  * \brief type for CQChartsColor
+ * \ingroup Charts
  */
 class CQChartsColorPropertyViewType : public CQPropertyViewType {
  public:
@@ -123,6 +126,7 @@ class CQChartsColorPropertyViewType : public CQPropertyViewType {
 
 /*!
  * \brief editor factory for CQChartsColor
+ * \ingroup Charts
  */
 class CQChartsColorPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:

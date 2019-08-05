@@ -8,6 +8,7 @@ class CQChartsFontEdit;
 
 /*!
  * \brief Font line edit
+ * \ingroup Charts
  */
 class CQChartsFontLineEdit : public CQChartsLineEditBase {
   Q_OBJECT
@@ -54,6 +55,7 @@ class QComboBox;
 
 /*!
  * \brief Font edit
+ * \ingroup Charts
  */
 class CQChartsFontEdit : public CQChartsEditBase {
   Q_OBJECT
@@ -96,7 +98,10 @@ class CQChartsFontEdit : public CQChartsEditBase {
 
 #include <CQPropertyViewType.h>
 
-//! \brief type for CQChartsFont
+/*!
+ * \brief type for CQChartsFont
+ * \ingroup Charts
+ */
 class CQChartsFontPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsFontPropertyViewType();
@@ -118,7 +123,10 @@ class CQChartsFontPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-//! \brief editor factory for CQChartsFont
+/*!
+ * \brief editor factory for CQChartsFont
+ * \ingroup Charts
+ */
 class CQChartsFontPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsFontPropertyViewEditor();

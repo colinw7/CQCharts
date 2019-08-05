@@ -6,6 +6,7 @@
 
 /*!
  * \brief class to contain color stop values
+ * \ingroup Charts
  */
 class CQChartsColorStops {
  public:

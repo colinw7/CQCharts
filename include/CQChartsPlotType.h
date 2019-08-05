@@ -17,6 +17,7 @@ class CQChartsModelColumnDetails;
 
 /*!
  * \brief Plot Type manager
+ * \ingroup Charts
  */
 class CQChartsPlotTypeMgr {
  public:
@@ -46,6 +47,7 @@ class CQChartsPlotTypeMgr {
 
 /*!
  * \brief Plot Type base class
+ * \ingroup Charts
  */
 class CQChartsPlotType : public QObject {
   Q_OBJECT

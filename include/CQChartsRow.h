@@ -3,6 +3,7 @@
 
 /*!
  * \brief Model row class
+ * \ingroup Charts
  */
 class CQChartsRow {
  public:

@@ -11,6 +11,7 @@
 
 /*!
  * \brief Tree Map Plot Type
+ * \ingroup Charts
  */
 class CQChartsTreeMapPlotType : public CQChartsHierPlotType {
  public:
@@ -45,6 +46,7 @@ class CQChartsTreeMapHierNode;
 
 /*!
  * \brief Tree Map Node
+ * \ingroup Charts
  */
 class CQChartsTreeMapNode {
  private:
@@ -152,7 +154,10 @@ struct CQChartsTreeMapNodeCmp {
 
 //---
 
-//! \brief Tree Map Hier Node
+/*!
+ * \brief Tree Map Hier Node
+ * \ingroup Charts
+ */
 class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
  public:
   using Nodes    = std::vector<CQChartsTreeMapNode*>;
@@ -228,6 +233,7 @@ class CQChartsTreeMapHierObj;
 
 /*!
  * \brief Tree Map Plot Node object
+ * \ingroup Charts
  */
 class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -274,7 +280,10 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
 //---
 
-//! \brief Tree Map Hier Box Object
+/*!
+ * \brief Tree Map Hier Box Object
+ * \ingroup Charts
+ */
 class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
  public:
   CQChartsTreeMapHierObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
@@ -303,6 +312,7 @@ CQCHARTS_NAMED_SHAPE_DATA(Header,header)
 
 /*!
  * \brief Tree Map Plot
+ * \ingroup Charts
  */
 class CQChartsTreeMapPlot : public CQChartsHierPlot,
  public CQChartsObjHeaderShapeData<CQChartsTreeMapPlot>,

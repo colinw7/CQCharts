@@ -6,6 +6,7 @@
 
 /*!
  * \brief analyze a file to auto determine file type and format
+ * \ingroup Charts
  */
 class CQChartsAnalyzeFile {
  public:

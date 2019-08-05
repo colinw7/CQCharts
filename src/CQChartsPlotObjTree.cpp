@@ -2,6 +2,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsPlot.h>
 #include <CQPerfMonitor.h>
+#include <QPainter>
 #include <future>
 
 CQChartsPlotObjTree::
@@ -111,6 +112,9 @@ waitTree() const
     th->plotObjTree_ = th->plotObjTreeFuture_.get();
 
     assert(! th->plotObjTreeFuture_.valid());
+
+    if (plotObjTree_)
+      plot_->setPlotObjTreeSet(true);
   }
 
   return plotObjTree_;
@@ -178,4 +182,36 @@ objectNearest(const CQChartsGeom::Point &p, double searchX, double searchY,
   }
 
   return obj;
+}
+
+CQChartsGeom::BBox
+CQChartsPlotObjTree::
+findEmptyBBox(double w, double h) const
+{
+  if (! waitTree())
+    return CQChartsGeom::BBox();
+
+  CQChartsGeom::BBox rect = plotObjTree_->fitRect(w, h);
+
+  return rect;
+}
+
+void
+CQChartsPlotObjTree::
+draw(QPainter *painter)
+{
+  if (! waitTree()) return;
+
+  auto drawRect = [&](const CQChartsGeom::BBox &bbox, int n) {
+    CQChartsGeom::BBox pbbox = plot_->windowToPixel(bbox);
+
+    double g = 1.0 - std::min(std::max((n/16.0), 0.0), 1.0);
+
+    painter->setPen  (Qt::black);
+    painter->setBrush(QColor(g*255, g*255, g*255));
+
+    painter->drawRect(pbbox.qrect());
+  };
+
+  plotObjTree_->processRect(drawRect);
 }

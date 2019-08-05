@@ -1,8 +1,8 @@
 #include <CQChartsBoxObj.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsDrawUtil.h>
 #include <CQCharts.h>
-#include <CQChartsRoundedPolygon.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -120,7 +120,7 @@ draw(QPainter *painter, const QRectF &rect) const
     double cxs = (plot() ? plot()->lengthPixelWidth (cornerSize()) : 0.0);
     double cys = (plot() ? plot()->lengthPixelHeight(cornerSize()) : 0.0);
 
-    CQChartsRoundedPolygon::draw(painter, rect, cxs, cys, borderSides());
+    CQChartsDrawUtil::drawRoundedPolygon(painter, rect, cxs, cys, borderSides());
   }
 
   if (isStroked()) {
@@ -151,7 +151,7 @@ draw(QPainter *painter, const QRectF &rect) const
     double cxs = (plot() ? plot()->lengthPixelWidth (cornerSize()) : 0.0);
     double cys = (plot() ? plot()->lengthPixelHeight(cornerSize()) : 0.0);
 
-    CQChartsRoundedPolygon::draw(painter, rect, cxs, cys, borderSides());
+    CQChartsDrawUtil::drawRoundedPolygon(painter, rect, cxs, cys, borderSides());
   }
 }
 
@@ -186,7 +186,7 @@ draw(QPainter *painter, const QPolygonF &poly) const
     double cxs = (plot() ? plot()->lengthPixelWidth (cornerSize()) : 0.0);
     double cys = (plot() ? plot()->lengthPixelHeight(cornerSize()) : 0.0);
 
-    CQChartsRoundedPolygon::draw(painter, poly, cxs, cys);
+    CQChartsDrawUtil::drawRoundedPolygon(painter, poly, cxs, cys);
   }
 
   if (isStroked()) {
@@ -206,6 +206,6 @@ draw(QPainter *painter, const QPolygonF &poly) const
     double cxs = (plot() ? plot()->lengthPixelWidth (cornerSize()) : 0.0);
     double cys = (plot() ? plot()->lengthPixelHeight(cornerSize()) : 0.0);
 
-    CQChartsRoundedPolygon::draw(painter, poly, cxs, cys);
+    CQChartsDrawUtil::drawRoundedPolygon(painter, poly, cxs, cys);
   }
 }

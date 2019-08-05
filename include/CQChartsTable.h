@@ -7,13 +7,14 @@
 
 class CQCharts;
 class CQChartsTableDelegate;
-class CQChartsTableSelectionModel;
+class CQChartsSelectionModel;
 class CQChartsModelExprMatch;
 class CQChartsModelData;
 class CQChartsModelDetails;
 
 /*!
  * \brief Charts Table View class
+ * \ingroup Charts
  */
 class CQChartsTable : public CQTableView {
   Q_OBJECT
@@ -83,14 +84,14 @@ class CQChartsTable : public CQTableView {
  private:
   using Matches = std::vector<QString>;
 
-  CQCharts*                    charts_       { nullptr };
-  ModelP                       model_;
-  CQChartsTableSelectionModel* sm_           { nullptr };
-  CQChartsTableDelegate*       delegate_     { nullptr };
-  CQChartsModelData*           modelData_    { nullptr };
-  bool                         isExprFilter_ { true };
-  CQChartsModelExprMatch*      match_        { nullptr };
-  Matches                      matches_;
+  CQCharts*               charts_       { nullptr };
+  ModelP                  model_;
+  CQChartsSelectionModel* sm_           { nullptr };
+  CQChartsTableDelegate*  delegate_     { nullptr };
+  CQChartsModelData*      modelData_    { nullptr };
+  bool                    isExprFilter_ { true };
+  CQChartsModelExprMatch* match_        { nullptr };
+  Matches                 matches_;
 };
 
 #endif

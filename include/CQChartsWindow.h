@@ -20,6 +20,7 @@ class QStackedWidget;
 
 /*!
  * \brief Class to manage created windows
+ * \ingroup Charts
  */
 class CQChartsWindowMgr {
  public:
@@ -45,6 +46,7 @@ class CQChartsWindowMgr {
 
 /*!
  * \brief Widget to hold view and associated controls
+ * \ingroup Charts
  */
 class CQChartsWindow : public QFrame {
   Q_OBJECT
@@ -141,6 +143,7 @@ class CQChartsWindow : public QFrame {
 
 /*!
  * \brief Range scroll control for window
+ * \ingroup Charts
  */
 class CQChartsWindowRangeScroll : public CQRangeScroll {
   Q_OBJECT

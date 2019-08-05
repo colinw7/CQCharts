@@ -6,11 +6,13 @@
 #include <QSharedPointer>
 
 class CQCharts;
-class CQChartsTreeSelectionModel;
+class CQChartsSelectionModel;
+class CQChartsModelData;
 class CQChartsModelDetails;
 
 /*!
  * \brief Charts Tree View class
+ * \ingroup Charts
  */
 class CQChartsTree : public CQTreeView {
   Q_OBJECT
@@ -20,6 +22,9 @@ class CQChartsTree : public CQTreeView {
 
  public:
   CQChartsTree(CQCharts *charts, QWidget *parent=nullptr);
+ ~CQChartsTree();
+
+  CQCharts *charts() const { return charts_; }
 
   ModelP modelP() const { return model_; }
   void setModelP(const ModelP &model);
@@ -33,7 +38,18 @@ class CQChartsTree : public CQTreeView {
  private:
   void addMenuActions(QMenu *menu) override;
 
+  CQChartsModelData *getModelData();
+
+ signals:
+  void columnClicked(int);
+
+  void filterChanged();
+
+  void selectionChanged();
+
  private slots:
+  void modelTypeChangedSlot(int);
+
   void headerClickedSlot(int section);
   void itemClickedSlot(const QModelIndex &);
 
@@ -43,17 +59,13 @@ class CQChartsTree : public CQTreeView {
 
   void exportSlot(QAction *action);
 
- signals:
-  void columnClicked(int);
-
-  void filterChanged();
-
-  void selectionChanged();
+  void resetModelData();
 
  private:
-  CQCharts*                   charts_ { nullptr };
-  ModelP                      model_;
-  CQChartsTreeSelectionModel* sm_     { nullptr };
+  CQCharts*               charts_    { nullptr };
+  ModelP                  model_;
+  CQChartsSelectionModel* sm_        { nullptr };
+  CQChartsModelData*      modelData_ { nullptr };
 };
 
 #endif

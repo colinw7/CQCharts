@@ -11,6 +11,7 @@ class CQChartsDataLabel;
 
 /*!
  * \brief Hierarchical Scatter plot type
+ * \ingroup Charts
  */
 class CQChartsHierScatterPlotType : public CQChartsPlotType {
  public:
@@ -57,6 +58,7 @@ using CQChartsHierScatterPoints = std::vector<CQChartsHierScatterPoint>;
 
 /*!
  * \brief Hierarchical Scatter plot point group
+ * \ingroup Charts
  */
 class CQChartsHierScatterPointGroup {
  public:
@@ -164,6 +166,7 @@ class CQChartsHierScatterPointGroup {
 
 /*!
  * \brief Hierarchical Scatter Plot Point object
+ * \ingroup Charts
  */
 class CQChartsHierScatterPointObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -203,6 +206,7 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
 
 /*!
  * \brief Hierarchical Scatter Plot Key Color Box
+ * \ingroup Charts
  */
 class CQChartsHierScatterKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
@@ -223,6 +227,7 @@ class CQChartsHierScatterKeyColor : public CQChartsKeyColorBox {
 
 /*!
  * \brief Hierarchical Scatter Plot
+ * \ingroup Charts
  */
 class CQChartsHierScatterPlot : public CQChartsPlot,
  public CQChartsObjPointData<CQChartsHierScatterPlot> {

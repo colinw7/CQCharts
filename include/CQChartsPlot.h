@@ -23,7 +23,6 @@
 #include <CHRTime.h>
 
 #include <QAbstractItemModel>
-#include <QItemSelection>
 #include <QFrame>
 #include <QTimer>
 #include <QPointer>
@@ -46,13 +45,14 @@ class CQChartsPlotObj;
 class CQChartsPlotObjTree;
 class CQChartsKeyColorBox;
 class CQChartsAnnotation;
-class CQChartsTextAnnotation;
 class CQChartsArrowAnnotation;
-class CQChartsRectangleAnnotation;
 class CQChartsEllipseAnnotation;
+class CQChartsImageAnnotation;
+class CQChartsPointAnnotation;
 class CQChartsPolygonAnnotation;
 class CQChartsPolylineAnnotation;
-class CQChartsPointAnnotation;
+class CQChartsRectangleAnnotation;
+class CQChartsTextAnnotation;
 class CQChartsPlotParameter;
 class CQChartsObj;
 class CQChartsDisplayRange;
@@ -73,7 +73,10 @@ class QMenu;
 
 //----
 
-//! \brief Update plot timer
+/*!
+ * \brief Update plot timer
+ * \ingroup Charts
+ */
 class CQChartsPlotUpdateTimer : public QTimer {
  public:
   CQChartsPlotUpdateTimer(CQChartsPlot *plot) :
@@ -95,6 +98,7 @@ CQCHARTS_NAMED_SHAPE_DATA(Fit,fit)
 
 /*!
  * \brief Base class for Plot
+ * \ingroup Charts
  */
 class CQChartsPlot : public CQChartsObj,
  public CQChartsObjPlotShapeData<CQChartsPlot>,
@@ -314,9 +318,6 @@ class CQChartsPlot : public CQChartsObj,
 
   ModelP model() const { return model_; }
   void setModel(const ModelP &model);
-
-  void setSelectionModel(QItemSelectionModel *sm);
-  QItemSelectionModel *selectionModel() const;
 
   //---
 
@@ -1080,13 +1081,19 @@ class CQChartsPlot : public CQChartsObj,
  public:
   virtual CQChartsGeom::Range calcRange() const = 0;
 
-  virtual void postUpdateObjs() { }
+  virtual void postUpdateRange() { }
 
   // update plot objects (clear objects, objects updated on next redraw)
   void updateGroupedObjs();
 
   // reset range and objects
   void clearRangeAndObjs();
+
+  virtual void postUpdateObjs() { }
+
+  virtual void postDraw() { }
+
+  virtual void postObjTree() { }
 
  private:
   // recalc range and clear objects (objects updated on next redraw)
@@ -1190,6 +1197,10 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  CQChartsGeom::BBox findEmptyBBox(double w, double h) const;
+
+  //---
+
   CQChartsGeom::BBox calcDataRange(bool adjust=true) const;
 
   CQChartsGeom::BBox getDataRange() const;
@@ -1233,6 +1244,9 @@ class CQChartsPlot : public CQChartsObj,
 
   bool isNoData() const { return noData_; }
   void setNoData(bool b) { noData_ = b; }
+
+  bool isPlotObjTreeSet() const { return plotObjTreeSet_; }
+  void setPlotObjTreeSet(bool b);
 
   //---
 
@@ -1451,20 +1465,24 @@ class CQChartsPlot : public CQChartsObj,
 
   const Annotations &annotations() const { return annotations_; }
 
+  CQChartsArrowAnnotation     *addArrowAnnotation    (const CQChartsPosition &start,
+                                                      const CQChartsPosition &end);
+  CQChartsEllipseAnnotation   *addEllipseAnnotation  (const CQChartsPosition &center,
+                                                      const CQChartsLength &xRadius,
+                                                      const CQChartsLength &yRadius);
+  CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsPosition &pos,
+                                                      const QImage &image);
+  CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsRect &rect,
+                                                      const QImage &image);
+  CQChartsPointAnnotation     *addPointAnnotation    (const CQChartsPosition &pos,
+                                                      const CQChartsSymbol &type);
+  CQChartsPolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
+  CQChartsPolylineAnnotation  *addPolylineAnnotation (const CQChartsPolygon &polygon);
+  CQChartsRectangleAnnotation *addRectangleAnnotation(const CQChartsRect &rect);
   CQChartsTextAnnotation      *addTextAnnotation     (const CQChartsPosition &pos,
                                                       const QString &text);
   CQChartsTextAnnotation      *addTextAnnotation     (const CQChartsRect &rect,
                                                       const QString &text);
-  CQChartsArrowAnnotation     *addArrowAnnotation    (const CQChartsPosition &start,
-                                                      const CQChartsPosition &end);
-  CQChartsRectangleAnnotation *addRectangleAnnotation(const CQChartsRect &rect);
-  CQChartsEllipseAnnotation   *addEllipseAnnotation  (const CQChartsPosition &center,
-                                                      const CQChartsLength &xRadius,
-                                                      const CQChartsLength &yRadius);
-  CQChartsPolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
-  CQChartsPolylineAnnotation  *addPolylineAnnotation (const CQChartsPolygon &polygon);
-  CQChartsPointAnnotation     *addPointAnnotation    (const CQChartsPosition &pos,
-                                                      const CQChartsSymbol &type);
 
   void addAnnotation(CQChartsAnnotation *annotation);
 
@@ -1838,7 +1856,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void selectionSlot();
+  void selectionSlot(QItemSelectionModel *sm);
 
   void updateAnnotationSlot();
 
@@ -1905,6 +1923,8 @@ class CQChartsPlot : public CQChartsObj,
  protected:
   void connectModel();
   void disconnectModel();
+
+  void connectDisconnectModel(bool connectDisconnect);
 
   //---
 
@@ -2140,7 +2160,6 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsPlotType*            type_             { nullptr };    //!< plot type data
   ModelP                       model_;                           //!< abstract model
   bool                         modelNameSet_     { false };      //!< model name set from plot
-  SelectionModelP              selectionModel_;                  //!< selection model
   CQPropertyViewModel*         propertyModel_    { nullptr };    //!< property model
   bool                         visible_          { true };       //!< is visible
   CQChartsGeom::BBox           viewBBox_         { 0, 0, 1, 1 }; //!< view box
@@ -2199,13 +2218,16 @@ class CQChartsPlot : public CQChartsObj,
   bool                         invertY_          { false };      //!< y values inverted
   bool                         noData_           { false };      //!< is no data
   bool                         debugUpdate_      { false };      //!< debug update
+  bool                         debugQuadTree_    { false };      //!< debug quad tree
   ConnectData                  connectData_;                     //!< associated plot data
   PlotObjs                     plotObjs_;                        //!< plot objects
   int                          insideInd_        { 0 };          //!< current inside object ind
   ObjSet                       insideObjs_;                      //!< inside plot objects
   SizeObjSet                   sizeInsideObjs_;                  //!< inside plot objects
                                                                  //!< (size sorted)
-  CQChartsPlotObjTree*         plotObjTree_      { nullptr };    //!< plot object quad tree
+  CQChartsPlotObjTree*         plotObjTree_       { nullptr };   //!< plot object quad tree
+  bool                         plotObjTreeSet_    { false };     //!< is plot object quad tree set
+  bool                         plotObjTreeNotify_ { false };     //!< is plot object quad tree set
   UpdateData                   updateData_;                      //!< update data
   MouseData                    mouseData_;                       //!< mouse event data
   AnimateData                  animateData_;                     //!< animation data
@@ -2214,7 +2236,6 @@ class CQChartsPlot : public CQChartsObj,
   mutable CQChartsBuffer::Type drawBuffer_;                      //!< objects draw buffer
   IdHidden                     idHidden_;                        //!< hidden object ids
   IndexColumnRows              selIndexColumnRows_;              //!< sel model indices (by col/row)
-  QItemSelection               itemSelection_;                   //!< selected model indices
   CQChartsEditHandles*         editHandles_      { nullptr };    //!< edit controls
   bool                         editing_          { false };      //!< is editing
   Annotations                  annotations_;                     //!< extra annotations

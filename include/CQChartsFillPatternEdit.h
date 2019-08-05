@@ -4,7 +4,10 @@
 #include <CQChartsFillPattern.h>
 #include <CQChartsEnumEdit.h>
 
-//! \brief editor for CQChartsFillPattern
+/*!
+ * \brief editor for CQChartsFillPattern
+ * \ingroup Charts
+ */
 class CQChartsFillPatternEdit : public CQChartsEnumEdit {
   Q_OBJECT
 
@@ -36,7 +39,10 @@ class CQChartsFillPatternEdit : public CQChartsEnumEdit {
 
 //------
 
-//! \brief type for CQChartsFillPattern
+/*!
+ * \brief type for CQChartsFillPattern
+ * \ingroup Charts
+ */
 class CQChartsFillPatternPropertyViewType : public CQChartsEnumPropertyViewType {
  public:
   CQPropertyViewEditorFactory *getEditor() const override;
@@ -46,7 +52,10 @@ class CQChartsFillPatternPropertyViewType : public CQChartsEnumPropertyViewType 
 
 //---
 
-//! \brief editor factory for CQChartsFillPattern
+/*!
+ * \brief editor factory for CQChartsFillPattern
+ * \ingroup Charts
+ */
 class CQChartsFillPatternPropertyViewEditorFactory :
   public CQChartsEnumPropertyViewEditorFactory {
  public:

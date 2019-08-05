@@ -1,6 +1,6 @@
 #include <CQChartsBoxWhisker.h>
 #include <CQChartsPlot.h>
-#include <CQChartsRoundedPolygon.h>
+#include <CQChartsDrawUtil.h>
 #include <QPainter>
 
 namespace CQChartsBoxWhiskerUtil {
@@ -53,7 +53,7 @@ drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsStatData 
 
   QRectF rect(p2.x, p2.y, p4.x - p2.x, p4.y - p2.y);
 
-  CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
+  CQChartsDrawUtil::drawRoundedPolygon(painter, rect, cxs, cys);
 
   if (orientation == Qt::Horizontal) {
     painter->drawLine(p1.x, p1.y, p1.x, p5.y);
@@ -120,7 +120,7 @@ drawWhiskerBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsStatDa
     double cxs = plot->lengthPixelWidth (cornerSize);
     double cys = plot->lengthPixelHeight(cornerSize);
 
-    CQChartsRoundedPolygon::draw(painter, prect, cxs, cys);
+    CQChartsDrawUtil::drawRoundedPolygon(painter, prect, cxs, cys);
   }
 
   //---

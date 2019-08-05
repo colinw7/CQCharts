@@ -5,7 +5,10 @@
 
 namespace CQChartsRand {
 
-//! \brief Integer in range
+/*!
+ * \brief Integer in range
+ * \ingroup Charts
+ */
 class IntInRange {
  public:
   IntInRange(int min, int max) :
@@ -22,7 +25,10 @@ class IntInRange {
   std::uniform_int_distribution<int> idis_;
 };
 
-//! \brief Real in range
+/*!
+ * \brief Real in range
+ * \ingroup Charts
+ */
 class RealInRange {
  public:
   RealInRange(double min, double max) :
@@ -40,7 +46,10 @@ class RealInRange {
   std::uniform_real_distribution<double> rdis_; //!< uniform distribution
 };
 
-//! \brief Normalized Real
+/*!
+ * \brief Normalized Real
+ * \ingroup Charts
+ */
 class NormalRealInRange {
  public:
   NormalRealInRange(double mean, double stddev) :

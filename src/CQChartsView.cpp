@@ -93,11 +93,16 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   setFocusPolicy(Qt::StrongFocus);
 
-  setBackgroundFillColor(CQChartsColor(Qt::white));
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+  setBackgroundFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.0));
 
   //---
 
   bufferLayers_ = CQChartsEnv::getBool("CQ_CHARTS_BUFFER_LAYERS", bufferLayers_);
+
+  objectsBuffer_ = new CQChartsBuffer;
+  overlayBuffer_ = new CQChartsBuffer;
 
   //---
 
@@ -176,6 +181,9 @@ CQChartsView::
     charts_->removeView(this);
 
   //---
+
+  delete objectsBuffer_;
+  delete overlayBuffer_;
 
   delete ipainter_;
   delete image_;
@@ -1024,28 +1032,6 @@ hideProperty(const QString &path, QObject *object)
 
 //---
 
-CQChartsTextAnnotation *
-CQChartsView::
-addTextAnnotation(const CQChartsPosition &pos, const QString &text)
-{
-  CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, pos, text);
-
-  addAnnotation(textAnnotation);
-
-  return textAnnotation;
-}
-
-CQChartsTextAnnotation *
-CQChartsView::
-addTextAnnotation(const CQChartsRect &rect, const QString &text)
-{
-  CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, rect, text);
-
-  addAnnotation(textAnnotation);
-
-  return textAnnotation;
-}
-
 CQChartsArrowAnnotation *
 CQChartsView::
 addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
@@ -1055,17 +1041,6 @@ addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
   addAnnotation(arrowAnnotation);
 
   return arrowAnnotation;
-}
-
-CQChartsRectangleAnnotation *
-CQChartsView::
-addRectangleAnnotation(const CQChartsRect &rect)
-{
-  CQChartsRectangleAnnotation *rectangleAnnotation = new CQChartsRectangleAnnotation(this, rect);
-
-  addAnnotation(rectangleAnnotation);
-
-  return rectangleAnnotation;
 }
 
 CQChartsEllipseAnnotation *
@@ -1079,6 +1054,39 @@ addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadi
   addAnnotation(ellipseAnnotation);
 
   return ellipseAnnotation;
+}
+
+CQChartsImageAnnotation *
+CQChartsView::
+addImageAnnotation(const CQChartsPosition &pos, const QImage &image)
+{
+  CQChartsImageAnnotation *imageAnnotation = new CQChartsImageAnnotation(this, pos, image);
+
+  addAnnotation(imageAnnotation);
+
+  return imageAnnotation;
+}
+
+CQChartsImageAnnotation *
+CQChartsView::
+addImageAnnotation(const CQChartsRect &rect, const QImage &image)
+{
+  CQChartsImageAnnotation *imageAnnotation = new CQChartsImageAnnotation(this, rect, image);
+
+  addAnnotation(imageAnnotation);
+
+  return imageAnnotation;
+}
+
+CQChartsPointAnnotation *
+CQChartsView::
+addPointAnnotation(const CQChartsPosition &pos, const CQChartsSymbol &type)
+{
+  CQChartsPointAnnotation *pointAnnotation = new CQChartsPointAnnotation(this, pos, type);
+
+  addAnnotation(pointAnnotation);
+
+  return pointAnnotation;
 }
 
 CQChartsPolygonAnnotation *
@@ -1103,15 +1111,37 @@ addPolylineAnnotation(const CQChartsPolygon &points)
   return polyAnnotation;
 }
 
-CQChartsPointAnnotation *
+CQChartsRectangleAnnotation *
 CQChartsView::
-addPointAnnotation(const CQChartsPosition &pos, const CQChartsSymbol &type)
+addRectangleAnnotation(const CQChartsRect &rect)
 {
-  CQChartsPointAnnotation *pointAnnotation = new CQChartsPointAnnotation(this, pos, type);
+  CQChartsRectangleAnnotation *rectangleAnnotation = new CQChartsRectangleAnnotation(this, rect);
 
-  addAnnotation(pointAnnotation);
+  addAnnotation(rectangleAnnotation);
 
-  return pointAnnotation;
+  return rectangleAnnotation;
+}
+
+CQChartsTextAnnotation *
+CQChartsView::
+addTextAnnotation(const CQChartsPosition &pos, const QString &text)
+{
+  CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, pos, text);
+
+  addAnnotation(textAnnotation);
+
+  return textAnnotation;
+}
+
+CQChartsTextAnnotation *
+CQChartsView::
+addTextAnnotation(const CQChartsRect &rect, const QString &text)
+{
+  CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, rect, text);
+
+  addAnnotation(textAnnotation);
+
+  return textAnnotation;
 }
 
 void
@@ -1308,7 +1338,7 @@ removePlot(CQChartsPlot *plot)
 
   std::swap(plots, plots_);
 
-  if (mouseData_.plot == plot)
+  if (mousePlot() == plot)
     mouseData_.reset();
 
   delete plot;
@@ -1844,13 +1874,13 @@ mousePressEvent(QMouseEvent *me)
   mouseData_.selMod     = modifiersToSelMod(me->modifiers());
   mouseData_.clickMod   = modifiersToClickMod(me->modifiers());
 
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseData_.pressPoint)));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mousePressPoint())));
 
   plotsAt(w, mouseData_.plots, mouseData_.plot);
 
   //---
 
-  if (mouseData_.button == Qt::LeftButton) {
+  if (mouseButton() == Qt::LeftButton) {
     if      (mode() == Mode::SELECT) {
       selectMousePress();
     }
@@ -1867,9 +1897,9 @@ mousePressEvent(QMouseEvent *me)
       (void) editMousePress();
     }
   }
-  else if (mouseData_.button == Qt::MiddleButton) {
+  else if (mouseButton() == Qt::MiddleButton) {
   }
-  else if (mouseData_.button == Qt::RightButton) {
+  else if (mouseButton() == Qt::RightButton) {
     mouseData_.pressed    = false;
     mouseData_.pressPoint = me->globalPos();
 
@@ -1886,11 +1916,11 @@ mouseMoveEvent(QMouseEvent *me)
   if (isPreview())
     return;
 
-  mouseData_.oldMovePoint = mouseData_.movePoint;
+  mouseData_.oldMovePoint = mouseMovePoint();
   mouseData_.movePoint    = adjustMousePos(me->pos());
 
   // select mode and move (not pressed) - update plot positions
-  if (mode() == Mode::SELECT && ! mouseData_.pressed) {
+  if (mode() == Mode::SELECT && ! mousePressed()) {
     selectMouseMotion();
     return;
   }
@@ -1898,27 +1928,27 @@ mouseMoveEvent(QMouseEvent *me)
   //---
 
   if (mode() == Mode::ZOOM) {
-    updatePosText(mouseData_.movePoint);
+    updatePosText(mouseMovePoint());
   }
 
   //---
 
   // probe mode and move (pressed or not pressed) - show probe lines
   if (mode() == Mode::PROBE) {
-    showProbeLines(mouseData_.movePoint);
+    showProbeLines(mouseMovePoint());
     return;
   }
 
   //---
 
   if (mode() == Mode::QUERY) {
-    updatePosText(mouseData_.movePoint);
+    updatePosText(mouseMovePoint());
     return;
   }
 
   //---
 
-  if (! mouseData_.pressed) {
+  if (! mousePressed()) {
     if (mode() == Mode::EDIT)
       editMouseMotion();
 
@@ -1926,18 +1956,18 @@ mouseMoveEvent(QMouseEvent *me)
   }
 
   // get plots at point
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseData_.movePoint)));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseMovePoint())));
 
   plotsAt(w, mouseData_.plots, mouseData_.plot);
 
   //---
 
-  if      (mouseData_.button == Qt::LeftButton) {
+  if      (mouseButton() == Qt::LeftButton) {
     // select plot object
     if      (mode() == Mode::SELECT) {
       selectMouseMove();
 
-      searchPos_ = mouseData_.movePoint;
+      searchPos_ = mouseMovePoint();
     }
     // draw zoom rectangle
     else if (mode() == Mode::ZOOM) {
@@ -1950,12 +1980,12 @@ mouseMoveEvent(QMouseEvent *me)
       (void) editMouseMove();
     }
   }
-  else if (mouseData_.button == Qt::MiddleButton) {
-    if (! mouseData_.pressed)
+  else if (mouseButton() == Qt::MiddleButton) {
+    if (! mousePressed())
       return;
   }
-  else if (mouseData_.button == Qt::RightButton) {
-    if (! mouseData_.pressed)
+  else if (mouseButton() == Qt::RightButton) {
+    if (! mousePressed())
       return;
   }
 }
@@ -1967,22 +1997,22 @@ mouseReleaseEvent(QMouseEvent *me)
   if (isPreview())
     return;
 
-  mouseData_.oldMovePoint = mouseData_.movePoint;
+  mouseData_.oldMovePoint = mouseMovePoint();
   mouseData_.movePoint    = adjustMousePos(me->pos());
 
   CQChartsScopeGuard resetMouseData([&]() { mouseData_.reset(); });
 
-  //CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseData_.movePoint)));
+  //CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseMovePoint())));
 
-  if      (mouseData_.button == Qt::LeftButton) {
+  if      (mouseButton() == Qt::LeftButton) {
     if      (mode() == Mode::SELECT) {
-      if (! mouseData_.pressed)
+      if (! mousePressed())
         return;
 
       selectMouseRelease();
     }
     else if (mode() == Mode::ZOOM) {
-      if (! mouseData_.pressed)
+      if (! mousePressed())
         return;
 
       zoomMouseRelease();
@@ -1994,15 +2024,15 @@ mouseReleaseEvent(QMouseEvent *me)
     else if (mode() == Mode::QUERY) {
     }
     else if (mode() == Mode::EDIT) {
-      if (! mouseData_.pressed)
+      if (! mousePressed())
         return;
 
       editMouseRelease();
     }
   }
-  else if (mouseData_.button == Qt::MiddleButton) {
+  else if (mouseButton() == Qt::MiddleButton) {
   }
-  else if (mouseData_.button == Qt::RightButton) {
+  else if (mouseButton() == Qt::RightButton) {
   }
 }
 
@@ -2025,15 +2055,15 @@ keyPressEvent(QKeyEvent *ke)
   if      (ke->key() == Qt::Key_Escape) {
     mouseData_.escape = true;
 
-    if (mouseData_.pressed)
+    if (mousePressed())
       endRegionBand();
 
     if      (mode() == Mode::ZOOM) {
-      if (! mouseData_.pressed)
+      if (! mousePressed())
         selectModeSlot();
     }
     else if (mode() == Mode::PAN) {
-      if (! mouseData_.pressed)
+      if (! mousePressed())
         selectModeSlot();
     }
     else if (mode() == Mode::PROBE) {
@@ -2218,7 +2248,7 @@ bool
 CQChartsView::
 editMouseMove()
 {
-  QPointF p = mouseData_.movePoint;
+  QPointF p = mouseMovePoint();
 
   CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(p)));
 
@@ -2248,10 +2278,10 @@ editMouseMove()
   //---
 
   processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &pos) {
-    bool current = (plot == mouseData_.plot);
+    bool current = (plot == mousePlot());
 
     return plot->editMouseMove(pos, current);
-  }, mouseData_.movePoint);
+  }, mouseMovePoint());
 
   return true;
 }
@@ -2260,7 +2290,7 @@ void
 CQChartsView::
 editMouseMotion()
 {
-  QPointF p = mouseData_.movePoint;
+  QPointF p = mouseMovePoint();
 
   CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(p)));
 
@@ -2316,7 +2346,7 @@ editMouseRelease()
 
   processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &pos) {
     plot->editMouseRelease(pos); return false;
-  }, mouseData_.movePoint);
+  }, mouseMovePoint());
 }
 
 //------
@@ -2452,7 +2482,7 @@ selectMousePress()
     selectPointPress();
   }
   else if (selectMode_ == SelectMode::RECT) {
-    startRegionBand(mouseData_.pressPoint);
+    startRegionBand(mousePressPoint());
   }
 }
 
@@ -2460,13 +2490,13 @@ void
 CQChartsView::
 selectPointPress()
 {
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseData_.pressPoint)));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mousePressPoint())));
 
   //---
 
   // select key
   if (key() && key()->contains(w)) {
-    bool handled = key()->selectPress(w, mouseData_.clickMod);
+    bool handled = key()->selectPress(w, mouseClickMod());
 
     if (handled) {
       emit keyPressed  (key());
@@ -2514,7 +2544,7 @@ selectPointPress()
     }
   };
 
-  SelData selData(mouseData_.pressPoint, mouseData_.selMod);
+  SelData selData(mousePressPoint(), mouseSelMod());
 
   if (processMouseDataPlots([&](CQChartsPlot *plot, const SelData &data) {
         if (plot->selectMousePress(data.pos, data.selMod)) {
@@ -2537,11 +2567,11 @@ void
 CQChartsView::
 selectMouseMotion()
 {
-  updatePosText(mouseData_.movePoint);
+  updatePosText(mouseMovePoint());
 
   //---
 
-  searchPos_ = mouseData_.movePoint;
+  searchPos_ = mouseMovePoint();
 
   if (searchTimer_)
     searchTimer_->start();
@@ -2557,7 +2587,7 @@ selectMouseMove()
 {
   if      (selectMode_ == SelectMode::POINT) {
     if (key()) {
-      CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.movePoint));
+      CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(mouseMovePoint()));
 
       bool handled = key()->selectMove(w);
 
@@ -2568,7 +2598,7 @@ selectMouseMove()
     //---
 
     processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &pos) {
-      bool current = (plot == mouseData_.plot);
+      bool current = (plot == mousePlot());
 
       return plot->selectMouseMove(pos, current);
     }, searchPos_);
@@ -2577,7 +2607,7 @@ selectMouseMove()
     if (mouseData_.escape)
       endRegionBand();
     else
-      updateRegionBand(mouseData_.pressPoint, mouseData_.movePoint);
+      updateRegionBand(mousePressPoint(), mouseMovePoint());
   }
 }
 
@@ -2586,32 +2616,32 @@ CQChartsView::
 selectMouseRelease()
 {
   if      (selectMode_ == SelectMode::POINT) {
-    if (mouseData_.plot)
-      mouseData_.plot->selectMouseRelease(mouseData_.movePoint);
+    if (mousePlot())
+      mouseData_.plot->selectMouseRelease(mouseMovePoint());
   }
   else if (selectMode_ == SelectMode::RECT) {
     endRegionBand();
 
     //---
 
-    double dx = abs(mouseData_.movePoint.x() - mouseData_.pressPoint.x());
-    double dy = abs(mouseData_.movePoint.y() - mouseData_.pressPoint.y());
+    double dx = abs(mouseMovePoint().x() - mousePressPoint().x());
+    double dy = abs(mouseMovePoint().y() - mousePressPoint().y());
 
     if (dx < 4 && dy < 4) {
       selectPointPress();
 
-      if (mouseData_.plot)
-        mouseData_.plot->selectMouseRelease(mouseData_.movePoint);
+      if (mousePlot())
+        mouseData_.plot->selectMouseRelease(mouseMovePoint());
     }
     else {
       processMouseDataPlots([&](CQChartsPlot *plot, const CQChartsSelMod &selMod) {
         CQChartsGeom::Point w1 =
-          plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.pressPoint));
+          plot->pixelToWindow(CQChartsUtil::fromQPoint(mousePressPoint()));
         CQChartsGeom::Point w2 =
-          plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.movePoint ));
+          plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseMovePoint()));
 
         return plot->rectSelect(CQChartsGeom::BBox(w1, w2), selMod);
-      }, mouseData_.selMod);
+      }, mouseSelMod());
     }
   }
 }
@@ -2721,19 +2751,19 @@ void
 CQChartsView::
 zoomMousePress()
 {
-  startRegionBand(mouseData_.pressPoint);
+  startRegionBand(mousePressPoint());
 }
 
 void
 CQChartsView::
 zoomMouseMove()
 {
-  mouseData_.movePoint = mouseData_.movePoint;
+  mouseData_.movePoint = mouseMovePoint();
 
   if      (mouseData_.escape)
     endRegionBand();
-  else if (mouseData_.plot)
-    updateRegionBand(mouseData_.plot, mouseData_.pressPoint, mouseData_.movePoint);
+  else if (mousePlot())
+    updateRegionBand(mouseData_.plot, mousePressPoint(), mouseMovePoint());
 }
 
 void
@@ -2745,11 +2775,11 @@ zoomMouseRelease()
   if (mouseData_.escape)
     return;
 
-  if (mouseData_.plot) {
+  if (mousePlot()) {
     CQChartsGeom::Point w1 =
-      mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPointF(mouseData_.pressPoint));
+      mousePlot()->pixelToWindow(CQChartsUtil::fromQPointF(mousePressPoint()));
     CQChartsGeom::Point w2 =
-      mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPointF(mouseData_.movePoint ));
+      mousePlot()->pixelToWindow(CQChartsUtil::fromQPointF(mouseMovePoint()));
 
     CQChartsGeom::BBox bbox(w1, w2);
 
@@ -2763,11 +2793,11 @@ void
 CQChartsView::
 panMouseMove()
 {
-  if (mouseData_.plot) {
+  if (mousePlot()) {
     CQChartsGeom::Point w1 =
-      mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseData_.oldMovePoint)));
+      mousePlot()->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseData_.oldMovePoint)));
     CQChartsGeom::Point w2 =
-      mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseData_.movePoint   )));
+      mousePlot()->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseMovePoint())));
 
     double dx = w1.x - w2.x;
     double dy = w1.y - w2.y;
@@ -3103,7 +3133,7 @@ paint(QPainter *painter, CQChartsPlot *plot)
 
     //---
 
-    QPainter *painter1 = objectsBuffer_.beginPaint(painter, rect());
+    QPainter *painter1 = objectsBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
       // draw annotations
@@ -3115,11 +3145,11 @@ paint(QPainter *painter, CQChartsPlot *plot)
       drawKey(painter1, CQChartsLayer::Type::FG_KEY);
     }
 
-    objectsBuffer_.endPaint();
+    objectsBuffer_->endPaint();
 
     //---
 
-    painter1 = overlayBuffer_.beginPaint(painter, rect());
+    painter1 = overlayBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
       // draw selected annotations
@@ -3137,7 +3167,7 @@ paint(QPainter *painter, CQChartsPlot *plot)
       drawKey(painter1, CQChartsLayer::Type::MOUSE_OVER);
     }
 
-    overlayBuffer_.endPaint();
+    overlayBuffer_->endPaint();
   }
 }
 
@@ -3483,14 +3513,14 @@ void
 CQChartsView::
 invalidateObjects()
 {
-  objectsBuffer_.setValid(false);
+  objectsBuffer_->setValid(false);
 }
 
 void
 CQChartsView::
 invalidateOverlay()
 {
-  overlayBuffer_.setValid(false);
+  overlayBuffer_->setValid(false);
 }
 
 //------
@@ -3832,13 +3862,17 @@ showMenu(const QPoint &p)
     addKeyLocationGroupAction("Bottom Right"     , CQChartsKeyLocation::Type::BOTTOM_RIGHT );
     addKeyLocationGroupAction("Absolute Position", CQChartsKeyLocation::Type::ABS_POSITION );
     addKeyLocationGroupAction("Absolute Rect"    , CQChartsKeyLocation::Type::ABS_RECT     );
+    addKeyLocationGroupAction("Auto"             , CQChartsKeyLocation::Type::AUTO         );
 
     keyLocationActionGroup->setExclusive(true);
 
     if (plotKey) {
       CQChartsKeyLocation::Type location = plotKey->location().type();
 
-      keyLocationActionMap[location]->setChecked(true);
+      auto p = keyLocationActionMap.find(location);
+
+      if (p != keyLocationActionMap.end())
+        (*p).second->setChecked(true);
     }
 
     connect(keyLocationActionGroup, SIGNAL(triggered(QAction *)),

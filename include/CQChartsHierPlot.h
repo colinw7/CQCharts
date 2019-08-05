@@ -8,6 +8,7 @@
 
 /*!
  * \brief Hierarchical base plot
+ * \ingroup Charts
  */
 class CQChartsHierPlot : public CQChartsPlot {
   Q_OBJECT

@@ -9,6 +9,7 @@ class QObject;
 
 /*!
  * \brief class to contain charts color.
+ * \ingroup Charts
  *
  * A charts color can be:
  *  . An interpolated palette color.

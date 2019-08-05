@@ -13,6 +13,7 @@ class QStackedWidget;
 
 /*!
  * \brief Model Data Widget
+ * \ingroup Charts
  */
 class CQChartsModelDataWidget : public QFrame {
   Q_OBJECT

@@ -5,7 +5,10 @@
 
 class QComboBox;
 
-//! \brief enumeration editor
+/*!
+ * \brief enumeration editor
+ * \ingroup Charts
+ */
 class CQChartsEnumEdit : public QFrame {
   Q_OBJECT
 
@@ -47,7 +50,10 @@ class CQChartsEnumEdit : public QFrame {
 
 #include <CQPropertyViewType.h>
 
-//! \brief type for CQChartsEnum
+/*!
+ * \brief type for CQChartsEnum
+ * \ingroup Charts
+ */
 class CQChartsEnumPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsEnumPropertyViewType();
@@ -71,7 +77,10 @@ class CQChartsEnumPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-//! \brief editor factory for CQChartsEnum
+/*!
+ * \brief editor factory for CQChartsEnum
+ * \ingroup Charts
+ */
 class CQChartsEnumPropertyViewEditorFactory : public CQPropertyViewEditorFactory {
  public:
   CQChartsEnumPropertyViewEditorFactory();

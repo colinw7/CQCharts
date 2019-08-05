@@ -26,9 +26,12 @@ paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &
 
   getColumnData(index, columnData);
 
-  CQBaseModelType type = columnData.details->type();
+  CQBaseModelType type =
+    (columnData.details ? columnData.details->type() : CQBaseModelType::STRING);
 
-  CQChartsModelColumnDetails::TableDrawType tableDrawType = columnData.details->tableDrawType();
+  CQChartsModelColumnDetails::TableDrawType tableDrawType =
+    (columnData.details ? columnData.details->tableDrawType() :
+     CQChartsModelColumnDetails::TableDrawType::NORMAL);
 
   if      (type == CQBaseModelType::BOOLEAN) {
     QVariant var = table_->modelP()->data(index);
@@ -219,7 +222,8 @@ createEditor(QWidget *parent, const QStyleOptionViewItem &item, const QModelInde
 
   getColumnData(index, columnData);
 
-  CQBaseModelType type = columnData.details->type();
+  CQBaseModelType type =
+    (columnData.details ? columnData.details->type() : CQBaseModelType::STRING);
 
   if (type == CQBaseModelType::BOOLEAN) {
     QVariant var = table_->modelP()->data(index);
@@ -252,7 +256,8 @@ click(const QModelIndex &index) const
 
   getColumnData(index, columnData);
 
-  CQBaseModelType type = columnData.details->type();
+  CQBaseModelType type =
+    (columnData.details ? columnData.details->type() : CQBaseModelType::STRING);
 
   if (type == CQBaseModelType::BOOLEAN) {
     QVariant var = table_->modelP()->data(index);
@@ -276,7 +281,9 @@ getColumnData(const QModelIndex &index, ColumnData &data) const
 
   std::unique_lock<std::mutex> lock(mutex_);
 
-  data.details = table_->getDetails()->columnDetails(index.column());
+  CQChartsModelDetails *details = table_->getDetails();
+
+  data.details = (details ? details->columnDetails(index.column()) : nullptr);
 
   CQChartsTableDelegate *th = const_cast<CQChartsTableDelegate *>(this);
 

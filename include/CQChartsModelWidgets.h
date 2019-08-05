@@ -8,7 +8,10 @@ class CQChartsModelList;
 class CQChartsModelControl;
 class CQChartsModelData;
 
-//! \brief model list and control widgets
+/*!
+ * \brief model list and control widgets
+ * \ingroup Charts
+ */
 class CQChartsModelWidgets : public QFrame {
   Q_OBJECT
 

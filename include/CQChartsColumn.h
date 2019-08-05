@@ -9,6 +9,7 @@
 
 /*!
  * \brief Class to store how column data is referenced from the model
+ * \ingroup Charts
  *
  * A column can be:
  *  . column number for model data values in that column
@@ -150,6 +151,7 @@ class CQChartsColumn {
 
 /*!
  * \brief manage list of columns or single column
+ * \ingroup Charts
  */
 class CQChartsColumns {
  public:

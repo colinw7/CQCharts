@@ -34,9 +34,9 @@ set plot2 [create_charts_plot -model $model -type xy \
   -columns {{x 0} {y 1} {symbolSize 2}} \
   -title "XY Symbol Sizes"]
 
-#set_charts_property -plot $plot2 -name mapping.symbolSize.enabled -value 1
-#set_charts_property -plot $plot2 -name mapping.symbolSize.min     -value "5"
-#set_charts_property -plot $plot2 -name mapping.symbolSize.max     -value "40"
+set_charts_property -plot $plot2 -name mapping.symbolSize.enabled -value 1
+set_charts_property -plot $plot2 -name mapping.symbolSize.min     -value 5
+set_charts_property -plot $plot2 -name mapping.symbolSize.max     -value 40
 
 set_charts_property -plot $plot2 -name coloring.type              -value INDEX
 set_charts_property -plot $plot2 -name points.visible             -value 1

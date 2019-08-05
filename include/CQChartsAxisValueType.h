@@ -3,7 +3,10 @@
 
 #include <CQChartsEnum.h>
 
-//! \brief Axis value type
+/*!
+ * \brief Axis value type
+ * \ingroup Charts
+ */
 class CQChartsAxisValueType : public CQChartsEnum {
  public:
   enum class Type {

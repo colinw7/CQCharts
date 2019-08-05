@@ -15,6 +15,7 @@ class QToolButton;
 
 /*!
  * \brief Help Dialog Manager singleton
+ * \ingroup Charts
  */
 class CQChartsHelpDlgMgr {
  public:
@@ -52,6 +53,7 @@ class CQChartsHelpDlgMgr {
 
 /*!
  * \brief Help Dialog
+ * \ingroup Charts
  */
 class CQChartsHelpDlg : public QDialog {
   Q_OBJECT

@@ -12,6 +12,7 @@ class CQChartsDataLabel;
 
 /*!
  * \brief Geometry plot type
+ * \ingroup Charts
  */
 class CQChartsGeometryPlotType : public CQChartsPlotType {
  public:
@@ -40,6 +41,7 @@ class CQChartsGeometryPlot;
 
 /*!
  * \brief Geometry Plot object
+ * \ingroup Charts
  */
 class CQChartsGeometryObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -97,6 +99,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
 /*!
  * \brief Geometry Plot
+ * \ingroup Charts
  */
 class CQChartsGeometryPlot : public CQChartsPlot,
  public CQChartsObjShapeData<CQChartsGeometryPlot> {

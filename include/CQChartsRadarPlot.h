@@ -9,6 +9,7 @@
 
 /*!
  * \brief Radar plot type
+ * \ingroup Charts
  */
 class CQChartsRadarPlotType : public CQChartsPlotType {
  public:
@@ -44,6 +45,7 @@ class CQChartsRadarPlot;
 
 /*!
  * \brief Radar Plot object
+ * \ingroup Charts
  */
 class CQChartsRadarObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -87,6 +89,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
 /*!
  * \brief Radar Plot
+ * \ingroup Charts
  */
 class CQChartsRadarPlot : public CQChartsPlot,
  public CQChartsObjShapeData   <CQChartsRadarPlot>,

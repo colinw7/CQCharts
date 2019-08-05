@@ -4,6 +4,7 @@
 #include <CQBaseModel.h>
 #include <QString>
 #include <map>
+#include <set>
 #include <vector>
 #include <cassert>
 
@@ -27,6 +28,7 @@ class CQPivotModel : public CQBaseModel {
 
   using Column  = int;
   using Columns = std::vector<Column>;
+  using Inds    = std::vector<QModelIndex>;
 
  public:
   CQPivotModel(QAbstractItemModel *model);
@@ -91,6 +93,10 @@ class CQPivotModel : public CQBaseModel {
 
   //---
 
+  bool modelInds(const QString &hkey, const QString &vkey, Inds &inds) const;
+
+  //---
+
   QStringList hkeys() const;
   QStringList vkeys() const;
 
@@ -144,12 +150,17 @@ class CQPivotModel : public CQBaseModel {
     Values() { }
 
     void add(double r) {
-      min_ = (! values_.empty() ? std::min(min_, r) : r);
-      max_ = (! values_.empty() ? std::max(max_, r) : r);
+      min_ = (! rvalues_.empty() ? std::min(min_, r) : r);
+      max_ = (! rvalues_.empty() ? std::max(max_, r) : r);
 
       sum_ += r;
 
-      values_.push_back(r);
+      rvalues_.push_back(r);
+    }
+
+    void add(const QModelIndex &ind, const QString &s) {
+      inds_   .push_back(ind);
+      svalues_.insert(s);
     }
 
     double sum() const { return sum_; }
@@ -158,24 +169,25 @@ class CQPivotModel : public CQBaseModel {
 
     double mean() const { int nv = count(); return (nv > 0 ? sum_/nv : 0.0); }
 
-    int count() const { return values_.size(); }
+    int count      () const { return inds_.size(); }
+    int countUnique() const { return svalues_.size(); }
 
-    int countUnique() const { return values_.size(); }
+    const Inds &inds() const { return inds_; }
 
    private:
-    using Reals = std::vector<double>;
+    using Reals   = std::vector<double>;
+    using Strings = std::set<QString>;
 
-    Reals  values_;
-    double sum_ { 0.0 };
-    double min_ { 0.0 };
-    double max_ { 0.0 };
+    Reals   rvalues_;
+    Inds    inds_;
+    Strings svalues_;
+    double  sum_   { 0.0 };
+    double  min_   { 0.0 };
+    double  max_   { 0.0 };
   };
 
   using VValues  = std::map<QString,Values>;
   using HVValues = std::map<QString,VValues>;
-
-  using VUniqueValues  = std::map<QString,int>;
-  using HVUniqueValues = std::map<QString,VUniqueValues>;
 
   //---
 
@@ -206,7 +218,6 @@ class CQPivotModel : public CQBaseModel {
   KeyInd              vKeysRow_;             //!< vertical key to roe
   IndKeys             vRowKeys_;             //!< row to vertical key
   HVValues            values_;               //!< grid values
-  HVUniqueValues      uniqueValues_;         //!< grid unique values
   QString             hheader_;              //!< horizontal header
   QString             vheader_;              //!< vertical header
   ValueDatas          vdata_;                //!< vertical row data

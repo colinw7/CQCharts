@@ -5,6 +5,7 @@
 
 /*!
  * \brief Charts Rotated Text Box Object
+ * \ingroup Charts
  */
 class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
  public:

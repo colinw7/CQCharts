@@ -15,6 +15,7 @@ class QStackedWidget;
 
 /*!
  * \brief Charts View ToolBar
+ * \ingroup Charts
  */
 class CQChartsViewToolBar : public QFrame {
   Q_OBJECT

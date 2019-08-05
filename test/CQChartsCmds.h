@@ -30,7 +30,10 @@ class QItemSelectionModel;
 
 //---
 
-//! \brief Charts Tcl Commands
+/*!
+ * \brief Charts Tcl Commands
+ * \ingroup Charts
+ */
 class CQChartsCmds : public QObject {
   Q_OBJECT
 
@@ -57,9 +60,10 @@ class CQChartsCmds : public QObject {
 
   static QString fixTypeName(const QString &typeName);
 
-  void setViewProperties      (CQChartsView       *view      , const QString &properties);
-  void setPlotProperties      (CQChartsPlot       *plot      , const QString &properties);
-  void setAnnotationProperties(CQChartsAnnotation *annotation, const QString &properties);
+  //void setViewProperties(CQChartsView *view, const QString &properties);
+  //void setPlotProperties(CQChartsPlot *plot, const QString &properties);
+
+  bool setAnnotationProperties(CQChartsAnnotation *annotation, const QString &properties);
 
   //---
 
@@ -73,7 +77,7 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  CQChartsPlot *createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
+  CQChartsPlot *createPlot(CQChartsView *view, const ModelP &model,
                            CQChartsPlotType *type, bool reuse);
 
   bool initPlot(CQChartsPlot *plot, const CQChartsNameValueData &nameValueData,
@@ -144,13 +148,14 @@ class CQChartsCmds : public QObject {
   bool getChartsPaletteCmd   (CQChartsCmdArgs &args);
   bool setChartsPaletteCmd   (CQChartsCmdArgs &args);
 
-  bool createChartsTextAnnotationCmd     (CQChartsCmdArgs &args);
   bool createChartsArrowAnnotationCmd    (CQChartsCmdArgs &args);
-  bool createChartsRectangleAnnotationCmd(CQChartsCmdArgs &args);
   bool createChartsEllipseAnnotationCmd  (CQChartsCmdArgs &args);
+  bool createChartsImageAnnotationCmd    (CQChartsCmdArgs &args);
+  bool createChartsPointAnnotationCmd    (CQChartsCmdArgs &args);
   bool createChartsPolygonAnnotationCmd  (CQChartsCmdArgs &args);
   bool createChartsPolylineAnnotationCmd (CQChartsCmdArgs &args);
-  bool createChartsPointAnnotationCmd    (CQChartsCmdArgs &args);
+  bool createChartsRectangleAnnotationCmd(CQChartsCmdArgs &args);
+  bool createChartsTextAnnotationCmd     (CQChartsCmdArgs &args);
   bool removeChartsAnnotationCmd         (CQChartsCmdArgs &args);
 
   bool connectChartsSignalCmd(CQChartsCmdArgs &args);
@@ -199,7 +204,10 @@ class CQChartsCmds : public QObject {
 
 //---
 
-//! \brief Charts Tcl Command
+/*!
+ * \brief Charts Tcl Command
+ * \ingroup Charts
+ */
 #define CQCHARTS_DEF_CMD(NAME, PROC) \
 class CQCharts##NAME##Cmd : public CQChartsCmdProc { \
  public: \
@@ -266,13 +274,14 @@ CQCHARTS_DEF_CMD(SetChartsPalette   , setChartsPaletteCmd   )
 
 //---
 
-CQCHARTS_DEF_CMD(CreateChartsTextAnnotation     , createChartsTextAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsArrowAnnotation    , createChartsArrowAnnotationCmd)
-CQCHARTS_DEF_CMD(CreateChartsRectangleAnnotation, createChartsRectangleAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsEllipseAnnotation  , createChartsEllipseAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsImageAnnotation    , createChartsImageAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsPointAnnotation    , createChartsPointAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsPolygonAnnotation  , createChartsPolygonAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsPolylineAnnotation , createChartsPolylineAnnotationCmd)
-CQCHARTS_DEF_CMD(CreateChartsPointAnnotation    , createChartsPointAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsRectangleAnnotation, createChartsRectangleAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsTextAnnotation     , createChartsTextAnnotationCmd)
 
 CQCHARTS_DEF_CMD(RemoveChartsAnnotation, removeChartsAnnotationCmd)
 

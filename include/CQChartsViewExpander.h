@@ -7,7 +7,10 @@
 
 class QTimer;
 
-//! \brief view expander widget
+/*!
+ * \brief view expander widget
+ * \ingroup Charts
+ */
 class CQChartsViewExpander : public QFrame {
   Q_OBJECT
 

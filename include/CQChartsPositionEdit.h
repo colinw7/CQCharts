@@ -7,7 +7,10 @@
 class CQChartsUnitsEdit;
 class CQPoint2DEdit;
 
-//! \brief position edit
+/*!
+ * \brief position edit
+ * \ingroup Charts
+ */
 class CQChartsPositionEdit : public QFrame {
   Q_OBJECT
 
@@ -41,7 +44,10 @@ class CQChartsPositionEdit : public QFrame {
 
 #include <CQPropertyViewType.h>
 
-//! \brief type for CQChartsPosition
+/*!
+ * \brief type for CQChartsPosition
+ * \ingroup Charts
+ */
 class CQChartsPositionPropertyViewType : public CQPropertyViewType {
  public:
   CQChartsPositionPropertyViewType();
@@ -63,7 +69,10 @@ class CQChartsPositionPropertyViewType : public CQPropertyViewType {
 
 #include <CQPropertyViewEditor.h>
 
-//! \brief editor factory for CQChartsPosition
+/*!
+ * \brief editor factory for CQChartsPosition
+ * \ingroup Charts
+ */
 class CQChartsPositionPropertyViewEditor : public CQPropertyViewEditorFactory {
  public:
   CQChartsPositionPropertyViewEditor();

@@ -7,7 +7,10 @@
 class CQChartsColor;
 class QObject;
 
-//! \brief class to forward invalidation to object
+/*!
+ * \brief class to forward invalidation to object
+ * \ingroup Charts
+ */
 class CQChartsInvalidator {
  public:
   CQChartsInvalidator(QObject *obj) :
@@ -20,7 +23,10 @@ class CQChartsInvalidator {
   QObject* obj_ { nullptr };
 };
 
-//! \brief class to forward color interpolation to object
+/*!
+ * \brief class to forward color interpolation to object
+ * \ingroup Charts
+ */
 class CQChartsInterpolator {
  public:
   CQChartsInterpolator(QObject *obj) :

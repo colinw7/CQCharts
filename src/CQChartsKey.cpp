@@ -4,9 +4,8 @@
 #include <CQChartsView.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsUtil.h>
-#include <CQCharts.h>
-#include <CQChartsRoundedPolygon.h>
 #include <CQChartsDrawUtil.h>
+#include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -37,7 +36,8 @@ CQChartsKey(CQChartsPlot *plot) :
 {
   init();
 
-  setFilled(false);
+  setFilled(true);
+  setFillAlpha(0.5);
 
   editHandles_ = new CQChartsEditHandles(plot, CQChartsEditHandles::Mode::MOVE);
 }
@@ -717,6 +717,21 @@ updateLocation(const CQChartsGeom::BBox &bbox)
   double ym = plot()->pixelToWindowHeight(margin());
 
   double kx { 0.0 }, ky { 0.0 };
+
+  if (location().isAuto()) {
+    CQChartsGeom::BBox fitBBox = plot()->findEmptyBBox(ks.width(), ks.height());
+
+    if (fitBBox.isSet()) {
+      kx = fitBBox.getXMid() - ks.width ()/2;
+      ky = fitBBox.getYMid() + ks.height()/2;
+
+      location_.setType(CQChartsKeyLocation::Type::ABS_POSITION);
+
+      setAbsolutePlotPosition(QPointF(kx, ky));
+    }
+    else
+      location_.setType(CQChartsKeyLocation::Type::TOP_RIGHT);
+  }
 
   if      (location().onLeft()) {
     if (isInsideX())
@@ -1450,6 +1465,9 @@ draw(QPainter *painter) const
     return;
   }
 
+  if (location().isAuto())
+    return;
+
   //---
 
   CQChartsPlotKey *th = const_cast<CQChartsPlotKey *>(this);
@@ -2052,7 +2070,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
   double cxs = plot->lengthPixelWidth (cornerRadius());
   double cys = plot->lengthPixelHeight(cornerRadius());
 
-  CQChartsRoundedPolygon::draw(painter, prect1, cxs, cys);
+  CQChartsDrawUtil::drawRoundedPolygon(painter, prect1, cxs, cys);
 }
 
 QBrush

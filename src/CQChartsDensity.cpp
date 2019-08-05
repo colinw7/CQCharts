@@ -1,6 +1,6 @@
 #include <CQChartsDensity.h>
 #include <CQChartsPlot.h>
-#include <CQChartsRoundedPolygon.h>
+#include <CQChartsDrawUtil.h>
 #include <CQUtil.h>
 #include <QPainter>
 #include <cassert>
@@ -430,7 +430,7 @@ drawCrossBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BB
   double cxs = plot->lengthPixelWidth (cornerSize);
   double cys = plot->lengthPixelHeight(cornerSize);
 
-  CQChartsRoundedPolygon::draw(painter, prect, cxs, cys);
+  CQChartsDrawUtil::drawRoundedPolygon(painter, prect, cxs, cys);
 
   //---
 

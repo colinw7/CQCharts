@@ -12,7 +12,10 @@ class CQChartsModelColumnDetails;
 class CQCharts;
 class CQColorsPalette;
 
-//! \brief column type parameter
+/*!
+ * \brief column type parameter
+ * \ingroup Charts
+ */
 class CQChartsColumnTypeParam {
  public:
   using Type = CQBaseModelType;
@@ -54,6 +57,7 @@ class CQChartsColumnTypeParam {
 
 /*!
  * \brief column type base class
+ * \ingroup Charts
  *
  * supports one base parameter
  *  . key - is column a key (for grouping)
@@ -142,7 +146,10 @@ class CQChartsColumnType {
 
 //---
 
-//! \brief string column type class
+/*!
+ * \brief string column type class
+ * \ingroup Charts
+ */
 class CQChartsColumnStringType : public CQChartsColumnType {
  public:
   CQChartsColumnStringType();
@@ -162,7 +169,10 @@ class CQChartsColumnStringType : public CQChartsColumnType {
 
 //---
 
-//! \brief boolean column type class
+/*!
+ * \brief boolean column type class
+ * \ingroup Charts
+ */
 class CQChartsColumnBooleanType : public CQChartsColumnType {
  public:
   CQChartsColumnBooleanType();
@@ -186,6 +196,7 @@ class CQChartsColumnBooleanType : public CQChartsColumnType {
 
 /*!
  * \brief real column type class
+ * \ingroup Charts
  *
  * supports the following parameter
  *  . format       - output format
@@ -225,6 +236,7 @@ class CQChartsColumnRealType : public CQChartsColumnType {
 
 /*!
  * \brief integer column type class
+ * \ingroup Charts
  *
  * supports the following parameter
  *  . format - output format
@@ -255,6 +267,7 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
 
 /*!
  * \brief time column type class
+ * \ingroup Charts
  *
  * supports the following parameter
  *  . iformat - input format to convert input data to model data (time)
@@ -292,7 +305,10 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
 
 //---
 
-//! \brief rect column type class
+/*!
+ * \brief rect column type class
+ * \ingroup Charts
+ */
 class CQChartsColumnRectType : public CQChartsColumnType {
  public:
   CQChartsColumnRectType();
@@ -312,7 +328,10 @@ class CQChartsColumnRectType : public CQChartsColumnType {
 
 //---
 
-//! \brief polygon column type class
+/*!
+ * \brief polygon column type class
+ * \ingroup Charts
+ */
 class CQChartsColumnPolygonType : public CQChartsColumnType {
  public:
   CQChartsColumnPolygonType();
@@ -332,7 +351,10 @@ class CQChartsColumnPolygonType : public CQChartsColumnType {
 
 //---
 
-//! \brief polygon list column type class
+/*!
+ * \brief polygon list column type class
+ * \ingroup Charts
+ */
 class CQChartsColumnPolygonListType : public CQChartsColumnType {
  public:
   CQChartsColumnPolygonListType();
@@ -355,7 +377,10 @@ class CQChartsColumnPolygonListType : public CQChartsColumnType {
 
 //---
 
-//! \brief connection list column type class
+/*!
+ * \brief connection list column type class
+ * \ingroup Charts
+ */
 class CQChartsColumnConnectionListType : public CQChartsColumnType {
  public:
   CQChartsColumnConnectionListType();
@@ -378,7 +403,10 @@ class CQChartsColumnConnectionListType : public CQChartsColumnType {
 
 //---
 
-//! \brief name pair column type class
+/*!
+ * \brief name pair column type class
+ * \ingroup Charts
+ */
 class CQChartsColumnNamePairType : public CQChartsColumnType {
  public:
   CQChartsColumnNamePairType();
@@ -401,7 +429,10 @@ class CQChartsColumnNamePairType : public CQChartsColumnType {
 
 //---
 
-//! \brief path column type class
+/*!
+ * \brief path column type class
+ * \ingroup Charts
+ */
 class CQChartsColumnPathType : public CQChartsColumnType {
  public:
   CQChartsColumnPathType();
@@ -421,7 +452,10 @@ class CQChartsColumnPathType : public CQChartsColumnType {
 
 //---
 
-//! \brief style column type class
+/*!
+ * \brief style column type class
+ * \ingroup Charts
+ */
 class CQChartsColumnStyleType : public CQChartsColumnType {
  public:
   CQChartsColumnStyleType();
@@ -443,6 +477,7 @@ class CQChartsColumnStyleType : public CQChartsColumnType {
 
 /*!
  * \brief color column type class
+ * \ingroup Charts
  *
  * supports the following parameter
  *  . mapped  - is input data mapped to color (if not input data is taken as color name)
@@ -473,7 +508,10 @@ class CQChartsColumnColorType : public CQChartsColumnType {
 
 //---
 
-//! \brief image column type class
+/*!
+ * \brief image column type class
+ * \ingroup Charts
+ */
 class CQChartsColumnImageType : public CQChartsColumnType {
  public:
   CQChartsColumnImageType();
@@ -495,6 +533,7 @@ class CQChartsColumnImageType : public CQChartsColumnType {
 
 /*!
  * \brief symbol type column type class
+ * \ingroup Charts
  *
  * supports the following parameter
  *  . mapped - is input data mapped to symbol type (if not input data is taken as symbol name)
@@ -526,6 +565,7 @@ class CQChartsColumnSymbolTypeType : public CQChartsColumnType {
 
 /*!
  * \brief symbol size column type class
+ * \ingroup Charts
  *
  * supports the following parameter
  *  . mapped   - is input data mapped to symbol size (if not input data is taken as symbol size)
@@ -559,6 +599,7 @@ class CQChartsColumnSymbolSizeType : public CQChartsColumnType {
 
 /*!
  * \brief font size column type class
+ * \ingroup Charts
  *
  * supports the following parameter
  *  . mapped   - is input data mapped to font size (if not input data is taken as font size)
@@ -590,7 +631,10 @@ class CQChartsColumnFontSizeType : public CQChartsColumnType {
 
 //---
 
-//! \brief column type manager
+/*!
+ * \brief column type manager
+ * \ingroup Charts
+ */
 class CQChartsColumnTypeMgr : public QObject {
   Q_OBJECT
 

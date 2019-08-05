@@ -5,7 +5,10 @@
 #include <vector>
 #include <algorithm>
 
-//! \brief Dendrogram plot data
+/*!
+ * \brief Dendrogram plot data
+ * \ingroup Charts
+ */
 class CQChartsDendrogram {
  public:
   class RootNode;

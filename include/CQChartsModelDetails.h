@@ -17,6 +17,7 @@ class QAbstractItemModel;
 
 /*!
  * \brief Model Column Details
+ * \ingroup Charts
  */
 class CQChartsModelColumnDetails {
  public:
@@ -162,6 +163,7 @@ class CQChartsModelColumnDetails {
 
 /*!
  * \brief Model Details
+ * \ingroup Charts
  */
 class CQChartsModelDetails : public QObject {
   Q_OBJECT
@@ -206,7 +208,7 @@ class CQChartsModelDetails : public QObject {
 
   std::vector<int> columnDuplicates(const CQChartsColumn &column, bool all) const;
 
-  void updateSimple(bool lock=true);
+  void updateSimple();
   void updateFull();
 
   void initSimpleData() const;

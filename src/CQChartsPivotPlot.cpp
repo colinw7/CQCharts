@@ -4,11 +4,10 @@
 #include <CQChartsTip.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsUtil.h>
-#include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsHtml.h>
-#include <CQChartsRoundedPolygon.h>
 #include <CQChartsModelDetails.h>
+#include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -103,6 +102,8 @@ CQChartsPivotPlot(CQChartsView *view, const ModelP &model) :
   addKey();
 
   addTitle();
+
+  key()->setLocation(CQChartsKeyLocation::Type::AUTO);
 
   //---
 
@@ -200,8 +201,8 @@ addProperties()
   addProp("columns", "valueColumn", "value", "Value column");
 
   // options
-  addProp("options", "plotType"  , "plotType"  , "Plot type" );
-  addProp("options", "valueType" , "valueType" , "Value type");
+  addProp("options", "plotType" , "plotType" , "Plot type" );
+  addProp("options", "valueType", "valueType", "Value type");
 
   addProp("options", "horizontal", "horizontal", "Draw horizontal");
   addProp("options", "gridBars"  , "gridBars"  , "Draw bars in grid cells");
@@ -301,13 +302,12 @@ calcRange() const
   int nh = hkeys.length();
   int nv = vkeys.length();
 
+  bool hasYValues = yColumns().isValid(); // has grouping y columns key
+
   //---
 
   // row for vertical keys, (totals if included)
   // column for vertical header, horizontal key, totals (if include)
-//int nr = pivotModel()->rowCount   ();
-//int nc = pivotModel()->columnCount();
-
   if (plotType() == PlotType::STACKED_BAR) {
     for (int iv = 0; iv < nv; ++iv) {
       int r = pivotModel()->vkeyRow(vkeys[iv]);
@@ -331,8 +331,14 @@ calcRange() const
         sum += value;
       }
 
-      updateRange(iv - 0.5, 0.0);
-      updateRange(iv + 0.5, sum);
+      if (hasYValues) {
+        updateRange(iv - 0.5, 0.0);
+        updateRange(iv + 0.5, sum);
+      }
+      else {
+        updateRange(-0.5, 0.0);
+        updateRange(+0.5, sum);
+      }
     }
   }
   else {
@@ -358,8 +364,14 @@ calcRange() const
           updateRange(iv + 0.5, ih + 0.5);
         }
         else if (plotType() == PlotType::LINES || plotType() == PlotType::AREA) {
-          updateRange(iv, 0.0);
-          updateRange(iv, value);
+          if (hasYValues) {
+            updateRange(iv, 0.0);
+            updateRange(iv, value);
+          }
+          else {
+            updateRange(ih, 0.0);
+            updateRange(ih, value);
+          }
         }
         else if (plotType() == PlotType::POINTS) {
           double ss = 5.0;
@@ -367,18 +379,32 @@ calcRange() const
           double sx = pixelToWindowWidth (ss);
           double sy = pixelToWindowHeight(ss);
 
-          updateRange(iv - sx, value - sy);
-          updateRange(iv + sx, value + sy);
+          if (hasYValues) {
+            updateRange(iv - sx, value - sy);
+            updateRange(iv + sx, value + sy);
+          }
+          else {
+            updateRange(ih - sx, value - sy);
+            updateRange(ih + sx, value + sy);
+          }
         }
         else {
-          updateRange(iv - 0.5, 0.0  );
-          updateRange(iv + 0.5, value);
+          if (hasYValues) {
+            updateRange(iv - 0.5, 0.0  );
+            updateRange(iv + 0.5, value);
+          }
+          else {
+            updateRange(ih - 0.5, 0.0  );
+            updateRange(ih + 0.5, value);
+          }
         }
       }
     }
   }
 
   //---
+
+  dataRange.makeNonZero();
 
   return dataRange;
 }
@@ -425,6 +451,8 @@ createObjs(PlotObjs &objs) const
   CQChartsAxis *xAxis = mappedXAxis();
   CQChartsAxis *yAxis = mappedYAxis();
 
+  bool hasYValues = yColumns().isValid(); // has grouping y columns key
+
   //---
 
   xAxis->clearTickLabels();
@@ -433,7 +461,10 @@ createObjs(PlotObjs &objs) const
   xAxis->setGridMid       (true);
   xAxis->setTicksDisplayed(CQChartsAxis::TicksDisplayed::MAJOR);
 
-  xAxis->setLabel(pivotModel()->vheader());
+  if (hasYValues)
+    xAxis->setLabel(pivotModel()->vheader());
+  else
+    xAxis->setLabel(pivotModel()->hheader());
 
   if (plotType() != PlotType::GRID) {
     if (valueType() != ValueType::COUNT) {
@@ -478,8 +509,6 @@ createObjs(PlotObjs &objs) const
 
   // row for vertical keys, (totals if included)
   // column for vertical header, horizontal key, totals (if include)
-//int nr = pivotModel()->rowCount   ();
-//int nc = pivotModel()->columnCount();
 
   using ColHeights    = std::map<int,double>;
   using RowColHeights = std::map<int,ColHeights>;
@@ -515,12 +544,16 @@ createObjs(PlotObjs &objs) const
 
   if      (plotType() == PlotType::BAR || plotType() == PlotType::STACKED_BAR) {
     for (int iv = 0; iv < nv; ++iv) {
-      int r = pivotModel()->vkeyRow(vkeys[iv]);
+      const QString &vkey = vkeys[iv];
+
+      int r = pivotModel()->vkeyRow(vkey);
 
       ColorInd ir(iv, nv);
 
       for (int ih = 0; ih < nh; ++ih) {
-        int c = pivotModel()->hkeyCol(hkeys[ih]);
+        const QString &hkey = hkeys[ih];
+
+        int c = pivotModel()->hkeyCol(hkey);
 
         int c1 = c + 1;
 
@@ -533,29 +566,45 @@ createObjs(PlotObjs &objs) const
         double value = var.toDouble(&ok);
         if (! ok) continue;
 
+        CQPivotModel::Inds inds;
+
+        (void) pivotModel()->modelInds(hkey, vkey, inds);
+
         ColorInd ic(ih, nh);
 
         CQChartsPlotObj *obj = nullptr;
 
         // bar side by side
         if      (plotType() == PlotType::BAR) {
-          double x1 = iv - 0.5;
-          double x2 = iv + 0.5;
-          double dx = (x2 - x1)/nh;
+          double x1 = (hasYValues ? iv - 0.5 : ih - 0.5);
+          double x2 = (hasYValues ? iv + 0.5 : ih + 0.5);
+          double dx = (hasYValues ? (x2 - x1)/nh : 1.0);
 
-          CQChartsGeom::BBox rect = CQChartsGeom::makeDirBBox(isHorizontal(),
-            x1 + ih*dx, 0.0, x1 + (ih + 1)*dx, value);
+          CQChartsGeom::BBox rect;
 
-          obj = new CQChartsPivotBarObj(this, rect, ind, ir, ic, value);
+          if (hasYValues)
+            rect = CQChartsGeom::makeDirBBox(isHorizontal(),
+                     x1 + ih*dx, 0.0, x1 + (ih + 1)*dx, value);
+          else
+            rect = CQChartsGeom::makeDirBBox(isHorizontal(),
+                     x1, 0.0, x1 + dx, value);
+
+          obj = new CQChartsPivotBarObj(this, rect, inds, ir, ic, value);
         }
         // bar stacked
         else if (plotType() == PlotType::STACKED_BAR) {
           double oldValue = rowColHeights[r][c - 1];
 
-          CQChartsGeom::BBox rect = CQChartsGeom::makeDirBBox(isHorizontal(),
-            iv - 0.5, oldValue, iv + 0.5, oldValue + value);
+          CQChartsGeom::BBox rect;
 
-          obj = new CQChartsPivotBarObj(this, rect, ind, ir, ic, value);
+          if (hasYValues)
+            rect = CQChartsGeom::makeDirBBox(isHorizontal(),
+                     iv - 0.5, oldValue, iv + 0.5, oldValue + value);
+          else
+            rect = CQChartsGeom::makeDirBBox(isHorizontal(),
+                     ih - 0.5, oldValue, ih + 0.5, oldValue + value);
+
+          obj = new CQChartsPivotBarObj(this, rect, inds, ir, ic, value);
         }
 
         if (obj)
@@ -595,27 +644,34 @@ createObjs(PlotObjs &objs) const
         maxValue = (! inds.empty() ? std::max(maxValue, value) : value);
 
         if (isFilled && polygon.length() == 0) {
-          if (! isHorizontal())
-            polygon.push_back(QPointF(iv, 0.0));
+          QPointF p;
+
+          if (hasYValues)
+            p = (! isHorizontal() ? QPointF(iv, 0.0) : QPointF(0.0, iv));
           else
-            polygon.push_back(QPointF(0.0, iv));
+            p = (! isHorizontal() ? QPointF(ih, 0.0) : QPointF(0.0, ih));
+
+          polygon.push_back(p);
         }
 
-        if (! isHorizontal())
-          polygon.push_back(QPointF(iv, value));
+        QPointF p;
+
+        if (hasYValues)
+          p = (! isHorizontal() ? QPointF(iv, value) : QPointF(value, iv));
         else
-          polygon.push_back(QPointF(value, iv));
+          p = (! isHorizontal() ? QPointF(ih, value) : QPointF(value, ih));
+
+        polygon.push_back(p);
 
         inds.push_back(ind);
 
-        lastR = iv;
+        lastR = (hasYValues ? iv : ih);
       }
 
       if (isFilled && lastR >= 0) {
-        if (! isHorizontal())
-          polygon.push_back(QPointF(lastR, 0.0));
-        else
-          polygon.push_back(QPointF(0.0, lastR));
+        QPointF p = (! isHorizontal() ? QPointF(lastR, 0.0) : QPointF(0.0, lastR));
+
+        polygon.push_back(p);
       }
 
       //---
@@ -624,8 +680,12 @@ createObjs(PlotObjs &objs) const
 
       ColorInd ic(ih, nh);
 
-      CQChartsGeom::BBox rect = CQChartsGeom::makeDirBBox(isHorizontal(),
-        0.0, minValue, nv, maxValue);
+      CQChartsGeom::BBox rect;
+
+      if (hasYValues)
+        rect = CQChartsGeom::makeDirBBox(isHorizontal(), 0.0, minValue, nv, maxValue);
+      else
+        rect = CQChartsGeom::makeDirBBox(isHorizontal(), 0.0, minValue, nh, maxValue);
 
       CQChartsPivotLineObj *obj = new CQChartsPivotLineObj(this, rect, inds, ic, polygon, name);
 
@@ -659,10 +719,10 @@ createObjs(PlotObjs &objs) const
 
         QPointF p;
 
-        if (! isHorizontal())
-          p = QPointF(iv, value);
+        if (hasYValues)
+          p = (! isHorizontal() ? QPointF(iv, value) : QPointF(value, iv));
         else
-          p = QPointF(value, iv);
+          p = (! isHorizontal() ? QPointF(ih, value) : QPointF(value, ih));
 
         //---
 
@@ -730,14 +790,25 @@ createObjs(PlotObjs &objs) const
   //---
 
   if (plotType() != PlotType::GRID) {
-    for (int iv = 0; iv < nv; ++iv) {
-      int r = pivotModel()->vkeyRow(vkeys[iv]);
+    if (hasYValues) {
+      for (int iv = 0; iv < nv; ++iv) {
+        int r = pivotModel()->vkeyRow(vkeys[iv]);
 
-      QModelIndex ind = pivotModel()->index(r, 0, QModelIndex());
+        QModelIndex ind = pivotModel()->index(r, 0, QModelIndex());
 
-      QString name = pivotModel()->data(ind, Qt::EditRole).toString();
+        QString name = pivotModel()->data(ind, Qt::EditRole).toString();
 
-      xAxis->setTickLabel(iv, name);
+        xAxis->setTickLabel(iv, name);
+      }
+    }
+    else {
+      for (int ih = 0; ih < nh; ++ih) {
+        int c = pivotModel()->hkeyCol(hkeys[ih]);
+
+        QString name = pivotModel()->headerData(c + 1, Qt::Horizontal).toString();
+
+        xAxis->setTickLabel(ih, name);
+      }
     }
   }
   else {
@@ -783,47 +854,49 @@ void
 CQChartsPivotPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  key->setHeaderStr(pivotModel()->hheader());
+  bool hasYValues = yColumns().isValid(); // has grouping y columns key
 
-  //---
+  if (hasYValues) {
+    key->setHeaderStr(pivotModel()->hheader());
 
-  int row = 0;
+    //---
 
-  auto addKeyRow = [&](const ColorInd &ic, const QString &name) {
-    CQChartsPivotKeyColor *keyColor = new CQChartsPivotKeyColor(this, ic);
-    CQChartsPivotKeyText  *keyText  = new CQChartsPivotKeyText (this, name);
+    int row = 0;
 
-    key->addItem(keyColor, row, 0);
-    key->addItem(keyText , row, 1);
+    auto addKeyRow = [&](const ColorInd &ic, const QString &name) {
+      CQChartsPivotKeyColor *keyColor = new CQChartsPivotKeyColor(this, ic);
+      CQChartsPivotKeyText  *keyText  = new CQChartsPivotKeyText (this, name);
 
-    ++row;
-  };
+      key->addItem(keyColor, row, 0);
+      key->addItem(keyText , row, 1);
 
-  //---
+      ++row;
+    };
 
-  //---
+    //---
 
-  QStringList hkeys = pivotModel()->hkeys();
-//QStringList vkeys = pivotModel()->vkeys();
+    QStringList hkeys = pivotModel()->hkeys();
+  //QStringList vkeys = pivotModel()->vkeys();
 
-  int nh = hkeys.length();
-//int nv = vkeys.length();
+    int nh = hkeys.length();
+  //int nv = vkeys.length();
 
-  for (int ih = 0; ih < nh; ++ih) {
-    int c = pivotModel()->hkeyCol(hkeys[ih]);
+    for (int ih = 0; ih < nh; ++ih) {
+      int c = pivotModel()->hkeyCol(hkeys[ih]);
 
-    int c1 = c + 1;
+      int c1 = c + 1;
 
-    ColorInd ic(ih, nh);
+      ColorInd ic(ih, nh);
 
-    QString name = pivotModel()->headerData(c1, Qt::Horizontal).toString();
+      QString name = pivotModel()->headerData(c1, Qt::Horizontal).toString();
 
-    addKeyRow(ic, name);
+      addKeyRow(ic, name);
+    }
   }
 
   //---
 
-  key->plot()->updateKeyPosition(/*force*/true);
+  //key->plot()->updateKeyPosition(/*force*/true);
 }
 
 //------
@@ -874,6 +947,19 @@ addMenuItems(QMenu *menu)
 
   return true;
 }
+
+//------
+
+void
+CQChartsPivotPlot::
+postObjTree()
+{
+  updateKeyPosition(/*force*/true);
+
+  invalidateLayers();
+}
+
+//------
 
 void
 CQChartsPivotPlot::
@@ -958,12 +1044,12 @@ write(std::ostream &os, const QString &varName, const QString &modelName) const
 
 CQChartsPivotBarObj::
 CQChartsPivotBarObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rect,
-                    const QModelIndex &ind, const ColorInd &ir, const ColorInd &ic,
+                    const ModelIndices &inds, const ColorInd &ir, const ColorInd &ic,
                     double value) :
  CQChartsPlotObj(const_cast<CQChartsPivotPlot *>(plot), rect, ColorInd(), ic, ir),
  plot_(plot), value_(value)
 {
-  setModelInd(ind);
+  setModelInds(inds);
 }
 
 //---
@@ -988,9 +1074,14 @@ calcTipId() const
   QString vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
   QString hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 
-  tableTip.addTableRow(valueName, QString("%1").arg(value_));
-  tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
-  tableTip.addTableRow(plot_->pivotModel()->vheader(), hkeyValue);
+  if (plot_->valueColumn().isValid())
+    tableTip.addTableRow(valueName, QString("%1").arg(value_));
+
+  if (plot_->xColumns().isValid())
+    tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
+
+  if (plot_->yColumns().isValid())
+    tableTip.addTableRow(plot_->pivotModel()->vheader(), hkeyValue);
 
   plot()->addTipColumns(tableTip, modelInd());
 
@@ -1072,7 +1163,7 @@ draw(QPainter *painter)
   double cxs = plot_->lengthPixelWidth (plot_->barCornerSize());
   double cys = plot_->lengthPixelHeight(plot_->barCornerSize());
 
-  CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
+  CQChartsDrawUtil::drawRoundedPolygon(painter, qrect, cxs, cys);
 }
 
 void
@@ -1347,9 +1438,14 @@ calcTipId() const
   QString vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
   QString hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 
-  tableTip.addTableRow(valueName, QString("%1").arg(value_));
-  tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
-  tableTip.addTableRow(plot_->pivotModel()->vheader(), hkeyValue);
+  if (plot_->valueColumn().isValid())
+    tableTip.addTableRow(valueName, QString("%1").arg(value_));
+
+  if (plot_->xColumns().isValid())
+    tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
+
+  if (plot_->yColumns().isValid())
+    tableTip.addTableRow(plot_->pivotModel()->vheader(), hkeyValue);
 
   plot()->addTipColumns(tableTip, modelInd());
 
@@ -1466,9 +1562,14 @@ calcTipId() const
   QString vkeyValue = plot_->pivotModel()->headerData(ic, Qt::Horizontal).toString();
   QString hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 
-  tableTip.addTableRow(valueName, QString("%1").arg(value_));
-  tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
-  tableTip.addTableRow(plot_->pivotModel()->vheader(), hkeyValue);
+  if (plot_->valueColumn().isValid())
+    tableTip.addTableRow(valueName, QString("%1").arg(value_));
+
+  if (plot_->xColumns().isValid())
+    tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
+
+  if (plot_->yColumns().isValid())
+    tableTip.addTableRow(plot_->pivotModel()->vheader(), hkeyValue);
 
   tableTip.addTableRow("Row %"   , 100*hnorm_);
   tableTip.addTableRow("Column %", 100*vnorm_);

@@ -12,6 +12,7 @@
 
 /*!
  * \brief Bubble plot type
+ * \ingroup Charts
  */
 class CQChartsBubblePlotType : public CQChartsGroupPlotType {
  public:
@@ -47,6 +48,7 @@ class CQChartsBubbleHierNode;
 
 /*!
  * \brief bubble node
+ * \ingroup Charts
  */
 class CQChartsBubbleNode : public CQChartsCircleNode {
  protected:
@@ -141,6 +143,7 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
 
 /*!
  * \brief bubble node compare functor
+ * \ingroup Charts
  */
 struct CQChartsBubbleNodeCmp {
   bool operator()(const CQChartsBubbleNode *n1, const CQChartsBubbleNode *n2) {
@@ -152,6 +155,7 @@ struct CQChartsBubbleNodeCmp {
 
 /*!
  * \brief bubble hierarchical node
+ * \ingroup Charts
  */
 class CQChartsBubbleHierNode : public CQChartsBubbleNode {
  public:
@@ -212,6 +216,7 @@ class CQChartsBubbleHierObj;
 
 /*!
  * \brief Bubble Plot Circle object
+ * \ingroup Charts
  */
 class CQChartsBubbleNodeObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -251,6 +256,7 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
 
 /*!
  * \brief hierarchical bubble object
+ * \ingroup Charts
  */
 class CQChartsBubbleHierObj : public CQChartsBubbleNodeObj {
  public:
@@ -278,6 +284,7 @@ class CQChartsBubbleHierObj : public CQChartsBubbleNodeObj {
 
 /*!
  * \brief Bubble Plot
+ * \ingroup Charts
  *
  * columns:
  *   + name  : name
