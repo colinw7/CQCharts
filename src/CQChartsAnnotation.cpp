@@ -77,146 +77,6 @@ pathId() const
 
 //---
 
-QPointF
-CQChartsAnnotation::
-positionToParent(const CQChartsPosition &pos) const
-{
-  QPointF p;
-
-  if      (plot())
-    p = plot()->positionToPlot(pos);
-  else if (view())
-    p = view()->positionToView(pos);
-
-  return p;
-}
-
-double
-CQChartsAnnotation::
-lengthParentWidth(const CQChartsLength &len) const
-{
-  double w = 1.0;
-
-  if      (plot())
-    w = plot()->lengthPlotWidth(len);
-  else if (view())
-    w = view()->lengthViewWidth(len);
-
-  return w;
-}
-
-double
-CQChartsAnnotation::
-lengthParentHeight(const CQChartsLength &len) const
-{
-  double h = 1.0;
-
-  if      (plot())
-    h = plot()->lengthPlotHeight(len);
-  else if (view())
-    h = view()->lengthViewHeight(len);
-
-  return h;
-}
-
-double
-CQChartsAnnotation::
-lengthPixelWidth(const CQChartsLength &len) const
-{
-  double w = 1.0;
-
-  if      (plot())
-    w = plot()->lengthPixelWidth(len);
-  else if (view())
-    w = view()->lengthPixelWidth(len);
-
-  return w;
-}
-
-double
-CQChartsAnnotation::
-lengthPixelHeight(const CQChartsLength &len) const
-{
-  double h = 1.0;
-
-  if      (plot())
-    h = plot()->lengthPixelHeight(len);
-  else if (view())
-    h = view()->lengthPixelHeight(len);
-
-  return h;
-}
-
-CQChartsGeom::Point
-CQChartsAnnotation::
-windowToPixel(const CQChartsGeom::Point &w) const
-{
-  CQChartsGeom::Point p;
-
-  if      (plot())
-    p = plot()->windowToPixel(w);
-  else if (view())
-    p = view()->windowToPixel(w);
-
-  return p;
-}
-
-CQChartsGeom::BBox
-CQChartsAnnotation::
-windowToPixel(const CQChartsGeom::BBox &w) const
-{
-  CQChartsGeom::BBox p;
-
-  if      (plot())
-    p = plot()->windowToPixel(w);
-  else if (view())
-    p = view()->windowToPixel(w);
-
-  return p;
-}
-
-double
-CQChartsAnnotation::
-pixelToWindowWidth(double pw) const
-{
-  double w = 0.0;
-
-  if      (plot())
-    w = plot()->pixelToWindowWidth(pw);
-  else if (view())
-    w = view()->pixelToWindowWidth(pw);
-
-  return w;
-}
-
-double
-CQChartsAnnotation::
-pixelToWindowHeight(double ph) const
-{
-  double h = 0.0;
-
-  if      (plot())
-    h = plot()->pixelToWindowHeight(ph);
-  else if (view())
-    h = view()->pixelToWindowHeight(ph);
-
-  return h;
-}
-
-QColor
-CQChartsAnnotation::
-backgroundColor() const
-{
-  QColor bg;
-
-  if      (plot())
-    bg = plot()->view()->interpBackgroundFillColor(ColorInd());
-  else if (view())
-    bg = view()->interpBackgroundFillColor(ColorInd());
-
-  return bg;
-}
-
 void
 CQChartsAnnotation::
 writeKeys(std::ostream &os, const QString &cmd, const QString &parentVarName,
@@ -341,11 +201,15 @@ writeProperties(std::ostream &os, const QString &varName) const
   }
 }
 
+//---
+
 void
 CQChartsAnnotation::
 initRect()
 {
 }
+
+//---
 
 void
 CQChartsAnnotation::
@@ -360,6 +224,8 @@ setChecked(bool b)
 {
   CQChartsUtil::testAndSet(checked_, b, [&]() { invalidate(); } );
 }
+
+//---
 
 void
 CQChartsAnnotation::
@@ -716,40 +582,6 @@ editMoveBy(const QPointF &f)
 
 void
 CQChartsAnnotation::
-setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
-       const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash) const
-{
-  if      (plot())
-    plot()->setPen(pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
-  else if (view())
-    view()->setPen(pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
-}
-
-void
-CQChartsAnnotation::
-setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
-         const CQChartsFillPattern &pattern) const
-{
-  if      (plot())
-    plot()->setBrush(brush, filled, fillColor, fillAlpha, pattern);
-  else if (view())
-    view()->setBrush(brush, filled, fillColor, fillAlpha, pattern);
-}
-
-void
-CQChartsAnnotation::
-updatePenBrushState(QPen &pen, QBrush &brush, DrawType drawType) const
-{
-  if      (plot())
-    plot()->updateObjPenBrushState(this, pen, brush, drawType);
-  else if (view())
-    view()->updateObjPenBrushState(this, pen, brush, drawType);
-}
-
-//------
-
-void
-CQChartsAnnotation::
 draw(QPainter *)
 {
 }
@@ -766,15 +598,6 @@ drawEditHandles(QPainter *painter) const
 }
 
 //---
-
-CQChartsView *
-CQChartsAnnotation::
-view() const
-{
-  return (plot() ? plot()->view() : CQChartsTextBoxObj::view());
-}
-
-//------
 
 CQChartsRectangleAnnotation::
 CQChartsRectangleAnnotation(CQChartsView *view, const CQChartsRect &rect) :
@@ -967,10 +790,29 @@ draw(QPainter *painter)
 
   //---
 
+  // set pen and brush
+  QPen   pen;
+  QBrush brush;
+
+  QColor bgColor     = interpFillColor  (ColorInd());
+  QColor strokeColor = interpStrokeColor(ColorInd());
+
+  if (isCheckable() && ! isChecked()) {
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+  }
+
+  setPen  (pen  , true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
+
+  updatePenBrushState(pen, brush);
+
+  //---
+
   // draw box
   CQChartsGeom::BBox prect = windowToPixel(bbox_);
 
-  CQChartsBoxObj::draw(painter, CQChartsUtil::toQRect(prect));
+  CQChartsBoxObj::draw(painter, CQChartsUtil::toQRect(prect), pen, brush);
 
   //---
 
@@ -1140,26 +982,29 @@ draw(QPainter *painter)
 
   //---
 
-  // create path
-  QPainterPath path;
-
-  path.addEllipse(CQChartsUtil::toQRect(prect));
-
-  //---
-
   // set pen and brush
   QPen   pen;
   QBrush brush;
 
-  QColor bgColor = interpFillColor(ColorInd());
-
-  setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
-
+  QColor bgColor     = interpFillColor  (ColorInd());
   QColor strokeColor = interpStrokeColor(ColorInd());
 
-  setPen(pen, isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  if (isCheckable() && ! isChecked()) {
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+  }
+
+  setPen  (pen  , isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
 
   updatePenBrushState(pen, brush);
+
+  //---
+
+  // create path
+  QPainterPath path;
+
+  path.addEllipse(CQChartsUtil::toQRect(prect));
 
   //---
 
@@ -1321,6 +1166,25 @@ draw(QPainter *painter)
 
   //---
 
+  // set pen and brush
+  QPen   pen;
+  QBrush brush;
+
+  QColor bgColor     = interpFillColor  (ColorInd());
+  QColor strokeColor = interpStrokeColor(ColorInd());
+
+  if (isCheckable() && ! isChecked()) {
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+  }
+
+  setPen  (pen  , isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
+
+  updatePenBrushState(pen, brush);
+
+  //---
+
   // create path
   QPainterPath path;
 
@@ -1335,22 +1199,6 @@ draw(QPainter *painter)
   }
 
   path.closeSubpath();
-
-  //---
-
-  // set pen and brush
-  QPen   pen;
-  QBrush brush;
-
-  QColor bgColor = interpFillColor(ColorInd());
-
-  setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
-
-  QColor strokeColor = interpStrokeColor(ColorInd());
-
-  setPen(pen, isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-
-  updatePenBrushState(pen, brush);
 
   //---
 
@@ -1514,6 +1362,15 @@ draw(QPainter *painter)
 
   //---
 
+  // set pen
+  QPen pen;
+
+  QColor strokeColor = interpStrokeColor(ColorInd());
+
+  setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+
+  //---
+
   // create path
   QPainterPath path;
 
@@ -1526,15 +1383,6 @@ draw(QPainter *painter)
 
     path.lineTo(p2.x, p2.y);
   }
-
-  //---
-
-  // set pen
-  QPen pen;
-
-  QColor strokeColor = interpStrokeColor(ColorInd());
-
-  setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
 
   //---
 
@@ -1756,12 +1604,7 @@ CQChartsTextAnnotation::
 calcTextSize(QSizeF &psize, QSizeF &wsize) const
 {
   // get font
-  QFont font;
-
-  if      (plot())
-    font = view()->plotFont(plot(), textFont());
-  else if (view())
-    font = view()->viewFont(textFont());
+  QFont font = calcFont(textFont());
 
   // get text size (pixel)
   CQChartsTextOptions textOptions;
@@ -1783,7 +1626,7 @@ void
 CQChartsTextAnnotation::
 positionToLL(double w, double h, double &x, double &y) const
 {
-  QPointF p = positionToParent(positionValue());;
+  QPointF p = positionToParent(positionValue());
 
   x = 0.0;
   y = 0.0;
@@ -1897,11 +1740,8 @@ draw(QPainter *painter)
 
   QColor c = interpColor(textColor(), ColorInd());
 
-  if (isCheckable() && ! isChecked()) {
-    QColor bg = backgroundColor();
-
-    c = CQChartsUtil::blendColors(bg, c, 0.5);
-  }
+  if (isCheckable() && ! isChecked())
+    c = CQChartsUtil::blendColors(backgroundColor(), c, 0.5);
 
   setPen(pen, true, c, textAlpha());
 
@@ -1924,16 +1764,12 @@ draw(QPainter *painter)
   textOptions.clipped   = false;
   textOptions.align     = textAlign();
 
-  if (plot())
-    textOptions = plot()->adjustTextOptions(textOptions);
+  adjustTextOptions(textOptions);
 
   //---
 
   // set font
-  if     (plot())
-    view()->setPlotPainterFont(plot(), painter, textFont());
-  else if (view())
-    view()->setPainterFont(painter, textFont());
+  setPainterFont(painter, textFont());
 
   //---
 
@@ -2246,7 +2082,7 @@ void
 CQChartsImageAnnotation::
 positionToLL(double w, double h, double &x, double &y) const
 {
-  QPointF p = positionToParent(positionValue());;
+  QPointF p = positionToParent(positionValue());
 
   x = p.x() - w/2;
   y = p.y() - h/2;
@@ -2658,13 +2494,33 @@ draw(QPainter *painter)
 
   //---
 
+  // set pen and brush
+  QPen   pen;
+  QBrush brush;
+
+  QColor bgColor     = arrow_->interpFillColor  (ColorInd());
+  QColor strokeColor = arrow_->interpStrokeColor(ColorInd());
+
+  if (isCheckable() && ! isChecked()) {
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor, 0.5);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+  }
+
+  setPen  (pen  , true, strokeColor, arrow_->strokeAlpha(), 1.0, CQChartsLineDash());
+  setBrush(brush, true, bgColor, arrow_->fillAlpha(), arrow_->fillPattern());
+
+  updatePenBrushState(pen, brush);
+
+  //---
+
   // draw arrow
+  // TODO: checkable and not checked
   disconnect(arrow_, SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
 
   arrow_->setFrom(start);
   arrow_->setTo  (end  );
 
-  arrow_->draw(painter);
+  arrow_->draw(painter, pen, brush);
 
   connect(arrow_, SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
 
@@ -2911,9 +2767,13 @@ draw(QPainter *painter)
   QColor lineColor = interpColor(strokeData.color(), ColorInd());
   QColor fillColor = interpColor(fillData  .color(), ColorInd());
 
-  setPen(pen, strokeData.isVisible(), lineColor, strokeData.alpha(),
-         strokeData.width(), strokeData.dash());
+  if (isCheckable() && ! isChecked()) {
+    lineColor = CQChartsUtil::blendColors(backgroundColor(), lineColor, 0.5);
+    fillColor = CQChartsUtil::blendColors(backgroundColor(), fillColor, 0.5);
+  }
 
+  setPen  (pen  , strokeData.isVisible(), lineColor, strokeData.alpha(),
+           strokeData.width(), strokeData.dash());
   setBrush(brush, fillData.isVisible(), fillColor, fillData.alpha(), fillData.pattern());
 
   updatePenBrushState(pen, brush, CQChartsPlot::DrawType::SYMBOL);

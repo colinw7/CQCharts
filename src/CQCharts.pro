@@ -79,6 +79,7 @@ CQChartsBuffer.cpp \
 \
 CQChartsNoDataObj.cpp \
 CQChartsPlotObj.cpp \
+CQChartsViewPlotObj.cpp \
 CQChartsPlotObjTree.cpp \
 CQChartsBoxObj.cpp \
 CQChartsRotatedTextBoxObj.cpp \
@@ -318,6 +319,7 @@ HEADERS += \
 \
 ../include/CQChartsNoDataObj.h \
 ../include/CQChartsPlotObj.h \
+../include/CQChartsViewPlotObj.h \
 ../include/CQChartsPlotObjTree.h \
 ../include/CQChartsBoxObj.h \
 ../include/CQChartsRotatedTextBoxObj.h \

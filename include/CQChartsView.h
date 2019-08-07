@@ -162,12 +162,7 @@ class CQChartsView : public QFrame,
     PIXEL
   };
 
-  //! shape draw type
-  enum class DrawType {
-    LINE,
-    BOX,
-    SYMBOL
-  };
+  using DrawType = CQChartsObjDrawType;
 
  public:
   using Plots       = std::vector<CQChartsPlot*>;

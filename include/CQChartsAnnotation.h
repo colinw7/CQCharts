@@ -1,7 +1,6 @@
 #ifndef CQChartsAnnotation_H
 #define CQChartsAnnotation_H
 
-#include <CQChartsView.h>
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsSymbol.h>
 #include <CQChartsData.h>
@@ -38,7 +37,6 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   };
 
   using ColorInd = CQChartsUtil::ColorInd;
-  using DrawType = CQChartsView::DrawType;
 
  public:
   static const QStringList &typeNames() {
@@ -173,46 +171,11 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
-  // set pen/brush
-  void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha=1.0,
-              const CQChartsLength &strokeWidth=CQChartsLength("0px"),
-              const CQChartsLineDash &strokeDash=CQChartsLineDash()) const;
-
-  void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(), double fillAlpha=1.0,
-                const CQChartsFillPattern &pattern=CQChartsFillPattern()) const;
-
-  void updatePenBrushState(QPen &pen, QBrush &brush, DrawType drawType=DrawType::BOX) const;
-
-  //---
-
   //! draw
   virtual void draw(QPainter *painter);
 
   //! draw edit handles
   void drawEditHandles(QPainter *painter) const;
-
-  //---
-
-  //! get parent view
-  CQChartsView *view() const;
-
-  //---
-
-  QPointF positionToParent(const CQChartsPosition &pos) const;
-
-  double lengthParentWidth (const CQChartsLength &len) const;
-  double lengthParentHeight(const CQChartsLength &len) const;
-
-  double lengthPixelWidth (const CQChartsLength &len) const;
-  double lengthPixelHeight(const CQChartsLength &len) const;
-
-  CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &w) const;
-  CQChartsGeom::BBox  windowToPixel(const CQChartsGeom::BBox  &w) const;
-
-  double pixelToWindowWidth (double pw) const;
-  double pixelToWindowHeight(double ph) const;
-
-  QColor backgroundColor() const;
 
   //---
 

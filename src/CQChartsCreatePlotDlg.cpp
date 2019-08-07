@@ -24,7 +24,6 @@
 #include <CQUtil.h>
 #include <CQCustomCombo.h>
 
-#include <QItemSelectionModel>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QComboBox>

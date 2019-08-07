@@ -51,10 +51,3 @@ tipId() const
 
   return *tipId_;
 }
-
-void
-CQChartsObj::
-drawDebugRect(const CQChartsPlot *plot, QPainter *painter)
-{
-  plot->drawWindowColorBox(painter, rect_);
-}

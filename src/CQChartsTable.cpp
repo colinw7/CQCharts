@@ -141,6 +141,10 @@ setModelP(const ModelP &model)
 
   CQTableView::setModel(model_.data());
 
+  resetModelData();
+
+  //---
+
   if (model_.data()) {
     CQChartsModelData *modelData = getModelData();
 
@@ -154,8 +158,6 @@ setModelP(const ModelP &model)
 
     setSelectionModel(sm_);
   }
-
-  resetModelData();
 
   //---
 

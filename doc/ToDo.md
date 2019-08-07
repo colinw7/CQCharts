@@ -1,4 +1,10 @@
 High
+ + Pivot
+   + multiple labels (x and y)
+   + Skip missing
+   + More fill variation
+   + Key on/off for groups
+   + Group on key ?
  + add unchecked support for all annotations
  + access set hidden from tcl
    + Should be able to create fully functional key from annotations
@@ -6,7 +12,6 @@ High
  + plot selection behavior -> select out, select in, none, both
  + table per column coloring
  + More help content
- + Pivot model and chart
  + Add base class for shared code between xy/scatter
  + Scaled rotated text
  + Improve edit arrow annotation preview

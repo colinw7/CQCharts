@@ -17,10 +17,7 @@ draw(QPainter *painter, const QPointF &center, const QString &text, double angle
 {
   painter->save();
 
-  if      (plot())
-    view()->setPlotPainterFont(plot(), painter, textFont());
-  else if (view())
-    view()->setPainterFont(painter, textFont());
+  setPainterFont(painter, textFont());
 
   QFontMetricsF fm(painter->font());
 
@@ -74,10 +71,7 @@ draw(QPainter *painter, const QPointF &center, const QString &text, double angle
 
   QPen pen;
 
-  if      (plot())
-    plot()->setPen(pen, true, c, textAlpha());
-  else if (view())
-    view()->setPen(pen, true, c, textAlpha());
+  setPen(pen, true, c, textAlpha());
 
   painter->setPen(pen);
 
@@ -91,12 +85,7 @@ CQChartsGeom::BBox
 CQChartsRotatedTextBoxObj::
 bbox(const QPointF &center, const QString &text, double angle, Qt::Alignment align) const
 {
-  QFont font;
-
-  if      (plot())
-    font = view()->plotFont(plot(), textFont());
-  else if (view())
-    font = view()->viewFont(textFont());
+  QFont font = calcFont(textFont());;
 
   QFontMetricsF fm(font);
 
@@ -127,12 +116,7 @@ bbox(const QPointF &center, const QString &text, double angle, Qt::Alignment ali
                                   qrect, points, align, /*alignBBox*/ true);
   }
 
-  CQChartsGeom::BBox bbox;
-
-  if      (plot())
-    bbox = plot()->pixelToWindow(CQChartsUtil::fromQRect(qrect));
-  else if (view())
-    bbox = view()->pixelToWindow(CQChartsUtil::fromQRect(qrect));
+  CQChartsGeom::BBox bbox = pixelToWindow(CQChartsUtil::fromQRect(qrect));
 
   return bbox;
 }
@@ -176,12 +160,7 @@ drawCalcConnectedRadialText(QPainter *painter, const QPointF &center, double ro,
   double tx = center.x() + lr*tc;
   double ty = center.y() + lr*ts;
 
-  CQChartsGeom::Point pt;
-
-  if      (plot())
-    pt = plot()->windowToPixel(CQChartsGeom::Point(tx, ty));
-  else if (view())
-    pt = view()->windowToPixel(CQChartsGeom::Point(tx, ty));
+  CQChartsGeom::Point pt = windowToPixel(CQChartsGeom::Point(tx, ty));
 
   //---
 
@@ -195,18 +174,8 @@ drawCalcConnectedRadialText(QPainter *painter, const QPointF &center, double ro,
     double lx2 = center.x() + lr*tc;
     double ly2 = center.y() + lr*ts;
 
-    CQChartsGeom::Point lp1, lp2;
-
-    if       (plot()) {
-      lp1 = plot()->windowToPixel(CQChartsGeom::Point(lx1, ly1));
-      lp2 = plot()->windowToPixel(CQChartsGeom::Point(lx2, ly2));
-    }
-    else if (view()) {
-      lp1 = view()->windowToPixel(CQChartsGeom::Point(lx1, ly1));
-      lp2 = view()->windowToPixel(CQChartsGeom::Point(lx2, ly2));
-    }
-    else
-      assert(false);
+    CQChartsGeom::Point lp1 = windowToPixel(CQChartsGeom::Point(lx1, ly1));
+    CQChartsGeom::Point lp2 = windowToPixel(CQChartsGeom::Point(lx2, ly2));
 
     int tickSize = 16;
 

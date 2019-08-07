@@ -27,10 +27,10 @@ CQCharts *
 CQChartsArrow::
 charts() const
 {
-  if      (plot_)
-    return plot_->charts();
-  else if (view_)
-    return view_->charts();
+  if      (plot())
+    return plot()->charts();
+  else if (view())
+    return view()->charts();
   else
     return nullptr;
 }
@@ -39,50 +39,67 @@ void
 CQChartsArrow::
 draw(QPainter *painter) const
 {
+  QPen   pen;
+  QBrush brush;
+
+  QColor fc = interpFillColor  (ColorInd());
+  QColor sc = interpStrokeColor(ColorInd());
+
+  CQChartsUtil::setBrush(brush, true, fc, fillAlpha(), fillPattern());
+
+  CQChartsUtil::setPen(pen, true, sc, strokeAlpha(), 1.0);
+
+  draw(painter, pen, brush);
+}
+
+void
+CQChartsArrow::
+draw(QPainter *painter, const QPen &pen, const QBrush &brush) const
+{
   auto windowToPixel = [&](double wx, double wy, double &px, double &py) {
     CQChartsGeom::Point p(wx, wy);
 
-    if      (plot_)
-      p = plot_->windowToPixel(CQChartsGeom::Point(wx, wy));
-    else if (view_)
-      p = view_->windowToPixel(CQChartsGeom::Point(wx, wy));
+    if      (plot())
+      p = plot()->windowToPixel(CQChartsGeom::Point(wx, wy));
+    else if (view())
+      p = view()->windowToPixel(CQChartsGeom::Point(wx, wy));
 
     px = p.x;
     py = p.y;
   };
 
   auto lengthPixelWidth = [&](const CQChartsLength &l) {
-    if      (plot_)
-      return plot_->lengthPixelWidth(l);
-    else if (view_)
-      return view_->lengthPixelWidth(l);
+    if      (plot())
+      return plot()->lengthPixelWidth(l);
+    else if (view())
+      return view()->lengthPixelWidth(l);
     else
       return l.value();
   };
 
   auto lengthPixelHeight = [&](const CQChartsLength &l) {
-    if      (plot_)
-      return plot_->lengthPixelHeight(l);
-    else if (view_)
-      return view_->lengthPixelHeight(l);
+    if      (plot())
+      return plot()->lengthPixelHeight(l);
+    else if (view())
+      return view()->lengthPixelHeight(l);
     else
       return l.value();
   };
 
   auto lengthLocalWidth = [&](const CQChartsLength &l) {
-    if      (plot_)
-      return plot_->lengthPlotWidth(l);
-    else if (view_)
-      return view_->lengthViewWidth(l);
+    if      (plot())
+      return plot()->lengthPlotWidth(l);
+    else if (view())
+      return view()->lengthViewWidth(l);
     else
       return l.value();
   };
 
   auto lengthLocalHeight = [&](const CQChartsLength &l) {
-    if      (plot_)
-      return plot_->lengthPlotHeight(l);
-    else if (view_)
-      return view_->lengthViewHeight(l);
+    if      (plot())
+      return plot()->lengthPlotHeight(l);
+    else if (view())
+      return view()->lengthViewHeight(l);
     else
       return l.value();
   };
@@ -200,8 +217,8 @@ draw(QPainter *painter) const
     double xf3 = x2, yf3 = y2;
 
     if (isLineEnds()) {
-      drawLine(p1, pf1, xw, false);
-      drawLine(p1, pf2, xw, false);
+      drawLine(p1, pf1, xw, false, pen);
+      drawLine(p1, pf2, xw, false, pen);
     }
     else {
       if (ba > aa && ba < M_PI) {
@@ -230,7 +247,7 @@ draw(QPainter *painter) const
       fHeadPoints.push_back(QPointF(xf2, yf2));
 
       if (! linePoly)
-        drawPolygon(fHeadPoints, xw, isFilled());
+        drawPolygon(fHeadPoints, xw, isFilled(), pen, brush);
     }
   }
 
@@ -265,8 +282,8 @@ draw(QPainter *painter) const
     double xt3 = x3, yt3 = y3;
 
     if (isLineEnds()) {
-      drawLine(p4, pt1, xw, false);
-      drawLine(p4, pt2, xw, false);
+      drawLine(p4, pt1, xw, false, pen);
+      drawLine(p4, pt2, xw, false, pen);
     }
     else {
       if (ba > aa && ba < M_PI) {
@@ -295,7 +312,7 @@ draw(QPainter *painter) const
       tHeadPoints.push_back(QPointF(xt2, yt2));
 
       if (! linePoly)
-        drawPolygon(tHeadPoints, xw, isFilled());
+        drawPolygon(tHeadPoints, xw, isFilled(), pen, brush);
     }
   }
 
@@ -386,7 +403,7 @@ draw(QPainter *painter) const
       midPoints1.push_back(fHeadMid);
       midPoints1.push_back(fl3);
 
-      //drawPolygon(midPoints1, xw, isFilled());
+    //drawPolygon(midPoints1, xw, isFilled(), pen, brush);
     }
 
     QPointF tl1, tl2;
@@ -458,7 +475,7 @@ draw(QPainter *painter) const
       midPoints2.push_back(tHeadMid);
       midPoints2.push_back(tl4);
 
-      //drawPolygon(midPoints2, xw, isFilled());
+    //drawPolygon(midPoints2, xw, isFilled(), pen, brush);
     }
 
     QPointF pl1(lx1, ly1);
@@ -522,7 +539,7 @@ draw(QPainter *painter) const
       points.push_back(pl2);
     }
 
-    drawPolygon(points, xw, isFilled());
+    drawPolygon(points, xw, isFilled(), pen, brush);
 
 #if 0
     if (isFilled()) {
@@ -533,22 +550,23 @@ draw(QPainter *painter) const
       points.push_back(pl4);
       points.push_back(pl2);
 
-      drawPolygon(points, xw, isFilled());
+      drawPolygon(points, xw, isFilled(), pen, brush);
     }
     else {
-      drawLine(pl1, pl3, xw, false);
-      drawLine(pl2, pl4, xw, false);
+      drawLine(pl1, pl3, xw, false, pen);
+      drawLine(pl2, pl4, xw, false, pen);
     }
 #endif
   }
   else {
-    drawLine(QPointF(x11, y11), QPointF(x41, y41), xw, false);
+    drawLine(QPointF(x11, y11), QPointF(x41, y41), xw, false, pen);
   }
 }
 
 void
 CQChartsArrow::
-drawPolygon(const std::vector<QPointF> &points, double width, bool filled) const
+drawPolygon(const std::vector<QPointF> &points, double width, bool filled,
+            const QPen &pen, const QBrush &brush) const
 {
   QPainterPath path;
 
@@ -569,20 +587,14 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled) const
   //---
 
   if (filled) {
-    QBrush brush;
-
-    QColor fc = interpFillColor(ColorInd());
-
-    CQChartsUtil::setBrush(brush, true, fc, fillAlpha(), fillPattern());
-
     painter_->fillPath(path, brush);
   }
   else {
-    QPen pen;
+    QPen p = painter_->pen();
 
-    QColor sc = interpStrokeColor(ColorInd());
+    p.setWidthF(width);
 
-    CQChartsUtil::setPen(pen, true, sc, strokeAlpha(), width);
+    painter_->setPen(p);
 
     painter_->strokePath(path, pen);
   }
@@ -590,15 +602,16 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled) const
 
 void
 CQChartsArrow::
-drawLine(const QPointF &point1, const QPointF &point2, double width, bool mapping) const
+drawLine(const QPointF &point1, const QPointF &point2, double width, bool mapping,
+         const QPen &pen) const
 {
   auto windowToPixel = [&](double wx, double wy, double &px, double &py) {
     CQChartsGeom::Point p(wx, wy);
 
-    if      (plot_)
-      p = plot_->windowToPixel(CQChartsGeom::Point(wx, wy));
-    else if (view_)
-      p = view_->windowToPixel(CQChartsGeom::Point(wx, wy));
+    if      (plot())
+      p = plot()->windowToPixel(CQChartsGeom::Point(wx, wy));
+    else if (view())
+      p = view()->windowToPixel(CQChartsGeom::Point(wx, wy));
 
     px = p.x;
     py = p.y;
@@ -608,9 +621,7 @@ drawLine(const QPointF &point1, const QPointF &point2, double width, bool mappin
 
   QPen p = painter_->pen();
 
-  QColor sc = interpStrokeColor(ColorInd());
-
-  p.setColor (sc);
+  p.setColor (pen.color());
   p.setWidthF(width);
 
   painter_->setPen(p);
@@ -648,7 +659,7 @@ drawPointLabel(const QPointF &point, const QString &text, bool above, bool mappi
 
   QPen tpen;
 
-  QColor tc = interpDebugTextColor(ColorInd());
+  QColor tc = Qt::red;
 
   CQChartsUtil::setPen(tpen, true, tc, 1.0, CQChartsLength("1.0"));
 
@@ -672,7 +683,7 @@ void
 CQChartsArrow::
 write(std::ostream &os, const QString &varName) const
 {
-  assert(plot_);
+  assert(plot());
 
   auto plotName = [&]() {
     return (varName != "" ? varName : "plot");
@@ -680,7 +691,7 @@ write(std::ostream &os, const QString &varName) const
 
   CQPropertyViewModel::NameValues nameValues;
 
-  plot_->propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
+  plot()->propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
 
   if (! nameValues.empty())
     os << "\n";

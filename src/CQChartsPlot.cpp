@@ -6644,7 +6644,7 @@ execDrawObjs(QPainter *painter, const CQChartsLayer::Type &layerType) const
 
     // show debug box
     if (showBoxes())
-      plotObj->drawDebugRect(this, painter);
+      plotObj->drawDebugRect(painter);
   }
 
   //---

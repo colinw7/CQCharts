@@ -116,10 +116,7 @@ void
 CQChartsTextBoxObj::
 drawText(QPainter *painter, const QRectF &rect, const QString &text) const
 {
-  if      (plot())
-    view()->setPlotPainterFont(plot(), painter, textFont());
-  else if (view())
-    view()->setPainterFont(painter, textFont());
+  setPainterFont(painter, textFont());
 
   QFontMetricsF fm(painter->font());
 
@@ -127,10 +124,7 @@ drawText(QPainter *painter, const QRectF &rect, const QString &text) const
 
   QPen pen;
 
-  if      (plot())
-    plot()->setPen(pen, true, c, textAlpha());
-  else if (view())
-    view()->setPen(pen, true, c, textAlpha());
+  setPen(pen, true, c, textAlpha());
 
   painter->setPen(pen);
 
@@ -145,8 +139,7 @@ drawText(QPainter *painter, const QRectF &rect, const QString &text) const
   textOptions.html      = isTextHtml();
   textOptions.align     = textAlign();
 
-  if (plot())
-    textOptions = plot()->adjustTextOptions(textOptions);
+  adjustTextOptions(textOptions);
 
   //---
 
@@ -168,13 +161,15 @@ void
 CQChartsTextBoxObj::
 write(std::ostream &os, const QString &varName) const
 {
+  assert(plot());
+
   auto plotName = [&]() {
     return (varName != "" ? varName : "plot");
   };
 
   CQPropertyViewModel::NameValues nameValues;
 
-  plot_->propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
+  plot()->propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
 
   if (! nameValues.empty())
     os << "\n";

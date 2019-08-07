@@ -1,14 +1,12 @@
 #ifndef CQChartsBoxObj_H
 #define CQChartsBoxObj_H
 
-#include <CQChartsObj.h>
+#include <CQChartsViewPlotObj.h>
 #include <CQChartsObjData.h>
 #include <CQChartsSides.h>
 #include <QRectF>
 #include <QPolygonF>
 
-class CQChartsView;
-class CQCharts;
 class CQPropertyViewModel;
 class QPainter;
 
@@ -16,7 +14,7 @@ class QPainter;
  * \brief box object
  * \ingroup Charts
  */
-class CQChartsBoxObj : public CQChartsObj,
+class CQChartsBoxObj : public CQChartsViewPlotObj,
  public CQChartsObjBoxData<CQChartsBoxObj> {
   Q_OBJECT
 
@@ -35,13 +33,7 @@ class CQChartsBoxObj : public CQChartsObj,
 
   //---
 
-  CQCharts *charts() const;
-
-  CQChartsView *view() const;
-  CQChartsPlot *plot() const { return plot_; }
-
-  //---
-
+  // get/set state coloring
   bool isStateColoring() const { return stateColoring_; }
   void setStateColoring(bool b) { stateColoring_ = b; }
 
@@ -59,10 +51,10 @@ class CQChartsBoxObj : public CQChartsObj,
   void draw(QPainter *painter, const QRectF &rect) const;
   void draw(QPainter *painter, const QPolygonF &poly) const;
 
+  void draw(QPainter *painter, const QRectF &rect, const QPen &pen, const QBrush &brush) const;
+
  protected:
-  CQChartsView* view_          { nullptr }; //!< parent view
-  CQChartsPlot* plot_          { nullptr }; //!< parent plot
-  bool          stateColoring_ { true };    //!< color depending on inside/selected state
+  bool stateColoring_ { true }; //!< color depending on inside/selected state
 };
 
 #endif

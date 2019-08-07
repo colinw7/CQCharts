@@ -14,35 +14,48 @@ class CQTabSplit : public QFrame {
   Q_OBJECT
 
   Q_PROPERTY(Qt::Orientation orientation READ orientation WRITE setOrientation)
+  Q_PROPERTY(State           state       READ state       WRITE setState      )
   Q_PROPERTY(bool            grouped     READ isGrouped   WRITE setGrouped    )
+
+  Q_ENUMS(State)
 
  public:
   enum class State {
     HSPLIT,
     VSPLIT,
-    TAB
+    TAB,
+    AUTO
   };
 
   using Sizes = QList<int>;
 
  public:
+  CQTabSplit(Qt::Orientation orient, QWidget *parent=nullptr);
   CQTabSplit(QWidget *parent=nullptr);
 
   // get/set orientation
   Qt::Orientation orientation() const { return orient_; }
   void setOrientation(Qt::Orientation orient);
 
+  State state() const { return state_; }
+  void setState(State state);
+
   // get/set grouped
   bool isGrouped() const { return grouped_; }
   void setGrouped(bool b) { grouped_ = b; }
 
+  QWidget *widget(int i) const;
+
   void addWidget(QWidget *w, const QString &name);
 
-  void setState(State state);
+  int count() const;
 
   void setSizes(const Sizes &sizes);
 
   QSize sizeHint() const override;
+
+ private:
+  void init();
 
  private:
   using WidgetP = QPointer<QWidget>;
@@ -61,13 +74,13 @@ class CQTabSplit : public QFrame {
   using Widgets = std::vector<WidgetData>;
 
   Qt::Orientation orient_   { Qt::Horizontal };
-  bool            grouped_  { false };
   State           state_    { State::HSPLIT };
+  bool            grouped_  { false };
+  Widgets         widgets_;
   Sizes           hsizes_;
   Sizes           vsizes_;
   QTabWidget*     tabWidget_{ nullptr };
   QSplitter*      splitter_ { nullptr };
-  Widgets         widgets_;
 };
 
 //---
@@ -103,6 +116,8 @@ class CQTabSplitSplitterHandle : public QSplitterHandle {
 
   void paintEvent(QPaintEvent *) override;
 
+  bool event(QEvent *event) override;
+
   QSize sizeHint() const override;
 
  private slots:
@@ -112,6 +127,7 @@ class CQTabSplitSplitterHandle : public QSplitterHandle {
  private:
   CQTabSplitSplitter *splitter_ { nullptr };
   int                 barSize_  { 8 };
+  bool                hover_    { false };
 };
 
 //---

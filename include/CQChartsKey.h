@@ -128,7 +128,7 @@ class CQChartsKey : public CQChartsBoxObj,
   //---
 
   virtual bool selectPress  (const CQChartsGeom::Point &, CQChartsSelMod) = 0;
-  virtual bool selectMove   (const CQChartsGeom::Point &) = 0;;
+  virtual bool selectMove   (const CQChartsGeom::Point &) = 0;
   virtual bool selectRelease(const CQChartsGeom::Point &) = 0;
 
   virtual bool editPress  (const CQChartsGeom::Point &) = 0;

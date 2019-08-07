@@ -86,14 +86,18 @@ class CQChartsArrow : public QObject,
 
   void draw(QPainter *painter) const;
 
+  void draw(QPainter *painter, const QPen &pen, const QBrush &brush) const;
+
   //---
 
   void write(std::ostream &os, const QString &varName) const;
 
  private:
-  void drawPolygon(const std::vector<QPointF> &points, double w, bool filled) const;
+  void drawPolygon(const std::vector<QPointF> &points, double w, bool filled,
+                   const QPen &pen, const QBrush &brush) const;
 
-  void drawLine(const QPointF &point1, const QPointF &point2, double width, bool mapping) const;
+  void drawLine(const QPointF &point1, const QPointF &point2, double width, bool mapping,
+                const QPen &pen) const;
 
 #if 0
   void drawPointLabel(const QPointF &point, const QString &text, ool above, bool mapping) const;

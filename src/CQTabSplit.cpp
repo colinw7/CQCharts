@@ -9,11 +9,24 @@
 #include <QPainter>
 
 #include <cassert>
-#include <iostream>
+
+CQTabSplit::
+CQTabSplit(Qt::Orientation orient, QWidget *parent) :
+ QFrame(parent), orient_(orient)
+{
+  init();
+}
 
 CQTabSplit::
 CQTabSplit(QWidget *parent) :
  QFrame(parent)
+{
+  init();
+}
+
+void
+CQTabSplit::
+init()
 {
   setObjectName("tabSplit");
 
@@ -28,7 +41,7 @@ CQTabSplit(QWidget *parent) :
 
   tabWidget_->setVisible(false);
 
-  splitter_->setOrientation(orient_);
+  splitter_->setOrientation(orientation());
 
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
@@ -38,7 +51,7 @@ CQTabSplit::
 setOrientation(Qt::Orientation orient)
 {
   if (state_ != State::TAB)
-    setState(orient == Qt::Vertical ? State::VSPLIT : State::HSPLIT);
+    setState(orient == Qt::Horizontal ? State::HSPLIT : State::VSPLIT);
   else
     orient_ = orient;
 }
@@ -47,7 +60,7 @@ void
 CQTabSplit::
 setSizes(const QList<int> &sizes)
 {
-  if (orient_ == Qt::Horizontal)
+  if (orientation() == Qt::Horizontal)
     hsizes_ = sizes;
   else
     vsizes_ = sizes;
@@ -59,6 +72,8 @@ void
 CQTabSplit::
 addWidget(QWidget *w, const QString &name)
 {
+  assert(w);
+
   WidgetData data(w, name);
 
   if (isGrouped()) {
@@ -86,6 +101,23 @@ addWidget(QWidget *w, const QString &name)
   }
 }
 
+QWidget *
+CQTabSplit::
+widget(int i) const
+{
+  if (i < 0 || i >= int(widgets_.size()))
+    return nullptr;
+
+  return widgets_[i].w;
+}
+
+int
+CQTabSplit::
+count() const
+{
+  return widgets_.size();
+}
+
 void
 CQTabSplit::
 setState(State state)
@@ -100,6 +132,7 @@ setState(State state)
 
   // from tab -> splitter
   if      (state == State::TAB) {
+    // remove widgets from tab
     int n = tabWidget_->count();
 
     assert(n == int(widgets_.size()));
@@ -107,7 +140,13 @@ setState(State state)
     for (int i = 0; i < n; ++i)
       tabWidget_->removeTab(0);
 
+    //---
+
+    //add widgets to splitter
     for (auto &data : widgets_) {
+      if (! data.w)
+        continue;
+
       if (isGrouped())
         splitter_->addWidget(data.group);
       else
@@ -122,68 +161,58 @@ setState(State state)
       data.w->setVisible(true);
     }
 
-    for (auto &data : widgets_) {
-      if (isGrouped()) {
-        QWidget *parent1 = data.w    ->parentWidget();
-        QWidget *parent2 = data.group->parentWidget();
+    //---
 
-        if (parent1 != data.group)
-          std::cerr << "Bad widget parent: " << parent1->objectName().toStdString() << "\n";
-
-        if (parent2 != splitter_)
-          std::cerr << "Bad splitter parent: " << parent2->objectName().toStdString() << "\n";
-
-        if (! data.group->isVisible())
-          std::cerr << "Bad group visible\n";
-
-        if (! data.w->isVisible())
-          std::cerr << "Bad widget visible\n";
-      }
-      else {
-        if (data.w->parent() != splitter_)
-          std::cerr << "Bad widget parent\n";
-
-        if (! data.w->isVisible())
-          std::cerr << "Bad widget visible\n";
-      }
-    }
-
-    if (orient_ == Qt::Horizontal) {
+    // restore saved sizes
+    if (orientation() == Qt::Horizontal) {
       if (hsizes_.length())
         splitter_->setSizes(hsizes_);
     }
     else {
-      if (hsizes_.length())
+      if (vsizes_.length())
         splitter_->setSizes(vsizes_);
     }
   }
   // from splitter -> tab
   else if (state_ == State::TAB) {
-    if (orient_ == Qt::Horizontal)
+    // save sizes
+    if (orientation() == Qt::Horizontal)
       hsizes_ = splitter_->sizes();
     else
       vsizes_ = splitter_->sizes();
 
     //---
 
+    // remove widgets from splitter
     int n = splitter_->count();
 
     assert(n == int(widgets_.size()));
 
     for (auto &data : widgets_) {
+      if (! data.w)
+        continue;
+
       if (isGrouped())
         data.group->setParent(this);
       else
         data.w->setParent(this);
     }
 
-    for (auto &data : widgets_)
+    //---
+
+    // add widgets to tab
+    for (auto &data : widgets_) {
+      if (! data.w)
+        continue;
+
       tabWidget_->addTab(data.w, data.name);
+    }
   }
+  // new splitter direction
   else {
     orient_ = (state_ == State::HSPLIT ? Qt::Horizontal : Qt::Vertical);
 
-    splitter_->setOrientation(orient_);
+    splitter_->setOrientation(orientation());
   }
 }
 
@@ -276,9 +305,12 @@ paintEvent(QPaintEvent *)
 
   QColor wc = palette().color(QPalette::Window);
 
-  QColor fc = blendColors(palette().color(QPalette::Highlight), wc, 0.3);
+  QColor fc = (hover_ ? blendColors(palette().color(QPalette::Highlight), wc, 0.3) :
+                        blendColors(palette().color(QPalette::Highlight), wc, 0.1));
 
   painter.fillRect(rect(), fc);
+
+  //---
 
   QColor fg = palette().color(QPalette::Text);
   QColor bg = palette().color(QPalette::Base);
@@ -302,29 +334,31 @@ paintEvent(QPaintEvent *)
 
     //---
 
-    painter.setRenderHints(QPainter::Antialiasing, true);
+    if (hover_) {
+      painter.setRenderHints(QPainter::Antialiasing, true);
 
-    int th = barSize()/2;
+      int th = barSize()/2;
 
-    QPainterPath path1;
+      QPainterPath path1;
 
-    int yt1 = ym + ss;
+      int yt1 = ym + ss;
 
-    path1.moveTo(x1 - 1, yt1     );
-    path1.lineTo(x2    , yt1 + th);
-    path1.lineTo(x2    , yt1 - th);
+      path1.moveTo(x1 - 1, yt1     );
+      path1.lineTo(x2    , yt1 + th);
+      path1.lineTo(x2    , yt1 - th);
 
-    painter.fillPath(path1, bg);
+      painter.fillPath(path1, bg);
 
-    QPainterPath path2;
+      QPainterPath path2;
 
-    int yt2 = ym - ss;
+      int yt2 = ym - ss;
 
-    path2.moveTo(x2 + 1, yt2     );
-    path2.lineTo(x1    , yt2 + th);
-    path2.lineTo(x1    , yt2 - th);
+      path2.moveTo(x2 + 1, yt2     );
+      path2.lineTo(x1    , yt2 + th);
+      path2.lineTo(x1    , yt2 - th);
 
-    painter.fillPath(path2, bg);
+      painter.fillPath(path2, bg);
+    }
   }
   else {
     int xm = rect().center().x();
@@ -343,30 +377,45 @@ paintEvent(QPaintEvent *)
 
     //---
 
-    painter.setRenderHints(QPainter::Antialiasing, true);
+    if (hover_) {
+      painter.setRenderHints(QPainter::Antialiasing, true);
 
-    int tw = barSize()/2;
+      int tw = barSize()/2;
 
-    QPainterPath path1;
+      QPainterPath path1;
 
-    int xt1 = xm + ss;
+      int xt1 = xm + ss;
 
-    path1.moveTo(xt1     , y1 - 1);
-    path1.lineTo(xt1 + tw, y2    );
-    path1.lineTo(xt1 - tw, y2    );
+      path1.moveTo(xt1     , y1 - 1);
+      path1.lineTo(xt1 + tw, y2    );
+      path1.lineTo(xt1 - tw, y2    );
 
-    painter.fillPath(path1, bg);
+      painter.fillPath(path1, bg);
 
-    QPainterPath path2;
+      QPainterPath path2;
 
-    int xt2 = xm - ss;
+      int xt2 = xm - ss;
 
-    path2.moveTo(xt2     , y2 + 1);
-    path2.lineTo(xt2 + tw, y1    );
-    path2.lineTo(xt2 - tw, y1    );
+      path2.moveTo(xt2     , y2 + 1);
+      path2.lineTo(xt2 + tw, y1    );
+      path2.lineTo(xt2 - tw, y1    );
 
-    painter.fillPath(path2, bg);
+      painter.fillPath(path2, bg);
+    }
   }
+}
+
+bool
+CQTabSplitSplitterHandle::
+event(QEvent *event)
+{
+  switch (event->type()) {
+    case QEvent::HoverEnter: hover_ = true ; update(); break;
+    case QEvent::HoverLeave: hover_ = false; update(); break;
+    default:                 break;
+  }
+
+  return QSplitterHandle::event(event);
 }
 
 void

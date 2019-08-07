@@ -7,6 +7,8 @@ CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect, const ColorI
                 const ColorInd &ig, const ColorInd &iv) :
  CQChartsObj(plot->charts(), rect), plot_(plot), is_(is), ig_(ig), iv_(iv)
 {
+  assert(plot_);
+
   assert(! CMathUtil::isNaN(rect.getXMin()) && ! CMathUtil::isNaN(rect.getYMin()) &&
          ! CMathUtil::isNaN(rect.getXMax()) && ! CMathUtil::isNaN(rect.getYMax()));
 
@@ -23,7 +25,7 @@ calcColumnId(const QModelIndex &ind, QString &str) const
 {
   bool ok;
 
-  str = plot_->idColumnString(ind.row(), ind.parent(), ok);
+  str = plot()->idColumnString(ind.row(), ind.parent(), ok);
 
   return ok;
 }
@@ -34,10 +36,10 @@ double
 CQChartsPlotObj::
 xColorValue(bool relative) const
 {
-  double x = rect_.getXMid();
+  double x = rect().getXMid();
 
   if (relative) {
-    const CQChartsGeom::Range &dataRange = plot_->dataRange();
+    const CQChartsGeom::Range &dataRange = plot()->dataRange();
 
     return CMathUtil::map(x, dataRange.xmin(), dataRange.xmax(), 0.0, 1.0);
   }
@@ -49,10 +51,10 @@ double
 CQChartsPlotObj::
 yColorValue(bool relative) const
 {
-  double y = rect_.getYMid();
+  double y = rect().getYMid();
 
   if (relative) {
-    const CQChartsGeom::Range &dataRange = plot_->dataRange();
+    const CQChartsGeom::Range &dataRange = plot()->dataRange();
 
     return CMathUtil::map(y, dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
   }
@@ -66,7 +68,7 @@ CQChartsPlotObj::ColorInd
 CQChartsPlotObj::
 calcColorInd() const
 {
-  return plot_->calcColorInd(this, nullptr, is_, ig_, iv_);
+  return plot()->calcColorInd(this, nullptr, is(), ig(), iv());
 }
 
 //---
@@ -95,7 +97,7 @@ isSelectIndex(const QModelIndex &ind) const
   getHierSelectIndices(inds);
 
   for (auto &ind1 : inds) {
-    QModelIndex ind2 = plot_->normalizeIndex(ind1);
+    QModelIndex ind2 = plot()->normalizeIndex(ind1);
 
     if (ind == ind2)
       return true;
@@ -113,7 +115,7 @@ addSelectIndices()
   getHierSelectIndices(inds);
 
   for (const auto &ind : inds)
-    plot_->addSelectIndex(ind);
+    plot()->addSelectIndex(ind);
 }
 
 void
@@ -122,14 +124,14 @@ getHierSelectIndices(Indices &inds) const
 {
   getSelectIndices(inds);
 
-  if (plot_->idColumn().isValid())
-    addColumnSelectIndex(inds, plot_->idColumn());
+  if (plot()->idColumn().isValid())
+    addColumnSelectIndex(inds, plot()->idColumn());
 
-  if (plot_->visibleColumn().isValid())
-    addColumnSelectIndex(inds, plot_->visibleColumn());
+  if (plot()->visibleColumn().isValid())
+    addColumnSelectIndex(inds, plot()->visibleColumn());
 
-  if (plot_->colorColumn().isValid())
-    addColumnSelectIndex(inds, plot_->colorColumn());
+  if (plot()->colorColumn().isValid())
+    addColumnSelectIndex(inds, plot()->colorColumn());
 }
 
 void
@@ -158,7 +160,7 @@ addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
       column.type() != CQChartsColumn::Type::DATA_INDEX)
     return;
 
-  QModelIndex ind = plot_->selectIndex(row, column.column(), parent);
+  QModelIndex ind = plot()->selectIndex(row, column.column(), parent);
 
   addSelectIndex(inds, ind);
 }
@@ -168,6 +170,13 @@ CQChartsPlotObj::
 addSelectIndex(Indices &inds, const QModelIndex &ind) const
 {
   inds.insert(ind);
+}
+
+void
+CQChartsPlotObj::
+drawDebugRect(QPainter *painter)
+{
+  plot()->drawWindowColorBox(painter, rect());
 }
 
 //------

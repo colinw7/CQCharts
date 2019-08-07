@@ -7,7 +7,6 @@
 #include <future>
 #include <boost/optional.hpp>
 
-class CQChartsPlot;
 class CQCharts;
 
 class QPainter;
@@ -80,9 +79,6 @@ class CQChartsObj : public QObject {
   virtual void setInside(bool b) { inside_ = b; }
 
   //---
-
-  //! draw debug rect
-  void drawDebugRect(const CQChartsPlot *plot, QPainter *painter);
 
  signals:
   //! emitted when object id changed

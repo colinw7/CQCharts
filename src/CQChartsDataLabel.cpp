@@ -24,7 +24,7 @@ addPathProperties(const QString &path, const QString &desc)
 {
   auto addProp = [&](const QString &path, const QString &name, const QString &alias,
                      const QString &desc) {
-    return &(plot_->addProperty(path, this, name, alias)->setDesc(desc));
+    return &(plot()->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
@@ -51,7 +51,7 @@ addPathProperties(const QString &path, const QString &desc)
 
   QString boxPath = path + "/box";
 
-  CQChartsBoxObj::addProperties(plot_->propertyModel(), boxPath, desc);
+  CQChartsBoxObj::addProperties(plot()->propertyModel(), boxPath, desc);
 }
 
 void
@@ -72,7 +72,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr, const Position
 
   QColor tc = interpTextColor(ColorInd());
 
-  plot_->setPen(tpen, true, tc, textAlpha());
+  plot()->setPen(tpen, true, tc, textAlpha());
 
   draw(painter, qrect, ystr, position, tpen);
 }
@@ -84,7 +84,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
 {
   painter->save();
 
-  plot_->view()->setPlotPainterFont(plot_, painter, textFont());
+  plot()->view()->setPlotPainterFont(plot(), painter, textFont());
 
   //---
 
@@ -117,13 +117,13 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
 
     if      (position == Position::TOP_INSIDE) {
       if (direction() == Qt::Vertical) {
-        if (! plot_->isInvertY())
+        if (! plot()->isInvertY())
           y = qrect.top   () + fm.ascent () + ym + b2;
         else
           y = qrect.bottom() - fm.descent() - ym - b2;
       }
       else {
-        if (! plot_->isInvertX())
+        if (! plot()->isInvertX())
           x = qrect.right() - tw - xm - b2;
         else
           x = qrect.left () + ym + b2;
@@ -131,13 +131,13 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
     }
     else if (position == Position::TOP_OUTSIDE) {
       if (direction() == Qt::Vertical) {
-        if (! plot_->isInvertY())
+        if (! plot()->isInvertY())
           y = qrect.top   () - fm.descent() - ym - b2;
         else
           y = qrect.bottom() + fm.ascent () + ym + b2;
       }
       else {
-        if (! plot_->isInvertX())
+        if (! plot()->isInvertX())
           x = qrect.right() + xm + b2;
         else
           x = qrect.left () - tw - ym - b2;
@@ -145,13 +145,13 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
     }
     else if (position == Position::BOTTOM_INSIDE) {
       if (direction() == Qt::Vertical) {
-        if (! plot_->isInvertY())
+        if (! plot()->isInvertY())
           y = qrect.bottom() - fm.descent() - ym - b2;
         else
           y = qrect.top   () + fm.ascent () + ym + b2;
       }
       else {
-        if (! plot_->isInvertX())
+        if (! plot()->isInvertX())
           x = qrect.left() + xm + b2;
         else
           x = qrect.right() - tw - ym - b2;
@@ -159,13 +159,13 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
     }
     else if (position == Position::BOTTOM_OUTSIDE) {
       if (direction() == Qt::Vertical) {
-        if (! plot_->isInvertY())
+        if (! plot()->isInvertY())
           y = qrect.bottom() + fm.ascent () + ym + b2;
         else
           y = qrect.top   () - fm.descent() - ym - b2;
       }
       else {
-        if (! plot_->isInvertX())
+        if (! plot()->isInvertX())
           x = qrect.left() - tw - xm - b2;
         else
           x = qrect.right() + ym + b2;
@@ -267,10 +267,10 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
 
   //---
 
-  CQChartsGeom::BBox wrect = plot_->pixelToWindow(CQChartsUtil::fromQRect(prect));
+  CQChartsGeom::BBox wrect = plot()->pixelToWindow(CQChartsUtil::fromQRect(prect));
 
-  if (plot_->showBoxes()) {
-    plot_->drawWindowColorBox(painter, wrect);
+  if (plot()->showBoxes()) {
+    plot()->drawWindowColorBox(painter, wrect);
   }
 
   //---
@@ -303,7 +303,7 @@ calcRect(const QRectF &qrect, const QString &ystr, const Position &position) con
 
   //double b = b1 + b2;
 
-  QFont font = plot_->view()->plotFont(plot_, textFont());
+  QFont font = plot()->view()->plotFont(plot(), textFont());
 
   if (CMathUtil::isZero(textAngle())) {
     QFontMetricsF fm(font);
@@ -314,25 +314,25 @@ calcRect(const QRectF &qrect, const QString &ystr, const Position &position) con
     double y = 0.0;
 
     if      (position == Position::TOP_INSIDE) {
-      if (! plot_->isInvertY())
+      if (! plot()->isInvertY())
         y = qrect.top   () + fm.ascent () + ym + b2;
       else
         y = qrect.bottom() - fm.descent() - ym - b2;
     }
     else if (position == Position::TOP_OUTSIDE) {
-      if (! plot_->isInvertY())
+      if (! plot()->isInvertY())
         y = qrect.top   () - fm.descent() - ym - b2;
       else
         y = qrect.bottom() + fm.ascent () + ym + b2;
     }
     else if (position == Position::BOTTOM_INSIDE) {
-      if (! plot_->isInvertY())
+      if (! plot()->isInvertY())
         y = qrect.bottom() - fm.descent() - ym - b2;
       else
         y = qrect.top   () + fm.ascent () + ym + b2;
     }
     else if (position == Position::BOTTOM_OUTSIDE) {
-      if (! plot_->isInvertY())
+      if (! plot()->isInvertY())
         y = qrect.bottom() + fm.ascent () + ym + b2;
       else
         y = qrect.top   () - fm.descent() - ym - b2;
@@ -368,7 +368,7 @@ calcRect(const QRectF &qrect, const QString &ystr, const Position &position) con
 
   //---
 
-  CQChartsGeom::BBox wrect = plot_->pixelToWindow(CQChartsUtil::fromQRect(prect));
+  CQChartsGeom::BBox wrect = plot()->pixelToWindow(CQChartsUtil::fromQRect(prect));
 
   return wrect;
 }
@@ -422,7 +422,7 @@ write(std::ostream &os, const QString &varName) const
 
   CQPropertyViewModel::NameValues nameValues;
 
-  plot_->propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
+  plot()->propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
 
   if (! nameValues.empty())
     os << "\n";

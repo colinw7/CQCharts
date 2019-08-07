@@ -90,19 +90,19 @@ class CQChartsPlotObj : public CQChartsObj {
   // is point inside (override if not simple rect shape)
   virtual bool inside(const CQChartsGeom::Point &p) const {
     if (! isVisible()) return false;
-    return rect_.inside(p);
+    return rect().inside(p);
   }
 
   // is x inside (override if not simple rect shape)
   virtual bool insideX(double x) const {
     if (! isVisible()) return false;
-    return rect_.insideX(x);
+    return rect().insideX(x);
   }
 
   // is y inside (override if not simple rect shape)
   virtual bool insideY(double y) const {
     if (! isVisible()) return false;
-    return rect_.insideY(y);
+    return rect().insideY(y);
   }
 
   // is rect inside/touching (override if not simple rect shape)
@@ -110,9 +110,9 @@ class CQChartsPlotObj : public CQChartsObj {
     if (! isVisible()) return false;
 
     if (inside)
-      return r.inside(rect_);
+      return r.inside(rect());
     else
-      return r.overlaps(rect_);
+      return r.overlaps(rect());
   }
 
   //virtual void postResize() { }
@@ -152,6 +152,8 @@ class CQChartsPlotObj : public CQChartsObj {
   virtual void drawFg(QPainter *) const { }
 
   virtual void draw(QPainter *) = 0;
+
+  void drawDebugRect(QPainter *painter);
 
  protected:
   CQChartsPlot* plot_     { nullptr }; //!< parent plot

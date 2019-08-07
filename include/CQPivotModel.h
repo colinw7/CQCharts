@@ -2,6 +2,7 @@
 #define CQPivotModel_H
 
 #include <CQBaseModel.h>
+#include <QStringList>
 #include <QString>
 #include <map>
 #include <set>
@@ -149,6 +150,7 @@ class CQPivotModel : public CQBaseModel {
    public:
     Values() { }
 
+    // add real value
     void add(double r) {
       min_ = (! rvalues_.empty() ? std::min(min_, r) : r);
       max_ = (! rvalues_.empty() ? std::max(max_, r) : r);
@@ -158,6 +160,7 @@ class CQPivotModel : public CQBaseModel {
       rvalues_.push_back(r);
     }
 
+    // add string value and index
     void add(const QModelIndex &ind, const QString &s) {
       inds_   .push_back(ind);
       svalues_.insert(s);
@@ -167,7 +170,7 @@ class CQPivotModel : public CQBaseModel {
     double min() const { return min_; }
     double max() const { return max_; }
 
-    double mean() const { int nv = count(); return (nv > 0 ? sum_/nv : 0.0); }
+    double mean() const { int nv = rvalues_.size(); return (nv > 0 ? sum_/nv : 0.0); }
 
     int count      () const { return inds_.size(); }
     int countUnique() const { return svalues_.size(); }

@@ -44,4 +44,11 @@ enum class CQChartsResizeSide {
   UR
 };
 
+//! object draw type
+enum class CQChartsObjDrawType {
+  LINE,
+  BOX,
+  SYMBOL
+};
+
 #endif

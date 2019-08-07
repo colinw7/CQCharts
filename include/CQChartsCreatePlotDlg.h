@@ -21,7 +21,6 @@ class CQRealSpin;
 class CQLineEdit;
 
 class QAbstractItemModel;
-class QItemSelectionModel;
 class QFrame;
 class QGridLayout;
 class QHBoxLayout;
@@ -41,8 +40,7 @@ class CQChartsCreatePlotDlg : public QDialog {
   Q_OBJECT
 
  public:
-  using ModelP          = QSharedPointer<QAbstractItemModel>;
-  using SelectionModelP = QPointer<QItemSelectionModel>;
+  using ModelP = QSharedPointer<QAbstractItemModel>;
 
  public:
   CQChartsCreatePlotDlg(CQCharts *charts, CQChartsModelData *modelData);
@@ -223,7 +221,6 @@ class CQChartsCreatePlotDlg : public QDialog {
   CQCharts*          charts_                 { nullptr }; //!< parent charts
   CQChartsModelData* modelData_              { nullptr }; //!< model data
   ModelP             model_;                              //!< model
-//SelectionModelP    selectionModel_;                     //!< selection model
   QComboBox*         combo_                  { nullptr }; //!< type combo
   QStackedWidget*    stack_                  { nullptr }; //!< widget stack
   QTextEdit*         descText_               { nullptr }; //!< type description

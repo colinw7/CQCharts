@@ -1777,6 +1777,8 @@ CQChartsBoxPlotWhiskerObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox 
  CQChartsBoxPlotObj(plot, rect, is, ig, ColorInd()), setId_(setId), groupInd_(groupInd),
  whisker_(whisker)
 {
+  assert(whisker_);
+
   for (auto &value : whisker_->values())
     addModelInd(value.ind);
 }
@@ -2342,9 +2344,11 @@ CQChartsBoxPlotOutlierObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox 
  CQChartsBoxPlotObj(plot, rect, is, ig, ColorInd()), setId_(setId), groupInd_(groupInd),
  whisker_(whisker), io_(io)
 {
-  const CQChartsBoxPlotValue &ovalue = whisker_->value(io_);
+  if (whisker_) {
+    const CQChartsBoxPlotValue &ovalue = whisker_->value(io_);
 
-  setModelInd(ovalue.ind);
+    setModelInd(ovalue.ind);
+  }
 }
 
 QString
@@ -2366,7 +2370,7 @@ calcTipId() const
   if (plot_->hasGroups())
     groupName = plot_->groupIndName(groupInd_);
 
-  if (! setName.length() && ! groupName.length())
+  if (whisker_ && ! setName.length() && ! groupName.length())
     name = whisker_->name();
 
   CQChartsTableTip tableTip;
@@ -2382,15 +2386,17 @@ calcTipId() const
 
   //---
 
-  const CQChartsBoxPlotValue &ovalue = whisker_->value(io_);
+  if (whisker_) {
+    const CQChartsBoxPlotValue &ovalue = whisker_->value(io_);
 
-  double rvalue = double(ovalue);
+    double rvalue = double(ovalue);
 
-  tableTip.addTableRow("Value", rvalue);
+    tableTip.addTableRow("Value", rvalue);
 
-  //---
+    //---
 
-  plot()->addTipColumns(tableTip, ovalue.ind);
+    plot()->addTipColumns(tableTip, ovalue.ind);
+  }
 
   //---
 
@@ -2406,9 +2412,11 @@ getSelectIndices(Indices &inds) const
 
   //---
 
-  const CQChartsBoxPlotValue &ovalue = whisker_->value(io_);
+  if (whisker_) {
+    const CQChartsBoxPlotValue &ovalue = whisker_->value(io_);
 
-  addSelectIndex(inds, ovalue.ind.row(), ovalue.ind.column(), ovalue.ind.parent());
+    addSelectIndex(inds, ovalue.ind.row(), ovalue.ind.column(), ovalue.ind.parent());
+  }
 }
 
 void
@@ -2455,7 +2463,7 @@ CQChartsBoxPlotOutlierObj::
 remapPos(double y) const
 {
   // remap to margin -> 1.0 - margin
-  if (! plot_->isNormalized())
+  if (! whisker_ ||  ! plot_->isNormalized())
     return y;
 
   double ymargin = plot_->ymargin();

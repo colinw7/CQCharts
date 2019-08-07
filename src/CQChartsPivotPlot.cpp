@@ -643,7 +643,7 @@ createObjs(PlotObjs &objs) const
         minValue = (! inds.empty() ? std::min(minValue, value) : value);
         maxValue = (! inds.empty() ? std::max(maxValue, value) : value);
 
-        if (isFilled && polygon.length() == 0) {
+        if (isFilled && polygon.size() == 0) {
           QPointF p;
 
           if (hasYValues)
@@ -1642,7 +1642,6 @@ draw(QPainter *painter)
 
   // calc text box
   QRectF qrectt(qrect.left() + m, qrect.top() + m, tw, th);
-
 
   //---
 

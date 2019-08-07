@@ -15,10 +15,10 @@ void
 CQChartsNoDataObj::
 draw(QPainter *painter)
 {
-  CQChartsView *view = plot_->view();
+  CQChartsView *view = plot()->view();
 
   // get plot inside bbox in view coords
-  CQChartsGeom::BBox bbox = plot_->innerViewBBox();
+  CQChartsGeom::BBox bbox = plot()->innerViewBBox();
 
   // get pixel position of center
   double xm = bbox.getXMid();
