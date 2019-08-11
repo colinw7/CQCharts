@@ -3,6 +3,7 @@
 
 #include <QAbstractItemModel>
 
+//! model input data types
 enum class CQBaseModelDataType {
   NONE,
   CSV,
@@ -12,24 +13,29 @@ enum class CQBaseModelDataType {
   GNUPLOT
 };
 
+//! model roles supported by CQBaseModel
 enum class CQBaseModelRole {
-  Type              = Qt::UserRole + 1, // column type role
-  BaseType          = Type + 1,         // column base type role
-  TypeValues        = Type + 2,         // column type values role
-  Min               = Type + 3,         // column user min role
-  Max               = Type + 4,         // column user max role
-  Sorted            = Type + 5,         // sorted role
-  SortOrder         = Type + 6,         // sort order role
-  Title             = Type + 7,         // sort order role
-  Key               = Type + 8,         // title role
-  RawValue          = Type + 9,         // raw value by role
-  IntermediateValue = Type + 10,        // intermediate value role
-  CachedValue       = Type + 11,        // cached value role
-  OutputValue       = Type + 12,        // output value role
-  Group             = Type + 13         // group role
+  Type              = Qt::UserRole + 1, //!< column type role
+  BaseType          = Type + 1,         //!< column base type role (calculated)
+  TypeValues        = Type + 2,         //!< column type values role
+  Min               = Type + 3,         //!< column user min role
+  Max               = Type + 4,         //!< column user max role
+  Sorted            = Type + 5,         //!< sorted role
+  SortOrder         = Type + 6,         //!< sort order role
+  Title             = Type + 7,         //!< sort order role
+  Key               = Type + 8,         //!< title role
+  RawValue          = Type + 9,         //!< raw value by role
+  IntermediateValue = Type + 10,        //!< intermediate value role
+  CachedValue       = Type + 11,        //!< cached value role
+  OutputValue       = Type + 12,        //!< output value role
+  Group             = Type + 13,        //!< group role
+  Format            = Type + 14,        //!< output format
+  DataMin           = Type + 15,        //!< calculated data min
+  DataMax           = Type + 16         //!< calculated data max
 };
 
-// use variant numbers where possible
+//! model value types supported by CQBaseModel
+//! (use variant numbers where possible)
 enum class CQBaseModelType {
   NONE    = QVariant::Invalid,
   BOOLEAN = QVariant::Bool,

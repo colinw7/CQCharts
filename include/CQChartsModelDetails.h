@@ -153,7 +153,7 @@ class CQChartsModelColumnDetails {
 
   // table render data
   ColorPalette          tableDrawPalette_;
-  TableDrawType         tableDrawType_   { TableDrawType::COL_HEATMAP };
+  TableDrawType         tableDrawType_   { TableDrawType::HEATMAP };
 
   // mutex
   mutable std::mutex    mutex_; //!< mutex

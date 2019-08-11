@@ -5,7 +5,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsFillUnder.h>
 #include <CQChartsFitData.h>
-#include <CQChartsStatData.h>
+#include <CQStatData.h>
 #include <CQChartsUtil.h>
 
 class CQChartsXYPlot;
@@ -409,7 +409,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   QString               name_;                 //!< name
   CQChartsSmooth*       smooth_   { nullptr }; //!< smooth object
   CQChartsFitData       bestFit_;              //!< best fit data
-  CQChartsStatData      statData_;             //!< statistics data
+  CQStatData            statData_;             //!< statistics data
 };
 
 //---

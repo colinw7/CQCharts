@@ -1,32 +1,32 @@
-#include <CQChartsTrie.h>
+#include <CQTrie.h>
 
-CQChartsTrieNode::
-CQChartsTrieNode(CQChartsTrieNode *parent, QChar c) :
+CQTrieNode::
+CQTrieNode(CQTrieNode *parent, QChar c) :
  parent_(parent), c_(c)
 {
 }
 
-CQChartsTrieNode::
-~CQChartsTrieNode()
+CQTrieNode::
+~CQTrieNode()
 {
   for (auto &node : nodes_)
     delete node.second;
 }
 
-CQChartsTrieNode *
-CQChartsTrieNode::
+CQTrieNode *
+CQTrieNode::
 addChar(QChar c)
 {
   auto p = nodes_.find(c);
 
   if (p == nodes_.end())
-    p = nodes_.insert(p, CharNodeMap::value_type(c, new CQChartsTrieNode(this, c)));
+    p = nodes_.insert(p, CharNodeMap::value_type(c, new CQTrieNode(this, c)));
 
   return (*p).second;
 }
 
-CQChartsTrieNode::String
-CQChartsTrieNode::
+CQTrieNode::String
+CQTrieNode::
 str() const
 {
   if (! parent_)
@@ -36,8 +36,8 @@ str() const
 }
 
 void
-CQChartsTrieNode::
-patterns(int depth, CQChartsTriePatterns &patterns) const
+CQTrieNode::
+patterns(int depth, CQTriePatterns &patterns) const
 {
   patterns.setDepth(depth);
 
@@ -47,8 +47,8 @@ patterns(int depth, CQChartsTriePatterns &patterns) const
 }
 
 void
-CQChartsTrieNode::
-subPatterns(const String &prefix, int depth, CQChartsTriePatterns &patterns) const
+CQTrieNode::
+subPatterns(const String &prefix, int depth, CQTriePatterns &patterns) const
 {
   if (depth == 0)
     return;
@@ -77,14 +77,14 @@ subPatterns(const String &prefix, int depth, CQChartsTriePatterns &patterns) con
       String prefix1 = prefix;
 
       QChar             c     = node.first;
-      CQChartsTrieNode *child = node.second;
+      CQTrieNode *child = node.second;
 
       String pattern = prefix1;
 
       if (! c.isNull()) {
         pattern += escapeChar(c);
 
-        CQChartsTrieNode *node1 = child;
+        CQTrieNode *node1 = child;
 
         while (node1 && node1->nodes_.size() == 1) {
           auto p = *node1->nodes_.begin();
@@ -115,7 +115,7 @@ subPatterns(const String &prefix, int depth, CQChartsTriePatterns &patterns) con
       if (! c.isNull())
         prefix1 += escapeChar(c);
 
-      CQChartsTriePatterns patterns1;
+      CQTriePatterns patterns1;
 
       node.second->subPatterns(prefix1, depth - 1, patterns1);
 
@@ -125,8 +125,8 @@ subPatterns(const String &prefix, int depth, CQChartsTriePatterns &patterns) con
 }
 
 int
-CQChartsTrieNode::
-patternIndex(const String &str, const CQChartsTriePatterns &patterns) const
+CQTrieNode::
+patternIndex(const String &str, const CQTriePatterns &patterns) const
 {
   int i = 0;
 
@@ -134,8 +134,8 @@ patternIndex(const String &str, const CQChartsTriePatterns &patterns) const
 }
 
 int
-CQChartsTrieNode::
-subPatternIndex(const String &str, int i, const CQChartsTriePatterns &patterns) const
+CQTrieNode::
+subPatternIndex(const String &str, int i, const CQTriePatterns &patterns) const
 {
   int ind = patterns.nodeInd(this);
 
@@ -160,8 +160,8 @@ subPatternIndex(const String &str, int i, const CQChartsTriePatterns &patterns) 
 }
 
 #if 0
-CQChartsTrieNode::String
-CQChartsTrieNode::
+CQTrieNode::String
+CQTrieNode::
 pattern() const
 {
   String childStr  = childPattern ();
@@ -170,11 +170,11 @@ pattern() const
   return parentStr + childStr;
 }
 
-CQChartsTrieNode::String
-CQChartsTrieNode::
+CQTrieNode::String
+CQTrieNode::
 parentPattern() const
 {
-  CQChartsTrieNode *pnode = parent();
+  CQTrieNode *pnode = parent();
 
   if (! pnode) // root
     return "";
@@ -182,13 +182,13 @@ parentPattern() const
   return pnode->parentPattern() + pnode->nodesPattern();
 }
 
-CQChartsTrieNode::String
-CQChartsTrieNode::
+CQTrieNode::String
+CQTrieNode::
 childPattern() const
 {
   String pattern = nodesPattern();
 
-  using NodeSet = std::set<CQChartsTrieNode *>;
+  using NodeSet = std::set<CQTrieNode *>;
 
   NodeSet nodeSet;
 
@@ -204,8 +204,8 @@ childPattern() const
   return pattern + "*";
 }
 
-CQChartsTrieNode::String
-CQChartsTrieNode::
+CQTrieNode::String
+CQTrieNode::
 nodesPattern() const
 {
   if (nodes_.empty())
@@ -273,7 +273,7 @@ nodesPattern() const
 }
 
 void
-CQChartsTrieNode::
+CQTrieNode::
 nodeChars(CharSet &charSet) const
 {
   for (const auto &node : nodes_) {
@@ -282,7 +282,7 @@ nodeChars(CharSet &charSet) const
 }
 #endif
 int
-CQChartsTrieNode::
+CQTrieNode::
 numWords() const
 {
   int n = 0;
@@ -297,8 +297,8 @@ numWords() const
   return n;
 }
 
-CQChartsTrieNode::String
-CQChartsTrieNode::
+CQTrieNode::String
+CQTrieNode::
 escapeChar(QChar c) const
 {
   if      (c == '*' ) return "\\*";
@@ -310,13 +310,13 @@ escapeChar(QChar c) const
 
 //------
 
-CQChartsTriePatterns::
-CQChartsTriePatterns()
+CQTriePatterns::
+CQTriePatterns()
 {
 }
 
 void
-CQChartsTriePatterns::
+CQTriePatterns::
 clear()
 {
   depth_ = -1;
@@ -326,15 +326,15 @@ clear()
 }
 
 int
-CQChartsTriePatterns::
+CQTriePatterns::
 numPatterns() const
 {
   return patterns_.size();
 }
 
 void
-CQChartsTriePatterns::
-addPattern(const CQChartsTrieNode *node, const String &pattern)
+CQTriePatterns::
+addPattern(const CQTrieNode *node, const String &pattern)
 {
 //std::cerr << node->str().toStdString() << " : " << pattern.toStdString() <<
 //             " (#" << patterns_.size() << ")\n";
@@ -345,8 +345,8 @@ addPattern(const CQChartsTrieNode *node, const String &pattern)
 }
 
 void
-CQChartsTriePatterns::
-addPatterns(const CQChartsTriePatterns &patterns)
+CQTriePatterns::
+addPatterns(const CQTriePatterns &patterns)
 {
   for (const auto &nodeInd : patterns.nodeIndMap_) {
     addPattern(nodeInd.first, patterns.patterns_[nodeInd.second]);
@@ -354,8 +354,8 @@ addPatterns(const CQChartsTriePatterns &patterns)
 }
 
 int
-CQChartsTriePatterns::
-nodeInd(const CQChartsTrieNode *node) const
+CQTriePatterns::
+nodeInd(const CQTrieNode *node) const
 {
   auto p = nodeIndMap_.find(node);
 
@@ -365,8 +365,8 @@ nodeInd(const CQChartsTrieNode *node) const
   return -1;
 }
 
-CQChartsTriePatterns::String
-CQChartsTriePatterns::
+CQTriePatterns::String
+CQTriePatterns::
 pattern(int i) const
 {
   if (i < 0 || i >= int(patterns_.size()))
@@ -377,7 +377,7 @@ pattern(int i) const
 
 #if 0
 void
-CQChartsTriePatterns::
+CQTriePatterns::
 print(std::ostream &os) const
 {
   os << numPatterns() << " patterns\n";
@@ -389,19 +389,19 @@ print(std::ostream &os) const
 
 //------
 
-CQChartsTrie::
-CQChartsTrie()
+CQTrie::
+CQTrie()
 {
 }
 
-CQChartsTrie::
-~CQChartsTrie()
+CQTrie::
+~CQTrie()
 {
   clear();
 }
 
 void
-CQChartsTrie::
+CQTrie::
 clear()
 {
   delete root_;
@@ -410,10 +410,10 @@ clear()
 }
 
 void
-CQChartsTrie::
+CQTrie::
 addWord(const String &str)
 {
-  CQChartsTrieNode *node = root();
+  CQTrieNode *node = root();
 
   for (const auto &c : str) {
     node = addNode(node, c);
@@ -424,30 +424,30 @@ addWord(const String &str)
   node->incCount();
 }
 
-CQChartsTrieNode *
-CQChartsTrie::
+CQTrieNode *
+CQTrie::
 root() const
 {
   if (! root_) {
-    CQChartsTrie *th = const_cast<CQChartsTrie *>(this);
+    CQTrie *th = const_cast<CQTrie *>(this);
 
-    th->root_ = new CQChartsTrieNode;
+    th->root_ = new CQTrieNode;
   }
 
   return root_;
 }
 
 int
-CQChartsTrie::
+CQTrie::
 numWords() const
 {
-  CQChartsTrieNode *node = root();
+  CQTrieNode *node = root();
 
   return node->numWords();
 }
 
 void
-CQChartsTrie::
+CQTrie::
 dump(std::ostream &os)
 {
   class Dumper {
@@ -470,12 +470,12 @@ dump(std::ostream &os)
 }
 
 void
-CQChartsTrie::
+CQTrie::
 complete(const String &match, Strings &strs)
 {
   MatchData matchData(match);
 
-  CQChartsTrieNode *node = root();
+  CQTrieNode *node = root();
 
   String str;
 
@@ -483,33 +483,33 @@ complete(const String &match, Strings &strs)
 }
 
 void
-CQChartsTrie::
-patterns(int depth, CQChartsTriePatterns &patterns) const
+CQTrie::
+patterns(int depth, CQTriePatterns &patterns) const
 {
-  CQChartsTrieNode *root = this->root();
+  CQTrieNode *root = this->root();
 
   return root->patterns(depth, patterns);
 }
 
 int
-CQChartsTrie::
-patternIndex(const String &str, const CQChartsTriePatterns &patterns) const
+CQTrie::
+patternIndex(const String &str, const CQTriePatterns &patterns) const
 {
-  CQChartsTrieNode *root = this->root();
+  CQTrieNode *root = this->root();
 
   return root->patternIndex(str, patterns);
 }
 
-CQChartsTrie::String
-CQChartsTrie::
-indexPattern(int i, const CQChartsTriePatterns &patterns) const
+CQTrie::String
+CQTrie::
+indexPattern(int i, const CQTriePatterns &patterns) const
 {
   return patterns.pattern(i);
 }
 
 void
-CQChartsTrie::
-complete(CQChartsTrieNode *node, const String &str, Strings &strs, MatchData &matchData)
+CQTrie::
+complete(CQTrieNode *node, const String &str, Strings &strs, MatchData &matchData)
 {
   for (const auto &n : node->children()) {
     if (matchData.pos == matchData.len) {
@@ -530,9 +530,9 @@ complete(CQChartsTrieNode *node, const String &str, Strings &strs, MatchData &ma
   }
 }
 
-CQChartsTrieNode *
-CQChartsTrie::
-addNode(CQChartsTrieNode *parent, QChar c)
+CQTrieNode *
+CQTrie::
+addNode(CQTrieNode *parent, QChar c)
 {
   return parent->addChar(c);
 }

@@ -72,13 +72,13 @@ using CQChartsBoxPlotWhisker = CQChartsBoxWhiskerT<CQChartsBoxPlotValue>;
 struct CQChartsBoxWhiskerData {
   using Outliers = std::vector<double>;
 
-  QModelIndex      ind;             //!< model index
-  QString          name;            //!< x value name
-  double           x       { 0.0 }; //!< x value
-  CQChartsStatData statData;        //!< stats data
-  Outliers         outliers;        //!< outlier y values
-  double           dataMin { 0.0 }; //!< min data value
-  double           dataMax { 1.0 }; //!< max data value
+  QModelIndex ind;             //!< model index
+  QString     name;            //!< x value name
+  double      x       { 0.0 }; //!< x value
+  CQStatData  statData;        //!< stats data
+  Outliers    outliers;        //!< outlier y values
+  double      dataMin { 0.0 }; //!< min data value
+  double      dataMax { 1.0 }; //!< max data value
 };
 
 //---

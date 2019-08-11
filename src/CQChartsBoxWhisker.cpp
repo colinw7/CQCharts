@@ -14,7 +14,7 @@ drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsBoxWhiske
 }
 
 void
-drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsStatData &statData,
+drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQStatData &statData,
             const CQChartsGeom::BBox &bbox, const CQChartsLength &width,
             const Qt::Orientation &orientation)
 {
@@ -72,7 +72,7 @@ drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsStatData 
 }
 
 void
-drawWhiskerBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsStatData &statData,
+drawWhiskerBar(const CQChartsPlot *plot, QPainter *painter, const CQStatData &statData,
                double pos, const Qt::Orientation &orientation,
                double ww, double bw, const CQChartsLength &cornerSize, bool notched)
 {

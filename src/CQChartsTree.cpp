@@ -1,4 +1,5 @@
 #include <CQChartsTree.h>
+#include <CQChartsTableDelegate.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsSelectionModel.h>
@@ -31,9 +32,9 @@ CQChartsTree(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  //delegate_ = new CQChartsTreeDelegate(this);
+  delegate_ = new CQChartsTableDelegate(this);
 
-  //setItemDelegate(delegate_);
+  setItemDelegate(delegate_);
 
   //---
 
@@ -46,7 +47,7 @@ CQChartsTree::
   if (modelData_ && sm_)
     modelData_->removeSelectionModel(sm_);
 
-//delete delegate_
+  delete delegate_;
 }
 
 void
@@ -68,51 +69,61 @@ addMenuActions(QMenu *menu)
 
   //---
 
-  QMenu *selectMenu = new QMenu("Select");
+  auto addMenu = [&](const QString &name) {
+    QMenu *subMenu = new QMenu(name);
 
-  QActionGroup *selectActionGroup = new QActionGroup(menu);
+    menu->addMenu(subMenu);
 
-  QAction *selectItems   = new QAction("Items"  , selectMenu);
-  QAction *selectRows    = new QAction("Rows"   , selectMenu);
-  QAction *selectColumns = new QAction("Columns", selectMenu);
+    return subMenu;
+  };
 
-  selectItems  ->setCheckable(true);
-  selectRows   ->setCheckable(true);
-  selectColumns->setCheckable(true);
+  auto addActionGroup = [&](QMenu *menu, const char *slotName) {
+    QActionGroup *actionGroup = new QActionGroup(menu);
 
-  selectItems  ->setChecked(selectionBehavior() == SelectItems);
-  selectRows   ->setChecked(selectionBehavior() == SelectRows);
-  selectColumns->setChecked(selectionBehavior() == SelectColumns);
+    connect(actionGroup, SIGNAL(triggered(QAction *)), this, slotName);
 
-  selectActionGroup->addAction(selectItems);
-  selectActionGroup->addAction(selectRows);
-  selectActionGroup->addAction(selectColumns);
-
-  connect(selectActionGroup, SIGNAL(triggered(QAction *)),
-          this, SLOT(selectionBehaviorSlot(QAction *)));
-
-  selectMenu->addActions(selectActionGroup->actions());
-
-  menu->addMenu(selectMenu);
+    return actionGroup;
+  };
 
   //---
 
-  QMenu *exportMenu = new QMenu("Export");
+  QMenu *selectMenu = addMenu("Select");
 
-  QActionGroup *exportActionGroup = new QActionGroup(exportMenu);
+  QActionGroup *selectActionGroup =
+    addActionGroup(selectMenu, SLOT(selectionBehaviorSlot(QAction *)));
 
-  QAction *exportCSV = new QAction("CSV", exportMenu);
-  QAction *exportTSV = new QAction("TSV", exportMenu);
+  auto addSelectAction = [&](const QString &name, bool checked) {
+    QAction *action = new QAction(name, selectMenu);
 
-  exportActionGroup->addAction(exportCSV);
-  exportActionGroup->addAction(exportTSV);
+    action->setCheckable(true);
+    action->setChecked  (checked);
 
-  connect(exportActionGroup, SIGNAL(triggered(QAction *)),
-          this, SLOT(exportSlot(QAction *)));
+    selectActionGroup->addAction(action);
+  };
+
+  addSelectAction("Items"  , selectionBehavior() == SelectItems  );
+  addSelectAction("Rows"   , selectionBehavior() == SelectRows   );
+  addSelectAction("Columns", selectionBehavior() == SelectColumns);
+
+  selectMenu->addActions(selectActionGroup->actions());
+
+  //---
+
+  QMenu *exportMenu = addMenu("Export");
+
+  QActionGroup *exportActionGroup =
+    addActionGroup(exportMenu, SLOT(exportSlot(QAction *)));
+
+  auto addExportAction = [&](const QString &name) {
+    QAction *action = new QAction(name, exportMenu);
+
+    exportActionGroup->addAction(action);
+  };
+
+  addExportAction("CSV");
+  addExportAction("TSV");
 
   exportMenu->addActions(exportActionGroup->actions());
-
-  menu->addMenu(exportMenu);
 }
 
 void
@@ -164,12 +175,13 @@ setFilter(const QString &filter)
   QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
   assert(proxyModel);
 
+  QAbstractItemModel *model = proxyModel->sourceModel();
+  assert(model);
+
   QString filter1;
   int     column { -1 };
 
-  CQChartsModelUtil::decodeModelFilterStr(model_.data(), filter, filter1, column);
-
-  if (column >= 0)
+  if (CQChartsModelUtil::decodeModelFilterStr(model, filter, filter1, column))
     proxyModel->setFilterKeyColumn(column);
 
   proxyModel->setFilterWildcard(filter1);
@@ -186,9 +198,9 @@ headerClickedSlot(int section)
 
 void
 CQChartsTree::
-itemClickedSlot(const QModelIndex &)
+itemClickedSlot(const QModelIndex &index)
 {
-  //delegate_->click(index);
+  delegate_->click(index);
 }
 
 void
@@ -264,7 +276,7 @@ resetModelData()
 
   modelData_ = nullptr;
 
-//delegate_->resetColumnData();
+  delegate_->resetColumnData();
 }
 
 QSize

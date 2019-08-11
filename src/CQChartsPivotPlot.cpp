@@ -533,9 +533,9 @@ createObjs(PlotObjs &objs) const
         double value = var.toDouble(&ok);
         if (! ok) continue;
 
-        double prevValue = rowColHeights[r][c - 1];
+        double prevValue = rowColHeights[iv][ih - 1];
 
-        rowColHeights[r][c] = prevValue + value;
+        rowColHeights[iv][ih] = prevValue + value;
       }
     }
   }
@@ -593,7 +593,7 @@ createObjs(PlotObjs &objs) const
         }
         // bar stacked
         else if (plotType() == PlotType::STACKED_BAR) {
-          double oldValue = rowColHeights[r][c - 1];
+          double oldValue = rowColHeights[iv][ih - 1];
 
           CQChartsGeom::BBox rect;
 

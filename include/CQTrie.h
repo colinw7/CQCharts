@@ -1,5 +1,5 @@
-#ifndef CQChartsTrie_H
-#define CQChartsTrie_H
+#ifndef CQTrie_H
+#define CQTrie_H
 
 #include <QString>
 #include <map>
@@ -8,23 +8,23 @@
 #include <vector>
 #include <iostream>
 
-class CQChartsTriePatterns;
+class CQTriePatterns;
 
 /*!
  * \brief Trie Node
- * \ingroup Charts
+ * \ingroup 
  */
-class CQChartsTrieNode {
+class CQTrieNode {
  public:
-  using CharNodeMap = std::map<QChar,CQChartsTrieNode *>;
+  using CharNodeMap = std::map<QChar,CQTrieNode *>;
   using String      = QString;
 
  public:
-  CQChartsTrieNode(CQChartsTrieNode *parent=nullptr, QChar c='\0');
+  CQTrieNode(CQTrieNode *parent=nullptr, QChar c='\0');
 
- ~CQChartsTrieNode();
+ ~CQTrieNode();
 
-  CQChartsTrieNode *parent() const { return parent_; }
+  CQTrieNode *parent() const { return parent_; }
 
   QChar c() const { return c_; }
 
@@ -36,17 +36,17 @@ class CQChartsTrieNode {
 
   void incCount() { ++count_; }
 
-  CQChartsTrieNode *addChar(QChar c);
+  CQTrieNode *addChar(QChar c);
 
   String str() const;
 
-  void patterns(int depth, CQChartsTriePatterns &patterns) const;
+  void patterns(int depth, CQTriePatterns &patterns) const;
 
-  void subPatterns(const String &prefix, int depth, CQChartsTriePatterns &patterns) const;
+  void subPatterns(const String &prefix, int depth, CQTriePatterns &patterns) const;
 
-  int patternIndex(const String &str, const CQChartsTriePatterns &patterns) const;
+  int patternIndex(const String &str, const CQTriePatterns &patterns) const;
 
-  int subPatternIndex(const String &str, int i, const CQChartsTriePatterns &patterns) const;
+  int subPatternIndex(const String &str, int i, const CQTriePatterns &patterns) const;
 
 #if 0
   String pattern() const;
@@ -65,7 +65,7 @@ class CQChartsTrieNode {
   String escapeChar(QChar c) const;
 
  private:
-  CQChartsTrieNode* parent_ { nullptr };
+  CQTrieNode* parent_ { nullptr };
   QChar             c_      { '\0' };
   CharNodeMap       nodes_;
   int               count_  { 0 };
@@ -75,18 +75,18 @@ class CQChartsTrieNode {
 
 /*!
  * \brief Trie
- * \ingroup Charts
+ * \ingroup 
  */
-class CQChartsTrie {
+class CQTrie {
  public:
   using CharSet = std::set<QChar>;
   using String  = QString;
   using Strings = std::vector<String>;
 
  public:
-  CQChartsTrie();
+  CQTrie();
 
- ~CQChartsTrie();
+ ~CQTrie();
 
   void clear();
 
@@ -94,7 +94,7 @@ class CQChartsTrie {
 
  private:
   template<class VISITOR>
-  void visit(VISITOR &v, CQChartsTrieNode *node, const String &str) {
+  void visit(VISITOR &v, CQTrieNode *node, const String &str) {
     for (const auto &n : node->children()) {
       if (n.first.isNull())
         v.visit(str, n.second->count());
@@ -104,14 +104,14 @@ class CQChartsTrie {
   }
 
  public:
-  CQChartsTrieNode *root() const;
+  CQTrieNode *root() const;
 
   int numWords() const;
 
  public:
   template<class VISITOR>
   void visit(VISITOR &v) {
-    CQChartsTrieNode *node = root();
+    CQTrieNode *node = root();
 
     String str;
 
@@ -134,19 +134,19 @@ class CQChartsTrie {
  public:
   void complete(const String &match, Strings &strs);
 
-  void patterns(int depth, CQChartsTriePatterns &patterns) const;
+  void patterns(int depth, CQTriePatterns &patterns) const;
 
-  int patternIndex(const String &str, const CQChartsTriePatterns &patterns) const;
+  int patternIndex(const String &str, const CQTriePatterns &patterns) const;
 
-  String indexPattern(int i, const CQChartsTriePatterns &patterns) const;
-
- private:
-  void complete(CQChartsTrieNode *node, const String &str, Strings &strs, MatchData &matchData);
-
-  CQChartsTrieNode *addNode(CQChartsTrieNode *parent, QChar c);
+  String indexPattern(int i, const CQTriePatterns &patterns) const;
 
  private:
-  CQChartsTrieNode* root_ { nullptr };
+  void complete(CQTrieNode *node, const String &str, Strings &strs, MatchData &matchData);
+
+  CQTrieNode *addNode(CQTrieNode *parent, QChar c);
+
+ private:
+  CQTrieNode* root_ { nullptr };
 };
 
 //------
@@ -154,14 +154,14 @@ class CQChartsTrie {
 /*!
  * Class used to return matching patterns in Trie
  */
-class CQChartsTriePatterns {
+class CQTriePatterns {
  public:
   using String     = QString;
   using Strings    = std::vector<String>;
-  using NodeIndMap = std::map<const CQChartsTrieNode *,int>;
+  using NodeIndMap = std::map<const CQTrieNode *,int>;
 
  public:
-  CQChartsTriePatterns();
+  CQTriePatterns();
 
   int depth() const { return depth_; }
   void setDepth(int i) { depth_ = i; }
@@ -170,11 +170,11 @@ class CQChartsTriePatterns {
 
   int numPatterns() const;
 
-  void addPattern(const CQChartsTrieNode *node, const String &pattern);
+  void addPattern(const CQTrieNode *node, const String &pattern);
 
-  void addPatterns(const CQChartsTriePatterns &patterns);
+  void addPatterns(const CQTriePatterns &patterns);
 
-  int nodeInd(const CQChartsTrieNode *node) const;
+  int nodeInd(const CQTrieNode *node) const;
 
   String pattern(int i) const;
 

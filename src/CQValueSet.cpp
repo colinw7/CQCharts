@@ -1,54 +1,33 @@
-#include <CQChartsValueSet.h>
-#include <CQChartsPlot.h>
-#include <CQChartsUtil.h>
-#include <CQChartsVariant.h>
+#include <CQValueSet.h>
 #include <CQTrie.h>
 
-CQChartsValueSet::
-CQChartsValueSet(const CQChartsPlot *plot) :
- plot_(plot)
+CQValueSet::
+CQValueSet()
 {
 }
 
 bool
-CQChartsValueSet::
+CQValueSet::
 isValid() const
 {
   if      (type() == Type::INTEGER) return ivals_.isValid();
   else if (type() == Type::REAL   ) return rvals_.isValid();
   else if (type() == Type::STRING ) return svals_.isValid();
-  else if (type() == Type::COLOR  ) return cvals_.isValid();
-  else if (type() == Type::TIME   ) return tvals_.isValid();
   else                              return false;
 }
 
 bool
-CQChartsValueSet::
+CQValueSet::
 canMap() const
 {
   if      (type() == Type::INTEGER) return ivals_.canMap();
   else if (type() == Type::REAL   ) return rvals_.canMap();
   else if (type() == Type::STRING ) return svals_.canMap();
-  else if (type() == Type::COLOR  ) return cvals_.canMap();
-  else if (type() == Type::TIME   ) return tvals_.canMap();
   else                              return false;
 }
 
-#if 0
 void
-CQChartsValueSet::
-addProperties(const QString &path)
-{
-  if (plot_) {
-    plot_->addProperty(path, this, "mapped", "mapped")->setDesc("Is mapped");
-    plot_->addProperty(path, this, "mapMin", "mapMin")->setDesc("Map min");
-    plot_->addProperty(path, this, "mapMax", "mapMax")->setDesc("Map max");
-  }
-}
-#endif
-
-void
-CQChartsValueSet::
+CQValueSet::
 addValue(const QVariant &value)
 {
   values_.push_back(value);
@@ -57,7 +36,7 @@ addValue(const QVariant &value)
 }
 
 void
-CQChartsValueSet::
+CQValueSet::
 clear()
 {
   type_ = Type::NONE;
@@ -68,7 +47,7 @@ clear()
 }
 
 bool
-CQChartsValueSet::
+CQValueSet::
 hasInd(int i) const
 {
   if      (type() == Type::INTEGER)
@@ -77,28 +56,24 @@ hasInd(int i) const
     return (i >= 0 && i < rvals_.size());
   else if (type() == Type::STRING)
     return (i >= 0 && i < svals_.size());
-  else if (type() == Type::COLOR)
-    return (i >= 0 && i < cvals_.size());
-  else if (type() == Type::TIME)
-    return (i >= 0 && i < tvals_.size());
   else
     return false;
 }
 
 int
-CQChartsValueSet::
+CQValueSet::
 iset(const QVariant &value) const
 {
   bool ok;
 
   if      (type() == Type::INTEGER) {
-    int i = CQChartsVariant::toInt(value, ok);
+    int i = value.toInt(&ok);
 
     if (ok)
       return ivals_.id(i);
   }
   else if (type() == Type::REAL) {
-    double r = CQChartsVariant::toReal(value, ok);
+    double r = value.toDouble(&ok);
 
     if (! isAllowNaN() && CMathUtil::isNaN(r))
       ok = false;
@@ -107,30 +82,16 @@ iset(const QVariant &value) const
       return rvals_.id(r);
   }
   else if (type() == Type::STRING) {
-    QString s;
-
-    CQChartsVariant::toString(value, s);
+    QString s = value.toString();
 
     return svals_.id(s);
-  }
-  else if (type() == Type::COLOR) {
-    CQChartsColor c = CQChartsVariant::toColor(value, ok);
-
-    if (ok)
-      return cvals_.id(c);
-  }
-  else if (type() == Type::TIME) {
-    double t = CQChartsVariant::toReal(value, ok);
-
-    if (ok)
-      return rvals_.id(t);
   }
 
   return 0;
 }
 
 int
-CQChartsValueSet::
+CQValueSet::
 numUnique() const
 {
   if      (type() == Type::INTEGER)
@@ -139,16 +100,12 @@ numUnique() const
     return rvals_.numUnique();
   else if (type() == Type::STRING)
     return svals_.numUnique();
-  else if (type() == Type::COLOR)
-    return cvals_.numUnique();
-  else if (type() == Type::TIME)
-    return rvals_.numUnique();
 
   return 0;
 }
 
 double
-CQChartsValueSet::
+CQValueSet::
 imap(const QVariant &value) const
 {
   int i = iset(value);
@@ -161,7 +118,7 @@ imap(const QVariant &value) const
 }
 
 double
-CQChartsValueSet::
+CQValueSet::
 imap(int i) const
 {
   double min = mapMin();
@@ -171,7 +128,7 @@ imap(int i) const
 }
 
 double
-CQChartsValueSet::
+CQValueSet::
 imap(int i, double mapMin, double mapMax) const
 {
   assert(hasInd(i));
@@ -229,41 +186,13 @@ imap(int i, double mapMin, double mapMax) const
     // map string using number of sets
     return svals_.map(*sval, mapMin, mapMax);
   }
-  else if (type() == Type::COLOR) {
-    // get nth color
-    CQChartsColor cval = cvals_.value(i);
-
-    if (! cval.isValid())
-      return mapMin;
-
-    // return color set index if mapping disabled
-    if (! isMapped())
-      return cvals_.id(cval);
-
-    // map string using number of sets
-    return cvals_.map(cval, mapMin, mapMax);
-  }
-  else if (type() == Type::TIME) {
-    // get nth ti,e
-    OptReal tval = tvals_.value(i);
-
-    if (! tval)
-      return mapMin;
-
-    // return actual value if mapping disabled
-    if (! isMapped())
-      return *tval;
-
-    // map value using time value range
-    return tvals_.map(*tval, mapMin, mapMax);
-  }
   else {
     return mapMin;
   }
 }
 
 int
-CQChartsValueSet::
+CQValueSet::
 sbucket(const QString &s) const
 {
   init();
@@ -275,7 +204,7 @@ sbucket(const QString &s) const
 }
 
 QString
-CQChartsValueSet::
+CQValueSet::
 buckets(int i) const
 {
   init();
@@ -287,7 +216,7 @@ buckets(int i) const
 }
 
 int
-CQChartsValueSet::
+CQValueSet::
 sind(const QString &s) const
 {
   init();
@@ -299,7 +228,7 @@ sind(const QString &s) const
 }
 
 QString
-CQChartsValueSet::
+CQValueSet::
 inds(int ind) const
 {
   init();
@@ -311,7 +240,7 @@ inds(int ind) const
 }
 
 int
-CQChartsValueSet::
+CQValueSet::
 snum() const
 {
   init();
@@ -323,7 +252,7 @@ snum() const
 }
 
 int
-CQChartsValueSet::
+CQValueSet::
 imin(int def) const
 {
   if      (type() == Type::INTEGER)
@@ -332,16 +261,12 @@ imin(int def) const
     return rvals_.imin(def);
   else if (type() == Type::STRING)
     return svals_.imin(def);
-  else if (type() == Type::COLOR)
-    return cvals_.imin(def);
-  else if (type() == Type::TIME)
-    return tvals_.imin(def);
   else
     return def;
 }
 
 int
-CQChartsValueSet::
+CQValueSet::
 imax(int def) const
 {
   if      (type() == Type::INTEGER)
@@ -350,16 +275,12 @@ imax(int def) const
     return rvals_.imax(def);
   else if (type() == Type::STRING)
     return svals_.imax(def);
-  else if (type() == Type::COLOR)
-    return cvals_.imax(def);
-  else if (type() == Type::TIME)
-    return tvals_.imax(def);
   else
     return def;
 }
 
 double
-CQChartsValueSet::
+CQValueSet::
 rmin(double def) const
 {
   if      (type() == Type::INTEGER)
@@ -368,16 +289,12 @@ rmin(double def) const
     return rvals_.min(def);
   else if (type() == Type::STRING)
     return svals_.imin(def);
-  else if (type() == Type::COLOR)
-    return cvals_.imin(def);
-  else if (type() == Type::TIME)
-    return tvals_.min(def);
   else
     return def;
 }
 
 double
-CQChartsValueSet::
+CQValueSet::
 rmax(double def) const
 {
   if      (type() == Type::INTEGER)
@@ -386,16 +303,12 @@ rmax(double def) const
     return rvals_.max(def);
   else if (type() == Type::STRING)
     return svals_.imax(def);
-  else if (type() == Type::COLOR)
-    return cvals_.imax(def);
-  else if (type() == Type::TIME)
-    return tvals_.max(def);
   else
     return def;
 }
 
 double
-CQChartsValueSet::
+CQValueSet::
 rsum() const
 {
   if      (type() == Type::INTEGER)
@@ -404,16 +317,12 @@ rsum() const
     return rvals_.sum();
   else if (type() == Type::STRING)
     return 0.0;
-  else if (type() == Type::COLOR)
-    return 0.0;
-  else if (type() == Type::TIME)
-    return 0.0;
   else
     return 0.0;
 }
 
 double
-CQChartsValueSet::
+CQValueSet::
 rmean() const
 {
   if      (type() == Type::INTEGER)
@@ -422,16 +331,12 @@ rmean() const
     return rvals_.mean();
   else if (type() == Type::STRING)
     return (svals_.imin() + svals_.imax())/2.0;
-  else if (type() == Type::COLOR)
-    return (cvals_.imin() + cvals_.imax())/2.0;
-  else if (type() == Type::TIME)
-    return 0.0;
   else
     return 0.0;
 }
 
 int
-CQChartsValueSet::
+CQValueSet::
 rid(double r) const
 {
   if      (type() == Type::INTEGER)
@@ -440,16 +345,12 @@ rid(double r) const
     return rvals_.id(r);
   else if (type() == Type::STRING)
     return -1;
-  else if (type() == Type::COLOR)
-    return -1;
-  else if (type() == Type::TIME)
-    return tvals_.id(r);
   else
     return -1;
 }
 
 double
-CQChartsValueSet::
+CQValueSet::
 idr(int i) const
 {
   if      (type() == Type::INTEGER)
@@ -458,16 +359,12 @@ idr(int i) const
     return rvals_.ivalue(i);
   else if (type() == Type::STRING)
     return 0.0;
-  else if (type() == Type::COLOR)
-    return 0.0;
-  else if (type() == Type::TIME)
-    return tvals_.ivalue(i);
   else
     return 0.0;
 }
 
 int
-CQChartsValueSet::
+CQValueSet::
 iid(int i) const
 {
   if      (type() == Type::INTEGER)
@@ -476,16 +373,12 @@ iid(int i) const
     return -1;
   else if (type() == Type::STRING)
     return -1;
-  else if (type() == Type::COLOR)
-    return -1;
-  else if (type() == Type::TIME)
-    return -1;
   else
     return -1;
 }
 
 int
-CQChartsValueSet::
+CQValueSet::
 idi(int i) const
 {
   if      (type() == Type::INTEGER)
@@ -494,16 +387,12 @@ idi(int i) const
     return 0;
   else if (type() == Type::STRING)
     return 0;
-  else if (type() == Type::COLOR)
-    return 0;
-  else if (type() == Type::TIME)
-    return 0;
   else
     return 0;
 }
 
 void
-CQChartsValueSet::
+CQValueSet::
 init() const
 {
   if (initialized_)
@@ -512,25 +401,19 @@ init() const
   std::unique_lock<std::mutex> lock(mutex_);
 
   if (! initialized_) {
-    CQChartsValueSet *th = const_cast<CQChartsValueSet *>(this);
+    CQValueSet *th = const_cast<CQValueSet *>(this);
 
     th->init();
   }
 }
 
 void
-CQChartsValueSet::
+CQValueSet::
 init()
 {
   initialized_ = true;
 
-  if (type_ == Type::NONE) {
-    // get type from column values
-    if (column().isValid() && plot_)
-      type_ = plot_->columnValueType(column(), Type::NONE);
-  }
-
-  // if no type then look at added value (TODO: always the same as column values ?)
+  // if no type then look at added values
   if (type_ == Type::NONE)
     type_ = calcType();
 
@@ -542,12 +425,12 @@ init()
 
   for (const auto &value : values_) {
     if      (type() == Type::INTEGER) {
-      int i = CQChartsVariant::toInt(value, ok);
+      int i = value.toInt(&ok);
 
       ivals_.addValue(ok ? OptInt(i) : OptInt());
     }
     else if (type() == Type::REAL) {
-      double r = CQChartsVariant::toReal(value, ok);
+      double r = value.toDouble(&ok);
 
       if (! isAllowNaN() && CMathUtil::isNaN(r))
         ok = false;
@@ -560,34 +443,21 @@ init()
       bool ok = false;
 
       if (value.isValid()) {
-        CQChartsVariant::toString(value, s);
+        s = value.toString();
 
         ok = true;
       }
 
       svals_.addValue(ok ? OptString(s) : OptString());
     }
-    else if (type() == Type::COLOR) {
-      CQChartsColor c = CQChartsVariant::toColor(value, ok);
-
-      cvals_.addValue(c);
-    }
-    else if (type() == Type::TIME) {
-      double t = CQChartsVariant::toReal(value, ok);
-
-      if (! isAllowNaN() && CMathUtil::isNaN(t))
-        ok = false;
-
-      tvals_.addValue(ok ? OptReal(t) : OptReal());
-    }
   }
 }
 
-CQChartsValueSet::Type
-CQChartsValueSet::
+CQValueSet::Type
+CQValueSet::
 calcType() const
 {
-  CQChartsValueSet::Type type = Type::NONE;
+  CQValueSet::Type type = Type::NONE;
 
   int ni = 0, nr = 0;
 
@@ -599,7 +469,7 @@ calcType() const
 
       bool ok;
 
-      double r = CQChartsVariant::toReal(value, ok);
+      double r = value.toDouble(&ok);
 
       if (CMathUtil::isInteger(r))
         ++ni;
@@ -609,7 +479,7 @@ calcType() const
     else {
       bool ok;
 
-      double r = CQChartsVariant::toReal(value, ok);
+      double r = value.toDouble(&ok);
 
       if (ok) {
         if (CMathUtil::isInteger(r))
@@ -637,20 +507,18 @@ calcType() const
 }
 
 void
-CQChartsValueSet::
+CQValueSet::
 clearVals()
 {
   ivals_.clear();
   rvals_.clear();
   svals_.clear();
-  cvals_.clear();
-  tvals_.clear();
 }
 
 //------
 
 int
-CQChartsRValues::
+CQRValues::
 addValue(const OptReal &r)
 {
   // add to all values
@@ -685,7 +553,7 @@ addValue(const OptReal &r)
 }
 
 void
-CQChartsRValues::
+CQRValues::
 calc()
 {
   if (calculated_)
@@ -744,7 +612,7 @@ calc()
 }
 
 bool
-CQChartsRValues::
+CQRValues::
 isOutlier(double v) const
 {
   initCalc();
@@ -755,7 +623,7 @@ isOutlier(double v) const
 //------
 
 int
-CQChartsIValues::
+CQIValues::
 addValue(const OptInt &i)
 {
   // add to all values
@@ -790,7 +658,7 @@ addValue(const OptInt &i)
 }
 
 void
-CQChartsIValues::
+CQIValues::
 calc()
 {
   if (calculated_)
@@ -847,7 +715,7 @@ calc()
 }
 
 bool
-CQChartsIValues::
+CQIValues::
 isOutlier(int v) const
 {
   initCalc();
@@ -857,22 +725,22 @@ isOutlier(int v) const
 
 //------
 
-CQChartsSValues::
-CQChartsSValues()
+CQSValues::
+CQSValues()
 {
   trie_      = new CQTrie;
   spatterns_ = new CQTriePatterns;
 }
 
-CQChartsSValues::
-~CQChartsSValues()
+CQSValues::
+~CQSValues()
 {
   delete trie_;
   delete spatterns_;
 }
 
 void
-CQChartsSValues::
+CQSValues::
 clear()
 {
   values_ .clear();
@@ -889,7 +757,7 @@ clear()
 }
 
 int
-CQChartsSValues::
+CQSValues::
 addValue(const OptString &s)
 {
   // add to all values
@@ -925,7 +793,7 @@ addValue(const OptString &s)
 }
 
 int
-CQChartsSValues::
+CQSValues::
 sbucket(const QString &s) const
 {
   initPatterns(initBuckets_);
@@ -934,7 +802,7 @@ sbucket(const QString &s) const
 }
 
 QString
-CQChartsSValues::
+CQSValues::
 buckets(int i) const
 {
   initPatterns(initBuckets_);
@@ -943,7 +811,7 @@ buckets(int i) const
 }
 
 void
-CQChartsSValues::
+CQSValues::
 initPatterns(int numIdeal) const
 {
   if (spatternsSet_)
@@ -952,7 +820,7 @@ initPatterns(int numIdeal) const
   std::unique_lock<std::mutex> lock(mutex_);
 
   if (! spatternsSet_) {
-    CQChartsSValues *th = const_cast<CQChartsSValues *>(this);
+    CQSValues *th = const_cast<CQSValues *>(this);
 
     using DepthCountMap = std::map<int,CQTriePatterns>;
 
@@ -986,39 +854,4 @@ initPatterns(int numIdeal) const
 
     //spatterns_->print(std::cerr);
   }
-}
-
-//------
-
-int
-CQChartsCValues::
-addValue(const CQChartsColor &c)
-{
-  // add to all values
-  values_.push_back(c);
-
-  // TODO: don't calc key unless needed
-
-  // TODO: assert
-  if (! c.isValid()) {
-    ++numNull_;
-
-    return -1;
-  }
-
-  // add to unique values if new
-  auto p = valset_.find(c);
-
-  if (p == valset_.end()) {
-    int id = valset_.size();
-
-    p = valset_.insert(p, ValueSet::value_type(c, KeyCount(id, 1))); // id for value
-
-    setvals_[id] = c; // value for id
-  }
-  else {
-    ++(*p).second.second; // increment count
-  }
-
-  return (*p).second.first; // return key
 }

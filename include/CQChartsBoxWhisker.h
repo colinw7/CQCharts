@@ -3,7 +3,7 @@
 
 #include <CQChartsDensity.h>
 #include <CQChartsUtil.h>
-#include <CQChartsStatData.h>
+#include <CQStatData.h>
 #include <QString>
 #include <cassert>
 #include <vector>
@@ -85,7 +85,7 @@ class CQChartsBoxWhiskerT {
   double vmin() const { return (! values_.empty() ? double(values_.front()) : 0.0); }
   double vmax() const { return (! values_.empty() ? double(values_.back ()) : 0.0); }
 
-  const CQChartsStatData &statData() const { initCalc(); return statData_; }
+  const CQStatData &statData() const { initCalc(); return statData_; }
 
   //---
 
@@ -196,7 +196,7 @@ class CQChartsBoxWhiskerT {
   // calculated data
   mutable std::atomic<bool> calcValid_    { false }; //!< calc valid
   mutable std::mutex        calcMutex_;              //!< calc mutex
-  CQChartsStatData          statData_;               //!< calc stats data
+  CQStatData                statData_;               //!< calc stats data
   Outliers                  outliers_;               //!< calc outliers
 
   // calculated density
@@ -225,11 +225,11 @@ void drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsBoxW
                  const CQChartsGeom::BBox &bbox, const CQChartsLength &width,
                  const Qt::Orientation &orientation);
 
-void drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsStatData &data,
+void drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQStatData &data,
                  const CQChartsGeom::BBox &bbox, const CQChartsLength &width,
                  const Qt::Orientation &orientation);
 
-void drawWhiskerBar(const CQChartsPlot *plot, QPainter *painter, const CQChartsStatData &data,
+void drawWhiskerBar(const CQChartsPlot *plot, QPainter *painter, const CQStatData &data,
                     double pos, const Qt::Orientation &orientation,
                     double ww, double bw, const CQChartsLength &cornerSize, bool notched);
 

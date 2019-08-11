@@ -234,11 +234,59 @@ load(const QString &filename)
 
         int icolumn = modelColumnNameToInd(name.c_str());
 
-        if (type == "type") {
+        if      (type == "type") {
           CQBaseModelType columnType = nameType(value.c_str());
 
           if (columnType != CQBaseModelType::NONE)
             setColumnType(icolumn, columnType);
+        }
+        else if (type == "min") {
+          CQBaseModelType columnType = this->columnType(icolumn);
+
+          if      (columnType == CQBaseModelType::INTEGER) {
+            bool ok;
+
+            int min = QString(value.c_str()).toInt(&ok);
+
+            if (! ok)
+              std::cerr << "Invalid integer column min '" << value << "'\n";
+
+            setColumnMin(icolumn, min);
+          }
+          else if (columnType == CQBaseModelType::REAL) {
+            bool ok;
+
+            double min = QString(value.c_str()).toDouble(&ok);
+
+            if (! ok)
+              std::cerr << "Invalid real column min '" << value << "'\n";
+
+            setColumnMin(icolumn, min);
+          }
+        }
+        else if (type == "max") {
+          CQBaseModelType columnType = this->columnType(icolumn);
+
+          if      (columnType == CQBaseModelType::INTEGER) {
+            bool ok;
+
+            int max = QString(value.c_str()).toInt(&ok);
+
+            if (! ok)
+              std::cerr << "Invalid integer column max '" << value << "'\n";
+
+            setColumnMax(icolumn, max);
+          }
+          else if (columnType == CQBaseModelType::REAL) {
+            bool ok;
+
+            double max = QString(value.c_str()).toDouble(&ok);
+
+            if (! ok)
+              std::cerr << "Invalid real column max '" << value << "'\n";
+
+            setColumnMax(icolumn, max);
+          }
         }
         else {
           std::cerr << "Invalid column type '" << type << "'\n";

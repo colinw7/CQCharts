@@ -5,7 +5,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsBoxWhisker.h>
 #include <CQChartsFitData.h>
-#include <CQChartsStatData.h>
+#include <CQStatData.h>
 #include <CInterval.h>
 
 class CQChartsScatterPlot;
@@ -700,8 +700,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   };
 
   struct StatData {
-    CQChartsStatData xstat;
-    CQChartsStatData ystat;
+    CQStatData xstat;
+    CQStatData ystat;
   };
 
   using GroupPoints   = std::map<int,Points>;

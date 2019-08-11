@@ -3,6 +3,9 @@
 
 #include <QSortFilterProxyModel>
 
+/*!
+ * \brief base class for sort model
+ */
 class CQSortModel : public QSortFilterProxyModel {
   Q_OBJECT
 
@@ -15,7 +18,7 @@ class CQSortModel : public QSortFilterProxyModel {
   void setFilter(const QString &filter);
 
  private:
-  QString filter_;
+  QString filter_; //!< filter
 };
 
 #endif

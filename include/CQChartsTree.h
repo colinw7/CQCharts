@@ -6,6 +6,7 @@
 #include <QSharedPointer>
 
 class CQCharts;
+class CQChartsTableDelegate;
 class CQChartsSelectionModel;
 class CQChartsModelData;
 class CQChartsModelDetails;
@@ -65,6 +66,7 @@ class CQChartsTree : public CQTreeView {
   CQCharts*               charts_    { nullptr };
   ModelP                  model_;
   CQChartsSelectionModel* sm_        { nullptr };
+  CQChartsTableDelegate*  delegate_  { nullptr };
   CQChartsModelData*      modelData_ { nullptr };
 };
 

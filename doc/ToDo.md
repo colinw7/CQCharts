@@ -1,13 +1,15 @@
 High
  + Pivot
-   + multiple labels (x and y)
+   + multiple labels (x and y).
+     + QStringList or newline separator.
+     + Combine common first/last strings ?
+     + Multi axis ?
    + Skip missing
    + More fill variation
    + Key on/off for groups
    + Group on key ?
- + add unchecked support for all annotations
- + access set hidden from tcl
-   + Should be able to create fully functional key from annotations
+ + Should be able to create fully functional key from annotations
+ + Axis annotation
  + more code in point plot (base class for scatter/xy)
  + plot selection behavior -> select out, select in, none, both
  + table per column coloring

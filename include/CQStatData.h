@@ -1,7 +1,13 @@
-#ifndef CQChartsStatData_H
-#define CQChartsStatData_H
+#ifndef CQStatData_H
+#define CQStatData_H
 
-struct CQChartsStatData {
+#include <vector>
+#include <cmath>
+
+/*!
+ * \brief statistics for set of variant values of a single type
+ */
+struct CQStatData {
   bool   set          { false }; //!< is set
   double outlierRange { 1.5 };   //!< outlier range factor
   double median       { 0.0 };   //!< values median

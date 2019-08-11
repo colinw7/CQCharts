@@ -5,6 +5,13 @@
 #include <QRegExp>
 #include <vector>
 
+class CQModelDetails;
+
+/*!
+ * \brief model derived from base model which supports a 2d array of variant values
+ *
+ * Can be made writable to update values.
+ */
 class CQDataModel : public CQBaseModel {
   Q_OBJECT
 
@@ -18,11 +25,15 @@ class CQDataModel : public CQBaseModel {
 
   virtual ~CQDataModel();
 
+  //---
+
+  //! get/set read only
   bool isReadOnly() const { return readOnly_; }
   void setReadOnly(bool b) { readOnly_ = b; }
 
   //---
 
+  //! get/set filter
   const QString &filter() const { return filter_; }
   void setFilter(const QString &filter) { filter_ = filter; setFilterInited(false); }
 
@@ -30,6 +41,7 @@ class CQDataModel : public CQBaseModel {
 
   //--
 
+  // model interface
   int columnCount(const QModelIndex &parent=QModelIndex()) const override;
 
   int rowCount(const QModelIndex &parent=QModelIndex()) const override;
@@ -70,6 +82,10 @@ class CQDataModel : public CQBaseModel {
 
   virtual bool acceptsRow(const Cells &cells) const;
 
+  //---
+
+  CQModelDetails *getDetails() const;
+
  protected:
   struct FilterData {
     int     column { -1 };
@@ -79,14 +95,14 @@ class CQDataModel : public CQBaseModel {
 
   typedef std::vector<FilterData> FilterDatas;
 
-  bool readOnly_ { false };
-
-  Cells       hheader_;                //!< horizontal header values
-  Cells       vheader_;                //!< vertical header values
-  Data        data_;                   //!< row values
-  QString     filter_;                 //!< filter text
-  bool        filterInited_ { false }; //!< filter initialized
-  FilterDatas filterDatas_;            //!< filter datas
+  bool            readOnly_     { false };   //!< is read only
+  Cells           hheader_;                  //!< horizontal header values
+  Cells           vheader_;                  //!< vertical header values
+  Data            data_;                     //!< row values
+  QString         filter_;                   //!< filter text
+  bool            filterInited_ { false };   //!< filter initialized
+  FilterDatas     filterDatas_;              //!< filter datas
+  CQModelDetails* details_      { nullptr }; //!< model details
 };
 
 #endif

@@ -2011,7 +2011,7 @@ draw(QPainter *painter)
   double ww = plot_->whiskerExtent();
   double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal());
 
-  CQChartsStatData statData;
+  CQStatData statData;
 
   statData.min         = remapPos(this->min());
   statData.lowerMedian = remapPos(this->lowerMedian());
@@ -2578,7 +2578,7 @@ draw(QPainter *painter)
 
   painter->setPen(whiskerPen);
 
-  CQChartsStatData statData;
+  CQStatData statData;
 
   statData.min         = remapPos(data_.statData.min);
   statData.lowerMedian = remapPos(data_.statData.lowerMedian);

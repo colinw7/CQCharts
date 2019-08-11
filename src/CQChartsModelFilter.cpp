@@ -221,7 +221,7 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
 
   RowVisitor visitor(this, column);
 
-  (void) CQChartsModelVisit::exec(model, parent, row, visitor);
+  (void) CQModelVisit::exec(model, parent, row, visitor);
 
   // TODO: cache result for hier traversal
   return visitor.isAccepted();

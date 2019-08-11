@@ -929,3 +929,5 @@
  + Add view layers to layers tab
  + Add tcl access to mouse data
  + Add tcl support for set hidden
+# 8/11/2019
+ + Move model code to CQBaseModel/CQModelUtil

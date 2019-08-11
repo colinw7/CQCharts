@@ -4,7 +4,7 @@
 #include <CQChartsBarPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsColor.h>
-#include <CQChartsStatData.h>
+#include <CQStatData.h>
 
 class CQChartsDensity;
 
@@ -262,13 +262,13 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   using BucketCounts = std::vector<BucketCount>;
 
   struct Data {
-    Points           points;
-    double           xmin { 0.0 };
-    double           xmax { 0.0 };
-    double           ymin { 0.0 };
-    double           ymax { 0.0 };
-    CQChartsStatData statData;
-    BucketCounts     buckets;
+    Points       points;
+    double       xmin { 0.0 };
+    double       xmax { 0.0 };
+    double       ymin { 0.0 };
+    double       ymax { 0.0 };
+    CQStatData   statData;
+    BucketCounts buckets;
   };
 
  public:
@@ -725,7 +725,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     VariantInds           inds;         //!< model indices
     double                min  { 0.0 }; //!< min value
     double                max  { 0.0 }; //!< max value
-    CQChartsStatData      statData;     //!< stats data
+    CQStatData            statData;     //!< stats data
     CQChartsGeom::RMinMax valueRange;   //!< value range
   };
 
@@ -740,9 +740,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   void getXVals(int groupInd, const Bucket &bucket, std::vector<double> &xvals) const;
 
-  bool getStatData(int groupInd, CQChartsStatData &statData) const;
+  bool getStatData(int groupInd, CQStatData &statData) const;
 
-  bool getRealValues(int groupInd, std::vector<double> &xvals, CQChartsStatData &statData) const;
+  bool getRealValues(int groupInd, std::vector<double> &xvals, CQStatData &statData) const;
 
   bool hasGroups() const;
 
@@ -755,7 +755,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     CQChartsValueSet*     valueSet      { nullptr }; //!< value set
     BucketValues          bucketValues;              //!< bucketed values
     CQChartsDensity*      densityData   { nullptr }; //!< density data
-    CQChartsStatData      statData;                  //!< stat data
+    CQStatData            statData;                  //!< stat data
     CQChartsGeom::RMinMax xValueRange;               //!< x value range
     CQChartsGeom::RMinMax yValueRange;               //!< y value range
 

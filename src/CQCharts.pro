@@ -173,7 +173,6 @@ CQChartsKeyPressBehavior.cpp \
 CQChartsTitleLocation.cpp \
 \
 CQChartsModelUtil.cpp \
-CQChartsTrie.cpp \
 CQChartsValueInd.cpp \
 CQChartsNameValues.cpp \
 CQChartsEnv.cpp \
@@ -235,10 +234,15 @@ CQCsvModel.cpp \
 CQTsvModel.cpp \
 CQJsonModel.cpp \
 CQGnuDataModel.cpp \
-CQSortModel.cpp \
 CQFoldedModel.cpp \
-CQDataModel.cpp \
+\
 CQBaseModel.cpp \
+CQDataModel.cpp \
+CQModelDetails.cpp \
+CQModelUtil.cpp \
+CQModelVisitor.cpp \
+CQSortModel.cpp \
+CQValueSet.cpp \
 \
 CQSummaryModel.cpp \
 CQSubSetModel.cpp \
@@ -247,6 +251,7 @@ CQBucketModel.cpp \
 CQCollapseModel.cpp \
 CQPivotModel.cpp \
 CQBucketer.cpp \
+CQTrie.cpp \
 \
 CQTabSplit.cpp \
 CQFilename.cpp \
@@ -357,7 +362,6 @@ HEADERS += \
 ../include/CQChartsKeyPressBehavior.h \
 \
 ../include/CQChartsModelUtil.h \
-../include/CQChartsTrie.h \
 ../include/CQChartsValueInd.h \
 ../include/CQChartsNameValues.h \
 ../include/CQChartsQuadTree.h \
@@ -476,10 +480,7 @@ HEADERS += \
 ../include/CQTsvModel.h \
 ../include/CQJsonModel.h \
 ../include/CQGnuDataModel.h \
-../include/CQSortModel.h \
 ../include/CQFoldedModel.h \
-../include/CQDataModel.h \
-../include/CQBaseModel.h \
 ../include/CQSummaryModel.h \
 ../include/CQSubSetModel.h \
 ../include/CQTransposeModel.h \
@@ -487,6 +488,17 @@ HEADERS += \
 ../include/CQCollapseModel.h \
 ../include/CQPivotModel.h \
 ../include/CQBucketer.h \
+../include/CQTrie.h \
+\
+../include/CQBaseModel.h \
+../include/CQBaseModelTypes.h \
+../include/CQDataModel.h \
+../include/CQModelDetails.h \
+../include/CQModelUtil.h \
+../include/CQModelVisitor.h \
+../include/CQSortModel.h \
+../include/CQStatData.h \
+../include/CQValueSet.h \
 \
 ../include/CQTabSplit.h \
 ../include/CQFilename.h \

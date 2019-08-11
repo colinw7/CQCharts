@@ -6,9 +6,12 @@
 #include <QItemDelegate>
 #include <future>
 
+class CQCharts;
 class CQChartsTable;
+class CQChartsTree;
 class CQChartsColor;
 class CQChartsSymbol;
+class CQChartsModelDetails;
 class CQChartsModelColumnDetails;
 class QPainter;
 
@@ -22,14 +25,17 @@ class CQChartsTableDelegate : public QItemDelegate {
     CQChartsModelColumnDetails* details { nullptr };
   };
 
+  using ModelP = QSharedPointer<QAbstractItemModel>;
+
  public:
   CQChartsTableDelegate(CQChartsTable *table);
+  CQChartsTableDelegate(CQChartsTree *tree);
 
   void paint(QPainter *painter, const QStyleOptionViewItem &option,
-             const QModelIndex &index) const;
+             const QModelIndex &index) const override;
 
   QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &item,
-                        const QModelIndex &index) const;
+                        const QModelIndex &index) const override;
 
   void click(const QModelIndex &index) const;
 
@@ -55,9 +61,20 @@ class CQChartsTableDelegate : public QItemDelegate {
   void updateBoolean();
 
  private:
+  bool drawType(QPainter *painter, const QStyleOptionViewItem &option,
+                const QModelIndex &index) const;
+
+  CQCharts *charts() const;
+
+  ModelP modelP() const;
+
+  CQChartsModelDetails *getDetails() const;
+
+ private:
   using ColumnDataMap = std::map<int,ColumnData>;
 
   CQChartsTable*      table_ { nullptr };
+  CQChartsTree*       tree_  { nullptr };
   ColumnDataMap       columnDataMap_;
   mutable QModelIndex currentIndex_;
   mutable std::mutex  mutex_;

@@ -1,16 +1,16 @@
-#ifndef CQChartsValueSet_H
-#define CQChartsValueSet_H
+#ifndef CQValueSet_H
+#define CQValueSet_H
 
-#include <CQChartsUtil.h>
 #include <CQStatData.h>
 #include <CQBaseModelTypes.h>
+#include <CMathUtil.h>
+
 #include <vector>
 #include <set>
 #include <map>
 #include <future>
 #include <boost/optional.hpp>
 
-class CQChartsPlot;
 class CQTrie;
 class CQTriePatterns;
 
@@ -18,9 +18,8 @@ class CQTriePatterns;
 
 /*!
  * \brief class to store set of real values and returned cached data
- * \ingroup Charts
  */
-class CQChartsRValues {
+class CQRValues {
  public:
   using OptReal = boost::optional<double>;
   using Values  = std::vector<double>;
@@ -28,7 +27,7 @@ class CQChartsRValues {
   using Indices = std::vector<int>;
 
  public:
-  CQChartsRValues() { }
+  CQRValues() { }
 
   void clear() {
     values_ .clear();
@@ -135,7 +134,7 @@ class CQChartsRValues {
       std::unique_lock<std::mutex> lock(calcMutex_);
 
       if (! calcValid_.load()) {
-        CQChartsRValues *th = const_cast<CQChartsRValues *>(this);
+        CQRValues *th = const_cast<CQRValues *>(this);
 
         th->calc();
 
@@ -147,9 +146,18 @@ class CQChartsRValues {
   void calc();
 
  private:
+  struct RealCmp {
+    bool operator()(const double &lhs, const double &rhs) const {
+      if (CMathUtil::realEq(lhs, rhs))
+        return false;
+
+      return lhs < rhs;
+    }
+  };
+
   using OptValues = std::vector<OptReal>;
   using KeyCount  = std::pair<int,int>;
-  using ValueSet  = std::map<double,KeyCount,CQChartsUtil::RealCmp>;
+  using ValueSet  = std::map<double,KeyCount,RealCmp>;
   using SetValues = std::map<int,double>;
 
   OptValues                 values_;               //!< all real values
@@ -168,9 +176,8 @@ class CQChartsRValues {
 
 /*!
  * \brief class to store set of integer values and returned cached data
- * \ingroup Charts
  */
-class CQChartsIValues {
+class CQIValues {
  public:
   using OptInt  = boost::optional<int>;
   using Values  = std::vector<double>;
@@ -178,7 +185,7 @@ class CQChartsIValues {
   using Indices = std::vector<int>;
 
  public:
-  CQChartsIValues() { }
+  CQIValues() { }
 
   void clear() {
     values_ .clear();
@@ -281,7 +288,7 @@ class CQChartsIValues {
       std::unique_lock<std::mutex> lock(calcMutex_);
 
       if (! calcValid_.load()) {
-        CQChartsIValues *th = const_cast<CQChartsIValues *>(this);
+        CQIValues *th = const_cast<CQIValues *>(this);
 
         th->calc();
 
@@ -314,17 +321,16 @@ class CQChartsIValues {
 
 /*!
  * \brief class to store set of string values and returned cached data
- * \ingroup Charts
  */
-class CQChartsSValues {
+class CQSValues {
  public:
   using OptString = boost::optional<QString>;
   using Values    = std::vector<QString>;
   using Counts    = std::vector<int>;
 
  public:
-  CQChartsSValues();
- ~CQChartsSValues();
+  CQSValues();
+ ~CQSValues();
 
   void clear();
 
@@ -423,136 +429,26 @@ class CQChartsSValues {
   SetValues setvals_;       //!< index to string map
   int       numNull_ { 0 }; //!< number of null values
 
-  int                initBuckets_  { 10 };      //!< initial buckets
-  CQTrie*            trie_         { nullptr }; //!< string trie
-  CQTriePatterns*    spatterns_    { nullptr }; //!< trie patterns
-  bool               spatternsSet_ { false };   //!< trie patterns set
-  mutable std::mutex mutex_;                    //!< mutex
-};
-
-//---
-
-/*!
- * \brief class to store set of color values and returned cached data
- * \ingroup Charts
- */
-class CQChartsCValues {
- public:
-  using Values = std::vector<CQChartsColor>;
-  using Counts = std::vector<int>;
-
- public:
-  CQChartsCValues() { }
-
-  void clear() {
-    values_ .clear();
-    valset_ .clear();
-    setvals_.clear();
-
-    numNull_ = 0;
-  }
-
-  bool isValid() const { return ! values_.empty(); }
-
-  bool canMap() const { return ! valset_.empty(); }
-
-  int size() const { return values_.size(); }
-
-  // get nth value (non-unique)
-  const CQChartsColor &value(int i) const { return values_[i]; }
-
-  int addValue(const CQChartsColor &c);
-
-  int numNull() const { return numNull_; }
-
-  // color to id
-  int id(const CQChartsColor &c) const {
-    // get color set index
-    auto p = valset_.find(c);
-
-    if (p == valset_.end())
-      return -1;
-
-    return (*p).second.first;
-  }
-
-  // id to color
-  CQChartsColor ivalue(int i) const {
-    // get string for index
-    auto p = setvals_.find(i);
-
-    if (p == setvals_.end())
-      return CQChartsColor();
-
-    return (*p).second;
-  }
-
-  // min/max value
-  CQChartsColor min(const CQChartsColor &def=CQChartsColor()) const {
-    return (valset_.empty() ? def : valset_. begin()->first);
-  }
-  CQChartsColor max(const CQChartsColor &def=CQChartsColor()) const {
-    return (valset_.empty() ? def : valset_.rbegin()->first);
-  }
-
-  // min/max index
-  int imin(int def=0) const { return (setvals_.empty() ? def : setvals_. begin()->first); }
-  int imax(int def=0) const { return (setvals_.empty() ? def : setvals_.rbegin()->first); }
-
-  // number of unique values
-  int numUnique() const { return valset_.size(); }
-
-  void uniqueValues(Values &values) {
-    for (const auto &vi : valset_)
-      values.push_back(vi.first);
-  }
-
-  void uniqueCounts(Counts &counts) {
-    for (const auto &vi : valset_)
-      counts.push_back(vi.second.second);
-  }
-
-  // map value into real in range
-  double map(const CQChartsColor &c, double mapMin=0.0, double mapMax=1.0) const {
-    // get color set index
-    int i = id(c);
-
-    // map color set index using 1 -> number of unique values
-    int n = numUnique();
-
-    if (! n)
-      return mapMin;
-
-    return CMathUtil::map(i, imin(), imax(), mapMin, mapMax);
-  }
-
- private:
-  using KeyCount  = std::pair<int,int>;
-  using ValueSet  = std::map<CQChartsColor,KeyCount,CQChartsUtil::ColorCmp>;
-  using SetValues = std::map<int,CQChartsColor>;
-
-  Values    values_;        //!< all color values
-  ValueSet  valset_;        //!< unique indexed color values
-  SetValues setvals_;       //!< index to color map
-  int       numNull_ { 0 }; //!< number of null values
+  int                   initBuckets_  { 10 };      //!< initial buckets
+  CQTrie*         trie_         { nullptr }; //!< string trie
+  CQTriePatterns* spatterns_    { nullptr }; //!< trie patterns
+  bool                  spatternsSet_ { false };   //!< trie patterns set
+  mutable std::mutex    mutex_;                    //!< mutex
 };
 
 //------
 
 /*!
  * \brief set of real, integer or string values which will be grouped by their unique values.
- * \ingroup Charts
- *
- * Auto detects value type from input data
  */
-class CQChartsValueSet : public QObject {
+class CQValueSet : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumn column   READ column      WRITE setColumn  )
-  Q_PROPERTY(bool           mappped  READ isMapped    WRITE setMapped  )
-  Q_PROPERTY(double         mapMin   READ mapMin      WRITE setMapMin  )
-  Q_PROPERTY(double         mapMax   READ mapMax      WRITE setMapMax  )
-  Q_PROPERTY(bool           allowNaN READ isAllowNaN  WRITE setAllowNaN)
+  Q_PROPERTY(int    column   READ column     WRITE setColumn  )
+  Q_PROPERTY(bool   mappped  READ isMapped   WRITE setMapped  )
+  Q_PROPERTY(double mapMin   READ mapMin     WRITE setMapMin  )
+  Q_PROPERTY(double mapMax   READ mapMax     WRITE setMapMax  )
+  Q_PROPERTY(bool   allowNaN READ isAllowNaN WRITE setAllowNaN)
 
  public:
   using Type      = CQBaseModelType;
@@ -561,12 +457,12 @@ class CQChartsValueSet : public QObject {
   using OptString = boost::optional<QString>;
 
  public:
-  CQChartsValueSet(const CQChartsPlot *plot=nullptr);
+  CQValueSet();
 
   //---
 
-  const CQChartsColumn &column() const { return column_; }
-  void setColumn(const CQChartsColumn &c) { column_ = c; }
+  int column() const { return column_; }
+  void setColumn(int c) { column_ = c; }
 
   // get/set mapping enabled
   bool isMapped() const { return mapped_; }
@@ -608,28 +504,20 @@ class CQChartsValueSet : public QObject {
   bool isReal   () const { return (type() == Type::REAL   ); }
   bool isInteger() const { return (type() == Type::INTEGER); }
   bool isString () const { return (type() == Type::STRING ); }
-  bool isColor  () const { return (type() == Type::COLOR  ); }
-  bool isTime   () const { return (type() == Type::TIME   ); }
   bool isNumeric() const { return (isReal() || isInteger()); }
 
   bool isValid() const;
 
   //---
 
-  CQChartsIValues &ivals() { return ivals_; };
-  const CQChartsIValues &ivals() const { return ivals_; };
+  CQIValues &ivals() { return ivals_; };
+  const CQIValues &ivals() const { return ivals_; };
 
-  CQChartsRValues &rvals() { return rvals_; };
-  const CQChartsRValues &rvals() const { return rvals_; };
+  CQRValues &rvals() { return rvals_; };
+  const CQRValues &rvals() const { return rvals_; };
 
-  CQChartsSValues &svals() { return svals_; };
-  const CQChartsSValues &svals() const { return svals_; };
-
-  CQChartsCValues &cvals() { return cvals_; };
-  const CQChartsCValues &cvals() const { return cvals_; };
-
-  CQChartsRValues &tvals() { return tvals_; };
-  const CQChartsRValues &tvals() const { return tvals_; };
+  CQSValues &svals() { return svals_; };
+  const CQSValues &svals() const { return svals_; };
 
   void clearVals();
 
@@ -711,9 +599,7 @@ class CQChartsValueSet : public QObject {
  protected:
   using Values = std::vector<QVariant>;
 
-  const CQChartsPlot* plot_ { nullptr }; //!< plot
-
-  CQChartsColumn column_; //!< associated model column
+  int column_ { -1 }; //!< associated model column
 
   bool   mapped_  { false }; //!< is mapped
   double map_min_ { 0.0 };   //!< map min
@@ -724,11 +610,9 @@ class CQChartsValueSet : public QObject {
 
   Type type_ { Type::NONE }; //!< calculated type
 
-  CQChartsIValues ivals_; //!< integer values
-  CQChartsRValues rvals_; //!< real values
-  CQChartsSValues svals_; //!< string values
-  CQChartsCValues cvals_; //!< color values
-  CQChartsRValues tvals_; //!< time values
+  CQIValues ivals_; //!< integer values
+  CQRValues rvals_; //!< real values
+  CQSValues svals_; //!< string values
 
   bool allowNaN_ { false }; //!< allow NaN values
 

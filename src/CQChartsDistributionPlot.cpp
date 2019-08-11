@@ -2288,7 +2288,7 @@ getXVals(int groupInd, const Bucket &bucket, std::vector<double> &xvals) const
 
 bool
 CQChartsDistributionPlot::
-getRealValues(int groupInd, std::vector<double> &vals, CQChartsStatData &statData) const
+getRealValues(int groupInd, std::vector<double> &vals, CQStatData &statData) const
 {
   vals.clear();
 
@@ -2322,7 +2322,7 @@ getRealValues(int groupInd, std::vector<double> &vals, CQChartsStatData &statDat
 
 bool
 CQChartsDistributionPlot::
-getStatData(int groupInd, CQChartsStatData &statData) const
+getStatData(int groupInd, CQStatData &statData) const
 {
   const Values *values = getGroupValues(groupInd);
   if (! values) return false;
@@ -2831,7 +2831,7 @@ drawStatsLines(QPainter *painter) const
     int           groupInd = groupValues.first;
     const Values *values   = groupValues.second;
 
-    CQChartsStatData statData = values->statData;
+    CQStatData statData = values->statData;
 
     //---
 
@@ -4043,7 +4043,7 @@ drawRug(QPainter *painter) const
   const CQChartsGeom::Range &dataRange = plot_->dataRange();
 
   std::vector<double> xvals;
-  CQChartsStatData    statData;
+  CQStatData          statData;
 
   (void) plot_->getRealValues(groupInd_, xvals, statData);
 

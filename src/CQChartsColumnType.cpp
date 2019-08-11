@@ -744,7 +744,7 @@ drawType(const CQChartsNameValues &nameValues) const
   else if (typeName == "barchart")
     return CQChartsColumnType::DrawType::BARCHART;
   else if (typeName == "heatmap")
-    return CQChartsColumnType::DrawType::COL_HEATMAP;
+    return CQChartsColumnType::DrawType::HEATMAP;
   else
     return CQChartsColumnType::DrawType::NORMAL;
 }
@@ -1062,6 +1062,50 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   // convert value using format
   return CQChartsUtil::formatVar(var, format);
+}
+
+QVariant
+CQChartsColumnIntegerType::
+minValue(const CQChartsNameValues &nameValues) const
+{
+  int i;
+
+  if (! imin(nameValues, i))
+    return QVariant();
+
+  return QVariant(i);
+}
+
+QVariant
+CQChartsColumnIntegerType::
+maxValue(const CQChartsNameValues &nameValues) const
+{
+  int i;
+
+  if (! imax(nameValues, i))
+    return QVariant();
+
+  return QVariant(i);
+}
+
+bool
+CQChartsColumnIntegerType::
+imin(const CQChartsNameValues &nameValues, int &i) const
+{
+  if (! CQChartsColumnUtil::nameValueInteger(nameValues, "min", i))
+    return false;
+
+  return true;
+}
+
+bool
+CQChartsColumnIntegerType::
+imax(const CQChartsNameValues &nameValues, int &i) const
+{
+  if (! CQChartsColumnUtil::nameValueInteger(nameValues, "max", i))
+    return false;
+
+  return true;
 }
 
 //------

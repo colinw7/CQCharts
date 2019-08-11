@@ -1,4 +1,5 @@
 #include <CQDataModel.h>
+#include <CQModelDetails.h>
 
 CQDataModel::
 CQDataModel()
@@ -21,6 +22,7 @@ CQDataModel(int numCols, int numRows)
 CQDataModel::
 ~CQDataModel()
 {
+  delete details_;
 }
 
 void
@@ -175,6 +177,16 @@ headerData(int section, Qt::Orientation orientation, int role) const
 
       return QVariant(str);
     }
+    else if (role == static_cast<int>(CQBaseModelRole::DataMin)) {
+      CQModelDetails *details = getDetails();
+
+      return details->columnDetails(section)->minValue();
+    }
+    else if (role == static_cast<int>(CQBaseModelRole::DataMax)) {
+      CQModelDetails *details = getDetails();
+
+      return details->columnDetails(section)->maxValue();
+    }
     else {
       return CQBaseModel::headerData(section, orientation, role);
     }
@@ -320,6 +332,9 @@ data(const QModelIndex &index, int role) const
 
     return var;
   }
+  else if (role == Qt::ToolTipRole) {
+    return cells[index.column()];
+  }
   else if (role == int(CQBaseModelRole::RawValue) ||
            role == int(CQBaseModelRole::IntermediateValue) ||
            role == int(CQBaseModelRole::CachedValue) ||
@@ -443,4 +458,17 @@ resetColumnCache(int column)
   ColumnData &columnData = getColumnData(column);
 
   columnData.roleRowValues.clear();
+}
+
+CQModelDetails *
+CQDataModel::
+getDetails() const
+{
+  if (! details_) {
+    CQDataModel *th = const_cast<CQDataModel *>(this);
+
+    th->details_ = new CQModelDetails(th);
+  }
+
+  return details_;
 }

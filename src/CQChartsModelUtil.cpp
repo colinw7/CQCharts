@@ -9,6 +9,8 @@
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
 #include <CQDataModel.h>
+#include <CQModelUtil.h>
+
 #include <CQPerfMonitor.h>
 #include <CQStrParse.h>
 #include <CQTclUtil.h>
@@ -30,23 +32,7 @@ void errorMsg(const QString &msg) {
 namespace CQChartsModelUtil {
 
 bool isHierarchical(const QAbstractItemModel *model) {
-  if (! model)
-    return false;
-
-  QModelIndex parent;
-
-  int nr = model->rowCount(parent);
-
-  nr = std::min(nr, 100); // limit number of rows checked
-
-  for (int row = 0; row < nr; ++row) {
-    QModelIndex index1 = model->index(row, 0, parent);
-
-    if (model->hasChildren(index1))
-      return true;
-  }
-
-  return false;
+  return CQModelUtil::isHierarchical(model);
 }
 
 #if 0
@@ -793,17 +779,7 @@ getDataModel(QAbstractItemModel *model)
 QAbstractItemModel *
 getBaseModel(QAbstractItemModel *model)
 {
-  QAbstractItemModel *sourceModel = model;
-
-  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(sourceModel);
-
-  while (proxyModel) {
-    sourceModel = proxyModel->sourceModel();
-
-    proxyModel = qobject_cast<QSortFilterProxyModel *>(sourceModel);
-  }
-
-  return sourceModel;
+  return CQModelUtil::getBaseModel(model);
 }
 
 QVariant
@@ -837,11 +813,7 @@ QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn 
   if (icolumn < 0)
     return QVariant();
 
-  QVariant var = model->headerData(icolumn, orientation, role);
-
-  ok = var.isValid();
-
-  return var;
+  return CQModelUtil::modelHeaderValue(model, icolumn, orientation, role, ok);
 }
 
 QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn &column,
@@ -934,17 +906,7 @@ bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &col
 //--
 
 QVariant modelValue(const QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok) {
-  if (! ind.isValid()) {
-    ok = false;
-
-    return QVariant();
-  }
-
-  QVariant var = model->data(ind, role);
-
-  ok = var.isValid();
-
-  return var;
+  return CQModelUtil::modelValue(model, ind, role, ok);
 }
 
 QVariant modelValue(const QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
@@ -989,16 +951,17 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
     return typeData->indexVar(var, column.index());
   }
   else if (column.type() == CQChartsColumn::Type::VHEADER) {
-    QVariant var = model->headerData(row, Qt::Vertical, role);
+    bool ok;
 
-    ok = var.isValid();
+    QVariant var = CQModelUtil::modelHeaderValue(model, row, Qt::Vertical, role, ok);
 
     return var;
   }
   else if (column.type() == CQChartsColumn::Type::GROUP) {
-    QVariant var = model->headerData(row, Qt::Vertical, (int) CQBaseModelRole::Group);
+    bool ok;
 
-    ok = var.isValid();
+    QVariant var =
+      CQModelUtil::modelHeaderValue(model, row, Qt::Vertical, CQBaseModelRole::Group, ok);
 
     return var;
   }
@@ -1369,10 +1332,10 @@ int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name) {
   int role = Qt::DisplayRole;
 
   for (int icolumn = 0; icolumn < model->columnCount(); ++icolumn) {
-    QVariant var = model->headerData(icolumn, Qt::Horizontal, role);
+    bool ok;
 
-    if (! var.isValid())
-      continue;
+    QVariant var = modelHeaderValue(model, icolumn, role, ok);
+    if (! ok)) continue;
 
     //QString name1 = CQChartsVariant::toString(var, rc);
 
@@ -1555,7 +1518,9 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
         if (stringify) {
           QModelIndex ind1 = model->index(ind.row(), column1, ind.parent());
 
-          QVariant var = model->data(ind1, Qt::DisplayRole);
+          bool ok;
+
+          QVariant var = CQModelUtil::modelValue(model, ind1, Qt::DisplayRole, ok);
 
           expr1 += quoteStr(var.toString(), true);
         }
@@ -1614,7 +1579,9 @@ replaceModelExprVars(const QString &expr, const QAbstractItemModel *model,
 
         if (model && ind.isValid()) {
           if (stringify) {
-            QVariant var = model->data(ind, Qt::DisplayRole);
+            bool ok;
+
+            QVariant var = CQModelUtil::modelValue(model, ind, Qt::DisplayRole, ok);
 
             expr1 += quoteStr(var.toString(), true);
           }
@@ -1763,54 +1730,11 @@ exportModel(const QAbstractItemModel *model, CQBaseModelDataType type, bool hhea
 namespace CQChartsModelUtil {
 
 const QStringList &roleNames() {
-  static QStringList names;
-
-  if (names.empty())
-    names << "display" << "edit" << "user" << "font" << "size_hint" <<
-             "tool_tip" << "background" << "foreground" << "text_alignment" <<
-             "text_color" << "decoration" << "type" << "base_type" << "type_values" <<
-             "min" << "max" << "sorted" << "sort_order" << "title" << "key" <<
-             "raw_value" << "intermediate_value" << "cached_value" << "output_value" << "group";
-
-  return names;
+  return CQModelUtil::roleNames();
 };
 
 int nameToRole(const QString &name) {
-  if      (name == "display"       ) return Qt::DisplayRole;
-  else if (name == "edit"          ) return Qt::EditRole;
-  else if (name == "user"          ) return Qt::UserRole;
-  else if (name == "font"          ) return Qt::FontRole;
-  else if (name == "size_hint"     ) return Qt::SizeHintRole;
-  else if (name == "tool_tip"      ) return Qt::ToolTipRole;
-  else if (name == "background"    ) return Qt::BackgroundRole;
-  else if (name == "foreground"    ) return Qt::ForegroundRole;
-  else if (name == "text_alignment") return Qt::TextAlignmentRole;
-  else if (name == "text_color"    ) return Qt::TextColorRole;
-  else if (name == "decoration"    ) return Qt::DecorationRole;
-
-  else if (name == "type"              ) return (int) CQBaseModelRole::Type;
-  else if (name == "base_type"         ) return (int) CQBaseModelRole::BaseType;
-  else if (name == "type_values"       ) return (int) CQBaseModelRole::TypeValues;
-  else if (name == "min"               ) return (int) CQBaseModelRole::Min;
-  else if (name == "max"               ) return (int) CQBaseModelRole::Max;
-  else if (name == "sorted"            ) return (int) CQBaseModelRole::Sorted;
-  else if (name == "sort_order"        ) return (int) CQBaseModelRole::SortOrder;
-  else if (name == "title"             ) return (int) CQBaseModelRole::Title;
-  else if (name == "key"               ) return (int) CQBaseModelRole::Key;
-  else if (name == "raw_value"         ) return (int) CQBaseModelRole::RawValue;
-  else if (name == "intermediate_value") return (int) CQBaseModelRole::IntermediateValue;
-  else if (name == "cached_value"      ) return (int) CQBaseModelRole::CachedValue;
-  else if (name == "output_value"      ) return (int) CQBaseModelRole::OutputValue;
-  else if (name == "group"             ) return (int) CQBaseModelRole::Group;
-
-  bool ok;
-
-  int role = CQChartsUtil::toInt(name, ok);
-
-  if (ok)
-    return role;
-
-  return -1;
+  return CQModelUtil::nameToRole(name);
 }
 
 }

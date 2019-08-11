@@ -70,9 +70,7 @@ class CQChartsColumnType {
   enum class DrawType {
     NORMAL,
     BARCHART,
-    HEATMAP,
-    COL_HEATMAP,
-    ROW_HEATMAP
+    HEATMAP
   };
 
   struct ColorPalette {
@@ -222,10 +220,8 @@ class CQChartsColumnRealType : public CQChartsColumnType {
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
 
-  // get min value
+  // get min/max value
   QVariant minValue(const CQChartsNameValues &nameValues) const override;
-
-  // get min value
   QVariant maxValue(const CQChartsNameValues &nameValues) const override;
 
   bool rmin(const CQChartsNameValues &nameValues, double &r) const;
@@ -261,6 +257,13 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
   QVariant dataName(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColumn &column,
                     const QVariant &var, const CQChartsNameValues &nameValues,
                     bool &converted) const override;
+
+  // get min/max value
+  QVariant minValue(const CQChartsNameValues &nameValues) const override;
+  QVariant maxValue(const CQChartsNameValues &nameValues) const override;
+
+  bool imin(const CQChartsNameValues &nameValues, int &i) const;
+  bool imax(const CQChartsNameValues &nameValues, int &i) const;
 };
 
 //---
