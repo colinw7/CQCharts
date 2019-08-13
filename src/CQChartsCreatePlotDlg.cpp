@@ -17,7 +17,7 @@
 #include <CQCharts.h>
 
 #include <CQSummaryModel.h>
-#include <CQDividedArea.h>
+#include <CQTabSplit.h>
 #include <CQIntegerSpin.h>
 #include <CQRealSpin.h>
 #include <CQLineEdit.h>
@@ -82,7 +82,9 @@ init()
 
   //----
 
-  CQDividedArea *area = CQUtil::makeWidget<CQDividedArea>("area");
+  CQTabSplit *area = CQUtil::makeWidget<CQTabSplit>("area");
+
+  area->setOrientation(Qt::Vertical);
 
   layout->addWidget(area);
 
@@ -529,6 +531,8 @@ createSummaryFrame()
 {
   QFrame *summaryFrame = CQUtil::makeWidget<QFrame>("summary");
 
+  summaryFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
   QVBoxLayout *summaryLayout = CQUtil::makeLayout<QVBoxLayout>(summaryFrame, 0, 2);
 
   //--
@@ -540,6 +544,8 @@ createSummaryFrame()
     int nc = model_.data()->columnCount();
 
     QFrame *summaryControl = CQUtil::makeWidget<QFrame>("summaryControl");
+
+    summaryControl->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     QHBoxLayout *summaryControlLayout = CQUtil::makeLayout<QHBoxLayout>(summaryControl, 2, 2);
 
@@ -710,9 +716,9 @@ createPreviewFrame()
 
   //--
 
-  QTabWidget *previewTab = CQUtil::makeWidget<QTabWidget>("previewTab");
+  //QTabWidget *previewTab = CQUtil::makeWidget<QTabWidget>("previewTab");
 
-  previewLayout->addWidget(previewTab);
+  //previewLayout->addWidget(previewTab);
 
   //--
 

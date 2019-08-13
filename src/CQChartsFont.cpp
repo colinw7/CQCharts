@@ -253,7 +253,7 @@ calcFont(const QFont &parentFont) const
       pointSize = data_.size;
 
     if (pointSize > 0.0)
-      font.setPointSize(pointSize);
+      font.setPointSizeF(pointSize);
   }
 
   return font;

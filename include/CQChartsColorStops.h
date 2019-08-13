@@ -101,7 +101,7 @@ class CQChartsColorStops {
   //---
 
  private:
-  Units  units_  { Units::ABSOLUTE }; //<! units
+  Units  units_  { Units::ABSOLUTE }; //!< units
   Values values_;                     //!< stop values
 };
 

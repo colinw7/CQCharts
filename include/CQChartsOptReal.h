@@ -41,7 +41,7 @@ class CQChartsOptReal {
   //---
 
   double real() const { assert(isSet()); return value_.value(); }
-  void setReal(double r) { value_ = r; }
+  void setReal(double value) { value_ = value; }
 
   double realOr(double def) const { return value_.value_or(def); }
 

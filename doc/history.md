@@ -931,3 +931,6 @@
  + Add tcl support for set hidden
 # 8/11/2019
  + Move model code to CQBaseModel/CQModelUtil
+# 8/12/2019
+ + use CQTabSplit instead of CQDividedArea in plot/model dialog
+ + add title to csv meta data

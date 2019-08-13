@@ -1,5 +1,4 @@
 #include <CQChartsPlotSymbol.h>
-#include <CQChartsPlot.h>
 #include <QPainter>
 #include <cmath>
 #include <cassert>
@@ -60,9 +59,11 @@ class CQChartsPlotSymbolList {
 
     double w = renderer->lineWidth();
 
-    bool connect = false;
-
     if (w <= 0.0) {
+      bool connect = false;
+
+      renderer->save();
+
       for (const auto &l : s.lines) {
         if (! connect)
           renderer->moveTo(l.x1, l.y1);
@@ -86,6 +87,8 @@ class CQChartsPlotSymbolList {
         else
           connect = true;
       }
+
+      renderer->restore();
     }
     else {
       for (const auto &l : s.lines) {

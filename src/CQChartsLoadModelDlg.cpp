@@ -6,7 +6,7 @@
 #include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
-#include <CQDividedArea.h>
+#include <CQTabSplit.h>
 #include <CQFilename.h>
 #include <CQUtil.h>
 
@@ -54,7 +54,9 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //---
 
-  CQDividedArea *area = CQUtil::makeWidget<CQDividedArea>("area");
+  CQTabSplit *area = CQUtil::makeWidget<CQTabSplit>("area");
+
+  area->setOrientation(Qt::Vertical);
 
   layout->addWidget(area);
 

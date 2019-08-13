@@ -1,6 +1,5 @@
 #include <CQBaseModel.h>
 #include <CQModelUtil.h>
-#include <CQStrUtil.h>
 #include <CMathUtil.h>
 #include <cmath>
 #include <cassert>
@@ -844,14 +843,14 @@ double
 CQBaseModel::
 toReal(const QString &str, bool &ok)
 {
-  return CQStrUtil::toReal(str, ok);
+  return str.toDouble(&ok);
 }
 
 long
 CQBaseModel::
 toInt(const QString &str, bool &ok)
 {
-  return CQStrUtil::toInt(str, ok);
+  return str.toInt(&ok);
 }
 
 bool

@@ -288,6 +288,9 @@ load(const QString &filename)
             setColumnMax(icolumn, max);
           }
         }
+        else if (type == "title") {
+          setColumnTitle(icolumn, value.c_str());
+        }
         else {
           std::cerr << "Invalid column type '" << type << "'\n";
           continue;

@@ -137,6 +137,9 @@ void
 CQChartsBoxObj::
 draw(QPainter *painter, const QPolygonF &poly) const
 {
+  double cxs = lengthPixelWidth (cornerSize());
+  double cys = lengthPixelHeight(cornerSize());
+
   if (isFilled()) {
     QBrush brush;
     QPen   pen(Qt::NoPen);
@@ -147,9 +150,6 @@ draw(QPainter *painter, const QPolygonF &poly) const
 
     painter->setPen  (pen);
     painter->setBrush(brush);
-
-    double cxs = lengthPixelWidth (cornerSize());
-    double cys = lengthPixelHeight(cornerSize());
 
     CQChartsDrawUtil::drawRoundedPolygon(painter, poly, cxs, cys);
   }
@@ -164,9 +164,6 @@ draw(QPainter *painter, const QPolygonF &poly) const
 
     painter->setPen  (pen);
     painter->setBrush(brush);
-
-    double cxs = lengthPixelWidth (cornerSize());
-    double cys = lengthPixelHeight(cornerSize());
 
     CQChartsDrawUtil::drawRoundedPolygon(painter, poly, cxs, cys);
   }

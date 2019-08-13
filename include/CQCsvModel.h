@@ -4,7 +4,7 @@
 #include <CQDataModel.h>
 
 /*!
- * \bried load csv into data model
+ * \brief load csv into data model
  */
 class CQCsvModel : public CQDataModel {
   Q_OBJECT

@@ -663,7 +663,7 @@ processExpression(QAbstractItemModel *model, CQChartsExprModel::Function functio
     int icolumn = column.column();
 
     if (icolumn < 0) {
-      errorMsg("Inavlid column");
+      errorMsg("Invalid column");
       return -1;
     }
 
@@ -681,7 +681,7 @@ processExpression(QAbstractItemModel *model, CQChartsExprModel::Function functio
     int icolumn = column.column();
 
     if (icolumn < 0) {
-      errorMsg("Inavlid column");
+      errorMsg("Invalid column");
       return -1;
     }
 
