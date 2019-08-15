@@ -583,28 +583,40 @@ typeValue(const Values &values) const
 
 QStringList
 CQPivotModel::
-hkeys() const
+hkeys(bool sorted) const
 {
   updateModel();
 
   QStringList strs;
 
-  for (const auto &ph : hKeysCol_)
-    strs << ph.first;
+  if (sorted) {
+    for (const auto &ph : hKeysCol_)
+      strs << ph.first;
+  }
+  else {
+    for (const auto &ph : hColKeys_)
+      strs << ph.second.key();
+  }
 
   return strs;
 }
 
 QStringList
 CQPivotModel::
-vkeys() const
+vkeys(bool sorted) const
 {
   updateModel();
 
   QStringList strs;
 
-  for (const auto &ph : vKeysRow_)
-    strs << ph.first;
+  if (sorted) {
+    for (const auto &ph : vKeysRow_)
+      strs << ph.first;
+  }
+  else {
+    for (const auto &ph : vRowKeys_)
+      strs << ph.second.key();
+  }
 
   return strs;
 }

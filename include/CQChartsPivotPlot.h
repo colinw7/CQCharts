@@ -239,13 +239,17 @@ class CQChartsPivotPlot : public CQChartsPlot,
   Q_OBJECT
 
   // columns
-  Q_PROPERTY(CQChartsColumns xColumns    READ xColumns     WRITE setXColumns   )
-  Q_PROPERTY(CQChartsColumns yColumns    READ yColumns     WRITE setYColumns   )
-  Q_PROPERTY(CQChartsColumn  valueColumn READ valueColumn  WRITE setValueColumn)
-  Q_PROPERTY(PlotType        plotType    READ plotType     WRITE setPlotType   )
-  Q_PROPERTY(ValueType       valueType   READ valueType    WRITE setValueType  )
-  Q_PROPERTY(bool            horizontal  READ isHorizontal WRITE setHorizontal )
-  Q_PROPERTY(bool            gridBars    READ isGridBars   WRITE setGridBars   )
+  Q_PROPERTY(CQChartsColumns xColumns    READ xColumns    WRITE setXColumns   )
+  Q_PROPERTY(CQChartsColumns yColumns    READ yColumns    WRITE setYColumns   )
+  Q_PROPERTY(CQChartsColumn  valueColumn READ valueColumn WRITE setValueColumn)
+
+  // options
+  Q_PROPERTY(PlotType        plotType    READ plotType     WRITE setPlotType  )
+  Q_PROPERTY(ValueType       valueType   READ valueType    WRITE setValueType )
+  Q_PROPERTY(bool            horizontal  READ isHorizontal WRITE setHorizontal)
+  Q_PROPERTY(bool            xSorted     READ isXSorted    WRITE setXSorted   )
+  Q_PROPERTY(bool            ySorted     READ isYSorted    WRITE setYSorted   )
+  Q_PROPERTY(bool            gridBars    READ isGridBars   WRITE setGridBars  )
 
   // bar fill, stroke
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Bar,bar)
@@ -294,6 +298,12 @@ class CQChartsPivotPlot : public CQChartsPlot,
   void setValueType(const ValueType &v);
 
   bool isHorizontal() const { return horizontal_; }
+
+  bool isXSorted() const { return xsorted_; }
+  void setXSorted(bool b);
+
+  bool isYSorted() const { return ysorted_; }
+  void setYSorted(bool b);
 
   bool isGridBars() const { return gridBars_; }
   void setGridBars(bool b);
@@ -373,6 +383,8 @@ class CQChartsPivotPlot : public CQChartsPlot,
   PlotType           plotType_    { PlotType::BAR };  //!< plot type
   ValueType          valueType_   { ValueType::SUM }; //!< value type
   bool               horizontal_  { false };          //!< horizontal
+  bool               xsorted_     { true };           //!< are x keys sorted
+  bool               ysorted_     { true };           //!< are y keys sorted
   bool               gridBars_    { true };           //!< draw bars on grid
   CQPivotModel*      pivotModel_  { nullptr };        //!< pivot model
   CQChartsDataLabel* dataLabel_   { nullptr };        //!< data label data

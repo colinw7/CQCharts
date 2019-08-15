@@ -448,7 +448,12 @@ flags(const QModelIndex &index) const
   if (! index.isValid())
     return 0;
 
-  return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+  Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+
+  if (! isReadOnly())
+    flags |= Qt::ItemIsEditable;
+
+  return flags;
 }
 
 void

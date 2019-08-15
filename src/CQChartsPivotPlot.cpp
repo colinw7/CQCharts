@@ -175,6 +175,20 @@ setHorizontal(bool b)
 
 void
 CQChartsPivotPlot::
+setXSorted(bool b)
+{
+  CQChartsUtil::testAndSet(xsorted_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPivotPlot::
+setYSorted(bool b)
+{
+  CQChartsUtil::testAndSet(ysorted_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPivotPlot::
 setGridBars(bool b)
 {
   CQChartsUtil::testAndSet(gridBars_, b, [&]() { invalidateLayers(); } );
@@ -205,6 +219,8 @@ addProperties()
   addProp("options", "valueType", "valueType", "Value type");
 
   addProp("options", "horizontal", "horizontal", "Draw horizontal");
+  addProp("options", "xSorted"   , "xSorted"   , "Are X Keys Sorted");
+  addProp("options", "ySorted"   , "ySorted"   , "Are Y Keys Sorted");
   addProp("options", "gridBars"  , "gridBars"  , "Draw bars in grid cells");
 
   // fill
@@ -296,8 +312,8 @@ calcRange() const
 
   //---
 
-  QStringList hkeys = pivotModel()->hkeys();
-  QStringList vkeys = pivotModel()->vkeys();
+  QStringList hkeys = pivotModel()->hkeys(isXSorted());
+  QStringList vkeys = pivotModel()->vkeys(isYSorted());
 
   int nh = hkeys.length();
   int nv = vkeys.length();
@@ -499,8 +515,8 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  QStringList hkeys = pivotModel()->hkeys();
-  QStringList vkeys = pivotModel()->vkeys();
+  QStringList hkeys = pivotModel()->hkeys(isXSorted());
+  QStringList vkeys = pivotModel()->vkeys(isYSorted());
 
   int nh = hkeys.length();
   int nv = vkeys.length();
@@ -513,7 +529,7 @@ createObjs(PlotObjs &objs) const
   using ColHeights    = std::map<int,double>;
   using RowColHeights = std::map<int,ColHeights>;
 
-  RowColHeights rowColHeights;
+  RowColHeights rowColHeights; // cumulatitve heights
 
   if (plotType() == PlotType::STACKED_BAR) {
     for (int iv = 0; iv < nv; ++iv) {
@@ -533,9 +549,11 @@ createObjs(PlotObjs &objs) const
         double value = var.toDouble(&ok);
         if (! ok) continue;
 
-        double prevValue = rowColHeights[iv][ih - 1];
+        rowColHeights[iv][ih] = value;
+      }
 
-        rowColHeights[iv][ih] = prevValue + value;
+      for (int ih = 1; ih < nh; ++ih) {
+        rowColHeights[iv][ih] += rowColHeights[iv][ih - 1];
       }
     }
   }
@@ -594,15 +612,18 @@ createObjs(PlotObjs &objs) const
         // bar stacked
         else if (plotType() == PlotType::STACKED_BAR) {
           double oldValue = rowColHeights[iv][ih - 1];
+          double newValue = oldValue + value;
+
+          assert(CMathUtil::realEq(newValue, rowColHeights[iv][ih]));
 
           CQChartsGeom::BBox rect;
 
           if (hasYValues)
             rect = CQChartsGeom::makeDirBBox(isHorizontal(),
-                     iv - 0.5, oldValue, iv + 0.5, oldValue + value);
+                     iv - 0.5, oldValue, iv + 0.5, newValue);
           else
             rect = CQChartsGeom::makeDirBBox(isHorizontal(),
-                     ih - 0.5, oldValue, ih + 0.5, oldValue + value);
+                     ih - 0.5, oldValue, ih + 0.5, newValue);
 
           obj = new CQChartsPivotBarObj(this, rect, inds, ir, ic, value);
         }
@@ -875,8 +896,8 @@ addKeyItems(CQChartsPlotKey *key)
 
     //---
 
-    QStringList hkeys = pivotModel()->hkeys();
-  //QStringList vkeys = pivotModel()->vkeys();
+    QStringList hkeys = pivotModel()->hkeys(isXSorted());
+  //QStringList vkeys = pivotModel()->vkeys(isYSorted());
 
     int nh = hkeys.length();
   //int nv = vkeys.length();

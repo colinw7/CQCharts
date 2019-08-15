@@ -98,8 +98,8 @@ class CQPivotModel : public CQBaseModel {
 
   //---
 
-  QStringList hkeys() const;
-  QStringList vkeys() const;
+  QStringList hkeys(bool sorted) const;
+  QStringList vkeys(bool sorted) const;
 
   int hkeyCol(const QString &key) const;
   int vkeyRow(const QString &key) const;
