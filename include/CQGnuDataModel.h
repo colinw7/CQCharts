@@ -8,6 +8,7 @@
 class CQGnuDataModel : public CQDataModel {
   Q_OBJECT
 
+  Q_PROPERTY(QString filename          READ filename            WRITE setFilename         )
   Q_PROPERTY(bool    commentHeader     READ isCommentHeader     WRITE setCommentHeader    )
   Q_PROPERTY(bool    firstLineHeader   READ isFirstLineHeader   WRITE setFirstLineHeader  )
   Q_PROPERTY(bool    firstColumnHeader READ isFirstColumnHeader WRITE setFirstColumnHeader)
@@ -18,7 +19,6 @@ class CQGnuDataModel : public CQDataModel {
   Q_PROPERTY(int     setBlankLines     READ setBlankLines       WRITE setSetBlankLines    )
   Q_PROPERTY(int     subSetBlankLines  READ subSetBlankLines    WRITE setSubSetBlankLines )
   Q_PROPERTY(bool    keepQuotes        READ isKeepQuotes        WRITE setKeepQuotes       )
-  Q_PROPERTY(QString filename          READ filename            WRITE setFilename         )
 
  public:
   using Fields    = std::vector<QString>;
@@ -30,6 +30,9 @@ class CQGnuDataModel : public CQDataModel {
   CQGnuDataModel();
 
  ~CQGnuDataModel() { }
+
+  const QString &filename() const { return filename_; }
+  void setFilename(const QString &v) { filename_ = v; }
 
   bool isCommentHeader() const { return commentHeader_; }
   void setCommentHeader(bool b) { commentHeader_ = b; }
@@ -61,9 +64,6 @@ class CQGnuDataModel : public CQDataModel {
   bool isKeepQuotes() const { return keepQuotes_; }
   void setKeepQuotes(bool b) { keepQuotes_ = b; }
 
-  const QString &filename() const { return filename_; }
-  void setFilename(const QString &v) { filename_ = v; }
-
   bool load(const QString &filename);
 
   //---
@@ -80,6 +80,7 @@ class CQGnuDataModel : public CQDataModel {
   using SetString    = std::map<int,SubSetString>;
   using OptString    = boost::optional<QString>;
 
+  QString     filename_;                    //!< filename
   bool        commentHeader_     { true };  //!< use comment line for header
   bool        firstLineHeader_   { false }; //!< use first line for horizontal header
   bool        firstColumnHeader_ { false }; //!< use first column for vertical header
@@ -91,7 +92,6 @@ class CQGnuDataModel : public CQDataModel {
   int         subSetBlankLines_  { 1 };     //!< number of blank lines between sub sets
   bool        keepQuotes_        { false }; //!< key quotes for strings
   SetString   commentStrs_;                 //!< comment strings
-  QString     filename_;                    //!< filename
   QStringList lines_;                       //!< file lines
   Set         set_;                         //!< set of sub sets of lines
   Fields      columnHeaderFields_;          //!< column headers

@@ -4,10 +4,90 @@
 #include <CQBaseModelTypes.h>
 #include <future>
 
-class CQModelDetails;
+class CQModelColumnDetails;
 class CQValueSet;
 
 class QAbstractItemModel;
+
+/*!
+ * \brief Model Details
+ */
+class CQModelDetails : public QObject {
+  Q_OBJECT
+
+  Q_PROPERTY(int numColumns   READ numColumns    )
+  Q_PROPERTY(int numRows      READ numRows       )
+  Q_PROPERTY(int hierarchical READ isHierarchical)
+
+ public:
+  using Columns = std::vector<int>;
+
+ public:
+  CQModelDetails(QAbstractItemModel *model);
+
+ ~CQModelDetails();
+
+  QAbstractItemModel *model() const { return model_; }
+
+  int numColumns() const;
+
+  int numRows() const;
+
+  bool isHierarchical() const;
+
+  CQModelColumnDetails *columnDetails(int column);
+  const CQModelColumnDetails *columnDetails(int column) const;
+
+  Columns numericColumns() const;
+
+  Columns monotonicColumns() const;
+
+  void reset();
+
+  std::vector<int> duplicates() const;
+  std::vector<int> duplicates(int column) const;
+
+ signals:
+  void detailsReset();
+
+ protected:
+  void resetValues();
+
+  std::vector<int> columnDuplicates(int column, bool all) const;
+
+  void updateSimple();
+  void updateFull();
+
+  void initSimpleData() const;
+  void initFullData() const;
+
+ protected:
+  enum class Initialized {
+    NONE,
+    SIMPLE,
+    FULL
+  };
+
+  CQModelDetails(const CQModelDetails &) = delete;
+  CQModelDetails &operator=(const CQModelDetails &) = delete;
+
+ protected:
+  using ColumnDetails = std::map<int,CQModelColumnDetails *>;
+
+  QAbstractItemModel* model_ { nullptr }; //!< model
+
+  // cached data
+  Initialized   initialized_  { Initialized::NONE }; //!< is initialized
+  int           numColumns_   { 0 };                 //!< model number of columns
+  int           numRows_      { 0 };                 //!< model number of rows
+  bool          hierarchical_ { false };             //!< model is hierarchical
+  ColumnDetails columnDetails_;                      //!< model column details
+
+  // mutex
+  mutable std::mutex mutex_; //!< mutex
+};
+
+//---
 
 /*!
  * \brief Model Column Details
@@ -88,7 +168,7 @@ class CQModelColumnDetails {
 
   void resetTypeInitialized() { typeInitialized_ = false; }
 
- private:
+ protected:
   bool initData();
 
   void initType() const;
@@ -100,11 +180,11 @@ class CQModelColumnDetails {
 
   void addValue(const QVariant &value);
 
- private:
+ protected:
   CQModelColumnDetails(const CQModelColumnDetails &) = delete;
   CQModelColumnDetails &operator=(const CQModelColumnDetails &) = delete;
 
- private:
+ protected:
   using VariantInds = std::map<QVariant,int>;
 
   CQModelDetails* details_ { nullptr };
@@ -123,86 +203,6 @@ class CQModelColumnDetails {
   bool            increasing_      { true };    //!< values are increasing
   CQValueSet*     valueSet_        { nullptr }; //!< values
   VariantInds     valueInds_;                   //!< unique values
-
-  // mutex
-  mutable std::mutex mutex_; //!< mutex
-};
-
-//---
-
-/*!
- * \brief Model Details
- */
-class CQModelDetails : public QObject {
-  Q_OBJECT
-
-  Q_PROPERTY(int numColumns   READ numColumns    )
-  Q_PROPERTY(int numRows      READ numRows       )
-  Q_PROPERTY(int hierarchical READ isHierarchical)
-
- public:
-  using Columns = std::vector<int>;
-
- public:
-  CQModelDetails(QAbstractItemModel *model);
-
- ~CQModelDetails();
-
-  QAbstractItemModel *model() const { return model_; }
-
-  int numColumns() const;
-
-  int numRows() const;
-
-  bool isHierarchical() const;
-
-  CQModelColumnDetails *columnDetails(int column);
-  const CQModelColumnDetails *columnDetails(int column) const;
-
-  Columns numericColumns() const;
-
-  Columns monotonicColumns() const;
-
-  void reset();
-
-  std::vector<int> duplicates() const;
-  std::vector<int> duplicates(int column) const;
-
- signals:
-  void detailsReset();
-
- private:
-  void resetValues();
-
-  std::vector<int> columnDuplicates(int column, bool all) const;
-
-  void updateSimple();
-  void updateFull();
-
-  void initSimpleData() const;
-  void initFullData() const;
-
- private:
-  enum class Initialized {
-    NONE,
-    SIMPLE,
-    FULL
-  };
-
-  CQModelDetails(const CQModelDetails &) = delete;
-  CQModelDetails &operator=(const CQModelDetails &) = delete;
-
- private:
-  using ColumnDetails = std::map<int,CQModelColumnDetails *>;
-
-  QAbstractItemModel* model_ { nullptr }; //!< model
-
-  // cached data
-  Initialized   initialized_  { Initialized::NONE }; //!< is initialized
-  int           numColumns_   { 0 };                 //!< model number of columns
-  int           numRows_      { 0 };                 //!< model number of rows
-  bool          hierarchical_ { false };             //!< model is hierarchical
-  ColumnDetails columnDetails_;                      //!< model column details
 
   // mutex
   mutable std::mutex mutex_; //!< mutex

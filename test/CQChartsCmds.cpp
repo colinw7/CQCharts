@@ -459,11 +459,17 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
 
     if (exprModel->isOrigColumn(column.column())) {
       if (argv.getParseBool("force")) {
-        exprModel->setReadOnly(false);
+        bool rc;
 
-        bool rc = exprModel->assignColumn(header, column.column(), expr);
+        if (exprModel->isReadOnly()) {
+          exprModel->setReadOnly(false);
 
-        exprModel->setReadOnly(true);
+          rc = exprModel->assignColumn(header, column.column(), expr);
+
+          exprModel->setReadOnly(true);
+        }
+        else
+          rc = exprModel->assignColumn(header, column.column(), expr);
 
         if (! rc)
           return errorMsg(QString("Failed to modify column '%1'").arg(column.column()));
@@ -4565,12 +4571,21 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     else if (name.left(9) == "property.") {
       QString name1 = name.mid(9);
 
-      QVariant value;
+      if (name1 == "?") {
+        QStringList names;
 
-      if (! CQUtil::getTclProperty(model.data(), name1, value))
-        return errorMsg("Failed to get model property '" + name1 + "'");
+        CQChartsModelUtil::getPropertyNames(model.data(), names);
 
-      cmdBase_->setCmdRc(value);
+        cmdBase_->setCmdRc(names);
+      }
+      else {
+        QVariant value;
+
+        if (! CQChartsModelUtil::getProperty(model.data(), name1, value))
+          return errorMsg("Failed to get model property '" + name1 + "'");
+
+        cmdBase_->setCmdRc(value);
+      }
     }
     else if (name == "?") {
       QStringList names = QStringList() <<
@@ -5275,8 +5290,17 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
     else if (name.left(9) == "property.") {
       QString name1 = name.mid(9);
 
-      if (! CQUtil::setProperty(model.data(), name1, value))
-        return errorMsg("Failed to set model property '" + name1 + "'");
+      if (name1 == "?") {
+        QStringList names;
+
+        CQChartsModelUtil::getPropertyNames(model.data(), names);
+
+        cmdBase_->setCmdRc(names);
+      }
+      else {
+        if (! CQChartsModelUtil::setProperty(model.data(), name1, value))
+          return errorMsg("Failed to set model property '" + name1 + "'");
+      }
     }
     else if (name == "?") {
       QStringList names = QStringList() <<

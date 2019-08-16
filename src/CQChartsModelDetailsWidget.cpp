@@ -137,31 +137,31 @@ updateSlot()
     nullStr   = QString("%1").arg(columnDetails->numNull());
   };
 
+  auto addWidgetItem = [&](const QString &name, int r, int c) {
+    QTableWidgetItem *item = new QTableWidgetItem(name);
+
+    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+    detailsTable_->setItem(r, c, item);
+
+    return item;
+  };
+
   auto setTableRow = [&](int c) {
     QString nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr, monoStr, uniqueStr, nullStr;
 
     columnDetails(c, nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr,
                   monoStr, uniqueStr, nullStr);
 
-    QTableWidgetItem *item1 = new QTableWidgetItem(nameStr);
-    QTableWidgetItem *item2 = new QTableWidgetItem(typeStr);
-    QTableWidgetItem *item3 = new QTableWidgetItem(minStr);
-    QTableWidgetItem *item4 = new QTableWidgetItem(maxStr);
-    QTableWidgetItem *item5 = new QTableWidgetItem(meanStr);
-    QTableWidgetItem *item6 = new QTableWidgetItem(stdDevStr);
-    QTableWidgetItem *item7 = new QTableWidgetItem(monoStr);
-    QTableWidgetItem *item8 = new QTableWidgetItem(uniqueStr);
-    QTableWidgetItem *item9 = new QTableWidgetItem(nullStr);
-
-    detailsTable_->setItem(c, 0, item1);
-    detailsTable_->setItem(c, 1, item2);
-    detailsTable_->setItem(c, 2, item3);
-    detailsTable_->setItem(c, 3, item4);
-    detailsTable_->setItem(c, 4, item5);
-    detailsTable_->setItem(c, 5, item6);
-    detailsTable_->setItem(c, 6, item7);
-    detailsTable_->setItem(c, 7, item8);
-    detailsTable_->setItem(c, 8, item9);
+    addWidgetItem(nameStr  , c, 0);
+    addWidgetItem(typeStr  , c, 1);
+    addWidgetItem(minStr   , c, 2);
+    addWidgetItem(maxStr   , c, 3);
+    addWidgetItem(meanStr  , c, 4);
+    addWidgetItem(stdDevStr, c, 5);
+    addWidgetItem(monoStr  , c, 6);
+    addWidgetItem(uniqueStr, c, 7);
+    addWidgetItem(nullStr  , c, 8);
   };
 
   //---

@@ -8,6 +8,8 @@ CQTsvModel()
 
   // default read only
   setReadOnly(true);
+
+  setDataType(CQBaseModelDataType::TSV);
 }
 
 bool

@@ -8,6 +8,8 @@ CQCsvModel()
 {
   setObjectName("csvModel");
 
+  setDataType(CQBaseModelDataType::CSV);
+
   // default read only
   setReadOnly(true);
 }

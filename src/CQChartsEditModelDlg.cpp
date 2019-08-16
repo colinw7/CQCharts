@@ -8,6 +8,8 @@
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
 
+#include <CQTabSplit.h>
+
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -23,21 +25,29 @@ CQChartsEditModelDlg(CQCharts *charts, CQChartsModelData *modelData) :
   else
     setWindowTitle("Edit Model");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+
+  //---
+
+  CQTabSplit *split = CQUtil::makeWidget<CQTabSplit>("split");
+
+  split->setOrientation(Qt::Vertical);
+
+  layout->addWidget(split);
 
   //---
 
   // create model widget
   modelWidget_ = new CQChartsModelDataWidget(charts_, modelData_);
 
-  layout->addWidget(modelWidget_);
+  split->addWidget(modelWidget_, "Model");
 
   //---
 
   // create model control
   modelControl_ = new CQChartsModelControl(charts_, modelData);
 
-  layout->addWidget(modelControl_);
+  split->addWidget(modelControl_, "Control");
 
   //---
 

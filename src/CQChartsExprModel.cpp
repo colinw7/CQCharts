@@ -44,6 +44,8 @@ CQChartsExprModel::
 CQChartsExprModel(CQCharts *charts, CQChartsModelFilter *filter, QAbstractItemModel *model) :
  charts_(charts), filter_(filter), model_(model)
 {
+  assert(model);
+
   setObjectName("exprModel");
 
   qtcl_ = new CQChartsExprTcl(this);
@@ -51,6 +53,9 @@ CQChartsExprModel(CQCharts *charts, CQChartsModelFilter *filter, QAbstractItemMo
   addBuiltinFunctions();
 
   setSourceModel(model);
+
+  connect(model, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+          this, SLOT(dataChangedSlot(const QModelIndex &, const QModelIndex &)));
 }
 
 CQChartsExprModel::
@@ -155,6 +160,15 @@ isExtraColumn(int column) const
   int ecolumn = column - numNonExtra;
 
   return (ecolumn >= numExtraColumns());
+}
+
+bool
+CQChartsExprModel::
+isReadOnly() const
+{
+  CQDataModel *dataModel = qobject_cast<CQDataModel *>(model_);
+
+  return (dataModel ? dataModel->isReadOnly() : true);
 }
 
 void
@@ -2268,4 +2282,13 @@ CQChartsExprModel::
 getModelData() const
 {
   return charts_->getModelData(this->filter_);
+}
+
+//---
+
+void
+CQChartsExprModel::
+dataChangedSlot(const QModelIndex &from, const QModelIndex &to)
+{
+  emit dataChanged(mapFromSource(from), mapFromSource(to));
 }

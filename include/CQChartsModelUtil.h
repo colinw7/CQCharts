@@ -86,6 +86,11 @@ CQDataModel *getDataModel(QAbstractItemModel *model);
 
 QAbstractItemModel *getBaseModel(QAbstractItemModel *model);
 
+void getPropertyNames(const QAbstractItemModel *model, QStringList &names);
+
+bool getProperty(const QAbstractItemModel *model, const QString &name, QVariant &value);
+bool setProperty(QAbstractItemModel *model, const QString &name, const QVariant &value);
+
 QVariant modelMetaValue(const QAbstractItemModel *model, const QString &name);
 
 }

@@ -934,3 +934,6 @@
 # 8/12/2019
  + use CQTabSplit instead of CQDividedArea in plot/model dialog
  + add title to csv meta data
+# 8/15/2019
+ + fix issues when making model writable
+ + add access to model properties from tcl

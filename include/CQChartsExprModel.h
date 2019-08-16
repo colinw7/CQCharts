@@ -64,6 +64,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool isOrigColumn (int column) const;
   bool isExtraColumn(int column) const;
 
+  bool isReadOnly() const;
   void setReadOnly(bool b);
 
   //---
@@ -255,6 +256,9 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
  protected:
   CQChartsModelData *getModelData() const;
+
+ protected slots:
+  void dataChangedSlot(const QModelIndex &from, const QModelIndex &to);
 
  protected:
   using ExtraColumns = std::vector<ExtraColumn *>;

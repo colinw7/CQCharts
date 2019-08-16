@@ -46,7 +46,7 @@ getDetails(CQBaseModelDataType &dataType, bool &commentHeader, bool &firstLineHe
       ++lineNum;
 
       // skip subsequent comment lines
-      while (true) {
+      while (lineNum < lines.length()) {
         QString line = lines[lineNum];
 
         CQStrParse parse(line);

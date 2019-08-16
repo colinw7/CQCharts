@@ -510,11 +510,15 @@ data(const QModelIndex &ind, int role) const
         CQDataModel *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
 
         if (dataModel) {
-          dataModel->setReadOnly(false);
+          if (dataModel->isReadOnly()) {
+            dataModel->setReadOnly(false);
 
-          th->setData(ind, var1, int(CQBaseModelRole::OutputValue));
+            th->setData(ind, var1, int(CQBaseModelRole::OutputValue));
 
-          dataModel->setReadOnly(true);
+            dataModel->setReadOnly(true);
+          }
+          else
+            th->setData(ind, var1, int(CQBaseModelRole::OutputValue));
         }
       }
     }
@@ -529,11 +533,15 @@ data(const QModelIndex &ind, int role) const
         CQDataModel *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
 
         if (dataModel) {
-          dataModel->setReadOnly(false);
+          if (dataModel->isReadOnly()) {
+            dataModel->setReadOnly(false);
 
-          th->setData(ind, var1, int(CQBaseModelRole::IntermediateValue));
+            th->setData(ind, var1, int(CQBaseModelRole::IntermediateValue));
 
-          dataModel->setReadOnly(true);
+            dataModel->setReadOnly(true);
+          }
+          else
+            th->setData(ind, var1, int(CQBaseModelRole::IntermediateValue));
         }
       }
     }

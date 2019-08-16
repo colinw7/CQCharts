@@ -259,6 +259,8 @@ contextMenuEvent(QContextMenuEvent *e)
 {
   QMenu *menu = new QMenu;
 
+  menu->setObjectName("menu");
+
   //---
 
   QAction *tabAction = menu->addAction("Tabbed");
@@ -469,6 +471,8 @@ contextMenuEvent(QContextMenuEvent *e)
     return;
 
   QMenu *menu = new QMenu;
+
+  menu->setObjectName("menu");
 
   //---
 

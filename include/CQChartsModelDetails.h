@@ -7,13 +7,98 @@
 #include <CQChartsUtil.h>
 #include <future>
 
-class CQChartsModelDetails;
+class CQChartsModelColumnDetails;
 class CQChartsModelData;
 class CQCharts;
 class CQChartsValueSet;
 
 class CQColorsPalette;
 class QAbstractItemModel;
+
+/*!
+ * \brief Model Details
+ * \ingroup Charts
+ */
+class CQChartsModelDetails : public QObject {
+  Q_OBJECT
+
+  Q_PROPERTY(int numColumns   READ numColumns    )
+  Q_PROPERTY(int numRows      READ numRows       )
+  Q_PROPERTY(int hierarchical READ isHierarchical)
+
+ public:
+  CQChartsModelDetails(CQChartsModelData *data);
+
+ ~CQChartsModelDetails();
+
+  CQChartsModelData *data() const { return data_; }
+
+  int numColumns() const;
+
+  int numRows() const;
+
+  bool isHierarchical() const;
+
+  CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column);
+  const CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) const;
+
+  CQChartsColumns numericColumns() const;
+
+  CQChartsColumns monotonicColumns() const;
+
+  void reset();
+
+  std::vector<int> duplicates() const;
+  std::vector<int> duplicates(const CQChartsColumn &column) const;
+
+  CQCharts *charts() const;
+
+  QAbstractItemModel *model() const;
+
+ signals:
+  void detailsReset();
+
+ private slots:
+  void modelTypeChangedSlot(int modelInd);
+
+ private:
+  void resetValues();
+
+  std::vector<int> columnDuplicates(const CQChartsColumn &column, bool all) const;
+
+  void updateSimple();
+  void updateFull();
+
+  void initSimpleData() const;
+  void initFullData() const;
+
+ private:
+  enum class Initialized {
+    NONE,
+    SIMPLE,
+    FULL
+  };
+
+  CQChartsModelDetails(const CQChartsModelDetails &) = delete;
+  CQChartsModelDetails &operator=(const CQChartsModelDetails &) = delete;
+
+ private:
+  using ColumnDetails = std::map<CQChartsColumn,CQChartsModelColumnDetails *>;
+
+  CQChartsModelData* data_ { nullptr }; //!< model data
+
+  // cached data
+  Initialized   initialized_  { Initialized::NONE }; //!< is initialized
+  int           numColumns_   { 0 };                 //!< model number of columns
+  int           numRows_      { 0 };                 //!< model number of rows
+  bool          hierarchical_ { false };             //!< model is hierarchical
+  ColumnDetails columnDetails_;                      //!< model column details
+
+  // mutex
+  mutable std::mutex mutex_; //!< mutex
+};
+
+//---
 
 /*!
  * \brief Model Column Details
@@ -154,87 +239,6 @@ class CQChartsModelColumnDetails {
   // table render data
   ColorPalette          tableDrawPalette_;
   TableDrawType         tableDrawType_   { TableDrawType::HEATMAP };
-
-  // mutex
-  mutable std::mutex    mutex_; //!< mutex
-};
-
-//---
-
-/*!
- * \brief Model Details
- * \ingroup Charts
- */
-class CQChartsModelDetails : public QObject {
-  Q_OBJECT
-
-  Q_PROPERTY(int numColumns   READ numColumns    )
-  Q_PROPERTY(int numRows      READ numRows       )
-  Q_PROPERTY(int hierarchical READ isHierarchical)
-
- public:
-  CQChartsModelDetails(CQChartsModelData *data);
-
- ~CQChartsModelDetails();
-
-  CQChartsModelData *data() const { return data_; }
-
-  int numColumns() const;
-
-  int numRows() const;
-
-  bool isHierarchical() const;
-
-  CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column);
-  const CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) const;
-
-  CQChartsColumns numericColumns() const;
-
-  CQChartsColumns monotonicColumns() const;
-
-  void reset();
-
-  std::vector<int> duplicates() const;
-  std::vector<int> duplicates(const CQChartsColumn &column) const;
-
- signals:
-  void detailsReset();
-
- private slots:
-  void modelTypeChangedSlot(int modelInd);
-
- private:
-  void resetValues();
-
-  std::vector<int> columnDuplicates(const CQChartsColumn &column, bool all) const;
-
-  void updateSimple();
-  void updateFull();
-
-  void initSimpleData() const;
-  void initFullData() const;
-
- private:
-  enum class Initialized {
-    NONE,
-    SIMPLE,
-    FULL
-  };
-
-  CQChartsModelDetails(const CQChartsModelDetails &) = delete;
-  CQChartsModelDetails &operator=(const CQChartsModelDetails &) = delete;
-
- private:
-  using ColumnDetails = std::map<CQChartsColumn,CQChartsModelColumnDetails *>;
-
-  CQChartsModelData* data_ { nullptr }; //!< model data
-
-  // cached data
-  Initialized   initialized_  { Initialized::NONE }; //!< is initialized
-  int           numColumns_   { 0 };                 //!< model number of columns
-  int           numRows_      { 0 };                 //!< model number of rows
-  bool          hierarchical_ { false };             //!< model is hierarchical
-  ColumnDetails columnDetails_;                      //!< model column details
 
   // mutex
   mutable std::mutex    mutex_; //!< mutex

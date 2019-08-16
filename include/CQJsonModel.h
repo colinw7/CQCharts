@@ -9,7 +9,7 @@ class CQJsonModel : public CQBaseModel {
   Q_OBJECT
 
   Q_PROPERTY(bool hierarchical READ isHierarchical WRITE setHierarchical)
-  Q_PROPERTY(bool flag         READ isFlat         WRITE setFlat        )
+  Q_PROPERTY(bool flat         READ isFlat         WRITE setFlat        )
 
  public:
   CQJsonModel();

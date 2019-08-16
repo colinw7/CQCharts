@@ -1,4 +1,5 @@
 High
+ + Scroll to selected
  + Pivot
    + multiple labels (x and y).
      + QStringList or newline separator.

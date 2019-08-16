@@ -9,6 +9,8 @@ CQPivotModel(QAbstractItemModel *model)
   setObjectName("pivotModel");
 
   setSourceModel(model);
+
+  setDataType(CQBaseModelDataType::PIVOT);
 }
 
 CQPivotModel::

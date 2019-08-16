@@ -62,6 +62,13 @@ class CQChartsModelControl : public QFrame {
   void typeApplySlot();
 
  private:
+  QFrame *addExprFrame();
+  QFrame *addFoldFrame();
+  QFrame *addColumnDataFrame();
+  QFrame *addPropertiesFrame();
+
+  //---
+
   CQLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
                           const QString &objName) const;
   QComboBox *addComboBox(QGridLayout *grid, int &row, const QString &name,

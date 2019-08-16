@@ -8,7 +8,10 @@
 
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
+#include <CQGnuDataModel.h>
+#include <CQJsonModel.h>
 #include <CQDataModel.h>
+#include <CQPivotModel.h>
 #include <CQModelUtil.h>
 
 #include <CQPerfMonitor.h>
@@ -780,6 +783,92 @@ QAbstractItemModel *
 getBaseModel(QAbstractItemModel *model)
 {
   return CQModelUtil::getBaseModel(model);
+}
+
+//---
+
+void
+getPropertyNames(const QAbstractItemModel *model, QStringList &names)
+{
+  // TODO: proxy models
+
+  const QAbstractItemModel *absModel = getBaseModel(const_cast<QAbstractItemModel *>(model));
+
+  const CQBaseModel *baseModel = qobject_cast<const CQBaseModel *>(absModel);
+  const CQDataModel *dataModel = qobject_cast<const CQDataModel *>(absModel);
+
+  const CQChartsExprModel *exprModel = getExprModel(absModel);
+
+  const CQChartsModelFilter *modelFilter = qobject_cast<const CQChartsModelFilter *>(absModel);
+
+  const CQPivotModel *pivotModel = qobject_cast<const CQPivotModel *>(baseModel);
+
+  const CQCsvModel     *csvModel  = qobject_cast<const CQCsvModel     *>(absModel);
+  const CQTsvModel     *tsvModel  = qobject_cast<const CQTsvModel     *>(absModel);
+  const CQGnuDataModel *gnuModel  = qobject_cast<const CQGnuDataModel *>(absModel);
+  const CQJsonModel    *jsonModel = qobject_cast<const CQJsonModel    *>(absModel);
+
+  if (baseModel)
+    names << "title" << "maxTypeRows";
+
+  if (dataModel)
+    names << "readOnly" << "filter";
+
+  if (exprModel)
+    names << "debug";
+
+  if (modelFilter)
+    names << "filter" << "type" << "invert";
+
+  if (pivotModel)
+    names << "valueType" << "includeTotals";
+
+  if (csvModel)
+    names << "filename" << "commentHeader" << "firstLineHeader" << "firstColumnHeader" <<
+             "separator";
+
+  if (tsvModel)
+    names << "filename" << "commentHeader" << "firstLineHeader" << "firstColumnHeader";
+
+  if (gnuModel)
+    names << "filename" << "commentHeader" << "firstLineHeader" << "firstColumnHeader" <<
+             "commentChars" << "missingStr" << "separator" << "parseStrings" <<
+             "setBlankLines" << "subSetBlankLines" << "keepQuotes";
+
+  if (jsonModel)
+    names << "hierarchical" << "flat";
+}
+
+bool
+getProperty(const QAbstractItemModel *model, const QString &name, QVariant &value)
+{
+  if (CQUtil::getTclProperty(model, name, value))
+    return true;
+
+  const QAbstractItemModel *baseModel = getBaseModel(const_cast<QAbstractItemModel *>(model));
+
+  if (baseModel && baseModel != model) {
+    if (CQUtil::getTclProperty(baseModel, name, value))
+      return true;
+  }
+
+  return false;
+}
+
+bool
+setProperty(QAbstractItemModel *model, const QString &name, const QVariant &value)
+{
+  if (CQUtil::setProperty(model, name, value))
+    return true;
+
+  QAbstractItemModel *baseModel = getBaseModel(model);
+
+  if (baseModel && baseModel != model) {
+    if (CQUtil::setProperty(baseModel, name, value))
+      return true;
+  }
+
+  return false;
 }
 
 QVariant

@@ -36,6 +36,8 @@ CQGnuDataModel::
 CQGnuDataModel()
 {
   setObjectName("gnuDataModel");
+
+  setDataType(CQBaseModelDataType::GNUPLOT);
 }
 
 bool

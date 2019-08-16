@@ -27,8 +27,22 @@
 class CQBaseModel : public QAbstractItemModel {
   Q_OBJECT
 
-  Q_PROPERTY(QString title       READ title       WRITE setTitle      )
-  Q_PROPERTY(int     maxTypeRows READ maxTypeRows WRITE setMaxTypeRows)
+  Q_PROPERTY(QString  title       READ title       WRITE setTitle      )
+  Q_PROPERTY(int      maxTypeRows READ maxTypeRows WRITE setMaxTypeRows)
+  Q_PROPERTY(DataType dataType    READ dataType)
+
+  Q_ENUMS(DataType)
+
+ public:
+  enum DataType {
+    DATA_TYPE_NONE,
+    DATA_TYPE_CSV,
+    DATA_TYPE_TSV,
+    DATA_TYPE_XML,
+    DATA_TYPE_JSON,
+    DATA_TYPE_GNUPLOT,
+    DATA_TYPE_PIVOT
+  };
 
  protected:
   struct ColumnTypeData {
@@ -52,6 +66,12 @@ class CQBaseModel : public QAbstractItemModel {
   //! get/set max rows to process to determine type
   int maxTypeRows() const { return maxTypeRows_; }
   void setMaxTypeRows(int i) { maxTypeRows_ = i; }
+
+  //! get/set input data type
+  const DataType &dataType() const { return dataType_; }
+  void setDataType(const DataType &t) { dataType_ = t; }
+
+  void setDataType(const CQBaseModelDataType &t) { dataType_ = (DataType) t; }
 
   //---
 
@@ -229,20 +249,21 @@ class CQBaseModel : public QAbstractItemModel {
   ColumnData &getColumnData(int column);
   const ColumnData &getColumnData(int column) const;
 
-  RowData &getRowData(int column);
+  RowData &getRowData(int row);
   const RowData &getRowData(int row) const;
 
  private:
   void genColumnTypeI(ColumnData &columnData);
 
  protected:
-  QString            title_;              //!< model title
-  ColumnDatas        columnDatas_;        //!< column datas
-  RowDatas           rowDatas_;           //!< row datas
-  int                maxTypeRows_ { -1 }; //!< max rows to determine type
-  NameValues         nameValues_;         //!< name values
-  mutable std::mutex mutex_;              //!< mutex
-  mutable std::mutex typeMutex_;          //!< type mutex
+  QString            title_;                          //!< model title
+  ColumnDatas        columnDatas_;                    //!< column datas
+  RowDatas           rowDatas_;                       //!< row datas
+  int                maxTypeRows_ { -1 };             //!< max rows to determine type
+  DataType           dataType_    { DATA_TYPE_NONE }; //!< input data type
+  NameValues         nameValues_;                     //!< name values
+  mutable std::mutex mutex_;                          //!< mutex
+  mutable std::mutex typeMutex_;                      //!< type mutex
 };
 
 #endif

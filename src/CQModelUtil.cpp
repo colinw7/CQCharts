@@ -244,12 +244,12 @@ getBaseModel(QAbstractItemModel *model)
 {
   QAbstractItemModel *sourceModel = model;
 
-  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(sourceModel);
+  QAbstractProxyModel *proxyModel = qobject_cast<QAbstractProxyModel *>(sourceModel);
 
   while (proxyModel) {
     sourceModel = proxyModel->sourceModel();
 
-    proxyModel = qobject_cast<QSortFilterProxyModel *>(sourceModel);
+    proxyModel = qobject_cast<QAbstractProxyModel *>(sourceModel);
   }
 
   return sourceModel;

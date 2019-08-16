@@ -9,7 +9,10 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewTree.h>
 #include <CQPivotModel.h>
-#include <CQBaseModel.h>
+#include <CQCsvModel.h>
+#include <CQTsvModel.h>
+#include <CQGnuDataModel.h>
+#include <CQJsonModel.h>
 #include <CQDataModel.h>
 #include <CQLineEdit.h>
 #include <CQUtil.h>
@@ -83,21 +86,48 @@ CQChartsModelControl::
 CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
  charts_(charts)
 {
+  setObjectName("control");
+
   QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
 
-  QTabWidget *controlTab = CQUtil::makeWidget<QTabWidget>("controlTab");
+  QTabWidget *controlTab = CQUtil::makeWidget<QTabWidget>("tab");
 
-  controlTab->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  controlTab->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   layout->addWidget(controlTab);
 
-  //------
+  //---
 
-  QFrame *exprFrame = CQUtil::makeWidget<QFrame>("exprFrame");
+  QFrame *exprFrame = addExprFrame();
 
   controlTab->addTab(exprFrame, "Expression");
+
+  QFrame *foldFrame = addFoldFrame();
+
+  controlTab->addTab(foldFrame, "Fold");
+
+  QFrame *columnDataFrame = addColumnDataFrame();
+
+  controlTab->addTab(columnDataFrame, "Column Data");
+
+  QFrame *propertiesFrame = addPropertiesFrame();
+
+  controlTab->addTab(propertiesFrame, "Properties");
+
+  //---
+
+  setModelData(modelData);
+
+  expressionModeSlot();
+}
+
+QFrame *
+CQChartsModelControl::
+addExprFrame()
+{
+  QFrame *exprFrame = CQUtil::makeWidget<QFrame>("exprFrame");
 
   QVBoxLayout *exprFrameLayout = CQUtil::makeLayout<QVBoxLayout>(exprFrame, 0, 2);
 
@@ -208,12 +238,17 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
   exprButtonLayout->addStretch(1);
   exprButtonLayout->addWidget(exprApplyButton);
 
-  //------
+  //---
+
+  return exprFrame;
+}
 
 #ifdef CQCHARTS_FOLDED_MODEL
+QFrame *
+CQChartsModelControl::
+addFoldFrame()
+{
   QFrame *foldFrame = CQUtil::makeWidget<QFrame>("foldFrame");
-
-  controlTab->addTab(foldFrame, "Fold");
 
   QVBoxLayout *foldFrameLayout = CQUtil::makeLayout<QVBoxLayout>(foldFrame, 0, 2);
 
@@ -261,13 +296,18 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
   foldButtonLayout->addStretch(1);
   foldButtonLayout->addWidget(foldApplyButton);
   foldButtonLayout->addWidget(foldClearButton);
+
+  //--
+
+  return foldFrame;
+}
 #endif
 
-  //------
-
+QFrame *
+CQChartsModelControl::
+addColumnDataFrame()
+{
   QFrame *columnDataFrame = CQUtil::makeWidget<QFrame>("columnDataFrame");
-
-  controlTab->addTab(columnDataFrame, "Column Data");
 
   QVBoxLayout *columnDataLayout = CQUtil::makeLayout<QVBoxLayout>(columnDataFrame, 2, 2);
 
@@ -318,13 +358,18 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
   columnButtonLayout->addStretch(1);
   columnButtonLayout->addWidget(typeApplyButton);
 
-  //------
+  //---
 
-  QFrame *propertyFrame = CQUtil::makeWidget<QFrame>("propertyFrame");
+  return columnDataFrame;
+}
 
-  controlTab->addTab(propertyFrame, "Properties");
+QFrame *
+CQChartsModelControl::
+addPropertiesFrame()
+{
+  QFrame *propertiesFrame = CQUtil::makeWidget<QFrame>("propertiesFrame");
 
-  QVBoxLayout *propertyFrameLayout = CQUtil::makeLayout<QVBoxLayout>(propertyFrame, 2, 2);
+  QVBoxLayout *propertiesFrameLayout = CQUtil::makeLayout<QVBoxLayout>(propertiesFrame, 2, 2);
 
   //---
 
@@ -332,15 +377,11 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   propertyTree_ = new CQPropertyViewTree(this, propertyModel_);
 
-  propertyFrameLayout->addWidget(propertyTree_);
+  propertiesFrameLayout->addWidget(propertyTree_);
 
   //------
 
-  setModelData(modelData);
-
-  //---
-
-  expressionModeSlot();
+  return propertiesFrame;
 }
 
 CQLineEdit *
@@ -532,21 +573,24 @@ setModelData(CQChartsModelData *modelData)
 
       ModelP model = modelData_->currentModel();
 
-      QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model.data());
+      QAbstractItemModel *absModel = CQChartsModelUtil::getBaseModel(model.data());
 
-      CQBaseModel *baseModel =
-        (proxyModel ? qobject_cast<CQBaseModel  *>(proxyModel->sourceModel()) : nullptr);
-
+      CQBaseModel *baseModel = qobject_cast<CQBaseModel *>(absModel);
       CQDataModel *dataModel = CQChartsModelUtil::getDataModel(model.data());
 
-      CQChartsExprModel *exprModel = CQChartsModelUtil::getExprModel(model.data());
+      CQChartsExprModel *exprModel = CQChartsModelUtil::getExprModel(absModel);
 
-      CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(model.data());
+      CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(absModel);
 
-      CQPivotModel *pivotModel =
-        (proxyModel ? qobject_cast<CQPivotModel *>(proxyModel->sourceModel()) : nullptr);
+      CQPivotModel *pivotModel = qobject_cast<CQPivotModel *>(baseModel);
+
+      CQCsvModel     *csvModel  = qobject_cast<CQCsvModel     *>(absModel);
+      CQTsvModel     *tsvModel  = qobject_cast<CQTsvModel     *>(absModel);
+      CQGnuDataModel *gnuModel  = qobject_cast<CQGnuDataModel *>(absModel);
+      CQJsonModel    *jsonModel = qobject_cast<CQJsonModel    *>(absModel);
 
       if (baseModel) {
+        propertyModel_->addProperty("", baseModel, "dataType"   , "");
         propertyModel_->addProperty("", baseModel, "title"      , "");
         propertyModel_->addProperty("", baseModel, "maxTypeRows", "");
       }
@@ -569,6 +613,40 @@ setModelData(CQChartsModelData *modelData)
       if (pivotModel) {
         propertyModel_->addProperty("", pivotModel, "valueType"    , "");
         propertyModel_->addProperty("", pivotModel, "includeTotals", "");
+      }
+
+      if (csvModel) {
+        propertyModel_->addProperty("", csvModel, "filename"         , "");
+        propertyModel_->addProperty("", csvModel, "commentHeader"    , "");
+        propertyModel_->addProperty("", csvModel, "firstLineHeader"  , "");
+        propertyModel_->addProperty("", csvModel, "firstColumnHeader", "");
+        propertyModel_->addProperty("", csvModel, "separator"        , "");
+      }
+
+      if (tsvModel) {
+        propertyModel_->addProperty("", tsvModel, "filename"         , "");
+        propertyModel_->addProperty("", tsvModel, "commentHeader"    , "");
+        propertyModel_->addProperty("", tsvModel, "firstLineHeader"  , "");
+        propertyModel_->addProperty("", tsvModel, "firstColumnHeader", "");
+      }
+
+      if (gnuModel) {
+        propertyModel_->addProperty("", gnuModel, "filename"         , "");
+        propertyModel_->addProperty("", gnuModel, "commentHeader"    , "");
+        propertyModel_->addProperty("", gnuModel, "firstLineHeader"  , "");
+        propertyModel_->addProperty("", gnuModel, "firstColumnHeader", "");
+        propertyModel_->addProperty("", gnuModel, "commentChars"     , "");
+        propertyModel_->addProperty("", gnuModel, "missingStr"       , "");
+        propertyModel_->addProperty("", gnuModel, "separator"        , "");
+        propertyModel_->addProperty("", gnuModel, "parseStrings"     , "");
+        propertyModel_->addProperty("", gnuModel, "setBlankLines"    , "");
+        propertyModel_->addProperty("", gnuModel, "subSetBlankLines" , "");
+        propertyModel_->addProperty("", gnuModel, "keepQuotes"       , "");
+      }
+
+      if (jsonModel) {
+        propertyModel_->addProperty("", jsonModel, "hierarchical", "");
+        propertyModel_->addProperty("", jsonModel, "flat"        , "");
       }
     }
   }

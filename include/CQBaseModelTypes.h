@@ -10,7 +10,8 @@ enum class CQBaseModelDataType {
   TSV,
   XML,
   JSON,
-  GNUPLOT
+  GNUPLOT,
+  PIVOT
 };
 
 //! model roles supported by CQBaseModel

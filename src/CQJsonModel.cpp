@@ -4,6 +4,7 @@
 CQJsonModel::
 CQJsonModel()
 {
+  setDataType(CQBaseModelDataType::JSON);
 }
 
 CQJsonModel::
