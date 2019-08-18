@@ -788,55 +788,67 @@ getBaseModel(QAbstractItemModel *model)
 //---
 
 void
-getPropertyNames(const QAbstractItemModel *model, QStringList &names)
+getPropertyNames(const QAbstractItemModel *model, ModelNames &names)
 {
   // TODO: proxy models
+  QAbstractItemModel *model1 = const_cast<QAbstractItemModel *>(model);
 
-  const QAbstractItemModel *absModel = getBaseModel(const_cast<QAbstractItemModel *>(model));
+  QAbstractItemModel *absModel = getBaseModel(model1);
 
-  const CQBaseModel *baseModel = qobject_cast<const CQBaseModel *>(absModel);
-  const CQDataModel *dataModel = qobject_cast<const CQDataModel *>(absModel);
+  CQBaseModel *baseModel = qobject_cast<CQBaseModel *>(absModel);
+  CQDataModel *dataModel = qobject_cast<CQDataModel *>(absModel);
 
-  const CQChartsExprModel *exprModel = getExprModel(absModel);
+  CQChartsExprModel *exprModel = getExprModel(absModel);
 
-  const CQChartsModelFilter *modelFilter = qobject_cast<const CQChartsModelFilter *>(absModel);
+  CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(absModel);
 
-  const CQPivotModel *pivotModel = qobject_cast<const CQPivotModel *>(baseModel);
+  CQPivotModel *pivotModel = qobject_cast<CQPivotModel *>(baseModel);
 
-  const CQCsvModel     *csvModel  = qobject_cast<const CQCsvModel     *>(absModel);
-  const CQTsvModel     *tsvModel  = qobject_cast<const CQTsvModel     *>(absModel);
-  const CQGnuDataModel *gnuModel  = qobject_cast<const CQGnuDataModel *>(absModel);
-  const CQJsonModel    *jsonModel = qobject_cast<const CQJsonModel    *>(absModel);
+  CQCsvModel     *csvModel  = qobject_cast<CQCsvModel     *>(absModel);
+  CQTsvModel     *tsvModel  = qobject_cast<CQTsvModel     *>(absModel);
+  CQGnuDataModel *gnuModel  = qobject_cast<CQGnuDataModel *>(absModel);
+  CQJsonModel    *jsonModel = qobject_cast<CQJsonModel    *>(absModel);
 
   if (baseModel)
-    names << "title" << "maxTypeRows";
+    names[baseModel] << "title" << "maxTypeRows";
 
   if (dataModel)
-    names << "readOnly" << "filter";
+    names[dataModel] << "readOnly" << "filter";
 
   if (exprModel)
-    names << "debug";
+    names[exprModel] << "debug";
 
   if (modelFilter)
-    names << "filter" << "type" << "invert";
+    names[modelFilter] << "filter" << "type" << "invert";
 
   if (pivotModel)
-    names << "valueType" << "includeTotals";
+    names[pivotModel] << "valueType" << "includeTotals";
 
   if (csvModel)
-    names << "filename" << "commentHeader" << "firstLineHeader" << "firstColumnHeader" <<
-             "separator";
+    names[csvModel] << "filename" << "commentHeader" << "firstLineHeader" << "firstColumnHeader" <<
+                       "separator";
 
   if (tsvModel)
-    names << "filename" << "commentHeader" << "firstLineHeader" << "firstColumnHeader";
+    names[tsvModel] << "filename" << "commentHeader" << "firstLineHeader" << "firstColumnHeader";
 
   if (gnuModel)
-    names << "filename" << "commentHeader" << "firstLineHeader" << "firstColumnHeader" <<
-             "commentChars" << "missingStr" << "separator" << "parseStrings" <<
-             "setBlankLines" << "subSetBlankLines" << "keepQuotes";
+    names[gnuModel] << "filename" << "commentHeader" << "firstLineHeader" << "firstColumnHeader" <<
+                       "commentChars" << "missingStr" << "separator" << "parseStrings" <<
+                       "setBlankLines" << "subSetBlankLines" << "keepQuotes";
 
   if (jsonModel)
-    names << "hierarchical" << "flat";
+    names[jsonModel] << "hierarchical" << "flat";
+}
+
+void
+getPropertyNames(const QAbstractItemModel *model, QStringList &names)
+{
+  ModelNames modelNames;
+
+  getPropertyNames(model, modelNames);
+
+  for (const auto &pn : modelNames)
+    names << pn.second;
 }
 
 bool
@@ -872,12 +884,23 @@ setProperty(QAbstractItemModel *model, const QString &name, const QVariant &valu
 }
 
 QVariant
-modelMetaValue(const QAbstractItemModel *model, const QString &name)
+getModelMetaValue(const QAbstractItemModel *model, const QString &name)
 {
   const CQDataModel *dataModel = getDataModel(model);
   if (! dataModel) return QVariant();
 
   return dataModel->nameValue(name);
+}
+
+bool
+setModelMetaValue(QAbstractItemModel *model, const QString &name, const QVariant &value)
+{
+  CQDataModel *dataModel = getDataModel(model);
+  if (! dataModel) return false;
+
+  dataModel->setNameValue(name, value);
+
+  return true;
 }
 
 }

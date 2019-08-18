@@ -2463,7 +2463,7 @@ CQChartsBoxPlotOutlierObj::
 remapPos(double y) const
 {
   // remap to margin -> 1.0 - margin
-  if (! whisker_ ||  ! plot_->isNormalized())
+  if (! whisker_ || ! plot_->isNormalized())
     return y;
 
   double ymargin = plot_->ymargin();

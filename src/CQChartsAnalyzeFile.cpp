@@ -21,7 +21,7 @@ getDetails(CQBaseModelDataType &dataType, bool &commentHeader, bool &firstLineHe
 
   //---
 
-  int maxLines = 10;
+  int maxLines = 100;
 
   QStringList lines;
 
@@ -32,6 +32,36 @@ getDetails(CQBaseModelDataType &dataType, bool &commentHeader, bool &firstLineHe
 
   int lineNum = 0;
 
+  // ignore meta data
+  if (lineNum < lines.length()) {
+    QString line = lines[lineNum];
+
+    CQStrParse parse(line);
+
+    parse.skipSpace();
+
+    if (parse.isChar('#') && parse.isString("#META_DATA")) {
+      ++lineNum;
+
+      // skip subsequent meta lines
+      while (lineNum < lines.length()) {
+        QString line = lines[lineNum];
+
+        CQStrParse parse(line);
+
+        parse.skipSpace();
+
+        if (! parse.isChar('#'))
+          break;
+
+        ++lineNum;
+
+        if (parse.isString("#END_META_DATA"))
+          break;
+      }
+    }
+  }
+
   // check for comment first line
   if (lineNum < lines.length()) {
     QString line = lines[lineNum];
@@ -40,7 +70,7 @@ getDetails(CQBaseModelDataType &dataType, bool &commentHeader, bool &firstLineHe
 
     parse.skipSpace();
 
-    if (parse.getChar() == '#') {
+    if (parse.isChar('#')) {
       commentHeader = true;
 
       ++lineNum;
@@ -53,7 +83,7 @@ getDetails(CQBaseModelDataType &dataType, bool &commentHeader, bool &firstLineHe
 
         parse.skipSpace();
 
-        if (parse.getChar() != '#')
+        if (! parse.isChar('#'))
           break;
 
         ++lineNum;

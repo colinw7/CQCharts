@@ -21,21 +21,25 @@
 class CQChartsExprTcl : public CQTcl {
  public:
   CQChartsExprTcl(CQChartsExprModel *model) :
-   model_(model), row_(-1) {
+   model_(model) {
   }
 
   int row() const { return row_; }
   void setRow(int i) { row_ = i; }
 
+  int column() const { return column_; }
+  void setColumn(int i) { column_ = i; }
+
   void handleTrace(const char *name, int flags) override {
     if (flags & TCL_TRACE_READS) {
-      model_->setVar(name, row());
+      model_->setVar(name, row(), column());
     }
   }
 
  private:
-  CQChartsExprModel *model_ { nullptr };
-  int                row_   { -1 };
+  CQChartsExprModel *model_  { nullptr };
+  int                row_    { -1 };
+  int                column_ { -1 };
 };
 
 //------
@@ -74,9 +78,6 @@ void
 CQChartsExprModel::
 addBuiltinFunctions()
 {
-  qtcl_->createVar("pi" , QVariant(M_PI));
-  qtcl_->createVar("NaN", QVariant(COSNaN::get_nan()));
-
   // get/set model data (TODO: hierarchical)
   addFunction("column"   );
   addFunction("row"      );
@@ -519,6 +520,12 @@ initCalc()
 
     qtcl_->traceVar(name);
   }
+
+  qtcl_->traceVar("row"   );
+  qtcl_->traceVar("column");
+  qtcl_->traceVar("col"   );
+  qtcl_->traceVar("pi"    );
+  qtcl_->traceVar("NaN"   );
 }
 
 void
@@ -2126,7 +2133,8 @@ evaluateExpression(const QString &expr, QVariant &var) const
   if (expr.length() == 0)
     return false;
 
-  qtcl_->setRow(currentRow_);
+  qtcl_->setRow   (currentRow());
+  qtcl_->setColumn(currentCol());
 
   int rc = qtcl_->evalExpr(expr);
 
@@ -2139,7 +2147,8 @@ evaluateExpression(const QString &expr, QVariant &var) const
       return true;
     }
 
-    std::cerr << qtcl_->errorInfo(rc).toStdString() << std::endl;
+    if (debug_)
+      std::cerr << qtcl_->errorInfo(rc).toStdString() << std::endl;
 
     return false;
   }
@@ -2149,20 +2158,31 @@ evaluateExpression(const QString &expr, QVariant &var) const
 
 void
 CQChartsExprModel::
-setVar(const QString &name, int row)
+setVar(const QString &name, int row, int column)
 {
   auto p = nameColumns_.find(name);
 
-  if (p == nameColumns_.end())
-    return;
+  if (p != nameColumns_.end()) {
+    int col = (*p).second;
 
-  int col = (*p).second;
+    // get model value
+    QVariant var = getCmdData(row, col);
 
-  // get model value
-  QVariant var = getCmdData(row, col);
-
-  // store value in column variable
-  qtcl_->createVar(name, var);
+    // store value in column variable
+    qtcl_->createVar(name, var);
+  }
+  else if (name == "row") {
+    qtcl_->createVar(name, row);
+  }
+  else if (name == "column" || name == "col") {
+    qtcl_->createVar(name, column);
+  }
+  else if (name == "pi") {
+    qtcl_->createVar(name, QVariant(M_PI));
+  }
+  else if (name == "NaN") {
+    qtcl_->createVar(name, QVariant(CMathUtil::getNaN()));
+  }
 }
 
 bool

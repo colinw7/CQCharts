@@ -22,6 +22,9 @@ class CQChartsInterfaceTheme;
 class CQColorsPalette;
 class CQChartsColor;
 
+class CQChartsEditModelDlg;
+class CQChartsCreatePlotDlg;
+
 class CQPropertyViewItem;
 
 /*!
@@ -269,6 +272,11 @@ class CQCharts : public QObject {
 
   //---
 
+  CQChartsEditModelDlg  *editModelDlg (CQChartsModelData *modelData);
+  CQChartsCreatePlotDlg *createPlotDlg(CQChartsModelData *modelData);
+
+  //---
+
   void errorMsg(const QString &msg) const;
 
  signals:
@@ -315,6 +323,8 @@ class CQCharts : public QObject {
   int                     lastModelInd_    { 0 };       //!< last model ind
   NameViews               views_;                       //!< views
   Procs                   procs_;                       //!< tcl procs
+  CQChartsEditModelDlg*   editModelDlg_    { nullptr }; //!< edit model dialog
+  CQChartsCreatePlotDlg*  createPlotDlg_   { nullptr }; //!< create plot dialog
 };
 
 #endif

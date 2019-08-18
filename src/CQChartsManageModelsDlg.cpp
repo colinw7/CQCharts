@@ -3,7 +3,6 @@
 #include <CQChartsModelList.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
-#include <CQChartsCreatePlotDlg.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
@@ -152,11 +151,7 @@ plotSlot()
 {
   CQChartsModelData *modelData = modelWidgets_->modelList()->currentModelData();
 
-  delete createPlotDlg_;
-
-  createPlotDlg_ = new CQChartsCreatePlotDlg(charts_, modelData);
-
-  createPlotDlg_->show();
+  charts_->createPlotDlg(modelData);
 }
 
 void

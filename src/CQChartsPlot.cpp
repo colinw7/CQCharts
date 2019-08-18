@@ -915,7 +915,7 @@ setFont(const CQChartsFont &f)
 
 void
 CQChartsPlot::
-setDefaultPalette(const QString &name)
+setDefaultPalette(const CQChartsPaletteName &name)
 {
   CQChartsUtil::testAndSet(defaultPalette_, name, [&]() { drawObjs(); } );
 }
@@ -1665,8 +1665,8 @@ addProperties()
   // coloring
   addProp("coloring", "defaultPalette", "defaultPalette", "Default palette");
   addProp("coloring", "colorType"     , "type"          , "Color interpolation type");
-  addProp("coloring", "colorXStops"   , "xStops"        , "Color x stops");
-  addProp("coloring", "colorYStops"   , "yStops"        , "Color y stops");
+  addProp("coloring", "colorXStops"   , "xStops"        , "Color x stop coordinates");
+  addProp("coloring", "colorYStops"   , "yStops"        , "Color y stop coordinates");
 
   // scaled font
   addProp("scaledFont", "minScaleFontSize", "minSize", "Min scaled font size", true);
@@ -8466,10 +8466,10 @@ QColor
 CQChartsPlot::
 interpColor(const CQChartsColor &c, const ColorInd &ind) const
 {
-  if (defaultPalette_ == "")
+  if (! defaultPalette_.isValid())
     return view()->interpColor(c, ind);
 
-  CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_);
+  CQChartsColor c1 = charts()->adjustDefaultPalette(c, defaultPalette_.name());
 
   return view()->interpColor(c1, ind);
 }

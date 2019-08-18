@@ -4373,7 +4373,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     else if (name == "meta") {
       QString data = argv.getParseStr("data");
 
-      QVariant var = CQChartsModelUtil::modelMetaValue(model.data(), data);
+      QVariant var = CQChartsModelUtil::getModelMetaValue(model.data(), data);
 
       if (! var.isValid())
         return errorMsg("Invalid meta data");
@@ -5280,10 +5280,18 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
           return errorMsg(QString("Invalid column type string '%1'").arg(value));
       }
     }
+    // get meta data
+    else if (name == "meta") {
+      QString data = argv.getParseStr("data");
+
+      CQChartsModelUtil::setModelMetaValue(model.data(), data, value);
+    }
+    // set model name
     else if (name == "name") {
       charts_->setModelName(modelData, value);
     }
-    else if (name == "process") {
+    // set model process expression
+    else if (name == "process_expression") {
       CQChartsModelUtil::processExpression(model.data(), value);
     }
     // model property
@@ -5304,7 +5312,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
     }
     else if (name == "?") {
       QStringList names = QStringList() <<
-       "value" << "column_type" << "name" << "process" << "property.<name>";
+       "value" << "meta" << "column_type" << "name" << "process_expression" << "property.<name>";
 
       cmdBase_->setCmdRc(names);
     }

@@ -19,6 +19,7 @@
 #include <CQChartsPlotMargin.h>
 #include <CQChartsOptReal.h>
 #include <CQChartsColorStops.h>
+#include <CQChartsPaletteName.h>
 #include <CQBaseModelTypes.h>
 #include <CHRTime.h>
 
@@ -204,7 +205,7 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(CQChartsFont font READ font WRITE setFont)
 
   // default palette
-  Q_PROPERTY(QString defaultPalette READ defaultPalette WRITE setDefaultPalette)
+  Q_PROPERTY(CQChartsPaletteName defaultPalette READ defaultPalette WRITE setDefaultPalette)
 
   // scaled fonts
   Q_PROPERTY(double minScaleFontSize READ minScaleFontSize WRITE setMinScaleFontSize)
@@ -474,8 +475,8 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // default palette
-  const QString &defaultPalette() const { return defaultPalette_; }
-  void setDefaultPalette(const QString &name);
+  const CQChartsPaletteName &defaultPalette() const { return defaultPalette_; }
+  void setDefaultPalette(const CQChartsPaletteName &name);
 
   //---
 
@@ -2199,7 +2200,7 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsColumn               imageColumn_;                     //!< image column
   ColumnNames                  columnNames_;                     //!< column header names
   CQChartsFont                 font_;                            //!< font
-  QString                      defaultPalette_;                  //!< default palette
+  CQChartsPaletteName          defaultPalette_;                  //!< default palette
   double                       minScaleFontSize_ { 6.0 };        //!< min scaled font size
   double                       maxScaleFontSize_ { 48.0 };       //!< max scaled font size
   bool                         equalScale_       { false };      //!< equal scaled

@@ -2235,14 +2235,23 @@ drawAxisLabel(const CQChartsPlot *plot, QPainter *painter, double apos,
       fitLBBox_ += CQChartsGeom::Point(apos - (atw - wfh), (amin + amax)/2);
     }
     else {
-      double aym = (a2.y + a1.y)/2 - tw/2;
-
       atw = plot->pixelToWindowWidth((lbbox_.getXMax() - a3.x) + tgap) + wfh;
+
+#if 0
+      double aym = (a2.y + a1.y)/2 - tw/2;
 
       double tx = lbbox_.getXMax() + tgap + td;
 
       CQChartsRotatedText::draw(painter, tx, aym, text, -90.0, Qt::AlignLeft | Qt::AlignBottom,
                                 /*alignBBox*/false, isAxesLabelTextContrast());
+#else
+      double aym = (a2.y + a1.y)/2 + tw/2;
+
+      double tx = lbbox_.getXMax() + tgap + ta + td;
+
+      CQChartsRotatedText::draw(painter, tx, aym, text, 90.0, Qt::AlignLeft | Qt::AlignBottom,
+                                /*alignBBox*/false, isAxesLabelTextContrast());
+#endif
 
       if (! plot_->isInvertX()) {
         bbox += CQChartsGeom::Point(apos + (atw      ), (amin + amax)/2 - ath);

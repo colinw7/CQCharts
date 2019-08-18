@@ -562,9 +562,7 @@ dataName(const QVariant &v) const
 
   CQCharts *charts = details_->charts();
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
-
-  const CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
+  const CQChartsColumnType *columnType = this->columnType();
 
   if (! columnType)
     return v;
@@ -1516,9 +1514,7 @@ calcType()
 
   //---
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
-
-  const CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
+  const CQChartsColumnType *columnType = this->columnType();
 
   if (columnType) {
     typeName_ = columnType->name();
@@ -1617,4 +1613,30 @@ columnColor(const QVariant &var, CQChartsColor &color) const
     return false;
 
   return true;
+}
+
+bool
+CQChartsModelColumnDetails::
+columnNameValue(const QString &name, QString &value) const
+{
+  const CQChartsColumnType *columnType = this->columnType();
+
+  if (! columnType)
+    return false;
+
+  if (! columnType->nameValueString(nameValues_, name, value))
+    return false;
+
+  return true;
+}
+
+const CQChartsColumnType *
+CQChartsModelColumnDetails::
+columnType() const
+{
+  CQCharts *charts = details_->charts();
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+
+  return columnTypeMgr->getType(type_);
 }

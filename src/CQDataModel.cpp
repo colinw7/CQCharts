@@ -44,9 +44,18 @@ void
 CQDataModel::
 initFilter()
 {
-  int numHeaders = hheader_.size();
+  setFilterInited(true);
+
+  //---
 
   filterDatas_.clear();
+
+  if (! hasFilter())
+    return;
+
+  //---
+
+  int numHeaders = hheader_.size();
 
   QStringList patterns = filter_.split(",");
 
@@ -88,8 +97,6 @@ initFilter()
 
     filterDatas_.push_back(filterData);
   }
-
-  setFilterInited(true);
 }
 
 bool
@@ -426,6 +433,8 @@ setData(const QModelIndex &index, const QVariant &value, int role)
     //CQBaseModelType type = columnType(index.column());
 
     cells[index.column()] = value;
+
+    emit dataChanged(index, index, QVector<int>(1, role));
   }
   else if (role == Qt::EditRole) {
     //CQBaseModelType type = columnType(index.column());

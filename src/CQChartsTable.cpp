@@ -96,6 +96,14 @@ addMenuActions(QMenu *menu)
     return actionGroup;
   };
 
+  auto addAction = [&](const QString &name, const char *slotName) {
+    QAction *action = new QAction(name, menu);
+
+    connect(action, SIGNAL(triggered()), this, slotName);
+
+    menu->addAction(action);
+  };
+
   //---
 
   QMenu *selectMenu = addMenu("Select");
@@ -135,6 +143,10 @@ addMenuActions(QMenu *menu)
   addExportAction("TSV");
 
   exportMenu->addActions(exportActionGroup->actions());
+
+  //---
+
+  addAction("Edit", SLOT(editSlot()));
 }
 
 void
@@ -498,6 +510,16 @@ exportSlot(QAction *action)
   else {
     std::cerr << "Invalid export type '" << type.toStdString() << "'\n";
   }
+}
+
+void
+CQChartsTable::
+editSlot()
+{
+  CQChartsModelData *modelData = getModelData();
+
+  if (modelData)
+    charts_->editModelDlg(modelData);
 }
 
 CQChartsModelData *

@@ -1,5 +1,11 @@
 High
+ + Combin CQChartsModelDetails and CQModelDetails
+ + Same coloring in table and plot (if possible)
+   + same palette
+   + auto palette for single color
+ + Export model (META data and TIME (converted) value handling)
  + Scroll to selected
+ + Better model property editors
  + Pivot
    + multiple labels (x and y).
      + QStringList or newline separator.

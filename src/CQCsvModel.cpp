@@ -294,8 +294,7 @@ load(const QString &filename)
           setColumnTitle(icolumn, value.c_str());
         }
         else {
-          std::cerr << "Invalid column type '" << type << "'\n";
-          continue;
+          setColumnNameValue(icolumn, type.c_str(), value.c_str());
         }
       }
       // handle global data

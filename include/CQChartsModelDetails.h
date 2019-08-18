@@ -187,11 +187,15 @@ class CQChartsModelColumnDetails {
   const TableDrawType &tableDrawType() const { return tableDrawType_; }
   void setTableDrawType(const TableDrawType &t) { tableDrawType_ = t; }
 
+  bool columnNameValue(const QString &name, QString &value) const;
+
   virtual bool checkRow(const QVariant &) { return true; }
 
   void initCache() const;
 
   void resetTypeInitialized() { typeInitialized_ = false; }
+
+  const CQChartsColumnType *columnType() const;
 
  private:
   bool initData();

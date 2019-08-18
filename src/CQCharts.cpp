@@ -43,10 +43,10 @@
 #include <CQChartsFontEdit.h>
 #include <CQChartsKeyLocationEdit.h>
 #include <CQChartsKeyPressBehaviorEdit.h>
-#include <CQChartsTitleLocationEdit.h>
 #include <CQChartsLengthEdit.h>
 #include <CQChartsLineDataEdit.h>
 #include <CQChartsLineDashEdit.h>
+#include <CQChartsPaletteNameEdit.h>
 #include <CQChartsPolygonEdit.h>
 #include <CQChartsPositionEdit.h>
 #include <CQChartsRectEdit.h>
@@ -57,6 +57,7 @@
 #include <CQChartsSymbolEdit.h>
 #include <CQChartsTextBoxDataEdit.h>
 #include <CQChartsTextDataEdit.h>
+#include <CQChartsTitleLocationEdit.h>
 
 #include <CQChartsPolygonList.h>
 #include <CQChartsNamePair.h>
@@ -72,12 +73,16 @@
 #include <CQChartsOptReal.h>
 #include <CQChartsOptRect.h>
 
-#include <CQChartsColor.h>
 #include <CQChartsFont.h>
 #include <CQChartsInterfaceTheme.h>
 #include <CQChartsColorStops.h>
-#include <CQColorsPalette.h>
+#include <CQChartsPaletteName.h>
 #include <CQChartsHtml.h>
+
+#include <CQChartsEditModelDlg.h>
+#include <CQChartsCreatePlotDlg.h>
+
+#include <CQColorsPalette.h>
 
 #include <CQPropertyView.h>
 #include <CQPropertyViewItem.h>
@@ -256,6 +261,7 @@ CQCharts()
   CQChartsOptPosition           ::registerMetaType();
   CQChartsOptReal               ::registerMetaType();
   CQChartsOptRect               ::registerMetaType();
+  CQChartsPaletteName           ::registerMetaType();
   CQChartsPath                  ::registerMetaType();
   CQChartsPolygonList           ::registerMetaType();
   CQChartsPolygon               ::registerMetaType();
@@ -381,6 +387,7 @@ init()
     viewMgr->addType("CQChartsLength"          , new CQChartsLengthPropertyViewType          );
     viewMgr->addType("CQChartsLineDash"        , new CQChartsLineDashPropertyViewType        );
     viewMgr->addType("CQChartsLineData"        , new CQChartsLineDataPropertyViewType        );
+    viewMgr->addType("CQChartsPaletteName"     , new CQChartsPaletteNamePropertyViewType     );
     viewMgr->addType("CQChartsPolygon"         , new CQChartsPolygonPropertyViewType         );
     viewMgr->addType("CQChartsPosition"        , new CQChartsPositionPropertyViewType        );
     viewMgr->addType("CQChartsRect"            , new CQChartsRectPropertyViewType            );
@@ -1116,6 +1123,40 @@ CQCharts::
 getItemIsHidden(const CQPropertyViewItem *item)
 {
   return item->property("hidden_prop").isValid();
+}
+
+//---
+
+CQChartsEditModelDlg *
+CQCharts::
+editModelDlg(CQChartsModelData *modelData)
+{
+  if (! editModelDlg_ || editModelDlg_->modelData() != modelData) {
+    delete editModelDlg_;
+
+    editModelDlg_ = new CQChartsEditModelDlg(this, modelData);
+  }
+
+  editModelDlg_->show();
+  editModelDlg_->raise();
+
+  return editModelDlg_;
+}
+
+CQChartsCreatePlotDlg *
+CQCharts::
+createPlotDlg(CQChartsModelData *modelData)
+{
+  if (! createPlotDlg_ || createPlotDlg_->modelData() != modelData) {
+    delete createPlotDlg_;
+
+    createPlotDlg_ = new CQChartsCreatePlotDlg(this, modelData);
+  }
+
+  createPlotDlg_->show();
+  createPlotDlg_->raise();
+
+  return createPlotDlg_;
 }
 
 //---

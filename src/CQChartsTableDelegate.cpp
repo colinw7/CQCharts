@@ -104,8 +104,10 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
     drawSymbol(painter, option, symbol, index);
   }
-  else if (type == CQBaseModelType::REAL || type == CQBaseModelType::INTEGER) {
-    // get model value
+  else if (type == CQBaseModelType::REAL ||
+           type == CQBaseModelType::INTEGER ||
+           type == CQBaseModelType::TIME) {
+    // get model value (actual data if possible)
     QVariant var = getModelData(index);
 
     bool ok;
@@ -115,6 +117,10 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
     //---
 
     QStyleOptionViewItem option1 = option;
+
+    // align right for numeric
+    if (type == CQBaseModelType::REAL || type == CQBaseModelType::INTEGER)
+      option1.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
 
     auto initSelected = [&]() {
       QColor c = option.palette.color(QPalette::Highlight);
@@ -130,6 +136,20 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
       painter->setPen(option.palette.color(QPalette::Highlight));
 
       painter->drawRect(option.rect);
+    };
+
+    auto realDisplayStr = [&](const QModelIndex &index, double r) {
+      QString dstr;
+
+      QVariant dvar = modelP()->data(index, Qt::DisplayRole);
+
+      if (dvar.isValid())
+        dstr = dvar.toString();
+
+      if (dstr.simplified() == "")
+        dstr = QString("%1").arg(r);
+
+      return dstr;
     };
 
     //---
@@ -152,8 +172,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
     //---
 
-    const CQChartsColumnType::ColorPalette &colorPalette =
-      columnData.details->tableDrawPalette();
+    const CQChartsColumnType::ColorPalette &colorPalette = columnData.details->tableDrawPalette();
 
     if      (tableDrawType == CQChartsModelColumnDetails::TableDrawType::HEATMAP) {
       // blend map color with background color using normalized value
@@ -187,7 +206,9 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
         option1.palette.setColor(QPalette::Text, tc);
       }
 
-      QItemDelegate::drawDisplay(painter, option1, option.rect, QString("%1").arg(r));
+      QString dstr = realDisplayStr(index, r);
+
+      QItemDelegate::drawDisplay(painter, option1, option.rect, dstr);
 
       if (option.state & QStyle::State_Selected)
         drawSelected();
@@ -231,13 +252,15 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
 
       painter->save();
 
+      QString dstr = realDisplayStr(index, r);
+
       painter->setClipRect(lrect);
       option1.palette.setColor(QPalette::Text, tc1);
-      QItemDelegate::drawDisplay(painter, option1, option.rect, QString("%1").arg(r));
+      QItemDelegate::drawDisplay(painter, option1, option.rect, dstr);
 
       painter->setClipRect(rrect);
       option1.palette.setColor(QPalette::Text, tc2);
-      QItemDelegate::drawDisplay(painter, option1, option.rect, QString("%1").arg(r));
+      QItemDelegate::drawDisplay(painter, option1, option.rect, dstr);
 
       painter->restore();
 

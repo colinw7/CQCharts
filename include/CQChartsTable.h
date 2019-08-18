@@ -79,6 +79,8 @@ class CQChartsTable : public CQTableView {
 
   void exportSlot(QAction *action);
 
+  void editSlot();
+
   void resetModelData();
 
  private:

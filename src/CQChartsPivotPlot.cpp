@@ -1765,6 +1765,24 @@ CQChartsPivotKeyColor(CQChartsPivotPlot *plot, const ColorInd &ic) :
 {
 }
 
+QBrush
+CQChartsPivotKeyColor::
+fillBrush() const
+{
+  CQChartsPivotPlot *plot = qobject_cast<CQChartsPivotPlot *>(this->plot());
+
+  QColor fc = plot->interpBarFillColor(ig_);
+
+  if (plot_->isSetHidden(ig_.i))
+    fc = CQChartsUtil::blendColors(fc, key_->interpBgColor(), key_->hiddenAlpha());
+
+  QBrush brush;
+
+  plot->setBrush(brush, plot->isBarFilled(), fc, plot->barFillAlpha(), plot->barFillPattern());
+
+  return brush;
+}
+
 //------
 
 CQChartsPivotKeyText::

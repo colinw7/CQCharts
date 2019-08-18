@@ -85,7 +85,7 @@ CQChartsGeom::BBox
 CQChartsRotatedTextBoxObj::
 bbox(const QPointF &center, const QString &text, double angle, Qt::Alignment align) const
 {
-  QFont font = calcFont(textFont());;
+  QFont font = calcFont(textFont());
 
   QFontMetricsF fm(font);
 

@@ -6,6 +6,8 @@
 #include <CQChartsCreatePlotDlg.h>
 #include <CQChartsModelData.h>
 #include <CQChartsHelpDlg.h>
+#include <CQCharts.h>
+
 #include <CQPixmapCache.h>
 #include <CQIconCombo.h>
 #include <CQUtil.h>
@@ -402,14 +404,9 @@ addPlotSlot()
   if (! modelData)
     return;
 
-  if (createPlotDlg_)
-    delete createPlotDlg_;
+  CQChartsCreatePlotDlg *createPlotDlg = charts->createPlotDlg(modelData);
 
-  createPlotDlg_ = new CQChartsCreatePlotDlg(charts, modelData);
-
-  createPlotDlg_->setViewName(view()->id());
-
-  createPlotDlg_->show();
+  createPlotDlg->setViewName(view()->id());
 }
 
 void

@@ -937,3 +937,8 @@
 # 8/15/2019
  + fix issues when making model writable
  + add access to model properties from tcl
+# 8/18/2019
+ + support META comments in analyze file
+ + support ENUM column type params
+ + Add palette name meta type and editor
+ + Add export model to csv with meta data

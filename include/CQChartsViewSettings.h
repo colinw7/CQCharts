@@ -21,8 +21,6 @@ class CQChartsPlot;
 class CQChartsAnnotation;
 class CQChartsFilterEdit;
 class CQChartsLoadModelDlg;
-class CQChartsEditModelDlg;
-class CQChartsCreatePlotDlg;
 class CQChartsCreateAnnotationDlg;
 class CQChartsEditAnnotationDlg;
 class CQChartsEditTitleDlg;
@@ -98,6 +96,7 @@ class CQChartsViewSettings : public QFrame {
 
   void loadModelSlot();
   void editModelSlot();
+  void plotModelSlot();
 
   //---
 
@@ -131,7 +130,6 @@ class CQChartsViewSettings : public QFrame {
 
   void removePlotsSlot();
 
-  void createPlotSlot();
   void writePlotSlot();
 
   //---
@@ -203,6 +201,7 @@ class CQChartsViewSettings : public QFrame {
     QFrame*                     detailsFrame  { nullptr }; //!< model details frame
     CQChartsModelDetailsWidget* detailsWidget { nullptr }; //!< model details
     QPushButton*                editButton    { nullptr }; //!< edit model
+    QPushButton*                plotButton    { nullptr }; //!< edit model
   };
 
   struct PlotsWidgets {
@@ -250,8 +249,6 @@ class CQChartsViewSettings : public QFrame {
   ThemeWidgets                 themeWidgets_;                    //!< theme widgets
   LayersWidgets                layersWidgets_;                   //!< layers widgets
   CQChartsLoadModelDlg*        loadModelDlg_        { nullptr }; //!< load dialog
-  CQChartsEditModelDlg*        editModelDlg_        { nullptr }; //!< edit model dialog
-  CQChartsCreatePlotDlg*       createPlotDlg_       { nullptr }; //!< plot dialog
   CQChartsCreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //!< create annotation dialog
   CQChartsEditAnnotationDlg*   editAnnotationDlg_   { nullptr }; //!< edit annotation dialog
   CQChartsEditTitleDlg*        editTitleDlg_        { nullptr }; //!< edit plot title dialog

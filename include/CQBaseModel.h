@@ -111,6 +111,10 @@ class CQBaseModel : public QAbstractItemModel {
   QString columnTitle(int column) const;
   bool setColumnTitle(int column, const QString &v);
 
+  //! get/set column name, value
+  QVariant columnNameValue(int column, const QString &name) const;
+  bool setColumnNameValue(int column, const QString &name, const QVariant &value);
+
   //! reset column type
   void resetColumnType(int column);
   void resetColumnTypes();

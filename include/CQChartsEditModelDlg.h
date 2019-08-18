@@ -7,7 +7,6 @@ class CQCharts;
 class CQChartsModelData;
 class CQChartsModelDataWidget;
 class CQChartsModelControl;
-class CQChartsCreatePlotDlg;
 
 /*!
  * \brief edit model dialog
@@ -20,7 +19,10 @@ class CQChartsEditModelDlg : public QDialog {
   CQChartsEditModelDlg(CQCharts *charts, CQChartsModelData *modelData=nullptr);
  ~CQChartsEditModelDlg();
 
+  CQChartsModelData *modelData() const { return modelData_; }
   void setModelData(CQChartsModelData *modelData);
+
+  QSize sizeHint() const override;
 
  private slots:
   void writeSlot();
@@ -28,11 +30,15 @@ class CQChartsEditModelDlg : public QDialog {
   void cancelSlot();
 
  private:
-  CQCharts*                charts_        { nullptr };
-  CQChartsModelData*       modelData_     { nullptr };
-  CQChartsModelDataWidget* modelWidget_   { nullptr };
-  CQChartsModelControl*    modelControl_  { nullptr };
-  CQChartsCreatePlotDlg*   createPlotDlg_ { nullptr };
+  bool writeCSVModel(const QString &fileName);
+
+//void writeModelCmds();
+
+ private:
+  CQCharts*                charts_       { nullptr };
+  CQChartsModelData*       modelData_    { nullptr };
+  CQChartsModelDataWidget* modelWidget_  { nullptr };
+  CQChartsModelControl*    modelControl_ { nullptr };
 };
 
 #endif

@@ -136,7 +136,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   virtual QVariant processCmd(const QString &name, const Values &values);
 
-  void setVar(const QString &name, int row);
+  void setVar(const QString &name, int row, int column);
 
  private:
   bool calcColumnRange(int column, double &minVal, double &maxVal);

@@ -5,7 +5,6 @@
 
 class CQCharts;
 class CQChartsModelWidgets;
-class CQChartsCreatePlotDlg;
 
 /*!
  * \brief dialog to manage charts models
@@ -24,9 +23,8 @@ class CQChartsManageModelsDlg : public QDialog {
   void cancelSlot();
 
  private:
-  CQCharts*              charts_        { nullptr };
-  CQChartsModelWidgets*  modelWidgets_  { nullptr };
-  CQChartsCreatePlotDlg* createPlotDlg_ { nullptr };
+  CQCharts*             charts_       { nullptr };
+  CQChartsModelWidgets* modelWidgets_ { nullptr };
 };
 
 #endif

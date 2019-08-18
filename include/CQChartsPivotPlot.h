@@ -213,6 +213,8 @@ class CQChartsPivotKeyColor : public CQChartsKeyColorBox {
 
  public:
   CQChartsPivotKeyColor(CQChartsPivotPlot *plot, const ColorInd &ic);
+
+  QBrush fillBrush() const override;
 };
 
 /*!
@@ -244,12 +246,12 @@ class CQChartsPivotPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsColumn  valueColumn READ valueColumn WRITE setValueColumn)
 
   // options
-  Q_PROPERTY(PlotType        plotType    READ plotType     WRITE setPlotType  )
-  Q_PROPERTY(ValueType       valueType   READ valueType    WRITE setValueType )
-  Q_PROPERTY(bool            horizontal  READ isHorizontal WRITE setHorizontal)
-  Q_PROPERTY(bool            xSorted     READ isXSorted    WRITE setXSorted   )
-  Q_PROPERTY(bool            ySorted     READ isYSorted    WRITE setYSorted   )
-  Q_PROPERTY(bool            gridBars    READ isGridBars   WRITE setGridBars  )
+  Q_PROPERTY(PlotType  plotType   READ plotType     WRITE setPlotType  )
+  Q_PROPERTY(ValueType valueType  READ valueType    WRITE setValueType )
+  Q_PROPERTY(bool      horizontal READ isHorizontal WRITE setHorizontal)
+  Q_PROPERTY(bool      xSorted    READ isXSorted    WRITE setXSorted   )
+  Q_PROPERTY(bool      ySorted    READ isYSorted    WRITE setYSorted   )
+  Q_PROPERTY(bool      gridBars   READ isGridBars   WRITE setGridBars  )
 
   // bar fill, stroke
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Bar,bar)

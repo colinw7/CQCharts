@@ -48,6 +48,8 @@ class CQChartsCreatePlotDlg : public QDialog {
 
   CQCharts *charts() const { return charts_; }
 
+  CQChartsModelData *modelData() const { return modelData_; }
+
   QAbstractItemModel *model() const { return model_.data(); }
 
   void setViewName(const QString &viewName);

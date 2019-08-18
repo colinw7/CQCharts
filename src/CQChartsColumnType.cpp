@@ -428,7 +428,8 @@ getModelColumnType(const QAbstractItemModel *model, const CQChartsColumn &column
 
         QVariant var = CQChartsModelUtil::modelHeaderValue(model, column, param->role(), ok);
 
-        nameValues.setNameValue(param->name(), var);
+        if (var.isValid())
+          nameValues.setNameValue(param->name(), var);
       }
     }
   }
@@ -488,7 +489,8 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
         continue;
 
       if (param->role() == vrole) {
-        nameValues1.setNameValue(param->name(), value);
+        if (value.isValid())
+          nameValues1.setNameValue(param->name(), value);
       }
       else {
         bool rc = CQChartsModelUtil::setModelHeaderValue(model, column, value, param->role());
@@ -625,12 +627,13 @@ CQChartsColumnType(Type type) :
    setDesc("Color Palette Name");
 
   // draw color for table view
-  addParam("draw_color", Type::STRING, "Table Draw Color", "")->
+  addParam("draw_color", Type::COLOR, "Table Draw Color", "")->
    setDesc("Base color for table value coloring");
 
   // draw type for table view
-  addParam("draw_type", Type::STRING , "Table Draw Type", "")->
-   setDesc("Table value draw type (heatmap or barchart)");
+  addParam("draw_type", Type::ENUM, "Table Draw Type", "")->
+   setDesc("Table value draw type (heatmap or barchart)").
+   addValue("heatmap").addValue("barchart");
 }
 
 CQChartsColumnType::
@@ -712,7 +715,7 @@ drawPalette(const CQChartsNameValues &nameValues) const
 
   QString paletteName;
 
-  if (! CQChartsColumnUtil::nameValueString(nameValues, "palette", paletteName))
+  if (! nameValueString(nameValues, "palette", paletteName))
     paletteName = "";
 
   if (paletteName.simplified().length())
@@ -720,7 +723,7 @@ drawPalette(const CQChartsNameValues &nameValues) const
 
   QString colorName;
 
-  if (! CQChartsColumnUtil::nameValueString(nameValues, "draw_color", colorName))
+  if (! nameValueString(nameValues, "draw_color", colorName))
     colorName = "";
 
   colorPalette.color = CQChartsColor(colorName);
@@ -734,7 +737,7 @@ drawType(const CQChartsNameValues &nameValues) const
 {
   QString typeName;
 
-  if (! CQChartsColumnUtil::nameValueString(nameValues, "draw_type", typeName))
+  if (! nameValueString(nameValues, "draw_type", typeName))
     typeName = "";
 
   typeName = typeName.toLower();
@@ -747,6 +750,13 @@ drawType(const CQChartsNameValues &nameValues) const
     return CQChartsColumnType::DrawType::HEATMAP;
   else
     return CQChartsColumnType::DrawType::NORMAL;
+}
+
+bool
+CQChartsColumnType::
+nameValueString(const CQChartsNameValues &nameValues, const QString &name, QString &value) const
+{
+  return CQChartsColumnUtil::nameValueString(nameValues, name, value);
 }
 
 //------
@@ -915,7 +925,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   // get optional format for real
   QString format;
 
-  if (! CQChartsColumnUtil::nameValueString(nameValues, "format", format))
+  if (! nameValueString(nameValues, "format", format))
     return CQChartsUtil::formatReal(r);
 
   //---
@@ -1055,7 +1065,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   // get optional format for real
   QString format;
 
-  if (! CQChartsColumnUtil::nameValueString(nameValues, "format", format))
+  if (! nameValueString(nameValues, "format", format))
     return CQChartsUtil::formatInteger(l);
 
   //---
@@ -1192,10 +1202,10 @@ getIFormat(const CQChartsNameValues &nameValues) const
 {
   QString format;
 
-  if (CQChartsColumnUtil::nameValueString(nameValues, "iformat", format))
+  if (nameValueString(nameValues, "iformat", format))
     return format;
 
-  if (CQChartsColumnUtil::nameValueString(nameValues, "format", format))
+  if (nameValueString(nameValues, "format", format))
     return format;
 
   return "";
@@ -1207,10 +1217,10 @@ getOFormat(const CQChartsNameValues &nameValues) const
 {
   QString format;
 
-  if (CQChartsColumnUtil::nameValueString(nameValues, "oformat", format))
+  if (nameValueString(nameValues, "oformat", format))
     return format;
 
-  if (CQChartsColumnUtil::nameValueString(nameValues, "format", format))
+  if (nameValueString(nameValues, "format", format))
     return format;
 
   return "";
@@ -1840,7 +1850,7 @@ getMapData(CQCharts *charts, const QAbstractItemModel *model, const CQChartsColu
   if (! CQChartsColumnUtil::nameValueBool(nameValues, "mapped", mapped))
     mapped = false;
 
-  if (! CQChartsColumnUtil::nameValueString(nameValues, "palette", paletteName))
+  if (! nameValueString(nameValues, "palette", paletteName))
     paletteName = "";
 
   map_min = 0.0;

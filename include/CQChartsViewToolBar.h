@@ -6,7 +6,6 @@
 class CQChartsWindow;
 class CQChartsView;
 class CQChartsManageModelsDlg;
-class CQChartsCreatePlotDlg;
 class CQIconCombo;
 class QToolButton;
 class QRadioButton;
@@ -74,7 +73,6 @@ class CQChartsViewToolBar : public QFrame {
   QToolButton*             rightButton_           { nullptr }; //!< scroll plots right button
   QStackedWidget*          controlsStack_         { nullptr }; //!< mode controls stack
   CQChartsManageModelsDlg* manageModelsDlg_       { nullptr }; //!< manage model dialog
-  CQChartsCreatePlotDlg*   createPlotDlg_         { nullptr }; //!< create plot dialog
 };
 
 #endif

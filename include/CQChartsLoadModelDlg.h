@@ -84,7 +84,7 @@ class CQChartsLoadModelDlg : public QDialog {
   QTextEdit*   previewText_            { nullptr };
   QPushButton* okButton_               { nullptr };
   QPushButton* applyButton_            { nullptr };
-  int          previewLines_           { 20 };
+  int          previewLines_           { 100 };
   int          expressionLines_        { 100 };
 };
 

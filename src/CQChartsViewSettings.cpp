@@ -6,7 +6,6 @@
 #include <CQChartsFilterEdit.h>
 #include <CQChartsPropertyViewTree.h>
 #include <CQChartsLoadModelDlg.h>
-#include <CQChartsEditModelDlg.h>
 #include <CQChartsCreatePlotDlg.h>
 #include <CQChartsCreateAnnotationDlg.h>
 #include <CQChartsEditAnnotationDlg.h>
@@ -998,21 +997,30 @@ initModelsFrame(QFrame *modelsFrame)
 
   //--
 
-  auto createPushButton = [&](const QString &label, const QString &objName, const char *slotName) {
+  auto createPushButton = [&](const QString &label, const QString &objName, const QString &tip,
+                              const char *slotName) {
     QPushButton *button = CQUtil::makeLabelWidget<QPushButton>(label, objName);
+
+    button->setToolTip(tip);
 
     connect(button, SIGNAL(clicked()), this, slotName);
 
     return button;
   };
 
-  QPushButton *loadModelButton = createPushButton("Load", "load", SLOT(loadModelSlot()));
+  QPushButton *loadModelButton =
+    createPushButton("Load", "load", "Load Model", SLOT(loadModelSlot()));
+  modelsWidgets_.editButton =
+    createPushButton("Edit", "edit", "Edit Model", SLOT(editModelSlot()));
+  modelsWidgets_.plotButton =
+    createPushButton("Plot", "plot", "Create Plot", SLOT(plotModelSlot()));
 
   modelControlLayout->addWidget(loadModelButton);
-
-  modelsWidgets_.editButton = createPushButton("Edit", "edit", SLOT(editModelSlot()));
-
   modelControlLayout->addWidget(modelsWidgets_.editButton);
+  modelControlLayout->addWidget(modelsWidgets_.plotButton);
+
+  modelsWidgets_.editButton->setEnabled(false);
+  modelsWidgets_.plotButton->setEnabled(false);
 
   //--
 
@@ -1197,7 +1205,6 @@ initPlotsFrame(QFrame *plotsFrame)
 
   plotsWidgets_.raiseButton      = createPushButton("Raise" , "raise" , SLOT(raisePlotSlot()));
   plotsWidgets_.lowerButton      = createPushButton("Lower" , "lower" , SLOT(lowerPlotSlot()));
-  QPushButton*  createPlotButton = createPushButton("Create", "create", SLOT(createPlotSlot()));
   plotsWidgets_.removeButton     = createPushButton("Remove", "remove", SLOT(removePlotsSlot()));
 //QPushButton*  writePlotButton  = createPushButton("Write" , "write" , SLOT(writePlotSlot()));
 
@@ -1207,7 +1214,6 @@ initPlotsFrame(QFrame *plotsFrame)
 
   controlPlotsGroupLayout->addWidget(plotsWidgets_.raiseButton);
   controlPlotsGroupLayout->addWidget(plotsWidgets_.lowerButton);
-  controlPlotsGroupLayout->addWidget(createPlotButton);
   controlPlotsGroupLayout->addWidget(plotsWidgets_.removeButton);
 //controlPlotsGroupLayout->addWidget(writePlotButton);
 
@@ -1663,6 +1669,9 @@ modelsSelectionChangeSlot()
 
   if (ind >= 0)
     charts->setCurrentModelInd(ind);
+
+  modelsWidgets_.editButton->setEnabled(ind >= 0);
+  modelsWidgets_.plotButton->setEnabled(ind >= 0);
 }
 
 void
@@ -1671,8 +1680,7 @@ loadModelSlot()
 {
   CQCharts *charts = window_->view()->charts();
 
-  if (loadModelDlg_)
-    delete loadModelDlg_;
+  delete loadModelDlg_;
 
   loadModelDlg_ = new CQChartsLoadModelDlg(charts);
 
@@ -1695,12 +1703,28 @@ editModelSlot()
   if (! modelData)
     return;
 
-  if (editModelDlg_)
-    delete editModelDlg_;
+  charts->editModelDlg(modelData);
+}
 
-  editModelDlg_ = new CQChartsEditModelDlg(charts, modelData);
+void
+CQChartsViewSettings::
+plotModelSlot()
+{
+  long ind = modelsWidgets_.modelTable->selectedModel();
 
-  editModelDlg_->show();
+  if (ind < 0)
+    return;
+
+  CQCharts *charts = window_->view()->charts();
+
+  CQChartsModelData *modelData = charts->getModelData(ind);
+
+  if (! modelData)
+    return;
+
+  CQChartsCreatePlotDlg *createPlotDlg = charts->createPlotDlg(modelData);
+
+  createPlotDlg->setViewName(window_->view()->id());
 }
 
 //------
@@ -2124,27 +2148,6 @@ removePlotsSlot()
     view->removePlot(plot);
 
   updateView();
-}
-
-void
-CQChartsViewSettings::
-createPlotSlot()
-{
-  CQCharts *charts = window_->view()->charts();
-
-  CQChartsModelData *modelData = charts->currentModelData();
-
-  if (! modelData)
-    return;
-
-  if (createPlotDlg_)
-    delete createPlotDlg_;
-
-  createPlotDlg_ = new CQChartsCreatePlotDlg(charts, modelData);
-
-  createPlotDlg_->setViewName(window_->view()->id());
-
-  createPlotDlg_->show();
 }
 
 void

@@ -69,7 +69,10 @@ colorStr() const
     strs << color().name();
   }
 
-  return CQTcl::mergeList(strs);
+  if (strs.size() == 1)
+    return strs[0];
+  else
+    return CQTcl::mergeList(strs);
 }
 
 bool

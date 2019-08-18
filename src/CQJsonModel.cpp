@@ -273,7 +273,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
   if (orientation != Qt::Horizontal)
     return CQBaseModel::headerData(section, orientation, role);
 
-  if (role == Qt::DisplayRole) {
+  if      (role == Qt::DisplayRole) {
     QString str;
 
     if (headerString(section, str))
@@ -387,7 +387,7 @@ QVariant
 CQJsonModel::
 data(const QModelIndex &index, int role) const
 {
-  if (role == Qt::DisplayRole) {
+  if (role == Qt::DisplayRole || role == Qt::ToolTipRole) {
     if (jsonMatch_ != "") {
       if (! index.isValid())
         return QVariant();
@@ -456,6 +456,13 @@ data(const QModelIndex &index, int role) const
   }
 
   return QVariant();
+}
+
+bool
+CQJsonModel::
+setData(const QModelIndex &index, const QVariant &value, int role)
+{
+  return CQBaseModel::setData(index, value, role);
 }
 
 // get child of parent

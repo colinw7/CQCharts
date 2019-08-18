@@ -1,5 +1,6 @@
 #include <CQBaseModel.h>
 #include <CQModelUtil.h>
+#include <CQModelNameValues.h>
 #include <CMathUtil.h>
 #include <cmath>
 #include <cassert>
@@ -399,6 +400,43 @@ setColumnTitle(int column, const QString &s)
   columnData.title = s;
 
   emit columnTitleChanged(column);
+
+  return true;
+}
+
+QVariant
+CQBaseModel::
+columnNameValue(int column, const QString &name) const
+{
+  if (column < 0 || column >= columnCount())
+    return "";
+
+  QString values = columnTypeValues(column);
+
+  CQModelNameValues nameValues(values);
+
+  QVariant value;
+
+  if (! nameValues.nameValue(name, value))
+    return QVariant();
+
+  return value;
+}
+
+bool
+CQBaseModel::
+setColumnNameValue(int column, const QString &name, const QVariant &value)
+{
+  if (column < 0 || column >= columnCount())
+    return false;
+
+  QString values = columnTypeValues(column);
+
+  CQModelNameValues nameValues(values);
+
+  nameValues.setNameValue(name, value);
+
+  setColumnTypeValues(column, nameValues.toString());
 
   return true;
 }
@@ -812,6 +850,8 @@ bool
 CQBaseModel::
 isType(int type)
 {
+  initTypes();
+
   return (s_typeName.find((CQBaseModelType) type) != s_typeName.end());
 }
 
@@ -819,6 +859,8 @@ QString
 CQBaseModel::
 typeName(CQBaseModelType type)
 {
+  initTypes();
+
   auto p = s_typeName.find(type);
 
   if (p == s_typeName.end())
@@ -831,6 +873,8 @@ CQBaseModelType
 CQBaseModel::
 nameType(const QString &name)
 {
+  initTypes();
+
   auto p = s_nameType.find(name);
 
   if (p == s_nameType.end())

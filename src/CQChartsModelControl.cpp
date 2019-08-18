@@ -16,6 +16,7 @@
 #include <CQDataModel.h>
 #include <CQLineEdit.h>
 #include <CQUtil.h>
+#include <CQColorEdit.h>
 
 #include <QSortFilterProxyModel>
 #include <QVBoxLayout>
@@ -35,23 +36,62 @@ class CQChartsParamEdit : public QFrame {
   }
 
   void setString(const QString &str="") {
-    reset();
+    if (! edit_) {
+      reset();
 
-    edit_ = CQUtil::makeWidget<CQLineEdit>("edit");
+      edit_ = CQUtil::makeWidget<CQLineEdit>("edit");
+
+      layout_->addWidget(edit_);
+    }
 
     edit_->setText(str);
-
-    layout_->addWidget(edit_);
   }
 
   void setBool(bool b=false) {
-    reset();
+    if (! check_) {
+      reset();
 
-    check_ = CQUtil::makeLabelWidget<QCheckBox>("", "check");
+      check_ = CQUtil::makeLabelWidget<QCheckBox>("", "edit");
+
+      layout_->addWidget(check_);
+    }
 
     check_->setChecked(b);
+  }
 
-    layout_->addWidget(check_);
+  void setEnum(const QString &str, const QStringList &values) {
+    if (! combo_) {
+      reset();
+
+      combo_ = CQUtil::makeWidget<QComboBox>("edit");
+
+      layout_->addWidget(combo_);
+    }
+
+    // make optional
+    QStringList values1;
+    values1 << "";
+    values1 << values;
+
+    combo_->clear();
+    combo_->addItems(values1);
+
+    int pos = combo_->findText(str);
+    if (pos < 0) pos = 0;
+
+    combo_->setCurrentIndex(pos);
+  }
+
+  void setColor(const QString &str="") {
+    if (! color_) {
+      reset();
+
+      color_ = CQUtil::makeWidget<CQColorEdit>("edit");
+
+      layout_->addWidget(color_);
+    }
+
+    color_->setColor(str);
   }
 
   QString getString() const {
@@ -66,18 +106,36 @@ class CQChartsParamEdit : public QFrame {
     return check_->isChecked();
   }
 
+  QString getEnum() const {
+    assert(combo_);
+
+    return combo_->currentText();
+  }
+
+  QString getColor() const {
+    assert(color_);
+
+    return color_->colorName();
+  }
+
   void reset() {
     delete edit_;
     delete check_;
+    delete combo_;
+    delete color_;
 
     edit_  = nullptr;
     check_ = nullptr;
+    combo_ = nullptr;
+    color_ = nullptr;
   }
 
  private:
-  QHBoxLayout *layout_ { nullptr };
-  CQLineEdit  *edit_   { nullptr };
-  QCheckBox   *check_  { nullptr };
+  QHBoxLayout* layout_ { nullptr };
+  CQLineEdit*  edit_   { nullptr };
+  QCheckBox*   check_  { nullptr };
+  QComboBox*   combo_  { nullptr };
+  CQColorEdit* color_  { nullptr };
 };
 
 //---
@@ -344,6 +402,10 @@ addColumnDataFrame()
 
   connect(columnEditData_.typeCombo, SIGNAL(currentIndexChanged(int)),
           this, SLOT(typeChangedSlot()));
+
+  //---
+
+  columnDataLayout->addStretch(1);
 
   //---
 
@@ -727,11 +789,12 @@ typeApplySlot()
 
       QString value;
 
-      if (param->type() == CQBaseModelType::BOOLEAN) {
-        bool b = paramEdit.edit->getBool();
-
-        value = (b ? "1" : "0");
-      }
+      if      (param->type() == CQBaseModelType::BOOLEAN)
+        value = (paramEdit.edit->getBool() ? "1" : "0");
+      else if (param->type() == CQBaseModelType::ENUM)
+        value = paramEdit.edit->getEnum();
+      else if (param->type() == CQBaseModelType::COLOR)
+        value = paramEdit.edit->getColor();
       else
         value = paramEdit.edit->getString();
 
@@ -809,8 +872,12 @@ setColumnData(int column)
 
       nameValues.nameValue(param->name(), var);
 
-      if (param->type() == CQBaseModelType::BOOLEAN)
+      if      (param->type() == CQBaseModelType::BOOLEAN)
         paramEdit.edit->setBool(var.toBool());
+      else if (param->type() == CQBaseModelType::ENUM)
+        paramEdit.edit->setEnum(var.toString(), param->values());
+      else if (param->type() == CQBaseModelType::COLOR)
+        paramEdit.edit->setColor(var.toString());
       else
         paramEdit.edit->setString(var.toString());
 

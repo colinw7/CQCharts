@@ -2,17 +2,23 @@
 #include <CQChartsModelDataWidget.h>
 #include <CQChartsModelControl.h>
 #include <CQChartsModelData.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsModelUtil.h>
-#include <CQChartsCreatePlotDlg.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
 
+#include <CQCsvModel.h>
+#include <CQColorsPalette.h>
 #include <CQTabSplit.h>
 
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QFileDialog>
+#include <QDir>
+
+#include <fstream>
 
 CQChartsEditModelDlg::
 CQChartsEditModelDlg(CQCharts *charts, CQChartsModelData *modelData) :
@@ -52,19 +58,22 @@ CQChartsEditModelDlg(CQCharts *charts, CQChartsModelData *modelData) :
   //---
 
   // Bottom Buttons
+  auto createButton = [&](const QString &label, const QString &name, const QString &tip,
+                          const char *slotName) {
+    QPushButton *button = CQUtil::makeLabelWidget<QPushButton>(label, name);
+
+    button->setToolTip(tip);
+
+    connect(button, SIGNAL(clicked()), this, slotName);
+
+    return button;
+  };
+
   QHBoxLayout *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
-  QPushButton *writeButton = CQUtil::makeLabelWidget<QPushButton>("Write", "write");
-
-  connect(writeButton, SIGNAL(clicked()), this, SLOT(writeSlot()));
-
-  QPushButton *plotButton = CQUtil::makeLabelWidget<QPushButton>("Plot", "plot");
-
-  connect(plotButton, SIGNAL(clicked()), this, SLOT(plotSlot()));
-
-  QPushButton *doneButton = CQUtil::makeLabelWidget<QPushButton>("Done", "done");
-
-  connect(doneButton, SIGNAL(clicked()), this, SLOT(cancelSlot()));
+  QPushButton *writeButton = createButton("Write", "write", "Write Model" , SLOT(writeSlot()));
+  QPushButton *plotButton  = createButton("Plot" , "plot" , "Create Plot" , SLOT(plotSlot()));
+  QPushButton *doneButton  = createButton("Done" , "done" , "Close Dialog", SLOT(cancelSlot()));
 
   buttonLayout->addWidget(writeButton);
   buttonLayout->addWidget(plotButton);
@@ -98,6 +107,201 @@ setModelData(CQChartsModelData *modelData)
 void
 CQChartsEditModelDlg::
 writeSlot()
+{
+  QString dir = QDir::current().dirName() + "/model.csv";
+
+  QString fileName = QFileDialog::getSaveFileName(this, "Write Model", dir, "Files (*.csv)");
+
+  writeCSVModel(fileName);
+}
+
+bool
+CQChartsEditModelDlg::
+writeCSVModel(const QString &fileName)
+{
+  CQChartsModelDetails *details = modelData_->details();
+
+  if (details->isHierarchical())
+    return false;
+
+  QAbstractItemModel *model = modelData_->currentModel().data();
+
+  //---
+
+  int nr = details->numRows();
+  int nc = details->numColumns();
+
+  if (nr < 0 || nc < 0)
+    return false;
+
+  //---
+
+  auto fs = std::ofstream(fileName.toStdString(), std::ofstream::out);
+
+  // write meta data
+  fs << "#META_DATA\n";
+
+  for (int c = 0; c < nc; ++c) {
+    CQChartsModelColumnDetails *columnDetails = details->columnDetails(c);
+
+    QString header = model->headerData(c, Qt::Horizontal, Qt::DisplayRole).toString();
+
+    auto writeMetaColumnData = [&](const QString &name, const QString &value) {
+      fs << "#  column," << header.toStdString() << "," <<
+            name.toStdString() << "," << value.toStdString() << "\n";
+    };
+
+    auto writeMetaColumnNameValue = [&](const QString &name) {
+      QString value;
+
+      if (! columnDetails->columnNameValue(name, value))
+        return;
+
+      writeMetaColumnData(name, value);
+    };
+
+    CQBaseModelType type     = columnDetails->type();
+    QString         typeName = columnDetails->typeName();
+
+    writeMetaColumnData("type", typeName);
+
+    const CQChartsColumnType::ColorPalette &colorPalette = columnDetails->tableDrawPalette();
+
+    CQChartsModelColumnDetails::TableDrawType tableDrawType = columnDetails->tableDrawType();
+
+    writeMetaColumnData("key", "1");
+
+    if (colorPalette.palette)
+      writeMetaColumnData("palette", colorPalette.palette->name());
+
+    if (colorPalette.color.isValid())
+      writeMetaColumnData("draw_color", colorPalette.color.toString());
+
+    if      (tableDrawType == CQChartsModelColumnDetails::TableDrawType::HEATMAP)
+      writeMetaColumnData("draw_type", "heatmap");
+    else if (tableDrawType == CQChartsModelColumnDetails::TableDrawType::BARCHART)
+      writeMetaColumnData("draw_type", "barchart");
+
+    if      (type == CQBaseModelType::REAL) {
+      writeMetaColumnNameValue("format");
+      writeMetaColumnNameValue("format_scale");
+      writeMetaColumnNameValue("min");
+      writeMetaColumnNameValue("max");
+    }
+    else if (type == CQBaseModelType::INTEGER) {
+      writeMetaColumnNameValue("format");
+      writeMetaColumnNameValue("min");
+      writeMetaColumnNameValue("max");
+    }
+    else if (type == CQBaseModelType::TIME) {
+      writeMetaColumnNameValue("format");
+      writeMetaColumnNameValue("iformat");
+      writeMetaColumnNameValue("oformat");
+    }
+    else if (type == CQBaseModelType::COLOR) {
+      writeMetaColumnNameValue("format");
+      writeMetaColumnNameValue("min");
+      writeMetaColumnNameValue("max");
+    }
+    else if (type == CQBaseModelType::SYMBOL) {
+      writeMetaColumnNameValue("mapped");
+      writeMetaColumnNameValue("min");
+      writeMetaColumnNameValue("max");
+    }
+    else if (type == CQBaseModelType::SYMBOL_SIZE) {
+      writeMetaColumnNameValue("mapped");
+      writeMetaColumnNameValue("min");
+      writeMetaColumnNameValue("max");
+      writeMetaColumnNameValue("size_min");
+      writeMetaColumnNameValue("size_max");
+    }
+    else if (type == CQBaseModelType::FONT_SIZE) {
+      writeMetaColumnNameValue("mapped");
+      writeMetaColumnNameValue("min");
+      writeMetaColumnNameValue("max");
+      writeMetaColumnNameValue("size_min");
+      writeMetaColumnNameValue("size_max");
+    }
+  }
+
+  fs << "#END_META_DATA\n";
+
+  //---
+
+  // write header
+  for (int c = 0; c < nc; ++c) {
+    QString header = model->headerData(c, Qt::Horizontal, Qt::DisplayRole).toString();
+
+    if (c > 0)
+      fs << ",";
+
+    fs << CQCsvModel::encodeString(header).toStdString();
+  }
+
+  fs << "\n";
+
+  //---
+
+  // write data
+  for (int r = 0; r < nr; ++r) {
+    for (int c = 0; c < nc; ++c) {
+      QModelIndex ind = model->index(r, c);
+
+      QVariant var;
+
+      CQChartsModelColumnDetails *columnDetails = details->columnDetails(c);
+
+      CQBaseModelType type = columnDetails->type();
+
+      bool converted = false;
+
+      if (type == CQBaseModelType::TIME) {
+        var = model->data(ind, Qt::EditRole);
+
+        if (var.isValid()) {
+          bool ok;
+
+          double r = var.toDouble(&ok);
+
+          if (ok) {
+            const CQChartsColumnTimeType *timeType =
+              dynamic_cast<const CQChartsColumnTimeType *>(columnDetails->columnType());
+            assert(timeType);
+
+            QString fmt = timeType->getIFormat(columnDetails->nameValues());
+
+            if (fmt.simplified() != "") {
+              var = CQChartsUtil::timeToString(fmt, r);
+
+              converted = true;
+            }
+          }
+        }
+      }
+
+      if (! converted) {
+        var = model->data(ind, Qt::EditRole);
+
+        if (! var.isValid())
+          var = model->data(ind, Qt::DisplayRole);
+      }
+
+      if (c > 0)
+        fs << ",";
+
+      fs << CQCsvModel::encodeString(var.toString()).toStdString();
+    }
+
+    fs << "\n";
+  }
+
+  return true;
+}
+
+#if 0
+void
+CQChartsEditModelDlg::
+writeModelCmds()
 {
   if (! modelData_)
     return;
@@ -177,16 +381,13 @@ writeSlot()
   // TODO: write what ?
   modelData_->write(std::cerr);
 }
+#endif
 
 void
 CQChartsEditModelDlg::
 plotSlot()
 {
-  delete createPlotDlg_;
-
-  createPlotDlg_ = new CQChartsCreatePlotDlg(charts_, modelData_);
-
-  createPlotDlg_->show();
+  charts_->createPlotDlg(modelData_);
 }
 
 void
@@ -194,4 +395,13 @@ CQChartsEditModelDlg::
 cancelSlot()
 {
   hide();
+}
+
+QSize
+CQChartsEditModelDlg::
+sizeHint() const
+{
+  QFontMetrics fm(font());
+
+  return QSize(fm.width("X")*60, fm.height()*40);
 }

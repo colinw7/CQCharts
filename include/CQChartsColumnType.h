@@ -40,17 +40,24 @@ class CQChartsColumnTypeParam {
   const QString &tip() const { return tip_; }
 
   const QString &desc() const { return desc_; }
-  void setDesc(const QString &desc) { desc_ = desc; }
+  CQChartsColumnTypeParam &setDesc(const QString &desc) { desc_ = desc; return *this; }
 
   const QVariant &def() const { return def_; }
 
+  CQChartsColumnTypeParam &addValue(const QString &value) {
+    values_ << value; return *this; }
+  CQChartsColumnTypeParam &addValues(const QStringList &values) {
+    values_ << values; return *this; }
+  QStringList values() const { return values_; }
+
  private:
-  QString  name_;                             //!< name
-  Type     type_ { CQBaseModelType::STRING }; //!< type
-  int      role_ { -1 };                      //!< model role
-  QString  tip_;                              //!< tip string
-  QString  desc_;                             //!< description string
-  QVariant def_;                              //!< default value
+  QString     name_;                             //!< name
+  Type        type_ { CQBaseModelType::STRING }; //!< type
+  int         role_ { -1 };                      //!< model role
+  QString     tip_;                              //!< tip string
+  QString     desc_;                             //!< description string
+  QVariant    def_;                              //!< default value
+  QStringList values_;                           //!< enum values
 };
 
 //---
@@ -135,6 +142,9 @@ class CQChartsColumnType {
 
   ColorPalette drawPalette(const CQChartsNameValues &nameValues) const;
   DrawType     drawType   (const CQChartsNameValues &nameValues) const;
+
+  bool nameValueString(const CQChartsNameValues &nameValues,
+                       const QString &name, QString &value) const;
 
  protected:
   Type   type_;       //!< base type
