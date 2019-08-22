@@ -225,11 +225,11 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsSankeyPlot::createObjs");
 
-  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
-
-  NoUpdate noUpdate(th);
+  NoUpdate noUpdate(this);
 
   //---
+
+  CQChartsSankeyPlot *th = const_cast<CQChartsSankeyPlot *>(this);
 
   th->clearNodesAndEdges();
 

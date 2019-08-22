@@ -378,9 +378,9 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsPiePlot::createObjs");
 
-  CQChartsPiePlot *th = const_cast<CQChartsPiePlot *>(this);
+  NoUpdate noUpdate(this);
 
-  NoUpdate noUpdate(th);
+  CQChartsPiePlot *th = const_cast<CQChartsPiePlot *>(this);
 
   //---
 

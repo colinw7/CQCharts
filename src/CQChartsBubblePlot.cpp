@@ -48,7 +48,7 @@ description() const
        "smallest enclosing circle.").
     h3("Columns").
      p("The values are taken from the value column. The value name can be specified "
-       "in th name column.").
+       "in the name column.").
     h3("Options").
      p("The value can be displayed at the center of the bubble along with the name.").
      p("Bubbles can be sorted by value or displayed in model order.").
@@ -254,9 +254,7 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsBubblePlot::createObjs");
 
-  CQChartsBubblePlot *th = const_cast<CQChartsBubblePlot *>(this);
-
-  NoUpdate noUpdate(th);
+  NoUpdate noUpdate(this);
 
   //---
 
@@ -269,6 +267,8 @@ createObjs(PlotObjs &objs) const
     initNodes();
 
   //---
+
+  CQChartsBubblePlot *th = const_cast<CQChartsBubblePlot *>(this);
 
   th->initColorIds();
 

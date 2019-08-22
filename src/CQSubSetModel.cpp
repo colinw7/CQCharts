@@ -8,6 +8,8 @@ CQSubSetModel(QAbstractItemModel *model, const QModelIndex &tl, const QModelInde
 {
   setObjectName("subsetModel");
 
+  setSortRole(Qt::EditRole);
+
   setSourceModel(model);
 
   setBounds(tl, br);

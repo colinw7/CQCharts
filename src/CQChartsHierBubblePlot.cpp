@@ -241,9 +241,9 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsHierBubblePlot::createObjs");
 
-  CQChartsHierBubblePlot *th = const_cast<CQChartsHierBubblePlot *>(this);
+  NoUpdate noUpdate(this);
 
-  NoUpdate noUpdate(th);
+  CQChartsHierBubblePlot *th = const_cast<CQChartsHierBubblePlot *>(this);
 
   //---
 

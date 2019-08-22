@@ -293,7 +293,7 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsChordPlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsChordPlot *>(this));
+  NoUpdate noUpdate(this);
 
   //---
 

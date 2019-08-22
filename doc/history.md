@@ -942,3 +942,5 @@
  + support ENUM column type params
  + Add palette name meta type and editor
  + Add export model to csv with meta data
+# 8/22/2019
+ + adjust const for no update

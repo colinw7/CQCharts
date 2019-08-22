@@ -260,9 +260,7 @@ createObjs(PlotObjs &) const
 {
   CQPerfTrace trace("CQChartsForceDirectedPlot::createObjs");
 
-  CQChartsForceDirectedPlot *th = const_cast<CQChartsForceDirectedPlot *>(this);
-
-  NoUpdate noUpdate(th);
+  NoUpdate noUpdate(this);
 
   //---
 
@@ -270,6 +268,8 @@ createObjs(PlotObjs &) const
     return false;
 
   //---
+
+  CQChartsForceDirectedPlot *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
   class RowVisitor : public ModelVisitor {
    public:

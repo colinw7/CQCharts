@@ -343,7 +343,7 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsRadarPlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsRadarPlot *>(this));
+  NoUpdate noUpdate(this);
 
   //---
 

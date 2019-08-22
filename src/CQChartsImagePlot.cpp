@@ -276,7 +276,7 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsImagePlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsImagePlot *>(this));
+  NoUpdate noUpdate(this);
 
   //---
 

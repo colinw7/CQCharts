@@ -343,7 +343,7 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsParallelPlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsParallelPlot *>(this));
+  NoUpdate noUpdate(this);
 
   //---
 

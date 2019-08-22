@@ -476,9 +476,9 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsHierScatterPlot::createObjs");
 
-  CQChartsHierScatterPlot *th = const_cast<CQChartsHierScatterPlot *>(this);
+  NoUpdate noUpdate(this);
 
-  NoUpdate noUpdate(th);
+  CQChartsHierScatterPlot *th = const_cast<CQChartsHierScatterPlot *>(this);
 
   //---
 

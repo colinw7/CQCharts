@@ -1080,6 +1080,7 @@ class CQChartsPlot : public CQChartsObj,
   void execUpdateRange();
 
  public:
+  // calculate and return range from data
   virtual CQChartsGeom::Range calcRange() const = 0;
 
   virtual void postUpdateRange() { }
@@ -1188,6 +1189,8 @@ class CQChartsPlot : public CQChartsObj,
   // create plot objects (called by initObjs)
   bool createObjs();
 
+  // create objects to be added to plot
+  // TODO: need axis update as well
   virtual bool createObjs(PlotObjs &) const = 0;
 
   // add plotObjects to quad tree (create no data object in no objects)
@@ -1907,6 +1910,11 @@ class CQChartsPlot : public CQChartsObj,
 
  protected:
   struct NoUpdate {
+    NoUpdate(const CQChartsPlot *plot, bool update=false) :
+     plot_(const_cast<CQChartsPlot *>(plot)), update_(update) {
+      plot_->setUpdatesEnabled(false);
+    }
+
     NoUpdate(CQChartsPlot *plot, bool update=false) :
      plot_(plot), update_(update) {
       plot_->setUpdatesEnabled(false);

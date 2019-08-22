@@ -14,16 +14,16 @@
 #include <CQGnuDataModel.h>
 #include <CQJsonModel.h>
 #include <CQDataModel.h>
-#include <CQLineEdit.h>
-#include <CQUtil.h>
 #include <CQColorEdit.h>
+#include <CQLineEdit.h>
+#include <CQCheckBox.h>
+#include <CQUtil.h>
 
 #include <QSortFilterProxyModel>
 #include <QVBoxLayout>
 #include <QTabWidget>
 #include <QStackedWidget>
 #include <QRadioButton>
-#include <QCheckBox>
 #include <QComboBox>
 #include <QLabel>
 #include <QPushButton>
@@ -51,7 +51,7 @@ class CQChartsParamEdit : public QFrame {
     if (! check_) {
       reset();
 
-      check_ = CQUtil::makeLabelWidget<QCheckBox>("", "edit");
+      check_ = CQUtil::makeWidget<CQCheckBox>("edit");
 
       layout_->addWidget(check_);
     }
@@ -133,7 +133,7 @@ class CQChartsParamEdit : public QFrame {
  private:
   QHBoxLayout* layout_ { nullptr };
   CQLineEdit*  edit_   { nullptr };
-  QCheckBox*   check_  { nullptr };
+  CQCheckBox*  check_  { nullptr };
   QComboBox*   combo_  { nullptr };
   CQColorEdit* color_  { nullptr };
 };
@@ -320,7 +320,7 @@ addFoldFrame()
 
   foldColumnEdit_ = addLineEdit(foldWidgetsLayout, foldRow, "Column", "column");
 
-  foldAutoCheck_ = CQUtil::makeWidget<QCheckBox>("foldAuto");
+  foldAutoCheck_ = CQUtil::makeWidget<CQCheckBox>("foldAuto");
 
   foldAutoCheck_->setText("Auto");
   foldAutoCheck_->setChecked(true);

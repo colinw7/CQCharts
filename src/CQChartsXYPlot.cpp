@@ -889,9 +889,9 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsXYPlot::createObjs");
 
-  CQChartsXYPlot *th = const_cast<CQChartsXYPlot *>(this);
+  NoUpdate noUpdate(this);
 
-  NoUpdate noUpdate(th);
+  CQChartsXYPlot *th = const_cast<CQChartsXYPlot *>(this);
 
   //---
 

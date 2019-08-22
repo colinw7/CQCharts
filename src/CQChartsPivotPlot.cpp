@@ -458,9 +458,7 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsPivotPlot::createObjs");
 
-  CQChartsPivotPlot *th = const_cast<CQChartsPivotPlot *>(this);
-
-  NoUpdate noUpdate(th);
+  NoUpdate noUpdate(this);
 
   //---
 

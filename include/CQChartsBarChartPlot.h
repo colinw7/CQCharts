@@ -451,9 +451,11 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   void addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns,
                     CQChartsGeom::Range &dataRange) const;
 
-  void initRangeAxes();
+  void initRangeAxes() const;
+  void initRangeAxesI();
 
-  void initObjAxes();
+  void initObjAxes() const;
+  void initObjAxesI();
 
  private:
   using ValueSets     = std::vector<CQChartsBarChartValueSet>;
@@ -483,8 +485,11 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   }
 
  private:
+  void initGroupValueSet() const;
+
   const CQChartsBarChartValueSet *groupValueSet(int groupId) const;
-  CQChartsBarChartValueSet *groupValueSet(int groupId);
+
+  CQChartsBarChartValueSet *groupValueSetI(int groupId);
 
  private:
   struct DotLineData {
@@ -499,8 +504,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   bool           percent_      { false };            //!< percent values
   bool           colorBySet_   { false };            //!< color bars by set or value
   DotLineData    dotLineData_;                       //!< dot line data
-  int            numVisible_   { 0 };                //!< number of visible bars
-  double         barWidth_     { 1.0 };              //!< bar width
+  mutable double barWidth_     { 1.0 };              //!< minimum bar width
   ValueData      valueData_;                         //!< value data
 };
 

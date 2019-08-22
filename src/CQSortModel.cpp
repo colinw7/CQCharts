@@ -4,6 +4,8 @@ CQSortModel::
 CQSortModel(QAbstractItemModel *model) :
  QSortFilterProxyModel()
 {
+  setSortRole(Qt::EditRole);
+
   setSourceModel(model);
 }
 

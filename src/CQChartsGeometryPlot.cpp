@@ -511,9 +511,7 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsGeometryPlot::createObjs");
 
-  CQChartsGeometryPlot *th = const_cast<CQChartsGeometryPlot *>(this);
-
-  NoUpdate noUpdate(th);
+  NoUpdate noUpdate(this);
 
   //---
 

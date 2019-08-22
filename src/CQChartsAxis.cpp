@@ -262,7 +262,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   addStyleProp(ticksLabelTextPath, "axesTickLabelTextData"   , "style",
                "Axis tick label text style", true);
-  addStyleProp(ticksLabelTextPath, "axesTickLabelTextVisible", "visible",
+  addProp     (ticksLabelTextPath, "axesTickLabelTextVisible", "visible",
                "Axis tick label text visible");
   addStyleProp(ticksLabelTextPath, "axesTickLabelTextColor"  , "color",
                "Axis tick label text color");
@@ -281,11 +281,11 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   QString labelPath     = path + "/label";
   QString labelTextPath = labelPath + "/text";
 
-  addProp(labelTextPath, "label", "string" , "Axis label text string");
+  addProp(labelTextPath, "label", "string", "Axis label text string");
 
   addStyleProp(labelTextPath, "axesLabelTextData"   , "style"  ,
                "Axis label text style", true);
-  addStyleProp(labelTextPath, "axesLabelTextVisible", "visible", "Axis label text visible");
+  addProp     (labelTextPath, "axesLabelTextVisible", "visible", "Axis label text visible");
   addStyleProp(labelTextPath, "axesLabelTextColor"  , "color"  , "Axis label text color");
   addStyleProp(labelTextPath, "axesLabelTextAlpha"  , "alpha"  , "Axis label text alpha");
   addStyleProp(labelTextPath, "axesLabelTextFont"   , "font"   , "Axis label text font");

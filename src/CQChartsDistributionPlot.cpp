@@ -1462,7 +1462,7 @@ createObjs(PlotObjs &objs) const
 
   CQChartsDistributionPlot *th = const_cast<CQChartsDistributionPlot *>(this);
 
-  NoUpdate noUpdate(const_cast<CQChartsDistributionPlot *>(this));
+  NoUpdate noUpdate(this);
 
   //---
 

@@ -1185,7 +1185,7 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsBoxPlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsBoxPlot *>(this));
+  NoUpdate noUpdate(this);
 
   //---
 

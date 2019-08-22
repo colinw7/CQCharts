@@ -321,7 +321,7 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsAdjacencyPlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsAdjacencyPlot *>(this));
+  NoUpdate noUpdate(this);
 
   //---
 

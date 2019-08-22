@@ -388,9 +388,9 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsTreeMapPlot::createObjs");
 
-  CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
+  NoUpdate noUpdate(this);
 
-  NoUpdate noUpdate(th);
+  CQChartsTreeMapPlot *th = const_cast<CQChartsTreeMapPlot *>(this);
 
   //---
 

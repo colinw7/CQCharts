@@ -58,6 +58,13 @@ addProperties()
     return &(this->addProperty(path, this, name, alias)->setDesc(desc));
   };
 
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    return item;
+  };
+
   //---
 
   // columns
@@ -80,7 +87,7 @@ addProperties()
 
   addLineProperties("stroke", "barStroke", "Bar");
 
-  addProp("stroke", "barCornerSize", "cornerSize", "Bar corner size");
+  addStyleProp("stroke", "barCornerSize", "cornerSize", "Bar corner size");
 
   // color map
   addColorMapProperties();

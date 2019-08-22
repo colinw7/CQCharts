@@ -270,9 +270,9 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsSunburstPlot::createObjs");
 
-  CQChartsSunburstPlot *th = const_cast<CQChartsSunburstPlot *>(this);
+  NoUpdate noUpdate(this);
 
-  NoUpdate noUpdate(th);
+  CQChartsSunburstPlot *th = const_cast<CQChartsSunburstPlot *>(this);
 
   //---
 

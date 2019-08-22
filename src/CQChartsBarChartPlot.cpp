@@ -321,9 +321,7 @@ calcRange() const
 {
   CQPerfTrace trace("CQChartsBarChartPlot::calcRange");
 
-  CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
-
-  NoUpdate noUpdate(th);
+  NoUpdate noUpdate(this);
 
   //---
 
@@ -342,7 +340,7 @@ calcRange() const
 
   //---
 
-  th->valueData_.clear();
+  initGroupValueSet();
 
   //---
 
@@ -432,7 +430,7 @@ calcRange() const
 
   //---
 
-  th->initRangeAxes();
+  initRangeAxes();
 
   //---
 
@@ -441,7 +439,16 @@ calcRange() const
 
 void
 CQChartsBarChartPlot::
-initRangeAxes()
+initRangeAxes() const
+{
+  CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
+
+  th->initRangeAxesI();
+}
+
+void
+CQChartsBarChartPlot::
+initRangeAxesI()
 {
   int ns = (isValueValue() ? valueColumns().count() : 1);
 //int nv = numValueSets();
@@ -619,9 +626,8 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   //---
 
   // get value set for group
-  CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
-
-  CQChartsBarChartValueSet *valueSet = th->groupValueSet(groupInd);
+  CQChartsBarChartValueSet *valueSet =
+    const_cast<CQChartsBarChartValueSet *>(groupValueSet(groupInd));
 
   //---
 
@@ -751,18 +757,27 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   }
 }
 
+void
+CQChartsBarChartPlot::
+initGroupValueSet() const
+{
+  CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
+
+  th->valueData_.clear();
+}
+
 const CQChartsBarChartValueSet *
 CQChartsBarChartPlot::
 groupValueSet(int groupInd) const
 {
   CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
 
-  return th->groupValueSet(groupInd);
+  return th->groupValueSetI(groupInd);
 }
 
 CQChartsBarChartValueSet *
 CQChartsBarChartPlot::
-groupValueSet(int groupInd)
+groupValueSetI(int groupInd)
 {
   auto p = valueData_.valueGroupInd.find(groupInd);
 
@@ -773,6 +788,8 @@ groupValueSet(int groupInd)
 
     return &valueData_.valueSets[ind];
   }
+
+  //---
 
   int ind = numValueSets();
 
@@ -822,9 +839,7 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsBarChartPlot::createObjs");
 
-  CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
-
-  NoUpdate noUpdate(th);
+  NoUpdate noUpdate(this);
 
   //---
 
@@ -833,7 +848,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  th->initObjAxes();
+  initObjAxes();
 
   //---
 
@@ -842,7 +857,7 @@ createObjs(PlotObjs &objs) const
 
   //---
 
-  th->barWidth_ = 1.0;
+  barWidth_ = 1.0;
 
   // start at px1 - bar width
   double bx = -0.5;
@@ -980,9 +995,9 @@ createObjs(PlotObjs &objs) const
         brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx1, value1, bx1 + bw1, value2);
 
       if (! isHorizontal())
-        th->barWidth_ = std::min(th->barWidth_, brect.getWidth());
+        barWidth_ = std::min(barWidth_, brect.getWidth());
       else
-        th->barWidth_ = std::min(th->barWidth_, brect.getHeight());
+        barWidth_ = std::min(barWidth_, brect.getHeight());
 
       CQChartsBarChartObj *barObj = nullptr;
 
@@ -1039,7 +1054,16 @@ createObjs(PlotObjs &objs) const
 
 void
 CQChartsBarChartPlot::
-initObjAxes()
+initObjAxes() const
+{
+  CQChartsBarChartPlot *th = const_cast<CQChartsBarChartPlot *>(this);
+
+  th->initObjAxesI();
+}
+
+void
+CQChartsBarChartPlot::
+initObjAxesI()
 {
   // init axes
   CQChartsAxis *xAxis = mappedXAxis();

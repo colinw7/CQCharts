@@ -240,9 +240,9 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("CQChartsDelaunayPlot::createObjs");
 
-  CQChartsDelaunayPlot *th = const_cast<CQChartsDelaunayPlot *>(this);
+  NoUpdate noUpdate(this);
 
-  NoUpdate noUpdate(th);
+  CQChartsDelaunayPlot *th = const_cast<CQChartsDelaunayPlot *>(this);
 
   //---
 

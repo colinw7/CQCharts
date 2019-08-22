@@ -41,6 +41,8 @@ CQChartsPointPlot::
 CQChartsPointPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model) :
  CQChartsGroupPlot(view, plotType, model)
 {
+  NoUpdate noUpdate(this);
+
   // create a data label (shared state for all data labels)
   dataLabel_ = new CQChartsDataLabel(this);
 

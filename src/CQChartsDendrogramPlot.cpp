@@ -325,7 +325,7 @@ createObjs(PlotObjs &objs) const
 {
   CQPerfTrace trace("QChartsDendrogramPlot::createObjs");
 
-  NoUpdate noUpdate(const_cast<CQChartsDendrogramPlot *>(this));
+  NoUpdate noUpdate(this);
 
   //---
 
