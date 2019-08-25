@@ -1,6 +1,8 @@
 #include <CQChartsColor.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyView.h>
+#include <CQColors.h>
+#include <CQColorsPalette.h>
 #include <CQTclUtil.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsColor, toString, fromString)
@@ -26,35 +28,67 @@ colorStr() const
   QStringList strs;
 
   if      (type() == Type::PALETTE) {
-    if (ind() < 0)
-      strs << "palette";
-    else
+    if      (hasPaletteIndex())
       strs << QString("palette#%1").arg(ind());
+    else if (hasPaletteName()) {
+      QString name;
+
+      if (getPaletteName(name))
+        strs << QString("palette#%1").arg(name);
+      else
+        strs << "palette";
+    }
+    else
+      strs << "palette";
   }
   else if (type() == Type::PALETTE_VALUE) {
-    if (ind() < 0)
-      strs << "palette";
-    else
+    if      (hasPaletteIndex())
       strs << QString("palette#%1").arg(ind());
+    else if (hasPaletteName()) {
+      QString name;
 
-    strs << QString("%1").arg(value());
+      if (getPaletteName(name))
+        strs << QString("palette#%1").arg(name);
+      else
+        strs << "palette";
+    }
+    else
+      strs << "palette";
+
+    strs << QString::number(value());
 
     if (isScale())
       strs << "s";
   }
   else if (type() == Type::INDEXED) {
-    if (ind() < 0)
-      strs << "ind_palette";
-    else
+    if      (hasPaletteIndex())
       strs << QString("ind_palette#%1").arg(ind());
+    else if (hasPaletteName()) {
+      QString name;
+
+      if (getPaletteName(name))
+        strs << QString("ind_palette#%1").arg(name);
+      else
+        strs << "ind_palette";
+    }
+    else
+      strs << "ind_palette";
   }
   else if (type() == Type::INDEXED_VALUE) {
-    if (ind() < 0)
-      strs << "ind_palette";
-    else
+    if      (hasPaletteIndex())
       strs << QString("ind_palette#%1").arg(ind());
+    else if (hasPaletteName()) {
+      QString name;
 
-    strs << QString("%1").arg(value());
+      if (getPaletteName(name))
+        strs << QString("ind_palette#%1").arg(name);
+      else
+        strs << "ind_palette";
+    }
+    else
+      strs << "ind_palette";
+
+    strs << QString::number(value());
 
     if (isScale())
       strs << "s";
@@ -63,7 +97,22 @@ colorStr() const
     strs << "interface";
   }
   else if (type() == Type::INTERFACE_VALUE) {
-    strs << "interface" << QString("%1").arg(value());
+    strs << "interface" << QString::number(value());
+  }
+  else if (type() == Type::MODEL) {
+    int r, g, b;
+
+    decodeModelRGB(ind(), r, g, b);
+
+    strs << "model" << QString::number(r) << QString::number(g) << QString::number(b);
+  }
+  else if (type() == Type::MODEL_VALUE) {
+    int r, g, b;
+
+    decodeModelRGB(ind(), r, g, b);
+
+    strs << "model" << QString::number(r) << QString::number(g) << QString::number(b) <<
+            QString::number(value());
   }
   else {
     strs << color().name();
@@ -135,7 +184,11 @@ setColorStr(const QString &str)
     bool ok;
 
     long ind = CQChartsUtil::toInt(rhs, ok);
-    if (! ok) return false;
+
+    if (! ok || ind < 0) {
+      if (! paletteNameInd(rhs, ind))
+        return false;
+    }
 
     if (strs.length() > 1) {
       bool ok;
@@ -171,7 +224,11 @@ setColorStr(const QString &str)
     bool ok;
 
     long ind = CQChartsUtil::toInt(rhs, ok);
-    if (! ok) return false;
+
+    if (! ok || ind < 0) {
+      if (! paletteNameInd(rhs, ind))
+        return false;
+    }
 
     if (strs.length() > 1) {
       bool ok;
@@ -196,6 +253,34 @@ setColorStr(const QString &str)
     else
       setValue(Type::INTERFACE, 0.0);
   }
+  else if (strs[0] == "model") {
+    if (strs.length() < 4)
+      return false;
+
+    bool ok;
+
+    int r = CQChartsUtil::toInt(strs[1], ok);
+    if (! ok) return false;
+
+    int g = CQChartsUtil::toInt(strs[2], ok);
+    if (! ok) return false;
+
+    int b = CQChartsUtil::toInt(strs[3], ok);
+    if (! ok) return false;
+
+    int rgb = encodeModelRGB(r, g, b);
+
+    if (strs.length() > 4) {
+      bool ok;
+
+      double value = CQChartsUtil::toReal(strs[4], ok);
+      if (! ok) return false;
+
+      setIndValue(Type::MODEL_VALUE, rgb, value);
+    }
+    else
+      setIndValue(Type::MODEL, rgb, 0.0);
+  }
   else {
     QColor c(strs[0]);
 
@@ -204,6 +289,51 @@ setColorStr(const QString &str)
 
     setColor(c);
   }
+
+  return true;
+}
+
+bool
+CQChartsColor::
+getPaletteName(QString &name) const
+{
+  int paletteInd = -ind() - 2;
+
+  CQColorsPalette *palette = CQColorsMgrInst->getIndPalette(paletteInd);
+  if (! palette) return false;
+
+  name = palette->name();
+
+  return true;
+}
+
+bool
+CQChartsColor::
+setPaletteName(const QString &name)
+{
+  assert(type_ == Type::PALETTE || type_ == Type::PALETTE_VALUE ||
+         type_ == Type::INDEXED || type_ == Type::INDEXED_VALUE);
+
+  long ind;
+
+  if (! paletteNameInd(name, ind))
+    return false;
+
+  ind_ = ind;
+
+  return true;
+}
+
+bool
+CQChartsColor::
+paletteNameInd(const QString &name, long &ind)
+{
+  int paletteInd = CQColorsMgrInst->getNamedPaletteInd(name);
+
+  if (paletteInd < 0)
+    return false;
+
+  ind = -paletteInd - 2;
 
   return true;
 }

@@ -65,7 +65,7 @@ class CQChartsTable : public CQTableView {
 
   void filterChanged();
 
-  void selectionChanged();
+  void selectionHasChanged();
 
  private slots:
   void modelTypeChangedSlot(int);

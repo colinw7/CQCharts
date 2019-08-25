@@ -112,7 +112,7 @@ class CQTabSplitSplitterHandle : public QSplitterHandle {
   int barSize() const { return barSize_; }
   void setBarSize(int i) { barSize_ = i; }
 
-  void contextMenuEvent(QContextMenuEvent *e);
+  void contextMenuEvent(QContextMenuEvent *e) override;
 
   void paintEvent(QPaintEvent *) override;
 

@@ -160,3 +160,12 @@ cancelSlot()
 {
   hide();
 }
+
+QSize
+CQChartsManageModelsDlg::
+sizeHint() const
+{
+  QFontMetrics fm(font());
+
+  return QSize(fm.width("X")*60, fm.height()*40);
+}

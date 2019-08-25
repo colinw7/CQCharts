@@ -17,6 +17,7 @@ CQChartsPlotParameter(const QString &name, const QString &desc, const Type &type
   addProperty("def_value"    , "defValue"       , "");
   addProperty("tip"          , "tip"            , "");
   addProperty("column"       , "isColumn"       , "");
+  addProperty("hidden"       , "isHidden"       , "");
   addProperty("multiple"     , "isMultiple"     , "");
   addProperty("optional"     , "isOptional"     , "");
   addProperty("required"     , "isRequired"     , "");

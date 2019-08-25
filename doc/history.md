@@ -944,3 +944,6 @@
  + Add export model to csv with meta data
 # 8/22/2019
  + adjust const for no update
+# 8/25/2019
+ + add rgb model support for CQChartsColor
+ + add stops for table heatmap

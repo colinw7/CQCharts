@@ -2,6 +2,7 @@
 #define CQChartsColumnType_H
 
 #include <CQChartsColor.h>
+#include <CQChartsColorStops.h>
 #include <CQChartsUtil.h>
 #include <CQBaseModelTypes.h>
 #include <QObject>
@@ -10,7 +11,6 @@
 
 class CQChartsModelColumnDetails;
 class CQCharts;
-class CQColorsPalette;
 
 /*!
  * \brief column type parameter
@@ -80,11 +80,6 @@ class CQChartsColumnType {
     HEATMAP
   };
 
-  struct ColorPalette {
-    CQChartsColor    color;
-    CQColorsPalette* palette { nullptr };
-  };
-
  public:
   CQChartsColumnType(Type type);
 
@@ -140,8 +135,9 @@ class CQChartsColumnType {
   CQChartsModelColumnDetails *columnDetails(CQCharts *charts, const QAbstractItemModel *model,
                                             const CQChartsColumn &column) const;
 
-  ColorPalette drawPalette(const CQChartsNameValues &nameValues) const;
-  DrawType     drawType   (const CQChartsNameValues &nameValues) const;
+  CQChartsColor      drawColor(const CQChartsNameValues &nameValues) const;
+  DrawType           drawType (const CQChartsNameValues &nameValues) const;
+  CQChartsColorStops drawStops(const CQChartsNameValues &nameValues) const;
 
   bool nameValueString(const CQChartsNameValues &nameValues,
                        const QString &name, QString &value) const;

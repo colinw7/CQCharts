@@ -168,14 +168,11 @@ class CQCharts : public QObject {
   QColor interpPaletteColorValue(int ig, int ng, int i, int n, bool scale=false) const;
   QColor interpPaletteColorValue(int ig, int ng, double r, bool scale=false) const;
 
- private:
-  QColor interpIndPaletteColorValue(int ind, int ig, int ng, double r, bool scale) const;
-
- public:
   QColor indexPaletteColor(int i, int n) const;
   QColor indexIndPaletteColor(int ind, int i, int n) const;
 
- public:
+  //---
+
   QColor interpThemeColor(const ColorInd &ind) const;
   QColor interpThemeColor(int i, int n) const;
   QColor interpThemeColor(double r) const;
@@ -187,10 +184,28 @@ class CQCharts : public QObject {
   const CQColorsTheme *theme() const;
   CQColorsTheme *theme();
 
-  CQChartsColor adjustDefaultPalette(const CQChartsColor &c, const QString &defaultPalette) const;
+  //---
+
+  QColor interpModelColor(const CQChartsColor &c, double value) const;
 
   //---
 
+  CQChartsColor adjustDefaultPalette(const CQChartsColor &c, const QString &defaultPalette) const;
+
+ private:
+  QColor interpIndPaletteColorValue(int ind, int ig, int ng,
+                                    double r, bool scale) const;
+
+  QColor interpNamePaletteColorValue(const QString &name, int ig, int ng,
+                                     double r, bool scale) const;
+
+  QColor interpNamePaletteColor(const QString &name, double r, bool scale) const;
+
+  QColor indexNamePaletteColor(const QString &name, int ig, int ng) const;
+
+  //---
+
+ public:
   CQChartsModelData *initModelData(ModelP &model);
 
   CQChartsModelData *getModelData(const QAbstractItemModel *model) const;

@@ -622,10 +622,6 @@ CQChartsColumnType(Type type) :
   addParam("key", Type::BOOLEAN, (int) CQBaseModelRole::Key, "Is Key", false)->
    setDesc("Is Column a key for grouping");
 
-  // specific palette to get color from
-  addParam("palette", Type::STRING, "Color Palette", "")->
-   setDesc("Color Palette Name");
-
   // draw color for table view
   addParam("draw_color", Type::COLOR, "Table Draw Color", "")->
    setDesc("Base color for table value coloring");
@@ -634,6 +630,10 @@ CQChartsColumnType(Type type) :
   addParam("draw_type", Type::ENUM, "Table Draw Type", "")->
    setDesc("Table value draw type (heatmap or barchart)").
    addValue("heatmap").addValue("barchart");
+
+  // draw stops for table view
+  addParam("draw_stops", Type::STRING, "Table Draw Stops", "")->
+   setDesc("Table value draw stop values");
 }
 
 CQChartsColumnType::
@@ -707,28 +707,21 @@ columnDetails(CQCharts *charts, const QAbstractItemModel *model, const CQChartsC
   return details->columnDetails(column);
 }
 
-CQChartsColumnType::ColorPalette
+CQChartsColor
 CQChartsColumnType::
-drawPalette(const CQChartsNameValues &nameValues) const
+drawColor(const CQChartsNameValues &nameValues) const
 {
-  ColorPalette colorPalette;
-
-  QString paletteName;
-
-  if (! nameValueString(nameValues, "palette", paletteName))
-    paletteName = "";
-
-  if (paletteName.simplified().length())
-    colorPalette.palette = CQColorsMgrInst->getNamedPalette(paletteName);
-
   QString colorName;
 
   if (! nameValueString(nameValues, "draw_color", colorName))
     colorName = "";
 
-  colorPalette.color = CQChartsColor(colorName);
+  CQChartsColor color;
 
-  return colorPalette;
+  if (colorName.simplified().length())
+    color = CQChartsColor(colorName);
+
+  return color;
 }
 
 CQChartsColumnType::DrawType
@@ -750,6 +743,23 @@ drawType(const CQChartsNameValues &nameValues) const
     return CQChartsColumnType::DrawType::HEATMAP;
   else
     return CQChartsColumnType::DrawType::NORMAL;
+}
+
+CQChartsColorStops
+CQChartsColumnType::
+drawStops(const CQChartsNameValues &nameValues) const
+{
+  QString stopsStr;
+
+  if (! nameValueString(nameValues, "draw_stops", stopsStr))
+    stopsStr = "";
+
+  CQChartsColorStops stops;
+
+  if (stopsStr.simplified().length())
+    stops = CQChartsColorStops(stopsStr);
+
+  return stops;
 }
 
 bool
@@ -1710,6 +1720,10 @@ CQChartsColumnColorType::
 CQChartsColumnColorType() :
  CQChartsColumnType(Type::COLOR)
 {
+  // specific palette to get color from
+  addParam("palette", Type::STRING, "Color Palette", "")->
+   setDesc("Color Palette Name");
+
   // map from model value to 0.0 -> 1.0
   addParam("mapped", Type::BOOLEAN, "Value Mapped", false)->
    setDesc("Does value need to be remapped to 0.0->1.0");

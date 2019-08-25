@@ -56,9 +56,9 @@ description() const
     h3("Summary").
      p("A pivot plot displays the values of a column grouped in one or two "
        "dimensions using keys generated from the x and/or y columns.").
-     p("The values can be summed, averages or counted to produced the "
+     p("The values can be summed, averaged or counted to produced the "
        "displayed valued.").
-     p("The plot can be a barchart (side by side ot stacked), a line chart "
+     p("The plot can be a barchart (side by side to stacked), a line chart "
        "with optional fill under, or a grid plot").
     h3("Limitations").
      p("Logaritmic axes are not supported.").
@@ -219,8 +219,8 @@ addProperties()
   addProp("options", "valueType", "valueType", "Value type");
 
   addProp("options", "horizontal", "horizontal", "Draw horizontal");
-  addProp("options", "xSorted"   , "xSorted"   , "Are X Keys Sorted");
-  addProp("options", "ySorted"   , "ySorted"   , "Are Y Keys Sorted");
+  addProp("options", "xSorted"   , "xSorted"   , "X keys are sorted");
+  addProp("options", "ySorted"   , "ySorted"   , "Y keys are sorted");
   addProp("options", "gridBars"  , "gridBars"  , "Draw bars in grid cells");
 
   // fill
@@ -527,7 +527,7 @@ createObjs(PlotObjs &objs) const
   using ColHeights    = std::map<int,double>;
   using RowColHeights = std::map<int,ColHeights>;
 
-  RowColHeights rowColHeights; // cumulatitve heights
+  RowColHeights rowColHeights; // cumulative heights
 
   if (plotType() == PlotType::STACKED_BAR) {
     for (int iv = 0; iv < nv; ++iv) {
@@ -605,7 +605,7 @@ createObjs(PlotObjs &objs) const
             rect = CQChartsGeom::makeDirBBox(isHorizontal(),
                      x1, 0.0, x1 + dx, value);
 
-          obj = new CQChartsPivotBarObj(this, rect, inds, ir, ic, value);
+          obj = new CQChartsPivotBarObj(this, rect, ind, inds, ir, ic, value);
         }
         // bar stacked
         else if (plotType() == PlotType::STACKED_BAR) {
@@ -623,7 +623,7 @@ createObjs(PlotObjs &objs) const
             rect = CQChartsGeom::makeDirBBox(isHorizontal(),
                      ih - 0.5, oldValue, ih + 0.5, newValue);
 
-          obj = new CQChartsPivotBarObj(this, rect, inds, ir, ic, value);
+          obj = new CQChartsPivotBarObj(this, rect, ind, inds, ir, ic, value);
         }
 
         if (obj)
@@ -1063,10 +1063,10 @@ write(std::ostream &os, const QString &varName, const QString &modelName) const
 
 CQChartsPivotBarObj::
 CQChartsPivotBarObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rect,
-                    const ModelIndices &inds, const ColorInd &ir, const ColorInd &ic,
-                    double value) :
- CQChartsPlotObj(const_cast<CQChartsPivotPlot *>(plot), rect, ColorInd(), ic, ir),
- plot_(plot), value_(value)
+                    const QModelIndex &ind, const ModelIndices &inds, const ColorInd &ir,
+                    const ColorInd &ic, double value) :
+ CQChartsPlotObj(const_cast<CQChartsPivotPlot *>(plot), rect, ColorInd(), ir, ic),
+ plot_(plot), value_(value), ind_(ind)
 {
   setModelInds(inds);
 }
@@ -1084,8 +1084,8 @@ QString
 CQChartsPivotBarObj::
 calcTipId() const
 {
-  int ic = modelInd().column();
-  int ir = modelInd().row();
+  int ic = ind_.column();
+  int ir = ind_.row();
 
   CQChartsTableTip tableTip;
 
@@ -1156,7 +1156,7 @@ draw(QPainter *painter)
   //---
 
   // calc bar color
-  ColorInd colorInd(ig_);
+  ColorInd colorInd = calcColorInd();
 
   //---
 
@@ -1165,7 +1165,7 @@ draw(QPainter *painter)
   QBrush brush;
 
   QColor bc = plot_->interpBarStrokeColor(colorInd);
-  QColor fc = plot_->interpBarFillColor(colorInd);
+  QColor fc = plot_->interpBarFillColor  (colorInd);
 
   plot_->setPenBrush(pen, brush,
     plot_->isBarStroked(), bc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(),
@@ -1312,7 +1312,7 @@ draw(QPainter *painter)
   //---
 
   // calc bar color
-  ColorInd colorInd(ig_);
+  ColorInd colorInd = calcColorInd();
 
   //---
 
@@ -1505,7 +1505,7 @@ draw(QPainter *painter)
   //---
 
   // calc bar color
-  ColorInd colorInd(ig_);
+  ColorInd colorInd = calcColorInd();
 
   //---
 
@@ -1552,13 +1552,10 @@ CQChartsPivotCellObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &re
   // get column palette and bg color
   CQChartsModelColumnDetails *columnDetails = plot_->columnDetails(modelInd().column());
 
-  const CQChartsColumnType::ColorPalette &colorPalette = columnDetails->tableDrawPalette();
+  color_ = columnDetails->tableDrawColor();
 
-  palette_ = colorPalette.palette;
-  color_   = colorPalette.color;
-
-  if (! palette_ && ! color_.isValid())
-    palette_ = CQColorsMgrInst->getNamedPalette("greens");
+  if (! color_.isValid())
+    color_ = CQChartsColor(CQChartsColor::Type::PALETTE);
 }
 
 QString
@@ -1627,11 +1624,7 @@ draw(QPainter *painter)
   // get column palette and bg color
   QColor hbg, vbg;
 
-  if      (palette_) {
-    hbg = palette_->getColor(hnorm_);
-    vbg = palette_->getColor(vnorm_);
-  }
-  else if (color_.isValid()) {
+  if (color_.isValid()) {
     QColor bg1 = plot_->charts()->interpColor(color_, 0, 1);
     QColor bg2 = plot_->interpPlotFillColor(ColorInd());
 
@@ -1640,7 +1633,7 @@ draw(QPainter *painter)
   }
 
   // get bar color
-  ColorInd colorInd(ig_);
+  ColorInd colorInd = calcColorInd();
 
   //---
 

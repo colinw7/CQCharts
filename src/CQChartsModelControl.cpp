@@ -4,6 +4,7 @@
 #include <CQChartsExprModel.h>
 #include <CQChartsModelFilter.h>
 #include <CQChartsModelUtil.h>
+#include <CQChartsColorEdit.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -14,7 +15,6 @@
 #include <CQGnuDataModel.h>
 #include <CQJsonModel.h>
 #include <CQDataModel.h>
-#include <CQColorEdit.h>
 #include <CQLineEdit.h>
 #include <CQCheckBox.h>
 #include <CQUtil.h>
@@ -86,12 +86,14 @@ class CQChartsParamEdit : public QFrame {
     if (! color_) {
       reset();
 
-      color_ = CQUtil::makeWidget<CQColorEdit>("edit");
+      color_ = CQUtil::makeWidget<CQChartsColorLineEdit>("edit");
 
       layout_->addWidget(color_);
     }
 
-    color_->setColor(str);
+    CQChartsColor c(str);
+
+    color_->setColor(c);
   }
 
   QString getString() const {
@@ -115,7 +117,7 @@ class CQChartsParamEdit : public QFrame {
   QString getColor() const {
     assert(color_);
 
-    return color_->colorName();
+    return color_->color().toString();
   }
 
   void reset() {
@@ -131,11 +133,11 @@ class CQChartsParamEdit : public QFrame {
   }
 
  private:
-  QHBoxLayout* layout_ { nullptr };
-  CQLineEdit*  edit_   { nullptr };
-  CQCheckBox*  check_  { nullptr };
-  QComboBox*   combo_  { nullptr };
-  CQColorEdit* color_  { nullptr };
+  QHBoxLayout*           layout_ { nullptr };
+  CQLineEdit*            edit_   { nullptr };
+  CQCheckBox*            check_  { nullptr };
+  QComboBox*             combo_  { nullptr };
+  CQChartsColorLineEdit* color_  { nullptr };
 };
 
 //---

@@ -46,7 +46,7 @@ class CQChartsTree : public CQTreeView {
 
   void filterChanged();
 
-  void selectionChanged();
+  void selectionHasChanged();
 
  private slots:
   void modelTypeChangedSlot(int);

@@ -20,31 +20,27 @@ class CQChartsPath;
 class CQStrParse;
 class QPainter;
 
+// conversion
+
 namespace CQChartsUtil {
 
 double toReal(const QString &str, bool &ok);
 bool   toReal(const QString &str, double &r);
 
-//------
+//---
 
 long toInt(const QString &str, bool &ok);
 bool toInt(const QString &str, long &i);
 
 long toInt(const char *str, bool &ok, const char **rstr);
 
-//------
-
-QString formatVar    (const QVariant &var, const QString &fmt);
-QString formatReal   (double r, const QString &fmt="%g" );
-QString formatInteger(long   i, const QString &fmt="%ld");
-
-//------
+//---
 
 QString toString(const std::vector<CQChartsColumn> &columns);
 
 bool fromString(const QString &str, std::vector<CQChartsColumn> &columns);
 
-//------
+//---
 
 inline QPointF toQPoint(const CQChartsGeom::Point &point) {
   return QPointF(point.x, point.y);
@@ -101,15 +97,47 @@ inline CQChartsGeom::Range bboxRange(const CQChartsGeom::BBox &bbox) {
     return CQChartsGeom::Range();
 }
 
+}
+
 //------
 
+// formatting
+
+namespace CQChartsUtil {
+
+QString formatVar    (const QVariant &var, const QString &fmt);
+QString formatReal   (double r, const QString &fmt="%g" );
+QString formatInteger(long   i, const QString &fmt="%ld");
+
+}
+
+//------
+
+// geometry
+
+namespace CQChartsUtil {
+
+// intersect lines
 bool intersectLines(const QPointF &l1s, const QPointF &l1e,
                     const QPointF &l2s, const QPointF &l2e, QPointF &pi);
 bool intersectLines(double x11, double y11, double x21, double y21,
                     double x12, double y12, double x22, double y22,
                     double &xi, double &yi);
 
+// distance between two points
+double PointPointDistance(const CQChartsGeom::Point &point1, const CQChartsGeom::Point &point2);
+
+// distance between point and line
+bool PointLineDistance(const CQChartsGeom::Point &point, const CQChartsGeom::Point &lineStart,
+                       const CQChartsGeom::Point &lineEnd, double *dist);
+
+}
+
 //---
+
+// colors
+
+namespace CQChartsUtil {
 
 QColor bwColor(const QColor &c);
 
@@ -118,11 +146,13 @@ QColor invColor(const QColor &c);
 QColor blendColors(const QColor &c1, const QColor &c2, double f);
 QColor blendColors(const std::vector<QColor> &colors);
 
+QColor rgbToColor(double r, double g, double b);
+
+}
+
 //------
 
-void penSetLineDash(QPen &pen, const CQChartsLineDash &dash);
-
-//------
+namespace CQChartsUtil {
 
 inline CQChartsGeom::Point AngleToPoint(const CQChartsGeom::Point &c,
                                         double xr, double yr, double a) {
@@ -138,16 +168,11 @@ inline CQChartsGeom::Point AngleToPoint(const CQChartsGeom::Point &c, double r, 
   return AngleToPoint(c, r, r, a);
 }
 
-//------
-
-// distance between two points
-double PointPointDistance(const CQChartsGeom::Point &point1, const CQChartsGeom::Point &point2);
-
-// distance between point and line
-bool PointLineDistance(const CQChartsGeom::Point &point, const CQChartsGeom::Point &lineStart,
-                       const CQChartsGeom::Point &lineEnd, double *dist);
+}
 
 //------
+
+namespace CQChartsUtil {
 
 bool fileToLines(const QString &filename, QStringList &lines, int maxLines=-1);
 
@@ -250,6 +275,8 @@ bool formatStringInRect(const QString &str, const QFont &font,
 #include <CQChartsLineDash.h>
 
 namespace CQChartsUtil {
+
+void penSetLineDash(QPen &pen, const CQChartsLineDash &dash);
 
 void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha=1.0,
             double strokeWidth=0.0, const CQChartsLineDash &strokeDash=CQChartsLineDash());

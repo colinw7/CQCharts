@@ -12,7 +12,6 @@ class CQChartsModelData;
 class CQCharts;
 class CQChartsValueSet;
 
-class CQColorsPalette;
 class QAbstractItemModel;
 
 /*!
@@ -108,7 +107,6 @@ class CQChartsModelColumnDetails {
  public:
   using VariantList   = QList<QVariant>;
   using TableDrawType = CQChartsColumnType::DrawType;
-  using ColorPalette  = CQChartsColumnType::ColorPalette;
 
  public:
   CQChartsModelColumnDetails(CQChartsModelDetails *details, const CQChartsColumn &column);
@@ -181,11 +179,14 @@ class CQChartsModelColumnDetails {
 
   double map(const QVariant &var) const;
 
-  const ColorPalette &tableDrawPalette() const { return tableDrawPalette_; }
-  void setTableDrawPalette(const ColorPalette &p) { tableDrawPalette_ = p; }
+  const CQChartsColor &tableDrawColor() const { return tableDrawColor_; }
+  void setTableDrawPalette(const CQChartsColor &c) { tableDrawColor_ = c; }
 
   const TableDrawType &tableDrawType() const { return tableDrawType_; }
   void setTableDrawType(const TableDrawType &t) { tableDrawType_ = t; }
+
+  const CQChartsColorStops &tableDrawStops() const { return tableDrawStops_; }
+  void setTableDrawType(const CQChartsColorStops &s) { tableDrawStops_ = s; }
 
   bool columnNameValue(const QString &name, QString &value) const;
 
@@ -241,8 +242,9 @@ class CQChartsModelColumnDetails {
   VariantInds           valueInds_;                   //!< unique values
 
   // table render data
-  ColorPalette          tableDrawPalette_;
+  CQChartsColor         tableDrawColor_;
   TableDrawType         tableDrawType_   { TableDrawType::HEATMAP };
+  CQChartsColorStops    tableDrawStops_;
 
   // mutex
   mutable std::mutex    mutex_; //!< mutex

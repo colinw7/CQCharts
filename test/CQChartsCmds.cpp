@@ -5510,7 +5510,7 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
       annotation = plot->addRectangleAnnotation(rect);
 
     if (annotation)
-      annotation->setRect(start, end);
+      annotation->setRectangle(start, end);
   }
   else if (argv.hasParseArg("rectangle")) {
     CQChartsRect rect = argv.getParseRect(view, plot, "rectangle");
@@ -5529,7 +5529,7 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
       annotation = plot->addRectangleAnnotation(rect);
 
     if (annotation)
-      annotation->setRect(CQChartsPosition(QPointF(0, 0)), CQChartsPosition(QPointF(1, 1)));
+      annotation->setRectangle(CQChartsPosition(QPointF(0, 0)), CQChartsPosition(QPointF(1, 1)));
   }
 
   if (! annotation)

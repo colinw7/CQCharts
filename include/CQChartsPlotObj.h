@@ -59,6 +59,8 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  virtual CQChartsColorType colorType() const { return CQChartsColorType::AUTO; }
+
   const ColorInd &is() const { return is_; }
   void setIs(const ColorInd &is) { is_ = is; }
 

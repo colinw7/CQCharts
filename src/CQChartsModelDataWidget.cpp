@@ -18,6 +18,8 @@ CQChartsModelDataWidget::
 CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
  QFrame(nullptr), charts_(charts), modelData_(modelData)
 {
+  setObjectName("modelData");
+
   QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
 
   //--
@@ -76,7 +78,7 @@ CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
   stack_->addWidget(tree_);
 
   connect(tree_, SIGNAL(columnClicked(int)), this, SLOT(treeColumnClicked(int)));
-  connect(tree_, SIGNAL(selectionChanged()), this, SLOT(treeSelectionChanged()));
+  connect(tree_, SIGNAL(selectionHasChanged()), this, SLOT(treeSelectionChanged()));
 
   //---
 
@@ -88,7 +90,7 @@ CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
   stack_->addWidget(table_);
 
   connect(table_, SIGNAL(columnClicked(int)), this, SLOT(tableColumnClicked(int)));
-  connect(table_, SIGNAL(selectionChanged()), this, SLOT(tableSelectionChanged()));
+  connect(table_, SIGNAL(selectionHasChanged()), this, SLOT(tableSelectionChanged()));
 
   //------
 

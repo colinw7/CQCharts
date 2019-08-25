@@ -48,12 +48,16 @@ class CQChartsColorLineEdit : public CQChartsLineEditBase {
 
 #include <CQChartsEditBase.h>
 
+class CQColorsEditModel;
 class CQRealSpin;
 class CQColorEdit;
 class CQCheckBox;
 
 class QComboBox;
 class QSpinBox;
+class QLabel;
+class QCheckBox;
+class QStackedWidget;
 
 /*!
  * \brief Color edit
@@ -72,12 +76,16 @@ class CQChartsColorEdit : public CQChartsEditBase {
 
   void setNoFocus();
 
+  QSize sizeHint() const override;
+  QSize minimumSizeHint() const override;
+
  signals:
   void colorChanged();
 
  private slots:
   void widgetsToColor();
 
+  void indPalSlot(int ind);
   void updateState();
 
  private:
@@ -86,13 +94,28 @@ class CQChartsColorEdit : public CQChartsEditBase {
   void connectSlots(bool b);
 
  private:
-  CQChartsColor color_;                  //!< color
-  QComboBox*    typeCombo_  { nullptr }; //!< type combo
-  QSpinBox*     indEdit_    { nullptr }; //!< index edit
-  CQRealSpin*   valueEdit_  { nullptr }; //!< value edit
-  CQColorEdit*  colorEdit_  { nullptr }; //!< color edit
-  CQCheckBox*   scaleCheck_ { nullptr }; //!< scale check
-  bool          connected_  { false };   //!< is connected
+  using WidgetLabels = std::map<QWidget*,QWidget*>;
+
+  CQChartsColor      color_;                     //!< color
+  QComboBox*         typeCombo_     { nullptr }; //!< palette index/type combo
+  QComboBox*         indPalCombo_   { nullptr }; //!< type combo
+  QStackedWidget*    indPalStack_   { nullptr }; //!< palette index/type edit stack
+  QSpinBox*          indEdit_       { nullptr }; //!< index edit
+  QComboBox*         paletteEdit_   { nullptr }; //!< palette edit
+  QFrame*            rFrame_        { nullptr }; //!< r edit frame
+  CQColorsEditModel* rEdit_         { nullptr }; //!< r edit
+  QCheckBox*         rNeg_          { nullptr }; //!< r negate
+  QFrame*            gFrame_        { nullptr }; //!< g edit frame
+  CQColorsEditModel* gEdit_         { nullptr }; //!< g edit
+  QCheckBox*         gNeg_          { nullptr }; //!< g negate
+  QFrame*            bFrame_        { nullptr }; //!< b edit frame
+  CQColorsEditModel* bEdit_         { nullptr }; //!< b edit
+  QCheckBox*         bNeg_          { nullptr }; //!< b negate
+  CQRealSpin*        valueEdit_     { nullptr }; //!< value edit
+  CQColorEdit*       colorEdit_     { nullptr }; //!< color edit
+  CQCheckBox*        scaleCheck_    { nullptr }; //!< scale check
+  WidgetLabels       widgetLabels_;              //!< widget labels
+  bool               connected_     { false };   //!< is connected
 };
 
 //------

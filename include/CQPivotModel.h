@@ -9,6 +9,15 @@
 #include <vector>
 #include <cassert>
 
+/*!
+ * \brief pivot model
+ *
+ * . header   is x key names
+ * . column 0 is y key names
+ * . cells    are calculated values for x/y key
+ *
+ * If include totals there is an extra row and column for the column/row totals
+ */
 class CQPivotModel : public CQBaseModel {
   Q_OBJECT
 

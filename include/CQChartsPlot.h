@@ -230,12 +230,12 @@ class CQChartsPlot : public CQChartsObj,
 
  public:
   enum ColorType {
-    AUTO,
-    SET,
-    GROUP,
-    INDEX,
-    X_VALUE,
-    Y_VALUE
+    AUTO    = int(CQChartsColorType::AUTO),
+    SET     = int(CQChartsColorType::SET),
+    GROUP   = int(CQChartsColorType::GROUP),
+    INDEX   = int(CQChartsColorType::INDEX),
+    X_VALUE = int(CQChartsColorType::X_VALUE),
+    Y_VALUE = int(CQChartsColorType::Y_VALUE)
   };
 
   using SelMod = CQChartsSelMod;

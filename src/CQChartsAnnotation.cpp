@@ -205,7 +205,7 @@ writeProperties(std::ostream &os, const QString &varName) const
 
 void
 CQChartsAnnotation::
-initRect()
+initRectangle()
 {
 }
 
@@ -540,7 +540,7 @@ editMove(const CQChartsGeom::Point &p)
   editHandles_->updateBBox(dx, dy);
 
   if (dragSide != CQChartsResizeSide::MOVE)
-    initRect();
+    initRectangle();
 
   setBBox(editHandles_->bbox(), dragSide);
 
@@ -600,10 +600,10 @@ drawEditHandles(QPainter *painter) const
 //---
 
 CQChartsRectangleAnnotation::
-CQChartsRectangleAnnotation(CQChartsView *view, const CQChartsRect &rect) :
- CQChartsAnnotation(view, Type::RECT), rect_(rect)
+CQChartsRectangleAnnotation(CQChartsView *view, const CQChartsRect &rectangle) :
+ CQChartsAnnotation(view, Type::RECT), rectangle_(rectangle)
 {
-  setObjectName(QString("rect.%1").arg(ind()));
+  setObjectName(QString("rectangle.%1").arg(ind()));
 
   setStroked(true);
 
@@ -611,10 +611,10 @@ CQChartsRectangleAnnotation(CQChartsView *view, const CQChartsRect &rect) :
 }
 
 CQChartsRectangleAnnotation::
-CQChartsRectangleAnnotation(CQChartsPlot *plot, const CQChartsRect &rect) :
- CQChartsAnnotation(plot, Type::RECT), rect_(rect)
+CQChartsRectangleAnnotation(CQChartsPlot *plot, const CQChartsRect &rectangle) :
+ CQChartsAnnotation(plot, Type::RECT), rectangle_(rectangle)
 {
-  setObjectName(QString("rect.%1").arg(ind()));
+  setObjectName(QString("rectangle.%1").arg(ind()));
 
   setStroked(true);
 
@@ -628,30 +628,28 @@ CQChartsRectangleAnnotation::
 
 void
 CQChartsRectangleAnnotation::
-setRect(const CQChartsRect &rect)
+setRectangle(const CQChartsRect &rectangle)
 {
-  rect_ = rect;
+  rectangle_ = rectangle;
 
   emit dataChanged();
 }
 
 void
 CQChartsRectangleAnnotation::
-setRect(const CQChartsPosition &start, const CQChartsPosition &end)
+setRectangle(const CQChartsPosition &start, const CQChartsPosition &end)
 {
-  QPointF pstart, pend;
-
   if (start.units() != end.units()) {
-    pstart = positionToParent(start);
-    pend   = positionToParent(end);
+    QPointF pstart = positionToParent(start);
+    QPointF pend   = positionToParent(end);
 
     if      (plot())
-      rect_ = CQChartsRect(QRectF(pstart, pend), CQChartsUnits::PLOT);
+      rectangle_ = CQChartsRect(QRectF(pstart, pend), CQChartsUnits::PLOT);
     else if (view())
-      rect_ = CQChartsRect(QRectF(pstart, pend), CQChartsUnits::VIEW);
+      rectangle_ = CQChartsRect(QRectF(pstart, pend), CQChartsUnits::VIEW);
   }
   else {
-    rect_ = CQChartsRect(QRectF(start.p(), end.p()), start.units());
+    rectangle_ = CQChartsRect(QRectF(start.p(), end.p()), start.units());
   }
 
   emit dataChanged();
@@ -661,9 +659,9 @@ CQChartsPosition
 CQChartsRectangleAnnotation::
 start() const
 {
-  QPointF p(rect_.rect().left(), rect_.rect().top());
+  QPointF p(rectangle_.rect().left(), rectangle_.rect().top());
 
-  return CQChartsPosition(p, rect_.units());
+  return CQChartsPosition(p, rectangle_.units());
 }
 
 void
@@ -674,9 +672,9 @@ setStart(const CQChartsPosition &p)
   QPointF end   = positionToParent(this->end());
 
   if      (plot())
-    rect_ = CQChartsRect(QRectF(start, end), CQChartsUnits::PLOT);
+    rectangle_ = CQChartsRect(QRectF(start, end), CQChartsUnits::PLOT);
   else if (view())
-    rect_ = CQChartsRect(QRectF(start, end), CQChartsUnits::VIEW);
+    rectangle_ = CQChartsRect(QRectF(start, end), CQChartsUnits::VIEW);
 
   emit dataChanged();
 }
@@ -685,9 +683,9 @@ CQChartsPosition
 CQChartsRectangleAnnotation::
 end() const
 {
-  QPointF p(rect_.rect().right(), rect_.rect().bottom());
+  QPointF p(rectangle_.rect().right(), rectangle_.rect().bottom());
 
-  return CQChartsPosition(p, rect_.units());
+  return CQChartsPosition(p, rectangle_.units());
 }
 
 void
@@ -698,9 +696,9 @@ setEnd(const CQChartsPosition &p)
   QPointF end   = positionToParent(p);
 
   if      (plot())
-    rect_ = CQChartsRect(QRectF(start, end), CQChartsUnits::PLOT);
+    rectangle_ = CQChartsRect(QRectF(start, end), CQChartsUnits::PLOT);
   else if (view())
-    rect_ = CQChartsRect(QRectF(start, end), CQChartsUnits::VIEW);
+    rectangle_ = CQChartsRect(QRectF(start, end), CQChartsUnits::VIEW);
 
   emit dataChanged();
 }
@@ -756,9 +754,9 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
   end   = QPointF(std::max(x1, x2), std::max(y1, y2));
 
   if      (plot())
-    rect_ = CQChartsRect(QRectF(start, end), CQChartsUnits::PLOT);
+    rectangle_ = CQChartsRect(QRectF(start, end), CQChartsUnits::PLOT);
   else if (view())
-    rect_ = CQChartsRect(QRectF(start, end), CQChartsUnits::VIEW);
+    rectangle_ = CQChartsRect(QRectF(start, end), CQChartsUnits::VIEW);
 
   bbox_ = bbox;
 }
@@ -835,8 +833,8 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
     os << " -end {" << end().toString().toStdString() << "}";
 #endif
 
-  if (rect().isSet())
-    os << " -rect {" << rect().toString().toStdString() << "}";
+  if (rectangle().isSet())
+    os << " -rect {" << rectangle().toString().toStdString() << "}";
 
 #if 0
   if (margin() != 0.0)
@@ -1443,7 +1441,7 @@ CQChartsTextAnnotation::
 CQChartsTextAnnotation(CQChartsView *view, const CQChartsRect &rect, const QString &textStr) :
  CQChartsAnnotation(view, Type::TEXT)
 {
-  setRect(rect);
+  setRectangle(rect);
 
   init(textStr);
 }
@@ -1452,7 +1450,7 @@ CQChartsTextAnnotation::
 CQChartsTextAnnotation(CQChartsPlot *plot, const CQChartsRect &rect, const QString &textStr) :
  CQChartsAnnotation(plot, Type::TEXT)
 {
-  setRect(rect);
+  setRectangle(rect);
 
   init(textStr);
 }
@@ -1506,23 +1504,23 @@ setPosition(const CQChartsOptPosition &p)
 
 CQChartsRect
 CQChartsTextAnnotation::
-rectValue() const
+rectangleValue() const
 {
-  return rect_.rectOr(CQChartsRect());
+  return rectangle_.rectOr(CQChartsRect());
 }
 
 void
 CQChartsTextAnnotation::
-setRect(const CQChartsRect &r)
+setRectangle(const CQChartsRect &r)
 {
-  setRect(CQChartsOptRect(r));
+  setRectangle(CQChartsOptRect(r));
 }
 
 void
 CQChartsTextAnnotation::
-setRect(const CQChartsOptRect &r)
+setRectangle(const CQChartsOptRect &r)
 {
-  rect_ = r;
+  rectangle_ = r;
 
   rectToBBox();
 
@@ -1533,8 +1531,8 @@ void
 CQChartsTextAnnotation::
 rectToBBox()
 {
-  if (rect_.isSet()) {
-    CQChartsRect rect = this->rectValue();
+  if (rectangle_.isSet()) {
+    CQChartsRect rect = this->rectangleValue();
 
     if (plot())
       bbox_ = CQChartsUtil::fromQRect(plot()->rectToPlot(rect));
@@ -1650,7 +1648,7 @@ void
 CQChartsTextAnnotation::
 setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
-  if (rect_.isSet()) {
+  if (rectangle_.isSet()) {
     QRectF qrect = bbox.qrect();
 
     CQChartsRect rect;
@@ -1660,7 +1658,7 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
     else if (view())
       rect = CQChartsRect(qrect, CQChartsUnits::VIEW);
 
-    setRect(rect);
+    setRectangle(rect);
   }
   else {
     // get padding and margin
@@ -1722,7 +1720,7 @@ CQChartsTextAnnotation::
 draw(QPainter *painter)
 {
   // recalculate position to bbox on draw as can change depending on pixel mapping
-  if (! rect_.isSet())
+  if (! rectangle_.isSet())
     positionToBBox();
 
   //---
@@ -1796,10 +1794,10 @@ draw(QPainter *painter)
 
 void
 CQChartsTextAnnotation::
-initRect()
+initRectangle()
 {
   // convert position to rectangle if needed
-  if (! rect_.isSet()) {
+  if (! rectangle_.isSet()) {
     positionToBBox();
 
     //---
@@ -1813,7 +1811,7 @@ initRect()
     else if (view())
       rect = CQChartsRect(qrect, CQChartsUnits::VIEW);
 
-    setRect(rect);
+    setRectangle(rect);
   }
 }
 
@@ -1821,7 +1819,7 @@ void
 CQChartsTextAnnotation::
 positionToBBox()
 {
-  assert(! rect_.isSet());
+  assert(! rectangle_.isSet());
 
   double xp = pixelToWindowWidth (padding());
   double yp = pixelToWindowHeight(padding());
@@ -1849,9 +1847,9 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   // -view/-plot -id -tip
   writeKeys(os, "create_charts_text_annotation", parentVarName, varName);
 
-  if (rect_.isSet()) {
-    if (rectValue().isSet())
-      os << " -rect {" << rectValue().toString().toStdString() << "}";
+  if (rectangle_.isSet()) {
+    if (rectangleValue().isSet())
+      os << " -rect {" << rectangleValue().toString().toStdString() << "}";
   }
   else {
     if (positionValue().isSet())
@@ -1929,7 +1927,7 @@ CQChartsImageAnnotation::
 CQChartsImageAnnotation(CQChartsView *view, const CQChartsRect &rect, const QImage &image) :
  CQChartsAnnotation(view, Type::IMAGE)
 {
-  setRect(rect);
+  setRectangle(rect);
 
   init(image);
 }
@@ -1938,7 +1936,7 @@ CQChartsImageAnnotation::
 CQChartsImageAnnotation(CQChartsPlot *plot, const CQChartsRect &rect, const QImage &image) :
  CQChartsAnnotation(plot, Type::IMAGE)
 {
-  setRect(rect);
+  setRectangle(rect);
 
   init(image);
 }
@@ -1989,23 +1987,23 @@ setPosition(const CQChartsOptPosition &p)
 
 CQChartsRect
 CQChartsImageAnnotation::
-rectValue() const
+rectangleValue() const
 {
-  return rect_.rectOr(CQChartsRect());
+  return rectangle_.rectOr(CQChartsRect());
 }
 
 void
 CQChartsImageAnnotation::
-setRect(const CQChartsRect &r)
+setRectangle(const CQChartsRect &r)
 {
-  setRect(CQChartsOptRect(r));
+  setRectangle(CQChartsOptRect(r));
 }
 
 void
 CQChartsImageAnnotation::
-setRect(const CQChartsOptRect &r)
+setRectangle(const CQChartsOptRect &r)
 {
-  rect_ = r;
+  rectangle_ = r;
 
   rectToBBox();
 
@@ -2016,8 +2014,8 @@ void
 CQChartsImageAnnotation::
 rectToBBox()
 {
-  if (rect_.isSet()) {
-    CQChartsRect rect = this->rectValue();
+  if (rectangle_.isSet()) {
+    CQChartsRect rect = this->rectangleValue();
 
     if (plot())
       bbox_ = CQChartsUtil::fromQRect(plot()->rectToPlot(rect));
@@ -2092,7 +2090,7 @@ void
 CQChartsImageAnnotation::
 setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
 {
-  if (rect_.isSet()) {
+  if (rectangle_.isSet()) {
     QRectF qrect = bbox.qrect();
 
     CQChartsRect rect;
@@ -2102,7 +2100,7 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
     else if (view())
       rect = CQChartsRect(qrect, CQChartsUnits::VIEW);
 
-    setRect(rect);
+    setRectangle(rect);
   }
   else {
     // get position
@@ -2138,7 +2136,7 @@ CQChartsImageAnnotation::
 draw(QPainter *painter)
 {
   // recalculate position to bbox on draw as can change depending on pixel mapping
-  if (! rect_.isSet())
+  if (! rectangle_.isSet())
     positionToBBox();
 
   //---
@@ -2204,10 +2202,10 @@ draw(QPainter *painter)
 
 void
 CQChartsImageAnnotation::
-initRect()
+initRectangle()
 {
   // convert position to rectangle if needed
-  if (! rect_.isSet()) {
+  if (! rectangle_.isSet()) {
     positionToBBox();
 
     //---
@@ -2221,7 +2219,7 @@ initRect()
     else if (view())
       rect = CQChartsRect(qrect, CQChartsUnits::VIEW);
 
-    setRect(rect);
+    setRectangle(rect);
   }
 }
 
@@ -2229,7 +2227,7 @@ void
 CQChartsImageAnnotation::
 positionToBBox()
 {
-  assert(! rect_.isSet());
+  assert(! rectangle_.isSet());
 
   double xp = pixelToWindowWidth (padding());
   double yp = pixelToWindowHeight(padding());
@@ -2257,9 +2255,9 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   // -view/-plot -id -tip
   writeKeys(os, "create_charts_image_annotation", parentVarName, varName);
 
-  if (rect_.isSet()) {
-    if (rectValue().isSet())
-      os << " -rect {" << rectValue().toString().toStdString() << "}";
+  if (rectangle_.isSet()) {
+    if (rectangleValue().isSet())
+      os << " -rect {" << rectangleValue().toString().toStdString() << "}";
   }
   else {
     if (positionValue().isSet())

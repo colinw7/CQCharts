@@ -131,7 +131,7 @@ createRectFrame()
 
   rectWidgets_.rectEdit->setRect(CQChartsRect());
 
-  rectWidgets_.rectEdit->setRect(annotation->rect());
+  rectWidgets_.rectEdit->setRect(annotation->rectangle());
 
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Rect", rectWidgets_.rectEdit, row);
 
@@ -327,10 +327,10 @@ createTextFrame()
     textWidgets_.positionEdit->setPosition(annotation->positionValue());
   }
 
-  if (annotation->rect().isSet()) {
+  if (annotation->rectangle().isSet()) {
     textWidgets_.rectRadio->setChecked(true);
 
-    textWidgets_.rectEdit->setRect(annotation->rectValue());
+    textWidgets_.rectEdit->setRect(annotation->rectangleValue());
   }
 
   frameLayout->addWidget(positionRectFrame);
@@ -686,7 +686,7 @@ updateRectangleAnnotation()
   annotation->setId(id);
   annotation->setTipId(tipId);
 
-  annotation->setRect(rect);
+  annotation->setRectangle(rect);
 
   annotation->setBoxData(boxData);
 
@@ -848,7 +848,7 @@ updateTextAnnotation()
   if (textWidgets_.positionRadio->isChecked())
     annotation->setPosition(pos);
   else
-    annotation->setRect(rect);
+    annotation->setRectangle(rect);
 
   annotation->setTextData(textData);
   annotation->setBoxData (boxData );

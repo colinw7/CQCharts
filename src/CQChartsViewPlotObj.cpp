@@ -92,7 +92,8 @@ void
 CQChartsViewPlotObj::
 adjustTextOptions(CQChartsTextOptions &textOptions) const
 {
-  textOptions = plot()->adjustTextOptions(textOptions);
+  if (plot())
+    textOptions = plot()->adjustTextOptions(textOptions);
 }
 
 //---

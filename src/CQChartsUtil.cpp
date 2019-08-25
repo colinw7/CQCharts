@@ -260,9 +260,7 @@ QColor blendColors(const QColor &c1, const QColor &c2, double f) {
   double g = c1.greenF()*f + c2.greenF()*f1;
   double b = c1.blueF ()*f + c2.blueF ()*f1;
 
-  return QColor(CMathUtil::clamp(int(255*r), 0, 255),
-                CMathUtil::clamp(int(255*g), 0, 255),
-                CMathUtil::clamp(int(255*b), 0, 255));
+  return rgbToColor(r, g, b);
 }
 
 QColor blendColors(const std::vector<QColor> &colors) {
@@ -281,6 +279,10 @@ QColor blendColors(const std::vector<QColor> &colors) {
     b += c.blueF ()*f;
   }
 
+  return rgbToColor(r, g, b);
+}
+
+QColor rgbToColor(double r, double g, double b) {
   return QColor(CMathUtil::clamp(int(255*r), 0, 255),
                 CMathUtil::clamp(int(255*g), 0, 255),
                 CMathUtil::clamp(int(255*b), 0, 255));

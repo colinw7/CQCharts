@@ -202,7 +202,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! initialize state when first resized to explicit rectangle in edit
-  virtual void initRect();
+  virtual void initRectangle();
 
  signals:
   //! emitted when data changed
@@ -226,9 +226,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsRect     rectangle READ rect  WRITE setRect )
-  Q_PROPERTY(CQChartsPosition start     READ start WRITE setStart)
-  Q_PROPERTY(CQChartsPosition end       READ end   WRITE setEnd  )
+  Q_PROPERTY(CQChartsRect     rectangle READ rectangle WRITE setRectangle)
+  Q_PROPERTY(CQChartsPosition start     READ start     WRITE setStart    )
+  Q_PROPERTY(CQChartsPosition end       READ end       WRITE setEnd      )
 
  public:
   CQChartsRectangleAnnotation(CQChartsView *view, const CQChartsRect &rect=CQChartsRect());
@@ -238,10 +238,10 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
 
   const char *typeName() const override { return "rectangle"; }
 
-  const CQChartsRect &rect() const { return rect_; }
-  void setRect(const CQChartsRect &rect);
+  const CQChartsRect &rectangle() const { return rectangle_; }
+  void setRectangle(const CQChartsRect &rectangle);
 
-  void setRect(const CQChartsPosition &start, const CQChartsPosition &end);
+  void setRectangle(const CQChartsPosition &start, const CQChartsPosition &end);
 
   CQChartsPosition start() const;
   void setStart(const CQChartsPosition &p);
@@ -262,7 +262,7 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
              const QString &varName="") const override;
 
  private:
-  CQChartsRect rect_; //!< rectangle
+  CQChartsRect rectangle_; //!< rectangle
 };
 
 //---
@@ -406,8 +406,8 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
 class CQChartsTextAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsOptPosition position  READ position WRITE setPosition)
-  Q_PROPERTY(CQChartsOptRect     rectangle READ rect     WRITE setRect    )
+  Q_PROPERTY(CQChartsOptPosition position  READ position  WRITE setPosition )
+  Q_PROPERTY(CQChartsOptRect     rectangle READ rectangle WRITE setRectangle)
 
  public:
   CQChartsTextAnnotation(CQChartsView *view, const CQChartsPosition &p=CQChartsPosition(),
@@ -430,11 +430,11 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   CQChartsPosition positionValue() const;
   void setPosition(const CQChartsPosition &p);
 
-  const CQChartsOptRect &rect() const { return rect_; }
-  void setRect(const CQChartsOptRect &r);
+  const CQChartsOptRect &rectangle() const { return rectangle_; }
+  void setRectangle(const CQChartsOptRect &r);
 
-  CQChartsRect rectValue() const;
-  void setRect(const CQChartsRect &r);
+  CQChartsRect rectangleValue() const;
+  void setRectangle(const CQChartsRect &r);
 
   //---
 
@@ -456,7 +456,7 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void initRect() override;
+  void initRectangle() override;
 
  private:
   void init(const QString &text);
@@ -470,8 +470,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   void positionToBBox();
 
  private:
-  CQChartsOptPosition position_; //!< text position
-  CQChartsOptRect     rect_;     //!< text bounding rect
+  CQChartsOptPosition position_;  //!< text position
+  CQChartsOptRect     rectangle_; //!< text bounding rect
 };
 
 //---
@@ -483,8 +483,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 class CQChartsImageAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsOptPosition position  READ position WRITE setPosition)
-  Q_PROPERTY(CQChartsOptRect     rectangle READ rect     WRITE setRect    )
+  Q_PROPERTY(CQChartsOptPosition position  READ position  WRITE setPosition )
+  Q_PROPERTY(CQChartsOptRect     rectangle READ rectangle WRITE setRectangle)
 
  public:
   CQChartsImageAnnotation(CQChartsView *view, const CQChartsPosition &p=CQChartsPosition(),
@@ -507,11 +507,11 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
   CQChartsPosition positionValue() const;
   void setPosition(const CQChartsPosition &p);
 
-  const CQChartsOptRect &rect() const { return rect_; }
-  void setRect(const CQChartsOptRect &r);
+  const CQChartsOptRect &rectangle() const { return rectangle_; }
+  void setRectangle(const CQChartsOptRect &r);
 
-  CQChartsRect rectValue() const;
-  void setRect(const CQChartsRect &r);
+  CQChartsRect rectangleValue() const;
+  void setRectangle(const CQChartsRect &r);
 
   //---
 
@@ -533,7 +533,7 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
 
   //---
 
-  void initRect() override;
+  void initRectangle() override;
 
  private:
   void init(const QImage &image);
@@ -548,7 +548,7 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
 
  private:
   CQChartsOptPosition position_;      //!< image position
-  CQChartsOptRect     rect_;          //!< image bounding rect
+  CQChartsOptRect     rectangle_;     //!< image bounding rectangle
   QImage              image_;         //!< image
   QImage              disabledImage_; //!< disabled image
 };

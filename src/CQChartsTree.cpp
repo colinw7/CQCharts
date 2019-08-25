@@ -212,7 +212,7 @@ selectionSlot()
 
   scrollTo(indices.at(0), QAbstractItemView::EnsureVisible);
 
-  emit selectionChanged();
+  emit selectionHasChanged();
 }
 
 void

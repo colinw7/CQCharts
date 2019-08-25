@@ -475,33 +475,69 @@ interpColorValue(const CQChartsColor &c, int ig, int ng, double value) const
   if      (c.type() == CQChartsColor::Type::COLOR)
     return c.color();
   else if (c.type() == CQChartsColor::Type::PALETTE) {
-    if (c.ind() < 0)
-      return interpPaletteColorValue(ig, ng, value, c.isScale());
-    else
+    if      (c.hasPaletteIndex())
       return interpIndPaletteColorValue(c.ind(), ig, ng, value, c.isScale());
+    else if (c.hasPaletteName()) {
+      QString name;
+
+      if (c.getPaletteName(name))
+        return interpNamePaletteColorValue(name, ig, ng, value, c.isScale());
+      else
+        return interpPaletteColorValue(ig, ng, value, c.isScale());
+    }
+    else
+      return interpPaletteColorValue(ig, ng, value, c.isScale());
   }
   else if (c.type() == CQChartsColor::Type::PALETTE_VALUE) {
-    if (c.ind() < 0)
-      return interpPaletteColor(c.value(), c.isScale());
-    else
+    if      (c.hasPaletteIndex())
       return interpIndPaletteColor(c.ind(), c.value(), c.isScale());
+    else if (c.hasPaletteName()) {
+      QString name;
+
+      if (c.getPaletteName(name))
+        return interpNamePaletteColor(name, c.value(), c.isScale());
+      else
+        return interpPaletteColor(c.value(), c.isScale());
+    }
+    else
+      return interpPaletteColor(c.value(), c.isScale());
   }
   else if (c.type() == CQChartsColor::Type::INDEXED) {
-    if (c.ind() < 0)
-      return indexPaletteColor(ig, ng);
-    else
+    if      (c.hasPaletteIndex())
       return indexIndPaletteColor(c.ind(), ig, ng);
+    else if (c.hasPaletteName()) {
+      QString name;
+
+      if (c.getPaletteName(name))
+        return indexNamePaletteColor(name, ig, ng);
+      else
+        return indexPaletteColor(ig, ng);
+    }
+    else
+      return indexPaletteColor(ig, ng);
   }
   else if (c.type() == CQChartsColor::Type::INDEXED_VALUE) {
-    if (c.ind() < 0)
-      return indexPaletteColor(int(c.value()), ng);
-    else
+    if      (c.hasPaletteIndex())
       return indexIndPaletteColor(c.ind(), int(c.value()), ng);
+    else if (c.hasPaletteName()) {
+      QString name;
+
+      if (c.getPaletteName(name))
+        return indexNamePaletteColor(name, int(c.value()), ng);
+      else
+        return indexPaletteColor(int(c.value()), ng);
+    }
+    else
+      return indexPaletteColor(int(c.value()), ng);
   }
   else if (c.type() == CQChartsColor::Type::INTERFACE)
     return interpThemeColor(value);
   else if (c.type() == CQChartsColor::Type::INTERFACE_VALUE)
     return interpThemeColor(c.value());
+  else if (c.type() == CQChartsColor::Type::MODEL)
+    return interpModelColor(c, value);
+  else if (c.type() == CQChartsColor::Type::MODEL_VALUE)
+    return interpModelColor(c, c.value());
 
   return QColor(0, 0, 0);
 }
@@ -554,6 +590,13 @@ CQCharts::
 interpIndPaletteColor(int ind, double r, bool scale) const
 {
   return interpIndPaletteColorValue(ind, 0, 1, r, scale);
+}
+
+QColor
+CQCharts::
+interpNamePaletteColor(const QString &name, double r, bool scale) const
+{
+  return interpNamePaletteColorValue(name, 0, 1, r, scale);
 }
 
 QColor
@@ -623,6 +666,17 @@ interpIndPaletteColorValue(int ind, int /*ig*/, int /*ng*/, double r, bool scale
 
 QColor
 CQCharts::
+interpNamePaletteColorValue(const QString &name, int /*ig*/, int /*ng*/,
+                            double r, bool scale) const
+{
+  CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(name);
+  if (! palette) return QColor(); // assert ?
+
+  return palette->getColor(r, scale);
+}
+
+QColor
+CQCharts::
 indexPaletteColor(int i, int n) const
 {
   return indexIndPaletteColor(0, i, n);
@@ -637,6 +691,16 @@ indexIndPaletteColor(int ind, int i, int n) const
     ind = 0;
 
   CQColorsPalette *palette = this->themePalette(ind);
+
+  return palette->getColor(i, n, CQColorsPalette::WrapMode::REPEAT);
+}
+
+QColor
+CQCharts::
+indexNamePaletteColor(const QString &name, int i, int n) const
+{
+  CQColorsPalette *palette = CQColorsMgrInst->getNamedPalette(name);
+  if (! palette) return QColor(); // assert ?
 
   return palette->getColor(i, n, CQColorsPalette::WrapMode::REPEAT);
 }
@@ -716,6 +780,23 @@ adjustDefaultPalette(const CQChartsColor &c, const QString &defaultPalette) cons
   }
 
   return c;
+}
+
+//---
+
+QColor
+CQCharts::
+interpModelColor(const CQChartsColor &c, double value) const
+{
+  int ir, ig, ib;
+
+  c.getModelRGB(ir, ig, ib);
+
+  double r = CQColorsPalette::interpModel(ir, value);
+  double g = CQColorsPalette::interpModel(ig, value);
+  double b = CQColorsPalette::interpModel(ib, value);
+
+  return CQChartsUtil::rgbToColor(r, g, b);
 }
 
 //---

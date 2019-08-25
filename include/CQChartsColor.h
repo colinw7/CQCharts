@@ -12,13 +12,15 @@ class QObject;
  * \ingroup Charts
  *
  * A charts color can be:
- *  . An interpolated palette color.
- *  . An explicit palette color.
- *  . An indexed palette color.
- *  . An explicit indexed palette color.
- *  . An interpolated interface color.
- *  . An explicit interface color.
- *  . An explicit rgb color
+ *  . An interpolated palette color ("palette" "palette#<ind>")
+ *  . An explicit palette color ("palette <value>" "palette#<ind> <value>")
+ *  . An indexed palette color ("ind_palette" "ind_palette#<ind>")
+ *  . An explicit indexed palette color ("ind_palette <value>" "ind_palette#<ind> <value>")
+ *  . An interpolated interface color ("interface")
+ *  . An explicit interface color ("interface <value>")
+ *  . A model color ("model <r> <g> <b>")
+ *  . An explicit model color ("model <r> <g> <b> <value>")
+ *  . An explicit rgb color ("<name>")
  */
 class CQChartsColor {
  public:
@@ -30,6 +32,8 @@ class CQChartsColor {
     INDEXED_VALUE,
     INTERFACE,
     INTERFACE_VALUE,
+    MODEL,
+    MODEL_VALUE,
     COLOR
   };
 
@@ -125,7 +129,43 @@ class CQChartsColor {
     return (type_ == Type::PALETTE_VALUE   ||
             type_ == Type::INDEXED_VALUE   ||
             type_ == Type::INTERFACE_VALUE ||
+            type_ == Type::MODEL_VALUE ||
             type_ == Type::COLOR);
+  }
+
+  //---
+
+  bool hasPaletteIndex() const {
+    assert(type_ == Type::PALETTE || type_ == Type::PALETTE_VALUE ||
+           type_ == Type::INDEXED || type_ == Type::INDEXED_VALUE);
+
+    return (ind() >= 0);
+  }
+
+  bool hasPaletteName() const {
+    assert(type_ == Type::PALETTE || type_ == Type::PALETTE_VALUE ||
+           type_ == Type::INDEXED || type_ == Type::INDEXED_VALUE);
+
+    return (ind() <= -2);
+  }
+
+  bool getPaletteName(QString &name) const;
+  bool setPaletteName(const QString &name);
+
+  static bool paletteNameInd(const QString &name, long &ind);
+
+  //---
+
+  void getModelRGB(int &r, int &g, int &b) const {
+    assert(type_ == Type::MODEL || type_ == Type::MODEL_VALUE);
+
+    decodeModelRGB(ind_, r, g, b);
+  }
+
+  void setModelRGB(int r, int g, int b) {
+    assert(type_ == Type::MODEL || type_ == Type::MODEL_VALUE);
+
+    ind_ = encodeModelRGB(r, g, b);
   }
 
   //---
@@ -203,8 +243,35 @@ class CQChartsColor {
   //---
 
  private:
+  // model number is 0-37 and supports negative
+  // To encode we map from -127 -> 127 to 0-255
+  static int encodeModelRGB(int r, int g, int b) {
+    return ( mapModelNum(r) & 0xff       ) |
+           ((mapModelNum(g) & 0xff) <<  8) |
+           ((mapModelNum(b) & 0xff) << 16);
+  }
+
+  static void decodeModelRGB(int rgb, int &r, int &g, int &b) {
+    r = unmapModelNum( rgb        & 0xff);
+    g = unmapModelNum((rgb >>  8) & 0xff);
+    b = unmapModelNum((rgb >> 16) & 0xff);
+  }
+
+  static int mapModelNum(int n) {
+    if (n < -127) n = -127;
+    if (n >  127) n =  127;
+    return (n + 127);
+  }
+
+  static int unmapModelNum(int n) {
+    if (n < 0  ) n = 0;
+    if (n > 254) n = 254;
+    return n - 127;
+  }
+
+ private:
   Type   type_  { Type::NONE }; //!< color type (palette, theme or color)
-  int    ind_   { -1 };         //!< palette index
+  int    ind_   { -1 };         //!< -1 unset, >=0 palette index, <-2 color mgr index - 2
   double value_ { 0.0 };        //!< specific palette or theme value
   QColor color_ { 0, 0, 0 };    //!< specific color
   bool   scale_ { false };      //!< color scaled to palette defined color values (pseudo index)

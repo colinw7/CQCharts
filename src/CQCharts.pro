@@ -156,6 +156,7 @@ CQChartsPlotMargin.cpp \
 CQChartsConnectionList.cpp \
 CQChartsSides.cpp \
 CQChartsFillUnder.cpp \
+CQChartsPaletteName.cpp \
 \
 CQChartsSymbol.cpp \
 CQChartsPath.cpp \
@@ -212,6 +213,7 @@ CQChartsLengthEdit.cpp \
 CQChartsLineDashEdit.cpp \
 CQChartsLineDataEdit.cpp \
 CQChartsLineEditBase.cpp \
+CQChartsPaletteNameEdit.cpp \
 CQChartsPolygonEdit.cpp \
 CQChartsPositionEdit.cpp \
 CQChartsRectEdit.cpp \
@@ -239,6 +241,7 @@ CQFoldedModel.cpp \
 CQBaseModel.cpp \
 CQDataModel.cpp \
 CQModelDetails.cpp \
+CQModelNameValues.cpp \
 CQModelUtil.cpp \
 CQModelVisitor.cpp \
 CQSortModel.cpp \
@@ -423,6 +426,7 @@ HEADERS += \
 ../include/CQChartsConnectionList.h \
 ../include/CQChartsSides.h \
 ../include/CQChartsFillUnder.h \
+../include/CQChartsPaletteName.h \
 \
 ../include/CQChartsOptInt.h \
 ../include/CQChartsOptLength.h \
@@ -458,6 +462,7 @@ HEADERS += \
 ../include/CQChartsLineDashEdit.h \
 ../include/CQChartsLineDataEdit.h \
 ../include/CQChartsLineEditBase.h \
+../include/CQChartsPaletteNameEdit.h \
 ../include/CQChartsPolygonEdit.h \
 ../include/CQChartsPositionEdit.h \
 ../include/CQChartsRectEdit.h \

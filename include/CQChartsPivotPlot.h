@@ -50,8 +50,8 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
  public:
   CQChartsPivotBarObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rect,
-                      const ModelIndices &inds, const ColorInd &ir, const ColorInd &ic,
-                      double value);
+                      const QModelIndex &ind, const ModelIndices &inds, const ColorInd &ir,
+                      const ColorInd &ic, double value);
 
   //---
 
@@ -64,6 +64,10 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
   //---
 
   CQChartsGeom::BBox dataLabelRect() const;
+
+  //---
+
+  CQChartsColorType colorType() const override { return CQChartsColorType::INDEX; }
 
   //---
 
@@ -80,6 +84,7 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
  protected:
   const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot
   double                   value_ { 0.0 };     //!< value
+  QModelIndex              ind_;               //!< pivot model index
 };
 
 //---
@@ -190,14 +195,13 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
   //---
 
  protected:
-  const CQChartsPivotPlot* plot_    { nullptr }; //!< parent plot
-  QString                  name_;                //!< name
-  double                   value_   { 0.0 };     //!< value
-  double                   hnorm_   { 0.0 };     //!< value normalized to horizontal value range
-  double                   vnorm_   { 0.0 };     //!< value normalized to vertical value range
-  bool                     valid_   { false };   //!< is valid
-  CQColorsPalette*         palette_ { nullptr }; //!< background palette
-  CQChartsColor            color_;               //!< background color
+  const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot
+  QString                  name_;              //!< name
+  double                   value_ { 0.0 };     //!< value
+  double                   hnorm_ { 0.0 };     //!< value normalized to horizontal value range
+  double                   vnorm_ { 0.0 };     //!< value normalized to vertical value range
+  bool                     valid_ { false };   //!< is valid
+  CQChartsColor            color_;             //!< background color
 };
 
 //---
@@ -385,8 +389,8 @@ class CQChartsPivotPlot : public CQChartsPlot,
   PlotType           plotType_    { PlotType::BAR };  //!< plot type
   ValueType          valueType_   { ValueType::SUM }; //!< value type
   bool               horizontal_  { false };          //!< horizontal
-  bool               xsorted_     { true };           //!< are x keys sorted
-  bool               ysorted_     { true };           //!< are y keys sorted
+  bool               xsorted_     { true };           //!< x keys are sorted
+  bool               ysorted_     { true };           //!< y keys are sorted
   bool               gridBars_    { true };           //!< draw bars on grid
   CQPivotModel*      pivotModel_  { nullptr };        //!< pivot model
   CQChartsDataLabel* dataLabel_   { nullptr };        //!< data label data

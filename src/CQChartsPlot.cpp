@@ -8490,15 +8490,20 @@ calcColorInd(const CQChartsPlotObj *obj, const CQChartsKeyColorBox *keyBox,
 {
   ColorInd colorInd;
 
-  if      (colorType() == ColorType::AUTO)
+  CQChartsPlot::ColorType colorType = this->colorType();
+
+  if (obj && colorType == ColorType::AUTO)
+    colorType = (CQChartsPlot::ColorType) obj->colorType();
+
+  if      (colorType == ColorType::AUTO)
     colorInd = (is.n <= 1 ? (ig.n <= 1 ? iv : ig) : is);
-  else if (colorType() == ColorType::SET)
+  else if (colorType == ColorType::SET)
     colorInd = is;
-  else if (colorType() == ColorType::GROUP)
+  else if (colorType == ColorType::GROUP)
     colorInd = ig;
-  else if (colorType() == ColorType::INDEX)
+  else if (colorType == ColorType::INDEX)
     colorInd = iv;
-  else if (colorType() == ColorType::X_VALUE) {
+  else if (colorType == ColorType::X_VALUE) {
     const CQChartsColorStops &stops = colorXStops();
 
     bool hasStops = stops.isValid();
@@ -8519,7 +8524,7 @@ calcColorInd(const CQChartsPlotObj *obj, const CQChartsKeyColorBox *keyBox,
     else
       colorInd = ColorInd(x);
   }
-  else if (colorType() == ColorType::Y_VALUE) {
+  else if (colorType == ColorType::Y_VALUE) {
     const CQChartsColorStops &stops = colorYStops();
 
     bool hasStops = stops.isValid();

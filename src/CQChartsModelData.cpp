@@ -833,9 +833,8 @@ copy()
     static_cast<int>(CQBaseModelRole::SortOrder)
   }};
 
-  std::vector<int> vroles = {{
-    static_cast<int>(Qt::DisplayRole),
-  }};
+  std::vector<int> vroles;
+  vroles.push_back(static_cast<int>(Qt::DisplayRole)); // clang complains {{}} with single value
 
   CQDataModel *dataModel = new CQDataModel(nc, nr);
 

@@ -165,17 +165,14 @@ writeCSVModel(const QString &fileName)
 
     writeMetaColumnData("type", typeName);
 
-    const CQChartsColumnType::ColorPalette &colorPalette = columnDetails->tableDrawPalette();
+    const CQChartsColor &drawColor = columnDetails->tableDrawColor();
 
     CQChartsModelColumnDetails::TableDrawType tableDrawType = columnDetails->tableDrawType();
 
     writeMetaColumnData("key", "1");
 
-    if (colorPalette.palette)
-      writeMetaColumnData("palette", colorPalette.palette->name());
-
-    if (colorPalette.color.isValid())
-      writeMetaColumnData("draw_color", colorPalette.color.toString());
+    if (drawColor.isValid())
+      writeMetaColumnData("draw_color", drawColor.toString());
 
     if      (tableDrawType == CQChartsModelColumnDetails::TableDrawType::HEATMAP)
       writeMetaColumnData("draw_type", "heatmap");
