@@ -1,5 +1,5 @@
 High
- + Combin CQChartsModelDetails and CQModelDetails
+ + Combine CQChartsModelDetails and CQModelDetails
  + Same coloring in table and plot (if possible)
    + same palette
    + auto palette for single color

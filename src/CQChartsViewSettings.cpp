@@ -213,6 +213,9 @@ class CQChartsViewSettingsModelTable : public CQTableWidget {
       QTableWidgetItem *nameItem = new QTableWidgetItem(modelData->id());
       QTableWidgetItem *indItem  = new QTableWidgetItem(QString("%1").arg(modelData->ind()));
 
+      nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
+      indItem ->setFlags(indItem ->flags() & ~Qt::ItemIsEditable);
+
       setItem(i, 0, nameItem);
       setItem(i, 1, indItem );
 
@@ -274,6 +277,8 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
       // set id item store plot index in user data
       QTableWidgetItem *idItem = new QTableWidgetItem(plot->id());
 
+      idItem->setFlags(idItem->flags() & ~Qt::ItemIsEditable);
+
       setItem(i, 0, idItem);
 
       int ind = view->plotInd(plot);
@@ -284,6 +289,8 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
 
       // set type item
       QTableWidgetItem *typeItem = new QTableWidgetItem(plot->type()->name());
+
+      typeItem->setFlags(typeItem->flags() & ~Qt::ItemIsEditable);
 
       setItem(i, 1, typeItem);
 
@@ -302,6 +309,8 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
         stateStr = "normal";
 
       QTableWidgetItem *stateItem = new QTableWidgetItem(stateStr);
+
+      stateItem->setFlags(stateItem->flags() & ~Qt::ItemIsEditable);
 
       setItem(i, 2, stateItem);
     }
@@ -368,6 +377,8 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
 
       QTableWidgetItem *idItem = new QTableWidgetItem(annotation->id());
 
+      idItem->setFlags(idItem->flags() & ~Qt::ItemIsEditable);
+
       setItem(i, 0, idItem);
 
       int ind = annotation->ind();
@@ -375,6 +386,8 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
       idItem->setData(Qt::UserRole, ind);
 
       QTableWidgetItem *typeItem = new QTableWidgetItem(annotation->typeName());
+
+      typeItem->setFlags(typeItem->flags() & ~Qt::ItemIsEditable);
 
       setItem(i, 1, typeItem);
     }
@@ -431,6 +444,8 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
 
       QTableWidgetItem *idItem = new QTableWidgetItem(annotation->id());
 
+      idItem->setFlags(idItem->flags() & ~Qt::ItemIsEditable);
+
       setItem(i, 0, idItem);
 
       int ind = annotation->ind();
@@ -438,6 +453,8 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
       idItem->setData(Qt::UserRole, ind);
 
       QTableWidgetItem *typeItem = new QTableWidgetItem(annotation->typeName());
+
+      typeItem->setFlags(typeItem->flags() & ~Qt::ItemIsEditable);
 
       setItem(i, 1, typeItem);
     }
@@ -526,9 +543,13 @@ class CQChartsViewSettingsViewLayerTable : public CQTableWidget {
 
       QTableWidgetItem *stateItem = new QTableWidgetItem("");
 
+      stateItem->setFlags(stateItem->flags() & ~Qt::ItemIsEditable);
+
       setItem(l, 1, stateItem);
 
       QTableWidgetItem *rectItem = new QTableWidgetItem("");
+
+      rectItem->setFlags(rectItem->flags() & ~Qt::ItemIsEditable);
 
       setItem(l, 2, rectItem);
     }
@@ -620,6 +641,8 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
 
       QTableWidgetItem *idItem = new QTableWidgetItem(name);
 
+      idItem->setFlags(idItem->flags() & ~Qt::ItemIsEditable);
+
       setItem(i, 0, idItem);
 
       idItem->setData(Qt::UserRole, l);
@@ -628,11 +651,13 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
 
     //stateItem->setFlags(stateItem->flags() | Qt::ItemIsEnabled);
       stateItem->setFlags(stateItem->flags() | Qt::ItemIsUserCheckable);
-    //stateItem->setFlags(stateItem->flags() & ! Qt::ItemIsEditable);
+    //stateItem->setFlags(stateItem->flags() & ~Qt::ItemIsEditable);
 
       setItem(i, 1, stateItem);
 
       QTableWidgetItem *rectItem = new QTableWidgetItem("");
+
+      rectItem->setFlags(rectItem->flags() & ~Qt::ItemIsEditable);
 
       setItem(i, 2, rectItem);
     }
