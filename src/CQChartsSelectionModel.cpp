@@ -2,32 +2,62 @@
 #include <CQChartsModelData.h>
 #include <QAbstractItemView>
 
+#ifdef CQCHARTS_MODEL_VIEW
+namespace {
+
+CQModelView *modelView(QAbstractItemView *view) {
+  return qobject_cast<CQModelView *>(view);
+}
+
+}
+
+//---
+
 CQChartsSelectionModel::
 CQChartsSelectionModel(QAbstractItemView *view, CQChartsModelData *modelData) :
- QItemSelectionModel(modelData->model().data()), view_(view)
+ CQChartsSelectionModelBase(modelView(view)), view_(view)
+{
+  setObjectName("chartsSelectionModel");
+
+  setModel(modelData->model().data());
+}
+
+CQChartsSelectionModel::
+CQChartsSelectionModel(QAbstractItemView *view, QAbstractItemModel *model) :
+ CQChartsSelectionModelBase(modelView(view)), view_(view)
+{
+  setObjectName("chartsSelectionModel");
+
+  setModel(model);
+}
+#else
+CQChartsSelectionModel::
+CQChartsSelectionModel(QAbstractItemView *view, CQChartsModelData *modelData) :
+ CQChartsSelectionModelBase(modelData->model().data()), view_(view)
 {
   setObjectName("chartsSelectionModel");
 }
 
 CQChartsSelectionModel::
 CQChartsSelectionModel(QAbstractItemView *view, QAbstractItemModel *model) :
- QItemSelectionModel(model), view_(view)
+ CQChartsSelectionModelBase(model), view_(view)
 {
   setObjectName("chartsSelectionModel");
 }
+#endif
 
 void
 CQChartsSelectionModel::
 select(const QModelIndex &ind, SelectionFlags flags)
 {
-  QItemSelectionModel::select(ind, adjustFlags(flags));
+  CQChartsSelectionModelBase::select(ind, adjustFlags(flags));
 }
 
 void
 CQChartsSelectionModel::
 select(const QItemSelection &selection, SelectionFlags flags)
 {
-  QItemSelectionModel::select(selection, adjustFlags(flags));
+  CQChartsSelectionModelBase::select(selection, adjustFlags(flags));
 }
 
 CQChartsSelectionModel::SelectionFlags

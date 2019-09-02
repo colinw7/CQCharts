@@ -180,7 +180,7 @@ class CQChartsModelColumnDetails {
   double map(const QVariant &var) const;
 
   const CQChartsColor &tableDrawColor() const { return tableDrawColor_; }
-  void setTableDrawPalette(const CQChartsColor &c) { tableDrawColor_ = c; }
+  void setTableDrawColor(const CQChartsColor &c) { tableDrawColor_ = c; }
 
   const TableDrawType &tableDrawType() const { return tableDrawType_; }
   void setTableDrawType(const TableDrawType &t) { tableDrawType_ = t; }

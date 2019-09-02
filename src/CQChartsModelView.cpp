@@ -1,108 +1,293 @@
 #include <CQChartsModelView.h>
-#include <CQChartsTable.h>
-#include <CQChartsTree.h>
-#include <CQUtil.h>
+#include <CQChartsTableDelegate.h>
+#include <CQChartsModelData.h>
+#include <CQChartsModelUtil.h>
+#include <CQChartsSelectionModel.h>
+#include <CQCharts.h>
 
-#include <QStackedWidget>
-#include <QVBoxLayout>
+#include <QHeaderView>
+#include <QSortFilterProxyModel>
+#include <QMenu>
+#include <QActionGroup>
+#include <cassert>
 
 CQChartsModelView::
 CQChartsModelView(CQCharts *charts, QWidget *parent) :
- QFrame(parent), charts_(charts)
+ CQModelView(parent), charts_(charts)
 {
   setObjectName("modelView");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  setSortingEnabled(true);
 
-  stack_ = CQUtil::makeWidget<QStackedWidget>("stack");
+  horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
 
-  table_ = new CQChartsTable(charts_, this);
+  //setSelectionBehavior(SelectRows);
 
-  connect(table_, SIGNAL(filterChanged()), this, SIGNAL(filterChanged()));
+  connect(horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(headerClickedSlot(int)));
 
-  tree_ = new CQChartsTree(charts_, this);
+  connect(this, SIGNAL(clicked(const QModelIndex &)),
+          this, SLOT(itemClickedSlot(const QModelIndex &)));
 
-  stack_->addWidget(table_);
-  stack_->addWidget(tree_ );
+  //---
 
-  layout->addWidget(stack_);
+  delegate_ = new CQChartsTableDelegate(this);
+
+  setItemDelegate(delegate_);
+
+  //---
+
+  connect(charts_, SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
 }
 
 CQChartsModelView::
 ~CQChartsModelView()
 {
-  delete table_;
-  delete tree_;
+  if (modelData_ && sm_)
+    modelData_->removeSelectionModel(sm_);
+
+  delete delegate_;
 }
 
 void
 CQChartsModelView::
-setFilterAnd(bool b)
+modelTypeChangedSlot(int modelId)
 {
-  table_->setFilterAnd(b);
-}
+  CQChartsModelData *modelData = getModelData();
 
-void
-CQChartsModelView::
-setFilter(const QString &text)
-{
-  table_->setFilter(text);
-}
-
-void
-CQChartsModelView::
-addFilter(const QString &text)
-{
-  table_->addFilter(text);
-}
-
-QString
-CQChartsModelView::
-filterDetails() const
-{
-  return table_->filterDetails();
-}
-
-void
-CQChartsModelView::
-setSearch(const QString &text)
-{
-  table_->setSearch(text);
-}
-
-void
-CQChartsModelView::
-addSearch(const QString &text)
-{
-  table_->addSearch(text);
-}
-
-void
-CQChartsModelView::
-setModel(ModelP model, bool hierarchical)
-{
-  hierarchical_ = hierarchical;
-
-  if (! hierarchical_) {
-    table_->setModelP(model);
-    tree_ ->setModelP(CQChartsTree::ModelP());
-
-    stack_->setCurrentIndex(0);
-  }
-  else {
-    tree_ ->setModelP(model);
-    table_->setModelP(CQChartsTable::ModelP());
-
-    stack_->setCurrentIndex(1);
+  if (modelData && modelData->ind() == modelId) {
+    //delegate_->clearColumnTypes();
   }
 }
 
-QItemSelectionModel *
+void
 CQChartsModelView::
-selectionModel()
+addMenuActions(QMenu *menu)
 {
-  if (! hierarchical_)
-    return table_->selectionModel();
+  CQModelView::addMenuActions(menu);
+
+  //---
+
+  auto addMenu = [&](const QString &name) {
+    QMenu *subMenu = new QMenu(name);
+
+    menu->addMenu(subMenu);
+
+    return subMenu;
+  };
+
+  auto addActionGroup = [&](QMenu *menu, const char *slotName) {
+    QActionGroup *actionGroup = new QActionGroup(menu);
+
+    connect(actionGroup, SIGNAL(triggered(QAction *)), this, slotName);
+
+    return actionGroup;
+  };
+
+  //---
+
+#if 0
+  QMenu *selectMenu = addMenu("Select");
+
+  QActionGroup *selectActionGroup =
+    addActionGroup(selectMenu, SLOT(selectionBehaviorSlot(QAction *)));
+
+  auto addSelectAction = [&](const QString &name, bool checked) {
+    QAction *action = new QAction(name, selectMenu);
+
+    action->setCheckable(true);
+    action->setChecked  (checked);
+
+    selectActionGroup->addAction(action);
+  };
+
+  addSelectAction("Items"  , selectionBehavior() == SelectItems  );
+  addSelectAction("Rows"   , selectionBehavior() == SelectRows   );
+  addSelectAction("Columns", selectionBehavior() == SelectColumns);
+
+  selectMenu->addActions(selectActionGroup->actions());
+#endif
+
+  //---
+
+  QMenu *exportMenu = addMenu("Export");
+
+  QActionGroup *exportActionGroup =
+    addActionGroup(exportMenu, SLOT(exportSlot(QAction *)));
+
+  auto addExportAction = [&](const QString &name) {
+    QAction *action = new QAction(name, exportMenu);
+
+    exportActionGroup->addAction(action);
+  };
+
+  addExportAction("CSV");
+  addExportAction("TSV");
+
+  exportMenu->addActions(exportActionGroup->actions());
+}
+
+void
+CQChartsModelView::
+setModelP(const ModelP &model)
+{
+  if (sm_)
+    disconnect(sm_, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+               this, SLOT(selectionSlot()));
+
+  //---
+
+  model_ = model;
+
+  CQModelView::setModel(model_.data());
+
+  resetModelData();
+
+  //--
+
+  if (model_.data()) {
+    CQChartsModelData *modelData = getModelData();
+
+    if (modelData) {
+      sm_ = new CQChartsSelectionModel(this, modelData);
+
+      modelData->addSelectionModel(sm_);
+    }
+    else
+      sm_ = new CQChartsSelectionModel(this, model_.data());
+
+    setSelectionModel(sm_);
+  }
+
+  //---
+
+  if (sm_)
+    connect(sm_, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+            this, SLOT(selectionSlot()));
+}
+
+void
+CQChartsModelView::
+setFilter(const QString &filter)
+{
+  if (! model_)
+    return;
+
+  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
+  assert(proxyModel);
+
+  QAbstractItemModel *model = proxyModel->sourceModel();
+  assert(model);
+
+  QString filter1;
+  int     column { -1 };
+
+  if (CQChartsModelUtil::decodeModelFilterStr(model, filter, filter1, column))
+    proxyModel->setFilterKeyColumn(column);
+
+  proxyModel->setFilterWildcard(filter1);
+
+  emit filterChanged();
+}
+
+void
+CQChartsModelView::
+headerClickedSlot(int section)
+{
+  emit columnClicked(section);
+}
+
+void
+CQChartsModelView::
+itemClickedSlot(const QModelIndex &index)
+{
+  delegate_->click(index);
+}
+
+void
+CQChartsModelView::
+selectionSlot()
+{
+  QModelIndexList indices = selectedIndexes();
+  if (indices.empty()) return;
+
+  scrollTo(indices.at(0), QAbstractItemView::EnsureVisible);
+
+  emit selectionHasChanged();
+}
+
+void
+CQChartsModelView::
+selectionBehaviorSlot(QAction *action)
+{
+  Q_UNUSED(action)
+
+#if 0
+  if      (action->text() == "Items")
+    setSelectionBehavior(SelectItems);
+  else if (action->text() == "Rows")
+    setSelectionBehavior(SelectRows);
+  else if (action->text() == "Columns")
+    setSelectionBehavior(SelectColumns);
   else
-    return tree_->selectionModel();
+    assert(false);
+#endif
+}
+
+void
+CQChartsModelView::
+exportSlot(QAction *action)
+{
+  QString type = action->text();
+
+  if      (type == "CSV")
+    CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::CSV);
+  else if (type == "TSV")
+    CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::TSV);
+  else {
+    std::cerr << "Invalid export type '" << type.toStdString() << "'\n";
+  }
+}
+
+CQChartsModelData *
+CQChartsModelView::
+getModelData()
+{
+  if (! modelData_) {
+    modelData_ = charts_->getModelData(model_.data());
+
+    if (modelData_)
+      connect(modelData_, SIGNAL(modelChanged()), this, SLOT(resetModelData()));
+  }
+
+  return modelData_;
+}
+
+CQChartsModelDetails *
+CQChartsModelView::
+getDetails()
+{
+  CQChartsModelData *modelData = getModelData();
+
+  return (modelData ? modelData->details() : nullptr);
+}
+
+void
+CQChartsModelView::
+resetModelData()
+{
+  if (modelData_)
+    disconnect(modelData_, SIGNAL(modelChanged()), this, SLOT(resetModelData()));
+
+  modelData_ = nullptr;
+
+  delegate_->resetColumnData();
+}
+
+QSize
+CQChartsModelView::
+sizeHint() const
+{
+  QFontMetricsF fm(font());
+
+  return QSize(fm.width("X")*40, 20*fm.height());
 }

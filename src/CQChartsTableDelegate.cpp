@@ -1,6 +1,7 @@
 #include <CQChartsTableDelegate.h>
 #include <CQChartsTable.h>
 #include <CQChartsTree.h>
+#include <CQChartsModelView.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsVariant.h>
@@ -22,6 +23,11 @@ CQChartsTableDelegate(CQChartsTable *table) :
 CQChartsTableDelegate::
 CQChartsTableDelegate(CQChartsTree *tree) :
  tree_(tree) {
+}
+
+CQChartsTableDelegate::
+CQChartsTableDelegate(CQChartsModelView *view) :
+ view_(view) {
 }
 
 void
@@ -524,19 +530,28 @@ CQCharts *
 CQChartsTableDelegate::
 charts() const
 {
-  return (table_ ? table_->charts() : tree_->charts());
+  if (table_) return table_->charts();
+  if (tree_ ) return tree_ ->charts();
+  if (view_ ) return view_ ->charts();
+  return nullptr;
 }
 
 CQChartsTableDelegate::ModelP
 CQChartsTableDelegate::
 modelP() const
 {
-  return (table_ ? table_->modelP() : tree_->modelP());
+  if (table_) return table_->modelP();
+  if (tree_ ) return tree_ ->modelP();
+  if (view_ ) return view_ ->modelP();
+  return ModelP();
 }
 
 CQChartsModelDetails *
 CQChartsTableDelegate::
 getDetails() const
 {
-  return (table_ ? table_->getDetails() : tree_->getDetails());
+  if (table_) return table_->getDetails();
+  if (tree_ ) return tree_ ->getDetails();
+  if (view_ ) return view_ ->getDetails();
+  return nullptr;
 }

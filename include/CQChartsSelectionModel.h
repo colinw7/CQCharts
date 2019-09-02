@@ -6,7 +6,15 @@
 class CQChartsModelData;
 class QAbstractItemView;
 
-class CQChartsSelectionModel : public QItemSelectionModel {
+#ifdef CQCHARTS_MODEL_VIEW
+#include <CQModelView.h>
+
+using CQChartsSelectionModelBase = CQModelViewSelectionModel;
+#else
+using CQChartsSelectionModelBase = QItemSelectionModel;
+#endif
+
+class CQChartsSelectionModel : public CQChartsSelectionModelBase {
  public:
   CQChartsSelectionModel(QAbstractItemView *view, CQChartsModelData *modelData);
   CQChartsSelectionModel(QAbstractItemView *view, QAbstractItemModel *model);

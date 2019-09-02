@@ -9,6 +9,7 @@
 class CQCharts;
 class CQChartsTable;
 class CQChartsTree;
+class CQChartsModelView;
 class CQChartsColor;
 class CQChartsSymbol;
 class CQChartsModelDetails;
@@ -30,6 +31,7 @@ class CQChartsTableDelegate : public QItemDelegate {
  public:
   CQChartsTableDelegate(CQChartsTable *table);
   CQChartsTableDelegate(CQChartsTree *tree);
+  CQChartsTableDelegate(CQChartsModelView *tree);
 
   void paint(QPainter *painter, const QStyleOptionViewItem &option,
              const QModelIndex &index) const override;
@@ -75,6 +77,7 @@ class CQChartsTableDelegate : public QItemDelegate {
 
   CQChartsTable*      table_ { nullptr };
   CQChartsTree*       tree_  { nullptr };
+  CQChartsModelView*  view_  { nullptr };
   ColumnDataMap       columnDataMap_;
   mutable QModelIndex currentIndex_;
   mutable std::mutex  mutex_;

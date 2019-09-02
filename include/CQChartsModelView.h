@@ -1,22 +1,21 @@
 #ifndef CQChartsModelView_H
 #define CQChartsModelView_H
 
-#include <QFrame>
+#include <CQModelView.h>
 #include <QAbstractItemModel>
 #include <QSharedPointer>
 
 class CQCharts;
-class CQChartsTable;
-class CQChartsTree;
-
-class QStackedWidget;
-class QItemSelectionModel;
+class CQChartsTableDelegate;
+class CQChartsSelectionModel;
+class CQChartsModelData;
+class CQChartsModelDetails;
 
 /*!
- * \brief Model View Widget
+ * \brief Charts Tree View class
  * \ingroup Charts
  */
-class CQChartsModelView : public QFrame {
+class CQChartsModelView : public CQModelView {
   Q_OBJECT
 
  public:
@@ -26,29 +25,49 @@ class CQChartsModelView : public QFrame {
   CQChartsModelView(CQCharts *charts, QWidget *parent=nullptr);
  ~CQChartsModelView();
 
-  void setFilterAnd(bool b);
+  CQCharts *charts() const { return charts_; }
 
-  void setFilter(const QString &text);
-  void addFilter(const QString &text);
+  ModelP modelP() const { return model_; }
+  void setModelP(const ModelP &model);
 
-  QString filterDetails() const;
+  void setFilter(const QString &filter);
 
-  void setSearch(const QString &text);
-  void addSearch(const QString &text);
+  CQChartsModelDetails *getDetails();
 
-  void setModel(ModelP model, bool hierarchical);
-
-  QItemSelectionModel *selectionModel();
-
- signals:
-  void filterChanged();
+  QSize sizeHint() const override;
 
  private:
-  CQCharts*       charts_       { nullptr };
-  QStackedWidget* stack_        { nullptr };
-  CQChartsTable*  table_        { nullptr };
-  CQChartsTree*   tree_         { nullptr };
-  bool            hierarchical_ { false };
+  void addMenuActions(QMenu *menu) override;
+
+  CQChartsModelData *getModelData();
+
+ signals:
+  void columnClicked(int);
+
+  void filterChanged();
+
+  void selectionHasChanged();
+
+ private slots:
+  void modelTypeChangedSlot(int);
+
+  void headerClickedSlot(int section);
+  void itemClickedSlot(const QModelIndex &);
+
+  void selectionSlot();
+
+  void selectionBehaviorSlot(QAction *action);
+
+  void exportSlot(QAction *action);
+
+  void resetModelData();
+
+ private:
+  CQCharts*               charts_    { nullptr };
+  ModelP                  model_;
+  CQChartsSelectionModel* sm_        { nullptr };
+  CQChartsTableDelegate*  delegate_  { nullptr };
+  CQChartsModelData*      modelData_ { nullptr };
 };
 
 #endif

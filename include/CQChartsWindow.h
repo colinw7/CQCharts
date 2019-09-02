@@ -10,7 +10,7 @@ class CQChartsPlot;
 class CQChartsViewExpander;
 class CQChartsViewSettings;
 class CQChartsFilterEdit;
-class CQChartsModelView;
+class CQChartsModelViewHolder;
 class CQChartsViewStatus;
 class CQChartsViewToolBar;
 class CQChartsWindowRangeScroll;
@@ -134,7 +134,7 @@ class CQChartsWindow : public QFrame {
   QFrame*                    tableFrame_   { nullptr }; //!< table frame
   QStackedWidget*            viewStack_    { nullptr }; //!< view stack
   CQChartsFilterEdit*        filterEdit_   { nullptr }; //!< filter edit
-  CQChartsModelView*         modelView_    { nullptr }; //!< model view
+  CQChartsModelViewHolder*   modelView_    { nullptr }; //!< model view
   CQChartsViewToolBar*       toolbar_      { nullptr }; //!< toolbar
   CQChartsViewStatus*        status_       { nullptr }; //!< status
 };

@@ -15,7 +15,8 @@ CQChartsModelDetails::
 CQChartsModelDetails(CQChartsModelData *data) :
  data_(data)
 {
-  connect(charts(), SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
+  if (charts())
+    connect(charts(), SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
 }
 
 CQChartsModelDetails::
@@ -181,7 +182,7 @@ void
 CQChartsModelDetails::
 modelTypeChangedSlot(int modelInd)
 {
-  if (data_->ind() == modelInd) {
+  if (data_ && data_->ind() == modelInd) {
     for (int c = 0; c < numColumns_; ++c) {
       CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
 
@@ -248,7 +249,10 @@ columnDuplicates(const CQChartsColumn &column, bool all) const
 
   //---
 
+  std::vector<int> rows;
+
   CQCharts *charts = this->charts();
+  if (! charts) return rows;
 
   QAbstractItemModel *model = this->model();
 
@@ -258,8 +262,6 @@ columnDuplicates(const CQChartsColumn &column, bool all) const
     rowValues2.resize(numColumns_);
   else
     rowValues2.resize(1);
-
-  std::vector<int> rows;
 
   for (int r = 0; r < numRows_; ++r) {
     bool match = true;
@@ -304,14 +306,14 @@ CQCharts *
 CQChartsModelDetails::
 charts() const
 {
-  return data_->charts();
+  return (data_ ? data_->charts() : nullptr);
 }
 
 QAbstractItemModel *
 CQChartsModelDetails::
 model() const
 {
-  return data_->currentModel().data();
+  return (data_ ? data_->currentModel().data() : nullptr);
 }
 
 //------
@@ -561,6 +563,7 @@ dataName(const QVariant &v) const
   initCache();
 
   CQCharts *charts = details_->charts();
+  if (! charts) return QVariant();
 
   const CQChartsColumnType *columnType = this->columnType();
 
@@ -1438,6 +1441,7 @@ initData()
   DetailVisitor detailVisitor(this);
 
   CQCharts *charts = details()->charts();
+  if (! charts) return false;
 
   CQChartsModelVisit::exec(charts, model, detailVisitor);
 
@@ -1505,6 +1509,7 @@ calcType()
   // get column type and name values
   // TODO: calls CQChartsModelVisitor, integrate into this visitor
   CQCharts *charts = details_->charts();
+  if (! charts) return false;
 
   if (! CQChartsModelUtil::columnValueType(charts, model, column_, type_,
                                            baseType_, nameValues_)) {
@@ -1594,6 +1599,7 @@ CQChartsModelColumnDetails::
 columnColor(const QVariant &var, CQChartsColor &color) const
 {
   CQCharts *charts = details_->charts();
+  if (! charts) return false;
 
   QAbstractItemModel *model = details_->model();
 
@@ -1636,6 +1642,7 @@ CQChartsModelColumnDetails::
 columnType() const
 {
   CQCharts *charts = details_->charts();
+  if (! charts) return nullptr;
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 

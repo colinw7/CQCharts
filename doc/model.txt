@@ -5,3 +5,7 @@ Charts
        Column Details
 
   Column Type Mgr
+
+Plots use Model Data and Selection Model
+Model Data has one or more Selection Models
+Table/Tree View has Selection Models for Model

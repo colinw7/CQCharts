@@ -7,7 +7,7 @@
 #include <CQChartsViewStatus.h>
 #include <CQChartsViewToolBar.h>
 #include <CQChartsFilterEdit.h>
-#include <CQChartsModelView.h>
+#include <CQChartsModelViewHolder.h>
 #include <CQChartsPropertyViewTree.h>
 #include <CQPixmapCache.h>
 #include <CQTabSplit.h>
@@ -201,7 +201,7 @@ CQChartsWindow(CQChartsView *view) :
 
   tableLayout->addWidget(filterEdit_);
 
-  modelView_ = new CQChartsModelView(view_->charts());
+  modelView_ = new CQChartsModelViewHolder(view_->charts());
 
   connect(modelView_, SIGNAL(filterChanged()), this, SLOT(filterChangedSlot()));
 
@@ -458,7 +458,7 @@ plotSlot()
   if (tableFrame_->isVisible() && plot)
     modelView_->setModel(plot->model(), plot->isHierarchical());
   else
-    modelView_->setModel(CQChartsModelView::ModelP(), false);
+    modelView_->setModel(CQChartsModelViewHolder::ModelP(), false);
 }
 
 void

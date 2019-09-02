@@ -118,6 +118,7 @@ CQChartsModelDetailsWidget.cpp \
 \
 CQChartsLoader.cpp \
 \
+CQChartsModelViewHolder.cpp \
 CQChartsModelView.cpp \
 CQChartsEval.cpp \
 \
@@ -393,6 +394,7 @@ HEADERS += \
 \
 ../include/CQChartsLoader.h \
 \
+../include/CQChartsModelViewHolder.h \
 ../include/CQChartsModelView.h \
 ../include/CQChartsEval.h \
 \
@@ -522,6 +524,7 @@ INCLUDEPATH += \
 . \
 ../include \
 ../../CQPropertyView/include \
+../../CQModelView/include \
 ../../CQColors/include \
 ../../CQDividedArea/include \
 ../../CQCustomCombo/include \

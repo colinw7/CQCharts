@@ -9,7 +9,7 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsColumnEdit.h>
 #include <CQChartsColumnsEdit.h>
-#include <CQChartsModelView.h>
+#include <CQChartsModelViewHolder.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsAnalyzeModel.h>
@@ -671,7 +671,7 @@ createSummaryFrame()
 
   //--
 
-  summaryModelView_ = new CQChartsModelView(charts_);
+  summaryModelView_ = new CQChartsModelViewHolder(charts_);
 
   if (modelData_->isSummaryEnabled() && summaryModel) {
     ModelP summaryModelP = modelData_->summaryModelP();

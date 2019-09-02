@@ -1,7 +1,13 @@
 #include <CQChartsModelDataWidget.h>
 #include <CQChartsModelDetailsWidget.h>
+
+#ifdef CQCHARTS_MODEL_VIEW
+#include <CQChartsModelView.h>
+#else
 #include <CQChartsTable.h>
 #include <CQChartsTree.h>
+#endif
+
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
 #include <CQCharts.h>
@@ -63,6 +69,14 @@ CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
 
   //---
 
+#ifdef CQCHARTS_MODEL_VIEW
+  view_ = new CQChartsModelView(charts_);
+
+  viewLayout->addWidget(view_);
+
+  connect(view_, SIGNAL(columnClicked(int)), this, SLOT(columnClicked(int)));
+  connect(view_, SIGNAL(selectionHasChanged()), this, SLOT(selectionChanged()));
+#else
   // table/tree stack
   stack_ = CQUtil::makeWidget<QStackedWidget>("stack");
 
@@ -77,8 +91,8 @@ CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
 
   stack_->addWidget(tree_);
 
-  connect(tree_, SIGNAL(columnClicked(int)), this, SLOT(treeColumnClicked(int)));
-  connect(tree_, SIGNAL(selectionHasChanged()), this, SLOT(treeSelectionChanged()));
+  connect(tree_, SIGNAL(columnClicked(int)), this, SLOT(columnClicked(int)));
+  connect(tree_, SIGNAL(selectionHasChanged()), this, SLOT(selectionChanged()));
 
   //---
 
@@ -89,8 +103,9 @@ CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
 
   stack_->addWidget(table_);
 
-  connect(table_, SIGNAL(columnClicked(int)), this, SLOT(tableColumnClicked(int)));
-  connect(table_, SIGNAL(selectionHasChanged()), this, SLOT(tableSelectionChanged()));
+  connect(table_, SIGNAL(columnClicked(int)), this, SLOT(columnClicked(int)));
+  connect(table_, SIGNAL(selectionHasChanged()), this, SLOT(selectionChanged()));
+#endif
 
   //------
 
@@ -126,6 +141,9 @@ filterSlot()
 {
   CQLineEdit *filterEdit = qobject_cast<CQLineEdit *>(sender());
 
+#ifdef CQCHARTS_MODEL_VIEW
+  view_->setFilter(filterEdit->text());
+#else
   if (stack_->currentIndex() == 0) {
     if (tree_)
       tree_->setFilter(filterEdit->text());
@@ -134,11 +152,12 @@ filterSlot()
     if (table_)
       table_->setFilter(filterEdit->text());
   }
+#endif
 }
 
 void
 CQChartsModelDataWidget::
-treeColumnClicked(int column)
+columnClicked(int column)
 {
   if (modelData_)
     modelData_->setCurrentColumn(column);
@@ -146,47 +165,40 @@ treeColumnClicked(int column)
 
 void
 CQChartsModelDataWidget::
-treeSelectionChanged()
+selectionChanged()
 {
-}
+#ifdef CQCHARTS_MODEL_VIEW
+#else
+  if      (tree_) {
+  }
+  else if (table_) {
+    QItemSelectionModel *sm = table_->selectionModel();
 
-void
-CQChartsModelDataWidget::
-tableColumnClicked(int column)
-{
-  if (modelData_)
-    modelData_->setCurrentColumn(column);
-}
+    std::set<int> columns;
 
-void
-CQChartsModelDataWidget::
-tableSelectionChanged()
-{
-  QItemSelectionModel *sm = table_->selectionModel();
+    if      (table_->selectionBehavior() == QAbstractItemView::SelectColumns) {
+      QModelIndexList inds = sm->selectedColumns();
 
-  std::set<int> columns;
+      if (inds.size() >= 1) {
+        int column = inds[0].column();
 
-  if      (table_->selectionBehavior() == QAbstractItemView::SelectColumns) {
-    QModelIndexList inds = sm->selectedColumns();
+        columns.insert(column);
+      }
+    }
+    else if (table_->selectionBehavior() == QAbstractItemView::SelectItems) {
+      QModelIndexList inds = sm->selectedIndexes();
 
-    if (inds.size() >= 1) {
-      int column = inds[0].column();
+      for (int i = 0; i < inds.length(); ++i)
+        columns.insert(inds[i].column());
+    }
 
-      columns.insert(column);
+    if (columns.size() >= 1) {
+      int column = *columns.begin();
+
+      modelData_->setCurrentColumn(column);
     }
   }
-  else if (table_->selectionBehavior() == QAbstractItemView::SelectItems) {
-    QModelIndexList inds = sm->selectedIndexes();
-
-    for (int i = 0; i < inds.length(); ++i)
-      columns.insert(inds[i].column());
-  }
-
-  if (columns.size() >= 1) {
-    int column = *columns.begin();
-
-    modelData_->setCurrentColumn(column);
-  }
+#endif
 }
 
 void
@@ -196,6 +208,9 @@ reloadModel()
   if (! modelData_)
     return;
 
+#ifdef CQCHARTS_MODEL_VIEW
+  view_->setModelP(modelData_->currentModel());
+#else
   if (modelData_->details()->isHierarchical()) {
     if (tree_)
       tree_->setModelP(modelData_->currentModel());
@@ -208,6 +223,7 @@ reloadModel()
 
     stack_->setCurrentIndex(1);
   }
+#endif
 }
 
 void
@@ -221,6 +237,9 @@ setDetails()
 
   const CQChartsModelData *modelData1 = nullptr;
 
+#ifdef CQCHARTS_MODEL_VIEW
+  modelData1 = charts_->getModelData(view_->modelP().data());
+#else
   if (stack_->currentIndex() == 0) {
     if (tree_)
       modelData1 = charts_->getModelData(tree_->modelP().data());
@@ -229,6 +248,7 @@ setDetails()
     if (table_)
       modelData1 = charts_->getModelData(table_->modelP().data());
   }
+#endif
 
   if (! modelData1)
     modelData1 = modelData_;
