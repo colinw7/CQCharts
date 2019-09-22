@@ -947,3 +947,6 @@
 # 8/25/2019
  + add rgb model support for CQChartsColor
  + add stops for table heatmap
+# 9/22/2019
+ + add support for abstract painter
+ + use painter to support writing plot to javascript
