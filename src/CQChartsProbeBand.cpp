@@ -35,8 +35,8 @@ showVertical(CQChartsPlot *plot, const QString &text, double px, double py1, dou
   CQChartsGeom::Point p2(px          , py2);
   CQChartsGeom::Point p3(px + tickLen, py2);
 
-  vband_->setGeometry(CQChartsUtil::toQRectI(CQChartsGeom::BBox(p1, p2)));
-  hband_->setGeometry(CQChartsUtil::toQRectI(CQChartsGeom::BBox(p2, p3)));
+  vband_->setGeometry(CQChartsGeom::BBox(p1, p2).qrecti());
+  hband_->setGeometry(CQChartsGeom::BBox(p2, p3).qrecti());
 
   vband_->show();
   hband_->show();
@@ -46,7 +46,7 @@ showVertical(CQChartsPlot *plot, const QString &text, double px, double py1, dou
 
     CQChartsGeom::Point p4(px + tickLen + 2, py2 - tip_->sizeHint().height()/2);
 
-    QPoint pos = CQChartsUtil::toQPointI(p4);
+    QPoint pos = p4.qpointi();
 
     QPoint gpos = view_->mapToGlobal(pos);
 
@@ -80,8 +80,8 @@ showHorizontal(CQChartsPlot *plot, const QString &text, double px1, double px2, 
   CQChartsGeom::Point p2(px2, py);
   CQChartsGeom::Point p3(px2, py - tickLen);
 
-  hband_->setGeometry(CQChartsUtil::toQRectI(CQChartsGeom::BBox(p1, p2)));
-  vband_->setGeometry(CQChartsUtil::toQRectI(CQChartsGeom::BBox(p2, p3)));
+  hband_->setGeometry(CQChartsGeom::BBox(p1, p2).qrecti());
+  vband_->setGeometry(CQChartsGeom::BBox(p2, p3).qrecti());
 
   hband_->show();
   vband_->show();
@@ -92,7 +92,7 @@ showHorizontal(CQChartsPlot *plot, const QString &text, double px1, double px2, 
     CQChartsGeom::Point p4(px2 -  tip_->sizeHint().width()/2,
                            py - tickLen - 2 - tip_->sizeHint().height());
 
-    QPoint pos = CQChartsUtil::toQPointI(p4);
+    QPoint pos = p4.qpointi();
 
     QPoint gpos = view_->mapToGlobal(pos);
 

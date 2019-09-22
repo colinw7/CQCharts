@@ -31,7 +31,7 @@ QVariant
 CQChartsAxisValueTypeEdit::
 getVariantFromEnum() const
 {
-  return QVariant::fromValue(value());
+  return QVariant::fromValue(axisValueType());
 }
 
 void

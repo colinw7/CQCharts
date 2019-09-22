@@ -4,12 +4,12 @@
 #include <CQCharts.h>
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
-#include <QPainter>
 #include <QMenu>
 
 CQChartsTreeMapPlotType::
@@ -1023,7 +1023,7 @@ pushSlot()
 
     QPointF pos = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
 
-    CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(pos));
+    CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(pos));
 
     plotObjsAtPoint(w, objs);
   }
@@ -1141,14 +1141,12 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsTreeMapHierObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
-  CQChartsGeom::Point p1 =
-    plot_->windowToPixel(CQChartsGeom::Point(hier_->x()             , hier_->y()             ));
-  CQChartsGeom::Point p2 =
-    plot_->windowToPixel(CQChartsGeom::Point(hier_->x() + hier_->w(), hier_->y() + hier_->h()));
+  CQChartsGeom::Point p1 = CQChartsGeom::Point(hier_->x()             , hier_->y()             );
+  CQChartsGeom::Point p2 = CQChartsGeom::Point(hier_->x() + hier_->w(), hier_->y() + hier_->h());
 
-  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y));
+  QRectF qrect = CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y).qrect();
 
   //---
 
@@ -1179,10 +1177,10 @@ draw(QPainter *painter)
   //---
 
   // draw rectangle
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
-  painter->drawRect(qrect);
+  device->drawRect(qrect);
 
   //---
 
@@ -1202,12 +1200,12 @@ draw(QPainter *painter)
 
   //---
 
-  painter->save();
+  device->save();
 
   //---
 
   // set font
-  plot_->view()->setPlotPainterFont(plot_, painter, plot_->headerTextFont());
+  plot_->view()->setPlotPainterFont(plot_, device, plot_->headerTextFont());
 
   //---
 
@@ -1227,7 +1225,7 @@ draw(QPainter *painter)
   bool visible = plot_->isTextVisible();
 
   if (visible) {
-    QFontMetricsF fm(painter->font());
+    QFontMetricsF fm(device->font());
 
     double minTextWidth  = fm.width("X") + 4;
     double minTextHeight = fm.height() + 4;
@@ -1248,18 +1246,18 @@ draw(QPainter *painter)
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
-    painter->setPen(tpen);
+    device->setPen(tpen);
 
     double m = 3; // margin
 
     QRectF qrect1(qrect.left() + m, qrect.top(), qrect.width() - 2*m, hh);
 
-    CQChartsDrawUtil::drawTextInBox(painter, qrect1, name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(qrect1), name, textOptions);
   }
 
   //---
 
-  painter->restore();
+  device->restore();
 }
 
 //------
@@ -1346,7 +1344,7 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsTreeMapNodeObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   CQChartsGeom::Point p1 =
     plot_->windowToPixel(CQChartsGeom::Point(node_->x()             , node_->y()             ));
@@ -1364,7 +1362,7 @@ draw(QPainter *painter)
   if (isPoint)
     qpoint = QPointF((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
   else
-    qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(p1.x + 1, p2.y + 1, p2.x - 1, p1.y - 1));
+    qrect = CQChartsGeom::BBox(p1.x + 1, p2.y + 1, p2.x - 1, p1.y - 1).qrect();
 
   //---
 
@@ -1398,13 +1396,13 @@ draw(QPainter *painter)
   //---
 
   // draw rectangle
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   if (isPoint)
-    painter->drawPoint(qpoint);
+    device->drawPoint(device->pixelToWindow(qpoint));
   else
-    painter->drawRect(qrect);
+    device->drawRect(device->pixelToWindow(qrect));
 
   //---
 
@@ -1445,17 +1443,17 @@ draw(QPainter *painter)
 
   //---
 
-  painter->save();
+  device->save();
 
   //---
 
   // set font
-  plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
+  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
 
   //---
 
   // check if text visible
-  QFontMetricsF fm(painter->font());
+  QFontMetricsF fm(device->font());
 
   double minTextWidth  = fm.width("X") + 4;
   double minTextHeight = fm.height() + 4;
@@ -1466,7 +1464,7 @@ draw(QPainter *painter)
 
   // draw label
   if (visible) {
-    painter->setPen(tpen);
+    device->setPen(tpen);
 
     CQChartsTextOptions textOptions;
 
@@ -1481,11 +1479,11 @@ draw(QPainter *painter)
     textOptions = plot_->adjustTextOptions(textOptions);
 
     if      (strs.size() == 1) {
-      CQChartsDrawUtil::drawTextInBox(painter, qrect, name, textOptions);
+      CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(qrect), name, textOptions);
     }
     else if (strs.size() == 2) {
       if (plot_->isTextClipped())
-        painter->setClipRect(qrect);
+        device->setClipRect(device->pixelToWindow(qrect));
 
       double th = fm.height();
 
@@ -1494,8 +1492,8 @@ draw(QPainter *painter)
       QPointF tp1(pc.x(), pc.y() - th/2);
       QPointF tp2(pc.x(), pc.y() + th/2);
 
-      CQChartsDrawUtil::drawTextAtPoint(painter, tp1, strs[0], textOptions);
-      CQChartsDrawUtil::drawTextAtPoint(painter, tp2, strs[1], textOptions);
+      CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp1), strs[0], textOptions);
+      CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp2), strs[1], textOptions);
     }
     else {
       assert(false);
@@ -1504,7 +1502,7 @@ draw(QPainter *painter)
 
   //---
 
-  painter->restore();
+  device->restore();
 }
 
 bool

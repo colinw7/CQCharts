@@ -116,9 +116,9 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
-  void drawDir(QPainter *painter, const Dir &dir, bool flip=false) const;
+  void drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip=false) const;
 
   //---
 
@@ -185,9 +185,11 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
-  void drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const;
+  void drawRugSymbol(CQChartsPaintDevice *device, const Dir &dir, bool flip) const;
+
+ private:
 
  private:
   const CQChartsScatterPlot* plot_     { nullptr }; //!< scatter plot
@@ -239,7 +241,7 @@ class CQChartsScatterGridKeyItem : public CQChartsKeyItem {
 
   QSizeF size() const override;
 
-  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) const override;
+  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const override;
 
  private:
   CQChartsScatterPlot* plot_ { nullptr };
@@ -588,11 +590,11 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   bool hasBackground() const override;
 
-  void execDrawBackground(QPainter *painter) const override;
+  void execDrawBackground(CQChartsPaintDevice *device) const override;
 
   bool hasForeground() const override;
 
-  void execDrawForeground(QPainter *painter) const override;
+  void execDrawForeground(CQChartsPaintDevice *device) const override;
 
   //---
 
@@ -625,46 +627,46 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void initGroupBestFit(int groupInd) const;
   void initGroupStats  (int groupInd) const;
 
-  void drawBestFit(QPainter *painter) const;
+  void drawBestFit(CQChartsPaintDevice *device) const;
 
-  void drawStatsLines(QPainter *painter) const;
-
-  //---
-
-  void drawHull(QPainter *painter) const;
+  void drawStatsLines(CQChartsPaintDevice *device) const;
 
   //---
 
-  void drawXRug(QPainter *painter) const;
-  void drawYRug(QPainter *painter) const;
+  void drawHull(CQChartsPaintDevice *device) const;
 
   //---
 
-  void drawXDensity(QPainter *painter) const;
-  void drawYDensity(QPainter *painter) const;
+  void drawXRug(CQChartsPaintDevice *device) const;
+  void drawYRug(CQChartsPaintDevice *device) const;
 
-  void drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData,
+  //---
+
+  void drawXDensity(CQChartsPaintDevice *device) const;
+  void drawYDensity(CQChartsPaintDevice *device) const;
+
+  void drawXDensityWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
                            const ColorInd &ig) const;
-  void drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData,
+  void drawYDensityWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
                            const ColorInd &ig) const;
 
-  void drawXWhisker(QPainter *painter) const;
-  void drawYWhisker(QPainter *painter) const;
+  void drawXWhisker(CQChartsPaintDevice *device) const;
+  void drawYWhisker(CQChartsPaintDevice *device) const;
 
-  void drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData,
+  void drawXWhiskerWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
                            const ColorInd &ig) const;
-  void drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData,
+  void drawYWhiskerWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
                            const ColorInd &ig) const;
 
   void initWhiskerData() const;
 
   //---
 
-  void drawDensityMap(QPainter *painter) const;
+  void drawDensityMap(CQChartsPaintDevice *device) const;
 
   //---
 
-  void drawSymbolMapKey(QPainter *painter) const;
+  void drawSymbolMapKey(CQChartsPaintDevice *device) const;
 
   //---
 

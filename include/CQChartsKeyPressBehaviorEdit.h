@@ -11,6 +11,9 @@
 class CQChartsKeyPressBehaviorEdit : public CQChartsEnumEdit {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsKeyPressBehavior keyPressBehavior
+               READ keyPressBehavior WRITE setKeyPressBehavior)
+
  public:
   CQChartsKeyPressBehaviorEdit(QWidget *parent=nullptr);
 

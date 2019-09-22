@@ -133,7 +133,7 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
   double xColorValue(bool relative) const override;
   double yColorValue(bool relative) const override;
@@ -298,11 +298,11 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   bool hasBackground() const override;
 
-  void execDrawBackground(QPainter *) const override;
+  void execDrawBackground(CQChartsPaintDevice *) const override;
 
   bool hasForeground() const override;
 
-  void execDrawForeground(QPainter *) const override;
+  void execDrawForeground(CQChartsPaintDevice *) const override;
 
  private:
   using Connections = CQChartsConnectionList::Connections;

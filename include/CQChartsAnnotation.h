@@ -39,13 +39,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   using ColorInd = CQChartsUtil::ColorInd;
 
  public:
-  static const QStringList &typeNames() {
-    static QStringList names = QStringList() <<
-      "rectangle" << "ellipse" << "polygon" << "polyline" <<
-      "text" << "arrow" << "point" << "image";
-
-    return names;
-  }
+  static const QStringList &typeNames();
 
  public:
   CQChartsAnnotation(CQChartsView *view, Type type);
@@ -172,7 +166,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //---
 
   //! draw
-  virtual void draw(QPainter *painter);
+  virtual void draw(CQChartsPaintDevice *device);
 
   //! draw edit handles
   void drawEditHandles(QPainter *painter) const;
@@ -256,7 +250,7 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
 
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
              const QString &varName="") const override;
@@ -306,7 +300,7 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
              const QString &varName="") const override;
@@ -348,7 +342,7 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
              const QString &varName="") const override;
@@ -388,7 +382,7 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
              const QString &varName="") const override;
@@ -449,7 +443,7 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
              const QString &varName="") const override;
@@ -526,7 +520,7 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
              const QString &varName="") const override;
@@ -599,7 +593,7 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
              const QString &varName="") const override;
@@ -646,7 +640,7 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
   void write(std::ostream &os, const QString &parentVarName="",
              const QString &varName="") const override;

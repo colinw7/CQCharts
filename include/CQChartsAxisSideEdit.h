@@ -11,6 +11,8 @@
 class CQChartsAxisSideEdit : public CQChartsEnumEdit {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsAxisSide axisSide READ axisSide WRITE setAxisSide)
+
  public:
   CQChartsAxisSideEdit(QWidget *parent=nullptr);
 

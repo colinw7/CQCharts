@@ -5,11 +5,11 @@
 #include <CQChartsEditHandles.h>
 #include <CQChartsUtil.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 
-#include <QPainter>
 #include <QRectF>
 
 CQChartsTitle::
@@ -255,7 +255,7 @@ editMove(const CQChartsGeom::Point &p)
 
     bbox_ = editHandles_->bbox();
 
-    setAbsoluteRectangle(CQChartsUtil::toQRect(bbox_));
+    setAbsoluteRectangle(bbox_.qrect());
   }
 
   editHandles_->setDragPos(p);
@@ -307,21 +307,21 @@ isDrawn() const
 
 void
 CQChartsTitle::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   if (! isDrawn())
     return;
 
   //---
 
-  painter->save();
+  device->save();
 
   //---
 
   // clip to plot
-  QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPlotPixelRect());
+  QRectF clipRect = plot_->calcPlotRect().qrect();
 
-  painter->setClipRect(clipRect);
+  device->setClipRect(clipRect);
 
   //---
 
@@ -347,8 +347,8 @@ draw(QPainter *painter)
     h = bbox_.getHeight();
   }
 
-  QSizeF paddingSize = plot_->pixelToWindowSize(QSizeF(padding(), padding()));
-  QSizeF marginSize  = plot_->pixelToWindowSize(QSizeF(margin (), margin ()));
+  QSizeF paddingSize = device->pixelToWindowSize(QSizeF(padding(), padding()));
+  QSizeF marginSize  = device->pixelToWindowSize(QSizeF(margin (), margin ()));
 
   CQChartsGeom::BBox ibbox(x     + paddingSize.width(), y     + paddingSize.height(),
                            x + w - paddingSize.width(), y + h - paddingSize.height());
@@ -360,13 +360,7 @@ draw(QPainter *painter)
 
   //---
 
-//CQChartsGeom::BBox prect  = plot_->windowToPixel(bbox_);
-  CQChartsGeom::BBox pirect = plot_->windowToPixel(ibbox);
-  CQChartsGeom::BBox ptrect = plot_->windowToPixel(tbbox);
-
-  //---
-
-  CQChartsBoxObj::draw(painter, CQChartsUtil::toQRect(pirect));
+  CQChartsBoxObj::draw(device, ibbox.qrect());
 
   //---
 
@@ -377,7 +371,7 @@ draw(QPainter *painter)
 
   plot()->setPen(pen, true, tc, textAlpha());
 
-  painter->setPen(pen);
+  device->setPen(pen);
 
   //---
 
@@ -396,28 +390,23 @@ draw(QPainter *painter)
   //---
 
   // set font
-  view()->setPlotPainterFont(plot(), painter, textFont());
-
-  //---
-
-  // set box
-  QRectF trect = CQChartsUtil::toQRect(ptrect);
+  view()->setPlotPainterFont(plot(), device, textFont());
 
   //---
 
   // draw text
-  painter->setRenderHints(QPainter::Antialiasing);
+  device->setRenderHints(QPainter::Antialiasing);
 
-  CQChartsDrawUtil::drawTextInBox(painter, trect, textStr(), textOptions);
+  CQChartsDrawUtil::drawTextInBox(device, tbbox.qrect(), textStr(), textOptions);
 
   //---
 
   if (plot_->showBoxes())
-    plot_->drawWindowColorBox(painter, bbox_, Qt::red);
+    plot_->drawWindowColorBox(device, bbox_, Qt::red);
 
   //---
 
-  painter->restore();
+  device->restore();
 }
 
 void

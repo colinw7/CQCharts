@@ -191,7 +191,7 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  private:
   const CQChartsHierScatterPlot* plot_ { nullptr };

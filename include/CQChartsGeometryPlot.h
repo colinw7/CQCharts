@@ -80,9 +80,11 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
-  void drawFg(QPainter *painter) const override;
+  void drawFg(CQChartsPaintDevice *device) const override;
+
+ private:
 
  private:
   const CQChartsGeometryPlot* plot_     { nullptr }; //!< parent plot
@@ -92,7 +94,6 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   CQChartsStyle               style_;                //!< optional style
   double                      value_    { 0.0 };     //!< geometry value
   bool                        hasValue_ { false };   //!< has value
-  Polygons                    ppolygons_;            //!< pixel polygons
 };
 
 //---

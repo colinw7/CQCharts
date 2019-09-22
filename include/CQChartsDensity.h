@@ -8,7 +8,6 @@
 #include <vector>
 
 class CQChartsPlot;
-class QPainter;
 
 struct CQChartsWhiskerOpts {
   bool violin  { false };
@@ -55,27 +54,27 @@ class CQChartsDensity {
 
   //---
 
-  void drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
-                   const Qt::Orientation &orientation,
+  void drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device,
+                   const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation,
                    const CQChartsWhiskerOpts &opts=CQChartsWhiskerOpts()) const;
 
   void calcWhiskerPoly(QPolygonF &ppoly, const CQChartsPlot *plot, const CQChartsGeom::BBox &rect,
                        const Qt::Orientation &orientation,
                        const CQChartsWhiskerOpts &opts=CQChartsWhiskerOpts()) const;
 
-  static void drawCrossBar(const CQChartsPlot *plot, QPainter *painter,
+  static void drawCrossBar(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                            const CQChartsGeom::BBox &rect, double mean,
                            const Qt::Orientation &orientation, const CQChartsLength &cornerSize);
 
-  static void drawPointRange(const CQChartsPlot *plot, QPainter *painter,
+  static void drawPointRange(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                              const CQChartsGeom::BBox &rect, double mean,
                              const Qt::Orientation &orientation, const CQChartsSymbolData &symbol,
                              const QPen &pen, const QBrush &brush);
 
-  static void drawErrorBar(const CQChartsPlot *plot, QPainter *painter,
+  static void drawErrorBar(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                            const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation);
 
-  static void drawLineRange(const CQChartsPlot *plot, QPainter *painter,
+  static void drawLineRange(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                             const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation);
 
  private:

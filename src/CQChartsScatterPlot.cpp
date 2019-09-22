@@ -23,7 +23,6 @@
 #include <CMathCorrelation.h>
 #include <CMathRound.h>
 
-#include <QPainter>
 #include <QMenu>
 
 CQChartsScatterPlotType::
@@ -1610,7 +1609,7 @@ annotationBBox() const
 
       QPointF p(dataRange.xmax(), y);
 
-      bbox += CQChartsUtil::fromQPoint(p);
+      bbox += CQChartsGeom::Point(p);
     }
 
     if (isYRug()) {
@@ -1619,7 +1618,7 @@ annotationBBox() const
 
       QPointF p(x, dataRange.ymax());
 
-      bbox += CQChartsUtil::fromQPoint(p);
+      bbox += CQChartsGeom::Point(p);
     }
 
     //---
@@ -1633,7 +1632,7 @@ annotationBBox() const
 
       QPointF p1(dataRange.xmax(), pos);
 
-      bbox += CQChartsUtil::fromQPoint(p1);
+      bbox += CQChartsGeom::Point(p1);
     }
 
     if (isYDensity()) {
@@ -1644,7 +1643,7 @@ annotationBBox() const
 
       QPointF p2(pos, dataRange.ymin());
 
-      bbox += CQChartsUtil::fromQPoint(p2);
+      bbox += CQChartsGeom::Point(p2);
     }
 
     //---
@@ -1661,7 +1660,7 @@ annotationBBox() const
 
       QPointF p1(dataRange.xmax(), pos);
 
-      bbox += CQChartsUtil::fromQPoint(p1);
+      bbox += CQChartsGeom::Point(p1);
     }
 
     if (isYWhisker()) {
@@ -1675,7 +1674,7 @@ annotationBBox() const
 
       QPointF p2(pos, dataRange.ymin());
 
-      bbox += CQChartsUtil::fromQPoint(p2);
+      bbox += CQChartsGeom::Point(p2);
     }
   }
 
@@ -1706,22 +1705,22 @@ hasBackground() const
 
 void
 CQChartsScatterPlot::
-execDrawBackground(QPainter *painter) const
+execDrawBackground(CQChartsPaintDevice *device) const
 {
-  CQChartsPlot::execDrawBackground(painter);
+  CQChartsPlot::execDrawBackground(device);
 
-  if (isHull      ()) drawHull      (painter);
-  if (isBestFit   ()) drawBestFit   (painter);
-  if (isStatsLines()) drawStatsLines(painter);
-  if (isDensityMap()) drawDensityMap(painter);
+  if (isHull      ()) drawHull      (device);
+  if (isBestFit   ()) drawBestFit   (device);
+  if (isStatsLines()) drawStatsLines(device);
+  if (isDensityMap()) drawDensityMap(device);
 
-  if (isXRug    ()) drawXRug    (painter);
-  if (isXDensity()) drawXDensity(painter);
-  if (isXWhisker()) drawXWhisker(painter);
+  if (isXRug    ()) drawXRug    (device);
+  if (isXDensity()) drawXDensity(device);
+  if (isXWhisker()) drawXWhisker(device);
 
-  if (isYRug    ()) drawYRug    (painter);
-  if (isYDensity()) drawYDensity(painter);
-  if (isYWhisker()) drawYWhisker(painter);
+  if (isYRug    ()) drawYRug    (device);
+  if (isYDensity()) drawYDensity(device);
+  if (isYWhisker()) drawYWhisker(device);
 }
 
 bool
@@ -1736,10 +1735,10 @@ hasForeground() const
 
 void
 CQChartsScatterPlot::
-execDrawForeground(QPainter *painter) const
+execDrawForeground(CQChartsPaintDevice *device) const
 {
   if (isSymbolMapKey())
-    drawSymbolMapKey(painter);
+    drawSymbolMapKey(device);
 }
 
 void
@@ -1820,7 +1819,7 @@ initGroupStats(int groupInd) const
 
 void
 CQChartsScatterPlot::
-drawBestFit(QPainter *painter) const
+drawBestFit(CQChartsPaintDevice *device) const
 {
   // init fit data
   for (const auto &groupNameValue : groupNameValues_) {
@@ -1854,28 +1853,28 @@ drawBestFit(QPainter *painter) const
     // calc fit shape at each pixel
     QPolygonF bpoly, poly, tpoly;
 
-    CQChartsGeom::Point pl = windowToPixel(CQChartsGeom::Point(fitData.xmin(), 0));
-    CQChartsGeom::Point pr = windowToPixel(CQChartsGeom::Point(fitData.xmax(), 0));
+    CQChartsGeom::Point pl = CQChartsGeom::Point(fitData.xmin(), 0);
+    CQChartsGeom::Point pr = CQChartsGeom::Point(fitData.xmax(), 0);
 
     for (int px = pl.x; px <= pr.x; ++px) {
       if (isInterrupt())
         return;
 
-      CQChartsGeom::Point p1 = pixelToWindow(CQChartsGeom::Point(px, 0.0));
+      CQChartsGeom::Point p1 = CQChartsGeom::Point(px, 0.0);
 
       double y2 = fitData.interp(p1.x);
 
-      CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(p1.x, y2));
+      CQChartsGeom::Point p2 = CQChartsGeom::Point(p1.x, y2);
 
       poly << QPointF(p2.x, p2.y);
 
       // deviation curve above/below
       if (isBestFitDeviation()) {
-        p2 = windowToPixel(CQChartsGeom::Point(p1.x, y2 - fitData.deviation()));
+        p2 = CQChartsGeom::Point(p1.x, y2 - fitData.deviation());
 
         bpoly << QPointF(p2.x, p2.y);
 
-        p2 = windowToPixel(CQChartsGeom::Point(p1.x, y2 + fitData.deviation()));
+        p2 = CQChartsGeom::Point(p1.x, y2 + fitData.deviation());
 
         tpoly << QPointF(p2.x, p2.y);
       }
@@ -1900,8 +1899,8 @@ drawBestFit(QPainter *painter) const
 
       updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
 
-      painter->setPen  (pen);
-      painter->setBrush(brush);
+      device->setPen  (pen);
+      device->setBrush(brush);
 
       //---
 
@@ -1927,7 +1926,7 @@ drawBestFit(QPainter *painter) const
           dpoly << p;
         }
 
-        painter->drawPolygon(dpoly);
+        device->drawPolygon(dpoly);
       }
 
       //---
@@ -1948,7 +1947,7 @@ drawBestFit(QPainter *painter) const
         path.lineTo(p);
       }
 
-      painter->strokePath(path, pen);
+      device->strokePath(path, pen);
     }
 
     //---
@@ -1959,7 +1958,7 @@ drawBestFit(QPainter *painter) const
 
 void
 CQChartsScatterPlot::
-drawStatsLines(QPainter *painter) const
+drawStatsLines(CQChartsPaintDevice *device) const
 {
   // init stats data
   for (const auto &groupNameValue : groupNameValues_) {
@@ -2004,23 +2003,23 @@ drawStatsLines(QPainter *painter) const
 
     updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
 
-    painter->setPen  (pen);
-    painter->setBrush(brush);
+    device->setPen  (pen);
+    device->setBrush(brush);
 
     //---
 
     auto drawXStatLine = [&](double x) {
-      QPointF p1 = windowToPixel(QPointF(x, statData.ystat.loutlier));
-      QPointF p2 = windowToPixel(QPointF(x, statData.ystat.uoutlier));
+      QPointF p1 = QPointF(x, statData.ystat.loutlier);
+      QPointF p2 = QPointF(x, statData.ystat.uoutlier);
 
-      painter->drawLine(p1, p2);
+      device->drawLine(p1, p2);
     };
 
     auto drawYStatLine = [&](double y) {
-      QPointF p1 = windowToPixel(QPointF(statData.xstat.loutlier, y));
-      QPointF p2 = windowToPixel(QPointF(statData.xstat.uoutlier, y));
+      QPointF p1 = QPointF(statData.xstat.loutlier, y);
+      QPointF p2 = QPointF(statData.xstat.uoutlier, y);
 
-      painter->drawLine(p1, p2);
+      device->drawLine(p1, p2);
     };
 
     drawXStatLine(statData.xstat.loutlier   );
@@ -2043,7 +2042,7 @@ drawStatsLines(QPainter *painter) const
 
 void
 CQChartsScatterPlot::
-drawHull(QPainter *painter) const
+drawHull(CQChartsPaintDevice *device) const
 {
   int ig = 0;
   int ng = groupNameValues_.size();
@@ -2100,12 +2099,12 @@ drawHull(QPainter *painter) const
       isHullStroked(), strokeColor, hullStrokeAlpha(), hullStrokeWidth(), hullStrokeDash(),
       isHullFilled(), fillColor, hullFillAlpha(), hullFillPattern());
 
-    painter->setPen  (pen);
-    painter->setBrush(brush);
+    device->setPen  (pen);
+    device->setBrush(brush);
 
     //---
 
-    hull->draw(this, painter);
+    hull->draw(this, device);
 
     //---
 
@@ -2117,7 +2116,7 @@ drawHull(QPainter *painter) const
 
 void
 CQChartsScatterPlot::
-drawXRug(QPainter *painter) const
+drawXRug(CQChartsPaintDevice *device) const
 {
   for (const auto &plotObj : plotObjects()) {
     if (isInterrupt())
@@ -2127,16 +2126,16 @@ drawXRug(QPainter *painter) const
     const CQChartsScatterCellObj  *cellObj  = dynamic_cast<CQChartsScatterCellObj  *>(plotObj);
 
     if (pointObj)
-      pointObj->drawDir(painter, CQChartsScatterPointObj::Dir::X, xRugSide() == YSide::TOP);
+      pointObj->drawDir(device, CQChartsScatterPointObj::Dir::X, xRugSide() == YSide::TOP);
 
     if (cellObj)
-      cellObj->drawRugSymbol(painter, CQChartsScatterCellObj::Dir::X, xRugSide() == YSide::TOP);
+      cellObj->drawRugSymbol(device, CQChartsScatterCellObj::Dir::X, xRugSide() == YSide::TOP);
   }
 }
 
 void
 CQChartsScatterPlot::
-drawYRug(QPainter *painter) const
+drawYRug(CQChartsPaintDevice *device) const
 {
   for (const auto &plotObj : plotObjects()) {
     if (isInterrupt())
@@ -2146,10 +2145,10 @@ drawYRug(QPainter *painter) const
     const CQChartsScatterCellObj  *cellObj  = dynamic_cast<CQChartsScatterCellObj  *>(plotObj);
 
     if (pointObj)
-      pointObj->drawDir(painter, CQChartsScatterPointObj::Dir::Y, yRugSide() == XSide::RIGHT);
+      pointObj->drawDir(device, CQChartsScatterPointObj::Dir::Y, yRugSide() == XSide::RIGHT);
 
     if (cellObj)
-      cellObj->drawRugSymbol(painter, CQChartsScatterCellObj::Dir::Y, yRugSide() == XSide::RIGHT);
+      cellObj->drawRugSymbol(device, CQChartsScatterCellObj::Dir::Y, yRugSide() == XSide::RIGHT);
   }
 }
 
@@ -2157,7 +2156,7 @@ drawYRug(QPainter *painter) const
 
 void
 CQChartsScatterPlot::
-drawXDensity(QPainter *painter) const
+drawXDensity(CQChartsPaintDevice *device) const
 {
   initWhiskerData();
 
@@ -2178,7 +2177,7 @@ drawXDensity(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawXDensityWhisker(painter, whiskerData, ColorInd(ig, ng));
+        drawXDensityWhisker(device, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2199,7 +2198,7 @@ drawXDensity(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawXDensityWhisker(painter, whiskerData, ColorInd(ig, ng));
+        drawXDensityWhisker(device, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2209,7 +2208,7 @@ drawXDensity(QPainter *painter) const
 
 void
 CQChartsScatterPlot::
-drawYDensity(QPainter *painter) const
+drawYDensity(CQChartsPaintDevice *device) const
 {
   initWhiskerData();
 
@@ -2230,7 +2229,7 @@ drawYDensity(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawYDensityWhisker(painter, whiskerData, ColorInd(ig, ng));
+        drawYDensityWhisker(device, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2251,7 +2250,7 @@ drawYDensity(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawYDensityWhisker(painter, whiskerData, ColorInd(ig, ng));
+        drawYDensityWhisker(device, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2261,7 +2260,8 @@ drawYDensity(QPainter *painter) const
 
 void
 CQChartsScatterPlot::
-drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, const ColorInd &ig) const
+drawXDensityWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
+                    const ColorInd &ig) const
 {
   // calc pen/brush
   QPen   pen;
@@ -2274,8 +2274,8 @@ drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, const Col
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
     /*filled*/ true, fillColor, densityAlpha(), CQChartsFillPattern());
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
@@ -2292,12 +2292,13 @@ drawXDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, const Col
 
   CQChartsGeom::BBox rect(xmin, pos, xmax, pos + dh);
 
-  density.drawWhisker(this, painter, rect, Qt::Horizontal);
+  density.drawWhisker(this, device, rect, Qt::Horizontal);
 }
 
 void
 CQChartsScatterPlot::
-drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, const ColorInd &ig) const
+drawYDensityWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
+                    const ColorInd &ig) const
 {
   // calc pen/brush
   QPen   pen;
@@ -2310,8 +2311,8 @@ drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, const Col
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
     /*filled*/ true, fillColor, densityAlpha(), symbolFillPattern());
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
@@ -2328,16 +2329,16 @@ drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, const Col
 
   CQChartsGeom::BBox rect(pos, xmin, pos + dw, xmax);
 
-  density.drawWhisker(this, painter, rect, Qt::Vertical);
+  density.drawWhisker(this, device, rect, Qt::Vertical);
 }
 
 void
 CQChartsScatterPlot::
-drawDensityMap(QPainter *painter) const
+drawDensityMap(CQChartsPaintDevice *device) const
 {
-  painter->save();
+  device->save();
 
-  setClipRect(painter);
+  setClipRect(device);
 
   //---
 
@@ -2366,8 +2367,10 @@ drawDensityMap(QPainter *painter) const
       double ymin = values.yrange.min();
       double ymax = values.yrange.max();
 
-      QPointF ll = windowToPixel(QPointF(xmin, ymin));
-      QPointF ur = windowToPixel(QPointF(xmax, ymax));
+      QRectF pr = device->windowToPixel(QRectF(xmin, ymin, xmax - xmin, ymax - ymin));
+
+      QPointF ll = pr.bottomLeft();
+      QPointF ur = pr.topRight  ();
 
       int x1 = CMathRound::RoundDown(ll.x());
       int x2 = CMathRound::RoundUp  (ur.x());
@@ -2425,7 +2428,9 @@ drawDensityMap(QPainter *painter) const
 
           //---
 
-          painter->fillRect(QRectF(x, y, dx, dy), brush);
+          QRectF pr1 = QRectF(x, y, dx, dy);
+
+          device->fillRect(device->pixelToWindow(pr1), brush);
         }
       }
     }
@@ -2433,14 +2438,14 @@ drawDensityMap(QPainter *painter) const
 
   //---
 
-  painter->restore();
+  device->restore();
 }
 
 //---
 
 void
 CQChartsScatterPlot::
-drawXWhisker(QPainter *painter) const
+drawXWhisker(CQChartsPaintDevice *device) const
 {
   initWhiskerData();
 
@@ -2461,7 +2466,7 @@ drawXWhisker(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawXWhiskerWhisker(painter, whiskerData, ColorInd(ig, ng));
+        drawXWhiskerWhisker(device, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2482,7 +2487,7 @@ drawXWhisker(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawXWhiskerWhisker(painter, whiskerData, ColorInd(ig, ng));
+        drawXWhiskerWhisker(device, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2492,7 +2497,7 @@ drawXWhisker(QPainter *painter) const
 
 void
 CQChartsScatterPlot::
-drawYWhisker(QPainter *painter) const
+drawYWhisker(CQChartsPaintDevice *device) const
 {
   initWhiskerData();
 
@@ -2513,7 +2518,7 @@ drawYWhisker(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawYWhiskerWhisker(painter, whiskerData, ColorInd(ig, ng));
+        drawYWhiskerWhisker(device, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2534,7 +2539,7 @@ drawYWhisker(QPainter *painter) const
       if (p != groupWhiskers_.end()) {
         const WhiskerData &whiskerData = (*p).second;
 
-        drawYWhiskerWhisker(painter, whiskerData, ColorInd(ig, ng));
+        drawYWhiskerWhisker(device, whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2544,7 +2549,8 @@ drawYWhisker(QPainter *painter) const
 
 void
 CQChartsScatterPlot::
-drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, const ColorInd &ig) const
+drawXWhiskerWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
+                    const ColorInd &ig) const
 {
   // calc pen/brush
   QPen   pen;
@@ -2557,8 +2563,8 @@ drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, const Col
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
     /*filled*/ true, fillColor, whiskerAlpha(), symbolFillPattern());
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
@@ -2572,13 +2578,14 @@ drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, const Col
 
   CQChartsGeom::BBox rect(whiskerData.xWhisker.min(), pos, whiskerData.xWhisker.max(), pos + ww);
 
-  CQChartsBoxWhiskerUtil::drawWhisker(this, painter, whiskerData.xWhisker,
+  CQChartsBoxWhiskerUtil::drawWhisker(this, device, whiskerData.xWhisker,
                                       rect, whiskerWidth(), Qt::Horizontal);
 }
 
 void
 CQChartsScatterPlot::
-drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, const ColorInd &ig) const
+drawYWhiskerWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
+                    const ColorInd &ig) const
 {
   // calc pen/brush
   QPen   pen;
@@ -2591,8 +2598,8 @@ drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, const Col
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
     /*filled*/ true, fillColor, whiskerAlpha(), symbolFillPattern());
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
@@ -2606,7 +2613,7 @@ drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, const Col
 
   CQChartsGeom::BBox rect(pos, whiskerData.yWhisker.min(), pos + ww, whiskerData.yWhisker.max());
 
-  CQChartsBoxWhiskerUtil::drawWhisker(this, painter, whiskerData.yWhisker,
+  CQChartsBoxWhiskerUtil::drawWhisker(this, device, whiskerData.yWhisker,
                                       rect, whiskerWidth(), Qt::Vertical);
 }
 
@@ -2759,7 +2766,7 @@ initWhiskerData() const
 
 void
 CQChartsScatterPlot::
-drawSymbolMapKey(QPainter *painter) const
+drawSymbolMapKey(CQChartsPaintDevice *device) const
 {
   if (! symbolSizeColumn().isValid())
     return;
@@ -2792,7 +2799,7 @@ drawSymbolMapKey(QPainter *painter) const
 
   QColor strokeColor = interpThemeColor(ColorInd(1.0));
 
-  painter->setPen(strokeColor);
+  device->setPen(strokeColor);
 
   double xm = px - pr1 - pm;
   double ym = py - pm;
@@ -2807,19 +2814,19 @@ drawSymbolMapKey(QPainter *painter) const
   QColor fillColor2 = interpSymbolFillColor(ColorInd(0.5)); fillColor2.setAlphaF(a);
   QColor fillColor3 = interpSymbolFillColor(ColorInd(0.0)); fillColor3.setAlphaF(a);
 
-  painter->setBrush(fillColor1); painter->drawEllipse(r1);
-  painter->setBrush(fillColor2); painter->drawEllipse(r2);
-  painter->setBrush(fillColor3); painter->drawEllipse(r3);
+  device->setBrush(fillColor1); device->drawEllipse(device->pixelToWindow(r1));
+  device->setBrush(fillColor2); device->drawEllipse(device->pixelToWindow(r2));
+  device->setBrush(fillColor3); device->drawEllipse(device->pixelToWindow(r3));
 
-  auto drawText = [&](QPainter *painter, const QPointF &p, const QString &text) {
-    QFontMetricsF fm(painter->font());
+  auto drawText = [&](CQChartsPaintDevice *device, const QPointF &p, const QString &text) {
+    QFontMetricsF fm(device->font());
 
-    CQChartsDrawUtil::drawSimpleText(painter, p.x() - fm.width(text)/2, p.y(), text);
+    CQChartsDrawUtil::drawSimpleText(device, QPointF(p.x() - fm.width(text)/2, p.y()), text);
   };
 
-  drawText(painter, QPointF(r1.center().x(), r1.top()), QString("%1").arg(max ));
-  drawText(painter, QPointF(r2.center().x(), r2.top()), QString("%1").arg(mean));
-  drawText(painter, QPointF(r3.center().x(), r3.top()), QString("%1").arg(min ));
+  drawText(device, pixelToWindow(QPointF(r1.center().x(), r1.top())), QString("%1").arg(max ));
+  drawText(device, pixelToWindow(QPointF(r2.center().x(), r2.top())), QString("%1").arg(mean));
+  drawText(device, pixelToWindow(QPointF(r3.center().x(), r3.top())), QString("%1").arg(min ));
 }
 
 //------
@@ -3020,14 +3027,14 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsScatterPointObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
-  drawDir(painter, Dir::XY);
+  drawDir(device, Dir::XY);
 }
 
 void
 CQChartsScatterPointObj::
-drawDir(QPainter *painter, const Dir &dir, bool flip) const
+drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
 {
   ColorInd ic = calcColorInd();
 
@@ -3052,30 +3059,30 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
   plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
   // get symbol type and size
   CQChartsSymbol symbolType;
-  double         sx, sy;
+  CQChartsLength symbolSize;
 
   if (dir != Dir::XY) {
     symbolType = plot_->rugSymbolType();
+    symbolSize = plot_->rugSymbolSize();
 
     if (symbolType == CQChartsSymbol::Type::NONE)
       symbolType = (dir == Dir::X ? CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
-
-    plot_->pixelSymbolSize(plot_->rugSymbolSize(), sx, sy);
   }
   else {
     symbolType = this->symbolType();
-
-    CQChartsLength symbolSize = this->symbolSize();
-
-    plot_->pixelSymbolSize(symbolSize, sx, sy);
+    symbolSize = this->symbolSize();
   }
+
+  double sx, sy;
+
+  plot_->pixelSymbolSize(symbolSize, sx, sy);
 
   //---
 
@@ -3102,13 +3109,18 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
   //---
 
-  // draw symbol
-  if (image_.isNull())
-    plot_->drawSymbol(painter, ps, symbolType, CMathUtil::avg(sx, sy), pen, brush);
+  // draw symbol or image
+  QImage image = this->image();
+
+  if (image.isNull()) {
+    QPointF ps1 = plot_->pixelToWindow(ps);
+
+    plot_->drawSymbol(device, ps1, symbolType, symbolSize, pen, brush);
+  }
   else {
     QRectF irect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
 
-    painter->drawImage(irect, image_.scaled(sx, sy, Qt::IgnoreAspectRatio));
+    device->drawImageInRect(plot()->pixelToWindow(irect), image);
   }
 
   //---
@@ -3154,7 +3166,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
     // draw text
     QRectF erect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
 
-    dataLabel->draw(painter, erect, name_, dataLabel->position(), tpen);
+    dataLabel->draw(device, plot_->pixelToWindow(erect), name_, dataLabel->position(), tpen);
 
     //---
 
@@ -3246,10 +3258,8 @@ getSelectIndices(Indices &) const
 
 void
 CQChartsScatterCellObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
-
   // set pen and brush
   ColorInd ic(points_.size(), maxn_);
 
@@ -3266,18 +3276,18 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
   // draw rect
-  painter->drawRect(CQChartsUtil::toQRect(prect));
+  device->drawRect(rect().qrect());
 }
 
 void
 CQChartsScatterCellObj::
-drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const
+drawRugSymbol(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
 {
   ColorInd ic = (ig_.n > 1 ? ig_ : is_);
 
@@ -3291,20 +3301,21 @@ drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const
 
   plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
   // set symbol type and size
-  CQChartsSymbol symbol = plot_->rugSymbolType();
+  CQChartsSymbol symbolType = plot_->rugSymbolType();
+  CQChartsLength symbolSize = plot_->rugSymbolSize();
 
-  if (symbol == CQChartsSymbol::Type::NONE)
-    symbol = (dir == Dir::X ? CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
+  if (symbolType == CQChartsSymbol::Type::NONE)
+    symbolType = (dir == Dir::X ? CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
 
   double sx, sy;
 
-  plot_->pixelSymbolSize(plot_->rugSymbolSize(), sx, sy);
+  plot_->pixelSymbolSize(symbolSize, sx, sy);
 
   //---
 
@@ -3332,10 +3343,9 @@ drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const
     }
 
     // draw symbol
-
     QRectF erect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
 
-    plot_->drawSymbol(painter, ps, symbol, CMathUtil::avg(sx, sy), pen, brush);
+    plot_->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, pen, brush);
   }
 }
 
@@ -3433,12 +3443,12 @@ size() const
 
 void
 CQChartsScatterGridKeyItem::
-draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
+draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 {
   // calc text width
-  plot_->view()->setPlotPainterFont(plot_, painter, key_->textFont());
+  plot_->view()->setPlotPainterFont(plot_, device, key_->textFont());
 
-  QFontMetricsF fm(painter->font());
+  QFontMetricsF fm(device->font());
 
 //double fw = fm.width("X");
   double fh = fm.height();
@@ -3474,7 +3484,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 
   QRectF frect(pg1.x(), pg2.y(), lprect.getWidth(), lprect.getHeight());
 
-  painter->fillRect(frect, brush);
+  device->fillRect(device->pixelToWindow(frect), brush);
 
   //---
 
@@ -3505,16 +3515,21 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 
   plot_->setPen(pen, true, tc, 1.0);
 
-  painter->setPen(pen);
+  device->setPen(pen);
 
   //---
 
   // draw key labels
   double df = (fm.ascent() - fm.descent())/2.0;
 
-  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin(), y1 + df, QString("%1").arg(n1));
-  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin(), y2 + df, QString("%1").arg(n2));
-  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin(), y3 + df, QString("%1").arg(n3));
-  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin(), y4 + df, QString("%1").arg(n4));
-  CQChartsDrawUtil::drawSimpleText(painter, rprect.getXMin(), y5 + df, QString("%1").arg(n5));
+  CQChartsDrawUtil::drawSimpleText(device,
+    device->pixelToWindow(QPointF(rprect.getXMin(), y1 + df)), QString("%1").arg(n1));
+  CQChartsDrawUtil::drawSimpleText(device,
+    device->pixelToWindow(QPointF(rprect.getXMin(), y2 + df)), QString("%1").arg(n2));
+  CQChartsDrawUtil::drawSimpleText(device,
+    device->pixelToWindow(QPointF(rprect.getXMin(), y3 + df)), QString("%1").arg(n3));
+  CQChartsDrawUtil::drawSimpleText(device,
+    device->pixelToWindow(QPointF(rprect.getXMin(), y4 + df)), QString("%1").arg(n4));
+  CQChartsDrawUtil::drawSimpleText(device,
+    device->pixelToWindow(QPointF(rprect.getXMin(), y5 + df)), QString("%1").arg(n5));
 }

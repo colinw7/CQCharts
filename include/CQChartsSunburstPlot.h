@@ -67,12 +67,12 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  private:
   const CQChartsSunburstPlot* plot_ { nullptr }; //!< parent plot
   CQChartsSunburstNode*       node_ { nullptr }; //!< associated node
-  int                         ind_     { 0 };    //!< ind
+  int                         ind_  { 0 };       //!< ind
 };
 
 //---
@@ -383,7 +383,7 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   //---
 
-  void drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj,
+  void drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
                 CQChartsSunburstNode *node) const;
 
   //---
@@ -439,7 +439,7 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   //---
 
-  void drawNodes(QPainter *painter, CQChartsSunburstHierNode *hier) const;
+  void drawNodes(CQChartsPaintDevice *device, CQChartsSunburstHierNode *hier) const;
 
  public slots:
   void pushSlot();

@@ -7,6 +7,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsHtml.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsPaintDevice.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -16,7 +17,6 @@
 #include <CQPerfMonitor.h>
 #include <CQPivotModel.h>
 
-#include <QPainter>
 #include <QMenu>
 
 CQChartsPivotPlotType::
@@ -1068,6 +1068,8 @@ CQChartsPivotBarObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rec
  CQChartsPlotObj(const_cast<CQChartsPivotPlot *>(plot), rect, ColorInd(), ir, ic),
  plot_(plot), value_(value), ind_(ind)
 {
+  setDetailHint(DetailHint::MAJOR);
+
   setModelInds(inds);
 }
 
@@ -1118,11 +1120,9 @@ dataLabelRect() const
 
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
-  QRectF qrect = CQChartsUtil::toQRect(prect);
-
   QString label = QString("%1").arg(value_);
 
-  return plot_->dataLabel()->calcRect(qrect, label);
+  return plot_->dataLabel()->calcRect(prect.qrect(), label);
 }
 
 //---
@@ -1142,69 +1142,55 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsPivotBarObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
-  if (! visible())
-    return;
-
-  //---
-
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
-
-  QRectF qrect = CQChartsUtil::toQRect(prect);
-
-  //---
-
-  // calc bar color
-  ColorInd colorInd = calcColorInd();
-
-  //---
-
   // calc pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
-  QColor bc = plot_->interpBarStrokeColor(colorInd);
-  QColor fc = plot_->interpBarFillColor  (colorInd);
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  plot_->setPenBrush(pen, brush,
-    plot_->isBarStroked(), bc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(),
-    plot_->barStrokeDash(),
-    plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
-
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  painter->setPen(pen);
-  painter->setBrush(brush);
+  calcPenBrush(penBrush, updateState);
 
   //---
 
-  double cxs = plot_->lengthPixelWidth (plot_->barCornerSize());
-  double cys = plot_->lengthPixelHeight(plot_->barCornerSize());
-
-  CQChartsDrawUtil::drawRoundedPolygon(painter, qrect, cxs, cys);
+  // draw bar
+  drawRoundedPolygon(device, penBrush, rect(), plot_->barCornerSize());
 }
 
 void
 CQChartsPivotBarObj::
-drawFg(QPainter *painter) const
+drawFg(CQChartsPaintDevice *device) const
 {
   // draw data label on foreground layers
   if (! plot_->dataLabel()->isVisible())
     return;
 
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
-
-  QRectF qrect = CQChartsUtil::toQRect(prect);
-
-  //---
-
   QString label = QString("%1").arg(value_);
 
-  CQChartsDataLabel::Position pos = plot_->dataLabel()->position();
+  if (label != "") {
+    CQChartsDataLabel::Position pos = plot_->dataLabel()->position();
 
-  if (label != "")
-    plot_->dataLabel()->draw(painter, qrect, label, pos);
+    plot_->dataLabel()->draw(device, rect().qrect(), label, pos);
+  }
+}
+
+void
+CQChartsPivotBarObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  // calc pen and brush
+  ColorInd colorInd = calcColorInd();
+
+  QColor bc = plot_->interpBarStrokeColor(colorInd);
+  QColor fc = plot_->interpBarFillColor  (colorInd);
+
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->isBarStroked(), bc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(),
+    plot_->barStrokeDash(),
+    plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush.pen, penBrush.brush);
 }
 
 //------
@@ -1243,9 +1229,6 @@ bool
 CQChartsPivotLineObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
-    return false;
-
   bool isFilled = (plot_->plotType() == CQChartsPivotPlot::PlotType::AREA);
   bool isLines  = (plot_->plotType() == CQChartsPivotPlot::PlotType::LINES ||
                    plot_->plotType() == CQChartsPivotPlot::PlotType::AREA);
@@ -1304,13 +1287,8 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsPivotLineObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
-  if (! visible())
-    return;
-
-  //---
-
   // calc bar color
   ColorInd colorInd = calcColorInd();
 
@@ -1339,27 +1317,19 @@ draw(QPainter *painter)
 
     plot_->updateObjPenBrushState(this, pen, brush);
 
-    painter->setPen(pen);
-    painter->setBrush(brush);
+    device->setPen(pen);
+    device->setBrush(brush);
 
     //---
 
     // draw line
     if (! isFilled) {
-      for (int i = 1; i < np; ++i) {
-        QPointF p1 = plot()->windowToPixel(polygon_[i - 1]);
-        QPointF p2 = plot()->windowToPixel(polygon_[i    ]);
-
-        painter->drawLine(p1, p2);
-      }
+      for (int i = 1; i < np; ++i)
+        device->drawLine(polygon_[i - 1], polygon_[i]);
     }
     else {
-      for (int i = 2; i < np - 1; ++i) {
-        QPointF p1 = plot()->windowToPixel(polygon_[i - 1]);
-        QPointF p2 = plot()->windowToPixel(polygon_[i    ]);
-
-        painter->drawLine(p1, p2);
-      }
+      for (int i = 2; i < np - 1; ++i)
+        device->drawLine(polygon_[i - 1], polygon_[i]);
     }
   }
 
@@ -1379,18 +1349,15 @@ draw(QPainter *painter)
 
     plot_->updateObjPenBrushState(this, pen, brush);
 
-    painter->setPen(pen);
-    painter->setBrush(brush);
+    device->setPen(pen);
+    device->setBrush(brush);
 
     CQChartsSymbol symbol(CQChartsSymbol::Type::CIRCLE);
 
     double ss = 5.0;
 
-    for (int i = 0; i < np; ++i) {
-      QPointF p = plot()->windowToPixel(polygon_[i]);
-
-      plot()->drawSymbol(painter, p, symbol, ss, pen, brush);
-    }
+    for (int i = 0; i < np; ++i)
+      plot()->drawSymbol(device, polygon_[i], symbol, ss, pen, brush);
   }
 
   // fill area
@@ -1407,21 +1374,19 @@ draw(QPainter *painter)
 
     plot_->updateObjPenBrushState(this, pen, brush);
 
-    painter->setPen(pen);
-    painter->setBrush(brush);
+    device->setPen(pen);
+    device->setBrush(brush);
 
     QPainterPath path;
 
     for (int i = 0; i < np; ++i) {
-      QPointF p = plot()->windowToPixel(polygon_[i]);
-
       if (i == 0)
-        path.moveTo(p);
+        path.moveTo(polygon_[i]);
       else
-        path.lineTo(p);
+        path.lineTo(polygon_[i]);
     }
 
-    painter->drawPath(path);
+    device->drawPath(path);
   }
 }
 
@@ -1475,9 +1440,6 @@ bool
 CQChartsPivotPointObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (! visible())
-    return false;
-
   CQChartsGeom::Point p1 = plot()->windowToPixel(p);
   CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(p_));
 
@@ -1497,13 +1459,8 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsPivotPointObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
-  if (! visible())
-    return;
-
-  //---
-
   // calc bar color
   ColorInd colorInd = calcColorInd();
 
@@ -1525,16 +1482,14 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setPen(pen);
-  painter->setBrush(brush);
+  device->setPen(pen);
+  device->setBrush(brush);
 
   CQChartsSymbol symbol(CQChartsSymbol::Type::CIRCLE);
 
   double ss = 5.0;
 
-  QPointF p = plot()->windowToPixel(p_);
-
-  plot()->drawSymbol(painter, p, symbol, ss, pen, brush);
+  plot()->drawSymbol(device, p_, symbol, ss, pen, brush);
 }
 
 //------
@@ -1608,19 +1563,8 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsPivotCellObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
-  if (! visible())
-    return;
-
-  //---
-
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
-
-  QRectF qrect = CQChartsUtil::toQRect(prect);
-
-  //---
-
   // get column palette and bg color
   QColor hbg, vbg;
 
@@ -1632,12 +1576,18 @@ draw(QPainter *painter)
     vbg = CQChartsUtil::blendColors(bg1, bg2, vnorm_);
   }
 
+  //---
+
   // get bar color
   ColorInd colorInd = calcColorInd();
 
   //---
 
   // calc bar box
+  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
+
+  QRectF qrect = prect.qrect();
+
   double m  = 4;
   double bs = std::min(std::min(qrect.width ()/2 - 2*m, qrect.height()/2 - 2*m), 32.0);
   double tw = qrect.width () - bs - 3*m;
@@ -1674,10 +1624,10 @@ draw(QPainter *painter)
   if (! valid_)
     bgbrush = Qt::NoBrush;
 
-  painter->setPen(bgpen);
-  painter->setBrush(bgbrush);
+  device->setPen(bgpen);
+  device->setBrush(bgbrush);
 
-  painter->drawRect(qrect);
+  device->drawRect(device->pixelToWindow(qrect));
 
   //---
 
@@ -1701,14 +1651,18 @@ draw(QPainter *painter)
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
-    painter->setPen(CQChartsUtil::bwColor(vbg));
+    device->setPen(CQChartsUtil::bwColor(vbg));
 
-    plot_->view()->setPlotPainterFont(plot_, painter, plot_->dataLabel()->textFont());
+    plot_->view()->setPlotPainterFont(plot_, device, plot_->dataLabel()->textFont());
+
+    QRectF tr;
 
     if (plot_->isGridBars())
-      CQChartsDrawUtil::drawTextInBox(painter, qrectt, valueStr, textOptions);
+      tr = device->pixelToWindow(qrectt);
     else
-      CQChartsDrawUtil::drawTextInBox(painter, qrect, valueStr, textOptions);
+      tr = device->pixelToWindow(qrect);
+
+    CQChartsDrawUtil::drawTextInBox(device, tr, valueStr, textOptions);
   }
 
   //---
@@ -1724,27 +1678,27 @@ draw(QPainter *painter)
       plot_->isBarStroked(), fgsc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(),
       plot_->barStrokeDash());
 
-    painter->setPen(fgpen);
-    painter->setBrush(plot_->interpPlotFillColor(ColorInd()));
+    device->setPen(fgpen);
+    device->setBrush(plot_->interpPlotFillColor(ColorInd()));
 
-    painter->drawRect(qrecth2);
+    device->drawRect(device->pixelToWindow(qrecth2));
 
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(hbg);
+    device->setPen(Qt::NoPen);
+    device->setBrush(hbg);
 
-    painter->drawRect(qrecth1);
+    device->drawRect(device->pixelToWindow(qrecth1));
 
     //---
 
-    painter->setPen(fgpen);
-    painter->setBrush(plot_->interpPlotFillColor(ColorInd()));
+    device->setPen(fgpen);
+    device->setBrush(plot_->interpPlotFillColor(ColorInd()));
 
-    painter->drawRect(qrectv2);
+    device->drawRect(device->pixelToWindow(qrectv2));
 
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(vbg);
+    device->setPen(Qt::NoPen);
+    device->setBrush(vbg);
 
-    painter->drawRect(qrectv1);
+    device->drawRect(device->pixelToWindow(qrectv1));
   }
 }
 

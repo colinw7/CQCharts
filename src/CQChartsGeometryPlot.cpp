@@ -14,8 +14,6 @@
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
-#include <QPainter>
-
 CQChartsGeometryPlotType::
 CQChartsGeometryPlotType()
 {
@@ -620,7 +618,7 @@ bool
 CQChartsGeometryObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  QPointF p1 = CQChartsUtil::toQPoint(p);
+  QPointF p1 = p.qpoint();
 
   for (const auto &poly : polygons_) {
     if (poly.containsPoint(p1, Qt::OddEvenFill))
@@ -646,24 +644,8 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsGeometryObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
-  ppolygons_.clear();
-
-  for (const auto &poly : polygons_) {
-    QPolygonF ppoly;
-
-    for (int i = 0; i < poly.count(); ++i) {
-      QPointF p1 = plot_->windowToPixel(poly[i]);
-
-      ppoly << p1;
-    }
-
-    ppolygons_.push_back(ppoly);
-  }
-
-  //---
-
   // set polygon pen/brush
   QPen   pen;
   QBrush brush;
@@ -702,10 +684,10 @@ draw(QPainter *painter)
 
   //---
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
-  for (const auto &ppoly : ppolygons_) {
+  for (const auto &ppoly : polygons_) {
     QPainterPath path;
 
     int i = 0;
@@ -721,17 +703,15 @@ draw(QPainter *painter)
 
     path.closeSubpath();
 
-    painter->drawPath(path);
+    device->drawPath(path);
   }
 }
 
 void
 CQChartsGeometryObj::
-drawFg(QPainter *painter) const
+drawFg(CQChartsPaintDevice *device) const
 {
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
+  QRectF qrect = rect().qrect();
 
-  QRectF qrect = CQChartsUtil::toQRect(prect);
-
-  plot_->dataLabel()->draw(painter, qrect, name());
+  plot_->dataLabel()->draw(device, qrect, name());
 }

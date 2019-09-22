@@ -8,12 +8,12 @@
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 #include <CQCharts.h>
 
 #include <CQColorsPalette.h>
 
 #include <QCheckBox>
-#include <QPainter>
 
 CQChartsTableDelegate::
 CQChartsTableDelegate(CQChartsTable *table) :
@@ -481,8 +481,11 @@ drawSymbol(QPainter *painter, const QStyleOptionViewItem &option,
   if (symbol.isValid()) {
     painter->setBrush(Qt::NoBrush);
 
-    CQChartsDrawUtil::drawSymbol(painter, symbol, QPointF(rect.center()),
-                                 QSizeF(rect.height(), rect.height()));
+    CQChartsPixelPainter device(painter);
+
+    CQChartsLength symbolSize(rect.height(), CQChartsUnits::PIXEL);
+
+    CQChartsDrawUtil::drawSymbol(&device, symbol, QPointF(rect.center()), symbolSize);
   }
 
   QFontMetrics fm(painter->font());

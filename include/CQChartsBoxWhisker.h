@@ -213,7 +213,6 @@ using CQChartsBoxWhisker = CQChartsBoxWhiskerT<double>;
 #include <CQChartsLength.h>
 
 class CQChartsPlot;
-class QPainter;
 
 /*!
  * \brief box whisker utility functions
@@ -221,19 +220,19 @@ class QPainter;
  */
 namespace CQChartsBoxWhiskerUtil {
 
-void drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQChartsBoxWhisker &whisker,
-                 const CQChartsGeom::BBox &bbox, const CQChartsLength &width,
-                 const Qt::Orientation &orientation);
+void drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device,
+                 const CQChartsBoxWhisker &whisker, const CQChartsGeom::BBox &bbox,
+                 const CQChartsLength &width, const Qt::Orientation &orientation);
+void drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device,
+                 const CQStatData &data, const CQChartsGeom::BBox &bbox,
+                 const CQChartsLength &width, const Qt::Orientation &orientation);
 
-void drawWhisker(const CQChartsPlot *plot, QPainter *painter, const CQStatData &data,
-                 const CQChartsGeom::BBox &bbox, const CQChartsLength &width,
-                 const Qt::Orientation &orientation);
-
-void drawWhiskerBar(const CQChartsPlot *plot, QPainter *painter, const CQStatData &data,
+void drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQStatData &data,
                     double pos, const Qt::Orientation &orientation,
                     double ww, double bw, const CQChartsLength &cornerSize, bool notched);
 
-void drawOutliers(const CQChartsPlot *plot, QPainter *painter, const std::vector<double> &ovalues,
+void drawOutliers(const CQChartsPlot *plot, CQChartsPaintDevice *device,
+                  const std::vector<double> &ovalues,
                   double pos, const CQChartsSymbolData &symbol, const QPen &pen,
                   const QBrush &brush, const Qt::Orientation &orientation);
 }

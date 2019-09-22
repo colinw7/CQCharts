@@ -22,6 +22,7 @@
 #include <CQChartsKeyEdit.h>
 #include <CQChartsTitleEdit.h>
 #include <CQChartsEditHandles.h>
+#include <CQChartsPaintDevice.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -35,7 +36,8 @@
 #include <QMouseEvent>
 #include <QScrollBar>
 #include <QMenu>
-#include <QPainter>
+
+#include <fstream>
 
 namespace {
   CQChartsSelMod modifiersToSelMod(Qt::KeyboardModifiers modifiers) {
@@ -521,18 +523,38 @@ setPosTextType(const PosTextType &t)
 
 void
 CQChartsView::
+setPainterFont(CQChartsPaintDevice *device, const CQChartsFont &font) const
+{
+  device->setFont(viewFont(font));
+}
+
+#if 0
+void
+CQChartsView::
 setPainterFont(QPainter *painter, const CQChartsFont &font) const
 {
   painter->setFont(viewFont(font));
 }
+#endif
 
+#if 0
 void
 CQChartsView::
 setPainterFont(QPainter *painter, const QFont &font) const
 {
   painter->setFont(viewFont(font));
 }
+#endif
 
+void
+CQChartsView::
+setPlotPainterFont(const CQChartsPlot *plot, CQChartsPaintDevice *device,
+                   const CQChartsFont &font) const
+{
+  device->setFont(plotFont(plot, font));
+}
+
+#if 0
 void
 CQChartsView::
 setPlotPainterFont(const CQChartsPlot *plot, QPainter *painter, const CQChartsFont &font) const
@@ -546,6 +568,7 @@ setPlotPainterFont(const CQChartsPlot *plot, QPainter *painter, const QFont &fon
 {
   painter->setFont(plotFont(plot, font));
 }
+#endif
 
 QFont
 CQChartsView::
@@ -1874,7 +1897,7 @@ mousePressEvent(QMouseEvent *me)
   mouseData_.selMod     = modifiersToSelMod(me->modifiers());
   mouseData_.clickMod   = modifiersToClickMod(me->modifiers());
 
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mousePressPoint())));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(QPointF(mousePressPoint())));
 
   plotsAt(w, mouseData_.plots, mouseData_.plot);
 
@@ -1956,7 +1979,7 @@ mouseMoveEvent(QMouseEvent *me)
   }
 
   // get plots at point
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseMovePoint())));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(QPointF(mouseMovePoint())));
 
   plotsAt(w, mouseData_.plots, mouseData_.plot);
 
@@ -2002,7 +2025,7 @@ mouseReleaseEvent(QMouseEvent *me)
 
   CQChartsScopeGuard resetMouseData([&]() { mouseData_.reset(); });
 
-  //CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseMovePoint())));
+  //CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(QPointF(mouseMovePoint())));
 
   if      (mouseButton() == Qt::LeftButton) {
     if      (mode() == Mode::SELECT) {
@@ -2113,7 +2136,7 @@ keyPressEvent(QKeyEvent *ke)
 
   QPointF pos = mapFromGlobal(gpos);
 
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(pos));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(pos));
 
   Plots         plots;
   CQChartsPlot *plot;
@@ -2132,7 +2155,7 @@ editMousePress()
 {
   QPointF p = mouseData_.pressPoint;
 
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(p));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(p));
 
   //---
 
@@ -2250,7 +2273,7 @@ editMouseMove()
 {
   QPointF p = mouseMovePoint();
 
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(p)));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(p));
 
   if      (mouseData_.dragObj == DragObj::KEY) {
     if (key()->editMove(w))
@@ -2292,7 +2315,7 @@ editMouseMotion()
 {
   QPointF p = mouseMovePoint();
 
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(p)));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(p));
 
   //---
 
@@ -2383,7 +2406,7 @@ showProbeLines(const QPointF &p)
 
   //int px = p.x();
 
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(p)));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(p));
 
   Plots         plots;
   CQChartsPlot *plot;
@@ -2393,7 +2416,7 @@ showProbeLines(const QPointF &p)
   int probeInd = 0;
 
   for (auto &plot : plots) {
-    CQChartsGeom::Point w = plot->pixelToWindow(CQChartsUtil::fromQPoint(p));
+    CQChartsGeom::Point w = plot->pixelToWindow(CQChartsGeom::Point(p));
 
     //---
 
@@ -2490,7 +2513,7 @@ void
 CQChartsView::
 selectPointPress()
 {
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mousePressPoint())));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(QPointF(mousePressPoint())));
 
   //---
 
@@ -2587,7 +2610,7 @@ selectMouseMove()
 {
   if      (selectMode_ == SelectMode::POINT) {
     if (key()) {
-      CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(mouseMovePoint()));
+      CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(mouseMovePoint()));
 
       bool handled = key()->selectMove(w);
 
@@ -2636,9 +2659,9 @@ selectMouseRelease()
     else {
       processMouseDataPlots([&](CQChartsPlot *plot, const CQChartsSelMod &selMod) {
         CQChartsGeom::Point w1 =
-          plot->pixelToWindow(CQChartsUtil::fromQPoint(mousePressPoint()));
+          plot->pixelToWindow(CQChartsGeom::Point(mousePressPoint()));
         CQChartsGeom::Point w2 =
-          plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseMovePoint()));
+          plot->pixelToWindow(CQChartsGeom::Point(mouseMovePoint()));
 
         return plot->rectSelect(CQChartsGeom::BBox(w1, w2), selMod);
       }, mouseSelMod());
@@ -2708,7 +2731,7 @@ updatePosText(const QPointF &pos)
   QString posStr;
 
   if (posTextType() == PosTextType::PLOT) {
-    CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(pos)));
+    CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(pos));
 
     CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
 
@@ -2725,7 +2748,7 @@ updatePosText(const QPointF &pos)
       basePlotsAt(w, plots);
 
     for (const auto &plot : plots) {
-      CQChartsGeom::Point w = plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(pos)));
+      CQChartsGeom::Point w = plot->pixelToWindow(CQChartsGeom::Point(pos));
 
       if (posStr.length())
         posStr += " ";
@@ -2734,7 +2757,7 @@ updatePosText(const QPointF &pos)
     }
   }
   else if (posTextType() == PosTextType::VIEW) {
-    CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(pos)));
+    CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(pos));
 
     posStr = QString("%1 %2").arg(w.x).arg(w.y);
   }
@@ -2777,9 +2800,9 @@ zoomMouseRelease()
 
   if (mousePlot()) {
     CQChartsGeom::Point w1 =
-      mousePlot()->pixelToWindow(CQChartsUtil::fromQPointF(mousePressPoint()));
+      mousePlot()->pixelToWindow(CQChartsGeom::Point(QPointF(mousePressPoint())));
     CQChartsGeom::Point w2 =
-      mousePlot()->pixelToWindow(CQChartsUtil::fromQPointF(mouseMovePoint()));
+      mousePlot()->pixelToWindow(CQChartsGeom::Point(QPointF(mouseMovePoint())));
 
     CQChartsGeom::BBox bbox(w1, w2);
 
@@ -2795,9 +2818,9 @@ panMouseMove()
 {
   if (mousePlot()) {
     CQChartsGeom::Point w1 =
-      mousePlot()->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseData_.oldMovePoint)));
+      mousePlot()->pixelToWindow(CQChartsGeom::Point(QPointF(mouseData_.oldMovePoint)));
     CQChartsGeom::Point w2 =
-      mousePlot()->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseMovePoint())));
+      mousePlot()->pixelToWindow(CQChartsGeom::Point(QPointF(mouseMovePoint())));
 
     double dx = w1.x - w2.x;
     double dy = w1.y - w2.y;
@@ -3116,7 +3139,7 @@ paint(QPainter *painter, CQChartsPlot *plot)
   setBrush(brush, true, interpBackgroundFillColor(ColorInd()),
            backgroundFillAlpha(), backgroundFillPattern());
 
-  painter->fillRect(CQChartsUtil::toQRect(prect_), brush);
+  painter->fillRect(prect_.qrect(), brush);
 
   //---
 
@@ -3136,13 +3159,19 @@ paint(QPainter *painter, CQChartsPlot *plot)
     QPainter *painter1 = objectsBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
-      // draw annotations
-      drawAnnotations(painter1, CQChartsLayer::Type::ANNOTATION);
+      CQChartsView *th = const_cast<CQChartsView *>(this);
+
+      CQChartsViewPainter device(th, painter1);
+
+      if (hasAnnotations()) {
+        // draw annotations
+        drawAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
+      }
 
       //--
 
       // draw view key
-      drawKey(painter1, CQChartsLayer::Type::FG_KEY);
+      drawKey(&device, CQChartsLayer::Type::FG_KEY);
     }
 
     objectsBuffer_->endPaint();
@@ -3152,28 +3181,41 @@ paint(QPainter *painter, CQChartsPlot *plot)
     painter1 = overlayBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
-      // draw selected annotations
-      drawAnnotations(painter1, CQChartsLayer::Type::SELECTION);
+      CQChartsView *th = const_cast<CQChartsView *>(this);
 
-      // draw annotations
-      drawAnnotations(painter1, CQChartsLayer::Type::MOUSE_OVER);
+      CQChartsViewPainter device(th, painter1);
+
+      if (hasAnnotations()) {
+        // draw selected annotations
+        drawAnnotations(&device, CQChartsLayer::Type::SELECTION);
+
+        // draw annotations
+        drawAnnotations(&device, CQChartsLayer::Type::MOUSE_OVER);
+      }
 
       //--
 
       // draw view key
-      drawKey(painter1, CQChartsLayer::Type::SELECTION);
+      drawKey(&device, CQChartsLayer::Type::SELECTION);
 
       // draw view key
-      drawKey(painter1, CQChartsLayer::Type::MOUSE_OVER);
+      drawKey(&device, CQChartsLayer::Type::MOUSE_OVER);
     }
 
     overlayBuffer_->endPaint();
   }
 }
 
+bool
+CQChartsView::
+hasAnnotations() const
+{
+  return annotations().size();
+}
+
 void
 CQChartsView::
-drawAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType)
+drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType)
 {
   // set draw layer
   setDrawLayerType(layerType);
@@ -3188,18 +3230,22 @@ drawAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType)
         continue;
     }
 
-    annotation->draw(painter);
+    annotation->draw(device);
 
     if (layerType == CQChartsLayer::Type::SELECTION) {
       if (mode() == CQChartsView::Mode::EDIT && annotation->isSelected())
-        annotation->drawEditHandles(painter);
+        if (device->type() != CQChartsPaintDevice::Type::SCRIPT) {
+          CQChartsViewPlotPainter *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+
+          annotation->drawEditHandles(painter->painter());
+        }
     }
   }
 }
 
 void
 CQChartsView::
-drawKey(QPainter *painter, const CQChartsLayer::Type &layerType)
+drawKey(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType)
 {
   // draw view key
   if (! key())
@@ -3214,11 +3260,16 @@ drawKey(QPainter *painter, const CQChartsLayer::Type &layerType)
       return;
   }
 
-  key()->draw(painter);
+  key()->draw(device);
 
   if (layerType == CQChartsLayer::Type::SELECTION) {
-    if (mode() == CQChartsView::Mode::EDIT && key()->isSelected())
-      key()->drawEditHandles(painter);
+    if (mode() == CQChartsView::Mode::EDIT && key()->isSelected()) {
+      if (device->type() != CQChartsPaintDevice::Type::SCRIPT) {
+        CQChartsViewPlotPainter *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+
+        key()->drawEditHandles(painter->painter());
+      }
+    }
   }
 }
 
@@ -3467,7 +3518,7 @@ void
 CQChartsView::
 searchSlot()
 {
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(searchPos_));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(searchPos_));
 
   plotsAt(w, mouseData_.plots, mouseData_.plot, /*clear*/true, /*first*/true);
 
@@ -3478,7 +3529,7 @@ searchSlot()
   bool handled = false;
 
   processMouseDataPlots([&](CQChartsPlot *plot, const QPointF &pos) {
-    CQChartsGeom::Point w = plot->pixelToWindow(CQChartsUtil::fromQPoint(pos));
+    CQChartsGeom::Point w = plot->pixelToWindow(CQChartsGeom::Point(pos));
 
     if (plot->selectMove(w, ! handled))
       handled = true;
@@ -3572,7 +3623,7 @@ showMenu(const QPoint &p)
   //---
 
   // get current plot
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(p));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(p));
 
   Plots         plots;
   CQChartsPlot* plot { nullptr };
@@ -4136,6 +4187,8 @@ showMenu(const QPoint &p)
   addAction(printMenu, "PNG", SLOT(printPNGSlot()));
   addAction(printMenu, "SVG", SLOT(printSVGSlot()));
 
+  addAction(printMenu, "Script", SLOT(writeScriptSlot()));
+
   //---
 
   if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG", true)) {
@@ -4610,6 +4663,8 @@ printFile(const QString &filename, CQChartsPlot *plot)
       return printPNG(filename, plot);
     else if (suffix == "svg")
       return printSVG(filename, plot);
+    else if (suffix == "js")
+      return writeScript(filename, plot);
     else
       return printPNG(filename, plot);
   }
@@ -4656,6 +4711,25 @@ printSVGSlot(const QString &filename)
   printSVG(filename);
 }
 
+void
+CQChartsView::
+writeScriptSlot(const QString &filename)
+{
+  writeScript(filename);
+}
+
+void
+CQChartsView::
+writeScriptSlot()
+{
+  QString dir = QDir::current().dirName() + "/charts.js";
+
+  QString fileName = QFileDialog::getSaveFileName(this, "Print Script", dir, "Files (*.js)");
+
+  if (! fileName.isNull())
+    writeScriptSlot(fileName);
+}
+
 bool
 CQChartsView::
 printPNG(const QString &filename, CQChartsPlot *plot)
@@ -4677,7 +4751,7 @@ printPNG(const QString &filename, CQChartsPlot *plot)
   if (plot) {
     CQChartsGeom::BBox pixelRect = plot->calcPlotPixelRect();
 
-    image = image.copy(CQChartsUtil::toQRectI(pixelRect));
+    image = image.copy(pixelRect.qrecti());
   }
 
   return image.save(filename);
@@ -4708,6 +4782,411 @@ printSVG(const QString &filename, CQChartsPlot *plot)
   setBufferLayers(buffer);
 
   return rc;
+}
+
+bool
+CQChartsView::
+writeScript(const QString &filename, CQChartsPlot *plot)
+{
+  auto os = std::ofstream(filename.toStdString(), std::ofstream::out);
+
+  //---
+
+  CQChartsScriptPainter device(const_cast<CQChartsView *>(this), os);
+
+  //---
+
+  os <<
+  "'use strict';\n"
+  "\n"
+  "var charts = new Charts();\n"
+  "\n"
+  "window.addEventListener(\"load\", eventWindowLoaded, false);\n"
+  "\n"
+  "//------\n"
+  "\n"
+  "function eventWindowLoaded () {\n"
+  "  if (canvasSupport()) {\n"
+  "    charts.init();\n"
+  "\n"
+  "    (function drawFrame () {\n"
+  "      var canvas = document.getElementById(\"canvas\");\n"
+  "\n"
+  "      window.requestAnimationFrame(drawFrame, canvas);\n"
+  "\n"
+  "      charts.update();\n"
+  "    }());\n"
+  "  }\n"
+  "}\n"
+  "\n"
+  "function canvasSupport() {\n"
+  "  return true;\n"
+  "  //return Modernizr.canvas;\n"
+  "}\n"
+  "\n"
+  "function Charts () {\n"
+  "  this.plots = [];\n"
+  "}\n"
+  "\n";
+
+  os <<
+  "Charts.prototype.init = function() {\n"
+  "  this.canvas = document.getElementById(\"canvas\");\n"
+  "  this.gc     = this.canvas.getContext(\"2d\");\n"
+  "\n"
+  "  this.vxmin = 0.0;\n"
+  "  this.vymin = 0.0;\n"
+  "  this.vxmax = 100.0;\n"
+  "  this.vymax = 100.0;\n"
+  "\n"
+  "  this.xmin = 0.0;\n"
+  "  this.ymin = 0.0;\n"
+  "  this.xmax = 1.0;\n"
+  "  this.ymax = 1.0;\n"
+  "\n"
+  "  this.canvas.addEventListener(\"mousedown\", this.eventMouseDown, false);\n"
+  "  this.canvas.addEventListener(\"mousemove\", this.eventMouseMove, false);\n"
+  "  this.canvas.addEventListener(\"mouseup\"  , this.eventMouseUp  , false);\n"
+  "\n";
+
+  if (plot) {
+    std::string plotId = "plot_" + plot->id().toStdString();
+
+    os << "  this." << plotId << " = new Charts_" << plotId << "();\n";
+    os << "  this.plots.push(this." << plotId << ");\n";
+    os << "\n";
+    os << "  this." << plotId << ".init();\n";
+  }
+  else {
+    for (auto &plot : plots_) {
+      std::string plotId = "plot_" + plot->id().toStdString();
+
+      os << "  this." << plotId << " = new Charts_" << plotId << "();\n";
+      os << "  this.plots.push(this." << plotId << ");\n";
+      os << "\n";
+      os << "  this." << plotId << ".init();\n";
+    }
+  }
+
+  os << "}\n";
+  os << "\n";
+
+  os <<
+  "Charts.prototype.eventMouseDown = function(e) {\n"
+  "  charts.plots.forEach(plot => plot.eventMouseDown(e));\n"
+  "}\n"
+  "\n";
+
+  os <<
+  "Charts.prototype.eventMouseMove = function(e) {\n"
+  "  charts.plots.forEach(plot => plot.eventMouseMove(e));\n"
+  "}\n"
+  "\n";
+
+  os <<
+  "Charts.prototype.eventMouseUp = function(e) {\n"
+  "  charts.plots.forEach(plot => plot.eventMouseMove(e));\n"
+  "}\n"
+  "\n";
+
+  os <<
+  "Charts.prototype.plotXToPixel = function(x) {\n"
+  "  var sx = (x - this.xmin)/(this.xmax - this.xmin);\n"
+  "\n"
+  "  var x1 = this.vxmin*this.canvas.width/100.0;\n"
+  "  var x2 = this.vxmax*this.canvas.width/100.0;\n"
+  "\n"
+  "  return sx*(x2 - x1) + x1;\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.plotYToPixel = function(y) {\n"
+  "  var sy = (y - this.ymax)/(this.ymin - this.ymax);\n"
+  "\n"
+  "  var y1 = this.vymin*this.canvas.height/100.0;\n"
+  "  var y2 = this.vymax*this.canvas.height/100.0;\n"
+  "\n"
+  "  return sy*(y2 - y1) + y1;\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.moveTo = function(x, y) {\n"
+  "  var px = this.plotXToPixel(x);\n"
+  "  var py = this.plotYToPixel(y);\n"
+  "\n"
+  "  this.gc.moveTo(px, py);\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.lineTo = function(x, y) {\n"
+  "  var px = this.plotXToPixel(x);\n"
+  "  var py = this.plotYToPixel(y);\n"
+  "\n"
+  "  this.gc.lineTo(px, py);\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.quadTo = function(x1, y1, x2, y2) {\n"
+  "  var px1 = this.plotXToPixel(x1);\n"
+  "  var py1 = this.plotYToPixel(y1);\n"
+  "  var px2 = this.plotXToPixel(x2);\n"
+  "  var py2 = this.plotYToPixel(y2);\n"
+  "\n"
+  "  this.gc.quadraticCurveTo(px, py);\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.curveTo = function(x1, y1, x2, y2, x3, y3) {\n"
+  "  var px1 = this.plotXToPixel(x1);\n"
+  "  var py1 = this.plotYToPixel(y1);\n"
+  "  var px2 = this.plotXToPixel(x2);\n"
+  "  var py2 = this.plotYToPixel(y2);\n"
+  "  var px3 = this.plotXToPixel(x3);\n"
+  "  var py3 = this.plotYToPixel(y3);\n"
+  "\n"
+  "  this.gc.bezierCurveTo(px1, py1, px2, py2, px3, py3);\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.drawRoundedPolygon = function(x1, y1, x2, y2, xs, ys) {\n"
+  "  var px1 = this.plotXToPixel(x1);\n"
+  "  var py1 = this.plotYToPixel(y1);\n"
+  "  var px2 = this.plotXToPixel(x2);\n"
+  "  var py2 = this.plotYToPixel(y2);\n"
+  "\n"
+  "  this.gc.beginPath();\n"
+  "\n"
+  "  this.gc.moveTo(px1, py1);\n"
+  "  this.gc.lineTo(px2, py1);\n"
+  "  this.gc.lineTo(px2, py2);\n"
+  "  this.gc.lineTo(px1, py2);\n"
+  "\n"
+  "  this.gc.closePath();\n"
+  "\n"
+  "  this.gc.fill();\n"
+  "  this.gc.stroke();\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.drawPoint = function(x, y) { \n"
+  "  var px = this.plotXToPixel(x);\n"
+  "  var py = this.plotYToPixel(y);\n"
+  "\n"
+  "  this.gc.beginPath();\n"
+  "\n"
+  "  this.gc.moveTo(px, py);\n"
+  "  this.gc.lineTo(px, py);\n"
+  "\n"
+  "  this.gc.stroke();\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.drawLine = function(x1, y1, x2, y2) { \n"
+  "  var px1 = this.plotXToPixel(x1);\n"
+  "  var py1 = this.plotYToPixel(y1);\n"
+  "  var px2 = this.plotXToPixel(x2);\n"
+  "  var py2 = this.plotYToPixel(y2);\n"
+  "\n"
+  "  this.gc.beginPath();\n"
+  "\n"
+  "  this.gc.moveTo(px1, py1);\n"
+  "  this.gc.lineTo(px2, py2);\n"
+  "\n"
+  "  this.gc.stroke();\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.strokeRect = function(x1, y1, x2, y2) {\n"
+  "  var px1 = this.plotXToPixel(x1);\n"
+  "  var py1 = this.plotYToPixel(y1);\n"
+  "  var px2 = this.plotXToPixel(x2);\n"
+  "  var py2 = this.plotYToPixel(y2);\n"
+  "\n"
+  "  this.gc.beginPath();\n"
+  "\n"
+  "  this.gc.moveTo(px1, py1);\n"
+  "  this.gc.lineTo(px2, py1);\n"
+  "  this.gc.lineTo(px2, py2);\n"
+  "  this.gc.lineTo(px1, py2);\n"
+  "\n"
+  "  this.gc.closePath();\n"
+  "\n"
+  "  this.gc.stroke();\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.fillRect = function(x1, y1, x2, y2) {\n"
+  "  var px1 = this.plotXToPixel(x1);\n"
+  "  var py1 = this.plotYToPixel(y1);\n"
+  "  var px2 = this.plotXToPixel(x2);\n"
+  "  var py2 = this.plotYToPixel(y2);\n"
+  "\n"
+  "  this.gc.beginPath();\n"
+  "\n"
+  "  this.gc.moveTo(px1, py1);\n"
+  "  this.gc.lineTo(px2, py1);\n"
+  "  this.gc.lineTo(px2, py2);\n"
+  "  this.gc.lineTo(px1, py2);\n"
+  "\n"
+  "  this.gc.closePath();\n"
+  "\n"
+  "  this.gc.fill();\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.drawRect = function(x1, y1, x2, y2) {\n"
+  "  var px1 = this.plotXToPixel(x1);\n"
+  "  var py1 = this.plotYToPixel(y1);\n"
+  "  var px2 = this.plotXToPixel(x2);\n"
+  "  var py2 = this.plotYToPixel(y2);\n"
+  "\n"
+  "  this.gc.beginPath();\n"
+  "\n"
+  "  this.gc.moveTo(px1, py1);\n"
+  "  this.gc.lineTo(px2, py1);\n"
+  "  this.gc.lineTo(px2, py2);\n"
+  "  this.gc.lineTo(px1, py2);\n"
+  "\n"
+  "  this.gc.closePath();\n"
+  "\n"
+  "  this.gc.fill();\n"
+  "  this.gc.stroke();\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.drawEllipse = function(x1, y1, x2, y2) {\n"
+  "  var px1 = this.plotXToPixel(x1);\n"
+  "  var py1 = this.plotYToPixel(y1);\n"
+  "  var px2 = this.plotXToPixel(x2);\n"
+  "  var py2 = this.plotYToPixel(y2);\n"
+  "\n"
+  "  var xc = (px1 + px2)/2;\n"
+  "  var yc = (py1 + py2)/2;\n"
+  "  var w  = Math.abs(px2 - px1);\n"
+  "  var h  = Math.abs(py2 - py1);\n"
+  "\n"
+  "  this.gc.beginPath();\n"
+  "\n"
+  "  this.gc.moveTo(xc, yc - h/2);\n"
+  "\n"
+  "  this.gc.bezierCurveTo(xc + w/2, yc - h/2, xc + w/2, yc + h/2, xc, yc + h/2);\n"
+  "  this.gc.bezierCurveTo(xc - w/2, yc + h/2, xc - w/2, yc - h/2, xc, yc - h/2);\n"
+  "\n"
+  "  this.gc.closePath();\n"
+  "\n"
+  "  this.gc.fill();\n"
+  "  this.gc.stroke();\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.drawPolygon = function(poly) {\n"
+  "  this.gc.beginPath();\n"
+  "  for (var i = 0; i < poly.length; ++i) {\n"
+  "    var px = this.plotXToPixel(poly[2*i    ]);\n"
+  "    var py = this.plotYToPixel(poly[2*i + 1]);\n"
+  "    if (i == 0)\n"
+  "      this.gc.moveTo(px, py);\n"
+  "    else\n"
+  "      this.gc.lineTo(px, py);\n"
+  "  }\n"
+  "  this.gc.closePath();\n"
+  "  this.gc.fill();\n"
+  "  this.gc.stroke();\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.drawPolyline = function(poly) {\n"
+  "  this.gc.beginPath();\n"
+  "  for (var i = 0; i < poly.length; ++i) {\n"
+  "    var px = this.plotXToPixel(poly[2*i    ]);\n"
+  "    var py = this.plotYToPixel(poly[2*i + 1]);\n"
+  "    if (i == 0)\n"
+  "      this.gc.moveTo(px, py);\n"
+  "    else\n"
+  "      this.gc.lineTo(px, py);\n"
+  "  }\n"
+  "  this.gc.stroke();\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.drawText = function(x, y, text) {\n"
+  "  var px = this.plotXToPixel(x);\n"
+  "  var py = this.plotYToPixel(y);\n"
+  "\n"
+  "  var fillStyle = this.gc.fillStyle;\n"
+  "  this.gc.fillStyle = this.gc.strokeStyle;\n"
+  "  this.gc.fillText(text, px, py);\n"
+  "  this.gc.fillStyle = fillStyle;\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.drawRotatedText = function(x, y, text, a) {\n"
+  "  var px = this.plotXToPixel(x);\n"
+  "  var py = this.plotYToPixel(y);\n"
+  "\n"
+  "  var c = Math.cos(a);\n"
+  "  var s = Math.sin(a);\n"
+  "\n"
+  "  this.gc.setTransform(c, -s, s, c, px, py);\n"
+  "\n"
+  "  var fillStyle = this.gc.fillStyle;\n"
+  "  this.gc.fillStyle = this.gc.strokeStyle;\n"
+  "  this.gc.fillText(text, 0, 0);\n"
+  "  this.gc.fillStyle = fillStyle;\n"
+  "\n"
+  "  this.gc.setTransform(1, 0, 0, 1, 0, 0);\n"
+  "}\n"
+  "\n";
+
+  //---
+
+  os << "Charts.prototype.update = function() {\n";
+
+  if (plot) {
+    std::string plotId = "plot_" + plot->id().toStdString();
+
+    os << "  this." << plotId << ".draw();\n";
+  }
+  else {
+    for (auto &plot : plots_) {
+      std::string plotId = "plot_" + plot->id().toStdString();
+
+      os << "  this." << plotId << ".draw();\n";
+    }
+  }
+
+  if (hasAnnotations()) {
+    os << "\n";
+    os << "  this.vxmin = 0.0;\n";
+    os << "  this.vymin = 0.0;\n";
+    os << "  this.vxmax = 100.0;\n";
+    os << "  this.vymax = 100.0;\n";
+    os << "\n";
+
+    os << "  this.xmin = 0.0;\n";
+    os << "  this.ymin = 0.0;\n";
+    os << "  this.xmax = 100.0;\n";
+    os << "  this.ymax = 100.0;\n";
+    os << "\n";
+
+    os << "  this.drawAnnotations();\n";
+  }
+
+  os << "}\n";
+
+  if (hasAnnotations()) {
+    os << "\n";
+    os << "Charts.prototype.drawAnnotations = function() {\n";
+
+    drawAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
+
+    os << "}\n";
+  }
+
+  os << "\n";
+  os << "Charts.prototype.log = function(s) {\n";
+  os << "  document.getElementById(\"canvas_log\").innerHTML = s;\n";
+  os << "}\n";
+
+  //---
+
+  os << "\n";
+
+  if (plot) {
+    plot->writeScript(os);
+  }
+  else {
+    for (auto &plot : plots_)
+      plot->writeScript(os);
+  }
+
+  //---
+
+  return true;
 }
 
 //------
@@ -5223,7 +5702,7 @@ QPointF
 CQChartsView::
 positionToView(const CQChartsPosition &pos) const
 {
-  CQChartsGeom::Point p = CQChartsUtil::fromQPoint(pos.p());
+  CQChartsGeom::Point p = CQChartsGeom::Point(pos.p());
 
   CQChartsGeom::Point p1 = p;
 
@@ -5236,14 +5715,14 @@ positionToView(const CQChartsPosition &pos) const
     p1.setY(p.getY()*height()/100.0);
   }
 
-  return CQChartsUtil::toQPoint(p1);
+  return p1.qpoint();
 }
 
 QPointF
 CQChartsView::
 positionToPixel(const CQChartsPosition &pos) const
 {
-  CQChartsGeom::Point p = CQChartsUtil::fromQPoint(pos.p());
+  CQChartsGeom::Point p = CQChartsGeom::Point(pos.p());
 
   CQChartsGeom::Point p1 = p;
 
@@ -5256,7 +5735,7 @@ positionToPixel(const CQChartsPosition &pos) const
     p1.setY(p.getY()*height()/100.0);
   }
 
-  return CQChartsUtil::toQPoint(p1);
+  return p1.qpoint();
 }
 
 //------
@@ -5265,7 +5744,7 @@ QRectF
 CQChartsView::
 rectToView(const CQChartsRect &rect) const
 {
-  CQChartsGeom::BBox r = CQChartsUtil::fromQRect(rect.rect());
+  CQChartsGeom::BBox r = CQChartsGeom::BBox(rect.rect());
 
   CQChartsGeom::BBox r1 = r;
 
@@ -5280,14 +5759,14 @@ rectToView(const CQChartsRect &rect) const
     r1.setYMax(r.getYMax()*height()/100.0);
   }
 
-  return CQChartsUtil::toQRect(r1);
+  return r1.qrect();
 }
 
 QRectF
 CQChartsView::
 rectToPixel(const CQChartsRect &rect) const
 {
-  CQChartsGeom::BBox r = CQChartsUtil::fromQRect(rect.rect());
+  CQChartsGeom::BBox r = CQChartsGeom::BBox(rect.rect());
 
   CQChartsGeom::BBox r1 = r;
 
@@ -5302,7 +5781,7 @@ rectToPixel(const CQChartsRect &rect) const
     r1.setYMax(r.getYMax()*height()/100.0);
   }
 
-  return CQChartsUtil::toQRect(r1);
+  return r1.qrect();
 }
 
 //------
@@ -5445,6 +5924,20 @@ pixelToWindow(const CQChartsGeom::BBox &prect) const
   pixelToWindowI(prect.getXMax(), prect.getYMax(), wx2, wy1);
 
   return CQChartsGeom::BBox(wx1, wy1, wx2, wy2);
+}
+
+QRectF
+CQChartsView::
+windowToPixel(const QRectF &w) const
+{
+  return windowToPixel(CQChartsGeom::BBox(w)).qrect();
+}
+
+QRectF
+CQChartsView::
+pixelToWindow(const QRectF &p) const
+{
+  return pixelToWindow(CQChartsGeom::BBox(p)).qrect();
 }
 
 double

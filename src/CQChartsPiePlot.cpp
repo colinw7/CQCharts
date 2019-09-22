@@ -5,6 +5,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -12,7 +13,6 @@
 #include <CQPerfMonitor.h>
 #include <CMathRound.h>
 
-#include <QPainter>
 #include <QMenu>
 
 CQChartsPiePlotType::
@@ -1307,9 +1307,7 @@ annotationBBox() const
   if (CMathUtil::realEq(std::abs(a21), 360.0)) {
     CQChartsGeom::Point pc = plot_->windowToPixel(c);
 
-    //---
-
-    bbox = plot_->textBox()->bbox(CQChartsUtil::toQPoint(pc), label(), 0.0);
+    bbox = plot_->textBox()->bbox(pc.qpoint(), label(), 0.0);
   }
   // draw on arc center line
   else {
@@ -1329,8 +1327,6 @@ annotationBBox() const
 
     //---
 
-    QPointF center(c.x, c.y);
-
     double rv = valueRadius();
 
     //---
@@ -1341,7 +1337,7 @@ annotationBBox() const
     //---
 
     if (plot_->numGroups() == 1 && lr > 1.0) {
-      plot_->textBox()->calcConnectedRadialTextBBox(center, rv, lr1, ta, label(),
+      plot_->textBox()->calcConnectedRadialTextBBox(c.qpoint(), rv, lr1, ta, label(),
                                                     plot_->isRotatedText(), bbox);
     }
     else {
@@ -1351,12 +1347,10 @@ annotationBBox() const
       double tc = cos(tangle);
       double ts = sin(tangle);
 
-      double tx = center.x() + lr1*tc;
-      double ty = center.y() + lr1*ts;
+      double tx = c.x + lr1*tc;
+      double ty = c.y + lr1*ts;
 
       CQChartsGeom::Point pt = plot_->windowToPixel(CQChartsGeom::Point(tx, ty));
-
-      QPointF pt1(pt.x, pt.y);
 
       // calc text angle
       double angle = 0.0;
@@ -1367,7 +1361,7 @@ annotationBBox() const
       // calc text box
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-      bbox = plot_->textBox()->bbox(pt1, label(), angle, align);
+      bbox = plot_->textBox()->bbox(pt.qpoint(), label(), angle, align);
     }
   }
 
@@ -1376,10 +1370,13 @@ annotationBBox() const
 
 void
 CQChartsPieObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   if (! visible())
     return;
+
+  bool isInvertX = plot()->isInvertX();
+  bool isInvertY = plot()->isInvertY();
 
   //---
 
@@ -1410,12 +1407,12 @@ draw(QPainter *painter)
     plot_->setPen(pen, true, gridColor, plot_->gridLinesAlpha(),
                   plot_->gridLinesWidth(), plot_->gridLinesDash());
 
-    painter->setPen  (pen);
-    painter->setBrush(brush);
+    device->setPen  (pen);
+    device->setBrush(brush);
 
     CQChartsGeom::Point c(0.0, 0.0);
 
-    plot_->drawPieSlice(painter, c, ri, ro, a1, a2);
+    CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, a1, a2, isInvertX, isInvertY);
   }
 
   //---
@@ -1435,18 +1432,18 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
   // draw pie slice
-  plot_->drawPieSlice(painter, c, ri, rv, aa1, aa2);
+  CQChartsDrawUtil::drawPieSlice(device, c, ri, rv, aa1, aa2, isInvertX, isInvertY);
 }
 
 void
 CQChartsPieObj::
-drawFg(QPainter *painter) const
+drawFg(CQChartsPaintDevice *device) const
 {
   if (! visible())
     return;
@@ -1454,7 +1451,7 @@ drawFg(QPainter *painter) const
   // draw segment label
   CQChartsGeom::Point c = getCenter();
 
-  drawSegmentLabel(painter, c);
+  drawSegmentLabel(device, c);
 }
 
 CQChartsGeom::Point
@@ -1491,7 +1488,7 @@ getCenter() const
 
 void
 CQChartsPieObj::
-drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
+drawSegmentLabel(CQChartsPaintDevice *device, const CQChartsGeom::Point &c) const
 {
   if (! plot_->textBox()->isTextVisible())
     return;
@@ -1540,24 +1537,18 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
 
   // if full circle always draw text at center
   if (CMathUtil::realEq(std::abs(a21), 360.0)) {
-    CQChartsGeom::Point pc = plot_->windowToPixel(c);
-
-    //---
-
-    plot_->textBox()->draw(painter, CQChartsUtil::toQPoint(pc), label(), 0.0);
+    plot_->textBox()->draw(device, c.qpoint(), label(), 0.0);
   }
   // draw on arc center line
   else {
     double rv = valueRadius();
 
-    QPointF center(c.x, c.y);
-
     if (plot_->numGroups() == 1 && lr > 1.0) {
-      plot_->textBox()->drawConnectedRadialText(painter, center, rv, lr1, ta, label(),
+      plot_->textBox()->drawConnectedRadialText(device, c.qpoint(), rv, lr1, ta, label(),
                                                 lpen, plot_->isRotatedText());
     }
     else {
-    //plot_->textBox()->drawConnectedRadialText(painter, center, rv, lr1, ta, label(),
+    //plot_->textBox()->drawConnectedRadialText(device, c.qpoint(), rv, lr1, ta, label(),
     //                                          lpen, plot_->isRotatedText());
 
       // calc text position
@@ -1566,12 +1557,10 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
       double tc = cos(tangle);
       double ts = sin(tangle);
 
-      double tx = center.x() + lr1*tc;
-      double ty = center.y() + lr1*ts;
+      double tx = c.x + lr1*tc;
+      double ty = c.y + lr1*ts;
 
-      CQChartsGeom::Point pt = plot_->windowToPixel(CQChartsGeom::Point(tx, ty));
-
-      QPointF pt1(pt.x, pt.y);
+      CQChartsGeom::Point pt(tx, ty);
 
       // calc text angle
       double angle = 0.0;
@@ -1582,7 +1571,7 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const
       // draw label
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-      plot_->textBox()->draw(painter, pt1, label(), angle, align);
+      plot_->textBox()->draw(device, pt.qpoint(), label(), angle, align);
     }
   }
 }
@@ -1734,10 +1723,15 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsPieGroupObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   if (! visible())
     return;
+
+  bool isInvertX = plot()->isInvertX();
+  bool isInvertY = plot()->isInvertY();
+
+  //---
 
   CQChartsGeom::Point c(0, 0);
 
@@ -1770,18 +1764,18 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
   // draw pie slice
-  plot_->drawPieSlice(painter, c, ri, ro, aa1, aa2);
+  CQChartsDrawUtil::drawPieSlice(device, c, ri, ro, aa1, aa2, isInvertX, isInvertY);
 }
 
 void
 CQChartsPieGroupObj::
-drawFg(QPainter *painter) const
+drawFg(CQChartsPaintDevice *device) const
 {
   if (! visible())
     return;
@@ -1801,9 +1795,7 @@ drawFg(QPainter *painter) const
   double tx = c.getX() + 0.5*tc;
   double ty = c.getY() + 0.5*ts;
 
-  CQChartsGeom::Point pt = plot_->windowToPixel(CQChartsGeom::Point(tx, ty));
-
-  QPointF pt1(pt.x, pt.y);
+  CQChartsGeom::Point pt(tx, ty);
 
   QString label = QString("%1").arg(numValues());
 
@@ -1818,11 +1810,11 @@ drawFg(QPainter *painter) const
 
   //---
 
-  painter->setPen(pen);
+  device->setPen(pen);
 
   CQChartsTextOptions textOptions = plot_->adjustTextOptions();
 
-  CQChartsDrawUtil::drawTextAtPoint(painter, pt1, label, textOptions);
+  CQChartsDrawUtil::drawTextAtPoint(device, pt.qpoint(), label, textOptions);
 }
 
 QColor

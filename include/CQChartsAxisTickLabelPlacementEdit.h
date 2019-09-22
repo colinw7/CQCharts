@@ -11,6 +11,9 @@
 class CQChartsAxisTickLabelPlacementEdit : public CQChartsEnumEdit {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsAxisTickLabelPlacement axisTickLabelPlacement
+               READ axisTickLabelPlacement WRITE setAxisTickLabelPlacement)
+
  public:
   CQChartsAxisTickLabelPlacementEdit(QWidget *parent=nullptr);
 

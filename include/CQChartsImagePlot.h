@@ -58,7 +58,7 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
   double xColorValue(bool relative) const override;
   double yColorValue(bool relative) const override;
@@ -186,7 +186,7 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   bool hasForeground() const override;
 
-  void execDrawForeground(QPainter *) const override;
+  void execDrawForeground(CQChartsPaintDevice *device) const override;
 
   //---
 
@@ -209,8 +209,8 @@ class CQChartsImagePlot : public CQChartsPlot,
   void addImageObj(int row, int col, double x, double y, double dx, double dy,
                    double value, const QModelIndex &ind, PlotObjs &objs) const;
 
-  void drawXLabels(QPainter *) const;
-  void drawYLabels(QPainter *) const;
+  void drawXLabels(CQChartsPaintDevice *device) const;
+  void drawYLabels(CQChartsPaintDevice *device) const;
 
  private:
   CellStyle cellStyle_       { CellStyle::RECT }; //!< cell style

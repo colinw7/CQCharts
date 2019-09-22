@@ -108,8 +108,8 @@ void
 CQChartsEditHandles::
 draw(QPainter *painter) const
 {
-  QPointF ll = CQChartsUtil::toQPoint(windowToPixel(bbox_.getLL()));
-  QPointF ur = CQChartsUtil::toQPoint(windowToPixel(bbox_.getUR()));
+  QPointF ll = windowToPixel(bbox_.getLL()).qpoint();
+  QPointF ur = windowToPixel(bbox_.getUR()).qpoint();
 
   QPainterPath path;
 

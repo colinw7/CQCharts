@@ -13,6 +13,8 @@ class QComboBox;
 class CQChartsFillUnderSideEdit : public QFrame {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsFillUnderSide fillUnderSide READ fillUnderSide WRITE setFillUnderSide)
+
  public:
   CQChartsFillUnderSideEdit(QWidget *parent=nullptr);
 

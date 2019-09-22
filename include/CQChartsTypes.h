@@ -36,7 +36,7 @@ enum class CQChartsUnits {
   PERCENT
 };
 
-//! resize sid
+//! resize side
 enum class CQChartsResizeSide {
   NONE,
   MOVE,

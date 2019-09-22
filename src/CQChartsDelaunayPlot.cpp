@@ -4,12 +4,12 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsDelaunay.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
-#include <QPainter>
 #include <QMenu>
 
 CQChartsDelaunayPlotType::
@@ -369,23 +369,23 @@ hasForeground() const
 
 void
 CQChartsDelaunayPlot::
-execDrawForeground(QPainter *painter) const
+execDrawForeground(CQChartsPaintDevice *device) const
 {
-  painter->save();
+  device->save();
 
-  setClipRect(painter);
+  setClipRect(device);
 
   if (! isVoronoi())
-    drawDelaunay(painter);
+    drawDelaunay(device);
   else
-    drawVoronoi(painter);
+    drawVoronoi(device);
 
-  painter->restore();
+  device->restore();
 }
 
 void
 CQChartsDelaunayPlot::
-drawDelaunay(QPainter *painter) const
+drawDelaunay(CQChartsPaintDevice *device) const
 {
   if (! delaunay_)
     return;
@@ -406,9 +406,9 @@ drawDelaunay(QPainter *painter) const
       auto *v2 = f->vertex(1);
       auto *v3 = f->vertex(2);
 
-      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(v1->x(), v1->y()));
-      CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(v2->x(), v2->y()));
-      CQChartsGeom::Point p3 = windowToPixel(CQChartsGeom::Point(v3->x(), v3->y()));
+      CQChartsGeom::Point p1(v1->x(), v1->y());
+      CQChartsGeom::Point p2(v2->x(), v2->y());
+      CQChartsGeom::Point p3(v3->x(), v3->y());
 
       QPainterPath path;
 
@@ -418,14 +418,14 @@ drawDelaunay(QPainter *painter) const
 
       path.closeSubpath();
 
-      painter->strokePath(path, pen);
+      device->strokePath(path, pen);
     }
   }
 }
 
 void
 CQChartsDelaunayPlot::
-drawVoronoi(QPainter *painter) const
+drawVoronoi(CQChartsPaintDevice *device) const
 {
   if (! delaunay_)
     return;
@@ -436,8 +436,8 @@ drawVoronoi(QPainter *painter) const
 
     setSymbolPenBrush(pen, brush, ColorInd());
 
-    painter->setPen  (pen);
-    painter->setBrush(brush);
+    device->setPen  (pen);
+    device->setBrush(brush);
 
     for (auto pf = delaunay_->facesBegin(); pf != delaunay_->facesEnd(); ++pf) {
       const CQChartsHull3D::Face *f = *pf;
@@ -449,9 +449,9 @@ drawVoronoi(QPainter *painter) const
 
       double d = voronoiPointSize();
 
-      QRectF rect(p.x - d, p.y - d, 2.0*d, 2.0*d);
+      QRectF prect(p.x - d, p.y - d, 2.0*d, 2.0*d);
 
-      painter->drawArc(rect, 0, 16*360);
+      device->drawArc(device->pixelToWindow(prect), 0, 360); // circle
     }
   }
 
@@ -464,7 +464,7 @@ drawVoronoi(QPainter *painter) const
 
     setPen(pen, true, lc, linesAlpha(), linesWidth(), linesDash());
 
-    painter->setPen(pen);
+    device->setPen(pen);
 
     for (auto pve = delaunay_->voronoiEdgesBegin(); pve != delaunay_->voronoiEdgesEnd(); ++pve) {
       const CQChartsHull3D::Edge *e = *pve;
@@ -472,10 +472,10 @@ drawVoronoi(QPainter *painter) const
       auto *v1 = e->start();
       auto *v2 = e->end  ();
 
-      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(v1->x(), v1->y()));
-      CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(v2->x(), v2->y()));
+      QPointF p1(v1->x(), v1->y());
+      QPointF p2(v2->x(), v2->y());
 
-      painter->drawLine(QPointF(p1.x, p1.y), QPointF(p2.x, p2.y));
+      device->drawLine(p1, p2);
     }
   }
 }
@@ -551,7 +551,7 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsDelaunayPointObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   if (! visible())
     return;
@@ -566,22 +566,19 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
   // get symbol type and size
-  double sx, sy;
-
-  plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
-
-  CQChartsSymbol symbol = plot_->symbolType();
+  CQChartsSymbol symbolType = plot_->symbolType();
+  CQChartsLength symbolSize = plot_->symbolSize();
 
   //---
 
   // draw symbol
-  CQChartsGeom::Point p = plot_->windowToPixel(CQChartsGeom::Point(x_, y_));
+  CQChartsGeom::Point p(x_, y_);
 
-  plot_->drawSymbol(painter, p.qpoint(), symbol, CMathUtil::avg(sx, sy), pen, brush);
+  plot_->drawSymbol(device, p.qpoint(), symbolType, symbolSize, pen, brush);
 }

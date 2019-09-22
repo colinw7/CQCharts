@@ -71,7 +71,7 @@ showTip(const QPoint &gpos)
   QString tip;
 
   for (const auto &plot : plots) {
-    CQChartsGeom::Point w = plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(p)));
+    CQChartsGeom::Point w = plot->pixelToWindow(CQChartsGeom::Point(QPointF(p)));
 
     QString tip1;
 
@@ -88,7 +88,7 @@ showTip(const QPoint &gpos)
       CQChartsPlotKey *key = plot->key();
       if (! key) continue;
 
-      CQChartsGeom::Point w = plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(p)));
+      CQChartsGeom::Point w = plot->pixelToWindow(CQChartsGeom::Point(QPointF(p)));
 
       if (key->contains(w)) {
         QString tip1;

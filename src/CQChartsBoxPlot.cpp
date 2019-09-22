@@ -7,13 +7,13 @@
 #include <CQChartsRand.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
-#include <QPainter>
 #include <QMenu>
 
 CQChartsBoxPlotType::
@@ -1950,18 +1950,15 @@ bool
 CQChartsBoxPlotWhiskerObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  if (plot_->isViolin()) {
-    CQChartsGeom::Point p1 = plot_->windowToPixel(p);
-
-    return ppoly_.containsPoint(CQChartsUtil::toQPoint(p1), Qt::OddEvenFill);
-  }
+  if (plot_->isViolin())
+    return poly_.containsPoint(p.qpoint(), Qt::OddEvenFill);
 
   return CQChartsBoxPlotObj::inside(p);
 }
 
 void
 CQChartsBoxPlotWhiskerObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   // get color index
   ColorInd colorInd = this->calcColorInd();
@@ -1985,8 +1982,8 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setBrush(brush);
-  painter->setPen  (pen);
+  device->setBrush(brush);
+  device->setPen  (pen);
 
   //---
 
@@ -2041,9 +2038,9 @@ draw(QPainter *painter)
 
     opts.violin = true;
 
-    density.calcWhiskerPoly(ppoly_, plot_, rect, orientation, opts);
+    density.calcWhiskerPoly(poly_, plot_, rect, orientation, opts);
 
-    painter->drawPolygon(ppoly_);
+    device->drawPolygon(poly_);
 
     drawBox       = plot_->isViolinBox();
     drawBoxFilled = false;
@@ -2053,7 +2050,7 @@ draw(QPainter *painter)
 
   // draw error bar
   if (plot_->isErrorBar()) {
-    painter->setPen(whiskerPen);
+    device->setPen(whiskerPen);
 
     //---
 
@@ -2066,11 +2063,11 @@ draw(QPainter *painter)
                                 pos - bw/2.0, dev1, pos + bw/2.0, dev2);
 
     if      (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::CROSS_BAR) {
-      CQChartsDensity::drawCrossBar(plot_, painter, rect, mean, orientation,
+      CQChartsDensity::drawCrossBar(plot_, device, rect, mean, orientation,
                                     plot_->boxCornerSize());
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::ERROR_BAR) {
-      CQChartsDensity::drawErrorBar(plot_, painter, rect, orientation);
+      CQChartsDensity::drawErrorBar(plot_, device, rect, orientation);
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::POINT_RANGE) {
       // set fill and stroke
@@ -2095,11 +2092,11 @@ draw(QPainter *painter)
       symbol.setType(CQChartsSymbol::Type::CIRCLE);
       symbol.setSize(plot_->outlierSymbolSize());
 
-      CQChartsDensity::drawPointRange(plot_, painter, rect, mean, orientation, symbol,
+      CQChartsDensity::drawPointRange(plot_, device, rect, mean, orientation, symbol,
                                       symbolPen, symbolBrush);
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::LINE_RANGE) {
-      CQChartsDensity::drawLineRange(plot_, painter, rect, orientation);
+      CQChartsDensity::drawLineRange(plot_, device, rect, orientation);
     }
 
     drawBox = false;
@@ -2109,7 +2106,7 @@ draw(QPainter *painter)
 
   // draw notched box
   if (drawBox) {
-    painter->setPen(whiskerPen);
+    device->setPen(whiskerPen);
 
     //---
 
@@ -2118,12 +2115,12 @@ draw(QPainter *painter)
 
       brush.setColor(boxColor);
 
-      painter->setBrush(brush);
+      device->setBrush(brush);
     }
 
     //---
 
-    CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, painter, statData, pos, orientation,
+    CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, device, statData, pos, orientation,
                                            ww, bw, plot_->boxCornerSize(), plot_->isNotched());
   }
 
@@ -2135,7 +2132,8 @@ draw(QPainter *painter)
     double wd1 = ww/2.0;
     double wd2 = bw/2.0;
 
-    if (plot_->drawLayerType() == CQChartsLayer::Type::MID_PLOT) {
+    if (device->type() == CQChartsPaintDevice::Type::SCRIPT ||
+        plot_->drawLayerType() == CQChartsLayer::Type::MID_PLOT) {
       auto posToPixel = [&](double pos, double value) {
         if (! plot_->isHorizontal())
           return plot_->windowToPixel(CQChartsGeom::Point(pos, value));
@@ -2151,7 +2149,7 @@ draw(QPainter *painter)
 
       // draw labels
       if (plot_->isTextVisible()) {
-        plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
+        plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
 
         //---
 
@@ -2161,7 +2159,7 @@ draw(QPainter *painter)
 
         plot_->setPen(pen, true, tc, plot_->textAlpha());
 
-        painter->setPen(pen);
+        device->setPen(pen);
 
         //---
 
@@ -2175,27 +2173,27 @@ draw(QPainter *painter)
           QString strh = QString("%1").arg(this->max        ());
 
           if (! plot_->isHorizontal()) {
-            drawHText(painter, p1.x, p5.x, p1.y, strl, /*onLeft*/true );
-            drawHText(painter, p2.x, p4.x, p2.y, lstr, /*onLeft*/false);
-            drawHText(painter, p2.x, p4.x, p3.y, mstr, /*onLeft*/true );
-            drawHText(painter, p2.x, p4.x, p4.y, ustr, /*onLeft*/false);
-            drawHText(painter, p1.x, p5.x, p5.y, strh, /*onLeft*/true );
+            drawHText(device, p1.x, p5.x, p1.y, strl, /*onLeft*/true );
+            drawHText(device, p2.x, p4.x, p2.y, lstr, /*onLeft*/false);
+            drawHText(device, p2.x, p4.x, p3.y, mstr, /*onLeft*/true );
+            drawHText(device, p2.x, p4.x, p4.y, ustr, /*onLeft*/false);
+            drawHText(device, p1.x, p5.x, p5.y, strh, /*onLeft*/true );
           }
           else {
-            drawVText(painter, p1.y, p5.y, p1.x, strl, /*onBottom*/false);
-            drawVText(painter, p2.y, p4.y, p2.x, lstr, /*onBottom*/true );
-            drawVText(painter, p2.y, p4.y, p3.x, mstr, /*onBottom*/false);
-            drawVText(painter, p2.y, p4.y, p4.x, ustr, /*onBottom*/true );
-            drawVText(painter, p1.y, p5.y, p5.x, strh, /*onBottom*/false);
+            drawVText(device, p1.y, p5.y, p1.x, strl, /*onBottom*/false);
+            drawVText(device, p2.y, p4.y, p2.x, lstr, /*onBottom*/true );
+            drawVText(device, p2.y, p4.y, p3.x, mstr, /*onBottom*/false);
+            drawVText(device, p2.y, p4.y, p4.x, ustr, /*onBottom*/true );
+            drawVText(device, p1.y, p5.y, p5.x, strh, /*onBottom*/false);
           }
         }
         else {
           QString strl = QString("%1").arg(this->min());
 
           if (! plot_->isHorizontal())
-            drawHText(painter, p1.x, p5.x, p1.y, strl, /*onLeft*/true);
+            drawHText(device, p1.x, p5.x, p1.y, strl, /*onLeft*/true);
           else
-            drawVText(painter, p1.y, p5.y, p1.x, strl, /*onBottom*/false);
+            drawVText(device, p1.y, p5.y, p1.x, strl, /*onBottom*/false);
         }
       }
 
@@ -2228,7 +2226,7 @@ draw(QPainter *painter)
           ovalues.push_back(ovalue);
         }
 
-        CQChartsBoxWhiskerUtil::drawOutliers(plot_, painter, ovalues, pos, symbol,
+        CQChartsBoxWhiskerUtil::drawOutliers(plot_, device, ovalues, pos, symbol,
                                              pen, brush, orientation);
       }
 #endif
@@ -2421,7 +2419,7 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsBoxPlotOutlierObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   // get color index
   ColorInd colorInd = this->calcColorInd();
@@ -2439,23 +2437,19 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
-  painter->setBrush(brush);
-  painter->setPen  (pen);
+  device->setBrush(brush);
+  device->setPen  (pen);
 
   //---
 
   // draw symbol
-  double sx, sy;
-
-  plot_->pixelSymbolSize(plot_->outlierSymbolSize(), sx, sy);
-
   double ox = rect_.getXYMid(! plot_->isHorizontal());
   double oy = rect_.getXYMid(  plot_->isHorizontal());
 
-  QPointF ppos = plot_->windowToPixel(QPointF(ox, oy));
+  QPointF pos(ox, oy);
 
-  plot_->drawSymbol(painter, ppos, plot_->outlierSymbolType(),
-                    CMathUtil::avg(sx, sy), pen, brush);
+  plot_->drawSymbol(device, pos, plot_->outlierSymbolType(),
+                    plot_->outlierSymbolSize(), pen, brush);
 }
 
 double
@@ -2532,7 +2526,7 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsBoxPlotDataObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   // set whisker fill and stroke
   QPen   whiskerPen;
@@ -2560,8 +2554,8 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setBrush(brush);
-  painter->setPen  (pen);
+  device->setBrush(brush);
+  device->setPen  (pen);
 
   //---
 
@@ -2576,7 +2570,7 @@ draw(QPainter *painter)
 
   //---
 
-  painter->setPen(whiskerPen);
+  device->setPen(whiskerPen);
 
   CQStatData statData;
 
@@ -2586,7 +2580,7 @@ draw(QPainter *painter)
   statData.upperMedian = remapPos(data_.statData.upperMedian);
   statData.max         = remapPos(data_.statData.max);
 
-  CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, painter, statData, pos, orientation,
+  CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, device, statData, pos, orientation,
                                          ww, bw, plot_->boxCornerSize(), /*isNotched*/false);
 
   //---
@@ -2611,7 +2605,7 @@ draw(QPainter *painter)
 
     //---
 
-    plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
+    plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
 
     //---
 
@@ -2621,7 +2615,7 @@ draw(QPainter *painter)
 
     plot_->setPen(pen, true, tc, plot_->textAlpha());
 
-    painter->setPen(pen);
+    device->setPen(pen);
 
     //---
 
@@ -2632,18 +2626,18 @@ draw(QPainter *painter)
     QString strh = QString("%1").arg(data_.statData.max        );
 
     if (! plot_->isHorizontal()) {
-      drawHText(painter, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
-      drawHText(painter, p2.x, p4.x, p2.y, lstr, /*onLeft*/true );
-      drawHText(painter, p2.x, p4.x, p3.y, mstr, /*onLeft*/false);
-      drawHText(painter, p2.x, p4.x, p4.y, ustr, /*onLeft*/true );
-      drawHText(painter, p1.x, p5.x, p5.y, strh, /*onLeft*/false);
+      drawHText(device, p1.x, p5.x, p1.y, strl, /*onLeft*/false);
+      drawHText(device, p2.x, p4.x, p2.y, lstr, /*onLeft*/true );
+      drawHText(device, p2.x, p4.x, p3.y, mstr, /*onLeft*/false);
+      drawHText(device, p2.x, p4.x, p4.y, ustr, /*onLeft*/true );
+      drawHText(device, p1.x, p5.x, p5.y, strh, /*onLeft*/false);
     }
     else {
-      drawVText(painter, p1.y, p5.y, p1.x, strl, /*onBottom*/true );
-      drawVText(painter, p2.y, p4.y, p2.x, lstr, /*onBottom*/false);
-      drawVText(painter, p2.y, p4.y, p3.x, mstr, /*onBottom*/true );
-      drawVText(painter, p2.y, p4.y, p4.x, ustr, /*onBottom*/false);
-      drawVText(painter, p1.y, p5.y, p5.x, strh, /*onBottom*/true );
+      drawVText(device, p1.y, p5.y, p1.x, strl, /*onBottom*/true );
+      drawVText(device, p2.y, p4.y, p2.x, lstr, /*onBottom*/false);
+      drawVText(device, p2.y, p4.y, p3.x, mstr, /*onBottom*/true );
+      drawVText(device, p2.y, p4.y, p4.x, ustr, /*onBottom*/false);
+      drawVText(device, p1.y, p5.y, p5.x, strh, /*onBottom*/true );
     }
   }
 
@@ -2676,7 +2670,7 @@ draw(QPainter *painter)
       ovalues.push_back(ovalue);
     }
 
-    CQChartsBoxWhiskerUtil::drawOutliers(plot_, painter, ovalues, pos, symbol,
+    CQChartsBoxWhiskerUtil::drawOutliers(plot_, device, ovalues, pos, symbol,
                                          pen, brush, orientation);
   }
 #endif
@@ -2819,10 +2813,10 @@ initPolygon()
     double max    = whisker->max   ();
     double median = whisker->median();
 
-    line_ << CQChartsUtil::toQPoint(CQChartsGeom::Point(setId, median));
+    line_ << CQChartsGeom::Point(setId, median).qpoint();
 
-    maxPoly << CQChartsUtil::toQPoint(CQChartsGeom::Point(setId, max));
-    minPoly << CQChartsUtil::toQPoint(CQChartsGeom::Point(setId, min));
+    maxPoly << CQChartsGeom::Point(setId, max).qpoint();
+    minPoly << CQChartsGeom::Point(setId, min).qpoint();
   }
 
   //---
@@ -2860,12 +2854,12 @@ bool
 CQChartsBoxPlotConnectedObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  return poly_.containsPoint(CQChartsUtil::toQPoint(p), Qt::OddEvenFill);
+  return poly_.containsPoint(p.qpoint(), Qt::OddEvenFill);
 }
 
 void
 CQChartsBoxPlotConnectedObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   // draw range polygon
   int np = poly_.count();
@@ -2885,22 +2879,22 @@ draw(QPainter *painter)
 
     plot_->updateObjPenBrushState(this, ppen, pbrush);
 
-    painter->setPen  (ppen);
-    painter->setBrush(pbrush);
+    device->setPen  (ppen);
+    device->setBrush(pbrush);
 
     //---
 
     // draw poly
     QPainterPath path;
 
-    path.moveTo(plot_->windowToPixel(poly_.at(0)));
+    path.moveTo(poly_.at(0));
 
     for (int i = 1; i < np; ++i)
-      path.lineTo(plot_->windowToPixel(poly_.at(i)));
+      path.lineTo(poly_.at(i));
 
     path.closeSubpath();
 
-    painter->drawPath(path);
+    device->drawPath(path);
   }
 
   //---
@@ -2916,7 +2910,7 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, lpen, lbrush);
 
-  painter->setPen(lpen);
+  device->setPen(lpen);
 
   //---
 
@@ -2924,9 +2918,9 @@ draw(QPainter *painter)
   QPolygonF line;
 
   for (int i = 0; i < line_.count(); ++i)
-    line << plot_->windowToPixel(line_.at(i));
+    line << line_.at(i);
 
-  painter->drawPolyline(line);
+  device->drawPolyline(line);
 }
 
 //------
@@ -2940,7 +2934,8 @@ CQChartsBoxPlotObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
 
 void
 CQChartsBoxPlotObj::
-drawHText(QPainter *painter, double xl, double xr, double y, const QString &text, bool onLeft)
+drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
+          const QString &text, bool onLeft)
 {
   double margin = plot_->textMargin();
 
@@ -2951,9 +2946,9 @@ drawHText(QPainter *painter, double xl, double xr, double y, const QString &text
 
   double x = ((onLeft && ! invertX) || (! onLeft && invertX) ? xl : xr);
 
-  plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
+  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
 
-  QFontMetricsF fm(painter->font());
+  QFontMetricsF fm(device->font());
 
   double yf = (fm.ascent() - fm.descent())/2.0;
 
@@ -2964,12 +2959,13 @@ drawHText(QPainter *painter, double xl, double xr, double y, const QString &text
   else
     tp = QPointF(x + margin, y + yf);
 
-  CQChartsDrawUtil::drawSimpleText(painter, tp, text);
+  CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(tp), text);
 }
 
 void
 CQChartsBoxPlotObj::
-drawVText(QPainter *painter, double yb, double yt, double x, const QString &text, bool onBottom)
+drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
+          const QString &text, bool onBottom)
 {
   double margin = plot_->textMargin();
 
@@ -2980,9 +2976,9 @@ drawVText(QPainter *painter, double yb, double yt, double x, const QString &text
 
   double y = ((onBottom && ! invertY) || (! onBottom && invertY) ? yb : yt);
 
-  plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
+  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
 
-  QFontMetricsF fm(painter->font());
+  QFontMetricsF fm(device->font());
 
   double xf = fm.width(text)/2.0;
   double fa = fm.ascent ();
@@ -2995,7 +2991,7 @@ drawVText(QPainter *painter, double yb, double yt, double x, const QString &text
   else
     tp = QPointF(x - xf, y - margin - fd);
 
-  CQChartsDrawUtil::drawSimpleText(painter, tp, text);
+  CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(tp), text);
 }
 
 void
@@ -3127,13 +3123,13 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsBoxPlotPointObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
-  CQChartsSymbol symbol = plot_->jitterSymbolType();
+  CQChartsSymbol symbolType = plot_->jitterSymbolType();
+  CQChartsLength symbolSize = plot_->jitterSymbolSize();
 
-  double sx, sy;
-
-  plot_->pixelSymbolSize(plot_->jitterSymbolSize(), sx, sy);
+  //double sx, sy;
+  //plot_->pixelSymbolSize(symbolSize, sx, sy);
 
   //---
 
@@ -3155,14 +3151,10 @@ draw(QPainter *painter)
 
   //---
 
-  CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(p_.x(), p_.y()));
-
-  //---
-
   // draw symbol
-  QRectF erect(p1.x - sx, p1.y - sy, 2*sx, 2*sy);
+  QPointF pos = device->pixelToWindow(p_);
 
-  plot_->drawSymbol(painter, QPointF(p1.x, p1.y), symbol, CMathUtil::avg(sx, sy), pen, brush);
+  plot_->drawSymbol(device, pos, symbolType, symbolSize, pen, brush);
 }
 
 //------

@@ -1,12 +1,12 @@
 #include <CQChartsSymbolEdit.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 
 #include <CQPropertyView.h>
 #include <CQUtil.h>
 
 #include <QComboBox>
 #include <QHBoxLayout>
-#include <QPainter>
 
 CQChartsSymbolEdit::
 CQChartsSymbolEdit(QWidget *parent) :
@@ -120,7 +120,9 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
   painter->setPen  (Qt::black);
   painter->setBrush(Qt::white);
 
-  CQChartsDrawUtil::drawSymbol(painter, symbol, rect1);
+  CQChartsPixelPainter device(painter);
+
+  CQChartsDrawUtil::drawSymbol(&device, symbol, rect1);
 
   painter->restore();
 

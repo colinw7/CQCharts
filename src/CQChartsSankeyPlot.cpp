@@ -6,12 +6,12 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsNamePair.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
-#include <QPainter>
 
 CQChartsSankeyPlotType::
 CQChartsSankeyPlotType()
@@ -1060,7 +1060,7 @@ moveBy(const CQChartsGeom::Point &delta)
 
 void
 CQChartsSankeyNodeObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   //int numNodes = plot_->numNodes();
 
@@ -1080,34 +1080,32 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setBrush(brush);
-  painter->setPen(pen);
+  device->setBrush(brush);
+  device->setPen  (pen);
 
   //---
 
   // draw node
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect_);
-
-  double px1 = prect.getXMin();
-  double py1 = prect.getYMin();
-  double px2 = prect.getXMax();
-  double py2 = prect.getYMax();
+  double x1 = rect_.getXMin();
+  double y1 = rect_.getYMin();
+  double x2 = rect_.getXMax();
+  double y2 = rect_.getYMax();
 
   QPainterPath path;
 
-  path.moveTo(QPointF(px1, py1));
-  path.lineTo(QPointF(px2, py1));
-  path.lineTo(QPointF(px2, py2));
-  path.lineTo(QPointF(px1, py2));
+  path.moveTo(QPointF(x1, y1));
+  path.lineTo(QPointF(x2, y1));
+  path.lineTo(QPointF(x2, y2));
+  path.lineTo(QPointF(x1, y2));
 
   path.closeSubpath();
 
-  painter->drawPath(path);
+  device->drawPath(path);
 }
 
 void
 CQChartsSankeyNodeObj::
-drawFg(QPainter *painter) const
+drawFg(CQChartsPaintDevice *device) const
 {
   if (! plot_->isTextVisible())
     return;
@@ -1119,9 +1117,9 @@ drawFg(QPainter *painter) const
   //---
 
   // set font
-  plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
+  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
 
-  QFontMetricsF fm(painter->font());
+  QFontMetricsF fm(device->font());
 
   //---
 
@@ -1134,22 +1132,21 @@ drawFg(QPainter *painter) const
 
   plot_->setPen(pen, true, c, plot_->textAlpha());
 
-  painter->setPen(pen);
+  device->setPen(pen);
 
   //---
 
-  //double value = node_->edgeSum();
-
   QString str = node_->str();
 
-  double tx = (rect_.getXMid() < 0.5 ?
-    prect.getXMax() + 4 : prect.getXMin() - 4 - fm.width(str));
+  double tx = (rect_.getXMid() < 0.5 ? prect.getXMax() + 4 : prect.getXMin() - 4 - fm.width(str));
   double ty = prect.getYMid() + fm.ascent()/2;
 
+  QPointF pt = device->pixelToWindow(QPointF(tx, ty));
+
   if (plot_->isTextContrast())
-    CQChartsDrawUtil::drawContrastText(painter, tx, ty, str);
+    CQChartsDrawUtil::drawContrastText(device, pt, str);
   else
-    CQChartsDrawUtil::drawSimpleText(painter, tx, ty, str);
+    CQChartsDrawUtil::drawSimpleText(device, pt, str);
 }
 
 //------
@@ -1175,12 +1172,12 @@ inside(const CQChartsGeom::Point &p) const
 {
   CQChartsGeom::Point p1 = plot_->windowToPixel(p);
 
-  return path_.contains(CQChartsUtil::toQPoint(p1));
+  return path_.contains(p1.qpoint());
 }
 
 void
 CQChartsSankeyEdgeObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   int numNodes = plot_->numNodes();
 
@@ -1208,8 +1205,8 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setBrush(brush);
-  painter->setPen(pen);
+  device->setBrush(brush);
+  device->setPen  (pen);
 
   //---
 
@@ -1217,30 +1214,27 @@ draw(QPainter *painter)
   const CQChartsGeom::BBox &srcRect  = edge_->srcNode ()->obj()->destEdgeRect(edge_);
   const CQChartsGeom::BBox &destRect = edge_->destNode()->obj()->srcEdgeRect (edge_);
 
-  CQChartsGeom::BBox psrcRect  = plot_->windowToPixel(srcRect);
-  CQChartsGeom::BBox pdestRect = plot_->windowToPixel(destRect);
+  double x1 = srcRect .getXMax();
+  double x2 = destRect.getXMin();
 
-  double px1 = psrcRect .getXMax();
-  double px2 = pdestRect.getXMin();
-
-  double py11 = psrcRect .getYMax();
-  double py12 = psrcRect .getYMin();
-  double py21 = pdestRect.getYMax();
-  double py22 = pdestRect.getYMin();
+  double y11 = srcRect .getYMax();
+  double y12 = srcRect .getYMin();
+  double y21 = destRect.getYMax();
+  double y22 = destRect.getYMin();
 
   path_ = QPainterPath();
 
-  double px3 = px1 + (px2 - px1)/3.0;
-  double px4 = px2 - (px2 - px1)/3.0;
+  double x3 = x1 + (x2 - x1)/3.0;
+  double x4 = x2 - (x2 - x1)/3.0;
 
-  path_.moveTo (QPointF(px1, py11));
-  path_.cubicTo(QPointF(px3, py11), QPointF(px4, py21), QPointF(px2, py21));
-  path_.lineTo (QPointF(px2, py22));
-  path_.cubicTo(QPointF(px4, py22), QPointF(px3, py12), QPointF(px1, py12));
+  path_.moveTo (QPointF(x1, y11));
+  path_.cubicTo(QPointF(x3, y11), QPointF(x4, y21), QPointF(x2, y21));
+  path_.lineTo (QPointF(x2, y22));
+  path_.cubicTo(QPointF(x4, y22), QPointF(x3, y12), QPointF(x1, y12));
 
   path_.closeSubpath();
 
   //---
 
-  painter->drawPath(path_);
+  device->drawPath(path_);
 }

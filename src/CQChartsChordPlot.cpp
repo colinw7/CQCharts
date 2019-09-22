@@ -8,12 +8,11 @@
 #include <CQCharts.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsNamePair.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
-
-#include <QPainter>
 
 //---
 
@@ -874,7 +873,7 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsChordObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   // calc inner outer arc rectangles
   double ro = 1.0;
@@ -885,10 +884,14 @@ draw(QPainter *painter)
   CQChartsGeom::Point pi1 = plot_->windowToPixel(CQChartsGeom::Point(-ri, -ri));
   CQChartsGeom::Point pi2 = plot_->windowToPixel(CQChartsGeom::Point( ri,  ri));
 
-  CQChartsGeom::Point pc = plot_->windowToPixel(CQChartsGeom::Point(0, 0));
+  CQChartsGeom::Point c  = CQChartsGeom::Point(0, 0);
+//CQChartsGeom::Point pc = plot_->windowToPixel(c);
 
-  QRectF orect(CQChartsUtil::toQPoint(po1), CQChartsUtil::toQPoint(po2));
-  QRectF irect(CQChartsUtil::toQPoint(pi1), CQChartsUtil::toQPoint(pi2));
+  QRectF porect = QRectF(po1.qpoint(), po2.qpoint()).normalized();
+  QRectF pirect = QRectF(pi1.qpoint(), pi2.qpoint()).normalized();
+
+  QRectF irect = device->pixelToWindow(pirect);
+  QRectF orect = device->pixelToWindow(porect);
 
   //---
 
@@ -899,7 +902,7 @@ draw(QPainter *painter)
   // create value set segment arc path
   QPainterPath path;
 
-  path.arcMoveTo(orect, -angle1);
+  path.arcMoveTo(device->pixelToWindow(porect), -angle1);
 
   path.arcTo(orect, -angle1, -dangle);
   path.arcTo(irect, -angle2,  dangle);
@@ -943,13 +946,13 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
   // draw path
-  painter->drawPath(path);
+  device->drawPath(path);
 
   //---
 
@@ -985,25 +988,25 @@ draw(QPainter *painter)
     // create path
     QPainterPath path;
 
-    path.arcMoveTo(irect, -a1 ); QPointF p1 = path.currentPosition();
-    path.arcMoveTo(irect, -a11); QPointF p2 = path.currentPosition();
+    path.arcMoveTo(irect, -a1 );   QPointF p1 = path.currentPosition();
+    path.arcMoveTo(irect, -a11);   QPointF p2 = path.currentPosition();
     path.arcMoveTo(irect, -a2 ); //QPointF p3 = path.currentPosition();
-    path.arcMoveTo(irect, -a21); QPointF p4 = path.currentPosition();
+    path.arcMoveTo(irect, -a21);   QPointF p4 = path.currentPosition();
 
     //--
 
     if (from != value.to) {
       path.moveTo(p1);
-      path.quadTo(CQChartsUtil::toQPoint(pc), p4);
+      path.quadTo(c.qpoint(), p4);
       path.arcTo (irect, -a21, da2);
-      path.quadTo(CQChartsUtil::toQPoint(pc), p2);
+      path.quadTo(c.qpoint(), p2);
       path.arcTo (irect, -a11, da1);
 
       path.closeSubpath();
     }
     else {
       path.moveTo(p1);
-      path.quadTo(CQChartsUtil::toQPoint(pc), p2);
+      path.quadTo(c.qpoint(), p2);
       path.arcTo (irect, -a11, da1);
 
       path.closeSubpath();
@@ -1033,19 +1036,19 @@ draw(QPainter *painter)
 
     plot_->setBrush(brush, true, c, alpha, CQChartsFillPattern());
 
-    painter->setPen  (pen);
-    painter->setBrush(brush);
+    device->setPen  (pen);
+    device->setBrush(brush);
 
     //---
 
     // draw path
-    painter->drawPath(path);
+    device->drawPath(path);
   }
 }
 
 void
 CQChartsChordObj::
-drawFg(QPainter *painter) const
+drawFg(CQChartsPaintDevice *device) const
 {
   if (data_.name() == "")
     return;
@@ -1093,7 +1096,7 @@ drawFg(QPainter *painter) const
   // draw text using line pen
   QPointF center(0, 0);
 
-  plot_->textBox()->drawConnectedRadialText(painter, center, ro, lr1, ta, data_.name(),
+  plot_->textBox()->drawConnectedRadialText(device, center, ro, lr1, ta, data_.name(),
                                             lpen, /*isRotated*/false);
 }
 

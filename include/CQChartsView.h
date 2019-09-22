@@ -38,6 +38,7 @@ class CQChartsEditAnnotationDlg;
 class CQChartsEditAxisDlg;
 class CQChartsEditKeyDlg;
 class CQChartsEditTitleDlg;
+class CQChartsPaintDevice;
 class CQPropertyViewModel;
 class CQPropertyViewItem;
 class CQColorsPalette;
@@ -284,9 +285,9 @@ class CQChartsView : public QFrame,
 
   //---
 
-  void setPainterFont(QPainter *painter, const CQChartsFont &font) const;
+  void setPainterFont(CQChartsPaintDevice *device, const CQChartsFont &font) const;
 
-  void setPlotPainterFont(const CQChartsPlot *plot, QPainter *painter,
+  void setPlotPainterFont(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                           const CQChartsFont &font) const;
 
   QFont viewFont(const CQChartsFont &font) const;
@@ -301,11 +302,6 @@ class CQChartsView : public QFrame,
   void invalidateOverlay();
 
  private:
-  void setPainterFont(QPainter *painter, const QFont &font) const;
-
-  void setPlotPainterFont(const CQChartsPlot *plot, QPainter *painter,
-                          const QFont &font) const;
-
   QFont viewFont(const QFont &font) const;
 
   QFont plotFont(const CQChartsPlot *plot, const QFont &font) const;
@@ -508,9 +504,10 @@ class CQChartsView : public QFrame,
 
   void paint(QPainter *painter, CQChartsPlot *plot=nullptr);
 
-  void drawAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType);
+  bool hasAnnotations() const;
+  void drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType);
 
-  void drawKey(QPainter *painter, const CQChartsLayer::Type &layerType);
+  void drawKey(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType);
 
   void lockPainter(bool lock);
 
@@ -529,6 +526,8 @@ class CQChartsView : public QFrame,
   // print to PNG/SVG
   bool printPNG(const QString &filename, CQChartsPlot *plot=nullptr);
   bool printSVG(const QString &filename, CQChartsPlot *plot=nullptr);
+
+  bool writeScript(const QString &filename, CQChartsPlot *plot=nullptr);
 
   //---
 
@@ -713,6 +712,9 @@ class CQChartsView : public QFrame,
   CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &w) const;
   CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &p) const;
 
+  QRectF windowToPixel(const QRectF &w) const;
+  QRectF pixelToWindow(const QRectF &p) const;
+
   double pixelToSignedWindowWidth (double ww) const;
   double pixelToSignedWindowHeight(double wh) const;
 
@@ -874,6 +876,9 @@ class CQChartsView : public QFrame,
 
   void printSVGSlot();
   void printSVGSlot(const QString &filename);
+
+  void writeScriptSlot();
+  void writeScriptSlot(const QString &filename);
 
   //---
 

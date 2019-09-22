@@ -7,7 +7,7 @@
 #include <set>
 
 class CQChartsPlot;
-class QPainter;
+class CQChartsPaintDevice;
 
 /*!
  * \brief Convex hull using Graham's algorithm
@@ -28,7 +28,7 @@ class CQChartsGrahamHull {
 
   void getHull(Points &points) const;
 
-  void draw(const CQChartsPlot *plot, QPainter *painter) const;
+  void draw(const CQChartsPlot *plot, CQChartsPaintDevice *device) const;
 
  private:
   void sortLowestClockwise();

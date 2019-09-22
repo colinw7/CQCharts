@@ -61,7 +61,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  private:
   void getPolyLine(QPolygonF &poly) const;
@@ -97,7 +97,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  private:
   const CQChartsParallelPlot* plot_  { nullptr };
@@ -190,7 +190,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   bool hasFgAxes() const override;
 
-  void drawFgAxes(QPainter *painter) const override;
+  void drawFgAxes(CQChartsPaintDevice *device) const override;
 
   void setObjRange();
 

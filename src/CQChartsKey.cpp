@@ -5,13 +5,13 @@
 #include <CQChartsEditHandles.h>
 #include <CQChartsUtil.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 
 #include <QScrollBar>
-#include <QPainter>
 #include <QStylePainter>
 #include <QStyleOptionSlider>
 
@@ -105,7 +105,7 @@ setLocation(const CQChartsKeyLocation &l)
 
 void
 CQChartsKey::
-draw(QPainter *) const
+draw(CQChartsPaintDevice *) const
 {
 }
 
@@ -302,7 +302,7 @@ contains(const CQChartsGeom::Point &p) const
 
 void
 CQChartsViewKey::
-draw(QPainter *painter) const
+draw(CQChartsPaintDevice *device) const
 {
   if (! isVisible())
     return;
@@ -337,13 +337,13 @@ draw(QPainter *painter) const
 
   //---
 
-  CQChartsBoxObj::draw(painter, rect);
+  CQChartsBoxObj::draw(device, rect);
 
   //---
 
-  view()->setPainterFont(painter, textFont());
+  view()->setPainterFont(device, textFont());
 
-  QFontMetricsF fm(painter->font());
+  QFontMetricsF fm(device->font());
 
   double px1 = px + margin();
   double py1 = py + margin();
@@ -365,11 +365,11 @@ draw(QPainter *painter) const
 
     //---
 
-    drawCheckBox(painter, px1, (py1 + py2)/2.0 - bs/2.0, bs, checked);
+    drawCheckBox(device, px1, (py1 + py2)/2.0 - bs/2.0, bs, checked);
 
     //---
 
-    painter->setPen(interpTextColor(ColorInd()));
+    device->setPen(interpTextColor(ColorInd()));
 
     QString name = plot->keyText();
 
@@ -387,9 +387,9 @@ draw(QPainter *painter) const
     textOptions.html      = isTextHtml();
     textOptions.align     = textAlign();
 
-    CQChartsDrawUtil::drawTextInBox(painter, rect1, name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(rect1), name, textOptions);
 
-    //CQChartsDrawUtil::drawSimpleText(painter, px2, py1 + fm.ascent() + dth, name);
+    //CQChartsDrawUtil::drawSimpleText(device, QPointF(px2, py1 + fm.ascent() + dth), name);
 
     //---
 
@@ -424,7 +424,7 @@ drawEditHandles(QPainter *painter) const
 
 void
 CQChartsViewKey::
-drawCheckBox(QPainter *painter, double x, double y, int bs, bool checked) const
+drawCheckBox(CQChartsPaintDevice *device, double x, double y, int bs, bool checked) const
 {
   QImage cimage = CQChartsUtil::initImage(QSize(bs, bs));
 
@@ -447,9 +447,9 @@ drawCheckBox(QPainter *painter, double x, double y, int bs, bool checked) const
 
   spainter.drawControl(QStyle::CE_CheckBox, opt);
 
-  painter->drawImage(x, y, cimage);
+  device->drawImage(QPointF(x, y), cimage);
 
-  //painter->drawRect(qrect);
+  //device->drawRect(qrect);
 }
 
 //------
@@ -1457,7 +1457,7 @@ setFlipped(bool b)
 
 void
 CQChartsPlotKey::
-draw(QPainter *painter) const
+draw(CQChartsPaintDevice *device) const
 {
   if (! plot()->isVisible() || ! isOverlayVisible() || isEmpty()) {
     scrollData_.hbar->hide();
@@ -1529,14 +1529,14 @@ draw(QPainter *painter) const
   CQChartsGeom::BBox plotPixelRect = plot()->calcPlotPixelRect();
 
   bool   clipped  = false;
-  QRectF clipRect = CQChartsUtil::toQRect(plotPixelRect);
+  QRectF clipRect = plotPixelRect.qrect();
 
   //---
 
   // get plot data rect
   CQChartsGeom::BBox dataPixelRect = plot()->calcDataPixelRect();
 
-  QRectF dataRect = CQChartsUtil::toQRect(dataPixelRect);
+  QRectF dataRect = dataPixelRect.qrect();
 
   //---
 
@@ -1545,7 +1545,7 @@ draw(QPainter *painter) const
 
   //---
 
-  painter->save();
+  device->save();
 
   //---
 
@@ -1667,7 +1667,7 @@ draw(QPainter *painter) const
   //---
 
   // draw box (background)
-  CQChartsBoxObj::draw(painter, pixelRect);
+  CQChartsBoxObj::draw(device, device->pixelToWindow(pixelRect));
 
   //---
 
@@ -1689,7 +1689,7 @@ draw(QPainter *painter) const
     // get font
     QFont font = view()->plotFont(plot(), headerTextFont());
 
-    painter->setFont(font);
+    device->setFont(font);
 
     //---
 
@@ -1726,19 +1726,21 @@ draw(QPainter *painter) const
     //---
 
     // draw text
-    painter->setPen(tpen);
+    device->setPen(tpen);
 
-    CQChartsDrawUtil::drawTextInBox(painter, trect, headerStr(), textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect), headerStr(), textOptions);
   }
 
   //---
 
   if (clipped) {
-    //painter->setPen(Qt::red);
-    //painter->drawRect(clipRect);
-    //painter->setPen(Qt::black);
+    QRectF cr = device->pixelToWindow(clipRect);
 
-    painter->setClipRect(clipRect);
+    //device->setPen(Qt::red);
+    //device->drawRect(cr);
+    //device->setPen(Qt::black);
+
+    device->setClipRect(cr);
   }
 
   //---
@@ -1774,10 +1776,10 @@ draw(QPainter *painter) const
     item->setBBox(bbox);
 
     if (wbbox_.overlaps(bbox)) {
-      item->draw(painter, bbox);
+      item->draw(device, bbox);
 
       if (plot()->showBoxes())
-        plot()->drawWindowColorBox(painter, bbox);
+        plot()->drawWindowColorBox(device, bbox);
     }
   }
 
@@ -1785,16 +1787,16 @@ draw(QPainter *painter) const
 
   // draw box
   if (plot()->showBoxes()) {
-    plot()->drawWindowColorBox(painter, wbbox_);
+    plot()->drawWindowColorBox(device, wbbox_);
 
     CQChartsGeom::BBox headerBox(x, y - layoutData_.headerHeight, x + sw, y);
 
-    plot()->drawWindowColorBox(painter, headerBox);
+    plot()->drawWindowColorBox(device, headerBox);
   }
 
   //---
 
-  painter->restore();
+  device->restore();
 }
 
 void
@@ -1953,15 +1955,15 @@ interpTextColor(const ColorInd &ind) const
 
 void
 CQChartsKeyText::
-draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
+draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 {
   CQChartsPlot *plot = key_->plot();
 
-  plot->view()->setPlotPainterFont(plot, painter, key_->textFont());
+  plot->view()->setPlotPainterFont(plot, device, key_->textFont());
 
   QColor tc = interpTextColor(ColorInd());
 
-  painter->setPen(tc);
+  device->setPen(tc);
 
 #if 0
   CQChartsGeom::Point p1 =
@@ -1974,7 +1976,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 
   double px = p1.x + 2;
 
-  QFontMetricsF fm(painter->font());
+  QFontMetricsF fm(device->font());
 
   if (key_->textAlign() & Qt::AlignRight)
     px = p2.x - 2 - fm.width(text_);
@@ -1997,13 +1999,11 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
 
   textOptions = plot->adjustTextOptions(textOptions);
 
-  CQChartsGeom::BBox prect = plot->windowToPixel(rect);
+  QRectF qrect = rect.qrect();
 
-  QRectF qrect = CQChartsUtil::toQRect(prect);
+  CQChartsDrawUtil::drawTextInBox(device, qrect, text_, textOptions);
 
-  CQChartsDrawUtil::drawTextInBox(painter, qrect, text_, textOptions);
-
-  //CQChartsDrawUtil::drawSimpleText(painter, tp, text_);
+  //CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(tp), text_);
 }
 
 //------
@@ -2047,7 +2047,7 @@ size() const
 
 void
 CQChartsKeyColorBox::
-draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
+draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 {
   CQChartsPlot *plot = key_->plot();
 
@@ -2064,13 +2064,11 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
   if (isInside())
     brush.setColor(plot->insideColor(brush.color()));
 
-  painter->setPen  (bc);
-  painter->setBrush(brush);
+  device->setPen  (bc);
+  device->setBrush(brush);
 
-  double cxs = plot->lengthPixelWidth (cornerRadius());
-  double cys = plot->lengthPixelHeight(cornerRadius());
-
-  CQChartsDrawUtil::drawRoundedPolygon(painter, prect1, cxs, cys);
+  CQChartsDrawUtil::drawRoundedPolygon(device,
+    device->pixelToWindow(prect1), cornerRadius(), cornerRadius());
 }
 
 QBrush

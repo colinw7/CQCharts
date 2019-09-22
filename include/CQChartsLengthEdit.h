@@ -14,6 +14,8 @@ class CQRealSpin;
 class CQChartsLengthEdit : public QFrame {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsLength length READ length WRITE setLength)
+
  public:
   CQChartsLengthEdit(QWidget *parent=nullptr);
 

@@ -212,11 +212,11 @@ class CQChartsPlotParameter : public QObject {
   bool isRequired() const { return attributes_.isRequired(); }
   CQChartsPlotParameter &setRequired() { attributes_.setRequired(); return *this; }
 
-  //! get/set is discriminator (for anlayze)
+  //! get/set is discriminator (for analyze)
   bool isDiscriminator() const { return attributes_.isDiscriminator(); }
   CQChartsPlotParameter &setDiscriminator() { attributes_.setDiscriminator(); return *this; }
 
-  //! get/set is monotonic (for anlayze)
+  //! get/set is monotonic (for analyze)
   bool isMonotonic() const { return attributes_.isMonotonic(); }
   CQChartsPlotParameter &setMonotonic() { attributes_.setMonotonic(); return *this; }
 

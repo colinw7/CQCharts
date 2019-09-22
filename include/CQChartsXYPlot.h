@@ -82,7 +82,7 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  private:
   const CQChartsXYPlot* plot_     { nullptr }; //!< parent plot
@@ -139,7 +139,7 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  private:
   const CQChartsXYPlot* plot_     { nullptr }; //!< parent plot
@@ -245,7 +245,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  private:
   using OptPoint = boost::optional<QPointF>;
@@ -327,7 +327,7 @@ class CQChartsXYLabelObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  private:
   using OptPoint = boost::optional<QPointF>;
@@ -394,9 +394,8 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
- private:
   void initBestFit();
   void initStats();
 
@@ -455,9 +454,8 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
- private:
   void initSmooth() const;
 
  private:
@@ -510,7 +508,7 @@ class CQChartsXYKeyLine : public CQChartsKeyItem {
 
   QSizeF size() const override;
 
-  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) const override;
+  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const override;
 
   CQChartsPlotObj *plotObj() const;
 
@@ -779,7 +777,7 @@ class CQChartsXYPlot : public CQChartsPointPlot,
 
   //---
 
-  void drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2) const;
+  void drawArrow(CQChartsPaintDevice *device, const QPointF &p1, const QPointF &p2) const;
 
   //---
 

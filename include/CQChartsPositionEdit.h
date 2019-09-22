@@ -14,6 +14,8 @@ class CQPoint2DEdit;
 class CQChartsPositionEdit : public QFrame {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
+
  public:
   CQChartsPositionEdit(QWidget *parent=nullptr);
 

@@ -3,10 +3,10 @@
 #include <CQChartsPlot.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
+#include <CQChartsPaintDevice.h>
 
 #include <CQPropertyViewModel.h>
 
-#include <QPainter>
 #include <QPainterPath>
 
 CQChartsArrow::
@@ -37,6 +37,24 @@ charts() const
 
 void
 CQChartsArrow::
+draw(CQChartsPaintDevice *device) const
+{
+  QPen   pen;
+  QBrush brush;
+
+  QColor fc = interpFillColor  (ColorInd());
+  QColor sc = interpStrokeColor(ColorInd());
+
+  CQChartsUtil::setBrush(brush, true, fc, fillAlpha(), fillPattern());
+
+  CQChartsUtil::setPen(pen, true, sc, strokeAlpha(), 1.0);
+
+  draw(device, pen, brush);
+}
+
+#if 0
+void
+CQChartsArrow::
 draw(QPainter *painter) const
 {
   QPen   pen;
@@ -51,21 +69,36 @@ draw(QPainter *painter) const
 
   draw(painter, pen, brush);
 }
+#endif
 
+void
+CQChartsArrow::
+draw(CQChartsPaintDevice *device, const QPen &pen, const QBrush &brush) const
+{
+  device_ = device;
+
+  drawContents(pen, brush);
+}
+
+#if 0
 void
 CQChartsArrow::
 draw(QPainter *painter, const QPen &pen, const QBrush &brush) const
 {
-  auto windowToPixel = [&](double wx, double wy, double &px, double &py) {
-    CQChartsGeom::Point p(wx, wy);
+  device_ = nullptr;
 
-    if      (plot())
-      p = plot()->windowToPixel(CQChartsGeom::Point(wx, wy));
-    else if (view())
-      p = view()->windowToPixel(CQChartsGeom::Point(wx, wy));
+  drawContents(pen, brush);
+}
+#endif
 
-    px = p.x;
-    py = p.y;
+void
+CQChartsArrow::
+drawContents(const QPen &pen, const QBrush &brush) const
+{
+  auto windowToPixel = [&](const QPointF &w) {
+    if      (plot()) return plot()->windowToPixel(w);
+    else if (view()) return view()->windowToPixel(w);
+    else             return w;
   };
 
   auto lengthPixelWidth = [&](const CQChartsLength &l) {
@@ -106,22 +139,16 @@ draw(QPainter *painter, const QPen &pen, const QBrush &brush) const
 
   //---
 
-  painter_ = painter;
-
-  //---
-
   QPointF from = from_;
   QPointF to   = (isRelative() ? from_ + to_ : to_);
 
-  double fx, fy, tx, ty;
-
-  windowToPixel(from.x(), from.y(), fx, fy);
-  windowToPixel(to  .x(), to  .y(), tx, ty);
+  QPointF fp = windowToPixel(from);
+  QPointF tp = windowToPixel(to  );
 
   double xw = (strokeWidth().value() > 0 ? lengthPixelWidth (strokeWidth()) : 4);
   double yw = (strokeWidth().value() > 0 ? lengthPixelHeight(strokeWidth()) : 4);
 
-  double a = atan2(ty - fy, tx - fx);
+  double a = atan2(tp.y() - fp.y(), tp.x() - fp.x());
 
   double aa = CMathUtil::Deg2Rad(angle() > 0 ? angle() : 45);
 
@@ -135,8 +162,8 @@ draw(QPainter *painter, const QPen &pen, const QBrush &brush) const
 
   //---
 
-  double x1 = fx, y1 = fy;
-  double x4 = tx, y4 = ty;
+  double x1 = fp.x(), y1 = fp.y();
+  double x4 = tp.x(), y4 = tp.y();
 
   QPointF p1(x1, y1);
   QPointF p4(x4, y4);
@@ -570,16 +597,10 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled,
 {
   QPainterPath path;
 
-  double px = points[0].x();
-  double py = points[0].y();
-
-  path.moveTo(px, py);
+  path.moveTo(device_->pixelToWindow(points[0]));
 
   for (uint i = 1; i < points.size(); ++i) {
-    px = points[i].x();
-    py = points[i].y();
-
-    path.lineTo(px, py);
+    path.lineTo(device_->pixelToWindow(points[i]));
   }
 
   path.closeSubpath();
@@ -587,16 +608,16 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled,
   //---
 
   if (filled) {
-    painter_->fillPath(path, brush);
+    device_->fillPath(path, brush);
   }
   else {
-    QPen p = painter_->pen();
+    QPen p = device_->pen();
 
     p.setWidthF(width);
 
-    painter_->setPen(p);
+    device_->setPen(p);
 
-    painter_->strokePath(path, pen);
+    device_->strokePath(path, pen);
   }
 }
 
@@ -605,41 +626,33 @@ CQChartsArrow::
 drawLine(const QPointF &point1, const QPointF &point2, double width, bool mapping,
          const QPen &pen) const
 {
-  auto windowToPixel = [&](double wx, double wy, double &px, double &py) {
-    CQChartsGeom::Point p(wx, wy);
-
-    if      (plot())
-      p = plot()->windowToPixel(CQChartsGeom::Point(wx, wy));
-    else if (view())
-      p = view()->windowToPixel(CQChartsGeom::Point(wx, wy));
-
-    px = p.x;
-    py = p.y;
+  auto pixelToWindow = [&](const QPointF &w) {
+    if      (plot()) return plot()->pixelToWindow(w);
+    else if (view()) return view()->pixelToWindow(w);
+    else             return w;
   };
 
   //---
 
-  QPen p = painter_->pen();
+  QPen p = device_->pen();
 
   p.setColor (pen.color());
   p.setWidthF(width);
 
-  painter_->setPen(p);
+  device_->setPen(p);
 
-  double px1, py1, px2, py2;
+  QPointF p1, p2;
 
   if (mapping) {
-    windowToPixel(point1.x(), point1.y(), px1, py1);
-    windowToPixel(point2.x(), point2.y(), px2, py2);
+    p1 = point1;
+    p2 = point2;
   }
   else {
-    px1 = point1.x();
-    py1 = point1.y();
-    px2 = point2.x();
-    py2 = point2.y();
+    p1 = pixelToWindow(point1);
+    p2 = pixelToWindow(point2);
   }
 
-  painter_->drawLine(px1, py1, px2, py2);
+  device_->drawLine(p1, p2);
 }
 
 #if 0
@@ -663,17 +676,17 @@ drawPointLabel(const QPointF &point, const QString &text, bool above, bool mappi
 
   CQChartsUtil::setPen(tpen, true, tc, 1.0, CQChartsLength("1.0"));
 
-  painter_->setPen(tpen);
+  device_->setPen(tpen);
 
-  painter_->drawLine(px - 4, py    , px + 4, py    );
-  painter_->drawLine(px    , py - 4, px    , py + 4);
+  device_->drawLine(px - 4, py    , px + 4, py    );
+  device_->drawLine(px    , py - 4, px    , py + 4);
 
-  QFontMetricsF fm(painter_->font());
+  QFontMetricsF fm(device_->font());
 
   double w = fm.width(text);
   double h = fm.height();
 
-  CQChartsDrawUtil::drawSimpleText(painter_, px - w/2, py + (above ? -h : h), text);
+  CQChartsDrawUtil::drawSimpleText(device_, QPointF(px - w/2, py + (above ? -h : h)), text);
 }
 #endif
 

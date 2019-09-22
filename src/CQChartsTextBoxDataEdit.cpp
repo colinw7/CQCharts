@@ -6,6 +6,7 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
+#include <CQChartsPaintDevice.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -13,7 +14,6 @@
 
 #include <QLabel>
 #include <QVBoxLayout>
-#include <QPainter>
 
 CQChartsTextBoxDataLineEdit::
 CQChartsTextBoxDataLineEdit(QWidget *parent) :
@@ -426,8 +426,8 @@ draw(QPainter *painter, const CQChartsTextBoxData &data, const QRect &rect,
   //---
 
   // draw text box
-  double cxs = shape.stroke().cornerSize().value();
-  double cys = shape.stroke().cornerSize().value();
+  CQChartsPixelPainter device(painter);
 
-  CQChartsDrawUtil::drawRoundedPolygon(painter, rect, cxs, cys);
+  CQChartsDrawUtil::drawRoundedPolygon(&device, rect, shape.stroke().cornerSize(),
+                                       shape.stroke().cornerSize());
 }

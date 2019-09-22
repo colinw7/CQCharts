@@ -80,6 +80,17 @@ calcFont(const CQChartsFont &font) const
 
 void
 CQChartsViewPlotObj::
+setPainterFont(CQChartsPaintDevice *device, const CQChartsFont &font) const
+{
+  if      (plot())
+    view()->setPlotPainterFont(plot(), device, font);
+  else if (view())
+    view()->setPainterFont(device, font);
+}
+
+#if 0
+void
+CQChartsViewPlotObj::
 setPainterFont(QPainter *painter, const CQChartsFont &font) const
 {
   if      (plot())
@@ -87,6 +98,7 @@ setPainterFont(QPainter *painter, const CQChartsFont &font) const
   else if (view())
     view()->setPainterFont(painter, font);
 }
+#endif
 
 void
 CQChartsViewPlotObj::

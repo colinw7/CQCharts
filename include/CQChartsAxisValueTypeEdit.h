@@ -14,10 +14,12 @@ class QComboBox;
 class CQChartsAxisValueTypeEdit : public CQChartsEnumEdit {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsAxisValueType axisValueType READ axisValueType WRITE setAxisValueType)
+
  public:
   CQChartsAxisValueTypeEdit(QWidget *parent=nullptr);
 
-  const CQChartsAxisValueType &value() const { return value_; }
+  const CQChartsAxisValueType &axisValueType() const { return value_; }
   void setAxisValueType(const CQChartsAxisValueType &loc);
 
   QStringList enumNames() const override { return value_.enumNames(); }

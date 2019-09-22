@@ -7,13 +7,13 @@
 #include <CQChartsDataLabel.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
-#include <QPainter>
 #include <QMenu>
 
 CQChartsBarChartPlotType::
@@ -1462,6 +1462,8 @@ CQChartsBarChartObj(const CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &
  CQChartsPlotObj(const_cast<CQChartsBarChartPlot *>(plot), rect, is, ig, iv),
  plot_(plot)
 {
+  setDetailHint(DetailHint::MAJOR);
+
   setModelInd(ind);
 }
 
@@ -1580,7 +1582,7 @@ dataLabelRect() const
 
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
-  QRectF qrect = CQChartsUtil::toQRect(prect);
+  QRectF qrect = prect.qrect();
 
   const CQChartsBarChartValue *value = this->value();
 
@@ -1650,7 +1652,7 @@ isHidden() const
 
 void
 CQChartsBarChartObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   //if (isHidden())
   //  return;
@@ -1659,10 +1661,9 @@ draw(QPainter *painter)
 
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
-  QRectF qrect = CQChartsUtil::toQRect(prect);
-
   //---
 
+  // calc bar borders
   static double minBorderSize = 5.0;
   static double minSize       = 3.0;
 
@@ -1700,43 +1701,41 @@ draw(QPainter *painter)
 
   prect.expandExtent(-m1, -m2, ! plot_->isHorizontal());
 
-  qrect = CQChartsUtil::toQRect(prect);
+  //---
+
+  CQChartsGeom::BBox rect = plot_->pixelToWindow(prect);
 
   //---
 
   // calc bar color
-  ColorInd colorInd = calcColorInd();
-
   QColor barColor = calcBarColor();
 
   //---
 
   // calc pen and brush
-  QPen   pen;
-  QBrush barBrush;
+  ColorInd colorInd = calcColorInd();
+
+  CQChartsPenBrush barPenBrush;
 
   QColor bc = plot_->interpBarStrokeColor(colorInd);
 
-  plot_->setPenBrush(pen, barBrush,
+  plot_->setPenBrush(barPenBrush.pen, barPenBrush.brush,
     plot_->isBarStroked() && ! skipBorder,
     bc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(), plot_->barStrokeDash(),
     plot_->isBarFilled(), barColor, plot_->barFillAlpha(), plot_->barFillPattern());
 
-  plot_->updateObjPenBrushState(this, pen, barBrush);
-
-  painter->setPen(pen);
-  painter->setBrush(barBrush);
+  plot_->updateObjPenBrushState(this, barPenBrush.pen, barPenBrush.brush);
 
   //---
 
   if (! plot_->isDotLines()) {
     // draw rect
-    double cxs = plot_->lengthPixelWidth (plot_->barCornerSize());
-    double cys = plot_->lengthPixelHeight(plot_->barCornerSize());
-
-    CQChartsDrawUtil::drawRoundedPolygon(painter, qrect, cxs, cys);
+    drawRoundedPolygon(device, barPenBrush, rect, plot_->barCornerSize());
   }
   else {
+    QRectF qrect  = rect .qrect();
+    QRectF pqrect = prect.qrect();
+
     // draw line
     double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), ! plot_->isHorizontal());
 
@@ -1744,36 +1743,32 @@ draw(QPainter *painter)
       double xc = qrect.center().x();
 
       if (lw < 3)
-        painter->drawLine(xc, qrect.bottom(), xc, qrect.top());
+        device->drawLine(QPointF(xc, qrect.bottom()), QPointF(xc, qrect.top()));
       else {
-        QRectF qrect1(xc - lw/2, qrect.top(), lw, qrect.height());
+        QRectF qrect1(xc - lw/2, pqrect.top(), lw, pqrect.height());
 
-        CQChartsDrawUtil::drawRoundedPolygon(painter, qrect1);
+        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(qrect1));
       }
     }
     else {
       double yc = qrect.center().y();
 
       if (lw < 3)
-        painter->drawLine(qrect.left(), yc, qrect.right(), yc);
+        device->drawLine(QPointF(qrect.left(), yc), QPointF(qrect.right(), yc));
       else {
-        QRectF qrect1(qrect.left(), yc - lw/2, qrect.width(), lw);
+        QRectF qrect1(pqrect.left(), yc - lw/2, pqrect.width(), lw);
 
-        CQChartsDrawUtil::drawRoundedPolygon(painter, qrect1);
+        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(qrect1));
       }
     }
 
     //---
 
     // draw dot
-    CQChartsSymbol symbol = plot_->dotSymbolType();
+    CQChartsSymbol symbolType = plot_->dotSymbolType();
+    CQChartsLength symbolSize = plot_->dotSymbolSize();
 
-    double sx, sy;
-
-    plot_->pixelSymbolSize(plot_->dotSymbolSize(), sx, sy);
-
-    painter->setPen  (pen);
-    painter->setBrush(barBrush);
+    CQChartsDrawUtil::setPenBrush(device, barPenBrush);
 
     QPointF p;
 
@@ -1782,7 +1777,7 @@ draw(QPainter *painter)
     else
       p = QPointF(qrect.right(), qrect.center().y());
 
-    plot_->drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy), pen, barBrush);
+    plot_->drawSymbol(device, p, symbolType, symbolSize, barPenBrush.pen, barPenBrush.brush);
   }
 }
 
@@ -1834,15 +1829,13 @@ calcBarColor() const
 
 void
 CQChartsBarChartObj::
-drawFg(QPainter *painter) const
+drawFg(CQChartsPaintDevice *device) const
 {
   // draw data label on foreground layers
   if (! plot_->dataLabel()->isVisible())
     return;
 
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
-
-  QRectF qrect = CQChartsUtil::toQRect(prect);
+  QRectF qrect = rect().qrect();
 
   //---
 
@@ -1867,22 +1860,22 @@ drawFg(QPainter *painter) const
       pos = CQChartsDataLabel::flipPosition(pos);
 
     if (minLabel != "")
-      plot_->dataLabel()->draw(painter, qrect, minLabel, pos);
+      plot_->dataLabel()->draw(device, qrect, minLabel, pos);
   }
   else {
     if (plot_->dataLabel()->isPositionOutside()) {
       CQChartsDataLabel::Position minPos = CQChartsDataLabel::Position::BOTTOM_OUTSIDE;
       CQChartsDataLabel::Position maxPos = CQChartsDataLabel::Position::TOP_OUTSIDE;
 
-      plot_->dataLabel()->draw(painter, qrect, minLabel, minPos);
-      plot_->dataLabel()->draw(painter, qrect, maxLabel, maxPos);
+      plot_->dataLabel()->draw(device, qrect, minLabel, minPos);
+      plot_->dataLabel()->draw(device, qrect, maxLabel, maxPos);
     }
     else {
       CQChartsDataLabel::Position minPos = CQChartsDataLabel::Position::BOTTOM_INSIDE;
       CQChartsDataLabel::Position maxPos = CQChartsDataLabel::Position::TOP_INSIDE;
 
-      plot_->dataLabel()->draw(painter, qrect, minLabel, minPos);
-      plot_->dataLabel()->draw(painter, qrect, maxLabel, maxPos);
+      plot_->dataLabel()->draw(device, qrect, minLabel, minPos);
+      plot_->dataLabel()->draw(device, qrect, maxLabel, maxPos);
     }
   }
 }

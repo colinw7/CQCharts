@@ -9,8 +9,6 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 
-#include <QPainter>
-
 CQChartsTextBoxObj::
 CQChartsTextBoxObj(CQChartsView *view) :
  CQChartsBoxObj(view),
@@ -83,69 +81,6 @@ addTextDataProperties(CQPropertyViewModel *model, const QString &path, const QSt
   addStyleProp(path, "textContrast", "contrast", desc1 + " contrast");
   addStyleProp(path, "textHtml"    , "html"    , desc1 + " is HTML");
   addStyleProp(path, "textAlign"   , "align"   , desc1 + " alignment");
-}
-
-void
-CQChartsTextBoxObj::
-draw(QPainter *painter, const QRectF &rect) const
-{
-  if (! isTextVisible())
-    return;
-
-  CQChartsBoxObj::draw(painter, rect);
-
-  //---
-
-  drawText(painter, rect, textStr());
-}
-
-void
-CQChartsTextBoxObj::
-draw(QPainter *painter, const QPolygonF &poly) const
-{
-  CQChartsBoxObj::draw(painter, poly);
-
-  //---
-
-  QRectF rect = poly.boundingRect();
-
-  drawText(painter, rect, textStr());
-}
-
-void
-CQChartsTextBoxObj::
-drawText(QPainter *painter, const QRectF &rect, const QString &text) const
-{
-  setPainterFont(painter, textFont());
-
-  QFontMetricsF fm(painter->font());
-
-  QColor c = interpTextColor(ColorInd());
-
-  QPen pen;
-
-  setPen(pen, true, c, textAlpha());
-
-  painter->setPen(pen);
-
-  //---
-
-  // set text options
-  CQChartsTextOptions textOptions;
-
-  textOptions.contrast  = isTextContrast();
-  textOptions.formatted = isTextFormatted();
-  textOptions.scaled    = isTextScaled();
-  textOptions.html      = isTextHtml();
-  textOptions.align     = textAlign();
-
-  adjustTextOptions(textOptions);
-
-  //---
-
-  QPointF tp(rect.left() + margin(), rect.bottom() - margin() - fm.descent());
-
-  CQChartsDrawUtil::drawTextAtPoint(painter, tp, text, textOptions);
 }
 
 void

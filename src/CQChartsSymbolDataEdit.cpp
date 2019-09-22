@@ -7,6 +7,7 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 #include <CQCharts.h>
 
 #include <CQPropertyView.h>
@@ -16,7 +17,6 @@
 
 #include <QLabel>
 #include <QVBoxLayout>
-#include <QPainter>
 
 CQChartsSymbolDataLineEdit::
 CQChartsSymbolDataLineEdit(QWidget *parent) :
@@ -457,5 +457,9 @@ draw(QPainter *painter, const CQChartsSymbolData &data, const QRect &rect,
 
   double size = data.size().value();
 
-  CQChartsDrawUtil::drawSymbol(painter, data.type(), p, QSizeF(size, size));
+  CQChartsPixelPainter device(painter);
+
+  CQChartsLength symbolSize(CQChartsUnits::PIXEL, size);
+
+  CQChartsDrawUtil::drawSymbol(&device, data.type(), p, symbolSize);
 }

@@ -5,6 +5,7 @@
 #include <CQChartsUtil.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -17,7 +18,6 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <QPainter>
 
 CQChartsFontLineEdit::
 CQChartsFontLineEdit(QWidget *parent) :
@@ -225,7 +225,9 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
   else
     painter->setFont(font.font());
 
-  CQChartsDrawUtil::drawTextInBox(painter, option1.rect, "Abc", textOptions);
+  CQChartsPixelPainter device(painter);
+
+  CQChartsDrawUtil::drawTextInBox(&device, option1.rect, "Abc", textOptions);
 
   painter->restore();
 }

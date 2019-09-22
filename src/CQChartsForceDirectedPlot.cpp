@@ -4,12 +4,11 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
-
-#include <QPainter>
 
 CQChartsForceDirectedPlotType::
 CQChartsForceDirectedPlotType()
@@ -717,9 +716,20 @@ void
 CQChartsForceDirectedPlot::
 drawParts(QPainter *painter) const
 {
-  painter->save();
+  CQChartsForceDirectedPlot *th = const_cast<CQChartsForceDirectedPlot *>(this);
 
-  setClipRect(painter);
+  CQChartsPlotPainter device(th, painter);
+
+  drawParts(&device);
+}
+
+void
+CQChartsForceDirectedPlot::
+drawParts(CQChartsPaintDevice *device) const
+{
+  device->save();
+
+  setClipRect(device);
 
   // draw edges
   QPen edgePen;
@@ -736,9 +746,6 @@ drawParts(QPainter *painter) const
     const Springy::Vector &p1 = spring->point1()->p();
     const Springy::Vector &p2 = spring->point2()->p();
 
-    QPointF pp1 = windowToPixel(QPointF(p1.x(), p1.y()));
-    QPointF pp2 = windowToPixel(QPointF(p2.x(), p2.y()));
-
     if (isEdgeLinesValueWidth()) {
       QPen edgePen1 = edgePen;
 
@@ -746,24 +753,27 @@ drawParts(QPainter *painter) const
 
       edgePen1.setWidthF(w);
 
-      painter->setPen(edgePen1);
+      device->setPen(edgePen1);
     }
     else
-      painter->setPen(edgePen);
+      device->setPen(edgePen);
 
-    painter->drawLine(pp1, pp2);
+    device->drawLine(QPointF(p1.x(), p1.y()), QPointF(p2.x(), p2.y()));
 
     if (isTemp)
       delete spring;
   }
 
   // draw nodes
+  double r = nodeRadius();
+
+  double xm = pixelToWindowWidth (2*r);
+  double ym = pixelToWindowHeight(2*r);
+
   for (auto &node : forceDirected_->nodes()) {
     auto point = forceDirected_->point(node);
 
     const Springy::Vector &p1 = point->p();
-
-    CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(p1.x(), p1.y()));
 
     //---
 
@@ -780,17 +790,15 @@ drawParts(QPainter *painter) const
 
     setBrush(brush, true, fc, nodeFillAlpha(), nodeFillPattern());
 
-    painter->setPen  (pen);
-    painter->setBrush(brush);
+    device->setPen  (pen);
+    device->setBrush(brush);
 
     //---
 
-    double r = nodeRadius();
-
-    painter->drawEllipse(QRectF(p2.x - r, p2.y - r, 2*r, 2*r));
+    device->drawEllipse(QRectF(p1.x() - xm/2.0, p1.y() - xm/2.0, xm, ym));
   }
 
   //---
 
-  painter->restore();
+  device->restore();
 }

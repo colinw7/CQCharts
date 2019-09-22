@@ -58,7 +58,7 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  private:
   const CQChartsDelaunayPlot* plot_ { nullptr };
@@ -140,14 +140,14 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   bool hasForeground() const override;
 
-  void execDrawForeground(QPainter *painter) const override;
+  void execDrawForeground(CQChartsPaintDevice *device) const override;
 
  public slots:
   void setVoronoi(bool b);
 
  private:
-  void drawDelaunay(QPainter *p) const;
-  void drawVoronoi (QPainter *p) const;
+  void drawDelaunay(CQChartsPaintDevice *device) const;
+  void drawVoronoi (CQChartsPaintDevice *device) const;
 
  private:
   CQChartsColumn    xColumn_;                      //!< x column

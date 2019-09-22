@@ -4,11 +4,12 @@
 #include <CQChartsViewPlotObj.h>
 #include <CQChartsObjData.h>
 #include <CQChartsSides.h>
+#include <CQChartsPaintDevice.h>
 #include <QRectF>
 #include <QPolygonF>
 
 class CQPropertyViewModel;
-class QPainter;
+class CQChartsPaintDevice;
 
 /*!
  * \brief box object
@@ -48,10 +49,12 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
 
   //---
 
-  void draw(QPainter *painter, const QRectF &rect) const;
-  void draw(QPainter *painter, const QPolygonF &poly) const;
+  void draw(CQChartsPaintDevice *device, const QRectF &rect) const;
 
-  void draw(QPainter *painter, const QRectF &rect, const QPen &pen, const QBrush &brush) const;
+  void draw(CQChartsPaintDevice *device, const QPolygonF &poly) const;
+
+  void draw(CQChartsPaintDevice *device, const QRectF &rect,
+            const QPen &pen, const QBrush &brush) const;
 
  protected:
   bool stateColoring_ { true }; //!< color depending on inside/selected state

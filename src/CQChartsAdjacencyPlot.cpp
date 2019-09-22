@@ -8,12 +8,11 @@
 #include <CQChartsNamePair.h>
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
-
-#include <QPainter>
 
 CQChartsAdjacencyPlotType::
 CQChartsAdjacencyPlotType()
@@ -799,7 +798,7 @@ hasBackground() const
 
 void
 CQChartsAdjacencyPlot::
-execDrawBackground(QPainter *painter) const
+execDrawBackground(CQChartsPaintDevice *device) const
 {
   // calc text size
   CQChartsGeom::Point po = windowToPixel(CQChartsGeom::Point(0.0, 1.0));
@@ -819,9 +818,9 @@ execDrawBackground(QPainter *painter) const
 
   font.setPixelSize(ts >= 1 ? ts : 1.0);
 
-  painter->setFont(font);
+  device->setFont(font);
 
-  QFontMetricsF fm(painter->font());
+  QFontMetricsF fm(device->font());
 
   //---
 
@@ -832,7 +831,7 @@ execDrawBackground(QPainter *painter) const
 
   setPen(tpen, true, tc, textAlpha());
 
-  painter->setPen(tpen);
+  device->setPen(tpen);
 
   //---
 
@@ -849,7 +848,9 @@ execDrawBackground(QPainter *painter) const
 
     twMax = std::max(twMax, tw);
 
-    CQChartsDrawUtil::drawSimpleText(painter, px + xts - tw - 2, py + pys - fm.descent(), str);
+    QPointF pt(px + xts - tw - 2, py + pys - fm.descent());
+
+    CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(pt), str);
 
     py += pys;
   }
@@ -864,7 +865,9 @@ execDrawBackground(QPainter *painter) const
   py = po.y + lengthPixelHeight(bgMargin()) + yts;
 
   for (auto &node : sortedNodes_) {
-    CQChartsRotatedText::draw(painter, px + pxs/2, py - 2, node->name(), 90,
+    QPointF p1(px + pxs/2, py - 2);
+
+    CQChartsRotatedText::draw(device, device->pixelToWindow(p1), node->name(), 90,
                               Qt::AlignHCenter | Qt::AlignBottom, /*alignBox*/true,
                               isTextContrast());
 
@@ -888,24 +891,22 @@ execDrawBackground(QPainter *painter) const
 
   QRectF cellRect(px, py, nn*pxs, nn*pys);
 
-  painter->fillRect(cellRect, fillBrush);
+  device->fillRect(device->pixelToWindow(cellRect), fillBrush);
 
   //---
 
   // draw empty cells
-  QPen   emptyPen;
-  QBrush emptyBrush;
+  CQChartsPenBrush emptyPenBrush;
 
   QColor pc = interpEmptyCellStrokeColor(ColorInd());
   QColor bc = interpEmptyCellFillColor  (ColorInd());
 
-  setPen(emptyPen, true, pc, emptyCellStrokeAlpha(),
+  setPen(emptyPenBrush.pen, true, pc, emptyCellStrokeAlpha(),
          emptyCellStrokeWidth(), emptyCellStrokeDash());
 
-  setBrush(emptyBrush, true, bc, emptyCellFillAlpha(), emptyCellFillPattern());
+  setBrush(emptyPenBrush.brush, true, bc, emptyCellFillAlpha(), emptyCellFillPattern());
 
-  double cxs = lengthPixelWidth (emptyCellCornerSize());
-  double cys = lengthPixelHeight(emptyCellCornerSize());
+  CQChartsLength cornerSize = emptyCellCornerSize();
 
   py = po.y + lengthPixelHeight(bgMargin()) + yts;
 
@@ -918,12 +919,11 @@ execDrawBackground(QPainter *painter) const
       bool empty = (node1 != node2 && CMathUtil::isZero(value));
 
       if (empty) {
-        painter->setPen  (emptyPen);
-        painter->setBrush(emptyBrush);
+        QRectF cellRect = device->pixelToWindow(QRectF(px, py, pxs, pys));
 
-        QRectF cellRect(px, py, pxs, pys);
+        CQChartsDrawUtil::setPenBrush(device, emptyPenBrush);
 
-        CQChartsDrawUtil::drawRoundedPolygon(painter, cellRect, cxs, cys);
+        CQChartsDrawUtil::drawRoundedPolygon(device, cellRect, cornerSize, cornerSize);
       }
 
       px += pxs;
@@ -956,10 +956,10 @@ hasForeground() const
 
 void
 CQChartsAdjacencyPlot::
-execDrawForeground(QPainter *painter) const
+execDrawForeground(CQChartsPaintDevice *device) const
 {
   if (insideObj())
-    insideObj()->draw(painter);
+    insideObj()->draw(device);
 }
 
 QColor
@@ -980,6 +980,8 @@ CQChartsAdjacencyObj(const CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *n
  CQChartsPlotObj(const_cast<CQChartsAdjacencyPlot *>(plot), rect, ColorInd(), ig, ColorInd()),
  plot_(plot), node1_(node1), node2_(node2), value_(value)
 {
+  setDetailHint(DetailHint::MAJOR);
+
   addModelInd(node1->ind());
   addModelInd(node2->ind());
 }
@@ -1027,13 +1029,13 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsAdjacencyObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   if (isInside()) {
     if (plot_->insideObj() != this) {
       CQChartsAdjacencyPlot *plot = const_cast<CQChartsAdjacencyPlot *>(plot_);
 
-      plot->setInsideObj(this);
+      plot->setInsideObj(const_cast<CQChartsAdjacencyObj *>(this));
 
       plot->drawForeground();
     }
@@ -1055,8 +1057,7 @@ draw(QPainter *painter)
 
   //---
 
-  //int nn = plot_->numNodes();
-
+  // calc fill color
   QColor bc = plot_->interpEmptyCellFillColor(ColorInd());
 
   // node to self (diagonal)
@@ -1079,30 +1080,21 @@ draw(QPainter *painter)
 
   //---
 
-  // set pen and brush
-  QPen   pen;
-  QBrush brush;
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
 
   QColor pc = plot_->interpStrokeColor(colorInd);
 
-  plot_->setPen(pen, true, pc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash());
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    true, pc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
+    true, bc, plot_->fillAlpha(), plot_->fillPattern());
 
-  plot_->setBrush(brush, true, bc, plot_->fillAlpha(), plot_->fillPattern());
-
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  plot_->updateObjPenBrushState(this, penBrush.pen, penBrush.brush);
 
   //---
 
   // draw box
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
-
-  double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
-  double cys = plot_->lengthPixelHeight(plot_->cornerSize());
-
-  CQChartsDrawUtil::drawRoundedPolygon(painter, CQChartsUtil::toQRect(prect), cxs, cys);
+  drawRoundedPolygon(device, penBrush, rect(), plot_->cornerSize());
 }
 
 bool

@@ -7,8 +7,6 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 
-#include <QPainter>
-
 CQChartsBoxObj::
 CQChartsBoxObj(CQChartsView *view) :
  CQChartsViewPlotObj(view), CQChartsObjBoxData<CQChartsBoxObj>(this)
@@ -69,6 +67,29 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &de
 
 void
 CQChartsBoxObj::
+draw(CQChartsPaintDevice *device, const QRectF &rect) const
+{
+  // set pen and brush
+  QPen   pen;
+  QBrush brush;
+
+  QColor bgColor = interpFillColor(ColorInd());
+
+  setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
+
+  QColor strokeColor = interpStrokeColor(ColorInd());
+
+  setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+
+  if (isStateColoring())
+    updatePenBrushState(pen, brush);
+
+  draw(device, rect, pen, brush);
+}
+
+#if 0
+void
+CQChartsBoxObj::
 draw(QPainter *painter, const QRectF &rect) const
 {
   // set pen and brush
@@ -88,7 +109,40 @@ draw(QPainter *painter, const QRectF &rect) const
 
   draw(painter, rect, pen, brush);
 }
+#endif
 
+void
+CQChartsBoxObj::
+draw(CQChartsPaintDevice *device, const QRectF &rect, const QPen &pen, const QBrush &brush) const
+{
+  if (isFilled()) {
+    // set pen and brush
+    QPen pen1(Qt::NoPen);
+
+    device->setPen  (pen1);
+    device->setBrush(brush);
+
+    //---
+
+    // fill box
+    CQChartsDrawUtil::drawRoundedPolygon(device, rect, cornerSize(), cornerSize(), borderSides());
+  }
+
+  if (isStroked()) {
+    // set pen and brush
+    QBrush brush1(Qt::NoBrush);
+
+    device->setPen  (pen);
+    device->setBrush(brush1);
+
+    //---
+
+    // stroke box
+    CQChartsDrawUtil::drawRoundedPolygon(device, rect, cornerSize(), cornerSize(), borderSides());
+  }
+}
+
+#if 0
 void
 CQChartsBoxObj::
 draw(QPainter *painter, const QRectF &rect, const QPen &pen, const QBrush &brush) const
@@ -122,6 +176,7 @@ draw(QPainter *painter, const QRectF &rect, const QPen &pen, const QBrush &brush
     CQChartsDrawUtil::drawRoundedPolygon(painter, rect, cxs, cys, borderSides());
   }
 }
+#endif
 
 void
 CQChartsBoxObj::
@@ -133,6 +188,40 @@ boxDataInvalidate()
     view()->update();
 }
 
+void
+CQChartsBoxObj::
+draw(CQChartsPaintDevice *device, const QPolygonF &poly) const
+{
+  if (isFilled()) {
+    QBrush brush;
+    QPen   pen(Qt::NoPen);
+
+    QColor bgColor = interpFillColor(ColorInd());
+
+    setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
+
+    device->setPen  (pen);
+    device->setBrush(brush);
+
+    CQChartsDrawUtil::drawRoundedPolygon(device, poly, cornerSize(), cornerSize());
+  }
+
+  if (isStroked()) {
+    QPen   pen;
+    QBrush brush(Qt::NoBrush);
+
+    QColor strokeColor = interpStrokeColor(ColorInd());
+
+    setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+
+    device->setPen  (pen);
+    device->setBrush(brush);
+
+    CQChartsDrawUtil::drawRoundedPolygon(device, poly, cornerSize(), cornerSize());
+  }
+}
+
+#if 0
 void
 CQChartsBoxObj::
 draw(QPainter *painter, const QPolygonF &poly) const
@@ -168,3 +257,4 @@ draw(QPainter *painter, const QPolygonF &poly) const
     CQChartsDrawUtil::drawRoundedPolygon(painter, poly, cxs, cys);
   }
 }
+#endif

@@ -52,7 +52,7 @@ draw(QPainter *painter) const
     double ms1 = 12;
     double ms2 = 4;
 
-    QPointF c = CQChartsUtil::toQPoint(windowToPixel(bbox_.getCenter()));
+    QPointF c = windowToPixel(bbox_.getCenter()).qpoint();
 
     path_.moveTo(c.x() - ms1, c.y()      );
     path_.lineTo(c.x() - ms2, c.y() + ms2);
@@ -65,22 +65,22 @@ draw(QPainter *painter) const
     path_.closeSubpath();
   }
   else if (side() == CQChartsResizeSide::LL) {
-    QPointF ll = CQChartsUtil::toQPoint(windowToPixel(bbox_.getLL()));
+    QPointF ll = windowToPixel(bbox_.getLL()).qpoint();
 
     path_.addEllipse(ll.x() - cs/2, ll.y() - cs/2, cs, cs);
   }
   else if (side() == CQChartsResizeSide::LR) {
-    QPointF lr = CQChartsUtil::toQPoint(windowToPixel(bbox_.getLR()));
+    QPointF lr = windowToPixel(bbox_.getLR()).qpoint();
 
     path_.addEllipse(lr.x() - cs/2, lr.y() - cs/2, cs, cs);
   }
   else if (side() == CQChartsResizeSide::UL) {
-    QPointF ul = CQChartsUtil::toQPoint(windowToPixel(bbox_.getUL()));
+    QPointF ul = windowToPixel(bbox_.getUL()).qpoint();
 
     path_.addEllipse(ul.x() - cs/2, ul.y() - cs/2, cs, cs);
   }
   else if (side() == CQChartsResizeSide::UR) {
-    QPointF ur = CQChartsUtil::toQPoint(windowToPixel(bbox_.getUR()));
+    QPointF ur = windowToPixel(bbox_.getUR()).qpoint();
 
     path_.addEllipse(ur.x() - cs/2, ur.y() - cs/2, cs, cs);
   }
@@ -109,7 +109,7 @@ bool
 CQChartsResizeHandle::
 inside(const CQChartsGeom::Point &w) const
 {
-  QPointF p = CQChartsUtil::toQPoint(windowToPixel(w));
+  QPointF p = windowToPixel(w).qpoint();
 
   return path_.contains(p);
 }

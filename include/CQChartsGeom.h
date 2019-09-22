@@ -27,9 +27,11 @@ class Point {
    x(point.x), y(point.y) {
   }
 
-  Point(const QPointF &point) :
+  explicit Point(const QPointF &point) :
    x(point.x()), y(point.y()) {
   }
+
+  //---
 
   Point &operator=(const Point &point) {
     x = point.x;
@@ -87,6 +89,8 @@ class Point {
   //-----
 
   QPointF qpoint() const { return QPointF(x, y); }
+
+  QPoint qpointi() const { return QPoint(x, y); }
 
   //-----
 
@@ -239,6 +243,13 @@ class Point {
   double y { 0 };
 };
 
+inline Point makeDirPoint(bool flipped, double x, double y) {
+  if (! flipped)
+    return Point(x, y);
+  else
+    return Point(y, x);
+}
+
 }
 
 //-----
@@ -258,6 +269,8 @@ class Range {
   Range(double x1, double y1, double x2, double y2) :
    set_(true), x1_(x1), y1_(y1), x2_(x2), y2_(y2) {
   }
+
+  //---
 
   bool isSet() const { return set_; }
 
@@ -307,6 +320,17 @@ class Range {
   double ysize() const { assert(set_); return std::abs(y2_ - y1_); }
 
   double size(bool horizontal) const { return (horizontal ? xsize() : ysize()); }
+
+  //---
+
+  QRectF qrect() const {
+    if (isSet())
+      return QRectF(xmin(), ymin(), xsize(), ysize()).normalized();
+    else
+      return QRectF();
+  }
+
+  //---
 
   bool isZero() const { return isXZero() || isYZero(); }
 
@@ -467,8 +491,9 @@ class BBox {
     update();
   }
 
-  BBox(const QRectF &rect) :
+  explicit BBox(const QRectF &rect) :
    pmin_(rect.bottomLeft()), pmax_(rect.topRight()), set_(rect.isValid()) {
+    update();
   }
 
 #if 0
@@ -478,6 +503,8 @@ class BBox {
   }
 #endif
 
+  //---
+
   void reset() { set_ = false; }
 
   bool isSet() const { return set_; }
@@ -485,7 +512,17 @@ class BBox {
   //---
 
   QRectF qrect() const {
-    return QRectF(getLL().qpoint(), getUR().qpoint()).normalized();
+    if (isSet())
+      return QRectF(getLL().qpoint(), getUR().qpoint()).normalized();
+    else
+      return QRectF();
+  }
+
+  QRect qrecti() const {
+    if (isSet())
+      return QRect(getLL().qpointi(), getUR().qpointi()).normalized();
+    else
+      return QRect();
   }
 
   //---
@@ -1038,7 +1075,7 @@ inline BBox makeDirBBox(bool flipped, double x1, double y1, double x2, double y2
 namespace CQChartsGeom {
 
 /*!
- * \brief Minumum/Maximum class
+ * \brief Minimum/Maximum class
  * \ingroup Charts
  */
 template<typename T>
@@ -1922,6 +1959,17 @@ struct RangeValue {
   double min { 0.0 };
   double max { 1.0 };
 };
+
+}
+
+//------
+
+namespace CQChartsGeom {
+
+// point on circle perimeter (center (c), radius(r), radian angle (a))
+inline CQChartsGeom::Point circlePoint(const CQChartsGeom::Point &c, double r, double a) {
+  return CQChartsGeom::Point(c.x + r*cos(a), c.y + r*sin(a));
+}
 
 }
 

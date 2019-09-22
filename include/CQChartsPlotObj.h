@@ -6,6 +6,9 @@
 #include <set>
 
 class CQChartsPlot;
+class CQChartsPenBrush;
+class CQChartsLength;
+class CQChartsPaintDevice;
 class CQPropertyViewModel;
 
 /*!
@@ -21,6 +24,11 @@ class CQChartsPlotObj : public CQChartsObj {
   Q_PROPERTY(bool    visible  READ isVisible WRITE setVisible)
 
  public:
+  enum class DetailHint {
+    MAJOR,
+    MINOR
+  };
+
   using ModelIndices = std::vector<QModelIndex>;
   using Indices      = std::set<QModelIndex>;
   using ColorInd     = CQChartsUtil::ColorInd;
@@ -46,6 +54,11 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //! get id from idColumn for index (if defined)
   bool calcColumnId(const QModelIndex &ind, QString &str) const;
+
+  //---
+
+  const DetailHint &detailHint() const { return detailHint_; }
+  void setDetailHint(const DetailHint &h) { detailHint_ = h; }
 
   //---
 
@@ -150,20 +163,26 @@ class CQChartsPlotObj : public CQChartsObj {
   //---
 
   // draw
-  virtual void drawBg(QPainter *) const { }
-  virtual void drawFg(QPainter *) const { }
+  virtual void drawBg(CQChartsPaintDevice *) const;
+  virtual void drawFg(CQChartsPaintDevice *) const;
 
-  virtual void draw(QPainter *) = 0;
+  virtual void draw(CQChartsPaintDevice *);
 
-  void drawDebugRect(QPainter *painter);
+  void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush,
+                          const CQChartsGeom::BBox &rect, const CQChartsLength &cornerSize) const;
+
+  void drawDebugRect(CQChartsPaintDevice *device);
+
+  //---
 
  protected:
-  CQChartsPlot* plot_     { nullptr }; //!< parent plot
-  bool          visible_  { true };    //!< is visible
-  ColorInd      is_;                   //!< set index
-  ColorInd      ig_;                   //!< group index
-  ColorInd      iv_;                   //!< value index
-  ModelIndices  modelInds_;            //!< associated model indices
+  CQChartsPlot* plot_       { nullptr };           //!< parent plot
+  DetailHint    detailHint_ { DetailHint::MINOR }; //!< interaction detail hint
+  bool          visible_    { true };              //!< is visible
+  ColorInd      is_;                               //!< set index
+  ColorInd      ig_;                               //!< group index
+  ColorInd      iv_;                               //!< value index
+  ModelIndices  modelInds_;                        //!< associated model indices
 };
 
 //------

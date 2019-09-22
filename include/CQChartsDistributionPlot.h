@@ -198,11 +198,11 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
-  void drawFg(QPainter *painter) const override;
+  void drawFg(CQChartsPaintDevice *device) const override;
 
-  void drawRug(QPainter *painter) const;
+  void drawRug(CQChartsPaintDevice *device) const;
 
   //---
 
@@ -215,7 +215,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
  private:
   bool getBarColoredRects(ColorData &colorData) const;
 
-  void drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color,
+  void drawRect(CQChartsPaintDevice *device, const QRectF &qrect, const CQChartsColor &color,
                 bool useLine) const;
 
   QColor barColor() const;
@@ -302,13 +302,13 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
-  void drawFg(QPainter *painter) const override;
+  void drawFg(CQChartsPaintDevice *device) const override;
 
-  void drawStatsLines(QPainter *painter) const;
+  void drawStatsLines(CQChartsPaintDevice *device) const;
 
-  void drawRug(QPainter *painter) const;
+  void drawRug(CQChartsPaintDevice *device) const;
 
   //---
 
@@ -356,7 +356,7 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
   //---
 
@@ -684,9 +684,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   bool hasForeground() const override;
 
-  void execDrawForeground(QPainter *) const override;
+  void execDrawForeground(CQChartsPaintDevice *) const override;
 
-  void drawStatsLines(QPainter *) const;
+  void drawStatsLines(CQChartsPaintDevice *) const;
 
   //---
 
@@ -888,8 +888,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   DotLineData        dotLineData_;                         //!< dot line data
   bool               rug_            { false };            //!< show rug
   bool               includeOutlier_ { true };             //!< include outlier values
-  CQChartsOptReal    underflowBucket_;                     //!< undeflow bucket threshhold
-  CQChartsOptReal    overflowBucket_;                      //!< overlow bucket threshhold
+  CQChartsOptReal    underflowBucket_;                     //!< underflow bucket threshold
+  CQChartsOptReal    overflowBucket_;                      //!< overflow bucket threshold
   double             minBarSize_     { 3.0 };              //!< min bar size (pixels)
   double             scatterMargin_  { 0.05 };             //!< scatter point margin
   CQBucketer         bucketer_;                            //!< shared bucketer

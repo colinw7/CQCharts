@@ -15,8 +15,8 @@
 class CQChartsPlot;
 class CQChartsKeyItem;
 class CQChartsEditHandles;
+class CQChartsPaintDevice;
 class CQPropertyViewModel;
-class QPainter;
 class QScrollBar;
 
 //------
@@ -144,7 +144,7 @@ class CQChartsKey : public CQChartsBoxObj,
 
   virtual void redraw(bool /*queued*/=true) = 0;
 
-  virtual void draw(QPainter *painter) const;
+  virtual void draw(CQChartsPaintDevice *device) const = 0;
 
   //---
 
@@ -223,11 +223,11 @@ class CQChartsViewKey : public CQChartsKey {
 
   //---
 
-  void draw(QPainter *painter) const override;
+  void draw(CQChartsPaintDevice *device) const override;
 
   void drawEditHandles(QPainter *painter) const;
 
-  void drawCheckBox(QPainter *painter, double x, double y, int bs, bool checked) const;
+  void drawCheckBox(CQChartsPaintDevice *device, double x, double y, int bs, bool checked) const;
 
   //---
 
@@ -407,7 +407,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  void draw(QPainter *painter) const override;
+  void draw(CQChartsPaintDevice *device) const override;
 
   void drawEditHandles(QPainter *painter) const;
 
@@ -548,7 +548,7 @@ class CQChartsKeyItem : public QObject {
 
   //---
 
-  virtual void draw(QPainter *painter, const CQChartsGeom::BBox &rect) const = 0;
+  virtual void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const = 0;
 
  protected:
   CQChartsPlotKey*           key_       { nullptr }; //!< parent key
@@ -587,7 +587,7 @@ class CQChartsKeyText : public CQChartsKeyItem {
 
   virtual QColor interpTextColor(const ColorInd &ind) const;
 
-  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) const override;
+  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const override;
 
  protected:
   CQChartsPlot* plot_ { nullptr };
@@ -621,7 +621,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   QSizeF size() const override;
 
-  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) const override;
+  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const override;
 
   virtual QBrush fillBrush() const;
 

@@ -10,6 +10,7 @@ class CQJsonModel : public CQBaseModel {
 
   Q_PROPERTY(bool hierarchical READ isHierarchical WRITE setHierarchical)
   Q_PROPERTY(bool flat         READ isFlat         WRITE setFlat        )
+  Q_PROPERTY(bool readOnly     READ isReadOnly     WRITE setReadOnly    )
 
  public:
   CQJsonModel();
@@ -26,6 +27,11 @@ class CQJsonModel : public CQBaseModel {
 
   bool isFlat() const { return flat_; }
   void setFlat(bool b) { flat_ = b; }
+
+  bool isReadOnly() const { return readOnly_; }
+  void setReadOnly(bool b) { readOnly_ = b; }
+
+  //---
 
   bool applyMatch(const QString &match);
 
@@ -76,6 +82,7 @@ class CQJsonModel : public CQBaseModel {
   CJson::Values jsonValues_;
   bool          hier_      { false };
   bool          flat_      { false };
+  bool          readOnly_  { false };
   QString       hierName_;
   QStringList   hierColumns_;
 };

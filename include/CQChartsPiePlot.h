@@ -160,11 +160,11 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   CQChartsGeom::BBox annotationBBox() const;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
-  void drawFg(QPainter *painter) const override;
+  void drawFg(CQChartsPaintDevice *device) const override;
 
-  void drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c) const;
+  void drawSegmentLabel(CQChartsPaintDevice *device, const CQChartsGeom::Point &c) const;
 
   CQChartsGeom::Point getCenter() const;
 
@@ -267,9 +267,9 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
-  void drawFg(QPainter *painter) const override;
+  void drawFg(CQChartsPaintDevice *device) const override;
 
   QColor bgColor() const;
 

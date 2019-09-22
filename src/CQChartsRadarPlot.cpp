@@ -6,13 +6,12 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
-
-#include <QPainter>
 
 CQChartsRadarPlotType::
 CQChartsRadarPlotType()
@@ -310,9 +309,9 @@ annotationBBox() const
           else if (y < 0)                align |= Qt::AlignTop;
 
           QRectF trect =
-            CQChartsDrawUtil::calcAlignedTextRect(font, p1.x, p1.y, name, align, 2, 2);
+            CQChartsDrawUtil::calcAlignedTextRect(font, p1.qpoint(), name, align, 2, 2);
 
-          bbox += pixelToWindow(CQChartsUtil::fromQRect(trect));
+          bbox += pixelToWindow(CQChartsGeom::BBox(trect));
         }
 
         //---
@@ -567,7 +566,7 @@ hasBackground() const
 
 void
 CQChartsRadarPlot::
-execDrawBackground(QPainter *painter) const
+execDrawBackground(CQChartsPaintDevice *device) const
 {
   int nv = valueColumns().count();
 
@@ -595,7 +594,7 @@ execDrawBackground(QPainter *painter) const
 
       setGridLineDataPen(gpen1, 0, 1);
 
-      painter->setPen(gpen1);
+      device->setPen(gpen1);
 
       //---
 
@@ -611,7 +610,8 @@ execDrawBackground(QPainter *painter) const
 
         CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(x, y));
 
-        painter->drawLine(QPointF(p1.x, p1.y), QPointF(p2.x, p2.y));
+        device->drawLine(device->pixelToWindow(p1.qpoint()),
+                         device->pixelToWindow(p2.qpoint()));
 
         a -= da;
       }
@@ -633,7 +633,7 @@ execDrawBackground(QPainter *painter) const
 
     //---
 
-    view()->setPlotPainterFont(this, painter, textFont());
+    view()->setPlotPainterFont(this, device, textFont());
 
     int    nl = 5;
     double dr = valueRadius_/nl;
@@ -651,14 +651,14 @@ execDrawBackground(QPainter *painter) const
         double x = r*cos(ra);
         double y = r*sin(ra);
 
-        CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(x, y));
+        CQChartsGeom::Point p1(x, y);
 
-        poly << QPointF(p1.x, p1.y);
+        poly << p1.qpoint();
 
         //---
 
         if (i == nl) {
-          painter->setPen(tpen);
+          device->setPen(tpen);
 
           //---
 
@@ -678,7 +678,7 @@ execDrawBackground(QPainter *painter) const
           else if (y > 0)                align |= Qt::AlignBottom;
           else if (y < 0)                align |= Qt::AlignTop;
 
-          CQChartsDrawUtil::drawAlignedText(painter, p1.x, p1.y, name, align, 2, 2);
+          CQChartsDrawUtil::drawAlignedText(device, p1.qpoint(), name, align, 2, 2);
         }
 
         //---
@@ -692,9 +692,9 @@ execDrawBackground(QPainter *painter) const
 
       // draw grid polygon
       if (isGridLines()) {
-        painter->setPen(gpen2);
+        device->setPen(gpen2);
 
-        painter->drawPolygon(poly);
+        device->drawPolygon(poly);
       }
     }
   }
@@ -766,6 +766,7 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
+  // point
   if      (poly_.size() == 1) {
     const QPointF &p1 = poly_[0]; // circle radius p1.x()
 
@@ -774,6 +775,7 @@ inside(const CQChartsGeom::Point &p) const
 
     return (r < r1);
   }
+  // line
   else if (poly_.size() == 2) {
     const QPointF &p1 = poly_[0]; // circle radius p1.x() and p2.y()
     const QPointF &p2 = poly_[1];
@@ -783,8 +785,10 @@ inside(const CQChartsGeom::Point &p) const
 
     return (r < r1);
   }
-  else if (poly_.size() >= 3)
-    return poly_.containsPoint(CQChartsUtil::toQPoint(p), Qt::OddEvenFill);
+  // polygon
+  else if (poly_.size() >= 3) {
+    return poly_.containsPoint(p.qpoint(), Qt::OddEvenFill);
+  }
   else
     return false;
 }
@@ -813,7 +817,7 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsRadarObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   if (! poly_.size())
     return;
@@ -828,14 +832,8 @@ draw(QPainter *painter)
   // create pixel polygon
   QPolygonF ppoly;
 
-  for (int i = 0; i < poly_.size(); ++i) {
-    double x = poly_[i].x();
-    double y = poly_[i].y();
-
-    CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(x, y));
-
-    ppoly << QPointF(p1.x, p1.y);
-  }
+  for (int i = 0; i < poly_.size(); ++i)
+    ppoly << plot_->windowToPixel(poly_[i]);
 
   ppoly << ppoly[0];
 
@@ -857,19 +855,22 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
-  // draw polygon
+  // draw point
   if      (poly_.size() == 1) {
     const QPointF &p1 = ppoly[0]; // circle radius p1.x()
 
     double r = p1.x() - po.x;
 
-    painter->drawEllipse(QRectF(po.x - r, po.y - r, 2*r, 2*r));
+    QRectF pr(po.x - r, po.y - r, 2*r, 2*r);
+
+    device->drawEllipse(device->pixelToWindow(pr));
   }
+  // draw line
   else if (poly_.size() == 2) {
     const QPointF &p1 = ppoly[0]; // circle radius p1.x() and p2.y()
     const QPointF &p2 = ppoly[1];
@@ -877,9 +878,12 @@ draw(QPainter *painter)
     double xr = p1.x() - po.x;
     double yr = p2.y() - po.y;
 
-    painter->drawEllipse(QRectF(po.x - xr, po.y - yr, 2*xr, 2*yr));
+    QRectF pr(po.x - xr, po.y - yr, 2*xr, 2*yr);
+
+    device->drawEllipse(device->pixelToWindow(pr));
   }
+  // draw polygon
   else if (poly_.size() >= 3) {
-    painter->drawPolygon(ppoly);
+    device->drawPolygon(poly_);
   }
 }

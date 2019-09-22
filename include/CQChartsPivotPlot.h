@@ -7,6 +7,7 @@
 #include <CQChartsGeom.h>
 
 class CQChartsDataLabel;
+class CQChartsPenBrush;
 
 //---
 
@@ -75,11 +76,15 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
-  void drawFg(QPainter *painter) const override;
+  void drawFg(CQChartsPaintDevice *device) const override;
 
   //---
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+ protected:
 
  protected:
   const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot
@@ -115,9 +120,7 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
-
-  //---
+  void draw(CQChartsPaintDevice *device) override;
 
  protected:
   const CQChartsPivotPlot* plot_     { nullptr }; //!< parent plot
@@ -153,9 +156,7 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
-
-  //---
+  void draw(CQChartsPaintDevice *device) override;
 
  protected:
   const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot
@@ -190,9 +191,7 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
-
-  //---
+  void draw(CQChartsPaintDevice *device) override;
 
  protected:
   const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot

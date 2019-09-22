@@ -13,6 +13,8 @@ class QStyleOptionComboBox;
 class CQChartsSidesEdit : public QFrame {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsSides sides READ sides WRITE setSides)
+
  public:
   CQChartsSidesEdit(QWidget *parent=nullptr);
  ~CQChartsSidesEdit();

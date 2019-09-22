@@ -4,12 +4,12 @@
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsTip.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
-#include <QPainter>
 #include <QMenu>
 
 //---
@@ -895,7 +895,7 @@ pushSlot()
 
     QPointF pos = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
 
-    CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(pos));
+    CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(pos));
 
     plotObjsAtPoint(w, objs);
   }
@@ -956,23 +956,24 @@ postResize()
 
 void
 CQChartsSunburstPlot::
-drawNodes(QPainter *painter, CQChartsSunburstHierNode *hier) const
+drawNodes(CQChartsPaintDevice *device, CQChartsSunburstHierNode *hier) const
 {
   for (auto &node : hier->getNodes())
-    drawNode(painter, nullptr, node);
+    drawNode(device, nullptr, node);
 
   //------
 
   for (auto &hierNode : hier->getChildren()) {
-    drawNode(painter, nullptr, hierNode);
+    drawNode(device, nullptr, hierNode);
 
-    drawNodes(painter, hierNode);
+    drawNodes(device, hierNode);
   }
 }
 
 void
 CQChartsSunburstPlot::
-drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNode *node) const
+drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
+         CQChartsSunburstNode *node) const
 {
   if (! node->placed())
     return;
@@ -996,10 +997,10 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
     r2 = r1 + node->dr();
   }
 
-  CQChartsGeom::Point p11 = windowToPixel(CQChartsGeom::Point(xc - r1, yc - r1));
-  CQChartsGeom::Point p21 = windowToPixel(CQChartsGeom::Point(xc + r1, yc + r1));
-  CQChartsGeom::Point p12 = windowToPixel(CQChartsGeom::Point(xc - r2, yc - r2));
-  CQChartsGeom::Point p22 = windowToPixel(CQChartsGeom::Point(xc + r2, yc + r2));
+  CQChartsGeom::Point p11 = CQChartsGeom::Point(xc - r1, yc - r1);
+  CQChartsGeom::Point p21 = CQChartsGeom::Point(xc + r1, yc + r1);
+  CQChartsGeom::Point p12 = CQChartsGeom::Point(xc - r2, yc - r2);
+  CQChartsGeom::Point p22 = CQChartsGeom::Point(xc + r2, yc + r2);
 
   QRectF qr1(p11.x, p21.y, p21.x - p11.x, p11.y - p21.y);
   QRectF qr2(p12.x, p22.y, p22.x - p12.x, p12.y - p22.y);
@@ -1066,10 +1067,10 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   //---
 
   // draw path
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
-  painter->drawPath(path);
+  device->drawPath(path);
 
   //---
 
@@ -1086,7 +1087,7 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   //---
 
   // set font
-  view()->setPlotPainterFont(this, painter, textFont());
+  view()->setPlotPainterFont(this, device, textFont());
 
   //---
 
@@ -1111,10 +1112,11 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
 
   //---
 
-  painter->save();
+  if (! isCircle) {
+    device->save();
 
-  if (! isCircle)
-    painter->setClipPath(path);
+    device->setClipPath(path);
+  }
 
   //---
 
@@ -1145,21 +1147,22 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
     ty = r3*s;
   }
 
-  painter->setPen(tpen);
+  device->setPen(tpen);
 
   Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-  CQChartsGeom::Point pt = windowToPixel(CQChartsGeom::Point(tx, ty));
+  CQChartsGeom::Point pt(tx, ty);
 
   QString name = (! node->isFiller() ? node->name() : node->parent()->name());
 
   double ta1 = (c >= 0 ? ta : ta - 180);
 
-  CQChartsRotatedText::draw(painter, pt.x, pt.y, name, ta1, align, /*contrast*/false);
+  CQChartsRotatedText::draw(device, pt.qpoint(), name, ta1, align, /*contrast*/false);
 
   //---
 
-  painter->restore();
+  if (! isCircle)
+    device->restore();
 }
 
 //------
@@ -1266,9 +1269,9 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsSunburstNodeObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
-  plot_->drawNode(painter, this, node_);
+  plot_->drawNode(device, this, node_);
 }
 
 //------

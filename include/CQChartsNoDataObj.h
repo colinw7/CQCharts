@@ -25,7 +25,7 @@ class CQChartsNoDataObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &) const override { }
 
-  void draw(QPainter *) override;
+  void draw(CQChartsPaintDevice *) override;
 
  private:
   CQChartsFont font_; //!< label font

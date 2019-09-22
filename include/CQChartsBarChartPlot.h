@@ -221,9 +221,9 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   //---
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
-  void drawFg(QPainter *painter) const override;
+  void drawFg(CQChartsPaintDevice *device) const override;
 
   QColor calcBarColor() const;
 

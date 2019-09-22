@@ -54,8 +54,8 @@ class CQChartsDisplayRange {
    void incY(T dy) { ymin += dy; ymax += dy; }
   };
 
-//typedef RangeT<int>    IRange;
-  typedef RangeT<double> RRange;
+//using IRange = RangeT<int>;
+  using RRange = RangeT<double>;
 
  public:
   CQChartsDisplayRange(double pixel_xmin  =   0, double pixel_ymin  =   0,

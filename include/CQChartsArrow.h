@@ -8,7 +8,7 @@
 class CQChartsView;
 class CQChartsPlot;
 class CQCharts;
-class QPainter;
+class CQChartsPaintDevice;
 
 /*!
  * \brief class for arrow object
@@ -84,9 +84,9 @@ class CQChartsArrow : public QObject,
 
   //---
 
-  void draw(QPainter *painter) const;
+  void draw(CQChartsPaintDevice *device) const;
 
-  void draw(QPainter *painter, const QPen &pen, const QBrush &brush) const;
+  void draw(CQChartsPaintDevice *device, const QPen &pen, const QBrush &brush) const;
 
   //---
 
@@ -107,13 +107,16 @@ class CQChartsArrow : public QObject,
   void dataChanged();
 
  private:
-  CQChartsView*     view_    { nullptr }; //!< parent view
-  CQChartsPlot*     plot_    { nullptr }; //!< parent plot
-  bool              visible_ { true };    //!< is visible
-  QPointF           from_    { 0, 0 };    //!< start point
-  QPointF           to_      { 1, 1 };    //!< end point
-  CQChartsArrowData data_;                //!< arrow data
-  mutable QPainter* painter_ { nullptr }; //!< painter
+  void drawContents(const QPen &pen, const QBrush &brush) const;
+
+ private:
+  CQChartsView*                view_    { nullptr }; //!< parent view
+  CQChartsPlot*                plot_    { nullptr }; //!< parent plot
+  bool                         visible_ { true };    //!< is visible
+  QPointF                      from_    { 0, 0 };    //!< start point
+  QPointF                      to_      { 1, 1 };    //!< end point
+  CQChartsArrowData            data_;                //!< arrow data
+  mutable CQChartsPaintDevice* device_;              //!< paint device
 };
 
 #endif

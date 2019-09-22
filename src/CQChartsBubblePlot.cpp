@@ -4,6 +4,7 @@
 #include <CQCharts.h>
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -686,14 +687,14 @@ hasForeground() const
 
 void
 CQChartsBubblePlot::
-execDrawForeground(QPainter *painter) const
+execDrawForeground(CQChartsPaintDevice *device) const
 {
-  drawBounds(painter, currentRoot());
+  drawBounds(device, currentRoot());
 }
 
 void
 CQChartsBubblePlot::
-drawBounds(QPainter *painter, CQChartsBubbleHierNode *hier) const
+drawBounds(CQChartsPaintDevice *device, CQChartsBubbleHierNode *hier) const
 {
   double xc = hier->x();
   double yc = hier->y();
@@ -701,8 +702,8 @@ drawBounds(QPainter *painter, CQChartsBubbleHierNode *hier) const
 
   //---
 
-  CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(xc - r, yc + r));
-  CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(xc + r, yc - r));
+  CQChartsGeom::Point p1(xc - r, yc - r);
+  CQChartsGeom::Point p2(xc + r, yc + r);
 
   QRectF qrect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
 
@@ -711,14 +712,14 @@ drawBounds(QPainter *painter, CQChartsBubbleHierNode *hier) const
   // draw bubble
   QColor bc = interpStrokeColor(ColorInd());
 
-  painter->setPen  (bc);
-  painter->setBrush(Qt::NoBrush);
+  device->setPen  (bc);
+  device->setBrush(Qt::NoBrush);
 
   QPainterPath path;
 
   path.addEllipse(qrect);
 
-  painter->drawPath(path);
+  device->drawPath(path);
 }
 
 //------
@@ -769,7 +770,7 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsBubbleHierObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   CQChartsBubbleHierNode *root = hier_->parent();
 
@@ -780,12 +781,10 @@ draw(QPainter *painter)
 
   double r = hier_->radius();
 
-  CQChartsGeom::Point p1 =
-    plot_->windowToPixel(CQChartsGeom::Point(hier_->x() - r, hier_->y() + r));
-  CQChartsGeom::Point p2 =
-    plot_->windowToPixel(CQChartsGeom::Point(hier_->x() + r, hier_->y() - r));
+  CQChartsGeom::Point p1(hier_->x() - r, hier_->y() - r);
+  CQChartsGeom::Point p2(hier_->x() + r, hier_->y() + r);
 
-  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y));
+  QRectF qrect = CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y).qrect();
 
   //---
 
@@ -804,8 +803,8 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
@@ -814,7 +813,7 @@ draw(QPainter *painter)
 
   path.addEllipse(qrect);
 
-  painter->drawPath(path);
+  device->drawPath(path);
 }
 
 //------
@@ -895,16 +894,30 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsBubbleNodeObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   double r = node_->radius();
 
-  CQChartsGeom::Point p1 =
-    plot_->windowToPixel(CQChartsGeom::Point(node_->x() - r, node_->y() + r));
-  CQChartsGeom::Point p2 =
-    plot_->windowToPixel(CQChartsGeom::Point(node_->x() + r, node_->y() - r));
+  CQChartsGeom::Point p1(node_->x() - r, node_->y() - r);
+  CQChartsGeom::Point p2(node_->x() + r, node_->y() + r);
 
-  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y));
+  QRectF qrect = CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y).qrect();
+
+  //---
+
+  // check if small enough to draw as point
+  QPointF pp1 = device->windowToPixel(p1.qpoint());
+  QPointF pp2 = device->windowToPixel(p2.qpoint());
+
+  double pw = std::abs(pp2.x() - pp1.x()) - 2;
+  double ph = std::abs(pp2.y() - pp1.y()) - 2;
+
+  QPointF qpoint;
+
+  bool isPoint = (pw <= 1.5 || ph <= 1.5);
+
+  if (isPoint)
+    qpoint = QPointF((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
 
   //---
 
@@ -917,41 +930,51 @@ draw(QPainter *painter)
   QColor bc = plot_->interpStrokeColor(colorInd);
   QColor fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
-  plot_->setPenBrush(pen, brush,
-    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
-    plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
+  if (isPoint) {
+    if      (plot_->isFilled())
+      plot_->setPenBrush(pen, brush,
+        true, fc, plot_->fillAlpha(), 0.0, CQChartsLineDash(),
+        true, fc, plot_->fillAlpha(), plot_->fillPattern());
+    else if (plot_->isStroked())
+      plot_->setPenBrush(pen, brush,
+        true, bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
+        true, bc, plot_->strokeAlpha(), CQChartsFillPattern());
+  }
+  else {
+    plot_->setPenBrush(pen, brush,
+      plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
+      plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
+  }
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
   //---
 
-  // set text pen
-  QPen tpen;
-
-  QColor tc = plot_->interpTextColor(colorInd);
-
-  plot_->setPen(tpen, true, tc, plot_->textAlpha());
-
-  plot_->updateObjPenBrushState(this, tpen, brush);
-
-  //---
-
-  painter->save();
-
-  //---
-
   // draw bubble
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
-  QPainterPath path;
+  if (isPoint)
+    device->drawPoint(qpoint);
+  else {
+    QPainterPath path;
 
-  path.addEllipse(qrect);
+    path.addEllipse(qrect);
 
-  painter->drawPath(path);
+    device->drawPath(path);
+  }
 
   //---
 
+  if (isPoint)
+    return;
+
+  if (! plot_->isTextVisible())
+    return;
+
+  //---
+
+  // get labels (name and optional size)
   QStringList strs;
 
   QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
@@ -964,12 +987,27 @@ draw(QPainter *painter)
 
   //---
 
+  // calc text pen
+  QPen tpen;
+
+  QColor tc = plot_->interpTextColor(colorInd);
+
+  plot_->setPen(tpen, true, tc, plot_->textAlpha());
+
+  plot_->updateObjPenBrushState(this, tpen, brush);
+
+  //---
+
+  device->save();
+
+  //---
+
   // set font
-  plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
+  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
 
   if (plot_->isTextScaled()) {
     // calc text size
-    QFontMetricsF fm(painter->font());
+    QFontMetricsF fm(device->font());
 
     double tw = 0;
 
@@ -981,57 +1019,61 @@ draw(QPainter *painter)
     //---
 
     // calc scale factor
-    double sx = (tw > 0 ? qrect.width ()/tw : 1.0);
-    double sy = (th > 0 ? qrect.height()/th : 1.0);
+    QRectF prect = device->windowToPixel(qrect);
+
+    double sx = (tw > 0 ? prect.width ()/tw : 1.0);
+    double sy = (th > 0 ? prect.height()/th : 1.0);
 
     double s = std::min(sx, sy);
 
     //---
 
     // scale font
-    double fs = painter->font().pointSizeF()*s;
+    double fs = device->font().pointSizeF()*s;
 
-    QFont font1 = painter->font();
+    QFont font1 = device->font();
 
     font1.setPointSizeF(fs);
 
-    painter->setFont(font1);
+    device->setFont(font1);
   }
 
   //---
 
-  // calc text size and position
+  // calc text position
   CQChartsGeom::Point pc = plot_->windowToPixel(CQChartsGeom::Point(node_->x(), node_->y()));
 
   //---
 
   // draw label
-  painter->setClipRect(qrect);
+  device->setClipRect(qrect);
 
   CQChartsTextOptions textOptions;
 
   textOptions.contrast  = plot_->isTextContrast ();
   textOptions.formatted = plot_->isTextFormatted();
+  textOptions.html      = plot_->isTextHtml();
+//textOptions.align     = plot_->textAlign();
 
   textOptions = plot_->adjustTextOptions(textOptions);
 
-  painter->setPen(tpen);
+  device->setPen(tpen);
+
+  QPointF tp = pc.qpoint();
 
   if      (strs.size() == 1) {
-    QPointF tp(pc.x, pc.y);
-
-    CQChartsDrawUtil::drawTextAtPoint(painter, tp, name, textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), name, textOptions);
   }
   else if (strs.size() == 2) {
-    QFontMetricsF fm(painter->font());
+    QFontMetricsF fm(device->font());
 
     double th = fm.height();
 
-    QPointF tp1(pc.x, pc.y - th/2);
-    QPointF tp2(pc.x, pc.y + th/2);
+    QPointF tp1 = device->pixelToWindow(QPointF(tp.x(), tp.y() - th/2));
+    QPointF tp2 = device->pixelToWindow(QPointF(tp.x(), tp.y() + th/2));
 
-    CQChartsDrawUtil::drawTextAtPoint(painter, tp1, strs[0], textOptions);
-    CQChartsDrawUtil::drawTextAtPoint(painter, tp2, strs[1], textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(device, tp1, strs[0], textOptions);
+    CQChartsDrawUtil::drawTextAtPoint(device, tp2, strs[1], textOptions);
   }
   else {
     assert(false);
@@ -1039,7 +1081,7 @@ draw(QPainter *painter)
 
   //---
 
-  painter->restore();
+  device->restore();
 }
 
 //------

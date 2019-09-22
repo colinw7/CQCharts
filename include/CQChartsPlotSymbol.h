@@ -2,12 +2,14 @@
 #define CQChartsPlotSymbol_H
 
 #include <CQChartsSymbol.h>
+#include <CQChartsLength.h>
 #include <QString>
 #include <QBrush>
 #include <QPen>
 #include <vector>
 
 class CQChartsPlotSymbolRenderer;
+class CQChartsPaintDevice;
 
 //---
 
@@ -73,7 +75,6 @@ namespace CQChartsPlotSymbolMgr {
 #include <QPainterPath>
 
 class CQChartsPlot;
-class QPainter;
 
 /*!
  * \brief plot symbol renderer
@@ -81,7 +82,8 @@ class QPainter;
  */
 class CQChartsPlotSymbolRenderer {
  public:
-  CQChartsPlotSymbolRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s);
+  CQChartsPlotSymbolRenderer(CQChartsPaintDevice *painter, const CQChartsGeom::Point &p,
+                             const CQChartsLength &size);
 
   void drawSymbol  (CQChartsSymbol type);
   void strokeSymbol(CQChartsSymbol type);
@@ -108,20 +110,23 @@ class CQChartsPlotSymbolRenderer {
   void strokeCircle(double x, double y, double r) const;
   void fillCircle  (double x, double y, double r) const;
 
+  void mapXY(double x, double y, double &x1, double &y1) const;
+
   double lineWidth() const;
 
   void save   () const;
   void restore() const;
 
  private:
-  QPainter*           painter_ { nullptr };  //!< painter
-  CQChartsGeom::Point p_       { 0.0, 0.0 }; //!< symbol center
-  double              s_       { 2.0 };      //!< size
-  double              w_       { 0.0 };      //!< line width
-  QPainterPath        path_;                 //!< path
-  QPen                strokePen_;            //!< stroke pen
-  QBrush              fillBrush_;            //!< fill brush
-  mutable bool        saved_   { false };    //!< saved
+  CQChartsPaintDevice* device_  { nullptr };  //!< device
+  CQChartsGeom::Point  p_       { 0.0, 0.0 }; //!< symbol center
+  double               s_       { 2.0 };      //!< size as pixel
+  CQChartsLength       size_;                 //!< size as length
+  double               w_       { 0.0 };      //!< line width
+  QPainterPath         path_;                 //!< path
+  QPen                 strokePen_;            //!< stroke pen
+  QBrush               fillBrush_;            //!< fill brush
+  mutable bool         saved_   { false };    //!< saved
 };
 
 #endif

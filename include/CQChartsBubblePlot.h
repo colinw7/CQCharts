@@ -243,7 +243,7 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  protected:
   const CQChartsBubblePlot* plot_    { nullptr }; //!< parent plot
@@ -274,7 +274,7 @@ class CQChartsBubbleHierObj : public CQChartsBubbleNodeObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  protected:
   CQChartsBubbleHierNode* hier_ { nullptr }; //!< associated hier node
@@ -412,7 +412,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   bool hasForeground() const override;
 
-  void execDrawForeground(QPainter *painter) const override;
+  void execDrawForeground(CQChartsPaintDevice *device) const override;
 
  private:
   void initNodeObjs(CQChartsBubbleHierNode *hier, CQChartsBubbleHierObj *parentObj,
@@ -448,7 +448,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   void transformNodes(CQChartsBubbleHierNode *hier) const;
 
-  void drawBounds(QPainter *painter, CQChartsBubbleHierNode *hier) const;
+  void drawBounds(CQChartsPaintDevice *device, CQChartsBubbleHierNode *hier) const;
 
  private:
   using HierNode = CQChartsBubbleHierNode;

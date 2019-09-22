@@ -10,6 +10,7 @@
 
 class CQChartsView;
 class CQChartsPlot;
+class CQChartsPaintDevice;
 
 /*!
  * \brief Object which could be on a view or a plot
@@ -51,7 +52,7 @@ class CQChartsViewPlotObj : public CQChartsObj {
   // text utilities
   QFont calcFont(const CQChartsFont &font) const;
 
-  void setPainterFont(QPainter *painter, const CQChartsFont &font) const;
+  void setPainterFont(CQChartsPaintDevice *painter, const CQChartsFont &font) const;
 
   void adjustTextOptions(CQChartsTextOptions &textOptions) const;
 

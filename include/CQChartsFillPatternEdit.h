@@ -11,6 +11,8 @@
 class CQChartsFillPatternEdit : public CQChartsEnumEdit {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsFillPattern fillPattern READ fillPattern WRITE setFillPattern)
+
  public:
   CQChartsFillPatternEdit(QWidget *parent=nullptr);
 

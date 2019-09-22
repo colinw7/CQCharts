@@ -11,6 +11,8 @@
 class CQChartsTitleLocationEdit : public CQChartsEnumEdit {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsTitleLocation titleLocation READ titleLocation WRITE setTitleLocation)
+
  public:
   CQChartsTitleLocationEdit(QWidget *parent=nullptr);
 

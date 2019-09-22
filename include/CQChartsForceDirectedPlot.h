@@ -150,6 +150,8 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
 
   void drawParts(QPainter *painter) const override;
 
+  void drawParts(CQChartsPaintDevice *device) const;
+
  private:
   using Connections = CQChartsConnectionList::Connections;
 
@@ -203,7 +205,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
   bool              edgeLinesValueWidth_   { true };             //!< use value for edge width
   int               initSteps_             { 100 };              //!< initial steps
   double            stepSize_              { 0.01 };             //!< step size
-  double            nodeRadius_            { 6.0 };              //!< node radius
+  double            nodeRadius_            { 6.0 };              //!< node radius (pixel)
 };
 
 #endif

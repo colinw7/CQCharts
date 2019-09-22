@@ -5,7 +5,9 @@
 #include <CQChartsTip.h>
 #include <CQCharts.h>
 #include <CQChartsDisplayRange.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -13,7 +15,6 @@
 #include <CMathRound.h>
 
 #include <QApplication>
-#include <QPainter>
 #include <QMenu>
 
 CQChartsParallelPlotType::
@@ -121,7 +122,7 @@ CQChartsParallelPlot::
 setHorizontal(bool b)
 {
   CQChartsUtil::testAndSet(horizontal_, b, [&]() {
-    CQChartsAxis::swap(xAxis(), yAxis());
+    //CQChartsAxis::swap(xAxis(), yAxis());
 
     updateRangeAndObjs();
   } );
@@ -195,7 +196,7 @@ calcRange() const
       int ns = yColumns().count();
 
       for (int j = 0; j < ns; ++j) {
-        CQChartsAxis *axis = new CQChartsAxis(nullptr, adir_, 0, 1);
+        CQChartsAxis *axis = new CQChartsAxis(this, adir_, 0, 1);
 
         axis->moveToThread(th->thread());
 
@@ -673,7 +674,7 @@ hasFgAxes() const
 
 void
 CQChartsParallelPlot::
-drawFgAxes(QPainter *painter) const
+drawFgAxes(CQChartsPaintDevice *device) const
 {
   CQChartsParallelPlot *th = const_cast<CQChartsParallelPlot *>(this);
 
@@ -693,9 +694,9 @@ drawFgAxes(QPainter *painter) const
   for (int j = 0; j < ns; ++j) {
     CQChartsAxis *axis = axes_[j];
 
-    view()->setPlotPainterFont(this, painter, axis->axesLabelTextFont());
+    view()->setPlotPainterFont(this, device, axis->axesLabelTextFont());
 
-    QFontMetricsF fm(painter->font());
+    QFontMetricsF fm(device->font());
 
     //---
 
@@ -717,7 +718,7 @@ drawFgAxes(QPainter *painter) const
     // draw set axis
     axis->setPosition(CQChartsOptReal(j));
 
-    axis->draw(this, painter);
+    axis->draw(this, device);
 
     //---
 
@@ -745,7 +746,7 @@ drawFgAxes(QPainter *painter) const
 
     setPen(tpen, true, tc, axis->axesTickLabelTextAlpha());
 
-    painter->setPen(tpen);
+    device->setPen(tpen);
 
     QPointF tp;
 
@@ -754,7 +755,7 @@ drawFgAxes(QPainter *painter) const
     else
       tp = QPointF(p.x + tm, p.y - (ta - td)/2);
 
-    CQChartsDrawUtil::drawSimpleText(painter, tp, label);
+    CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(tp), label);
 
     //---
 
@@ -938,7 +939,7 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsParallelLineObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   if (! visible())
     return;
@@ -957,7 +958,7 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setPen(pen);
+  device->setPen(pen);
 
   //---
 
@@ -967,7 +968,7 @@ draw(QPainter *painter)
   getPolyLine(poly);
 
   for (int i = 1; i < poly.count(); ++i)
-    painter->drawLine(plot_->windowToPixel(poly[i - 1]), plot_->windowToPixel(poly[i]));
+    device->drawLine(poly[i - 1], poly[i]);
 }
 
 void
@@ -1086,7 +1087,7 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsParallelPointObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   if (! visible())
     return;
@@ -1126,10 +1127,10 @@ draw(QPainter *painter)
   //---
 
   // draw symbol
-  QPointF p = plot_->windowToPixel(QPointF(x_, y_));
+  QPointF p(x_, y_);
 
   const_cast<CQChartsParallelPlot *>(plot_)->
-    drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy), pen, brush);
+    drawSymbol(device, p, symbol, CMathUtil::avg(sx, sy), pen, brush);
 
   //---
 

@@ -14,6 +14,8 @@ class QComboBox;
 class CQChartsKeyLocationEdit : public CQChartsEnumEdit {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsKeyLocation keyLocation READ keyLocation WRITE setKeyLocation)
+
  public:
   CQChartsKeyLocationEdit(QWidget *parent=nullptr);
 

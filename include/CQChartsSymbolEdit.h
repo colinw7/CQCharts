@@ -14,6 +14,8 @@ class QComboBox;
 class CQChartsSymbolEdit : public QFrame {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsSymbol symbol READ symbol WRITE setSymbol)
+
  public:
   CQChartsSymbolEdit(QWidget *parent=nullptr);
 

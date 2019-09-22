@@ -15,7 +15,6 @@
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
-#include <QPainter>
 #include <QMenu>
 
 CQChartsXYPlotType::
@@ -1792,7 +1791,7 @@ CQChartsXYPlot::
 addPolyLine(const QPolygonF &polyLine, int groupInd, const ColorInd &is, const ColorInd &ig,
             const QString &name, PlotObjs &pointObjs, PlotObjs &objs) const
 {
-  CQChartsGeom::BBox bbox = CQChartsUtil::fromQRect(polyLine.boundingRect());
+  CQChartsGeom::BBox bbox = CQChartsGeom::BBox(polyLine.boundingRect());
 
   CQChartsXYPolylineObj *lineObj =
     new CQChartsXYPolylineObj(this, groupInd, bbox, polyLine, name, is, ig);
@@ -1814,7 +1813,7 @@ CQChartsXYPlot::
 addPolygon(const QPolygonF &poly, int groupInd, const ColorInd &is, const ColorInd &ig,
            const QString &name, PlotObjs &objs) const
 {
-  CQChartsGeom::BBox bbox = CQChartsUtil::fromQRect(poly.boundingRect());
+  CQChartsGeom::BBox bbox = CQChartsGeom::BBox(poly.boundingRect());
 
   CQChartsXYPolygonObj *polyObj =
     new CQChartsXYPolygonObj(this, groupInd, bbox, poly, name, is, ig);
@@ -2101,7 +2100,7 @@ addMenuItems(QMenu *menu)
 
 void
 CQChartsXYPlot::
-drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2) const
+drawArrow(CQChartsPaintDevice *device, const QPointF &p1, const QPointF &p2) const
 {
   disconnect(arrowObj_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
@@ -2110,7 +2109,7 @@ drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2) const
 
   connect(arrowObj_, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
 
-  arrowObj_->draw(painter);
+  arrowObj_->draw(device);
 }
 
 //---
@@ -2220,9 +2219,11 @@ getSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, modelInd().column());
 }
 
+//---
+
 void
 CQChartsXYBiLineObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   if (! visible())
     return;
@@ -2244,13 +2245,14 @@ draw(QPainter *painter)
 
     plot()->updateObjPenBrushState(this, pen, brush);
 
-    painter->setPen  (pen);
-    painter->setBrush(brush);
+    device->setPen  (pen);
+    device->setBrush(brush);
 
     //--
 
     // draw line
-    painter->drawLine(QPointF(p1.x, p1.y), QPointF(p2.x, p2.y));
+    device->drawLine(device->pixelToWindow(p1.qpoint()),
+                     device->pixelToWindow(p2.qpoint()));
   }
 
   if (plot()->isPoints()) {
@@ -2271,14 +2273,14 @@ draw(QPainter *painter)
 
     plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
-    painter->setPen  (pen);
-    painter->setBrush(brush);
+    device->setPen  (pen);
+    device->setBrush(brush);
 
     //---
 
     // draw symbols
-    plot()->drawSymbol(painter, QPointF(p1.x, p1.y), symbol, CMathUtil::avg(sx, sy), pen, brush);
-    plot()->drawSymbol(painter, QPointF(p2.x, p2.y), symbol, CMathUtil::avg(sx, sy), pen, brush);
+    plot()->drawSymbol(device, p1.qpoint(), symbol, CMathUtil::avg(sx, sy), pen, brush);
+    plot()->drawSymbol(device, p2.qpoint(), symbol, CMathUtil::avg(sx, sy), pen, brush);
   }
 }
 
@@ -2375,9 +2377,11 @@ getSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, modelInd().column());
 }
 
+//---
+
 void
 CQChartsXYImpulseLineObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   if (! visible())
     return;
@@ -2410,8 +2414,8 @@ draw(QPainter *painter)
 
   plot()->updateObjPenBrushState(this, pen, brush);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
@@ -2420,12 +2424,13 @@ draw(QPainter *painter)
   CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(x(), y2()));
 
   if (lw <= 1) {
-    painter->drawLine(QPointF(p1.x, p1.y), QPointF(p2.x, p2.y));
+    device->drawLine(device->pixelToWindow(p1.qpoint()),
+                     device->pixelToWindow(p2.qpoint()));
   }
   else {
     QRectF qrect(p1.x - lw/2, p1.y, lw, p2.y - p1.y);
 
-    CQChartsDrawUtil::drawRoundedPolygon(painter, qrect);
+    CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(qrect));
   }
 }
 
@@ -2718,7 +2723,7 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsXYPointObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   bool isVector = this->isVector();
 
@@ -2760,32 +2765,33 @@ draw(QPainter *painter)
 
   plot()->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
   if (visible()) {
-    // get point
-    QPointF ps = plot()->windowToPixel(pos_);
-
     // override symbol type for custom symbol
     CQChartsSymbol symbolType = this->symbolType();
     CQChartsLength symbolSize = this->symbolSize();
 
-    double sx, sy;
-
-    plot()->pixelSymbolSize(symbolSize, sx, sy);
-
     // draw symbol or image
     QImage image = this->image();
 
-    if (image.isNull())
-      plot()->drawSymbol(painter, ps, symbolType, CMathUtil::avg(sx, sy), pen, brush);
+    if (image.isNull()) {
+      plot()->drawSymbol(device, pos_, symbolType, symbolSize, pen, brush);
+    }
     else {
+      // get point
+      QPointF ps = plot()->windowToPixel(pos_);
+
+      double sx, sy;
+
+      plot()->pixelSymbolSize(symbolSize, sx, sy);
+
       QRectF irect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
 
-      painter->drawImage(irect, image.scaled(sx, sy, Qt::IgnoreAspectRatio));
+      device->drawImageInRect(plot()->pixelToWindow(irect), image);
     }
   }
 
@@ -2797,7 +2803,7 @@ draw(QPainter *painter)
     QPointF p1 = pos_;
     QPointF p2 = p1 + this->vector();
 
-    plot()->drawArrow(painter, p1, p2);
+    plot()->drawArrow(device, p1, p2);
   }
 }
 
@@ -2866,7 +2872,7 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
-  CQChartsGeom::Point ppos = plot()->windowToPixel(CQChartsUtil::fromQPoint(pos_));
+  CQChartsGeom::Point ppos = plot()->windowToPixel(CQChartsGeom::Point(pos_));
 
   // TODO: better text bounding box
   double sx = 16;
@@ -2890,9 +2896,11 @@ getSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, plot()->yColumns().getColumn(is_.i));
 }
 
+//---
+
 void
 CQChartsXYLabelObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   if (! visible())
     return;
@@ -2908,7 +2916,7 @@ draw(QPainter *painter)
 
   plot()->setPen(tpen, true, tc, dataLabel->textAlpha());
 
-  painter->setPen(tpen);
+  device->setPen(tpen);
 
   //---
 
@@ -2944,7 +2952,7 @@ draw(QPainter *painter)
 
   QRectF erect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
 
-  dataLabel->draw(painter, erect, label_, dataLabel->position(), tpen);
+  dataLabel->draw(device, erect, label_, dataLabel->position(), tpen);
 
   //---
 
@@ -2954,7 +2962,7 @@ draw(QPainter *painter)
   }
 
   // draw text
-  plot()->view()->setPlotPainterFont(plot(), painter, font);
+  plot()->view()->setPlotPainterFont(plot(), device, font);
 }
 
 //------
@@ -3168,9 +3176,11 @@ initStats()
   }
 }
 
+//---
+
 void
 CQChartsXYPolylineObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   if (! visible() && ! plot()->isBestFit() && ! plot()->isStatsLines())
     return;
@@ -3195,8 +3205,8 @@ draw(QPainter *painter)
 
     plot()->updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
 
-    painter->setPen  (pen);
-    painter->setBrush(brush);
+    device->setPen  (pen);
+    device->setBrush(brush);
 
     //---
 
@@ -3211,10 +3221,9 @@ draw(QPainter *painter)
 
         const CQChartsGeom::Point &p = smooth_->point(i);
 
-        CQChartsGeom::Point p1 = plot()->windowToPixel(p);
-
-        if (i == 0)
-          path.moveTo(p1.x, p1.y);
+        if (i == 0) {
+          path.moveTo(p.x, p.y);
+        }
         else {
           CQChartsSmooth::SegmentType type = smooth_->segmentType(i - 1);
 
@@ -3222,25 +3231,20 @@ draw(QPainter *painter)
             CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
             CQChartsGeom::Point c2 = smooth_->controlPoint2(i - 1);
 
-            CQChartsGeom::Point pc1 = plot()->windowToPixel(c1);
-            CQChartsGeom::Point pc2 = plot()->windowToPixel(c2);
-
-            path.cubicTo(pc1.x, pc1.y, pc2.x, pc2.y, p1.x, p1.y);
+            path.cubicTo(c1.x, c1.y, c2.x, c2.y, p.x, p.y);
           }
           else if (type == CQChartsSmooth::SegmentType::CURVE2) {
             CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
 
-            CQChartsGeom::Point pc1 = plot()->windowToPixel(c1);
-
-            path.quadTo(pc1.x, pc1.y, p1.x, p1.y);
+            path.quadTo(c1.x, c1.y, p.x, p.y);
           }
           else if (type == CQChartsSmooth::SegmentType::LINE) {
-            path.lineTo(p1.x, p1.y);
+            path.lineTo(p.x, p.y);
           }
         }
       }
 
-      painter->drawPath(path);
+      device->drawPath(path);
     }
     else {
       int np = poly_.count();
@@ -3249,7 +3253,7 @@ draw(QPainter *painter)
         if (plot()->isInterrupt())
           return;
 
-        painter->drawLine(plot()->windowToPixel(poly_[i - 1]), plot()->windowToPixel(poly_[i]));
+        device->drawLine(poly_[i - 1], poly_[i]);
       }
     }
   }
@@ -3257,7 +3261,7 @@ draw(QPainter *painter)
   //---
 
   if (plot()->isBestFit()) {
-    initBestFit();
+    const_cast<CQChartsXYPolylineObj *>(this)->initBestFit();
 
     //---
 
@@ -3309,8 +3313,8 @@ draw(QPainter *painter)
 
       plot()->updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
 
-      painter->setPen  (pen);
-      painter->setBrush(brush);
+      device->setPen  (pen);
+      device->setBrush(brush);
 
       //---
 
@@ -3336,7 +3340,7 @@ draw(QPainter *painter)
           dpoly << p;
         }
 
-        painter->drawPolygon(dpoly);
+        device->drawPolygon(dpoly);
       }
 
       //---
@@ -3357,14 +3361,14 @@ draw(QPainter *painter)
         path.lineTo(p);
       }
 
-      painter->strokePath(path, pen);
+      device->strokePath(path, pen);
     }
   }
 
   //---
 
   if (plot()->isStatsLines()) {
-    initStats();
+    const_cast<CQChartsXYPolylineObj *>(this)->initStats();
 
     //---
 
@@ -3381,18 +3385,18 @@ draw(QPainter *painter)
 
     plot()->updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
 
-    painter->setPen  (pen);
-    painter->setBrush(brush);
+    device->setPen  (pen);
+    device->setBrush(brush);
 
     //---
 
     const CQChartsGeom::Range &dataRange = plot()->dataRange();
 
     auto drawStatLine = [&](double y) {
-      QPointF p1 = plot()->windowToPixel(QPointF(dataRange.xmin(), y));
-      QPointF p2 = plot()->windowToPixel(QPointF(dataRange.xmax(), y));
+      QPointF p1 = QPointF(dataRange.xmin(), y);
+      QPointF p2 = QPointF(dataRange.xmax(), y);
 
-      painter->drawLine(p1, p2);
+      device->drawLine(p1, p2);
     };
 
     drawStatLine(statData_.loutlier   );
@@ -3465,7 +3469,7 @@ inside(const CQChartsGeom::Point &p) const
   if (! plot()->isFillUnderSelectable())
     return false;
 
-  return poly_.containsPoint(CQChartsUtil::toQPoint(p), Qt::OddEvenFill);
+  return poly_.containsPoint(p.qpoint(), Qt::OddEvenFill);
 }
 
 bool
@@ -3511,9 +3515,11 @@ initSmooth() const
   }
 }
 
+//---
+
 void
 CQChartsXYPolygonObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   if (! visible())
     return;
@@ -3537,8 +3543,8 @@ draw(QPainter *painter)
 
   plot()->updateObjPenBrushState(this, pen, brush);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
@@ -3551,8 +3557,7 @@ draw(QPainter *painter)
     QPainterPath path;
 
     if (np > 0) {
-      CQChartsGeom::Point p =
-        plot()->windowToPixel(CQChartsGeom::Point(poly_[0].x(), poly_[0].y()));
+      CQChartsGeom::Point p = CQChartsGeom::Point(poly_[0].x(), poly_[0].y());
 
       path.moveTo(p.x, p.y);
     }
@@ -3560,10 +3565,9 @@ draw(QPainter *painter)
     for (int i = 0; i < smooth_->numPoints(); ++i) {
       const CQChartsGeom::Point &p = smooth_->point(i);
 
-      CQChartsGeom::Point p1 = plot()->windowToPixel(p);
-
-      if (i == 0)
-        path.lineTo(p1.x, p1.y);
+      if (i == 0) {
+        path.lineTo(p.x, p.y);
+      }
       else {
         CQChartsSmooth::SegmentType type = smooth_->segmentType(i - 1);
 
@@ -3571,27 +3575,21 @@ draw(QPainter *painter)
           CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
           CQChartsGeom::Point c2 = smooth_->controlPoint2(i - 1);
 
-          CQChartsGeom::Point pc1 = plot()->windowToPixel(c1);
-          CQChartsGeom::Point pc2 = plot()->windowToPixel(c2);
-
-          path.cubicTo(pc1.x, pc1.y, pc2.x, pc2.y, p1.x, p1.y);
+          path.cubicTo(c1.x, c1.y, c2.x, c2.y, p.x, p.y);
         }
         else if (type == CQChartsSmooth::SegmentType::CURVE2) {
           CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
 
-          CQChartsGeom::Point pc1 = plot()->windowToPixel(c1);
-
-          path.quadTo(pc1.x, pc1.y, p1.x, p1.y);
+          path.quadTo(c1.x, c1.y, p.x, p.y);
         }
         else if (type == CQChartsSmooth::SegmentType::LINE) {
-          path.lineTo(p1.x, p1.y);
+          path.lineTo(p.x, p.y);
         }
       }
     }
 
     if (np > 0) {
-      CQChartsGeom::Point p =
-        plot()->windowToPixel(CQChartsGeom::Point(poly_[np - 1].x(), poly_[np - 1].y()));
+      CQChartsGeom::Point p = CQChartsGeom::Point(poly_[np - 1].x(), poly_[np - 1].y());
 
       path.lineTo(p.x, p.y);
     }
@@ -3601,20 +3599,19 @@ draw(QPainter *painter)
     //---
 
     // draw polygon
-    painter->drawPath(path);
+    device->drawPath(path);
   }
   else {
     // draw polygon
     QPolygonF poly;
 
     for (int i = 0; i < np; ++i) {
-      CQChartsGeom::Point p =
-        plot()->windowToPixel(CQChartsGeom::Point(poly_[i].x(), poly_[i].y()));
+      CQChartsGeom::Point p = CQChartsGeom::Point(poly_[i].x(), poly_[i].y());
 
-      poly << QPointF(p.x, p.y);
+      poly << p.qpoint();
     }
 
-    painter->drawPolygon(poly);
+    device->drawPolygon(poly);
   }
 }
 
@@ -3759,11 +3756,13 @@ doSelect(CQChartsSelMod selMod)
   key_->redraw(/*wait*/ true);
 }
 
+//---
+
 void
 CQChartsXYKeyLine::
-draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
+draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 {
-  painter->save();
+  device->save();
 
   CQChartsPlot *keyPlot = qobject_cast<CQChartsPlot *>(key_->plot());
 
@@ -3775,7 +3774,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
   QRectF prect1(QPointF(prect.getXMin() + 2, prect.getYMin() + 2),
                 QPointF(prect.getXMax() - 2, prect.getYMax() - 2));
 
-  painter->setClipRect(prect1, Qt::IntersectClip);
+  device->setClipRect(prect1, Qt::IntersectClip);
 
   QColor hideBg;
   double hideAlpha { 1.0 };
@@ -3801,7 +3800,9 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
     if (isInside())
       fillBrush.setColor(plot()->insideColor(fillBrush.color()));
 
-    painter->fillRect(CQChartsUtil::toQRect(CQChartsGeom::BBox(x1, y1, x2, y2)), fillBrush);
+    QRectF prect1 = CQChartsGeom::BBox(x1, y1, x2, y2).qrect();
+
+    device->fillRect(prect1, fillBrush);
   }
 
   if (plot()->isLines() || plot()->isBestFit() || plot()->isImpulseLines()) {
@@ -3849,9 +3850,10 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
     if (isInside())
       linePen = plot()->insideColor(linePen.color());
 
-    painter->setPen(linePen);
+    device->setPen(linePen);
 
-    painter->drawLine(QPointF(x1, y), QPointF(x2, y));
+    device->drawLine(device->pixelToWindow(QPointF(x1, y)),
+                     device->pixelToWindow(QPointF(x2, y)));
   }
 
   if (plot()->isPoints()) {
@@ -3902,17 +3904,19 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect) const
       double px = CMathUtil::avg(p1.x, p2.x);
       double py = CMathUtil::avg(p1.y, p2.y);
 
-      plot()->drawSymbol(painter, QPointF(px, py), symbol, CMathUtil::avg(sx, sy), pen, brush);
+      plot()->drawSymbol(device, device->pixelToWindow(QPointF(px, py)),
+                         symbol, CMathUtil::avg(sx, sy), pen, brush);
     }
     else {
       double px = CMathUtil::avg(p1.x, p2.x);
       double py = CMathUtil::avg(p1.y, p2.y);
 
-      plot()->drawSymbol(painter, QPointF(px, py), symbol, CMathUtil::avg(sx, sy), pen, brush);
+      plot()->drawSymbol(device, device->pixelToWindow(QPointF(px, py)),
+                         symbol, CMathUtil::avg(sx, sy), pen, brush);
     }
   }
 
-  painter->restore();
+  device->restore();
 }
 
 CQChartsPlotObj *

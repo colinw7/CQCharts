@@ -131,6 +131,9 @@ objectsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const
   static_cast<PlotObjTree *>(plotObjTree_)->dataAtPoint(p.x, p.y, dataList);
 
   for (const auto &obj : dataList) {
+    if (! obj->visible())
+      continue;
+
     if (obj->inside(p))
       objs.push_back(obj);
   }
@@ -150,6 +153,9 @@ objectsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const
     static_cast<PlotObjTree *>(plotObjTree_)->dataTouchingRect(r, dataList);
 
   for (const auto &obj : dataList) {
+    if (! obj->visible())
+      continue;
+
     if (obj->rectIntersect(r, inside))
       objs.push_back(obj);
   }

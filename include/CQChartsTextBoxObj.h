@@ -48,15 +48,6 @@ class CQChartsTextBoxObj : public CQChartsBoxObj,
 
   //---
 
-  void draw(QPainter *painter, const QRectF &rect) const;
-  void draw(QPainter *painter, const QPolygonF &poly) const;
-
-  //---
-
-  void drawText(QPainter *painter, const QRectF &rect, const QString &text) const;
-
-  //---
-
   virtual void textBoxDataInvalidate();
 
   //---

@@ -24,7 +24,7 @@ class CQChartsEditHandles;
 class CQCharts;
 
 class CQPropertyViewModel;
-class QPainter;
+class CQChartsPaintDevice;
 
 CQCHARTS_NAMED_LINE_DATA(Axes,axes)
 CQCHARTS_NAMED_TEXT_DATA(AxesTickLabel,axesTickLabel)
@@ -398,38 +398,38 @@ class CQChartsAxis : public CQChartsObj,
 
   bool isDrawGrid() const;
 
-  void drawGrid(const CQChartsPlot *plot, QPainter *painter);
+  void drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device);
 
   //---
 
-  void draw(const CQChartsPlot *plot, QPainter *painter);
+  void draw(const CQChartsPlot *plot, CQChartsPaintDevice *device);
 
   void drawEditHandles(QPainter *painter) const;
 
   void calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const;
 
-  void drawLine(const CQChartsPlot *plot, QPainter *painter,
+  void drawLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                 double apos, double amin, double amax);
 
-  void drawMajorGridLine(const CQChartsPlot *plot, QPainter *painter,
+  void drawMajorGridLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                          double apos, double amin, double amax);
-  void drawMinorGridLine(const CQChartsPlot *plot, QPainter *painter,
+  void drawMinorGridLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                          double apos, double amin, double amax);
 
-  void drawMajorTickLine(const CQChartsPlot *plot, QPainter *painter,
+  void drawMajorTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                          double apos, double tpos, bool inside);
-  void drawMinorTickLine(const CQChartsPlot *plot, QPainter *painter,
+  void drawMinorTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                          double apos, double tpos, bool inside);
 
-  void drawTickLine(const CQChartsPlot *plot, QPainter *painter,
+  void drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                     double apos, double tpos, bool inside, bool major);
 
-  void drawTickLabel(const CQChartsPlot *plot, QPainter *painter,
+  void drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                      double apos, double tpos, bool inside);
 
-  void drawAxisTickLabelDatas(const CQChartsPlot *plot, QPainter *painter);
+  void drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device);
 
-  void drawAxisLabel(const CQChartsPlot *plot, QPainter *painter,
+  void drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                      double apos, double amin, double amax, const QString &text);
 
   void getTickLabelsPositions(std::set<int> &positions) const;

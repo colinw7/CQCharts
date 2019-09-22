@@ -14,6 +14,8 @@ class QComboBox;
 class CQChartsPaletteNameEdit : public QFrame {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsPaletteName paletteName READ paletteName WRITE setPaletteName)
+
  public:
   CQChartsPaletteNameEdit(QWidget *parent=nullptr);
 

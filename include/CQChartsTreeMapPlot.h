@@ -264,7 +264,7 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
   bool isChildSelected() const;
 
@@ -273,7 +273,7 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   const CQChartsTreeMapPlot* plot_    { nullptr }; //!< parent plot
   CQChartsTreeMapNode*       node_    { nullptr }; //!< associated tree node
-  CQChartsTreeMapHierObj*    hierObj_ { nullptr }; //!< parent hierchical objects
+  CQChartsTreeMapHierObj*    hierObj_ { nullptr }; //!< parent hierarchical objects
   Children                   children_;            //!< child objects
   int                        i_       { 0 };       //!< node index
 };
@@ -300,7 +300,7 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  private:
   CQChartsTreeMapHierNode* hier_ { nullptr }; //!< associated tree hier

@@ -7,6 +7,7 @@
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
@@ -19,7 +20,6 @@
 
 #include <QLabel>
 #include <QVBoxLayout>
-#include <QPainter>
 
 CQChartsTextDataLineEdit::
 CQChartsTextDataLineEdit(QWidget *parent) :
@@ -497,8 +497,10 @@ draw(QPainter *painter, const CQChartsTextData &data, const QRect &rect,
 
   QString text("ABC abc");
 
+  CQChartsPixelPainter device(painter);
+
   if (data.isContrast())
-    CQChartsDrawUtil::drawContrastText(painter, tx, ty, text);
+    CQChartsDrawUtil::drawContrastText(&device, QPointF(tx, ty), text);
   else
-    CQChartsDrawUtil::drawSimpleText(painter, tx, ty, text);
+    CQChartsDrawUtil::drawSimpleText(&device, QPointF(tx, ty), text);
 }

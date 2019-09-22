@@ -9,8 +9,6 @@
 
 class CQCharts;
 
-class QPainter;
-
 /*!
  * \brief Charts object base class
  * \ingroup Charts
@@ -51,8 +49,8 @@ class CQChartsObj : public QObject {
   //---
 
   //! get set qrect (for property)
-  QRectF qrect() const { return CQChartsUtil::toQRect(rect()); }
-  void setQRect(const QRectF &r) { setRect(CQChartsUtil::fromQRect(r)); }
+  QRectF qrect() const { return rect().qrect(); }
+  void setQRect(const QRectF &r) { setRect(CQChartsGeom::BBox(r)); }
 
   //---
 

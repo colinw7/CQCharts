@@ -95,9 +95,9 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
                      const ColorInd &is=ColorInd(), const ColorInd &ig=ColorInd(),
                      const ColorInd &iv=ColorInd());
 
-  void drawHText(QPainter *painter, double xl, double xr, double y,
+  void drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
                  const QString &text, bool onLeft);
-  void drawVText(QPainter *painter, double yt, double yb, double x,
+  void drawVText(CQChartsPaintDevice *device, double yt, double yb, double x,
                  const QString &text, bool onBottom);
 
   void addHBBox(CQChartsGeom::BBox &pbbox, double xl, double xr, double y,
@@ -153,7 +153,7 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
   CQChartsGeom::BBox annotationBBox() const;
 
@@ -164,7 +164,7 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   int                           setId_    { 0 };       //!< set id
   int                           groupInd_ { 0 };       //!< group ind
   const CQChartsBoxPlotWhisker* whisker_  { nullptr }; //!< whisker data
-  QPolygonF                     ppoly_;                //!< draw polygon
+  QPolygonF                     poly_;                 //!< draw polygon
 };
 
 //---
@@ -188,7 +188,7 @@ class CQChartsBoxPlotOutlierObj : public CQChartsBoxPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  private:
   double remapPos(double pos) const;
@@ -224,7 +224,7 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
   CQChartsGeom::BBox annotationBBox() const;
 
@@ -257,7 +257,7 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &) const override { }
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  private:
   using SetWhiskerMap = std::map<int,CQChartsBoxPlotWhisker *>;
@@ -296,7 +296,7 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  private:
   const CQChartsBoxPlot* plot_     { nullptr }; //!< parent plot

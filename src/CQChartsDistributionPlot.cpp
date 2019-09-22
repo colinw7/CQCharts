@@ -13,6 +13,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
 #include <CQChartsRand.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -21,7 +22,6 @@
 #include <CQPerfMonitor.h>
 #include <CMathRound.h>
 
-#include <QPainter>
 #include <QMenu>
 #include <QAction>
 
@@ -1384,8 +1384,8 @@ annotationBBox() const
       p2 = QPointF(dataRange.xmin() - 2*sx, dataRange.ymax());
     }
 
-    bbox += CQChartsUtil::fromQPoint(p1);
-    bbox += CQChartsUtil::fromQPoint(p2);
+    bbox += CQChartsGeom::Point(p1);
+    bbox += CQChartsGeom::Point(p2);
   }
 
   return bbox;
@@ -2794,18 +2794,18 @@ hasForeground() const
 
 void
 CQChartsDistributionPlot::
-execDrawForeground(QPainter *painter) const
+execDrawForeground(CQChartsPaintDevice *device) const
 {
   if (! hasForeground())
     return;
 
   if (isStatsLines())
-    drawStatsLines(painter);
+    drawStatsLines(device);
 }
 
 void
 CQChartsDistributionPlot::
-drawStatsLines(QPainter *painter) const
+drawStatsLines(CQChartsPaintDevice *device) const
 {
   // set pen
   QColor bc = interpStatsLinesColor(ColorInd());
@@ -2814,7 +2814,7 @@ drawStatsLines(QPainter *painter) const
 
   setPen(pen, true, bc, statsLinesAlpha(), statsLinesWidth(), statsLinesDash());
 
-  painter->setPen(pen);
+  device->setPen(pen);
 
   //---
 
@@ -2863,15 +2863,15 @@ drawStatsLines(QPainter *painter) const
       QPointF p1, p2;
 
       if (! isHorizontal()) {
-        p1 = windowToPixel(QPointF(value, dataRange.ymin()));
-        p2 = windowToPixel(QPointF(value, dataRange.ymax()));
+        p1 = QPointF(value, dataRange.ymin());
+        p2 = QPointF(value, dataRange.ymax());
       }
       else {
-        p1 = windowToPixel(QPointF(dataRange.xmin(), value));
-        p2 = windowToPixel(QPointF(dataRange.xmax(), value));
+        p1 = QPointF(dataRange.xmin(), value);
+        p2 = QPointF(dataRange.xmax(), value);
       }
 
-      painter->drawLine(p1, p2);
+      device->drawLine(p1, p2);
     };
 
     drawStatLine(statData.lowerMedian);
@@ -2899,7 +2899,7 @@ pushSlot()
 
     QPointF pos = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
 
-    CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(pos));
+    CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(pos));
 
     plotObjsAtPoint(w, objs);
   }
@@ -3190,7 +3190,7 @@ dataLabelRect() const
 
   CQChartsGeom::BBox rect = calcRect();
 
-  QRectF qrect = CQChartsUtil::toQRect(rect);
+  QRectF qrect = rect.qrect();
 
   QString ystr;
 
@@ -3252,18 +3252,18 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsDistributionBarObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   CQChartsGeom::BBox pbbox = calcRect();
 
-  QRectF qrect = CQChartsUtil::toQRect(pbbox);
+  QRectF pqrect = pbbox.qrect();
 
   //---
 
   bool useLine = false;
 
   if (! plot_->isDotLines()) {
-    double s = (! plot_->isHorizontal() ? qrect.width() : qrect.height());
+    double s = (! plot_->isHorizontal() ? pqrect.width() : pqrect.height());
 
     useLine = (s <= 2);
   }
@@ -3301,7 +3301,7 @@ draw(QPainter *painter)
   colorData_ = ColorData();
 
   if (getBarColoredRects(colorData_)) {
-    double size = (! plot_->isHorizontal() ? qrect.height() : qrect.width());
+    double size = (! plot_->isHorizontal() ? pqrect.height() : pqrect.width());
 
     if      (plot_->isValueCount()) {
       double dsize = size/colorData_.nv;
@@ -3315,16 +3315,16 @@ draw(QPainter *painter)
         pos1 = pos2;
         pos2 = pos1 + dsize*n;
 
-        QRectF qrect1;
+        QRectF pqrect1;
 
         if (! plot_->isHorizontal())
-          qrect1 = QRectF(qrect.x(), qrect.bottom() - pos2, qrect.width(), pos2 - pos1);
+          pqrect1 = QRectF(pqrect.x(), pqrect.bottom() - pos2, pqrect.width(), pos2 - pos1);
         else
-          qrect1 = QRectF(qrect.left() + pos1, qrect.y(), pos2 - pos1, qrect.height());
+          pqrect1 = QRectF(pqrect.left() + pos1, pqrect.y(), pos2 - pos1, pqrect.height());
 
         //---
 
-        drawRect(painter, qrect1, color, useLine);
+        drawRect(device, pqrect1, color, useLine);
       }
     }
     else if (plot_->isValueSum()) {
@@ -3337,36 +3337,36 @@ draw(QPainter *painter)
         pos1 = pos2;
         pos2 = pos1 + size*dsize;
 
-        QRectF qrect1;
+        QRectF pqrect1;
 
         if (! plot_->isHorizontal())
-          qrect1 = QRectF(qrect.x(), qrect.bottom() - pos2, qrect.width(), pos2 - pos1);
+          pqrect1 = QRectF(pqrect.x(), pqrect.bottom() - pos2, pqrect.width(), pos2 - pos1);
         else
-          qrect1 = QRectF(qrect.left() + pos1, qrect.y(), pos2 - pos1, qrect.height());
+          pqrect1 = QRectF(pqrect.left() + pos1, pqrect.y(), pos2 - pos1, pqrect.height());
 
         //---
 
-        drawRect(painter, qrect1, color, useLine);
+        drawRect(device, pqrect1, color, useLine);
       }
     }
   }
   else {
     QColor barColor = this->barColor();
 
-    drawRect(painter, qrect, barColor, useLine);
+    drawRect(device, pqrect, barColor, useLine);
   }
 
   if (! image.isNull())
-    painter->drawImage(qrect, image);
+    device->drawImageInRect(device->pixelToWindow(pqrect), image);
 }
 
 void
 CQChartsDistributionBarObj::
-drawFg(QPainter *painter) const
+drawFg(CQChartsPaintDevice *device) const
 {
   CQChartsGeom::BBox pbbox = calcRect();
 
-  QRectF qrect = CQChartsUtil::toQRect(pbbox);
+  QRectF pqrect = pbbox.qrect();
 
   //---
 
@@ -3391,27 +3391,29 @@ drawFg(QPainter *painter) const
     ystr = QString("%1").arg(maxValue());
   }
 
-  plot_->dataLabel()->draw(painter, qrect, ystr);
+  plot_->dataLabel()->draw(device, device->pixelToWindow(pqrect), ystr);
 
   //---
 
   if (plot_->isRug())
-    drawRug(painter);
+    drawRug(device);
 }
 
 void
 CQChartsDistributionBarObj::
-drawRug(QPainter *painter) const
+drawRug(CQChartsPaintDevice *device) const
 {
   // get symbol and size
-  CQChartsSymbol symbol = plot_->rugSymbolType();
+  CQChartsSymbol symbolType = plot_->rugSymbolType();
+  CQChartsLength symbolSize = plot_->rugSymbolSize();
 
-  if (symbol == CQChartsSymbol::Type::NONE)
-    symbol = (! plot_->isHorizontal() ? CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
+  if (symbolType == CQChartsSymbol::Type::NONE)
+    symbolType = (! plot_->isHorizontal() ?
+      CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
 
   double sx, sy;
 
-  plot_->pixelSymbolSize(plot_->rugSymbolSize(), sx, sy);
+  plot_->pixelSymbolSize(symbolSize, sx, sy);
 
   //---
 
@@ -3423,8 +3425,8 @@ drawRug(QPainter *painter) const
 
   plot_->setRugSymbolPenBrush(pen, brush, ic);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
@@ -3452,7 +3454,7 @@ drawRug(QPainter *painter) const
     else
       ps.setX(ps.x() - sx);
 
-    plot_->drawSymbol(painter, ps, symbol, CMathUtil::avg(sx, sy), pen, brush);
+    plot_->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, pen, brush);
   }
 }
 
@@ -3575,7 +3577,8 @@ getBarColoredRects(ColorData &colorData) const
 
 void
 CQChartsDistributionBarObj::
-drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, bool useLine) const
+drawRect(CQChartsPaintDevice *device, const QRectF &pqrect,
+         const CQChartsColor &color, bool useLine) const
 {
   // set pen and brush
   QPen   pen;
@@ -3599,29 +3602,29 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
 
   plot_->updateObjPenBrushState(this, pen, barBrush);
 
-  painter->setPen(pen);
-  painter->setBrush(barBrush);
+  device->setPen  (pen);
+  device->setBrush(barBrush);
 
   //---
 
   if (! plot_->isDotLines()) {
     // draw rect
     if (! useLine) {
-      double cxs = plot_->lengthPixelWidth (plot_->barCornerSize());
-      double cys = plot_->lengthPixelHeight(plot_->barCornerSize());
-
-      CQChartsDrawUtil::drawRoundedPolygon(painter, qrect, cxs, cys);
+      CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pqrect),
+                                           plot_->barCornerSize(), plot_->barCornerSize());
     }
     else {
       if (! plot_->isHorizontal()) {
-        double xc = qrect.center().x();
+        double xc = pqrect.center().x();
 
-        painter->drawLine(xc, qrect.bottom(), xc, qrect.top());
+        device->drawLine(device->pixelToWindow(QPointF(xc, pqrect.bottom())),
+                         device->pixelToWindow(QPointF(xc, pqrect.top   ())));
       }
       else {
-        double yc = qrect.center().y();
+        double yc = pqrect.center().y();
 
-        painter->drawLine(qrect.left(), yc, qrect.right(), yc);
+        device->drawLine(device->pixelToWindow(QPointF(pqrect.left (), yc)),
+                         device->pixelToWindow(QPointF(pqrect.right(), yc)));
       }
     }
   }
@@ -3630,36 +3633,35 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
     double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), ! plot_->isHorizontal());
 
     if (! plot_->isHorizontal()) {
-      double xc = qrect.center().x();
+      double xc = pqrect.center().x();
 
       if (lw < 3)
-        painter->drawLine(xc, qrect.bottom(), xc, qrect.top());
+        device->drawLine(device->pixelToWindow(QPointF(xc, pqrect.bottom())),
+                         device->pixelToWindow(QPointF(xc, pqrect.top   ())));
       else {
-        QRectF qrect1(xc - lw/2, qrect.top(), lw, qrect.height());
+        QRectF pqrect1(xc - lw/2, pqrect.top(), lw, pqrect.height());
 
-        CQChartsDrawUtil::drawRoundedPolygon(painter, qrect1);
+        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pqrect1));
       }
     }
     else {
-      double yc = qrect.center().y();
+      double yc = pqrect.center().y();
 
       if (lw < 3)
-        painter->drawLine(qrect.left(), yc, qrect.right(), yc);
+        device->drawLine(device->pixelToWindow(QPointF(pqrect.left (), yc)),
+                         device->pixelToWindow(QPointF(pqrect.right(), yc)));
       else {
-        QRectF qrect1(qrect.left(), yc - lw/2, qrect.width(), lw);
+        QRectF pqrect1(pqrect.left(), yc - lw/2, pqrect.width(), lw);
 
-        CQChartsDrawUtil::drawRoundedPolygon(painter, qrect1);
+        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pqrect1));
       }
     }
 
     //---
 
     // get dot symbol and size
-    CQChartsSymbol symbol = plot_->dotSymbolType();
-
-    double sx, sy;
-
-    plot_->pixelSymbolSize(plot_->dotSymbolSize(), sx, sy);
+    CQChartsSymbol symbolType = plot_->dotSymbolType();
+    CQChartsLength symbolSize = plot_->dotSymbolSize();
 
     ColorInd ic = (ig_.n > 1 ? ig_ : iv_);
 
@@ -3671,8 +3673,8 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
 
     plot_->setDotSymbolPenBrush(dotPen, dotBrush, ic);
 
-    painter->setPen  (dotPen);
-    painter->setBrush(dotBrush);
+    device->setPen  (dotPen);
+    device->setBrush(dotBrush);
 
     //---
 
@@ -3680,11 +3682,11 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
     QPointF p;
 
     if (! plot_->isHorizontal())
-      p = QPointF(qrect.center().x(), qrect.top());
+      p = QPointF(pqrect.center().x(), pqrect.top());
     else
-      p = QPointF(qrect.right(), qrect.center().y());
+      p = QPointF(pqrect.right(), pqrect.center().y());
 
-    plot_->drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy));
+    plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize);
   }
 }
 
@@ -3869,7 +3871,7 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
-  return poly_.containsPoint(CQChartsUtil::toQPoint(p), Qt::OddEvenFill);
+  return poly_.containsPoint(p.qpoint(), Qt::OddEvenFill);
 }
 
 void
@@ -3880,7 +3882,7 @@ getSelectIndices(Indices &) const
 
 void
 CQChartsDistributionDensityObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   // set pen and brush
   QPen   pen;
@@ -3923,8 +3925,8 @@ draw(QPainter *painter)
   // adjust pen/brush for selected/mouse over
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
@@ -3943,37 +3945,30 @@ draw(QPainter *painter)
 
       CQChartsGeom::BBox pbbox = plot_->windowToPixel(bbox);
 
-      painter->drawRect(CQChartsUtil::toQRect(pbbox));
+      device->drawRect(device->pixelToWindow(pbbox.qrect()));
     }
   }
 
   //---
 
   // draw density polygon
-  QPolygonF poly;
-
-  int np = poly_.size();
-
-  for (int i = 0; i < np; ++i)
-    poly << plot()->windowToPixel(poly_[i]);
-
-  painter->drawPolygon(poly);
+  device->drawPolygon(poly_);
 }
 
 void
 CQChartsDistributionDensityObj::
-drawFg(QPainter *painter) const
+drawFg(CQChartsPaintDevice *device) const
 {
   if (plot_->isStatsLines())
-    drawStatsLines(painter);
+    drawStatsLines(device);
 
   if (plot_->isRug())
-    drawRug(painter);
+    drawRug(device);
 }
 
 void
 CQChartsDistributionDensityObj::
-drawStatsLines(QPainter *painter) const
+drawStatsLines(CQChartsPaintDevice *device) const
 {
   // set pen
   QColor bc = plot_->interpStatsLinesColor(ColorInd());
@@ -3983,7 +3978,7 @@ drawStatsLines(QPainter *painter) const
   plot_->setPen(pen, true, bc, plot_->statsLinesAlpha(),
                 plot_->statsLinesWidth(), plot_->statsLinesDash());
 
-  painter->setPen(pen);
+  device->setPen(pen);
 
   //---
 
@@ -3993,15 +3988,15 @@ drawStatsLines(QPainter *painter) const
     QPointF p1, p2;
 
     if (! plot_->isHorizontal()) {
-      p1 = plot()->windowToPixel(QPointF(value, dataRange.ymin()));
-      p2 = plot()->windowToPixel(QPointF(value, dataRange.ymax()));
+      p1 = QPointF(value, dataRange.ymin());
+      p2 = QPointF(value, dataRange.ymax());
     }
     else {
-      p1 = plot()->windowToPixel(QPointF(dataRange.xmin(), value));
-      p2 = plot()->windowToPixel(QPointF(dataRange.xmax(), value));
+      p1 = QPointF(dataRange.xmin(), value);
+      p2 = QPointF(dataRange.xmax(), value);
     }
 
-    painter->drawLine(p1, p2);
+    device->drawLine(p1, p2);
   };
 
   drawStatLine(data_.statData.lowerMedian);
@@ -4011,17 +4006,19 @@ drawStatsLines(QPainter *painter) const
 
 void
 CQChartsDistributionDensityObj::
-drawRug(QPainter *painter) const
+drawRug(CQChartsPaintDevice *device) const
 {
   // get symbol and size
-  CQChartsSymbol symbol = plot_->rugSymbolType();
+  CQChartsSymbol symbolType = plot_->rugSymbolType();
+  CQChartsLength symbolSize = plot_->rugSymbolSize();
 
-  if (symbol == CQChartsSymbol::Type::NONE)
-    symbol = (! plot_->isHorizontal() ? CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
+  if (symbolType == CQChartsSymbol::Type::NONE)
+    symbolType = (! plot_->isHorizontal() ?
+      CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
 
   double sx, sy;
 
-  plot_->pixelSymbolSize(plot_->rugSymbolSize(), sx, sy);
+  plot_->pixelSymbolSize(symbolSize, sx, sy);
 
   //---
 
@@ -4035,8 +4032,8 @@ drawRug(QPainter *painter) const
   plot_->setPen  (pen  , true, fillColor, 1.0);
   plot_->setBrush(brush, true, fillColor, 0.5);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
@@ -4062,7 +4059,7 @@ drawRug(QPainter *painter) const
     else
       ps.setX(ps.x() - sx);
 
-    plot_->drawSymbol(painter, ps, symbol, CMathUtil::avg(sx, sy), pen, brush);
+    plot_->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, pen, brush);
   }
 }
 
@@ -4124,7 +4121,7 @@ calcTipId() const
 
 void
 CQChartsDistributionScatterObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   // set pen brush
   // TODO: allow control of stroke color, alpha, and line width
@@ -4138,25 +4135,23 @@ draw(QPainter *painter)
   plot_->setPen  (pen  , true, Qt::black, 1.0);
   plot_->setBrush(brush, true, c, 1.0);
 
-  painter->setPen(pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
 #if 0
-  painter->drawRect(CQChartsUtil::toQRect(prect));
+  device->drawRect(rect().qrect());
 #endif
 
   //---
 
-  CQChartsSymbol symbol(CQChartsSymbol::Type::CIRCLE);
+  CQChartsSymbol symbolType(CQChartsSymbol::Type::CIRCLE);
+  CQChartsLength symbolSize(6, CQChartsUnits::PIXEL);
 
-  double sx = 6;
-  double sy = 6;
-
-  QPointF tl = CQChartsUtil::toQRect(prect).topLeft();
+  QPointF tl = prect.qrect().topLeft();
 
   if (! plot_->isHorizontal()) {
     for (const auto &point : points_) {
@@ -4165,7 +4160,7 @@ draw(QPainter *painter)
 
       QPointF p(tl.x() + px, tl.y() + py);
 
-      plot_->drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy), pen, brush);
+      plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize, pen, brush);
     }
   }
   else {
@@ -4175,7 +4170,7 @@ draw(QPainter *painter)
 
       QPointF p(tl.x() + px, tl.y() + py);
 
-      plot_->drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy), pen, brush);
+      plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize, pen, brush);
     }
   }
 }

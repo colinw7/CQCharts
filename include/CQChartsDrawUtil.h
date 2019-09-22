@@ -3,50 +3,69 @@
 
 #include <CQChartsTextOptions.h>
 #include <CQChartsSymbol.h>
+#include <CQChartsLength.h>
 #include <CQChartsSides.h>
-#include <QString>
-#include <QRectF>
-#include <QFont>
+#include <CQChartsGeom.h>
 
-class QPainter;
+#include <QPen>
+#include <QBrush>
+#include <QFont>
+#include <QRectF>
+#include <QString>
+
+class CQChartsPaintDevice;
+
+struct CQChartsPenBrush {
+  QPen   pen;
+  QBrush brush;
+};
+
+//---
 
 namespace CQChartsDrawUtil {
 
-void drawRoundedPolygon(QPainter *painter, const QRectF &qrect, double xsize=0.0, double ysize=0.0,
-                        const CQChartsSides &sides=CQChartsSides(CQChartsSides::Side::ALL));
-void drawRoundedPolygon(QPainter *painter, const QPolygonF &poly,
-                        double xsize=0.0, double ysize=0.0);
+void setPenBrush(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush);
 
-void drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
+void drawRoundedPolygon(CQChartsPaintDevice *device, const QRectF &qrect,
+                        const CQChartsLength &xsize=CQChartsLength(),
+                        const CQChartsLength &ysize=CQChartsLength(),
+                        const CQChartsSides &sides=CQChartsSides(CQChartsSides::Side::ALL));
+
+void drawRoundedPolygon(CQChartsPaintDevice *device, const QPolygonF &poly,
+                        const CQChartsLength &xsize=CQChartsLength(),
+                        const CQChartsLength &ysize=CQChartsLength());
+
+void drawTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &text,
                    const CQChartsTextOptions &options);
 
-void drawRotatedTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
+void drawRotatedTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &text,
                           const QPen &pen, const CQChartsTextOptions &options);
 
-void drawTextAtPoint(QPainter *painter, const QPointF &point, const QString &text,
+void drawTextAtPoint(CQChartsPaintDevice *device, const QPointF &point, const QString &text,
                      const CQChartsTextOptions &options=CQChartsTextOptions());
 
-void drawAlignedText(QPainter *painter, double x, double y, const QString &text,
+void drawAlignedText(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
                      Qt::Alignment align, double dx=0, double dy=0);
 
-QRectF calcAlignedTextRect(const QFont &font, double x, double y, const QString &text,
+QRectF calcAlignedTextRect(const QFont &font, const QPointF &p, const QString &text,
                            Qt::Alignment align, double dx, double dy);
 
-void drawContrastText(QPainter *painter, double x, double y, const QString &text);
+void drawContrastText(CQChartsPaintDevice *device, const QPointF &p, const QString &text);
 
 QSizeF calcTextSize(const QString &text, const QFont &font, const CQChartsTextOptions &options);
 
-void drawCenteredText(QPainter *painter, const QPointF &pos, const QString &text);
+void drawCenteredText(CQChartsPaintDevice *device, const QPointF &pos, const QString &text);
 
-void drawSimpleText(QPainter *painter, double x, double y, const QString &text);
+void drawSimpleText(CQChartsPaintDevice *device, const QPointF &pos, const QString &text);
 
-void drawSimpleText(QPainter *painter, const QPointF &pos, const QString &text);
+void drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
+                const QPointF &c, const CQChartsLength &size);
 
-void drawSymbol(QPainter *painter, const CQChartsSymbol &symbol, const QRectF &rect);
-void drawSymbol(QPainter *painter, const CQChartsSymbol &symbol,
-                const QPointF &c, const QSizeF &size);
-void drawSymbol(QPainter *painter, const CQChartsSymbol &symbol,
-                double cx, double cy, double sw, double sh);
+void drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol, const QRectF &rect);
+
+void drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
+                  double ri, double ro, double a1, double a2,
+                  bool isInvertX=false, bool isInvertY=false);
 
 }
 
@@ -57,10 +76,10 @@ namespace CQChartsDrawPrivate {
 // private
 QSizeF calcHtmlTextSize(const QString &text, const QFont &font, int margin=0);
 
-void drawScaledHtmlText(QPainter *painter, const QRectF &trect, const QString &text,
+void drawScaledHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QString &text,
                         const CQChartsTextOptions &options);
 
-void drawHtmlText(QPainter *painter, const QRectF &trect, const QString &text,
+void drawHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QString &text,
                   const CQChartsTextOptions &options);
 
 }

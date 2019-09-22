@@ -18,7 +18,6 @@ class CQChartsLineDash;
 class CQChartsStyle;
 class CQChartsPath;
 class CQStrParse;
-class QPainter;
 
 // conversion
 
@@ -42,6 +41,7 @@ bool fromString(const QString &str, std::vector<CQChartsColumn> &columns);
 
 //---
 
+#if 0
 inline QPointF toQPoint(const CQChartsGeom::Point &point) {
   return QPointF(point.x, point.y);
 }
@@ -57,7 +57,9 @@ inline CQChartsGeom::Point fromQPoint(const QPointF &point) {
 inline CQChartsGeom::Point fromQPointF(const QPoint &point) {
   return CQChartsGeom::Point(point.x(), point.y());
 }
+#endif
 
+#if 0
 inline QRectF toQRect(const CQChartsGeom::BBox &rect) {
   if (rect.isSet())
     return QRectF(toQPoint(rect.getLL()), toQPoint(rect.getUR())).normalized();
@@ -82,6 +84,9 @@ inline QRect toQRectI(const CQChartsGeom::BBox &rect) {
 inline CQChartsGeom::BBox fromQRect(const QRectF &rect) {
   return CQChartsGeom::BBox(fromQPoint(rect.bottomLeft()), fromQPoint(rect.topRight()));
 }
+#endif
+
+//------
 
 inline CQChartsGeom::BBox rangeBBox(const CQChartsGeom::Range &range) {
   if (range.isSet())
@@ -416,6 +421,24 @@ inline QImage *newImage(const QSize &size) {
 inline QImage initImage(const QSize &size) {
 //return QImage(size, QImage::Format_ARGB32);
   return QImage(size, QImage::Format_ARGB32_Premultiplied);
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+inline QString encodeScriptColor(const QColor &c) {
+  if (! c.isValid())
+    return "none";
+
+  if (c.alpha() >= 255)
+    return QString("rgb(%1,%2,%3)").
+             arg(c.red()).arg(c.green()).arg(c.blue());
+  else
+    return QString("rgba(%1,%2,%3,%4)").
+             arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()/255.0);
 }
 
 }

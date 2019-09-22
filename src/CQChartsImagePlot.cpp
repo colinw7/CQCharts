@@ -5,12 +5,12 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTip.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
-#include <QPainter>
 #include <QMenu>
 
 CQChartsImagePlotType::
@@ -426,20 +426,20 @@ hasForeground() const
 
 void
 CQChartsImagePlot::
-execDrawForeground(QPainter *painter) const
+execDrawForeground(CQChartsPaintDevice *device) const
 {
   if (isXLabels())
-    drawXLabels(painter);
+    drawXLabels(device);
 
   if (isYLabels())
-    drawYLabels(painter);
+    drawYLabels(device);
 }
 
 void
 CQChartsImagePlot::
-drawXLabels(QPainter *painter) const
+drawXLabels(CQChartsPaintDevice *device) const
 {
-  view()->setPlotPainterFont(this, painter, xLabelTextFont());
+  view()->setPlotPainterFont(this, device, xLabelTextFont());
 
   //---
 
@@ -449,7 +449,7 @@ drawXLabels(QPainter *painter) const
 
   setPen(tpen, true, tc, xLabelTextAlpha());
 
-  painter->setPen(tpen);
+  device->setPen(tpen);
 
   //---
 
@@ -465,7 +465,7 @@ drawXLabels(QPainter *painter) const
 
   //---
 
-  QFontMetricsF fm(painter->font());
+  QFontMetricsF fm(device->font());
 
   double tw = 0.0;
   double th = fm.height();
@@ -501,15 +501,15 @@ drawXLabels(QPainter *painter) const
 
     CQChartsTextOptions textOptions1 = adjustTextOptions(textOptions);
 
-    CQChartsDrawUtil::drawTextInBox(painter, trect, name, textOptions1);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect), name, textOptions1);
   }
 }
 
 void
 CQChartsImagePlot::
-drawYLabels(QPainter *painter) const
+drawYLabels(CQChartsPaintDevice *device) const
 {
-  view()->setPlotPainterFont(this, painter, yLabelTextFont());
+  view()->setPlotPainterFont(this, device, yLabelTextFont());
 
   //---
 
@@ -519,7 +519,7 @@ drawYLabels(QPainter *painter) const
 
   setPen(tpen, true, tc, yLabelTextAlpha());
 
-  painter->setPen(tpen);
+  device->setPen(tpen);
 
   //---
 
@@ -535,7 +535,7 @@ drawYLabels(QPainter *painter) const
 
   //---
 
-  QFontMetricsF fm(painter->font());
+  QFontMetricsF fm(device->font());
 
   double tw = 0.0;
   double th = fm.height();
@@ -569,7 +569,7 @@ drawYLabels(QPainter *painter) const
 
     CQChartsTextOptions textOptions1 = adjustTextOptions(textOptions);
 
-    CQChartsDrawUtil::drawTextInBox(painter, trect, name, textOptions1);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect), name, textOptions1);
   }
 }
 
@@ -683,14 +683,8 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsImageObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
-
-  QRectF qrect = CQChartsUtil::toQRect(prect);
-
-  //---
-
   ColorInd ic;
 
   if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
@@ -718,19 +712,21 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
   if      (plot_->cellStyle() == CQChartsImagePlot::CellStyle::RECT) {
-    painter->drawRect(qrect);
+    QRectF qrect = rect().qrect();
+
+    device->drawRect(qrect);
 
     //---
 
     if (plot_->isCellLabels()) {
       // set font
-      plot_->view()->setPlotPainterFont(plot_, painter, plot_->cellLabelTextFont());
+      plot_->view()->setPlotPainterFont(plot_, device, plot_->cellLabelTextFont());
 
       //---
 
@@ -744,7 +740,7 @@ draw(QPainter *painter)
 
       plot_->updateObjPenBrushState(this, tpen, tbrush);
 
-      painter->setPen(tpen);
+      device->setPen(tpen);
 
       //---
 
@@ -761,10 +757,14 @@ draw(QPainter *painter)
 
       textOptions = plot_->adjustTextOptions(textOptions);
 
-      CQChartsDrawUtil::drawTextInBox(painter, qrect, valueStr, textOptions);
+      CQChartsDrawUtil::drawTextInBox(device, qrect, valueStr, textOptions);
     }
   }
   else if  (plot_->cellStyle() == CQChartsImagePlot::CellStyle::BALLOON) {
+    CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
+
+    QRectF qrect = prect.qrect();
+
     double s = std::min(qrect.width(), qrect.height());
 
     double minSize = s*plot_->minBalloonSize();
@@ -776,7 +776,9 @@ draw(QPainter *painter)
 
     //---
 
-    painter->drawEllipse(QRectF(center.x() - s1/2, center.y() - s1/2, s1, s1));
+    QRectF erect(center.x() - s1/2, center.y() - s1/2, s1, s1);
+
+    device->drawEllipse(device->pixelToWindow(erect));
   }
 }
 

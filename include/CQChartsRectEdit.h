@@ -14,6 +14,8 @@ class CQRectEdit;
 class CQChartsRectEdit : public QFrame {
   Q_OBJECT
 
+  Q_PROPERTY(CQChartsRect rect READ rect WRITE setRect)
+
  public:
   CQChartsRectEdit(QWidget *parent=nullptr);
 

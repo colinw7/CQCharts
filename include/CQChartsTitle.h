@@ -13,6 +13,7 @@
 class CQChartsPlot;
 class CQChartsEditHandles;
 class CQPropertyViewModel;
+class CQChartsPaintDevice;
 class QPainter;
 
 /*!
@@ -111,7 +112,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   bool isDrawn() const;
 
-  void draw(QPainter *painter);
+  void draw(CQChartsPaintDevice *device);
 
   void drawEditHandles(QPainter *painter) const;
 

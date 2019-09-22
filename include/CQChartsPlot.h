@@ -356,6 +356,8 @@ class CQChartsPlot : public CQChartsObj,
   void drawForeground();
   void drawObjs();
 
+  void writeScript(std::ostream &os) const;
+
   void invalidateOverlay();
 
   //---
@@ -1011,8 +1013,10 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &prect) const;
   CQChartsGeom::BBox viewToWindow (const CQChartsGeom::BBox &vrect) const;
 
-  QRectF windowToView(const QRectF &w) const;
-  QRectF viewToWindow(const QRectF &v) const;
+  QRectF windowToPixel(const QRectF &w) const;
+  QRectF pixelToWindow(const QRectF &w) const;
+  QRectF windowToView (const QRectF &w) const;
+  QRectF viewToWindow (const QRectF &v) const;
 
   double pixelToSignedWindowWidth (double ww) const;
   double pixelToSignedWindowHeight(double wh) const;
@@ -1440,6 +1444,8 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsGeom::BBox displayRangeBBox() const;
 
   CQChartsGeom::BBox calcDataPixelRect() const;
+
+  CQChartsGeom::BBox calcPlotRect() const;
   CQChartsGeom::BBox calcPlotPixelRect() const;
 
   CQChartsGeom::BBox calcFitPixelRect() const;
@@ -1561,13 +1567,13 @@ class CQChartsPlot : public CQChartsObj,
   // draw background (layer and detail)
   virtual bool hasBackgroundLayer() const;
 
-  virtual void drawBackgroundLayer(QPainter *painter) const;
+  virtual void drawBackgroundLayer(CQChartsPaintDevice *device) const;
 
   virtual bool hasBackground() const;
 
-  virtual void execDrawBackground(QPainter *painter) const;
+  virtual void execDrawBackground(CQChartsPaintDevice *device) const;
 
-  void drawBackgroundSides(QPainter *painter, const QRectF &rect,
+  void drawBackgroundSides(CQChartsPaintDevice *device, const QRectF &rect,
                            const CQChartsSides &sides) const;
 
   // draw axes on background
@@ -1575,14 +1581,14 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual bool hasBgAxes() const;
 
-  void drawGroupedBgAxes(QPainter *painter) const;
+  void drawGroupedBgAxes(CQChartsPaintDevice *device) const;
 
-  virtual void drawBgAxes(QPainter *painter) const;
+  virtual void drawBgAxes(CQChartsPaintDevice *device) const;
 
   // draw key on background
   virtual bool hasGroupedBgKey() const;
 
-  virtual void drawBgKey(QPainter *painter) const;
+  virtual void drawBgKey(CQChartsPaintDevice *device) const;
 
   //---
 
@@ -1602,42 +1608,44 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual bool hasFgAxes() const;
 
-  void drawGroupedFgAxes(QPainter *painter) const;
+  void drawGroupedFgAxes(CQChartsPaintDevice *device) const;
 
-  virtual void drawFgAxes(QPainter *painter) const;
+  virtual void drawFgAxes(CQChartsPaintDevice *device) const;
 
   // draw key on foreground
   virtual bool hasGroupedFgKey() const;
 
-  virtual void drawFgKey(QPainter *painter) const;
+  virtual void drawFgKey(CQChartsPaintDevice *painter) const;
 
   // draw title
   virtual bool hasTitle() const;
 
-  virtual void drawTitle(QPainter *painter) const;
+  virtual void drawTitle(CQChartsPaintDevice *device) const;
 
   // draw annotations
   virtual bool hasGroupedAnnotations(const CQChartsLayer::Type &layerType) const;
 
-  void drawGroupedAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType) const;
+  void drawGroupedAnnotations(CQChartsPaintDevice *device,
+                              const CQChartsLayer::Type &layerType) const;
 
   virtual bool hasAnnotations(const CQChartsLayer::Type &layerType) const;
 
-  virtual void drawAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType) const;
+  virtual void drawAnnotations(CQChartsPaintDevice *device,
+                               const CQChartsLayer::Type &layerType) const;
 
   // draw foreground
   virtual bool hasForeground() const;
 
-  virtual void execDrawForeground(QPainter *painter) const;
+  virtual void execDrawForeground(CQChartsPaintDevice *device) const;
 
   // draw debug boxes
   virtual bool hasGroupedBoxes() const;
 
-  void drawGroupedBoxes(QPainter *painter) const;
+  void drawGroupedBoxes(CQChartsPaintDevice *device) const;
 
   virtual bool hasBoxes() const;
 
-  virtual void drawBoxes(QPainter *painter) const;
+  virtual void drawBoxes(CQChartsPaintDevice *device) const;
 
   // draw edit handles
   bool hasGroupedEditHandles() const;
@@ -1651,7 +1659,7 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // set clip rect
-  void setClipRect(QPainter *painter) const;
+  void setClipRect(CQChartsPaintDevice *device) const;
 
   //---
 
@@ -1668,11 +1676,10 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol,
-                  double size) const;
-
-  void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol,
-                  double size, const QPen &pen, const QBrush &brush) const;
+  void drawSymbol(CQChartsPaintDevice *painter, const QPointF &p, const CQChartsSymbol &symbol,
+                  const CQChartsLength &size) const;
+  void drawSymbol(CQChartsPaintDevice *device, const QPointF &p, const CQChartsSymbol &symbol,
+                  const CQChartsLength &size, const QPen &pen, const QBrush &brush) const;
 
   //---
 
@@ -1682,16 +1689,11 @@ class CQChartsPlot : public CQChartsObj,
   //---
 
   // debug draw (default to red boxes)
-  void drawWindowColorBox(QPainter *painter, const CQChartsGeom::BBox &bbox,
+  void drawWindowColorBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
                           const QColor &c=Qt::red) const;
 
-  void drawColorBox(QPainter *painter, const CQChartsGeom::BBox &bbox,
+  void drawColorBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
                     const QColor &c=Qt::red) const;
-
-  //---
-
-  void drawPieSlice(QPainter *painter, const CQChartsGeom::Point &c,
-                    double ri, double ro, double a1, double a2) const;
 
   //---
 

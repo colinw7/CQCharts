@@ -179,6 +179,7 @@ CQChartsValueInd.cpp \
 CQChartsNameValues.cpp \
 CQChartsEnv.cpp \
 \
+CQChartsPaintDevice.cpp \
 CQChartsDrawUtil.cpp \
 CQChartsUtil.cpp \
 CQChartsWidgetUtil.cpp \
@@ -371,6 +372,7 @@ HEADERS += \
 ../include/CQChartsQuadTree.h \
 ../include/CQChartsEnv.h \
 \
+../include/CQChartsPaintDevice.h \
 ../include/CQChartsDrawUtil.h \
 ../include/CQChartsUtil.h \
 ../include/CQChartsWidgetUtil.h \

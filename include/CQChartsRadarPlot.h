@@ -76,7 +76,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
-  void draw(QPainter *painter) override;
+  void draw(CQChartsPaintDevice *device) override;
 
  private:
   const CQChartsRadarPlot* plot_       { nullptr }; //!< parent plot
@@ -157,7 +157,7 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   bool hasBackground() const override;
 
-  void execDrawBackground(QPainter *) const override;
+  void execDrawBackground(CQChartsPaintDevice *device) const override;
 
  private:
   void addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const;

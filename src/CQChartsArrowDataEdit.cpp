@@ -7,6 +7,7 @@
 #include <CQChartsPlot.h>
 #include <CQCharts.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsPaintDevice.h>
 
 #include <CQWidgetMenu.h>
 #include <CQCheckBox.h>
@@ -14,7 +15,6 @@
 
 #include <QLabel>
 #include <QVBoxLayout>
-#include <QPainter>
 
 CQChartsArrowDataLineEdit::
 CQChartsArrowDataLineEdit(QWidget *parent) :
@@ -400,5 +400,7 @@ draw(QPainter *painter, const CQChartsArrowData &data, const QRect &rect,
 
   arrow.setData(data);
 
-  arrow.draw(painter);
+  CQChartsPixelPainter device(painter);
+
+  arrow.draw(&device);
 }

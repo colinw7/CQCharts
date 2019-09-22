@@ -7,13 +7,13 @@
 #include <CQChartsTip.h>
 #include <CQChartsDataLabel.h>
 #include <CQCharts.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
-#include <QPainter>
 #include <QMenu>
 
 CQChartsHierScatterPlotType::
@@ -824,7 +824,7 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsHierScatterPointObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   ColorInd ic = calcColorInd();
 
@@ -842,24 +842,17 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
   // get symbol type and size
-  CQChartsSymbol symbol = plot_->symbolType();
-
-  double sx, sy;
-
-  plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
+  CQChartsSymbol symbolType = plot_->symbolType();
+  CQChartsLength symbolSize = plot_->symbolSize();
 
   // draw symbol
-  QPointF ps = plot_->windowToPixel(p_);
-
-  QRectF erect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
-
-  plot_->drawSymbol(painter, ps, symbol, CMathUtil::avg(sx, sy), pen, brush);
+  plot_->drawSymbol(device, p_, symbolType, symbolSize, pen, brush);
 
   //---
 
@@ -867,7 +860,15 @@ draw(QPainter *painter)
   if (plot_->isTextLabels()) {
     const CQChartsDataLabel *dataLabel = plot_->dataLabel();
 
-    dataLabel->draw(painter, erect, name_);
+    QPointF ps = plot_->windowToPixel(p_);
+
+    double sx, sy;
+
+    plot_->pixelSymbolSize(symbolSize, sx, sy);
+
+    QRectF erect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
+
+    dataLabel->draw(device, device->pixelToWindow(erect), name_);
   }
 }
 

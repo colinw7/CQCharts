@@ -1,5 +1,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsPlot.h>
+#include <CQChartsDrawUtil.h>
+#include <CQChartsPaintDevice.h>
 #include <CQPropertyViewModel.h>
 
 CQChartsPlotObj::
@@ -174,9 +176,37 @@ addSelectIndex(Indices &inds, const QModelIndex &ind) const
 
 void
 CQChartsPlotObj::
-drawDebugRect(QPainter *painter)
+drawBg(CQChartsPaintDevice *) const
 {
-  plot()->drawWindowColorBox(painter, rect());
+}
+
+void
+CQChartsPlotObj::
+drawFg(CQChartsPaintDevice *) const
+{
+}
+
+void
+CQChartsPlotObj::
+draw(CQChartsPaintDevice *)
+{
+}
+
+void
+CQChartsPlotObj::
+drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush,
+                   const CQChartsGeom::BBox &rect, const CQChartsLength &cornerSize) const
+{
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  CQChartsDrawUtil::drawRoundedPolygon(device, rect.qrect(), cornerSize, cornerSize);
+}
+
+void
+CQChartsPlotObj::
+drawDebugRect(CQChartsPaintDevice *device)
+{
+  plot()->drawWindowColorBox(device, rect());
 }
 
 //------

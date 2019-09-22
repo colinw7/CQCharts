@@ -3,12 +3,11 @@
 #include <CQChartsModelUtil.h>
 #include <CQChartsDrawUtil.h>
 #include <CQCharts.h>
+#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
-
-#include <QPainter>
 
 CQChartsDendrogramPlotType::
 CQChartsDendrogramPlotType()
@@ -398,27 +397,27 @@ hasForeground() const
 
 void
 CQChartsDendrogramPlot::
-execDrawForeground(QPainter *painter) const
+execDrawForeground(CQChartsPaintDevice *device) const
 {
   CQChartsDendrogram::HierNode *root = dendrogram_->root();
 
   if (root) {
-    drawNode(painter, 0, root);
+    drawNode(device, 0, root);
 
-    drawNodes(painter, root, 0);
+    drawNodes(device, root, 0);
   }
 }
 
 void
 CQChartsDendrogramPlot::
-drawNodes(QPainter *painter, CQChartsDendrogram::HierNode *hier, int depth) const
+drawNodes(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier, int depth) const
 {
   const CQChartsDendrogram::HierNode::Children &children = hier->getChildren();
 
   for (auto &hierNode : children) {
-    drawNode(painter, hier, hierNode);
+    drawNode(device, hier, hierNode);
 
-    drawNodes(painter, hierNode, depth + 1);
+    drawNodes(device, hierNode, depth + 1);
   }
 
   //------
@@ -426,17 +425,17 @@ drawNodes(QPainter *painter, CQChartsDendrogram::HierNode *hier, int depth) cons
   const CQChartsDendrogram::Nodes &nodes = hier->getNodes();
 
   for (auto &node : nodes)
-    drawNode(painter, hier, node);
+    drawNode(device, hier, node);
 }
 
 void
 CQChartsDendrogramPlot::
-drawNode(QPainter *painter, CQChartsDendrogram::HierNode *hier,
+drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
          CQChartsDendrogram::Node *node) const
 {
   if (! node->isPlaced()) return;
 
-  CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(node->x(), node->yc()));
+  CQChartsGeom::Point pn = windowToPixel(CQChartsGeom::Point(node->x(), node->yc()));
 
   double cs = circleSize();
   double tm = textMargin();
@@ -445,10 +444,10 @@ drawNode(QPainter *painter, CQChartsDendrogram::HierNode *hier,
 
   // draw edge
   if (hier) {
-    CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(hier->x(), hier->yc()));
+    CQChartsGeom::Point ph = windowToPixel(CQChartsGeom::Point(hier->x(), hier->yc()));
 
-    double x1 = p2.x + tm + cs/2.0; double y1 = p2.y;
-    double x4 = p1.x - cs/2.0     ; double y4 = p1.y;
+    double x1 = ph.x + tm + cs/2.0; double y1 = ph.y;
+    double x4 = pn.x - cs/2.0     ; double y4 = pn.y;
     double x2 = x1 + (x4 - x1)/3.0; double y2 = y1;
     double x3 = x2 + (x4 - x1)/3.0; double y3 = y4;
 
@@ -461,17 +460,22 @@ drawNode(QPainter *painter, CQChartsDendrogram::HierNode *hier,
 
     setBrush(lbrush, false);
 
-    painter->setPen  (lpen);
-    painter->setBrush(lbrush);
+    device->setPen  (lpen);
+    device->setBrush(lbrush);
 
     //---
 
     QPainterPath path;
 
-    path.moveTo (QPointF(x1, y1));
-    path.cubicTo(QPointF(x2, y2), QPointF(x3, y3), QPointF(x4, y4));
+    QPointF p1 = device->pixelToWindow(QPointF(x1, y1));
+    QPointF p2 = device->pixelToWindow(QPointF(x2, y2));
+    QPointF p3 = device->pixelToWindow(QPointF(x3, y3));
+    QPointF p4 = device->pixelToWindow(QPointF(x4, y4));
 
-    painter->drawPath(path);
+    path.moveTo (p1);
+    path.cubicTo(p2, p3, p4);
+
+    device->drawPath(path);
   }
 }
 
@@ -560,7 +564,7 @@ getSelectIndices(Indices &) const
 
 void
 CQChartsDendrogramNodeObj::
-draw(QPainter *painter)
+draw(CQChartsPaintDevice *device)
 {
   if (! node_->isPlaced()) return;
 
@@ -591,13 +595,13 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setPen  (pen);
-  painter->setBrush(brush);
+  device->setPen  (pen);
+  device->setBrush(brush);
 
   //---
 
   // draw node
-  painter->drawEllipse(qrect);
+  device->drawEllipse(device->pixelToWindow(qrect));
 
   //---
 
@@ -608,11 +612,11 @@ draw(QPainter *painter)
 
   plot_->setPen(tpen, /*stroked*/true, tc, plot_->textAlpha());
 
-  painter->setPen(tpen);
+  device->setPen(tpen);
 
   //---
 
-  plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
+  plot_->view()->setPlotPainterFont(plot_, device, plot_->textFont());
 
   //---
 
@@ -620,7 +624,7 @@ draw(QPainter *painter)
 
   bool is_hier = dynamic_cast<CQChartsDendrogram::HierNode *>(node_);
 
-  QFontMetricsF fm(painter->font());
+  QFontMetricsF fm(device->font());
 
   double dy = (fm.ascent() - fm.descent())/2;
 
@@ -631,5 +635,5 @@ draw(QPainter *painter)
   else
     p = QPointF(p1.x + cs, p1.y + dy);
 
-  CQChartsDrawUtil::drawSimpleText(painter, p, name);
+  CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(p), name);
 }

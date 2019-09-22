@@ -1,8 +1,20 @@
+Abstract Painter
+ . Parallel Plot
+ . Force Directed
+ . Remove old QPainter calls
+ . JS Painter Clip
+ . View annotation
+ . Separate mapping for view (annotations)
+ . obj tool tip and encoded string (html)
+ . complex inside test
+ . Annotation objects on javascript
+
 High
  + Combine CQChartsModelDetails and CQModelDetails
  + Same coloring in table and plot (if possible)
    + same palette
    + auto palette for single color
+   + stops
  + Export model (META data and TIME (converted) value handling)
  + Scroll to selected
  + Better model property editors
