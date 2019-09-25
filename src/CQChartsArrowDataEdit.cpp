@@ -211,12 +211,14 @@ CQChartsArrowDataEdit(QWidget *parent) :
 
   //---
 
+#if 0
   // relative
   relativeEdit_ = CQUtil::makeWidget<CQCheckBox>("relative");
 
   relativeEdit_->setToolTip("Is end point a delta from start point");
 
   CQChartsWidgetUtil::addGridLabelWidget(layout, "Relative", relativeEdit_, row);
+#endif
 
   // length
   lengthEdit_ = CQUtil::makeWidget<CQChartsLengthEdit>("length");
@@ -323,7 +325,7 @@ connectSlots(bool b)
       disconnect(w, from, this, to);
   };
 
-  connectDisconnect(b, relativeEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
+//connectDisconnect(b, relativeEdit_, SIGNAL(stateChanged(int)), SLOT(widgetsToData()));
   connectDisconnect(b, lengthEdit_, SIGNAL(lengthChanged()), SLOT(widgetsToData()));
   connectDisconnect(b, angleEdit_, SIGNAL(angleChanged(const CAngle &)), SLOT(widgetsToData()));
   connectDisconnect(b, backAngleEdit_, SIGNAL(angleChanged(const CAngle &)), SLOT(widgetsToData()));
@@ -339,7 +341,7 @@ dataToWidgets()
 {
   connectSlots(false);
 
-  relativeEdit_ ->setChecked(data_.isRelative());
+//relativeEdit_ ->setChecked(data_.isRelative());
   lengthEdit_   ->setLength (data_.length());
   angleEdit_    ->setAngle  (CAngle(data_.angle()));
   backAngleEdit_->setAngle  (CAngle(data_.backAngle()));
@@ -357,7 +359,7 @@ void
 CQChartsArrowDataEdit::
 widgetsToData()
 {
-  data_.setRelative (relativeEdit_->isChecked());
+//data_.setRelative (relativeEdit_->isChecked());
   data_.setLength   (lengthEdit_->length());
   data_.setAngle    (angleEdit_->getAngle().value());
   data_.setBackAngle(backAngleEdit_->getAngle().value());

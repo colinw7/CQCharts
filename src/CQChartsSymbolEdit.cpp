@@ -104,7 +104,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 {
   delegate->drawBackground(painter, option, ind, inside);
 
-  CQChartsSymbol symbol = value.value<CQChartsSymbol>();
+  CQChartsSymbol symbolType = value.value<CQChartsSymbol>();
 
   //---
 
@@ -122,7 +122,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   CQChartsPixelPainter device(painter);
 
-  CQChartsDrawUtil::drawSymbol(&device, symbol, rect1);
+  CQChartsDrawUtil::drawSymbol(&device, symbolType, rect1);
 
   painter->restore();
 
@@ -131,7 +131,7 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
   //--
 
   // draw symbol name
-  QString str = symbol.toString();
+  QString str = symbolType.toString();
 
   QFontMetrics fm(option.font);
 

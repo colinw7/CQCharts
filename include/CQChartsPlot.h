@@ -358,6 +358,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void writeScript(std::ostream &os) const;
 
+  void writeScriptRange(std::ostream &os) const;
+
   void invalidateOverlay();
 
   //---
@@ -1595,11 +1597,11 @@ class CQChartsPlot : public CQChartsObj,
   // draw objects
   bool hasGroupedObjs(const CQChartsLayer::Type &layerType) const;
 
-  void drawGroupedObjs(QPainter *painter, const CQChartsLayer::Type &layerType) const;
+  void drawGroupedObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) const;
 
   virtual bool hasObjs(const CQChartsLayer::Type &layerType) const;
 
-  void execDrawObjs(QPainter *painter, const CQChartsLayer::Type &type) const;
+  void execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &type) const;
 
   //---
 
@@ -1680,6 +1682,9 @@ class CQChartsPlot : public CQChartsObj,
                   const CQChartsLength &size) const;
   void drawSymbol(CQChartsPaintDevice *device, const QPointF &p, const CQChartsSymbol &symbol,
                   const CQChartsLength &size, const QPen &pen, const QBrush &brush) const;
+
+  void drawBufferedSymbol(QPainter *painter, const QPointF &p,
+                          const CQChartsSymbol &symbol, double size) const;
 
   //---
 

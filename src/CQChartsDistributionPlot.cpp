@@ -2980,6 +2980,8 @@ CQChartsDistributionBarObj(const CQChartsDistributionPlot *plot, const CQChartsG
  CQChartsPlotObj(const_cast<CQChartsDistributionPlot *>(plot), rect, ColorInd(), ig, iv),
  plot_(plot), groupInd_(groupInd), bucket_(bucket), barValue_(barValue)
 {
+  setDetailHint(DetailHint::MAJOR);
+
   plot_->bucketValues(groupInd_, bucket_, value1_, value2_);
 }
 

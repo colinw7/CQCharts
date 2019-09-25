@@ -192,29 +192,37 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   void drawFgAxes(CQChartsPaintDevice *device) const override;
 
-  void setObjRange();
+  void postDraw() override;
 
-  void setNormalizedRange();
+  void setObjRange       (CQChartsPaintDevice *device);
+  void setNormalizedRange(CQChartsPaintDevice *device);
 
  public slots:
   // set horizontal
   void setHorizontal(bool b);
 
  private:
+  enum class RangeType {
+    NONE,
+    OBJ,
+    NORMALIZED
+  };
+
   using Ranges = std::vector<CQChartsGeom::Range>;
   using YAxes  = std::vector<CQChartsAxis*>;
 
-  CQChartsColumn      xColumn_;                            //!< x value column
-  CQChartsColumns     yColumns_;                           //!< y value columns
-  bool                horizontal_      { false };          //!< horizontal bars
-  bool                linesSelectable_ { false };          //!< are lines selectable
-  Ranges              setRanges_;                          //!< value set ranges
-  Qt::Orientation     adir_            { Qt::Horizontal }; //!< axis direction
-  YAxes               axes_;                               //!< value axes
-  mutable std::mutex  axesMutex_;                          //!< value axes
-  CQChartsGeom::Range normalizedDataRange_;                //!< normalized data range
-  double              max_tw_          { 0.0 };            //!< max text width
-  CQChartsGeom::BBox  axesBBox_;                           //!< axes bbox
+  CQChartsColumn      xColumn_;                             //!< x value column
+  CQChartsColumns     yColumns_;                            //!< y value columns
+  bool                horizontal_      { false };           //!< horizontal bars
+  bool                linesSelectable_ { false };           //!< are lines selectable
+  Ranges              setRanges_;                           //!< value set ranges
+  Qt::Orientation     adir_            { Qt::Horizontal };  //!< axis direction
+  YAxes               axes_;                                //!< value axes
+  mutable std::mutex  axesMutex_;                           //!< value axes
+  CQChartsGeom::Range normalizedDataRange_;                 //!< normalized data range
+  double              max_tw_          { 0.0 };             //!< max text width
+  CQChartsGeom::BBox  axesBBox_;                            //!< axes bbox
+  RangeType           rangeType_       { RangeType::NONE }; //!< current range type
 };
 
 #endif

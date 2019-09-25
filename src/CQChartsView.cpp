@@ -4875,15 +4875,11 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   "Charts.prototype.eventMouseDown = function(e) {\n"
   "  charts.plots.forEach(plot => plot.eventMouseDown(e));\n"
   "}\n"
-  "\n";
-
-  os <<
+  "\n"
   "Charts.prototype.eventMouseMove = function(e) {\n"
   "  charts.plots.forEach(plot => plot.eventMouseMove(e));\n"
   "}\n"
-  "\n";
-
-  os <<
+  "\n"
   "Charts.prototype.eventMouseUp = function(e) {\n"
   "  charts.plots.forEach(plot => plot.eventMouseMove(e));\n"
   "}\n"
@@ -5067,8 +5063,9 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   "}\n"
   "\n"
   "Charts.prototype.drawPolygon = function(poly) {\n"
+  "  var np = poly.length;\n"
   "  this.gc.beginPath();\n"
-  "  for (var i = 0; i < poly.length; ++i) {\n"
+  "  for (var i = 0; i < np; ++i) {\n"
   "    var px = this.plotXToPixel(poly[2*i    ]);\n"
   "    var py = this.plotYToPixel(poly[2*i + 1]);\n"
   "    if (i == 0)\n"
@@ -5082,8 +5079,9 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   "}\n"
   "\n"
   "Charts.prototype.drawPolyline = function(poly) {\n"
+  "  var np = poly.length;\n"
   "  this.gc.beginPath();\n"
-  "  for (var i = 0; i < poly.length; ++i) {\n"
+  "  for (var i = 0; i < np; ++i) {\n"
   "    var px = this.plotXToPixel(poly[2*i    ]);\n"
   "    var py = this.plotYToPixel(poly[2*i + 1]);\n"
   "    if (i == 0)\n"
@@ -5119,6 +5117,43 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   "  this.gc.fillStyle = fillStyle;\n"
   "\n"
   "  this.gc.setTransform(1, 0, 0, 1, 0, 0);\n"
+  "}\n"
+  "\n";
+
+  //---
+
+  os <<
+  "Charts.prototype.pointInsideRect = function(x, y, xmin, ymin, xmax, ymax) {\n"
+  "  var pxmin = this.plotXToPixel(xmin);\n"
+  "  var pymax = this.plotYToPixel(ymin);\n"
+  "  var pxmax = this.plotXToPixel(xmax);\n"
+  "  var pymin = this.plotYToPixel(ymax);\n"
+  "  return (x >= pxmin && x <= pxmax && y >= pymin && y <= pymax);\n"
+  "}\n"
+  "\n"
+  "Charts.prototype.pointInsidePoly = function(x, y, poly) {\n"
+  "  var np = poly.length;\n"
+  "  var counter = 0;\n"
+  "  var i2 = np - 1;\n"
+  "  for (var i1 = 0; i1 < np; ++i1) {\n"
+  "    var px1 = this.plotXToPixel(poly[2*i1    ]);\n"
+  "    var py1 = this.plotYToPixel(poly[2*i1 + 1]);\n"
+  "    var px2 = this.plotXToPixel(poly[2*i2    ]);\n"
+  "    var py2 = this.plotYToPixel(poly[2*i2 + 1]);\n"
+  "    if (y > Math.min(py1, py2)) {\n"
+  "      if (y <= Math.max(py1, py2)) {\n"
+  "        if (x <= Math.max(px1, px2)) {\n"
+  "          if (py1 != py2) {\n"
+  "            var xinters = (y - py1)*(px2 - px1)/(py2 - py1) + px1;\n"
+  "            if (px1 == px2 || x <= xinters)\n"
+  "              ++counter;\n"
+  "          }\n"
+  "        }\n"
+  "      }\n"
+  "    }\n"
+  "    i2 = i1;\n"
+  "  }\n"
+  "  return ((counter % 2) != 0);\n"
   "}\n"
   "\n";
 

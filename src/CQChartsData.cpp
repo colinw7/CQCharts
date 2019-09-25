@@ -557,26 +557,35 @@ void
 CQChartsArrowData::
 setNameValues(CQChartsNameValues &nameValues) const
 {
+#if 0
   if (isRelative())
     nameValues.setNameValue("relative", isRelative());
+#endif
 
-  if (angle() > 0)
-    nameValues.setNameValue("angle", angle());
+  if (lineWidth().value() > 0)
+    nameValues.setNameValueType<CQChartsLength>("line_width", lineWidth());
 
-  if (backAngle() > 0)
-    nameValues.setNameValue("back_angle", backAngle());
+  //---
 
   nameValues.setNameValue("fhead", isFHead());
+
+  if (frontAngle    () > 0) nameValues.setNameValue("front_angle", frontAngle());
+  if (frontBackAngle() > 0) nameValues.setNameValue("front_back_angle", frontBackAngle());
+
+  //---
+
   nameValues.setNameValue("thead", isTHead());
+
+  if (tailAngle    () > 0) nameValues.setNameValue("tail_angle", tailAngle());
+  if (tailBackAngle() > 0) nameValues.setNameValue("tail_back_angle", tailBackAngle());
+
+  //---
 
   if (isLineEnds())
     nameValues.setNameValue("line_ends", isLineEnds());
 
   if (length().isValid())
     nameValues.setNameValueType<CQChartsLength>("length", length());
-
-  if (lineWidth().value() > 0)
-    nameValues.setNameValueType<CQChartsLength>("line_width", lineWidth());
 }
 
 bool
@@ -592,15 +601,22 @@ bool
 CQChartsArrowData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
-  nameValues.nameValueBool("relative"  , relative_);
-  nameValues.nameValueReal("angle"     , angle_);
-  nameValues.nameValueReal("back_angle", backAngle_);
-  nameValues.nameValueBool("fhead"     , fhead_);
-  nameValues.nameValueBool("thead"     , thead_);
-  nameValues.nameValueBool("line_ends" , lineEnds_);
+//nameValues.nameValueBool("relative", relative_);
 
-  nameValues.nameValueType<CQChartsLength>("length", length_);
   nameValues.nameValueType<CQChartsLength>("line_width", lineWidth_);
+
+  nameValues.nameValueBool                ("fhead"           , fheadData_.visible);
+  nameValues.nameValueReal                ("front_angle"     , fheadData_.angle);
+  nameValues.nameValueReal                ("front_back_angle", fheadData_.backAngle);
+  nameValues.nameValueType<CQChartsLength>("front_length"    , fheadData_.length);
+
+  nameValues.nameValueBool                ("thead"           , fheadData_.visible);
+  nameValues.nameValueReal                ("tail_angle"      , fheadData_.angle);
+  nameValues.nameValueReal                ("tail_back_angle" , fheadData_.backAngle);
+  nameValues.nameValueType<CQChartsLength>("tail_length"     , fheadData_.length);
+
+  nameValues.nameValueBool("line_ends", lineEnds_);
+
 
   return true;
 }

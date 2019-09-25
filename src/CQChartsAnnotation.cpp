@@ -998,7 +998,7 @@ draw(CQChartsPaintDevice *device)
   }
 
   setPen  (pen  , isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-  setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
+  setBrush(brush, isFilled (), bgColor, fillAlpha(), fillPattern());
 
   updatePenBrushState(pen, brush);
 
@@ -1182,7 +1182,7 @@ draw(CQChartsPaintDevice *device)
   }
 
   setPen  (pen  , isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-  setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
+  setBrush(brush, isFilled (), bgColor, fillAlpha(), fillPattern());
 
   updatePenBrushState(pen, brush);
 
@@ -1467,7 +1467,7 @@ init(const QString &textStr)
   setTextColor(themeFg);
 
   setStroked(false);
-  setFilled (false);
+  setFilled (true);
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -2283,9 +2283,9 @@ CQChartsArrowAnnotation(CQChartsView *view, const CQChartsPosition &start,
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 
-  arrow_ = new CQChartsArrow(view);
+  arrow_ = std::make_unique<CQChartsArrow>(view);
 
-  connect(arrow_, SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+  connect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
 }
 
 CQChartsArrowAnnotation::
@@ -2297,29 +2297,28 @@ CQChartsArrowAnnotation(CQChartsPlot *plot, const CQChartsPosition &start,
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 
-  arrow_ = new CQChartsArrow(plot);
+  arrow_ = std::make_unique<CQChartsArrow>(plot);
 
-  connect(arrow_, SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+  connect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
 }
 
 CQChartsArrowAnnotation::
 ~CQChartsArrowAnnotation()
 {
-  delete arrow_;
 }
 
 const CQChartsArrowData &
 CQChartsArrowAnnotation::
 arrowData() const
 {
-  return arrow_->data();
+  return arrow()->data();
 }
 
 void
 CQChartsArrowAnnotation::
 setArrowData(const CQChartsArrowData &data)
 {
-  arrow_->setData(data);
+  arrow()->setData(data);
 
   emit dataChanged();
 }
@@ -2335,7 +2334,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   auto addArrowProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc) {
-    return &(model->addProperty(path, arrow_, name, alias)->setDesc(desc));
+    return &(model->addProperty(path, arrow(), name, alias)->setDesc(desc));
   };
 
   auto addArrowStyleProp = [&](const QString &path, const QString &name, const QString &alias,
@@ -2359,7 +2358,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addArrowStyleProp(headPath, "length"   , ""    , "Arrow head length");
   addArrowStyleProp(headPath, "angle"    , ""    , "Arrow head angle");
   addArrowStyleProp(headPath, "backAngle", ""    , "Arrow head back angle");
-  addArrowStyleProp(headPath, "filled"   , ""    , "Arrow head is filled");
+//addArrowStyleProp(headPath, "filled"   , ""    , "Arrow head is filled");
   addArrowStyleProp(headPath, "lineEnds" , "line", "Arrow head is drawn using lines");
 
   QString linePath = path1 + "/line";
@@ -2402,7 +2401,7 @@ getPropertyNames(QStringList &names, bool hidden) const
   CQPropertyModel *propertyModel = this->propertyModel();
   if (! propertyModel) return;
 
-  propertyModel->objectNames(arrow_, names);
+  propertyModel->objectNames(arrow(), names);
 #endif
 }
 
@@ -2492,30 +2491,32 @@ draw(CQChartsPaintDevice *device)
   QPen   pen;
   QBrush brush;
 
-  QColor bgColor     = arrow_->interpFillColor  (ColorInd());
-  QColor strokeColor = arrow_->interpStrokeColor(ColorInd());
+  QColor bgColor     = arrow()->interpFillColor  (ColorInd());
+  QColor strokeColor = arrow()->interpStrokeColor(ColorInd());
 
   if (isCheckable() && ! isChecked()) {
     bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor, 0.5);
     strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
   }
 
-  setPen  (pen  , true, strokeColor, arrow_->strokeAlpha(), 1.0, CQChartsLineDash());
-  setBrush(brush, true, bgColor, arrow_->fillAlpha(), arrow_->fillPattern());
+  setPen  (pen  , arrow()->isStroked(),
+           strokeColor, arrow()->strokeAlpha(), 1.0, CQChartsLineDash());
+  setBrush(brush, arrow()->isFilled (),
+           bgColor, arrow()->fillAlpha(), arrow()->fillPattern());
 
   updatePenBrushState(pen, brush);
 
   //---
 
   // draw arrow
-  disconnect(arrow_, SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+  disconnect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
 
-  arrow_->setFrom(start);
-  arrow_->setTo  (end  );
+  arrow()->setFrom(start);
+  arrow()->setTo  (end  );
 
-  arrow_->draw(device, pen, brush);
+  arrow()->draw(device, pen, brush);
 
-  connect(arrow_, SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+  connect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
 
   //---
 
@@ -2588,7 +2589,7 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   CQPropertyViewModel::NameValues nameValues;
 
   if (propertyModel)
-    propertyModel->getChangedNameValues(this, arrow_, nameValues, /*tcl*/true);
+    propertyModel->getChangedNameValues(this, arrow(), nameValues, /*tcl*/true);
 
   if (nameValues.empty())
     return;

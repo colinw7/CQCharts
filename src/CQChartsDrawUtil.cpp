@@ -788,7 +788,7 @@ drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol, const QRec
   double cy = rect.center().y();
   double ss = std::min(prect.width(), prect.height());
 
-  CQChartsLength symbolSize(ss, CQChartsUnits::PIXEL);
+  CQChartsLength symbolSize(ss/2.0, CQChartsUnits::PIXEL);
 
   drawSymbol(device, symbol, QPointF(cx, cy), symbolSize);
 }

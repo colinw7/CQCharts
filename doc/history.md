@@ -950,3 +950,6 @@
 # 9/22/2019
  + add support for abstract painter
  + use painter to support writing plot to javascript
+# 9/24/2019
+ + add support for different front/tail arrows
+ + more javascript painter support

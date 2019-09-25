@@ -678,7 +678,7 @@ drawFgAxes(CQChartsPaintDevice *device) const
 {
   CQChartsParallelPlot *th = const_cast<CQChartsParallelPlot *>(this);
 
-  th->setObjRange();
+  //th->setObjRange(device);
 
   //---
 
@@ -711,6 +711,14 @@ drawFgAxes(CQChartsPaintDevice *device) const
         displayRange_->setWindowRange(-0.5, dataRange_.ymin(), ns - 0.5, dataRange_.ymax());
       else
         displayRange_->setWindowRange(dataRange_.xmin(), -0.5, dataRange_.xmax(), ns - 0.5);
+
+      //---
+
+      if (device->type() == CQChartsPaintDevice::Type::SCRIPT) {
+        CQChartsScriptPainter *painter = dynamic_cast<CQChartsScriptPainter *>(device);
+
+        writeScriptRange(painter->os());
+      }
     }
 
     //---
@@ -764,17 +772,35 @@ drawFgAxes(CQChartsPaintDevice *device) const
 
   //---
 
-  const_cast<CQChartsParallelPlot *>(this)->setNormalizedRange();
+  th->setNormalizedRange(device);
 
   th->axesBBox_ = pixelToWindow(axesBBox_);
+}
+
+void
+CQChartsParallelPlot::
+postDraw()
+{
+  //CQChartsParallelPlot *th = const_cast<CQChartsParallelPlot *>(this);
+
+  //th->setNormalizedRange(device);
+
+  rangeType_ = RangeType::NONE;
 }
 
 //---
 
 void
 CQChartsParallelPlot::
-setObjRange()
+setObjRange(CQChartsPaintDevice *device)
 {
+  if (rangeType_ == RangeType::OBJ)
+    return;
+
+  rangeType_ = RangeType::OBJ;
+
+  //---
+
   // set display range to data range
   const CQChartsGeom::Range &dataRange = this->dataRange();
 
@@ -784,17 +810,40 @@ setObjRange()
     else
       displayRange_->setWindowRange(0, dataRange.ymin(), 1, dataRange.ymax());
   }
+
+  //---
+
+  if (device->type() == CQChartsPaintDevice::Type::SCRIPT) {
+    CQChartsScriptPainter *painter = dynamic_cast<CQChartsScriptPainter *>(device);
+
+    writeScriptRange(painter->os());
+  }
 }
 
 void
 CQChartsParallelPlot::
-setNormalizedRange()
+setNormalizedRange(CQChartsPaintDevice *device)
 {
+  if (rangeType_ == RangeType::NORMALIZED)
+    return;
+
+  rangeType_ = RangeType::NORMALIZED;
+
+  //---
+
   // set display range to normalized range
   displayRange_->setWindowRange(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
                                 normalizedDataRange_.xmax(), normalizedDataRange_.ymax());
 
   dataRange_ = normalizedDataRange_;
+
+  //---
+
+  if (device->type() == CQChartsPaintDevice::Type::SCRIPT) {
+    CQChartsScriptPainter *painter = dynamic_cast<CQChartsScriptPainter *>(device);
+
+    writeScriptRange(painter->os());
+  }
 }
 
 //------
@@ -1096,7 +1145,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsParallelPlot *plot = const_cast<CQChartsParallelPlot *>(plot_);
 
-  plot->setObjRange();
+  plot->setObjRange(device);
 
   //---
 
@@ -1113,16 +1162,19 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // get symbol type and size
-  CQChartsSymbol symbol = plot_->symbolType();
+  CQChartsSymbol symbolType = plot_->symbolType();
+  CQChartsLength symbolSize = plot_->symbolSize();
 
   double sx, sy;
 
-  plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
+  plot_->pixelSymbolSize(symbolSize, sx, sy);
 
   if (isInside() || isSelected()) {
     sx *= 2;
     sy *= 2;
   }
+
+  CQChartsLength symbolSize1 = CQChartsLength(CMathUtil::avg(sx, sy), CQChartsUnits::PIXEL);
 
   //---
 
@@ -1130,9 +1182,9 @@ draw(CQChartsPaintDevice *device)
   QPointF p(x_, y_);
 
   const_cast<CQChartsParallelPlot *>(plot_)->
-    drawSymbol(device, p, symbol, CMathUtil::avg(sx, sy), pen, brush);
+    drawSymbol(device, p, symbolType, symbolSize1, pen, brush);
 
   //---
 
-  plot->setNormalizedRange();
+  //plot->setNormalizedRange(device);
 }

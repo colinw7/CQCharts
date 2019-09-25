@@ -577,7 +577,7 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   const CQChartsPosition &end() const { return end_; }
   void setEnd(const CQChartsPosition &p) { end_ = p; emit dataChanged(); }
 
-  CQChartsArrow *arrow() const { return arrow_; }
+  CQChartsArrow *arrow() const { return arrow_.get(); }
 
   const CQChartsArrowData &arrowData() const;
   void setArrowData(const CQChartsArrowData &data);
@@ -599,9 +599,11 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
              const QString &varName="") const override;
 
  private:
+  using ArrowP = std::unique_ptr<CQChartsArrow>;
+
   CQChartsPosition start_ { QPointF(0, 0) }; //!< arrow start
   CQChartsPosition end_   { QPointF(1, 1) }; //!< arrow end
-  CQChartsArrow*   arrow_ { nullptr };       //!< arrow data
+  ArrowP           arrow_;                   //!< arrow data
 };
 
 //---

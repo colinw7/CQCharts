@@ -581,6 +581,8 @@ CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &
  CQChartsPlotObj(const_cast<CQChartsGeometryPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
  plot_(plot), polygons_(polygons)
 {
+  setDetailHint(DetailHint::MAJOR);
+
   setModelInd(ind);
 }
 

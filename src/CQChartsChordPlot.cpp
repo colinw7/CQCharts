@@ -790,6 +790,8 @@ CQChartsChordObj(const CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
  CQChartsPlotObj(const_cast<CQChartsChordPlot *>(plot), rect, ColorInd(), ig, iv),
  plot_(plot), data_(data)
 {
+  setDetailHint(DetailHint::MAJOR);
+
   setModelInd(data.ind());
 }
 

@@ -1125,6 +1125,8 @@ CQChartsHierBubbleNodeObj(const CQChartsHierBubblePlot *plot, CQChartsHierBubble
  CQChartsPlotObj(const_cast<CQChartsHierBubblePlot *>(plot), rect, is, ColorInd(), ColorInd()),
  plot_(plot), node_(node), hierObj_(hierObj)
 {
+  setDetailHint(DetailHint::MAJOR);
+
   setModelInd(node_->ind());
 }
 

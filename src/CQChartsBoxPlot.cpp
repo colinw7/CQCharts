@@ -1779,6 +1779,8 @@ CQChartsBoxPlotWhiskerObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox 
 {
   assert(whisker_);
 
+  setDetailHint(DetailHint::MAJOR);
+
   for (auto &value : whisker_->values())
     addModelInd(value.ind);
 }

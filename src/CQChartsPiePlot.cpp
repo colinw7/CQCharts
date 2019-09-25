@@ -1114,6 +1114,8 @@ CQChartsPieObj(const CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect,
  CQChartsPlotObj(const_cast<CQChartsPiePlot *>(plot), rect, ColorInd(), ig, ColorInd()),
  plot_(plot)
 {
+  setDetailHint(DetailHint::MAJOR);
+
   setModelInd(ind);
 }
 

@@ -83,7 +83,7 @@ class CQChartsArrowDataEdit : public CQChartsEditBase {
 
  private:
   CQChartsArrowData             data_;                      //!< arrow data
-  CQCheckBox*                   relativeEdit_  { nullptr }; //!< relative edit
+//CQCheckBox*                   relativeEdit_  { nullptr }; //!< relative edit
   CQChartsLengthEdit*           lengthEdit_    { nullptr }; //!< length edit
   CQAngleSpinBox*               angleEdit_     { nullptr }; //!< angle edit
   CQAngleSpinBox*               backAngleEdit_ { nullptr }; //!< back angle edit

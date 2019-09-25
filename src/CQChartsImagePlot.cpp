@@ -636,6 +636,8 @@ CQChartsImageObj(const CQChartsImagePlot *plot, const CQChartsGeom::BBox &rect,
  CQChartsPlotObj(const_cast<CQChartsImagePlot *>(plot), rect, ColorInd(), ColorInd(), iv),
  plot_(plot), row_(row), col_(col), value_(value)
 {
+  setDetailHint(DetailHint::MAJOR);
+
   setModelInd(ind);
 }
 

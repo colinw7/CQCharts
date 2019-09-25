@@ -6285,6 +6285,13 @@ bool
 CQChartsCmds::
 createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
 {
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
   CQPerfTrace trace("CQChartsCmds::createChartsArrowAnnotationCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -6298,13 +6305,17 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-start", CQChartsCmdArg::Type::Position, "start position");
   argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Position, "end position");
 
-  argv.addCmdArg("-length"    , CQChartsCmdArg::Type::Length, "arrow head length");
-  argv.addCmdArg("-angle"     , CQChartsCmdArg::Type::Real  , "arrow head angle");
-  argv.addCmdArg("-back_angle", CQChartsCmdArg::Type::Real  , "arrow head back angle");
-  argv.addCmdArg("-fhead"     , CQChartsCmdArg::Type::SBool , "show start arrow head");
-  argv.addCmdArg("-thead"     , CQChartsCmdArg::Type::SBool , "show end arrow head");
-  argv.addCmdArg("-line_ends" , CQChartsCmdArg::Type::SBool , "use line for arrow head");
   argv.addCmdArg("-line_width", CQChartsCmdArg::Type::Length, "connecting line width");
+
+  argv.addCmdArg("-fhead", CQChartsCmdArg::Type::String, "start arrow head type");
+  argv.addCmdArg("-thead", CQChartsCmdArg::Type::String, "end arrow head type");
+
+  argv.addCmdArg("-angle"     , CQChartsCmdArg::Type::Real, "arrow head angle");
+  argv.addCmdArg("-back_angle", CQChartsCmdArg::Type::Real, "arrow head back angle");
+
+  argv.addCmdArg("-length", CQChartsCmdArg::Type::String, "arrow head length");
+
+  argv.addCmdArg("-line_ends", CQChartsCmdArg::Type::SBool , "use line for arrow head");
 
   argv.addCmdArg("-filled"    , CQChartsCmdArg::Type::SBool,
                  "background is filled" ).setHidden();
@@ -6353,25 +6364,96 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsPosition start = argv.getParsePosition(view, plot, "start");
   CQChartsPosition end   = argv.getParsePosition(view, plot, "end"  );
 
-  arrowData.setLength   (argv.getParseLength(view, plot, "length", arrowData.length()));
-  arrowData.setAngle    (argv.getParseReal  ("angle"     , arrowData.angle()));
-  arrowData.setBackAngle(argv.getParseReal  ("back_angle", arrowData.backAngle()));
-  arrowData.setFHead    (argv.getParseBool  ("fhead"     , arrowData.isFHead()));
-  arrowData.setTHead    (argv.getParseBool  ("thead"     , arrowData.isTHead()));
-  arrowData.setLineEnds (argv.getParseBool  ("line_ends" , arrowData.isLineEnds()));
   arrowData.setLineWidth(argv.getParseLength(view, plot, "line_width", arrowData.lineWidth()));
+
+  auto headTypeToArea = [](const QString &headType, bool &visible,
+                           CQChartsArrowData::HeadType &type) {
+    QString lstr = headType.toLower();
+    bool ok; visible = CQChartsCmdBaseArgs::stringToBool(lstr, &ok);
+    if (ok) return true;
+
+    visible = (lstr != "none");
+    if (! visible) return true;
+
+    if      (lstr == "triangle")
+      type = CQChartsArrowData::HeadType::TRIANGLE;
+    else if (lstr == "stealth")
+      type = CQChartsArrowData::HeadType::STEALTH;
+    else
+      return false;
+
+    return true;
+  };
+
+  if (argv.hasParseArg("fhead")) {
+    bool                        visible  { false };
+    CQChartsArrowData::HeadType headType { CQChartsArrowData::HeadType::NONE };
+
+    if (headTypeToArea(argv.getParseStr("fhead"), visible, headType)) {
+      arrowData.setFHead    (visible);
+      arrowData.setFHeadType(headType);
+    }
+  }
+
+  if (argv.hasParseArg("thead")) {
+    bool                        visible  { false };
+    CQChartsArrowData::HeadType headType { CQChartsArrowData::HeadType::NONE };
+
+    if (headTypeToArea(argv.getParseStr("thead"), visible, headType)) {
+      arrowData.setTHead    (visible);
+      arrowData.setTHeadType(headType);
+    }
+  }
+
+  if (argv.hasParseArg("angle"))
+    arrowData.setAngle(argv.getParseReal("angle", arrowData.angle()));
+
+  if (argv.hasParseArg("back_angle"))
+    arrowData.setBackAngle(argv.getParseReal("back_angle", arrowData.backAngle()));
+
+  if (argv.hasParseArg("length")) {
+    QStringList strs;
+
+    if (! CQTcl::splitList(argv.getParseStr("length"), strs))
+      return errorMsg(QString("Invalid length string '%1'").arg(argv.getParseStr("length")));
+
+    if      (strs.length() == 1) {
+      arrowData.setLength(CQChartsLength(strs[0]));
+    }
+    else if (strs.length() == 2) {
+      arrowData.setFrontLength(CQChartsLength(strs[0]));
+      arrowData.setFrontLength(CQChartsLength(strs[1]));
+    }
+    else
+      return errorMsg(QString("Invalid length string '%1'").arg(argv.getParseStr("length")));
+  }
+
+  arrowData.setLineEnds(argv.getParseBool("line_ends", arrowData.isLineEnds()));
+
+  //---
 
   CQChartsShapeData shapeData;
 
   CQChartsFillData   &fill   = shapeData.fill();
   CQChartsStrokeData &stroke = shapeData.stroke();
 
-  fill.setVisible(argv.getParseBool ("filled"    , fill.isVisible()));
-  fill.setColor  (argv.getParseColor("fill_color", fill.color    ()));
+  fill  .setVisible(true);
+  stroke.setVisible(false);
 
-  stroke.setVisible(argv.getParseBool  ("stroked"     , stroke.isVisible()));
-  stroke.setColor  (argv.getParseColor ("stroke_color", stroke.color()));
-  stroke.setWidth  (argv.getParseLength(view, plot, "stroke_width", stroke.width()));
+  if (argv.hasParseArg("filled")) {
+    fill.setVisible(argv.getParseBool("filled", fill.isVisible()));
+
+    if (! fill.isVisible())
+      stroke.setVisible(true);
+  }
+
+  fill.setColor(argv.getParseColor("fill_color", fill.color()));
+
+  if (argv.hasParseArg("stroked"))
+    stroke.setVisible(argv.getParseBool("stroked", stroke.isVisible()));
+
+  stroke.setColor(argv.getParseColor ("stroke_color", stroke.color()));
+  stroke.setWidth(argv.getParseLength(view, plot, "stroke_width", stroke.width()));
 
   //---
 

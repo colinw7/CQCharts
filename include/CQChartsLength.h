@@ -25,7 +25,7 @@ class CQChartsLength {
    units_(units), value_(value) {
   }
 
-  CQChartsLength(const QString &s, const CQChartsUnits &units=CQChartsUnits::PLOT) {
+  explicit CQChartsLength(const QString &s, const CQChartsUnits &units=CQChartsUnits::PLOT) {
     setValue(s, units);
   }
 

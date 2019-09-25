@@ -78,6 +78,8 @@ class CQChartsPaintDevice {
   double lengthWindowWidth (const CQChartsLength &w) const;
   double lengthWindowHeight(const CQChartsLength &h) const;
 
+  virtual bool invertY() const { return false; }
+
  protected:
   CQChartsView* view_ { nullptr };
   CQChartsPlot* plot_ { nullptr };
@@ -155,7 +157,11 @@ class CQChartsPixelPainter : public CQChartsViewPlotPainter {
   CQChartsPixelPainter(QPainter *painter);
 
   Type type() const override { return Type::PIXEL; }
+
+  bool invertY() const override { return true; }
 };
+
+//---
 
 class CQChartsViewPainter : public CQChartsViewPlotPainter {
  public:
@@ -163,6 +169,8 @@ class CQChartsViewPainter : public CQChartsViewPlotPainter {
 
   Type type() const override { return Type::VIEW; }
 };
+
+//---
 
 class CQChartsPlotPainter : public CQChartsViewPlotPainter {
  public:

@@ -68,6 +68,13 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
+  //---
+
+  bool isPolygon() const override { return true; }
+  QPolygonF polygon() const override { return poly_; }
+
+  //---
+
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;

@@ -709,6 +709,8 @@ CQChartsRadarObj(const CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect, 
  CQChartsPlotObj(const_cast<CQChartsRadarPlot *>(plot), rect, is, ColorInd(), ColorInd()),
  plot_(plot), name_(name), poly_(poly), nameValues_(nameValues)
 {
+  setDetailHint(DetailHint::MAJOR);
+
   setModelInd(ind);
 }
 

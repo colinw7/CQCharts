@@ -655,7 +655,7 @@ writeScript(std::ostream &os) const
 {
   auto encodeObjId = [&](const QString &id) {
     QString id1 = id;
-    id1.replace(':', '_').replace('(', '_').replace(')', '_').replace('.', '_');
+    id1.replace(':', '_').replace('(', '_').replace(')', '_').replace('.', '_').replace(' ', '_');
     return id1.toStdString();
   };
 
@@ -717,13 +717,9 @@ writeScript(std::ostream &os) const
   os << "  this.objs.forEach(obj => obj.eventMouseDown(e));\n";
   os << "}\n";
   os << "\n";
-
-  os << "\n";
   os << "Charts_" << plotId << ".prototype.eventMouseMove = function(e) {\n";
   os << "  this.objs.forEach(obj => obj.eventMouseMove(e));\n";
   os << "}\n";
-  os << "\n";
-
   os << "\n";
   os << "Charts_" << plotId << ".prototype.eventMouseUp = function(e) {\n";
   os << "  this.objs.forEach(obj => obj.eventMouseMove(e));\n";
@@ -731,22 +727,17 @@ writeScript(std::ostream &os) const
 
   //---
 
-  CQChartsGeom::BBox vrect = viewBBox();
-  CQChartsGeom::BBox prect = calcPlotRect();
-
   os << "\n";
   os << "Charts_" << plotId << ".prototype.draw = function() {\n";
+
+  CQChartsGeom::BBox vrect = viewBBox();
 
   os << "  charts.vxmin = " << vrect.getXMin() << ";\n";
   os << "  charts.vymin = " << vrect.getYMin() << ";\n";
   os << "  charts.vxmax = " << vrect.getXMax() << ";\n";
   os << "  charts.vymax = " << vrect.getYMax() << ";\n";
-  os << "\n";
 
-  os << "  charts.xmin = " << prect.getXMin() << ";\n";
-  os << "  charts.ymin = " << prect.getYMin() << ";\n";
-  os << "  charts.xmax = " << prect.getXMax() << ";\n";
-  os << "  charts.ymax = " << prect.getYMax() << ";\n";
+  writeScriptRange(os);
 
   //---
 
@@ -756,50 +747,39 @@ writeScript(std::ostream &os) const
 
   //---
 
-  bool showXAxis = (xAxis() && xAxis()->isVisible());
-  bool showYAxis = (yAxis() && yAxis()->isVisible());
-
-  bool showXGrid = (showXAxis && xAxis()->isGridAbove() && xAxis()->isDrawGrid());
-  bool showYGrid = (showYAxis && yAxis()->isGridAbove() && yAxis()->isDrawGrid());
-
-  //---
-
-  if (showXGrid || showYGrid || showXAxis || showYAxis) {
-    os << "\n";
-    os << "  this.drawAxis();\n";
-  }
+  bool bgAxes = hasGroupedBgAxes();
+  bool fgAxes = hasGroupedFgAxes();
+  bool bgKey  = hasGroupedBgKey();
+  bool fgKey  = hasGroupedFgKey();
 
   //---
 
-  os << "\n";
-  os << "  this.drawObjs();\n";
+  if (bgAxes) { os << "\n"; os << "  this.drawBgAxis();\n"; }
+  if (bgKey ) { os << "\n"; os << "  this.drawBgKey ();\n"; }
+
+  //---
+
+  os << "\n"; os << "  this.drawObjs();\n";
 
   //---
 
   if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
-    os << "\n";
-    os << "  this.drawAnnotations();\n";
+    os << "\n"; os << "  this.drawAnnotations();\n";
   }
 
   //---
 
-  if (key()) {
-    os << "\n";
-    os << "  this.drawKey();\n";
-  }
+  if (fgAxes) { os << "\n"; os << "  this.drawFgAxis();\n"; }
+  if (fgKey ) { os << "\n"; os << "  this.drawFgKey ();\n"; }
 
   //---
 
-  if (title()) {
-    os << "\n";
-    os << "  this.drawTitle();\n";
-  }
+  if (title()) { os << "\n"; os << "  this.drawTitle();\n"; }
 
   //---
 
   if (this->hasForeground()) {
     os << "\n";
-
     execDrawForeground(&device);
   }
 
@@ -831,6 +811,23 @@ writeScript(std::ostream &os) const
       os << "  this.ymin = " << rect.getYMin() << ";\n";
       os << "  this.xmax = " << rect.getXMax() << ";\n";
       os << "  this.ymax = " << rect.getYMax() << ";\n";
+
+      if (plotObj->isPolygon()) {
+        os << "  this.poly = [";
+
+        QPolygonF poly = plotObj->polygon();
+
+        int np = poly.length();
+
+        for (int i = 0; i < np; ++i) {
+          if (i > 0) os << ", ";
+
+          os << poly[i].x() << ", " << poly[i].y();
+        }
+
+        os << "];\n";
+      }
+
       os << "}\n";
 
       //---
@@ -859,20 +856,22 @@ writeScript(std::ostream &os) const
 
       os << "\n";
       os << "Charts_" << objStr << ".prototype.inside = function(x, y) {\n";
-      os << "  var pxmin = charts.plotXToPixel(this.xmin);\n";
-      os << "  var pymax = charts.plotYToPixel(this.ymin);\n";
-      os << "  var pxmax = charts.plotXToPixel(this.xmax);\n";
-      os << "  var pymin = charts.plotYToPixel(this.ymax);\n";
-      os << "  return (x >= pxmin && x <= pxmax && y >= pymin && y <= pymax);\n";
+
+      if (plotObj->isPolygon()) {
+        os << "  return charts.pointInsidePoly(x, y, this.poly);\n";
+      }
+      else {
+        os << "  return charts.pointInsideRect(x, y, this.xmin, this.ymin, "
+              "this.xmax, this.ymax);\n";
+      }
+
       os << "}\n";
 
       os << "\n";
       os << "Charts_" << objStr << ".prototype.draw = function() {\n";
 
       plotObj->drawBg(&device);
-
-      plotObj->draw(&device);
-
+      plotObj->draw  (&device);
       plotObj->drawFg(&device);
 
       os << "}\n";
@@ -895,9 +894,7 @@ writeScript(std::ostream &os) const
     }
     else {
       plotObj->drawBg(&device);
-
-      plotObj->draw(&device);
-
+      plotObj->draw  (&device);
       plotObj->drawFg(&device);
     }
   }
@@ -906,59 +903,66 @@ writeScript(std::ostream &os) const
 
   //---
 
-  if (showXGrid || showYGrid || showXAxis || showYAxis) {
+  if (bgAxes) {
     os << "\n";
-    os << "Charts_" << plotId << ".prototype.drawAxis = function() {\n";
+    os << "Charts_" << plotId << ".prototype.drawBgAxis = function() {\n";
+    drawGroupedBgAxes(&device);
+    os << "}\n";
+  }
 
-    if (showXGrid)
-      xAxis()->drawGrid(this, &device);
-
-    if (showYGrid)
-      yAxis()->drawGrid(this, &device);
-
-    //---
-
-    if (showXAxis)
-      xAxis()->draw(this, &device);
-
-    if (showYAxis)
-      yAxis()->draw(this, &device);
-
+  if (fgAxes) {
+    os << "\n";
+    os << "Charts_" << plotId << ".prototype.drawFgAxis = function() {\n";
+    drawGroupedFgAxes(&device);
     os << "}\n";
   }
 
   //---
 
-  if (key()) {
+  if (bgKey) {
     os << "\n";
-    os << "Charts_" << plotId << ".prototype.drawKey = function() {\n";
+    os << "Charts_" << plotId << ".prototype.drawBgKey = function() {\n";
+    drawBgKey(&device);
+    os << "}\n";
+  }
 
-    key()->draw(&device);
-
+  if (fgKey) {
+    os << "\n";
+    os << "Charts_" << plotId << ".prototype.drawFgKey = function() {\n";
+    drawFgKey(&device);
     os << "}\n";
   }
 
   if (title()) {
     os << "\n";
     os << "Charts_" << plotId << ".prototype.drawTitle = function() {\n";
-
-    title()->draw(&device);
-
+    drawTitle(&device);
     os << "}\n";
   }
 
   if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
     os << "\n";
     os << "Charts_" << plotId << ".prototype.drawAnnotations = function() {\n";
-
     drawGroupedAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
-
     os << "}\n";
   }
 
   //---
 
   device.setContext("");
+}
+
+void
+CQChartsPlot::
+writeScriptRange(std::ostream &os) const
+{
+  CQChartsGeom::BBox prect = calcPlotRect();
+
+  os << "\n";
+  os << "  charts.xmin = " << prect.getXMin() << ";\n";
+  os << "  charts.ymin = " << prect.getYMin() << ";\n";
+  os << "  charts.xmax = " << prect.getXMax() << ";\n";
+  os << "  charts.ymax = " << prect.getYMax() << ";\n";
 }
 
 //---
@@ -6370,7 +6374,7 @@ drawBackgroundParts(QPainter *painter) const
     //---
 
     if (debugQuadTree_) {
-      painter->setPen(Qt::black);
+      painter1->setPen(Qt::black);
 
       plotObjTree_->draw(painter1);
     }
@@ -6413,9 +6417,9 @@ drawMiddleParts(QPainter *painter) const
     CQChartsPlotPainter device(th, painter1);
 
     // draw objects (background, mid, foreground)
-    drawGroupedObjs(painter1, CQChartsLayer::Type::BG_PLOT );
-    drawGroupedObjs(painter1, CQChartsLayer::Type::MID_PLOT);
-    drawGroupedObjs(painter1, CQChartsLayer::Type::FG_PLOT );
+    drawGroupedObjs(&device, CQChartsLayer::Type::BG_PLOT );
+    drawGroupedObjs(&device, CQChartsLayer::Type::MID_PLOT);
+    drawGroupedObjs(&device, CQChartsLayer::Type::FG_PLOT );
   }
 
   //---
@@ -6516,7 +6520,7 @@ drawOverlayParts(QPainter *painter) const
 
     // draw selection
     if (sel_objs)
-      drawGroupedObjs(painter1, CQChartsLayer::Type::SELECTION);
+      drawGroupedObjs(&device, CQChartsLayer::Type::SELECTION);
 
     if (sel_annotations)
       drawGroupedAnnotations(&device, CQChartsLayer::Type::SELECTION);
@@ -6536,7 +6540,7 @@ drawOverlayParts(QPainter *painter) const
 
     // draw mouse over
     if (over_objs)
-      drawGroupedObjs(painter1, CQChartsLayer::Type::MOUSE_OVER);
+      drawGroupedObjs(&device, CQChartsLayer::Type::MOUSE_OVER);
 
     if (over_annotations)
       drawGroupedAnnotations(&device, CQChartsLayer::Type::MOUSE_OVER);
@@ -6835,7 +6839,7 @@ hasGroupedObjs(const CQChartsLayer::Type &layerType) const
 
 void
 CQChartsPlot::
-drawGroupedObjs(QPainter *painter, const CQChartsLayer::Type &layerType) const
+drawGroupedObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) const
 {
   CQPerfTrace trace("CQChartsPlot::drawGroupedObjs");
 
@@ -6845,11 +6849,11 @@ drawGroupedObjs(QPainter *painter, const CQChartsLayer::Type &layerType) const
       return;
 
     processOverlayPlots([&](const CQChartsPlot *plot) {
-      plot->execDrawObjs(painter, layerType);
+      plot->execDrawObjs(device, layerType);
     });
   }
   else {
-    execDrawObjs(painter, layerType);
+    execDrawObjs(device, layerType);
   }
 }
 
@@ -6892,7 +6896,7 @@ hasObjs(const CQChartsLayer::Type &layerType) const
 
 void
 CQChartsPlot::
-execDrawObjs(QPainter *painter, const CQChartsLayer::Type &layerType) const
+execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) const
 {
   CQPerfTrace trace("CQChartsPlot::execDrawObjs");
 
@@ -6901,16 +6905,10 @@ execDrawObjs(QPainter *painter, const CQChartsLayer::Type &layerType) const
 
   //---
 
-  CQChartsPlot *th = const_cast<CQChartsPlot *>(this);
+  // init paint (clipped)
+  device->save();
 
-  CQChartsPlotPainter device(th, painter);
-
-  //---
-
-  // init painter (clipped)
-  painter->save();
-
-  setClipRect(&device);
+  setClipRect(device);
 
   //---
 
@@ -6941,30 +6939,30 @@ execDrawObjs(QPainter *painter, const CQChartsLayer::Type &layerType) const
 
     // draw object on layer
     if      (layerType == CQChartsLayer::Type::BG_PLOT)
-      plotObj->drawBg(&device);
+      plotObj->drawBg(device);
     else if (layerType == CQChartsLayer::Type::FG_PLOT)
-      plotObj->drawFg(&device);
+      plotObj->drawFg(device);
     else if (layerType == CQChartsLayer::Type::MID_PLOT)
-      plotObj->draw(&device);
+      plotObj->draw  (device);
     else if (layerType == CQChartsLayer::Type::SELECTION) {
-      plotObj->draw  (&device);
-      plotObj->drawFg(&device);
+      plotObj->draw  (device);
+      plotObj->drawFg(device);
     }
     else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
-      plotObj->draw  (&device);
-      plotObj->drawFg(&device);
+      plotObj->draw  (device);
+      plotObj->drawFg(device);
     }
 
     //---
 
     // show debug box
     if (showBoxes())
-      plotObj->drawDebugRect(&device);
+      plotObj->drawDebugRect(device);
   }
 
   //---
 
-  painter->restore();
+  device->restore();
 }
 
 bool
@@ -8312,7 +8310,23 @@ CQChartsPlot::
 drawSymbol(CQChartsPaintDevice *device, const QPointF &p, const CQChartsSymbol &symbol,
            const CQChartsLength &size) const
 {
-  CQChartsDrawUtil::drawSymbol(device, symbol, p, size);
+  if (bufferSymbols_) {
+    CQChartsViewPlotPainter *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+
+    if (painter) {
+      double sx, sy;
+
+      plotSymbolSize(size, sx, sy);
+
+      drawBufferedSymbol(painter->painter(), p, symbol, std::min(sx, sy));
+    }
+    else {
+      CQChartsDrawUtil::drawSymbol(device, symbol, p, size);
+    }
+  }
+  else {
+    CQChartsDrawUtil::drawSymbol(device, symbol, p, size);
+  }
 }
 
 #if 0
@@ -8321,62 +8335,71 @@ CQChartsPlot::
 drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, double size) const
 {
   if (bufferSymbols_) {
-    auto cmpPen = [](const QPen &pen1, const QPen &pen2) {
-      if (pen1.style () != pen2.style ()) return false;
-      if (pen1.color () != pen2.color ()) return false;
-      if (pen1.widthF() != pen2.widthF()) return false;
-      return true;
-    };
-
-    auto cmpBrush = [](const QBrush &brush1, const QBrush &brush2) {
-      if (brush1.style () != brush2.style ()) return false;
-      if (brush1.color () != brush2.color ()) return false;
-      return true;
-    };
-
-    struct ImageBuffer {
-      CQChartsSymbol symbol;
-      double         size { 0.0 };
-      int            isize { 0 };
-      QPen           pen;
-      QBrush         brush;
-      QImage         image;
-    };
-
-    static ImageBuffer imageBuffer;
-
-    if (symbol != imageBuffer.symbol ||
-        size   != imageBuffer.size   ||
-        ! cmpPen  (painter->pen  (), imageBuffer.pen  ) ||
-        ! cmpBrush(painter->brush(), imageBuffer.brush)) {
-      imageBuffer.symbol = symbol;
-      imageBuffer.size   = size;
-      imageBuffer.isize  = CMathRound::RoundUp(2*(size + std::max(painter->pen().widthF(), 1.0)));
-      imageBuffer.pen    = painter->pen  ();
-      imageBuffer.brush  = painter->brush();
-      imageBuffer.image  = CQChartsUtil::initImage(QSize(imageBuffer.isize, imageBuffer.isize));
-
-      imageBuffer.image.fill(QColor(0,0,0,0));
-
-      QPainter ipainter(&imageBuffer.image);
-
-      ipainter.setRenderHints(QPainter::Antialiasing);
-
-      ipainter.setPen  (imageBuffer.pen  );
-      ipainter.setBrush(imageBuffer.brush);
-
-      CQChartsDrawUtil::drawSymbol(&ipainter, symbol, QPointF(size, size), QSizeF(size, size));
-    }
-
-    double is = imageBuffer.isize/2.0;
-
-    painter->drawImage(p.x() - is, p.y() - is, imageBuffer.image);
-  }
-  else {
-    CQChartsDrawUtil::drawSymbol(painter, symbol, p, QSizeF(size, size));
-  }
+    drawSymbolBufferSymbol(painter);
 }
 #endif
+
+void
+CQChartsPlot::
+drawBufferedSymbol(QPainter *painter, const QPointF &p,
+                   const CQChartsSymbol &symbol, double size) const
+{
+  auto cmpPen = [](const QPen &pen1, const QPen &pen2) {
+    if (pen1.style () != pen2.style ()) return false;
+    if (pen1.color () != pen2.color ()) return false;
+    if (pen1.widthF() != pen2.widthF()) return false;
+    return true;
+  };
+
+  auto cmpBrush = [](const QBrush &brush1, const QBrush &brush2) {
+    if (brush1.style () != brush2.style ()) return false;
+    if (brush1.color () != brush2.color ()) return false;
+    return true;
+  };
+
+  struct ImageBuffer {
+    CQChartsSymbol symbol;
+    double         size { 0.0 };
+    int            isize { 0 };
+    QPen           pen;
+    QBrush         brush;
+    QImage         image;
+  };
+
+  static ImageBuffer imageBuffer;
+
+  if (symbol != imageBuffer.symbol ||
+      size   != imageBuffer.size   ||
+      ! cmpPen  (painter->pen  (), imageBuffer.pen  ) ||
+      ! cmpBrush(painter->brush(), imageBuffer.brush)) {
+    imageBuffer.symbol = symbol;
+    imageBuffer.size   = size;
+    imageBuffer.isize  = CMathRound::RoundUp(2*(size + std::max(painter->pen().widthF(), 1.0)));
+    imageBuffer.pen    = painter->pen  ();
+    imageBuffer.brush  = painter->brush();
+    imageBuffer.image  = CQChartsUtil::initImage(QSize(imageBuffer.isize, imageBuffer.isize));
+
+    imageBuffer.image.fill(QColor(0,0,0,0));
+
+    QPainter ipainter(&imageBuffer.image);
+
+    ipainter.setRenderHints(QPainter::Antialiasing);
+
+    ipainter.setPen  (imageBuffer.pen  );
+    ipainter.setBrush(imageBuffer.brush);
+
+    CQChartsPixelPainter device(&ipainter);
+
+    QPoint         spos (size, size);
+    CQChartsLength ssize(size, CQChartsUnits::PIXEL);
+
+    CQChartsDrawUtil::drawSymbol(&device, symbol, spos, ssize);
+  }
+
+  double is = imageBuffer.isize/2.0;
+
+  painter->drawImage(p.x() - is, p.y() - is, imageBuffer.image);
+}
 
 CQChartsTextOptions
 CQChartsPlot::

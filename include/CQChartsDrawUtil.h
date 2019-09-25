@@ -30,7 +30,6 @@ void drawRoundedPolygon(CQChartsPaintDevice *device, const QRectF &qrect,
                         const CQChartsLength &xsize=CQChartsLength(),
                         const CQChartsLength &ysize=CQChartsLength(),
                         const CQChartsSides &sides=CQChartsSides(CQChartsSides::Side::ALL));
-
 void drawRoundedPolygon(CQChartsPaintDevice *device, const QPolygonF &poly,
                         const CQChartsLength &xsize=CQChartsLength(),
                         const CQChartsLength &ysize=CQChartsLength());
@@ -60,8 +59,8 @@ void drawSimpleText(CQChartsPaintDevice *device, const QPointF &pos, const QStri
 
 void drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
                 const QPointF &c, const CQChartsLength &size);
-
-void drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol, const QRectF &rect);
+void drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
+                const QRectF &rect);
 
 void drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
                   double ri, double ro, double a1, double a2,

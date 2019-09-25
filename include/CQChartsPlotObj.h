@@ -72,6 +72,11 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  virtual bool isPolygon() const { return false; }
+  virtual QPolygonF polygon() const { return QPolygonF(); }
+
+  //---
+
   virtual CQChartsColorType colorType() const { return CQChartsColorType::AUTO; }
 
   const ColorInd &is() const { return is_; }
