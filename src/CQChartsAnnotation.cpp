@@ -2353,20 +2353,35 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp(path1, "start", "", "Arrow start point");
   addProp(path1, "end"  , "", "Arrow end point");
 
-  QString headPath = path1 + "/head";
+  QString frontHeadPath = path1 + "/frontHead";
 
-  addArrowStyleProp(headPath, "length"   , ""    , "Arrow head length");
-  addArrowStyleProp(headPath, "angle"    , ""    , "Arrow head angle");
-  addArrowStyleProp(headPath, "backAngle", ""    , "Arrow head back angle");
-//addArrowStyleProp(headPath, "filled"   , ""    , "Arrow head is filled");
-  addArrowStyleProp(headPath, "lineEnds" , "line", "Arrow head is drawn using lines");
+  addArrowProp     (frontHeadPath, "fhead"         , "visible",
+                    "Arrow front head visible");
+  addArrowStyleProp(frontHeadPath, "frontLength"   , "length",
+                    "Arrow front head length");
+  addArrowStyleProp(frontHeadPath, "frontAngle"    , "angle",
+                    "Arrow front head angle");
+  addArrowStyleProp(frontHeadPath, "frontBackAngle", "backAngle",
+                    "Arrow front head back angle");
+  addArrowStyleProp(frontHeadPath, "frontLineEnds" , "line",
+                    "Arrow front head is drawn using lines");
+
+  QString tailHeadPath = path1 + "/tailHead";
+
+  addArrowProp     (tailHeadPath, "thead"        , "visible",
+                    "Arrow tail head visible");
+  addArrowStyleProp(tailHeadPath, "tailLength"   , "length",
+                    "Arrow tail head length");
+  addArrowStyleProp(tailHeadPath, "tailAngle"    , "angle",
+                    "Arrow tail head angle");
+  addArrowStyleProp(tailHeadPath, "tailBackAngle", "backAngle",
+                    "Arrow tail head back angle");
+  addArrowStyleProp(tailHeadPath, "tailLineEnds" , "line",
+                    "Arrow tail head is drawn using lines");
 
   QString linePath = path1 + "/line";
 
   addArrowStyleProp(linePath, "lineWidth", "width", "Arrow connecting line width");
-
-  addArrowProp(linePath, "fhead", "frontHead", "Show arrow head at front of connecting line");
-  addArrowProp(linePath, "thead", "tailHead" , "Show arrow head at tail of connecting line");
 
   QString fillPath = path1 + "/fill";
 
@@ -2380,6 +2395,10 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addArrowStyleProp(strokePath, "strokeColor", "color"  , "Arrow stroke color");
   addArrowStyleProp(strokePath, "strokeAlpha", "alpha"  , "Arrow stroke alpha");
   addArrowStyleProp(strokePath, "strokeWidth", "width"  , "Arrow stroke width");
+
+#if DEBUG_LABELS
+  addArrowProp(path1, "debugLabels", "debugLabels", "Show debug labels");
+#endif
 }
 
 void
@@ -2388,9 +2407,13 @@ getPropertyNames(QStringList &names, bool hidden) const
 {
   CQChartsAnnotation::getPropertyNames(names, hidden);
 
-  names << "head.length" << "head.angle" << "head.backAngle" << "head.filled" << "head.line";
+  names << "frontHead.visible" << "frontHead.angle" << "frontHead.backAngle" <<
+           "frontHead.length" << "frontHead.line";
 
-  names << "line.width" << "line.frontHead" << "line.tailHead";
+  names << "tailHead.visible" << "tailHead.angle" << "tailHead.backAngle" <<
+           "tailHead.length" << "tailHead.line";
+
+  names << "line.width";
 
   names << "fill.visible" << "fill.color" << "fill.alpha";
 
@@ -2446,14 +2469,9 @@ bool
 CQChartsArrowAnnotation::
 inside(const CQChartsGeom::Point &p) const
 {
-  CQChartsGeom::Point ps = windowToPixel(CQChartsGeom::Point(positionToParent(start_)));
-  CQChartsGeom::Point pe = windowToPixel(CQChartsGeom::Point(positionToParent(end_  )));
-
   CQChartsGeom::Point p1 = windowToPixel(p);
 
-  double d;
-
-  return (CQChartsUtil::PointLineDistance(p1, ps, pe, &d) && d < 3);
+  return arrow()->contains(p1.qpoint());
 }
 
 void

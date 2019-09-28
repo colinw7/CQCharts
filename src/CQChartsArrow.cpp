@@ -3,6 +3,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
+#include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
 
 #include <CQPropertyViewModel.h>
@@ -104,8 +105,82 @@ void
 CQChartsArrow::
 drawContents(const QPen &pen, const QBrush &brush) const
 {
-  bool isStroked = (pen  .style() != Qt::NoPen  );
-  bool isFilled  = (brush.style() != Qt::NoBrush);
+  frontLine1_.reset();
+  frontLine2_.reset();
+  endLine1_  .reset();
+  endLine2_  .reset();
+  midLine_   .reset();
+  frontPoly_ .reset();
+  tailPoly_  .reset();
+  arrowPoly_ .reset();
+
+  //---
+
+  struct Angle {
+    double angle { 0.0 };
+    double cos   { 0.0 };
+    double sin   { 0.0 };
+
+    Angle(double angle) :
+     angle(angle) {
+      init();
+    }
+
+    Angle(const QPointF &p1, const QPointF &p2) {
+      angle = std::atan2(p2.y() - p1.y(), p2.x() - p1.x());
+
+      init();
+    }
+
+    void init() {
+      cos = std::cos(angle);
+      sin = std::sin(angle);
+    }
+  };
+
+  //---
+
+  auto movePointOnLine = [](const QPointF &p, const Angle &a, double d) {
+    return QPointF(p.x() + d*a.cos, p.y() + d*a.sin);
+  };
+
+  auto movePointPerpLine = [](const QPointF &p, const Angle &a, double d) {
+    return QPointF(p.x() + d*a.sin, p.y() - d*a.cos);
+  };
+
+  auto addWidthToPoint = [](const QPointF &p, const Angle &a, double lw,
+                            QPointF &p1, QPointF &p2) {
+    double dx = lw*a.sin/2.0;
+    double dy = lw*a.cos/2.0;
+
+    p1 = QPointF(p.x() - dx, p.y() + dy);
+    p2 = QPointF(p.x() + dx, p.y() - dy);
+  };
+
+  auto intersectLine = [](const QPointF &l1s, const QPointF &l1e,
+                          const QPointF &l2s, const QPointF &l2e, QPointF &pi, bool &inside) {
+    double xi, yi;
+
+    inside = CQChartsUtil::intersectLines(l1s.x(), l1s.y(), l1e.x(), l1e.y(),
+                                          l2s.x(), l2s.y(), l2e.x(), l2e.y(),
+                                          xi, yi);
+
+    pi = QPointF(xi, yi);
+
+    return inside;
+  };
+
+  //---
+
+#if DEBUG_LABELS
+  PointLabels pointLabels;
+
+  auto addPointLabel = [&](const QPointF &point, const QString &text, bool above) {
+    pointLabels.push_back(PointLabel(point, text, above));
+  };
+#endif
+
+  //---
 
   auto windowToPixel = [&](const QPointF &w) {
     if      (plot()) return plot()->windowToPixel(w);
@@ -119,11 +194,11 @@ drawContents(const QPen &pen, const QBrush &brush) const
     else             return l.value();
   };
 
-  auto lengthPixelHeight = [&](const CQChartsLength &l) {
-    if      (plot()) return plot()->lengthPixelHeight(l);
-    else if (view()) return view()->lengthPixelHeight(l);
-    else             return l.value();
-  };
+//auto lengthPixelHeight = [&](const CQChartsLength &l) {
+//  if      (plot()) return plot()->lengthPixelHeight(l);
+//  else if (view()) return view()->lengthPixelHeight(l);
+//  else             return l.value();
+//};
 
   auto lengthLocalWidth = [&](const CQChartsLength &l) {
     if      (plot()) return plot()->lengthPlotWidth(l);
@@ -131,11 +206,16 @@ drawContents(const QPen &pen, const QBrush &brush) const
     else             return l.value();
   };
 
-  auto lengthLocalHeight = [&](const CQChartsLength &l) {
-    if      (plot()) return plot()->lengthPlotHeight(l);
-    else if (view()) return view()->lengthViewHeight(l);
-    else             return l.value();
-  };
+//auto lengthLocalHeight = [&](const CQChartsLength &l) {
+//  if      (plot()) return plot()->lengthPlotHeight(l);
+//  else if (view()) return view()->lengthViewHeight(l);
+//  else             return l.value();
+//};
+
+  //---
+
+  bool isStroked = (pen  .style() != Qt::NoPen  );
+  bool isFilled  = (brush.style() != Qt::NoBrush);
 
   //---
 
@@ -143,451 +223,516 @@ drawContents(const QPen &pen, const QBrush &brush) const
   QPointF to   = to_;
 //QPointF to   = (isRelative() ? from_ + to_ : to_);
 
-  QPointF fp = windowToPixel(from);
-  QPointF tp = windowToPixel(to  );
-
-  double xw = (strokeWidth().value() > 0 ? lengthPixelWidth (strokeWidth()) : 4);
-  double yw = (strokeWidth().value() > 0 ? lengthPixelHeight(strokeWidth()) : 4);
-
-  double a = atan2(tp.y() - fp.y(), tp.x() - fp.x());
-
-  double faa = CMathUtil::Deg2Rad(frontAngle() > 0 ? frontAngle() : 45);
-  double taa = CMathUtil::Deg2Rad(frontAngle() > 0 ? frontAngle() : 45);
-
-  double fxl = (frontLength().value() > 0 ? lengthPixelWidth (frontLength()) : 8);
-  double fyl = (frontLength().value() > 0 ? lengthPixelHeight(frontLength()) : 8);
-  double txl = (tailLength ().value() > 0 ? lengthPixelWidth (tailLength ()) : 8);
-  double tyl = (tailLength ().value() > 0 ? lengthPixelHeight(tailLength ()) : 8);
-
-  double fxl1 = fxl*cos(faa);
-  double fyl1 = fyl*cos(faa);
-  double txl1 = txl*cos(taa);
-  double tyl1 = tyl*cos(taa);
-
-  double c = cos(a), s = sin(a);
+  if (from.x() > to.x())
+    std::swap(from, to);
 
   //---
 
-  double x1 = fp.x(), y1 = fp.y();
-  double x4 = tp.x(), y4 = tp.y();
+  // convert start/end point to pixel start/end point
+  QPointF p1 = windowToPixel(from);
+  QPointF p4 = windowToPixel(to  );
 
-  QPointF p1(x1, y1);
-  QPointF p4(x4, y4);
-
-#if 0
-  if (debugLabels()) {
-    drawPointLabel(p1, "p1", true, false);
-    drawPointLabel(p4, "p4", true, false);
+#if DEBUG_LABELS
+  if (isDebugLabels()) {
+    addPointLabel(p1, "p1", /*above*/false);
+    addPointLabel(p4, "p4", /*above*/true );
   }
 #endif
-
-  double fx2 = x1 + fxl1*c;
-  double fy2 = y1 + fyl1*s;
-  double tx3 = x4 - txl1*c;
-  double ty3 = y4 - tyl1*s;
-
-#if 0
-  if (debugLabels()) {
-    QPointF p2(fx2, fy2);
-    QPointF p3(tx3, ty3);
-
-    drawPointLabel(p2, "p2", true, false);
-    drawPointLabel(p3, "p3", true, false);
-  }
-#endif
-
-  double x11 = x1, y11 = y1;
-  double x41 = x4, y41 = y4;
-
-  if (isFHead()) {
-    if (! isLineEnds()) {
-      x11 = x1 + xw*c;
-      y11 = y1 + yw*s;
-    }
-  }
-
-  if (isTHead()) {
-    if (! isLineEnds()) {
-      x41 = x4 - xw*c;
-      y41 = y4 - yw*s;
-    }
-  }
-
-  double fba = CMathUtil::Deg2Rad(frontBackAngle() > 0 ? frontBackAngle() : 90);
-  double tba = CMathUtil::Deg2Rad(tailBackAngle () > 0 ? tailBackAngle () : 90);
 
   //---
+
+  // convert line width, front/tail arrow length to pixel
+  double lpw = lengthPixelWidth (lengthLocalWidth (lineWidth()));
+//double lph = lengthPixelHeight(lengthLocalHeight(lineWidth()));
+
+  double fl = (frontLength().value() > 0 ? lengthPixelWidth(frontLength()) : 8);
+  double tl = (tailLength ().value() > 0 ? lengthPixelWidth(tailLength ()) : 8);
 
   bool linePoly = (lineWidth().value() > 0);
 
   //---
 
-  std::vector<QPointF> fHeadPoints;
-  QPointF              fHeadMid;
-  QPointF              pf1, pf2, pf3;
+  // calc stroke width
+  double strokeWidth =
+    (this->strokeWidth().value() > 0 ? lengthPixelWidth(this->strokeWidth()) : 4);
+
+  //---
+
+  // calc line angle (radians)
+  Angle a(p1, p4);
+
+  // calc front/tail arrow angles (radians)
+  Angle faa(CMathUtil::Deg2Rad(frontAngle() > 0 ? frontAngle() : 45));
+  Angle taa(CMathUtil::Deg2Rad(tailAngle () > 0 ? tailAngle () : 45));
+
+  // calc front/tail arrow back angles (radians)
+  Angle fba(CMathUtil::Deg2Rad(frontBackAngle() > 0 ? frontBackAngle() : 90));
+  Angle tba(CMathUtil::Deg2Rad(tailBackAngle () > 0 ? tailBackAngle () : 90));
+
+  //---
+
+  // calc front/tail arrow length along line
+  double fpl1 = fl*faa.cos;
+  double tpl1 = tl*taa.cos;
+
+  //---
+
+  // calc front/tail arrow end point (along line)
+  QPointF p2 = movePointOnLine(p1, a,  fpl1);
+  QPointF p3 = movePointOnLine(p4, a, -tpl1);
+
+#if DEBUG_LABELS
+  if (isDebugLabels()) {
+    addPointLabel(p2, "p2", /*above*/false);
+    addPointLabel(p3, "p3", /*above*/true );
+  }
+#endif
+
+  //---
+
+  bool isFrontLineEnds = (this->isFrontLineEnds() && isFHead());
+  bool isTailLineEnds  = (this->isTailLineEnds () && isTHead());
+
+  //---
+
+  // calc front/tail head mid point (on line)
+  QPointF fHeadMid = p1;
+  QPointF tHeadMid = p4;
 
   if (isFHead()) {
-    double a1 = a + faa;
-    double a2 = a - faa;
-
-    double c1 = cos(a1), s1 = sin(a1);
-    double c2 = cos(a2), s2 = sin(a2);
-
-    double xf1 = x1 + fxl*c1;
-    double yf1 = y1 + fyl*s1;
-    double xf2 = x1 + fxl*c2;
-    double yf2 = y1 + fyl*s2;
-
-    pf1 = QPointF(xf1, yf1);
-    pf2 = QPointF(xf2, yf2);
-
-#if 0
-    if (debugLabels()) {
-      drawPointLabel(pf1, "pf1", true, false);
-      drawPointLabel(pf2, "pf2", true, false);
-    }
-#endif
-
-    double xf3 = fx2, yf3 = fy2;
-
-    if (isLineEnds()) {
-      drawLine(p1, pf1, xw, false, pen, brush);
-      drawLine(p1, pf2, xw, false, pen, brush);
-    }
-    else {
-      if (fba > faa && fba < M_PI) {
-        double a3 = a + fba;
-
-        double c3 = cos(a3), s3 = sin(a3);
-
-        CQChartsUtil::intersectLines(x1, y1, fx2, fy2,
-                                     xf1, yf1, xf1 - 10*c3, yf1 - 10*s3, xf3, yf3);
-
-        pf3 = QPointF(xf3, yf3);
-
-#if 0
-        if (debugLabels())
-          drawPointLabel(pf3, "pf3", true, false);
-#endif
-
-        x11 = xf3;
-        y11 = yf3;
-
-        fHeadMid = QPointF(x11, y11);
-      }
-
-      fHeadPoints.push_back(QPointF(x1 , y1 ));
-      fHeadPoints.push_back(QPointF(xf1, yf1));
-      fHeadPoints.push_back(QPointF(xf3, yf3));
-      fHeadPoints.push_back(QPointF(xf2, yf2));
-
-      if (! linePoly)
-        drawPolygon(fHeadPoints, xw, isFilled, isStroked, pen, brush);
-    }
+    if (! isFrontLineEnds)
+      fHeadMid = movePointOnLine(p1, a,  strokeWidth);
   }
-
-  //---
-
-  std::vector<QPointF> tHeadPoints;
-  QPointF              tHeadMid;
-  QPointF              pt1, pt2, pt3;
 
   if (isTHead()) {
-    double a1 = a + M_PI - taa;
-    double a2 = a + M_PI + taa;
+    if (! isTailLineEnds)
+      tHeadMid = movePointOnLine(p4, a, -strokeWidth);
+  }
 
-    double c1 = cos(a1), s1 = sin(a1);
-    double c2 = cos(a2), s2 = sin(a2);
+  //---
 
-    double xt1 = x4 + txl*c1;
-    double yt1 = y4 + tyl*s1;
-    double xt2 = x4 + txl*c2;
-    double yt2 = y4 + tyl*s2;
+  // create polygon for arrow shape if has width
+  QPointF pl1, pl2, pl3, pl4;
 
-    pt1 = QPointF(xt1, yt1);
-    pt2 = QPointF(xt2, yt2);
+  if (linePoly) {
+    // calc front head mid point offset by line width
+    addWidthToPoint(fHeadMid, a, lpw, pl1, pl2);
 
-#if 0
-    if (debugLabels()) {
-      drawPointLabel(pt1, "pt1", true, false);
-      drawPointLabel(pt2, "pt2", true, false);
+    // calc tail head mid point offset by line width
+    addWidthToPoint(tHeadMid, a, lpw, pl3, pl4);
+  }
+
+  //---
+
+  Points  fHeadPoints;
+  QPointF pf1, pf2;
+
+  if (isFHead()) {
+    // calc front head angle (relative to line)
+    Angle a1 = a.angle + faa.angle;
+    Angle a2 = a.angle - faa.angle;
+
+    //---
+
+    // calc front head arrow tip points
+    pf1 = movePointOnLine(p1, a1, fl);
+    pf2 = movePointOnLine(p1, a2, fl);
+
+#if DEBUG_LABELS
+    if (isDebugLabels()) {
+      addPointLabel(pf1, "pf1", /*above*/false);
+      addPointLabel(pf2, "pf2", /*above*/true );
     }
 #endif
 
-    double xt3 = tx3, yt3 = ty3;
+    //---
 
-    if (isLineEnds()) {
-      drawLine(p4, pt1, xw, false, pen, brush);
-      drawLine(p4, pt2, xw, false, pen, brush);
+    if (isFrontLineEnds) {
+      if (! linePoly) {
+        frontLine1_ = Line(p1, pf1);
+        frontLine2_ = Line(p1, pf2);
+
+        drawLine(p1, pf1, strokeWidth, pen, brush);
+        drawLine(p1, pf2, strokeWidth, pen, brush);
+      }
+      else {
+        // calc front head angle (relative to line)
+        Angle a1 = a.angle + faa.angle;
+        Angle a2 = a.angle - faa.angle;
+
+        // calc line points offset from end arrow lines (p1->pf1, p1->pf2)
+        QPointF pf11 = movePointPerpLine(pf1, a1,  lpw);
+        QPointF pf21 = movePointPerpLine(pf2, a2, -lpw);
+
+        // calc point at line width from start point along line
+        QPointF pf31 = movePointOnLine(p1, a, lpw);
+
+        // intersect front head lines to line offset by width
+        bool inside;
+
+        QPointF pf41, pf51;
+
+        intersectLine(pl2, pl4, pf21, pf31, pf41, inside);
+        intersectLine(pl1, pl3, pf11, pf31, pf51, inside);
+
+        //---
+
+#if DEBUG_LABELS
+        if (isDebugLabels()) {
+          addPointLabel(pf11, "pf11", /*above*/false);
+          addPointLabel(pf21, "pf21", /*above*/true );
+          addPointLabel(pf31, "pf31", /*above*/false);
+          addPointLabel(pf41, "pf41", /*above*/true );
+          addPointLabel(pf51, "pf51", /*above*/false);
+        }
+#endif
+
+        fHeadPoints.push_back(pf41); // intersect with line top
+        fHeadPoints.push_back(pf21); // top arrow line end bottom
+        fHeadPoints.push_back(pf2);  // top arrow line end top
+        fHeadPoints.push_back(p1);   // line start (left)
+        fHeadPoints.push_back(pf1);  // bottom arrow line end bottom
+        fHeadPoints.push_back(pf11); // bottom arrow line end top
+        fHeadPoints.push_back(pf51); // intersect with line bottom
+      }
     }
     else {
-      if (tba > taa && tba < M_PI) {
-        double a3 = a + M_PI - tba;
+      QPointF pf3 = p2;
 
-        double c3 = cos(a3), s3 = sin(a3);
+      // if valid back angle intersect arrow mid line (p1, p2) to back line
+      if (fba.angle > faa.angle && fba.angle < M_PI) {
+        Angle a3 = a.angle + fba.angle;
 
-        CQChartsUtil::intersectLines(tx3, ty3, x4, y4,
-                                     xt1, yt1, xt1 - 10*c3, yt1 - 10*s3, xt3, yt3);
+        QPointF pf1t = movePointOnLine(pf1, a3, -10);
 
-        pt3 = QPointF(xt3, yt3);
+        bool inside;
+        intersectLine(p1, p2, pf1, pf1t, pf3, inside);
 
-#if 0
-        if (debugLabels())
-          drawPointLabel(pt3, "pt3", true, false);
+#if DEBUG_LABELS
+        if (isDebugLabels())
+          addPointLabel(pf3, "pf3", /*above*/false);
 #endif
 
-        x41 = xt3;
-        y41 = yt3;
-
-        tHeadMid = QPointF(x41, y41);
+        fHeadMid = pf3;
       }
 
-      tHeadPoints.push_back(QPointF(x4 , y4 ));
-      tHeadPoints.push_back(QPointF(xt1, yt1));
-      tHeadPoints.push_back(QPointF(xt3, yt3));
-      tHeadPoints.push_back(QPointF(xt2, yt2));
+      fHeadPoints.push_back(p1);  // tip (on line)
+      fHeadPoints.push_back(pf1); // tip (below)
+      fHeadPoints.push_back(pf3); // back line intersect or arrow right point (start + length)
+      fHeadPoints.push_back(pf2); // tip (above)
 
-      if (! linePoly)
-        drawPolygon(tHeadPoints, xw, isFilled, isStroked, pen, brush);
+      if (! linePoly) {
+        frontPoly_ = fHeadPoints;
+
+        drawPolygon(fHeadPoints, strokeWidth, isFilled, isStroked, pen, brush);
+      }
     }
   }
 
   //---
 
-  QPointF fl1, fl2;
+  Points  tHeadPoints;
+  QPointF pt1, pt2;
 
-  if (linePoly) {
-    std::vector<QPointF> midPoints1, midPoints2;
+  if (isTHead()) {
+    // calc tail head angle (relative to line)
+    Angle a1 = a.angle + M_PI - taa.angle;
+    Angle a2 = a.angle + M_PI + taa.angle;
 
-    double xlw = lengthLocalWidth (lineWidth())/2.0;
-    double ylw = lengthLocalHeight(lineWidth())/2.0;
+    //---
 
-    double lx1 = x11 + lengthPixelWidth (xlw*s);
-    double ly1 = y11 + lengthPixelHeight(ylw*c);
-    double lx2 = x11 - lengthPixelWidth (xlw*s);
-    double ly2 = y11 - lengthPixelHeight(ylw*c);
+    // calc tail head arrow tip points
+    pt1 = movePointOnLine(p4, a1, tl);
+    pt2 = movePointOnLine(p4, a2, tl);
 
-    double lx3 = x41 + lengthPixelWidth (xlw*s);
-    double ly3 = y41 + lengthPixelHeight(ylw*c);
-    double lx4 = x41 - lengthPixelWidth (xlw*s);
-    double ly4 = y41 - lengthPixelHeight(ylw*c);
-
-    if (! fHeadPoints.empty()) {
-      int np = fHeadPoints.size();
-
-      double ix1 = lx1, iy1 = ly1;
-      double ix2 = lx2, iy2 = ly2;
-
-      for (int i1 = np - 1, i2 = 0; i2 < np; i1 = i2++) {
-        double xt, yt;
-
-        bool bi1 = CQChartsUtil::intersectLines(lx1, ly1, lx3, ly3,
-                                                fHeadPoints[i1].x(), fHeadPoints[i1].y(),
-                                                fHeadPoints[i2].x(), fHeadPoints[i2].y(),
-                                                xt, yt);
-
-        fl1 = QPointF(xt, yt);
-
-        if (bi1) {
-          if (xt > ix1) {
-            ix1 = xt;
-            iy1 = yt;
-          }
-
-#if 0
-          if (debugLabels())
-            drawPointLabel(fl1, "fl1", true, false);
-#endif
-        }
-
-        bool bi2 = CQChartsUtil::intersectLines(lx2, ly2, lx4, ly4,
-                                                fHeadPoints[i1].x(), fHeadPoints[i1].y(),
-                                                fHeadPoints[i2].x(), fHeadPoints[i2].y(),
-                                                xt, yt);
-
-        fl2 = QPointF(xt, yt);
-
-        if (bi2) {
-          if (xt > ix2) {
-            ix2 = xt;
-            iy2 = yt;
-          }
-
-#if 0
-          if (debugLabels())
-            drawPointLabel(fl2, "fl2", true, false);
-#endif
-        }
-      }
-
-      lx1 = ix1; ly1 = iy1;
-      lx2 = ix2; ly2 = iy2;
-
-      QPointF fl3(lx1, ly1);
-      QPointF fl4(lx2, ly2);
-
-#if 0
-      if (debugLabels()) {
-        drawPointLabel(fl3, "fl3", true, false);
-        drawPointLabel(fl4, "fl4", true, false);
-      }
-#endif
-
-      //---
-
-      midPoints1.push_back(fl4);
-      midPoints1.push_back(fHeadMid);
-      midPoints1.push_back(fl3);
-    }
-
-    QPointF tl1, tl2;
-
-    if (! tHeadPoints.empty()) {
-      int np = tHeadPoints.size();
-
-      double ix3 = lx3, iy3 = ly3;
-      double ix4 = lx4, iy4 = ly4;
-
-      for (int i1 = np - 1, i2 = 0; i2 < np; i1 = i2++) {
-        double xt, yt;
-
-        bool bi1 = CQChartsUtil::intersectLines(lx1, ly1, lx3, ly3,
-                                                tHeadPoints[i1].x(), tHeadPoints[i1].y(),
-                                                tHeadPoints[i2].x(), tHeadPoints[i2].y(),
-                                                xt, yt);
-
-        tl1 = QPointF(xt, yt);
-
-        if (bi1) {
-          if (xt < ix3) {
-            ix3 = xt;
-            iy3 = yt;
-          }
-
-#if 0
-          if (debugLabels())
-            drawPointLabel(tl1, "tl1", true, false);
-#endif
-        }
-
-        bool bi2 = CQChartsUtil::intersectLines(lx2, ly2, lx4, ly4,
-                                                tHeadPoints[i1].x(), tHeadPoints[i1].y(),
-                                                tHeadPoints[i2].x(), tHeadPoints[i2].y(),
-                                                xt, yt);
-
-        tl2 = QPointF(xt, yt);
-
-        if (bi2) {
-          if (xt < ix4) {
-            ix4 = xt;
-            iy4 = yt;
-          }
-
-#if 0
-          if (debugLabels())
-            drawPointLabel(tl2, "tl2", true, false);
-#endif
-        }
-      }
-
-      lx3 = ix3; ly3 = iy3;
-      lx4 = ix4; ly4 = iy4;
-
-      QPointF tl3(lx3, ly3);
-      QPointF tl4(lx4, ly4);
-
-#if 0
-      if (debugLabels()) {
-        drawPointLabel(tl3, "tl3", true, false);
-        drawPointLabel(tl4, "tl4", true, false);
-      }
-#endif
-
-      //---
-
-      midPoints2.push_back(tl3);
-      midPoints2.push_back(tHeadMid);
-      midPoints2.push_back(tl4);
-    }
-
-    QPointF pl1(lx1, ly1);
-    QPointF pl2(lx2, ly2);
-    QPointF pl3(lx3, ly3);
-    QPointF pl4(lx4, ly4);
-
-#if 0
-    if (debugLabels()) {
-      drawPointLabel(pl1, "pl1", true, false);
-      drawPointLabel(pl2, "pl2", true, false);
-      drawPointLabel(pl3, "pl3", true, false);
-      drawPointLabel(pl4, "pl4", true, false);
+#if DEBUG_LABELS
+    if (isDebugLabels()) {
+      addPointLabel(pt1, "pt1", /*above*/false);
+      addPointLabel(pt2, "pt2", /*above*/true );
     }
 #endif
 
-    std::vector<QPointF> points;
+    //---
 
-    if (! isLineEnds()) {
-      if (isFHead() && isTHead()) {
-        points.push_back(p1);
-        points.push_back(pf1);
-        points.push_back(pl1);
-        points.push_back(pl3);
-        points.push_back(pt1);
-        points.push_back(p4);
-        points.push_back(pt2);
-        points.push_back(pl4);
-        points.push_back(pl2);
-        points.push_back(pf2);
-      }
-      else if (isTHead()) {
-        points.push_back(pl1);
-        points.push_back(pl3);
-        points.push_back(pt1);
-        points.push_back(p4);
-        points.push_back(pt2);
-        points.push_back(pl4);
-        points.push_back(pl2);
-      }
-      else if (isFHead()) {
-        points.push_back(p1);
-        points.push_back(pf1);
-        points.push_back(pl1);
-        points.push_back(pl3);
-        points.push_back(pl4);
-        points.push_back(pl2);
-        points.push_back(pf2);
+    if (isTailLineEnds) {
+      if (! linePoly) {
+        endLine1_ = Line(p4, pt1);
+        endLine2_ = Line(p4, pt2);
+
+        drawLine(p4, pt1, strokeWidth, pen, brush);
+        drawLine(p4, pt2, strokeWidth, pen, brush);
       }
       else {
-        points.push_back(pl1);
-        points.push_back(pl3);
-        points.push_back(pl4);
-        points.push_back(pl2);
+        // calc tail head angle (relative to line)
+        Angle a1 = a.angle + M_PI - taa.angle;
+        Angle a2 = a.angle + M_PI + taa.angle;
+
+        // calc line points offset from end arrow lines (p1->pf1, p1->pf2)
+        QPointF pt11 = movePointPerpLine(pt1, a1, -lpw);
+        QPointF pt21 = movePointPerpLine(pt2, a2,  lpw);
+
+        // calc point at line width from start point along line
+        QPointF pt31 = movePointOnLine(p4, a, -lpw);
+
+        // intersect tail head lines to line offset by width
+        bool inside;
+
+        QPointF pt41, pt51;
+
+        intersectLine(pl2, pl4, pt21, pt31, pt41, inside);
+        intersectLine(pl1, pl3, pt11, pt31, pt51, inside);
+
+        //---
+
+#if DEBUG_LABELS
+        if (isDebugLabels()) {
+          addPointLabel(pt11, "pt11", /*above*/false);
+          addPointLabel(pt21, "pt21", /*above*/true );
+          addPointLabel(pt31, "pt31", /*above*/false);
+          addPointLabel(pt41, "pt41", /*above*/true );
+          addPointLabel(pt51, "pt51", /*above*/false);
+        }
+#endif
+
+        tHeadPoints.push_back(pt51); // intersect with line bottom
+        tHeadPoints.push_back(pt11); // bottom arrow line end top
+        tHeadPoints.push_back(pt1);  // bottom arrow line end bottom
+        tHeadPoints.push_back(p4);   // line end (right)
+        tHeadPoints.push_back(pt2);  // top arrow line end top
+        tHeadPoints.push_back(pt21); // top arrow line end bottom
+        tHeadPoints.push_back(pt41); // intersect with line top
       }
     }
     else {
-      points.push_back(pl1);
-      points.push_back(pl3);
-      points.push_back(pl4);
-      points.push_back(pl2);
+      QPointF pt3 = p3;
+
+      // if valid back angle intersect arrow mid line (p1, p2) to back line
+      if (tba.angle > taa.angle && tba.angle < M_PI) {
+        Angle a3 = a.angle + M_PI - tba.angle;
+
+        QPointF pt1t = movePointOnLine(pt1, a3, -10);
+
+        bool inside;
+        intersectLine(p3, p4, pt1, pt1t, pt3, inside);
+
+#if DEBUG_LABELS
+        if (isDebugLabels())
+          addPointLabel(pt3, "pt3", /*above*/false);
+#endif
+
+        tHeadMid = pt3;
+      }
+
+      tHeadPoints.push_back(p4);  // tip (on line)
+      tHeadPoints.push_back(pt1); // tip (below)
+      tHeadPoints.push_back(pt3); // back line intersect or arrow left point (end - length)
+      tHeadPoints.push_back(pt2); // tip (above)
+
+      if (! linePoly) {
+        tailPoly_ = tHeadPoints;
+
+        drawPolygon(tHeadPoints, strokeWidth, isFilled, isStroked, pen, brush);
+      }
+    }
+  }
+
+  //---
+
+  // update head and tail (non line) polygon for arrow shape with line width
+  if (linePoly) {
+    // intersect front head point lines with arrow line (offset by width)
+    if (! fHeadPoints.empty() && ! isFrontLineEnds) {
+      QPointF fl1, fl2;
+
+      int np = fHeadPoints.size();
+
+      QPointF pi1 = pl1;
+      QPointF pi2 = pl2;
+
+      for (int i1 = np - 1, i2 = 0; i2 < np; i1 = i2++) {
+        bool inside;
+
+        intersectLine(pl1, pl3, fHeadPoints[i1], fHeadPoints[i2], fl1, inside);
+
+        // if intersect inside, and more to right, update intersection (above)
+        if (inside && (fl1.x() > pi1.x()))
+          pi1 = fl1;
+
+        intersectLine(pl2, pl4, fHeadPoints[i1], fHeadPoints[i2], fl2, inside);
+
+        // if intersect inside, and more to right, update intersection (below)
+        if (inside && (fl2.x() > pi2.x()))
+          pi2 = fl2;
+      }
+
+      pl1 = pi1;
+      pl2 = pi2;
     }
 
-    drawPolygon(points, xw, isFilled, isStroked, pen, brush);
+    //---
+
+    // intersect front head point lines with arrow line (offset by width)
+    if (! tHeadPoints.empty() && ! isTailLineEnds) {
+      QPointF tl1, tl2;
+
+      int np = tHeadPoints.size();
+
+      QPointF pi3 = pl3;
+      QPointF pi4 = pl4;
+
+      for (int i1 = np - 1, i2 = 0; i2 < np; i1 = i2++) {
+        bool inside;
+
+        intersectLine(pl1, pl3, tHeadPoints[i1], tHeadPoints[i2], tl1, inside);
+
+        // if intersect inside, and more to left, update intersection (above)
+        if (inside && (tl1.x() < pi3.x()))
+          pi3 = tl1;
+
+        intersectLine(pl2, pl4, tHeadPoints[i1], tHeadPoints[i2], tl2, inside);
+
+        // if intersect inside, and more to left, update intersection (below)
+        if (inside && (tl2.x() < pi4.x()))
+          pi4 = tl2;
+      }
+
+      pl3 = pi3;
+      pl4 = pi4;
+    }
+
+    //---
+
+#if DEBUG_LABELS
+    if (isDebugLabels()) {
+      addPointLabel(pl1, "pl1", /*above*/false);
+      addPointLabel(pl2, "pl2", /*above*/true );
+      addPointLabel(pl3, "pl3", /*above*/false);
+      addPointLabel(pl4, "pl4", /*above*/true );
+    }
+#endif
+  }
+
+  //---
+
+  if (linePoly) {
+    // draw line polygon (has line width)
+    Points points;
+
+    auto addFrontPoints = [&]() {
+      points.push_back(pl2); // front head above mid line
+      points.push_back(pf2); // front head tip (above)
+      points.push_back(p1);  // start tip (on line)
+      points.push_back(pf1); // front head tip (below)
+      points.push_back(pl1); // front head below mid line
+    };
+
+    auto addTailPoints = [&]() {
+      points.push_back(pl3); // tail head below mid line
+      points.push_back(pt1); // tail head tip (below)
+      points.push_back(p4);  // end tip (on line)
+      points.push_back(pt2); // tail head tip (above)
+      points.push_back(pl4); // tail head above mid line
+    };
+
+    auto addFrontLinePoints = [&]() {
+      points.push_back(pl2); // front head above mid line
+      points.push_back(pl1); // front head below mid line
+    };
+
+    auto addTailLinePoints = [&]() {
+      points.push_back(pl3); // tail head below mid line
+      points.push_back(pl4); // tail head above mid line
+    };
+
+    auto addLinePoints = [&]() {
+      addFrontLinePoints();
+      addTailLinePoints ();
+    };
+
+    auto addFHeadPoints = [&]() {
+      for (auto &p : fHeadPoints)
+        points.push_back(p);
+    };
+
+    auto addTHeadPoints = [&]() {
+      for (auto &p : tHeadPoints)
+        points.push_back(p);
+    };
+
+    //---
+
+    if      (! isFrontLineEnds && ! isTailLineEnds) {
+      if      (isFHead() && isTHead()) {
+        addFrontPoints();
+        addTailPoints ();
+      }
+      else if (isTHead()) {
+        addFrontLinePoints();
+        addTailPoints     ();
+      }
+      else if (isFHead()) {
+        addFrontPoints   ();
+        addTailLinePoints();
+      }
+      else {
+        addLinePoints();
+      }
+    }
+    else if (isFrontLineEnds && ! isTailLineEnds) {
+      if (isTHead()) {
+        addFHeadPoints();
+        addTailPoints ();
+      }
+      else {
+        addFHeadPoints   ();
+        addTailLinePoints();
+      }
+    }
+    else if (isTailLineEnds && ! isFrontLineEnds) {
+      if (isFHead()) {
+        addFrontPoints();
+        addTHeadPoints();
+      }
+      else {
+        addFrontLinePoints();
+        addTHeadPoints    ();
+      }
+    }
+    else {
+      addFHeadPoints();
+      addTHeadPoints();
+    }
+
+    arrowPoly_ = points;
+
+    drawPolygon(points, strokeWidth, isFilled, isStroked, pen, brush);
   }
   else {
-    drawLine(QPointF(x11, y11), QPointF(x41, y41), xw, false, pen, brush);
+    // draw line (no line width)
+    midLine_ = Line(fHeadMid, tHeadMid);
+
+    drawLine(fHeadMid, tHeadMid, strokeWidth, pen, brush);
   }
+
+  //---
+
+#if DEBUG_LABELS
+  // draw debug labels
+  for (const auto &pointLabel : pointLabels)
+    drawPointLabel(pointLabel.point, pointLabel.text, pointLabel.above);
+#endif
 }
 
 void
 CQChartsArrow::
-drawPolygon(const std::vector<QPointF> &points, double width, bool filled, bool stroked,
+drawPolygon(const Points &points, double width, bool filled, bool stroked,
             const QPen &pen, const QBrush &brush) const
 {
   QPainterPath path;
 
   path.moveTo(device_->pixelToWindow(points[0]));
 
-  for (uint i = 1; i < points.size(); ++i) {
+  for (int i = 1; i < points.length(); ++i) {
     path.lineTo(device_->pixelToWindow(points[i]));
   }
 
@@ -620,7 +765,7 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled, bool 
 
 void
 CQChartsArrow::
-drawLine(const QPointF &point1, const QPointF &point2, double width, bool mapping,
+drawLine(const QPointF &point1, const QPointF &point2, double width,
          const QPen &pen, const QBrush &brush) const
 {
   bool isStroked = (pen  .style() != Qt::NoPen  );
@@ -649,54 +794,92 @@ drawLine(const QPointF &point1, const QPointF &point2, double width, bool mappin
 
   device_->setPen(pen1);
 
-  QPointF p1, p2;
-
-  if (mapping) {
-    p1 = point1;
-    p2 = point2;
-  }
-  else {
-    p1 = pixelToWindow(point1);
-    p2 = pixelToWindow(point2);
-  }
+  QPointF p1 = pixelToWindow(point1);
+  QPointF p2 = pixelToWindow(point2);
 
   device_->drawLine(p1, p2);
 }
 
-#if 0
+#if DEBUG_LABELS
 void
 CQChartsArrow::
-drawPointLabel(const QPointF &point, const QString &text, bool above, bool mapping) const
+drawPointLabel(const QPointF &point, const QString &text, bool above) const
 {
-  double px, py;
-
-  if (mapping) {
-    windowToPixel(point.x(), point.y(), px, py);
-  }
-  else {
-    px = point.x();
-    py = point.y();
-  }
-
+  // draw cross symbol
   QPen tpen;
 
-  QColor tc = Qt::red;
+  QColor tc = Qt::black;
 
-  CQChartsUtil::setPen(tpen, true, tc, 1.0, CQChartsLength("1.0"));
+  CQChartsUtil::setPen(tpen, true, tc, 1.0, 1.0);
 
   device_->setPen(tpen);
 
-  device_->drawLine(px - 4, py    , px + 4, py    );
-  device_->drawLine(px    , py - 4, px    , py + 4);
+  QPointF p1(point.x() - 4, point.y()    );
+  QPointF p2(point.x() + 4, point.y()    );
+  QPointF p3(point.x()    , point.y() - 4);
+  QPointF p4(point.x()    , point.y() + 4);
+
+  device_->drawLine(device_->pixelToWindow(p1), device_->pixelToWindow(p2));
+  device_->drawLine(device_->pixelToWindow(p3), device_->pixelToWindow(p4));
+
+  //---
 
   QFontMetricsF fm(device_->font());
 
-  double w = fm.width(text);
-  double h = fm.height();
+  double fw = fm.width(text);
+  double fa = fm.ascent();
+  double fd = fm.descent();
 
-  CQChartsDrawUtil::drawSimpleText(device_, QPointF(px - w/2, py + (above ? -h : h)), text);
+  QPointF pt(point.x() - fw/2, point.y() + (above ? -(fd + 4) : fa + 4));
+
+  CQChartsDrawUtil::drawContrastText(device_, device_->pixelToWindow(pt), text);
 }
 #endif
+
+//---
+
+bool
+CQChartsArrow::
+contains(const QPointF &p) const
+{
+  if (arrowPoly_.valid && arrowPoly_.points.containsPoint(p, Qt::OddEvenFill))
+    return true;
+
+  if (frontPoly_.valid && frontPoly_.points.containsPoint(p, Qt::OddEvenFill))
+    return true;
+
+  if (tailPoly_.valid && tailPoly_.points.containsPoint(p, Qt::OddEvenFill))
+    return true;
+
+  if (frontLine1_.valid && (frontLine1_.distance(p) < 4))
+    return true;
+  if (frontLine2_.valid && (frontLine2_.distance(p) < 4))
+    return true;
+
+  if (endLine1_.valid && (endLine1_.distance(p) < 4))
+    return true;
+  if (endLine2_.valid && (endLine2_.distance(p) < 4))
+    return true;
+
+  if (midLine_.valid && (midLine_.distance(p) < 4))
+    return true;
+
+  return false;
+}
+
+//---
+
+double
+CQChartsArrow::
+pointLineDistance(const QPointF &p, const QPointF &p1, const QPointF &p2)
+{
+  double d;
+
+  (void) CQChartsUtil::PointLineDistance(CQChartsGeom::Point(p),
+           CQChartsGeom::Point(p1), CQChartsGeom::Point(p2), &d);
+
+  return d;
+}
 
 //---
 

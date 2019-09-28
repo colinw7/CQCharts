@@ -572,6 +572,12 @@ setNameValues(CQChartsNameValues &nameValues) const
   if (frontAngle    () > 0) nameValues.setNameValue("front_angle", frontAngle());
   if (frontBackAngle() > 0) nameValues.setNameValue("front_back_angle", frontBackAngle());
 
+  if (frontLength().isValid())
+    nameValues.setNameValueType<CQChartsLength>("front_length", frontLength());
+
+  if (isFrontLineEnds())
+    nameValues.setNameValue("front_line_ends", isFrontLineEnds());
+
   //---
 
   nameValues.setNameValue("thead", isTHead());
@@ -579,13 +585,11 @@ setNameValues(CQChartsNameValues &nameValues) const
   if (tailAngle    () > 0) nameValues.setNameValue("tail_angle", tailAngle());
   if (tailBackAngle() > 0) nameValues.setNameValue("tail_back_angle", tailBackAngle());
 
-  //---
+  if (tailLength().isValid())
+    nameValues.setNameValueType<CQChartsLength>("tail_length", tailLength());
 
-  if (isLineEnds())
-    nameValues.setNameValue("line_ends", isLineEnds());
-
-  if (length().isValid())
-    nameValues.setNameValueType<CQChartsLength>("length", length());
+  if (isTailLineEnds())
+    nameValues.setNameValue("tail_line_ends", isTailLineEnds());
 }
 
 bool
@@ -609,14 +613,13 @@ getNameValues(const CQChartsNameValues &nameValues)
   nameValues.nameValueReal                ("front_angle"     , fheadData_.angle);
   nameValues.nameValueReal                ("front_back_angle", fheadData_.backAngle);
   nameValues.nameValueType<CQChartsLength>("front_length"    , fheadData_.length);
+  nameValues.nameValueBool                ("front_line_ends" , fheadData_.lineEnds);
 
   nameValues.nameValueBool                ("thead"           , fheadData_.visible);
   nameValues.nameValueReal                ("tail_angle"      , fheadData_.angle);
   nameValues.nameValueReal                ("tail_back_angle" , fheadData_.backAngle);
   nameValues.nameValueType<CQChartsLength>("tail_length"     , fheadData_.length);
-
-  nameValues.nameValueBool("line_ends", lineEnds_);
-
+  nameValues.nameValueBool                ("tail_line_ends"  , fheadData_.lineEnds);
 
   return true;
 }

@@ -6366,8 +6366,8 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
 
   arrowData.setLineWidth(argv.getParseLength(view, plot, "line_width", arrowData.lineWidth()));
 
-  auto headTypeToArea = [](const QString &headType, bool &visible,
-                           CQChartsArrowData::HeadType &type) {
+  auto headTypeToData = [](const QString &headType, bool &visible,
+                           CQChartsArrowData::HeadType &type, bool &lineEnds) {
     QString lstr = headType.toLower();
     bool ok; visible = CQChartsCmdBaseArgs::stringToBool(lstr, &ok);
     if (ok) return true;
@@ -6375,12 +6375,11 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
     visible = (lstr != "none");
     if (! visible) return true;
 
-    if      (lstr == "triangle")
-      type = CQChartsArrowData::HeadType::TRIANGLE;
-    else if (lstr == "stealth")
-      type = CQChartsArrowData::HeadType::STEALTH;
-    else
-      return false;
+    if      (lstr == "triangle") type = CQChartsArrowData::HeadType::TRIANGLE;
+    else if (lstr == "diamond" ) type = CQChartsArrowData::HeadType::DIAMOND;
+    else if (lstr == "stealth" ) type = CQChartsArrowData::HeadType::STEALTH;
+    else if (lstr == "line"    ) lineEnds = true;
+    else                         return false;
 
     return true;
   };
@@ -6388,20 +6387,24 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
   if (argv.hasParseArg("fhead")) {
     bool                        visible  { false };
     CQChartsArrowData::HeadType headType { CQChartsArrowData::HeadType::NONE };
+    bool                        lineEnds { false };
 
-    if (headTypeToArea(argv.getParseStr("fhead"), visible, headType)) {
-      arrowData.setFHead    (visible);
-      arrowData.setFHeadType(headType);
+    if (headTypeToData(argv.getParseStr("fhead"), visible, headType, lineEnds)) {
+      arrowData.setFHead        (visible);
+      arrowData.setFHeadType    (headType);
+      arrowData.setFrontLineEnds(lineEnds);
     }
   }
 
   if (argv.hasParseArg("thead")) {
     bool                        visible  { false };
     CQChartsArrowData::HeadType headType { CQChartsArrowData::HeadType::NONE };
+    bool                        lineEnds { false };
 
-    if (headTypeToArea(argv.getParseStr("thead"), visible, headType)) {
-      arrowData.setTHead    (visible);
-      arrowData.setTHeadType(headType);
+    if (headTypeToData(argv.getParseStr("thead"), visible, headType, lineEnds)) {
+      arrowData.setTHead       (visible);
+      arrowData.setTHeadType   (headType);
+      arrowData.setTailLineEnds(lineEnds);
     }
   }
 
@@ -6418,17 +6421,22 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
       return errorMsg(QString("Invalid length string '%1'").arg(argv.getParseStr("length")));
 
     if      (strs.length() == 1) {
-      arrowData.setLength(CQChartsLength(strs[0]));
+      arrowData.setLength(CQChartsLength(strs[0],
+        (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT)));
     }
     else if (strs.length() == 2) {
-      arrowData.setFrontLength(CQChartsLength(strs[0]));
-      arrowData.setFrontLength(CQChartsLength(strs[1]));
+      arrowData.setFrontLength(CQChartsLength(strs[0],
+        (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT)));
+      arrowData.setTailLength (CQChartsLength(strs[1],
+        (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT)));
     }
     else
       return errorMsg(QString("Invalid length string '%1'").arg(argv.getParseStr("length")));
   }
 
-  arrowData.setLineEnds(argv.getParseBool("line_ends", arrowData.isLineEnds()));
+  if (argv.hasParseArg("line_ends")) {
+    arrowData.setLineEnds(argv.getParseBool("line_ends", arrowData.isLineEnds()));
+  }
 
   //---
 

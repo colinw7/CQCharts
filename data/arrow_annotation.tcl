@@ -35,5 +35,9 @@ set arrowId8 [create_charts_arrow_annotation -plot $plotId -start {-200 -20} -en
  -stroke_color {palette 0.6} -fill_color {palette 0.6}]
 
 set arrowId9 [create_charts_arrow_annotation -plot $plotId -start {-200 -30} -end {200 -30} \
- -fhead triangle -thead stealth -length {4V 2V} -stroke_width 3px \
+ -fhead triangle -thead stealth -length {4V 2V} -stroke_width 8px \
+ -stroke_color {palette 0.3} -fill_color {palette 0.3}]
+
+set arrowId10 [create_charts_arrow_annotation -plot $plotId -start {-200 -40} -end {200 -40} \
+ -fhead diamond -thead line -length 4V -stroke_width 11px \
  -stroke_color {palette 0.3} -fill_color {palette 0.3}]

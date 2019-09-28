@@ -488,6 +488,7 @@ class CQChartsArrowData {
   enum class HeadType {
     NONE,
     TRIANGLE,
+    DIAMOND,
     STEALTH
   };
 
@@ -522,12 +523,13 @@ class CQChartsArrowData {
     fheadData_.type = type;
 
     if      (fheadData_.type == HeadType::TRIANGLE) {
-      setFrontAngle    (30.0);
-      setFrontBackAngle(90.0);
+      setFrontAngle(30.0); setFrontBackAngle(90.0);
+    }
+    else if (fheadData_.type == HeadType::DIAMOND) {
+      setFrontAngle(30.0); setFrontBackAngle(130.0);
     }
     else if (fheadData_.type == HeadType::STEALTH) {
-      setFrontAngle    (30.0);
-      setFrontBackAngle(45.0);
+      setFrontAngle(30.0); setFrontBackAngle(45.0);
     }
   }
 
@@ -535,12 +537,13 @@ class CQChartsArrowData {
     theadData_.type = type;
 
     if      (theadData_.type == HeadType::TRIANGLE) {
-      setTailAngle    (30.0);
-      setTailBackAngle(90.0);
+      setTailAngle(30.0); setTailBackAngle(90.0);
+    }
+    else if (theadData_.type == HeadType::DIAMOND) {
+      setTailAngle(30.0); setTailBackAngle(130.0);
     }
     else if (theadData_.type == HeadType::STEALTH) {
-      setTailAngle    (30.0);
-      setTailBackAngle(45.0);
+      setTailAngle(30.0); setTailBackAngle(45.0);
     }
   }
 
@@ -579,8 +582,14 @@ class CQChartsArrowData {
 
   //---
 
-  bool isLineEnds() const { return lineEnds_; }
-  void setLineEnds(bool b) { lineEnds_ = b; }
+  bool isLineEnds() const { return isTailLineEnds(); }
+  void setLineEnds(bool b) { setFrontLineEnds(b); setTailLineEnds(b); }
+
+  bool isFrontLineEnds() const { return fheadData_.lineEnds; }
+  void setFrontLineEnds(bool b) { fheadData_.lineEnds = b; }
+
+  bool isTailLineEnds() const { return theadData_.lineEnds; }
+  void setTailLineEnds(bool b) { theadData_.lineEnds = b; }
 
   //---
 
@@ -599,13 +608,13 @@ class CQChartsArrowData {
     double         angle     { -1 };             //!< arrow angle (default 45 if <= 0)
     double         backAngle { -1 };             //!< back angle (default 90 if <= 0)
     CQChartsLength length    { "1V" };           //!< arrow length
+    bool           lineEnds  { false };          //!< lines at end
   };
 
 //bool           relative_   { false }; //!< to point relative to from
   CQChartsLength lineWidth_  { -1 };    //!< connecting line width
   HeadData       fheadData_;
   HeadData       theadData_;
-  bool           lineEnds_   { false }; //!< lines at end
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsArrowData)

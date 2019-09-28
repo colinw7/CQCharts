@@ -953,3 +953,5 @@
 # 9/24/2019
  + add support for different front/tail arrows
  + more javascript painter support
+# 9/28/2019
+ + improve arrow rendering and inside test
