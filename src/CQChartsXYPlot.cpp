@@ -492,28 +492,57 @@ addProperties()
 
   addLineProperties("impulse/stroke", "impulseLines", "Impulse lines");
 
+  //---
+
   // vectors
   addProp("vectors", "vectors", "visible", "Vectors at points visible");
 
-  addArrowStyleProp("vectors", "length"   , "length"   , "Vector arrow length");
-  addArrowStyleProp("vectors", "angle"    , "angle"    , "Vector arrow angle");
-  addArrowStyleProp("vectors", "backAngle", "backAngle", "Vector arrow back angle");
+  QString vectorLinePath = "vectors/line";
 
-  addArrowProp("vectors", "fhead", "fhead", "Show vector arrow front head");
-  addArrowProp("vectors", "thead", "thead", "Show vector arrow tail head");
+  addArrowStyleProp(vectorLinePath, "lineWidth", "width", "Vector arrow connecting line width");
 
-  addArrowStyleProp("vectors", "filled"   , "filled"   , "Vector arrow is filled");
-  addArrowStyleProp("vectors", "lineEnds" , "lineEnds" , "Draw lines for vector end arrows");
-  addArrowStyleProp("vectors", "lineWidth", "lineWidth", "Vector arrow connecting line width");
+  QString vectorFrontHeadPath = "vectors/frontHead";
 
-  addArrowStyleProp("vectors/fill", "filled"   , "visible", "Vector fill visible");
-  addArrowStyleProp("vectors/fill", "fillColor", "color"  , "Vector fill color");
-  addArrowStyleProp("vectors/fill", "fillAlpha", "alpha"  , "Vector fill alpha");
+//addArrowProp     (vectorFrontHeadPath, "frontVisible"  , "visible",
+//                  "Vector arrow front head visible");
+  addArrowProp     (vectorFrontHeadPath, "frontType"     , "type",
+                    "Vector arrow front head type");
+  addArrowStyleProp(vectorFrontHeadPath, "frontLength"   , "length",
+                    "Vector arrow front head length");
+  addArrowStyleProp(vectorFrontHeadPath, "frontAngle"    , "angle",
+                    "Vector arrow front head angle");
+//addArrowStyleProp(vectorFrontHeadPath, "frontBackAngle", "backAngle",
+//                  "Vector arrow front head back angle");
+//addArrowStyleProp(vectorFrontHeadPath, "frontLineEnds" , "line",
+//                  "Vector arrow front head back is drawn using lines");
 
-  addArrowStyleProp("vectors/stroke", "stroked"    , "visible", "Vector stroke visible");
-  addArrowStyleProp("vectors/stroke", "strokeColor", "color"  , "Vector stroke color");
-  addArrowStyleProp("vectors/stroke", "strokeAlpha", "alpha"  , "Vector stroke alpha");
-  addArrowStyleProp("vectors/stroke", "strokeWidth", "width"  , "Vector stroke width");
+  QString vectorTailHeadPath = "vectors/tailHead";
+
+//addArrowProp     (vectorTailHeadPath, "tailVisible"  , "visible",
+//                  "Vector arrow tail head visible");
+  addArrowProp     (vectorTailHeadPath, "tailType"     , "type",
+                    "Vector arrow tail head type");
+  addArrowStyleProp(vectorTailHeadPath, "tailLength"   , "length",
+                    "Vector arrow tail head length");
+  addArrowStyleProp(vectorTailHeadPath, "tailAngle"    , "angle",
+                    "Vector arrow tail head angle");
+//addArrowStyleProp(vectorTailHeadPath, "tailBackAngle", "backAngle",
+//                  "Vector arrow tail head back angle");
+//addArrowStyleProp(vectorTailHeadPath, "tailLineEnds" , "line",
+//                  "Vector arrow tail head back is drawn using lines");
+
+  QString vectorFillPath = "vectors/fill";
+
+  addArrowStyleProp(vectorFillPath, "filled"   , "visible", "Vector arrow fill visible");
+  addArrowStyleProp(vectorFillPath, "fillColor", "color"  , "Vector arrow fill color");
+  addArrowStyleProp(vectorFillPath, "fillAlpha", "alpha"  , "Vector arrow fill alpha");
+
+  QString vectorStrokePath = "vectors/stroke";
+
+  addArrowStyleProp(vectorStrokePath, "stroked"    , "visible", "Vector stroke visible");
+  addArrowStyleProp(vectorStrokePath, "strokeColor", "color"  , "Vector stroke color");
+  addArrowStyleProp(vectorStrokePath, "strokeAlpha", "alpha"  , "Vector stroke alpha");
+  addArrowStyleProp(vectorStrokePath, "strokeWidth", "width"  , "Vector stroke width");
 
   // data labels
   dataLabel()->addPathProperties("labels", "Labels");

@@ -254,7 +254,7 @@ drawContents(const QPen &pen, const QBrush &brush) const
 
   // calc stroke width
   double strokeWidth =
-    (this->strokeWidth().value() > 0 ? lengthPixelWidth(this->strokeWidth()) : 4);
+    (this->strokeWidth().value() >= 0 ? lengthPixelWidth(this->strokeWidth()) : 4);
 
   //---
 
@@ -290,8 +290,8 @@ drawContents(const QPen &pen, const QBrush &brush) const
 
   //---
 
-  bool isFrontLineEnds = (this->isFrontLineEnds() && isFHead());
-  bool isTailLineEnds  = (this->isTailLineEnds () && isTHead());
+  bool isFrontLineEnds = (this->isFrontLineEnds() && isFrontVisible());
+  bool isTailLineEnds  = (this->isTailLineEnds () && isTailVisible ());
 
   //---
 
@@ -299,12 +299,12 @@ drawContents(const QPen &pen, const QBrush &brush) const
   QPointF fHeadMid = p1;
   QPointF tHeadMid = p4;
 
-  if (isFHead()) {
+  if (isFrontVisible()) {
     if (! isFrontLineEnds)
       fHeadMid = movePointOnLine(p1, a,  strokeWidth);
   }
 
-  if (isTHead()) {
+  if (isTailVisible()) {
     if (! isTailLineEnds)
       tHeadMid = movePointOnLine(p4, a, -strokeWidth);
   }
@@ -327,7 +327,7 @@ drawContents(const QPen &pen, const QBrush &brush) const
   Points  fHeadPoints;
   QPointF pf1, pf2;
 
-  if (isFHead()) {
+  if (isFrontVisible()) {
     // calc front head angle (relative to line)
     Angle a1 = a.angle + faa.angle;
     Angle a2 = a.angle - faa.angle;
@@ -434,7 +434,7 @@ drawContents(const QPen &pen, const QBrush &brush) const
   Points  tHeadPoints;
   QPointF pt1, pt2;
 
-  if (isTHead()) {
+  if (isTailVisible()) {
     // calc tail head angle (relative to line)
     Angle a1 = a.angle + M_PI - taa.angle;
     Angle a2 = a.angle + M_PI + taa.angle;
@@ -662,15 +662,15 @@ drawContents(const QPen &pen, const QBrush &brush) const
     //---
 
     if      (! isFrontLineEnds && ! isTailLineEnds) {
-      if      (isFHead() && isTHead()) {
+      if      (isFrontVisible() && isTailVisible()) {
         addFrontPoints();
         addTailPoints ();
       }
-      else if (isTHead()) {
+      else if (isTailVisible()) {
         addFrontLinePoints();
         addTailPoints     ();
       }
-      else if (isFHead()) {
+      else if (isFrontVisible()) {
         addFrontPoints   ();
         addTailLinePoints();
       }
@@ -679,7 +679,7 @@ drawContents(const QPen &pen, const QBrush &brush) const
       }
     }
     else if (isFrontLineEnds && ! isTailLineEnds) {
-      if (isTHead()) {
+      if (isTailVisible()) {
         addFHeadPoints();
         addTailPoints ();
       }
@@ -689,7 +689,7 @@ drawContents(const QPen &pen, const QBrush &brush) const
       }
     }
     else if (isTailLineEnds && ! isFrontLineEnds) {
-      if (isFHead()) {
+      if (isFrontVisible()) {
         addFrontPoints();
         addTHeadPoints();
       }

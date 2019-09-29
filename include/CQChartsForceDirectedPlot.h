@@ -32,6 +32,8 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool canRectSelect() const override { return false; }
+
   QString description() const override;
 
   bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
@@ -122,6 +124,8 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
 
   //---
 
+  bool isAnimated() const override { return true; }
+
   void animateStep() override;
 
   //---
@@ -150,7 +154,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
 
   void drawParts(QPainter *painter) const override;
 
-  void drawParts(CQChartsPaintDevice *device) const;
+  void drawDeviceParts(CQChartsPaintDevice *device) const override;
 
  private:
   using Connections = CQChartsConnectionList::Connections;

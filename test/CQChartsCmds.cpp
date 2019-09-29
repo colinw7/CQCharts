@@ -6310,12 +6310,14 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-fhead", CQChartsCmdArg::Type::String, "start arrow head type");
   argv.addCmdArg("-thead", CQChartsCmdArg::Type::String, "end arrow head type");
 
-  argv.addCmdArg("-angle"     , CQChartsCmdArg::Type::Real, "arrow head angle");
-  argv.addCmdArg("-back_angle", CQChartsCmdArg::Type::Real, "arrow head back angle");
-
-  argv.addCmdArg("-length", CQChartsCmdArg::Type::String, "arrow head length");
-
-  argv.addCmdArg("-line_ends", CQChartsCmdArg::Type::SBool , "use line for arrow head");
+  argv.addCmdArg("-angle", CQChartsCmdArg::Type::String,
+                 "arrow head angle");
+  argv.addCmdArg("-back_angle", CQChartsCmdArg::Type::String,
+                 "arrow head back angle").setHidden();
+  argv.addCmdArg("-length", CQChartsCmdArg::Type::String,
+                 "arrow head length");
+  argv.addCmdArg("-line_ends", CQChartsCmdArg::Type::String,
+                 "use line for arrow head").setHidden();
 
   argv.addCmdArg("-filled"    , CQChartsCmdArg::Type::SBool,
                  "background is filled" ).setHidden();
@@ -6376,9 +6378,10 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
     if (! visible) return true;
 
     if      (lstr == "triangle") type = CQChartsArrowData::HeadType::TRIANGLE;
-    else if (lstr == "diamond" ) type = CQChartsArrowData::HeadType::DIAMOND;
     else if (lstr == "stealth" ) type = CQChartsArrowData::HeadType::STEALTH;
+    else if (lstr == "diamond" ) type = CQChartsArrowData::HeadType::DIAMOND;
     else if (lstr == "line"    ) lineEnds = true;
+    else if (lstr == "none"    ) visible  = false;
     else                         return false;
 
     return true;
@@ -6408,12 +6411,61 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
     }
   }
 
-  if (argv.hasParseArg("angle"))
-    arrowData.setAngle(argv.getParseReal("angle", arrowData.angle()));
+  // single value (common head & tail angle), two values (separate head & tail angle)
+  if (argv.hasParseArg("angle")) {
+    QStringList strs;
 
-  if (argv.hasParseArg("back_angle"))
-    arrowData.setBackAngle(argv.getParseReal("back_angle", arrowData.backAngle()));
+    if (! CQTcl::splitList(argv.getParseStr("angle"), strs))
+      return errorMsg(QString("Invalid angle string '%1'").arg(argv.getParseStr("angle")));
 
+    if      (strs.length() == 1) {
+      bool ok;
+      double angle = CQChartsUtil::toReal(strs[0], ok);
+      if (! ok) return errorMsg(QString("Invalid angle string '%1'").arg(strs[0]));
+      arrowData.setAngle(angle);
+    }
+    else if (strs.length() == 2) {
+      bool ok1, ok2;
+      double angle1 = CQChartsUtil::toReal(strs[0], ok1);
+      double angle2 = CQChartsUtil::toReal(strs[1], ok2);
+      if (! ok1 || ! ok2) return errorMsg(QString("Invalid angle strings '%1' '%2'").
+                                           arg(strs[0]).arg(strs[1]));
+
+      arrowData.setFrontAngle(angle1);
+      arrowData.setTailAngle (angle2);
+    }
+    else
+      return errorMsg(QString("Invalid angle string '%1'").arg(argv.getParseStr("angle")));
+  }
+
+  // single value (common head & tail back angle), two values (separate head & tail back angle)
+  if (argv.hasParseArg("back_angle")) {
+    QStringList strs;
+
+    if (! CQTcl::splitList(argv.getParseStr("back_angle"), strs))
+      return errorMsg(QString("Invalid back_angle string '%1'").
+                       arg(argv.getParseStr("back_angle")));
+
+    if      (strs.length() == 1) {
+      bool ok; double angle = CQChartsUtil::toReal(strs[0], ok);
+      if (! ok) return errorMsg(QString("Invalid back_angle string '%1'").arg(strs[0]));
+      arrowData.setBackAngle(angle);
+    }
+    else if (strs.length() == 2) {
+      bool ok1; double angle1 = CQChartsUtil::toReal(strs[0], ok1);
+      bool ok2; double angle2 = CQChartsUtil::toReal(strs[1], ok2);
+      if (! ok1 && ! ok2) return errorMsg(QString("Invalid back_angle strings '%1' '%2'").
+                                           arg(strs[0]).arg(strs[1]));
+
+      arrowData.setFrontBackAngle(angle1);
+      arrowData.setTailBackAngle (angle2);
+    }
+    else
+      return errorMsg(QString("Invalid back_angle string '%1'").
+                       arg(argv.getParseStr("back_angle")));
+  }
+
+  // single value (common head & tail length), two values (separate head & tail length)
   if (argv.hasParseArg("length")) {
     QStringList strs;
 
@@ -6434,7 +6486,30 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
       return errorMsg(QString("Invalid length string '%1'").arg(argv.getParseStr("length")));
   }
 
+  // single value (common head & tail line ends), two values (separate head & tail line ends)
   if (argv.hasParseArg("line_ends")) {
+    QStringList strs;
+
+    if (! CQTcl::splitList(argv.getParseStr("line_ends"), strs))
+      return errorMsg(QString("Invalid line_ends string '%1'").arg(argv.getParseStr("line_ends")));
+
+    if      (strs.length() == 1) {
+      bool ok; bool b = CQChartsCmdBaseArgs::stringToBool(strs[0], &ok);
+      if (! ok) return errorMsg(QString("Invalid line_ends string '%1'").arg(strs[0]));
+      arrowData.setLineEnds(b);
+    }
+    else if (strs.length() == 2) {
+      bool ok1; bool b1 = CQChartsCmdBaseArgs::stringToBool(strs[0], &ok1);
+      bool ok2; bool b2 = CQChartsCmdBaseArgs::stringToBool(strs[1], &ok2);
+      if (! ok1 && ! ok2) return errorMsg(QString("Invalid line_ends strings '%1' '%2'").
+                                           arg(strs[0]).arg(strs[1]));
+
+      arrowData.setFrontLineEnds(b1);
+      arrowData.setTailLineEnds (b2);
+    }
+    else
+      return errorMsg(QString("Invalid line_ends string '%1'").arg(argv.getParseStr("line_ends")));
+
     arrowData.setLineEnds(argv.getParseBool("line_ends", arrowData.isLineEnds()));
   }
 

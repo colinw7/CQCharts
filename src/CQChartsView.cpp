@@ -2501,10 +2501,10 @@ void
 CQChartsView::
 selectMousePress()
 {
-  if      (selectMode_ == SelectMode::POINT) {
+  if      (isPointSelectMode()) {
     selectPointPress();
   }
-  else if (selectMode_ == SelectMode::RECT) {
+  else if (isRectSelectMode()) {
     startRegionBand(mousePressPoint());
   }
 }
@@ -2608,7 +2608,7 @@ void
 CQChartsView::
 selectMouseMove()
 {
-  if      (selectMode_ == SelectMode::POINT) {
+  if      (isPointSelectMode()) {
     if (key()) {
       CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(mouseMovePoint()));
 
@@ -2626,7 +2626,7 @@ selectMouseMove()
       return plot->selectMouseMove(pos, current);
     }, searchPos_);
   }
-  else if (selectMode_ == SelectMode::RECT) {
+  else if (isRectSelectMode()) {
     if (mouseData_.escape)
       endRegionBand();
     else
@@ -2638,11 +2638,11 @@ void
 CQChartsView::
 selectMouseRelease()
 {
-  if      (selectMode_ == SelectMode::POINT) {
+  if      (isPointSelectMode()) {
     if (mousePlot())
       mouseData_.plot->selectMouseRelease(mouseMovePoint());
   }
-  else if (selectMode_ == SelectMode::RECT) {
+  else if (isRectSelectMode()) {
     endRegionBand();
 
     //---
@@ -2667,6 +2667,38 @@ selectMouseRelease()
       }, mouseSelMod());
     }
   }
+}
+
+bool
+CQChartsView::
+isRectSelectMode() const
+{
+  if (selectMode_ != SelectMode::RECT)
+    return false;
+
+  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
+
+  if (currentPlot && ! currentPlot->type()->canRectSelect())
+    return false;
+
+  return true;
+}
+
+bool
+CQChartsView::
+isPointSelectMode() const
+{
+  if (selectMode_ == SelectMode::POINT)
+    return true;
+
+  if (selectMode_ == SelectMode::RECT) {
+    CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
+
+    if (currentPlot && ! currentPlot->type()->canRectSelect())
+      return true;
+  }
+
+  return false;
 }
 
 //------

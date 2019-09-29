@@ -955,3 +955,5 @@
  + more javascript painter support
 # 9/28/2019
  + improve arrow rendering and inside test
+# 9/29/2019
+ + add arrow type and update tcl command

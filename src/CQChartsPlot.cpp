@@ -727,6 +727,7 @@ writeScript(std::ostream &os) const
 
   //---
 
+  // mapping
   os << "\n";
   os << "Charts_" << plotId << ".prototype.draw = function() {\n";
 
@@ -741,9 +742,10 @@ writeScript(std::ostream &os) const
 
   //---
 
-  os << "\n";
-
-  drawBackgroundLayer(&device);
+  // background parts (background, bg axes, bg key)
+  if (hasBackgroundLayer()) {
+    os << "\n"; drawBackgroundLayer(&device);
+  }
 
   //---
 
@@ -759,16 +761,12 @@ writeScript(std::ostream &os) const
 
   //---
 
+  // middle parts (objects)
   os << "\n"; os << "  this.drawObjs();\n";
 
   //---
 
-  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
-    os << "\n"; os << "  this.drawAnnotations();\n";
-  }
-
-  //---
-
+  // foreground parts (fg axis, fg key, title, annotations, foreground)
   if (fgAxes) { os << "\n"; os << "  this.drawFgAxis();\n"; }
   if (fgKey ) { os << "\n"; os << "  this.drawFgKey ();\n"; }
 
@@ -778,9 +776,14 @@ writeScript(std::ostream &os) const
 
   //---
 
+  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
+    os << "\n"; os << "  this.drawAnnotations();\n";
+  }
+
+  //---
+
   if (this->hasForeground()) {
-    os << "\n";
-    execDrawForeground(&device);
+    os << "\n"; execDrawForeground(&device);
   }
 
   //---
@@ -789,6 +792,7 @@ writeScript(std::ostream &os) const
 
   //---
 
+  // plot object procs
   for (const auto &plotObj : plotObjects()) {
     if (! plotObj->isVisible()) continue;
 
@@ -880,6 +884,7 @@ writeScript(std::ostream &os) const
 
   //---
 
+  // draw objects proc
   os << "\n";
   os << "Charts_" << plotId << ".prototype.drawObjs = function() {\n";
 
@@ -899,10 +904,13 @@ writeScript(std::ostream &os) const
     }
   }
 
+  drawDeviceParts(&device);
+
   os << "}\n";
 
   //---
 
+  // draw axes procs
   if (bgAxes) {
     os << "\n";
     os << "Charts_" << plotId << ".prototype.drawBgAxis = function() {\n";
@@ -919,6 +927,7 @@ writeScript(std::ostream &os) const
 
   //---
 
+  // draw key procs
   if (bgKey) {
     os << "\n";
     os << "Charts_" << plotId << ".prototype.drawBgKey = function() {\n";
@@ -933,6 +942,9 @@ writeScript(std::ostream &os) const
     os << "}\n";
   }
 
+  //---
+
+  // draw title proc
   if (title()) {
     os << "\n";
     os << "Charts_" << plotId << ".prototype.drawTitle = function() {\n";
@@ -940,6 +952,9 @@ writeScript(std::ostream &os) const
     os << "}\n";
   }
 
+  //---
+
+  // draw annotations proc
   if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
     os << "\n";
     os << "Charts_" << plotId << ".prototype.drawAnnotations = function() {\n";
@@ -6358,18 +6373,7 @@ drawBackgroundParts(QPainter *painter) const
 
     CQChartsPlotPainter device(th, painter1);
 
-    // draw background (plot/data fill)
-    if (bgLayer)
-      drawBackgroundLayer(&device);
-
-    //---
-
-    // draw axes/key below plot
-    if (bgAxes)
-      drawGroupedBgAxes(&device);
-
-    if (bgKey)
-      drawBgKey(&device);
+    drawBackgroundDeviceParts(&device);
 
     //---
 
@@ -6383,6 +6387,24 @@ drawBackgroundParts(QPainter *painter) const
   //---
 
   endPaint(buffer);
+}
+
+void
+CQChartsPlot::
+drawBackgroundDeviceParts(CQChartsPaintDevice *device) const
+{
+  // draw background (plot/data fill)
+  if (hasBackgroundLayer())
+    drawBackgroundLayer(device);
+
+  //---
+
+  // draw axes/key below plot
+  if (hasGroupedBgAxes())
+    drawGroupedBgAxes(device);
+
+  if (hasGroupedBgKey())
+    drawBgKey(device);
 }
 
 void
@@ -6416,15 +6438,22 @@ drawMiddleParts(QPainter *painter) const
 
     CQChartsPlotPainter device(th, painter1);
 
-    // draw objects (background, mid, foreground)
-    drawGroupedObjs(&device, CQChartsLayer::Type::BG_PLOT );
-    drawGroupedObjs(&device, CQChartsLayer::Type::MID_PLOT);
-    drawGroupedObjs(&device, CQChartsLayer::Type::FG_PLOT );
+    drawMiddleDeviceParts(&device);
   }
 
   //---
 
   endPaint(buffer);
+}
+
+void
+CQChartsPlot::
+drawMiddleDeviceParts(CQChartsPaintDevice *device) const
+{
+  // draw objects (background, mid, foreground)
+  drawGroupedObjs(device, CQChartsLayer::Type::BG_PLOT );
+  drawGroupedObjs(device, CQChartsLayer::Type::MID_PLOT);
+  drawGroupedObjs(device, CQChartsLayer::Type::FG_PLOT );
 }
 
 void
@@ -6456,35 +6485,42 @@ drawForegroundParts(QPainter *painter) const
 
     CQChartsPlotPainter device(th, painter1);
 
-    // draw axes/key above plot
-    if (fgAxes)
-      drawGroupedFgAxes(&device);
-
-    if (fgKey)
-      drawFgKey(&device);
-
-    //---
-
-    // draw title
-    if (title)
-      drawTitle(&device);
-
-    //---
-
-    // draw annotations
-    if (annotations)
-      drawGroupedAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
-
-    //---
-
-    // draw foreground
-    if (foreground)
-      execDrawForeground(&device);
+    drawForegroundDeviceParts(&device);
   }
 
   //---
 
   endPaint(buffer);
+}
+
+void
+CQChartsPlot::
+drawForegroundDeviceParts(CQChartsPaintDevice *device) const
+{
+  // draw axes/key above plot
+  if (hasGroupedFgAxes())
+    drawGroupedFgAxes(device);
+
+  if (hasGroupedFgKey())
+    drawFgKey(device);
+
+  //---
+
+  // draw title
+  if (hasTitle())
+    drawTitle(device);
+
+  //---
+
+  // draw annotations
+  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION))
+    drawGroupedAnnotations(device, CQChartsLayer::Type::ANNOTATION);
+
+  //---
+
+  // draw foreground
+  if (hasForeground())
+    execDrawForeground(device);
 }
 
 void
@@ -6518,37 +6554,49 @@ drawOverlayParts(QPainter *painter) const
 
     CQChartsPlotPainter device(th, painter1);
 
-    // draw selection
-    if (sel_objs)
-      drawGroupedObjs(&device, CQChartsLayer::Type::SELECTION);
-
-    if (sel_annotations)
-      drawGroupedAnnotations(&device, CQChartsLayer::Type::SELECTION);
-
-    //---
-
-    // draw debug boxes
-    if (boxes)
-      drawGroupedBoxes(&device);
-
-    //---
-
-    if (edit_handles)
-      drawGroupedEditHandles(painter1);
-
-    //---
-
-    // draw mouse over
-    if (over_objs)
-      drawGroupedObjs(&device, CQChartsLayer::Type::MOUSE_OVER);
-
-    if (over_annotations)
-      drawGroupedAnnotations(&device, CQChartsLayer::Type::MOUSE_OVER);
+    drawOverlayDeviceParts(&device);
   }
 
   //---
 
   endPaint(buffer);
+}
+
+void
+CQChartsPlot::
+drawOverlayDeviceParts(CQChartsPaintDevice *device) const
+{
+  // draw selection
+  if (hasGroupedObjs(CQChartsLayer::Type::SELECTION))
+    drawGroupedObjs(device, CQChartsLayer::Type::SELECTION);
+
+  if (hasGroupedAnnotations(CQChartsLayer::Type::SELECTION))
+    drawGroupedAnnotations(device, CQChartsLayer::Type::SELECTION);
+
+  //---
+
+  // draw debug boxes
+  if (hasGroupedBoxes())
+    drawGroupedBoxes(device);
+
+  //---
+
+  if (hasGroupedEditHandles()) {
+    if (device->type() != CQChartsPaintDevice::Type::SCRIPT) {
+      CQChartsViewPlotPainter *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+
+      drawGroupedEditHandles(painter->painter());
+    }
+  }
+
+  //---
+
+  // draw mouse over
+  if (hasGroupedObjs(CQChartsLayer::Type::MOUSE_OVER))
+    drawGroupedObjs(device, CQChartsLayer::Type::MOUSE_OVER);
+
+  if (hasGroupedAnnotations(CQChartsLayer::Type::MOUSE_OVER))
+    drawGroupedAnnotations(device, CQChartsLayer::Type::MOUSE_OVER);
 }
 
 bool

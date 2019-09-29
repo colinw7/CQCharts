@@ -532,7 +532,7 @@ fillPath(const QPainterPath &path, const QBrush &brush)
 
   addPathParts(path);
 
-  *os_ << "  " << context() << ".gc.stroke();\n";
+  *os_ << "  " << context() << ".gc.fill();\n";
 }
 
 void
@@ -543,7 +543,7 @@ strokePath(const QPainterPath &path, const QPen &pen)
 
   addPathParts(path);
 
-  *os_ << "  " << context() << ".gc.fill();\n";
+  *os_ << "  " << context() << ".gc.stroke();\n";
 }
 
 void

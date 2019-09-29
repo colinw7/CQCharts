@@ -720,12 +720,12 @@ drawParts(QPainter *painter) const
 
   CQChartsPlotPainter device(th, painter);
 
-  drawParts(&device);
+  drawDeviceParts(&device);
 }
 
 void
 CQChartsForceDirectedPlot::
-drawParts(CQChartsPaintDevice *device) const
+drawDeviceParts(CQChartsPaintDevice *device) const
 {
   device->save();
 

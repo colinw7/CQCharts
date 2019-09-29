@@ -1,12 +1,8 @@
 Abstract Painter
- . Force Directed
- . Remove old QPainter calls
  . JS Painter Clip
- . complex inside test
- . Annotation objects on javascript
+ . JS complex inside test
 
 High
- + Arrow End Types. Independent Start/End Values
  + Combine CQChartsModelDetails and CQModelDetails
  + Same coloring in table and plot (if possible)
    + same palette

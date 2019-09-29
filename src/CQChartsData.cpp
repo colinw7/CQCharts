@@ -542,6 +542,58 @@ registerMetaType()
   CQPropertyViewMgrInst->setUserName("CQChartsArrowData", "arrow_data");
 }
 
+void
+CQChartsArrowData::
+setFHeadType(HeadType type)
+{
+  fheadData_.type = type;
+
+  setFrontLineEnds(false);
+  setFHead        (true);
+
+  if      (fheadData_.type == HeadType::TRIANGLE) {
+    setFrontAngle(30.0); setFrontBackAngle(90.0);
+  }
+  else if (fheadData_.type == HeadType::STEALTH) {
+    setFrontAngle(30.0); setFrontBackAngle(45.0);
+  }
+  else if (fheadData_.type == HeadType::DIAMOND) {
+    setFrontAngle(30.0); setFrontBackAngle(130.0);
+  }
+  else if (fheadData_.type == HeadType::LINE) {
+    setFrontLineEnds(true);
+  }
+  else if (fheadData_.type == HeadType::NONE) {
+    setFHead(false);
+  }
+}
+
+void
+CQChartsArrowData::
+setTHeadType(HeadType type)
+{
+  theadData_.type = type;
+
+  setTailLineEnds(false);
+  setTHead       (true);
+
+  if      (theadData_.type == HeadType::TRIANGLE) {
+    setTailAngle(30.0); setTailBackAngle(90.0);
+  }
+  else if (theadData_.type == HeadType::STEALTH) {
+    setTailAngle(30.0); setTailBackAngle(45.0);
+  }
+  else if (theadData_.type == HeadType::DIAMOND) {
+    setTailAngle(30.0); setTailBackAngle(130.0);
+  }
+  else if (theadData_.type == HeadType::LINE) {
+    setTailLineEnds(true);
+  }
+  else if (theadData_.type == HeadType::NONE) {
+    setTHead(false);
+  }
+}
+
 QString
 CQChartsArrowData::
 toString() const
@@ -567,7 +619,7 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   //---
 
-  nameValues.setNameValue("fhead", isFHead());
+  nameValues.setNameValue("front_visible", isFHead());
 
   if (frontAngle    () > 0) nameValues.setNameValue("front_angle", frontAngle());
   if (frontBackAngle() > 0) nameValues.setNameValue("front_back_angle", frontBackAngle());
@@ -580,7 +632,7 @@ setNameValues(CQChartsNameValues &nameValues) const
 
   //---
 
-  nameValues.setNameValue("thead", isTHead());
+  nameValues.setNameValue("tail_visible", isTHead());
 
   if (tailAngle    () > 0) nameValues.setNameValue("tail_angle", tailAngle());
   if (tailBackAngle() > 0) nameValues.setNameValue("tail_back_angle", tailBackAngle());
@@ -609,13 +661,13 @@ getNameValues(const CQChartsNameValues &nameValues)
 
   nameValues.nameValueType<CQChartsLength>("line_width", lineWidth_);
 
-  nameValues.nameValueBool                ("fhead"           , fheadData_.visible);
+  nameValues.nameValueBool                ("front_visible"   , fheadData_.visible);
   nameValues.nameValueReal                ("front_angle"     , fheadData_.angle);
   nameValues.nameValueReal                ("front_back_angle", fheadData_.backAngle);
   nameValues.nameValueType<CQChartsLength>("front_length"    , fheadData_.length);
   nameValues.nameValueBool                ("front_line_ends" , fheadData_.lineEnds);
 
-  nameValues.nameValueBool                ("thead"           , fheadData_.visible);
+  nameValues.nameValueBool                ("tail_visible"    , fheadData_.visible);
   nameValues.nameValueReal                ("tail_angle"      , fheadData_.angle);
   nameValues.nameValueReal                ("tail_back_angle" , fheadData_.backAngle);
   nameValues.nameValueType<CQChartsLength>("tail_length"     , fheadData_.length);

@@ -2353,35 +2353,39 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp(path1, "start", "", "Arrow start point");
   addProp(path1, "end"  , "", "Arrow end point");
 
+  QString linePath = path1 + "/line";
+
+  addArrowStyleProp(linePath, "lineWidth", "width", "Arrow connecting line width");
+
   QString frontHeadPath = path1 + "/frontHead";
 
-  addArrowProp     (frontHeadPath, "fhead"         , "visible",
-                    "Arrow front head visible");
+//addArrowProp     (frontHeadPath, "frontVisible"  , "visible",
+//                  "Arrow front head visible");
+  addArrowProp     (frontHeadPath, "frontType"     , "type",
+                    "Arrow front head type");
   addArrowStyleProp(frontHeadPath, "frontLength"   , "length",
                     "Arrow front head length");
   addArrowStyleProp(frontHeadPath, "frontAngle"    , "angle",
                     "Arrow front head angle");
-  addArrowStyleProp(frontHeadPath, "frontBackAngle", "backAngle",
-                    "Arrow front head back angle");
-  addArrowStyleProp(frontHeadPath, "frontLineEnds" , "line",
-                    "Arrow front head is drawn using lines");
+//addArrowStyleProp(frontHeadPath, "frontBackAngle", "backAngle",
+//                  "Arrow front head back angle");
+//addArrowStyleProp(frontHeadPath, "frontLineEnds" , "line",
+//                  "Arrow front head is drawn using lines");
 
   QString tailHeadPath = path1 + "/tailHead";
 
-  addArrowProp     (tailHeadPath, "thead"        , "visible",
-                    "Arrow tail head visible");
+//addArrowProp     (tailHeadPath, "tailVisible"  , "visible",
+//                  "Arrow tail head visible");
+  addArrowProp     (tailHeadPath, "tailType"    , "type",
+                    "Arrow tail head type");
   addArrowStyleProp(tailHeadPath, "tailLength"   , "length",
                     "Arrow tail head length");
   addArrowStyleProp(tailHeadPath, "tailAngle"    , "angle",
                     "Arrow tail head angle");
-  addArrowStyleProp(tailHeadPath, "tailBackAngle", "backAngle",
-                    "Arrow tail head back angle");
-  addArrowStyleProp(tailHeadPath, "tailLineEnds" , "line",
-                    "Arrow tail head is drawn using lines");
-
-  QString linePath = path1 + "/line";
-
-  addArrowStyleProp(linePath, "lineWidth", "width", "Arrow connecting line width");
+//addArrowStyleProp(tailHeadPath, "tailBackAngle", "backAngle",
+//                  "Arrow tail head back angle");
+//addArrowStyleProp(tailHeadPath, "tailLineEnds" , "line",
+//                  "Arrow tail head is drawn using lines");
 
   QString fillPath = path1 + "/fill";
 
@@ -2555,8 +2559,14 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   if (end().isSet())
     os << " -end {" << end().toString().toStdString() << "}";
 
-  if (arrow()->length().isSet())
-    os << " -length {" << arrow()->length().toString().toStdString() << "}";
+  if (arrow()->lineWidth().isSet())
+    os << " -line_width {" << arrow()->lineWidth().toString().toStdString() << "}";
+
+  if (arrow()->isFrontVisible())
+    os << " -fhead 1";
+
+  if (arrow()->isTailVisible())
+    os << " -thead 1";
 
   if (arrow()->angle() != 0.0)
     os << " -angle " << arrow()->angle();
@@ -2564,17 +2574,11 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   if (arrow()->backAngle() != 0.0)
     os << " -back_angle " << arrow()->backAngle();
 
-  if (arrow()->isFHead())
-    os << " -fhead 1";
-
-  if (arrow()->isTHead())
-    os << " -thead 1";
+  if (arrow()->length().isSet())
+    os << " -length {" << arrow()->length().toString().toStdString() << "}";
 
   if (arrow()->isLineEnds())
     os << " -line_ends 1";
-
-  if (arrow()->lineWidth().isSet())
-    os << " -line_width {" << arrow()->lineWidth().toString().toStdString() << "}";
 
 #if 0
   if (arrow()->isFilled())

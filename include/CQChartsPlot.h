@@ -719,6 +719,8 @@ class CQChartsPlot : public CQChartsObj,
   void startAnimateTimer();
   void stopAnimateTimer ();
 
+  virtual bool isAnimated() const { return false; }
+
   virtual void animateStep() { }
 
   //---
@@ -1552,17 +1554,28 @@ class CQChartsPlot : public CQChartsObj,
   // draw plot parts
   virtual void drawParts(QPainter *painter) const;
 
+  // draw plot device parts
+  virtual void drawDeviceParts(CQChartsPaintDevice *) const { }
+
   // draw background layer plot parts
   virtual void drawBackgroundParts(QPainter *painter) const;
+
+  void drawBackgroundDeviceParts(CQChartsPaintDevice *device) const;
 
   // draw middle layer plot parts
   virtual void drawMiddleParts(QPainter *painter) const;
 
+  void drawMiddleDeviceParts(CQChartsPaintDevice *device) const;
+
   // draw foreground layer plot parts
   virtual void drawForegroundParts(QPainter *painter) const;
 
+  void drawForegroundDeviceParts(CQChartsPaintDevice *device) const;
+
   // draw overlay layer plot parts
   virtual void drawOverlayParts(QPainter *painter) const;
+
+  void drawOverlayDeviceParts(CQChartsPaintDevice *device) const;
 
   //---
 

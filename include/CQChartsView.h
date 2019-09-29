@@ -920,6 +920,9 @@ class CQChartsView : public QFrame,
 
   void selectPointPress();
 
+  bool isRectSelectMode() const;
+  bool isPointSelectMode() const;
+
   void zoomMousePress();
   void zoomMouseMove();
   void zoomMouseRelease();

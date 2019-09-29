@@ -488,8 +488,9 @@ class CQChartsArrowData {
   enum class HeadType {
     NONE,
     TRIANGLE,
+    STEALTH,
     DIAMOND,
-    STEALTH
+    LINE
   };
 
  public:
@@ -511,85 +512,61 @@ class CQChartsArrowData {
 
   //---
 
+  // front head data
   bool isFHead() const { return fheadData_.visible; }
   void setFHead(bool b) { fheadData_.visible = b; }
 
-  bool isTHead() const { return theadData_.visible; }
-  void setTHead(bool b) { theadData_.visible = b; }
+  //---
+
+  HeadType fheadType() const { return fheadData_.type; }
+  void setFHeadType(HeadType type);
+
+  double frontAngle() const { return fheadData_.angle; }
+  void setFrontAngle(double a) { fheadData_.angle = a; }
+
+  double frontBackAngle() const { return fheadData_.backAngle; }
+  void setFrontBackAngle(double a) { fheadData_.backAngle = a; }
+
+  const CQChartsLength &frontLength() const { return fheadData_.length; }
+  void setFrontLength(const CQChartsLength &l) { fheadData_.length = l; }
+
+  bool isFrontLineEnds() const { return fheadData_.lineEnds; }
+  void setFrontLineEnds(bool b) { fheadData_.lineEnds = b; }
 
   //---
 
-  void setFHeadType(HeadType type) {
-    fheadData_.type = type;
+  // tail head data
+  bool isTHead() const { return theadData_.visible; }
+  void setTHead(bool b) { theadData_.visible = b; }
 
-    if      (fheadData_.type == HeadType::TRIANGLE) {
-      setFrontAngle(30.0); setFrontBackAngle(90.0);
-    }
-    else if (fheadData_.type == HeadType::DIAMOND) {
-      setFrontAngle(30.0); setFrontBackAngle(130.0);
-    }
-    else if (fheadData_.type == HeadType::STEALTH) {
-      setFrontAngle(30.0); setFrontBackAngle(45.0);
-    }
-  }
+  HeadType theadType() const { return theadData_.type; }
+  void setTHeadType(HeadType type);
 
-  void setTHeadType(HeadType type) {
-    theadData_.type = type;
+  double tailAngle() const { return theadData_.angle; }
+  void setTailAngle(double a) { theadData_.angle = a; }
 
-    if      (theadData_.type == HeadType::TRIANGLE) {
-      setTailAngle(30.0); setTailBackAngle(90.0);
-    }
-    else if (theadData_.type == HeadType::DIAMOND) {
-      setTailAngle(30.0); setTailBackAngle(130.0);
-    }
-    else if (theadData_.type == HeadType::STEALTH) {
-      setTailAngle(30.0); setTailBackAngle(45.0);
-    }
-  }
+  double tailBackAngle() const { return theadData_.backAngle; }
+  void setTailBackAngle(double a) { theadData_.backAngle = a; }
+
+  const CQChartsLength &tailLength() const { return theadData_.length; }
+  void setTailLength(const CQChartsLength &l) { theadData_.length = l; }
+
+  bool isTailLineEnds() const { return theadData_.lineEnds; }
+  void setTailLineEnds(bool b) { theadData_.lineEnds = b; }
 
   //---
 
   double angle() const { return tailAngle(); }
   void setAngle(double a) { setFrontAngle(a); setTailAngle(a); }
 
-  double frontAngle() const { return fheadData_.angle; }
-  void setFrontAngle(double a) { fheadData_.angle = a; }
-
-  double tailAngle() const { return theadData_.angle; }
-  void setTailAngle(double a) { theadData_.angle = a; }
-
-  //---
-
   double backAngle() const { return tailBackAngle(); }
   void setBackAngle(double a) { setFrontBackAngle(a); setTailBackAngle(a); }
-
-  double frontBackAngle() const { return fheadData_.backAngle; }
-  void setFrontBackAngle(double a) { fheadData_.backAngle = a; }
-
-  double tailBackAngle() const { return theadData_.backAngle; }
-  void setTailBackAngle(double a) { theadData_.backAngle = a; }
-
-  //---
 
   const CQChartsLength &length() const { return frontLength(); }
   void setLength(const CQChartsLength &l) { setFrontLength(l); setTailLength(l); }
 
-  const CQChartsLength &frontLength() const { return fheadData_.length; }
-  void setFrontLength(const CQChartsLength &l) { fheadData_.length = l; }
-
-  const CQChartsLength &tailLength() const { return theadData_.length; }
-  void setTailLength(const CQChartsLength &l) { theadData_.length = l; }
-
-  //---
-
   bool isLineEnds() const { return isTailLineEnds(); }
   void setLineEnds(bool b) { setFrontLineEnds(b); setTailLineEnds(b); }
-
-  bool isFrontLineEnds() const { return fheadData_.lineEnds; }
-  void setFrontLineEnds(bool b) { fheadData_.lineEnds = b; }
-
-  bool isTailLineEnds() const { return theadData_.lineEnds; }
-  void setTailLineEnds(bool b) { theadData_.lineEnds = b; }
 
   //---
 
