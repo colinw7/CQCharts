@@ -551,14 +551,14 @@ setFHeadType(HeadType type)
   setFrontLineEnds(false);
   setFHead        (true);
 
-  if      (fheadData_.type == HeadType::TRIANGLE) {
-    setFrontAngle(30.0); setFrontBackAngle(90.0);
-  }
-  else if (fheadData_.type == HeadType::STEALTH) {
-    setFrontAngle(30.0); setFrontBackAngle(45.0);
-  }
-  else if (fheadData_.type == HeadType::DIAMOND) {
-    setFrontAngle(30.0); setFrontBackAngle(130.0);
+  if      (fheadData_.type == HeadType::TRIANGLE ||
+           fheadData_.type == HeadType::STEALTH  ||
+           fheadData_.type == HeadType::DIAMOND) {
+    double angle, backAngle;
+
+    getTypeAngles(fheadData_.type, angle, backAngle);
+
+    setFrontAngle(angle); setFrontBackAngle(backAngle);
   }
   else if (fheadData_.type == HeadType::LINE) {
     setFrontLineEnds(true);
@@ -577,14 +577,14 @@ setTHeadType(HeadType type)
   setTailLineEnds(false);
   setTHead       (true);
 
-  if      (theadData_.type == HeadType::TRIANGLE) {
-    setTailAngle(30.0); setTailBackAngle(90.0);
-  }
-  else if (theadData_.type == HeadType::STEALTH) {
-    setTailAngle(30.0); setTailBackAngle(45.0);
-  }
-  else if (theadData_.type == HeadType::DIAMOND) {
-    setTailAngle(30.0); setTailBackAngle(130.0);
+  if      (theadData_.type == HeadType::TRIANGLE ||
+           theadData_.type == HeadType::STEALTH  ||
+           theadData_.type == HeadType::DIAMOND) {
+    double angle, backAngle;
+
+    getTypeAngles(theadData_.type, angle, backAngle);
+
+    setTailAngle(angle); setTailBackAngle(backAngle);
   }
   else if (theadData_.type == HeadType::LINE) {
     setTailLineEnds(true);
@@ -667,11 +667,86 @@ getNameValues(const CQChartsNameValues &nameValues)
   nameValues.nameValueType<CQChartsLength>("front_length"    , fheadData_.length);
   nameValues.nameValueBool                ("front_line_ends" , fheadData_.lineEnds);
 
-  nameValues.nameValueBool                ("tail_visible"    , fheadData_.visible);
-  nameValues.nameValueReal                ("tail_angle"      , fheadData_.angle);
-  nameValues.nameValueReal                ("tail_back_angle" , fheadData_.backAngle);
-  nameValues.nameValueType<CQChartsLength>("tail_length"     , fheadData_.length);
-  nameValues.nameValueBool                ("tail_line_ends"  , fheadData_.lineEnds);
+  nameValues.nameValueBool                ("tail_visible"    , theadData_.visible);
+  nameValues.nameValueReal                ("tail_angle"      , theadData_.angle);
+  nameValues.nameValueReal                ("tail_back_angle" , theadData_.backAngle);
+  nameValues.nameValueType<CQChartsLength>("tail_length"     , theadData_.length);
+  nameValues.nameValueBool                ("tail_line_ends"  , theadData_.lineEnds);
 
   return true;
+}
+
+bool
+CQChartsArrowData::
+getTypeAngles(const HeadType &type, double &angle, double &backAngle)
+{
+  if      (type == HeadType::TRIANGLE) {
+    angle = 30.0; backAngle = 90.0;
+  }
+  else if (type == HeadType::STEALTH) {
+    angle = 30.0; backAngle = 45.0;
+  }
+  else if (type == HeadType::DIAMOND) {
+    angle = 30.0; backAngle = 130.0;
+  }
+  else {
+    return false;
+  }
+
+  return true;
+}
+
+bool
+CQChartsArrowData::
+checkTypeAngles(const HeadType &type, double angle, double backAngle)
+{
+  double angle1, backAngle1;
+
+  if (! getTypeAngles(type, angle1, backAngle1))
+    return false;
+
+  return (angle == angle1 && backAngle == backAngle1);
+}
+
+bool
+CQChartsArrowData::
+nameToData(const QString &name, HeadType &type, bool &lineEnds, bool &visible)
+{
+  lineEnds = false;
+  visible  = true;
+  type     = CQChartsArrowData::HeadType::STEALTH;
+
+  QString lstr = name.toLower();
+
+  if (lstr == "yes" || lstr == "true"  || lstr == "1") { visible = true ; return true; }
+  if (lstr == "no"  || lstr == "false" || lstr == "0") { visible = false; return true; }
+
+  if      (lstr == "triangle") type = CQChartsArrowData::HeadType::TRIANGLE;
+  else if (lstr == "stealth" ) type = CQChartsArrowData::HeadType::STEALTH;
+  else if (lstr == "diamond" ) type = CQChartsArrowData::HeadType::DIAMOND;
+  else if (lstr == "line"    ) { lineEnds = true ; type = CQChartsArrowData::HeadType::LINE; }
+  else if (lstr == "none"    ) { visible  = false; type = CQChartsArrowData::HeadType::NONE; }
+  else                         return false;
+
+  return true;
+}
+
+bool
+CQChartsArrowData::
+dataToName(const HeadType &type, bool lineEnds, bool visible,
+           double angle, double backAngle, QString &name)
+{
+  if (! visible) { name = "none"; return true; }
+  if (lineEnds ) { name = "line"; return true; }
+
+  if (type == CQChartsArrowData::HeadType::TRIANGLE) {
+    name = "triangle"; return checkTypeAngles(type, angle, backAngle); }
+  if (type == CQChartsArrowData::HeadType::STEALTH) {
+    name = "stealth" ; return checkTypeAngles(type, angle, backAngle); }
+  if (type == CQChartsArrowData::HeadType::DIAMOND) {
+    name = "diamond" ; return checkTypeAngles(type, angle, backAngle); }
+
+  if (type == CQChartsArrowData::HeadType::LINE) { name = "line"; return true; }
+
+  return false;
 }

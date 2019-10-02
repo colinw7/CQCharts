@@ -64,6 +64,10 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
   //---
 
+  double value() const { return value_; }
+
+  //---
+
   CQChartsGeom::BBox dataLabelRect() const;
 
   //---
@@ -84,7 +88,7 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
- protected:
+  void writeScriptData(std::ostream &os) const override;
 
  protected:
   const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot
@@ -152,6 +156,10 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
 
   //---
 
+  double value() const { return value_; }
+
+  //---
+
   bool inside(const CQChartsGeom::Point&) const override;
 
   void getSelectIndices(Indices &inds) const override;
@@ -186,6 +194,10 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
   QString calcId() const override;
 
   QString calcTipId() const override;
+
+  //---
+
+  double value() const { return value_; }
 
   //---
 

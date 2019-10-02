@@ -777,7 +777,8 @@ void
 CQChartsScriptPainter::
 setFont(const QFont &f)
 {
-  *os_ << "  " << context() << ".gc.font = \"" << f.pointSizeF() << "px Sans\";\n";
+  if (f.pointSizeF() != data_.font.pointSizeF())
+    *os_ << "  " << context() << ".gc.font = \"" << f.pointSizeF() << "px Sans\";\n";
 
   data_.font = f;
 }

@@ -659,21 +659,6 @@ writeScript(std::ostream &os) const
     return id1.toStdString();
   };
 
-  auto encodeString = [&](const QString &str) {
-    QString str1;
-
-    int n = str.length();
-
-    for (int i = 0; i < n; ++i) {
-      if (str[i] == '\n')
-        str1 += "\\n";
-      else
-        str1 += str[i];
-    }
-
-    return str1.toStdString();
-  };
-
   std::string plotId = "plot_" + this->id().toStdString();
 
   //---
@@ -693,6 +678,8 @@ writeScript(std::ostream &os) const
   os << "\n";
   os << "Charts_" << plotId << ".prototype.init = function() {\n";
 
+  int imajor = 0;
+
   for (const auto &plotObj : plotObjects()) {
     if (! plotObj->isVisible()) continue;
 
@@ -700,11 +687,15 @@ writeScript(std::ostream &os) const
       QString     objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
       std::string objStr = encodeObjId(objId);
 
-      os << "\n";
+      if (imajor > 0)
+        os << "\n";
+
       os << "  this." << objStr << " = new Charts_" << objStr << "();\n";
       os << "  this.objs.push(this." << objStr << ");\n";
       os << "\n";
       os << "  this." << objStr << ".init();\n";
+
+      ++imajor;
     }
   }
 
@@ -806,32 +797,7 @@ writeScript(std::ostream &os) const
 
       os << "\n";
       os << "Charts_" << objStr << ".prototype.init = function() {\n";
-      os << "  this.id    = \"" << plotObj->id().toStdString() << "\";\n";
-      os << "  this.tipId = \"" << encodeString(plotObj->tipId()) << "\";\n";
-
-      const CQChartsGeom::BBox &rect = plotObj->rect();
-
-      os << "  this.xmin = " << rect.getXMin() << ";\n";
-      os << "  this.ymin = " << rect.getYMin() << ";\n";
-      os << "  this.xmax = " << rect.getXMax() << ";\n";
-      os << "  this.ymax = " << rect.getYMax() << ";\n";
-
-      if (plotObj->isPolygon()) {
-        os << "  this.poly = [";
-
-        QPolygonF poly = plotObj->polygon();
-
-        int np = poly.length();
-
-        for (int i = 0; i < np; ++i) {
-          if (i > 0) os << ", ";
-
-          os << poly[i].x() << ", " << poly[i].y();
-        }
-
-        os << "];\n";
-      }
-
+      plotObj->writeScriptData(os);
       os << "}\n";
 
       //---
@@ -842,15 +808,18 @@ writeScript(std::ostream &os) const
       os << "  var mouseX = e.clientX - rect.left;\n";
       os << "  var mouseY = e.clientY - rect.top;\n";
       os << "  if (this.inside(mouseX, mouseY)) {\n";
-      os << "    charts.log(this.tipId);\n";
+
+      if (view()->scriptSelectProc().length())
+        os << "    " << view()->scriptSelectProc().toStdString() << "(this.id);\n";
+      else
+        os << "    charts.log(this.tipId);\n";
+
       os << "  }\n";
       os << "}\n";
-      os << "\n";
 
       os << "\n";
       os << "Charts_" << objStr << ".prototype.eventMouseMove = function(e) {\n";
       os << "}\n";
-      os << "\n";
 
       os << "\n";
       os << "Charts_" << objStr << ".prototype.eventMouseUp = function(e) {\n";

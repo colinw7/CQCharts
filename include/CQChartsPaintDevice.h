@@ -243,6 +243,23 @@ class CQChartsScriptPainter : public CQChartsPaintDevice {
   std::string context() const;
   void setContext(const std::string &context);
 
+  //---
+
+  static QString encodeString(const QString &str) {
+    QString str1;
+
+    int n = str.length();
+
+    for (int i = 0; i < n; ++i) {
+      if (str[i] == '\n')
+        str1 += "\\n";
+      else
+        str1 += str[i];
+    }
+
+    return str1;
+  };
+
  private:
   void addPathParts(const QPainterPath &path);
 

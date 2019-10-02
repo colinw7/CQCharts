@@ -1,6 +1,7 @@
-Abstract Painter
- . JS Painter Clip
- . JS complex inside test
+Abstract Painter/Javascript
+ + JS Painter Clip
+ + JS complex inside test
+ + Support javascript callback in generated code (select)
 
 High
  + Combine CQChartsModelDetails and CQModelDetails

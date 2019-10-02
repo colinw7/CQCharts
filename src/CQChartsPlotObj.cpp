@@ -209,6 +209,41 @@ drawDebugRect(CQChartsPaintDevice *device)
   plot()->drawWindowColorBox(device, rect());
 }
 
+void
+CQChartsPlotObj::
+writeScriptData(std::ostream &os) const
+{
+  auto encodeString = [&](const QString &str) {
+    return CQChartsScriptPainter::encodeString(str).toStdString();
+  };
+
+  os << "  this.id    = \"" << this->id().toStdString() << "\";\n";
+  os << "  this.tipId = \"" << encodeString(this->tipId()) << "\";\n";
+
+  const CQChartsGeom::BBox &rect = this->rect();
+
+  os << "  this.xmin = " << rect.getXMin() << ";\n";
+  os << "  this.ymin = " << rect.getYMin() << ";\n";
+  os << "  this.xmax = " << rect.getXMax() << ";\n";
+  os << "  this.ymax = " << rect.getYMax() << ";\n";
+
+  if (this->isPolygon()) {
+    os << "  this.poly = [";
+
+    QPolygonF poly = this->polygon();
+
+    int np = poly.length();
+
+    for (int i = 0; i < np; ++i) {
+      if (i > 0) os << ", ";
+
+      os << poly[i].x() << ", " << poly[i].y();
+    }
+
+    os << "];\n";
+  }
+}
+
 //------
 
 CQChartsGroupObj::

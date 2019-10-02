@@ -516,8 +516,6 @@ class CQChartsArrowData {
   bool isFHead() const { return fheadData_.visible; }
   void setFHead(bool b) { fheadData_.visible = b; }
 
-  //---
-
   HeadType fheadType() const { return fheadData_.type; }
   void setFHeadType(HeadType type);
 
@@ -562,7 +560,7 @@ class CQChartsArrowData {
   double backAngle() const { return tailBackAngle(); }
   void setBackAngle(double a) { setFrontBackAngle(a); setTailBackAngle(a); }
 
-  const CQChartsLength &length() const { return frontLength(); }
+  const CQChartsLength &length() const { return tailLength(); }
   void setLength(const CQChartsLength &l) { setFrontLength(l); setTailLength(l); }
 
   bool isLineEnds() const { return isTailLineEnds(); }
@@ -578,6 +576,16 @@ class CQChartsArrowData {
   void setNameValues(CQChartsNameValues &nameValues) const;
   bool getNameValues(const CQChartsNameValues &nameValues);
 
+  //---
+
+  static bool getTypeAngles(const HeadType &type, double &angle, double &backAngle);
+  static bool checkTypeAngles(const HeadType &type, double angle, double backAngle);
+
+  static bool nameToData(const QString &name, HeadType &type, bool &lineEnds, bool &visible);
+
+  static bool dataToName(const HeadType &type, bool lineEnds, bool visible,
+                         double angle, double backAngle, QString &name);
+
  private:
   struct HeadData {
     bool           visible   { false };          //!< draw arrow head
@@ -590,8 +598,8 @@ class CQChartsArrowData {
 
 //bool           relative_   { false }; //!< to point relative to from
   CQChartsLength lineWidth_  { -1 };    //!< connecting line width
-  HeadData       fheadData_;
-  HeadData       theadData_;
+  HeadData       fheadData_;            //!< front head data
+  HeadData       theadData_;            //!< tail head data
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsArrowData)

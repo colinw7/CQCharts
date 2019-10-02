@@ -180,6 +180,8 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  virtual void writeScriptData(std::ostream &os) const;
+
  protected:
   CQChartsPlot* plot_       { nullptr };           //!< parent plot
   DetailHint    detailHint_ { DetailHint::MINOR }; //!< interaction detail hint

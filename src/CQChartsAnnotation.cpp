@@ -2553,32 +2553,85 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   // -view/-plot -id -tip
   writeKeys(os, "create_charts_arrow_annotation", parentVarName, varName);
 
+  // start/end points
   if (start().isSet())
     os << " -start {" << start().toString().toStdString() << "}";
 
   if (end().isSet())
     os << " -end {" << end().toString().toStdString() << "}";
 
-  if (arrow()->lineWidth().isSet())
+  // line width
+  if (arrow()->lineWidth().isSet() && arrow()->lineWidth().value() > 0)
     os << " -line_width {" << arrow()->lineWidth().toString().toStdString() << "}";
 
-  if (arrow()->isFrontVisible())
+  // front head data
+  QString fName;
+  bool    fcustom = false;
+
+  if (CQChartsArrowData::dataToName((CQChartsArrowData::HeadType) arrow()->frontType(),
+                                    arrow()->isFrontLineEnds(), arrow()->isFrontVisible(),
+                                    arrow()->frontAngle(), arrow()->frontBackAngle(), fName)) {
+    os << " -fhead " << fName.toStdString();
+  }
+  else {
+    fcustom = true;
+
     os << " -fhead 1";
+  }
 
-  if (arrow()->isTailVisible())
+  // tail head data
+  QString tName;
+  bool    tcustom = false;
+
+  if (CQChartsArrowData::dataToName((CQChartsArrowData::HeadType) arrow()->tailType(),
+                                    arrow()->isTailLineEnds(), arrow()->isTailVisible(),
+                                    arrow()->tailAngle(), arrow()->tailBackAngle(), tName)) {
+    os << " -thead " << tName.toStdString();
+  }
+  else {
+    tcustom = true;
+
     os << " -thead 1";
+  }
 
-  if (arrow()->angle() != 0.0)
-    os << " -angle " << arrow()->angle();
+  // add angles if custom
+  if      (fcustom && tcustom) {
+    if      (arrow()->frontAngle() != 0.0 && arrow()->tailAngle() != 0.0)
+      os << " -angle {" << arrow()->frontAngle() << " " << arrow()->tailAngle() << "}";
+    else if (arrow()->frontAngle() != 0.0)
+      os << " -angle {" << arrow()->frontAngle() << " 0.0 }";
+    else if (arrow()->tailAngle() != 0.0)
+      os << " -angle {0.0 " << arrow()->tailAngle() << "}";
 
-  if (arrow()->backAngle() != 0.0)
-    os << " -back_angle " << arrow()->backAngle();
+    if      (arrow()->frontBackAngle() >= 0.0 && arrow()->tailBackAngle() >= 0.0)
+      os << " -angle {" << arrow()->frontBackAngle() << " " << arrow()->tailBackAngle() << "}";
+    else if (arrow()->frontBackAngle() >= 0.0)
+      os << " -angle {" << arrow()->frontBackAngle() << " -1}";
+    else if (arrow()->tailBackAngle () >= 0.0)
+      os << " -angle {-1 " << arrow()->tailBackAngle() << "}";
+  }
+  else if (fcustom) {
+    if (arrow()->frontAngle() != 0.0)
+      os << " -angle {" << arrow()->frontAngle() << " 0.0 }";
 
-  if (arrow()->length().isSet())
-    os << " -length {" << arrow()->length().toString().toStdString() << "}";
+    if (arrow()->frontBackAngle() >= 0.0)
+      os << " -angle {" << arrow()->frontBackAngle() << " -1}";
+  }
+  else if (tcustom) {
+    if (arrow()->tailAngle() != 0.0)
+      os << " -angle {0.0 " << arrow()->tailAngle() << "}";
 
-  if (arrow()->isLineEnds())
-    os << " -line_ends 1";
+    if (arrow()->tailBackAngle () >= 0.0)
+      os << " -angle {-1 " << arrow()->tailBackAngle() << "}";
+  }
+
+  if      (arrow()->frontLength().isSet() && arrow()->tailLength().isSet())
+    os << " -length {" << arrow()->frontLength().toString().toStdString() <<
+                   " " << arrow()->tailLength ().toString().toStdString() << "}";
+  else if (arrow()->frontLength().isSet())
+    os << " -length {" << arrow()->frontLength().toString().toStdString() << " -1}";
+  else if (arrow()->tailLength().isSet())
+    os << " -length {-1 " << arrow()->tailLength ().toString().toStdString() << "}";
 
 #if 0
   if (arrow()->isFilled())

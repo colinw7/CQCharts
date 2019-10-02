@@ -1096,7 +1096,7 @@ calcTipId() const
   QString hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 
   if (plot_->valueColumn().isValid())
-    tableTip.addTableRow(valueName, QString("%1").arg(value_));
+    tableTip.addTableRow(valueName, QString("%1").arg(value()));
 
   if (plot_->xColumns().isValid())
     tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
@@ -1120,7 +1120,7 @@ dataLabelRect() const
 
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
-  QString label = QString("%1").arg(value_);
+  QString label = QString("%1").arg(value());
 
   return plot_->dataLabel()->calcRect(prect.qrect(), label);
 }
@@ -1165,7 +1165,7 @@ drawFg(CQChartsPaintDevice *device) const
   if (! plot_->dataLabel()->isVisible())
     return;
 
-  QString label = QString("%1").arg(value_);
+  QString label = QString("%1").arg(value());
 
   if (label != "") {
     CQChartsDataLabel::Position pos = plot_->dataLabel()->position();
@@ -1191,6 +1191,37 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush.pen, penBrush.brush);
+}
+
+void
+CQChartsPivotBarObj::
+writeScriptData(std::ostream &os) const
+{
+  CQChartsPlotObj::writeScriptData(os);
+
+  CQChartsPenBrush penBrush;
+
+  calcPenBrush(penBrush, /*updateState*/ false);
+
+  os << "  this.strokeColor = \"";
+
+  if (penBrush.pen.style() == Qt::NoPen)
+    os <<  "#00000000";
+  else
+    os << CQChartsUtil::encodeScriptColor(penBrush.pen.color()).toStdString();
+
+  os << "\";\n";
+
+  os << "  this.fillColor = \"";
+
+  if (penBrush.brush.style() == Qt::NoBrush)
+    os <<  "#00000000";
+  else
+    os << CQChartsUtil::encodeScriptColor(penBrush.brush.color()).toStdString();
+
+  os << "\";\n";
+
+  os << "  this.value = " << value() << "\n";
 }
 
 //------
@@ -1423,7 +1454,7 @@ calcTipId() const
   QString hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 
   if (plot_->valueColumn().isValid())
-    tableTip.addTableRow(valueName, QString("%1").arg(value_));
+    tableTip.addTableRow(valueName, QString("%1").arg(value()));
 
   if (plot_->xColumns().isValid())
     tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
@@ -1534,7 +1565,7 @@ calcTipId() const
   QString hkeyValue = plot_->pivotModel()->data(plot_->pivotModel()->index(ir, 0)).toString();
 
   if (plot_->valueColumn().isValid())
-    tableTip.addTableRow(valueName, QString("%1").arg(value_));
+    tableTip.addTableRow(valueName, QString("%1").arg(value()));
 
   if (plot_->xColumns().isValid())
     tableTip.addTableRow(plot_->pivotModel()->hheader(), vkeyValue);
@@ -1634,7 +1665,7 @@ draw(CQChartsPaintDevice *device)
   // draw value
   // TODO: honor label visible ?
   if (valid_) {
-    QString valueStr = CQChartsUtil::formatReal(value_);
+    QString valueStr = CQChartsUtil::formatReal(value());
 
     //---
 

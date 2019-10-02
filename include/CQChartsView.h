@@ -527,7 +527,11 @@ class CQChartsView : public QFrame,
   bool printPNG(const QString &filename, CQChartsPlot *plot=nullptr);
   bool printSVG(const QString &filename, CQChartsPlot *plot=nullptr);
 
+  // write javascript
   bool writeScript(const QString &filename, CQChartsPlot *plot=nullptr);
+
+  const QString &scriptSelectProc() const { return scriptSelectProc_; }
+  void setScriptSelectProc(const QString &s) { scriptSelectProc_ = s; }
 
   //---
 
@@ -1080,6 +1084,7 @@ class CQChartsView : public QFrame,
   CQChartsEditAxisDlg*  editAxisDlg_       { nullptr };           //!< edit axis dialog
   CQChartsEditKeyDlg*   editKeyDlg_        { nullptr };           //!< edit key dialog
   CQChartsEditTitleDlg* editTitleDlg_      { nullptr };           //!< edit title dialog
+  QString               scriptSelectProc_;
 };
 
 #endif
