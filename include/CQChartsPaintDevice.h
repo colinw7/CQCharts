@@ -65,6 +65,13 @@ class CQChartsPaintDevice {
 
   virtual void setRenderHints(QPainter::RenderHints, bool=true) { };
 
+  virtual void setColorNames() { }
+  virtual void setColorNames(const QString &, const QString &) { }
+
+  virtual void resetColorNames() { }
+
+  //---
+
   QRectF  windowToPixel(const QRectF  &r) const;
   QRectF  pixelToWindow(const QRectF  &r) const;
   QPointF windowToPixel(const QPointF &p) const;
@@ -245,6 +252,23 @@ class CQChartsScriptPainter : public CQChartsPaintDevice {
 
   //---
 
+  void setColorNames() override;
+  void setColorNames(const QString &strokeName, const QString &fillName) override;
+
+  void resetColorNames() override;
+
+  const QString &strokeStyleName() const { return strokeStyleName_; }
+  void setStrokeStyleName(const QString &v) { strokeStyleName_ = v; }
+
+  const QString &fillStyleName() const { return fillStyleName_; }
+  void setFillStyleName(const QString &v) { fillStyleName_ = v; }
+
+  //---
+
+  void resetData();
+
+  //---
+
   static QString encodeString(const QString &str) {
     QString str1;
 
@@ -270,7 +294,16 @@ class CQChartsScriptPainter : public CQChartsPaintDevice {
     QFont      font;
     QTransform transform;
     QPointF    transformPoint;
-    double     transformAngle { 0 };
+    double     transformAngle { 0.0 };
+
+    void reset() {
+      pen            = QPen(Qt::NoPen);
+      brush          = QBrush(Qt::NoBrush);
+      font           = QFont();
+      transform      = QTransform();
+      transformPoint = QPointF();
+      transformAngle = 0.0;
+    }
   };
 
   using DataStack = std::vector<Data>;
@@ -279,6 +312,8 @@ class CQChartsScriptPainter : public CQChartsPaintDevice {
   Data          data_;
   DataStack     dataStack_;
   std::string   context_;
+  QString       strokeStyleName_;
+  QString       fillStyleName_;
 };
 
 #endif

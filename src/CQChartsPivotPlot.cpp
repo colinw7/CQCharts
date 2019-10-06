@@ -1154,7 +1154,11 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw bar
+  device->setColorNames();
+
   drawRoundedPolygon(device, penBrush, rect(), plot_->barCornerSize());
+
+  device->resetColorNames();
 }
 
 void
@@ -1190,38 +1194,21 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
     plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
 
   if (updateState)
-    plot_->updateObjPenBrushState(this, penBrush.pen, penBrush.brush);
+    plot_->updateObjPenBrushState(this, penBrush);
 }
 
 void
 CQChartsPivotBarObj::
-writeScriptData(std::ostream &os) const
+writeScriptData(CQChartsScriptPainter *device) const
 {
-  CQChartsPlotObj::writeScriptData(os);
+  calcPenBrush(penBrush_, /*updateState*/ false);
 
-  CQChartsPenBrush penBrush;
+  CQChartsPlotObj::writeScriptData(device);
 
-  calcPenBrush(penBrush, /*updateState*/ false);
+  std::ostream &os = device->os();
 
-  os << "  this.strokeColor = \"";
-
-  if (penBrush.pen.style() == Qt::NoPen)
-    os <<  "#00000000";
-  else
-    os << CQChartsUtil::encodeScriptColor(penBrush.pen.color()).toStdString();
-
-  os << "\";\n";
-
-  os << "  this.fillColor = \"";
-
-  if (penBrush.brush.style() == Qt::NoBrush)
-    os <<  "#00000000";
-  else
-    os << CQChartsUtil::encodeScriptColor(penBrush.brush.color()).toStdString();
-
-  os << "\";\n";
-
-  os << "  this.value = " << value() << "\n";
+  os << "\n";
+  os << "  this.value = " << value() << ";\n";
 }
 
 //------
@@ -1337,19 +1324,17 @@ draw(CQChartsPaintDevice *device)
   // draw line
   if (isLines) {
     // calc pen and brush
-    QPen   pen;
-    QBrush brush;
+    CQChartsPenBrush penBrush;
 
     QColor lc = plot_->interpBarFillColor(colorInd);
 
-    plot_->setPenBrush(pen, brush,
+    plot_->setPenBrush(penBrush.pen, penBrush.brush,
       true , lc, 1.0, 0.0, CQChartsLineDash(),
       false, lc, 1.0, CQChartsFillPattern());
 
-    plot_->updateObjPenBrushState(this, pen, brush);
+    plot_->updateObjPenBrushState(this, penBrush);
 
-    device->setPen(pen);
-    device->setBrush(brush);
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     //---
 
@@ -1367,46 +1352,42 @@ draw(CQChartsPaintDevice *device)
   // draw points (symbols)
   if (isPoints) {
     // calc pen and brush
-    QPen   pen;
-    QBrush brush;
+    CQChartsPenBrush penBrush;
 
     QColor bc = plot_->interpBarStrokeColor(colorInd);
     QColor fc = plot_->interpBarFillColor  (colorInd);
 
-    plot_->setPenBrush(pen, brush,
+    plot_->setPenBrush(penBrush.pen, penBrush.brush,
       plot_->isBarStroked(), bc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(),
       plot_->barStrokeDash(),
       plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
 
-    plot_->updateObjPenBrushState(this, pen, brush);
+    plot_->updateObjPenBrushState(this, penBrush);
 
-    device->setPen(pen);
-    device->setBrush(brush);
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     CQChartsSymbol symbol(CQChartsSymbol::Type::CIRCLE);
 
     double ss = 5.0;
 
     for (int i = 0; i < np; ++i)
-      plot()->drawSymbol(device, polygon_[i], symbol, ss, pen, brush);
+      plot()->drawSymbol(device, polygon_[i], symbol, ss, penBrush);
   }
 
   // fill area
   if (isFilled) {
     // calc pen and brush
-    QPen   pen;
-    QBrush brush;
+    CQChartsPenBrush penBrush;
 
     QColor fc = plot_->interpBarFillColor(colorInd);
 
-    plot_->setPenBrush(pen, brush,
+    plot_->setPenBrush(penBrush.pen, penBrush.brush,
       false, fc, 1.0, 0.0, CQChartsLineDash(),
       true , fc, 0.5, CQChartsFillPattern());
 
-    plot_->updateObjPenBrushState(this, pen, brush);
+    plot_->updateObjPenBrushState(this, penBrush);
 
-    device->setPen(pen);
-    device->setBrush(brush);
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     QPainterPath path;
 
@@ -1500,27 +1481,25 @@ draw(CQChartsPaintDevice *device)
   // draw points (symbols)
 
   // calc pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor bc = plot_->interpBarStrokeColor(colorInd);
   QColor fc = plot_->interpBarFillColor  (colorInd);
 
-  plot_->setPenBrush(pen, brush,
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
     plot_->isBarStroked(), bc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(),
     plot_->barStrokeDash(),
     plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
 
-  plot_->updateObjPenBrushState(this, pen, brush);
+  plot_->updateObjPenBrushState(this, penBrush);
 
-  device->setPen(pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   CQChartsSymbol symbol(CQChartsSymbol::Type::CIRCLE);
 
   double ss = 5.0;
 
-  plot()->drawSymbol(device, p_, symbol, ss, pen, brush);
+  plot()->drawSymbol(device, p_, symbol, ss, penBrush);
 }
 
 //------
@@ -1533,6 +1512,8 @@ CQChartsPivotCellObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &re
  CQChartsPlotObj(const_cast<CQChartsPivotPlot *>(plot), rect, ColorInd(), ic, ir),
  plot_(plot), name_(name), value_(value), hnorm_(hnorm), vnorm_(vnorm), valid_(valid)
 {
+  setDetailHint(DetailHint::MAJOR);
+
   setModelInd(ind);
 
   // get column palette and bg color
@@ -1609,11 +1590,6 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // get bar color
-  ColorInd colorInd = calcColorInd();
-
-  //---
-
   // calc bar box
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
@@ -1639,26 +1615,21 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc background pen and brush and draw
-  QPen   bgpen;
-  QBrush bgbrush;
+  CQChartsPenBrush bgPenBrush;
 
-  QColor bgsc = plot_->interpBarStrokeColor(colorInd);
-  QColor bgfc = plot_->interpBarFillColor(colorInd);
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  plot_->setPenBrush(bgpen, bgbrush,
-    plot_->isBarStroked(), bgsc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(),
-    plot_->barStrokeDash(),
-    plot_->isBarFilled(), bgfc, plot_->barFillAlpha(), plot_->barFillPattern());
+  calcBgPenBrush(bgPenBrush, updateState);
 
-  plot_->updateObjPenBrushState(this, bgpen, bgbrush);
+  //---
 
-  if (! valid_)
-    bgbrush = Qt::NoBrush;
+  device->setColorNames("bgStrokeColor", "bgFillColor");
 
-  device->setPen(bgpen);
-  device->setBrush(bgbrush);
+  CQChartsDrawUtil::setPenBrush(device, bgPenBrush);
 
   device->drawRect(device->pixelToWindow(qrect));
+
+  device->resetColorNames();
 
   //---
 
@@ -1700,19 +1671,21 @@ draw(CQChartsPaintDevice *device)
 
   // calc bar pen and brush and draw
   if (valid_ && plot_->isGridBars()) {
-    QPen   fgpen;
-    QBrush fgbrush;
+    CQChartsPenBrush fgPenBrush;
 
-    QColor fgsc = plot_->interpBarStrokeColor(colorInd);
+    calcFgPenBrush(fgPenBrush, updateState);
 
-    plot_->setPen(fgpen,
-      plot_->isBarStroked(), fgsc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(),
-      plot_->barStrokeDash());
+    //---
 
-    device->setPen(fgpen);
-    device->setBrush(plot_->interpPlotFillColor(ColorInd()));
+    device->setColorNames("fgStrokeColor", "fgFillColor");
+
+    CQChartsDrawUtil::setPenBrush(device, fgPenBrush);
 
     device->drawRect(device->pixelToWindow(qrecth2));
+
+    device->resetColorNames();
+
+    //---
 
     device->setPen(Qt::NoPen);
     device->setBrush(hbg);
@@ -1721,15 +1694,112 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    device->setPen(fgpen);
-    device->setBrush(plot_->interpPlotFillColor(ColorInd()));
+    device->setColorNames("fgStrokeColor", "fgFillColor");
+
+    CQChartsDrawUtil::setPenBrush(device, fgPenBrush);
 
     device->drawRect(device->pixelToWindow(qrectv2));
+
+    device->resetColorNames();
+
+    //---
 
     device->setPen(Qt::NoPen);
     device->setBrush(vbg);
 
     device->drawRect(device->pixelToWindow(qrectv1));
+  }
+}
+
+void
+CQChartsPivotCellObj::
+calcBgPenBrush(CQChartsPenBrush &bgPenBrush, bool updateState) const
+{
+  // get background color
+  ColorInd colorInd = calcColorInd();
+
+  QColor bgsc = plot_->interpBarStrokeColor(colorInd);
+  QColor bgfc = plot_->interpBarFillColor  (colorInd);
+
+  plot_->setPenBrush(bgPenBrush.pen, bgPenBrush.brush,
+    plot_->isBarStroked(), bgsc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(),
+    plot_->barStrokeDash(),
+    plot_->isBarFilled(), bgfc, plot_->barFillAlpha(), plot_->barFillPattern());
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, bgPenBrush);
+
+  if (! valid_)
+    bgPenBrush.brush = Qt::NoBrush;
+}
+
+void
+CQChartsPivotCellObj::
+calcFgPenBrush(CQChartsPenBrush &fgPenBrush, bool /*updateState*/) const
+{
+  // get foreground color
+  ColorInd colorInd = calcColorInd();
+
+  QColor fgsc = plot_->interpBarStrokeColor(colorInd);
+
+  plot_->setPen(fgPenBrush.pen,
+    plot_->isBarStroked(), fgsc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(),
+    plot_->barStrokeDash());
+
+  fgPenBrush.brush = QBrush(plot_->interpPlotFillColor(ColorInd()));
+}
+
+void
+CQChartsPivotCellObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcFgPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.value = " << value() << ";\n";
+}
+
+void
+CQChartsPivotCellObj::
+writeScriptGC(CQChartsScriptPainter *device, const CQChartsPenBrush &) const
+{
+  device->setStrokeStyleName("bgStrokeColor");
+  device->setFillStyleName  ("bgFillColor");
+
+  CQChartsPenBrush bgPenBrush;
+
+  calcBgPenBrush(bgPenBrush, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptGC(device, bgPenBrush);
+
+  //---
+
+  device->setStrokeStyleName("fgStrokeColor");
+  device->setFillStyleName  ("fgFillColor");
+
+  CQChartsPenBrush fgPenBrush;
+
+  calcFgPenBrush(fgPenBrush, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptGC(device, fgPenBrush);
+}
+
+void
+CQChartsPivotCellObj::
+writeScriptInsideColor(CQChartsScriptPainter *device, bool isSave) const
+{
+  std::ostream &os = device->os();
+
+  if (isSave) {
+    os << "      this.saveFillColor = this.bgFillColor;\n";
+    os << "      this.bgFillColor = \"rgb(255,0,0)\";\n";
+  }
+  else {
+    os << "      this.bgFillColor = this.saveFillColor;\n";
   }
 }
 

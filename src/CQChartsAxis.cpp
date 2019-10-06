@@ -1411,10 +1411,18 @@ drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
   CQChartsGeom::Point pp;
 
-  if (major && tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
-    pp = CQChartsGeom::Point(tpos - 0.5, apos);
-  else
-    pp = CQChartsGeom::Point(tpos, apos);
+  if (isHorizontal()) {
+    if (major && tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
+      pp = CQChartsGeom::Point(tpos - 0.5, apos);
+    else
+      pp = CQChartsGeom::Point(tpos, apos);
+  }
+  else {
+    if (major && tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
+      pp = CQChartsGeom::Point(apos, tpos - 0.5);
+    else
+      pp = CQChartsGeom::Point(apos, tpos);
+  }
 
   //---
 
@@ -1465,9 +1473,9 @@ drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
     double adt1 = plot->pixelToWindowWidth(dt1);
 
     if (inside)
-      device->drawLine(QPointF(pp.x, pp.y), QPointF(pp.x - adt1, pp.y));
-    else {
       device->drawLine(QPointF(pp.x, pp.y), QPointF(pp.x + adt1, pp.y));
+    else {
+      device->drawLine(QPointF(pp.x, pp.y), QPointF(pp.x - adt1, pp.y));
 
       CQChartsGeom::Point p;
 

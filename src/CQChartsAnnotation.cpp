@@ -2333,13 +2333,15 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   };
 
   auto addArrowProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc) {
-    return &(model->addProperty(path, arrow(), name, alias)->setDesc(desc));
+                          const QString &desc, bool hidden=false) {
+    CQPropertyViewItem *item = &(model->addProperty(path, arrow(), name, alias)->setDesc(desc));
+    item->setHidden(hidden);
+    return item;
   };
 
   auto addArrowStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                               const QString &desc) {
-    CQPropertyViewItem *item = addArrowProp(path, name, alias, desc);
+                               const QString &desc, bool hidden=false) {
+    CQPropertyViewItem *item = addArrowProp(path, name, alias, desc, hidden);
     CQCharts::setItemIsStyle(item);
     return item;
   };
@@ -2359,33 +2361,33 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   QString frontHeadPath = path1 + "/frontHead";
 
-//addArrowProp     (frontHeadPath, "frontVisible"  , "visible",
-//                  "Arrow front head visible");
+  addArrowProp     (frontHeadPath, "frontVisible"  , "visible",
+                    "Arrow front head visible", /*hidden*/true);
   addArrowProp     (frontHeadPath, "frontType"     , "type",
                     "Arrow front head type");
   addArrowStyleProp(frontHeadPath, "frontLength"   , "length",
                     "Arrow front head length");
   addArrowStyleProp(frontHeadPath, "frontAngle"    , "angle",
                     "Arrow front head angle");
-//addArrowStyleProp(frontHeadPath, "frontBackAngle", "backAngle",
-//                  "Arrow front head back angle");
-//addArrowStyleProp(frontHeadPath, "frontLineEnds" , "line",
-//                  "Arrow front head is drawn using lines");
+  addArrowStyleProp(frontHeadPath, "frontBackAngle", "backAngle",
+                    "Arrow front head back angle", /*hidden*/true);
+  addArrowStyleProp(frontHeadPath, "frontLineEnds" , "line",
+                    "Arrow front head is drawn using lines", /*hidden*/true);
 
   QString tailHeadPath = path1 + "/tailHead";
 
-//addArrowProp     (tailHeadPath, "tailVisible"  , "visible",
-//                  "Arrow tail head visible");
+  addArrowProp     (tailHeadPath, "tailVisible"  , "visible",
+                    "Arrow tail head visible", /*hidden*/true);
   addArrowProp     (tailHeadPath, "tailType"    , "type",
                     "Arrow tail head type");
   addArrowStyleProp(tailHeadPath, "tailLength"   , "length",
                     "Arrow tail head length");
   addArrowStyleProp(tailHeadPath, "tailAngle"    , "angle",
                     "Arrow tail head angle");
-//addArrowStyleProp(tailHeadPath, "tailBackAngle", "backAngle",
-//                  "Arrow tail head back angle");
-//addArrowStyleProp(tailHeadPath, "tailLineEnds" , "line",
-//                  "Arrow tail head is drawn using lines");
+  addArrowStyleProp(tailHeadPath, "tailBackAngle", "backAngle",
+                    "Arrow tail head back angle", /*hidden*/true);
+  addArrowStyleProp(tailHeadPath, "tailLineEnds" , "line",
+                    "Arrow tail head is drawn using lines", /*hidden*/true);
 
   QString fillPath = path1 + "/fill";
 
@@ -2411,13 +2413,10 @@ getPropertyNames(QStringList &names, bool hidden) const
 {
   CQChartsAnnotation::getPropertyNames(names, hidden);
 
-  names << "frontHead.visible" << "frontHead.angle" << "frontHead.backAngle" <<
-           "frontHead.length" << "frontHead.line";
-
-  names << "tailHead.visible" << "tailHead.angle" << "tailHead.backAngle" <<
-           "tailHead.length" << "tailHead.line";
-
   names << "line.width";
+
+  names << "frontHead.type" << "frontHead.length" << "frontHead.angle";
+  names << "tailHead.type"  << "tailHead.length"  << "tailHead.angle";
 
   names << "fill.visible" << "fill.color" << "fill.alpha";
 

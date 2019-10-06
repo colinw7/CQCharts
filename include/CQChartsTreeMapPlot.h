@@ -258,13 +258,27 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
+  //---
+
   void addChild(CQChartsTreeMapNodeObj *child) { children_.push_back(child); }
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool isPoint, bool updateState) const;
+
+  bool isPoint() const;
+
+  //---
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
+
+  //---
 
   bool isChildSelected() const;
 
@@ -296,11 +310,21 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
 
   QString calcTipId() const override;
 
+  //---
+
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  //---
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
 
  private:
   CQChartsTreeMapHierNode* hier_ { nullptr }; //!< associated tree hier

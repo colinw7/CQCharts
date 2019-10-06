@@ -732,7 +732,7 @@ drawPolygon(const Points &points, double width, bool filled, bool stroked,
 
   path.moveTo(device_->pixelToWindow(points[0]));
 
-  for (int i = 1; i < points.length(); ++i) {
+  for (int i = 1; i < points.size(); ++i) {
     path.lineTo(device_->pixelToWindow(points[i]));
   }
 

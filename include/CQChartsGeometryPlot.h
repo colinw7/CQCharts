@@ -64,6 +64,11 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
+  bool isPolygon() const override { return true; }
+  QPolygonF polygon() const override { return polygons_[0]; }
+
+  //---
+
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
@@ -80,9 +85,17 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
 
   void drawFg(CQChartsPaintDevice *device) const override;
+
+  //---
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
 
  private:
 

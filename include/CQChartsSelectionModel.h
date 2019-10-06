@@ -27,8 +27,7 @@ class CQChartsSelectionModel : public CQChartsSelectionModelBase {
   SelectionFlags adjustFlags(SelectionFlags flags) const;
 
  private:
-  QAbstractItemView* view_      { nullptr };
-  CQChartsModelData* modelData_ { nullptr };
+  QAbstractItemView* view_ { nullptr };
 };
 
 #endif

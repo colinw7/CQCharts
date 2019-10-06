@@ -116,9 +116,15 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
 
   void drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip=false) const;
+
+  //---
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
   //---
 
@@ -181,15 +187,23 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
+  //---
+
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &inds) const override;
+
+  //---
 
   void draw(CQChartsPaintDevice *device) override;
 
   void drawRugSymbol(CQChartsPaintDevice *device, const Dir &dir, bool flip) const;
 
- private:
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  //---
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
 
  private:
   const CQChartsScatterPlot* plot_     { nullptr }; //!< scatter plot

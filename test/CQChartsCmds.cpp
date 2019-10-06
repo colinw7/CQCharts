@@ -6503,8 +6503,6 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
     }
     else
       return errorMsg(QString("Invalid line_ends string '%1'").arg(argv.getParseStr("line_ends")));
-
-    arrowData.setLineEnds(argv.getParseBool("line_ends", arrowData.isLineEnds()));
   }
 
   //---

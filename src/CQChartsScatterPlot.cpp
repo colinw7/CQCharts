@@ -1886,21 +1886,20 @@ drawBestFit(CQChartsPaintDevice *device) const
       // set pen and brush
       ColorInd ic(ig, ng);
 
-      QPen   pen;
-      QBrush brush;
+      CQChartsPenBrush penBrush;
 
       QColor strokeColor = interpBestFitStrokeColor(ic);
       QColor fillColor   = interpBestFitFillColor  (ic);
 
-      setPen(pen, isBestFitStroked(), strokeColor, bestFitStrokeAlpha(),
+      setPen(penBrush.pen, isBestFitStroked(), strokeColor, bestFitStrokeAlpha(),
              bestFitStrokeWidth(), bestFitStrokeDash());
 
-      setBrush(brush, isBestFitFilled(), fillColor, bestFitFillAlpha(), bestFitFillPattern());
+      setBrush(penBrush.brush, isBestFitFilled(), fillColor,
+               bestFitFillAlpha(), bestFitFillPattern());
 
-      updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
+      updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
 
-      device->setPen  (pen);
-      device->setBrush(brush);
+      CQChartsDrawUtil::setPenBrush(device, penBrush);
 
       //---
 
@@ -1947,7 +1946,7 @@ drawBestFit(CQChartsPaintDevice *device) const
         path.lineTo(p);
       }
 
-      device->strokePath(path, pen);
+      device->strokePath(path, penBrush.pen);
     }
 
     //---
@@ -1992,19 +1991,17 @@ drawStatsLines(CQChartsPaintDevice *device) const
     // calc pen and brush
     ColorInd ic(ig, ng);
 
-    QPen   pen;
-    QBrush brush;
+    CQChartsPenBrush penBrush;
 
     QColor c = interpStatsLinesColor(ic);
 
-    setPen(pen, true, c, statsLinesAlpha(), statsLinesWidth(), statsLinesDash());
+    setPen(penBrush.pen, true, c, statsLinesAlpha(), statsLinesWidth(), statsLinesDash());
 
-    setBrush(brush, false);
+    setBrush(penBrush.brush, false);
 
-    updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
+    updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
 
-    device->setPen  (pen);
-    device->setBrush(brush);
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     //---
 
@@ -2092,15 +2089,13 @@ drawHull(CQChartsPaintDevice *device) const
     QColor strokeColor = interpHullStrokeColor(colorInd);
     QColor fillColor   = interpHullFillColor  (colorInd);
 
-    QPen   pen;
-    QBrush brush;
+    CQChartsPenBrush penBrush;
 
-    setPenBrush(pen, brush,
+    setPenBrush(penBrush.pen, penBrush.brush,
       isHullStroked(), strokeColor, hullStrokeAlpha(), hullStrokeWidth(), hullStrokeDash(),
       isHullFilled(), fillColor, hullFillAlpha(), hullFillPattern());
 
-    device->setPen  (pen);
-    device->setBrush(brush);
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     //---
 
@@ -2264,18 +2259,16 @@ drawXDensityWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
                     const ColorInd &ig) const
 {
   // calc pen/brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor strokeColor = interpSymbolStrokeColor(ig);
   QColor fillColor   = interpSymbolFillColor  (ig);
 
-  setPenBrush(pen, brush,
+  setPenBrush(penBrush.pen, penBrush.brush,
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
     /*filled*/ true, fillColor, densityAlpha(), CQChartsFillPattern());
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -2301,18 +2294,16 @@ drawYDensityWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
                     const ColorInd &ig) const
 {
   // calc pen/brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor strokeColor = interpSymbolStrokeColor(ig);
   QColor fillColor   = interpSymbolFillColor  (ig);
 
-  setPenBrush(pen, brush,
+  setPenBrush(penBrush.pen, penBrush.brush,
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
     /*filled*/ true, fillColor, densityAlpha(), symbolFillPattern());
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -2553,18 +2544,16 @@ drawXWhiskerWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
                     const ColorInd &ig) const
 {
   // calc pen/brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor strokeColor = interpSymbolStrokeColor(ig);
   QColor fillColor   = interpSymbolFillColor  (ig);
 
-  setPenBrush(pen, brush,
+  setPenBrush(penBrush.pen, penBrush.brush,
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
     /*filled*/ true, fillColor, whiskerAlpha(), symbolFillPattern());
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -2588,18 +2577,16 @@ drawYWhiskerWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
                     const ColorInd &ig) const
 {
   // calc pen/brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor strokeColor = interpSymbolStrokeColor(ig);
   QColor fillColor   = interpSymbolFillColor  (ig);
 
-  setPenBrush(pen, brush,
+  setPenBrush(penBrush.pen, penBrush.brush,
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
     /*filled*/ true, fillColor, whiskerAlpha(), symbolFillPattern());
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -3036,31 +3023,18 @@ void
 CQChartsScatterPointObj::
 drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
 {
-  ColorInd ic = calcColorInd();
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
+
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+
+  calcPenBrush(penBrush, updateState);
 
   //---
 
-  // calc pen and brush
-  QPen   pen;
-  QBrush brush;
+  device->setColorNames();
 
-  plot_->setSymbolPenBrush(pen, brush, ic);
-
-  // override symbol fill color for custom color
-  CQChartsColor color = this->color();
-
-  if (color.isValid()) {
-    QColor c = plot_->interpColor(color, ic);
-
-    c.setAlphaF(plot_->symbolFillAlpha());
-
-    brush.setColor(c);
-  }
-
-  plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
-
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -3115,13 +3089,15 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
   if (image.isNull()) {
     QPointF ps1 = plot_->pixelToWindow(ps);
 
-    plot_->drawSymbol(device, ps1, symbolType, symbolSize, pen, brush);
+    plot_->drawSymbol(device, ps1, symbolType, symbolSize, penBrush);
   }
   else {
     QRectF irect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
 
     device->drawImageInRect(plot()->pixelToWindow(irect), image);
   }
+
+  device->resetColorNames();
 
   //---
 
@@ -3132,6 +3108,8 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
     //---
 
     // text font color
+    ColorInd ic = calcColorInd();
+
     QPen tpen;
 
     QColor tc = dataLabel->interpTextColor(ic);
@@ -3177,6 +3155,29 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
   }
 }
 
+void
+CQChartsScatterPointObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  ColorInd ic = calcColorInd();
+
+  plot_->setSymbolPenBrush(penBrush.pen, penBrush.brush, ic);
+
+  // override symbol fill color for custom color
+  CQChartsColor color = this->color();
+
+  if (color.isValid()) {
+    QColor c = plot_->interpColor(color, ic);
+
+    c.setAlphaF(plot_->symbolFillAlpha());
+
+    penBrush.brush.setColor(c);
+  }
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
+}
+
 double
 CQChartsScatterPointObj::
 xColorValue(bool relative) const
@@ -3210,6 +3211,7 @@ CQChartsScatterCellObj(const CQChartsScatterPlot *plot, int groupInd,
  CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
  groupInd_(groupInd), ix_(ix), iy_(iy), points_(points), maxn_(maxn)
 {
+  setDetailHint(DetailHint::MAJOR);
 }
 
 QString
@@ -3260,29 +3262,46 @@ void
 CQChartsScatterCellObj::
 draw(CQChartsPaintDevice *device)
 {
-  // set pen and brush
-  ColorInd ic(points_.size(), maxn_);
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
 
-  QPen   pen;
-  QBrush brush;
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  QColor pc = plot_->interpGridCellStrokeColor(ColorInd());
-  QColor fc = plot_->interpPaletteColor(ic);
+  calcPenBrush(penBrush, updateState);
 
-  plot_->setPenBrush(pen, brush,
-    plot_->isGridCellStroked(), pc, plot_->gridCellStrokeAlpha(),
-    plot_->gridCellStrokeWidth(), plot_->gridCellStrokeDash(),
-    plot_->isGridCellFilled(), fc, plot_->gridCellFillAlpha(), plot_->gridCellFillPattern());
+  //---
 
-  plot_->updateObjPenBrushState(this, pen, brush);
+  device->setColorNames();
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
   // draw rect
   device->drawRect(rect().qrect());
+
+  //---
+
+  device->resetColorNames();
+}
+
+void
+CQChartsScatterCellObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  // set pen and brush
+  ColorInd ic(points_.size(), maxn_);
+
+  QColor pc = plot_->interpGridCellStrokeColor(ColorInd());
+  QColor fc = plot_->interpPaletteColor(ic);
+
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->isGridCellStroked(), pc, plot_->gridCellStrokeAlpha(),
+    plot_->gridCellStrokeWidth(), plot_->gridCellStrokeDash(),
+    plot_->isGridCellFilled(), fc, plot_->gridCellFillAlpha(), plot_->gridCellFillPattern());
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
 }
 
 void
@@ -3294,15 +3313,13 @@ drawRugSymbol(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
   //---
 
   // calc stroke and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
-  plot_->setSymbolPenBrush(pen, brush, ic);
+  plot_->setSymbolPenBrush(penBrush.pen, penBrush.brush, ic);
 
-  plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
+  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -3345,8 +3362,22 @@ drawRugSymbol(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
     // draw symbol
     QRectF erect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
 
-    plot_->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, pen, brush);
+    plot_->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, penBrush);
   }
+}
+
+void
+CQChartsScatterCellObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.count = " << points_.size() << ";\n";
 }
 
 //------

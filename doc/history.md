@@ -957,3 +957,7 @@
  + improve arrow rendering and inside test
 # 9/29/2019
  + add arrow type and update tcl command
+# 10/6/2019
+ + add javascript support to more objects
+ + improve shape intersect based on type
+ + fix some rendering issues with coordinate switch

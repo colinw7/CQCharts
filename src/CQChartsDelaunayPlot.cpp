@@ -431,13 +431,11 @@ drawVoronoi(CQChartsPaintDevice *device) const
     return;
 
   if (isPoints()) {
-    QPen   pen;
-    QBrush brush;
+    CQChartsPenBrush penBrush;
 
-    setSymbolPenBrush(pen, brush, ColorInd());
+    setSymbolPenBrush(penBrush.pen, penBrush.brush, ColorInd());
 
-    device->setPen  (pen);
-    device->setBrush(brush);
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     for (auto pf = delaunay_->facesBegin(); pf != delaunay_->facesEnd(); ++pf) {
       const CQChartsHull3D::Face *f = *pf;
@@ -559,15 +557,13 @@ draw(CQChartsPaintDevice *device)
   // calc pen and brush
   ColorInd colorInd = calcColorInd();
 
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
-  plot_->setSymbolPenBrush(pen, brush, colorInd);
+  plot_->setSymbolPenBrush(penBrush.pen, penBrush.brush, colorInd);
 
-  plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
+  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -580,5 +576,5 @@ draw(CQChartsPaintDevice *device)
   // draw symbol
   CQChartsGeom::Point p(x_, y_);
 
-  plot_->drawSymbol(device, p.qpoint(), symbolType, symbolSize, pen, brush);
+  plot_->drawSymbol(device, p.qpoint(), symbolType, symbolSize, penBrush);
 }

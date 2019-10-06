@@ -1,7 +1,6 @@
 Abstract Painter/Javascript
- + JS Painter Clip
- + JS complex inside test
  + Support javascript callback in generated code (select)
+ + JS Polygon List inside support
 
 High
  + Combine CQChartsModelDetails and CQModelDetails
@@ -10,6 +9,7 @@ High
    + auto palette for single color
    + stops
  + Export model (META data and TIME (converted) value handling)
+ + Export to HTML
  + Scroll to selected
  + Better model property editors
  + Pivot
@@ -25,7 +25,6 @@ High
  + Axis annotation
  + more code in point plot (base class for scatter/xy)
  + plot selection behavior -> select out, select in, none, both
- + table per column coloring
  + More help content
  + Add base class for shared code between xy/scatter
  + Scaled rotated text

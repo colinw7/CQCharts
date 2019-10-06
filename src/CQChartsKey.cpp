@@ -1714,19 +1714,18 @@ draw(CQChartsPaintDevice *device) const
     //---
 
     // set text pen
-    QPen   tpen;
-    QBrush tbrush;
+    CQChartsPenBrush tPenBrush;
 
     QColor tc = interpHeaderTextColor(ColorInd());
 
-    plot()->setPen(tpen, true, tc, headerTextAlpha());
+    plot()->setPen(tPenBrush.pen, true, tc, headerTextAlpha());
 
-    plot()->updateObjPenBrushState(this, tpen, tbrush);
+    plot()->updateObjPenBrushState(this, tPenBrush);
 
     //---
 
     // draw text
-    device->setPen(tpen);
+    device->setPen(tPenBrush.pen);
 
     CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect), headerStr(), textOptions);
   }

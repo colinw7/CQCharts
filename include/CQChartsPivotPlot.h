@@ -6,8 +6,8 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsGeom.h>
 
-class CQChartsDataLabel;
-class CQChartsPenBrush;
+class  CQChartsDataLabel;
+struct CQChartsPenBrush;
 
 //---
 
@@ -84,11 +84,11 @@ class CQChartsPivotBarObj : public CQChartsPlotObj {
 
   void drawFg(CQChartsPaintDevice *device) const override;
 
-  //---
-
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
 
-  void writeScriptData(std::ostream &os) const override;
+  //---
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
 
  protected:
   const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot
@@ -203,7 +203,21 @@ class CQChartsPivotCellObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
+
+  void calcBgPenBrush(CQChartsPenBrush &bgPenBrush, bool updateState) const;
+  void calcFgPenBrush(CQChartsPenBrush &bgPenBrush, bool updateState) const;
+
+  //---
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
+
+  void writeScriptGC(CQChartsScriptPainter *device,
+                     const CQChartsPenBrush &penBrush) const override;
+
+  void writeScriptInsideColor(CQChartsScriptPainter *device, bool isSave) const override;
 
  protected:
   const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot

@@ -239,11 +239,29 @@ class CQChartsBubbleNodeObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
+  //---
+
+  bool isCircle() const override { return true; }
+
+  double radius() const override { return node_->radius(); }
+
+  //---
+
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
+
+  //---
+
+  bool isPoint() const;
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
 
  protected:
   const CQChartsBubblePlot* plot_    { nullptr }; //!< parent plot
@@ -270,11 +288,27 @@ class CQChartsBubbleHierObj : public CQChartsBubbleNodeObj {
 
   QString calcTipId() const override;
 
+  //---
+
+  bool isCircle() const override { return true; }
+
+  double radius() const override { return hier_->radius(); }
+
+  //---
+
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
+
+  //---
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
 
  protected:
   CQChartsBubbleHierNode* hier_ { nullptr }; //!< associated hier node

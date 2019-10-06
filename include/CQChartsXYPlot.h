@@ -376,6 +376,13 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   //---
 
+  bool isPolygon() const override { return true; }
+  QPolygonF polygon() const override { return poly_; }
+
+  bool isSolid() const override { return false; }
+
+  //---
+
   bool visible() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
@@ -394,7 +401,17 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  //---
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
+
+  //---
 
   void initBestFit();
   void initStats();
@@ -446,15 +463,32 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   //---
 
+  bool isPolygon() const override { return true; }
+  QPolygonF polygon() const override { return poly_; }
+
+  //---
+
   bool visible() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
   bool rectIntersect(const CQChartsGeom::BBox &r, bool inside) const override;
 
+  //---
+
   void getSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  //---
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
+
+  //---
 
   void initSmooth() const;
 

@@ -2262,20 +2262,18 @@ draw(CQChartsPaintDevice *device)
 
   if (plot()->isLines()) {
     // calc pen and brush
-    QPen   pen;
-    QBrush brush;
+    CQChartsPenBrush penBrush;
 
     QColor lc = plot()->interpBivariateLinesColor(is_);
 
-    plot()->setPen(pen, true, lc, plot()->bivariateLinesAlpha(), plot()->bivariateLinesWidth(),
-                   plot()->bivariateLinesDash());
+    plot()->setPen(penBrush.pen, true, lc, plot()->bivariateLinesAlpha(),
+                   plot()->bivariateLinesWidth(), plot()->bivariateLinesDash());
 
-    plot()->setBrush(brush, false);
+    plot()->setBrush(penBrush.brush, false);
 
-    plot()->updateObjPenBrushState(this, pen, brush);
+    plot()->updateObjPenBrushState(this, penBrush);
 
-    device->setPen  (pen);
-    device->setBrush(brush);
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     //--
 
@@ -2295,21 +2293,19 @@ draw(CQChartsPaintDevice *device)
     //---
 
     // calc pen and brush
-    QPen   pen;
-    QBrush brush;
+    CQChartsPenBrush penBrush;
 
-    plot_->setSymbolPenBrush(pen, brush, is_);
+    plot_->setSymbolPenBrush(penBrush.pen, penBrush.brush, is_);
 
-    plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
+    plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
-    device->setPen  (pen);
-    device->setBrush(brush);
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     //---
 
     // draw symbols
-    plot()->drawSymbol(device, p1.qpoint(), symbol, CMathUtil::avg(sx, sy), pen, brush);
-    plot()->drawSymbol(device, p2.qpoint(), symbol, CMathUtil::avg(sx, sy), pen, brush);
+    plot()->drawSymbol(device, p1.qpoint(), symbol, CMathUtil::avg(sx, sy), penBrush);
+    plot()->drawSymbol(device, p2.qpoint(), symbol, CMathUtil::avg(sx, sy), penBrush);
   }
 }
 
@@ -2422,29 +2418,27 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor strokeColor = plot()->interpImpulseLinesColor(ic);
 
   double lw = plot()->lengthPixelWidth(plot()->impulseLinesWidth());
 
   if (lw <= 1) {
-    plot()->setPen(pen, true, strokeColor, plot()->impulseLinesAlpha(),
+    plot()->setPen(penBrush.pen, true, strokeColor, plot()->impulseLinesAlpha(),
                    plot()->impulseLinesWidth(), plot()->impulseLinesDash());
 
-    plot()->setBrush(brush, false);
+    plot()->setBrush(penBrush.brush, false);
   }
   else {
-    plot()->setPen(pen, false);
+    plot()->setPen(penBrush.pen, false);
 
-    plot()->setBrush(brush, true, strokeColor, plot()->impulseLinesAlpha());
+    plot()->setBrush(penBrush.brush, true, strokeColor, plot()->impulseLinesAlpha());
   }
 
-  plot()->updateObjPenBrushState(this, pen, brush);
+  plot()->updateObjPenBrushState(this, penBrush);
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -2776,10 +2770,9 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
-  plot()->setSymbolPenBrush(pen, brush, ic);
+  plot()->setSymbolPenBrush(penBrush.pen, penBrush.brush, ic);
 
   // override symbol fill color for custom color
   CQChartsColor color = this->color();
@@ -2789,13 +2782,12 @@ draw(CQChartsPaintDevice *device)
 
     c.setAlphaF(plot_->symbolFillAlpha());
 
-    brush.setColor(c);
+    penBrush.brush.setColor(c);
   }
 
-  plot()->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
+  plot()->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -2808,7 +2800,7 @@ draw(CQChartsPaintDevice *device)
     QImage image = this->image();
 
     if (image.isNull()) {
-      plot()->drawSymbol(device, pos_, symbolType, symbolSize, pen, brush);
+      plot()->drawSymbol(device, pos_, symbolType, symbolSize, penBrush);
     }
     else {
       // get point
@@ -3003,6 +2995,7 @@ CQChartsXYPolylineObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGe
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
  groupInd_(groupInd), poly_(poly), name_(name)
 {
+  setDetailHint(DetailHint::MAJOR);
 }
 
 CQChartsXYPolylineObj::
@@ -3216,28 +3209,29 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  ColorInd ic = (ig_.n > 1 ? ig_ : is_);
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
+
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+
+  calcPenBrush(penBrush, updateState);
+
+  //---
 
   //---
 
   // draw lines
   if (visible()) {
     // calc pen and brush
-    QPen   pen;
-    QBrush brush;
+    CQChartsPenBrush penBrush;
 
-    QColor c = plot()->interpLinesColor(ic);
+    bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-    plot()->setPen(pen, true, c, plot()->linesAlpha(), plot()->linesWidth(), plot()->linesDash());
-
-    plot()->setBrush(brush, false);
-
-    plot()->updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
-
-    device->setPen  (pen);
-    device->setBrush(brush);
+    calcPenBrush(penBrush, updateState);
 
     //---
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     if (plot()->isRoundedLines()) {
       initSmooth();
@@ -3251,7 +3245,7 @@ draw(CQChartsPaintDevice *device)
         const CQChartsGeom::Point &p = smooth_->point(i);
 
         if (i == 0) {
-          path.moveTo(p.x, p.y);
+          path.moveTo(p.qpoint());
         }
         else {
           CQChartsSmooth::SegmentType type = smooth_->segmentType(i - 1);
@@ -3268,14 +3262,28 @@ draw(CQChartsPaintDevice *device)
             path.quadTo(c1.x, c1.y, p.x, p.y);
           }
           else if (type == CQChartsSmooth::SegmentType::LINE) {
-            path.lineTo(p.x, p.y);
+            path.lineTo(p.qpoint());
           }
         }
       }
 
+      //---
+
+      // draw path
+      device->setColorNames();
+
+      CQChartsDrawUtil::setPenBrush(device, penBrush);
+
       device->drawPath(path);
+
+      device->resetColorNames();
     }
     else {
+      // draw path
+      device->setColorNames();
+
+      CQChartsDrawUtil::setPenBrush(device, penBrush);
+
       int np = poly_.count();
 
       for (int i = 1; i < np; ++i) {
@@ -3284,6 +3292,8 @@ draw(CQChartsPaintDevice *device)
 
         device->drawLine(poly_[i - 1], poly_[i]);
       }
+
+      device->resetColorNames();
     }
   }
 
@@ -3310,17 +3320,17 @@ draw(CQChartsPaintDevice *device)
 
       CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(p1.x, y2));
 
-      poly << QPointF(p2.x, p2.y);
+      poly << p2.qpoint();
 
       // deviation curve above/below
       if (plot()->isBestFitDeviation()) {
         p2 = plot()->windowToPixel(CQChartsGeom::Point(p1.x, y2 - bestFit_.deviation()));
 
-        bpoly << QPointF(p2.x, p2.y);
+        bpoly << p2.qpoint();
 
         p2 = plot()->windowToPixel(CQChartsGeom::Point(p1.x, y2 + bestFit_.deviation()));
 
-        tpoly << QPointF(p2.x, p2.y);
+        tpoly << p2.qpoint();
       }
     }
 
@@ -3328,22 +3338,22 @@ draw(CQChartsPaintDevice *device)
 
     if (poly.size()) {
       // calc pen and brush
-      QPen   pen;
-      QBrush brush;
+      CQChartsPenBrush penBrush;
+
+      ColorInd ic = (ig_.n > 1 ? ig_ : is_);
 
       QColor strokeColor = plot()->interpBestFitStrokeColor(ic);
       QColor fillColor   = plot()->interpBestFitFillColor  (ic);
 
-      plot()->setPen(pen, true, strokeColor, plot()->bestFitStrokeAlpha(),
+      plot()->setPen(penBrush.pen, true, strokeColor, plot()->bestFitStrokeAlpha(),
                      plot()->bestFitStrokeWidth(), plot()->bestFitStrokeDash());
 
-      plot()->setBrush(brush, plot()->isBestFitFilled(), fillColor, plot()->bestFitFillAlpha(),
-                       plot()->bestFitFillPattern());
+      plot()->setBrush(penBrush.brush, plot()->isBestFitFilled(), fillColor,
+                       plot()->bestFitFillAlpha(), plot()->bestFitFillPattern());
 
-      plot()->updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
+      plot()->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
 
-      device->setPen  (pen);
-      device->setBrush(brush);
+      CQChartsDrawUtil::setPenBrush(device, penBrush);
 
       //---
 
@@ -3390,7 +3400,7 @@ draw(CQChartsPaintDevice *device)
         path.lineTo(p);
       }
 
-      device->strokePath(path, pen);
+      device->strokePath(path, penBrush.pen);
     }
   }
 
@@ -3402,20 +3412,20 @@ draw(CQChartsPaintDevice *device)
     //---
 
     // calc pen and brush
-    QPen   pen;
-    QBrush brush;
+    CQChartsPenBrush penBrush;
+
+    ColorInd ic = (ig_.n > 1 ? ig_ : is_);
 
     QColor c = plot()->interpStatsLinesColor(ic);
 
-    plot()->setPen(pen, true, c, plot()->statsLinesAlpha(),
+    plot()->setPen(penBrush.pen, true, c, plot()->statsLinesAlpha(),
                    plot()->statsLinesWidth(), plot()->statsLinesDash());
 
-    plot()->setBrush(brush, false);
+    plot()->setBrush(penBrush.brush, false);
 
-    plot()->updateObjPenBrushState(this, ic, pen, brush, CQChartsPlot::DrawType::LINE);
+    plot()->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
 
-    device->setPen  (pen);
-    device->setBrush(brush);
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     //---
 
@@ -3436,6 +3446,32 @@ draw(CQChartsPaintDevice *device)
   }
 }
 
+void
+CQChartsXYPolylineObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  ColorInd ic = (ig_.n > 1 ? ig_ : is_);
+
+  QColor c = plot()->interpLinesColor(ic);
+
+  plot()->setPen(penBrush.pen, true, c, plot()->linesAlpha(),
+                 plot()->linesWidth(), plot()->linesDash());
+
+  plot()->setBrush(penBrush.brush, false);
+
+  if (updateState)
+    plot()->updateObjPenBrushState(this, ic, penBrush, CQChartsPlot::DrawType::LINE);
+}
+
+void
+CQChartsXYPolylineObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+}
+
 //------
 
 CQChartsXYPolygonObj::
@@ -3445,6 +3481,7 @@ CQChartsXYPolygonObj(const CQChartsXYPlot *plot, int groupInd, const CQChartsGeo
  CQChartsPlotObj(const_cast<CQChartsXYPlot *>(plot), rect, is, ig, ColorInd()), plot_(plot),
  groupInd_(groupInd), poly_(poly), name_(name)
 {
+  setDetailHint(DetailHint::MAJOR);
 }
 
 CQChartsXYPolygonObj::
@@ -3555,25 +3592,12 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  ColorInd ic = (ig_.n > 1 ? ig_ : is_);
-
-  //---
-
   // calc pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
-  QColor fillColor = plot()->interpFillUnderFillColor(ic);
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  plot()->setPen(pen, false);
-
-  plot()->setBrush(brush, true, fillColor, plot()->fillUnderFillAlpha(),
-                   plot()->fillUnderFillPattern());
-
-  plot()->updateObjPenBrushState(this, pen, brush);
-
-  device->setPen  (pen);
-  device->setBrush(brush);
+  calcPenBrush(penBrush, updateState);
 
   //---
 
@@ -3585,17 +3609,14 @@ draw(CQChartsPaintDevice *device)
 
     QPainterPath path;
 
-    if (np > 0) {
-      CQChartsGeom::Point p = CQChartsGeom::Point(poly_[0].x(), poly_[0].y());
-
-      path.moveTo(p.x, p.y);
-    }
+    if (np > 0)
+      path.moveTo(poly_[0]);
 
     for (int i = 0; i < smooth_->numPoints(); ++i) {
       const CQChartsGeom::Point &p = smooth_->point(i);
 
       if (i == 0) {
-        path.lineTo(p.x, p.y);
+        path.lineTo(p.qpoint());
       }
       else {
         CQChartsSmooth::SegmentType type = smooth_->segmentType(i - 1);
@@ -3612,36 +3633,64 @@ draw(CQChartsPaintDevice *device)
           path.quadTo(c1.x, c1.y, p.x, p.y);
         }
         else if (type == CQChartsSmooth::SegmentType::LINE) {
-          path.lineTo(p.x, p.y);
+          path.lineTo(p.qpoint());
         }
       }
     }
 
-    if (np > 0) {
-      CQChartsGeom::Point p = CQChartsGeom::Point(poly_[np - 1].x(), poly_[np - 1].y());
-
-      path.lineTo(p.x, p.y);
-    }
+    if (np > 0)
+      path.lineTo(poly_[np - 1]);
 
     path.closeSubpath();
 
     //---
 
     // draw polygon
+    device->setColorNames();
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
+
     device->drawPath(path);
+
+    device->resetColorNames();
   }
   else {
     // draw polygon
-    QPolygonF poly;
+    device->setColorNames();
 
-    for (int i = 0; i < np; ++i) {
-      CQChartsGeom::Point p = CQChartsGeom::Point(poly_[i].x(), poly_[i].y());
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-      poly << p.qpoint();
-    }
+    device->drawPolygon(poly_);
 
-    device->drawPolygon(poly);
+    device->resetColorNames();
   }
+}
+
+void
+CQChartsXYPolygonObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  // calc pen and brush
+  ColorInd ic = (ig_.n > 1 ? ig_ : is_);
+
+  QColor fillColor = plot()->interpFillUnderFillColor(ic);
+
+  plot()->setPen(penBrush.pen, false);
+
+  plot()->setBrush(penBrush.brush, true, fillColor, plot()->fillUnderFillAlpha(),
+                   plot()->fillUnderFillPattern());
+
+  if (updateState)
+    plot()->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsXYPolygonObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
 }
 
 //------
@@ -3839,7 +3888,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
     double x2 = prect.getXMax() - 4;
     double y  = prect.getYMid();
 
-    QPen linePen;
+    CQChartsPenBrush linePenBrush;
 
     if      (plot()->isLines()) {
       QColor lineColor = plot()->interpLinesColor(ic_);
@@ -3847,7 +3896,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
       if (plot()->isSetHidden(ic_.i))
         lineColor = CQChartsUtil::blendColors(lineColor, hideBg, hideAlpha);
 
-      plot()->setPen(linePen, true, lineColor, plot()->linesAlpha(),
+      plot()->setPen(linePenBrush.pen, true, lineColor, plot()->linesAlpha(),
                      plot()->linesWidth(), plot()->linesDash());
     }
     else if (plot()->isBestFit()) {
@@ -3856,7 +3905,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
       if (plot()->isSetHidden(ic_.i))
         fitColor = CQChartsUtil::blendColors(fitColor, hideBg, hideAlpha);
 
-      plot()->setPen(linePen, true, fitColor, plot()->bestFitStrokeAlpha(),
+      plot()->setPen(linePenBrush.pen, true, fitColor, plot()->bestFitStrokeAlpha(),
                      plot()->bestFitStrokeWidth(), plot()->bestFitStrokeDash());
     }
     else {
@@ -3865,21 +3914,21 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
       if (plot()->isSetHidden(ic_.i))
         impulseColor = CQChartsUtil::blendColors(impulseColor, hideBg, hideAlpha);
 
-      plot()->setPen(linePen, true, impulseColor, plot()->impulseLinesAlpha(),
+      plot()->setPen(linePenBrush.pen, true, impulseColor, plot()->impulseLinesAlpha(),
                      plot()->impulseLinesWidth(), plot()->impulseLinesDash());
     }
 
-    QBrush lineBrush(Qt::NoBrush);
+    linePenBrush.brush = QBrush(Qt::NoBrush);
 
     CQChartsPlotObj *obj = plotObj();
 
     if (obj)
-      plot()->updateObjPenBrushState(obj, ig_, linePen, lineBrush, CQChartsPlot::DrawType::LINE);
+      plot()->updateObjPenBrushState(obj, ig_, linePenBrush, CQChartsPlot::DrawType::LINE);
 
     if (isInside())
-      linePen = plot()->insideColor(linePen.color());
+      linePenBrush.pen = plot()->insideColor(linePenBrush.pen.color());
 
-    device->setPen(linePen);
+    device->setPen(linePenBrush.pen);
 
     device->drawLine(device->pixelToWindow(QPointF(x1, y)),
                      device->pixelToWindow(QPointF(x2, y)));
@@ -3907,10 +3956,9 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 
     //---
 
-    QPen   pen;
-    QBrush brush;
+    CQChartsPenBrush penBrush;
 
-    plot()->setPenBrush(pen, brush,
+    plot()->setPenBrush(penBrush.pen, penBrush.brush,
       plot()->isSymbolStroked(), pointStrokeColor, plot()->symbolStrokeAlpha(),
       plot()->symbolStrokeWidth(), plot()->symbolStrokeDash(),
       plot()->isSymbolFilled(), pointFillColor, plot()->symbolFillAlpha(),
@@ -3919,30 +3967,16 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
     CQChartsPlotObj *obj = plotObj();
 
     if (obj)
-      plot()->updateObjPenBrushState(obj, ig_, pen, brush, CQChartsPlot::DrawType::SYMBOL);
+      plot()->updateObjPenBrushState(obj, ig_, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
     //---
 
-    CQChartsSymbol symbol = plot()->symbolType();
+    CQChartsSymbol symbolType = plot()->symbolType();
+    CQChartsLength symbolSize = plot()->symbolSize();
 
-    double sx, sy;
+    QPointF ps(CMathUtil::avg(p1.x, p2.x), CMathUtil::avg(p1.y, p2.y));
 
-    plot()->pixelSymbolSize(plot()->symbolSize(), sx, sy);
-
-    if (plot()->isLines() || plot()->isImpulseLines()) {
-      double px = CMathUtil::avg(p1.x, p2.x);
-      double py = CMathUtil::avg(p1.y, p2.y);
-
-      plot()->drawSymbol(device, device->pixelToWindow(QPointF(px, py)),
-                         symbol, CMathUtil::avg(sx, sy), pen, brush);
-    }
-    else {
-      double px = CMathUtil::avg(p1.x, p2.x);
-      double py = CMathUtil::avg(p1.y, p2.y);
-
-      plot()->drawSymbol(device, device->pixelToWindow(QPointF(px, py)),
-                         symbol, CMathUtil::avg(sx, sy), pen, brush);
-    }
+    plot()->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, penBrush);
   }
 
   device->restore();

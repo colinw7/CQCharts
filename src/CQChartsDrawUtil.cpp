@@ -179,7 +179,8 @@ drawTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &te
 
   QPen pen = device->pen();
 
-  device->save();
+  if (options.clipped)
+    device->save();
 
   QRectF prect = device->windowToPixel(rect);
 
@@ -273,7 +274,8 @@ drawTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &te
     drawRotatedTextInBox(device, rect, text, pen, options);
   }
 
-  device->restore();
+  if (options.clipped)
+    device->restore();
 }
 
 #if 0
@@ -290,7 +292,8 @@ drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
 
   QPen pen = painter->pen();
 
-  painter->save();
+  if (options.clipped)
+    painter->save();
 
   if (CMathUtil::isZero(options.angle)) {
     QFontMetricsF fm(painter->font());
@@ -382,7 +385,8 @@ drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
     drawRotatedTextInBox(painter, rect, text, pen, options);
   }
 
-  painter->restore();
+  if (options.clipped)
+    painter->restore();
 }
 #endif
 
@@ -843,12 +847,12 @@ drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
     path.moveTo(p1.x, p1.y);
     path.lineTo(p2.x, p2.y);
 
-    path.arcTo(bbox.qrect(), a1, a2 - a1);
+    path.arcTo(bbox.qrect(), -a1, a1 - a2);
 
     path.lineTo(p4.x, p4.y);
     path.lineTo(p3.x, p3.y);
 
-    path.arcTo(bbox1.qrect(), a2, a1 - a2);
+    path.arcTo(bbox1.qrect(), -a2, a2 - a1);
   }
   else {
     double a21 = a2 - a1;
@@ -856,7 +860,7 @@ drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
     if (std::abs(a21) < 360.0) {
       path.moveTo(QPointF(c.x, c.y));
 
-      path.arcTo(bbox.qrect(), a1, a2 - a1);
+      path.arcTo(bbox.qrect(), -a1, a1 - a2);
     }
     else {
       path.addEllipse(bbox.qrect());

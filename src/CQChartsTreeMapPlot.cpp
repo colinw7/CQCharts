@@ -1151,36 +1151,22 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc header stroke and brush
-  ColorInd colorInd = calcColorInd();
+  CQChartsPenBrush penBrush;
 
-  QPen   pen;
-  QBrush brush;
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  QColor bc = plot_->interpHeaderStrokeColor(colorInd);
-
-  if (isChildSelected())
-    bc.setAlphaF(1.0);
-
-  QColor hierColor = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
-
-  QColor c = plot_->interpHeaderFillColor(colorInd);
-
-  QColor fc = CQChartsUtil::blendColors(c, hierColor, 0.8);
-
-  plot_->setPenBrush(pen, brush,
-    plot_->isHeaderStroked(), bc, plot_->headerStrokeAlpha(),
-    plot_->headerStrokeWidth(), plot_->headerStrokeDash(),
-    plot_->isHeaderFilled(), fc, plot_->headerFillAlpha(), plot_->headerFillPattern());
-
-  plot_->updateObjPenBrushState(this, pen, brush);
+  calcPenBrush(penBrush, updateState);
 
   //---
 
   // draw rectangle
-  device->setPen  (pen);
-  device->setBrush(brush);
+  device->setColorNames();
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   device->drawRect(qrect);
+
+  device->resetColorNames();
 
   //---
 
@@ -1189,14 +1175,19 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // set text pen
-  QPen tpen;
+  // get labels (name)
+  QString name = (plot_->isTitleHierName() ? hier_->hierName() : hier_->name());
+
+  //---
+
+  // calc text pen
+  CQChartsPenBrush tPenBrush = penBrush;
 
   QColor tc = plot_->interpHeaderTextColor(ColorInd());
 
-  plot_->setPen(tpen, true, tc, plot_->headerTextAlpha());
+  plot_->setPen(tPenBrush.pen, true, tc, plot_->headerTextAlpha());
 
-  plot_->updateObjPenBrushState(this, tpen, brush);
+  plot_->updateObjPenBrushState(this, tPenBrush);
 
   //---
 
@@ -1209,19 +1200,9 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // calc text size and position
-  QString name = (plot_->isTitleHierName() ? hier_->hierName() : hier_->name());
+  // check if text visible
+  QRectF pqrect = device->windowToPixel(qrect);
 
-//CQChartsGeom::Point p3 =
-//  plot_->windowToPixel(CQChartsGeom::Point(hier_->x(), hier_->y() + hier_->h()));
-
-  //---
-
-  double hh = plot_->calcTitleHeight();
-
-  //---
-
-  // draw label
   bool visible = plot_->isTextVisible();
 
   if (visible) {
@@ -1230,9 +1211,12 @@ draw(CQChartsPaintDevice *device)
     double minTextWidth  = fm.width("X") + 4;
     double minTextHeight = fm.height() + 4;
 
-    visible = (qrect.width() >= minTextWidth && qrect.height() >= minTextHeight);
+    visible = (pqrect.width() >= minTextWidth && pqrect.height() >= minTextHeight);
   }
 
+  //---
+
+  // draw label
   if (visible) {
     CQChartsTextOptions textOptions;
 
@@ -1246,18 +1230,61 @@ draw(CQChartsPaintDevice *device)
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
-    device->setPen(tpen);
+    device->setPen(tPenBrush.pen);
 
-    double m = 3; // margin
+    double m = 3; // margin in pixels
 
-    QRectF qrect1(qrect.left() + m, qrect.top(), qrect.width() - 2*m, hh);
+    double hh = plot_->calcTitleHeight(); // title height in pixels
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(qrect1), name, textOptions);
+    QRectF pqrect1(pqrect.left() + m, pqrect.top(), pqrect.width() - 2*m, hh);
+
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(pqrect1), name, textOptions);
   }
 
   //---
 
   device->restore();
+}
+
+void
+CQChartsTreeMapHierObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  ColorInd colorInd = calcColorInd();
+
+  QColor bc = plot_->interpHeaderStrokeColor(colorInd);
+
+  if (isChildSelected())
+    bc.setAlphaF(1.0);
+
+  QColor hierColor = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
+
+  QColor c = plot_->interpHeaderFillColor(colorInd);
+
+  QColor fc = CQChartsUtil::blendColors(c, hierColor, 0.8);
+
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->isHeaderStroked(), bc, plot_->headerStrokeAlpha(),
+    plot_->headerStrokeWidth(), plot_->headerStrokeDash(),
+    plot_->isHeaderFilled(), fc, plot_->headerFillAlpha(), plot_->headerFillPattern());
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsTreeMapHierObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.name = \"" << node_->name().toStdString() << "\";\n";
+  os << "  this.size = " << node_->hierSize() << ";\n";
 }
 
 //------
@@ -1353,13 +1380,10 @@ draw(CQChartsPaintDevice *device)
   CQChartsGeom::Point p2 =
     plot_->windowToPixel(CQChartsGeom::Point(node_->x() + node_->w(), node_->y() + node_->h()));
 
-  double pw = std::abs(p2.x - p1.x) - 2;
-  double ph = std::abs(p2.y - p1.y) - 2;
+  bool isPoint = this->isPoint();
 
   QRectF  qrect;
   QPointF qpoint;
-
-  bool isPoint = (pw <= 1.5 || ph <= 1.5);
 
   if (isPoint)
     qpoint = QPointF((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
@@ -1369,42 +1393,25 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc stroke and brush
-  ColorInd colorInd = calcColorInd();
+  CQChartsPenBrush penBrush;
 
-  QPen   pen;
-  QBrush brush;
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  QColor bc = plot_->interpStrokeColor(colorInd);
-  QColor fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
-
-  if (isPoint) {
-    if      (plot_->isFilled())
-      plot_->setPenBrush(pen, brush,
-        true, fc, plot_->fillAlpha(), 0.0, CQChartsLineDash(),
-        true, fc, plot_->fillAlpha(), plot_->fillPattern());
-    else if (plot_->isStroked())
-      plot_->setPenBrush(pen, brush,
-        true, bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
-        true, bc, plot_->strokeAlpha(), CQChartsFillPattern());
-  }
-  else {
-    plot_->setPenBrush(pen, brush,
-      plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
-      plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
-  }
-
-  plot_->updateObjPenBrushState(this, pen, brush);
+  calcPenBrush(penBrush, isPoint, updateState);
 
   //---
 
   // draw rectangle
-  device->setPen  (pen);
-  device->setBrush(brush);
+  device->setColorNames();
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   if (isPoint)
     device->drawPoint(device->pixelToWindow(qpoint));
   else
     device->drawRect(device->pixelToWindow(qrect));
+
+  device->resetColorNames();
 
   //---
 
@@ -1435,13 +1442,15 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc text pen
-  QPen tpen;
+  CQChartsPenBrush tPenBrush = penBrush;
+
+  ColorInd colorInd = calcColorInd();
 
   QColor tc = plot_->interpTextColor(colorInd);
 
-  plot_->setPen(tpen, true, tc, plot_->textAlpha());
+  plot_->setPen(tPenBrush.pen, true, tc, plot_->textAlpha());
 
-  plot_->updateObjPenBrushState(this, tpen, brush);
+  plot_->updateObjPenBrushState(this, tPenBrush);
 
   //---
 
@@ -1466,8 +1475,6 @@ draw(CQChartsPaintDevice *device)
 
   // draw label
   if (visible) {
-    device->setPen(tpen);
-
     CQChartsTextOptions textOptions;
 
     textOptions.angle     = plot_->textAngle();
@@ -1479,6 +1486,8 @@ draw(CQChartsPaintDevice *device)
     textOptions.align     = plot_->textAlign();
 
     textOptions = plot_->adjustTextOptions(textOptions);
+
+    device->setPen(tPenBrush.pen);
 
     if      (strs.size() == 1) {
       CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(qrect), name, textOptions);
@@ -1505,6 +1514,67 @@ draw(CQChartsPaintDevice *device)
   //---
 
   device->restore();
+}
+
+void
+CQChartsTreeMapNodeObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool isPoint, bool updateState) const
+{
+  ColorInd colorInd = calcColorInd();
+
+  QColor bc = plot_->interpStrokeColor(colorInd);
+  QColor fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
+
+  if (isPoint) {
+    if      (plot_->isFilled())
+      plot_->setPenBrush(penBrush.pen, penBrush.brush,
+        true, fc, plot_->fillAlpha(), 0.0, CQChartsLineDash(),
+        true, fc, plot_->fillAlpha(), plot_->fillPattern());
+    else if (plot_->isStroked())
+      plot_->setPenBrush(penBrush.pen, penBrush.brush,
+        true, bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
+        true, bc, plot_->strokeAlpha(), CQChartsFillPattern());
+  }
+  else {
+    plot_->setPenBrush(penBrush.pen, penBrush.brush,
+      plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
+      plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
+  }
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+bool
+CQChartsTreeMapNodeObj::
+isPoint() const
+{
+  CQChartsGeom::Point p1 =
+    plot_->windowToPixel(CQChartsGeom::Point(node_->x()             , node_->y()             ));
+  CQChartsGeom::Point p2 =
+    plot_->windowToPixel(CQChartsGeom::Point(node_->x() + node_->w(), node_->y() + node_->h()));
+
+  double pw = std::abs(p2.x - p1.x) - 2;
+  double ph = std::abs(p2.y - p1.y) - 2;
+
+  return (pw <= 1.5 || ph <= 1.5);
+}
+
+void
+CQChartsTreeMapNodeObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  bool isPoint = this->isPoint();
+
+  calcPenBrush(penBrush_, isPoint, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.name = \"" << node_->name().toStdString() << "\";\n";
+  os << "  this.size = " << node_->hierSize() << ";\n";
 }
 
 bool

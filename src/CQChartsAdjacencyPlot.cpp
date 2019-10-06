@@ -994,7 +994,7 @@ calcId() const
   QString groupStr2 = QString("(%1)").arg(node2_->group());
 
   return QString("%1:%2%3:%4%5:%6").arg(typeName()).
-           arg(node1_->name()).arg(groupStr1).arg(node2_->name()).arg(groupStr2).arg(value_);
+           arg(node1_->name()).arg(groupStr1).arg(node2_->name()).arg(groupStr2).arg(value());
 }
 
 QString
@@ -1008,7 +1008,7 @@ calcTipId() const
 
   tableTip.addTableRow("From" , node1_->name(), groupStr1);
   tableTip.addTableRow("To"   , node2_->name(), groupStr2);
-  tableTip.addTableRow("Value", value_);
+  tableTip.addTableRow("Value", value());
 
   //---
 
@@ -1031,6 +1031,7 @@ void
 CQChartsAdjacencyObj::
 draw(CQChartsPaintDevice *device)
 {
+  // draw inside object
   if (isInside()) {
     if (plot_->insideObj() != this) {
       CQChartsAdjacencyPlot *plot = const_cast<CQChartsAdjacencyPlot *>(plot_);
@@ -1043,6 +1044,27 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
+
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+
+  calcPenBrush(penBrush, updateState);
+
+  //---
+
+  // draw box
+  device->setColorNames();
+
+  drawRoundedPolygon(device, penBrush, rect(), plot_->cornerSize());
+
+  device->resetColorNames();
+}
+
+void
+CQChartsAdjacencyObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
   ColorInd colorInd = calcColorInd();
 
   //---
@@ -1069,7 +1091,7 @@ draw(CQChartsPaintDevice *device)
     QColor c1 = interpGroupColor(node1_);
     QColor c2 = interpGroupColor(node2_);
 
-    double s = CMathUtil::map(value_, 0.0, plot_->maxValue(), 0.0, 1.0);
+    double s = CMathUtil::map(value(), 0.0, plot_->maxValue(), 0.0, 1.0);
 
     double r = (c1.redF  () + c2.redF  () + s*bc.redF  ())/3;
     double g = (c1.greenF() + c2.greenF() + s*bc.greenF())/3;
@@ -1081,27 +1103,28 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc pen and brush
-  CQChartsPenBrush penBrush;
-
   QColor pc = plot_->interpStrokeColor(colorInd);
 
   plot_->setPenBrush(penBrush.pen, penBrush.brush,
     true, pc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
     true, bc, plot_->fillAlpha(), plot_->fillPattern());
 
-  plot_->updateObjPenBrushState(this, penBrush.pen, penBrush.brush);
-
-  //---
-
-  // draw box
-  drawRoundedPolygon(device, penBrush, rect(), plot_->cornerSize());
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
 }
 
-bool
+void
 CQChartsAdjacencyObj::
-inside(const CQChartsGeom::Point &p) const
+writeScriptData(CQChartsScriptPainter *device) const
 {
-  return rect().inside(p);
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.value = " << value() << ";\n";
 }
 
 double

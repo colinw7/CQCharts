@@ -211,28 +211,37 @@ drawDebugRect(CQChartsPaintDevice *device)
 
 void
 CQChartsPlotObj::
-writeScriptData(std::ostream &os) const
+writeScriptData(CQChartsScriptPainter *device) const
 {
   auto encodeString = [&](const QString &str) {
     return CQChartsScriptPainter::encodeString(str).toStdString();
   };
+
+  std::ostream &os = device->os();
 
   os << "  this.id    = \"" << this->id().toStdString() << "\";\n";
   os << "  this.tipId = \"" << encodeString(this->tipId()) << "\";\n";
 
   const CQChartsGeom::BBox &rect = this->rect();
 
+  os << "\n";
   os << "  this.xmin = " << rect.getXMin() << ";\n";
   os << "  this.ymin = " << rect.getYMin() << ";\n";
   os << "  this.xmax = " << rect.getXMax() << ";\n";
   os << "  this.ymax = " << rect.getYMax() << ";\n";
 
-  if (this->isPolygon()) {
-    os << "  this.poly = [";
+  os << "\n";
+  os << "  this.isInside = 0;\n";
 
+  writeScriptGC(device, penBrush_);
+
+  if      (this->isPolygon()) {
     QPolygonF poly = this->polygon();
 
     int np = poly.length();
+
+    os << "\n";
+    os << "  this.poly = [";
 
     for (int i = 0; i < np; ++i) {
       if (i > 0) os << ", ";
@@ -241,6 +250,83 @@ writeScriptData(std::ostream &os) const
     }
 
     os << "];\n";
+  }
+  else if (this->isCircle()) {
+    os << "\n";
+    os << "  this.xc = " << rect.getXMid() << ";\n";
+    os << "  this.yc = " << rect.getYMid() << ";\n";
+    os << "  this.radius = " << this->radius() << ";\n";
+  }
+  else if (this->isArc()) {
+    CQChartsArcData arc = this->arcData();
+
+    os << "\n";
+    os << "  this.arc = {};\n";
+    os << "  this.arc.cx = " << arc.center().x << ";\n";
+    os << "  this.arc.cy = " << arc.center().y << ";\n";
+    os << "  this.arc.ri = " << arc.innerRadius() << ";\n";
+    os << "  this.arc.ro = " << arc.outerRadius() << ";\n";
+    os << "  this.arc.a1 = " << arc.angle1() << ";\n";
+    os << "  this.arc.a2 = " << arc.angle2() << ";\n";
+  }
+}
+
+void
+CQChartsPlotObj::
+writeScriptGC(CQChartsScriptPainter *device, const CQChartsPenBrush &penBrush) const
+{
+  std::ostream &os = device->os();
+
+  os << "\n";
+
+  if (device->strokeStyleName().length())
+    os << "  this." << device->strokeStyleName().toStdString() << " = \"";
+  else
+    os << "  this.strokeColor = \"";
+
+  if (penBrush.pen.style() == Qt::NoPen)
+    os <<  "#00000000";
+  else
+    os << CQChartsUtil::encodeScriptColor(penBrush.pen.color()).toStdString();
+
+  os << "\";\n";
+
+  if (device->fillStyleName().length())
+    os << "  this." << device->fillStyleName().toStdString() << " = \"";
+  else
+    os << "  this.fillColor = \"";
+
+  if (penBrush.brush.style() == Qt::NoBrush)
+    os <<  "#00000000";
+  else
+    os << CQChartsUtil::encodeScriptColor(penBrush.brush.color()).toStdString();
+
+  os << "\";\n";
+}
+
+void
+CQChartsPlotObj::
+writeScriptInsideColor(CQChartsScriptPainter *device, bool isSave) const
+{
+  std::ostream &os = device->os();
+
+  if (isSolid()) {
+    if (isSave) {
+      os << "      this.saveFillColor = this.fillColor;\n";
+      os << "      this.fillColor = \"rgb(255,0,0)\";\n";
+    }
+    else {
+      os << "      this.fillColor = this.saveFillColor;\n";
+    }
+  }
+  else {
+    if (isSave) {
+      os << "      this.saveStrokeColor = this.strokeColor;\n";
+      os << "      this.strokeColor = \"rgb(255,0,0)\";\n";
+    }
+    else {
+      os << "      this.strokeColor = this.saveStrokeColor;\n";
+    }
   }
 }
 

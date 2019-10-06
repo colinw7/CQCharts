@@ -310,7 +310,7 @@ calcRange() const
 
   double angle1 = startAngle();
   double alen   = CMathUtil::clamp(angleExtent(), -360.0, 360.0);
-  double angle2 = angle1 - alen;
+  double angle2 = angle1 + alen;
 
   // add segment outside points
   dataRange.updateRange(CQChartsUtil::AngleToPoint(c, r, angle1));
@@ -670,7 +670,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
     obj->setMissing(valueMissing);
 
     if (hasRadius)
-      obj->setRadius(radius);
+      obj->setOptRadius(radius);
 
     obj->setKeyLabel(keyLabel);
 
@@ -695,7 +695,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
       obj->setValue(obj->value() + value);
 
     if (hasRadius)
-      obj->setRadius(*obj->radius() + radius);
+      obj->setOptRadius(*obj->optRadius() + radius);
 
     // TODO: add dataInd
   }
@@ -974,7 +974,7 @@ adjustObjAngles() const
         double value = obj->value();
 
         double angle  = (dataTotal > 0.0 ? alen*value/dataTotal : 0.0);
-        double angle2 = angle1 - angle;
+        double angle2 = angle1 + angle;
 
         obj->setAngle1(angle1);
         obj->setAngle2(angle2);
@@ -988,8 +988,9 @@ adjustObjAngles() const
 
           double rv = r;
 
-          if (obj->radius() && groupObj->isRadiusScaled()) {
-            double s = (groupObj->radiusMax() > 0.0 ? *obj->radius()/groupObj->radiusMax() : 1.0);
+          if (obj->optRadius() && groupObj->isRadiusScaled()) {
+            double s = (groupObj->radiusMax() > 0.0 ?
+                          *obj->optRadius()/groupObj->radiusMax() : 1.0);
 
             rv = r + (s - 1)*dr;
           }
@@ -1173,8 +1174,8 @@ calcTipId() const
   tableTip.addTableRow("Name" , label);
   tableTip.addTableRow("Value", valueStr);
 
-  if (radius()) {
-    tableTip.addTableRow("Radius", *radius());
+  if (optRadius()) {
+    tableTip.addTableRow("Radius", *optRadius());
   }
 
   //---
@@ -1184,6 +1185,21 @@ calcTipId() const
   //---
 
   return tableTip.str();
+}
+
+CQChartsArcData
+CQChartsPieObj::
+arcData() const
+{
+  CQChartsArcData arcData;
+
+  arcData.setInnerRadius(innerRadius());
+  arcData.setOuterRadius(valueRadius());
+
+  arcData.setAngle1(angle1());
+  arcData.setAngle2(angle2());
+
+  return arcData;
 }
 
 void
@@ -1220,43 +1236,7 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
-  // calc distance from center (radius)
-  CQChartsGeom::Point center(0, 0);
-
-  double r = p.distanceTo(center);
-
-  //---
-
-  // check in radius extent
-  double ri = innerRadius();
-  double ro = valueRadius();
-
-  if (r < ri || r > ro)
-    return false;
-
-  //---
-
-  // check angle
-  double a = CMathUtil::Rad2Deg(atan2(p.y - center.y, p.x - center.x));
-  a = CMathUtil::normalizeAngle(a);
-
-  double a1 = angle1(); a1 = CMathUtil::normalizeAngle(a1);
-  double a2 = angle2(); a2 = CMathUtil::normalizeAngle(a2);
-
-  if (a1 < a2) {
-    // crosses zero
-    if (a >= 0.0 && a <= a1)
-      return true;
-
-    if (a <= 360.0 && a >= a2)
-      return true;
-  }
-  else {
-    if (a >= a2 && a <= a1)
-      return true;
-  }
-
-  return false;
+  return arcData().inside(p);
 }
 
 void
@@ -1401,16 +1381,16 @@ draw(CQChartsPaintDevice *device)
 
   // draw grid lines (as pie)
   if (plot_->isGridLines()) {
-    QPen   pen;
-    QBrush brush(Qt::NoBrush);
+    CQChartsPenBrush penBrush;
 
     QColor gridColor = plot_->interpGridLinesColor(ColorInd());
 
-    plot_->setPen(pen, true, gridColor, plot_->gridLinesAlpha(),
+    plot_->setPen(penBrush.pen, true, gridColor, plot_->gridLinesAlpha(),
                   plot_->gridLinesWidth(), plot_->gridLinesDash());
 
-    device->setPen  (pen);
-    device->setBrush(brush);
+    plot_->setBrush(penBrush.brush, false);
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     CQChartsGeom::Point c(0.0, 0.0);
 
@@ -1420,27 +1400,22 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc stroke and brush
-  ColorInd colorInd = this->calcColorInd();
+  CQChartsPenBrush penBrush;
 
-  QPen   pen;
-  QBrush brush;
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  QColor bc = plot_->interpStrokeColor(colorInd);
-  QColor fc = fillColor();
-
-  plot_->setPenBrush(pen, brush,
-    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
-    plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
-
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  device->setPen  (pen);
-  device->setBrush(brush);
+  calcPenBrush(penBrush, updateState);
 
   //---
 
   // draw pie slice
+  device->setColorNames();
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
   CQChartsDrawUtil::drawPieSlice(device, c, ri, rv, aa1, aa2, isInvertX, isInvertY);
+
+  device->resetColorNames();
 }
 
 void
@@ -1454,38 +1429,6 @@ drawFg(CQChartsPaintDevice *device) const
   CQChartsGeom::Point c = getCenter();
 
   drawSegmentLabel(device, c);
-}
-
-CQChartsGeom::Point
-CQChartsPieObj::
-getCenter() const
-{
-  CQChartsGeom::Point c(0.0, 0.0);
-
-  //---
-
-  bool isExploded = calcExploded();
-
-  if (! isExploded)
-    return c;
-
-  //---
-
-  // get adjusted center (exploded state)
-  double rv = valueRadius();
-
-  double a1 = angle1();
-  double a2 = angle2();
-
-  double angle = CMathUtil::Deg2Rad(CMathUtil::avg(a1, a2));
-
-  double dx = plot_->explodeRadius()*rv*cos(angle);
-  double dy = plot_->explodeRadius()*rv*sin(angle);
-
-  c.x += dx;
-  c.y += dy;
-
-  return c;
 }
 
 void
@@ -1578,6 +1521,38 @@ drawSegmentLabel(CQChartsPaintDevice *device, const CQChartsGeom::Point &c) cons
   }
 }
 
+void
+CQChartsPieObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  // calc stroke and brush
+  ColorInd colorInd = this->calcColorInd();
+
+  QColor bc = plot_->interpStrokeColor(colorInd);
+  QColor fc = fillColor();
+
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
+    plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsPieObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.value = " << value() << ";\n";
+}
+
 QColor
 CQChartsPieObj::
 fillColor() const
@@ -1601,6 +1576,38 @@ fillColor() const
   }
 
   return fc;
+}
+
+CQChartsGeom::Point
+CQChartsPieObj::
+getCenter() const
+{
+  CQChartsGeom::Point c(0.0, 0.0);
+
+  //---
+
+  bool isExploded = calcExploded();
+
+  if (! isExploded)
+    return c;
+
+  //---
+
+  // get adjusted center (exploded state)
+  double rv = valueRadius();
+
+  double a1 = angle1();
+  double a2 = angle2();
+
+  double angle = CMathUtil::Deg2Rad(CMathUtil::avg(a1, a2));
+
+  double dx = plot_->explodeRadius()*rv*cos(angle);
+  double dy = plot_->explodeRadius()*rv*sin(angle);
+
+  c.x += dx;
+  c.y += dy;
+
+  return c;
 }
 
 double
@@ -1758,16 +1765,14 @@ draw(CQChartsPaintDevice *device)
   QColor bg = bgColor();
   QColor fg = plot_->interpPlotStrokeColor(ColorInd());
 
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
-  plot_->setPen  (pen  , true, fg, 1.0);
-  plot_->setBrush(brush, true, bg, 1.0);
+  plot_->setPen  (penBrush.pen  , true, fg, 1.0);
+  plot_->setBrush(penBrush.brush, true, bg, 1.0);
 
-  plot_->updateObjPenBrushState(this, pen, brush);
+  plot_->updateObjPenBrushState(this, penBrush);
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 

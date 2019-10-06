@@ -3,13 +3,16 @@
 
 #include <CQChartsObj.h>
 #include <CQChartsGeom.h>
+#include <CQChartsArcData.h>
+#include <CQChartsDrawUtil.h>
 #include <set>
 
-class CQChartsPlot;
-class CQChartsPenBrush;
-class CQChartsLength;
-class CQChartsPaintDevice;
-class CQPropertyViewModel;
+class  CQChartsPlot;
+struct CQChartsPenBrush;
+class  CQChartsLength;
+class  CQChartsPaintDevice;
+class  CQChartsScriptPainter;
+class  CQPropertyViewModel;
 
 /*!
  * \brief Plot Object base class
@@ -72,8 +75,17 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
+  // shapes
   virtual bool isPolygon() const { return false; }
   virtual QPolygonF polygon() const { return QPolygonF(); }
+
+  virtual bool isCircle() const { return false; }
+  virtual double radius() const { return 1.0; }
+
+  virtual bool isArc() const { return false; }
+  virtual CQChartsArcData arcData() const { return CQChartsArcData(); }
+
+  virtual bool isSolid() const { return true; }
 
   //---
 
@@ -180,16 +192,22 @@ class CQChartsPlotObj : public CQChartsObj {
 
   //---
 
-  virtual void writeScriptData(std::ostream &os) const;
+  virtual void writeScriptData(CQChartsScriptPainter *device) const;
+
+  virtual void writeScriptGC(CQChartsScriptPainter *device,
+                             const CQChartsPenBrush &penBrush) const;
+
+  virtual void writeScriptInsideColor(CQChartsScriptPainter *device, bool isSave) const;
 
  protected:
-  CQChartsPlot* plot_       { nullptr };           //!< parent plot
-  DetailHint    detailHint_ { DetailHint::MINOR }; //!< interaction detail hint
-  bool          visible_    { true };              //!< is visible
-  ColorInd      is_;                               //!< set index
-  ColorInd      ig_;                               //!< group index
-  ColorInd      iv_;                               //!< value index
-  ModelIndices  modelInds_;                        //!< associated model indices
+  CQChartsPlot*            plot_       { nullptr };           //!< parent plot
+  DetailHint               detailHint_ { DetailHint::MINOR }; //!< interaction detail hint
+  bool                     visible_    { true };              //!< is visible
+  ColorInd                 is_;                               //!< set index
+  ColorInd                 ig_;                               //!< group index
+  ColorInd                 iv_;                               //!< value index
+  ModelIndices             modelInds_;                        //!< associated model indices
+  mutable CQChartsPenBrush penBrush_;                         //!< current pen/brush
 };
 
 //------

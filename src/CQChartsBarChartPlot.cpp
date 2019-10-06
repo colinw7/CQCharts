@@ -1659,16 +1659,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
-
-  //---
-
   // calc bar borders
-  static double minBorderSize = 5.0;
-  static double minSize       = 3.0;
-
-  bool skipBorder = false;
-
   double m1 = plot_->lengthPixelSize(plot_->margin(), ! plot_->isHorizontal());
   double m2 = m1;
 
@@ -1687,10 +1678,14 @@ draw(CQChartsPaintDevice *device)
     }
   }
 
-  double rs = prect.getSize(! plot_->isHorizontal());
+  //---
 
-  if (rs < minBorderSize)
-    skipBorder = true;
+  // adjust border sizes and rect
+  static double minSize = 3.0;
+
+  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
+
+  double rs = prect.getSize(! plot_->isHorizontal());
 
   double s1 = rs - 2*m1;
 
@@ -1701,42 +1696,34 @@ draw(CQChartsPaintDevice *device)
 
   prect.expandExtent(-m1, -m2, ! plot_->isHorizontal());
 
-  //---
-
   CQChartsGeom::BBox rect = plot_->pixelToWindow(prect);
 
   //---
 
-  // calc bar color
-  QColor barColor = calcBarColor();
-
-  //---
-
   // calc pen and brush
-  ColorInd colorInd = calcColorInd();
-
   CQChartsPenBrush barPenBrush;
 
-  QColor bc = plot_->interpBarStrokeColor(colorInd);
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  plot_->setPenBrush(barPenBrush.pen, barPenBrush.brush,
-    plot_->isBarStroked() && ! skipBorder,
-    bc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(), plot_->barStrokeDash(),
-    plot_->isBarFilled(), barColor, plot_->barFillAlpha(), plot_->barFillPattern());
-
-  plot_->updateObjPenBrushState(this, barPenBrush.pen, barPenBrush.brush);
+  calcPenBrush(barPenBrush, updateState);
 
   //---
 
   if (! plot_->isDotLines()) {
     // draw rect
+    device->setColorNames();
+
     drawRoundedPolygon(device, barPenBrush, rect, plot_->barCornerSize());
+
+    device->resetColorNames();
   }
   else {
     QRectF qrect  = rect .qrect();
     QRectF pqrect = prect.qrect();
 
     // draw line
+    device->setColorNames();
+
     double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), ! plot_->isHorizontal());
 
     if (! plot_->isHorizontal()) {
@@ -1762,9 +1749,13 @@ draw(CQChartsPaintDevice *device)
       }
     }
 
+    device->resetColorNames();
+
     //---
 
     // draw dot
+    device->setColorNames();
+
     CQChartsSymbol symbolType = plot_->dotSymbolType();
     CQChartsLength symbolSize = plot_->dotSymbolSize();
 
@@ -1777,54 +1768,10 @@ draw(CQChartsPaintDevice *device)
     else
       p = QPointF(qrect.right(), qrect.center().y());
 
-    plot_->drawSymbol(device, p, symbolType, symbolSize, barPenBrush.pen, barPenBrush.brush);
+    plot_->drawSymbol(device, p, symbolType, symbolSize, barPenBrush);
+
+    device->resetColorNames();
   }
-}
-
-QColor
-CQChartsBarChartObj::
-calcBarColor() const
-{
-  // calc bar color
-  ColorInd colorInd = calcColorInd();
-
-  QColor barColor;
-
-  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    int ns = (plot_->isValueValue() ? plot_->valueColumns().count() : 1);
-
-    if (ns > 1) {
-      if (plot_->isColorBySet())
-        barColor = plot_->interpBarFillColor(ig_);
-      else
-        barColor = plot_->interpBarFillColor(is_);
-    }
-    else {
-      if (! color_.isValid()) {
-        if      (ig_.n > 1)
-          barColor = plot_->interpBarFillColor(ig_);
-        else if (iv_.n > 1)
-          barColor = plot_->interpBarFillColor(iv_);
-        else {
-          ColorInd ig1(ig_.i    , ig_.n + 1);
-          ColorInd ig2(ig_.i + 1, ig_.n + 1);
-
-          QColor barColor1 = plot_->interpBarFillColor(ig1);
-          QColor barColor2 = plot_->interpBarFillColor(ig2);
-
-          barColor = CQChartsUtil::blendColors(barColor1, barColor2, iv_.value());
-        }
-      }
-      else {
-        barColor = plot_->interpColor(color_, colorInd);
-      }
-    }
-  }
-  else {
-    barColor = plot_->interpBarFillColor(colorInd);
-  }
-
-  return barColor;
 }
 
 void
@@ -1878,6 +1825,90 @@ drawFg(CQChartsPaintDevice *device) const
       plot_->dataLabel()->draw(device, qrect, maxLabel, maxPos);
     }
   }
+}
+
+void
+CQChartsBarChartObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  static double minBorderSize = 5.0;
+
+  CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
+
+  double rs = prect.getSize(! plot_->isHorizontal());
+
+  bool skipBorder = (rs < minBorderSize);
+
+  //---
+
+  ColorInd colorInd = calcColorInd();
+
+  QColor bc = plot_->interpBarStrokeColor(colorInd);
+
+  QColor barColor = calcBarColor();
+
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->isBarStroked() && ! skipBorder,
+    bc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(), plot_->barStrokeDash(),
+    plot_->isBarFilled(), barColor, plot_->barFillAlpha(), plot_->barFillPattern());
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+QColor
+CQChartsBarChartObj::
+calcBarColor() const
+{
+  // calc bar color
+  ColorInd colorInd = calcColorInd();
+
+  QColor barColor;
+
+  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    int ns = (plot_->isValueValue() ? plot_->valueColumns().count() : 1);
+
+    if (ns > 1) {
+      if (plot_->isColorBySet())
+        barColor = plot_->interpBarFillColor(ig_);
+      else
+        barColor = plot_->interpBarFillColor(is_);
+    }
+    else {
+      if (! color_.isValid()) {
+        if      (ig_.n > 1)
+          barColor = plot_->interpBarFillColor(ig_);
+        else if (iv_.n > 1)
+          barColor = plot_->interpBarFillColor(iv_);
+        else {
+          ColorInd ig1(ig_.i    , ig_.n + 1);
+          ColorInd ig2(ig_.i + 1, ig_.n + 1);
+
+          QColor barColor1 = plot_->interpBarFillColor(ig1);
+          QColor barColor2 = plot_->interpBarFillColor(ig2);
+
+          barColor = CQChartsUtil::blendColors(barColor1, barColor2, iv_.value());
+        }
+      }
+      else {
+        barColor = plot_->interpColor(color_, colorInd);
+      }
+    }
+  }
+  else {
+    barColor = plot_->interpBarFillColor(colorInd);
+  }
+
+  return barColor;
+}
+
+void
+CQChartsBarChartObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
 }
 
 const CQChartsBarChartValue *

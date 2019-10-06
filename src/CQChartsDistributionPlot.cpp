@@ -3262,13 +3262,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  bool useLine = false;
-
-  if (! plot_->isDotLines()) {
-    double s = (! plot_->isHorizontal() ? pqrect.width() : pqrect.height());
-
-    useLine = (s <= 2);
-  }
+  bool useLine = this->isUseLine();
 
   //---
 
@@ -3422,13 +3416,11 @@ drawRug(CQChartsPaintDevice *device) const
   // set pen and brush
   ColorInd ic = (ig_.n > 1 ? ig_ : iv_);
 
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
-  plot_->setRugSymbolPenBrush(pen, brush, ic);
+  plot_->setRugSymbolPenBrush(penBrush.pen, penBrush.brush, ic);
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -3456,7 +3448,7 @@ drawRug(CQChartsPaintDevice *device) const
     else
       ps.setX(ps.x() - sx);
 
-    plot_->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, pen, brush);
+    plot_->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, penBrush);
   }
 }
 
@@ -3582,30 +3574,18 @@ CQChartsDistributionBarObj::
 drawRect(CQChartsPaintDevice *device, const QRectF &pqrect,
          const CQChartsColor &color, bool useLine) const
 {
-  // set pen and brush
-  QPen   pen;
-  QBrush barBrush;
+  // calc pen and brush
+  CQChartsPenBrush barPenBrush;
 
-  QColor bc = plot_->interpBarStrokeColor(ColorInd());
-  QColor fc = plot_->interpColor(color, ColorInd());
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  CQChartsLength bw = plot_->barStrokeWidth();
+  calcBarPenBrush(color, useLine, barPenBrush, updateState);
 
-  if (useLine) {
-    bw = CQChartsLength("0px");
+  //---
 
-    if (plot_->isBarFilled())
-      bc = fc;
-  }
+  device->setColorNames();
 
-  plot_->setPenBrush(pen, barBrush,
-    plot_->isBarStroked(), bc, plot_->barStrokeAlpha(), bw, plot_->barStrokeDash(),
-    plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
-
-  plot_->updateObjPenBrushState(this, pen, barBrush);
-
-  device->setPen  (pen);
-  device->setBrush(barBrush);
+  CQChartsDrawUtil::setPenBrush(device, barPenBrush);
 
   //---
 
@@ -3670,13 +3650,11 @@ drawRect(CQChartsPaintDevice *device, const QRectF &pqrect,
     //---
 
     // set dot pen and brush
-    QPen   dotPen;
-    QBrush dotBrush;
+    CQChartsPenBrush dotPenBrush;
 
-    plot_->setDotSymbolPenBrush(dotPen, dotBrush, ic);
+    plot_->setDotSymbolPenBrush(dotPenBrush.pen, dotPenBrush.brush, ic);
 
-    device->setPen  (dotPen);
-    device->setBrush(dotBrush);
+    CQChartsDrawUtil::setPenBrush(device, dotPenBrush);
 
     //---
 
@@ -3690,6 +3668,35 @@ drawRect(CQChartsPaintDevice *device, const QRectF &pqrect,
 
     plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize);
   }
+
+  device->resetColorNames();
+}
+
+void
+CQChartsDistributionBarObj::
+calcBarPenBrush(const CQChartsColor &color, bool useLine,
+                CQChartsPenBrush &barPenBrush, bool updateState) const
+{
+  // set pen and brush
+  QColor bc = plot_->interpBarStrokeColor(ColorInd());
+  QColor fc = plot_->interpColor(color, ColorInd());
+
+  CQChartsLength bw = plot_->barStrokeWidth();
+
+  if (useLine) {
+    bw = CQChartsLength("0px");
+
+    if (plot_->isBarFilled())
+      bc = fc;
+  }
+
+  plot_->setPenBrush(barPenBrush.pen, barPenBrush.brush,
+    plot_->isBarStroked(), bc, plot_->barStrokeAlpha(), bw, plot_->barStrokeDash(),
+    plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
+
+  // adjust pen/brush for selected/mouse over
+  if (updateState)
+    plot_->updateObjPenBrushState(this, barPenBrush);
 }
 
 QColor
@@ -3699,6 +3706,43 @@ barColor() const
   ColorInd colorInd = this->calcColorInd();
 
   return plot_->interpBarFillColor(colorInd);
+}
+
+bool
+CQChartsDistributionBarObj::
+isUseLine() const
+{
+  bool useLine = false;
+
+  if (! plot_->isDotLines()) {
+    CQChartsGeom::BBox pbbox = calcRect();
+
+    QRectF pqrect = pbbox.qrect();
+
+    double s = (! plot_->isHorizontal() ? pqrect.width() : pqrect.height());
+
+    useLine = (s <= 2);
+  }
+
+  return useLine;
+}
+
+void
+CQChartsDistributionBarObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  QColor barColor = this->barColor();
+
+  bool useLine = this->isUseLine();
+
+  calcBarPenBrush(barColor, useLine, penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.count = " << count() << ";\n";
 }
 
 CQChartsGeom::BBox
@@ -3781,6 +3825,10 @@ CQChartsDistributionDensityObj(const CQChartsDistributionPlot *plot, const CQCha
  CQChartsPlotObj(const_cast<CQChartsDistributionPlot *>(plot), rect), plot_(plot),
  groupInd_(groupInd), data_(data), doffset_(doffset), is_(is)
 {
+  setDetailHint(DetailHint::MAJOR);
+
+  //---
+
   // create density polygon
   int np = data_.points.size();
 
@@ -3886,49 +3934,18 @@ void
 CQChartsDistributionDensityObj::
 draw(CQChartsPaintDevice *device)
 {
-  // set pen and brush
-  QPen   pen;
-  QBrush brush;
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
 
-  QColor bc = plot_->interpBarStrokeColor(is_);
-  QColor fc = plot_->interpBarFillColor  (is_);
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  plot_->setPenBrush(pen, brush,
-    plot_->isBarStroked(), bc, plot_->barStrokeAlpha(),
-    plot_->barStrokeWidth(), plot_->barStrokeDash(),
-    plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
+  calcPenBrush(penBrush, updateState);
 
   //---
 
-  // adjust brush for gradient
-  if (plot_->isDensityGradient()) {
-    CQChartsGeom::BBox pixelRect = plot_->calcPlotPixelRect();
+  device->setColorNames();
 
-    QPointF pg1, pg2;
-
-    if (! plot_->isHorizontal()) {
-      pg1 = QPointF(pixelRect.getXMin(), pixelRect.getYMin());
-      pg2 = QPointF(pixelRect.getXMax(), pixelRect.getYMin());
-    }
-    else {
-      pg1 = QPointF(pixelRect.getXMin(), pixelRect.getYMax());
-      pg2 = QPointF(pixelRect.getXMin(), pixelRect.getYMin());
-    }
-
-    QLinearGradient lg(pg1.x(), pg1.y(), pg2.x(), pg2.y());
-
-    plot_->view()->themePalette()->setLinearGradient(lg, plot_->barFillAlpha());
-
-    brush = QBrush(lg);
-  }
-
-  //---
-
-  // adjust pen/brush for selected/mouse over
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -3955,6 +3972,8 @@ draw(CQChartsPaintDevice *device)
 
   // draw density polygon
   device->drawPolygon(poly_);
+
+  device->resetColorNames();
 }
 
 void
@@ -4026,16 +4045,14 @@ drawRug(CQChartsPaintDevice *device) const
 
   // set pen brush
   // TODO: allow control of alpha, and line width
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor fillColor = plot_->interpBarFillColor(is_);
 
-  plot_->setPen  (pen  , true, fillColor, 1.0);
-  plot_->setBrush(brush, true, fillColor, 0.5);
+  plot_->setPen  (penBrush.pen  , true, fillColor, 1.0);
+  plot_->setBrush(penBrush.brush, true, fillColor, 0.5);
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -4061,8 +4078,59 @@ drawRug(CQChartsPaintDevice *device) const
     else
       ps.setX(ps.x() - sx);
 
-    plot_->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, pen, brush);
+    plot_->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, penBrush);
   }
+}
+
+void
+CQChartsDistributionDensityObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  // set pen and brush
+  QColor bc = plot_->interpBarStrokeColor(is_);
+  QColor fc = plot_->interpBarFillColor  (is_);
+
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->isBarStroked(), bc, plot_->barStrokeAlpha(),
+    plot_->barStrokeWidth(), plot_->barStrokeDash(),
+    plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
+
+  //---
+
+  // adjust brush for gradient
+  if (plot_->isDensityGradient()) {
+    CQChartsGeom::BBox pixelRect = plot_->calcPlotPixelRect();
+
+    QPointF pg1, pg2;
+
+    if (! plot_->isHorizontal()) {
+      pg1 = QPointF(pixelRect.getXMin(), pixelRect.getYMin());
+      pg2 = QPointF(pixelRect.getXMax(), pixelRect.getYMin());
+    }
+    else {
+      pg1 = QPointF(pixelRect.getXMin(), pixelRect.getYMax());
+      pg2 = QPointF(pixelRect.getXMin(), pixelRect.getYMin());
+    }
+
+    QLinearGradient lg(pg1.x(), pg1.y(), pg2.x(), pg2.y());
+
+    plot_->view()->themePalette()->setLinearGradient(lg, plot_->barFillAlpha());
+
+    penBrush.brush = QBrush(lg);
+  }
+
+  // adjust pen/brush for selected/mouse over
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsDistributionDensityObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
 }
 
 //------
@@ -4131,14 +4199,12 @@ draw(CQChartsPaintDevice *device)
 
   QColor c = plot_->interpBarFillColor(ic);
 
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
-  plot_->setPen  (pen  , true, Qt::black, 1.0);
-  plot_->setBrush(brush, true, c, 1.0);
+  plot_->setPen  (penBrush.pen  , true, Qt::black, 1.0);
+  plot_->setBrush(penBrush.brush, true, c, 1.0);
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -4162,7 +4228,7 @@ draw(CQChartsPaintDevice *device)
 
       QPointF p(tl.x() + px, tl.y() + py);
 
-      plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize, pen, brush);
+      plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize, penBrush);
     }
   }
   else {
@@ -4172,7 +4238,7 @@ draw(CQChartsPaintDevice *device)
 
       QPointF p(tl.x() + px, tl.y() + py);
 
-      plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize, pen, brush);
+      plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize, penBrush);
     }
   }
 }

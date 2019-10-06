@@ -4,6 +4,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsRotatedText.h>
 #include <CQChartsTip.h>
 #include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
@@ -463,12 +464,35 @@ drawXLabels(CQChartsPaintDevice *device) const
   textOptions.angle     = xLabelTextAngle();
   textOptions.scaled    = isXLabelTextScaled();
 
+  textOptions = adjustTextOptions(textOptions);
+
   //---
 
-  QFontMetricsF fm(device->font());
+  using ColRects = std::map<int,QRectF>;
+
+  ColRects colRects;
 
   double tw = 0.0;
-  double th = fm.height();
+  double th = 0.0;
+
+  for (int col = 0; col < numColumns(); ++col) {
+    bool ok;
+
+    QString name = modelHeaderString(col, Qt::Horizontal, ok);
+    if (! name.length()) continue;
+
+    QRectF trect = CQChartsRotatedText::bbox(0.0, 0.0, name, device->font(),
+                                             textOptions.angle, 0, textOptions.align,
+                                             /*alignBBox*/ true);
+
+    colRects[col] = trect;
+
+    tw = std::max(tw, trect.width ());
+    th = std::max(th, trect.height());
+  }
+
+  //---
+
   double tm = 4;
 
   for (int col = 0; col < numColumns(); ++col) {
@@ -477,31 +501,22 @@ drawXLabels(CQChartsPaintDevice *device) const
     QString name = modelHeaderString(col, Qt::Horizontal, ok);
     if (! name.length()) continue;
 
-    tw = std::max(tw, fm.width(name));
-  }
-
-  for (int col = 0; col < numColumns(); ++col) {
-    bool ok;
-
-    QString name = modelHeaderString(col, Qt::Horizontal, ok);
-    if (! name.length()) continue;
-
-    double tw1 = fm.width(name);
-
     QPointF p(col + 0.5, 0);
 
     QPointF p1 = windowToPixel(p);
 
-    QRectF trect;
+    QRectF trect = colRects[col];
+
+    double tw1 = trect.width();
+
+    QRectF trect1;
 
     if (! isInvertY())
-      trect = QRectF(p1.x() - tw1/2, p1.y() + tm, tw1, th);
+      trect1 = QRectF(p1.x() - tw1/2, p1.y() + tm, tw1, th);
     else
-      trect = QRectF(p1.x() - tw1/2, p1.y() - th - tm, tw1, th);
+      trect1 = QRectF(p1.x() - tw1/2, p1.y() - th - tm, tw1, th);
 
-    CQChartsTextOptions textOptions1 = adjustTextOptions(textOptions);
-
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect), name, textOptions1);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect1), name, textOptions);
   }
 }
 
@@ -533,13 +548,18 @@ drawYLabels(CQChartsPaintDevice *device) const
   textOptions.angle     = yLabelTextAngle();
   textOptions.scaled    = isYLabelTextScaled();
 
+  textOptions = adjustTextOptions(textOptions);
+
   //---
 
-  QFontMetricsF fm(device->font());
+  using RowRects = std::map<int,QRectF>;
+
+  RowRects rowRects;
 
   double tw = 0.0;
-  double th = fm.height();
-  double tm = 4;
+  double th = 0.0;
+
+  //---
 
   for (int row = 0; row < numRows(); ++row) {
     bool ok;
@@ -547,8 +567,19 @@ drawYLabels(CQChartsPaintDevice *device) const
     QString name = modelHeaderString(row, Qt::Vertical, ok);
     if (! name.length()) continue;
 
-    tw = std::max(tw, fm.width(name));
+    QRectF trect = CQChartsRotatedText::bbox(0.0, 0.0, name, device->font(),
+                                             textOptions.angle, 0, textOptions.align,
+                                             /*alignBBox*/ true);
+
+    rowRects[row] = trect;
+
+    tw = std::max(tw, trect.width ());
+    th = std::max(th, trect.height());
   }
+
+  //---
+
+  double tm = 4;
 
   for (int row = 0; row < numRows(); ++row) {
     bool ok;
@@ -560,16 +591,18 @@ drawYLabels(CQChartsPaintDevice *device) const
 
     QPointF p1 = windowToPixel(p);
 
-    QRectF trect;
+    QRectF trect = rowRects[row];
+
+    double th1 = trect.height();
+
+    QRectF trect1;
 
     if (! isInvertX())
-      trect = QRectF(p1.x() - tw - tm, p1.y() - th/2.0, tw, th);
+      trect1 = QRectF(p1.x() - tw - tm, p1.y() - th1/2.0, tw, th1);
     else
-      trect = QRectF(p1.x() + tm, p1.y() - th/2.0, tw, th);
+      trect1 = QRectF(p1.x() + tm, p1.y() - th1/2.0, tw, th1);
 
-    CQChartsTextOptions textOptions1 = adjustTextOptions(textOptions);
-
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect), name, textOptions1);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect1), name, textOptions);
   }
 }
 
@@ -665,7 +698,7 @@ calcTipId() const
   if (yname.length())
     tableTip.addTableRow("Y", yname);
 
-  tableTip.addTableRow("Value", value_);
+  tableTip.addTableRow("Value", value());
 
   //---
 
@@ -687,35 +720,18 @@ void
 CQChartsImageObj::
 draw(CQChartsPaintDevice *device)
 {
-  ColorInd ic;
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
 
-  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    double v = CMathUtil::norm(value_, plot_->minValue(), plot_->maxValue());
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-    ic = ColorInd(v);
-  }
-  else
-    ic = calcColorInd();
+  calcPenBrush(penBrush, updateState);
 
   //---
 
-  // set pen and brush
-  QColor fc = plot_->interpCellFillColor  (ic);
-  QColor bc = plot_->interpCellStrokeColor(ic);
+  device->setColorNames();
 
-  QPen   pen;
-  QBrush brush;
-
-  plot_->setPen(pen, plot_->isCellStroked(), bc, plot_->cellStrokeAlpha(),
-                plot_->cellStrokeWidth(), plot_->cellStrokeDash());
-
-  plot_->setBrush(brush, plot_->isCellFilled(), fc, plot_->cellFillAlpha(),
-                  plot_->cellFillPattern());
-
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -727,26 +743,38 @@ draw(CQChartsPaintDevice *device)
     //---
 
     if (plot_->isCellLabels()) {
+      // calc pen and brush
+      ColorInd ic;
+
+      if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+        double v = CMathUtil::norm(value(), plot_->minValue(), plot_->maxValue());
+
+        ic = ColorInd(v);
+      }
+      else
+        ic = calcColorInd();
+
+      //---
+
       // set font
       plot_->view()->setPlotPainterFont(plot_, device, plot_->cellLabelTextFont());
 
       //---
 
       // set pen
-      QPen   tpen;
-      QBrush tbrush;
+      CQChartsPenBrush tPenBrush;
 
       QColor tc = plot_->interpCellLabelTextColor(ic);
 
-      plot_->setPen(tpen, true, tc, plot_->cellLabelTextAlpha());
+      plot_->setPen(tPenBrush.pen, true, tc, plot_->cellLabelTextAlpha());
 
-      plot_->updateObjPenBrushState(this, tpen, tbrush);
+      plot_->updateObjPenBrushState(this, tPenBrush);
 
-      device->setPen(tpen);
+      device->setPen(tPenBrush.pen);
 
       //---
 
-      QString valueStr = CQChartsUtil::formatReal(value_);
+      QString valueStr = CQChartsUtil::formatReal(value());
 
       CQChartsTextOptions textOptions;
 
@@ -772,7 +800,7 @@ draw(CQChartsPaintDevice *device)
     double minSize = s*plot_->minBalloonSize();
     double maxSize = s*plot_->maxBalloonSize();
 
-    double s1 = CMathUtil::map(value_, plot_->minValue(), plot_->maxValue(), minSize, maxSize);
+    double s1 = CMathUtil::map(value(), plot_->minValue(), plot_->maxValue(), minSize, maxSize);
 
     QPointF center = qrect.center();
 
@@ -782,6 +810,53 @@ draw(CQChartsPaintDevice *device)
 
     device->drawEllipse(device->pixelToWindow(erect));
   }
+
+  device->resetColorNames();
+}
+
+void
+CQChartsImageObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  // calc pen and brush
+  ColorInd ic;
+
+  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    double v = CMathUtil::norm(value(), plot_->minValue(), plot_->maxValue());
+
+    ic = ColorInd(v);
+  }
+  else
+    ic = calcColorInd();
+
+  //---
+
+  // set pen and brush
+  QColor fc = plot_->interpCellFillColor  (ic);
+  QColor bc = plot_->interpCellStrokeColor(ic);
+
+  plot_->setPen(penBrush.pen, plot_->isCellStroked(), bc, plot_->cellStrokeAlpha(),
+                plot_->cellStrokeWidth(), plot_->cellStrokeDash());
+
+  plot_->setBrush(penBrush.brush, plot_->isCellFilled(), fc, plot_->cellFillAlpha(),
+                  plot_->cellFillPattern());
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsImageObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.value = " << value() << ";\n";
 }
 
 double

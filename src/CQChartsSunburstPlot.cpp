@@ -1051,38 +1051,36 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   // calc stroke and brush
   ColorInd colorInd = nodeObj->calcColorInd();
 
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor bc = interpStrokeColor(colorInd);
   QColor fc = node->interpColor(this, fillColor(), colorInd, numColorIds());
 
-  setPenBrush(pen, brush,
+  setPenBrush(penBrush.pen, penBrush.brush,
     isStroked(), bc, strokeAlpha(), strokeWidth(), strokeDash(),
     isFilled(), fc, fillAlpha(), fillPattern());
 
   if (nodeObj)
-    updateObjPenBrushState(nodeObj, pen, brush);
+    updateObjPenBrushState(nodeObj, penBrush);
 
   //---
 
   // draw path
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   device->drawPath(path);
 
   //---
 
   // calc text pen
-  QPen tpen;
+  CQChartsPenBrush tPenBrush;
 
   QColor tc = interpTextColor(colorInd);
 
-  setPen(tpen, true, tc, textAlpha());
+  setPen(tPenBrush.pen, true, tc, textAlpha());
 
   if (nodeObj)
-    updateObjPenBrushState(nodeObj, tpen, brush);
+    updateObjPenBrushState(nodeObj, tPenBrush);
 
   //---
 
@@ -1147,7 +1145,7 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
     ty = r3*s;
   }
 
-  device->setPen(tpen);
+  device->setPen(tPenBrush.pen);
 
   Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 

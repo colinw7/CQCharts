@@ -166,19 +166,49 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
   const CQChartsChordData &data() { return data_; }
 
+  //---
+
   QString typeName() const override { return "chord"; }
 
   QString calcId() const override;
 
   QString calcTipId() const override;
 
+  //---
+
+  bool isArc() const override { return true; }
+  CQChartsArcData arcData() const override;
+
+  //---
+
+  double innerRadius() const;
+  double outerRadius() const;
+
+  //---
+
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
 
   void drawFg(CQChartsPaintDevice *device) const override;
+
+  //---
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  void calcArcPenBrush(CQChartsChordObj *toObj, CQChartsPenBrush &penBrush) const;
+
+  QColor calcFromColor() const;
+
+  //---
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
+
+  //---
 
   CQChartsGeom::BBox textBBox() const;
 

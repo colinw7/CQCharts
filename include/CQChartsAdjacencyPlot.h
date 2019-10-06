@@ -129,11 +129,15 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  double value() const { return value_; }
 
   void getSelectIndices(Indices &inds) const override;
 
   void draw(CQChartsPaintDevice *device) override;
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
 
   double xColorValue(bool relative) const override;
   double yColorValue(bool relative) const override;

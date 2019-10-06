@@ -47,11 +47,22 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
                           const QPolygonF &poly, const QModelIndex &ind, const ColorInd &is);
 
+  //---
+
   QString typeName() const override { return "line"; }
 
   QString calcId() const override;
 
   QString calcTipId() const override;
+
+  //---
+
+  bool isPolygon() const override { return true; }
+  QPolygonF polygon() const override { return polyLine_; }
+
+  bool isSolid() const override { return false; }
+
+  //---
 
   bool visible() const override;
 
@@ -59,9 +70,19 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   //bool interpY(double x, std::vector<double> &yvals) const;
 
+  //---
+
   void getSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  //---
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
 
  private:
   void getPolyLine(QPolygonF &poly) const;
@@ -69,6 +90,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
  private:
   const CQChartsParallelPlot* plot_ { nullptr };
   QPolygonF                   poly_;
+  QPolygonF                   polyLine_;
 };
 
 //---

@@ -215,10 +215,23 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
  private:
   bool getBarColoredRects(ColorData &colorData) const;
 
+  //---
+
   void drawRect(CQChartsPaintDevice *device, const QRectF &qrect, const CQChartsColor &color,
                 bool useLine) const;
 
+  void calcBarPenBrush(const CQChartsColor &color, bool useLine, CQChartsPenBrush &barPenBrush,
+                       bool updateState) const;
+
   QColor barColor() const;
+
+  //---
+
+  bool isUseLine() const;
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
+
+  //---
 
   double xColorValue(bool relative=true) const override;
   double yColorValue(bool relative=true) const override;
@@ -294,9 +307,12 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   //---
 
-  bool inside(const CQChartsGeom::Point &p) const override;
+  bool isPolygon() const override { return true; }
+  QPolygonF polygon() const override { return poly_; }
 
   //---
+
+  bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &inds) const override;
 
@@ -309,6 +325,12 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   void drawStatsLines(CQChartsPaintDevice *device) const;
 
   void drawRug(CQChartsPaintDevice *device) const;
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  //---
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
 
   //---
 

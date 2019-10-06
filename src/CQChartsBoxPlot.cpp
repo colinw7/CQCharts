@@ -1939,13 +1939,6 @@ getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->setColumn  ());
   addColumnSelectIndex(inds, plot_->groupColumn());
-
-#if 0
-  if (plot_->isShowOutliers()) {
-    for (auto &value : whisker_->values())
-      addSelectIndex(inds, value.ind.row(), value.ind.column(), value.ind.parent());
-  }
-#endif
 }
 
 bool
@@ -1962,6 +1955,10 @@ void
 CQChartsBoxPlotWhiskerObj::
 draw(CQChartsPaintDevice *device)
 {
+  device->setColorNames();
+
+  //---
+
   // get color index
   ColorInd colorInd = this->calcColorInd();
 
@@ -1971,33 +1968,24 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set fill and stroke
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
-  QColor bc = plot_->interpBoxStrokeColor(colorInd);
-  QColor fc = plot_->interpBoxFillColor(colorInd);
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  plot_->setPenBrush(pen, brush,
-    plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
-    plot_->boxStrokeWidth(), plot_->boxStrokeDash(),
-    plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern());
+  calcPenBrush(penBrush, updateState);
 
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  device->setBrush(brush);
-  device->setPen  (pen);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
   // set whisker fill and stroke
-  QPen   whiskerPen;
-  QBrush whiskerBrush;
+  CQChartsPenBrush whiskerPenBrush;
 
-  plot_->setWhiskerLineDataPen(whiskerPen, colorInd);
+  plot_->setWhiskerLineDataPen(whiskerPenBrush.pen, colorInd);
 
-  plot_->setBrush(whiskerBrush, false);
+  plot_->setBrush(whiskerPenBrush.brush, false);
 
-  plot_->updateObjPenBrushState(this, whiskerPen, whiskerBrush);
+  plot_->updateObjPenBrushState(this, whiskerPenBrush);
 
   //---
 
@@ -2052,7 +2040,7 @@ draw(CQChartsPaintDevice *device)
 
   // draw error bar
   if (plot_->isErrorBar()) {
-    device->setPen(whiskerPen);
+    device->setPen(whiskerPenBrush.pen);
 
     //---
 
@@ -2073,19 +2061,17 @@ draw(CQChartsPaintDevice *device)
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::POINT_RANGE) {
       // set fill and stroke
-      QPen   symbolPen;
-      QBrush symbolBrush;
+      CQChartsPenBrush symbolPenBrush;
 
-      QColor boxColor    = plot_->interpBoxFillColor(colorInd);
+      QColor boxColor    = plot_->interpBoxFillColor  (colorInd);
       QColor strokeColor = plot_->interpBoxStrokeColor(colorInd);
 
-      plot_->setPen(symbolPen, /*stroked*/true, strokeColor, plot_->boxStrokeAlpha(),
-                    plot_->boxStrokeWidth(), plot_->boxStrokeDash());
+      plot_->setPenBrush(symbolPenBrush.pen, symbolPenBrush.brush,
+        /*stroked*/true, strokeColor, plot_->boxStrokeAlpha(), plot_->boxStrokeWidth(),
+        plot_->boxStrokeDash(),
+        /*filled*/true, boxColor, plot_->boxFillAlpha(), plot_->boxFillPattern());
 
-      plot_->setBrush(symbolBrush, /*filled*/true, boxColor, plot_->boxFillAlpha(),
-                      plot_->boxFillPattern());
-
-      plot_->updateObjPenBrushState(this, symbolPen, symbolBrush, CQChartsPlot::DrawType::SYMBOL);
+      plot_->updateObjPenBrushState(this, symbolPenBrush, CQChartsPlot::DrawType::SYMBOL);
 
       //---
 
@@ -2095,7 +2081,7 @@ draw(CQChartsPaintDevice *device)
       symbol.setSize(plot_->outlierSymbolSize());
 
       CQChartsDensity::drawPointRange(plot_, device, rect, mean, orientation, symbol,
-                                      symbolPen, symbolBrush);
+                                      symbolPenBrush.pen, symbolPenBrush.brush);
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::LINE_RANGE) {
       CQChartsDensity::drawLineRange(plot_, device, rect, orientation);
@@ -2108,16 +2094,16 @@ draw(CQChartsPaintDevice *device)
 
   // draw notched box
   if (drawBox) {
-    device->setPen(whiskerPen);
+    device->setPen(whiskerPenBrush.pen);
 
     //---
 
     if (! drawBoxFilled) {
       QColor boxColor = plot_->interpThemeColor(ColorInd());
 
-      brush.setColor(boxColor);
+      penBrush.brush.setColor(boxColor);
 
-      device->setBrush(brush);
+      device->setBrush(penBrush.brush);
     }
 
     //---
@@ -2198,42 +2184,61 @@ draw(CQChartsPaintDevice *device)
             drawVText(device, p1.y, p5.y, p1.x, strl, /*onBottom*/false);
         }
       }
-
-      //---
-
-#if 0
-      // draw outlier symbols
-      if (plot_->isShowOutliers()) {
-        CQChartsSymbolData symbol;
-
-        symbol.setType(plot_->outlierSymbolType());
-        symbol.setSize(plot_->outlierSymbolSize());
-
-        //---
-
-        QPen   pen;
-        QBrush brush;
-
-        plot_->setOutlierSymbolPenBrush(pen, brush, colorInd);
-
-        plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
-
-        //---
-
-        std::vector<double> ovalues;
-
-        for (auto &o : whisker_->outliers()) {
-          double ovalue = remapPos(whisker_->rvalue(o));
-
-          ovalues.push_back(ovalue);
-        }
-
-        CQChartsBoxWhiskerUtil::drawOutliers(plot_, device, ovalues, pos, symbol,
-                                             pen, brush, orientation);
-      }
-#endif
     }
   }
+
+  //---
+
+  device->resetColorNames();
+}
+
+void
+CQChartsBoxPlotWhiskerObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  // get color index
+  ColorInd colorInd = this->calcColorInd();
+
+  if (plot_->hasSets() && plot_->isColorBySet())
+    colorInd = is_;
+
+  //---
+
+  // set fill and stroke
+  QColor bc = plot_->interpBoxStrokeColor(colorInd);
+  QColor fc = plot_->interpBoxFillColor  (colorInd);
+
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(), plot_->boxStrokeWidth(),
+    plot_->boxStrokeDash(),
+    plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern());
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsBoxPlotWhiskerObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+
+  //---
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.pos         = " << pos        () << ";\n";
+  os << "  this.min         = " << min        () << ";\n";
+  os << "  this.lowerMedian = " << lowerMedian() << ";\n";
+  os << "  this.median      = " << median     () << ";\n";
+  os << "  this.upperMedian = " << upperMedian() << ";\n";
+  os << "  this.max         = " << max        () << ";\n";
+  os << "  this.mean        = " << mean       () << ";\n";
+  os << "  this.stddev      = " << stddev     () << ";\n";
+  os << "  this.notch       = " << notch      () << ";\n";
 }
 
 CQChartsGeom::BBox
@@ -2432,15 +2437,13 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set fill and stroke
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
-  plot_->setOutlierSymbolPenBrush(pen, brush, colorInd);
+  plot_->setOutlierSymbolPenBrush(penBrush.pen, penBrush.brush, colorInd);
 
-  plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
+  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
-  device->setBrush(brush);
-  device->setPen  (pen);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -2451,7 +2454,7 @@ draw(CQChartsPaintDevice *device)
   QPointF pos(ox, oy);
 
   plot_->drawSymbol(device, pos, plot_->outlierSymbolType(),
-                    plot_->outlierSymbolSize(), pen, brush);
+                    plot_->outlierSymbolSize(), penBrush);
 }
 
 double
@@ -2531,33 +2534,30 @@ CQChartsBoxPlotDataObj::
 draw(CQChartsPaintDevice *device)
 {
   // set whisker fill and stroke
-  QPen   whiskerPen;
-  QBrush whiskerBrush;
+  CQChartsPenBrush whiskerPenBrush;
 
-  plot_->setWhiskerLineDataPen(whiskerPen, ColorInd());
+  plot_->setWhiskerLineDataPen(whiskerPenBrush.pen, ColorInd());
 
-  plot_->setBrush(whiskerBrush, false);
+  plot_->setBrush(whiskerPenBrush.brush, false);
 
-  plot_->updateObjPenBrushState(this, whiskerPen, whiskerBrush);
+  plot_->updateObjPenBrushState(this, whiskerPenBrush);
 
   //---
 
   // set fill and stroke
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor bc = plot_->interpBoxStrokeColor(ColorInd());
   QColor fc = plot_->interpBoxFillColor(ColorInd());
 
-  plot_->setPenBrush(pen, brush,
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
     plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
     plot_->boxStrokeWidth(), plot_->boxStrokeDash(),
     plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern());
 
-  plot_->updateObjPenBrushState(this, pen, brush);
+  plot_->updateObjPenBrushState(this, penBrush);
 
-  device->setBrush(brush);
-  device->setPen  (pen);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -2572,7 +2572,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  device->setPen(whiskerPen);
+  device->setPen(whiskerPenBrush.pen);
 
   CQStatData statData;
 
@@ -2642,40 +2642,6 @@ draw(CQChartsPaintDevice *device)
       drawVText(device, p1.y, p5.y, p5.x, strh, /*onBottom*/true );
     }
   }
-
-  //---
-
-#if 0
-  // draw outlier symbols
-  if (plot_->isShowOutliers()) {
-    CQChartsSymbolData symbol;
-
-    symbol.setType(plot_->outlierSymbolType());
-    symbol.setSize(plot_->outlierSymbolSize());
-
-    //---
-
-    QPen   pen;
-    QBrush brush;
-
-    plot_->setOutlierSymbolPenBrush(pen, brush, ColorInd());
-
-    plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
-
-    //---
-
-    std::vector<double> ovalues;
-
-    for (auto &o : data_.outliers) {
-      double ovalue = remapPos(o);
-
-      ovalues.push_back(ovalue);
-    }
-
-    CQChartsBoxWhiskerUtil::drawOutliers(plot_, device, ovalues, pos, symbol,
-                                         pen, brush, orientation);
-  }
-#endif
 }
 
 CQChartsGeom::BBox
@@ -2868,21 +2834,19 @@ draw(CQChartsPaintDevice *device)
 
   if (np) {
     // set pen and brush
-    QPen   ppen;
-    QBrush pbrush;
+    CQChartsPenBrush pPenBrush;
 
     QColor bc = plot_->interpBoxStrokeColor(ig_);
-    QColor fc = plot_->interpBoxFillColor(ig_);
+    QColor fc = plot_->interpBoxFillColor  (ig_);
 
-    plot_->setPenBrush(ppen, pbrush,
+    plot_->setPenBrush(pPenBrush.pen, pPenBrush.brush,
       plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
       plot_->boxStrokeWidth(), plot_->boxStrokeDash(),
       plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern());
 
-    plot_->updateObjPenBrushState(this, ppen, pbrush);
+    plot_->updateObjPenBrushState(this, pPenBrush);
 
-    device->setPen  (ppen);
-    device->setBrush(pbrush);
+    CQChartsDrawUtil::setPenBrush(device, pPenBrush);
 
     //---
 
@@ -2902,17 +2866,16 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set pen
-  QPen   lpen;
-  QBrush lbrush;
+  CQChartsPenBrush lPenBrush;
 
   QColor lineColor = plot_->interpBoxStrokeColor(ig_);
 
-  plot_->setPen(lpen, true, lineColor, plot_->boxStrokeAlpha(),
+  plot_->setPen(lPenBrush.pen, true, lineColor, plot_->boxStrokeAlpha(),
                 plot_->boxStrokeWidth(), plot_->boxStrokeDash());
 
-  plot_->updateObjPenBrushState(this, lpen, lbrush);
+  plot_->updateObjPenBrushState(this, lPenBrush);
 
-  device->setPen(lpen);
+  device->setPen(lPenBrush.pen);
 
   //---
 
@@ -3144,19 +3107,18 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc stroke and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
-  plot_->setJitterSymbolPenBrush(pen, brush, colorInd);
+  plot_->setJitterSymbolPenBrush(penBrush.pen, penBrush.brush, colorInd);
 
-  plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
+  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
   //---
 
   // draw symbol
   QPointF pos = device->pixelToWindow(p_);
 
-  plot_->drawSymbol(device, pos, symbolType, symbolSize, pen, brush);
+  plot_->drawSymbol(device, pos, symbolType, symbolSize, penBrush);
 }
 
 //------

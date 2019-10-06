@@ -503,7 +503,7 @@ initTableObjs(PlotObjs &objs) const
 
   double drange = 360 - nv1*gap;
 
-  while (drange <= 0) {
+  while (drange <= 180) {
     gap /= 2.0;
 
     drange = 360 - nv1*gap;
@@ -526,13 +526,13 @@ initTableObjs(PlotObjs &objs) const
     if (CMathUtil::isZero(total1))
       continue;
 
-    double dangle = -valueToDegrees(total1);
+    double dangle = valueToDegrees(total1);
 
     double angle2 = angle1 + dangle;
 
     data.setAngles(angle1, dangle);
 
-    angle1 = angle2 - gap;
+    angle1 = angle2 + gap;
   }
 
   //---
@@ -713,7 +713,7 @@ initHierObjs(PlotObjs &objs) const
 
   double drange = 360 - nv*gap;
 
-  while (drange <= 0) {
+  while (drange <= 180) {
     gap /= 2.0;
 
     drange = 360 - nv*gap;
@@ -733,13 +733,16 @@ initHierObjs(PlotObjs &objs) const
 
     double total1 = data.total();
 
-    double dangle = -valueToDegrees(total1);
+    if (CMathUtil::isZero(total1))
+      continue;
+
+    double dangle = valueToDegrees(total1);
 
     double angle2 = angle1 + dangle;
 
     data.setAngles(angle1, dangle);
 
-    angle1 = angle2 - gap;
+    angle1 = angle2 + gap;
   }
 
   //---
@@ -832,37 +835,25 @@ bool
 CQChartsChordObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  double r = std::hypot(p.x, p.y);
+  return arcData().inside(p);
+}
 
-  double ro = 1.0;
-  double ri = std::min(std::max(plot_->innerRadius(), 0.01), 1.0);
+CQChartsArcData
+CQChartsChordObj::
+arcData() const
+{
+  CQChartsArcData arcData;
 
-  if (r < ri || r > ro)
-    return false;
+  arcData.setInnerRadius(innerRadius());
+  arcData.setOuterRadius(outerRadius());
 
-  //---
+  double a1 = data_.angle();
+  double a2 = a1 + data_.dangle();
 
-  // check angle
-  double a = CMathUtil::Rad2Deg(atan2(p.y, p.x));
-  a = CMathUtil::normalizeAngle(a);
+  arcData.setAngle1(a1);
+  arcData.setAngle2(a2);
 
-  double a1 = CMathUtil::normalizeAngle(data_.angle());
-  double a2 = CMathUtil::normalizeAngle(a1 + data_.dangle());
-
-  if (a1 < a2) {
-    // crosses zero
-    if (a >= 0 && a <= a1)
-      return true;
-
-    if (a <= 360 && a >= a2)
-      return true;
-  }
-  else {
-    if (a >= a2 && a <= a1)
-      return true;
-  }
-
-  return false;
+  return arcData;
 }
 
 void
@@ -878,8 +869,8 @@ CQChartsChordObj::
 draw(CQChartsPaintDevice *device)
 {
   // calc inner outer arc rectangles
-  double ro = 1.0;
-  double ri = std::min(std::max(plot_->innerRadius(), 0.01), 1.0);
+  double ri = innerRadius();
+  double ro = outerRadius();
 
   CQChartsGeom::Point po1 = plot_->windowToPixel(CQChartsGeom::Point(-ro, -ro));
   CQChartsGeom::Point po2 = plot_->windowToPixel(CQChartsGeom::Point( ro,  ro));
@@ -901,7 +892,24 @@ draw(CQChartsPaintDevice *device)
   double dangle = data_.dangle();
   double angle2 = angle1 + dangle;
 
-  // create value set segment arc path
+  //---
+
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
+
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+
+  calcPenBrush(penBrush, updateState);
+
+  //---
+
+  device->setColorNames();
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  //---
+
+  // draw value set segment arc path
   QPainterPath path;
 
   path.arcMoveTo(device->pixelToWindow(porect), -angle1);
@@ -911,56 +919,15 @@ draw(CQChartsPaintDevice *device)
 
   path.closeSubpath();
 
-  //---
-
-  // set pen and brush
-  // TODO: separate segment stroke/fill control
-  QPen pen;
-
-  QColor segmentStrokeColor = plot_->interpStrokeColor(ColorInd());
-
-  plot_->setPen(pen, true, segmentStrokeColor, plot_->strokeAlpha(),
-                plot_->strokeWidth(), plot_->strokeDash());
-
-  double gval = data_.group().value();
-
-  ColorInd colorInd = calcColorInd();
-
-  QColor fromColor;
-
-  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
-    if (gval >= 0.0)
-      fromColor = plot_->blendGroupPaletteColor(gval, iv_.value(), 0.1);
-    else
-      fromColor = plot_->interpPaletteColor(colorInd);
-  }
-  else
-    fromColor = plot_->interpPaletteColor(colorInd);
-
-  double fromAlpha = 1.0;
-
-  if (! isInside() && ! isSelected())
-    fromAlpha = plot_->segmentAlpha();
-
-  QBrush brush;
-
-  plot_->setBrush(brush, true, fromColor, fromAlpha, CQChartsFillPattern());
-
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  device->setPen  (pen);
-  device->setBrush(brush);
-
-  //---
-
-  // draw path
   device->drawPath(path);
 
   //---
 
-  // draw arcs between value sets
+  device->resetColorNames();
 
-  QColor arcStrokeColor = plot_->interpStrokeColor(ColorInd());
+  //---
+
+  // draw arcs between value sets
 
   int from = data_.from();
 
@@ -984,6 +951,15 @@ draw(CQChartsPaintDevice *device)
 
     double a11 = a1 + da1;
     double a21 = a2 + da2;
+
+    //---
+
+    // set arc pen and brush
+    CQChartsPenBrush penBrush;
+
+    calcArcPenBrush(toObj, penBrush);
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     //---
 
@@ -1016,33 +992,6 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    // set pen and brush
-    // TODO: separate arc stroke/fill control
-    QPen pen;
-
-    plot_->setPen(pen, true, arcStrokeColor, plot_->strokeAlpha(),
-                  plot_->strokeWidth(), plot_->strokeDash());
-
-    ColorInd toColorInd = toObj->calcColorInd();
-
-    QColor toColor = plot_->interpPaletteColor(toColorInd);
-
-    QColor c = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
-
-    double alpha = 1.0;
-
-    if (! isInside() && ! isSelected())
-      alpha = plot_->arcAlpha();
-
-    QBrush brush;
-
-    plot_->setBrush(brush, true, c, alpha, CQChartsFillPattern());
-
-    device->setPen  (pen);
-    device->setBrush(brush);
-
-    //---
-
     // draw path
     device->drawPath(path);
   }
@@ -1065,8 +1014,8 @@ drawFg(CQChartsPaintDevice *device) const
     return;
 
   // calc label radius
-  double ro = 1.0;
-  double ri = std::min(std::max(plot_->innerRadius(), 0.01), 1.0);
+  double ri = innerRadius();
+  double ro = outerRadius();
 
   double lr = plot_->labelRadius();
 
@@ -1102,12 +1051,93 @@ drawFg(CQChartsPaintDevice *device) const
                                             lpen, /*isRotated*/false);
 }
 
+void
+CQChartsChordObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  // set fill and stroke
+  // TODO: separate segment stroke/fill control
+  QColor segmentStrokeColor = plot_->interpStrokeColor(ColorInd());
+
+  plot_->setPen(penBrush.pen, true, segmentStrokeColor, plot_->strokeAlpha(),
+                plot_->strokeWidth(), plot_->strokeDash());
+
+  QColor fromColor = calcFromColor();
+  double fromAlpha = 1.0;
+
+  if (! isInside() && ! isSelected())
+    fromAlpha = plot_->segmentAlpha();
+
+  plot_->setBrush(penBrush.brush, true, fromColor, fromAlpha, CQChartsFillPattern());
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsChordObj::
+calcArcPenBrush(CQChartsChordObj *toObj, CQChartsPenBrush &penBrush) const
+{
+  // set pen and brush
+  // TODO: separate arc stroke/fill control
+  QColor arcStrokeColor = plot_->interpStrokeColor(ColorInd());
+
+  plot_->setPen(penBrush.pen, true, arcStrokeColor, plot_->strokeAlpha(),
+                plot_->strokeWidth(), plot_->strokeDash());
+
+  QColor fromColor = calcFromColor();
+
+  ColorInd toColorInd = toObj->calcColorInd();
+  QColor   toColor    = plot_->interpPaletteColor(toColorInd);
+
+  QColor c = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
+
+  double alpha = 1.0;
+
+  if (! isInside() && ! isSelected())
+    alpha = plot_->arcAlpha();
+
+  plot_->setBrush(penBrush.brush, true, c, alpha, CQChartsFillPattern());
+}
+
+QColor
+CQChartsChordObj::
+calcFromColor() const
+{
+  ColorInd colorInd = calcColorInd();
+
+  if (plot_->colorType() == CQChartsPlot::ColorType::AUTO) {
+    double gval = data_.group().value();
+
+    if (gval >= 0.0)
+      return plot_->blendGroupPaletteColor(gval, iv_.value(), 0.1);
+    else
+      return plot_->interpPaletteColor(colorInd);
+  }
+  else
+    return plot_->interpPaletteColor(colorInd);
+}
+
+void
+CQChartsChordObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.total = " << data_.total() << ";\n";
+}
+
 CQChartsGeom::BBox
 CQChartsChordObj::
 textBBox() const
 {
-  double ro = 1.0;
-  double ri = std::min(std::max(plot_->innerRadius(), 0.01), 1.0);
+  double ri = innerRadius();
+  double ro = outerRadius();
 
   //---
 
@@ -1146,6 +1176,20 @@ textBBox() const
   return tbbox;
 }
 
+double
+CQChartsChordObj::
+innerRadius() const
+{
+  return std::min(std::max(plot_->innerRadius(), 0.01), 1.0);
+}
+
+double
+CQChartsChordObj::
+outerRadius() const
+{
+  return 1.0;
+}
+
 CQChartsChordObj *
 CQChartsChordObj::
 plotObject(int ind) const
@@ -1167,7 +1211,7 @@ valueAngles(int ind, double &a, double &da) const
   a = data_.angle();
 
   for (const auto &value : data_.values()) {
-    da = -plot_->valueToDegrees(value.value);
+    da = plot_->valueToDegrees(value.value);
 
     if (ind == value.to)
       return;

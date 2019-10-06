@@ -520,7 +520,7 @@ class CQChartsArrowData {
   void setFHeadType(HeadType type);
 
   double frontAngle() const { return fheadData_.angle; }
-  void setFrontAngle(double a) { fheadData_.angle = a; }
+  void setFrontAngle(double a) { fheadData_.angle = a; updateFrontBackAngle(); }
 
   double frontBackAngle() const { return fheadData_.backAngle; }
   void setFrontBackAngle(double a) { fheadData_.backAngle = a; }
@@ -541,7 +541,7 @@ class CQChartsArrowData {
   void setTHeadType(HeadType type);
 
   double tailAngle() const { return theadData_.angle; }
-  void setTailAngle(double a) { theadData_.angle = a; }
+  void setTailAngle(double a) { theadData_.angle = a; updateTailBackAngle(); }
 
   double tailBackAngle() const { return theadData_.backAngle; }
   void setTailBackAngle(double a) { theadData_.backAngle = a; }
@@ -585,6 +585,12 @@ class CQChartsArrowData {
 
   static bool dataToName(const HeadType &type, bool lineEnds, bool visible,
                          double angle, double backAngle, QString &name);
+
+ private:
+  void updateFrontBackAngle();
+  void updateTailBackAngle ();
+
+  static bool getTypeBackAngle(const HeadType &type, double angle, double &backAngle);
 
  private:
   struct HeadData {

@@ -12,7 +12,6 @@
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 
-
 CQChartsSankeyPlotType::
 CQChartsSankeyPlotType()
 {
@@ -1001,6 +1000,10 @@ CQChartsSankeyNodeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &
  CQChartsPlotObj(const_cast<CQChartsSankeyPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
  plot_(plot), node_(node)
 {
+  setDetailHint(DetailHint::MAJOR);
+
+  //---
+
   double x1 = rect.getXMin();
   double x2 = rect.getXMax();
   double y3 = rect.getYMax();
@@ -1062,34 +1065,24 @@ void
 CQChartsSankeyNodeObj::
 draw(CQChartsPaintDevice *device)
 {
-  //int numNodes = plot_->numNodes();
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
 
-  // set fill and stroke
-  ColorInd ic = calcColorInd();
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  QPen   pen;
-  QBrush brush;
+  calcPenBrush(penBrush, updateState);
 
-  QColor bc = plot_->interpNodeStrokeColor(ic);
-  QColor fc = plot_->interpNodeFillColor  (ic);
+  //---
 
-  plot_->setPenBrush(pen, brush,
-    plot_->isNodeStroked(), bc, plot_->nodeStrokeAlpha(),
-    plot_->nodeStrokeWidth(), plot_->nodeStrokeDash(),
-    plot_->isNodeFilled(), fc, plot_->nodeFillAlpha(), plot_->nodeFillPattern());
+  device->setColorNames();
 
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  device->setBrush(brush);
-  device->setPen  (pen);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
   // draw node
-  double x1 = rect_.getXMin();
-  double y1 = rect_.getYMin();
-  double x2 = rect_.getXMax();
-  double y2 = rect_.getYMax();
+  double x1 = rect_.getXMin(), y1 = rect_.getYMin();
+  double x2 = rect_.getXMax(), y2 = rect_.getYMax();
 
   QPainterPath path;
 
@@ -1101,6 +1094,10 @@ draw(CQChartsPaintDevice *device)
   path.closeSubpath();
 
   device->drawPath(path);
+
+  //---
+
+  device->resetColorNames();
 }
 
 void
@@ -1111,8 +1108,6 @@ drawFg(CQChartsPaintDevice *device) const
     return;
 
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect_);
-
-  //int numNodes = plot_->numNodes();
 
   //---
 
@@ -1149,6 +1144,34 @@ drawFg(CQChartsPaintDevice *device) const
     CQChartsDrawUtil::drawSimpleText(device, pt, str);
 }
 
+void
+CQChartsSankeyNodeObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  // set fill and stroke
+  ColorInd ic = calcColorInd();
+
+  QColor bc = plot_->interpNodeStrokeColor(ic);
+  QColor fc = plot_->interpNodeFillColor  (ic);
+
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->isNodeStroked(), bc, plot_->nodeStrokeAlpha(),
+    plot_->nodeStrokeWidth(), plot_->nodeStrokeDash(),
+    plot_->isNodeFilled(), fc, plot_->nodeFillAlpha(), plot_->nodeFillPattern());
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsSankeyNodeObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+}
+
 //------
 
 CQChartsSankeyEdgeObj::
@@ -1156,6 +1179,7 @@ CQChartsSankeyEdgeObj(const CQChartsSankeyPlot *plot, const CQChartsGeom::BBox &
                       CQChartsSankeyPlotEdge *edge) :
  CQChartsPlotObj(const_cast<CQChartsSankeyPlot *>(plot), rect), plot_(plot), edge_(edge)
 {
+  setDetailHint(DetailHint::MAJOR);
 }
 
 QString
@@ -1179,34 +1203,18 @@ void
 CQChartsSankeyEdgeObj::
 draw(CQChartsPaintDevice *device)
 {
-  int numNodes = plot_->numNodes();
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
 
-  // set fill and stroke
-  ColorInd ic1(edge_->srcNode ()->ind(), numNodes);
-  ColorInd ic2(edge_->destNode()->ind(), numNodes);
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  QPen   pen;
-  QBrush brush;
+  calcPenBrush(penBrush, updateState);
 
-  QColor fc1 = plot_->interpEdgeFillColor(ic1);
-  QColor fc2 = plot_->interpEdgeFillColor(ic2);
+  //---
 
-  QColor fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  QColor sc1 = plot_->interpEdgeStrokeColor(ic1);
-  QColor sc2 = plot_->interpEdgeStrokeColor(ic2);
-
-  QColor sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
-
-  plot_->setPenBrush(pen, brush,
-    plot_->isEdgeStroked(), sc, plot_->edgeStrokeAlpha(),
-    plot_->edgeStrokeWidth(), plot_->edgeStrokeDash(),
-    plot_->isEdgeFilled(), fc, plot_->edgeFillAlpha(), plot_->edgeFillPattern());
-
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  device->setBrush(brush);
-  device->setPen  (pen);
+  device->setColorNames();
 
   //---
 
@@ -1214,18 +1222,14 @@ draw(CQChartsPaintDevice *device)
   const CQChartsGeom::BBox &srcRect  = edge_->srcNode ()->obj()->destEdgeRect(edge_);
   const CQChartsGeom::BBox &destRect = edge_->destNode()->obj()->srcEdgeRect (edge_);
 
-  double x1 = srcRect .getXMax();
-  double x2 = destRect.getXMin();
-
-  double y11 = srcRect .getYMax();
-  double y12 = srcRect .getYMin();
-  double y21 = destRect.getYMax();
-  double y22 = destRect.getYMin();
+  double x1  = srcRect .getXMax(), x2  = destRect.getXMin();
+  double y11 = srcRect .getYMax(), y12 = srcRect .getYMin();
+  double y21 = destRect.getYMax(), y22 = destRect.getYMin();
 
   path_ = QPainterPath();
 
-  double x3 = x1 + (x2 - x1)/3.0;
-  double x4 = x2 - (x2 - x1)/3.0;
+  double x3 = CMathUtil::lerp(1.0/3.0, x1, x2);
+  double x4 = CMathUtil::lerp(2.0/3.0, x1, x2);
 
   path_.moveTo (QPointF(x1, y11));
   path_.cubicTo(QPointF(x3, y11), QPointF(x4, y21), QPointF(x2, y21));
@@ -1237,4 +1241,49 @@ draw(CQChartsPaintDevice *device)
   //---
 
   device->drawPath(path_);
+
+  device->resetColorNames();
+}
+
+void
+CQChartsSankeyEdgeObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  // set fill and stroke
+  int numNodes = plot_->numNodes();
+
+  ColorInd ic1(edge_->srcNode ()->ind(), numNodes);
+  ColorInd ic2(edge_->destNode()->ind(), numNodes);
+
+  QColor fc1 = plot_->interpEdgeFillColor(ic1);
+  QColor fc2 = plot_->interpEdgeFillColor(ic2);
+
+  QColor fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
+
+  QColor sc1 = plot_->interpEdgeStrokeColor(ic1);
+  QColor sc2 = plot_->interpEdgeStrokeColor(ic2);
+
+  QColor sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
+
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->isEdgeStroked(), sc, plot_->edgeStrokeAlpha(),
+    plot_->edgeStrokeWidth(), plot_->edgeStrokeDash(),
+    plot_->isEdgeFilled(), fc, plot_->edgeFillAlpha(), plot_->edgeFillPattern());
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsSankeyEdgeObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.value = " << edge_->value() << ";\n";
 }

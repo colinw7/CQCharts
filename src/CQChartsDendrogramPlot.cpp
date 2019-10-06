@@ -453,15 +453,13 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 
     //---
 
-    QPen   lpen;
-    QBrush lbrush;
+    CQChartsPenBrush lPenBrush;
 
-    setEdgeLineDataPen(lpen, 0, 1);
+    setEdgeLineDataPen(lPenBrush.pen, 0, 1);
 
-    setBrush(lbrush, false);
+    setBrush(lPenBrush.brush, false);
 
-    device->setPen  (lpen);
-    device->setBrush(lbrush);
+    CQChartsDrawUtil::setPenBrush(device, lPenBrush);
 
     //---
 
@@ -580,23 +578,22 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor strokeColor = plot_->interpNodeStrokeColor(ColorInd());
   QColor fillColor   = plot_->interpNodeFillColor  (ColorInd());
 
-  plot_->setPen(pen, plot_->isNodeStroked(), strokeColor, plot_->nodeStrokeAlpha(),
+  plot_->setPen(penBrush.pen, plot_->isNodeStroked(), strokeColor, plot_->nodeStrokeAlpha(),
                 plot_->plotStrokeWidth(), plot_->nodeStrokeDash());
 
   bool filled = (node_->hasChildren() && ! node_->isOpen());
 
-  plot_->setBrush(brush, filled, fillColor, plot_->nodeFillAlpha(), plot_->nodeFillPattern());
+  plot_->setBrush(penBrush.brush, filled, fillColor, plot_->nodeFillAlpha(),
+                  plot_->nodeFillPattern());
 
-  plot_->updateObjPenBrushState(this, pen, brush);
+  plot_->updateObjPenBrushState(this, penBrush);
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 

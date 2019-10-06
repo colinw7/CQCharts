@@ -8,6 +8,7 @@
 #include <CQChartsDataLabel.h>
 #include <CQCharts.h>
 #include <CQChartsTip.h>
+#include <CQChartsDrawUtil.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -648,10 +649,56 @@ void
 CQChartsGeometryObj::
 draw(CQChartsPaintDevice *device)
 {
-  // set polygon pen/brush
-  QPen   pen;
-  QBrush brush;
+  // calc pen and brush
+  CQChartsPenBrush penBrush;
 
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+
+  calcPenBrush(penBrush, updateState);
+
+  //---
+
+  /// draw polygon
+  device->setColorNames();
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  for (const auto &ppoly : polygons_) {
+    QPainterPath path;
+
+    int i = 0;
+
+    for (const auto &ppoint : ppoly) {
+      if (i == 0)
+        path.moveTo(ppoint);
+      else
+        path.lineTo(ppoint);
+
+      ++i;
+    }
+
+    path.closeSubpath();
+
+    device->drawPath(path);
+  }
+
+  device->resetColorNames();
+}
+
+void
+CQChartsGeometryObj::
+drawFg(CQChartsPaintDevice *device) const
+{
+  QRectF qrect = rect().qrect();
+
+  plot_->dataLabel()->draw(device, qrect, name());
+}
+
+void
+CQChartsGeometryObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  // calc pen and brush
   QColor fc;
 
   double dv = (value() - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
@@ -673,47 +720,29 @@ draw(CQChartsPaintDevice *device)
 
   QColor bc = plot_->interpStrokeColor(colorInd);
 
-  plot_->setPenBrush(pen, brush,
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
     plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
     plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
 
   if (style().isValid()) {
-    pen   = style().pen  ();
-    brush = style().brush();
+    penBrush.pen   = style().pen  ();
+    penBrush.brush = style().brush();
   }
 
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  //---
-
-  device->setPen  (pen);
-  device->setBrush(brush);
-
-  for (const auto &ppoly : polygons_) {
-    QPainterPath path;
-
-    int i = 0;
-
-    for (const auto &ppoint : ppoly) {
-      if (i == 0)
-        path.moveTo(ppoint);
-      else
-        path.lineTo(ppoint);
-
-      ++i;
-    }
-
-    path.closeSubpath();
-
-    device->drawPath(path);
-  }
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
 }
 
 void
 CQChartsGeometryObj::
-drawFg(CQChartsPaintDevice *device) const
+writeScriptData(CQChartsScriptPainter *device) const
 {
-  QRectF qrect = rect().qrect();
+  calcPenBrush(penBrush_, /*updateState*/ false);
 
-  plot_->dataLabel()->draw(device, qrect, name());
+  CQChartsPlotObj::writeScriptData(device);
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.value = " << value() << ";\n";
 }

@@ -20,6 +20,7 @@
 #include <CQChartsOptReal.h>
 #include <CQChartsColorStops.h>
 #include <CQChartsPaletteName.h>
+#include <CQChartsDrawUtil.h>
 #include <CQBaseModelTypes.h>
 #include <CHRTime.h>
 
@@ -1691,6 +1692,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  void drawSymbol(CQChartsPaintDevice *device, const QPointF &p, const CQChartsSymbol &symbol,
+                  const CQChartsLength &size, const CQChartsPenBrush &penBrush) const;
   void drawSymbol(CQChartsPaintDevice *painter, const QPointF &p, const CQChartsSymbol &symbol,
                   const CQChartsLength &size) const;
   void drawSymbol(CQChartsPaintDevice *device, const QPointF &p, const CQChartsSymbol &symbol,
@@ -1730,9 +1733,13 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  void updateObjPenBrushState(const CQChartsObj *obj, CQChartsPenBrush &penBrush,
+                              DrawType drawType=DrawType::BOX) const;
   void updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush,
                               DrawType drawType=DrawType::BOX) const;
 
+  void updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
+                              CQChartsPenBrush &penBrush, DrawType drawType) const;
   void updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
                               QPen &pen, QBrush &brush, DrawType drawType) const;
 

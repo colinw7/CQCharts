@@ -164,9 +164,11 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
 
   controlTab->addTab(exprFrame, "Expression");
 
+#ifdef CQCHARTS_FOLDED_MODEL
   QFrame *foldFrame = addFoldFrame();
 
   controlTab->addTab(foldFrame, "Fold");
+#endif
 
   QFrame *columnDataFrame = addColumnDataFrame();
 
@@ -564,11 +566,11 @@ exprApplySlot()
   }
 }
 
+#ifdef CQCHARTS_FOLDED_MODEL
 void
 CQChartsModelControl::
 foldApplySlot()
 {
-#ifdef CQCHARTS_FOLDED_MODEL
   if (! modelData_)
     return;
 
@@ -586,14 +588,14 @@ foldApplySlot()
   updateModel();
 
   updateModelDetails();
-#endif
 }
+#endif
 
+#ifdef CQCHARTS_FOLDED_MODEL
 void
 CQChartsModelControl::
 foldClearSlot()
 {
-#ifdef CQCHARTS_FOLDED_MODEL
   if (! modelData_)
     return;
 
@@ -602,8 +604,8 @@ foldClearSlot()
   updateModel();
 
   updateModelDetails();
-#endif
 }
+#endif
 
 void
 CQChartsModelControl::

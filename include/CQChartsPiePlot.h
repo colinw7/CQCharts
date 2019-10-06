@@ -99,6 +99,11 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   //---
 
+  bool isArc() const override { return true; }
+  CQChartsArcData arcData() const override;
+
+  //---
+
   //! get/set color index
   int colorIndex() const { return colorIndex_; }
   void setColorIndex(int i) { colorIndex_ = i; }
@@ -129,8 +134,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
   bool isMissing() const { return missing_; }
   void setMissing(bool b) { missing_ = b; }
 
-  const OptReal &radius() const { return radius_; }
-  void setRadius(const OptReal &r) { radius_ = r; }
+  const OptReal &optRadius() const { return radius_; }
+  void setOptRadius(const OptReal &r) { radius_ = r; }
 
   const QString &keyLabel() const { return keyLabel_; }
   void setKeyLabel(const QString &s) { keyLabel_ = s; }
@@ -160,17 +165,27 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   CQChartsGeom::BBox annotationBBox() const;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
 
   void drawFg(CQChartsPaintDevice *device) const override;
 
   void drawSegmentLabel(CQChartsPaintDevice *device, const CQChartsGeom::Point &c) const;
 
-  CQChartsGeom::Point getCenter() const;
+  //---
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
+
+  QColor fillColor() const;
 
   //---
 
-  QColor fillColor() const;
+  CQChartsGeom::Point getCenter() const;
+
+  //---
 
   double xColorValue(bool relative) const override;
   double yColorValue(bool relative) const override;

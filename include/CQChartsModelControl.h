@@ -55,15 +55,19 @@ class CQChartsModelControl : public QFrame {
 
   void exprApplySlot();
 
+#ifdef CQCHARTS_FOLDED_MODEL
   void foldApplySlot();
   void foldClearSlot();
+#endif
 
   void typeChangedSlot();
   void typeApplySlot();
 
  private:
   QFrame *addExprFrame();
+#ifdef CQCHARTS_FOLDED_MODEL
   QFrame *addFoldFrame();
+#endif
   QFrame *addColumnDataFrame();
   QFrame *addPropertiesFrame();
 

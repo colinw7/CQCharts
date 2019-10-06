@@ -50,15 +50,33 @@ class CQChartsImageObj : public CQChartsPlotObj {
                    int row, int col, double value, const QModelIndex &ind,
                    const ColorInd &iv);
 
+  //---
+
   QString typeName() const override { return "image"; }
 
   QString calcId() const override;
 
   QString calcTipId() const override;
 
+  //---
+
+  double value() const { return value_; }
+
+  //---
+
   void getSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  //---
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
+
+  //---
 
   double xColorValue(bool relative) const override;
   double yColorValue(bool relative) const override;

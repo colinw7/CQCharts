@@ -120,7 +120,6 @@ class CQChartsPlotSymbolRenderer {
  private:
   CQChartsPaintDevice* device_  { nullptr };  //!< device
   CQChartsGeom::Point  p_       { 0.0, 0.0 }; //!< symbol center
-  double               s_       { 2.0 };      //!< size as pixel
   CQChartsLength       size_;                 //!< size as length
   double               w_       { 0.0 };      //!< line width
   QPainterPath         path_;                 //!< path

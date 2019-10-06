@@ -10,7 +10,9 @@
 
 class CQChartsModelDetails;
 class CQCharts;
+#ifdef CQCHARTS_FOLDED_MODEL
 class CQFoldedModel;
+#endif
 class CQSummaryModel;
 
 class QAbstractItemModel;

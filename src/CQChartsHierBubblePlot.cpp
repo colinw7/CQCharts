@@ -1052,7 +1052,7 @@ CQChartsHierBubbleHierObj::
 inside(const CQChartsGeom::Point &p) const
 {
   if (CQChartsUtil::PointPointDistance(p,
-        CQChartsGeom::Point(hier_->x(), hier_->y())) < hier_->radius())
+        CQChartsGeom::Point(hier_->x(), hier_->y())) < this->radius())
     return true;
 
   return false;
@@ -1079,7 +1079,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  double r = hier_->radius();
+  double r = this->radius();
 
   CQChartsGeom::Point p1(hier_->x() - r, hier_->y() - r);
   CQChartsGeom::Point p2(hier_->x() + r, hier_->y() + r);
@@ -1089,31 +1089,57 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc stroke and brush
-  ColorInd colorInd = calcColorInd();
+  CQChartsPenBrush penBrush;
 
-  QPen   pen;
-  QBrush brush;
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  QColor bc = plot_->interpStrokeColor(colorInd);
-  QColor fc = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
-
-  plot_->setPenBrush(pen, brush,
-    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
-    plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
-
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  device->setPen  (pen);
-  device->setBrush(brush);
+  calcPenBrush(penBrush, updateState);
 
   //---
 
   // draw bubble
+  device->setColorNames();
+
   QPainterPath path;
 
   path.addEllipse(qrect);
 
   device->drawPath(path);
+
+  device->resetColorNames();
+}
+
+void
+CQChartsHierBubbleHierObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  // calc stroke and brush
+  ColorInd colorInd = calcColorInd();
+
+  QColor bc = plot_->interpStrokeColor(colorInd);
+  QColor fc = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
+
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
+    plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsHierBubbleHierObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.name = \"" << node_->hierName().toStdString() << "\";\n";
+  os << "  this.size = " << node_->hierSize() << ";\n";
 }
 
 //------
@@ -1178,7 +1204,7 @@ CQChartsHierBubbleNodeObj::
 inside(const CQChartsGeom::Point &p) const
 {
   if (CQChartsUtil::PointPointDistance(p,
-        CQChartsGeom::Point(node_->x(), node_->y())) < node_->radius())
+        CQChartsGeom::Point(node_->x(), node_->y())) < this->radius())
     return true;
 
   return false;
@@ -1198,25 +1224,18 @@ void
 CQChartsHierBubbleNodeObj::
 draw(CQChartsPaintDevice *device)
 {
-  double r = node_->radius();
+  double r = this->radius();
 
   CQChartsGeom::Point p1(node_->x() - r, node_->y() - r);
   CQChartsGeom::Point p2(node_->x() + r, node_->y() + r);
 
-  QRectF  qrect = CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y).qrect();
+  QRectF qrect = CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y).qrect();
 
   //---
 
-  // check if small enough to draw as point
-  QPointF pp1 = device->windowToPixel(p1.qpoint());
-  QPointF pp2 = device->windowToPixel(p2.qpoint());
-
-  double pw = std::abs(pp2.x() - pp1.x()) - 2;
-  double ph = std::abs(pp2.y() - pp1.y()) - 2;
+  bool isPoint = this->isPoint();
 
   QPointF qpoint;
-
-  bool isPoint = (pw <= 1.5 || ph <= 1.5);
 
   if (isPoint)
     qpoint = QPointF((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
@@ -1224,37 +1243,18 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc stroke and brush
-  ColorInd colorInd = calcColorInd();
+  CQChartsPenBrush penBrush;
 
-  QPen   pen;
-  QBrush brush;
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  QColor bc = plot_->interpStrokeColor(colorInd);
-  QColor fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
-
-  if (isPoint) {
-    if      (plot_->isFilled())
-      plot_->setPenBrush(pen, brush,
-        true, fc, plot_->fillAlpha(), 0.0, CQChartsLineDash(),
-        true, fc, plot_->fillAlpha(), plot_->fillPattern());
-    else if (plot_->isStroked())
-      plot_->setPenBrush(pen, brush,
-        true, bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
-        true, bc, plot_->strokeAlpha(), CQChartsFillPattern());
-  }
-  else {
-    plot_->setPenBrush(pen, brush,
-      plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
-      plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
-  }
-
-  plot_->updateObjPenBrushState(this, pen, brush);
+  calcPenBrush(penBrush, updateState);
 
   //---
 
   // draw bubble
-  device->setPen  (pen);
-  device->setBrush(brush);
+  device->setColorNames();
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   if (isPoint)
     device->drawPoint(qpoint);
@@ -1290,13 +1290,15 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc text pen
-  QPen tpen;
+  ColorInd colorInd = calcColorInd();
+
+  CQChartsPenBrush tPenBrush;
 
   QColor tc = plot_->interpTextColor(colorInd);
 
-  plot_->setPen(tpen, true, tc, plot_->textAlpha());
+  plot_->setPen(tPenBrush.pen, true, tc, plot_->textAlpha());
 
-  plot_->updateObjPenBrushState(this, tpen, brush);
+  plot_->updateObjPenBrushState(this, tPenBrush);
 
   //---
 
@@ -1359,7 +1361,7 @@ draw(CQChartsPaintDevice *device)
 
   textOptions = plot_->adjustTextOptions(textOptions);
 
-  device->setPen(tpen);
+  device->setPen(tPenBrush.pen);
 
   QPointF tp = pc.qpoint();
 
@@ -1384,6 +1386,66 @@ draw(CQChartsPaintDevice *device)
   //---
 
   device->restore();
+}
+
+bool
+CQChartsHierBubbleNodeObj::
+isPoint() const
+{
+  // check if small enough to draw as point
+  double r = this->radius();
+
+  double pw = plot()->windowToPixelWidth (2*r) - 2;
+  double ph = plot()->windowToPixelHeight(2*r) - 2;
+
+  return (pw <= 1.5 || ph <= 1.5);
+}
+
+void
+CQChartsHierBubbleNodeObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  // calc stroke and brush
+  ColorInd colorInd = calcColorInd();
+
+  QColor bc = plot_->interpStrokeColor(colorInd);
+  QColor fc = node_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
+
+  bool isPoint = this->isPoint();
+
+  if (isPoint) {
+    if      (plot_->isFilled())
+      plot_->setPenBrush(penBrush.pen, penBrush.brush,
+        true, fc, plot_->fillAlpha(), 0.0, CQChartsLineDash(),
+        true, fc, plot_->fillAlpha(), plot_->fillPattern());
+    else if (plot_->isStroked())
+      plot_->setPenBrush(penBrush.pen, penBrush.brush,
+        true, bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
+        true, bc, plot_->strokeAlpha(), CQChartsFillPattern());
+  }
+  else {
+    plot_->setPenBrush(penBrush.pen, penBrush.brush,
+      plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
+      plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
+  }
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsHierBubbleNodeObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
+
+  std::ostream &os = device->os();
+
+  os << "\n";
+  os << "  this.name = \"" << node_->hierName().toStdString() << "\";\n";
+  os << "  this.size = " << node_->hierSize() << ";\n";
 }
 
 //------

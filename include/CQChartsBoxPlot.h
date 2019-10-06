@@ -134,6 +134,8 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
   QString typeName() const override { return "whisker"; }
 
+  //---
+
   double pos        () const;
   double min        () const;
   double lowerMedian() const;
@@ -144,8 +146,12 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   double stddev     () const;
   double notch      () const;
 
+  //---
+
   QString calcId   () const override;
   QString calcTipId() const override;
+
+  //---
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
@@ -153,7 +159,17 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
+
+  //---
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
+
+  //---
 
   CQChartsGeom::BBox annotationBBox() const;
 

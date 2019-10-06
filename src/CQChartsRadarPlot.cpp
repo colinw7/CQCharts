@@ -842,25 +842,17 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc stroke and brush
-  ColorInd colorInd = calcColorInd();
+  CQChartsPenBrush penBrush;
 
-  QPen   pen;
-  QBrush brush;
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  QColor strokeColor = plot_->interpStrokeColor(colorInd);
-  QColor fillColor   = plot_->interpFillColor  (colorInd);
-
-  plot_->setPenBrush(pen, brush,
-    plot_->isStroked(), strokeColor, plot_->strokeAlpha(),
-    plot_->strokeWidth(), plot_->strokeDash(),
-    plot_->isFilled(), fillColor, plot_->fillAlpha(), plot_->fillPattern());
-
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  device->setPen  (pen);
-  device->setBrush(brush);
+  calcPenBrush(penBrush, updateState);
 
   //---
+
+  device->setColorNames();
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   // draw point
   if      (poly_.size() == 1) {
@@ -888,4 +880,33 @@ draw(CQChartsPaintDevice *device)
   else if (poly_.size() >= 3) {
     device->drawPolygon(poly_);
   }
+
+  device->resetColorNames();
+}
+
+void
+CQChartsRadarObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  ColorInd colorInd = calcColorInd();
+
+  QColor strokeColor = plot_->interpStrokeColor(colorInd);
+  QColor fillColor   = plot_->interpFillColor  (colorInd);
+
+  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->isStroked(), strokeColor, plot_->strokeAlpha(),
+    plot_->strokeWidth(), plot_->strokeDash(),
+    plot_->isFilled(), fillColor, plot_->fillAlpha(), plot_->fillPattern());
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
+}
+
+void
+CQChartsRadarObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
 }

@@ -467,14 +467,18 @@ restore()
 
 void
 CQChartsScriptPainter::
-setClipPath(const QPainterPath &, Qt::ClipOperation)
+setClipPath(const QPainterPath &, Qt::ClipOperation op)
 {
+  *os_ << "  charts.setClipPath(path, " << int(op) << ");\n";
 }
 
 void
 CQChartsScriptPainter::
-setClipRect(const QRectF &, Qt::ClipOperation)
+setClipRect(const QRectF &rect, Qt::ClipOperation op)
 {
+  *os_ << "  charts.setClipRect(" <<
+          rect.left () << ", " << rect.bottom() << ", " <<
+          rect.right() << ", " << rect.top   () << ", " << int(op) << ");\n";
 }
 
 QPen
@@ -488,12 +492,18 @@ void
 CQChartsScriptPainter::
 setPen(const QPen &pen)
 {
-  if (pen.style() != data_.pen.style() || pen.color() != data_.pen.color()) {
-    if (pen.style() == Qt::NoPen)
-      *os_ << "  " << context() << ".gc.strokeStyle=\"#00000000\";\n";
-    else
-      *os_ << "  " << context() << ".gc.strokeStyle=\"" <<
-        CQChartsUtil::encodeScriptColor(pen.color()).toStdString() << "\";\n";
+  if (strokeStyleName() == "") {
+    if (pen.style() != data_.pen.style() || pen.color() != data_.pen.color()) {
+      if (pen.style() == Qt::NoPen)
+        *os_ << "  " << context() << ".gc.strokeStyle=\"#00000000\";\n";
+      else
+        *os_ << "  " << context() << ".gc.strokeStyle=\"" <<
+          CQChartsUtil::encodeScriptColor(pen.color()).toStdString() << "\";\n";
+    }
+  }
+  else {
+    *os_ << "  " << context() << ".gc.strokeStyle=this." <<
+            strokeStyleName().toStdString() << ";\n";
   }
 
   if (pen.widthF() != data_.pen.widthF())
@@ -513,12 +523,18 @@ void
 CQChartsScriptPainter::
 setBrush(const QBrush &brush)
 {
-  if (brush.style() != data_.brush.style() || brush.color() != data_.brush.color()) {
-    if (brush.style() == Qt::NoBrush)
-      *os_ << "  " << context() << ".gc.fillStyle=\"#00000000\";\n";
-    else
-      *os_ << "  " << context() << ".gc.fillStyle=\"" <<
-        CQChartsUtil::encodeScriptColor(brush.color()).toStdString() << "\";\n";
+  if (fillStyleName() == "") {
+    if (brush.style() != data_.brush.style() || brush.color() != data_.brush.color()) {
+      if (brush.style() == Qt::NoBrush)
+        *os_ << "  " << context() << ".gc.fillStyle=\"#00000000\";\n";
+      else
+        *os_ << "  " << context() << ".gc.fillStyle=\"" <<
+          CQChartsUtil::encodeScriptColor(brush.color()).toStdString() << "\";\n";
+    }
+  }
+  else {
+    *os_ << "  " << context() << ".gc.fillStyle=this." <<
+            fillStyleName().toStdString() << ";\n";
   }
 
   data_.brush = brush;
@@ -554,6 +570,13 @@ drawPath(const QPainterPath &path)
 
   *os_ << "  " << context() << ".gc.fill();\n";
   *os_ << "  " << context() << ".gc.stroke();\n";
+}
+
+void
+CQChartsScriptPainter::
+resetData()
+{
+  data_.reset();
 }
 
 void
@@ -839,4 +862,27 @@ CQChartsScriptPainter::
 setContext(const std::string &context)
 {
   context_ = context;
+}
+
+void
+CQChartsScriptPainter::
+setColorNames()
+{
+  setColorNames("strokeColor", "fillColor");
+}
+
+void
+CQChartsScriptPainter::
+setColorNames(const QString &strokeName, const QString &fillName)
+{
+  setStrokeStyleName(strokeName);
+  setFillStyleName  (fillName  );
+}
+
+void
+CQChartsScriptPainter::
+resetColorNames()
+{
+  setStrokeStyleName("");
+  setFillStyleName  ("");
 }

@@ -654,8 +654,15 @@ CQChartsPlot::
 writeScript(std::ostream &os) const
 {
   auto encodeObjId = [&](const QString &id) {
-    QString id1 = id;
-    id1.replace(':', '_').replace('(', '_').replace(')', '_').replace('.', '_').replace(' ', '_');
+    int len = id.length();
+    QString id1;
+    for (int i = 0; i < len; ++i) {
+      QChar c = id[i];
+      if (c.isLetterOrNumber())
+        id1 += c;
+      else
+        id1 += '_';
+    }
     return id1.toStdString();
   };
 
@@ -705,20 +712,31 @@ writeScript(std::ostream &os) const
 
   os << "\n";
   os << "Charts_" << plotId << ".prototype.eventMouseDown = function(e) {\n";
-  os << "  this.objs.forEach(obj => obj.eventMouseDown(e));\n";
+  os << "  var rect = charts.canvas.getBoundingClientRect();\n";
+  os << "  var mouseX = e.clientX - rect.left;\n";
+  os << "  var mouseY = e.clientY - rect.top;\n";
+  os << "  this.objs.forEach(obj => obj.eventMouseDown(mouseX, mouseY));\n";
   os << "}\n";
   os << "\n";
   os << "Charts_" << plotId << ".prototype.eventMouseMove = function(e) {\n";
-  os << "  this.objs.forEach(obj => obj.eventMouseMove(e));\n";
+  os << "  var rect = charts.canvas.getBoundingClientRect();\n";
+  os << "  var mouseX = e.clientX - rect.left;\n";
+  os << "  var mouseY = e.clientY - rect.top;\n";
+  os << "  this.objs.forEach(obj => obj.eventMouseMove(mouseX, mouseY));\n";
   os << "}\n";
   os << "\n";
   os << "Charts_" << plotId << ".prototype.eventMouseUp = function(e) {\n";
-  os << "  this.objs.forEach(obj => obj.eventMouseMove(e));\n";
+  os << "  var rect = charts.canvas.getBoundingClientRect();\n";
+  os << "  var mouseX = e.clientX - rect.left;\n";
+  os << "  var mouseY = e.clientY - rect.top;\n";
+  os << "  this.objs.forEach(obj => obj.eventMouseUp(mouseX, mouseY));\n";
   os << "}\n";
 
   //---
 
   // mapping
+  device.resetData();
+
   os << "\n";
   os << "Charts_" << plotId << ".prototype.draw = function() {\n";
 
@@ -763,7 +781,11 @@ writeScript(std::ostream &os) const
 
   //---
 
-  if (title()) { os << "\n"; os << "  this.drawTitle();\n"; }
+  bool title = hasTitle();
+
+  if (title) {
+    os << "\n"; os << "  this.drawTitle();\n";
+  }
 
   //---
 
@@ -797,16 +819,13 @@ writeScript(std::ostream &os) const
 
       os << "\n";
       os << "Charts_" << objStr << ".prototype.init = function() {\n";
-      plotObj->writeScriptData(os);
+      plotObj->writeScriptData(&device);
       os << "}\n";
 
       //---
 
       os << "\n";
-      os << "Charts_" << objStr << ".prototype.eventMouseDown = function(e) {\n";
-      os << "  var rect = charts.canvas.getBoundingClientRect();\n";
-      os << "  var mouseX = e.clientX - rect.left;\n";
-      os << "  var mouseY = e.clientY - rect.top;\n";
+      os << "Charts_" << objStr << ".prototype.eventMouseDown = function(mouseX, mouseY) {\n";
       os << "  if (this.inside(mouseX, mouseY)) {\n";
 
       if (view()->scriptSelectProc().length())
@@ -818,23 +837,44 @@ writeScript(std::ostream &os) const
       os << "}\n";
 
       os << "\n";
-      os << "Charts_" << objStr << ".prototype.eventMouseMove = function(e) {\n";
+      os << "Charts_" << objStr << ".prototype.eventMouseMove = function(mouseX, mouseY) {\n";
+      os << "  var isInside = this.inside(mouseX, mouseY);\n";
+      os << "  if (isInside != this.isInside) {\n";
+      os << "    this.isInside = isInside;\n";
+      os << "\n";
+      os << "    if (this.isInside) {\n";
+      plotObj->writeScriptInsideColor(&device, /*isSave*/true);
+      os << "    }\n";
+      os << "    else {\n";
+      plotObj->writeScriptInsideColor(&device, /*isSave*/false);
+      os << "    }\n";
+      os << "    charts.update();\n";
+      os << "  }\n";
       os << "}\n";
 
       os << "\n";
-      os << "Charts_" << objStr << ".prototype.eventMouseUp = function(e) {\n";
+      os << "Charts_" << objStr << ".prototype.eventMouseUp = function(mouseX, mouseY) {\n";
       os << "}\n";
 
       //---
 
       os << "\n";
-      os << "Charts_" << objStr << ".prototype.inside = function(x, y) {\n";
+      os << "Charts_" << objStr << ".prototype.inside = function(px, py) {\n";
 
-      if (plotObj->isPolygon()) {
-        os << "  return charts.pointInsidePoly(x, y, this.poly);\n";
+      if      (plotObj->isPolygon()) {
+        if (plotObj->isSolid())
+          os << "  return charts.pointInsidePoly(px, py, this.poly);\n";
+        else
+          os << "  return charts.pointInsidePolyline(px, py, this.poly);\n";
+      }
+      else if (plotObj->isCircle()) {
+        os << "  return charts.pointInsideCircle(px, py, this.xc, this.yc, this.radius);\n";
+      }
+      else if (plotObj->isArc()) {
+        os << "  return charts.pointInsideArc(px, py, this.arc);\n";
       }
       else {
-        os << "  return charts.pointInsideRect(x, y, this.xmin, this.ymin, "
+        os << "  return charts.pointInsideRect(px, py, this.xmin, this.ymin, "
               "this.xmax, this.ymax);\n";
       }
 
@@ -854,6 +894,8 @@ writeScript(std::ostream &os) const
   //---
 
   // draw objects proc
+  device.resetData();
+
   os << "\n";
   os << "Charts_" << plotId << ".prototype.drawObjs = function() {\n";
 
@@ -881,6 +923,8 @@ writeScript(std::ostream &os) const
 
   // draw axes procs
   if (bgAxes) {
+    device.resetData();
+
     os << "\n";
     os << "Charts_" << plotId << ".prototype.drawBgAxis = function() {\n";
     drawGroupedBgAxes(&device);
@@ -888,6 +932,8 @@ writeScript(std::ostream &os) const
   }
 
   if (fgAxes) {
+    device.resetData();
+
     os << "\n";
     os << "Charts_" << plotId << ".prototype.drawFgAxis = function() {\n";
     drawGroupedFgAxes(&device);
@@ -898,6 +944,8 @@ writeScript(std::ostream &os) const
 
   // draw key procs
   if (bgKey) {
+    device.resetData();
+
     os << "\n";
     os << "Charts_" << plotId << ".prototype.drawBgKey = function() {\n";
     drawBgKey(&device);
@@ -905,6 +953,8 @@ writeScript(std::ostream &os) const
   }
 
   if (fgKey) {
+    device.resetData();
+
     os << "\n";
     os << "Charts_" << plotId << ".prototype.drawFgKey = function() {\n";
     drawFgKey(&device);
@@ -914,7 +964,9 @@ writeScript(std::ostream &os) const
   //---
 
   // draw title proc
-  if (title()) {
+  if (title) {
+    device.resetData();
+
     os << "\n";
     os << "Charts_" << plotId << ".prototype.drawTitle = function() {\n";
     drawTitle(&device);
@@ -8301,6 +8353,16 @@ getFirstPlotKey() const
 void
 CQChartsPlot::
 drawSymbol(CQChartsPaintDevice *device, const QPointF &p, const CQChartsSymbol &symbol,
+           const CQChartsLength &size, const CQChartsPenBrush &penBrush) const
+{
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  CQChartsDrawUtil::drawSymbol(device, symbol, p, size);
+}
+
+void
+CQChartsPlot::
+drawSymbol(CQChartsPaintDevice *device, const QPointF &p, const CQChartsSymbol &symbol,
            const CQChartsLength &size, const QPen &pen, const QBrush &brush) const
 {
   device->setPen  (pen);
@@ -8537,9 +8599,24 @@ setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
 
 void
 CQChartsPlot::
+updateObjPenBrushState(const CQChartsObj *obj, CQChartsPenBrush &penBrush, DrawType drawType) const
+{
+  updateObjPenBrushState(obj, ColorInd(), penBrush, drawType);
+}
+
+void
+CQChartsPlot::
 updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush, DrawType drawType) const
 {
   updateObjPenBrushState(obj, ColorInd(), pen, brush, drawType);
+}
+
+void
+CQChartsPlot::
+updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
+                       CQChartsPenBrush &penBrush, DrawType drawType) const
+{
+  updateObjPenBrushState(obj, ic, penBrush.pen, penBrush.brush, drawType);
 }
 
 void

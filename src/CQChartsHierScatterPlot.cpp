@@ -831,19 +831,17 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor fillColor   = plot_->interpColor(plot_->symbolFillColor  (), ic);
   QColor strokeColor = plot_->interpColor(plot_->symbolStrokeColor(), ic);
 
-  plot_->setPen  (pen  , true, strokeColor, plot_->symbolStrokeAlpha());
-  plot_->setBrush(brush, true, fillColor  , plot_->symbolFillAlpha());
+  plot_->setPen  (penBrush.pen  , true, strokeColor, plot_->symbolStrokeAlpha());
+  plot_->setBrush(penBrush.brush, true, fillColor  , plot_->symbolFillAlpha());
 
-  plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
+  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -852,7 +850,7 @@ draw(CQChartsPaintDevice *device)
   CQChartsLength symbolSize = plot_->symbolSize();
 
   // draw symbol
-  plot_->drawSymbol(device, p_, symbolType, symbolSize, pen, brush);
+  plot_->drawSymbol(device, p_, symbolType, symbolSize, penBrush);
 
   //---
 

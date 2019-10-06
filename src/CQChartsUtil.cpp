@@ -340,16 +340,17 @@ bool PointLineDistance(const CQChartsGeom::Point &point, const CQChartsGeom::Poi
   double dx1 = lineEnd.x - lineStart.x;
   double dy1 = lineEnd.y - lineStart.y;
 
-  double dx2 = point.x - lineStart.x;
-  double dy2 = point.y - lineStart.y;
-
-  double u1 = dx2*dx1 + dy2*dy1;
   double u2 = dx1*dx1 + dy1*dy1;
 
   if (u2 <= 0.0) {
     *dist = PointPointDistance(point, lineStart);
     return false;
   }
+
+  double dx2 = point.x - lineStart.x;
+  double dy2 = point.y - lineStart.y;
+
+  double u1 = dx2*dx1 + dy2*dy1;
 
   double u = u1/u2;
 

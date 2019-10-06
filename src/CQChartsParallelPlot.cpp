@@ -854,6 +854,8 @@ CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BB
  CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(plot), rect, is, ColorInd(), ColorInd()),
  plot_(plot), poly_(poly)
 {
+  setDetailHint(DetailHint::MAJOR);
+
   setModelInd(ind);
 }
 
@@ -996,35 +998,48 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set pen and brush
-  ColorInd colorInd = calcColorInd();
+  CQChartsPenBrush penBrush;
 
-  QPen   pen;
-  QBrush brush;
+  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
 
-  plot_->setLineDataPen(pen, colorInd);
-
-  plot_->setBrush(brush, false);
-
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  device->setPen(pen);
+  calcPenBrush(penBrush, updateState);
 
   //---
 
   // draw polyline (using unnormalized polygon)
-  QPolygonF poly;
+  device->setColorNames();
 
-  getPolyLine(poly);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  for (int i = 1; i < poly.count(); ++i)
-    device->drawLine(poly[i - 1], poly[i]);
+  polyLine_ = QPolygonF();
+
+  getPolyLine(polyLine_);
+
+  for (int i = 1; i < polyLine_.count(); ++i)
+    device->drawLine(polyLine_[i - 1], polyLine_[i]);
+
+  device->resetColorNames();
+}
+
+void
+CQChartsParallelLineObj::
+calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
+{
+  ColorInd colorInd = calcColorInd();
+
+  plot_->setLineDataPen(penBrush.pen, colorInd);
+
+  plot_->setBrush(penBrush.brush, false);
+
+  if (updateState)
+    plot_->updateObjPenBrushState(this, penBrush);
 }
 
 void
 CQChartsParallelLineObj::
 getPolyLine(QPolygonF &poly) const
 {
-  // create unnormalized polylne
+  // create unnormalized polyline
   for (int i = 0; i < poly_.count(); ++i) {
     const CQChartsGeom::Range &range = plot_->setRange(i);
 
@@ -1041,6 +1056,15 @@ getPolyLine(QPolygonF &poly) const
 
     poly << QPointF(x, y);
   }
+}
+
+void
+CQChartsParallelLineObj::
+writeScriptData(CQChartsScriptPainter *device) const
+{
+  calcPenBrush(penBrush_, /*updateState*/ false);
+
+  CQChartsPlotObj::writeScriptData(device);
 }
 
 //------
@@ -1152,12 +1176,11 @@ draw(CQChartsPaintDevice *device)
   // set pen and brush
   ColorInd colorInd = calcColorInd();
 
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
-  plot_->setSymbolPenBrush(pen, brush, colorInd);
+  plot_->setSymbolPenBrush(penBrush.pen, penBrush.brush, colorInd);
 
-  plot_->updateObjPenBrushState(this, pen, brush, CQChartsPlot::DrawType::SYMBOL);
+  plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
   //---
 
@@ -1181,8 +1204,7 @@ draw(CQChartsPaintDevice *device)
   // draw symbol
   QPointF p(x_, y_);
 
-  const_cast<CQChartsParallelPlot *>(plot_)->
-    drawSymbol(device, p, symbolType, symbolSize1, pen, brush);
+  plot->drawSymbol(device, p, symbolType, symbolSize1, penBrush);
 
   //---
 

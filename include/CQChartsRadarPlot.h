@@ -83,7 +83,15 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
+  //---
+
   void draw(CQChartsPaintDevice *device) override;
+
+  void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
+
+  //---
+
+  void writeScriptData(CQChartsScriptPainter *device) const override;
 
  private:
   const CQChartsRadarPlot* plot_       { nullptr }; //!< parent plot

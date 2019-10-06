@@ -594,6 +594,20 @@ setTHeadType(HeadType type)
   }
 }
 
+void
+CQChartsArrowData::
+updateFrontBackAngle()
+{
+  getTypeBackAngle(fheadData_.type, fheadData_.angle, fheadData_.backAngle);
+}
+
+void
+CQChartsArrowData::
+updateTailBackAngle()
+{
+  getTypeBackAngle(theadData_.type, theadData_.angle, theadData_.backAngle);
+}
+
 QString
 CQChartsArrowData::
 toString() const
@@ -680,18 +694,28 @@ bool
 CQChartsArrowData::
 getTypeAngles(const HeadType &type, double &angle, double &backAngle)
 {
-  if      (type == HeadType::TRIANGLE) {
-    angle = 30.0; backAngle = 90.0;
-  }
-  else if (type == HeadType::STEALTH) {
-    angle = 30.0; backAngle = 45.0;
-  }
-  else if (type == HeadType::DIAMOND) {
-    angle = 30.0; backAngle = 130.0;
-  }
-  else {
+  if      (type == HeadType::TRIANGLE) angle = 30.0;
+  else if (type == HeadType::STEALTH ) angle = 30.0;
+  else if (type == HeadType::DIAMOND ) angle = 30.0;
+  else return false;
+
+  getTypeBackAngle(type, angle, backAngle);
+
+  return true;
+}
+
+bool
+CQChartsArrowData::
+getTypeBackAngle(const HeadType &type, double angle, double &backAngle)
+{
+  if      (type == HeadType::TRIANGLE)
+    backAngle = 90.0;
+  else if (type == HeadType::STEALTH )
+    backAngle = 90 - 2.0*angle/3.0;
+  else if (type == HeadType::DIAMOND )
+    backAngle = 180.0 - angle;
+  else
     return false;
-  }
 
   return true;
 }
