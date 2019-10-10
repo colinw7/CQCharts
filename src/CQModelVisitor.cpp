@@ -5,12 +5,13 @@ void
 CQModelVisitor::
 init(const QAbstractItemModel *model)
 {
-  model_        = model;
-  numCols_      = model_->columnCount(QModelIndex());
-  hierarchical_ = false;
-  hierSet_      = false;
-  row_          = 0;
-  numRows_      = 0;
+  model_           = model;
+  numCols_         = model_->columnCount(QModelIndex());
+  numRows_         = 0;
+  hierarchical_    = false;
+  hierSet_         = false;
+  row_             = 0;
+  numProcessedRows_ = 0;
 }
 
 bool

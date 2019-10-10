@@ -475,7 +475,7 @@ class CQChartsPlot : public CQChartsObj,
 
   // font
   const CQChartsFont &font() const { return font_; }
-  void setFont(const CQChartsFont &f);
+  virtual void setFont(const CQChartsFont &f);
 
   //---
 

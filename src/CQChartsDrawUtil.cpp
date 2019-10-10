@@ -170,6 +170,11 @@ void
 drawTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &text,
               const CQChartsTextOptions &options)
 {
+  if (! rect.isValid())
+    return;
+
+  //---
+
   if (options.html) {
     CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text, options);
     return;

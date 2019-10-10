@@ -21,8 +21,6 @@ class CQChartsChordPlotType : public CQChartsPlotType {
   QString name() const override { return "chord"; }
   QString desc() const override { return "Chord"; }
 
-  Dimension dimension() const override { return Dimension::NONE; }
-
   void addParameters() override;
 
   bool customXRange() const override { return false; }

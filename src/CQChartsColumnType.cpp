@@ -622,6 +622,10 @@ CQChartsColumnType(Type type) :
   addParam("key", Type::BOOLEAN, (int) CQBaseModelRole::Key, "Is Key", false)->
    setDesc("Is Column a key for grouping");
 
+  // preferred width
+  addParam("preferred_width", Type::INTEGER, "Preferred Width", "")->
+   setDesc("Preferred column width");
+
   // draw color for table view
   addParam("draw_color", Type::COLOR, "Table Draw Color", "")->
    setDesc("Base color for table value coloring");
@@ -705,6 +709,22 @@ columnDetails(CQCharts *charts, const QAbstractItemModel *model, const CQChartsC
   if (! details) return nullptr;
 
   return details->columnDetails(column);
+}
+
+int
+CQChartsColumnType::
+preferredWidth(const CQChartsNameValues &nameValues) const
+{
+  QString str;
+
+  if (! nameValueString(nameValues, "preferred_width", str))
+    str = "";
+
+  bool ok;
+
+  int width = str.toInt(&ok);
+
+  return (ok ? width : -1);
 }
 
 CQChartsColor

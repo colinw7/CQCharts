@@ -41,6 +41,66 @@ load(const QString &filename)
   return true;
 }
 
+void
+CQJsonModel::
+save(std::ostream &os)
+{
+  save(this, os);
+}
+
+void
+CQJsonModel::
+save(QAbstractItemModel *model, std::ostream &os)
+{
+  int nc = model->columnCount();
+  int nr = model->rowCount();
+
+  //---
+
+  QStringList strs;
+
+  for (int c = 0; c < nc; ++c) {
+    QVariant var = model->headerData(c, Qt::Horizontal);
+
+    strs << var.toString();
+  }
+
+  os << "[\n";
+
+  for (int r = 0; r < nr; ++r) {
+    os << "  {\n";
+
+    for (int c = 0; c < nc; ++c) {
+      QModelIndex ind = model->index(r, c);
+
+      QVariant var = model->data(ind);
+
+      os << "    \"" << strs[c].toStdString() << "\": ";
+
+      if      (var.type() == QVariant::Int)
+        os << var.toInt();
+      else if (var.type() == QVariant::Double)
+        os << var.toDouble();
+      else
+        os << "\"" << var.toString().toStdString() << "\"";
+
+      if (c != nc - 1)
+        os << ",";
+
+      os << "\n";
+    }
+
+    os << "  }";
+
+    if (r != nr - 1)
+      os << ",";
+
+    os << "\n";
+  }
+
+  os << "]\n";
+}
+
 bool
 CQJsonModel::
 isRootHierarchical(QString &hierName, QStringList &hierColumns) const

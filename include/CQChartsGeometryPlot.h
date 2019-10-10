@@ -21,8 +21,6 @@ class CQChartsGeometryPlotType : public CQChartsPlotType {
   QString name() const override { return "geometry"; }
   QString desc() const override { return "Geometry"; }
 
-  Dimension dimension() const override { return Dimension::NONE; }
-
   void addParameters() override;
 
   bool canProbe() const override { return true; }

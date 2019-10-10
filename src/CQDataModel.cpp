@@ -1,5 +1,6 @@
 #include <CQDataModel.h>
 #include <CQModelDetails.h>
+#include <iostream>
 
 CQDataModel::
 CQDataModel()
@@ -373,7 +374,7 @@ data(const QModelIndex &index, int role) const
 
     return QVariant();
   }
-  else if (! isReadOnly()) {
+  else {
     QVariant var;
 
     if (getRowRoleValue(index.row(), role, var))
@@ -389,8 +390,10 @@ bool
 CQDataModel::
 setData(const QModelIndex &index, const QVariant &value, int role)
 {
-  if (isReadOnly())
+  if (isReadOnly()) {
+    std::cerr << "CQDataModel::setData for read only model\n";
     return false;
+  }
 
   if (! index.isValid())
     return false;

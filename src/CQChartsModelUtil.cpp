@@ -44,7 +44,7 @@ int hierRowCount(CQCharts *charts, const QAbstractItemModel *model) {
 
   CQChartsModelVisit::exec(charts, model, visitor);
 
-  return visitor.numRows();
+  return visitor.numProcessedRows();
 }
 #endif
 
@@ -1829,6 +1829,11 @@ exportModel(const QAbstractItemModel *model, CQBaseModelDataType type, bool hhea
     tsv.setFirstColumnHeader(vheader);
 
     tsv.save(const_cast<QAbstractItemModel *>(model), os);
+  }
+  else if (type == CQBaseModelDataType::JSON) {
+    CQJsonModel json;
+
+    json.save(const_cast<QAbstractItemModel *>(model), os);
   }
   else {
     assert(false);

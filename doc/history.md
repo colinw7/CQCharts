@@ -961,3 +961,5 @@
  + add javascript support to more objects
  + improve shape intersect based on type
  + fix some rendering issues with coordinate switch
+# 10/9/2019
+ + add table plot

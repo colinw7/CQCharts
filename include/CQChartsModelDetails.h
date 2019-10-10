@@ -179,6 +179,9 @@ class CQChartsModelColumnDetails {
 
   double map(const QVariant &var) const;
 
+  int preferredWidth() const { return preferredWidth_; }
+  void setPreferredWidth(int w) { preferredWidth_ = w; }
+
   const CQChartsColor &tableDrawColor() const { return tableDrawColor_; }
   void setTableDrawColor(const CQChartsColor &c) { tableDrawColor_ = c; }
 
@@ -242,6 +245,7 @@ class CQChartsModelColumnDetails {
   VariantInds           valueInds_;                   //!< unique values
 
   // table render data
+  int                   preferredWidth_ { -1 };
   CQChartsColor         tableDrawColor_;
   TableDrawType         tableDrawType_   { TableDrawType::HEATMAP };
   CQChartsColorStops    tableDrawStops_;

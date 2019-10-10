@@ -3,6 +3,9 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + Write JSON
+ + Auto key placement
+ + Table chart
  + Combine CQChartsModelDetails and CQModelDetails
  + Same coloring in table and plot (if possible)
    + same palette

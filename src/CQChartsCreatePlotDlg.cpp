@@ -2108,13 +2108,13 @@ updatePreviewSlot()
     }
 
     if      (random) {
-      summaryModel->setRandom(true);
+      summaryModel->setRandomMode(true);
     }
     else if (sorted) {
       int sortCol = summarySortedColEdit_->value();
 
       summaryModel->setSortColumn(sortCol);
-      summaryModel->setSorted(true);
+      summaryModel->setSortMode(true);
     }
     else if (paged) {
       int ps = summaryPageSizeEdit_   ->value();
@@ -2131,7 +2131,7 @@ updatePreviewSlot()
 
       summaryModel->setPageSize(ps);
       summaryModel->setCurrentPage(np);
-      summaryModel->setPaged(true);
+      summaryModel->setPagedMode(true);
     }
     else {
       summaryModel->setMode(CQSummaryModel::Mode::NORMAL);

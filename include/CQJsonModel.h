@@ -17,7 +17,14 @@ class CQJsonModel : public CQBaseModel {
 
  ~CQJsonModel();
 
+  //---
+
   bool load(const QString &filename);
+
+  void save(std::ostream &os);
+  void save(QAbstractItemModel *model, std::ostream &os);
+
+  //---
 
   const QString &filename() const { return filename_; }
   void setFilename(const QString &s) { filename_ = s; }

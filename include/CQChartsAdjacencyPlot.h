@@ -20,8 +20,6 @@ class CQChartsAdjacencyPlotType : public CQChartsPlotType {
   QString name() const override { return "adjacency"; }
   QString desc() const override { return "Adjacency"; }
 
-  Dimension dimension() const override { return Dimension::NONE; }
-
   void addParameters() override;
 
   bool customXRange() const override { return false; }

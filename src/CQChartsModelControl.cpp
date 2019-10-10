@@ -16,6 +16,7 @@
 #include <CQJsonModel.h>
 #include <CQDataModel.h>
 #include <CQLineEdit.h>
+#include <CQIntegerSpin.h>
 #include <CQCheckBox.h>
 #include <CQUtil.h>
 
@@ -57,6 +58,18 @@ class CQChartsParamEdit : public QFrame {
     }
 
     check_->setChecked(b);
+  }
+
+  void setInteger(int i=0) {
+    if (! ispin_) {
+      reset();
+
+      ispin_ = CQUtil::makeWidget<CQIntegerSpin>("edit");
+
+      layout_->addWidget(ispin_);
+    }
+
+    ispin_->setValue(i);
   }
 
   void setEnum(const QString &str, const QStringList &values) {
@@ -108,6 +121,12 @@ class CQChartsParamEdit : public QFrame {
     return check_->isChecked();
   }
 
+  int getInteger() const {
+    assert(ispin_);
+
+    return ispin_->value();
+  }
+
   QString getEnum() const {
     assert(combo_);
 
@@ -122,11 +141,13 @@ class CQChartsParamEdit : public QFrame {
 
   void reset() {
     delete edit_;
+    delete ispin_;
     delete check_;
     delete combo_;
     delete color_;
 
     edit_  = nullptr;
+    ispin_ = nullptr;
     check_ = nullptr;
     combo_ = nullptr;
     color_ = nullptr;
@@ -135,6 +156,7 @@ class CQChartsParamEdit : public QFrame {
  private:
   QHBoxLayout*           layout_ { nullptr };
   CQLineEdit*            edit_   { nullptr };
+  CQIntegerSpin*         ispin_  { nullptr };
   CQCheckBox*            check_  { nullptr };
   QComboBox*             combo_  { nullptr };
   CQChartsColorLineEdit* color_  { nullptr };
@@ -795,6 +817,8 @@ typeApplySlot()
 
       if      (param->type() == CQBaseModelType::BOOLEAN)
         value = (paramEdit.edit->getBool() ? "1" : "0");
+      else if (param->type() == CQBaseModelType::INTEGER)
+        value = QString("%1").arg(paramEdit.edit->getInteger());
       else if (param->type() == CQBaseModelType::ENUM)
         value = paramEdit.edit->getEnum();
       else if (param->type() == CQBaseModelType::COLOR)
@@ -878,6 +902,8 @@ setColumnData(int column)
 
       if      (param->type() == CQBaseModelType::BOOLEAN)
         paramEdit.edit->setBool(var.toBool());
+      else if (param->type() == CQBaseModelType::INTEGER)
+        paramEdit.edit->setInteger(var.toInt());
       else if (param->type() == CQBaseModelType::ENUM)
         paramEdit.edit->setEnum(var.toString(), param->values());
       else if (param->type() == CQBaseModelType::COLOR)

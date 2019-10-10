@@ -260,7 +260,7 @@ calcRange() const
 
   CQChartsGeom::Range dataRange;
 
-  th->nr_ = visitor.numRows();
+  th->nr_ = visitor.numProcessedRows();
   th->nc_ = visitor.numCols();
 
   dataRange.updateRange(  0,   0);

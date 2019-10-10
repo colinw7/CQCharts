@@ -70,6 +70,7 @@ CQChartsPivotPlot.cpp \
 CQChartsRadarPlot.cpp \
 CQChartsSankeyPlot.cpp \
 CQChartsScatterPlot.cpp \
+CQChartsTablePlot.cpp \
 CQChartsSunburstPlot.cpp \
 CQChartsTreeMapPlot.cpp \
 CQChartsXYPlot.cpp \
@@ -321,6 +322,7 @@ HEADERS += \
 ../include/CQChartsSankeyPlot.h \
 ../include/CQChartsScatterPlot.h \
 ../include/CQChartsSunburstPlot.h \
+../include/CQChartsTablePlot.h \
 ../include/CQChartsTreeMapPlot.h \
 ../include/CQChartsXYPlot.h \
 \

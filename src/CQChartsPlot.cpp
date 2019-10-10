@@ -3481,9 +3481,12 @@ addPlotObject(CQChartsPlotObj *obj)
 
   plotObjs_.push_back(obj);
 
+  // TODO: needed ? Do post thread finished
+#if 0
   obj->moveToThread(this->thread());
 
   obj->setParent(this);
+#endif
 
   //obj->addProperties(propertyModel(), "objects");
 }
@@ -10522,7 +10525,7 @@ double
 CQChartsPlot::
 pixelToSignedWindowHeight(double wh) const
 {
-  return -CMathUtil::sign(wh)*pixelToWindowHeight(wh);
+  return CMathUtil::sign(wh)*pixelToWindowHeight(wh);
 }
 
 double

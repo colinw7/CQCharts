@@ -8,23 +8,41 @@
 class CQSummaryModel : public QAbstractProxyModel {
   Q_OBJECT
 
-  Q_PROPERTY(int           maxRows     READ maxRows     WRITE setMaxRows    )
-  Q_PROPERTY(bool          random      READ isRandom    WRITE setRandom     )
-  Q_PROPERTY(bool          sorted      READ isSorted    WRITE setSorted     )
-  Q_PROPERTY(int           sortColumn  READ sortColumn  WRITE setSortColumn )
-  Q_PROPERTY(int           sortRole    READ sortRole    WRITE setSortRole   )
-  Q_PROPERTY(Qt::SortOrder sortOrder   READ sortOrder   WRITE setSortOrder  )
-  Q_PROPERTY(bool          paged       READ isPaged     WRITE setPaged      )
-  Q_PROPERTY(int           pageSize    READ pageSize    WRITE setPageSize   )
-  Q_PROPERTY(int           currentPage READ currentPage WRITE setCurrentPage)
+  // mode
+  Q_PROPERTY(Mode          mode        READ mode         WRITE setMode       )
+
+  // max rows
+  Q_PROPERTY(int           maxRows     READ maxRows      WRITE setMaxRows    )
+
+  // random
+  Q_PROPERTY(bool          randomMode  READ isRandomMode WRITE setRandomMode )
+
+  // sort
+  Q_PROPERTY(bool          sortMode    READ isSortMode   WRITE setSortMode   )
+  Q_PROPERTY(int           sortColumn  READ sortColumn   WRITE setSortColumn )
+  Q_PROPERTY(int           sortRole    READ sortRole     WRITE setSortRole   )
+  Q_PROPERTY(Qt::SortOrder sortOrder   READ sortOrder    WRITE setSortOrder  )
+
+  // paged
+  Q_PROPERTY(bool          pagedMode   READ isPagedMode  WRITE setPagedMode  )
+  Q_PROPERTY(int           pageSize    READ pageSize     WRITE setPageSize   )
+  Q_PROPERTY(int           currentPage READ currentPage  WRITE setCurrentPage)
+
+  // rows mode
+  Q_PROPERTY(bool          rowsMode    READ isRowsMode   WRITE setRowsMode   )
+
+  Q_ENUMS(Mode)
 
  public:
   enum class Mode {
     NORMAL,
     RANDOM,
     SORTED,
-    PAGED
+    PAGED,
+    ROWS
   };
+
+  using RowNums = std::vector<int>;
 
  public:
   CQSummaryModel(QAbstractItemModel *model, int maxRows=1000);
@@ -39,25 +57,27 @@ class CQSummaryModel : public QAbstractProxyModel {
 
   //---
 
+  // mode
   const Mode &mode() const { return mode_; }
   void setMode(const Mode &m);
 
   //---
 
+  // max model rows
   int maxRows() const { return maxRows_; }
   void setMaxRows(int i);
 
   //---
 
   // random
-  bool isRandom() const { return mode_ == Mode::RANDOM; }
-  void setRandom(bool b) { setMode(b ? Mode::RANDOM : Mode::NORMAL); }
+  bool isRandomMode() const { return mode_ == Mode::RANDOM; }
+  void setRandomMode(bool b) { setMode(b ? Mode::RANDOM : Mode::NORMAL); }
 
   //---
 
-  // sorted
-  bool isSorted() const { return mode_ == Mode::SORTED; }
-  void setSorted(bool b) { setMode(b ? Mode::SORTED : Mode::NORMAL); }
+  // sort data
+  bool isSortMode() const { return mode_ == Mode::SORTED; }
+  void setSortMode(bool b) { setMode(b ? Mode::SORTED : Mode::NORMAL); }
 
   int sortColumn() const { return sortColumn_; }
   void setSortColumn(int i);
@@ -70,15 +90,24 @@ class CQSummaryModel : public QAbstractProxyModel {
 
   //---
 
-  // paged
-  bool isPaged() const { return mode_ == Mode::PAGED; }
-  void setPaged(bool b) { setMode(b ? Mode::PAGED : Mode::NORMAL); }
+  // page data
+  bool isPagedMode() const { return mode_ == Mode::PAGED; }
+  void setPagedMode(bool b) { setMode(b ? Mode::PAGED : Mode::NORMAL); }
 
   int pageSize() const { return pageSize_; }
   void setPageSize(int i);
 
   int currentPage() const { return currentPage_; }
   void setCurrentPage(int i);
+
+  //---
+
+  // rows
+  bool isRowsMode() const { return mode_ == Mode::ROWS; }
+  void setRowsMode(bool b) { setMode(b ? Mode::ROWS : Mode::NORMAL); }
+
+  const RowNums &rowNums() const { return rowNums_; }
+  void setRowNums(const RowNums &rowNums);
 
   //---
 
@@ -137,17 +166,29 @@ class CQSummaryModel : public QAbstractProxyModel {
   using RowInds = std::vector<int>;
   using RowMap  = std::map<int,int>;
 
-  Mode          mode_        { Mode::NORMAL };       // summary mode
-  int           maxRows_     { 1000 };               // max rows
-  int           sortColumn_  { 0 };                  // sort column
-  int           sortRole_    { Qt::EditRole };       // sort role
-  Qt::SortOrder sortOrder_   { Qt::AscendingOrder }; // sort order
-  int           pageSize_    { 100 };                // page size
-  int           currentPage_ { 0 };                  // current page
-  RowInds       rowInds_;                            // row indices
-  RowMap        indRows_;                            // index rows
-  bool          mapValid_    { false };              // is mapping valid
-  bool          mapNone_     { false };              // map not needed
+  // mode
+  Mode          mode_        { Mode::NORMAL };       //!< summary mode
+
+  // max rows
+  int           maxRows_     { 1000 };               //!< max rows
+
+  // sort
+  int           sortColumn_  { 0 };                  //!< sort column
+  int           sortRole_    { Qt::EditRole };       //!< sort role
+  Qt::SortOrder sortOrder_   { Qt::AscendingOrder }; //!< sort order
+
+  // paged
+  int           pageSize_    { 100 };                //!< page size
+  int           currentPage_ { 0 };                  //!< current page
+
+  // rows
+  RowNums       rowNums_;                            //!< specific rows numbers
+
+  // cache
+  RowInds       rowInds_;                            //!< row indices
+  RowMap        indRows_;                            //!< index rows
+  bool          mapValid_    { false };              //!< is mapping valid
+  bool          mapNone_     { false };              //!< map not needed
 };
 
 #endif

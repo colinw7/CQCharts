@@ -75,6 +75,25 @@ setSourceModel(QAbstractItemModel *sourceModel)
   QAbstractProxyModel::setSourceModel(sourceModel);
 }
 
+//---
+
+// mode
+
+void
+CQSummaryModel::
+setMode(const Mode &m)
+{
+  if (m != mode()) {
+    mode_ = m;
+
+    resetMapping();
+  }
+}
+
+//---
+
+// max rows
+
 void
 CQSummaryModel::
 setMaxRows(int maxRows)
@@ -87,16 +106,9 @@ setMaxRows(int maxRows)
   }
 }
 
-void
-CQSummaryModel::
-setMode(const Mode &m)
-{
-  if (m != mode()) {
-    mode_ = m;
+//---
 
-    resetMapping();
-  }
-}
+// sort
 
 void
 CQSummaryModel::
@@ -134,6 +146,10 @@ setSortOrder(Qt::SortOrder order)
   }
 }
 
+//---
+
+// paged
+
 void
 CQSummaryModel::
 setPageSize(int i)
@@ -158,6 +174,20 @@ setCurrentPage(int i)
   }
 }
 
+//---
+
+void
+CQSummaryModel::
+setRowNums(const RowNums &rowNums)
+{
+  rowNums_ = rowNums;
+
+  if (mode() == Mode::ROWS)
+    resetMapping();
+}
+
+//---
+
 void
 CQSummaryModel::
 resetMapping()
@@ -179,14 +209,14 @@ initMapping()
   rowInds_.clear();
   indRows_.clear();
 
-  if (mode() == Mode::NORMAL || mode() == Mode::PAGED)
+  if (mode() == Mode::NORMAL || mode() == Mode::PAGED || mode() == Mode::ROWS)
     return;
 
   //---
 
   QAbstractItemModel *model = this->sourceModel();
 
-  int nr = model->rowCount();
+  int nr = (model ? model->rowCount() : 0);
 
   //---
 
@@ -246,7 +276,7 @@ initMapping()
     mapValid_ = true;
   }
   else if (mode() == Mode::SORTED) {
-    int nc = model->columnCount();
+    int nc = (model ? model->columnCount() : 0);
 
     if (sortColumn() < 0 || sortColumn() >= nc) {
       mapValid_ = true;
@@ -271,13 +301,15 @@ initMapping()
     }
 
     // sort summary size
+    int nr = std::min(int(rowValues.size()), maxRows());
+
     if      (sortOrder() == Qt::AscendingOrder)
-      std::partial_sort(rowValues.begin(), rowValues.begin() + maxRows(), rowValues.end(),
+      std::partial_sort(rowValues.begin(), rowValues.begin() + nr, rowValues.end(),
                         [](const ValueRow &lhs, const ValueRow &rhs) {
                           return variantCmp(lhs.first, rhs.first) < 0;
                         });
     else if (sortOrder() == Qt::DescendingOrder)
-      std::partial_sort(rowValues.begin(), rowValues.begin() + maxRows(), rowValues.end(),
+      std::partial_sort(rowValues.begin(), rowValues.begin() + nr, rowValues.end(),
                         [](const ValueRow &lhs, const ValueRow &rhs) {
                           return variantCmp(lhs.first, rhs.first) >= 0;
                         });
@@ -343,7 +375,7 @@ columnCount(const QModelIndex &parent) const
 {
   QAbstractItemModel *model = this->sourceModel();
 
-  return model->columnCount(parent);
+  return (model ? model->columnCount(parent) : 0);
 }
 
 // get number of child rows for parent
@@ -353,12 +385,18 @@ rowCount(const QModelIndex &parent) const
 {
   QAbstractItemModel *model = this->sourceModel();
 
-  int nr = model->rowCount(parent);
+  if      (mode() == Mode::PAGED) {
+    int nr = (model ? model->rowCount(parent) : 0);
 
-  if (mode() == Mode::PAGED)
     return std::min(nr, pageSize());
-  else
+  }
+  else if (mode() == Mode::ROWS)
+    return rowNums().size();
+  else {
+    int nr = (model ? model->rowCount(parent) : 0);
+
     return std::min(nr, maxRows());
+  }
 }
 
 // get child node for row/column of parent
@@ -397,6 +435,7 @@ CQSummaryModel::
 data(const QModelIndex &index, int role) const
 {
   QAbstractItemModel *model = this->sourceModel();
+  if (! model) return QVariant();
 
   return model->data(mapToSource(index), role);
 }
@@ -406,6 +445,7 @@ CQSummaryModel::
 setData(const QModelIndex &index, const QVariant &value, int role)
 {
   QAbstractItemModel *model = this->sourceModel();
+  if (! model) return false;
 
   return model->setData(mapToSource(index), value, role);
 }
@@ -415,6 +455,7 @@ CQSummaryModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
   QAbstractItemModel *model = this->sourceModel();
+  if (! model) return QVariant();
 
   return model->headerData(section, orientation, role);
 }
@@ -424,6 +465,7 @@ CQSummaryModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
   QAbstractItemModel *model = this->sourceModel();
+  if (! model) return false;
 
   return model->setHeaderData(section, orientation, value, role);
 }
@@ -433,6 +475,7 @@ CQSummaryModel::
 flags(const QModelIndex &index) const
 {
   QAbstractItemModel *model = this->sourceModel();
+  if (! model) return 0;
 
   return model->flags(mapToSource(index));
 }
@@ -462,6 +505,18 @@ mapFromSource(const QModelIndex &sourceIndex) const
       return QModelIndex();
 
     r = r - r1;
+  }
+  else if (mode() == Mode::ROWS) {
+    int i = 0;
+
+    for (const auto &r1 : rowNums()) {
+      if (r1 == r) {
+        r = i;
+        break;
+      }
+
+      ++i;
+    }
   }
   else {
     assert(mapValid_);
@@ -499,6 +554,12 @@ mapToSource(const QModelIndex &proxyIndex) const
     int r1 = currentPage()*pageSize();
 
     r = r1 + r;
+  }
+  else if (mode() == Mode::ROWS) {
+    if (r < 0 || r >= int(rowNums().size()))
+      return QModelIndex();
+
+    r = rowNums()[r];
   }
   else {
     assert(mapValid_);

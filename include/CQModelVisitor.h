@@ -37,10 +37,12 @@ class CQModelVisitor {
 
   int numCols() const { return numCols_; }
 
-  int row() const { return row_; }
-
   int numRows() const { return numRows_; }
   void setNumRows(int nr) { numRows_ = nr; }
+
+  int row() const { return row_; }
+
+  int numProcessedRows() const { return numProcessedRows_; }
 
   int maxRows() const { return maxRows_; }
   void setMaxRows(int i) { maxRows_ = i; }
@@ -53,7 +55,7 @@ class CQModelVisitor {
 
   void step() { ++row_; }
 
-  void term() { numRows_ = row_; }
+  void term() { numProcessedRows_ = row_; }
 
   //---
 
@@ -70,14 +72,15 @@ class CQModelVisitor {
   //virtual State postVisit(const QAbstractItemModel *, const VisitData &) { return State::OK; }
 
  protected:
-  const QAbstractItemModel* model_        { nullptr }; //!< model to visit
-  int                       numCols_      { 0 };       //!< number of columns
-  int                       row_          { 0 };       //!< current row
-  int                       numRows_      { 0 };       //!< number of rows
-  int                       maxRows_      { -1 };      //!< maximum number of rows to process
-  bool                      hierarchical_ { false };   //!< is hierarchical
-  bool                      hierSet_      { false };   //!< is hierarchical set
-  mutable std::mutex        mutex_;                    //!< mutex
+  const QAbstractItemModel* model_            { nullptr }; //!< model to visit
+  int                       numCols_          { 0 };       //!< number of columns
+  int                       numRows_          { 0 };       //!< number of rows (current parent)
+  int                       row_              { 0 };       //!< current row
+  int                       numProcessedRows_ { 0 };       //!< total number of rows processed
+  int                       maxRows_          { -1 };      //!< maximum number of rows to process
+  bool                      hierarchical_     { false };   //!< is hierarchical
+  bool                      hierSet_          { false };   //!< is hierarchical set
+  mutable std::mutex        mutex_;                        //!< mutex
 };
 
 //---

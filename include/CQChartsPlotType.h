@@ -99,7 +99,7 @@ class CQChartsPlotType : public QObject {
   virtual QString name() const = 0;
   virtual QString desc() const = 0;
 
-  virtual Dimension dimension() const = 0;
+  virtual Dimension dimension() const { return Dimension::NONE; }
 
   //---
 

@@ -292,6 +292,7 @@ class CQChartsScriptPainter : public CQChartsPaintDevice {
     QPen       pen;
     QBrush     brush;
     QFont      font;
+    bool       hasFont { false };
     QTransform transform;
     QPointF    transformPoint;
     double     transformAngle { 0.0 };
@@ -300,6 +301,7 @@ class CQChartsScriptPainter : public CQChartsPaintDevice {
       pen            = QPen(Qt::NoPen);
       brush          = QBrush(Qt::NoBrush);
       font           = QFont();
+      hasFont        = false;
       transform      = QTransform();
       transformPoint = QPointF();
       transformAngle = 0.0;

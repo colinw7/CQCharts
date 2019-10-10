@@ -141,6 +141,7 @@ addMenuActions(QMenu *menu)
 
   addExportAction("CSV");
   addExportAction("TSV");
+  addExportAction("JSON");
 
   exportMenu->addActions(exportActionGroup->actions());
 
@@ -507,6 +508,8 @@ exportSlot(QAction *action)
     CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::CSV);
   else if (type == "TSV")
     CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::TSV);
+  else if (type == "JSON")
+    CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::JSON);
   else {
     std::cerr << "Invalid export type '" << type.toStdString() << "'\n";
   }

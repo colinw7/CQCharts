@@ -6,10 +6,10 @@ CQTsvModel()
 {
   setObjectName("tsvModel");
 
+  setDataType(CQBaseModelDataType::TSV);
+
   // default read only
   setReadOnly(true);
-
-  setDataType(CQBaseModelDataType::TSV);
 }
 
 bool
@@ -29,7 +29,9 @@ load(const QString &filename)
   if (! tsv.load())
     return false;
 
-  // header data and rows
+  //---
+
+  // get header data and rows from tsv
   const CTsv::Fields &header = tsv.header();
   const CTsv::Data   &data   = tsv.data();
 
@@ -73,7 +75,7 @@ load(const QString &filename)
 
   // add fields to model
   for (const auto &fields : data) {
-    Cells cells;
+    Cells   cells;
     QString vheader;
 
     int i = 0;
@@ -87,12 +89,19 @@ load(const QString &filename)
       ++i;
     }
 
-    if (acceptsRow(cells)) {
-      if (isFirstColumnHeader())
-        vheader_.push_back(vheader);
+    //---
 
-      data_.push_back(cells);
-    }
+    // skip row if not accepted by model
+    if (! acceptsRow(cells))
+      continue;
+
+    //---
+
+    // add row vertical header and cells to model
+    if (isFirstColumnHeader())
+      vheader_.push_back(vheader);
+
+    data_.push_back(cells);
   }
 
   //---
@@ -105,6 +114,7 @@ load(const QString &filename)
 
   //---
 
+  // clear column types
   resetColumnTypes();
 
   return true;
@@ -176,6 +186,8 @@ save(QAbstractItemModel *model, std::ostream &os)
     os << "\n";
   }
 
+  //---
+
   // output rows
   for (int r = 0; r < nr; ++r) {
     bool output = false;
@@ -237,6 +249,6 @@ QString
 CQTsvModel::
 encodeString(const QString &str)
 {
-  // TOD0: handle tab in string
+  // TODO: handle tab in string
   return str;
 }

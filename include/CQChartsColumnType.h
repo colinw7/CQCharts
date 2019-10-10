@@ -135,9 +135,10 @@ class CQChartsColumnType {
   CQChartsModelColumnDetails *columnDetails(CQCharts *charts, const QAbstractItemModel *model,
                                             const CQChartsColumn &column) const;
 
-  CQChartsColor      drawColor(const CQChartsNameValues &nameValues) const;
-  DrawType           drawType (const CQChartsNameValues &nameValues) const;
-  CQChartsColorStops drawStops(const CQChartsNameValues &nameValues) const;
+  int                preferredWidth(const CQChartsNameValues &nameValues) const;
+  CQChartsColor      drawColor     (const CQChartsNameValues &nameValues) const;
+  DrawType           drawType      (const CQChartsNameValues &nameValues) const;
+  CQChartsColorStops drawStops     (const CQChartsNameValues &nameValues) const;
 
   bool nameValueString(const CQChartsNameValues &nameValues,
                        const QString &name, QString &value) const;

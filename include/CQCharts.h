@@ -62,10 +62,12 @@ class CQPropertyViewItem;
  *   + \ref CQChartsImagePlot
  *   + \ref CQChartsParallelPlot
  *   + \ref CQChartsPiePlot
+ *   + \ref CQChartsPivotPlot
  *   + \ref CQChartsRadarPlot
  *   + \ref CQChartsSankeyPlot
  *   + \ref CQChartsScatterPlot
  *   + \ref CQChartsSunburstPlot
+ *   + \ref CQChartsTablePlot
  *   + \ref CQChartsTreeMapPlot
  *   + \ref CQChartsXYPlot
  */

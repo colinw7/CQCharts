@@ -383,7 +383,7 @@ save(QAbstractItemModel *model, std::ostream &os)
       QVariant var = model->headerData(c, Qt::Horizontal);
 
       if (output)
-        os << ",";
+        os << separator().toLatin1();
 
       os << encodeVariant(var, separator());
 
@@ -393,7 +393,7 @@ save(QAbstractItemModel *model, std::ostream &os)
     os << "\n";
   }
 
-  //--
+  //---
 
   // output rows
   for (int r = 0; r < nr; ++r) {
@@ -416,7 +416,7 @@ save(QAbstractItemModel *model, std::ostream &os)
       QVariant var = model->data(ind);
 
       if (output)
-        os << ",";
+        os << separator().toLatin1();
 
       os << encodeVariant(var, separator());
 

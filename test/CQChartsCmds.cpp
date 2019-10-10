@@ -3634,10 +3634,10 @@ createChartsSummaryModelCmd(CQChartsCmdArgs &argv)
     summaryModel->setMaxRows(argv.getParseInt("max_rows", summaryModel->maxRows()));
 
   if (argv.hasParseArg("random"))
-    summaryModel->setRandom(argv.getParseBool("random", summaryModel->isRandom()));
+    summaryModel->setRandomMode(argv.getParseBool("random", summaryModel->isRandomMode()));
 
   if (argv.hasParseArg("sorted"))
-    summaryModel->setSorted(argv.getParseBool("sorted", summaryModel->isSorted()));
+    summaryModel->setSortMode(argv.getParseBool("sorted", summaryModel->isSortMode()));
 
   if (argv.hasParseArg("sort_column"))
     summaryModel->setSortColumn(argv.getParseInt("sort_column", summaryModel->sortColumn()));
@@ -3665,7 +3665,7 @@ createChartsSummaryModelCmd(CQChartsCmdArgs &argv)
   }
 
   if (argv.hasParseArg("paged"))
-    summaryModel->setPaged(argv.getParseBool("paged", summaryModel->isPaged()));
+    summaryModel->setPagedMode(argv.getParseBool("paged", summaryModel->isPagedMode()));
 
   if (argv.hasParseArg("page_size"))
     summaryModel->setPageSize(argv.getParseInt("page_size", summaryModel->pageSize()));
@@ -4924,6 +4924,24 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       for (int i = 0; i < inds.length(); ++i)
         vars.push_back(inds[i]);
+
+      cmdBase_->setCmdRc(vars);
+    }
+    else if (name == "rows") {
+      if (! objectId.length())
+        return errorMsg("Missing object id");
+
+      QList<QModelIndex> inds = plot->getObjectInds(objectId);
+
+      std::set<int> rows;
+
+      for (int i = 0; i < inds.length(); ++i)
+        rows.insert(inds[i].row());
+
+      QVariantList vars;
+
+      for (const auto &r : rows)
+        vars.push_back(QVariant(r));
 
       cmdBase_->setCmdRc(vars);
     }
