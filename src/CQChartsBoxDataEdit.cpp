@@ -2,6 +2,7 @@
 
 #include <CQChartsShapeDataEdit.h>
 #include <CQChartsSidesEdit.h>
+#include <CQChartsMarginEdit.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
@@ -224,7 +225,7 @@ CQChartsBoxDataEdit(QWidget *parent) :
   //--
 
   // margin
-  marginEdit_ = CQUtil::makeWidget<CQRealSpin>("marginEdit");
+  marginEdit_ = CQUtil::makeWidget<CQChartsMarginEdit>("marginEdit");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Margin", marginEdit_, row);
 
@@ -343,7 +344,7 @@ dataToWidgets()
   connectSlots(false);
 
   groupBox_   ->setChecked(data_.isVisible());
-  marginEdit_ ->setValue  (data_.margin());
+  marginEdit_ ->setMargin (data_.margin());
   paddingEdit_->setValue  (data_.padding());
   shapeEdit_  ->setData   (data_.shape());
   sidesEdit_  ->setSides  (data_.borderSides());
@@ -358,7 +359,7 @@ CQChartsBoxDataEdit::
 widgetsToData()
 {
   data_.setVisible    (groupBox_   ->isChecked());
-  data_.setMargin     (marginEdit_ ->value());
+  data_.setMargin     (marginEdit_ ->margin());
   data_.setPadding    (paddingEdit_->value());
   data_.setShape      (shapeEdit_  ->data());
   data_.setBorderSides(sidesEdit_  ->sides());

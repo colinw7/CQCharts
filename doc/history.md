@@ -963,3 +963,10 @@
  + fix some rendering issues with coordinate switch
 # 10/9/2019
  + add table plot
+# 10/13/2019
+ + add pie slice annotation
+ + support smooth for polygon/polyline annotation
+ + support margin for all four sides of box
+ + support labels property for axis
+ + add empty plot type and make model optional
+ + allow pan value to be limited and use to scroll table only to visible range

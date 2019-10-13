@@ -1074,6 +1074,43 @@ inline BBox makeDirBBox(bool flipped, double x1, double y1, double x2, double y2
 
 namespace CQChartsGeom {
 
+class Margin {
+ public:
+  Margin() { }
+
+  Margin(double l) : l_(l), t_(l), r_(l), b_(l) { }
+
+  Margin(double l, double t, double r, double b) : l_(l), t_(t), r_(r), b_(b) { }
+
+  //---
+
+  double left() const { return l_; }
+  void setLeft(double l) { l_ = l; }
+
+  double top() const { return t_; }
+  void setTop(double t) { t_ = t; }
+
+  double right() const { return r_; }
+  void setRight(double r) { r_ = r; }
+
+  double bottom() const { return b_; }
+  void setBottom(double b) { b_ = b; }
+
+  //---
+
+ private:
+  double l_ { 0.0 };
+  double t_ { 0.0 };
+  double r_ { 0.0 };
+  double b_ { 0.0 };
+};
+
+}
+
+//------
+
+namespace CQChartsGeom {
+
 /*!
  * \brief Minimum/Maximum class
  * \ingroup Charts

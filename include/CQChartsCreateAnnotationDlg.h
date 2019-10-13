@@ -8,6 +8,7 @@ class CQChartsPlot;
 class CQChartsPositionEdit;
 class CQChartsRectEdit;
 class CQChartsLengthEdit;
+class CQChartsMarginEdit;
 class CQChartsSidesEdit;
 class CQChartsPolygonEdit;
 class CQChartsSymbolDataEdit;
@@ -52,9 +53,9 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   };
 
   struct RectWidgets : public Widgets {
-    CQChartsRectEdit* rectEdit    { nullptr };
-    CQRealSpin*       marginEdit  { nullptr };
-    CQRealSpin*       paddingEdit { nullptr };
+    CQChartsRectEdit*   rectEdit    { nullptr };
+    CQChartsMarginEdit* marginEdit  { nullptr };
+    CQRealSpin*         paddingEdit { nullptr };
   };
 
   struct EllipseWidgets : public Widgets {

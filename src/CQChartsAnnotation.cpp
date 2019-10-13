@@ -3,9 +3,11 @@
 #include <CQChartsView.h>
 #include <CQChartsArrow.h>
 #include <CQChartsEditHandles.h>
+#include <CQChartsSmooth.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
 #include <CQChartsVariant.h>
+#include <CQChartsArcData.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -612,27 +614,32 @@ CQChartsRectangleAnnotation::
 CQChartsRectangleAnnotation(CQChartsView *view, const CQChartsRect &rectangle) :
  CQChartsAnnotation(view, Type::RECT), rectangle_(rectangle)
 {
-  setObjectName(QString("rectangle.%1").arg(ind()));
-
-  setStroked(true);
-
-  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
+  init();
 }
 
 CQChartsRectangleAnnotation::
 CQChartsRectangleAnnotation(CQChartsPlot *plot, const CQChartsRect &rectangle) :
  CQChartsAnnotation(plot, Type::RECT), rectangle_(rectangle)
 {
-  setObjectName(QString("rectangle.%1").arg(ind()));
-
-  setStroked(true);
-
-  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
+  init();
 }
 
 CQChartsRectangleAnnotation::
 ~CQChartsRectangleAnnotation()
 {
+}
+
+void
+CQChartsRectangleAnnotation::
+init()
+{
+  setObjectName(QString("rectangle.%1").arg(ind()));
+
+  setMargin(CQChartsMargin());
+
+  setStroked(true);
+
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
 void
@@ -729,7 +736,6 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   addProp(path1, "start"    , "", "Rectangle bottom left")->setHidden(true);
   addProp(path1, "end"      , "", "Rectangle top right")->setHidden(true);
   addProp(path1, "margin"   , "", "Rectangle inner margin")->setHidden(true);
-  addProp(path1, "padding"  , "", "Rectangle outer padding")->setHidden(true);
 
   addStrokeFillProperties(model, path1);
 }
@@ -751,13 +757,14 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
   double x1 = bbox.getXMin(), y1 = bbox.getYMin();
   double x2 = bbox.getXMax(), y2 = bbox.getYMax();
 
-  double xp = pixelToWindowWidth (padding());
-  double yp = pixelToWindowHeight(padding());
-  double xm = pixelToWindowWidth (margin ());
-  double ym = pixelToWindowHeight(margin ());
+  // external margin
+  double xlm = lengthParentWidth (margin().left  ());
+  double xrm = lengthParentWidth (margin().right ());
+  double ytm = lengthParentHeight(margin().top   ());
+  double ybm = lengthParentHeight(margin().bottom());
 
-  x1 += xp + xm; y1 += yp + ym;
-  x2 -= xp + xm; y2 -= yp + ym;
+  x1 -= xlm; y1 -= ybm;
+  x2 += xrm; y2 += ytm;
 
   start = QPointF(std::min(x1, x2), std::min(y1, y2));
   end   = QPointF(std::max(x1, x2), std::max(y1, y2));
@@ -778,28 +785,28 @@ draw(CQChartsPaintDevice *device)
   QPointF start = positionToParent(this->start());
   QPointF end   = positionToParent(this->end  ());
 
-  double xp = pixelToWindowWidth (padding());
-  double yp = pixelToWindowHeight(padding());
-  double xm = pixelToWindowWidth (margin ());
-  double ym = pixelToWindowHeight(margin ());
+  // external margin
+  double xlm = lengthParentWidth (margin().left  ());
+  double xrm = lengthParentWidth (margin().right ());
+  double ytm = lengthParentHeight(margin().top   ());
+  double ybm = lengthParentHeight(margin().bottom());
 
   double x1 = std::min(start.x(), end.x());
   double y1 = std::min(start.y(), end.y());
   double x2 = std::max(start.x(), end.x());
   double y2 = std::max(start.y(), end.y());
 
-  double x = x1 - xp - xm; // bottom
-  double y = y1 - yp - ym; // top
-  double w = (x2 - x1) + 2*xp + 2*xm;
-  double h = (y2 - y1) + 2*yp + 2*ym;
+  double x = x1 + xlm; // left
+  double y = y1 + ybm; // bottom
+  double w = (x2 - x1) - xlm - xrm;
+  double h = (y2 - y1) - ytm - ybm;
 
   bbox_ = CQChartsGeom::BBox(x, y, x + w, y + h);
 
   //---
 
   // set pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor bgColor     = interpFillColor  (ColorInd());
   QColor strokeColor = interpStrokeColor(ColorInd());
@@ -809,15 +816,15 @@ draw(CQChartsPaintDevice *device)
     strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
   }
 
-  setPen  (pen  , true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-  setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
+  setPen  (penBrush.pen  , true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  setBrush(penBrush.brush, true, bgColor, fillAlpha(), fillPattern());
 
-  updatePenBrushState(pen, brush);
+  updatePenBrushState(penBrush);
 
   //---
 
   // draw box
-  CQChartsBoxObj::draw(device, bbox_.qrect(), pen, brush);
+  CQChartsBoxObj::draw(device, bbox_.qrect(), penBrush.pen, penBrush.brush);
 
   //---
 
@@ -844,11 +851,8 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
     os << " -rectangle {" << rectangle().toString().toStdString() << "}";
 
 #if 0
-  if (margin() != 0.0)
-    os << " -margin "  << margin ();
-
-  if (padding() != 0.0)
-    os << " -padding " << padding();
+  if (margin().isValid())
+    os << " -margin " << margin().toString();
 #endif
 
 #if 0
@@ -986,8 +990,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor bgColor     = interpFillColor  (ColorInd());
   QColor strokeColor = interpStrokeColor(ColorInd());
@@ -997,10 +1000,10 @@ draw(CQChartsPaintDevice *device)
     strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
   }
 
-  setPen  (pen  , isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-  setBrush(brush, isFilled (), bgColor, fillAlpha(), fillPattern());
+  setPen  (penBrush.pen  , isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  setBrush(penBrush.brush, isFilled (), bgColor, fillAlpha(), fillPattern());
 
-  updatePenBrushState(pen, brush);
+  updatePenBrushState(penBrush);
 
   //---
 
@@ -1012,8 +1015,8 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw path
-  device->fillPath  (path, brush);
-  device->strokePath(path, pen  );
+  device->fillPath  (path, penBrush.brush);
+  device->strokePath(path, penBrush.pen  );
 
   //---
 
@@ -1064,17 +1067,26 @@ CQChartsPolygonAnnotation::
 CQChartsPolygonAnnotation(CQChartsView *view, const CQChartsPolygon &polygon) :
  CQChartsAnnotation(view, Type::POLYGON), polygon_(polygon)
 {
-  setObjectName(QString("polygon.%1").arg(ind()));
-
-  setStroked(true);
-
-  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
+  init();
 }
 
 CQChartsPolygonAnnotation::
 CQChartsPolygonAnnotation(CQChartsPlot *plot, const CQChartsPolygon &polygon) :
  CQChartsAnnotation(plot, Type::POLYGON), polygon_(polygon)
 {
+  init();
+}
+
+CQChartsPolygonAnnotation::
+~CQChartsPolygonAnnotation()
+{
+  delete smooth_;
+}
+
+void
+CQChartsPolygonAnnotation::
+init()
+{
   setObjectName(QString("polygon.%1").arg(ind()));
 
   setStroked(true);
@@ -1082,9 +1094,11 @@ CQChartsPolygonAnnotation(CQChartsPlot *plot, const CQChartsPolygon &polygon) :
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
+void
 CQChartsPolygonAnnotation::
-~CQChartsPolygonAnnotation()
+setRoundedLines(bool b)
 {
+  CQChartsUtil::testAndSet(roundedLines_, b, [&]() { invalidate(); } );
 }
 
 void
@@ -1100,7 +1114,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "polygon", "", "Polygon points");
+  addProp(path1, "polygon"     , ""       , "Polygon points");
+  addProp(path1, "roundedLines", "rounded", "Smooth lines");
 
   addStrokeFillProperties(model, path1);
 }
@@ -1135,6 +1150,8 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
   bbox_    = bbox;
 }
 
+//---
+
 bool
 CQChartsPolygonAnnotation::
 inside(const CQChartsGeom::Point &p) const
@@ -1149,10 +1166,11 @@ CQChartsPolygonAnnotation::
 draw(CQChartsPaintDevice *device)
 {
   const QPolygonF &polygon = polygon_.polygon();
+  if (! polygon.size()) return;
 
-  if (! polygon.size())
-    return;
+  //---
 
+  // calc bbox
   double x1 = polygon[0].x();
   double y1 = polygon[0].y();
   double x2 = x1;
@@ -1170,8 +1188,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor bgColor     = interpFillColor  (ColorInd());
   QColor strokeColor = interpStrokeColor(ColorInd());
@@ -1181,33 +1198,55 @@ draw(CQChartsPaintDevice *device)
     strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
   }
 
-  setPen  (pen  , isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-  setBrush(brush, isFilled (), bgColor, fillAlpha(), fillPattern());
+  setPen  (penBrush.pen  , isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  setBrush(penBrush.brush, isFilled (), bgColor, fillAlpha(), fillPattern());
 
-  updatePenBrushState(pen, brush);
+  updatePenBrushState(penBrush);
 
   //---
 
   // create path
   QPainterPath path;
 
-  path.moveTo(polygon[0].x(), polygon[0].y());
+  if (isRoundedLines()) {
+    initSmooth();
 
-  for (int i = 1; i < polygon.size(); ++i)
-    path.lineTo(polygon[i].x(), polygon[i].y());
+    // draw path
+    path = smooth_->createPath(/*closed*/true);
+  }
+  else {
+    path.moveTo(polygon[0]);
 
-  path.closeSubpath();
+    for (int i = 1; i < polygon.size(); ++i)
+      path.lineTo(polygon[i]);
+
+    path.closeSubpath();
+  }
 
   //---
 
-  // draw path
-  device->fillPath  (path, brush);
-  device->strokePath(path, pen  );
+  // draw filled path
+  device->fillPath  (path, penBrush.brush);
+  device->strokePath(path, penBrush.pen  );
 
   //---
 
   // draw base class
   CQChartsAnnotation::draw(device);
+}
+
+void
+CQChartsPolygonAnnotation::
+initSmooth() const
+{
+  // init smooth if needed
+  if (! smooth_) {
+    CQChartsPolygonAnnotation *th = const_cast<CQChartsPolygonAnnotation *>(this);
+
+    const QPolygonF &polygon = polygon_.polygon();
+
+    th->smooth_ = new CQChartsSmooth(polygon, /*sorted*/false);
+  }
 }
 
 void
@@ -1238,17 +1277,26 @@ CQChartsPolylineAnnotation::
 CQChartsPolylineAnnotation(CQChartsView *view, const CQChartsPolygon &polygon) :
  CQChartsAnnotation(view, Type::POLYLINE), polygon_(polygon)
 {
-  setObjectName(QString("polyline.%1").arg(ind()));
-
-  setStroked(true);
-
-  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
+  init();
 }
 
 CQChartsPolylineAnnotation::
 CQChartsPolylineAnnotation(CQChartsPlot *plot, const CQChartsPolygon &polygon) :
  CQChartsAnnotation(plot, Type::POLYLINE), polygon_(polygon)
 {
+  init();
+}
+
+CQChartsPolylineAnnotation::
+~CQChartsPolylineAnnotation()
+{
+  delete smooth_;
+}
+
+void
+CQChartsPolylineAnnotation::
+init()
+{
   setObjectName(QString("polyline.%1").arg(ind()));
 
   setStroked(true);
@@ -1256,9 +1304,11 @@ CQChartsPolylineAnnotation(CQChartsPlot *plot, const CQChartsPolygon &polygon) :
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
+void
 CQChartsPolylineAnnotation::
-~CQChartsPolylineAnnotation()
+setRoundedLines(bool b)
 {
+  CQChartsUtil::testAndSet(roundedLines_, b, [&]() { invalidate(); } );
 }
 
 void
@@ -1274,7 +1324,8 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  addProp(path1, "polygon", "", "Polyline points");
+  addProp(path1, "polygon"     , ""       , "Polyline points");
+  addProp(path1, "roundedLines", "rounded", "Smooth lines");
 
   addStrokeProperties(model, path1 + "/stroke");
 }
@@ -1309,6 +1360,8 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
   bbox_    = bbox;
 }
 
+//---
+
 bool
 CQChartsPolylineAnnotation::
 inside(const CQChartsGeom::Point &p) const
@@ -1318,13 +1371,8 @@ inside(const CQChartsGeom::Point &p) const
   const QPolygonF &polygon = polygon_.polygon();
 
   for (int i = 1; i < polygon.size(); ++i) {
-    double x1 = polygon[i - 1].x();
-    double y1 = polygon[i - 1].y();
-    double x2 = polygon[i    ].x();
-    double y2 = polygon[i    ].y();
-
-    CQChartsGeom::Point pl1 = windowToPixel(CQChartsGeom::Point(x1, y1));
-    CQChartsGeom::Point pl2 = windowToPixel(CQChartsGeom::Point(x2, y2));
+    CQChartsGeom::Point pl1 = windowToPixel(CQChartsGeom::Point(polygon[i - 1]));
+    CQChartsGeom::Point pl2 = windowToPixel(CQChartsGeom::Point(polygon[i    ]));
 
     double d;
 
@@ -1340,10 +1388,11 @@ CQChartsPolylineAnnotation::
 draw(CQChartsPaintDevice *device)
 {
   const QPolygonF &polygon = polygon_.polygon();
+  if (! polygon.size()) return;
 
-  if (! polygon.size())
-    return;
+  //---
 
+  // calc bbox
   double x1 = polygon[0].x();
   double y1 = polygon[0].y();
   double x2 = x1;
@@ -1372,10 +1421,18 @@ draw(CQChartsPaintDevice *device)
   // create path
   QPainterPath path;
 
-  path.moveTo(polygon[0].x(), polygon[0].y());
+  if (isRoundedLines()) {
+    initSmooth();
 
-  for (int i = 1; i < polygon.size(); ++i)
-    path.lineTo(polygon[i].x(), polygon[i].y());
+    // draw path
+    path = smooth_->createPath(/*closed*/false);
+  }
+  else {
+    path.moveTo(polygon[0]);
+
+    for (int i = 1; i < polygon.size(); ++i)
+      path.lineTo(polygon[i]);
+  }
 
   //---
 
@@ -1386,6 +1443,20 @@ draw(CQChartsPaintDevice *device)
 
   // draw base class
   CQChartsAnnotation::draw(device);
+}
+
+void
+CQChartsPolylineAnnotation::
+initSmooth() const
+{
+  // init smooth if needed
+  if (! smooth_) {
+    CQChartsPolylineAnnotation *th = const_cast<CQChartsPolylineAnnotation *>(this);
+
+    const QPolygonF &polygon = polygon_.polygon();
+
+    th->smooth_ = new CQChartsSmooth(polygon, /*sorted*/false);
+  }
 }
 
 void
@@ -1656,11 +1727,15 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
     setRectangle(rect);
   }
   else {
-    // get padding and margin
+    // get internal padding
     double xp = pixelToWindowWidth (padding());
     double yp = pixelToWindowHeight(padding());
-    double xm = pixelToWindowWidth (margin ());
-    double ym = pixelToWindowHeight(margin ());
+
+    // get external margin
+    double xlm = lengthParentWidth (margin().left  ());
+    double xrm = lengthParentWidth (margin().right ());
+    double ytm = lengthParentHeight(margin().top   ());
+    double ybm = lengthParentHeight(margin().bottom());
 
     //---
 
@@ -1668,23 +1743,23 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
     double x1, y1;
 
     if      (textAlign() & Qt::AlignLeft)
-      x1 = bbox.getXMin() + xp + xm;
+      x1 = bbox.getXMin() + xp + xlm;
     else if (textAlign() & Qt::AlignRight)
-      x1 = bbox.getXMax() - xp - xm;
+      x1 = bbox.getXMax() - xp - xrm;
     else
       x1 = bbox.getXMid();
 
     if      (textAlign() & Qt::AlignBottom)
-      y1 = bbox.getYMin() + yp + ym;
+      y1 = bbox.getYMin() + yp + ybm;
     else if (textAlign() & Qt::AlignTop)
-      y1 = bbox.getYMax() - yp - ym;
+      y1 = bbox.getYMax() - yp - ytm;
     else
       y1 = bbox.getYMid();
 
     CQChartsGeom::Point ll(x1, y1);
 
-    //double x2 = x1 + bbox.getWidth () - 2*xp - 2*xm;
-    //double y2 = y1 + bbox.getHeight() - 2*yp - 2*ym;
+    //double x2 = x1 + bbox.getWidth () - 2*xp - xlm - xrm;
+    //double y2 = y1 + bbox.getHeight() - 2*yp - ybm - xtm;
 
     //CQChartsGeom::Point ur(x2, y2);
 
@@ -1726,22 +1801,20 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor c = interpColor(textColor(), ColorInd());
 
   if (isCheckable() && ! isChecked())
     c = CQChartsUtil::blendColors(backgroundColor(), c, 0.5);
 
-  setPen(pen, true, c, textAlpha());
+  setPen(penBrush.pen, true, c, textAlpha());
 
-  brush.setStyle(Qt::NoBrush);
+  penBrush.brush.setStyle(Qt::NoBrush);
 
-  updatePenBrushState(pen, brush);
+  updatePenBrushState(penBrush);
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -1767,10 +1840,16 @@ draw(CQChartsPaintDevice *device)
   // set box
   CQChartsGeom::BBox prect = windowToPixel(bbox_);
 
-  double tx =          prect.getXMin  () +   margin() +   padding();
-  double ty =          prect.getYMin  () +   margin() +   padding();
-  double tw = std::max(prect.getWidth () - 2*margin() - 2*padding(), 0.0);
-  double th = std::max(prect.getHeight() - 2*margin() - 2*padding(), 0.0);
+  // get external margin
+  double xlm = lengthParentWidth (margin().left  ());
+  double xrm = lengthParentWidth (margin().right ());
+  double ytm = lengthParentHeight(margin().top   ());
+  double ybm = lengthParentHeight(margin().bottom());
+
+  double tx =          prect.getXMin  () +       xlm +   padding();
+  double ty =          prect.getYMin  () +       ybm +   padding();
+  double tw = std::max(prect.getWidth () - xlm - xrm - 2*padding(), 0.0);
+  double th = std::max(prect.getHeight() - ybm - ytm - 2*padding(), 0.0);
 
   QRectF trect(tx, ty, tw, th);
 
@@ -1816,10 +1895,15 @@ positionToBBox()
 {
   assert(! rectangle().isSet());
 
+  // get internal padding
   double xp = pixelToWindowWidth (padding());
   double yp = pixelToWindowHeight(padding());
-  double xm = pixelToWindowWidth (margin ());
-  double ym = pixelToWindowHeight(margin ());
+
+  // get external margin
+  double xlm = lengthParentWidth (margin().left  ());
+  double xrm = lengthParentWidth (margin().right ());
+  double ytm = lengthParentHeight(margin().top   ());
+  double ybm = lengthParentHeight(margin().bottom());
 
   QSizeF psize, wsize;
 
@@ -1829,8 +1913,8 @@ positionToBBox()
 
   positionToLL(wsize.width(), wsize.height(), x, y);
 
-  CQChartsGeom::Point ll(x                 - xp - xm, y                  - yp - ym);
-  CQChartsGeom::Point ur(x + wsize.width() + xp + xm, y + wsize.height() + yp + ym);
+  CQChartsGeom::Point ll(x                 - xp - xlm, y                  - yp - ybm);
+  CQChartsGeom::Point ur(x + wsize.width() + xp + xrm, y + wsize.height() + yp + ytm);
 
   bbox_ = CQChartsGeom::BBox(ll, ur);
 }
@@ -2147,10 +2231,16 @@ draw(CQChartsPaintDevice *device)
   // set box
   CQChartsGeom::BBox prect = windowToPixel(bbox_);
 
-  double tx =          prect.getXMin  () +   margin() +   padding();
-  double ty =          prect.getYMin  () +   margin() +   padding();
-  double tw = std::max(prect.getWidth () - 2*margin() - 2*padding(), 0.0);
-  double th = std::max(prect.getHeight() - 2*margin() - 2*padding(), 0.0);
+  // get external margin
+  double xlm = lengthParentWidth (margin().left  ());
+  double xrm = lengthParentWidth (margin().right ());
+  double ytm = lengthParentHeight(margin().top   ());
+  double ybm = lengthParentHeight(margin().bottom());
+
+  double tx =          prect.getXMin  () +       xlm +   padding();
+  double ty =          prect.getYMin  () +       ybm +   padding();
+  double tw = std::max(prect.getWidth () - xlm - xrm - 2*padding(), 0.0);
+  double th = std::max(prect.getHeight() - ybm - ytm - 2*padding(), 0.0);
 
   QRectF trect(tx, ty, tw, th);
 
@@ -2227,10 +2317,15 @@ positionToBBox()
 {
   assert(! rectangle().isSet());
 
+  // get internal padding
   double xp = pixelToWindowWidth (padding());
   double yp = pixelToWindowHeight(padding());
-  double xm = pixelToWindowWidth (margin ());
-  double ym = pixelToWindowHeight(margin ());
+
+  // get external margin
+  double xlm = lengthParentWidth (margin().left  ());
+  double xrm = lengthParentWidth (margin().right ());
+  double ytm = lengthParentHeight(margin().top   ());
+  double ybm = lengthParentHeight(margin().bottom());
 
   QSizeF psize, wsize;
 
@@ -2240,8 +2335,8 @@ positionToBBox()
 
   positionToLL(wsize.width(), wsize.height(), x, y);
 
-  CQChartsGeom::Point ll(x                 - xp - xm, y                  - yp - ym);
-  CQChartsGeom::Point ur(x + wsize.width() + xp + xm, y + wsize.height() + yp + ym);
+  CQChartsGeom::Point ll(x                 - xp - xlm, y                  - yp - ybm);
+  CQChartsGeom::Point ur(x + wsize.width() + xp + xrm, y + wsize.height() + yp + ytm);
 
   bbox_ = CQChartsGeom::BBox(ll, ur);
 }
@@ -2448,13 +2543,18 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
   double x1 = bbox.getXMin(), y1 = bbox.getYMin();
   double x2 = bbox.getXMax(), y2 = bbox.getYMax();
 
+  // get internal padding
   double xp = pixelToWindowWidth (padding());
   double yp = pixelToWindowHeight(padding());
-  double xm = pixelToWindowWidth (margin ());
-  double ym = pixelToWindowHeight(margin ());
 
-  x1 += xp + xm; y1 += yp + ym;
-  x2 -= xp + xm; y2 -= yp + ym;
+  // get external margin
+  double xlm = lengthParentWidth (margin().left  ());
+  double xrm = lengthParentWidth (margin().right ());
+  double ytm = lengthParentHeight(margin().top   ());
+  double ybm = lengthParentHeight(margin().bottom());
+
+  x1 += xp + xlm; y1 += yp + ybm;
+  x2 -= xp + xrm; y2 -= yp + ytm;
 
   if (start.x() > end.x()) std::swap(x1, x2);
   if (start.y() > end.y()) std::swap(y1, y2);
@@ -2485,20 +2585,25 @@ draw(CQChartsPaintDevice *device)
   QPointF start = positionToParent(start_);
   QPointF end   = positionToParent(end_  );
 
+  // get internal padding
   double xp = pixelToWindowWidth (padding());
   double yp = pixelToWindowHeight(padding());
-  double xm = pixelToWindowWidth (margin ());
-  double ym = pixelToWindowHeight(margin ());
+
+  // get external margin
+  double xlm = lengthParentWidth (margin().left  ());
+  double xrm = lengthParentWidth (margin().right ());
+  double ytm = lengthParentHeight(margin().top   ());
+  double ybm = lengthParentHeight(margin().bottom());
 
   double x1 = std::min(start.x(), end.x());
   double y1 = std::min(start.y(), end.y());
   double x2 = std::max(start.x(), end.x());
   double y2 = std::max(start.y(), end.y());
 
-  double x = x1 - xp - xm; // bottom
-  double y = y1 - yp - ym; // top
-  double w = (x2 - x1) + 2*xp + 2*xm;
-  double h = (y2 - y1) + 2*yp + 2*ym;
+  double x = x1 - xp - xlm; // left
+  double y = y1 - yp - ybm; // bottom
+  double w = (x2 - x1) + 2*xp + xlm + xrm;
+  double h = (y2 - y1) + 2*yp + ybm + ytm;
 
   bbox_ = CQChartsGeom::BBox(x, y, x + w, y + h);
 
@@ -2509,8 +2614,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // set pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor bgColor     = arrow()->interpFillColor  (ColorInd());
   QColor strokeColor = arrow()->interpStrokeColor(ColorInd());
@@ -2520,12 +2624,12 @@ draw(CQChartsPaintDevice *device)
     strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
   }
 
-  setPen  (pen  , arrow()->isStroked(),
+  setPen  (penBrush.pen  , arrow()->isStroked(),
            strokeColor, arrow()->strokeAlpha(), 1.0, CQChartsLineDash());
-  setBrush(brush, arrow()->isFilled (),
+  setBrush(penBrush.brush, arrow()->isFilled (),
            bgColor, arrow()->fillAlpha(), arrow()->fillPattern());
 
-  updatePenBrushState(pen, brush);
+  updatePenBrushState(penBrush);
 
   //---
 
@@ -2535,7 +2639,7 @@ draw(CQChartsPaintDevice *device)
   arrow()->setFrom(start);
   arrow()->setTo  (end  );
 
-  arrow()->draw(device, pen, brush);
+  arrow()->draw(device, penBrush.pen, penBrush.brush);
 
   connect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
 
@@ -2797,18 +2901,23 @@ draw(CQChartsPaintDevice *device)
 
   QPointF position = positionToParent(position_);
 
+  // get internal padding
   double xp = pixelToWindowWidth (padding());
   double yp = pixelToWindowHeight(padding());
-  double xm = pixelToWindowWidth (margin ());
-  double ym = pixelToWindowHeight(margin ());
+
+  // get external margin
+  double xlm = lengthParentWidth (margin().left  ());
+  double xrm = lengthParentWidth (margin().right ());
+  double ytm = lengthParentHeight(margin().top   ());
+  double ybm = lengthParentHeight(margin().bottom());
 
   double sw = lengthParentWidth (symbolData.size());
   double sh = lengthParentHeight(symbolData.size());
 
-  double x = position.x() - xp - xm; // bottom
-  double y = position.y() - yp - ym; // top
-  double w = sw + 2*xp + 2*xm;
-  double h = sh + 2*yp + 2*ym;
+  double w = sw + 2*xp + xlm + xrm;
+  double h = sh + 2*yp + ybm + ytm;
+  double x = position.x() - w/2.0; // left
+  double y = position.y() - h/2.0; // bottom
 
   bbox_ = CQChartsGeom::BBox(x, y, x + w, y + h);
 
@@ -2827,8 +2936,7 @@ draw(CQChartsPaintDevice *device)
   const CQChartsFillData   &fillData   = symbolData.fill();
 
   // set pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor lineColor = interpColor(strokeData.color(), ColorInd());
   QColor fillColor = interpColor(fillData  .color(), ColorInd());
@@ -2838,14 +2946,13 @@ draw(CQChartsPaintDevice *device)
     fillColor = CQChartsUtil::blendColors(backgroundColor(), fillColor, 0.5);
   }
 
-  setPen  (pen  , strokeData.isVisible(), lineColor, strokeData.alpha(),
+  setPen  (penBrush.pen  , strokeData.isVisible(), lineColor, strokeData.alpha(),
            strokeData.width(), strokeData.dash());
-  setBrush(brush, fillData.isVisible(), fillColor, fillData.alpha(), fillData.pattern());
+  setBrush(penBrush.brush, fillData.isVisible(), fillColor, fillData.alpha(), fillData.pattern());
 
-  updatePenBrushState(pen, brush, CQChartsPlot::DrawType::SYMBOL);
+  updatePenBrushState(penBrush, CQChartsPlot::DrawType::SYMBOL);
 
-  device->setPen  (pen);
-  device->setBrush(brush);
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   //---
 
@@ -2900,6 +3007,185 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   if (strokeWidth().isSet())
     os << " -stroke_width {" << strokeWidth().toString().toStdString() << "}";
 #endif
+
+  os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
+}
+
+//---
+
+CQChartsPieSliceAnnotation::
+CQChartsPieSliceAnnotation(CQChartsView *view, const CQChartsPosition &position,
+                           const CQChartsLength &innerRadius, const CQChartsLength &outerRadius,
+                           double startAngle, double spanAngle) :
+ CQChartsAnnotation(view, Type::PIE_SLICE), position_(position),
+ innerRadius_(innerRadius), outerRadius_(outerRadius),
+ startAngle_(startAngle), spanAngle_(spanAngle)
+{
+  init();
+}
+
+CQChartsPieSliceAnnotation::
+CQChartsPieSliceAnnotation(CQChartsPlot *plot, const CQChartsPosition &position,
+                           const CQChartsLength &innerRadius, const CQChartsLength &outerRadius,
+                           double startAngle, double spanAngle) :
+ CQChartsAnnotation(plot, Type::PIE_SLICE), position_(position),
+ innerRadius_(innerRadius), outerRadius_(outerRadius),
+ startAngle_(startAngle), spanAngle_(spanAngle)
+{
+  init();
+}
+
+CQChartsPieSliceAnnotation::
+~CQChartsPieSliceAnnotation()
+{
+}
+
+void
+CQChartsPieSliceAnnotation::
+init()
+{
+  setObjectName(QString("pie_slice.%1").arg(ind()));
+
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
+}
+
+void
+CQChartsPieSliceAnnotation::
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  QString path1 = path + "/" + propertyId();
+
+  CQChartsAnnotation::addProperties(model, path1);
+
+  addProp(path1, "position"   , "", "Pie slice position");
+  addProp(path1, "innerRadius", "", "Pie slice inner radius");
+  addProp(path1, "outerRadius", "", "Pie slice outer radius");
+  addProp(path1, "startAngle" , "", "Pie slice start angle");
+  addProp(path1, "spanAngle"  , "", "Pie slice span angle");
+
+  addStrokeFillProperties(model, path1);
+}
+
+QString
+CQChartsPieSliceAnnotation::
+propertyId() const
+{
+  return QString("pieSliceAnnotation%1").arg(ind());
+}
+
+void
+CQChartsPieSliceAnnotation::
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
+{
+  QPointF position = positionToParent(position_);
+
+  double dx = bbox.getXMin() - bbox_.getXMin();
+  double dy = bbox.getYMin() - bbox_.getYMin();
+
+  position += QPointF(dx, dy);
+
+  position_ = CQChartsPosition(position);
+
+  bbox_ = bbox;
+}
+
+bool
+CQChartsPieSliceAnnotation::
+inside(const CQChartsGeom::Point &p) const
+{
+  CQChartsArcData arcData;
+
+  QPointF c = positionToParent(position_);
+
+  arcData.setCenter(CQChartsGeom::Point(c));
+
+  arcData.setInnerRadius(lengthParentWidth(innerRadius()));
+  arcData.setOuterRadius(lengthParentWidth(outerRadius()));
+
+  arcData.setAngle1(startAngle());
+  arcData.setAngle2(startAngle() + spanAngle());
+
+  return arcData.inside(p);
+}
+
+void
+CQChartsPieSliceAnnotation::
+draw(CQChartsPaintDevice *device)
+{
+  // calc box
+  QPointF position = positionToParent(position_);
+
+  double xri = lengthParentWidth (innerRadius());
+  double yri = lengthParentHeight(innerRadius());
+
+  double xro = lengthParentWidth (outerRadius());
+  double yro = lengthParentHeight(outerRadius());
+
+  CQChartsGeom::Point c(position);
+
+  bbox_ = CQChartsGeom::BBox(c.x - xro, c.y - yro, c.x + xro, c.y + yro);
+
+  //---
+
+  // set pen and brush
+  CQChartsPenBrush penBrush;
+
+  QColor bgColor     = interpFillColor  (ColorInd());
+  QColor strokeColor = interpStrokeColor(ColorInd());
+
+  if (isCheckable() && ! isChecked()) {
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+  }
+
+  setPen  (penBrush.pen  , true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  setBrush(penBrush.brush, true, bgColor, fillAlpha(), fillPattern());
+
+  updatePenBrushState(penBrush);
+
+  //---
+
+  // draw pie slice
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  CQChartsDrawUtil::drawPieSlice(device, c, CMathUtil::avg(xri, yri), CMathUtil::avg(xro, yro),
+                                 startAngle(), startAngle() + spanAngle(),
+                                 false, false);
+
+  //---
+
+  // draw base class
+  CQChartsAnnotation::draw(device);
+}
+
+void
+CQChartsPieSliceAnnotation::
+write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+{
+  // -view/-plot -id -tip
+  writeKeys(os, "create_charts_pie_slice_annotation", parentVarName, varName);
+
+  if (position().isSet())
+    os << " -position {" << position().toString().toStdString() << "}";
+
+  if (innerRadius().isValid())
+    os << " -inner_radius {" << innerRadius().toString().toStdString() << "}";
+
+  if (outerRadius().isValid())
+    os << " -outer_radius {" << outerRadius().toString().toStdString() << "}";
+
+  os << " -start_angle " << startAngle();
+
+  os << " -span_angle " << spanAngle();
 
   os << "]\n";
 

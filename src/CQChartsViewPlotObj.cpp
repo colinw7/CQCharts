@@ -54,12 +54,12 @@ setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
 
 void
 CQChartsViewPlotObj::
-updatePenBrushState(QPen &pen, QBrush &brush, DrawType drawType) const
+updatePenBrushState(CQChartsPenBrush &penBrush, DrawType drawType) const
 {
   if      (plot())
-    plot()->updateObjPenBrushState(this, pen, brush, drawType);
+    plot()->updateObjPenBrushState(this, penBrush, drawType);
   else if (view())
-    view()->updateObjPenBrushState(this, pen, brush, drawType);
+    view()->updateObjPenBrushState(this, penBrush.pen, penBrush.brush, drawType);
 }
 
 //---

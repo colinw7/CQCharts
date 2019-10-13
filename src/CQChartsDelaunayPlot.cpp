@@ -433,7 +433,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
   if (isPoints()) {
     CQChartsPenBrush penBrush;
 
-    setSymbolPenBrush(penBrush.pen, penBrush.brush, ColorInd());
+    setSymbolPenBrush(penBrush, ColorInd());
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -559,7 +559,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsPenBrush penBrush;
 
-  plot_->setSymbolPenBrush(penBrush.pen, penBrush.brush, colorInd);
+  plot_->setSymbolPenBrush(penBrush, colorInd);
 
   plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 

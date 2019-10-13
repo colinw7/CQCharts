@@ -27,6 +27,7 @@ class CQChartsAnnotation;
 class CQChartsArrowAnnotation;
 class CQChartsEllipseAnnotation;
 class CQChartsImageAnnotation;
+class CQChartsPieSliceAnnotation;
 class CQChartsPointAnnotation;
 class CQChartsPolygonAnnotation;
 class CQChartsPolylineAnnotation;
@@ -420,6 +421,10 @@ class CQChartsView : public QFrame,
                                                       const QImage &image);
   CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsRect &rect,
                                                       const QImage &image);
+  CQChartsPieSliceAnnotation  *addPieSliceAnnotation (const CQChartsPosition &pos,
+                                                      const CQChartsLength &innerRadius,
+                                                      const CQChartsLength &outerRadius,
+                                                      double startAngle, double spanAngle);
   CQChartsPointAnnotation     *addPointAnnotation    (const CQChartsPosition &pos,
                                                       const CQChartsSymbol &type);
   CQChartsPolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
@@ -860,7 +865,10 @@ class CQChartsView : public QFrame,
   void invertXSlot(bool);
   void invertYSlot(bool);
 
+  //---
+
   void fitSlot();
+  void zoomFullSlot();
 
   //---
 

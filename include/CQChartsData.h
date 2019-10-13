@@ -3,7 +3,7 @@
 
 #include <CQChartsColor.h>
 #include <CQChartsFont.h>
-#include <CQChartsLength.h>
+#include <CQChartsMargin.h>
 #include <CQChartsPosition.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsLineDash.h>
@@ -329,8 +329,8 @@ class CQChartsBoxData {
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
-  double margin() const { return margin_; }
-  void setMargin(double r) { margin_ = r; }
+  const CQChartsMargin &margin() const { return margin_; }
+  void setMargin(const CQChartsMargin &m) { margin_ = m; }
 
   double padding() const { return padding_; }
   void setPadding(double r) { padding_ = r; }
@@ -353,11 +353,11 @@ class CQChartsBoxData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool              visible_     { true };   //!< draw box
-  double            margin_      { 4 };      //!< inside margin (pixels)
-  double            padding_     { 0 };      //!< outside margin (pixels)
-  CQChartsShapeData shape_;                  //!< shape data
-  CQChartsSides     borderSides_ { "tlbr" }; //!< border sides to draw
+  bool              visible_     { true };              //!< draw box
+  CQChartsMargin    margin_      { "4px 0px 4px 0px" }; //!< inside margin (pixels)
+  double            padding_     { 0 };                 //!< outside margin (pixels)
+  CQChartsShapeData shape_;                             //!< shape data
+  CQChartsSides     borderSides_ { "tlbr" };            //!< border sides to draw
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsBoxData)

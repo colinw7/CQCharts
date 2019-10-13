@@ -191,11 +191,15 @@ calcSize()
     QSizeF wsize = plot_->pixelToWindowSize(psize);
 
     // add padding and margin
-    QSizeF paddingSize = plot_->pixelToWindowSize(QSizeF(padding(), padding()));
-    QSizeF marginSize  = plot_->pixelToWindowSize(QSizeF(margin (), margin ()));
+    double xlm = lengthParentWidth (margin().left  ());
+    double xrm = lengthParentWidth (margin().right ());
+    double ytm = lengthParentHeight(margin().top   ());
+    double ybm = lengthParentHeight(margin().bottom());
 
-    size_ = QSizeF(wsize.width () + 2*paddingSize.width () + 2*marginSize.width (),
-                   wsize.height() + 2*paddingSize.height() + 2*marginSize.height());
+    QSizeF paddingSize = plot_->pixelToWindowSize(QSizeF(padding(), padding()));
+
+    size_ = QSizeF(wsize.width () + 2*paddingSize.width () + xlm + xrm,
+                   wsize.height() + 2*paddingSize.height() + ybm + ytm);
   }
   else {
     size_ = QSizeF();
@@ -348,15 +352,19 @@ draw(CQChartsPaintDevice *device)
   }
 
   QSizeF paddingSize = device->pixelToWindowSize(QSizeF(padding(), padding()));
-  QSizeF marginSize  = device->pixelToWindowSize(QSizeF(margin (), margin ()));
+
+  double xlm = device->lengthPixelWidth (margin().left  ());
+  double xrm = device->lengthPixelWidth (margin().right ());
+  double ytm = device->lengthPixelHeight(margin().top   ());
+  double ybm = device->lengthPixelHeight(margin().bottom());
 
   CQChartsGeom::BBox ibbox(x     + paddingSize.width(), y     + paddingSize.height(),
                            x + w - paddingSize.width(), y + h - paddingSize.height());
 
-  CQChartsGeom::BBox tbbox(x + paddingSize.width () + marginSize.width (),
-                           y + paddingSize.height() + marginSize.height(),
-                           x + w - paddingSize.width () - marginSize.width (),
-                           y + h - paddingSize.height() - marginSize.height());
+  CQChartsGeom::BBox tbbox(x + paddingSize.width () + xlm,
+                           y + paddingSize.height() + ybm,
+                           x + w - paddingSize.width () - xlm - xrm,
+                           y + h - paddingSize.height() - ybm - ytm);
 
   //---
 

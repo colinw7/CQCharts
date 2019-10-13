@@ -173,6 +173,14 @@ doLayout()
 
   //---
 
+  // get external margin
+  double xlm = view()->lengthViewWidth (margin().left  ());
+  double xrm = view()->lengthViewWidth (margin().right ());
+  double ytm = view()->lengthViewHeight(margin().top   ());
+  double ybm = view()->lengthViewHeight(margin().bottom());
+
+  //---
+
   double pw = 0.0;
   double ph = 0.0;
 
@@ -183,24 +191,24 @@ doLayout()
 
     QString name = plot->keyText();
 
-    double tw = fm.width(name) + bs + margin();
+    double tw = fm.width(name) + bs + xlm + xrm;
 
     pw = std::max(pw, tw);
 
     ph += bs;
   }
 
-  size_ = QSizeF(pw + 2*margin(), ph + 2*margin()  + (n - 1)*2);
+  size_ = QSizeF(pw + xlm + xrm, ph + ybm + ytm + (n - 1)*2);
 
   double pxr = 0.0, pyr = 0.0;
 
-  if      (location().onLeft   ()) pxr = p.x                   + margin();
+  if      (location().onLeft   ()) pxr = p.x                   + xlm;
   else if (location().onHCenter()) pxr = p.x - size_.width()/2;
-  else if (location().onRight  ()) pxr = p.x - size_.width()   - margin();
+  else if (location().onRight  ()) pxr = p.x - size_.width()   - xrm;
 
-  if      (location().onTop    ()) pyr = p.y                    + margin();
+  if      (location().onTop    ()) pyr = p.y                    + ytm;
   else if (location().onVCenter()) pyr = p.y - size_.height()/2;
-  else if (location().onBottom ()) pyr = p.y - size_.height()   - margin();
+  else if (location().onBottom ()) pyr = p.y - size_.height()   - ybm;
 
   pposition_ = QPointF(pxr, pyr);
   wposition_ = view()->pixelToWindow(pposition_);
@@ -341,12 +349,20 @@ draw(CQChartsPaintDevice *device) const
 
   //---
 
+  // get external margin
+  double xlm = view()->lengthViewWidth (margin().left  ());
+  double xrm = view()->lengthViewWidth (margin().right ());
+  double ytm = view()->lengthViewHeight(margin().top   ());
+  double ybm = view()->lengthViewHeight(margin().bottom());
+
+  //---
+
   view()->setPainterFont(device, textFont());
 
   QFontMetricsF fm(device->font());
 
-  double px1 = px + margin();
-  double py1 = py + margin();
+  double px1 = px + xlm;
+  double py1 = py + ybm;
 
   int n = view()->numPlots();
 
@@ -373,11 +389,11 @@ draw(CQChartsPaintDevice *device) const
 
     QString name = plot->keyText();
 
-    double px2 = px1 + bs + margin();
+    double px2 = px1 + bs + xrm;
 
     //double tw = fm.width(name);
 
-    QRectF rect1(px2, py1, pw - bs - 2*margin(), py2 - py1);
+    QRectF rect1(px2, py1, pw - bs - ybm - ytm, py2 - py1);
 
     CQChartsTextOptions textOptions;
 
@@ -710,11 +726,14 @@ void
 CQChartsPlotKey::
 updateLocation(const CQChartsGeom::BBox &bbox)
 {
+  // get external margin
+  double xlm = plot()->lengthPlotWidth (margin().left  ());
+  double xrm = plot()->lengthPlotWidth (margin().right ());
+  double ytm = plot()->lengthPlotHeight(margin().top   ());
+  double ybm = plot()->lengthPlotHeight(margin().bottom());
+
   // calc key size
   QSizeF ks = calcSize();
-
-  double xm = plot()->pixelToWindowWidth (margin());
-  double ym = plot()->pixelToWindowHeight(margin());
 
   double kx { 0.0 }, ky { 0.0 };
 
@@ -735,34 +754,34 @@ updateLocation(const CQChartsGeom::BBox &bbox)
 
   if      (location().onLeft()) {
     if (isInsideX())
-      kx = bbox.getXMin() + xm;
+      kx = bbox.getXMin() + xlm;
     else
-      kx = bbox.getXMin() - ks.width() - xm;
+      kx = bbox.getXMin() - ks.width() - xlm;
   }
   else if (location().onHCenter()) {
     kx = bbox.getXMid() - ks.width()/2;
   }
   else if (location().onRight()) {
     if (isInsideX())
-      kx = bbox.getXMax() - ks.width() - xm;
+      kx = bbox.getXMax() - ks.width() - xrm;
     else
-      kx = bbox.getXMax() + xm;
+      kx = bbox.getXMax() + xrm;
   }
 
   if      (location().onTop()) {
     if (isInsideY())
-      ky = bbox.getYMax() - ym;
+      ky = bbox.getYMax() - ytm;
     else
-      ky = bbox.getYMax() + ks.height() + ym;
+      ky = bbox.getYMax() + ks.height() + ytm;
   }
   else if (location().onVCenter()) {
     ky = bbox.getYMid() + ks.height()/2;
   }
   else if (location().onBottom()) {
     if (isInsideY())
-      ky = bbox.getYMin() + ks.height() + ym;
+      ky = bbox.getYMin() + ks.height() + ybm;
     else {
-      ky = bbox.getYMin() - ym;
+      ky = bbox.getYMin() - ybm;
 
       CQChartsAxis *xAxis = plot()->xAxis();
 
@@ -1005,8 +1024,10 @@ doLayout()
   xs_ = plot()->pixelToWindowWidth (spacing());
   ys_ = plot()->pixelToWindowHeight(spacing());
 
-  xm_ = plot()->pixelToWindowWidth (margin());
-  ym_ = plot()->pixelToWindowHeight(margin());
+  xlm_ = plot()->lengthPlotWidth (margin().left  ());
+  xrm_ = plot()->lengthPlotWidth (margin().right ());
+  ytm_ = plot()->lengthPlotHeight(margin().top   ());
+  ybm_ = plot()->lengthPlotHeight(margin().bottom());
 
   //---
 
@@ -1046,12 +1067,12 @@ doLayout()
   //---
 
   // update cell positions and sizes
-  double y = -ym_;
+  double y = -ybm_;
 
   y -= layoutData_.headerHeight;
 
   for (int r = 0; r < numRows; ++r) {
-    double x = xm_;
+    double x = xlm_;
 
     double rh = rowHeights_[r] + 2*ys_;
 
@@ -1082,7 +1103,7 @@ doLayout()
     w += cell.width;
   }
 
-  w += 2*xm_;
+  w += xlm_ + xrm_;
 
   for (int r = 0; r < numRows; ++r) {
     Cell &cell = rowColCell_[r][0];
@@ -1090,7 +1111,7 @@ doLayout()
     h += cell.height;
   }
 
-  h += 2*ym_ + layoutData_.headerHeight;
+  h += ybm_ + ytm_ + layoutData_.headerHeight;
 
   w = std::max(w, layoutData_.headerWidth);
 
@@ -1574,7 +1595,7 @@ draw(CQChartsPaintDevice *device) const
 
     // count number of rows in height
     int    scrollRows   = 0;
-    double scrollHeight = sh - 2*ym_ - layoutData_.hbarHeight;
+    double scrollHeight = sh - ybm_ - ytm_ - layoutData_.hbarHeight;
 
     for (int i = 0; i < numRows; ++i) {
       if (scrollHeight <= 0)
@@ -1698,8 +1719,13 @@ draw(CQChartsPaintDevice *device) const
 
     double pw = plot()->windowToPixelWidth(sw);
 
-  //double xm = margin();
-    double ym = margin();
+    //---
+
+    // get external margin
+  //double xlm = plot()->lengthPlotWidth (margin().left  ());
+  //double xrm = plot()->lengthPlotWidth (margin().right ());
+    double ytm = plot()->lengthPlotHeight(margin().top   ());
+    double ybm = plot()->lengthPlotHeight(margin().bottom());
 
     //---
 
@@ -1707,7 +1733,7 @@ draw(CQChartsPaintDevice *device) const
     QSizeF tsize = CQChartsDrawUtil::calcTextSize(headerStr(), font, textOptions);
 
     double tw = pw;
-    double th = tsize.height() + 2*ym;
+    double th = tsize.height() + ybm + ytm;
 
     QRectF trect(p.x(), p.y(), tw, th);
 

@@ -2295,7 +2295,7 @@ draw(CQChartsPaintDevice *device)
     // calc pen and brush
     CQChartsPenBrush penBrush;
 
-    plot_->setSymbolPenBrush(penBrush.pen, penBrush.brush, is_);
+    plot_->setSymbolPenBrush(penBrush, is_);
 
     plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
@@ -2772,7 +2772,7 @@ draw(CQChartsPaintDevice *device)
   // calc pen and brush
   CQChartsPenBrush penBrush;
 
-  plot()->setSymbolPenBrush(penBrush.pen, penBrush.brush, ic);
+  plot()->setSymbolPenBrush(penBrush, ic);
 
   // override symbol fill color for custom color
   CQChartsColor color = this->color();
@@ -3135,17 +3135,7 @@ initSmooth() const
   if (! smooth_) {
     CQChartsXYPolylineObj *th = const_cast<CQChartsXYPolylineObj *>(this);
 
-    CQChartsSmooth::Points points;
-
-    int np = poly_.count();
-
-    for (int i = 0; i < np; ++i) {
-      const QPointF &p = poly_[i];
-
-      points.emplace_back(p.x(), p.y());
-    }
-
-    th->smooth_ = new CQChartsSmooth(points, /*sorted*/false);
+    th->smooth_ = new CQChartsSmooth(poly_, /*sorted*/false);
   }
 }
 
@@ -3236,40 +3226,9 @@ draw(CQChartsPaintDevice *device)
     if (plot()->isRoundedLines()) {
       initSmooth();
 
-      QPainterPath path;
-
-      for (int i = 0; i < smooth_->numPoints(); ++i) {
-        if (plot()->isInterrupt())
-          return;
-
-        const CQChartsGeom::Point &p = smooth_->point(i);
-
-        if (i == 0) {
-          path.moveTo(p.qpoint());
-        }
-        else {
-          CQChartsSmooth::SegmentType type = smooth_->segmentType(i - 1);
-
-          if      (type == CQChartsSmooth::SegmentType::CURVE3) {
-            CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
-            CQChartsGeom::Point c2 = smooth_->controlPoint2(i - 1);
-
-            path.cubicTo(c1.x, c1.y, c2.x, c2.y, p.x, p.y);
-          }
-          else if (type == CQChartsSmooth::SegmentType::CURVE2) {
-            CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
-
-            path.quadTo(c1.x, c1.y, p.x, p.y);
-          }
-          else if (type == CQChartsSmooth::SegmentType::LINE) {
-            path.lineTo(p.qpoint());
-          }
-        }
-      }
-
-      //---
-
       // draw path
+      QPainterPath path = smooth_->createPath(/*closed*/false);
+
       device->setColorNames();
 
       CQChartsDrawUtil::setPenBrush(device, penBrush);
@@ -3286,12 +3245,8 @@ draw(CQChartsPaintDevice *device)
 
       int np = poly_.count();
 
-      for (int i = 1; i < np; ++i) {
-        if (plot()->isInterrupt())
-          return;
-
+      for (int i = 1; i < np; ++i)
         device->drawLine(poly_[i - 1], poly_[i]);
-      }
 
       device->resetColorNames();
     }
@@ -3567,17 +3522,7 @@ initSmooth() const
   if (! smooth_) {
     CQChartsXYPolygonObj *th = const_cast<CQChartsXYPolygonObj *>(this);
 
-    CQChartsSmooth::Points points;
-
-    int np = poly_.count();
-
-    for (int i = 1; i < np - 1; ++i) {
-      const QPointF &p = poly_[i];
-
-      points.emplace_back(p.x(), p.y());
-    }
-
-    th->smooth_ = new CQChartsSmooth(points, /*sorted*/false);
+    th->smooth_ = new CQChartsSmooth(poly_, /*sorted*/false);
   }
 }
 
@@ -3602,50 +3547,12 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // create polygon path (rounded or normal)
-  int np = poly_.count();
-
   if (plot()->isRoundedLines()) {
     initSmooth();
 
-    QPainterPath path;
-
-    if (np > 0)
-      path.moveTo(poly_[0]);
-
-    for (int i = 0; i < smooth_->numPoints(); ++i) {
-      const CQChartsGeom::Point &p = smooth_->point(i);
-
-      if (i == 0) {
-        path.lineTo(p.qpoint());
-      }
-      else {
-        CQChartsSmooth::SegmentType type = smooth_->segmentType(i - 1);
-
-        if      (type == CQChartsSmooth::SegmentType::CURVE3) {
-          CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
-          CQChartsGeom::Point c2 = smooth_->controlPoint2(i - 1);
-
-          path.cubicTo(c1.x, c1.y, c2.x, c2.y, p.x, p.y);
-        }
-        else if (type == CQChartsSmooth::SegmentType::CURVE2) {
-          CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
-
-          path.quadTo(c1.x, c1.y, p.x, p.y);
-        }
-        else if (type == CQChartsSmooth::SegmentType::LINE) {
-          path.lineTo(p.qpoint());
-        }
-      }
-    }
-
-    if (np > 0)
-      path.lineTo(poly_[np - 1]);
-
-    path.closeSubpath();
-
-    //---
-
     // draw polygon
+    QPainterPath path = smooth_->createPath(/*closed*/true);
+
     device->setColorNames();
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
@@ -3958,7 +3865,7 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 
     CQChartsPenBrush penBrush;
 
-    plot()->setPenBrush(penBrush.pen, penBrush.brush,
+    plot()->setPenBrush(penBrush,
       plot()->isSymbolStroked(), pointStrokeColor, plot()->symbolStrokeAlpha(),
       plot()->symbolStrokeWidth(), plot()->symbolStrokeDash(),
       plot()->isSymbolFilled(), pointFillColor, plot()->symbolFillAlpha(),

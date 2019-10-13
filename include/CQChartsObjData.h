@@ -3,6 +3,7 @@
 
 #include <CQChartsData.h>
 #include <CQChartsInvalidator.h>
+#include <CQChartsDrawUtil.h>
 #include <CQChartsUtil.h>
 
 #define CQCHARTS_LINE_DATA_PROPERTIES \
@@ -357,23 +358,23 @@ class CQChartsObjPointData {
   //---
 
 #if 0
-  void setSymbolPenBrush(QPen &pen, QBrush &brush, int i, int n) const {
-    pointDataObj_->setPenBrush(pen, brush,
+  void setSymbolPenBrush(CQChartsPenBrush &penBrush, int i, int n) const {
+    pointDataObj_->setPenBrush(penBrush,
       isSymbolStroked(), interpSymbolStrokeColor(i, n), symbolStrokeAlpha(),
       symbolStrokeWidth(), symbolStrokeDash(),
       isSymbolFilled(), interpSymbolFillColor(i, n), symbolFillAlpha(), symbolFillPattern());
   }
 
-  void setSymbolPenBrush(QPen &pen, QBrush &brush, double r) const {
-    pointDataObj_->setPenBrush(pen, brush,
+  void setSymbolPenBrush(CQChartsPenBrush &penBrush, double r) const {
+    pointDataObj_->setPenBrush(penBrush,
       isSymbolStroked(), interpSymbolStrokeColor(r), symbolStrokeAlpha(),
       symbolStrokeWidth(), symbolStrokeDash(),
       isSymbolFilled(), interpSymbolFillColor(r), symbolFillAlpha(), symbolFillPattern());
   }
 #endif
 
-  void setSymbolPenBrush(QPen &pen, QBrush &brush, const CQChartsUtil::ColorInd &ind) const {
-    pointDataObj_->setPenBrush(pen, brush,
+  void setSymbolPenBrush(CQChartsPenBrush &penBrush, const CQChartsUtil::ColorInd &ind) const {
+    pointDataObj_->setPenBrush(penBrush,
       isSymbolStroked(), interpSymbolStrokeColor(ind), symbolStrokeAlpha(),
       symbolStrokeWidth(), symbolStrokeDash(),
       isSymbolFilled(), interpSymbolFillColor(ind), symbolFillAlpha(), symbolFillPattern());
@@ -545,25 +546,25 @@ class CQChartsObj##UNAME##PointData { \
       LNAME##PointData_.fill().setPattern(p); LNAME##PointDataInvalidate(); } \
   } \
 \
-  void set##UNAME##SymbolPenBrush(QPen &pen, QBrush &brush, int i, int n) const { \
-    LNAME##PointDataObj_->setPenBrush(pen, brush, \
+  void set##UNAME##SymbolPenBrush(CQChartsPenBrush &penBrush, int i, int n) const { \
+    LNAME##PointDataObj_->setPenBrush(penBrush, \
       is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(i, n), \
       LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), LNAME##SymbolStrokeDash(), \
       is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(i, n), \
       LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern()); \
   } \
 \
-  void set##UNAME##SymbolPenBrush(QPen &pen, QBrush &brush, double r) const { \
-    LNAME##PointDataObj_->setPenBrush(pen, brush, \
+  void set##UNAME##SymbolPenBrush(CQChartsPenBrush &penBrush, double r) const { \
+    LNAME##PointDataObj_->setPenBrush(penBrush, \
       is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(r), \
       LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), LNAME##SymbolStrokeDash(), \
       is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(r), \
       LNAME##SymbolFillAlpha(), LNAME##SymbolFillPattern()); \
   } \
 \
-  void set##UNAME##SymbolPenBrush(QPen &pen, QBrush &brush, \
+  void set##UNAME##SymbolPenBrush(CQChartsPenBrush &penBrush, \
                                   const CQChartsUtil::ColorInd &ind) const { \
-    LNAME##PointDataObj_->setPenBrush(pen, brush, \
+    LNAME##PointDataObj_->setPenBrush(penBrush, \
       is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(ind), \
       LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), LNAME##SymbolStrokeDash(), \
       is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(ind), \
@@ -1330,9 +1331,9 @@ class CQChartsObj##UNAME##ShapeData { \
 #define CQCHARTS_BOX_DATA_PROPERTIES \
 Q_PROPERTY(CQChartsBoxData boxData READ boxData WRITE setBoxData) \
 \
-Q_PROPERTY(bool   visible READ isVisible WRITE setVisible) \
-Q_PROPERTY(double margin  READ margin    WRITE setMargin ) \
-Q_PROPERTY(double padding READ padding   WRITE setPadding) \
+Q_PROPERTY(bool           visible READ isVisible WRITE setVisible) \
+Q_PROPERTY(CQChartsMargin margin  READ margin    WRITE setMargin ) \
+Q_PROPERTY(double         padding READ padding   WRITE setPadding) \
 \
 Q_PROPERTY(bool              stroked     READ isStroked   WRITE setStroked    ) \
 Q_PROPERTY(CQChartsColor     strokeColor READ strokeColor WRITE setStrokeColor) \
@@ -1364,8 +1365,8 @@ class CQChartsObjBoxData {
   bool isVisible() const { return boxData_.isVisible(); }
   void setVisible(bool b) { boxData_.setVisible(b); boxDataInvalidate(); }
 
-  double margin() const { return boxData_.margin(); }
-  void setMargin(double r) { boxData_.setMargin(r); boxDataInvalidate(); }
+  const CQChartsMargin &margin() const { return boxData_.margin(); }
+  void setMargin(const CQChartsMargin &m) { boxData_.setMargin(m); boxDataInvalidate(); }
 
   double padding() const { return boxData_.padding(); }
   void setPadding(double r) { boxData_.setPadding(r); boxDataInvalidate(); }

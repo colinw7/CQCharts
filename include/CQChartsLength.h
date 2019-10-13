@@ -33,6 +33,8 @@ class CQChartsLength {
     units_(rhs.units_), value_(rhs.value_) {
   }
 
+  //---
+
   CQChartsLength &operator=(const CQChartsLength &rhs) {
     units_ = rhs.units_;
     value_ = rhs.value_;
@@ -40,9 +42,19 @@ class CQChartsLength {
     return *this;
   }
 
+  //---
+
   bool isValid() const { return units_ != CQChartsUnits::NONE; }
 
+  bool isSet() const { return (units_ != CQChartsUnits::PIXEL || value_ != 0.0); }
+
+  //---
+
   const CQChartsUnits &units() const { return units_; }
+
+  double unitsValue(const CQChartsUnits &units) const {
+    assert(isValid() && units_ == units); return value_;
+  }
 
   double value() const { assert(isValid()); return value_; }
 
@@ -52,10 +64,6 @@ class CQChartsLength {
   }
 
   bool setValue(const QString &str, const CQChartsUnits &defUnits=CQChartsUnits::PLOT);
-
-  bool isSet() const {
-    return (units_ != CQChartsUnits::PIXEL || value_ != 0.0);
-  }
 
   //---
 

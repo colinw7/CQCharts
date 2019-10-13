@@ -893,7 +893,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor strokeColor = plot_->interpStrokeColor(colorInd);
   QColor fillColor   = plot_->interpFillColor  (colorInd);
 
-  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+  plot_->setPenBrush(penBrush,
     plot_->isStroked(), strokeColor, plot_->strokeAlpha(),
     plot_->strokeWidth(), plot_->strokeDash(),
     plot_->isFilled(), fillColor, plot_->fillAlpha(), plot_->fillPattern());

@@ -7,6 +7,7 @@
 #include <CQChartsLineDash.h>
 #include <CQChartsFillPattern.h>
 #include <CQChartsTextOptions.h>
+#include <CQChartsDrawUtil.h>
 
 class CQChartsView;
 class CQChartsPlot;
@@ -45,7 +46,7 @@ class CQChartsViewPlotObj : public CQChartsObj {
   void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(), double fillAlpha=1.0,
                 const CQChartsFillPattern &pattern=CQChartsFillPattern()) const;
 
-  void updatePenBrushState(QPen &pen, QBrush &brush, DrawType drawType=DrawType::BOX) const;
+  void updatePenBrushState(CQChartsPenBrush &penBrush, DrawType drawType=DrawType::BOX) const;
 
   //---
 

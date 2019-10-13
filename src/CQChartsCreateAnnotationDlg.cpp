@@ -6,6 +6,7 @@
 #include <CQChartsPositionEdit.h>
 #include <CQChartsRectEdit.h>
 #include <CQChartsLengthEdit.h>
+#include <CQChartsMarginEdit.h>
 #include <CQChartsSymbolDataEdit.h>
 #include <CQChartsTextDataEdit.h>
 #include <CQChartsSidesEdit.h>
@@ -145,7 +146,7 @@ createRectFrame()
   //--
 
   // margin
-  rectWidgets_.marginEdit  = CQUtil::makeWidget<CQRealSpin>("marginEdit");
+  rectWidgets_.marginEdit  = CQUtil::makeWidget<CQChartsMarginEdit>("marginEdit");
 
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Margin", rectWidgets_.marginEdit, row);
 
@@ -574,8 +575,8 @@ createRectangleAnnotation()
 
   CQChartsRect rect = rectWidgets_.rectEdit->rect();
 
-  boxData.setMargin (rectWidgets_.marginEdit ->value());
-  boxData.setPadding(rectWidgets_.paddingEdit->value());
+  boxData.setMargin (rectWidgets_.marginEdit ->margin());
+  boxData.setPadding(rectWidgets_.paddingEdit->value ());
 
   CQChartsFillData   fill   = rectWidgets_.backgroundDataEdit->data();
   CQChartsStrokeData stroke = rectWidgets_.strokeDataEdit    ->data();

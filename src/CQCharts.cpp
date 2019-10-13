@@ -10,6 +10,7 @@
 #include <CQChartsDelaunayPlot.h>
 #include <CQChartsDendrogramPlot.h>
 #include <CQChartsDistributionPlot.h>
+#include <CQChartsEmptyPlot.h>
 #include <CQChartsForceDirectedPlot.h>
 #include <CQChartsGeometryPlot.h>
 #include <CQChartsHierBubblePlot.h>
@@ -47,6 +48,7 @@
 #include <CQChartsLengthEdit.h>
 #include <CQChartsLineDataEdit.h>
 #include <CQChartsLineDashEdit.h>
+#include <CQChartsMarginEdit.h>
 #include <CQChartsPaletteNameEdit.h>
 #include <CQChartsPolygonEdit.h>
 #include <CQChartsPositionEdit.h>
@@ -256,6 +258,7 @@ CQCharts()
   CQChartsLength                ::registerMetaType();
   CQChartsLineDash              ::registerMetaType();
   CQChartsLineData              ::registerMetaType();
+  CQChartsMargin                ::registerMetaType();
   CQChartsNamePair              ::registerMetaType();
   CQChartsOptInt                ::registerMetaType();
   CQChartsOptLength             ::registerMetaType();
@@ -320,6 +323,7 @@ init()
   plotTypeMgr_->addType("delaunay"     , new CQChartsDelaunayPlotType     );
   plotTypeMgr_->addType("dendrogram"   , new CQChartsDendrogramPlotType   );
   plotTypeMgr_->addType("distribution" , new CQChartsDistributionPlotType );
+  plotTypeMgr_->addType("empty"        , new CQChartsEmptyPlotType        );
   plotTypeMgr_->addType("forcedirected", new CQChartsForceDirectedPlotType);
   plotTypeMgr_->addType("geometry"     , new CQChartsGeometryPlotType     );
   plotTypeMgr_->addType("hierbubble"   , new CQChartsHierBubblePlotType   );
@@ -389,6 +393,7 @@ init()
     viewMgr->addType("CQChartsLength"          , new CQChartsLengthPropertyViewType          );
     viewMgr->addType("CQChartsLineDash"        , new CQChartsLineDashPropertyViewType        );
     viewMgr->addType("CQChartsLineData"        , new CQChartsLineDataPropertyViewType        );
+    viewMgr->addType("CQChartsMargin"          , new CQChartsMarginPropertyViewType          );
     viewMgr->addType("CQChartsPaletteName"     , new CQChartsPaletteNamePropertyViewType     );
     viewMgr->addType("CQChartsPolygon"         , new CQChartsPolygonPropertyViewType         );
     viewMgr->addType("CQChartsPosition"        , new CQChartsPositionPropertyViewType        );

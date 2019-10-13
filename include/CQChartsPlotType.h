@@ -74,6 +74,7 @@ class CQChartsPlotType : public QObject {
   Q_PROPERTY(bool      isHierarchical     READ isHierarchical    )
   Q_PROPERTY(bool      canProbe           READ canProbe          )
   Q_PROPERTY(bool      canRectSelect      READ canRectSelect     )
+  Q_PROPERTY(bool      hasObjs            READ hasObjs           )
 
   Q_ENUMS(Dimension)
 
@@ -133,6 +134,8 @@ class CQChartsPlotType : public QObject {
   virtual bool canProbe() const = 0;
 
   virtual bool canRectSelect() const { return true; }
+
+  virtual bool hasObjs() const { return true; }
 
   //---
 

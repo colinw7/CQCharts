@@ -152,6 +152,10 @@ addCommands()
                new CQChartsCreateChartsArrowAnnotationCmd    (this));
     addCommand("create_charts_ellipse_annotation"  ,
                new CQChartsCreateChartsEllipseAnnotationCmd  (this));
+    addCommand("create_charts_image_annotation"     ,
+               new CQChartsCreateChartsImageAnnotationCmd    (this));
+    addCommand("create_charts_pie_slice_annotation"    ,
+               new CQChartsCreateChartsPieSliceAnnotationCmd (this));
     addCommand("create_charts_point_annotation"    ,
                new CQChartsCreateChartsPointAnnotationCmd    (this));
     addCommand("create_charts_polygon_annotation"  ,
@@ -162,8 +166,6 @@ addCommands()
                new CQChartsCreateChartsRectangleAnnotationCmd(this));
     addCommand("create_charts_text_annotation"     ,
                new CQChartsCreateChartsTextAnnotationCmd     (this));
-    addCommand("create_charts_image_annotation"     ,
-               new CQChartsCreateChartsImageAnnotationCmd    (this));
     addCommand("remove_charts_annotation"          ,
                new CQChartsRemoveChartsAnnotationCmd         (this));
 
@@ -931,10 +933,15 @@ createChartsPlotCmd(CQChartsCmdArgs &argv)
   // get model
   CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
 
-  if (! modelData)
-    return errorMsg("No model data");
+  ModelP model;
 
-  ModelP model = modelData->currentModel();
+  if (modelData) {
+    model = modelData->currentModel();
+  }
+  else {
+    if (typeName != "empty")
+      return errorMsg("No model data");
+  }
 
   //------
 
@@ -5351,6 +5358,9 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
     if      (name == "fit") {
       view->fitSlot();
     }
+    else if (name == "zoom_full") {
+      view->zoomFullSlot();
+    }
     else if (name == "script_select_proc") {
       view->setScriptSelectProc(value);
     }
@@ -5371,7 +5381,13 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
     CQChartsPlot *plot = getPlotByName(view, plotName);
     if (! plot) return false;
 
-    if      (name == "updates_enabled") {
+    if      (name == "fit") {
+      plot->autoFit();
+    }
+    else if (name == "zoom_full") {
+      plot->zoomFull();
+    }
+    else if (name == "updates_enabled") {
       bool ok;
 
       bool b = CQChartsCmdBaseArgs::stringToBool(value, &ok);
@@ -5494,7 +5510,10 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
 
   CQChartsBoxData boxData;
 
-  CQChartsFillData   &fill   = boxData.shape().fill();
+  boxData.setMargin (CQChartsMargin());
+  boxData.setPadding(0);
+
+  CQChartsFillData   &fill   = boxData.shape().fill  ();
   CQChartsStrokeData &stroke = boxData.shape().stroke();
 
   stroke.setVisible(true);
@@ -5502,8 +5521,8 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
   QString id    = argv.getParseStr("id");
   QString tipId = argv.getParseStr("tip");
 
-  boxData.setMargin (argv.getParseReal("margin" , boxData.margin()));
-  boxData.setPadding(argv.getParseReal("padding", boxData.padding()));
+  boxData.setMargin (argv.getParseMargin(view, plot, "margin", boxData.margin ()));
+  boxData.setPadding(argv.getParseReal  ("padding", boxData.padding()));
 
   fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
   fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
@@ -6597,6 +6616,7 @@ createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
   };
 
   //---
+
   CQPerfTrace trace("CQChartsCmds::createChartsPointAnnotationCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -6713,6 +6733,111 @@ createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
     annotation->setTipId(tipId);
 
   annotation->setSymbolData(symbolData);
+
+  //---
+
+  QStringList properties = argv.getParseStrs("properties");
+
+  for (int i = 0; i < properties.length(); ++i) {
+    if (properties[i].length())
+      setAnnotationProperties(annotation, properties[i]);
+  }
+
+  //---
+
+  cmdBase_->setCmdRc(annotation->pathId());
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsPieSliceAnnotationCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsPieSliceAnnotationCmd");
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-position", CQChartsCmdArg::Type::Position, "point position");
+
+  argv.addCmdArg("-inner_radius", CQChartsCmdArg::Type::Length, "inner radius");
+  argv.addCmdArg("-outer_radius", CQChartsCmdArg::Type::Length, "outer radius");
+
+  argv.addCmdArg("-start_angle", CQChartsCmdArg::Type::Real, "start angle");
+  argv.addCmdArg("-span_angle" , CQChartsCmdArg::Type::Real, "span angle");
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if      (argv.hasParseArg("view")) {
+    QString viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return false;
+  }
+  else if (argv.hasParseArg("plot")) {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+  }
+
+  //---
+
+  QString id    = argv.getParseStr("id");
+  QString tipId = argv.getParseStr("tip");
+
+  CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
+
+  CQChartsLength innerRadius = argv.getParseLength(view, plot, "inner_radius");
+  CQChartsLength outerRadius = argv.getParseLength(view, plot, "outer_radius");
+
+  double startAngle = argv.getParseReal("start_angle");
+  double spanAngle  = argv.getParseReal("span_angle");
+
+  if (innerRadius.value() < 0 || outerRadius.value() < 0)
+    return errorMsg("-invalid radius value");
+
+  //---
+
+  CQChartsPieSliceAnnotation *annotation = nullptr;
+
+  if      (view)
+    annotation = view->addPieSliceAnnotation(pos, innerRadius, outerRadius, startAngle, spanAngle);
+  else if (plot)
+    annotation = plot->addPieSliceAnnotation(pos, innerRadius, outerRadius, startAngle, spanAngle);
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
 
   //---
 

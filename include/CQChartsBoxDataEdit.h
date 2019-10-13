@@ -5,6 +5,7 @@
 #include <CQChartsLineEditBase.h>
 
 class CQChartsBoxDataEdit;
+class CQChartsMarginEdit;
 class CQChartsPlot;
 class CQChartsView;
 
@@ -88,7 +89,7 @@ class CQChartsBoxDataEdit : public CQChartsEditBase {
  private:
   CQChartsBoxData             data_;                    //!< box data
   CQGroupBox*                 groupBox_    { nullptr }; //!< group box
-  CQRealSpin*                 marginEdit_  { nullptr }; //!< margin edit
+  CQChartsMarginEdit*         marginEdit_  { nullptr }; //!< margin edit
   CQRealSpin*                 paddingEdit_ { nullptr }; //!< padding edit
   CQChartsShapeDataEdit*      shapeEdit_   { nullptr }; //!< shape edit
   CQChartsSidesEdit*          sidesEdit_   { nullptr }; //!< sides edit

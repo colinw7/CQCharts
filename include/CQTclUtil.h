@@ -24,28 +24,60 @@ inline int eval(Tcl_Interp *interp, const QString &str) {
 
 //---
 
-inline QString modelIndexToString(const QModelIndex &ind) {
-  int row = ind.row   ();
-  int col = ind.column();
+inline bool splitList(const QString &str, QStringList &strs) {
+  int    argc;
+  char **argv;
 
-  return QString("%1:%2").arg(row).arg(col);
-}
+  std::string cstr = str.toStdString();
 
-//---
+  int rc = Tcl_SplitList(0, cstr.c_str(), &argc, (const char ***) &argv);
 
-inline bool stringToModelIndex(const QString &str, int &row, int &col) {
-  int pos = str.indexOf(':');
-
-  if (pos < 0)
+  if (rc != TCL_OK)
     return false;
 
-  QString lhs = str.mid(0, pos).simplified();
-  QString rhs = str.mid(pos + 1).simplified();
+  for (int i = 0; i < argc; ++i)
+    strs << QString(argv[i]);
+
+  Tcl_Free((char *) argv);
+
+  return true;
+}
+
+inline QString mergeList(const QStringList &strs) {
+  int argc = strs.size();
+
+  std::vector<char *> argv;
+
+  argv.resize(argc);
+
+  for (int i = 0; i < argc; ++i)
+    argv[i] = strdup(strs[i].toLatin1().constData());
+
+  char *res = Tcl_Merge(argc, &argv[0]);
+
+  QString str(res);
+
+  for (int i = 0; i < argc; ++i)
+    free(argv[i]);
+
+  Tcl_Free((char *) res);
+
+  return str;
+}
+
+inline bool stringToModelIndex(const QString &str, int &row, int &col) {
+  QStringList strs;
+
+  if (! splitList(str, strs))
+    return false;
+
+  if (strs.length() < 2)
+    return false;
 
   bool ok1, ok2;
 
-  row = lhs.toInt(&ok1);
-  col = rhs.toInt(&ok2);
+  row = strs[0].toInt(&ok1);
+  col = strs[1].toInt(&ok2);
 
   return (ok1 && ok2);
 }
@@ -117,9 +149,18 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   else if (var.type() == QVariant::ModelIndex) {
     QModelIndex ind = var.value<QModelIndex>();
 
-    QString str = modelIndexToString(ind);
+    int row = ind.row   ();
+    int col = ind.column();
 
-    return Tcl_NewStringObj(str.toLatin1().constData(), -1);
+    Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
+
+    Tcl_Obj *robj = Tcl_NewIntObj(row);
+    Tcl_Obj *cobj = Tcl_NewIntObj(col);
+
+    Tcl_ListObjAppendElement(interp, obj, robj);
+    Tcl_ListObjAppendElement(interp, obj, cobj);
+
+    return obj;
   }
   else if (var.type() == QVariant::StringList) {
     QStringList strs = var.value<QStringList>();
@@ -480,44 +521,11 @@ class CQTcl : public CTcl {
   }
 
   static bool splitList(const QString &str, QStringList &strs) {
-    int    argc;
-    char **argv;
-
-    std::string cstr = str.toStdString();
-
-    int rc = Tcl_SplitList(0, cstr.c_str(), &argc, (const char ***) &argv);
-
-    if (rc != TCL_OK)
-      return false;
-
-    for (int i = 0; i < argc; ++i)
-      strs << QString(argv[i]);
-
-    Tcl_Free((char *) argv);
-
-    return true;
+    return CQTclUtil::splitList(str, strs);
   }
 
   static QString mergeList(const QStringList &strs) {
-    int argc = strs.size();
-
-    std::vector<char *> argv;
-
-    argv.resize(argc);
-
-    for (int i = 0; i < argc; ++i)
-      argv[i] = strdup(strs[i].toLatin1().constData());
-
-    char *res = Tcl_Merge(argc, &argv[0]);
-
-    QString str(res);
-
-    for (int i = 0; i < argc; ++i)
-      free(argv[i]);
-
-    Tcl_Free((char *) res);
-
-    return str;
+    return CQTclUtil::mergeList(strs);
   }
 
   void traceVar(const QString &name) {

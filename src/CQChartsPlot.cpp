@@ -770,8 +770,12 @@ writeScript(std::ostream &os) const
 
   //---
 
-  // middle parts (objects)
+  // middle parts (objects and annotations)
   os << "\n"; os << "  this.drawObjs();\n";
+
+  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
+    os << "\n"; os << "  this.drawAnnotations();\n";
+  }
 
   //---
 
@@ -785,12 +789,6 @@ writeScript(std::ostream &os) const
 
   if (title) {
     os << "\n"; os << "  this.drawTitle();\n";
-  }
-
-  //---
-
-  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
-    os << "\n"; os << "  this.drawAnnotations();\n";
   }
 
   //---
@@ -921,6 +919,16 @@ writeScript(std::ostream &os) const
 
   //---
 
+  // draw annotations proc
+  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
+    os << "\n";
+    os << "Charts_" << plotId << ".prototype.drawAnnotations = function() {\n";
+    drawGroupedAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
+    os << "}\n";
+  }
+
+  //---
+
   // draw axes procs
   if (bgAxes) {
     device.resetData();
@@ -970,16 +978,6 @@ writeScript(std::ostream &os) const
     os << "\n";
     os << "Charts_" << plotId << ".prototype.drawTitle = function() {\n";
     drawTitle(&device);
-    os << "}\n";
-  }
-
-  //---
-
-  // draw annotations proc
-  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
-    os << "\n";
-    os << "Charts_" << plotId << ".prototype.drawAnnotations = function() {\n";
-    drawGroupedAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
     os << "}\n";
   }
 
@@ -3580,7 +3578,7 @@ addNoDataObj()
   // if no objects then add a no data object
   noData_ = false;
 
-  if (plotObjs_.empty()) {
+  if (type()->hasObjs() && plotObjs_.empty()) {
     CQChartsNoDataObj *obj = new CQChartsNoDataObj(this);
 
     addPlotObject(obj);
@@ -5605,6 +5603,8 @@ panLeft(double f)
 
   setDataOffsetX(dataOffsetX() - dx);
 
+  adjustPan();
+
   applyDataRangeAndDraw();
 
   emit zoomPanChanged();
@@ -5620,6 +5620,8 @@ panRight(double f)
   double dx = viewToWindowWidth(f)/getDataRange().getWidth();
 
   setDataOffsetX(dataOffsetX() + dx);
+
+  adjustPan();
 
   applyDataRangeAndDraw();
 
@@ -5637,6 +5639,8 @@ panUp(double f)
 
   setDataOffsetY(dataOffsetY() + dy);
 
+  adjustPan();
+
   applyDataRangeAndDraw();
 
   emit zoomPanChanged();
@@ -5653,6 +5657,8 @@ panDown(double f)
 
   setDataOffsetY(dataOffsetY() - dy);
 
+  adjustPan();
+
   applyDataRangeAndDraw();
 
   emit zoomPanChanged();
@@ -5668,10 +5674,14 @@ pan(double dx, double dy)
   if (allowPanY())
     setDataOffsetY(dataOffsetY() + dy/getDataRange().getHeight());
 
+  adjustPan();
+
   applyDataRangeAndDraw();
 
   emit zoomPanChanged();
 }
+
+//---
 
 void
 CQChartsPlot::
@@ -6442,11 +6452,12 @@ drawMiddleParts(QPainter *painter) const
 
   //---
 
-  bool bg  = hasGroupedObjs(CQChartsLayer::Type::BG_PLOT );
-  bool mid = hasGroupedObjs(CQChartsLayer::Type::MID_PLOT);
-  bool fg  = hasGroupedObjs(CQChartsLayer::Type::FG_PLOT );
+  bool bg          = hasGroupedObjs(CQChartsLayer::Type::BG_PLOT );
+  bool mid         = hasGroupedObjs(CQChartsLayer::Type::MID_PLOT);
+  bool fg          = hasGroupedObjs(CQChartsLayer::Type::FG_PLOT );
+  bool annotations = hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION);
 
-  if (! bg && ! mid && ! fg) {
+  if (! bg && ! mid && ! fg && ! annotations) {
     buffer->clear();
     return;
   }
@@ -6478,6 +6489,10 @@ drawMiddleDeviceParts(CQChartsPaintDevice *device) const
   drawGroupedObjs(device, CQChartsLayer::Type::BG_PLOT );
   drawGroupedObjs(device, CQChartsLayer::Type::MID_PLOT);
   drawGroupedObjs(device, CQChartsLayer::Type::FG_PLOT );
+
+  // draw annotations
+  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION))
+    drawGroupedAnnotations(device, CQChartsLayer::Type::ANNOTATION);
 }
 
 void
@@ -6486,13 +6501,12 @@ drawForegroundParts(QPainter *painter) const
 {
   CQPerfTrace trace("CQChartsPlot::drawForegroundParts");
 
-  bool fgAxes      = hasGroupedFgAxes();
-  bool fgKey       = hasGroupedFgKey();
-  bool title       = hasTitle();
-  bool annotations = hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION);
-  bool foreground  = hasForeground();
+  bool fgAxes     = hasGroupedFgAxes();
+  bool fgKey      = hasGroupedFgKey();
+  bool title      = hasTitle();
+  bool foreground = hasForeground();
 
-  if (! fgAxes && ! fgKey && ! title && ! annotations && ! foreground)
+  if (! fgAxes && ! fgKey && ! title && ! foreground)
     return;
 
   //---
@@ -6533,12 +6547,6 @@ drawForegroundDeviceParts(CQChartsPaintDevice *device) const
   // draw title
   if (hasTitle())
     drawTitle(device);
-
-  //---
-
-  // draw annotations
-  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION))
-    drawGroupedAnnotations(device, CQChartsLayer::Type::ANNOTATION);
 
   //---
 
@@ -7864,15 +7872,17 @@ addImageAnnotation(const CQChartsRect &rect, const QImage &image)
   return imageAnnotation;
 }
 
-CQChartsRectangleAnnotation *
+CQChartsPieSliceAnnotation *
 CQChartsPlot::
-addRectangleAnnotation(const CQChartsRect &rect)
+addPieSliceAnnotation(const CQChartsPosition &pos, const CQChartsLength &innerRadius,
+                      const CQChartsLength &outerRadius, double startAngle, double spanAngle)
 {
-  CQChartsRectangleAnnotation *rectangleAnnotation = new CQChartsRectangleAnnotation(this, rect);
+  CQChartsPieSliceAnnotation *pieSliceAnnotation =
+    new CQChartsPieSliceAnnotation(this, pos, innerRadius, outerRadius, startAngle, spanAngle);
 
-  addAnnotation(rectangleAnnotation);
+  addAnnotation(pieSliceAnnotation);
 
-  return rectangleAnnotation;
+  return pieSliceAnnotation;
 }
 
 CQChartsPointAnnotation *
@@ -7906,6 +7916,17 @@ addPolylineAnnotation(const CQChartsPolygon &points)
   addAnnotation(polyAnnotation);
 
   return polyAnnotation;
+}
+
+CQChartsRectangleAnnotation *
+CQChartsPlot::
+addRectangleAnnotation(const CQChartsRect &rect)
+{
+  CQChartsRectangleAnnotation *rectangleAnnotation = new CQChartsRectangleAnnotation(this, rect);
+
+  addAnnotation(rectangleAnnotation);
+
+  return rectangleAnnotation;
 }
 
 CQChartsTextAnnotation *
@@ -7961,8 +7982,6 @@ void
 CQChartsPlot::
 removeAnnotation(CQChartsAnnotation *annotation)
 {
-//QString id = annotation->id();
-
   int pos = 0;
 
   for (auto &annotation1 : annotations_) {
@@ -7985,7 +8004,6 @@ removeAnnotation(CQChartsAnnotation *annotation)
 
   annotations_.pop_back();
 
-//emit annotationRemoved(id);
   emit annotationsChanged();
 }
 
@@ -8000,7 +8018,6 @@ removeAllAnnotations()
 
   propertyModel()->removeProperties("annotations");
 
-//emit allAnnotationsRemoved();
   emit annotationsChanged();
 }
 
@@ -8569,15 +8586,15 @@ update()
 
 void
 CQChartsPlot::
-setPenBrush(QPen &pen, QBrush &brush,
+setPenBrush(CQChartsPenBrush &penBrush,
             bool stroked, const QColor &strokeColor, double strokeAlpha,
             const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
             bool filled, const QColor &fillColor, double fillAlpha,
             const CQChartsFillPattern &pattern) const
 {
-  setPen(pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
+  setPen(penBrush.pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
 
-  setBrush(brush, filled, fillColor, fillAlpha, pattern);
+  setBrush(penBrush.brush, filled, fillColor, fillAlpha, pattern);
 }
 
 void

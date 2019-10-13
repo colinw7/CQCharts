@@ -481,8 +481,10 @@ class CQChartsPlotKey : public CQChartsKey {
   mutable RowColCell         rowColCell_;                //!< cells (per row/col)
   mutable double             xs_            { 0.0 };     //!< x spacing (pixels)
   mutable double             ys_            { 0.0 };     //!< y spacing (pixels)
-  mutable double             xm_            { 0.0 };     //!< x margin (pixels)
-  mutable double             ym_            { 0.0 };     //!< y margin (pixels)
+  mutable double             xlm_           { 0.0 };     //!< x left margin (pixels)
+  mutable double             xrm_           { 0.0 };     //!< x right margin (pixels)
+  mutable double             ytm_           { 0.0 };     //!< y top margin (pixels)
+  mutable double             ybm_           { 0.0 };     //!< y bottom margin (pixels)
   mutable double             sx_            { 0.0 };     //!< scroll x offset
   mutable double             sy_            { 0.0 };     //!< scroll y offset
 };

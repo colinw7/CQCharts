@@ -10,6 +10,8 @@
 #include <CQChartsGeom.h>
 
 class CQChartsEditHandles;
+class CQChartsSmooth;
+
 class CQPropertyViewItem;
 
 /*!
@@ -33,7 +35,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     TEXT,
     IMAGE,
     ARROW,
-    POINT
+    POINT,
+    PIE_SLICE
   };
 
   using ColorInd = CQChartsUtil::ColorInd;
@@ -256,6 +259,9 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
              const QString &varName="") const override;
 
  private:
+  void init();
+
+ private:
   CQChartsRect rectangle_; //!< rectangle
 };
 
@@ -320,7 +326,8 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsPolygon polygon READ polygon WRITE setPolygon)
+  Q_PROPERTY(CQChartsPolygon polygon      READ polygon        WRITE setPolygon     )
+  Q_PROPERTY(bool            roundedLines READ isRoundedLines WRITE setRoundedLines)
 
  public:
   CQChartsPolygonAnnotation(CQChartsView *view, const CQChartsPolygon &polygon);
@@ -333,14 +340,23 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   const CQChartsPolygon &polygon() const { return polygon_; }
   void setPolygon(const CQChartsPolygon &polygon) { polygon_ = polygon; emit dataChanged(); }
 
+  bool isRoundedLines() const { return roundedLines_; }
+  void setRoundedLines(bool b);
+
+  //---
+
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
   QString propertyId() const override;
 
+  //---
+
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
+
+  //---
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -348,7 +364,14 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
              const QString &varName="") const override;
 
  private:
-  CQChartsPolygon polygon_; //!< polygon points
+  void init();
+
+  void initSmooth() const;
+
+ private:
+  CQChartsPolygon polygon_;                  //!< polygon points
+  bool            roundedLines_ { false };   //!< draw rounded (smooth) lines
+  CQChartsSmooth* smooth_       { nullptr }; //!< smooth object
 };
 
 //---
@@ -356,11 +379,14 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
 /*!
  * \brief polyline annotation
  * \ingroup Charts
+ *
+ * TODO: draw points and/or line
  */
 class CQChartsPolylineAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsPolygon polygon READ polygon WRITE setPolygon)
+  Q_PROPERTY(CQChartsPolygon polygon      READ polygon        WRITE setPolygon     )
+  Q_PROPERTY(bool            roundedLines READ isRoundedLines WRITE setRoundedLines)
 
  public:
   CQChartsPolylineAnnotation(CQChartsView *view, const CQChartsPolygon &polygon);
@@ -370,17 +396,28 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
 
   const char *typeName() const override { return "polyline"; }
 
+  //---
+
   const CQChartsPolygon &polygon() const { return polygon_; }
   void setPolygon(const CQChartsPolygon &polygon) { polygon_ = polygon; emit dataChanged(); }
+
+  bool isRoundedLines() const { return roundedLines_; }
+  void setRoundedLines(bool b);
+
+  //---
 
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
   QString propertyId() const override;
 
+  //---
+
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
+
+  //---
 
   void draw(CQChartsPaintDevice *device) override;
 
@@ -388,7 +425,14 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
              const QString &varName="") const override;
 
  private:
-  CQChartsPolygon polygon_; //!< polyline points
+  void init();
+
+  void initSmooth() const;
+
+ private:
+  CQChartsPolygon polygon_;                  //!< polyline points
+  bool            roundedLines_ { false };   //!< draw rounded (smooth) lines
+  CQChartsSmooth* smooth_       { nullptr }; //!< smooth object
 };
 
 //---
@@ -649,6 +693,75 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
 
  private:
   CQChartsPosition position_; //!< point position
+};
+
+//---
+
+/*!
+ * \brief pie slice annotation
+ * \ingroup Charts
+ */
+class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsPosition position    READ position    WRITE setPosition   )
+  Q_PROPERTY(CQChartsLength   innerRadius READ innerRadius WRITE setInnerRadius)
+  Q_PROPERTY(CQChartsLength   outerRadius READ outerRadius WRITE setOuterRadius)
+  Q_PROPERTY(double           startAngle  READ startAngle  WRITE setStartAngle )
+  Q_PROPERTY(double           spanAngle   READ spanAngle   WRITE setSpanAngle  )
+
+ public:
+  CQChartsPieSliceAnnotation(CQChartsView *view, const CQChartsPosition &p=CQChartsPosition(),
+                             const CQChartsLength &innerRadius=CQChartsLength(),
+                             const CQChartsLength &outerRadius=CQChartsLength(),
+                             double startAngle=0.0, double spanAngle=90.0);
+  CQChartsPieSliceAnnotation(CQChartsPlot *plot, const CQChartsPosition &p=CQChartsPosition(),
+                             const CQChartsLength &innerRadius=CQChartsLength(),
+                             const CQChartsLength &outerRadius=CQChartsLength(),
+                             double startAngle=0.0, double spanAngle=90.0);
+
+  virtual ~CQChartsPieSliceAnnotation();
+
+  const char *typeName() const override { return "pie_slice"; }
+
+  const CQChartsPosition &position() const { return position_; }
+  void setPosition(const CQChartsPosition &p) { position_ = p; emit dataChanged(); }
+
+  const CQChartsLength &innerRadius() const { return innerRadius_; }
+  void setInnerRadius(const CQChartsLength &v) { innerRadius_ = v; }
+
+  const CQChartsLength &outerRadius() const { return outerRadius_; }
+  void setOuterRadius(const CQChartsLength &v) { outerRadius_ = v; }
+
+  double startAngle() const { return startAngle_; }
+  void setStartAngle(double r) { startAngle_ = r; }
+
+  double spanAngle() const { return spanAngle_; }
+  void setSpanAngle(double r) { spanAngle_ = r; }
+
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
+
+  QString propertyId() const override;
+
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+
+  bool inside(const CQChartsGeom::Point &p) const override;
+
+  void draw(CQChartsPaintDevice *device) override;
+
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
+
+ private:
+  void init();
+
+ private:
+  CQChartsPosition position_;             //!< point position
+  CQChartsLength   innerRadius_;          //!< inner radius
+  CQChartsLength   outerRadius_;          //!< outer radius
+  double           startAngle_  {  0.0 }; //!< start angle
+  double           spanAngle_   { 90.0 }; //!< span angle
 };
 
 #endif

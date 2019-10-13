@@ -240,7 +240,7 @@ setNameValues(CQChartsNameValues &nameValues) const
   if (! isVisible())
     nameValues.setNameValue("visible", isVisible());
 
-  nameValues.setNameValue("margin" , margin ());
+  nameValues.setNameValue("margin" , margin().toString());
   nameValues.setNameValue("padding", padding());
 
   shape_.setNameValues(nameValues);
@@ -261,13 +261,16 @@ bool
 CQChartsBoxData::
 getNameValues(const CQChartsNameValues &nameValues)
 {
+  QString str;
+
   nameValues.nameValueBool("visible", visible_);
-  nameValues.nameValueReal("margin" , margin_ );
+
+  if (nameValues.nameValueString("margin", str))
+    margin_ = CQChartsMargin(str);
+
   nameValues.nameValueReal("padding", padding_);
 
   shape_.getNameValues(nameValues);
-
-  QString str;
 
   if (nameValues.nameValueString("border_sides", str))
     borderSides_ = CQChartsSides(str);

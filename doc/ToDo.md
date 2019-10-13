@@ -3,9 +3,14 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
- + Write JSON
- + Auto key placement
- + Table chart
+ + SVG output
+ + Axis Annotation (independent coords ?, angle)
+ + Annotation connectors (arc like sankey)
+ + Table chart interactive features
+ + Generate table in JS output
+ + access to model data in JS output (JSON)
+ + Write JSON (test, difference formats)
+ + Auto key placement (quad tree, all plots)
  + Combine CQChartsModelDetails and CQModelDetails
  + Same coloring in table and plot (if possible)
    + same palette

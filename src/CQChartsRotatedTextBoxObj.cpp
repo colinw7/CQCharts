@@ -22,8 +22,14 @@ draw(CQChartsPaintDevice *device, const QPointF &center, const QString &text, do
 
   double tw = fm.width(text);
 
-  double tw1 = tw + 2*margin();
-  double th1 = fm.height() + 2*margin();
+  // external margin
+  double xlm = lengthPixelWidth (margin().left  ());
+  double xrm = lengthPixelWidth (margin().right ());
+  double ytm = lengthPixelHeight(margin().top   ());
+  double ybm = lengthPixelHeight(margin().bottom());
+
+  double tw1 = tw + xlm + xrm;
+  double th1 = fm.height() + ybm + ytm;
 
   QPointF pcenter = device->windowToPixel(center);
 
@@ -36,10 +42,10 @@ draw(CQChartsPaintDevice *device, const QPointF &center, const QString &text, do
   }
   else if (align & Qt::AlignRight) {
     cx -= tw1;
-    cd  = -margin();
+    cd  = -xrm;
   }
   else {
-    cd  = margin();
+    cd  = xlm;
   }
 
   QRectF prect(cx, cy, tw1, th1);
@@ -56,7 +62,9 @@ draw(CQChartsPaintDevice *device, const QPointF &center, const QString &text, do
     QRectF                      bbox;
     CQChartsRotatedText::Points points;
 
-    CQChartsRotatedText::bboxData(center.x(), center.y(), text, device->font(), angle, margin(),
+    CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
+
+    CQChartsRotatedText::bboxData(center.x(), center.y(), text, device->font(), angle, border,
                                   bbox, points, align, /*alignBBox*/ true);
 
     QPolygonF poly;
@@ -96,8 +104,14 @@ bbox(const QPointF &center, const QString &text, double angle, Qt::Alignment ali
 
   double tw = fm.width(text);
 
-  double tw1 = tw + 2*margin();
-  double th1 = fm.height() + 2*margin();
+  // external margin
+  double xlm = lengthPixelWidth (margin().left  ());
+  double xrm = lengthPixelWidth (margin().right ());
+  double ytm = lengthPixelHeight(margin().top   ());
+  double ybm = lengthPixelHeight(margin().bottom());
+
+  double tw1 = tw + xlm + xrm;
+  double th1 = fm.height() + ybm + ytm;
 
   double cx = center.x();
   double cy = center.y() - th1/2;
@@ -117,7 +131,9 @@ bbox(const QPointF &center, const QString &text, double angle, Qt::Alignment ali
   else {
     CQChartsRotatedText::Points points;
 
-    CQChartsRotatedText::bboxData(center.x(), center.y(), text, font, angle, margin(),
+    CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
+
+    CQChartsRotatedText::bboxData(center.x(), center.y(), text, font, angle, border,
                                   qrect, points, align, /*alignBBox*/ true);
   }
 

@@ -70,21 +70,20 @@ CQChartsBoxObj::
 draw(CQChartsPaintDevice *device, const QRectF &rect) const
 {
   // set pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor bgColor = interpFillColor(ColorInd());
 
-  setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
+  setBrush(penBrush.brush, true, bgColor, fillAlpha(), fillPattern());
 
   QColor strokeColor = interpStrokeColor(ColorInd());
 
-  setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  setPen(penBrush.pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
 
   if (isStateColoring())
-    updatePenBrushState(pen, brush);
+    updatePenBrushState(penBrush);
 
-  draw(device, rect, pen, brush);
+  draw(device, rect, penBrush.pen, penBrush.brush);
 }
 
 #if 0
@@ -93,21 +92,20 @@ CQChartsBoxObj::
 draw(QPainter *painter, const QRectF &rect) const
 {
   // set pen and brush
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor bgColor = interpFillColor(ColorInd());
 
-  setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
+  setBrush(penBrush.brush, true, bgColor, fillAlpha(), fillPattern());
 
   QColor strokeColor = interpStrokeColor(ColorInd());
 
-  setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  setPen(penBrush.pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
 
   if (isStateColoring())
-    updatePenBrushState(pen, brush);
+    updatePenBrushState(penBrush);
 
-  draw(painter, rect, pen, brush);
+  draw(painter, rect, penBrush.pen, penBrush.brush);
 }
 #endif
 

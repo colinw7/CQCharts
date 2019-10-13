@@ -7,6 +7,8 @@ proc objPressed { view plot id } {
 
   set_charts_property -plot $::plot2 -name options.mode    -value ROWS
   set_charts_property -plot $::plot2 -name options.rowNums -value $rows
+
+  set_charts_data -plot $::plot2 -name zoom_full -value 1
 }
 
 # Name,Party,Province,Age,Gender

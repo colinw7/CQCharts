@@ -2066,7 +2066,7 @@ draw(CQChartsPaintDevice *device)
       QColor boxColor    = plot_->interpBoxFillColor  (colorInd);
       QColor strokeColor = plot_->interpBoxStrokeColor(colorInd);
 
-      plot_->setPenBrush(symbolPenBrush.pen, symbolPenBrush.brush,
+      plot_->setPenBrush(symbolPenBrush,
         /*stroked*/true, strokeColor, plot_->boxStrokeAlpha(), plot_->boxStrokeWidth(),
         plot_->boxStrokeDash(),
         /*filled*/true, boxColor, plot_->boxFillAlpha(), plot_->boxFillPattern());
@@ -2208,7 +2208,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor bc = plot_->interpBoxStrokeColor(colorInd);
   QColor fc = plot_->interpBoxFillColor  (colorInd);
 
-  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+  plot_->setPenBrush(penBrush,
     plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(), plot_->boxStrokeWidth(),
     plot_->boxStrokeDash(),
     plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern());
@@ -2439,7 +2439,7 @@ draw(CQChartsPaintDevice *device)
   // set fill and stroke
   CQChartsPenBrush penBrush;
 
-  plot_->setOutlierSymbolPenBrush(penBrush.pen, penBrush.brush, colorInd);
+  plot_->setOutlierSymbolPenBrush(penBrush, colorInd);
 
   plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 
@@ -2550,7 +2550,7 @@ draw(CQChartsPaintDevice *device)
   QColor bc = plot_->interpBoxStrokeColor(ColorInd());
   QColor fc = plot_->interpBoxFillColor(ColorInd());
 
-  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+  plot_->setPenBrush(penBrush,
     plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
     plot_->boxStrokeWidth(), plot_->boxStrokeDash(),
     plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern());
@@ -2839,7 +2839,7 @@ draw(CQChartsPaintDevice *device)
     QColor bc = plot_->interpBoxStrokeColor(ig_);
     QColor fc = plot_->interpBoxFillColor  (ig_);
 
-    plot_->setPenBrush(pPenBrush.pen, pPenBrush.brush,
+    plot_->setPenBrush(pPenBrush,
       plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
       plot_->boxStrokeWidth(), plot_->boxStrokeDash(),
       plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern());
@@ -3109,7 +3109,7 @@ draw(CQChartsPaintDevice *device)
   // calc stroke and brush
   CQChartsPenBrush penBrush;
 
-  plot_->setJitterSymbolPenBrush(penBrush.pen, penBrush.brush, colorInd);
+  plot_->setJitterSymbolPenBrush(penBrush, colorInd);
 
   plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 

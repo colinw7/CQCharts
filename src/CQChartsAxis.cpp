@@ -11,6 +11,7 @@
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
+#include <CQTclUtil.h>
 
 #include <cstring>
 #include <algorithm>
@@ -220,6 +221,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   addProp(path, "end"           , "", "Axis end position");
   addProp(path, "includeZero"   , "", "Axis force include zero")->setHidden(true);
 
+  addProp(path, "tickLabels", "", "Tick Labels")->setHidden(true);
+
   addProp(path, "maxFitExtent", "", "Axis maximum extent percent for auto fit");
 
   //---
@@ -374,6 +377,55 @@ minorTickIncrement() const
 }
 
 //---
+
+QString
+CQChartsAxis::
+tickLabelsStr() const
+{
+  QStringList strs;
+
+  for (const auto &p : tickLabels_) {
+    QStringList strs1;
+
+    strs1 << QString("%1").arg(p.first );
+    strs1 << QString("%1").arg(p.second);
+
+    QString str1 = CQTcl::mergeList(strs1);
+
+    strs << str1;
+  }
+
+  return CQTcl::mergeList(strs);
+}
+
+void
+CQChartsAxis::
+setTickLabelsStr(const QString &str)
+{
+  QStringList strs;
+
+  if (! CQTcl::splitList(str, strs))
+    return;
+
+  for (int i = 0; i < strs.length(); ++i) {
+    const QString &str1 = strs[i];
+
+    QStringList strs1;
+
+    if (! CQTcl::splitList(str1, strs1))
+      continue;
+
+    if (strs1.length() != 2)
+      continue;
+
+    bool ok;
+
+    int value = strs1[0].toInt(&ok);
+    if (! ok) continue;
+
+    setTickLabel(value, strs1[1]);
+  }
+}
 
 void
 CQChartsAxis::

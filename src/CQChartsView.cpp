@@ -1053,7 +1053,7 @@ hideProperty(const QString &path, QObject *object)
   propertyModel()->hideProperty(path, object);
 }
 
-//---
+//------
 
 CQChartsArrowAnnotation *
 CQChartsView::
@@ -1099,6 +1099,19 @@ addImageAnnotation(const CQChartsRect &rect, const QImage &image)
   addAnnotation(imageAnnotation);
 
   return imageAnnotation;
+}
+
+CQChartsPieSliceAnnotation *
+CQChartsView::
+addPieSliceAnnotation(const CQChartsPosition &pos, const CQChartsLength &innerRadius,
+                      const CQChartsLength &outerRadius, double startAngle, double spanAngle)
+{
+  CQChartsPieSliceAnnotation *pieSliceAnnotation =
+    new CQChartsPieSliceAnnotation(this, pos, innerRadius, outerRadius, startAngle, spanAngle);
+
+  addAnnotation(pieSliceAnnotation);
+
+  return pieSliceAnnotation;
 }
 
 CQChartsPointAnnotation *
@@ -1228,6 +1241,8 @@ removeAllAnnotations()
     delete annotation;
 
   annotations_.clear();
+
+  propertyModel()->removeProperties("annotations");
 
   emit annotationsChanged();
 }
@@ -4144,7 +4159,12 @@ showMenu(const QPoint &p)
 
   //------
 
-  addAction(popupMenu_, "Fit", SLOT(fitSlot()));
+  popupMenu_->addSeparator();
+
+  addAction(popupMenu_, "Fit"      , SLOT(fitSlot()));
+  addAction(popupMenu_, "Zoom Full", SLOT(zoomFullSlot()));
+
+  popupMenu_->addSeparator();
 
   //---
 
@@ -4598,13 +4618,30 @@ invertYSlot(bool b)
     basePlot->setInvertY(b);
 }
 
+//------
+
 void
 CQChartsView::
 fitSlot()
 {
-  for (const auto &plot : plots_) {
-    plot->autoFit();
-  }
+  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+
+  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+
+  if (basePlot)
+    basePlot->autoFit();
+}
+
+void
+CQChartsView::
+zoomFullSlot()
+{
+  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+
+  CQChartsPlot *basePlot = (currentPlot ? currentPlot->firstPlot() : nullptr);
+
+  if (basePlot)
+    basePlot->zoomFull();
 }
 
 //------

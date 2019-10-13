@@ -1,7 +1,7 @@
 #ifndef CQChartsCmdArgs_H
 #define CQChartsCmdArgs_H
 
-#include <CQChartsLength.h>
+#include <CQChartsMargin.h>
 #include <CQChartsPosition.h>
 #include <CQChartsRect.h>
 #include <CQChartsColor.h>
@@ -1273,33 +1273,11 @@ class CQChartsCmdArgs : public CQChartsCmdBaseArgs {
     return CQChartsCmdUtil::viewPlotStringToValue<T>((*p).second[0], view, plot);
   }
 
-#if 0
-  CQChartsLength
-  getParseLength(CQChartsView *view, CQChartsPlot *, const QString &name,
-                 const CQChartsLength &def=CQChartsLength()) const {
-    auto p = parseStr_.find(name);
-    if (p == parseStr_.end()) return def;
-
-    return CQChartsLength((*p).second[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
-  }
-#endif
-
   CQChartsLength
   getParseLength(CQChartsView *view, CQChartsPlot *plot, const QString &name,
                  const CQChartsLength &def=CQChartsLength()) const {
     return getParseValue<CQChartsLength>(view, plot, name, def);
   }
-
-#if 0
-  CQChartsPosition
-  getParsePosition(CQChartsView *view, CQChartsPlot *, const QString &name,
-                   const CQChartsPosition &def=CQChartsPosition()) const {
-    auto p = parseStr_.find(name);
-    if (p == parseStr_.end()) return def;
-
-    return CQChartsPosition((*p).second[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
-  }
-#endif
 
   CQChartsPosition
   getParsePosition(CQChartsView *view, CQChartsPlot *plot, const QString &name,
@@ -1307,21 +1285,16 @@ class CQChartsCmdArgs : public CQChartsCmdBaseArgs {
     return getParseValue<CQChartsPosition>(view, plot, name, def);
   }
 
-#if 0
-  CQChartsRect
-  getParseRect(CQChartsView *view, CQChartsPlot *, const QString &name,
-               const CQChartsRect &def=CQChartsRect()) const {
-    auto p = parseStr_.find(name);
-    if (p == parseStr_.end()) return def;
-
-    return CQChartsRect((*p).second[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
-  }
-#endif
-
   CQChartsRect
   getParseRect(CQChartsView *view, CQChartsPlot *plot, const QString &name,
                const CQChartsRect &def=CQChartsRect()) const {
     return getParseValue<CQChartsRect>(view, plot, name, def);
+  }
+
+  CQChartsMargin
+  getParseMargin(CQChartsView *view, CQChartsPlot *plot, const QString &name,
+                 const CQChartsMargin &def=CQChartsMargin()) const {
+    return getParseValue<CQChartsMargin>(view, plot, name, def);
   }
 
   //---

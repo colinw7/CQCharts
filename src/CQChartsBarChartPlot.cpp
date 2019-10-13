@@ -1847,7 +1847,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
   QColor barColor = calcBarColor();
 
-  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+  plot_->setPenBrush(penBrush,
     plot_->isBarStroked() && ! skipBorder,
     bc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(), plot_->barStrokeDash(),
     plot_->isBarFilled(), barColor, plot_->barFillAlpha(), plot_->barFillPattern());

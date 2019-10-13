@@ -2091,7 +2091,7 @@ drawHull(CQChartsPaintDevice *device) const
 
     CQChartsPenBrush penBrush;
 
-    setPenBrush(penBrush.pen, penBrush.brush,
+    setPenBrush(penBrush,
       isHullStroked(), strokeColor, hullStrokeAlpha(), hullStrokeWidth(), hullStrokeDash(),
       isHullFilled(), fillColor, hullFillAlpha(), hullFillPattern());
 
@@ -2264,7 +2264,7 @@ drawXDensityWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
   QColor strokeColor = interpSymbolStrokeColor(ig);
   QColor fillColor   = interpSymbolFillColor  (ig);
 
-  setPenBrush(penBrush.pen, penBrush.brush,
+  setPenBrush(penBrush,
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
     /*filled*/ true, fillColor, densityAlpha(), CQChartsFillPattern());
 
@@ -2299,7 +2299,7 @@ drawYDensityWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
   QColor strokeColor = interpSymbolStrokeColor(ig);
   QColor fillColor   = interpSymbolFillColor  (ig);
 
-  setPenBrush(penBrush.pen, penBrush.brush,
+  setPenBrush(penBrush,
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
     /*filled*/ true, fillColor, densityAlpha(), symbolFillPattern());
 
@@ -2549,7 +2549,7 @@ drawXWhiskerWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
   QColor strokeColor = interpSymbolStrokeColor(ig);
   QColor fillColor   = interpSymbolFillColor  (ig);
 
-  setPenBrush(penBrush.pen, penBrush.brush,
+  setPenBrush(penBrush,
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
     /*filled*/ true, fillColor, whiskerAlpha(), symbolFillPattern());
 
@@ -2582,7 +2582,7 @@ drawYWhiskerWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
   QColor strokeColor = interpSymbolStrokeColor(ig);
   QColor fillColor   = interpSymbolFillColor  (ig);
 
-  setPenBrush(penBrush.pen, penBrush.brush,
+  setPenBrush(penBrush,
     /*stroked*/ true, strokeColor, symbolStrokeAlpha(), CQChartsLength(), CQChartsLineDash(),
     /*filled*/ true, fillColor, whiskerAlpha(), symbolFillPattern());
 
@@ -3161,7 +3161,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 {
   ColorInd ic = calcColorInd();
 
-  plot_->setSymbolPenBrush(penBrush.pen, penBrush.brush, ic);
+  plot_->setSymbolPenBrush(penBrush, ic);
 
   // override symbol fill color for custom color
   CQChartsColor color = this->color();
@@ -3295,7 +3295,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor pc = plot_->interpGridCellStrokeColor(ColorInd());
   QColor fc = plot_->interpPaletteColor(ic);
 
-  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+  plot_->setPenBrush(penBrush,
     plot_->isGridCellStroked(), pc, plot_->gridCellStrokeAlpha(),
     plot_->gridCellStrokeWidth(), plot_->gridCellStrokeDash(),
     plot_->isGridCellFilled(), fc, plot_->gridCellFillAlpha(), plot_->gridCellFillPattern());
@@ -3315,7 +3315,7 @@ drawRugSymbol(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
   // calc stroke and brush
   CQChartsPenBrush penBrush;
 
-  plot_->setSymbolPenBrush(penBrush.pen, penBrush.brush, ic);
+  plot_->setSymbolPenBrush(penBrush, ic);
 
   plot_->updateObjPenBrushState(this, penBrush, CQChartsPlot::DrawType::SYMBOL);
 

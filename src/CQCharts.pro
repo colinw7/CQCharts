@@ -59,6 +59,7 @@ CQChartsChordPlot.cpp \
 CQChartsDelaunayPlot.cpp \
 CQChartsDendrogramPlot.cpp \
 CQChartsDistributionPlot.cpp \
+CQChartsEmptyPlot.cpp \
 CQChartsForceDirectedPlot.cpp \
 CQChartsGeometryPlot.cpp \
 CQChartsHierBubblePlot.cpp \
@@ -152,6 +153,7 @@ CQChartsNamePair.cpp \
 CQChartsPolygonList.cpp \
 CQChartsPosition.cpp \
 CQChartsLength.cpp \
+CQChartsMargin.cpp \
 CQChartsRect.cpp \
 CQChartsPolygon.cpp \
 CQChartsPlotMargin.cpp \
@@ -216,6 +218,7 @@ CQChartsLengthEdit.cpp \
 CQChartsLineDashEdit.cpp \
 CQChartsLineDataEdit.cpp \
 CQChartsLineEditBase.cpp \
+CQChartsMarginEdit.cpp \
 CQChartsPaletteNameEdit.cpp \
 CQChartsPolygonEdit.cpp \
 CQChartsPositionEdit.cpp \
@@ -310,6 +313,7 @@ HEADERS += \
 ../include/CQChartsDelaunayPlot.h \
 ../include/CQChartsDendrogramPlot.h \
 ../include/CQChartsDistributionPlot.h \
+../include/CQChartsEmptyPlot.h \
 ../include/CQChartsForceDirectedPlot.h \
 ../include/CQChartsGeometryPlot.h \
 ../include/CQChartsHierBubblePlot.h \
@@ -426,6 +430,7 @@ HEADERS += \
 ../include/CQChartsPolygonList.h \
 ../include/CQChartsPosition.h \
 ../include/CQChartsLength.h \
+../include/CQChartsMargin.h \
 ../include/CQChartsRect.h \
 ../include/CQChartsPolygon.h \
 ../include/CQChartsPlotMargin.h \
@@ -468,6 +473,7 @@ HEADERS += \
 ../include/CQChartsLineDashEdit.h \
 ../include/CQChartsLineDataEdit.h \
 ../include/CQChartsLineEditBase.h \
+../include/CQChartsMarginEdit.h \
 ../include/CQChartsPaletteNameEdit.h \
 ../include/CQChartsPolygonEdit.h \
 ../include/CQChartsPositionEdit.h \

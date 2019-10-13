@@ -1188,7 +1188,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor bc = plot_->interpBarStrokeColor(colorInd);
   QColor fc = plot_->interpBarFillColor  (colorInd);
 
-  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+  plot_->setPenBrush(penBrush,
     plot_->isBarStroked(), bc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(),
     plot_->barStrokeDash(),
     plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
@@ -1328,7 +1328,7 @@ draw(CQChartsPaintDevice *device)
 
     QColor lc = plot_->interpBarFillColor(colorInd);
 
-    plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->setPenBrush(penBrush,
       true , lc, 1.0, 0.0, CQChartsLineDash(),
       false, lc, 1.0, CQChartsFillPattern());
 
@@ -1357,7 +1357,7 @@ draw(CQChartsPaintDevice *device)
     QColor bc = plot_->interpBarStrokeColor(colorInd);
     QColor fc = plot_->interpBarFillColor  (colorInd);
 
-    plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->setPenBrush(penBrush,
       plot_->isBarStroked(), bc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(),
       plot_->barStrokeDash(),
       plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
@@ -1381,7 +1381,7 @@ draw(CQChartsPaintDevice *device)
 
     QColor fc = plot_->interpBarFillColor(colorInd);
 
-    plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->setPenBrush(penBrush,
       false, fc, 1.0, 0.0, CQChartsLineDash(),
       true , fc, 0.5, CQChartsFillPattern());
 
@@ -1486,7 +1486,7 @@ draw(CQChartsPaintDevice *device)
   QColor bc = plot_->interpBarStrokeColor(colorInd);
   QColor fc = plot_->interpBarFillColor  (colorInd);
 
-  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+  plot_->setPenBrush(penBrush,
     plot_->isBarStroked(), bc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(),
     plot_->barStrokeDash(),
     plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
@@ -1721,7 +1721,7 @@ calcBgPenBrush(CQChartsPenBrush &bgPenBrush, bool updateState) const
   QColor bgsc = plot_->interpBarStrokeColor(colorInd);
   QColor bgfc = plot_->interpBarFillColor  (colorInd);
 
-  plot_->setPenBrush(bgPenBrush.pen, bgPenBrush.brush,
+  plot_->setPenBrush(bgPenBrush,
     plot_->isBarStroked(), bgsc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(),
     plot_->barStrokeDash(),
     plot_->isBarFilled(), bgfc, plot_->barFillAlpha(), plot_->barFillPattern());

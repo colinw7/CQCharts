@@ -1056,7 +1056,7 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   QColor bc = interpStrokeColor(colorInd);
   QColor fc = node->interpColor(this, fillColor(), colorInd, numColorIds());
 
-  setPenBrush(penBrush.pen, penBrush.brush,
+  setPenBrush(penBrush,
     isStroked(), bc, strokeAlpha(), strokeWidth(), strokeDash(),
     isFilled(), fc, fillAlpha(), fillPattern());
 

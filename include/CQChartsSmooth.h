@@ -45,13 +45,17 @@ class CQChartsBezier2 {
   void setControlPoint(const CQChartsGeom::Point &p2) { p2_ = p2; };
   void setLastPoint   (const CQChartsGeom::Point &p3) { p3_ = p3; };
 
+#if 0
   void getFirstPoint  (double *x, double *y) const { *x = p1_.x; *y = p1_.y; }
   void getControlPoint(double *x, double *y) const { *x = p2_.x; *y = p2_.y; }
   void getLastPoint   (double *x, double *y) const { *x = p3_.x; *y = p3_.y; }
+#endif
 
+#if 0
   void setFirstPoint  (double x, double y) { setFirstPoint  (CQChartsGeom::Point(x, y)); }
   void setControlPoint(double x, double y) { setControlPoint(CQChartsGeom::Point(x, y)); }
   void setLastPoint   (double x, double y) { setLastPoint   (CQChartsGeom::Point(x, y)); }
+#endif
 
   void setPoints(double x1, double y1, double x2, double y2, double x3, double y3) {
     setPoints(CQChartsGeom::Point(x1, y1), CQChartsGeom::Point(x2, y2),
@@ -283,20 +287,24 @@ class CQChartsBezier3 {
   const CQChartsGeom::Point &getControlPoint2() const { return p3_; }
   const CQChartsGeom::Point &getLastPoint    () const { return p4_; }
 
+#if 0
   void setFirstPoint   (const CQChartsGeom::Point &p1) { p1_ = p1; }
   void setControlPoint1(const CQChartsGeom::Point &p2) { p2_ = p2; };
   void setControlPoint2(const CQChartsGeom::Point &p3) { p3_ = p3; };
   void setLastPoint    (const CQChartsGeom::Point &p4) { p4_ = p4; };
+#endif
 
   void getFirstPoint   (double *x, double *y) const { *x = p1_.x; *y = p1_.y; }
   void getControlPoint1(double *x, double *y) const { *x = p2_.x; *y = p2_.y; }
   void getControlPoint2(double *x, double *y) const { *x = p3_.x; *y = p3_.y; }
   void getLastPoint    (double *x, double *y) const { *x = p4_.x; *y = p4_.y; }
 
+#if 0
   void setFirstPoint   (double x, double y) { setFirstPoint   (CQChartsGeom::Point(x, y)); }
   void setControlPoint1(double x, double y) { setControlPoint1(CQChartsGeom::Point(x, y)); }
   void setControlPoint2(double x, double y) { setControlPoint2(CQChartsGeom::Point(x, y)); }
   void setLastPoint    (double x, double y) { setLastPoint    (CQChartsGeom::Point(x, y)); }
+#endif
 
   void setPoints(double x1, double y1, double x2, double y2,
                  double x3, double y3, double x4, double y4) {
@@ -1018,6 +1026,18 @@ class CQChartsSmooth {
     smooth();
   }
 
+  CQChartsSmooth(const QPolygonF &poly, bool sorted=true) :
+   sorted_(sorted) {
+    int np = poly.count();
+
+    for (int i = 0; i < np; ++i)
+      points_.push_back(CQChartsGeom::Point(poly[i]));
+
+    reset();
+
+    smooth();
+  }
+
  ~CQChartsSmooth() {
     reset();
   }
@@ -1096,6 +1116,61 @@ class CQChartsSmooth {
     return segments_[i]->controlPoint2(this);
   }
 
+  QPainterPath createPath(bool closed) const {
+    QPainterPath path;
+
+    int np = numPoints();
+
+    if (closed) {
+      if (np > 0) {
+        const CQChartsGeom::Point &p = point(0);
+
+        path.moveTo(p.qpoint());
+      }
+    }
+
+    for (int i = 0; i < np; ++i) {
+      const CQChartsGeom::Point &p = point(i);
+
+      if (i == 0) {
+        if (closed)
+          path.lineTo(p.qpoint());
+        else
+          path.moveTo(p.qpoint());
+      }
+      else {
+        SegmentType type = segmentType(i - 1);
+
+        if      (type == SegmentType::CURVE3) {
+          CQChartsGeom::Point c1 = controlPoint1(i - 1);
+          CQChartsGeom::Point c2 = controlPoint2(i - 1);
+
+          path.cubicTo(c1.x, c1.y, c2.x, c2.y, p.x, p.y);
+        }
+        else if (type == SegmentType::CURVE2) {
+          CQChartsGeom::Point c1 = controlPoint1(i - 1);
+
+          path.quadTo(c1.x, c1.y, p.x, p.y);
+        }
+        else if (type == SegmentType::LINE) {
+          path.lineTo(p.qpoint());
+        }
+      }
+    }
+
+    if (closed) {
+      if (np > 0) {
+        const CQChartsGeom::Point &p = point(np - 1);
+
+        path.lineTo(p.qpoint());
+      }
+
+      path.closeSubpath();
+    }
+
+    return path;
+  }
+
  private:
   void reset() {
     for (auto &s : segments_)
@@ -1128,7 +1203,7 @@ class CQChartsSmooth {
       double gl1 = (points_[i2].y - points_[i1].y)/(points_[i2].x - points_[i1].x);
       double gl2 = (points_[i3].y - points_[i2].y)/(points_[i3].x - points_[i2].x);
 
-      g2 = gl1 + gl2;
+      g2 = (gl1 + gl2)/2.0;
       c2 = points_[i2].y - points_[i2].x*g2;
 
       if (i1 > 0) {
@@ -1169,7 +1244,7 @@ class CQChartsSmooth {
     double gl1 = (points_[i2].y - points_[i1].y)/(points_[i2].x - points_[i1].x);
     double gl2 = (points_[i3].y - points_[i2].y)/(points_[i3].x - points_[i2].x);
 
-    double g = gl1 + gl2;
+    double g = (gl1 + gl2)/2.0;
     double c = points_[i2].y - points_[i2].x*g;
 
     double mx = (points_[i2].x + points_[i3].x)/2;

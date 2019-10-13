@@ -83,6 +83,8 @@ class CQChartsAxis : public CQChartsObj,
 
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(AxesTickLabel,axesTickLabel)
 
+  Q_PROPERTY(QString tickLabels READ tickLabelsStr WRITE setTickLabelsStr);
+
   // label
   Q_PROPERTY(QString label     READ label     WRITE setLabel    )
   Q_PROPERTY(QString userLabel READ userLabel WRITE setUserLabel)
@@ -342,6 +344,9 @@ class CQChartsAxis : public CQChartsObj,
   void setTickSpaces(double *tickSpaces, uint numTickSpaces);
 
   //---
+
+  QString tickLabelsStr() const;
+  void setTickLabelsStr(const QString &str);
 
   void clearTickLabels();
 

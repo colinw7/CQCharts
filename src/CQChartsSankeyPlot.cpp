@@ -1154,7 +1154,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor bc = plot_->interpNodeStrokeColor(ic);
   QColor fc = plot_->interpNodeFillColor  (ic);
 
-  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+  plot_->setPenBrush(penBrush,
     plot_->isNodeStroked(), bc, plot_->nodeStrokeAlpha(),
     plot_->nodeStrokeWidth(), plot_->nodeStrokeDash(),
     plot_->isNodeFilled(), fc, plot_->nodeFillAlpha(), plot_->nodeFillPattern());
@@ -1265,7 +1265,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
   QColor sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
 
-  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+  plot_->setPenBrush(penBrush,
     plot_->isEdgeStroked(), sc, plot_->edgeStrokeAlpha(),
     plot_->edgeStrokeWidth(), plot_->edgeStrokeDash(),
     plot_->isEdgeFilled(), fc, plot_->edgeFillAlpha(), plot_->edgeFillPattern());

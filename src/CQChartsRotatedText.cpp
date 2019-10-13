@@ -116,7 +116,9 @@ bbox(double x, double y, const QString &text, const QFont &font, double angle, d
   QRectF bbox;
   Points points;
 
-  bboxData(x, y, text, font, angle, border, bbox, points, align, alignBBox);
+  CQChartsGeom::Margin border1(border);
+
+  bboxData(x, y, text, font, angle, border1, bbox, points, align, alignBBox);
 
   return bbox;
 }
@@ -128,7 +130,9 @@ bboxPoints(double x, double y, const QString &text, const QFont &font, double an
   QRectF bbox;
   Points points;
 
-  bboxData(x, y, text, font, angle, border, bbox, points, align, alignBBox);
+  CQChartsGeom::Margin border1(border);
+
+  bboxData(x, y, text, font, angle, border1, bbox, points, align, alignBBox);
 
   return points;
 }
@@ -137,12 +141,27 @@ void
 bboxData(double x, double y, const QString &text, const QFont &font, double angle,
          double border, QRectF &bbox, Points &points, Qt::Alignment align, bool alignBBox)
 {
+  CQChartsGeom::Margin border1(border);
+
+  bboxData(x, y, text, font, angle, border1, bbox, points, align, alignBBox);
+}
+
+void
+bboxData(double x, double y, const QString &text, const QFont &font, double angle,
+         const CQChartsGeom::Margin &border, QRectF &bbox, Points &points, Qt::Alignment align,
+         bool alignBBox)
+{
   QFontMetricsF fm(font);
 
   //------
 
-  double th = fm.height()    + 2*border;
-  double tw = fm.width(text) + 2*border;
+  double xlm = border.left  ();
+  double xrm = border.right ();
+  double ytm = border.top   ();
+  double ybm = border.bottom();
+
+  double th = fm.height()    + xlm + xrm;
+  double tw = fm.width(text) + ybm + ytm;
 
   double a1 = CMathUtil::Deg2Rad(angle);
 
@@ -157,16 +176,16 @@ bboxData(double x, double y, const QString &text, const QFont &font, double angl
     double dx = 0.0, dy = 0.0;
 
     if      (align & Qt::AlignLeft)
-      dx = -border;
+      dx = -xlm;
     else if (align & Qt::AlignRight)
-      dx = -tw + border;
+      dx = -tw + xrm;
     else if (align & Qt::AlignHCenter)
       dx = -tw/2.0;
 
     if      (align & Qt::AlignBottom)
-      dy = border;
+      dy = ybm;
     else if (align & Qt::AlignTop)
-      dy = th - border;
+      dy = th - ytm;
     else if (align & Qt::AlignVCenter)
       dy = th/2.0;
 
@@ -177,24 +196,21 @@ bboxData(double x, double y, const QString &text, const QFont &font, double angl
   }
   else {
     if      (align & Qt::AlignLeft)
-      tx = -th*s - border;
+      tx = -th*s - xlm;
     else if (align & Qt::AlignRight)
-      tx = -tw*c + border;
+      tx = -tw*c + xrm;
     else if (align & Qt::AlignHCenter)
       tx = -(th*s + tw*c)/2.0;
 
     if      (align & Qt::AlignBottom)
-      ty = border;
+      ty = ybm;
     else if (align & Qt::AlignTop)
-      ty = -(tw*s - th*c) - border;
+      ty = -(tw*s - th*c) - ytm;
     else if (align & Qt::AlignVCenter)
       ty = -(tw*s - th*c)/2.0;
   }
 
   //------
-
-  //x -= c*border - s*border;
-  //y -= s*border + c*border;
 
   double x1 = x + tx, x2 = x + tw*c + tx, x3 = x + tw*c + th*s + tx, x4 = x + th*s + tx;
   double y1 = y + ty, y2 = y + tw*s + ty, y3 = y + tw*s - th*c + ty, y4 = y - th*c + ty;

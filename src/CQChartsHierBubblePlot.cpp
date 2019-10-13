@@ -1119,7 +1119,7 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor bc = plot_->interpStrokeColor(colorInd);
   QColor fc = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
-  plot_->setPenBrush(penBrush.pen, penBrush.brush,
+  plot_->setPenBrush(penBrush,
     plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
     plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
 
@@ -1415,16 +1415,16 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
   if (isPoint) {
     if      (plot_->isFilled())
-      plot_->setPenBrush(penBrush.pen, penBrush.brush,
+      plot_->setPenBrush(penBrush,
         true, fc, plot_->fillAlpha(), 0.0, CQChartsLineDash(),
         true, fc, plot_->fillAlpha(), plot_->fillPattern());
     else if (plot_->isStroked())
-      plot_->setPenBrush(penBrush.pen, penBrush.brush,
+      plot_->setPenBrush(penBrush,
         true, bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
         true, bc, plot_->strokeAlpha(), CQChartsFillPattern());
   }
   else {
-    plot_->setPenBrush(penBrush.pen, penBrush.brush,
+    plot_->setPenBrush(penBrush,
       plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
       plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
   }

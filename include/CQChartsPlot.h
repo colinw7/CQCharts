@@ -50,6 +50,7 @@ class CQChartsAnnotation;
 class CQChartsArrowAnnotation;
 class CQChartsEllipseAnnotation;
 class CQChartsImageAnnotation;
+class CQChartsPieSliceAnnotation;
 class CQChartsPointAnnotation;
 class CQChartsPolygonAnnotation;
 class CQChartsPolylineAnnotation;
@@ -1419,6 +1420,8 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void pan(double dx, double dy);
 
+  virtual void adjustPan() { }
+
   virtual void zoomTo(const CQChartsGeom::BBox &bbox);
 
   //---
@@ -1489,6 +1492,10 @@ class CQChartsPlot : public CQChartsObj,
                                                       const QImage &image);
   CQChartsImageAnnotation     *addImageAnnotation    (const CQChartsRect &rect,
                                                       const QImage &image);
+  CQChartsPieSliceAnnotation  *addPieSliceAnnotation (const CQChartsPosition &pos,
+                                                      const CQChartsLength &innerRadius,
+                                                      const CQChartsLength &outerRadius,
+                                                      double startAngle, double spanAngle);
   CQChartsPointAnnotation     *addPointAnnotation    (const CQChartsPosition &pos,
                                                       const CQChartsSymbol &type);
   CQChartsPolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
@@ -1718,7 +1725,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void setPenBrush(QPen &pen, QBrush &brush,
+  void setPenBrush(CQChartsPenBrush &penBrush,
                    bool stroked, const QColor &strokeColor, double strokeAlpha,
                    const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
                    bool filled, const QColor &fillColor, double fillAlpha,

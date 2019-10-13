@@ -24,6 +24,8 @@ class CQChartsTablePlotType : public CQChartsPlotType {
 
   bool canProbe() const override { return false; }
 
+  bool hasObjs() const override { return false; }
+
   QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
@@ -46,14 +48,19 @@ class CQChartsTablePlot : public CQChartsPlot {
   // columns
   Q_PROPERTY(CQChartsColumns columns READ columns WRITE setColumns)
 
-  Q_PROPERTY(Mode          mode        READ mode        WRITE setMode       )
-  Q_PROPERTY(int           maxRows     READ maxRows     WRITE setMaxRows    )
-  Q_PROPERTY(int           sortColumn  READ sortColumn  WRITE setSortColumn )
-  Q_PROPERTY(int           sortRole    READ sortRole    WRITE setSortRole   )
-  Q_PROPERTY(Qt::SortOrder sortOrder   READ sortOrder   WRITE setSortOrder  )
-  Q_PROPERTY(int           pageSize    READ pageSize    WRITE setPageSize   )
-  Q_PROPERTY(int           currentPage READ currentPage WRITE setCurrentPage)
-  Q_PROPERTY(QString       rowNums     READ rowNumsStr  WRITE setRowNumsStr )
+  Q_PROPERTY(Mode          mode        READ mode         WRITE setMode       )
+  Q_PROPERTY(int           maxRows     READ maxRows      WRITE setMaxRows    )
+  Q_PROPERTY(int           sortColumn  READ sortColumn   WRITE setSortColumn )
+  Q_PROPERTY(int           sortRole    READ sortRole     WRITE setSortRole   )
+  Q_PROPERTY(Qt::SortOrder sortOrder   READ sortOrder    WRITE setSortOrder  )
+  Q_PROPERTY(int           pageSize    READ pageSize     WRITE setPageSize   )
+  Q_PROPERTY(int           currentPage READ currentPage  WRITE setCurrentPage)
+  Q_PROPERTY(QString       rowNums     READ rowNumsStr   WRITE setRowNumsStr )
+  Q_PROPERTY(bool          rowColumn   READ isRowColumn  WRITE setRowColumn  )
+  Q_PROPERTY(CQChartsColor gridColor   READ gridColor    WRITE setGridColor  )
+  Q_PROPERTY(CQChartsColor textColor   READ textColor    WRITE setTextColor  )
+  Q_PROPERTY(CQChartsColor headerColor READ headerColor  WRITE setHeaderColor)
+  Q_PROPERTY(CQChartsColor cellColor   READ cellColor    WRITE setCellColor  )
 
   Q_ENUMS(Mode)
 
@@ -131,11 +138,32 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   //---
 
+  bool isRowColumn() const { return rowColumn_; }
+  void setRowColumn(bool b);
+
+  //---
+
+  const CQChartsColor &gridColor() const { return gridColor_; }
+  void setGridColor(const CQChartsColor &c);
+
+  const CQChartsColor &textColor() const { return textColor_; }
+  void setTextColor(const CQChartsColor &c);
+
+  const CQChartsColor &headerColor() const { return headerColor_; }
+  void setHeaderColor(const CQChartsColor &c);
+
+  const CQChartsColor &cellColor() const { return cellColor_; }
+  void setCellColor(const CQChartsColor &c);
+
+  //---
+
   void addProperties() override;
 
   CQChartsGeom::Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
+
+  double getPanY(bool is_shift) const override;
 
   //---
 
@@ -146,6 +174,10 @@ class CQChartsTablePlot : public CQChartsPlot {
   bool hasForeground() const override;
 
   void execDrawForeground(CQChartsPaintDevice *device) const override;
+
+  //---
+
+  void adjustPan() override;
 
  private:
   void drawTable(CQChartsPaintDevice *device) const;
@@ -168,14 +200,23 @@ class CQChartsTablePlot : public CQChartsPlot {
     double        prh { 0.0 };
     double        rh  { 0.0 };
     double        pcw { 0.0 };
+    double        dx  { 0.0 };
+    double        dy  { 0.0 };
     double        xo  { 0.0 };
     double        yo  { 0.0 };
+    double        rcw { 0.0 };
+    ColumnData    rowColumnData;
     ColumnDataMap columnDataMap;
   };
 
   TableData       tableData_;                //!< cached table data
   CQChartsColumns columns_;                  //!< columns
   CQSummaryModel* summaryModel_ { nullptr }; //!< summary model
+  bool            rowColumn_    { false };   //!< draw row numbers column
+  CQChartsColor   gridColor_;                //!< grid color
+  CQChartsColor   textColor_;                //!< text color
+  CQChartsColor   headerColor_;              //!< header color
+  CQChartsColor   cellColor_;                //!< cell color
 };
 
 #endif
