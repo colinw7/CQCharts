@@ -1,5 +1,6 @@
 #include <CQChartsMargin.h>
 #include <CQPropertyView.h>
+#include <CQTclUtil.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsMargin, toString, fromString)
 
@@ -18,13 +19,47 @@ QString
 CQChartsMargin::
 toString() const
 {
-  QString lstr = left  ().toString();
-  QString tstr = top   ().toString();
-  QString rstr = right ().toString();
-  QString bstr = bottom().toString();
+  QStringList strs;
 
-  if (lstr == tstr && lstr == rstr && lstr == bstr)
-    return lstr;
+  strs << left  ().toString();
+  strs << top   ().toString();
+  strs << right ().toString();
+  strs << bottom().toString();
 
-  return QString("%1 %2 %3 %4").arg(lstr).arg(tstr).arg(rstr).arg(bstr);
+  if (strs[0] == strs[1] && strs[0] == strs[2] && strs[0] == strs[3])
+    return strs[0];
+
+  return CQTcl::mergeList(strs);
+}
+
+bool
+CQChartsMargin::
+fromString(const QString &str)
+{
+  QStringList strs;
+
+  if (! CQTcl::splitList(str, strs))
+    return false;
+
+  if      (strs.length() == 1) {
+    CQChartsLength length;
+
+    if (! length.setValue(strs[0], CQChartsUnits::PERCENT)) return false;
+
+    set(length);
+  }
+  else if (strs.length() == 4) {
+    CQChartsLength left, top, right, bottom;
+
+    if (! left  .setValue(strs[0], CQChartsUnits::PERCENT)) return false;
+    if (! top   .setValue(strs[1], CQChartsUnits::PERCENT)) return false;
+    if (! right .setValue(strs[2], CQChartsUnits::PERCENT)) return false;
+    if (! bottom.setValue(strs[3], CQChartsUnits::PERCENT)) return false;
+
+    set(left, top, right, bottom);
+  }
+  else
+    return false;
+
+  return true;
 }

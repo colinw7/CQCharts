@@ -27,6 +27,10 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
     CENTER,
     BOTTOM_INSIDE,
     BOTTOM_OUTSIDE,
+    LEFT_INSIDE,
+    LEFT_OUTSIDE,
+    RIGHT_INSIDE,
+    RIGHT_OUTSIDE
   };
 
  public:
@@ -109,6 +113,9 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
  signals:
   void dataChanged();
+
+ private:
+  Position adjustPosition(Position position) const;
 
  private:
   Position        position_   { Position::TOP_INSIDE }; //!< position relative to parent

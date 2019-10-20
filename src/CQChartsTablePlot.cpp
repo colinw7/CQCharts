@@ -298,14 +298,14 @@ void
 CQChartsTablePlot::
 setRowNumsStr(const QString &str)
 {
-  QStringList strs = str.split(" ", QString::SkipEmptyParts);
+  const QStringList strs = str.split(" ", QString::SkipEmptyParts);
 
   RowNums rowNums;
 
   for (const auto &s : strs) {
     bool ok;
 
-    int i = s.toInt(&ok);
+    const int i = s.toInt(&ok);
 
     if (ok)
       rowNums.push_back(i);
@@ -393,7 +393,7 @@ calcRange() const
 {
   CQChartsTablePlot *th = const_cast<CQChartsTablePlot *>(this);
 
-  int pxm = 2;
+  const int pxm = 2;
 
   //---
 
@@ -409,7 +409,7 @@ calcRange() const
   if (isRowColumn()) {
     ColumnData &data = th->tableData_.rowColumnData;
 
-    int power = CMathRound::RoundUp(log10(tableData_.nr));
+    const int power = CMathRound::RoundUp(log10(tableData_.nr));
 
     data.pwidth  = power*fm.width("X") + 2*pxm;
     data.numeric = false;
@@ -424,7 +424,7 @@ calcRange() const
 
     bool ok;
 
-    QString str = CQChartsModelUtil::modelHeaderString(summaryModel(), c, ok);
+    const QString str = CQChartsModelUtil::modelHeaderString(summaryModel(), c, ok);
     if (! ok) continue;
 
     data.pwidth  = fm.width(str) + 2*pxm;
@@ -443,15 +443,15 @@ calcRange() const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      int pxm = 2;
+      const int pxm = 2;
 
       for (int i = 0; i < tableData_.nc; ++i) {
         const CQChartsColumn &c = plot_->columns().getColumn(i);
 
         bool ok;
 
-        QString str = CQChartsModelUtil::modelString(plot_->charts(), plot_->summaryModel(),
-                                                     data.row, c, data.parent, ok);
+        const QString str = CQChartsModelUtil::modelString(plot_->charts(), plot_->summaryModel(),
+                                                           data.row, c, data.parent, ok);
         if (! ok) continue;
 
         ColumnData &data = tableData_.columnDataMap[c];
@@ -483,7 +483,7 @@ calcRange() const
   th->tableData_.rcw = 0.0;
 
   if (isRowColumn()) {
-    ColumnData &data = th->tableData_.rowColumnData;
+    const ColumnData &data = th->tableData_.rowColumnData;
 
     th->tableData_.pcw += data.pwidth;
   }
@@ -491,7 +491,7 @@ calcRange() const
   for (int i = 0; i < tableData_.nc; ++i) {
     const CQChartsColumn &c = columns().getColumn(i);
 
-    ColumnData &data = th->tableData_.columnDataMap[c];
+    const ColumnData &data = th->tableData_.columnDataMap[c];
 
     if (data.prefWidth > 0)
       th->tableData_.pcw += data.prefWidth + 2*pxm;
@@ -564,14 +564,16 @@ drawTable(CQChartsPaintDevice *device) const
 
   //---
 
-  int pxm = 2;
+  const int pxm = 2;
 
   th->tableData_.rh = pixelToWindowHeight(th->tableData_.prh);
 
-  CQChartsGeom::BBox pixelRect = this->calcPlotPixelRect();
+  const CQChartsGeom::BBox pixelRect = this->calcPlotPixelRect();
 
-  double pdx = (pixelRect.getWidth () - 2*pxm - th->tableData_.pcw                        )/2.0;
-  double pdy = (pixelRect.getHeight() - 2*pxm - th->tableData_.prh*(th->tableData_.nr + 1))/2.0;
+  const double pdx = (pixelRect.getWidth () - 2*pxm -
+                      th->tableData_.pcw                        )/2.0;
+  const double pdy = (pixelRect.getHeight() - 2*pxm -
+                      th->tableData_.prh*(th->tableData_.nr + 1))/2.0;
 
   th->tableData_.dx = pixelToSignedWindowWidth (pdx);
   th->tableData_.dy = pixelToSignedWindowHeight(pdy);
@@ -615,10 +617,10 @@ drawTable(CQChartsPaintDevice *device) const
 
   //---
 
-  double x1 = th->tableData_.xo;                                     // left
-  double y1 = th->tableData_.yo + (tableData_.nr + 1)*tableData_.rh; // top
-  double x2 = x;                                                     // right
-  double y2 = th->tableData_.yo;                                     // bottom
+  const double x1 = th->tableData_.xo;                                     // left
+  const double y1 = th->tableData_.yo + (tableData_.nr + 1)*tableData_.rh; // top
+  const double x2 = x;                                                     // right
+  const double y2 = th->tableData_.yo;                                     // bottom
 
   //---
 
@@ -629,7 +631,9 @@ drawTable(CQChartsPaintDevice *device) const
 
   device->setBrush(headerBrush);
 
-  device->fillRect(QRectF(x1, y1 - th->tableData_.rh, x2 - x1, th->tableData_.rh), device->brush());
+  if (x2 > x1)
+    device->fillRect(QRectF(x1, y1 - th->tableData_.rh, x2 - x1, th->tableData_.rh),
+                     device->brush());
 
   // draw cells background
   QBrush cellBrush;
@@ -638,7 +642,8 @@ drawTable(CQChartsPaintDevice *device) const
 
   device->setBrush(cellBrush);
 
-  device->fillRect(QRectF(x1, y2, x2 - x1, tableData_.nr*th->tableData_.rh), device->brush());
+  if (x2 > x1)
+    device->fillRect(QRectF(x1, y2, x2 - x1, tableData_.nr*th->tableData_.rh), device->brush());
 
   //---
 
@@ -698,14 +703,15 @@ drawTable(CQChartsPaintDevice *device) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      int pxm = 2;
+      const int pxm = 2;
 
-      double xm = plot_->pixelToWindowWidth(pxm);
+      const double xm = plot_->pixelToWindowWidth(pxm);
 
       // draw header
       if (data.row == 0) {
+        const double y = tableData_.yo + tableData_.nr*tableData_.rh;
+
         double x = tableData_.xo;
-        double y = tableData_.yo + tableData_.nr*tableData_.rh;
 
         if (plot_->isRowColumn()) {
           const ColumnData &cdata = tableData_.rowColumnData;
@@ -724,7 +730,7 @@ drawTable(CQChartsPaintDevice *device) const
 
           bool ok;
 
-          QString str = CQChartsModelUtil::modelHeaderString(plot_->summaryModel(), c, ok);
+          const QString str = CQChartsModelUtil::modelHeaderString(plot_->summaryModel(), c, ok);
           if (! ok) continue;
 
           const ColumnData &cdata = tableData_.columnDataMap[c];
@@ -747,8 +753,9 @@ drawTable(CQChartsPaintDevice *device) const
       //---
 
       // draw row
+      const double y = tableData_.yo + (tableData_.nr - data.row - 1)*tableData_.rh;
+
       double x = tableData_.xo;
-      double y = tableData_.yo + (tableData_.nr - data.row - 1)*tableData_.rh;
 
       if (plot_->isRowColumn()) {
         const ColumnData &cdata = tableData_.rowColumnData;
@@ -759,7 +766,7 @@ drawTable(CQChartsPaintDevice *device) const
 
         textOptions.align = Qt::AlignRight | Qt::AlignVCenter;
 
-        QString rstr = QString("%1").arg(data.row + 1);
+        const QString rstr = QString("%1").arg(data.row + 1);
 
         CQChartsDrawUtil::drawTextInBox(device_, rect, rstr, textOptions);
 
@@ -771,8 +778,8 @@ drawTable(CQChartsPaintDevice *device) const
 
         bool ok;
 
-        QString str = CQChartsModelUtil::modelString(plot_->charts(), plot_->summaryModel(),
-                                                     data.row, c, data.parent, ok);
+        const QString str = CQChartsModelUtil::modelString(plot_->charts(), plot_->summaryModel(),
+                                                           data.row, c, data.parent, ok);
         if (! ok) continue;
 
         const ColumnData &cdata = tableData_.columnDataMap[c];
@@ -814,7 +821,7 @@ CQChartsTablePlot::
 adjustPan()
 {
   if (tableData_.dx < 0) {
-    double dx = -tableData_.dx;
+    const double dx = -tableData_.dx;
 
     if (dataOffsetX() < 0)
       setDataOffsetX(0.0);
@@ -826,7 +833,7 @@ adjustPan()
     setDataOffsetX(0.0);
 
   if (tableData_.dy < 0) {
-    double dy = -tableData_.dy;
+    const double dy = -tableData_.dy;
 
     if (dataOffsetY() < 0)
       setDataOffsetY(0.0);

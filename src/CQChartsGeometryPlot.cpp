@@ -567,11 +567,12 @@ probe(ProbeData &probeData) const
 
 void
 CQChartsGeometryPlot::
-write(std::ostream &os, const QString &varName, const QString &modelName) const
+write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
+      const QString &viewVarName) const
 {
-  CQChartsPlot::write(os, varName, modelName);
+  CQChartsPlot::write(os, plotVarName, modelVarName, viewVarName);
 
-  dataLabel_->write(os, varName);
+  dataLabel_->write(os, plotVarName);
 }
 
 //------
@@ -652,7 +653,7 @@ draw(CQChartsPaintDevice *device)
   // calc pen and brush
   CQChartsPenBrush penBrush;
 
-  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+  bool updateState = device->isInteractive();
 
   calcPenBrush(penBrush, updateState);
 
@@ -721,8 +722,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor bc = plot_->interpStrokeColor(colorInd);
 
   plot_->setPenBrush(penBrush,
-    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
-    plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
+    CQChartsPenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),
+                      plot_->strokeWidth(), plot_->strokeDash()),
+    CQChartsBrushData(plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern()));
 
   if (style().isValid()) {
     penBrush.pen   = style().pen  ();

@@ -778,11 +778,12 @@ postResize()
 
 void
 CQChartsChordPlot::
-write(std::ostream &os, const QString &varName, const QString &modelName) const
+write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
+      const QString &viewVarName) const
 {
-  CQChartsPlot::write(os, varName, modelName);
+  CQChartsPlot::write(os, plotVarName, modelVarName, viewVarName);
 
-  textBox_->write(os, varName);
+  textBox_->write(os, plotVarName);
 }
 
 //------
@@ -897,7 +898,7 @@ draw(CQChartsPaintDevice *device)
   // calc pen and brush
   CQChartsPenBrush penBrush;
 
-  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+  bool updateState = device->isInteractive();
 
   calcPenBrush(penBrush, updateState);
 
@@ -1059,16 +1060,16 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   // TODO: separate segment stroke/fill control
   QColor segmentStrokeColor = plot_->interpStrokeColor(ColorInd());
 
-  plot_->setPen(penBrush.pen, true, segmentStrokeColor, plot_->strokeAlpha(),
-                plot_->strokeWidth(), plot_->strokeDash());
-
   QColor fromColor = calcFromColor();
   double fromAlpha = 1.0;
 
   if (! isInside() && ! isSelected())
     fromAlpha = plot_->segmentAlpha();
 
-  plot_->setBrush(penBrush.brush, true, fromColor, fromAlpha, CQChartsFillPattern());
+  plot_->setPenBrush(penBrush,
+    CQChartsPenData  (true, segmentStrokeColor, plot_->strokeAlpha(),
+                      plot_->strokeWidth(), plot_->strokeDash()),
+    CQChartsBrushData(true, fromColor, fromAlpha));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -1082,22 +1083,22 @@ calcArcPenBrush(CQChartsChordObj *toObj, CQChartsPenBrush &penBrush) const
   // TODO: separate arc stroke/fill control
   QColor arcStrokeColor = plot_->interpStrokeColor(ColorInd());
 
-  plot_->setPen(penBrush.pen, true, arcStrokeColor, plot_->strokeAlpha(),
-                plot_->strokeWidth(), plot_->strokeDash());
-
   QColor fromColor = calcFromColor();
 
   ColorInd toColorInd = toObj->calcColorInd();
   QColor   toColor    = plot_->interpPaletteColor(toColorInd);
 
-  QColor c = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
+  QColor fillColor = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
 
-  double alpha = 1.0;
+  double fillAlpha = 1.0;
 
   if (! isInside() && ! isSelected())
-    alpha = plot_->arcAlpha();
+    fillAlpha = plot_->arcAlpha();
 
-  plot_->setBrush(penBrush.brush, true, c, alpha, CQChartsFillPattern());
+  plot_->setPenBrush(penBrush,
+    CQChartsPenData  (true, arcStrokeColor, plot_->strokeAlpha(),
+                      plot_->strokeWidth(), plot_->strokeDash()),
+    CQChartsBrushData(true, fillColor, fillAlpha));
 }
 
 QColor

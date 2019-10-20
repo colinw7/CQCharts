@@ -832,10 +832,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // create pixel polygon
-  QPolygonF ppoly;
-
-  for (int i = 0; i < poly_.size(); ++i)
-    ppoly << plot_->windowToPixel(poly_[i]);
+  QPolygonF ppoly = plot_->windowToPixel(poly_);
 
   ppoly << ppoly[0];
 
@@ -844,7 +841,7 @@ draw(CQChartsPaintDevice *device)
   // calc stroke and brush
   CQChartsPenBrush penBrush;
 
-  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+  bool updateState = device->isInteractive();
 
   calcPenBrush(penBrush, updateState);
 
@@ -894,9 +891,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor fillColor   = plot_->interpFillColor  (colorInd);
 
   plot_->setPenBrush(penBrush,
-    plot_->isStroked(), strokeColor, plot_->strokeAlpha(),
-    plot_->strokeWidth(), plot_->strokeDash(),
-    plot_->isFilled(), fillColor, plot_->fillAlpha(), plot_->fillPattern());
+    CQChartsPenData  (plot_->isStroked(), strokeColor, plot_->strokeAlpha(),
+                      plot_->strokeWidth(), plot_->strokeDash()),
+    CQChartsBrushData(plot_->isFilled(), fillColor, plot_->fillAlpha(), plot_->fillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

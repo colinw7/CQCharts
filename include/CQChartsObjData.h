@@ -1314,6 +1314,16 @@ class CQChartsObj##UNAME##ShapeData { \
     LNAME##ShapeData_ = data; LNAME##ShapeDataInvalidate(); \
   } \
 \
+  CQChartsPenData LNAME##PenData(const CQChartsUtil::ColorInd &colorInd) const { \
+    return CQChartsPenData(is##UNAME##Stroked(), interp##UNAME##StrokeColor(colorInd), \
+                           LNAME##StrokeAlpha(), LNAME##StrokeWidth(), LNAME##StrokeDash()); \
+  } \
+\
+  CQChartsBrushData LNAME##BrushData(const CQChartsUtil::ColorInd &colorInd) const { \
+    return CQChartsBrushData(is##UNAME##Filled(), interp##UNAME##FillColor(colorInd), \
+                             LNAME##FillAlpha(), LNAME##FillPattern()); \
+  } \
+\
  private: \
   void LNAME##ShapeDataInvalidate(bool reload=false) { \
     CQChartsInvalidator(LNAME##ShapeDataObj_).invalidate(reload); \

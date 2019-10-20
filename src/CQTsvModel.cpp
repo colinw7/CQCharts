@@ -250,5 +250,19 @@ CQTsvModel::
 encodeString(const QString &str)
 {
   // TODO: handle tab in string
-  return str;
+  QString str1;
+
+  int len = str.length();
+
+  for (int i = 0; i < len; ++i) {
+    QChar c = str[i];
+
+    if      (c == '\n') str1 += "\\n";
+    else if (c == '\t') str1 += "\\t";
+    else if (c == '\r') str1 += "\\r";
+    else if (c == '\\') str1 += "\\\\";
+    else                str1 += c;
+  }
+
+  return str1;
 }

@@ -7,6 +7,7 @@
 #include <CQChartsTypes.h>
 #include <CQChartsFillPattern.h>
 #include <CQChartsNameValues.h>
+#include <CQChartsDrawUtil.h>
 #include <CMathUtil.h>
 
 #include <QVariant>
@@ -283,11 +284,16 @@ namespace CQChartsUtil {
 
 void penSetLineDash(QPen &pen, const CQChartsLineDash &dash);
 
-void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha=1.0,
+void setPenBrush(CQChartsPenBrush &penBrush,
+                 bool stroked, const QColor &strokeColor, double strokeAlpha,
+                 double strokeWidth, const CQChartsLineDash &strokeDash,
+                 bool filled, const QColor &fillColor, double fillAlpha,
+                 const CQChartsFillPattern &pattern);
+
+void setPen(QPen &pen, bool stroked, const QColor &strokeColor=QColor(), double strokeAlpha=1.0,
             double strokeWidth=0.0, const CQChartsLineDash &strokeDash=CQChartsLineDash());
 
-void setBrush(QBrush &brush, bool filled,
-              const QColor &fillColor=QColor(), double fillAlpha=1.0,
+void setBrush(QBrush &brush, bool filled, const QColor &fillColor=QColor(), double fillAlpha=1.0,
               const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID);
 
 double limitLineWidth(double w);
@@ -434,11 +440,17 @@ inline QString encodeScriptColor(const QColor &c) {
     return "none";
 
   if (c.alpha() >= 255)
-    return QString("rgb(%1,%2,%3)").
-             arg(c.red()).arg(c.green()).arg(c.blue());
+    return QString("rgb(%1,%2,%3)").arg(c.red()).arg(c.green()).arg(c.blue());
   else
     return QString("rgba(%1,%2,%3,%4)").
              arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()/255.0);
+}
+
+inline QString encodeSVGColor(const QColor &c) {
+  if (! c.isValid())
+    return "rgb(0,0,0)";
+
+  return QString("rgb(%1,%2,%3)").arg(c.red()).arg(c.green()).arg(c.blue());
 }
 
 }

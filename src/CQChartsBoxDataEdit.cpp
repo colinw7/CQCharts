@@ -391,29 +391,22 @@ CQChartsBoxDataEditPreview::
 draw(QPainter *painter, const CQChartsBoxData &data, const QRect &rect,
      CQChartsPlot *plot, CQChartsView *view)
 {
-  // set pen
-  QColor pc = interpColor(plot, view, data.shape().stroke().color());
+  CQChartsPenBrush penBrush;
 
-  QPen pen;
+  // set pen and brush
+  QColor pc = interpColor(plot, view, data.shape().stroke().color());
+  QColor fc = interpColor(plot, view, data.shape().fill().color());
 
   double width = CQChartsUtil::limitLineWidth(data.shape().stroke().width().value());
 
-  CQChartsUtil::setPen(pen, data.shape().stroke().isVisible(), pc,
-                       data.shape().stroke().alpha(), width, data.shape().stroke().dash());
+  CQChartsUtil::setPenBrush(penBrush,
+    data.shape().stroke().isVisible(), pc, data.shape().stroke().alpha(),
+    width, data.shape().stroke().dash(),
+    data.shape().fill().isVisible(), fc, data.shape().fill().alpha(),
+    data.shape().fill().pattern());
 
-  painter->setPen(pen);
-
-  //---
-
-  // set brush
-  QColor fc = interpColor(plot, view, data.shape().fill().color());
-
-  QBrush brush;
-
-  CQChartsUtil::setBrush(brush, data.shape().fill().isVisible(), fc,
-                         data.shape().fill().alpha(), data.shape().fill().pattern());
-
-  painter->setBrush(brush);
+  painter->setPen  (penBrush.pen);
+  painter->setBrush(penBrush.brush);
 
   //---
 

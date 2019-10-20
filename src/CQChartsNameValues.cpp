@@ -2,7 +2,6 @@
 
 #include <CQChartsVariant.h>
 #include <CQUtil.h>
-#include <CQStrParse.h>
 
 CQChartsNameValues::
 CQChartsNameValues()

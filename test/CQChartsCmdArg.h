@@ -29,7 +29,8 @@ class CQChartsCmdArg {
     Align,
     Sides,
     Column,
-    Row
+    Row,
+    Reals
   };
 
   using NameValue  = std::pair<QString,int>;

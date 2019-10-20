@@ -528,24 +528,6 @@ setPainterFont(CQChartsPaintDevice *device, const CQChartsFont &font) const
   device->setFont(viewFont(font));
 }
 
-#if 0
-void
-CQChartsView::
-setPainterFont(QPainter *painter, const CQChartsFont &font) const
-{
-  painter->setFont(viewFont(font));
-}
-#endif
-
-#if 0
-void
-CQChartsView::
-setPainterFont(QPainter *painter, const QFont &font) const
-{
-  painter->setFont(viewFont(font));
-}
-#endif
-
 void
 CQChartsView::
 setPlotPainterFont(const CQChartsPlot *plot, CQChartsPaintDevice *device,
@@ -553,22 +535,6 @@ setPlotPainterFont(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 {
   device->setFont(plotFont(plot, font));
 }
-
-#if 0
-void
-CQChartsView::
-setPlotPainterFont(const CQChartsPlot *plot, QPainter *painter, const CQChartsFont &font) const
-{
-  painter->setFont(plotFont(plot, font));
-}
-
-void
-CQChartsView::
-setPlotPainterFont(const CQChartsPlot *plot, QPainter *painter, const QFont &font) const
-{
-  painter->setFont(plotFont(plot, font));
-}
-#endif
 
 QFont
 CQChartsView::
@@ -658,7 +624,7 @@ CQChartsView::
 setCurrentPlot(CQChartsPlot *plot)
 {
   if (plot)
-    setCurrentPlotInd(plotInd(plot));
+    setCurrentPlotInd(getIndForPlot(plot));
   else
     setCurrentPlotInd(-1);
 }
@@ -667,44 +633,52 @@ void
 CQChartsView::
 setCurrentPlotInd(int ind)
 {
-  if (ind != currentPlotInd_) {
-    CQChartsPlot *currentPlot = getPlotForInd(currentPlotInd_);
+  if (ind >= 0 && ind == currentPlotInd_)
+    return;
 
-    if (currentPlot)
-      disconnect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
+  // disconnect previous plot
+  CQChartsPlot *currentPlot = getPlotForInd(currentPlotInd_);
 
-    currentPlotInd_ = ind;
+  if (currentPlot)
+    disconnect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
 
-    currentPlot = getPlotForInd(currentPlotInd_);
+  //---
 
-    if (currentPlot)
-      connect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
+  // set and connect to new plot
+  if (ind < 0)
+    ind = calcCurrentPlotInd(/*remap*/ true);
 
-    //---
+  currentPlotInd_ = ind;
 
-    if (isScrolled()) {
-      PlotSet basePlots;
+  currentPlot = getPlotForInd(currentPlotInd_);
 
-      this->basePlots(basePlots);
+  if (currentPlot)
+    connect(currentPlot, SIGNAL(zoomPanChanged()), this, SLOT(currentPlotZoomPanChanged()));
 
-      int i = 0;
+  //---
 
-      for (auto &basePlot : basePlots) {
-        if (basePlot == currentPlot) {
-          setScrollPage(i);
-          break;
-        }
+  if (isScrolled()) {
+    PlotSet basePlots;
 
-        ++i;
+    this->basePlots(basePlots);
+
+    int i = 0;
+
+    for (auto &basePlot : basePlots) {
+      if (basePlot == currentPlot) {
+        setScrollPage(i);
+        break;
       }
 
-      updateScroll();
+      ++i;
     }
 
-    //---
-
-    emit currentPlotChanged();
+    updateScroll();
   }
+
+  //---
+
+  emit currentPlotChanged();
 }
 
 void
@@ -1059,11 +1033,11 @@ CQChartsArrowAnnotation *
 CQChartsView::
 addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
 {
-  CQChartsArrowAnnotation *arrowAnnotation = new CQChartsArrowAnnotation(this, start, end);
+  CQChartsArrowAnnotation *annotation = new CQChartsArrowAnnotation(this, start, end);
 
-  addAnnotation(arrowAnnotation);
+  addAnnotation(annotation);
 
-  return arrowAnnotation;
+  return annotation;
 }
 
 CQChartsEllipseAnnotation *
@@ -1071,34 +1045,34 @@ CQChartsView::
 addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadius,
                      const CQChartsLength &yRadius)
 {
-  CQChartsEllipseAnnotation *ellipseAnnotation =
+  CQChartsEllipseAnnotation *annotation =
     new CQChartsEllipseAnnotation(this, center, xRadius, yRadius);
 
-  addAnnotation(ellipseAnnotation);
+  addAnnotation(annotation);
 
-  return ellipseAnnotation;
+  return annotation;
 }
 
 CQChartsImageAnnotation *
 CQChartsView::
 addImageAnnotation(const CQChartsPosition &pos, const QImage &image)
 {
-  CQChartsImageAnnotation *imageAnnotation = new CQChartsImageAnnotation(this, pos, image);
+  CQChartsImageAnnotation *annotation = new CQChartsImageAnnotation(this, pos, image);
 
-  addAnnotation(imageAnnotation);
+  addAnnotation(annotation);
 
-  return imageAnnotation;
+  return annotation;
 }
 
 CQChartsImageAnnotation *
 CQChartsView::
 addImageAnnotation(const CQChartsRect &rect, const QImage &image)
 {
-  CQChartsImageAnnotation *imageAnnotation = new CQChartsImageAnnotation(this, rect, image);
+  CQChartsImageAnnotation *annotation = new CQChartsImageAnnotation(this, rect, image);
 
-  addAnnotation(imageAnnotation);
+  addAnnotation(annotation);
 
-  return imageAnnotation;
+  return annotation;
 }
 
 CQChartsPieSliceAnnotation *
@@ -1106,78 +1080,101 @@ CQChartsView::
 addPieSliceAnnotation(const CQChartsPosition &pos, const CQChartsLength &innerRadius,
                       const CQChartsLength &outerRadius, double startAngle, double spanAngle)
 {
-  CQChartsPieSliceAnnotation *pieSliceAnnotation =
+  CQChartsPieSliceAnnotation *annotation =
     new CQChartsPieSliceAnnotation(this, pos, innerRadius, outerRadius, startAngle, spanAngle);
 
-  addAnnotation(pieSliceAnnotation);
+  addAnnotation(annotation);
 
-  return pieSliceAnnotation;
+  return annotation;
 }
 
 CQChartsPointAnnotation *
 CQChartsView::
 addPointAnnotation(const CQChartsPosition &pos, const CQChartsSymbol &type)
 {
-  CQChartsPointAnnotation *pointAnnotation = new CQChartsPointAnnotation(this, pos, type);
+  CQChartsPointAnnotation *annotation = new CQChartsPointAnnotation(this, pos, type);
 
-  addAnnotation(pointAnnotation);
+  addAnnotation(annotation);
 
-  return pointAnnotation;
+  return annotation;
+}
+
+CQChartsPointSetAnnotation *
+CQChartsView::
+addPointSetAnnotation(const CQChartsPoints &values)
+{
+  CQChartsPointSetAnnotation *annotation = new CQChartsPointSetAnnotation(this, values);
+
+  addAnnotation(annotation);
+
+  return annotation;
 }
 
 CQChartsPolygonAnnotation *
 CQChartsView::
 addPolygonAnnotation(const CQChartsPolygon &points)
 {
-  CQChartsPolygonAnnotation *polyAnnotation = new CQChartsPolygonAnnotation(this, points);
+  CQChartsPolygonAnnotation *annotation = new CQChartsPolygonAnnotation(this, points);
 
-  addAnnotation(polyAnnotation);
+  addAnnotation(annotation);
 
-  return polyAnnotation;
+  return annotation;
 }
 
 CQChartsPolylineAnnotation *
 CQChartsView::
 addPolylineAnnotation(const CQChartsPolygon &points)
 {
-  CQChartsPolylineAnnotation *polyAnnotation = new CQChartsPolylineAnnotation(this, points);
+  CQChartsPolylineAnnotation *annotation = new CQChartsPolylineAnnotation(this, points);
 
-  addAnnotation(polyAnnotation);
+  addAnnotation(annotation);
 
-  return polyAnnotation;
+  return annotation;
 }
 
 CQChartsRectangleAnnotation *
 CQChartsView::
 addRectangleAnnotation(const CQChartsRect &rect)
 {
-  CQChartsRectangleAnnotation *rectangleAnnotation = new CQChartsRectangleAnnotation(this, rect);
+  CQChartsRectangleAnnotation *annotation = new CQChartsRectangleAnnotation(this, rect);
 
-  addAnnotation(rectangleAnnotation);
+  addAnnotation(annotation);
 
-  return rectangleAnnotation;
+  return annotation;
 }
 
 CQChartsTextAnnotation *
 CQChartsView::
 addTextAnnotation(const CQChartsPosition &pos, const QString &text)
 {
-  CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, pos, text);
+  CQChartsTextAnnotation *annotation = new CQChartsTextAnnotation(this, pos, text);
 
-  addAnnotation(textAnnotation);
+  addAnnotation(annotation);
 
-  return textAnnotation;
+  return annotation;
 }
 
 CQChartsTextAnnotation *
 CQChartsView::
 addTextAnnotation(const CQChartsRect &rect, const QString &text)
 {
-  CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, rect, text);
+  CQChartsTextAnnotation *annotation = new CQChartsTextAnnotation(this, rect, text);
 
-  addAnnotation(textAnnotation);
+  addAnnotation(annotation);
 
-  return textAnnotation;
+  return annotation;
+}
+
+CQChartsValueSetAnnotation *
+CQChartsView::
+addValueSetAnnotation(const CQChartsRect &rectangle, const CQChartsReals &values)
+{
+  CQChartsValueSetAnnotation *annotation =
+    new CQChartsValueSetAnnotation(this, rectangle, values);
+
+  addAnnotation(annotation);
+
+  return annotation;
 }
 
 void
@@ -2949,6 +2946,9 @@ updateSelText()
   selectedObjs(objs);
 
   for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
     if (plot->isSelected())
       objs.push_back(plot);
   }
@@ -2958,6 +2958,9 @@ updateSelText()
   int num = objs.size();
 
   for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
     CQChartsPlot::Objs objs1;
 
     plot->selectedObjs(objs1);
@@ -2981,6 +2984,9 @@ CQChartsView::
 selectedPlots(Plots &plots) const
 {
   for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
     if (plot->isSelected())
       plots.push_back(plot);
   }
@@ -3011,6 +3017,9 @@ allSelectedObjs(Objs &objs) const
     objs.push_back(obj1);
 
   for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
     CQChartsPlot::Objs objs1;
 
     plot->selectedObjs(objs1);
@@ -3111,8 +3120,12 @@ doResize(int w, int h)
 
   //---
 
-  for (const auto &plot : plots_)
+  for (const auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
     plot->preResize();
+  }
 
   //---
 
@@ -3132,8 +3145,12 @@ doResize(int w, int h)
 
   //---
 
-  for (const auto &plot : plots_)
+  for (const auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
     plot->postResize();
+  }
 }
 
 void
@@ -3281,7 +3298,7 @@ drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerTyp
 
     if (layerType == CQChartsLayer::Type::SELECTION) {
       if (mode() == CQChartsView::Mode::EDIT && annotation->isSelected())
-        if (device->type() != CQChartsPaintDevice::Type::SCRIPT) {
+        if (device->isInteractive()) {
           CQChartsViewPlotPainter *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
 
           annotation->drawEditHandles(painter->painter());
@@ -3311,7 +3328,7 @@ drawKey(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType)
 
   if (layerType == CQChartsLayer::Type::SELECTION) {
     if (mode() == CQChartsView::Mode::EDIT && key()->isSelected()) {
-      if (device->type() != CQChartsPaintDevice::Type::SCRIPT) {
+      if (device->isInteractive()) {
         CQChartsViewPlotPainter *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
 
         key()->drawEditHandles(painter->painter());
@@ -3331,6 +3348,29 @@ lockPainter(bool lock)
 }
 
 //------
+
+void
+CQChartsView::
+setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
+            const CQChartsBrushData &brushData) const
+{
+  setPenBrush(penBrush,
+    penData.isVisible(), penData.color(), penData.alpha(), penData.width(), penData.dash(),
+    brushData.isVisible(), brushData.color(), brushData.alpha(), brushData.pattern());
+}
+
+void
+CQChartsView::
+setPenBrush(CQChartsPenBrush &penBrush,
+            bool stroked, const QColor &strokeColor, double strokeAlpha,
+            const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
+            bool filled, const QColor &fillColor, double fillAlpha,
+            const CQChartsFillPattern &pattern) const
+{
+  setPen(penBrush.pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
+
+  setBrush(penBrush.brush, filled, fillColor, fillAlpha, pattern);
+}
 
 void
 CQChartsView::
@@ -3354,48 +3394,49 @@ setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
 
 void
 CQChartsView::
-updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush, DrawType drawType) const
+updateObjPenBrushState(const CQChartsObj *obj, CQChartsPenBrush &penBrush,
+                       DrawType drawType) const
 {
-  updateObjPenBrushState(obj, ColorInd(), pen, brush, drawType);
+  updateObjPenBrushState(obj, ColorInd(), penBrush, drawType);
 }
 
 void
 CQChartsView::
 updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
-                       QPen &pen, QBrush &brush, DrawType drawType) const
+                       CQChartsPenBrush &penBrush, DrawType drawType) const
 {
   if (! isBufferLayers()) {
     // inside and selected
     if      (obj->isInside() && obj->isSelected()) {
-      updateSelectedObjPenBrushState(ic, pen, brush, drawType);
-      updateInsideObjPenBrushState  (ic, pen, brush, /*outline*/false, drawType);
+      updateSelectedObjPenBrushState(ic, penBrush, drawType);
+      updateInsideObjPenBrushState  (ic, penBrush, /*outline*/false, drawType);
     }
     // inside
     else if (obj->isInside()) {
-      updateInsideObjPenBrushState(ic, pen, brush, /*outline*/true, drawType);
+      updateInsideObjPenBrushState(ic, penBrush, /*outline*/true, drawType);
     }
     // selected
     else if (obj->isSelected()) {
-      updateSelectedObjPenBrushState(ic, pen, brush, drawType);
+      updateSelectedObjPenBrushState(ic, penBrush, drawType);
     }
   }
   else {
     // inside
     if      (drawLayerType() == CQChartsLayer::Type::MOUSE_OVER) {
       if (obj->isInside())
-        updateInsideObjPenBrushState(ic, pen, brush, /*outline*/true, drawType);
+        updateInsideObjPenBrushState(ic, penBrush, /*outline*/true, drawType);
     }
     // selected
     else if (drawLayerType() == CQChartsLayer::Type::SELECTION) {
       if (obj->isSelected())
-        updateSelectedObjPenBrushState(ic, pen, brush, drawType);
+        updateSelectedObjPenBrushState(ic, penBrush, drawType);
     }
   }
 }
 
 void
 CQChartsView::
-updateInsideObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
+updateInsideObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
                              bool outline, DrawType drawType) const
 {
   // fill and stroke
@@ -3405,8 +3446,8 @@ updateInsideObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
       QColor opc;
       double alpha = 1.0;
 
-      if (pen.style() != Qt::NoPen) {
-        QColor pc = pen.color();
+      if (penBrush.pen.style() != Qt::NoPen) {
+        QColor pc = penBrush.pen.color();
 
         if (isInsideStroked())
           opc = interpInsideStrokeColor(ic);
@@ -3416,7 +3457,7 @@ updateInsideObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
         alpha = pc.alphaF();
       }
       else {
-        QColor bc = brush.color();
+        QColor bc = penBrush.brush.color();
 
         if (isInsideStroked())
           opc = interpInsideStrokeColor(ic);
@@ -3424,14 +3465,14 @@ updateInsideObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
           opc = CQChartsUtil::invColor(bc);
       }
 
-      setPen(pen, true, opc, alpha, insideStrokeWidth(), insideStrokeDash());
+      setPen(penBrush.pen, true, opc, alpha, insideStrokeWidth(), insideStrokeDash());
 
       if (outline)
-        setBrush(brush, false);
+        setBrush(penBrush.brush, false);
     }
     // fill box, symbol
     else {
-      QColor bc = brush.color();
+      QColor bc = penBrush.brush.color();
 
       QColor ibc;
 
@@ -3447,12 +3488,12 @@ updateInsideObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
       else
         alpha = bc.alphaF();
 
-      setBrush(brush, true, ibc, alpha, insideFillPattern());
+      setBrush(penBrush.brush, true, ibc, alpha, insideFillPattern());
     }
   }
   // just stroke
   else {
-    QColor pc = pen.color();
+    QColor pc = penBrush.pen.color();
 
     QColor opc;
 
@@ -3461,13 +3502,13 @@ updateInsideObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
     else
       opc = CQChartsUtil::invColor(pc);
 
-    setPen(pen, true, opc, pc.alphaF(), insideStrokeWidth(), insideStrokeDash());
+    setPen(penBrush.pen, true, opc, pc.alphaF(), insideStrokeWidth(), insideStrokeDash());
   }
 }
 
 void
 CQChartsView::
-updateSelectedObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
+updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
                                DrawType drawType) const
 {
   // fill and stroke
@@ -3477,8 +3518,8 @@ updateSelectedObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
       QColor opc;
       double alpha = 1.0;
 
-      if (pen.style() != Qt::NoPen) {
-        QColor pc = pen.color();
+      if (penBrush.pen.style() != Qt::NoPen) {
+        QColor pc = penBrush.pen.color();
 
         if (isSelectedStroked())
           opc = interpSelectedStrokeColor(ic);
@@ -3488,7 +3529,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
         alpha = pc.alphaF();
       }
       else {
-        QColor bc = brush.color();
+        QColor bc = penBrush.brush.color();
 
         if (isSelectedStroked())
           opc = interpSelectedStrokeColor(ic);
@@ -3496,13 +3537,13 @@ updateSelectedObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
           opc = CQChartsUtil::invColor(bc);
       }
 
-      setPen(pen, true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash());
+      setPen(penBrush.pen, true, opc, alpha, selectedStrokeWidth(), selectedStrokeDash());
 
-      setBrush(brush, false);
+      setBrush(penBrush.brush, false);
     }
     // fill box, symbol
     else {
-      QColor bc = brush.color();
+      QColor bc = penBrush.brush.color();
 
       QColor ibc;
 
@@ -3518,12 +3559,12 @@ updateSelectedObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
       else
         alpha = bc.alphaF();
 
-      setBrush(brush, true, ibc, alpha, selectedFillPattern());
+      setBrush(penBrush.brush, true, ibc, alpha, selectedFillPattern());
     }
   }
   // just stroke
-  else if (pen.style() != Qt::NoPen) {
-    QColor pc = pen.color();
+  else if (penBrush.pen.style() != Qt::NoPen) {
+    QColor pc = penBrush.pen.color();
 
     QColor opc;
 
@@ -3532,7 +3573,7 @@ updateSelectedObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
     else
       opc = CQChartsUtil::invColor(pc);
 
-    setPen(pen, true, opc, pc.alphaF(), selectedStrokeWidth(), selectedStrokeDash());
+    setPen(penBrush.pen, true, opc, pc.alphaF(), selectedStrokeWidth(), selectedStrokeDash());
   }
 }
 
@@ -3874,7 +3915,7 @@ showMenu(const QPoint &p)
     QActionGroup *plotsGroup = createActionGroup(plotsMenu);
 
     for (const auto &plot : allPlots) {
-      int ind = plotInd(plot);
+      int ind = getIndForPlot(plot);
 
       QAction *plotAction =
         addGroupCheckAction(plotsGroup, plot->id(), false, SLOT(currentPlotSlot()));
@@ -4239,6 +4280,7 @@ showMenu(const QPoint &p)
   addAction(printMenu, "PNG", SLOT(printPNGSlot()));
   addAction(printMenu, "SVG", SLOT(printSVGSlot()));
 
+  addAction(printMenu, "SVG+"  , SLOT(writeSVGSlot()));
   addAction(printMenu, "Script", SLOT(writeScriptSlot()));
 
   //---
@@ -4782,6 +4824,25 @@ printSVGSlot(const QString &filename)
 
 void
 CQChartsView::
+writeSVGSlot()
+{
+  QString dir = QDir::current().dirName() + "/charts.svg";
+
+  QString fileName = QFileDialog::getSaveFileName(this, "Write SVG", dir, "Files (*.svg)");
+
+  if (! fileName.isNull())
+    writeSVGSlot(fileName);
+}
+
+void
+CQChartsView::
+writeSVGSlot(const QString &filename)
+{
+  writeSVG(filename);
+}
+
+void
+CQChartsView::
 writeScriptSlot(const QString &filename)
 {
   writeScript(filename);
@@ -4851,6 +4912,50 @@ printSVG(const QString &filename, CQChartsPlot *plot)
   setBufferLayers(buffer);
 
   return rc;
+}
+
+bool
+CQChartsView::
+writeSVG(const QString &filename, CQChartsPlot *plot)
+{
+  auto os = std::ofstream(filename.toStdString(), std::ofstream::out);
+
+  //---
+
+  os <<
+  "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+  "<svg\n"
+  "  xmlns=\"http://www.w3.org/2000/svg\"\n"
+  "  version=\"1.1\"\n"
+  "  width=\"" << width() << "\"\n"
+  "  height=\"" << height() << "\">\n"
+  "<title>SVG Document</title>\n"
+  "<desc>Generated with CQCharts</desc>\n"
+  "<defs>\n"
+  "</defs>\n";
+
+  if (plot) {
+    CQChartsSVGPainter device(const_cast<CQChartsPlot *>(plot), os);
+
+    plot->writeSVG(&device);
+  }
+  else {
+    for (auto &plot : plots_) {
+      if (! plot->isVisible())
+        continue;
+
+      CQChartsSVGPainter device(const_cast<CQChartsPlot *>(plot), os);
+
+      plot->writeSVG(&device);
+    }
+  }
+
+  os <<
+  "</svg>\n";
+
+  //---
+
+  return true;
 }
 
 bool
@@ -4928,6 +5033,9 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   }
   else {
     for (auto &plot : plots_) {
+      if (! plot->isVisible())
+        continue;
+
       std::string plotId = "plot_" + plot->id().toStdString();
 
       os << "  this." << plotId << " = new Charts_" << plotId << "();\n";
@@ -5338,6 +5446,9 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   }
   else {
     for (auto &plot : plots_) {
+      if (! plot->isVisible())
+        continue;
+
       std::string plotId = "plot_" + plot->id().toStdString();
 
       os << "  this." << plotId << ".draw();\n";
@@ -5382,11 +5493,19 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   os << "\n";
 
   if (plot) {
-    plot->writeScript(os);
+    CQChartsScriptPainter device(const_cast<CQChartsPlot *>(plot), os);
+
+    plot->writeScript(&device);
   }
   else {
-    for (auto &plot : plots_)
-      plot->writeScript(os);
+    for (auto &plot : plots_) {
+      if (! plot->isVisible())
+        continue;
+
+      CQChartsScriptPainter device(const_cast<CQChartsPlot *>(plot), os);
+
+      plot->writeScript(&device);
+    }
   }
 
   //---
@@ -5503,6 +5622,9 @@ CQChartsView::
 updatePlots()
 {
   for (auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
     plot->drawObjs();
   }
 
@@ -5557,6 +5679,9 @@ plotsAt(const CQChartsGeom::Point &p, Plots &plots, CQChartsPlot* &plot,
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
 
   for (const auto &plot1 : plots_) {
+    if (! plot1->isVisible())
+      continue;
+
     const CQChartsGeom::BBox &bbox = plot1->viewBBox();
 
     if (! bbox.inside(p))
@@ -5610,6 +5735,9 @@ basePlotsAt(const CQChartsGeom::Point &p, PlotSet &plots, bool clear) const
     plots.clear();
 
   for (const auto &plot : plots_) {
+    if (! plot->isVisible())
+      continue;
+
     const CQChartsGeom::BBox &bbox = plot->viewBBox();
 
     if (! bbox.inside(p))
@@ -5641,22 +5769,6 @@ plotBBox(CQChartsPlot *plot) const
 
 //---
 
-int
-CQChartsView::
-plotInd(CQChartsPlot *plot) const
-{
-  int ind = 0;
-
-  for (const auto &plot1 : plots_) {
-    if (plot1 == plot)
-      return ind;
-
-    ++ind;
-  }
-
-  return -1;
-}
-
 CQChartsPlot *
 CQChartsView::
 currentPlot(bool remap) const
@@ -5666,10 +5778,10 @@ currentPlot(bool remap) const
 
   int ind = currentPlotInd();
 
-  if (ind < 0 || ind >= int(plots_.size()))
-    ind = 0;
-
   CQChartsPlot *plot = getPlotForInd(ind);
+
+  if (! plot)
+    return nullptr;
 
   if (remap) {
     if (plot->isOverlay())
@@ -5689,6 +5801,50 @@ getPlotForInd(int ind) const
   CQChartsPlot *plot = plots_[ind];
 
   return plot;
+}
+
+int
+CQChartsView::
+getIndForPlot(const CQChartsPlot *plot) const
+{
+  if (! plot)
+    return -1;
+
+  int np = plots_.size();
+
+  for (int ind = 0; ind < np; ++ind) {
+    if (plots_[ind] == plot)
+      return ind;
+  }
+
+  return -1;
+}
+
+int
+CQChartsView::
+calcCurrentPlotInd(bool remap) const
+{
+  if (plots_.empty())
+    return -1;
+
+  CQChartsPlot *plot = nullptr;
+
+  for (auto &plot1 : plots_) {
+    if (plot1->isVisible()) {
+      plot = plot1;
+      break;
+    }
+  }
+
+  if (! plot)
+    return -1;
+
+  if (remap) {
+    if (plot->isOverlay())
+      plot = plot->firstPlot();
+  }
+
+  return getIndForPlot(plot);
 }
 
 //---
@@ -6229,6 +6385,79 @@ pixelToWindowSize(const QSizeF &ps) const
   double h = pixelToWindowHeight(ps.height());
 
   return QSizeF(w, h);
+}
+
+QPolygonF
+CQChartsView::
+windowToPixel(const QPolygonF &poly) const
+{
+  QPolygonF ppoly;
+
+  int np = poly.size();
+
+  for (int i = 0; i < np; ++i)
+    ppoly << windowToPixel(poly[i]);
+
+  return ppoly;
+}
+
+QPainterPath
+CQChartsView::
+windowToPixel(const QPainterPath &path) const
+{
+  QPainterPath ppath;
+
+  int n = path.elementCount();
+
+  for (int i = 0; i < n; ++i) {
+    const QPainterPath::Element &e = path.elementAt(i);
+
+    if      (e.isMoveTo()) {
+      QPointF p1 = windowToPixel(QPointF(e.x, e.y));
+
+      ppath.moveTo(p1);
+    }
+    else if (e.isLineTo()) {
+      QPointF p1 = windowToPixel(QPointF(e.x, e.y));
+
+      ppath.lineTo(p1);
+    }
+    else if (e.isCurveTo()) {
+      QPainterPath::Element     e1, e2;
+      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
+      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
+
+      QPointF p1 = windowToPixel(QPointF(e.x, e.y));
+
+      if (i < n - 1) {
+        e1  = path.elementAt(i + 1);
+        e1t = e1.type;
+      }
+
+      if (i < n - 2) {
+        e2  = path.elementAt(i + 2);
+        e2t = e2.type;
+      }
+
+      if (e1t == QPainterPath::CurveToDataElement) {
+        QPointF p2 = windowToPixel(QPointF(e1.x, e1.y)); ++i;
+
+        if (e2t == QPainterPath::CurveToDataElement) {
+          QPointF p3 = windowToPixel(QPointF(e2.x, e2.y)); ++i;
+
+          ppath.cubicTo(p1, p2, p3);
+        }
+        else {
+          ppath.quadTo(p1, p2);
+        }
+      }
+    }
+    else {
+      assert(false);
+    }
+  }
+
+  return ppath;
 }
 
 //------

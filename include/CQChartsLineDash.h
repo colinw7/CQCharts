@@ -1,8 +1,8 @@
 #ifndef CQChartsLineDash_H
 #define CQChartsLineDash_H
 
-#include <QPen>
 #include <CLineDash.h>
+#include <QVector>
 
 #include <sys/types.h>
 

@@ -970,3 +970,8 @@
  + support labels property for axis
  + add empty plot type and make model optional
  + allow pan value to be limited and use to scroll table only to visible range
+# 10/20/2019
+ + add point set and value set annotations
+ + add SVG painter
+ + add left/right align for data label
+ + improve support of overlapping non-visible plots

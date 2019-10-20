@@ -1,7 +1,7 @@
 #include <CQChartsLength.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyView.h>
-#include <CQStrParse.h>
+#include <CQTclUtil.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsLength, toString, fromString)
 
@@ -46,19 +46,49 @@ CQChartsLength::
 decodeString(const QString &str, CQChartsUnits &units, double &value,
              const CQChartsUnits &defUnits)
 {
-  CQStrParse parse(str);
+  // format is <l> [<units>]
 
-  parse.skipSpace();
+  QStringList strs;
 
-  if (! parse.readReal(&value))
+  if (! CQTcl::splitList(str, strs))
+    return false;
+
+  if (strs.length() < 1)
     return false;
 
   //---
 
-  parse.skipSpace();
+  if (strs.length() == 1) {
+    QString str0 = strs[0];
 
-  if (! CQChartsUtil::decodeUnits(parse.getAt(), units, defUnits))
+    for (int i = 0; i < str0.length(); ++i) {
+      if (! str0[i].isLetter()) continue;
+
+      CQChartsUnits units1;
+
+      if (CQChartsUtil::decodeUnits(str0.mid(i), units1, defUnits)) {
+        QString strl = str0.mid(0, i);
+
+        double value1;
+
+        if (CQChartsUtil::toReal(strl, value1)) {
+          value = value1;
+          units = units1;
+          return true;
+        }
+      }
+    }
+  }
+
+  //---
+
+  if (! CQChartsUtil::toReal(strs[0], value))
     return false;
+
+  if (strs.length() > 1) {
+    if (! CQChartsUtil::decodeUnits(strs[1], units, defUnits))
+      return false;
+  }
 
   return true;
 }

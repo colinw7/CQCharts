@@ -238,7 +238,7 @@ writeScriptData(CQChartsScriptPainter *device) const
   if      (this->isPolygon()) {
     QPolygonF poly = this->polygon();
 
-    int np = poly.length();
+    int np = poly.size();
 
     os << "\n";
     os << "  this.poly = [";

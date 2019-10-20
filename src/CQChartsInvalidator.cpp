@@ -107,6 +107,8 @@ invalidate(bool reload)
       plot->drawObjs();
   }
   else if (view) {
+    view->invalidateObjects();
+
     view->update();
   }
 }

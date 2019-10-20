@@ -183,8 +183,6 @@ class CQChartsBoxWhiskerT {
     }
 
     density_.setXVals(vals);
-
-    density_.calc();
   }
 
  private:
@@ -209,6 +207,13 @@ using CQChartsBoxWhisker = CQChartsBoxWhiskerT<double>;
 
 //------
 
+struct CQChartsXYBoxWhisker {
+  CQChartsBoxWhisker xWhisker;
+  CQChartsBoxWhisker yWhisker;
+};
+
+//------
+
 #include <CQChartsGeom.h>
 #include <CQChartsLength.h>
 
@@ -222,19 +227,18 @@ namespace CQChartsBoxWhiskerUtil {
 
 void drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                  const CQChartsBoxWhisker &whisker, const CQChartsGeom::BBox &bbox,
-                 const CQChartsLength &width, const Qt::Orientation &orientation);
+                 const CQChartsLength &width, const Qt::Orientation &orientation,
+                 const CQChartsLength &cornerSize=CQChartsLength());
 void drawWhisker(const CQChartsPlot *plot, CQChartsPaintDevice *device,
                  const CQStatData &data, const CQChartsGeom::BBox &bbox,
-                 const CQChartsLength &width, const Qt::Orientation &orientation);
+                 const CQChartsLength &width, const Qt::Orientation &orientation,
+                 const CQChartsLength &cornerSize=CQChartsLength());
 
 void drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQStatData &data,
-                    double pos, const Qt::Orientation &orientation,
-                    double ww, double bw, const CQChartsLength &cornerSize, bool notched);
+                    double pos, const Qt::Orientation &orientation, double ww, double bw,
+                    const CQChartsLength &cornerSize, bool notched, bool median,
+                    const std::vector<double> &outliers);
 
-void drawOutliers(const CQChartsPlot *plot, CQChartsPaintDevice *device,
-                  const std::vector<double> &ovalues,
-                  double pos, const CQChartsSymbolData &symbol, const QPen &pen,
-                  const QBrush &brush, const Qt::Orientation &orientation);
 }
 
 #endif

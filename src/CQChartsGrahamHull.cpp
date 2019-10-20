@@ -13,15 +13,44 @@ CQChartsGrahamHull()
 
 void
 CQChartsGrahamHull::
+clear()
+{
+  points_.clear();
+
+  needsCalc_ = true;
+}
+
+void
+CQChartsGrahamHull::
 addPoint(const QPointF &point)
 {
   points_.push_back(point);
+
+  needsCalc_ = true;
+}
+
+bool
+CQChartsGrahamHull::
+constCalc() const
+{
+  return const_cast<CQChartsGrahamHull *>(this)->calc();
 }
 
 bool
 CQChartsGrahamHull::
 calc()
 {
+  if (! needsCalc_)
+    return rc_;
+
+  needsCalc_ = false;
+
+  //---
+
+  rc_ = false;
+
+  ipoints_.clear();
+
   int num_points = points_.size();
 
   if (num_points < 3)
@@ -47,7 +76,9 @@ calc()
   if (num_ipoints < 3)
     return false;
 
-  return doScan();
+  rc_ = doScan();
+
+  return rc_;
 }
 
 bool
@@ -93,8 +124,10 @@ doScan()
 
 void
 CQChartsGrahamHull::
-getHull(Points &points) const
+getHull(QPolygonF &points) const
 {
+  constCalc();
+
   int num_ipoints = ipoints_.size();
 
   points.resize(num_ipoints);
@@ -133,7 +166,7 @@ sortLowestClockwise()
     return;
 
   // sort points by angle they make with lowest point and x-axis
-  del_points_.clear();
+  delPoints_.clear();
 
   auto p1 = ipoints_.begin(); ++p1; // first unsorted point;
   auto p2 = ipoints_.end();
@@ -157,20 +190,20 @@ sortLowestClockwise()
     // remove colinear points
 
     if (x < 0 || y < 0) {
-      del_points_.insert(i1);
+      delPoints_.insert(i1);
       return true;
     }
 
     if (x > 0 || y > 0) {
-      del_points_.insert(i2);
+      delPoints_.insert(i2);
       return false;
     }
 
     // p1 and p2 are coincident
     if (i1 > i2)
-      del_points_.insert(i2);
+      delPoints_.insert(i2);
     else
-      del_points_.insert(i1);
+      delPoints_.insert(i1);
 
     return false;
   });
@@ -180,7 +213,7 @@ void
 CQChartsGrahamHull::
 squash()
 {
-  if (del_points_.empty())
+  if (delPoints_.empty())
     return;
 
   // remove colinear points
@@ -191,11 +224,11 @@ squash()
   for (int i = 0; i < num_ipoints; ++i) {
     int pi = ipoints_[i];
 
-    if (del_points_.find(pi) == del_points_.end())
+    if (delPoints_.find(pi) == delPoints_.end())
       ipoints_[j++] = pi;
   }
 
-  assert(j == (num_ipoints - int(del_points_.size())));
+  assert(j == (num_ipoints - int(delPoints_.size())));
 
   ipoints_.resize(j);
 }
@@ -222,28 +255,40 @@ void
 CQChartsGrahamHull::
 draw(const CQChartsPlot *, CQChartsPaintDevice *device) const
 {
-  std::vector<QPointF> hpoints;
+  constCalc();
+
+  //---
+
+  QPolygonF hpoints;
 
   getHull(hpoints);
 
   int n = hpoints.size();
 
-  QPainterPath path;
-
   if (n > 0) {
-    const QPointF &p = hpoints[0];
-
-    path.moveTo(p);
-
-    for (int i = 1; i < n; ++i) {
-      const QPointF &p = hpoints[i];
-
-      path.lineTo(p);
-    }
-
-    path.closeSubpath();
+    QPainterPath path = CQChartsDrawUtil::polygonToPath(hpoints, /*closed*/true);
 
     device->fillPath  (path, device->brush());
     device->strokePath(path, device->pen());
   }
+}
+
+QRectF
+CQChartsGrahamHull::
+bbox() const
+{
+  constCalc();
+
+  //---
+
+  QPolygonF hpoints;
+
+  getHull(hpoints);
+
+  QPolygonF poly;
+
+  for (const auto &p : hpoints)
+    poly << p;
+
+  return poly.boundingRect();
 }

@@ -1703,7 +1703,7 @@ draw(CQChartsPaintDevice *device)
   // calc pen and brush
   CQChartsPenBrush barPenBrush;
 
-  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+  bool updateState = device->isInteractive();
 
   calcPenBrush(barPenBrush, updateState);
 
@@ -1848,9 +1848,10 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor barColor = calcBarColor();
 
   plot_->setPenBrush(penBrush,
-    plot_->isBarStroked() && ! skipBorder,
-    bc, plot_->barStrokeAlpha(), plot_->barStrokeWidth(), plot_->barStrokeDash(),
-    plot_->isBarFilled(), barColor, plot_->barFillAlpha(), plot_->barFillPattern());
+    CQChartsPenData  (plot_->isBarStroked() && ! skipBorder, bc, plot_->barStrokeAlpha(),
+                      plot_->barStrokeWidth(), plot_->barStrokeDash()),
+    CQChartsBrushData(plot_->isBarFilled(), barColor, plot_->barFillAlpha(),
+                      plot_->barFillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

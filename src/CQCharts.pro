@@ -154,6 +154,8 @@ CQChartsPolygonList.cpp \
 CQChartsPosition.cpp \
 CQChartsLength.cpp \
 CQChartsMargin.cpp \
+CQChartsReals.cpp \
+CQChartsPoints.cpp \
 CQChartsRect.cpp \
 CQChartsPolygon.cpp \
 CQChartsPlotMargin.cpp \
@@ -168,6 +170,7 @@ CQChartsStyle.cpp \
 CQChartsBoxWhisker.cpp \
 CQChartsDensity.cpp \
 CQChartsGrahamHull.cpp \
+CQChartsBivariateDensity.cpp \
 \
 CQChartsAxisSide.cpp \
 CQChartsAxisTickLabelPlacement.cpp \
@@ -363,6 +366,7 @@ HEADERS += \
 ../include/CQChartsBoxWhisker.h \
 ../include/CQChartsDensity.h \
 ../include/CQChartsGrahamHull.h \
+../include/CQChartsBivariateDensity.h \
 \
 ../include/CQChartsFillPattern.h \
 ../include/CQChartsTitleLocation.h \
@@ -431,6 +435,8 @@ HEADERS += \
 ../include/CQChartsPosition.h \
 ../include/CQChartsLength.h \
 ../include/CQChartsMargin.h \
+../include/CQChartsReals.h \
+../include/CQChartsPoints.h \
 ../include/CQChartsRect.h \
 ../include/CQChartsPolygon.h \
 ../include/CQChartsPlotMargin.h \

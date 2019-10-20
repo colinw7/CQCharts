@@ -69,6 +69,8 @@
 #include <CQChartsWindow.h>
 #include <CQChartsPath.h>
 #include <CQChartsVariant.h>
+#include <CQChartsPoints.h>
+#include <CQChartsReals.h>
 
 #include <CQChartsOptInt.h>
 #include <CQChartsOptLength.h>
@@ -267,9 +269,11 @@ CQCharts()
   CQChartsOptRect               ::registerMetaType();
   CQChartsPaletteName           ::registerMetaType();
   CQChartsPath                  ::registerMetaType();
+  CQChartsPoints                ::registerMetaType();
   CQChartsPolygonList           ::registerMetaType();
   CQChartsPolygon               ::registerMetaType();
   CQChartsPosition              ::registerMetaType();
+  CQChartsReals                 ::registerMetaType();
   CQChartsRect                  ::registerMetaType();
   CQChartsShapeData             ::registerMetaType();
   CQChartsSides                 ::registerMetaType();
@@ -395,8 +399,10 @@ init()
     viewMgr->addType("CQChartsLineData"        , new CQChartsLineDataPropertyViewType        );
     viewMgr->addType("CQChartsMargin"          , new CQChartsMarginPropertyViewType          );
     viewMgr->addType("CQChartsPaletteName"     , new CQChartsPaletteNamePropertyViewType     );
+//  viewMgr->addType("CQChartsPoints"          , new CQChartsPointsPropertyViewType          );
     viewMgr->addType("CQChartsPolygon"         , new CQChartsPolygonPropertyViewType         );
     viewMgr->addType("CQChartsPosition"        , new CQChartsPositionPropertyViewType        );
+//  viewMgr->addType("CQChartsReals"           , new CQChartsRealsPropertyViewType           );
     viewMgr->addType("CQChartsRect"            , new CQChartsRectPropertyViewType            );
     viewMgr->addType("CQChartsShapeData"       , new CQChartsShapeDataPropertyViewType       );
     viewMgr->addType("CQChartsSides"           , new CQChartsSidesPropertyViewType           );

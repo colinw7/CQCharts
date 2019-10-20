@@ -72,53 +72,30 @@ draw(CQChartsPaintDevice *device, const QRectF &rect) const
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  QColor bgColor = interpFillColor(ColorInd());
-
-  setBrush(penBrush.brush, true, bgColor, fillAlpha(), fillPattern());
-
+  QColor bgColor     = interpFillColor  (ColorInd());
   QColor strokeColor = interpStrokeColor(ColorInd());
 
-  setPen(penBrush.pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+  setPenBrush(penBrush,
+    true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash(),
+    true, bgColor, fillAlpha(), fillPattern());
 
   if (isStateColoring())
     updatePenBrushState(penBrush);
 
-  draw(device, rect, penBrush.pen, penBrush.brush);
+  draw(device, rect, penBrush);
 }
-
-#if 0
-void
-CQChartsBoxObj::
-draw(QPainter *painter, const QRectF &rect) const
-{
-  // set pen and brush
-  CQChartsPenBrush penBrush;
-
-  QColor bgColor = interpFillColor(ColorInd());
-
-  setBrush(penBrush.brush, true, bgColor, fillAlpha(), fillPattern());
-
-  QColor strokeColor = interpStrokeColor(ColorInd());
-
-  setPen(penBrush.pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-
-  if (isStateColoring())
-    updatePenBrushState(penBrush);
-
-  draw(painter, rect, penBrush.pen, penBrush.brush);
-}
-#endif
 
 void
 CQChartsBoxObj::
-draw(CQChartsPaintDevice *device, const QRectF &rect, const QPen &pen, const QBrush &brush) const
+draw(CQChartsPaintDevice *device, const QRectF &rect, const CQChartsPenBrush &penBrush) const
 {
   if (isFilled()) {
     // set pen and brush
-    QPen pen1(Qt::NoPen);
+    CQChartsPenBrush penBrush1 = penBrush;
 
-    device->setPen  (pen1);
-    device->setBrush(brush);
+    penBrush1.pen = QPen(Qt::NoPen);
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush1);
 
     //---
 
@@ -128,10 +105,11 @@ draw(CQChartsPaintDevice *device, const QRectF &rect, const QPen &pen, const QBr
 
   if (isStroked()) {
     // set pen and brush
-    QBrush brush1(Qt::NoBrush);
+    CQChartsPenBrush penBrush1 = penBrush;
 
-    device->setPen  (pen);
-    device->setBrush(brush1);
+    penBrush1.brush = QBrush(Qt::NoBrush);
+
+    CQChartsDrawUtil::setPenBrush(device, penBrush1);
 
     //---
 
@@ -139,42 +117,6 @@ draw(CQChartsPaintDevice *device, const QRectF &rect, const QPen &pen, const QBr
     CQChartsDrawUtil::drawRoundedPolygon(device, rect, cornerSize(), cornerSize(), borderSides());
   }
 }
-
-#if 0
-void
-CQChartsBoxObj::
-draw(QPainter *painter, const QRectF &rect, const QPen &pen, const QBrush &brush) const
-{
-  double cxs = lengthPixelWidth (cornerSize());
-  double cys = lengthPixelHeight(cornerSize());
-
-  if (isFilled()) {
-    // set pen and brush
-    QPen pen1(Qt::NoPen);
-
-    painter->setPen  (pen1);
-    painter->setBrush(brush);
-
-    //---
-
-    // fill box
-    CQChartsDrawUtil::drawRoundedPolygon(painter, rect, cxs, cys, borderSides());
-  }
-
-  if (isStroked()) {
-    // set pen and brush
-    QBrush brush1(Qt::NoBrush);
-
-    painter->setPen  (pen);
-    painter->setBrush(brush1);
-
-    //---
-
-    // stroke box
-    CQChartsDrawUtil::drawRoundedPolygon(painter, rect, cxs, cys, borderSides());
-  }
-}
-#endif
 
 void
 CQChartsBoxObj::
@@ -191,68 +133,30 @@ CQChartsBoxObj::
 draw(CQChartsPaintDevice *device, const QPolygonF &poly) const
 {
   if (isFilled()) {
-    QBrush brush;
-    QPen   pen(Qt::NoPen);
+    CQChartsPenBrush penBrush;
 
     QColor bgColor = interpFillColor(ColorInd());
 
-    setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
+    setPenBrush(penBrush,
+      false, QColor(), 1.0, CQChartsLength(), CQChartsLineDash(),
+      true , bgColor, fillAlpha(), fillPattern());
 
-    device->setPen  (pen);
-    device->setBrush(brush);
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     CQChartsDrawUtil::drawRoundedPolygon(device, poly, cornerSize(), cornerSize());
   }
 
   if (isStroked()) {
-    QPen   pen;
-    QBrush brush(Qt::NoBrush);
+    CQChartsPenBrush penBrush;
 
     QColor strokeColor = interpStrokeColor(ColorInd());
 
-    setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+    setPenBrush(penBrush,
+      true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash(),
+      false, QColor(), 1.0, CQChartsFillPattern());
 
-    device->setPen  (pen);
-    device->setBrush(brush);
+    CQChartsDrawUtil::setPenBrush(device, penBrush);
 
     CQChartsDrawUtil::drawRoundedPolygon(device, poly, cornerSize(), cornerSize());
   }
 }
-
-#if 0
-void
-CQChartsBoxObj::
-draw(QPainter *painter, const QPolygonF &poly) const
-{
-  double cxs = lengthPixelWidth (cornerSize());
-  double cys = lengthPixelHeight(cornerSize());
-
-  if (isFilled()) {
-    QBrush brush;
-    QPen   pen(Qt::NoPen);
-
-    QColor bgColor = interpFillColor(ColorInd());
-
-    setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
-
-    painter->setPen  (pen);
-    painter->setBrush(brush);
-
-    CQChartsDrawUtil::drawRoundedPolygon(painter, poly, cxs, cys);
-  }
-
-  if (isStroked()) {
-    QPen   pen;
-    QBrush brush(Qt::NoBrush);
-
-    QColor strokeColor = interpStrokeColor(ColorInd());
-
-    setPen(pen, true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-
-    painter->setPen  (pen);
-    painter->setBrush(brush);
-
-    CQChartsDrawUtil::drawRoundedPolygon(painter, poly, cxs, cys);
-  }
-}
-#endif

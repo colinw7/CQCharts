@@ -1,5 +1,6 @@
 #include <CQChartsColorStops.h>
 #include <CQPropertyView.h>
+#include <CQTclUtil.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsColorStops, toString, fromString)
 
@@ -18,26 +19,25 @@ QString
 CQChartsColorStops::
 toString() const
 {
-  QString s;
+  QStringList strs;
 
-  for (const auto &v : values_) {
-    if (s.length())
-      s += " ";
-
-    s += QString("%1").arg(v);
-  }
+  for (const auto &v : values_)
+    strs << QString("%1").arg(v);
 
   if (units() == Units::PERCENT)
-    s += " %";
+    strs << "%";
 
-  return s;
+  return CQTcl::mergeList(strs);
 }
 
 bool
 CQChartsColorStops::
-fromString(const QString &s)
+fromString(const QString &str)
 {
-  QStringList strs = s.split(" ", QString::SkipEmptyParts);
+  QStringList strs;
+
+  if (! CQTcl::splitList(str, strs))
+    return false;
 
   Units  units = Units::ABSOLUTE;
   Values values;

@@ -23,16 +23,20 @@ class CQChartsWindow;
 class CQChartsPlot;
 class CQChartsObj;
 class CQChartsViewKey;
+
 class CQChartsAnnotation;
 class CQChartsArrowAnnotation;
 class CQChartsEllipseAnnotation;
 class CQChartsImageAnnotation;
 class CQChartsPieSliceAnnotation;
 class CQChartsPointAnnotation;
+class CQChartsPointSetAnnotation;
 class CQChartsPolygonAnnotation;
 class CQChartsPolylineAnnotation;
 class CQChartsRectangleAnnotation;
 class CQChartsTextAnnotation;
+class CQChartsValueSetAnnotation;
+
 class CQChartsProbeBand;
 class CQChartsDisplayRange;
 class CQChartsEditAnnotationDlg;
@@ -40,11 +44,14 @@ class CQChartsEditAxisDlg;
 class CQChartsEditKeyDlg;
 class CQChartsEditTitleDlg;
 class CQChartsPaintDevice;
+class CQChartsPoints;
+class CQChartsReals;
+
+struct CQChartsTextOptions;
+
 class CQPropertyViewModel;
 class CQPropertyViewItem;
 class CQColorsPalette;
-
-struct CQChartsTextOptions;
 
 class QPainter;
 class QToolButton;
@@ -427,6 +434,7 @@ class CQChartsView : public QFrame,
                                                       double startAngle, double spanAngle);
   CQChartsPointAnnotation     *addPointAnnotation    (const CQChartsPosition &pos,
                                                       const CQChartsSymbol &type);
+  CQChartsPointSetAnnotation  *addPointSetAnnotation (const CQChartsPoints &values);
   CQChartsPolygonAnnotation   *addPolygonAnnotation  (const CQChartsPolygon &polygon);
   CQChartsPolylineAnnotation  *addPolylineAnnotation (const CQChartsPolygon &polygon);
   CQChartsRectangleAnnotation *addRectangleAnnotation(const CQChartsRect &rect);
@@ -434,6 +442,8 @@ class CQChartsView : public QFrame,
                                                       const QString &text);
   CQChartsTextAnnotation      *addTextAnnotation     (const CQChartsRect &rect,
                                                       const QString &text);
+  CQChartsValueSetAnnotation  *addValueSetAnnotation (const CQChartsRect &rectangle,
+                                                      const CQChartsReals &values);
 
   void addAnnotation(CQChartsAnnotation *annotation);
 
@@ -531,6 +541,7 @@ class CQChartsView : public QFrame,
   // print to PNG/SVG
   bool printPNG(const QString &filename, CQChartsPlot *plot=nullptr);
   bool printSVG(const QString &filename, CQChartsPlot *plot=nullptr);
+  bool writeSVG(const QString &filename, CQChartsPlot *plot=nullptr);
 
   // write javascript
   bool writeScript(const QString &filename, CQChartsPlot *plot=nullptr);
@@ -541,6 +552,15 @@ class CQChartsView : public QFrame,
   //---
 
   // set pen/brush
+  void setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
+                   const CQChartsBrushData &brushData) const;
+
+  void setPenBrush(CQChartsPenBrush &penBrush,
+                   bool stroked, const QColor &strokeColor, double strokeAlpha,
+                   const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
+                   bool filled, const QColor &fillColor, double fillAlpha,
+                   const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID) const;
+
   void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha=1.0,
               const CQChartsLength &strokeWidth=CQChartsLength("0px"),
               const CQChartsLineDash &strokeDash=CQChartsLineDash()) const;
@@ -550,18 +570,18 @@ class CQChartsView : public QFrame,
 
   //---
 
-  void updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush,
+  void updateObjPenBrushState(const CQChartsObj *obj, CQChartsPenBrush &penBrush,
                               DrawType drawType=DrawType::BOX) const;
 
   void updateObjPenBrushState(const CQChartsObj *obj, const ColorInd &ic,
-                              QPen &pen, QBrush &brush, DrawType drawType) const;
+                              CQChartsPenBrush &penBrush, DrawType drawType) const;
 
-  void updateInsideObjPenBrushState  (const ColorInd &ic, QPen &pen, QBrush &brush,
+  void updateInsideObjPenBrushState  (const ColorInd &ic, CQChartsPenBrush &penBrush,
                                       bool outline, DrawType drawType) const;
-  void updateSelectedObjPenBrushState(const ColorInd &ic, QPen &pen, QBrush &brush,
+  void updateSelectedObjPenBrushState(const ColorInd &ic, CQChartsPenBrush &penBrush,
                                       DrawType drawType) const;
 
-  QColor insideColor(const QColor &c) const;
+  QColor insideColor  (const QColor &c) const;
   QColor selectedColor(const QColor &c) const;
 
   //---
@@ -650,12 +670,13 @@ class CQChartsView : public QFrame,
   //---
 
   // convert plot to/from index
-  int plotInd(CQChartsPlot *plot) const;
-
   CQChartsPlot *getPlotForInd(int ind) const;
+  int getIndForPlot(const CQChartsPlot *plot) const;
 
   // get current plot
   CQChartsPlot *currentPlot(bool remap=true) const;
+
+  int calcCurrentPlotInd(bool remap=true) const;
 
   //---
 
@@ -737,6 +758,10 @@ class CQChartsView : public QFrame,
   double windowToPixelHeight(double wh) const;
 
   QSizeF pixelToWindowSize(const QSizeF &ps) const;
+
+  QPolygonF windowToPixel(const QPolygonF &p) const;
+
+  QPainterPath windowToPixel(const QPainterPath &p) const;
 
   //---
 
@@ -888,6 +913,9 @@ class CQChartsView : public QFrame,
 
   void printSVGSlot();
   void printSVGSlot(const QString &filename);
+
+  void writeSVGSlot();
+  void writeSVGSlot(const QString &filename);
 
   void writeScriptSlot();
   void writeScriptSlot(const QString &filename);

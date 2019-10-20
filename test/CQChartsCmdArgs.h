@@ -8,6 +8,8 @@
 #include <CQChartsFont.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsSides.h>
+#include <CQChartsPoints.h>
+#include <CQChartsReals.h>
 
 #include <CQChartsCmdArg.h>
 #include <CQChartsCmdGroup.h>
@@ -278,6 +280,11 @@ class CQChartsCmdBaseArgs {
     return poly.length();
   }
 
+  // get reals value of current option
+  bool getOptValue(CQChartsReals &r) {
+    return getOptValue<CQChartsReals>(r);
+  }
+
   //---
 
   // get/set debug
@@ -545,6 +552,17 @@ class CQChartsCmdBaseArgs {
         }
         // handle row option (string)
         else if (cmdArg->type() == CQChartsCmdArg::Type::Row) {
+          QString str;
+
+          if (getOptValue(str)) {
+            parseStr_[opt].push_back(str);
+          }
+          else {
+            return valueError(opt);
+          }
+        }
+        // handle position option (string)
+        else if (cmdArg->type() == CQChartsCmdArg::Type::Reals) {
           QString str;
 
           if (getOptValue(str)) {
@@ -1231,6 +1249,12 @@ plotStringToValue(const QString &str, CQChartsPlot *plot) {
   return CQChartsRow(irow);
 }
 
+template<>
+inline CQChartsPoints
+viewPlotStringToValue(const QString &str, CQChartsView *view, CQChartsPlot *) {
+  return CQChartsPoints(str, (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
+}
+
 //---
 
 template<typename T>
@@ -1297,6 +1321,12 @@ class CQChartsCmdArgs : public CQChartsCmdBaseArgs {
     return getParseValue<CQChartsMargin>(view, plot, name, def);
   }
 
+  CQChartsPoints
+  getParsePoints(CQChartsView *view, CQChartsPlot *plot, const QString &name,
+                 const CQChartsPoints &def=CQChartsPoints()) const {
+    return getParseValue<CQChartsPoints>(view, plot, name, def);
+  }
+
   //---
 
   // get parsed generic value for option of model command
@@ -1337,6 +1367,15 @@ class CQChartsCmdArgs : public CQChartsCmdBaseArgs {
     return CQChartsCmdUtil::plotStringToValue<T>((*p).second[0], plot);
   }
 
+  // get parsed generic value for option
+  template<typename T>
+  T getParseValue(const QString &name, const T &def=T()) const {
+    auto p = parseStr_.find(name);
+    if (p == parseStr_.end()) return def;
+
+    return T((*p).second[0]);
+  }
+
   CQChartsRow
   getParseRow(const QString &name, CQChartsPlot *plot=nullptr,
               const CQChartsRow &def=CQChartsRow()) const {
@@ -1364,6 +1403,11 @@ class CQChartsCmdArgs : public CQChartsCmdBaseArgs {
     return CQChartsRow(irow);
   }
 #endif
+
+  CQChartsReals
+  getParseReals(const QString &name, const CQChartsReals &def=CQChartsReals()) const {
+    return getParseValue<CQChartsReals>(name, def);
+  }
 };
 
 #endif

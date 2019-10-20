@@ -384,8 +384,8 @@ class CQChartsPivotPlot : public CQChartsPlot,
 
   //---
 
-  void write(std::ostream &os, const QString &varName="",
-             const QString &modelName="") const override;
+  void write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
+             const QString &viewVarName) const override;
 
  private:
   std::vector<PlotType> plotTypes() const { return

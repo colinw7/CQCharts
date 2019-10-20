@@ -1057,8 +1057,8 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   QColor fc = node->interpColor(this, fillColor(), colorInd, numColorIds());
 
   setPenBrush(penBrush,
-    isStroked(), bc, strokeAlpha(), strokeWidth(), strokeDash(),
-    isFilled(), fc, fillAlpha(), fillPattern());
+    CQChartsPenData  (isStroked(), bc, strokeAlpha(), strokeWidth(), strokeDash()),
+    CQChartsBrushData(isFilled(), fc, fillAlpha(), fillPattern()));
 
   if (nodeObj)
     updateObjPenBrushState(nodeObj, penBrush);

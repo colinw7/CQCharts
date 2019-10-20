@@ -50,60 +50,30 @@ void
 CQChartsArrow::
 draw(CQChartsPaintDevice *device) const
 {
-  QPen   pen;
-  QBrush brush;
+  CQChartsPenBrush penBrush;
 
   QColor fc = interpFillColor  (ColorInd());
   QColor sc = interpStrokeColor(ColorInd());
 
-  CQChartsUtil::setPen  (pen  , isStroked(), sc, strokeAlpha(), 1.0);
-  CQChartsUtil::setBrush(brush, isFilled (), fc, fillAlpha(), fillPattern());
+  CQChartsUtil::setPenBrush(penBrush,
+    isStroked(), sc, strokeAlpha(), 1.0, CQChartsLineDash(),
+    isFilled (), fc, fillAlpha(), fillPattern());
 
-  draw(device, pen, brush);
+  draw(device, penBrush);
 }
-
-#if 0
-void
-CQChartsArrow::
-draw(QPainter *painter) const
-{
-  QPen   pen;
-  QBrush brush;
-
-  QColor fc = interpFillColor  (ColorInd());
-  QColor sc = interpStrokeColor(ColorInd());
-
-  CQChartsUtil::setBrush(brush, true, fc, fillAlpha(), fillPattern());
-
-  CQChartsUtil::setPen(pen, true, sc, strokeAlpha(), 1.0);
-
-  draw(painter, pen, brush);
-}
-#endif
 
 void
 CQChartsArrow::
-draw(CQChartsPaintDevice *device, const QPen &pen, const QBrush &brush) const
+draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush) const
 {
   device_ = device;
 
-  drawContents(pen, brush);
+  drawContents(penBrush);
 }
-
-#if 0
-void
-CQChartsArrow::
-draw(QPainter *painter, const QPen &pen, const QBrush &brush) const
-{
-  device_ = nullptr;
-
-  drawContents(pen, brush);
-}
-#endif
 
 void
 CQChartsArrow::
-drawContents(const QPen &pen, const QBrush &brush) const
+drawContents(const CQChartsPenBrush &penBrush) const
 {
   frontLine1_.reset();
   frontLine2_.reset();
@@ -214,8 +184,8 @@ drawContents(const QPen &pen, const QBrush &brush) const
 
   //---
 
-  bool isStroked = (pen  .style() != Qt::NoPen  );
-  bool isFilled  = (brush.style() != Qt::NoBrush);
+  bool isStroked = (penBrush.pen  .style() != Qt::NoPen  );
+  bool isFilled  = (penBrush.brush.style() != Qt::NoBrush);
 
   //---
 
@@ -352,8 +322,8 @@ drawContents(const QPen &pen, const QBrush &brush) const
         frontLine1_ = Line(p1, pf1);
         frontLine2_ = Line(p1, pf2);
 
-        drawLine(p1, pf1, strokeWidth, pen, brush);
-        drawLine(p1, pf2, strokeWidth, pen, brush);
+        drawLine(p1, pf1, strokeWidth, penBrush);
+        drawLine(p1, pf2, strokeWidth, penBrush);
       }
       else {
         // calc front head angle (relative to line)
@@ -424,7 +394,7 @@ drawContents(const QPen &pen, const QBrush &brush) const
       if (! linePoly) {
         frontPoly_ = fHeadPoints;
 
-        drawPolygon(fHeadPoints, strokeWidth, isFilled, isStroked, pen, brush);
+        drawPolygon(fHeadPoints, strokeWidth, isFilled, isStroked, penBrush);
       }
     }
   }
@@ -459,8 +429,8 @@ drawContents(const QPen &pen, const QBrush &brush) const
         endLine1_ = Line(p4, pt1);
         endLine2_ = Line(p4, pt2);
 
-        drawLine(p4, pt1, strokeWidth, pen, brush);
-        drawLine(p4, pt2, strokeWidth, pen, brush);
+        drawLine(p4, pt1, strokeWidth, penBrush);
+        drawLine(p4, pt2, strokeWidth, penBrush);
       }
       else {
         // calc tail head angle (relative to line)
@@ -531,7 +501,7 @@ drawContents(const QPen &pen, const QBrush &brush) const
       if (! linePoly) {
         tailPoly_ = tHeadPoints;
 
-        drawPolygon(tHeadPoints, strokeWidth, isFilled, isStroked, pen, brush);
+        drawPolygon(tHeadPoints, strokeWidth, isFilled, isStroked, penBrush);
       }
     }
   }
@@ -705,13 +675,13 @@ drawContents(const QPen &pen, const QBrush &brush) const
 
     arrowPoly_ = points;
 
-    drawPolygon(points, strokeWidth, isFilled, isStroked, pen, brush);
+    drawPolygon(points, strokeWidth, isFilled, isStroked, penBrush);
   }
   else {
     // draw line (no line width)
     midLine_ = Line(fHeadMid, tHeadMid);
 
-    drawLine(fHeadMid, tHeadMid, strokeWidth, pen, brush);
+    drawLine(fHeadMid, tHeadMid, strokeWidth, penBrush);
   }
 
   //---
@@ -726,7 +696,7 @@ drawContents(const QPen &pen, const QBrush &brush) const
 void
 CQChartsArrow::
 drawPolygon(const Points &points, double width, bool filled, bool stroked,
-            const QPen &pen, const QBrush &brush) const
+            const CQChartsPenBrush &penBrush) const
 {
   QPainterPath path;
 
@@ -741,10 +711,10 @@ drawPolygon(const Points &points, double width, bool filled, bool stroked,
   //---
 
   if (filled) {
-    device_->fillPath(path, brush);
+    device_->fillPath(path, penBrush.brush);
 
     if (stroked) {
-      QPen pen1 = pen;
+      QPen pen1 = penBrush.pen;
 
       pen1.setWidthF(width);
 
@@ -752,7 +722,7 @@ drawPolygon(const Points &points, double width, bool filled, bool stroked,
     }
   }
   else {
-    QPen pen1 = pen;
+    QPen pen1 = penBrush.pen;
 
     if (! stroked)
       pen1 = QPen(Qt::NoPen);
@@ -766,10 +736,10 @@ drawPolygon(const Points &points, double width, bool filled, bool stroked,
 void
 CQChartsArrow::
 drawLine(const QPointF &point1, const QPointF &point2, double width,
-         const QPen &pen, const QBrush &brush) const
+         const CQChartsPenBrush &penBrush) const
 {
-  bool isStroked = (pen  .style() != Qt::NoPen  );
-  bool isFilled  = (brush.style() != Qt::NoBrush);
+  bool isStroked = (penBrush.pen  .style() != Qt::NoPen  );
+  bool isFilled  = (penBrush.brush.style() != Qt::NoBrush);
 
   //---
 
@@ -781,12 +751,12 @@ drawLine(const QPointF &point1, const QPointF &point2, double width,
 
   //---
 
-  QPen pen1 = pen;
+  QPen pen1 = penBrush.pen;
 
   if      (isStroked)
-    pen1.setColor(pen.color());
+    pen1.setColor(penBrush.pen.color());
   else if (isFilled)
-    pen1 = QPen(brush.color());
+    pen1 = QPen(penBrush.brush.color());
   else
     pen1 = QPen(Qt::NoPen);
 

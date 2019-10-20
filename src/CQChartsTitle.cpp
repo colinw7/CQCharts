@@ -353,10 +353,10 @@ draw(CQChartsPaintDevice *device)
 
   QSizeF paddingSize = device->pixelToWindowSize(QSizeF(padding(), padding()));
 
-  double xlm = device->lengthPixelWidth (margin().left  ());
-  double xrm = device->lengthPixelWidth (margin().right ());
-  double ytm = device->lengthPixelHeight(margin().top   ());
-  double ybm = device->lengthPixelHeight(margin().bottom());
+  double xlm = device->lengthWindowWidth (margin().left  ());
+  double xrm = device->lengthWindowWidth (margin().right ());
+  double ytm = device->lengthWindowHeight(margin().top   ());
+  double ybm = device->lengthWindowHeight(margin().bottom());
 
   CQChartsGeom::BBox ibbox(x     + paddingSize.width(), y     + paddingSize.height(),
                            x + w - paddingSize.width(), y + h - paddingSize.height());

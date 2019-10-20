@@ -1,0 +1,25 @@
+# META_DATA
+#  global,location,,Monaco
+#  global,year,,2019
+# END_META_DATA
+Pos,Country,Driver,Logo,Team,Wins,Points,Image
+1,Great Britain,Lewis Hamilton,HAM,Mercedes,4,137,data/f1_mercedes_ham.png
+2,Finland,Valtteri Bottas,BOT,Mercedes,2,120,data/f1_mercedes_bot.png
+3,Germany,Sebastian Vettel,VET,Ferrari,0,82,data/f1_ferrari.png
+4,Netherlands,Max Verstappen,VER,Red Bull,0,78,data/f1_redbull.png
+5,Monaco,Charles Leclerc,LEC,Ferrari,0,57,data/f1_ferrari.png
+6,France,Pierre Gasly,GAS,Toro Rosso,0,32,data/f1_redbull.png
+7,Spain,Carlos Sainz Jnr,SAI,McLaren,0,18,data/f1_maclaren.png
+8,Denmark,Kevin Magnussen,MAG,Haas,0,14,data/f1_haas.png
+9,Mexico,Sergio Perez,PER,Racing Point,0,13,data/f1_racing_point.png
+10,Finland,Kimi Raikkonen,RAI,Alfa Romeo,0,13,data/f1_alfa.png
+11,Great Britain,Lando Norris,NOR,McLaren,0,12,data/f1_maclaren.png
+12,Russia,Daniil Kvyat,KVY,Toro Rosso,0,9,data/f1_toro_roso.png
+13,Australia,Daniel Ricciardo,RIC,Renault,0,8,data/f1_renault.png
+14,Thailand,Alexander Albon,ALB,Red Bull,0,7,data/f1_toro_roso.png
+15,Germany,Nico Hulkenberg,HUL,Renault,0,6,data/f1_renault.png
+16,Canada,Lance Stroll,STR,Racing Point,0,4,data/f1_racing_point.png
+17,France,Romain Grosjean,GRO,Haas,0,2,data/f1_haas.png
+18,Italy,Antonio Giovinazzi,GIO,Alfa Romeo,0,0,data/f1_alfa.png
+19,Great Britain,George Russell,RUS,Williams,0,0,data/f1_williams.png
+20,Poland,Robert Kubica,KUB,Williams,0,0,data/f1_williams.png

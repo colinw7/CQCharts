@@ -1068,7 +1068,7 @@ draw(CQChartsPaintDevice *device)
   // calc pen and brush
   CQChartsPenBrush penBrush;
 
-  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+  bool updateState = device->isInteractive();
 
   calcPenBrush(penBrush, updateState);
 
@@ -1155,9 +1155,10 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor fc = plot_->interpNodeFillColor  (ic);
 
   plot_->setPenBrush(penBrush,
-    plot_->isNodeStroked(), bc, plot_->nodeStrokeAlpha(),
-    plot_->nodeStrokeWidth(), plot_->nodeStrokeDash(),
-    plot_->isNodeFilled(), fc, plot_->nodeFillAlpha(), plot_->nodeFillPattern());
+    CQChartsPenData  (plot_->isNodeStroked(), bc, plot_->nodeStrokeAlpha(),
+                      plot_->nodeStrokeWidth(), plot_->nodeStrokeDash()),
+    CQChartsBrushData(plot_->isNodeFilled(), fc, plot_->nodeFillAlpha(),
+                      plot_->nodeFillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -1206,7 +1207,7 @@ draw(CQChartsPaintDevice *device)
   // calc pen and brush
   CQChartsPenBrush penBrush;
 
-  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+  bool updateState = device->isInteractive();
 
   calcPenBrush(penBrush, updateState);
 
@@ -1266,9 +1267,10 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
 
   plot_->setPenBrush(penBrush,
-    plot_->isEdgeStroked(), sc, plot_->edgeStrokeAlpha(),
-    plot_->edgeStrokeWidth(), plot_->edgeStrokeDash(),
-    plot_->isEdgeFilled(), fc, plot_->edgeFillAlpha(), plot_->edgeFillPattern());
+    CQChartsPenData  (plot_->isEdgeStroked(), sc, plot_->edgeStrokeAlpha(),
+                      plot_->edgeStrokeWidth(), plot_->edgeStrokeDash()),
+    CQChartsBrushData(plot_->isEdgeFilled(), fc, plot_->edgeFillAlpha(),
+                      plot_->edgeFillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

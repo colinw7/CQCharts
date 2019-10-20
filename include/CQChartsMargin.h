@@ -60,31 +60,7 @@ class CQChartsMargin {
     bottom_ = l;
   }
 
-  bool setValue(const QString &str) {
-    QStringList strs = str.split(" ", QString::SkipEmptyParts);
-
-    if      (strs.length() == 1) {
-      CQChartsLength length;
-
-      if (! length.setValue(strs[0], CQChartsUnits::PERCENT)) return false;
-
-      set(length);
-    }
-    else if (strs.length() == 4) {
-      CQChartsLength left, top, right, bottom;
-
-      if (! left  .setValue(strs[0], CQChartsUnits::PERCENT)) return false;
-      if (! top   .setValue(strs[1], CQChartsUnits::PERCENT)) return false;
-      if (! right .setValue(strs[2], CQChartsUnits::PERCENT)) return false;
-      if (! bottom.setValue(strs[3], CQChartsUnits::PERCENT)) return false;
-
-      set(left, top, right, bottom);
-    }
-    else
-      return false;
-
-    return true;
-  }
+  bool setValue(const QString &str) { return fromString(str); }
 
   //---
 
@@ -109,9 +85,7 @@ class CQChartsMargin {
 
   QString toString() const;
 
-  bool fromString(const QString &s) {
-    return setValue(s);
-  }
+  bool fromString(const QString &s);
 
  protected:
   CQChartsLength left_;

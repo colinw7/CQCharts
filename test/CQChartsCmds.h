@@ -153,10 +153,12 @@ class CQChartsCmds : public QObject {
   bool createChartsImageAnnotationCmd    (CQChartsCmdArgs &args);
   bool createChartsPieSliceAnnotationCmd (CQChartsCmdArgs &args);
   bool createChartsPointAnnotationCmd    (CQChartsCmdArgs &args);
+  bool createChartsPointSetAnnotationCmd (CQChartsCmdArgs &args);
   bool createChartsPolygonAnnotationCmd  (CQChartsCmdArgs &args);
   bool createChartsPolylineAnnotationCmd (CQChartsCmdArgs &args);
   bool createChartsRectangleAnnotationCmd(CQChartsCmdArgs &args);
   bool createChartsTextAnnotationCmd     (CQChartsCmdArgs &args);
+  bool createChartsValueSetAnnotationCmd (CQChartsCmdArgs &args);
   bool removeChartsAnnotationCmd         (CQChartsCmdArgs &args);
 
   bool connectChartsSignalCmd(CQChartsCmdArgs &args);
@@ -280,10 +282,12 @@ CQCHARTS_DEF_CMD(CreateChartsEllipseAnnotation  , createChartsEllipseAnnotationC
 CQCHARTS_DEF_CMD(CreateChartsImageAnnotation    , createChartsImageAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsPieSliceAnnotation , createChartsPieSliceAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsPointAnnotation    , createChartsPointAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsPointSetAnnotation , createChartsPointSetAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsPolygonAnnotation  , createChartsPolygonAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsPolylineAnnotation , createChartsPolylineAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsRectangleAnnotation, createChartsRectangleAnnotationCmd)
 CQCHARTS_DEF_CMD(CreateChartsTextAnnotation     , createChartsTextAnnotationCmd)
+CQCHARTS_DEF_CMD(CreateChartsValueSetAnnotation , createChartsValueSetAnnotationCmd)
 
 CQCHARTS_DEF_CMD(RemoveChartsAnnotation, removeChartsAnnotationCmd)
 

@@ -32,6 +32,35 @@ view() const
 
 void
 CQChartsViewPlotObj::
+setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
+            const CQChartsBrushData &brushData) const
+{
+  if      (plot())
+    plot()->setPenBrush(penBrush, penData, brushData);
+  else if (view())
+    view()->setPenBrush(penBrush, penData, brushData);
+}
+
+void
+CQChartsViewPlotObj::
+setPenBrush(CQChartsPenBrush &penBrush,
+            bool stroked, const QColor &strokeColor, double strokeAlpha,
+            const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
+            bool filled, const QColor &fillColor, double fillAlpha,
+            const CQChartsFillPattern &pattern) const
+{
+  if      (plot())
+    plot()->setPenBrush(penBrush,
+      CQChartsPenData  (stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash),
+      CQChartsBrushData(filled, fillColor, fillAlpha, pattern));
+  else if (view())
+    view()->setPenBrush(penBrush,
+      CQChartsPenData  (stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash),
+      CQChartsBrushData(filled, fillColor, fillAlpha, pattern));
+}
+
+void
+CQChartsViewPlotObj::
 setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
        const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash) const
 {
@@ -59,7 +88,7 @@ updatePenBrushState(CQChartsPenBrush &penBrush, DrawType drawType) const
   if      (plot())
     plot()->updateObjPenBrushState(this, penBrush, drawType);
   else if (view())
-    view()->updateObjPenBrushState(this, penBrush.pen, penBrush.brush, drawType);
+    view()->updateObjPenBrushState(this, penBrush, drawType);
 }
 
 //---

@@ -281,7 +281,7 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
 
       setItem(i, 0, idItem);
 
-      int ind = view->plotInd(plot);
+      int ind = view->getIndForPlot(plot);
 
       idItem->setData(Qt::UserRole, ind);
 

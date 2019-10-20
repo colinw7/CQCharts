@@ -962,8 +962,6 @@ calcBucketRanges() const
 
       values->densityData->setXVals(xvals);
 
-      values->densityData->calc();
-
       if (! isHorizontal()) {
         densityBBox.add(values->densityData->xmin1(), values->densityData->ymin1() + doffset);
         densityBBox.add(values->densityData->xmax1(), values->densityData->ymax1() + doffset);
@@ -3577,7 +3575,7 @@ drawRect(CQChartsPaintDevice *device, const QRectF &pqrect,
   // calc pen and brush
   CQChartsPenBrush barPenBrush;
 
-  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+  bool updateState = device->isInteractive();
 
   calcBarPenBrush(color, useLine, barPenBrush, updateState);
 
@@ -3691,8 +3689,9 @@ calcBarPenBrush(const CQChartsColor &color, bool useLine,
   }
 
   plot_->setPenBrush(barPenBrush,
-    plot_->isBarStroked(), bc, plot_->barStrokeAlpha(), bw, plot_->barStrokeDash(),
-    plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
+    CQChartsPenData  (plot_->isBarStroked(), bc, plot_->barStrokeAlpha(),
+                      bw, plot_->barStrokeDash()),
+    CQChartsBrushData(plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern()));
 
   // adjust pen/brush for selected/mouse over
   if (updateState)
@@ -3937,7 +3936,7 @@ draw(CQChartsPaintDevice *device)
   // calc pen and brush
   CQChartsPenBrush penBrush;
 
-  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+  bool updateState = device->isInteractive();
 
   calcPenBrush(penBrush, updateState);
 
@@ -4049,8 +4048,8 @@ drawRug(CQChartsPaintDevice *device) const
 
   QColor fillColor = plot_->interpBarFillColor(is_);
 
-  plot_->setPen  (penBrush.pen  , true, fillColor, 1.0);
-  plot_->setBrush(penBrush.brush, true, fillColor, 0.5);
+  plot_->setPenBrush(penBrush, CQChartsPenData(true, fillColor),
+                     CQChartsBrushData(true, fillColor, 0.5));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -4091,9 +4090,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor fc = plot_->interpBarFillColor  (is_);
 
   plot_->setPenBrush(penBrush,
-    plot_->isBarStroked(), bc, plot_->barStrokeAlpha(),
-    plot_->barStrokeWidth(), plot_->barStrokeDash(),
-    plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
+    CQChartsPenData  (plot_->isBarStroked(), bc, plot_->barStrokeAlpha(),
+                      plot_->barStrokeWidth(), plot_->barStrokeDash()),
+    CQChartsBrushData(plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern()));
 
   //---
 
@@ -4201,8 +4200,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsPenBrush penBrush;
 
-  plot_->setPen  (penBrush.pen  , true, Qt::black, 1.0);
-  plot_->setBrush(penBrush.brush, true, c, 1.0);
+  plot_->setPenBrush(penBrush, CQChartsPenData(true, Qt::black), CQChartsBrushData(true, c));
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 

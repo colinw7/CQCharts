@@ -8,6 +8,9 @@
 #include <CQChartsPaintDevice.h>
 #include <CQChartsVariant.h>
 #include <CQChartsArcData.h>
+#include <CQChartsDensity.h>
+#include <CQChartsBivariateDensity.h>
+#include <CQChartsFitData.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -243,7 +246,7 @@ CQChartsAnnotation::
 invalidate()
 {
   if      (plot()) {
-    plot()->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+    plot()->invalidateLayer(CQChartsBuffer::Type::MIDDLE);
     plot()->invalidateLayer(CQChartsBuffer::Type::OVERLAY);
   }
   else if (view()) {
@@ -638,6 +641,7 @@ init()
   setMargin(CQChartsMargin());
 
   setStroked(true);
+  setFilled (true);
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -816,15 +820,21 @@ draw(CQChartsPaintDevice *device)
     strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
   }
 
-  setPen  (penBrush.pen  , true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-  setBrush(penBrush.brush, true, bgColor, fillAlpha(), fillPattern());
+  setPenBrush(penBrush,
+    CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
 
   updatePenBrushState(penBrush);
 
   //---
 
   // draw box
-  CQChartsBoxObj::draw(device, bbox_.qrect(), penBrush.pen, penBrush.brush);
+  //CQChartsBoxObj::draw(device, bbox_.qrect(), penBrush);
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  CQChartsDrawUtil::drawRoundedPolygon(device, bbox_.qrect(), cornerSize(), cornerSize(),
+                                       borderSides());
 
   //---
 
@@ -985,10 +995,6 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  //CQChartsBoxObj::draw(device, bbox_.qrect());
-
-  //---
-
   // set pen and brush
   CQChartsPenBrush penBrush;
 
@@ -1000,8 +1006,9 @@ draw(CQChartsPaintDevice *device)
     strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
   }
 
-  setPen  (penBrush.pen  , isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-  setBrush(penBrush.brush, isFilled (), bgColor, fillAlpha(), fillPattern());
+  setPenBrush(penBrush,
+    CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
 
   updatePenBrushState(penBrush);
 
@@ -1090,6 +1097,7 @@ init()
   setObjectName(QString("polygon.%1").arg(ind()));
 
   setStroked(true);
+  setFilled (true);
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -1198,8 +1206,9 @@ draw(CQChartsPaintDevice *device)
     strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
   }
 
-  setPen  (penBrush.pen  , isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-  setBrush(penBrush.brush, isFilled (), bgColor, fillAlpha(), fillPattern());
+  setPenBrush(penBrush,
+    CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
 
   updatePenBrushState(penBrush);
 
@@ -1215,12 +1224,7 @@ draw(CQChartsPaintDevice *device)
     path = smooth_->createPath(/*closed*/true);
   }
   else {
-    path.moveTo(polygon[0]);
-
-    for (int i = 1; i < polygon.size(); ++i)
-      path.lineTo(polygon[i]);
-
-    path.closeSubpath();
+    path = CQChartsDrawUtil::polygonToPath(polygon, /*closed*/true);
   }
 
   //---
@@ -1366,18 +1370,24 @@ bool
 CQChartsPolylineAnnotation::
 inside(const CQChartsGeom::Point &p) const
 {
-  CQChartsGeom::Point pp = windowToPixel(p);
-
   const QPolygonF &polygon = polygon_.polygon();
 
+  if (! polygon.size())
+    return false;
+
+  CQChartsGeom::Point pp = windowToPixel(p);
+
+  CQChartsGeom::Point pl1 = windowToPixel(CQChartsGeom::Point(polygon[0]));
+
   for (int i = 1; i < polygon.size(); ++i) {
-    CQChartsGeom::Point pl1 = windowToPixel(CQChartsGeom::Point(polygon[i - 1]));
-    CQChartsGeom::Point pl2 = windowToPixel(CQChartsGeom::Point(polygon[i    ]));
+    CQChartsGeom::Point pl2 = windowToPixel(CQChartsGeom::Point(polygon[i]));
 
     double d;
 
     if (CQChartsUtil::PointLineDistance(pp, pl1, pl2, &d) && d < 3)
       return true;
+
+    pl1 = pl2;
   }
 
   return false;
@@ -1428,10 +1438,7 @@ draw(CQChartsPaintDevice *device)
     path = smooth_->createPath(/*closed*/false);
   }
   else {
-    path.moveTo(polygon[0]);
-
-    for (int i = 1; i < polygon.size(); ++i)
-      path.lineTo(polygon[i]);
+    path = CQChartsDrawUtil::polygonToPath(polygon, /*closed*/false);
   }
 
   //---
@@ -1795,14 +1802,36 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // draw box
-  CQChartsBoxObj::draw(device, bbox_.qrect());
+  // set rect pen and brush
+  CQChartsPenBrush penBrush;
+
+  QColor bgColor     = interpFillColor  (ColorInd());
+  QColor strokeColor = interpStrokeColor(ColorInd());
+
+  if (isCheckable() && ! isChecked()) {
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+  }
+
+  setPenBrush(penBrush,
+    CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+
+  updatePenBrushState(penBrush);
 
   //---
 
-  // set pen and brush
-  CQChartsPenBrush penBrush;
+  // draw box
+  //CQChartsBoxObj::draw(device, bbox_.qrect(), penBrush);
 
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  CQChartsDrawUtil::drawRoundedPolygon(device, bbox_.qrect(), cornerSize(), cornerSize(),
+                                       borderSides());
+
+  //---
+
+  // set text pen and brush
   QColor c = interpColor(textColor(), ColorInd());
 
   if (isCheckable() && ! isChecked())
@@ -2223,8 +2252,32 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
+  // set rect pen and brush
+  CQChartsPenBrush penBrush;
+
+  QColor bgColor     = interpFillColor  (ColorInd());
+  QColor strokeColor = interpStrokeColor(ColorInd());
+
+  if (isCheckable() && ! isChecked()) {
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+  }
+
+  setPenBrush(penBrush,
+    CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+
+  updatePenBrushState(penBrush);
+
+  //---
+
   // draw box
-  CQChartsBoxObj::draw(device, bbox_.qrect());
+  //CQChartsBoxObj::draw(device, bbox_.qrect(), penBrush);
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  CQChartsDrawUtil::drawRoundedPolygon(device, bbox_.qrect(), cornerSize(), cornerSize(),
+                                       borderSides());
 
   //---
 
@@ -2609,10 +2662,6 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  //CQChartsBoxObj::draw(device, bbox_.qrect());
-
-  //---
-
   // set pen and brush
   CQChartsPenBrush penBrush;
 
@@ -2624,10 +2673,9 @@ draw(CQChartsPaintDevice *device)
     strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
   }
 
-  setPen  (penBrush.pen  , arrow()->isStroked(),
-           strokeColor, arrow()->strokeAlpha(), 1.0, CQChartsLineDash());
-  setBrush(penBrush.brush, arrow()->isFilled (),
-           bgColor, arrow()->fillAlpha(), arrow()->fillPattern());
+  setPenBrush(penBrush,
+    CQChartsPenData  (arrow()->isStroked(), strokeColor, arrow()->strokeAlpha()),
+    CQChartsBrushData(arrow()->isFilled (), bgColor, arrow()->fillAlpha(), arrow()->fillPattern()));
 
   updatePenBrushState(penBrush);
 
@@ -2639,7 +2687,7 @@ draw(CQChartsPaintDevice *device)
   arrow()->setFrom(start);
   arrow()->setTo  (end  );
 
-  arrow()->draw(device, penBrush.pen, penBrush.brush);
+  arrow()->draw(device, penBrush);
 
   connect(arrow(), SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
 
@@ -2923,15 +2971,6 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  //CQChartsBoxObj::draw(device, bbox_.qrect());
-
-  //---
-
-  double px = bbox_.getXMid();
-  double py = bbox_.getYMid();
-
-  //---
-
   const CQChartsStrokeData &strokeData = symbolData.stroke();
   const CQChartsFillData   &fillData   = symbolData.fill();
 
@@ -2946,9 +2985,10 @@ draw(CQChartsPaintDevice *device)
     fillColor = CQChartsUtil::blendColors(backgroundColor(), fillColor, 0.5);
   }
 
-  setPen  (penBrush.pen  , strokeData.isVisible(), lineColor, strokeData.alpha(),
-           strokeData.width(), strokeData.dash());
-  setBrush(penBrush.brush, fillData.isVisible(), fillColor, fillData.alpha(), fillData.pattern());
+  setPenBrush(penBrush,
+    CQChartsPenData  (strokeData.isVisible(), lineColor, strokeData.alpha(),
+                      strokeData.width(), strokeData.dash()),
+    CQChartsBrushData(fillData  .isVisible(), fillColor, fillData.alpha(), fillData.pattern()));
 
   updatePenBrushState(penBrush, CQChartsPlot::DrawType::SYMBOL);
 
@@ -2957,7 +2997,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw symbol
-  QPointF ps(px, py);
+  QPointF ps(bbox_.getXMid(), bbox_.getYMid());
 
   CQChartsDrawUtil::drawSymbol(device, symbolData.type(), ps, symbolData.size());
 
@@ -3051,6 +3091,9 @@ init()
   setObjectName(QString("pie_slice.%1").arg(ind()));
 
   editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
+
+  setStroked(true);
+  setFilled (true);
 }
 
 void
@@ -3147,8 +3190,9 @@ draw(CQChartsPaintDevice *device)
     strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
   }
 
-  setPen  (penBrush.pen  , true, strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
-  setBrush(penBrush.brush, true, bgColor, fillAlpha(), fillPattern());
+  setPenBrush(penBrush,
+    CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
 
   updatePenBrushState(penBrush);
 
@@ -3186,6 +3230,457 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
   os << " -start_angle " << startAngle();
 
   os << " -span_angle " << spanAngle();
+
+  os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
+}
+
+//---
+
+CQChartsPointSetAnnotation::
+CQChartsPointSetAnnotation(CQChartsView *view, const CQChartsPoints &values) :
+ CQChartsAnnotation(view, Type::POINT_SET), values_(values)
+{
+  init();
+}
+
+CQChartsPointSetAnnotation::
+CQChartsPointSetAnnotation(CQChartsPlot *plot, const CQChartsPoints &values) :
+ CQChartsAnnotation(plot, Type::POINT_SET), values_(values)
+{
+  init();
+}
+
+CQChartsPointSetAnnotation::
+~CQChartsPointSetAnnotation()
+{
+}
+
+void
+CQChartsPointSetAnnotation::
+init()
+{
+  setObjectName(QString("pointset.%1").arg(ind()));
+
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
+
+  setStroked(true);
+  setFilled (true);
+
+  updateValues();
+}
+
+void
+CQChartsPointSetAnnotation::
+updateValues()
+{
+  hull_.clear();
+
+  for (auto &p : values_.points()) {
+    QPointF p1 = positionToParent(p);
+
+    hull_.addPoint(p1);
+
+    xrange_.add(p1.x());
+    yrange_.add(p1.y());
+
+    gridCell_.addPoint(p1);
+  }
+}
+
+void
+CQChartsPointSetAnnotation::
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  QString path1 = path + "/" + propertyId();
+
+  CQChartsAnnotation::addProperties(model, path1);
+
+  addProp(path1, "values"  , "", "Values");
+  addProp(path1, "drawType", "", "Draw type");
+
+  addStrokeFillProperties(model, path1);
+}
+
+QString
+CQChartsPointSetAnnotation::
+propertyId() const
+{
+  return QString("valueSetAnnotation%1").arg(ind());
+}
+
+void
+CQChartsPointSetAnnotation::
+setBBox(const CQChartsGeom::BBox &, const CQChartsResizeSide &)
+{
+#if 0
+  QRectF rect = hull_.bbox();
+
+  QPointF ll = positionToParent(rect.topLeft());
+
+  double dx = bbox.getXMin() - bbox_.getXMin();
+  double dy = bbox.getYMin() - bbox_.getYMin();
+
+  ll += QPointF(dx, dy);
+
+  rect = QRectF(ll.x(), ll.y(), rect.width(), rect.height());
+
+  // TODO: move all points ?
+#endif
+}
+
+bool
+CQChartsPointSetAnnotation::
+inside(const CQChartsGeom::Point &p) const
+{
+  return bbox().inside(p);
+}
+
+void
+CQChartsPointSetAnnotation::
+draw(CQChartsPaintDevice *device)
+{
+  // set pen and brush
+  CQChartsPenBrush penBrush;
+
+  QColor bgColor     = interpFillColor  (ColorInd());
+  QColor strokeColor = interpStrokeColor(ColorInd());
+
+  if (isCheckable() && ! isChecked()) {
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+  }
+
+  CQChartsPenData penData(isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash());
+
+  CQChartsBrushData brushData(isFilled(), bgColor, fillAlpha(), fillPattern());
+
+  setPenBrush(penBrush, penData, brushData);
+
+  updatePenBrushState(penBrush);
+
+  //---
+
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  if      (drawType() == DrawType::SYMBOLS) {
+    CQChartsSymbolData symbolData;
+
+    for (const auto &p : values_.points()) {
+      QPointF p1 = positionToParent(p);
+
+      CQChartsDrawUtil::drawSymbol(device, symbolData.type(), p1, symbolData.size());
+    }
+  }
+  else if (drawType() == DrawType::HULL) {
+    hull_.draw(plot_, device);
+  }
+  else if (drawType() == DrawType::DENSITY) {
+    CQChartsBivariateDensity density;
+
+    CQChartsBivariateDensity::Data data;
+
+    data.gridSize = 16;
+    data.delta    = 0.0;
+
+    for (const auto &p : values_.points()) {
+      QPointF p1 = positionToParent(p);
+
+      data.values.push_back(p1);
+    }
+
+    data.xrange = xrange_;
+    data.yrange = yrange_;
+
+    if (plot_)
+      density.draw(plot_, device, data);
+  }
+  else if (drawType() == DrawType::BEST_FIT) {
+    CQChartsFitData fitData;
+
+    QPolygonF poly;
+
+    for (const auto &p : values_.points()) {
+      QPointF p1 = positionToParent(p);
+
+      poly.push_back(p1);
+    }
+
+    fitData.calc(poly, 3);
+
+    QPointF p1 = device->windowToPixel(QPointF(xrange_.min(), yrange_.min()));
+    QPointF p2 = device->windowToPixel(QPointF(xrange_.max(), yrange_.max()));
+
+    double dx = (p2.x() - p1.x())/100.0;
+
+    QPolygonF fitPoly;
+
+    for (int i = 0; i <= 100; ++i) {
+      double px = p1.x() + i*dx;
+
+      QPointF p = device->pixelToWindow(QPointF(px, 0.0));
+
+      double y = fitData.interp(p.x());
+
+      fitPoly << QPointF(p.x(), y);
+    }
+
+    QPainterPath path = CQChartsDrawUtil::polygonToPath(fitPoly, /*closed*/false);
+
+    device->strokePath(path, penBrush.pen);
+  }
+  else if (drawType() == DrawType::GRID) {
+    gridCell_.setNX(40);
+    gridCell_.setNY(40);
+
+    gridCell_.setXInterval(xrange_.min(), xrange_.max());
+    gridCell_.setYInterval(yrange_.min(), yrange_.max());
+
+    gridCell_.resetPoints();
+
+    for (const auto &p : values_.points()) {
+      QPointF p1 = positionToParent(p);
+
+      gridCell_.addPoint(p1);
+    }
+
+    int maxN = gridCell_.maxN();
+
+    for (const auto &px : gridCell_.xyPoints()) {
+      int                              ix      = px.first;
+      const CQChartsGridCell::YPoints &yPoints = px.second;
+
+      double xmin, xmax;
+
+      gridCell_.xIValues(ix, xmin, xmax);
+
+      for (const auto &py : yPoints) {
+        int                             iy     = py.first;
+        const CQChartsGridCell::Points &points = py.second;
+
+        int n = points.size();
+        if (n <= 0) continue;
+
+        double ymin, ymax;
+
+        gridCell_.yIValues(iy, ymin, ymax);
+
+        //---
+
+        CQChartsGeom::BBox bbox(xmin, ymin, xmax, ymax);
+
+        ColorInd colorInd(CMathUtil::map(double(n), 1.0, 1.0*maxN, 0.0, 1.0));
+
+        QColor bgColor = view()->interpColor(CQChartsColor(CQChartsColor::Type::PALETTE), colorInd);
+
+        // set pen and brush
+        CQChartsPenBrush penBrush;
+
+        setPenBrush(penBrush, penData, CQChartsBrushData(true, bgColor));
+
+        CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+        // draw rect
+        device->drawRect(bbox.qrect());
+      }
+    }
+  }
+
+  //---
+
+  // draw base class
+  CQChartsAnnotation::draw(device);
+}
+
+void
+CQChartsPointSetAnnotation::
+write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+{
+  // -view/-plot -id -tip
+  writeKeys(os, "create_charts_value_set_annotation", parentVarName, varName);
+
+  os << " -values {" << values().toString().toStdString() << "}";
+
+  os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
+}
+
+//---
+
+CQChartsValueSetAnnotation::
+CQChartsValueSetAnnotation(CQChartsView *view, const CQChartsRect &rectangle,
+                          const CQChartsReals &values) :
+ CQChartsAnnotation(view, Type::VALUE_SET), rectangle_(rectangle), values_(values)
+{
+  init();
+}
+
+CQChartsValueSetAnnotation::
+CQChartsValueSetAnnotation(CQChartsPlot *plot, const CQChartsRect &rectangle,
+                           const CQChartsReals &values) :
+ CQChartsAnnotation(plot, Type::VALUE_SET), rectangle_(rectangle), values_(values)
+{
+  init();
+}
+
+CQChartsValueSetAnnotation::
+~CQChartsValueSetAnnotation()
+{
+}
+
+void
+CQChartsValueSetAnnotation::
+init()
+{
+  setObjectName(QString("valueset.%1").arg(ind()));
+
+  editHandles_->setMode(CQChartsEditHandles::Mode::RESIZE);
+
+  setStroked(true);
+  setFilled (true);
+
+  updateValues();
+}
+
+void
+CQChartsValueSetAnnotation::
+updateValues()
+{
+  delete density_;
+
+  density_ = new CQChartsDensity;
+
+  density_->setDrawType(CQChartsDensity::DrawType::WHISKER);
+
+  density_->setXVals(values_.reals());
+
+  connect(density_, SIGNAL(dataChanged()), this, SLOT(invalidateSlot()));
+}
+
+void
+CQChartsValueSetAnnotation::
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  auto addDensityProp = [&](const QString &path, const QString &name, const QString &alias,
+                            const QString &desc) {
+    return &(model->addProperty(path, density_, name, alias)->setDesc(desc));
+  };
+
+  QString path1 = path + "/" + propertyId();
+
+  CQChartsAnnotation::addProperties(model, path1);
+
+  addProp(path1, "rectangle", "", "Rectangle");
+  addProp(path1, "values"   , "", "Values");
+
+  addDensityProp(path1, "numSamples"     , "", "Number of samples");
+  addDensityProp(path1, "smoothParameter", "", "Smooth parameter");
+  addDensityProp(path1, "drawType"       , "", "Density draw types");
+  addDensityProp(path1, "orientation"    , "", "Density orientation");
+
+  addStrokeFillProperties(model, path1);
+}
+
+QString
+CQChartsValueSetAnnotation::
+propertyId() const
+{
+  return QString("valueSetAnnotation%1").arg(ind());
+}
+
+void
+CQChartsValueSetAnnotation::
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &)
+{
+  QRectF rect = rectangle_.rect();
+
+  QPointF ll = positionToParent(rect.topLeft());
+
+  double dx = bbox.getXMin() - bbox_.getXMin();
+  double dy = bbox.getYMin() - bbox_.getYMin();
+
+  ll += QPointF(dx, dy);
+
+  rect = QRectF(ll.x(), ll.y(), rect.width(), rect.height());
+
+  rectangle_.setValue(rectangle_.units(), rect);
+}
+
+bool
+CQChartsValueSetAnnotation::
+inside(const CQChartsGeom::Point &p) const
+{
+  return bbox().inside(p);
+}
+
+void
+CQChartsValueSetAnnotation::
+draw(CQChartsPaintDevice *device)
+{
+  CQChartsGeom::BBox bbox = CQChartsGeom::BBox(rectangle_.rect());
+
+  bbox_ = density_->bbox(bbox);
+
+  // set pen and brush
+  CQChartsPenBrush penBrush;
+
+  QColor bgColor     = interpFillColor  (ColorInd());
+  QColor strokeColor = interpStrokeColor(ColorInd());
+
+  if (isCheckable() && ! isChecked()) {
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+  }
+
+  setPenBrush(penBrush,
+    CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
+    CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
+
+  updatePenBrushState(penBrush);
+
+  //---
+
+  // draw density
+  CQChartsDrawUtil::setPenBrush(device, penBrush);
+
+  if (plot())
+    density_->draw(plot(), device, bbox);
+  else
+    assert(false);
+
+  //---
+
+  // draw base class
+  CQChartsAnnotation::draw(device);
+}
+
+void
+CQChartsValueSetAnnotation::
+write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+{
+  // -view/-plot -id -tip
+  writeKeys(os, "create_charts_value_set_annotation", parentVarName, varName);
+
+  if (rectangle().isSet())
+    os << " -rectangle {" << rectangle().toString().toStdString() << "}";
+
+  os << " -values {" << values().toString().toStdString() << "}";
 
   os << "]\n";
 

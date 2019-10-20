@@ -71,6 +71,9 @@ showTip(const QPoint &gpos)
   QString tip;
 
   for (const auto &plot : plots) {
+    if (! plot->isVisible())
+      continue;
+
     CQChartsGeom::Point w = plot->pixelToWindow(CQChartsGeom::Point(QPointF(p)));
 
     QString tip1;

@@ -39,6 +39,15 @@ class CQChartsViewPlotObj : public CQChartsObj {
   //---
 
   // set pen/brush
+  void setPenBrush(CQChartsPenBrush &penBrush, const CQChartsPenData &penData,
+                   const CQChartsBrushData &brushData) const;
+
+  void setPenBrush(CQChartsPenBrush &penBrush,
+                   bool stroked, const QColor &strokeColor, double strokeAlpha,
+                   const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
+                   bool filled, const QColor &fillColor, double fillAlpha,
+                   const CQChartsFillPattern &pattern) const;
+
   void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha=1.0,
               const CQChartsLength &strokeWidth=CQChartsLength("0px"),
               const CQChartsLineDash &strokeDash=CQChartsLineDash()) const;

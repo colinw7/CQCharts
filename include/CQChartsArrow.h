@@ -184,7 +184,7 @@ class CQChartsArrow : public QObject,
 
   // draw arrow
   void draw(CQChartsPaintDevice *device) const;
-  void draw(CQChartsPaintDevice *device, const QPen &pen, const QBrush &brush) const;
+  void draw(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush) const;
 
   //---
 
@@ -202,13 +202,13 @@ class CQChartsArrow : public QObject,
  private:
   void init();
 
-  void drawContents(const QPen &pen, const QBrush &brush) const;
+  void drawContents(const CQChartsPenBrush &penBrush) const;
 
   void drawPolygon(const Points &points, double w, bool filled, bool stroked,
-                   const QPen &pen, const QBrush &brush) const;
+                   const CQChartsPenBrush &penBrush) const;
 
   void drawLine(const QPointF &point1, const QPointF &point2, double width,
-                const QPen &pen, const QBrush &brush) const;
+                const CQChartsPenBrush &penBrush) const;
 
 #if DEBUG_LABELS
   struct PointLabel {

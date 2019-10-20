@@ -1,6 +1,6 @@
 #include <CQChartsPosition.h>
 #include <CQPropertyView.h>
-#include <CQStrParse.h>
+#include <CQTclUtil.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsPosition, toString, fromString)
 
@@ -20,43 +20,32 @@ CQChartsPosition::
 decodeString(const QString &str, CQChartsUnits &units, QPointF &point,
              const CQChartsUnits &defUnits)
 {
-  CQStrParse parse(str);
+  // format is <x> <y> [<units>]
 
-  parse.skipSpace();
+  QStringList strs;
 
-  if (parse.isChar('{')) {
-    QString str1;
-
-    if (! parse.readBracedString(str1))
-      return false;
-
-    return decodeString(str1, units, point, defUnits);
-  }
-
-  double x = 0.0;
-
-  if (! parse.readReal(&x))
+  if (! CQTcl::splitList(str, strs))
     return false;
 
-  parse.skipSpace();
+  if (strs.length() < 2)
+    return false;
 
-  if (parse.isChar(',')) {
-    parse.skipChar();
+  double x, y;
 
-    parse.skipSpace();
-  }
+  if (! CQChartsUtil::toReal(strs[0], x))
+    return false;
 
-  double y = 0.0;
-
-  if (! parse.readReal(&y))
+  if (! CQChartsUtil::toReal(strs[1], y))
     return false;
 
   point = QPointF(x, y);
 
   //---
 
-  if (! CQChartsUtil::decodeUnits(parse.getAt(), units, defUnits))
-    return false;
+  if (strs.length() > 2) {
+    if (! CQChartsUtil::decodeUnits(strs[2], units, defUnits))
+      return false;
+  }
 
   return true;
 }

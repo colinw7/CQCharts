@@ -1970,7 +1970,7 @@ draw(CQChartsPaintDevice *device)
   // set fill and stroke
   CQChartsPenBrush penBrush;
 
-  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+  bool updateState = device->isInteractive();
 
   calcPenBrush(penBrush, updateState);
 
@@ -2028,7 +2028,7 @@ draw(CQChartsPaintDevice *device)
 
     opts.violin = true;
 
-    density.calcWhiskerPoly(poly_, plot_, rect, orientation, opts);
+    density.calcDistributionPoly(poly_, plot_, rect, orientation, opts);
 
     device->drawPolygon(poly_);
 
@@ -2057,7 +2057,13 @@ draw(CQChartsPaintDevice *device)
                                     plot_->boxCornerSize());
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::ERROR_BAR) {
-      CQChartsDensity::drawErrorBar(plot_, device, rect, orientation);
+      CQChartsSymbolData symbol;
+
+      symbol.setType(CQChartsSymbol::Type::CIRCLE);
+      symbol.setSize(plot_->outlierSymbolSize());
+
+      CQChartsDensity::drawErrorBar(plot_, device, rect, mean, orientation,
+                                    symbol);
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::POINT_RANGE) {
       // set fill and stroke
@@ -2067,11 +2073,13 @@ draw(CQChartsPaintDevice *device)
       QColor strokeColor = plot_->interpBoxStrokeColor(colorInd);
 
       plot_->setPenBrush(symbolPenBrush,
-        /*stroked*/true, strokeColor, plot_->boxStrokeAlpha(), plot_->boxStrokeWidth(),
-        plot_->boxStrokeDash(),
-        /*filled*/true, boxColor, plot_->boxFillAlpha(), plot_->boxFillPattern());
+        CQChartsPenData  (true, strokeColor, plot_->boxStrokeAlpha(),
+                          plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
+        CQChartsBrushData(true, boxColor, plot_->boxFillAlpha(), plot_->boxFillPattern()));
 
       plot_->updateObjPenBrushState(this, symbolPenBrush, CQChartsPlot::DrawType::SYMBOL);
+
+      CQChartsDrawUtil::setPenBrush(device, symbolPenBrush);
 
       //---
 
@@ -2080,8 +2088,7 @@ draw(CQChartsPaintDevice *device)
       symbol.setType(CQChartsSymbol::Type::CIRCLE);
       symbol.setSize(plot_->outlierSymbolSize());
 
-      CQChartsDensity::drawPointRange(plot_, device, rect, mean, orientation, symbol,
-                                      symbolPenBrush.pen, symbolPenBrush.brush);
+      CQChartsDensity::drawPointRange(plot_, device, rect, mean, orientation, symbol);
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::LINE_RANGE) {
       CQChartsDensity::drawLineRange(plot_, device, rect, orientation);
@@ -2108,8 +2115,13 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, device, statData, pos, orientation,
-                                           ww, bw, plot_->boxCornerSize(), plot_->isNotched());
+    bool median = true;
+
+    std::vector<double> outliers;
+
+    CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, device, statData, pos, orientation, ww, bw,
+                                           plot_->boxCornerSize(), plot_->isNotched(),
+                                           median, outliers);
   }
 
   //---
@@ -2120,7 +2132,7 @@ draw(CQChartsPaintDevice *device)
     double wd1 = ww/2.0;
     double wd2 = bw/2.0;
 
-    if (device->type() == CQChartsPaintDevice::Type::SCRIPT ||
+    if (! device->isInteractive() ||
         plot_->drawLayerType() == CQChartsLayer::Type::MID_PLOT) {
       auto posToPixel = [&](double pos, double value) {
         if (! plot_->isHorizontal())
@@ -2209,9 +2221,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor fc = plot_->interpBoxFillColor  (colorInd);
 
   plot_->setPenBrush(penBrush,
-    plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(), plot_->boxStrokeWidth(),
-    plot_->boxStrokeDash(),
-    plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern());
+    CQChartsPenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
+                      plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
+    CQChartsBrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -2551,9 +2563,9 @@ draw(CQChartsPaintDevice *device)
   QColor fc = plot_->interpBoxFillColor(ColorInd());
 
   plot_->setPenBrush(penBrush,
-    plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
-    plot_->boxStrokeWidth(), plot_->boxStrokeDash(),
-    plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern());
+    CQChartsPenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
+                      plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
+    CQChartsBrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
 
   plot_->updateObjPenBrushState(this, penBrush);
 
@@ -2582,8 +2594,13 @@ draw(CQChartsPaintDevice *device)
   statData.upperMedian = remapPos(data_.statData.upperMedian);
   statData.max         = remapPos(data_.statData.max);
 
-  CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, device, statData, pos, orientation,
-                                         ww, bw, plot_->boxCornerSize(), /*isNotched*/false);
+  bool notched = false;
+  bool median  = true;
+
+  std::vector<double> outliers;
+
+  CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, device, statData, pos, orientation, ww, bw,
+                                         plot_->boxCornerSize(), notched, median, outliers);
 
   //---
 
@@ -2840,9 +2857,9 @@ draw(CQChartsPaintDevice *device)
     QColor fc = plot_->interpBoxFillColor  (ig_);
 
     plot_->setPenBrush(pPenBrush,
-      plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
-      plot_->boxStrokeWidth(), plot_->boxStrokeDash(),
-      plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern());
+      CQChartsPenData  (plot_->isBoxStroked(), bc, plot_->boxStrokeAlpha(),
+                        plot_->boxStrokeWidth(), plot_->boxStrokeDash()),
+      CQChartsBrushData(plot_->isBoxFilled(), fc, plot_->boxFillAlpha(), plot_->boxFillPattern()));
 
     plot_->updateObjPenBrushState(this, pPenBrush);
 
@@ -2851,14 +2868,7 @@ draw(CQChartsPaintDevice *device)
     //---
 
     // draw poly
-    QPainterPath path;
-
-    path.moveTo(poly_.at(0));
-
-    for (int i = 1; i < np; ++i)
-      path.lineTo(poly_.at(i));
-
-    path.closeSubpath();
+    QPainterPath path = CQChartsDrawUtil::polygonToPath(poly_, /*closed*/true);
 
     device->drawPath(path);
   }

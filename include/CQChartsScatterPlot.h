@@ -5,6 +5,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsBoxWhisker.h>
 #include <CQChartsFitData.h>
+#include <CQChartsGridCell.h>
 #include <CQStatData.h>
 #include <CInterval.h>
 
@@ -386,25 +387,8 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   using NameValues      = std::map<QString,ValuesData>;
   using GroupNameValues = std::map<int,NameValues>;
 
-  using Points   = std::vector<QPointF>;
-  using YPoints  = std::map<int,Points>;
-  using XYPoints = std::map<int,YPoints>;
-
-  struct CellPointData {
-    int      maxN { 0 };
-    XYPoints xyPoints;
-  };
-
-  using NameGridData      = std::map<QString,CellPointData>;
+  using NameGridData      = std::map<QString,CQChartsGridCell>;
   using GroupNameGridData = std::map<int,NameGridData>;
-
-  struct GridData {
-    CInterval xinterval;
-    CInterval yinterval;
-    int       nx        { 40 };
-    int       ny        { 40 };
-    int       maxN      { 0 };
-  };
 
   //---
 
@@ -539,11 +523,13 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   //---
 
   // grid cells
-  int gridNumX() const { return gridData_.nx; }
+  int gridNumX() const { return gridData_.nx(); }
   void setGridNumX(int n);
 
-  int gridNumY() const { return gridData_.ny; }
+  int gridNumY() const { return gridData_.ny(); }
   void setGridNumY(int n);
+
+  const CQChartsGridCell &gridData() const { return gridData_; }
 
   //---
 
@@ -612,14 +598,6 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   //---
 
-  const GridData &gridData() const { return gridData_; }
-
- private:
-  struct WhiskerData {
-    CQChartsBoxWhisker xWhisker;
-    CQChartsBoxWhisker yWhisker;
-  };
-
  private:
   void initGridData(const CQChartsGeom::Range &dataRange);
 
@@ -659,17 +637,17 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   void drawXDensity(CQChartsPaintDevice *device) const;
   void drawYDensity(CQChartsPaintDevice *device) const;
 
-  void drawXDensityWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
+  void drawXDensityWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whiskerData,
                            const ColorInd &ig) const;
-  void drawYDensityWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
+  void drawYDensityWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whiskerData,
                            const ColorInd &ig) const;
 
   void drawXWhisker(CQChartsPaintDevice *device) const;
   void drawYWhisker(CQChartsPaintDevice *device) const;
 
-  void drawXWhiskerWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
+  void drawXWhiskerWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whiskerData,
                            const ColorInd &ig) const;
-  void drawYWhiskerWhisker(CQChartsPaintDevice *device, const WhiskerData &whiskerData,
+  void drawYWhiskerWhisker(CQChartsPaintDevice *device, const CQChartsXYBoxWhisker &whiskerData,
                            const ColorInd &ig) const;
 
   void initWhiskerData() const;
@@ -720,11 +698,12 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     CQStatData ystat;
   };
 
+  using Points        = std::vector<QPointF>;
   using GroupPoints   = std::map<int,Points>;
   using GroupFitData  = std::map<int,CQChartsFitData>;
   using GroupStatData = std::map<int,StatData>;
   using GroupHull     = std::map<int,CQChartsGrahamHull *>;
-  using GroupWhiskers = std::map<int,WhiskerData>;
+  using GroupWhiskers = std::map<int,CQChartsXYBoxWhisker>;
 
   struct BestFitData {
     bool visible         { false }; //!< show fit
@@ -786,10 +765,10 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   AxisWhiskerData axisWhiskerData_; //!< axis whisker data
 
   // plot overlay data
-  BestFitData    bestFitData_;    //!< best fit data
-  HullData       hullData_;       //!< hull data
-  DensityMapData densityMapData_; //!< density map data
-  GridData       gridData_;       //!< grid data
+  BestFitData      bestFitData_;    //!< best fit data
+  HullData         hullData_;       //!< hull data
+  DensityMapData   densityMapData_; //!< density map data
+  CQChartsGridCell gridData_;       //!< grid data
 
   // group data
   GroupNameValues   groupNameValues_;   //!< group name values

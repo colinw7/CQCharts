@@ -721,9 +721,10 @@ dataLabelChanged()
 
 void
 CQChartsPointPlot::
-write(std::ostream &os, const QString &varName, const QString &modelName) const
+write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
+      const QString &viewVarName) const
 {
-  CQChartsPlot::write(os, varName, modelName);
+  CQChartsPlot::write(os, plotVarName, modelVarName, viewVarName);
 
-  dataLabel_->write(os, varName);
+  dataLabel_->write(os, plotVarName);
 }

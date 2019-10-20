@@ -50,11 +50,10 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
   //---
 
   void draw(CQChartsPaintDevice *device, const QRectF &rect) const;
-
   void draw(CQChartsPaintDevice *device, const QPolygonF &poly) const;
 
   void draw(CQChartsPaintDevice *device, const QRectF &rect,
-            const QPen &pen, const QBrush &brush) const;
+            const CQChartsPenBrush &penBrush) const;
 
  protected:
   bool stateColoring_ { true }; //!< color depending on inside/selected state

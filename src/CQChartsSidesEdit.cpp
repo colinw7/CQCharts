@@ -2,7 +2,6 @@
 #include <CQChartsUtil.h>
 
 #include <CQWidgetMenu.h>
-#include <CQStrParse.h>
 
 #include <QStylePainter>
 #include <QStyleOptionComboBox>

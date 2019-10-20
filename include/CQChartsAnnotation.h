@@ -7,10 +7,15 @@
 #include <CQChartsOptRect.h>
 #include <CQChartsOptPosition.h>
 #include <CQChartsPolygon.h>
+#include <CQChartsPoints.h>
+#include <CQChartsReals.h>
 #include <CQChartsGeom.h>
+#include <CQChartsGrahamHull.h>
+#include <CQChartsGridCell.h>
 
 class CQChartsEditHandles;
 class CQChartsSmooth;
+class CQChartsDensity;
 
 class CQPropertyViewItem;
 
@@ -36,7 +41,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     IMAGE,
     ARROW,
     POINT,
-    PIE_SLICE
+    PIE_SLICE,
+    POINT_SET,
+    VALUE_SET
   };
 
   using ColorInd = CQChartsUtil::ColorInd;
@@ -204,6 +211,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
  signals:
   //! emitted when data changed
   void dataChanged();
+
+ private slots:
+  void invalidateSlot() { invalidate(); }
 
  protected:
   Type                 type_        { Type::NONE }; //!< type
@@ -762,6 +772,126 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
   CQChartsLength   outerRadius_;          //!< outer radius
   double           startAngle_  {  0.0 }; //!< start angle
   double           spanAngle_   { 90.0 }; //!< span angle
+};
+
+//---
+
+/*!
+ * \brief point set annotation
+ * \ingroup Charts
+ */
+class CQChartsPointSetAnnotation : public CQChartsAnnotation {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsPoints values   READ values   WRITE setValues  )
+  Q_PROPERTY(DrawType       drawType READ drawType WRITE setDrawType)
+
+  Q_ENUMS(DrawType)
+
+ public:
+  enum class DrawType {
+    SYMBOLS,
+    HULL,
+    BEST_FIT,
+    DENSITY,
+    GRID
+  };
+
+ public:
+  CQChartsPointSetAnnotation(CQChartsView *view, const CQChartsPoints &values=CQChartsPoints());
+  CQChartsPointSetAnnotation(CQChartsPlot *plot, const CQChartsPoints &values=CQChartsPoints());
+
+  virtual ~CQChartsPointSetAnnotation();
+
+  const char *typeName() const override { return "valueset"; }
+
+  const CQChartsPoints &values() const { return values_; }
+  void setValues(const CQChartsPoints &values) { values_ = values; updateValues(); }
+
+  const DrawType &drawType() const { return drawType_; }
+  void setDrawType(const DrawType &t) { drawType_ = t; invalidate(); }
+
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
+
+  QString propertyId() const override;
+
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+
+  bool inside(const CQChartsGeom::Point &p) const override;
+
+  void draw(CQChartsPaintDevice *device) override;
+
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
+
+ private:
+  void updateValues();
+
+ private:
+  void init();
+
+ private:
+  CQChartsPoints        values_;                         //!< point values
+  CQChartsGrahamHull    hull_;                           //!< hull
+  CQChartsGeom::RMinMax xrange_;                         //!< x range
+  CQChartsGeom::RMinMax yrange_;                         //!< y range
+  CQChartsGridCell      gridCell_;                       //!< grid cell data
+  DrawType              drawType_ { DrawType::SYMBOLS }; //!< draw type
+};
+
+//---
+
+/*!
+ * \brief value set annotation
+ * \ingroup Charts
+ */
+class CQChartsValueSetAnnotation : public CQChartsAnnotation {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsRect  rectangle READ rectangle WRITE setRectangle)
+  Q_PROPERTY(CQChartsReals values    READ values    WRITE setValues   )
+
+ public:
+  CQChartsValueSetAnnotation(CQChartsView *view, const CQChartsRect &rectangle=CQChartsRect(),
+                             const CQChartsReals &values=CQChartsReals());
+  CQChartsValueSetAnnotation(CQChartsPlot *plot, const CQChartsRect &rectangle=CQChartsRect(),
+                             const CQChartsReals &values=CQChartsReals());
+
+  virtual ~CQChartsValueSetAnnotation();
+
+  const char *typeName() const override { return "valueset"; }
+
+  const CQChartsRect &rectangle() const { return rectangle_; }
+  void setRectangle(const CQChartsRect &rectangle) { rectangle_ = rectangle; emit dataChanged(); }
+
+  const CQChartsReals &values() const { return values_; }
+  void setValues(const CQChartsReals &values) { values_ = values; updateValues(); }
+
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
+
+  QString propertyId() const override;
+
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeSide &dragSide) override;
+
+  bool inside(const CQChartsGeom::Point &p) const override;
+
+  void draw(CQChartsPaintDevice *device) override;
+
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
+
+ private:
+  void updateValues();
+
+ private:
+  void init();
+
+ private:
+  CQChartsRect     rectangle_;           //!< rectangle
+  CQChartsReals    values_;              //!< real values
+  CQChartsDensity* density_ { nullptr }; //!< density object
 };
 
 #endif

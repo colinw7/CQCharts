@@ -108,6 +108,12 @@ class CQChartsLineData {
     (void) fromString(str);
   }
 
+  explicit CQChartsLineData(bool visible, const CQChartsColor &color=CQChartsColor(),
+                            double alpha=1.0, const CQChartsLength &width=CQChartsLength(),
+                            const CQChartsLineDash &dash=CQChartsLineDash()) :
+   visible_(visible), color_(color), alpha_(alpha), width_(width), dash_(dash) {
+  }
+
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
@@ -135,10 +141,10 @@ class CQChartsLineData {
 
  private:
   bool             visible_ { true };                                      //!< visible
-  CQChartsColor    color_   { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //!< color
-  double           alpha_   { 1.0 };                                       //!< alpha
-  CQChartsLength   width_   { "0px" };                                     //!< width
-  CQChartsLineDash dash_    { };                                           //!< dash
+  CQChartsColor    color_   { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //!< stroke color
+  double           alpha_   { 1.0 };                                       //!< stroke alpha
+  CQChartsLength   width_   { "0px" };                                     //!< stroke width
+  CQChartsLineDash dash_    { };                                           //!< stroke dash
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsLineData)
@@ -164,6 +170,12 @@ class CQChartsFillData {
     (void) fromString(str);
   }
 
+  explicit CQChartsFillData(bool visible, const CQChartsColor &color=CQChartsColor(),
+                            double alpha=1.0,
+                            const CQChartsFillPattern &pattern=CQChartsFillPattern()) :
+   visible_(visible), color_(color), alpha_(alpha), pattern_(pattern) {
+  }
+
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
@@ -187,12 +199,10 @@ class CQChartsFillData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool                visible_ { true };                             //!< draw background
-  CQChartsColor       color_   {
-                        CQChartsColor::Type::INTERFACE_VALUE, 0.0 }; //!< background fill color
-  double              alpha_   { 1.0 };                              //!< background fill alpha
-  CQChartsFillPattern pattern_ {
-                        CQChartsFillPattern::Type::SOLID };          //!< background fill pattern
+  bool                visible_ { true };                                      //!< visible
+  CQChartsColor       color_   { CQChartsColor::Type::INTERFACE_VALUE, 0.0 }; //!< fill color
+  double              alpha_   { 1.0 };                                       //!< fill alpha
+  CQChartsFillPattern pattern_ { CQChartsFillPattern::Type::SOLID };          //!< fill pattern
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsFillData)

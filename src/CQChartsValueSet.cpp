@@ -836,6 +836,8 @@ calc()
 
   statData_.calcStatValues(svalues_);
 
+  //---
+
   int i = 0;
 
   for (auto v : svalues_) {

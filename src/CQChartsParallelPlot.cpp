@@ -714,10 +714,10 @@ drawFgAxes(CQChartsPaintDevice *device) const
 
       //---
 
-      if (device->type() == CQChartsPaintDevice::Type::SCRIPT) {
+      if (! device->isInteractive()) {
         CQChartsScriptPainter *painter = dynamic_cast<CQChartsScriptPainter *>(device);
 
-        writeScriptRange(painter->os());
+        writeScriptRange(painter);
       }
     }
 
@@ -813,10 +813,10 @@ setObjRange(CQChartsPaintDevice *device)
 
   //---
 
-  if (device->type() == CQChartsPaintDevice::Type::SCRIPT) {
+  if (! device->isInteractive()) {
     CQChartsScriptPainter *painter = dynamic_cast<CQChartsScriptPainter *>(device);
 
-    writeScriptRange(painter->os());
+    writeScriptRange(painter);
   }
 }
 
@@ -839,10 +839,10 @@ setNormalizedRange(CQChartsPaintDevice *device)
 
   //---
 
-  if (device->type() == CQChartsPaintDevice::Type::SCRIPT) {
+  if (! device->isInteractive()) {
     CQChartsScriptPainter *painter = dynamic_cast<CQChartsScriptPainter *>(device);
 
-    writeScriptRange(painter->os());
+    writeScriptRange(painter);
   }
 }
 
@@ -1000,7 +1000,7 @@ draw(CQChartsPaintDevice *device)
   // set pen and brush
   CQChartsPenBrush penBrush;
 
-  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+  bool updateState = device->isInteractive();
 
   calcPenBrush(penBrush, updateState);
 

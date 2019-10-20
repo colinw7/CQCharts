@@ -1,7 +1,9 @@
 #ifndef CQChartsGrahamHull_H
 #define CQChartsGrahamHull_H
 
+#include <QPolygonF>
 #include <QPointF>
+#include <QRectF>
 
 #include <vector>
 #include <set>
@@ -15,22 +17,24 @@ class CQChartsPaintDevice;
  */
 class CQChartsGrahamHull {
  public:
-  typedef std::vector<QPointF> Points;
-
- public:
   CQChartsGrahamHull();
 
   int numPoints() const { return points_.size(); }
 
+  void clear();
+
   void addPoint(const QPointF &point);
 
-  bool calc();
-
-  void getHull(Points &points) const;
+  void getHull(QPolygonF &points) const;
 
   void draw(const CQChartsPlot *plot, CQChartsPaintDevice *device) const;
 
+  QRectF bbox() const;
+
  private:
+  bool constCalc() const;
+  bool calc();
+
   void sortLowestClockwise();
   void squash();
   void findLowest();
@@ -44,9 +48,11 @@ class CQChartsGrahamHull {
   typedef std::vector<int> IPoints;
   typedef std::set<int>    DelPoints;
 
-  Points    points_;
+  QPolygonF points_;
+  bool      needsCalc_ { true };
   IPoints   ipoints_;
-  DelPoints del_points_;
+  DelPoints delPoints_;
+  bool      rc_        { false };
 };
 
 #endif

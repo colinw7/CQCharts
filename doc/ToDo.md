@@ -3,13 +3,19 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + No threading needed in plots for local data
+ + values annotation : units, use width instead of rectangle
+ + support all variant types in table plot (image, color, ...)
+ + view annotation change doesn't redraw (rect fill/stroke visible)
+ + const everywhere ?
  + SVG output
+ + Arrow polyline (mid points and mi symbols)
  + Axis Annotation (independent coords ?, angle)
- + Annotation connectors (arc like sankey)
+ + Annotation connectors (arc like sankey, lines)
  + Table chart interactive features
  + Generate table in JS output
  + access to model data in JS output (JSON)
- + Write JSON (test, difference formats)
+ + Write JSON (test, different formats)
  + Auto key placement (quad tree, all plots)
  + Combine CQChartsModelDetails and CQModelDetails
  + Same coloring in table and plot (if possible)
@@ -34,7 +40,6 @@ High
  + more code in point plot (base class for scatter/xy)
  + plot selection behavior -> select out, select in, none, both
  + More help content
- + Add base class for shared code between xy/scatter
  + Scaled rotated text
  + Improve edit arrow annotation preview
  + Create View or Plot Annotation

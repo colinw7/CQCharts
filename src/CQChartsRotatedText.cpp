@@ -10,7 +10,7 @@ void
 draw(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
      double angle, Qt::Alignment align, bool alignBBox, bool contrast)
 {
-  if (device->type() != CQChartsPaintDevice::Type::SCRIPT)
+  if (device->isInteractive())
     device->save();
 
   QFontMetricsF fm(device->font());
@@ -105,7 +105,7 @@ draw(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
     device->drawTransformedText(QPointF(0, 0), text);
   }
 
-  if (device->type() != CQChartsPaintDevice::Type::SCRIPT)
+  if (device->isInteractive())
     device->restore();
 }
 

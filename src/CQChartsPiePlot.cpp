@@ -36,7 +36,7 @@ addParameters()
   addColumnParameter("radius", "Radius", "radiusColumn").
     setNumeric().setTip("Custom radius column");
 
-  addColumnParameter("keyLabels", "Key Labels", "keyLabelColumn").
+  addColumnParameter("keyLabel", "Key Label", "keyLabelColumn").
     setString().setTip("Custom key label column");
 
   addBoolParameter("donut", "Donut", "donut").setTip("Draw donut");
@@ -240,10 +240,10 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProp("columns", "valueColumns"  , "values"   , "Value columns");
-  addProp("columns", "labelColumn"   , "label"    , "Label column");
-  addProp("columns", "radiusColumn"  , "radius"   , "Radius column");
-  addProp("columns", "keyLabelColumn", "keyLabels", "Key label column");
+  addProp("columns", "valueColumns"  , "values"  , "Value columns");
+  addProp("columns", "labelColumn"   , "label"   , "Label column");
+  addProp("columns", "radiusColumn"  , "radius"  , "Radius column");
+  addProp("columns", "keyLabelColumn", "keyLabel", "Key label column");
 
   CQChartsGroupPlot::addProperties();
 
@@ -1100,11 +1100,12 @@ addMenuItems(QMenu *menu)
 
 void
 CQChartsPiePlot::
-write(std::ostream &os, const QString &varName, const QString &modelName) const
+write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
+      const QString &viewVarName) const
 {
-  CQChartsPlot::write(os, varName, modelName);
+  CQChartsPlot::write(os, plotVarName, modelVarName, viewVarName);
 
-  textBox_->write(os, varName);
+  textBox_->write(os, plotVarName);
 }
 
 //------
@@ -1385,10 +1386,10 @@ draw(CQChartsPaintDevice *device)
 
     QColor gridColor = plot_->interpGridLinesColor(ColorInd());
 
-    plot_->setPen(penBrush.pen, true, gridColor, plot_->gridLinesAlpha(),
-                  plot_->gridLinesWidth(), plot_->gridLinesDash());
-
-    plot_->setBrush(penBrush.brush, false);
+    plot_->setPenBrush(penBrush,
+      CQChartsPenData  (true, gridColor, plot_->gridLinesAlpha(),
+                        plot_->gridLinesWidth(), plot_->gridLinesDash()),
+      CQChartsBrushData(false));
 
     CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1402,7 +1403,7 @@ draw(CQChartsPaintDevice *device)
   // calc stroke and brush
   CQChartsPenBrush penBrush;
 
-  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+  bool updateState = device->isInteractive();
 
   calcPenBrush(penBrush, updateState);
 
@@ -1532,8 +1533,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor fc = fillColor();
 
   plot_->setPenBrush(penBrush,
-    plot_->isStroked(), bc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
-    plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern());
+    CQChartsPenData  (plot_->isStroked(), bc, plot_->strokeAlpha(),
+                      plot_->strokeWidth(), plot_->strokeDash()),
+    CQChartsBrushData(plot_->isFilled(), fc, plot_->fillAlpha(), plot_->fillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);
@@ -1767,8 +1769,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsPenBrush penBrush;
 
-  plot_->setPen  (penBrush.pen  , true, fg, 1.0);
-  plot_->setBrush(penBrush.brush, true, bg, 1.0);
+  plot_->setPenBrush(penBrush, CQChartsPenData(true, fg), CQChartsBrushData(true, bg));
 
   plot_->updateObjPenBrushState(this, penBrush);
 

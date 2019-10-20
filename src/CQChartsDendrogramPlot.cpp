@@ -583,13 +583,12 @@ draw(CQChartsPaintDevice *device)
   QColor strokeColor = plot_->interpNodeStrokeColor(ColorInd());
   QColor fillColor   = plot_->interpNodeFillColor  (ColorInd());
 
-  plot_->setPen(penBrush.pen, plot_->isNodeStroked(), strokeColor, plot_->nodeStrokeAlpha(),
-                plot_->plotStrokeWidth(), plot_->nodeStrokeDash());
-
   bool filled = (node_->hasChildren() && ! node_->isOpen());
 
-  plot_->setBrush(penBrush.brush, filled, fillColor, plot_->nodeFillAlpha(),
-                  plot_->nodeFillPattern());
+  plot_->setPenBrush(penBrush,
+    CQChartsPenData  (plot_->isNodeStroked(), strokeColor, plot_->nodeStrokeAlpha(),
+                      plot_->plotStrokeWidth(), plot_->nodeStrokeDash()),
+    CQChartsBrushData(filled, fillColor, plot_->nodeFillAlpha(), plot_->nodeFillPattern()));
 
   plot_->updateObjPenBrushState(this, penBrush);
 

@@ -19,15 +19,6 @@ setPenBrush(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush)
   device->setBrush(penBrush.brush);
 }
 
-/*
-void
-setPenBrush(QPainter *painter, const CQChartsPenBrush &penBrush)
-{
-  painter->setPen  (penBrush.pen);
-  painter->setBrush(penBrush.brush);
-}
-*/
-
 void
 drawRoundedPolygon(CQChartsPaintDevice *device, const QRectF &qrect,
                    const CQChartsLength &xlen, const CQChartsLength &ylen,
@@ -75,49 +66,6 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const QRectF &qrect,
   }
 }
 
-#if 0
-void
-drawRoundedPolygon(QPainter *painter, const QRectF &qrect, double xsize, double ysize,
-                   const CQChartsSides &sides)
-{
-  static double minSize1 = 2.5; // pixels
-  static double minSize2 = 1.5; // pixels
-
-  double minSize = std::min(qrect.width(), qrect.height());
-
-  if      (minSize >= minSize1) {
-    CQChartsRoundedPolygon::draw(painter, qrect, xsize, ysize, sides);
-  }
-  else if (minSize >= minSize2) {
-    QPen pen = painter->pen();
-
-    QColor pc = pen.color();
-    double f  = (minSize - minSize2)/(minSize1 - minSize2);
-
-    pc.setAlphaF(f*pc.alphaF());
-
-    pen.setColor(pc);
-
-    painter->setPen(pen);
-
-    CQChartsRoundedPolygon::draw(painter, qrect, xsize, ysize, sides);
-  }
-  else {
-    QColor bc = painter->brush().color();
-
-    painter->setPen(bc);
-    painter->setBrush(Qt::NoBrush);
-
-    if (qrect.width() > qrect.height())
-      painter->drawLine(QPointF(qrect.left (), qrect.center().y()),
-                        QPointF(qrect.right(), qrect.center().y()));
-    else
-      painter->drawLine(QPointF(qrect.center().y(), qrect.bottom()),
-                        QPointF(qrect.center().y(), qrect.top   ()));
-  }
-}
-#endif
-
 void
 drawRoundedPolygon(CQChartsPaintDevice *device, const QPolygonF &poly,
                    const CQChartsLength &xlen, const CQChartsLength &ylen)
@@ -142,29 +90,6 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const QPolygonF &poly,
                      QPointF(qrect.right(), qrect.top   ()));
   }
 }
-
-#if 0
-void
-drawRoundedPolygon(QPainter *painter, const QPolygonF &poly, double xsize, double ysize)
-{
-  static double minSize = 2.5; // pixels
-
-  QRectF qrect = poly.boundingRect();
-
-  if (qrect.width() > minSize && qrect.height() > minSize) {
-    CQChartsRoundedPolygon::draw(painter, poly, xsize, ysize);
-  }
-  else {
-    QColor bc = painter->brush().color();
-
-    painter->setPen(bc);
-    painter->setBrush(Qt::NoBrush);
-
-    painter->drawLine(QPointF(qrect.left (), qrect.bottom()),
-                      QPointF(qrect.right(), qrect.top   ()));
-  }
-}
-#endif
 
 void
 drawTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &text,
@@ -283,118 +208,6 @@ drawTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &te
     device->restore();
 }
 
-#if 0
-void
-drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
-              const CQChartsTextOptions &options)
-{
-  if (options.html) {
-    CQChartsDrawPrivate::drawScaledHtmlText(painter, rect, text, options);
-    return;
-  }
-
-  //---
-
-  QPen pen = painter->pen();
-
-  if (options.clipped)
-    painter->save();
-
-  if (CMathUtil::isZero(options.angle)) {
-    QFontMetricsF fm(painter->font());
-
-    if (options.clipped)
-      painter->setClipRect(rect, Qt::IntersectClip);
-
-    painter->setPen(pen);
-
-    //---
-
-    QStringList strs;
-
-    if (options.formatted)
-      CQChartsUtil::formatStringInRect(text, painter->font(), rect, strs);
-    else
-      strs << text;
-
-    //---
-
-    double tw = 0;
-
-    for (int i = 0; i < strs.size(); ++i)
-      tw = std::max(tw, fm.width(strs[i]));
-
-    tw += 2*options.margin;
-
-    double th = strs.size()*fm.height() + 2*options.margin;
-
-    if (options.scaled) {
-      double sx = (tw > 0 ? rect.width ()/tw : 1);
-      double sy = (th > 0 ? rect.height()/th : 1);
-
-      double s = std::min(sx, sy);
-
-      double fs = painter->font().pointSizeF()*s;
-
-      fs = CMathUtil::clamp(fs, options.minScaleFontSize, options.maxScaleFontSize);
-
-      QFont font1 = painter->font();
-
-      if (fs > 0.0)
-        font1.setPointSizeF(fs);
-
-      painter->setFont(font1);
-
-      fm = QFontMetricsF(painter->font());
-
-      th = strs.size()*fm.height();
-    }
-
-    //---
-
-    double dy = 0.0;
-
-    if      (options.align & Qt::AlignVCenter)
-      dy = (rect.height() - th)/2.0;
-    else if (options.align & Qt::AlignBottom)
-      dy = rect.height() - th;
-
-    double y = rect.top() + dy + fm.ascent();
-
-    for (int i = 0; i < strs.size(); ++i) {
-      double dx = 0.0;
-
-      double tw = fm.width(strs[i]);
-
-      if      (options.align & Qt::AlignHCenter)
-         dx = (rect.width() - tw)/2;
-      else if (options.align & Qt::AlignRight)
-         dx = rect.width() - tw;
-
-      double x = rect.left() + dx;
-
-      CQChartsPixelPainter device(painter);
-
-      if (options.contrast)
-        drawContrastText(&device, QPointF(x, y), strs[i]);
-      else
-        drawSimpleText(&device, QPointF(x, y), strs[i]);
-
-      y += fm.height();
-    }
-  }
-  else {
-    if (options.clipped)
-      painter->setClipRect(rect, Qt::IntersectClip);
-
-    drawRotatedTextInBox(painter, rect, text, pen, options);
-  }
-
-  if (options.clipped)
-    painter->restore();
-}
-#endif
-
 void
 drawRotatedTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &text,
                      const QPen &pen, const CQChartsTextOptions &options)
@@ -406,20 +219,6 @@ drawRotatedTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QStr
                             Qt::AlignHCenter | Qt::AlignVCenter,
                             /*alignBox*/false, options.contrast);
 }
-
-#if 0
-void
-drawRotatedTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
-                     const QPen &pen, const CQChartsTextOptions &options)
-{
-  painter->setPen(pen);
-
-  // TODO: support align and contrast
-  CQChartsRotatedText::draw(painter, rect.center(), text, options.angle,
-                            Qt::AlignHCenter | Qt::AlignVCenter,
-                            /*alignBox*/false, options.contrast);
-}
-#endif
 
 //------
 
@@ -468,51 +267,6 @@ drawTextAtPoint(CQChartsPaintDevice *device, const QPointF &point, const QString
   }
 }
 
-#if 0
-void
-drawTextAtPoint(QPainter *painter, const QPointF &point, const QString &text,
-                const CQChartsTextOptions &options)
-{
-  QPen pen = painter->pen();
-
-  if (CMathUtil::isZero(options.angle)) {
-    QFontMetricsF fm(painter->font());
-
-    double tw = fm.width(text);
-    double ta = fm.ascent();
-    double td = fm.descent();
-
-    double dx = 0.0;
-
-    if      (options.align & Qt::AlignHCenter)
-      dx = -tw/2.0;
-    else if (options.align & Qt::AlignRight)
-      dx = -tw;
-
-    double dy = 0.0;
-
-    if      (options.align & Qt::AlignTop)
-      dy = -ta;
-    else if (options.align & Qt::AlignVCenter)
-      dy = (ta - td)/2.0;
-    else if (options.align & Qt::AlignBottom)
-      dy = td;
-
-    painter->setPen(pen);
-
-    CQChartsPixelPainter device(painter);
-
-    if (options.contrast)
-      drawContrastText(&device, QPointF(point.x() + dx, point.y() + dy), text);
-    else
-      drawSimpleText(&device, QPointF(point.x() + dx, point.y() + dy), text);
-  }
-  else {
-    assert(false);
-  }
-}
-#endif
-
 //------
 
 void
@@ -548,38 +302,6 @@ drawAlignedText(CQChartsPaintDevice *device, const QPointF &p, const QString &te
 
   device->drawText(pt, text);
 }
-
-#if 0
-void
-drawAlignedText(QPainter *painter, const QPointF &p, const QString &text,
-                Qt::Alignment align, double dx, double dy)
-{
-  QFontMetricsF fm(painter->font());
-
-  double x1 = p.x();
-  double y1 = p.y();
-
-  double tw = fm.width(text);
-  double ta = fm.ascent ();
-  double td = fm.descent();
-
-  if      (align & Qt::AlignLeft)
-    x1 = p.x() + dx;
-  else if (align & Qt::AlignRight)
-    x1 = p.x() - tw - dx;
-  else if (align & Qt::AlignHCenter)
-    x1 = p.x() - tw/2;
-
-  if      (align & Qt::AlignTop)
-    y1 = p.y() + ta + dy;
-  else if (align & Qt::AlignBottom)
-    y1 = p.y() - td - dy;
-  else if (align & Qt::AlignVCenter)
-    y1 = p.y() + (ta - td)/2;
-
-  painter->drawText(QPointF(x1, y1), text);
-}
-#endif
 
 //------
 
@@ -654,42 +376,6 @@ drawContrastText(CQChartsPaintDevice *device, const QPointF &p, const QString &t
   device->drawText(p, text);
 }
 
-#if 0
-void
-drawContrastText(QPainter *painter, const QPointF &p, const QString &text)
-{
-  QPen pen = painter->pen();
-
-  //---
-
-  // set contrast color
-  // TODO: allow set type (invert, bw) and alpha
-//QColor icolor = CQChartsUtil::invColor(pen.color());
-  QColor icolor = CQChartsUtil::bwColor(pen.color());
-
-  icolor.setAlphaF(0.5);
-
-  //---
-
-  // draw contrast outline
-  painter->setPen(icolor);
-
-  for (int dy = -2; dy <= 2; ++dy) {
-    for (int dx = -2; dx <= 2; ++dx) {
-      if (dx != 0 || dy != 0)
-        painter->drawText(QPointF(p.x() + dx, p.y() + dy), text);
-    }
-  }
-
-  //---
-
-  // draw text
-  painter->setPen(pen);
-
-  painter->drawText(p, text);
-}
-#endif
-
 //------
 
 QSizeF
@@ -719,18 +405,6 @@ drawCenteredText(CQChartsPaintDevice *device, const QPointF &pos, const QString 
   drawSimpleText(device, device->pixelToWindow(ppos1), text);
 }
 
-#if 0
-void
-drawCenteredText(QPainter *painter, const QPointF &pos, const QString &text)
-{
-  QFontMetricsF fm(painter->font());
-
-  QPointF pos1(pos.x() - fm.width(text)/2, pos.y() + (fm.ascent() - fm.descent())/2);
-
-  drawSimpleText(painter, pos1, text);
-}
-#endif
-
 //------
 
 void
@@ -738,14 +412,6 @@ drawSimpleText(CQChartsPaintDevice *device, const QPointF &pos, const QString &t
 {
   device->drawText(pos, text);
 }
-
-#if 0
-void
-drawSimpleText(QPainter *painter, const QPointF &pos, const QString &text)
-{
-  painter->drawText(pos, text);
-}
-#endif
 
 //---
 
@@ -767,27 +433,6 @@ drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
   }
 }
 
-#if 0
-void
-drawSymbol(QPainter *painter, const CQChartsSymbol &symbol,
-           const QPointF &c, const QSizeF &size)
-{
-  CQChartsPlotSymbolRenderer srenderer(painter, CQChartsGeom::Point(c),
-                                       CMathUtil::avg(size.width(), size.height()));
-
-  if (painter->brush().style() != Qt::NoBrush) {
-    CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer);
-
-    if (painter->pen().style() != Qt::NoPen)
-      CQChartsPlotSymbolMgr::strokeSymbol(symbol, &srenderer);
-  }
-  else {
-    if (painter->pen().style() != Qt::NoPen)
-      CQChartsPlotSymbolMgr::drawSymbol(symbol, &srenderer);
-  }
-}
-#endif
-
 void
 drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol, const QRectF &rect)
 {
@@ -801,27 +446,6 @@ drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol, const QRec
 
   drawSymbol(device, symbol, QPointF(cx, cy), symbolSize);
 }
-
-#if 0
-void
-drawSymbol(QPainter *painter, const CQChartsSymbol &symbol, const QRectF &rect)
-{
-  double cx = rect.center().x();
-  double cy = rect.center().y();
-  double ss = std::min(rect.width(), rect.height());
-
-  drawSymbol(painter, symbol, QPointF(cx, cy), QSizeF(ss/2.0, ss/2.0));
-}
-#endif
-
-#if 0
-void
-drawSymbol(QPainter *painter, const CQChartsSymbol &symbol,
-           double cx, double cy, double sw, double sh)
-{
-  drawSymbol(painter, symbol, QPointF(cx, cy), QSizeF(sw, sh));
-}
-#endif
 
 void
 drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
@@ -876,69 +500,6 @@ drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
 
   device->drawPath(path);
 }
-
-#if 0
-void
-drawPieSlice(QPainter *painter, const CQChartsGeom::Point &c,
-             double ri, double ro, double a1, double a2, bool isInvertX, bool isInvertY)
-{
-  CQChartsGeom::BBox bbox(c.x - ro, c.y - ro, c.x + ro, c.y + ro);
-
-  CQChartsGeom::BBox pbbox = windowToPixel(bbox);
-
-  //---
-
-  QPainterPath path;
-
-  if (! CMathUtil::isZero(ri)) {
-    CQChartsGeom::BBox bbox1(c.x - ri, c.y - ri, c.x + ri, c.y + ri);
-
-    CQChartsGeom::BBox pbbox1 = windowToPixel(bbox1);
-
-    //---
-
-    double da = (isInvertX != isInvertY ? -1 : 1);
-
-    double ra1 = da*CMathUtil::Deg2Rad(a1);
-    double ra2 = da*CMathUtil::Deg2Rad(a2);
-
-    CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::circlePoint(c, ri, ra1));
-    CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::circlePoint(c, ro, ra1));
-    CQChartsGeom::Point p3 = windowToPixel(CQChartsGeom::circlePoint(c, ri, ra2));
-    CQChartsGeom::Point p4 = windowToPixel(CQChartsGeom::circlePoint(c, ro, ra2));
-
-    path.moveTo(p1.x, p1.y);
-    path.lineTo(p2.x, p2.y);
-
-    path.arcTo(pbbox.qrect(), a1, a2 - a1);
-
-    path.lineTo(p4.x, p4.y);
-    path.lineTo(p3.x, p3.y);
-
-    path.arcTo(pbbox1.qrect(), a2, a1 - a2);
-  }
-  else {
-    CQChartsGeom::Point pc = windowToPixel(c);
-
-    //---
-
-    double a21 = a2 - a1;
-
-    if (std::abs(a21) < 360.0) {
-      path.moveTo(QPointF(pc.x, pc.y));
-
-      path.arcTo(pbbox.qrect(), a1, a2 - a1);
-    }
-    else {
-      path.addEllipse(pbbox.qrect());
-    }
-  }
-
-  path.closeSubpath();
-
-  painter->drawPath(path);
-}
-#endif
 
 }
 
@@ -996,40 +557,6 @@ drawScaledHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QStri
   drawHtmlText(device, trect, text, options);
 }
 
-#if 0
-void
-drawScaledHtmlText(QPainter *painter, const QRectF &trect, const QString &text,
-                   const CQChartsTextOptions &options)
-{
-  // calc scale
-  QSizeF psize = calcHtmlTextSize(text, painter->font(), options.margin);
-
-  double pw = psize.width ();
-  double ph = psize.height();
-
-  double xs = trect.width ()/pw;
-  double ys = trect.height()/ph;
-
-  double s = std::min(xs, ys);
-
-  //---
-
-  // scale font
-  QFont font1 = painter->font();
-
-  double fs = font1.pointSizeF()*s;
-
-  if (fs > 0.0)
-    font1.setPointSizeF(fs);
-
-  painter->setFont(font1);
-
-  //---
-
-  drawHtmlText(painter, trect, text, options);
-}
-#endif
-
 void
 drawHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QString &text,
              const CQChartsTextOptions &options)
@@ -1042,7 +569,7 @@ drawHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QString &te
   QPainter *painter  = nullptr;
   QPainter *ipainter = nullptr;
 
-  if (device->type() != CQChartsPaintDevice::Type::SCRIPT) {
+  if (device->isInteractive()) {
     painter = dynamic_cast<CQChartsViewPlotPainter *>(device)->painter();
   }
   else {
@@ -1065,7 +592,7 @@ drawHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QString &te
 
   QRectF ptrect1 = ptrect.translated(-ptrect.x(), -ptrect.y());
 
-  if (device->type() != CQChartsPaintDevice::Type::SCRIPT)
+  if (device->isInteractive())
     painter->translate(ptrect.x(), ptrect.y());
 
   painter->setClipRect(ptrect1, Qt::IntersectClip);
@@ -1106,7 +633,7 @@ drawHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QString &te
     layout->draw(painter, ctx);
   }
 
-  if (device->type() != CQChartsPaintDevice::Type::SCRIPT)
+  if (device->isInteractive())
     painter->translate(-ptrect.x(), -ptrect.y());
 
   //---
@@ -1115,70 +642,5 @@ drawHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QString &te
 
   delete ipainter;
 }
-
-#if 0
-void
-drawHtmlText(QPainter *painter, const QRectF &trect, const QString &text,
-             const CQChartsTextOptions &options)
-{
-  painter->save();
-
-  //---
-
-  QTextDocument td;
-
-  td.setDocumentMargin(options.margin);
-  td.setHtml(text);
-  td.setDefaultFont(painter->font());
-
-  QRectF trect1 = trect.translated(-trect.x(), -trect.y());
-
-  painter->translate(trect.x(), trect.y());
-
-  painter->setClipRect(trect1, Qt::IntersectClip);
-
-  QAbstractTextDocumentLayout::PaintContext ctx;
-
-  QColor pc = painter->pen().color();
-
-  ctx.palette.setColor(QPalette::Text, pc);
-
-  QAbstractTextDocumentLayout *layout = td.documentLayout();
-
-  layout->setPaintDevice(painter->device());
-
-  if (options.contrast) {
-  //QColor ipc = CQChartsUtil::invColor(pc);
-    QColor ipc = CQChartsUtil::bwColor(pc);
-
-    ctx.palette.setColor(QPalette::Text, ipc);
-
-    for (int dy = -2; dy <= 2; ++dy) {
-      for (int dx = -2; dx <= 2; ++dx) {
-        if (dx != 0 || dy != 0) {
-          painter->translate(dx, dy);
-
-          layout->draw(painter, ctx);
-
-          painter->translate(-dx, -dy);
-        }
-      }
-    }
-
-    ctx.palette.setColor(QPalette::Text, pc);
-
-    layout->draw(painter, ctx);
-  }
-  else {
-    layout->draw(painter, ctx);
-  }
-
-  painter->translate(-trect.x(), -trect.y());
-
-  //---
-
-  painter->restore();
-}
-#endif
 
 }

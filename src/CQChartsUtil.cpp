@@ -1017,6 +1017,17 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
 
 namespace CQChartsUtil {
 
+void setPenBrush(CQChartsPenBrush &penBrush,
+                 bool stroked, const QColor &strokeColor, double strokeAlpha,
+                 double strokeWidth, const CQChartsLineDash &strokeDash,
+                 bool filled, const QColor &fillColor, double fillAlpha,
+                 const CQChartsFillPattern &pattern)
+{
+  setPen(penBrush.pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
+
+  setBrush(penBrush.brush, filled, fillColor, fillAlpha, pattern);
+}
+
 void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
             double strokeWidth, const CQChartsLineDash &strokeDash) {
   double width = limitLineWidth(strokeWidth);

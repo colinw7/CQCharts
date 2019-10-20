@@ -263,8 +263,8 @@ calcRange() const
   th->nr_ = visitor.numProcessedRows();
   th->nc_ = visitor.numCols();
 
-  dataRange.updateRange(  0,   0);
-  dataRange.updateRange(nc_, nr_);
+  dataRange.updateRange(0, 0);
+  dataRange.updateRange(std::max(nc_, 1), std::max(nr_, 1));
 
   //---
 
@@ -723,7 +723,7 @@ draw(CQChartsPaintDevice *device)
   // calc pen and brush
   CQChartsPenBrush penBrush;
 
-  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+  bool updateState = device->isInteractive();
 
   calcPenBrush(penBrush, updateState);
 
@@ -835,11 +835,10 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor fc = plot_->interpCellFillColor  (ic);
   QColor bc = plot_->interpCellStrokeColor(ic);
 
-  plot_->setPen(penBrush.pen, plot_->isCellStroked(), bc, plot_->cellStrokeAlpha(),
-                plot_->cellStrokeWidth(), plot_->cellStrokeDash());
-
-  plot_->setBrush(penBrush.brush, plot_->isCellFilled(), fc, plot_->cellFillAlpha(),
-                  plot_->cellFillPattern());
+  plot_->setPenBrush(penBrush,
+    CQChartsPenData  (plot_->isCellStroked(), bc, plot_->cellStrokeAlpha(),
+                      plot_->cellStrokeWidth(), plot_->cellStrokeDash()),
+    CQChartsBrushData(plot_->isCellFilled(), fc, plot_->cellFillAlpha(), plot_->cellFillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

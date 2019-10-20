@@ -889,7 +889,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
   setBrush(fillBrush, true, fc, backgroundFillAlpha(), backgroundFillPattern());
 
-  QRectF cellRect(px, py, nn*pxs, nn*pys);
+  QRectF cellRect(px, py, std::max(nn, 1)*pxs, std::max(nn, 1)*pys);
 
   device->fillRect(device->pixelToWindow(cellRect), fillBrush);
 
@@ -901,10 +901,10 @@ execDrawBackground(CQChartsPaintDevice *device) const
   QColor pc = interpEmptyCellStrokeColor(ColorInd());
   QColor bc = interpEmptyCellFillColor  (ColorInd());
 
-  setPen(emptyPenBrush.pen, true, pc, emptyCellStrokeAlpha(),
-         emptyCellStrokeWidth(), emptyCellStrokeDash());
-
-  setBrush(emptyPenBrush.brush, true, bc, emptyCellFillAlpha(), emptyCellFillPattern());
+  setPenBrush(emptyPenBrush,
+    CQChartsPenData  (true, pc, emptyCellStrokeAlpha(), emptyCellStrokeWidth(),
+                      emptyCellStrokeDash()),
+    CQChartsBrushData(true, bc, emptyCellFillAlpha(), emptyCellFillPattern()));
 
   CQChartsLength cornerSize = emptyCellCornerSize();
 
@@ -1047,7 +1047,7 @@ draw(CQChartsPaintDevice *device)
   // calc pen and brush
   CQChartsPenBrush penBrush;
 
-  bool updateState = (device->type() != CQChartsPaintDevice::Type::SCRIPT);
+  bool updateState = device->isInteractive();
 
   calcPenBrush(penBrush, updateState);
 
@@ -1072,9 +1072,8 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   auto interpGroupColor = [&](CQChartsAdjacencyNode *node) {
     if (plot_->colorType() == CQChartsPlot::ColorType::AUTO)
       return plot_->interpGroupColor(node->group());
-    else {
+    else
       return plot_->interpFillColor(colorInd);
-    }
   };
 
   //---
@@ -1093,9 +1092,9 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
     double s = CMathUtil::map(value(), 0.0, plot_->maxValue(), 0.0, 1.0);
 
-    double r = (c1.redF  () + c2.redF  () + s*bc.redF  ())/3;
-    double g = (c1.greenF() + c2.greenF() + s*bc.greenF())/3;
-    double b = (c1.blueF () + c2.blueF () + s*bc.blueF ())/3;
+    double r = (c1.redF  () + c2.redF  () + s*bc.redF  ())/3.0;
+    double g = (c1.greenF() + c2.greenF() + s*bc.greenF())/3.0;
+    double b = (c1.blueF () + c2.blueF () + s*bc.blueF ())/3.0;
 
     bc = QColor::fromRgbF(r, g, b);
   }
@@ -1106,8 +1105,8 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
   QColor pc = plot_->interpStrokeColor(colorInd);
 
   plot_->setPenBrush(penBrush,
-    true, pc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash(),
-    true, bc, plot_->fillAlpha(), plot_->fillPattern());
+    CQChartsPenData  (true, pc, plot_->strokeAlpha(), plot_->strokeWidth(), plot_->strokeDash()),
+    CQChartsBrushData(true, bc, plot_->fillAlpha(), plot_->fillPattern()));
 
   if (updateState)
     plot_->updateObjPenBrushState(this, penBrush);

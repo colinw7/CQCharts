@@ -158,6 +158,8 @@ addCommands()
                new CQChartsCreateChartsPieSliceAnnotationCmd (this));
     addCommand("create_charts_point_annotation"    ,
                new CQChartsCreateChartsPointAnnotationCmd    (this));
+    addCommand("create_charts_point_set_annotation"    ,
+               new CQChartsCreateChartsPointSetAnnotationCmd (this));
     addCommand("create_charts_polygon_annotation"  ,
                new CQChartsCreateChartsPolygonAnnotationCmd  (this));
     addCommand("create_charts_polyline_annotation" ,
@@ -166,6 +168,8 @@ addCommands()
                new CQChartsCreateChartsRectangleAnnotationCmd(this));
     addCommand("create_charts_text_annotation"     ,
                new CQChartsCreateChartsTextAnnotationCmd     (this));
+    addCommand("create_charts_value_set_annotation"  ,
+               new CQChartsCreateChartsValueSetAnnotationCmd (this));
     addCommand("remove_charts_annotation"          ,
                new CQChartsRemoveChartsAnnotationCmd         (this));
 
@@ -6820,7 +6824,7 @@ createChartsPieSliceAnnotationCmd(CQChartsCmdArgs &argv)
   double spanAngle  = argv.getParseReal("span_angle");
 
   if (innerRadius.value() < 0 || outerRadius.value() < 0)
-    return errorMsg("-invalid radius value");
+    return errorMsg("Invalid radius value");
 
   //---
 
@@ -6830,6 +6834,199 @@ createChartsPieSliceAnnotationCmd(CQChartsCmdArgs &argv)
     annotation = view->addPieSliceAnnotation(pos, innerRadius, outerRadius, startAngle, spanAngle);
   else if (plot)
     annotation = plot->addPieSliceAnnotation(pos, innerRadius, outerRadius, startAngle, spanAngle);
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  QStringList properties = argv.getParseStrs("properties");
+
+  for (int i = 0; i < properties.length(); ++i) {
+    if (properties[i].length())
+      setAnnotationProperties(annotation, properties[i]);
+  }
+
+  //---
+
+  cmdBase_->setCmdRc(annotation->pathId());
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsPointSetAnnotationCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsPointSetAnnotationCmd");
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-values", CQChartsCmdArg::Type::Reals, "values");
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if      (argv.hasParseArg("view")) {
+    QString viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return false;
+  }
+  else if (argv.hasParseArg("plot")) {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+  }
+
+  //---
+
+  QString id    = argv.getParseStr("id");
+  QString tipId = argv.getParseStr("tip");
+
+  CQChartsPoints values = argv.getParsePoints(view, plot, "values");
+
+  if (values.points().empty()) {
+  }
+
+  if (values.points().empty())
+    return errorMsg("Invalid points");
+
+  //---
+
+  CQChartsPointSetAnnotation *annotation = nullptr;
+
+  if      (view)
+    annotation = view->addPointSetAnnotation(values);
+  else if (plot)
+    annotation = plot->addPointSetAnnotation(values);
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  QStringList properties = argv.getParseStrs("properties");
+
+  for (int i = 0; i < properties.length(); ++i) {
+    if (properties[i].length())
+      setAnnotationProperties(annotation, properties[i]);
+  }
+
+  //---
+
+  cmdBase_->setCmdRc(annotation->pathId());
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsValueSetAnnotationCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsValueSetAnnotationCmd");
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-rectangle", CQChartsCmdArg::Type::Rect, "rectangle");
+
+  argv.addCmdArg("-values", CQChartsCmdArg::Type::Reals, "values");
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if      (argv.hasParseArg("view")) {
+    QString viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return false;
+  }
+  else if (argv.hasParseArg("plot")) {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+  }
+
+  //---
+
+  QString id    = argv.getParseStr("id");
+  QString tipId = argv.getParseStr("tip");
+
+  CQChartsRect rect = argv.getParseRect(view, plot, "rectangle");
+
+  if (! rect.isValid())
+    return errorMsg("Invalid rectangle value");
+
+  CQChartsReals values = argv.getParseReals("values");
+
+  //---
+
+  CQChartsValueSetAnnotation *annotation = nullptr;
+
+  if      (view)
+    annotation = view->addValueSetAnnotation(rect, values);
+  else if (plot)
+    annotation = plot->addValueSetAnnotation(rect, values);
   else
     return false;
 

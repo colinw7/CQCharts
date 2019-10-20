@@ -21,6 +21,13 @@ windowToPixel(const QPointF &p) const
   return (! view_ ? (! plot_ ? p : plot_->windowToPixel(p)) : view_->windowToPixel(p));
 }
 
+QPolygonF
+CQChartsPaintDevice::
+windowToPixel(const QPolygonF &p) const
+{
+  return (! view_ ? (! plot_ ? p : plot_->windowToPixel(p)) : view_->windowToPixel(p));
+}
+
 QPointF
 CQChartsPaintDevice::
 pixelToWindow(const QPointF &p) const
@@ -65,6 +72,13 @@ lengthWindowHeight(const CQChartsLength &h) const
 {
   return (! view_ ? (! plot_ ? h.value() :
     plot_->lengthPlotHeight(h)) : view_->lengthViewHeight(h));
+}
+
+QPainterPath
+CQChartsPaintDevice::
+windowToPixel(const QPainterPath &path) const
+{
+  return (! view_ ? (! plot_ ? path : plot_->windowToPixel(path)) : view_->windowToPixel(path));
 }
 
 //------
@@ -129,11 +143,9 @@ void
 CQChartsViewPlotPainter::
 setClipPath(const QPainterPath &path, Qt::ClipOperation operation)
 {
-  QPainterPath path1;
+  QPainterPath ppath = windowToPixel(path);
 
-  mapPath(path, path1);
-
-  painter_->setClipPath(path1, operation);
+  painter_->setClipPath(ppath, operation);
 }
 
 void
@@ -177,82 +189,27 @@ void
 CQChartsViewPlotPainter::
 fillPath(const QPainterPath &path, const QBrush &brush)
 {
-  QPainterPath path1;
+  QPainterPath ppath = windowToPixel(path);
 
-  mapPath(path, path1);
-
-  painter_->fillPath(path1, brush);
+  painter_->fillPath(ppath, brush);
 }
 
 void
 CQChartsViewPlotPainter::
 strokePath(const QPainterPath &path, const QPen &pen)
 {
-  QPainterPath path1;
+  QPainterPath ppath = windowToPixel(path);
 
-  mapPath(path, path1);
-
-  painter_->strokePath(path1, pen);
+  painter_->strokePath(ppath, pen);
 }
 
 void
 CQChartsViewPlotPainter::
 drawPath(const QPainterPath &path)
 {
-  QPainterPath path1;
+  QPainterPath ppath = windowToPixel(path);
 
-  mapPath(path, path1);
-
-  painter_->drawPath(path1);
-}
-
-void
-CQChartsViewPlotPainter::
-mapPath(const QPainterPath &path, QPainterPath &path1)
-{
-  int n = path.elementCount();
-
-  for (int i = 0; i < n; ++i) {
-    const QPainterPath::Element &e = path.elementAt(i);
-
-    if      (e.isMoveTo()) {
-      QPointF p1 = windowToPixel(QPointF(e.x, e.y));
-
-      path1.moveTo(p1);
-    }
-    else if (e.isLineTo()) {
-      QPointF p1 = windowToPixel(QPointF(e.x, e.y));
-
-      path1.lineTo(p1);
-    }
-    else if (e.isCurveTo()) {
-      QPainterPath::Element e1, e2;
-
-      QPointF p1 = windowToPixel(QPointF(e.x, e.y));
-
-      if (i < n - 1)
-        e1 = path.elementAt(i + 1);
-
-      if (i < n - 2)
-        e2 = path.elementAt(i + 2);
-
-      if (e1.type == QPainterPath::CurveToDataElement) {
-        QPointF p2 = windowToPixel(QPointF(e1.x, e1.y)); ++i;
-
-        if (e2.type == QPainterPath::CurveToDataElement) {
-          QPointF p3 = windowToPixel(QPointF(e2.x, e2.y)); ++i;
-
-          path1.cubicTo(p1, p2, p3);
-        }
-        else {
-          path1.quadTo(p1, p2);
-        }
-      }
-    }
-    else {
-      assert(false);
-    }
-  }
+  painter_->drawPath(ppath);
 }
 
 void
@@ -295,12 +252,7 @@ void
 CQChartsViewPlotPainter::
 drawPolygon(const QPolygonF &poly)
 {
-  QPolygonF ppoly;
-
-  int np = poly.length();
-
-  for (int i = 0; i < np; ++i)
-    ppoly << windowToPixel(poly[i]);
+  QPolygonF ppoly = windowToPixel(poly);
 
   painter_->drawPolygon(ppoly);
 }
@@ -311,7 +263,7 @@ drawPolyline(const QPolygonF &poly)
 {
   QPolygonF ppoly;
 
-  int np = poly.length();
+  int np = poly.size();
 
   for (int i = 0; i < np; ++i)
     ppoly << windowToPixel(poly[i]);
@@ -595,27 +547,30 @@ addPathParts(const QPainterPath &path)
     else if (e.isLineTo())
       *os_ << "  " << context() << ".lineTo(" << e.x << ", " << e.y << ");\n";
     else if (e.isCurveTo()) {
-      QPainterPath::Element e1, e2;
+      QPainterPath::Element     e1, e2;
+      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
+      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
 
-      if (i < n - 1)
-        e1 = path.elementAt(i + 1);
+      if (i < n - 1) {
+        e1  = path.elementAt(i + 1);
+        e1t = e1.type;
+      }
 
-      if (i < n - 2)
-        e2 = path.elementAt(i + 2);
+      if (i < n - 2) {
+        e2  = path.elementAt(i + 2);
+        e2t = e2.type;
+      }
 
-      if (e1.type == QPainterPath::CurveToDataElement) {
-        if (e2.type == QPainterPath::CurveToDataElement) {
-          *os_ << "  " << context() << ".curveTo(" <<
-            e .x << ", " << e .y << ", " <<
-            e1.x << ", " << e1.y << ", " <<
-            e2.x << ", " << e2.y << ");\n";
+      if (e1t == QPainterPath::CurveToDataElement) {
+        if (e2t == QPainterPath::CurveToDataElement) {
+          *os_ << "  " << context() << ".curveTo(" << e.x << ", " << e.y << ", " <<
+                  e1.x << ", " << e1.y << ", " << e2.x << ", " << e2.y << ");\n";
 
           i += 2;
         }
         else {
           *os_ << "  " << context() << ".quadTo(" <<
-            e .x << ", " << e .y << ", " <<
-            e1.x << ", " << e1.y << ");\n";
+                  e.x << ", " << e.y << ", " << e1.x << ", " << e1.y << ");\n";
 
           ++i;
         }
@@ -674,7 +629,7 @@ drawPolygon(const QPolygonF &poly)
 {
   *os_ << "  " << context() << ".drawPolygon([";
 
-  int np = poly.length();
+  int np = poly.size();
 
   for (int i = 0; i < np; ++i) {
     if (i > 0) *os_ << ", ";
@@ -691,7 +646,7 @@ drawPolyline(const QPolygonF &poly)
 {
   *os_ << "  " << context() << ".drawPolyline([";
 
-  int np = poly.length();
+  int np = poly.size();
 
   for (int i = 0; i < np; ++i) {
     if (i > 0) *os_ << ", ";
@@ -886,4 +841,501 @@ resetColorNames()
 {
   setStrokeStyleName("");
   setFillStyleName  ("");
+}
+
+//---
+
+CQChartsSVGPainter::
+CQChartsSVGPainter(CQChartsView *view, std::ostream &os) :
+ CQChartsPaintDevice(view), os_(&os)
+{
+}
+
+CQChartsSVGPainter::
+CQChartsSVGPainter(CQChartsPlot *plot, std::ostream &os) :
+ CQChartsPaintDevice(plot), os_(&os)
+{
+}
+
+void
+CQChartsSVGPainter::
+save()
+{
+  dataStack_.push_back(data_);
+}
+
+void
+CQChartsSVGPainter::
+restore()
+{
+  assert(! dataStack_.empty());
+
+  Data data = dataStack_.back();
+
+  dataStack_.pop_back();
+
+  setPen  (data.pen);
+  setBrush(data.brush);
+
+  data_ = data;
+}
+
+void
+CQChartsSVGPainter::
+setClipPath(const QPainterPath &, Qt::ClipOperation)
+{
+  // TODO
+}
+
+void
+CQChartsSVGPainter::
+setClipRect(const QRectF &, Qt::ClipOperation)
+{
+  // TODO
+}
+
+QPen
+CQChartsSVGPainter::
+pen() const
+{
+  return data_.pen;
+}
+
+void
+CQChartsSVGPainter::
+setPen(const QPen &pen)
+{
+  data_.pen = pen;
+}
+
+QBrush
+CQChartsSVGPainter::
+brush() const
+{
+  return data_.brush;
+}
+
+void
+CQChartsSVGPainter::
+setBrush(const QBrush &brush)
+{
+  data_.brush = brush;
+}
+
+void
+CQChartsSVGPainter::
+fillPath(const QPainterPath &path, const QBrush &brush)
+{
+  setBrush(brush);
+
+  *os_ << "<path d=\"";
+
+  addPathParts(path);
+
+  *os_ << "\"";
+
+  *os_ << " style=\"";
+
+  writeBrush();
+
+  *os_ << "\"/>\n";
+}
+
+void
+CQChartsSVGPainter::
+strokePath(const QPainterPath &path, const QPen &pen)
+{
+  setPen(pen);
+
+  addPathParts(path);
+
+  *os_ << "\"";
+
+  *os_ << " style=\"";
+
+  writePen();
+
+  *os_ << "\"/>\n";
+}
+
+void
+CQChartsSVGPainter::
+drawPath(const QPainterPath &path)
+{
+  addPathParts(path);
+
+  *os_ << "\"";
+
+  addPathParts(path);
+
+  *os_ << " style=\"";
+
+  writePen();
+  writeBrush();
+
+  *os_ << "\"/>\n";
+}
+
+void
+CQChartsSVGPainter::
+resetData()
+{
+  data_.reset();
+}
+
+void
+CQChartsSVGPainter::
+addPathParts(const QPainterPath &path)
+{
+  QPainterPath ppath = windowToPixel(path);
+
+  int n = ppath.elementCount();
+
+  for (int i = 0; i < n; ++i) {
+    const QPainterPath::Element &e = ppath.elementAt(i);
+
+    if      (e.isMoveTo())
+      *os_ << " M" << e.x << " " << e.y;
+    else if (e.isLineTo())
+      *os_ << " L " << e.x << ", " << e.y;
+    else if (e.isCurveTo()) {
+      QPainterPath::Element     e1, e2;
+      QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
+      QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
+
+      if (i < n - 1) {
+        e1  = ppath.elementAt(i + 1);
+        e1t = e1.type;
+      }
+
+      if (i < n - 2) {
+        e2  = ppath.elementAt(i + 2);
+        e2t = e2.type;
+      }
+
+      if (e1t == QPainterPath::CurveToDataElement) {
+        if (e2t == QPainterPath::CurveToDataElement) {
+          *os_ << " C" << e.x << " " << e.y << " " <<
+                  e1.x << " " << e1.y << " " << e2.x << " " << e2.y;
+
+          i += 2;
+        }
+        else {
+          *os_ << " Q" << e.x << " " << e.y << " " << e1.x << " " << e1.y;
+
+          ++i;
+        }
+      }
+    }
+    else {
+      assert(false);
+    }
+  }
+}
+
+void
+CQChartsSVGPainter::
+fillRect(const QRectF &rect, const QBrush &brush)
+{
+  QRectF prect = windowToPixel(rect);
+
+  setBrush(brush);
+
+  *os_ << "<rect x=\"" << prect.left() << "\" y=\"" << prect.top() << "\" " <<
+          "width=\"" << prect.width() << "\" height=\"" << prect.height() << "\"";
+
+  *os_ << " style=\"";
+
+  writeBrush();
+
+  *os_ << "\"/>\n";
+}
+
+void
+CQChartsSVGPainter::
+drawRect(const QRectF &rect)
+{
+  QRectF prect = windowToPixel(rect);
+
+  *os_ << "<rect x=\"" << prect.left() << "\" y=\"" << prect.top() << "\" " <<
+          "width=\"" << prect.width() << "\" height=\"" << prect.height() << "\"";
+
+  *os_ << " style=\"";
+
+  writePen();
+  writeBrush();
+
+  *os_ << "\"/>\n";
+}
+
+void
+CQChartsSVGPainter::
+drawEllipse(const QRectF &rect)
+{
+  QRectF prect = windowToPixel(rect);
+
+  *os_ << "<ellipse cx=\"" << prect.center().x() << "\" cy=\"" << prect.center().y() << "\" " <<
+          "rx=\"" << prect.width()/2 << " ry=\"" << prect.height()/2 << "\"";
+
+  *os_ << " style=\"";
+
+  writePen();
+  writeBrush();
+
+  *os_ << "\">\n";
+}
+
+void
+CQChartsSVGPainter::
+drawArc(const QRectF &, double, double)
+{
+  // TODO
+}
+
+void
+CQChartsSVGPainter::
+drawPolygon(const QPolygonF &poly)
+{
+  QPolygonF ppoly = windowToPixel(poly);
+
+  *os_ << "<path d=\"";
+
+  int np = ppoly.size();
+
+  for (int i = 0; i < np; ++i) {
+    if (i == 0)
+      *os_ << "M " << ppoly[i].x() << " " << poly[i].y();
+    else
+      *os_ << "L " << ppoly[i].x() << " " << poly[i].y();
+  }
+
+  *os_ << "z\"";
+
+  *os_ << " style=\"";
+
+  writePen();
+  writeBrush();
+
+  *os_ << "\"/>\n";
+}
+
+void
+CQChartsSVGPainter::
+drawPolyline(const QPolygonF &poly)
+{
+  QPolygonF ppoly = windowToPixel(poly);
+
+  *os_ << "<path d=\"";
+
+  int np = ppoly.size();
+
+  for (int i = 0; i < np; ++i) {
+    if (i == 0)
+      *os_ << "M " << ppoly[i].x() << " " << poly[i].y();
+    else
+      *os_ << "L " << ppoly[i].x() << " " << poly[i].y();
+  }
+
+  *os_ << " style=\"";
+
+  writePen();
+
+  *os_ << "\"/>\n";
+}
+
+void
+CQChartsSVGPainter::
+drawLine(const QPointF &p1, const QPointF &p2)
+{
+  QPointF pp1 = windowToPixel(p1);
+  QPointF pp2 = windowToPixel(p2);
+
+  *os_ << "<line x1=\"" << pp1.x() << "\" y1=\"" << pp1.y() << "\" " <<
+                "x2=\"" << pp2.x() << "\" y2=\"" << pp2.y() << "\"";
+
+  *os_ << " style=\"";
+
+  writePen();
+
+  *os_ << "\"/>\n";
+}
+
+void
+CQChartsSVGPainter::
+drawPoint(const QPointF &p)
+{
+  QPointF pp = windowToPixel(p);
+
+  *os_ << "<rect x=\"" << pp.x() << "\" y=\"" << pp.y() << "\" width=\"1\" height=\"1\"";
+
+  *os_ << " style=\"";
+
+  writePen();
+
+  *os_ << "\"/>\n";
+}
+
+void
+CQChartsSVGPainter::
+drawText(const QPointF &p, const QString &text)
+{
+  QPointF pp = windowToPixel(p);
+
+  *os_ << "<text x=\"" << pp.x() << "\" y=\"" << pp.y() << "\"";
+
+  writeFont();
+
+  *os_ << ">" << text.toStdString();
+  *os_ << "</text>\n";
+}
+
+void
+CQChartsSVGPainter::
+drawTransformedText(const QPointF &p, const QString &text)
+{
+  QPointF pt = p +  data_.transformPoint;
+
+  QPointF ppt = windowToPixel(pt);
+
+  double a = CMathUtil::Deg2Rad(data_.transformAngle);
+  double c = std::cos(a);
+  double s = std::sin(a);
+
+  *os_ << "<g transform=\"matrix(" << c << "," << -s << "," << s << "," << c << "," <<
+          ppt.x() << "," << ppt.y() << ")\">\n";
+
+  *os_ << "<text x=\"0\" y=\"0\"";
+
+  writeFont();
+
+  *os_ << ">" << text.toStdString();
+  *os_ << "</text>\n";
+
+  *os_ << "</g>\n";
+}
+
+void
+CQChartsSVGPainter::
+drawImageInRect(const QRectF &rect, const QImage &image)
+{
+  QRectF prect = windowToPixel(rect);
+
+  double x = prect.left  ();
+  double y = prect.bottom();
+
+  drawImage(QPointF(x, y), image);
+}
+
+void
+CQChartsSVGPainter::
+drawImage(const QPointF &, const QImage &)
+{
+}
+
+const QFont &
+CQChartsSVGPainter::
+font() const
+{
+  return data_.font;
+}
+
+void
+CQChartsSVGPainter::
+setFont(const QFont &f)
+{
+  data_.font    = f;
+  data_.hasFont = true;
+}
+
+void
+CQChartsSVGPainter::
+setTransformRotate(const QPointF &p, double angle)
+{
+  QTransform t = data_.transform;
+
+  t.translate(p.x(), p.y());
+  t.rotate(angle);
+
+  data_.transform      = t;
+  data_.transformPoint = p;
+  data_.transformAngle = angle;
+}
+
+const QTransform &
+CQChartsSVGPainter::
+transform() const
+{
+  return data_.transform;
+}
+
+void
+CQChartsSVGPainter::
+setTransform(const QTransform &t, bool combine)
+{
+  if (combine)
+    data_.transform *= t;
+  else
+    data_.transform = t;
+}
+
+void
+CQChartsSVGPainter::
+setRenderHints(QPainter::RenderHints, bool)
+{
+}
+
+void
+CQChartsSVGPainter::
+startGroup(const QString &id)
+{
+  *os_ << "<g id=\"" << id.toStdString() << "\">\n";
+}
+
+void
+CQChartsSVGPainter::
+endGroup()
+{
+  *os_ << "</g>\n";
+}
+
+void
+CQChartsSVGPainter::
+writePen() const
+{
+  if (data_.pen.style() == Qt::NoPen)
+    *os_ << "stroke-opacity:0; ";
+  else {
+    *os_ << "stroke:" << CQChartsUtil::encodeSVGColor(data_.pen.color()).toStdString() << "; ";
+
+    if (data_.pen.color().alpha() < 255)
+      *os_ << "stroke-opacity:" << data_.pen.color().alphaF() << "; ";
+  }
+
+  double w = std::max(data_.pen.widthF(), 1.0);
+
+  *os_ << "stroke-width:" << w << "; ";
+}
+
+void
+CQChartsSVGPainter::
+writeBrush() const
+{
+  if (data_.brush.style() == Qt::NoBrush)
+    *os_ << "fill-opacity:0; ";
+  else {
+    *os_ << "fill:" << CQChartsUtil::encodeSVGColor(data_.brush.color()).toStdString() << "; ";
+
+    if (data_.brush.color().alpha() < 255)
+      *os_ << "fill-opacity:" << data_.brush.color().alphaF() << "; ";
+  }
+}
+
+void
+CQChartsSVGPainter::
+writeFont() const
+{
+  *os_ << " font-family=\"" << data_.font.family().toStdString() << "\""
+          " font-size=\"" << data_.font.pointSizeF() << "\""
+          " font-weight=\"" << data_.font.weight() << "\""
+          " font-style=\"" << data_.font.styleName().toStdString() << "\"";
 }
