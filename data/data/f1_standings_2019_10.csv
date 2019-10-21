@@ -5,15 +5,15 @@
 Pos,Country,Driver,Logo,Team,Wins,Points,Image
 1,Great Britain,Lewis Hamilton,HAM,Mercedes,7,223,data/f1_mercedes_ham.png
 2,Finland,Valtteri Bottas,BOT,Mercedes,2,184,data/f1_mercedes_bot.png
-3,Netherlands,Max Verstappen,VER,Red Bull,1,136,data/f1_redbull.png
-4,Germany,Sebastian Vettel,VET,Ferrari,0,123,data/f1_ferrari.png
-5,Monaco,Charles Leclerc,LEC,Ferrari,0,120,data/f1_ferrari.png
-6,France,Pierre Gasly,GAS,Toro Rosso,0,55,data/f1_redbull.png
-7,Spain,Carlos Sainz Jnr,SAI,McLaren,0,38,data/f1_maclaren.png
+3,Netherlands,Max Verstappen,VER,Red Bull,1,136,data/f1_redbull_ver.png
+4,Germany,Sebastian Vettel,VET,Ferrari,0,123,data/f1_ferrari_vet.png
+5,Monaco,Charles Leclerc,LEC,Ferrari,0,120,data/f1_ferrari_lec.png
+6,France,Pierre Gasly,GAS,Toro Rosso,0,55,data/f1_redbull_gas.png
+7,Spain,Carlos Sainz Jnr,SAI,McLaren,0,38,data/f1_maclaren_sai.png
 8,Finland,Kimi Raikkonen,RAI,Alfa Romeo,0,25,data/f1_alfa.png
-9,Australia,Daniel Ricciardo,RIC,Renault,0,22,data/f1_renault.png
-10,Great Britain,Lando Norris,NOR,McLaren,0,22,data/f1_maclaren.png
-11,Germany,Nico Hulkenberg,HUL,Renault,0,17,data/f1_renault.png
+9,Australia,Daniel Ricciardo,RIC,Renault,0,22,data/f1_renault_ric.png
+10,Great Britain,Lando Norris,NOR,McLaren,0,22,data/f1_maclaren_nor.png
+11,Germany,Nico Hulkenberg,HUL,Renault,0,17,data/f1_renault_hul.png
 12,Denmark,Kevin Magnussen,MAG,Haas,0,14,data/f1_haas.png
 13,Mexico,Sergio Perez,PER,Racing Point,0,13,data/f1_racing_point.png
 14,Russia,Daniil Kvyat,KVY,Toro Rosso,0,12,data/f1_toro_roso.png

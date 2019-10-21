@@ -1,4 +1,5 @@
 #include <CQChartsPaintDevice.h>
+#include <QBuffer>
 
 QRectF
 CQChartsPaintDevice::
@@ -239,6 +240,7 @@ drawEllipse(const QRectF &rect)
   painter_->drawEllipse(prect);
 }
 
+#if 0
 void
 CQChartsViewPlotPainter::
 drawArc(const QRectF &rect, double a1, double a2)
@@ -247,6 +249,7 @@ drawArc(const QRectF &rect, double a1, double a2)
 
   painter_->drawArc(prect, a1*16, a2*16);
 }
+#endif
 
 void
 CQChartsViewPlotPainter::
@@ -613,6 +616,7 @@ drawEllipse(const QRectF &rect)
           rect.right() << ", " << rect.top   () << ");\n";
 }
 
+#if 0
 void
 CQChartsScriptPainter::
 drawArc(const QRectF &rect, double a1, double a2)
@@ -622,6 +626,7 @@ drawArc(const QRectF &rect, double a1, double a2)
           rect.right() << ", " << rect.top   () << ", " <<
           a1 << ", " << a2 << ");\n";
 }
+#endif
 
 void
 CQChartsScriptPainter::
@@ -947,6 +952,8 @@ strokePath(const QPainterPath &path, const QPen &pen)
 {
   setPen(pen);
 
+  *os_ << "<path d=\"";
+
   addPathParts(path);
 
   *os_ << "\"";
@@ -962,11 +969,11 @@ void
 CQChartsSVGPainter::
 drawPath(const QPainterPath &path)
 {
+  *os_ << "<path d=\"";
+
   addPathParts(path);
 
   *os_ << "\"";
-
-  addPathParts(path);
 
   *os_ << " style=\"";
 
@@ -995,7 +1002,7 @@ addPathParts(const QPainterPath &path)
     const QPainterPath::Element &e = ppath.elementAt(i);
 
     if      (e.isMoveTo())
-      *os_ << " M" << e.x << " " << e.y;
+      *os_ << " M " << e.x << " " << e.y;
     else if (e.isLineTo())
       *os_ << " L " << e.x << ", " << e.y;
     else if (e.isCurveTo()) {
@@ -1085,12 +1092,14 @@ drawEllipse(const QRectF &rect)
   *os_ << "\">\n";
 }
 
+#if 0
 void
 CQChartsSVGPainter::
 drawArc(const QRectF &, double, double)
 {
   // TODO
 }
+#endif
 
 void
 CQChartsSVGPainter::
@@ -1181,11 +1190,19 @@ drawText(const QPointF &p, const QString &text)
 {
   QPointF pp = windowToPixel(p);
 
-  *os_ << "<text x=\"" << pp.x() << "\" y=\"" << pp.y() << "\"";
+  *os_ << "<text xml:space=\"preserve\" x=\"" << pp.x() << "\" y=\"" << pp.y() << "\"";
 
   writeFont();
 
+  *os_ << " fill=\"" << CQChartsUtil::encodeSVGColor(data_.pen.color()).toStdString() << "\" ";
+
+  if (data_.brush.color().alpha() < 255)
+    *os_ << " fill-opacity=\"" << data_.pen.color().alphaF() << "\" ";
+
+  *os_ << " stroke=\"none\"";
+
   *os_ << ">" << text.toStdString();
+
   *os_ << "</text>\n";
 }
 
@@ -1208,7 +1225,11 @@ drawTransformedText(const QPointF &p, const QString &text)
 
   writeFont();
 
-  *os_ << ">" << text.toStdString();
+  *os_ << " style=\"";
+
+  writePen();
+
+  *os_ << "\">" << text.toStdString();
   *os_ << "</text>\n";
 
   *os_ << "</g>\n";
@@ -1220,16 +1241,40 @@ drawImageInRect(const QRectF &rect, const QImage &image)
 {
   QRectF prect = windowToPixel(rect);
 
-  double x = prect.left  ();
-  double y = prect.bottom();
+  double px = prect.left();
+  double py = prect.top ();
 
-  drawImage(QPointF(x, y), image);
+  QPointF pw = pixelToWindow(QPointF(px, py));
+
+  drawImage(pw, image.scaled(prect.width(), prect.height(), Qt::IgnoreAspectRatio));
 }
 
 void
 CQChartsSVGPainter::
-drawImage(const QPointF &, const QImage &)
+drawImage(const QPointF &p, const QImage &image)
 {
+  QPointF pt = windowToPixel(p);
+
+  int w = image.width ();
+  int h = image.height();
+
+  // writes image into ba in PNG format
+  QByteArray ba;
+  QBuffer qbuffer(&ba);
+  qbuffer.open(QIODevice::WriteOnly);
+  image.save(&qbuffer, "PNG");
+
+  *os_ << "<image x=\"" << pt.x() << "\" y=\"" << pt.y() <<
+          "\" width=\"" << w << "\" height=\"" << h << "\" preserveAspectRatio=\"none\" " <<
+          "xlink:href=\"data:image/png;base64,";
+
+  std::vector<unsigned char> buffer;
+
+  QByteArray ba64 = ba.toBase64();
+
+  *os_ << ba64.constData();
+
+  *os_ << "\"/>\n";
 }
 
 const QFont &

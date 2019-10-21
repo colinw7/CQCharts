@@ -449,7 +449,8 @@ drawVoronoi(CQChartsPaintDevice *device) const
 
       QRectF prect(p.x - d, p.y - d, 2.0*d, 2.0*d);
 
-      device->drawArc(device->pixelToWindow(prect), 0, 360); // circle
+    //device->drawArc(device->pixelToWindow(prect), 0, 360); // circle
+      device->drawEllipse(device->pixelToWindow(prect));
     }
   }
 

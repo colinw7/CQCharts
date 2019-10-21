@@ -43,7 +43,7 @@ class CQChartsPaintDevice {
   virtual void drawRect(const QRectF &) { }
 
   virtual void drawEllipse(const QRectF &) { }
-  virtual void drawArc(const QRectF &, double, double) { }
+//virtual void drawArc(const QRectF &, double, double) { }
 
   virtual void drawPolygon (const QPolygonF &) { }
   virtual void drawPolyline(const QPolygonF &) { }
@@ -134,7 +134,7 @@ class CQChartsViewPlotPainter : public CQChartsPaintDevice {
   void drawRect(const QRectF &rect) override;
 
   void drawEllipse(const QRectF &rect) override;
-  void drawArc(const QRectF &rect, double a1, double a2) override;
+//void drawArc(const QRectF &rect, double a1, double a2) override;
 
   void drawPolygon(const QPolygonF &poly) override;
   void drawPolyline(const QPolygonF &poly) override;
@@ -226,7 +226,7 @@ class CQChartsScriptPainter : public CQChartsPaintDevice {
   void drawRect(const QRectF &rect) override;
 
   void drawEllipse(const QRectF &rect) override;
-  void drawArc(const QRectF &rect, double a1, double a2) override;
+//void drawArc(const QRectF &rect, double a1, double a2) override;
 
   void drawPolygon(const QPolygonF &poly) override;
   void drawPolyline(const QPolygonF &poly) override;
@@ -356,7 +356,7 @@ class CQChartsSVGPainter : public CQChartsPaintDevice {
   void drawRect(const QRectF &rect) override;
 
   void drawEllipse(const QRectF &rect) override;
-  void drawArc(const QRectF &rect, double a1, double a2) override;
+//void drawArc(const QRectF &rect, double a1, double a2) override;
 
   void drawPolygon(const QPolygonF &poly) override;
   void drawPolyline(const QPolygonF &poly) override;

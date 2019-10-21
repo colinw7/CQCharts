@@ -2695,6 +2695,8 @@ threadTimerSlot()
   }
   else {
     updateView = true;
+
+    setGroupedUpdateState(nextState);
   }
   }
 
