@@ -59,6 +59,7 @@ class CQChartsPolylineAnnotation;
 class CQChartsRectangleAnnotation;
 class CQChartsTextAnnotation;
 class CQChartsValueSetAnnotation;
+class CQChartsButtonAnnotation;
 
 class CQChartsPlotParameter;
 class CQChartsObj;
@@ -73,6 +74,7 @@ class CQChartsPoints;
 class CQChartsReals;
 
 class CQChartsScriptPainter;
+class CQChartsHtmlPainter;
 class CQChartsSVGPainter;
 
 class CQPropertyViewModel;
@@ -375,6 +377,8 @@ class CQChartsPlot : public CQChartsObj,
   void writeScriptRange(CQChartsScriptPainter *device) const;
 
   void writeSVG(CQChartsSVGPainter *device) const;
+
+  void writeHtml(CQChartsHtmlPainter *device) const;
 
   //---
 
@@ -1528,6 +1532,8 @@ class CQChartsPlot : public CQChartsObj,
                                                       const QString &text);
   CQChartsValueSetAnnotation  *addValueSetAnnotation (const CQChartsRect &rectangle,
                                                       const CQChartsReals &values);
+  CQChartsButtonAnnotation    *addButtonAnnotation   (const CQChartsPosition &pos,
+                                                      const QString &text);
 
   void addAnnotation(CQChartsAnnotation *annotation);
 
@@ -2006,6 +2012,8 @@ class CQChartsPlot : public CQChartsObj,
 
   void plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const;
 
+  void annotationsAtPoint(const CQChartsGeom::Point &p, Annotations &annotations) const;
+
   void objsIntersectRect(const CQChartsGeom::BBox &r, Objs &objs, bool inside) const;
 
   bool objNearestPoint(const CQChartsGeom::Point &p, CQChartsPlotObj* &obj) const;
@@ -2313,6 +2321,7 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsEditHandles*         editHandles_      { nullptr };    //!< edit controls
   bool                         editing_          { false };      //!< is editing
   Annotations                  annotations_;                     //!< extra annotations
+  Annotations                  pressAnnotations_;                //!< press annotations
   UpdatesData                  updatesData_;                     //!< updates data
   bool                         fromInvalidate_   { false };      //!< call from invalidate
 };

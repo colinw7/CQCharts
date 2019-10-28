@@ -17,12 +17,15 @@
 #include <CQPropertyViewItem.h>
 #include <CQUtil.h>
 
+#include <QStylePainter>
+
 const QStringList &
 CQChartsAnnotation::
 typeNames()
 {
   static QStringList names = QStringList() <<
-    "rectangle" << "ellipse" << "polygon" << "polyline" << "text" << "arrow" << "point" << "image";
+    "rectangle" << "ellipse" << "polygon" << "polyline" << "text" << "image" << "arrow" <<
+    "point" << "pie_slice" << "point_set" << "value_set" << "button";
 
   return names;
 }
@@ -227,6 +230,13 @@ initRectangle()
 
 void
 CQChartsAnnotation::
+setEnabled(bool b)
+{
+  CQChartsUtil::testAndSet(enabled_, b, [&]() { invalidate(); } );
+}
+
+void
+CQChartsAnnotation::
 setCheckable(bool b)
 {
   CQChartsUtil::testAndSet(checkable_, b, [&]() { invalidate(); } );
@@ -269,8 +279,9 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   model->setObjectRoot(path, this);
 
   addProp(path, "id"       , "id"       , "Annotation id");
-  addProp(path, "checkable", "checkable", "Is checkable");
-  addProp(path, "checked"  , "checked"  , "Is checked"  );
+  addProp(path, "enabled"  , "enabled"  , "Is enabled"   );
+  addProp(path, "checkable", "checkable", "Is checkable" );
+  addProp(path, "checked"  , "checked"  , "Is checked"   );
 }
 
 void
@@ -527,6 +538,9 @@ bool
 CQChartsAnnotation::
 selectPress(const CQChartsGeom::Point &)
 {
+  if (! isEnabled())
+    return false;
+
   return id().length();
 }
 
@@ -536,6 +550,9 @@ bool
 CQChartsAnnotation::
 editPress(const CQChartsGeom::Point &p)
 {
+  if (! isEnabled())
+    return false;
+
   editHandles_->setDragPos(p);
 
   return true;
@@ -596,8 +613,37 @@ editMoveBy(const QPointF &f)
 
 void
 CQChartsAnnotation::
-draw(CQChartsPaintDevice *)
+draw(CQChartsPaintDevice *device)
 {
+  drawInit(device);
+  drawTerm(device);
+}
+
+void
+CQChartsAnnotation::
+drawInit(CQChartsPaintDevice *device)
+{
+  if (device->type() == CQChartsPaintDevice::Type::SVG) {
+    CQChartsSVGPainter *painter = dynamic_cast<CQChartsSVGPainter *>(device);
+
+    CQChartsSVGPainter::GroupData groupData;
+
+    groupData.onclick   = true;
+    groupData.clickProc = "annotationClick";
+
+    painter->startGroup(id(), groupData);
+  }
+}
+
+void
+CQChartsAnnotation::
+drawTerm(CQChartsPaintDevice *device)
+{
+  if (device->type() == CQChartsPaintDevice::Type::SVG) {
+    CQChartsSVGPainter *painter = dynamic_cast<CQChartsSVGPainter *>(device);
+
+    painter->endGroup();
+  }
 }
 
 void
@@ -785,6 +831,10 @@ void
 CQChartsRectangleAnnotation::
 draw(CQChartsPaintDevice *device)
 {
+  drawInit(device);
+
+  //---
+
   // calc box
   QPointF start = positionToParent(this->start());
   QPointF end   = positionToParent(this->end  ());
@@ -838,8 +888,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // draw base class
-  CQChartsAnnotation::draw(device);
+  drawTerm(device);
 }
 
 void
@@ -981,6 +1030,10 @@ void
 CQChartsEllipseAnnotation::
 draw(CQChartsPaintDevice *device)
 {
+  drawInit(device);
+
+  //---
+
   QPointF center = positionToParent(center_);
 
   double xr = lengthParentWidth (xRadius_);
@@ -1027,8 +1080,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // draw base class
-  CQChartsAnnotation::draw(device);
+  drawTerm(device);
 }
 
 void
@@ -1178,6 +1230,10 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
+  drawInit(device);
+
+  //---
+
   // calc bbox
   double x1 = polygon[0].x();
   double y1 = polygon[0].y();
@@ -1235,8 +1291,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // draw base class
-  CQChartsAnnotation::draw(device);
+  drawTerm(device);
 }
 
 void
@@ -1402,6 +1457,10 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
+  drawInit(device);
+
+  //---
+
   // calc bbox
   double x1 = polygon[0].x();
   double y1 = polygon[0].y();
@@ -1448,8 +1507,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // draw base class
-  CQChartsAnnotation::draw(device);
+  drawTerm(device);
 }
 
 void
@@ -1796,6 +1854,10 @@ void
 CQChartsTextAnnotation::
 draw(CQChartsPaintDevice *device)
 {
+  drawInit(device);
+
+  //---
+
   // recalculate position to bbox on draw as can change depending on pixel mapping
   if (! rectangle().isSet())
     positionToBBox();
@@ -1808,16 +1870,23 @@ draw(CQChartsPaintDevice *device)
   QColor bgColor     = interpFillColor  (ColorInd());
   QColor strokeColor = interpStrokeColor(ColorInd());
 
-  if (isCheckable() && ! isChecked()) {
-    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
-    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+  if (isEnabled()) {
+    if (isCheckable() && ! isChecked()) {
+      bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.5);
+      strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.5);
+    }
+  }
+  else {
+    bgColor     = CQChartsUtil::blendColors(backgroundColor(), bgColor    , 0.8);
+    strokeColor = CQChartsUtil::blendColors(backgroundColor(), strokeColor, 0.8);
   }
 
   setPenBrush(penBrush,
     CQChartsPenData  (isStroked(), strokeColor, strokeAlpha(), strokeWidth(), strokeDash()),
     CQChartsBrushData(isFilled (), bgColor, fillAlpha(), fillPattern()));
 
-  updatePenBrushState(penBrush);
+  if (isEnabled())
+    updatePenBrushState(penBrush);
 
   //---
 
@@ -1834,14 +1903,20 @@ draw(CQChartsPaintDevice *device)
   // set text pen and brush
   QColor c = interpColor(textColor(), ColorInd());
 
-  if (isCheckable() && ! isChecked())
-    c = CQChartsUtil::blendColors(backgroundColor(), c, 0.5);
+  if (isEnabled()) {
+    if (isCheckable() && ! isChecked())
+      c = CQChartsUtil::blendColors(backgroundColor(), c, 0.5);
+  }
+  else {
+    c = CQChartsUtil::blendColors(backgroundColor(), c, 0.8);
+  }
 
   setPen(penBrush.pen, true, c, textAlpha());
 
   penBrush.brush.setStyle(Qt::NoBrush);
 
-  updatePenBrushState(penBrush);
+  if (isEnabled())
+    updatePenBrushState(penBrush);
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
@@ -1891,8 +1966,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // draw base class
-  CQChartsAnnotation::draw(device);
+  drawTerm(device);
 }
 
 void
@@ -2246,6 +2320,10 @@ void
 CQChartsImageAnnotation::
 draw(CQChartsPaintDevice *device)
 {
+  drawInit(device);
+
+  //---
+
   // recalculate position to bbox on draw as can change depending on pixel mapping
   if (! rectangle().isSet())
     positionToBBox();
@@ -2307,7 +2385,7 @@ draw(CQChartsPaintDevice *device)
       int iw = image_.width ();
       int ih = image_.height();
 
-      disabledImage_ = QImage(iw, ih, QImage::Format_ARGB32_Premultiplied);
+      disabledImage_ = CQChartsUtil::initImage(QSize(iw, ih));
 
       for (int y = 0; y < ih; ++y) {
         for (int x = 0; x < iw; ++x) {
@@ -2337,8 +2415,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // draw base class
-  CQChartsAnnotation::draw(device);
+  drawTerm(device);
 }
 
 void
@@ -2634,6 +2711,10 @@ void
 CQChartsArrowAnnotation::
 draw(CQChartsPaintDevice *device)
 {
+  drawInit(device);
+
+  //---
+
   // calc box
   QPointF start = positionToParent(start_);
   QPointF end   = positionToParent(end_  );
@@ -2693,8 +2774,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // draw base class
-  CQChartsAnnotation::draw(device);
+  drawTerm(device);
 }
 
 void
@@ -2945,6 +3025,10 @@ void
 CQChartsPointAnnotation::
 draw(CQChartsPaintDevice *device)
 {
+  drawInit(device);
+
+  //---
+
   const CQChartsSymbolData &symbolData = this->symbolData();
 
   QPointF position = positionToParent(position_);
@@ -3003,8 +3087,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // draw base class
-  CQChartsAnnotation::draw(device);
+  drawTerm(device);
 }
 
 void
@@ -3164,6 +3247,10 @@ void
 CQChartsPieSliceAnnotation::
 draw(CQChartsPaintDevice *device)
 {
+  drawInit(device);
+
+  //---
+
   // calc box
   QPointF position = positionToParent(position_);
 
@@ -3207,8 +3294,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // draw base class
-  CQChartsAnnotation::draw(device);
+  drawTerm(device);
 }
 
 void
@@ -3348,6 +3434,10 @@ void
 CQChartsPointSetAnnotation::
 draw(CQChartsPaintDevice *device)
 {
+  drawInit(device);
+
+  //---
+
   // set pen and brush
   CQChartsPenBrush penBrush;
 
@@ -3496,8 +3586,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // draw base class
-  CQChartsAnnotation::draw(device);
+  drawTerm(device);
 }
 
 void
@@ -3633,6 +3722,10 @@ void
 CQChartsValueSetAnnotation::
 draw(CQChartsPaintDevice *device)
 {
+  drawInit(device);
+
+  //---
+
   CQChartsGeom::BBox bbox = CQChartsGeom::BBox(rectangle_.rect());
 
   bbox_ = density_->bbox(bbox);
@@ -3666,8 +3759,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // draw base class
-  CQChartsAnnotation::draw(device);
+  drawTerm(device);
 }
 
 void
@@ -3681,6 +3773,249 @@ write(std::ostream &os, const QString &parentVarName, const QString &varName) co
     os << " -rectangle {" << rectangle().toString().toStdString() << "}";
 
   os << " -values {" << values().toString().toStdString() << "}";
+
+  os << "]\n";
+
+  //---
+
+  writeProperties(os, varName);
+}
+
+//---
+
+CQChartsButtonAnnotation::
+CQChartsButtonAnnotation(CQChartsView *view, const CQChartsPosition &position,
+                         const QString &textStr) :
+ CQChartsAnnotation(view, Type::BUTTON)
+{
+  setPosition(position);
+
+  init(textStr);
+}
+
+CQChartsButtonAnnotation::
+CQChartsButtonAnnotation(CQChartsPlot *plot, const CQChartsPosition &position,
+                         const QString &textStr) :
+ CQChartsAnnotation(plot, Type::BUTTON)
+{
+  setPosition(position);
+
+  init(textStr);
+}
+
+CQChartsButtonAnnotation::
+~CQChartsButtonAnnotation()
+{
+}
+
+void
+CQChartsButtonAnnotation::
+init(const QString &textStr)
+{
+  setObjectName(QString("button.%1").arg(ind()));
+
+  CQChartsColor themeFg(CQChartsColor::Type::INTERFACE_VALUE, 1);
+
+  setTextStr  (textStr);
+  setTextColor(themeFg);
+}
+
+void
+CQChartsButtonAnnotation::
+setPosition(const CQChartsPosition &p)
+{
+  position_ = p;
+
+  emit dataChanged();
+}
+
+void
+CQChartsButtonAnnotation::
+addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*desc*/)
+{
+  auto addProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(model->addProperty(path, this, name, alias)->setDesc(desc));
+  };
+
+  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                          const QString &desc, bool hidden=false) {
+    CQPropertyViewItem *item = addProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  //---
+
+  QString path1 = path + "/" + propertyId();
+
+  CQChartsAnnotation::addProperties(model, path1);
+
+  addProp(path1, "position", "position", "Text origin");
+
+  QString textPath = path1 + "/text";
+
+  addProp(textPath, "textStr", "string", "Text string");
+
+  addStyleProp(textPath, "textColor", "color", "Text color");
+  addStyleProp(textPath, "textAlpha", "alpha", "Text alpha");
+  addStyleProp(textPath, "textFont" , "font" , "Text font");
+  addStyleProp(textPath, "textAlign", "align", "Text align");
+
+  addStrokeFillProperties(model, path1);
+}
+
+QString
+CQChartsButtonAnnotation::
+propertyId() const
+{
+  return QString("buttonAnnotation%1").arg(ind());
+}
+
+void
+CQChartsButtonAnnotation::
+mousePress(const CQChartsGeom::Point &, SelMod)
+{
+  pressed_ = true;
+
+  invalidate();
+}
+
+void
+CQChartsButtonAnnotation::
+mouseMove(const CQChartsGeom::Point &)
+{
+}
+
+void
+CQChartsButtonAnnotation::
+mouseRelease(const CQChartsGeom::Point &)
+{
+  pressed_ = false;
+
+  invalidate();
+}
+
+bool
+CQChartsButtonAnnotation::
+inside(const CQChartsGeom::Point &p) const
+{
+  return CQChartsAnnotation::inside(p);
+}
+
+void
+CQChartsButtonAnnotation::
+draw(CQChartsPaintDevice *device)
+{
+  if (device->type() == CQChartsPaintDevice::Type::SVG)
+    return;
+
+  //---
+
+  drawInit(device);
+
+  //---
+
+  prect_ = calcPixelRect();
+  bbox_  = pixelToWindow(CQChartsGeom::BBox(prect_));
+
+  //---
+
+  if (device->isInteractive()) {
+    CQChartsViewPlotPainter *painter = dynamic_cast<CQChartsViewPlotPainter *>(device);
+
+    QImage img = CQChartsUtil::initImage(QSize(prect_.width(), prect_.height()));
+
+    QStylePainter spainter(&img, view());
+
+    QStyleOptionButton opt;
+
+    opt.rect = QRect(0, 0, prect_.width(), prect_.height());
+    opt.text = textStr();
+
+    if (pressed_)
+      opt.state |= QStyle::State_Sunken;
+    else
+      opt.state |= QStyle::State_Raised;
+
+    opt.state |= QStyle::State_Active;
+
+    if (isEnabled())
+      opt.state |= QStyle::State_Enabled;
+
+    if (isCheckable()) {
+      if (isChecked())
+        opt.state |= QStyle::State_On;
+      else
+        opt.state |= QStyle::State_Off;
+    }
+
+    opt.palette = view()->palette();
+
+    spainter.setFont(calcFont(textFont()));
+
+    QColor bg = opt.palette.color(QPalette::Button);
+    QColor fg = opt.palette.color(QPalette::ButtonText);
+
+    QColor c = fg;
+
+    if      (! isEnabled())
+      c = CQChartsUtil::blendColors(bg, fg, 0.6);
+    else if (isInside())
+      c = Qt::blue;
+
+    opt.palette.setColor(QPalette::ButtonText, c);
+
+    spainter.drawControl(QStyle::CE_PushButton, opt);
+
+    QPointF p = prect_.topLeft();
+
+    painter->painter()->drawImage(p.x(), p.y(), img);
+  }
+
+  //---
+
+  drawTerm(device);
+}
+
+void
+CQChartsButtonAnnotation::
+writeHtml(CQChartsHtmlPainter *device)
+{
+  prect_ = calcPixelRect();
+  bbox_  = pixelToWindow(CQChartsGeom::BBox(prect_));
+
+  device->createButton(bbox_.qrect(), textStr(), id(), "annotationClick");
+}
+
+QRect
+CQChartsButtonAnnotation::
+calcPixelRect() const
+{
+  QFont font = calcFont(textFont());
+
+  QFontMetrics fm(font);
+
+  int w = fm.width(textStr()) + 4;
+  int h = fm.height() + 4;
+
+  QPointF p = positionToPixel(position());
+
+  return QRect(p.x(), p.y(), w, h);
+}
+
+void
+CQChartsButtonAnnotation::
+write(std::ostream &os, const QString &parentVarName, const QString &varName) const
+{
+  // -view/-plot -id -tip
+  writeKeys(os, "create_charts_button_annotation", parentVarName, varName);
+
+  os << " -position {" << position().toString().toStdString() << "}";
+
+  if (textStr().length())
+    os << " -text {" << textStr().toStdString() << "}";
 
   os << "]\n";
 

@@ -703,7 +703,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   using GroupFitData  = std::map<int,CQChartsFitData>;
   using GroupStatData = std::map<int,StatData>;
   using GroupHull     = std::map<int,CQChartsGrahamHull *>;
-  using GroupWhiskers = std::map<int,CQChartsXYBoxWhisker>;
+  using GroupWhiskers = std::map<int,CQChartsXYBoxWhisker *>;
 
   struct BestFitData {
     bool visible         { false }; //!< show fit

@@ -667,19 +667,6 @@ void
 CQChartsPlot::
 writeScript(CQChartsScriptPainter *device) const
 {
-  auto encodeObjId = [&](const QString &id) {
-    int len = id.length();
-    QString id1;
-    for (int i = 0; i < len; ++i) {
-      QChar c = id[i];
-      if (c.isLetterOrNumber())
-        id1 += c;
-      else
-        id1 += '_';
-    }
-    return id1.toStdString();
-  };
-
   std::string plotId = "plot_" + this->id().toStdString();
 
   //---
@@ -690,7 +677,8 @@ writeScript(CQChartsScriptPainter *device) const
 
   //---
 
-  os << "function Charts_" << plotId << " () {\n";
+  os << "function Charts_" << plotId << "() {\n";
+  os << "  this.visible = " << (isVisible() ? 1 : 0) << ";\n";
   os << "  this.objs = [];\n";
   os << "}\n";
 
@@ -706,14 +694,13 @@ writeScript(CQChartsScriptPainter *device) const
 
     if (plotObj->detailHint() == CQChartsPlotObj::DetailHint::MAJOR) {
       QString     objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
-      std::string objStr = encodeObjId(objId);
+      std::string objStr = device->encodeObjId(objId).toStdString();
 
       if (imajor > 0)
         os << "\n";
 
-      os << "  this." << objStr << " = new Charts_" << objStr << "();\n";
+      os << "  this." << objStr << " = new Charts_" << objStr << "(this);\n";
       os << "  this.objs.push(this." << objStr << ");\n";
-      os << "\n";
       os << "  this." << objStr << ".init();\n";
 
       ++imajor;
@@ -726,6 +713,7 @@ writeScript(CQChartsScriptPainter *device) const
 
   os << "\n";
   os << "Charts_" << plotId << ".prototype.eventMouseDown = function(e) {\n";
+  os << "  if (! this.visible) return;\n";
   os << "  var rect = charts.canvas.getBoundingClientRect();\n";
   os << "  var mouseX = e.clientX - rect.left;\n";
   os << "  var mouseY = e.clientY - rect.top;\n";
@@ -733,6 +721,7 @@ writeScript(CQChartsScriptPainter *device) const
   os << "}\n";
   os << "\n";
   os << "Charts_" << plotId << ".prototype.eventMouseMove = function(e) {\n";
+  os << "  if (! this.visible) return;\n";
   os << "  var rect = charts.canvas.getBoundingClientRect();\n";
   os << "  var mouseX = e.clientX - rect.left;\n";
   os << "  var mouseY = e.clientY - rect.top;\n";
@@ -740,6 +729,7 @@ writeScript(CQChartsScriptPainter *device) const
   os << "}\n";
   os << "\n";
   os << "Charts_" << plotId << ".prototype.eventMouseUp = function(e) {\n";
+  os << "  if (! this.visible) return;\n";
   os << "  var rect = charts.canvas.getBoundingClientRect();\n";
   os << "  var mouseX = e.clientX - rect.left;\n";
   os << "  var mouseY = e.clientY - rect.top;\n";
@@ -748,20 +738,31 @@ writeScript(CQChartsScriptPainter *device) const
 
   //---
 
-  // mapping
   device->resetData();
-
-  os << "\n";
-  os << "Charts_" << plotId << ".prototype.draw = function() {\n";
 
   CQChartsGeom::BBox vrect = viewBBox();
 
+  os << "\n";
+  os << "Charts_" << plotId << ".prototype.initRange = function() {\n";
+  os << "  charts.invertX = " << isInvertX() << ";\n";
+  os << "  charts.invertY = " << isInvertY() << ";\n";
+  os << "\n";
   os << "  charts.vxmin = " << vrect.getXMin() << ";\n";
   os << "  charts.vymin = " << vrect.getYMin() << ";\n";
   os << "  charts.vxmax = " << vrect.getXMax() << ";\n";
   os << "  charts.vymax = " << vrect.getYMax() << ";\n";
 
   writeScriptRange(device);
+
+  os << "}\n";
+
+  //---
+
+  // draw
+  os << "\n";
+  os << "Charts_" << plotId << ".prototype.draw = function() {\n";
+  os << "  if (! this.visible) return;\n";
+  os << "  this.initRange();\n";
 
   //---
 
@@ -823,10 +824,11 @@ writeScript(CQChartsScriptPainter *device) const
 
     if (plotObj->detailHint() == CQChartsPlotObj::DetailHint::MAJOR) {
       QString     objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
-      std::string objStr = encodeObjId(objId);
+      std::string objStr = device->encodeObjId(objId).toStdString();
 
       os << "\n";
-      os << "function Charts_" << objStr << " () {\n";
+      os << "function Charts_" << objStr << "(plot) {\n";
+      os << "  this.plot = plot;\n";
       os << "}\n";
 
       os << "\n";
@@ -838,6 +840,7 @@ writeScript(CQChartsScriptPainter *device) const
 
       os << "\n";
       os << "Charts_" << objStr << ".prototype.eventMouseDown = function(mouseX, mouseY) {\n";
+      os << "  this.plot.initRange();\n";
       os << "  if (this.inside(mouseX, mouseY)) {\n";
 
       if (view()->scriptSelectProc().length())
@@ -850,7 +853,14 @@ writeScript(CQChartsScriptPainter *device) const
 
       os << "\n";
       os << "Charts_" << objStr << ".prototype.eventMouseMove = function(mouseX, mouseY) {\n";
+      os << "  this.plot.initRange();\n";
       os << "  var isInside = this.inside(mouseX, mouseY);\n";
+      os << "  if (isInside) {\n";
+      os << "    if (! charts.mouseTipObj) {\n";
+      os << "      charts.mouseTipObj = this;\n";
+      os << "      showTooltip(mouseX, mouseY, this.tipId);\n";
+      os << "    }\n";
+      os << "  }\n";
       os << "  if (isInside != this.isInside) {\n";
       os << "    this.isInside = isInside;\n";
       os << "\n";
@@ -916,7 +926,7 @@ writeScript(CQChartsScriptPainter *device) const
 
     if (plotObj->detailHint() == CQChartsPlotObj::DetailHint::MAJOR) {
       QString     objId  = QString("obj_") + plotId.c_str() + "_" + plotObj->id();
-      std::string objStr = encodeObjId(objId);
+      std::string objStr = device->encodeObjId(objId).toStdString();
 
       os << "  this." << objStr << ".draw();\n";
     }
@@ -1019,6 +1029,14 @@ void
 CQChartsPlot::
 writeSVG(CQChartsSVGPainter *device) const
 {
+  QString plotId = "plot_" + this->id();
+
+  CQChartsSVGPainter::GroupData groupData;
+
+  groupData.visible = isVisible();
+
+  device->startGroup(plotId, groupData);
+
   if (hasBackgroundLayer()) {
     drawBackgroundLayer(device);
   }
@@ -1044,11 +1062,23 @@ writeSVG(CQChartsSVGPainter *device) const
   }
 
   for (const auto &plotObj : plotObjects()) {
-    if (! plotObj->isVisible()) continue;
+    QString objId = QString("obj_") + plotId + "_" + plotObj->id();
+
+    CQChartsSVGPainter::GroupData objGroupData;
+
+    objGroupData.visible   = plotObj->isVisible();
+    objGroupData.onclick   = true;
+    objGroupData.clickProc = "plotObjClick";
+    objGroupData.tipStr    = CQChartsSVGPainter::encodeString(plotObj->tipId());
+    objGroupData.hasTip    = plotObj->hasTipId();
+
+    device->startGroup(device->encodeObjId(objId), objGroupData);
 
     plotObj->drawBg(device);
     plotObj->draw  (device);
     plotObj->drawFg(device);
+
+    device->endGroup();
   }
 
   if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
@@ -1081,6 +1111,29 @@ writeSVG(CQChartsSVGPainter *device) const
     drawTitle(device);
 
     device->endGroup();
+  }
+
+  device->endGroup();
+}
+
+void
+CQChartsPlot::
+writeHtml(CQChartsHtmlPainter *device) const
+{
+  if (hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION)) {
+    if (isOverlay()) {
+      if (! isFirstPlot())
+        return;
+
+      processOverlayPlots([&](const CQChartsPlot *plot) {
+        for (auto &annotation : plot->annotations())
+          annotation->writeHtml(device);
+      });
+    }
+    else {
+      for (auto &annotation : annotations())
+        annotation->writeHtml(device);
+    }
   }
 }
 
@@ -3814,10 +3867,14 @@ bool
 CQChartsPlot::
 updateInsideObjects(const CQChartsGeom::Point &w)
 {
+  // get objects at point
   Objs objs;
 
   objsAtPoint(w, objs);
 
+  //---
+
+  // check if changed
   bool changed = false;
 
   if (objs.size() == insideObjs_.size()) {
@@ -3832,9 +3889,16 @@ updateInsideObjects(const CQChartsGeom::Point &w)
     changed = true;
   }
 
+  //---
+
+  // if changed update inside objects
   if (changed) {
+    // reset current inside index
     insideInd_ = 0;
 
+    //---
+
+    // reset inside objects
     if (isOverlay()) {
       processOverlayPlots([&](CQChartsPlot *plot) {
         plot->resetInsideObjs();
@@ -3846,6 +3910,7 @@ updateInsideObjects(const CQChartsGeom::Point &w)
 
     //---
 
+    // set new inside objects (and inside objects sorted by size)
     sizeInsideObjs_.clear();
 
     for (const auto &obj : objs) {
@@ -3854,8 +3919,11 @@ updateInsideObjects(const CQChartsGeom::Point &w)
       sizeInsideObjs_[obj->rect().area()].insert(obj);
     }
 
+    // set current inside obj
     setInsideObject();
   }
+
+  //---
 
   return changed;
 }
@@ -3878,6 +3946,7 @@ CQChartsObj *
 CQChartsPlot::
 insideObject() const
 {
+  // get nth inside object
   int i = 0;
 
   for (const auto &sizeObjs : sizeInsideObjs_) {
@@ -3896,6 +3965,7 @@ void
 CQChartsPlot::
 nextInsideInd()
 {
+  // cycle to next inside object
   ++insideInd_;
 
   if (insideInd_ >= int(insideObjs_.size()))
@@ -3906,6 +3976,7 @@ void
 CQChartsPlot::
 prevInsideInd()
 {
+  // cycle to prev inside object
   --insideInd_;
 
   if (insideInd_ < 0)
@@ -4000,20 +4071,25 @@ selectPress(const CQChartsGeom::Point &w, SelMod selMod)
 
   //---
 
-  // select annotation
-  for (const auto &annotation : annotations()) {
-    if (annotation->contains(w)) {
-      if (annotation->selectPress(w)) {
-        selectOneObj(annotation, /*allObjs*/true);
+  // select plot annotation
+  annotationsAtPoint(w, pressAnnotations_);
 
-        drawForeground();
+  for (const auto &annotation : pressAnnotations_) {
+    annotation->mousePress(w, selMod);
+  }
 
-        emit annotationPressed  (annotation);
-        emit annotationIdPressed(annotation->id());
+  for (const auto &annotation : pressAnnotations_) {
+    if (! annotation->selectPress(w))
+      continue;
 
-        return true;
-      }
-    }
+    selectOneObj(annotation, /*allObjs*/true);
+
+    drawForeground();
+
+    emit annotationPressed  (annotation);
+    emit annotationIdPressed(annotation->id());
+
+    return true;
   }
 
   //---
@@ -4177,6 +4253,17 @@ selectMove(const CQChartsGeom::Point &w, bool first)
 
   //---
 
+  // select annotation
+  Annotations annotations;
+
+  annotationsAtPoint(w, annotations);
+
+  for (const auto &annotation : annotations) {
+    annotation->mouseMove(w);
+  }
+
+  //---
+
   QString objText;
 
   if (isFollowMouse()) {
@@ -4216,8 +4303,13 @@ selectMouseRelease(const QPointF &p)
 
 bool
 CQChartsPlot::
-selectRelease(const CQChartsGeom::Point &)
+selectRelease(const CQChartsGeom::Point &w)
 {
+  // release pressed annotations
+  for (const auto &annotation : pressAnnotations_) {
+    annotation->mouseRelease(w);
+  }
+
   return true;
 }
 
@@ -4232,10 +4324,12 @@ selectObjsAtPoint(const CQChartsGeom::Point &w, Objs &objs)
   if (title() && title()->contains(w))
     objs.push_back(title());
 
-  for (const auto &annotation : annotations()) {
-    if (annotation->contains(w))
-      objs.push_back(annotation);
-  }
+  Annotations annotations;
+
+  annotationsAtPoint(w, annotations);
+
+  for (const auto &annotation : annotations)
+    objs.push_back(annotation);
 }
 #endif
 
@@ -4474,24 +4568,26 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool insid
 
   //---
 
-  for (const auto &annotation : annotations()) {
-    if (annotation->contains(w)) {
-      if (! annotation->isSelected()) {
-        selectOneObj(annotation, /*allObjs*/false);
+  Annotations annotations;
 
-        return true;
-      }
+  annotationsAtPoint(w, annotations);
 
-      if (annotation->editPress(w)) {
-        mouseData_.dragObj = DragObj::ANNOTATION;
+  for (const auto &annotation : annotations) {
+    if (! annotation->isSelected()) {
+      selectOneObj(annotation, /*allObjs*/false);
 
-        invalidateOverlay();
-
-        return true;
-      }
-
-      return false;
+      return true;
     }
+
+    if (annotation->editPress(w)) {
+      mouseData_.dragObj = DragObj::ANNOTATION;
+
+      invalidateOverlay();
+
+      return true;
+    }
+
+    return false;
   }
 
   //---
@@ -5968,10 +6064,12 @@ objsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const
 
   //---
 
-  for (const auto &annotation : annotations()) {
-    if (annotation->contains(p))
-      objs.push_back(annotation);
-  }
+  Annotations annotations;
+
+  annotationsAtPoint(p, annotations);
+
+  for (const auto &annotation : annotations)
+    objs.push_back(annotation);
 }
 
 void
@@ -5990,6 +6088,20 @@ plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &plotObjs) const
   }
   else {
     plotObjTree_->objectsAtPoint(p, plotObjs);
+  }
+}
+
+void
+CQChartsPlot::
+annotationsAtPoint(const CQChartsGeom::Point &p, Annotations &annotations) const
+{
+  annotations.clear();
+
+  for (const auto &annotation : this->annotations()) {
+    if (! annotation->contains(p))
+      continue;
+
+    annotations.push_back(annotation);
   }
 }
 
@@ -8036,6 +8148,17 @@ addValueSetAnnotation(const CQChartsRect &rectangle, const CQChartsReals &values
 {
   CQChartsValueSetAnnotation *annotation =
     new CQChartsValueSetAnnotation(this, rectangle, values);
+
+  addAnnotation(annotation);
+
+  return annotation;
+}
+
+CQChartsButtonAnnotation *
+CQChartsPlot::
+addButtonAnnotation(const CQChartsPosition &pos, const QString &text)
+{
+  CQChartsButtonAnnotation *annotation = new CQChartsButtonAnnotation(this, pos, text);
 
   addAnnotation(annotation);
 

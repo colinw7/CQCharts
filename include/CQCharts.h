@@ -82,6 +82,12 @@ class CQCharts : public QObject {
   Q_PROPERTY(bool viewKey READ hasViewKey WRITE setViewKey)
 
  public:
+  enum class ProcType {
+    TCL,
+    SCRIPT,
+    SVG
+  };
+
   //! charts tcl proc data
   struct ProcData {
     QString name;
@@ -98,6 +104,7 @@ class CQCharts : public QObject {
   using ModelDatas = std::vector<CQChartsModelData *>;
   using Views      = std::vector<CQChartsView *>;
   using Procs      = std::map<QString,ProcData>;
+  using TypeProcs  = std::map<ProcType,Procs>;
 
   using ColorInd = CQChartsUtil::ColorInd;
 
@@ -253,15 +260,17 @@ class CQCharts : public QObject {
 
   //---
 
-  void addProc(const QString &name, const QString &args, const QString &body);
+  const TypeProcs &typeProcs() const { return typeProcs_; }
 
-  void removeProc(const QString &name);
+  void addProc(ProcType type, const QString &name, const QString &args, const QString &body);
 
-  void getProcs(QStringList &names);
+  void removeProc(ProcType type, const QString &name);
 
-  bool getProcData(const QString &name, QString &args, QString &body) const;
+  void getProcNames(ProcType type, QStringList &names) const;
 
-  const Procs &procs() const { return procs_; }
+  bool getProcData(ProcType type, const QString &name, QString &args, QString &body) const;
+
+  const Procs &procs(ProcType type) const;
 
   //---
 
@@ -339,7 +348,7 @@ class CQCharts : public QObject {
   ModelDatas              modelDatas_;                  //!< model datas
   int                     lastModelInd_    { 0 };       //!< last model ind
   NameViews               views_;                       //!< views
-  Procs                   procs_;                       //!< tcl procs
+  TypeProcs               typeProcs_;                   //!< tcl procs
   CQChartsEditModelDlg*   editModelDlg_    { nullptr }; //!< edit model dialog
   CQChartsCreatePlotDlg*  createPlotDlg_   { nullptr }; //!< create plot dialog
 };

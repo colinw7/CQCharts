@@ -153,6 +153,20 @@ positionToParent(const CQChartsPosition &pos) const
   return p;
 }
 
+QPointF
+CQChartsViewPlotObj::
+positionToPixel(const CQChartsPosition &pos) const
+{
+  QPointF p;
+
+  if      (plot())
+    p = plot()->positionToPixel(pos);
+  else if (view())
+    p = view()->positionToPixel(pos);
+
+  return p;
+}
+
 double
 CQChartsViewPlotObj::
 lengthParentWidth(const CQChartsLength &len) const

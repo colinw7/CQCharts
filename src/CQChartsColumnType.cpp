@@ -591,21 +591,14 @@ getModelCacheData(const QAbstractItemModel *model, bool &ok) const
   //---
 
   // get cache data for model
+  std::unique_lock<std::mutex> lock(mutex_);
+
   auto pm = modelCacheData_.find(modelInd);
 
   if (pm == modelCacheData_.end()) {
-    std::unique_lock<std::mutex> lock(mutex_);
-
     CQChartsColumnTypeMgr *th = const_cast<CQChartsColumnTypeMgr *>(this);
 
-    auto pm1 = th->modelCacheData_.find(modelInd);
-
-    if (pm1 == modelCacheData_.end()) {
-      pm1 = th->modelCacheData_.insert(pm1,
-        ModelCacheData::value_type(modelInd, CacheData()));
-    }
-
-    pm = modelCacheData_.find(modelInd);
+    pm = th->modelCacheData_.insert(pm, ModelCacheData::value_type(modelInd, CacheData()));
   }
 
   const CacheData &cacheData = (*pm).second;

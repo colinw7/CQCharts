@@ -498,7 +498,7 @@ initCalc()
 
   // add user defined functions
   // TODO: only add if needed ? (traces)
-  for (const auto &np : charts_->procs()) {
+  for (const auto &np : charts_->procs(CQCharts::ProcType::TCL)) {
     const auto &proc = np.second;
 
     qtcl_->eval(QString("proc ::tcl::mathfunc::%1 {%2} {%3}").

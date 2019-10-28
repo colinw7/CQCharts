@@ -82,6 +82,20 @@ windowToPixel(const QPainterPath &path) const
   return (! view_ ? (! plot_ ? path : plot_->windowToPixel(path)) : view_->windowToPixel(path));
 }
 
+bool
+CQChartsPaintDevice::
+isInvertX() const
+{
+  return (plot_ ? plot_->isInvertX() : false);
+}
+
+bool
+CQChartsPaintDevice::
+isInvertY() const
+{
+  return (plot_ ? plot_->isInvertY() : false);
+}
+
 //------
 
 CQChartsPixelPainter::
@@ -381,15 +395,135 @@ setRenderHints(QPainter::RenderHints hints, bool on)
 
 //---
 
+CQChartsHtmlPainter::
+CQChartsHtmlPainter(CQChartsView *view, std::ostream &os) :
+ CQChartsPaintDevice(view), os_(&os)
+{
+}
+
+CQChartsHtmlPainter::
+CQChartsHtmlPainter(CQChartsPlot *plot, std::ostream &os) :
+ CQChartsPaintDevice(plot), os_(&os)
+{
+}
+
+QPen
+CQChartsHtmlPainter::
+pen() const
+{
+  return data_.pen;
+}
+
+QBrush
+CQChartsHtmlPainter::
+brush() const
+{
+  return data_.brush;
+}
+
+const QFont &
+CQChartsHtmlPainter::
+font() const
+{
+  return data_.font;
+}
+
+void
+CQChartsHtmlPainter::
+resetData()
+{
+  data_.reset();
+}
+
+void
+CQChartsHtmlPainter::
+setTransformRotate(const QPointF &p, double angle)
+{
+  QTransform t = data_.transform;
+
+  t.translate(p.x(), p.y());
+  t.rotate(angle);
+
+  data_.transform      = t;
+  data_.transformPoint = p;
+  data_.transformAngle = angle;
+}
+
+const QTransform &
+CQChartsHtmlPainter::
+transform() const
+{
+  return data_.transform;
+}
+
+void
+CQChartsHtmlPainter::
+setRenderHints(QPainter::RenderHints, bool)
+{
+}
+
+void
+CQChartsHtmlPainter::
+setColorNames()
+{
+  setColorNames("strokeColor", "fillColor");
+}
+
+void
+CQChartsHtmlPainter::
+setColorNames(const QString &strokeName, const QString &fillName)
+{
+  setStrokeStyleName(strokeName);
+  setFillStyleName  (fillName  );
+}
+
+void
+CQChartsHtmlPainter::
+resetColorNames()
+{
+  setStrokeStyleName("");
+  setFillStyleName  ("");
+}
+
+void
+CQChartsHtmlPainter::
+createButton(const QRectF &rect, const QString &text, const QString &id, const QString &clickProc)
+{
+  QRectF prect = windowToPixel(rect);
+
+  *os_ << "<button id=\"" << id.toStdString() << "\" style=\"position:absolute;"
+          " left:"  << prect.left () << "px; top:"    << prect.top   () << "px;"
+          " width:" << prect.width() << "px; height:" << prect.height() << "px;";
+
+  QString styleName = data_.font.styleName();
+
+  if (! styleName.length())
+    styleName = "normal";
+
+  *os_ << " font-family:" << data_.font.family().toStdString() << ";" <<
+          " font-size:" << data_.font.pointSizeF() << ";" <<
+          " font-weight:" << data_.font.weight() << ";" <<
+          " font-style:" << styleName.toStdString() << ";";
+
+  *os_ << "\"";
+
+  if (clickProc.length())
+    *os_ << " onclick=\"" << clickProc.toStdString() << "('" << id.toStdString() << "')\"";
+
+  *os_ << ">" << text.toStdString() << "</button>\n";
+}
+
+//---
+
 CQChartsScriptPainter::
 CQChartsScriptPainter(CQChartsView *view, std::ostream &os) :
- CQChartsPaintDevice(view), os_(&os)
+ CQChartsHtmlPainter(view, os)
 {
 }
 
 CQChartsScriptPainter::
 CQChartsScriptPainter(CQChartsPlot *plot, std::ostream &os) :
- CQChartsPaintDevice(plot), os_(&os)
+ CQChartsHtmlPainter(plot, os)
 {
 }
 
@@ -436,13 +570,6 @@ setClipRect(const QRectF &rect, Qt::ClipOperation op)
           rect.right() << ", " << rect.top   () << ", " << int(op) << ");\n";
 }
 
-QPen
-CQChartsScriptPainter::
-pen() const
-{
-  return data_.pen;
-}
-
 void
 CQChartsScriptPainter::
 setPen(const QPen &pen)
@@ -465,13 +592,6 @@ setPen(const QPen &pen)
     *os_ << "  " << context() << ".gc.lineWidth=" << pen.widthF() << "\n";
 
   data_.pen = pen;
-}
-
-QBrush
-CQChartsScriptPainter::
-brush() const
-{
-  return data_.brush;
 }
 
 void
@@ -525,13 +645,6 @@ drawPath(const QPainterPath &path)
 
   *os_ << "  " << context() << ".gc.fill();\n";
   *os_ << "  " << context() << ".gc.stroke();\n";
-}
-
-void
-CQChartsScriptPainter::
-resetData()
-{
-  data_.reset();
 }
 
 void
@@ -701,59 +814,46 @@ void
 CQChartsScriptPainter::
 drawImageInRect(const QRectF &rect, const QImage &image)
 {
-  double x = rect.left  ();
-  double y = rect.bottom();
+  double x = (! isInvertX() ? rect.left  () : rect.right());
+  double y = (! isInvertY() ? rect.bottom() : rect.top  ());
 
-  drawImage(QPointF(x, y), image);
+  QRectF prect = windowToPixel(rect);
+
+  double w = prect.width ();
+  double h = prect.height();
+
+  drawImage(QPointF(x, y), image.scaled(w, h, Qt::IgnoreAspectRatio));
 }
 
 void
 CQChartsScriptPainter::
 drawImage(const QPointF &p, const QImage &image)
 {
-  int iw = image.width ();
-  int ih = image.height();
+  // writes image into ba in PNG format
+  QByteArray ba;
+  QBuffer qbuffer(&ba);
+  qbuffer.open(QIODevice::WriteOnly);
+  image.save(&qbuffer, "PNG");
 
-  *os_ << "  var iwidth = "  << iw << ";\n";
-  *os_ << "  var iheight = " << ih << ";\n";
-  *os_ << "\n";
-  *os_ << "  var idata = " << context() << ".gc.createImageData(iwidth, iheight);\n";
-  *os_ << "\n";
+  *os_ << "  var imageData=\"data:image/png;base64,";
 
-  int i = 0;
+  std::vector<unsigned char> buffer;
 
-  for (int y = 0; y < ih; ++y) {
-    for (int x = 0; x < iw; ++x, i += 4) {
-      QRgb rgb = image.pixel(x, y);
+  QByteArray ba64 = ba.toBase64();
 
-      int a = qAlpha(rgb);
+  *os_ << ba64.constData();
 
-      if (a != 0) {
-        int r = qRed  (rgb);
-        int g = qGreen(rgb);
-        int b = qBlue (rgb);
+  *os_ << "\";\n";
 
-        if (r != 0) *os_ << "  idata.data[" << i     << "]=" << r << ";\n";
-        if (g != 0) *os_ << "  idata.data[" << i + 1 << "]=" << g << ";\n";
-        if (b != 0) *os_ << "  idata.data[" << i + 2 << "]=" << b << ";\n";
-
-        *os_ << "  idata.data[" << i + 3 << "]=" << a << ";\n";
-      }
-    }
-  }
+  *os_ << "  var image = new Image();\n";
+  *os_ << "  image.src = imageData;\n";
 
   *os_ << "\n";
   *os_ << "  var px = " << context() << ".plotXToPixel(" << p.x() << ");\n";
   *os_ << "  var py = " << context() << ".plotYToPixel(" << p.y() << ");\n";
   *os_ << "\n";
-  *os_ << "  " << context() << ".gc.putImageData(idata, px, py);\n";
-}
 
-const QFont &
-CQChartsScriptPainter::
-font() const
-{
-  return data_.font;
+  *os_ << "  charts.gc.drawImage(image, px, py);\n";
 }
 
 void
@@ -765,27 +865,6 @@ setFont(const QFont &f)
 
   data_.font    = f;
   data_.hasFont = true;
-}
-
-void
-CQChartsScriptPainter::
-setTransformRotate(const QPointF &p, double angle)
-{
-  QTransform t = data_.transform;
-
-  t.translate(p.x(), p.y());
-  t.rotate(angle);
-
-  data_.transform      = t;
-  data_.transformPoint = p;
-  data_.transformAngle = angle;
-}
-
-const QTransform &
-CQChartsScriptPainter::
-transform() const
-{
-  return data_.transform;
 }
 
 void
@@ -805,12 +884,6 @@ setTransform(const QTransform &t, bool combine)
 #endif
 }
 
-void
-CQChartsScriptPainter::
-setRenderHints(QPainter::RenderHints, bool)
-{
-}
-
 std::string
 CQChartsScriptPainter::
 context() const
@@ -825,40 +898,17 @@ setContext(const std::string &context)
   context_ = context;
 }
 
-void
-CQChartsScriptPainter::
-setColorNames()
-{
-  setColorNames("strokeColor", "fillColor");
-}
-
-void
-CQChartsScriptPainter::
-setColorNames(const QString &strokeName, const QString &fillName)
-{
-  setStrokeStyleName(strokeName);
-  setFillStyleName  (fillName  );
-}
-
-void
-CQChartsScriptPainter::
-resetColorNames()
-{
-  setStrokeStyleName("");
-  setFillStyleName  ("");
-}
-
 //---
 
 CQChartsSVGPainter::
 CQChartsSVGPainter(CQChartsView *view, std::ostream &os) :
- CQChartsPaintDevice(view), os_(&os)
+ CQChartsHtmlPainter(view, os)
 {
 }
 
 CQChartsSVGPainter::
 CQChartsSVGPainter(CQChartsPlot *plot, std::ostream &os) :
- CQChartsPaintDevice(plot), os_(&os)
+ CQChartsHtmlPainter(plot, os)
 {
 }
 
@@ -899,25 +949,11 @@ setClipRect(const QRectF &, Qt::ClipOperation)
   // TODO
 }
 
-QPen
-CQChartsSVGPainter::
-pen() const
-{
-  return data_.pen;
-}
-
 void
 CQChartsSVGPainter::
 setPen(const QPen &pen)
 {
   data_.pen = pen;
-}
-
-QBrush
-CQChartsSVGPainter::
-brush() const
-{
-  return data_.brush;
 }
 
 void
@@ -981,13 +1017,6 @@ drawPath(const QPainterPath &path)
   writeBrush();
 
   *os_ << "\"/>\n";
-}
-
-void
-CQChartsSVGPainter::
-resetData()
-{
-  data_.reset();
 }
 
 void
@@ -1277,40 +1306,12 @@ drawImage(const QPointF &p, const QImage &image)
   *os_ << "\"/>\n";
 }
 
-const QFont &
-CQChartsSVGPainter::
-font() const
-{
-  return data_.font;
-}
-
 void
 CQChartsSVGPainter::
 setFont(const QFont &f)
 {
   data_.font    = f;
   data_.hasFont = true;
-}
-
-void
-CQChartsSVGPainter::
-setTransformRotate(const QPointF &p, double angle)
-{
-  QTransform t = data_.transform;
-
-  t.translate(p.x(), p.y());
-  t.rotate(angle);
-
-  data_.transform      = t;
-  data_.transformPoint = p;
-  data_.transformAngle = angle;
-}
-
-const QTransform &
-CQChartsSVGPainter::
-transform() const
-{
-  return data_.transform;
 }
 
 void
@@ -1325,15 +1326,23 @@ setTransform(const QTransform &t, bool combine)
 
 void
 CQChartsSVGPainter::
-setRenderHints(QPainter::RenderHints, bool)
+startGroup(const QString &id, const GroupData &groupData)
 {
-}
+  *os_ << "<g id=\"" << id.toStdString() << "\"";
 
-void
-CQChartsSVGPainter::
-startGroup(const QString &id)
-{
-  *os_ << "<g id=\"" << id.toStdString() << "\">\n";
+  if (! groupData.visible)
+    *os_ << " visibility=\"hidden\"";
+
+  if (groupData.onclick)
+    *os_ << " onclick=\"" <<
+       groupData.clickProc.toStdString() << "('" << id.toStdString() << "')\"";
+
+  if (groupData.hasTip) {
+    *os_ << " onmousemove=\"showTooltip(evt, '" << groupData.tipStr.toStdString() << "')\"";
+    *os_ << " onmouseout=\"hideTooltip()\"";
+  }
+
+  *os_ << ">\n";
 }
 
 void
@@ -1379,8 +1388,13 @@ void
 CQChartsSVGPainter::
 writeFont() const
 {
+  QString styleName = data_.font.styleName();
+
+  if (! styleName.length())
+    styleName = "normal";
+
   *os_ << " font-family=\"" << data_.font.family().toStdString() << "\""
           " font-size=\"" << data_.font.pointSizeF() << "\""
           " font-weight=\"" << data_.font.weight() << "\""
-          " font-style=\"" << data_.font.styleName().toStdString() << "\"";
+          " font-style=\"" << styleName.toStdString() << "\"";
 }

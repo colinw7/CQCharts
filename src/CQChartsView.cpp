@@ -462,7 +462,7 @@ setAutoSize(bool b)
     sizeData_.sizeSet = true;
   }
 
-  CQChartsUtil::testAndSet(sizeData_.autoSize , b, [&]() { resizeEvent(nullptr); } );
+  CQChartsUtil::testAndSet(sizeData_.autoSize, b, [&]() { resizeEvent(nullptr); } );
 }
 
 void
@@ -476,8 +476,9 @@ setFixedSize(const QSize &size)
 
   sizeData_.sizeSet = true;
 
-  if (resize)
+  if (resize) {
     resizeEvent(nullptr);
+  }
 }
 
 void
@@ -1171,6 +1172,17 @@ addValueSetAnnotation(const CQChartsRect &rectangle, const CQChartsReals &values
 {
   CQChartsValueSetAnnotation *annotation =
     new CQChartsValueSetAnnotation(this, rectangle, values);
+
+  addAnnotation(annotation);
+
+  return annotation;
+}
+
+CQChartsButtonAnnotation *
+CQChartsView::
+addButtonAnnotation(const CQChartsPosition &pos, const QString &text)
+{
+  CQChartsButtonAnnotation *annotation = new CQChartsButtonAnnotation(this, pos, text);
 
   addAnnotation(annotation);
 
@@ -2171,7 +2183,7 @@ editMousePress()
 
   //---
 
-  std::vector<CQChartsAnnotation *> selAnnotations;
+  Annotations selAnnotations;
 
   for (const auto &annotation : annotations()) {
     if (annotation->contains(w) ||
@@ -2544,18 +2556,15 @@ selectPointPress()
   //---
 
   // select view annotation
-  std::vector<CQChartsAnnotation *> selAnnotations;
+  annotationsAtPoint(w, pressAnnotations_);
 
-  for (const auto &annotation : annotations()) {
-    if (annotation->contains(w))
-      selAnnotations.push_back(annotation);
+  for (const auto &annotation : pressAnnotations_) {
+    annotation->mousePress(w, mouseSelMod());
   }
 
-  for (const auto &selAnnotation : selAnnotations) {
+  for (const auto &selAnnotation : pressAnnotations_) {
     if (! selAnnotation->selectPress(w))
       continue;
-
-    //---
 
     selectOneObj(selAnnotation);
 
@@ -2678,6 +2687,15 @@ selectMouseRelease()
         return plot->rectSelect(CQChartsGeom::BBox(w1, w2), selMod);
       }, mouseSelMod());
     }
+  }
+
+  //---
+
+  // release pressed annotations
+  for (const auto &annotation : pressAnnotations_) {
+    CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(mousePressPoint()));
+
+    annotation->mouseRelease(w);
   }
 }
 
@@ -3106,7 +3124,7 @@ resizeEvent(QResizeEvent *)
     }
 
     // needed if size not changed ?
-    //doResize(sizeData_.width, sizeData_.height);
+    doResize(sizeData_.width, sizeData_.height);
 
     update();
   }
@@ -3192,18 +3210,17 @@ void
 CQChartsView::
 paint(QPainter *painter, CQChartsPlot *plot)
 {
+  CQChartsView *th = const_cast<CQChartsView *>(this);
+
   if (isAntiAlias())
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
   //---
 
-  // fill background
-  QBrush brush;
+  // draw background
+  CQChartsViewPainter device(this, painter);
 
-  setBrush(brush, true, interpBackgroundFillColor(ColorInd()),
-           backgroundFillAlpha(), backgroundFillPattern());
-
-  painter->fillRect(prect_.qrect(), brush);
+  drawBackground(&device);
 
   //---
 
@@ -3223,8 +3240,6 @@ paint(QPainter *painter, CQChartsPlot *plot)
     QPainter *painter1 = objectsBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
-      CQChartsView *th = const_cast<CQChartsView *>(this);
-
       CQChartsViewPainter device(th, painter1);
 
       if (hasAnnotations()) {
@@ -3245,8 +3260,6 @@ paint(QPainter *painter, CQChartsPlot *plot)
     painter1 = overlayBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
-      CQChartsView *th = const_cast<CQChartsView *>(this);
-
       CQChartsViewPainter device(th, painter1);
 
       if (hasAnnotations()) {
@@ -3268,6 +3281,19 @@ paint(QPainter *painter, CQChartsPlot *plot)
 
     overlayBuffer_->endPaint();
   }
+}
+
+void
+CQChartsView::
+drawBackground(CQChartsPaintDevice *device) const
+{
+  // fill background
+  QBrush brush;
+
+  setBrush(brush, true, interpBackgroundFillColor(ColorInd()),
+           backgroundFillAlpha(), backgroundFillPattern());
+
+  device->fillRect(prect_.qrect(), brush);
 }
 
 bool
@@ -3643,6 +3669,22 @@ searchSlot()
     invalidateOverlay();
 
     update();
+  }
+}
+
+//------
+
+void
+CQChartsView::
+annotationsAtPoint(const CQChartsGeom::Point &w, Annotations &annotations) const
+{
+  annotations.clear();
+
+  for (const auto &annotation : this->annotations()) {
+    if (! annotation->contains(w))
+      continue;
+
+    annotations.push_back(annotation);
   }
 }
 
@@ -4280,8 +4322,8 @@ showMenu(const QPoint &p)
   addAction(printMenu, "PNG", SLOT(printPNGSlot()));
   addAction(printMenu, "SVG", SLOT(printSVGSlot()));
 
-  addAction(printMenu, "SVG+"  , SLOT(writeSVGSlot()));
-  addAction(printMenu, "Script", SLOT(writeScriptSlot()));
+  addAction(printMenu, "SVG/Html", SLOT(writeSVGSlot()));
+  addAction(printMenu, "JS/Html" , SLOT(writeScriptSlot()));
 
   //---
 
@@ -4826,9 +4868,9 @@ void
 CQChartsView::
 writeSVGSlot()
 {
-  QString dir = QDir::current().dirName() + "/charts.svg";
+  QString dir = QDir::current().dirName() + "/charts_svg.html";
 
-  QString fileName = QFileDialog::getSaveFileName(this, "Write SVG", dir, "Files (*.svg)");
+  QString fileName = QFileDialog::getSaveFileName(this, "Write SVG/Html", dir, "Files (*.html)");
 
   if (! fileName.isNull())
     writeSVGSlot(fileName);
@@ -4852,9 +4894,9 @@ void
 CQChartsView::
 writeScriptSlot()
 {
-  QString dir = QDir::current().dirName() + "/charts.js";
+  QString dir = QDir::current().dirName() + "/charts_js.html";
 
-  QString fileName = QFileDialog::getSaveFileName(this, "Print Script", dir, "Files (*.js)");
+  QString fileName = QFileDialog::getSaveFileName(this, "Write JS/Html", dir, "Files (*.html)");
 
   if (! fileName.isNull())
     writeScriptSlot(fileName);
@@ -4922,39 +4964,159 @@ writeSVG(const QString &filename, CQChartsPlot *plot)
 
   //---
 
-  os <<
-  "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-  "<svg\n"
-  "  xmlns=\"http://www.w3.org/2000/svg\"\n"
-  "  xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n"
-  "  version=\"1.2\"\n"
-  "  width=\"" << width() << "\"\n"
-  "  height=\"" << height() << "\">\n"
-  "<title>SVG Document</title>\n"
-  "<desc>Generated with CQCharts</desc>\n"
-  "<defs>\n"
-  "</defs>\n";
+  os << "<!doctype html>\n";
+  os << "<html lang=\"en\">\n";
 
+  os << "<head>\n";
+  os << "<meta charset=\"UTF-8\">\n";
+  os << "<title>" << title().toStdString() << "</title>\n";
+
+  //---
+
+  os << "<style>\n";
+
+  // css (tooltip)
+  os << "#tooltip {\n";
+  os << " background: cornsilk;\n";
+  os << " border: 1px solid black;\n";
+  os << " border-radius: 5px;\n";
+  os << " padding: 5px;\n";
+  os << "}\n";
+
+  os << "</style>\n";
+
+  //---
+
+  os << "<script type=\"text/javascript\">\n";
+  os << "'use strict';\n";
+
+  //---
+
+  // tooltip procs
+  os << "function showTooltip(evt, text) {\n";
+  os << "  let tooltip = document.getElementById(\"tooltip\");\n";
+  os << "  tooltip.innerHTML = text;\n";
+  os << "  tooltip.style.display = \"block\";\n";
+  os << "  tooltip.style.left = evt.pageX + 10 + 'px';\n";
+  os << "  tooltip.style.top = evt.pageY + 10 + 'px';\n";
+  os << "}\n";
+  os << "\n";
+  os << "function hideTooltip() {\n";
+  os << "  var tooltip = document.getElementById(\"tooltip\");\n";
+  os << "  tooltip.style.display = \"none\";\n";
+  os << "}\n";
+
+  //---
+
+  // write defined SVG procs
+  os << "\n";
+
+  for (const auto &pp : charts()->procs(CQCharts::ProcType::SVG)) {
+    const CQCharts::ProcData &proc = pp.second;
+
+    os << "function " << proc.name.toStdString() << "(" << proc.args.toStdString() << ") {\n";
+    os << "  " << proc.body.toStdString() << "\n";
+    os << "}\n";
+    os << "\n";
+  }
+
+  //---
+
+  os << "</script>\n";
+
+  //---
+
+  os << "</head>\n";
+
+  os << "<body>\n";
+
+  //---
+
+  CQChartsView *th = const_cast<CQChartsView *>(this);
+
+  CQChartsSVGPainter device(th, os);
+
+  //---
+
+  // write custom html for annotations
+  if (hasAnnotations()) {
+    for (auto &annotation : annotations()) {
+      annotation->writeHtml(&device);
+    }
+  }
+
+  // write custom html for plots
+  if (plot) {
+    CQChartsSVGPainter device(const_cast<CQChartsPlot *>(plot), os);
+
+    plot->writeHtml(&device);
+  }
+  else {
+    for (auto &plot : plots_) {
+      CQChartsSVGPainter device(const_cast<CQChartsPlot *>(plot), os);
+
+      plot->writeHtml(&device);
+    }
+  }
+
+  //---
+
+  // svg block
+  os << "<svg xmlns=\"http://www.w3.org/2000/svg\""
+        " xmlns:xlink=\"http://www.w3.org/1999/xlink\""
+        " version=\"1.2\""
+        " width=\"" << width() << "\""
+        " height=\"" << height() << "\">\n";
+
+  //---
+
+  // draw background
+  drawBackground(&device);
+
+  //---
+
+  // draw specific plot
   if (plot) {
     CQChartsSVGPainter device(const_cast<CQChartsPlot *>(plot), os);
 
     plot->writeSVG(&device);
   }
+  // draw all plots
   else {
     for (auto &plot : plots_) {
-      if (! plot->isVisible())
-        continue;
-
       CQChartsSVGPainter device(const_cast<CQChartsPlot *>(plot), os);
 
       plot->writeSVG(&device);
     }
+
+    //---
+
+    if (hasAnnotations()) {
+      CQChartsSVGPainter device(th, os);
+
+      // draw annotations
+      drawAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
+    }
   }
 
-  os <<
-  "</svg>\n";
+  os << "</svg>\n";
 
   //---
+
+  // tooltip div
+  os << "<div id=\"tooltip\" display=\"none\" style=\"position: absolute; display: none;\">";
+  os << "</div>\n";
+  os << "\n";
+
+  //---
+
+  // log text
+  os << "<p id=\"log_message\"></p>\n";
+
+  //---
+
+  os << "</body>\n";
+  os << "</html>\n";
 
   return true;
 }
@@ -4967,12 +5129,73 @@ writeScript(const QString &filename, CQChartsPlot *plot)
 
   //---
 
-  CQChartsScriptPainter device(const_cast<CQChartsView *>(this), os);
+  os << "<!doctype html>\n";
+  os << "<html lang=\"en\">\n";
+
+  os << "<head>\n";
+  os << "<meta charset=\"UTF-8\">\n";
+  os << "<title>" << title().toStdString() << "</title>\n";
 
   //---
 
+  os << "<style>\n";
+
+  // css (tooltip)
+  os << "#tooltip {\n";
+  os << " background: cornsilk;\n";
+  os << " border: 1px solid black;\n";
+  os << " border-radius: 5px;\n";
+  os << " padding: 5px;\n";
+  os << "}\n";
+
+  os << "</style>\n";
+
+  //---
+
+  os << "<script type=\"text/javascript\">\n";
+  os << "'use strict';\n";
+
+  //---
+
+  // tooltip procs
+  os << "function showTooltip(x, y, text) {\n";
+  os << "  let tooltip = document.getElementById(\"tooltip\");\n";
+  os << "  tooltip.innerHTML = text;\n";
+  os << "  tooltip.style.display = \"block\";\n";
+  os << "  tooltip.style.left = x + 10 + 'px';\n";
+  os << "  tooltip.style.top = y + 10 + 'px';\n";
+  os << "}\n";
+  os << "\n";
+  os << "function hideTooltip() {\n";
+  os << "  var tooltip = document.getElementById(\"tooltip\");\n";
+  os << "  tooltip.style.display = \"none\";\n";
+  os << "}\n";
+
+  //---
+
+  // write defined SCRIPT procs
+  os << "\n";
+
+  for (const auto &pp : charts()->procs(CQCharts::ProcType::SCRIPT)) {
+    const CQCharts::ProcData &proc = pp.second;
+
+    os << "function " << proc.name.toStdString() << "(" << proc.args.toStdString() << ") {\n";
+    os << "  " << proc.body.toStdString() << "\n";
+    os << "}\n";
+    os << "\n";
+  }
+
+  //---
+
+  os << "\n";
+  os << "Charts.prototype.log = function(s) {\n";
+  os << "  document.getElementById(\"log_message\").innerHTML = s;\n";
+  os << "}\n";
+
+  //---
+
+  // write class object and procs
   os <<
-  "'use strict';\n"
   "\n"
   "var charts = new Charts();\n"
   "\n"
@@ -5001,13 +5224,18 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   "\n"
   "function Charts () {\n"
   "  this.plots = [];\n"
-  "}\n"
-  "\n";
+  "}\n";
 
+  //---
+
+  os << "\n";
   os <<
   "Charts.prototype.init = function() {\n"
   "  this.canvas = document.getElementById(\"canvas\");\n"
   "  this.gc     = this.canvas.getContext(\"2d\");\n"
+  "\n"
+  "  this.invertX = 0;\n"
+  "  this.invertY = 0;\n"
   "\n"
   "  this.vxmin = 0.0;\n"
   "  this.vymin = 0.0;\n"
@@ -5024,42 +5252,55 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   "  this.canvas.addEventListener(\"mouseup\"  , this.eventMouseUp  , false);\n"
   "\n";
 
+  //---
+
+  // create specific plot object
   if (plot) {
     std::string plotId = "plot_" + plot->id().toStdString();
 
     os << "  this." << plotId << " = new Charts_" << plotId << "();\n";
     os << "  this.plots.push(this." << plotId << ");\n";
-    os << "\n";
     os << "  this." << plotId << ".init();\n";
   }
+  // create plot objects
   else {
-    for (auto &plot : plots_) {
-      if (! plot->isVisible())
-        continue;
+    int i = 0;
 
+    for (auto &plot : plots_) {
       std::string plotId = "plot_" + plot->id().toStdString();
+
+      if (i > 0)
+        os << "\n";
 
       os << "  this." << plotId << " = new Charts_" << plotId << "();\n";
       os << "  this.plots.push(this." << plotId << ");\n";
-      os << "\n";
       os << "  this." << plotId << ".init();\n";
+
+      ++i;
     }
   }
 
   os << "}\n";
   os << "\n";
 
+  //---
+
+  // write procs
   os <<
   "Charts.prototype.eventMouseDown = function(e) {\n"
   "  charts.plots.forEach(plot => plot.eventMouseDown(e));\n"
   "}\n"
   "\n"
   "Charts.prototype.eventMouseMove = function(e) {\n"
+  "  charts.mouseTipObj = null;\n"
   "  charts.plots.forEach(plot => plot.eventMouseMove(e));\n"
+  "  if (! charts.mouseTipObj) {\n"
+  "    hideTooltip();\n"
+  "  }\n"
   "}\n"
   "\n"
   "Charts.prototype.eventMouseUp = function(e) {\n"
-  "  charts.plots.forEach(plot => plot.eventMouseMove(e));\n"
+  "  charts.plots.forEach(plot => plot.eventMouseUp(e));\n"
   "}\n"
   "\n";
 
@@ -5070,16 +5311,26 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   "  var x1 = this.vxmin*this.canvas.width/100.0;\n"
   "  var x2 = this.vxmax*this.canvas.width/100.0;\n"
   "\n"
-  "  return sx*(x2 - x1) + x1;\n"
+  "  if (! this.invertX) {\n"
+  "    return sx*(x2 - x1) + x1;\n"
+  "  }\n"
+  "  else {\n"
+  "    return sx*(x1 - x2) + x2;\n"
+  "  }\n"
   "}\n"
   "\n"
   "Charts.prototype.plotYToPixel = function(y) {\n"
-  "  var sy = (y - this.ymax)/(this.ymin - this.ymax);\n"
+  "  var sy = (y - this.ymin)/(this.ymax - this.ymin);\n"
   "\n"
-  "  var y1 = this.vymin*this.canvas.height/100.0;\n"
-  "  var y2 = this.vymax*this.canvas.height/100.0;\n"
+  "  var y1 = this.canvas.height - this.vymin*this.canvas.height/100.0;\n"
+  "  var y2 = this.canvas.height - this.vymax*this.canvas.height/100.0;\n"
   "\n"
-  "  return sy*(y2 - y1) + y1;\n"
+  "  if (! this.invertY) {\n"
+  "    return sy*(y2 - y1) + y1;\n"
+  "  }\n"
+  "  else {\n"
+  "    return sy*(y1 - y2) + y2;\n"
+  "  }\n"
   "}\n"
   "\n"
   "Charts.prototype.plotWidthToPixel = function(w) {\n"
@@ -5325,13 +5576,15 @@ writeScript(const QString &filename, CQChartsPlot *plot)
 
   //---
 
+  os << "\n";
   os <<
   "Charts.prototype.pointInsideRect = function(px, py, xmin, ymin, xmax, ymax) {\n"
   "  var pxmin = this.plotXToPixel(xmin);\n"
   "  var pymax = this.plotYToPixel(ymin);\n"
   "  var pxmax = this.plotXToPixel(xmax);\n"
   "  var pymin = this.plotYToPixel(ymax);\n"
-  "  return (px >= pxmin && px <= pxmax && py >= pymin && py <= pymax);\n"
+  "  return (px >= Math.min(pxmin, pxmax) && px <= Math.max(pxmin, pxmax) &&\n"
+  "          py >= Math.min(pymin, pymax) && py <= Math.max(pymin, pymax));\n"
   "}\n"
   "\n"
   "Charts.prototype.pointInsideCircle = function(px, py, xc, yc, r) {\n"
@@ -5438,25 +5691,57 @@ writeScript(const QString &filename, CQChartsPlot *plot)
 
   //---
 
+  // draw background proc
+  CQChartsScriptPainter device(const_cast<CQChartsView *>(this), os);
+
+  os << "Charts.prototype.drawBackground = function() {\n";
+
+  drawBackground(&device);
+
+  os << "}\n";
+
+  //---
+
+  // draw annotations proc
+  if (hasAnnotations()) {
+    os << "\n";
+    os << "Charts.prototype.drawAnnotations = function() {\n";
+
+    drawAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
+
+    os << "}\n";
+  }
+
+  //---
+
+  os << "\n";
   os << "Charts.prototype.update = function() {\n";
 
+  os << "  this.drawBackground();\n";
+  os << "\n";
+
+  // draw specific plot
   if (plot) {
     std::string plotId = "plot_" + plot->id().toStdString();
 
     os << "  this." << plotId << ".draw();\n";
   }
+  // draw all plots
   else {
     for (auto &plot : plots_) {
-      if (! plot->isVisible())
-        continue;
-
       std::string plotId = "plot_" + plot->id().toStdString();
 
       os << "  this." << plotId << ".draw();\n";
     }
   }
 
+  //---
+
+  // draw view annotations
   if (hasAnnotations()) {
+    os << "\n";
+    os << "  this.invertX = 0;\n";
+    os << "  this.invertY = 0;\n";
     os << "\n";
     os << "  this.vxmin = 0.0;\n";
     os << "  this.vymin = 0.0;\n";
@@ -5475,20 +5760,6 @@ writeScript(const QString &filename, CQChartsPlot *plot)
 
   os << "}\n";
 
-  if (hasAnnotations()) {
-    os << "\n";
-    os << "Charts.prototype.drawAnnotations = function() {\n";
-
-    drawAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
-
-    os << "}\n";
-  }
-
-  os << "\n";
-  os << "Charts.prototype.log = function(s) {\n";
-  os << "  document.getElementById(\"canvas_log\").innerHTML = s;\n";
-  os << "}\n";
-
   //---
 
   os << "\n";
@@ -5500,9 +5771,6 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   }
   else {
     for (auto &plot : plots_) {
-      if (! plot->isVisible())
-        continue;
-
       CQChartsScriptPainter device(const_cast<CQChartsPlot *>(plot), os);
 
       plot->writeScript(&device);
@@ -5510,6 +5778,67 @@ writeScript(const QString &filename, CQChartsPlot *plot)
   }
 
   //---
+
+  os << "</script>\n";
+
+  //---
+
+  os << "</head>\n";
+
+  os << "<body>\n";
+
+  //---
+
+  // canvas
+  int cw = 1600;
+  int ch = 1600;
+
+  os << "<div style=\"position: absolute; top: 0px; left: 0px;\">\n";
+  os << "<canvas id=\"canvas\" width=\"" << cw << "\" height=\"" << ch << "\">\n";
+  os << "Your browser does not support HTML 5 Canvas.\n";
+  os << "</canvas>\n";
+  os << "</div>\n";
+
+  //---
+
+  // write custom html for annotations
+  if (hasAnnotations()) {
+    for (auto &annotation : annotations()) {
+      annotation->writeHtml(&device);
+    }
+  }
+
+  // write custom html for plots
+  if (plot) {
+    CQChartsScriptPainter device(const_cast<CQChartsPlot *>(plot), os);
+
+    plot->writeHtml(&device);
+  }
+  else {
+    for (auto &plot : plots_) {
+      CQChartsScriptPainter device(const_cast<CQChartsPlot *>(plot), os);
+
+      plot->writeHtml(&device);
+    }
+  }
+
+  //---
+
+  // tooltip div
+  os << "<div id=\"tooltip\" display=\"none\" style=\"position: absolute; display: none;\">";
+  os << "</div>\n";
+  os << "\n";
+
+  //---
+
+  // log text
+  os << "<p style=\"position: absolute; top: " << ch << "px; left: 0px;\""
+        " id=\"log_message\"></p>\n";
+
+  //---
+
+  os << "</body>\n";
+  os << "</html>\n";
 
   return true;
 }
@@ -6184,8 +6513,11 @@ lengthPixelWidth(const CQChartsLength &len) const
     return len.value();
   else if (len.units() == CQChartsUnits::VIEW)
     return windowToPixelWidth(len.value());
-  else if (len.units() == CQChartsUnits::PERCENT)
-    return len.value()*width()/100.0;
+  else if (len.units() == CQChartsUnits::PERCENT) {
+    int w = (isAutoSize() ? width() : sizeData_.width);
+
+    return len.value()*w/100.0;
+  }
   else
     return len.value();
 }
@@ -6198,8 +6530,11 @@ lengthPixelHeight(const CQChartsLength &len) const
     return len.value();
   else if (len.units() == CQChartsUnits::VIEW)
     return windowToPixelHeight(len.value());
-  else if (len.units() == CQChartsUnits::PERCENT)
-    return len.value()*height()/100.0;
+  else if (len.units() == CQChartsUnits::PERCENT) {
+    int h = (isAutoSize() ? height() : sizeData_.height);
+
+    return len.value()*h/100.0;
+  }
   else
     return len.value();
 }

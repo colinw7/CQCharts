@@ -166,6 +166,9 @@ CQChartsScatterPlot::
 {
   for (const auto &ghull : groupHull_)
     delete ghull.second;
+
+  for (const auto &groupWhisker_ : groupWhiskers_)
+    delete groupWhisker_.second;
 }
 
 //------
@@ -923,6 +926,9 @@ createObjs(PlotObjs &objs) const
   for (const auto &ghull : th->groupHull_)
     delete ghull.second;
 
+  for (const auto &groupWhisker_ : groupWhiskers_)
+    delete groupWhisker_.second;
+
   th->groupPoints_  .clear();
   th->groupFitData_ .clear();
   th->groupStatData_.clear();
@@ -992,20 +998,12 @@ addPointObjects(PlotObjs &objs) const
     //---
 
     // get group points
-    auto pg = groupPoints_.find(groupInd);
+    CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
 
-    if (pg == groupPoints_.end()) {
-      std::unique_lock<std::mutex> lock(mutex_);
+    auto pg = th->groupPoints_.find(groupInd);
 
-      CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
-
-      auto pg1 = th->groupPoints_.find(groupInd);
-
-      if (pg1 == th->groupPoints_.end())
-        pg1 = th->groupPoints_.insert(pg1, GroupPoints::value_type(groupInd, Points()));
-
-      pg = groupPoints_.find(groupInd);
-    }
+    if (pg == th->groupPoints_.end())
+      pg = th->groupPoints_.insert(pg, GroupPoints::value_type(groupInd, Points()));
 
     Points &points = const_cast<Points &>((*pg).second);
 
@@ -2034,19 +2032,18 @@ drawHull(CQChartsPaintDevice *device) const
     // get hull for group (add if needed)
     int groupInd = groupNameValue.first;
 
-    auto ph = groupHull_.find(groupInd);
+    CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
 
-    if (ph == groupHull_.end()) {
-      CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+    auto ph = th->groupHull_.find(groupInd);
 
-      auto ph1 = th->groupHull_.insert(th->groupHull_.end(),
-                   GroupHull::value_type(groupInd, new CQChartsGrahamHull));
-
-      CQChartsGrahamHull *hull = (*ph1).second;
-
-      const Points &points = th->groupPoints_[groupInd];
+    if (ph == th->groupHull_.end()) {
+      ph = th->groupHull_.insert(ph, GroupHull::value_type(groupInd, new CQChartsGrahamHull));
 
       //---
+
+      CQChartsGrahamHull *hull = (*ph).second;
+
+      const Points &points = th->groupPoints_[groupInd];
 
       std::vector<double> x, y;
 
@@ -2056,10 +2053,6 @@ drawHull(CQChartsPaintDevice *device) const
 
         hull->addPoint(p);
       }
-
-      //---
-
-      ph = groupHull_.find(groupInd);
     }
 
     const CQChartsGrahamHull *hull = (*ph).second;
@@ -2148,9 +2141,9 @@ drawXDensity(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        const CQChartsXYBoxWhisker &whiskerData = (*p).second;
+        CQChartsXYBoxWhisker *whiskerData = (*p).second;
 
-        drawXDensityWhisker(device, whiskerData, ColorInd(ig, ng));
+        drawXDensityWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2169,9 +2162,9 @@ drawXDensity(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        const CQChartsXYBoxWhisker &whiskerData = (*p).second;
+        CQChartsXYBoxWhisker *whiskerData = (*p).second;
 
-        drawXDensityWhisker(device, whiskerData, ColorInd(ig, ng));
+        drawXDensityWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2200,9 +2193,9 @@ drawYDensity(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        const CQChartsXYBoxWhisker &whiskerData = (*p).second;
+        CQChartsXYBoxWhisker *whiskerData = (*p).second;
 
-        drawYDensityWhisker(device, whiskerData, ColorInd(ig, ng));
+        drawYDensityWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2221,9 +2214,9 @@ drawYDensity(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        const CQChartsXYBoxWhisker &whiskerData = (*p).second;
+        CQChartsXYBoxWhisker *whiskerData = (*p).second;
 
-        drawYDensityWhisker(device, whiskerData, ColorInd(ig, ng));
+        drawYDensityWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2374,9 +2367,9 @@ drawXWhisker(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        const CQChartsXYBoxWhisker &whiskerData = (*p).second;
+        CQChartsXYBoxWhisker *whiskerData = (*p).second;
 
-        drawXWhiskerWhisker(device, whiskerData, ColorInd(ig, ng));
+        drawXWhiskerWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2395,9 +2388,9 @@ drawXWhisker(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        const CQChartsXYBoxWhisker &whiskerData = (*p).second;
+        CQChartsXYBoxWhisker *whiskerData = (*p).second;
 
-        drawXWhiskerWhisker(device, whiskerData, ColorInd(ig, ng));
+        drawXWhiskerWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2426,9 +2419,9 @@ drawYWhisker(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        const CQChartsXYBoxWhisker &whiskerData = (*p).second;
+        CQChartsXYBoxWhisker *whiskerData = (*p).second;
 
-        drawYWhiskerWhisker(device, whiskerData, ColorInd(ig, ng));
+        drawYWhiskerWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2447,9 +2440,9 @@ drawYWhisker(CQChartsPaintDevice *device) const
       auto p = groupWhiskers_.find(groupInd);
 
       if (p != groupWhiskers_.end()) {
-        const CQChartsXYBoxWhisker &whiskerData = (*p).second;
+        CQChartsXYBoxWhisker *whiskerData = (*p).second;
 
-        drawYWhiskerWhisker(device, whiskerData, ColorInd(ig, ng));
+        drawYWhiskerWhisker(device, *whiskerData, ColorInd(ig, ng));
       }
 
       ++ig;
@@ -2536,30 +2529,20 @@ initWhiskerData() const
     // get group whiskers
     int groupInd = groupNameValue.first;
 
-    auto pw = groupWhiskers_.find(groupInd);
+    CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
 
-    if (pw == groupWhiskers_.end()) {
-      std::unique_lock<std::mutex> lock(mutex_);
+    auto pw = th->groupWhiskers_.find(groupInd);
 
-      CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+    if (pw == th->groupWhiskers_.end())
+      pw = th->groupWhiskers_.insert(pw,
+             GroupWhiskers::value_type(groupInd, new CQChartsXYBoxWhisker));
 
-      auto pw1 = th->groupWhiskers_.find(groupInd);
-
-      if (pw1 == th->groupWhiskers_.end()) {
-        (void) th->groupWhiskers_[groupInd];
-        //pw1 = th->groupWhiskers_.insert(pw1,
-        //  GroupWhiskers::value_type(groupInd, CQChartsXYBoxWhisker()));
-      }
-
-      pw = groupWhiskers_.find(groupInd);
-    }
-
-    const CQChartsXYBoxWhisker &whiskerData = (*pw).second;
+    CQChartsXYBoxWhisker *whiskerData = (*pw).second;
 
     //---
 
     // init whisker if needed
-    if (! whiskerData.xWhisker.numValues()) {
+    if (! whiskerData->xWhisker.numValues()) {
       for (const auto &plotObj : plotObjects()) {
         if (isInterrupt())
           return;
@@ -2568,14 +2551,14 @@ initWhiskerData() const
           dynamic_cast<CQChartsScatterPointObj *>(plotObj);
 
         if (pointObj && pointObj->groupInd() == groupInd) {
-          CQChartsXYBoxWhisker &whiskerData1 = const_cast<CQChartsXYBoxWhisker &>(whiskerData);
+          CQChartsXYBoxWhisker *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
-          whiskerData1.xWhisker.addValue(pointObj->point().x());
+          whiskerData1->xWhisker.addValue(pointObj->point().x());
         }
       }
     }
 
-    if (! whiskerData.yWhisker.numValues()) {
+    if (! whiskerData->yWhisker.numValues()) {
       for (const auto &plotObj : plotObjects()) {
         if (isInterrupt())
           return;
@@ -2584,9 +2567,9 @@ initWhiskerData() const
           dynamic_cast<CQChartsScatterPointObj *>(plotObj);
 
         if (pointObj && pointObj->groupInd() == groupInd) {
-          CQChartsXYBoxWhisker &whiskerData1 = const_cast<CQChartsXYBoxWhisker &>(whiskerData);
+          CQChartsXYBoxWhisker *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
-          whiskerData1.yWhisker.addValue(pointObj->point().y());
+          whiskerData1->yWhisker.addValue(pointObj->point().y());
         }
       }
     }
@@ -2603,30 +2586,20 @@ initWhiskerData() const
     // get group whiskers
     int groupInd = pg.first;
 
-    auto pw = groupWhiskers_.find(groupInd);
+    CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
 
-    if (pw == groupWhiskers_.end()) {
-      std::unique_lock<std::mutex> lock(mutex_);
+    auto pw = th->groupWhiskers_.find(groupInd);
 
-      CQChartsScatterPlot *th = const_cast<CQChartsScatterPlot *>(this);
+    if (pw == th->groupWhiskers_.end())
+      pw = th->groupWhiskers_.insert(pw,
+             GroupWhiskers::value_type(groupInd, new CQChartsXYBoxWhisker));
 
-      auto pw1 = th->groupWhiskers_.find(groupInd);
-
-      if (pw1 == th->groupWhiskers_.end()) {
-        (void) th->groupWhiskers_[groupInd];
-        //pw1 = th->groupWhiskers_.insert(pw1,
-        //  GroupWhiskers::value_type(groupInd, CQChartsXYBoxWhisker()));
-      }
-
-      pw = groupWhiskers_.find(groupInd);
-    }
-
-    const CQChartsXYBoxWhisker &whiskerData = (*pw).second;
+    CQChartsXYBoxWhisker *whiskerData = (*pw).second;
 
     //---
 
     // init whisker if needed
-    if (! whiskerData.xWhisker.numValues()) {
+    if (! whiskerData->xWhisker.numValues()) {
       for (const auto &plotObj : plotObjects()) {
         if (isInterrupt())
           return;
@@ -2639,15 +2612,15 @@ initWhiskerData() const
             if (isInterrupt())
               return;
 
-            CQChartsXYBoxWhisker &whiskerData1 = const_cast<CQChartsXYBoxWhisker &>(whiskerData);
+            CQChartsXYBoxWhisker *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
-            whiskerData1.xWhisker.addValue(p.x());
+            whiskerData1->xWhisker.addValue(p.x());
           }
         }
       }
     }
 
-    if (! whiskerData.yWhisker.numValues()) {
+    if (! whiskerData->yWhisker.numValues()) {
       for (const auto &plotObj : plotObjects()) {
         if (isInterrupt())
           return;
@@ -2660,9 +2633,9 @@ initWhiskerData() const
             if (isInterrupt())
               return;
 
-            CQChartsXYBoxWhisker &whiskerData1 = const_cast<CQChartsXYBoxWhisker &>(whiskerData);
+            CQChartsXYBoxWhisker *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
-            whiskerData1.yWhisker.addValue(p.y());
+            whiskerData1->yWhisker.addValue(p.y());
           }
         }
       }
@@ -2746,6 +2719,7 @@ CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd,
  CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect, is, ig, iv),
  plot_(plot), groupInd_(groupInd), pos_(pos)
 {
+  setDetailHint(DetailHint::MAJOR);
 }
 
 //---

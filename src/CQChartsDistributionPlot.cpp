@@ -1314,8 +1314,6 @@ getGroupIndValues(int groupInd, const CQChartsModelIndex &ind) const
 
   //---
 
-  std::unique_lock<std::mutex> lock(mutex_);
-
   CQChartsDistributionPlot *th = const_cast<CQChartsDistributionPlot *>(this);
 
   CQChartsValueSet *valueSet = new CQChartsValueSet(this);
@@ -2586,8 +2584,6 @@ CQBucketer &
 CQChartsDistributionPlot::
 groupBucketer(int groupInd)
 {
-  std::unique_lock<std::mutex> lock(mutex_);
-
   // use consistent bucketer when stacked/side by side
   if (isConsistentBucketer())
     groupInd = 0;

@@ -27,6 +27,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   Q_OBJECT
 
   Q_PROPERTY(int  ind       READ ind         WRITE setInd      )
+  Q_PROPERTY(bool enabled   READ isEnabled   WRITE setEnabled  )
   Q_PROPERTY(bool checkable READ isCheckable WRITE setCheckable)
   Q_PROPERTY(bool checked   READ isChecked   WRITE setChecked  )
 
@@ -43,7 +44,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
     POINT,
     PIE_SLICE,
     POINT_SET,
-    VALUE_SET
+    VALUE_SET,
+    BUTTON
   };
 
   using ColorInd = CQChartsUtil::ColorInd;
@@ -80,6 +82,10 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   virtual const char *typeName() const = 0;
 
   //---
+
+  // enaled
+  bool isEnabled() const { return enabled_; }
+  void setEnabled(bool b);
 
   // checkable/checked
   bool isCheckable() const { return checkable_; }
@@ -146,6 +152,14 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   //---
 
+  using SelMod = CQChartsSelMod;
+
+  virtual void mousePress  (const CQChartsGeom::Point &, SelMod) { }
+  virtual void mouseMove   (const CQChartsGeom::Point &) { }
+  virtual void mouseRelease(const CQChartsGeom::Point &) { }
+
+  //---
+
   //! interp color
   QColor interpColor(const CQChartsColor &c, const ColorInd &ind) const;
 
@@ -178,10 +192,16 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //! draw
   virtual void draw(CQChartsPaintDevice *device);
 
+  virtual void drawInit(CQChartsPaintDevice *device);
+  virtual void drawTerm(CQChartsPaintDevice *device);
+
   //! draw edit handles
   void drawEditHandles(QPainter *painter) const;
 
   //---
+
+  //! write custom SVG html
+  virtual void writeHtml(CQChartsHtmlPainter *) { }
 
   //! write details (command to recreate)
   virtual void write(std::ostream &os, const QString &parentVarName="",
@@ -212,12 +232,13 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   //! emitted when data changed
   void dataChanged();
 
- private slots:
+ protected slots:
   void invalidateSlot() { invalidate(); }
 
  protected:
   Type                 type_        { Type::NONE }; //!< type
   int                  ind_         { 0 };          //!< unique ind
+  bool                 enabled_     { true };       //!< is enabled
   bool                 checkable_   { false };      //!< is checkable
   bool                 checked_     { false };      //!< is checked
   CQChartsGeom::BBox   bbox_;                       //!< bbox (plot coords)
@@ -229,6 +250,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 /*!
  * \brief rectangle annotation
  * \ingroup Charts
+ *
+ * Filled and/or Stroked rectangle with optional rounded corners
  */
 class CQChartsRectangleAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -280,6 +303,8 @@ class CQChartsRectangleAnnotation : public CQChartsAnnotation {
 /*!
  * \brief ellipse annotation
  * \ingroup Charts
+ *
+ * Filled and/or Stroked ellipse/circle
  */
 class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -332,6 +357,8 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 /*!
  * \brief polygon annotation
  * \ingroup Charts
+ *
+ * Filled and/or Stroked polygon. Lines can be rounded
  */
 class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -391,6 +418,8 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
  * \ingroup Charts
  *
  * TODO: draw points and/or line
+ *
+ * Stroked polyline. Lines can be rounded
  */
 class CQChartsPolylineAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -450,6 +479,9 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
 /*!
  * \brief text annotation
  * \ingroup Charts
+ *
+ * Formatted text in optionally filled and/or stroked box.
+ * Text can be drawn at any angle.
  */
 class CQChartsTextAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -527,6 +559,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 /*!
  * \brief image annotation
  * \ingroup Charts
+ *
+ * Image in rectangle
  */
 class CQChartsImageAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -608,6 +642,8 @@ class CQChartsArrow;
 /*!
  * \brief arrow annotation
  * \ingroup Charts
+ *
+ * Arrow with custom end point arrows on a filled and/or stroked line
  */
 class CQChartsArrowAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -665,6 +701,8 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 /*!
  * \brief point annotation
  * \ingroup Charts
+ *
+ * Symbol drawn at point
  */
 class CQChartsPointAnnotation : public CQChartsAnnotation,
  public CQChartsObjPointData<CQChartsPointAnnotation> {
@@ -710,6 +748,8 @@ class CQChartsPointAnnotation : public CQChartsAnnotation,
 /*!
  * \brief pie slice annotation
  * \ingroup Charts
+ *
+ * Arc between two angles at a radius with optional inner radius
  */
 class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -779,6 +819,8 @@ class CQChartsPieSliceAnnotation : public CQChartsAnnotation {
 /*!
  * \brief point set annotation
  * \ingroup Charts
+ *
+ * Set of points draw as symbols, convext jull, best fit line, desitty gradie or density grid
  */
 class CQChartsPointSetAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -803,7 +845,7 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsPointSetAnnotation();
 
-  const char *typeName() const override { return "valueset"; }
+  const char *typeName() const override { return "point_set"; }
 
   const CQChartsPoints &values() const { return values_; }
   void setValues(const CQChartsPoints &values) { values_ = values; updateValues(); }
@@ -845,6 +887,8 @@ class CQChartsPointSetAnnotation : public CQChartsAnnotation {
 /*!
  * \brief value set annotation
  * \ingroup Charts
+ *
+ * Set of values draw as statistics or error bar
  */
 class CQChartsValueSetAnnotation : public CQChartsAnnotation {
   Q_OBJECT
@@ -860,7 +904,7 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
 
   virtual ~CQChartsValueSetAnnotation();
 
-  const char *typeName() const override { return "valueset"; }
+  const char *typeName() const override { return "value_set"; }
 
   const CQChartsRect &rectangle() const { return rectangle_; }
   void setRectangle(const CQChartsRect &rectangle) { rectangle_ = rectangle; emit dataChanged(); }
@@ -892,6 +936,69 @@ class CQChartsValueSetAnnotation : public CQChartsAnnotation {
   CQChartsRect     rectangle_;           //!< rectangle
   CQChartsReals    values_;              //!< real values
   CQChartsDensity* density_ { nullptr }; //!< density object
+};
+
+//---
+
+/*!
+ * \brief button annotation
+ * \ingroup Charts
+ *
+ * Button with text
+ */
+class CQChartsButtonAnnotation : public CQChartsAnnotation {
+  Q_OBJECT
+
+  Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
+
+ public:
+  CQChartsButtonAnnotation(CQChartsView *view, const CQChartsPosition &p=CQChartsPosition(),
+                           const QString &text="");
+  CQChartsButtonAnnotation(CQChartsPlot *plot, const CQChartsPosition &p=CQChartsPosition(),
+                           const QString &text="");
+
+  virtual ~CQChartsButtonAnnotation();
+
+  const char *typeName() const override { return "button"; }
+
+  const CQChartsPosition &position() const { return position_; }
+  void setPosition(const CQChartsPosition &p);
+
+  //---
+
+  void addProperties(CQPropertyViewModel *model, const QString &path,
+                     const QString &desc="") override;
+
+  QString propertyId() const override;
+
+  //---
+
+  void mousePress  (const CQChartsGeom::Point &w, SelMod) override;
+  void mouseMove   (const CQChartsGeom::Point &w) override;
+  void mouseRelease(const CQChartsGeom::Point &w) override;
+
+  //---
+
+  bool inside(const CQChartsGeom::Point &p) const override;
+
+  void draw(CQChartsPaintDevice *device) override;
+
+  void writeHtml(CQChartsHtmlPainter *device) override;
+
+  void write(std::ostream &os, const QString &parentVarName="",
+             const QString &varName="") const override;
+
+  //---
+
+ private:
+  void init(const QString &text);
+
+  QRect calcPixelRect() const;
+
+ private:
+  CQChartsPosition position_;          //!< button position
+  QRect            prect_;             //!< pixel rect
+  bool             pressed_ { false }; //!< is pressed
 };
 
 #endif

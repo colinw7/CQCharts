@@ -975,3 +975,9 @@
  + add SVG painter
  + add left/right align for data label
  + improve support of overlapping non-visible plots
+# 10/27/2019
+ + add button annotation. support custom HTML JavaScript and SVG code for button
+ + add enabled state for annotation
+ + add tooltip for JavaScript and SVG
+ + add custom user procs for JavaScript and SVG
+ + Generate HTML wrapper for JavaScript SVG

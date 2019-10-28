@@ -70,6 +70,7 @@ class CQChartsViewPlotObj : public CQChartsObj {
 
   // conversion utilities
   QPointF positionToParent(const CQChartsPosition &pos) const;
+  QPointF positionToPixel (const CQChartsPosition &pos) const;
 
   double lengthParentWidth (const CQChartsLength &len) const;
   double lengthParentHeight(const CQChartsLength &len) const;

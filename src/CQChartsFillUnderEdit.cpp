@@ -11,7 +11,6 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <QStylePainter>
 
 CQChartsFillUnderSideEdit::
 CQChartsFillUnderSideEdit(QWidget *parent) :

@@ -39,6 +39,11 @@ inline bool toString(const QVariant &var, QString &str) {
 
     str = CQChartsUtil::polygonToString(poly);
   }
+  else if (var.type() == QVariant::Image) {
+    QImage image = var.value<QImage>();
+
+    str = image.text("filename");
+  }
   else if (var.type() == QVariant::UserType) {
 #if 0
     if      (var.userType() == CQChartsPath::metaTypeId) {

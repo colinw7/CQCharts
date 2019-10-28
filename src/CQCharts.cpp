@@ -295,6 +295,22 @@ CQCharts()
   interfaceTheme_ = new CQChartsInterfaceTheme;
 
   interfaceTheme()->setDark(false);
+
+  //---
+
+  addProc(ProcType::SVG, "logMessage", "s",
+    "document.getElementById(\"log_message\").innerHTML = s;");
+
+  addProc(ProcType::SVG, "plotObjClick", "id", "logMessage('Click ' + id);");
+  addProc(ProcType::SVG, "annotationClick", "id", "logMessage('Click ' + id);");
+
+  //---
+
+  addProc(ProcType::SCRIPT, "logMessage", "s",
+    "document.getElementById(\"log_message\").innerHTML = s;");
+
+  addProc(ProcType::SCRIPT, "plotObjClick", "id", "charts.log('Click ' + id);");
+  addProc(ProcType::SCRIPT, "annotationClick", "id", "charts.log('Click ' + id);");
 }
 
 CQCharts::
@@ -1145,37 +1161,60 @@ deleteWindow(CQChartsWindow *window)
 
 void
 CQCharts::
-addProc(const QString &name, const QString &args, const QString &body)
+addProc(ProcType type, const QString &name, const QString &args, const QString &body)
 {
-  procs_[name] = ProcData(name, args, body);
+  typeProcs_[type][name] = ProcData(name, args, body);
 }
 
 void
 CQCharts::
-removeProc(const QString &name)
+removeProc(ProcType type, const QString &name)
 {
-  procs_.erase(name);
+  typeProcs_[type].erase(name);
 }
 
 void
 CQCharts::
-getProcs(QStringList &names)
+getProcNames(ProcType type, QStringList &names) const
 {
-  for (const auto &proc : procs_)
+  auto pt = typeProcs_.find(type);
+  if (pt == typeProcs_.end()) return;
+
+  const Procs &procs = (*pt).second;
+
+  for (const auto &proc : procs) {
     names.push_back(proc.first);
+  }
 }
 
 bool
 CQCharts::
-getProcData(const QString &name, QString &args, QString &body) const
+getProcData(ProcType type, const QString &name, QString &args, QString &body) const
 {
-  auto p = procs_.find(name);
-  if (p == procs_.end()) return false;
+  auto pt = typeProcs_.find(type);
+  if (pt == typeProcs_.end()) return false;
 
-  args = p->second.args;
-  body = p->second.body;
+  const Procs &procs = (*pt).second;
+
+  auto pn = procs.find(name);
+  if (pn == procs.end()) return false;
+
+  args = (*pn).second.args;
+  body = (*pn).second.body;
 
   return true;
+}
+
+const CQCharts::Procs &
+CQCharts::
+procs(ProcType type) const
+{
+  static Procs noProcs;
+
+  auto pt = typeProcs_.find(type);
+  if (pt == typeProcs_.end()) return noProcs;
+
+  return (*pt).second;
 }
 
 //---

@@ -183,28 +183,24 @@ calcRange() const
   Qt::Orientation adir = (! isHorizontal() ? Qt::Vertical : Qt::Horizontal);
 
   if (axes_.empty() || adir_ != adir) {
-    std::unique_lock<std::mutex> lock(axesMutex_);
+    th->adir_ = adir;
 
-    if (axes_.empty() || adir_ != adir) {
-      th->adir_ = adir;
+    for (auto &axis : th->axes_)
+      delete axis;
 
-      for (auto &axis : th->axes_)
-        delete axis;
+    th->axes_.clear();
 
-      th->axes_.clear();
+    int ns = yColumns().count();
 
-      int ns = yColumns().count();
+    for (int j = 0; j < ns; ++j) {
+      CQChartsAxis *axis = new CQChartsAxis(this, adir_, 0, 1);
 
-      for (int j = 0; j < ns; ++j) {
-        CQChartsAxis *axis = new CQChartsAxis(this, adir_, 0, 1);
+      axis->moveToThread(th->thread());
 
-        axis->moveToThread(th->thread());
+      axis->setParent(th);
+      axis->setPlot  (this);
 
-        axis->setParent(th);
-        axis->setPlot  (this);
-
-        th->axes_.push_back(axis);
-      }
+      th->axes_.push_back(axis);
     }
   }
 

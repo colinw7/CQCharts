@@ -772,8 +772,6 @@ addRowColumnDataTotal(const CQChartsModelIndex &ind) const
   auto pg = groupDatas_.find(groupInd);
 
   if (pg == groupDatas_.end()) {
-    std::unique_lock<std::mutex> lock(mutex_);
-
     auto pg1 = th->groupDatas_.find(groupInd);
 
     if (pg1 == th->groupDatas_.end()) {

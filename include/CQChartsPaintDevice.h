@@ -92,6 +92,9 @@ class CQChartsPaintDevice {
   double lengthWindowWidth (const CQChartsLength &w) const;
   double lengthWindowHeight(const CQChartsLength &h) const;
 
+  bool isInvertX() const;
+  bool isInvertY() const;
+
   virtual bool invertY() const { return false; }
 
  protected:
@@ -194,65 +197,28 @@ class CQChartsPlotPainter : public CQChartsViewPlotPainter {
 
 //---
 
-class CQChartsScriptPainter : public CQChartsPaintDevice {
+class CQChartsHtmlPainter : public CQChartsPaintDevice {
  public:
-  CQChartsScriptPainter(CQChartsView *view, std::ostream &os);
-  CQChartsScriptPainter(CQChartsPlot *plot, std::ostream &os);
-
-  Type type() const override { return Type::SCRIPT; }
+  CQChartsHtmlPainter(CQChartsView *view, std::ostream &os);
+  CQChartsHtmlPainter(CQChartsPlot *plot, std::ostream &os);
 
   std::ostream &os() const { return *os_; }
 
-  void save   () override;
-  void restore() override;
-
-  void setClipPath(const QPainterPath &path, Qt::ClipOperation operation) override;
-  void setClipRect(const QRectF &rect, Qt::ClipOperation operation) override;
+  //---
 
   QPen pen() const override;
-  void setPen(const QPen &pen) override;
 
   QBrush brush() const override;
-  void setBrush(const QBrush &brush) override;
-
-  void fillPath(const QPainterPath &path, const QBrush &brush) override;
-
-  void strokePath(const QPainterPath &path, const QPen &pen) override;
-
-  void drawPath(const QPainterPath &path) override;
-
-  void fillRect(const QRectF &rect, const QBrush &brush) override;
-
-  void drawRect(const QRectF &rect) override;
-
-  void drawEllipse(const QRectF &rect) override;
-//void drawArc(const QRectF &rect, double a1, double a2) override;
-
-  void drawPolygon(const QPolygonF &poly) override;
-  void drawPolyline(const QPolygonF &poly) override;
-
-  void drawLine(const QPointF &p1, const QPointF &p2) override;
-
-  void drawPoint(const QPointF &p) override;
-
-  void drawText(const QPointF &p, const QString &text) override;
-  void drawTransformedText(const QPointF &p, const QString &text) override;
-
-  void drawImage(const QPointF &, const QImage &) override;
-  void drawImageInRect(const QRectF &rect, const QImage &) override;
 
   const QFont &font() const override;
-  void setFont(const QFont &f) override;
+
+  void resetData();
 
   void setTransformRotate(const QPointF &p, double angle) override;
 
   const QTransform &transform() const override;
-  void setTransform(const QTransform &t, bool combine=false) override;
 
   void setRenderHints(QPainter::RenderHints, bool) override;
-
-  std::string context() const;
-  void setContext(const std::string &context);
 
   //---
 
@@ -269,29 +235,10 @@ class CQChartsScriptPainter : public CQChartsPaintDevice {
 
   //---
 
-  void resetData();
+  void createButton(const QRectF &rect, const QString &text, const QString &id,
+                    const QString &clickProc);
 
-  //---
-
-  static QString encodeString(const QString &str) {
-    QString str1;
-
-    int n = str.length();
-
-    for (int i = 0; i < n; ++i) {
-      if (str[i] == '\n')
-        str1 += "\\n";
-      else
-        str1 += str[i];
-    }
-
-    return str1;
-  };
-
- private:
-  void addPathParts(const QPainterPath &path);
-
- private:
+ protected:
   struct Data {
     QPen       pen;
     QBrush     brush;
@@ -317,21 +264,18 @@ class CQChartsScriptPainter : public CQChartsPaintDevice {
   std::ostream* os_ { nullptr };
   Data          data_;
   DataStack     dataStack_;
-  std::string   context_;
   QString       strokeStyleName_;
   QString       fillStyleName_;
 };
 
 //---
 
-class CQChartsSVGPainter : public CQChartsPaintDevice {
+class CQChartsScriptPainter : public CQChartsHtmlPainter {
  public:
-  CQChartsSVGPainter(CQChartsView *view, std::ostream &os);
-  CQChartsSVGPainter(CQChartsPlot *plot, std::ostream &os);
+  CQChartsScriptPainter(CQChartsView *view, std::ostream &os);
+  CQChartsScriptPainter(CQChartsPlot *plot, std::ostream &os);
 
   Type type() const override { return Type::SCRIPT; }
-
-  std::ostream &os() const { return *os_; }
 
   void save   () override;
   void restore() override;
@@ -339,10 +283,8 @@ class CQChartsSVGPainter : public CQChartsPaintDevice {
   void setClipPath(const QPainterPath &path, Qt::ClipOperation operation) override;
   void setClipRect(const QRectF &rect, Qt::ClipOperation operation) override;
 
-  QPen pen() const override;
   void setPen(const QPen &pen) override;
 
-  QBrush brush() const override;
   void setBrush(const QBrush &brush) override;
 
   void fillPath(const QPainterPath &path, const QBrush &brush) override;
@@ -371,24 +313,31 @@ class CQChartsSVGPainter : public CQChartsPaintDevice {
   void drawImage(const QPointF &, const QImage &) override;
   void drawImageInRect(const QRectF &rect, const QImage &) override;
 
-  const QFont &font() const override;
   void setFont(const QFont &f) override;
 
-  void setTransformRotate(const QPointF &p, double angle) override;
-
-  const QTransform &transform() const override;
   void setTransform(const QTransform &t, bool combine=false) override;
 
-  void setRenderHints(QPainter::RenderHints, bool) override;
-
-  void startGroup(const QString &id);
-  void endGroup();
+  std::string context() const;
+  void setContext(const std::string &context);
 
   //---
 
-  void resetData();
+  static QString encodeObjId(const QString &id) {
+    int len = id.length();
 
-  //---
+    QString id1;
+
+    for (int i = 0; i < len; ++i) {
+      QChar c = id[i];
+
+      if (c.isLetterOrNumber())
+        id1 += c;
+      else
+        id1 += '_';
+    }
+
+    return id1;
+  }
 
   static QString encodeString(const QString &str) {
     QString str1;
@@ -408,38 +357,118 @@ class CQChartsSVGPainter : public CQChartsPaintDevice {
  private:
   void addPathParts(const QPainterPath &path);
 
+ private:
+  std::string context_;
+};
+
+//---
+
+class CQChartsSVGPainter : public CQChartsHtmlPainter {
+ public:
+  CQChartsSVGPainter(CQChartsView *view, std::ostream &os);
+  CQChartsSVGPainter(CQChartsPlot *plot, std::ostream &os);
+
+  Type type() const override { return Type::SVG; }
+
+  void save   () override;
+  void restore() override;
+
+  void setClipPath(const QPainterPath &path, Qt::ClipOperation operation) override;
+  void setClipRect(const QRectF &rect, Qt::ClipOperation operation) override;
+
+  void setPen(const QPen &pen) override;
+
+  void setBrush(const QBrush &brush) override;
+
+  void fillPath(const QPainterPath &path, const QBrush &brush) override;
+
+  void strokePath(const QPainterPath &path, const QPen &pen) override;
+
+  void drawPath(const QPainterPath &path) override;
+
+  void fillRect(const QRectF &rect, const QBrush &brush) override;
+
+  void drawRect(const QRectF &rect) override;
+
+  void drawEllipse(const QRectF &rect) override;
+//void drawArc(const QRectF &rect, double a1, double a2) override;
+
+  void drawPolygon(const QPolygonF &poly) override;
+  void drawPolyline(const QPolygonF &poly) override;
+
+  void drawLine(const QPointF &p1, const QPointF &p2) override;
+
+  void drawPoint(const QPointF &p) override;
+
+  void drawText(const QPointF &p, const QString &text) override;
+  void drawTransformedText(const QPointF &p, const QString &text) override;
+
+  void drawImage(const QPointF &, const QImage &) override;
+  void drawImageInRect(const QRectF &rect, const QImage &) override;
+
+  void setFont(const QFont &f) override;
+
+  void setTransform(const QTransform &t, bool combine=false) override;
+
+  //---
+
+  struct GroupData {
+    bool    visible   { true };
+    bool    onclick   { false };
+    QString clickProc { "clickProc" };
+    bool    hasTip    { false };
+    QString tipStr;
+
+    GroupData() { }
+  };
+
+  void startGroup(const QString &id, const GroupData &groupData=GroupData());
+  void endGroup();
+
+  //---
+
+  static QString encodeObjId(const QString &id) {
+    int len = id.length();
+
+    QString id1;
+
+    for (int i = 0; i < len; ++i) {
+      QChar c = id[i];
+
+      if (c.isLetterOrNumber())
+        id1 += c;
+      else
+        id1 += '_';
+    }
+
+    return id1;
+  }
+
+  static QString encodeString(const QString &str) {
+    QString str1;
+
+    int n = str.length();
+
+    for (int i = 0; i < n; ++i) {
+      if      (str[i] == '\n')
+        str1 += "\\n";
+      else if (str[i] == '\'')
+        str1 += "\\\'";
+      else if (str[i] == '\"')
+        str1 += "\\\"";
+      else
+        str1 += str[i];
+    }
+
+    return str1;
+  };
+
+ private:
+  void addPathParts(const QPainterPath &path);
+
   void writePen  () const;
   void writeBrush() const;
   void writeFont () const;
-
- private:
-  struct Data {
-    QPen       pen;
-    QBrush     brush;
-    QFont      font;
-    bool       hasFont { false };
-    QTransform transform;
-    QPointF    transformPoint;
-    double     transformAngle { 0.0 };
-
-    void reset() {
-      pen            = QPen(Qt::NoPen);
-      brush          = QBrush(Qt::NoBrush);
-      font           = QFont();
-      hasFont        = false;
-      transform      = QTransform();
-      transformPoint = QPointF();
-      transformAngle = 0.0;
-    }
-  };
-
-  using DataStack = std::vector<Data>;
-
-  std::ostream* os_ { nullptr };
-  Data          data_;
-  DataStack     dataStack_;
-  QString       strokeStyleName_;
-  QString       fillStyleName_;
 };
 
 #endif

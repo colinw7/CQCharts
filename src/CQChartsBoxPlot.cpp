@@ -1097,8 +1097,6 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
     auto pg = groupWhiskers_.find(groupInd);
 
     if (pg == groupWhiskers_.end()) {
-      std::unique_lock<std::mutex> lock(mutex_);
-
       auto pg1 = th->groupWhiskers_.find(groupInd);
 
       if (pg1 == th->groupWhiskers_.end())
@@ -1113,8 +1111,6 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
     auto ps = setWhiskerMap.find(setId);
 
     if (ps == setWhiskerMap.end()) {
-      std::unique_lock<std::mutex> lock(mutex_);
-
       SetWhiskerMap &setWhiskerMap1 = const_cast<SetWhiskerMap &>(setWhiskerMap);
 
       auto ps1 = setWhiskerMap1.find(setId);

@@ -36,6 +36,7 @@ class CQChartsPolylineAnnotation;
 class CQChartsRectangleAnnotation;
 class CQChartsTextAnnotation;
 class CQChartsValueSetAnnotation;
+class CQChartsButtonAnnotation;
 
 class CQChartsProbeBand;
 class CQChartsDisplayRange;
@@ -442,6 +443,8 @@ class CQChartsView : public QFrame,
                                                       const QString &text);
   CQChartsTextAnnotation      *addTextAnnotation     (const CQChartsRect &rect,
                                                       const QString &text);
+  CQChartsButtonAnnotation    *addButtonAnnotation   (const CQChartsPosition &pos,
+                                                      const QString &text);
   CQChartsValueSetAnnotation  *addValueSetAnnotation (const CQChartsRect &rectangle,
                                                       const CQChartsReals &values);
 
@@ -518,6 +521,8 @@ class CQChartsView : public QFrame,
   void paintEvent(QPaintEvent *) override;
 
   void paint(QPainter *painter, CQChartsPlot *plot=nullptr);
+
+  void drawBackground(CQChartsPaintDevice *device) const;
 
   bool hasAnnotations() const;
   void drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType);
@@ -975,6 +980,8 @@ class CQChartsView : public QFrame,
 
   int plotPos(CQChartsPlot *plot) const;
 
+  void annotationsAtPoint(const CQChartsGeom::Point &w, Annotations &annotations) const;
+
   void windowToPixelI(double wx, double wy, double &px, double &py) const;
   void pixelToWindowI(double px, double py, double &wx, double &wy) const;
 
@@ -1121,6 +1128,7 @@ class CQChartsView : public QFrame,
   CQChartsEditKeyDlg*   editKeyDlg_        { nullptr };           //!< edit key dialog
   CQChartsEditTitleDlg* editTitleDlg_      { nullptr };           //!< edit title dialog
   QString               scriptSelectProc_;
+  Annotations           pressAnnotations_;
 };
 
 #endif

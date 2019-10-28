@@ -208,6 +208,8 @@ using CQChartsBoxWhisker = CQChartsBoxWhiskerT<double>;
 //------
 
 struct CQChartsXYBoxWhisker {
+  CQChartsXYBoxWhisker() { }
+
   CQChartsBoxWhisker xWhisker;
   CQChartsBoxWhisker yWhisker;
 };

@@ -3,12 +3,14 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + annotation button
+ + Better renderer for text used as buttons
  + No threading needed in plots for local data
  + values annotation : units, use width instead of rectangle
  + support all variant types in table plot (image, color, ...)
  + view annotation change doesn't redraw (rect fill/stroke visible)
  + const everywhere ?
- + SVG output
+ + SVG interactive output
  + Arrow polyline (mid points and mi symbols)
  + Axis Annotation (independent coords ?, angle)
  + Annotation connectors (arc like sankey, lines)

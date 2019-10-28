@@ -152,9 +152,9 @@ addCommands()
                new CQChartsCreateChartsArrowAnnotationCmd    (this));
     addCommand("create_charts_ellipse_annotation"  ,
                new CQChartsCreateChartsEllipseAnnotationCmd  (this));
-    addCommand("create_charts_image_annotation"     ,
+    addCommand("create_charts_image_annotation"    ,
                new CQChartsCreateChartsImageAnnotationCmd    (this));
-    addCommand("create_charts_pie_slice_annotation"    ,
+    addCommand("create_charts_pie_slice_annotation",
                new CQChartsCreateChartsPieSliceAnnotationCmd (this));
     addCommand("create_charts_point_annotation"    ,
                new CQChartsCreateChartsPointAnnotationCmd    (this));
@@ -168,8 +168,10 @@ addCommands()
                new CQChartsCreateChartsRectangleAnnotationCmd(this));
     addCommand("create_charts_text_annotation"     ,
                new CQChartsCreateChartsTextAnnotationCmd     (this));
-    addCommand("create_charts_value_set_annotation"  ,
+    addCommand("create_charts_value_set_annotation",
                new CQChartsCreateChartsValueSetAnnotationCmd (this));
+    addCommand("create_charts_button_annotation"   ,
+               new CQChartsCreateChartsButtonAnnotationCmd   (this));
     addCommand("remove_charts_annotation"          ,
                new CQChartsRemoveChartsAnnotationCmd         (this));
 
@@ -624,6 +626,9 @@ defineChartsProcCmd(CQChartsCmdArgs &argv)
 
   CQPerfTrace trace("CQChartsCmds::defineChartsProcCmd");
 
+  argv.addCmdArg("-svg"   , CQChartsCmdArg::Type::Boolean, "define svg proc");
+  argv.addCmdArg("-script", CQChartsCmdArg::Type::Boolean, "define script proc");
+
   argv.addCmdArg("name", CQChartsCmdArg::Type::String, "proc name").setRequired();
   argv.addCmdArg("args", CQChartsCmdArg::Type::String, "proc args").setRequired();
   argv.addCmdArg("body", CQChartsCmdArg::Type::String, "proc body").setRequired();
@@ -633,10 +638,13 @@ defineChartsProcCmd(CQChartsCmdArgs &argv)
   if (! argv.parse(rc))
     return rc;
 
+  bool svgFlag    = argv.getParseBool("svg");
+  bool scriptFlag = argv.getParseBool("script");
+
   const Vars &pargs = argv.getParseArgs();
 
   if (pargs.size() != 3)
-    return errorMsg("Usage: define_charts_proc <name> <args> <body>");
+    return errorMsg("Usage: define_charts_proc [-svg|-script] <name> <args> <body>");
 
   //---
 
@@ -646,7 +654,12 @@ defineChartsProcCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  charts_->addProc(name, args, body);
+  if      (svgFlag)
+    charts_->addProc(CQCharts::ProcType::SVG, name, args, body);
+  else if (scriptFlag)
+    charts_->addProc(CQCharts::ProcType::SCRIPT, name, args, body);
+  else
+    charts_->addProc(CQCharts::ProcType::TCL, name, args, body);
 
   return true;
 }
@@ -5174,7 +5187,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     else if (name == "procs") {
       QStringList procs;
 
-      charts_->getProcs(procs);
+      charts_->getProcNames(CQCharts::ProcType::TCL, procs);
 
       cmdBase_->setCmdRc(procs);
     }
@@ -5186,7 +5199,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       QString args, body;
 
-      charts_->getProcData(dataStr, args, body);
+      charts_->getProcData(CQCharts::ProcType::TCL, dataStr, args, body);
 
       QStringList strs = QStringList() << args << body;
 
@@ -5435,7 +5448,7 @@ setChartsDataCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
+createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
     charts_->errorMsg(msg);
@@ -5444,7 +5457,7 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQPerfTrace trace("CQChartsCmds::createChartsRectangleAnnotationCmd");
+  CQPerfTrace trace("CQChartsCmds::createChartsArrowAnnotationCmd");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -5454,36 +5467,34 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
   argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
   argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
-  argv.addCmdArg("-rectangle" , CQChartsCmdArg::Type::Rect, "rectangle bounding box");
+  argv.addCmdArg("-start", CQChartsCmdArg::Type::Position, "start position");
+  argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Position, "end position");
 
-  argv.addCmdArg("-start", CQChartsCmdArg::Type::Position, "start").setHidden();
-  argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Position, "end"  ).setHidden();
+  argv.addCmdArg("-line_width", CQChartsCmdArg::Type::Length, "connecting line width");
 
-  argv.addCmdArg("-margin" , CQChartsCmdArg::Type::Real, "margin" ).setHidden();
-  argv.addCmdArg("-padding", CQChartsCmdArg::Type::Real, "padding").setHidden();
+  argv.addCmdArg("-fhead", CQChartsCmdArg::Type::String, "start arrow head type");
+  argv.addCmdArg("-thead", CQChartsCmdArg::Type::String, "end arrow head type");
 
-  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool ,
-                 "background is filled"   ).setHidden();
-  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color ,
-                 "background fill color"  ).setHidden();
-  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  ,
-                 "background fill alpha"  ).setHidden();
-//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String,
-//               "background fill pattern").setHidden();
+  argv.addCmdArg("-angle", CQChartsCmdArg::Type::String,
+                 "arrow head angle");
+  argv.addCmdArg("-back_angle", CQChartsCmdArg::Type::String,
+                 "arrow head back angle").setHidden();
+  argv.addCmdArg("-length", CQChartsCmdArg::Type::String,
+                 "arrow head length");
+  argv.addCmdArg("-line_ends", CQChartsCmdArg::Type::String,
+                 "use line for arrow head").setHidden();
 
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   ,
+  argv.addCmdArg("-filled"    , CQChartsCmdArg::Type::SBool,
+                 "background is filled" ).setHidden();
+  argv.addCmdArg("-fill_color", CQChartsCmdArg::Type::Color,
+                 "background fill color").setHidden();
+
+  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool ,
                  "border is stroked"  ).setHidden();
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   ,
+  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color ,
                  "border stroke color").setHidden();
-  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    ,
-                 "border stroke alpha").setHidden();
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  ,
+  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length,
                  "border stroke width").setHidden();
-  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash,
-                 "border stroke dash" ).setHidden();
-
-  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size" ).setHidden();
-  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::Sides , "border sides").setHidden();
 
   argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
 
@@ -5512,77 +5523,180 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  CQChartsBoxData boxData;
-
-  boxData.setMargin (CQChartsMargin());
-  boxData.setPadding(0);
-
-  CQChartsFillData   &fill   = boxData.shape().fill  ();
-  CQChartsStrokeData &stroke = boxData.shape().stroke();
-
-  stroke.setVisible(true);
+  CQChartsArrowData arrowData;
 
   QString id    = argv.getParseStr("id");
   QString tipId = argv.getParseStr("tip");
 
-  boxData.setMargin (argv.getParseMargin(view, plot, "margin", boxData.margin ()));
-  boxData.setPadding(argv.getParseReal  ("padding", boxData.padding()));
+  CQChartsPosition start = argv.getParsePosition(view, plot, "start");
+  CQChartsPosition end   = argv.getParsePosition(view, plot, "end"  );
 
-  fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
-  fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
-  fill.setAlpha  (argv.getParseReal ("fill_alpha"  , fill.alpha    ()));
-//fill.setPattern(argv.getParseStr  ("fill_pattern", fill.pattern  ()));
+  arrowData.setLineWidth(argv.getParseLength(view, plot, "line_width", arrowData.lineWidth()));
 
-  stroke.setVisible(argv.getParseBool    ("stroked"     , stroke.isVisible()));
-  stroke.setColor  (argv.getParseColor   ("stroke_color", stroke.color    ()));
-  stroke.setAlpha  (argv.getParseReal    ("stroke_alpha", stroke.alpha    ()));
-  stroke.setWidth  (argv.getParseLength  (view, plot, "stroke_width", stroke.width()));
-  stroke.setDash   (argv.getParseLineDash("stroke_dash" , stroke.dash     ()));
+  if (argv.hasParseArg("fhead")) {
+    CQChartsArrowData::HeadType headType { CQChartsArrowData::HeadType::NONE };
+    bool                        lineEnds { false };
+    bool                        visible  { false };
 
-  stroke.setCornerSize(argv.getParseLength(view, plot, "corner_size", stroke.cornerSize()));
+    if (CQChartsArrowData::nameToData(argv.getParseStr("fhead"), headType, lineEnds, visible)) {
+      arrowData.setFHead        (visible);
+      arrowData.setFHeadType    (headType);
+      arrowData.setFrontLineEnds(lineEnds);
+    }
+  }
 
-  boxData.setBorderSides(argv.getParseSides("border_sides", boxData.borderSides()));
+  if (argv.hasParseArg("thead")) {
+    bool                        visible  { false };
+    CQChartsArrowData::HeadType headType { CQChartsArrowData::HeadType::NONE };
+    bool                        lineEnds { false };
+
+    if (CQChartsArrowData::nameToData(argv.getParseStr("thead"), headType, lineEnds, visible)) {
+      arrowData.setTHead       (visible);
+      arrowData.setTHeadType   (headType);
+      arrowData.setTailLineEnds(lineEnds);
+    }
+  }
+
+  // single value (common head & tail angle), two values (separate head & tail angle)
+  if (argv.hasParseArg("angle")) {
+    QStringList strs;
+
+    if (! CQTcl::splitList(argv.getParseStr("angle"), strs))
+      return errorMsg(QString("Invalid angle string '%1'").arg(argv.getParseStr("angle")));
+
+    if      (strs.length() == 1) {
+      bool ok;
+      double angle = CQChartsUtil::toReal(strs[0], ok);
+      if (! ok) return errorMsg(QString("Invalid angle string '%1'").arg(strs[0]));
+      if (angle > 0) arrowData.setAngle(angle);
+    }
+    else if (strs.length() == 2) {
+      bool ok1, ok2;
+      double angle1 = CQChartsUtil::toReal(strs[0], ok1);
+      double angle2 = CQChartsUtil::toReal(strs[1], ok2);
+      if (! ok1 || ! ok2) return errorMsg(QString("Invalid angle strings '%1' '%2'").
+                                           arg(strs[0]).arg(strs[1]));
+
+      if (angle1 > 0) arrowData.setFrontAngle(angle1);
+      if (angle2 > 0) arrowData.setTailAngle (angle2);
+    }
+    else
+      return errorMsg(QString("Invalid angle string '%1'").arg(argv.getParseStr("angle")));
+  }
+
+  // single value (common head & tail back angle), two values (separate head & tail back angle)
+  if (argv.hasParseArg("back_angle")) {
+    QStringList strs;
+
+    if (! CQTcl::splitList(argv.getParseStr("back_angle"), strs))
+      return errorMsg(QString("Invalid back_angle string '%1'").
+                       arg(argv.getParseStr("back_angle")));
+
+    if      (strs.length() == 1) {
+      bool ok; double angle = CQChartsUtil::toReal(strs[0], ok);
+      if (! ok) return errorMsg(QString("Invalid back_angle string '%1'").arg(strs[0]));
+      if (angle > 0) arrowData.setBackAngle(angle);
+    }
+    else if (strs.length() == 2) {
+      bool ok1; double angle1 = CQChartsUtil::toReal(strs[0], ok1);
+      bool ok2; double angle2 = CQChartsUtil::toReal(strs[1], ok2);
+      if (! ok1 && ! ok2) return errorMsg(QString("Invalid back_angle strings '%1' '%2'").
+                                           arg(strs[0]).arg(strs[1]));
+
+      if (angle1 > 0) arrowData.setFrontBackAngle(angle1);
+      if (angle2 > 0) arrowData.setTailBackAngle (angle2);
+    }
+    else
+      return errorMsg(QString("Invalid back_angle string '%1'").
+                       arg(argv.getParseStr("back_angle")));
+  }
+
+  // single value (common head & tail length), two values (separate head & tail length)
+  if (argv.hasParseArg("length")) {
+    QStringList strs;
+
+    if (! CQTcl::splitList(argv.getParseStr("length"), strs))
+      return errorMsg(QString("Invalid length string '%1'").arg(argv.getParseStr("length")));
+
+    if      (strs.length() == 1) {
+      CQChartsLength len(strs[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
+      if (! len.isValid()) return errorMsg(QString("Invalid length string '%1'").arg(strs[0]));
+
+      if (len.value() > 0) arrowData.setLength(len);
+    }
+    else if (strs.length() == 2) {
+      CQChartsLength len1(strs[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
+      CQChartsLength len2(strs[1], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
+      if (! len1.isValid() || ! len2.isValid())
+        return errorMsg(QString("Invalid length strings '%1' '%2'").arg(strs[0]).arg(strs[1]));
+
+      if (len1.value() > 0) arrowData.setFrontLength(len1);
+      if (len2.value() > 0) arrowData.setTailLength (len2);
+    }
+    else
+      return errorMsg(QString("Invalid length string '%1'").arg(argv.getParseStr("length")));
+  }
+
+  // single value (common head & tail line ends), two values (separate head & tail line ends)
+  if (argv.hasParseArg("line_ends")) {
+    QStringList strs;
+
+    if (! CQTcl::splitList(argv.getParseStr("line_ends"), strs))
+      return errorMsg(QString("Invalid line_ends string '%1'").arg(argv.getParseStr("line_ends")));
+
+    if      (strs.length() == 1) {
+      bool ok; bool b = CQChartsCmdBaseArgs::stringToBool(strs[0], &ok);
+      if (! ok) return errorMsg(QString("Invalid line_ends string '%1'").arg(strs[0]));
+      arrowData.setLineEnds(b);
+    }
+    else if (strs.length() == 2) {
+      bool ok1; bool b1 = CQChartsCmdBaseArgs::stringToBool(strs[0], &ok1);
+      bool ok2; bool b2 = CQChartsCmdBaseArgs::stringToBool(strs[1], &ok2);
+      if (! ok1 && ! ok2) return errorMsg(QString("Invalid line_ends strings '%1' '%2'").
+                                           arg(strs[0]).arg(strs[1]));
+
+      arrowData.setFrontLineEnds(b1);
+      arrowData.setTailLineEnds (b2);
+    }
+    else
+      return errorMsg(QString("Invalid line_ends string '%1'").arg(argv.getParseStr("line_ends")));
+  }
 
   //---
 
-  CQChartsRectangleAnnotation *annotation = nullptr;
+  CQChartsShapeData shapeData;
 
-  if      (argv.hasParseArg("start") || argv.hasParseArg("end")) {
-    CQChartsPosition start = argv.getParsePosition(view, plot, "start");
-    CQChartsPosition end   = argv.getParsePosition(view, plot, "end"  );
+  CQChartsFillData   &fill   = shapeData.fill();
+  CQChartsStrokeData &stroke = shapeData.stroke();
 
-    CQChartsRect rect;
+  fill  .setVisible(true);
+  stroke.setVisible(false);
 
-    if      (view)
-      annotation = view->addRectangleAnnotation(rect);
-    else if (plot)
-      annotation = plot->addRectangleAnnotation(rect);
+  if (argv.hasParseArg("filled")) {
+    fill.setVisible(argv.getParseBool("filled", fill.isVisible()));
 
-    if (annotation)
-      annotation->setRectangle(start, end);
-  }
-  else if (argv.hasParseArg("rectangle")) {
-    CQChartsRect rect = argv.getParseRect(view, plot, "rectangle");
-
-    if      (view)
-      annotation = view->addRectangleAnnotation(rect);
-    else if (plot)
-      annotation = plot->addRectangleAnnotation(rect);
-  }
-  else {
-    CQChartsRect rect;
-
-    if      (view)
-      annotation = view->addRectangleAnnotation(rect);
-    else if (plot)
-      annotation = plot->addRectangleAnnotation(rect);
-
-    if (annotation)
-      annotation->setRectangle(CQChartsPosition(QPointF(0, 0)), CQChartsPosition(QPointF(1, 1)));
+    if (! fill.isVisible())
+      stroke.setVisible(true);
   }
 
-  if (! annotation)
-    return errorMsg("Failed to create annotation");
+  fill.setColor(argv.getParseColor("fill_color", fill.color()));
+
+  if (argv.hasParseArg("stroked"))
+    stroke.setVisible(argv.getParseBool("stroked", stroke.isVisible()));
+
+  stroke.setColor(argv.getParseColor ("stroke_color", stroke.color()));
+  stroke.setWidth(argv.getParseLength(view, plot, "stroke_width", stroke.width()));
+
+  //---
+
+  CQChartsArrowAnnotation *annotation = nullptr;
+
+  if      (view)
+    annotation = view->addArrowAnnotation(start, end);
+  else if (plot)
+    annotation = plot->addArrowAnnotation(start, end);
+  else
+    return false;
 
   if (id != "")
     annotation->setId(id);
@@ -5590,7 +5704,9 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
   if (tipId != "")
     annotation->setTipId(tipId);
 
-  annotation->setBoxData(boxData);
+  annotation->setArrowData(arrowData);
+
+  annotation->arrow()->setShapeData(shapeData);
 
   //---
 
@@ -5736,6 +5852,474 @@ createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
     annotation->setTipId(tipId);
 
   annotation->setBoxData(boxData);
+
+  //---
+
+  QStringList properties = argv.getParseStrs("properties");
+
+  for (int i = 0; i < properties.length(); ++i) {
+    if (properties[i].length())
+      setAnnotationProperties(annotation, properties[i]);
+  }
+
+  //---
+
+  cmdBase_->setCmdRc(annotation->pathId());
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsImageAnnotationCmd");
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-position" , CQChartsCmdArg::Type::Position, "position");
+  argv.addCmdArg("-rectangle", CQChartsCmdArg::Type::Rect    , "rectangle bounding box");
+
+  argv.addCmdArg("-image", CQChartsCmdArg::Type::String, "image");
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if      (argv.hasParseArg("view")) {
+    QString viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return false;
+  }
+  else if (argv.hasParseArg("plot")) {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+  }
+
+  //---
+
+  QString id    = argv.getParseStr("id");
+  QString tipId = argv.getParseStr("tip");
+
+  QString name = argv.getParseStr("image");
+
+  QImage image(name);
+
+  if (image.isNull())
+    return errorMsg(QString("Invalid image filename '%1'").arg(name));
+
+  image.setText("", name);
+
+  //---
+
+  CQChartsImageAnnotation *annotation = nullptr;
+
+  if      (argv.hasParseArg("position")) {
+    CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
+
+    if      (view)
+      annotation = view->addImageAnnotation(pos, image);
+    else if (plot)
+      annotation = plot->addImageAnnotation(pos, image);
+  }
+  else if (argv.hasParseArg("rectangle")) {
+    CQChartsRect rect = argv.getParseRect(view, plot, "rectangle");
+
+    if      (view)
+      annotation = view->addImageAnnotation(rect, image);
+    else if (plot)
+      annotation = plot->addImageAnnotation(rect, image);
+  }
+  else {
+    CQChartsPosition pos(QPointF(0, 0));
+
+    if      (view)
+      annotation = view->addImageAnnotation(pos, image);
+    else if (plot)
+      annotation = plot->addImageAnnotation(pos, image);
+  }
+
+  if (! annotation)
+    return errorMsg("Failed to create annotation");
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  QStringList properties = argv.getParseStrs("properties");
+
+  for (int i = 0; i < properties.length(); ++i) {
+    if (properties[i].length())
+      setAnnotationProperties(annotation, properties[i]);
+  }
+
+  //---
+
+  cmdBase_->setCmdRc(annotation->pathId());
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsPieSliceAnnotationCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsPieSliceAnnotationCmd");
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-position", CQChartsCmdArg::Type::Position, "point position");
+
+  argv.addCmdArg("-inner_radius", CQChartsCmdArg::Type::Length, "inner radius");
+  argv.addCmdArg("-outer_radius", CQChartsCmdArg::Type::Length, "outer radius");
+
+  argv.addCmdArg("-start_angle", CQChartsCmdArg::Type::Real, "start angle");
+  argv.addCmdArg("-span_angle" , CQChartsCmdArg::Type::Real, "span angle");
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if      (argv.hasParseArg("view")) {
+    QString viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return false;
+  }
+  else if (argv.hasParseArg("plot")) {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+  }
+
+  //---
+
+  QString id    = argv.getParseStr("id");
+  QString tipId = argv.getParseStr("tip");
+
+  CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
+
+  CQChartsLength innerRadius = argv.getParseLength(view, plot, "inner_radius");
+  CQChartsLength outerRadius = argv.getParseLength(view, plot, "outer_radius");
+
+  double startAngle = argv.getParseReal("start_angle");
+  double spanAngle  = argv.getParseReal("span_angle");
+
+  if (innerRadius.value() < 0 || outerRadius.value() < 0)
+    return errorMsg("Invalid radius value");
+
+  //---
+
+  CQChartsPieSliceAnnotation *annotation = nullptr;
+
+  if      (view)
+    annotation = view->addPieSliceAnnotation(pos, innerRadius, outerRadius, startAngle, spanAngle);
+  else if (plot)
+    annotation = plot->addPieSliceAnnotation(pos, innerRadius, outerRadius, startAngle, spanAngle);
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  //---
+
+  QStringList properties = argv.getParseStrs("properties");
+
+  for (int i = 0; i < properties.length(); ++i) {
+    if (properties[i].length())
+      setAnnotationProperties(annotation, properties[i]);
+  }
+
+  //---
+
+  cmdBase_->setCmdRc(annotation->pathId());
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsPointAnnotationCmd");
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-position", CQChartsCmdArg::Type::Position, "point position");
+
+  argv.addCmdArg("-type", CQChartsCmdArg::Type::String, "symbol type");
+  argv.addCmdArg("-size", CQChartsCmdArg::Type::Length, "symbol size");
+
+  argv.addCmdArg("-filled"    , CQChartsCmdArg::Type::SBool,
+                 "symbol background is filled" ).setHidden();
+  argv.addCmdArg("-fill_color", CQChartsCmdArg::Type::Color,
+                 "symbol background fill color").setHidden();
+  argv.addCmdArg("-fill_alpha", CQChartsCmdArg::Type::Real ,
+                 "symbol background fill alpha").setHidden();
+
+  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool ,
+                 "symbol border stroke visible").setHidden();
+  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color ,
+                 "symbol border stroke color"  ).setHidden();
+  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real  ,
+                 "symbol border stroke alpha"  ).setHidden();
+  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length,
+                 "symbol border stroke width"  ).setHidden();
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if      (argv.hasParseArg("view")) {
+    QString viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return false;
+  }
+  else if (argv.hasParseArg("plot")) {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+  }
+
+  //---
+
+  CQChartsSymbolData symbolData;
+
+  CQChartsFillData   &fill   = symbolData.fill();
+  CQChartsStrokeData &stroke = symbolData.stroke();
+
+  QString id    = argv.getParseStr("id");
+  QString tipId = argv.getParseStr("tip");
+
+  CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
+
+  QString typeStr = argv.getParseStr("type");
+
+  if (typeStr.length()) {
+    if (typeStr == "?") {
+      QStringList typeNames = CQChartsSymbol::typeNames();
+
+      cmdBase_->setCmdRc(typeNames);
+
+      return true;
+    }
+
+    CQChartsSymbol::Type type = CQChartsSymbol::nameToType(typeStr);
+
+    if (type == CQChartsSymbol::Type::NONE)
+      return errorMsg(QString("Invalid symbol type '%1'").arg(typeStr));
+
+    symbolData.setType(type);
+  }
+
+  symbolData.setSize(argv.getParseLength(view, plot, "size", symbolData.size()));
+
+  fill.setVisible(argv.getParseBool ("filled"    , fill.isVisible()));
+  fill.setColor  (argv.getParseColor("fill_color", fill.color    ()));
+  fill.setAlpha  (argv.getParseReal ("fill_alpha", fill.alpha    ()));
+
+  stroke.setVisible(argv.getParseBool  ("stroked"     , stroke.isVisible()));
+  stroke.setColor  (argv.getParseColor ("stroke_color", stroke.color    ()));
+  stroke.setAlpha  (argv.getParseReal  ("stroke_alpha", stroke.alpha    ()));
+  stroke.setWidth  (argv.getParseLength(view, plot, "stroke_width", stroke.width()));
+
+  //---
+
+  CQChartsPointAnnotation *annotation = nullptr;
+
+  if      (view)
+    annotation = view->addPointAnnotation(pos, symbolData.type());
+  else if (plot)
+    annotation = plot->addPointAnnotation(pos, symbolData.type());
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  annotation->setSymbolData(symbolData);
+
+  //---
+
+  QStringList properties = argv.getParseStrs("properties");
+
+  for (int i = 0; i < properties.length(); ++i) {
+    if (properties[i].length())
+      setAnnotationProperties(annotation, properties[i]);
+  }
+
+  //---
+
+  cmdBase_->setCmdRc(annotation->pathId());
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsPointSetAnnotationCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsPointSetAnnotationCmd");
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-values", CQChartsCmdArg::Type::Reals, "values");
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if      (argv.hasParseArg("view")) {
+    QString viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return false;
+  }
+  else if (argv.hasParseArg("plot")) {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+  }
+
+  //---
+
+  QString id    = argv.getParseStr("id");
+  QString tipId = argv.getParseStr("tip");
+
+  CQChartsPoints values = argv.getParsePoints(view, plot, "values");
+
+  if (values.points().empty()) {
+  }
+
+  if (values.points().empty())
+    return errorMsg("Invalid points");
+
+  //---
+
+  CQChartsPointSetAnnotation *annotation = nullptr;
+
+  if      (view)
+    annotation = view->addPointSetAnnotation(values);
+  else if (plot)
+    annotation = plot->addPointSetAnnotation(values);
+  else
+    return false;
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
 
   //---
 
@@ -6031,6 +6615,183 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
+createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsRectangleAnnotationCmd");
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-rectangle" , CQChartsCmdArg::Type::Rect, "rectangle bounding box");
+
+  argv.addCmdArg("-start", CQChartsCmdArg::Type::Position, "start").setHidden();
+  argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Position, "end"  ).setHidden();
+
+  argv.addCmdArg("-margin" , CQChartsCmdArg::Type::Real, "margin" ).setHidden();
+  argv.addCmdArg("-padding", CQChartsCmdArg::Type::Real, "padding").setHidden();
+
+  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::SBool ,
+                 "background is filled"   ).setHidden();
+  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color ,
+                 "background fill color"  ).setHidden();
+  argv.addCmdArg("-fill_alpha"  , CQChartsCmdArg::Type::Real  ,
+                 "background fill alpha"  ).setHidden();
+//argv.addCmdArg("-fill_pattern", CQChartsCmdArg::Type::String,
+//               "background fill pattern").setHidden();
+
+  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool   ,
+                 "border is stroked"  ).setHidden();
+  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color   ,
+                 "border stroke color").setHidden();
+  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real    ,
+                 "border stroke alpha").setHidden();
+  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length  ,
+                 "border stroke width").setHidden();
+  argv.addCmdArg("-stroke_dash" , CQChartsCmdArg::Type::LineDash,
+                 "border stroke dash" ).setHidden();
+
+  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size" ).setHidden();
+  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::Sides , "border sides").setHidden();
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if      (argv.hasParseArg("view")) {
+    QString viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return false;
+  }
+  else if (argv.hasParseArg("plot")) {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+  }
+
+  //---
+
+  CQChartsBoxData boxData;
+
+  boxData.setMargin (CQChartsMargin());
+  boxData.setPadding(0);
+
+  CQChartsFillData   &fill   = boxData.shape().fill  ();
+  CQChartsStrokeData &stroke = boxData.shape().stroke();
+
+  stroke.setVisible(true);
+
+  QString id    = argv.getParseStr("id");
+  QString tipId = argv.getParseStr("tip");
+
+  boxData.setMargin (argv.getParseMargin(view, plot, "margin", boxData.margin ()));
+  boxData.setPadding(argv.getParseReal  ("padding", boxData.padding()));
+
+  fill.setVisible(argv.getParseBool ("filled"      , fill.isVisible()));
+  fill.setColor  (argv.getParseColor("fill_color"  , fill.color    ()));
+  fill.setAlpha  (argv.getParseReal ("fill_alpha"  , fill.alpha    ()));
+//fill.setPattern(argv.getParseStr  ("fill_pattern", fill.pattern  ()));
+
+  stroke.setVisible(argv.getParseBool    ("stroked"     , stroke.isVisible()));
+  stroke.setColor  (argv.getParseColor   ("stroke_color", stroke.color    ()));
+  stroke.setAlpha  (argv.getParseReal    ("stroke_alpha", stroke.alpha    ()));
+  stroke.setWidth  (argv.getParseLength  (view, plot, "stroke_width", stroke.width()));
+  stroke.setDash   (argv.getParseLineDash("stroke_dash" , stroke.dash     ()));
+
+  stroke.setCornerSize(argv.getParseLength(view, plot, "corner_size", stroke.cornerSize()));
+
+  boxData.setBorderSides(argv.getParseSides("border_sides", boxData.borderSides()));
+
+  //---
+
+  CQChartsRectangleAnnotation *annotation = nullptr;
+
+  if      (argv.hasParseArg("start") || argv.hasParseArg("end")) {
+    CQChartsPosition start = argv.getParsePosition(view, plot, "start");
+    CQChartsPosition end   = argv.getParsePosition(view, plot, "end"  );
+
+    CQChartsRect rect;
+
+    if      (view)
+      annotation = view->addRectangleAnnotation(rect);
+    else if (plot)
+      annotation = plot->addRectangleAnnotation(rect);
+
+    if (annotation)
+      annotation->setRectangle(start, end);
+  }
+  else if (argv.hasParseArg("rectangle")) {
+    CQChartsRect rect = argv.getParseRect(view, plot, "rectangle");
+
+    if      (view)
+      annotation = view->addRectangleAnnotation(rect);
+    else if (plot)
+      annotation = plot->addRectangleAnnotation(rect);
+  }
+  else {
+    CQChartsRect rect;
+
+    if      (view)
+      annotation = view->addRectangleAnnotation(rect);
+    else if (plot)
+      annotation = plot->addRectangleAnnotation(rect);
+
+    if (annotation)
+      annotation->setRectangle(CQChartsPosition(QPointF(0, 0)), CQChartsPosition(QPointF(1, 1)));
+  }
+
+  if (! annotation)
+    return errorMsg("Failed to create annotation");
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  annotation->setBoxData(boxData);
+
+  //---
+
+  QStringList properties = argv.getParseStrs("properties");
+
+  for (int i = 0; i < properties.length(); ++i) {
+    if (properties[i].length())
+      setAnnotationProperties(annotation, properties[i]);
+  }
+
+  //---
+
+  cmdBase_->setCmdRc(annotation->pathId());
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
 createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
@@ -6211,754 +6972,6 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
 
 bool
 CQChartsCmds::
-createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
-{
-  auto errorMsg = [&](const QString &msg) {
-    charts_->errorMsg(msg);
-    return false;
-  };
-
-  //---
-
-  CQPerfTrace trace("CQChartsCmds::createChartsImageAnnotationCmd");
-
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
-  argv.endCmdGroup();
-
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
-
-  argv.addCmdArg("-position" , CQChartsCmdArg::Type::Position, "position");
-  argv.addCmdArg("-rectangle", CQChartsCmdArg::Type::Rect    , "rectangle bounding box");
-
-  argv.addCmdArg("-image", CQChartsCmdArg::Type::String, "image");
-
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  //---
-
-  CQChartsView *view = nullptr;
-  CQChartsPlot *plot = nullptr;
-
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
-
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
-
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
-  }
-
-  //---
-
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
-
-  QString name = argv.getParseStr("image");
-
-  QImage image(name);
-
-  if (image.isNull())
-    return errorMsg(QString("Invalid image filename '%1'").arg(name));
-
-  image.setText("", name);
-
-  //---
-
-  CQChartsImageAnnotation *annotation = nullptr;
-
-  if      (argv.hasParseArg("position")) {
-    CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
-
-    if      (view)
-      annotation = view->addImageAnnotation(pos, image);
-    else if (plot)
-      annotation = plot->addImageAnnotation(pos, image);
-  }
-  else if (argv.hasParseArg("rectangle")) {
-    CQChartsRect rect = argv.getParseRect(view, plot, "rectangle");
-
-    if      (view)
-      annotation = view->addImageAnnotation(rect, image);
-    else if (plot)
-      annotation = plot->addImageAnnotation(rect, image);
-  }
-  else {
-    CQChartsPosition pos(QPointF(0, 0));
-
-    if      (view)
-      annotation = view->addImageAnnotation(pos, image);
-    else if (plot)
-      annotation = plot->addImageAnnotation(pos, image);
-  }
-
-  if (! annotation)
-    return errorMsg("Failed to create annotation");
-
-  if (id != "")
-    annotation->setId(id);
-
-  if (tipId != "")
-    annotation->setTipId(tipId);
-
-  //---
-
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
-
-  //---
-
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
-}
-
-//------
-
-bool
-CQChartsCmds::
-createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
-{
-  auto errorMsg = [&](const QString &msg) {
-    charts_->errorMsg(msg);
-    return false;
-  };
-
-  //---
-
-  CQPerfTrace trace("CQChartsCmds::createChartsArrowAnnotationCmd");
-
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
-  argv.endCmdGroup();
-
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
-
-  argv.addCmdArg("-start", CQChartsCmdArg::Type::Position, "start position");
-  argv.addCmdArg("-end"  , CQChartsCmdArg::Type::Position, "end position");
-
-  argv.addCmdArg("-line_width", CQChartsCmdArg::Type::Length, "connecting line width");
-
-  argv.addCmdArg("-fhead", CQChartsCmdArg::Type::String, "start arrow head type");
-  argv.addCmdArg("-thead", CQChartsCmdArg::Type::String, "end arrow head type");
-
-  argv.addCmdArg("-angle", CQChartsCmdArg::Type::String,
-                 "arrow head angle");
-  argv.addCmdArg("-back_angle", CQChartsCmdArg::Type::String,
-                 "arrow head back angle").setHidden();
-  argv.addCmdArg("-length", CQChartsCmdArg::Type::String,
-                 "arrow head length");
-  argv.addCmdArg("-line_ends", CQChartsCmdArg::Type::String,
-                 "use line for arrow head").setHidden();
-
-  argv.addCmdArg("-filled"    , CQChartsCmdArg::Type::SBool,
-                 "background is filled" ).setHidden();
-  argv.addCmdArg("-fill_color", CQChartsCmdArg::Type::Color,
-                 "background fill color").setHidden();
-
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool ,
-                 "border is stroked"  ).setHidden();
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color ,
-                 "border stroke color").setHidden();
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length,
-                 "border stroke width").setHidden();
-
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  //---
-
-  CQChartsView *view = nullptr;
-  CQChartsPlot *plot = nullptr;
-
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
-
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
-
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
-  }
-
-  //---
-
-  CQChartsArrowData arrowData;
-
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
-
-  CQChartsPosition start = argv.getParsePosition(view, plot, "start");
-  CQChartsPosition end   = argv.getParsePosition(view, plot, "end"  );
-
-  arrowData.setLineWidth(argv.getParseLength(view, plot, "line_width", arrowData.lineWidth()));
-
-  if (argv.hasParseArg("fhead")) {
-    CQChartsArrowData::HeadType headType { CQChartsArrowData::HeadType::NONE };
-    bool                        lineEnds { false };
-    bool                        visible  { false };
-
-    if (CQChartsArrowData::nameToData(argv.getParseStr("fhead"), headType, lineEnds, visible)) {
-      arrowData.setFHead        (visible);
-      arrowData.setFHeadType    (headType);
-      arrowData.setFrontLineEnds(lineEnds);
-    }
-  }
-
-  if (argv.hasParseArg("thead")) {
-    bool                        visible  { false };
-    CQChartsArrowData::HeadType headType { CQChartsArrowData::HeadType::NONE };
-    bool                        lineEnds { false };
-
-    if (CQChartsArrowData::nameToData(argv.getParseStr("thead"), headType, lineEnds, visible)) {
-      arrowData.setTHead       (visible);
-      arrowData.setTHeadType   (headType);
-      arrowData.setTailLineEnds(lineEnds);
-    }
-  }
-
-  // single value (common head & tail angle), two values (separate head & tail angle)
-  if (argv.hasParseArg("angle")) {
-    QStringList strs;
-
-    if (! CQTcl::splitList(argv.getParseStr("angle"), strs))
-      return errorMsg(QString("Invalid angle string '%1'").arg(argv.getParseStr("angle")));
-
-    if      (strs.length() == 1) {
-      bool ok;
-      double angle = CQChartsUtil::toReal(strs[0], ok);
-      if (! ok) return errorMsg(QString("Invalid angle string '%1'").arg(strs[0]));
-      if (angle > 0) arrowData.setAngle(angle);
-    }
-    else if (strs.length() == 2) {
-      bool ok1, ok2;
-      double angle1 = CQChartsUtil::toReal(strs[0], ok1);
-      double angle2 = CQChartsUtil::toReal(strs[1], ok2);
-      if (! ok1 || ! ok2) return errorMsg(QString("Invalid angle strings '%1' '%2'").
-                                           arg(strs[0]).arg(strs[1]));
-
-      if (angle1 > 0) arrowData.setFrontAngle(angle1);
-      if (angle2 > 0) arrowData.setTailAngle (angle2);
-    }
-    else
-      return errorMsg(QString("Invalid angle string '%1'").arg(argv.getParseStr("angle")));
-  }
-
-  // single value (common head & tail back angle), two values (separate head & tail back angle)
-  if (argv.hasParseArg("back_angle")) {
-    QStringList strs;
-
-    if (! CQTcl::splitList(argv.getParseStr("back_angle"), strs))
-      return errorMsg(QString("Invalid back_angle string '%1'").
-                       arg(argv.getParseStr("back_angle")));
-
-    if      (strs.length() == 1) {
-      bool ok; double angle = CQChartsUtil::toReal(strs[0], ok);
-      if (! ok) return errorMsg(QString("Invalid back_angle string '%1'").arg(strs[0]));
-      if (angle > 0) arrowData.setBackAngle(angle);
-    }
-    else if (strs.length() == 2) {
-      bool ok1; double angle1 = CQChartsUtil::toReal(strs[0], ok1);
-      bool ok2; double angle2 = CQChartsUtil::toReal(strs[1], ok2);
-      if (! ok1 && ! ok2) return errorMsg(QString("Invalid back_angle strings '%1' '%2'").
-                                           arg(strs[0]).arg(strs[1]));
-
-      if (angle1 > 0) arrowData.setFrontBackAngle(angle1);
-      if (angle2 > 0) arrowData.setTailBackAngle (angle2);
-    }
-    else
-      return errorMsg(QString("Invalid back_angle string '%1'").
-                       arg(argv.getParseStr("back_angle")));
-  }
-
-  // single value (common head & tail length), two values (separate head & tail length)
-  if (argv.hasParseArg("length")) {
-    QStringList strs;
-
-    if (! CQTcl::splitList(argv.getParseStr("length"), strs))
-      return errorMsg(QString("Invalid length string '%1'").arg(argv.getParseStr("length")));
-
-    if      (strs.length() == 1) {
-      CQChartsLength len(strs[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
-      if (! len.isValid()) return errorMsg(QString("Invalid length string '%1'").arg(strs[0]));
-
-      if (len.value() > 0) arrowData.setLength(len);
-    }
-    else if (strs.length() == 2) {
-      CQChartsLength len1(strs[0], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
-      CQChartsLength len2(strs[1], (view ? CQChartsUnits::VIEW : CQChartsUnits::PLOT));
-      if (! len1.isValid() || ! len2.isValid())
-        return errorMsg(QString("Invalid length strings '%1' '%2'").arg(strs[0]).arg(strs[1]));
-
-      if (len1.value() > 0) arrowData.setFrontLength(len1);
-      if (len2.value() > 0) arrowData.setTailLength (len2);
-    }
-    else
-      return errorMsg(QString("Invalid length string '%1'").arg(argv.getParseStr("length")));
-  }
-
-  // single value (common head & tail line ends), two values (separate head & tail line ends)
-  if (argv.hasParseArg("line_ends")) {
-    QStringList strs;
-
-    if (! CQTcl::splitList(argv.getParseStr("line_ends"), strs))
-      return errorMsg(QString("Invalid line_ends string '%1'").arg(argv.getParseStr("line_ends")));
-
-    if      (strs.length() == 1) {
-      bool ok; bool b = CQChartsCmdBaseArgs::stringToBool(strs[0], &ok);
-      if (! ok) return errorMsg(QString("Invalid line_ends string '%1'").arg(strs[0]));
-      arrowData.setLineEnds(b);
-    }
-    else if (strs.length() == 2) {
-      bool ok1; bool b1 = CQChartsCmdBaseArgs::stringToBool(strs[0], &ok1);
-      bool ok2; bool b2 = CQChartsCmdBaseArgs::stringToBool(strs[1], &ok2);
-      if (! ok1 && ! ok2) return errorMsg(QString("Invalid line_ends strings '%1' '%2'").
-                                           arg(strs[0]).arg(strs[1]));
-
-      arrowData.setFrontLineEnds(b1);
-      arrowData.setTailLineEnds (b2);
-    }
-    else
-      return errorMsg(QString("Invalid line_ends string '%1'").arg(argv.getParseStr("line_ends")));
-  }
-
-  //---
-
-  CQChartsShapeData shapeData;
-
-  CQChartsFillData   &fill   = shapeData.fill();
-  CQChartsStrokeData &stroke = shapeData.stroke();
-
-  fill  .setVisible(true);
-  stroke.setVisible(false);
-
-  if (argv.hasParseArg("filled")) {
-    fill.setVisible(argv.getParseBool("filled", fill.isVisible()));
-
-    if (! fill.isVisible())
-      stroke.setVisible(true);
-  }
-
-  fill.setColor(argv.getParseColor("fill_color", fill.color()));
-
-  if (argv.hasParseArg("stroked"))
-    stroke.setVisible(argv.getParseBool("stroked", stroke.isVisible()));
-
-  stroke.setColor(argv.getParseColor ("stroke_color", stroke.color()));
-  stroke.setWidth(argv.getParseLength(view, plot, "stroke_width", stroke.width()));
-
-  //---
-
-  CQChartsArrowAnnotation *annotation = nullptr;
-
-  if      (view)
-    annotation = view->addArrowAnnotation(start, end);
-  else if (plot)
-    annotation = plot->addArrowAnnotation(start, end);
-  else
-    return false;
-
-  if (id != "")
-    annotation->setId(id);
-
-  if (tipId != "")
-    annotation->setTipId(tipId);
-
-  annotation->setArrowData(arrowData);
-
-  annotation->arrow()->setShapeData(shapeData);
-
-  //---
-
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
-
-  //---
-
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
-}
-
-//------
-
-bool
-CQChartsCmds::
-createChartsPointAnnotationCmd(CQChartsCmdArgs &argv)
-{
-  auto errorMsg = [&](const QString &msg) {
-    charts_->errorMsg(msg);
-    return false;
-  };
-
-  //---
-
-  CQPerfTrace trace("CQChartsCmds::createChartsPointAnnotationCmd");
-
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
-  argv.endCmdGroup();
-
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
-
-  argv.addCmdArg("-position", CQChartsCmdArg::Type::Position, "point position");
-
-  argv.addCmdArg("-type", CQChartsCmdArg::Type::String, "symbol type");
-  argv.addCmdArg("-size", CQChartsCmdArg::Type::Length, "symbol size");
-
-  argv.addCmdArg("-filled"    , CQChartsCmdArg::Type::SBool,
-                 "symbol background is filled" ).setHidden();
-  argv.addCmdArg("-fill_color", CQChartsCmdArg::Type::Color,
-                 "symbol background fill color").setHidden();
-  argv.addCmdArg("-fill_alpha", CQChartsCmdArg::Type::Real ,
-                 "symbol background fill alpha").setHidden();
-
-  argv.addCmdArg("-stroked"     , CQChartsCmdArg::Type::SBool ,
-                 "symbol border stroke visible").setHidden();
-  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color ,
-                 "symbol border stroke color"  ).setHidden();
-  argv.addCmdArg("-stroke_alpha", CQChartsCmdArg::Type::Real  ,
-                 "symbol border stroke alpha"  ).setHidden();
-  argv.addCmdArg("-stroke_width", CQChartsCmdArg::Type::Length,
-                 "symbol border stroke width"  ).setHidden();
-
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  //---
-
-  CQChartsView *view = nullptr;
-  CQChartsPlot *plot = nullptr;
-
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
-
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
-
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
-  }
-
-  //---
-
-  CQChartsSymbolData symbolData;
-
-  CQChartsFillData   &fill   = symbolData.fill();
-  CQChartsStrokeData &stroke = symbolData.stroke();
-
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
-
-  CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
-
-  QString typeStr = argv.getParseStr("type");
-
-  if (typeStr.length()) {
-    if (typeStr == "?") {
-      QStringList typeNames = CQChartsSymbol::typeNames();
-
-      cmdBase_->setCmdRc(typeNames);
-
-      return true;
-    }
-
-    CQChartsSymbol::Type type = CQChartsSymbol::nameToType(typeStr);
-
-    if (type == CQChartsSymbol::Type::NONE)
-      return errorMsg(QString("Invalid symbol type '%1'").arg(typeStr));
-
-    symbolData.setType(type);
-  }
-
-  symbolData.setSize(argv.getParseLength(view, plot, "size", symbolData.size()));
-
-  fill.setVisible(argv.getParseBool ("filled"    , fill.isVisible()));
-  fill.setColor  (argv.getParseColor("fill_color", fill.color    ()));
-  fill.setAlpha  (argv.getParseReal ("fill_alpha", fill.alpha    ()));
-
-  stroke.setVisible(argv.getParseBool  ("stroked"     , stroke.isVisible()));
-  stroke.setColor  (argv.getParseColor ("stroke_color", stroke.color    ()));
-  stroke.setAlpha  (argv.getParseReal  ("stroke_alpha", stroke.alpha    ()));
-  stroke.setWidth  (argv.getParseLength(view, plot, "stroke_width", stroke.width()));
-
-  //---
-
-  CQChartsPointAnnotation *annotation = nullptr;
-
-  if      (view)
-    annotation = view->addPointAnnotation(pos, symbolData.type());
-  else if (plot)
-    annotation = plot->addPointAnnotation(pos, symbolData.type());
-  else
-    return false;
-
-  if (id != "")
-    annotation->setId(id);
-
-  if (tipId != "")
-    annotation->setTipId(tipId);
-
-  annotation->setSymbolData(symbolData);
-
-  //---
-
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
-
-  //---
-
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
-}
-
-//------
-
-bool
-CQChartsCmds::
-createChartsPieSliceAnnotationCmd(CQChartsCmdArgs &argv)
-{
-  auto errorMsg = [&](const QString &msg) {
-    charts_->errorMsg(msg);
-    return false;
-  };
-
-  //---
-
-  CQPerfTrace trace("CQChartsCmds::createChartsPieSliceAnnotationCmd");
-
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
-  argv.endCmdGroup();
-
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
-
-  argv.addCmdArg("-position", CQChartsCmdArg::Type::Position, "point position");
-
-  argv.addCmdArg("-inner_radius", CQChartsCmdArg::Type::Length, "inner radius");
-  argv.addCmdArg("-outer_radius", CQChartsCmdArg::Type::Length, "outer radius");
-
-  argv.addCmdArg("-start_angle", CQChartsCmdArg::Type::Real, "start angle");
-  argv.addCmdArg("-span_angle" , CQChartsCmdArg::Type::Real, "span angle");
-
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  //---
-
-  CQChartsView *view = nullptr;
-  CQChartsPlot *plot = nullptr;
-
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
-
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
-
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
-  }
-
-  //---
-
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
-
-  CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
-
-  CQChartsLength innerRadius = argv.getParseLength(view, plot, "inner_radius");
-  CQChartsLength outerRadius = argv.getParseLength(view, plot, "outer_radius");
-
-  double startAngle = argv.getParseReal("start_angle");
-  double spanAngle  = argv.getParseReal("span_angle");
-
-  if (innerRadius.value() < 0 || outerRadius.value() < 0)
-    return errorMsg("Invalid radius value");
-
-  //---
-
-  CQChartsPieSliceAnnotation *annotation = nullptr;
-
-  if      (view)
-    annotation = view->addPieSliceAnnotation(pos, innerRadius, outerRadius, startAngle, spanAngle);
-  else if (plot)
-    annotation = plot->addPieSliceAnnotation(pos, innerRadius, outerRadius, startAngle, spanAngle);
-  else
-    return false;
-
-  if (id != "")
-    annotation->setId(id);
-
-  if (tipId != "")
-    annotation->setTipId(tipId);
-
-  //---
-
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
-
-  //---
-
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
-}
-
-//------
-
-bool
-CQChartsCmds::
-createChartsPointSetAnnotationCmd(CQChartsCmdArgs &argv)
-{
-  auto errorMsg = [&](const QString &msg) {
-    charts_->errorMsg(msg);
-    return false;
-  };
-
-  //---
-
-  CQPerfTrace trace("CQChartsCmds::createChartsPointSetAnnotationCmd");
-
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
-  argv.endCmdGroup();
-
-  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
-  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
-
-  argv.addCmdArg("-values", CQChartsCmdArg::Type::Reals, "values");
-
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
-
-  bool rc;
-
-  if (! argv.parse(rc))
-    return rc;
-
-  //---
-
-  CQChartsView *view = nullptr;
-  CQChartsPlot *plot = nullptr;
-
-  if      (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr("view");
-
-    view = getViewByName(viewName);
-    if (! view) return false;
-  }
-  else if (argv.hasParseArg("plot")) {
-    QString plotName = argv.getParseStr("plot");
-
-    plot = getPlotByName(nullptr, plotName);
-    if (! plot) return false;
-  }
-
-  //---
-
-  QString id    = argv.getParseStr("id");
-  QString tipId = argv.getParseStr("tip");
-
-  CQChartsPoints values = argv.getParsePoints(view, plot, "values");
-
-  if (values.points().empty()) {
-  }
-
-  if (values.points().empty())
-    return errorMsg("Invalid points");
-
-  //---
-
-  CQChartsPointSetAnnotation *annotation = nullptr;
-
-  if      (view)
-    annotation = view->addPointSetAnnotation(values);
-  else if (plot)
-    annotation = plot->addPointSetAnnotation(values);
-  else
-    return false;
-
-  if (id != "")
-    annotation->setId(id);
-
-  if (tipId != "")
-    annotation->setTipId(tipId);
-
-  //---
-
-  QStringList properties = argv.getParseStrs("properties");
-
-  for (int i = 0; i < properties.length(); ++i) {
-    if (properties[i].length())
-      setAnnotationProperties(annotation, properties[i]);
-  }
-
-  //---
-
-  cmdBase_->setCmdRc(annotation->pathId());
-
-  return true;
-}
-
-//------
-
-bool
-CQChartsCmds::
 createChartsValueSetAnnotationCmd(CQChartsCmdArgs &argv)
 {
   auto errorMsg = [&](const QString &msg) {
@@ -7035,6 +7048,123 @@ createChartsValueSetAnnotationCmd(CQChartsCmdArgs &argv)
 
   if (tipId != "")
     annotation->setTipId(tipId);
+
+  //---
+
+  QStringList properties = argv.getParseStrs("properties");
+
+  for (int i = 0; i < properties.length(); ++i) {
+    if (properties[i].length())
+      setAnnotationProperties(annotation, properties[i]);
+  }
+
+  //---
+
+  cmdBase_->setCmdRc(annotation->pathId());
+
+  return true;
+}
+
+//------
+
+bool
+CQChartsCmds::
+createChartsButtonAnnotationCmd(CQChartsCmdArgs &argv)
+{
+  auto errorMsg = [&](const QString &msg) {
+    charts_->errorMsg(msg);
+    return false;
+  };
+
+  //---
+
+  CQPerfTrace trace("CQChartsCmds::createChartsButtonAnnotationCmd");
+
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.endCmdGroup();
+
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
+
+  argv.addCmdArg("-position", CQChartsCmdArg::Type::Position, "position");
+
+  argv.addCmdArg("-text", CQChartsCmdArg::Type::String, "text");
+
+  argv.addCmdArg("-font" , CQChartsCmdArg::Type::String, "font");
+  argv.addCmdArg("-color", CQChartsCmdArg::Type::Color , "color");
+  argv.addCmdArg("-alpha", CQChartsCmdArg::Type::Real  , "alpha");
+
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+
+  bool rc;
+
+  if (! argv.parse(rc))
+    return rc;
+
+  //---
+
+  CQChartsView *view = nullptr;
+  CQChartsPlot *plot = nullptr;
+
+  if      (argv.hasParseArg("view")) {
+    QString viewName = argv.getParseStr("view");
+
+    view = getViewByName(viewName);
+    if (! view) return false;
+  }
+  else if (argv.hasParseArg("plot")) {
+    QString plotName = argv.getParseStr("plot");
+
+    plot = getPlotByName(nullptr, plotName);
+    if (! plot) return false;
+  }
+
+  //---
+
+  CQChartsTextData textData;
+
+  QString id    = argv.getParseStr("id");
+  QString tipId = argv.getParseStr("tip");
+
+  QString text = argv.getParseStr("text", "Annotation");
+
+  textData.setFont (argv.getParseFont ("font" , textData.font      ()));
+  textData.setColor(argv.getParseColor("color", textData.color     ()));
+  textData.setAlpha(argv.getParseReal ("alpha", textData.alpha     ()));
+
+  //---
+
+  CQChartsButtonAnnotation *annotation = nullptr;
+
+  if      (argv.hasParseArg("position")) {
+    CQChartsPosition pos = argv.getParsePosition(view, plot, "position");
+
+    if      (view)
+      annotation = view->addButtonAnnotation(pos, text);
+    else if (plot)
+      annotation = plot->addButtonAnnotation(pos, text);
+  }
+  else {
+    CQChartsPosition pos(QPointF(0, 0));
+
+    if      (view)
+      annotation = view->addButtonAnnotation(pos, text);
+    else if (plot)
+      annotation = plot->addButtonAnnotation(pos, text);
+  }
+
+  if (! annotation)
+    return errorMsg("Failed to create annotation");
+
+  if (id != "")
+    annotation->setId(id);
+
+  if (tipId != "")
+    annotation->setTipId(tipId);
+
+  annotation->setTextData(textData);
 
   //---
 

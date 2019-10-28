@@ -207,8 +207,6 @@ initGroupData(const CQChartsColumns &dataColumns,
 {
   CQPerfTrace trace("CQChartsGroupPlot::initGroupData");
 
-  std::unique_lock<std::mutex> lock(mutex_);
-
   // given columns and current grouping settings cache group buckets
   CQChartsColumnBucket *groupBucket = initGroupData(dataColumns, nameColumn, hier, groupData_);
 
@@ -451,13 +449,9 @@ rowGroupInd(const CQChartsModelIndex &ind) const
 
   int groupInd = inds[0];
 
-  {
-  std::unique_lock<std::mutex> lock(mutex_);
-
   CQChartsGroupPlot *th = const_cast<CQChartsGroupPlot *>(this);
 
   th->setModelGroupInd(ind, groupInd);
-  }
 
   return groupInd;
 }
