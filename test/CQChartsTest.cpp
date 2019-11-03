@@ -59,6 +59,8 @@ struct MainData {
   bool             showAppSet   { false };
   bool             showModel    { false };
   bool             showModelSet { false };
+  bool             showView     { false };
+  bool             showViewSet  { false };
   bool             exit         { false };
   bool             offscreen    { false };
   bool             record       { false };
@@ -241,19 +243,17 @@ main(int argc, char **argv)
   //---
 
   // no plots and app state not specified so show if no plots
-  if (! mainData.showAppSet) {
+  if (! mainData.showAppSet && ! mainData.showModelSet && ! mainData.showViewSet) {
     if (! mainData.execFile.length() && mainData.initDatas.empty() && ! mainData.loop)
       mainData.showApp = true;
-  }
 
-  if (! mainData.showModelSet) {
     if (! mainData.execFile.length() && ! mainData.initDatas.empty() && numPlots == 0)
       mainData.showModel = true;
   }
 
   //---
 
-  // show test widget
+  // show startup app, model or view
   CQChartsAppWindow *appWindow = nullptr;
 
   if      (mainData.showApp) {
@@ -269,6 +269,14 @@ main(int argc, char **argv)
 
     dlg->show();
   }
+  else if (mainData.showView) {
+    CQChartsView *view = test.charts()->addView();
+
+    CQChartsWindow *window = test.charts()->createWindow(view);
+    assert(window);
+  }
+
+  //---
 
   // print plot
   if (mainData.printFile)
@@ -693,9 +701,15 @@ parseArgs(int argc, char **argv, MainData &mainData)
       }
 
       // show model dlg
-      else if (arg == "show_app") {
+      else if (arg == "show_model") {
         mainData.showModel    = true;
         mainData.showModelSet = true;
+      }
+
+      // show view
+      else if (arg == "view") {
+        mainData.showView    = true;
+        mainData.showViewSet = true;
       }
 
       // exit

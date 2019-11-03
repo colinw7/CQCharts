@@ -20,6 +20,7 @@ CQChartsModelWidgets(CQCharts *charts, QWidget *parent) :
   CQTabSplit *split = CQUtil::makeWidget<CQTabSplit>("split");
 
   split->setOrientation(Qt::Vertical);
+  split->setGrouped(true);
 
   layout->addWidget(split);
 

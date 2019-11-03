@@ -101,25 +101,35 @@ class CQChartsModelControl : public QFrame {
     ParamEdits   paramEdits;
   };
 
+  struct ExprWidgets {
+    QRadioButton* addRadio    { nullptr };
+    QRadioButton* removeRadio { nullptr };
+    QRadioButton* modifyRadio { nullptr };
+    CQLineEdit*   valueEdit   { nullptr };
+    QLabel*       columnLabel { nullptr };
+    CQLineEdit*   columnEdit  { nullptr };
+    CQLineEdit*   nameEdit    { nullptr };
+    QLabel*       typeLabel   { nullptr };
+    CQLineEdit*   typeEdit    { nullptr };
+  };
+
+#ifdef CQCHARTS_FOLDED_MODEL
+  struct FoldWidgets {
+    CQLineEdit* columnEdit    { nullptr };
+    QComboBox*  typeCombo     { nullptr };
+    QCheckBox*  autoCheck     { nullptr };
+    CQLineEdit* deltaEdit     { nullptr };
+    CQLineEdit* countEdit     { nullptr };
+    CQLineEdit* separatorEdit { nullptr };
+  };
+#endif
+
   CQCharts*            charts_          { nullptr };
   CQChartsModelData*   modelData_       { nullptr };
   Mode                 exprMode_        { Mode::ADD };
-  QRadioButton*        exprAddRadio_    { nullptr };
-  QRadioButton*        exprRemoveRadio_ { nullptr };
-  QRadioButton*        exprModifyRadio_ { nullptr };
-  QLabel*              exprValueLabel_  { nullptr };
-  CQLineEdit*          exprValueEdit_   { nullptr };
-  QLabel*              exprColumnLabel_ { nullptr };
-  CQLineEdit*          exprColumnEdit_  { nullptr };
-  QLabel*              exprNameLabel_   { nullptr };
-  CQLineEdit*          exprNameEdit_    { nullptr };
-  QLabel*              exprTypeLabel_   { nullptr };
-  CQLineEdit*          exprTypeEdit_    { nullptr };
+  ExprWidgets          exprWidgets_;
 #ifdef CQCHARTS_FOLDED_MODEL
-  CQLineEdit*          foldColumnEdit_  { nullptr };
-  QCheckBox*           foldAutoCheck_   { nullptr };
-  CQLineEdit*          foldDeltaEdit_   { nullptr };
-  CQLineEdit*          foldCountEdit_   { nullptr };
+  FoldWidgets          foldWidgets_;
 #endif
   CQPropertyViewModel* propertyModel_   { nullptr };
   CQPropertyViewTree*  propertyTree_    { nullptr };

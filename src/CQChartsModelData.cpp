@@ -12,6 +12,7 @@
 #include <CQTsvModel.h>
 #include <CQJsonModel.h>
 #include <CQGnuDataModel.h>
+#include <CQHierSepModel.h>
 #include <CQTclUtil.h>
 
 #ifdef CQCHARTS_FOLDED_MODEL
@@ -275,6 +276,9 @@ currentModel() const
 #ifdef CQCHARTS_FOLDED_MODEL
   if (! foldedModels_.empty())
     return foldProxyModel_;
+
+  if (hierSepModel_)
+    return hierSepModel_;
 #endif
 
   return model_;
@@ -346,7 +350,7 @@ selectionSlot()
 //---
 
 #ifdef CQCHARTS_FOLDED_MODEL
-void
+bool
 CQChartsModelData::
 foldModel(const FoldData &foldData)
 {
@@ -354,179 +358,217 @@ foldModel(const FoldData &foldData)
 
   //---
 
-  CQChartsModelDetails *details = this->details();
+  if      (foldData.foldType == FoldData::FoldType::BUCKET) {
+    CQChartsModelDetails *details = this->details();
 
-  using FoldDatas = std::vector<CQFoldData>;
+    using FoldDatas = std::vector<CQFoldData>;
 
-  FoldDatas foldDatas;
+    FoldDatas foldDatas;
 
-  QStringList columnStrs = foldData.columnsStr.split(",", QString::SkipEmptyParts);
+    QStringList columnStrs = foldData.columnsStr.split(",", QString::SkipEmptyParts);
 
-  for (int i = 0; i < columnStrs.length(); ++i) {
-    QStringList columnSubStrs = columnStrs[i].split(":", QString::SkipEmptyParts);
+    for (int i = 0; i < columnStrs.length(); ++i) {
+      QStringList columnSubStrs = columnStrs[i].split(":", QString::SkipEmptyParts);
 
-    if (columnSubStrs.length() == 0)
-      continue;
+      if (columnSubStrs.length() == 0)
+        continue;
+
+      //---
+
+      // get column
+      QString columnStr = columnSubStrs[0];
+
+      CQChartsColumn column;
+
+      if (! CQChartsModelUtil::stringToColumn(model_.data(), columnStr, column)) {
+        bool ok;
+
+        int icolumn = CQChartsUtil::toInt(columnStr, ok);
+
+        if (! ok)
+          continue;
+
+        column = CQChartsColumn(icolumn);
+      }
+
+      //---
+
+      // get type, count and delta
+      CQFoldData::Type type = CQFoldData::Type::STRING;
+
+      int    count    = foldData.count;
+      double delta    = foldData.delta;
+      bool   integral = false;
+
+      CQFoldData columnFoldData(column.column());
+
+      if (columnSubStrs.length() > 1) {
+        int i = 1;
+
+        // <column>:<type>:<delta>
+        if (columnSubStrs.length() > 2) {
+          // get type
+          QString typeStr = columnSubStrs[1];
+
+          if      (typeStr == "i")
+            type = CQFoldData::Type::INTEGER_RANGE;
+          else if (typeStr == "r")
+            type = CQFoldData::Type::REAL_RANGE;
+          else if (typeStr == "a")
+            type = CQFoldData::Type::REAL_AUTO;
+          else if (typeStr == "s")
+            type = CQFoldData::Type::STRING;
+          else
+            continue;
+
+          //---
+
+          // get delta
+          bool ok;
+
+          QString deltaStr = columnSubStrs[2];
+
+          delta = CQChartsUtil::toReal(columnSubStrs[i], ok);
+
+          if (! ok)
+            continue;
+        }
+        // <column>:<delta>
+        else {
+          // set type
+          type = CQFoldData::Type::REAL_RANGE;
+
+          //---
+
+          // get delta
+          bool ok;
+
+          QString deltaStr = columnSubStrs[1];
+
+          delta = CQChartsUtil::toReal(columnSubStrs[i], ok);
+
+          if (! ok)
+            continue;
+        }
+      }
+      else {
+        // get type from column
+        const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+
+        if      (columnDetails->type() == CQBaseModelType::REAL) {
+          if (foldData.isAuto)
+            type = CQFoldData::Type::REAL_AUTO;
+          else
+            type = CQFoldData::Type::REAL_RANGE;
+        }
+        else if (columnDetails->type() == CQBaseModelType::INTEGER) {
+          integral = true;
+
+          if (foldData.isAuto)
+            type = CQFoldData::Type::REAL_AUTO;
+          else
+            type = CQFoldData::Type::REAL_RANGE;
+        }
+        else {
+          type = CQFoldData::Type::STRING;
+        }
+      }
+
+      //---
+
+      // add fold data
+      columnFoldData.setType    (type);
+      columnFoldData.setNumAuto (count);
+      columnFoldData.setDelta   (delta);
+      columnFoldData.setIntegral(integral);
+
+      foldDatas.push_back(columnFoldData);
+    }
 
     //---
 
-    // get column
-    QString columnStr = columnSubStrs[0];
+    ModelP modelp = this->model();
 
+    // create folded models
+    for (const auto &foldData : foldDatas) {
+      QAbstractItemModel *model = modelp.data();
+
+      CQFoldedModel *foldedModel = new CQFoldedModel(model, foldData);
+
+      modelp = ModelP(foldedModel);
+
+      foldedModels_.push_back(modelp);
+    }
+
+    //---
+
+    if (! foldedModels_.empty()) {
+      // add sort/filter proxy if needed
+      QAbstractItemModel *model = modelp.data();
+
+      QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
+
+      if (! proxyModel) {
+        QSortFilterProxyModel *foldProxyModel = new QSortFilterProxyModel;
+
+        foldProxyModel->setObjectName("foldProxyModel");
+
+        foldProxyModel->setSortRole(static_cast<int>(Qt::EditRole));
+
+        foldProxyModel->setSourceModel(model);
+
+        modelp = ModelP(foldProxyModel);
+      }
+
+      foldProxyModel_ = modelp;
+    }
+
+    //---
+
+    delete details_;
+
+    details_ = nullptr;
+
+    //---
+
+    emit currentModelChanged();
+  }
+  else if (foldData.foldType == FoldData::FoldType::SEPARATOR) {
     CQChartsColumn column;
 
-    if (! CQChartsModelUtil::stringToColumn(model_.data(), columnStr, column)) {
+    if (! CQChartsModelUtil::stringToColumn(model_.data(), foldData.columnsStr, column)) {
       bool ok;
 
-      int icolumn = CQChartsUtil::toInt(columnStr, ok);
+      int icolumn = CQChartsUtil::toInt(foldData.columnsStr, ok);
 
       if (! ok)
-        continue;
+        return false;
 
       column = CQChartsColumn(icolumn);
     }
 
-    //---
+    QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel;
 
-    // get type, count and delta
-    CQFoldData::Type type = CQFoldData::Type::STRING;
+    proxyModel->setObjectName("foldProxyModel");
 
-    int    count    = foldData.count;
-    double delta    = foldData.delta;
-    bool   integral = false;
+    proxyModel->setSortRole(static_cast<int>(Qt::EditRole));
 
-    CQFoldData columnFoldData(column.column());
+    CQHierSepData data(column.column(), foldData.separator[0]);
 
-    if (columnSubStrs.length() > 1) {
-      int i = 1;
+    CQHierSepModel *hierSepModel = new CQHierSepModel(model_.data(), data);
 
-      // <column>:<type>:<delta>
-      if (columnSubStrs.length() > 2) {
-        // get type
-        QString typeStr = columnSubStrs[1];
-
-        if      (typeStr == "i")
-          type = CQFoldData::Type::INTEGER_RANGE;
-        else if (typeStr == "r")
-          type = CQFoldData::Type::REAL_RANGE;
-        else if (typeStr == "a")
-          type = CQFoldData::Type::REAL_AUTO;
-        else if (typeStr == "s")
-          type = CQFoldData::Type::STRING;
-        else
-          continue;
-
-        //---
-
-        // get delta
-        bool ok;
-
-        QString deltaStr = columnSubStrs[2];
-
-        delta = CQChartsUtil::toReal(columnSubStrs[i], ok);
-
-        if (! ok)
-          continue;
-      }
-      // <column>:<delta>
-      else {
-        // set type
-        type = CQFoldData::Type::REAL_RANGE;
-
-        //---
-
-        // get delta
-        bool ok;
-
-        QString deltaStr = columnSubStrs[1];
-
-        delta = CQChartsUtil::toReal(columnSubStrs[i], ok);
-
-        if (! ok)
-          continue;
-      }
-    }
-    else {
-      // get type from column
-      const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
-
-      if      (columnDetails->type() == CQBaseModelType::REAL) {
-        if (foldData.isAuto)
-          type = CQFoldData::Type::REAL_AUTO;
-        else
-          type = CQFoldData::Type::REAL_RANGE;
-      }
-      else if (columnDetails->type() == CQBaseModelType::INTEGER) {
-        integral = true;
-
-        if (foldData.isAuto)
-          type = CQFoldData::Type::REAL_AUTO;
-        else
-          type = CQFoldData::Type::REAL_RANGE;
-      }
-      else {
-        type = CQFoldData::Type::STRING;
-      }
-    }
+    proxyModel->setSourceModel(hierSepModel);
 
     //---
 
-    // add fold data
-    columnFoldData.setType    (type);
-    columnFoldData.setNumAuto (count);
-    columnFoldData.setDelta   (delta);
-    columnFoldData.setIntegral(integral);
+    hierSepModel_ = ModelP(proxyModel);
 
-    foldDatas.push_back(columnFoldData);
+    //---
+
+    emit currentModelChanged();
   }
 
-  //---
-
-  ModelP modelp = this->model();
-
-  // create folded models
-  for (const auto &foldData : foldDatas) {
-    QAbstractItemModel *model = modelp.data();
-
-    CQFoldedModel *foldedModel = new CQFoldedModel(model, foldData);
-
-    modelp = ModelP(foldedModel);
-
-    foldedModels_.push_back(modelp);
-  }
-
-  //---
-
-  if (! foldedModels_.empty()) {
-    // add sort/filter proxy if needed
-    QAbstractItemModel *model = modelp.data();
-
-    QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
-
-    if (! proxyModel) {
-      QSortFilterProxyModel *foldProxyModel = new QSortFilterProxyModel;
-
-      foldProxyModel->setObjectName("foldProxyModel");
-
-      foldProxyModel->setSortRole(static_cast<int>(Qt::EditRole));
-
-      foldProxyModel->setSourceModel(model);
-
-      modelp = ModelP(foldProxyModel);
-    }
-
-    foldProxyModel_ = modelp;
-  }
-
-  //---
-
-  delete details_;
-
-  details_ = nullptr;
-
-  //---
-
-  emit currentModelChanged();
+  return true;
 }
 
 void
@@ -536,6 +578,10 @@ foldClear(bool notify)
   foldedModels_.clear();
 
   foldProxyModel_ = ModelP();
+
+  hierSepModel_ = ModelP();
+
+  //---
 
   if (notify) {
     delete details_;

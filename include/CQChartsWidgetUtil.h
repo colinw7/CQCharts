@@ -2,6 +2,7 @@
 #define CQChartsWidgetUtil_H
 
 #include <QFrame>
+#include <QWidgetAction>
 
 class QGridLayout;
 
@@ -37,6 +38,30 @@ class CQChartsDialogButtons : public QFrame {
   QPushButton* okButton_     { nullptr };
   QPushButton* applyButton_  { nullptr };
   QPushButton* cancelButton_ { nullptr };
+};
+
+//---
+
+class CQChartsWidgetAction : public QWidgetAction {
+ public:
+  CQChartsWidgetAction(QWidget *w) :
+   QWidgetAction(nullptr), w_(w) {
+  }
+
+ ~CQChartsWidgetAction() {
+    delete w_;
+  }
+
+  QWidget *widget() const { return w_; }
+
+  QWidget *createWidget(QWidget *parent) {
+    w_->setParent(parent);
+
+    return w_;
+  }
+
+ private:
+  QWidget *w_ { nullptr };
 };
 
 #endif

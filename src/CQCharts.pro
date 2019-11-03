@@ -9,6 +9,7 @@ DEPENDPATH += .
 QMAKE_CXXFLAGS += \
 -std=c++14 \
 -DCQCHARTS_FOLDED_MODEL \
+-DCQCHARTS_MODEL_VIEW \
 
 MOC_DIR = .moc
 
@@ -210,6 +211,7 @@ CQChartsBoxDataEdit.cpp \
 CQChartsColorEdit.cpp \
 CQChartsColumnEdit.cpp \
 CQChartsColumnsEdit.cpp \
+CQChartsDocument.cpp \
 CQChartsEditBase.cpp \
 CQChartsFillDataEdit.cpp \
 CQChartsFillPatternEdit.cpp \
@@ -246,6 +248,7 @@ CQTsvModel.cpp \
 CQJsonModel.cpp \
 CQGnuDataModel.cpp \
 CQFoldedModel.cpp \
+CQHierSepModel.cpp \
 \
 CQBaseModel.cpp \
 CQDataModel.cpp \
@@ -468,6 +471,7 @@ HEADERS += \
 ../include/CQChartsColorEdit.h \
 ../include/CQChartsColumnEdit.h \
 ../include/CQChartsColumnsEdit.h \
+../include/CQChartsDocument.h \
 ../include/CQChartsEditBase.h \
 ../include/CQChartsFillDataEdit.h \
 ../include/CQChartsFillPatternEdit.h \
@@ -504,6 +508,7 @@ HEADERS += \
 ../include/CQJsonModel.h \
 ../include/CQGnuDataModel.h \
 ../include/CQFoldedModel.h \
+../include/CQHierSepModel.h \
 ../include/CQSummaryModel.h \
 ../include/CQSubSetModel.h \
 ../include/CQTransposeModel.h \

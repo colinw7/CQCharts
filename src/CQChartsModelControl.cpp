@@ -9,12 +9,15 @@
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewTree.h>
+
 #include <CQPivotModel.h>
+#include <CQHierSepModel.h>
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
 #include <CQGnuDataModel.h>
 #include <CQJsonModel.h>
 #include <CQDataModel.h>
+
 #include <CQLineEdit.h>
 #include <CQIntegerSpin.h>
 #include <CQCheckBox.h>
@@ -223,24 +226,24 @@ addExprFrame()
 
   exprFrameLayout->addWidget(exprModeFrame);
 
-  exprAddRadio_    = CQUtil::makeWidget<QRadioButton>("add"   );
-  exprRemoveRadio_ = CQUtil::makeWidget<QRadioButton>("remove");
-  exprModifyRadio_ = CQUtil::makeWidget<QRadioButton>("modify");
+  exprWidgets_.addRadio    = CQUtil::makeWidget<QRadioButton>("add"   );
+  exprWidgets_.removeRadio = CQUtil::makeWidget<QRadioButton>("remove");
+  exprWidgets_.modifyRadio = CQUtil::makeWidget<QRadioButton>("modify");
 
-  exprAddRadio_   ->setText("Add");
-  exprRemoveRadio_->setText("Remove");
-  exprModifyRadio_->setText("Modify");
+  exprWidgets_.addRadio   ->setText("Add");
+  exprWidgets_.removeRadio->setText("Remove");
+  exprWidgets_.modifyRadio->setText("Modify");
 
-  exprAddRadio_->setChecked(true);
+  exprWidgets_.addRadio->setChecked(true);
 
-  exprModeLayout->addWidget(exprAddRadio_);
-  exprModeLayout->addWidget(exprRemoveRadio_);
-  exprModeLayout->addWidget(exprModifyRadio_);
+  exprModeLayout->addWidget(exprWidgets_.addRadio   );
+  exprModeLayout->addWidget(exprWidgets_.removeRadio);
+  exprModeLayout->addWidget(exprWidgets_.modifyRadio);
   exprModeLayout->addStretch(1);
 
-  connect(exprAddRadio_   , SIGNAL(toggled(bool)), this, SLOT(expressionModeSlot()));
-  connect(exprRemoveRadio_, SIGNAL(toggled(bool)), this, SLOT(expressionModeSlot()));
-  connect(exprModifyRadio_, SIGNAL(toggled(bool)), this, SLOT(expressionModeSlot()));
+  connect(exprWidgets_.addRadio   , SIGNAL(toggled(bool)), this, SLOT(expressionModeSlot()));
+  connect(exprWidgets_.removeRadio, SIGNAL(toggled(bool)), this, SLOT(expressionModeSlot()));
+  connect(exprWidgets_.modifyRadio, SIGNAL(toggled(bool)), this, SLOT(expressionModeSlot()));
 
   //--
 
@@ -252,56 +255,56 @@ addExprFrame()
 
   //---
 
-  exprValueLabel_ = CQUtil::makeLabelWidget<QLabel>("Expression", "exprValueLabel");
+  auto exprValueLabel = CQUtil::makeLabelWidget<QLabel>("Expression", "valueLabel");
 
-  exprValueEdit_ = CQUtil::makeWidget<CQLineEdit>("exprValueEdit");
+  exprWidgets_.valueEdit = CQUtil::makeWidget<CQLineEdit>("valueEdit");
 
-  exprValueEdit_->setToolTip("+<expr> OR -<column> OR =<column>:<expr>\n"
-                             "Use: @<number> as shorthand for column(<number>)\n"
-                             "Functions: column, row, cell, setColumn, setRow, setCell\n"
-                             " header, setHeader, type, setType, map, bucket, norm, key, rand");
+  exprWidgets_.valueEdit->setToolTip("+<expr> OR -<column> OR =<column>:<expr>\n"
+    "Use: @<number> as shorthand for column(<number>)\n"
+    "Functions: column, row, cell, setColumn, setRow, setCell\n"
+    " header, setHeader, type, setType, map, bucket, norm, key, rand");
 
-  exprGridLayout->addWidget(exprValueLabel_, row, 0);
-  exprGridLayout->addWidget(exprValueEdit_ , row, 1);
-
-  ++row;
-
-  //----
-
-  exprColumnLabel_ = CQUtil::makeLabelWidget<QLabel>("Column", "exprEditLabel");
-
-  exprColumnEdit_ = CQUtil::makeWidget<CQLineEdit>("exprColumnEdit");
-
-  exprColumnEdit_->setToolTip("Column to Modify");
-
-  exprGridLayout->addWidget(exprColumnLabel_, row, 0);
-  exprGridLayout->addWidget(exprColumnEdit_ , row, 1);
+  exprGridLayout->addWidget(exprValueLabel        , row, 0);
+  exprGridLayout->addWidget(exprWidgets_.valueEdit, row, 1);
 
   ++row;
 
   //----
 
-  exprNameLabel_ = CQUtil::makeLabelWidget<QLabel>("Name", "exprNameLabel");
+  exprWidgets_.columnLabel = CQUtil::makeLabelWidget<QLabel>("Column", "columnLabel");
 
-  exprNameEdit_ = CQUtil::makeWidget<CQLineEdit>("exprNameEdit");
+  exprWidgets_.columnEdit = CQUtil::makeWidget<CQLineEdit>("columnEdit");
 
-  exprNameEdit_->setToolTip("Column Name");
+  exprWidgets_.columnEdit->setToolTip("Column to Modify");
 
-  exprGridLayout->addWidget(exprNameLabel_, row, 0);
-  exprGridLayout->addWidget(exprNameEdit_ , row, 1);
+  exprGridLayout->addWidget(exprWidgets_.columnLabel, row, 0);
+  exprGridLayout->addWidget(exprWidgets_.columnEdit , row, 1);
+
+  ++row;
+
+  //----
+
+  auto exprNameLabel = CQUtil::makeLabelWidget<QLabel>("Name", "nameLabel");
+
+  exprWidgets_.nameEdit = CQUtil::makeWidget<CQLineEdit>("nameEdit");
+
+  exprWidgets_.nameEdit->setToolTip("Column Name");
+
+  exprGridLayout->addWidget(exprNameLabel        , row, 0);
+  exprGridLayout->addWidget(exprWidgets_.nameEdit, row, 1);
 
   ++row;
 
   //--
 
-  exprTypeLabel_ = CQUtil::makeLabelWidget<QLabel>("Type", "exprTypeLabel");
+  exprWidgets_.typeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "typeLabel");
 
-  exprTypeEdit_ = CQUtil::makeWidget<CQLineEdit>("exprTypeEdit");
+  exprWidgets_.typeEdit = CQUtil::makeWidget<CQLineEdit>("typeEdit");
 
-  exprTypeEdit_->setToolTip("Column Type");
+  exprWidgets_.typeEdit->setToolTip("Column Type");
 
-  exprGridLayout->addWidget(exprTypeLabel_, row, 0);
-  exprGridLayout->addWidget(exprTypeEdit_ , row, 1);
+  exprGridLayout->addWidget(exprWidgets_.typeLabel, row, 0);
+  exprGridLayout->addWidget(exprWidgets_.typeEdit , row, 1);
 
   ++row;
 
@@ -344,22 +347,70 @@ addFoldFrame()
 
   int foldRow = 0;
 
-  foldColumnEdit_ = addLineEdit(foldWidgetsLayout, foldRow, "Column", "column");
+  //---
 
-  foldAutoCheck_ = CQUtil::makeWidget<CQCheckBox>("foldAuto");
+  // fold column
+  foldWidgets_.columnEdit = addLineEdit(foldWidgetsLayout, foldRow, "Column", "column");
 
-  foldAutoCheck_->setText("Auto");
-  foldAutoCheck_->setChecked(true);
+  foldWidgets_.columnEdit->setToolTip("Fold Column");
 
-  foldWidgetsLayout->addWidget(foldAutoCheck_, foldRow, 0, 1, 1); ++foldRow;
+  //---
 
-  foldDeltaEdit_ = addLineEdit(foldWidgetsLayout, foldRow, "Delta", "delta");
+  // fold type
+  auto foldTypeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "type");
 
-  foldDeltaEdit_->setText("1.0");
+  foldWidgets_.typeCombo = CQUtil::makeWidget<QComboBox>("foldType");
 
-  foldCountEdit_ = addLineEdit(foldWidgetsLayout, foldRow, "Count", "count");
+  foldWidgets_.typeCombo->addItems(QStringList() << "Bucketed" << "Hier Separator");
 
-  foldCountEdit_->setText("20");
+  foldWidgetsLayout->addWidget(foldTypeLabel         , foldRow, 0);
+  foldWidgetsLayout->addWidget(foldWidgets_.typeCombo, foldRow, 1); ++foldRow;
+
+  foldWidgets_.typeCombo->setToolTip("Fold using bucketed values or hierarchical separator");
+
+  //---
+
+  // fold auto check
+  auto foldAutoLabel = CQUtil::makeLabelWidget<QLabel>("Auto", "auto");
+
+  foldWidgets_.autoCheck = CQUtil::makeWidget<CQCheckBox>("foldAuto");
+
+  foldWidgets_.autoCheck->setText("Auto");
+  foldWidgets_.autoCheck->setChecked(true);
+
+  foldWidgetsLayout->addWidget(foldAutoLabel         , foldRow, 0);
+  foldWidgetsLayout->addWidget(foldWidgets_.autoCheck, foldRow, 1); ++foldRow;
+
+  foldWidgets_.autoCheck->setToolTip("Automatically determine fold buckets");
+
+  //---
+
+  // fold delta
+  foldWidgets_.deltaEdit = addLineEdit(foldWidgetsLayout, foldRow, "Delta", "delta");
+
+  foldWidgets_.deltaEdit->setText("1.0");
+
+  foldWidgets_.deltaEdit->setToolTip("Explicit fold delta");
+
+  //---
+
+  // fold count
+  foldWidgets_.countEdit = addLineEdit(foldWidgetsLayout, foldRow, "Count", "count");
+
+  foldWidgets_.countEdit->setText("20");
+
+  foldWidgets_.countEdit->setToolTip("Explicit fold count");
+
+  //---
+
+  // fold separator
+  foldWidgets_.separatorEdit = addLineEdit(foldWidgetsLayout, foldRow, "Separator", "separator");
+
+  foldWidgets_.separatorEdit->setText("/");
+
+  foldWidgets_.deltaEdit->setToolTip("Hierarchical separator");
+
+  //---
 
   foldWidgetsLayout->setRowStretch(foldRow, 1); ++foldRow;
 
@@ -512,23 +563,23 @@ expressionModeSlot()
 {
   exprMode_ = Mode::ADD;
 
-  if      (exprAddRadio_   ->isChecked()) exprMode_ = Mode::ADD;
-  else if (exprRemoveRadio_->isChecked()) exprMode_ = Mode::REMOVE;
-  else if (exprModifyRadio_->isChecked()) exprMode_ = Mode::MODIFY;
+  if      (exprWidgets_.addRadio   ->isChecked()) exprMode_ = Mode::ADD;
+  else if (exprWidgets_.removeRadio->isChecked()) exprMode_ = Mode::REMOVE;
+  else if (exprWidgets_.modifyRadio->isChecked()) exprMode_ = Mode::MODIFY;
 
-  exprColumnLabel_->setEnabled(exprMode_ == Mode::MODIFY);
-  exprColumnEdit_ ->setEnabled(exprMode_ == Mode::MODIFY);
+  exprWidgets_.columnLabel->setEnabled(exprMode_ == Mode::MODIFY);
+  exprWidgets_.columnEdit ->setEnabled(exprMode_ == Mode::MODIFY);
 
-  exprTypeLabel_->setEnabled(exprMode_ != Mode::REMOVE);
-  exprNameEdit_ ->setEnabled(exprMode_ != Mode::REMOVE);
-  exprTypeEdit_ ->setEnabled(exprMode_ != Mode::REMOVE);
+  exprWidgets_.typeLabel->setEnabled(exprMode_ != Mode::REMOVE);
+  exprWidgets_.nameEdit ->setEnabled(exprMode_ != Mode::REMOVE);
+  exprWidgets_.typeEdit ->setEnabled(exprMode_ != Mode::REMOVE);
 }
 
 void
 CQChartsModelControl::
 exprApplySlot()
 {
-  QString expr = exprValueEdit_->text().simplified();
+  QString expr = exprWidgets_.valueEdit->text().simplified();
 
   if (! expr.length())
     return;
@@ -551,7 +602,7 @@ exprApplySlot()
 
   ModelP model = modelData_->currentModel();
 
-  QString columnStr = exprColumnEdit_->text();
+  QString columnStr = exprWidgets_.columnEdit->text();
 
   CQChartsColumn column;
 
@@ -568,8 +619,8 @@ exprApplySlot()
 
   if (function == CQChartsExprModel::Function::ADD ||
       function == CQChartsExprModel::Function::ASSIGN) {
-    QString nameStr = exprNameEdit_->text();
-    QString typeStr = exprTypeEdit_->text();
+    QString nameStr = exprWidgets_.nameEdit->text();
+    QString typeStr = exprWidgets_.typeEdit->text();
 
     if (column1 < 0) {
       charts_->errorMsg("Invalid column");
@@ -600,10 +651,18 @@ foldApplySlot()
 
   CQChartsModelData::FoldData foldData;
 
-  foldData.columnsStr = foldColumnEdit_->text();
-  foldData.isAuto     = foldAutoCheck_->isChecked();
-  foldData.delta      = CQChartsUtil::toReal(foldDeltaEdit_->text(), ok);
-  foldData.count      = CQChartsUtil::toInt (foldCountEdit_->text(), ok);
+  foldData.columnsStr = foldWidgets_.columnEdit->text();
+
+  if      (foldWidgets_.typeCombo->currentIndex() == 0) {
+    foldData.foldType = CQChartsModelData::FoldData::FoldType::BUCKET;
+    foldData.isAuto   = foldWidgets_.autoCheck->isChecked();
+    foldData.delta    = CQChartsUtil::toReal(foldWidgets_.deltaEdit->text(), ok);
+    foldData.count    = CQChartsUtil::toInt (foldWidgets_.countEdit->text(), ok);
+  }
+  else if (foldWidgets_.typeCombo->currentIndex() == 1) {
+    foldData.foldType  = CQChartsModelData::FoldData::FoldType::SEPARATOR;
+    foldData.separator = foldWidgets_.separatorEdit->text();
+  }
 
   modelData_->foldModel(foldData);
 
@@ -672,6 +731,8 @@ setModelData(CQChartsModelData *modelData)
 
       CQPivotModel *pivotModel = qobject_cast<CQPivotModel *>(baseModel);
 
+      CQHierSepModel *hierSepModel = CQChartsModelUtil::getHierSepModel(model.data());
+
       CQCsvModel     *csvModel  = qobject_cast<CQCsvModel     *>(absModel);
       CQTsvModel     *tsvModel  = qobject_cast<CQTsvModel     *>(absModel);
       CQGnuDataModel *gnuModel  = qobject_cast<CQGnuDataModel *>(absModel);
@@ -701,6 +762,12 @@ setModelData(CQChartsModelData *modelData)
       if (pivotModel) {
         propertyModel_->addProperty("", pivotModel, "valueType"    , "");
         propertyModel_->addProperty("", pivotModel, "includeTotals", "");
+      }
+
+      if (hierSepModel) {
+        propertyModel_->addProperty("", hierSepModel, "separator"     , "foldSeparator");
+        propertyModel_->addProperty("", hierSepModel, "foldColumn"    , "");
+        propertyModel_->addProperty("", hierSepModel, "propagateValue", "");
       }
 
       if (csvModel) {

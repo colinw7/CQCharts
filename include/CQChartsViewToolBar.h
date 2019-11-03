@@ -5,7 +5,6 @@
 
 class CQChartsWindow;
 class CQChartsView;
-class CQChartsManageModelsDlg;
 class CQIconCombo;
 class QToolButton;
 class QRadioButton;
@@ -59,20 +58,19 @@ class CQChartsViewToolBar : public QFrame {
   void helpSlot();
 
  private:
-  CQChartsWindow*          window_                { nullptr }; //!< parent window
-  CQIconCombo*             modeCombo_             { nullptr }; //!< plot mode
-  QRadioButton*            selectPointButton_     { nullptr }; //!< select point radio
-  QRadioButton*            selectRectButton_      { nullptr }; //!< select rect radio
-  QCheckBox*               selectInsideCheck_     { nullptr }; //!< select index checkbox
-  QToolButton*             viewSettingsButton_    { nullptr }; //!< show/hide view settings button
-  QToolButton*             viewTableButton_       { nullptr }; //!< show/hide view table button
-  QToolButton*             manageModelsDlgButton_ { nullptr }; //!< load model dlg button
-  QToolButton*             createPlotDlgButton_   { nullptr }; //!< create plot dlg button
-  QToolButton*             autoFitButton_         { nullptr }; //!< auto fit button
-  QToolButton*             leftButton_            { nullptr }; //!< scroll plots left button
-  QToolButton*             rightButton_           { nullptr }; //!< scroll plots right button
-  QStackedWidget*          controlsStack_         { nullptr }; //!< mode controls stack
-  CQChartsManageModelsDlg* manageModelsDlg_       { nullptr }; //!< manage model dialog
+  CQChartsWindow* window_                { nullptr }; //!< parent window
+  CQIconCombo*    modeCombo_             { nullptr }; //!< plot mode
+  QRadioButton*   selectPointButton_     { nullptr }; //!< select point radio
+  QRadioButton*   selectRectButton_      { nullptr }; //!< select rect radio
+  QCheckBox*      selectInsideCheck_     { nullptr }; //!< select index checkbox
+  QToolButton*    viewSettingsButton_    { nullptr }; //!< show/hide view settings button
+  QToolButton*    viewTableButton_       { nullptr }; //!< show/hide view table button
+  QToolButton*    manageModelsDlgButton_ { nullptr }; //!< load model dlg button
+  QToolButton*    createPlotDlgButton_   { nullptr }; //!< create plot dlg button
+  QToolButton*    autoFitButton_         { nullptr }; //!< auto fit button
+  QToolButton*    leftButton_            { nullptr }; //!< scroll plots left button
+  QToolButton*    rightButton_           { nullptr }; //!< scroll plots right button
+  QStackedWidget* controlsStack_         { nullptr }; //!< mode controls stack
 };
 
 #endif

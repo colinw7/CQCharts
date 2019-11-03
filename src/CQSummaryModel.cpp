@@ -390,8 +390,16 @@ rowCount(const QModelIndex &parent) const
 
     return std::min(nr, pageSize());
   }
-  else if (mode() == Mode::ROWS)
-    return rowNums().size();
+  else if (mode() == Mode::ROWS) {
+    if (! rowNums().empty()) {
+      return rowNums().size();
+    }
+    else {
+      int nr = (model ? model->rowCount(parent) : 0);
+
+      return std::min(nr, pageSize());
+    }
+  }
   else {
     int nr = (model ? model->rowCount(parent) : 0);
 
@@ -507,15 +515,21 @@ mapFromSource(const QModelIndex &sourceIndex) const
     r = r - r1;
   }
   else if (mode() == Mode::ROWS) {
-    int i = 0;
+    if (! rowNums().empty()) {
+      int i = 0;
 
-    for (const auto &r1 : rowNums()) {
-      if (r1 == r) {
-        r = i;
-        break;
+      for (const auto &r1 : rowNums()) {
+        if (r1 == r) {
+          r = i;
+          break;
+        }
+
+        ++i;
       }
-
-      ++i;
+    }
+    else {
+      if (r < 0 || r >= model->rowCount())
+        return QModelIndex();
     }
   }
   else {
@@ -556,10 +570,12 @@ mapToSource(const QModelIndex &proxyIndex) const
     r = r1 + r;
   }
   else if (mode() == Mode::ROWS) {
-    if (r < 0 || r >= int(rowNums().size()))
-      return QModelIndex();
+    if (! rowNums().empty()) {
+      if (r < 0 || r >= int(rowNums().size()))
+        return QModelIndex();
 
-    r = rowNums()[r];
+      r = rowNums()[r];
+    }
   }
   else {
     assert(mapValid_);

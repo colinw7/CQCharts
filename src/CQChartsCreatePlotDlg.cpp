@@ -45,7 +45,7 @@ CQChartsCreatePlotDlg(CQCharts *charts, CQChartsModelData *modelData) :
 {
   assert(modelData_);
 
-  model_ = modelData->currentModel();
+  model_ = modelData_->currentModel();
 
   init();
 }
@@ -85,6 +85,7 @@ init()
   CQTabSplit *area = CQUtil::makeWidget<CQTabSplit>("area");
 
   area->setOrientation(Qt::Vertical);
+  area->setGrouped(true);
 
   layout->addWidget(area);
 

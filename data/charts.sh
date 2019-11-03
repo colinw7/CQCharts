@@ -81,6 +81,9 @@ while ($#argv > 0)
   else if ("$1" == "-comment_header") then
     set data_args = ($data_args $1)
     shift
+  else if ("$1" == "-view") then
+    set opts = ($opts -view)
+    shift
   else if ("$1" == "-modal") then
     set modal = 1
     shift

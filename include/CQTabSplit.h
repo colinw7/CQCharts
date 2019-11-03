@@ -42,7 +42,7 @@ class CQTabSplit : public QFrame {
 
   // get/set grouped
   bool isGrouped() const { return grouped_; }
-  void setGrouped(bool b) { grouped_ = b; }
+  void setGrouped(bool b);
 
   QWidget *widget(int i) const;
 

@@ -179,6 +179,13 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 
   //---
 
+  bool isExpanded() const { return expanded_; }
+  void setExpanded(bool b) { expanded_ = b; }
+
+  bool isHierExpanded() const;
+
+  //---
+
   double hierSize() const override;
 
   //---
@@ -225,6 +232,7 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
   Children children_;            //!< child hier nodes
   int      hierInd_   { -1 };    //!< hier index
   bool     showTitle_ { false }; //!< show title
+  bool     expanded_  { true };  //!< is expanded
 };
 
 //---
@@ -237,6 +245,8 @@ class CQChartsTreeMapHierObj;
  */
 class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
   Q_OBJECT
+
+  Q_PROPERTY(int ind READ ind WRITE setInd)
 
  public:
   CQChartsTreeMapNodeObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *node,
@@ -299,12 +309,16 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
  * \ingroup Charts
  */
 class CQChartsTreeMapHierObj : public CQChartsTreeMapNodeObj {
+  Q_OBJECT
+
  public:
   CQChartsTreeMapHierObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
                          CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
                          const ColorInd &is);
 
   CQChartsTreeMapHierNode *hierNode() const { return hier_; }
+
+  //---
 
   QString calcId() const override;
 
@@ -351,6 +365,10 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   Q_PROPERTY(CQChartsOptLength titleHeight      READ titleHeight        WRITE setTitleHeight     )
   Q_PROPERTY(bool              titleHierName    READ isTitleHierName    WRITE setTitleHierName   )
   Q_PROPERTY(bool              titleTextClipped READ isTitleTextClipped WRITE setTitleTextClipped)
+  Q_PROPERTY(double            titleMargin      READ titleMargin        WRITE setTitleMargin     )
+
+  // follow view
+  Q_PROPERTY(bool followViewExpand READ isFollowViewExpand WRITE setFollowViewExpand)
 
   // color
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
@@ -387,13 +405,13 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   //---
 
   // title/header shown and height
-  bool isTitles() const { return titles_; }
+  bool isTitles() const { return titleData_.visible; }
   void setTitles(bool b);
 
-  const CQChartsOptReal &titleMaxExtent() const { return titleMaxExtent_; }
+  const CQChartsOptReal &titleMaxExtent() const { return titleData_.maxExtent; }
   void setTitleMaxExtent(const CQChartsOptReal &r);
 
-  const CQChartsOptLength &titleHeight() const { return titleHeight_; }
+  const CQChartsOptLength &titleHeight() const { return titleData_.height; }
   void setTitleHeight(const CQChartsOptLength &l);
 
   double calcTitleHeight() const;
@@ -416,12 +434,22 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   //---
 
   // get/set title hierarchical name
-  bool isTitleHierName() const { return titleHierName_; }
+  bool isTitleHierName() const { return titleData_.hierName; }
   void setTitleHierName(bool b);
 
   // get/set header text clipped
-  bool isTitleTextClipped() const { return titleTextClipped_; }
+  bool isTitleTextClipped() const { return titleData_.textClipped; }
   void setTitleTextClipped(bool b);
+
+  // get/src title margin
+  double titleMargin() const { return titleData_.margin; }
+  void setTitleMargin(double r);
+
+  //---
+
+  // get/set folow view expand
+  bool isFollowViewExpand() const { return followViewExpand_; }
+  void setFollowViewExpand(bool b);
 
   // get/set node hierarchical name
   bool isHierName() const { return hierName_; }
@@ -543,6 +571,12 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   void transformNodes(CQChartsTreeMapHierNode *hier);
 
+  void modelViewExpansionChanged() override;
+  void setNodeExpansion(CQChartsTreeMapHierNode *hierNode, const std::set<QModelIndex> &indSet);
+
+  void resetNodeExpansion();
+  void resetNodeExpansion(CQChartsTreeMapHierNode *hierNode);
+
  public slots:
   void pushSlot();
   void popSlot();
@@ -553,11 +587,17 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
  private:
   using Node = CQChartsTreeMapHierNode;
 
-  bool              titles_             { true };    //!< show title bar (header)
-  CQChartsOptReal   titleMaxExtent_;                 //!< user specified title bar max extent (0-1)
-  CQChartsOptLength titleHeight_;                    //!< user specified title height
-  bool              titleHierName_      { false };   //!< title hierarchical name
-  bool              titleTextClipped_   { true };    //!< title text clipped
+  struct TitleData {
+    bool              visible     { true };  //!< show title bar (header)
+    CQChartsOptReal   maxExtent;             //!< user specified title bar max extent (0-1)
+    CQChartsOptLength height;                //!< user specified title height
+    bool              hierName    { false }; //!< title hierarchical name
+    bool              textClipped { true };  //!< title text clipped
+    double            margin      { 3 };     //!< title margin (pixels)
+  };
+
+  TitleData         titleData_;                      //!< title data
+  bool              followViewExpand_   { false };   //!< follow view expand
   bool              valueLabel_         { false };   //!< draw value with name
   bool              hierName_           { false };   //!< node hierarchical name
   bool              textClipped_        { true };    //!< node text clipped

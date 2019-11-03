@@ -48,11 +48,13 @@ void
 CQFoldedModel::
 setSourceModel(QAbstractItemModel *sourceModel)
 {
+  connectSlots(false);
+
   sourceFoldedModel_ = qobject_cast<CQFoldedModel *>(sourceModel);
 
   QAbstractProxyModel::setSourceModel(sourceModel);
 
-  connectSlots();
+  connectSlots(true);
 
   fold();
 }
@@ -73,9 +75,7 @@ CQFoldedModel::
 doResetModel()
 {
   QAbstractItemModel *model = this->sourceModel();
-
-  if (! model)
-    return;
+  if (! model) return;
 
   beginResetModel();
 
@@ -118,52 +118,29 @@ setKeepFoldColumn(bool b)
 
 void
 CQFoldedModel::
-connectSlots()
+connectSlots(bool b)
 {
   QAbstractItemModel *model = this->sourceModel();
+  if (! model) return;
 
-  if (model) {
-    connect(model, SIGNAL(columnsInserted(const QModelIndex &, int, int)),
-            this, SLOT(foldSlot()));
-    connect(model, SIGNAL(columnsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-            this, SLOT(foldSlot()));
-    connect(model, SIGNAL(columnsRemoved(const QModelIndex &, int, int)),
-            this, SLOT(foldSlot()));
+  auto connectDisconnect = [&](bool b, const char *from, const char *to) {
+    if (b)
+      QObject::connect(model, from, this, to);
+    else
+      QObject::disconnect(model, from, this, to);
+  };
 
-    connect(model, SIGNAL(modelReset()), this, SLOT(foldSlot()));
+  connectDisconnect(b, SIGNAL(columnsInserted(const QModelIndex &, int, int)), SLOT(foldSlot()));
+  connectDisconnect(b, SIGNAL(columnsMoved(const QModelIndex &, int, int,
+                              const QModelIndex &, int)), SLOT(foldSlot()));
+  connectDisconnect(b, SIGNAL(columnsRemoved(const QModelIndex &, int, int)), SLOT(foldSlot()));
 
-    connect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)),
-            this, SLOT(foldSlot()));
-    connect(model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-            this, SLOT(foldSlot()));
-    connect(model, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-            this, SLOT(foldSlot()));
-  }
-}
+  connectDisconnect(b, SIGNAL(modelReset()), SLOT(foldSlot()));
 
-void
-CQFoldedModel::
-disconnectSlots()
-{
-  QAbstractItemModel *model = this->sourceModel();
-
-  if (model) {
-    disconnect(model, SIGNAL(columnsInserted(const QModelIndex &, int, int)),
-               this, SLOT(foldSlot()));
-    disconnect(model, SIGNAL(columnsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-               this, SLOT(foldSlot()));
-    disconnect(model, SIGNAL(columnsRemoved(const QModelIndex &, int, int)),
-               this, SLOT(foldSlot()));
-
-    disconnect(model, SIGNAL(modelReset()), this, SLOT(foldSlot()));
-
-    disconnect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)),
-               this, SLOT(foldSlot()));
-    disconnect(model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-               this, SLOT(foldSlot()));
-    disconnect(model, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-               this, SLOT(foldSlot()));
-  }
+  connectDisconnect(b, SIGNAL(rowsInserted(const QModelIndex &, int, int)), SLOT(foldSlot()));
+  connectDisconnect(b, SIGNAL(rowsMoved(const QModelIndex &, int, int,
+                              const QModelIndex &, int)), SLOT(foldSlot()));
+  connectDisconnect(b, SIGNAL(rowsRemoved(const QModelIndex &, int, int)), SLOT(foldSlot()));
 }
 
 void
@@ -183,9 +160,7 @@ fold()
 
   // check column valid
   QAbstractItemModel *model = this->sourceModel();
-
-  if (! model)
-    return;
+  if (! model) return;
 
   numColumns_ = model->columnCount();
 
@@ -340,9 +315,7 @@ columnCount(const QModelIndex &parent) const
 {
   if (! folded_) {
     QAbstractItemModel *model = this->sourceModel();
-
-    if (! model)
-      return 0;
+    if (! model) return 0;
 
     return model->columnCount(parent);
   }
@@ -357,9 +330,7 @@ rowCount(const QModelIndex &parent) const
 {
   if (! folded_) {
     QAbstractItemModel *model = this->sourceModel();
-
-    if (! model)
-      return 0;
+    if (! model) return 0;
 
     return model->rowCount(parent);
   }
@@ -387,9 +358,7 @@ index(int row, int column, const QModelIndex &parent) const
 {
   if (! folded_) {
     QAbstractItemModel *model = this->sourceModel();
-
-    if (! model)
-      return QModelIndex();
+    if (! model) return QModelIndex();
 
     return model->index(row, column, parent);
   }
@@ -421,9 +390,7 @@ parent(const QModelIndex &child) const
 
   if (! folded_) {
     QAbstractItemModel *model = this->sourceModel();
-
-    if (! model)
-      return QModelIndex();
+    if (! model) return QModelIndex();
 
     return model->parent(child);
   }
@@ -473,9 +440,7 @@ hasChildren(const QModelIndex &parent) const
 
   if (! folded_) {
     QAbstractItemModel *model = this->sourceModel();
-
-    if (! model)
-      return false;
+    if (! model) return false;
 
     return model->hasChildren(parent);
   }
@@ -501,9 +466,7 @@ CQFoldedModel::
 data(const QModelIndex &index, int role) const
 {
   QAbstractItemModel *model = this->sourceModel();
-
-  if (! model)
-    return QVariant();
+  if (! model) return QVariant();
 
   //---
 
@@ -575,9 +538,7 @@ CQFoldedModel::
 setData(const QModelIndex &index, const QVariant &value, int role)
 {
   QAbstractItemModel *model = this->sourceModel();
-
-  if (! model)
-    return false;
+  if (! model) return false;
 
   //---
 
@@ -625,9 +586,7 @@ CQFoldedModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
   QAbstractItemModel *model = this->sourceModel();
-
-  if (! model)
-    return QVariant();
+  if (! model) return QVariant();
 
   //---
 
@@ -712,9 +671,7 @@ CQFoldedModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
   QAbstractItemModel *model = this->sourceModel();
-
-  if (! model)
-    return false;
+  if (! model) return false;
 
   //---
 
@@ -740,9 +697,7 @@ CQFoldedModel::
 flags(const QModelIndex &index) const
 {
   QAbstractItemModel *model = this->sourceModel();
-
-  if (! model)
-    return 0;
+  if (! model) return 0;
 
   //---
 
@@ -859,9 +814,7 @@ mapToSource(const QModelIndex &proxyIndex) const
     Node *pnode = nodeData.parent;
 
     QAbstractItemModel *model = this->sourceModel();
-
-    if (! model)
-      return QModelIndex();
+    if (! model) return QModelIndex();
 
     if (! pnode)
       return model->index(r1, c1, QModelIndex());
@@ -935,9 +888,7 @@ foldedChildIndex(Node *pnode, int row, int column) const
 
   // create source model index for folded row number
   QAbstractItemModel *model = this->sourceModel();
-
-  if (! model)
-    return QModelIndex();
+  if (! model) return QModelIndex();
 
   int r = pnode->sourceRows[row];
 

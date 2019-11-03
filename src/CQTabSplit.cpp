@@ -58,6 +58,13 @@ setOrientation(Qt::Orientation orient)
 
 void
 CQTabSplit::
+setGrouped(bool b)
+{
+  grouped_ = b;
+}
+
+void
+CQTabSplit::
 setSizes(const QList<int> &sizes)
 {
   if (orientation() == Qt::Horizontal)

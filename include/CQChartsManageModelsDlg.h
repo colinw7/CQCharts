@@ -20,13 +20,14 @@ class CQChartsManageModelsDlg : public QDialog {
   QSize sizeHint() const override;
 
  private slots:
+  void loadSlot();
   void writeSlot();
   void plotSlot();
   void cancelSlot();
 
  private:
-  CQCharts*             charts_       { nullptr };
-  CQChartsModelWidgets* modelWidgets_ { nullptr };
+  CQCharts*             charts_       { nullptr }; //!< charts
+  CQChartsModelWidgets* modelWidgets_ { nullptr }; //!< model list widget
 };
 
 #endif

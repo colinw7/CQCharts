@@ -981,3 +981,9 @@
  + add tooltip for JavaScript and SVG
  + add custom user procs for JavaScript and SVG
  + Generate HTML wrapper for JavaScript SVG
+# 11/03/2019
+ + improve model change notifications
+ + add no data page for view with links to dialogs and help
+ + add hier sep model and include in fold interface
+ + add hier model support in table plot
+ + allow table plot and tree map plot to be sync'ed to model expand state

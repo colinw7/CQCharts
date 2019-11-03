@@ -3,7 +3,13 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
- + annotation button
+ + No Data View
+ + Basic Parameters (simpler create plot interface)
+   + Include fold model creation and simplify grouping
+ + Hier model sum up
+ + Handle push/pop in tree map follow view
+ + Improve coloring with follow view
+ + Hier Table Plot
  + Better renderer for text used as buttons
  + No threading needed in plots for local data
  + values annotation : units, use width instead of rectangle

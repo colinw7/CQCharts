@@ -84,6 +84,8 @@
 #include <CQChartsPaletteName.h>
 #include <CQChartsHtml.h>
 
+#include <CQChartsLoadModelDlg.h>
+#include <CQChartsManageModelsDlg.h>
 #include <CQChartsEditModelDlg.h>
 #include <CQChartsCreatePlotDlg.h>
 
@@ -100,7 +102,8 @@ CQCharts::
 description()
 {
   auto LI  = [](const QString &str) { return CQChartsHtml::Str(str); };
-  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
+//auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
+  auto IMG = [](const QString &) { return QString(); };
 
   return CQChartsHtml().
    h2("Introduction").
@@ -836,11 +839,8 @@ initModelData(ModelP &model)
 {
   int ind;
 
-  if (! getModelInd(model.data(), ind)) {
+  if (! getModelInd(model.data(), ind))
     ind = addModelData(model);
-
-    emit modelDataAdded(ind);
-  }
 
   return getModelData(ind);
 }
@@ -912,7 +912,12 @@ addModelData(ModelP &model)
 
   modelDatas_.push_back(modelData);
 
-  return modelData->ind();
+  ind = modelData->ind();
+
+  emit modelDataAdded(ind);
+  emit modelDataChanged();
+
+  return ind;
 }
 
 bool
@@ -954,6 +959,7 @@ removeModelData(CQChartsModelData *modelData)
   delete modelData;
 
   emit modelDataRemoved(ind);
+  emit modelDataChanged();
 
   return true;
 }
@@ -1260,11 +1266,37 @@ getItemIsHidden(const CQPropertyViewItem *item)
 
 //---
 
+CQChartsLoadModelDlg *
+CQCharts::
+loadModelDlg()
+{
+  if (! loadModelDlg_)
+    loadModelDlg_ = new CQChartsLoadModelDlg(this);
+
+  loadModelDlg_->show();
+  loadModelDlg_->raise();
+
+  return loadModelDlg_;
+}
+
+CQChartsManageModelsDlg *
+CQCharts::
+manageModelsDlg()
+{
+  if (! manageModelsDlg_)
+    manageModelsDlg_ = new CQChartsManageModelsDlg(this);
+
+  manageModelsDlg_->show();
+  manageModelsDlg_->raise();
+
+  return manageModelsDlg_;
+}
+
 CQChartsEditModelDlg *
 CQCharts::
 editModelDlg(CQChartsModelData *modelData)
 {
-  if (! editModelDlg_ || editModelDlg_->modelData() != modelData) {
+  if (! editModelDlg_ || editModelDlg_->model() != modelData->currentModel()) {
     delete editModelDlg_;
 
     editModelDlg_ = new CQChartsEditModelDlg(this, modelData);
@@ -1280,7 +1312,7 @@ CQChartsCreatePlotDlg *
 CQCharts::
 createPlotDlg(CQChartsModelData *modelData)
 {
-  if (! createPlotDlg_ || createPlotDlg_->modelData() != modelData) {
+  if (! createPlotDlg_ || createPlotDlg_->model() != modelData->currentModel()) {
     delete createPlotDlg_;
 
     createPlotDlg_ = new CQChartsCreatePlotDlg(this, modelData);

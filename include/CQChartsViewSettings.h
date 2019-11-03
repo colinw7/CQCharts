@@ -20,7 +20,6 @@ class CQChartsView;
 class CQChartsPlot;
 class CQChartsAnnotation;
 class CQChartsFilterEdit;
-class CQChartsLoadModelDlg;
 class CQChartsCreateAnnotationDlg;
 class CQChartsEditAnnotationDlg;
 class CQChartsEditTitleDlg;
@@ -248,7 +247,6 @@ class CQChartsViewSettings : public QFrame {
   AnnotationsWidgets           annotationsWidgets_;              //!< annotations widgets
   ThemeWidgets                 themeWidgets_;                    //!< theme widgets
   LayersWidgets                layersWidgets_;                   //!< layers widgets
-  CQChartsLoadModelDlg*        loadModelDlg_        { nullptr }; //!< load dialog
   CQChartsCreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //!< create annotation dialog
   CQChartsEditAnnotationDlg*   editAnnotationDlg_   { nullptr }; //!< edit annotation dialog
   CQChartsEditTitleDlg*        editTitleDlg_        { nullptr }; //!< edit plot title dialog

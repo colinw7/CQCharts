@@ -57,10 +57,21 @@ class CQModelVisitor {
 
   void term() { numProcessedRows_ = row_; }
 
+  void enter() { ++depth_; maxDepth_ = std::max(maxDepth_, depth_); }
+  void leave() { --depth_; }
+
   //---
 
+  int depth() const { return depth_; }
+
+  int maxDepth() const { return maxDepth_; }
+
+  //---
+
+  // pre hier visit
   virtual State hierVisit(const QAbstractItemModel *, const VisitData &) { return State::OK; }
 
+  // post hier visit
   virtual State hierPostVisit(const QAbstractItemModel *, const VisitData &) { return State::OK; }
 
   //---
@@ -76,6 +87,8 @@ class CQModelVisitor {
   int                       numCols_          { 0 };       //!< number of columns
   int                       numRows_          { 0 };       //!< number of rows (current parent)
   int                       row_              { 0 };       //!< current row
+  int                       depth_            { 0 };       //!< current depth
+  int                       maxDepth_         { 0 };       //!< max depth
   int                       numProcessedRows_ { 0 };       //!< total number of rows processed
   int                       maxRows_          { -1 };      //!< maximum number of rows to process
   bool                      hierarchical_     { false };   //!< is hierarchical

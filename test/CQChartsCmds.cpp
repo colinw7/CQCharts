@@ -36,19 +36,21 @@
 #include <CQColorsTheme.h>
 #include <CQColorsPalette.h>
 
-#include <CQDataModel.h>
-#include <CQSortModel.h>
 #include <CQBucketModel.h>
-#include <CQFoldedModel.h>
-#include <CQSubSetModel.h>
-#include <CQTransposeModel.h>
-#include <CQSummaryModel.h>
 #include <CQCollapseModel.h>
+#include <CQFoldedModel.h>
+#include <CQHierSepModel.h>
 #include <CQPivotModel.h>
-#include <CQPerfMonitor.h>
+#include <CQSubSetModel.h>
+#include <CQSummaryModel.h>
+#include <CQTransposeModel.h>
+
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
+#include <CQSortModel.h>
+#include <CQDataModel.h>
 
+#include <CQPerfMonitor.h>
 #include <CQUtil.h>
 #include <CUnixFile.h>
 #include <CHRTimer.h>
@@ -2427,8 +2429,9 @@ foldChartsModelCmd(CQChartsCmdArgs &argv)
 
   CQPerfTrace trace("CQChartsCmds::foldChartsModelCmd");
 
-  argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
-  argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column to fold");
+  argv.addCmdArg("-model"    , CQChartsCmdArg::Type::Integer, "model id");
+  argv.addCmdArg("-column"   , CQChartsCmdArg::Type::Column , "column to fold");
+  argv.addCmdArg("-separator", CQChartsCmdArg::Type::String , "hier separator char");
 
   bool rc;
 
@@ -2437,11 +2440,9 @@ foldChartsModelCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  // get model
   int modelInd = argv.getParseInt("model", -1);
 
-  //------
-
-  // get model
   CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
 
   if (! modelData)
@@ -2449,31 +2450,56 @@ foldChartsModelCmd(CQChartsCmdArgs &argv)
 
   ModelP model = modelData->model();
 
-  CQChartsColumn column = argv.getParseColumn("column", model.data());
+  //---
+
+  // get fold column (default to first column)
+  int icolumn = 0;
+
+  if (argv.hasParseArg("column")) {
+    CQChartsColumn column = argv.getParseColumn("column", model.data());
+
+    icolumn = column.column();
+  }
 
   //---
 
-  CQFoldData foldData(column.column());
+  // get separator
+  QString separator;
 
-  CQFoldedModel *foldedModel = new CQFoldedModel(model.data(), foldData);
-
-  //---
-
-  QSortFilterProxyModel *foldProxyModel = new QSortFilterProxyModel;
-
-  foldProxyModel->setObjectName("foldProxyModel");
-
-  foldProxyModel->setSortRole(static_cast<int>(Qt::EditRole));
-
-  foldProxyModel->setSourceModel(foldedModel);
-
-  ModelP foldedModelP(foldProxyModel);
-
-  CQChartsModelData *foldedModelData = charts_->initModelData(foldedModelP);
+  if (argv.hasParseArg("separator")) {
+    separator = argv.getParseStr("separator");
+  }
 
   //---
 
-  cmdBase_->setCmdRc(foldedModelData->ind());
+  QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel;
+
+  proxyModel->setObjectName("foldProxyModel");
+
+  proxyModel->setSortRole(static_cast<int>(Qt::EditRole));
+
+  if (separator == "") {
+    CQFoldData foldData(icolumn);
+
+    CQFoldedModel *foldedModel = new CQFoldedModel(model.data(), foldData);
+
+    proxyModel->setSourceModel(foldedModel);
+  }
+  else {
+    CQHierSepData data(icolumn, separator[0]);
+
+    CQHierSepModel *hierSepModel = new CQHierSepModel(model.data(), data);
+
+    proxyModel->setSourceModel(hierSepModel);
+  }
+
+  //---
+
+  ModelP proxyModelP(proxyModel);
+
+  CQChartsModelData *proxyModelData = charts_->initModelData(proxyModelP);
+
+  cmdBase_->setCmdRc(proxyModelData->ind());
 
   return true;
 }

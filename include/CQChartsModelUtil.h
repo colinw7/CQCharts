@@ -7,6 +7,7 @@
 #include <CQBaseModelTypes.h>
 
 class CQDataModel;
+class CQHierSepModel;
 class CQChartsColumn;
 class QAbstractItemModel;
 
@@ -16,7 +17,9 @@ namespace CQChartsModelUtil {
 
 bool isHierarchical(const QAbstractItemModel *model);
 
-int hierRowCount(const QAbstractItemModel *model);
+void hierData(CQCharts *charts, const QAbstractItemModel *model, int &nr, int &maxDepth);
+
+int hierRowCount(CQCharts *charts, const QAbstractItemModel *model);
 
 QString parentPath(const QAbstractItemModel *model, const QModelIndex &parent);
 
@@ -83,6 +86,8 @@ CQChartsExprModel *getExprModel(QAbstractItemModel *model);
 
 const CQDataModel *getDataModel(const QAbstractItemModel *model);
 CQDataModel *getDataModel(QAbstractItemModel *model);
+
+CQHierSepModel *getHierSepModel(QAbstractItemModel *model);
 
 QAbstractItemModel *getBaseModel(QAbstractItemModel *model);
 

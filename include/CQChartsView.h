@@ -47,6 +47,7 @@ class CQChartsEditTitleDlg;
 class CQChartsPaintDevice;
 class CQChartsPoints;
 class CQChartsReals;
+class CQChartsDocument;
 
 struct CQChartsTextOptions;
 
@@ -200,7 +201,7 @@ class CQChartsView : public QFrame,
   //--
 
   CQChartsWindow *window() const { return window_; }
-  void setWindow(CQChartsWindow *window) { window_ = window; }
+  void setWindow(CQChartsWindow *window);
 
   //---
 
@@ -309,6 +310,10 @@ class CQChartsView : public QFrame,
 
   void invalidateObjects();
   void invalidateOverlay();
+
+  //---
+
+  void expandedModelIndices(QModelIndexList &inds);
 
  private:
   QFont viewFont(const QFont &font) const;
@@ -523,6 +528,13 @@ class CQChartsView : public QFrame,
   void paint(QPainter *painter, CQChartsPlot *plot=nullptr);
 
   void drawBackground(CQChartsPaintDevice *device) const;
+
+  void drawPlots(QPainter *painter);
+
+
+  void showNoData(bool show);
+
+  void drawNoData(CQChartsPaintDevice *device);
 
   bool hasAnnotations() const;
   void drawAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType);
@@ -847,7 +859,11 @@ class CQChartsView : public QFrame,
   void scrollDataChanged();
 
  public slots:
+  void updateNoData();
+
   void editObjectSlot();
+
+  void expansionChangeSlot();
 
   void setAutoSize(bool b);
 
@@ -894,6 +910,14 @@ class CQChartsView : public QFrame,
 
   void invertXSlot(bool);
   void invertYSlot(bool);
+
+  //--
+
+  void noDataTextClicked(const QString &);
+
+  void manageModelsSlot();
+  void addPlotSlot();
+  void helpSlot();
 
   //---
 
@@ -1127,8 +1151,12 @@ class CQChartsView : public QFrame,
   CQChartsEditAxisDlg*  editAxisDlg_       { nullptr };           //!< edit axis dialog
   CQChartsEditKeyDlg*   editKeyDlg_        { nullptr };           //!< edit key dialog
   CQChartsEditTitleDlg* editTitleDlg_      { nullptr };           //!< edit title dialog
-  QString               scriptSelectProc_;
-  Annotations           pressAnnotations_;
+  QString               scriptSelectProc_;                        //!< script select proc
+  Annotations           pressAnnotations_;                        //!< press annotations
+  CQChartsDocument*     noDataText_        { nullptr };
+//QToolButton*          noDataModelButton_ { nullptr };           //!< no data model button
+//QToolButton*          noDataPlotButton_  { nullptr };           //!< no data plot button
+//QToolButton*          noDataHelpButton   { nullptr };           //!< no data help button
 };
 
 #endif

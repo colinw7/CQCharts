@@ -9,6 +9,8 @@
 #include <CQChartsFilterEdit.h>
 #include <CQChartsModelViewHolder.h>
 #include <CQChartsPropertyViewTree.h>
+#include <CQChartsModelView.h>
+
 #include <CQPixmapCache.h>
 #include <CQTabSplit.h>
 #include <CQUtil.h>
@@ -135,6 +137,7 @@ CQChartsWindow(CQChartsView *view) :
   CQTabSplit *viewSplitter = CQUtil::makeWidget<CQTabSplit>("vsplitter");
 
   viewSplitter->setState(CQTabSplit::State::VSPLIT);
+//viewSplitter->setGrouped(true);
 
   settingsSplitter->addWidget(viewSplitter);
 
@@ -204,6 +207,11 @@ CQChartsWindow(CQChartsView *view) :
   modelView_ = new CQChartsModelViewHolder(view_->charts());
 
   connect(modelView_, SIGNAL(filterChanged()), this, SLOT(filterChangedSlot()));
+
+  connect(modelView_->view(), SIGNAL(expanded(const QModelIndex &)),
+          this, SLOT(expansionChangeSlot()));
+  connect(modelView_->view(), SIGNAL(collapsed(const QModelIndex &)),
+          this, SLOT(expansionChangeSlot()));
 
   tableLayout->addWidget(modelView_);
 
@@ -432,6 +440,13 @@ filterChangedSlot()
 
 void
 CQChartsWindow::
+expansionChangeSlot()
+{
+  emit expansionChanged();
+}
+
+void
+CQChartsWindow::
 removeViewSlot(CQChartsView *view)
 {
   if (view_ != view)
@@ -593,6 +608,17 @@ propertyItemSelected(QObject *obj, const QString &path)
     plot->propertyItemSelected(obj, path);
 }
 
+//---
+
+void
+CQChartsWindow::
+expandedModelIndices(QModelIndexList &inds)
+{
+  modelView_->view()->expandedIndices(inds);
+}
+
+//---
+
 CQChartsPlot *
 CQChartsWindow::
 objectPlot(QObject *obj) const
@@ -610,6 +636,8 @@ objectPlot(QObject *obj) const
 
   return nullptr;
 }
+
+//---
 
 QSize
 CQChartsWindow::

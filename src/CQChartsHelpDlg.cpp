@@ -4,6 +4,7 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsView.h>
 #include <CQChartsPlotType.h>
+#include <CQChartsDocument.h>
 
 #include <CQPixmapCache.h>
 #include <CQUtil.h>
@@ -13,7 +14,6 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QHeaderView>
-#include <QTextBrowser>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -109,12 +109,10 @@ CQChartsHelpDlg(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  text_ = CQUtil::makeWidget<QTextBrowser>("text");
+  text_ = CQUtil::makeWidget<CQChartsDocument>("text");
 
-  text_->setOpenLinks(false);
-  text_->setOpenExternalLinks(false);
-
-  connect(text_, SIGNAL(anchorClicked(const QUrl &)), this, SLOT(treeAnchorSlot(const QUrl &)));
+  connect(text_, SIGNAL(linkClicked(const QString &)),
+          this, SLOT(treeLinkSlot(const QString &)));
 
   splitter->addWidget(text_);
 
@@ -406,28 +404,19 @@ setHtml(const QString &text)
 
     text_->setHtml(text1);
   }
-  else
+  else {
     text_->setHtml(text);
-//std::cerr << text.toStdString() << "\n";
+  }
 }
 
 void
 CQChartsHelpDlg::
-treeAnchorSlot(const QUrl &url)
+treeLinkSlot(const QString &name)
 {
-  QString chartsPrefix("charts://");
+  if (name.startsWith("column_type/")) {
+    QString dest = name.mid(12);
 
-  QString str = url.toString();
-//std::cerr << str.toStdString() << "\n";
-
-  if (str.startsWith(chartsPrefix)) {
-    QString str1 = str.mid(chartsPrefix.length());
-
-    if (str1.startsWith("column_type/")) {
-      QString dest = str1.mid(12);
-
-      setCurrentSection("Models/Types/" + dest);
-    }
+    setCurrentSection("Models/Types/" + dest);
   }
 }
 

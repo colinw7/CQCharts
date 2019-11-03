@@ -24,7 +24,21 @@ CQChartsEditModelDlg::
 CQChartsEditModelDlg(CQCharts *charts, CQChartsModelData *modelData) :
  charts_(charts), modelData_(modelData)
 {
+  assert(modelData_);
+
+  model_ = modelData_->currentModel();
+
+  init();
+}
+
+void
+CQChartsEditModelDlg::
+init()
+{
   setObjectName("editModelDlg");
+
+  if (modelData_)
+    connect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(currentModelChangedSlot()));
 
   if (modelData_)
     setWindowTitle(QString("Edit Model %1").arg(modelData_->id()));
@@ -38,6 +52,7 @@ CQChartsEditModelDlg(CQCharts *charts, CQChartsModelData *modelData) :
   CQTabSplit *split = CQUtil::makeWidget<CQTabSplit>("split");
 
   split->setOrientation(Qt::Vertical);
+  split->setGrouped(true);
 
   layout->addWidget(split);
 
@@ -51,7 +66,7 @@ CQChartsEditModelDlg(CQCharts *charts, CQChartsModelData *modelData) :
   //---
 
   // create model control
-  modelControl_ = new CQChartsModelControl(charts_, modelData);
+  modelControl_ = new CQChartsModelControl(charts_, modelData_);
 
   split->addWidget(modelControl_, "Control");
 
@@ -92,7 +107,18 @@ void
 CQChartsEditModelDlg::
 setModelData(CQChartsModelData *modelData)
 {
+  if (modelData_)
+    disconnect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(currentModelChangedSlot()));
+
   modelData_ = modelData;
+
+  if (modelData_)
+    model_ = modelData_->currentModel();
+  else
+    model_ = ModelP();
+
+  if (modelData_)
+    connect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(currentModelChangedSlot()));
 
   if (modelData_)
     setWindowTitle(QString("Edit Model %1").arg(modelData_->id()));
@@ -102,6 +128,15 @@ setModelData(CQChartsModelData *modelData)
   modelWidget_->setModelData(modelData_);
 
   modelControl_->setModelData(modelData_);
+}
+
+void
+CQChartsEditModelDlg::
+currentModelChangedSlot()
+{
+  model_ = modelData_->currentModel();
+
+  modelWidget_->reloadModel();
 }
 
 void
@@ -124,7 +159,7 @@ writeCSVModel(const QString &fileName)
   if (details->isHierarchical())
     return false;
 
-  QAbstractItemModel *model = modelData_->currentModel().data();
+  QAbstractItemModel *model = model_.data();
 
   //---
 
@@ -309,7 +344,7 @@ writeModelCmds()
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
-  QAbstractItemModel *model = modelData_->currentModel().data();
+  QAbstractItemModel *model = model_.data();
 
   for (int i = 0; i < model->columnCount(); ++i) {
     CQChartsColumn column(i);

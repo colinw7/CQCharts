@@ -2,11 +2,11 @@
 #include <CQChartsWindow.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
-#include <CQChartsManageModelsDlg.h>
-#include <CQChartsCreatePlotDlg.h>
 #include <CQChartsModelData.h>
-#include <CQChartsHelpDlg.h>
 #include <CQCharts.h>
+
+#include <CQChartsCreatePlotDlg.h>
+#include <CQChartsHelpDlg.h>
 
 #include <CQPixmapCache.h>
 #include <CQIconCombo.h>
@@ -28,10 +28,10 @@
 #include <svg/left_dark_svg.h>
 #include <svg/right_light_svg.h>
 #include <svg/right_dark_svg.h>
-#include <svg/charts_light_svg.h>
-#include <svg/charts_dark_svg.h>
 #include <svg/models_light_svg.h>
 #include <svg/models_dark_svg.h>
+#include <svg/charts_light_svg.h>
+#include <svg/charts_dark_svg.h>
 #include <svg/options_svg.h>
 #include <svg/table_svg.h>
 #include <svg/info_svg.h>
@@ -385,12 +385,7 @@ manageModelsSlot()
 {
   CQCharts *charts = view()->charts();
 
-  if (manageModelsDlg_)
-    delete manageModelsDlg_;
-
-  manageModelsDlg_ = new CQChartsManageModelsDlg(charts);
-
-  manageModelsDlg_->show();
+  (void) charts->manageModelsDlg();
 }
 
 void

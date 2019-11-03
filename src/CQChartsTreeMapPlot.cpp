@@ -119,14 +119,37 @@ void
 CQChartsTreeMapPlot::
 setTitleHierName(bool b)
 {
-  CQChartsUtil::testAndSet(titleHierName_, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(titleData_.hierName, b, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsTreeMapPlot::
 setTitleTextClipped(bool b)
 {
-  CQChartsUtil::testAndSet(titleTextClipped_, b, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(titleData_.textClipped, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setTitleMargin(double m)
+{
+  CQChartsUtil::testAndSet(titleData_.margin, m, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setFollowViewExpand(bool b)
+{
+  if (followViewExpand_ != b) {
+    followViewExpand_ = b;
+
+    if (isFollowViewExpand())
+      modelViewExpansionChanged();
+    else
+      resetNodeExpansion();
+
+    drawObjs();
+  }
 }
 
 void
@@ -149,21 +172,21 @@ void
 CQChartsTreeMapPlot::
 setTitles(bool b)
 {
-  CQChartsUtil::testAndSet(titles_, b, [&]() { updateCurrentRoot(); } );
+  CQChartsUtil::testAndSet(titleData_.visible, b, [&]() { updateCurrentRoot(); } );
 }
 
 void
 CQChartsTreeMapPlot::
 setTitleMaxExtent(const CQChartsOptReal &r)
 {
-  CQChartsUtil::testAndSet(titleMaxExtent_, r, [&]() { drawObjs(); } );
+  CQChartsUtil::testAndSet(titleData_.maxExtent, r, [&]() { drawObjs(); } );
 }
 
 void
 CQChartsTreeMapPlot::
 setTitleHeight(const CQChartsOptLength &l)
 {
-  CQChartsUtil::testAndSet(titleHeight_, l, [&]() { updateCurrentRoot(); } );
+  CQChartsUtil::testAndSet(titleData_.height, l, [&]() { updateCurrentRoot(); } );
 }
 
 //----
@@ -245,7 +268,8 @@ addProperties()
   CQChartsHierPlot::addProperties();
 
   // options
-  addProp("options", "valueLabel", "", "Show value label");
+  addProp("options", "valueLabel"      , "", "Show value label");
+  addProp("options", "followViewExpand", "", "Follow view expand");
 
   // margins
   addProp("margins", "marginWidth", "box", "Margin size for tree map boxes");
@@ -439,6 +463,8 @@ createObjs(PlotObjs &objs) const
   }
 
   //---
+
+  th->modelViewExpansionChanged();
 
   return true;
 }
@@ -1095,6 +1121,61 @@ postResize()
 
 //------
 
+void
+CQChartsTreeMapPlot::
+modelViewExpansionChanged()
+{
+  if (! isFollowViewExpand())
+    return;
+
+  QModelIndexList inds;
+
+  view()->expandedModelIndices(inds);
+
+  std::set<QModelIndex> indSet;
+
+  for (const auto &ind : inds) {
+    QModelIndex ind1 = normalizeIndex(ind);
+
+    indSet.insert(ind1);
+  }
+
+  for (auto &hierNode : root()->getChildren())
+    setNodeExpansion(hierNode, indSet);
+
+  drawObjs();
+}
+
+void
+CQChartsTreeMapPlot::
+setNodeExpansion(CQChartsTreeMapHierNode *hierNode, const std::set<QModelIndex> &indSet)
+{
+  hierNode->setExpanded(indSet.find(hierNode->ind()) != indSet.end());
+
+  for (auto &hierNode1 : hierNode->getChildren())
+    setNodeExpansion(hierNode1, indSet);
+}
+
+void
+CQChartsTreeMapPlot::
+resetNodeExpansion()
+{
+  for (auto &hierNode : root()->getChildren())
+    resetNodeExpansion(hierNode);
+}
+
+void
+CQChartsTreeMapPlot::
+resetNodeExpansion(CQChartsTreeMapHierNode *hierNode)
+{
+  hierNode->setExpanded(true);
+
+  for (auto &hierNode : root()->getChildren())
+    resetNodeExpansion(hierNode);
+}
+
+//------
+
 CQChartsTreeMapHierObj::
 CQChartsTreeMapHierObj(const CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
                        CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
@@ -1143,8 +1224,15 @@ void
 CQChartsTreeMapHierObj::
 draw(CQChartsPaintDevice *device)
 {
-  CQChartsGeom::Point p1 = CQChartsGeom::Point(hier_->x()             , hier_->y()             );
-  CQChartsGeom::Point p2 = CQChartsGeom::Point(hier_->x() + hier_->w(), hier_->y() + hier_->h());
+  CQChartsTreeMapHierNode *pnode = node()->parent();
+
+  if (pnode && ! pnode->isHierExpanded())
+    return;
+
+  //---
+
+  CQChartsGeom::Point p1(hier_->x()             , hier_->y()             );
+  CQChartsGeom::Point p2(hier_->x() + hier_->w(), hier_->y() + hier_->h());
 
   QRectF qrect = CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y).qrect();
 
@@ -1175,7 +1263,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // get labels (name)
+  // get label (name)
   QString name = (plot_->isTitleHierName() ? hier_->hierName() : hier_->name());
 
   //---
@@ -1200,7 +1288,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // check if text visible
+  // check if text visible (font dependent)
   QRectF pqrect = device->windowToPixel(qrect);
 
   bool visible = plot_->isTextVisible();
@@ -1232,7 +1320,7 @@ draw(CQChartsPaintDevice *device)
 
     device->setPen(tPenBrush.pen);
 
-    double m = 3; // margin in pixels
+    double m = plot_->titleMargin(); // margin in pixels
 
     double hh = plot_->calcTitleHeight(); // title height in pixels
 
@@ -1259,9 +1347,15 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
   QColor hierColor = hier_->interpColor(plot_, plot_->fillColor(), colorInd, plot_->numColorIds());
 
-  QColor c = plot_->interpHeaderFillColor(colorInd);
+  QColor fc;
 
-  QColor fc = CQChartsUtil::blendColors(c, hierColor, 0.8);
+  if (hierNode()->isExpanded()) {
+    QColor c = plot_->interpHeaderFillColor(colorInd);
+
+    fc = CQChartsUtil::blendColors(c, hierColor, 0.8);
+  }
+  else
+    fc = hierColor;
 
   plot_->setPenBrush(penBrush,
     CQChartsPenData  (plot_->isHeaderStroked(), bc, plot_->headerStrokeAlpha(),
@@ -1376,6 +1470,13 @@ void
 CQChartsTreeMapNodeObj::
 draw(CQChartsPaintDevice *device)
 {
+  CQChartsTreeMapHierNode *pnode = node()->parent();
+
+  if (pnode && ! pnode->isHierExpanded())
+    return;
+
+  //---
+
   CQChartsGeom::Point p1 =
     plot_->windowToPixel(CQChartsGeom::Point(node_->x()             , node_->y()             ));
   CQChartsGeom::Point p2 =
@@ -1616,6 +1717,22 @@ CQChartsTreeMapHierNode::
 
   for (auto &node : nodes_)
     delete node;
+}
+
+bool
+CQChartsTreeMapHierNode::
+isHierExpanded() const
+{
+  if (plot_->currentRoot() == this)
+    return true;
+
+  if (! isExpanded())
+    return false;
+
+  if (parent() && ! parent()->isHierExpanded())
+    return false;
+
+  return true;
 }
 
 double

@@ -1913,6 +1913,10 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  virtual void modelViewExpansionChanged() { }
+
+  //---
+
   // write details to output
   virtual void write(std::ostream &os, const QString &plotVarName="",
                      const QString &modelVarName="", const QString &viewVarName="") const;

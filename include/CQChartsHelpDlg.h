@@ -4,11 +4,11 @@
 #include <QDialog>
 
 class CQChartsHelpDlg;
+class CQChartsDocument;
 class CQCharts;
 
 class QTreeWidget;
 class QTreeWidgetItem;
-class QTextBrowser;
 class QToolButton;
 
 #define CQChartsHelpDlgMgrInst CQChartsHelpDlgMgr::instance()
@@ -91,21 +91,21 @@ class CQChartsHelpDlg : public QDialog {
 
   void treeItemSlot();
 
-  void treeAnchorSlot(const QUrl &url);
+  void treeLinkSlot(const QString &name);
 
   void selectTreeItem(const QString &path);
 
  private:
   using Sections = std::vector<QString>;
 
-  CQCharts*     charts_         { nullptr }; //!< charts
-  QTreeWidget*  tree_           { nullptr }; //!< index tree
-  QTextBrowser *text_           { nullptr }; //!< text browser
-  QToolButton  *prevButton_     { nullptr }; //!< previous section button
-  QToolButton  *nextButton_     { nullptr }; //!< next section button
-  QString       currentSection_;             //!< current section
-  Sections      undoSections_;
-  Sections      redoSections_;
+  CQCharts*         charts_         { nullptr }; //!< charts
+  QTreeWidget*      tree_           { nullptr }; //!< index tree
+  CQChartsDocument* text_           { nullptr }; //!< text browser
+  QToolButton*      prevButton_     { nullptr }; //!< previous section button
+  QToolButton*      nextButton_     { nullptr }; //!< next section button
+  QString           currentSection_;             //!< current section
+  Sections          undoSections_;               //!< undo sections
+  Sections          redoSections_;               //!< redo sections
 };
 
 #endif

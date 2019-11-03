@@ -399,6 +399,7 @@ QVariant
 CQCollapseModel::VariantData::
 displayValue(const ColumnConfig &config) const
 {
+  // get display value if not cached
   if (! displayValue_.isValid()) {
     CQCollapseModel::VariantData *th = const_cast<CQCollapseModel::VariantData *>(this);
 

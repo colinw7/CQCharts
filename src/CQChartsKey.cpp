@@ -181,36 +181,45 @@ doLayout()
 
   //---
 
-  double pw = 0.0;
-  double ph = 0.0;
+  numPlots_ = view()->numPlots();
 
-  int n = view()->numPlots();
+  if (numPlots_ > 0) {
+    double pw = 0.0;
+    double ph = 0.0;
 
-  for (int i = 0; i < n; ++i) {
-    CQChartsPlot *plot = view()->plot(i);
+    for (int i = 0; i < numPlots_; ++i) {
+      CQChartsPlot *plot = view()->plot(i);
 
-    QString name = plot->keyText();
+      QString name = plot->keyText();
 
-    double tw = fm.width(name) + bs + xlm + xrm;
+      double tw = fm.width(name) + bs + xlm + xrm;
 
-    pw = std::max(pw, tw);
+      pw = std::max(pw, tw);
 
-    ph += bs;
+      ph += bs;
+    }
+
+    size_ = QSizeF(pw + xlm + xrm, ph + ybm + ytm + (numPlots_ - 1)*2);
+
+    //---
+
+    double pxr = 0.0, pyr = 0.0;
+
+    if      (location().onLeft   ()) pxr = p.x                   + xlm;
+    else if (location().onHCenter()) pxr = p.x - size_.width()/2;
+    else if (location().onRight  ()) pxr = p.x - size_.width()   - xrm;
+
+    if      (location().onTop    ()) pyr = p.y                    + ytm;
+    else if (location().onVCenter()) pyr = p.y - size_.height()/2;
+    else if (location().onBottom ()) pyr = p.y - size_.height()   - ybm;
+
+    pposition_ = QPointF(pxr, pyr);
+  }
+  else {
+    size_      = QSizeF(0.0, 0.0);
+    pposition_ = QPointF(0.0, 0.0);
   }
 
-  size_ = QSizeF(pw + xlm + xrm, ph + ybm + ytm + (n - 1)*2);
-
-  double pxr = 0.0, pyr = 0.0;
-
-  if      (location().onLeft   ()) pxr = p.x                   + xlm;
-  else if (location().onHCenter()) pxr = p.x - size_.width()/2;
-  else if (location().onRight  ()) pxr = p.x - size_.width()   - xrm;
-
-  if      (location().onTop    ()) pyr = p.y                    + ytm;
-  else if (location().onVCenter()) pyr = p.y - size_.height()/2;
-  else if (location().onBottom ()) pyr = p.y - size_.height()   - ybm;
-
-  pposition_ = QPointF(pxr, pyr);
   wposition_ = view()->pixelToWindow(pposition_);
 }
 
@@ -321,6 +330,9 @@ draw(CQChartsPaintDevice *device) const
 
   th->doLayout();
 
+  if (numPlots_ <= 0)
+    return;
+
   //---
 
   // pixel position & size (TODO: using view/units)
@@ -364,15 +376,13 @@ draw(CQChartsPaintDevice *device) const
   double px1 = px + xlm;
   double py1 = py + ybm;
 
-  int n = view()->numPlots();
-
   double bs = fm.height() + 4.0;
 
   //double dth = (bs - fm.height())/2;
 
   prects_.clear();
 
-  for (int i = 0; i < n; ++i) {
+  for (int i = 0; i < numPlots_; ++i) {
     double py2 = py1 + bs + 2;
 
     CQChartsPlot *plot = view()->plot(i);

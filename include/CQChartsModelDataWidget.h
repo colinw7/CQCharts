@@ -35,6 +35,8 @@ class CQChartsModelDataWidget : public QFrame {
   void setDetails();
 
  private slots:
+  void reloadModelSlot();
+
   void filterSlot();
 
   void columnClicked(int column);

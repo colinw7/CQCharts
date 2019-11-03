@@ -22,6 +22,8 @@ class CQChartsInterfaceTheme;
 class CQColorsPalette;
 class CQChartsColor;
 
+class CQChartsLoadModelDlg;
+class CQChartsManageModelsDlg;
 class CQChartsEditModelDlg;
 class CQChartsCreatePlotDlg;
 
@@ -298,6 +300,9 @@ class CQCharts : public QObject {
 
   //---
 
+  CQChartsLoadModelDlg    *loadModelDlg();
+  CQChartsManageModelsDlg *manageModelsDlg();
+
   CQChartsEditModelDlg  *editModelDlg (CQChartsModelData *modelData);
   CQChartsCreatePlotDlg *createPlotDlg(CQChartsModelData *modelData);
 
@@ -308,6 +313,7 @@ class CQCharts : public QObject {
  signals:
   void modelDataAdded(int);
   void modelDataRemoved(int);
+  void modelDataChanged();
 
   void currentModelChanged(int);
 
@@ -339,18 +345,20 @@ class CQCharts : public QObject {
  private:
   using NameViews = std::map<QString,CQChartsView*>;
 
-  bool                    viewKey_         { true };    //!< has view key
-  CQChartsPlotTypeMgr*    plotTypeMgr_     { nullptr }; //!< plot type manager
-  CQChartsColumnTypeMgr*  columnTypeMgr_   { nullptr }; //!< column type manager
-  CQChartsInterfaceTheme* interfaceTheme_  { nullptr }; //!< interface theme
-  CQChartsThemeName       plotTheme_;                   //!< plot theme name
-  int                     currentModelInd_ { -1 };      //!< current model index
-  ModelDatas              modelDatas_;                  //!< model datas
-  int                     lastModelInd_    { 0 };       //!< last model ind
-  NameViews               views_;                       //!< views
-  TypeProcs               typeProcs_;                   //!< tcl procs
-  CQChartsEditModelDlg*   editModelDlg_    { nullptr }; //!< edit model dialog
-  CQChartsCreatePlotDlg*  createPlotDlg_   { nullptr }; //!< create plot dialog
+  bool                     viewKey_         { true };    //!< has view key
+  CQChartsPlotTypeMgr*     plotTypeMgr_     { nullptr }; //!< plot type manager
+  CQChartsColumnTypeMgr*   columnTypeMgr_   { nullptr }; //!< column type manager
+  CQChartsInterfaceTheme*  interfaceTheme_  { nullptr }; //!< interface theme
+  CQChartsThemeName        plotTheme_;                   //!< plot theme name
+  int                      currentModelInd_ { -1 };      //!< current model index
+  ModelDatas               modelDatas_;                  //!< model datas
+  int                      lastModelInd_    { 0 };       //!< last model ind
+  NameViews                views_;                       //!< views
+  TypeProcs                typeProcs_;                   //!< tcl procs
+  CQChartsLoadModelDlg*    loadModelDlg_    { nullptr }; //!< load model dialog
+  CQChartsManageModelsDlg* manageModelsDlg_ { nullptr }; //!< manage models dialog
+  CQChartsEditModelDlg*    editModelDlg_    { nullptr }; //!< edit model dialog
+  CQChartsCreatePlotDlg*   createPlotDlg_   { nullptr }; //!< create plot dialog
 };
 
 #endif

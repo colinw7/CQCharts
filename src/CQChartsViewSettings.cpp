@@ -36,7 +36,6 @@
 #include <CQGroupBox.h>
 #include <CQToolTip.h>
 
-#include <QTextBrowser>
 #include <QHeaderView>
 #include <QSpinBox>
 #include <QRadioButton>
@@ -201,23 +200,31 @@ class CQChartsViewSettingsModelTable : public CQTableWidget {
 
     clear();
 
-    setColumnCount(2);
+    setColumnCount(4);
     setRowCount(modelDatas.size());
 
-    setHorizontalHeaderItem(0, new QTableWidgetItem("Name" ));
-    setHorizontalHeaderItem(1, new QTableWidgetItem("Index"));
+    setHorizontalHeaderItem(0, new QTableWidgetItem("Name"    ));
+    setHorizontalHeaderItem(1, new QTableWidgetItem("Index"   ));
+    setHorizontalHeaderItem(2, new QTableWidgetItem("Filename"));
+    setHorizontalHeaderItem(3, new QTableWidgetItem("Object Name"));
 
     int i = 0;
 
     for (const auto &modelData : modelDatas) {
       QTableWidgetItem *nameItem = new QTableWidgetItem(modelData->id());
       QTableWidgetItem *indItem  = new QTableWidgetItem(QString("%1").arg(modelData->ind()));
+      QTableWidgetItem *fileItem = new QTableWidgetItem(modelData->fileName());
+      QTableWidgetItem *objItem  = new QTableWidgetItem(modelData->model()->objectName());
 
       nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
       indItem ->setFlags(indItem ->flags() & ~Qt::ItemIsEditable);
+      fileItem->setFlags(fileItem->flags() & ~Qt::ItemIsEditable);
+      objItem ->setFlags(objItem ->flags() & ~Qt::ItemIsEditable);
 
       setItem(i, 0, nameItem);
       setItem(i, 1, indItem );
+      setItem(i, 2, fileItem);
+      setItem(i, 3, objItem );
 
       nameItem->setData(Qt::UserRole, modelData->ind());
 
@@ -973,6 +980,7 @@ initModelsFrame(QFrame *modelsFrame)
   CQTabSplit *modelsSplit = CQUtil::makeWidget<CQTabSplit>("modelsSplit");
 
   modelsSplit->setOrientation(Qt::Vertical);
+  modelsSplit->setGrouped(true);
 
   modelsFrameLayout->addWidget(modelsSplit);
 
@@ -1022,8 +1030,8 @@ initModelsFrame(QFrame *modelsFrame)
 
   //--
 
-  auto createPushButton = [&](const QString &label, const QString &objName, const QString &tip,
-                              const char *slotName) {
+  auto createButton = [&](const QString &label, const QString &objName, const QString &tip,
+                          const char *slotName) {
     QPushButton *button = CQUtil::makeLabelWidget<QPushButton>(label, objName);
 
     button->setToolTip(tip);
@@ -1034,11 +1042,11 @@ initModelsFrame(QFrame *modelsFrame)
   };
 
   QPushButton *loadModelButton =
-    createPushButton("Load", "load", "Load Model", SLOT(loadModelSlot()));
+    createButton("Load", "load", "Load Model", SLOT(loadModelSlot()));
   modelsWidgets_.editButton =
-    createPushButton("Edit", "edit", "Edit Model", SLOT(editModelSlot()));
+    createButton("Edit", "edit", "Edit Model", SLOT(editModelSlot()));
   modelsWidgets_.plotButton =
-    createPushButton("Plot", "plot", "Create Plot", SLOT(plotModelSlot()));
+    createButton("Plot", "plot", "Create Plot", SLOT(plotModelSlot()));
 
   modelControlLayout->addWidget(loadModelButton);
   modelControlLayout->addWidget(modelsWidgets_.editButton);
@@ -1259,6 +1267,7 @@ initAnnotationsFrame(QFrame *annotationsFrame)
   CQTabSplit *annotationsSplit = CQUtil::makeWidget<CQTabSplit>("annotationsSplit");
 
   annotationsSplit->setOrientation(Qt::Vertical);
+  annotationsSplit->setGrouped(true);
 
   annotationsFrameLayout->addWidget(annotationsSplit);
 
@@ -1705,11 +1714,7 @@ loadModelSlot()
 {
   CQCharts *charts = window_->view()->charts();
 
-  delete loadModelDlg_;
-
-  loadModelDlg_ = new CQChartsLoadModelDlg(charts);
-
-  loadModelDlg_->show();
+  (void) charts->loadModelDlg();
 }
 
 void
@@ -1779,6 +1784,7 @@ CQChartsViewSettings::
 plotsTabChangedSlot()
 {
   int ind = propertiesWidgets_.plotsTab->currentIndex();
+  if (ind < 0) return; // no plot
 
   CQChartsViewSettingsPlotPropertiesWidget *plotWidget =
     qobject_cast<CQChartsViewSettingsPlotPropertiesWidget *>(
@@ -2172,7 +2178,7 @@ removePlotsSlot()
   for (auto &plot : plots)
     view->removePlot(plot);
 
-  updateView();
+  //updateView();
 }
 
 void

@@ -41,10 +41,17 @@ class CQChartsModelData : public QObject {
 
  public:
   struct FoldData {
-    QString columnsStr;
-    bool    isAuto { true };
-    double  delta  { 1.0 };
-    int     count  { 20 };
+    enum class FoldType {
+      BUCKET,
+      SEPARATOR
+    };
+
+    QString  columnsStr;
+    FoldType foldType  { FoldType::BUCKET };
+    bool     isAuto    { true };
+    double   delta     { 1.0 };
+    int      count     { 20 };
+    QString  separator { "/" };
   };
 
  public:
@@ -70,6 +77,9 @@ class CQChartsModelData : public QObject {
   int ind() const { return ind_; }
   void setInd(int i) { ind_ = i; }
 
+  //---
+
+  // get id string (name or index)
   QString id() const;
 
   //---
@@ -100,7 +110,7 @@ class CQChartsModelData : public QObject {
   FoldedModels foldedModels() const;
 
   // fold model
-  void foldModel(const FoldData &data);
+  bool foldModel(const FoldData &data);
 
   void foldClear(bool notify=true);
 #endif
@@ -178,7 +188,7 @@ class CQChartsModelData : public QObject {
   using SelectionModels = std::vector<SelectionModelP>;
 
 #ifdef CQCHARTS_FOLDED_MODEL
-  using FoldedModelPs = std::vector<ModelP>;
+  using ModelPArray = std::vector<ModelP>;
 #endif
 
   CQCharts*             charts_           { nullptr }; //!< parent charts
@@ -191,7 +201,8 @@ class CQChartsModelData : public QObject {
   SelectionModels       selectionModels_;              //!< selection models
 #ifdef CQCHARTS_FOLDED_MODEL
   ModelP                foldProxyModel_;               //!< folded proxy model
-  FoldedModelPs         foldedModels_;                 //!< folded models
+  ModelPArray           foldedModels_;                 //!< folded models
+  ModelP                hierSepModel_;                 //!< hier sep model
 #endif
   bool                  summaryEnabled_   { false };   //!< summary model enabled
   CQSummaryModel*       summaryModel_     { nullptr }; //!< summary model

@@ -35,6 +35,7 @@ class CQChartsTablePlotType : public CQChartsPlotType {
 
 class CQChartsTablePlot;
 class CQChartsTable;
+class CQIntegerSpin;
 
 //---
 
@@ -61,6 +62,8 @@ class CQChartsTablePlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColor textColor   READ textColor    WRITE setTextColor  )
   Q_PROPERTY(CQChartsColor headerColor READ headerColor  WRITE setHeaderColor)
   Q_PROPERTY(CQChartsColor cellColor   READ cellColor    WRITE setCellColor  )
+  Q_PROPERTY(double        indent      READ indent       WRITE setIndent     )
+  Q_PROPERTY(bool          followView  READ isFollowView WRITE setFollowView )
 
   Q_ENUMS(Mode)
 
@@ -157,6 +160,16 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   //---
 
+  double indent() const { return indent_; }
+  void setIndent(double r);
+
+  //---
+
+  bool isFollowView() const { return followView_; }
+  void setFollowView(bool b);
+
+  //---
+
   void addProperties() override;
 
   CQChartsGeom::Range calcRange() const override;
@@ -179,8 +192,26 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   void adjustPan() override;
 
+  //---
+
+  void modelViewExpansionChanged() override;
+
  private:
   void drawTable(CQChartsPaintDevice *device) const;
+
+  std::vector<Mode> modes() const { return
+    {{ Mode::NORMAL, Mode::RANDOM, Mode::SORTED, Mode::PAGED, Mode::ROWS }};
+  }
+
+  QString modeName(const Mode &mode) const;
+
+ private slots:
+  void setModeSlot(bool b);
+
+  void maxRowsSlot();
+  void sortColumnSlot();
+  void pageSizeSlot();
+  void pageNumSlot();
 
  private:
   struct ColumnData {
@@ -193,20 +224,25 @@ class CQChartsTablePlot : public CQChartsPlot {
 
   using ColumnDataMap = std::map<CQChartsColumn,ColumnData>;
 
+  using CQIntegerSpinP = QPointer<CQIntegerSpin>;
+
   struct TableData {
-    QFont         font;
-    int           nc  { 0 };
-    int           nr  { 0 };
-    double        prh { 0.0 };
-    double        rh  { 0.0 };
-    double        pcw { 0.0 };
-    double        dx  { 0.0 };
-    double        dy  { 0.0 };
-    double        xo  { 0.0 };
-    double        yo  { 0.0 };
-    double        rcw { 0.0 };
-    ColumnData    rowColumnData;
-    ColumnDataMap columnDataMap;
+    QFont           font;
+    QModelIndexList expandInds;
+    int             nc       { 0 };
+    int             nr       { 0 };
+    int             nvr      { 0 };
+    int             maxDepth { 0 };
+    double          prh      { 0.0 };
+    double          rh       { 0.0 };
+    double          pcw      { 0.0 };
+    double          dx       { 0.0 };
+    double          dy       { 0.0 };
+    double          xo       { 0.0 };
+    double          yo       { 0.0 };
+    double          rcw      { 0.0 };
+    ColumnData      rowColumnData;
+    ColumnDataMap   columnDataMap;
   };
 
   TableData       tableData_;                //!< cached table data
@@ -217,6 +253,13 @@ class CQChartsTablePlot : public CQChartsPlot {
   CQChartsColor   textColor_;                //!< text color
   CQChartsColor   headerColor_;              //!< header color
   CQChartsColor   cellColor_;                //!< cell color
+  double          indent_       { 8.0 };     //!< hier indent
+  bool            followView_   { false };   //!< follow view
+  QMenu*          menu_         { nullptr }; //!< menu
+  CQIntegerSpinP  maxRowsSpin_;              //!< max rows menu edit
+  CQIntegerSpinP  sortColumnSpin_;           //!< sort column menu edit
+  CQIntegerSpinP  pageSizeSpin_;             //!< page size menu edit
+  CQIntegerSpinP  pageNumSpin_;              //!< page number menu edit
 };
 
 #endif

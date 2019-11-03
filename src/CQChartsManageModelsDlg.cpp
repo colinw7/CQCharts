@@ -1,5 +1,6 @@
 #include <CQChartsManageModelsDlg.h>
 #include <CQChartsModelWidgets.h>
+#include <CQChartsLoadModelDlg.h>
 #include <CQChartsModelList.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
@@ -31,16 +32,25 @@ CQChartsManageModelsDlg(CQCharts *charts) :
   //---
 
   // Bottom Buttons
+  auto createButton = [&](const QString &label, const QString &objName,
+                          const QString &tip, const char *slotName) {
+    QPushButton *button  = CQUtil::makeLabelWidget<QPushButton>(label, objName);
+
+    button->setToolTip(tip);
+
+    connect(button, SIGNAL(clicked()), this, slotName);
+
+    return button;
+  };
+
+  QPushButton *loadButton  = createButton("Load" , "load" , "Load Model"  , SLOT(loadSlot())  );
+  QPushButton *writeButton = createButton("Write", "write", "Write Model" , SLOT(writeSlot()) );
+  QPushButton *plotButton  = createButton("Plot" , "plot" , "Create Plot" , SLOT(plotSlot())  );
+  QPushButton *doneButton  = createButton("Done" , "done" , "Close Dialog", SLOT(cancelSlot()));
+
   QHBoxLayout *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
-  QPushButton *writeButton = CQUtil::makeLabelWidget<QPushButton>("Write", "write");
-  QPushButton *plotButton  = CQUtil::makeLabelWidget<QPushButton>("Plot" , "plot" );
-  QPushButton *doneButton  = CQUtil::makeLabelWidget<QPushButton>("Done" , "done" );
-
-  connect(writeButton, SIGNAL(clicked()), this, SLOT(writeSlot()));
-  connect(plotButton , SIGNAL(clicked()), this, SLOT(plotSlot()));
-  connect(doneButton , SIGNAL(clicked()), this, SLOT(cancelSlot()));
-
+  buttonLayout->addWidget(loadButton);
   buttonLayout->addWidget(writeButton);
   buttonLayout->addWidget(plotButton);
   buttonLayout->addStretch(1);
@@ -65,11 +75,19 @@ CQChartsManageModelsDlg::
 
 void
 CQChartsManageModelsDlg::
+loadSlot()
+{
+  (void) charts_->loadModelDlg();
+}
+
+void
+CQChartsManageModelsDlg::
 writeSlot()
 {
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
   CQChartsModelData *modelData = modelWidgets_->modelList()->currentModelData();
+  if (! modelData) return;
 
   QAbstractItemModel *model = modelData->currentModel().data();
 
@@ -150,6 +168,7 @@ CQChartsManageModelsDlg::
 plotSlot()
 {
   CQChartsModelData *modelData = modelWidgets_->modelList()->currentModelData();
+  if (! modelData) return;
 
   charts_->createPlotDlg(modelData);
 }

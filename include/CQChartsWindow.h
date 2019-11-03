@@ -3,6 +3,7 @@
 
 #include <CQRangeScroll.h>
 #include <QFrame>
+#include <QModelIndex>
 
 class CQChartsWindow;
 class CQChartsView;
@@ -86,6 +87,10 @@ class CQChartsWindow : public QFrame {
 
   //---
 
+  void expandedModelIndices(QModelIndexList &inds);
+
+  //---
+
   void resizeEvent(QResizeEvent *) override;
 
   QSize sizeHint() const override;
@@ -96,6 +101,8 @@ class CQChartsWindow : public QFrame {
  signals:
   void interfacePaletteChanged();
   void themePalettesChanged();
+
+  void expansionChanged();
 
  private slots:
   void rangeScrollSlot();
@@ -109,6 +116,8 @@ class CQChartsWindow : public QFrame {
   void addSearchSlot(const QString &text);
 
   void filterChangedSlot();
+
+  void expansionChangeSlot();
 
   void removeViewSlot(CQChartsView *view);
 

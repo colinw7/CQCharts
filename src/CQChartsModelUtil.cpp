@@ -12,6 +12,7 @@
 #include <CQJsonModel.h>
 #include <CQDataModel.h>
 #include <CQPivotModel.h>
+#include <CQHierSepModel.h>
 #include <CQModelUtil.h>
 
 #include <CQPerfMonitor.h>
@@ -38,15 +39,28 @@ bool isHierarchical(const QAbstractItemModel *model) {
   return CQModelUtil::isHierarchical(model);
 }
 
-#if 0
-int hierRowCount(CQCharts *charts, const QAbstractItemModel *model) {
-  CQChartsModelVisitor visitor;
+void hierData(CQCharts *charts, const QAbstractItemModel *model, int &nr, int &maxDepth) {
+  if (! isHierarchical(model)) {
+    nr       = model->rowCount();
+    maxDepth = 0;
+  }
+  else {
+    CQChartsModelVisitor visitor;
 
-  CQChartsModelVisit::exec(charts, model, visitor);
+    CQChartsModelVisit::exec(charts, model, visitor);
 
-  return visitor.numProcessedRows();
+    nr       = visitor.numProcessedRows();
+    maxDepth = visitor.maxDepth();
+  }
 }
-#endif
+
+int hierRowCount(CQCharts *charts, const QAbstractItemModel *model) {
+  int nr, maxDepth;
+
+  hierData(charts, model, nr, maxDepth);
+
+  return nr;
+}
 
 QString parentPath(const QAbstractItemModel *model, const QModelIndex &parent) {
   QString path;
@@ -759,6 +773,30 @@ getExprModel(QAbstractItemModel *model)
 
   return nullptr;
 #endif
+}
+
+CQHierSepModel *
+getHierSepModel(QAbstractItemModel *model)
+{
+  CQHierSepModel *hierSepModel = qobject_cast<CQHierSepModel *>(model);
+
+  if (hierSepModel)
+    return hierSepModel;
+
+  QSortFilterProxyModel *sortModel = qobject_cast<QSortFilterProxyModel *>(model);
+
+  if (! sortModel)
+    return nullptr;
+
+  QAbstractItemModel *sourceModel = sortModel->sourceModel();
+
+  hierSepModel = qobject_cast<CQHierSepModel *>(sourceModel);
+
+  if (hierSepModel)
+    return hierSepModel;
+
+  return nullptr;
+
 }
 
 const CQDataModel *

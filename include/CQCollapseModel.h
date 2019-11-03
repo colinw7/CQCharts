@@ -6,6 +6,10 @@
 #include <vector>
 #include <set>
 
+/*!
+ * collapse hierarchical model with per column num unique, sum or mean of column values
+ * and extra column for child count
+ */
 class CQCollapseModel : public QAbstractProxyModel {
   Q_OBJECT
 
@@ -29,8 +33,10 @@ class CQCollapseModel : public QAbstractProxyModel {
 
   //---
 
+  //! set column value type
   void setColumnType(int column, CQBaseModelType type);
 
+  //! set column collapse function
   void setColumnCollapseOp(int column, CollapseOp op);
 
   //---

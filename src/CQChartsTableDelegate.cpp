@@ -60,10 +60,6 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
   CQBaseModelType type =
     (columnData.details ? columnData.details->type() : CQBaseModelType::STRING);
 
-  CQChartsModelColumnDetails::TableDrawType tableDrawType =
-    (columnData.details ? columnData.details->tableDrawType() :
-     CQChartsModelColumnDetails::TableDrawType::NORMAL);
-
   if      (type == CQBaseModelType::BOOLEAN) {
     // get bool
     QVariant var = modelP()->data(index);
@@ -113,6 +109,15 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
   else if (type == CQBaseModelType::REAL ||
            type == CQBaseModelType::INTEGER ||
            type == CQBaseModelType::TIME) {
+    CQChartsModelColumnDetails::TableDrawType tableDrawType =
+      (columnData.details ? columnData.details->tableDrawType() :
+       CQChartsModelColumnDetails::TableDrawType::NORMAL);
+
+    if (tableDrawType == CQChartsModelColumnDetails::TableDrawType::NORMAL)
+      return false;
+
+    //---
+
     // get model value (actual data if possible)
     QVariant var = getModelData(index);
 

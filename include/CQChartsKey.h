@@ -240,6 +240,7 @@ class CQChartsViewKey : public CQChartsKey {
   using BBox  = CQChartsGeom::BBox;
   using Rects = std::vector<BBox>;
 
+  int           numPlots_  { 0 };    //!< number of plots
   QPointF       pposition_ { 0, 0 }; //!< pixel position
   QPointF       wposition_ { 0, 0 }; //!< view position
   QSizeF        size_;               //!< pixel size

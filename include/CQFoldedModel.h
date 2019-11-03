@@ -250,8 +250,7 @@ class CQFoldedModel : public QAbstractProxyModel {
   void foldNode(Node *node, int depth);
 
   // connect/disconnect model slots
-  void connectSlots();
-  void disconnectSlots();
+  void connectSlots(bool b);
 
   // map proxy column to source column
   int mapColumnToSource  (int column) const;

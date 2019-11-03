@@ -17,12 +17,17 @@
 #include <CQChartsVariant.h>
 #include <CQChartsInterfaceTheme.h>
 #include <CQChartsHtml.h>
+
+#include <CQChartsCreatePlotDlg.h>
 #include <CQChartsEditAnnotationDlg.h>
+#include <CQChartsHelpDlg.h>
+
 #include <CQChartsAxisEdit.h>
 #include <CQChartsKeyEdit.h>
 #include <CQChartsTitleEdit.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsPaintDevice.h>
+#include <CQChartsDocument.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
@@ -35,7 +40,14 @@
 #include <QRubberBand>
 #include <QMouseEvent>
 #include <QScrollBar>
+#include <QToolButton>
 #include <QMenu>
+
+#include <svg/models_light_svg.h>
+#include <svg/models_dark_svg.h>
+#include <svg/charts_light_svg.h>
+#include <svg/charts_dark_svg.h>
+#include <svg/info_svg.h>
 
 #include <fstream>
 
@@ -166,6 +178,10 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
+  connect(charts_, SIGNAL(modelDataChanged()), this, SLOT(updateNoData()));
+
+  //---
+
   connect(CQColorsMgrInst, SIGNAL(themeChanged(const QString &)),
           this, SLOT(themeChangedSlot(const QString &)));
   connect(CQColorsMgrInst, SIGNAL(paletteChanged(const QString &)),
@@ -212,6 +228,15 @@ CQChartsView::
 
 void
 CQChartsView::
+setWindow(CQChartsWindow *window)
+{
+  window_ = window;
+
+  connect(window_, SIGNAL(expansionChanged()), this, SLOT(expansionChangeSlot()));
+}
+
+void
+CQChartsView::
 setId(const QString &s)
 {
   id_ = s;
@@ -225,6 +250,26 @@ CQChartsView::
 setTitle(const QString &s)
 {
   CQChartsUtil::testAndSet(title_, s, [&]() { setWindowTitle(title_); } );
+}
+
+//---
+
+void
+CQChartsView::
+expansionChangeSlot()
+{
+  CQChartsPlot *plot = currentPlot(/*remap*/false);
+
+  if (plot)
+    plot->modelViewExpansionChanged();
+}
+
+void
+CQChartsView::
+expandedModelIndices(QModelIndexList &inds)
+{
+  if (window())
+    window()->expandedModelIndices(inds);
 }
 
 //---
@@ -686,7 +731,8 @@ void
 CQChartsView::
 currentPlotZoomPanChanged()
 {
-  window()->updateRangeMap();
+  if (window())
+    window()->updateRangeMap();
 }
 
 //---
@@ -1303,6 +1349,13 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
 
   //---
 
+  invalidateObjects();
+  invalidateOverlay();
+
+  update();
+
+  //---
+
   emit plotAdded(plot);
   emit plotAdded(plot->id());
   emit plotsChanged();
@@ -1392,17 +1445,24 @@ removePlot(CQChartsPlot *plot)
 
   //---
 
-  emit plotRemoved(id);
-  emit plotsChanged();
-
-  //---
-
   if (isCurrent) {
     if (plots_.empty())
       setCurrentPlot(nullptr);
     else
       setCurrentPlot(plots_[0]);
   }
+
+  //---
+
+  invalidateObjects();
+  invalidateOverlay();
+
+  update();
+
+  //--
+
+  emit plotRemoved(id);
+  emit plotsChanged();
 }
 
 void
@@ -1420,6 +1480,15 @@ removeAllPlots()
   mouseData_.reset();
 
   setCurrentPlot(nullptr);
+
+  //---
+
+  invalidateObjects();
+  invalidateOverlay();
+
+  update();
+
+  //---
 
   emit allPlotsRemoved();
   emit plotsChanged();
@@ -3210,8 +3279,6 @@ void
 CQChartsView::
 paint(QPainter *painter, CQChartsPlot *plot)
 {
-  CQChartsView *th = const_cast<CQChartsView *>(this);
-
   if (isAntiAlias())
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
@@ -3230,39 +3297,89 @@ paint(QPainter *painter, CQChartsPlot *plot)
   }
   // draw all plots
   else {
-    for (const auto &plot : plots_) {
-      if (plot->isVisible())
-        plot->draw(painter);
-    }
+    drawPlots(painter);
+  }
+}
 
-    //---
+void
+CQChartsView::
+drawPlots(QPainter *painter)
+{
+  bool hasPlots       = ! plots_.empty();
+  bool hasAnnotations = this->hasAnnotations();
+
+  //---
+
+  // draw no data
+  if (! hasPlots && ! hasAnnotations && ! isPreview()) {
+    showNoData(true);
 
     QPainter *painter1 = objectsBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
+      CQChartsView *th = const_cast<CQChartsView *>(this);
+
       CQChartsViewPainter device(th, painter1);
 
-      if (hasAnnotations()) {
-        // draw annotations
-        drawAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
-      }
-
-      //--
-
-      // draw view key
-      drawKey(&device, CQChartsLayer::Type::FG_KEY);
+      drawNoData(&device);
     }
 
     objectsBuffer_->endPaint();
 
-    //---
+    return;
+  }
 
-    painter1 = overlayBuffer_->beginPaint(painter, rect());
+  showNoData(false);
+
+  //---
+
+  // draw plots
+  if (hasPlots) {
+    for (const auto &plot : plots_) {
+      if (plot->isVisible())
+        plot->draw(painter);
+    }
+  }
+
+  //---
+
+  // draw annotations and key
+  if (hasAnnotations || hasPlots) {
+    QPainter *painter1 = objectsBuffer_->beginPaint(painter, rect());
 
     if (painter1) {
+      CQChartsView *th = const_cast<CQChartsView *>(this);
+
       CQChartsViewPainter device(th, painter1);
 
-      if (hasAnnotations()) {
+      if (hasAnnotations) {
+        // draw annotations
+        drawAnnotations(&device, CQChartsLayer::Type::ANNOTATION);
+      }
+
+      //---
+
+      // draw view key
+      if (hasPlots) {
+        drawKey(&device, CQChartsLayer::Type::FG_KEY);
+      }
+    }
+
+    objectsBuffer_->endPaint();
+  }
+
+  //---
+
+  // draw overlay (annotations and key)
+  if (hasPlots || hasAnnotations) {
+    QPainter *painter1 = overlayBuffer_->beginPaint(painter, rect());
+
+    if (painter1) {
+      CQChartsView *th = const_cast<CQChartsView *>(this);
+
+      CQChartsViewPainter device(th, painter1);
+
+      if (hasAnnotations) {
         // draw selected annotations
         drawAnnotations(&device, CQChartsLayer::Type::SELECTION);
 
@@ -3295,6 +3412,112 @@ drawBackground(CQChartsPaintDevice *device) const
 
   device->fillRect(prect_.qrect(), brush);
 }
+
+//---
+
+void
+CQChartsView::
+updateNoData()
+{
+  bool hasPlots       = ! plots_.empty();
+  bool hasAnnotations = this->hasAnnotations();
+
+  if (! hasPlots && ! hasAnnotations) {
+    invalidateObjects();
+
+    update();
+  }
+}
+
+void
+CQChartsView::
+showNoData(bool show)
+{
+  if (show) {
+    if (! noDataText_) {
+      noDataText_ = CQUtil::makeWidget<CQChartsDocument>(this, "noDataText");
+
+      noDataText_->document()->setDocumentMargin(8);
+
+      connect(noDataText_, SIGNAL(linkClicked(const QString &)),
+              SLOT(noDataTextClicked(const QString &)));
+    }
+
+    noDataText_->setVisible(true);
+  }
+  else {
+    if (noDataText_)
+      noDataText_->setVisible(false);
+  }
+}
+
+void
+CQChartsView::
+drawNoData(CQChartsPaintDevice *device)
+{
+  QFont p_font = this->font().font();
+  QFontMetricsF p_fm(p_font);
+
+  int is = 4*p_fm.height();
+
+  CQChartsModelData *modelData = charts()->currentModelData();
+
+  noDataText_->move(0, 0);
+  noDataText_->resize(width(), height());
+
+  QString text;
+
+  text += QString("<style type=\"text/css\">\n"
+                  "h1 { color:#5279cd; font-size:32px; }\n"
+                  "h2 { font-size:24px; }\n"
+                  "ul { list-style-type: none; }\n"
+                  "ul li { font-size:24px; display: block; height: %1px; line-height: %1px; }\n"
+                  "ul li img { vertical-align: middle; }\n"
+                  "</style>\n").arg(is);
+
+  text += "<h1>Charts View</h1>\n";
+  text += "<h2>No Plot Specified</h2>\n";
+
+  text += "<p>&nbsp;</p>\n";
+
+  auto liHtml = [](const QString &text) {
+    return QString("<li>%1</li>").arg(text);
+  };
+
+  auto refHtml = [](const QString &ref, const QString &text) {
+    return QString("<a href=\"charts://%1\">%2</a>").arg(ref).arg(text);
+  };
+
+  auto imgHtml = [](const QString &src, int s) {
+    return QString("<img width=\"%1\" height=\"%1\" src=\"%2\">").arg(s).arg(src);
+  };
+
+  auto imgLiHtml = [&](const QString &ref, const QString &img, const QString &text) {
+    return liHtml(refHtml(ref, imgHtml(img, is) + "&nbsp;" + text)) + "\n";
+  };
+
+  if (! modelData) {
+    text += "<p>No Model Data</p>\n";
+
+    text += "<ul>\n";
+    text += imgLiHtml("model", "nodata_models.svg", "Create Model");
+    text += imgLiHtml("help" , "nodata_help.svg"  , "Help"        );
+    text += "</ul>\n";
+  }
+  else {
+    text += "<p>Create Plot and/or Model</p>\n";
+
+    text += "<ul>\n";
+    text += imgLiHtml("model", "nodata_models.svg", "Manage Models");
+    text += imgLiHtml("plot" , "nodata_plot.svg"  , "Create Plot"  );
+    text += imgLiHtml("help" , "nodata_help.svg"  , "Help"         );
+    text += "</ul>\n";
+  }
+
+  noDataText_->setHtml(text);
+}
+
+//---
 
 bool
 CQChartsView::
@@ -3743,6 +3966,8 @@ showMenu(const QPoint &p)
 
   this->plots(allPlots);
 
+  bool hasPlots = ! allPlots.empty();
+
   //---
 
   // get base plots
@@ -3824,59 +4049,67 @@ showMenu(const QPoint &p)
 
   //---
 
-  addCheckAction(popupMenu_, "Show Table"   , isShowTable   (), SLOT(setShowTable(bool)));
+  if (hasPlots)
+    addCheckAction(popupMenu_, "Show Table", isShowTable(), SLOT(setShowTable(bool)));
+
   addCheckAction(popupMenu_, "Show Settings", isShowSettings(), SLOT(setShowSettings(bool)));
 
   //---
 
-  popupMenu_->addSeparator();
+  if (hasPlots) {
+    popupMenu_->addSeparator();
 
-  //---
+    //---
 
-  QMenu *modeMenu = addSubMenu(popupMenu_, "Mode");
+    QMenu *modeMenu = addSubMenu(popupMenu_, "Mode");
 
-  QActionGroup *modeActionGroup = createActionGroup(modeMenu);
+    QActionGroup *modeActionGroup = createActionGroup(modeMenu);
 
-  addGroupCheckAction(modeActionGroup, "Select", mode() == Mode::SELECT, SLOT(selectModeSlot()));
-  addGroupCheckAction(modeActionGroup, "Zoom"  , mode() == Mode::ZOOM  , SLOT(zoomModeSlot()));
-  addGroupCheckAction(modeActionGroup, "Pan"   , mode() == Mode::PAN   , SLOT(panModeSlot()));
+    addGroupCheckAction(modeActionGroup, "Select", mode() == Mode::SELECT, SLOT(selectModeSlot()));
+    addGroupCheckAction(modeActionGroup, "Zoom"  , mode() == Mode::ZOOM  , SLOT(zoomModeSlot()));
+    addGroupCheckAction(modeActionGroup, "Pan"   , mode() == Mode::PAN   , SLOT(panModeSlot()));
 
-  if (plotType && plotType->canProbe())
-    addGroupCheckAction(modeActionGroup, "Probe", mode() == Mode::PROBE, SLOT(probeModeSlot()));
+    if (plotType && plotType->canProbe())
+      addGroupCheckAction(modeActionGroup, "Probe", mode() == Mode::PROBE, SLOT(probeModeSlot()));
 
-  addGroupCheckAction(modeActionGroup, "Query", mode() == Mode::QUERY, SLOT(queryModeSlot()));
-  addGroupCheckAction(modeActionGroup, "Edit" , mode() == Mode::EDIT , SLOT(editModeSlot()));
+    addGroupCheckAction(modeActionGroup, "Query", mode() == Mode::QUERY, SLOT(queryModeSlot()));
+    addGroupCheckAction(modeActionGroup, "Edit" , mode() == Mode::EDIT , SLOT(editModeSlot()));
 
-  modeActionGroup->setExclusive(true);
+    modeActionGroup->setExclusive(true);
 
-  modeMenu->addActions(modeActionGroup->actions());
-
-  //---
-
-  popupMenu_->addSeparator();
-
-  //---
-
-  CQChartsPlot::Objs objs;
-
-  allSelectedObjs(objs);
-
-  if (objs.size() == 1) {
-    CQChartsAnnotation *annotation = qobject_cast<CQChartsAnnotation *>(objs[0]);
-    CQChartsAxis       *axis       = qobject_cast<CQChartsAxis       *>(objs[0]);
-    CQChartsKey        *key        = qobject_cast<CQChartsKey        *>(objs[0]);
-    CQChartsTitle      *title      = qobject_cast<CQChartsTitle      *>(objs[0]);
-
-    if (annotation || axis || key || title)
-      addAction(popupMenu_, "Edit", SLOT(editObjectSlot()));
+    modeMenu->addActions(modeActionGroup->actions());
   }
 
   //---
 
-  addCheckAction(popupMenu_, "Auto Resize", isAutoSize(), SLOT(setAutoSize(bool)));
+  if (hasPlots) {
+    popupMenu_->addSeparator();
 
-  if (! isAutoSize())
-    addAction(popupMenu_, "Resize to View", SLOT(resizeToView()));
+    //---
+
+    CQChartsPlot::Objs objs;
+
+    allSelectedObjs(objs);
+
+    if (objs.size() == 1) {
+      CQChartsAnnotation *annotation = qobject_cast<CQChartsAnnotation *>(objs[0]);
+      CQChartsAxis       *axis       = qobject_cast<CQChartsAxis       *>(objs[0]);
+      CQChartsKey        *key        = qobject_cast<CQChartsKey        *>(objs[0]);
+      CQChartsTitle      *title      = qobject_cast<CQChartsTitle      *>(objs[0]);
+
+      if (annotation || axis || key || title)
+        addAction(popupMenu_, "Edit", SLOT(editObjectSlot()));
+    }
+  }
+
+  //---
+
+  if (hasPlots) {
+    addCheckAction(popupMenu_, "Auto Resize", isAutoSize(), SLOT(setAutoSize(bool)));
+
+    if (! isAutoSize())
+      addAction(popupMenu_, "Resize to View", SLOT(resizeToView()));
+  }
 
   //---
 
@@ -3943,7 +4176,7 @@ showMenu(const QPoint &p)
 
   //---
 
-  if (allPlots.size() == 1) {
+  if (allPlots.size() == 1 && window()) {
     addCheckAction(popupMenu_, "X Overview", window()->isXRangeMap(), SLOT(xRangeMapSlot(bool)));
     addCheckAction(popupMenu_, "Y Overview", window()->isYRangeMap(), SLOT(yRangeMapSlot(bool)));
   }
@@ -4232,24 +4465,28 @@ showMenu(const QPoint &p)
 
   //------
 
-  QAction *invertXAction = addCheckAction(popupMenu_, "Invert X", false, SLOT(invertXSlot(bool)));
-  QAction *invertYAction = addCheckAction(popupMenu_, "Invert Y", false, SLOT(invertYSlot(bool)));
+  if (hasPlots) {
+    QAction *invertXAction = addCheckAction(popupMenu_, "Invert X", false, SLOT(invertXSlot(bool)));
+    QAction *invertYAction = addCheckAction(popupMenu_, "Invert Y", false, SLOT(invertYSlot(bool)));
 
-  if (basePlot) {
-    invertXAction->setChecked(basePlot->isInvertX());
-    invertYAction->setChecked(basePlot->isInvertY());
+    if (basePlot) {
+      invertXAction->setChecked(basePlot->isInvertX());
+      invertYAction->setChecked(basePlot->isInvertY());
+    }
   }
 
   //------
 
-  popupMenu_->addSeparator();
+  if (hasPlots) {
+    popupMenu_->addSeparator();
 
-  addAction(popupMenu_, "Fit"      , SLOT(fitSlot()));
-  addAction(popupMenu_, "Zoom Full", SLOT(zoomFullSlot()));
-
-  popupMenu_->addSeparator();
+    addAction(popupMenu_, "Fit"      , SLOT(fitSlot()));
+    addAction(popupMenu_, "Zoom Full", SLOT(zoomFullSlot()));
+  }
 
   //---
+
+  popupMenu_->addSeparator();
 
   QMenu *themeMenu = addSubMenu(popupMenu_, "Theme");
 
@@ -4317,26 +4554,30 @@ showMenu(const QPoint &p)
 
   //---
 
-  QMenu *printMenu = addSubMenu(popupMenu_, "Print");
+  if (hasPlots) {
+    QMenu *printMenu = addSubMenu(popupMenu_, "Print");
 
-  addAction(printMenu, "PNG", SLOT(printPNGSlot()));
-  addAction(printMenu, "SVG", SLOT(printSVGSlot()));
+    addAction(printMenu, "PNG", SLOT(printPNGSlot()));
+    addAction(printMenu, "SVG", SLOT(printSVGSlot()));
 
-  addAction(printMenu, "SVG/Html", SLOT(writeSVGSlot()));
-  addAction(printMenu, "JS/Html" , SLOT(writeScriptSlot()));
+    addAction(printMenu, "SVG/Html", SLOT(writeSVGSlot()));
+    addAction(printMenu, "JS/Html" , SLOT(writeScriptSlot()));
+  }
 
   //---
 
-  if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG", true)) {
-    QAction *showBoxesAction =
-      addCheckAction(popupMenu_, "Show Boxes", false, SLOT(showBoxesSlot(bool)));
+  if (hasPlots) {
+    if (CQChartsEnv::getBool("CQ_CHARTS_DEBUG", true)) {
+      QAction *showBoxesAction =
+        addCheckAction(popupMenu_, "Show Boxes", false, SLOT(showBoxesSlot(bool)));
 
-    if (basePlot)
-      showBoxesAction->setChecked(basePlot->showBoxes());
+      if (basePlot)
+        showBoxesAction->setChecked(basePlot->showBoxes());
 
-    //---
+      //---
 
-    addCheckAction(popupMenu_, "Buffer Layers", isBufferLayers(), SLOT(bufferLayersSlot(bool)));
+      addCheckAction(popupMenu_, "Buffer Layers", isBufferLayers(), SLOT(bufferLayersSlot(bool)));
+    }
   }
 
   //---
@@ -4732,6 +4973,55 @@ zoomFullSlot()
 
 void
 CQChartsView::
+noDataTextClicked(const QString &name)
+{
+  if      (name == "model")
+    manageModelsSlot();
+  else if (name == "plot")
+    addPlotSlot();
+  else if (name == "help")
+    helpSlot();
+}
+
+void
+CQChartsView::
+manageModelsSlot()
+{
+  CQChartsModelData *modelData = charts()->currentModelData();
+
+  if (! modelData)
+    (void) charts()->loadModelDlg();
+  else
+    (void) charts()->manageModelsDlg();
+}
+
+void
+CQChartsView::
+addPlotSlot()
+{
+  CQCharts *charts = this->charts();
+
+  CQChartsModelData *modelData = charts->currentModelData();
+  if (! modelData) return;
+
+  CQChartsCreatePlotDlg *createPlotDlg = charts->createPlotDlg(modelData);
+
+  createPlotDlg->setViewName(this->id());
+}
+
+void
+CQChartsView::
+helpSlot()
+{
+  CQCharts *charts = this->charts();
+
+  CQChartsHelpDlgMgrInst->showDialog(charts);
+}
+
+//------
+
+void
+CQChartsView::
 lightPaletteSlot()
 {
   setDark(false);
@@ -4778,6 +5068,9 @@ updateTheme()
 
   updatePlots();
 
+  invalidateObjects();
+  invalidateOverlay();
+
   update();
 
   emit themePalettesChanged();
@@ -4797,6 +5090,11 @@ setDark(bool b)
   charts()->interfaceTheme()->setDark(b);
 
   updatePlots();
+
+  invalidateObjects();
+  invalidateOverlay();
+
+  update();
 
   emit interfacePaletteChanged();
 }
@@ -5870,14 +6168,16 @@ void
 CQChartsView::
 xRangeMapSlot(bool b)
 {
-  window()->setXRangeMap(b);
+  if (window())
+    window()->setXRangeMap(b);
 }
 
 void
 CQChartsView::
 yRangeMapSlot(bool b)
 {
-  window()->setYRangeMap(b);
+  if (window())
+    window()->setYRangeMap(b);
 }
 
 bool

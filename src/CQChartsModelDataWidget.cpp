@@ -116,6 +116,9 @@ CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
 
   //---
 
+  if (modelData_)
+    connect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(reloadModelSlot()));
+
   reloadModel();
   setDetails();
 }
@@ -129,7 +132,13 @@ void
 CQChartsModelDataWidget::
 setModelData(CQChartsModelData *modelData)
 {
+  if (modelData_)
+    disconnect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(reloadModelSlot()));
+
   modelData_ = modelData;
+
+  if (modelData_)
+    connect(modelData_, SIGNAL(currentModelChanged()), this, SLOT(reloadModelSlot()));
 
   reloadModel();
   setDetails();
@@ -199,6 +208,13 @@ selectionChanged()
     }
   }
 #endif
+}
+
+void
+CQChartsModelDataWidget::
+reloadModelSlot()
+{
+  reloadModel();
 }
 
 void

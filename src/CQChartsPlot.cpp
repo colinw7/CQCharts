@@ -8256,8 +8256,6 @@ CQChartsPlotObj *
 CQChartsPlot::
 getObject(const QString &objectId) const
 {
-  QList<QModelIndex> inds;
-
   for (auto &plotObj : plotObjects()) {
     if (plotObj->id() == objectId)
       return plotObj;
@@ -10736,6 +10734,8 @@ getParameter(CQChartsPlotParameter *param, QVariant &value) const
 {
   return CQUtil::getProperty(this, param->propName(), value);
 }
+
+//------
 
 void
 CQChartsPlot::

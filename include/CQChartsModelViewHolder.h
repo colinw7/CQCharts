@@ -31,6 +31,13 @@ class CQChartsModelViewHolder : public QFrame {
   CQChartsModelViewHolder(CQCharts *charts, QWidget *parent=nullptr);
  ~CQChartsModelViewHolder();
 
+#ifdef CQCHARTS_MODEL_VIEW
+  CQChartsModelView *view() const { return view_; }
+#else
+  CQChartsTable *table() const { return table_; }
+  CQChartsTree  *tree () const { return tree_ ; }
+#endif
+
   void setFilterAnd(bool b);
 
   void setFilter(const QString &text);

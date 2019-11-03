@@ -57,6 +57,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   CQTabSplit *area = CQUtil::makeWidget<CQTabSplit>("area");
 
   area->setOrientation(Qt::Vertical);
+  area->setGrouped(true);
 
   layout->addWidget(area);
 
