@@ -40,7 +40,7 @@ description() const
      p("The use can push into, or pop out of, a level of hierarchy by selecting the node "
        "and using the Push and Pop operations on the context menu.").
     h3("Columns").
-     p("The hierarchical data comes from the " + B("Names") + " columns and " +
+     p("The hierarchical data comes from the " + B("Name") + " columns and " +
        B("Value") + " column.").
      p("If the name columns is a hierarchical path then the separator can be specified width "
        "the " + B("Separator") + " option (default '/').").
@@ -136,6 +136,8 @@ setTitleMargin(double m)
   CQChartsUtil::testAndSet(titleData_.margin, m, [&]() { drawObjs(); } );
 }
 
+//---
+
 void
 CQChartsTreeMapPlot::
 setFollowViewExpand(bool b)
@@ -151,6 +153,8 @@ setFollowViewExpand(bool b)
     drawObjs();
   }
 }
+
+//---
 
 void
 CQChartsTreeMapPlot::
@@ -1170,8 +1174,8 @@ resetNodeExpansion(CQChartsTreeMapHierNode *hierNode)
 {
   hierNode->setExpanded(true);
 
-  for (auto &hierNode : root()->getChildren())
-    resetNodeExpansion(hierNode);
+  for (auto &hierNode1 : hierNode->getChildren())
+    resetNodeExpansion(hierNode1);
 }
 
 //------
@@ -1228,6 +1232,11 @@ draw(CQChartsPaintDevice *device)
 
   if (pnode && ! pnode->isHierExpanded())
     return;
+
+  //---
+
+  if (! hierNode()->isExpanded())
+    return CQChartsTreeMapNodeObj::draw(device);
 
   //---
 
@@ -1520,11 +1529,16 @@ draw(CQChartsPaintDevice *device)
   if (isPoint)
     return;
 
-  if (! plot_->isTextVisible())
-    return;
-
   //---
 
+  if (plot_->isTextVisible())
+    drawText(device, qrect);
+}
+
+void
+CQChartsTreeMapNodeObj::
+drawText(CQChartsPaintDevice *device, const QRectF &qrect)
+{
   // get labels (name and optional size)
   QStringList strs;
 
@@ -1544,9 +1558,9 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // calc text pen
-  CQChartsPenBrush tPenBrush = penBrush;
-
   ColorInd colorInd = calcColorInd();
+
+  CQChartsPenBrush tPenBrush;
 
   QColor tc = plot_->interpTextColor(colorInd);
 

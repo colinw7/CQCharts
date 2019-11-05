@@ -183,9 +183,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   QFont fixedFont = getMonospaceFont();
 
-  fixedFont.setPointSizeF(font().pointSizeF()*0.8);
-
-  previewText_->setFont(fixedFont);
+  previewText_->setFont(CQChartsUtil::scaleFontSize(fixedFont, 0.8));
 
   //----
 

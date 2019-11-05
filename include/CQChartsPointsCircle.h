@@ -45,7 +45,7 @@ class Point {
   }
 };
 
-typedef std::vector<Point> PointArray;
+using PointArray = std::vector<Point>;
 
 //------
 

@@ -82,6 +82,26 @@ CQChartsSunburstPlot::
   resetRoots();
 }
 
+//----
+
+void
+CQChartsSunburstPlot::
+setFollowViewExpand(bool b)
+{
+  if (followViewExpand_ != b) {
+    followViewExpand_ = b;
+
+    if (isFollowViewExpand())
+      modelViewExpansionChanged();
+    else
+      resetNodeExpansion();
+
+    drawObjs();
+  }
+}
+
+//---
+
 void
 CQChartsSunburstPlot::
 resetRoots()
@@ -120,6 +140,25 @@ CQChartsSunburstPlot::
 setMultiRoot(bool b)
 {
   CQChartsUtil::testAndSet(multiRoot_, b, [&]() { resetRoots(); updateObjs(); } );
+}
+
+bool
+CQChartsSunburstPlot::
+isRoot(const CQChartsSunburstHierNode *node) const
+{
+  CQChartsSunburstHierNode *root = currentRoot();
+
+  if (root) {
+    return (node == root);
+  }
+  else {
+    for (const auto &root : roots_) {
+      if (node == root)
+        return true;
+    }
+
+    return false;
+  }
 }
 
 //----
@@ -164,11 +203,11 @@ addProperties()
   addProp("columns", "valueColumn", "value", "Value columns");
 
   // options
-  addProp("options", "separator"  , "", "Name separator");
-  addProp("options", "innerRadius", "", "Inner radius");
-  addProp("options", "outerRadius", "", "Outer radius");
-  addProp("options", "startAngle" , "", "Angle for first segment");
-  addProp("options", "multiRoot"  , "", "Support multiple roots");
+  addProp("options", "innerRadius"     , "", "Inner radius");
+  addProp("options", "outerRadius"     , "", "Outer radius");
+  addProp("options", "startAngle"      , "", "Angle for first segment");
+  addProp("options", "multiRoot"       , "", "Support multiple roots");
+  addProp("options", "followViewExpand", "", "Follow view expand");
 
   // coloring
   addProp("coloring", "colorById", "colorById", "Color by id");
@@ -358,6 +397,27 @@ initRoots()
     loadHier(root);
   else
     loadFlat(root);
+
+  //---
+
+  if (isFollowViewExpand()) {
+    QModelIndexList inds;
+
+    view()->expandedModelIndices(inds);
+
+    std::set<QModelIndex> indSet;
+
+    for (const auto &ind : inds) {
+      QModelIndex ind1 = normalizeIndex(ind);
+
+      indSet.insert(ind1);
+    }
+
+    for (const auto &root : roots_) {
+      for (auto &hierNode : root->getChildren())
+        setNodeExpansion(hierNode, indSet);
+    }
+  }
 
   //---
 
@@ -954,6 +1014,53 @@ postResize()
   resetDataRange(/*updateRange*/true, /*updateObjs*/false);
 }
 
+//------
+
+void
+CQChartsSunburstPlot::
+modelViewExpansionChanged()
+{
+  if (! isFollowViewExpand())
+    return;
+
+  resetRoots();
+
+  updateObjs();
+}
+
+void
+CQChartsSunburstPlot::
+setNodeExpansion(CQChartsSunburstHierNode *hierNode, const std::set<QModelIndex> &indSet)
+{
+  hierNode->setExpanded(indSet.find(hierNode->ind()) != indSet.end());
+
+  for (auto &hierNode1 : hierNode->getChildren())
+    setNodeExpansion(hierNode1, indSet);
+}
+
+void
+CQChartsSunburstPlot::
+resetNodeExpansion()
+{
+  for (const auto &root : roots_) {
+    for (auto &hierNode : root->getChildren())
+      resetNodeExpansion(hierNode);
+  }
+}
+
+void
+CQChartsSunburstPlot::
+resetNodeExpansion(CQChartsSunburstHierNode *hierNode)
+{
+  hierNode->setExpanded(true);
+
+  for (auto &hierNode1 : hierNode->getChildren())
+    resetNodeExpansion(hierNode1);
+}
+
+//------
+
+#if 0
 void
 CQChartsSunburstPlot::
 drawNodes(CQChartsPaintDevice *device, CQChartsSunburstHierNode *hier) const
@@ -969,6 +1076,7 @@ drawNodes(CQChartsPaintDevice *device, CQChartsSunburstHierNode *hier) const
     drawNodes(device, hierNode);
   }
 }
+#endif
 
 void
 CQChartsSunburstPlot::
@@ -1293,6 +1401,22 @@ CQChartsSunburstHierNode::
     delete node;
 }
 
+bool
+CQChartsSunburstHierNode::
+isHierExpanded() const
+{
+  if (plot_->isRoot(this))
+    return true;
+
+  if (! isExpanded())
+    return false;
+
+  if (parent() && ! parent()->isHierExpanded())
+    return false;
+
+  return true;
+}
+
 double
 CQChartsSunburstHierNode::
 hierSize() const
@@ -1374,6 +1498,9 @@ CQChartsSunburstHierNode::
 packSubNodes(CQChartsSunburstHierNode *root, double ri,
              double dr, double a, double da, const Order &order, bool sort)
 {
+  if (! isExpanded())
+    return;
+
   // make single list of nodes to pack
   Nodes nodes;
 

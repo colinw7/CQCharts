@@ -170,6 +170,13 @@ class CQChartsHierBubbleHierNode : public CQChartsHierBubbleNode {
 
   //---
 
+  bool isExpanded() const { return expanded_; }
+  void setExpanded(bool b) { expanded_ = b; }
+
+  bool isHierExpanded() const;
+
+  //---
+
   double hierSize() const override;
 
   //---
@@ -196,10 +203,11 @@ class CQChartsHierBubbleHierNode : public CQChartsHierBubbleNode {
                      const ColorInd &colorInd, int n) const override;
 
  protected:
-  Nodes    nodes_;          //!< child nodes
-  Pack     pack_;           //!< circle pack
-  Children children_;       //!< child hier nodes
-  int      hierInd_ { -1 }; //!< hier index
+  Nodes    nodes_;             //!< child nodes
+  Pack     pack_;              //!< circle pack
+  Children children_;          //!< child hier nodes
+  int      hierInd_  { -1 };   //!< hier index
+  bool     expanded_ { true }; //!< is expanded
 };
 
 //---
@@ -247,6 +255,8 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
 
   void draw(CQChartsPaintDevice *device) override;
 
+  void drawText(CQChartsPaintDevice *device, const QRectF &qrect);
+
   //---
 
   bool isPoint() const;
@@ -276,6 +286,8 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleNodeObj {
 
   CQChartsHierBubbleHierNode *hierNode() const { return hier_; }
 
+  //---
+
   QString calcId() const override;
 
   QString calcTipId() const override;
@@ -284,7 +296,7 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleNodeObj {
 
   bool isCircle() const override { return true; }
 
-  double radius() const override { return hier_->radius(); }
+  double radius() const override { return hierNode()->radius(); }
 
   //---
 
@@ -321,6 +333,9 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   Q_PROPERTY(bool valueLabel READ isValueLabel WRITE setValueLabel)
   Q_PROPERTY(bool sorted     READ isSorted     WRITE setSorted    )
 
+  // follow view
+  Q_PROPERTY(bool followViewExpand READ isFollowViewExpand WRITE setFollowViewExpand)
+
   // color
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
 
@@ -347,6 +362,12 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   bool isSorted() const { return sorted_; }
   void setSorted(bool b) { sorted_ = b; }
+
+  //---
+
+  // get/set folow view expand
+  bool isFollowViewExpand() const { return followViewExpand_; }
+  void setFollowViewExpand(bool b);
 
   //---
 
@@ -470,6 +491,14 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   void drawBounds(CQChartsPaintDevice *device, CQChartsHierBubbleHierNode *hier) const;
 
+  //---
+
+  void modelViewExpansionChanged() override;
+  void setNodeExpansion(CQChartsHierBubbleHierNode *hierNode, const std::set<QModelIndex> &indSet);
+
+  void resetNodeExpansion();
+  void resetNodeExpansion(CQChartsHierBubbleHierNode *hierNode);
+
  public slots:
   void pushSlot();
   void popSlot();
@@ -498,13 +527,14 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   };
 
  private:
-  bool      valueLabel_      { false }; //!< draw value with name
-  bool      sorted_          { false }; //!< sort nodes by value
-  QString   currentRootName_;           //!< current root name
-  NodeData  nodeData_;                  //!< node data
-  PlaceData placeData_;                 //!< place data
-  ColorData colorData_;                 //!< color data
-  bool      colorById_       { true };  //!< color by id
+  bool      valueLabel_       { false }; //!< draw value with name
+  bool      sorted_           { false }; //!< sort nodes by value
+  bool      followViewExpand_ { false }; //!< follow view expand
+  QString   currentRootName_;            //!< current root name
+  NodeData  nodeData_;                   //!< node data
+  PlaceData placeData_;                  //!< place data
+  ColorData colorData_;                  //!< color data
+  bool      colorById_       { true };   //!< color by id
 };
 
 #endif

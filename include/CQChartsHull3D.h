@@ -35,11 +35,11 @@ class CInputIterator : public std::iterator<std::input_iterator_tag,T,DIST> {
  public:
   enum { IS_PTR = std::is_pointer<T>::value };
 
-  typedef typename std::remove_reference<T>::type     NonRefT;
-  typedef typename std::remove_pointer<NonRefT>::type NonPtrT;
-  typedef typename std::remove_cv<NonPtrT>::type      BareT;
+  using NonRefT = typename std::remove_reference<T>::type;
+  using NonPtrT = typename std::remove_pointer<NonRefT>::type;
+  using BareT   = typename std::remove_cv<NonPtrT>::type;
 
-  typedef typename std::conditional<IS_PTR,const BareT *,const BareT &>::type ContentsT;
+  using ContentsT = typename std::conditional<IS_PTR,const BareT *,const BareT &>::type;
 
   CInputIterator() :
    state_() {
@@ -86,7 +86,7 @@ class CInputIterator : public std::iterator<std::input_iterator_tag,T,DIST> {
 template<typename T>
 class CListLink {
  public:
-  typedef CListLink<T> ListLink;
+  using ListLink = CListLink<T>;
 
   CListLink() {
     next = 0;
@@ -158,7 +158,7 @@ class CListLink {
     bool            end_;
   };
 
-  typedef CInputIterator<IteratorState, T *> iterator;
+  using iterator = CInputIterator<IteratorState, T *>;
 
   iterator begin() const { return iterator(IteratorState(this)); }
   iterator end  () const { return iterator(IteratorState(0));}
@@ -185,7 +185,7 @@ class CQChartsHull3D {
   //! hull vertex
   class Vertex : public CListLink<Vertex> {
    private:
-    typedef CListLink<Vertex> ListLink;
+    using ListLink = CListLink<Vertex>;
 
    public:
     static void resetCount() { count_ = 0; }
@@ -273,14 +273,14 @@ class CQChartsHull3D {
     bool   mark_      { false };   //!< true iff point already processed.
   };
 
-  typedef Vertex *PVertex;
+  using PVertex = Vertex*;
 
   //-------
 
   //! hull edge
   class Edge : public CListLink<Edge> {
    private:
-    typedef CListLink<Edge> ListLink;
+    using ListLink = CListLink<Edge>;
 
    public:
     Edge() :
@@ -373,14 +373,14 @@ class CQChartsHull3D {
     bool    removed_; /* true iff edge should be removed. */
   };
 
-  typedef Edge *PEdge;
+  using PEdge = Edge*;
 
   //-------
 
   //! hull face
   class Face : public CListLink<Face> {
    private:
-    typedef CListLink<Face> ListLink;
+    using ListLink = CListLink<Face>;
 
    public:
     Face() {
@@ -466,7 +466,7 @@ class CQChartsHull3D {
     Vertex* vv_      { nullptr }; //!< voronoi vertex
   };
 
-  typedef Face *PFace;
+  using PFace = Face*;
 
   //-------
 
@@ -492,9 +492,9 @@ class CQChartsHull3D {
 
   //void dumpPS(const char *filename);
 
-  typedef Vertex::iterator VertexIterator;
-  typedef Edge::iterator   EdgeIterator;
-  typedef Face::iterator   FaceIterator;
+  using VertexIterator = Vertex::iterator;
+  using EdgeIterator   = Edge::iterator;
+  using FaceIterator   = Face::iterator;
 
   VertexIterator verticesBegin() { assert(vertices_); return vertices_->beginIterator(); }
   VertexIterator verticesEnd  () { assert(vertices_); return vertices_->endIterator  (); }

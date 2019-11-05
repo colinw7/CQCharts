@@ -146,7 +146,7 @@ class CQChartsTransformStack {
     double        v_[NUM_VALUES];
   };
 
-  typedef std::vector<Transform> TransformStack;
+  using TransformStack = std::vector<Transform>;
 
   //---
 

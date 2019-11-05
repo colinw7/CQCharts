@@ -280,6 +280,8 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   void draw(CQChartsPaintDevice *device) override;
 
+  void drawText(CQChartsPaintDevice *device, const QRectF &qrect);
+
   void calcPenBrush(CQChartsPenBrush &penBrush, bool isPoint, bool updateState) const;
 
   bool isPoint() const;
@@ -570,6 +572,8 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   //---
 
   void transformNodes(CQChartsTreeMapHierNode *hier);
+
+  //---
 
   void modelViewExpansionChanged() override;
   void setNodeExpansion(CQChartsTreeMapHierNode *hierNode, const std::set<QModelIndex> &indSet);

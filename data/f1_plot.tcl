@@ -52,10 +52,13 @@ set model17 [load_charts_model \
 set model18 [load_charts_model \
   -csv data/f1_standings_2019_18.csv -first_line_header \
   -column_type {{{Image image}}}]
+set model19 [load_charts_model \
+  -csv data/f1_standings_2019_19.csv -first_line_header \
+  -column_type {{{Image image}}}]
 
 set models [list $model01 $model02 $model03 $model04 $model05 $model06 $model07 $model08 \
                  $model09 $model10 $model11 $model12 $model13 $model14 $model15 $model16 \
-                 $model17 $model18]
+                 $model17 $model18 $model19]
 
 set splots {}
 set tplots {}
@@ -116,7 +119,7 @@ set view [get_charts_property -plot [lindex $splots 0] -name viewId]
 
 set_charts_property -view $view -name sizing.auto -value 0
 
-set maxRound 18
+set maxRound 19
 
 proc show_plot { n } {
   set_charts_property -annotation $::prev_button -name enabled -value 1
@@ -153,7 +156,7 @@ proc show_plot { n } {
     -value "Formula 1 Standings (Round $n) - $loc ($year)"
 }
 
-set round 18
+set round 19
 
 proc annotationSlot { viewId id } {
   if       {$id == "next"} {
@@ -196,7 +199,7 @@ set last_button [create_charts_button_annotation -view $view -id last \
 
 connect_charts_signal -view $view -from annotationIdPressed -to annotationSlot
 
-for {set i 1} {$i <= 18} {incr i} {
+for {set i 1} {$i <= 19} {incr i} {
   show_plot $i
   qt_sync
 }
@@ -211,7 +214,7 @@ define_charts_proc -svg annotationClick id {
 
   var plots = [];
 
-  for (var i = 1; i <= 18; ++i) {
+  for (var i = 1; i <= 19; ++i) {
     plots.push(document.getElementById("plot_scatter" + i.toString()));
     plots.push(document.getElementById("plot_table"   + i.toString()));
   }
@@ -220,7 +223,7 @@ define_charts_proc -svg annotationClick id {
     currentPlot = 1;
   }
   else if (id == 'last') {
-    currentPlot = 18;
+    currentPlot = 19;
   }
   else if (id == 'prev') {
     currentPlot = currentPlot - 1;
@@ -232,12 +235,12 @@ define_charts_proc -svg annotationClick id {
   else if (id == 'next') {
     currentPlot = currentPlot + 1;
 
-    if (currentPlot > 18) {
-      currentPlot = 18;
+    if (currentPlot > 19) {
+      currentPlot = 19;
     }
   }
 
-  for (var i = 1; i <= 18; ++i) {
+  for (var i = 1; i <= 19; ++i) {
     var i1 = (i - 1)*2 + 1;
 
     plots[i1 - 1].style.visibility=(currentPlot == i ? "visible" : "hidden");
@@ -245,7 +248,7 @@ define_charts_proc -svg annotationClick id {
   }
 
   var btn = document.getElementById("prev"); btn.disabled = (currentPlot == 1);
-  var btn = document.getElementById("next"); btn.disabled = (currentPlot == 18);
+  var btn = document.getElementById("next"); btn.disabled = (currentPlot == 19);
 }
 
 define_charts_proc -script annotationClick id {
@@ -257,7 +260,7 @@ define_charts_proc -script annotationClick id {
     currentPlot = 1;
   }
   else if (id == 'last') {
-    currentPlot = 18;
+    currentPlot = 19;
   }
   else if (id == 'prev') {
     currentPlot = currentPlot - 1;
@@ -269,12 +272,12 @@ define_charts_proc -script annotationClick id {
   else if (id == 'next') {
     currentPlot = currentPlot + 1;
 
-    if (currentPlot > 18) {
-      currentPlot = 18;
+    if (currentPlot > 19) {
+      currentPlot = 19;
     }
   }
 
-  for (var i = 1; i <= 18; ++i) {
+  for (var i = 1; i <= 19; ++i) {
     var i1 = (i - 1)*2 + 1;
 
     charts.plots[i1 - 1].visible = (currentPlot == i);
@@ -282,7 +285,7 @@ define_charts_proc -script annotationClick id {
   }
 
   var btn = document.getElementById("prev"); btn.disabled = (currentPlot == 1);
-  var btn = document.getElementById("next"); btn.disabled = (currentPlot == 18);
+  var btn = document.getElementById("next"); btn.disabled = (currentPlot == 19);
 }
 
 show_plot $round

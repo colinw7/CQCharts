@@ -148,16 +148,8 @@ drawTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &te
 
       double s = std::min(sx, sy);
 
-      double fs = device->font().pointSizeF()*s;
-
-      fs = CMathUtil::clamp(fs, options.minScaleFontSize, options.maxScaleFontSize);
-
-      QFont font1 = device->font();
-
-      if (fs > 0.0)
-        font1.setPointSizeF(fs);
-
-      device->setFont(font1);
+      device->setFont(CQChartsUtil::scaleFontSize(
+        device->font(), s, options.minScaleFontSize, options.maxScaleFontSize));
 
       fm = QFontMetricsF(device->font());
 
@@ -543,14 +535,7 @@ drawScaledHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QStri
   //---
 
   // scale font
-  QFont font1 = device->font();
-
-  double fs = font1.pointSizeF()*s;
-
-  if (fs > 0.0)
-    font1.setPointSizeF(fs);
-
-  device->setFont(font1);
+  device->setFont(CQChartsUtil::scaleFontSize(device->font(), s));
 
   //---
 

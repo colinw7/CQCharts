@@ -246,6 +246,7 @@ activateSlot(bool b)
 
   setText("");
 }
+
 void
 CQChartsViewStatusPos::
 posTextTypeAction(QAction *action)

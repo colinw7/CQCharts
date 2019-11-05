@@ -216,7 +216,18 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
 
  ~CQChartsSunburstHierNode();
 
+  //---
+
+  bool isExpanded() const { return expanded_; }
+  void setExpanded(bool b) { expanded_ = b; }
+
+  bool isHierExpanded() const;
+
+  //---
+
   double hierSize() const override;
+
+  //---
 
   int depth() const override;
 
@@ -229,6 +240,8 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
   bool hasChildren() const { return ! children_.empty(); }
 
   const Children &getChildren() const { return children_; }
+
+  //---
 
   void unplace();
 
@@ -248,8 +261,9 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
                      const ColorInd &colorInd, int n) const override;
 
  private:
-  Nodes    nodes_;    //!< child nodes
-  Children children_; //!< child hier nodes
+  Nodes    nodes_;             //!< child nodes
+  Children children_;          //!< child hier nodes
+  bool     expanded_ { true }; //!< is expanded
 };
 
 //---
@@ -296,6 +310,9 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   Q_PROPERTY(double startAngle  READ startAngle  WRITE setStartAngle )
   Q_PROPERTY(bool   multiRoot   READ isMultiRoot WRITE setMultiRoot  )
 
+  // follow view
+  Q_PROPERTY(bool followViewExpand READ isFollowViewExpand WRITE setFollowViewExpand)
+
   // color
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
 
@@ -330,6 +347,14 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   bool isMultiRoot() const { return multiRoot_; }
   void setMultiRoot(bool b);
+
+  bool isRoot(const CQChartsSunburstHierNode *node) const;
+
+  //---
+
+  // get/set folow view expand
+  bool isFollowViewExpand() const { return followViewExpand_; }
+  void setFollowViewExpand(bool b);
 
   //---
 
@@ -437,7 +462,15 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   //---
 
-  void drawNodes(CQChartsPaintDevice *device, CQChartsSunburstHierNode *hier) const;
+//void drawNodes(CQChartsPaintDevice *device, CQChartsSunburstHierNode *hier) const;
+
+  //---
+
+  void modelViewExpansionChanged() override;
+  void setNodeExpansion(CQChartsSunburstHierNode *hierNode, const std::set<QModelIndex> &indSet);
+
+  void resetNodeExpansion();
+  void resetNodeExpansion(CQChartsSunburstHierNode *hierNode);
 
  public slots:
   void pushSlot();
@@ -445,15 +478,16 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   void popTopSlot();
 
  private:
-  double    innerRadius_ { 0.5 };   //!< inner radius
-  double    outerRadius_ { 1.0 };   //!< outer radius
-  double    startAngle_  { -90 };   //!< start angle
-  bool      multiRoot_   { false }; //!< has multiple roots
-  RootNodes roots_;                 //!< root nodes
-  QString   currentRootName_;       //!< current root name
-  int       colorId_     { -1 };    //!< current color id
-  int       numColorIds_ { 0 };     //!< num used color ids
-  bool      colorById_   { true };  //!< color by id
+  double    innerRadius_      { 0.5 };   //!< inner radius
+  double    outerRadius_      { 1.0 };   //!< outer radius
+  double    startAngle_       { -90 };   //!< start angle
+  bool      multiRoot_        { false }; //!< has multiple roots
+  bool      followViewExpand_ { false }; //!< follow view expand
+  RootNodes roots_;                      //!< root nodes
+  QString   currentRootName_;            //!< current root name
+  int       colorId_          { -1 };    //!< current color id
+  int       numColorIds_      { 0 };     //!< num used color ids
+  bool      colorById_        { true };  //!< color by id
 };
 
 #endif

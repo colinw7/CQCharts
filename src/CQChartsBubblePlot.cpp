@@ -1038,13 +1038,7 @@ draw(CQChartsPaintDevice *device)
     //---
 
     // scale font
-    double fs = device->font().pointSizeF()*s;
-
-    QFont font1 = device->font();
-
-    font1.setPointSizeF(fs);
-
-    device->setFont(font1);
+    device->setFont(CQChartsUtil::scaleFontSize(device->font(), s));
   }
 
   //---

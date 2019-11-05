@@ -198,7 +198,7 @@ class CQChartsView : public QFrame,
 
   CQCharts *charts() const { return charts_; }
 
-  //--
+  //---
 
   CQChartsWindow *window() const { return window_; }
   void setWindow(CQChartsWindow *window);
@@ -385,6 +385,8 @@ class CQChartsView : public QFrame,
 
   void hideProperty(const QString &path, QObject *object);
 
+  const CQPropertyViewItem *propertyItem(const QString &name, bool hidden) const;
+
   //---
 
   // view key
@@ -530,7 +532,6 @@ class CQChartsView : public QFrame,
   void drawBackground(CQChartsPaintDevice *device) const;
 
   void drawPlots(QPainter *painter);
-
 
   void showNoData(bool show);
 
@@ -911,7 +912,7 @@ class CQChartsView : public QFrame,
   void invertXSlot(bool);
   void invertYSlot(bool);
 
-  //--
+  //---
 
   void noDataTextClicked(const QString &);
 
@@ -1154,6 +1155,7 @@ class CQChartsView : public QFrame,
   QString               scriptSelectProc_;                        //!< script select proc
   Annotations           pressAnnotations_;                        //!< press annotations
   CQChartsDocument*     noDataText_        { nullptr };
+  bool                  updateNoData_      { true };
 //QToolButton*          noDataModelButton_ { nullptr };           //!< no data model button
 //QToolButton*          noDataPlotButton_  { nullptr };           //!< no data plot button
 //QToolButton*          noDataHelpButton   { nullptr };           //!< no data help button

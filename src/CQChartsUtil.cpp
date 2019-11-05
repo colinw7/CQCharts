@@ -1118,3 +1118,22 @@ QStringList unitTipNames(bool includeNone) {
 }
 
 }
+
+//------
+
+namespace CQChartsUtil {
+
+QFont scaleFontSize(const QFont &font, double s, double minSize, double maxSize) {
+  double fs = font.pointSizeF()*s;
+
+  fs = CMathUtil::clamp(fs, minSize, maxSize);
+
+  QFont font1 = font;
+
+  if (fs > 0.0)
+    font1.setPointSizeF(fs);
+
+  return font1;
+}
+
+}

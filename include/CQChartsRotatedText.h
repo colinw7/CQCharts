@@ -11,7 +11,7 @@ class CQChartsPaintDevice;
 
 namespace CQChartsRotatedText {
 
-typedef std::vector<QPointF> Points;
+using Points = std::vector<QPointF>;
 
 void draw(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
           double angle=0.0, Qt::Alignment align=Qt::AlignLeft | Qt::AlignBottom,

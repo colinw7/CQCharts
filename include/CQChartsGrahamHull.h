@@ -45,8 +45,8 @@ class CQChartsGrahamHull {
   static int areaSign(const QPointF &a, const QPointF &b, const QPointF &c);
 
  private:
-  typedef std::vector<int> IPoints;
-  typedef std::set<int>    DelPoints;
+  using IPoints   = std::vector<int>;
+  using DelPoints = std::set<int>;
 
   QPolygonF points_;
   bool      needsCalc_ { true };

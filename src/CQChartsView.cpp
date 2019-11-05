@@ -348,6 +348,8 @@ addProperties()
                "Highlight fill color");
   addStyleProp("select/highlight/fill"  , "selectedFillAlpha"  , "alpha"  ,
                "Highlight fill alpha");
+  addStyleProp("select/highlight/fill"  , "selectedFillPattern", "pattern",
+               "Highlight fill pattern");
   addStyleProp("select/highlight/stroke", "selectedStroked"    , "visible",
                "Highlight stroke visible");
   addStyleProp("select/highlight/stroke", "selectedStrokeColor", "color"  ,
@@ -363,6 +365,7 @@ addProperties()
   addStyleProp("inside/highlight/fill"  , "insideFilled"     , "visible", "Inside fill visible");
   addStyleProp("inside/highlight/fill"  , "insideFillColor"  , "color"  , "Inside fill color");
   addStyleProp("inside/highlight/fill"  , "insideFillAlpha"  , "alpha"  , "Inside fill alpha");
+  addStyleProp("inside/highlight/fill"  , "insideFillPattern", "pattern", "Inside fill pattern");
   addStyleProp("inside/highlight/stroke", "insideStroked"    , "visible", "Inside stroke visible");
   addStyleProp("inside/highlight/stroke", "insideStrokeColor", "color"  , "Inside stroke color");
   addStyleProp("inside/highlight/stroke", "insideStrokeWidth", "width"  , "Inside stroke width");
@@ -388,6 +391,8 @@ CQChartsView::
 maximizePlotsSlot()
 {
   CQChartsPlot *plot = currentPlot(/*remap*/false);
+
+  scrollData_.autoInit = true;
 
   setScrolled(true, /*update*/false);
 
@@ -653,14 +658,7 @@ QFont
 CQChartsView::
 scaledFont(const QFont &font, double s) const
 {
-  double fs = font.pointSizeF()*s;
-
-  QFont font1 = font;
-
-  if (fs > 0)
-    font1.setPointSizeF(fs);
-
-  return font1;
+  return CQChartsUtil::scaleFontSize(font, s);
 }
 
 //---
@@ -900,9 +898,9 @@ themeName() const
 
 void
 CQChartsView::
-setThemeName(const CQChartsThemeName &theme)
+setThemeName(const CQChartsThemeName &themeName)
 {
-  charts()->setPlotTheme(theme);
+  charts()->setPlotTheme(themeName);
 
   updateTheme();
 }
@@ -974,7 +972,7 @@ bool
 CQChartsView::
 getPropertyDesc(const QString &name, QString &desc, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
+  const CQPropertyViewItem *item = propertyItem(name, hidden);
   if (! item) return false;
 
   desc = item->desc();
@@ -986,7 +984,7 @@ bool
 CQChartsView::
 getPropertyType(const QString &name, QString &type, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
+  const CQPropertyViewItem *item = propertyItem(name, hidden);
   if (! item) return false;
 
   type = item->typeName();
@@ -998,7 +996,7 @@ bool
 CQChartsView::
 getPropertyUserType(const QString &name, QString &type, bool hidden) const
 {
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
+  const CQPropertyViewItem *item = propertyItem(name, hidden);
   if (! item) return false;
 
   type = item->userTypeName();
@@ -1012,7 +1010,7 @@ getPropertyObject(const QString &name, QObject* &object, bool hidden) const
 {
   object = nullptr;
 
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, hidden);
+  const CQPropertyViewItem *item = propertyItem(name, hidden);
   if (! item) return false;
 
   object = item->object();
@@ -1026,7 +1024,7 @@ getPropertyIsHidden(const QString &name, bool &is_hidden) const
 {
   is_hidden = false;
 
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, /*hidden*/true);
+  const CQPropertyViewItem *item = propertyItem(name, /*hidden*/true);
   if (! item) return false;
 
   is_hidden = CQCharts::getItemIsHidden(item);
@@ -1040,7 +1038,7 @@ getPropertyIsStyle(const QString &name, bool &is_style) const
 {
   is_style = false;
 
-  const CQPropertyViewItem *item = propertyModel()->propertyItem(this, name, /*hidden*/true);
+  const CQPropertyViewItem *item = propertyItem(name, /*hidden*/true);
   if (! item) return false;
 
   is_style = CQCharts::getItemIsStyle(item);
@@ -1072,6 +1070,13 @@ CQChartsView::
 hideProperty(const QString &path, QObject *object)
 {
   propertyModel()->hideProperty(path, object);
+}
+
+const CQPropertyViewItem *
+CQChartsView::
+propertyItem(const QString &name, bool hidden) const
+{
+  return propertyModel()->propertyItem(this, name, hidden);
 }
 
 //------
@@ -1459,7 +1464,7 @@ removePlot(CQChartsPlot *plot)
 
   update();
 
-  //--
+  //---
 
   emit plotRemoved(id);
   emit plotsChanged();
@@ -2988,13 +2993,13 @@ updateRegionBand(CQChartsPlot *plot, const QPoint &pressPoint, const QPoint &mov
     CQChartsGeom::BBox pixelRect = plot->calcPlotPixelRect();
 
     if (! plot->allowZoomX()) {
-      x = pixelRect.getXMin();
-      w = pixelRect.getWidth();
+      x = int(pixelRect.getXMin());
+      w = int(pixelRect.getWidth());
     }
 
     if (! plot->allowZoomY()) {
-      y = pixelRect.getYMin();
-      h = pixelRect.getHeight();
+      y = int(pixelRect.getYMin());
+      h = int(pixelRect.getHeight());
     }
 
     regionBand_->setGeometry(QRect(x, y, w, h));
@@ -3011,7 +3016,7 @@ updateRegionBand(const QPoint &pressPoint, const QPoint &movePoint)
   double w = std::abs(movePoint.x() - pressPoint.x());
   double h = std::abs(movePoint.y() - pressPoint.y());
 
-  regionBand_->setGeometry(QRect(x, y, w, h));
+  regionBand_->setGeometry(QRect(int(x), int(y), int(w), int(h)));
 }
 
 void
@@ -3303,6 +3308,19 @@ paint(QPainter *painter, CQChartsPlot *plot)
 
 void
 CQChartsView::
+drawBackground(CQChartsPaintDevice *device) const
+{
+  // fill background
+  QBrush brush;
+
+  setBrush(brush, true, interpBackgroundFillColor(ColorInd()),
+           backgroundFillAlpha(), backgroundFillPattern());
+
+  device->fillRect(prect_.qrect(), brush);
+}
+
+void
+CQChartsView::
 drawPlots(QPainter *painter)
 {
   bool hasPlots       = ! plots_.empty();
@@ -3387,7 +3405,7 @@ drawPlots(QPainter *painter)
         drawAnnotations(&device, CQChartsLayer::Type::MOUSE_OVER);
       }
 
-      //--
+      //---
 
       // draw view key
       drawKey(&device, CQChartsLayer::Type::SELECTION);
@@ -3400,25 +3418,14 @@ drawPlots(QPainter *painter)
   }
 }
 
-void
-CQChartsView::
-drawBackground(CQChartsPaintDevice *device) const
-{
-  // fill background
-  QBrush brush;
-
-  setBrush(brush, true, interpBackgroundFillColor(ColorInd()),
-           backgroundFillAlpha(), backgroundFillPattern());
-
-  device->fillRect(prect_.qrect(), brush);
-}
-
 //---
 
 void
 CQChartsView::
 updateNoData()
 {
+  updateNoData_ = true;
+
   bool hasPlots       = ! plots_.empty();
   bool hasAnnotations = this->hasAnnotations();
 
@@ -3453,7 +3460,7 @@ showNoData(bool show)
 
 void
 CQChartsView::
-drawNoData(CQChartsPaintDevice *device)
+drawNoData(CQChartsPaintDevice *)
 {
   QFont p_font = this->font().font();
   QFontMetricsF p_fm(p_font);
@@ -3465,20 +3472,7 @@ drawNoData(CQChartsPaintDevice *device)
   noDataText_->move(0, 0);
   noDataText_->resize(width(), height());
 
-  QString text;
-
-  text += QString("<style type=\"text/css\">\n"
-                  "h1 { color:#5279cd; font-size:32px; }\n"
-                  "h2 { font-size:24px; }\n"
-                  "ul { list-style-type: none; }\n"
-                  "ul li { font-size:24px; display: block; height: %1px; line-height: %1px; }\n"
-                  "ul li img { vertical-align: middle; }\n"
-                  "</style>\n").arg(is);
-
-  text += "<h1>Charts View</h1>\n";
-  text += "<h2>No Plot Specified</h2>\n";
-
-  text += "<p>&nbsp;</p>\n";
+  //---
 
   auto liHtml = [](const QString &text) {
     return QString("<li>%1</li>").arg(text);
@@ -3496,25 +3490,46 @@ drawNoData(CQChartsPaintDevice *device)
     return liHtml(refHtml(ref, imgHtml(img, is) + "&nbsp;" + text)) + "\n";
   };
 
-  if (! modelData) {
-    text += "<p>No Model Data</p>\n";
+  if (updateNoData_) {
+    updateNoData_ = false;
 
-    text += "<ul>\n";
-    text += imgLiHtml("model", "nodata_models.svg", "Create Model");
-    text += imgLiHtml("help" , "nodata_help.svg"  , "Help"        );
-    text += "</ul>\n";
+    //---
+
+    QString text;
+
+    text += QString("<style type=\"text/css\">\n"
+                    "h1 { color:#5279cd; font-size:32px; }\n"
+                    "h2 { font-size:24px; }\n"
+                    "ul { list-style-type: none; }\n"
+                    "ul li { font-size:24px; display: block; height: %1px; line-height: %1px; }\n"
+                    "ul li img { vertical-align: middle; }\n"
+                    "</style>\n").arg(is);
+
+    text += "<h1>Charts View</h1>\n";
+    text += "<h2>No Plot Specified</h2>\n";
+
+    text += "<p>&nbsp;</p>\n";
+
+    if (! modelData) {
+      text += "<p>No Model Data</p>\n";
+
+      text += "<ul>\n";
+      text += imgLiHtml("model", "nodata_models.svg", "Create Model");
+      text += imgLiHtml("help" , "nodata_help.svg"  , "Help"        );
+      text += "</ul>\n";
+    }
+    else {
+      text += "<p>Create Plot and/or Model</p>\n";
+
+      text += "<ul>\n";
+      text += imgLiHtml("model", "nodata_models.svg", "Manage Models");
+      text += imgLiHtml("plot" , "nodata_plot.svg"  , "Create Plot"  );
+      text += imgLiHtml("help" , "nodata_help.svg"  , "Help"         );
+      text += "</ul>\n";
+    }
+
+    noDataText_->setHtml(text);
   }
-  else {
-    text += "<p>Create Plot and/or Model</p>\n";
-
-    text += "<ul>\n";
-    text += imgLiHtml("model", "nodata_models.svg", "Manage Models");
-    text += imgLiHtml("plot" , "nodata_plot.svg"  , "Create Plot"  );
-    text += imgLiHtml("help" , "nodata_help.svg"  , "Help"         );
-    text += "</ul>\n";
-  }
-
-  noDataText_->setHtml(text);
 }
 
 //---
@@ -6551,6 +6566,8 @@ writeAll(std::ostream &os) const
 {
   this->write(os);
 
+  //---
+
   const CQChartsView::Annotations &viewAnnotations = this->annotations();
 
   int annotationId = 1;
@@ -6604,7 +6621,7 @@ writeAll(std::ostream &os) const
 
     plotVars[plot] = plotVarName;
 
-    plot->write(os, plotVarName, modelVarName);
+    plot->write(os, plotVarName, modelVarName, "view");
 
     //---
 
@@ -6663,6 +6680,7 @@ writeAll(std::ostream &os) const
     }
   }
 }
+
 void
 CQChartsView::
 write(std::ostream &os) const

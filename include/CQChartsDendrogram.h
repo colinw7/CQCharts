@@ -95,14 +95,14 @@ class CQChartsDendrogram {
 
   //---
 
-  typedef std::vector<Node *> Nodes;
+  using Nodes = std::vector<Node *>;
 
   //---
 
   //! Hierarchical Node
   class HierNode : public Node {
    public:
-    typedef std::vector<HierNode *> Children;
+    using Children = std::vector<HierNode *>;
 
    public:
     HierNode(HierNode *parent=0, const QString &name="");
@@ -195,7 +195,7 @@ class CQChartsDendrogram {
     void placeNode(Node *node, int depth, double row, double num_rows);
 
    protected:
-    typedef std::vector<Nodes> DepthNodes;
+    using DepthNodes = std::vector<Nodes>;
 
     double     dx_         { 0.0 };
     double     dy_         { 0.0 };

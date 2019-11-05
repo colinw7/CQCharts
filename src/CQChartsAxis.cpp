@@ -84,6 +84,7 @@ void swapT(CQChartsAxis *lhs, CQChartsAxis *rhs) {
 }
 
 }
+
 void
 CQChartsAxis::
 swap(CQChartsAxis *lhs, CQChartsAxis *rhs)

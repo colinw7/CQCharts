@@ -457,4 +457,12 @@ inline QString encodeSVGColor(const QColor &c) {
 
 //------
 
+namespace CQChartsUtil {
+
+QFont scaleFontSize(const QFont &font, double s, double minSize=4.0, double maxSize=999.0);
+
+}
+
+//------
+
 #endif
