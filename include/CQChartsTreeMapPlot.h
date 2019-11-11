@@ -369,9 +369,6 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   Q_PROPERTY(bool              titleTextClipped READ isTitleTextClipped WRITE setTitleTextClipped)
   Q_PROPERTY(double            titleMargin      READ titleMargin        WRITE setTitleMargin     )
 
-  // follow view
-  Q_PROPERTY(bool followViewExpand READ isFollowViewExpand WRITE setFollowViewExpand)
-
   // color
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
 
@@ -448,10 +445,6 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
   void setTitleMargin(double r);
 
   //---
-
-  // get/set folow view expand
-  bool isFollowViewExpand() const { return followViewExpand_; }
-  void setFollowViewExpand(bool b);
 
   // get/set node hierarchical name
   bool isHierName() const { return hierName_; }
@@ -575,6 +568,8 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   //---
 
+  void followViewExpandChanged() override;
+
   void modelViewExpansionChanged() override;
   void setNodeExpansion(CQChartsTreeMapHierNode *hierNode, const std::set<QModelIndex> &indSet);
 
@@ -600,24 +595,23 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
     double            margin      { 3 };     //!< title margin (pixels)
   };
 
-  TitleData         titleData_;                      //!< title data
-  bool              followViewExpand_   { false };   //!< follow view expand
-  bool              valueLabel_         { false };   //!< draw value with name
-  bool              hierName_           { false };   //!< node hierarchical name
-  bool              textClipped_        { true };    //!< node text clipped
-  CQChartsLength    marginWidth_        { "2px" };   //!< box margin
-  bool              colorById_          { true };    //!< color by id
-  Node*             root_               { nullptr }; //!< root node
-  Node*             firstHier_          { nullptr }; //!< first hier node
-  QString           currentRootName_;                //!< current root name
-  int               colorId_            { -1 };      //!< current color id
-  int               numColorIds_        { 0 };       //!< num used color ids
-  int               maxDepth_           { 1 };       //!< max hier depth
-  int               hierInd_            { 0 };       //!< current hier ind
-  mutable int       ig_                 { 0 };       //!< current group index
-  mutable int       in_                 { 0 };       //!< current node index
-  double            windowHeaderHeight_ { 0.01 };    //!< calculated window pixel header height
-  double            windowMarginWidth_  { 0.01 };    //!< calculated window pixel margin width
+  TitleData      titleData_;                      //!< title data
+  bool           valueLabel_         { false };   //!< draw value with name
+  bool           hierName_           { false };   //!< node hierarchical name
+  bool           textClipped_        { true };    //!< node text clipped
+  CQChartsLength marginWidth_        { "2px" };   //!< box margin
+  bool           colorById_          { true };    //!< color by id
+  Node*          root_               { nullptr }; //!< root node
+  Node*          firstHier_          { nullptr }; //!< first hier node
+  QString        currentRootName_;                //!< current root name
+  int            colorId_            { -1 };      //!< current color id
+  int            numColorIds_        { 0 };       //!< num used color ids
+  int            maxDepth_           { 1 };       //!< max hier depth
+  int            hierInd_            { 0 };       //!< current hier ind
+  mutable int    ig_                 { 0 };       //!< current group index
+  mutable int    in_                 { 0 };       //!< current node index
+  double         windowHeaderHeight_ { 0.01 };    //!< calculated window pixel header height
+  double         windowMarginWidth_  { 0.01 };    //!< calculated window pixel margin width
 };
 
 #endif

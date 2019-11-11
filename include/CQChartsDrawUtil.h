@@ -138,7 +138,8 @@ void drawAlignedText(CQChartsPaintDevice *device, const QPointF &p, const QStrin
 QRectF calcAlignedTextRect(const QFont &font, const QPointF &p, const QString &text,
                            Qt::Alignment align, double dx, double dy);
 
-void drawContrastText(CQChartsPaintDevice *device, const QPointF &p, const QString &text);
+void drawContrastText(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
+                      double alpha);
 
 QSizeF calcTextSize(const QString &text, const QFont &font, const CQChartsTextOptions &options);
 

@@ -802,7 +802,7 @@ drawPointLabel(const QPointF &point, const QString &text, bool above) const
 
   QPointF pt(point.x() - fw/2, point.y() + (above ? -(fd + 4) : fa + 4));
 
-  CQChartsDrawUtil::drawContrastText(device_, device_->pixelToWindow(pt), text);
+  CQChartsDrawUtil::drawContrastText(device_, device_->pixelToWindow(pt), text, 0.5);
 }
 #endif
 

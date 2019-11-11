@@ -631,7 +631,8 @@ exprApplySlot()
       model->setHeaderData(column1, Qt::Horizontal, nameStr, Qt::DisplayRole);
 
     if (typeStr.length()) {
-      if (! CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), column1, typeStr)) {
+      if (! CQChartsModelUtil::setColumnTypeStr(charts_, model.data(),
+                                                CQChartsColumn(column1), typeStr)) {
         charts_->errorMsg("Invalid type '" + typeStr + "'");
         return;
       }
@@ -897,7 +898,7 @@ typeApplySlot()
         nameValues.setNameValue(name, value);
     }
 
-    columnTypeMgr->setModelColumnType(model.data(), column, columnType, nameValues);
+    columnTypeMgr->setModelColumnType(model.data(), CQChartsColumn(column), columnType, nameValues);
   }
 
   setColumnData(column);
@@ -928,8 +929,8 @@ setColumnData(int column)
   CQBaseModelType    columnBaseType;
   CQChartsNameValues nameValues;
 
-  if (CQChartsModelUtil::columnValueType(charts_, model.data(), column, columnType,
-                                         columnBaseType, nameValues)) {
+  if (CQChartsModelUtil::columnValueType(charts_, model.data(), CQChartsColumn(column),
+                                         columnType, columnBaseType, nameValues)) {
     CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
     const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);

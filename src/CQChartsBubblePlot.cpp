@@ -1049,14 +1049,18 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw label
-  device->setClipRect(qrect);
+  double xm = plot_->pixelToWindowWidth (3);
+  double ym = plot_->pixelToWindowHeight(3);
+
+  device->setClipRect(qrect.adjusted(xm, ym, -xm, -ym));
 
   CQChartsTextOptions textOptions;
 
-  textOptions.contrast  = plot_->isTextContrast ();
-  textOptions.formatted = plot_->isTextFormatted();
-  textOptions.html      = plot_->isTextHtml();
-//textOptions.align     = plot_->textAlign();
+  textOptions.contrast      = plot_->isTextContrast();
+  textOptions.contrastAlpha = plot_->textContrastAlpha();
+  textOptions.formatted     = plot_->isTextFormatted();
+  textOptions.html          = plot_->isTextHtml();
+//textOptions.align         = plot_->textAlign();
 
   textOptions = plot_->adjustTextOptions(textOptions);
 

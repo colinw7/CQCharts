@@ -3,6 +3,9 @@
 
 #include <QSortFilterProxyModel>
 
+/*!
+ * \brief sub set of rows and/or columns of base model
+ */
 class CQSubSetModel : public QSortFilterProxyModel {
   Q_OBJECT
 

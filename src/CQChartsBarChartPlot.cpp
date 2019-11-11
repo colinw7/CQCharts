@@ -917,6 +917,8 @@ createObjs(PlotObjs &objs) const
       if (isValueHidden(ivs))
         continue;
 
+      //---
+
       const CQChartsBarChartValue &ivalue = valueSet.value(ivs);
 
       CQChartsBarChartValue::ValueInd minInd, maxInd;
@@ -988,6 +990,9 @@ createObjs(PlotObjs &objs) const
           value2 = scale*maxInd.value;
         }
       }
+
+      if (value1 == value2)
+        continue;
 
       if (isStacked())
         brect = CQChartsGeom::makeDirBBox(isHorizontal(), bx, value1, bx + 1.0, value2);

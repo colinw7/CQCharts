@@ -27,8 +27,8 @@ addParameters()
 {
   startParameterGroup("Chord");
 
-  addColumnParameter("link" , "Link" , "linkColumn" );
-  addColumnParameter("value", "Value", "valueColumn");
+  addColumnParameter("link" , "Link" , "linkColumn" ).setBasic();
+  addColumnParameter("value", "Value", "valueColumn").setBasic();
   addColumnParameter("group", "Group", "groupColumn");
 
   endParameterGroup();
@@ -336,7 +336,8 @@ initTableObjs(PlotObjs &objs) const
 
         bool ok;
 
-        indRowData.rowData[col] = plot_->modelValue(data.row, col, data.parent, ok);
+        indRowData.rowData[col] =
+          plot_->modelValue(data.row, CQChartsColumn(col), data.parent, ok);
       }
 
       indRowDatas_.push_back(indRowData);
@@ -453,7 +454,7 @@ initTableObjs(PlotObjs &objs) const
     int col1 = 0;
 
     for (int col = 0; col < nv; ++col) {
-      if (col == linkColumn() || col == groupColumn())
+      if (col == linkColumn().column() || col == groupColumn().column())
         continue;
 
       //---

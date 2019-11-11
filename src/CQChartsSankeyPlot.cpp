@@ -1139,7 +1139,7 @@ drawFg(CQChartsPaintDevice *device) const
   QPointF pt = device->pixelToWindow(QPointF(tx, ty));
 
   if (plot_->isTextContrast())
-    CQChartsDrawUtil::drawContrastText(device, pt, str);
+    CQChartsDrawUtil::drawContrastText(device, pt, str, plot_->textContrastAlpha());
   else
     CQChartsDrawUtil::drawSimpleText(device, pt, str);
 }

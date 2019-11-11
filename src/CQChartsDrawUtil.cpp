@@ -182,7 +182,7 @@ drawTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &te
       QPointF pt = device->pixelToWindow(QPointF(x, y));
 
       if (options.contrast)
-        drawContrastText(device, pt, strs[i]);
+        drawContrastText(device, pt, strs[i], options.contrastAlpha);
       else
         drawSimpleText(device, pt, strs[i]);
 
@@ -208,8 +208,8 @@ drawRotatedTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QStr
 
   // TODO: support align and contrast
   CQChartsRotatedText::draw(device, rect.center(), text, options.angle,
-                            Qt::AlignHCenter | Qt::AlignVCenter,
-                            /*alignBox*/false, options.contrast);
+                            Qt::AlignHCenter | Qt::AlignVCenter, /*alignBox*/false,
+                            options.contrast, options.contrastAlpha);
 }
 
 //------
@@ -250,7 +250,7 @@ drawTextAtPoint(CQChartsPaintDevice *device, const QPointF &point, const QString
     QPointF tp = device->pixelToWindow(QPointF(ppoint.x() + dx, ppoint.y() + dy));
 
     if (options.contrast)
-      drawContrastText(device, tp, text);
+      drawContrastText(device, tp, text, options.contrastAlpha);
     else
       drawSimpleText(device, tp, text);
   }
@@ -330,7 +330,7 @@ calcAlignedTextRect(const QFont &font, const QPointF &p, const QString &text,
 //------
 
 void
-drawContrastText(CQChartsPaintDevice *device, const QPointF &p, const QString &text)
+drawContrastText(CQChartsPaintDevice *device, const QPointF &p, const QString &text, double alpha)
 {
   QPen pen = device->pen();
 
@@ -341,7 +341,7 @@ drawContrastText(CQChartsPaintDevice *device, const QPointF &p, const QString &t
 //QColor icolor = CQChartsUtil::invColor(pen.color());
   QColor icolor = CQChartsUtil::bwColor(pen.color());
 
-  icolor.setAlphaF(0.5);
+  icolor.setAlphaF(alpha);
 
   //---
 

@@ -17,14 +17,14 @@
 #include <svg/remove_svg.h>
 
 CQChartsColumnsLineEdit::
-CQChartsColumnsLineEdit(QWidget *parent) :
- CQChartsLineEditBase(parent)
+CQChartsColumnsLineEdit(QWidget *parent, bool isBasic) :
+ CQChartsLineEditBase(parent), isBasic_(isBasic)
 {
   setObjectName("columnsLineEdit");
 
   //---
 
-  menuEdit_ = dataEdit_ = new CQChartsColumnsEdit;
+  menuEdit_ = dataEdit_ = new CQChartsColumnsEdit(nullptr, isBasic);
 
   menu_->setWidget(dataEdit_);
 
@@ -162,7 +162,7 @@ textToColumns(const QString &str, CQChartsColumns &columns) const
 
         if (ok1 && ok2) {
           for (int col = startCol; col <= endCol; ++col)
-            columns.addColumn(col);
+            columns.addColumn(CQChartsColumn(col));
         }
         else
           ok = false;
@@ -374,8 +374,8 @@ setValue(QWidget *w, const QVariant &var)
 //------
 
 CQChartsColumnsEdit::
-CQChartsColumnsEdit(QWidget *parent) :
- CQChartsEditBase(parent)
+CQChartsColumnsEdit(QWidget *parent, bool isBasic) :
+ CQChartsEditBase(parent), isBasic_(isBasic)
 {
   setObjectName("columnsEdit");
 
@@ -437,10 +437,18 @@ setModel(QAbstractItemModel *model)
 
   model_ = model;
 
-  int ne = columnEdits_.size();
+  if (isBasic_) {
+    int ne = columnCombos_.size();
 
-  for (int i = 0; i < ne; ++i)
-    columnEdits_[i]->setModel(model_);
+    for (int i = 0; i < ne; ++i)
+      columnCombos_[i]->setModel(model_);
+  }
+  else {
+    int ne = columnEdits_.size();
+
+    for (int i = 0; i < ne; ++i)
+      columnEdits_[i]->setModel(model_);
+  }
 
   connectSlots(true);
 }
@@ -473,12 +481,22 @@ columnsToWidgets()
 
   connectSlots(false);
 
-  int n  = columns_.count();
-  int ne = columnEdits_.size();
-  assert(n == ne);
+  int n = columns_.count();
 
-  for (int i = 0; i < n; ++i)
-    columnEdits_[i]->setColumn(columns_.getColumn(i));
+  if (isBasic_) {
+    int ne = columnCombos_.size();
+    assert(n == ne);
+
+    for (int i = 0; i < n; ++i)
+      columnCombos_[i]->setColumn(columns_.getColumn(i));
+  }
+  else {
+    int ne = columnEdits_.size();
+    assert(n == ne);
+
+    for (int i = 0; i < n; ++i)
+      columnEdits_[i]->setColumn(columns_.getColumn(i));
+  }
 
   connectSlots(true);
 }
@@ -487,12 +505,22 @@ void
 CQChartsColumnsEdit::
 widgetsToColumn()
 {
-  int n  = columns_.count();
-  int ne = columnEdits_.size();
-  assert(n == ne);
+  int n = columns_.count();
 
-  for (int i = 0; i < n; ++i)
-    columns_.setColumn(i, columnEdits_[i]->column());
+  if (isBasic_) {
+    int ne = columnCombos_.size();
+    assert(n == ne);
+
+    for (int i = 0; i < n; ++i)
+      columns_.setColumn(i, columnCombos_[i]->getColumn());
+  }
+  else {
+    int ne = columnEdits_.size();
+    assert(n == ne);
+
+    for (int i = 0; i < n; ++i)
+      columns_.setColumn(i, columnEdits_[i]->column());
+  }
 
   emit columnsChanged();
 }
@@ -525,27 +553,57 @@ updateEdits()
 {
   connectSlots(false);
 
-  int n  = columns_.count();
-  int ne = columnEdits_.size();
+  int n = columns_.count();
 
-  while (ne < n) {
-    CQChartsColumnLineEdit *edit = new CQChartsColumnLineEdit;
+  int ne = 0;
 
-    edit->setModel(model());
+  if (isBasic_) {
+    ne = columnCombos_.size();
 
-    qobject_cast<QVBoxLayout *>(columnsFrame_->layout())->addWidget(edit);
+    while (ne < n) {
+      CQChartsColumnCombo *combo = new CQChartsColumnCombo;
 
-    columnEdits_.push_back(edit);
+      combo->setModel(model());
 
-    ++ne;
+      qobject_cast<QVBoxLayout *>(columnsFrame_->layout())->addWidget(combo);
+
+      columnCombos_.push_back(combo);
+
+      ++ne;
+    }
+
+    while (ne > n) {
+      delete columnCombos_.back();
+
+      columnCombos_.pop_back();
+
+      --ne;
+    }
+
+    countLabel_->setText(QString("%1 Columns").arg(ne));
   }
+  else {
+    ne = columnEdits_.size();
 
-  while (ne > n) {
-    delete columnEdits_.back();
+    while (ne < n) {
+      CQChartsColumnLineEdit *edit = new CQChartsColumnLineEdit;
 
-    columnEdits_.pop_back();
+      edit->setModel(model());
 
-    --ne;
+      qobject_cast<QVBoxLayout *>(columnsFrame_->layout())->addWidget(edit);
+
+      columnEdits_.push_back(edit);
+
+      ++ne;
+    }
+
+    while (ne > n) {
+      delete columnEdits_.back();
+
+      columnEdits_.pop_back();
+
+      --ne;
+    }
   }
 
   countLabel_->setText(QString("%1 Columns").arg(ne));
@@ -564,8 +622,14 @@ connectSlots(bool b)
       disconnect(w, from, this, to);
   };
 
-  for (auto &edit : columnEdits_)
-    connectDisconnect(b, edit, SIGNAL(columnChanged()), SLOT(widgetsToColumn()));
+  if (isBasic_) {
+    for (auto &edit : columnCombos_)
+      connectDisconnect(b, edit, SIGNAL(columnChanged()), SLOT(widgetsToColumn()));
+  }
+  else {
+    for (auto &edit : columnEdits_)
+      connectDisconnect(b, edit, SIGNAL(columnChanged()), SLOT(widgetsToColumn()));
+  }
 }
 
 QSize
@@ -574,16 +638,28 @@ sizeHint() const
 {
   QSize s1 = controlFrame_->sizeHint();
 
-  int ne = columnEdits_.size();
-
   int w1 = s1.width();
   int h1 = s1.height() + 2;
 
-  for (int i = 0; i < ne; ++i) {
-    QSize s2 = columnEdits_[i]->sizeHint();
+  if (isBasic_) {
+    int ne = columnCombos_.size();
 
-    w1  = std::max(w1, s2.width());
-    h1 += s2.height() + 2;
+    for (int i = 0; i < ne; ++i) {
+      QSize s2 = columnCombos_[i]->sizeHint();
+
+      w1  = std::max(w1, s2.width());
+      h1 += s2.height() + 2;
+    }
+  }
+  else {
+    int ne = columnEdits_.size();
+
+    for (int i = 0; i < ne; ++i) {
+      QSize s2 = columnEdits_[i]->sizeHint();
+
+      w1  = std::max(w1, s2.width());
+      h1 += s2.height() + 2;
+    }
   }
 
   return QSize(w1 + 4, h1 + 2);

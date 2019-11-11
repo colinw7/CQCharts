@@ -407,11 +407,12 @@ draw(CQChartsPaintDevice *device) const
 
     CQChartsTextOptions textOptions;
 
-    textOptions.contrast  = isTextContrast();
-    textOptions.formatted = isTextFormatted();
-    textOptions.scaled    = isTextScaled();
-    textOptions.html      = isTextHtml();
-    textOptions.align     = textAlign();
+    textOptions.contrast      = isTextContrast();
+    textOptions.contrastAlpha = textContrastAlpha();
+    textOptions.formatted     = isTextFormatted();
+    textOptions.scaled        = isTextScaled();
+    textOptions.html          = isTextHtml();
+    textOptions.align         = textAlign();
 
     CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(rect1), name, textOptions);
 
@@ -1707,11 +1708,12 @@ draw(CQChartsPaintDevice *device) const
     // set text options
     CQChartsTextOptions textOptions;
 
-    textOptions.contrast  = isHeaderTextContrast();
-    textOptions.formatted = isHeaderTextFormatted();
-    textOptions.scaled    = isHeaderTextScaled();
-    textOptions.html      = isHeaderTextHtml();
-    textOptions.align     = headerTextAlign();
+    textOptions.contrast      = isHeaderTextContrast();
+    textOptions.contrastAlpha = headerTextContrastAlpha();
+    textOptions.formatted     = isHeaderTextFormatted();
+    textOptions.scaled        = isHeaderTextScaled();
+    textOptions.html          = isHeaderTextHtml();
+    textOptions.align         = headerTextAlign();
 
     textOptions = plot()->adjustTextOptions(textOptions);
 
@@ -2026,11 +2028,12 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 
   CQChartsTextOptions textOptions;
 
-  textOptions.contrast  = key_->isTextContrast();
-  textOptions.formatted = key_->isTextFormatted();
-  textOptions.scaled    = key_->isTextScaled();
-  textOptions.html      = key_->isTextHtml();
-  textOptions.align     = key_->textAlign();
+  textOptions.contrast      = key_->isTextContrast();
+  textOptions.contrastAlpha = key_->textContrastAlpha();
+  textOptions.formatted     = key_->isTextFormatted();
+  textOptions.scaled        = key_->isTextScaled();
+  textOptions.html          = key_->isTextHtml();
+  textOptions.align         = key_->textAlign();
 
   textOptions = plot->adjustTextOptions(textOptions);
 

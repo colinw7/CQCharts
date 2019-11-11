@@ -2272,12 +2272,13 @@ addTextProperties(const QString &path, const QString &prefix, const QString &des
 
   QString prefix1 = (descPrefix.length() ? descPrefix + " text" : "Text");
 
-  addStyleProp(path, prefix + "Color"   , "color"   , prefix1 + " color");
-  addStyleProp(path, prefix + "Alpha"   , "alpha"   , prefix1 + " alpha");
-  addStyleProp(path, prefix + "Font"    , "font"    , prefix1 + " font");
-  addStyleProp(path, prefix + "Angle"   , "angle"   , prefix1 + " angle");
-  addStyleProp(path, prefix + "Contrast", "contrast", prefix1 + " contrast");
-  addStyleProp(path, prefix + "Html"    , "html"    , prefix1 + " is HTML");
+  addStyleProp(path, prefix + "Color"        , "color"        , prefix1 + " color");
+  addStyleProp(path, prefix + "Alpha"        , "alpha"        , prefix1 + " alpha");
+  addStyleProp(path, prefix + "Font"         , "font"         , prefix1 + " font");
+  addStyleProp(path, prefix + "Angle"        , "angle"        , prefix1 + " angle");
+  addStyleProp(path, prefix + "Contrast"     , "contrast"     , prefix1 + " contrast");
+  addStyleProp(path, prefix + "ContrastAlpha", "contrastAlpha", prefix1 + " contrast alpha");
+  addStyleProp(path, prefix + "Html"         , "html"         , prefix1 + " is HTML");
 }
 
 void
@@ -3843,12 +3844,12 @@ clearPlotObjects()
   std::swap(plotObjs, plotObjs_);
 
 #if 0
-  for (auto &plotObj : plotObjs) {
+  for (auto &plotObj : plotObjs)
     propertyModel()->removeProperties("objects/" + plotObj->propertyId());
-
-    delete plotObj;
-  }
 #endif
+
+  for (auto &plotObj : plotObjs)
+    delete plotObj;
 
   insideObjs_    .clear();
   sizeInsideObjs_.clear();
@@ -7047,6 +7048,9 @@ void
 CQChartsPlot::
 drawBgKey(CQChartsPaintDevice *device) const
 {
+  if (isPreview())
+    return;
+
   CQPerfTrace trace("CQChartsPlot::drawBgKey");
 
   if (isOverlay()) {
@@ -7353,6 +7357,9 @@ void
 CQChartsPlot::
 drawFgKey(CQChartsPaintDevice *device) const
 {
+  if (isPreview())
+    return;
+
   CQPerfTrace trace("CQChartsPlot::drawFgKey");
 
   if (isOverlay()) {
@@ -9620,7 +9627,7 @@ CQChartsPlot::
 modelHeaderValue(QAbstractItemModel *model, int section, Qt::Orientation orientation,
                  bool &ok) const
 {
-  return CQChartsModelUtil::modelHeaderValue(model, section, orientation, ok);
+  return CQChartsModelUtil::modelHeaderValue(model, CQChartsColumn(section), orientation, ok);
 }
 
 QVariant
@@ -9628,7 +9635,8 @@ CQChartsPlot::
 modelHeaderValue(QAbstractItemModel *model, int section, Qt::Orientation orientation,
                  int role, bool &ok) const
 {
-  return CQChartsModelUtil::modelHeaderValue(model, section, orientation, role, ok);
+  return CQChartsModelUtil::modelHeaderValue(model, CQChartsColumn(section),
+                                             orientation, role, ok);
 }
 
 QString
@@ -9651,7 +9659,7 @@ CQChartsPlot::
 modelHeaderString(QAbstractItemModel *model, int section, Qt::Orientation orientation,
                   bool &ok) const
 {
-  return CQChartsModelUtil::modelHeaderString(model, section, orientation, ok);
+  return CQChartsModelUtil::modelHeaderString(model, CQChartsColumn(section), orientation, ok);
 }
 
 QString
@@ -9659,7 +9667,8 @@ CQChartsPlot::
 modelHeaderString(QAbstractItemModel *model, int section, Qt::Orientation orientation,
                   int role, bool &ok) const
 {
-  return CQChartsModelUtil::modelHeaderString(model, section, orientation, role, ok);
+  return CQChartsModelUtil::modelHeaderString(model, CQChartsColumn(section),
+                                              orientation, role, ok);
 }
 
 //--
@@ -9915,7 +9924,7 @@ isSelectIndex(const QModelIndex &ind, int row, const CQChartsColumn &column,
       column.type() != CQChartsColumn::Type::DATA_INDEX)
     return false;
 
-  return (ind == selectIndex(row, column.column(), parent));
+  return (ind == selectIndex(row, column, parent));
 }
 
 QModelIndex
@@ -9952,7 +9961,7 @@ void
 CQChartsPlot::
 addSelectIndex(int row, int column, const QModelIndex &parent)
 {
-  addSelectIndex(selectIndex(row, column, parent));
+  addSelectIndex(selectIndex(row, CQChartsColumn(column), parent));
 }
 
 void

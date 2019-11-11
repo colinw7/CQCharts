@@ -5,6 +5,7 @@
 #include <CQChartsLineEditBase.h>
 
 class CQChartsColumnsEdit;
+class CQChartsColumnCombo;
 
 /*!
  * \brief Columns line edit
@@ -16,7 +17,7 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
   Q_PROPERTY(CQChartsColumns columns READ columns WRITE setColumns)
 
  public:
-  CQChartsColumnsLineEdit(QWidget *parent=nullptr);
+  CQChartsColumnsLineEdit(QWidget *parent=nullptr, bool isBasic=false);
 
   void setPlot(CQChartsPlot *plot) override;
 
@@ -49,6 +50,7 @@ class CQChartsColumnsLineEdit : public CQChartsLineEditBase {
 
  private:
   CQChartsColumnsEdit *dataEdit_ { nullptr };
+  bool                 isBasic_  { false };
 };
 
 //------
@@ -68,7 +70,7 @@ class CQChartsColumnsEdit : public CQChartsEditBase {
   Q_PROPERTY(CQChartsColumns columns READ columns WRITE setColumns)
 
  public:
-  CQChartsColumnsEdit(QWidget *parent=nullptr);
+  CQChartsColumnsEdit(QWidget *parent=nullptr, bool isBasic=false);
 
   QAbstractItemModel *model() const { return model_; }
   void setModel(QAbstractItemModel *model);
@@ -95,13 +97,16 @@ class CQChartsColumnsEdit : public CQChartsEditBase {
   void connectSlots(bool b);
 
  private:
-  using ColumnEdits = std::vector<CQChartsColumnLineEdit *>;
+  using ColumnCombos = std::vector<CQChartsColumnCombo *>;
+  using ColumnEdits  = std::vector<CQChartsColumnLineEdit *>;
 
+  bool                isBasic_      { false };
   CQChartsColumns     columns_;
   QAbstractItemModel* model_        { nullptr };
   QFrame*             controlFrame_ { nullptr };
   QFrame*             columnsFrame_ { nullptr };
   QLabel*             countLabel_   { nullptr };
+  ColumnCombos        columnCombos_;
   ColumnEdits         columnEdits_;
 };
 

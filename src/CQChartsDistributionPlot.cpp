@@ -36,7 +36,7 @@ addParameters()
 {
   startParameterGroup("Distribution");
 
-  // values
+  // values (auto bucketed)
   addColumnsParameter("value", "Value", "valueColumns").
     setRequired().setNumeric().setTip("Value column(s)");
 

@@ -182,7 +182,7 @@ draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
         QPointF p1 = device->pixelToWindow(QPointF(px, py));
 
         if (isTextContrast()) {
-          CQChartsDrawUtil::drawContrastText(device, p1, ystr);
+          CQChartsDrawUtil::drawContrastText(device, p1, ystr, textContrastAlpha());
         }
         else {
           CQChartsDrawUtil::drawSimpleText(device, p1, ystr);

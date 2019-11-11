@@ -1,6 +1,8 @@
 #ifndef CQChartsHull3D_H
 #define CQChartsHull3D_H
 
+#include <vector>
+
 #include <cassert>
 #include <sys/types.h>
 #include <cstdlib>
@@ -11,6 +13,8 @@
 
 #include <iterator>
 #include <cstddef>
+
+//#define CQChartsHull3D_CheckSafe 1
 
 /*!
  * input iterator supports:
@@ -182,10 +186,19 @@ class CQChartsHull3D {
   class Edge;
   class Vertex;
 
+  using PFace   = Face*;
+  using PEdge   = Edge*;
+  using PVertex = Vertex*;
+
+  //---
+
   //! hull vertex
   class Vertex : public CListLink<Vertex> {
    private:
     using ListLink = CListLink<Vertex>;
+
+   public:
+    using VVertices = std::vector<PVertex>;
 
    public:
     static void resetCount() { count_ = 0; }
@@ -221,19 +234,23 @@ class CQChartsHull3D {
 
     const double *v() const { return &v_[0]; }
 
+    double value() const { return value_; }
+    void setValue(double v) { value_ = v; }
+
     bool num() const { return num_; }
 
     Edge *duplicateEdge() const { return duplicate_; }
-
     void setDuplicateEdge(Edge *e) { duplicate_ = e; }
 
     bool onHull() const { return onHull_; }
-
     void setOnHull(bool onHull) { onHull_ = onHull; }
 
     bool isProcessed() const { return mark_; }
-
     void setProcessed(bool mark) { mark_ = mark; }
+
+    const VVertices &voronoi() const { return vvertices_; }
+    void clearVoronoi() { vvertices_.clear(); }
+    void addVoronoi(PVertex v) { vvertices_.push_back(v); }
 
     iterator beginIterator() { return ListLink::begin(); }
     iterator endIterator  () { return ListLink::end  (); }
@@ -258,7 +275,7 @@ class CQChartsHull3D {
 
       if ((fabs(x()) > SAFE) || (fabs(y()) > SAFE) || (fabs(z()) > SAFE)) {
         std::cout << "Coordinate of vertex below might be too large\n";
-        print();
+        //print();
       }
     }
 #endif
@@ -266,14 +283,14 @@ class CQChartsHull3D {
    private:
     static uint count_;
 
-    double v_[3];                  //!< vertices
-    uint   num_       { 0 };       //!< vertex number
-    Edge*  duplicate_ { nullptr }; //!< pointer to incident cone edge (or NULL)
-    bool   onHull_    { false };   //!< true iff point on hull.
-    bool   mark_      { false };   //!< true iff point already processed.
+    double    v_[3];                  //!< vertices
+    double    value_     { 0.0 };     //!< value
+    uint      num_       { 0 };       //!< vertex number
+    PEdge     duplicate_ { nullptr }; //!< pointer to incident cone edge (or NULL)
+    bool      onHull_    { false };   //!< true iff point on hull.
+    bool      mark_      { false };   //!< true iff point already processed.
+    VVertices vvertices_;
   };
-
-  using PVertex = Vertex*;
 
   //-------
 
@@ -367,13 +384,11 @@ class CQChartsHull3D {
 #endif
 
    private:
-    Vertex* endpts_[2];
-    Face*   adjface_[2];
-    Face*   newface_; /* pointer to incident cone face. */
+    PVertex endpts_[2];
+    PFace   adjface_[2];
+    PFace   newface_; /* pointer to incident cone face. */
     bool    removed_; /* true iff edge should be removed. */
   };
-
-  using PEdge = Edge*;
 
   //-------
 
@@ -381,6 +396,9 @@ class CQChartsHull3D {
   class Face : public CListLink<Face> {
    private:
     using ListLink = CListLink<Face>;
+
+   public:
+    using VEdges = std::vector<PEdge>;
 
    public:
     Face() {
@@ -413,8 +431,11 @@ class CQChartsHull3D {
     void setColor(int color) { color_ = color; }
 
     void setVoronoi(PVertex v) { vv_ = v; }
-
     PVertex getVoronoi() const { return vv_; }
+
+    void clearVoronoiEdges() { vedges_.clear(); }
+    void addVoronoiEdge(PEdge e) { vedges_.push_back(e); }
+    const VEdges &voronoiEdges() const { return vedges_; };
 
     double normalZDirection() {
       double a[3], b[3];
@@ -458,15 +479,14 @@ class CQChartsHull3D {
     }
 
    private:
-    Edge*   edge_  [3];           //!< edges
-    Vertex* vertex_[3];           //!< vertices
+    PEdge   edge_  [3];           //!< edges
+    PVertex vertex_[3];           //!< vertices
     bool    visible_ { false };   //!< true iff face visible from new point
     bool    lower_   { false };   //!< true iff is lower face
     int     color_   { -1 };      //!< face color
-    Vertex* vv_      { nullptr }; //!< voronoi vertex
+    PVertex vv_      { nullptr }; //!< voronoi vertex
+    VEdges  vedges_;              //!< voronoi edges
   };
-
-  using PFace = Face*;
 
   //-------
 
@@ -481,8 +501,8 @@ class CQChartsHull3D {
   void setDebug(bool debug=true) { debug_ = debug; }
   void setCheck(bool check=true) { check_ = check; }
 
-  void addVertex(double x, double y, double z);
-  void addVertex(double x, double y);
+  PVertex addVertex(double x, double y, double z);
+  PVertex addVertex(double x, double y);
 
   void clearVertices();
 

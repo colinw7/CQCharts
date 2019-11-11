@@ -6,6 +6,7 @@
 struct CQChartsTextOptions {
   double        angle            { 0.0 };   //!< text angle
   bool          contrast         { false }; //!< text contrast
+  double        contrastAlpha    { 0.5 };   //!< text contrast alpha
   bool          formatted        { false }; //!< text formatted
   bool          scaled           { false }; //!< text scaled
   bool          html             { false }; //!< text html

@@ -439,7 +439,8 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
     //---
 
     if (type.length()) {
-      if (! CQChartsModelUtil::setColumnTypeStr(charts_, model.data(), column, type))
+      if (! CQChartsModelUtil::setColumnTypeStr(charts_, model.data(),
+                                                CQChartsColumn(column), type))
         return errorMsg(QString("Invalid column type '%1'").arg(type));
     }
 
@@ -556,27 +557,12 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
       assert(plotType);
 
       analyzeModel.analyzeType(plotType);
-    }
-    else {
-      analyzeModel.analyze();
-    }
 
-    const CQChartsAnalyzeModel::TypeNameColumns &typeNameColumns = analyzeModel.typeNameColumns();
-
-    QVariantList tvars;
-
-    for (const auto &tnc : typeNameColumns) {
-      QVariantList cvars;
-
-      const QString &typeName = tnc.first;
-
-      cvars.push_back(typeName);
+      const CQChartsAnalyzeModelData &analyzeModelData = analyzeModel.analyzeModelData(plotType);
 
       QVariantList tncvars;
 
-      const CQChartsAnalyzeModel::NameColumns &nameColumns = tnc.second;
-
-      for (const auto &nc : nameColumns) {
+      for (const auto &nc : analyzeModelData.parameterNameColumn) {
         const QString        &name   = nc.first;
         const CQChartsColumn &column = nc.second;
 
@@ -588,14 +574,48 @@ processChartsModelCmd(CQChartsCmdArgs &argv)
         tncvars.push_back(ncvars);
       }
 
-      cvars.push_back(tncvars);
+      cmdBase_->setCmdRc(tncvars);
+    }
+    else {
+      analyzeModel.analyze();
 
-      tvars.push_back(cvars);
+      const CQChartsAnalyzeModel::TypeAnalyzeModelData &typeAnalyzeModelData =
+        analyzeModel.typeAnalyzeModelData();
+
+      QVariantList tvars;
+
+      for (const auto &tnc : typeAnalyzeModelData) {
+        QVariantList cvars;
+
+        const QString &typeName = tnc.first;
+
+        cvars.push_back(typeName);
+
+        QVariantList tncvars;
+
+        const CQChartsAnalyzeModelData &analyzeModelData = tnc.second;
+
+        for (const auto &nc : analyzeModelData.parameterNameColumn) {
+          const QString        &name   = nc.first;
+          const CQChartsColumn &column = nc.second;
+
+          QVariantList ncvars;
+
+          ncvars.push_back(name);
+          ncvars.push_back(column.toString());
+
+          tncvars.push_back(ncvars);
+        }
+
+        cvars.push_back(tncvars);
+
+        tvars.push_back(cvars);
+      }
+
+      cmdBase_->setCmdRc(tvars);
     }
 
     analyzeModel.print();
-
-    cmdBase_->setCmdRc(tvars);
   }
   else {
 #if 0
@@ -2566,7 +2586,8 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
       bool ok;
 
       groupValue_[hierRow_] =
-        CQChartsModelUtil::modelValue(charts_, model, data.row, 0, data.parent, ok);
+        CQChartsModelUtil::modelValue(charts_, model, data.row,
+                                      CQChartsColumn(0), data.parent, ok);
 
       return State::OK;
     }
@@ -2578,8 +2599,8 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
         for (int c = 1; c < nc; ++c) {
           bool ok;
 
-          QVariant var =
-            CQChartsModelUtil::modelValue(charts_, model, data.row, c, data.parent, ok);
+          auto var = CQChartsModelUtil::modelValue(charts_, model, data.row,
+                                                   CQChartsColumn(c), data.parent, ok);
 
           if (ok)
             rowColValueSet_[hierRow_][c - 1].addValue(var);
@@ -2588,7 +2609,7 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
       else if (groupColumn_.isValid()) {
         bool ok;
 
-        QVariant groupVar =
+        auto groupVar =
           CQChartsModelUtil::modelValue(charts_, model, data.row, groupColumn_, data.parent, ok);
 
         auto p = valueGroup_.find(groupVar);
@@ -2606,8 +2627,8 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
         for (int c = 0; c < nc; ++c) {
           bool ok;
 
-          QVariant var =
-            CQChartsModelUtil::modelValue(charts_, model, data.row, c, data.parent, ok);
+          auto var = CQChartsModelUtil::modelValue(charts_, model, data.row,
+                                                   CQChartsColumn(c), data.parent, ok);
 
           if (ok)
             rowColValueSet_[group][c].addValue(var);
@@ -2617,8 +2638,8 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
         for (int c = 0; c < nc; ++c) {
           bool ok;
 
-          QVariant var =
-            CQChartsModelUtil::modelValue(charts_, model, data.row, c, data.parent, ok);
+          auto var = CQChartsModelUtil::modelValue(charts_, model, data.row,
+                                                   CQChartsColumn(c), data.parent, ok);
 
           if (ok)
             rowColValueSet_[0][c].addValue(var);
@@ -2692,9 +2713,10 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
   if (flattenVisitor.isHierarchical()) {
     bool ok;
 
-    QString name = CQChartsModelUtil::modelHeaderString(model.data(), 0, Qt::Horizontal, ok);
+    QString name =
+      CQChartsModelUtil::modelHeaderString(model.data(), CQChartsColumn(0), Qt::Horizontal, ok);
 
-    CQChartsModelUtil::setModelHeaderValue(dataModel, 0, Qt::Horizontal, name);
+    CQChartsModelUtil::setModelHeaderValue(dataModel, CQChartsColumn(0), Qt::Horizontal, name);
   }
 
   // set other columns and types
@@ -2703,16 +2725,19 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
 
     bool ok;
 
-    QString name = CQChartsModelUtil::modelHeaderString(model.data(), c + nh, Qt::Horizontal, ok);
+    QString name =
+      CQChartsModelUtil::modelHeaderString(model.data(), CQChartsColumn(c + nh),
+                                           Qt::Horizontal, ok);
 
-    CQChartsModelUtil::setModelHeaderValue(dataModel, c + nh, Qt::Horizontal, name);
+    CQChartsModelUtil::setModelHeaderValue(dataModel, CQChartsColumn(c + nh),
+                                           Qt::Horizontal, name);
 
     CQBaseModelType    columnType;
     CQBaseModelType    columnBaseType;
     CQChartsNameValues nameValues;
 
-    if (! CQChartsModelUtil::columnValueType(charts_, model.data(), c + nh, columnType,
-                                             columnBaseType, nameValues))
+    if (! CQChartsModelUtil::columnValueType(charts_, model.data(), CQChartsColumn(c + nh),
+                                             columnType, columnBaseType, nameValues))
       continue;
 
     const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
@@ -2721,7 +2746,8 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
       continue;
 
     if (isGroup || typeData->isNumeric()) {
-      if (! columnTypeMgr->setModelColumnType(dataModel, c + nh, columnType, nameValues))
+      if (! columnTypeMgr->setModelColumnType(dataModel, CQChartsColumn(c + nh),
+                                              columnType, nameValues))
         continue;
     }
   }
@@ -2732,7 +2758,7 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
     if (flattenVisitor.isHierarchical()) {
       QVariant var = flattenVisitor.groupValue(r);
 
-      CQChartsModelUtil::setModelValue(dataModel, r, 0, var);
+      CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(0), var);
     }
 
     for (int c = 0; c < nc; ++c) {
@@ -2746,12 +2772,12 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
         else if (meanFlag)
           v = flattenVisitor.hierMean(r, c);
 
-        CQChartsModelUtil::setModelValue(dataModel, r, c + nh, v);
+        CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(c + nh), v);
       }
       else {
         QVariant v = flattenVisitor.groupValue(r);
 
-        CQChartsModelUtil::setModelValue(dataModel, r, c + nh, v);
+        CQChartsModelUtil::setModelValue(dataModel, r, CQChartsColumn(c + nh), v);
       }
     }
   }
@@ -3032,7 +3058,9 @@ writeChartsModelCmd(CQChartsCmdArgs &argv)
     for (int c = 0; c < nc; ++c) {
       bool ok;
 
-      QVariant var = CQChartsModelUtil::modelHeaderValue(model.data(), c, Qt::Horizontal, role, ok);
+      QVariant var =
+        CQChartsModelUtil::modelHeaderValue(model.data(), CQChartsColumn(c),
+                                            Qt::Horizontal, role, ok);
 
       QString str = var.toString();
 
@@ -3056,7 +3084,8 @@ writeChartsModelCmd(CQChartsCmdArgs &argv)
       for (int c = 0; c < nc; ++c) {
         bool ok;
 
-        QVariant var = CQChartsModelUtil::modelValue(charts_, model.data(), r, c, parent, role, ok);
+        auto var = CQChartsModelUtil::modelValue(charts_, model.data(), r,
+                                                 CQChartsColumn(c), parent, role, ok);
 
         QString str = var.toString();
 
@@ -3554,8 +3583,8 @@ createChartsSubsetModelCmd(CQChartsCmdArgs &argv)
   int top    = argv.getParseInt("top"   , -1);
   int bottom = argv.getParseInt("bottom", -1);
 
-  if (! left .isValid()) left  = 0;
-  if (! right.isValid()) right = model->columnCount() - 1;
+  if (! left .isValid()) left  = CQChartsColumn(0);
+  if (! right.isValid()) right = CQChartsColumn(model->columnCount() - 1);
 
   if (top    < 0) top    = 0;
   if (bottom < 0) bottom = model->rowCount() - 1;
@@ -3816,8 +3845,8 @@ createChartsCollapseModelCmd(CQChartsCmdArgs &argv)
     CQBaseModelType    columnBaseType;
     CQChartsNameValues nameValues;
 
-    if (! CQChartsModelUtil::columnValueType(charts_, model.data(), c, columnType,
-                                             columnBaseType, nameValues))
+    if (! CQChartsModelUtil::columnValueType(charts_, model.data(), CQChartsColumn(c),
+                                             columnType, columnBaseType, nameValues))
       continue;
 
     const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
@@ -4083,8 +4112,8 @@ createChartsStatsModelCmd(CQChartsCmdArgs &argv)
     CQBaseModelType    columnBaseType;
     CQChartsNameValues nameValues;
 
-    if (! CQChartsModelUtil::columnValueType(charts_, model.data(), c, columnType,
-                                             columnBaseType, nameValues))
+    if (! CQChartsModelUtil::columnValueType(charts_, model.data(), CQChartsColumn(c),
+                                             columnType, columnBaseType, nameValues))
       continue;
 
     const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
@@ -4093,13 +4122,14 @@ createChartsStatsModelCmd(CQChartsCmdArgs &argv)
     if (! typeData->isNumeric() || typeData->isTime())
       continue;
 
-    const CQChartsModelColumnDetails *columnDetails = details->columnDetails(c);
+    auto columnDetails = details->columnDetails(CQChartsColumn(c));
 
     //QModelIndex parent;
 
     bool ok;
 
-    QVariant var = CQChartsModelUtil::modelHeaderValue(model.data(), c, Qt::DisplayRole, ok);
+    QVariant var =
+      CQChartsModelUtil::modelHeaderValue(model.data(), CQChartsColumn(c), Qt::DisplayRole, ok);
 
     ColumnData data;
 
@@ -4127,20 +4157,29 @@ createChartsStatsModelCmd(CQChartsCmdArgs &argv)
   CQDataModel *statsModel = new CQDataModel(nc1, nr1);
 
   for (int c = 0; c < nc1; ++c) {
-    CQChartsModelUtil::setModelHeaderValue(statsModel, c, Qt::Horizontal, columnNames[c]);
+    CQChartsModelUtil::setModelHeaderValue(statsModel, CQChartsColumn(c),
+                                           Qt::Horizontal, columnNames[c]);
   }
 
   for (int r = 0; r < nr1; ++r) {
     const ColumnData &data = columnDatas[r];
 
-    CQChartsModelUtil::setModelValue(statsModel, r, 0, data.name    , Qt::DisplayRole);
-    CQChartsModelUtil::setModelValue(statsModel, r, 1, data.mean    , Qt::DisplayRole);
-    CQChartsModelUtil::setModelValue(statsModel, r, 2, data.min     , Qt::DisplayRole);
-    CQChartsModelUtil::setModelValue(statsModel, r, 3, data.lmedian , Qt::DisplayRole);
-    CQChartsModelUtil::setModelValue(statsModel, r, 4, data.median  , Qt::DisplayRole);
-    CQChartsModelUtil::setModelValue(statsModel, r, 5, data.umedian , Qt::DisplayRole);
-    CQChartsModelUtil::setModelValue(statsModel, r, 6, data.max     , Qt::DisplayRole);
-    CQChartsModelUtil::setModelValue(statsModel, r, 7, data.outliers, Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, CQChartsColumn(0),
+                                     data.name    , Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, CQChartsColumn(1),
+                                     data.mean    , Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, CQChartsColumn(2),
+                                     data.min     , Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, CQChartsColumn(3),
+                                     data.lmedian , Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, CQChartsColumn(4),
+                                     data.median  , Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, CQChartsColumn(5),
+                                     data.umedian , Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, CQChartsColumn(6),
+                                     data.max     , Qt::DisplayRole);
+    CQChartsModelUtil::setModelValue(statsModel, r, CQChartsColumn(7),
+                                     data.outliers, Qt::DisplayRole);
   }
 
   //------
@@ -4378,7 +4417,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
         return errorMsg("Invalid model index");
 
       row    = irow;
-      column = icol;
+      column = CQChartsColumn(icol);
     }
 
     //---
@@ -4453,7 +4492,8 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
         for (int c = 0; c < nc; ++c) {
           bool ok;
 
-          QVariant var = CQChartsModelUtil::modelHeaderValue(model.data(), c, role, ok);
+          auto var =
+            CQChartsModelUtil::modelHeaderValue(model.data(), CQChartsColumn(c), role, ok);
 
           vars.push_back(var);
         }
@@ -4461,19 +4501,19 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
         cmdBase_->setCmdRc(vars);
       }
       else {
-        if (column < 0 || column.column() >= nc)
+        if (column.column() < 0 || column.column() >= nc)
           return errorMsg("Invalid column number");
 
         bool ok;
 
-        QVariant var = CQChartsModelUtil::modelHeaderValue(model.data(), column, role, ok);
+        auto var = CQChartsModelUtil::modelHeaderValue(model.data(), column, role, ok);
 
         cmdBase_->setCmdRc(var);
       }
     }
     // row value
     else if (name == "row") {
-      const CQChartsModelDetails *details = modelData->details();
+      auto details = modelData->details();
 
       int nr = details->numRows();
       int nc = details->numColumns();
@@ -4488,8 +4528,8 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       for (int c = 0; c < nc; ++c) {
         bool ok;
 
-        QVariant var =
-          CQChartsModelUtil::modelValue(charts_, model.data(), row.row(), c, parent, role, ok);
+        auto var = CQChartsModelUtil::modelValue(charts_, model.data(), row.row(),
+                                                 CQChartsColumn(c), parent, role, ok);
 
         vars.push_back(var);
       }
@@ -4498,12 +4538,12 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     }
     // column value
     else if (name == "column") {
-      const CQChartsModelDetails *details = modelData->details();
+      auto details = modelData->details();
 
       int nr = details->numRows();
       int nc = details->numColumns();
 
-      if (column < 0 || column.column() >= nc)
+      if (column.column() < 0 || column.column() >= nc)
         return errorMsg("Invalid column number");
 
       QModelIndex parent; // TODO;
@@ -4513,9 +4553,8 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
       for (int r = 0; r < nr; ++r) {
         bool ok;
 
-        QVariant var =
-          CQChartsModelUtil::modelValue(charts_, model.data(), r, column.column(), parent,
-                                        role, ok);
+        auto var = CQChartsModelUtil::modelValue(charts_, model.data(), r, column,
+                                                 parent, role, ok);
 
         vars.push_back(var);
       }
@@ -4530,7 +4569,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
         if (! column.isValid() || column.column() >= details->numColumns())
           return errorMsg("Invalid column specified");
 
-        const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+        auto columnDetails = details->columnDetails(column);
 
         cmdBase_->setCmdRc(columnDetails->getNamedValue(name));
       }
@@ -4540,7 +4579,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
         QVariantList vars;
 
         for (int c = 0; c < nc; ++c) {
-          const CQChartsModelColumnDetails *columnDetails = details->columnDetails(c);
+          auto columnDetails = details->columnDetails(CQChartsColumn(c));
 
           vars.push_back(columnDetails->getNamedValue(name));
         }
@@ -4563,11 +4602,10 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       bool ok;
 
-      QVariant var =
-        CQChartsModelUtil::modelValue(charts_, model.data(), row.row(), column.column(), parent,
-                                      role, ok);
+      auto var = CQChartsModelUtil::modelValue(charts_, model.data(), row.row(),
+                                               column, parent, role, ok);
 
-      CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+      auto columnDetails = details->columnDetails(column);
 
       double r = columnDetails->map(var);
 
@@ -4926,7 +4964,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       QVariant var = plot->modelValue(row.row(), column, parent, role, ok);
 
-      CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+      auto columnDetails = details->columnDetails(column);
 
       double r = columnDetails->map(var);
 

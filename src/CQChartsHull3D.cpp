@@ -62,7 +62,7 @@ calc()
   return true;
 }
 
-void
+CQChartsHull3D::PVertex
 CQChartsHull3D::
 addVertex(double x, double y, double z)
 {
@@ -71,13 +71,15 @@ addVertex(double x, double y, double z)
   v->assignNum();
 
   v->addTo(&vertices_);
+
+  return v;
 }
 
-void
+CQChartsHull3D::PVertex
 CQChartsHull3D::
 addVertex(double x, double y)
 {
-  addVertex(x, y, x*x + y*y);
+  return addVertex(x, y, x*x + y*y);
 }
 
 void
@@ -99,7 +101,7 @@ clearVertices()
     v = v1;
   }
 
-  vertices_ = 0;
+  vertices_ = nullptr;
 
   Vertex::resetCount();
 }
@@ -115,25 +117,25 @@ reset()
   if (edges_) {
     PEdge e = edges_; do { PEdge e1 = e->next; delete e; e = e1; } while (e != edges_);
 
-    edges_ = 0;
+    edges_ = nullptr;
   }
 
   if (faces_) {
     PFace f = faces_; do { PFace f1 = f->next; delete f; f = f1; } while (f != faces_);
 
-    faces_ = 0;
+    faces_ = nullptr;
   }
 
   if (vvertices_) {
     PVertex v = vvertices_; do { PVertex v1 = v->next; delete v; v = v1; } while (v != vvertices_);
 
-    vvertices_ = 0;
+    vvertices_ = nullptr;
   }
 
   if (vedges_) {
     PEdge e = vedges_; do { PEdge e1 = e->next; delete e; e = e1; } while (e != vedges_);
 
-    vedges_ = 0;
+    vedges_ = nullptr;
   }
 }
 
@@ -176,8 +178,8 @@ doubleTriangle()
   v2->setProcessed(true);
 
   // Create the two "twin" faces.
-  PFace f0 = makeFace(v0, v1, v2, 0);
-  PFace f1 = makeFace(v2, v1, v0, f0);
+  PFace f0 = makeFace(v0, v1, v2, nullptr);
+  PFace f1 = makeFace(v2, v1, v0, f0     );
 
   /* Link adjacent face fields. */
   f0->edge(0)->setRightFace(f1);

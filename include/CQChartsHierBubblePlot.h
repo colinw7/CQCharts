@@ -333,9 +333,6 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
   Q_PROPERTY(bool valueLabel READ isValueLabel WRITE setValueLabel)
   Q_PROPERTY(bool sorted     READ isSorted     WRITE setSorted    )
 
-  // follow view
-  Q_PROPERTY(bool followViewExpand READ isFollowViewExpand WRITE setFollowViewExpand)
-
   // color
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
 
@@ -362,12 +359,6 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   bool isSorted() const { return sorted_; }
   void setSorted(bool b) { sorted_ = b; }
-
-  //---
-
-  // get/set folow view expand
-  bool isFollowViewExpand() const { return followViewExpand_; }
-  void setFollowViewExpand(bool b);
 
   //---
 
@@ -493,6 +484,8 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   //---
 
+  void followViewExpandChanged() override;
+
   void modelViewExpansionChanged() override;
   void setNodeExpansion(CQChartsHierBubbleHierNode *hierNode, const std::set<QModelIndex> &indSet);
 
@@ -529,7 +522,6 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
  private:
   bool      valueLabel_       { false }; //!< draw value with name
   bool      sorted_           { false }; //!< sort nodes by value
-  bool      followViewExpand_ { false }; //!< follow view expand
   QString   currentRootName_;            //!< current root name
   NodeData  nodeData_;                   //!< node data
   PlaceData placeData_;                  //!< place data

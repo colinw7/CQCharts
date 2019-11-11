@@ -310,9 +310,6 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   Q_PROPERTY(double startAngle  READ startAngle  WRITE setStartAngle )
   Q_PROPERTY(bool   multiRoot   READ isMultiRoot WRITE setMultiRoot  )
 
-  // follow view
-  Q_PROPERTY(bool followViewExpand READ isFollowViewExpand WRITE setFollowViewExpand)
-
   // color
   Q_PROPERTY(bool colorById READ isColorById WRITE setColorById)
 
@@ -349,12 +346,6 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   void setMultiRoot(bool b);
 
   bool isRoot(const CQChartsSunburstHierNode *node) const;
-
-  //---
-
-  // get/set folow view expand
-  bool isFollowViewExpand() const { return followViewExpand_; }
-  void setFollowViewExpand(bool b);
 
   //---
 
@@ -466,6 +457,8 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
 
   //---
 
+  void followViewExpandChanged() override;
+
   void modelViewExpansionChanged() override;
   void setNodeExpansion(CQChartsSunburstHierNode *hierNode, const std::set<QModelIndex> &indSet);
 
@@ -482,7 +475,6 @@ class CQChartsSunburstPlot : public CQChartsHierPlot,
   double    outerRadius_      { 1.0 };   //!< outer radius
   double    startAngle_       { -90 };   //!< start angle
   bool      multiRoot_        { false }; //!< has multiple roots
-  bool      followViewExpand_ { false }; //!< follow view expand
   RootNodes roots_;                      //!< root nodes
   QString   currentRootName_;            //!< current root name
   int       colorId_          { -1 };    //!< current color id

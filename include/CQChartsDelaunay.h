@@ -18,7 +18,7 @@ class CQChartsDelaunay : public CQChartsHull3D {
 
   void calcVoronoi();
 
-  bool faceCenter(PFace f, double *xc, double *yc);
+  bool faceCenter(PFace f, double *xc, double *yc, double *r);
 
   PVertex calcEdgePoint(PFace f, PVertex v, PEdge e);
 

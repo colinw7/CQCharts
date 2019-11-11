@@ -814,7 +814,7 @@ getSelectIndices(Indices &inds) const
   for (const auto &valueColumn : plot_->valueColumns())
     addColumnSelectIndex(inds, valueColumn);
 
-  addColumnSelectIndex(inds, modelInd().column());
+  addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
 }
 
 void

@@ -74,7 +74,7 @@ bool fromString(const QString &str, std::vector<CQChartsColumn> &columns) {
     long col = toInt(strs[i], ok1);
 
     if (ok1)
-      columns.push_back(col);
+      columns.push_back(CQChartsColumn(col));
     else
       ok = false;
   }

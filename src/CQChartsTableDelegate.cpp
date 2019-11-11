@@ -82,7 +82,7 @@ drawType(QPainter *painter, const QStyleOptionViewItem &option, const QModelInde
     bool converted;
 
     QVariant cvar =
-      colorType->userData(charts(), modelP().data(), index.column(),
+      colorType->userData(charts(), modelP().data(), CQChartsColumn(index.column()),
                           var, columnData.details->nameValues(), converted);
 
     // get color
@@ -387,7 +387,7 @@ getColumnData(const QModelIndex &index, ColumnData &data) const
 
   CQChartsModelDetails *details = getDetails();
 
-  data.details = (details ? details->columnDetails(index.column()) : nullptr);
+  data.details = (details ? details->columnDetails(CQChartsColumn(index.column())) : nullptr);
 
   CQChartsTableDelegate *th = const_cast<CQChartsTableDelegate *>(this);
 

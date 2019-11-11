@@ -2279,7 +2279,7 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
       bool ok;
 
       rmin = CQChartsVariant::toReal(
-        modelData->details()->columnDetails(ind.column())->minValue(), ok);
+        modelData->details()->columnDetails(CQChartsColumn(ind.column()))->minValue(), ok);
     }
   }
 
@@ -2288,7 +2288,7 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
       bool ok;
 
       rmax = CQChartsVariant::toReal(
-        modelData->details()->columnDetails(ind.column())->maxValue(), ok);
+        modelData->details()->columnDetails(CQChartsColumn(ind.column()))->maxValue(), ok);
     }
   }
 

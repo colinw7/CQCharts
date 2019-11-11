@@ -37,6 +37,13 @@ class CQChartsBoxPlotType : public CQChartsGroupPlotType {
 
   QString description() const override;
 
+  //---
+
+  void analyzeModel(CQChartsModelData *modelData,
+                    CQChartsAnalyzeModelData &analyzeModelData) override;
+
+  //---
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -525,6 +532,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   QString groupSetColumnName(const QString &def="") const;
   QString valueColumnName   (const QString &def="value") const;
   QString groupColumnName   (const QString &def="") const;
+
+  //---
+
+  void initPreview() override;
 
   //---
 

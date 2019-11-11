@@ -140,24 +140,6 @@ setTitleMargin(double m)
 
 void
 CQChartsTreeMapPlot::
-setFollowViewExpand(bool b)
-{
-  if (followViewExpand_ != b) {
-    followViewExpand_ = b;
-
-    if (isFollowViewExpand())
-      modelViewExpansionChanged();
-    else
-      resetNodeExpansion();
-
-    drawObjs();
-  }
-}
-
-//---
-
-void
-CQChartsTreeMapPlot::
 setHierName(bool b)
 {
   CQChartsUtil::testAndSet(hierName_, b, [&]() { drawObjs(); } );
@@ -1127,22 +1109,26 @@ postResize()
 
 void
 CQChartsTreeMapPlot::
+followViewExpandChanged()
+{
+  if (isFollowViewExpand())
+    modelViewExpansionChanged();
+  else
+    resetNodeExpansion();
+
+  drawObjs();
+}
+
+void
+CQChartsTreeMapPlot::
 modelViewExpansionChanged()
 {
   if (! isFollowViewExpand())
     return;
 
-  QModelIndexList inds;
-
-  view()->expandedModelIndices(inds);
-
   std::set<QModelIndex> indSet;
 
-  for (const auto &ind : inds) {
-    QModelIndex ind1 = normalizeIndex(ind);
-
-    indSet.insert(ind1);
-  }
+  expandedModelIndices(indSet);
 
   for (auto &hierNode : root()->getChildren())
     setNodeExpansion(hierNode, indSet);
@@ -1317,13 +1303,14 @@ draw(CQChartsPaintDevice *device)
   if (visible) {
     CQChartsTextOptions textOptions;
 
-    textOptions.angle     = plot_->headerTextAngle();
-    textOptions.contrast  = plot_->isHeaderTextContrast();
-    textOptions.formatted = plot_->isHeaderTextFormatted();
-    textOptions.scaled    = plot_->isHeaderTextScaled();
-    textOptions.html      = plot_->isHeaderTextHtml();
-    textOptions.clipped   = plot_->isTitleTextClipped();
-    textOptions.align     = plot_->headerTextAlign();
+    textOptions.angle         = plot_->headerTextAngle();
+    textOptions.contrast      = plot_->isHeaderTextContrast();
+    textOptions.contrastAlpha = plot_->headerTextContrastAlpha();
+    textOptions.formatted     = plot_->isHeaderTextFormatted();
+    textOptions.scaled        = plot_->isHeaderTextScaled();
+    textOptions.html          = plot_->isHeaderTextHtml();
+    textOptions.clipped       = plot_->isTitleTextClipped();
+    textOptions.align         = plot_->headerTextAlign();
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
@@ -1593,28 +1580,31 @@ drawText(CQChartsPaintDevice *device, const QRectF &qrect)
   if (visible) {
     CQChartsTextOptions textOptions;
 
-    textOptions.angle     = plot_->textAngle();
-    textOptions.contrast  = plot_->isTextContrast();
-    textOptions.formatted = plot_->isTextFormatted();
-    textOptions.scaled    = plot_->isTextScaled();
-    textOptions.html      = plot_->isTextHtml();
-    textOptions.clipped   = plot_->isTextClipped();
-    textOptions.align     = plot_->textAlign();
+    textOptions.angle         = plot_->textAngle();
+    textOptions.contrast      = plot_->isTextContrast();
+    textOptions.contrastAlpha = plot_->textContrastAlpha();
+    textOptions.formatted     = plot_->isTextFormatted();
+    textOptions.scaled        = plot_->isTextScaled();
+    textOptions.html          = plot_->isTextHtml();
+    textOptions.clipped       = plot_->isTextClipped();
+    textOptions.align         = plot_->textAlign();
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
     device->setPen(tPenBrush.pen);
 
+    QRectF iqrect = qrect.adjusted(3, 3, -3, -3);
+
     if      (strs.size() == 1) {
-      CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(qrect), name, textOptions);
+      CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(iqrect), name, textOptions);
     }
     else if (strs.size() == 2) {
       if (plot_->isTextClipped())
-        device->setClipRect(device->pixelToWindow(qrect));
+        device->setClipRect(device->pixelToWindow(iqrect));
 
       double th = fm.height();
 
-      QPointF pc = qrect.center();
+      QPointF pc = iqrect.center();
 
       QPointF tp1(pc.x(), pc.y() - th/2);
       QPointF tp2(pc.x(), pc.y() + th/2);

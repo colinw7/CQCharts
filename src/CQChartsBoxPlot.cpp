@@ -2,6 +2,9 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsTip.h>
+#include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
+#include <CQChartsAnalyzeModelData.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsRand.h>
@@ -127,6 +130,27 @@ description() const
      p("The plot does not support logarithmic x values.").
     h3("Example").
      p(IMG("images/boxplot.png"));
+}
+
+void
+CQChartsBoxPlotType::
+analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+{
+  CQChartsModelDetails *details = modelData->details();
+  if (! details) return;
+
+  CQChartsColumns columns;
+
+  int nc = details->numColumns();
+
+  for (int i = 0; i < nc; ++i) {
+    CQChartsModelColumnDetails *columnDetails = details->columnDetails(CQChartsColumn(i));
+
+    if (columnDetails->isNumeric())
+      columns.addColumn(CQChartsColumn(i));
+  }
+
+  analyzeModelData.parameterNameColumns["value"] = columns;
 }
 
 CQChartsPlot *
@@ -767,6 +791,18 @@ groupColumnName(const QString &def) const
 
   return groupName;
 }
+
+//---
+
+void
+CQChartsBoxPlot::
+initPreview()
+{
+  if (valueColumns_.count() > 1)
+    setNormalized(true);
+}
+
+//---
 
 bool
 CQChartsBoxPlot::
@@ -2428,7 +2464,8 @@ getSelectIndices(Indices &inds) const
   if (whisker_) {
     const CQChartsBoxPlotValue &ovalue = whisker_->value(io_);
 
-    addSelectIndex(inds, ovalue.ind.row(), ovalue.ind.column(), ovalue.ind.parent());
+    addSelectIndex(inds, ovalue.ind.row(), CQChartsColumn(ovalue.ind.column()),
+                   ovalue.ind.parent());
   }
 }
 
@@ -3089,7 +3126,7 @@ void
 CQChartsBoxPlotPointObj::
 getSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, modelInd().column());
+  addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
 }
 
 void

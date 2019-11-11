@@ -1147,7 +1147,7 @@ calcTipId() const
     groupName = groupObj->name();
 
     if (plot_->isGroupHeaders())
-      label = plot_->modelHeaderString(ind.column(), ok);
+      label = plot_->modelHeaderString(CQChartsColumn(ind.column()), ok);
     else
       label = plot_->modelString(lind, ok);
   }
@@ -1160,7 +1160,7 @@ calcTipId() const
   // get value string
   int valueColumn = modelInd().column();
 
-  QString valueStr = plot_->columnStr(valueColumn, value_);
+  QString valueStr = plot_->columnStr(CQChartsColumn(valueColumn), value_);
 
   //---
 

@@ -430,7 +430,7 @@ createObjs(PlotObjs &objs) const
     // add poly line object
     bool ok;
 
-    QString xname = modelString(xind.row(), xind.column(), xind.parent(), ok);
+    QString xname = modelString(xind.row(), CQChartsColumn(xind.column()), xind.parent(), ok);
 
     CQChartsGeom::BBox bbox =
       CQChartsGeom::BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
@@ -1151,7 +1151,7 @@ void
 CQChartsParallelPointObj::
 getSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, modelInd().column());
+  addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
 }
 
 void

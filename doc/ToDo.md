@@ -3,13 +3,17 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
- + No Data View
  + Basic Parameters (simpler create plot interface)
    + Include fold model creation and simplify grouping
- + Hier model sum up
+ + Better filter model (new model)
  + Handle push/pop in tree map follow view
  + Improve coloring with follow view
- + Hier Table Plot
+ + Table Plot
+   + Hier Model
+   + Selection
+   + Header/Number Colors
+   + Controls (Sort/Filter)
+ + Table Delegate Draw Bar
  + Better renderer for text used as buttons
  + No threading needed in plots for local data
  + values annotation : units, use width instead of rectangle
@@ -17,7 +21,7 @@ High
  + view annotation change doesn't redraw (rect fill/stroke visible)
  + const everywhere ?
  + SVG interactive output
- + Arrow polyline (mid points and mi symbols)
+ + Arrow polyline (mid points and mid symbols)
  + Axis Annotation (independent coords ?, angle)
  + Annotation connectors (arc like sankey, lines)
  + Table chart interactive features
@@ -349,9 +353,8 @@ Combined Plots
  + Better builtin support for split plots
 
 Adjacency Plot
- + Adjacency Plot bad draw on resize (not all layers drawn)
  + X Border Width
- + Better Text Placement/Sizing
+ + Better Text Placement/Sizing (Iterative calc fit)
  + Hierarchical Adjacency (H/V headers are hierarchical trees)
  + Labels in Box (count)
  + Allow turn off row/column labels
@@ -369,9 +372,15 @@ Box Plot
  + Sort by median
  + Connected Box Plot setting X axis wrong (box_connected.tcl) - also slow
 
+Bubble Plot
+ + Combine with Hier Bubble Plot
+
 Chord Plot
  + Control gap between sections
  + Separate segment and arc properties
+
+Delaunay Plot
+ + Faster delaunay algorithm
 
 Distribution Plot
  + Push/Pop save restore ranges

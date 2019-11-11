@@ -500,7 +500,7 @@ draw(QPainter *painter, const CQChartsTextData &data, const QRect &rect,
   CQChartsPixelPainter device(painter);
 
   if (data.isContrast())
-    CQChartsDrawUtil::drawContrastText(&device, QPointF(tx, ty), text);
+    CQChartsDrawUtil::drawContrastText(&device, QPointF(tx, ty), text, data.contrastAlpha());
   else
     CQChartsDrawUtil::drawSimpleText(&device, QPointF(tx, ty), text);
 }

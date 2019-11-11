@@ -188,7 +188,8 @@ columnValueType(CQCharts *charts, const QAbstractItemModel *model, const CQChart
     // use defined column type if available
     CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
-    if (columnTypeMgr->getModelColumnType(model, icolumn, columnType, columnBaseType, nameValues)) {
+    if (columnTypeMgr->getModelColumnType(model, CQChartsColumn(icolumn), columnType,
+                                          columnBaseType, nameValues)) {
       if (column.type() == CQChartsColumn::Type::DATA_INDEX) {
         const CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
 
@@ -1091,7 +1092,7 @@ QVariant modelValue(CQCharts *charts, const QAbstractItemModel *model, int row,
     CQBaseModelType    columnBaseType;
     CQChartsNameValues nameValues;
 
-    if (! columnValueType(charts, model, column.column(), columnType, columnBaseType, nameValues))
+    if (! columnValueType(charts, model, column, columnType, columnBaseType, nameValues))
       return var;
 
     CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
@@ -1600,7 +1601,7 @@ bool stringToColumns(const QAbstractItemModel *model, const QString &str,
             std::swap(col1, col2);
 
           for (int c = col1; c <= col2; ++c)
-            columns.push_back(c);
+            columns.push_back(CQChartsColumn(c));
         }
         else
           rc = false;

@@ -1,6 +1,7 @@
 #ifndef CQChartsAnalyzeModel_H
 #define CQChartsAnalyzeModel_H
 
+#include <CQChartsAnalyzeModelData.h>
 #include <CQChartsColumn.h>
 #include <map>
 
@@ -14,24 +15,28 @@ class CQChartsModelData;
  */
 class CQChartsAnalyzeModel {
  public:
-  using NameColumns     = std::map<QString,CQChartsColumn>;
-  using TypeNameColumns = std::map<QString,NameColumns>;
+  using TypeAnalyzeModelData = std::map<QString,CQChartsAnalyzeModelData>;
 
  public:
   CQChartsAnalyzeModel(CQCharts *charts, CQChartsModelData *modelData);
 
   void analyze();
 
+  const TypeAnalyzeModelData &typeAnalyzeModelData() const { return typeAnalyzeModelData_; }
+
   bool analyzeType(CQChartsPlotType *type);
 
-  const TypeNameColumns &typeNameColumns() { return typeNameColumns_; }
+  const CQChartsAnalyzeModelData &analyzeModelData(const CQChartsPlotType *type);
 
   void print() const;
 
  private:
-  CQCharts*          charts_    { nullptr }; //!< charts
-  CQChartsModelData* modelData_ { nullptr }; //!< model data
-  TypeNameColumns    typeNameColumns_;       //!< typed columns
+  bool analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData);
+
+ private:
+  CQCharts*            charts_                { nullptr }; //!< charts
+  CQChartsModelData*   modelData_             { nullptr }; //!< model data
+  TypeAnalyzeModelData typeAnalyzeModelData_;              //!< type's parameter name column
 };
 
 #endif

@@ -56,105 +56,94 @@ void
 CQChartsDelaunay::
 calcVoronoi()
 {
+  for (PVertex v = vertices_, vn = nullptr; v && vn != vertices_; v = vn) {
+    v->clearVoronoi();
+  }
+
+  //---
+
   // get center of circle for each face
   PFace f = faces_;
 
   do {
     if (f->isLower()) {
-      double xc, yc;
+      double xc, yc, r;
 
-      if (faceCenter(f, &xc, &yc)) {
-        PVertex v = new Vertex(xc, yc, 0);
+      if (faceCenter(f, &xc, &yc, &r)) {
+        PVertex v = new Vertex(xc, yc, r);
 
         f->setVoronoi(v);
 
         v->addTo(&vvertices_);
+
+        PVertex v1 = f->vertex(0);
+        PVertex v2 = f->vertex(1);
+        PVertex v3 = f->vertex(2);
+
+        v1->addVoronoi(v);
+        v2->addVoronoi(v);
+        v3->addVoronoi(v);
       }
     }
 
     f = f->next;
   } while (f != faces_);
 
+  //---
+
   f = faces_;
 
   do {
+    f->clearVoronoiEdges();
+
+    // get center point
     PVertex v = f->getVoronoi();
 
     if (v) {
+      // get face edges
       PEdge e1 = f->edge(0);
       PEdge e2 = f->edge(1);
       PEdge e3 = f->edge(2);
 
+      // get face on other side of edge
       PFace f1 = e1->otherFace(f);
       PFace f2 = e2->otherFace(f);
       PFace f3 = e3->otherFace(f);
 
+      // get center points of outside faces
       PVertex v1 = (f1 ? f1->getVoronoi() : nullptr);
       PVertex v2 = (f2 ? f2->getVoronoi() : nullptr);
       PVertex v3 = (f3 ? f3->getVoronoi() : nullptr);
 
-      if (v1) {
-        PEdge e = new Edge(v, v1);
+      //----
 
-        e->setLeftFace(f1); e->setRightFace(f);
+      // calc edges for each face pair
+      if (! v1) { v1 = calcEdgePoint(f, v, e1); v1->addTo(&vvertices_); }
+      if (! v2) { v2 = calcEdgePoint(f, v, e2); v2->addTo(&vvertices_); }
+      if (! v3) { v3 = calcEdgePoint(f, v, e3); v3->addTo(&vvertices_); }
 
-        e->addTo(&vedges_);
-      }
-      else {
-        PVertex vm = calcEdgePoint(f, v, e1);
+      PEdge pe1 = new Edge(v, v1);
+      pe1->setLeftFace(f1); pe1->setRightFace(f);
 
-        vm->addTo(&vvertices_);
+      f->addVoronoiEdge(pe1);
+      pe1->addTo(&vedges_);
 
-        //----
+      //--
 
-        PEdge e = new Edge(v, vm);
+      PEdge pe2 = new Edge(v, v2);
+      pe2->setLeftFace(f2); pe2->setRightFace(f);
 
-        e->setLeftFace(nullptr); e->setRightFace(f);
+      f->addVoronoiEdge(pe2);
+      pe2->addTo(&vedges_);
 
-        e->addTo(&vedges_);
-      }
+      //--
 
-      if (v2) {
-        PEdge e = new Edge(v, v2);
 
-        e->setLeftFace(f2); e->setRightFace(f);
+      PEdge pe3 = new Edge(v, v3);
+      pe3->setLeftFace(f3); pe3->setRightFace(f);
 
-        e->addTo(&vedges_);
-      }
-      else {
-        PVertex vm = calcEdgePoint(f, v, e2);
-
-        vm->addTo(&vvertices_);
-
-        //----
-
-        PEdge e = new Edge(v, vm);
-
-        e->setLeftFace(nullptr); e->setRightFace(f);
-
-        e->addTo(&vedges_);
-      }
-
-      if (v3) {
-        PEdge e = new Edge(v, v3);
-
-        e->setLeftFace(f3); e->setRightFace(f);
-
-        e->addTo(&vedges_);
-      }
-      else {
-        PVertex vm = calcEdgePoint(f, v, e3);
-
-        vm->addTo(&vvertices_);
-
-        //----
-
-        PEdge e = new Edge(v, vm);
-
-        e->setLeftFace(nullptr); e->setRightFace(f);
-
-        e->addTo(&vedges_);
-      }
+      f->addVoronoiEdge(pe3);
+      pe3->addTo(&vedges_);
     }
 
     f = f->next;
@@ -163,7 +152,7 @@ calcVoronoi()
 
 bool
 CQChartsDelaunay::
-faceCenter(PFace f, double *xc, double *yc)
+faceCenter(PFace f, double *xc, double *yc, double *r)
 {
   PVertex v1 = f->vertex(0);
   PVertex v2 = f->vertex(1);
@@ -179,15 +168,15 @@ faceCenter(PFace f, double *xc, double *yc)
 
   double G = 2*(A*(v3->y() - v2->y()) - B*(v3->x() - v2->x()));
 
-  if (G == 0) return false;
+  if (std::abs(G) < 1E-6) return false;
 
   *xc = (D*E - B*F)/G;
   *yc = (A*F - C*E)/G;
 
-  //double dx = v1->x() - xc;
-  //double dy = v1->y() - yc;
+  double dx = v1->x() - *xc;
+  double dy = v1->y() - *yc;
 
-  //double rr = dx*dx + dy*dy;
+  *r = std::hypot(dx, dy);
 
   return true;
 }

@@ -167,6 +167,8 @@ void
 CQChartsViewPlotPainter::
 setClipRect(const QRectF &rect, Qt::ClipOperation operation)
 {
+  if (! rect.isValid()) return;
+
   QRectF prect = windowToPixel(rect);
 
   painter_->setClipRect(prect, operation);
@@ -231,6 +233,8 @@ void
 CQChartsViewPlotPainter::
 fillRect(const QRectF &rect, const QBrush &brush)
 {
+  if (! rect.isValid()) return;
+
   QRectF prect = windowToPixel(rect);
 
   painter_->fillRect(prect, brush);
@@ -240,6 +244,8 @@ void
 CQChartsViewPlotPainter::
 drawRect(const QRectF &rect)
 {
+  if (! rect.isValid()) return;
+
   QRectF prect = windowToPixel(rect);
 
   painter_->drawRect(prect);
@@ -249,6 +255,8 @@ void
 CQChartsViewPlotPainter::
 drawEllipse(const QRectF &rect)
 {
+  if (! rect.isValid()) return;
+
   QRectF prect = windowToPixel(rect);
 
   painter_->drawEllipse(prect);
@@ -259,6 +267,8 @@ void
 CQChartsViewPlotPainter::
 drawArc(const QRectF &rect, double a1, double a2)
 {
+  if (! rect.isValid()) return;
+
   QRectF prect = windowToPixel(rect);
 
   painter_->drawArc(prect, a1*16, a2*16);
@@ -327,6 +337,8 @@ void
 CQChartsViewPlotPainter::
 drawImageInRect(const QRectF &rect, const QImage &image)
 {
+  if (! rect.isValid()) return;
+
   QRectF prect = windowToPixel(rect);
 
   double w = prect.width ();
@@ -489,6 +501,8 @@ void
 CQChartsHtmlPainter::
 createButton(const QRectF &rect, const QString &text, const QString &id, const QString &clickProc)
 {
+  if (! rect.isValid()) return;
+
   QRectF prect = windowToPixel(rect);
 
   *os_ << "<button id=\"" << id.toStdString() << "\" style=\"position:absolute;"

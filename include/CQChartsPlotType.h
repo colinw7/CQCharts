@@ -10,10 +10,12 @@
 #include <map>
 #include <vector>
 
-class CQChartsPlotType;
-class CQChartsView;
-class CQChartsPlot;
-class CQChartsModelColumnDetails;
+class  CQChartsPlotType;
+class  CQChartsView;
+class  CQChartsPlot;
+class  CQChartsModelColumnDetails;
+struct CQChartsAnalyzeModelData;
+class  CQChartsModelData;
 
 /*!
  * \brief Plot Type manager
@@ -234,6 +236,10 @@ class CQChartsPlotType : public QObject {
   // is column suitable for parameter
   virtual bool isColumnForParameter(CQChartsModelColumnDetails *,
                                     CQChartsPlotParameter *) const { return true; }
+
+  //---
+
+  virtual void analyzeModel(CQChartsModelData *, CQChartsAnalyzeModelData &) { }
 
   //---
 

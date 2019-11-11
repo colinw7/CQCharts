@@ -500,7 +500,8 @@ data(const QModelIndex &ind, int role) const
     QVariant var1;
 
     if (role == Qt::DisplayRole) {
-      var1 = CQChartsModelUtil::columnDisplayData(charts_, this, ind1.column(), var, converted);
+      var1 = CQChartsModelUtil::columnDisplayData(charts_, this,
+               CQChartsColumn(ind1.column()), var, converted);
 
       if (converted) {
         std::unique_lock<std::mutex> lock(mutex_);
@@ -523,7 +524,8 @@ data(const QModelIndex &ind, int role) const
       }
     }
     else {
-      var1 = CQChartsModelUtil::columnUserData(charts_, this, ind1.column(), var, converted);
+      var1 = CQChartsModelUtil::columnUserData(charts_, this,
+               CQChartsColumn(ind1.column()), var, converted);
 
       if (converted) {
         std::unique_lock<std::mutex> lock(mutex_);

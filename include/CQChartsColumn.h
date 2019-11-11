@@ -38,9 +38,12 @@ class CQChartsColumn {
 
  public:
   CQChartsColumn() = default;
-  CQChartsColumn(int column, int role=-1); // data
+
+  explicit CQChartsColumn(int column, int role=-1); // data
+
   CQChartsColumn(Type type, int column, const QString &s, int role=-1); // explicit
-  CQChartsColumn(const QString &s); // parsed
+
+  explicit CQChartsColumn(const QString &s); // parsed
 
   CQChartsColumn(const CQChartsColumn &rhs);
 
@@ -165,11 +168,11 @@ class CQChartsColumns {
  public:
   CQChartsColumns() { }
 
-  CQChartsColumns(const CQChartsColumn &c) {
+  explicit CQChartsColumns(const CQChartsColumn &c) {
     setColumn(c);
   }
 
-  CQChartsColumns(const QString &s) {
+  explicit CQChartsColumns(const QString &s) {
     setColumnsStr(s);
   }
 

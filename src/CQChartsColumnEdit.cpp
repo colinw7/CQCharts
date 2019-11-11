@@ -311,10 +311,9 @@ CQChartsColumnEdit(QWidget *parent) :
 
   QVBoxLayout *menuColumnGroupLayout = CQUtil::makeLayout<QVBoxLayout>(columnGroup_, 2, 2);
 
-  columnCombo_ = CQUtil::makeWidget<QComboBox>("columnCombo");
+  columnCombo_ = CQUtil::makeWidget<CQChartsColumnCombo>();
 
-  connect(columnCombo_, SIGNAL(currentIndexChanged(int)),
-          this, SLOT(menuColumnChanged(int)));
+  connect(columnCombo_, SIGNAL(columnChanged()), this, SLOT(menuColumnChanged()));
 
   menuColumnGroupLayout->addWidget(columnCombo_);
 
@@ -417,12 +416,7 @@ columnToWidgets()
     if      (column_.type() == CQChartsColumn::Type::DATA) {
       columnGroup_->setChecked(true);
 
-      int ind = columnCombo_->findData(column_.column());
-
-      if (ind > 0)
-        columnCombo_->setCurrentIndex(ind);
-      else
-        columnCombo_->setCurrentIndex(0);
+      columnCombo_->setColumn(column_);
 
       if (column_.role() >= 0)
         roleEdit_->setText(QString("%1").arg(column_.role()));
@@ -451,21 +445,16 @@ widgetsToColumn()
   CQChartsColumn column;
 
   if      (columnGroup_->isChecked()) {
-    QVariant var = columnCombo_->itemData(columnCombo_->currentIndex());
+    CQChartsColumn icolumn = columnCombo_->getColumn();
 
     bool ok;
-
-    long icolumn = CQChartsVariant::toInt(var, ok);
-
-    if (icolumn < 0)
-      icolumn = -1;
 
     long role = CQChartsUtil::toInt(roleEdit_->text(), ok);
 
     if (! ok)
       role = -1;
 
-    column = CQChartsColumn(icolumn, role);
+    column = CQChartsColumn(icolumn.column(), role);
   }
   else if (menuExprGroup_->isChecked()) {
     QString str;
@@ -503,8 +492,8 @@ connectSlots(bool b)
 
   connectDisconnect(b, columnGroup_, SIGNAL(clicked(bool)),
                     SLOT(menuColumnGroupClicked(bool)));
-  connectDisconnect(b, columnCombo_, SIGNAL(currentIndexChanged(int)),
-                    SLOT(menuColumnChanged(int)));
+  connectDisconnect(b, columnCombo_, SIGNAL(columnChanged()),
+                    SLOT(menuColumnChanged()));
   connectDisconnect(b, roleEdit_, SIGNAL(textChanged(const QString &)),
                     SLOT(roleTextChanged(const QString &)));
   connectDisconnect(b, menuExprGroup_, SIGNAL(clicked(bool)),
@@ -519,27 +508,7 @@ void
 CQChartsColumnEdit::
 updateColumnsFromModel()
 {
-  columnCombo_->clear();
-
-  columnCombo_->addItem("<none>", -1);
-
-  if (! model())
-    return;
-
-  int nc = model()->columnCount();
-
-  for (int c = 0; c < nc; ++c) {
-    QString name = model()->headerData(c, Qt::Horizontal).toString();
-
-    QString label;
-
-    if (! name.simplified().length())
-      label = QString("%1 : <no name>").arg(c);
-    else
-      label = QString("%1 : %2").arg(c).arg(name);
-
-    columnCombo_->addItem(label, c);
-  }
+  columnCombo_->setModel(model());
 }
 
 void
@@ -628,7 +597,7 @@ vheaderCheckClicked(bool b)
 
 void
 CQChartsColumnEdit::
-menuColumnChanged(int)
+menuColumnChanged()
 {
   connectSlots(false);
 
@@ -683,4 +652,71 @@ updateState()
 {
   columnCombo_   ->setEnabled(columnGroup_  ->isChecked());
   expressionEdit_->setEnabled(menuExprGroup_->isChecked());
+}
+
+//---
+
+CQChartsColumnCombo::
+CQChartsColumnCombo(QWidget *parent) :
+ QComboBox(parent)
+{
+  setObjectName("columnCombo");
+
+  connect(this, SIGNAL(currentIndexChanged(int)),
+          this, SIGNAL(columnChanged()));
+}
+
+void
+CQChartsColumnCombo::
+setColumn(const CQChartsColumn &column)
+{
+  int ind = findData(column.column());
+
+  if (ind > 0)
+    setCurrentIndex(ind);
+  else
+    setCurrentIndex(0);
+}
+
+CQChartsColumn
+CQChartsColumnCombo::
+getColumn() const
+{
+  QVariant var = itemData(currentIndex());
+
+  bool ok;
+
+  long icolumn = CQChartsVariant::toInt(var, ok);
+
+  if (icolumn < 0)
+    icolumn = -1;
+
+  return CQChartsColumn(icolumn);
+}
+
+void
+CQChartsColumnCombo::
+setModel(QAbstractItemModel *model)
+{
+  clear();
+
+  addItem("<none>", -1);
+
+  if (! model)
+    return;
+
+  int nc = model->columnCount();
+
+  for (int c = 0; c < nc; ++c) {
+    QString name = model->headerData(c, Qt::Horizontal).toString();
+
+    QString label;
+
+    if (! name.simplified().length())
+      label = QString("%1 : <no name>").arg(c);
+    else
+      label = QString("%1 : %2").arg(c).arg(name);
+
+    addItem(label, c);
+  }
 }

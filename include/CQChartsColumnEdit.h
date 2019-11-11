@@ -3,8 +3,10 @@
 
 #include <CQChartsColumn.h>
 #include <CQChartsLineEditBase.h>
+#include <QComboBox>
 
 class CQChartsColumnEdit;
+class CQChartsColumnCombo;
 class QAbstractItemModel;
 
 /*!
@@ -54,7 +56,6 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
 
 class CQGroupBox;
 class CQLineEdit;
-class QComboBox;
 class QCheckBox;
 
 /*!
@@ -87,7 +88,7 @@ class CQChartsColumnEdit : public CQChartsEditBase {
   void menuExprGroupClicked  (bool b);
   void vheaderCheckClicked   (bool b);
 
-  void menuColumnChanged(int i);
+  void menuColumnChanged();
   void roleTextChanged(const QString &str);
 
   void expressionTextChanged(const QString &str);
@@ -100,14 +101,14 @@ class CQChartsColumnEdit : public CQChartsEditBase {
   void connectSlots(bool b);
 
  private:
-  QAbstractItemModel* model_          { nullptr };
-  CQChartsColumn      column_;
-  CQGroupBox*         columnGroup_    { nullptr };
-  QComboBox*          columnCombo_    { nullptr };
-  CQLineEdit*         roleEdit_       { nullptr };
-  CQGroupBox*         menuExprGroup_  { nullptr };
-  CQLineEdit*         expressionEdit_ { nullptr };
-  QCheckBox*          vheaderCheck_   { nullptr };
+  QAbstractItemModel*  model_          { nullptr };
+  CQChartsColumn       column_;
+  CQGroupBox*          columnGroup_    { nullptr };
+  CQChartsColumnCombo* columnCombo_    { nullptr };
+  CQLineEdit*          roleEdit_       { nullptr };
+  CQGroupBox*          menuExprGroup_  { nullptr };
+  CQLineEdit*          expressionEdit_ { nullptr };
+  QCheckBox*           vheaderCheck_   { nullptr };
 };
 
 //------
@@ -154,6 +155,27 @@ class CQChartsColumnPropertyViewEditor : public CQPropertyViewEditorFactory {
   QVariant getValue(QWidget *w);
 
   void setValue(QWidget *w, const QVariant &var);
+};
+
+//---
+
+/*!
+ * \brief combo box for CQChartsColumn
+ * \ingroup Charts
+ */
+class CQChartsColumnCombo : public QComboBox {
+  Q_OBJECT
+
+ public:
+  CQChartsColumnCombo(QWidget *parent=nullptr);
+
+  void setColumn(const CQChartsColumn &column);
+  CQChartsColumn getColumn() const;
+
+  void setModel(QAbstractItemModel *model);
+
+ signals:
+  void columnChanged();
 };
 
 #endif

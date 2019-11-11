@@ -46,11 +46,21 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
  public:
   CQChartsDelaunayPointObj(const CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &rect,
-                           double x, double y, const QModelIndex &ind, const ColorInd &iv);
+                           double x, double y, double value, const QModelIndex &ind,
+                           const ColorInd &iv);
+
+  const CQChartsDelaunayPlot *plot() const { return plot_; }
+
+  double x() const { return x_; }
+  double y() const { return y_; }
+
+  double value() const { return value_; }
 
   QString typeName() const override { return "point"; }
 
   QString calcId() const override;
+
+  QString calcTipId() const override;
 
   bool visible() const override;
 
@@ -61,33 +71,50 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   void draw(CQChartsPaintDevice *device) override;
 
  private:
-  const CQChartsDelaunayPlot* plot_ { nullptr };
-  double                      x_    { 0.0 };
-  double                      y_    { 0.0 };
+  const CQChartsDelaunayPlot* plot_  { nullptr };
+  double                      x_     { 0.0 };
+  double                      y_     { 0.0 };
+  double                      value_ { 0.0 };
 };
 
 //---
+
+CQCHARTS_NAMED_LINE_DATA (Delaunay,delaunay)
+CQCHARTS_NAMED_LINE_DATA (Voronoi,voronoi)
+CQCHARTS_NAMED_POINT_DATA(Voronoi,voronoi)
+CQCHARTS_NAMED_SHAPE_DATA(Voronoi,voronoi)
 
 /*!
  * \brief Delaunay Plot
  * \ingroup Charts
  */
 class CQChartsDelaunayPlot : public CQChartsPlot,
- public CQChartsObjLineData <CQChartsDelaunayPlot>,
- public CQChartsObjPointData<CQChartsDelaunayPlot> {
+ public CQChartsObjDelaunayLineData<CQChartsDelaunayPlot>,
+ public CQChartsObjVoronoiLineData <CQChartsDelaunayPlot>,
+ public CQChartsObjVoronoiPointData<CQChartsDelaunayPlot>,
+ public CQChartsObjVoronoiShapeData<CQChartsDelaunayPlot>,
+ public CQChartsObjPointData       <CQChartsDelaunayPlot> {
   Q_OBJECT
 
   // columns
-  Q_PROPERTY(CQChartsColumn xColumn    READ xColumn    WRITE setXColumn   )
-  Q_PROPERTY(CQChartsColumn yColumn    READ yColumn    WRITE setYColumn   )
-  Q_PROPERTY(CQChartsColumn nameColumn READ nameColumn WRITE setNameColumn)
+  Q_PROPERTY(CQChartsColumn xColumn     READ xColumn     WRITE setXColumn    )
+  Q_PROPERTY(CQChartsColumn yColumn     READ yColumn     WRITE setYColumn    )
+  Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn )
+  Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
 
-  // voronoi
-  Q_PROPERTY(bool   voronoi          READ isVoronoi        WRITE setVoronoi         )
-  Q_PROPERTY(double voronoiPointSize READ voronoiPointSize WRITE setVoronoiPointSize)
+  // delaunay, voronoi
+  Q_PROPERTY(bool delaunay       READ isDelaunay       WRITE setDelaunay      )
+  Q_PROPERTY(bool voronoi        READ isVoronoi        WRITE setVoronoi       )
+  Q_PROPERTY(bool voronoiCircles READ isVoronoiCircles WRITE setVoronoiCircles)
+  Q_PROPERTY(bool voronoiPolygon READ isVoronoiPolygon WRITE setVoronoiPolygon)
 
-  // lines (display, color, width, dash, ...)
-  CQCHARTS_LINE_DATA_PROPERTIES
+  // delaunay lines
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES (Delaunay, delaunay)
+
+  // voronoi lines, points, shapes
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES (Voronoi, voronoi)
+  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Voronoi, voronoi)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Voronoi, voronoi)
 
   // points (display, symbol)
   CQCHARTS_POINT_DATA_PROPERTIES
@@ -109,13 +136,21 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
   void setNameColumn(const CQChartsColumn &c);
 
+  const CQChartsColumn &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const CQChartsColumn &c);
+
   //---
 
   // voronoi
+  bool isDelaunay() const { return delaunay_; }
+
   bool isVoronoi() const { return voronoi_; }
 
-  double voronoiPointSize() const { return voronoiPointSize_; }
-  void setVoronoiPointSize(double r);
+  bool isVoronoiCircles() const { return voronoiCircles_; }
+  void setVoronoiCircles(bool b);
+
+  bool isVoronoiPolygon() const { return voronoiPolygon_; }
+  void setVoronoiPolygon(bool b);
 
   //---
 
@@ -129,7 +164,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
-  void addPointObj(double x, double y, const QModelIndex &xind,
+  void addPointObj(double x, double y, double value, const QModelIndex &xind,
                    int r, int nr, PlotObjs &objs) const;
 
   //---
@@ -138,11 +173,14 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   //---
 
+  bool hasBackground() const override;
   bool hasForeground() const override;
 
+  void execDrawBackground(CQChartsPaintDevice *device) const override;
   void execDrawForeground(CQChartsPaintDevice *device) const override;
 
  public slots:
+  void setDelaunay(bool b);
   void setVoronoi(bool b);
 
  private:
@@ -150,13 +188,17 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   void drawVoronoi (CQChartsPaintDevice *device) const;
 
  private:
-  CQChartsColumn    xColumn_;                      //!< x column
-  CQChartsColumn    yColumn_;                      //!< y column
-  CQChartsColumn    nameColumn_;                   //!< name column
-  bool              voronoi_          { true };    //!< is voronoi
-  double            voronoiPointSize_ { 2 };       //!< voronoi point size
-  CQChartsDelaunay* delaunay_         { nullptr }; //!< delaunay data
-  QString           yname_;                        //!< y name
+  CQChartsColumn        xColumn_;                    //!< x column
+  CQChartsColumn        yColumn_;                    //!< y column
+  CQChartsColumn        nameColumn_;                 //!< name column
+  CQChartsColumn        valueColumn_;                //!< value column
+  bool                  delaunay_       { false };   //!< is delaunay
+  bool                  voronoi_        { true };    //!< is voronoi
+  bool                  voronoiCircles_ { false };   //!< voronoi circle
+  bool                  voronoiPolygon_ { false };   //!< voronoi polygon
+  CQChartsGeom::RMinMax valueRange_;                 //!< value range
+  CQChartsDelaunay*     delaunayData_   { nullptr }; //!< delaunay data
+  QString               yname_;                      //!< y name
 };
 
 #endif

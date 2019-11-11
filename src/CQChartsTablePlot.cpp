@@ -2,7 +2,9 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
 #include <CQChartsModelUtil.h>
+#include <CQChartsAnalyzeModelData.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTable.h>
@@ -52,6 +54,23 @@ description() const
      p("None.").
     h3("Example").
      p(IMG("images/table.png"));
+}
+
+void
+CQChartsTablePlotType::
+analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+{
+  CQChartsModelDetails *details = modelData->details();
+  if (! details) return;
+
+  CQChartsColumns columns;
+
+  int nc = details->numColumns();
+
+  for (int i = 0; i < nc; ++i)
+    columns.addColumn(CQChartsColumn(i));
+
+  analyzeModelData.parameterNameColumns["columns"] = columns;
 }
 
 CQChartsPlot *

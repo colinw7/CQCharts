@@ -170,7 +170,7 @@ updateFull()
     updateSimple();
 
   for (int c = 0; c < numColumns_; ++c) {
-    CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
+    CQChartsModelColumnDetails *columnDetails = this->columnDetails(CQChartsColumn(c));
 
     numRows_ = std::max(numRows_, columnDetails->numRows());
   }
@@ -184,7 +184,7 @@ modelTypeChangedSlot(int modelInd)
 {
   if (data_ && data_->ind() == modelInd) {
     for (int c = 0; c < numColumns_; ++c) {
-      CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
+      CQChartsModelColumnDetails *columnDetails = this->columnDetails(CQChartsColumn(c));
 
       columnDetails->resetTypeInitialized();
     }
@@ -200,7 +200,7 @@ numericColumns() const
   CQChartsColumns columns;
 
   for (int c = 0; c < numColumns_; ++c) {
-    const CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
+    const CQChartsModelColumnDetails *columnDetails = this->columnDetails(CQChartsColumn(c));
 
     if (columnDetails->isNumeric())
       columns.addColumn(columnDetails->column());
@@ -218,7 +218,7 @@ monotonicColumns() const
   CQChartsColumns columns;
 
   for (int c = 0; c < numColumns_; ++c) {
-    const CQChartsModelColumnDetails *columnDetails = this->columnDetails(c);
+    const CQChartsModelColumnDetails *columnDetails = this->columnDetails(CQChartsColumn(c));
 
     if (columnDetails->isMonotonic())
       columns.addColumn(columnDetails->column());
@@ -251,10 +251,10 @@ columnDuplicates(const CQChartsColumn &column, bool all) const
 
   std::vector<int> rows;
 
-  CQCharts *charts = this->charts();
+  auto charts = this->charts();
   if (! charts) return rows;
 
-  QAbstractItemModel *model = this->model();
+  auto model = this->model();
 
   std::vector<QVariant> rowValues1, rowValues2;
 
@@ -272,7 +272,7 @@ columnDuplicates(const CQChartsColumn &column, bool all) const
 
         bool ok;
 
-        QVariant var = CQChartsModelUtil::modelValue(charts, model, r, c, parent, ok);
+        auto var = CQChartsModelUtil::modelValue(charts, model, r, CQChartsColumn(c), parent, ok);
 
         rowValues2[c] = var;
 
@@ -605,14 +605,12 @@ isMonotonic() const
 {
   if (column_.type() == CQChartsColumn::Type::DATA ||
       column_.type() == CQChartsColumn::Type::DATA_INDEX) {
-    int icolumn = column_.column();
-
     bool ok;
 
     QAbstractItemModel *model = details_->model();
 
-    QVariant var = CQChartsModelUtil::modelHeaderValue(
-      model, icolumn, static_cast<int>(CQBaseModelRole::Sorted), ok);
+    auto var = CQChartsModelUtil::modelHeaderValue(
+      model, column_, static_cast<int>(CQBaseModelRole::Sorted), ok);
 
     if (ok && var.isValid() && var.toBool())
       return true;
@@ -631,18 +629,16 @@ isIncreasing() const
 {
   if (column_.type() == CQChartsColumn::Type::DATA ||
       column_.type() == CQChartsColumn::Type::DATA_INDEX) {
-    int icolumn = column_.column();
-
     bool ok;
 
     QAbstractItemModel *model = details_->model();
 
     QVariant var = CQChartsModelUtil::modelHeaderValue(
-      model, icolumn, static_cast<int>(CQBaseModelRole::Sorted), ok);
+      model, column_, static_cast<int>(CQBaseModelRole::Sorted), ok);
 
     if (ok && var.isValid() && var.toBool()) {
       QVariant var = CQChartsModelUtil::modelHeaderValue(
-        model, icolumn, static_cast<int>(CQBaseModelRole::SortOrder), ok);
+        model, column_, static_cast<int>(CQBaseModelRole::SortOrder), ok);
 
       if (ok && var.isValid()) {
         bool ok;

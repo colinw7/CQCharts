@@ -22,6 +22,7 @@ CQChartsModelView(CQCharts *charts, QWidget *parent) :
   setObjectName("modelView");
 
   setSortingEnabled(true);
+  setStretchLastColumn(true);
 
   horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
 

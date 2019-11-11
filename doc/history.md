@@ -987,3 +987,7 @@
  + add hier sep model and include in fold interface
  + add hier model support in table plot
  + allow table plot and tree map plot to be sync'ed to model expand state
+# 11/10/2019
+ + Add alpha control for contrast text
+ + Allow plot type to add custom proc to analyze model
+ + Support basic parameters to simplify create plot dialog

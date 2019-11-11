@@ -84,24 +84,6 @@ CQChartsHierBubblePlot::
   delete nodeData_.root;
 }
 
-//----
-
-void
-CQChartsHierBubblePlot::
-setFollowViewExpand(bool b)
-{
-  if (followViewExpand_ != b) {
-    followViewExpand_ = b;
-
-    if (isFollowViewExpand())
-      modelViewExpansionChanged();
-    else
-      resetNodeExpansion();
-
-    drawObjs();
-  }
-}
-
 //---
 
 void
@@ -994,22 +976,26 @@ postResize()
 
 void
 CQChartsHierBubblePlot::
+followViewExpandChanged()
+{
+  if (isFollowViewExpand())
+    modelViewExpansionChanged();
+  else
+    resetNodeExpansion();
+
+  drawObjs();
+}
+
+void
+CQChartsHierBubblePlot::
 modelViewExpansionChanged()
 {
   if (! isFollowViewExpand())
     return;
 
-  QModelIndexList inds;
-
-  view()->expandedModelIndices(inds);
-
   std::set<QModelIndex> indSet;
 
-  for (const auto &ind : inds) {
-    QModelIndex ind1 = normalizeIndex(ind);
-
-    indSet.insert(ind1);
-  }
+  expandedModelIndices(indSet);
 
   for (auto &hierNode : root()->getChildren())
     setNodeExpansion(hierNode, indSet);
@@ -1456,10 +1442,11 @@ drawText(CQChartsPaintDevice *device, const QRectF &qrect)
 
   CQChartsTextOptions textOptions;
 
-  textOptions.contrast  = plot_->isTextContrast ();
-  textOptions.formatted = plot_->isTextFormatted();
-  textOptions.html      = plot_->isTextHtml();
-//textOptions.align     = plot_->textAlign();
+  textOptions.contrast      = plot_->isTextContrast ();
+  textOptions.contrastAlpha = plot_->textContrastAlpha();
+  textOptions.formatted     = plot_->isTextFormatted();
+  textOptions.html          = plot_->isTextHtml();
+//textOptions.align         = plot_->textAlign();
 
   textOptions = plot_->adjustTextOptions(textOptions);
 

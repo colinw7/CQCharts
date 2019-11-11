@@ -27,9 +27,9 @@ addParameters()
   startParameterGroup("Connection List");
 
   addColumnParameter("node", "Node", "nodeColumn").
-    setNumeric().setTip("Node Id Column");
+    setNumeric().setBasic().setTip("Node Id Column");
 
-  addColumnParameter("connections", "Connections", "connectionsColumn").
+  addColumnParameter("connections", "Connections", "connectionsColumn").setBasic().
    setTip("List of Connection Pairs (Ids from id column and connection count)").setDiscriminator();
 
   endParameterGroup();
@@ -39,10 +39,10 @@ addParameters()
   // connections are id pairs and counts
   startParameterGroup("Name Pair/Count");
 
-  addColumnParameter("namePair", "Name Pair", "namePairColumn").
+  addColumnParameter("namePair", "Name Pair", "namePairColumn").setBasic().
    setTip("Connected Name Pairs (<name1>/<name2>)").setDiscriminator();
 
-  addColumnParameter("count", "Count", "countColumn").
+  addColumnParameter("count", "Count", "countColumn").setBasic().
    setNumeric().setTip("Connection Count");
 
   endParameterGroup();
@@ -784,9 +784,9 @@ postResize()
 {
   CQChartsPlot::postResize();
 
-  setInsideObj(nullptr);
+  updateRangeAndObjs();
 
-  clearRangeAndObjs();
+  setInsideObj(nullptr);
 }
 
 bool

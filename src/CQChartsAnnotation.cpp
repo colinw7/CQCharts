@@ -1925,12 +1925,13 @@ draw(CQChartsPaintDevice *device)
   // set text options
   CQChartsTextOptions textOptions;
 
-  textOptions.angle     = textAngle();
-  textOptions.contrast  = isTextContrast();
-  textOptions.formatted = true;
-  textOptions.html      = isTextHtml();
-  textOptions.clipped   = false;
-  textOptions.align     = textAlign();
+  textOptions.angle         = textAngle();
+  textOptions.contrast      = isTextContrast();
+  textOptions.contrastAlpha = textContrastAlpha();
+  textOptions.formatted     = true;
+  textOptions.html          = isTextHtml();
+  textOptions.clipped       = false;
+  textOptions.align         = textAlign();
 
   adjustTextOptions(textOptions);
 

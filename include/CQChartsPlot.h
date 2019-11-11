@@ -532,11 +532,17 @@ class CQChartsPlot : public CQChartsObj,
   bool isAutoFit() const { return autoFit_; }
   void setAutoFit(bool b) { autoFit_ = b; }
 
+  //---
+
   bool isPreview() const { return preview_; }
   void setPreview(bool b) { preview_ = b; }
 
   int previewMaxRows() const { return previewMaxRows_; }
   void setPreviewMaxRows(int i) { previewMaxRows_ = i; }
+
+  virtual void initPreview() { }
+
+  //---
 
   bool isSequential() const { return sequential_; }
 

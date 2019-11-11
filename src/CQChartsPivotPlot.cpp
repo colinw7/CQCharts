@@ -32,9 +32,9 @@ addParameters()
 
   // name, desc, propName, attributes, default
   addColumnsParameter("x", "X", "xColumns").
-    setRequired().setTip("X Key Column(s)");
+    setRequired().setUnique().setTip("X Key Column(s)");
   addColumnsParameter("y", "Y", "yColumns").
-    setRequired().setTip("Y Key Column(s)");
+    setRequired().setUnique().setTip("Y Key Column(s)");
 
   addColumnParameter("value", "Value", "valueColumn").
     setRequired().setNumeric().setTip("Value Column");
@@ -605,7 +605,8 @@ createObjs(PlotObjs &objs) const
             rect = CQChartsGeom::makeDirBBox(isHorizontal(),
                      x1, 0.0, x1 + dx, value);
 
-          obj = new CQChartsPivotBarObj(this, rect, ind, inds, ir, ic, value);
+          if (value != 0.0)
+            obj = new CQChartsPivotBarObj(this, rect, ind, inds, ir, ic, value);
         }
         // bar stacked
         else if (plotType() == PlotType::STACKED_BAR) {
@@ -623,7 +624,8 @@ createObjs(PlotObjs &objs) const
             rect = CQChartsGeom::makeDirBBox(isHorizontal(),
                      ih - 0.5, oldValue, ih + 0.5, newValue);
 
-          obj = new CQChartsPivotBarObj(this, rect, ind, inds, ir, ic, value);
+          if (oldValue != newValue)
+            obj = new CQChartsPivotBarObj(this, rect, ind, inds, ir, ic, value);
         }
 
         if (obj)
@@ -1489,7 +1491,7 @@ CQChartsPivotCellObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &re
   setModelInd(ind);
 
   // get column palette and bg color
-  CQChartsModelColumnDetails *columnDetails = plot_->columnDetails(modelInd().column());
+  auto columnDetails = plot_->columnDetails(CQChartsColumn(modelInd().column()));
 
   color_ = columnDetails->tableDrawColor();
 
@@ -1614,14 +1616,15 @@ draw(CQChartsPaintDevice *device)
 
     CQChartsTextOptions textOptions;
 
-    textOptions.angle     = 0.0;
-    textOptions.contrast  = plot_->dataLabel()->isTextContrast();
-    textOptions.formatted = false;
-    textOptions.scaled    = plot_->dataLabel()->isTextScaled();
-    textOptions.html      = false;
-    textOptions.clipped   = false;
-    textOptions.margin    = 0;
-    textOptions.align     = Qt::AlignHCenter | Qt::AlignVCenter;
+    textOptions.angle         = 0.0;
+    textOptions.contrast      = plot_->dataLabel()->isTextContrast();
+    textOptions.contrastAlpha = plot_->dataLabel()->textContrastAlpha();
+    textOptions.formatted     = false;
+    textOptions.scaled        = plot_->dataLabel()->isTextScaled();
+    textOptions.html          = false;
+    textOptions.clipped       = false;
+    textOptions.margin        = 0;
+    textOptions.align         = Qt::AlignHCenter | Qt::AlignVCenter;
 
     textOptions = plot_->adjustTextOptions(textOptions);
 

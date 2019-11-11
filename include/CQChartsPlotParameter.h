@@ -21,8 +21,10 @@ class CQChartsPlotParameterAttributes {
     BOOL          = (1<<4),
     COLOR         = (1<<5),
     GROUPABLE     = (1<<6),
-    MAPPED        = (1<<7),
-    DISCRIMINATOR = (1<<8)
+    UNIQUE        = (1<<7),
+    MAPPED        = (1<<8),
+    DISCRIMINATOR = (1<<9),
+    BASIC         = (1<<10)
   };
 
  public:
@@ -37,6 +39,7 @@ class CQChartsPlotParameterAttributes {
 
   //---
 
+  // discriminator (for analyze)
   bool isDiscriminator() const { return (flags_ & DISCRIMINATOR); }
   CQChartsPlotParameterAttributes &setDiscriminator() { flags_ |= DISCRIMINATOR ; return *this; }
 
@@ -45,6 +48,12 @@ class CQChartsPlotParameterAttributes {
   // monotonic
   bool isMonotonic() const { return (flags_ & MONOTONIC); }
   CQChartsPlotParameterAttributes &setMonotonic() { flags_ |= MONOTONIC; return *this; }
+
+  //---
+
+  // basic
+  bool isBasic() const { return (flags_ & BASIC); }
+  CQChartsPlotParameterAttributes &setBasic() { flags_ |= BASIC; return *this; }
 
   //---
 
@@ -73,6 +82,10 @@ class CQChartsPlotParameterAttributes {
   }
 
   //---
+
+  // unique
+  bool isUnique() const { return (flags_ & UNIQUE); }
+  CQChartsPlotParameterAttributes &setUnique() { flags_ |= UNIQUE; return *this; }
 
   // groupable
   bool isGroupable() const { return (flags_ & GROUPABLE); }
@@ -133,12 +146,14 @@ class CQChartsPlotParameter : public QObject {
   Q_PROPERTY(bool     isRequired      READ isRequired                       )
   Q_PROPERTY(bool     isDiscriminator READ isDiscriminator                  )
   Q_PROPERTY(bool     isMonotonic     READ isMonotonic                      )
+  Q_PROPERTY(bool     isBasic         READ isBasic                          )
   Q_PROPERTY(bool     isNumeric       READ isNumeric                        )
   Q_PROPERTY(bool     isString        READ isString                         )
   Q_PROPERTY(bool     isBool          READ isBool                           )
   Q_PROPERTY(bool     isColor         READ isColor                          )
   Q_PROPERTY(bool     hasTypeDetail   READ hasTypeDetail                    )
   Q_PROPERTY(QString  typeDetail      READ typeDetail                       )
+  Q_PROPERTY(bool     isUnique        READ isUnique                         )
   Q_PROPERTY(bool     isGroupable     READ isGroupable                      )
   Q_PROPERTY(bool     isMapped        READ isMapped                         )
   Q_PROPERTY(double   mapMin          READ mapMin                           )
@@ -220,6 +235,10 @@ class CQChartsPlotParameter : public QObject {
   bool isMonotonic() const { return attributes_.isMonotonic(); }
   CQChartsPlotParameter &setMonotonic() { attributes_.setMonotonic(); return *this; }
 
+  //! get/set is basic (for create plot dialog)
+  bool isBasic() const { return attributes_.isBasic(); }
+  CQChartsPlotParameter &setBasic() { attributes_.setBasic(); return *this; }
+
   //! get/set is numeric (real or integer)
   bool isNumeric() const { return attributes_.isNumeric(); }
   CQChartsPlotParameter &setNumeric() { attributes_.setNumeric(); return *this; }
@@ -242,8 +261,12 @@ class CQChartsPlotParameter : public QObject {
   //! type detail string
   QString typeDetail() const { return attributes_.typeDetail(); }
 
+  //! get/set is unique
+  bool isUnique() const { return attributes_.isUnique(); }
+  CQChartsPlotParameter &setUnique() { attributes_.setUnique(); return *this; }
+
   //! get/set is groupable
-  bool isGroupable() const { return attributes_.isGroupable  (); }
+  bool isGroupable() const { return attributes_.isGroupable(); }
   CQChartsPlotParameter &setGroupable() { attributes_.setGroupable(); return *this; }
 
   //! get/set is mapped value

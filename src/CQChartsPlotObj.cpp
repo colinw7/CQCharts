@@ -162,7 +162,7 @@ addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
       column.type() != CQChartsColumn::Type::DATA_INDEX)
     return;
 
-  QModelIndex ind = plot()->selectIndex(row, column.column(), parent);
+  QModelIndex ind = plot()->selectIndex(row, CQChartsColumn(column.column()), parent);
 
   addSelectIndex(inds, ind);
 }

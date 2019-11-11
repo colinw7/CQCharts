@@ -30,11 +30,23 @@ bool
 CQChartsAnalyzeModel::
 analyzeType(CQChartsPlotType *type)
 {
+  CQChartsAnalyzeModelData analyzeModelData;
+
+  if (! analyzeType(type, analyzeModelData))
+    return false;
+
+  typeAnalyzeModelData_[type->name()] = analyzeModelData;
+
+  return true;
+}
+
+bool
+CQChartsAnalyzeModel::
+analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
+{
   CQPerfTrace trace("CQChartsAnalyzeModel::analyzeType");
 
-  if (! modelData_) return false;
-
-  CQChartsModelDetails *details = modelData_->details();
+  CQChartsModelDetails *details = (modelData_ ? modelData_->details() : nullptr);
   if (! details) return false;
 
   int nc = details->numColumns();
@@ -48,13 +60,14 @@ analyzeType(CQChartsPlotType *type)
   IColumnUsed columnUsed;
 
   for (int i = 0; i < nc; ++i) {
-    CQChartsModelColumnDetails *columnDetails = details->columnDetails(i);
+    CQChartsModelColumnDetails *columnDetails = details->columnDetails(CQChartsColumn(i));
 
     columnUsed[i] = ColumnUsed(columnDetails, false);
   }
 
   //---
 
+  // get required column parameters for numeric/monotonic
   int numRequired  = 0;
   int numNumeric   = 0;
   int numMonotonic = 0;
@@ -81,9 +94,13 @@ analyzeType(CQChartsPlotType *type)
     }
   }
 
+  // fail if not enough columns
   if (numRequired > nc)
     return false;
 
+  //----
+
+  // check if model has required number of numeric columns
   if (numNumeric > 0) {
     CQChartsColumns numericColumns = details->numericColumns();
 
@@ -91,6 +108,7 @@ analyzeType(CQChartsPlotType *type)
       return false;
   }
 
+  // check if model has required number of monotonic columns
   if (numMonotonic > 0) {
     CQChartsColumns monotonicColumns = details->monotonicColumns();
 
@@ -100,12 +118,13 @@ analyzeType(CQChartsPlotType *type)
 
   //---
 
+  auto &parameterNameColumn = analyzeModelData.parameterNameColumn;
+
+  // check for grouped columns
   bool grouped       = false;
   bool requiredValid = true;
 
   IColumnUsed columnUsed1 = columnUsed;
-
-  NameColumns nameColumns;
 
   for (const auto &parameter : type->parameters()) {
     if (! parameter->isColumn())
@@ -129,7 +148,7 @@ analyzeType(CQChartsPlotType *type)
         if (! columnDetails->isKey())
           continue;
 
-        nameColumns[parameter->name()] = columnDetails->column();
+        parameterNameColumn[parameter->name()] = columnDetails->column();
 
         cu.second.second = true;
 
@@ -142,6 +161,8 @@ analyzeType(CQChartsPlotType *type)
       if (found)
         continue;
     }
+
+    //---
 
     if (! attributes.isRequired()) {
       // if attribute is a discriminator then assign if exact match
@@ -156,7 +177,7 @@ analyzeType(CQChartsPlotType *type)
           if (! type->isColumnForParameter(columnDetails, parameter))
             continue;
 
-          nameColumns[parameter->name()] = columnDetails->column();
+          parameterNameColumn[parameter->name()] = columnDetails->column();
 
           cu.second.second = true;
 
@@ -174,19 +195,27 @@ analyzeType(CQChartsPlotType *type)
 
         CQChartsModelColumnDetails *columnDetails = cu.second.first;
 
-        if      (attributes.isMonotonic()) {
+        if (attributes.isMonotonic()) {
           if (! columnDetails->isMonotonic())
             continue;
         }
-        else if (attributes.isNumeric()) {
+
+        if (attributes.isNumeric()) {
           if (! columnDetails->isNumeric())
+            continue;
+        }
+
+        if (attributes.isUnique()) {
+          int numUnique = columnDetails->numUnique();
+
+          if (numUnique == 1 || numUnique >= nr)
             continue;
         }
 
         if (! type->isColumnForParameter(columnDetails, parameter))
           continue;
 
-        nameColumns[parameter->name()] = columnDetails->column();
+        parameterNameColumn[parameter->name()] = columnDetails->column();
 
         cu.second.second = true;
 
@@ -202,31 +231,43 @@ analyzeType(CQChartsPlotType *type)
     }
   }
 
+  // fail if can't find column for required
   if (! requiredValid)
     return false;
 
   //---
 
+  // if group type and group column not found
   if (type->isGroupType() & ! grouped) {
     int            bestNumUnique = -1;
     CQChartsColumn bestColumn;
     int            bestI = -1;
 
     for (auto &cu : columnUsed1) {
+      // ignore already used
       if (cu.second.second)
         continue;
 
+      //---
+
+      // must be string or integer column
       CQChartsModelColumnDetails *columnDetails = cu.second.first;
 
       if (columnDetails->type() != CQBaseModelType::STRING &&
           columnDetails->type() != CQBaseModelType::INTEGER)
         continue;
 
+      //---
+
+      // check can create multiple groups for column
       int numUnique = columnDetails->numUnique();
 
       if (numUnique == 1 || numUnique >= nr)
         continue;
 
+      //---
+
+      // update best unique
       if (bestNumUnique < 0 || numUnique < bestNumUnique) {
         bestColumn = columnDetails->column();
 
@@ -235,32 +276,40 @@ analyzeType(CQChartsPlotType *type)
       }
     }
 
+    // set to best unique
     if (bestNumUnique >= 0) {
-      nameColumns["group"] = bestColumn;
+      parameterNameColumn["group"] = bestColumn;
 
       columnUsed1[bestI].second = true;
     }
   }
 
-  //---
+  //----
 
-  typeNameColumns_[type->name()] = nameColumns;
+  type->analyzeModel(modelData_, analyzeModelData);
 
   return true;
+}
+
+const CQChartsAnalyzeModelData &
+CQChartsAnalyzeModel::
+analyzeModelData(const CQChartsPlotType *type)
+{
+  return typeAnalyzeModelData_[type->name()];
 }
 
 void
 CQChartsAnalyzeModel::
 print() const
 {
-  for (const auto &tnc : typeNameColumns_) {
+  for (const auto &tnc : typeAnalyzeModelData_) {
     const QString &typeName = tnc.first;
 
     std::cerr << typeName.toStdString() << "\n";
 
-    const NameColumns &nameColumns = tnc.second;
+    const CQChartsAnalyzeModelData &analyzeModelData = tnc.second;
 
-    for (const auto &nc : nameColumns) {
+    for (const auto &nc : analyzeModelData.parameterNameColumn) {
       const QString        &name   = nc.first;
       const CQChartsColumn &column = nc.second;
 

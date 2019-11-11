@@ -2248,7 +2248,7 @@ getSelectIndices(Indices &inds) const
   if (! visible())
     return;
 
-  addColumnSelectIndex(inds, modelInd().column());
+  addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
 }
 
 //---
@@ -2402,7 +2402,7 @@ getSelectIndices(Indices &inds) const
   if (! visible())
     return;
 
-  addColumnSelectIndex(inds, modelInd().column());
+  addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
 }
 
 //---

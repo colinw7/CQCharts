@@ -25,7 +25,7 @@ addParameters()
   addColumnParameter("node", "Node", "nodeColumn").
     setTip("Node Id Column");
 
-  addColumnParameter("connections", "Connections", "connectionsColumn").
+  addColumnParameter("connections", "Connections", "connectionsColumn").setBasic().
     setTip("List of Connection Pairs (Ids from id column and connection count)");
 
   addColumnParameter("name", "Name", "nameColumn").
@@ -38,10 +38,10 @@ addParameters()
   // connections are id pairs and counts
   startParameterGroup("Name Pair/Count");
 
-  addColumnParameter("namePair", "Name Pair", "namePairColumn").
+  addColumnParameter("namePair", "Name Pair", "namePairColumn").setBasic().
     setTip("Connected Name Pairs (<name1>/<name2>)");
 
-  addColumnParameter("count", "Count", "countColumn").
+  addColumnParameter("count", "Count", "countColumn").setBasic().
     setTip("Connection Count");
 
   endParameterGroup();

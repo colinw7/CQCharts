@@ -7,8 +7,8 @@
 namespace CQChartsRotatedText {
 
 void
-draw(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
-     double angle, Qt::Alignment align, bool alignBBox, bool contrast)
+draw(CQChartsPaintDevice *device, const QPointF &p, const QString &text, double angle,
+     Qt::Alignment align, bool alignBBox, bool contrast, double contrastAlpha)
 {
   if (device->isInteractive())
     device->save();
@@ -84,7 +84,7 @@ draw(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
   //QColor icolor = CQChartsUtil::invColor(tc);
     QColor icolor = CQChartsUtil::bwColor(tc);
 
-    icolor.setAlphaF(0.5);
+    icolor.setAlphaF(contrastAlpha);
 
     // draw contrast outline
     device->setPen(icolor);

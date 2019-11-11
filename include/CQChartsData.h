@@ -17,7 +17,7 @@
  * \brief Text Properties
  * \ingroup Charts
  *
- *   visible, color, alpha, font, angle, contrast (shadow), formatted, scaled
+ *   visible, color, alpha, font, angle, contrast (shadow), contrast alpha, formatted, scaled
  */
 class CQChartsTextData {
  public:
@@ -50,6 +50,9 @@ class CQChartsTextData {
   bool isContrast() const { return contrast_; }
   void setContrast(bool b) { contrast_ = b; }
 
+  double contrastAlpha() const { return contrastAlpha_; }
+  void setContrastAlpha(double a) { contrastAlpha_ = a; }
+
   const Qt::Alignment &align() const { return align_; }
   void setAlign(const Qt::Alignment &v) { align_ = v; }
 
@@ -73,16 +76,17 @@ class CQChartsTextData {
   bool getNameValues(const CQChartsNameValues &nameValues);
 
  private:
-  bool          visible_   { true };                                      //!< is visible
-  CQChartsColor color_     { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //!< color
-  double        alpha_     { 1.0 };                                       //!< alpha
-  CQChartsFont  font_;                                                    //!< font
-  double        angle_     { 0.0 };                                       //!< angle
-  bool          contrast_  { false };                                     //!< contrast
-  Qt::Alignment align_     { Qt::AlignLeft | Qt::AlignVCenter };          //!< align
-  bool          formatted_ { false };                                     //!< formatted
-  bool          scaled_    { false };                                     //!< scaled
-  bool          html_      { false };                                     //!< html
+  bool          visible_       { true };                                      //!< is visible
+  CQChartsColor color_         { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; //!< color
+  double        alpha_         { 1.0 };                                       //!< alpha
+  CQChartsFont  font_;                                                        //!< font
+  double        angle_         { 0.0 };                                       //!< angle
+  bool          contrast_      { false };                                     //!< contrast
+  double        contrastAlpha_ { 0.5 };                                       //!< contrast alpha
+  Qt::Alignment align_         { Qt::AlignLeft | Qt::AlignVCenter };          //!< align
+  bool          formatted_     { false };                                     //!< formatted
+  bool          scaled_        { false };                                     //!< scaled
+  bool          html_          { false };                                     //!< html
 };
 
 CQUTIL_DCL_META_TYPE(CQChartsTextData)

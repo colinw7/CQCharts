@@ -222,7 +222,7 @@ calcRange() const
       for (int col = 0; col < numCols(); ++col) {
         bool ok;
 
-        double value = plot_->modelReal(data.row, col, data.parent, ok);
+        double value = plot_->modelReal(data.row, CQChartsColumn(col), data.parent, ok);
 
         if (ok && ! CMathUtil::isNaN(value))
           valueRange_.add(value);
@@ -295,7 +295,7 @@ createObjs(PlotObjs &objs) const
 
         bool ok;
 
-        double value = plot_->modelReal(data.row, col, data.parent, ok);
+        double value = plot_->modelReal(data.row, CQChartsColumn(col), data.parent, ok);
 
         //---
 
@@ -456,13 +456,14 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   CQChartsTextOptions textOptions;
 
-  textOptions.contrast  = isXLabelTextContrast();
-  textOptions.formatted = isXLabelTextFormatted();
-  textOptions.scaled    = isXLabelTextScaled();
-  textOptions.html      = isXLabelTextHtml();
-  textOptions.align     = xLabelTextAlign();
-  textOptions.angle     = xLabelTextAngle();
-  textOptions.scaled    = isXLabelTextScaled();
+  textOptions.contrast      = isXLabelTextContrast();
+  textOptions.contrastAlpha = xLabelTextContrastAlpha();
+  textOptions.formatted     = isXLabelTextFormatted();
+  textOptions.scaled        = isXLabelTextScaled();
+  textOptions.html          = isXLabelTextHtml();
+  textOptions.align         = xLabelTextAlign();
+  textOptions.angle         = xLabelTextAngle();
+  textOptions.scaled        = isXLabelTextScaled();
 
   textOptions = adjustTextOptions(textOptions);
 
@@ -540,13 +541,14 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   CQChartsTextOptions textOptions;
 
-  textOptions.contrast  = isYLabelTextContrast();
-  textOptions.formatted = isYLabelTextFormatted();
-  textOptions.scaled    = isYLabelTextScaled();
-  textOptions.html      = isYLabelTextHtml();
-  textOptions.align     = yLabelTextAlign();
-  textOptions.angle     = yLabelTextAngle();
-  textOptions.scaled    = isYLabelTextScaled();
+  textOptions.contrast      = isYLabelTextContrast();
+  textOptions.contrastAlpha = yLabelTextContrastAlpha();
+  textOptions.formatted     = isYLabelTextFormatted();
+  textOptions.scaled        = isYLabelTextScaled();
+  textOptions.html          = isYLabelTextHtml();
+  textOptions.align         = yLabelTextAlign();
+  textOptions.angle         = yLabelTextAngle();
+  textOptions.scaled        = isYLabelTextScaled();
 
   textOptions = adjustTextOptions(textOptions);
 
@@ -689,7 +691,7 @@ calcTipId() const
 
   bool ok;
 
-  QString xname = plot_->modelHeaderString(modelInd().column(), ok);
+  QString xname = plot_->modelHeaderString(CQChartsColumn(modelInd().column()), ok);
   QString yname = plot_->modelHeaderString(modelInd().row(), Qt::Vertical, ok);
 
   if (xname.length())
@@ -713,7 +715,7 @@ void
 CQChartsImageObj::
 getSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, modelInd().column());
+  addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
 }
 
 void
@@ -778,12 +780,13 @@ draw(CQChartsPaintDevice *device)
 
       CQChartsTextOptions textOptions;
 
-      textOptions.contrast  = plot_->isCellLabelTextContrast();
-      textOptions.formatted = plot_->isCellLabelTextFormatted();
-      textOptions.scaled    = plot_->isCellLabelTextScaled();
-      textOptions.html      = plot_->isCellLabelTextHtml();
-      textOptions.align     = plot_->cellLabelTextAlign();
-      textOptions.scaled    = plot_->isCellLabelTextScaled();
+      textOptions.contrast      = plot_->isCellLabelTextContrast();
+      textOptions.contrastAlpha = plot_->cellLabelTextContrastAlpha();
+      textOptions.formatted     = plot_->isCellLabelTextFormatted();
+      textOptions.scaled        = plot_->isCellLabelTextScaled();
+      textOptions.html          = plot_->isCellLabelTextHtml();
+      textOptions.align         = plot_->cellLabelTextAlign();
+      textOptions.scaled        = plot_->isCellLabelTextScaled();
 
       textOptions = plot_->adjustTextOptions(textOptions);
 
