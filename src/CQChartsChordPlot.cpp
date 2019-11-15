@@ -1,13 +1,16 @@
 #include <CQChartsChordPlot.h>
 #include <CQChartsView.h>
-#include <CQChartsRotatedTextBoxObj.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
+#include <CQChartsAnalyzeModelData.h>
+#include <CQChartsModelUtil.h>
+#include <CQChartsRotatedTextBoxObj.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
-#include <CQChartsTip.h>
 #include <CQCharts.h>
-#include <CQChartsValueSet.h>
 #include <CQChartsNamePair.h>
+#include <CQChartsTip.h>
+#include <CQChartsValueSet.h>
 #include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
@@ -52,10 +55,10 @@ description() const
     h3("Columns").
      p("The link column specifies the node name and index (row) and the group column "
        "specifies the parent group. The remaining columns contain the connection value for "
-       "each connected node i.e. the should be N rows and N + 1 or N + 2 columns depending "
+       "each connected node i.e. there should be N rows and N + 1 or N + 2 columns depending "
        "on whether a group is specified").
     h3("Options").
-     p("The inner radius (0-1) can be specified to adjust the with of the ring and connection "
+     p("The inner radius (0-1) can be specified to adjust the width of the ring and connection "
        "area. The radius for the label can be specified ((0-1) inside, >1 outside) and the "
        "nodes can be sorted by value or use the original model order").
     h3("Customization").
@@ -82,6 +85,99 @@ isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
   }
 
   return CQChartsPlotType::isColumnForParameter(columnDetails, parameter);
+}
+
+void
+CQChartsChordPlotType::
+analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+{
+  bool hasLink  = (analyzeModelData.parameterNameColumn.find("link") !=
+                   analyzeModelData.parameterNameColumn.end());
+  bool hasValue = (analyzeModelData.parameterNameColumn.find("value") !=
+                   analyzeModelData.parameterNameColumn.end());
+
+  if (hasLink && hasValue)
+    return;
+
+  CQChartsModelDetails *details = modelData->details();
+  if (! details) return;
+
+  CQChartsColumn linkColumn;
+  CQChartsColumn valueColumn;
+
+  int nc = details->numColumns();
+
+  for (int c = 0; c < nc; ++c) {
+    auto columnDetails = details->columnDetails(CQChartsColumn(c));
+
+    if      (columnDetails->type() == CQBaseModelType::STRING) {
+      if (! linkColumn.isValid()) {
+        QModelIndex parent;
+
+        bool ok;
+
+        QString str =
+          CQChartsModelUtil::modelString(modelData->charts(), modelData->model().data(),
+                                         0, columnDetails->column(), parent, ok);
+        if (! ok) continue;
+
+        CQChartsNamePair::Names names;
+
+        if (CQChartsNamePair::stringToNames(str, names))
+          linkColumn = columnDetails->column();
+      }
+    }
+    else if (columnDetails->isNumeric()) {
+      if (! valueColumn.isValid())
+        valueColumn = columnDetails->column();
+    }
+  }
+
+  if (! hasLink && linkColumn.isValid()) {
+    analyzeModelData.parameterNameColumn["link"] = linkColumn;
+
+    hasLink = true;
+  }
+
+  if (! hasValue && valueColumn.isValid()) {
+    analyzeModelData.parameterNameColumn["value"] = valueColumn;
+
+    hasValue = true;
+  }
+
+  //---
+
+  if (! hasLink) {
+    if (details->isHierarchical())
+      return;
+
+    int nr = details->numRows();
+    int nc = details->numColumns();
+
+    if (nr != nc - 1 && nr != nc - 2)
+      return;
+
+    int skip = (nr == nc - 2 ? 1 : 0);
+
+    bool allNumeric = true;
+
+    for (int c = skip + 1; c < nc; ++c) {
+      auto columnDetails = details->columnDetails(CQChartsColumn(c));
+
+      if (! columnDetails->isNumeric()) {
+        allNumeric = false;
+        break;
+      }
+    }
+
+    if (! allNumeric)
+      return;
+
+    analyzeModelData.parameterNameColumn["link"] = CQChartsColumn(0);
+
+    if (skip == 1)
+      analyzeModelData.parameterNameColumn["group"] = CQChartsColumn(1);
+  }
 }
 
 CQChartsPlot *
@@ -276,9 +372,9 @@ annotationBBox() const
 
   for (const auto &plotObj : plotObjs_) {
     CQChartsChordObj *obj = dynamic_cast<CQChartsChordObj *>(plotObj);
+    if (! obj) continue;
 
-    if (obj)
-      bbox += obj->textBBox();
+    bbox += obj->textBBox();
   }
 
   return bbox;
@@ -1138,6 +1234,11 @@ CQChartsGeom::BBox
 CQChartsChordObj::
 textBBox() const
 {
+  if (! data_.name().length())
+    return CQChartsGeom::BBox();
+
+  //---
+
   double ri = innerRadius();
   double ro = outerRadius();
 

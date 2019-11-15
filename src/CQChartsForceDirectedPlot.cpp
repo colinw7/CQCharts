@@ -1,6 +1,9 @@
 #include <CQChartsForceDirectedPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
+#include <CQChartsAnalyzeModelData.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
@@ -22,14 +25,10 @@ addParameters()
   // connections are list of node ids/counts
   startParameterGroup("Connection List");
 
-  addColumnParameter("node", "Node", "nodeColumn").
-    setTip("Node Id Column");
-
+  addColumnParameter("node", "Node", "nodeColumn").setBasic().
+    setNumeric().setTip("Node Id Column");
   addColumnParameter("connections", "Connections", "connectionsColumn").setBasic().
-    setTip("List of Connection Pairs (Ids from id column and connection count)");
-
-  addColumnParameter("name", "Name", "nameColumn").
-    setTip("Optional node name");
+    setTip("List of Connection Pairs (Ids from id column and connection count)").setDiscriminator();
 
   endParameterGroup();
 
@@ -39,18 +38,21 @@ addParameters()
   startParameterGroup("Name Pair/Count");
 
   addColumnParameter("namePair", "Name Pair", "namePairColumn").setBasic().
-    setTip("Connected Name Pairs (<name1>/<name2>)");
-
+    setTip("Connected Name Pairs (<name1>/<name2>)").setDiscriminator();
   addColumnParameter("count", "Count", "countColumn").setBasic().
-    setTip("Connection Count");
+    setNumeric().setTip("Connection Count");
 
   endParameterGroup();
 
   //---
 
-  startParameterGroup("Group");
+  startParameterGroup("General");
 
-  addColumnParameter("groupId", "Group Id", "groupIdColumn");
+  addColumnParameter("name", "Name", "nameColumn").
+    setString().setTip("Optional node name");
+
+  addColumnParameter("groupId", "Group Id", "groupIdColumn").
+    setNumeric().setTip("Group Id for Color");
 
   endParameterGroup();
 
@@ -63,14 +65,31 @@ QString
 CQChartsForceDirectedPlotType::
 description() const
 {
-  auto IMG = [](const QString &src) { return CQChartsHtml::Str::img(src); };
+  auto B    = [](const QString &str) { return CQChartsHtml::Str::bold(str); };
+  auto PARM = [](const QString &str) { return CQChartsHtml::Str::angled(str); };
+  auto LI   = [](const QString &str) { return CQChartsHtml::Str(str); };
+//auto BR   = []() { return CQChartsHtml::Str(CQChartsHtml::Str::Type::BR); };
+  auto IMG  = [](const QString &src) { return CQChartsHtml::Str::img(src); };
 
   return CQChartsHtml().
    h2("Force Directed Plot").
     h3("Summary").
      p("Draw connected data using animated nodes connected by springs.").
+    h3("Columns").
+     p("Connection information can be supplied using:").
+     ul({ LI("A list of connections in the " + B("Connections") + " column with the "
+             "associated node numbers in the " + B("Node") + " column."),
+          LI("A name pair using " + B("NamePair") + " column and a count using the " +
+             B("Count") + " column.") }).
+     p("The connections column is in the form {{" + PARM("id") + " " + PARM("count") + "} ...}.").
+     p("The name pair column is in the form " + PARM("id1") + "/" + PARM("id2")).
+     p("The column id is taken from the " + B("Id") + " column and an optional "
+       "name for the id can be supplied in the " + B("Name") + " column.").
+     p("The group is specified using the " + B("Group") + " column.").
+    h3("Styling").
+     p("The styling (fill, stroke) of the nodes and edges can be set").
     h3("Limitations").
-     p("None.").
+     p("The plot does not support axes, key or logarithmic scales.").
     h3("Example").
      p(IMG("images/forcedirected.png"));
 }
@@ -81,19 +100,103 @@ isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
                      CQChartsPlotParameter *parameter) const
 {
   if      (parameter->name() == "connections") {
-    if (columnDetails->type() == CQChartsPlot::ColumnType::CONNECTION_LIST)
-      return true;
-
-    return false;
+    return (columnDetails->type() == CQChartsPlot::ColumnType::CONNECTION_LIST);
   }
   else if (parameter->name() == "namePair") {
-    if (columnDetails->type() == CQChartsPlot::ColumnType::NAME_PAIR)
-      return true;
-
-    return false;
+    return (columnDetails->type() == CQChartsPlot::ColumnType::NAME_PAIR);
   }
 
   return CQChartsPlotType::isColumnForParameter(columnDetails, parameter);
+}
+
+void
+CQChartsForceDirectedPlotType::
+analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+{
+  bool hasNode        = (analyzeModelData.parameterNameColumn.find("node") !=
+                         analyzeModelData.parameterNameColumn.end());
+  bool hasConnections = (analyzeModelData.parameterNameColumn.find("connections") !=
+                         analyzeModelData.parameterNameColumn.end());
+  bool hasNamePair    = (analyzeModelData.parameterNameColumn.find("namePair") !=
+                         analyzeModelData.parameterNameColumn.end());
+  bool hasCount       = (analyzeModelData.parameterNameColumn.find("count") !=
+                         analyzeModelData.parameterNameColumn.end());
+
+  if (hasConnections || hasNamePair)
+    return;
+
+  CQChartsModelDetails *details = modelData->details();
+  if (! details) return;
+
+  CQChartsColumn connectionsColumn;
+  CQChartsColumn namePairColumn;
+  CQChartsColumn countColumn;
+  CQChartsColumn nodeColumn;
+
+  int nc = details->numColumns();
+
+    for (int c = 0; c < nc; ++c) {
+    auto columnDetails = details->columnDetails(CQChartsColumn(c));
+
+    if      (columnDetails->type() == CQBaseModelType::STRING) {
+      if (! connectionsColumn.isValid()) {
+        QModelIndex parent;
+
+        bool ok;
+
+        QString str =
+          CQChartsModelUtil::modelString(modelData->charts(), modelData->model().data(),
+                                         0, columnDetails->column(), parent, ok);
+        if (! ok) continue;
+
+        CQChartsConnectionList::Connections connections;
+
+        if (CQChartsConnectionList::stringToConnections(str, connections))
+          connectionsColumn = columnDetails->column();
+      }
+
+      if (! namePairColumn.isValid()) {
+        QModelIndex parent;
+
+        bool ok;
+
+        QString str =
+          CQChartsModelUtil::modelString(modelData->charts(), modelData->model().data(),
+                                         0, columnDetails->column(), parent, ok);
+        if (! ok) continue;
+
+        CQChartsNamePair::Names names;
+
+        if (CQChartsNamePair::stringToNames(str, names))
+          namePairColumn = columnDetails->column();
+      }
+    }
+    else if (columnDetails->isNumeric()) {
+      if (! countColumn.isValid())
+        countColumn = columnDetails->column();
+
+      if (! nodeColumn.isValid())
+        nodeColumn = columnDetails->column();
+    }
+  }
+
+  if (! hasConnections && connectionsColumn.isValid()) {
+    analyzeModelData.parameterNameColumn["connections"] = connectionsColumn;
+
+    hasConnections = true;
+  }
+
+  if (! hasNamePair && namePairColumn.isValid()) {
+    analyzeModelData.parameterNameColumn["namePair"] = namePairColumn;
+
+    hasNamePair = true;
+  }
+
+  if (hasConnections && ! hasNode && nodeColumn.isValid())
+    analyzeModelData.parameterNameColumn["node"] = nodeColumn;
+
+  if (hasNamePair && ! hasCount && countColumn.isValid())
+    analyzeModelData.parameterNameColumn["count"] = countColumn;
 }
 
 CQChartsPlot *

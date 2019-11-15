@@ -18,8 +18,10 @@ class CQChartsPolygonList {
   static int metaTypeId;
 
  public:
-  CQChartsPolygonList(const QString &s=QString()) {
-   setValue(s);
+  CQChartsPolygonList() = default;
+
+  CQChartsPolygonList(const QString &str) {
+   setValue(str);
   }
 
   CQChartsPolygonList(const CQChartsPolygonList &rhs) :
@@ -32,7 +34,11 @@ class CQChartsPolygonList {
     return *this;
   }
 
+  //---
+
   const Polygons &polygons() const { return polygons_; }
+
+  //---
 
   bool setValue(const QString &str) {
     return CQChartsUtil::stringToPolygons(str, polygons_);

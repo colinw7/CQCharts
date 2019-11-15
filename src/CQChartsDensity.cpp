@@ -588,7 +588,7 @@ drawCrossBar(const CQChartsPlot *, CQChartsPaintDevice *device, const CQChartsGe
   //---
 
   // draw box
-  QRectF prect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+  QRectF prect = CQChartsGeom::BBox(p1, p2).qrect();
 
   CQChartsDrawUtil::drawRoundedPolygon(device, prect, cornerSize, cornerSize);
 

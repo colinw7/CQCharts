@@ -31,8 +31,15 @@ class CQChartsSankeyPlotType : public CQChartsPlotType {
 
   QString description() const override;
 
+  //---
+
   bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
                             CQChartsPlotParameter *parameter) const override;
+
+  void analyzeModel(CQChartsModelData *modelData,
+                    CQChartsAnalyzeModelData &analyzeModelData) override;
+
+  //---
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -254,11 +261,17 @@ class CQChartsSankeyPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsColumn linkColumn  READ linkColumn  WRITE setLinkColumn )
   Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
 
+  //! link separator
+  Q_PROPERTY(QString separator READ separator WRITE setSeparator)
+
+  // align
   Q_PROPERTY(Align align READ align WRITE setAlign)
 
+  // node/edge shape style
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node,node)
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Edge,edge)
 
+  // text style
   CQCHARTS_TEXT_DATA_PROPERTIES
 
   Q_ENUMS(Align)
@@ -282,14 +295,23 @@ class CQChartsSankeyPlot : public CQChartsPlot,
 
   //---
 
+  //! get/set link column
   const CQChartsColumn &linkColumn() const { return linkColumn_; }
   void setLinkColumn(const CQChartsColumn &c);
 
+  //! get/set value column
   const CQChartsColumn &valueColumn() const { return valueColumn_; }
   void setValueColumn(const CQChartsColumn &c);
 
   //---
 
+  //! get/set separator
+  const QString &separator() const { return separator_; }
+  void setSeparator(const QString &s) { separator_ = s; }
+
+  //---
+
+  //! get/set text align
   const Align &align() const { return align_; }
   void setAlign(const Align &a);
 
@@ -350,6 +372,7 @@ class CQChartsSankeyPlot : public CQChartsPlot,
 
   CQChartsColumn     linkColumn_;                     //!< link column
   CQChartsColumn     valueColumn_;                    //!< value column
+  QString            separator_;                      //!< separator
   Align              align_       { Align::JUSTIFY }; //!< align
   NameNodeMap        nameNodeMap_;                    //!< name node map
   IndNodeMap         indNodeMap_;                     //!< ind node map

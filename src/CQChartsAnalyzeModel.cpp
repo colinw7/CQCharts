@@ -4,6 +4,7 @@
 #include <CQChartsPlotType.h>
 #include <CQCharts.h>
 #include <CQPerfMonitor.h>
+#include <set>
 
 CQChartsAnalyzeModel::
 CQChartsAnalyzeModel(CQCharts *charts, CQChartsModelData *modelData) :
@@ -121,8 +122,11 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
   auto &parameterNameColumn = analyzeModelData.parameterNameColumn;
 
   // check for grouped columns
-  bool grouped       = false;
-  bool requiredValid = true;
+  using NameSet = std::set<QString>;
+
+  bool grouped = false;
+
+  NameSet requiredInvalid;
 
   IColumnUsed columnUsed1 = columnUsed;
 
@@ -224,16 +228,29 @@ analyzeType(CQChartsPlotType *type, CQChartsAnalyzeModelData &analyzeModelData)
         break;
       }
 
-      if (! found) {
-        requiredValid = false;
-        break;
-      }
+      if (! found)
+        requiredInvalid.insert(parameter->name());
     }
   }
 
   // fail if can't find column for required
-  if (! requiredValid)
-    return false;
+  // (after check if type can set required columns)
+  if (! requiredInvalid.empty()) {
+    type->analyzeModel(modelData_, analyzeModelData);
+
+    bool valid = true;
+
+    for (const auto &name : requiredInvalid) {
+      if (analyzeModelData.parameterNameColumn.find(name) ==
+            analyzeModelData.parameterNameColumn.end()) {
+        valid = false;
+        break;
+      }
+    }
+
+    if (! valid)
+      return false;
+  }
 
   //---
 

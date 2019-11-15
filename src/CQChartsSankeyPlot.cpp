@@ -1,9 +1,12 @@
 #include <CQChartsSankeyPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
+#include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
+#include <CQChartsAnalyzeModelData.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsModelDetails.h>
 #include <CQChartsNamePair.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsPaintDevice.h>
@@ -27,7 +30,10 @@ addParameters()
     setRequired().setTip("Name pair for Source/Target connection");
 
   addColumnParameter("value", "Value", "valueColumn").
-    setRequired().setTip("Connection value");
+    setRequired().setNumeric().setTip("Connection value");
+
+  addStringParameter("separator", "Separator", "separator", "/").setBasic().
+   setTip("Separator for name pair in link column");
 
   endParameterGroup();
 
@@ -65,6 +71,33 @@ isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
   }
 
   return CQChartsPlotType::isColumnForParameter(columnDetails, parameter);
+}
+
+void
+CQChartsSankeyPlotType::
+analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+{
+  if (analyzeModelData.parameterNameColumn.find("link") !=
+        analyzeModelData.parameterNameColumn.end())
+    return;
+
+  CQChartsModelDetails *details = modelData->details();
+  if (! details) return;
+
+  CQChartsColumn linkColumn;
+
+  int nc = details->numColumns();
+
+  for (int c = 0; c < nc; ++c) {
+    auto columnDetails = details->columnDetails(CQChartsColumn(c));
+
+    if (columnDetails->type() == CQBaseModelType::STRING) {
+      if (! linkColumn.isValid())
+        linkColumn = columnDetails->column();
+    }
+  }
+
+  analyzeModelData.parameterNameColumn["link"] = linkColumn;
 }
 
 CQChartsPlot *
@@ -256,7 +289,9 @@ createObjs(PlotObjs &objs) const
       if (! ok1 || ! ok2)
         return State::SKIP;
 
-      CQChartsNamePair namePair(linkStr);
+      QChar separator = (plot_->separator().length() ? plot_->separator()[0] : '/');
+
+      CQChartsNamePair namePair(linkStr, separator);
 
       if (! namePair.isValid())
         return State::SKIP;

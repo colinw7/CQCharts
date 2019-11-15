@@ -1,17 +1,19 @@
 #!/bin/csh -f
 
-set args      = ()
-set opts      = ()
-set dbx       = 0
-set valgrind  = 0
-set helgrind  = 0
-set git       = 0
-set save      = 0
-set csv_args  = ()
-set tsv_args  = ()
-set data_args = ()
-set nograb    = ""
-set modal     = 1
+set args       = ()
+set opts       = ()
+set dbx        = 0
+set valgrind   = 0
+set helgrind   = 0
+set git        = 0
+set save       = 0
+set csv_args   = ()
+set tsv_args   = ()
+set data_args  = ()
+set json_args  = ()
+set edata_args = ()
+set nograb     = ""
+set modal      = 1
 
 while ($#argv > 0)
   if      ("$1" == "-dbx") then
@@ -72,15 +74,39 @@ while ($#argv > 0)
       set tsv_args = ($tsv_args $1)
       shift
     endif
-  else if ("$1" == "-first_line_header") then
+  else if ("$1" == "-data") then
     set data_args = ($data_args $1)
+    shift
+
+    if ($#argv > 0) then
+      set data_args = ($data_args $1)
+      shift
+    endif
+  else if ("$1" == "-json") then
+    set data_args = ($data_args $1)
+    shift
+
+    if ($#argv > 0) then
+      set data_args = ($data_args $1)
+      shift
+    endif
+  else if ("$1" == "-first_line_header") then
+    set edata_args = ($edata_args $1)
     shift
   else if ("$1" == "-first_column_header") then
-    set data_args = ($data_args $1)
+    set edata_args = ($edata_args $1)
     shift
   else if ("$1" == "-comment_header") then
-    set data_args = ($data_args $1)
+    set edata_args = ($edata_args $1)
     shift
+  else if ("$1" == "-separator") then
+    set edata_args = ($edata_args $1)
+    shift
+
+    if ($#argv > 0) then
+      set edata_args = ($edata_args $1)
+      shift
+    endif
   else if ("$1" == "-view") then
     set opts = ($opts -view)
     shift
@@ -124,21 +150,21 @@ if ($save == 1) then
 endif
 
 if      ($dbx == 1) then
-  echo "Dbx $exe $exec_args $csv_args $tsv_args $data_args $opts $nograb"
+  echo "Dbx $exe $exec_args $csv_args $tsv_args $data_args $json_args $edata_args $opts $nograb"
 
-  Dbx $exe $exec_args $csv_args $tsv_args $data_args $opts $nograb
+  Dbx $exe $exec_args $csv_args $tsv_args $data_args $json_args $edata_args $opts $nograb
 else if ($valgrind == 1) then
-  echo "Valgrind $exe $exec_args $csv_args $tsv_args $data_args $opts"
+  echo "Valgrind $exe $exec_args $csv_args $tsv_args $data_args $json_args $edata_args $opts"
 
-  Valgrind $exe $exec_args $csv_args $tsv_args $data_args $opts
+  Valgrind $exe $exec_args $csv_args $tsv_args $data_args $json_args $edata_args $opts
 else if ($helgrind == 1) then
-  echo "Helgrind $exe $exec_args $csv_args $tsv_args $data_args $opts"
+  echo "Helgrind $exe $exec_args $csv_args $tsv_args $data_args $json_args $edata_args $opts"
 
-  Helgrind $exe $exec_args $csv_args $tsv_args $data_args $opts
+  Helgrind $exe $exec_args $csv_args $tsv_args $data_args $json_args $edata_args $opts
 else
-  echo "$exe $exec_args $csv_args $tsv_args $data_args $opts"
+  echo "$exe $exec_args $csv_args $tsv_args $data_args $json_args $edata_args $opts"
 
-  $exe $exec_args $csv_args $tsv_args $data_args $opts
+  $exe $exec_args $csv_args $tsv_args $data_args $json_args $edata_args $opts
 endif
 
 exit 0

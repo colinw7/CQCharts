@@ -441,7 +441,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
       bool ok;
 
       columnNames[c] =
-        CQChartsModelUtil::modelHeaderString(model, CQChartsColumn(c), Qt::Horizontal, ok);
+        CQChartsModelUtil::modelHeaderString(model, c, Qt::Horizontal, ok);
 
       CMathCorrelation::Values &values = columnValues[c];
 
@@ -463,7 +463,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
       bool ok;
 
       columnNames[r] =
-        CQChartsModelUtil::modelHeaderString(model, CQChartsColumn(r), Qt::Vertical, ok);
+        CQChartsModelUtil::modelHeaderString(model, r, Qt::Vertical, ok);
 
       CMathCorrelation::Values &values = columnValues[r];
 
@@ -493,9 +493,9 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
     (void) columnTypeMgr->setModelColumnType(dataModel, CQChartsColumn(c), CQBaseModelType::REAL);
 
   for (int c = 0; c < nv; ++c) {
-    CQChartsModelUtil::setModelHeaderValue(dataModel, CQChartsColumn(c), Qt::Horizontal,
+    CQChartsModelUtil::setModelHeaderValue(dataModel, c, Qt::Horizontal,
                                            columnNames[c], Qt::DisplayRole);
-    CQChartsModelUtil::setModelHeaderValue(dataModel, CQChartsColumn(c), Qt::Vertical  ,
+    CQChartsModelUtil::setModelHeaderValue(dataModel, c, Qt::Vertical  ,
                                            columnNames[c], Qt::DisplayRole);
 
     CQChartsModelUtil::setModelValue(dataModel, c, CQChartsColumn(c), 1.0);

@@ -326,6 +326,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   Q_PROPERTY(bool percent    READ isPercent    WRITE setPercent   )
   Q_PROPERTY(bool colorBySet READ isColorBySet WRITE setColorBySet)
+  Q_PROPERTY(bool skipBad    READ isSkipBad    WRITE setSkipBad   )
 
   // dot line
   Q_PROPERTY(bool           dotLines     READ isDotLines   WRITE setDotLines    )
@@ -384,6 +385,11 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   // when multiple columns and grouped then color by value in value set (group)
   bool isColorBySet() const { return colorBySet_; }
   void setColorBySet(bool b);
+
+  //---
+
+  bool isSkipBad() const { return skipBad_; }
+  void setSkipBad(bool b);
 
   //---
 
@@ -505,15 +511,20 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
     CQChartsLength width   { "3px" }; //!< width
   };
 
-  CQChartsColumn nameColumn_;                        //!< name column
-  CQChartsColumn labelColumn_;                       //!< data label column
-  PlotType       plotType_     { PlotType::NORMAL }; //!< plot type
-  ValueType      valueType_    { ValueType::VALUE }; //!< bar value type
-  bool           percent_      { false };            //!< percent values
-  bool           colorBySet_   { false };            //!< color bars by set or value
-  DotLineData    dotLineData_;                       //!< dot line data
-  mutable double barWidth_     { 1.0 };              //!< minimum bar width
-  ValueData      valueData_;                         //!< value data
+  // columns
+  CQChartsColumn nameColumn_;  //!< name column
+  CQChartsColumn labelColumn_; //!< data label column
+
+  // options
+  PlotType  plotType_   { PlotType::NORMAL }; //!< plot type
+  ValueType valueType_  { ValueType::VALUE }; //!< bar value type
+  bool      percent_    { false };            //!< percent values
+  bool      colorBySet_ { false };            //!< color bars by set or value
+  bool      skipBad_    { true };             //!< skip bad values
+
+  DotLineData    dotLineData_;          //!< dot line data
+  mutable double barWidth_     { 1.0 }; //!< minimum bar width
+  ValueData      valueData_;            //!< value data
 };
 
 #endif

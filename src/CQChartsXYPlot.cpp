@@ -1,6 +1,10 @@
 #include <CQChartsXYPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
+#include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
+#include <CQChartsAnalyzeModelData.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsUtil.h>
 #include <CQChartsArrow.h>
 #include <CQChartsSmooth.h>
@@ -123,6 +127,45 @@ description() const
      p("None").
     h3("Example").
      p(IMG("images/xychart.png"));
+}
+
+void
+CQChartsXYPlotType::
+analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+{
+  bool hasX = (analyzeModelData.parameterNameColumn.find("x") !=
+               analyzeModelData.parameterNameColumn.end());
+
+  CQChartsModelDetails *details = modelData->details();
+  if (! details) return;
+
+  CQChartsColumn  xColumn;
+  CQChartsColumns yColumns;
+
+  int nc = details->numColumns();
+
+  for (int c = 0; c < nc; ++c) {
+    auto columnDetails = details->columnDetails(CQChartsColumn(c));
+
+    if (! xColumn.isValid()) {
+      if      (columnDetails->isMonotonic())
+        xColumn = columnDetails->column();
+      else if (columnDetails->type() == CQBaseModelType::TIME)
+        xColumn = columnDetails->column();
+      else if (! hasX && columnDetails->isNumeric())
+        xColumn = columnDetails->column();
+    }
+    else {
+      if (columnDetails->isNumeric())
+        yColumns.addColumn(columnDetails->column());
+    }
+  }
+
+  if (xColumn.isValid())
+    analyzeModelData.parameterNameColumn["x"] = xColumn;
+
+  if (yColumns.count())
+    analyzeModelData.parameterNameColumns["y"] = yColumns;
 }
 
 CQChartsPlot *

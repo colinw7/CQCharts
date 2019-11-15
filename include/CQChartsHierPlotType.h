@@ -14,6 +14,9 @@ class CQChartsHierPlotType : public CQChartsPlotType {
   void addParameters() override;
 
   bool isHierarchical() const override { return true; }
+
+  void analyzeModel(CQChartsModelData *modelData,
+                    CQChartsAnalyzeModelData &analyzeModelData) override;
 };
 
 #endif

@@ -24,6 +24,8 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const QRectF &qrect,
                    const CQChartsLength &xlen, const CQChartsLength &ylen,
                    const CQChartsSides &sides)
 {
+  assert(qrect.isValid());
+
   static double minSize1 = 2.5; // pixels
   static double minSize2 = 1.5; // pixels
 
@@ -95,6 +97,8 @@ void
 drawTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &text,
               const CQChartsTextOptions &options)
 {
+  assert(rect.isValid());
+
   if (! rect.isValid())
     return;
 
@@ -204,6 +208,8 @@ void
 drawRotatedTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &text,
                      const QPen &pen, const CQChartsTextOptions &options)
 {
+  assert(rect.isValid());
+
   device->setPen(pen);
 
   // TODO: support align and contrast
@@ -428,6 +434,8 @@ drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
 void
 drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol, const QRectF &rect)
 {
+  assert(rect.isValid());
+
   QRectF prect = device->windowToPixel(rect);
 
   double cx = rect.center().x();
@@ -519,6 +527,8 @@ void
 drawScaledHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QString &text,
                    const CQChartsTextOptions &options)
 {
+  assert(trect.isValid());
+
   // calc scale
   QSizeF psize = calcHtmlTextSize(text, device->font(), options.margin);
 
@@ -546,6 +556,8 @@ void
 drawHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QString &text,
              const CQChartsTextOptions &options)
 {
+  assert(trect.isValid());
+
   QRectF ptrect = device->windowToPixel(trect);
 
   //---

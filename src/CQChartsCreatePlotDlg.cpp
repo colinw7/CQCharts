@@ -11,6 +11,7 @@
 #include <CQChartsColumnsEdit.h>
 #include <CQChartsModelViewHolder.h>
 #include <CQChartsModelData.h>
+#include <CQChartsModelDetailsWidget.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsAnalyzeModel.h>
 #include <CQChartsWidgetUtil.h>
@@ -113,6 +114,13 @@ init()
   QFrame *summaryFrame = createSummaryFrame();
 
   dataArea->addWidget(summaryFrame, "Model Data");
+
+  //----
+
+  // add details frame
+  QFrame *detailsFrame = createDetailsFrame();
+
+  dataArea->addWidget(detailsFrame, "Model Details");
 
   //----
 
@@ -583,6 +591,25 @@ createGeneralDataFrame()
   //---
 
   return genFrame;
+}
+
+QFrame *
+CQChartsCreatePlotDlg::
+createDetailsFrame()
+{
+  QFrame *detailsFrame = CQUtil::makeWidget<QFrame>("details");
+
+  QVBoxLayout *detailsLayout = CQUtil::makeLayout<QVBoxLayout>(detailsFrame, 0, 2);
+
+  detailsWidget_ = new CQChartsModelDetailsWidget(charts_);
+
+  detailsLayout->addWidget(detailsWidget_);
+
+  CQChartsModelDetails *details = modelData_->details();
+
+  detailsWidget_->setDetails(details);
+
+  return detailsFrame;
 }
 
 QFrame *
@@ -1895,7 +1922,14 @@ validateSlot()
   //---
 
   if (isAutoAnalyzeModel()) {
-    if (! typeInitialzed_[type->description()]) {
+    bool isInitialized = false;
+
+    if (isAdvanced())
+      isInitialized = advancedTypeInitialzed_[type->description()];
+    else
+      isInitialized = basicTypeInitialzed_[type->description()];
+
+    if (! isInitialized) {
       auto plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
                                       basicTypePlotData_   [type->name()]);
 
@@ -1962,7 +1996,10 @@ validateSlot()
         }
       }
 
-      typeInitialzed_[type->description()] = true;
+      if (isAdvanced())
+        advancedTypeInitialzed_[type->description()] = true;
+      else
+        basicTypeInitialzed_[type->description()] = true;
     }
   }
 
@@ -2182,6 +2219,7 @@ validate(QStringList &msgs)
   bool rc = true;
 
   int num_valid = 0;
+  int num_cols  = 0;
 
   for (const auto &parameter : type->parameters()) {
     if (parameter->isHidden())
@@ -2191,6 +2229,8 @@ validate(QStringList &msgs)
       continue;
 
     if      (parameter->type() == CQChartsPlotParameter::Type::COLUMN) {
+      ++num_cols;
+
       CQChartsColumn column = parameter->defValue().value<CQChartsColumn>();
 
       QString      columnTypeStr;
@@ -2260,6 +2300,8 @@ validate(QStringList &msgs)
         rc = rc1;
     }
     else if (parameter->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
+      ++num_cols;
+
       CQChartsColumns columns = parameter->defValue().value<CQChartsColumns>();
 
       QString columnTypeStr;
@@ -2279,7 +2321,7 @@ validate(QStringList &msgs)
     }
   }
 
-  if (num_valid == 0) {
+  if (num_valid == 0 && num_cols > 0) {
     msgs << "no columns specified";
     rc = false;
   }

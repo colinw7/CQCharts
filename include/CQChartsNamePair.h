@@ -20,8 +20,8 @@ class CQChartsNamePair {
   };
 
  public:
-  CQChartsNamePair(const QString &s=QString()) {
-    setValue(s);
+  CQChartsNamePair(const QString &str=QString(), const QChar &separator='/') {
+    setValue(str, separator);
   }
 
   CQChartsNamePair(const CQChartsNamePair &rhs) :
@@ -39,27 +39,33 @@ class CQChartsNamePair {
   const QString &name1() const { return names_.name1; }
   const QString &name2() const { return names_.name2; }
 
-  bool setValue(const QString &str) {
-    return stringToNames(str, names_);
+  bool setValue(const QString &str, const QChar &separator='/') {
+    separator_ = separator;
+
+    return stringToNames(str, names_, separator_);
   }
+
+  const QChar &separator() const { return separator_; }
+  void setSeparator(const QChar &c) { separator_ = c; }
 
   //---
 
   QString toString() const {
-    return namesToString(names_);
+    return namesToString(names_, separator_);
   }
 
   bool fromString(const QString &s) {
-    return setValue(s);
+    return setValue(s, separator_);
   }
 
   //---
 
-  static bool stringToNames(const QString &str, Names &names);
-  static QString namesToString(const Names &names);
+  static bool stringToNames(const QString &str, Names &names, const QChar &separator='/');
+  static QString namesToString(const Names &names, const QChar &separator='/');
 
  private:
   Names names_;
+  QChar separator_ { '/' };
 };
 
 //---

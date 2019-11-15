@@ -16,12 +16,12 @@ registerMetaType()
 
 bool
 CQChartsNamePair::
-stringToNames(const QString &str, Names &names)
+stringToNames(const QString &str, Names &names, const QChar &separator)
 {
   names.valid = false;
 
   // <name1>/<name2>
-  int pos = str.indexOf("/");
+  int pos = str.indexOf(separator);
 
   if (pos == -1)
     return names.valid;
@@ -36,7 +36,7 @@ stringToNames(const QString &str, Names &names)
 
 QString
 CQChartsNamePair::
-namesToString(const Names &names)
+namesToString(const Names &names, const QChar &separator)
 {
-  return QString("%1/%2").arg(names.name1).arg(names.name2);
+  return QString("%1%2%3").arg(names.name1).arg(separator).arg(names.name2);
 }

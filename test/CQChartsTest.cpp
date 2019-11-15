@@ -343,6 +343,9 @@ parseArgs(int argc, char **argv, MainData &mainData)
         mainData.initData.inputData.firstLineHeader = true;
       else if (arg == "first_column_header")
         mainData.initData.inputData.firstColumnHeader = true;
+      else if (arg == "separator") {
+        args.parseOpt(mainData.initData.inputData.separator);
+      }
       else if (arg == "num_rows") {
         if (args.parseOpt(mainData.initData.inputData.numRows))
           mainData.initData.inputData.numRows = std::max(mainData.initData.inputData.numRows, 1);

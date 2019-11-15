@@ -202,6 +202,17 @@ setPlotType(PlotType type)
   CQChartsUtil::testAndSet(plotType_, type, [&]() { updateRangeAndObjs(); } );
 }
 
+//---
+
+void
+CQChartsBarChartPlot::
+setSkipBad(bool b)
+{
+  CQChartsUtil::testAndSet(skipBad_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
 void
 CQChartsBarChartPlot::
 setNormal(bool b)
@@ -642,11 +653,17 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
 
     bool ok2 = modelMappedReal(data.row, valueColumn, data.parent, r, isLogY(), data.row);
 
-    if (! ok2)
+    if (! ok2) {
+      if (isSkipBad())
+        continue;
+
       r = data.row;
+    }
 
     if (CMathUtil::isNaN(r))
       continue;
+
+    //---
 
     // get associated model index
     QModelIndex valInd  = modelIndex(data.row, valueColumn, data.parent);

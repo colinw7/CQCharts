@@ -17,6 +17,8 @@ class CQChartsColumnLineEdit;
 class CQChartsColumnsLineEdit;
 class CQChartsModelViewHolder;
 class CQChartsModelData;
+class CQChartsModelDetailsWidget;
+
 class CQSummaryModel;
 class CQIntegerSpin;
 class CQRealSpin;
@@ -114,6 +116,7 @@ class CQChartsCreatePlotDlg : public QDialog {
   QFrame *createDataFrame();
   QFrame *createTypeDataFrame();
   QFrame *createGeneralDataFrame();
+  QFrame *createDetailsFrame();
   QFrame *createSummaryFrame();
   QFrame *createPreviewFrame();
 
@@ -284,6 +287,8 @@ class CQChartsCreatePlotDlg : public QDialog {
   CQIntegerSpin*           summaryCurrentPageEdit_ { nullptr }; //!< summary current page edit
   CQChartsModelViewHolder* summaryModelView_       { nullptr }; //!< summary model view
 
+  CQChartsModelDetailsWidget* detailsWidget_ { nullptr };
+
   // preview widgets
   QCheckBox*               previewEnabledCheck_    { nullptr }; //!< preview enabled checkbox
   CQChartsView*            previewView_            { nullptr }; //!< preview chart view
@@ -291,8 +296,11 @@ class CQChartsCreatePlotDlg : public QDialog {
 
   CQChartsPlot*            plot_                   { nullptr }; //!< last created plot (apply)
   bool                     initialized_            { false   }; //!< is initialized
+
+  // auto analyze
   bool                     autoAnalyzeModel_       { true };    //!< auto analyze model
-  TypeInitialized          typeInitialzed_;                     //!< is type initialized
+  TypeInitialized          basicTypeInitialzed_;                //!< is type initialized
+  TypeInitialized          advancedTypeInitialzed_;             //!< is type initialized
 };
 
 #endif

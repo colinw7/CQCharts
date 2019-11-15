@@ -1,13 +1,16 @@
 #include <CQChartsParallelPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
+#include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
+#include <CQChartsAnalyzeModelData.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsUtil.h>
 #include <CQChartsTip.h>
 #include <CQCharts.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsPaintDevice.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsPaintDevice.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewItem.h>
@@ -30,7 +33,7 @@ addParameters()
 
   // columns
   addColumnParameter("x", "X", "xColumn").
-    setNumeric().setRequired().setTip("X value column");
+    setRequired().setUnique().setTip("X value column");
 
   addColumnsParameter("y", "Y", "yColumns").
     setNumeric().setRequired().setTip("Y value columns");
@@ -59,6 +62,41 @@ description() const
      p("None.").
     h3("Example").
      p(IMG("images/parallelplot.png"));
+}
+
+void
+CQChartsParallelPlotType::
+analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+{
+  CQChartsModelDetails *details = modelData->details();
+  if (! details) return;
+
+  using UniqueColumns = std::map<int,CQChartsColumn>;
+
+  UniqueColumns   xColumns;
+  CQChartsColumns yColumns;
+
+  for (int c = 0; c < details->numColumns(); ++c) {
+    const CQChartsModelColumnDetails *columnDetails = details->columnDetails(CQChartsColumn(c));
+
+    if      (columnDetails->isNumeric()) {
+      yColumns.addColumn(columnDetails->column());
+    }
+    else if (columnDetails->type() == CQBaseModelType::STRING) {
+      int n = columnDetails->numUnique();
+
+      auto p = xColumns.find(-n);
+
+      if (p == xColumns.end())
+        xColumns[-n] = columnDetails->column();
+    }
+  }
+
+  if (! xColumns.empty())
+    analyzeModelData.parameterNameColumn["x"] = (*xColumns.begin()).second;
+
+  if (yColumns.count())
+    analyzeModelData.parameterNameColumns["y"] = yColumns;
 }
 
 CQChartsPlot *
@@ -179,18 +217,22 @@ calcRange() const
 
   CQChartsParallelPlot *th =  const_cast<CQChartsParallelPlot *>(this);
 
+  //---
+
+  //---
+
   // create axes
+  int ns = yColumns().count();
+
   Qt::Orientation adir = (! isHorizontal() ? Qt::Vertical : Qt::Horizontal);
 
-  if (axes_.empty() || adir_ != adir) {
+  if (int(axes_.size()) != ns || adir_ != adir) {
     th->adir_ = adir;
 
     for (auto &axis : th->axes_)
       delete axis;
 
     th->axes_.clear();
-
-    int ns = yColumns().count();
 
     for (int j = 0; j < ns; ++j) {
       CQChartsAxis *axis = new CQChartsAxis(this, adir_, 0, 1);
@@ -258,8 +300,6 @@ calcRange() const
   //---
 
   // set range from data
-  int ns = yColumns().count();
-
   for (int j = 0; j < ns; ++j) {
     CQChartsGeom::Range &range = th->setRanges_[j];
 

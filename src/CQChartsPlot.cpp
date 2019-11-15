@@ -6266,6 +6266,9 @@ draw(QPainter *painter)
   else if (updateState == UpdateState::DRAWN) {
     drawLayers = true;
   }
+  else if (updateState == UpdateState::INVALID) {
+    drawLayers = true;
+  }
   }
 
   //---
@@ -9627,7 +9630,7 @@ CQChartsPlot::
 modelHeaderValue(QAbstractItemModel *model, int section, Qt::Orientation orientation,
                  bool &ok) const
 {
-  return CQChartsModelUtil::modelHeaderValue(model, CQChartsColumn(section), orientation, ok);
+  return CQChartsModelUtil::modelHeaderValue(model, section, orientation, ok);
 }
 
 QVariant
@@ -9635,8 +9638,7 @@ CQChartsPlot::
 modelHeaderValue(QAbstractItemModel *model, int section, Qt::Orientation orientation,
                  int role, bool &ok) const
 {
-  return CQChartsModelUtil::modelHeaderValue(model, CQChartsColumn(section),
-                                             orientation, role, ok);
+  return CQChartsModelUtil::modelHeaderValue(model, section, orientation, role, ok);
 }
 
 QString
@@ -9659,7 +9661,7 @@ CQChartsPlot::
 modelHeaderString(QAbstractItemModel *model, int section, Qt::Orientation orientation,
                   bool &ok) const
 {
-  return CQChartsModelUtil::modelHeaderString(model, CQChartsColumn(section), orientation, ok);
+  return CQChartsModelUtil::modelHeaderString(model, section, orientation, ok);
 }
 
 QString
@@ -9667,8 +9669,7 @@ CQChartsPlot::
 modelHeaderString(QAbstractItemModel *model, int section, Qt::Orientation orientation,
                   int role, bool &ok) const
 {
-  return CQChartsModelUtil::modelHeaderString(model, CQChartsColumn(section),
-                                              orientation, role, ok);
+  return CQChartsModelUtil::modelHeaderString(model, section, orientation, role, ok);
 }
 
 //--

@@ -991,3 +991,6 @@
  + Add alpha control for contrast text
  + Allow plot type to add custom proc to analyze model
  + Support basic parameters to simplify create plot dialog
+# 11/14/2019
+ + Improve support for analyze mode for all plots
+ + Add correlation plot

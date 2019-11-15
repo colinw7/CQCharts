@@ -2,6 +2,8 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
+#include <CQChartsAnalyzeModelData.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsPolygonList.h>
 #include <CQChartsPath.h>
@@ -82,6 +84,68 @@ isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
   }
 
   return CQChartsPlotType::isColumnForParameter(columnDetails, parameter);
+}
+
+void
+CQChartsGeometryPlotType::
+analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+{
+  bool hasGeometry = (analyzeModelData.parameterNameColumn.find("geometry") !=
+                      analyzeModelData.parameterNameColumn.end());
+  if (hasGeometry) return;
+
+  CQChartsModelDetails *details = modelData->details();
+  if (! details) return;
+
+  CQChartsColumn geometryColumn;
+
+  int nc = details->numColumns();
+
+  for (int c = 0; c < nc; ++c) {
+    auto columnDetails = details->columnDetails(CQChartsColumn(c));
+
+    if (columnDetails->type() == CQBaseModelType::STRING) {
+      QModelIndex parent;
+
+      bool ok;
+
+      QString str =
+        CQChartsModelUtil::modelString(modelData->charts(), modelData->model().data(),
+                                       0, columnDetails->column(), parent, ok);
+      if (! ok) continue;
+
+      CQChartsPolygonList polygonList;
+
+      if (polygonList.setValue(str)) {
+        geometryColumn = columnDetails->column();
+        break;
+      }
+
+      CQChartsPolygon polygon;
+
+      if (polygon.setValue(str)) {
+        geometryColumn = columnDetails->column();
+        break;
+      }
+
+      CQChartsRect rect;
+
+      if (rect.setValue(str)) {
+        geometryColumn = columnDetails->column();
+        break;
+      }
+
+      CQChartsPath path;
+
+      if (path.setValue(str)) {
+        geometryColumn = columnDetails->column();
+        break;
+      }
+    }
+  }
+
+  if (geometryColumn.isValid())
+    analyzeModelData.parameterNameColumn["geometry"] = geometryColumn;
 }
 
 CQChartsPlot *

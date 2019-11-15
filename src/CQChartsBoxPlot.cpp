@@ -147,7 +147,7 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
     CQChartsModelColumnDetails *columnDetails = details->columnDetails(CQChartsColumn(i));
 
     if (columnDetails->isNumeric())
-      columns.addColumn(CQChartsColumn(i));
+      columns.addColumn(columnDetails->column());
   }
 
   analyzeModelData.parameterNameColumns["value"] = columns;

@@ -212,6 +212,9 @@ calcRange() const
 
   CQChartsImagePlot *th = const_cast<CQChartsImagePlot *>(this);
 
+  //---
+
+  // calc min/max value
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(const CQChartsImagePlot *plot) :
@@ -419,10 +422,7 @@ hasForeground() const
   if (! isXLabels() && ! isYLabels())
     return false;
 
-  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
-    return false;
-
-  return true;
+  return isLayerActive(CQChartsLayer::Type::FOREGROUND);
 }
 
 void

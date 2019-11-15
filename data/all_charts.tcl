@@ -123,14 +123,14 @@ set plot17 [create_charts_plot -model $model17 -type hierscatter \
 set model18 [load_charts_model -json data/flare.json]
 
 set plot18 [create_charts_plot -model $model18 -type sunburst \
-  -columns {{names 0} {value 1}} -title "sunburst"]
+  -columns {{name 0} {value 1}} -title "sunburst"]
 
 # TreeMap Plot
 
 set model19 [load_charts_model -json data/flare.json]
 
 set plot19 [create_charts_plot -model $model19 -type treemap \
-  -columns {{names 0} {value 1}} -title "tree map"]
+  -columns {{name 0} {value 1}} -title "tree map"]
 
 # XY Plot
 

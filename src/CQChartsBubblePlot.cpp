@@ -705,7 +705,7 @@ drawBounds(CQChartsPaintDevice *device, CQChartsBubbleHierNode *hier) const
   CQChartsGeom::Point p1(xc - r, yc - r);
   CQChartsGeom::Point p2(xc + r, yc + r);
 
-  QRectF qrect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+  QRectF qrect = CQChartsGeom::BBox(p1, p2).qrect();
 
   //---
 
@@ -784,7 +784,7 @@ draw(CQChartsPaintDevice *device)
   CQChartsGeom::Point p1(hier_->x() - r, hier_->y() - r);
   CQChartsGeom::Point p2(hier_->x() + r, hier_->y() + r);
 
-  QRectF qrect = CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y).qrect();
+  QRectF qrect = CQChartsGeom::BBox(p1, p2).qrect();
 
   //---
 
@@ -932,7 +932,7 @@ draw(CQChartsPaintDevice *device)
   CQChartsGeom::Point p1(node_->x() - r, node_->y() - r);
   CQChartsGeom::Point p2(node_->x() + r, node_->y() + r);
 
-  QRectF qrect = CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y).qrect();
+  QRectF qrect = CQChartsGeom::BBox(p1, p2).qrect();
 
   //---
 

@@ -1,6 +1,9 @@
 #include <CQChartsAdjacencyPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
+#include <CQChartsAnalyzeModelData.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
@@ -26,9 +29,8 @@ addParameters()
   // connections are list of node ids/counts
   startParameterGroup("Connection List");
 
-  addColumnParameter("node", "Node", "nodeColumn").
-    setNumeric().setBasic().setTip("Node Id Column");
-
+  addColumnParameter("node", "Node", "nodeColumn").setBasic().
+    setNumeric().setTip("Node Id Column");
   addColumnParameter("connections", "Connections", "connectionsColumn").setBasic().
    setTip("List of Connection Pairs (Ids from id column and connection count)").setDiscriminator();
 
@@ -41,7 +43,6 @@ addParameters()
 
   addColumnParameter("namePair", "Name Pair", "namePairColumn").setBasic().
    setTip("Connected Name Pairs (<name1>/<name2>)").setDiscriminator();
-
   addColumnParameter("count", "Count", "countColumn").setBasic().
    setNumeric().setTip("Connection Count");
 
@@ -92,12 +93,12 @@ description() const
      p("The group is specified using the " + B("Group") + " column.").
     h3("Options").
      p("The nodes can be sorted by group, name or count using the " + B("sortType") + " option").
-     p("The maring around the plot can be specified using the " + B("bgMargin") + " option").
+     p("The margin around the plot can be specified using the " + B("bgMargin") + " option").
     h3("Styling").
      p("The styling (fill, stroke) of the connection cells, empty (no connection) cell "
        "and background can be set").
     h3("Limitations").
-     p("The plot does not support axes, key or logarithmic scales").
+     p("The plot does not support axes, key or logarithmic scales.").
     h3("Example").
      p(IMG("images/adjacency.png"));
 }
@@ -108,19 +109,103 @@ isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
                      CQChartsPlotParameter *parameter) const
 {
   if      (parameter->name() == "connections") {
-    if (columnDetails->type() == CQChartsPlot::ColumnType::CONNECTION_LIST)
-      return true;
-
-    return false;
+    return (columnDetails->type() == CQChartsPlot::ColumnType::CONNECTION_LIST);
   }
   else if (parameter->name() == "namePair") {
-    if (columnDetails->type() == CQChartsPlot::ColumnType::NAME_PAIR)
-      return true;
-
-    return false;
+    return (columnDetails->type() == CQChartsPlot::ColumnType::NAME_PAIR);
   }
 
   return CQChartsPlotType::isColumnForParameter(columnDetails, parameter);
+}
+
+void
+CQChartsAdjacencyPlotType::
+analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+{
+  bool hasNode        = (analyzeModelData.parameterNameColumn.find("node") !=
+                         analyzeModelData.parameterNameColumn.end());
+  bool hasConnections = (analyzeModelData.parameterNameColumn.find("connections") !=
+                         analyzeModelData.parameterNameColumn.end());
+  bool hasNamePair    = (analyzeModelData.parameterNameColumn.find("namePair") !=
+                         analyzeModelData.parameterNameColumn.end());
+  bool hasCount       = (analyzeModelData.parameterNameColumn.find("count") !=
+                         analyzeModelData.parameterNameColumn.end());
+
+  if (hasConnections || hasNamePair)
+    return;
+
+  CQChartsModelDetails *details = modelData->details();
+  if (! details) return;
+
+  CQChartsColumn connectionsColumn;
+  CQChartsColumn namePairColumn;
+  CQChartsColumn countColumn;
+  CQChartsColumn nodeColumn;
+
+  int nc = details->numColumns();
+
+  for (int c = 0; c < nc; ++c) {
+    auto columnDetails = details->columnDetails(CQChartsColumn(c));
+
+    if      (columnDetails->type() == CQBaseModelType::STRING) {
+      if (! connectionsColumn.isValid()) {
+        QModelIndex parent;
+
+        bool ok;
+
+        QString str =
+          CQChartsModelUtil::modelString(modelData->charts(), modelData->model().data(),
+                                         0, columnDetails->column(), parent, ok);
+        if (! ok) continue;
+
+        CQChartsConnectionList::Connections connections;
+
+        if (CQChartsConnectionList::stringToConnections(str, connections))
+          connectionsColumn = columnDetails->column();
+      }
+
+      if (! namePairColumn.isValid()) {
+        QModelIndex parent;
+
+        bool ok;
+
+        QString str =
+          CQChartsModelUtil::modelString(modelData->charts(), modelData->model().data(),
+                                         0, columnDetails->column(), parent, ok);
+        if (! ok) continue;
+
+        CQChartsNamePair::Names names;
+
+        if (CQChartsNamePair::stringToNames(str, names))
+          namePairColumn = columnDetails->column();
+      }
+    }
+    else if (columnDetails->isNumeric()) {
+      if (! countColumn.isValid())
+        countColumn = columnDetails->column();
+
+      if (! nodeColumn.isValid())
+        nodeColumn = columnDetails->column();
+    }
+  }
+
+  if (! hasConnections && connectionsColumn.isValid()) {
+    analyzeModelData.parameterNameColumn["connections"] = connectionsColumn;
+
+    hasConnections = true;
+  }
+
+  if (! hasNamePair && namePairColumn.isValid()) {
+    analyzeModelData.parameterNameColumn["namePair"] = namePairColumn;
+
+    hasNamePair = true;
+  }
+
+  if (hasConnections && ! hasNode && nodeColumn.isValid())
+    analyzeModelData.parameterNameColumn["node"] = nodeColumn;
+
+  if (hasNamePair && ! hasCount && countColumn.isValid())
+    analyzeModelData.parameterNameColumn["count"] = countColumn;
 }
 
 CQChartsPlot *

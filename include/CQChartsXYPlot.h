@@ -32,6 +32,13 @@ class CQChartsXYPlotType : public CQChartsPointPlotType {
 
   QString description() const override;
 
+  //---
+
+  void analyzeModel(CQChartsModelData *modelData,
+                    CQChartsAnalyzeModelData &analyzeModelData) override;
+
+  //---
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 

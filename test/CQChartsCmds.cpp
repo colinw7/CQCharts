@@ -2713,10 +2713,9 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
   if (flattenVisitor.isHierarchical()) {
     bool ok;
 
-    QString name =
-      CQChartsModelUtil::modelHeaderString(model.data(), CQChartsColumn(0), Qt::Horizontal, ok);
+    QString name = CQChartsModelUtil::modelHeaderString(model.data(), 0, Qt::Horizontal, ok);
 
-    CQChartsModelUtil::setModelHeaderValue(dataModel, CQChartsColumn(0), Qt::Horizontal, name);
+    CQChartsModelUtil::setModelHeaderValue(dataModel, 0, Qt::Horizontal, name);
   }
 
   // set other columns and types
@@ -2726,11 +2725,9 @@ flattenChartsModelCmd(CQChartsCmdArgs &argv)
     bool ok;
 
     QString name =
-      CQChartsModelUtil::modelHeaderString(model.data(), CQChartsColumn(c + nh),
-                                           Qt::Horizontal, ok);
+      CQChartsModelUtil::modelHeaderString(model.data(), c + nh, Qt::Horizontal, ok);
 
-    CQChartsModelUtil::setModelHeaderValue(dataModel, CQChartsColumn(c + nh),
-                                           Qt::Horizontal, name);
+    CQChartsModelUtil::setModelHeaderValue(dataModel, c + nh, Qt::Horizontal, name);
 
     CQBaseModelType    columnType;
     CQBaseModelType    columnBaseType;
@@ -3059,8 +3056,7 @@ writeChartsModelCmd(CQChartsCmdArgs &argv)
       bool ok;
 
       QVariant var =
-        CQChartsModelUtil::modelHeaderValue(model.data(), CQChartsColumn(c),
-                                            Qt::Horizontal, role, ok);
+        CQChartsModelUtil::modelHeaderValue(model.data(), c, Qt::Horizontal, role, ok);
 
       QString str = var.toString();
 
@@ -4157,8 +4153,7 @@ createChartsStatsModelCmd(CQChartsCmdArgs &argv)
   CQDataModel *statsModel = new CQDataModel(nc1, nr1);
 
   for (int c = 0; c < nc1; ++c) {
-    CQChartsModelUtil::setModelHeaderValue(statsModel, CQChartsColumn(c),
-                                           Qt::Horizontal, columnNames[c]);
+    CQChartsModelUtil::setModelHeaderValue(statsModel, c, Qt::Horizontal, columnNames[c]);
   }
 
   for (int r = 0; r < nr1; ++r) {

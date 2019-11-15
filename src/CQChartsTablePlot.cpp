@@ -3,8 +3,8 @@
 #include <CQChartsAxis.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
-#include <CQChartsModelUtil.h>
 #include <CQChartsAnalyzeModelData.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTable.h>

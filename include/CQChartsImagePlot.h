@@ -90,11 +90,6 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
 //---
 
-CQCHARTS_NAMED_SHAPE_DATA(Cell,cell)
-CQCHARTS_NAMED_TEXT_DATA(CellLabel,cellLabel)
-CQCHARTS_NAMED_TEXT_DATA(XLabel,xLabel)
-CQCHARTS_NAMED_TEXT_DATA(YLabel,yLabel)
-
 /*!
  * \brief Image Plot
  * \ingroup Charts

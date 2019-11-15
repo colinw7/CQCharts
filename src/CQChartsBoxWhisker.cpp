@@ -94,7 +94,7 @@ drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQSt
     device->drawPolygon(poly);
   }
   else {
-    QRectF prect(p2.x, p2.y, p4.x - p2.x, p4.y - p2.y);
+    QRectF prect = CQChartsGeom::BBox(p2, p4).qrect();
 
     CQChartsDrawUtil::drawRoundedPolygon(device, prect, cornerSize, cornerSize);
   }

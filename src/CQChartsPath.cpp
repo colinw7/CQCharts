@@ -48,7 +48,7 @@ toString() const
 
 bool
 CQChartsPath::
-fromString(const QString &str)
+setValue(const QString &str)
 {
   delete path_;
 

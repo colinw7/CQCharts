@@ -1096,8 +1096,8 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   CQChartsGeom::Point p12 = CQChartsGeom::Point(xc - r2, yc - r2);
   CQChartsGeom::Point p22 = CQChartsGeom::Point(xc + r2, yc + r2);
 
-  QRectF qr1(p11.x, p21.y, p21.x - p11.x, p11.y - p21.y);
-  QRectF qr2(p12.x, p22.y, p22.x - p12.x, p12.y - p22.y);
+  QRectF qr1 = CQChartsGeom::BBox(p11, p21).qrect();
+  QRectF qr2 = CQChartsGeom::BBox(p12, p22).qrect();
 
   double a1 = node->a();
   double da = node->da();

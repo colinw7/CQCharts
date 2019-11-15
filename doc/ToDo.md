@@ -3,6 +3,12 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + More correlation plot customization
+ + Skip META DATA for load model preview
+ + Rename model
+ + Delete model
+ + Analyze skip bad numeric values
+ + All plots can be auto analyzed
  + Basic Parameters (simpler create plot interface)
    + Include fold model creation and simplify grouping
  + Better filter model (new model)
@@ -389,6 +395,9 @@ Distribution Plot
  + Line
  + Log Scale
  + Axis Labels deault should be based on continutity (real)
+
+Force Directed Plot
+ + Crash on Preview Resize
 
 Hier Bubble Plot
  + Pop to top

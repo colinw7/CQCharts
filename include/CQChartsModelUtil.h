@@ -108,33 +108,41 @@ bool setModelMetaValue(QAbstractItemModel *model, const QString &name, const QVa
 
 namespace CQChartsModelUtil {
 
-QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn &column,
-                          Qt::Orientation orientation, int role, bool &ok);
-QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn &column,
-                          Qt::Orientation orientation, bool &ok);
+QVariant modelHeaderValueI(const QAbstractItemModel *model, const CQChartsColumn &column,
+                           Qt::Orientation orient, int role, bool &ok);
 
-QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn &column,
-                          int role, bool &ok);
-QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn &column, bool &ok);
-
-//--
-
-QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
+QVariant modelHeaderValue(const QAbstractItemModel *model, int section,
                           Qt::Orientation orient, int role, bool &ok);
-QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
+QVariant modelHeaderValue(const QAbstractItemModel *model, int section,
                           Qt::Orientation orient, bool &ok);
-
-QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
+QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn &column,
                           int role, bool &ok);
-QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column, bool &ok);
+QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn &column,
+                          bool &ok);
 
 //--
 
-bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                         Qt::Orientation orient, const QVariant &var, int role);
-bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                         Qt::Orientation orientation, const QVariant &var);
+QString modelHeaderStringI(const QAbstractItemModel *model, const CQChartsColumn &column,
+                          Qt::Orientation orient, int role, bool &ok);
 
+QString modelHeaderString(const QAbstractItemModel *model, int section,
+                          Qt::Orientation orient, int role, bool &ok);
+QString modelHeaderString(const QAbstractItemModel *model, int section,
+                          Qt::Orientation orient, bool &ok);
+QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
+                          int role, bool &ok);
+QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
+                          bool &ok);
+
+//--
+
+bool setModelHeaderValueI(QAbstractItemModel *model, const CQChartsColumn &column,
+                          Qt::Orientation orient, const QVariant &var, int role);
+
+bool setModelHeaderValue(QAbstractItemModel *model, int section,
+                         Qt::Orientation orient, const QVariant &var, int role);
+bool setModelHeaderValue(QAbstractItemModel *model, int section,
+                         Qt::Orientation orient, const QVariant &var);
 bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
                          const QVariant &var, int role);
 bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,

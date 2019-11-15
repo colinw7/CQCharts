@@ -2,6 +2,9 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
+#include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
+#include <CQChartsAnalyzeModelData.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
@@ -25,7 +28,7 @@ addParameters()
   startParameterGroup("Radar");
 
   addColumnParameter("name", "Name", "nameColumn").
-    setString().setTip("Name column");
+    setString().setBasic().setTip("Name column");
 
   addColumnsParameter("value", "Value", "valueColumns").
    setNumeric().setRequired().setTip("Value column");
@@ -55,6 +58,35 @@ description() const
      p("None.").
     h3("Example").
      p(IMG("images/radar.png"));
+}
+
+void
+CQChartsRadarPlotType::
+analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
+{
+  CQChartsModelDetails *details = modelData->details();
+  if (! details) return;
+
+  CQChartsColumn  nameColumn;
+  CQChartsColumns numericColumns;
+
+  for (int c = 0; c < details->numColumns(); ++c) {
+    const CQChartsModelColumnDetails *columnDetails = details->columnDetails(CQChartsColumn(c));
+
+    if      (columnDetails->isNumeric()) {
+      numericColumns.addColumn(columnDetails->column());
+    }
+    else if (columnDetails->type() == CQBaseModelType::STRING) {
+      if (! nameColumn.isValid())
+        nameColumn = columnDetails->column();
+    }
+  }
+
+  if (nameColumn.isValid())
+    analyzeModelData.parameterNameColumn["name"] = nameColumn;
+
+  if (numericColumns.count())
+    analyzeModelData.parameterNameColumns["value"] = numericColumns;
 }
 
 CQChartsPlot *

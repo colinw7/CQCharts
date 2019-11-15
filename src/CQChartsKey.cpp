@@ -1544,7 +1544,7 @@ draw(CQChartsPaintDevice *device) const
   CQChartsGeom::Point p1 = plot()->windowToPixel(CQChartsGeom::Point(x    , y    ));
   CQChartsGeom::Point p2 = plot()->windowToPixel(CQChartsGeom::Point(x + w, y - h));
 
-  QRectF pixelRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+  QRectF pixelRect = CQChartsGeom::BBox(p1, p2).qrect();
 
   //---
 

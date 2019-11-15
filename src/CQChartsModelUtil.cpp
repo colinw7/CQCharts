@@ -948,8 +948,8 @@ setModelMetaValue(QAbstractItemModel *model, const QString &name, const QVariant
 
 namespace CQChartsModelUtil {
 
-QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn &column,
-                          Qt::Orientation orientation, int role, bool &ok) {
+QVariant modelHeaderValueI(const QAbstractItemModel *model, const CQChartsColumn &column,
+                           Qt::Orientation orient, int role, bool &ok) {
   ok = false;
 
   if (! column.isValid())
@@ -964,28 +964,34 @@ QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn 
   if (icolumn < 0)
     return QVariant();
 
-  return CQModelUtil::modelHeaderValue(model, icolumn, orientation, role, ok);
+  return CQModelUtil::modelHeaderValue(model, icolumn, orient, role, ok);
 }
 
-QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn &column,
-                          Qt::Orientation orientation, bool &ok) {
-  return modelHeaderValue(model, column, orientation, column.role(Qt::DisplayRole), ok);
+QVariant modelHeaderValue(const QAbstractItemModel *model, int section,
+                          Qt::Orientation orient, int role, bool &ok) {
+  return modelHeaderValueI(model, CQChartsColumn(section), orient, role, ok);
+}
+
+QVariant modelHeaderValue(const QAbstractItemModel *model, int section,
+                          Qt::Orientation orient, bool &ok) {
+  return modelHeaderValueI(model, CQChartsColumn(section), orient, Qt::DisplayRole, ok);
 }
 
 QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn &column,
                           int role, bool &ok) {
-  return modelHeaderValue(model, column, Qt::Horizontal, role, ok);
+  return modelHeaderValueI(model, column, Qt::Horizontal, role, ok);
 }
 
-QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn &column, bool &ok) {
-  return modelHeaderValue(model, column, Qt::Horizontal, column.role(Qt::DisplayRole), ok);
+QVariant modelHeaderValue(const QAbstractItemModel *model, const CQChartsColumn &column,
+                          bool &ok) {
+  return modelHeaderValueI(model, column, Qt::Horizontal, column.role(Qt::DisplayRole), ok);
 }
 
 //--
 
-QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
+QString modelHeaderStringI(const QAbstractItemModel *model, const CQChartsColumn &column,
                           Qt::Orientation orient, int role, bool &ok) {
-  QVariant var = modelHeaderValue(model, column, orient, role, ok);
+  QVariant var = modelHeaderValueI(model, column, orient, role, ok);
   if (! var.isValid()) return "";
 
   QString str;
@@ -996,24 +1002,30 @@ QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn 
   return str;
 }
 
-QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
+QString modelHeaderString(const QAbstractItemModel *model, int section,
+                          Qt::Orientation orient, int role, bool &ok) {
+  return modelHeaderStringI(model, CQChartsColumn(section), orient, role, ok);
+}
+
+QString modelHeaderString(const QAbstractItemModel *model, int section,
                           Qt::Orientation orient, bool &ok) {
-  return modelHeaderString(model, column, orient, column.role(Qt::DisplayRole), ok);
+  return modelHeaderStringI(model, CQChartsColumn(section), orient, Qt::DisplayRole, ok);
 }
 
 QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
                           int role, bool &ok) {
-  return modelHeaderString(model, column, Qt::Horizontal, role, ok);
+  return modelHeaderStringI(model, column, Qt::Horizontal, role, ok);
 }
 
-QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column, bool &ok) {
-  return modelHeaderString(model, column, Qt::Horizontal, column.role(Qt::DisplayRole), ok);
+QString modelHeaderString(const QAbstractItemModel *model, const CQChartsColumn &column,
+                          bool &ok) {
+  return modelHeaderStringI(model, column, Qt::Horizontal, column.role(Qt::DisplayRole), ok);
 }
 
 //--
 
-bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                         Qt::Orientation orient, const QVariant &var, int role) {
+bool setModelHeaderValueI(QAbstractItemModel *model, const CQChartsColumn &column,
+                          Qt::Orientation orient, const QVariant &var, int role) {
   if (column.type() != CQChartsColumn::Type::DATA &&
       column.type() != CQChartsColumn::Type::DATA_INDEX)
     return false;
@@ -1021,19 +1033,24 @@ bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column
   return model->setHeaderData(column.column(), orient, var, role);
 }
 
-bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                         Qt::Orientation orientation, const QVariant &var) {
-  return setModelHeaderValue(model, column, orientation, var, column.role(Qt::EditRole));
+bool setModelHeaderValue(QAbstractItemModel *model, int section,
+                         Qt::Orientation orient, const QVariant &var, int role) {
+  return setModelHeaderValueI(model, CQChartsColumn(section), orient, var, role);
+}
+
+bool setModelHeaderValue(QAbstractItemModel *model, int section,
+                         Qt::Orientation orient, const QVariant &var) {
+  return setModelHeaderValueI(model, CQChartsColumn(section), orient, var, Qt::EditRole);
 }
 
 bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
                          const QVariant &var, int role) {
-  return setModelHeaderValue(model, column, Qt::Horizontal, var, role);
+  return setModelHeaderValueI(model, column, Qt::Horizontal, var, role);
 }
 
 bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
                          const QVariant &var) {
-  return setModelHeaderValue(model, column, Qt::Horizontal, var, column.role(Qt::EditRole));
+  return setModelHeaderValueI(model, column, Qt::Horizontal, var, column.role(Qt::EditRole));
 }
 
 //--

@@ -20,17 +20,13 @@ class CQChartsPath {
   CQChartsPath() = default;
 
   explicit CQChartsPath(const QString &str) {
-    (void) fromString(str);
+    setValue(str);
   }
 
   CQChartsPath(const CQChartsPath &rhs) {
     if (! rhs.path_) return;
 
     path_ = new QPainterPath(*rhs.path_);
-  }
-
- ~CQChartsPath() {
-    delete path_;
   }
 
   CQChartsPath &operator=(const CQChartsPath &rhs) {
@@ -42,6 +38,10 @@ class CQChartsPath {
       path_ = nullptr;
 
     return *this;
+  }
+
+ ~CQChartsPath() {
+    delete path_;
   }
 
   //---
@@ -56,9 +56,15 @@ class CQChartsPath {
 
   //---
 
+  bool setValue(const QString &str);
+
+  //---
+
   QString toString() const;
 
-  bool fromString(const QString &s);
+  bool fromString(const QString &s) {
+    return setValue(s);
+  }
 
   //---
 
