@@ -206,30 +206,34 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   //---
 
-  painter->save();
-
   x = option1.rect.right();
 
-  option1.rect = QRect(x, option.rect.top(), option.rect.width() - w - 8, option.rect.height());
+  int w1 = option.rect.width() - w - 8;
 
-  CQChartsTextOptions textOptions;
+  if (w1 > 0) {
+    painter->save();
 
-  textOptions.scaled  = true;
-  textOptions.align   = Qt::AlignLeft | Qt::AlignVCenter;
-  textOptions.clipped = true;
+    option1.rect = QRect(x, option.rect.top(), w1, option.rect.height());
 
-  if      (plot)
-    painter->setFont(plot->view()->plotFont(plot, font));
-  else if (view)
-    painter->setFont(view->viewFont(font));
-  else
-    painter->setFont(font.font());
+    CQChartsTextOptions textOptions;
 
-  CQChartsPixelPainter device(painter);
+    textOptions.scaled  = true;
+    textOptions.align   = Qt::AlignLeft | Qt::AlignVCenter;
+    textOptions.clipped = true;
 
-  CQChartsDrawUtil::drawTextInBox(&device, option1.rect, "Abc", textOptions);
+    if      (plot)
+      painter->setFont(plot->view()->plotFont(plot, font));
+    else if (view)
+      painter->setFont(view->viewFont(font));
+    else
+      painter->setFont(font.font());
 
-  painter->restore();
+    CQChartsPixelPainter device(painter);
+
+    CQChartsDrawUtil::drawTextInBox(&device, option1.rect, "Abc", textOptions);
+
+    painter->restore();
+  }
 }
 
 QString

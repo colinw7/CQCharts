@@ -8,11 +8,13 @@
 #include <CQChartsHtml.h>
 
 #include <CQSummaryModel.h>
+#include <CQPivotModel.h>
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
 #include <CQJsonModel.h>
 #include <CQGnuDataModel.h>
 #include <CQHierSepModel.h>
+#include <CQPropertyViewModel.h>
 #include <CQTclUtil.h>
 
 #ifdef CQCHARTS_FOLDED_MODEL
@@ -113,6 +115,28 @@ id() const
     return name();
 
   return QString("%1").arg(ind());
+}
+
+void
+CQChartsModelData::
+setName(const QString &s)
+{
+  if (s != name_) {
+    name_ = s;
+
+    emit dataChanged();
+  }
+}
+
+void
+CQChartsModelData::
+setFilename(const QString &s)
+{
+  if (s != filename_) {
+    filename_ = s;
+
+    emit dataChanged();
+  }
 }
 
 CQChartsModelDetails *
@@ -531,6 +555,8 @@ foldModel(const FoldData &foldData)
 
     //---
 
+    updatePropertyModel();
+
     emit currentModelChanged();
   }
   else if (foldData.foldType == FoldData::FoldType::SEPARATOR) {
@@ -565,6 +591,8 @@ foldModel(const FoldData &foldData)
 
     //---
 
+    updatePropertyModel();
+
     emit currentModelChanged();
   }
 
@@ -590,8 +618,27 @@ foldClear(bool notify)
 
     //---
 
+    updatePropertyModel();
+
     emit currentModelChanged();
   }
+}
+
+QString
+CQChartsModelData::
+filename() const
+{
+  if (filename_.length())
+    return filename_;
+
+  ModelP model = this->currentModel();
+
+  CQDataModel *dataModel = CQChartsModelUtil::getDataModel(model.data());
+
+  if (dataModel)
+    return dataModel->filename();
+
+  return "";
 }
 
 CQChartsModelData::FoldedModels
@@ -640,6 +687,228 @@ addSummaryModel()
 
   return summaryModel_;
 }
+
+//------
+
+CQPropertyViewModel *
+CQChartsModelData::
+propertyViewModel()
+{
+  if (! propertyModel_) {
+    propertyModel_ = new CQPropertyViewModel;
+
+    updatePropertyModel();
+  }
+
+  return propertyModel_;
+}
+
+void
+CQChartsModelData::
+updatePropertyModel()
+{
+  if (! propertyModel_)
+    return;
+
+  //---
+
+  propertyModel_->clear();
+
+  //---
+
+  IdModelNames idModelNames;
+
+  getPropertyNameData(idModelNames);
+
+  for (const auto &p1 : idModelNames) {
+    auto id         = p1.first;
+    auto modelNames = p1.second;
+
+    for (const auto &p2 : modelNames) {
+      auto obj = p2.first;
+
+      auto nameAliases = p2.second;
+
+      for (const auto &na : nameAliases.data) {
+        propertyModel_->addProperty(id, obj, na.name, na.alias);
+      }
+    }
+  }
+}
+
+bool
+CQChartsModelData::
+getPropertyData(const QString &name, QVariant &value) const
+{
+  CQChartsModelData *th = const_cast<CQChartsModelData *>(this);
+
+  CQPropertyViewModel *propertyModel = th->propertyViewModel();
+
+  //---
+
+  IdModelNames idModelNames;
+
+  getPropertyNameData(idModelNames);
+
+  for (const auto &p1 : idModelNames) {
+    auto id = p1.first;
+
+    if (! name.startsWith(id + "."))
+      continue;
+
+    auto modelNames = p1.second;
+
+    for (const auto &p2 : modelNames) {
+      auto obj = p2.first;
+
+      auto nameAliases = p2.second;
+
+      for (const auto &na : nameAliases.data) {
+        QString name1 = QString("%1.%2").arg(id).arg(na.alias);
+
+        if (name == name1)
+          return propertyModel->getProperty(obj, na.name, value);
+      }
+    }
+  }
+
+  //---
+
+  return false;
+}
+
+bool
+CQChartsModelData::
+setPropertyData(const QString &name, const QVariant &value)
+{
+  CQChartsModelData *th = const_cast<CQChartsModelData *>(this);
+
+  CQPropertyViewModel *propertyModel = th->propertyViewModel();
+
+  //---
+
+  IdModelNames idModelNames;
+
+  getPropertyNameData(idModelNames);
+
+  for (const auto &p1 : idModelNames) {
+    auto id = p1.first;
+
+    if (! name.startsWith(id + "."))
+      continue;
+
+    auto modelNames = p1.second;
+
+    for (const auto &p2 : modelNames) {
+      auto obj = p2.first;
+
+      auto nameAliases = p2.second;
+
+      for (const auto &na : nameAliases.data) {
+        QString name1 = QString("%1.%2").arg(id).arg(na.alias);
+
+        if (name == name1)
+          return propertyModel->setProperty(obj, na.name, value);
+      }
+    }
+  }
+
+  //---
+
+  return false;
+}
+
+void
+CQChartsModelData::
+getPropertyNameData(IdModelNames &names) const
+{
+  CQChartsModelData *th = const_cast<CQChartsModelData *>(this);
+
+  names[""][th] << "ind" << "id" << "name" << "filename" << "summaryEnabled" << "currentColumn";
+
+  //---
+
+  ModelP model = this->currentModel();
+
+  QAbstractItemModel *absModel = CQChartsModelUtil::getBaseModel(model.data());
+
+  CQBaseModel *baseModel = qobject_cast<CQBaseModel *>(absModel);
+
+  if (baseModel)
+    names["base"][baseModel] << "dataType" << "title" << "maxTypeRows";
+
+  CQDataModel *dataModel = CQChartsModelUtil::getDataModel(model.data());
+
+  if (dataModel)
+    names["data"][dataModel] << "readOnly" << "filter" /* << "filename" */;
+
+  CQChartsExprModel *exprModel = CQChartsModelUtil::getExprModel(absModel);
+
+  if (exprModel)
+    names["expr"][exprModel] << "debug";
+
+  CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(absModel);
+
+  if (modelFilter)
+    names["filter"][modelFilter] << "filter" << "type" << "invert";
+
+  CQPivotModel *pivotModel = qobject_cast<CQPivotModel *>(baseModel);
+
+  if (pivotModel)
+    names["pivot"][pivotModel] << "valueType" << "includeTotals";
+
+  CQHierSepModel *hierSepModel = CQChartsModelUtil::getHierSepModel(model.data());
+
+  if (hierSepModel)
+    names["hierSep"][hierSepModel] <<
+      NameAlias("separator", "foldSeparator") << "foldColumn" << "propagateValue";
+
+  CQCsvModel *csvModel = qobject_cast<CQCsvModel *>(absModel);
+
+  if (csvModel)
+    names["csv"][csvModel] << "commentHeader" << "firstLineHeader" <<
+                              "firstColumnHeader" << "separator";
+
+  CQTsvModel *tsvModel = qobject_cast<CQTsvModel *>(absModel);
+
+  if (tsvModel)
+    names["tsv"][tsvModel] << "commentHeader" << "firstLineHeader" << "firstColumnHeader";
+
+  CQGnuDataModel *gnuModel = qobject_cast<CQGnuDataModel *>(absModel);
+
+  if (gnuModel)
+    names["gnu"][gnuModel] << "commentHeader" << "firstLineHeader" << "firstColumnHeader" <<
+                              "commentChars" << "missingStr" << "separator" << "parseStrings" <<
+                              "setBlankLines" << "subSetBlankLines" << "keepQuotes";
+
+  CQJsonModel *jsonModel = qobject_cast<CQJsonModel *>(absModel);
+
+  if (jsonModel)
+    names["json"][jsonModel] << "hierarchical" << "flat";
+}
+
+void
+CQChartsModelData::
+getPropertyNames(QStringList &names) const
+{
+  IdModelNames idModelNames;
+
+  getPropertyNameData(idModelNames);
+
+  for (const auto &p1 : idModelNames) {
+    auto id = p1.first;
+
+    for (const auto &p2 : p1.second) {
+      auto modelNames = p2.second;
+
+      for (const auto &na : modelNames.data) {
+        names << QString("%1.%2").arg(id).arg(na.alias);
+      }
+    }
+  }
+}
+
+//------
 
 void
 CQChartsModelData::

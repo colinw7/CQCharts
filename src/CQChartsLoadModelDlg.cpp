@@ -8,6 +8,7 @@
 #include <CQChartsUtil.h>
 #include <CQTabSplit.h>
 #include <CQFilename.h>
+#include <CQStrParse.h>
 #include <CQUtil.h>
 
 #include <QComboBox>
@@ -109,7 +110,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   // Number Edit
   numberEdit_ = CQUtil::makeWidget<CQLineEdit>("numerEdit");
 
-  numberEdit_->setText(QString("%1").arg(expressionLines()));
+  numberEdit_->setText(QString("%1").arg(expressionRows()));
   numberEdit_->setToolTip("Number of rows to generate for expression");
 
   fileFrameLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Num Rows", "numRowsLabel"), row, 0);
@@ -241,7 +242,7 @@ numRows() const
   int n = CQChartsUtil::toInt(numberEdit_->text(), ok);
 
   if (! ok)
-    n = expressionLines();
+    n = expressionRows();
 
   return n;
 }
@@ -259,20 +260,46 @@ previewFileSlot()
 {
   QString fileName = fileEdit_->name();
 
+  int numLines = 1024;
+
   QStringList lines;
 
-  if (! CQChartsUtil::fileToLines(fileName, lines, previewLines()))
+  if (! CQChartsUtil::fileToLines(fileName, lines, numLines))
     return;
+
+  int  lineNum = 0;
+  bool inMeta  = false;
 
   QString text;
 
   for (int i = 0; i < lines.length(); ++i) {
     const QString &line = lines[i];
 
-    if (text.length())
-      text += "\n";
+    CQStrParse parse(line);
 
-     text += line;
+    parse.skipSpace();
+
+    if (! inMeta) {
+      if (parse.isString("#META_DATA")) {
+        inMeta = true;
+      }
+      else {
+        if (text.length())
+          text += "\n";
+
+        text += line;
+
+        ++lineNum;
+
+        if (lineNum >= previewLines())
+          break;
+      }
+    }
+    else {
+      if (parse.isString("#END_META_DATA")) {
+        inMeta = false;
+      }
+    }
   }
 
   previewText_->setText(text);
@@ -398,4 +425,17 @@ cancelSlot()
   modelInd_ = -1;
 
   hide();
+}
+
+QSize
+CQChartsLoadModelDlg::
+sizeHint() const
+{
+  QFontMetrics fm(font());
+
+  QSize s = QDialog::sizeHint();
+
+  int h = fm.height()*40;
+
+  return QSize(s.width(), h);
 }

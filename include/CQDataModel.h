@@ -17,6 +17,7 @@ class CQDataModel : public CQBaseModel {
 
   Q_PROPERTY(bool    readOnly READ isReadOnly WRITE setReadOnly)
   Q_PROPERTY(QString filter   READ filter     WRITE setFilter  )
+  Q_PROPERTY(QString filename READ filename   WRITE setFilename)
 
  public:
   CQDataModel();
@@ -38,6 +39,12 @@ class CQDataModel : public CQBaseModel {
   void setFilter(const QString &filter) { filter_ = filter; setFilterInited(false); }
 
   virtual bool hasFilter() const { return filter_.length(); }
+
+  //--
+
+  //! get/set filename
+  const QString &filename() const { return filename_; }
+  void setFilename(const QString &v) { filename_ = v; }
 
   //--
 
@@ -96,10 +103,11 @@ class CQDataModel : public CQBaseModel {
   typedef std::vector<FilterData> FilterDatas;
 
   bool            readOnly_     { false };   //!< is read only
+  QString         filter_;                   //!< filter text
+  QString         filename_;                 //!< input filename
   Cells           hheader_;                  //!< horizontal header values
   Cells           vheader_;                  //!< vertical header values
   Data            data_;                     //!< row values
-  QString         filter_;                   //!< filter text
   bool            filterInited_ { false };   //!< filter initialized
   FilterDatas     filterDatas_;              //!< filter datas
   CQModelDetails* details_      { nullptr }; //!< model details

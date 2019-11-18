@@ -730,10 +730,8 @@ getExprModel(QAbstractItemModel *model)
   if (exprModel)
     return exprModel;
 
-  QSortFilterProxyModel *sortModel = qobject_cast<QSortFilterProxyModel *>(model);
-
-  if (! sortModel)
-    return nullptr;
+  QSortFilterProxyModel *sortModel = getSortFilterProxyModel(model);
+  if (! sortModel) return nullptr;
 
   QAbstractItemModel *sourceModel = sortModel->sourceModel();
 //std::cerr << (sourceModel ? sourceModel->objectName().toStdString() : "null") << "\n";
@@ -759,10 +757,8 @@ getExprModel(QAbstractItemModel *model)
   if (exprModel)
     return exprModel;
 
-  sortModel = qobject_cast<QSortFilterProxyModel *>(sourceModel);
-
-  if (! sortModel)
-    return nullptr;
+  sortModel = getSortFilterProxyModel(sourceModel);
+  if (! sortModel) return nullptr;
 
   sourceModel = sortModel->sourceModel();
 //std::cerr << (sourceModel ? sourceModel->objectName().toStdString() : "null") << "\n";
@@ -784,10 +780,8 @@ getHierSepModel(QAbstractItemModel *model)
   if (hierSepModel)
     return hierSepModel;
 
-  QSortFilterProxyModel *sortModel = qobject_cast<QSortFilterProxyModel *>(model);
-
-  if (! sortModel)
-    return nullptr;
+  QSortFilterProxyModel *sortModel = getSortFilterProxyModel(model);
+  if (! sortModel) return nullptr;
 
   QAbstractItemModel *sourceModel = sortModel->sourceModel();
 
@@ -798,6 +792,15 @@ getHierSepModel(QAbstractItemModel *model)
 
   return nullptr;
 
+}
+
+QSortFilterProxyModel *
+getSortFilterProxyModel(QAbstractItemModel *model)
+{
+  QSortFilterProxyModel *sortModel = qobject_cast<QSortFilterProxyModel *>(model);
+  if (! sortModel) return nullptr;
+
+  return sortModel;
 }
 
 const CQDataModel *
@@ -826,70 +829,7 @@ getBaseModel(QAbstractItemModel *model)
 
 //---
 
-void
-getPropertyNames(const QAbstractItemModel *model, ModelNames &names)
-{
-  // TODO: proxy models
-  QAbstractItemModel *model1 = const_cast<QAbstractItemModel *>(model);
-
-  QAbstractItemModel *absModel = getBaseModel(model1);
-
-  CQBaseModel *baseModel = qobject_cast<CQBaseModel *>(absModel);
-  CQDataModel *dataModel = qobject_cast<CQDataModel *>(absModel);
-
-  CQChartsExprModel *exprModel = getExprModel(absModel);
-
-  CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(absModel);
-
-  CQPivotModel *pivotModel = qobject_cast<CQPivotModel *>(baseModel);
-
-  CQCsvModel     *csvModel  = qobject_cast<CQCsvModel     *>(absModel);
-  CQTsvModel     *tsvModel  = qobject_cast<CQTsvModel     *>(absModel);
-  CQGnuDataModel *gnuModel  = qobject_cast<CQGnuDataModel *>(absModel);
-  CQJsonModel    *jsonModel = qobject_cast<CQJsonModel    *>(absModel);
-
-  if (baseModel)
-    names[baseModel] << "title" << "maxTypeRows";
-
-  if (dataModel)
-    names[dataModel] << "readOnly" << "filter";
-
-  if (exprModel)
-    names[exprModel] << "debug";
-
-  if (modelFilter)
-    names[modelFilter] << "filter" << "type" << "invert";
-
-  if (pivotModel)
-    names[pivotModel] << "valueType" << "includeTotals";
-
-  if (csvModel)
-    names[csvModel] << "filename" << "commentHeader" << "firstLineHeader" << "firstColumnHeader" <<
-                       "separator";
-
-  if (tsvModel)
-    names[tsvModel] << "filename" << "commentHeader" << "firstLineHeader" << "firstColumnHeader";
-
-  if (gnuModel)
-    names[gnuModel] << "filename" << "commentHeader" << "firstLineHeader" << "firstColumnHeader" <<
-                       "commentChars" << "missingStr" << "separator" << "parseStrings" <<
-                       "setBlankLines" << "subSetBlankLines" << "keepQuotes";
-
-  if (jsonModel)
-    names[jsonModel] << "hierarchical" << "flat";
-}
-
-void
-getPropertyNames(const QAbstractItemModel *model, QStringList &names)
-{
-  ModelNames modelNames;
-
-  getPropertyNames(model, modelNames);
-
-  for (const auto &pn : modelNames)
-    names << pn.second;
-}
-
+#if 0
 bool
 getProperty(const QAbstractItemModel *model, const QString &name, QVariant &value)
 {
@@ -921,6 +861,9 @@ setProperty(QAbstractItemModel *model, const QString &name, const QVariant &valu
 
   return false;
 }
+#endif
+
+//---
 
 QVariant
 getModelMetaValue(const QAbstractItemModel *model, const QString &name)

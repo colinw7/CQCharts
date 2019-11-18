@@ -1,0 +1,1 @@
+show_charts_text_dlg

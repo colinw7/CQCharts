@@ -140,6 +140,7 @@ updateSlot()
   auto addWidgetItem = [&](const QString &name, int r, int c) {
     QTableWidgetItem *item = new QTableWidgetItem(name);
 
+    item->setToolTip(name);
     item->setFlags(item->flags() & ~Qt::ItemIsEditable);
 
     detailsTable_->setItem(r, c, item);

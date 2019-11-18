@@ -5,8 +5,6 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 
-class QMenu;
-
 //---
 
 /*!

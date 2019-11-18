@@ -912,6 +912,12 @@ addModelData(ModelP &model)
 
   modelData->setInd(ind);
 
+  connect(modelData, SIGNAL(dataChanged()), this, SIGNAL(modelDataDataChanged()));
+//connect(modelData, SIGNAL(modelChanged()), this, SIGNAL(modelDataContentsChanged()));
+//connect(modelData, SIGNAL(currentModelChanged()), this, SIGNAL(modelDataCurrentModelChanged()));
+
+  //---
+
   modelDatas_.push_back(modelData);
 
   ind = modelData->ind();
@@ -1029,15 +1035,13 @@ CQCharts::
 setModelName(CQChartsModelData *modelData, const QString &name)
 {
   modelData->setName(name);
-
-  emit modelNameChanged(name);
 }
 
 void
 CQCharts::
 setModelFileName(CQChartsModelData *modelData, const QString &fileName)
 {
-  modelData->setFileName(fileName);
+  modelData->setFilename(fileName);
 }
 
 //---

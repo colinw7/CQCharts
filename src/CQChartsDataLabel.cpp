@@ -245,8 +245,13 @@ draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
 
     CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
 
-    CQChartsRotatedText::bboxData(x, y, ystr, device->font(), textAngle(), border,
-                                  qrect1, points, align, /*alignBBox*/ true);
+    CQChartsTextOptions options;
+
+    options.angle = textAngle();
+    options.align = align;
+
+    CQChartsRotatedText::calcBBoxData(x, y, ystr, device->font(), options, border,
+                                      qrect1, points, /*alignBBox*/ true);
 
     QPolygonF poly;
 
@@ -260,8 +265,15 @@ draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
     if (ystr.length()) {
       QPointF p1(x, y);
 
-      CQChartsRotatedText::draw(device, device->pixelToWindow(p1), ystr, textAngle(), align,
-                                /*alignBBox*/ true, isTextContrast());
+      CQChartsTextOptions options;
+
+      options.angle         = textAngle();
+      options.align         = align;
+      options.contrast      = isTextContrast();
+      options.contrastAlpha = textContrastAlpha();
+
+      CQChartsRotatedText::draw(device, device->pixelToWindow(p1), ystr, options,
+                                /*alignBBox*/ true);
     }
   }
 
@@ -415,8 +427,13 @@ calcRect(const QRectF &qrect, const QString &ystr, const Position &position) con
 
     CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
 
-    CQChartsRotatedText::bboxData(x, y, ystr, font, textAngle(), border,
-                                  qrect1, points, align, /*alignBBox*/ true);
+    CQChartsTextOptions options;
+
+    options.angle = textAngle();
+    options.align = align;
+
+    CQChartsRotatedText::calcBBoxData(x, y, ystr, font, options, border,
+                                      qrect1, points, /*alignBBox*/ true);
   }
 
   //---

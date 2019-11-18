@@ -994,3 +994,9 @@
 # 11/14/2019
  + Improve support for analyze mode for all plots
  + Add correlation plot
+# 11/17/2019
+ + Add model delete
+ + Add more model properties and improve tcl command support
+ + Support scale and align for rotated text
+ + Add more correlation plot options
+ + Skip meta data in load model preview

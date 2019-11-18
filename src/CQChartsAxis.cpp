@@ -1661,8 +1661,13 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
           tbbox = CQChartsGeom::BBox(xpos, ypos - wth, xpos + atw, ypos);
       }
       else {
-        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, device->font(),
-                                                 angle, 0, align, /*alignBox*/true);
+        CQChartsTextOptions options;
+
+        options.angle = angle;
+        options.align = align;
+
+        QRectF rrect = CQChartsRotatedText::calcBBox(pt.x(), pt.y(), text, device->font(),
+                                                     options, 0, /*alignBox*/true);
 
         lbbox_ += CQChartsGeom::BBox(rrect);
 
@@ -1690,23 +1695,9 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = QPointF(pt.x() - plot->windowToPixelWidth(0.5), ty);
 
-#if 0
-        if (visible)
-          CQChartsDrawUtil::drawSimpleText(device, p, text);
-#endif
-
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
       }
       else {
-#if 0
-        if (visible) {
-          QPointF p1 = plot_->pixelToWindow(pt);
-
-          CQChartsRotatedText::draw(device, p1, text, angle, align,
-                                    /*alignBox*/true, isAxesTickLabelTextContrast());
-        }
-#endif
-
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(pt, tbbox, text, angle, align));
       }
 
@@ -1777,8 +1768,13 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
           tbbox = CQChartsGeom::BBox(xpos, ypos - wth, xpos + atw, ypos);
       }
       else {
-        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, device->font(),
-                                                 angle, 0, align, /*alignBox*/true);
+        CQChartsTextOptions options;
+
+        options.angle = angle;
+        options.align = align;
+
+        QRectF rrect = CQChartsRotatedText::calcBBox(pt.x(), pt.y(), text, device->font(),
+                                                     options, 0, /*alignBox*/true);
 
         lbbox_ += CQChartsGeom::BBox(rrect);
 
@@ -1806,23 +1802,9 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = QPointF(pt.x() - plot->windowToPixelWidth(0.5), ty);
 
-#if 0
-        if (visible)
-          CQChartsDrawUtil::drawSimpleText(device, p, text);
-#endif
-
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
       }
       else {
-#if 0
-        if (visible) {
-          QPointF p1 = plot_->pixelToWindow(pt);
-
-          CQChartsRotatedText::draw(device, p1, text, angle, align,
-                                    /*alignBox*/true, isAxesTickLabelTextContrast());
-        }
-#endif
-
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(pt, tbbox, text, angle, align));
       }
 
@@ -1922,8 +1904,13 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
           tbbox = CQChartsGeom::BBox(xpos - atw, ypos, xpos, ypos + wth);
       }
       else {
-        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, device->font(),
-                                                 angle, 0, align, /*alignBox*/true);
+        CQChartsTextOptions options;
+
+        options.angle = angle;
+        options.align = align;
+
+        QRectF rrect = CQChartsRotatedText::calcBBox(pt.x(), pt.y(), text, device->font(),
+                                                     options, 0, /*alignBox*/true);
 
         lbbox_ += CQChartsGeom::BBox(rrect);
 
@@ -1952,23 +1939,9 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = QPointF(tx, pt.y() - plot->windowToPixelHeight(0.5) + ta);
 
-#if 0
-        if (visible)
-          CQChartsDrawUtil::drawSimpleText(device, p, text);
-#endif
-
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
       }
       else {
-#if 0
-        if (visible) {
-          QPointF p1 = plot_->pixelToWindow(pt);
-
-          CQChartsRotatedText::draw(device, p1, text, angle, align,
-                                    /*alignBox*/true, isAxesTickLabelTextContrast());
-        }
-#endif
-
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(pt, tbbox, text, angle, align));
       }
 
@@ -2039,8 +2012,13 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
           tbbox = CQChartsGeom::BBox(xpos - atw, ypos, xpos, ypos + wth);
       }
       else {
-        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, device->font(),
-                                                 angle, 0, align, /*alignBox*/true);
+        CQChartsTextOptions options;
+
+        options.angle = angle;
+        options.align = align;
+
+        QRectF rrect = CQChartsRotatedText::calcBBox(pt.x(), pt.y(), text, device->font(),
+                                                     options, 0, /*alignBox*/true);
 
         lbbox_ += CQChartsGeom::BBox(rrect);
 
@@ -2069,23 +2047,9 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
           p = QPointF(tx, pt.y() - plot->windowToPixelHeight(0.5) + ta);
 
-#if 0
-        if (visible)
-          CQChartsDrawUtil::drawSimpleText(device, p, text);
-#endif
-
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
       }
       else {
-#if 0
-        if (visible) {
-          QPointF p1 = plot_->pixelToWindow(pt);
-
-          CQChartsRotatedText::draw(device, p1, text, angle, align,
-                                    /*alignBox*/true, isAxesTickLabelTextContrast());
-        }
-#endif
-
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(pt, tbbox, text, angle, align));
       }
 
@@ -2166,9 +2130,16 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
     if (CMathUtil::isZero(data.angle))
       CQChartsDrawUtil::drawSimpleText(device, p1, data.text);
-    else
-      CQChartsRotatedText::draw(device, p1, data.text, data.angle, data.align,
-                                /*alignBox*/true, isAxesTickLabelTextContrast());
+    else {
+      CQChartsTextOptions options;
+
+      options.angle         = data.angle;
+      options.align         = data.align;
+      options.contrast      = isAxesTickLabelTextContrast();
+      options.contrastAlpha = axesTickLabelTextContrastAlpha();
+
+      CQChartsRotatedText::draw(device, p1, data.text, options, /*alignBox*/true);
+    }
   }
 
   if (plot->showBoxes()) {
@@ -2292,8 +2263,14 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       QPointF p1 = plot_->pixelToWindow(QPointF(tx, aym));
 
-      CQChartsRotatedText::draw(device, p1, text, 90.0, Qt::AlignLeft | Qt::AlignBottom,
-                                /*alignBBox*/false, isAxesLabelTextContrast());
+      CQChartsTextOptions options;
+
+      options.angle         = 90.0;
+      options.align         = Qt::AlignLeft | Qt::AlignBottom;
+      options.contrast      = isAxesLabelTextContrast();
+      options.contrastAlpha = axesLabelTextContrastAlpha();
+
+      CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
 
       if (! plot_->isInvertX()) {
         bbox += CQChartsGeom::Point(apos - (atw      ), (amin + amax)/2 - ath);
@@ -2317,8 +2294,14 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       QPointF p1 = plot_->pixelToWindow(QPointF(tx, aym));
 
-      CQChartsRotatedText::draw(device, p1, text, -90.0, Qt::AlignLeft | Qt::AlignBottom,
-                                /*alignBBox*/false, isAxesLabelTextContrast());
+      CQChartsTextOptions options;
+
+      options.angle         = -90;
+      options.align         = Qt::AlignLeft | Qt::AlignBottom;
+      options.contrast      = isAxesLabelTextContrast();
+      options.contrastAlpha = axesTickLabelTextContrastAlpha();
+
+      CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
 #else
       double aym = (a2.y + a1.y)/2 + tw/2;
 
@@ -2326,8 +2309,14 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       QPointF p1 = plot_->pixelToWindow(QPointF(tx, aym));
 
-      CQChartsRotatedText::draw(device, p1, text, 90.0, Qt::AlignLeft | Qt::AlignBottom,
-                                /*alignBBox*/false, isAxesLabelTextContrast());
+      CQChartsTextOptions options;
+
+      options.angle         = 90;
+      options.align         = Qt::AlignLeft | Qt::AlignBottom;
+      options.contrast      = isAxesLabelTextContrast();
+      options.contrastAlpha = axesTickLabelTextContrastAlpha();
+
+      CQChartsRotatedText::draw(device, p1, text, options, /*alignBBox*/false);
 #endif
 
       if (! plot_->isInvertX()) {

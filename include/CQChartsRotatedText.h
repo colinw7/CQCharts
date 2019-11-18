@@ -7,30 +7,36 @@
 #include <QFont>
 #include <vector>
 
-class CQChartsPaintDevice;
+class  CQChartsPaintDevice;
+struct CQChartsTextOptions;
 
 namespace CQChartsRotatedText {
 
 using Points = std::vector<QPointF>;
 
-void draw(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
-          double angle=0.0, Qt::Alignment align=Qt::AlignLeft | Qt::AlignBottom,
-          bool alignBBox=false, bool contrast=false, double contrastAlpha=0.05);
+void drawInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &text,
+               const CQChartsTextOptions &options, bool alignBBox=false);
 
-QRectF bbox(double x, double y, const QString &text, const QFont &font,
-            double angle=0.0, double border=0.0,
-            Qt::Alignment align=Qt::AlignLeft | Qt::AlignBottom,
-            bool alignBBox=false);
+void draw(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
+          const CQChartsTextOptions &options, bool alignBBox=false);
+
+void drawDelta(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
+               const CQChartsTextOptions &options, double tx, double ty, double ax, double ay);
+
+QRectF calcBBox(double x, double y, const QString &text, const QFont &font,
+                const CQChartsTextOptions &options, double border=0.0,
+                bool alignBBox=false);
 
 Points bboxPoints(double x, double y, const QString &text, const QFont &font,
-                  double angle=0.0, double border=0.0,
-                  Qt::Alignment align=Qt::AlignLeft | Qt::AlignBottom,
+                  const CQChartsTextOptions &options, double border=0.0,
                   bool alignBBox=false);
 
-void bboxData(double x, double y, const QString &text, const QFont &font, double angle,
-              const CQChartsGeom::Margin &border, QRectF &bbox, Points &points,
-              Qt::Alignment align=Qt::AlignLeft | Qt::AlignBottom,
-              bool alignBBox=false);
+void calcBBoxData(double x, double y, const QString &text, const QFont &font,
+                  const CQChartsTextOptions &options, double border,
+                  QRectF &bbox, Points &points, bool alignBBox=false);
+void calcBBoxData(double x, double y, const QString &text, const QFont &font,
+                  const CQChartsTextOptions &options, const CQChartsGeom::Margin &border,
+                  QRectF &bbox, Points &points, bool alignBBox=false);
 
 }
 

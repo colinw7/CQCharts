@@ -1,9 +1,9 @@
-# META_DATA
-#  column,latitude,type,real
-#  column,longitude,type,real
-#  column,population,type,real
-#  column,color,type,color
-# END_META_DATA
+#META_DATA
+# column,latitude,type,real
+# column,longitude,type,real
+# column,population,type,real
+# column,color,type,color
+#END_META_DATA
 name,latitude,longitude,population,color
 Excelsior,37.7244,-122.421,0.083884,#E41A1C
 Crocker Amazon,37.7107,-122.4372,0.058439,#FFFF33

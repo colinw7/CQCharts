@@ -95,6 +95,7 @@ class CQChartsViewSettings : public QFrame {
 
   void loadModelSlot();
   void editModelSlot();
+  void removeModelSlot();
   void plotModelSlot();
 
   //---
@@ -196,11 +197,13 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct ModelsWidgets {
-    ModelTable*                 modelTable    { nullptr }; //!< model table
-    QFrame*                     detailsFrame  { nullptr }; //!< model details frame
-    CQChartsModelDetailsWidget* detailsWidget { nullptr }; //!< model details
-    QPushButton*                editButton    { nullptr }; //!< edit model
-    QPushButton*                plotButton    { nullptr }; //!< edit model
+    ModelTable*                 modelTable    { nullptr }; //!< model table widget
+    QFrame*                     detailsFrame  { nullptr }; //!< model details frame widget
+    CQChartsModelDetailsWidget* detailsWidget { nullptr }; //!< model details widget
+    QPushButton*                loadButton    { nullptr }; //!< load model button
+    QPushButton*                editButton    { nullptr }; //!< edit model button
+    QPushButton*                removeButton  { nullptr }; //!< remove model button
+    QPushButton*                plotButton    { nullptr }; //!< plot model button
   };
 
   struct PlotsWidgets {
@@ -216,6 +219,7 @@ class CQChartsViewSettings : public QFrame {
     QPushButton*   raiseButton          { nullptr }; //!< raise plot button
     QPushButton*   lowerButton          { nullptr }; //!< lower plot button
     QPushButton*   removeButton         { nullptr }; //!< remove plot button
+    QPushButton*   writeButton          { nullptr }; //!< wriite plot button
   };
 
   struct AnnotationsWidgets {
@@ -223,6 +227,7 @@ class CQChartsViewSettings : public QFrame {
     PlotAnnotationsTable* plotTable    { nullptr }; //!< plot annotations table
     QPushButton*          editButton   { nullptr }; //!< edit button
     QPushButton*          removeButton { nullptr }; //!< remove button
+    QPushButton*          writeButton  { nullptr }; //!< write button
   };
 
   struct ThemeWidgets {

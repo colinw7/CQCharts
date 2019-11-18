@@ -1249,7 +1249,12 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
 
   double ta1 = (c >= 0 ? ta : ta - 180);
 
-  CQChartsRotatedText::draw(device, pt.qpoint(), name, ta1, align, /*contrast*/false);
+  CQChartsTextOptions options;
+
+  options.angle = ta1;
+  options.align = align;
+
+  CQChartsRotatedText::draw(device, pt.qpoint(), name, options);
 
   //---
 

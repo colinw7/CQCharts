@@ -64,8 +64,13 @@ draw(CQChartsPaintDevice *device, const QPointF &center, const QString &text, do
 
     CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
 
-    CQChartsRotatedText::bboxData(center.x(), center.y(), text, device->font(), angle, border,
-                                  bbox, points, align, /*alignBBox*/ true);
+    CQChartsTextOptions options;
+
+    options.angle = angle;
+    options.align = align;
+
+    CQChartsRotatedText::calcBBoxData(center.x(), center.y(), text, device->font(), options,
+                                      border, bbox, points, /*alignBBox*/ true);
 
     QPolygonF poly;
 
@@ -88,8 +93,14 @@ draw(CQChartsPaintDevice *device, const QPointF &center, const QString &text, do
 
   QPointF p1(pcenter.x() + cd, pcenter.y());
 
-  CQChartsRotatedText::draw(device, device->pixelToWindow(p1), text, angle,
-                            align, /*alignBBox*/ true, isTextContrast());
+  CQChartsTextOptions options;
+
+  options.angle         = angle;
+  options.align         = align;
+  options.contrast      = isTextContrast();
+  options.contrastAlpha = textContrastAlpha();
+
+  CQChartsRotatedText::draw(device, device->pixelToWindow(p1), text, options, /*alignBBox*/ true);
 
   device->restore();
 }
@@ -133,8 +144,13 @@ bbox(const QPointF &center, const QString &text, double angle, Qt::Alignment ali
 
     CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
 
-    CQChartsRotatedText::bboxData(center.x(), center.y(), text, font, angle, border,
-                                  qrect, points, align, /*alignBBox*/ true);
+    CQChartsTextOptions options;
+
+    options.angle = angle;
+    options.align = align;
+
+    CQChartsRotatedText::calcBBoxData(center.x(), center.y(), text, font, options, border,
+                                      qrect, points, /*alignBBox*/ true);
   }
 
   CQChartsGeom::BBox bbox = pixelToWindow(CQChartsGeom::BBox(qrect));

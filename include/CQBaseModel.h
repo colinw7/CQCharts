@@ -104,8 +104,8 @@ class CQBaseModel : public QAbstractItemModel {
   bool setColumnSorted(int column, bool b);
 
   //! get/set column sort order
-  int columnSortOrder(int column) const;
-  bool setColumnSortOrder(int column, int i);
+  Qt::SortOrder columnSortOrder(int column) const;
+  bool setColumnSortOrder(int column, Qt::SortOrder i);
 
   //! get/set column title
   QString columnTitle(int column) const;
@@ -220,7 +220,7 @@ class CQBaseModel : public QAbstractItemModel {
     QVariant        max;                                     //!< custom max value
     bool            key           { false };                 //!< is key
     bool            sorted        { false };                 //!< is sorted
-    bool            sortOrder     { Qt::AscendingOrder };    //!< sort role
+    Qt::SortOrder   sortOrder     { Qt::AscendingOrder };    //!< sort ortder
     QString         title;                                   //!< title
     RoleRowValues   roleRowValues;                           //!< row role values
   };

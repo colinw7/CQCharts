@@ -73,6 +73,8 @@ CQChartsImagePlot(CQChartsView *view, const ModelP &model) :
 {
   NoUpdate noUpdate(this);
 
+  //---
+
   addTitle();
 
   setCellFillColor     (CQChartsColor(CQChartsColor::Type::PALETTE));
@@ -86,6 +88,8 @@ CQChartsImagePlot::
 ~CQChartsImagePlot()
 {
 }
+
+//---
 
 void
 CQChartsImagePlot::
@@ -108,17 +112,14 @@ addProperties()
 
   // cell fill
   addProp("cell/fill", "cellFilled", "visible", "Cell fill visible");
-
   addFillProperties("cell/fill", "cellFill", "Cell");
 
   // cell stroke
   addProp("cell/stroke", "cellStroked", "visible", "Cell stroke visible");
-
   addLineProperties("cell/stroke", "cellStroke", "Cell");
 
   // cell label text
   addProp("cell/text", "cellLabels", "visible", "Cell text label visible");
-
   addAllTextProperties("cell/text", "cellLabelText", "Cell label");
 
   // x/y axis label text
@@ -129,7 +130,7 @@ addProperties()
   addTextProperties("yaxis/text", "yLabelText", "Y label");
 }
 
-//------
+//---
 
 void
 CQChartsImagePlot::
@@ -261,18 +262,21 @@ calcRange() const
 
   //---
 
+  // size is (num columns, num rows)
   CQChartsGeom::Range dataRange;
 
   th->nr_ = visitor.numProcessedRows();
   th->nc_ = visitor.numCols();
 
-  dataRange.updateRange(0, 0);
+  dataRange.updateRange(0.0, 0.0);
   dataRange.updateRange(std::max(nc_, 1), std::max(nr_, 1));
 
   //---
 
   return dataRange;
 }
+
+//---
 
 bool
 CQChartsImagePlot::
@@ -343,8 +347,9 @@ addImageObj(int row, int col, double x, double y, double dx, double dy, double v
 
   double rv = CMathUtil::map(value, minValue(), maxValue(), 0.0, 1.0);
 
-  CQChartsImageObj *imageObj =
-    new CQChartsImageObj(this, bbox, row, col, value, ind1, ColorInd(rv));
+  ColorInd colorInd(rv);
+
+  CQChartsImageObj *imageObj = new CQChartsImageObj(this, bbox, row, col, value, ind1, colorInd);
 
   objs.push_back(imageObj);
 }
@@ -482,9 +487,8 @@ drawXLabels(CQChartsPaintDevice *device) const
     QString name = modelHeaderString(col, Qt::Horizontal, ok);
     if (! name.length()) continue;
 
-    QRectF trect = CQChartsRotatedText::bbox(0.0, 0.0, name, device->font(),
-                                             textOptions.angle, 0, textOptions.align,
-                                             /*alignBBox*/ true);
+    QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
+                                                 textOptions, 0, /*alignBBox*/ true);
 
     colRects[col] = trect;
 
@@ -569,9 +573,8 @@ drawYLabels(CQChartsPaintDevice *device) const
     QString name = modelHeaderString(row, Qt::Vertical, ok);
     if (! name.length()) continue;
 
-    QRectF trect = CQChartsRotatedText::bbox(0.0, 0.0, name, device->font(),
-                                             textOptions.angle, 0, textOptions.align,
-                                             /*alignBBox*/ true);
+    QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
+                                                 textOptions, 0, /*alignBBox*/ true);
 
     rowRects[row] = trect;
 
@@ -813,6 +816,8 @@ draw(CQChartsPaintDevice *device)
 
     device->drawEllipse(device->pixelToWindow(erect));
   }
+
+  //---
 
   device->resetColorNames();
 }

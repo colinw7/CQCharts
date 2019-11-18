@@ -8,7 +8,6 @@
 class CQGnuDataModel : public CQDataModel {
   Q_OBJECT
 
-  Q_PROPERTY(QString filename          READ filename            WRITE setFilename         )
   Q_PROPERTY(bool    commentHeader     READ isCommentHeader     WRITE setCommentHeader    )
   Q_PROPERTY(bool    firstLineHeader   READ isFirstLineHeader   WRITE setFirstLineHeader  )
   Q_PROPERTY(bool    firstColumnHeader READ isFirstColumnHeader WRITE setFirstColumnHeader)
@@ -31,8 +30,7 @@ class CQGnuDataModel : public CQDataModel {
 
  ~CQGnuDataModel() { }
 
-  const QString &filename() const { return filename_; }
-  void setFilename(const QString &v) { filename_ = v; }
+  //---
 
   bool isCommentHeader() const { return commentHeader_; }
   void setCommentHeader(bool b) { commentHeader_ = b; }
@@ -43,6 +41,8 @@ class CQGnuDataModel : public CQDataModel {
   bool isFirstColumnHeader() const { return firstColumnHeader_; }
   void setFirstColumnHeader(bool b) { firstColumnHeader_ = b; }
 
+  //---
+
   QString commentChars() const { return commentChars_.get_value_or("#"); }
   void setCommentChars(const QString &chars) { commentChars_ = chars; }
 
@@ -51,6 +51,8 @@ class CQGnuDataModel : public CQDataModel {
 
   char separator() const { return separator_; }
   void setSeparator(char c) { separator_ = c; }
+
+  //---
 
   bool isParseStrings() const { return parseStrings_; }
   void setParseStrings(bool b) { parseStrings_ = b; }
@@ -63,6 +65,8 @@ class CQGnuDataModel : public CQDataModel {
 
   bool isKeepQuotes() const { return keepQuotes_; }
   void setKeepQuotes(bool b) { keepQuotes_ = b; }
+
+  //---
 
   bool load(const QString &filename);
 
@@ -80,7 +84,6 @@ class CQGnuDataModel : public CQDataModel {
   using SetString    = std::map<int,SubSetString>;
   using OptString    = boost::optional<QString>;
 
-  QString     filename_;                    //!< filename
   bool        commentHeader_     { true };  //!< use comment line for header
   bool        firstLineHeader_   { false }; //!< use first line for horizontal header
   bool        firstColumnHeader_ { false }; //!< use first column for vertical header

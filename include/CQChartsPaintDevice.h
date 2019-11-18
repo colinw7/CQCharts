@@ -92,6 +92,9 @@ class CQChartsPaintDevice {
   double lengthWindowWidth (const CQChartsLength &w) const;
   double lengthWindowHeight(const CQChartsLength &h) const;
 
+  double pixelToWindowWidth (double pw) const;
+  double pixelToWindowHeight(double ph) const;
+
   bool isInvertX() const;
   bool isInvertY() const;
 

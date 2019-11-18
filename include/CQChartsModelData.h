@@ -14,6 +14,7 @@ class CQCharts;
 class CQFoldedModel;
 #endif
 class CQSummaryModel;
+class CQPropertyViewModel;
 
 class QAbstractItemModel;
 class QItemSelectionModel;
@@ -28,7 +29,7 @@ class CQChartsModelData : public QObject {
   Q_PROPERTY(int     ind            READ ind              WRITE setInd           )
   Q_PROPERTY(QString id             READ id                                      )
   Q_PROPERTY(QString name           READ name             WRITE setName          )
-  Q_PROPERTY(QString fileName       READ fileName         WRITE setFileName      )
+  Q_PROPERTY(QString filename       READ filename         WRITE setFilename      )
   Q_PROPERTY(bool    summaryEnabled READ isSummaryEnabled WRITE setSummaryEnabled)
   Q_PROPERTY(int     currentColumn  READ currentColumn    WRITE setCurrentColumn )
 
@@ -90,13 +91,13 @@ class CQChartsModelData : public QObject {
 
   // get/set name
   const QString &name() const { return name_; }
-  void setName(const QString &s) { name_ = s; }
+  void setName(const QString &s);
 
   //---
 
   // get/set file name
-  const QString &fileName() const { return fileName_; }
-  void setFileName(const QString &s) { fileName_ = s; }
+  QString filename() const;
+  void setFilename(const QString &s);
 
   //---
 
@@ -147,6 +148,41 @@ class CQChartsModelData : public QObject {
 
   //---
 
+  CQPropertyViewModel *propertyViewModel();
+
+  bool getPropertyData(const QString &name, QVariant &value) const;
+  bool setPropertyData(const QString &name, const QVariant &value);
+
+  struct NameAlias {
+    QString name;
+    QString alias;
+
+    NameAlias(const char *name, const char *alias="") :
+     name(name), alias(alias) {
+    }
+  };
+
+  struct NameAliasArray {
+    std::vector<NameAlias> data;
+
+    NameAliasArray() { }
+
+    NameAliasArray &operator<<(const NameAlias &nameAlias) {
+      data.push_back(nameAlias);
+
+      return *this;
+    }
+  };
+
+  using ModelNames   = std::map<QObject*,NameAliasArray>;
+  using IdModelNames = std::map<QString,ModelNames>;
+
+  void getPropertyNameData(IdModelNames &names) const;
+
+  void getPropertyNames(QStringList &names) const;
+
+  //---
+
   void write(std::ostream &os, const QString &varName="") const;
 
   //---
@@ -154,6 +190,8 @@ class CQChartsModelData : public QObject {
   QAbstractItemModel *copy();
 
  private:
+  void updatePropertyModel();
+
   void connectModel();
   void disconnectModel();
 
@@ -171,6 +209,9 @@ class CQChartsModelData : public QObject {
   void selectionSlot();
 
  signals:
+  // data changed
+  void dataChanged();
+
   // model changed
   void modelChanged();
 
@@ -195,19 +236,33 @@ class CQChartsModelData : public QObject {
   ModelP                model_;                        //!< model
   int                   ind_              { -1 };      //!< model ind
   QString               name_;                         //!< model name
-  QString               fileName_;                     //!< model file name
+  QString               filename_;                     //!< model file name
   int                   currentColumn_    { -1 };      //!< current column
+
+  // details
   CQChartsModelDetails* details_          { nullptr }; //!< model details
+
+  // selection models data
   SelectionModels       selectionModels_;              //!< selection models
+
+  // folded models data
 #ifdef CQCHARTS_FOLDED_MODEL
   ModelP                foldProxyModel_;               //!< folded proxy model
   ModelPArray           foldedModels_;                 //!< folded models
-  ModelP                hierSepModel_;                 //!< hier sep model
 #endif
+
+  // hier sep model data
+  ModelP                hierSepModel_;                 //!< hier sep model
+
+  // summary model data
   bool                  summaryEnabled_   { false };   //!< summary model enabled
   CQSummaryModel*       summaryModel_     { nullptr }; //!< summary model
   ModelP                summaryModelP_;                //!< summary model (shared pointer)
   CQChartsModelData*    summaryModelData_ { nullptr }; //!< summary model data
+
+  // property model
+  CQPropertyViewModel*  propertyModel_    { nullptr }; //!< property model
+
   mutable std::mutex    mutex_;                        //!< thread mutex
 };
 

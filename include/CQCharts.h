@@ -315,9 +315,9 @@ class CQCharts : public QObject {
   void modelDataRemoved(int);
   void modelDataChanged();
 
-  void currentModelChanged(int);
+  void modelDataDataChanged();
 
-  void modelNameChanged(const QString &);
+  void currentModelChanged(int);
 
   void modelTypeChanged(int);
 

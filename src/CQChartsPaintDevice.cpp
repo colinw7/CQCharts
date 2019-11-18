@@ -75,6 +75,22 @@ lengthWindowHeight(const CQChartsLength &h) const
     plot_->lengthPlotHeight(h)) : view_->lengthViewHeight(h));
 }
 
+double
+CQChartsPaintDevice::
+pixelToWindowWidth(double pw) const
+{
+  return (! view_ ? (! plot_ ? 0.0 :
+    plot_->pixelToWindowWidth(pw)) : view_->pixelToWindowWidth(pw));
+}
+
+double
+CQChartsPaintDevice::
+pixelToWindowHeight(double ph) const
+{
+  return (! view_ ? (! plot_ ? 0.0 :
+    plot_->pixelToWindowHeight(ph)) : view_->pixelToWindowHeight(ph));
+}
+
 QPainterPath
 CQChartsPaintDevice::
 windowToPixel(const QPainterPath &path) const
@@ -330,6 +346,7 @@ void
 CQChartsViewPlotPainter::
 drawTransformedText(const QPointF &p, const QString &text)
 {
+  // NOTE: p is in pixels
   painter_->drawText(p, text);
 }
 
@@ -816,7 +833,7 @@ void
 CQChartsScriptPainter::
 drawTransformedText(const QPointF &p, const QString &text)
 {
-  QPointF pt = p +  data_.transformPoint;
+  QPointF pt = p + data_.transformPoint;
 
   double a = CMathUtil::Deg2Rad(data_.transformAngle);
 
@@ -1253,7 +1270,7 @@ void
 CQChartsSVGPainter::
 drawTransformedText(const QPointF &p, const QString &text)
 {
-  QPointF pt = p +  data_.transformPoint;
+  QPointF pt = p + data_.transformPoint;
 
   QPointF ppt = windowToPixel(pt);
 

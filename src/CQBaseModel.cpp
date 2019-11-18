@@ -348,7 +348,7 @@ setColumnSorted(int column, bool b)
   return true;
 }
 
-int
+Qt::SortOrder
 CQBaseModel::
 columnSortOrder(int column) const
 {
@@ -362,14 +362,14 @@ columnSortOrder(int column) const
 
 bool
 CQBaseModel::
-setColumnSortOrder(int column, int i)
+setColumnSortOrder(int column, Qt::SortOrder order)
 {
   if (column < 0 || column >= columnCount())
     return false;
 
   ColumnData &columnData = getColumnData(column);
 
-  columnData.sortOrder = i;
+  columnData.sortOrder = order;
 
   emit columnSortOrderChanged(column);
 
@@ -675,7 +675,7 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
       return setColumnSorted(section, value.toBool());
     }
     else if (role == static_cast<int>(CQBaseModelRole::SortOrder)) {
-      return setColumnSortOrder(section, value.toInt());
+      return setColumnSortOrder(section, (Qt::SortOrder) value.toInt());
     }
     else if (role == static_cast<int>(CQBaseModelRole::Title)) {
       return setColumnTitle(section, value.toString());

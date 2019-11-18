@@ -3,12 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
- + More correlation plot customization
- + Skip META DATA for load model preview
- + Rename model
- + Delete model
+ + Auto scale all axis tick labels (constant scale)
  + Analyze skip bad numeric values
- + All plots can be auto analyzed
  + Basic Parameters (simpler create plot interface)
    + Include fold model creation and simplify grouping
  + Better filter model (new model)

@@ -208,18 +208,22 @@ class CQChartsViewSettingsModelTable : public CQTableWidget {
     setHorizontalHeaderItem(2, new QTableWidgetItem("Filename"));
     setHorizontalHeaderItem(3, new QTableWidgetItem("Object Name"));
 
+    auto createItem = [&](const QString &name) {
+      QTableWidgetItem *item = new QTableWidgetItem(name);
+
+      item->setToolTip(name);
+      item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+      return item;
+    };
+
     int i = 0;
 
     for (const auto &modelData : modelDatas) {
-      QTableWidgetItem *nameItem = new QTableWidgetItem(modelData->id());
-      QTableWidgetItem *indItem  = new QTableWidgetItem(QString("%1").arg(modelData->ind()));
-      QTableWidgetItem *fileItem = new QTableWidgetItem(modelData->fileName());
-      QTableWidgetItem *objItem  = new QTableWidgetItem(modelData->model()->objectName());
-
-      nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
-      indItem ->setFlags(indItem ->flags() & ~Qt::ItemIsEditable);
-      fileItem->setFlags(fileItem->flags() & ~Qt::ItemIsEditable);
-      objItem ->setFlags(objItem ->flags() & ~Qt::ItemIsEditable);
+      QTableWidgetItem *nameItem = createItem(modelData->id());
+      QTableWidgetItem *indItem  = createItem(QString("%1").arg(modelData->ind()));
+      QTableWidgetItem *fileItem = createItem(modelData->filename());
+      QTableWidgetItem *objItem  = createItem(modelData->model()->objectName());
 
       setItem(i, 0, nameItem);
       setItem(i, 1, indItem );
@@ -276,15 +280,22 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
     setHorizontalHeaderItem(1, new QTableWidgetItem("Type" ));
     setHorizontalHeaderItem(2, new QTableWidgetItem("State"));
 
+    auto createItem = [&](const QString &name) {
+      QTableWidgetItem *item = new QTableWidgetItem(name);
+
+      item->setToolTip(name);
+      item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+      return item;
+    };
+
     for (int i = 0; i < np; ++i) {
       CQChartsPlot *plot = view->plot(i);
 
       //--
 
       // set id item store plot index in user data
-      QTableWidgetItem *idItem = new QTableWidgetItem(plot->id());
-
-      idItem->setFlags(idItem->flags() & ~Qt::ItemIsEditable);
+      QTableWidgetItem *idItem = createItem(plot->id());
 
       setItem(i, 0, idItem);
 
@@ -295,9 +306,7 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
       //--
 
       // set type item
-      QTableWidgetItem *typeItem = new QTableWidgetItem(plot->type()->name());
-
-      typeItem->setFlags(typeItem->flags() & ~Qt::ItemIsEditable);
+      QTableWidgetItem *typeItem = createItem(plot->type()->name());
 
       setItem(i, 1, typeItem);
 
@@ -315,9 +324,7 @@ class CQChartsViewSettingsPlotTable : public CQTableWidget {
       if (stateStr == "")
         stateStr = "normal";
 
-      QTableWidgetItem *stateItem = new QTableWidgetItem(stateStr);
-
-      stateItem->setFlags(stateItem->flags() & ~Qt::ItemIsEditable);
+      QTableWidgetItem *stateItem = createItem(stateStr);
 
       setItem(i, 2, stateItem);
     }
@@ -379,12 +386,19 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
     setHorizontalHeaderItem(0, new QTableWidgetItem("Id"  ));
     setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
 
+    auto createItem = [&](const QString &name) {
+      QTableWidgetItem *item = new QTableWidgetItem(name);
+
+      item->setToolTip(name);
+      item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+      return item;
+    };
+
     for (int i = 0; i < nv; ++i) {
       CQChartsAnnotation *annotation = viewAnnotations[i];
 
-      QTableWidgetItem *idItem = new QTableWidgetItem(annotation->id());
-
-      idItem->setFlags(idItem->flags() & ~Qt::ItemIsEditable);
+      QTableWidgetItem *idItem = createItem(annotation->id());
 
       setItem(i, 0, idItem);
 
@@ -392,9 +406,7 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
 
       idItem->setData(Qt::UserRole, ind);
 
-      QTableWidgetItem *typeItem = new QTableWidgetItem(annotation->typeName());
-
-      typeItem->setFlags(typeItem->flags() & ~Qt::ItemIsEditable);
+      QTableWidgetItem *typeItem = createItem(annotation->typeName());
 
       setItem(i, 1, typeItem);
     }
@@ -446,12 +458,19 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
     setHorizontalHeaderItem(0, new QTableWidgetItem("Id"  ));
     setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
 
+    auto createItem = [&](const QString &name) {
+      QTableWidgetItem *item = new QTableWidgetItem(name);
+
+      item->setToolTip(name);
+      item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+      return item;
+    };
+
     for (int i = 0; i < np; ++i) {
       CQChartsAnnotation *annotation = plotAnnotations[i];
 
-      QTableWidgetItem *idItem = new QTableWidgetItem(annotation->id());
-
-      idItem->setFlags(idItem->flags() & ~Qt::ItemIsEditable);
+      QTableWidgetItem *idItem = createItem(annotation->id());
 
       setItem(i, 0, idItem);
 
@@ -459,9 +478,7 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
 
       idItem->setData(Qt::UserRole, ind);
 
-      QTableWidgetItem *typeItem = new QTableWidgetItem(annotation->typeName());
-
-      typeItem->setFlags(typeItem->flags() & ~Qt::ItemIsEditable);
+      QTableWidgetItem *typeItem = createItem(annotation->typeName());
 
       setItem(i, 1, typeItem);
     }
@@ -536,27 +553,27 @@ class CQChartsViewSettingsViewLayerTable : public CQTableWidget {
     setHorizontalHeaderItem(1, new QTableWidgetItem("State" ));
     setHorizontalHeaderItem(2, new QTableWidgetItem("Rect"  ));
 
-    for (int l = 0; l < 2; ++l) {
-      QTableWidgetItem *item = nullptr;
+    auto createItem = [&](const QString &name) {
+      QTableWidgetItem *item = new QTableWidgetItem(name);
 
-      if (l == 0)
-        item = new QTableWidgetItem("Objects");
-      else
-        item = new QTableWidgetItem("Overlay");
+      item->setToolTip(name);
+      item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+      return item;
+    };
+
+    for (int l = 0; l < 2; ++l) {
+      QTableWidgetItem *item = createItem(l == 0 ? "Objects" : "Overlay");
 
       setItem(l, 0, item);
 
       item->setData(Qt::UserRole, l);
 
-      QTableWidgetItem *stateItem = new QTableWidgetItem("");
-
-      stateItem->setFlags(stateItem->flags() & ~Qt::ItemIsEditable);
+      QTableWidgetItem *stateItem = createItem("");
 
       setItem(l, 1, stateItem);
 
-      QTableWidgetItem *rectItem = new QTableWidgetItem("");
-
-      rectItem->setFlags(rectItem->flags() & ~Qt::ItemIsEditable);
+      QTableWidgetItem *rectItem = createItem("");
 
       setItem(l, 2, rectItem);
     }
@@ -639,6 +656,17 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
     setHorizontalHeaderItem(1, new QTableWidgetItem("State"));
     setHorizontalHeaderItem(2, new QTableWidgetItem("Rect" ));
 
+    auto createItem = [&](const QString &name, bool editable=false) {
+      QTableWidgetItem *item = new QTableWidgetItem(name);
+
+      item->setToolTip(name);
+
+      if (! editable)
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+      return item;
+    };
+
     for (int l = l1; l <= l2; ++l) {
       int i = l - l1;
 
@@ -646,25 +674,20 @@ class CQChartsViewSettingsPlotLayerTable : public CQTableWidget {
 
       QString name = CQChartsLayer::typeName(type);
 
-      QTableWidgetItem *idItem = new QTableWidgetItem(name);
-
-      idItem->setFlags(idItem->flags() & ~Qt::ItemIsEditable);
+      QTableWidgetItem *idItem = createItem(name);
 
       setItem(i, 0, idItem);
 
       idItem->setData(Qt::UserRole, l);
 
-      QTableWidgetItem *stateItem = new QTableWidgetItem("");
+      QTableWidgetItem *stateItem = createItem("", /*editable*/false);
 
     //stateItem->setFlags(stateItem->flags() | Qt::ItemIsEnabled);
       stateItem->setFlags(stateItem->flags() | Qt::ItemIsUserCheckable);
-    //stateItem->setFlags(stateItem->flags() & ~Qt::ItemIsEditable);
 
       setItem(i, 1, stateItem);
 
-      QTableWidgetItem *rectItem = new QTableWidgetItem("");
-
-      rectItem->setFlags(rectItem->flags() & ~Qt::ItemIsEditable);
+      QTableWidgetItem *rectItem = createItem("");
 
       setItem(i, 2, rectItem);
     }
@@ -733,10 +756,9 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   CQCharts *charts = view->charts();
 
-  connect(charts, SIGNAL(modelDataAdded(int)), this, SLOT(updateModels()));
-  connect(charts, SIGNAL(modelDataRemoved(int)), this, SLOT(updateModels()));
+  connect(charts, SIGNAL(modelDataChanged()), this, SLOT(updateModels()));
   connect(charts, SIGNAL(currentModelChanged(int)), this, SLOT(invalidateModelDetails()));
-  connect(charts, SIGNAL(modelNameChanged(const QString &)), this, SLOT(updateModels()));
+  connect(charts, SIGNAL(modelDataDataChanged()), this, SLOT(updateModels()));
 
   connect(view, SIGNAL(plotsChanged()), this, SLOT(updatePlots()));
   connect(view, SIGNAL(plotsReordered()), this, SLOT(updatePlots()));
@@ -1041,19 +1063,23 @@ initModelsFrame(QFrame *modelsFrame)
     return button;
   };
 
-  QPushButton *loadModelButton =
+  modelsWidgets_.loadButton =
     createButton("Load", "load", "Load Model", SLOT(loadModelSlot()));
   modelsWidgets_.editButton =
     createButton("Edit", "edit", "Edit Model", SLOT(editModelSlot()));
+  modelsWidgets_.removeButton =
+    createButton("Remove", "remove", "Remove Model", SLOT(removeModelSlot()));
   modelsWidgets_.plotButton =
     createButton("Plot", "plot", "Create Plot", SLOT(plotModelSlot()));
 
-  modelControlLayout->addWidget(loadModelButton);
+  modelControlLayout->addWidget(modelsWidgets_.loadButton);
   modelControlLayout->addWidget(modelsWidgets_.editButton);
+  modelControlLayout->addWidget(modelsWidgets_.removeButton);
   modelControlLayout->addWidget(modelsWidgets_.plotButton);
 
-  modelsWidgets_.editButton->setEnabled(false);
-  modelsWidgets_.plotButton->setEnabled(false);
+  modelsWidgets_.editButton  ->setEnabled(false);
+  modelsWidgets_.removeButton->setEnabled(false);
+  modelsWidgets_.plotButton  ->setEnabled(false);
 
   //--
 
@@ -1236,10 +1262,10 @@ initPlotsFrame(QFrame *plotsFrame)
 
   QHBoxLayout *controlPlotsGroupLayout = CQUtil::makeLayout<QHBoxLayout>(controlPlotsGroup, 2, 2);
 
-  plotsWidgets_.raiseButton      = createPushButton("Raise" , "raise" , SLOT(raisePlotSlot()));
-  plotsWidgets_.lowerButton      = createPushButton("Lower" , "lower" , SLOT(lowerPlotSlot()));
-  plotsWidgets_.removeButton     = createPushButton("Remove", "remove", SLOT(removePlotsSlot()));
-//QPushButton*  writePlotButton  = createPushButton("Write" , "write" , SLOT(writePlotSlot()));
+  plotsWidgets_.raiseButton     = createPushButton("Raise" , "raise" , SLOT(raisePlotSlot()));
+  plotsWidgets_.lowerButton     = createPushButton("Lower" , "lower" , SLOT(lowerPlotSlot()));
+  plotsWidgets_.removeButton    = createPushButton("Remove", "remove", SLOT(removePlotsSlot()));
+//QPushButton*  writePlotButton = createPushButton("Write" , "write" , SLOT(writePlotSlot()));
 
   plotsWidgets_.raiseButton ->setEnabled(false);
   plotsWidgets_.lowerButton ->setEnabled(false);
@@ -1331,11 +1357,11 @@ initAnnotationsFrame(QFrame *annotationsFrame)
   QPushButton *createButton =
     createPushButton("Create", "create", SLOT(createAnnotationSlot()));
   annotationsWidgets_.editButton =
-    createPushButton("Edit"  , "edit"  , SLOT(editAnnotationSlot()));
+    createPushButton("Edit", "edit", SLOT(editAnnotationSlot()));
   annotationsWidgets_.removeButton =
     createPushButton("Remove", "remove", SLOT(removeAnnotationsSlot()));
-  QPushButton *writeButton =
-    createPushButton("Write" , "write" , SLOT(writeAnnotationSlot()));
+  annotationsWidgets_.writeButton =
+    createPushButton("Write", "write", SLOT(writeAnnotationSlot()));
 
   annotationsWidgets_.editButton  ->setEnabled(false);
   annotationsWidgets_.removeButton->setEnabled(false);
@@ -1343,7 +1369,7 @@ initAnnotationsFrame(QFrame *annotationsFrame)
   controlGroupLayout->addWidget(createButton);
   controlGroupLayout->addWidget(annotationsWidgets_.editButton);
   controlGroupLayout->addWidget(annotationsWidgets_.removeButton);
-  controlGroupLayout->addWidget(writeButton);
+  controlGroupLayout->addWidget(annotationsWidgets_.writeButton);
   controlGroupLayout->addStretch(1);
 
   //--
@@ -1704,8 +1730,9 @@ modelsSelectionChangeSlot()
   if (ind >= 0)
     charts->setCurrentModelInd(ind);
 
-  modelsWidgets_.editButton->setEnabled(ind >= 0);
-  modelsWidgets_.plotButton->setEnabled(ind >= 0);
+  modelsWidgets_.editButton  ->setEnabled(ind >= 0);
+  modelsWidgets_.removeButton->setEnabled(ind >= 0);
+  modelsWidgets_.plotButton  ->setEnabled(ind >= 0);
 }
 
 void
@@ -1729,11 +1756,26 @@ editModelSlot()
   CQCharts *charts = window_->view()->charts();
 
   CQChartsModelData *modelData = charts->getModelData(ind);
-
-  if (! modelData)
-    return;
+  if (! modelData) return;
 
   charts->editModelDlg(modelData);
+}
+
+void
+CQChartsViewSettings::
+removeModelSlot()
+{
+  long ind = modelsWidgets_.modelTable->selectedModel();
+
+  if (ind < 0)
+    return;
+
+  CQCharts *charts = window_->view()->charts();
+
+  CQChartsModelData *modelData = charts->getModelData(ind);
+  if (! modelData) return;
+
+  charts->removeModelData(modelData);
 }
 
 void
@@ -1748,9 +1790,7 @@ plotModelSlot()
   CQCharts *charts = window_->view()->charts();
 
   CQChartsModelData *modelData = charts->getModelData(ind);
-
-  if (! modelData)
-    return;
+  if (! modelData) return;
 
   CQChartsCreatePlotDlg *createPlotDlg = charts->createPlotDlg(modelData);
 
@@ -1970,9 +2010,8 @@ plotsSelectionChangeSlot()
 
   getSelectedPlots(plots);
 
-  plotsWidgets_.raiseButton->setEnabled(plots.size() == 1);
-  plotsWidgets_.lowerButton->setEnabled(plots.size() == 1);
-
+  plotsWidgets_.raiseButton ->setEnabled(plots.size() == 1);
+  plotsWidgets_.lowerButton ->setEnabled(plots.size() == 1);
   plotsWidgets_.removeButton->setEnabled(plots.size() > 0);
 
   //---

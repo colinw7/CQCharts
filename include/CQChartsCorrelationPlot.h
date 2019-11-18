@@ -27,7 +27,7 @@ class CQChartsCorrelationPlotType : public CQChartsPlotType {
 
   bool hasAxes() const override { return false; }
 
-  bool canProbe() const override { return false; }
+  bool canProbe() const override { return true; }
 
   QString description() const override;
 
@@ -101,12 +101,19 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
  public CQChartsObjYLabelTextData   <CQChartsCorrelationPlot> {
   Q_OBJECT
 
+  Q_PROPERTY(bool cellLabels READ isCellLabels WRITE setCellLabels)
+
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Cell,cell)
 
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(CellLabel,cellLabel)
 
   // x/y labels
+  Q_PROPERTY(bool xLabels READ isXLabels WRITE setXLabels)
+
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(XLabel,xLabel)
+
+  Q_PROPERTY(bool yLabels READ isYLabels WRITE setYLabels)
+
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(YLabel,yLabel)
 
  public:
@@ -125,11 +132,26 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   //---
 
+  // cell labels
+  bool isCellLabels() const { return cellLabels_; }
+
+  // x labels
+  bool isXLabels() const { return xLabels_; }
+
+  // y labels
+  bool isYLabels() const { return yLabels_; }
+
+  //---
+
   void addProperties() override;
 
   CQChartsGeom::Range calcRange() const override;
 
   bool createObjs(PlotObjs &objs) const override;
+
+  //---
+
+  bool probe(ProbeData &probeData) const override;
 
   //---
 
@@ -145,6 +167,12 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   CQChartsGeom::BBox annotationBBox() const override;
 
+ public slots:
+  void setCellLabels(bool b);
+
+  void setXLabels(bool b);
+  void setYLabels(bool b);
+
  private:
   void addCellObj(int row, int col, double x, double y, double dx, double dy, double value,
                   const QModelIndex &ind, PlotObjs &objs) const;
@@ -153,8 +181,12 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   void drawYLabels(CQChartsPaintDevice *device) const;
 
  private:
-  CQChartsFilterModel* correlationModel_ { nullptr }; //!< correlation mode
-  int                  nc_               { 0 };       //!< number of grid columns
+  CQChartsFilterModel*       correlationModel_ { nullptr }; //!< correlation mode
+  bool                       cellLabels_       { true };    //!< cell labels
+  bool                       xLabels_          { true };    //!< x labels
+  bool                       yLabels_          { true };    //!< y labels
+  int                        nc_               { 0 };       //!< number of grid columns
+  mutable CQChartsGeom::BBox annotationBBox_;
 };
 
 #endif

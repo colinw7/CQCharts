@@ -952,9 +952,15 @@ execDrawBackground(CQChartsPaintDevice *device) const
   for (auto &node : sortedNodes_) {
     QPointF p1(px + pxs/2, py - 2);
 
-    CQChartsRotatedText::draw(device, device->pixelToWindow(p1), node->name(), 90,
-                              Qt::AlignHCenter | Qt::AlignBottom, /*alignBox*/true,
-                              isTextContrast());
+    CQChartsTextOptions options;
+
+    options.angle         = 90;
+    options.align         = Qt::AlignHCenter | Qt::AlignBottom;
+    options.contrast      = isTextContrast();
+    options.contrastAlpha = textContrastAlpha();
+
+    CQChartsRotatedText::draw(device, device->pixelToWindow(p1), node->name(), options,
+                              /*alignBox*/true);
 
     px += pxs;
   }

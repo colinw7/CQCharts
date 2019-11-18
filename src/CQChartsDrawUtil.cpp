@@ -212,10 +212,7 @@ drawRotatedTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QStr
 
   device->setPen(pen);
 
-  // TODO: support align and contrast
-  CQChartsRotatedText::draw(device, rect.center(), text, options.angle,
-                            Qt::AlignHCenter | Qt::AlignVCenter, /*alignBox*/false,
-                            options.contrast, options.contrastAlpha);
+  CQChartsRotatedText::drawInBox(device, rect, text, options, /*alignBox*/false);
 }
 
 //------

@@ -1,4 +1,5 @@
 #include <CQChartsRotatedText.h>
+#include <CQChartsTextOptions.h>
 #include <CQChartsPaintDevice.h>
 #include <CQChartsUtil.h>
 
@@ -7,41 +8,67 @@
 namespace CQChartsRotatedText {
 
 void
-draw(CQChartsPaintDevice *device, const QPointF &p, const QString &text, double angle,
-     Qt::Alignment align, bool alignBBox, bool contrast, double contrastAlpha)
+drawInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &text,
+          const CQChartsTextOptions &options, bool /*alignBBox*/)
 {
-  if (device->isInteractive())
-    device->save();
+  double a1 = CMathUtil::Deg2Rad(options.angle);
+
+  double c = cos(-a1);
+  double s = sin(-a1);
+
+  //---
 
   QFontMetricsF fm(device->font());
 
   double th = fm.height();
   double tw = fm.width(text);
 
-  double a1 = CMathUtil::Deg2Rad(angle);
+  //---
 
-  double c = cos(-a1);
-  double s = sin(-a1);
+  double dx = -tw/2.0;
+  double dy =  th/2.0;
 
-  double tx = 0.0, ty = 0.0;
-  double ax = 0.0, ay = 0.0;
+  double tx = c*dx - s*dy;
+  double ty = s*dx + c*dy;
 
-  if (! alignBBox) {
-    double dx = 0.0, dy = 0.0;
+  //---
 
-    if      (align & Qt::AlignLeft)
-      dx = 0.0;
-    else if (align & Qt::AlignRight)
-      dx = -tw;
-    else if (align & Qt::AlignHCenter)
-      dx = -tw/2.0;
+  double ax = -s*fm.descent();
+  double ay =  c*fm.descent();
 
-    if      (align & Qt::AlignBottom)
-      dy = 0.0;
-    else if (align & Qt::AlignTop)
-      dy = th;
-    else if (align & Qt::AlignVCenter)
-      dy = th/2.0;
+  //---
+
+  QRectF prect  = device->windowToPixel(rect);
+  QRectF prect1 = calcBBox(0.0, 0.0, text, device->font(), options, 0, /*alignBBox*/ true);
+
+  //---
+
+  if (options.scaled) {
+    // calc font to fit in passed rect
+    double stw  = prect .width ();
+    double sth  = prect .height();
+    double stw1 = prect1.width ();
+    double sth1 = prect1.height();
+
+    double sx = (stw1 > 0 ? stw/stw1 : 1);
+    double sy = (sth1 > 0 ? sth/sth1 : 1);
+
+    double scale = std::min(sx, sy);
+
+    device->setFont(CQChartsUtil::scaleFontSize(
+      device->font(), scale, options.minScaleFontSize, options.maxScaleFontSize));
+
+    prect1 = calcBBox(0.0, 0.0, text, device->font(), options, 0, /*alignBBox*/ true);
+
+    //--
+
+    fm = QFontMetricsF(device->font());
+
+    th = fm.height();
+    tw = fm.width(text);
+
+    dx = -tw/2.0;
+    dy =  th/2.0;
 
     tx = c*dx - s*dy;
     ty = s*dx + c*dy;
@@ -49,26 +76,108 @@ draw(CQChartsPaintDevice *device, const QPointF &p, const QString &text, double 
     ax = -s*fm.descent();
     ay =  c*fm.descent();
   }
+
+  //---
+
+  double ptx = 0.0, pty = 0.0;
+
+  double pdx = prect.width () - prect1.width ();
+  double pdy = prect.height() - prect1.height();
+
+  if      (options.align & Qt::AlignLeft)
+    ptx = -pdx/2.0;
+  else if (options.align & Qt::AlignRight)
+    ptx = pdx/2.0;
+  else
+    ptx = 0.0;
+
+  if      (options.align & Qt::AlignBottom)
+    pty = pdy/2.0;
+  else if (options.align & Qt::AlignTop)
+    pty = -pdy/2.0;
+  else
+    pty = 0.0;
+
+  tx += ptx;
+  ty += pty;
+
+  //---
+
+  drawDelta(device, rect.center(), text, options, tx, ty, ax, ay);
+}
+
+void
+draw(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
+     const CQChartsTextOptions &options, bool alignBBox)
+{
+  QFontMetricsF fm(device->font());
+
+  double th = fm.height();
+  double tw = fm.width(text);
+
+  double a1 = CMathUtil::Deg2Rad(options.angle);
+
+  double c = cos(-a1);
+  double s = sin(-a1);
+
+  //---
+
+  double tx = 0.0, ty = 0.0;
+
+  if (! alignBBox) {
+    double dx = 0.0, dy = 0.0;
+
+    if      (options.align & Qt::AlignLeft)
+      dx = 0.0;
+    else if (options.align & Qt::AlignRight)
+      dx = -tw;
+    else if (options.align & Qt::AlignHCenter)
+      dx = -tw/2.0;
+
+    if      (options.align & Qt::AlignBottom)
+      dy = 0.0;
+    else if (options.align & Qt::AlignTop)
+      dy = th;
+    else if (options.align & Qt::AlignVCenter)
+      dy = th/2.0;
+
+    tx = c*dx - s*dy;
+    ty = s*dx + c*dy;
+  }
   else {
-    if      (align & Qt::AlignLeft)
+    if      (options.align & Qt::AlignLeft)
       tx = -th*s;
-    else if (align & Qt::AlignRight)
+    else if (options.align & Qt::AlignRight)
       tx = -tw*c;
-    else if (align & Qt::AlignHCenter)
+    else if (options.align & Qt::AlignHCenter)
       tx = -(th*s + tw*c)/2.0;
 
-    if      (align & Qt::AlignBottom)
+    if      (options.align & Qt::AlignBottom)
       ty = 0.0;
-    else if (align & Qt::AlignTop)
+    else if (options.align & Qt::AlignTop)
       ty = -(tw*s - th*c);
-    else if (align & Qt::AlignVCenter)
+    else if (options.align & Qt::AlignVCenter)
       ty = -(tw*s - th*c)/2;
-
-    ax = -s*fm.descent();
-    ay =  c*fm.descent();
   }
 
-  //------
+  //---
+
+  double ax = -s*fm.descent();
+  double ay =  c*fm.descent();
+
+  //---
+
+  drawDelta(device, p, text, options, tx, ty, ax, ay);
+}
+
+void
+drawDelta(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
+          const CQChartsTextOptions &options, double tx, double ty, double ax, double ay)
+{
+  if (device->isInteractive())
+    device->save();
+
+  //---
 
   QPointF pp = device->windowToPixel(p);
 
@@ -76,15 +185,15 @@ draw(CQChartsPaintDevice *device, const QPointF &p, const QString &text, double 
 
   QPointF pt1 = device->pixelToWindow(pt);
 
-  device->setTransformRotate(pt1, angle);
+  device->setTransformRotate(pt1, options.angle);
 
-  if (contrast) {
+  if (options.contrast) {
     QColor tc = device->pen().color();
 
   //QColor icolor = CQChartsUtil::invColor(tc);
     QColor icolor = CQChartsUtil::bwColor(tc);
 
-    icolor.setAlphaF(contrastAlpha);
+    icolor.setAlphaF(options.contrastAlpha);
 
     // draw contrast outline
     device->setPen(icolor);
@@ -99,57 +208,60 @@ draw(CQChartsPaintDevice *device, const QPointF &p, const QString &text, double 
     // draw text
     device->setPen(tc);
 
-    device->drawTransformedText(QPointF(0, 0), text);
+    device->drawTransformedText(QPointF(0.0, 0.0), text);
   }
   else {
-    device->drawTransformedText(QPointF(0, 0), text);
+    device->drawTransformedText(QPointF(0.0, 0.0), text);
   }
+
+  //---
 
   if (device->isInteractive())
     device->restore();
 }
 
 QRectF
-bbox(double x, double y, const QString &text, const QFont &font, double angle, double border,
-     Qt::Alignment align, bool alignBBox)
+calcBBox(double x, double y, const QString &text, const QFont &font,
+         const CQChartsTextOptions &options, double border, bool alignBBox)
 {
   QRectF bbox;
   Points points;
 
   CQChartsGeom::Margin border1(border);
 
-  bboxData(x, y, text, font, angle, border1, bbox, points, align, alignBBox);
+  calcBBoxData(x, y, text, font, options, border1, bbox, points, alignBBox);
 
   return bbox;
 }
 
 Points
-bboxPoints(double x, double y, const QString &text, const QFont &font, double angle, double border,
-           Qt::Alignment align, bool alignBBox)
+bboxPoints(double x, double y, const QString &text, const QFont &font,
+           const CQChartsTextOptions &options, double border, bool alignBBox)
 {
   QRectF bbox;
   Points points;
 
   CQChartsGeom::Margin border1(border);
 
-  bboxData(x, y, text, font, angle, border1, bbox, points, align, alignBBox);
+  calcBBoxData(x, y, text, font, options, border1, bbox, points, alignBBox);
 
   return points;
 }
 
 void
-bboxData(double x, double y, const QString &text, const QFont &font, double angle,
-         double border, QRectF &bbox, Points &points, Qt::Alignment align, bool alignBBox)
+calcBBoxData(double x, double y, const QString &text, const QFont &font,
+             const CQChartsTextOptions &options, double border, QRectF &bbox, Points &points,
+             bool alignBBox)
 {
   CQChartsGeom::Margin border1(border);
 
-  bboxData(x, y, text, font, angle, border1, bbox, points, align, alignBBox);
+  calcBBoxData(x, y, text, font, options, border1, bbox, points, alignBBox);
 }
 
 void
-bboxData(double x, double y, const QString &text, const QFont &font, double angle,
-         const CQChartsGeom::Margin &border, QRectF &bbox, Points &points, Qt::Alignment align,
-         bool alignBBox)
+calcBBoxData(double x, double y, const QString &text, const QFont &font,
+             const CQChartsTextOptions &options, const CQChartsGeom::Margin &border,
+             QRectF &bbox, Points &points, bool alignBBox)
 {
   QFontMetricsF fm(font);
 
@@ -163,7 +275,7 @@ bboxData(double x, double y, const QString &text, const QFont &font, double angl
   double th = fm.height()    + xlm + xrm;
   double tw = fm.width(text) + ybm + ytm;
 
-  double a1 = CMathUtil::Deg2Rad(angle);
+  double a1 = CMathUtil::Deg2Rad(options.angle);
 
   double c = cos(-a1);
   double s = sin(-a1);
@@ -175,18 +287,18 @@ bboxData(double x, double y, const QString &text, const QFont &font, double angl
   if (! alignBBox) {
     double dx = 0.0, dy = 0.0;
 
-    if      (align & Qt::AlignLeft)
+    if      (options.align & Qt::AlignLeft)
       dx = -xlm;
-    else if (align & Qt::AlignRight)
+    else if (options.align & Qt::AlignRight)
       dx = -tw + xrm;
-    else if (align & Qt::AlignHCenter)
+    else if (options.align & Qt::AlignHCenter)
       dx = -tw/2.0;
 
-    if      (align & Qt::AlignBottom)
+    if      (options.align & Qt::AlignBottom)
       dy = ybm;
-    else if (align & Qt::AlignTop)
+    else if (options.align & Qt::AlignTop)
       dy = th - ytm;
-    else if (align & Qt::AlignVCenter)
+    else if (options.align & Qt::AlignVCenter)
       dy = th/2.0;
 
     //---
@@ -195,18 +307,18 @@ bboxData(double x, double y, const QString &text, const QFont &font, double angl
     ty = s*dx + c*dy;
   }
   else {
-    if      (align & Qt::AlignLeft)
+    if      (options.align & Qt::AlignLeft)
       tx = -th*s - xlm;
-    else if (align & Qt::AlignRight)
+    else if (options.align & Qt::AlignRight)
       tx = -tw*c + xrm;
-    else if (align & Qt::AlignHCenter)
+    else if (options.align & Qt::AlignHCenter)
       tx = -(th*s + tw*c)/2.0;
 
-    if      (align & Qt::AlignBottom)
+    if      (options.align & Qt::AlignBottom)
       ty = ybm;
-    else if (align & Qt::AlignTop)
+    else if (options.align & Qt::AlignTop)
       ty = -(tw*s - th*c) - ytm;
-    else if (align & Qt::AlignVCenter)
+    else if (options.align & Qt::AlignVCenter)
       ty = -(tw*s - th*c)/2.0;
   }
 

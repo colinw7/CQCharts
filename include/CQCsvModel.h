@@ -9,18 +9,15 @@
 class CQCsvModel : public CQDataModel {
   Q_OBJECT
 
-  Q_PROPERTY(QString filename          READ filename            WRITE setFilename         )
-  Q_PROPERTY(bool    commentHeader     READ isCommentHeader     WRITE setCommentHeader    )
-  Q_PROPERTY(bool    firstLineHeader   READ isFirstLineHeader   WRITE setFirstLineHeader  )
-  Q_PROPERTY(bool    firstColumnHeader READ isFirstColumnHeader WRITE setFirstColumnHeader)
-  Q_PROPERTY(QChar   separator         READ separator           WRITE setSeparator        )
+  Q_PROPERTY(bool  commentHeader     READ isCommentHeader     WRITE setCommentHeader    )
+  Q_PROPERTY(bool  firstLineHeader   READ isFirstLineHeader   WRITE setFirstLineHeader  )
+  Q_PROPERTY(bool  firstColumnHeader READ isFirstColumnHeader WRITE setFirstColumnHeader)
+  Q_PROPERTY(QChar separator         READ separator           WRITE setSeparator        )
 
  public:
   CQCsvModel();
 
-  //! get/set filename
-  const QString &filename() const { return filename_; }
-  void setFilename(const QString &v) { filename_ = v; }
+  //---
 
   //! get/set use first line comment for horizontal header
   bool isCommentHeader() const { return commentHeader_; }
@@ -65,7 +62,6 @@ class CQCsvModel : public CQDataModel {
   static std::string encodeVariant(const QVariant &var, const QChar &separator=',');
 
  protected:
-  QString     filename_;                    //!< input filename
   bool        commentHeader_     { false }; //!< first comment line has column names
   bool        firstLineHeader_   { false }; //!< first non-comment line has column names
   bool        firstColumnHeader_ { false }; //!< first column in each line is row name

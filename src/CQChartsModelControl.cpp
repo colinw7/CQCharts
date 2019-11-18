@@ -10,7 +10,6 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewTree.h>
 
-#include <CQPivotModel.h>
 #include <CQHierSepModel.h>
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
@@ -717,93 +716,12 @@ setModelData(CQChartsModelData *modelData)
     //---
 
     if (modelData_) {
-      propertyModel_->clear();
+      CQPropertyViewModel *propertyModel = modelData_->propertyViewModel();
 
-      ModelP model = modelData_->currentModel();
-
-      QAbstractItemModel *absModel = CQChartsModelUtil::getBaseModel(model.data());
-
-      CQBaseModel *baseModel = qobject_cast<CQBaseModel *>(absModel);
-      CQDataModel *dataModel = CQChartsModelUtil::getDataModel(model.data());
-
-      CQChartsExprModel *exprModel = CQChartsModelUtil::getExprModel(absModel);
-
-      CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(absModel);
-
-      CQPivotModel *pivotModel = qobject_cast<CQPivotModel *>(baseModel);
-
-      CQHierSepModel *hierSepModel = CQChartsModelUtil::getHierSepModel(model.data());
-
-      CQCsvModel     *csvModel  = qobject_cast<CQCsvModel     *>(absModel);
-      CQTsvModel     *tsvModel  = qobject_cast<CQTsvModel     *>(absModel);
-      CQGnuDataModel *gnuModel  = qobject_cast<CQGnuDataModel *>(absModel);
-      CQJsonModel    *jsonModel = qobject_cast<CQJsonModel    *>(absModel);
-
-      if (baseModel) {
-        propertyModel_->addProperty("", baseModel, "dataType"   , "");
-        propertyModel_->addProperty("", baseModel, "title"      , "");
-        propertyModel_->addProperty("", baseModel, "maxTypeRows", "");
-      }
-
-      if (dataModel) {
-        propertyModel_->addProperty("", dataModel, "readOnly", "");
-        propertyModel_->addProperty("", dataModel, "filter"  , "");
-      }
-
-      if (exprModel) {
-        propertyModel_->addProperty("", exprModel, "debug", "");
-      }
-
-      if (modelFilter) {
-        propertyModel_->addProperty("", modelFilter, "filter", "");
-        propertyModel_->addProperty("", modelFilter, "type"  , "");
-        propertyModel_->addProperty("", modelFilter, "invert", "");
-      }
-
-      if (pivotModel) {
-        propertyModel_->addProperty("", pivotModel, "valueType"    , "");
-        propertyModel_->addProperty("", pivotModel, "includeTotals", "");
-      }
-
-      if (hierSepModel) {
-        propertyModel_->addProperty("", hierSepModel, "separator"     , "foldSeparator");
-        propertyModel_->addProperty("", hierSepModel, "foldColumn"    , "");
-        propertyModel_->addProperty("", hierSepModel, "propagateValue", "");
-      }
-
-      if (csvModel) {
-        propertyModel_->addProperty("", csvModel, "filename"         , "");
-        propertyModel_->addProperty("", csvModel, "commentHeader"    , "");
-        propertyModel_->addProperty("", csvModel, "firstLineHeader"  , "");
-        propertyModel_->addProperty("", csvModel, "firstColumnHeader", "");
-        propertyModel_->addProperty("", csvModel, "separator"        , "");
-      }
-
-      if (tsvModel) {
-        propertyModel_->addProperty("", tsvModel, "filename"         , "");
-        propertyModel_->addProperty("", tsvModel, "commentHeader"    , "");
-        propertyModel_->addProperty("", tsvModel, "firstLineHeader"  , "");
-        propertyModel_->addProperty("", tsvModel, "firstColumnHeader", "");
-      }
-
-      if (gnuModel) {
-        propertyModel_->addProperty("", gnuModel, "filename"         , "");
-        propertyModel_->addProperty("", gnuModel, "commentHeader"    , "");
-        propertyModel_->addProperty("", gnuModel, "firstLineHeader"  , "");
-        propertyModel_->addProperty("", gnuModel, "firstColumnHeader", "");
-        propertyModel_->addProperty("", gnuModel, "commentChars"     , "");
-        propertyModel_->addProperty("", gnuModel, "missingStr"       , "");
-        propertyModel_->addProperty("", gnuModel, "separator"        , "");
-        propertyModel_->addProperty("", gnuModel, "parseStrings"     , "");
-        propertyModel_->addProperty("", gnuModel, "setBlankLines"    , "");
-        propertyModel_->addProperty("", gnuModel, "subSetBlankLines" , "");
-        propertyModel_->addProperty("", gnuModel, "keepQuotes"       , "");
-      }
-
-      if (jsonModel) {
-        propertyModel_->addProperty("", jsonModel, "hierarchical", "");
-        propertyModel_->addProperty("", jsonModel, "flat"        , "");
-      }
+      propertyTree_->setPropertyModel(propertyModel);
+    }
+    else {
+      propertyTree_->setPropertyModel(propertyModel_);
     }
   }
 }

@@ -78,9 +78,12 @@ CQChartsCorrelationPlot(CQChartsView *view, const ModelP &model) :
 
   addTitle();
 
-  setCellFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
-
+  setCellFillColor     (CQChartsColor(CQChartsColor::Type::PALETTE));
   setCellLabelTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
+  setXLabelTextAlign   (Qt::AlignHCenter | Qt::AlignVCenter);
+  setXLabelTextAngle   (90);
+  setYLabelTextAlign   (Qt::AlignHCenter | Qt::AlignVCenter);
+  setYLabelTextAngle   (0);
 }
 
 CQChartsCorrelationPlot::
@@ -113,15 +116,38 @@ addProperties()
   addLineProperties("cell/stroke", "cellStroke", "Cell");
 
   // cell label text
-//addProp("cell/text", "cellLabels", "visible", "Cell text label visible");
+  addProp("cell/text", "cellLabels", "visible", "Cell text label visible");
   addAllTextProperties("cell/text", "cellLabelText", "Cell label");
 
   // x/y axis label text
-//addProp("xaxis/text", "xLabels", "visible", "X labels visible");
-  addTextProperties("xaxis/text", "xLabelText", "X label");
+  addProp("xaxis/text", "xLabels", "visible", "X labels visible");
+  addAllTextProperties("xaxis/text", "xLabelText", "X label");
 
-//addProp("yaxis/text", "yLabels", "visible", "Y labels visible");
-  addTextProperties("yaxis/text", "yLabelText", "Y label");
+  addProp("yaxis/text", "yLabels", "visible", "Y labels visible");
+  addAllTextProperties("yaxis/text", "yLabelText", "Y label");
+}
+
+//---
+
+void
+CQChartsCorrelationPlot::
+setXLabels(bool b)
+{
+  CQChartsUtil::testAndSet(xLabels_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsCorrelationPlot::
+setYLabels(bool b)
+{
+  CQChartsUtil::testAndSet(yLabels_, b, [&]() { drawObjs(); } );
+}
+
+void
+CQChartsCorrelationPlot::
+setCellLabels(bool b)
+{
+  CQChartsUtil::testAndSet(cellLabels_, b, [&]() { drawObjs(); } );
 }
 
 //---
@@ -130,12 +156,19 @@ CQChartsGeom::Range
 CQChartsCorrelationPlot::
 calcRange() const
 {
+  annotationBBox_ = CQChartsGeom::BBox();
+
+  //---
+
   CQChartsGeom::Range dataRange;
 
+  // square (nc, nc)
   int nc = std::max(correlationModel_->columnCount(), 1);
 
   dataRange.updateRange(0.0, 0.0);
   dataRange.updateRange(nc , nc );
+
+  //---
 
   return dataRange;
 }
@@ -149,6 +182,10 @@ createObjs(PlotObjs &objs) const
   CQPerfTrace trace("CQChartsCorrelationPlot::createObjs");
 
   NoUpdate noUpdate(this);
+
+  //---
+
+  annotationBBox_ = CQChartsGeom::BBox();
 
   //---
 
@@ -218,9 +255,57 @@ addCellObj(int row, int col, double x, double y, double dx, double dy, double va
 
 bool
 CQChartsCorrelationPlot::
-addMenuItems(QMenu *)
+probe(ProbeData &probeData) const
 {
-  return false;
+  CQChartsPlotObj *obj;
+
+  if (! objNearestPoint(probeData.p, obj))
+    return false;
+
+  CQChartsGeom::Point c = obj->rect().getCenter();
+
+  probeData.p    = c;
+  probeData.both = true;
+
+  probeData.xvals.push_back(c.x);
+  probeData.yvals.push_back(c.y);
+
+  return true;
+}
+
+//---
+
+bool
+CQChartsCorrelationPlot::
+addMenuItems(QMenu *menu)
+{
+  auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
+                                  bool isSet, const char *slot) -> QAction *{
+    QAction *action = new QAction(name, menu);
+
+    action->setCheckable(true);
+    action->setChecked(isSet);
+
+    connect(action, SIGNAL(triggered(bool)), this, slot);
+
+    menu->addAction(action);
+
+    return action;
+  };
+
+  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) -> QAction *{
+    return addMenuCheckedAction(menu, name, isSet, slot);
+  };
+
+  //---
+
+  menu->addSeparator();
+
+  (void) addCheckedAction("Cell Labels", isCellLabels(), SLOT(setCellLabels(bool)));
+  (void) addCheckedAction("X Labels"   , isXLabels   (), SLOT(setXLabels   (bool)));
+  (void) addCheckedAction("Y Labels"   , isYLabels   (), SLOT(setYLabels   (bool)));
+
+  return true;
 }
 
 //------
@@ -229,6 +314,9 @@ bool
 CQChartsCorrelationPlot::
 hasForeground() const
 {
+  if (! isXLabels() && ! isYLabels())
+    return false;
+
   return isLayerActive(CQChartsLayer::Type::FOREGROUND);
 }
 
@@ -236,8 +324,11 @@ void
 CQChartsCorrelationPlot::
 execDrawForeground(CQChartsPaintDevice *device) const
 {
-  drawXLabels(device);
-  drawYLabels(device);
+  if (isXLabels())
+    drawXLabels(device);
+
+  if (isYLabels())
+    drawYLabels(device);
 }
 
 void
@@ -268,6 +359,7 @@ drawXLabels(CQChartsPaintDevice *device) const
   textOptions.align         = xLabelTextAlign();
   textOptions.angle         = xLabelTextAngle();
   textOptions.scaled        = isXLabelTextScaled();
+  textOptions.clipped       = false;
 
   textOptions = adjustTextOptions(textOptions);
 
@@ -286,9 +378,8 @@ drawXLabels(CQChartsPaintDevice *device) const
     QString name = modelHeaderString(col, Qt::Horizontal, ok);
     if (! name.length()) continue;
 
-    QRectF trect = CQChartsRotatedText::bbox(0.0, 0.0, name, device->font(),
-                                             textOptions.angle, 0, textOptions.align,
-                                             /*alignBBox*/ true);
+    QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
+                                                 textOptions, 0, /*alignBBox*/ true);
 
     colRects[col] = trect;
 
@@ -297,6 +388,8 @@ drawXLabels(CQChartsPaintDevice *device) const
   }
 
   //---
+
+  double cw = windowToPixelWidth(1.0);
 
   double tm = 4;
 
@@ -312,7 +405,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
     QRectF trect = colRects[col];
 
-    double tw1 = trect.width();
+    double tw1 = std::max(trect.width(), cw);
 
     QRectF trect1;
 
@@ -353,6 +446,7 @@ drawYLabels(CQChartsPaintDevice *device) const
   textOptions.align         = yLabelTextAlign();
   textOptions.angle         = yLabelTextAngle();
   textOptions.scaled        = isYLabelTextScaled();
+  textOptions.clipped       = false;
 
   textOptions = adjustTextOptions(textOptions);
 
@@ -365,17 +459,14 @@ drawYLabels(CQChartsPaintDevice *device) const
   double tw = 0.0;
   double th = 0.0;
 
-  //---
-
   for (int col = 0; col < numColumns(); ++col) {
     bool ok;
 
     QString name = modelHeaderString(col, Qt::Horizontal, ok);
     if (! name.length()) continue;
 
-    QRectF trect = CQChartsRotatedText::bbox(0.0, 0.0, name, device->font(),
-                                             textOptions.angle, 0, textOptions.align,
-                                             /*alignBBox*/ true);
+    QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
+                                                 textOptions, 0, /*alignBBox*/ true);
 
     colRects[col] = trect;
 
@@ -384,6 +475,8 @@ drawYLabels(CQChartsPaintDevice *device) const
   }
 
   //---
+
+  double ch = windowToPixelHeight(1.0);
 
   double tm = 4;
 
@@ -399,7 +492,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
     QRectF trect = colRects[col];
 
-    double th1 = trect.height();
+    double th1 = std::max(trect.height(), ch);
 
     QRectF trect1;
 
@@ -418,16 +511,22 @@ CQChartsGeom::BBox
 CQChartsCorrelationPlot::
 annotationBBox() const
 {
-  QFont font = view()->plotFont(this, cellLabelTextFont());
+  if (annotationBBox_.isSet())
+    return annotationBBox_;
 
-  QFontMetricsF fm(font);
+  //---
+
+  QFont xfont = view()->plotFont(this, xLabelTextFont());
+  QFont yfont = view()->plotFont(this, yLabelTextFont());
 
   CQChartsGeom::BBox bbox;
 
   double tm = 4;
 
-  {
-    double tw = 0.0;
+  //---
+
+  if (isXLabels()) {
+    double th = 0.0;
 
     for (int col = 0; col < numColumns(); ++col) {
       bool ok;
@@ -435,26 +534,44 @@ annotationBBox() const
       QString name = modelHeaderString(col, Qt::Horizontal, ok);
       if (! name.length()) continue;
 
-      tw = std::max(tw, fm.width(name));
+      CQChartsTextOptions options;
+
+      options.angle = xLabelTextAngle();
+      options.align = xLabelTextAlign();
+
+      QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, xfont,
+                                                   options, 0, /*alignBBox*/ true);
+
+      th = std::max(th, trect.height());
     }
 
-    double tw1 = pixelToWindowHeight(tw + tm);
+    double th1 = pixelToWindowHeight(th + tm);
 
-    CQChartsGeom::BBox tbbox(0, -tw1, numColumns(), 0);
+    CQChartsGeom::BBox tbbox(0, -th1, numColumns(), 0);
 
     bbox += tbbox;
   }
 
-  {
+  //---
+
+  if (isYLabels()) {
     double tw = 0.0;
 
     for (int row = 0; row < numColumns(); ++row) {
       bool ok;
 
-      QString name = modelHeaderString(row, Qt::Vertical, ok);
+      QString name = modelHeaderString(row, Qt::Horizontal, ok);
       if (! name.length()) continue;
 
-      tw = std::max(tw, fm.width(name));
+      CQChartsTextOptions options;
+
+      options.angle = yLabelTextAngle();
+      options.align = yLabelTextAlign();
+
+      QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, yfont,
+                                                   options, 0, /*alignBBox*/ true);
+
+      tw = std::max(tw, trect.width());
     }
 
     double tw1 = pixelToWindowWidth(tw + tm);
@@ -464,7 +581,11 @@ annotationBBox() const
     bbox += tbbox;
   }
 
-  return bbox;
+  //---
+
+  annotationBBox_ = bbox;
+
+  return annotationBBox_;
 }
 
 //------
@@ -494,8 +615,6 @@ calcTipId() const
   CQChartsTableTip tableTip;
 
   bool ok;
-
-  CQChartsFilterModel *model = plot_->correlationModel();
 
   QString xname = plot_->modelHeaderString(row_, Qt::Horizontal, ok);
   QString yname = plot_->modelHeaderString(col_, Qt::Horizontal, ok);
@@ -549,44 +668,47 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  // calc pen and brush
-  ColorInd ic(value());
+  if (plot_->isCellLabels()) {
+    // calc pen and brush
+    ColorInd ic(value());
 
-  //---
+    //---
 
-  // set font
-  plot_->view()->setPlotPainterFont(plot_, device, plot_->cellLabelTextFont());
+    // set font
+    plot_->view()->setPlotPainterFont(plot_, device, plot_->cellLabelTextFont());
 
-  //---
+    //---
 
-  // set pen
-  CQChartsPenBrush tPenBrush;
+    // set pen
+    CQChartsPenBrush tPenBrush;
 
-  QColor tc = plot_->interpCellLabelTextColor(ic);
+    QColor tc = plot_->interpCellLabelTextColor(ic);
 
-  plot_->setPen(tPenBrush.pen, true, tc, plot_->cellLabelTextAlpha());
+    plot_->setPen(tPenBrush.pen, true, tc, plot_->cellLabelTextAlpha());
 
-  plot_->updateObjPenBrushState(this, tPenBrush);
+    plot_->updateObjPenBrushState(this, tPenBrush);
 
-  device->setPen(tPenBrush.pen);
+    device->setPen(tPenBrush.pen);
 
-  //---
+    //---
 
-  QString valueStr = CQChartsUtil::formatReal(value());
+    QString valueStr = CQChartsUtil::formatReal(value());
 
-  CQChartsTextOptions textOptions;
+    CQChartsTextOptions textOptions;
 
-  textOptions.contrast      = plot_->isCellLabelTextContrast();
-  textOptions.contrastAlpha = plot_->cellLabelTextContrastAlpha();
-  textOptions.formatted     = plot_->isCellLabelTextFormatted();
-  textOptions.scaled        = plot_->isCellLabelTextScaled();
-  textOptions.html          = plot_->isCellLabelTextHtml();
-  textOptions.align         = plot_->cellLabelTextAlign();
-  textOptions.scaled        = plot_->isCellLabelTextScaled();
+    textOptions.contrast      = plot_->isCellLabelTextContrast();
+    textOptions.contrastAlpha = plot_->cellLabelTextContrastAlpha();
+    textOptions.formatted     = plot_->isCellLabelTextFormatted();
+    textOptions.scaled        = plot_->isCellLabelTextScaled();
+    textOptions.html          = plot_->isCellLabelTextHtml();
+    textOptions.align         = plot_->cellLabelTextAlign();
+    textOptions.angle         = plot_->cellLabelTextAngle();
+    textOptions.scaled        = plot_->isCellLabelTextScaled();
 
-  textOptions = plot_->adjustTextOptions(textOptions);
+    textOptions = plot_->adjustTextOptions(textOptions);
 
-  CQChartsDrawUtil::drawTextInBox(device, qrect, valueStr, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, qrect, valueStr, textOptions);
+  }
 
   //---
 
