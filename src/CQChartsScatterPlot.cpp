@@ -1588,8 +1588,10 @@ addMenuItems(QMenu *menu)
 
 CQChartsGeom::BBox
 CQChartsScatterPlot::
-annotationBBox() const
+calcAnnotationBBox() const
 {
+  CQPerfTrace trace("CQChartsScatterPlot::annotationBBox");
+
   CQChartsGeom::BBox bbox;
 
   if (isXRug() || isYRug() || isXDensity() || isYDensity() || isXWhisker() || isYWhisker()) {

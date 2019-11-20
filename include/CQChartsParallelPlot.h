@@ -215,7 +215,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   CQChartsGeom::BBox axesFitBBox() const override;
 
-  CQChartsGeom::BBox annotationBBox() const override;
+  CQChartsGeom::BBox calcAnnotationBBox() const override;
 
   bool hasFgAxes() const override;
 

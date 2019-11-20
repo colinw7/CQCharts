@@ -167,7 +167,7 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   bool createObjs(PlotObjs &objs) const override;
 
-  CQChartsGeom::BBox annotationBBox() const override;
+  CQChartsGeom::BBox calcAnnotationBBox() const override;
 
   void addKeyItems(CQChartsPlotKey *key) override;
 

@@ -128,6 +128,23 @@ setName(const QString &s)
   }
 }
 
+QString
+CQChartsModelData::
+filename() const
+{
+  if (filename_.length())
+    return filename_;
+
+  ModelP model = this->currentModel();
+
+  CQDataModel *dataModel = CQChartsModelUtil::getDataModel(model.data());
+
+  if (dataModel)
+    return dataModel->filename();
+
+  return "";
+}
+
 void
 CQChartsModelData::
 setFilename(const QString &s)
@@ -624,23 +641,6 @@ foldClear(bool notify)
   }
 }
 
-QString
-CQChartsModelData::
-filename() const
-{
-  if (filename_.length())
-    return filename_;
-
-  ModelP model = this->currentModel();
-
-  CQDataModel *dataModel = CQChartsModelUtil::getDataModel(model.data());
-
-  if (dataModel)
-    return dataModel->filename();
-
-  return "";
-}
-
 CQChartsModelData::FoldedModels
 CQChartsModelData::
 foldedModels() const
@@ -764,10 +764,10 @@ getPropertyData(const QString &name, QVariant &value) const
       auto nameAliases = p2.second;
 
       for (const auto &na : nameAliases.data) {
-        QString name1 = QString("%1.%2").arg(id).arg(na.alias);
+        QString name1 = QString("%1.%2").arg(id).arg(na.alias != "" ? na.alias : na.name);
 
         if (name == name1)
-          return propertyModel->getProperty(obj, na.name, value);
+          return propertyModel->getProperty(obj, name1, value);
       }
     }
   }
@@ -805,7 +805,7 @@ setPropertyData(const QString &name, const QVariant &value)
       auto nameAliases = p2.second;
 
       for (const auto &na : nameAliases.data) {
-        QString name1 = QString("%1.%2").arg(id).arg(na.alias);
+        QString name1 = QString("%1.%2").arg(id).arg(na.alias != "" ? na.alias : na.name);
 
         if (name == name1)
           return propertyModel->setProperty(obj, na.name, value);
@@ -842,6 +842,9 @@ getPropertyNameData(IdModelNames &names) const
   if (dataModel)
     names["data"][dataModel] << "readOnly" << "filter" /* << "filename" */;
 
+  //---
+
+  // proxy models
   CQChartsExprModel *exprModel = CQChartsModelUtil::getExprModel(absModel);
 
   if (exprModel)
@@ -863,6 +866,19 @@ getPropertyNameData(IdModelNames &names) const
     names["hierSep"][hierSepModel] <<
       NameAlias("separator", "foldSeparator") << "foldColumn" << "propagateValue";
 
+  CQSummaryModel *summaryModel = summaryModel_;
+
+  if (! summaryModel)
+    summaryModel = qobject_cast<CQSummaryModel *>(model.data());
+
+  if (summaryModel)
+    names["summary"][summaryModel] << "mode" << "maxRows" << "randomMode" << "sortMode" <<
+                                      "sortColumn" << "sortRole" << "sortOrder" << "pagedMode" <<
+                                      "pageSize" << "currentPage" << "rowsMode";
+
+  //---
+
+  // data models
   CQCsvModel *csvModel = qobject_cast<CQCsvModel *>(absModel);
 
   if (csvModel)
@@ -917,13 +933,6 @@ write(std::ostream &os, const QString &varName) const
   QAbstractItemModel *model = model_.data();
   if (! model) return;
 
-  if (varName != "")
-    os << "set " << varName.toStdString();
-  else
-    os << "set model";
-
-  os << " [load_charts_model";
-
   const CQChartsExprModel  *exprModel = CQChartsModelUtil::getExprModel(model);
   const CQDataModel        *dataModel = CQChartsModelUtil::getDataModel(model);
   const QAbstractItemModel *baseModel = CQChartsModelUtil::getBaseModel(model);
@@ -937,6 +946,13 @@ write(std::ostream &os, const QString &varName) const
   const CQTsvModel     *tsvModel  = dynamic_cast<const CQTsvModel     *>(dataModel);
   const CQGnuDataModel *gnuModel  = dynamic_cast<const CQGnuDataModel *>(dataModel);
   const CQJsonModel    *jsonModel = dynamic_cast<const CQJsonModel    *>(baseModel);
+
+  if (varName != "")
+    os << "set " << varName.toStdString();
+  else
+    os << "set model";
+
+  os << " [load_charts_model";
 
   if      (csvModel) {
     if (csvModel->filename().length())

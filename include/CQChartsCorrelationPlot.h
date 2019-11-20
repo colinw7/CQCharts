@@ -165,7 +165,7 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsGeom::BBox annotationBBox() const override;
+  CQChartsGeom::BBox calcAnnotationBBox() const override;
 
  public slots:
   void setCellLabels(bool b);
@@ -181,12 +181,11 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   void drawYLabels(CQChartsPaintDevice *device) const;
 
  private:
-  CQChartsFilterModel*       correlationModel_ { nullptr }; //!< correlation mode
-  bool                       cellLabels_       { true };    //!< cell labels
-  bool                       xLabels_          { true };    //!< x labels
-  bool                       yLabels_          { true };    //!< y labels
-  int                        nc_               { 0 };       //!< number of grid columns
-  mutable CQChartsGeom::BBox annotationBBox_;
+  CQChartsFilterModel* correlationModel_ { nullptr }; //!< correlation mode
+  bool                 cellLabels_       { true };    //!< cell labels
+  bool                 xLabels_          { true };    //!< x labels
+  bool                 yLabels_          { true };    //!< y labels
+  int                  nc_               { 0 };       //!< number of grid columns
 };
 
 #endif

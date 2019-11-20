@@ -106,7 +106,7 @@ addParameters()
     setString().setTip("Row Unique Id Column");
 
   addColumnsParameter("tips", "Tips", "tipColumns").
-    setString().setTip("Row Tip Columns");
+    setString().setBasic().setTip("Row Tip Columns");
 
   addColumnParameter("visible", "Visible", "visibleColumn").
     setBool().setTip("Row Visible Column");

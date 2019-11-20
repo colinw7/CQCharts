@@ -1505,7 +1505,9 @@ class CQChartsPlot : public CQChartsObj,
   virtual CQChartsGeom::BBox titleFitBBox() const;
 
   // get bounding box of annotations outside plot area
-  virtual CQChartsGeom::BBox annotationBBox() const { return CQChartsGeom::BBox(); }
+  CQChartsGeom::BBox annotationBBox() const;
+
+  virtual CQChartsGeom::BBox calcAnnotationBBox() const { return CQChartsGeom::BBox(); }
 
   //---
 
@@ -2334,6 +2336,8 @@ class CQChartsPlot : public CQChartsObj,
   Annotations                  pressAnnotations_;                //!< press annotations
   UpdatesData                  updatesData_;                     //!< updates data
   bool                         fromInvalidate_   { false };      //!< call from invalidate
+
+  mutable CQChartsGeom::BBox   annotationBBox_;
 };
 
 //------

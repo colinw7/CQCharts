@@ -2,24 +2,24 @@
 #  global,location,,Japan
 #  global,year,,2019
 # END_META_DATA
-Pos,Country,Driver,Logo,Team,Wins,Points,Image
-1,Great Britain,Lewis Hamilton,HAM,Mercedes,9,338,data/f1_mercedes_ham.png
-2,Finland,Valtteri Bottas,BOT,Mercedes,3,274,data/f1_mercedes_bot.png
-3,Monaco,Charles Leclerc,LEC,Ferrari,2,223,data/f1_ferrari_lec.png
-4,Netherlands,Max Verstappen,VER,Red Bull,2,212,data/f1_redbull_ver.png
-5,Germany,Sebastian Vettel,VET,Ferrari,1,212,data/f1_ferrari_vet.png
-6,Spain,Carlos Sainz Jnr,SAI,McLaren,0,76,data/f1_maclaren_sai.png
-7,France,Pierre Gasly,GAS,Toro Rosso,0,75,data/f1_toro_roso_gas.png
-8,Thailand,Alexander Albon,ALB,Red Bull,0,64,data/f1_redbull_alb.png
-9,Mexico,Sergio Perez,PER,Racing Point,0,37,data/f1_racing_point_per.png
-10,Great Britain,Lando Norris,NOR,McLaren,0,35,data/f1_maclaren_nor.png
-11,Russia,Daniil Kvyat,KVY,Toro Rosso,0,34,data/f1_toro_roso_kvy.png
-12,Australia,Daniel Ricciardo,RIC,Renault,0,34,data/f1_renault_ric.png
-13,Germany,Nico Hulkenberg,HUL,Renault,0,34,data/f1_renault_hul.png
-14,Finland,Kimi Raikkonen,RAI,Alfa Romeo,0,31,data/f1_alfa_rai.png
-15,Canada,Lance Stroll,STR,Racing Point,0,21,data/f1_racing_point_str.png
-16,Denmark,Kevin Magnussen,MAG,Haas,0,20,data/f1_haas_mag.png
-17,France,Romain Grosjean,GRO,Haas,0,8,data/f1_haas_gro.png
-18,Italy,Antonio Giovinazzi,GIO,Alfa Romeo,0,4,data/f1_alfa_gio.png
-19,Poland,Robert Kubica,KUB,Williams,0,1,data/f1_williams_kub.png
-20,Great Britain,George Russell,RUS,Williams,0,0,data/f1_williams_rus.png
+Id,Pos,Country,Driver,Logo,Team,Wins,Points,Image
+1,1,Great Britain,Lewis Hamilton,HAM,Mercedes,9,338,data/f1_mercedes_ham.png
+2,2,Finland,Valtteri Bottas,BOT,Mercedes,3,274,data/f1_mercedes_bot.png
+4,3,Monaco,Charles Leclerc,LEC,Ferrari,2,223,data/f1_ferrari_lec.png
+5,4,Netherlands,Max Verstappen,VER,Red Bull,2,212,data/f1_redbull_ver.png
+3,5,Germany,Sebastian Vettel,VET,Ferrari,1,212,data/f1_ferrari_vet.png
+7,6,Spain,Carlos Sainz Jnr,SAI,McLaren,0,76,data/f1_maclaren_sai.png
+10,7,France,Pierre Gasly,GAS,Toro Rosso,0,75,data/f1_toro_roso_gas.png
+6,8,Thailand,Alexander Albon,ALB,Red Bull,0,64,data/f1_redbull_alb.png
+15,9,Mexico,Sergio Perez,PER,Racing Point,0,37,data/f1_racing_point_per.png
+8,10,Great Britain,Lando Norris,NOR,McLaren,0,35,data/f1_maclaren_nor.png
+9,11,Russia,Daniil Kvyat,KVY,Toro Rosso,0,34,data/f1_toro_roso_kvy.png
+13,12,Australia,Daniel Ricciardo,RIC,Renault,0,34,data/f1_renault_ric.png
+14,13,Germany,Nico Hulkenberg,HUL,Renault,0,34,data/f1_renault_hul.png
+11,14,Finland,Kimi Raikkonen,RAI,Alfa Romeo,0,31,data/f1_alfa_rai.png
+16,15,Canada,Lance Stroll,STR,Racing Point,0,21,data/f1_racing_point_str.png
+18,16,Denmark,Kevin Magnussen,MAG,Haas,0,20,data/f1_haas_mag.png
+17,17,France,Romain Grosjean,GRO,Haas,0,8,data/f1_haas_gro.png
+12,18,Italy,Antonio Giovinazzi,GIO,Alfa Romeo,0,4,data/f1_alfa_gio.png
+19,19,Poland,Robert Kubica,KUB,Williams,0,1,data/f1_williams_kub.png
+20,20,Great Britain,George Russell,RUS,Williams,0,0,data/f1_williams_rus.png

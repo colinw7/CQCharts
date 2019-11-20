@@ -320,7 +320,7 @@ class CQChartsChordPlot : public CQChartsPlot,
 
   CQChartsGeom::Range calcRange() const override;
 
-  CQChartsGeom::BBox annotationBBox() const override;
+  CQChartsGeom::BBox calcAnnotationBBox() const override;
 
   bool createObjs(PlotObjs &objs) const override;
 

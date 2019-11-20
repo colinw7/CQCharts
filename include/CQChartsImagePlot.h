@@ -201,7 +201,7 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   //---
 
-  CQChartsGeom::BBox annotationBBox() const override;
+  CQChartsGeom::BBox calcAnnotationBBox() const override;
 
  public slots:
   void setRectStyle   (bool b);

@@ -429,8 +429,10 @@ calcRange() const
 
 CQChartsGeom::BBox
 CQChartsPivotPlot::
-annotationBBox() const
+calcAnnotationBBox() const
 {
+  CQPerfTrace trace("CQChartsPivotPlot::annotationBBox");
+
   CQChartsGeom::BBox bbox;
 
   CQChartsDataLabel::Position position = dataLabel()->position();

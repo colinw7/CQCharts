@@ -119,7 +119,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
-  CQChartsGeom::BBox annotationBBox() const override;
+  CQChartsGeom::BBox calcAnnotationBBox() const override;
 
   //---
 

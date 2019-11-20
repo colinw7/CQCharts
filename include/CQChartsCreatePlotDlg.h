@@ -249,6 +249,7 @@ class CQChartsCreatePlotDlg : public QDialog {
   TabType                  stackIndexPlotType_;                 //!< stacked index for plot type
 
   // filter edit
+  QFrame*                  whereFrame_             { nullptr }; //!< where frame
   CQLineEdit*              whereEdit_              { nullptr }; //!< where edit
 
   // general widgets

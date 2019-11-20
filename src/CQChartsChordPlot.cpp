@@ -366,8 +366,10 @@ calcRange() const
 
 CQChartsGeom::BBox
 CQChartsChordPlot::
-annotationBBox() const
+calcAnnotationBBox() const
 {
+  CQPerfTrace trace("CQChartsChordPlot::annotationBBox");
+
   CQChartsGeom::BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {

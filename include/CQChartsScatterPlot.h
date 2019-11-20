@@ -584,7 +584,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
 
   bool addMenuItems(QMenu *menu) override;
 
-  CQChartsGeom::BBox annotationBBox() const override;
+  CQChartsGeom::BBox calcAnnotationBBox() const override;
 
   //---
 

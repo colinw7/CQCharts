@@ -455,8 +455,8 @@ class CQChartsEnumParameter : public CQChartsPlotParameter {
   QStringList names() const {
     QStringList names;
 
-    for (const auto &nv : nameValues_)
-      names.push_back(nv.first);
+    for (const auto &nv : valueNames_)
+      names.push_back(nv.second);
 
     return names;
   }

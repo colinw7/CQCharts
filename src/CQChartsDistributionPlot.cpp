@@ -1344,8 +1344,10 @@ getGroupValues(int groupInd) const
 
 CQChartsGeom::BBox
 CQChartsDistributionPlot::
-annotationBBox() const
+calcAnnotationBBox() const
 {
+  CQPerfTrace trace("CQChartsDistributionPlot::annotationBBox");
+
   CQChartsGeom::BBox bbox;
 
   // add data labels

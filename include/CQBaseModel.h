@@ -140,18 +140,9 @@ class CQBaseModel : public QAbstractItemModel {
 
   //---
 
-  //! get value for name
-  QVariant nameValue(const QString &name) const {
-    auto p = nameValues_.find(name);
-    if (p == nameValues_.end()) return QVariant();
-
-    return (*p).second;
-  }
-
-  //! get value for name
-  void setNameValue(const QString &name, const QVariant &value) {
-    nameValues_[name] = value;
-  }
+  //! get/set value for name
+  QVariant nameValue(const QString &name) const;
+  void setNameValue(const QString &name, const QVariant &value);
 
   //---
 

@@ -615,8 +615,10 @@ drawYLabels(CQChartsPaintDevice *device) const
 
 CQChartsGeom::BBox
 CQChartsImagePlot::
-annotationBBox() const
+calcAnnotationBBox() const
 {
+  CQPerfTrace trace("CQChartsImagePlot::annotationBBox");
+
   QFont font = view()->plotFont(this, cellLabelTextFont());
 
   QFontMetricsF fm(font);

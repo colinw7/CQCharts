@@ -51,6 +51,11 @@ CQChartsCreatePlotDlg(CQCharts *charts, CQChartsModelData *modelData) :
   init();
 }
 
+CQChartsCreatePlotDlg::
+~CQChartsCreatePlotDlg()
+{
+}
+
 void
 CQChartsCreatePlotDlg::
 init()
@@ -276,9 +281,11 @@ createTypeDataFrame()
   //----
 
   // where filter edit
-  QHBoxLayout *whereLayout = CQUtil::makeLayout<QHBoxLayout>(nullptr, 0, 2);
+  whereFrame_ = CQUtil::makeWidget<QFrame>("whereFrame");
 
-  typeLayout->addLayout(whereLayout);
+  QHBoxLayout *whereLayout = CQUtil::makeLayout<QHBoxLayout>(whereFrame_, 0, 2);
+
+  typeLayout->addWidget(whereFrame_);
 
   QLabel *whereLabel = CQUtil::makeLabelWidget<QLabel>("Where", "whereLabel");
 
@@ -291,6 +298,8 @@ createTypeDataFrame()
   whereLayout->addStretch(1);
 
   whereEdit_->setToolTip("Filter for input data");
+
+  whereFrame_->setVisible(isAdvanced());
 
   //---
 
@@ -820,11 +829,6 @@ createPreviewFrame()
   return previewFrame;
 }
 
-CQChartsCreatePlotDlg::
-~CQChartsCreatePlotDlg()
-{
-}
-
 void
 CQChartsCreatePlotDlg::
 addPlotWidgets(CQChartsPlotType *type, int ind)
@@ -885,6 +889,9 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
     if (parameterGroup->isHidden())
       continue;
 
+    if (isBasic && (parameterGroup->type() == CQChartsPlotParameterGroup::SECONDARY))
+      continue;
+
     if (parameterGroup->parentGroupId() >= 0) {
       childGroups.push_back(parameterGroup);
       continue;
@@ -929,10 +936,21 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
 
     //---
 
+    ChildGroups childGroups1;
+
     for (const auto &parameterGroup1 : parameterGroups) {
       if (parameterGroup1->isHidden())
         continue;
 
+      if (isBasic && (parameterGroup1->type() == CQChartsPlotParameterGroup::SECONDARY))
+        continue;
+
+      childGroups1.push_back(parameterGroup1);
+    }
+
+    int ng1 = childGroups1.size();
+
+    for (const auto &parameterGroup1 : childGroups1) {
       CQChartsPlotType::Parameters parameters1 =
         type->groupParameters(parameterGroup1->groupId());
 
@@ -943,21 +961,25 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
 
       //---
 
-      // get tab widget
-      auto pg = groupTab.find(parameterGroup->groupId());
+      QTabWidget *parameterGroupTab1 = nullptr;
 
-      if (pg == groupTab.end()) {
-        QTabWidget *parameterGroupTab1 = CQUtil::makeWidget<QTabWidget>("parameterGroupTab");
+      if (ng1 > 1) {
+        // get tab widget
+        auto pg = groupTab.find(parameterGroup->groupId());
 
-        parameterGroupLayout->addWidget(parameterGroupTab1, row, 0);
+        if (pg == groupTab.end()) {
+          QTabWidget *parameterGroupTab1 = CQUtil::makeWidget<QTabWidget>("parameterGroupTab");
 
-        ++row;
+          parameterGroupLayout->addWidget(parameterGroupTab1, row, 0);
 
-        pg = groupTab.insert(pg,
-          GroupTab::value_type(parameterGroup->groupId(), parameterGroupTab1));
+          ++row;
+
+          pg = groupTab.insert(pg,
+            GroupTab::value_type(parameterGroup->groupId(), parameterGroupTab1));
+        }
+
+        parameterGroupTab1 = (*pg).second;
       }
-
-      QTabWidget *parameterGroupTab1 = (*pg).second;
 
       //---
 
@@ -975,8 +997,15 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
           parameterGroupLayout1->setRowStretch(row2, 1);
       }
 
-      if (row2 > 0)
-        parameterGroupTab1->addTab(parameterGroupFrame1, parameterGroup1->name());
+      if (row2 > 0) {
+        if (parameterGroupTab1)
+          parameterGroupTab1->addTab(parameterGroupFrame1, parameterGroup1->name());
+        else {
+          parameterGroupLayout->addWidget(parameterGroupFrame1, row, 0);
+
+          ++row;
+        }
+      }
       else
         delete parameterGroupFrame1;
 
@@ -1776,6 +1805,8 @@ plotDataSlot(int state)
 
   plotDataStack_->setCurrentIndex(advanced_ ? 1 : 0);
 
+  whereFrame_->setVisible(advanced_);
+
   validateSlot();
 }
 
@@ -1915,9 +1946,7 @@ validateSlot()
     return;
 
   CQChartsPlotType *type = getPlotType();
-
-  if (! type)
-    return;
+  if (! type) return;
 
   //---
 
@@ -2085,6 +2114,9 @@ updatePreviewPlot(bool valid)
 
       previewPlot_->setId("Preview");
 
+      if (isAdvanced())
+        previewPlot_->setFilterStr(whereEdit_->text());
+
       previewView_->addPlot(previewPlot_);
 
       previewPlot_->setAutoFit(true);
@@ -2116,9 +2148,7 @@ updateFormatSlot()
     return;
 
   CQChartsPlotType *type = getPlotType();
-
-  if (! type)
-    return;
+  if (! type) return;
 
   PlotData &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
                                        basicTypePlotData_   [type->name()]);
@@ -2425,9 +2455,7 @@ applySlot()
 
   // create plot for typename of current tab
   CQChartsPlotType *type = getPlotType();
-
-  if (! type)
-    return false;
+  if (! type) return false;
 
   // get or create view
   QString viewId = viewEdit_->text();
@@ -2446,6 +2474,9 @@ applySlot()
 
   // create plot
   plot_ = type->create(view, model_);
+
+  if (isAdvanced())
+    plot_->setFilterStr(whereEdit_->text());
 
   //---
 

@@ -302,8 +302,10 @@ addNameValue(const QString &name, double value) const
 
 CQChartsGeom::BBox
 CQChartsDendrogramPlot::
-annotationBBox() const
+calcAnnotationBBox() const
 {
+  CQPerfTrace trace("CQChartsDendrogramPlot::annotationBBox");
+
   CQChartsGeom::BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {

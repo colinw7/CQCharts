@@ -3122,6 +3122,7 @@ updateRangeThread()
 
   //---
 
+  annotationBBox_ = CQChartsGeom::BBox();
   calcDataRange_  = calcRange();
   dataRange_      = adjustDataRange(calcDataRange_);
   outerDataRange_ = dataRange_;
@@ -3755,6 +3756,10 @@ bool
 CQChartsPlot::
 createObjs()
 {
+  annotationBBox_ = CQChartsGeom::BBox();
+
+  //---
+
   PlotObjs objs;
 
   if (! createObjs(objs))
@@ -8012,6 +8017,18 @@ calcFitPixelRect() const
   CQChartsGeom::BBox pbbox = windowToPixel(bbox);
 
   return pbbox;
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+annotationBBox() const
+{
+  if (annotationBBox_.isSet())
+    return annotationBBox_;
+
+  annotationBBox_ = calcAnnotationBBox();
+
+  return annotationBBox_;
 }
 
 //------

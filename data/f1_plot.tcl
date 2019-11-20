@@ -1,73 +1,29 @@
-set model01 [load_charts_model \
-  -csv data/f1_standings_2019_01.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model02 [load_charts_model \
-  -csv data/f1_standings_2019_02.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model03 [load_charts_model \
-  -csv data/f1_standings_2019_03.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model04 [load_charts_model \
-  -csv data/f1_standings_2019_04.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model05 [load_charts_model \
-  -csv data/f1_standings_2019_05.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model06 [load_charts_model \
-  -csv data/f1_standings_2019_06.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model07 [load_charts_model \
-  -csv data/f1_standings_2019_07.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model08 [load_charts_model \
-  -csv data/f1_standings_2019_08.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model09 [load_charts_model \
-  -csv data/f1_standings_2019_09.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model10 [load_charts_model \
-  -csv data/f1_standings_2019_10.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model11 [load_charts_model \
-  -csv data/f1_standings_2019_11.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model12 [load_charts_model \
-  -csv data/f1_standings_2019_12.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model13 [load_charts_model \
-  -csv data/f1_standings_2019_13.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model14 [load_charts_model \
-  -csv data/f1_standings_2019_14.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model15 [load_charts_model \
-  -csv data/f1_standings_2019_15.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model16 [load_charts_model \
-  -csv data/f1_standings_2019_16.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model17 [load_charts_model \
-  -csv data/f1_standings_2019_17.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model18 [load_charts_model \
-  -csv data/f1_standings_2019_18.csv -first_line_header \
-  -column_type {{{Image image}}}]
-set model19 [load_charts_model \
-  -csv data/f1_standings_2019_19.csv -first_line_header \
-  -column_type {{{Image image}}}]
+set numRaces 20
 
-set models [list $model01 $model02 $model03 $model04 $model05 $model06 $model07 $model08 \
-                 $model09 $model10 $model11 $model12 $model13 $model14 $model15 $model16 \
-                 $model17 $model18 $model19]
+# create models
+set models {}
 
+for {set i 0} {$i < $numRaces} {incr i} {
+  set i1 [expr {$i + 1}]
+  set i2 [format "%02d" $i1]
+
+  set model [load_charts_model \
+    -csv data/f1_standings_2019_$i2.csv -first_line_header \
+    -column_type {{{Image image}}}]
+
+  lappend models $model
+}
+
+# create plots
 set splots {}
 set tplots {}
 
 set i 1
 
 foreach model $models {
+  # create scatter plot
   set splot [create_charts_plot -type scatter -model $model \
-    -columns {{x Points} {y Pos} {label Logo} {image Image} {tips {Driver}}} \
+    -columns {{x Points} {y Id} {label Logo} {image Image} {tips {Driver}}} \
     -ymin 0 \
     -title "Formula 1 Standings (Round $i)"]
 
@@ -102,6 +58,7 @@ foreach model $models {
 
   #---
 
+  # create table plot
   set tplot [create_charts_plot -type table -model $model -columns {{columns {0 1 2 3 4 5 6 7 8}}}]
 
   set_charts_property -plot $tplot -name range.view -value {0 0 100 33.3}
@@ -119,7 +76,7 @@ set view [get_charts_property -plot [lindex $splots 0] -name viewId]
 
 set_charts_property -view $view -name sizing.auto -value 0
 
-set maxRound 19
+set maxRound $numRaces
 
 proc show_plot { n } {
   set_charts_property -annotation $::prev_button -name enabled -value 1
@@ -156,7 +113,7 @@ proc show_plot { n } {
     -value "Formula 1 Standings (Round $n) - $loc ($year)"
 }
 
-set round 19
+set round $numRaces
 
 proc annotationSlot { viewId id } {
   if       {$id == "next"} {
@@ -199,7 +156,7 @@ set last_button [create_charts_button_annotation -view $view -id last \
 
 connect_charts_signal -view $view -from annotationIdPressed -to annotationSlot
 
-for {set i 1} {$i <= 19} {incr i} {
+for {set i 1} {$i <= $numRaces} {incr i} {
   show_plot $i
   qt_sync
 }
@@ -214,7 +171,7 @@ define_charts_proc -svg annotationClick id {
 
   var plots = [];
 
-  for (var i = 1; i <= 19; ++i) {
+  for (var i = 1; i <= $numRaces; ++i) {
     plots.push(document.getElementById("plot_scatter" + i.toString()));
     plots.push(document.getElementById("plot_table"   + i.toString()));
   }
@@ -223,7 +180,7 @@ define_charts_proc -svg annotationClick id {
     currentPlot = 1;
   }
   else if (id == 'last') {
-    currentPlot = 19;
+    currentPlot = $numRaces;
   }
   else if (id == 'prev') {
     currentPlot = currentPlot - 1;
@@ -235,12 +192,12 @@ define_charts_proc -svg annotationClick id {
   else if (id == 'next') {
     currentPlot = currentPlot + 1;
 
-    if (currentPlot > 19) {
-      currentPlot = 19;
+    if (currentPlot > $numRaces) {
+      currentPlot = $numRaces;
     }
   }
 
-  for (var i = 1; i <= 19; ++i) {
+  for (var i = 1; i <= $numRaces; ++i) {
     var i1 = (i - 1)*2 + 1;
 
     plots[i1 - 1].style.visibility=(currentPlot == i ? "visible" : "hidden");
@@ -248,7 +205,7 @@ define_charts_proc -svg annotationClick id {
   }
 
   var btn = document.getElementById("prev"); btn.disabled = (currentPlot == 1);
-  var btn = document.getElementById("next"); btn.disabled = (currentPlot == 19);
+  var btn = document.getElementById("next"); btn.disabled = (currentPlot == $numRaces);
 }
 
 define_charts_proc -script annotationClick id {
@@ -260,7 +217,7 @@ define_charts_proc -script annotationClick id {
     currentPlot = 1;
   }
   else if (id == 'last') {
-    currentPlot = 19;
+    currentPlot = $numRaces;
   }
   else if (id == 'prev') {
     currentPlot = currentPlot - 1;
@@ -272,12 +229,12 @@ define_charts_proc -script annotationClick id {
   else if (id == 'next') {
     currentPlot = currentPlot + 1;
 
-    if (currentPlot > 19) {
-      currentPlot = 19;
+    if (currentPlot > $numRaces) {
+      currentPlot = $numRaces;
     }
   }
 
-  for (var i = 1; i <= 19; ++i) {
+  for (var i = 1; i <= $numRaces; ++i) {
     var i1 = (i - 1)*2 + 1;
 
     charts.plots[i1 - 1].visible = (currentPlot == i);
@@ -285,7 +242,7 @@ define_charts_proc -script annotationClick id {
   }
 
   var btn = document.getElementById("prev"); btn.disabled = (currentPlot == 1);
-  var btn = document.getElementById("next"); btn.disabled = (currentPlot == 19);
+  var btn = document.getElementById("next"); btn.disabled = (currentPlot == $numRaces);
 }
 
 show_plot $round

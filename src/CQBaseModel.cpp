@@ -725,6 +725,25 @@ data(const QModelIndex &index, int role) const
 
 //------
 
+QVariant
+CQBaseModel::
+nameValue(const QString &name) const
+{
+  auto p = nameValues_.find(name);
+  if (p == nameValues_.end()) return QVariant();
+
+  return (*p).second;
+}
+
+void
+CQBaseModel::
+setNameValue(const QString &name, const QVariant &value)
+{
+  nameValues_[name] = value;
+}
+
+//------
+
 int
 CQBaseModel::
 modelColumnNameToInd(const QString &name) const

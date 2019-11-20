@@ -289,8 +289,10 @@ calcRange() const
 
 CQChartsGeom::BBox
 CQChartsRadarPlot::
-annotationBBox() const
+calcAnnotationBBox() const
 {
+  CQPerfTrace trace("CQChartsRadarPlot::annotationBBox");
+
   CQChartsGeom::BBox bbox;
 
   int nv = valueColumns().count();

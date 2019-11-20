@@ -156,10 +156,6 @@ CQChartsGeom::Range
 CQChartsCorrelationPlot::
 calcRange() const
 {
-  annotationBBox_ = CQChartsGeom::BBox();
-
-  //---
-
   CQChartsGeom::Range dataRange;
 
   // square (nc, nc)
@@ -182,10 +178,6 @@ createObjs(PlotObjs &objs) const
   CQPerfTrace trace("CQChartsCorrelationPlot::createObjs");
 
   NoUpdate noUpdate(this);
-
-  //---
-
-  annotationBBox_ = CQChartsGeom::BBox();
 
   //---
 
@@ -509,12 +501,9 @@ drawYLabels(CQChartsPaintDevice *device) const
 
 CQChartsGeom::BBox
 CQChartsCorrelationPlot::
-annotationBBox() const
+calcAnnotationBBox() const
 {
-  if (annotationBBox_.isSet())
-    return annotationBBox_;
-
-  //---
+  CQPerfTrace trace("CQChartsCorrelationPlot::annotationBBox");
 
   QFont xfont = view()->plotFont(this, xLabelTextFont());
   QFont yfont = view()->plotFont(this, yLabelTextFont());
@@ -583,9 +572,7 @@ annotationBBox() const
 
   //---
 
-  annotationBBox_ = bbox;
-
-  return annotationBBox_;
+  return bbox;
 }
 
 //------

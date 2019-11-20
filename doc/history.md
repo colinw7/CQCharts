@@ -1000,3 +1000,5 @@
  + Support scale and align for rotated text
  + Add more correlation plot options
  + Skip meta data in load model preview
+# 11/19/2019
+ + optimize annotationBBox calc

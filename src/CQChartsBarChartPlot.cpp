@@ -32,7 +32,7 @@ addParameters()
     setRequired().setNumeric().setTip("Value column(s)");
 
   addColumnParameter("name" , "Name" , "nameColumn" ).
-    setString().setTip("Custom group name");
+    setString().setBasic().setTip("Custom group name");
   addColumnParameter("label", "Label", "labelColumn").
     setString().setTip("Bar data label");
 
@@ -827,8 +827,10 @@ groupValueSetI(int groupInd)
 
 CQChartsGeom::BBox
 CQChartsBarChartPlot::
-annotationBBox() const
+calcAnnotationBBox() const
 {
+  CQPerfTrace trace("CQChartsBarChartPlot::annotationBBox");
+
   CQChartsGeom::BBox bbox;
 
   CQChartsDataLabel::Position position = dataLabel()->position();

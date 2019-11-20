@@ -80,7 +80,11 @@ addParameters()
 
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
 
-  addBoolParameter("pointsType", "Points Type", "pointsType").setTip("Show data points type");
+  addEnumParameter("pointsType", "Points Type", "pointsType").
+   addNameValue("NONE"   , int(CQChartsBoxPlot::PointsType::NONE   )).
+   addNameValue("JITTER" , int(CQChartsBoxPlot::PointsType::JITTER )).
+   addNameValue("STACKED", int(CQChartsBoxPlot::PointsType::STACKED)).
+   setTip("Show data points type");
 
   addBoolParameter("violin"  , "Violin"   , "violin"  ).setTip("Draw distribution outline");
   addBoolParameter("errorBar", "Error Bar", "errorBar").setTip("Error bar");
@@ -1195,8 +1199,10 @@ mappedYAxis() const
 
 CQChartsGeom::BBox
 CQChartsBoxPlot::
-annotationBBox() const
+calcAnnotationBBox() const
 {
+  CQPerfTrace trace("CQChartsBoxPlot::annotationBBox");
+
   CQChartsGeom::BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {
@@ -1261,6 +1267,9 @@ initRawObjs(PlotObjs &objs) const
 
         int                           setId   = setWhiskers.first;
         const CQChartsBoxPlotWhisker *whisker = setWhiskers.second;
+
+        if (whisker->lowerMedian() >= whisker->upperMedian())
+          continue;
 
         //----
 

@@ -354,8 +354,10 @@ calcRange() const
 
 CQChartsGeom::BBox
 CQChartsPiePlot::
-annotationBBox() const
+calcAnnotationBBox() const
 {
+  CQPerfTrace trace("CQChartsPiePlot::annotationBBox");
+
   CQChartsGeom::BBox bbox;
 
   for (const auto &plotObj : plotObjs_) {
