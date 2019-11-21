@@ -691,7 +691,7 @@ bool parseRect(CQStrParse &parse, QRectF &rect) {
 
   //---
 
-  rect = QRectF(p1, p2);
+  rect = QRectF(p1, p2).normalized();
 
   return true;
 }

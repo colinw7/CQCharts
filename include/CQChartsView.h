@@ -458,6 +458,7 @@ class CQChartsView : public QFrame,
   void addAnnotation(CQChartsAnnotation *annotation);
 
   CQChartsAnnotation *getAnnotationByName(const QString &id) const;
+  CQChartsAnnotation *getAnnotationByInd(int ind) const;
 
   void removeAnnotation(CQChartsAnnotation *annotation);
 

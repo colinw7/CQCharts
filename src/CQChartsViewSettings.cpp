@@ -419,9 +419,11 @@ class CQChartsViewSettingsViewAnnotationsTable : public CQTableWidget {
       QTableWidgetItem *item = items[i];
       if (item->column() != 0) continue;
 
-      QString id = item->text();
+      bool ok;
 
-      CQChartsAnnotation *annotation = view->getAnnotationByName(id);
+      long ind = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
+
+      CQChartsAnnotation *annotation = view->getAnnotationByInd(ind);
 
       if (annotation)
         annotations.push_back(annotation);
@@ -491,9 +493,11 @@ class CQChartsViewSettingsPlotAnnotationsTable : public CQTableWidget {
       QTableWidgetItem *item = items[i];
       if (item->column() != 0) continue;
 
-      QString id = item->text();
+      bool ok;
 
-      CQChartsAnnotation *annotation = plot->getAnnotationByName(id);
+      long ind = CQChartsVariant::toInt(item->data(Qt::UserRole), ok);
+
+      CQChartsAnnotation *annotation = plot->getAnnotationByInd(ind);
 
       if (annotation)
         annotations.push_back(annotation);

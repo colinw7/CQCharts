@@ -1266,6 +1266,18 @@ getAnnotationByName(const QString &id) const
   return nullptr;
 }
 
+CQChartsAnnotation *
+CQChartsView::
+getAnnotationByInd(int ind) const
+{
+  for (auto &annotation : annotations()) {
+    if (annotation->ind() == ind)
+      return annotation;
+  }
+
+  return nullptr;
+}
+
 void
 CQChartsView::
 removeAnnotation(CQChartsAnnotation *annotation)

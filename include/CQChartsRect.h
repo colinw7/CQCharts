@@ -79,7 +79,7 @@ class CQChartsRect {
     QString ustr = CQChartsUtil::unitsString(units_);
 
     return QString("%1 %2 %3 %4 %5").
-             arg(rect_.left()).arg(rect_.top()).arg(rect_.right()).arg(rect_.bottom()).arg(ustr);
+             arg(rect_.left()).arg(rect_.bottom()).arg(rect_.right()).arg(rect_.top()).arg(ustr);
   }
 
   bool fromString(const QString &s) {

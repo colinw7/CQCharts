@@ -3,7 +3,7 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
- + plot type description pass is advanced
+ + plot type description pass in advanced (change help)
  + Auto scale all axis tick labels (constant scale)
  + Analyze skip bad numeric values
  + Basic Parameters (simpler create plot interface)

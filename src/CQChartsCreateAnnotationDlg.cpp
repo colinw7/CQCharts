@@ -597,7 +597,9 @@ createRectangleAnnotation()
   else
     return false;
 
-  annotation->setId(id);
+  if (id != "")
+    annotation->setId(id);
+
   annotation->setTipId(tipId);
 
   annotation->setBoxData(boxData);
@@ -641,7 +643,9 @@ createEllipseAnnotation()
   else
     return false;
 
-  annotation->setId(id);
+  if (id != "")
+    annotation->setId(id);
+
   annotation->setTipId(tipId);
 
   annotation->setBoxData(boxData);
@@ -681,7 +685,9 @@ createPolygonAnnotation()
   else
     return false;
 
-  annotation->setId(id);
+  if (id != "")
+    annotation->setId(id);
+
   annotation->setTipId(tipId);
 
   annotation->setBoxData(boxData);
@@ -721,7 +727,9 @@ createPolylineAnnotation()
   else
     return false;
 
-  annotation->setId(id);
+  if (id != "")
+    annotation->setId(id);
+
   annotation->setTipId(tipId);
 
   annotation->setBoxData(boxData);
@@ -777,7 +785,9 @@ createTextAnnotation()
   if (! annotation)
     return false;
 
-  annotation->setId(id);
+  if (id != "")
+    annotation->setId(id);
+
   annotation->setTipId(tipId);
 
   annotation->setTextData(textData);
@@ -822,7 +832,9 @@ createArrowAnnotation()
   else
     return false;
 
-  annotation->setId(id);
+  if (id != "")
+    annotation->setId(id);
+
   annotation->setTipId(tipId);
 
   annotation->setArrowData(arrowData);
@@ -853,7 +865,9 @@ createPointAnnotation()
   else
     return false;
 
-  annotation->setId(id);
+  if (id != "")
+    annotation->setId(id);
+
   annotation->setTipId(tipId);
 
   annotation->setSymbolData(symbolData);

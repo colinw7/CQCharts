@@ -1546,6 +1546,7 @@ class CQChartsPlot : public CQChartsObj,
   void addAnnotation(CQChartsAnnotation *annotation);
 
   CQChartsAnnotation *getAnnotationByName(const QString &id) const;
+  CQChartsAnnotation *getAnnotationByInd(int ind) const;
 
   void removeAnnotation(CQChartsAnnotation *annotation);
 
