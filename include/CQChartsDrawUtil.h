@@ -130,13 +130,14 @@ void drawRotatedTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const
                           const QPen &pen, const CQChartsTextOptions &options);
 
 void drawTextAtPoint(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
-                     const CQChartsTextOptions &options=CQChartsTextOptions());
+                     const CQChartsTextOptions &options=CQChartsTextOptions(),
+                     bool centered=false, double dx=0.0, double dy=0.0);
 
 void drawAlignedText(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
-                     Qt::Alignment align, double dx=0, double dy=0);
+                     Qt::Alignment align, double dx=0.0, double dy=0.0);
 
-QRectF calcAlignedTextRect(const QFont &font, const QPointF &p, const QString &text,
-                           Qt::Alignment align, double dx, double dy);
+QRectF calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font, const QPointF &p,
+                           const QString &text, Qt::Alignment align, double dx, double dy);
 
 void drawContrastText(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
                       double alpha);

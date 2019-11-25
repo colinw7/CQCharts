@@ -87,7 +87,8 @@ invalidate(bool reload)
   CQChartsAxis *axis = qobject_cast<CQChartsAxis *>(obj_);
 
   if (axis) {
-    axis->redraw();
+    if (axis->isUpdatesEnabled())
+      axis->redraw();
 
     return;
   }

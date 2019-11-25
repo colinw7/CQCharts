@@ -43,10 +43,14 @@ CQChartsManageModelsDlg(CQCharts *charts) :
     return button;
   };
 
-  QPushButton *loadButton  = createButton("Load" , "load" , "Load Model"  , SLOT(loadSlot())  );
-  QPushButton *writeButton = createButton("Write", "write", "Write Model" , SLOT(writeSlot()) );
-  QPushButton *plotButton  = createButton("Plot" , "plot" , "Create Plot" , SLOT(plotSlot())  );
-  QPushButton *doneButton  = createButton("Done" , "done" , "Close Dialog", SLOT(cancelSlot()));
+  QPushButton *loadButton  =
+    createButton("Load Model..." , "load" , "Load Model" , SLOT(loadSlot())  );
+  QPushButton *writeButton =
+    createButton("Write Model"   , "write", "Write Model", SLOT(writeSlot()) );
+  QPushButton *plotButton  =
+    createButton("Create Plot...", "plot" , "Create Plot", SLOT(plotSlot())  );
+
+  QPushButton *doneButton  = createButton("Done", "done", "Close Dialog", SLOT(cancelSlot()));
 
   QHBoxLayout *buttonLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 

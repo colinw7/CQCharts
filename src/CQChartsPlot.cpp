@@ -2258,7 +2258,8 @@ addFillProperties(const QString &path, const QString &prefix,
 
 void
 CQChartsPlot::
-addTextProperties(const QString &path, const QString &prefix, const QString &descPrefix)
+addTextProperties(const QString &path, const QString &prefix, const QString &descPrefix,
+                  uint valueTypes)
 {
   auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
                           const QString &desc) {
@@ -2272,36 +2273,31 @@ addTextProperties(const QString &path, const QString &prefix, const QString &des
 
   QString prefix1 = (descPrefix.length() ? descPrefix + " text" : "Text");
 
-  addStyleProp(path, prefix + "Color"        , "color"        , prefix1 + " color");
-  addStyleProp(path, prefix + "Alpha"        , "alpha"        , prefix1 + " alpha");
-  addStyleProp(path, prefix + "Font"         , "font"         , prefix1 + " font");
-  addStyleProp(path, prefix + "Angle"        , "angle"        , prefix1 + " angle");
-  addStyleProp(path, prefix + "Contrast"     , "contrast"     , prefix1 + " contrast");
-  addStyleProp(path, prefix + "ContrastAlpha", "contrastAlpha", prefix1 + " contrast alpha");
-  addStyleProp(path, prefix + "Html"         , "html"         , prefix1 + " is HTML");
-}
+  // style
+  addStyleProp(path, prefix + "Color", "color", prefix1 + " color");
+  addStyleProp(path, prefix + "Alpha", "alpha", prefix1 + " alpha");
+  addStyleProp(path, prefix + "Font" , "font" , prefix1 + " font");
 
-void
-CQChartsPlot::
-addAllTextProperties(const QString &path, const QString &prefix, const QString &descPrefix)
-{
-  auto addStyleProp = [&](const QString &path, const QString &name, const QString &alias,
-                          const QString &desc) {
-    CQPropertyViewItem *item = this->addProperty(path, this, name, alias);
-    item->setDesc(desc);
-    CQCharts::setItemIsStyle(item);
-    return item;
-  };
+  // options
+  if (valueTypes & CQChartsTextOptions::ValueType::ANGLE)
+    addStyleProp(path, prefix + "Angle", "angle", prefix1 + " angle");
 
-  //---
+  if (valueTypes & CQChartsTextOptions::ValueType::ALIGN)
+    addStyleProp(path, prefix + "Align", "align", prefix1 + " align");
 
-  addTextProperties(path, prefix, descPrefix);
+  if (valueTypes & CQChartsTextOptions::ValueType::CONTRAST) {
+    addStyleProp(path, prefix + "Contrast"     , "contrast"     , prefix1 + " contrast");
+    addStyleProp(path, prefix + "ContrastAlpha", "contrastAlpha", prefix1 + " contrast alpha");
+  }
 
-  QString prefix1 = (descPrefix.length() ? descPrefix + " text" : "Text");
+  if (valueTypes & CQChartsTextOptions::ValueType::HTML)
+    addStyleProp(path, prefix + "Html", "html", prefix1 + " is HTML");
 
-  addStyleProp(path, prefix + "Align"    , "align"    , prefix1 + " align");
-  addStyleProp(path, prefix + "Formatted", "formatted", prefix1 + " formatted to fit box");
-  addStyleProp(path, prefix + "Scaled"   , "scaled"   , prefix1 + " scaled to box");
+  if (valueTypes & CQChartsTextOptions::ValueType::FORMATTED)
+    addStyleProp(path, prefix + "Formatted", "formatted", prefix1 + " formatted to fit box");
+
+  if (valueTypes & CQChartsTextOptions::ValueType::SCALED)
+    addStyleProp(path, prefix + "Scaled", "scaled", prefix1 + " scaled to box");
 }
 
 void

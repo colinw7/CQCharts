@@ -138,7 +138,7 @@ class CQChartsModelData : public QObject {
   CQSummaryModel *addSummaryModel();
 
   bool isSummaryEnabled() const { return summaryEnabled_; }
-  void setSummaryEnabled(bool b) { summaryEnabled_ = b; }
+  void setSummaryEnabled(bool b);
 
   CQSummaryModel *summaryModel() const { return summaryModel_; }
 

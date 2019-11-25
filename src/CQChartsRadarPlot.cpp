@@ -198,7 +198,7 @@ addProperties()
   addLineProperties("stroke", "stroke", "");
 
   // text
-  addTextProperties("text", "text", "");
+  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST);
 }
 
 CQChartsGeom::Range
@@ -299,6 +299,10 @@ calcAnnotationBBox() const
 
   // add corner labels
   if (nv > 2) {
+    CQChartsRadarPlot *th = const_cast<CQChartsRadarPlot *>(this);
+
+    CQChartsPlotPainter device(th, nullptr);
+
     double alen = CMathUtil::clamp(angleExtent(), -360.0, 360.0);
 
     double da = alen/nv;
@@ -321,8 +325,6 @@ calcAnnotationBBox() const
         double x = r*cos(ra);
         double y = r*sin(ra);
 
-        CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(x, y));
-
         //---
 
         if (i == nl) {
@@ -343,9 +345,9 @@ calcAnnotationBBox() const
           else if (y < 0)                align |= Qt::AlignTop;
 
           QRectF trect =
-            CQChartsDrawUtil::calcAlignedTextRect(font, p1.qpoint(), name, align, 2, 2);
+            CQChartsDrawUtil::calcAlignedTextRect(&device, font, QPointF(x, y), name, align, 2, 2);
 
-          bbox += pixelToWindow(CQChartsGeom::BBox(trect));
+          bbox += CQChartsGeom::BBox(trect);
         }
 
         //---
@@ -712,7 +714,18 @@ execDrawBackground(CQChartsPaintDevice *device) const
           else if (y > 0)                align |= Qt::AlignBottom;
           else if (y < 0)                align |= Qt::AlignTop;
 
-          CQChartsDrawUtil::drawAlignedText(device, p1.qpoint(), name, align, 2, 2);
+          // only contrast support (custom align, zero angle)
+          CQChartsTextOptions options;
+
+          options.angle         = 0;
+          options.align         = align;
+          options.contrast      = isTextContrast();
+          options.contrastAlpha = textContrastAlpha();
+
+          CQChartsDrawUtil::drawTextAtPoint(device, p1.qpoint(), name, options,
+                                            /*centered*/false, 2, 2);
+
+        //CQChartsDrawUtil::drawAlignedText(device, p1.qpoint(), name, align, 2, 2);
         }
 
         //---

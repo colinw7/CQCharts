@@ -1811,6 +1811,18 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
 
 void
 CQChartsView::
+autoPlacePlots()
+{
+  int np = plots_.size();
+
+  int nr = std::max(int(sqrt(np)), 1);
+  int nc = (np + nr - 1)/nr;
+
+  placePlots(plots_, /*vertical*/false, /*horizontal*/false, nr, nc, /*reset*/true);
+}
+
+void
+CQChartsView::
 placePlots(const Plots &plots, bool vertical, bool horizontal,
            int rows, int columns, bool reset)
 {

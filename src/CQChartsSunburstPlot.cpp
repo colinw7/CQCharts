@@ -205,7 +205,7 @@ addProperties()
   addLineProperties("stroke", "stroke", "");
 
   // text
-  addTextProperties("text", "text", "");
+  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST);
 
   // color map
   addColorMapProperties();
@@ -1127,15 +1127,15 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   }
   else {
     if      (qr1.width())
-      path.arcMoveTo(qr1, a1);
+      path.arcMoveTo(qr1, -a1);
     else if (qr2.width())
-      path.arcMoveTo(qr2, a2);
+      path.arcMoveTo(qr2, -a2);
 
     if (qr1.width())
-      path.arcTo(qr1, a1,  da);
+      path.arcTo(qr1, -a1, -da);
 
     if (qr2.width())
-      path.arcTo(qr2, a2, -da);
+      path.arcTo(qr2, -a2,  da);
 
     path.closeSubpath();
   }
@@ -1249,10 +1249,13 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
 
   double ta1 = (c >= 0 ? ta : ta - 180);
 
+  // only contrast support (custom align and angle)
   CQChartsTextOptions options;
 
-  options.angle = ta1;
-  options.align = align;
+  options.angle         = ta1;
+  options.align         = align;
+  options.contrast      = isTextContrast();
+  options.contrastAlpha = textContrastAlpha();
 
   CQChartsRotatedText::draw(device, pt.qpoint(), name, options);
 

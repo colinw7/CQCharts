@@ -263,18 +263,22 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   addProp(ticksLabelPath, "tickLabelAutoHide" , "autoHide", "Axis tick label text is auto hide");
   addProp(ticksLabelPath, "tickLabelPlacement", "placement", "Axis tick label text placement");
 
-  addStyleProp(ticksLabelTextPath, "axesTickLabelTextData"   , "style",
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextData"         , "style",
                "Axis tick label text style", true);
-  addProp     (ticksLabelTextPath, "axesTickLabelTextVisible", "visible",
+  addProp     (ticksLabelTextPath, "axesTickLabelTextVisible"      , "visible",
                "Axis tick label text visible");
-  addStyleProp(ticksLabelTextPath, "axesTickLabelTextColor"  , "color",
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextColor"        , "color",
                "Axis tick label text color");
-  addStyleProp(ticksLabelTextPath, "axesTickLabelTextAlpha"  , "alpha",
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextAlpha"        , "alpha",
                "Axis tick label text alpha");
-  addStyleProp(ticksLabelTextPath, "axesTickLabelTextFont"   , "font",
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextFont"         , "font",
                "Axis tick label text font");
-  addStyleProp(ticksLabelTextPath, "axesTickLabelTextAngle"  , "angle",
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextAngle"        , "angle",
                "Axis tick label text angle");
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextContrast"     , "contrast",
+               "Axis tick label text contrast");
+  addStyleProp(ticksLabelTextPath, "axesTickLabelTextContrastAlpha", "contrastAlpha",
+               "Axis tick label text contrast alpha");
 
   addProp(ticksPath, "tickInside" , "inside", "Axis ticks drawn inside plot");
   addProp(ticksPath, "mirrorTicks", "mirror", "Axis tick are mirrored on other side of plot");
@@ -286,12 +290,20 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   addProp(labelTextPath, "label", "string", "Axis label text string");
 
-  addStyleProp(labelTextPath, "axesLabelTextData"   , "style"  ,
+  addStyleProp(labelTextPath, "axesLabelTextData"         , "style",
                "Axis label text style", true);
-  addProp     (labelTextPath, "axesLabelTextVisible", "visible", "Axis label text visible");
-  addStyleProp(labelTextPath, "axesLabelTextColor"  , "color"  , "Axis label text color");
-  addStyleProp(labelTextPath, "axesLabelTextAlpha"  , "alpha"  , "Axis label text alpha");
-  addStyleProp(labelTextPath, "axesLabelTextFont"   , "font"   , "Axis label text font");
+  addProp     (labelTextPath, "axesLabelTextVisible"      , "visible",
+               "Axis label text visible");
+  addStyleProp(labelTextPath, "axesLabelTextColor"        , "color",
+               "Axis label text color");
+  addStyleProp(labelTextPath, "axesLabelTextAlpha"        , "alpha",
+               "Axis label text alpha");
+  addStyleProp(labelTextPath, "axesLabelTextFont"         , "font",
+               "Axis label text font");
+  addStyleProp(labelTextPath, "axesLabelTextContrast"     , "contrast",
+               "Axis label text contrast");
+  addStyleProp(labelTextPath, "axesLabelTextContrastAlpha", "contrastAlpha",
+               "Axis label text contrast alpha");
 
   //---
 
@@ -762,12 +774,22 @@ redraw(bool wait)
   if (! plot) return;
 
   if (wait) {
-    plot->drawBackground();
-    plot->drawForeground();
+    if (isDrawAll()) {
+      plot->drawObjs();
+    }
+    else {
+      plot->drawBackground();
+      plot->drawForeground();
+    }
   }
   else {
-    plot->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
-    plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+    if (isDrawAll()) {
+      plot->invalidateLayers();
+    }
+    else {
+      plot->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+      plot->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+    }
   }
 }
 
@@ -2122,24 +2144,31 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   //---
 
+  QFontMetricsF fm(device->font());
+
   for (const auto &data : axisTickLabelDrawDatas_) {
     if (! data.visible)
       continue;
 
     QPointF p1 = plot_->pixelToWindow(data.p);
 
+    CQChartsTextOptions options;
+
+    // html not supported (axis code controls string)
+    options.angle         = data.angle;
+    options.align         = data.align;
+    options.contrast      = isAxesTickLabelTextContrast();
+    options.contrastAlpha = axesTickLabelTextContrastAlpha();
+    options.formatted     = isAxesTickLabelTextFormatted();
+
+    CQChartsDrawUtil::drawTextAtPoint(device, p1, data.text, options, /*centered*/true);
+
+#if 0
     if (CMathUtil::isZero(data.angle))
       CQChartsDrawUtil::drawSimpleText(device, p1, data.text);
-    else {
-      CQChartsTextOptions options;
-
-      options.angle         = data.angle;
-      options.align         = data.align;
-      options.contrast      = isAxesTickLabelTextContrast();
-      options.contrastAlpha = axesTickLabelTextContrastAlpha();
-
+    else
       CQChartsRotatedText::draw(device, p1, data.text, options, /*alignBox*/true);
-    }
+#endif
   }
 
   if (plot->showBoxes()) {
@@ -2207,7 +2236,19 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       QPointF pt(axm, lbbox_.getYMax() + ta + tgap);
 
-      CQChartsDrawUtil::drawSimpleText(device, plot->pixelToWindow(pt), text);
+      // angle, align not supported
+      // html and formatted not supported (axis code controls string)
+      CQChartsTextOptions options;
+
+      options.angle         = 0;
+      options.align         = Qt::AlignLeft;
+      options.contrast      = isAxesLabelTextContrast();
+      options.contrastAlpha = axesLabelTextContrastAlpha();
+
+      CQChartsDrawUtil::drawTextAtPoint(device, plot->pixelToWindow(pt), text,
+                                        options, /*centered*/true);
+
+    //CQChartsDrawUtil::drawSimpleText(device, plot->pixelToWindow(pt), text);
 
       if (! plot_->isInvertY()) {
         bbox += CQChartsGeom::Point((amin + amax)/2 - atw, apos - (ath      ));
@@ -2226,7 +2267,19 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       QPointF pt(axm, lbbox_.getYMin() - td - tgap);
 
-      CQChartsDrawUtil::drawSimpleText(device, plot->pixelToWindow(pt), text);
+      // angle, align not supported
+      // html and formatted not supported (axis code controls string)
+      CQChartsTextOptions options;
+
+      options.angle         = 0;
+      options.align         = Qt::AlignLeft;
+      options.contrast      = isAxesLabelTextContrast();
+      options.contrastAlpha = axesLabelTextContrastAlpha();
+
+      CQChartsDrawUtil::drawTextAtPoint(device, plot->pixelToWindow(pt), text,
+                                        options, /*centered*/true);
+
+    //CQChartsDrawUtil::drawSimpleText(device, plot->pixelToWindow(pt), text);
 
       if (! plot_->isInvertY()) {
         bbox += CQChartsGeom::Point((amin + amax)/2 - atw, apos + (ath      ));

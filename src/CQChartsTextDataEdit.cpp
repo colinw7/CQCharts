@@ -495,12 +495,25 @@ draw(QPainter *painter, const CQChartsTextData &data, const QRect &rect,
   int tx = rect.left() + 2;
   int ty = rect.center().y() + (fm.ascent() - fm.descent())/2;
 
+  QPointF pt(tx, ty);
+
   QString text("ABC abc");
 
   CQChartsPixelPainter device(painter);
 
+  CQChartsTextOptions options;
+
+  options.angle         = 0;
+  options.align         = Qt::AlignLeft;
+  options.contrast      = data.isContrast();
+  options.contrastAlpha = data.contrastAlpha();
+
+  CQChartsDrawUtil::drawTextAtPoint(&device, pt, text, options);
+
+#if 0
   if (data.isContrast())
-    CQChartsDrawUtil::drawContrastText(&device, QPointF(tx, ty), text, data.contrastAlpha());
+    CQChartsDrawUtil::drawContrastText(&device, pt, text, data.contrastAlpha());
   else
-    CQChartsDrawUtil::drawSimpleText(&device, QPointF(tx, ty), text);
+    CQChartsDrawUtil::drawSimpleText(&device, pt, text);
+#endif
 }

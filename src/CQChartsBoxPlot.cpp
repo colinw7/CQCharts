@@ -74,8 +74,10 @@ addParameters()
 
   //---
 
+  addBoolParameter("normalized", "Normalized", "normalized").
+    setBasic().setTip("Normalize data ranges");
+
   addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("Draw bars horizontal");
-  addBoolParameter("normalized", "Normalized", "normalized").setTip("Normalize data ranges");
   addBoolParameter("notched"   , "Notched"   , "notched"   ).setTip("Draw notch on bar");
 
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
@@ -155,6 +157,9 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
   }
 
   analyzeModelData.parameterNameColumns["value"] = columns;
+
+  if (columns.count() > 1)
+    analyzeModelData.parameterNameBool["normalized"] = true;
 }
 
 CQChartsPlot *
@@ -428,7 +433,7 @@ addProperties()
   // value labels
   addProp("labels", "textVisible", "visible", "Value labels visible");
 
-  addTextProperties("labels/text", "text", "Value");
+  addTextProperties("labels/text", "text", "Value", CQChartsTextOptions::ValueType::CONTRAST);
 
   addProp("labels", "textMargin", "margin", "Value text margin");
 
@@ -794,16 +799,6 @@ groupColumnName(const QString &def) const
     groupName = def;
 
   return groupName;
-}
-
-//---
-
-void
-CQChartsBoxPlot::
-initPreview()
-{
-  if (valueColumns_.count() > 1)
-    setNormalized(true);
 }
 
 //---
@@ -2976,7 +2971,17 @@ drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
   else
     tp = QPointF(x + margin, y + yf);
 
-  CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(tp), text);
+  // only support contrast
+  CQChartsTextOptions options;
+
+  options.angle         = 0;
+  options.align         = Qt::AlignLeft | Qt::AlignBottom;
+  options.contrast      = plot_->isTextContrast();
+  options.contrastAlpha = plot_->textContrastAlpha();
+
+  CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), text, options);
+
+//CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(tp), text);
 }
 
 void
@@ -3008,7 +3013,17 @@ drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
   else
     tp = QPointF(x - xf, y - margin - fd);
 
-  CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(tp), text);
+  // only support contrast
+  CQChartsTextOptions options;
+
+  options.angle         = 0;
+  options.align         = Qt::AlignLeft | Qt::AlignBottom;
+  options.contrast      = plot_->isTextContrast();
+  options.contrastAlpha = plot_->textContrastAlpha();
+
+  CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), text, options);
+
+//CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(tp), text);
 }
 
 void

@@ -8,8 +8,9 @@ class CQChartsModelDetails;
 class CQCharts;
 
 class CQTableWidget;
-class QTextEdit;
 class QPushButton;
+class QLabel;
+class QCheckBox;
 
 /*!
  * \brief Model Details Widget
@@ -18,27 +19,38 @@ class QPushButton;
 class CQChartsModelDetailsWidget : public QFrame {
   Q_OBJECT
 
+  Q_PROPERTY(bool flip READ isFlip WRITE setFlip)
+
  public:
   CQChartsModelDetailsWidget(CQCharts *charts);
 
+  bool isFlip() const { return flip_; }
+  void setFlip(bool b);
+
   void updateDetails(const CQChartsModelDetails *details);
 
-  void setDetails(const CQChartsModelDetails *details);
+  void setDetails(const CQChartsModelDetails *details, bool invalidate=true);
 
   void invalidate();
 
  private slots:
   void invalidateSlot();
+  void flipSlot(int state);
   void updateSlot();
 
  private:
   using ModelDetailsP = QPointer<CQChartsModelDetails>;
 
-  CQCharts*      charts_       { nullptr };
+  CQCharts*      charts_          { nullptr };
+  bool           flip_            { false };
   ModelDetailsP  details_;
-  QPushButton*   updateButton_ { nullptr };
-  QTextEdit*     detailsText_  { nullptr };
-  CQTableWidget* detailsTable_ { nullptr };
+  QLabel*        modelLabel_      { nullptr };
+  QPushButton*   updateButton_    { nullptr };
+  QLabel*        numColumnsLabel_ { nullptr };
+  QLabel*        numRowsLabel_    { nullptr };
+  QLabel*        hierLabel_       { nullptr };
+  QCheckBox*     flipCheck_       { nullptr };
+  CQTableWidget* detailsTable_    { nullptr };
 };
 
 #endif

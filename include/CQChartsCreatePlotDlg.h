@@ -212,10 +212,14 @@ class CQChartsCreatePlotDlg : public QDialog {
 
   void autoAnalyzeSlot(int);
 
+  void autoPlaceSlot(int);
+
   void xminSlot();
   void yminSlot();
   void xmaxSlot();
   void ymaxSlot();
+
+  void updateModelData();
 
   void validateSlot();
 
@@ -234,6 +238,28 @@ class CQChartsCreatePlotDlg : public QDialog {
   using TypePlotData    = std::map<QString,PlotData>;
   using TabType         = std::map<int,CQChartsPlotType *>;
   using TypeInitialized = std::map<QString,bool>;
+
+  struct RangeEditData {
+    CQLineEdit*  xminEdit   { nullptr }; //!< xmin edit
+    QToolButton* xminButton { nullptr }; //!< xmin load button
+    CQLineEdit*  yminEdit   { nullptr }; //!< ymin edit
+    QToolButton* yminButton { nullptr }; //!< ymin load button
+    CQLineEdit*  xmaxEdit   { nullptr }; //!< xmax edit
+    QToolButton* xmaxButton { nullptr }; //!< xmax load button
+    CQLineEdit*  ymaxEdit   { nullptr }; //!< ymax edit
+    QToolButton* ymaxButton { nullptr }; //!< ymax load button
+  };
+
+  struct SummaryEditData {
+    QCheckBox*               enabledCheck    { nullptr }; //!< summary enabled checkbox
+    CQIntegerSpin*           maxRows         { nullptr }; //!< summary max rows
+    QComboBox*               typeCombo       { nullptr }; //!< summary type combo
+    QStackedWidget*          typeStack       { nullptr }; //!< summary type stack
+    CQIntegerSpin*           sortedColEdit   { nullptr }; //!< summary column edit
+    CQIntegerSpin*           pageSizeEdit    { nullptr }; //!< summary page size edit
+    CQIntegerSpin*           currentPageEdit { nullptr }; //!< summary current page edit
+    CQChartsModelViewHolder* modelView       { nullptr }; //!< summary model view
+  };
 
   CQCharts*                charts_                 { nullptr }; //!< parent charts
   CQChartsModelData*       modelData_              { nullptr }; //!< model data
@@ -255,17 +281,11 @@ class CQChartsCreatePlotDlg : public QDialog {
   // general widgets
   CQLineEdit*              viewEdit_               { nullptr }; //!< view name edit
   CQLineEdit*              posEdit_                { nullptr }; //!< position edit
+  QCheckBox*               autoRangeEdit_          { nullptr }; //!< auto range check
   CQLineEdit*              titleEdit_              { nullptr }; //!< title edit
   CQLineEdit*              xLabelEdit_             { nullptr }; //!< x label edit
   CQLineEdit*              yLabelEdit_             { nullptr }; //!< y label edit
-  CQLineEdit*              xminEdit_               { nullptr }; //!< xmin edit
-  QToolButton*             xminButton_             { nullptr }; //!< xmin load button
-  CQLineEdit*              yminEdit_               { nullptr }; //!< ymin edit
-  QToolButton*             yminButton_             { nullptr }; //!< ymin load button
-  CQLineEdit*              xmaxEdit_               { nullptr }; //!< xmax edit
-  QToolButton*             xmaxButton_             { nullptr }; //!< xmax load button
-  CQLineEdit*              ymaxEdit_               { nullptr }; //!< ymax edit
-  QToolButton*             ymaxButton_             { nullptr }; //!< ymax load button
+  RangeEditData            rangeEditData_;
   QCheckBox*               xintegralCheck_         { nullptr }; //!< x integral check
   QCheckBox*               yintegralCheck_         { nullptr }; //!< y integral check
   QCheckBox*               xlogCheck_              { nullptr }; //!< x log check
@@ -279,14 +299,7 @@ class CQChartsCreatePlotDlg : public QDialog {
   QPushButton*             applyButton_            { nullptr }; //!< apply button
 
   // summary widgets
-  QCheckBox*               summaryEnabledCheck_    { nullptr }; //!< summary enabled checkbox
-  CQIntegerSpin*           summaryMaxRows_         { nullptr }; //!< summary max rows
-  QComboBox*               summaryTypeCombo_       { nullptr }; //!< summary type combo
-  QStackedWidget*          summaryTypeStack_       { nullptr }; //!< summary type stack
-  CQIntegerSpin*           summarySortedColEdit_   { nullptr }; //!< summary column edit
-  CQIntegerSpin*           summaryPageSizeEdit_    { nullptr }; //!< summary page size edit
-  CQIntegerSpin*           summaryCurrentPageEdit_ { nullptr }; //!< summary current page edit
-  CQChartsModelViewHolder* summaryModelView_       { nullptr }; //!< summary model view
+  SummaryEditData          summaryEditData_;
 
   CQChartsModelDetailsWidget* detailsWidget_ { nullptr };
 

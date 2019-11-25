@@ -477,6 +477,8 @@ class CQChartsView : public QFrame,
   //---
 
   // place plots
+  void autoPlacePlots();
+
   void placePlots(const Plots &plots, bool vertical, bool horizontal,
                   int rows, int columns, bool reset=false);
 

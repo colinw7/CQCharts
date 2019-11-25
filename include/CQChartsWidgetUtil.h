@@ -10,7 +10,9 @@ namespace CQChartsWidgetUtil {
 
 void addGridLabelWidget(QGridLayout *playout, const QString &label, QWidget *widget, int &row);
 
-};
+QFrame *createHSpacer(int width=1, const char *name="spacer");
+
+}
 
 //------
 

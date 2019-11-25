@@ -1012,10 +1012,9 @@ draw(CQChartsPaintDevice *device)
   // draw value set segment arc path
   QPainterPath path;
 
-  path.arcMoveTo(device->pixelToWindow(porect), -angle1);
-
-  path.arcTo(orect, -angle1, -dangle);
-  path.arcTo(irect, -angle2,  dangle);
+  path.arcMoveTo(orect, -angle1);
+  path.arcTo    (orect, -angle1, -dangle);
+  path.arcTo    (irect, -angle2,  dangle);
 
   path.closeSubpath();
 

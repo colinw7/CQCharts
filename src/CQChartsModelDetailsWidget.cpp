@@ -6,9 +6,11 @@
 #include <CQTableWidget.h>
 #include <CQUtil.h>
 
+#include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QPushButton>
-#include <QTextEdit>
+#include <QCheckBox>
+#include <QLabel>
 
 CQChartsModelDetailsWidget::
 CQChartsModelDetailsWidget(CQCharts *charts) :
@@ -16,29 +18,50 @@ CQChartsModelDetailsWidget(CQCharts *charts) :
 {
   setObjectName("modelDetailsWidget");
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 0);
 
   //---
 
-  QHBoxLayout *controlLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
+  // update button
+  auto controlLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
+  modelLabel_   = CQUtil::makeLabelWidget<QLabel>("");
   updateButton_ = CQUtil::makeLabelWidget<QPushButton>("Update", "update");
 
   connect(updateButton_, SIGNAL(clicked()), this, SLOT(updateSlot()));
 
-  controlLayout->addWidget(updateButton_);
+  controlLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("<b>Model:</b> "));
+  controlLayout->addWidget(modelLabel_);
   controlLayout->addStretch(1);
+  controlLayout->addWidget(updateButton_);
 
   layout->addLayout(controlLayout);
 
-  //--
+  //---
 
-  detailsText_ = CQUtil::makeWidget<QTextEdit>("detailsText");
+  // sumary labels
 
-  detailsText_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  detailsText_->setReadOnly(true);
+  auto summaryLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
-  layout->addWidget(detailsText_);
+  numColumnsLabel_ = CQUtil::makeLabelWidget<QLabel>("0");
+  numRowsLabel_    = CQUtil::makeLabelWidget<QLabel>("0");
+  hierLabel_       = CQUtil::makeLabelWidget<QLabel>("No");
+
+  flipCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Flip");
+
+  connect(flipCheck_, SIGNAL(stateChanged(int)), this, SLOT(flipSlot(int)));
+
+  summaryLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("<b>Columns:</b> "));
+  summaryLayout->addWidget(numColumnsLabel_);
+  summaryLayout->addWidget(CQUtil::makeLabelWidget<QLabel>(" "));
+  summaryLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("<b>Rows:</b> "));
+  summaryLayout->addWidget(numRowsLabel_);
+  summaryLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("<b>Hier:</b> "));
+  summaryLayout->addWidget(hierLabel_);
+  summaryLayout->addStretch(1);
+  summaryLayout->addWidget(flipCheck_);
+
+  layout->addLayout(summaryLayout);
 
   //--
 
@@ -51,17 +74,31 @@ CQChartsModelDetailsWidget(CQCharts *charts) :
 
 void
 CQChartsModelDetailsWidget::
-setDetails(const CQChartsModelDetails *details)
+setFlip(bool b)
 {
-  if (details_)
-    disconnect(details_, SIGNAL(detailsReset()), this, SLOT(invalidateSlot()));
+  if (b != flip_) {
+    flip_ = b;
 
-  details_ = const_cast<CQChartsModelDetails *>(details);
+    updateSlot();
+  }
+}
 
-  if (details_)
-    connect(details_, SIGNAL(detailsReset()), this, SLOT(invalidateSlot()));
+void
+CQChartsModelDetailsWidget::
+setDetails(const CQChartsModelDetails *details, bool invalidate)
+{
+  if (details != details_) {
+    if (details_)
+      disconnect(details_, SIGNAL(detailsReset()), this, SLOT(invalidateSlot()));
 
-  invalidate();
+    details_ = const_cast<CQChartsModelDetails *>(details);
+
+    if (details_)
+      connect(details_, SIGNAL(detailsReset()), this, SLOT(invalidateSlot()));
+  }
+
+  if (invalidate)
+    this->invalidate();
 }
 
 void
@@ -89,32 +126,65 @@ updateDetails(const CQChartsModelDetails *details)
 
 void
 CQChartsModelDetailsWidget::
+flipSlot(int state)
+{
+  setFlip(state);
+}
+
+void
+CQChartsModelDetailsWidget::
 updateSlot()
 {
   assert(details_);
 
   //---
 
+  modelLabel_->setText(QString("%1").arg(details_->data()->ind()));
+
   updateButton_->setEnabled(false);
 
   //---
 
-  int nc = details_->numColumns();
-  int nr = details_->numRows   ();
+  int  nc     = details_->numColumns    ();
+  int  nr     = details_->numRows       ();
+  bool isHier = details_->isHierarchical();
 
   //---
 
   detailsTable_->clear();
 
-  QStringList columnNames = (QStringList() <<
-    "Column" << "Type" << "Min" << "Max" << "Mean" << "StdDev" <<
-    "Monotonic" << "Num Unique" << "Num Null");
+  QStringList valueNames;
 
-  detailsTable_->setColumnCount(columnNames.length());
+  if (! isFlip())
+    valueNames << "Column";
 
-  detailsTable_->setHorizontalHeaderLabels(columnNames);
+  valueNames << (QStringList() <<
+    "Type" << "Min" << "Max" << "Mean" << "StdDev" << "Monotonic" << "Num Unique" << "Num Null");
 
-  detailsTable_->setRowCount(nc);
+  int nv = valueNames.size();
+
+  QStringList columnNames;
+
+  if (isFlip()) {
+    columnNames << "Value";
+
+    for (int c = 0; c < nc; ++c) {
+      const CQChartsModelColumnDetails *columnDetails = details_->columnDetails(CQChartsColumn(c));
+
+      columnNames << columnDetails->headerName();
+    }
+  }
+
+  if (! isFlip()) {
+    detailsTable_->setColumnCount(nv);
+    detailsTable_->setHorizontalHeaderLabels(valueNames);
+    detailsTable_->setRowCount(nc);
+  }
+  else {
+    detailsTable_->setColumnCount(columnNames.length());
+    detailsTable_->setHorizontalHeaderLabels(columnNames);
+    detailsTable_->setRowCount(nv);
+  }
 
   auto columnDetails = [&](int c, QString &nameStr, QString &typeStr, QString &minStr,
                            QString &maxStr, QString &meanStr, QString &stdDevStr,
@@ -151,37 +221,61 @@ updateSlot()
   auto setTableRow = [&](int c) {
     QString nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr, monoStr, uniqueStr, nullStr;
 
-    columnDetails(c, nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr,
-                  monoStr, uniqueStr, nullStr);
+    if (! isFlip()) {
+      columnDetails(c, nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr,
+                    monoStr, uniqueStr, nullStr);
 
-    addWidgetItem(nameStr  , c, 0);
-    addWidgetItem(typeStr  , c, 1);
-    addWidgetItem(minStr   , c, 2);
-    addWidgetItem(maxStr   , c, 3);
-    addWidgetItem(meanStr  , c, 4);
-    addWidgetItem(stdDevStr, c, 5);
-    addWidgetItem(monoStr  , c, 6);
-    addWidgetItem(uniqueStr, c, 7);
-    addWidgetItem(nullStr  , c, 8);
+      addWidgetItem(nameStr  , c, 0);
+      addWidgetItem(typeStr  , c, 1);
+      addWidgetItem(minStr   , c, 2);
+      addWidgetItem(maxStr   , c, 3);
+      addWidgetItem(meanStr  , c, 4);
+      addWidgetItem(stdDevStr, c, 5);
+      addWidgetItem(monoStr  , c, 6);
+      addWidgetItem(uniqueStr, c, 7);
+      addWidgetItem(nullStr  , c, 8);
+    }
+    else {
+      if (c == 0) {
+        int r = 0;
+
+        for (const auto &v : valueNames)
+          addWidgetItem(v, r++, c);
+      }
+      else {
+        columnDetails(c - 1, nameStr, typeStr, minStr, maxStr, meanStr, stdDevStr,
+                      monoStr, uniqueStr, nullStr);
+
+        addWidgetItem(typeStr  , 0, c);
+        addWidgetItem(minStr   , 1, c);
+        addWidgetItem(maxStr   , 2, c);
+        addWidgetItem(meanStr  , 3, c);
+        addWidgetItem(stdDevStr, 4, c);
+        addWidgetItem(monoStr  , 5, c);
+        addWidgetItem(uniqueStr, 6, c);
+        addWidgetItem(nullStr  , 7, c);
+      }
+    }
   };
 
   //---
 
-  QString text = "<b></b>";
-
-  text += "<table padding=\"4\">";
-  text += QString("<tr><td>Columns</td><td>%1</td></tr>").arg(nc);
-  text += QString("<tr><td>Rows</td><td>%1</td></tr>").arg(nr);
-  text += "</table>";
-
-  detailsText_->setHtml(text);
+  numColumnsLabel_->setText(QString("%1").arg(nc));
+  numRowsLabel_   ->setText(QString("%1").arg(nr));
+  hierLabel_      ->setText(QString("%1").arg(isHier ? "Yes" : "No"));
 
   //---
 
-  detailsText_->setFixedHeight(detailsText_->document()->size().height() + 4);
+  if (! isFlip()) {
+    for (int c = 0; c < nc; ++c)
+      setTableRow(c);
+  }
+  else {
+    for (int c = 0; c < nc + 1; ++c)
+      setTableRow(c);
+  }
 
   //---
 
-  for (int c = 0; c < nc; ++c)
-    setTableRow(c);
+  detailsTable_->fitAll();
 }

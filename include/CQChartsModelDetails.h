@@ -33,8 +33,7 @@ class CQChartsModelDetails : public QObject {
   CQChartsModelData *data() const { return data_; }
 
   int numColumns() const;
-
-  int numRows() const;
+  int numRows   () const;
 
   bool isHierarchical() const;
 
@@ -141,8 +140,7 @@ class CQChartsModelColumnDetails {
   QVariant minValue() const;
   QVariant maxValue() const;
 
-  QVariant meanValue(bool useNaN=true) const;
-
+  QVariant meanValue  (bool useNaN=true) const;
   QVariant stdDevValue(bool useNaN=true) const;
 
   QVariant dataName(const QVariant &v) const;

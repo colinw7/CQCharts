@@ -224,7 +224,7 @@ addProperties()
   addProp("text", "textVisible", "visible", "Text label visible");
   addProp("text", "align"      , "align"  , "Text label align");
 
-  addTextProperties("text", "text", "");
+  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST);
 }
 
 CQChartsGeom::Range
@@ -1173,10 +1173,22 @@ drawFg(CQChartsPaintDevice *device) const
 
   QPointF pt = device->pixelToWindow(QPointF(tx, ty));
 
+  // only support contrast
+  CQChartsTextOptions options;
+
+  options.angle         = 0;
+  options.align         = Qt::AlignLeft;
+  options.contrast      = plot_->isTextContrast();
+  options.contrastAlpha = plot_->textContrastAlpha();
+
+  CQChartsDrawUtil::drawTextAtPoint(device, pt, str, options);
+
+#if 0
   if (plot_->isTextContrast())
     CQChartsDrawUtil::drawContrastText(device, pt, str, plot_->textContrastAlpha());
   else
     CQChartsDrawUtil::drawSimpleText(device, pt, str);
+#endif
 }
 
 void

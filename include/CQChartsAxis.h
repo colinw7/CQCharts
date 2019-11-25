@@ -167,6 +167,14 @@ class CQChartsAxis : public CQChartsObj,
   bool isVisible() const { return visible_; }
   void setVisible(bool b);
 
+  // get/set updates enabled
+  bool isUpdatesEnabled() const { return updatesEnabled_; }
+  void setUpdatesEnabled(bool b) { updatesEnabled_ = b; }
+
+  // get/set update draws all plot data
+  bool isDrawAll() const { return drawAll_; }
+  void setDrawAll(bool b) { drawAll_ = b; }
+
   //---
 
   void setSelected(bool b) override;
@@ -497,6 +505,8 @@ class CQChartsAxis : public CQChartsObj,
 
   // general
   bool                  visible_             { true };  //!< axis is visible
+  bool                  updatesEnabled_      { true };  //!< axis updates enabled
+  bool                  drawAll_             { false }; //!< axis updates enabled
   CQChartsAxisSide      side_;                          //!< axis plot placement side
   CQChartsOptReal       position_;                      //!< axis custom position
   CQChartsAxisValueType valueType_;                     //!< value type

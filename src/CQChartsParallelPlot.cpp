@@ -13,6 +13,7 @@
 #include <CQChartsDrawUtil.h>
 #include <CQChartsHtml.h>
 
+#include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 #include <CQPerfMonitor.h>
 #include <CMathRound.h>
@@ -125,6 +126,10 @@ CQChartsParallelPlot(CQChartsView *view, const ModelP &model) :
   setSymbolFillColor  (CQChartsColor(CQChartsColor::Type::PALETTE));
   setSymbolFillAlpha  (0.5);
 
+  masterAxis_ = new CQChartsAxis(this, Qt::Vertical, 0.0, 1.0);
+
+  masterAxis_->setDrawAll(true);
+
   //addKey(); TODO
 
   addTitle();
@@ -133,6 +138,8 @@ CQChartsParallelPlot(CQChartsView *view, const ModelP &model) :
 CQChartsParallelPlot::
 ~CQChartsParallelPlot()
 {
+  delete masterAxis_;
+
   for (auto &axis : axes_)
     delete axis;
 }
@@ -207,6 +214,90 @@ addProperties()
   addProp("lines", "linesSelectable", "selectable", "Lines selectable");
 
   addLineProperties("lines/stroke", "lines", "");
+
+  // axes
+  auto addAxisProp = [&](const QString &path, const QString &name, const QString &alias,
+                     const QString &desc) {
+    return &(propertyModel()->addProperty(path, masterAxis_, name, alias)->setDesc(desc));
+  };
+
+  auto addAxisStyleProp = [&](const QString &path, const QString &name, const QString &alias,
+                              const QString &desc, bool hidden=false) {
+    CQPropertyViewItem *item = addAxisProp(path, name, alias, desc);
+    CQCharts::setItemIsStyle(item);
+    if (hidden) CQCharts::setItemIsHidden(item);
+    return item;
+  };
+
+  QString linePath = "axis/stroke";
+
+  addAxisStyleProp(linePath, "axesLineData"  , "style"  , "Axis stroke style", true);
+  addAxisStyleProp(linePath, "axesLines"     , "visible", "Axis stroke visible");
+  addAxisStyleProp(linePath, "axesLinesColor", "color"  , "Axis stroke color");
+  addAxisStyleProp(linePath, "axesLinesAlpha", "alpha"  , "Axis stroke alpha");
+  addAxisStyleProp(linePath, "axesLinesWidth", "width"  , "Axis stroke width");
+  addAxisStyleProp(linePath, "axesLinesDash" , "dash"   , "Axis stroke dash");
+
+  //---
+
+  QString ticksPath = "axis/ticks";
+
+  addAxisProp(ticksPath, "ticksDisplayed", "lines", "Axis major and/or minor ticks visible");
+
+  QString majorTicksPath = ticksPath + "/major";
+  QString minorTicksPath = ticksPath + "/minor";
+
+  addAxisProp(majorTicksPath, "majorTickLen", "length", "Axis major ticks pixel length");
+  addAxisProp(minorTicksPath, "minorTickLen", "length", "Axis minor ticks pixel length");
+
+  //---
+
+  QString ticksLabelPath     = ticksPath + "/label";
+  QString ticksLabelTextPath = ticksLabelPath + "/text";
+
+  addAxisProp(ticksLabelPath, "tickLabelAutoHide" , "autoHide",
+              "Axis tick label text is auto hide");
+  addAxisProp(ticksLabelPath, "tickLabelPlacement", "placement",
+              "Axis tick label text placement");
+
+  addAxisStyleProp(ticksLabelTextPath, "axesTickLabelTextData"         , "style",
+                   "Axis tick label text style", true);
+  addAxisProp     (ticksLabelTextPath, "axesTickLabelTextVisible"      , "visible",
+                   "Axis tick label text visible");
+  addAxisStyleProp(ticksLabelTextPath, "axesTickLabelTextColor"        , "color",
+                   "Axis tick label text color");
+  addAxisStyleProp(ticksLabelTextPath, "axesTickLabelTextAlpha"        , "alpha",
+                   "Axis tick label text alpha");
+  addAxisStyleProp(ticksLabelTextPath, "axesTickLabelTextFont"         , "font",
+                   "Axis tick label text font");
+  addAxisStyleProp(ticksLabelTextPath, "axesTickLabelTextAngle"        , "angle",
+                   "Axis tick label text angle");
+  addAxisStyleProp(ticksLabelTextPath, "axesTickLabelTextContrast"     , "contrast",
+                   "Axis tick label text contrast");
+  addAxisStyleProp(ticksLabelTextPath, "axesTickLabelTextContrastAlpha", "contrastAlpha",
+                   "Axis tick label text contrast alpha");
+
+  //---
+
+  QString labelPath     = "axis/label";
+  QString labelTextPath = labelPath + "/text";
+
+  addAxisStyleProp(labelTextPath, "axesLabelTextData"         , "style",
+                   "Axis label text style", true);
+  addAxisProp     (labelTextPath, "axesLabelTextVisible"      , "visible",
+                   "Axis label text visible");
+  addAxisStyleProp(labelTextPath, "axesLabelTextColor"        , "color",
+                   "Axis label text color");
+  addAxisStyleProp(labelTextPath, "axesLabelTextAlpha"        , "alpha",
+                   "Axis label text alpha");
+  addAxisStyleProp(labelTextPath, "axesLabelTextFont"         , "font",
+                   "Axis label text font");
+  addAxisStyleProp(labelTextPath, "axesLabelTextContrast"     , "contrast",
+                   "Axis label text contrast");
+  addAxisStyleProp(labelTextPath, "axesLabelTextContrastAlpha", "contrastAlpha",
+                   "Axis label text contrast alpha");
+
+//masterAxis_->addProperties(propertyModel(), "axis");
 }
 
 CQChartsGeom::Range
@@ -241,6 +332,8 @@ calcRange() const
 
       axis->setParent(th);
       axis->setPlot  (this);
+
+      axis->setUpdatesEnabled(false);
 
       th->axes_.push_back(axis);
     }
@@ -732,7 +825,11 @@ drawFgAxes(CQChartsPaintDevice *device) const
   for (int j = 0; j < ns; ++j) {
     CQChartsAxis *axis = axes_[j];
 
-    view()->setPlotPainterFont(this, device, axis->axesLabelTextFont());
+    axis->setAxesLineData         (masterAxis_->axesLineData());
+    axis->setAxesLabelTextData    (masterAxis_->axesLabelTextData());
+    axis->setAxesTickLabelTextData(masterAxis_->axesTickLabelTextData());
+
+    view()->setPlotPainterFont(this, device, masterAxis_->axesLabelTextFont());
 
     QFontMetricsF fm(device->font());
 
@@ -788,9 +885,9 @@ drawFgAxes(CQChartsPaintDevice *device) const
 
     QPen tpen;
 
-    QColor tc = axis->interpAxesTickLabelTextColor(ColorInd());
+    QColor tc = masterAxis_->interpAxesLabelTextColor(ColorInd());
 
-    setPen(tpen, true, tc, axis->axesTickLabelTextAlpha());
+    setPen(tpen, true, tc, masterAxis_->axesLabelTextAlpha());
 
     device->setPen(tpen);
 
@@ -801,7 +898,17 @@ drawFgAxes(CQChartsPaintDevice *device) const
     else
       tp = QPointF(p.x + tm, p.y - (ta - td)/2);
 
-    CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(tp), label);
+    CQChartsTextOptions options;
+
+    options.angle         = 0;
+    options.align         = Qt::AlignLeft;
+    options.contrast      = masterAxis_->isAxesLabelTextContrast();
+    options.contrastAlpha = masterAxis_->axesLabelTextContrastAlpha();
+
+    CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), label,
+                                      options, /*centered*/false);
+
+//  CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(tp), label);
 
     //---
 

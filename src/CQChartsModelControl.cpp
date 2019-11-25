@@ -233,6 +233,10 @@ addExprFrame()
   exprWidgets_.removeRadio->setText("Remove");
   exprWidgets_.modifyRadio->setText("Modify");
 
+  exprWidgets_.addRadio   ->setToolTip("Add Column Expression");
+  exprWidgets_.removeRadio->setToolTip("Remove Expression");
+  exprWidgets_.modifyRadio->setToolTip("Modify Column Expression");
+
   exprWidgets_.addRadio->setChecked(true);
 
   exprModeLayout->addWidget(exprWidgets_.addRadio   );
@@ -388,7 +392,6 @@ addFoldFrame()
   foldWidgets_.deltaEdit = addLineEdit(foldWidgetsLayout, foldRow, "Delta", "delta");
 
   foldWidgets_.deltaEdit->setText("1.0");
-
   foldWidgets_.deltaEdit->setToolTip("Explicit fold delta");
 
   //---
@@ -397,7 +400,6 @@ addFoldFrame()
   foldWidgets_.countEdit = addLineEdit(foldWidgetsLayout, foldRow, "Count", "count");
 
   foldWidgets_.countEdit->setText("20");
-
   foldWidgets_.countEdit->setToolTip("Explicit fold count");
 
   //---
@@ -406,8 +408,7 @@ addFoldFrame()
   foldWidgets_.separatorEdit = addLineEdit(foldWidgetsLayout, foldRow, "Separator", "separator");
 
   foldWidgets_.separatorEdit->setText("/");
-
-  foldWidgets_.deltaEdit->setToolTip("Hierarchical separator");
+  foldWidgets_.separatorEdit->setToolTip("Hierarchical separator");
 
   //---
 

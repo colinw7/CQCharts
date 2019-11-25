@@ -225,18 +225,23 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(double minScaleFontSize READ minScaleFontSize WRITE setMinScaleFontSize)
   Q_PROPERTY(double maxScaleFontSize READ maxScaleFontSize WRITE setMaxScaleFontSize)
 
-  // misc
-  Q_PROPERTY(bool followMouse    READ isFollowMouse  WRITE setFollowMouse   )
+  // connect
   Q_PROPERTY(bool overlay        READ isOverlay      WRITE setOverlay       )
   Q_PROPERTY(bool x1x2           READ isX1X2         WRITE setX1X2          )
   Q_PROPERTY(bool y1y2           READ isY1Y2         WRITE setY1Y2          )
+
+  // misc
+  Q_PROPERTY(bool followMouse    READ isFollowMouse  WRITE setFollowMouse   )
   Q_PROPERTY(bool invertX        READ isInvertX      WRITE setInvertX       )
   Q_PROPERTY(bool invertY        READ isInvertY      WRITE setInvertY       )
 //Q_PROPERTY(bool logX           READ isLogX         WRITE setLogX          )
 //Q_PROPERTY(bool logY           READ isLogY         WRITE setLogY          )
   Q_PROPERTY(bool autoFit        READ isAutoFit      WRITE setAutoFit       )
+
+  // preview
   Q_PROPERTY(bool preview        READ isPreview      WRITE setPreview       )
   Q_PROPERTY(int  previewMaxRows READ previewMaxRows WRITE setPreviewMaxRows)
+
   Q_PROPERTY(bool queueUpdate    READ isQueueUpdate  WRITE setQueueUpdate   )
   Q_PROPERTY(bool showBoxes      READ showBoxes      WRITE setShowBoxes     )
 
@@ -646,6 +651,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  // Connection
   bool isOverlay() const { return connectData_.overlay; }
   void setOverlay(bool b, bool notify=true);
 
@@ -657,23 +663,7 @@ class CQChartsPlot : public CQChartsObj,
   bool isY1Y2() const { return connectData_.y1y2; }
   void setY1Y2(bool b, bool notify=true);
 
-  //---
-
-  bool isInvertX() const { return invertX_; }
-  void setInvertX(bool b);
-
-  bool isInvertY() const { return invertY_; }
-  void setInvertY(bool b);
-
-  //---
-
-  bool isLogX() const;
-  void setLogX(bool b);
-
-  bool isLogY() const;
-  void setLogY(bool b);
-
-  //---
+  //-
 
   CQChartsPlot *prevPlot() const { return connectData_.prev; }
   CQChartsPlot *nextPlot() const { return connectData_.next; }
@@ -744,6 +734,25 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  // invert x/y
+  bool isInvertX() const { return invertX_; }
+  void setInvertX(bool b);
+
+  bool isInvertY() const { return invertY_; }
+  void setInvertY(bool b);
+
+  //---
+
+  // log x/y
+  bool isLogX() const;
+  void setLogX(bool b);
+
+  bool isLogY() const;
+  void setLogY(bool b);
+
+  //---
+
+  // animation
   void startAnimateTimer();
   void stopAnimateTimer ();
 
@@ -753,6 +762,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  // properties
   const CQPropertyViewModel *propertyModel() const;
   CQPropertyViewModel *propertyModel();
 
@@ -766,8 +776,8 @@ class CQChartsPlot : public CQChartsObj,
   void addFillProperties(const QString &path, const QString &prefix,
                          const QString &descPrefix, bool hidden=false);
 
-  void addTextProperties   (const QString &path, const QString &prefix, const QString &descPrefix);
-  void addAllTextProperties(const QString &path, const QString &prefix, const QString &descPrefix);
+  void addTextProperties(const QString &path, const QString &prefix, const QString &descPrefix,
+                         uint valueTypes=CQChartsTextOptions::ValueType::SIMPLE);
 
   void addColorMapProperties();
 
@@ -795,6 +805,7 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
+  // margins
   void updateMargins(bool update=true);
 
   void updateMargins(const CQChartsPlotMargin &outerMargin);

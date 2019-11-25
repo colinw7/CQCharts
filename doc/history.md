@@ -1002,3 +1002,9 @@
  + Skip meta data in load model preview
 # 11/19/2019
  + optimize annotationBBox calc
+# 11/25/2019
+ + Update all text draws to support contrast and expose only used properties
+ + support scaled and angle for html text
+ + Add axis style to parallel
+ + improve model details widget and allow table flip
+ + allow auto place plots on add

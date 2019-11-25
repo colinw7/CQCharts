@@ -69,8 +69,9 @@ class CQChartsViewSettings : public QFrame {
 
  private slots:
   void updateModels();
+  void updateModelsData();
 
-  void invalidateModelDetails();
+  void invalidateModelDetails(bool changed=true);
 //void updateModelDetails();
 
   void plotsTabChangedSlot();
@@ -96,7 +97,11 @@ class CQChartsViewSettings : public QFrame {
   void loadModelSlot();
   void editModelSlot();
   void removeModelSlot();
-  void plotModelSlot();
+  void createPlotModelSlot();
+
+  //---
+
+  void createPlotSlot();
 
   //---
 
@@ -218,8 +223,9 @@ class CQChartsViewSettings : public QFrame {
     CQIntegerSpin* placeColumnsEdit     { nullptr }; //!< grid number of columns edit
     QPushButton*   raiseButton          { nullptr }; //!< raise plot button
     QPushButton*   lowerButton          { nullptr }; //!< lower plot button
+    QPushButton*   createButton         { nullptr }; //!< create plot button
     QPushButton*   removeButton         { nullptr }; //!< remove plot button
-    QPushButton*   writeButton          { nullptr }; //!< wriite plot button
+    QPushButton*   writeButton          { nullptr }; //!< write plot button
   };
 
   struct AnnotationsWidgets {
@@ -245,6 +251,8 @@ class CQChartsViewSettings : public QFrame {
   };
 
   CQChartsWindow*              window_              { nullptr }; //!< parent window
+
+  // widgets
   CQTabWidget*                 tab_                 { nullptr }; //!< settings/palette tab
   PropertiesWidgets            propertiesWidgets_;               //!< properties widgets
   ModelsWidgets                modelsWidgets_;                   //!< models widgets
@@ -252,14 +260,16 @@ class CQChartsViewSettings : public QFrame {
   AnnotationsWidgets           annotationsWidgets_;              //!< annotations widgets
   ThemeWidgets                 themeWidgets_;                    //!< theme widgets
   LayersWidgets                layersWidgets_;                   //!< layers widgets
+
+  // dialogs
   CQChartsCreateAnnotationDlg* createAnnotationDlg_ { nullptr }; //!< create annotation dialog
   CQChartsEditAnnotationDlg*   editAnnotationDlg_   { nullptr }; //!< edit annotation dialog
   CQChartsEditTitleDlg*        editTitleDlg_        { nullptr }; //!< edit plot title dialog
   CQChartsEditKeyDlg*          editKeyDlg_          { nullptr }; //!< edit plot key dialog
   CQChartsEditAxisDlg*         editXAxisDlg_        { nullptr }; //!< edit plot x axis dialog
   CQChartsEditAxisDlg*         editYAxisDlg_        { nullptr }; //!< edit plot y axis dialog
+
   QString                      plotId_;                          //!< current plot id
-//bool                         modelDetailsValid_   { false };   //!< model details valid
 };
 
 //---

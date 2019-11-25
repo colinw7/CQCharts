@@ -120,14 +120,17 @@ addProperties()
 
   // cell label text
   addProp("cell/text", "cellLabels", "visible", "Cell text label visible");
-  addAllTextProperties("cell/text", "cellLabelText", "Cell label");
+  addTextProperties("cell/text", "cellLabelText", "Cell label",
+                    CQChartsTextOptions::ValueType::ALL);
 
   // x/y axis label text
   addProp("xaxis/text", "xLabels", "visible", "X labels visible");
-  addTextProperties("xaxis/text", "xLabelText", "X label");
+  addTextProperties("xaxis/text", "xLabelText", "X label",
+                    CQChartsTextOptions::ValueType::ALL);
 
   addProp("yaxis/text", "yLabels", "visible", "Y labels visible");
-  addTextProperties("yaxis/text", "yLabelText", "Y label");
+  addTextProperties("yaxis/text", "yLabelText", "Y label",
+                    CQChartsTextOptions::ValueType::ALL);
 }
 
 //---
@@ -469,6 +472,7 @@ drawXLabels(CQChartsPaintDevice *device) const
   textOptions.align         = xLabelTextAlign();
   textOptions.angle         = xLabelTextAngle();
   textOptions.scaled        = isXLabelTextScaled();
+  textOptions.clipped       = false;
 
   textOptions = adjustTextOptions(textOptions);
 
@@ -553,6 +557,7 @@ drawYLabels(CQChartsPaintDevice *device) const
   textOptions.align         = yLabelTextAlign();
   textOptions.angle         = yLabelTextAngle();
   textOptions.scaled        = isYLabelTextScaled();
+  textOptions.clipped       = false;
 
   textOptions = adjustTextOptions(textOptions);
 

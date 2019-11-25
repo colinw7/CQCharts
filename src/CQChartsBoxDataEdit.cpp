@@ -331,7 +331,7 @@ connectSlots(bool b)
   };
 
   connectDisconnect(b, groupBox_, SIGNAL(clicked(bool)), SLOT(widgetsToData()));
-  connectDisconnect(b, marginEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
+  connectDisconnect(b, marginEdit_, SIGNAL(marginChanged()), SLOT(widgetsToData()));
   connectDisconnect(b, paddingEdit_, SIGNAL(valueChanged(double)), SLOT(widgetsToData()));
   connectDisconnect(b, shapeEdit_, SIGNAL(shapeDataChanged()), SLOT(widgetsToData()));
   connectDisconnect(b, sidesEdit_, SIGNAL(sidesChanged()), SLOT(widgetsToData()));

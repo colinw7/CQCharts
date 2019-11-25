@@ -109,7 +109,7 @@ addProperties()
   addLineProperties("node/stroke", "nodeStroke", "Node");
   addLineProperties("edge/stroke", "edgeLines" , "Edge");
 
-  addTextProperties("text", "text", "");
+  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST);
 }
 
 //---
@@ -629,9 +629,19 @@ draw(CQChartsPaintDevice *device)
   QPointF p;
 
   if (is_hier)
-    p = QPointF(p1.x - cs - fm.width(name), p1.y + dy);
+    p = QPointF(p1.x - cs - fm.width(name), p1.y + dy); // align right
   else
-    p = QPointF(p1.x + cs, p1.y + dy);
+    p = QPointF(p1.x + cs, p1.y + dy); // align left
 
-  CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(p), name);
+  // only support contrast
+  CQChartsTextOptions options;
+
+  options.angle         = 0;
+  options.align         = Qt::AlignLeft;
+  options.contrast      = plot_->isTextContrast();
+  options.contrastAlpha = plot_->textContrastAlpha();
+
+  CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(p), name, options);
+
+//CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(p), name);
 }

@@ -246,6 +246,7 @@ class CQChartsParallelPlot : public CQChartsPlot,
   bool                linesSelectable_ { false };           //!< are lines selectable
   Ranges              setRanges_;                           //!< value set ranges
   Qt::Orientation     adir_            { Qt::Horizontal };  //!< axis direction
+  CQChartsAxis*       masterAxis_      { nullptr };         //!< master axis
   YAxes               axes_;                                //!< value axes
   mutable std::mutex  axesMutex_;                           //!< value axes
   CQChartsGeom::Range normalizedDataRange_;                 //!< normalized data range

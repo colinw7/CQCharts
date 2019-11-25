@@ -673,6 +673,19 @@ foldedModels() const
 }
 #endif
 
+//------
+
+void
+CQChartsModelData::
+setSummaryEnabled(bool b)
+{
+  if (b != summaryEnabled_) {
+    summaryEnabled_ = b;
+
+    emit dataChanged();
+  }
+}
+
 CQSummaryModel *
 CQChartsModelData::
 addSummaryModel()
@@ -683,6 +696,8 @@ addSummaryModel()
     summaryModelP_ = ModelP(summaryModel_);
 
     summaryModelData_ = new CQChartsModelData(charts_, summaryModelP_);
+
+    updatePropertyModel();
   }
 
   return summaryModel_;
@@ -824,7 +839,9 @@ getPropertyNameData(IdModelNames &names) const
 {
   CQChartsModelData *th = const_cast<CQChartsModelData *>(this);
 
-  names[""][th] << "ind" << "id" << "name" << "filename" << "summaryEnabled" << "currentColumn";
+  names[""][th] << "ind" << "id" << "name" << "filename" << "currentColumn";
+
+  names["summary"][th] << NameAlias("summaryEnabled", "enabled");
 
   //---
 
@@ -864,7 +881,7 @@ getPropertyNameData(IdModelNames &names) const
 
   if (hierSepModel)
     names["hierSep"][hierSepModel] <<
-      NameAlias("separator", "foldSeparator") << "foldColumn" << "propagateValue";
+      NameAlias("foldSeparator", "separator") << "foldColumn" << "propagateValue";
 
   CQSummaryModel *summaryModel = summaryModel_;
 
@@ -872,9 +889,8 @@ getPropertyNameData(IdModelNames &names) const
     summaryModel = qobject_cast<CQSummaryModel *>(model.data());
 
   if (summaryModel)
-    names["summary"][summaryModel] << "mode" << "maxRows" << "randomMode" << "sortMode" <<
-                                      "sortColumn" << "sortRole" << "sortOrder" << "pagedMode" <<
-                                      "pageSize" << "currentPage" << "rowsMode";
+    names["summary"][summaryModel] << "mode" << "maxRows" << "sortColumn" << "sortRole" <<
+                                      "sortOrder" << "pageSize" << "currentPage";
 
   //---
 

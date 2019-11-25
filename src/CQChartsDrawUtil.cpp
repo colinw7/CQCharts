@@ -105,7 +105,11 @@ drawTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &te
   //---
 
   if (options.html) {
-    CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text, options);
+    if (options.scaled)
+      CQChartsDrawPrivate::drawScaledHtmlText(device, rect, text, options);
+    else
+      CQChartsDrawPrivate::drawHtmlText(device, rect, text, options);
+
     return;
   }
 
@@ -177,9 +181,9 @@ drawTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &te
       double tw = fm.width(strs[i]);
 
       if      (options.align & Qt::AlignHCenter)
-         dx = (prect.width() - tw)/2;
+        dx = (prect.width() - tw)/2;
       else if (options.align & Qt::AlignRight)
-         dx = prect.width() - tw;
+        dx = prect.width() - tw;
 
       double x = prect.left() + dx;
 
@@ -219,38 +223,40 @@ drawRotatedTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QStr
 
 void
 drawTextAtPoint(CQChartsPaintDevice *device, const QPointF &point, const QString &text,
-                const CQChartsTextOptions &options)
+                const CQChartsTextOptions &options, bool centered, double dx, double dy)
 {
-  QPointF ppoint = device->windowToPixel(point);
+  QFontMetricsF fm(device->font());
 
-  QPen pen = device->pen();
+  double ta = fm.ascent();
+  double td = fm.descent();
+
+  auto tw = [&]() { return fm.width(text); };
 
   if (CMathUtil::isZero(options.angle)) {
-    QFontMetricsF fm(device->font());
+    // calc dx : point is left or hcenter of text (
+    // drawContrastText and drawSimpleText wants left aligned
+    double dx1 = 0.0, dy1 = 0.0;
 
-    double tw = fm.width(text);
-    double ta = fm.ascent();
-    double td = fm.descent();
+    if (! centered) { // point is left
+      if      (options.align & Qt::AlignHCenter) dx1 = -tw()/2.0;
+      else if (options.align & Qt::AlignRight  ) dx1 = -tw() - dx;
+    }
+    else {            // point is center
+      if      (options.align & Qt::AlignLeft ) dx1 =  tw()/2.0 + dx;
+      else if (options.align & Qt::AlignRight) dx1 = -tw()/2.0 - dx;
+    }
 
-    double dx = 0.0;
+    if      (options.align & Qt::AlignTop    ) dy1 =  ta + dy;
+    else if (options.align & Qt::AlignBottom ) dy1 = -td - dy;
+    else if (options.align & Qt::AlignVCenter) dy1 = (ta - td)/2.0;
 
-    if      (options.align & Qt::AlignHCenter)
-      dx = -tw/2.0;
-    else if (options.align & Qt::AlignRight)
-      dx = -tw;
+    QPointF tp = point;
 
-    double dy = 0.0;
-
-    if      (options.align & Qt::AlignTop)
-      dy = -ta;
-    else if (options.align & Qt::AlignVCenter)
-      dy = (ta - td)/2.0;
-    else if (options.align & Qt::AlignBottom)
-      dy = td;
-
-    device->setPen(pen);
-
-    QPointF tp = device->pixelToWindow(QPointF(ppoint.x() + dx, ppoint.y() + dy));
+    if (dx1 != 0.0 || dy1 != 0.0) {
+      // apply delta (pixels)
+      auto pp = device->windowToPixel(tp);
+      tp = device->pixelToWindow(QPointF(pp.x() + dx1, pp.y() + dy1));
+    }
 
     if (options.contrast)
       drawContrastText(device, tp, text, options.contrastAlpha);
@@ -258,7 +264,18 @@ drawTextAtPoint(CQChartsPaintDevice *device, const QPointF &point, const QString
       drawSimpleText(device, tp, text);
   }
   else {
-    assert(false);
+    // calc dx : point is left or hcenter of text
+    // CQChartsRotatedText::draw wants center aligned
+    QPointF tp = point;
+
+    if (! centered) {
+      double dx1 = -tw()/2.0;
+
+      auto pp = device->windowToPixel(tp);
+      tp = device->pixelToWindow(QPointF(pp.x() + dx1, pp.y()));
+    }
+
+    CQChartsRotatedText::draw(device, tp, text, options, /*alignBox*/true);
   }
 }
 
@@ -270,64 +287,52 @@ drawAlignedText(CQChartsPaintDevice *device, const QPointF &p, const QString &te
 {
   QFontMetricsF fm(device->font());
 
-  QPointF pp = device->windowToPixel(p);
-
-  double x1 = pp.x();
-  double y1 = pp.y();
-
   double tw = fm.width(text);
   double ta = fm.ascent ();
   double td = fm.descent();
 
-  if      (align & Qt::AlignLeft)
-    x1 = pp.x() + dx;
-  else if (align & Qt::AlignRight)
-    x1 = pp.x() - tw - dx;
-  else if (align & Qt::AlignHCenter)
-    x1 = pp.x() - tw/2;
+  double dx1 = 0.0, dy1 = 0.0;
 
-  if      (align & Qt::AlignTop)
-    y1 = pp.y() + ta + dy;
-  else if (align & Qt::AlignBottom)
-    y1 = pp.y() - td - dy;
-  else if (align & Qt::AlignVCenter)
-    y1 = pp.y() + (ta - td)/2;
+  if      (align & Qt::AlignLeft   ) dx1 = dx;
+  else if (align & Qt::AlignRight  ) dx1 = -tw - dx;
+  else if (align & Qt::AlignHCenter) dx1 = -tw/2;
 
-  QPointF pt = device->pixelToWindow(QPointF(x1, y1));
+  if      (align & Qt::AlignTop    ) dy1 =  ta + dy;
+  else if (align & Qt::AlignBottom ) dy1 = -td - dy;
+  else if (align & Qt::AlignVCenter) dy1 = (ta - td)/2;
 
-  device->drawText(pt, text);
+  QPointF pp = device->windowToPixel(p);
+  QPointF pt = device->pixelToWindow(QPointF(pp.x() + dx1, pp.y() + dy1));
+
+  drawSimpleText(device, pt, text);
 }
 
 //------
 
 QRectF
-calcAlignedTextRect(const QFont &font, const QPointF &p, const QString &text,
-                    Qt::Alignment align, double dx, double dy)
+calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font, const QPointF &p,
+                    const QString &text, Qt::Alignment align, double dx, double dy)
 {
   QFontMetricsF fm(font);
-
-  double x1 = p.x();
-  double y1 = p.y();
 
   double tw = fm.width(text);
   double ta = fm.ascent ();
   double td = fm.descent();
 
-  if      (align & Qt::AlignLeft)
-    x1 = p.x() + dx;
-  else if (align & Qt::AlignRight)
-    x1 = p.x() - tw - dx;
-  else if (align & Qt::AlignHCenter)
-    x1 = p.x() - tw/2;
+  double dx1 = 0.0, dy1 = 0.0;
 
-  if      (align & Qt::AlignTop)
-    y1 = p.y() + ta + dy;
-  else if (align & Qt::AlignBottom)
-    y1 = p.y() - td - dy;
-  else if (align & Qt::AlignVCenter)
-    y1 = p.y() + (ta - td)/2;
+  if      (align & Qt::AlignLeft   ) dx1 = dx;
+  else if (align & Qt::AlignRight  ) dx1 = -tw - dx;
+  else if (align & Qt::AlignHCenter) dx1 = -tw/2;
 
-  return QRectF(x1, y1 - ta, tw, ta + td);
+  if      (align & Qt::AlignTop    ) dy1 =   ta + dy;
+  else if (align & Qt::AlignBottom ) dy1 = - td - dy;
+  else if (align & Qt::AlignVCenter) dy1 = (ta - td)/2;
+
+  QPointF pp = device->windowToPixel(p);
+  QPointF pt = device->pixelToWindow(QPointF(pp.x() + dx1, pp.y() + dy1));
+
+  return device->pixelToWindow(QRectF(pt.x(), pt.y() - ta, tw, ta + td));
 }
 
 //------
@@ -358,7 +363,7 @@ drawContrastText(CQChartsPaintDevice *device, const QPointF &p, const QString &t
       if (dx != 0 || dy != 0) {
         QPointF p1 = device->pixelToWindow(QPointF(pp.x() + dx, pp.y() + dy));
 
-        device->drawText(p1, text);
+        drawSimpleText(device, p1, text);
       }
     }
   }
@@ -368,7 +373,7 @@ drawContrastText(CQChartsPaintDevice *device, const QPointF &p, const QString &t
   // draw text
   device->setPen(pen);
 
-  device->drawText(p, text);
+  drawSimpleText(device, p, text);
 }
 
 //------
@@ -559,6 +564,24 @@ drawHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QString &te
 
   //---
 
+  QSizeF psize = calcHtmlTextSize(text, device->font(), options.margin);
+
+  double dx = 0.0, dy = 0.0;
+
+  if      (options.align & Qt::AlignHCenter)
+    dx = (ptrect.width() - psize.width())/2.0;
+  else if (options.align & Qt::AlignRight)
+    dx = ptrect.width() - psize.width();
+
+  if      (options.align & Qt::AlignVCenter)
+    dy = (ptrect.height() - psize.height())/2.0;
+  else if (options.align & Qt::AlignBottom)
+    dy = ptrect.height() - psize.height();
+
+  ptrect = ptrect.translated(dx, dy);
+
+  //---
+
   QImage    image;
   QPainter *painter  = nullptr;
   QPainter *ipainter = nullptr;
@@ -577,6 +600,12 @@ drawHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QString &te
   //---
 
   painter->save();
+
+  if (! CMathUtil::isZero(options.angle)) {
+    painter->translate(trect.center());
+    painter->rotate(options.angle);
+    painter->translate(-trect.center());
+  }
 
   QTextDocument td;
 

@@ -3,7 +3,9 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
- + plot type description pass in advanced (change help)
+ + Auto determine HTML (Qt code ?)
+ + Create Plot from Dialog does auto fit (option) to replace xmin/ymin/xmax/ymax
+ + Plot type description pass in advanced (change help)
  + Auto scale all axis tick labels (constant scale)
  + Analyze skip bad numeric values
  + Basic Parameters (simpler create plot interface)

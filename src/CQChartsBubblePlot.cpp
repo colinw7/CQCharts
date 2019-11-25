@@ -193,7 +193,8 @@ addProperties()
   // text
   addProp("text", "textVisible", "visible", "Text visible");
 
-  addAllTextProperties("text", "text", "");
+  addTextProperties("text", "text", "",
+    CQChartsTextOptions::ValueType::CONTRAST | CQChartsTextOptions::ValueType::SCALED);
 
   // color map
   addColorMapProperties();
@@ -1054,13 +1055,12 @@ draw(CQChartsPaintDevice *device)
 
   device->setClipRect(qrect.adjusted(xm, ym, -xm, -ym));
 
+  // angle and align not supported (always 0 and centered)
+  // text is pre-scaled if needed (formatted and html not suppoted as changes scale calc)
   CQChartsTextOptions textOptions;
 
   textOptions.contrast      = plot_->isTextContrast();
   textOptions.contrastAlpha = plot_->textContrastAlpha();
-  textOptions.formatted     = plot_->isTextFormatted();
-  textOptions.html          = plot_->isTextHtml();
-//textOptions.align         = plot_->textAlign();
 
   textOptions = plot_->adjustTextOptions(textOptions);
 

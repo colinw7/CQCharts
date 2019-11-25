@@ -535,10 +535,6 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
-  void initPreview() override;
-
-  //---
-
   bool isShowOutliers() const { return showOutliers_; }
   void setShowOutliers(bool b);
 

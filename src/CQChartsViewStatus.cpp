@@ -1,6 +1,7 @@
 #include <CQChartsViewStatus.h>
 #include <CQChartsWindow.h>
 #include <CQChartsView.h>
+#include <CQChartsWidgetUtil.h>
 #include <CQUtil.h>
 
 #include <QHBoxLayout>
@@ -30,9 +31,7 @@ CQChartsViewStatus(CQChartsWindow *window) :
 
   QFontMetricsF fm(font());
 
-  QFrame *selSpacer = CQUtil::makeWidget<QFrame>("selSpacer");
-
-  selSpacer->setFixedWidth(fm.width("XX"));
+  QFrame *selSpacer = CQChartsWidgetUtil::createHSpacer(1, "selSpacer");
 
   layout->addWidget (statusLabel_);
   layout->addStretch(1);

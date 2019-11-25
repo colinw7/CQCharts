@@ -372,7 +372,7 @@ addProperties()
 
   //---
 
-  addTextProperties("text", "text", "");
+  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::CONTRAST);
 }
 
 CQChartsGeom::Range
@@ -933,9 +933,19 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
     twMax = std::max(twMax, tw);
 
-    QPointF pt(px + xts - tw - 2, py + pys - fm.descent());
+    QPointF pt(px + xts - tw - 2, py + pys - fm.descent()); // align right
 
-    CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(pt), str);
+    CQChartsTextOptions options;
+
+    options.angle         = 0;
+    options.align         = Qt::AlignLeft;
+    options.contrast      = isTextContrast();
+    options.contrastAlpha = textContrastAlpha();
+
+    CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(pt), str,
+                                      options, /*centered*/false);
+
+  //CQChartsDrawUtil::drawSimpleText(device, device->pixelToWindow(pt), str);
 
     py += pys;
   }
@@ -959,8 +969,11 @@ execDrawBackground(CQChartsPaintDevice *device) const
     options.contrast      = isTextContrast();
     options.contrastAlpha = textContrastAlpha();
 
-    CQChartsRotatedText::draw(device, device->pixelToWindow(p1), node->name(), options,
-                              /*alignBox*/true);
+    CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(p1), node->name(),
+                                      options, /*centered*/ true);
+
+//  CQChartsRotatedText::draw(device, device->pixelToWindow(p1), node->name(), options,
+//                            /*alignBox*/true);
 
     px += pxs;
   }

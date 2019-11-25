@@ -2701,15 +2701,27 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
   device->setBrush(fillColor2); device->drawEllipse(device->pixelToWindow(r2));
   device->setBrush(fillColor3); device->drawEllipse(device->pixelToWindow(r3));
 
-  auto drawText = [&](CQChartsPaintDevice *device, const QPointF &p, const QString &text) {
+  auto drawText = [&](const QPointF &p, double value) {
+    QString text = QString("%1").arg(value);
+
     QFontMetricsF fm(device->font());
 
-    CQChartsDrawUtil::drawSimpleText(device, QPointF(p.x() - fm.width(text)/2, p.y()), text);
+    QPointF p1(p.x() - fm.width(text)/2, p.y());
+
+    QPointF p2 = device->pixelToWindow(p1);
+
+    CQChartsTextOptions options;
+
+    options.align = Qt::AlignLeft;
+
+    CQChartsDrawUtil::drawTextAtPoint(device, p2, text, options);
+
+//  CQChartsDrawUtil::drawSimpleText(device, p2, text);
   };
 
-  drawText(device, pixelToWindow(QPointF(r1.center().x(), r1.top())), QString("%1").arg(max ));
-  drawText(device, pixelToWindow(QPointF(r2.center().x(), r2.top())), QString("%1").arg(mean));
-  drawText(device, pixelToWindow(QPointF(r3.center().x(), r3.top())), QString("%1").arg(min ));
+  drawText(QPointF(r1.center().x(), r1.top()), max );
+  drawText(QPointF(r2.center().x(), r2.top()), mean);
+  drawText(QPointF(r3.center().x(), r3.top()), min );
 }
 
 //------
@@ -3459,16 +3471,26 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
   //---
 
   // draw key labels
+  auto drawTextLabel = [&](const QPointF &p, int n) {
+    QPointF p1 = device->pixelToWindow(p);
+
+    QString text = QString("%1").arg(n);
+
+    CQChartsTextOptions options;
+
+    options.align = Qt::AlignLeft;
+
+    CQChartsDrawUtil::drawTextAtPoint(device, p1, text, options);
+
+//  CQChartsDrawUtil::drawSimpleText(device, p1, text);
+  };
+
+  double x1 = rprect.getXMin();
   double df = (fm.ascent() - fm.descent())/2.0;
 
-  CQChartsDrawUtil::drawSimpleText(device,
-    device->pixelToWindow(QPointF(rprect.getXMin(), y1 + df)), QString("%1").arg(n1));
-  CQChartsDrawUtil::drawSimpleText(device,
-    device->pixelToWindow(QPointF(rprect.getXMin(), y2 + df)), QString("%1").arg(n2));
-  CQChartsDrawUtil::drawSimpleText(device,
-    device->pixelToWindow(QPointF(rprect.getXMin(), y3 + df)), QString("%1").arg(n3));
-  CQChartsDrawUtil::drawSimpleText(device,
-    device->pixelToWindow(QPointF(rprect.getXMin(), y4 + df)), QString("%1").arg(n4));
-  CQChartsDrawUtil::drawSimpleText(device,
-    device->pixelToWindow(QPointF(rprect.getXMin(), y5 + df)), QString("%1").arg(n5));
+  drawTextLabel(QPointF(x1, y1 + df), n1);
+  drawTextLabel(QPointF(x1, y2 + df), n2);
+  drawTextLabel(QPointF(x1, y3 + df), n3);
+  drawTextLabel(QPointF(x1, y4 + df), n4);
+  drawTextLabel(QPointF(x1, y5 + df), n5);
 }

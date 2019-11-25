@@ -21,6 +21,18 @@ addGridLabelWidget(QGridLayout *playout, const QString &label, QWidget *widget, 
   ++row;
 }
 
+QFrame *
+createHSpacer(int width, const char *name)
+{
+  auto spacer = CQUtil::makeWidget<QFrame>(name);
+
+  QFontMetricsF fm(spacer->font());
+
+  spacer->setFixedWidth(width*fm.width("X"));
+
+  return spacer;
+}
+
 }
 
 //------

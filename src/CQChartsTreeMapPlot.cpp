@@ -286,7 +286,7 @@ addProperties()
   addProp("header/text", "titleHierName"   , "hierName", "Show hierarchical name on title");
   addProp("header/text", "titleTextClipped", "clipped" , "Clip text to header");
 
-  addAllTextProperties("header/text", "headerText", "Header");
+  addTextProperties("header/text", "headerText", "Header", CQChartsTextOptions::ValueType::ALL);
 
   //---
 
@@ -306,7 +306,7 @@ addProperties()
   addProp("text", "hierName"   , "hierName", "Show hierarchical name in box");
   addProp("text", "textClipped", "clipped" , "Clip text to box");
 
-  addAllTextProperties("text", "text", "");
+  addTextProperties("text", "text", "", CQChartsTextOptions::ValueType::ALL);
 }
 
 //------
