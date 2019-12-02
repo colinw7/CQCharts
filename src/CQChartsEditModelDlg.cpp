@@ -18,8 +18,6 @@
 #include <QFileDialog>
 #include <QDir>
 
-#include <fstream>
-
 CQChartsEditModelDlg::
 CQChartsEditModelDlg(CQCharts *charts, CQChartsModelData *modelData) :
  charts_(charts), modelData_(modelData)
@@ -147,9 +145,11 @@ writeSlot()
 
   QString fileName = QFileDialog::getSaveFileName(this, "Write Model", dir, "Files (*.csv)");
 
-  writeCSVModel(fileName);
+  modelData_->writeCSV(fileName);
+  //writeCSVModel(fileName);
 }
 
+#if 0
 bool
 CQChartsEditModelDlg::
 writeCSVModel(const QString &fileName)
@@ -333,6 +333,7 @@ writeCSVModel(const QString &fileName)
 
   return true;
 }
+#endif
 
 #if 0
 void

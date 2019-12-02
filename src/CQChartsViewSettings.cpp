@@ -204,9 +204,9 @@ class CQChartsViewSettingsModelTable : public CQTableWidget {
     setColumnCount(4);
     setRowCount(modelDatas.size());
 
-    setHorizontalHeaderItem(0, new QTableWidgetItem("Name"    ));
-    setHorizontalHeaderItem(1, new QTableWidgetItem("Index"   ));
-    setHorizontalHeaderItem(2, new QTableWidgetItem("Filename"));
+    setHorizontalHeaderItem(0, new QTableWidgetItem("Name"       ));
+    setHorizontalHeaderItem(1, new QTableWidgetItem("Index"      ));
+    setHorizontalHeaderItem(2, new QTableWidgetItem("Filename"   ));
     setHorizontalHeaderItem(3, new QTableWidgetItem("Object Name"));
 
     auto createItem = [&](const QString &name) {

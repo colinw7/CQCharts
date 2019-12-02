@@ -168,7 +168,7 @@ pointSizeF(double parentSize) const
   }
 }
 
-void
+CQChartsFont &
 CQChartsFont::
 setPointSizeF(double s)
 {
@@ -180,6 +180,8 @@ setPointSizeF(double s)
     data_.sizeType = SizeType::EXPLICIT;
     data_.size     = s;
   }
+
+  return *this;
 }
 
 CQChartsFont

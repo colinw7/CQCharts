@@ -21,11 +21,9 @@ getDetails(CQBaseModelDataType &dataType, bool &commentHeader, bool &firstLineHe
 
   //---
 
-  int maxLines = 100;
-
   QStringList lines;
 
-  if (! CQChartsUtil::fileToLines(filename_, lines, maxLines))
+  if (! CQChartsUtil::fileToLines(filename_, lines, maxLines_))
     return false;
 
   //---
@@ -122,7 +120,7 @@ getDetails(CQBaseModelDataType &dataType, bool &commentHeader, bool &firstLineHe
 
   // TODO: auto determine column type from first few lines ?
 
-  // TODO: if no header then check first line again (using data type) for column heade like
+  // TODO: if no header then check first line again (using data type) for column header like
   // line (string and different type from other lines)
 
   return true;

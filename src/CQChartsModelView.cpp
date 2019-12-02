@@ -12,7 +12,6 @@
 #include <QFileDialog>
 #include <QDir>
 
-#include <fstream>
 #include <cassert>
 
 CQChartsModelView::
@@ -273,17 +272,16 @@ exportSlot(QAction *action)
   if (fileName.isNull())
     return;
 
-  auto os = std::ofstream(fileName.toStdString(), std::ofstream::out);
+  CQChartsModelData *modelData = getModelData();
 
   if      (type == "CSV")
-    CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::CSV,
-                                   hheader, vheader, os);
+    modelData->exportModel(fileName, CQBaseModelDataType::CSV, hheader, vheader);
   else if (type == "TSV")
-    CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::TSV,
-                                   hheader, vheader, os);
+    modelData->exportModel(fileName, CQBaseModelDataType::TSV, hheader, vheader);
   else if (type == "JSON")
-    CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::JSON,
-                                   hheader, vheader, os);
+    modelData->exportModel(fileName, CQBaseModelDataType::JSON, hheader, vheader);
+  else
+    assert(false);
 }
 
 CQChartsModelData *

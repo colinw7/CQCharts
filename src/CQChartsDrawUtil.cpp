@@ -141,21 +141,27 @@ drawTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &te
 
     //---
 
-    double tw = 0;
-
-    for (int i = 0; i < strs.size(); ++i)
-      tw = std::max(tw, fm.width(strs[i]));
-
-    tw += 2*options.margin;
-
     double th = strs.size()*fm.height() + 2*options.margin;
 
     if (options.scaled) {
-      double sx = (tw > 0 ? prect.width ()/tw : 1);
-      double sy = (th > 0 ? prect.height()/th : 1);
+      // calc text scale
+      double s = options.scale;
 
-      double s = std::min(sx, sy);
+      if (s <= 0.0) {
+        double tw = 0;
 
+        for (int i = 0; i < strs.size(); ++i)
+          tw = std::max(tw, fm.width(strs[i]));
+
+        tw += 2*options.margin;
+
+        double sx = (tw > 0 ? prect.width ()/tw : 1);
+        double sy = (th > 0 ? prect.height()/th : 1);
+
+        s = std::min(sx, sy);
+      }
+
+      // scale font
       device->setFont(CQChartsUtil::scaleFontSize(
         device->font(), s, options.minScaleFontSize, options.maxScaleFontSize));
 
@@ -532,17 +538,21 @@ drawScaledHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QStri
   assert(trect.isValid());
 
   // calc scale
-  QSizeF psize = calcHtmlTextSize(text, device->font(), options.margin);
+  double s = options.scale;
 
-  double pw = psize.width ();
-  double ph = psize.height();
+  if (s <= 0.0) {
+    QSizeF psize = calcHtmlTextSize(text, device->font(), options.margin);
 
-  QRectF ptrect = device->windowToPixel(trect);
+    double pw = psize.width ();
+    double ph = psize.height();
 
-  double xs = ptrect.width ()/pw;
-  double ys = ptrect.height()/ph;
+    QRectF ptrect = device->windowToPixel(trect);
 
-  double s = std::min(xs, ys);
+    double xs = ptrect.width ()/pw;
+    double ys = ptrect.height()/ph;
+
+    s = std::min(xs, ys);
+  }
 
   //---
 

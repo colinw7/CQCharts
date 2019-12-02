@@ -1671,7 +1671,11 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual bool hasObjs(const CQChartsLayer::Type &layerType) const;
 
+  virtual void preDrawObjs(CQChartsPaintDevice *) const { }
+
   void execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &type) const;
+
+  virtual void postDrawObjs(CQChartsPaintDevice *) const { }
 
   //---
 

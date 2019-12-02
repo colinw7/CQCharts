@@ -33,6 +33,25 @@ createHSpacer(int width, const char *name)
   return spacer;
 }
 
+bool isFixedPitch(const QFont &font)
+{
+  const QFontInfo fi(font);
+  //qDebug() << fi.family() << fi.fixedPitch();
+  return fi.fixedPitch();
+}
+
+QFont getMonospaceFont() {
+  QFont font("monospace");
+  if (isFixedPitch(font)) return font;
+  font.setStyleHint(QFont::Monospace);
+  if (isFixedPitch(font)) return font;
+  font.setStyleHint(QFont::TypeWriter);
+  if (isFixedPitch(font)) return font;
+  font.setFamily("courier");
+  if (isFixedPitch(font)) return font;
+  return font;
+}
+
 }
 
 //------

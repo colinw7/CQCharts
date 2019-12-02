@@ -4246,15 +4246,14 @@ exportChartsModelCmd(CQChartsCmdArgs &argv)
     isFile = true;
   }
 
-  ModelP model = modelData->currentModel();
-
   if      (toName.toLower() == "csv") {
-    CQChartsModelUtil::exportModel(model.data(), CQBaseModelDataType::CSV,
-                                   hheader, vheader, (isFile ? fos : std::cout));
+    modelData->exportModel((isFile ? fos : std::cout), CQBaseModelDataType::CSV, hheader, vheader);
   }
   else if (toName.toLower() == "tsv") {
-    CQChartsModelUtil::exportModel(model.data(), CQBaseModelDataType::TSV,
-                                   hheader, vheader, (isFile ? fos : std::cout));
+    modelData->exportModel((isFile ? fos : std::cout), CQBaseModelDataType::TSV, hheader, vheader);
+  }
+  else if (toName.toLower() == "json") {
+    modelData->exportModel((isFile ? fos : std::cout), CQBaseModelDataType::JSON, hheader, vheader);
   }
   else if (toName.toLower() == "?") {
     QStringList names = QStringList() << "csv" << "tsv";

@@ -68,6 +68,8 @@ class CQChartsCellObj : public CQChartsPlotObj {
 
   //---
 
+  QSizeF calcTextSize() const;
+
   void draw(CQChartsPaintDevice *device) override;
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const;
@@ -130,6 +132,8 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   // dimension
   int numColumns() const { return nc_; }
 
+  double labelScale() const { return labelScale_; }
+
   //---
 
   // cell labels
@@ -146,6 +150,8 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   void addProperties() override;
 
   CQChartsGeom::Range calcRange() const override;
+
+  void preDrawObjs(CQChartsPaintDevice *device) const override;
 
   bool createObjs(PlotObjs &objs) const override;
 
@@ -186,6 +192,7 @@ class CQChartsCorrelationPlot : public CQChartsPlot,
   bool                 xLabels_          { true };    //!< x labels
   bool                 yLabels_          { true };    //!< y labels
   int                  nc_               { 0 };       //!< number of grid columns
+  mutable double       labelScale_       { 1.0 };     //!< label scale
 };
 
 #endif

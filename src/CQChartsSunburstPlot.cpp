@@ -1257,7 +1257,9 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   options.contrast      = isTextContrast();
   options.contrastAlpha = textContrastAlpha();
 
-  CQChartsRotatedText::draw(device, pt.qpoint(), name, options);
+  CQChartsDrawUtil::drawTextAtPoint(device, pt.qpoint(), name, options, /*centered*/true);
+
+//CQChartsRotatedText::draw(device, pt.qpoint(), name, options);
 
   //---
 

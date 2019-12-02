@@ -24,6 +24,8 @@
 #include <QSortFilterProxyModel>
 #include <QItemSelectionModel>
 
+#include <fstream>
+
 QString
 CQChartsModelData::
 description()
@@ -190,23 +192,23 @@ void
 CQChartsModelData::
 connectModel()
 {
-  if (! model_.data())
+  if (! model().data())
     return;
 
-  connect(model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+  connect(model().data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
           this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
-  connect(model_.data(), SIGNAL(layoutChanged()),
+  connect(model().data(), SIGNAL(layoutChanged()),
           this, SLOT(modelLayoutChangedSlot()));
-  connect(model_.data(), SIGNAL(modelReset()),
+  connect(model().data(), SIGNAL(modelReset()),
           this, SLOT(modelResetSlot()));
 
-  connect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
+  connect(model().data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
           this, SLOT(modelRowsInsertedSlot()));
-  connect(model_.data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
+  connect(model().data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
           this, SLOT(modelRowsRemovedSlot()));
-  connect(model_.data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
+  connect(model().data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
           this, SLOT(modelColumnsInsertedSlot()));
-  connect(model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
+  connect(model().data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
           this, SLOT(modelColumnsRemovedSlot()));
 }
 
@@ -214,23 +216,23 @@ void
 CQChartsModelData::
 disconnectModel()
 {
-  if (! model_.data())
+  if (! model().data())
     return;
 
-  disconnect(model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+  disconnect(model().data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
              this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
-  disconnect(model_.data(), SIGNAL(layoutChanged()),
+  disconnect(model().data(), SIGNAL(layoutChanged()),
              this, SLOT(modelLayoutChangedSlot()));
-  disconnect(model_.data(), SIGNAL(modelReset()),
+  disconnect(model().data(), SIGNAL(modelReset()),
              this, SLOT(modelResetSlot()));
 
-  disconnect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
+  disconnect(model().data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
              this, SLOT(modelRowsInsertedSlot()));
-  disconnect(model_.data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
+  disconnect(model().data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
              this, SLOT(modelRowsRemovedSlot()));
-  disconnect(model_.data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
+  disconnect(model().data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
              this, SLOT(modelColumnsInsertedSlot()));
-  disconnect(model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
+  disconnect(model().data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
              this, SLOT(modelColumnsRemovedSlot()));
 }
 
@@ -421,7 +423,7 @@ foldModel(const FoldData &foldData)
 
       CQChartsColumn column;
 
-      if (! CQChartsModelUtil::stringToColumn(model_.data(), columnStr, column)) {
+      if (! CQChartsModelUtil::stringToColumn(model().data(), columnStr, column)) {
         bool ok;
 
         int icolumn = CQChartsUtil::toInt(columnStr, ok);
@@ -533,6 +535,7 @@ foldModel(const FoldData &foldData)
     // create folded models
     for (const auto &foldData : foldDatas) {
       QAbstractItemModel *model = modelp.data();
+      assert(model);
 
       CQFoldedModel *foldedModel = new CQFoldedModel(model, foldData);
 
@@ -546,6 +549,7 @@ foldModel(const FoldData &foldData)
     if (! foldedModels_.empty()) {
       // add sort/filter proxy if needed
       QAbstractItemModel *model = modelp.data();
+      assert(model);
 
       QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
 
@@ -579,7 +583,7 @@ foldModel(const FoldData &foldData)
   else if (foldData.foldType == FoldData::FoldType::SEPARATOR) {
     CQChartsColumn column;
 
-    if (! CQChartsModelUtil::stringToColumn(model_.data(), foldData.columnsStr, column)) {
+    if (! CQChartsModelUtil::stringToColumn(model().data(), foldData.columnsStr, column)) {
       bool ok;
 
       int icolumn = CQChartsUtil::toInt(foldData.columnsStr, ok);
@@ -598,7 +602,7 @@ foldModel(const FoldData &foldData)
 
     CQHierSepData data(column.column(), foldData.separator[0]);
 
-    CQHierSepModel *hierSepModel = new CQHierSepModel(model_.data(), data);
+    CQHierSepModel *hierSepModel = new CQHierSepModel(model().data(), data);
 
     proxyModel->setSourceModel(hierSepModel);
 
@@ -691,7 +695,7 @@ CQChartsModelData::
 addSummaryModel()
 {
   if (! summaryModel_) {
-    summaryModel_ = new CQSummaryModel(model_.data());
+    summaryModel_ = new CQSummaryModel(model().data());
 
     summaryModelP_ = ModelP(summaryModel_);
 
@@ -942,12 +946,12 @@ getPropertyNames(QStringList &names) const
 
 //------
 
-void
+bool
 CQChartsModelData::
 write(std::ostream &os, const QString &varName) const
 {
-  QAbstractItemModel *model = model_.data();
-  if (! model) return;
+  QAbstractItemModel *model = this->model().data();
+  if (! model) return false;
 
   const CQChartsExprModel  *exprModel = CQChartsModelUtil::getExprModel(model);
   const CQDataModel        *dataModel = CQChartsModelUtil::getDataModel(model);
@@ -1155,13 +1159,249 @@ write(std::ostream &os, const QString &varName) const
       os << "\n";
     }
   }
+
+  return true;
 }
+
+bool
+CQChartsModelData::
+exportModel(const QString &fileName, const CQBaseModelDataType &type,
+            bool hheader, bool vheader)
+{
+  if (type == CQBaseModelDataType::CSV) {
+    if (hheader && ! vheader)
+      return writeCSV(fileName);
+  }
+
+  //---
+
+  if (fileName != "-") {
+    auto os = std::ofstream(fileName.toStdString(), std::ofstream::out);
+
+    return CQChartsModelUtil::exportModel(model().data(), type, hheader, vheader, os);
+  }
+  else
+    return CQChartsModelUtil::exportModel(model().data(), type, hheader, vheader, std::cout);
+}
+
+bool
+CQChartsModelData::
+exportModel(std::ostream &fs, const CQBaseModelDataType &type, bool hheader, bool vheader)
+{
+  if (type == CQBaseModelDataType::CSV) {
+    if (hheader && ! vheader)
+      return writeCSV(fs);
+  }
+
+  //---
+
+  return CQChartsModelUtil::exportModel(model().data(), type, hheader, vheader, fs);
+}
+
+bool
+CQChartsModelData::
+writeCSV(const QString &fileName) const
+{
+  if (fileName != "-") {
+    auto os = std::ofstream(fileName.toStdString(), std::ofstream::out);
+
+    return writeCSV(os);
+  }
+  else
+    return writeCSV(std::cout);
+}
+
+bool
+CQChartsModelData::
+writeCSV(std::ostream &fs) const
+{
+  const CQChartsModelDetails *details = this->details();
+
+  if (details->isHierarchical())
+    return false;
+
+  QAbstractItemModel *model = this->model().data();
+  if (! model) return false;
+
+  //---
+
+  int nr = details->numRows();
+  int nc = details->numColumns();
+
+  if (nr < 0 || nc < 0)
+    return false;
+
+  //---
+
+  // write meta data
+  fs << "#META_DATA\n";
+
+  for (int c = 0; c < nc; ++c) {
+    auto columnDetails = details->columnDetails(CQChartsColumn(c));
+
+    QString header = model->headerData(c, Qt::Horizontal, Qt::DisplayRole).toString();
+
+    auto writeMetaColumnData = [&](const QString &name, const QString &value) {
+      fs << "#  column," << header.toStdString() << "," <<
+            name.toStdString() << "," << value.toStdString() << "\n";
+    };
+
+    auto writeMetaColumnNameValue = [&](const QString &name) {
+      QString value;
+
+      if (! columnDetails->columnNameValue(name, value))
+        return;
+
+      writeMetaColumnData(name, value);
+    };
+
+    CQBaseModelType type     = columnDetails->type();
+    QString         typeName = columnDetails->typeName();
+
+    writeMetaColumnData("type", typeName);
+
+    const CQChartsColor &drawColor = columnDetails->tableDrawColor();
+
+    CQChartsModelColumnDetails::TableDrawType tableDrawType  = columnDetails->tableDrawType();
+    CQChartsColorStops                        tableDrawStops = columnDetails->tableDrawStops();
+
+    writeMetaColumnData("key", "1");
+
+    if (drawColor.isValid())
+      writeMetaColumnData("draw_color", drawColor.toString());
+
+    if      (tableDrawType == CQChartsModelColumnDetails::TableDrawType::HEATMAP)
+      writeMetaColumnData("draw_type", "heatmap");
+    else if (tableDrawType == CQChartsModelColumnDetails::TableDrawType::BARCHART)
+      writeMetaColumnData("draw_type", "barchart");
+
+    if (tableDrawStops.isValid())
+      writeMetaColumnData("draw_stops", tableDrawStops.toString());
+
+    if      (type == CQBaseModelType::REAL) {
+      writeMetaColumnNameValue("format");
+      writeMetaColumnNameValue("format_scale");
+      writeMetaColumnNameValue("min");
+      writeMetaColumnNameValue("max");
+    }
+    else if (type == CQBaseModelType::INTEGER) {
+      writeMetaColumnNameValue("format");
+      writeMetaColumnNameValue("min");
+      writeMetaColumnNameValue("max");
+    }
+    else if (type == CQBaseModelType::TIME) {
+      writeMetaColumnNameValue("format");
+      writeMetaColumnNameValue("iformat");
+      writeMetaColumnNameValue("oformat");
+    }
+    else if (type == CQBaseModelType::COLOR) {
+      writeMetaColumnNameValue("format");
+      writeMetaColumnNameValue("min");
+      writeMetaColumnNameValue("max");
+    }
+    else if (type == CQBaseModelType::SYMBOL) {
+      writeMetaColumnNameValue("mapped");
+      writeMetaColumnNameValue("min");
+      writeMetaColumnNameValue("max");
+    }
+    else if (type == CQBaseModelType::SYMBOL_SIZE) {
+      writeMetaColumnNameValue("mapped");
+      writeMetaColumnNameValue("min");
+      writeMetaColumnNameValue("max");
+      writeMetaColumnNameValue("size_min");
+      writeMetaColumnNameValue("size_max");
+    }
+    else if (type == CQBaseModelType::FONT_SIZE) {
+      writeMetaColumnNameValue("mapped");
+      writeMetaColumnNameValue("min");
+      writeMetaColumnNameValue("max");
+      writeMetaColumnNameValue("size_min");
+      writeMetaColumnNameValue("size_max");
+    }
+  }
+
+  fs << "#END_META_DATA\n";
+
+  //---
+
+  // write header
+  for (int c = 0; c < nc; ++c) {
+    QString header = model->headerData(c, Qt::Horizontal, Qt::DisplayRole).toString();
+
+    if (c > 0)
+      fs << ",";
+
+    fs << CQCsvModel::encodeString(header).toStdString();
+  }
+
+  fs << "\n";
+
+  //---
+
+  // write data
+  for (int r = 0; r < nr; ++r) {
+    for (int c = 0; c < nc; ++c) {
+      QModelIndex ind = model->index(r, c);
+
+      QVariant var;
+
+      auto columnDetails = details->columnDetails(CQChartsColumn(c));
+
+      CQBaseModelType type = columnDetails->type();
+
+      bool converted = false;
+
+      if (type == CQBaseModelType::TIME) {
+        var = model->data(ind, Qt::EditRole);
+
+        if (var.isValid()) {
+          bool ok;
+
+          double r = var.toDouble(&ok);
+
+          if (ok) {
+            const CQChartsColumnTimeType *timeType =
+              dynamic_cast<const CQChartsColumnTimeType *>(columnDetails->columnType());
+            assert(timeType);
+
+            QString fmt = timeType->getIFormat(columnDetails->nameValues());
+
+            if (fmt.simplified() != "") {
+              var = CQChartsUtil::timeToString(fmt, r);
+
+              converted = true;
+            }
+          }
+        }
+      }
+
+      if (! converted) {
+        var = model->data(ind, Qt::EditRole);
+
+        if (! var.isValid())
+          var = model->data(ind, Qt::DisplayRole);
+      }
+
+      if (c > 0)
+        fs << ",";
+
+      fs << CQCsvModel::encodeString(var.toString()).toStdString();
+    }
+
+    fs << "\n";
+  }
+
+  return true;
+}
+
+//------
 
 QAbstractItemModel *
 CQChartsModelData::
 copy()
 {
-  QAbstractItemModel *model = model_.data();
+  QAbstractItemModel *model = this->model().data();
+  if (! model) return nullptr;
 
   CQChartsModelDetails *details = this->details();
 

@@ -154,7 +154,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   CQChartsDistributionBarObj(const CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
                              int groupInd, const Bucket &bucket, const BarValue &barValue,
-                             const ColorInd &ig, const ColorInd &iv);
+                             bool isLine, const ColorInd &ig, const ColorInd &iv);
 
   int groupInd() const { return groupInd_; }
 
@@ -167,6 +167,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   QString calcId() const override;
 
   QString calcTipId() const override;
+
+  bool isLine() const { return isLine_; }
 
   //---
 
@@ -243,6 +245,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   BarValue                        barValue_;
   double                          value1_   { 0.0 };
   double                          value2_   { 1.0 };
+  bool                            isLine_   { false };
   ColorData                       colorData_;
 };
 

@@ -272,7 +272,7 @@ draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
     device->setPen(tpen);
 
     if (ystr.length()) {
-      QPointF p1(x, y);
+      QPointF p1 = device->pixelToWindow(QPointF(x, y));
 
       CQChartsTextOptions options;
 
@@ -281,8 +281,10 @@ draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
       options.contrast      = isTextContrast();
       options.contrastAlpha = textContrastAlpha();
 
-      CQChartsRotatedText::draw(device, device->pixelToWindow(p1), ystr, options,
-                                /*alignBBox*/ true);
+//    CQChartsRotatedText::draw(device, device->pixelToWindow(p1), ystr, options,
+//                              /*alignBBox*/ true);
+
+      CQChartsDrawUtil::drawTextAtPoint(device, p1, ystr, options, /*centered*/true);
     }
   }
 

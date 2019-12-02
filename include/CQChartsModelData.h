@@ -1,6 +1,7 @@
 #ifndef CQChartsModelData_H
 #define CQChartsModelData_H
 
+#include <CQBaseModelTypes.h>
 #include <QObject>
 #include <QSharedPointer>
 #include <QModelIndex>
@@ -183,7 +184,15 @@ class CQChartsModelData : public QObject {
 
   //---
 
-  void write(std::ostream &os, const QString &varName="") const;
+  bool write(std::ostream &os, const QString &varName="") const;
+
+  bool exportModel(const QString &fileName, const CQBaseModelDataType &type,
+                   bool hheader=true, bool vheader=false);
+  bool exportModel(std::ostream &os, const CQBaseModelDataType &type,
+                   bool hheader=true, bool vheader=false);
+
+  bool writeCSV(const QString &fileName) const;
+  bool writeCSV(std::ostream &os) const;
 
   //---
 

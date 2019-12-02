@@ -1,4 +1,4 @@
-set numRaces 20
+set numRaces 21
 
 # create models
 set models {}

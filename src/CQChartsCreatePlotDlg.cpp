@@ -137,9 +137,9 @@ init()
 
   //----
 
-  QFrame *sep1 = createSep("sep1");
+  //QFrame *sep1 = createSep("sep1");
 
-  layout->addWidget(sep1);
+  //layout->addWidget(sep1);
 
   //----
 
@@ -149,9 +149,9 @@ init()
 
   //----
 
-  QFrame *sep2 = createSep("sep2");
+  //QFrame *sep2 = createSep("sep2");
 
-  layout->addWidget(sep2);
+  //layout->addWidget(sep2);
 
   //-------
 
@@ -254,6 +254,8 @@ createTypeDataFrame()
   auto plotDataLayout = CQUtil::makeLayout<QVBoxLayout>(plotDataFrame, 2, 2);
 
   QCheckBox *plotDataCheck = CQUtil::makeLabelWidget<QCheckBox>("Advanced", "plotDataCheck");
+
+  plotDataCheck->setToolTip("Show advanced plot options");
 
   connect(plotDataCheck, SIGNAL(stateChanged(int)), this, SLOT(plotDataSlot(int)));
 
@@ -466,6 +468,7 @@ createGeneralDataFrame()
   autoRangeEdit_ = CQUtil::makeLabelWidget<QCheckBox>("Auto Place", "autoPlace");
 
   autoRangeEdit_->setChecked(true);
+  autoRangeEdit_->setToolTip("Automatically place plots in view");
 
   positionGroupLayout->addWidget(autoRangeEdit_);
 
@@ -678,6 +681,7 @@ createSummaryFrame()
       CQUtil::makeLabelWidget<QCheckBox>("Summary", "summaryEnabled");
 
     summaryEditData_.enabledCheck->setChecked(modelData_->isSummaryEnabled());
+    summaryEditData_.enabledCheck->setToolTip("Enable summary of model data");
 
     connect(summaryEditData_.enabledCheck, SIGNAL(stateChanged(int)),
             this, SLOT(summaryEnabledSlot()));
@@ -703,6 +707,8 @@ createSummaryFrame()
 
     summaryEditData_.typeCombo->addItems(
       QStringList() << "Normal" << "Random" << "Sorted" << "Paged");
+
+    summaryEditData_.typeCombo->setToolTip("Summary data selection type");
 
     if      (summaryModel->mode() == CQSummaryModel::Mode::RANDOM)
       summaryEditData_.typeCombo->setCurrentIndex(1);

@@ -1810,9 +1810,9 @@ bool decodeModelFilterStr(const QAbstractItemModel *model, const QString &filter
 
 namespace CQChartsModelUtil {
 
-void
-exportModel(const QAbstractItemModel *model, CQBaseModelDataType type, bool hheader,
-            bool vheader, std::ostream &os) {
+bool
+exportModel(const QAbstractItemModel *model, CQBaseModelDataType type,
+            bool hheader, bool vheader, std::ostream &os) {
   if      (type == CQBaseModelDataType::CSV) {
     CQCsvModel csv;
 
@@ -1837,6 +1837,8 @@ exportModel(const QAbstractItemModel *model, CQBaseModelDataType type, bool hhea
   else {
     assert(false);
   }
+
+  return true;
 }
 
 }

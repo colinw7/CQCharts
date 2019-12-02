@@ -28,6 +28,8 @@ CQChartsModelDetailsWidget(CQCharts *charts) :
   modelLabel_   = CQUtil::makeLabelWidget<QLabel>("");
   updateButton_ = CQUtil::makeLabelWidget<QPushButton>("Update", "update");
 
+  updateButton_->setToolTip("Update details from model data");
+
   connect(updateButton_, SIGNAL(clicked()), this, SLOT(updateSlot()));
 
   controlLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("<b>Model:</b> "));
@@ -48,6 +50,8 @@ CQChartsModelDetailsWidget(CQCharts *charts) :
   hierLabel_       = CQUtil::makeLabelWidget<QLabel>("No");
 
   flipCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Flip");
+
+  flipCheck_->setToolTip("Flip orientation of details table");
 
   connect(flipCheck_, SIGNAL(stateChanged(int)), this, SLOT(flipSlot(int)));
 

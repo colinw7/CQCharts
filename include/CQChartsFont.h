@@ -82,21 +82,22 @@ class CQChartsFont {
   }
 
   Type type() const { return type_; }
-  void setType(Type type) { type_  = type; }
+  CQChartsFont &setType(Type type) { type_ = type; return *this; }
 
   const QFont &font() const { return font_; }
-  void setFont(const QFont &font) { type_ = Type::FONT; font_ = font; }
+  CQChartsFont &setFont(const QFont &font) { type_ = Type::FONT; font_ = font; return *this; }
 
   const InheritData &data() const { return data_; }
-  void setData(const InheritData &data) { type_ = Type::INHERITED; data_ = data; }
+  CQChartsFont &setData(const InheritData &data) {
+    type_ = Type::INHERITED; data_ = data; return *this; }
 
   //---
 
-  void setNormal() { data_.normal = true; }
-  void setBold  () { data_.bold   = true; }
-  void setItalic() { data_.italic = true; }
+  CQChartsFont &setNormal() { data_.normal = true; return *this; }
+  CQChartsFont &setBold  () { data_.bold   = true; return *this; }
+  CQChartsFont &setItalic() { data_.italic = true; return *this; }
 
-  void incFontSize(double inc) {
+  CQChartsFont &incFontSize(double inc) {
     if (data_.sizeType == SizeType::DECREMENT) {
       data_.size = -data_.size + inc;
 
@@ -113,9 +114,11 @@ class CQChartsFont {
 
       data_.size += inc;
     }
+
+    return *this;
   }
 
-  void decFontSize(double dec) {
+  CQChartsFont &decFontSize(double dec) {
     if (data_.sizeType == SizeType::INCREMENT) {
       data_.size = data_.size - dec;
 
@@ -132,22 +135,25 @@ class CQChartsFont {
 
       data_.size += dec;
     }
+
+    return *this;
   }
 
-  void setFontSize(double size) {
+  CQChartsFont &setFontSize(double size) {
     data_.sizeType = SizeType::EXPLICIT;
     data_.size     = size;
+
+    return *this;
   }
 
   //---
 
   double pointSizeF(double parentSize=-1) const;
-  void setPointSizeF(double s);
+  CQChartsFont &setPointSizeF(double s);
 
   //---
 
   CQChartsFont calcFont(const CQChartsFont &parentFont) const;
-
   QFont calcFont(const QFont &parentFont=QFont()) const;
 
   //---

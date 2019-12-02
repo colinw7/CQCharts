@@ -3,21 +3,19 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
- + Auto determine HTML (Qt code ?)
- + Create Plot from Dialog does auto fit (option) to replace xmin/ymin/xmax/ymax
+ + Auto fit text scaling
+   + only shrink, common factor (across related objects)
+   + Auto scale all axis tick labels (constant scale)
+ + SQL sort/filter model ?
+ + Load Model edit all meta data (only CSV)
+ + Auto determine HTML for Text (Qt code ?)
  + Plot type description pass in advanced (change help)
- + Auto scale all axis tick labels (constant scale)
- + Analyze skip bad numeric values
+ + Analyze skip bad numeric values (test case)
  + Basic Parameters (simpler create plot interface)
    + Include fold model creation and simplify grouping
  + Better filter model (new model)
  + Handle push/pop in tree map follow view
  + Improve coloring with follow view
- + Table Plot
-   + Hier Model
-   + Selection
-   + Header/Number Colors
-   + Controls (Sort/Filter)
  + Table Delegate Draw Bar
  + Better renderer for text used as buttons
  + No threading needed in plots for local data
@@ -367,6 +365,7 @@ Adjacency Plot
 Bar Chart
  + Allow hide sets as well as individual sub set types
  + Custom Data Labels (including hiding)
+ + Whisker/Box for bar values
 
 Box Plot
  + BoxObj master for boxes
@@ -434,6 +433,13 @@ Sunburst
  + Flat coloring
  + Different node depth
  + Push/Pop
+
+Table Plot
+ + Hier Model
+ + Selection
+ + Header/Number Colors
+ + Controls (Sort/Filter)
+ + Resizable columns
 
 Tree map
  + Filter to visible (keep placement, don't show) 

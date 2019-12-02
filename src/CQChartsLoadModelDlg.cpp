@@ -3,6 +3,8 @@
 #include <CQChartsLoader.h>
 #include <CQChartsInputData.h>
 #include <CQChartsModelData.h>
+#include <CQChartsColumnType.h>
+#include <CQChartsModelUtil.h>
 #include <CQChartsWidgetUtil.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
@@ -10,37 +12,18 @@
 #include <CQFilename.h>
 #include <CQStrParse.h>
 #include <CQUtil.h>
+#include <CQTclUtil.h>
+#include <CQTableWidget.h>
+#include <CCsv.h>
 
 #include <QComboBox>
 #include <QPushButton>
 #include <QCheckBox>
-#include <QTextEdit>
+#include <QTextBrowser>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
-
-namespace {
-
-static bool isFixedPitch(const QFont & font) {
-  const QFontInfo fi(font);
-  //qDebug() << fi.family() << fi.fixedPitch();
-  return fi.fixedPitch();
-}
-
-static QFont getMonospaceFont(){
-  QFont font("monospace");
-  if (isFixedPitch(font)) return font;
-  font.setStyleHint(QFont::Monospace);
-  if (isFixedPitch(font)) return font;
-  font.setStyleHint(QFont::TypeWriter);
-  if (isFixedPitch(font)) return font;
-  font.setFamily("courier");
-  if (isFixedPitch(font)) return font;
-  return font;
-}
-
-}
 
 CQChartsLoadModelDlg::
 CQChartsLoadModelDlg(CQCharts *charts) :
@@ -49,13 +32,13 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   setObjectName("loadDlg");
 
   setWindowTitle("Load Model");
-  //setWindowIcon(QIcon()); TODO
+//setWindowIcon(QIcon()); TODO
 
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
+  auto layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
 
-  CQTabSplit *area = CQUtil::makeWidget<CQTabSplit>("area");
+  auto area = CQUtil::makeWidget<CQTabSplit>("area");
 
   area->setOrientation(Qt::Vertical);
   area->setGrouped(true);
@@ -64,9 +47,8 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //----
 
-  QFrame *fileFrame = CQUtil::makeWidget<QFrame>("file");
-
-  QGridLayout *fileFrameLayout = CQUtil::makeLayout<QGridLayout>(fileFrame, 2, 2);
+  auto fileFrame       = CQUtil::makeWidget<QFrame>("file");
+  auto fileFrameLayout = CQUtil::makeLayout<QGridLayout>(fileFrame, 2, 2);
 
   area->addWidget(fileFrame, "File");
 
@@ -107,7 +89,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //--
 
-  // Number Edit
+  // Expression Row Number Edit
   numberEdit_ = CQUtil::makeWidget<CQLineEdit>("numerEdit");
 
   numberEdit_->setText(QString("%1").arg(expressionRows()));
@@ -121,29 +103,32 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   //--
 
   // Option Checks
-  QHBoxLayout *optionLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
+  auto optionLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
 
   commentHeaderCheck_ =
     CQUtil::makeLabelWidget<QCheckBox>("Comment Header", "commentHeaderCheck");
 
-  commentHeaderCheck_->setToolTip("Use first comment for horizontal header");
+  connect(commentHeaderCheck_, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewSlot()));
 
-  optionLayout->addWidget(commentHeaderCheck_);
+  commentHeaderCheck_->setToolTip("Use first comment for horizontal header");
 
   firstLineHeaderCheck_ =
     CQUtil::makeLabelWidget<QCheckBox>("First Line Header", "firstLineHeaderCheck");
 
-  firstLineHeaderCheck_->setToolTip("Use first non-comment line for horizontal header");
+  connect(firstLineHeaderCheck_, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewSlot()));
 
-  optionLayout->addWidget(firstLineHeaderCheck_);
+  firstLineHeaderCheck_->setToolTip("Use first non-comment line for horizontal header");
 
   firstColumnHeaderCheck_ =
     CQUtil::makeLabelWidget<QCheckBox>("First Column Header", "firstColumnHeaderCheck");
 
+//connect(firstColumnHeaderCheck_, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewSlot()));
+
   firstColumnHeaderCheck_->setToolTip("Use first column for vertical header");
 
+  optionLayout->addWidget(commentHeaderCheck_);
+  optionLayout->addWidget(firstLineHeaderCheck_);
   optionLayout->addWidget(firstColumnHeaderCheck_);
-
   optionLayout->addStretch(1);
 
   fileFrameLayout->addLayout(optionLayout, row, 0, 1, 2);
@@ -168,23 +153,62 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //----
 
-  QFrame *previewFrame = CQUtil::makeWidget<QFrame>("preview");
+  auto dataArea = CQUtil::makeWidget<CQTabSplit>("dataArea");
 
-  QVBoxLayout *previewFrameLayout = CQUtil::makeLayout<QVBoxLayout>(previewFrame, 2, 2);
+  dataArea->setState(CQTabSplit::State::TAB);
 
-  area->addWidget(previewFrame, "Preview");
+  area->addWidget(dataArea, "Data");
+
+  //----
+
+  QFont fixedFont = CQChartsWidgetUtil::getMonospaceFont();
 
   //--
 
-  previewText_ = CQUtil::makeWidget<QTextEdit>("previewText");
+  auto previewFrame       = CQUtil::makeWidget<QFrame>("preview");
+  auto previewFrameLayout = CQUtil::makeLayout<QVBoxLayout>(previewFrame, 2, 2);
 
-  previewText_->setToolTip("File contents preview");
+  dataArea->addWidget(previewFrame, "Preview");
 
-  previewFrameLayout->addWidget(previewText_);
+  //--
 
-  QFont fixedFont = getMonospaceFont();
+  previewTextEdit_ = CQUtil::makeWidget<QTextBrowser>("previewText");
 
-  previewText_->setFont(CQChartsUtil::scaleFontSize(fixedFont, 0.8));
+  previewTextEdit_->setReadOnly(true);
+  previewTextEdit_->setToolTip("File contents preview");
+
+  previewFrameLayout->addWidget(previewTextEdit_);
+
+  previewTextEdit_->setFont(CQChartsUtil::scaleFontSize(fixedFont, 0.9));
+
+  //--
+
+  auto columnsFrame       = CQUtil::makeWidget<QFrame>("columnsFrame");
+  auto columnsFrameLayout = CQUtil::makeLayout<QVBoxLayout>(columnsFrame, 2, 2);
+
+  columnsTable_ = CQUtil::makeWidget<CQTableWidget>("columnsTable");
+
+  columnsFrameLayout->addWidget(columnsTable_);
+
+  dataArea->addWidget(columnsFrame, "Columns");
+
+  //--
+
+  auto metaFrame       = CQUtil::makeWidget<QFrame>("metaFrame");
+  auto metaFrameLayout = CQUtil::makeLayout<QVBoxLayout>(metaFrame, 2, 2);
+
+  dataArea->addWidget(metaFrame, "Meta");
+
+  //--
+
+  metaTextEdit_ = CQUtil::makeWidget<QTextBrowser>("metaText");
+
+  metaTextEdit_->setReadOnly(true);
+  metaTextEdit_->setToolTip("File contents meta");
+
+  metaFrameLayout->addWidget(metaTextEdit_);
+
+  metaTextEdit_->setFont(CQChartsUtil::scaleFontSize(fixedFont, 0.9));
 
   //----
 
@@ -260,17 +284,31 @@ previewFileSlot()
 {
   QString fileName = fileEdit_->name();
 
-  int numLines = 1024;
+  int maxLines = 1024;
 
   QStringList lines;
 
-  if (! CQChartsUtil::fileToLines(fileName, lines, numLines))
+  if (! CQChartsUtil::fileToLines(fileName, lines, maxLines))
     return;
 
-  int  lineNum = 0;
-  bool inMeta  = false;
+  //---
 
-  QString text;
+  int  lineNum        = 0;
+  bool inMeta         = false;
+  bool isFirstLine    = true;
+  bool isFirstComment = true;
+
+  lines_    .clear();
+  metaLines_.clear();
+
+  auto addLine = [&](const LineType &type, const QString &text) {
+    lines_.push_back(Line(type, text));
+
+    if (type == LineType::DATA)
+      ++lineNum;
+
+    return (lineNum < previewLines());
+  };
 
   for (int i = 0; i < lines.length(); ++i) {
     const QString &line = lines[i];
@@ -279,30 +317,60 @@ previewFileSlot()
 
     parse.skipSpace();
 
-    if (! inMeta) {
-      if (parse.isString("#META_DATA")) {
-        inMeta = true;
+    // handle comments
+    if (parse.isChar('#')) {
+      if (! inMeta) {
+        if (parse.isString("#META_DATA")) {
+          inMeta = true;
+
+          if (! addLine(LineType::META, line))
+            break;
+        }
+        else {
+          if (isFirstComment) {
+            firstComment_  = line;
+            isFirstComment = false;
+
+            if (! addLine(LineType::COMMENT_HEADER, line))
+              break;
+          }
+          else {
+            if (! addLine(LineType::COMMENT, line))
+              break;
+          }
+        }
       }
       else {
-        if (text.length())
-          text += "\n";
+        if (parse.isString("#END_META_DATA")) {
+          inMeta = false;
 
-        text += line;
+          if (! addLine(LineType::META, line))
+            break;
+        }
+        else {
+          metaLines_.push_back(line);
 
-        ++lineNum;
-
-        if (lineNum >= previewLines())
-          break;
+          if (! addLine(LineType::META, line))
+            break;
+        }
       }
     }
     else {
-      if (parse.isString("#END_META_DATA")) {
-        inMeta = false;
+      if (isFirstLine) {
+        firstLine_  = line;
+        isFirstLine = false;
+
+        if (! addLine(LineType::DATA_HEADER, line))
+          break;
+      }
+      else {
+        if (! addLine(LineType::DATA, line))
+          break;
       }
     }
   }
 
-  previewText_->setText(text);
+  updatePreviewSlot();
 
   //---
 
@@ -313,6 +381,8 @@ previewFileSlot()
   bool firstColumnHeader = false;
 
   CQChartsAnalyzeFile analyzeFile(fileName);
+
+  analyzeFile.setMaxLines(maxLines);
 
   if (! analyzeFile.getDetails(dataType, commentHeader, firstLineHeader, firstColumnHeader))
     return;
@@ -333,11 +403,267 @@ previewFileSlot()
 
 void
 CQChartsLoadModelDlg::
+updatePreviewSlot()
+{
+  QString text;
+
+  for (const auto &l : lines_) {
+    if (text != "")
+      text += "<br>\n";
+
+    if      (l.type == LineType::DATA)
+      text += l.text;
+    else if (l.type == LineType::COMMENT_HEADER) {
+      if (commentHeaderCheck_->isChecked())
+        text += QString("<font color=\"green\">") + l.text + "</font>";
+      else
+        text += l.text;
+    }
+    else if (l.type == LineType::DATA_HEADER) {
+      if (firstLineHeaderCheck_->isChecked())
+        text += QString("<font color=\"green\">") + l.text + "</font>";
+      else
+        text += l.text;
+    }
+    else if (l.type == LineType::META) {
+      //text += QString("<font color=\"magenta\">") + l.text + "</font>";
+    }
+    else if (l.type == LineType::COMMENT) {
+      text += QString("<font color=\"blue\">") + l.text + "</font>";
+    }
+    else {
+      assert(false);
+    }
+  }
+
+  previewTextEdit_->setHtml(text);
+
+  //---
+
+  QString metaText;
+
+  for (const auto &l : metaLines_) {
+    if (metaText != "")
+      metaText += "\n";
+
+    metaText += l;
+  }
+
+  metaTextEdit_->setText(metaText);
+
+  //---
+
+  updateColumns();
+}
+
+void
+CQChartsLoadModelDlg::
 typeSlot()
 {
   QString str = typeCombo_->currentText();
 
   numberEdit_->setEnabled(str == "Expr");
+
+  //---
+
+  updateColumns();
+}
+
+void
+CQChartsLoadModelDlg::
+updateColumns()
+{
+  columns_    .clear();
+  columnTypes_.clear();
+
+  bool hasHeader = false;
+
+  if (typeCombo_->currentIndex() == 0) { // CSV
+    QString headerText;
+
+    if      (commentHeaderCheck_->isChecked()) {
+      CQStrParse parse(firstComment_);
+
+      parse.skipSpace();
+
+      if (parse.isChar('#'))
+        parse.skipChar();
+
+      parse.skipSpace();
+
+      headerText = parse.getAt();
+      hasHeader  = true;
+    }
+    else if (firstLineHeaderCheck_->isChecked()) {
+      headerText = firstLine_;
+      hasHeader  = true;
+    }
+    else {
+      headerText = firstLine_;
+      hasHeader  = false;
+    }
+
+    CCsv csv;
+
+    CCsv::Fields columns;
+
+    csv.stringToColumns(headerText.toStdString(), columns);
+
+    if (hasHeader) {
+      for (auto &c : columns)
+        columns_.push_back(c.c_str());
+    }
+    else {
+      int ic = 1;
+
+      for (auto &c : columns) {
+        columns_.push_back(QString("%1").arg(ic));
+
+        ++ic;
+      }
+    }
+
+    for (const auto &l : metaLines_) {
+      CQStrParse parse(l);
+
+      parse.skipSpace();
+
+      if (parse.isChar('#'))
+        parse.skipChar();
+
+      parse.skipSpace();
+
+      QString l1 = parse.getAt();
+
+      CCsv::Fields metaColumns;
+
+      csv.stringToColumns(l1.toStdString(), metaColumns);
+
+      if (metaColumns.size() == 4) {
+        if (metaColumns[0] == "column") {
+          QString colName = metaColumns[1].c_str();
+
+          if (metaColumns[2] == "type") {
+            QString type = metaColumns[3].c_str();
+
+            columnTypes_[colName] = type;
+          }
+          else {
+            QString name  = metaColumns[2].c_str();
+            QString value = metaColumns[3].c_str();
+
+            columnData_[colName][name] = value;
+          }
+        }
+      }
+    }
+  }
+
+  //---
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+
+  QStringList typeNames;
+
+  columnTypeMgr->typeNames(typeNames);
+
+  //---
+
+  auto createTypeEdit = [&](const QString &type, const QString &colName) {
+    QComboBox *typeCombo = CQUtil::makeWidget<QComboBox>("typeCombo");
+
+    typeCombo->addItems(typeNames);
+    typeCombo->setToolTip("Column Type");
+
+    int i = typeNames.indexOf(type);
+
+    if (i >= 0)
+      typeCombo->setCurrentIndex(i);
+
+    typeCombo->setProperty("colName", colName);
+
+    connect(typeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(typeChangedSlot(int)));
+
+    return typeCombo;
+  };
+
+  //---
+
+  columnsTable_->clear();
+
+  columnsTable_->setColumnCount(3);
+  columnsTable_->setRowCount(columns_.size());
+
+  columnsTable_->setHorizontalHeaderItem(0, new QTableWidgetItem("Name"));
+  columnsTable_->setHorizontalHeaderItem(1, new QTableWidgetItem("Type"));
+  columnsTable_->setHorizontalHeaderItem(2, new QTableWidgetItem("Data"));
+
+  auto createTableItem = [&](const QString &name) {
+    QTableWidgetItem *item = new QTableWidgetItem(name);
+
+    item->setToolTip(name);
+    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+    return item;
+  };
+
+  int i = 0;
+
+  for (const auto &c : columns_) {
+    QTableWidgetItem *nameItem = createTableItem(c);
+
+    auto p = columnTypes_.find(c);
+
+    QString type = (p != columnTypes_.end() ? (*p).second : QString("string"));
+
+    QTableWidgetItem *typeItem = createTableItem(type);
+
+    columnsTable_->setItem(i, 0, nameItem);
+    columnsTable_->setItem(i, 1, typeItem);
+
+    columnsTable_->setCellWidget(i, 1, createTypeEdit(type, c));
+
+    auto pd = columnData_.find(c);
+
+    if (pd != columnData_.end()) {
+      auto nameValues = (*pd).second;
+
+      QStringList strs;
+
+      for (auto &nv : nameValues) {
+        QStringList strs1;
+
+        strs1 << nv.first;
+        strs1 << nv.second;
+
+        strs << CQTcl::mergeList(strs1);
+      }
+
+      QString str = CQTcl::mergeList(strs);
+
+      QTableWidgetItem *dataItem = createTableItem(str);
+
+      columnsTable_->setItem(i, 2, dataItem);
+    }
+
+    ++i;
+  }
+}
+
+
+void
+CQChartsLoadModelDlg::
+typeChangedSlot(int)
+{
+  QComboBox *combo = qobject_cast<QComboBox *>(sender());
+  if (! combo) return;
+
+  QString type = combo->currentText();
+
+  QString colName = combo->property("colName").toString();
+  if (colName == "") return;
+
+  columnTypes_[colName] = type;
 }
 
 void
@@ -389,15 +715,31 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
   bool hierarchical;
 
   QAbstractItemModel *model = loadFile(filename, type, inputData, hierarchical);
-
-  if (! model)
-    return false;
+  if (! model) return false;
 
   ModelP modelp(model);
 
   CQChartsModelData *modelData = charts()->initModelData(modelp);
 
   charts()->setModelName(modelData, filename);
+
+  //---
+
+  int ic = 0;
+
+  for (const auto &c : columns_) {
+    auto p = columnTypes_.find(c);
+
+    if (p != columnTypes_.end()) {
+      const QString &type = (*p).second;
+
+      CQChartsModelUtil::setColumnTypeStr(charts(), modelp.data(), CQChartsColumn(ic), type);
+    }
+
+    ++ic;
+  }
+
+  //---
 
   modelInd_ = modelData->ind();
 

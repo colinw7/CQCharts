@@ -12,6 +12,9 @@ void addGridLabelWidget(QGridLayout *playout, const QString &label, QWidget *wid
 
 QFrame *createHSpacer(int width=1, const char *name="spacer");
 
+bool isFixedPitch(const QFont &font);
+QFont getMonospaceFont();
+
 }
 
 //------

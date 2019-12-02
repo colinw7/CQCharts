@@ -9,3 +9,48 @@ Charts
 Plots use Model Data and Selection Model
 Model Data has one or more Selection Models
 Table/Tree View has Selection Models for Model
+
+#---
+
+Model Data can be:
+  + loaded
+    + csv, tsv, json, gnu data, expression, tcl variable
+  + grouped
+  + processed
+    + add column by expression
+    + delete column
+    + modify column
+    + calc values
+    + query values
+    + analyze
+  + sorted
+  + filtered
+    + expression
+  + flattened
+    + mean/sum of children
+  + copied
+  + exported
+  + correlated
+  + bucketed
+    + bucketed column
+  + folded
+    + hier separator in column
+    + bucketed column
+  + subset
+    + row/column range
+  + transposed
+  + summarized
+    + random, sorted, paged
+  + collapsed
+    + mean/sum of children
+  + pivoted
+    + horizontal, vertical, data columns
+  + stats
+    + columns
+
+#---
+
+Grouping
+  column
+  bucket (auto/fixed real/integer range, auto/fixed string pattern)
+  optimal number of buckets (for auto)

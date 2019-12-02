@@ -16,6 +16,9 @@ class CQCsvTable : public CQTableView {
   void setModel(CQCsvModel *model);
 
  private:
+  using CQTableView::setModel;
+
+ private:
   CQCsvModel*            model_ { nullptr };
   QSortFilterProxyModel* proxy_ { nullptr };
 };

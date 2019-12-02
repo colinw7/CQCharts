@@ -236,12 +236,14 @@ exportSlot(QAction *action)
 {
   QString type = action->text();
 
+  CQChartsModelData *modelData = getModelData();
+
   if      (type == "CSV")
-    CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::CSV);
+    modelData->exportModel("-", CQBaseModelDataType::CSV);
   else if (type == "TSV")
-    CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::TSV);
+    modelData->exportModel("-", CQBaseModelDataType::TSV);
   else if (type == "JSON")
-    CQChartsModelUtil::exportModel(modelP().data(), CQBaseModelDataType::JSON);
+    modelData->exportModel("-", CQBaseModelDataType::JSON);
   else {
     std::cerr << "Invalid export type '" << type.toStdString() << "'\n";
   }

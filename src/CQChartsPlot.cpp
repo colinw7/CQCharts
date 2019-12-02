@@ -7180,6 +7180,11 @@ execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) 
 
   //---
 
+  if (layerType == CQChartsLayer::Type::MID_PLOT)
+    preDrawObjs(device);
+
+  //---
+
   CQChartsGeom::BBox bbox = displayRangeBBox();
 
   for (const auto &plotObj : plotObjects()) {
@@ -7227,6 +7232,11 @@ execDrawObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerType) 
     if (showBoxes())
       plotObj->drawDebugRect(device);
   }
+
+  //---
+
+  if (layerType == CQChartsLayer::Type::MID_PLOT)
+    postDrawObjs(device);
 
   //---
 

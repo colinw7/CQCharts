@@ -1008,3 +1008,7 @@
  + Add axis style to parallel
  + improve model details widget and allow table flip
  + allow auto place plots on add
+# 12/01/2019
+ + Consistent text scale for correlation plot
+ + Fix idistribution scatter plot axis
+ + Improve load model dialog to show meta information and column types

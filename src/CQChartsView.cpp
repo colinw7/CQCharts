@@ -3538,8 +3538,8 @@ drawNoData(CQChartsPaintDevice *)
       text += "<p>No Model Data</p>\n";
 
       text += "<ul>\n";
-      text += imgLiHtml("model", "nodata_models.svg", "Create Model");
-      text += imgLiHtml("help" , "nodata_help.svg"  , "Help"        );
+      text += imgLiHtml("model", "nodata_models.svg", "Load Model");
+      text += imgLiHtml("help" , "nodata_help.svg"  , "Help"      );
       text += "</ul>\n";
     }
     else {

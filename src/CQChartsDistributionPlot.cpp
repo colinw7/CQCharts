@@ -1520,19 +1520,15 @@ createObjs(PlotObjs &objs) const
     countAxis()->setRequireTickLabel(false);
   }
   else if (isScatter()) {
-    valueAxis()->setValueType       (CQChartsAxisValueType::Type::REAL, /*notify*/false);
-    valueAxis()->setGridMid         (false);
-    valueAxis()->setMajorIncrement  (0);
+    valueAxis()->setValueType       (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+    valueAxis()->setGridMid         (true);
+    valueAxis()->setMajorIncrement  (1);
     valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
     valueAxis()->setRequireTickLabel(false);
 
-    if (isValueCount())
-      countAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
-    else
-      countAxis()->setValueType(CQChartsAxisValueType::Type::REAL, /*notify*/false);
-
-    countAxis()->setGridMid         (false);
-    countAxis()->setMajorIncrement  (0);
+    countAxis()->setValueType       (CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
+    countAxis()->setGridMid         (true);
+    countAxis()->setMajorIncrement  (1);
     countAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
     countAxis()->setRequireTickLabel(false);
   }
@@ -1570,9 +1566,11 @@ createObjs(PlotObjs &objs) const
 
   double doffset = 0.0;
 
+  using GroupTotals  = std::map<int,double>;
   using BucketTotals = std::map<Bucket,double>;
 
-  BucketTotals groupMax, valueSetRunningTotal, valueSetTotals;
+  GroupTotals  groupMax;
+  BucketTotals valueSetRunningTotal, valueSetTotals;
 
   th->barWidth_ = 1.0;
 
@@ -1688,7 +1686,8 @@ createObjs(PlotObjs &objs) const
 
       //---
 
-      const Values *values = groupValues.second;
+      int           groupInd = groupValues.first;
+      const Values *values   = groupValues.second;
 
       //---
 
@@ -1717,8 +1716,8 @@ createObjs(PlotObjs &objs) const
 
         valueSetTotals[bucket] += barValue.n2 - barValue.n1;
 
-        if (barValue.n2 > groupMax[bucket])
-          groupMax[bucket] = barValue.n2;
+        if (barValue.n2 > groupMax[groupInd])
+          groupMax[groupInd] = barValue.n2;
 
         ++iv;
       }
@@ -1842,14 +1841,14 @@ createObjs(PlotObjs &objs) const
 
         QString bucketName = bucketStr(groupInd, bucket);
 
-        valueAxis()->setTickLabel(iv, bucketName);
+        countAxis()->setTickLabel(iv, bucketName);
 
         ++iv;
       }
 
       QString groupName = groupIndName(groupInd);
 
-      countAxis()->setTickLabel(ig, groupName);
+      valueAxis()->setTickLabel(ig, groupName);
     }
     else {
       auto pb = groupData_.groupBucketRange.find(groupInd);
@@ -1942,7 +1941,7 @@ createObjs(PlotObjs &objs) const
               scale = 1.0/valueSetTotal;
           }
           else {
-            int max = groupMax[bucket];
+            int max = groupMax[groupInd];
 
             if (max > 0)
               scale = 1.0/max;
@@ -1964,12 +1963,15 @@ createObjs(PlotObjs &objs) const
         //---
 
         CQChartsGeom::BBox bbox;
+        bool               isLine = false;
 
         if      (isStackedActive) {
           double total = valueSetRunningTotal[bucket];
 
           double v1 = (barValue.n1 + total)*scale;
           double v2 = (barValue.n2 + total)*scale;
+
+          isLine = (v1 == v2);
 
           if (! isSkipEmpty())
             bbox = makeBBox(bucketValue - 0.5, v1, bucketValue + 0.5, v2);
@@ -1979,6 +1981,8 @@ createObjs(PlotObjs &objs) const
         else if (isOverlayActive) {
           double v1 = barValue.n1*scale;
           double v2 = barValue.n2*scale;
+
+          isLine = (v1 == v2);
 
           if (! isSkipEmpty())
             bbox = makeBBox(bucketValue - 0.5, v1, bucketValue + 0.5, v2);
@@ -1998,11 +2002,15 @@ createObjs(PlotObjs &objs) const
           double v1 = barValue.n1*scale;
           double v2 = barValue.n2*scale;
 
+          isLine = (v1 == v2);
+
           bbox = makeBBox(tpos1, v1, tpos2, v2);
         }
         else {
           double v1 = barValue.n1*scale;
           double v2 = barValue.n2*scale;
+
+          isLine = (v1 == v2);
 
           if (! isSkipEmpty())
             bbox = makeBBox(bucket1 - 0.5, v1, bucket1 + 0.5, v2);
@@ -2016,7 +2024,7 @@ createObjs(PlotObjs &objs) const
           values->yValueRange.min(), values->yValueRange.max());
 
         CQChartsDistributionBarObj *barObj =
-          new CQChartsDistributionBarObj(this, bbox, groupInd, sbucket, barValue,
+          new CQChartsDistributionBarObj(this, bbox, groupInd, sbucket, barValue, isLine,
                                          ColorInd(ig, ng), ColorInd(iv, nv));
 
         objs.push_back(barObj);
@@ -2166,7 +2174,7 @@ createObjs(PlotObjs &objs) const
     else if (isValueCount()) setCountLabel("Count");
     else if (isValueRange()) setCountLabel("Range");
     else if (isValueMin  ()) setCountLabel("Min");
-    else if (isValueMax  ()) setCountLabel("Min");
+    else if (isValueMax  ()) setCountLabel("Max");
     else if (isValueMean ()) setCountLabel("Mean");
     else if (isValueSum  ()) setCountLabel("Sum");
   }
@@ -2972,9 +2980,9 @@ hasGroups() const
 CQChartsDistributionBarObj::
 CQChartsDistributionBarObj(const CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
                            int groupInd, const Bucket &bucket, const BarValue &barValue,
-                           const ColorInd &ig, const ColorInd &iv) :
+                           bool isLine, const ColorInd &ig, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsDistributionPlot *>(plot), rect, ColorInd(), ig, iv),
- plot_(plot), groupInd_(groupInd), bucket_(bucket), barValue_(barValue)
+ plot_(plot), groupInd_(groupInd), bucket_(bucket), barValue_(barValue), isLine_(isLine)
 {
   setDetailHint(DetailHint::MAJOR);
 
@@ -3082,9 +3090,10 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   CQChartsPlotObj::addProperties(model, path1);
 
-  model->addProperty(path1, this, "rect"    )->setDesc("Bounding box");
-//model->addProperty(path1, this, "selected")->setDesc("Is selected");
+  if (! isLine())
+    model->addProperty(path1, this, "rect")->setDesc("Bounding box");
 
+//model->addProperty(path1, this, "selected")->setDesc("Is selected");
   model->addProperty(path1, this, "count"   )->setDesc("Number of values");
   model->addProperty(path1, this, "minValue")->setDesc("Min value");
   model->addProperty(path1, this, "maxValue")->setDesc("Max value");
@@ -3258,7 +3267,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  bool useLine = this->isUseLine();
+  bool useLine = (isLine() || this->isUseLine());
 
   //---
 
@@ -3356,34 +3365,36 @@ void
 CQChartsDistributionBarObj::
 drawFg(CQChartsPaintDevice *device) const
 {
-  CQChartsGeom::BBox pbbox = calcRect();
+  if (! isLine()) {
+    CQChartsGeom::BBox pbbox = calcRect();
 
-  QRectF pqrect = pbbox.qrect();
+    QRectF pqrect = pbbox.qrect();
 
-  //---
+    //---
 
-  QString ystr;
+    QString ystr;
 
-  if      (plot_->isValueCount()) {
-    ystr = QString("%1").arg(count());
-  }
-  else if (plot_->isValueRange()) {
-    ystr = QString("%1-%2").arg(minValue()).arg(maxValue());
-  }
-  else if (plot_->isValueMin()) {
-    ystr = QString("%1").arg(maxValue());
-  }
-  else if (plot_->isValueMax()) {
-    ystr = QString("%1").arg(maxValue());
-  }
-  else if (plot_->isValueMean()) {
-    ystr = QString("%1").arg(maxValue());
-  }
-  else if (plot_->isValueSum()) {
-    ystr = QString("%1").arg(maxValue());
-  }
+    if      (plot_->isValueCount()) {
+      ystr = QString("%1").arg(count());
+    }
+    else if (plot_->isValueRange()) {
+      ystr = QString("%1-%2").arg(minValue()).arg(maxValue());
+    }
+    else if (plot_->isValueMin()) {
+      ystr = QString("%1").arg(maxValue());
+    }
+    else if (plot_->isValueMax()) {
+      ystr = QString("%1").arg(maxValue());
+    }
+    else if (plot_->isValueMean()) {
+      ystr = QString("%1").arg(maxValue());
+    }
+    else if (plot_->isValueSum()) {
+      ystr = QString("%1").arg(maxValue());
+    }
 
-  plot_->dataLabel()->draw(device, device->pixelToWindow(pqrect), ystr);
+    plot_->dataLabel()->draw(device, device->pixelToWindow(pqrect), ystr);
+  }
 
   //---
 
@@ -3592,7 +3603,7 @@ drawRect(CQChartsPaintDevice *device, const QRectF &pqrect,
                                            plot_->barCornerSize(), plot_->barCornerSize());
     }
     else {
-      if (! plot_->isHorizontal()) {
+      if (pqrect.width() < pqrect.height()) { // vertical
         double xc = pqrect.center().x();
 
         device->drawLine(device->pixelToWindow(QPointF(xc, pqrect.bottom())),
@@ -4206,9 +4217,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
-#if 0
-  device->drawRect(rect().qrect());
-#endif
+  //device->drawRect(rect().qrect());
 
   //---
 

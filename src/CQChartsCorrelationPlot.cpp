@@ -78,12 +78,15 @@ CQChartsCorrelationPlot(CQChartsView *view, const ModelP &model) :
 
   addTitle();
 
-  setCellFillColor     (CQChartsColor(CQChartsColor::Type::PALETTE));
+  setCellFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+
   setCellLabelTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
-  setXLabelTextAlign   (Qt::AlignHCenter | Qt::AlignVCenter);
-  setXLabelTextAngle   (90);
-  setYLabelTextAlign   (Qt::AlignHCenter | Qt::AlignVCenter);
-  setYLabelTextAngle   (0);
+
+  setXLabelTextAlign(Qt::AlignHCenter | Qt::AlignTop    ); setXLabelTextAngle(90);
+  setYLabelTextAlign(Qt::AlignRight   | Qt::AlignVCenter); setYLabelTextAngle( 0);
+
+  setXLabelTextFont(CQChartsFont().decFontSize(4));
+  setYLabelTextFont(CQChartsFont().decFontSize(4));
 }
 
 CQChartsCorrelationPlot::
@@ -170,6 +173,54 @@ calcRange() const
   //---
 
   return dataRange;
+}
+
+//---
+
+void
+CQChartsCorrelationPlot::
+preDrawObjs(CQChartsPaintDevice *device) const
+{
+  if (isCellLabelTextScaled()) {
+    bool first = true;
+
+    double maxWidth = 0.0, maxHeight = 0.0;
+
+    QSizeF cellSize;
+
+    for (auto &plotObj : plotObjects()) {
+      CQChartsCellObj *cellObj = dynamic_cast<CQChartsCellObj *>(plotObj);
+      if (! cellObj) continue;
+
+      QSizeF s = cellObj->calcTextSize();
+
+      maxWidth  = std::max(maxWidth , s.width ());
+      maxHeight = std::max(maxHeight, s.height());
+
+      if (first) {
+        cellSize = cellObj->rect().qrect().size();
+        first    = false;
+      }
+    }
+
+    double cw = windowToPixelWidth (cellSize.width ());
+    double ch = windowToPixelHeight(cellSize.height());
+
+    double xs = (maxWidth  > 0.0 ? cw/maxWidth  : 1.0);
+    double ys = (maxHeight > 0.0 ? ch/maxHeight : 1.0);
+
+    if (xs > 1.0 && ys > 1.0)
+      labelScale_ = std::max(xs, ys);
+    else
+      labelScale_ = std::min(xs, ys);
+  }
+  else {
+    labelScale_ = 1.0;
+  }
+
+  //---
+
+  CQChartsPlot::preDrawObjs(device);
 }
 
 //---
@@ -353,7 +404,6 @@ drawXLabels(CQChartsPaintDevice *device) const
   textOptions.html          = isXLabelTextHtml();
   textOptions.align         = xLabelTextAlign();
   textOptions.angle         = xLabelTextAngle();
-  textOptions.scaled        = isXLabelTextScaled();
   textOptions.clipped       = false;
 
   textOptions = adjustTextOptions(textOptions);
@@ -405,9 +455,9 @@ drawXLabels(CQChartsPaintDevice *device) const
     QRectF trect1;
 
     if (! isInvertY())
-      trect1 = QRectF(p1.x() - tw1/2, p1.y() + tm, tw1, th);
+      trect1 = QRectF(p1.x() - tw1/2.0, p1.y() + tm, tw1, th);
     else
-      trect1 = QRectF(p1.x() - tw1/2, p1.y() - th - tm, tw1, th);
+      trect1 = QRectF(p1.x() - tw1/2.0, p1.y() - th - tm, tw1, th);
 
     CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect1), name, textOptions);
   }
@@ -440,7 +490,6 @@ drawYLabels(CQChartsPaintDevice *device) const
   textOptions.html          = isYLabelTextHtml();
   textOptions.align         = yLabelTextAlign();
   textOptions.angle         = yLabelTextAngle();
-  textOptions.scaled        = isYLabelTextScaled();
   textOptions.clipped       = false;
 
   textOptions = adjustTextOptions(textOptions);
@@ -633,6 +682,27 @@ getSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
 }
 
+QSizeF
+CQChartsCellObj::
+calcTextSize() const
+{
+  if (! plot_->isCellLabels())
+    return QSizeF();
+
+  QFont font = plot_->view()->plotFont(plot_, plot_->cellLabelTextFont());
+
+  QString valueStr = CQChartsUtil::formatReal(value());
+
+  CQChartsTextOptions options;
+
+  options.contrast  = plot_->isCellLabelTextContrast();
+  options.formatted = plot_->isCellLabelTextFormatted();
+  options.html      = plot_->isCellLabelTextHtml();
+  options.angle     = plot_->cellLabelTextAngle();
+
+  return CQChartsDrawUtil::calcTextSize(valueStr, font, options);
+}
+
 void
 CQChartsCellObj::
 draw(CQChartsPaintDevice *device)
@@ -690,10 +760,10 @@ draw(CQChartsPaintDevice *device)
     textOptions.contrastAlpha = plot_->cellLabelTextContrastAlpha();
     textOptions.formatted     = plot_->isCellLabelTextFormatted();
     textOptions.scaled        = plot_->isCellLabelTextScaled();
+    textOptions.scale         = plot_->labelScale(); // TODO: optional
     textOptions.html          = plot_->isCellLabelTextHtml();
     textOptions.align         = plot_->cellLabelTextAlign();
     textOptions.angle         = plot_->cellLabelTextAngle();
-    textOptions.scaled        = plot_->isCellLabelTextScaled();
 
     textOptions = plot_->adjustTextOptions(textOptions);
 

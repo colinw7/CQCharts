@@ -263,7 +263,7 @@ QString replaceModelExprVars(const QString &expr, const QAbstractItemModel *mode
 
 namespace CQChartsModelUtil {
 
-void exportModel(const QAbstractItemModel *model, CQBaseModelDataType type,
+bool exportModel(const QAbstractItemModel *model, CQBaseModelDataType type,
                  bool hheader=true, bool vheader=false,
                  std::ostream &os=std::cout);
 

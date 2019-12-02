@@ -8,13 +8,14 @@
 
 class CQCharts;
 class CQFilename;
+class CQTableWidget;
 
 struct CQChartsInputData;
 
 class QAbstractItemModel;
 class QComboBox;
 class QCheckBox;
-class QTextEdit;
+class QTextBrowser;
 class QPushButton;
 
 /*!
@@ -68,6 +69,10 @@ class CQChartsLoadModelDlg : public QDialog {
  private slots:
   void previewFileSlot();
   void typeSlot();
+  void updatePreviewSlot();
+  void updateColumns();
+
+  void typeChangedSlot(int ind);
 
   void okSlot();
   bool applySlot();
@@ -81,21 +86,55 @@ class CQChartsLoadModelDlg : public QDialog {
                                const CQChartsInputData &inputData, bool &hierarchical);
 
  private:
-  CQCharts*    charts_                 { nullptr };
-  bool         emitLoadSignal_         { false };
-  int          modelInd_               { -1 };
-  QComboBox*   typeCombo_              { nullptr };
-  CQFilename*  fileEdit_               { nullptr };
-  QCheckBox*   commentHeaderCheck_     { nullptr };
-  QCheckBox*   firstLineHeaderCheck_   { nullptr };
-  QCheckBox*   firstColumnHeaderCheck_ { nullptr };
-  CQLineEdit*  numberEdit_             { nullptr };
-  CQLineEdit*  filterEdit_             { nullptr };
-  QTextEdit*   previewText_            { nullptr };
-  QPushButton* okButton_               { nullptr };
-  QPushButton* applyButton_            { nullptr };
-  int          previewLines_           { 100 };
-  int          expressionRows_         { 100 };
+  using ColumnTypes = std::map<QString,QString>;
+  using NameValue   = std::map<QString,QString>;
+  using ColumnData  = std::map<QString,NameValue>;
+
+  enum class LineType {
+    DATA,
+    COMMENT_HEADER,
+    DATA_HEADER,
+    META,
+    COMMENT
+  };
+
+  struct Line {
+    LineType type { LineType::DATA };
+    QString  text;
+
+    Line() = default;
+
+    Line(const LineType &type, const QString &text) :
+     type(type), text(text) {
+    }
+  };
+
+  using Lines = std::vector<Line>;
+
+  CQCharts*      charts_                 { nullptr };
+  bool           emitLoadSignal_         { false };
+  int            modelInd_               { -1 };
+  QComboBox*     typeCombo_              { nullptr };
+  CQFilename*    fileEdit_               { nullptr };
+  QCheckBox*     commentHeaderCheck_     { nullptr };
+  QCheckBox*     firstLineHeaderCheck_   { nullptr };
+  QCheckBox*     firstColumnHeaderCheck_ { nullptr };
+  CQLineEdit*    numberEdit_             { nullptr };
+  CQLineEdit*    filterEdit_             { nullptr };
+  QTextBrowser*  previewTextEdit_        { nullptr };
+  QTextBrowser*  metaTextEdit_           { nullptr };
+  CQTableWidget* columnsTable_           { nullptr };
+  QPushButton*   okButton_               { nullptr };
+  QPushButton*   applyButton_            { nullptr };
+  int            previewLines_           { 100 };
+  int            expressionRows_         { 100 };
+  Lines          lines_;
+  QStringList    metaLines_;
+  QString        firstLine_;
+  QString        firstComment_;
+  QStringList    columns_;
+  ColumnTypes    columnTypes_;
+  ColumnData     columnData_;
 };
 
 #endif
