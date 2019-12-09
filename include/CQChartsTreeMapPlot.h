@@ -280,7 +280,7 @@ class CQChartsTreeMapNodeObj : public CQChartsPlotObj {
 
   void draw(CQChartsPaintDevice *device) override;
 
-  void drawText(CQChartsPaintDevice *device, const QRectF &qrect);
+  void drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox);
 
   void calcPenBrush(CQChartsPenBrush &penBrush, bool isPoint, bool updateState) const;
 

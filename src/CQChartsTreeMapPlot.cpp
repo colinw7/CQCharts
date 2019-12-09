@@ -1229,7 +1229,7 @@ draw(CQChartsPaintDevice *device)
   CQChartsGeom::Point p1(hier_->x()             , hier_->y()             );
   CQChartsGeom::Point p2(hier_->x() + hier_->w(), hier_->y() + hier_->h());
 
-  QRectF qrect = CQChartsGeom::BBox(p1.x, p2.y, p2.x, p1.y).qrect();
+  CQChartsGeom::BBox bbox(p1.x, p2.y, p2.x, p1.y);
 
   //---
 
@@ -1247,7 +1247,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  device->drawRect(qrect);
+  device->drawRect(bbox.qrect());
 
   device->resetColorNames();
 
@@ -1284,7 +1284,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // check if text visible (font dependent)
-  QRectF pqrect = device->windowToPixel(qrect);
+  CQChartsGeom::BBox pbbox = device->windowToPixel(bbox);
 
   bool visible = plot_->isTextVisible();
 
@@ -1294,7 +1294,7 @@ draw(CQChartsPaintDevice *device)
     double minTextWidth  = fm.width("X") + 4;
     double minTextHeight = fm.height() + 4;
 
-    visible = (pqrect.width() >= minTextWidth && pqrect.height() >= minTextHeight);
+    visible = (pbbox.getWidth() >= minTextWidth && pbbox.getHeight() >= minTextHeight);
   }
 
   //---
@@ -1320,9 +1320,11 @@ draw(CQChartsPaintDevice *device)
 
     double hh = plot_->calcTitleHeight(); // title height in pixels
 
-    QRectF pqrect1(pqrect.left() + m, pqrect.top(), pqrect.width() - 2*m, hh);
+    CQChartsGeom::BBox pbbox1(pbbox.getXMin() + m, pbbox.getYMin(),
+                              pbbox.getXMax() - m, pbbox.getYMin() + hh);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(pqrect1), name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(pbbox1.qrect()),
+                                    name, textOptions);
   }
 
   //---
@@ -1480,13 +1482,13 @@ draw(CQChartsPaintDevice *device)
 
   bool isPoint = this->isPoint();
 
-  QRectF  qrect;
-  QPointF qpoint;
+  CQChartsGeom::BBox bbox;
+  QPointF            qpoint;
 
   if (isPoint)
     qpoint = QPointF((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
   else
-    qrect = CQChartsGeom::BBox(p1.x + 1, p2.y + 1, p2.x - 1, p1.y - 1).qrect();
+    bbox = CQChartsGeom::BBox(p1.x + 1, p2.y + 1, p2.x - 1, p1.y - 1);
 
   //---
 
@@ -1507,7 +1509,7 @@ draw(CQChartsPaintDevice *device)
   if (isPoint)
     device->drawPoint(device->pixelToWindow(qpoint));
   else
-    device->drawRect(device->pixelToWindow(qrect));
+    device->drawRect(device->pixelToWindow(bbox.qrect()));
 
   device->resetColorNames();
 
@@ -1519,12 +1521,12 @@ draw(CQChartsPaintDevice *device)
   //---
 
   if (plot_->isTextVisible())
-    drawText(device, qrect);
+    drawText(device, bbox);
 }
 
 void
 CQChartsTreeMapNodeObj::
-drawText(CQChartsPaintDevice *device, const QRectF &qrect)
+drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
 {
   // get labels (name and optional size)
   QStringList strs;
@@ -1572,7 +1574,7 @@ drawText(CQChartsPaintDevice *device, const QRectF &qrect)
   double minTextWidth  = fm.width("X") + 4;
   double minTextHeight = fm.height() + 4;
 
-  bool visible = (qrect.width() >= minTextWidth && qrect.height() >= minTextHeight);
+  bool visible = (bbox.getWidth() >= minTextWidth && bbox.getHeight() >= minTextHeight);
 
   //---
 
@@ -1593,21 +1595,23 @@ drawText(CQChartsPaintDevice *device, const QRectF &qrect)
 
     device->setPen(tPenBrush.pen);
 
-    QRectF iqrect = qrect.adjusted(3, 3, -3, -3);
+    CQChartsGeom::BBox ibbox = bbox.adjusted(3, 3, -3, -3);
+
+    CQChartsGeom::BBox bbox1 = device->pixelToWindow(ibbox);
 
     if      (strs.size() == 1) {
-      CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(iqrect), name, textOptions);
+      CQChartsDrawUtil::drawTextInBox(device, bbox1.qrect(), name, textOptions);
     }
     else if (strs.size() == 2) {
       if (plot_->isTextClipped())
-        device->setClipRect(device->pixelToWindow(iqrect));
+        device->setClipRect(bbox1.qrect());
 
       double th = fm.height();
 
-      QPointF pc = iqrect.center();
+      CQChartsGeom::Point pc = ibbox.getCenter();
 
-      QPointF tp1(pc.x(), pc.y() - th/2);
-      QPointF tp2(pc.x(), pc.y() + th/2);
+      QPointF tp1(pc.x, pc.y - th/2);
+      QPointF tp2(pc.x, pc.y + th/2);
 
       CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp1), strs[0], textOptions);
       CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp2), strs[1], textOptions);

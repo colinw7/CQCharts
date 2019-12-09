@@ -61,6 +61,7 @@ void
 CQChartsCreatePlotDlg::
 init()
 {
+#if 0
   auto createSep = [](const QString &name) -> QFrame * {
     QFrame *sep = CQUtil::makeWidget<QFrame>(name);
 
@@ -69,6 +70,7 @@ init()
 
     return sep;
   };
+#endif
 
   //---
 
@@ -2219,9 +2221,6 @@ updatePreviewPlot(bool valid)
     }
 
     applyPlot(previewPlot_, /*preview*/true);
-
-    if (! isAdvanced())
-      previewPlot_->initPreview();
   }
   else {
     if (previewPlot_) {

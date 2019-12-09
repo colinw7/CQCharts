@@ -993,9 +993,9 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
   setBrush(fillBrush, true, fc, backgroundFillAlpha(), backgroundFillPattern());
 
-  QRectF cellRect(px, py, std::max(nn, 1)*pxs, std::max(nn, 1)*pys);
+  CQChartsGeom::BBox cellBBox(px, py, px + std::max(nn, 1)*pxs, py + std::max(nn, 1)*pys);
 
-  device->fillRect(device->pixelToWindow(cellRect), fillBrush);
+  device->fillRect(device->pixelToWindow(cellBBox).qrect(), fillBrush);
 
   //---
 
@@ -1023,11 +1023,12 @@ execDrawBackground(CQChartsPaintDevice *device) const
       bool empty = (node1 != node2 && CMathUtil::isZero(value));
 
       if (empty) {
-        QRectF cellRect = device->pixelToWindow(QRectF(px, py, pxs, pys));
+        CQChartsGeom::BBox cellBBox =
+          device->pixelToWindow(CQChartsGeom::BBox(px, py, px + pxs, py + pys));
 
         CQChartsDrawUtil::setPenBrush(device, emptyPenBrush);
 
-        CQChartsDrawUtil::drawRoundedPolygon(device, cellRect, cornerSize, cornerSize);
+        CQChartsDrawUtil::drawRoundedPolygon(device, cellBBox.qrect(), cornerSize, cornerSize);
       }
 
       px += pxs;

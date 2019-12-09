@@ -417,16 +417,18 @@ drawXLabels(CQChartsPaintDevice *device) const
   double tw = 0.0;
   double th = 0.0;
 
-  for (int col = 0; col < numColumns(); ++col) {
+  for (int c = 0; c < numColumns(); ++c) {
+    CQChartsColumn col(c);
+
     bool ok;
 
-    QString name = modelHeaderString(col, Qt::Horizontal, ok);
+    QString name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
     QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
                                                  textOptions, 0, /*alignBBox*/ true);
 
-    colRects[col] = trect;
+    colRects[c] = trect;
 
     tw = std::max(tw, trect.width ());
     th = std::max(th, trect.height());
@@ -438,28 +440,31 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   double tm = 4;
 
-  for (int col = 0; col < numColumns(); ++col) {
+  for (int c = 0; c < numColumns(); ++c) {
+    CQChartsColumn col(c);
+
     bool ok;
 
-    QString name = modelHeaderString(col, Qt::Horizontal, ok);
+    QString name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
-    QPointF p(col + 0.5, 0);
+    QPointF p(c + 0.5, 0);
 
     QPointF p1 = windowToPixel(p);
 
-    QRectF trect = colRects[col];
+    QRectF trect = colRects[c];
 
     double tw1 = std::max(trect.width(), cw);
 
-    QRectF trect1;
+    CQChartsGeom::BBox tbbox1;
 
     if (! isInvertY())
-      trect1 = QRectF(p1.x() - tw1/2.0, p1.y() + tm, tw1, th);
+      tbbox1 = CQChartsGeom::BBox(p1.x() - tw1/2, p1.y() + tm, p1.x() + tw1/2, p1.y() + tm + th);
     else
-      trect1 = QRectF(p1.x() - tw1/2.0, p1.y() - th - tm, tw1, th);
+      tbbox1 = CQChartsGeom::BBox(p1.x() - tw1/2, p1.y() - th - tm, p1.x() + tw1/2, p1.y() - tm);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect1), name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1).qrect(),
+                                    name, textOptions);
   }
 }
 
@@ -503,16 +508,18 @@ drawYLabels(CQChartsPaintDevice *device) const
   double tw = 0.0;
   double th = 0.0;
 
-  for (int col = 0; col < numColumns(); ++col) {
+  for (int c = 0; c < numColumns(); ++c) {
+    CQChartsColumn col(c);
+
     bool ok;
 
-    QString name = modelHeaderString(col, Qt::Horizontal, ok);
+    QString name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
     QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
                                                  textOptions, 0, /*alignBBox*/ true);
 
-    colRects[col] = trect;
+    colRects[c] = trect;
 
     tw = std::max(tw, trect.width ());
     th = std::max(th, trect.height());
@@ -524,28 +531,31 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   double tm = 4;
 
-  for (int col = 0; col < numColumns(); ++col) {
+  for (int c = 0; c < numColumns(); ++c) {
+    CQChartsColumn col(c);
+
     bool ok;
 
-    QString name = modelHeaderString(col, Qt::Horizontal, ok);
+    QString name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
-    QPointF p(0, col + 0.5);
+    QPointF p(0, c + 0.5);
 
     QPointF p1 = windowToPixel(p);
 
-    QRectF trect = colRects[col];
+    QRectF trect = colRects[c];
 
     double th1 = std::max(trect.height(), ch);
 
-    QRectF trect1;
+    CQChartsGeom::BBox tbbox1;
 
     if (! isInvertX())
-      trect1 = QRectF(p1.x() - tw - tm, p1.y() - th1/2.0, tw, th1);
+      tbbox1 = CQChartsGeom::BBox(p1.x() - tw - tm, p1.y() - th1/2, p1.x() - tm, p1.y() + th1/2);
     else
-      trect1 = QRectF(p1.x() + tm, p1.y() - th1/2.0, tw, th1);
+      tbbox1 = CQChartsGeom::BBox(p1.x() + tm, p1.y() - th1/2, p1.x() + tm + tw, p1.y() + th1/2);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect1), name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1).qrect(),
+                                    name, textOptions);
   }
 }
 
@@ -555,7 +565,7 @@ CQChartsGeom::BBox
 CQChartsCorrelationPlot::
 calcAnnotationBBox() const
 {
-  CQPerfTrace trace("CQChartsCorrelationPlot::annotationBBox");
+  CQPerfTrace trace("CQChartsCorrelationPlot::calcAnnotationBBox");
 
   QFont xfont = view()->plotFont(this, xLabelTextFont());
   QFont yfont = view()->plotFont(this, yLabelTextFont());
@@ -569,10 +579,12 @@ calcAnnotationBBox() const
   if (isXLabels()) {
     double th = 0.0;
 
-    for (int col = 0; col < numColumns(); ++col) {
+    for (int c = 0; c < numColumns(); ++c) {
+      CQChartsColumn col(c);
+
       bool ok;
 
-      QString name = modelHeaderString(col, Qt::Horizontal, ok);
+      QString name = modelHHeaderString(col, ok);
       if (! name.length()) continue;
 
       CQChartsTextOptions options;
@@ -598,10 +610,12 @@ calcAnnotationBBox() const
   if (isYLabels()) {
     double tw = 0.0;
 
-    for (int row = 0; row < numColumns(); ++row) {
+    for (int c = 0; c < numColumns(); ++c) {
+      CQChartsColumn col(c);
+
       bool ok;
 
-      QString name = modelHeaderString(row, Qt::Horizontal, ok);
+      QString name = modelHHeaderString(col, ok);
       if (! name.length()) continue;
 
       CQChartsTextOptions options;
@@ -655,8 +669,8 @@ calcTipId() const
 
   bool ok;
 
-  QString xname = plot_->modelHeaderString(row_, Qt::Horizontal, ok);
-  QString yname = plot_->modelHeaderString(col_, Qt::Horizontal, ok);
+  QString xname = plot_->modelHHeaderString(CQChartsColumn(row_), ok);
+  QString yname = plot_->modelHHeaderString(CQChartsColumn(col_), ok);
 
   if (xname.length())
     tableTip.addTableRow("X", xname);
@@ -722,9 +736,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  QRectF qrect = rect().qrect();
-
-  device->drawRect(qrect);
+  device->drawRect(rect().qrect());
 
   //---
 
@@ -767,7 +779,7 @@ draw(CQChartsPaintDevice *device)
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
-    CQChartsDrawUtil::drawTextInBox(device, qrect, valueStr, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, rect().qrect(), valueStr, textOptions);
   }
 
   //---

@@ -356,7 +356,7 @@ CQChartsGeom::BBox
 CQChartsPiePlot::
 calcAnnotationBBox() const
 {
-  CQPerfTrace trace("CQChartsPiePlot::annotationBBox");
+  CQPerfTrace trace("CQChartsPiePlot::calcAnnotationBBox");
 
   CQChartsGeom::BBox bbox;
 
@@ -591,7 +591,7 @@ addRowColumn(const CQChartsModelIndex &ind, PlotObjs &objs) const
 
   if (numGroups() > 1) {
     if (valueColumns().count() > 1 && ! isGroupHeaders())
-      label = modelHeaderString(ind.column, ok);
+      label = modelHHeaderString(ind.column, ok);
     else
       label = modelString(lind, ok);
   }
@@ -1149,7 +1149,7 @@ calcTipId() const
     groupName = groupObj->name();
 
     if (plot_->isGroupHeaders())
-      label = plot_->modelHeaderString(CQChartsColumn(ind.column()), ok);
+      label = plot_->modelHHeaderString(CQChartsColumn(ind.column()), ok);
     else
       label = plot_->modelString(lind, ok);
   }

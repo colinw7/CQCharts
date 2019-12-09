@@ -378,7 +378,7 @@ initAxes()
   if (xAxis_->label() == "") {
     bool ok;
 
-    QString xname = modelHeaderString(xColumn(), ok);
+    QString xname = modelHHeaderString(xColumn(), ok);
 
     xAxis_->setLabel(xname);
   }
@@ -386,7 +386,7 @@ initAxes()
   if (yAxis_->label() == "") {
     bool ok;
 
-    QString yname = modelHeaderString(yColumn(), ok);
+    QString yname = modelHHeaderString(yColumn(), ok);
 
     yAxis_->setLabel(yname);
   }
@@ -542,8 +542,8 @@ createObjs(PlotObjs &objs) const
 
   bool ok1, ok2;
 
-  th->xname_ = modelHeaderString(xColumn(), ok1);
-  th->yname_ = modelHeaderString(yColumn(), ok2);
+  th->xname_ = modelHHeaderString(xColumn(), ok1);
+  th->yname_ = modelHHeaderString(yColumn(), ok2);
 
   if (! xname_.length()) th->xname_ = "x";
   if (! yname_.length()) th->yname_ = "y";
@@ -866,9 +866,9 @@ draw(CQChartsPaintDevice *device)
 
     plot_->pixelSymbolSize(symbolSize, sx, sy);
 
-    QRectF erect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
+    CQChartsGeom::BBox ebbox(ps.x() - sx, ps.y() - sy, ps.x() + sx, ps.y() + sy);
 
-    dataLabel->draw(device, device->pixelToWindow(erect), name_);
+    dataLabel->draw(device, device->pixelToWindow(ebbox).qrect(), name_);
   }
 }
 

@@ -291,7 +291,7 @@ CQChartsGeom::BBox
 CQChartsRadarPlot::
 calcAnnotationBBox() const
 {
-  CQPerfTrace trace("CQChartsRadarPlot::annotationBBox");
+  CQPerfTrace trace("CQChartsRadarPlot::calcAnnotationBBox");
 
   CQChartsGeom::BBox bbox;
 
@@ -332,7 +332,7 @@ calcAnnotationBBox() const
 
           bool ok;
 
-          QString name = modelHeaderString(valueColumn, ok);
+          QString name = modelHHeaderString(valueColumn, ok);
 
           Qt::Alignment align = 0;
 
@@ -344,10 +344,10 @@ calcAnnotationBBox() const
           else if (y > 0)                align |= Qt::AlignBottom;
           else if (y < 0)                align |= Qt::AlignTop;
 
-          QRectF trect =
+          CQChartsGeom::BBox tbbox =
             CQChartsDrawUtil::calcAlignedTextRect(&device, font, QPointF(x, y), name, align, 2, 2);
 
-          bbox += CQChartsGeom::BBox(trect);
+          bbox += tbbox;
         }
 
         //---
@@ -458,7 +458,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
     //---
 
     // get column name
-    QString name = modelHeaderString(valueColumn, ok);
+    QString name = modelHHeaderString(valueColumn, ok);
 
     //---
 
@@ -702,7 +702,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
           bool ok;
 
-          QString name = modelHeaderString(valueColumn, ok);
+          QString name = modelHHeaderString(valueColumn, ok);
 
           Qt::Alignment align = 0;
 
@@ -904,9 +904,9 @@ draw(CQChartsPaintDevice *device)
 
     double r = p1.x() - po.x;
 
-    QRectF pr(po.x - r, po.y - r, 2*r, 2*r);
+    CQChartsGeom::BBox pbbox(po.x - r, po.y - r, po.x + r, po.y + r);
 
-    device->drawEllipse(device->pixelToWindow(pr));
+    device->drawEllipse(device->pixelToWindow(pbbox).qrect());
   }
   // draw line
   else if (poly_.size() == 2) {
@@ -916,9 +916,9 @@ draw(CQChartsPaintDevice *device)
     double xr = p1.x() - po.x;
     double yr = p2.y() - po.y;
 
-    QRectF pr(po.x - xr, po.y - yr, 2*xr, 2*yr);
+    CQChartsGeom::BBox pbbox(po.x - xr, po.y - yr, po.x + xr, po.y + yr);
 
-    device->drawEllipse(device->pixelToWindow(pr));
+    device->drawEllipse(device->pixelToWindow(pbbox).qrect());
   }
   // draw polygon
   else if (poly_.size() >= 3) {

@@ -865,7 +865,7 @@ xAxisName(const QString &def) const
 {
   bool ok;
 
-  QString name = modelHeaderString(xColumn(), ok);
+  QString name = modelHHeaderString(xColumn(), ok);
 
   if (! ok)
     name = def;
@@ -895,8 +895,8 @@ yAxisName(const QString &def) const
 
       bool ok1, ok2;
 
-      QString yname1 = modelHeaderString(yColumn1, ok1);
-      QString yname2 = modelHeaderString(yColumn2, ok2);
+      QString yname1 = modelHHeaderString(yColumn1, ok1);
+      QString yname2 = modelHHeaderString(yColumn2, ok2);
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
@@ -912,7 +912,7 @@ yAxisName(const QString &def) const
 
       CQChartsColumn yColumn = yColumns().getColumn(j);
 
-      QString name1 = modelHeaderString(yColumn, ok);
+      QString name1 = modelHHeaderString(yColumn, ok);
 
       if (name.length())
         name += ", ";
@@ -1289,8 +1289,8 @@ addBivariateLines(int groupInd, const SetIndPoly &setPoly,
 
       bool ok;
 
-      QString yname1 = modelHeaderString(yColumn1, ok);
-      QString yname2 = modelHeaderString(yColumn2, ok);
+      QString yname1 = modelHHeaderString(yColumn1, ok);
+      QString yname2 = modelHHeaderString(yColumn2, ok);
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
@@ -1447,7 +1447,7 @@ addLines(int groupInd, const SetIndPoly &setPoly, const ColorInd &ig, PlotObjs &
 
     bool ok;
 
-    QString name = modelHeaderString(yColumn, ok);
+    QString name = modelHHeaderString(yColumn, ok);
 
     if (ig.n > 1)
       name = groupIndName(groupInd);
@@ -1906,7 +1906,7 @@ valueName(int is, int ns, int irow) const
 
     bool ok;
 
-    name = modelHeaderString(yColumn, ok);
+    name = modelHHeaderString(yColumn, ok);
   }
 
   if (labelColumn().isValid()) {
@@ -1964,8 +1964,8 @@ addKeyItems(CQChartsPlotKey *key)
 
       bool ok;
 
-      QString yname1 = modelHeaderString(yColumn1, ok);
-      QString yname2 = modelHeaderString(yColumn2, ok);
+      QString yname1 = modelHHeaderString(yColumn1, ok);
+      QString yname2 = modelHHeaderString(yColumn2, ok);
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
@@ -1980,7 +1980,7 @@ addKeyItems(CQChartsPlotKey *key)
 
       bool ok;
 
-      QString name = modelHeaderString(yColumn, ok);
+      QString name = modelHHeaderString(yColumn, ok);
 
       ColorInd is(i, ns), ig;
 
@@ -1994,7 +1994,7 @@ addKeyItems(CQChartsPlotKey *key)
 
         bool ok;
 
-        QString name = modelHeaderString(yColumn, ok);
+        QString name = modelHHeaderString(yColumn, ok);
 
 #if 0
         if (ns == 1 && (name == "" || name == QString("%1").arg(yColumn + 1))) {
@@ -2497,9 +2497,9 @@ draw(CQChartsPaintDevice *device)
                      device->pixelToWindow(p2.qpoint()));
   }
   else {
-    QRectF qrect(p1.x - lw/2, p1.y, lw, p2.y - p1.y);
+    CQChartsGeom::BBox bbox(p1.x - lw/2.0, p1.y, p1.x + lw/2.0, p2.y);
 
-    CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(qrect));
+    CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(bbox).qrect());
   }
 }
 
@@ -2856,9 +2856,9 @@ draw(CQChartsPaintDevice *device)
 
       plot()->pixelSymbolSize(symbolSize, sx, sy);
 
-      QRectF irect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
+      CQChartsGeom::BBox ibbox(ps.x() - sx, ps.y() - sy, ps.x() + 2*sx, ps.y() + 2*sy);
 
-      device->drawImageInRect(plot()->pixelToWindow(irect), image);
+      device->drawImageInRect(plot()->pixelToWindow(ibbox), image);
     }
   }
 
@@ -3014,12 +3014,12 @@ draw(CQChartsPaintDevice *device)
   QPointF ps = plot()->windowToPixel(pos_);
 
   // TODO: better symbol bounding box
-  double sx = 16;
-  double sy = 16;
+  double sx = 16.0;
+  double sy = 16.0;
 
-  QRectF erect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
+  CQChartsGeom::BBox ebbox(ps.x() - sx, ps.y() - sy, ps.x() + sx, ps.y() + sy);
 
-  dataLabel->draw(device, erect, label_, dataLabel->position(), tpen);
+  dataLabel->draw(device, ebbox.qrect(), label_, dataLabel->position(), tpen);
 
   //---
 
@@ -3777,10 +3777,10 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 
   CQChartsGeom::BBox prect = keyPlot->windowToPixel(rect);
 
-  QRectF prect1(QPointF(prect.getXMin() + 2, prect.getYMin() + 2),
-                QPointF(prect.getXMax() - 2, prect.getYMax() - 2));
+  CQChartsGeom::BBox pbbox1(prect.getXMin() + 2, prect.getYMin() + 2,
+                            prect.getXMax() - 2, prect.getYMax() - 2);
 
-  device->setClipRect(prect1, Qt::IntersectClip);
+  device->setClipRect(pbbox1.qrect(), Qt::IntersectClip);
 
   QColor hideBg;
   double hideAlpha { 1.0 };
@@ -3806,9 +3806,9 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
     if (isInside())
       fillBrush.setColor(plot()->insideColor(fillBrush.color()));
 
-    QRectF prect1 = CQChartsGeom::BBox(x1, y1, x2, y2).qrect();
+    CQChartsGeom::BBox pbbox1(x1, y1, x2, y2);
 
-    device->fillRect(prect1, fillBrush);
+    device->fillRect(pbbox1.qrect(), fillBrush);
   }
 
   if (plot()->isLines() || plot()->isBestFit() || plot()->isImpulseLines()) {

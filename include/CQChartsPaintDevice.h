@@ -56,7 +56,7 @@ class CQChartsPaintDevice {
   virtual void drawTransformedText(const QPointF &, const QString &) { }
 
   virtual void drawImage(const QPointF &, const QImage &) { }
-  virtual void drawImageInRect(const QRectF &, const QImage &) { }
+  virtual void drawImageInRect(const CQChartsGeom::BBox &, const QImage &) { }
 
   virtual const QFont &font() const = 0;
   virtual void setFont(const QFont &f) = 0;
@@ -75,8 +75,12 @@ class CQChartsPaintDevice {
 
   //---
 
-  QRectF  windowToPixel(const QRectF  &r) const;
-  QRectF  pixelToWindow(const QRectF  &r) const;
+  QRectF windowToPixel(const QRectF &r) const;
+  QRectF pixelToWindow(const QRectF &r) const;
+
+  CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &r) const;
+  CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &r) const;
+
   QPointF windowToPixel(const QPointF &p) const;
   QPointF pixelToWindow(const QPointF &p) const;
 
@@ -153,7 +157,7 @@ class CQChartsViewPlotPainter : public CQChartsPaintDevice {
   void drawTransformedText(const QPointF &p, const QString &text) override;
 
   void drawImage(const QPointF &, const QImage &) override;
-  void drawImageInRect(const QRectF &rect, const QImage &image) override;
+  void drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &image) override;
 
   const QFont &font() const override;
   void setFont(const QFont &f) override;
@@ -314,7 +318,7 @@ class CQChartsScriptPainter : public CQChartsHtmlPainter {
   void drawTransformedText(const QPointF &p, const QString &text) override;
 
   void drawImage(const QPointF &, const QImage &) override;
-  void drawImageInRect(const QRectF &rect, const QImage &) override;
+  void drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &) override;
 
   void setFont(const QFont &f) override;
 
@@ -407,7 +411,7 @@ class CQChartsSVGPainter : public CQChartsHtmlPainter {
   void drawTransformedText(const QPointF &p, const QString &text) override;
 
   void drawImage(const QPointF &, const QImage &) override;
-  void drawImageInRect(const QRectF &rect, const QImage &) override;
+  void drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &) override;
 
   void setFont(const QFont &f) override;
 

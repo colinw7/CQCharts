@@ -742,8 +742,8 @@ class CQChartsView : public QFrame,
   QPointF positionToPixel(const CQChartsPosition &pos) const;
 
   // rect
-  QRectF rectToView (const CQChartsRect &rect) const;
-  QRectF rectToPixel(const CQChartsRect &rect) const;
+  CQChartsGeom::BBox rectToView (const CQChartsRect &rect) const;
+  CQChartsGeom::BBox rectToPixel(const CQChartsRect &rect) const;
 
   double lengthViewWidth (const CQChartsLength &len) const;
   double lengthViewHeight(const CQChartsLength &len) const;

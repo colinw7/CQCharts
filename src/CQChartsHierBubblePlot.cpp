@@ -1064,7 +1064,7 @@ drawBounds(CQChartsPaintDevice *device, CQChartsHierBubbleHierNode *hier) const
   CQChartsGeom::Point p1(xc - r, yc - r);
   CQChartsGeom::Point p2(xc + r, yc + r);
 
-  QRectF qrect = CQChartsGeom::BBox(p1, p2).qrect();
+  CQChartsGeom::BBox bbox(p1, p2);
 
   //---
 
@@ -1076,7 +1076,7 @@ drawBounds(CQChartsPaintDevice *device, CQChartsHierBubbleHierNode *hier) const
 
   QPainterPath path;
 
-  path.addEllipse(qrect);
+  path.addEllipse(bbox.qrect());
 
   device->drawPath(path);
 }
@@ -1157,7 +1157,7 @@ draw(CQChartsPaintDevice *device)
   CQChartsGeom::Point p1(hierNode()->x() - r, hierNode()->y() - r);
   CQChartsGeom::Point p2(hierNode()->x() + r, hierNode()->y() + r);
 
-  QRectF qrect = CQChartsGeom::BBox(p1, p2).qrect();
+  CQChartsGeom::BBox bbox(p1, p2);
 
   //---
 
@@ -1177,7 +1177,7 @@ draw(CQChartsPaintDevice *device)
 
   QPainterPath path;
 
-  path.addEllipse(qrect);
+  path.addEllipse(bbox.qrect());
 
   device->drawPath(path);
 
@@ -1317,7 +1317,7 @@ draw(CQChartsPaintDevice *device)
   CQChartsGeom::Point p1(node()->x() - r, node()->y() - r);
   CQChartsGeom::Point p2(node()->x() + r, node()->y() + r);
 
-  QRectF qrect = CQChartsGeom::BBox(p1, p2).qrect();
+  CQChartsGeom::BBox bbox(p1, p2);
 
   //---
 
@@ -1349,7 +1349,7 @@ draw(CQChartsPaintDevice *device)
   else {
     QPainterPath path;
 
-    path.addEllipse(qrect);
+    path.addEllipse(bbox.qrect());
 
     device->drawPath(path);
   }
@@ -1364,12 +1364,12 @@ draw(CQChartsPaintDevice *device)
   //---
 
   if (plot_->isTextVisible())
-    drawText(device, qrect);
+    drawText(device, bbox);
 }
 
 void
 CQChartsHierBubbleNodeObj::
-drawText(CQChartsPaintDevice *device, const QRectF &qrect)
+drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
 {
   // get labels (name and optional size)
   QStringList strs;
@@ -1418,10 +1418,10 @@ drawText(CQChartsPaintDevice *device, const QRectF &qrect)
     //---
 
     // calc scale factor
-    QRectF prect = device->windowToPixel(qrect);
+    CQChartsGeom::BBox pbbox = device->windowToPixel(bbox);
 
-    double sx = (tw > 0 ? prect.width ()/tw : 1.0);
-    double sy = (th > 0 ? prect.height()/th : 1.0);
+    double sx = (tw > 0 ? pbbox.getWidth ()/tw : 1.0);
+    double sy = (th > 0 ? pbbox.getHeight()/th : 1.0);
 
     double s = std::min(sx, sy);
 
@@ -1439,7 +1439,7 @@ drawText(CQChartsPaintDevice *device, const QRectF &qrect)
   //---
 
   // draw label
-  device->setClipRect(qrect);
+  device->setClipRect(bbox.qrect());
 
   // angle and align not supported (always 0 and centered)
   // text is pre-scaled if needed (formatted and html not suppoted as changes scale calc)

@@ -3795,7 +3795,7 @@ columnHeaderName(const CQChartsColumn &column) const
 
   bool ok;
 
-  QString str = modelHeaderString(column, ok);
+  QString str = modelHHeaderString(column, ok);
   if (! ok) return "";
 
   return str;
@@ -3816,7 +3816,7 @@ setColumnHeaderName(const CQChartsColumn &column, const QString &def)
 {
   bool ok;
 
-  QString str = modelHeaderString(column, ok);
+  QString str = modelHHeaderString(column, ok);
   if (! str.length()) str = def;
 
   columnNames_[column] = str;
@@ -6034,7 +6034,7 @@ addTipColumns(CQChartsTableTip &tableTip, const QModelIndex &ind) const
 
       bool ok1, ok2;
 
-      QString name  = modelHeaderString(c, ok1);
+      QString name  = modelHHeaderString(c, ok1);
       QString value = modelString(tipInd1.row(), c, tipInd1.parent(), ok2);
 
       if (ok1 && ok2)
@@ -6869,7 +6869,7 @@ drawBackgroundLayer(CQChartsPaintDevice *device) const
 
       device->setPen(pen);
 
-      drawBackgroundSides(device, rect.qrect(), sides);
+      drawBackgroundSides(device, rect, sides);
     }
   };
 
@@ -6912,19 +6912,19 @@ execDrawBackground(CQChartsPaintDevice *) const
 
 void
 CQChartsPlot::
-drawBackgroundSides(CQChartsPaintDevice *device, const QRectF &rect,
+drawBackgroundSides(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
                     const CQChartsSides &sides) const
 {
   if (sides.isAll()) {
     device->setBrush(Qt::NoBrush);
 
-    device->drawRect(rect);
+    device->drawRect(bbox.qrect());
   }
   else {
-    if (sides.isTop   ()) device->drawLine(rect.topLeft   (), rect.topRight   ());
-    if (sides.isLeft  ()) device->drawLine(rect.topLeft   (), rect.bottomLeft ());
-    if (sides.isBottom()) device->drawLine(rect.bottomLeft(), rect.bottomRight());
-    if (sides.isRight ()) device->drawLine(rect.topRight  (), rect.bottomRight());
+    if (sides.isTop   ()) device->drawLine(bbox.getUL().qpoint(), bbox.getUR().qpoint());
+    if (sides.isLeft  ()) device->drawLine(bbox.getUL().qpoint(), bbox.getLL().qpoint());
+    if (sides.isBottom()) device->drawLine(bbox.getLL().qpoint(), bbox.getLR().qpoint());
+    if (sides.isRight ()) device->drawLine(bbox.getUR().qpoint(), bbox.getLR().qpoint());
   }
 }
 
@@ -9466,60 +9466,62 @@ modelIndex(int row, int column, const QModelIndex &parent) const
 
 //------
 
+#if 0
 QVariant
 CQChartsPlot::
-modelHeaderValue(const CQChartsColumn &column, bool &ok) const
+modelHHeaderValue(const CQChartsColumn &column, bool &ok) const
 {
-  return modelHeaderValue(model().data(), column, ok);
-}
-
-QVariant
-CQChartsPlot::
-modelHeaderValue(const CQChartsColumn &column, int role, bool &ok) const
-{
-  return modelHeaderValue(model().data(), column, role, ok);
+  return modelHHeaderValue(model().data(), column, ok);
 }
 
 QVariant
 CQChartsPlot::
-modelHeaderValue(int section, Qt::Orientation orient, int role, bool &ok) const
+modelHHeaderValue(const CQChartsColumn &column, int role, bool &ok) const
 {
-  return modelHeaderValue(model().data(), section, orient, role, ok);
+  return modelHHeaderValue(model().data(), column, role, ok);
 }
 
 QVariant
 CQChartsPlot::
-modelHeaderValue(int section, Qt::Orientation orient, bool &ok) const
+modelVHeaderValue(int section, Qt::Orientation orient, int role, bool &ok) const
 {
-  return modelHeaderValue(model().data(), section, orient, Qt::DisplayRole, ok);
+  return modelVHeaderValue(model().data(), section, orient, role, ok);
+}
+
+QVariant
+CQChartsPlot::
+modelVHeaderValue(int section, Qt::Orientation orient, bool &ok) const
+{
+  return modelVHeaderValue(model().data(), section, orient, Qt::DisplayRole, ok);
+}
+#endif
+
+QString
+CQChartsPlot::
+modelHHeaderString(const CQChartsColumn &column, bool &ok) const
+{
+  return modelHHeaderString(model().data(), column, ok);
 }
 
 QString
 CQChartsPlot::
-modelHeaderString(const CQChartsColumn &column, bool &ok) const
+modelHHeaderString(const CQChartsColumn &column, int role, bool &ok) const
 {
-  return modelHeaderString(model().data(), column, ok);
+  return modelHHeaderString(model().data(), column, role, ok);
 }
 
 QString
 CQChartsPlot::
-modelHeaderString(const CQChartsColumn &column, int role, bool &ok) const
+modelVHeaderString(int section, Qt::Orientation orient, int role, bool &ok) const
 {
-  return modelHeaderString(model().data(), column, role, ok);
+  return modelVHeaderString(model().data(), section, orient, role, ok);
 }
 
 QString
 CQChartsPlot::
-modelHeaderString(int section, Qt::Orientation orient, int role, bool &ok) const
+modelVHeaderString(int section, Qt::Orientation orient, bool &ok) const
 {
-  return modelHeaderString(model().data(), section, orient, role, ok);
-}
-
-QString
-CQChartsPlot::
-modelHeaderString(int section, Qt::Orientation orient, bool &ok) const
-{
-  return modelHeaderString(model().data(), section, orient, Qt::DisplayRole, ok);
+  return modelVHeaderString(model().data(), section, orient, Qt::DisplayRole, ok);
 }
 
 //------
@@ -9645,64 +9647,66 @@ modelReals(int row, const CQChartsColumn &column, const QModelIndex &parent, boo
 
 //------
 
+#if 0
 QVariant
 CQChartsPlot::
-modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column, bool &ok) const
+modelHHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column, bool &ok) const
 {
   return CQChartsModelUtil::modelHeaderValue(model, column, ok);
 }
 
 QVariant
 CQChartsPlot::
-modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                 int role, bool &ok) const
+modelHHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                  int role, bool &ok) const
 {
   return CQChartsModelUtil::modelHeaderValue(model, column, role, ok);
 }
 
 QVariant
 CQChartsPlot::
-modelHeaderValue(QAbstractItemModel *model, int section, Qt::Orientation orientation,
-                 bool &ok) const
+modelVHeaderValue(QAbstractItemModel *model, int section, Qt::Orientation orientation,
+                  bool &ok) const
 {
   return CQChartsModelUtil::modelHeaderValue(model, section, orientation, ok);
 }
 
 QVariant
 CQChartsPlot::
-modelHeaderValue(QAbstractItemModel *model, int section, Qt::Orientation orientation,
-                 int role, bool &ok) const
+modelVHeaderValue(QAbstractItemModel *model, int section, Qt::Orientation orientation,
+                  int role, bool &ok) const
 {
   return CQChartsModelUtil::modelHeaderValue(model, section, orientation, role, ok);
 }
+#endif
 
 QString
 CQChartsPlot::
-modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column, bool &ok) const
+modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column, bool &ok) const
 {
   return CQChartsModelUtil::modelHeaderString(model, column, ok);
 }
 
 QString
 CQChartsPlot::
-modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
-                  int role, bool &ok) const
+modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
+                   int role, bool &ok) const
 {
   return CQChartsModelUtil::modelHeaderString(model, column, role, ok);
 }
 
 QString
 CQChartsPlot::
-modelHeaderString(QAbstractItemModel *model, int section, Qt::Orientation orientation,
-                  bool &ok) const
+modelVHeaderString(QAbstractItemModel *model, int section, Qt::Orientation orientation,
+                   bool &ok) const
 {
   return CQChartsModelUtil::modelHeaderString(model, section, orientation, ok);
 }
 
 QString
 CQChartsPlot::
-modelHeaderString(QAbstractItemModel *model, int section, Qt::Orientation orientation,
-                  int role, bool &ok) const
+modelVHeaderString(QAbstractItemModel *model, int section, Qt::Orientation orientation,
+                   int role, bool &ok) const
 {
   return CQChartsModelUtil::modelHeaderString(model, section, orientation, role, ok);
 }
@@ -10153,7 +10157,7 @@ positionToPixel(const CQChartsPosition &pos) const
 
 //------
 
-QRectF
+CQChartsGeom::BBox
 CQChartsPlot::
 rectToPlot(const CQChartsRect &rect) const
 {
@@ -10176,10 +10180,10 @@ rectToPlot(const CQChartsRect &rect) const
     r1.setYMax(r.getYMax()*pbbox.getHeight()/100.0);
   }
 
-  return r1.qrect();
+  return r1;
 }
 
-QRectF
+CQChartsGeom::BBox
 CQChartsPlot::
 rectToPixel(const CQChartsRect &rect) const
 {
@@ -10202,7 +10206,7 @@ rectToPixel(const CQChartsRect &rect) const
     r1.setYMax(r.getYMax()*pbbox.getHeight()/100.0);
   }
 
-  return r1.qrect();
+  return r1;
 }
 
 //------

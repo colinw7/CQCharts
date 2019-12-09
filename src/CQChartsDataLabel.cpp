@@ -303,14 +303,14 @@ draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
 
 CQChartsGeom::BBox
 CQChartsDataLabel::
-calcRect(const QRectF &qrect, const QString &ystr) const
+calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr) const
 {
-  return calcRect(qrect, ystr, position());
+  return calcRect(bbox, ystr, position());
 }
 
 CQChartsGeom::BBox
 CQChartsDataLabel::
-calcRect(const QRectF &qrect, const QString &ystr, const Position &position) const
+calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &position) const
 {
   if (! isVisible())
     return CQChartsGeom::BBox();
@@ -328,6 +328,7 @@ calcRect(const QRectF &qrect, const QString &ystr, const Position &position) con
 
   double padding = CQChartsBoxObj::padding();
 
+  QRectF qrect  = bbox.qrect();
   QRectF qrect1 = qrect;
 
   //---

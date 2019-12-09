@@ -136,8 +136,9 @@ void drawTextAtPoint(CQChartsPaintDevice *device, const QPointF &p, const QStrin
 void drawAlignedText(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
                      Qt::Alignment align, double dx=0.0, double dy=0.0);
 
-QRectF calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font, const QPointF &p,
-                           const QString &text, Qt::Alignment align, double dx, double dy);
+CQChartsGeom::BBox calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font,
+                                       const QPointF &p, const QString &text,
+                                       Qt::Alignment align, double dx, double dy);
 
 void drawContrastText(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
                       double alpha);

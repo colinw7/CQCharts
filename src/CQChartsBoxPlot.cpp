@@ -756,10 +756,10 @@ groupSetColumnName(const QString &def) const
   QString xname = xLabel();
 
   if (! xname.length() && groupColumn().isValid())
-    xname = modelHeaderString(groupColumn(), ok);
+    xname = modelHHeaderString(groupColumn(), ok);
 
   if (! xname.length() && setColumn().isValid())
-    xname = modelHeaderString(setColumn(), ok);
+    xname = modelHHeaderString(setColumn(), ok);
 
   if (! ok)
     xname = def;
@@ -776,7 +776,7 @@ valueColumnName(const QString &def) const
   QString yname = yLabel();
 
   if (valueColumns().count() == 1 && ! yname.length())
-    yname = modelHeaderString(valueColumns().column(), ok);
+    yname = modelHHeaderString(valueColumns().column(), ok);
 
   if (! yname.length())
     yname = def;
@@ -793,7 +793,7 @@ groupColumnName(const QString &def) const
   QString groupName;
 
   if (groupColumn().isValid())
-    groupName = modelHeaderString(groupColumn(), ok);
+    groupName = modelHHeaderString(groupColumn(), ok);
 
   if (! groupName.length())
     groupName = def;
@@ -917,7 +917,7 @@ updateCalcRange() const
 
   bool ok;
 
-  QString xname = (xLabel().length() ? xLabel() : modelHeaderString(xColumn(), ok));
+  QString xname = (xLabel().length() ? xLabel() : modelHHeaderString(xColumn(), ok));
 
   xAxis->setLabel(xname);
 
@@ -1000,7 +1000,7 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
     data.name = modelString(vdata.row, idColumn(), vdata.parent, ok);
 
     if (! data.name.length()) {
-      data.name = modelHeaderString(vdata.row, Qt::Vertical, ok);
+      data.name = modelVHeaderString(vdata.row, Qt::Vertical, ok);
 
       if (! data.name.length()) {
         data.name = QString("%1").arg(vdata.row);
@@ -1159,7 +1159,7 @@ addRawWhiskerRow(const ModelVisitor::VisitData &vdata) const
         bool    ok = false;
 
         if      (isGroupHeaders()) {
-          name = modelHeaderString(valueColumn, ok);
+          name = modelHHeaderString(valueColumn, ok);
         }
         else if (setColumn().isValid()) {
           ok = CQChartsVariant::toString(setVal, name);
@@ -1196,7 +1196,7 @@ CQChartsGeom::BBox
 CQChartsBoxPlot::
 calcAnnotationBBox() const
 {
-  CQPerfTrace trace("CQChartsBoxPlot::annotationBBox");
+  CQPerfTrace trace("CQChartsBoxPlot::calcAnnotationBBox");
 
   CQChartsGeom::BBox bbox;
 

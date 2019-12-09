@@ -304,7 +304,7 @@ CQChartsGeom::BBox
 CQChartsDendrogramPlot::
 calcAnnotationBBox() const
 {
-  CQPerfTrace trace("CQChartsDendrogramPlot::annotationBBox");
+  CQPerfTrace trace("CQChartsDendrogramPlot::calcAnnotationBBox");
 
   CQChartsGeom::BBox bbox;
 
@@ -575,7 +575,7 @@ draw(CQChartsPaintDevice *device)
 
   p1.x += tm;
 
-  QRectF qrect(p1.x - cs/2.0, p1.y - cs/2.0, cs, cs);
+  CQChartsGeom::BBox bbox(p1.x - cs/2.0, p1.y - cs/2.0, p1.x + cs/2.0, p1.y + cs/2.0);
 
   //---
 
@@ -599,7 +599,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw node
-  device->drawEllipse(device->pixelToWindow(qrect));
+  device->drawEllipse(device->pixelToWindow(bbox).qrect());
 
   //---
 

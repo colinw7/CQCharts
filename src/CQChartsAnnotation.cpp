@@ -1666,9 +1666,9 @@ rectToBBox()
     CQChartsRect rect = this->rectangleValue();
 
     if (plot())
-      bbox_ = CQChartsGeom::BBox(plot()->rectToPlot(rect));
+      bbox_ = plot()->rectToPlot(rect);
     else
-      bbox_ = CQChartsGeom::BBox(view()->rectToView(rect));
+      bbox_ = view()->rectToView(rect);
   }
   else
     bbox_ = CQChartsGeom::BBox();
@@ -2204,9 +2204,9 @@ rectToBBox()
     CQChartsRect rect = this->rectangleValue();
 
     if (plot())
-      bbox_ = CQChartsGeom::BBox(plot()->rectToPlot(rect));
+      bbox_ = plot()->rectToPlot(rect);
     else
-      bbox_ = CQChartsGeom::BBox(view()->rectToView(rect));
+      bbox_ = view()->rectToView(rect);
   }
   else
     bbox_ = CQChartsGeom::BBox();
@@ -2374,7 +2374,7 @@ draw(CQChartsPaintDevice *device)
   double tw = std::max(prect.getWidth () - xlm - xrm - 2*padding(), 0.0);
   double th = std::max(prect.getHeight() - ybm - ytm - 2*padding(), 0.0);
 
-  QRectF trect(tx, ty, tw, th);
+  CQChartsGeom::BBox tbbox(tx, ty, tx + tw, ty + th);
 
   //---
 
@@ -2408,10 +2408,10 @@ draw(CQChartsPaintDevice *device)
       }
     }
 
-    device->drawImageInRect(device->pixelToWindow(trect), disabledImage_);
+    device->drawImageInRect(device->pixelToWindow(tbbox), disabledImage_);
   }
   else {
-    device->drawImageInRect(device->pixelToWindow(trect), image_);
+    device->drawImageInRect(device->pixelToWindow(tbbox), image_);
   }
 
   //---

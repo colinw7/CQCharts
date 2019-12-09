@@ -490,14 +490,14 @@ initRangeAxesI()
     if (! isRowGrouping()) {
       bool ok;
 
-      xname = modelHeaderString(groupColumn().isValid() ? groupColumn() : nameColumn(), ok);
+      xname = modelHHeaderString(groupColumn().isValid() ? groupColumn() : nameColumn(), ok);
     }
   }
   else {
     if (ng > 1) {
       bool ok;
 
-      xname = modelHeaderString(groupColumn().isValid() ? groupColumn() : nameColumn(), ok);
+      xname = modelHHeaderString(groupColumn().isValid() ? groupColumn() : nameColumn(), ok);
     }
     else {
     }
@@ -515,7 +515,7 @@ initRangeAxesI()
   if (valueColumns().count() <= 1) {
     bool ok;
 
-    yname = modelHeaderString(valueColumns().column(), ok);
+    yname = modelHHeaderString(valueColumns().column(), ok);
   }
 
   yAxis->setLabel(yname);
@@ -710,7 +710,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
 
       bool ok;
 
-      valueName = modelHeaderString(valueColumn, ok);
+      valueName = modelHHeaderString(valueColumn, ok);
     }
     // row grouping so value name is group/name column name
     else {
@@ -829,7 +829,7 @@ CQChartsGeom::BBox
 CQChartsBarChartPlot::
 calcAnnotationBBox() const
 {
-  CQPerfTrace trace("CQChartsBarChartPlot::annotationBBox");
+  CQPerfTrace trace("CQChartsBarChartPlot::calcAnnotationBBox");
 
   CQChartsGeom::BBox bbox;
 
@@ -1337,7 +1337,7 @@ addKeyItems(CQChartsPlotKey *key)
       if (! title.length()) {
         bool ok;
 
-        QString yname = modelHeaderString(valueColumns().column(), ok);
+        QString yname = modelHHeaderString(valueColumns().column(), ok);
 
         title = yname;
       }
@@ -1606,8 +1606,6 @@ dataLabelRect() const
 
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
-  QRectF qrect = prect.qrect();
-
   const CQChartsBarChartValue *value = this->value();
 
   QString label = value->getNameValue("Label");
@@ -1621,7 +1619,7 @@ dataLabelRect() const
     label = plot_->valueStr(value);
   }
 
-  return plot_->dataLabel()->calcRect(qrect, label);
+  return plot_->dataLabel()->calcRect(prect, label);
 }
 
 //---
@@ -1742,34 +1740,37 @@ draw(CQChartsPaintDevice *device)
     device->resetColorNames();
   }
   else {
-    QRectF qrect  = rect .qrect();
-    QRectF pqrect = prect.qrect();
-
     // draw line
     device->setColorNames();
 
     double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), ! plot_->isHorizontal());
 
     if (! plot_->isHorizontal()) {
-      double xc = qrect.center().x();
+      if (lw < 3) {
+        double xc = rect.getXMid();
 
-      if (lw < 3)
-        device->drawLine(QPointF(xc, qrect.bottom()), QPointF(xc, qrect.top()));
+        device->drawLine(QPointF(xc, rect.getYMin()), QPointF(xc, rect.getYMax()));
+      }
       else {
-        QRectF qrect1(xc - lw/2, pqrect.top(), lw, pqrect.height());
+        double xc = prect.getXMid();
 
-        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(qrect1));
+        CQChartsGeom::BBox pbbox1(xc - lw/2, prect.getYMin(), xc + lw/2, prect.getYMax());
+
+        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pbbox1).qrect());
       }
     }
     else {
-      double yc = qrect.center().y();
+      if (lw < 3) {
+        double yc = rect.getYMid();
 
-      if (lw < 3)
-        device->drawLine(QPointF(qrect.left(), yc), QPointF(qrect.right(), yc));
+        device->drawLine(QPointF(rect.getXMin(), yc), QPointF(rect.getXMax(), yc));
+      }
       else {
-        QRectF qrect1(pqrect.left(), yc - lw/2, pqrect.width(), lw);
+        double yc = prect.getYMid();
 
-        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(qrect1));
+        CQChartsGeom::BBox pbbox1(prect.getXMid(), yc - lw/2, prect.getXMax(), yc + lw/2);
+
+        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pbbox1).qrect());
       }
     }
 
@@ -1788,9 +1789,9 @@ draw(CQChartsPaintDevice *device)
     QPointF p;
 
     if (! plot_->isHorizontal())
-      p = QPointF(qrect.center().x(), qrect.top());
+      p = QPointF(rect.getXMid(), rect.getYMax());
     else
-      p = QPointF(qrect.right(), qrect.center().y());
+      p = QPointF(rect.getXMax(), rect.getYMid());
 
     plot_->drawSymbol(device, p, symbolType, symbolSize, barPenBrush);
 
@@ -1805,8 +1806,6 @@ drawFg(CQChartsPaintDevice *device) const
   // draw data label on foreground layers
   if (! plot_->dataLabel()->isVisible())
     return;
-
-  QRectF qrect = rect().qrect();
 
   //---
 
@@ -1831,9 +1830,11 @@ drawFg(CQChartsPaintDevice *device) const
       pos = CQChartsDataLabel::flipPosition(pos);
 
     if (minLabel != "")
-      plot_->dataLabel()->draw(device, qrect, minLabel, pos);
+      plot_->dataLabel()->draw(device, rect().qrect(), minLabel, pos);
   }
   else {
+    QRectF qrect = rect().qrect();
+
     if (plot_->dataLabel()->isPositionOutside()) {
       CQChartsDataLabel::Position minPos = CQChartsDataLabel::Position::BOTTOM_OUTSIDE;
       CQChartsDataLabel::Position maxPos = CQChartsDataLabel::Position::TOP_OUTSIDE;

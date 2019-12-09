@@ -286,7 +286,7 @@ initGroup(CQChartsGroupData &data) const
     for (const auto &column : data.columns) {
       bool ok;
 
-      QString name = modelHeaderString(column, ok);
+      QString name = modelHHeaderString(column, ok);
 
       if (! name.length())
         name = QString("%1").arg(column.column());

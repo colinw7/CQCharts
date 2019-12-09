@@ -219,8 +219,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   //---
 
-  void drawRect(CQChartsPaintDevice *device, const QRectF &qrect, const CQChartsColor &color,
-                bool useLine) const;
+  void drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &pbbox,
+                const CQChartsColor &color, bool useLine) const;
 
   void calcBarPenBrush(const CQChartsColor &color, bool useLine, CQChartsPenBrush &barPenBrush,
                        bool updateState) const;

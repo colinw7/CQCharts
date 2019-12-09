@@ -6773,7 +6773,7 @@ positionToPixel(const CQChartsPosition &pos) const
 
 //------
 
-QRectF
+CQChartsGeom::BBox
 CQChartsView::
 rectToView(const CQChartsRect &rect) const
 {
@@ -6792,10 +6792,10 @@ rectToView(const CQChartsRect &rect) const
     r1.setYMax(r.getYMax()*height()/100.0);
   }
 
-  return r1.qrect();
+  return r1;
 }
 
-QRectF
+CQChartsGeom::BBox
 CQChartsView::
 rectToPixel(const CQChartsRect &rect) const
 {
@@ -6814,7 +6814,7 @@ rectToPixel(const CQChartsRect &rect) const
     r1.setYMax(r.getYMax()*height()/100.0);
   }
 
-  return r1.qrect();
+  return r1;
 }
 
 //------

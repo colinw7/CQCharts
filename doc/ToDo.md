@@ -442,6 +442,7 @@ Table Plot
  + Resizable columns
 
 Tree map
+ + Rotate text if text aspect > box aspect
  + Filter to visible (keep placement, don't show) 
  + Tree map performance for large data (file tree) (small object opt)
  + Tree Map title (max) depth

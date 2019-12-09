@@ -15,6 +15,20 @@ pixelToWindow(const QRectF &r) const
   return (! view_ ? (! plot_ ? r : plot_->pixelToWindow(r)) : view_->pixelToWindow(r));
 }
 
+CQChartsGeom::BBox
+CQChartsPaintDevice::
+windowToPixel(const CQChartsGeom::BBox &r) const
+{
+  return (! view_ ? (! plot_ ? r : plot_->windowToPixel(r)) : view_->windowToPixel(r));
+}
+
+CQChartsGeom::BBox
+CQChartsPaintDevice::
+pixelToWindow(const CQChartsGeom::BBox &r) const
+{
+  return (! view_ ? (! plot_ ? r : plot_->pixelToWindow(r)) : view_->pixelToWindow(r));
+}
+
 QPointF
 CQChartsPaintDevice::
 windowToPixel(const QPointF &p) const
@@ -352,16 +366,16 @@ drawTransformedText(const QPointF &p, const QString &text)
 
 void
 CQChartsViewPlotPainter::
-drawImageInRect(const QRectF &rect, const QImage &image)
+drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &image)
 {
-  if (! rect.isValid()) return;
+  if (! bbox.isSet()) return;
 
-  QRectF prect = windowToPixel(rect);
+  CQChartsGeom::BBox pbbox = windowToPixel(bbox);
 
-  double w = prect.width ();
-  double h = prect.height();
+  double w = pbbox.getWidth ();
+  double h = pbbox.getHeight();
 
-  painter_->drawImage(prect, image.scaled(w, h, Qt::IgnoreAspectRatio));
+  painter_->drawImage(pbbox.qrect(), image.scaled(w, h, Qt::IgnoreAspectRatio));
 }
 
 void
@@ -843,15 +857,15 @@ drawTransformedText(const QPointF &p, const QString &text)
 
 void
 CQChartsScriptPainter::
-drawImageInRect(const QRectF &rect, const QImage &image)
+drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &image)
 {
-  double x = (! isInvertX() ? rect.left  () : rect.right());
-  double y = (! isInvertY() ? rect.bottom() : rect.top  ());
+  double x = (! isInvertX() ? bbox.getXMin() : bbox.getXMax());
+  double y = (! isInvertY() ? bbox.getYMax() : bbox.getYMin());
 
-  QRectF prect = windowToPixel(rect);
+  CQChartsGeom::BBox pbbox = windowToPixel(bbox);
 
-  double w = prect.width ();
-  double h = prect.height();
+  double w = pbbox.getWidth ();
+  double h = pbbox.getHeight();
 
   drawImage(QPointF(x, y), image.scaled(w, h, Qt::IgnoreAspectRatio));
 }
@@ -1297,16 +1311,16 @@ drawTransformedText(const QPointF &p, const QString &text)
 
 void
 CQChartsSVGPainter::
-drawImageInRect(const QRectF &rect, const QImage &image)
+drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &image)
 {
-  QRectF prect = windowToPixel(rect);
+  CQChartsGeom::BBox pbbox = windowToPixel(bbox);
 
-  double px = prect.left();
-  double py = prect.top ();
+  double px = pbbox.getXMin();
+  double py = pbbox.getYMin();
 
   QPointF pw = pixelToWindow(QPointF(px, py));
 
-  drawImage(pw, image.scaled(prect.width(), prect.height(), Qt::IgnoreAspectRatio));
+  drawImage(pw, image.scaled(pbbox.getWidth(), pbbox.getHeight(), Qt::IgnoreAspectRatio));
 }
 
 void

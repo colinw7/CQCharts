@@ -368,7 +368,7 @@ CQChartsGeom::BBox
 CQChartsChordPlot::
 calcAnnotationBBox() const
 {
-  CQPerfTrace trace("CQChartsChordPlot::annotationBBox");
+  CQPerfTrace trace("CQChartsChordPlot::calcAnnotationBBox");
 
   CQChartsGeom::BBox bbox;
 

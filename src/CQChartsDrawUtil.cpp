@@ -63,8 +63,8 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const QRectF &qrect,
       device->drawLine(QPointF(qrect.left (), qrect.center().y()),
                        QPointF(qrect.right(), qrect.center().y()));
     else
-      device->drawLine(QPointF(qrect.center().y(), qrect.bottom()),
-                       QPointF(qrect.center().y(), qrect.top   ()));
+      device->drawLine(QPointF(qrect.center().x(), qrect.bottom()),
+                       QPointF(qrect.center().x(), qrect.top   ()));
   }
 }
 
@@ -315,7 +315,7 @@ drawAlignedText(CQChartsPaintDevice *device, const QPointF &p, const QString &te
 
 //------
 
-QRectF
+CQChartsGeom::BBox
 calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font, const QPointF &p,
                     const QString &text, Qt::Alignment align, double dx, double dy)
 {
@@ -338,7 +338,9 @@ calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font, const QPoint
   QPointF pp = device->windowToPixel(p);
   QPointF pt = device->pixelToWindow(QPointF(pp.x() + dx1, pp.y() + dy1));
 
-  return device->pixelToWindow(QRectF(pt.x(), pt.y() - ta, tw, ta + td));
+  CQChartsGeom::BBox pbbox(pt.x(), pt.y() - ta, pt.x() + tw, pt.y() + td);
+
+  return device->pixelToWindow(pbbox);
 }
 
 //------

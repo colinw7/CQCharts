@@ -545,8 +545,6 @@ class CQChartsPlot : public CQChartsObj,
   int previewMaxRows() const { return previewMaxRows_; }
   void setPreviewMaxRows(int i) { previewMaxRows_ = i; }
 
-  virtual void initPreview() { }
-
   //---
 
   bool isSequential() const { return sequential_; }
@@ -867,17 +865,19 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  QVariant modelHeaderValue(const CQChartsColumn &column, bool &ok) const;
-  QVariant modelHeaderValue(const CQChartsColumn &column, int role, bool &ok) const;
+#if 0
+  QVariant modelHHeaderValue(const CQChartsColumn &column, bool &ok) const;
+  QVariant modelHHeaderValue(const CQChartsColumn &column, int role, bool &ok) const;
 
-  QVariant modelHeaderValue(int section, Qt::Orientation orient, bool &ok) const;
-  QVariant modelHeaderValue(int section, Qt::Orientation orient, int role, bool &ok) const;
+  QVariant modelVHeaderValue(int section, Qt::Orientation orient, bool &ok) const;
+  QVariant modelVHeaderValue(int section, Qt::Orientation orient, int role, bool &ok) const;
+#endif
 
-  QString modelHeaderString(const CQChartsColumn &column, bool &ok) const;
-  QString modelHeaderString(const CQChartsColumn &column, int role, bool &ok) const;
+  QString modelHHeaderString(const CQChartsColumn &column, bool &ok) const;
+  QString modelHHeaderString(const CQChartsColumn &column, int role, bool &ok) const;
 
-  QString modelHeaderString(int section, Qt::Orientation orient, bool &ok) const;
-  QString modelHeaderString(int section, Qt::Orientation orient, int role, bool &ok) const;
+  QString modelVHeaderString(int section, Qt::Orientation orient, bool &ok) const;
+  QString modelVHeaderString(int section, Qt::Orientation orient, int role, bool &ok) const;
 
   //---
 
@@ -919,23 +919,25 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  virtual QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                                    bool &ok) const;
-  virtual QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                                    int role, bool &ok) const;
-  virtual QVariant modelHeaderValue(QAbstractItemModel *model, int section,
-                                    Qt::Orientation orient, int role, bool &ok) const;
-  virtual QVariant modelHeaderValue(QAbstractItemModel *model, int section,
-                                    Qt::Orientation orient, bool &ok) const;
+#if 0
+  virtual QVariant modelHHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                                     bool &ok) const;
+  virtual QVariant modelHHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                                     int role, bool &ok) const;
+  virtual QVariant modelVHeaderValue(QAbstractItemModel *model, int section,
+                                     Qt::Orientation orient, int role, bool &ok) const;
+  virtual QVariant modelVHeaderValue(QAbstractItemModel *model, int section,
+                                     Qt::Orientation orient, bool &ok) const;
+#endif
 
-  virtual QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
-                                    bool &ok) const;
-  virtual QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
-                                    int role, bool &ok) const;
-  virtual QString modelHeaderString(QAbstractItemModel *model, int section,
-                                    Qt::Orientation orient, int role, bool &ok) const;
-  virtual QString modelHeaderString(QAbstractItemModel *model, int section,
-                                    Qt::Orientation orient, bool &ok) const;
+  virtual QString modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
+                                     bool &ok) const;
+  virtual QString modelHHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
+                                     int role, bool &ok) const;
+  virtual QString modelVHeaderString(QAbstractItemModel *model, int section,
+                                     Qt::Orientation orient, int role, bool &ok) const;
+  virtual QString modelVHeaderString(QAbstractItemModel *model, int section,
+                                     Qt::Orientation orient, bool &ok) const;
 
   //---
 
@@ -1019,8 +1021,8 @@ class CQChartsPlot : public CQChartsObj,
   QPointF positionToPlot (const CQChartsPosition &pos) const;
   QPointF positionToPixel(const CQChartsPosition &pos) const;
 
-  QRectF rectToPlot (const CQChartsRect &rect) const;
-  QRectF rectToPixel(const CQChartsRect &rect) const;
+  CQChartsGeom::BBox rectToPlot (const CQChartsRect &rect) const;
+  CQChartsGeom::BBox rectToPixel(const CQChartsRect &rect) const;
 
   //---
 
@@ -1645,7 +1647,7 @@ class CQChartsPlot : public CQChartsObj,
 
   virtual void execDrawBackground(CQChartsPaintDevice *device) const;
 
-  void drawBackgroundSides(CQChartsPaintDevice *device, const QRectF &rect,
+  void drawBackgroundSides(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
                            const CQChartsSides &sides) const;
 
   // draw axes on background

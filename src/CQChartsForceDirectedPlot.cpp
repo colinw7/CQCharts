@@ -898,7 +898,9 @@ drawDeviceParts(CQChartsPaintDevice *device) const
 
     //---
 
-    device->drawEllipse(QRectF(p1.x() - xm/2.0, p1.y() - xm/2.0, xm, ym));
+    CQChartsGeom::BBox ebbox(p1.x() - xm/2.0, p1.y() - ym/2.0, p1.x() + xm/2, p1.y() + ym/2.0);
+
+    device->drawEllipse(ebbox.qrect());
   }
 
   //---

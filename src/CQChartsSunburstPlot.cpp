@@ -1096,8 +1096,8 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   CQChartsGeom::Point p12 = CQChartsGeom::Point(xc - r2, yc - r2);
   CQChartsGeom::Point p22 = CQChartsGeom::Point(xc + r2, yc + r2);
 
-  QRectF qr1 = CQChartsGeom::BBox(p11, p21).qrect();
-  QRectF qr2 = CQChartsGeom::BBox(p12, p22).qrect();
+  CQChartsGeom::BBox bbox1(p11, p21);
+  CQChartsGeom::BBox bbox2(p12, p22);
 
   double a1 = node->a();
   double da = node->da();
@@ -1111,31 +1111,31 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   QPainterPath path;
 
   if (isCircle) {
-    if (qr1.width()) {
-      path.arcMoveTo(qr1, 0);
-      path.arcTo    (qr1, 0, 360.0);
+    if (bbox1.getWidth()) {
+      path.arcMoveTo(bbox1.qrect(), 0);
+      path.arcTo    (bbox1.qrect(), 0, 360.0);
 
       path.closeSubpath();
     }
 
-    if (qr2.width()) {
-      path.arcMoveTo(qr2, 0);
-      path.arcTo    (qr2, 0, 360.0);
+    if (bbox2.getWidth()) {
+      path.arcMoveTo(bbox2.qrect(), 0);
+      path.arcTo    (bbox2.qrect(), 0, 360.0);
 
       path.closeSubpath();
     }
   }
   else {
-    if      (qr1.width())
-      path.arcMoveTo(qr1, -a1);
-    else if (qr2.width())
-      path.arcMoveTo(qr2, -a2);
+    if      (bbox1.getWidth())
+      path.arcMoveTo(bbox1.qrect(), -a1);
+    else if (bbox2.getWidth())
+      path.arcMoveTo(bbox2.qrect(), -a2);
 
-    if (qr1.width())
-      path.arcTo(qr1, -a1, -da);
+    if (bbox1.getWidth())
+      path.arcTo(bbox1.qrect(), -a1, -da);
 
-    if (qr2.width())
-      path.arcTo(qr2, -a2,  da);
+    if (bbox2.getWidth())
+      path.arcTo(bbox2.qrect(), -a2,  da);
 
     path.closeSubpath();
   }

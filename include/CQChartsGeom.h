@@ -771,21 +771,21 @@ class BBox {
     update();
   }
 
-  void expand(double x1, double y1, double x2, double y2) {
+  void expand(double dx1, double dy1, double dx2, double dy2) {
     if (! set_) return;
 
-    pmin_.x += x1;
-    pmin_.y += y1;
-    pmax_.x += x2;
-    pmax_.y += y2;
+    pmin_.x += dx1;
+    pmin_.y += dy1;
+    pmax_.x += dx2;
+    pmax_.y += dy2;
 
     update();
   }
 
-  BBox expanded(double x1, double y1, double x2, double y2) const {
+  BBox adjusted(double dx1, double dy1, double dx2, double dy2) const {
     BBox bbox(*this);
 
-    bbox.expand(x1, y1, x2, y2);
+    bbox.expand(dx1, dy1, dx2, dy2);
 
     return bbox;
   }

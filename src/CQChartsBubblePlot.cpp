@@ -706,7 +706,7 @@ drawBounds(CQChartsPaintDevice *device, CQChartsBubbleHierNode *hier) const
   CQChartsGeom::Point p1(xc - r, yc - r);
   CQChartsGeom::Point p2(xc + r, yc + r);
 
-  QRectF qrect = CQChartsGeom::BBox(p1, p2).qrect();
+  CQChartsGeom::BBox bbox(p1, p2);
 
   //---
 
@@ -718,7 +718,7 @@ drawBounds(CQChartsPaintDevice *device, CQChartsBubbleHierNode *hier) const
 
   QPainterPath path;
 
-  path.addEllipse(qrect);
+  path.addEllipse(bbox.qrect());
 
   device->drawPath(path);
 }
@@ -785,7 +785,7 @@ draw(CQChartsPaintDevice *device)
   CQChartsGeom::Point p1(hier_->x() - r, hier_->y() - r);
   CQChartsGeom::Point p2(hier_->x() + r, hier_->y() + r);
 
-  QRectF qrect = CQChartsGeom::BBox(p1, p2).qrect();
+  CQChartsGeom::BBox bbox(p1, p2);
 
   //---
 
@@ -805,7 +805,7 @@ draw(CQChartsPaintDevice *device)
 
   QPainterPath path;
 
-  path.addEllipse(qrect);
+  path.addEllipse(bbox.qrect());
 
   device->drawPath(path);
 
@@ -933,7 +933,7 @@ draw(CQChartsPaintDevice *device)
   CQChartsGeom::Point p1(node_->x() - r, node_->y() - r);
   CQChartsGeom::Point p2(node_->x() + r, node_->y() + r);
 
-  QRectF qrect = CQChartsGeom::BBox(p1, p2).qrect();
+  CQChartsGeom::BBox bbox(p1, p2);
 
   //---
 
@@ -965,7 +965,7 @@ draw(CQChartsPaintDevice *device)
   else {
     QPainterPath path;
 
-    path.addEllipse(qrect);
+    path.addEllipse(bbox.qrect());
 
     device->drawPath(path);
   }
@@ -1029,10 +1029,10 @@ draw(CQChartsPaintDevice *device)
     //---
 
     // calc scale factor
-    QRectF prect = device->windowToPixel(qrect);
+    CQChartsGeom::BBox pbbox = device->windowToPixel(bbox);
 
-    double sx = (tw > 0 ? prect.width ()/tw : 1.0);
-    double sy = (th > 0 ? prect.height()/th : 1.0);
+    double sx = (tw > 0 ? pbbox.getWidth ()/tw : 1.0);
+    double sy = (th > 0 ? pbbox.getHeight()/th : 1.0);
 
     double s = std::min(sx, sy);
 
@@ -1053,7 +1053,7 @@ draw(CQChartsPaintDevice *device)
   double xm = plot_->pixelToWindowWidth (3);
   double ym = plot_->pixelToWindowHeight(3);
 
-  device->setClipRect(qrect.adjusted(xm, ym, -xm, -ym));
+  device->setClipRect(bbox.qrect().adjusted(xm, ym, -xm, -ym));
 
   // angle and align not supported (always 0 and centered)
   // text is pre-scaled if needed (formatted and html not suppoted as changes scale calc)

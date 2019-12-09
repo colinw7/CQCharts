@@ -152,6 +152,8 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   setGridCellStroked(true);
   setGridCellStrokeColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.1));
 
+  setDataClip(false);
+
   //---
 
   addAxes();
@@ -641,6 +643,9 @@ calcRange() const
     RowVisitor(const CQChartsScatterPlot *plot) :
      plot_(plot) {
       hasGroups_ = (plot_->numGroups() > 1);
+
+      xColumnType_ = plot_->columnValueType(plot_->xColumn());
+      yColumnType_ = plot_->columnValueType(plot_->yColumn());
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -657,19 +662,33 @@ calcRange() const
       if (! hidden) {
         double x, y;
 
-        bool ok1 = plot_->modelMappedReal(data.row, plot_->xColumn(), data.parent,
-                                          x, plot_->isLogX(), data.row);
-        bool ok2 = plot_->modelMappedReal(data.row, plot_->yColumn(), data.parent,
-                                          y, plot_->isLogY(), data.row);
+        if (xColumnType_ == CQBaseModelType::REAL || xColumnType_ == CQBaseModelType::INTEGER) {
+          bool ok1 = plot_->modelMappedReal(data.row, plot_->xColumn(), data.parent,
+                                            x, plot_->isLogX(), data.row);
 
-        if (plot_->isSkipBad() && (! ok1 || ! ok2))
-          return State::SKIP;
+          if (plot_->isSkipBad() && ! ok1)
+            return State::SKIP;
 
-        if (! ok1) { x = uniqueId(data, plot_->xColumn()); ++uniqueX_; }
-        if (! ok2) { y = uniqueId(data, plot_->yColumn()); ++uniqueY_; }
+          if (CMathUtil::isNaN(x))
+            return State::SKIP;
+        }
+        else {
+          x = uniqueId(data, plot_->xColumn()); ++uniqueX_;
+        }
 
-        if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
-          return State::SKIP;
+        if (yColumnType_ == CQBaseModelType::REAL || yColumnType_ == CQBaseModelType::INTEGER) {
+          bool ok2 = plot_->modelMappedReal(data.row, plot_->yColumn(), data.parent,
+                                            y, plot_->isLogY(), data.row);
+
+          if (plot_->isSkipBad() && ! ok2)
+            return State::SKIP;
+
+          if (CMathUtil::isNaN(y))
+            return State::SKIP;
+        }
+        else {
+          y = uniqueId(data, plot_->yColumn()); ++uniqueY_;
+        }
 
         range_.updateRange(x, y);
       }
@@ -704,12 +723,14 @@ calcRange() const
     bool isUniqueY() const { return uniqueY_ == numRows(); }
 
    private:
-    const CQChartsScatterPlot* plot_      { nullptr };
-    int                        hasGroups_ { false };
+    const CQChartsScatterPlot* plot_        { nullptr };
+    int                        hasGroups_   { false };
     CQChartsGeom::Range        range_;
-    CQChartsModelDetails*      details_   { nullptr };
-    int                        uniqueX_   { 0 };
-    int                        uniqueY_   { 0 };
+    CQChartsModelDetails*      details_     { nullptr };
+    CQBaseModelType            xColumnType_ { ColumnType::NONE };
+    CQBaseModelType            yColumnType_ { ColumnType::NONE };
+    int                        uniqueX_     { 0 };
+    int                        uniqueY_     { 0 };
   };
 
   RowVisitor visitor(this);
@@ -863,7 +884,7 @@ xColumnName(const QString &def) const
 
   bool ok;
 
-  QString xname = modelHeaderString(xColumn(), ok);
+  QString xname = modelHHeaderString(xColumn(), ok);
 
   if (! ok || ! xname.length())
     xname = def;
@@ -880,7 +901,7 @@ yColumnName(const QString &def) const
 
   bool ok;
 
-  QString yname = modelHeaderString(yColumn(), ok);
+  QString yname = modelHHeaderString(yColumn(), ok);
 
   if (! ok || ! yname.length())
     yname = def;
@@ -1254,6 +1275,8 @@ addNameValues() const
    public:
     RowVisitor(const CQChartsScatterPlot *plot) :
      plot_(plot) {
+      xColumnType_ = plot_->columnValueType(plot_->xColumn());
+      yColumnType_ = plot_->columnValueType(plot_->yColumn());
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
@@ -1270,19 +1293,33 @@ addNameValues() const
 
       double x, y;
 
-      bool ok1 = plot_->modelMappedReal(data.row, plot_->xColumn(), data.parent,
-                                        x, plot_->isLogX(), data.row);
-      bool ok2 = plot_->modelMappedReal(data.row, plot_->yColumn(), data.parent,
-                                        y, plot_->isLogY(), data.row);
+      if (xColumnType_ == CQBaseModelType::REAL || xColumnType_ == CQBaseModelType::INTEGER) {
+        bool ok1 = plot_->modelMappedReal(data.row, plot_->xColumn(), data.parent,
+                                          x, plot_->isLogX(), data.row);
 
-      if (plot_->isSkipBad() && (! ok1 || ! ok2))
-        return State::SKIP;
+        if (plot_->isSkipBad() && ! ok1)
+          return State::SKIP;
 
-      if (! ok1) x = uniqueId(data, plot_->xColumn());
-      if (! ok2) y = uniqueId(data, plot_->yColumn());
+        if (CMathUtil::isNaN(x))
+          return State::SKIP;
+      }
+      else {
+        x = uniqueId(data, plot_->xColumn());
+      }
 
-      if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
-        return State::SKIP;
+      if (yColumnType_ == CQBaseModelType::REAL || yColumnType_ == CQBaseModelType::INTEGER) {
+        bool ok2 = plot_->modelMappedReal(data.row, plot_->yColumn(), data.parent,
+                                          y, plot_->isLogY(), data.row);
+
+        if (plot_->isSkipBad() && ! ok2)
+          return State::SKIP;
+
+        if (CMathUtil::isNaN(y))
+          return State::SKIP;
+      }
+      else {
+        y = uniqueId(data, plot_->yColumn());
+      }
 
       //---
 
@@ -1342,8 +1379,10 @@ addNameValues() const
     }
 
    private:
-    const CQChartsScatterPlot* plot_    { nullptr };
-    CQChartsModelDetails*      details_ { nullptr };
+    const CQChartsScatterPlot* plot_        { nullptr };
+    CQChartsModelDetails*      details_     { nullptr };
+    CQBaseModelType            xColumnType_ { ColumnType::NONE };
+    CQBaseModelType            yColumnType_ { ColumnType::NONE };
   };
 
   RowVisitor visitor(this);
@@ -1590,7 +1629,7 @@ CQChartsGeom::BBox
 CQChartsScatterPlot::
 calcAnnotationBBox() const
 {
-  CQPerfTrace trace("CQChartsScatterPlot::annotationBBox");
+  CQPerfTrace trace("CQChartsScatterPlot::calcAnnotationBBox");
 
   CQChartsGeom::BBox bbox;
 
@@ -2687,9 +2726,9 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
   double xm = px - pr1 - pm;
   double ym = py - pm;
 
-  QRectF r1(xm - pr1, ym - 2*pr1, 2*pr1, 2*pr1);
-  QRectF r2(xm - pr2, ym - 2*pr2, 2*pr2, 2*pr2);
-  QRectF r3(xm - pr3, ym - 2*pr3, 2*pr3, 2*pr3);
+  CQChartsGeom::BBox pbbox1(xm - pr1, ym - 2*pr1, xm + pr1, ym);
+  CQChartsGeom::BBox pbbox2(xm - pr2, ym - 2*pr2, xm + pr2, ym);
+  CQChartsGeom::BBox pbbox3(xm - pr3, ym - 2*pr3, xm + pr3, ym);
 
   double a = symbolMapKeyAlpha();
 
@@ -2697,9 +2736,9 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
   QColor fillColor2 = interpSymbolFillColor(ColorInd(0.5)); fillColor2.setAlphaF(a);
   QColor fillColor3 = interpSymbolFillColor(ColorInd(0.0)); fillColor3.setAlphaF(a);
 
-  device->setBrush(fillColor1); device->drawEllipse(device->pixelToWindow(r1));
-  device->setBrush(fillColor2); device->drawEllipse(device->pixelToWindow(r2));
-  device->setBrush(fillColor3); device->drawEllipse(device->pixelToWindow(r3));
+  device->setBrush(fillColor1); device->drawEllipse(device->pixelToWindow(pbbox1).qrect());
+  device->setBrush(fillColor2); device->drawEllipse(device->pixelToWindow(pbbox2).qrect());
+  device->setBrush(fillColor3); device->drawEllipse(device->pixelToWindow(pbbox3).qrect());
 
   auto drawText = [&](const QPointF &p, double value) {
     QString text = QString("%1").arg(value);
@@ -2719,9 +2758,9 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
 //  CQChartsDrawUtil::drawSimpleText(device, p2, text);
   };
 
-  drawText(QPointF(r1.center().x(), r1.top()), max );
-  drawText(QPointF(r2.center().x(), r2.top()), mean);
-  drawText(QPointF(r3.center().x(), r3.top()), min );
+  drawText(QPointF(pbbox1.getXMid(), pbbox1.getYMin()), max );
+  drawText(QPointF(pbbox2.getXMid(), pbbox2.getYMin()), mean);
+  drawText(QPointF(pbbox3.getXMid(), pbbox3.getYMin()), min );
 }
 
 //------
@@ -3011,9 +3050,9 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
       sy = sx*(1.0/aspect);
     }
 
-    QRectF irect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
+    CQChartsGeom::BBox ibbox(ps.x() - sx, ps.y() - sy, ps.x() + 2*sx, ps.y() + 2*sy);
 
-    device->drawImageInRect(plot()->pixelToWindow(irect), image);
+    device->drawImageInRect(plot()->pixelToWindow(ibbox), image);
   }
 
   device->resetColorNames();
@@ -3061,9 +3100,10 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
     //---
 
     // draw text
-    QRectF erect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
+    CQChartsGeom::BBox ptbbox(ps.x() - sx, ps.y() - sy, ps.x() + sx, ps.y() + sy);
 
-    dataLabel->draw(device, plot_->pixelToWindow(erect), name_, dataLabel->position(), tpen);
+    dataLabel->draw(device, plot_->pixelToWindow(ptbbox).qrect(), name_,
+                    dataLabel->position(), tpen);
 
     //---
 
@@ -3280,8 +3320,6 @@ drawRugSymbol(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
     }
 
     // draw symbol
-    QRectF erect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
-
     plot_->drawSymbol(device, device->pixelToWindow(ps), symbolType, symbolSize, penBrush);
   }
 }
@@ -3433,9 +3471,10 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
 
   QBrush brush(lg);
 
-  QRectF frect(pg1.x(), pg2.y(), lprect.getWidth(), lprect.getHeight());
+  CQChartsGeom::BBox fbbox(pg1.x()                    , pg2.y(),
+                           pg1.x() + lprect.getWidth(), pg2.y() + lprect.getHeight());
 
-  device->fillRect(device->pixelToWindow(frect), brush);
+  device->fillRect(device->pixelToWindow(fbbox).qrect(), brush);
 
   //---
 

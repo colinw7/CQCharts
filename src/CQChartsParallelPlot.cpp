@@ -439,7 +439,7 @@ calcRange() const
 
     bool ok;
 
-    QString name = modelHeaderString(setColumn, ok);
+    QString name = modelHHeaderString(setColumn, ok);
 
     const_cast<CQChartsParallelPlot *>(this)->setDataRange(range);
 
@@ -630,7 +630,7 @@ createObjs(PlotObjs &objs) const
 
       //bool ok;
 
-      //QString yname = modelHeaderString(setColumn, ok);
+      //QString yname = modelHHeaderString(setColumn, ok);
 
       //QString id = QString("%1:%2=%3").arg(xname).arg(yname).arg(p.y());
 
@@ -767,7 +767,7 @@ CQChartsGeom::BBox
 CQChartsParallelPlot::
 calcAnnotationBBox() const
 {
-  CQPerfTrace trace("CQChartsParallelPlot::annotationBBox");
+  CQPerfTrace trace("CQChartsParallelPlot::calcAnnotationBBox");
 
   QFont font = view()->plotFont(this, view()->font());
 
@@ -1034,7 +1034,7 @@ calcTipId() const
 
     bool ok;
 
-    QString yname = plot_->modelHeaderString(yColumn, ok);
+    QString yname = plot_->modelHHeaderString(yColumn, ok);
 
     tableTip.addTableRow(yname, poly_[j].y());
   }
@@ -1234,7 +1234,7 @@ calcId() const
 
   const CQChartsColumn &yColumn = plot_->yColumns().getColumn(iv_.i);
 
-  QString yname = plot_->modelHeaderString(yColumn, ok);
+  QString yname = plot_->modelHHeaderString(yColumn, ok);
 
   return QString("%1:%2:%3=%4").arg(typeName()).arg(xname).arg(yname).arg(yval_);
 }
@@ -1253,7 +1253,7 @@ calcTipId() const
 
   const CQChartsColumn &yColumn = plot_->yColumns().getColumn(iv_.i);
 
-  QString yname = plot_->modelHeaderString(yColumn, ok);
+  QString yname = plot_->modelHHeaderString(yColumn, ok);
 
   tableTip.addTableRow(yname, yval_);
 

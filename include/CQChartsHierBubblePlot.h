@@ -255,7 +255,7 @@ class CQChartsHierBubbleNodeObj : public CQChartsPlotObj {
 
   void draw(CQChartsPaintDevice *device) override;
 
-  void drawText(CQChartsPaintDevice *device, const QRectF &qrect);
+  void drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox);
 
   //---
 

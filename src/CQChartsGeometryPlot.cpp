@@ -754,9 +754,7 @@ void
 CQChartsGeometryObj::
 drawFg(CQChartsPaintDevice *device) const
 {
-  QRectF qrect = rect().qrect();
-
-  plot_->dataLabel()->draw(device, qrect, name());
+  plot_->dataLabel()->draw(device, rect().qrect(), name());
 }
 
 void

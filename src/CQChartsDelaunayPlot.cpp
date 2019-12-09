@@ -269,13 +269,13 @@ calcRange() const
 
   xAxis_->setColumn(xColumn());
 
-  QString xname = modelHeaderString(xColumn(), ok);
+  QString xname = modelHHeaderString(xColumn(), ok);
 
   xAxis_->setLabel(xname);
 
   yAxis_->setColumn(yColumn());
 
-  QString yname = modelHeaderString(yColumn(), ok);
+  QString yname = modelHHeaderString(yColumn(), ok);
 
   yAxis_->setLabel(yname);
 
@@ -306,7 +306,7 @@ createObjs(PlotObjs &objs) const
 
   bool ok;
 
-  th->yname_ = modelHeaderString(yColumn(), ok);
+  th->yname_ = modelHHeaderString(yColumn(), ok);
 
   //---
 
@@ -617,9 +617,9 @@ drawVoronoi(CQChartsPaintDevice *device) const
       if (isVoronoiCircles()) {
         double r = v1->z();
 
-        QRectF rect(v1->x() - r, v1->y() - r, 2.0*r, 2.0*r);
+        CQChartsGeom::BBox bbox(v1->x() - r, v1->y() - r, v1->x() + r, v1->y() + r);
 
-        device->drawEllipse(rect);
+        device->drawEllipse(bbox.qrect());
       }
     }
   }

@@ -1119,6 +1119,10 @@ calcBucketRanges() const
   // set range
   CQChartsGeom::Range dataRange;
 
+  auto mapValue = [&](double y) {
+    return (isLogY() ? logValue(y) : y);
+  };
+
   auto updateRange = [&](double x, double y) {
     if (! isHorizontal())
       dataRange.updateRange(x, y);
@@ -1232,13 +1236,14 @@ calcBucketRanges() const
         if (isPercent())
           updateRange2(-1.0, 0, nb, 1);
         else
-          updateRange2(-1.0, n1, nb, n2);
+          updateRange2(-1.0, (n1 > 0 ? mapValue(n1) : 0.0),
+                         nb, (n2 > 0 ? mapValue(n2) : 0.0));
       }
       else {
         if (isPercent())
           updateRange2(-1.0, 0, i2, 1);
         else
-          updateRange2(-1.0, 0, i2, n2);
+          updateRange2(-1.0, 0, i2, (n2 > 0 ? mapValue(n2) : 0.0));
       }
     }
   }
@@ -1346,7 +1351,7 @@ CQChartsGeom::BBox
 CQChartsDistributionPlot::
 calcAnnotationBBox() const
 {
-  CQPerfTrace trace("CQChartsDistributionPlot::annotationBBox");
+  CQPerfTrace trace("CQChartsDistributionPlot::calcAnnotationBBox");
 
   CQChartsGeom::BBox bbox;
 
@@ -1539,7 +1544,7 @@ createObjs(PlotObjs &objs) const
     valueAxis()->setTicksDisplayed  (CQChartsAxis::TicksDisplayed::MAJOR);
     valueAxis()->setRequireTickLabel(true);
 
-    if (! isLogY()) {
+    if (! CQChartsPlot::isLogY()) {
       if (isValueCount())
         countAxis()->setValueType(CQChartsAxisValueType::Type::INTEGER, /*notify*/false);
       else
@@ -1962,6 +1967,10 @@ createObjs(PlotObjs &objs) const
 
         //---
 
+        auto mapValue = [&](double y) {
+          return (isLogY() ? logValue(y) : y);
+        };
+
         CQChartsGeom::BBox bbox;
         bool               isLine = false;
 
@@ -2007,8 +2016,16 @@ createObjs(PlotObjs &objs) const
           bbox = makeBBox(tpos1, v1, tpos2, v2);
         }
         else {
-          double v1 = barValue.n1*scale;
-          double v2 = barValue.n2*scale;
+          double v1, v2;
+
+          if (! isPercent()) {
+            v1 = (barValue.n1 > 0 ? mapValue(barValue.n1) : 0.0);
+            v2 = (barValue.n2 > 0 ? mapValue(barValue.n2) : 0.0);
+          }
+          else {
+            v1 = barValue.n1*scale;
+            v2 = barValue.n2*scale;
+          }
 
           isLine = (v1 == v2);
 
@@ -2023,11 +2040,13 @@ createObjs(PlotObjs &objs) const
         barValue.yr = CQChartsGeom::RangeValue(barValue.n2,
           values->yValueRange.min(), values->yValueRange.max());
 
-        CQChartsDistributionBarObj *barObj =
-          new CQChartsDistributionBarObj(this, bbox, groupInd, sbucket, barValue, isLine,
-                                         ColorInd(ig, ng), ColorInd(iv, nv));
+        if (bbox.area() > 0) {
+          CQChartsDistributionBarObj *barObj =
+            new CQChartsDistributionBarObj(this, bbox, groupInd, sbucket, barValue, isLine,
+                                           ColorInd(ig, ng), ColorInd(iv, nv));
 
-        objs.push_back(barObj);
+          objs.push_back(barObj);
+        }
 
         //---
 
@@ -2161,7 +2180,7 @@ createObjs(PlotObjs &objs) const
       if (dataColumn().isValid()) {
         bool ok;
 
-        QString header = modelHeaderString(dataColumn(), ok);
+        QString header = modelHHeaderString(dataColumn(), ok);
 
         if (ok && header.length())
           label1 += " (" + header + ")";
@@ -2198,7 +2217,7 @@ valueColumnName(const QString &def) const
 
   bool ok;
 
-  QString name = modelHeaderString(c, ok);
+  QString name = modelHHeaderString(c, ok);
 
   if (! ok)
     name = def;
@@ -2413,7 +2432,7 @@ addKeyItems(CQChartsPlotKey *key)
     if (colorColumn().isValid()) {
       bool ok;
 
-      QString header = modelHeaderString(colorColumn(), ok);
+      QString header = modelHHeaderString(colorColumn(), ok);
 
       key->setHeaderStr(header);
 
@@ -3057,7 +3076,7 @@ calcTipId() const
   if (strs.length()) {
     bool ok;
 
-    QString name = plot_->modelHeaderString(plot_->colorColumn(), ok);
+    QString name = plot_->modelHHeaderString(plot_->colorColumn(), ok);
 
     QString name1;
 
@@ -3197,30 +3216,16 @@ dataLabelRect() const
 
   CQChartsGeom::BBox rect = calcRect();
 
-  QRectF qrect = rect.qrect();
-
   QString ystr;
 
-  if      (plot_->isValueCount()) {
-    ystr = QString("%1").arg(count());
-  }
-  else if (plot_->isValueRange()) {
-    ystr = QString("%1-%2").arg(minValue()).arg(maxValue());
-  }
-  else if (plot_->isValueMin()) {
-    ystr = QString("%1").arg(maxValue());
-  }
-  else if (plot_->isValueMax()) {
-    ystr = QString("%1").arg(maxValue());
-  }
-  else if (plot_->isValueMean()) {
-    ystr = QString("%1").arg(maxValue());
-  }
-  else if (plot_->isValueSum()) {
-    ystr = QString("%1").arg(maxValue());
-  }
+  if      (plot_->isValueCount()) { ystr = QString("%1").arg(count()); }
+  else if (plot_->isValueRange()) { ystr = QString("%1-%2").arg(minValue()).arg(maxValue()); }
+  else if (plot_->isValueMin  ()) { ystr = QString("%1").arg(maxValue()); }
+  else if (plot_->isValueMax  ()) { ystr = QString("%1").arg(maxValue()); }
+  else if (plot_->isValueMean ()) { ystr = QString("%1").arg(maxValue()); }
+  else if (plot_->isValueSum  ()) { ystr = QString("%1").arg(maxValue()); }
 
-  return plot_->dataLabel()->calcRect(qrect, ystr);
+  return plot_->dataLabel()->calcRect(rect, ystr);
 }
 
 void
@@ -3263,8 +3268,6 @@ draw(CQChartsPaintDevice *device)
 {
   CQChartsGeom::BBox pbbox = calcRect();
 
-  QRectF pqrect = pbbox.qrect();
-
   //---
 
   bool useLine = (isLine() || this->isUseLine());
@@ -3302,7 +3305,7 @@ draw(CQChartsPaintDevice *device)
   colorData_ = ColorData();
 
   if (getBarColoredRects(colorData_)) {
-    double size = (! plot_->isHorizontal() ? pqrect.height() : pqrect.width());
+    double size = (! plot_->isHorizontal() ? pbbox.getHeight() : pbbox.getWidth());
 
     if      (plot_->isValueCount()) {
       double dsize = size/colorData_.nv;
@@ -3316,16 +3319,18 @@ draw(CQChartsPaintDevice *device)
         pos1 = pos2;
         pos2 = pos1 + dsize*n;
 
-        QRectF pqrect1;
+        CQChartsGeom::BBox pbbox1;
 
         if (! plot_->isHorizontal())
-          pqrect1 = QRectF(pqrect.x(), pqrect.bottom() - pos2, pqrect.width(), pos2 - pos1);
+          pbbox1 = CQChartsGeom::BBox(pbbox.getXMin(), pbbox.getYMax() - pos2,
+                                      pbbox.getXMax(), pbbox.getYMax() - pos1);
         else
-          pqrect1 = QRectF(pqrect.left() + pos1, pqrect.y(), pos2 - pos1, pqrect.height());
+          pbbox1 = CQChartsGeom::BBox(pbbox.getXMin() + pos1, pbbox.getYMin(),
+                                      pbbox.getXMin() + pos2, pbbox.getYMax());
 
         //---
 
-        drawRect(device, pqrect1, color, useLine);
+        drawRect(device, pbbox1, color, useLine);
       }
     }
     else if (plot_->isValueSum()) {
@@ -3338,27 +3343,29 @@ draw(CQChartsPaintDevice *device)
         pos1 = pos2;
         pos2 = pos1 + size*dsize;
 
-        QRectF pqrect1;
+        CQChartsGeom::BBox pbbox1;
 
         if (! plot_->isHorizontal())
-          pqrect1 = QRectF(pqrect.x(), pqrect.bottom() - pos2, pqrect.width(), pos2 - pos1);
+          pbbox1 = CQChartsGeom::BBox(pbbox.getXMin(), pbbox.getYMax() - pos2,
+                                      pbbox.getXMax(), pbbox.getYMax() - pos1);
         else
-          pqrect1 = QRectF(pqrect.left() + pos1, pqrect.y(), pos2 - pos1, pqrect.height());
+          pbbox1 = CQChartsGeom::BBox(pbbox.getXMin() + pos1, pbbox.getYMin(),
+                                      pbbox.getXMin() + pos2, pbbox.getYMax());
 
         //---
 
-        drawRect(device, pqrect1, color, useLine);
+        drawRect(device, pbbox1, color, useLine);
       }
     }
   }
   else {
     QColor barColor = this->barColor();
 
-    drawRect(device, pqrect, barColor, useLine);
+    drawRect(device, pbbox, barColor, useLine);
   }
 
   if (! image.isNull())
-    device->drawImageInRect(device->pixelToWindow(pqrect), image);
+    device->drawImageInRect(device->pixelToWindow(pbbox), image);
 }
 
 void
@@ -3368,32 +3375,18 @@ drawFg(CQChartsPaintDevice *device) const
   if (! isLine()) {
     CQChartsGeom::BBox pbbox = calcRect();
 
-    QRectF pqrect = pbbox.qrect();
-
     //---
 
     QString ystr;
 
-    if      (plot_->isValueCount()) {
-      ystr = QString("%1").arg(count());
-    }
-    else if (plot_->isValueRange()) {
-      ystr = QString("%1-%2").arg(minValue()).arg(maxValue());
-    }
-    else if (plot_->isValueMin()) {
-      ystr = QString("%1").arg(maxValue());
-    }
-    else if (plot_->isValueMax()) {
-      ystr = QString("%1").arg(maxValue());
-    }
-    else if (plot_->isValueMean()) {
-      ystr = QString("%1").arg(maxValue());
-    }
-    else if (plot_->isValueSum()) {
-      ystr = QString("%1").arg(maxValue());
-    }
+    if      (plot_->isValueCount()) { ystr = QString("%1").arg(count()); }
+    else if (plot_->isValueRange()) { ystr = QString("%1-%2").arg(minValue()).arg(maxValue()); }
+    else if (plot_->isValueMin  ()) { ystr = QString("%1").arg(maxValue()); }
+    else if (plot_->isValueMax  ()) { ystr = QString("%1").arg(maxValue()); }
+    else if (plot_->isValueMean ()) { ystr = QString("%1").arg(maxValue()); }
+    else if (plot_->isValueSum  ()) { ystr = QString("%1").arg(maxValue()); }
 
-    plot_->dataLabel()->draw(device, device->pixelToWindow(pqrect), ystr);
+    plot_->dataLabel()->draw(device, device->pixelToWindow(pbbox).qrect(), ystr);
   }
 
   //---
@@ -3578,9 +3571,11 @@ getBarColoredRects(ColorData &colorData) const
 
 void
 CQChartsDistributionBarObj::
-drawRect(CQChartsPaintDevice *device, const QRectF &pqrect,
+drawRect(CQChartsPaintDevice *device, const CQChartsGeom::BBox &pbbox,
          const CQChartsColor &color, bool useLine) const
 {
+  CQChartsGeom::BBox bbox = device->pixelToWindow(pbbox);
+
   // calc pen and brush
   CQChartsPenBrush barPenBrush;
 
@@ -3599,21 +3594,19 @@ drawRect(CQChartsPaintDevice *device, const QRectF &pqrect,
   if (! plot_->isDotLines()) {
     // draw rect
     if (! useLine) {
-      CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pqrect),
+      CQChartsDrawUtil::drawRoundedPolygon(device, bbox.qrect(),
                                            plot_->barCornerSize(), plot_->barCornerSize());
     }
     else {
-      if (pqrect.width() < pqrect.height()) { // vertical
-        double xc = pqrect.center().x();
+      if (pbbox.getWidth() < pbbox.getHeight()) { // vertical
+        double xc = bbox.getXMid();
 
-        device->drawLine(device->pixelToWindow(QPointF(xc, pqrect.bottom())),
-                         device->pixelToWindow(QPointF(xc, pqrect.top   ())));
+        device->drawLine(QPointF(xc, bbox.getYMin()), QPointF(xc, bbox.getYMax()));
       }
       else {
-        double yc = pqrect.center().y();
+        double yc = bbox.getYMid();
 
-        device->drawLine(device->pixelToWindow(QPointF(pqrect.left (), yc)),
-                         device->pixelToWindow(QPointF(pqrect.right(), yc)));
+        device->drawLine(QPointF(bbox.getXMin(), yc), QPointF(bbox.getXMax(), yc));
       }
     }
   }
@@ -3622,27 +3615,35 @@ drawRect(CQChartsPaintDevice *device, const QRectF &pqrect,
     double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), ! plot_->isHorizontal());
 
     if (! plot_->isHorizontal()) {
-      double xc = pqrect.center().x();
+      if (lw < 3.0) {
+        double xc = bbox.getXMid();
 
-      if (lw < 3)
-        device->drawLine(device->pixelToWindow(QPointF(xc, pqrect.bottom())),
-                         device->pixelToWindow(QPointF(xc, pqrect.top   ())));
+        device->drawLine(QPointF(xc, bbox.getYMin()), QPointF(xc, bbox.getYMax()));
+      }
       else {
-        QRectF pqrect1(xc - lw/2, pqrect.top(), lw, pqrect.height());
+        double pxc = pbbox.getXMid();
 
-        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pqrect1));
+        CQChartsGeom::BBox pbbox1(pxc - lw/2.0, pbbox.getYMin(), pxc + lw/2.0, pbbox.getYMax());
+
+        CQChartsGeom::BBox bbox1 = device->pixelToWindow(pbbox1);
+
+        CQChartsDrawUtil::drawRoundedPolygon(device, bbox1.qrect());
       }
     }
     else {
-      double yc = pqrect.center().y();
+      if (lw < 3.0) {
+        double yc = bbox.getYMid();
 
-      if (lw < 3)
-        device->drawLine(device->pixelToWindow(QPointF(pqrect.left (), yc)),
-                         device->pixelToWindow(QPointF(pqrect.right(), yc)));
+        device->drawLine(QPointF(bbox.getXMin(), yc), QPointF(bbox.getXMax(), yc));
+      }
       else {
-        QRectF pqrect1(pqrect.left(), yc - lw/2, pqrect.width(), lw);
+        double pyc = pbbox.getYMid();
 
-        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pqrect1));
+        CQChartsGeom::BBox pbbox1(pbbox.getXMin(), pyc - lw/2.0, pbbox.getXMax(), pyc + lw/2.0);
+
+        CQChartsGeom::BBox bbox1 = device->pixelToWindow(pbbox1);
+
+        CQChartsDrawUtil::drawRoundedPolygon(device, bbox1.qrect());
       }
     }
 
@@ -3669,11 +3670,11 @@ drawRect(CQChartsPaintDevice *device, const QRectF &pqrect,
     QPointF p;
 
     if (! plot_->isHorizontal())
-      p = QPointF(pqrect.center().x(), pqrect.top());
+      p = QPointF(bbox.getXMid(), bbox.getYMax());
     else
-      p = QPointF(pqrect.right(), pqrect.center().y());
+      p = QPointF(bbox.getXMax(), bbox.getYMid());
 
-    plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize);
+    plot_->drawSymbol(device, p, symbolType, symbolSize);
   }
 
   device->resetColorNames();
@@ -3725,9 +3726,7 @@ isUseLine() const
   if (! plot_->isDotLines()) {
     CQChartsGeom::BBox pbbox = calcRect();
 
-    QRectF pqrect = pbbox.qrect();
-
-    double s = (! plot_->isHorizontal() ? pqrect.width() : pqrect.height());
+    double s = (! plot_->isHorizontal() ? pbbox.getWidth() : pbbox.getHeight());
 
     useLine = (s <= 2);
   }
@@ -3972,7 +3971,7 @@ draw(CQChartsPaintDevice *device)
 
       CQChartsGeom::BBox pbbox = plot_->windowToPixel(bbox);
 
-      device->drawRect(device->pixelToWindow(pbbox.qrect()));
+      device->drawRect(device->pixelToWindow(pbbox).qrect());
     }
   }
 
@@ -4224,14 +4223,14 @@ draw(CQChartsPaintDevice *device)
   CQChartsSymbol symbolType(CQChartsSymbol::Type::CIRCLE);
   CQChartsLength symbolSize(6, CQChartsUnits::PIXEL);
 
-  QPointF tl = prect.qrect().topLeft();
+  QPointF pc = prect.getCenter().qpoint();
 
   if (! plot_->isHorizontal()) {
     for (const auto &point : points_) {
       double px = plot_->windowToPixelWidth (point.x());
       double py = plot_->windowToPixelHeight(point.y());
 
-      QPointF p(tl.x() + px, tl.y() + py);
+      QPointF p(pc.x() - px/2, pc.y() - py/2);
 
       plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize, penBrush);
     }
@@ -4241,7 +4240,7 @@ draw(CQChartsPaintDevice *device)
       double px = plot_->windowToPixelWidth (point.y());
       double py = plot_->windowToPixelHeight(point.x());
 
-      QPointF p(tl.x() + px, tl.y() + py);
+      QPointF p(pc.x() - px/2, pc.y() - py/2);
 
       plot_->drawSymbol(device, device->pixelToWindow(p), symbolType, symbolSize, penBrush);
     }

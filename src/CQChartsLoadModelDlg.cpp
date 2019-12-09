@@ -514,13 +514,10 @@ updateColumns()
         columns_.push_back(c.c_str());
     }
     else {
-      int ic = 1;
+      int nc = columns.size();
 
-      for (auto &c : columns) {
+      for (int ic = 1; ic <= nc; ++ic)
         columns_.push_back(QString("%1").arg(ic));
-
-        ++ic;
-      }
     }
 
     for (const auto &l : metaLines_) {

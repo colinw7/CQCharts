@@ -431,7 +431,7 @@ CQChartsGeom::BBox
 CQChartsPivotPlot::
 calcAnnotationBBox() const
 {
-  CQPerfTrace trace("CQChartsPivotPlot::annotationBBox");
+  CQPerfTrace trace("CQChartsPivotPlot::calcAnnotationBBox");
 
   CQChartsGeom::BBox bbox;
 
@@ -1127,7 +1127,7 @@ dataLabelRect() const
 
   QString label = QString("%1").arg(value());
 
-  return plot_->dataLabel()->calcRect(prect.qrect(), label);
+  return plot_->dataLabel()->calcRect(prect, label);
 }
 
 //---
@@ -1569,24 +1569,8 @@ draw(CQChartsPaintDevice *device)
   // calc bar box
   CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
-  QRectF qrect = prect.qrect();
-
   double m  = 4;
-  double bs = std::min(std::min(qrect.width ()/2 - 2*m, qrect.height()/2 - 2*m), 32.0);
-  double tw = qrect.width () - bs - 3*m;
-  double th = qrect.height() - bs - 3*m;
-
-  double bw = qrect.width () - bs - 3*m;
-  double bh = qrect.height() - bs - 3*m;
-
-  QRectF qrecth1(qrect.left () + m, qrect.bottom() - bs - m, bw*hnorm_, bs);
-  QRectF qrecth2(qrect.left () + m, qrect.bottom() - bs - m, bw       , bs);
-
-  QRectF qrectv1(qrect.right() - m - bs, qrect.top() + m, bs, bh*vnorm_);
-  QRectF qrectv2(qrect.right() - m - bs, qrect.top() + m, bs, bh       );
-
-  // calc text box
-  QRectF qrectt(qrect.left() + m, qrect.top() + m, tw, th);
+  double bs = std::min(std::min(prect.getWidth()/2 - 2*m, prect.getHeight()/2 - 2*m), 32.0);
 
   //---
 
@@ -1603,7 +1587,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, bgPenBrush);
 
-  device->drawRect(device->pixelToWindow(qrect));
+  device->drawRect(device->pixelToWindow(prect).qrect());
 
   device->resetColorNames();
 
@@ -1634,20 +1618,33 @@ draw(CQChartsPaintDevice *device)
 
     plot_->view()->setPlotPainterFont(plot_, device, plot_->dataLabel()->textFont());
 
-    QRectF tr;
+    CQChartsGeom::BBox tbbox;
 
-    if (plot_->isGridBars())
-      tr = device->pixelToWindow(qrectt);
+    if (plot_->isGridBars()) {
+      // calc text box
+      double tw = prect.getWidth () - bs - 3*m;
+      double th = prect.getHeight() - bs - 3*m;
+
+      CQChartsGeom::BBox tbbox1(prect.getXMin() + m     , prect.getYMin() + m,
+                                prect.getXMin() + m + tw, prect.getYMin() + m + th);
+
+      tbbox = device->pixelToWindow(tbbox1);
+    }
     else
-      tr = device->pixelToWindow(qrect);
+      tbbox = device->pixelToWindow(prect);
 
-    CQChartsDrawUtil::drawTextInBox(device, tr, valueStr, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, tbbox.qrect(), valueStr, textOptions);
   }
 
   //---
 
   // calc bar pen and brush and draw
   if (valid_ && plot_->isGridBars()) {
+    double bw = prect.getWidth () - bs - 3*m;
+    double bh = prect.getHeight() - bs - 3*m;
+
+    //---
+
     CQChartsPenBrush fgPenBrush;
 
     calcFgPenBrush(fgPenBrush, updateState);
@@ -1658,7 +1655,10 @@ draw(CQChartsPaintDevice *device)
 
     CQChartsDrawUtil::setPenBrush(device, fgPenBrush);
 
-    device->drawRect(device->pixelToWindow(qrecth2));
+    CQChartsGeom::BBox bboxh2(prect.getXMin() + m     , prect.getYMax() - bs - m,
+                              prect.getXMin() + m + bw, prect.getYMax()      - m);
+
+    device->drawRect(device->pixelToWindow(bboxh2).qrect());
 
     device->resetColorNames();
 
@@ -1667,7 +1667,10 @@ draw(CQChartsPaintDevice *device)
     device->setPen(Qt::NoPen);
     device->setBrush(hbg);
 
-    device->drawRect(device->pixelToWindow(qrecth1));
+    CQChartsGeom::BBox bboxh1(prect.getXMin() + m            , prect.getYMax() - bs - m,
+                              prect.getXMin() + m + bw*hnorm_, prect.getYMax()      - m);
+
+    device->drawRect(device->pixelToWindow(bboxh1).qrect());
 
     //---
 
@@ -1675,7 +1678,10 @@ draw(CQChartsPaintDevice *device)
 
     CQChartsDrawUtil::setPenBrush(device, fgPenBrush);
 
-    device->drawRect(device->pixelToWindow(qrectv2));
+    CQChartsGeom::BBox bboxv2(prect.getXMax() - m - bs, prect.getYMin() + m,
+                              prect.getXMax() - m     , prect.getYMin() + m + bh);
+
+    device->drawRect(device->pixelToWindow(bboxv2).qrect());
 
     device->resetColorNames();
 
@@ -1684,7 +1690,10 @@ draw(CQChartsPaintDevice *device)
     device->setPen(Qt::NoPen);
     device->setBrush(vbg);
 
-    device->drawRect(device->pixelToWindow(qrectv1));
+    CQChartsGeom::BBox bboxv1(prect.getXMax() - m - bs, prect.getYMin() + m,
+                              prect.getXMax() - m     , prect.getYMin() + m + bh*vnorm_);
+
+    device->drawRect(device->pixelToWindow(bboxv1).qrect());
   }
 }
 

@@ -485,16 +485,18 @@ drawXLabels(CQChartsPaintDevice *device) const
   double tw = 0.0;
   double th = 0.0;
 
-  for (int col = 0; col < numColumns(); ++col) {
+  for (int c = 0; c < numColumns(); ++c) {
+    CQChartsColumn col(c);
+
     bool ok;
 
-    QString name = modelHeaderString(col, Qt::Horizontal, ok);
+    QString name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
     QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
                                                  textOptions, 0, /*alignBBox*/ true);
 
-    colRects[col] = trect;
+    colRects[c] = trect;
 
     tw = std::max(tw, trect.width ());
     th = std::max(th, trect.height());
@@ -504,28 +506,31 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   double tm = 4;
 
-  for (int col = 0; col < numColumns(); ++col) {
+  for (int c = 0; c < numColumns(); ++c) {
+    CQChartsColumn col(c);
+
     bool ok;
 
-    QString name = modelHeaderString(col, Qt::Horizontal, ok);
+    QString name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
-    QPointF p(col + 0.5, 0);
+    QPointF p(c + 0.5, 0);
 
     QPointF p1 = windowToPixel(p);
 
-    QRectF trect = colRects[col];
+    QRectF trect = colRects[c];
 
     double tw1 = trect.width();
 
-    QRectF trect1;
+    CQChartsGeom::BBox tbbox1;
 
     if (! isInvertY())
-      trect1 = QRectF(p1.x() - tw1/2, p1.y() + tm, tw1, th);
+      tbbox1 = CQChartsGeom::BBox(p1.x() - tw1/2, p1.y() + tm, p1.x() + tw1/2, p1.y() + tm + th);
     else
-      trect1 = QRectF(p1.x() - tw1/2, p1.y() - th - tm, tw1, th);
+      tbbox1 = CQChartsGeom::BBox(p1.x() - tw1/2, p1.y() - th - tm, p1.x() + tw1/2, p1.y() - tm);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect1), name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1).qrect(),
+                                    name, textOptions);
   }
 }
 
@@ -575,7 +580,7 @@ drawYLabels(CQChartsPaintDevice *device) const
   for (int row = 0; row < numRows(); ++row) {
     bool ok;
 
-    QString name = modelHeaderString(row, Qt::Vertical, ok);
+    QString name = modelVHeaderString(row, Qt::Vertical, ok);
     if (! name.length()) continue;
 
     QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
@@ -594,7 +599,7 @@ drawYLabels(CQChartsPaintDevice *device) const
   for (int row = 0; row < numRows(); ++row) {
     bool ok;
 
-    QString name = modelHeaderString(row, Qt::Vertical, ok);
+    QString name = modelVHeaderString(row, Qt::Vertical, ok);
     if (! name.length()) continue;
 
     QPointF p(0, row + 0.5);
@@ -605,14 +610,15 @@ drawYLabels(CQChartsPaintDevice *device) const
 
     double th1 = trect.height();
 
-    QRectF trect1;
+    CQChartsGeom::BBox tbbox1;
 
     if (! isInvertX())
-      trect1 = QRectF(p1.x() - tw - tm, p1.y() - th1/2.0, tw, th1);
+      tbbox1 = CQChartsGeom::BBox(p1.x() - tw - tm, p1.y() - th1/2, p1.x() - tm, p1.y() + th1/2);
     else
-      trect1 = QRectF(p1.x() + tm, p1.y() - th1/2.0, tw, th1);
+      tbbox1 = CQChartsGeom::BBox(p1.x() + tm, p1.y() - th1/2, p1.x() + tm + tw, p1.y() + th1/2);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect1), name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1).qrect(),
+                                    name, textOptions);
   }
 }
 
@@ -622,7 +628,7 @@ CQChartsGeom::BBox
 CQChartsImagePlot::
 calcAnnotationBBox() const
 {
-  CQPerfTrace trace("CQChartsImagePlot::annotationBBox");
+  CQPerfTrace trace("CQChartsImagePlot::calcAnnotationBBox");
 
   QFont font = view()->plotFont(this, cellLabelTextFont());
 
@@ -635,10 +641,12 @@ calcAnnotationBBox() const
   if (isXLabels()) {
     double tw = 0.0;
 
-    for (int col = 0; col < numColumns(); ++col) {
+    for (int c = 0; c < numColumns(); ++c) {
+      CQChartsColumn col(c);
+
       bool ok;
 
-      QString name = modelHeaderString(col, Qt::Horizontal, ok);
+      QString name = modelHHeaderString(col, ok);
       if (! name.length()) continue;
 
       tw = std::max(tw, fm.width(name));
@@ -657,7 +665,7 @@ calcAnnotationBBox() const
     for (int row = 0; row < numRows(); ++row) {
       bool ok;
 
-      QString name = modelHeaderString(row, Qt::Vertical, ok);
+      QString name = modelVHeaderString(row, Qt::Vertical, ok);
       if (! name.length()) continue;
 
       tw = std::max(tw, fm.width(name));
@@ -701,8 +709,8 @@ calcTipId() const
 
   bool ok;
 
-  QString xname = plot_->modelHeaderString(CQChartsColumn(modelInd().column()), ok);
-  QString yname = plot_->modelHeaderString(modelInd().row(), Qt::Vertical, ok);
+  QString xname = plot_->modelHHeaderString(CQChartsColumn(modelInd().column()), ok);
+  QString yname = plot_->modelVHeaderString(modelInd().row(), Qt::Vertical, ok);
 
   if (xname.length())
     tableTip.addTableRow("X", xname);
@@ -748,9 +756,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   if      (plot_->cellStyle() == CQChartsImagePlot::CellStyle::RECT) {
-    QRectF qrect = rect().qrect();
-
-    device->drawRect(qrect);
+    device->drawRect(rect().qrect());
 
     //---
 
@@ -800,28 +806,25 @@ draw(CQChartsPaintDevice *device)
 
       textOptions = plot_->adjustTextOptions(textOptions);
 
-      CQChartsDrawUtil::drawTextInBox(device, qrect, valueStr, textOptions);
+      CQChartsDrawUtil::drawTextInBox(device, rect().qrect(), valueStr, textOptions);
     }
   }
   else if  (plot_->cellStyle() == CQChartsImagePlot::CellStyle::BALLOON) {
     CQChartsGeom::BBox prect = plot_->windowToPixel(rect());
 
-    QRectF qrect = prect.qrect();
-
-    double s = std::min(qrect.width(), qrect.height());
+    double s = std::min(prect.getWidth(), prect.getHeight());
 
     double minSize = s*plot_->minBalloonSize();
     double maxSize = s*plot_->maxBalloonSize();
 
     double s1 = CMathUtil::map(value(), plot_->minValue(), plot_->maxValue(), minSize, maxSize);
 
-    QPointF center = qrect.center();
-
     //---
 
-    QRectF erect(center.x() - s1/2, center.y() - s1/2, s1, s1);
+    CQChartsGeom::BBox ebbox(prect.getXMid() - s1/2, prect.getYMid() - s1/2,
+                             prect.getXMid() + s1/2, prect.getYMid() + s1/2);
 
-    device->drawEllipse(device->pixelToWindow(erect));
+    device->drawEllipse(device->pixelToWindow(ebbox).qrect());
   }
 
   //---

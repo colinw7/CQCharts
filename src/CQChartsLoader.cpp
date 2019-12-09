@@ -440,8 +440,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
     for (int c = 0; c < nc; ++c) {
       bool ok;
 
-      columnNames[c] =
-        CQChartsModelUtil::modelHeaderString(model, c, Qt::Horizontal, ok);
+      columnNames[c] = CQChartsModelUtil::modelHeaderString(model, c, Qt::Horizontal, ok);
 
       CMathCorrelation::Values &values = columnValues[c];
 
@@ -462,8 +461,7 @@ createCorrelationModel(QAbstractItemModel *model, bool flip)
     for (int r = 0; r < nr; ++r) {
       bool ok;
 
-      columnNames[r] =
-        CQChartsModelUtil::modelHeaderString(model, r, Qt::Vertical, ok);
+      columnNames[r] = CQChartsModelUtil::modelHeaderString(model, r, Qt::Vertical, ok);
 
       CMathCorrelation::Values &values = columnValues[r];
 
