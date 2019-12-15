@@ -182,12 +182,18 @@ CQChartsViewPlotPainter::
 restore()
 {
   painter_->restore();
+
+  clipPath_ = QPainterPath();
+  clipRect_ = QRect();
 }
 
 void
 CQChartsViewPlotPainter::
 setClipPath(const QPainterPath &path, Qt::ClipOperation operation)
 {
+  clipPath_ = path;
+  clipRect_ = QRect();
+
   QPainterPath ppath = windowToPixel(path);
 
   painter_->setClipPath(ppath, operation);
@@ -199,9 +205,24 @@ setClipRect(const QRectF &rect, Qt::ClipOperation operation)
 {
   if (! rect.isValid()) return;
 
+  clipRect_ = rect;
+  clipPath_ = QPainterPath();
+
   QRectF prect = windowToPixel(rect);
 
   painter_->setClipRect(prect, operation);
+}
+
+QRectF
+CQChartsViewPlotPainter::
+clipRect() const
+{
+  if      (clipRect_.isValid())
+    return clipRect_;
+  else if (clipPath_.isEmpty())
+    return clipPath_.boundingRect();
+  else
+    return QRectF();
 }
 
 QPen

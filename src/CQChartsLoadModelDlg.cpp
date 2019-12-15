@@ -15,9 +15,11 @@
 #include <CQTclUtil.h>
 #include <CQTableWidget.h>
 #include <CCsv.h>
+#include <CTsv.h>
 
 #include <QComboBox>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QCheckBox>
 #include <QTextBrowser>
 #include <QLabel>
@@ -90,7 +92,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   //--
 
   // Expression Row Number Edit
-  numberEdit_ = CQUtil::makeWidget<CQLineEdit>("numerEdit");
+  numberEdit_ = CQUtil::makeWidget<CQLineEdit>("numberEdit");
 
   numberEdit_->setText(QString("%1").arg(expressionRows()));
   numberEdit_->setToolTip("Number of rows to generate for expression");
@@ -102,22 +104,48 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   //--
 
-  // Option Checks
-  auto optionLayout = CQUtil::makeLayout<QHBoxLayout>(2, 2);
+  // Horizontal Header Checks
+  fileFrameLayout->addWidget(
+    CQUtil::makeLabelWidget<QLabel>("Horizontal Header", "hheaderLabel"), row, 0);
+
+  auto hheaderFrame  = CQUtil::makeWidget<QFrame>("hheaderFrame");
+  auto hheaderLayout = CQUtil::makeLayout<QHBoxLayout>(hheaderFrame, 0, 2);
+
+  noHeaderCheck_ =
+    CQUtil::makeLabelWidget<QRadioButton>("None", "noneHeaderCheck");
+
+  noHeaderCheck_->setToolTip("No horizontal header");
+
+  connect(noHeaderCheck_, SIGNAL(toggled(bool)), this, SLOT(updatePreviewSlot()));
 
   commentHeaderCheck_ =
-    CQUtil::makeLabelWidget<QCheckBox>("Comment Header", "commentHeaderCheck");
-
-  connect(commentHeaderCheck_, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewSlot()));
+    CQUtil::makeLabelWidget<QRadioButton>("Comment", "commentHeaderCheck");
 
   commentHeaderCheck_->setToolTip("Use first comment for horizontal header");
 
-  firstLineHeaderCheck_ =
-    CQUtil::makeLabelWidget<QCheckBox>("First Line Header", "firstLineHeaderCheck");
+  connect(commentHeaderCheck_, SIGNAL(toggled(bool)), this, SLOT(updatePreviewSlot()));
 
-  connect(firstLineHeaderCheck_, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewSlot()));
+  firstLineHeaderCheck_ =
+    CQUtil::makeLabelWidget<QRadioButton>("First Line", "firstLineHeaderCheck");
 
   firstLineHeaderCheck_->setToolTip("Use first non-comment line for horizontal header");
+
+  connect(firstLineHeaderCheck_, SIGNAL(toggled(bool)), this, SLOT(updatePreviewSlot()));
+
+  hheaderLayout->addWidget (noHeaderCheck_);
+  hheaderLayout->addWidget (commentHeaderCheck_);
+  hheaderLayout->addWidget (firstLineHeaderCheck_);
+  hheaderLayout->addStretch(1);
+
+  fileFrameLayout->addWidget(hheaderFrame, row, 1);
+
+  ++row;
+
+  //---
+
+  // Vertical Header Checks
+  fileFrameLayout->addWidget(
+    CQUtil::makeLabelWidget<QLabel>("Vertical Header", "vheaderLabel"), row, 0);
 
   firstColumnHeaderCheck_ =
     CQUtil::makeLabelWidget<QCheckBox>("First Column Header", "firstColumnHeaderCheck");
@@ -126,12 +154,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
 
   firstColumnHeaderCheck_->setToolTip("Use first column for vertical header");
 
-  optionLayout->addWidget(commentHeaderCheck_);
-  optionLayout->addWidget(firstLineHeaderCheck_);
-  optionLayout->addWidget(firstColumnHeaderCheck_);
-  optionLayout->addStretch(1);
-
-  fileFrameLayout->addLayout(optionLayout, row, 0, 1, 2);
+  fileFrameLayout->addWidget(firstColumnHeaderCheck_, row, 1);
 
   ++row;
 
@@ -310,6 +333,8 @@ previewFileSlot()
     return (lineNum < previewLines());
   };
 
+  bool allowMeta = (typeCombo_->currentIndex() == 0); // CSV
+
   for (int i = 0; i < lines.length(); ++i) {
     const QString &line = lines[i];
 
@@ -320,7 +345,7 @@ previewFileSlot()
     // handle comments
     if (parse.isChar('#')) {
       if (! inMeta) {
-        if (parse.isString("#META_DATA")) {
+        if (allowMeta && parse.isString("#META_DATA")) {
           inMeta = true;
 
           if (! addLine(LineType::META, line))
@@ -341,6 +366,8 @@ previewFileSlot()
         }
       }
       else {
+        assert(allowMeta);
+
         if (parse.isString("#END_META_DATA")) {
           inMeta = false;
 
@@ -440,6 +467,17 @@ updatePreviewSlot()
 
   //---
 
+  setMetaText();
+
+  //---
+
+  updateColumns();
+}
+
+void
+CQChartsLoadModelDlg::
+setMetaText()
+{
   QString metaText;
 
   for (const auto &l : metaLines_) {
@@ -450,10 +488,6 @@ updatePreviewSlot()
   }
 
   metaTextEdit_->setText(metaText);
-
-  //---
-
-  updateColumns();
 }
 
 void
@@ -467,6 +501,13 @@ typeSlot()
   //---
 
   updateColumns();
+
+  if      (typeCombo_->currentIndex() == 0)
+    fileEdit_->setPattern("CSV Files (*.csv)");
+  else if (typeCombo_->currentIndex() == 1)
+    fileEdit_->setPattern("TSV Files (*.tsv)");
+  else if (typeCombo_->currentIndex() == 2)
+    fileEdit_->setPattern("Gnuplot Files (*.data)");
 }
 
 void
@@ -476,84 +517,11 @@ updateColumns()
   columns_    .clear();
   columnTypes_.clear();
 
-  bool hasHeader = false;
-
-  if (typeCombo_->currentIndex() == 0) { // CSV
-    QString headerText;
-
-    if      (commentHeaderCheck_->isChecked()) {
-      CQStrParse parse(firstComment_);
-
-      parse.skipSpace();
-
-      if (parse.isChar('#'))
-        parse.skipChar();
-
-      parse.skipSpace();
-
-      headerText = parse.getAt();
-      hasHeader  = true;
-    }
-    else if (firstLineHeaderCheck_->isChecked()) {
-      headerText = firstLine_;
-      hasHeader  = true;
-    }
-    else {
-      headerText = firstLine_;
-      hasHeader  = false;
-    }
-
-    CCsv csv;
-
-    CCsv::Fields columns;
-
-    csv.stringToColumns(headerText.toStdString(), columns);
-
-    if (hasHeader) {
-      for (auto &c : columns)
-        columns_.push_back(c.c_str());
-    }
-    else {
-      int nc = columns.size();
-
-      for (int ic = 1; ic <= nc; ++ic)
-        columns_.push_back(QString("%1").arg(ic));
-    }
-
-    for (const auto &l : metaLines_) {
-      CQStrParse parse(l);
-
-      parse.skipSpace();
-
-      if (parse.isChar('#'))
-        parse.skipChar();
-
-      parse.skipSpace();
-
-      QString l1 = parse.getAt();
-
-      CCsv::Fields metaColumns;
-
-      csv.stringToColumns(l1.toStdString(), metaColumns);
-
-      if (metaColumns.size() == 4) {
-        if (metaColumns[0] == "column") {
-          QString colName = metaColumns[1].c_str();
-
-          if (metaColumns[2] == "type") {
-            QString type = metaColumns[3].c_str();
-
-            columnTypes_[colName] = type;
-          }
-          else {
-            QString name  = metaColumns[2].c_str();
-            QString value = metaColumns[3].c_str();
-
-            columnData_[colName][name] = value;
-          }
-        }
-      }
-    }
+  if      (typeCombo_->currentIndex() == 0) { // CSV
+    parseCSVColumns();
+  }
+  else if (typeCombo_->currentIndex() == 1) { // TSV
+    parseTSVColumns();
   }
 
   //---
@@ -647,6 +615,136 @@ updateColumns()
   }
 }
 
+void
+CQChartsLoadModelDlg::
+parseCSVColumns()
+{
+  QString headerText;
+
+  bool hasHeader = false;
+
+  if      (commentHeaderCheck_->isChecked()) {
+    CQStrParse parse(firstComment_);
+
+    parse.skipSpace();
+
+    if (parse.isChar('#'))
+      parse.skipChar();
+
+    parse.skipSpace();
+
+    headerText = parse.getAt();
+    hasHeader  = true;
+  }
+  else if (firstLineHeaderCheck_->isChecked()) {
+    headerText = firstLine_;
+    hasHeader  = true;
+  }
+  else {
+    headerText = firstLine_;
+    hasHeader  = false;
+  }
+
+  CCsv csv;
+
+  CCsv::Fields columns;
+
+  csv.stringToColumns(headerText.toStdString(), columns);
+
+  if (hasHeader) {
+    for (auto &c : columns)
+      columns_.push_back(c.c_str());
+  }
+  else {
+    int nc = columns.size();
+
+    for (int ic = 1; ic <= nc; ++ic)
+      columns_.push_back(QString("%1").arg(ic));
+  }
+
+  for (const auto &l : metaLines_) {
+    CQStrParse parse(l);
+
+    parse.skipSpace();
+
+    if (parse.isChar('#'))
+      parse.skipChar();
+
+    parse.skipSpace();
+
+    QString l1 = parse.getAt();
+
+    CCsv::Fields metaColumns;
+
+    csv.stringToColumns(l1.toStdString(), metaColumns);
+
+    if (metaColumns.size() == 4) {
+      if (metaColumns[0] == "column") {
+        QString colName = metaColumns[1].c_str();
+
+        if (metaColumns[2] == "type") {
+          QString type = metaColumns[3].c_str();
+
+          columnTypes_[colName] = type;
+        }
+        else {
+          QString name  = metaColumns[2].c_str();
+          QString value = metaColumns[3].c_str();
+
+          columnData_[colName][name] = value;
+        }
+      }
+    }
+  }
+}
+
+void
+CQChartsLoadModelDlg::
+parseTSVColumns()
+{
+  QString headerText;
+
+  bool hasHeader = false;
+
+  if      (commentHeaderCheck_->isChecked()) {
+    CQStrParse parse(firstComment_);
+
+    parse.skipSpace();
+
+    if (parse.isChar('#'))
+      parse.skipChar();
+
+    parse.skipSpace();
+
+    headerText = parse.getAt();
+    hasHeader  = true;
+  }
+  else if (firstLineHeaderCheck_->isChecked()) {
+    headerText = firstLine_;
+    hasHeader  = true;
+  }
+  else {
+    headerText = firstLine_;
+    hasHeader  = false;
+  }
+
+  CTsv tsv;
+
+  CCsv::Fields columns;
+
+  tsv.stringToColumns(headerText.toStdString(), columns);
+
+  if (hasHeader) {
+    for (auto &c : columns)
+      columns_.push_back(c.c_str());
+  }
+  else {
+    int nc = columns.size();
+
+    for (int ic = 1; ic <= nc; ++ic)
+      columns_.push_back(QString("%1").arg(ic));
+  }
+}
 
 void
 CQChartsLoadModelDlg::
@@ -772,9 +870,8 @@ sizeHint() const
 {
   QFontMetrics fm(font());
 
-  QSize s = QDialog::sizeHint();
+  int w = fm.width("X")*65;
+  int h = fm.height()*45;
 
-  int h = fm.height()*40;
-
-  return QSize(s.width(), h);
+  return QSize(w, h);
 }

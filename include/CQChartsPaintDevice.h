@@ -19,6 +19,12 @@ class CQChartsPaintDevice {
   CQChartsPaintDevice(CQChartsPlot *plot) : plot_(plot) { }
   CQChartsPaintDevice() { }
 
+  const CQChartsView *view() const { return view_; }
+  void setView(CQChartsView *p) { view_ = p; }
+
+  const CQChartsPlot *plot() const { return plot_; }
+  void setPlot(CQChartsPlot *p) { plot_ = p; }
+
   virtual Type type() const = 0;
 
   virtual bool isInteractive() const { return false; }
@@ -28,6 +34,8 @@ class CQChartsPaintDevice {
 
   virtual void setClipPath(const QPainterPath &, Qt::ClipOperation=Qt::ReplaceClip) { }
   virtual void setClipRect(const QRectF &, Qt::ClipOperation=Qt::ReplaceClip) { }
+
+  virtual QRectF clipRect() const { return QRectF(); }
 
   virtual QPen pen() const { return QPen(); }
   virtual void setPen(const QPen &) { }
@@ -127,6 +135,8 @@ class CQChartsViewPlotPainter : public CQChartsPaintDevice {
   void setClipPath(const QPainterPath &path, Qt::ClipOperation operation) override;
   void setClipRect(const QRectF &rect, Qt::ClipOperation operation) override;
 
+  QRectF clipRect() const override;
+
   QPen pen() const override;
   void setPen(const QPen &pen) override;
 
@@ -170,7 +180,9 @@ class CQChartsViewPlotPainter : public CQChartsPaintDevice {
   void setRenderHints(QPainter::RenderHints hints, bool on) override;
 
  private:
-  QPainter* painter_ { nullptr };
+  QPainter*    painter_ { nullptr };
+  QRectF       clipRect_;
+  QPainterPath clipPath_;
 };
 
 //---

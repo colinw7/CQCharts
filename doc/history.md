@@ -1012,3 +1012,5 @@
  + Consistent text scale for correlation plot
  + Fix idistribution scatter plot axis
  + Improve load model dialog to show meta information and column types
+# 12/15/2019
+ + Fix bugs in X1/X2 overlay plot (range and title position)

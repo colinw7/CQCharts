@@ -18,6 +18,6 @@ set_charts_property -plot $plot -name margins.inner.right  -value 50px
 set_charts_property -plot $plot -name margins.inner.bottom -value 50px
 set_charts_property -plot $plot -name margins.inner.top    -value 50px
 
-set_charts_property -plot $plot -name mapping_font_size.enabled -value 1
-set_charts_property -plot $plot -name mapping_font_size.min     -value "5"
-set_charts_property -plot $plot -name mapping_font_size.max     -value "40"
+set_charts_property -plot $plot -name mapping.fontSize.enabled -value 1
+set_charts_property -plot $plot -name mapping.fontSize.min     -value "5"
+set_charts_property -plot $plot -name mapping.fontSize.max     -value "40"

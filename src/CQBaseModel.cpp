@@ -642,7 +642,7 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
   // generic column data
   if      (orientation == Qt::Horizontal) {
     if      (role == static_cast<int>(CQBaseModelRole::Type)) {
-      bool ok;
+      bool ok { false };
 
       CQBaseModelType type = variantToType(value, &ok);
       if (! ok) return false;
@@ -650,7 +650,7 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
       return setColumnType(section, type);
     }
     else if (role == static_cast<int>(CQBaseModelRole::BaseType)) {
-      bool ok;
+      bool ok { false };
 
       CQBaseModelType type = variantToType(value, &ok);
       if (! ok) return false;
@@ -771,7 +771,7 @@ modelColumnNameToInd(const QAbstractItemModel *model, const QString &name)
 
   //---
 
-  bool ok;
+  bool ok { false };
 
   int column = name.toInt(&ok);
 
@@ -836,7 +836,7 @@ CQBaseModel::
 typeStringToVariant(const QString &str, CQBaseModelType type)
 {
   if      (type == CQBaseModelType::REAL) {
-    bool ok;
+    bool ok { false };
 
     double real = toReal(str, ok);
 
@@ -844,7 +844,7 @@ typeStringToVariant(const QString &str, CQBaseModelType type)
       return QVariant(real);
   }
   else if (type == CQBaseModelType::INTEGER) {
-    bool ok;
+    bool ok { false };
 
     long integer = toInt(str, ok);
 
@@ -853,7 +853,7 @@ typeStringToVariant(const QString &str, CQBaseModelType type)
   }
 #if 0
   else if (type == CQBaseModelType::TIME) {
-    bool ok;
+    bool ok { false };
 
     double real = toReal(str, ok);
 

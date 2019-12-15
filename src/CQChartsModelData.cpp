@@ -105,6 +105,7 @@ CQChartsModelData(CQCharts *charts, ModelP &model) :
 CQChartsModelData::
 ~CQChartsModelData()
 {
+  delete propertyModel_;
   delete details_;
   delete summaryModelData_;
 }

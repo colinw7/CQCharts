@@ -273,6 +273,7 @@ removeExtraColumn(int column)
   return true;
 }
 
+#if 0
 bool
 CQChartsExprModel::
 assignColumn(int column, const QString &exprStr)
@@ -284,6 +285,7 @@ assignColumn(int column, const QString &exprStr)
 
   return assignColumn(header, column, expr);
 }
+#endif
 
 bool
 CQChartsExprModel::
@@ -2267,29 +2269,53 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
 
   const CQChartsColumnType *typeData = columnTypeMgr->getType(type);
 
-  const CQChartsColumnRealType *rtypeData = dynamic_cast<const CQChartsColumnRealType *>(typeData);
+  auto itypeData = dynamic_cast<const CQChartsColumnRealType *>(typeData);
+  auto rtypeData = dynamic_cast<const CQChartsColumnRealType *>(typeData);
 
-  if (! rtypeData)
-    return false;
+  if      (rtypeData) {
+    if (! rtypeData->rmin(nameValues, rmin)) {
+      if (modelData) {
+        bool ok;
 
-  //---
+        rmin = CQChartsVariant::toReal(
+          modelData->details()->columnDetails(CQChartsColumn(ind.column()))->minValue(), ok);
+      }
+    }
 
-  if (! rtypeData->rmin(nameValues, rmin)) {
-    if (modelData) {
-      bool ok;
+    if (! rtypeData->rmax(nameValues, rmax)) {
+      if (modelData) {
+        bool ok;
 
-      rmin = CQChartsVariant::toReal(
-        modelData->details()->columnDetails(CQChartsColumn(ind.column()))->minValue(), ok);
+        rmax = CQChartsVariant::toReal(
+          modelData->details()->columnDetails(CQChartsColumn(ind.column()))->maxValue(), ok);
+      }
     }
   }
+  else if (itypeData) {
+    if (! itypeData->rmin(nameValues, rmin)) {
+      if (modelData) {
+        bool ok;
 
-  if (! rtypeData->rmax(nameValues, rmax)) {
-    if (modelData) {
-      bool ok;
+        int imin = CQChartsVariant::toInt(
+          modelData->details()->columnDetails(CQChartsColumn(ind.column()))->minValue(), ok);
 
-      rmax = CQChartsVariant::toReal(
-        modelData->details()->columnDetails(CQChartsColumn(ind.column()))->maxValue(), ok);
+        rmin = imin;
+      }
     }
+
+    if (! itypeData->rmax(nameValues, rmax)) {
+      if (modelData) {
+        bool ok;
+
+        int imax = CQChartsVariant::toInt(
+          modelData->details()->columnDetails(CQChartsColumn(ind.column()))->maxValue(), ok);
+
+        rmax = imax;
+      }
+    }
+  }
+  else {
+    return false;
   }
 
   return true;

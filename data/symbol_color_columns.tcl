@@ -1,7 +1,7 @@
 set symbol_data [list \
  [list 1 10 circle    red] \
  [list 2 20 triangle  green] \
- [list 3 30 square    blue] \
+ [list 3 30 box       blue] \
  [list 4 20 star5     orange] \
  [list 5 15 star6     cyan] \
  [list 6 25 pentagon  yellow] \

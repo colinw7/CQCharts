@@ -1158,6 +1158,7 @@ QString modelString(CQCharts *charts, const QAbstractItemModel *model, int row,
   return str;
 }
 
+#if 0
 QString modelHierString(CQCharts *charts, const QAbstractItemModel *model, int row,
                         const CQChartsColumn &column, const QModelIndex &parent,
                         int role, bool &ok) {
@@ -1196,6 +1197,7 @@ QString modelHierString(CQCharts *charts, const QAbstractItemModel *model, int r
 
   return s;
 }
+#endif
 
 //---
 
@@ -1239,6 +1241,7 @@ double modelReal(CQCharts *charts, const QAbstractItemModel *model, int row,
   return r;
 }
 
+#if 0
 double modelHierReal(CQCharts *charts, const QAbstractItemModel *model, int row,
                      const CQChartsColumn &column, const QModelIndex &parent, int role, bool &ok) {
   double r = modelReal(charts, model, row, column, parent, role, ok);
@@ -1276,6 +1279,7 @@ double modelHierReal(CQCharts *charts, const QAbstractItemModel *model, int row,
 
   return r;
 }
+#endif
 
 //---
 
@@ -1319,6 +1323,7 @@ long modelInteger(CQCharts *charts, const QAbstractItemModel *model, int row,
   return l;
 }
 
+#if 0
 long modelHierInteger(CQCharts *charts, const QAbstractItemModel *model, int row,
                       const CQChartsColumn &column, const QModelIndex &parent,
                       int role, bool &ok) {
@@ -1357,6 +1362,7 @@ long modelHierInteger(CQCharts *charts, const QAbstractItemModel *model, int row
 
   return l;
 }
+#endif
 
 //---
 
@@ -1384,6 +1390,7 @@ CQChartsColor variantToColor(const QVariant &var) {
   return color;
 }
 
+#if 0
 CQChartsColor modelColor(const QAbstractItemModel *model, const QModelIndex &ind,
                          int role, bool &ok) {
   QVariant var = modelValue(model, ind, role, ok);
@@ -1425,6 +1432,7 @@ CQChartsColor modelColor(CQCharts *charts, const QAbstractItemModel *model, int 
 
   return c;
 }
+#endif
 
 }
 
@@ -1432,9 +1440,11 @@ CQChartsColor modelColor(CQCharts *charts, const QAbstractItemModel *model, int 
 
 namespace CQChartsModelUtil {
 
+#if 0
 bool isValidModelColumn(const QAbstractItemModel *model, int column) {
   return (column >= 0 && column < model->columnCount());
 }
+#endif
 
 int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name) {
   assert(model);

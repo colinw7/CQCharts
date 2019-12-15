@@ -543,7 +543,7 @@ fillRect(double x1, double y1, double x2, double y2) const
   device_->setBrush(fillBrush_);
   device_->setPen  (Qt::NoPen);
 
-  device_->drawRect(rect);
+  device_->drawRect(rect.normalized());
 
   restore();
 }
@@ -564,7 +564,7 @@ strokeCircle(double x, double y, double r) const
   device_->setBrush(Qt::NoBrush);
   device_->setPen  (strokePen_);
 
-  device_->drawEllipse(rect);
+  device_->drawEllipse(rect.normalized());
 
   restore();
 }
@@ -585,7 +585,7 @@ fillCircle(double x, double y, double r) const
   device_->setBrush(fillBrush_);
   device_->setPen  (Qt::NoPen);
 
-  device_->drawEllipse(rect);
+  device_->drawEllipse(rect.normalized());
 
   restore();
 }

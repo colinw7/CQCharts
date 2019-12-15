@@ -133,21 +133,21 @@ void
 CQChartsXYPlotType::
 analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeModelData)
 {
-  bool hasX = (analyzeModelData.parameterNameColumn.find("x") !=
-               analyzeModelData.parameterNameColumn.end());
+  auto px   = analyzeModelData.parameterNameColumn.find("x");
+  bool hasX = (px != analyzeModelData.parameterNameColumn.end());
 
   CQChartsModelDetails *details = modelData->details();
   if (! details) return;
 
-  CQChartsColumn  xColumn;
-  CQChartsColumns yColumns;
+  // set x column
+  CQChartsColumn xColumn;
 
   int nc = details->numColumns();
 
   for (int c = 0; c < nc; ++c) {
-    auto columnDetails = details->columnDetails(CQChartsColumn(c));
-
     if (! xColumn.isValid()) {
+      auto columnDetails = details->columnDetails(CQChartsColumn(c));
+
       if      (columnDetails->isMonotonic())
         xColumn = columnDetails->column();
       else if (columnDetails->type() == CQBaseModelType::TIME)
@@ -155,14 +155,24 @@ analyzeModel(CQChartsModelData *modelData, CQChartsAnalyzeModelData &analyzeMode
       else if (! hasX && columnDetails->isNumeric())
         xColumn = columnDetails->column();
     }
-    else {
-      if (columnDetails->isNumeric())
-        yColumns.addColumn(columnDetails->column());
-    }
   }
 
-  if (xColumn.isValid())
+  if      (xColumn.isValid())
     analyzeModelData.parameterNameColumn["x"] = xColumn;
+  else if (hasX)
+    xColumn = (*px).second;
+
+  CQChartsColumns yColumns;
+
+  for (int c = 0; c < nc; ++c) {
+    if (c == xColumn.column())
+      continue;
+
+    auto columnDetails = details->columnDetails(CQChartsColumn(c));
+
+    if (columnDetails->isNumeric())
+      yColumns.addColumn(columnDetails->column());
+  }
 
   if (yColumns.count())
     analyzeModelData.parameterNameColumns["y"] = yColumns;

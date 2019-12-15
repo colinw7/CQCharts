@@ -86,12 +86,7 @@ void
 CQChartsTitle::
 updateLocation()
 {
-  CQChartsGeom::BBox bbox = plot_->calcDataRange();
-
-  if (bbox.isSet())
-    bbox += plot_->annotationBBox();
-  else
-    bbox = CQChartsGeom::BBox(0, 0, 1, 1);
+  CQChartsGeom::BBox bbox = plot_->calcGroupedDataRange();
 
   //---
 
@@ -111,8 +106,8 @@ updateLocation()
     if (! isInsidePlot()) {
       ky = bbox.getYMax() + marginSize.height();
 
-      if (xAxis && xAxis->side() == CQChartsAxisSide::Type::TOP_RIGHT)
-        ky += xAxis->bbox().getHeight();
+      if (xAxis)
+        ky += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).getHeight();
     }
     else
       ky = bbox.getYMax() - ts.height() - marginSize.height();
@@ -124,8 +119,8 @@ updateLocation()
     if (! isInsidePlot()) {
       ky = bbox.getYMin() - ts.height() - marginSize.height();
 
-      if (xAxis && xAxis->side() == CQChartsAxisSide::Type::BOTTOM_LEFT)
-        ky -= xAxis->bbox().getHeight();
+      if (xAxis)
+        ky -= plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).getHeight();
     }
     else
       ky = bbox.getYMin() + marginSize.height();

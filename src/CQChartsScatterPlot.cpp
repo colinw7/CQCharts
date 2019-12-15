@@ -660,35 +660,38 @@ calcRange() const
       bool hidden = (hasGroups_ && plot_->isSetHidden(groupInd));
 
       if (! hidden) {
-        double x, y;
+        double x   { 0.0  }, y   { 0.0 };
+        bool   okx { true }, oky { true };
 
-        if (xColumnType_ == CQBaseModelType::REAL || xColumnType_ == CQBaseModelType::INTEGER) {
-          bool ok1 = plot_->modelMappedReal(data.row, plot_->xColumn(), data.parent,
-                                            x, plot_->isLogX(), data.row);
-
-          if (plot_->isSkipBad() && ! ok1)
-            return State::SKIP;
-
-          if (CMathUtil::isNaN(x))
-            return State::SKIP;
+        if      (xColumnType_ == CQBaseModelType::REAL ||
+                 xColumnType_ == CQBaseModelType::INTEGER) {
+          okx = plot_->modelMappedReal(data.row, plot_->xColumn(), data.parent,
+                                       x, plot_->isLogX(), data.row);
+        }
+        else if (xColumnType_ == CQBaseModelType::TIME) {
+          x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, okx);
         }
         else {
           x = uniqueId(data, plot_->xColumn()); ++uniqueX_;
         }
 
-        if (yColumnType_ == CQBaseModelType::REAL || yColumnType_ == CQBaseModelType::INTEGER) {
-          bool ok2 = plot_->modelMappedReal(data.row, plot_->yColumn(), data.parent,
-                                            y, plot_->isLogY(), data.row);
-
-          if (plot_->isSkipBad() && ! ok2)
-            return State::SKIP;
-
-          if (CMathUtil::isNaN(y))
-            return State::SKIP;
+        if      (yColumnType_ == CQBaseModelType::REAL ||
+                 yColumnType_ == CQBaseModelType::INTEGER) {
+          oky = plot_->modelMappedReal(data.row, plot_->yColumn(), data.parent,
+                                       y, plot_->isLogY(), data.row);
+        }
+        else if (yColumnType_ == CQBaseModelType::TIME) {
+          y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, oky);
         }
         else {
           y = uniqueId(data, plot_->yColumn()); ++uniqueY_;
         }
+
+        if (plot_->isSkipBad() && (! okx || ! oky))
+          return State::SKIP;
+
+        if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
+          return State::SKIP;
 
         range_.updateRange(x, y);
       }
@@ -864,15 +867,19 @@ initAxes(bool uniqueX, bool uniqueY)
   if (uniqueX) xType = CQChartsAxisValueType::Type::INTEGER;
   if (uniqueY) yType = CQChartsAxisValueType::Type::INTEGER;
 
-  xAxis_->setValueType(xType);
-  yAxis_->setValueType(yType);
+  xAxis_->setValueType(xType, /*notify*/false);
+  yAxis_->setValueType(yType, /*notify*/false);
 
   //---
 
   ColumnType xColumnType = columnValueType(xColumn());
+  ColumnType yColumnType = columnValueType(yColumn());
 
   if (xColumnType == CQBaseModelType::TIME)
     xAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
+
+  if (yColumnType == CQBaseModelType::TIME)
+    yAxis()->setValueType(CQChartsAxisValueType::Type::DATE, /*notify*/false);
 }
 
 QString
@@ -1291,35 +1298,38 @@ addNameValues() const
       QModelIndex xInd  = plot_->modelIndex(data.row, plot_->xColumn(), data.parent);
       QModelIndex xInd1 = plot_->normalizeIndex(xInd);
 
-      double x, y;
+      double x   { 0.0  }, y   { 0.0 };
+      bool   okx { true }, oky { true };
 
-      if (xColumnType_ == CQBaseModelType::REAL || xColumnType_ == CQBaseModelType::INTEGER) {
-        bool ok1 = plot_->modelMappedReal(data.row, plot_->xColumn(), data.parent,
-                                          x, plot_->isLogX(), data.row);
-
-        if (plot_->isSkipBad() && ! ok1)
-          return State::SKIP;
-
-        if (CMathUtil::isNaN(x))
-          return State::SKIP;
+      if      (xColumnType_ == CQBaseModelType::REAL ||
+               xColumnType_ == CQBaseModelType::INTEGER) {
+        okx = plot_->modelMappedReal(data.row, plot_->xColumn(), data.parent,
+                                     x, plot_->isLogX(), data.row);
+      }
+      else if (xColumnType_ == CQBaseModelType::TIME) {
+        x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, okx);
       }
       else {
         x = uniqueId(data, plot_->xColumn());
       }
 
-      if (yColumnType_ == CQBaseModelType::REAL || yColumnType_ == CQBaseModelType::INTEGER) {
-        bool ok2 = plot_->modelMappedReal(data.row, plot_->yColumn(), data.parent,
-                                          y, plot_->isLogY(), data.row);
-
-        if (plot_->isSkipBad() && ! ok2)
-          return State::SKIP;
-
-        if (CMathUtil::isNaN(y))
-          return State::SKIP;
+      if      (yColumnType_ == CQBaseModelType::REAL ||
+               yColumnType_ == CQBaseModelType::INTEGER) {
+        oky = plot_->modelMappedReal(data.row, plot_->yColumn(), data.parent,
+                                     y, plot_->isLogY(), data.row);
+      }
+      else if (yColumnType_ == CQBaseModelType::TIME) {
+        y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, oky);
       }
       else {
         y = uniqueId(data, plot_->yColumn());
       }
+
+      if (plot_->isSkipBad() && (! okx || ! oky))
+        return State::SKIP;
+
+      if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
+        return State::SKIP;
 
       //---
 

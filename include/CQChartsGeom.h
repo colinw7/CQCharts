@@ -330,6 +330,7 @@ class Range {
       return QRectF();
   }
 
+  
   //---
 
   bool isZero() const { return isXZero() || isYZero(); }
@@ -495,6 +496,11 @@ class BBox {
    pmin_(rect.bottomLeft()), pmax_(rect.topRight()), set_(rect.isValid()) {
     if (isSet())
       update();
+  }
+
+  explicit BBox(const Range &range) :
+   pmin_(range.xmin(), range.ymin()), pmax_(range.xmax(), range.ymax()), set_(true) {
+    update();
   }
 
 #if 0

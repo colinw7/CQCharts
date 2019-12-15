@@ -2273,7 +2273,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
       options.contrastAlpha = axesLabelTextContrastAlpha();
 
       CQChartsDrawUtil::drawTextAtPoint(device, plot->pixelToWindow(pt), text,
-                                        options, /*centered*/true);
+                                        options, /*centered*/false);
 
     //CQChartsDrawUtil::drawSimpleText(device, plot->pixelToWindow(pt), text);
 

@@ -1126,9 +1126,13 @@ writeHtml(CQChartsHtmlPainter *device) const
         return;
 
       processOverlayPlots([&](const CQChartsPlot *plot) {
+        device->setPlot(const_cast<CQChartsPlot *>(plot));
+
         for (auto &annotation : plot->annotations())
           annotation->writeHtml(device);
       });
+
+      device->setPlot(const_cast<CQChartsPlot *>(this));
     }
     else {
       for (auto &annotation : annotations())
@@ -3430,13 +3434,10 @@ applyDataRange(bool propagate)
       }
     }
     else {
+      // This breaks X1X2 and Y1Y2 plots (wrong range)
       //processOverlayPlots([&](CQChartsPlot *plot) {
       //  plot->setWindowRange(dataRange);
       //});
-
-      processOverlayPlots([&](CQChartsPlot *plot) {
-        plot->setWindowRange(dataRange);
-      });
     }
   }
   else {
@@ -3605,6 +3606,105 @@ adjustDataRange(const CQChartsGeom::Range &calcDataRange) const
   }
 
   return dataRange;
+}
+
+//------
+
+CQChartsGeom::BBox
+CQChartsPlot::
+calcGroupedDataRange(bool includeAnnotation) const
+{
+  CQChartsGeom::BBox bbox;
+
+  if (isOverlay()) {
+    processOverlayPlots([&](const CQChartsPlot *plot) {
+      CQChartsGeom::BBox bbox1 = plot->calcDataRange();
+
+      if (bbox1.isSet() && includeAnnotation)
+        bbox1 += plot->annotationBBox();
+
+      if (plot != this)
+        bbox1 = viewToWindow(plot->windowToView(bbox1));
+
+      if (bbox1.isSet())
+        bbox += bbox1;
+    });
+
+    if (! bbox.isSet())
+      bbox = CQChartsGeom::BBox(0, 0, 1, 1);
+  }
+  else {
+    bbox = calcDataRange();
+
+    if (bbox.isSet() && includeAnnotation)
+      bbox += annotationBBox();
+    else
+      bbox = CQChartsGeom::BBox(0, 0, 1, 1);
+  }
+
+  return bbox;
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const
+{
+  assert(xAxis());
+
+  CQChartsGeom::BBox xbbox;
+
+  if (isOverlay()) {
+    processOverlayPlots([&](const CQChartsPlot *plot) {
+      if (plot->xAxis() && plot->xAxis()->side() == side) {
+        CQChartsGeom::BBox xbbox1 = plot->xAxis()->bbox();
+
+        if (plot != this)
+          xbbox1 = viewToWindow(plot->windowToView(xbbox1));
+
+        xbbox += xbbox1;
+      }
+    });
+  }
+  else {
+    if (xAxis()->side() == side)
+      xbbox = xAxis()->bbox();
+  }
+
+  if (! xbbox.isSet())
+    xbbox = CQChartsGeom::BBox(0, 0, 0, 0);
+
+  return xbbox;
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const
+{
+  assert(yAxis());
+
+  CQChartsGeom::BBox ybbox;
+
+  if (isOverlay()) {
+    processOverlayPlots([&](const CQChartsPlot *plot) {
+      if (plot->yAxis() && plot->yAxis()->side() == side) {
+        CQChartsGeom::BBox ybbox1 = plot->yAxis()->bbox();
+
+        if (plot != this)
+          ybbox1 = viewToWindow(plot->windowToView(ybbox1));
+
+        ybbox += ybbox1;
+      }
+    });
+  }
+  else {
+    if (yAxis()->side() == side)
+      ybbox = yAxis()->bbox();
+  }
+
+  if (! ybbox.isSet())
+    ybbox = CQChartsGeom::BBox(0, 0, 0, 0);
+
+  return ybbox;
 }
 
 //------
@@ -6984,8 +7084,12 @@ drawGroupedBgAxes(CQChartsPaintDevice *device) const
       return;
 
     processOverlayPlots([&](const CQChartsPlot *plot) {
+      device->setPlot(const_cast<CQChartsPlot *>(plot));
+
       plot->drawBgAxes(device);
     });
+
+    device->setPlot(const_cast<CQChartsPlot *>(this));
   }
   else {
     drawBgAxes(device);
@@ -7063,10 +7167,14 @@ drawBgKey(CQChartsPaintDevice *device) const
 
     processOverlayPlots([&](const CQChartsPlot *plot) {
       CQChartsPlotKey *key = plot->key();
+      if (! key) return;
 
-      if (key)
-        key->draw(device);
+      device->setPlot(const_cast<CQChartsPlot *>(plot));
+
+      key->draw(device);
     });
+
+    device->setPlot(const_cast<CQChartsPlot *>(this));
   }
   else {
     CQChartsPlotKey *key = this->key();
@@ -7117,8 +7225,12 @@ drawGroupedObjs(CQChartsPaintDevice *device, const CQChartsLayer::Type &layerTyp
       return;
 
     processOverlayPlots([&](const CQChartsPlot *plot) {
+      device->setPlot(const_cast<CQChartsPlot *>(plot));
+
       plot->execDrawObjs(device, layerType);
     });
+
+    device->setPlot(const_cast<CQChartsPlot *>(this));
   }
   else {
     execDrawObjs(device, layerType);
@@ -7295,8 +7407,12 @@ drawGroupedFgAxes(CQChartsPaintDevice *device) const
       return;
 
     processOverlayPlots([&](const CQChartsPlot *plot) {
+      device->setPlot(const_cast<CQChartsPlot *>(plot));
+
       plot->drawFgAxes(device);
     });
+
+    device->setPlot(const_cast<CQChartsPlot *>(this));
   }
   else {
     drawFgAxes(device);
@@ -7382,10 +7498,14 @@ drawFgKey(CQChartsPaintDevice *device) const
 
     processOverlayPlots([&](const CQChartsPlot *plot) {
       CQChartsPlotKey *key = plot->key();
+      if (! key) return;
 
-      if (key)
-        key->draw(device);
+      device->setPlot(const_cast<CQChartsPlot *>(plot));
+
+      key->draw(device);
     });
+
+    device->setPlot(const_cast<CQChartsPlot *>(this));
   }
   else {
     CQChartsPlotKey *key = this->key();
@@ -7469,8 +7589,12 @@ drawGroupedAnnotations(CQChartsPaintDevice *device, const CQChartsLayer::Type &l
       return;
 
     processOverlayPlots([&](const CQChartsPlot *plot) {
+      device->setPlot(const_cast<CQChartsPlot *>(plot));
+
       plot->drawAnnotations(device, layerType);
     });
+
+    device->setPlot(const_cast<CQChartsPlot *>(this));
   }
   else {
     drawAnnotations(device, layerType);
@@ -7594,8 +7718,12 @@ drawGroupedBoxes(CQChartsPaintDevice *device) const
       return;
 
     processOverlayPlots([&](const CQChartsPlot *plot) {
+      device->setPlot(const_cast<CQChartsPlot *>(plot));
+
       plot->drawBoxes(device);
     });
+
+    device->setPlot(const_cast<CQChartsPlot *>(this));
   }
   else {
     drawBoxes(device);
@@ -9614,6 +9742,7 @@ modelInteger(int row, const CQChartsColumn &column, const QModelIndex &parent, b
   return modelInteger(model().data(), row, column, parent, ok);
 }
 
+#if 0
 CQChartsColor
 CQChartsPlot::
 modelColor(int row, const CQChartsColumn &column, const QModelIndex &parent,
@@ -9628,6 +9757,7 @@ modelColor(int row, const CQChartsColumn &column, const QModelIndex &parent, boo
 {
   return modelColor(model().data(), row, column, parent, ok);
 }
+#endif
 
 //---
 
@@ -9777,6 +9907,7 @@ modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
   return CQChartsModelUtil::modelInteger(charts(), model, row, column, parent, ok);
 }
 
+#if 0
 CQChartsColor
 CQChartsPlot::
 modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
@@ -9792,6 +9923,7 @@ modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
 {
   return CQChartsModelUtil::modelColor(charts(), model, row, column, parent, ok);
 }
+#endif
 
 //------
 
@@ -9901,6 +10033,7 @@ modelHierString(int row, const CQChartsColumn &column,
 
 //--
 
+#if 0
 double
 CQChartsPlot::
 modelHierReal(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
@@ -9925,9 +10058,11 @@ modelHierReal(int row, const CQChartsColumn &column,
 
   return CQChartsVariant::toReal(var, ok);
 }
+#endif
 
 //--
 
+#if 0
 long
 CQChartsPlot::
 modelHierInteger(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
@@ -9952,6 +10087,7 @@ modelHierInteger(int row, const CQChartsColumn &column,
 
   return CQChartsVariant::toInt(var, ok);
 }
+#endif
 
 //------
 
@@ -10530,6 +10666,18 @@ pixelToWindow(const CQChartsGeom::BBox &wrect) const
   pixelToWindowI(wrect.getXMax(), wrect.getYMax(), wx2, wy2);
 
   return CQChartsGeom::BBox(wx1, wy1, wx2, wy2);
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+windowToView(const CQChartsGeom::BBox &wrect) const
+{
+  double vx1, vy1, vx2, vy2;
+
+  windowToViewI(wrect.getXMin(), wrect.getYMin(), vx1, vy1);
+  windowToViewI(wrect.getXMax(), wrect.getYMax(), vx2, vy2);
+
+  return CQChartsGeom::BBox(vx1, vy1, vx2, vy2);
 }
 
 CQChartsGeom::BBox

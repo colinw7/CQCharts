@@ -93,9 +93,9 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   QString str = variantToString(value);
 
-  QFontMetricsF fm(option.font);
+  QFontMetrics fm(option.font);
 
-  double w = fm.width(str);
+  int w = fm.width(str);
 
   //---
 

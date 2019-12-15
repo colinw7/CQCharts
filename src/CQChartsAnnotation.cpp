@@ -1961,9 +1961,11 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw text
-  device->setRenderHints(QPainter::Antialiasing);
+  if (trect.isValid()) {
+    device->setRenderHints(QPainter::Antialiasing);
 
-  CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect), textStr(), textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(trect), textStr(), textOptions);
+  }
 
   //---
 

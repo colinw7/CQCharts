@@ -909,10 +909,12 @@ class CQChartsPlot : public CQChartsObj,
   long modelInteger(int row, const CQChartsColumn &column,
                     const QModelIndex &parent, int role, bool &ok) const;
 
+#if 0
   CQChartsColor modelColor(int row, const CQChartsColumn &column,
                            const QModelIndex &parent, bool &ok) const;
   CQChartsColor modelColor(int row, const CQChartsColumn &column,
                            const QModelIndex &parent, int role, bool &ok) const;
+#endif
 
   std::vector<double> modelReals(int row, const CQChartsColumn &column,
                                  const QModelIndex &parent, bool &ok) const;
@@ -961,10 +963,12 @@ class CQChartsPlot : public CQChartsObj,
   virtual long modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                             const QModelIndex &parent, bool &ok) const;
 
+#if 0
   virtual CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                                    const QModelIndex &parent, int role, bool &ok) const;
   virtual CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                                    const QModelIndex &parent, bool &ok) const;
+#endif
 
   //---
 
@@ -980,20 +984,24 @@ class CQChartsPlot : public CQChartsObj,
   QVariant modelHierValue(int row, const CQChartsColumn &column,
                           const QModelIndex &parent, bool &ok) const;
 
-  QString  modelHierString(int row, const CQChartsColumn &column,
-                           const QModelIndex &parent, int role, bool &ok) const;
-  QString  modelHierString(int row, const CQChartsColumn &column,
-                           const QModelIndex &parent, bool &ok) const;
+  QString modelHierString(int row, const CQChartsColumn &column,
+                          const QModelIndex &parent, int role, bool &ok) const;
+  QString modelHierString(int row, const CQChartsColumn &column,
+                          const QModelIndex &parent, bool &ok) const;
 
+#if 0
   double modelHierReal(int row, const CQChartsColumn &column,
                        const QModelIndex &parent, int role, bool &ok) const;
   double modelHierReal(int row, const CQChartsColumn &column,
                        const QModelIndex &parent, bool &ok) const;
+#endif
 
+#if 0
   long modelHierInteger(int row, const CQChartsColumn &column,
                         const QModelIndex &parent, int role, bool &ok) const;
   long modelHierInteger(int row, const CQChartsColumn &column,
                         const QModelIndex &parent, bool &ok) const;
+#endif
 
   //---
 
@@ -1055,6 +1063,7 @@ class CQChartsPlot : public CQChartsObj,
   QPointF viewToWindow (const QPointF &v) const;
 
   CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &wrect) const;
+  CQChartsGeom::BBox windowToView (const CQChartsGeom::BBox &wrect) const;
   CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &prect) const;
   CQChartsGeom::BBox viewToWindow (const CQChartsGeom::BBox &vrect) const;
 
@@ -1270,6 +1279,11 @@ class CQChartsPlot : public CQChartsObj,
   void applyDataRange(bool propagate=true);
 
   CQChartsGeom::Range adjustDataRange(const CQChartsGeom::Range &range) const;
+
+  CQChartsGeom::BBox calcGroupedDataRange(bool includeAnnotation=true) const;
+
+  CQChartsGeom::BBox calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const;
+  CQChartsGeom::BBox calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const;
 
   //---
 

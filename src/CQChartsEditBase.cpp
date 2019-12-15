@@ -19,10 +19,10 @@ drawCenteredText(QPainter *painter, const QString &text)
 
   painter->setPen(tc);
 
-  QFontMetricsF fm(font());
+  QFontMetrics fm(font());
 
-  double fa = fm.ascent();
-  double fd = fm.descent();
+  int fa = fm.ascent();
+  int fd = fm.descent();
 
   painter->drawText(rect().left() + 2, rect().center().y() + (fa - fd)/2, text);
 }

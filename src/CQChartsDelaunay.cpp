@@ -138,7 +138,6 @@ calcVoronoi()
 
       //--
 
-
       PEdge pe3 = new Edge(v, v3);
       pe3->setLeftFace(f3); pe3->setRightFace(f);
 

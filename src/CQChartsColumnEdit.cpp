@@ -207,9 +207,9 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
   //---
 
-  QFontMetricsF fm(option.font);
+  QFontMetrics fm(option.font);
 
-  double w = fm.width(str);
+  int w = fm.width(str);
 
   QStyleOptionViewItem option1 = option;
 

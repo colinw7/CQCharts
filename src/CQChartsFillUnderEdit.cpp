@@ -112,9 +112,9 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   QString str = fillUnderSide.toString();
 
-  QFontMetricsF fm(option.font);
+  QFontMetrics fm(option.font);
 
-  double w = fm.width(str);
+  int w = fm.width(str);
 
   //---
 
@@ -325,9 +325,9 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   QString str = fillUnderPos.toString();
 
-  QFontMetricsF fm(option.font);
+  QFontMetrics fm(option.font);
 
-  double w = fm.width(str);
+  int w = fm.width(str);
 
   //---
 

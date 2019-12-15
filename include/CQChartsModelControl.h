@@ -37,6 +37,7 @@ class CQChartsModelControl : public QFrame {
 
  public:
   CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData=nullptr);
+ ~CQChartsModelControl();
 
   CQChartsModelData *modelData() const { return modelData_; }
   void setModelData(CQChartsModelData *modelData);

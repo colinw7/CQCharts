@@ -174,11 +174,13 @@ QString modelString(CQCharts *charts, const QAbstractItemModel *model, int row,
 QString modelString(CQCharts *charts, const QAbstractItemModel *model, int row,
                     const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
 
+#if 0
 QString modelHierString(CQCharts *charts, const QAbstractItemModel *model, int row,
                         const CQChartsColumn &column, const QModelIndex &parent,
                         int role, bool &ok);
 QString modelHierString(CQCharts *charts, const QAbstractItemModel *model, int row,
                         const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
+#endif
 
 //---
 
@@ -190,10 +192,12 @@ double modelReal(CQCharts *charts, const QAbstractItemModel *model, int row,
 double modelReal(CQCharts *charts, const QAbstractItemModel *model, int row,
                  const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
 
+#if 0
 double modelHierReal(CQCharts *charts, const QAbstractItemModel *model, int row,
                      const CQChartsColumn &column, const QModelIndex &parent, int role, bool &ok);
 double modelHierReal(CQCharts *charts, const QAbstractItemModel *model, int row,
                      const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
+#endif
 
 //---
 
@@ -205,15 +209,18 @@ long modelInteger(CQCharts *charts, const QAbstractItemModel *model, int row,
 long modelInteger(CQCharts *charts, const QAbstractItemModel *model, int row,
                   const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
 
+#if 0
 long modelHierInteger(CQCharts *charts, const QAbstractItemModel *model, int row,
                       const CQChartsColumn &column, const QModelIndex &parent, int role, bool &ok);
 long modelHierInteger(CQCharts *charts, const QAbstractItemModel *model, int row,
                       const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
+#endif
 
 //---
 
 CQChartsColor variantToColor(const QVariant &var);
 
+#if 0
 CQChartsColor modelColor(const QAbstractItemModel *model, const QModelIndex &ind,
                          int role, bool &ok);
 CQChartsColor modelColor(const QAbstractItemModel *model, const QModelIndex &ind, bool &ok);
@@ -223,6 +230,7 @@ CQChartsColor modelColor(CQCharts *charts, const QAbstractItemModel *model, int 
                          int role, bool &ok);
 CQChartsColor modelColor(CQCharts *charts, const QAbstractItemModel *model, int row,
                          const CQChartsColumn &column, const QModelIndex &parent, bool &ok);
+#endif
 
 }
 
@@ -230,7 +238,9 @@ CQChartsColor modelColor(CQCharts *charts, const QAbstractItemModel *model, int 
 
 namespace CQChartsModelUtil {
 
+#if 0
 bool isValidModelColumn(const QAbstractItemModel *model, int column);
+#endif
 
 int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name);
 

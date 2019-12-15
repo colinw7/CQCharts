@@ -77,7 +77,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   bool removeExtraColumn(int column);
 
-  bool assignColumn(int column, const QString &expr);
+//bool assignColumn(int column, const QString &expr);
   bool assignColumn(const QString &header, int column, const QString &expr);
 
   bool assignExtraColumn(int column, const QString &expr);

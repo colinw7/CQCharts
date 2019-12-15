@@ -14,6 +14,7 @@ struct CQChartsInputData;
 
 class QAbstractItemModel;
 class QComboBox;
+class QRadioButton;
 class QCheckBox;
 class QTextBrowser;
 class QPushButton;
@@ -79,6 +80,11 @@ class CQChartsLoadModelDlg : public QDialog {
   void cancelSlot();
 
  private:
+  void parseCSVColumns();
+  void parseTSVColumns();
+
+  void setMetaText();
+
   bool loadFileModel(const QString &filename, CQChartsFileType type,
                      const CQChartsInputData &inputData);
 
@@ -116,8 +122,9 @@ class CQChartsLoadModelDlg : public QDialog {
   int            modelInd_               { -1 };
   QComboBox*     typeCombo_              { nullptr };
   CQFilename*    fileEdit_               { nullptr };
-  QCheckBox*     commentHeaderCheck_     { nullptr };
-  QCheckBox*     firstLineHeaderCheck_   { nullptr };
+  QRadioButton*  noHeaderCheck_          { nullptr };
+  QRadioButton*  commentHeaderCheck_     { nullptr };
+  QRadioButton*  firstLineHeaderCheck_   { nullptr };
   QCheckBox*     firstColumnHeaderCheck_ { nullptr };
   CQLineEdit*    numberEdit_             { nullptr };
   CQLineEdit*    filterEdit_             { nullptr };

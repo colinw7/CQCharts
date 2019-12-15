@@ -38,6 +38,8 @@ class CQChartsParamEdit : public QFrame {
     layout_ = CQUtil::makeLayout<QHBoxLayout>(this, 0, 0);
   }
 
+  CQBaseModelType type() const { return type_; }
+
   void setString(const QString &str="") {
     if (! edit_) {
       reset();
@@ -48,6 +50,8 @@ class CQChartsParamEdit : public QFrame {
     }
 
     edit_->setText(str);
+
+    type_ = CQBaseModelType::STRING;
   }
 
   void setBool(bool b=false) {
@@ -60,6 +64,8 @@ class CQChartsParamEdit : public QFrame {
     }
 
     check_->setChecked(b);
+
+    type_ = CQBaseModelType::BOOLEAN;
   }
 
   void setInteger(int i=0) {
@@ -72,6 +78,8 @@ class CQChartsParamEdit : public QFrame {
     }
 
     ispin_->setValue(i);
+
+    type_ = CQBaseModelType::INTEGER;
   }
 
   void setEnum(const QString &str, const QStringList &values) {
@@ -95,6 +103,8 @@ class CQChartsParamEdit : public QFrame {
     if (pos < 0) pos = 0;
 
     combo_->setCurrentIndex(pos);
+
+    type_ = CQBaseModelType::ENUM;
   }
 
   void setColor(const QString &str="") {
@@ -109,6 +119,8 @@ class CQChartsParamEdit : public QFrame {
     CQChartsColor c(str);
 
     color_->setColor(c);
+
+    type_ = CQBaseModelType::COLOR;
   }
 
   QString getString() const {
@@ -156,6 +168,7 @@ class CQChartsParamEdit : public QFrame {
   }
 
  private:
+  CQBaseModelType        type_   { CQBaseModelType::NONE };
   QHBoxLayout*           layout_ { nullptr };
   CQLineEdit*            edit_   { nullptr };
   CQIntegerSpin*         ispin_  { nullptr };
@@ -207,6 +220,14 @@ CQChartsModelControl(CQCharts *charts, CQChartsModelData *modelData) :
   setModelData(modelData);
 
   expressionModeSlot();
+}
+
+CQChartsModelControl::
+~CQChartsModelControl()
+{
+  propertyTree_->setPropertyModel(propertyModel_);
+
+  delete propertyModel_;
 }
 
 QFrame *
@@ -802,16 +823,26 @@ typeApplySlot()
 
       QString value;
 
-      if      (param->type() == CQBaseModelType::BOOLEAN)
-        value = (paramEdit.edit->getBool() ? "1" : "0");
-      else if (param->type() == CQBaseModelType::INTEGER)
-        value = QString("%1").arg(paramEdit.edit->getInteger());
-      else if (param->type() == CQBaseModelType::ENUM)
-        value = paramEdit.edit->getEnum();
-      else if (param->type() == CQBaseModelType::COLOR)
-        value = paramEdit.edit->getColor();
-      else
-        value = paramEdit.edit->getString();
+      if      (param->type() == CQBaseModelType::BOOLEAN) {
+        if (paramEdit.edit->type() == CQBaseModelType::BOOLEAN)
+          value = (paramEdit.edit->getBool() ? "1" : "0");
+      }
+      else if (param->type() == CQBaseModelType::INTEGER) {
+        if (paramEdit.edit->type() == CQBaseModelType::INTEGER)
+          value = QString("%1").arg(paramEdit.edit->getInteger());
+      }
+      else if (param->type() == CQBaseModelType::ENUM) {
+        if (paramEdit.edit->type() == CQBaseModelType::ENUM)
+          value = paramEdit.edit->getEnum();
+      }
+      else if (param->type() == CQBaseModelType::COLOR) {
+        if (paramEdit.edit->type() == CQBaseModelType::COLOR)
+          value = paramEdit.edit->getColor();
+       }
+      else {
+        if (paramEdit.edit->type() == CQBaseModelType::STRING)
+          value = paramEdit.edit->getString();
+      }
 
       if (value != "")
         nameValues.setNameValue(name, value);
