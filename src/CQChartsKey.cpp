@@ -763,11 +763,17 @@ updateLocation(const CQChartsGeom::BBox &bbox)
       location_.setType(CQChartsKeyLocation::Type::TOP_RIGHT);
   }
 
+  CQChartsAxis *yAxis = plot()->yAxis();
+
   if      (location().onLeft()) {
     if (isInsideX())
       kx = bbox.getXMin() + xlm;
-    else
+    else {
       kx = bbox.getXMin() - ks.width() - xlm;
+
+      if (yAxis)
+        kx -= plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).getWidth() + xlm;
+    }
   }
   else if (location().onHCenter()) {
     kx = bbox.getXMid() - ks.width()/2;
@@ -775,15 +781,25 @@ updateLocation(const CQChartsGeom::BBox &bbox)
   else if (location().onRight()) {
     if (isInsideX())
       kx = bbox.getXMax() - ks.width() - xrm;
-    else
+    else {
       kx = bbox.getXMax() + xrm;
+
+      if (yAxis)
+        kx += plot_->calcGroupedYAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).getWidth() + xrm;
+    }
   }
+
+  CQChartsAxis *xAxis = plot()->xAxis();
 
   if      (location().onTop()) {
     if (isInsideY())
       ky = bbox.getYMax() - ytm;
-    else
+    else {
       ky = bbox.getYMax() + ks.height() + ytm;
+
+      if (xAxis)
+        ky += plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::TOP_RIGHT).getHeight() + ytm;
+    }
   }
   else if (location().onVCenter()) {
     ky = bbox.getYMid() + ks.height()/2;
@@ -794,10 +810,8 @@ updateLocation(const CQChartsGeom::BBox &bbox)
     else {
       ky = bbox.getYMin() - ybm;
 
-      CQChartsAxis *xAxis = plot()->xAxis();
-
-      if (xAxis && xAxis->side() == CQChartsAxisSide::Type::BOTTOM_LEFT && xAxis->bbox().isSet())
-        ky -= xAxis->bbox().getHeight();
+      if (xAxis)
+        ky -= plot_->calcGroupedXAxisRange(CQChartsAxisSide::Type::BOTTOM_LEFT).getHeight() + ybm;
     }
   }
 

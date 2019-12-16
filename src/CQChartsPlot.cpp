@@ -3619,6 +3619,7 @@ calcGroupedDataRange(bool includeAnnotation) const
   if (isOverlay()) {
     processOverlayPlots([&](const CQChartsPlot *plot) {
       CQChartsGeom::BBox bbox1 = plot->calcDataRange();
+      if (! bbox1.isSet()) return;
 
       if (bbox1.isSet() && includeAnnotation)
         bbox1 += plot->annotationBBox();
@@ -3657,6 +3658,7 @@ calcGroupedXAxisRange(const CQChartsAxisSide::Type &side) const
     processOverlayPlots([&](const CQChartsPlot *plot) {
       if (plot->xAxis() && plot->xAxis()->side() == side) {
         CQChartsGeom::BBox xbbox1 = plot->xAxis()->bbox();
+        if (! xbbox1.isSet()) return;
 
         if (plot != this)
           xbbox1 = viewToWindow(plot->windowToView(xbbox1));
@@ -3688,6 +3690,7 @@ calcGroupedYAxisRange(const CQChartsAxisSide::Type &side) const
     processOverlayPlots([&](const CQChartsPlot *plot) {
       if (plot->yAxis() && plot->yAxis()->side() == side) {
         CQChartsGeom::BBox ybbox1 = plot->yAxis()->bbox();
+        if (! ybbox1.isSet()) return;
 
         if (plot != this)
           ybbox1 = viewToWindow(plot->windowToView(ybbox1));
