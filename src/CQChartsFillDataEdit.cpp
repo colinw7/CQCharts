@@ -22,6 +22,8 @@ CQChartsFillDataLineEdit(QWidget *parent) :
 {
   setObjectName("fillDataLineEdit");
 
+  setToolTip("Fill Data");
+
   //---
 
   menuEdit_ = dataEdit_ = new CQChartsFillDataEdit;
@@ -198,6 +200,10 @@ CQChartsFillDataEdit(QWidget *parent) :
 {
   setObjectName("fillDataEdit");
 
+  setToolTip("Fill Data");
+
+  //---
+
   QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
@@ -215,7 +221,7 @@ CQChartsFillDataEdit(QWidget *parent) :
   QGridLayout *groupLayout = CQUtil::makeLayout<QGridLayout>(groupBox_, 2, 2);
 
   // color
-  QLabel *colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "color");
+  QLabel *colorLabel = CQUtil::makeLabelWidget<QLabel>("Color", "colorLabel");
 
   colorEdit_ = new CQChartsColorLineEdit;
 
@@ -223,7 +229,7 @@ CQChartsFillDataEdit(QWidget *parent) :
   groupLayout->addWidget(colorEdit_, 0, 1);
 
   // alpha
-  QLabel *alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alpha");
+  QLabel *alphaLabel = CQUtil::makeLabelWidget<QLabel>("Alpha", "alphaLabel");
 
   alphaEdit_ = new CQChartsAlphaEdit;
 
@@ -231,7 +237,7 @@ CQChartsFillDataEdit(QWidget *parent) :
   groupLayout->addWidget(alphaEdit_, 1, 1);
 
   // pattern
-  QLabel *patternLabel = CQUtil::makeLabelWidget<QLabel>("Pattern", "pattern");
+  QLabel *patternLabel = CQUtil::makeLabelWidget<QLabel>("Pattern", "patternLabel");
 
   patternEdit_ = new CQChartsFillPatternEdit;
 
@@ -342,6 +348,7 @@ CQChartsFillDataEditPreview::
 CQChartsFillDataEditPreview(CQChartsFillDataEdit *edit) :
  CQChartsEditPreview(edit), edit_(edit)
 {
+  setToolTip("Fill Preview");
 }
 
 void

@@ -2,7 +2,8 @@
 #define CQChartsLoadModelDlg_H
 
 #include <CQChartsFileType.h>
-#include <CQLineEdit.h>
+#include <CQChartsLineEdit.h>
+
 #include <QDialog>
 #include <QSharedPointer>
 
@@ -117,31 +118,31 @@ class CQChartsLoadModelDlg : public QDialog {
 
   using Lines = std::vector<Line>;
 
-  CQCharts*      charts_                 { nullptr };
-  bool           emitLoadSignal_         { false };
-  int            modelInd_               { -1 };
-  QComboBox*     typeCombo_              { nullptr };
-  CQFilename*    fileEdit_               { nullptr };
-  QRadioButton*  noHeaderCheck_          { nullptr };
-  QRadioButton*  commentHeaderCheck_     { nullptr };
-  QRadioButton*  firstLineHeaderCheck_   { nullptr };
-  QCheckBox*     firstColumnHeaderCheck_ { nullptr };
-  CQLineEdit*    numberEdit_             { nullptr };
-  CQLineEdit*    filterEdit_             { nullptr };
-  QTextBrowser*  previewTextEdit_        { nullptr };
-  QTextBrowser*  metaTextEdit_           { nullptr };
-  CQTableWidget* columnsTable_           { nullptr };
-  QPushButton*   okButton_               { nullptr };
-  QPushButton*   applyButton_            { nullptr };
-  int            previewLines_           { 100 };
-  int            expressionRows_         { 100 };
-  Lines          lines_;
-  QStringList    metaLines_;
-  QString        firstLine_;
-  QString        firstComment_;
-  QStringList    columns_;
-  ColumnTypes    columnTypes_;
-  ColumnData     columnData_;
+  CQCharts*         charts_                 { nullptr };
+  bool              emitLoadSignal_         { false };
+  int               modelInd_               { -1 };
+  QComboBox*        typeCombo_              { nullptr };
+  CQFilename*       fileEdit_               { nullptr };
+  QRadioButton*     noHeaderCheck_          { nullptr };
+  QRadioButton*     commentHeaderCheck_     { nullptr };
+  QRadioButton*     firstLineHeaderCheck_   { nullptr };
+  QCheckBox*        firstColumnHeaderCheck_ { nullptr };
+  CQChartsLineEdit* numberEdit_             { nullptr };
+  CQChartsLineEdit* filterEdit_             { nullptr };
+  QTextBrowser*     previewTextEdit_        { nullptr };
+  QTextBrowser*     metaTextEdit_           { nullptr };
+  CQTableWidget*    columnsTable_           { nullptr };
+  QPushButton*      okButton_               { nullptr };
+  QPushButton*      applyButton_            { nullptr };
+  int               previewLines_           { 100 };
+  int               expressionRows_         { 100 };
+  Lines             lines_;
+  QStringList       metaLines_;
+  QString           firstLine_;
+  QString           firstComment_;
+  QStringList       columns_;
+  ColumnTypes       columnTypes_;
+  ColumnData        columnData_;
 };
 
 #endif

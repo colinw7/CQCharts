@@ -77,26 +77,26 @@ drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQSt
     CQChartsGeom::Point p6 = pointPosValue(pos - ww/4, lnotch);
     CQChartsGeom::Point p7 = pointPosValue(pos + ww/4, unotch);
 
-    QPolygonF poly;
+    CQChartsGeom::Polygon poly;
 
-    poly << QPointF(p2.x, p2.y);
-    poly << QPointF(p4.x, p2.y);
-    poly << QPointF(p4.x, p6.y);
-    poly << QPointF(p7.x, p3.y);
-    poly << QPointF(p4.x, p7.y);
-    poly << QPointF(p4.x, p4.y);
-    poly << QPointF(p2.x, p4.y);
-    poly << QPointF(p2.x, p7.y);
-    poly << QPointF(p6.x, p3.y);
-    poly << QPointF(p2.x, p6.y);
-    poly << QPointF(p2.x, p2.y);
+    poly.addPoint(CQChartsGeom::Point(p2.x, p2.y));
+    poly.addPoint(CQChartsGeom::Point(p4.x, p2.y));
+    poly.addPoint(CQChartsGeom::Point(p4.x, p6.y));
+    poly.addPoint(CQChartsGeom::Point(p7.x, p3.y));
+    poly.addPoint(CQChartsGeom::Point(p4.x, p7.y));
+    poly.addPoint(CQChartsGeom::Point(p4.x, p4.y));
+    poly.addPoint(CQChartsGeom::Point(p2.x, p4.y));
+    poly.addPoint(CQChartsGeom::Point(p2.x, p7.y));
+    poly.addPoint(CQChartsGeom::Point(p6.x, p3.y));
+    poly.addPoint(CQChartsGeom::Point(p2.x, p6.y));
+    poly.addPoint(CQChartsGeom::Point(p2.x, p2.y));
 
     device->drawPolygon(poly);
   }
   else {
-    QRectF prect = CQChartsGeom::BBox(p2, p4).qrect();
+    CQChartsGeom::BBox pbbox(p2, p4);
 
-    CQChartsDrawUtil::drawRoundedPolygon(device, prect, cornerSize, cornerSize);
+    CQChartsDrawUtil::drawRoundedPolygon(device, pbbox, cornerSize, cornerSize);
   }
 
   //---
@@ -104,20 +104,20 @@ drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQSt
   // draw extent line
   if (orientation != Qt::Horizontal) {
     if (! median) {
-      device->drawLine(QPointF(p3.x, p1.y), QPointF(p3.x, p2.y));
-      device->drawLine(QPointF(p3.x, p4.y), QPointF(p3.x, p5.y));
+      device->drawLine(CQChartsGeom::Point(p3.x, p1.y), CQChartsGeom::Point(p3.x, p2.y));
+      device->drawLine(CQChartsGeom::Point(p3.x, p4.y), CQChartsGeom::Point(p3.x, p5.y));
     }
     else {
-      device->drawLine(QPointF(p3.x, p1.y), QPointF(p3.x, p5.y));
+      device->drawLine(CQChartsGeom::Point(p3.x, p1.y), CQChartsGeom::Point(p3.x, p5.y));
     }
   }
   else {
     if (! median) {
-      device->drawLine(QPointF(p1.x, p3.y), QPointF(p2.x, p3.y));
-      device->drawLine(QPointF(p4.x, p3.y), QPointF(p5.x, p3.y));
+      device->drawLine(CQChartsGeom::Point(p1.x, p3.y), CQChartsGeom::Point(p2.x, p3.y));
+      device->drawLine(CQChartsGeom::Point(p4.x, p3.y), CQChartsGeom::Point(p5.x, p3.y));
     }
     else {
-      device->drawLine(QPointF(p1.x, p3.y), QPointF(p5.x, p3.y));
+      device->drawLine(CQChartsGeom::Point(p1.x, p3.y), CQChartsGeom::Point(p5.x, p3.y));
     }
   }
 
@@ -125,12 +125,12 @@ drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQSt
 
   // draw lower/upper horizontal lines
   if (orientation != Qt::Horizontal) {
-    device->drawLine(QPointF(p1.x, p1.y), QPointF(p5.x, p1.y));
-    device->drawLine(QPointF(p1.x, p5.y), QPointF(p5.x, p5.y));
+    device->drawLine(CQChartsGeom::Point(p1.x, p1.y), CQChartsGeom::Point(p5.x, p1.y));
+    device->drawLine(CQChartsGeom::Point(p1.x, p5.y), CQChartsGeom::Point(p5.x, p5.y));
   }
   else {
-    device->drawLine(QPointF(p1.x, p1.y), QPointF(p1.x, p5.y));
-    device->drawLine(QPointF(p5.x, p1.y), QPointF(p5.x, p5.y));
+    device->drawLine(CQChartsGeom::Point(p1.x, p1.y), CQChartsGeom::Point(p1.x, p5.y));
+    device->drawLine(CQChartsGeom::Point(p5.x, p1.y), CQChartsGeom::Point(p5.x, p5.y));
   }
 
   //---
@@ -138,9 +138,9 @@ drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQSt
   // draw median line
   if (median) {
     if (orientation != Qt::Horizontal)
-      device->drawLine(QPointF(p2.x, p3.y), QPointF(p4.x, p3.y));
+      device->drawLine(CQChartsGeom::Point(p2.x, p3.y), CQChartsGeom::Point(p4.x, p3.y));
     else
-      device->drawLine(QPointF(p3.x, p2.y), QPointF(p3.x, p4.y));
+      device->drawLine(CQChartsGeom::Point(p3.x, p2.y), CQChartsGeom::Point(p3.x, p4.y));
   }
 
   //---
@@ -156,7 +156,7 @@ drawWhiskerBar(const CQChartsPlot *plot, CQChartsPaintDevice *device, const CQSt
       else
         po = CQChartsGeom::Point(outlier, p3.y);
 
-      plot->drawSymbol(device, po.qpoint(), symbol.type(), symbol.size());
+      plot->drawSymbol(device, po, symbol.type(), symbol.size());
     }
   }
 }

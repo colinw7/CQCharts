@@ -30,7 +30,7 @@ toString() const
     case Type::BOTTOM_CENTER: return "BOTTOM_CENTER";
     case Type::BOTTOM_RIGHT:  return "BOTTOM_RIGHT";
     case Type::ABS_POSITION:  return "ABS_POSITION";
-    case Type::ABS_RECT:      return "ABS_RECT";
+    case Type::ABS_RECTANGLE: return "ABS_RECTANGLE";
     default:                  return "NONE";
   }
 }
@@ -52,7 +52,7 @@ decodeString(const QString &str, Type &type)
   else if (lstr == "bottom_center") type = Type::BOTTOM_CENTER;
   else if (lstr == "bottom_right" ) type = Type::BOTTOM_RIGHT;
   else if (lstr == "abs_position" ) type = Type::ABS_POSITION;
-  else if (lstr == "abs_rect"     ) type = Type::ABS_RECT;
+  else if (lstr == "abs_rectangle") type = Type::ABS_RECTANGLE;
   else                              return false;
 
   return true;
@@ -66,7 +66,7 @@ enumNames() const
     "AUTO" << "TOP_LEFT" << "TOP_CENTER" << "TOP_RIGHT" <<
     "CENTER_LEFT" << "CENTER_CENTER" << "CENTER_RIGHT" <<
     "BOTTOM_LEFT" << "BOTTOM_CENTER" << "BOTTOM_RIGHT" <<
-    "ABS_POSITION" << "ABS_RECT";
+    "ABS_POSITION" << "ABS_RECTANGLE";
 
   return names;
 }

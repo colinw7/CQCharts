@@ -12,3 +12,7 @@ set plot1 [create_charts_plot -model $model1 -type adjacency \
 #  -columns {{namePair 0} {count 1} {groupId 2}} -title "adjacency"]
 
 #place_charts_plots -horizontal $plot1 $plot2
+
+set objs [get_charts_data -plot $plot1 -name objects -sync]
+
+assert {[llength $objs] == 585}

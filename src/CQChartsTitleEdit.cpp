@@ -74,6 +74,8 @@ CQChartsTitleEdit(QWidget *parent, CQChartsTitle *title) :
 {
   setObjectName("titleEdit");
 
+  //---
+
   QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
@@ -135,6 +137,7 @@ CQChartsTitleEdit(QWidget *parent, CQChartsTitle *title) :
   insideEdit_ = CQUtil::makeWidget<CQCheckBox>("insideEdit");
 
   insideEdit_->setChecked(data_.insidePlot);
+  insideEdit_->setToolTip("Draw title inside plot");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Inside Plot", insideEdit_, row);
 

@@ -467,13 +467,13 @@ drawNode(CQChartsPaintDevice *device, CQChartsDendrogram::HierNode *hier,
 
     QPainterPath path;
 
-    QPointF p1 = device->pixelToWindow(QPointF(x1, y1));
-    QPointF p2 = device->pixelToWindow(QPointF(x2, y2));
-    QPointF p3 = device->pixelToWindow(QPointF(x3, y3));
-    QPointF p4 = device->pixelToWindow(QPointF(x4, y4));
+    CQChartsGeom::Point p1 = device->pixelToWindow(CQChartsGeom::Point(x1, y1));
+    CQChartsGeom::Point p2 = device->pixelToWindow(CQChartsGeom::Point(x2, y2));
+    CQChartsGeom::Point p3 = device->pixelToWindow(CQChartsGeom::Point(x3, y3));
+    CQChartsGeom::Point p4 = device->pixelToWindow(CQChartsGeom::Point(x4, y4));
 
-    path.moveTo (p1);
-    path.cubicTo(p2, p3, p4);
+    path.moveTo (p1.qpoint());
+    path.cubicTo(p2.qpoint(), p3.qpoint(), p4.qpoint());
 
     device->drawPath(path);
   }
@@ -599,7 +599,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw node
-  device->drawEllipse(device->pixelToWindow(bbox).qrect());
+  device->drawEllipse(device->pixelToWindow(bbox));
 
   //---
 
@@ -626,12 +626,12 @@ draw(CQChartsPaintDevice *device)
 
   double dy = (fm.ascent() - fm.descent())/2;
 
-  QPointF p;
+  CQChartsGeom::Point p;
 
   if (is_hier)
-    p = QPointF(p1.x - cs - fm.width(name), p1.y + dy); // align right
+    p = CQChartsGeom::Point(p1.x - cs - fm.width(name), p1.y + dy); // align right
   else
-    p = QPointF(p1.x + cs, p1.y + dy); // align left
+    p = CQChartsGeom::Point(p1.x + cs, p1.y + dy); // align left
 
   // only support contrast
   CQChartsTextOptions options;

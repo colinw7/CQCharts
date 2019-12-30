@@ -1,10 +1,10 @@
 #include <CQChartsMarginEdit.h>
 #include <CQChartsUnitsEdit.h>
+#include <CQChartsLineEdit.h>
 
 #include <CQPropertyView.h>
 #include <CQUtil.h>
 
-#include <QLineEdit>
 #include <QHBoxLayout>
 #include <cassert>
 
@@ -18,11 +18,15 @@ CQChartsMarginEdit(QWidget *parent) :
 
   //---
 
-  edit_ = CQUtil::makeWidget<QLineEdit>("edit");
+  edit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
 
   layout->addWidget(edit_);
 
+  edit_->setToolTip("Margins in Percent (Left Top Right Bottom)");
+
   //---
+
+  setFocusProxy(edit_);
 
   connectSlots(true);
 }

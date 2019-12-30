@@ -24,6 +24,8 @@ CQChartsSymbolDataLineEdit(QWidget *parent) :
 {
   setObjectName("symbolDataLineEdit");
 
+  setToolTip("Symbol Data");
+
   //---
 
   menuEdit_ = dataEdit_ = new CQChartsSymbolDataEdit;
@@ -410,6 +412,7 @@ CQChartsSymbolDataEditPreview::
 CQChartsSymbolDataEditPreview(CQChartsSymbolDataEdit *edit) :
  CQChartsEditPreview(edit), edit_(edit)
 {
+  setToolTip("Symbol Preview");
 }
 
 void
@@ -453,7 +456,7 @@ draw(QPainter *painter, const CQChartsSymbolData &data, const QRect &rect,
   //---
 
   // draw symbol
-  QPointF p(rect.center().x(), rect.center().y());
+  CQChartsGeom::Point p(rect.center().x(), rect.center().y());
 
   double size = data.size().value();
 

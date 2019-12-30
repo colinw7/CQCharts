@@ -535,12 +535,12 @@ drawVoronoi(CQChartsPaintDevice *device) const
       CQChartsGrahamHull hull;
 
       for (const auto &v2 : v1->voronoi()) {
-        QPointF p(v2->x(), v2->y());
+        CQChartsGeom::Point p(v2->x(), v2->y());
 
         hull.addPoint(p);
       }
 
-      QPolygonF poly;
+      CQChartsGeom::Polygon poly;
 
       hull.getHull(poly);
 
@@ -583,7 +583,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
 
       CQChartsGeom::Point p(v->x(), v->y());
 
-      drawSymbol(device, p.qpoint(), symbolType, symbolSize, penBrush);
+      drawSymbol(device, p, symbolType, symbolSize, penBrush);
     }
   }
 
@@ -608,8 +608,8 @@ drawVoronoi(CQChartsPaintDevice *device) const
       auto *v2 = e->end  ();
 
       if (isVoronoiLines()) {
-        QPointF p1(v1->x(), v1->y());
-        QPointF p2(v2->x(), v2->y());
+        CQChartsGeom::Point p1(v1->x(), v1->y());
+        CQChartsGeom::Point p2(v2->x(), v2->y());
 
         device->drawLine(p1, p2);
       }
@@ -619,7 +619,7 @@ drawVoronoi(CQChartsPaintDevice *device) const
 
         CQChartsGeom::BBox bbox(v1->x() - r, v1->y() - r, v1->x() + r, v1->y() + r);
 
-        device->drawEllipse(bbox.qrect());
+        device->drawEllipse(bbox);
       }
     }
   }
@@ -761,5 +761,5 @@ draw(CQChartsPaintDevice *device)
   // draw symbol
   CQChartsGeom::Point p(x_, y_);
 
-  plot_->drawSymbol(device, p.qpoint(), symbolType, symbolSize, penBrush);
+  plot_->drawSymbol(device, p, symbolType, symbolSize, penBrush);
 }

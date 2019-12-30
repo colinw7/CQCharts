@@ -1,20 +1,6 @@
 #include <CQChartsPaintDevice.h>
 #include <QBuffer>
 
-QRectF
-CQChartsPaintDevice::
-windowToPixel(const QRectF &r) const
-{
-  return (! view_ ? (! plot_ ? r : plot_->windowToPixel(r)) : view_->windowToPixel(r));
-}
-
-QRectF
-CQChartsPaintDevice::
-pixelToWindow(const QRectF &r) const
-{
-  return (! view_ ? (! plot_ ? r : plot_->pixelToWindow(r)) : view_->pixelToWindow(r));
-}
-
 CQChartsGeom::BBox
 CQChartsPaintDevice::
 windowToPixel(const CQChartsGeom::BBox &r) const
@@ -29,30 +15,30 @@ pixelToWindow(const CQChartsGeom::BBox &r) const
   return (! view_ ? (! plot_ ? r : plot_->pixelToWindow(r)) : view_->pixelToWindow(r));
 }
 
-QPointF
+CQChartsGeom::Point
 CQChartsPaintDevice::
-windowToPixel(const QPointF &p) const
+windowToPixel(const CQChartsGeom::Point &p) const
 {
   return (! view_ ? (! plot_ ? p : plot_->windowToPixel(p)) : view_->windowToPixel(p));
 }
 
-QPolygonF
+CQChartsGeom::Point
 CQChartsPaintDevice::
-windowToPixel(const QPolygonF &p) const
-{
-  return (! view_ ? (! plot_ ? p : plot_->windowToPixel(p)) : view_->windowToPixel(p));
-}
-
-QPointF
-CQChartsPaintDevice::
-pixelToWindow(const QPointF &p) const
+pixelToWindow(const CQChartsGeom::Point &p) const
 {
   return (! view_ ? (! plot_ ? p : plot_->pixelToWindow(p)) : view_->pixelToWindow(p));
 }
 
-QSizeF
+CQChartsGeom::Polygon
 CQChartsPaintDevice::
-pixelToWindowSize(const QSizeF &s) const
+windowToPixel(const CQChartsGeom::Polygon &p) const
+{
+  return (! view_ ? (! plot_ ? p : plot_->windowToPixel(p)) : view_->windowToPixel(p));
+}
+
+CQChartsGeom::Size
+CQChartsPaintDevice::
+pixelToWindowSize(const CQChartsGeom::Size &s) const
 {
   return (! view_ ? (! plot_ ? s : plot_->pixelToWindowSize(s)) : view_->pixelToWindowSize(s));
 }
@@ -184,7 +170,7 @@ restore()
   painter_->restore();
 
   clipPath_ = QPainterPath();
-  clipRect_ = QRect();
+  clipRect_ = CQChartsGeom::BBox();
 }
 
 void
@@ -192,7 +178,7 @@ CQChartsViewPlotPainter::
 setClipPath(const QPainterPath &path, Qt::ClipOperation operation)
 {
   clipPath_ = path;
-  clipRect_ = QRect();
+  clipRect_ = CQChartsGeom::BBox();
 
   QPainterPath ppath = windowToPixel(path);
 
@@ -201,28 +187,28 @@ setClipPath(const QPainterPath &path, Qt::ClipOperation operation)
 
 void
 CQChartsViewPlotPainter::
-setClipRect(const QRectF &rect, Qt::ClipOperation operation)
+setClipRect(const CQChartsGeom::BBox &bbox, Qt::ClipOperation operation)
 {
-  if (! rect.isValid()) return;
+  if (! bbox.isValid()) return;
 
-  clipRect_ = rect;
+  clipRect_ = bbox;
   clipPath_ = QPainterPath();
 
-  QRectF prect = windowToPixel(rect);
+  CQChartsGeom::BBox pbbox = windowToPixel(bbox);
 
-  painter_->setClipRect(prect, operation);
+  painter_->setClipRect(pbbox.qrect(), operation);
 }
 
-QRectF
+CQChartsGeom::BBox
 CQChartsViewPlotPainter::
 clipRect() const
 {
   if      (clipRect_.isValid())
     return clipRect_;
   else if (clipPath_.isEmpty())
-    return clipPath_.boundingRect();
+    return CQChartsGeom::BBox(clipPath_.boundingRect());
   else
-    return QRectF();
+    return CQChartsGeom::BBox();
 }
 
 QPen
@@ -282,107 +268,104 @@ drawPath(const QPainterPath &path)
 
 void
 CQChartsViewPlotPainter::
-fillRect(const QRectF &rect, const QBrush &brush)
+fillRect(const CQChartsGeom::BBox &bbox, const QBrush &brush)
 {
-  if (! rect.isValid()) return;
+  if (! bbox.isValid()) return;
 
-  QRectF prect = windowToPixel(rect);
+  CQChartsGeom::BBox pbbox = windowToPixel(bbox);
 
-  painter_->fillRect(prect, brush);
+  painter_->fillRect(pbbox.qrect(), brush);
 }
 
 void
 CQChartsViewPlotPainter::
-drawRect(const QRectF &rect)
+drawRect(const CQChartsGeom::BBox &bbox)
 {
-  if (! rect.isValid()) return;
+  if (! bbox.isValid()) return;
 
-  QRectF prect = windowToPixel(rect);
+  CQChartsGeom::BBox pbbox = windowToPixel(bbox);
 
-  painter_->drawRect(prect);
+  painter_->drawRect(pbbox.qrect());
 }
 
 void
 CQChartsViewPlotPainter::
-drawEllipse(const QRectF &rect)
+drawEllipse(const CQChartsGeom::BBox &bbox)
 {
-  if (! rect.isValid()) return;
+  auto pbbox = windowToPixel(bbox);
 
-  QRectF prect = windowToPixel(rect);
+  QRectF prect = pbbox.qrect();
 
-  painter_->drawEllipse(prect);
+  if (prect.isValid())
+    painter_->drawEllipse(prect);
 }
 
 #if 0
 void
 CQChartsViewPlotPainter::
-drawArc(const QRectF &rect, double a1, double a2)
+drawArc(const CQChartsGeom::BBox &rect, double a1, double a2)
 {
-  if (! rect.isValid()) return;
+  auto pbbox = windowToPixel(bbox);
 
-  QRectF prect = windowToPixel(rect);
+  QRectF prect = pbbox.qrect();
 
-  painter_->drawArc(prect, a1*16, a2*16);
+  if (prect.isValid())
+    painter_->drawArc(prect, a1*16, a2*16);
 }
 #endif
 
 void
 CQChartsViewPlotPainter::
-drawPolygon(const QPolygonF &poly)
+drawPolygon(const CQChartsGeom::Polygon &poly)
 {
-  QPolygonF ppoly = windowToPixel(poly);
+  CQChartsGeom::Polygon ppoly = windowToPixel(poly);
 
-  painter_->drawPolygon(ppoly);
+  painter_->drawPolygon(ppoly.qpoly());
 }
 
 void
 CQChartsViewPlotPainter::
-drawPolyline(const QPolygonF &poly)
+drawPolyline(const CQChartsGeom::Polygon &poly)
 {
-  QPolygonF ppoly;
+  CQChartsGeom::Polygon ppoly = windowToPixel(poly);
 
-  int np = poly.size();
-
-  for (int i = 0; i < np; ++i)
-    ppoly << windowToPixel(poly[i]);
-
-  painter_->drawPolyline(ppoly);
+  painter_->drawPolyline(ppoly.qpoly());
 }
 
 void
 CQChartsViewPlotPainter::
-drawLine(const QPointF &p1, const QPointF &p2)
+drawLine(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2)
 {
-  QPointF pp1 = windowToPixel(p1);
-  QPointF pp2 = windowToPixel(p2);
+  CQChartsGeom::Point pp1 = windowToPixel(p1);
+  CQChartsGeom::Point pp2 = windowToPixel(p2);
 
-  painter_->drawLine(pp1, pp2);
+  painter_->drawLine(pp1.qpoint(), pp2.qpoint());
 }
 
 void
 CQChartsViewPlotPainter::
-drawPoint(const QPointF &p)
+drawPoint(const CQChartsGeom::Point &p)
 {
-  QPointF pp = windowToPixel(p);
+  CQChartsGeom::Point pp = windowToPixel(p);
 
-  painter_->drawPoint(pp);
+  painter_->drawPoint(pp.qpoint());
 }
 
 void
 CQChartsViewPlotPainter::
-drawText(const QPointF &p, const QString &text)
+drawText(const CQChartsGeom::Point &p, const QString &text)
 {
-  QPointF pp = windowToPixel(p);
+  CQChartsGeom::Point pp = windowToPixel(p);
 
-  painter_->drawText(pp, text);
+  painter_->drawText(pp.qpoint(), text);
 }
 
 void
 CQChartsViewPlotPainter::
-drawTransformedText(const QPointF &p, const QString &text)
+drawTransformedText(const CQChartsGeom::Point &p, const QString &text)
 {
   // NOTE: p is in pixels
-  painter_->drawText(p, text);
+  painter_->drawText(p.qpoint(), text);
 }
 
 void
@@ -401,11 +384,11 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &image)
 
 void
 CQChartsViewPlotPainter::
-drawImage(const QPointF &p, const QImage &image)
+drawImage(const CQChartsGeom::Point &p, const QImage &image)
 {
-  QPointF pp = windowToPixel(p);
+  CQChartsGeom::Point pp = windowToPixel(p);
 
-  painter_->drawImage(pp, image);
+  painter_->drawImage(pp.qpoint(), image);
 }
 
 const QFont &
@@ -424,13 +407,13 @@ setFont(const QFont &f)
 
 void
 CQChartsViewPlotPainter::
-setTransformRotate(const QPointF &p, double angle)
+setTransformRotate(const CQChartsGeom::Point &p, double angle)
 {
-  QPointF p1 = windowToPixel(p);
+  CQChartsGeom::Point p1 = windowToPixel(p);
 
   QTransform t = painter_->transform();
 
-  t.translate(p1.x(), p1.y());
+  t.translate(p1.x, p1.y);
   t.rotate(-angle);
 
   painter_->setTransform(t);
@@ -501,11 +484,11 @@ resetData()
 
 void
 CQChartsHtmlPainter::
-setTransformRotate(const QPointF &p, double angle)
+setTransformRotate(const CQChartsGeom::Point &p, double angle)
 {
   QTransform t = data_.transform;
 
-  t.translate(p.x(), p.y());
+  t.translate(p.x, p.y);
   t.rotate(angle);
 
   data_.transform      = t;
@@ -551,15 +534,16 @@ resetColorNames()
 
 void
 CQChartsHtmlPainter::
-createButton(const QRectF &rect, const QString &text, const QString &id, const QString &clickProc)
+createButton(const CQChartsGeom::BBox &bbox, const QString &text, const QString &id,
+             const QString &clickProc)
 {
-  if (! rect.isValid()) return;
+  if (! bbox.isValid()) return;
 
-  QRectF prect = windowToPixel(rect);
+  CQChartsGeom::BBox pbbox = windowToPixel(bbox);
 
   *os_ << "<button id=\"" << id.toStdString() << "\" style=\"position:absolute;"
-          " left:"  << prect.left () << "px; top:"    << prect.top   () << "px;"
-          " width:" << prect.width() << "px; height:" << prect.height() << "px;";
+          " left:"  << pbbox.getXMin () << "px; top:"    << pbbox.getYMin  () << "px;"
+          " width:" << pbbox.getWidth() << "px; height:" << pbbox.getHeight() << "px;";
 
   QString styleName = data_.font.styleName();
 
@@ -629,11 +613,11 @@ setClipPath(const QPainterPath &, Qt::ClipOperation op)
 
 void
 CQChartsScriptPainter::
-setClipRect(const QRectF &rect, Qt::ClipOperation op)
+setClipRect(const CQChartsGeom::BBox &bbox, Qt::ClipOperation op)
 {
   *os_ << "  charts.setClipRect(" <<
-          rect.left () << ", " << rect.bottom() << ", " <<
-          rect.right() << ", " << rect.top   () << ", " << int(op) << ");\n";
+          bbox.getXMin() << ", " << bbox.getYMin() << ", " <<
+          bbox.getXMax() << ", " << bbox.getYMax() << ", " << int(op) << ");\n";
 }
 
 void
@@ -768,48 +752,48 @@ addPathParts(const QPainterPath &path)
 
 void
 CQChartsScriptPainter::
-fillRect(const QRectF &rect, const QBrush &brush)
+fillRect(const CQChartsGeom::BBox &bbox, const QBrush &brush)
 {
   setBrush(brush);
 
   *os_ << "  " << context() << ".fillRect(" <<
-          rect.left () << ", " << rect.bottom() << ", " <<
-          rect.right() << ", " << rect.top   () << ");\n";
+          bbox.getXMin() << ", " << bbox.getYMin() << ", " <<
+          bbox.getXMax() << ", " << bbox.getYMax() << ");\n";
 }
 
 void
 CQChartsScriptPainter::
-drawRect(const QRectF &rect)
+drawRect(const CQChartsGeom::BBox &bbox)
 {
   *os_ << "  " << context() << ".drawRect(" <<
-          rect.left () << ", " << rect.bottom() << ", " <<
-          rect.right() << ", " << rect.top   () << ");\n";
+          bbox.getXMin() << ", " << bbox.getYMin() << ", " <<
+          bbox.getXMax() << ", " << bbox.getYMax() << ");\n";
 }
 
 void
 CQChartsScriptPainter::
-drawEllipse(const QRectF &rect)
+drawEllipse(const CQChartsGeom::BBox &bbox)
 {
   *os_ << "  " << context() << ".drawEllipse(" <<
-          rect.left () << ", " << rect.bottom() << ", " <<
-          rect.right() << ", " << rect.top   () << ");\n";
+          bbox.getXMin() << ", " << bbox.getYMin() << ", " <<
+          bbox.getXMax() << ", " << bbox.getYMax() << ");\n";
 }
 
 #if 0
 void
 CQChartsScriptPainter::
-drawArc(const QRectF &rect, double a1, double a2)
+drawArc(const CQChartsGeom::BBox &bbox, double a1, double a2)
 {
   *os_ << "  " << context() << ".drawEllipse(" <<
-          rect.left () << ", " << rect.bottom() << ", " <<
-          rect.right() << ", " << rect.top   () << ", " <<
+          bbox.getXMin() << ", " << bbox.getYMin() << ", " <<
+          bbox.getXMax() << ", " << bbox.getYMax() << ", " <<
           a1 << ", " << a2 << ");\n";
 }
 #endif
 
 void
 CQChartsScriptPainter::
-drawPolygon(const QPolygonF &poly)
+drawPolygon(const CQChartsGeom::Polygon &poly)
 {
   *os_ << "  " << context() << ".drawPolygon([";
 
@@ -818,7 +802,9 @@ drawPolygon(const QPolygonF &poly)
   for (int i = 0; i < np; ++i) {
     if (i > 0) *os_ << ", ";
 
-    *os_ << poly[i].x() << ", " << poly[i].y();
+    const CQChartsGeom::Point &p = poly.point(i);
+
+    *os_ << p.x << ", " << p.y;
   }
 
   *os_ << "]);\n";
@@ -826,7 +812,7 @@ drawPolygon(const QPolygonF &poly)
 
 void
 CQChartsScriptPainter::
-drawPolyline(const QPolygonF &poly)
+drawPolyline(const CQChartsGeom::Polygon &poly)
 {
   *os_ << "  " << context() << ".drawPolyline([";
 
@@ -835,7 +821,9 @@ drawPolyline(const QPolygonF &poly)
   for (int i = 0; i < np; ++i) {
     if (i > 0) *os_ << ", ";
 
-    *os_ << poly[i].x() << ", " << poly[i].y();
+    const CQChartsGeom::Point &p = poly.point(i);
+
+    *os_ << p.x << ", " << p.y;
   }
 
   *os_ << "]);\n";
@@ -843,36 +831,36 @@ drawPolyline(const QPolygonF &poly)
 
 void
 CQChartsScriptPainter::
-drawLine(const QPointF &p1, const QPointF &p2)
+drawLine(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2)
 {
   *os_ << "  " << context() << ".drawLine(" <<
-    p1.x() << ", " << p1.y() << ", " << p2.x() << ", " << p2.y() << ");\n";
+    p1.x << ", " << p1.y << ", " << p2.x << ", " << p2.y << ");\n";
 }
 
 void
 CQChartsScriptPainter::
-drawPoint(const QPointF &p)
+drawPoint(const CQChartsGeom::Point &p)
 {
-  *os_ << "  " << context() << ".drawPoint(" << p.x() << ", " << p.y() << ");\n";
+  *os_ << "  " << context() << ".drawPoint(" << p.x << ", " << p.y << ");\n";
 }
 
 void
 CQChartsScriptPainter::
-drawText(const QPointF &p, const QString &text)
+drawText(const CQChartsGeom::Point &p, const QString &text)
 {
-  *os_ << "  " << context() << ".drawText(" << p.x() << ", " << p.y() << ", \"" <<
-     text.toStdString() << "\");\n";
+  *os_ << "  " << context() << ".drawText(" << p.x << ", " << p.y << ", \"" <<
+    text.toStdString() << "\");\n";
 }
 
 void
 CQChartsScriptPainter::
-drawTransformedText(const QPointF &p, const QString &text)
+drawTransformedText(const CQChartsGeom::Point &p, const QString &text)
 {
-  QPointF pt = p + data_.transformPoint;
+  CQChartsGeom::Point pt(p.x + data_.transformPoint.x, p.y + data_.transformPoint.y);
 
   double a = CMathUtil::Deg2Rad(data_.transformAngle);
 
-  *os_ << "  " << context() << ".drawRotatedText(" << pt.x() << ", " << pt.y() << ", \"" <<
+  *os_ << "  " << context() << ".drawRotatedText(" << pt.x << ", " << pt.y << ", \"" <<
      text.toStdString() << "\", " << a << ");\n";
 }
 
@@ -888,12 +876,12 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &image)
   double w = pbbox.getWidth ();
   double h = pbbox.getHeight();
 
-  drawImage(QPointF(x, y), image.scaled(w, h, Qt::IgnoreAspectRatio));
+  drawImage(CQChartsGeom::Point(x, y), image.scaled(w, h, Qt::IgnoreAspectRatio));
 }
 
 void
 CQChartsScriptPainter::
-drawImage(const QPointF &p, const QImage &image)
+drawImage(const CQChartsGeom::Point &p, const QImage &image)
 {
   // writes image into ba in PNG format
   QByteArray ba;
@@ -915,8 +903,8 @@ drawImage(const QPointF &p, const QImage &image)
   *os_ << "  image.src = imageData;\n";
 
   *os_ << "\n";
-  *os_ << "  var px = " << context() << ".plotXToPixel(" << p.x() << ");\n";
-  *os_ << "  var py = " << context() << ".plotYToPixel(" << p.y() << ");\n";
+  *os_ << "  var px = " << context() << ".plotXToPixel(" << p.x << ");\n";
+  *os_ << "  var py = " << context() << ".plotYToPixel(" << p.y << ");\n";
   *os_ << "\n";
 
   *os_ << "  charts.gc.drawImage(image, px, py);\n";
@@ -1010,7 +998,7 @@ setClipPath(const QPainterPath &, Qt::ClipOperation)
 
 void
 CQChartsSVGPainter::
-setClipRect(const QRectF &, Qt::ClipOperation)
+setClipRect(const CQChartsGeom::BBox &, Qt::ClipOperation)
 {
   // TODO
 }
@@ -1137,14 +1125,14 @@ addPathParts(const QPainterPath &path)
 
 void
 CQChartsSVGPainter::
-fillRect(const QRectF &rect, const QBrush &brush)
+fillRect(const CQChartsGeom::BBox &bbox, const QBrush &brush)
 {
-  QRectF prect = windowToPixel(rect);
+  CQChartsGeom::BBox pbbox = windowToPixel(bbox);
 
   setBrush(brush);
 
-  *os_ << "<rect x=\"" << prect.left() << "\" y=\"" << prect.top() << "\" " <<
-          "width=\"" << prect.width() << "\" height=\"" << prect.height() << "\"";
+  *os_ << "<rect x=\"" << pbbox.getXMin() << "\" y=\"" << pbbox.getYMin() << "\" " <<
+          "width=\"" << pbbox.getWidth() << "\" height=\"" << pbbox.getHeight() << "\"";
 
   *os_ << " style=\"";
 
@@ -1155,12 +1143,12 @@ fillRect(const QRectF &rect, const QBrush &brush)
 
 void
 CQChartsSVGPainter::
-drawRect(const QRectF &rect)
+drawRect(const CQChartsGeom::BBox &bbox)
 {
-  QRectF prect = windowToPixel(rect);
+  CQChartsGeom::BBox pbbox = windowToPixel(bbox);
 
-  *os_ << "<rect x=\"" << prect.left() << "\" y=\"" << prect.top() << "\" " <<
-          "width=\"" << prect.width() << "\" height=\"" << prect.height() << "\"";
+  *os_ << "<rect x=\"" << pbbox.getXMin() << "\" y=\"" << pbbox.getYMin() << "\" " <<
+          "width=\"" << pbbox.getWidth() << "\" height=\"" << pbbox.getHeight() << "\"";
 
   *os_ << " style=\"";
 
@@ -1172,12 +1160,12 @@ drawRect(const QRectF &rect)
 
 void
 CQChartsSVGPainter::
-drawEllipse(const QRectF &rect)
+drawEllipse(const CQChartsGeom::BBox &bbox)
 {
-  QRectF prect = windowToPixel(rect);
+  auto pbbox = windowToPixel(bbox);
 
-  *os_ << "<ellipse cx=\"" << prect.center().x() << "\" cy=\"" << prect.center().y() << "\" " <<
-          "rx=\"" << prect.width()/2 << " ry=\"" << prect.height()/2 << "\"";
+  *os_ << "<ellipse cx=\"" << pbbox.getXMid() << "\" cy=\"" << pbbox.getYMid() << "\" " <<
+          "rx=\"" << pbbox.getWidth()/2 << " ry=\"" << pbbox.getHeight()/2 << "\"";
 
   *os_ << " style=\"";
 
@@ -1190,7 +1178,7 @@ drawEllipse(const QRectF &rect)
 #if 0
 void
 CQChartsSVGPainter::
-drawArc(const QRectF &, double, double)
+drawArc(const CQChartsGeom::BBox &, double, double)
 {
   // TODO
 }
@@ -1198,19 +1186,21 @@ drawArc(const QRectF &, double, double)
 
 void
 CQChartsSVGPainter::
-drawPolygon(const QPolygonF &poly)
+drawPolygon(const CQChartsGeom::Polygon &poly)
 {
-  QPolygonF ppoly = windowToPixel(poly);
+  CQChartsGeom::Polygon ppoly = windowToPixel(poly);
 
   *os_ << "<path d=\"";
 
   int np = ppoly.size();
 
   for (int i = 0; i < np; ++i) {
+    const CQChartsGeom::Point &p = ppoly.point(i);
+
     if (i == 0)
-      *os_ << "M " << ppoly[i].x() << " " << poly[i].y();
+      *os_ << "M " << p.x << " " << p.y;
     else
-      *os_ << "L " << ppoly[i].x() << " " << poly[i].y();
+      *os_ << "L " << p.x << " " << p.y;
   }
 
   *os_ << "z\"";
@@ -1225,19 +1215,21 @@ drawPolygon(const QPolygonF &poly)
 
 void
 CQChartsSVGPainter::
-drawPolyline(const QPolygonF &poly)
+drawPolyline(const CQChartsGeom::Polygon &poly)
 {
-  QPolygonF ppoly = windowToPixel(poly);
+  CQChartsGeom::Polygon ppoly = windowToPixel(poly);
 
   *os_ << "<path d=\"";
 
   int np = ppoly.size();
 
   for (int i = 0; i < np; ++i) {
+    const CQChartsGeom::Point &p = ppoly.point(i);
+
     if (i == 0)
-      *os_ << "M " << ppoly[i].x() << " " << poly[i].y();
+      *os_ << "M " << p.x << " " << p.y;
     else
-      *os_ << "L " << ppoly[i].x() << " " << poly[i].y();
+      *os_ << "L " << p.x << " " << p.y;
   }
 
   *os_ << " style=\"";
@@ -1249,13 +1241,13 @@ drawPolyline(const QPolygonF &poly)
 
 void
 CQChartsSVGPainter::
-drawLine(const QPointF &p1, const QPointF &p2)
+drawLine(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2)
 {
-  QPointF pp1 = windowToPixel(p1);
-  QPointF pp2 = windowToPixel(p2);
+  CQChartsGeom::Point pp1 = windowToPixel(p1);
+  CQChartsGeom::Point pp2 = windowToPixel(p2);
 
-  *os_ << "<line x1=\"" << pp1.x() << "\" y1=\"" << pp1.y() << "\" " <<
-                "x2=\"" << pp2.x() << "\" y2=\"" << pp2.y() << "\"";
+  *os_ << "<line x1=\"" << pp1.x << "\" y1=\"" << pp1.y << "\" " <<
+                "x2=\"" << pp2.x << "\" y2=\"" << pp2.y << "\"";
 
   *os_ << " style=\"";
 
@@ -1266,11 +1258,11 @@ drawLine(const QPointF &p1, const QPointF &p2)
 
 void
 CQChartsSVGPainter::
-drawPoint(const QPointF &p)
+drawPoint(const CQChartsGeom::Point &p)
 {
-  QPointF pp = windowToPixel(p);
+  CQChartsGeom::Point pp = windowToPixel(p);
 
-  *os_ << "<rect x=\"" << pp.x() << "\" y=\"" << pp.y() << "\" width=\"1\" height=\"1\"";
+  *os_ << "<rect x=\"" << pp.x << "\" y=\"" << pp.y << "\" width=\"1\" height=\"1\"";
 
   *os_ << " style=\"";
 
@@ -1281,11 +1273,11 @@ drawPoint(const QPointF &p)
 
 void
 CQChartsSVGPainter::
-drawText(const QPointF &p, const QString &text)
+drawText(const CQChartsGeom::Point &p, const QString &text)
 {
-  QPointF pp = windowToPixel(p);
+  CQChartsGeom::Point pp = windowToPixel(p);
 
-  *os_ << "<text xml:space=\"preserve\" x=\"" << pp.x() << "\" y=\"" << pp.y() << "\"";
+  *os_ << "<text xml:space=\"preserve\" x=\"" << pp.x << "\" y=\"" << pp.y << "\"";
 
   writeFont();
 
@@ -1303,18 +1295,18 @@ drawText(const QPointF &p, const QString &text)
 
 void
 CQChartsSVGPainter::
-drawTransformedText(const QPointF &p, const QString &text)
+drawTransformedText(const CQChartsGeom::Point &p, const QString &text)
 {
-  QPointF pt = p + data_.transformPoint;
+  CQChartsGeom::Point pt(p.x + data_.transformPoint.x, p.y + data_.transformPoint.y);
 
-  QPointF ppt = windowToPixel(pt);
+  CQChartsGeom::Point ppt = windowToPixel(pt);
 
   double a = CMathUtil::Deg2Rad(data_.transformAngle);
   double c = std::cos(a);
   double s = std::sin(a);
 
   *os_ << "<g transform=\"matrix(" << c << "," << -s << "," << s << "," << c << "," <<
-          ppt.x() << "," << ppt.y() << ")\">\n";
+          ppt.x << "," << ppt.y << ")\">\n";
 
   *os_ << "<text x=\"0\" y=\"0\"";
 
@@ -1339,16 +1331,16 @@ drawImageInRect(const CQChartsGeom::BBox &bbox, const QImage &image)
   double px = pbbox.getXMin();
   double py = pbbox.getYMin();
 
-  QPointF pw = pixelToWindow(QPointF(px, py));
+  CQChartsGeom::Point pw = pixelToWindow(CQChartsGeom::Point(px, py));
 
   drawImage(pw, image.scaled(pbbox.getWidth(), pbbox.getHeight(), Qt::IgnoreAspectRatio));
 }
 
 void
 CQChartsSVGPainter::
-drawImage(const QPointF &p, const QImage &image)
+drawImage(const CQChartsGeom::Point &p, const QImage &image)
 {
-  QPointF pt = windowToPixel(p);
+  CQChartsGeom::Point pt = windowToPixel(p);
 
   int w = image.width ();
   int h = image.height();
@@ -1359,7 +1351,7 @@ drawImage(const QPointF &p, const QImage &image)
   qbuffer.open(QIODevice::WriteOnly);
   image.save(&qbuffer, "PNG");
 
-  *os_ << "<image x=\"" << pt.x() << "\" y=\"" << pt.y() <<
+  *os_ << "<image x=\"" << pt.x << "\" y=\"" << pt.y <<
           "\" width=\"" << w << "\" height=\"" << h << "\" preserveAspectRatio=\"none\" " <<
           "xlink:href=\"data:image/png;base64,";
 

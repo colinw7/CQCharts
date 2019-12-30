@@ -861,7 +861,8 @@ drawDeviceParts(CQChartsPaintDevice *device) const
     else
       device->setPen(edgePen);
 
-    device->drawLine(QPointF(p1.x(), p1.y()), QPointF(p2.x(), p2.y()));
+    device->drawLine(CQChartsGeom::Point(p1.x(), p1.y()),
+                     CQChartsGeom::Point(p2.x(), p2.y()));
 
     if (isTemp)
       delete spring;
@@ -900,7 +901,7 @@ drawDeviceParts(CQChartsPaintDevice *device) const
 
     CQChartsGeom::BBox ebbox(p1.x() - xm/2.0, p1.y() - ym/2.0, p1.x() + xm/2, p1.y() + ym/2.0);
 
-    device->drawEllipse(ebbox.qrect());
+    device->drawEllipse(ebbox);
   }
 
   //---

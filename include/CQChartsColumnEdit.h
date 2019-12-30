@@ -54,8 +54,8 @@ class CQChartsColumnLineEdit : public CQChartsLineEditBase {
 
 #include <CQChartsEditBase.h>
 
+class CQChartsLineEdit;
 class CQGroupBox;
-class CQLineEdit;
 class QCheckBox;
 
 /*!
@@ -105,9 +105,9 @@ class CQChartsColumnEdit : public CQChartsEditBase {
   CQChartsColumn       column_;
   CQGroupBox*          columnGroup_    { nullptr };
   CQChartsColumnCombo* columnCombo_    { nullptr };
-  CQLineEdit*          roleEdit_       { nullptr };
+  CQChartsLineEdit*    roleEdit_       { nullptr };
   CQGroupBox*          menuExprGroup_  { nullptr };
-  CQLineEdit*          expressionEdit_ { nullptr };
+  CQChartsLineEdit*    expressionEdit_ { nullptr };
   QCheckBox*           vheaderCheck_   { nullptr };
 };
 

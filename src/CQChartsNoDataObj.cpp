@@ -32,5 +32,5 @@ draw(CQChartsPaintDevice *device)
 
   view->setPainterFont(device, font());
 
-  CQChartsDrawUtil::drawCenteredText(device, c.qpoint(), msg);
+  CQChartsDrawUtil::drawCenteredText(device, c, msg);
 }

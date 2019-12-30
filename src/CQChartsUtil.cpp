@@ -195,12 +195,13 @@ QString formatInteger(long i, const QString &fmt) {
 
 namespace CQChartsUtil {
 
-bool intersectLines(const QPointF &l1s, const QPointF &l1e,
-                    const QPointF &l2s, const QPointF &l2e, QPointF &pi) {
-  double dx1 = l1e.x() - l1s.x();
-  double dy1 = l1e.y() - l1s.y();
-  double dx2 = l2e.x() - l2s.x();
-  double dy2 = l2e.y() - l2s.y();
+bool intersectLines(const CQChartsGeom::Point &l1s, const CQChartsGeom::Point &l1e,
+                    const CQChartsGeom::Point &l2s, const CQChartsGeom::Point &l2e,
+                    CQChartsGeom::Point &pi) {
+  double dx1 = l1e.x - l1s.x;
+  double dy1 = l1e.y - l1s.y;
+  double dx2 = l2e.x - l2s.x;
+  double dy2 = l2e.y - l2s.y;
 
   double delta = dx1*dy2 - dy1*dx2;
 
@@ -209,16 +210,16 @@ bool intersectLines(const QPointF &l1s, const QPointF &l1e,
 
   double idelta = 1.0/delta;
 
-  double dx = l2s.x() - l1s.x();
-  double dy = l2s.y() - l1s.y();
+  double dx = l2s.x - l1s.x;
+  double dy = l2s.y - l1s.y;
 
   double m1 = (dx*dy2 - dy*dx2)*idelta;
 //double m2 = (dx*dy1 - dy*dx1)*idelta;
 
-  double xi = l1s.x() + m1*dx1;
-  double yi = l1s.y() + m1*dy1;
+  double xi = l1s.x + m1*dx1;
+  double yi = l1s.y + m1*dy1;
 
-  pi = QPointF(xi, yi);
+  pi = CQChartsGeom::Point(xi, yi);
 
   return true;
 }
@@ -226,13 +227,13 @@ bool intersectLines(const QPointF &l1s, const QPointF &l1e,
 bool intersectLines(double x11, double y11, double x21, double y21,
                     double x12, double y12, double x22, double y22,
                     double &xi, double &yi) {
-  QPointF pi;
+  CQChartsGeom::Point pi;
 
-  bool rc = intersectLines(QPointF(x11, y11), QPointF(x21, y21),
-                           QPointF(x12, y12), QPointF(x22, y22), pi);
+  bool rc = intersectLines(CQChartsGeom::Point(x11, y11), CQChartsGeom::Point(x21, y21),
+                           CQChartsGeom::Point(x12, y12), CQChartsGeom::Point(x22, y22), pi);
 
-  xi = pi.x();
-  yi = pi.y();
+  xi = pi.x;
+  yi = pi.y;
 
   return rc;
 }
@@ -543,7 +544,7 @@ int countLeadingBraces(const QString &str) {
   return n;
 }
 
-bool stringToPolygons(const QString &str, std::vector<QPolygonF> &polygons) {
+bool stringToPolygons(const QString &str, std::vector<CQChartsGeom::Polygon> &polygons) {
   CQStrParse parse(str);
 
   parse.skipSpace();
@@ -575,7 +576,7 @@ bool stringToPolygons(const QString &str, std::vector<QPolygonF> &polygons) {
     if (! parse.readBracedString(polyStr))
       return false;
 
-    QPolygonF poly;
+    CQChartsGeom::Polygon poly;
 
     if (! stringToPolygon(polyStr, poly))
       return false;
@@ -596,13 +597,13 @@ bool stringToPolygons(const QString &str, std::vector<QPolygonF> &polygons) {
   return true;
 }
 
-bool stringToPolygon(const QString &str, QPolygonF &poly) {
+bool stringToPolygon(const QString &str, CQChartsGeom::Polygon &poly) {
   CQStrParse parse(str);
 
   return parsePolygon(parse, poly);
 }
 
-bool parsePolygon(CQStrParse &parse, QPolygonF &poly) {
+bool parsePolygon(CQStrParse &parse, CQChartsGeom::Polygon &poly) {
   parse.skipSpace();
 
   int pos = parse.getPos();
@@ -632,12 +633,12 @@ bool parsePolygon(CQStrParse &parse, QPolygonF &poly) {
     if (! parse.readBracedString(pointStr))
       return false;
 
-    QPointF point;
+    CQChartsGeom::Point point;
 
     if (! stringToPoint(pointStr, point))
       return false;
 
-    poly.push_back(point);
+    poly.addPoint(point);
 
     parse.skipSpace();
 
@@ -653,58 +654,77 @@ bool parsePolygon(CQStrParse &parse, QPolygonF &poly) {
   return true;
 }
 
-bool stringToRect(const QString &str, QRectF &rect) {
+bool stringToBBox(const QString &str, CQChartsGeom::BBox &bbox) {
   CQStrParse parse(str);
 
-  return parseRect(parse, rect);
+  return parseBBox(parse, bbox, /*terminated*/ true);
 }
 
-bool parseRect(CQStrParse &parse, QRectF &rect) {
-  // parse rect:
+bool parseBBox(CQStrParse &parse, CQChartsGeom::BBox &bbox, bool terminated) {
+  // parse bbox:
   //  x1 y1 x2 y2
+  //  { x1 y1 x2 y2 }
   //  {x1 y1} {x2 y2}
 
   parse.skipSpace();
 
+  // { x1 y1 x2 y2 }
   if (parse.isChar('{')) {
     QString str1;
+
+    int pos = parse.getPos();
 
     if (! parse.readBracedString(str1))
       return false;
 
     CQStrParse parse1(str1);
 
-    return parseRect(parse1, rect);
+    if (parseBBox(parse1, bbox, terminated)) {
+      if (terminated) {
+        parse.skipSpace();
+
+        if (parse.eof())
+          return true;
+      }
+      else
+        return true;
+    }
+
+    parse.setPos(pos);
   }
 
-  QPointF p1, p2;
+  //--
 
-  if (! parsePoint(parse, p1))
+  // { x1 y1 } { x2 y2 }
+  CQChartsGeom::Point p1, p2;
+
+  if (! parsePoint(parse, p1, /*terminated*/ false))
     return false;
 
-  if (! parsePoint(parse, p2))
+  if (! parsePoint(parse, p2, /*terminated*/ true))
     return false;
-
-  parse.skipSpace();
-
-  // TODO: check for extra characters
 
   //---
 
-  rect = QRectF(p1, p2).normalized();
+  bbox = CQChartsGeom::BBox(p1.x, p1.y, p2.x, p2.y);
 
   return true;
 }
 
-bool stringToPoint(const QString &str, QPointF &point) {
+bool stringToPoint(const QString &str, CQChartsGeom::Point &point) {
   CQStrParse parse(str);
 
-  return parsePoint(parse, point);
+  return parsePoint(parse, point, /*terminated*/ true);
 }
 
-bool parsePoint(CQStrParse &parse, QPointF &point) {
+bool parsePoint(CQStrParse &parse, CQChartsGeom::Point &point, bool terminated) {
+  // parse point:
+  //  x y
+  //  { x y }
+
   parse.skipSpace();
 
+  // { x y }
   if (parse.isChar('{')) {
     QString str1;
 
@@ -713,7 +733,16 @@ bool parsePoint(CQStrParse &parse, QPointF &point) {
 
     CQStrParse parse1(str1);
 
-    return parsePoint(parse1, point);
+    if (parsePoint(parse1, point, terminated)) {
+      if (terminated) {
+        parse.skipSpace();
+
+        if (parse.eof())
+          return true;
+      }
+      else
+        return true;
+    }
   }
 
   //---
@@ -737,9 +766,17 @@ bool parsePoint(CQStrParse &parse, QPointF &point) {
   if (! parse.readReal(&y))
     return false;
 
-  // TODO: check for extra characters
+  if (terminated) {
+    parse.skipSpace();
 
-  point = QPointF(x, y);
+    if (! parse.eof())
+      return false;
+  }
+
+  //---
+
+  // return point
+  point = CQChartsGeom::Point(x, y);
 
   return true;
 }
@@ -750,24 +787,33 @@ bool parsePoint(CQStrParse &parse, QPointF &point) {
 
 namespace CQChartsUtil {
 
-QString pointToString(const QPointF &p) {
-  return QString("%1 %2").arg(p.x()).arg(p.y());
+QString pointToString(const CQChartsGeom::Point &p) {
+  return QString("%1 %2").arg(p.x).arg(p.y);
 }
 
-QString rectToString(const QRectF &rect) {
-  const QPointF &tl = rect.topLeft    ();
-  const QPointF &br = rect.bottomRight();
-
-  return QString("{%1 %2} {%3 %4}").arg(tl.x()).arg(tl.y()).arg(br.x()).arg(br.y());
+QString sizeToString(const QSize &s) {
+  return QString("%1 %2").arg(s.width()).arg(s.height());
 }
 
-QString polygonToString(const QPolygonF &poly) {
+QString bboxToString(const CQChartsGeom::BBox &bbox) {
+  if (bbox.isSet()) {
+    const CQChartsGeom::Point &pmin = bbox.getMin();
+    const CQChartsGeom::Point &pmax = bbox.getMax();
+
+    return QString("{%1 %2} {%3 %4}").arg(pmin.x).arg(pmin.y).arg(pmax.x).arg(pmax.y);
+  }
+  else {
+    return "{ }";
+  }
+}
+
+QString polygonToString(const CQChartsGeom::Polygon &poly) {
   int np = poly.size();
 
   QString str;
 
   for (int i = 0; i < np; ++i) {
-    const QPointF &p = poly[i];
+    CQChartsGeom::Point p = poly.point(i);
 
     str += QString("{%1}").arg(pointToString(p));
   }
@@ -775,13 +821,13 @@ QString polygonToString(const QPolygonF &poly) {
   return str;
 }
 
-QString polygonListToString(const std::vector<QPolygonF> &polyList) {
+QString polygonListToString(const std::vector<CQChartsGeom::Polygon> &polyList) {
   int np = polyList.size();
 
   QString str;
 
   for (int i = 0; i < np; ++i) {
-    const QPolygonF &poly = polyList[i];
+    const CQChartsGeom::Polygon &poly = polyList[i];
 
     str += QString("{%1}").arg(polygonToString(poly));
   }
@@ -868,7 +914,8 @@ bool stringToTime(const QString &fmt, const QString &str, double &t) {
 namespace CQChartsUtil {
 
 bool
-formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QStringList &strs) {
+formatStringInRect(const QString &str, const QFont &font, const CQChartsGeom::BBox &bbox,
+                   QStringList &strs) {
   auto addStr = [&](const QString &str) {
     assert(str.length());
     strs.push_back(str);
@@ -889,7 +936,7 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
 
   double w = fm.width(sstr);
 
-  double dw = (rect.width() - w);
+  double dw = (bbox.getWidth() - w);
 
   if (dw > 0 || CMathUtil::isZero(dw)) { // fits
     addStr(sstr);
@@ -898,9 +945,9 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
 
   double h = fm.height();
 
-  double dh = (rect.height() - h);
+  double dh = (bbox.getHeight() - h);
 
-  if (dh < 0 || CMathUtil::isZero(dh)) { // rect can only fit single line of text (TODO: factor)
+  if (dh < 0 || CMathUtil::isZero(dh)) { // bbox can only fit single line of text (TODO: factor)
     addStr(sstr);
     return false;
   }
@@ -957,7 +1004,7 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
   double w2 = fm.width(str2);
 
   // both fit so we are done
-  if (w1 <= rect.width() && w2 <= rect.width()) {
+  if (w1 <= bbox.getWidth() && w2 <= bbox.getWidth()) {
     addStr(str1);
     addStr(str2);
 
@@ -966,42 +1013,44 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
 
   //---
 
-  // if one or both still wider then divide rect and refit
-  if      (w1 > rect.width() && w2 > rect.width()) {
-    double splitHeight = rect.height()/2.0;
+  // if one or both still wider then divide bbox and refit
+  if      (w1 > bbox.getWidth() && w2 > bbox.getWidth()) {
+    double splitHeight = bbox.getHeight()/2.0;
 
-    QRectF rect1(rect.left(), rect.top(), rect.width(), splitHeight);
-    QRectF rect2(rect.left(), rect.top() + splitHeight, rect.width(), rect.height() - splitHeight);
+    CQChartsGeom::BBox bbox1(bbox.getXMin(), bbox.getYMin(),
+                             bbox.getXMax(), bbox.getYMin() + splitHeight);
+    CQChartsGeom::BBox bbox2(bbox.getXMin(), bbox.getYMin() + splitHeight,
+                             bbox.getXMax(), bbox.getYMax() - splitHeight);
 
     QStringList strs1, strs2;
 
-    formatStringInRect(str1, font, rect1, strs1);
-    formatStringInRect(str2, font, rect2, strs2);
+    formatStringInRect(str1, font, bbox1, strs1);
+    formatStringInRect(str2, font, bbox2, strs2);
 
     strs += strs1;
     strs += strs2;
   }
-  else if (w1 > rect.width()) {
-    double splitHeight = rect.height() - h;
+  else if (w1 > bbox.getWidth()) {
+    double splitHeight = bbox.getHeight() - h;
 
-    QRectF rect1(rect.left(), rect.top(), rect.width(), splitHeight);
+    CQChartsGeom::BBox bbox1(bbox.getXMin(), bbox.getYMin(),
+                             bbox.getXMax(), bbox.getYMin() + splitHeight);
 
     QStringList strs1;
 
-    formatStringInRect(str1, font, rect1, strs1);
+    formatStringInRect(str1, font, bbox1, strs1);
 
     strs += strs1;
 
     addStr(str2);
   }
   else {
-    double splitHeight = rect.height() - h;
-
-    QRectF rect2(rect.left(), rect.top() + h, rect.width(), splitHeight);
+    CQChartsGeom::BBox bbox2(bbox.getXMin(), bbox.getYMin() + h,
+                             bbox.getXMax(), bbox.getYMax());
 
     QStringList strs2;
 
-    formatStringInRect(str2, font, rect2, strs2);
+    formatStringInRect(str2, font, bbox2, strs2);
 
     addStr(str1);
 

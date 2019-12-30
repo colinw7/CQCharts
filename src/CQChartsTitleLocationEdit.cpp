@@ -6,6 +6,10 @@ CQChartsTitleLocationEdit(QWidget *parent) :
 {
   setObjectName("titleLocation");
 
+  setToolTip("Title Location");
+
+  //---
+
   init();
 
   QObject::connect(this, SIGNAL(enumChanged()), this, SIGNAL(titleLocationChanged()));

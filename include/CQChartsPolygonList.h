@@ -2,7 +2,7 @@
 #define CQChartsPolygonList_H
 
 #include <CQChartsUtil.h>
-#include <QPolygonF>
+#include <CQChartsGeom.h>
 
 /*!
  * \brief polygon list
@@ -10,7 +10,7 @@
  */
 class CQChartsPolygonList {
  public:
-  using Polygons = std::vector<QPolygonF>;
+  using Polygons = std::vector<CQChartsGeom::Polygon>;
 
  public:
   static void registerMetaType();

@@ -37,12 +37,12 @@ class CQChartsKeyPressBehaviorEdit;
 class CQChartsAlphaEdit;
 class CQChartsTextDataEdit;
 class CQChartsTextBoxDataEdit;
+class CQChartsGeomPointEdit;
+class CQChartsLineEdit;
 
 class CQCheckBox;
 class CQGroupBox;
 class CQIntegerSpin;
-class CQPoint2DEdit;
-class CQLineEdit;
 
 /*!
  * \brief key edit
@@ -80,15 +80,15 @@ class CQChartsKeyEdit : public QFrame {
   CQChartsAlphaEdit*            hiddenAlphaEdit_      { nullptr }; //!< hidden alpha edit
   CQIntegerSpin*                maxRowsEdit_          { nullptr }; //!< max rows edit
   CQChartsKeyPressBehaviorEdit* pressBehaviorEdit_    { nullptr }; //!< press behavior edit
-  CQPoint2DEdit*                absolutePositionEdit_ { nullptr }; //!< absolute position edit
+  CQChartsGeomPointEdit*        absolutePositionEdit_ { nullptr }; //!< absolute position edit
   CQCheckBox*                   insideXEdit_          { nullptr }; //!< inside x edit
   CQCheckBox*                   insideYEdit_          { nullptr }; //!< inside y edit
   CQIntegerSpin*                spacingEdit_          { nullptr }; //!< spacing edit
   CQCheckBox*                   flippedEdit_          { nullptr }; //!< flipped edit
-  CQLineEdit*                   headerEdit_           { nullptr }; //!< header edit
+  CQChartsLineEdit*             headerEdit_           { nullptr }; //!< header edit
   CQChartsTextDataEdit*         headerTextDataEdit_   { nullptr }; //!< header text edit
-  CQLineEdit*                   scrollWidthEdit_      { nullptr }; //!< scroll width edit
-  CQLineEdit*                   scrollHeightEdit_     { nullptr }; //!< scroll height edit
+  CQChartsLineEdit*             scrollWidthEdit_      { nullptr }; //!< scroll width edit
+  CQChartsLineEdit*             scrollHeightEdit_     { nullptr }; //!< scroll height edit
   CQChartsTextBoxDataEdit*      textBoxEdit_          { nullptr }; //!< text box edit
   bool                          connected_            { false };   //!< is connected
 };

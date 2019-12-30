@@ -5,7 +5,6 @@
 #include <CQChartsGeom.h>
 #include <CQCharts.h>
 #include <QFont>
-#include <QRectF>
 
 /*!
  * \brief Charts Text Box Object

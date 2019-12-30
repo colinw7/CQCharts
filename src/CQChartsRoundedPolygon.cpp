@@ -42,13 +42,13 @@ void interpLine(const QPointF &p1, const QPointF &p2, double xsize, double ysize
 namespace CQChartsRoundedPolygon {
 
 void
-draw(CQChartsPaintDevice *device, const QRectF &rect, double xsize, double ysize,
+draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, double xsize, double ysize,
      const CQChartsSides &sides)
 {
   if (xsize > 0 || ysize > 0) {
     QPainterPath path;
 
-    path.addRoundedRect(rect, xsize, ysize);
+    path.addRoundedRect(bbox.qrect(), xsize, ysize);
 
     device->drawPath(path);
   }
@@ -56,44 +56,44 @@ draw(CQChartsPaintDevice *device, const QRectF &rect, double xsize, double ysize
     QPainterPath path;
 
     if (sides.isAll()) {
-      device->drawRect(rect);
+      device->drawRect(bbox);
     }
     else {
-      device->fillRect(rect, device->brush());
+      device->fillRect(bbox, device->brush());
 
       if (sides.isLeft())
-        device->drawLine(rect.topLeft(), rect.bottomLeft());
+        device->drawLine(bbox.getLL(), bbox.getUL());
 
       if (sides.isRight())
-        device->drawLine(rect.topRight(), rect.bottomRight());
+        device->drawLine(bbox.getLR(), bbox.getUR());
 
       if (sides.isTop())
-        device->drawLine(rect.topLeft(), rect.topRight());
+        device->drawLine(bbox.getUL(), bbox.getUR());
 
       if (sides.isBottom())
-        device->drawLine(rect.bottomLeft(), rect.bottomRight());
+        device->drawLine(bbox.getLL(), bbox.getLR());
     }
   }
 }
 
 void
-draw(CQChartsPaintDevice *device, const QPolygonF &poly, double xsize, double ysize)
+draw(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly, double xsize, double ysize)
 {
   QPainterPath path;
 
-  if (poly.count() < 3) {
+  if (poly.size() < 3) {
     device->drawPolygon(poly);
     return;
   }
 
-  int i1 = poly.count() - 1;
+  int i1 = poly.size() - 1;
   int i2 = 0;
   int i3 = 1;
 
-  while (i2 < poly.count()) {
-    const QPointF &p1 = poly[i1];
-    const QPointF &p2 = poly[i2];
-    const QPointF &p3 = poly[i3];
+  while (i2 < poly.size()) {
+    const QPointF &p1 = poly.qpoint(i1);
+    const QPointF &p2 = poly.qpoint(i2);
+    const QPointF &p3 = poly.qpoint(i3);
 
     if (xsize > 0 || ysize > 0) {
       QPointF p12s, p12e, p23s, p23e;
@@ -124,7 +124,7 @@ draw(CQChartsPaintDevice *device, const QPolygonF &poly, double xsize, double ys
     if (i2 == 0)
       break;
 
-    if (i3 >= poly.count())
+    if (i3 >= poly.size())
       i3 = 0;
   }
 

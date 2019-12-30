@@ -10,9 +10,9 @@
 
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsLineEdit.h>
 #include <CQCharts.h>
 
-#include <CQLineEdit.h>
 #include <CQUtil.h>
 
 #include <QVBoxLayout>
@@ -56,7 +56,7 @@ CQChartsModelDataWidget(CQCharts *charts, CQChartsModelData *modelData) :
   //---
 
   // model filter
-  CQLineEdit *filterEdit = CQUtil::makeWidget<CQLineEdit>("filter");
+  auto filterEdit = CQUtil::makeWidget<CQChartsLineEdit>("filter");
 
   filterEdit->setToolTip("Filter Model by Tcl Expression\n"
                          "Use column name variable or column(<col>)\n"
@@ -148,7 +148,7 @@ void
 CQChartsModelDataWidget::
 filterSlot()
 {
-  CQLineEdit *filterEdit = qobject_cast<CQLineEdit *>(sender());
+  auto filterEdit = qobject_cast<CQChartsLineEdit *>(sender());
 
 #ifdef CQCHARTS_MODEL_VIEW
   view_->setFilter(filterEdit->text());

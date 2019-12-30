@@ -1468,13 +1468,17 @@ initThemeFrame(QFrame *themeFrame)
   auto themeColorsLayout = CQUtil::makeLayout<QGridLayout>(themeColorsFrame, 2, 2);
 
   auto selColorLabel = CQUtil::makeLabelWidget("Selection", "selColorLabel");
-  auto selColorEdit  = CQUtil::makeWidget<CQLineEdit>("selColorEdit");
+  auto selColorEdit  = CQUtil::makeWidget<CQChartsLineEdit>("selColorEdit");
+
+  selColorLabel->setToolTip("Selection Color");
 
   themeColorsLayout->addWidget(selColorLabel, 0, 0);
   themeColorsLayout->addWidget(selColorEdit , 0, 1);
 
   auto insColorLabel = CQUtil::makeLabelWidget("Inside", "insColorLabel");
-  auto insColorEdit  = CQUtil::makeWidget<CQLineEdit>("insColorEdit");
+  auto insColorEdit  = CQUtil::makeWidget<CQChartsLineEdit>("insColorEdit");
+
+  insColorEdit ->setToolTip("Inside Color");
 
   themeColorsLayout->addWidget(insColorLabel, 1, 0);
   themeColorsLayout->addWidget(insColorEdit , 1, 1);
@@ -1885,6 +1889,7 @@ writeViewSlot()
   QString dir = QDir::current().dirName() + "/view.tcl";
 
   QString fileName = QFileDialog::getSaveFileName(this, "Write View", dir, "Files (*.tcl)");
+  if (! fileName.length()) return; // cancelled
 
   auto fs = std::ofstream(fileName.toStdString(), std::ofstream::out);
 
@@ -2312,6 +2317,7 @@ writePlotSlot()
   QString dir = QDir::current().dirName() + "/plot.tcl";
 
   QString fileName = QFileDialog::getSaveFileName(this, "Write View", dir, "Files (*.tcl)");
+  if (! fileName.length()) return; // cancelled
 
   auto fs = std::ofstream(fileName.toStdString(), std::ofstream::out);
 
@@ -2516,6 +2522,7 @@ writeAnnotationSlot()
   QString dir = QDir::current().dirName() + "/annotation.tcl";
 
   QString fileName = QFileDialog::getSaveFileName(this, "Write Annotations", dir, "Files (*.tcl)");
+  if (! fileName.length()) return; // cancelled
 
   auto fs = std::ofstream(fileName.toStdString(), std::ofstream::out);
 

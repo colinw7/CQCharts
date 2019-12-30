@@ -299,7 +299,7 @@ interpColor(const CQChartsColor &color) const
 
 CQChartsLineEditEdit::
 CQChartsLineEditEdit(CQChartsLineEditBase *edit) :
- CQLineEdit(edit), edit_(edit)
+ CQChartsLineEdit(edit), edit_(edit)
 {
   setObjectName("edit");
 
@@ -313,7 +313,7 @@ CQChartsLineEditEdit::
 paintEvent(QPaintEvent *e)
 {
   if (edit_->isEditable())
-    CQLineEdit::paintEvent(e);
+    CQChartsLineEdit::paintEvent(e);
   else {
     QPainter painter(this);
 

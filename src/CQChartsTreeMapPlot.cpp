@@ -1032,8 +1032,7 @@ pushSlot()
 
   if (objs.empty()) {
     QPointF gpos = view()->menuPos();
-
-    QPointF pos = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
+    QPointF pos  = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
 
     CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(pos));
 
@@ -1247,7 +1246,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  device->drawRect(bbox.qrect());
+  device->drawRect(bbox);
 
   device->resetColorNames();
 
@@ -1323,8 +1322,7 @@ draw(CQChartsPaintDevice *device)
     CQChartsGeom::BBox pbbox1(pbbox.getXMin() + m, pbbox.getYMin(),
                               pbbox.getXMax() - m, pbbox.getYMin() + hh);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(pbbox1.qrect()),
-                                    name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(pbbox1), name, textOptions);
   }
 
   //---
@@ -1482,11 +1480,11 @@ draw(CQChartsPaintDevice *device)
 
   bool isPoint = this->isPoint();
 
-  CQChartsGeom::BBox bbox;
-  QPointF            qpoint;
+  CQChartsGeom::BBox  bbox;
+  CQChartsGeom::Point point;
 
   if (isPoint)
-    qpoint = QPointF((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
+    point = CQChartsGeom::Point((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
   else
     bbox = CQChartsGeom::BBox(p1.x + 1, p2.y + 1, p2.x - 1, p1.y - 1);
 
@@ -1507,9 +1505,9 @@ draw(CQChartsPaintDevice *device)
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   if (isPoint)
-    device->drawPoint(device->pixelToWindow(qpoint));
+    device->drawPoint(device->pixelToWindow(point));
   else
-    device->drawRect(device->pixelToWindow(bbox.qrect()));
+    device->drawRect(device->pixelToWindow(bbox));
 
   device->resetColorNames();
 
@@ -1600,18 +1598,18 @@ drawText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox)
     CQChartsGeom::BBox bbox1 = device->pixelToWindow(ibbox);
 
     if      (strs.size() == 1) {
-      CQChartsDrawUtil::drawTextInBox(device, bbox1.qrect(), name, textOptions);
+      CQChartsDrawUtil::drawTextInBox(device, bbox1, name, textOptions);
     }
     else if (strs.size() == 2) {
       if (plot_->isTextClipped())
-        device->setClipRect(bbox1.qrect());
+        device->setClipRect(bbox1);
 
       double th = fm.height();
 
       CQChartsGeom::Point pc = ibbox.getCenter();
 
-      QPointF tp1(pc.x, pc.y - th/2);
-      QPointF tp2(pc.x, pc.y + th/2);
+      CQChartsGeom::Point tp1(pc.x, pc.y - th/2);
+      CQChartsGeom::Point tp2(pc.x, pc.y + th/2);
 
       CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp1), strs[0], textOptions);
       CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp2), strs[1], textOptions);

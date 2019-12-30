@@ -43,9 +43,9 @@ class CQChartsScatterPlotType : public CQChartsPointPlotType {
 class CQChartsScatterPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(int     groupInd READ groupInd)
-  Q_PROPERTY(QPointF point    READ point   )
-  Q_PROPERTY(QString name     READ name    )
+  Q_PROPERTY(int                 groupInd READ groupInd)
+  Q_PROPERTY(CQChartsGeom::Point point    READ point   )
+  Q_PROPERTY(QString             name     READ name    )
 
   Q_PROPERTY(CQChartsSymbol symbolType READ symbolType WRITE setSymbolType)
   Q_PROPERTY(CQChartsLength symbolSize READ symbolSize WRITE setSymbolSize)
@@ -61,7 +61,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
  public:
   CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd,
-                          const CQChartsGeom::BBox &rect, const QPointF &p,
+                          const CQChartsGeom::BBox &rect, const CQChartsGeom::Point &p,
                           const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
 
   const CQChartsScatterPlot *plot() const { return plot_; }
@@ -71,7 +71,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   //---
 
   // position
-  const QPointF &point() const { return pos_; }
+  const CQChartsGeom::Point &point() const { return pos_; }
 
   //---
 
@@ -147,7 +147,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
  private:
   const CQChartsScatterPlot* plot_       { nullptr }; //!< scatter plot
   int                        groupInd_   { -1 };      //!< plot group index
-  QPointF                    pos_;                    //!< point position
+  CQChartsGeom::Point        pos_;                    //!< point position
   ExtraData                  edata_;                  //!< extra data
   QString                    name_;                   //!< label name
   QImage                     image_;                  //!< image name
@@ -169,7 +169,7 @@ class CQChartsScatterCellObj : public CQChartsPlotObj {
     XY = (X | Y)
   };
 
-  using Points = std::vector<QPointF>;
+  using Points = std::vector<CQChartsGeom::Point>;
 
  public:
   CQChartsScatterCellObj(const CQChartsScatterPlot *plot, int groupInd,
@@ -254,7 +254,7 @@ class CQChartsScatterGridKeyItem : public CQChartsKeyItem {
  public:
   CQChartsScatterGridKeyItem(CQChartsScatterPlot *plot);
 
-  QSizeF size() const override;
+  CQChartsGeom::Size size() const override;
 
   void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const override;
 
@@ -365,13 +365,13 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
   };
 
   struct ValueData {
-    QPointF       p;
-    int           row { -1 };
-    QModelIndex   ind;
-    CQChartsColor color;
+    CQChartsGeom::Point p;
+    int                 row { -1 };
+    QModelIndex         ind;
+    CQChartsColor       color;
 
-    ValueData(const QPointF &p=QPointF(), int row=-1, const QModelIndex &ind=QModelIndex(),
-              const CQChartsColor &color=CQChartsColor()) :
+    ValueData(const CQChartsGeom::Point &p=CQChartsGeom::Point(), int row=-1,
+              const QModelIndex &ind=QModelIndex(), const CQChartsColor &color=CQChartsColor()) :
      p(p), row(row), ind(ind), color(color) {
     }
   };
@@ -698,7 +698,7 @@ class CQChartsScatterPlot : public CQChartsPointPlot,
     CQStatData ystat;
   };
 
-  using Points        = std::vector<QPointF>;
+  using Points        = std::vector<CQChartsGeom::Point>;
   using GroupPoints   = std::map<int,Points>;
   using GroupFitData  = std::map<int,CQChartsFitData>;
   using GroupStatData = std::map<int,StatData>;

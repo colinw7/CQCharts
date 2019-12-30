@@ -1290,7 +1290,7 @@ annotationBBox() const
   if (CMathUtil::realEq(std::abs(a21), 360.0)) {
     CQChartsGeom::Point pc = plot_->windowToPixel(c);
 
-    bbox = plot_->textBox()->bbox(pc.qpoint(), label(), 0.0);
+    bbox = plot_->textBox()->bbox(pc, label(), 0.0);
   }
   // draw on arc center line
   else {
@@ -1320,7 +1320,7 @@ annotationBBox() const
     //---
 
     if (plot_->numGroups() == 1 && lr > 1.0) {
-      plot_->textBox()->calcConnectedRadialTextBBox(c.qpoint(), rv, lr1, ta, label(),
+      plot_->textBox()->calcConnectedRadialTextBBox(c, rv, lr1, ta, label(),
                                                     plot_->isRotatedText(), bbox);
     }
     else {
@@ -1344,7 +1344,7 @@ annotationBBox() const
       // calc text box
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-      bbox = plot_->textBox()->bbox(pt.qpoint(), label(), angle, align);
+      bbox = plot_->textBox()->bbox(pt, label(), angle, align);
     }
   }
 
@@ -1483,18 +1483,18 @@ drawSegmentLabel(CQChartsPaintDevice *device, const CQChartsGeom::Point &c) cons
 
   // if full circle always draw text at center
   if (CMathUtil::realEq(std::abs(a21), 360.0)) {
-    plot_->textBox()->draw(device, c.qpoint(), label(), 0.0);
+    plot_->textBox()->draw(device, c, label(), 0.0);
   }
   // draw on arc center line
   else {
     double rv = valueRadius();
 
     if (plot_->numGroups() == 1 && lr > 1.0) {
-      plot_->textBox()->drawConnectedRadialText(device, c.qpoint(), rv, lr1, ta, label(),
+      plot_->textBox()->drawConnectedRadialText(device, c, rv, lr1, ta, label(),
                                                 lpen, plot_->isRotatedText());
     }
     else {
-    //plot_->textBox()->drawConnectedRadialText(device, c.qpoint(), rv, lr1, ta, label(),
+    //plot_->textBox()->drawConnectedRadialText(device, c, rv, lr1, ta, label(),
     //                                          lpen, plot_->isRotatedText());
 
       // calc text position
@@ -1517,7 +1517,7 @@ drawSegmentLabel(CQChartsPaintDevice *device, const CQChartsGeom::Point &c) cons
       // draw label
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-      plot_->textBox()->draw(device, pt.qpoint(), label(), angle, align);
+      plot_->textBox()->draw(device, pt, label(), angle, align);
     }
   }
 }
@@ -1822,7 +1822,7 @@ drawFg(CQChartsPaintDevice *device) const
 
   CQChartsTextOptions textOptions = plot_->adjustTextOptions();
 
-  CQChartsDrawUtil::drawTextAtPoint(device, pt.qpoint(), label, textOptions);
+  CQChartsDrawUtil::drawTextAtPoint(device, pt, label, textOptions);
 }
 
 QColor

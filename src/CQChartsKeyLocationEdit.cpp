@@ -6,6 +6,10 @@ CQChartsKeyLocationEdit(QWidget *parent) :
 {
   setObjectName("keyLocation");
 
+  setToolTip("Key Location");
+
+  //---
+
   init();
 
   QObject::connect(this, SIGNAL(enumChanged()), this, SIGNAL(keyLocationChanged()));

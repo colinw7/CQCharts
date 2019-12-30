@@ -2,6 +2,7 @@
 #define CQChartsViewPlotObj_h
 
 #include <CQChartsObj.h>
+#include <CQChartsRect.h>
 #include <CQChartsPosition.h>
 #include <CQChartsLength.h>
 #include <CQChartsLineDash.h>
@@ -69,8 +70,8 @@ class CQChartsViewPlotObj : public CQChartsObj {
   //---
 
   // conversion utilities
-  QPointF positionToParent(const CQChartsPosition &pos) const;
-  QPointF positionToPixel (const CQChartsPosition &pos) const;
+  CQChartsGeom::Point positionToParent(const CQChartsPosition &pos) const;
+  CQChartsGeom::Point positionToPixel (const CQChartsPosition &pos) const;
 
   double lengthParentWidth (const CQChartsLength &len) const;
   double lengthParentHeight(const CQChartsLength &len) const;
@@ -92,6 +93,15 @@ class CQChartsViewPlotObj : public CQChartsObj {
   QColor backgroundColor() const;
 
   //---
+
+  static CQChartsLength   makeLength(CQChartsView *view, CQChartsPlot *plot,
+                                     double len);
+  static CQChartsPosition makePosition(CQChartsView *view, CQChartsPlot *plot,
+                                       double x, double y);
+  static CQChartsRect     makeRect(CQChartsView *view, CQChartsPlot *plot,
+                                   double x1, double y1, double x2, double y2);
+  static CQChartsRect     makeRect(CQChartsView *view, CQChartsPlot *plot,
+                                   const CQChartsPosition &start, const CQChartsPosition &end);
 
  protected:
   CQChartsView* view_ { nullptr }; //!< parent view

@@ -1014,3 +1014,8 @@
  + Improve load model dialog to show meta information and column types
 # 12/15/2019
  + Fix bugs in X1/X2 overlay plot (range and title position)
+# 12/29/2019
+ + Replace QPointF with CQChartsGeom::Point
+ + Replace QRectF with CQChartsGeom::BBox
+ + Replace QPolygonF with CQChartsGeom::Polygon
+ + Add custom edit for CQChartsGeom::Point and CQChartsGeom::BBox

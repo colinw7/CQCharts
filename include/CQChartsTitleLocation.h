@@ -13,8 +13,8 @@ class CQChartsTitleLocation : public CQChartsEnum {
     TOP,
     CENTER,
     BOTTOM,
-    ABS_POS,
-    ABS_RECT
+    ABS_POSITION,
+    ABS_RECTANGLE
   };
 
  public:

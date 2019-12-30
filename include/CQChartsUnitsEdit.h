@@ -22,6 +22,9 @@ class CQChartsUnitsEdit : public QComboBox {
  signals:
   void unitsChanged();
 
+ private:
+  void updateTip();
+
  private slots:
   void indexChanged();
 

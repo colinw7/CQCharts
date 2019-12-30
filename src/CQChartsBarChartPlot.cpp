@@ -1749,28 +1749,30 @@ draw(CQChartsPaintDevice *device)
       if (lw < 3) {
         double xc = rect.getXMid();
 
-        device->drawLine(QPointF(xc, rect.getYMin()), QPointF(xc, rect.getYMax()));
+        device->drawLine(CQChartsGeom::Point(xc, rect.getYMin()),
+                         CQChartsGeom::Point(xc, rect.getYMax()));
       }
       else {
         double xc = prect.getXMid();
 
         CQChartsGeom::BBox pbbox1(xc - lw/2, prect.getYMin(), xc + lw/2, prect.getYMax());
 
-        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pbbox1).qrect());
+        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pbbox1));
       }
     }
     else {
       if (lw < 3) {
         double yc = rect.getYMid();
 
-        device->drawLine(QPointF(rect.getXMin(), yc), QPointF(rect.getXMax(), yc));
+        device->drawLine(CQChartsGeom::Point(rect.getXMin(), yc),
+                         CQChartsGeom::Point(rect.getXMax(), yc));
       }
       else {
         double yc = prect.getYMid();
 
         CQChartsGeom::BBox pbbox1(prect.getXMid(), yc - lw/2, prect.getXMax(), yc + lw/2);
 
-        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pbbox1).qrect());
+        CQChartsDrawUtil::drawRoundedPolygon(device, device->pixelToWindow(pbbox1));
       }
     }
 
@@ -1786,12 +1788,12 @@ draw(CQChartsPaintDevice *device)
 
     CQChartsDrawUtil::setPenBrush(device, barPenBrush);
 
-    QPointF p;
+    CQChartsGeom::Point p;
 
     if (! plot_->isHorizontal())
-      p = QPointF(rect.getXMid(), rect.getYMax());
+      p = CQChartsGeom::Point(rect.getXMid(), rect.getYMax());
     else
-      p = QPointF(rect.getXMax(), rect.getYMid());
+      p = CQChartsGeom::Point(rect.getXMax(), rect.getYMid());
 
     plot_->drawSymbol(device, p, symbolType, symbolSize, barPenBrush);
 
@@ -1830,24 +1832,22 @@ drawFg(CQChartsPaintDevice *device) const
       pos = CQChartsDataLabel::flipPosition(pos);
 
     if (minLabel != "")
-      plot_->dataLabel()->draw(device, rect().qrect(), minLabel, pos);
+      plot_->dataLabel()->draw(device, rect(), minLabel, pos);
   }
   else {
-    QRectF qrect = rect().qrect();
-
     if (plot_->dataLabel()->isPositionOutside()) {
       CQChartsDataLabel::Position minPos = CQChartsDataLabel::Position::BOTTOM_OUTSIDE;
       CQChartsDataLabel::Position maxPos = CQChartsDataLabel::Position::TOP_OUTSIDE;
 
-      plot_->dataLabel()->draw(device, qrect, minLabel, minPos);
-      plot_->dataLabel()->draw(device, qrect, maxLabel, maxPos);
+      plot_->dataLabel()->draw(device, rect(), minLabel, minPos);
+      plot_->dataLabel()->draw(device, rect(), maxLabel, maxPos);
     }
     else {
       CQChartsDataLabel::Position minPos = CQChartsDataLabel::Position::BOTTOM_INSIDE;
       CQChartsDataLabel::Position maxPos = CQChartsDataLabel::Position::TOP_INSIDE;
 
-      plot_->dataLabel()->draw(device, qrect, minLabel, minPos);
-      plot_->dataLabel()->draw(device, qrect, maxLabel, maxPos);
+      plot_->dataLabel()->draw(device, rect(), minLabel, minPos);
+      plot_->dataLabel()->draw(device, rect(), maxLabel, maxPos);
     }
   }
 }

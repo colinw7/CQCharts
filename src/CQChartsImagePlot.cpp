@@ -478,7 +478,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  using ColRects = std::map<int,QRectF>;
+  using ColRects = std::map<int,CQChartsGeom::BBox>;
 
   ColRects colRects;
 
@@ -493,13 +493,13 @@ drawXLabels(CQChartsPaintDevice *device) const
     QString name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
-    QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
-                                                 textOptions, 0, /*alignBBox*/ true);
+    auto trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
+                                               textOptions, 0, /*alignBBox*/ true);
 
     colRects[c] = trect;
 
-    tw = std::max(tw, trect.width ());
-    th = std::max(th, trect.height());
+    tw = std::max(tw, trect.getWidth ());
+    th = std::max(th, trect.getHeight());
   }
 
   //---
@@ -514,23 +514,22 @@ drawXLabels(CQChartsPaintDevice *device) const
     QString name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
-    QPointF p(c + 0.5, 0);
+    CQChartsGeom::Point p(c + 0.5, 0);
 
-    QPointF p1 = windowToPixel(p);
+    CQChartsGeom::Point p1 = windowToPixel(p);
 
-    QRectF trect = colRects[c];
+    auto trect = colRects[c];
 
-    double tw1 = trect.width();
+    double tw1 = trect.getWidth();
 
     CQChartsGeom::BBox tbbox1;
 
     if (! isInvertY())
-      tbbox1 = CQChartsGeom::BBox(p1.x() - tw1/2, p1.y() + tm, p1.x() + tw1/2, p1.y() + tm + th);
+      tbbox1 = CQChartsGeom::BBox(p1.x - tw1/2, p1.y + tm, p1.x + tw1/2, p1.y + tm + th);
     else
-      tbbox1 = CQChartsGeom::BBox(p1.x() - tw1/2, p1.y() - th - tm, p1.x() + tw1/2, p1.y() - tm);
+      tbbox1 = CQChartsGeom::BBox(p1.x - tw1/2, p1.y - th - tm, p1.x + tw1/2, p1.y - tm);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1).qrect(),
-                                    name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1), name, textOptions);
   }
 }
 
@@ -568,7 +567,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  using RowRects = std::map<int,QRectF>;
+  using RowRects = std::map<int,CQChartsGeom::BBox>;
 
   RowRects rowRects;
 
@@ -583,13 +582,13 @@ drawYLabels(CQChartsPaintDevice *device) const
     QString name = modelVHeaderString(row, Qt::Vertical, ok);
     if (! name.length()) continue;
 
-    QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
-                                                 textOptions, 0, /*alignBBox*/ true);
+    auto trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
+                                               textOptions, 0, /*alignBBox*/ true);
 
     rowRects[row] = trect;
 
-    tw = std::max(tw, trect.width ());
-    th = std::max(th, trect.height());
+    tw = std::max(tw, trect.getWidth ());
+    th = std::max(th, trect.getHeight());
   }
 
   //---
@@ -602,23 +601,22 @@ drawYLabels(CQChartsPaintDevice *device) const
     QString name = modelVHeaderString(row, Qt::Vertical, ok);
     if (! name.length()) continue;
 
-    QPointF p(0, row + 0.5);
+    CQChartsGeom::Point p(0, row + 0.5);
 
-    QPointF p1 = windowToPixel(p);
+    CQChartsGeom::Point p1 = windowToPixel(p);
 
-    QRectF trect = rowRects[row];
+    auto trect = rowRects[row];
 
-    double th1 = trect.height();
+    double th1 = trect.getHeight();
 
     CQChartsGeom::BBox tbbox1;
 
     if (! isInvertX())
-      tbbox1 = CQChartsGeom::BBox(p1.x() - tw - tm, p1.y() - th1/2, p1.x() - tm, p1.y() + th1/2);
+      tbbox1 = CQChartsGeom::BBox(p1.x - tw - tm, p1.y - th1/2, p1.x - tm, p1.y + th1/2);
     else
-      tbbox1 = CQChartsGeom::BBox(p1.x() + tm, p1.y() - th1/2, p1.x() + tm + tw, p1.y() + th1/2);
+      tbbox1 = CQChartsGeom::BBox(p1.x + tm, p1.y - th1/2, p1.x + tm + tw, p1.y + th1/2);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1).qrect(),
-                                    name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1), name, textOptions);
   }
 }
 
@@ -756,7 +754,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   if      (plot_->cellStyle() == CQChartsImagePlot::CellStyle::RECT) {
-    device->drawRect(rect().qrect());
+    device->drawRect(rect());
 
     //---
 
@@ -806,7 +804,7 @@ draw(CQChartsPaintDevice *device)
 
       textOptions = plot_->adjustTextOptions(textOptions);
 
-      CQChartsDrawUtil::drawTextInBox(device, rect().qrect(), valueStr, textOptions);
+      CQChartsDrawUtil::drawTextInBox(device, rect(), valueStr, textOptions);
     }
   }
   else if  (plot_->cellStyle() == CQChartsImagePlot::CellStyle::BALLOON) {
@@ -824,7 +822,7 @@ draw(CQChartsPaintDevice *device)
     CQChartsGeom::BBox ebbox(prect.getXMid() - s1/2, prect.getYMid() - s1/2,
                              prect.getXMid() + s1/2, prect.getYMid() + s1/2);
 
-    device->drawEllipse(device->pixelToWindow(ebbox).qrect());
+    device->drawEllipse(device->pixelToWindow(ebbox));
   }
 
   //---

@@ -645,11 +645,11 @@ createObjs(PlotObjs &objs) const
 
       int c1 = c + 1;
 
-      QPolygonF    polygon;
-      ModelIndices inds;
-      double       minValue { 0.0 };
-      double       maxValue { 0.0 };
-      int          lastR    { -1 };
+      CQChartsGeom::Polygon polygon;
+      ModelIndices          inds;
+      double                minValue { 0.0 };
+      double                maxValue { 0.0 };
+      int                   lastR    { -1 };
 
       for (int iv = 0; iv < nv; ++iv) {
         int r = pivotModel()->vkeyRow(vkeys[iv]);
@@ -667,24 +667,24 @@ createObjs(PlotObjs &objs) const
         maxValue = (! inds.empty() ? std::max(maxValue, value) : value);
 
         if (isFilled && polygon.size() == 0) {
-          QPointF p;
+          CQChartsGeom::Point p;
 
           if (hasYValues)
-            p = (! isHorizontal() ? QPointF(iv, 0.0) : QPointF(0.0, iv));
+            p = (! isHorizontal() ? CQChartsGeom::Point(iv, 0.0) : CQChartsGeom::Point(0.0, iv));
           else
-            p = (! isHorizontal() ? QPointF(ih, 0.0) : QPointF(0.0, ih));
+            p = (! isHorizontal() ? CQChartsGeom::Point(ih, 0.0) : CQChartsGeom::Point(0.0, ih));
 
-          polygon.push_back(p);
+          polygon.addPoint(p);
         }
 
-        QPointF p;
+        CQChartsGeom::Point p;
 
         if (hasYValues)
-          p = (! isHorizontal() ? QPointF(iv, value) : QPointF(value, iv));
+          p = (! isHorizontal() ? CQChartsGeom::Point(iv, value) : CQChartsGeom::Point(value, iv));
         else
-          p = (! isHorizontal() ? QPointF(ih, value) : QPointF(value, ih));
+          p = (! isHorizontal() ? CQChartsGeom::Point(ih, value) : CQChartsGeom::Point(value, ih));
 
-        polygon.push_back(p);
+        polygon.addPoint(p);
 
         inds.push_back(ind);
 
@@ -692,9 +692,10 @@ createObjs(PlotObjs &objs) const
       }
 
       if (isFilled && lastR >= 0) {
-        QPointF p = (! isHorizontal() ? QPointF(lastR, 0.0) : QPointF(0.0, lastR));
+        CQChartsGeom::Point p =
+          (! isHorizontal() ? CQChartsGeom::Point(lastR, 0.0) : CQChartsGeom::Point(0.0, lastR));
 
-        polygon.push_back(p);
+        polygon.addPoint(p);
       }
 
       //---
@@ -740,18 +741,18 @@ createObjs(PlotObjs &objs) const
         double value = var.toDouble(&ok);
         if (! ok) continue;
 
-        QPointF p;
+        CQChartsGeom::Point p;
 
         if (hasYValues)
-          p = (! isHorizontal() ? QPointF(iv, value) : QPointF(value, iv));
+          p = (! isHorizontal() ? CQChartsGeom::Point(iv, value) : CQChartsGeom::Point(value, iv));
         else
-          p = (! isHorizontal() ? QPointF(ih, value) : QPointF(value, ih));
+          p = (! isHorizontal() ? CQChartsGeom::Point(ih, value) : CQChartsGeom::Point(value, ih));
 
         //---
 
         ColorInd ic(ih, nh);
 
-        CQChartsGeom::BBox rect(p.x() - sx, p.y() - sy, p.x() + sx, p.y() + sy);
+        CQChartsGeom::BBox rect(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
         CQChartsPivotPointObj *obj =
           new CQChartsPivotPointObj(this, rect, ind, ir, ic, p, value);
@@ -1179,7 +1180,7 @@ drawFg(CQChartsPaintDevice *device) const
   if (label != "") {
     CQChartsDataLabel::Position pos = plot_->dataLabel()->position();
 
-    plot_->dataLabel()->draw(device, rect().qrect(), label, pos);
+    plot_->dataLabel()->draw(device, rect(), label, pos);
   }
 }
 
@@ -1214,8 +1215,8 @@ writeScriptData(CQChartsScriptPainter *device) const
 
 CQChartsPivotLineObj::
 CQChartsPivotLineObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rect,
-                     const ModelIndices &inds, const ColorInd &ic, const QPolygonF &polygon,
-                     const QString &name) :
+                     const ModelIndices &inds, const ColorInd &ic,
+                     const CQChartsGeom::Polygon &polygon, const QString &name) :
  CQChartsPlotObj(const_cast<CQChartsPivotPlot *>(plot), rect, ColorInd(), ic, ColorInd()),
  plot_(plot), polygon_(polygon), name_(name)
 {
@@ -1254,14 +1255,14 @@ inside(const CQChartsGeom::Point &p) const
   CQChartsGeom::Point pp = plot()->windowToPixel(p);
 
   if      (isFilled) {
-    return polygon_.containsPoint(p.qpoint(), Qt::OddEvenFill);
+    return polygon_.containsPoint(p, Qt::OddEvenFill);
   }
   else if (isLines) {
-    int np = polygon_.count();
+    int np = polygon_.size();
 
     for (int i = 1; i < np; ++i) {
-      CQChartsGeom::Point p1(polygon_[i - 1]);
-      CQChartsGeom::Point p2(polygon_[i    ]);
+      CQChartsGeom::Point p1 = polygon_.point(i - 1);
+      CQChartsGeom::Point p2 = polygon_.point(i    );
 
       CQChartsGeom::Point pl1 = plot()->windowToPixel(p1);
       CQChartsGeom::Point pl2 = plot()->windowToPixel(p2);
@@ -1273,10 +1274,10 @@ inside(const CQChartsGeom::Point &p) const
     }
   }
   else if (isPoints) {
-    int np = polygon_.count();
+    int np = polygon_.size();
 
     for (int i = 0; i < np; ++i) {
-      CQChartsGeom::Point p1(polygon_[i]);
+      CQChartsGeom::Point p1 = polygon_.point(i);
 
       CQChartsGeom::Point pl1 = plot()->windowToPixel(p1);
 
@@ -1316,7 +1317,7 @@ draw(CQChartsPaintDevice *device)
                    plot_->plotType() == CQChartsPivotPlot::PlotType::AREA);
   bool isPoints = (plot_->plotType() == CQChartsPivotPlot::PlotType::LINES);
 
-  int np = polygon_.count();
+  int np = polygon_.size();
 
   //---
 
@@ -1338,11 +1339,11 @@ draw(CQChartsPaintDevice *device)
     // draw line
     if (! isFilled) {
       for (int i = 1; i < np; ++i)
-        device->drawLine(polygon_[i - 1], polygon_[i]);
+        device->drawLine(polygon_.point(i - 1), polygon_.point(i));
     }
     else {
       for (int i = 2; i < np - 1; ++i)
-        device->drawLine(polygon_[i - 1], polygon_[i]);
+        device->drawLine(polygon_.point(i - 1), polygon_.point(i));
     }
   }
 
@@ -1362,7 +1363,7 @@ draw(CQChartsPaintDevice *device)
     double ss = 5.0;
 
     for (int i = 0; i < np; ++i)
-      plot()->drawSymbol(device, polygon_[i], symbol, ss, penBrush);
+      plot()->drawSymbol(device, polygon_.point(i), symbol, ss, penBrush);
   }
 
   // draw line
@@ -1389,7 +1390,7 @@ draw(CQChartsPaintDevice *device)
 CQChartsPivotPointObj::
 CQChartsPivotPointObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rect,
                      const QModelIndex &ind, const ColorInd &ir, const ColorInd &ic,
-                     const QPointF &p, double value) :
+                     const CQChartsGeom::Point &p, double value) :
  CQChartsPlotObj(const_cast<CQChartsPivotPlot *>(plot), rect, ColorInd(), ic, ir),
  plot_(plot), p_(p), value_(value)
 {
@@ -1587,7 +1588,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, bgPenBrush);
 
-  device->drawRect(device->pixelToWindow(prect).qrect());
+  device->drawRect(device->pixelToWindow(prect));
 
   device->resetColorNames();
 
@@ -1633,7 +1634,7 @@ draw(CQChartsPaintDevice *device)
     else
       tbbox = device->pixelToWindow(prect);
 
-    CQChartsDrawUtil::drawTextInBox(device, tbbox.qrect(), valueStr, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, tbbox, valueStr, textOptions);
   }
 
   //---
@@ -1658,7 +1659,7 @@ draw(CQChartsPaintDevice *device)
     CQChartsGeom::BBox bboxh2(prect.getXMin() + m     , prect.getYMax() - bs - m,
                               prect.getXMin() + m + bw, prect.getYMax()      - m);
 
-    device->drawRect(device->pixelToWindow(bboxh2).qrect());
+    device->drawRect(device->pixelToWindow(bboxh2));
 
     device->resetColorNames();
 
@@ -1670,7 +1671,7 @@ draw(CQChartsPaintDevice *device)
     CQChartsGeom::BBox bboxh1(prect.getXMin() + m            , prect.getYMax() - bs - m,
                               prect.getXMin() + m + bw*hnorm_, prect.getYMax()      - m);
 
-    device->drawRect(device->pixelToWindow(bboxh1).qrect());
+    device->drawRect(device->pixelToWindow(bboxh1));
 
     //---
 
@@ -1681,7 +1682,7 @@ draw(CQChartsPaintDevice *device)
     CQChartsGeom::BBox bboxv2(prect.getXMax() - m - bs, prect.getYMin() + m,
                               prect.getXMax() - m     , prect.getYMin() + m + bh);
 
-    device->drawRect(device->pixelToWindow(bboxv2).qrect());
+    device->drawRect(device->pixelToWindow(bboxv2));
 
     device->resetColorNames();
 
@@ -1693,7 +1694,7 @@ draw(CQChartsPaintDevice *device)
     CQChartsGeom::BBox bboxv1(prect.getXMax() - m - bs, prect.getYMin() + m,
                               prect.getXMax() - m     , prect.getYMin() + m + bh*vnorm_);
 
-    device->drawRect(device->pixelToWindow(bboxv1).qrect());
+    device->drawRect(device->pixelToWindow(bboxv1));
   }
 }
 

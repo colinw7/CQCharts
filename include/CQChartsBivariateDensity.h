@@ -9,7 +9,7 @@ class CQChartsPaintDevice;
 
 class CQChartsBivariateDensity {
  public:
-  using Values = std::vector<QPointF>;
+  using Values = std::vector<CQChartsGeom::Point>;
 
   struct Data {
     int                   gridSize;

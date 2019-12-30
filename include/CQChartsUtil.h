@@ -13,7 +13,6 @@
 #include <QVariant>
 #include <QPen>
 #include <QStringList>
-#include <QRectF>
 
 class CQChartsLineDash;
 class CQChartsStyle;
@@ -39,53 +38,6 @@ long toInt(const char *str, bool &ok, const char **rstr);
 QString toString(const std::vector<CQChartsColumn> &columns);
 
 bool fromString(const QString &str, std::vector<CQChartsColumn> &columns);
-
-//---
-
-#if 0
-inline QPointF toQPoint(const CQChartsGeom::Point &point) {
-  return QPointF(point.x, point.y);
-}
-
-inline QPoint toQPointI(const CQChartsGeom::Point &point) {
-  return QPoint(point.x, point.y);
-}
-
-inline CQChartsGeom::Point fromQPoint(const QPointF &point) {
-  return CQChartsGeom::Point(point.x(), point.y());
-}
-
-inline CQChartsGeom::Point fromQPointF(const QPoint &point) {
-  return CQChartsGeom::Point(point.x(), point.y());
-}
-#endif
-
-#if 0
-inline QRectF toQRect(const CQChartsGeom::BBox &rect) {
-  if (rect.isSet())
-    return QRectF(toQPoint(rect.getLL()), toQPoint(rect.getUR())).normalized();
-  else
-    return QRectF();
-}
-
-inline QRectF toQRect(const CQChartsGeom::Range &range) {
-  if (range.isSet())
-    return QRectF(range.xmin(), range.ymin(), range.xsize(), range.ysize());
-  else
-    return QRectF();
-}
-
-inline QRect toQRectI(const CQChartsGeom::BBox &rect) {
-  if (rect.isSet())
-    return QRect(toQPointI(rect.getLL()), toQPointI(rect.getUR())).normalized();
-  else
-    return QRect();
-}
-
-inline CQChartsGeom::BBox fromQRect(const QRectF &rect) {
-  return CQChartsGeom::BBox(fromQPoint(rect.bottomLeft()), fromQPoint(rect.topRight()));
-}
-#endif
 
 //------
 
@@ -124,8 +76,9 @@ QString formatInteger(long   i, const QString &fmt="%ld");
 namespace CQChartsUtil {
 
 // intersect lines
-bool intersectLines(const QPointF &l1s, const QPointF &l1e,
-                    const QPointF &l2s, const QPointF &l2e, QPointF &pi);
+bool intersectLines(const CQChartsGeom::Point &l1s, const CQChartsGeom::Point &l1e,
+                    const CQChartsGeom::Point &l2s, const CQChartsGeom::Point &l2e,
+                    CQChartsGeom::Point &pi);
 bool intersectLines(double x11, double y11, double x21, double y21,
                     double x12, double y12, double x22, double y22,
                     double &xi, double &yi);
@@ -237,22 +190,24 @@ std::vector<double> stringToReals(const QString &str, bool &ok);
 
 int countLeadingBraces(const QString &str);
 
-QString polygonListToString(const std::vector<QPolygonF> &polyList);
-bool stringToPolygons(const QString &str, std::vector<QPolygonF> &polyList);
+QString polygonListToString(const std::vector<CQChartsGeom::Polygon> &polyList);
+bool stringToPolygons(const QString &str, std::vector<CQChartsGeom::Polygon> &polyList);
 
-QString polygonToString(const QPolygonF &poly);
-bool stringToPolygon(const QString &str, QPolygonF &poly );
+QString polygonToString(const CQChartsGeom::Polygon &poly);
+bool stringToPolygon(const QString &str, CQChartsGeom::Polygon &poly );
 
-bool parsePolygon(CQStrParse &parse, QPolygonF &poly);
+bool parsePolygon(CQStrParse &parse, CQChartsGeom::Polygon &poly);
 
-QString rectToString(const QRectF &rect);
-bool stringToRect(const QString &str, QRectF &rect);
+QString bboxToString(const CQChartsGeom::BBox &bbox);
+bool stringToBBox(const QString &str, CQChartsGeom::BBox &bbox);
 
-QString pointToString(const QPointF &p);
-bool stringToPoint(const QString &str, QPointF &point);
+QString sizeToString(const QSize &s);
 
-bool parseRect (CQStrParse &parse, QRectF &rect);
-bool parsePoint(CQStrParse &parse, QPointF &point);
+QString pointToString(const CQChartsGeom::Point &p);
+bool stringToPoint(const QString &str, CQChartsGeom::Point &point);
+
+bool parseBBox (CQStrParse &parse, CQChartsGeom::BBox  &rect , bool terminated=true);
+bool parsePoint(CQStrParse &parse, CQChartsGeom::Point &point, bool terminated=true);
 
 //------
 
@@ -272,7 +227,7 @@ bool    stringToTime(const QString &fmt, const QString &str, double &t);
 //------
 
 bool formatStringInRect(const QString &str, const QFont &font,
-                        const QRectF &rect, QStringList &strs);
+                        const CQChartsGeom::BBox &rect, QStringList &strs);
 
 }
 

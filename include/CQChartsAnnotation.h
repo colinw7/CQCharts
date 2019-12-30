@@ -175,7 +175,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   virtual bool editRelease(const CQChartsGeom::Point &);
 
   //! handle edit move by
-  virtual void editMoveBy(const QPointF &d);
+  virtual void editMoveBy(const CQChartsGeom::Point &d);
 
   //! set new bounding box
   virtual void setBBox(const CQChartsGeom::BBox &, const CQChartsResizeSide &) { }
@@ -218,7 +218,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 #endif
 
   //! write polygon points
-  void writePoints(std::ostream &os, const QPolygonF &polygon) const;
+  void writePoints(std::ostream &os, const CQChartsGeom::Polygon &polygon) const;
 
   //! write properties
   void writeProperties(std::ostream &os, const QString &varName="") const;
@@ -345,6 +345,9 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
   void write(std::ostream &os, const QString &parentVarName="",
              const QString &varName="") const override;
+
+ private:
+  void init();
 
  private:
   CQChartsPosition center_;          //!< ellipse center
@@ -541,7 +544,7 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
  private:
   void init(const QString &text);
 
-  void calcTextSize(QSizeF &psize, QSizeF &wsize) const;
+  void calcTextSize(CQChartsGeom::Size &psize, CQChartsGeom::Size &wsize) const;
 
   void positionToLL(double w, double h, double &x, double &y) const;
 
@@ -620,7 +623,7 @@ class CQChartsImageAnnotation : public CQChartsAnnotation {
  private:
   void init(const QImage &image);
 
-  void calcImageSize(QSizeF &psize, QSizeF &wsize) const;
+  void calcImageSize(CQChartsGeom::Size &psize, CQChartsGeom::Size &wsize) const;
 
   void positionToLL(double w, double h, double &x, double &y) const;
 
@@ -653,9 +656,9 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
  public:
   CQChartsArrowAnnotation(CQChartsView *view, const CQChartsPosition &start=CQChartsPosition(),
-                          const CQChartsPosition &end=CQChartsPosition(QPointF(1, 1)));
+                          const CQChartsPosition &end=CQChartsPosition(CQChartsGeom::Point(1, 1)));
   CQChartsArrowAnnotation(CQChartsPlot *plot, const CQChartsPosition &start=CQChartsPosition(),
-                          const CQChartsPosition &end=CQChartsPosition(QPointF(1, 1)));
+                          const CQChartsPosition &end=CQChartsPosition(CQChartsGeom::Point(1, 1)));
 
   virtual ~CQChartsArrowAnnotation();
 
@@ -691,9 +694,9 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
  private:
   using ArrowP = std::unique_ptr<CQChartsArrow>;
 
-  CQChartsPosition start_ { QPointF(0, 0) }; //!< arrow start
-  CQChartsPosition end_   { QPointF(1, 1) }; //!< arrow end
-  ArrowP           arrow_;                   //!< arrow data
+  CQChartsPosition start_ { CQChartsGeom::Point(0, 0) }; //!< arrow start
+  CQChartsPosition end_   { CQChartsGeom::Point(1, 1) }; //!< arrow end
+  ArrowP           arrow_;                               //!< arrow data
 };
 
 //---

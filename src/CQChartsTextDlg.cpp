@@ -73,7 +73,7 @@ paintEvent(QPaintEvent *)
   options.minScaleFontSize = 4.0;
   options.maxScaleFontSize = 400.0;
 
-  CQChartsDrawUtil::drawTextInBox(&device, rect_, text_, options);
+  CQChartsDrawUtil::drawTextInBox(&device, CQChartsGeom::BBox(rect_), text_, options);
 }
 
 QSize

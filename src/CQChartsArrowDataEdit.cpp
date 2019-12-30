@@ -22,6 +22,8 @@ CQChartsArrowDataLineEdit(QWidget *parent) :
 {
   setObjectName("arrowDataLineEdit");
 
+  setToolTip("Arrow Data");
+
   //---
 
   menuEdit_ = dataEdit_ = new CQChartsArrowDataEdit;
@@ -379,6 +381,7 @@ CQChartsArrowDataEditPreview::
 CQChartsArrowDataEditPreview(CQChartsArrowDataEdit *edit) :
  CQChartsEditPreview(edit), edit_(edit)
 {
+  setToolTip("Arrow Preview");
 }
 
 void
@@ -395,8 +398,8 @@ CQChartsArrowDataEditPreview::
 draw(QPainter *painter, const CQChartsArrowData &data, const QRect &rect,
      CQChartsPlot * /*plot*/, CQChartsView * /*view*/)
 {
-  QPointF from(rect.left () + 2, rect.center().y());
-  QPointF to  (rect.right() - 2, rect.center().y());
+  CQChartsGeom::Point from(rect.left () + 2, rect.center().y());
+  CQChartsGeom::Point to  (rect.right() - 2, rect.center().y());
 
   CQChartsArrow arrow((CQChartsView *) nullptr, from, to);
 

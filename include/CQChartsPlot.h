@@ -147,13 +147,13 @@ class CQChartsPlot : public CQChartsObj,
   Q_PROPERTY(bool visible READ isVisible WRITE setVisible)
 
   // rectangle and data range
-  Q_PROPERTY(QRectF viewRect READ viewRect WRITE setViewRect)
-  Q_PROPERTY(QRectF range    READ range    WRITE setRange   )
+  Q_PROPERTY(CQChartsGeom::BBox viewRect READ viewBBox WRITE setViewBBox)
+  Q_PROPERTY(CQChartsGeom::BBox range    READ range    WRITE setRange   )
 
-  Q_PROPERTY(QRectF innerViewRect READ innerViewRect)
-  Q_PROPERTY(QRectF calcDataRect  READ calcDataRect )
-  Q_PROPERTY(QRectF outerDataRect READ outerDataRect)
-  Q_PROPERTY(QRectF dataRect      READ dataRect     )
+  Q_PROPERTY(CQChartsGeom::BBox innerViewRect READ innerViewBBox)
+  Q_PROPERTY(CQChartsGeom::BBox calcDataRect  READ calcDataRect )
+  Q_PROPERTY(CQChartsGeom::BBox outerDataRect READ outerDataRect)
+  Q_PROPERTY(CQChartsGeom::BBox dataRect      READ dataRect     )
 
   // scaling
   Q_PROPERTY(bool   equalScale  READ isEqualScale WRITE setEqualScale   )
@@ -571,22 +571,15 @@ class CQChartsPlot : public CQChartsObj,
   // get inner view bbox
   const CQChartsGeom::BBox &innerViewBBox() const { return innerViewBBox_; }
 
-  // get/set view rect (as QRectF)
-  QRectF viewRect() const;
-  void setViewRect(const QRectF &r);
-
-  // get inner view rect (as QRectF)
-  QRectF innerViewRect() const;
-
   // get/set data range
-  QRectF range() const;
-  void setRange(const QRectF &r);
+  CQChartsGeom::BBox range() const;
+  void setRange(const CQChartsGeom::BBox &bbox);
 
   //---
 
-  QRectF calcDataRect () const;
-  QRectF outerDataRect() const;
-  QRectF dataRect     () const;
+  CQChartsGeom::BBox calcDataRect () const;
+  CQChartsGeom::BBox outerDataRect() const;
+  CQChartsGeom::BBox dataRect     () const;
 
   //---
 
@@ -1026,8 +1019,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  QPointF positionToPlot (const CQChartsPosition &pos) const;
-  QPointF positionToPixel(const CQChartsPosition &pos) const;
+  CQChartsGeom::Point positionToPlot (const CQChartsPosition &pos) const;
+  CQChartsGeom::Point positionToPixel(const CQChartsPosition &pos) const;
 
   CQChartsGeom::BBox rectToPlot (const CQChartsRect &rect) const;
   CQChartsGeom::BBox rectToPixel(const CQChartsRect &rect) const;
@@ -1057,26 +1050,16 @@ class CQChartsPlot : public CQChartsObj,
   CQChartsGeom::Point pixelToWindow(const CQChartsGeom::Point &p) const;
   CQChartsGeom::Point viewToWindow (const CQChartsGeom::Point &v) const;
 
-  QPointF windowToPixel(const QPointF &w) const;
-  QPointF windowToView (const QPointF &w) const;
-  QPointF pixelToWindow(const QPointF &p) const;
-  QPointF viewToWindow (const QPointF &v) const;
-
   CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &wrect) const;
   CQChartsGeom::BBox windowToView (const CQChartsGeom::BBox &wrect) const;
   CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &prect) const;
   CQChartsGeom::BBox viewToWindow (const CQChartsGeom::BBox &vrect) const;
 
-  QRectF windowToPixel(const QRectF &w) const;
-  QRectF pixelToWindow(const QRectF &w) const;
-  QRectF windowToView (const QRectF &w) const;
-  QRectF viewToWindow (const QRectF &v) const;
-
   double pixelToSignedWindowWidth (double ww) const;
   double pixelToSignedWindowHeight(double wh) const;
 
   double pixelToWindowSize(double ps, bool horizontal) const;
-  QSizeF pixelToWindowSize(const QSizeF &ps) const;
+  CQChartsGeom::Size pixelToWindowSize(const CQChartsGeom::Size &ps) const;
 
   double pixelToWindowWidth (double pw) const;
   double pixelToWindowHeight(double ph) const;
@@ -1087,7 +1070,7 @@ class CQChartsPlot : public CQChartsObj,
   double windowToPixelWidth (double ww) const;
   double windowToPixelHeight(double wh) const;
 
-  QPolygonF windowToPixel(const QPolygonF &p) const;
+  CQChartsGeom::Polygon windowToPixel(const CQChartsGeom::Polygon &p) const;
 
   QPainterPath windowToPixel(const QPainterPath &p) const;
 
@@ -1189,7 +1172,14 @@ class CQChartsPlot : public CQChartsObj,
   bool isReady() const;
 
  public:
+  void syncAll();
+
   void syncRange();
+  void syncObjs();
+  void syncDraw();
+
+ private:
+  void syncState();
 
  private:
   void waitRange();
@@ -1406,7 +1396,7 @@ class CQChartsPlot : public CQChartsObj,
   virtual bool editMotion (const CQChartsGeom::Point &p, const CQChartsGeom::Point &w);
   virtual bool editRelease(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w);
 
-  virtual void editMoveBy(const QPointF &d);
+  virtual void editMoveBy(const CQChartsGeom::Point &d);
 
   void selectOneObj(CQChartsObj *obj, bool allObjs);
 
@@ -1515,7 +1505,7 @@ class CQChartsPlot : public CQChartsObj,
 
   CQChartsGeom::BBox calcFitPixelRect() const;
 
-  QSizeF calcPixelSize() const;
+  CQChartsGeom::Size calcPixelSize() const;
 
   //---
 
@@ -1759,7 +1749,8 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  QPainter *beginPaint(CQChartsBuffer *layer, QPainter *painter, const QRectF &rect=QRectF()) const;
+  QPainter *beginPaint(CQChartsBuffer *layer, QPainter *painter,
+                       const QRectF &rect=QRectF()) const;
   void      endPaint  (CQChartsBuffer *layer) const;
 
   //---
@@ -1768,16 +1759,18 @@ class CQChartsPlot : public CQChartsObj,
 
   //---
 
-  void drawSymbol(CQChartsPaintDevice *device, const QPointF &p, const CQChartsSymbol &symbol,
-                  const CQChartsLength &size, const CQChartsPenBrush &penBrush) const;
-  void drawSymbol(CQChartsPaintDevice *painter, const QPointF &p, const CQChartsSymbol &symbol,
-                  const CQChartsLength &size) const;
+  void drawSymbol(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
+                  const CQChartsSymbol &symbol, const CQChartsLength &size,
+                  const CQChartsPenBrush &penBrush) const;
+  void drawSymbol(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
+                  const CQChartsSymbol &symbol, const CQChartsLength &size) const;
 #if 0
-  void drawSymbol(CQChartsPaintDevice *device, const QPointF &p, const CQChartsSymbol &symbol,
-                  const CQChartsLength &size, const CQChartsPenBrush &penBrush) const;
+  void drawSymbol(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
+                  const CQChartsSymbol &symbol, const CQChartsLength &size,
+                  const CQChartsPenBrush &penBrush) const;
 #endif
 
-  void drawBufferedSymbol(QPainter *painter, const QPointF &p,
+  void drawBufferedSymbol(QPainter *painter, const CQChartsGeom::Point &p,
                           const CQChartsSymbol &symbol, double size) const;
 
   //---

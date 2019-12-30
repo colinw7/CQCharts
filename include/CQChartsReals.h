@@ -3,7 +3,6 @@
 
 #include <CQChartsUtil.h>
 #include <QString>
-#include <QPointF>
 #include <iostream>
 
 /*!

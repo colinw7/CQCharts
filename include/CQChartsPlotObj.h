@@ -77,7 +77,7 @@ class CQChartsPlotObj : public CQChartsObj {
 
   // shapes
   virtual bool isPolygon() const { return false; }
-  virtual QPolygonF polygon() const { return QPolygonF(); }
+  virtual CQChartsGeom::Polygon polygon() const { return CQChartsGeom::Polygon(); }
 
   virtual bool isCircle() const { return false; }
   virtual double radius() const { return 1.0; }

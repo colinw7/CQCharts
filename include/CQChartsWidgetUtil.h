@@ -15,6 +15,8 @@ QFrame *createHSpacer(int width=1, const char *name="spacer");
 bool isFixedPitch(const QFont &font);
 QFont getMonospaceFont();
 
+void setTextColor(QWidget *w, const QColor &c);
+
 }
 
 //------

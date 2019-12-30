@@ -716,11 +716,7 @@ drawBounds(CQChartsPaintDevice *device, CQChartsBubbleHierNode *hier) const
   device->setPen  (bc);
   device->setBrush(Qt::NoBrush);
 
-  QPainterPath path;
-
-  path.addEllipse(bbox.qrect());
-
-  device->drawPath(path);
+  device->drawEllipse(bbox);
 }
 
 //------
@@ -803,11 +799,7 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  QPainterPath path;
-
-  path.addEllipse(bbox.qrect());
-
-  device->drawPath(path);
+  device->drawEllipse(bbox);
 
   device->resetColorNames();
 }
@@ -939,10 +931,10 @@ draw(CQChartsPaintDevice *device)
 
   bool isPoint = this->isPoint();
 
-  QPointF qpoint;
+  CQChartsGeom::Point point;
 
   if (isPoint)
-    qpoint = QPointF((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
+    point = CQChartsGeom::Point((p1.x + p2.x)/2.0, (p1.y + p2.y)/2.0);
 
   //---
 
@@ -961,14 +953,9 @@ draw(CQChartsPaintDevice *device)
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
   if (isPoint)
-    device->drawPoint(qpoint);
-  else {
-    QPainterPath path;
-
-    path.addEllipse(bbox.qrect());
-
-    device->drawPath(path);
-  }
+    device->drawPoint(point);
+  else
+    device->drawEllipse(bbox);
 
   device->resetColorNames();
 
@@ -1053,7 +1040,7 @@ draw(CQChartsPaintDevice *device)
   double xm = plot_->pixelToWindowWidth (3);
   double ym = plot_->pixelToWindowHeight(3);
 
-  device->setClipRect(bbox.qrect().adjusted(xm, ym, -xm, -ym));
+  device->setClipRect(bbox.adjusted(xm, ym, -xm, -ym));
 
   // angle and align not supported (always 0 and centered)
   // text is pre-scaled if needed (formatted and html not suppoted as changes scale calc)
@@ -1066,7 +1053,7 @@ draw(CQChartsPaintDevice *device)
 
   device->setPen(tPenBrush.pen);
 
-  QPointF tp = pc.qpoint();
+  CQChartsGeom::Point tp = pc;
 
   if      (strs.size() == 1) {
     CQChartsDrawUtil::drawTextAtPoint(device, device->pixelToWindow(tp), name, textOptions);
@@ -1076,8 +1063,8 @@ draw(CQChartsPaintDevice *device)
 
     double th = fm.height();
 
-    QPointF tp1 = device->pixelToWindow(QPointF(tp.x(), tp.y() - th/2));
-    QPointF tp2 = device->pixelToWindow(QPointF(tp.x(), tp.y() + th/2));
+    CQChartsGeom::Point tp1 = device->pixelToWindow(CQChartsGeom::Point(tp.x, tp.y - th/2));
+    CQChartsGeom::Point tp2 = device->pixelToWindow(CQChartsGeom::Point(tp.x, tp.y + th/2));
 
     CQChartsDrawUtil::drawTextAtPoint(device, tp1, strs[0], textOptions);
     CQChartsDrawUtil::drawTextAtPoint(device, tp2, strs[1], textOptions);

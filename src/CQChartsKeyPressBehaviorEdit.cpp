@@ -6,6 +6,10 @@ CQChartsKeyPressBehaviorEdit(QWidget *parent) :
 {
   setObjectName("keyPressBehavior");
 
+  setToolTip("Key Press Behavior");
+
+  //---
+
   init();
 
   QObject::connect(this, SIGNAL(enumChanged()), this, SIGNAL(keyPressBehaviorChanged()));

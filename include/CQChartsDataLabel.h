@@ -86,11 +86,12 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //---
 
-  void draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr) const;
-  void draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
-            const Position &position) const;
-  void draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
-            const Position &position, const QPen &tpen) const;
+  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &qrect,
+            const QString &ystr) const;
+  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &qrect,
+            const QString &ystr, const Position &position) const;
+  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &qrect,
+            const QString &ystr, const Position &position, const QPen &tpen) const;
 
   //---
 

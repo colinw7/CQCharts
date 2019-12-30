@@ -3,6 +3,8 @@ Abstract Painter/Javascript
  + JS Polygon List inside support
 
 High
+ + Testing (all values)
+ + Replace QRectF, QPolygonF, QSizeF, QPointF
  + Auto fit text scaling
    + only shrink, common factor (across related objects)
    + Auto scale all axis tick labels (constant scale)

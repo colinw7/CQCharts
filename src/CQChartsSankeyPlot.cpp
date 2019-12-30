@@ -1119,16 +1119,7 @@ draw(CQChartsPaintDevice *device)
   double x1 = rect_.getXMin(), y1 = rect_.getYMin();
   double x2 = rect_.getXMax(), y2 = rect_.getYMax();
 
-  QPainterPath path;
-
-  path.moveTo(QPointF(x1, y1));
-  path.lineTo(QPointF(x2, y1));
-  path.lineTo(QPointF(x2, y2));
-  path.lineTo(QPointF(x1, y2));
-
-  path.closeSubpath();
-
-  device->drawPath(path);
+  device->drawRect(CQChartsGeom::BBox(x1, y1, x2, y2));
 
   //---
 
@@ -1171,7 +1162,7 @@ drawFg(CQChartsPaintDevice *device) const
   double tx = (rect_.getXMid() < 0.5 ? prect.getXMax() + 4 : prect.getXMin() - 4 - fm.width(str));
   double ty = prect.getYMid() + fm.ascent()/2;
 
-  QPointF pt = device->pixelToWindow(QPointF(tx, ty));
+  CQChartsGeom::Point pt = device->pixelToWindow(CQChartsGeom::Point(tx, ty));
 
   // only support contrast
   CQChartsTextOptions options;

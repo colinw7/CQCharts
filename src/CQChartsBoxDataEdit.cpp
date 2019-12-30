@@ -25,6 +25,8 @@ CQChartsBoxDataLineEdit(QWidget *parent) :
 {
   setObjectName("boxDataLineEdit");
 
+  setToolTip("Box Data");
+
   //---
 
   menuEdit_ = dataEdit_ = new CQChartsBoxDataEdit;
@@ -203,6 +205,10 @@ CQChartsBoxDataEdit(QWidget *parent) :
 {
   setObjectName("boxDataEdit");
 
+  setToolTip("Box Data");
+
+  //---
+
   QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
@@ -233,6 +239,8 @@ CQChartsBoxDataEdit(QWidget *parent) :
 
   // padding
   paddingEdit_ = CQUtil::makeWidget<CQRealSpin>("paddingEdit");
+
+  paddingEdit_->setToolTip("Padding in Pixels");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Padding", paddingEdit_, row);
 
@@ -375,6 +383,7 @@ CQChartsBoxDataEditPreview::
 CQChartsBoxDataEditPreview(CQChartsBoxDataEdit *edit) :
  CQChartsEditPreview(edit), edit_(edit)
 {
+  setToolTip("Box Preview");
 }
 
 void
@@ -413,6 +422,8 @@ draw(QPainter *painter, const CQChartsBoxData &data, const QRect &rect,
   // draw box
   CQChartsPixelPainter device(painter);
 
-  CQChartsDrawUtil::drawRoundedPolygon(&device, rect, data.shape().stroke().cornerSize(),
-                                       data.shape().stroke().cornerSize(), data.borderSides());
+  CQChartsDrawUtil::drawRoundedPolygon(&device, CQChartsGeom::BBox(rect),
+                                       data.shape().stroke().cornerSize(),
+                                       data.shape().stroke().cornerSize(),
+                                       data.borderSides());
 }

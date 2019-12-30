@@ -21,6 +21,8 @@ CQChartsShapeDataLineEdit(QWidget *parent) :
 {
   setObjectName("shapeDataLineEdit");
 
+  setToolTip("Shape Data");
+
   //---
 
   menuEdit_ = dataEdit_ = new CQChartsShapeDataEdit;
@@ -196,6 +198,10 @@ CQChartsShapeDataEdit(QWidget *parent, bool tabbed) :
  CQChartsEditBase(parent), tabbed_(tabbed)
 {
   setObjectName("shapeDataEdit");
+
+  setToolTip("Shape Data");
+
+  //---
 
   QGridLayout *layout = CQUtil::makeLayout<QGridLayout>(this, 0, 2);
 
@@ -379,6 +385,7 @@ CQChartsShapeDataEditPreview::
 CQChartsShapeDataEditPreview(CQChartsShapeDataEdit *edit) :
  CQChartsEditPreview(edit), edit_(edit)
 {
+  setToolTip("Shape Preview");
 }
 
 void
@@ -419,6 +426,6 @@ draw(QPainter *painter, const CQChartsShapeData &data, const QRect &rect,
   // draw shape
   CQChartsPixelPainter device(painter);
 
-  CQChartsDrawUtil::drawRoundedPolygon(&device, rect, data.stroke().cornerSize(),
-                                       data.stroke().cornerSize());
+  CQChartsDrawUtil::drawRoundedPolygon(&device, CQChartsGeom::BBox(rect),
+                                       data.stroke().cornerSize(), data.stroke().cornerSize());
 }

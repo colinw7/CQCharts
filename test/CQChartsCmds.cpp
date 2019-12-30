@@ -4346,6 +4346,8 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
   argv.addCmdArg("-hidden", CQChartsCmdArg::Type::Boolean, "include hidden data").setHidden(true);
 
+  argv.addCmdArg("-sync", CQChartsCmdArg::Type::Boolean, "sync before query").setHidden(true);
+
   bool rc;
 
   if (! argv.parse(rc))
@@ -4358,6 +4360,7 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
   bool    header = argv.getParseBool("header");
   QString name   = argv.getParseStr ("name");
   bool    hidden = argv.getParseBool("hidden");
+  bool    sync   = argv.getParseBool("sync");
 
   //---
 
@@ -4761,9 +4764,9 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       CQChartsPosition pos(data, CQChartsUnits::VIEW);
 
-      QPointF p = view->positionToPixel(pos);
+      CQChartsGeom::Point p = view->positionToPixel(pos);
 
-      cmdBase_->setCmdRc(p);
+      cmdBase_->setCmdRc(p.qpoint());
     }
     else if (name == "properties") {
       QStringList names;
@@ -4881,6 +4884,11 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
     if (! plot) return false;
 
     CQChartsRow row = argv.getParseRow("row", plot);
+
+    //---
+
+    if (sync)
+      plot->syncAll();
 
     //---
 
@@ -5057,9 +5065,9 @@ getChartsDataCmd(CQChartsCmdArgs &argv)
 
       CQChartsPosition pos(data, CQChartsUnits::PLOT);
 
-      QPointF p = plot->positionToPixel(pos);
+      CQChartsGeom::Point p = plot->positionToPixel(pos);
 
-      cmdBase_->setCmdRc(p);
+      cmdBase_->setCmdRc(p.qpoint());
     }
     else if (name == "properties") {
       QStringList names;
@@ -5735,6 +5743,9 @@ createChartsArrowAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
+  if (start == end)
+    return errorMsg("Arrow is zero length");
+
   CQChartsArrowAnnotation *annotation = nullptr;
 
   if      (view)
@@ -5776,12 +5787,10 @@ bool
 CQChartsCmds::
 createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
 {
-#if 0
   auto errorMsg = [&](const QString &msg) {
     charts_->errorMsg(msg);
     return false;
   };
-#endif
 
   //---
 
@@ -5881,6 +5890,9 @@ createChartsEllipseAnnotationCmd(CQChartsCmdArgs &argv)
   boxData.setBorderSides(argv.getParseSides("border_sides", boxData.borderSides()));
 
   //---
+
+  if (! rx.isValid() || ! ry.isValid())
+    return errorMsg("Invalid ellipse radius");
 
   CQChartsEllipseAnnotation *annotation = nullptr;
 
@@ -5997,13 +6009,16 @@ createChartsImageAnnotationCmd(CQChartsCmdArgs &argv)
   else if (argv.hasParseArg("rectangle")) {
     CQChartsRect rect = argv.getParseRect(view, plot, "rectangle");
 
+    if (! rect.isValid())
+      return errorMsg("Invalid rectangle geometry");
+
     if      (view)
       annotation = view->addImageAnnotation(rect, image);
     else if (plot)
       annotation = plot->addImageAnnotation(rect, image);
   }
   else {
-    CQChartsPosition pos(QPointF(0, 0));
+    CQChartsPosition pos(CQChartsGeom::Point(0, 0));
 
     if      (view)
       annotation = view->addImageAnnotation(pos, image);
@@ -6109,6 +6124,9 @@ createChartsPieSliceAnnotationCmd(CQChartsCmdArgs &argv)
     return errorMsg("Invalid radius value");
 
   //---
+
+  if (innerRadius.value() <= 0.0 || outerRadius.value() <= 0.0)
+    return errorMsg("Invalid pie slice radii");
 
   CQChartsPieSliceAnnotation *annotation = nullptr;
 
@@ -6482,17 +6500,17 @@ createChartsPolygonAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  if (! points.length())
-    return errorMsg("No points");
+  if (points.length() < 3)
+    return errorMsg("Not enough points");
 
   //---
 
   CQChartsPolygonAnnotation *annotation = nullptr;
 
   if      (view)
-    annotation = view->addPolygonAnnotation(points);
+    annotation = view->addPolygonAnnotation(CQChartsGeom::Polygon(points));
   else if (plot)
-    annotation = plot->addPolygonAnnotation(points);
+    annotation = plot->addPolygonAnnotation(CQChartsGeom::Polygon(points));
   else
     return false;
 
@@ -6619,7 +6637,7 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
 
   //---
 
-  if (! points.length())
+  if (points.length() < 2)
     return errorMsg("No points");
 
   //---
@@ -6627,9 +6645,9 @@ createChartsPolylineAnnotationCmd(CQChartsCmdArgs &argv)
   CQChartsPolylineAnnotation *annotation = nullptr;
 
   if      (view)
-    annotation = view->addPolylineAnnotation(points);
+    annotation = view->addPolylineAnnotation(CQChartsGeom::Polygon(points));
   else if (plot)
-    annotation = plot->addPolylineAnnotation(points);
+    annotation = plot->addPolylineAnnotation(CQChartsGeom::Polygon(points));
   else
     return false;
 
@@ -6777,18 +6795,21 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
     CQChartsPosition start = argv.getParsePosition(view, plot, "start");
     CQChartsPosition end   = argv.getParsePosition(view, plot, "end"  );
 
-    CQChartsRect rect;
+    CQChartsRect rect = CQChartsViewPlotObj::makeRect(view, plot, start, end);
+
+    if (! rect.isValid())
+      return errorMsg("Invalid rectangle geometry");
 
     if      (view)
       annotation = view->addRectangleAnnotation(rect);
     else if (plot)
       annotation = plot->addRectangleAnnotation(rect);
-
-    if (annotation)
-      annotation->setRectangle(start, end);
   }
   else if (argv.hasParseArg("rectangle")) {
     CQChartsRect rect = argv.getParseRect(view, plot, "rectangle");
+
+    if (! rect.isValid())
+      return errorMsg("Invalid rectangle geometry");
 
     if      (view)
       annotation = view->addRectangleAnnotation(rect);
@@ -6796,15 +6817,20 @@ createChartsRectangleAnnotationCmd(CQChartsCmdArgs &argv)
       annotation = plot->addRectangleAnnotation(rect);
   }
   else {
+    CQChartsGeom::Point start(0, 0);
+    CQChartsGeom::Point end  (1, 1);
+
     CQChartsRect rect;
+
+    if      (view)
+      rect = CQChartsRect(CQChartsGeom::BBox(start, end), CQChartsUnits::VIEW);
+    else if (plot)
+      rect = CQChartsRect(CQChartsGeom::BBox(start, end), CQChartsUnits::PLOT);
 
     if      (view)
       annotation = view->addRectangleAnnotation(rect);
     else if (plot)
       annotation = plot->addRectangleAnnotation(rect);
-
-    if (annotation)
-      annotation->setRectangle(CQChartsPosition(QPointF(0, 0)), CQChartsPosition(QPointF(1, 1)));
   }
 
   if (! annotation)
@@ -6972,13 +6998,16 @@ createChartsTextAnnotationCmd(CQChartsCmdArgs &argv)
   else if (argv.hasParseArg("rectangle")) {
     CQChartsRect rect = argv.getParseRect(view, plot, "rectangle");
 
+    if (! rect.isValid())
+      return errorMsg("Invalid text rectangle");
+
     if      (view)
       annotation = view->addTextAnnotation(rect, text);
     else if (plot)
       annotation = plot->addTextAnnotation(rect, text);
   }
   else {
-    CQChartsPosition pos(QPointF(0, 0));
+    CQChartsPosition pos(CQChartsGeom::Point(0, 0));
 
     if      (view)
       annotation = view->addTextAnnotation(pos, text);
@@ -7193,7 +7222,7 @@ createChartsButtonAnnotationCmd(CQChartsCmdArgs &argv)
       annotation = plot->addButtonAnnotation(pos, text);
   }
   else {
-    CQChartsPosition pos(QPointF(0, 0));
+    CQChartsPosition pos(CQChartsGeom::Point(0, 0));
 
     if      (view)
       annotation = view->addButtonAnnotation(pos, text);

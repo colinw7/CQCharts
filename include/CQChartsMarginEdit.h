@@ -4,7 +4,7 @@
 #include <CQChartsMargin.h>
 #include <QFrame>
 
-class QLineEdit;
+class CQChartsLineEdit;
 
 /*!
  * \brief margin edit
@@ -34,9 +34,9 @@ class CQChartsMarginEdit : public QFrame {
   void connectSlots(bool b);
 
  private:
-  CQChartsMargin margin_;                //!< margin data
-  QLineEdit*     edit_      { nullptr }; //!< margin edit
-  bool           connected_ { false };   //!< is connected
+  CQChartsMargin    margin_;                //!< margin data
+  CQChartsLineEdit* edit_      { nullptr }; //!< margin edit
+  bool              connected_ { false };   //!< is connected
 };
 
 //------

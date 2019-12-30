@@ -279,13 +279,14 @@ assertCmd(CQChartsCmdArgs &argv)
 
   QString expr = (! pargs.empty() ? pargs[0].toString() : "");
 
-  QString expr1 = QString("expr {%1}").arg(expr);
+  QVariant res;
 
-  int rc = qtcl()->eval(expr1, /*showError*/true, /*showResult*/false);
+  bool rc = qtcl()->evalExpr(expr, res, /*showError*/true);
+  if (! rc) return false;
 
-  //---
+  bool b = res.toBool();
 
-  return (rc == TCL_OK);
+  return b;
 }
 
 //------

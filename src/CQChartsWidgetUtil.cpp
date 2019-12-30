@@ -52,6 +52,15 @@ QFont getMonospaceFont() {
   return font;
 }
 
+void setTextColor(QWidget *w, const QColor &c) {
+  QPalette palette = w->palette();
+
+  palette.setColor(QPalette::WindowText, c);
+  palette.setColor(QPalette::Text      , c);
+
+  w->setPalette(palette);
+}
+
 }
 
 //------
@@ -74,6 +83,10 @@ CQChartsDialogButtons(QWidget *parent) :
   layout->addWidget (okButton_);
   layout->addWidget (applyButton_);
   layout->addWidget (cancelButton_);
+
+  okButton_    ->setToolTip("Apply and Close");
+  applyButton_ ->setToolTip("Apply without Close");
+  cancelButton_->setToolTip("Close without Apply");
 
   //connect(okButton_    , SIGNAL(clicked()), this, SIGNAL(okPressed()));
   //connect(applyButton_ , SIGNAL(clicked()), this, SIGNAL(applyPressed()));

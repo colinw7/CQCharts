@@ -264,7 +264,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
  public:
   using Bucket = CQChartsDistributionBucket;
 
-  using Points = std::vector<QPointF>;
+  using Points = std::vector<CQChartsGeom::Point>;
 
   struct BucketCount {
     Bucket bucket;
@@ -311,7 +311,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   //---
 
   bool isPolygon() const override { return true; }
-  QPolygonF polygon() const override { return poly_; }
+  CQChartsGeom::Polygon polygon() const override { return poly_; }
 
   //---
 
@@ -345,7 +345,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   Data                            data_;
   double                          doffset_     { 0.0 };
   ColorInd                        is_;
-  QPolygonF                       poly_;
+  CQChartsGeom::Polygon           poly_;
   double                          bucketScale_ { 1.0 };
 };
 
@@ -388,7 +388,7 @@ class CQChartsDistributionScatterObj : public CQChartsPlotObj {
   void getSelectIndices(Indices &inds) const override;
 
  private:
-  using Points = std::vector<QPointF>;
+  using Points = std::vector<CQChartsGeom::Point>;
 
   const CQChartsDistributionPlot* plot_     { nullptr };
   int                             groupInd_ { -1 };

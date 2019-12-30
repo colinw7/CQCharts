@@ -18,6 +18,8 @@ CQChartsFillUnderSideEdit(QWidget *parent) :
 {
   setObjectName("fillUnderSide");
 
+  setToolTip("Fill Under Side");
+
   QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   combo_ = CQUtil::makeWidget<QComboBox>("combo");
@@ -189,6 +191,8 @@ CQChartsFillUnderPosLineEdit(QWidget *parent) :
  CQChartsLineEditBase(parent)
 {
   setObjectName("fillUnderPosLineEdit");
+
+  setToolTip("Fill Under Position");
 
   //---
 
@@ -432,6 +436,8 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
 
   xposEdit_ = CQUtil::makeWidget<CQRealSpin>("xposEdit");
 
+  xposEdit_->setToolTip("Fill Under X Position");
+
   connect(xposEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToFillUnderPos()));
 
   xlayout->addWidget(xposLabel, 1, 0);
@@ -463,6 +469,8 @@ CQChartsFillUnderPosEdit(QWidget *parent) :
   QLabel *yposLabel = CQUtil::makeLabelWidget<QLabel>("Pos", "yposLabel");
 
   yposEdit_ = CQUtil::makeWidget<CQRealSpin>("yposEdit");
+
+  yposEdit_->setToolTip("Fill Under Y Position");
 
   connect(yposEdit_, SIGNAL(valueChanged(double)), this, SLOT(widgetsToFillUnderPos()));
 

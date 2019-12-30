@@ -68,7 +68,7 @@ class CQChartsCellObj : public CQChartsPlotObj {
 
   //---
 
-  QSizeF calcTextSize() const;
+  CQChartsGeom::Size calcTextSize() const;
 
   void draw(CQChartsPaintDevice *device) override;
 

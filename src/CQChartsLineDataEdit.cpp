@@ -23,6 +23,8 @@ CQChartsLineDataLineEdit(QWidget *parent) :
 {
   setObjectName("lineDataLineEdit");
 
+  setToolTip("Line Data");
+
   //---
 
   menuEdit_ = dataEdit_ = new CQChartsLineDataEdit;
@@ -354,6 +356,7 @@ CQChartsLineDataEditPreview::
 CQChartsLineDataEditPreview(CQChartsLineDataEdit *edit) :
  CQChartsEditPreview(edit), edit_(edit)
 {
+  setToolTip("Line Preview");
 }
 
 void

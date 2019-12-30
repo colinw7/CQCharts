@@ -17,6 +17,8 @@ CQChartsPaletteNameEdit(QWidget *parent) :
 {
   setObjectName("paletteName");
 
+  setToolTip("Palette Name");
+
   QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   combo_ = CQUtil::makeWidget<QComboBox>("combo");

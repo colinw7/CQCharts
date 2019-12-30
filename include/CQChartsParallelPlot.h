@@ -52,7 +52,8 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
  public:
   CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
-                          const QPolygonF &poly, const QModelIndex &ind, const ColorInd &is);
+                          const CQChartsGeom::Polygon &poly, const QModelIndex &ind,
+                          const ColorInd &is);
 
   //---
 
@@ -65,7 +66,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   //---
 
   bool isPolygon() const override { return true; }
-  QPolygonF polygon() const override { return polyLine_; }
+  CQChartsGeom::Polygon polygon() const override { return polyLine_; }
 
   bool isSolid() const override { return false; }
 
@@ -92,12 +93,12 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   void writeScriptData(CQChartsScriptPainter *device) const override;
 
  private:
-  void getPolyLine(QPolygonF &poly) const;
+  void getPolyLine(CQChartsGeom::Polygon &poly) const;
 
  private:
   const CQChartsParallelPlot* plot_ { nullptr };
-  QPolygonF                   poly_;
-  QPolygonF                   polyLine_;
+  CQChartsGeom::Polygon       poly_;
+  CQChartsGeom::Polygon       polyLine_;
 };
 
 //---

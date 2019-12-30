@@ -4,7 +4,6 @@
 #include <CQChartsGeom.h>
 #include <CQChartsTypes.h>
 #include <QObject>
-#include <QRectF>
 
 class CQChartsView;
 class CQChartsPlot;

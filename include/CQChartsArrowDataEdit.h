@@ -70,6 +70,8 @@ class CQChartsArrowDataEdit : public CQChartsEditBase {
 
   void setPreview(bool b);
 
+  CQChartsLengthEdit *lengthEdit() const { return lengthEdit_; }
+
  signals:
   void arrowDataChanged();
 

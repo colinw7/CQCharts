@@ -872,7 +872,7 @@ editRelease(const CQChartsGeom::Point &)
 
 void
 CQChartsAxis::
-editMoveBy(const QPointF &d)
+editMoveBy(const CQChartsGeom::Point &d)
 {
   double apos1, apos2;
 
@@ -881,9 +881,9 @@ editMoveBy(const QPointF &d)
   double apos;
 
   if (isHorizontal())
-    apos = apos1 + d.y();
+    apos = apos1 + d.y;
   else
-    apos = apos1 + d.x();
+    apos = apos1 + d.x;
 
   setPosition(CQChartsOptReal(apos));
 
@@ -940,7 +940,7 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
 
   // draw fill
   if (isMajorGridFilled()) {
-    QRectF dataRect = plot->calcDataPixelRect().qrect();
+    CQChartsGeom::BBox dataRect = plot->calcDataPixelRect();
 
     device->setClipRect(dataRect);
 
@@ -989,7 +989,7 @@ drawGrid(const CQChartsPlot *plot, CQChartsPaintDevice *device)
             else
               bbox = CQChartsGeom::BBox(a1.x, pp1.y, a2.x, pp2.y);
 
-            device->fillRect(bbox.qrect(), brush);
+            device->fillRect(bbox, brush);
           }
         }
 
@@ -1394,8 +1394,7 @@ calcPos(const CQChartsPlot *plot, double &apos1, double &apos2) const
 
 void
 CQChartsAxis::
-drawLine(const CQChartsPlot *, CQChartsPaintDevice *device,
-         double apos, double amin, double amax)
+drawLine(const CQChartsPlot *, CQChartsPaintDevice *device, double apos, double amin, double amax)
 {
   QPen pen;
 
@@ -1408,9 +1407,9 @@ drawLine(const CQChartsPlot *, CQChartsPaintDevice *device,
   //---
 
   if (isHorizontal())
-    device->drawLine(QPointF(amin, apos), QPointF(amax, apos));
+    device->drawLine(CQChartsGeom::Point(amin, apos), CQChartsGeom::Point(amax, apos));
   else
-    device->drawLine(QPointF(apos, amin), QPointF(apos, amax));
+    device->drawLine(CQChartsGeom::Point(apos, amin), CQChartsGeom::Point(apos, amax));
 }
 
 void
@@ -1430,9 +1429,9 @@ drawMajorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
   //---
 
   if (isHorizontal())
-    device->drawLine(QPointF(apos, dmin), QPointF(apos, dmax));
+    device->drawLine(CQChartsGeom::Point(apos, dmin), CQChartsGeom::Point(apos, dmax));
   else
-    device->drawLine(QPointF(dmin, apos), QPointF(dmax, apos));
+    device->drawLine(CQChartsGeom::Point(dmin, apos), CQChartsGeom::Point(dmax, apos));
 }
 
 void
@@ -1452,9 +1451,9 @@ drawMinorGridLine(const CQChartsPlot *, CQChartsPaintDevice *device,
   //---
 
   if (isHorizontal())
-    device->drawLine(QPointF(apos, dmin), QPointF(apos, dmax));
+    device->drawLine(CQChartsGeom::Point(apos, dmin), CQChartsGeom::Point(apos, dmax));
   else
-    device->drawLine(QPointF(dmin, apos), QPointF(dmax, apos));
+    device->drawLine(CQChartsGeom::Point(dmin, apos), CQChartsGeom::Point(dmax, apos));
 }
 
 void
@@ -1518,9 +1517,9 @@ drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
     double adt1 = plot->pixelToWindowHeight(dt1);
 
     if (inside)
-      device->drawLine(QPointF(pp.x, pp.y), QPointF(pp.x, pp.y + adt1));
+      device->drawLine(CQChartsGeom::Point(pp.x, pp.y), CQChartsGeom::Point(pp.x, pp.y + adt1));
     else {
-      device->drawLine(QPointF(pp.x, pp.y), QPointF(pp.x, pp.y - adt1));
+      device->drawLine(CQChartsGeom::Point(pp.x, pp.y), CQChartsGeom::Point(pp.x, pp.y - adt1));
 
       CQChartsGeom::Point p;
 
@@ -1544,9 +1543,9 @@ drawTickLine(const CQChartsPlot *plot, CQChartsPaintDevice *device,
     double adt1 = plot->pixelToWindowWidth(dt1);
 
     if (inside)
-      device->drawLine(QPointF(pp.x, pp.y), QPointF(pp.x + adt1, pp.y));
+      device->drawLine(CQChartsGeom::Point(pp.x, pp.y), CQChartsGeom::Point(pp.x + adt1, pp.y));
     else {
-      device->drawLine(QPointF(pp.x, pp.y), QPointF(pp.x - adt1, pp.y));
+      device->drawLine(CQChartsGeom::Point(pp.x, pp.y), CQChartsGeom::Point(pp.x - adt1, pp.y));
 
       CQChartsGeom::Point p;
 
@@ -1635,7 +1634,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 */
       align |= Qt::AlignTop;
 
-      QPointF pt(pp.x, pp.y + tyo);
+      CQChartsGeom::Point pt(pp.x, pp.y + tyo);
 
       if (CMathUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
@@ -1658,8 +1657,8 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
             atm = plot->pixelToWindowHeight(tlen2 + tgap);
         }
 
-        lbbox_ += CQChartsGeom::Point(pt.x(), pt.y()            );
-        lbbox_ += CQChartsGeom::Point(pt.x(), pt.y() + (ta + td));
+        lbbox_ += CQChartsGeom::Point(pt.x, pt.y            );
+        lbbox_ += CQChartsGeom::Point(pt.x, pt.y + (ta + td));
 
         double xpos = 0.0;
         double ypos = apos - boolFactor(! plot_->isInvertY())*(wth + atm);
@@ -1684,12 +1683,12 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         options.angle = angle;
         options.align = align;
 
-        QRectF rrect = CQChartsRotatedText::calcBBox(pt.x(), pt.y(), text, device->font(),
-                                                     options, 0, /*alignBox*/true);
+        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+                                                   options, 0, /*alignBox*/true);
 
-        lbbox_ += CQChartsGeom::BBox(rrect);
+        lbbox_ += rrect;
 
-        tbbox = plot->pixelToWindow(CQChartsGeom::BBox(rrect));
+        tbbox = plot->pixelToWindow(rrect);
       }
 
 #if 0
@@ -1700,18 +1699,18 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 #endif
 
       if (CMathUtil::isZero(angle)) {
-        double ty = pt.y() + ta;
+        double ty = pt.y + ta;
 
-        QPointF p;
+        CQChartsGeom::Point p;
 
         if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
-          p = QPointF(pt.x() - tw/2                         , ty);
+          p = CQChartsGeom::Point(pt.x - tw/2                         , ty);
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
-          p = QPointF(pt.x() - tw                           , ty);
+          p = CQChartsGeom::Point(pt.x - tw                           , ty);
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
-          p = QPointF(pt.x()                                , ty);
+          p = CQChartsGeom::Point(pt.x                                , ty);
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
-          p = QPointF(pt.x() - plot->windowToPixelWidth(0.5), ty);
+          p = CQChartsGeom::Point(pt.x - plot->windowToPixelWidth(0.5), ty);
 
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
       }
@@ -1742,7 +1741,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 */
       align |= Qt::AlignBottom;
 
-      QPointF pt(pp.x, pp.y - tyo);
+      CQChartsGeom::Point pt(pp.x, pp.y - tyo);
 
       if (CMathUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
@@ -1765,8 +1764,8 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
             atm = plot->pixelToWindowHeight(tlen2 + tgap);
         }
 
-        lbbox_ += CQChartsGeom::Point(pt.x(), pt.y()            );
-        lbbox_ += CQChartsGeom::Point(pt.x(), pt.y() - (ta + td));
+        lbbox_ += CQChartsGeom::Point(pt.x, pt.y            );
+        lbbox_ += CQChartsGeom::Point(pt.x, pt.y - (ta + td));
 
         double xpos = 0.0;
         double ypos = apos + boolFactor(! plot_->isInvertY())*atm;
@@ -1791,12 +1790,12 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         options.angle = angle;
         options.align = align;
 
-        QRectF rrect = CQChartsRotatedText::calcBBox(pt.x(), pt.y(), text, device->font(),
-                                                     options, 0, /*alignBox*/true);
+        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+                                                   options, 0, /*alignBox*/true);
 
-        lbbox_ += CQChartsGeom::BBox(rrect);
+        lbbox_ += rrect;
 
-        tbbox = plot->pixelToWindow(CQChartsGeom::BBox(rrect));
+        tbbox = plot->pixelToWindow(rrect);
       }
 
 #if 0
@@ -1807,18 +1806,18 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 #endif
 
       if (CMathUtil::isZero(angle)) {
-        double ty = pt.y() - td;
+        double ty = pt.y - td;
 
-        QPointF p;
+        CQChartsGeom::Point p;
 
         if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
-          p = QPointF(pt.x() - tw/2                         , ty);
+          p = CQChartsGeom::Point(pt.x - tw/2                         , ty);
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
-          p = QPointF(pt.x() - tw                           , ty);
+          p = CQChartsGeom::Point(pt.x - tw                           , ty);
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
-          p = QPointF(pt.x()                                , ty);
+          p = CQChartsGeom::Point(pt.x                                , ty);
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
-          p = QPointF(pt.x() - plot->windowToPixelWidth(0.5), ty);
+          p = CQChartsGeom::Point(pt.x - plot->windowToPixelWidth(0.5), ty);
 
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
       }
@@ -1878,7 +1877,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 */
       align |= Qt::AlignRight;
 
-      QPointF pt(pp.x - txo, pp.y);
+      CQChartsGeom::Point pt(pp.x - txo, pp.y);
 
       if (CMathUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
@@ -1901,8 +1900,8 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
             atm = plot->pixelToWindowWidth(tlen2 + tgap);
         }
 
-        lbbox_ += CQChartsGeom::Point(pt.x()     , pt.y());
-        lbbox_ += CQChartsGeom::Point(pt.x() - tw, pt.y());
+        lbbox_ += CQChartsGeom::Point(pt.x     , pt.y);
+        lbbox_ += CQChartsGeom::Point(pt.x - tw, pt.y);
 
         double xpos = apos - boolFactor(! plot_->isInvertX())*(atw + atm);
         double ypos = 0.0;
@@ -1927,12 +1926,12 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         options.angle = angle;
         options.align = align;
 
-        QRectF rrect = CQChartsRotatedText::calcBBox(pt.x(), pt.y(), text, device->font(),
-                                                     options, 0, /*alignBox*/true);
+        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+                                                   options, 0, /*alignBox*/true);
 
-        lbbox_ += CQChartsGeom::BBox(rrect);
+        lbbox_ += rrect;
 
-        tbbox = plot->pixelToWindow(CQChartsGeom::BBox(rrect));
+        tbbox = plot->pixelToWindow(rrect);
       }
 
 #if 0
@@ -1943,19 +1942,19 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 #endif
 
       if (CMathUtil::isZero(angle)) {
-        //double tx = pt.x() - (isPixelLeft ? tw : 0.0);
-        double tx = pt.x() - tw;
+      //double tx = pt.x - (isPixelLeft ? tw : 0.0);
+        double tx = pt.x - tw;
 
-        QPointF p;
+        CQChartsGeom::Point p;
 
         if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
-          p = QPointF(tx, pt.y() + ta/2);
+          p = CQChartsGeom::Point(tx, pt.y + ta/2);
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
-          p = QPointF(tx, pt.y() + ta  );
+          p = CQChartsGeom::Point(tx, pt.y + ta  );
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
-          p = QPointF(tx, pt.y() - td  );
+          p = CQChartsGeom::Point(tx, pt.y - td  );
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
-          p = QPointF(tx, pt.y() - plot->windowToPixelHeight(0.5) + ta);
+          p = CQChartsGeom::Point(tx, pt.y - plot->windowToPixelHeight(0.5) + ta);
 
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
       }
@@ -1986,7 +1985,7 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 */
       align |= Qt::AlignLeft;
 
-      QPointF pt(pp.x + txo, pp.y);
+      CQChartsGeom::Point pt(pp.x + txo, pp.y);
 
       if (CMathUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
@@ -2009,8 +2008,8 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
             atm = plot->pixelToWindowWidth(tlen2 + tgap);
         }
 
-        lbbox_ += CQChartsGeom::Point(pt.x()     , pt.y());
-        lbbox_ += CQChartsGeom::Point(pt.x() + tw, pt.y());
+        lbbox_ += CQChartsGeom::Point(pt.x     , pt.y);
+        lbbox_ += CQChartsGeom::Point(pt.x + tw, pt.y);
 
         double xpos = apos + boolFactor(! plot_->isInvertX())*atm;
         double ypos = 0.0;
@@ -2035,12 +2034,12 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
         options.angle = angle;
         options.align = align;
 
-        QRectF rrect = CQChartsRotatedText::calcBBox(pt.x(), pt.y(), text, device->font(),
-                                                     options, 0, /*alignBox*/true);
+        auto rrect = CQChartsRotatedText::calcBBox(pt.x, pt.y, text, device->font(),
+                                                   options, 0, /*alignBox*/true);
 
-        lbbox_ += CQChartsGeom::BBox(rrect);
+        lbbox_ += rrect;
 
-        tbbox = plot->pixelToWindow(CQChartsGeom::BBox(rrect));
+        tbbox = plot->pixelToWindow(rrect);
       }
 
 #if 0
@@ -2051,19 +2050,19 @@ drawTickLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 #endif
 
       if (CMathUtil::isZero(angle)) {
-        //double tx = pt.x() - (! isPixelLeft ? 0.0 : tw);
-        double tx = pt.x();
+      //double tx = pt.x - (! isPixelLeft ? 0.0 : tw);
+        double tx = pt.x;
 
-        QPointF p;
+        CQChartsGeom::Point p;
 
         if      (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::MIDDLE)
-          p = QPointF(tx, pt.y() + ta/2);
+          p = CQChartsGeom::Point(tx, pt.y + ta/2);
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BOTTOM_LEFT)
-          p = QPointF(tx, pt.y() + ta  );
+          p = CQChartsGeom::Point(tx, pt.y + ta  );
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::TOP_RIGHT)
-          p = QPointF(tx, pt.y() - td  );
+          p = CQChartsGeom::Point(tx, pt.y - td  );
         else if (tickLabelPlacement() == CQChartsAxisTickLabelPlacement::Type::BETWEEN)
-          p = QPointF(tx, pt.y() - plot->windowToPixelHeight(0.5) + ta);
+          p = CQChartsGeom::Point(tx, pt.y - plot->windowToPixelHeight(0.5) + ta);
 
         axisTickLabelDrawDatas_.push_back(AxisTickLabelDrawData(p, tbbox, text));
       }
@@ -2146,7 +2145,7 @@ drawAxisTickLabelDatas(const CQChartsPlot *plot, CQChartsPaintDevice *device)
     if (! data.visible)
       continue;
 
-    QPointF p1 = plot_->pixelToWindow(data.p);
+    CQChartsGeom::Point p1 = plot_->pixelToWindow(data.p);
 
     CQChartsTextOptions options;
 
@@ -2230,7 +2229,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
     if (isPixelBottom) {
       ath = plot->pixelToWindowHeight((lbbox_.getYMax() - a3.y) + tgap) + wfh;
 
-      QPointF pt(axm, lbbox_.getYMax() + ta + tgap);
+      CQChartsGeom::Point pt(axm, lbbox_.getYMax() + ta + tgap);
 
       // angle, align not supported
       // html and formatted not supported (axis code controls string)
@@ -2261,7 +2260,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
     else {
       ath = plot->pixelToWindowHeight((a3.y - lbbox_.getYMin()) + tgap) + wfh;
 
-      QPointF pt(axm, lbbox_.getYMin() - td - tgap);
+      CQChartsGeom::Point pt(axm, lbbox_.getYMin() - td - tgap);
 
       // angle, align not supported
       // html and formatted not supported (axis code controls string)
@@ -2310,7 +2309,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       double tx = lbbox_.getXMin() - tgap - td;
 
-      QPointF p1 = plot_->pixelToWindow(QPointF(tx, aym));
+      CQChartsGeom::Point p1 = plot_->pixelToWindow(CQChartsGeom::Point(tx, aym));
 
       CQChartsTextOptions options;
 
@@ -2341,7 +2340,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       double tx = lbbox_.getXMax() + tgap + td;
 
-      QPointF p1 = plot_->pixelToWindow(QPointF(tx, aym));
+      CQChartsGeom::Point p1 = plot_->pixelToWindow(CQChartsGeom::Point(tx, aym));
 
       CQChartsTextOptions options;
 
@@ -2356,7 +2355,7 @@ drawAxisLabel(const CQChartsPlot *plot, CQChartsPaintDevice *device,
 
       double tx = lbbox_.getXMax() + tgap + ta + td;
 
-      QPointF p1 = plot_->pixelToWindow(QPointF(tx, aym));
+      CQChartsGeom::Point p1 = plot_->pixelToWindow(CQChartsGeom::Point(tx, aym));
 
       CQChartsTextOptions options;
 

@@ -38,12 +38,12 @@ class CQChartsAxisSideEdit;
 class CQChartsLineDataEdit;
 class CQChartsTextDataEdit;
 class CQChartsFillDataEdit;
+class CQChartsLineEdit;
 
 class CQCheckBox;
 class CQGroupBox;
 class CQIntegerSpin;
 class CQRealSpin;
-class CQLineEdit;
 class QComboBox;
 
 /*!
@@ -76,13 +76,13 @@ class CQChartsAxisEdit : public QFrame {
   CQHRadioButtons*      directionEdit_         { nullptr }; //!< direction edit
   CQChartsAxisSideEdit* sideEdit_              { nullptr }; //!< side edit
   QComboBox*            valueTypeCombo_        { nullptr }; //!< value type combo
-  CQLineEdit*           formatEdit_            { nullptr }; //!< format edit
+  CQChartsLineEdit*     formatEdit_            { nullptr }; //!< format edit
   CQIntegerSpin*        tickIncrementEdit_     { nullptr }; //!< tick increment edit
   CQIntegerSpin*        majorIncrementEdit_    { nullptr }; //!< major increment edit
   CQRealSpin*           startEdit_             { nullptr }; //!< start edit
   CQRealSpin*           endEdit_               { nullptr }; //!< end edit
   CQCheckBox*           includeZeroEdit_       { nullptr }; //!< include zero edit
-  CQLineEdit*           positionEdit_          { nullptr }; //!< position edit
+  CQChartsLineEdit*     positionEdit_          { nullptr }; //!< position edit
   CQChartsLineDataEdit* lineDataEdit_          { nullptr }; //!< line data edit
   CQChartsTextDataEdit* tickLabelTextDataEdit_ { nullptr }; //!< tick label text edit
   CQChartsTextDataEdit* labelTextDataEdit_     { nullptr }; //!< label text edit

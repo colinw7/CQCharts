@@ -1500,62 +1500,32 @@ updateMargins(const CQChartsPlotMargin &outerMargin)
   setPixelRange(innerViewBBox_);
 }
 
-QRectF
-CQChartsPlot::
-viewRect() const
-{
-  return viewBBox().qrect();
-}
-
-void
-CQChartsPlot::
-setViewRect(const QRectF &r)
-{
-  setViewBBox(CQChartsGeom::BBox(r));
-}
-
-QRectF
-CQChartsPlot::
-innerViewRect() const
-{
-  return innerViewBBox().qrect();
-}
-
 //---
 
-QRectF
+CQChartsGeom::BBox
 CQChartsPlot::
 calcDataRect() const
 {
-  if (calcDataRange_.isSet())
-    return calcDataRange_.qrect();
-  else
-    return QRectF();
+  return calcDataRange_.bbox();
 }
 
-QRectF
+CQChartsGeom::BBox
 CQChartsPlot::
 outerDataRect() const
 {
-  if (outerDataRange_.isSet())
-    return outerDataRange_.qrect();
-  else
-    return QRectF();
+  return outerDataRange_.bbox();
 }
 
-QRectF
+CQChartsGeom::BBox
 CQChartsPlot::
 dataRect() const
 {
-  if (dataRange_.isSet())
-    return dataRange_.qrect();
-  else
-    return QRectF();
+  return dataRange_.bbox();
 }
 
 //---
 
-QRectF
+CQChartsGeom::BBox
 CQChartsPlot::
 range() const
 {
@@ -1564,11 +1534,9 @@ range() const
 
 void
 CQChartsPlot::
-setRange(const QRectF &r)
+setRange(const CQChartsGeom::BBox &bbox)
 {
   assert(dataScaleX() == 1.0 && dataScaleY() == 1.0);
-
-  CQChartsGeom::BBox bbox = CQChartsGeom::BBox(r);
 
   CQChartsGeom::Range range = CQChartsUtil::bboxRange(bbox);
 
@@ -3067,15 +3035,43 @@ interruptRange()
 
 void
 CQChartsPlot::
-syncRange()
+syncAll()
 {
+  if (debugUpdate_)
+    std::cerr << "CQChartsPlot::syncAll\n";
+
+  syncRange();
+  syncObjs ();
+  syncDraw ();
+}
+
+void
+CQChartsPlot::
+syncState()
+{
+  if (debugUpdate_)
+    std::cerr << "CQChartsPlot::syncState\n";
+
   if (isOverlay() && ! isFirstPlot())
     return;
 
   UpdateState updateState = this->updateState();
 
-  if (updateState == UpdateState::INVALID)
+  while (updateState == UpdateState::INVALID) {
     threadTimerSlot();
+
+    updateState = this->updateState();
+  }
+}
+
+void
+CQChartsPlot::
+syncRange()
+{
+  if (debugUpdate_)
+    std::cerr << "CQChartsPlot::syncRange\n";
+
+  syncState();
 
   waitRange();
 }
@@ -3084,6 +3080,9 @@ void
 CQChartsPlot::
 waitRange()
 {
+  if (debugUpdate_)
+    std::cerr << "CQChartsPlot::waitRange\n";
+
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
       plot->waitRange1();
@@ -3098,12 +3097,25 @@ void
 CQChartsPlot::
 waitRange1()
 {
-  if (updateData_.rangeThread.busy.load()) {
-    (void) updateData_.rangeThread.future.get();
+  if (debugUpdate_)
+    std::cerr << "CQChartsPlot::waitRange1\n";
 
-    assert(! updateData_.rangeThread.future.valid());
+  UpdateState updateState = this->updateState();
 
-    updateData_.rangeThread.finish(this, debugUpdate_ ? "updateRange" : nullptr);
+  while (updateState == UpdateState::CALC_RANGE) {
+    if (updateData_.rangeThread.busy.load()) {
+      (void) updateData_.rangeThread.future.get();
+
+      assert(! updateData_.rangeThread.future.valid());
+
+      updateData_.rangeThread.finish(this, debugUpdate_ ? "updateRange" : nullptr);
+
+      return;
+    }
+
+    threadTimerSlot();
+
+    updateState = this->updateState();
   }
 }
 
@@ -3246,8 +3258,24 @@ interruptObjs()
 
 void
 CQChartsPlot::
+syncObjs()
+{
+  if (debugUpdate_)
+    std::cerr << "CQChartsPlot::syncObjs\n";
+
+  syncState();
+
+  waitRange();
+  waitObjs ();
+}
+
+void
+CQChartsPlot::
 waitObjs()
 {
+  if (debugUpdate_)
+    std::cerr << "CQChartsPlot::waitObjs\n";
+
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
       plot->waitObjs1();
@@ -3262,12 +3290,25 @@ void
 CQChartsPlot::
 waitObjs1()
 {
-  if (updateData_.objsThread.busy.load()) {
-    (void) updateData_.objsThread.future.get();
+  if (debugUpdate_)
+    std::cerr << "CQChartsPlot::waitObjs1\n";
 
-    assert(! updateData_.objsThread.future.valid());
+  UpdateState updateState = this->updateState();
 
-    updateData_.objsThread.finish(this, debugUpdate_ ? "waitObjs1" : nullptr);
+  while (updateState == UpdateState::CALC_OBJS) {
+    if (updateData_.objsThread.busy.load()) {
+      (void) updateData_.objsThread.future.get();
+
+      assert(! updateData_.objsThread.future.valid());
+
+      updateData_.objsThread.finish(this, debugUpdate_ ? "waitObjs1" : nullptr);
+
+      return;
+    }
+
+    threadTimerSlot();
+
+    updateState = this->updateState();
   }
 }
 
@@ -3332,7 +3373,7 @@ adjustDataRangeBBox(const CQChartsGeom::BBox &bbox) const
 
   //----
 
-  CQChartsDisplayRange displayRange = *displayRange_;
+  CQChartsDisplayRange displayRange = this->displayRange();
 
   CQChartsGeom::BBox dataRange = calcDataRange(/*adjust*/false);
 
@@ -3353,7 +3394,7 @@ adjustDataRangeBBox(const CQChartsGeom::BBox &bbox) const
 
   //--
 
-  *displayRange_ = displayRange;
+  const_cast<CQChartsPlot *>(this)->setDisplayRange(displayRange);
 
   return ibbox;
 }
@@ -5146,19 +5187,19 @@ editRelease(const CQChartsGeom::Point & /*p*/, const CQChartsGeom::Point & /*w*/
 
 void
 CQChartsPlot::
-editMoveBy(const QPointF &d)
+editMoveBy(const CQChartsGeom::Point &d)
 {
   if (isOverlay() && ! isFirstPlot())
     return;
 
   //---
 
-  QRectF r = calcDataRect();
+  CQChartsGeom::BBox r = calcDataRect();
 
-  double dw = d.x()*r.width ();
-  double dh = d.y()*r.height();
+  double dw = d.x*r.getWidth ();
+  double dh = d.y*r.getHeight();
 
-  QPointF dp(dw, dh);
+  CQChartsGeom::Point dp(dw, dh);
 
   if      (isSelected()) {
   }
@@ -5756,13 +5797,13 @@ keyPress(int key, int modifier)
     }
     else {
       if      (key == Qt::Key_Right)
-        editMoveBy(QPointF( getMoveX(is_shift), 0));
+        editMoveBy(CQChartsGeom::Point( getMoveX(is_shift), 0));
       else if (key == Qt::Key_Left)
-        editMoveBy(QPointF(-getMoveX(is_shift), 0));
+        editMoveBy(CQChartsGeom::Point(-getMoveX(is_shift), 0));
       else if (key == Qt::Key_Up)
-        editMoveBy(QPointF(0, getMoveY(is_shift)));
+        editMoveBy(CQChartsGeom::Point(0, getMoveY(is_shift)));
       else if (key == Qt::Key_Down)
-        editMoveBy(QPointF(0, -getMoveY(is_shift)));
+        editMoveBy(CQChartsGeom::Point(0, -getMoveY(is_shift)));
     }
   }
   else if (key == Qt::Key_Plus || key == Qt::Key_Minus) {
@@ -6493,8 +6534,25 @@ interruptDraw()
 
 void
 CQChartsPlot::
+syncDraw()
+{
+  if (debugUpdate_)
+    std::cerr << "CQChartsPlot::syncDraw\n";
+
+  syncState();
+
+  waitRange();
+  waitObjs ();
+  waitDraw ();
+}
+
+void
+CQChartsPlot::
 waitDraw()
 {
+  if (debugUpdate_)
+    std::cerr << "CQChartsPlot::waitDraw\n";
+
   if (isOverlay()) {
     processOverlayPlots([&](CQChartsPlot *plot) {
       plot->waitDraw1();
@@ -6509,12 +6567,25 @@ void
 CQChartsPlot::
 waitDraw1()
 {
-  if (updateData_.drawThread.busy.load()) {
-    (void) updateData_.drawThread.future.get();
+  if (debugUpdate_)
+    std::cerr << "CQChartsPlot::waitDraw1\n";
 
-    assert(! updateData_.drawThread.future.valid());
+  UpdateState updateState = this->updateState();
 
-    updateData_.drawThread.finish(this, debugUpdate_ ? "drawObjs" : nullptr);
+  while (updateState == UpdateState::DRAW_OBJS) {
+    if (updateData_.drawThread.busy.load()) {
+      (void) updateData_.drawThread.future.get();
+
+      assert(! updateData_.drawThread.future.valid());
+
+      updateData_.drawThread.finish(this, debugUpdate_ ? "drawObjs" : nullptr);
+
+      return;
+    }
+
+    threadTimerSlot();
+
+    updateState = this->updateState();
   }
 }
 
@@ -6582,7 +6653,9 @@ drawBusy(QPainter *painter, const UpdateState &updateState) const
 
     CQChartsGeom::Point p1 = CQChartsGeom::circlePoint(c, r1, a);
 
-    painter->drawEllipse(QRectF(p1.x - r, p1.y - r, 2*r, 2*r));
+    CQChartsGeom::BBox bbox(p1.x - r, p1.y - r, p1.x + r, p1.y + r);
+
+    painter->drawEllipse(bbox.qrect());
 
     a += da;
   }
@@ -6962,7 +7035,7 @@ drawBackgroundLayer(CQChartsPaintDevice *device) const
 
       setBrush(brush, true, fillColor, fillAlpha, fillPattern);
 
-      device->fillRect(rect.qrect(), brush);
+      device->fillRect(rect, brush);
     }
 
     if (isStroked) {
@@ -7021,13 +7094,13 @@ drawBackgroundSides(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
   if (sides.isAll()) {
     device->setBrush(Qt::NoBrush);
 
-    device->drawRect(bbox.qrect());
+    device->drawRect(bbox);
   }
   else {
-    if (sides.isTop   ()) device->drawLine(bbox.getUL().qpoint(), bbox.getUR().qpoint());
-    if (sides.isLeft  ()) device->drawLine(bbox.getUL().qpoint(), bbox.getLL().qpoint());
-    if (sides.isBottom()) device->drawLine(bbox.getLL().qpoint(), bbox.getLR().qpoint());
-    if (sides.isRight ()) device->drawLine(bbox.getUR().qpoint(), bbox.getLR().qpoint());
+    if (sides.isTop   ()) device->drawLine(bbox.getUL(), bbox.getUR());
+    if (sides.isLeft  ()) device->drawLine(bbox.getUL(), bbox.getLL());
+    if (sides.isBottom()) device->drawLine(bbox.getLL(), bbox.getLR());
+    if (sides.isRight ()) device->drawLine(bbox.getUR(), bbox.getLR());
   }
 }
 
@@ -7909,7 +7982,7 @@ displayRangeBBox() const
   // calc current (zoomed/panned) data range
   double xmin, ymin, xmax, ymax;
 
-  displayRange_->getWindowRange(&xmin, &ymin, &xmax, &ymax);
+  displayRange().getWindowRange(&xmin, &ymin, &xmax, &ymax);
 
   CQChartsGeom::BBox bbox(xmin, ymin, xmax, ymax);
 
@@ -7942,13 +8015,13 @@ calcPlotPixelRect() const
   return view()->windowToPixel(viewBBox());
 }
 
-QSizeF
+CQChartsGeom::Size
 CQChartsPlot::
 calcPixelSize() const
 {
   CQChartsGeom::BBox bbox = calcPlotPixelRect();
 
-  return QSizeF(bbox.getWidth(), bbox.getHeight());
+  return CQChartsGeom::Size(bbox.getWidth(), bbox.getHeight());
 }
 
 //---
@@ -8078,7 +8151,7 @@ fitBBox() const
   bbox += annotationBBox();
 
   // add margin (TODO: config pixel margin size)
-  QSizeF marginSize = pixelToWindowSize(QSizeF(8, 8));
+  CQChartsGeom::Size marginSize = pixelToWindowSize(CQChartsGeom::Size(8, 8));
 
   bbox.expand(-marginSize.width(), -marginSize.height(),
                marginSize.width(),  marginSize.height());
@@ -8652,8 +8725,7 @@ setClipRect(CQChartsPaintDevice *device) const
   const CQChartsPlot *plot1 = firstPlot();
 
   if      (plot1->isDataClip()) {
-    CQChartsGeom::BBox bbox = displayRangeBBox();
-
+    CQChartsGeom::BBox bbox  = displayRangeBBox();
     CQChartsGeom::BBox abbox = annotationBBox();
 
     if      (dataScaleX() <= 1.0 && dataScaleY() <= 1.0)
@@ -8663,12 +8735,10 @@ setClipRect(CQChartsPaintDevice *device) const
     else if (dataScaleY() <= 1.0)
       bbox.addY(abbox);
 
-    QRectF dataRect = bbox.qrect();
-
-    device->setClipRect(dataRect);
+    device->setClipRect(bbox);
   }
   else if (plot1->isPlotClip()) {
-    QRectF plotRect = calcPlotRect().qrect();
+    CQChartsGeom::BBox plotRect = calcPlotRect();
 
     device->setClipRect(plotRect);
   }
@@ -8727,7 +8797,7 @@ getFirstPlotKey() const
 
 void
 CQChartsPlot::
-drawSymbol(CQChartsPaintDevice *device, const QPointF &p, const CQChartsSymbol &symbol,
+drawSymbol(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const CQChartsSymbol &symbol,
            const CQChartsLength &size, const CQChartsPenBrush &penBrush) const
 {
   CQChartsDrawUtil::setPenBrush(device, penBrush);
@@ -8737,7 +8807,7 @@ drawSymbol(CQChartsPaintDevice *device, const QPointF &p, const CQChartsSymbol &
 
 void
 CQChartsPlot::
-drawSymbol(CQChartsPaintDevice *device, const QPointF &p, const CQChartsSymbol &symbol,
+drawSymbol(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const CQChartsSymbol &symbol,
            const CQChartsLength &size) const
 {
   if (bufferSymbols_) {
@@ -8761,7 +8831,7 @@ drawSymbol(CQChartsPaintDevice *device, const QPointF &p, const CQChartsSymbol &
 
 void
 CQChartsPlot::
-drawBufferedSymbol(QPainter *painter, const QPointF &p,
+drawBufferedSymbol(QPainter *painter, const CQChartsGeom::Point &p,
                    const CQChartsSymbol &symbol, double size) const
 {
   auto cmpPen = [](const QPen &pen1, const QPen &pen2) {
@@ -8810,15 +8880,15 @@ drawBufferedSymbol(QPainter *painter, const QPointF &p,
 
     CQChartsPixelPainter device(&ipainter);
 
-    QPoint         spos (size, size);
-    CQChartsLength ssize(size, CQChartsUnits::PIXEL);
+    CQChartsGeom::Point spos (size, size);
+    CQChartsLength      ssize(size, CQChartsUnits::PIXEL);
 
     CQChartsDrawUtil::drawSymbol(&device, symbol, spos, ssize);
   }
 
   double is = imageBuffer.isize/2.0;
 
-  painter->drawImage(p.x() - is, p.y() - is, imageBuffer.image);
+  painter->drawImage(p.x - is, p.y - is, imageBuffer.image);
 }
 
 CQChartsTextOptions
@@ -8861,7 +8931,7 @@ drawColorBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const 
   painter->setPen(c);
   painter->setBrush(Qt::NoBrush);
 
-  painter->drawRect(bbox.qrect());
+  painter->drawRect(bbox);
 }
 
 //------
@@ -10246,7 +10316,7 @@ expValue(double x, int base) const
 
 //------
 
-QPointF
+CQChartsGeom::Point
 CQChartsPlot::
 positionToPlot(const CQChartsPosition &pos) const
 {
@@ -10267,10 +10337,10 @@ positionToPlot(const CQChartsPosition &pos) const
     p1.setY(p.getY()*pbbox.getHeight()/100.0);
   }
 
-  return p1.qpoint();
+  return p1;
 }
 
-QPointF
+CQChartsGeom::Point
 CQChartsPlot::
 positionToPixel(const CQChartsPosition &pos) const
 {
@@ -10291,7 +10361,7 @@ positionToPixel(const CQChartsPosition &pos) const
     p1.setY(p.getY()*pbbox.getHeight()/100.0);
   }
 
-  return p1.qpoint();
+  return p1;
 }
 
 //------
@@ -10300,8 +10370,7 @@ CQChartsGeom::BBox
 CQChartsPlot::
 rectToPlot(const CQChartsRect &rect) const
 {
-  CQChartsGeom::BBox r = CQChartsGeom::BBox(rect.rect());
-
+  CQChartsGeom::BBox r  = rect.bbox();
   CQChartsGeom::BBox r1 = r;
 
   if      (rect.units() == CQChartsUnits::PIXEL)
@@ -10326,8 +10395,7 @@ CQChartsGeom::BBox
 CQChartsPlot::
 rectToPixel(const CQChartsRect &rect) const
 {
-  CQChartsGeom::BBox r = CQChartsGeom::BBox(rect.rect());
-
+  CQChartsGeom::BBox r  = rect.bbox();
   CQChartsGeom::BBox r1 = r;
 
   if      (rect.units() == CQChartsUnits::PIXEL)
@@ -10472,12 +10540,12 @@ void
 CQChartsPlot::
 windowToViewI(double wx, double wy, double &vx, double &vy) const
 {
-  displayRange_->windowToPixel(wx, wy, &vx, &vy);
+  displayRange().windowToPixel(wx, wy, &vx, &vy);
 
   if (isInvertX() || isInvertY()) {
     double ivx, ivy;
 
-    displayRange_->invertPixel(vx, vy, ivx, ivy);
+    displayRange().invertPixel(vx, vy, ivx, ivy);
 
     if (isInvertX()) vx = ivx;
     if (isInvertY()) vy = ivy;
@@ -10500,13 +10568,13 @@ viewToWindowI(double vx, double vy, double &wx, double &wy) const
   if (isInvertX() || isInvertY()) {
     double ivx, ivy;
 
-    displayRange_->invertPixel(vx, vy, ivx, ivy);
+    displayRange().invertPixel(vx, vy, ivx, ivy);
 
     if (isInvertX()) vx = ivx;
     if (isInvertY()) vy = ivy;
   }
 
-  displayRange_->pixelToWindow(vx, vy, &wx, &wy);
+  displayRange().pixelToWindow(vx, vy, &wx, &wy);
 }
 
 double
@@ -10591,6 +10659,7 @@ viewToWindow(const CQChartsGeom::Point &v) const
   return CQChartsGeom::Point(wx, wy);
 }
 
+#if 0
 QPointF
 CQChartsPlot::
 windowToPixel(const QPointF &w) const
@@ -10618,6 +10687,7 @@ viewToWindow(const QPointF &v) const
 {
   return viewToWindow(CQChartsGeom::Point(v)).qpoint();
 }
+#endif
 
 void
 CQChartsPlot::
@@ -10643,20 +10713,6 @@ windowToPixel(const CQChartsGeom::BBox &wrect) const
   windowToPixelI(wrect.getXMax(), wrect.getYMax(), px2, py1);
 
   return CQChartsGeom::BBox(px1, py1, px2, py2);
-}
-
-QRectF
-CQChartsPlot::
-windowToPixel(const QRectF &w) const
-{
-  return windowToPixel(CQChartsGeom::BBox(w)).qrect();
-}
-
-QRectF
-CQChartsPlot::
-pixelToWindow(const QRectF &w) const
-{
-  return pixelToWindow(CQChartsGeom::BBox(w)).qrect();
 }
 
 CQChartsGeom::BBox
@@ -10695,30 +10751,6 @@ viewToWindow(const CQChartsGeom::BBox &vrect) const
   return CQChartsGeom::BBox(wx1, wy1, wx2, wy2);
 }
 
-QRectF
-CQChartsPlot::
-windowToView(const QRectF &w) const
-{
-  double vx1, vy1, vx2, vy2;
-
-  windowToViewI(w.left (), w.top   (), vx1, vy1);
-  windowToViewI(w.right(), w.bottom(), vx2, vy2);
-
-  return QRectF(vx1, vy1, vx2 - vx1, vy2 - vy1);
-}
-
-QRectF
-CQChartsPlot::
-viewToWindow(const QRectF &v) const
-{
-  double wx1, wy1, wx2, wy2;
-
-  viewToWindowI(v.left (), v.top   (), wx1, wy1);
-  viewToWindowI(v.right(), v.bottom(), wx2, wy2);
-
-  return QRectF(wx1, wy1, wx2 - wx1, wy2 - wy1);
-}
-
 double
 CQChartsPlot::
 pixelToSignedWindowWidth(double ww) const
@@ -10740,14 +10772,14 @@ pixelToWindowSize(double ps, bool horizontal) const
   return (horizontal ? pixelToWindowWidth(ps) : pixelToWindowHeight(ps));
 }
 
-QSizeF
+CQChartsGeom::Size
 CQChartsPlot::
-pixelToWindowSize(const QSizeF &ps) const
+pixelToWindowSize(const CQChartsGeom::Size &ps) const
 {
   double w = pixelToWindowWidth (ps.width ());
   double h = pixelToWindowHeight(ps.height());
 
-  return QSizeF(w, h);
+  return CQChartsGeom::Size(w, h);
 }
 
 double
@@ -10812,16 +10844,16 @@ windowToPixelHeight(double wh) const
   return std::abs(py2 - py1);
 }
 
-QPolygonF
+CQChartsGeom::Polygon
 CQChartsPlot::
-windowToPixel(const QPolygonF &poly) const
+windowToPixel(const CQChartsGeom::Polygon &poly) const
 {
-  QPolygonF ppoly;
+  CQChartsGeom::Polygon ppoly;
 
   int np = poly.size();
 
   for (int i = 0; i < np; ++i)
-    ppoly << windowToPixel(poly[i]);
+    ppoly.addPoint(windowToPixel(poly.point(i)));
 
   return ppoly;
 }
@@ -10838,21 +10870,21 @@ windowToPixel(const QPainterPath &path) const
     const QPainterPath::Element &e = path.elementAt(i);
 
     if      (e.isMoveTo()) {
-      QPointF p1 = windowToPixel(QPointF(e.x, e.y));
+      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(e.x, e.y));
 
-      ppath.moveTo(p1);
+      ppath.moveTo(p1.qpoint());
     }
     else if (e.isLineTo()) {
-      QPointF p1 = windowToPixel(QPointF(e.x, e.y));
+      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(e.x, e.y));
 
-      ppath.lineTo(p1);
+      ppath.lineTo(p1.qpoint());
     }
     else if (e.isCurveTo()) {
       QPainterPath::Element     e1, e2;
       QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
       QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
 
-      QPointF p1 = windowToPixel(QPointF(e.x, e.y));
+      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(e.x, e.y));
 
       if (i < n - 1) {
         e1  = path.elementAt(i + 1);
@@ -10865,15 +10897,15 @@ windowToPixel(const QPainterPath &path) const
       }
 
       if (e1t == QPainterPath::CurveToDataElement) {
-        QPointF p2 = windowToPixel(QPointF(e1.x, e1.y)); ++i;
+        CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(e1.x, e1.y)); ++i;
 
         if (e2t == QPainterPath::CurveToDataElement) {
-          QPointF p3 = windowToPixel(QPointF(e2.x, e2.y)); ++i;
+          CQChartsGeom::Point p3 = windowToPixel(CQChartsGeom::Point(e2.x, e2.y)); ++i;
 
-          ppath.cubicTo(p1, p2, p3);
+          ppath.cubicTo(p1.qpoint(), p2.qpoint(), p3.qpoint());
         }
         else {
-          ppath.quadTo(p1, p2);
+          ppath.quadTo(p1.qpoint(), p2.qpoint());
         }
       }
     }
@@ -10959,8 +10991,9 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
   //---
 
   // add columns
-  QStringList columnsStrs;
+  QVariantList columnsStrs;
 //QStringList parametersStrs;
+  QStringList parameterPropPaths;
 
   for (const auto &param : type()->parameters()) {
     QString defStr;
@@ -10987,17 +11020,24 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
     if (param->type() == CQChartsPlotParameter::Type::COLUMN ||
         param->type() == CQChartsPlotParameter::Type::COLUMN_LIST) {
-      columnsStrs += "{" + CQTcl::mergeList(strs1) + "}";
+      columnsStrs += strs1;
     }
-#if 0
     else {
-      parametersStrs += "{" + CQTcl::mergeList(strs1) + "}";
+      //parametersStrs += "{" + CQTcl::mergeList(strs1) + "}";
+      QString propPath = param->propPath();
+
+      if (propPath == "") {
+        if (! propertyModel()->nameToPath(this, param->propName(), propPath))
+          continue;
+      }
+
+      if (propPath != "")
+        parameterPropPaths << propPath;
     }
-#endif
   }
 
   if (columnsStrs.length())
-    os << " -columns {" << columnsStrs.join(" ").toStdString() + "}";
+    os << " -columns {" << CQTclUtil::variantListToString(columnsStrs).toStdString() + "}";
 
 #if 0
   for (int i = 0; i < parametersStrs.length(); ++i)
@@ -11013,9 +11053,22 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
   //---
 
+  // get changed name values
   CQPropertyViewModel::NameValues nameValues;
 
   propertyModel()->getChangedNameValues(this, nameValues, /*tcl*/true);
+
+  // add changed parameter values
+  for (auto &propPath : parameterPropPaths) {
+    QVariant value;
+
+    bool rc = getProperty(propPath, value);
+    assert(rc);
+
+    nameValues[propPath] = value;
+  }
+
+  //---
 
   if (! nameValues.empty())
     os << "\n";

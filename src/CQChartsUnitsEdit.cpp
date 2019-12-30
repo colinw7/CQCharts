@@ -7,11 +7,17 @@ CQChartsUnitsEdit(QWidget *parent) :
 {
   setObjectName("units");
 
+  setToolTip("Units");
+
+  //---
+
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   addItems(CQChartsUtil::unitNames(/*includeNone*/true));
 
   connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(indexChanged()));
+
+  updateTip();
 }
 
 const CQChartsUnits &
@@ -29,11 +35,14 @@ setUnits(const CQChartsUnits &units)
 
   QString ustr = CQChartsUtil::unitsString(units_);
 
-  setCurrentIndex(findText(ustr, Qt::MatchExactly));
+  int ind = findText(ustr, Qt::MatchExactly);
 
-  int ind = currentIndex();
+  if (ind < 0)
+    ind = 0;
 
-  setToolTip(CQChartsUtil::unitTipNames(/*includeNone*/true)[ind]);
+  setCurrentIndex(ind);
+
+  updateTip();
 }
 
 void
@@ -44,7 +53,18 @@ indexChanged()
 
   (void) CQChartsUtil::decodeUnits(ustr, units_, units_);
 
+  updateTip();
+
   emit unitsChanged();
+}
+
+void
+CQChartsUnitsEdit::
+updateTip()
+{
+  int ind = std::max(currentIndex(), 0);
+
+  setToolTip(QString("%1 units").arg(CQChartsUtil::unitTipNames(/*includeNone*/true)[ind]));
 }
 
 QSize

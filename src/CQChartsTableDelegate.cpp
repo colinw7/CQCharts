@@ -490,7 +490,7 @@ drawSymbol(QPainter *painter, const QStyleOptionViewItem &option,
 
     CQChartsLength symbolSize(rect.height()/2.0, CQChartsUnits::PIXEL);
 
-    CQChartsDrawUtil::drawSymbol(&device, symbol, QPointF(rect.center()), symbolSize);
+    CQChartsDrawUtil::drawSymbol(&device, symbol, CQChartsGeom::Point(rect.center()), symbolSize);
   }
 
   QFontMetrics fm(painter->font());

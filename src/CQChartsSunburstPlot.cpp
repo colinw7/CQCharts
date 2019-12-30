@@ -1096,49 +1096,12 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   CQChartsGeom::Point p12 = CQChartsGeom::Point(xc - r2, yc - r2);
   CQChartsGeom::Point p22 = CQChartsGeom::Point(xc + r2, yc + r2);
 
-  CQChartsGeom::BBox bbox1(p11, p21);
-  CQChartsGeom::BBox bbox2(p12, p22);
+  CQChartsGeom::BBox ibbox(p11, p21);
+  CQChartsGeom::BBox obbox(p12, p22);
 
   double a1 = node->a();
   double da = node->da();
   double a2 = a1 + da;
-
-  //---
-
-  // create arc path
-  bool isCircle = (std::abs(da) > 360.0 || CMathUtil::realEq(std::abs(da), 360.0));
-
-  QPainterPath path;
-
-  if (isCircle) {
-    if (bbox1.getWidth()) {
-      path.arcMoveTo(bbox1.qrect(), 0);
-      path.arcTo    (bbox1.qrect(), 0, 360.0);
-
-      path.closeSubpath();
-    }
-
-    if (bbox2.getWidth()) {
-      path.arcMoveTo(bbox2.qrect(), 0);
-      path.arcTo    (bbox2.qrect(), 0, 360.0);
-
-      path.closeSubpath();
-    }
-  }
-  else {
-    if      (bbox1.getWidth())
-      path.arcMoveTo(bbox1.qrect(), -a1);
-    else if (bbox2.getWidth())
-      path.arcMoveTo(bbox2.qrect(), -a2);
-
-    if (bbox1.getWidth())
-      path.arcTo(bbox1.qrect(), -a1, -da);
-
-    if (bbox2.getWidth())
-      path.arcTo(bbox2.qrect(), -a2,  da);
-
-    path.closeSubpath();
-  }
 
   //---
 
@@ -1157,12 +1120,29 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   if (nodeObj)
     updateObjPenBrushState(nodeObj, penBrush);
 
-  //---
-
-  // draw path
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  device->drawPath(path);
+  //---
+
+  bool isCircle = (std::abs(da) > 360.0 || CMathUtil::realEq(std::abs(da), 360.0));
+
+  if (isCircle) {
+    if (ibbox.getWidth())
+      device->drawEllipse(ibbox);
+
+    if (obbox.getWidth())
+      device->drawEllipse(obbox);
+  }
+  else {
+    // if has non-zero inner radius draw arc segment
+    if      (ibbox.getWidth()) {
+      CQChartsDrawUtil::drawArcSegment(device, ibbox, obbox, a1, da);
+    }
+    // draw pie slice
+    else if (obbox.getWidth()) {
+      CQChartsDrawUtil::drawArc(device, obbox, a1, da);
+    }
+  }
 
   //---
 
@@ -1190,13 +1170,13 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
     double c2 = cos(CMathUtil::Deg2Rad(a2));
     double s2 = sin(CMathUtil::Deg2Rad(a2));
 
-    QPointF pw1(r2*c1, r2*s1);
-    QPointF pw2(r2*c2, r2*s2);
+    CQChartsGeom::Point pw1(r2*c1, r2*s1);
+    CQChartsGeom::Point pw2(r2*c2, r2*s2);
 
-    QPointF pp1 = windowToPixel(pw1);
-    QPointF pp2 = windowToPixel(pw2);
+    CQChartsGeom::Point pp1 = windowToPixel(pw1);
+    CQChartsGeom::Point pp2 = windowToPixel(pw2);
 
-    double d = std::hypot(pp2.x() - pp1.x(), pp2.y() - pp1.y());
+    double d = std::hypot(pp2.x - pp1.x, pp2.y - pp1.y);
 
     if (d < 1.5)
       return;
@@ -1207,7 +1187,9 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   if (! isCircle) {
     device->save();
 
-    device->setClipPath(path);
+    //QPainterPath path;
+
+    //device->setClipPath(path);
   }
 
   //---
@@ -1257,9 +1239,9 @@ drawNode(CQChartsPaintDevice *device, CQChartsSunburstNodeObj *nodeObj,
   options.contrast      = isTextContrast();
   options.contrastAlpha = textContrastAlpha();
 
-  CQChartsDrawUtil::drawTextAtPoint(device, pt.qpoint(), name, options, /*centered*/true);
+  CQChartsDrawUtil::drawTextAtPoint(device, pt, name, options, /*centered*/true);
 
-//CQChartsRotatedText::draw(device, pt.qpoint(), name, options);
+//CQChartsRotatedText::draw(device, pt, name, options);
 
   //---
 

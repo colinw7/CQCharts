@@ -107,8 +107,8 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
 
  public:
   CQChartsPivotLineObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rect,
-                       const ModelIndices &inds, const ColorInd &ig, const QPolygonF &polygon,
-                       const QString &name);
+                       const ModelIndices &inds, const ColorInd &ig,
+                       const CQChartsGeom::Polygon &polygon, const QString &name);
 
   //---
 
@@ -128,7 +128,7 @@ class CQChartsPivotLineObj : public CQChartsPlotObj {
 
  protected:
   const CQChartsPivotPlot* plot_     { nullptr }; //!< parent plot
-  QPolygonF                polygon_;              //!< values
+  CQChartsGeom::Polygon    polygon_;              //!< values
   QString                  name_;                 //!< name
 };
 
@@ -144,7 +144,7 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
  public:
   CQChartsPivotPointObj(const CQChartsPivotPlot *plot, const CQChartsGeom::BBox &rect,
                         const QModelIndex &ind, const ColorInd &ir, const ColorInd &ic,
-                        const QPointF &p, double value);
+                        const CQChartsGeom::Point &p, double value);
 
   //---
 
@@ -168,7 +168,7 @@ class CQChartsPivotPointObj : public CQChartsPlotObj {
 
  protected:
   const CQChartsPivotPlot* plot_  { nullptr }; //!< parent plot
-  QPointF                  p_;                 //!< position
+  CQChartsGeom::Point      p_;                 //!< position
   double                   value_ { 0.0 };     //!< value
 };
 

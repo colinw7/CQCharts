@@ -5,8 +5,7 @@ set nr [get_charts_data -model $modelId -name num_rows]
 set total 0.0
 
 for {set i 0} {$i < $nr} {incr i} {
-  set score [get_charts_data -model $modelId -row $i -column 2 -name value]
-
+  set score  [get_charts_data -model $modelId -row $i -column 2 -name value]
   set weight [get_charts_data -model $modelId -row $i -column 3 -name value]
 
   set total [expr {$total + $score*$weight}]

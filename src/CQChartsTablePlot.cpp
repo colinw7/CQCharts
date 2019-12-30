@@ -700,6 +700,7 @@ addMenuItems(QMenu *menu)
 
   maxRowsSpin_->setRange(1, 9999);
   maxRowsSpin_->setValue(maxRows());
+  maxRowsSpin_->setToolTip("Maximum Number of Rows");
 
   connect(maxRowsSpin_, SIGNAL(valueChanged(int)), this, SLOT(maxRowsSlot()));
   connect(maxRowsSpin_, SIGNAL(editingFinished()), this, SLOT(maxRowsSlot()));
@@ -716,6 +717,7 @@ addMenuItems(QMenu *menu)
 
   sortColumnSpin_->setRange(1, columns_.count());
   sortColumnSpin_->setValue(sortColumn() + 1);
+  sortColumnSpin_->setToolTip("Sort Column Number");
 
   connect(sortColumnSpin_, SIGNAL(valueChanged(int)), this, SLOT(sortColumnSlot()));
   connect(sortColumnSpin_, SIGNAL(editingFinished()), this, SLOT(sortColumnSlot()));
@@ -732,6 +734,7 @@ addMenuItems(QMenu *menu)
 
   pageSizeSpin_->setRange(1, 9999);
   pageSizeSpin_->setValue(pageSize());
+  pageSizeSpin_->setToolTip("Page Size");
 
   connect(pageSizeSpin_, SIGNAL(valueChanged(int)), this, SLOT(pageSizeSlot()));
   connect(pageSizeSpin_, SIGNAL(editingFinished()), this, SLOT(pageSizeSlot()));
@@ -748,6 +751,7 @@ addMenuItems(QMenu *menu)
 
   pageNumSpin_->setRange(1, 9999);
   pageNumSpin_->setValue(currentPage() + 1);
+  pageNumSpin_->setToolTip("Page Number");
 
   connect(pageNumSpin_, SIGNAL(valueChanged(int)), this, SLOT(pageNumSlot()));
   connect(pageNumSpin_, SIGNAL(editingFinished()), this, SLOT(pageNumSlot()));
@@ -923,9 +927,11 @@ drawTable(CQChartsPaintDevice *device) const
 
   device->setBrush(headerBrush);
 
-  if (x2 > x1)
-    device->fillRect(QRectF(x1, y1 - th->tableData_.rh, x2 - x1, th->tableData_.rh),
-                     device->brush());
+  if (x2 > x1) {
+    CQChartsGeom::BBox bbox(x1, y1 - th->tableData_.rh, x2, y1);
+
+    device->fillRect(bbox, device->brush());
+  }
 
   // draw cells background
   QBrush cellBrush;
@@ -934,8 +940,11 @@ drawTable(CQChartsPaintDevice *device) const
 
   device->setBrush(cellBrush);
 
-  if (x2 > x1 && tableData_.nvr > 0)
-    device->fillRect(QRectF(x1, y2, x2 - x1, trh), device->brush());
+  if (x2 > x1 && tableData_.nvr > 0) {
+    CQChartsGeom::BBox bbox(x1, y2, x2, y2 + trh);
+
+    device->fillRect(bbox, device->brush());
+  }
 
   //---
 
@@ -952,7 +961,7 @@ drawTable(CQChartsPaintDevice *device) const
   if (isRowColumn()) {
     const ColumnData &data = th->tableData_.rowColumnData;
 
-    device->drawLine(QPointF(x, y1), QPointF(x, y2));
+    device->drawLine(CQChartsGeom::Point(x, y1), CQChartsGeom::Point(x, y2));
 
     x += data.drawWidth;
   }
@@ -963,25 +972,25 @@ drawTable(CQChartsPaintDevice *device) const
 
     const ColumnData &data = th->tableData_.columnDataMap[c];
 
-    device->drawLine(QPointF(x, y1), QPointF(x, y2));
+    device->drawLine(CQChartsGeom::Point(x, y1), CQChartsGeom::Point(x, y2));
 
     x += data.drawWidth;
   }
 
   // right edge
-  device->drawLine(QPointF(x, y1), QPointF(x, y2));
+  device->drawLine(CQChartsGeom::Point(x, y1), CQChartsGeom::Point(x, y2));
 
   // draw row lines
   double y = th->tableData_.yo;
 
   for (int i = 0; i < tableData_.nvr + 1; ++i) {
-    device->drawLine(QPointF(x1, y), QPointF(x2, y));
+    device->drawLine(CQChartsGeom::Point(x1, y), CQChartsGeom::Point(x2, y));
 
     y += tableData_.rh;
   }
 
   // bottom edge
-  device->drawLine(QPointF(x1, y), QPointF(x2, y));
+  device->drawLine(CQChartsGeom::Point(x1, y), CQChartsGeom::Point(x2, y));
 
   //---
 
@@ -1104,7 +1113,7 @@ drawTable(CQChartsPaintDevice *device) const
       if (plot_->isRowColumn()) {
         const ColumnData &cdata = tableData_.rowColumnData;
 
-        QRectF rect(x + xm_, y, cdata.drawWidth - 2*xm_, tableData_.rh);
+        CQChartsGeom::BBox rect(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
 
         CQChartsTextOptions textOptions;
 
@@ -1131,7 +1140,7 @@ drawTable(CQChartsPaintDevice *device) const
         else
           textOptions.align = Qt::AlignLeft | Qt::AlignVCenter;
 
-        QRectF rect(x + xm_, y, cdata.drawWidth - 2*xm_, tableData_.rh);
+        CQChartsGeom::BBox rect(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
 
         CQChartsDrawUtil::drawTextInBox(device_, rect, str, textOptions);
 
@@ -1142,7 +1151,7 @@ drawTable(CQChartsPaintDevice *device) const
     void drawRowNumber(double x, double y, int n) {
       const ColumnData &cdata = tableData_.rowColumnData;
 
-      QRectF rect(x + xm_, y, cdata.drawWidth - 2*xm_, tableData_.rh);
+      CQChartsGeom::BBox rect(x + xm_, y, x + cdata.drawWidth - xm_, y + tableData_.rh);
 
       CQChartsTextOptions textOptions;
 
@@ -1188,7 +1197,7 @@ drawTable(CQChartsPaintDevice *device) const
       if (ic == 0)
         x1 += depth_*xd_;
 
-      QRectF rect(x1 + xm_, y, cdata.drawWidth - 2*xm_, tableData_.rh);
+      CQChartsGeom::BBox rect(x1 + xm_, y, x1 + cdata.drawWidth - xm_, y + tableData_.rh);
 
       CQChartsDrawUtil::drawTextInBox(device_, rect, str, textOptions);
     }

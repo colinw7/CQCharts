@@ -2,6 +2,7 @@
 #define CQChartsFitData_H
 
 #include <CLeastSquaresFit.h>
+#include <CQChartsGeom.h>
 
 /*!
  * \brief least squares fit data
@@ -45,21 +46,21 @@ class CQChartsFitData {
 
   //---
 
-  void calc(const std::vector<QPointF> &points, int order=-1) {
+  void calc(const std::vector<CQChartsGeom::Point> &points, int order=-1) {
     int np = points.size();
 
     std::vector<double> x, y;
 
     if (np > 0) {
-      xmin_ = points[0].x();
+      xmin_ = points[0].x;
       xmax_ = xmin_;
 
       for (const auto &p : points) {
-        x.push_back(p.x());
-        y.push_back(p.y());
+        x.push_back(p.x);
+        y.push_back(p.y);
 
-        xmin_ = std::min(xmin_, p.x());
-        xmax_ = std::max(xmax_, p.x());
+        xmin_ = std::min(xmin_, p.x);
+        xmax_ = std::max(xmax_, p.x);
       }
     }
     else {
@@ -87,23 +88,23 @@ class CQChartsFitData {
     fitted_ = true;
   }
 
-  void calc(const QPolygonF &points, int order=-1) {
-    int np = points.size();
+  void calc(const CQChartsGeom::Polygon &poly, int order=-1) {
+    int np = poly.size();
 
     std::vector<double> x, y;
 
     if (np > 0) {
-      xmin_ = points[0].x();
+      xmin_ = poly.point(0).x;
       xmax_ = xmin_;
 
       for (int i = 0; i < np; ++i) {
-        const QPointF &p = points[i];
+        CQChartsGeom::Point p = poly.point(i);
 
-        x.push_back(p.x());
-        y.push_back(p.y());
+        x.push_back(p.x);
+        y.push_back(p.y);
 
-        xmin_ = std::min(xmin_, p.x());
-        xmax_ = std::max(xmax_, p.x());
+        xmin_ = std::min(xmin_, p.x);
+        xmax_ = std::max(xmax_, p.x);
       }
     }
     else {

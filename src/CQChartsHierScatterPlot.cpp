@@ -660,14 +660,13 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
   int i = baseGroup->i();
 
   for (const auto &point : group->points()) {
-    const QPointF &p = point.p;
+    const CQChartsGeom::Point &p = point.p;
 
-    CQChartsGeom::BBox bbox(p.x() - sx, p.y() - sy, p.x() + sx, p.y() + sy);
+    CQChartsGeom::BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
     ColorInd iv = (i > 0 ? ColorInd(i, n) : ColorInd());
 
-    CQChartsHierScatterPointObj *pointObj =
-      new CQChartsHierScatterPointObj(this, bbox, p, iv);
+    CQChartsHierScatterPointObj *pointObj = new CQChartsHierScatterPointObj(this, bbox, p, iv);
 
     //---
 
@@ -767,7 +766,7 @@ write(std::ostream &os, const QString &plotVarName, const QString &modelVarName,
 
 CQChartsHierScatterPointObj::
 CQChartsHierScatterPointObj(const CQChartsHierScatterPlot *plot, const CQChartsGeom::BBox &rect,
-                            const QPointF &p, const ColorInd &iv) :
+                            const CQChartsGeom::Point &p, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsHierScatterPlot *>(plot), rect, ColorInd(), ColorInd(), iv),
  plot_(plot), p_(p)
 {
@@ -806,9 +805,9 @@ inside(const CQChartsGeom::Point &p) const
 
   plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
-  QPointF p1 = plot_->windowToPixel(p_);
+  CQChartsGeom::Point p1 = plot_->windowToPixel(p_);
 
-  CQChartsGeom::BBox pbbox(p1.x() - sx, p1.y() - sy, p1.x() + sx, p1.y() + sy);
+  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
   CQChartsGeom::Point pp = plot_->windowToPixel(p);
 
@@ -860,15 +859,15 @@ draw(CQChartsPaintDevice *device)
   if (plot_->isTextLabels()) {
     const CQChartsDataLabel *dataLabel = plot_->dataLabel();
 
-    QPointF ps = plot_->windowToPixel(p_);
+    CQChartsGeom::Point ps = plot_->windowToPixel(p_);
 
     double sx, sy;
 
     plot_->pixelSymbolSize(symbolSize, sx, sy);
 
-    CQChartsGeom::BBox ebbox(ps.x() - sx, ps.y() - sy, ps.x() + sx, ps.y() + sy);
+    CQChartsGeom::BBox ebbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
-    dataLabel->draw(device, device->pixelToWindow(ebbox).qrect(), name_);
+    dataLabel->draw(device, device->pixelToWindow(ebbox), name_);
   }
 }
 

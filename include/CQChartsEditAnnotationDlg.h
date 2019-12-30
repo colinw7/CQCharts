@@ -16,13 +16,14 @@ class CQChartsFillDataEdit;
 class CQChartsStrokeDataEdit;
 class CQChartsArrowDataEdit;
 class CQChartsColorLineEdit;
+class CQChartsLineEdit;
 
 class CQRealSpin;
 class CQCheckBox;
-class CQLineEdit;
 
 class QFrame;
 class QRadioButton;
+class QLabel;
 class QBoxLayout;
 class QHBoxLayout;
 class QVBoxLayout;
@@ -56,7 +57,7 @@ class CQChartsEditAnnotationDlg : public QDialog {
     CQChartsPositionEdit* centerEdit  { nullptr };
     CQChartsLengthEdit*   rxEdit      { nullptr };
     CQChartsLengthEdit*   ryEdit      { nullptr };
-    CQLineEdit*           paddingEdit { nullptr };
+    CQChartsLineEdit*     paddingEdit { nullptr };
   };
 
   struct PolygonWidgets : public Widgets {
@@ -72,7 +73,7 @@ class CQChartsEditAnnotationDlg : public QDialog {
     QRadioButton*         rectRadio     { nullptr };
     CQChartsPositionEdit* positionEdit  { nullptr };
     CQChartsRectEdit*     rectEdit      { nullptr };
-    CQLineEdit*           textEdit      { nullptr };
+    CQChartsLineEdit*     textEdit      { nullptr };
     CQChartsTextDataEdit* dataEdit      { nullptr };
   };
 
@@ -117,6 +118,9 @@ class CQChartsEditAnnotationDlg : public QDialog {
   bool updateArrowAnnotation    ();
   bool updatePointAnnotation    ();
 
+  bool setErrorMsg(const QString &msg);
+  void clearErrorMsg();
+
  private slots:
   void textPositionSlot(bool);
 
@@ -126,8 +130,8 @@ class CQChartsEditAnnotationDlg : public QDialog {
 
  private:
   CQChartsAnnotation* annotation_       { nullptr }; //!< annotation
-  CQLineEdit*         idEdit_           { nullptr }; //!< id edit
-  CQLineEdit*         tipEdit_          { nullptr }; //!< tip edit
+  CQChartsLineEdit*   idEdit_           { nullptr }; //!< id edit
+  CQChartsLineEdit*   tipEdit_          { nullptr }; //!< tip edit
   QVBoxLayout*        frameLayout_      { nullptr }; //!< frame layout
   RectWidgets         rectWidgets_;                  //!< rect edit widgets
   EllipseWidgets      ellipseWidgets_;               //!< ellipse edit widgets
@@ -136,6 +140,7 @@ class CQChartsEditAnnotationDlg : public QDialog {
   TextWidgets         textWidgets_;                  //!< text edit widgets
   ArrowWidgets        arrowWidgets_;                 //!< arrow edit widgets
   PointWidgets        pointWidgets_;                 //!< point edit widgets
+  QLabel*             msgLabel_         { nullptr }; //!< error message label
 };
 
 #endif

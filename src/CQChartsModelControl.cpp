@@ -5,6 +5,7 @@
 #include <CQChartsModelFilter.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsColorEdit.h>
+#include <CQChartsLineEdit.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -17,7 +18,6 @@
 #include <CQJsonModel.h>
 #include <CQDataModel.h>
 
-#include <CQLineEdit.h>
 #include <CQIntegerSpin.h>
 #include <CQCheckBox.h>
 #include <CQUtil.h>
@@ -44,7 +44,7 @@ class CQChartsParamEdit : public QFrame {
     if (! edit_) {
       reset();
 
-      edit_ = CQUtil::makeWidget<CQLineEdit>("edit");
+      edit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
 
       layout_->addWidget(edit_);
     }
@@ -170,7 +170,7 @@ class CQChartsParamEdit : public QFrame {
  private:
   CQBaseModelType        type_   { CQBaseModelType::NONE };
   QHBoxLayout*           layout_ { nullptr };
-  CQLineEdit*            edit_   { nullptr };
+  CQChartsLineEdit*      edit_   { nullptr };
   CQIntegerSpin*         ispin_  { nullptr };
   CQCheckBox*            check_  { nullptr };
   QComboBox*             combo_  { nullptr };
@@ -281,7 +281,7 @@ addExprFrame()
 
   auto exprValueLabel = CQUtil::makeLabelWidget<QLabel>("Expression", "valueLabel");
 
-  exprWidgets_.valueEdit = CQUtil::makeWidget<CQLineEdit>("valueEdit");
+  exprWidgets_.valueEdit = CQUtil::makeWidget<CQChartsLineEdit>("valueEdit");
 
   exprWidgets_.valueEdit->setToolTip("+<expr> OR -<column> OR =<column>:<expr>\n"
     "Use: @<number> as shorthand for column(<number>)\n"
@@ -297,7 +297,7 @@ addExprFrame()
 
   exprWidgets_.columnLabel = CQUtil::makeLabelWidget<QLabel>("Column", "columnLabel");
 
-  exprWidgets_.columnEdit = CQUtil::makeWidget<CQLineEdit>("columnEdit");
+  exprWidgets_.columnEdit = CQUtil::makeWidget<CQChartsLineEdit>("columnEdit");
 
   exprWidgets_.columnEdit->setToolTip("Column to Modify");
 
@@ -310,7 +310,7 @@ addExprFrame()
 
   auto exprNameLabel = CQUtil::makeLabelWidget<QLabel>("Name", "nameLabel");
 
-  exprWidgets_.nameEdit = CQUtil::makeWidget<CQLineEdit>("nameEdit");
+  exprWidgets_.nameEdit = CQUtil::makeWidget<CQChartsLineEdit>("nameEdit");
 
   exprWidgets_.nameEdit->setToolTip("Column Name");
 
@@ -323,7 +323,7 @@ addExprFrame()
 
   exprWidgets_.typeLabel = CQUtil::makeLabelWidget<QLabel>("Type", "typeLabel");
 
-  exprWidgets_.typeEdit = CQUtil::makeWidget<CQLineEdit>("typeEdit");
+  exprWidgets_.typeEdit = CQUtil::makeWidget<CQChartsLineEdit>("typeEdit");
 
   exprWidgets_.typeEdit->setToolTip("Column Type");
 
@@ -544,12 +544,12 @@ addPropertiesFrame()
   return propertiesFrame;
 }
 
-CQLineEdit *
+CQChartsLineEdit *
 CQChartsModelControl::
 addLineEdit(QGridLayout *grid, int &row, const QString &name, const QString &objName) const
 {
-  QLabel     *label = CQUtil::makeLabelWidget<QLabel>("", objName + "Label");
-  CQLineEdit *edit  = CQUtil::makeWidget<CQLineEdit>(objName + "Edit" );
+  auto label = CQUtil::makeLabelWidget<QLabel>("", objName + "Label");
+  auto edit  = CQUtil::makeWidget<CQChartsLineEdit>(objName + "Edit" );
 
   label->setText(name);
 

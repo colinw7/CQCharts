@@ -22,7 +22,7 @@ class CQChartsKeyLocation : public CQChartsEnum {
     BOTTOM_CENTER,
     BOTTOM_RIGHT,
     ABS_POSITION,
-    ABS_RECT
+    ABS_RECTANGLE
   };
 
  public:

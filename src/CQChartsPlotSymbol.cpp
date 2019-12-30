@@ -495,7 +495,7 @@ drawPoint(double x, double y) const
 
   mapXY(x, y, sx, sy);
 
-  QPointF p(p_.x + sx, p_.y + sy);
+  CQChartsGeom::Point p(p_.x + sx, p_.y + sy);
 
   save();
 
@@ -515,8 +515,8 @@ drawLine(double x1, double y1, double x2, double y2) const
   mapXY(x1, y1, sx1, sy1);
   mapXY(x2, y2, sx2, sy2);
 
-  QPointF p1(p_.x + sx1, p_.y + sy1);
-  QPointF p2(p_.x + sx2, p_.y + sy2);
+  CQChartsGeom::Point p1(p_.x + sx1, p_.y + sy1);
+  CQChartsGeom::Point p2(p_.x + sx2, p_.y + sy2);
 
   save();
 
@@ -536,14 +536,14 @@ fillRect(double x1, double y1, double x2, double y2) const
   mapXY(x1, y1, sx1, sy1);
   mapXY(x2, y2, sx2, sy2);
 
-  QRectF rect(p_.x + sx1, p_.y + sy1, sx2 - sx1, sy2 - sy1);
+  CQChartsGeom::BBox bbox(p_.x + sx1, p_.y + sy1, p_.x + sx2, p_.y + sy2);
 
   save();
 
   device_->setBrush(fillBrush_);
   device_->setPen  (Qt::NoPen);
 
-  device_->drawRect(rect.normalized());
+  device_->drawRect(bbox);
 
   restore();
 }
@@ -557,14 +557,14 @@ strokeCircle(double x, double y, double r) const
   mapXY(x - r, y - r, sx1, sy1);
   mapXY(x + r, y + r, sx2, sy2);
 
-  QRectF rect(p_.x + sx1, p_.y + sy1, sx2 - sx1, sy2 - sy1);
+  CQChartsGeom::BBox bbox(p_.x + sx1, p_.y + sy1, p_.x + sx2, p_.y + sy2);
 
   save();
 
   device_->setBrush(Qt::NoBrush);
   device_->setPen  (strokePen_);
 
-  device_->drawEllipse(rect.normalized());
+  device_->drawEllipse(bbox);
 
   restore();
 }
@@ -578,14 +578,14 @@ fillCircle(double x, double y, double r) const
   mapXY(x - r, y - r, sx1, sy1);
   mapXY(x + r, y + r, sx2, sy2);
 
-  QRectF rect(p_.x + sx1, p_.y + sy1, sx2 - sx1, sy2 - sy1);
+  CQChartsGeom::BBox bbox(p_.x + sx1, p_.y + sy1, p_.x + sx2, p_.y + sy2);
 
   save();
 
   device_->setBrush(fillBrush_);
   device_->setPen  (Qt::NoPen);
 
-  device_->drawEllipse(rect.normalized());
+  device_->drawEllipse(bbox);
 
   restore();
 }

@@ -972,25 +972,18 @@ draw(CQChartsPaintDevice *device)
   double ri = innerRadius();
   double ro = outerRadius();
 
-  CQChartsGeom::Point po1 = plot_->windowToPixel(CQChartsGeom::Point(-ro, -ro));
-  CQChartsGeom::Point po2 = plot_->windowToPixel(CQChartsGeom::Point( ro,  ro));
-  CQChartsGeom::Point pi1 = plot_->windowToPixel(CQChartsGeom::Point(-ri, -ri));
-  CQChartsGeom::Point pi2 = plot_->windowToPixel(CQChartsGeom::Point( ri,  ri));
+  CQChartsGeom::Point o1(-ro, -ro);
+  CQChartsGeom::Point o2( ro,  ro);
+  CQChartsGeom::Point i1(-ri, -ri);
+  CQChartsGeom::Point i2( ri,  ri);
 
-  CQChartsGeom::Point c  = CQChartsGeom::Point(0, 0);
-//CQChartsGeom::Point pc = plot_->windowToPixel(c);
-
-  QRectF porect = QRectF(po1.qpoint(), po2.qpoint()).normalized();
-  QRectF pirect = QRectF(pi1.qpoint(), pi2.qpoint()).normalized();
-
-  QRectF irect = device->pixelToWindow(pirect);
-  QRectF orect = device->pixelToWindow(porect);
+  CQChartsGeom::BBox obbox(o1, o2);
+  CQChartsGeom::BBox ibbox(i1, i2);
 
   //---
 
   double angle1 = data_.angle();
   double dangle = data_.dangle();
-  double angle2 = angle1 + dangle;
 
   //---
 
@@ -1003,24 +996,12 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
+  // draw value set segment arc path
   device->setColorNames();
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  //---
-
-  // draw value set segment arc path
-  QPainterPath path;
-
-  path.arcMoveTo(orect, -angle1);
-  path.arcTo    (orect, -angle1, -dangle);
-  path.arcTo    (irect, -angle2,  dangle);
-
-  path.closeSubpath();
-
-  device->drawPath(path);
-
-  //---
+  CQChartsDrawUtil::drawArcSegment(device, ibbox, obbox, angle1, dangle);
 
   device->resetColorNames();
 
@@ -1048,9 +1029,6 @@ draw(CQChartsPaintDevice *device)
     //if (CMathUtil::isZero(da2))
     //  continue;
 
-    double a11 = a1 + da1;
-    double a21 = a2 + da2;
-
     //---
 
     // set arc pen and brush
@@ -1062,37 +1040,10 @@ draw(CQChartsPaintDevice *device)
 
     //---
 
-    // create path
-    QPainterPath path;
+    // draw connecting arc
+    bool isSelf = (from == value.to);
 
-    path.arcMoveTo(irect, -a1 );   QPointF p1 = path.currentPosition();
-    path.arcMoveTo(irect, -a11);   QPointF p2 = path.currentPosition();
-    path.arcMoveTo(irect, -a2 ); //QPointF p3 = path.currentPosition();
-    path.arcMoveTo(irect, -a21);   QPointF p4 = path.currentPosition();
-
-    //--
-
-    if (from != value.to) {
-      path.moveTo(p1);
-      path.quadTo(c.qpoint(), p4);
-      path.arcTo (irect, -a21, da2);
-      path.quadTo(c.qpoint(), p2);
-      path.arcTo (irect, -a11, da1);
-
-      path.closeSubpath();
-    }
-    else {
-      path.moveTo(p1);
-      path.quadTo(c.qpoint(), p2);
-      path.arcTo (irect, -a11, da1);
-
-      path.closeSubpath();
-    }
-
-    //---
-
-    // draw path
-    device->drawPath(path);
+    CQChartsDrawUtil::drawArcsConnector(device, ibbox, a1, da1, a2, da2, isSelf);
   }
 }
 
@@ -1144,7 +1095,7 @@ drawFg(CQChartsPaintDevice *device) const
   //---
 
   // draw text using line pen
-  QPointF center(0, 0);
+  CQChartsGeom::Point center(0, 0);
 
   plot_->textBox()->drawConnectedRadialText(device, center, ro, lr1, ta, data_.name(),
                                             lpen, /*isRotated*/false);
@@ -1266,7 +1217,7 @@ textBBox() const
 
   double ta = CMathUtil::avg(angle1, angle2);
 
-  QPointF center(0, 0);
+  CQChartsGeom::Point center(0, 0);
 
   double lr1 = ri + lr*(ro - ri);
 

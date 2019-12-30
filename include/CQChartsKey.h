@@ -7,7 +7,6 @@
 #include <CQChartsOptLength.h>
 #include <CQChartsGeom.h>
 #include <CQChartsTypes.h>
-#include <QSizeF>
 
 #include <map>
 #include <vector>
@@ -44,6 +43,9 @@ class CQChartsKey : public CQChartsBoxObj,
   CQCHARTS_TEXT_DATA_PROPERTIES
 
   CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(Header,header)
+
+ public:
+  using Point = CQChartsGeom::Point;
 
  public:
   CQChartsKey(CQChartsView *view);
@@ -127,18 +129,18 @@ class CQChartsKey : public CQChartsBoxObj,
 
   //---
 
-  virtual bool selectPress  (const CQChartsGeom::Point &, CQChartsSelMod) = 0;
-  virtual bool selectMove   (const CQChartsGeom::Point &) = 0;
-  virtual bool selectRelease(const CQChartsGeom::Point &) = 0;
+  virtual bool selectPress  (const Point &, CQChartsSelMod) = 0;
+  virtual bool selectMove   (const Point &) = 0;
+  virtual bool selectRelease(const Point &) = 0;
 
-  virtual bool editPress  (const CQChartsGeom::Point &) = 0;
-  virtual bool editMove   (const CQChartsGeom::Point &) = 0;
-  virtual bool editMotion (const CQChartsGeom::Point &) = 0;
-  virtual bool editRelease(const CQChartsGeom::Point &) = 0;
+  virtual bool editPress  (const Point &) = 0;
+  virtual bool editMove   (const Point &) = 0;
+  virtual bool editMotion (const Point &) = 0;
+  virtual bool editRelease(const Point &) = 0;
 
   //---
 
-  virtual bool contains(const CQChartsGeom::Point &p) const = 0;
+  virtual bool contains(const Point &p) const = 0;
 
   //---
 
@@ -189,14 +191,18 @@ class CQChartsViewKey : public CQChartsKey {
   Q_OBJECT
 
  public:
+  using BBox  = CQChartsGeom::BBox;
+  using Point = CQChartsGeom::Point;
+
+ public:
   CQChartsViewKey(CQChartsView *view);
 
  ~CQChartsViewKey();
 
   //---
 
-  const CQChartsGeom::BBox &bbox() const { return wbbox_; }
-  void setBBox(const CQChartsGeom::BBox &b) { wbbox_ = b; }
+  const BBox &bbox() const { return wbbox_; }
+  void setBBox(const BBox &b) { wbbox_ = b; }
 
   //---
 
@@ -207,16 +213,16 @@ class CQChartsViewKey : public CQChartsKey {
   void addProperties(CQPropertyViewModel *model, const QString &path,
                      const QString &desc="") override;
 
-  bool contains(const CQChartsGeom::Point &p) const override;
+  bool contains(const Point &p) const override;
 
-  bool selectPress  (const CQChartsGeom::Point &w, CQChartsSelMod selMod) override;
-  bool selectMove   (const CQChartsGeom::Point &w) override;
-  bool selectRelease(const CQChartsGeom::Point &w) override;
+  bool selectPress  (const Point &w, CQChartsSelMod selMod) override;
+  bool selectMove   (const Point &w) override;
+  bool selectRelease(const Point &w) override;
 
-  bool editPress  (const CQChartsGeom::Point &w) override;
-  bool editMove   (const CQChartsGeom::Point &w) override;
-  bool editMotion (const CQChartsGeom::Point &w) override;
-  bool editRelease(const CQChartsGeom::Point &w) override;
+  bool editPress  (const Point &w) override;
+  bool editMove   (const Point &w) override;
+  bool editMotion (const Point &w) override;
+  bool editRelease(const Point &w) override;
 
   virtual void doShow  (int i, CQChartsSelMod selMod);
   virtual void doSelect(int i, CQChartsSelMod selMod);
@@ -237,13 +243,13 @@ class CQChartsViewKey : public CQChartsKey {
   void doLayout();
 
  private:
-  using BBox  = CQChartsGeom::BBox;
+  using Size  = CQChartsGeom::Size;
   using Rects = std::vector<BBox>;
 
   int           numPlots_  { 0 };    //!< number of plots
-  QPointF       pposition_ { 0, 0 }; //!< pixel position
-  QPointF       wposition_ { 0, 0 }; //!< view position
-  QSizeF        size_;               //!< pixel size
+  Point         pposition_ { 0, 0 }; //!< pixel position
+  Point         wposition_ { 0, 0 }; //!< view position
+  Size          size_;               //!< pixel size
   mutable BBox  wbbox_;              //!< view bounding box
   mutable BBox  pbbox_;              //!< view pixel bounding box
   mutable Rects prects_;             //!< plot key item rects
@@ -258,14 +264,23 @@ class CQChartsViewKey : public CQChartsKey {
 class CQChartsPlotKey : public CQChartsKey {
   Q_OBJECT
 
-  Q_PROPERTY(bool              flipped           READ isFlipped         WRITE setFlipped          )
-  Q_PROPERTY(bool              insideX           READ isInsideX         WRITE setInsideX          )
-  Q_PROPERTY(bool              insideY           READ isInsideY         WRITE setInsideY          )
-  Q_PROPERTY(QPointF           absolutePosition  READ absolutePosition  WRITE setAbsolutePosition )
-  Q_PROPERTY(QRectF            absoluteRectangle READ absoluteRectangle WRITE setAbsoluteRectangle)
-  Q_PROPERTY(int               spacing           READ spacing           WRITE setSpacing          )
-  Q_PROPERTY(CQChartsOptLength scrollWidth       READ scrollWidth       WRITE setScrollWidth      )
-  Q_PROPERTY(CQChartsOptLength scrollHeight      READ scrollHeight      WRITE setScrollHeight     )
+  Q_PROPERTY(bool flipped READ isFlipped WRITE setFlipped)
+  Q_PROPERTY(bool insideX READ isInsideX WRITE setInsideX)
+  Q_PROPERTY(bool insideY READ isInsideY WRITE setInsideY)
+
+  Q_PROPERTY(CQChartsGeom::Point absolutePosition
+             READ absolutePosition  WRITE setAbsolutePosition )
+  Q_PROPERTY(CQChartsGeom::BBox  absoluteRectangle
+             READ absoluteRectangle WRITE setAbsoluteRectangle)
+
+  Q_PROPERTY(int               spacing      READ spacing      WRITE setSpacing     )
+  Q_PROPERTY(CQChartsOptLength scrollWidth  READ scrollWidth  WRITE setScrollWidth )
+  Q_PROPERTY(CQChartsOptLength scrollHeight READ scrollHeight WRITE setScrollHeight)
+
+ public:
+  using BBox  = CQChartsGeom::BBox;
+  using Size  = CQChartsGeom::Size;
+  using Point = CQChartsGeom::Point;
 
  public:
   CQChartsPlotKey(CQChartsPlot *plot);
@@ -302,14 +317,14 @@ class CQChartsPlotKey : public CQChartsKey {
   //---
 
   // absolute position
-  const QPointF &absolutePosition() const { return locationData_.absolutePosition; }
-  void setAbsolutePosition(const QPointF &p) {
+  const Point &absolutePosition() const { return locationData_.absolutePosition; }
+  void setAbsolutePosition(const Point &p) {
     locationData_.absolutePosition = p; updatePosition(); }
 
   // absolute rect
-  const QRectF &absoluteRectangle() const { return locationData_.absoluteRectangle; }
-  void setAbsoluteRectangle(const QRectF &r) {
-    locationData_.absoluteRectangle = r; updatePosition(); }
+  const BBox &absoluteRectangle() const { return locationData_.absoluteRectangle; }
+  void setAbsoluteRectangle(const BBox &bbox) {
+    locationData_.absoluteRectangle = bbox; updatePosition(); }
 
   //---
 
@@ -329,8 +344,8 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  const CQChartsGeom::BBox &bbox() const { return wbbox_; }
-  void setBBox(const CQChartsGeom::BBox &b) { wbbox_ = b; }
+  const BBox &bbox() const { return wbbox_; }
+  void setBBox(const BBox &b) { wbbox_ = b; }
 
   //---
 
@@ -346,32 +361,32 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void updatePosition(bool queued=true) override;
 
-  void updateLocation(const CQChartsGeom::BBox &bbox);
+  void updateLocation(const BBox &bbox);
 
   void invalidateLayout();
 
   //---
 
-  const QPointF &position() const { return position_; }
-  void setPosition(const QPointF &p) { position_ = p; }
+  const Point &position() const { return position_; }
+  void setPosition(const Point &p) { position_ = p; }
 
   //---
 
-  QPointF absolutePlotPosition() const;
-  void setAbsolutePlotPosition(const QPointF &p);
+  Point absolutePlotPosition() const;
+  void setAbsolutePlotPosition(const Point &p);
 
-  QRectF absolutePlotRect() const;
-  void setAbsolutePlotRect(const QRectF &p);
+  BBox absolutePlotRect() const;
+  void setAbsolutePlotRect(const BBox &bbox);
 
   //---
 
   int calcNumRows() const;
 
-  QSizeF calcSize();
+  Size calcSize();
 
   //---
 
-  bool contains(const CQChartsGeom::Point &p) const override;
+  bool contains(const Point &p) const override;
 
   void boxDataInvalidate() override { redraw(); }
 
@@ -383,24 +398,24 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void updateLayout() override;
 
-  CQChartsKeyItem *getItemAt(const CQChartsGeom::Point &p) const;
+  CQChartsKeyItem *getItemAt(const Point &p) const;
 
   //---
 
-  bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
+  bool tipText(const Point &p, QString &tip) const;
 
   //---
 
-  bool selectPress  (const CQChartsGeom::Point &w, CQChartsSelMod selMod) override;
-  bool selectMove   (const CQChartsGeom::Point &w) override;
-  bool selectRelease(const CQChartsGeom::Point &w) override;
+  bool selectPress  (const Point &w, CQChartsSelMod selMod) override;
+  bool selectMove   (const Point &w) override;
+  bool selectRelease(const Point &w) override;
 
-  bool editPress  (const CQChartsGeom::Point &w) override;
-  bool editMove   (const CQChartsGeom::Point &w) override;
-  bool editMotion (const CQChartsGeom::Point &w) override;
-  bool editRelease(const CQChartsGeom::Point &w) override;
+  bool editPress  (const Point &w) override;
+  bool editMove   (const Point &w) override;
+  bool editMotion (const Point &w) override;
+  bool editRelease(const Point &w) override;
 
-  virtual void editMoveBy(const QPointF &d);
+  virtual void editMoveBy(const Point &d);
 
   //---
 
@@ -437,16 +452,16 @@ class CQChartsPlotKey : public CQChartsKey {
   };
 
   struct Location {
-    QPointF absolutePosition;           //!< absolute position
-    QRectF  absoluteRectangle;          //!< absolute rectangle
-    bool    insideX           { true }; //!< inside plot in x
-    bool    insideY           { true }; //!< inside plot in y
+    Point absolutePosition;           //!< absolute position
+    BBox  absoluteRectangle;          //!< absolute rectangle
+    bool  insideX           { true }; //!< inside plot in x
+    bool  insideY           { true }; //!< inside plot in y
   };
 
   // layout data (all data in window units)
   struct LayoutData {
-    QSizeF size;                          //!< size (scrolled)
-    QSizeF fullSize;                      //!< full size (not scrolled)
+    Size   size;                          //!< size (scrolled)
+    Size   fullSize;                      //!< full size (not scrolled)
     double headerWidth         { 0.0 };   //!< header width
     double headerHeight        { 0.0 };   //!< header height
     bool   hscrolled           { false }; //!< has horizontal scroll
@@ -465,29 +480,29 @@ class CQChartsPlotKey : public CQChartsKey {
   using RowHeights = std::map<int,double>;
   using ColWidths  = std::map<int,double>;
 
-  Location                   locationData_;              //!< key location data
-  int                        spacing_       { 2 };       //!< key item spacing
-  bool                       flipped_       { false };   //!< key order flipped
-  Items                      items_;                     //!< key items
-  int                        maxRow_        { 0 };       //!< maximum key row
-  int                        maxCol_        { 0 };       //!< maximum key column
-  bool                       needsLayout_   { true };    //!< needs layout
-  QPointF                    position_      { 0, 0 };    //!< explicit position
-  LayoutData                 layoutData_;                //!< layout data
-  int                        numRows_       { 0 };       //!< number of rows
-  int                        numCols_       { 0 };       //!< number of columns
-  mutable CQChartsGeom::BBox wbbox_;                     //!< window bounding box
-  mutable RowHeights         rowHeights_;                //!< row heights
-  mutable ColWidths          colWidths_;                 //!< column widths
-  mutable RowColCell         rowColCell_;                //!< cells (per row/col)
-  mutable double             xs_            { 0.0 };     //!< x spacing (pixels)
-  mutable double             ys_            { 0.0 };     //!< y spacing (pixels)
-  mutable double             xlm_           { 0.0 };     //!< x left margin (pixels)
-  mutable double             xrm_           { 0.0 };     //!< x right margin (pixels)
-  mutable double             ytm_           { 0.0 };     //!< y top margin (pixels)
-  mutable double             ybm_           { 0.0 };     //!< y bottom margin (pixels)
-  mutable double             sx_            { 0.0 };     //!< scroll x offset
-  mutable double             sy_            { 0.0 };     //!< scroll y offset
+  Location           locationData_;              //!< key location data
+  int                spacing_       { 2 };       //!< key item spacing
+  bool               flipped_       { false };   //!< key order flipped
+  Items              items_;                     //!< key items
+  int                maxRow_        { 0 };       //!< maximum key row
+  int                maxCol_        { 0 };       //!< maximum key column
+  bool               needsLayout_   { true };    //!< needs layout
+  Point              position_      { 0, 0 };    //!< explicit position
+  LayoutData         layoutData_;                //!< layout data
+  int                numRows_       { 0 };       //!< number of rows
+  int                numCols_       { 0 };       //!< number of columns
+  mutable BBox       wbbox_;                     //!< window bounding box
+  mutable RowHeights rowHeights_;                //!< row heights
+  mutable ColWidths  colWidths_;                 //!< column widths
+  mutable RowColCell rowColCell_;                //!< cells (per row/col)
+  mutable double     xs_            { 0.0 };     //!< x spacing (pixels)
+  mutable double     ys_            { 0.0 };     //!< y spacing (pixels)
+  mutable double     xlm_           { 0.0 };     //!< x left margin (pixels)
+  mutable double     xrm_           { 0.0 };     //!< x right margin (pixels)
+  mutable double     ytm_           { 0.0 };     //!< y top margin (pixels)
+  mutable double     ybm_           { 0.0 };     //!< y bottom margin (pixels)
+  mutable double     sx_            { 0.0 };     //!< scroll x offset
+  mutable double     sy_            { 0.0 };     //!< scroll y offset
 };
 
 //------
@@ -502,6 +517,9 @@ class CQChartsKeyItem : public QObject {
   Q_PROPERTY(bool clickable READ isClickable WRITE setClickable)
 
  public:
+  using BBox     = CQChartsGeom::BBox;
+  using Size     = CQChartsGeom::Size;
+  using Point    = CQChartsGeom::Point;
   using ColorInd = CQChartsUtil::ColorInd;
 
  public:
@@ -509,7 +527,7 @@ class CQChartsKeyItem : public QObject {
 
   virtual ~CQChartsKeyItem() { }
 
-  virtual QSizeF size() const = 0;
+  virtual Size size() const = 0;
 
   virtual QString id() const { return ""; }
 
@@ -528,8 +546,8 @@ class CQChartsKeyItem : public QObject {
   int colSpan() const { return colSpan_; }
   void setColSpan(int i) { colSpan_ = i; }
 
-  const CQChartsGeom::BBox &bbox() const { return bbox_; }
-  void setBBox(const CQChartsGeom::BBox &b) { bbox_ = b; }
+  const BBox &bbox() const { return bbox_; }
+  void setBBox(const BBox &b) { bbox_ = b; }
 
   bool isInside() const { return inside_; }
   void setInside(bool b) { inside_ = b; }
@@ -539,30 +557,30 @@ class CQChartsKeyItem : public QObject {
 
   //---
 
-  virtual bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
+  virtual bool tipText(const Point &p, QString &tip) const;
 
   //---
 
-  virtual bool selectPress(const CQChartsGeom::Point &, CQChartsSelMod);
-  virtual bool selectMove (const CQChartsGeom::Point &);
+  virtual bool selectPress(const Point &, CQChartsSelMod);
+  virtual bool selectMove (const Point &);
 
   virtual void doShow  (CQChartsSelMod selMod);
   virtual void doSelect(CQChartsSelMod selMod);
 
   //---
 
-  virtual void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const = 0;
+  virtual void draw(CQChartsPaintDevice *device, const BBox &rect) const = 0;
 
  protected:
-  CQChartsPlotKey*           key_       { nullptr }; //!< parent key
-  ColorInd                   ic_;                    //!< color index
-  int                        row_       { 0 };       //!< row
-  int                        col_       { 0 };       //!< col
-  int                        rowSpan_   { 1 };       //!< row span
-  int                        colSpan_   { 1 };       //!< col span
-  bool                       inside_    { false };   //!< is inside
-  mutable CQChartsGeom::BBox bbox_;                  //!< bounding box
-  bool                       clickable_ { false };   //!< clickable
+  CQChartsPlotKey* key_       { nullptr }; //!< parent key
+  ColorInd         ic_;                    //!< color index
+  int              row_       { 0 };       //!< row
+  int              col_       { 0 };       //!< col
+  int              rowSpan_   { 1 };       //!< row span
+  int              colSpan_   { 1 };       //!< col span
+  bool             inside_    { false };   //!< is inside
+  mutable BBox     bbox_;                  //!< bounding box
+  bool             clickable_ { false };   //!< clickable
 };
 
 //---
@@ -579,6 +597,10 @@ class CQChartsKeyText : public CQChartsKeyItem {
   Q_OBJECT
 
  public:
+  using BBox = CQChartsGeom::BBox;
+  using Size = CQChartsGeom::Size;
+
+ public:
   CQChartsKeyText(CQChartsPlot *plot, const QString &text, const ColorInd &ic);
 
   CQChartsPlot *plot() const { return plot_; }
@@ -586,11 +608,11 @@ class CQChartsKeyText : public CQChartsKeyItem {
   const QString &text() const { return text_; }
   void setText(const QString &s) { text_ = s; }
 
-  QSizeF size() const override;
+  Size size() const override;
 
   virtual QColor interpTextColor(const ColorInd &ind) const;
 
-  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const override;
+  void draw(CQChartsPaintDevice *device, const BBox &rect) const override;
 
  protected:
   CQChartsPlot* plot_ { nullptr };
@@ -610,6 +632,8 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   Q_PROPERTY(CQChartsColor  strokeColor  READ strokeColor  WRITE setStrokeColor )
 
  public:
+  using BBox       = CQChartsGeom::BBox;
+  using Size       = CQChartsGeom::Size;
   using RangeValue = CQChartsGeom::RangeValue;
 
  public:
@@ -622,9 +646,9 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   const CQChartsLength &cornerRadius() const { return boxData_.shape().stroke().cornerSize(); }
   void setCornerRadius(const CQChartsLength &r) { boxData_.shape().stroke().setCornerSize(r); }
 
-  QSizeF size() const override;
+  Size size() const override;
 
-  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const override;
+  void draw(CQChartsPaintDevice *device, const BBox &rect) const override;
 
   virtual QBrush fillBrush() const;
 

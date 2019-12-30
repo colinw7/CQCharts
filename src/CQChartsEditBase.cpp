@@ -33,12 +33,17 @@ CQChartsEditPreview::
 CQChartsEditPreview(CQChartsEditBase *edit) :
  edit_(edit)
 {
+  setObjectName("preview");
+
+  setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 }
 
 void
 CQChartsEditPreview::
-paintEvent(QPaintEvent *)
+paintEvent(QPaintEvent *e)
 {
+  QFrame::paintEvent(e);
+
   QPainter painter(this);
 
   painter.setRenderHints(QPainter::Antialiasing);

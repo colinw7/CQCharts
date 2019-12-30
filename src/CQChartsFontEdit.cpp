@@ -25,6 +25,8 @@ CQChartsFontLineEdit(QWidget *parent) :
 {
   setObjectName("fontLineEdit");
 
+  setToolTip("Font");
+
   //---
 
   menuEdit_ = dataEdit_ = new CQChartsFontEdit;
@@ -230,7 +232,8 @@ draw(CQPropertyViewItem *item, const CQPropertyViewDelegate *delegate, QPainter 
 
     CQChartsPixelPainter device(painter);
 
-    CQChartsDrawUtil::drawTextInBox(&device, option1.rect, "Abc", textOptions);
+    CQChartsDrawUtil::drawTextInBox(&device, CQChartsGeom::BBox(option1.rect),
+                                    "Abc", textOptions);
 
     painter->restore();
   }

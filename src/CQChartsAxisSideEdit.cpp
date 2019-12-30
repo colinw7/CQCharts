@@ -6,6 +6,8 @@ CQChartsAxisSideEdit(QWidget *parent) :
 {
   setObjectName("axisSide");
 
+  setToolTip("Axis Side");
+
   init();
 
   QObject::connect(this, SIGNAL(enumChanged()), this, SIGNAL(axisSideChanged()));

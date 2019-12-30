@@ -4,9 +4,8 @@
 #define DEBUG_LABELS 1
 
 #include <CQChartsObjData.h>
+#include <CQChartsGeom.h>
 #include <QObject>
-#include <QPointF>
-#include <QPolygonF>
 
 class CQChartsView;
 class CQChartsPlot;
@@ -25,9 +24,9 @@ class CQChartsArrow : public QObject,
   Q_PROPERTY(bool visible READ isVisible WRITE setVisible)
 
   // start/end point
-  Q_PROPERTY(QPointF from     READ from       WRITE setFrom)
-  Q_PROPERTY(QPointF to       READ to         WRITE setTo)
-//Q_PROPERTY(bool    relative READ isRelative WRITE setRelative)
+  Q_PROPERTY(CQChartsGeom::Point from     READ from       WRITE setFrom)
+  Q_PROPERTY(CQChartsGeom::Point to       READ to         WRITE setTo)
+//Q_PROPERTY(bool                relative READ isRelative WRITE setRelative)
 
   // line width
   Q_PROPERTY(CQChartsLength lineWidth READ lineWidth WRITE setLineWidth)
@@ -74,10 +73,10 @@ class CQChartsArrow : public QObject,
   using ColorInd = CQChartsUtil::ColorInd;
 
  public:
-  CQChartsArrow(CQChartsView *view, const QPointF &from=QPointF(0,0),
-                const QPointF &to=QPointF(1,1));
-  CQChartsArrow(CQChartsPlot *plot, const QPointF &from=QPointF(0,0),
-                const QPointF &to=QPointF(1,1));
+  CQChartsArrow(CQChartsView *view, const CQChartsGeom::Point &from=CQChartsGeom::Point(0,0),
+                const CQChartsGeom::Point &to=CQChartsGeom::Point(1,1));
+  CQChartsArrow(CQChartsPlot *plot, const CQChartsGeom::Point &from=CQChartsGeom::Point(0,0),
+                const CQChartsGeom::Point &to=CQChartsGeom::Point(1,1));
 
   CQCharts *charts() const;
 
@@ -93,11 +92,11 @@ class CQChartsArrow : public QObject,
   //---
 
   // get/set from/to point
-  const QPointF &from() const { return from_; }
-  void setFrom(const QPointF &v) { from_ = v; emit dataChanged(); }
+  const CQChartsGeom::Point &from() const { return from_; }
+  void setFrom(const CQChartsGeom::Point &v) { from_ = v; emit dataChanged(); }
 
-  const QPointF &to() const { return to_; }
-  void setTo(const QPointF &v) { to_ = v; emit dataChanged(); }
+  const CQChartsGeom::Point &to() const { return to_; }
+  void setTo(const CQChartsGeom::Point &v) { to_ = v; emit dataChanged(); }
 
 //bool isRelative() const { return data_.isRelative(); }
 //void setRelative(bool b) { data_.setRelative(b); emit dataChanged(); }
@@ -189,7 +188,7 @@ class CQChartsArrow : public QObject,
   //---
 
   // is point inside arrow
-  bool contains(const QPointF &p) const;
+  bool contains(const CQChartsGeom::Point &p) const;
 
   //---
 
@@ -197,66 +196,64 @@ class CQChartsArrow : public QObject,
   void write(std::ostream &os, const QString &varName) const;
 
  private:
-  using Points = QVector<QPointF>;
-
- private:
   void init();
 
   void drawContents(const CQChartsPenBrush &penBrush) const;
 
-  void drawPolygon(const Points &points, double w, bool filled, bool stroked,
+  void drawPolygon(const CQChartsGeom::Polygon &points, double w, bool filled, bool stroked,
                    const CQChartsPenBrush &penBrush) const;
 
-  void drawLine(const QPointF &point1, const QPointF &point2, double width,
+  void drawLine(const CQChartsGeom::Point &point1, const CQChartsGeom::Point &point2, double width,
                 const CQChartsPenBrush &penBrush) const;
 
 #if DEBUG_LABELS
   struct PointLabel {
-    PointLabel(const QPointF &point, const QString &text, bool above) :
+    PointLabel(const CQChartsGeom::Point &point, const QString &text, bool above) :
      point(point), text(text), above(above) {
     }
 
-    QPointF point;
-    QString text;
-    bool    above { false };
+    CQChartsGeom::Point point;
+    QString             text;
+    bool                above { false };
   };
 
   using PointLabels = std::vector<PointLabel>;
 
-  void drawPointLabel(const QPointF &point, const QString &text, bool above) const;
+  void drawPointLabel(const CQChartsGeom::Point &point, const QString &text, bool above) const;
 #endif
 
-  static double pointLineDistance(const QPointF &p, const QPointF &p1, const QPointF &p2);
+  static double pointLineDistance(const CQChartsGeom::Point &p, const CQChartsGeom::Point &p1,
+                                  const CQChartsGeom::Point &p2);
 
  signals:
   void dataChanged();
 
  private:
   struct Line {
-    QPointF p1;
-    QPointF p2;
-    bool    valid { false };
+    CQChartsGeom::Point p1;
+    CQChartsGeom::Point p2;
+    bool                valid { false };
 
     Line() { }
 
-    Line(const QPointF &p1, const QPointF &p2) :
+    Line(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2) :
      p1(p1), p2(p2), valid(true) {
     }
 
     void reset() { valid = false; }
 
-    double distance(const QPointF &p) const {
+    double distance(const CQChartsGeom::Point &p) const {
       return CQChartsArrow::pointLineDistance(p, p1, p2);
     }
   };
 
   struct Polygon {
-    QPolygonF points;
-    bool      valid { false };
+    CQChartsGeom::Polygon points;
+    bool                  valid { false };
 
     Polygon() { }
 
-    Polygon(const Points &points) :
+    Polygon(const CQChartsGeom::Polygon &points) :
      points(points), valid(true) {
     }
 
@@ -268,8 +265,8 @@ class CQChartsArrow : public QObject,
   CQChartsView*                view_        { nullptr }; //!< parent view
   CQChartsPlot*                plot_        { nullptr }; //!< parent plot
   bool                         visible_     { true };    //!< is visible
-  QPointF                      from_        { 0, 0 };    //!< start point
-  QPointF                      to_          { 1, 1 };    //!< end point
+  CQChartsGeom::Point          from_        { 0, 0 };    //!< start point
+  CQChartsGeom::Point          to_          { 1, 1 };    //!< end point
   CQChartsArrowData            data_;                    //!< arrow data
   mutable CQChartsPaintDevice* device_;                  //!< paint device
 #if DEBUG_LABELS

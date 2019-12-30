@@ -22,6 +22,8 @@ CQChartsColumnsLineEdit(QWidget *parent, bool isBasic) :
 {
   setObjectName("columnsLineEdit");
 
+  setToolTip("Columns");
+
   //---
 
   menuEdit_ = dataEdit_ = new CQChartsColumnsEdit(nullptr, isBasic);

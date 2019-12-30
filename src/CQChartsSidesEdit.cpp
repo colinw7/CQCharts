@@ -15,6 +15,8 @@ CQChartsSidesEdit(QWidget *parent) :
 {
   setObjectName("sides");
 
+  setToolTip("Rectangle sides");
+
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
 

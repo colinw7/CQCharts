@@ -1,8 +1,8 @@
 #include <CQChartsPositionEdit.h>
+#include <CQChartsGeomPointEdit.h>
 #include <CQChartsUnitsEdit.h>
 
 #include <CQPropertyView.h>
-#include <CQPoint2DEdit.h>
 #include <CQUtil.h>
 
 #include <QHBoxLayout>
@@ -13,11 +13,15 @@ CQChartsPositionEdit(QWidget *parent) :
 {
   setObjectName("positionEdit");
 
+  //---
+
   QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   //---
 
-  edit_ = CQUtil::makeWidget<CQPoint2DEdit>("point");
+  edit_ = CQUtil::makeWidget<CQChartsGeomPointEdit>("point");
+
+  edit_->setToolTip("Position");
 
   layout->addWidget(edit_);
 
@@ -52,10 +56,10 @@ void
 CQChartsPositionEdit::
 editChanged()
 {
-  QPointF              value = edit_->getQValue();
+  CQChartsGeom::Point  point = edit_->getValue();
   const CQChartsUnits &units = position_.units();
 
-  CQChartsPosition position(value, units);
+  CQChartsPosition position(point, units);
 
   if (! position.isValid())
     return;
@@ -69,8 +73,8 @@ void
 CQChartsPositionEdit::
 unitsChanged()
 {
-  QPointF       value = position_.p();
-  CQChartsUnits units = unitsEdit_->units();
+  CQChartsGeom::Point value = position_.p();
+  CQChartsUnits       units = unitsEdit_->units();
 
   CQChartsPosition position(value, units);
 
@@ -88,10 +92,10 @@ positionToWidgets()
 {
   connectSlots(false);
 
-  QPointF              value = position_.p();
+  CQChartsGeom::Point  point = position_.p();
   const CQChartsUnits &units = position_.units();
 
-  edit_->setValue(value);
+  edit_->setValue(point);
 
   unitsEdit_->setUnits(units);
 
@@ -102,8 +106,8 @@ void
 CQChartsPositionEdit::
 widgetsToPosition()
 {
-  QPointF       value = edit_->getQValue();
-  CQChartsUnits units = unitsEdit_->units();
+  CQChartsGeom::Point value = edit_->getValue();
+  CQChartsUnits       units = unitsEdit_->units();
 
   CQChartsPosition position(value, units);
 

@@ -16,11 +16,11 @@
 #include <CQChartsArrowDataEdit.h>
 #include <CQChartsColorEdit.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsLineEdit.h>
 
 #include <CQRealSpin.h>
 #include <CQCheckBox.h>
 #include <CQGroupBox.h>
-#include <CQLineEdit.h>
 #include <CQUtil.h>
 
 #include <QFrame>
@@ -43,6 +43,12 @@ void
 CQChartsEditAnnotationDlg::
 initWidgets()
 {
+  setObjectName("createAnnotationDlg");
+
+  setWindowTitle("Edit Annotation");
+
+  //---
+
   QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //----
@@ -56,15 +62,14 @@ initWidgets()
   //--
 
   // id, tip edits
-  idEdit_  = CQUtil::makeWidget<CQLineEdit>("id");
-  tipEdit_ = CQUtil::makeWidget<CQLineEdit>("tip");
+  idEdit_  = CQUtil::makeWidget<CQChartsLineEdit>("id");
+  tipEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("tip");
 
-  //--
+  idEdit_ ->setToolTip("Annotation Id");
+  tipEdit_->setToolTip("Annotation Tooltip");
 
   idEdit_ ->setText(annotation_->id   ());
   tipEdit_->setText(annotation_->tipId());
-
-  //--
 
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Id" , idEdit_ , row);
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Tip", tipEdit_, row);
@@ -90,6 +95,14 @@ initWidgets()
     createPointFrame();
 
   layout->addLayout(frameLayout_);
+
+  //---
+
+  msgLabel_ = CQUtil::makeWidget<QLabel>("msgLabel");
+
+  CQChartsWidgetUtil::setTextColor(msgLabel_, Qt::red);
+
+  layout->addWidget(msgLabel_);
 
   //---
 
@@ -151,6 +164,7 @@ createRectFrame()
   rectWidgets_.paddingEdit = CQUtil::makeWidget<CQRealSpin>("paddingEdit");
 
   rectWidgets_.paddingEdit->setValue(annotation->padding());
+  rectWidgets_.paddingEdit->setToolTip("Padding");
 
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout, "Padding", rectWidgets_.paddingEdit, row);
 
@@ -187,7 +201,9 @@ createEllipseFrame()
   ellipseWidgets_.rxEdit     = new CQChartsLengthEdit;
   ellipseWidgets_.ryEdit     = new CQChartsLengthEdit;
 
-  //---
+  ellipseWidgets_.centerEdit->setToolTip("Ellipse Center Poistion");
+  ellipseWidgets_.rxEdit    ->setToolTip("Ellipse X Radius Length");
+  ellipseWidgets_.rxEdit    ->setToolTip("Ellipse Y Radius Length");
 
   ellipseWidgets_.centerEdit->setPosition(annotation->center());
   ellipseWidgets_.rxEdit    ->setLength  (annotation->xRadius());
@@ -313,6 +329,9 @@ createTextFrame()
   textWidgets_.positionRadio = CQUtil::makeLabelWidget<QRadioButton>("Position", "positionRadio");
   textWidgets_.rectRadio     = CQUtil::makeLabelWidget<QRadioButton>("Rect", "rectRadio");
 
+  textWidgets_.positionRadio->setToolTip("Position text at point");
+  textWidgets_.rectRadio    ->setToolTip("Place text in rectangle");
+
   positionRectLayout->addWidget(textWidgets_.positionRadio);
   positionRectLayout->addWidget(textWidgets_.rectRadio);
   positionRectLayout->addStretch(1);
@@ -353,9 +372,10 @@ createTextFrame()
 
   //---
 
-  textWidgets_.textEdit = CQUtil::makeWidget<CQLineEdit>("edit");
+  textWidgets_.textEdit = CQUtil::makeWidget<CQChartsLineEdit>("edit");
 
   textWidgets_.textEdit->setText(annotation->textStr());
+  textWidgets_.textEdit->setToolTip("Text String");
 
   //---
 
@@ -465,6 +485,8 @@ createArrowFrame()
   arrowWidgets_.filledCheck    ->setChecked (fill.isVisible());
   arrowWidgets_.fillColorEdit  ->setColor   (fill.color());
 
+  arrowWidgets_.filledCheck->setToolTip("Is Filled");
+
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Stroke Width",
     arrowWidgets_.strokeWidthEdit, row1);
   CQChartsWidgetUtil::addGridLabelWidget(gridLayout1, "Stroke Color",
@@ -540,6 +562,7 @@ addFillWidgets(Widgets &widgets, QBoxLayout *playout)
 
   widgets.backgroundDataEdit->setTitle("Fill");
   widgets.backgroundDataEdit->setData(fillData);
+  widgets.backgroundDataEdit->setToolTip("Enable Fill");
 
   playout->addWidget(widgets.backgroundDataEdit);
 }
@@ -560,6 +583,7 @@ addStrokeWidgets(Widgets &widgets, QBoxLayout *playout, bool cornerSize)
 
   widgets.strokeDataEdit->setTitle("Stroke");
   widgets.strokeDataEdit->setData(strokeData);
+  widgets.strokeDataEdit->setToolTip("Enable Stroke");
 
   playout->addWidget(widgets.strokeDataEdit);
 }
@@ -662,16 +686,19 @@ updateRectangleAnnotation()
 
   //---
 
-  QString id    = idEdit_ ->text();
-  QString tipId = tipEdit_->text();
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
 
-  CQChartsRect rect = rectWidgets_.rectEdit->rect();
+  auto rect = rectWidgets_.rectEdit->rect();
+
+  if (! rect.isValid())
+    return setErrorMsg("Invalid rectangle geometry");
 
   boxData.setMargin (rectWidgets_.marginEdit ->margin());
   boxData.setPadding(rectWidgets_.paddingEdit->value ());
 
-  CQChartsFillData   fill   = rectWidgets_.backgroundDataEdit->data();
-  CQChartsStrokeData stroke = rectWidgets_.strokeDataEdit    ->data();
+  auto fill   = rectWidgets_.backgroundDataEdit->data();
+  auto stroke = rectWidgets_.strokeDataEdit    ->data();
 
   shapeData.setFill  (fill);
   shapeData.setStroke(stroke);
@@ -704,12 +731,15 @@ updateEllipseAnnotation()
 
   //---
 
-  QString id    = idEdit_ ->text();
-  QString tipId = tipEdit_->text();
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
 
-  CQChartsPosition center = ellipseWidgets_.centerEdit->position();
-  CQChartsLength   rx     = ellipseWidgets_.rxEdit->length();
-  CQChartsLength   ry     = ellipseWidgets_.ryEdit->length();
+  auto center = ellipseWidgets_.centerEdit->position();
+  auto rx     = ellipseWidgets_.rxEdit->length();
+  auto ry     = ellipseWidgets_.ryEdit->length();
+
+  if (rx.value() <= 0.0 || ry.value() <= 0.0)
+    return setErrorMsg("Invalid ellipse radius");
 
   CQChartsFillData   fill   = ellipseWidgets_.backgroundDataEdit->data();
   CQChartsStrokeData stroke = ellipseWidgets_.strokeDataEdit    ->data();
@@ -746,13 +776,16 @@ updatePolygonAnnotation()
 
   //---
 
-  QString id    = idEdit_ ->text();
-  QString tipId = tipEdit_->text();
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
 
-  CQChartsPolygon polygon = polygonWidgets_.pointsEdit->polygon();
+  auto polygon = polygonWidgets_.pointsEdit->polygon();
 
-  CQChartsFillData   fill   = polygonWidgets_.backgroundDataEdit->data();
-  CQChartsStrokeData stroke = polygonWidgets_.strokeDataEdit    ->data();
+  if (! polygon.isValid(/*closed*/true))
+    return setErrorMsg("Not enough polygon points");
+
+  auto fill   = polygonWidgets_.backgroundDataEdit->data();
+  auto stroke = polygonWidgets_.strokeDataEdit    ->data();
 
   shapeData.setFill  (fill);
   shapeData.setStroke(stroke);
@@ -782,13 +815,16 @@ updatePolylineAnnotation()
 
   //---
 
-  QString id    = idEdit_ ->text();
-  QString tipId = tipEdit_->text();
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
 
-  CQChartsPolygon polygon = polylineWidgets_.pointsEdit->polygon();
+  auto polygon = polylineWidgets_.pointsEdit->polygon();
 
-  CQChartsFillData   fill   = polylineWidgets_.backgroundDataEdit->data();
-  CQChartsStrokeData stroke = polylineWidgets_.strokeDataEdit    ->data();
+  if (! polygon.isValid(/*closed*/false))
+    return setErrorMsg("Not enough polygon points");
+
+  auto fill   = polylineWidgets_.backgroundDataEdit->data();
+  auto stroke = polylineWidgets_.strokeDataEdit    ->data();
 
   shapeData.setFill  (fill);
   shapeData.setStroke(stroke);
@@ -818,18 +854,25 @@ updateTextAnnotation()
 
   //---
 
-  QString id    = idEdit_ ->text();
-  QString tipId = tipEdit_->text();
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
 
-  CQChartsPosition pos  = textWidgets_.positionEdit->position();
-  CQChartsRect     rect = textWidgets_.rectEdit    ->rect();
+  auto pos  = textWidgets_.positionEdit->position();
+  auto rect = textWidgets_.rectEdit->rect();
+  auto text = textWidgets_.textEdit->text();
 
-  QString text = textWidgets_.textEdit->text();
+  if (! textWidgets_.positionRadio->isChecked()) {
+    if (! rect.isValid())
+      return setErrorMsg("Invalid text rectangle");
+  }
 
-  const CQChartsTextData &textData = textWidgets_.dataEdit->data();
+  if (text.simplified().length() == 0)
+    return setErrorMsg("Text string is empty");
 
-  CQChartsFillData   fill   = textWidgets_.backgroundDataEdit->data();
-  CQChartsStrokeData stroke = textWidgets_.strokeDataEdit    ->data();
+  auto textData = textWidgets_.dataEdit->data();
+
+  auto fill   = textWidgets_.backgroundDataEdit->data();
+  auto stroke = textWidgets_.strokeDataEdit    ->data();
 
   shapeData.setFill  (fill);
   shapeData.setStroke(stroke);
@@ -861,18 +904,23 @@ bool
 CQChartsEditAnnotationDlg::
 updateArrowAnnotation()
 {
-  QString id    = idEdit_ ->text();
-  QString tipId = tipEdit_->text();
-
-  CQChartsPosition start = arrowWidgets_.startEdit->position();
-  CQChartsPosition end   = arrowWidgets_.endEdit  ->position();
-
-  const CQChartsArrowData &arrowData = arrowWidgets_.dataEdit->data();
-
   CQChartsShapeData shapeData;
 
   CQChartsStrokeData &stroke = shapeData.stroke();
   CQChartsFillData   &fill   = shapeData.fill();
+
+  //---
+
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
+
+  auto start = arrowWidgets_.startEdit->position();
+  auto end   = arrowWidgets_.endEdit  ->position();
+
+  if (start == end)
+    return setErrorMsg("Arrow is zero length");
+
+  auto arrowData = arrowWidgets_.dataEdit->data();
 
   stroke.setWidth(arrowWidgets_.strokeWidthEdit->length());
   stroke.setColor(arrowWidgets_.strokeColorEdit->color());
@@ -902,16 +950,16 @@ bool
 CQChartsEditAnnotationDlg::
 updatePointAnnotation()
 {
-  CQChartsPointAnnotation *annotation = dynamic_cast<CQChartsPointAnnotation *>(annotation_);
-  assert(annotation);
+  auto id    = idEdit_ ->text();
+  auto tipId = tipEdit_->text();
+
+  auto pos        = pointWidgets_.positionEdit->position();
+  auto symbolData = pointWidgets_.dataEdit->data();
 
   //---
 
-  QString id    = idEdit_ ->text();
-  QString tipId = tipEdit_->text();
-
-  CQChartsPosition          pos        = pointWidgets_.positionEdit->position();
-  const CQChartsSymbolData &symbolData = pointWidgets_.dataEdit->data();
+  CQChartsPointAnnotation *annotation = dynamic_cast<CQChartsPointAnnotation *>(annotation_);
+  assert(annotation);
 
   //---
 
@@ -930,4 +978,22 @@ CQChartsEditAnnotationDlg::
 cancelSlot()
 {
   close();
+}
+
+bool
+CQChartsEditAnnotationDlg::
+setErrorMsg(const QString &msg)
+{
+  msgLabel_->setText   (msg);
+  msgLabel_->setToolTip(msg);
+
+  return false;
+}
+
+void
+CQChartsEditAnnotationDlg::
+clearErrorMsg()
+{
+  msgLabel_->setText   ("");
+  msgLabel_->setToolTip("");
 }

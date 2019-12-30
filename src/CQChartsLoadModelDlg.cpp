@@ -92,7 +92,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   //--
 
   // Expression Row Number Edit
-  numberEdit_ = CQUtil::makeWidget<CQLineEdit>("numberEdit");
+  numberEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("numberEdit");
 
   numberEdit_->setText(QString("%1").arg(expressionRows()));
   numberEdit_->setToolTip("Number of rows to generate for expression");
@@ -111,15 +111,13 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   auto hheaderFrame  = CQUtil::makeWidget<QFrame>("hheaderFrame");
   auto hheaderLayout = CQUtil::makeLayout<QHBoxLayout>(hheaderFrame, 0, 2);
 
-  noHeaderCheck_ =
-    CQUtil::makeLabelWidget<QRadioButton>("None", "noneHeaderCheck");
+  noHeaderCheck_ = CQUtil::makeLabelWidget<QRadioButton>("None", "noneHeaderCheck");
 
   noHeaderCheck_->setToolTip("No horizontal header");
 
   connect(noHeaderCheck_, SIGNAL(toggled(bool)), this, SLOT(updatePreviewSlot()));
 
-  commentHeaderCheck_ =
-    CQUtil::makeLabelWidget<QRadioButton>("Comment", "commentHeaderCheck");
+  commentHeaderCheck_ = CQUtil::makeLabelWidget<QRadioButton>("Comment", "commentHeaderCheck");
 
   commentHeaderCheck_->setToolTip("Use first comment for horizontal header");
 
@@ -148,7 +146,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
     CQUtil::makeLabelWidget<QLabel>("Vertical Header", "vheaderLabel"), row, 0);
 
   firstColumnHeaderCheck_ =
-    CQUtil::makeLabelWidget<QCheckBox>("First Column Header", "firstColumnHeaderCheck");
+    CQUtil::makeLabelWidget<QCheckBox>("First Column", "firstColumnHeaderCheck");
 
 //connect(firstColumnHeaderCheck_, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewSlot()));
 
@@ -161,7 +159,7 @@ CQChartsLoadModelDlg(CQCharts *charts) :
   //--
 
   // Filter Edit
-  filterEdit_ = CQUtil::makeWidget<CQLineEdit>("filterEdit");
+  filterEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("filterEdit");
 
   filterEdit_->setToolTip("Filter expression for data");
 

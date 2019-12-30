@@ -268,9 +268,7 @@ exportSlot(QAction *action)
   }
 
   QString fileName = QFileDialog::getSaveFileName(this, "Export Model", dir, pattern);
-
-  if (fileName.isNull())
-    return;
+  if (! fileName.length()) return; // cancelled
 
   CQChartsModelData *modelData = getModelData();
 

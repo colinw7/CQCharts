@@ -1,9 +1,12 @@
 #ifndef CQChartsGeom_H
 #define CQChartsGeom_H
 
+#include <CQUtil.h>
 #include <CMathUtil.h>
 #include <QRectF>
+#include <QSizeF>
 #include <QPointF>
+#include <QPolygonF>
 
 #include <cassert>
 #include <algorithm>
@@ -88,9 +91,8 @@ class Point {
 
   //-----
 
-  QPointF qpoint() const { return QPointF(x, y); }
-
-  QPoint qpointi() const { return QPoint(x, y); }
+  QPointF qpoint () const { return QPointF(x, y); }
+  QPoint  qpointi() const { return QPoint (x, y); }
 
   //-----
 
@@ -228,8 +230,11 @@ class Point {
 
   //-----
 
+  QString toString() const;
+  bool fromString(const QString &s);
+
   void print(std::ostream &os) const {
-    os << "{" << x << " " << y << "}";
+    os << toString().toStdString();
   }
 
   friend std::ostream &operator<<(std::ostream &os, const Point &point) {
@@ -252,211 +257,42 @@ inline Point makeDirPoint(bool flipped, double x, double y) {
 
 }
 
-//-----
+//------
 
 namespace CQChartsGeom {
 
 /*!
- * \brief Range class
+ * \brief Size class
  * \ingroup Charts
- *
- * TODO: enforce min/max order always ? Same as BBox
  */
-class Range {
+class Size {
  public:
-  Range() { }
+  Size() { }
 
-  Range(double x1, double y1, double x2, double y2) :
-   set_(true), x1_(x1), y1_(y1), x2_(x2), y2_(y2) {
+  Size(double w, double h) :
+   size_(w, h) {
   }
 
-  //---
-
-  bool isSet() const { return set_; }
-
-  void set(double x1, double y1, double x2, double y2) {
-    set_ = true;
-
-    x1_ = x1; y1_ = y1;
-    x2_ = x2; y2_ = y2;
+  explicit Size(const QSizeF &s) :
+   size_(s) {
   }
 
-  bool get(double *x1, double *y1, double *x2, double *y2) const {
-    *x1 = x1_; *y1 = y1_;
-    *x2 = x2_; *y2 = y2_;
+  const QSizeF &qsize() const { return size_; }
 
-    return set_;
-  }
-
-  void reset() {
-    set_ = false; x1_ = 0; y1_ = 0; x2_ = 0; y2_ = 0;
-  }
-
-  double dx() const { assert(set_); return x2_ - x1_; }
-  double dy() const { assert(set_); return y2_ - y1_; }
-
-  double xmid() const { assert(set_); return (x2_ + x1_)/2; }
-  double ymid() const { assert(set_); return (y2_ + y1_)/2; }
-
-  double xmin() const { assert(set_); return std::min(x1_, x2_); }
-  double ymin() const { assert(set_); return std::min(y1_, y2_); }
-  double xmax() const { assert(set_); return std::max(x1_, x2_); }
-  double ymax() const { assert(set_); return std::max(y1_, y2_); }
-
-  double min(bool horizontal) const { return (horizontal ? xmin() : ymin()); }
-  double max(bool horizontal) const { return (horizontal ? xmax() : ymax()); }
-
-  double left  () const { assert(set_); return x1_; }
-  double bottom() const { assert(set_); return y1_; }
-  double right () const { assert(set_); return x2_; }
-  double top   () const { assert(set_); return y2_; }
-
-  void setLeft  (double t) { set_ = true; x1_ = t; }
-  void setBottom(double t) { set_ = true; y1_ = t; }
-  void setRight (double t) { set_ = true; x2_ = t; }
-  void setTop   (double t) { set_ = true; y2_ = t; }
-
-  double xsize() const { assert(set_); return std::abs(x2_ - x1_); }
-  double ysize() const { assert(set_); return std::abs(y2_ - y1_); }
-
-  double size(bool horizontal) const { return (horizontal ? xsize() : ysize()); }
-
-  //---
-
-  QRectF qrect() const {
-    if (isSet())
-      return QRectF(xmin(), ymin(), xsize(), ysize()).normalized();
-    else
-      return QRectF();
-  }
-
-  
-  //---
-
-  bool isZero() const { return isXZero() || isYZero(); }
-
-  bool isXZero() const { return CMathUtil::isZero(xsize()); }
-  bool isYZero() const { return CMathUtil::isZero(ysize()); }
-
-  void makeNonZero(double d=1.0) {
-    if (isSet()) {
-      if (isXZero()) {
-        double x = xmid(), y = ymid();
-
-        updateRange(x - d, y);
-        updateRange(x + d, y);
-      }
-
-      if (isYZero()) {
-        double x = xmid(), y = ymid();
-
-        updateRange(x, y - d);
-        updateRange(x, y + d);
-      }
-    }
-    else {
-      updateRange(-d, -d);
-      updateRange( d,  d);
-    }
-  }
-
-  Point center() const { assert(set_); return Point((x1_ + x2_)/2.0, (y1_ + y2_)/2.0); }
-
-  void inc(double dx, double dy) {
-    assert(set_);
-
-    x1_ += dx; y1_ += dy;
-    x2_ += dx; y2_ += dy;
-  }
-
-  void incX(double dx) { assert(set_); x1_ += dx; x2_ += dx; }
-  void incY(double dy) { assert(set_); y1_ += dy; y2_ += dy; }
-
-  void updateRange(const Point &p) {
-    updateRange(p.x, p.y);
-  }
-
-  void updateRange(double x, double y) {
-    if (! set_) {
-      x1_ = x; y1_ = y;
-      x2_ = x; y2_ = y;
-
-      set_ = true;
-    }
-    else {
-      x1_ = std::min(x1_, x); y1_ = std::min(y1_, y);
-      x2_ = std::max(x2_, x); y2_ = std::max(y2_, y);
-    }
-  }
-
-  Range &operator=(const Range &range) {
-    set_ = range.set_;
-    x1_  = range.x1_; y1_ = range.y1_;
-    x2_  = range.x2_; y2_ = range.y2_;
-
-    return *this;
-  }
-
-  friend bool operator==(const Range &lhs, const Range &rhs) {
-    if (! lhs.set_ && ! rhs.set_) return true;
-    if (! lhs.set_ || ! rhs.set_) return false;
-
-    return (lhs.x1_ == rhs.x1_ && lhs.y1_ == rhs.y1_ &&
-            lhs.x2_ == rhs.x2_ && lhs.y2_ == rhs.y2_);
-  }
-
-  friend bool operator!=(const Range &lhs, const Range &rhs) {
-    return ! (lhs == rhs);
-  }
-
-  void equalScale(double aspect) {
-    Point c = center();
-
-    double w = xsize();
-    double h = ysize();
-
-    if (aspect > 1.0) {
-      h = std::max(w, h);
-      w = h*aspect;
-    }
-    else {
-      w = std::max(w, h);
-      h = w/aspect;
-    }
-
-    x1_ = c.x - w/2;
-    x2_ = c.x + w/2;
-    y1_ = c.y - h/2;
-    y2_ = c.y + h/2;
-  }
-
-  // supplied point inside this rect
-  bool inside(double x, double y) const {
-    return inside(Point(x, y));
-  }
-
-  // supplied point inside this rect
-  bool inside(const Point &point) const {
-    if (! set_) return false;
-
-    return ((point.x >= x1_ && point.x <= x2_) &&
-            (point.y >= y1_ && point.y <= y2_));
-  }
-
-  void print(std::ostream &os) const {
-    os << x1_ << " " << y1_ << " " << x2_ << " " << y2_;
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const Range &range) {
-    range.print(os);
-
-    return os;
-  }
+  double width () const { return size_.width (); }
+  double height() const { return size_.height(); }
 
  private:
-  bool   set_ { false };
-  double x1_ { 0 }, y1_ { 0 }, x2_ { 0 }, y2_ { 0 };
+  QSizeF size_;
 };
+
+}
+
+//------
+
+namespace CQChartsGeom {
+
+class Range;
 
 }
 
@@ -498,10 +334,13 @@ class BBox {
       update();
   }
 
-  explicit BBox(const Range &range) :
-   pmin_(range.xmin(), range.ymin()), pmax_(range.xmax(), range.ymax()), set_(true) {
-    update();
+  explicit BBox(const QPointF &p1, const QPointF &p2) :
+   pmin_(p1.x(), p1.y()), pmax_(p2.x(), p2.y()), set_(true) {
+    if (isSet())
+      update();
   }
+
+  explicit BBox(const Range &range);
 
 #if 0
   BBox(const Point &o, const Size &s) :
@@ -531,6 +370,12 @@ class BBox {
     else
       return QRect();
   }
+
+  //---
+
+  Size size() const { return Size(getWidth(), getHeight()); }
+
+  //QSizeF qsize() const { return QSizeF(getWidth(), getHeight()); }
 
   //---
 
@@ -796,6 +641,12 @@ class BBox {
     return bbox;
   }
 
+  BBox translated(double dx, double dy) {
+    return movedBy(Point(dx, dy));
+  }
+
+  bool isValid() const { return set_ && (getWidth()*getHeight() > 0.0); }
+
   double area() const {
     if (! set_) return 0.0;
 
@@ -1041,11 +892,13 @@ class BBox {
     return ! operator==(lhs, rhs);
   }
 
+  //---
+
+  QString toString() const;
+  bool fromString(const QString &s);
+
   void print(std::ostream &os) const {
-    if (! set_)
-      os << "{ }";
-    else
-      os << "{" << pmin_ << "} {" << pmax_ << "}";
+    os << toString().toStdString();
   }
 
   friend std::ostream &operator<<(std::ostream &os, const BBox &bbox) {
@@ -1074,6 +927,284 @@ inline BBox makeDirBBox(bool flipped, double x1, double y1, double x2, double y2
   else
     return BBox(y1, x1, y2, x2);
 }
+
+}
+
+//------
+
+namespace CQChartsGeom {
+
+/*!
+ * \brief Range class
+ * \ingroup Charts
+ *
+ * TODO: enforce min/max order always ? Same as BBox
+ */
+class Range {
+ public:
+  Range() { }
+
+  Range(double x1, double y1, double x2, double y2) :
+   set_(true), x1_(x1), y1_(y1), x2_(x2), y2_(y2) {
+  }
+
+  //---
+
+  bool isSet() const { return set_; }
+
+  void set(double x1, double y1, double x2, double y2) {
+    set_ = true;
+
+    x1_ = x1; y1_ = y1;
+    x2_ = x2; y2_ = y2;
+  }
+
+  bool get(double *x1, double *y1, double *x2, double *y2) const {
+    *x1 = x1_; *y1 = y1_;
+    *x2 = x2_; *y2 = y2_;
+
+    return set_;
+  }
+
+  void reset() {
+    set_ = false; x1_ = 0; y1_ = 0; x2_ = 0; y2_ = 0;
+  }
+
+  double dx() const { assert(set_); return x2_ - x1_; }
+  double dy() const { assert(set_); return y2_ - y1_; }
+
+  double xmid() const { assert(set_); return (x2_ + x1_)/2; }
+  double ymid() const { assert(set_); return (y2_ + y1_)/2; }
+
+  double xmin() const { assert(set_); return std::min(x1_, x2_); }
+  double ymin() const { assert(set_); return std::min(y1_, y2_); }
+  double xmax() const { assert(set_); return std::max(x1_, x2_); }
+  double ymax() const { assert(set_); return std::max(y1_, y2_); }
+
+  double min(bool horizontal) const { return (horizontal ? xmin() : ymin()); }
+  double max(bool horizontal) const { return (horizontal ? xmax() : ymax()); }
+
+  double left  () const { assert(set_); return x1_; }
+  double bottom() const { assert(set_); return y1_; }
+  double right () const { assert(set_); return x2_; }
+  double top   () const { assert(set_); return y2_; }
+
+  void setLeft  (double t) { set_ = true; x1_ = t; }
+  void setBottom(double t) { set_ = true; y1_ = t; }
+  void setRight (double t) { set_ = true; x2_ = t; }
+  void setTop   (double t) { set_ = true; y2_ = t; }
+
+  double xsize() const { assert(set_); return std::abs(x2_ - x1_); }
+  double ysize() const { assert(set_); return std::abs(y2_ - y1_); }
+
+  double size(bool horizontal) const { return (horizontal ? xsize() : ysize()); }
+
+  //---
+
+  CQChartsGeom::BBox bbox() const {
+     if (isSet())
+      return CQChartsGeom::BBox(xmin(), ymin(), xmax(), ymin());
+    else
+      return CQChartsGeom::BBox();
+  }
+
+#if 0
+  QRectF qrect() const {
+    if (isSet())
+      return QRectF(xmin(), ymin(), xsize(), ysize()).normalized();
+    else
+      return QRectF();
+  }
+#endif
+
+  //---
+
+  bool isZero() const { return isXZero() || isYZero(); }
+
+  bool isXZero() const { return CMathUtil::isZero(xsize()); }
+  bool isYZero() const { return CMathUtil::isZero(ysize()); }
+
+  void makeNonZero(double d=1.0) {
+    if (isSet()) {
+      if (isXZero()) {
+        double x = xmid(), y = ymid();
+
+        updateRange(x - d, y);
+        updateRange(x + d, y);
+      }
+
+      if (isYZero()) {
+        double x = xmid(), y = ymid();
+
+        updateRange(x, y - d);
+        updateRange(x, y + d);
+      }
+    }
+    else {
+      updateRange(-d, -d);
+      updateRange( d,  d);
+    }
+  }
+
+  Point center() const { assert(set_); return Point((x1_ + x2_)/2.0, (y1_ + y2_)/2.0); }
+
+  void inc(double dx, double dy) {
+    assert(set_);
+
+    x1_ += dx; y1_ += dy;
+    x2_ += dx; y2_ += dy;
+  }
+
+  void incX(double dx) { assert(set_); x1_ += dx; x2_ += dx; }
+  void incY(double dy) { assert(set_); y1_ += dy; y2_ += dy; }
+
+  void updateRange(const Point &p) {
+    updateRange(p.x, p.y);
+  }
+
+  void updateRange(double x, double y) {
+    if (! set_) {
+      x1_ = x; y1_ = y;
+      x2_ = x; y2_ = y;
+
+      set_ = true;
+    }
+    else {
+      x1_ = std::min(x1_, x); y1_ = std::min(y1_, y);
+      x2_ = std::max(x2_, x); y2_ = std::max(y2_, y);
+    }
+  }
+
+  Range &operator=(const Range &range) {
+    set_ = range.set_;
+    x1_  = range.x1_; y1_ = range.y1_;
+    x2_  = range.x2_; y2_ = range.y2_;
+
+    return *this;
+  }
+
+  friend bool operator==(const Range &lhs, const Range &rhs) {
+    if (! lhs.set_ && ! rhs.set_) return true;
+    if (! lhs.set_ || ! rhs.set_) return false;
+
+    return (lhs.x1_ == rhs.x1_ && lhs.y1_ == rhs.y1_ &&
+            lhs.x2_ == rhs.x2_ && lhs.y2_ == rhs.y2_);
+  }
+
+  friend bool operator!=(const Range &lhs, const Range &rhs) {
+    return ! (lhs == rhs);
+  }
+
+  void equalScale(double aspect) {
+    Point c = center();
+
+    double w = xsize();
+    double h = ysize();
+
+    if (aspect > 1.0) {
+      h = std::max(w, h);
+      w = h*aspect;
+    }
+    else {
+      w = std::max(w, h);
+      h = w/aspect;
+    }
+
+    x1_ = c.x - w/2;
+    x2_ = c.x + w/2;
+    y1_ = c.y - h/2;
+    y2_ = c.y + h/2;
+  }
+
+  // supplied point inside this rect
+  bool inside(double x, double y) const {
+    return inside(Point(x, y));
+  }
+
+  // supplied point inside this rect
+  bool inside(const Point &point) const {
+    if (! set_) return false;
+
+    return ((point.x >= x1_ && point.x <= x2_) &&
+            (point.y >= y1_ && point.y <= y2_));
+  }
+
+  void print(std::ostream &os) const {
+    os << x1_ << " " << y1_ << " " << x2_ << " " << y2_;
+  }
+
+  friend std::ostream &operator<<(std::ostream &os, const Range &range) {
+    range.print(os);
+
+    return os;
+  }
+
+ private:
+  bool   set_ { false };
+  double x1_ { 0 }, y1_ { 0 }, x2_ { 0 }, y2_ { 0 };
+};
+
+}
+
+//------
+
+namespace CQChartsGeom {
+
+class Polygon {
+ public:
+  Polygon() { }
+
+  explicit Polygon(const QPolygonF &qpoly) :
+   qpoly_(qpoly) {
+  }
+
+  explicit Polygon(const BBox &bbox) {
+   qpoly_ << bbox.getLL().qpoint();
+   qpoly_ << bbox.getUR().qpoint();
+  }
+
+  const QPolygonF &qpoly() const { return qpoly_; }
+
+  bool empty() const { return qpoly_.empty(); }
+
+  int size() const { return qpoly_.count(); }
+
+  const QPointF &qpoint(int i) const { return qpoly_.at(i); }
+  CQChartsGeom::Point point(int i) const { return CQChartsGeom::Point(qpoly_.at(i)); }
+
+  void addPoint(const Point &p) { qpoly_ << p.qpoint(); }
+  void addPoint(const QPointF &p) { qpoly_ << p; }
+
+  void setPoint(int i, const Point &p) { qpoly_[i] = p.qpoint(); }
+  void setPoint(int i, const QPointF &p) { qpoly_[i] = p; }
+
+  void removePoint() { qpoly_.pop_back(); }
+
+  void resize(int n) { qpoly_.resize(n); }
+
+  bool containsPoint(const Point &p, Qt::FillRule fillRule) const {
+    return qpoly_.containsPoint(p.qpoint(), fillRule);
+  }
+
+  bool containsPoint(const QPointF &p, Qt::FillRule fillRule) const {
+    return qpoly_.containsPoint(p, fillRule);
+  }
+
+  BBox boundingBox() const { return BBox(qpoly_.boundingRect()); }
+
+  friend bool operator==(const Polygon &lhs, const Polygon &rhs) {
+    return (lhs.qpoly_ == rhs.qpoly_ );
+  }
+
+  friend bool operator!=(const Polygon &lhs, const Polygon &rhs) {
+    return ! operator==(lhs, rhs);
+  }
+
+  double area() const { return CQUtil::polygonArea(qpoly_); }
+
+ private:
+  QPolygonF qpoly_;
+};
 
 }
 
@@ -2016,5 +2147,16 @@ inline CQChartsGeom::Point circlePoint(const CQChartsGeom::Point &c, double r, d
 }
 
 }
+
+//------
+
+namespace CQChartsGeom {
+
+void registerMetaTypes();
+
+}
+
+CQUTIL_DCL_META_TYPE(CQChartsGeom::BBox)
+CQUTIL_DCL_META_TYPE(CQChartsGeom::Point)
 
 #endif

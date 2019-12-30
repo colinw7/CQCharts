@@ -18,11 +18,11 @@ class CQChartsColumnsLineEdit;
 class CQChartsModelViewHolder;
 class CQChartsModelData;
 class CQChartsModelDetailsWidget;
+class CQChartsLineEdit;
 
 class CQSummaryModel;
 class CQIntegerSpin;
 class CQRealSpin;
-class CQLineEdit;
 
 class QAbstractItemModel;
 class QFrame;
@@ -70,8 +70,8 @@ class CQChartsCreatePlotDlg : public QDialog {
   };
 
   struct FormatEditData {
-    CQLineEdit*  formatEdit;
-    QToolButton* formatUpdate;
+    CQChartsLineEdit* formatEdit   { nullptr };
+    QToolButton*      formatUpdate { nullptr };
   };
 
   struct ColumnEditData {
@@ -83,7 +83,7 @@ class CQChartsCreatePlotDlg : public QDialog {
     using Names        = std::set<QString>;
     using ColumnEdits  = std::map<QString,ColumnEditData>;
     using ColumnsEdits = std::map<QString,CQChartsColumnsLineEdit*>;
-    using LineEdits    = std::map<QString,CQLineEdit*>;
+    using LineEdits    = std::map<QString,CQChartsLineEdit*>;
     using WidgetEdits  = std::map<QString,QWidget*>;
     using FormatEdits  = std::map<QString,FormatEditData>;
     using Combos       = std::map<QString,QComboBox*>;
@@ -161,10 +161,10 @@ class CQChartsCreatePlotDlg : public QDialog {
                                           const QString &name, const QString &objName,
                                           const QString &placeholderText, bool isBasic) const;
 
-  CQLineEdit *addRealEdit(QLayout *grid, int &row, int &column, const QString &name,
-                          const QString &objName, const QString &placeholderText) const;
-  CQLineEdit *addStringEdit(QLayout *grid, int &row, int &column, const QString &name,
-                            const QString &objName, const QString &placeholderText) const;
+  CQChartsLineEdit *addRealEdit(QLayout *grid, int &row, int &column, const QString &name,
+                                const QString &objName, const QString &placeholderText) const;
+  CQChartsLineEdit *addStringEdit(QLayout *grid, int &row, int &column, const QString &name,
+                                  const QString &objName, const QString &placeholderText) const;
 
   bool parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const;
 
@@ -240,14 +240,14 @@ class CQChartsCreatePlotDlg : public QDialog {
   using TypeInitialized = std::map<QString,bool>;
 
   struct RangeEditData {
-    CQLineEdit*  xminEdit   { nullptr }; //!< xmin edit
-    QToolButton* xminButton { nullptr }; //!< xmin load button
-    CQLineEdit*  yminEdit   { nullptr }; //!< ymin edit
-    QToolButton* yminButton { nullptr }; //!< ymin load button
-    CQLineEdit*  xmaxEdit   { nullptr }; //!< xmax edit
-    QToolButton* xmaxButton { nullptr }; //!< xmax load button
-    CQLineEdit*  ymaxEdit   { nullptr }; //!< ymax edit
-    QToolButton* ymaxButton { nullptr }; //!< ymax load button
+    CQChartsLineEdit* xminEdit   { nullptr }; //!< xmin edit
+    QToolButton*      xminButton { nullptr }; //!< xmin load button
+    CQChartsLineEdit* yminEdit   { nullptr }; //!< ymin edit
+    QToolButton*      yminButton { nullptr }; //!< ymin load button
+    CQChartsLineEdit* xmaxEdit   { nullptr }; //!< xmax edit
+    QToolButton*      xmaxButton { nullptr }; //!< xmax load button
+    CQChartsLineEdit* ymaxEdit   { nullptr }; //!< ymax edit
+    QToolButton*      ymaxButton { nullptr }; //!< ymax load button
   };
 
   struct SummaryEditData {
@@ -276,15 +276,15 @@ class CQChartsCreatePlotDlg : public QDialog {
 
   // filter edit
   QFrame*                  whereFrame_             { nullptr }; //!< where frame
-  CQLineEdit*              whereEdit_              { nullptr }; //!< where edit
+  CQChartsLineEdit*        whereEdit_              { nullptr }; //!< where edit
 
   // general widgets
-  CQLineEdit*              viewEdit_               { nullptr }; //!< view name edit
-  CQLineEdit*              posEdit_                { nullptr }; //!< position edit
+  CQChartsLineEdit*        viewEdit_               { nullptr }; //!< view name edit
+  CQChartsLineEdit*        posEdit_                { nullptr }; //!< position edit
   QCheckBox*               autoRangeEdit_          { nullptr }; //!< auto range check
-  CQLineEdit*              titleEdit_              { nullptr }; //!< title edit
-  CQLineEdit*              xLabelEdit_             { nullptr }; //!< x label edit
-  CQLineEdit*              yLabelEdit_             { nullptr }; //!< y label edit
+  CQChartsLineEdit*        titleEdit_              { nullptr }; //!< title edit
+  CQChartsLineEdit*        xLabelEdit_             { nullptr }; //!< x label edit
+  CQChartsLineEdit*        yLabelEdit_             { nullptr }; //!< y label edit
   RangeEditData            rangeEditData_;
   QCheckBox*               xintegralCheck_         { nullptr }; //!< x integral check
   QCheckBox*               yintegralCheck_         { nullptr }; //!< y integral check

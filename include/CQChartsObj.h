@@ -16,11 +16,11 @@ class CQCharts;
 class CQChartsObj : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(QString id       READ id         WRITE setId      )
-  Q_PROPERTY(QRectF  rect     READ qrect      WRITE setQRect   )
-  Q_PROPERTY(QString tipId    READ tipId      WRITE setTipId   )
-  Q_PROPERTY(bool    selected READ isSelected WRITE setSelected)
-  Q_PROPERTY(bool    inside   READ isInside   WRITE setInside  )
+  Q_PROPERTY(QString            id       READ id         WRITE setId      )
+  Q_PROPERTY(CQChartsGeom::BBox rect     READ rect       WRITE setRect    )
+  Q_PROPERTY(QString            tipId    READ tipId      WRITE setTipId   )
+  Q_PROPERTY(bool               selected READ isSelected WRITE setSelected)
+  Q_PROPERTY(bool               inside   READ isInside   WRITE setInside  )
 
  public:
   CQChartsObj(CQCharts *charts, const CQChartsGeom::BBox &rect=CQChartsGeom::BBox());
@@ -45,12 +45,6 @@ class CQChartsObj : public QObject {
   //! get set rect
   const CQChartsGeom::BBox &rect() const { return rect_; }
   virtual void setRect(const CQChartsGeom::BBox &r) { rect_ = r; }
-
-  //---
-
-  //! get set qrect (for property)
-  QRectF qrect() const { return rect().qrect(); }
-  void setQRect(const QRectF &r) { setRect(CQChartsGeom::BBox(r)); }
 
   //---
 

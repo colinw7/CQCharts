@@ -2,9 +2,8 @@
 #define CQChartsRect_H
 
 #include <CQChartsPosition.h>
-#include <CQChartsUtil.h>
+#include <CQChartsGeom.h>
 #include <QString>
-#include <QRectF>
 #include <iostream>
 
 //! Rectangle class
@@ -15,12 +14,13 @@ class CQChartsRect {
   static int metaTypeId;
 
  public:
-  CQChartsRect(const CQChartsUnits &units, const QRectF &rect) :
-   units_(units), rect_(rect) {
+  CQChartsRect(const CQChartsUnits &units, const CQChartsGeom::BBox &bbox) :
+   units_(units), bbox_(bbox) {
   }
 
-  CQChartsRect(const QRectF &rect=QRectF(), const CQChartsUnits &units=CQChartsUnits::PLOT) :
-   units_(units), rect_(rect) {
+  CQChartsRect(const CQChartsGeom::BBox &bbox=CQChartsGeom::BBox(),
+               const CQChartsUnits &units=CQChartsUnits::PLOT) :
+   units_(units), bbox_(bbox) {
   }
 
   CQChartsRect(const QString &s, const CQChartsUnits &units=CQChartsUnits::PLOT) {
@@ -28,50 +28,50 @@ class CQChartsRect {
   }
 
   CQChartsRect(const CQChartsRect &rhs) :
-    units_(rhs.units_), rect_(rhs.rect_) {
+    units_(rhs.units_), bbox_(rhs.bbox_) {
   }
 
   CQChartsRect &operator=(const CQChartsRect &rhs) {
     units_ = rhs.units_;
-    rect_  = rhs.rect_;
+    bbox_  = rhs.bbox_;
 
     return *this;
   }
 
   //---
 
-  bool isValid() const { return units_ != CQChartsUnits::NONE; }
+  bool isValid() const { return isSet() && bbox_.isValid(); }
 
   //---
 
   const CQChartsUnits &units() const { return units_; }
   void setUnits(const CQChartsUnits &units) { units_ = units; }
 
+  bool hasUnits() const { return units_ != CQChartsUnits::NONE; }
+
   //---
 
-  const QRectF &rect() const { return rect_; }
+  const CQChartsGeom::BBox &bbox() const { return bbox_; }
 
-  void setValue(const CQChartsUnits &units, const QRectF &rect) {
+  void setValue(const CQChartsUnits &units, const CQChartsGeom::BBox &bbox) {
     units_ = units;
-    rect_  = rect;
+    bbox_  = bbox;
   }
 
   bool setValue(const QString &str, const CQChartsUnits &defUnits=CQChartsUnits::PLOT) {
     CQChartsUnits units;
-    QRectF        rect;
+    CQChartsGeom::BBox        bbox;
 
-    if (! decodeString(str, units, rect, defUnits))
+    if (! decodeString(str, units, bbox, defUnits))
       return false;
 
     units_ = units;
-    rect_  = rect;
+    bbox_  = bbox;
 
     return true;
   }
 
-  bool isSet() const {
-    return (units_ != CQChartsUnits::NONE);
-  }
+  bool isSet() const { return bbox_.isSet(); }
 
   //---
 
@@ -79,7 +79,8 @@ class CQChartsRect {
     QString ustr = CQChartsUtil::unitsString(units_);
 
     return QString("%1 %2 %3 %4 %5").
-             arg(rect_.left()).arg(rect_.bottom()).arg(rect_.right()).arg(rect_.top()).arg(ustr);
+             arg(bbox_.getXMin()).arg(bbox_.getYMin()).
+             arg(bbox_.getXMax()).arg(bbox_.getYMax()).arg(ustr);
   }
 
   bool fromString(const QString &s) {
@@ -90,7 +91,7 @@ class CQChartsRect {
 
   friend bool operator==(const CQChartsRect &lhs, const CQChartsRect &rhs) {
     if (lhs.units_ != rhs.units_) return false;
-    if (lhs.rect_  != rhs.rect_ ) return false;
+    if (lhs.bbox_  != rhs.bbox_ ) return false;
 
     return true;
   }
@@ -114,12 +115,12 @@ class CQChartsRect {
   //---
 
  private:
-  static bool decodeString(const QString &str, CQChartsUnits &units, QRectF &rect,
+  static bool decodeString(const QString &str, CQChartsUnits &units, CQChartsGeom::BBox &bbox,
                            const CQChartsUnits &defUnits=CQChartsUnits::PLOT);
 
  private:
-  CQChartsUnits units_ { CQChartsUnits::PLOT };
-  QRectF        rect_;
+  CQChartsUnits      units_ { CQChartsUnits::PLOT };
+  CQChartsGeom::BBox bbox_;
 };
 
 //---

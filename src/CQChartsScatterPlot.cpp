@@ -55,7 +55,7 @@ addParameters()
     setTip("Plot type");
 
   addBoolParameter("pointLabels", "Point Labels", "pointLabels").
-    setTip("Show Label at Point");
+    setTip("Show Label at Point").setPropPath("labels.visible");
 
   endParameterGroup();
 
@@ -1064,7 +1064,7 @@ addPointObjects(PlotObjs &objs) const
         // get point position
         const ValueData &valuePoint = values[iv];
 
-        const QPointF &p = valuePoint.p;
+        const CQChartsGeom::Point &p = valuePoint.p;
 
         //---
 
@@ -1087,7 +1087,7 @@ addPointObjects(PlotObjs &objs) const
         ColorInd ig1(ig, ng);
         ColorInd iv1(iv, nv);
 
-        CQChartsGeom::BBox bbox(p.x() - sx, p.y() - sy, p.x() + sx, p.y() + sy);
+        CQChartsGeom::BBox bbox(p.x - sx, p.y - sy, p.x + sx, p.y + sy);
 
         CQChartsScatterPointObj *pointObj =
           new CQChartsScatterPointObj(this, groupInd, bbox, p, is1, ig1, iv1);
@@ -1405,7 +1405,7 @@ CQChartsScatterPlot::
 addNameValue(int groupInd, const QString &name, double x, double y, int row,
              const QModelIndex &xind, const CQChartsColor &color)
 {
-  QPointF p(x, y);
+  CQChartsGeom::Point p(x, y);
 
   if (isGridCells()) {
     auto pi = groupNameGridData_.find(groupInd);
@@ -1429,8 +1429,8 @@ addNameValue(int groupInd, const QString &name, double x, double y, int row,
   else {
     ValuesData &valuesData = groupNameValues_[groupInd][name];
 
-    valuesData.xrange.add(p.x());
-    valuesData.yrange.add(p.y());
+    valuesData.xrange.add(p.x);
+    valuesData.yrange.add(p.y);
 
     valuesData.values.emplace_back(p, row, xind, color);
   }
@@ -1657,18 +1657,18 @@ calcAnnotationBBox() const
       double y = (xRugSide() == YSide::BOTTOM ? dataRange.ymin() - 2*sy :
                                                 dataRange.ymax() + 2*sy);
 
-      QPointF p(dataRange.xmax(), y);
+      CQChartsGeom::Point p(dataRange.xmax(), y);
 
-      bbox += CQChartsGeom::Point(p);
+      bbox += p;
     }
 
     if (isYRug()) {
       double x = (yRugSide() == XSide::LEFT ? dataRange.xmin() - 2*sx :
                                               dataRange.xmax() + 2*sx);
 
-      QPointF p(x, dataRange.ymax());
+      CQChartsGeom::Point p(x, dataRange.ymax());
 
-      bbox += CQChartsGeom::Point(p);
+      bbox += p;
     }
 
     //---
@@ -1680,9 +1680,9 @@ calcAnnotationBBox() const
       double pos = (xDensitySide() == YSide::BOTTOM ?
         dataRange.ymin() - dw : dataRange.ymax() + dw);
 
-      QPointF p1(dataRange.xmax(), pos);
+      CQChartsGeom::Point p1(dataRange.xmax(), pos);
 
-      bbox += CQChartsGeom::Point(p1);
+      bbox += p1;
     }
 
     if (isYDensity()) {
@@ -1691,9 +1691,9 @@ calcAnnotationBBox() const
       double pos = (yDensitySide() == XSide::LEFT ?
         dataRange.xmin() - dw : dataRange.xmax() + dw);
 
-      QPointF p2(pos, dataRange.ymin());
+      CQChartsGeom::Point p2(pos, dataRange.ymin());
 
-      bbox += CQChartsGeom::Point(p2);
+      bbox += p2;
     }
 
     //---
@@ -1708,9 +1708,9 @@ calcAnnotationBBox() const
       double pos = (xWhiskerSide() == YSide::BOTTOM ?
         dataRange.ymin() - ww - 2*wm : dataRange.ymax() + ww + 2*wm);
 
-      QPointF p1(dataRange.xmax(), pos);
+      CQChartsGeom::Point p1(dataRange.xmax(), pos);
 
-      bbox += CQChartsGeom::Point(p1);
+      bbox += p1;
     }
 
     if (isYWhisker()) {
@@ -1722,9 +1722,9 @@ calcAnnotationBBox() const
       double pos = (yWhiskerSide() == XSide::LEFT ?
         dataRange.xmin() - ww - 2*wm : dataRange.xmax() + ww + 2*wm);
 
-      QPointF p2(pos, dataRange.ymin());
+      CQChartsGeom::Point p2(pos, dataRange.ymin());
 
-      bbox += CQChartsGeom::Point(p2);
+      bbox += p2;
     }
   }
 
@@ -1818,11 +1818,11 @@ initGroupBestFit(int groupInd) const
 
         //---
 
-        QPolygonF poly;
+        CQChartsGeom::Polygon poly;
 
         for (const auto &p : points) {
-          if (! statData.xstat.isOutlier(p.x()) && ! statData.ystat.isOutlier(p.y()))
-            poly.push_back(p);
+          if (! statData.xstat.isOutlier(p.x) && ! statData.ystat.isOutlier(p.y))
+            poly.addPoint(p);
         }
 
         //---
@@ -1854,8 +1854,8 @@ initGroupStats(int groupInd) const
       std::vector<double> x, y;
 
       for (std::size_t i = 0; i < points.size(); ++i) {
-        x.push_back(points[i].x());
-        y.push_back(points[i].y());
+        x.push_back(points[i].x);
+        y.push_back(points[i].y);
       }
 
       std::sort(x.begin(), x.end());
@@ -1901,7 +1901,7 @@ drawBestFit(CQChartsPaintDevice *device) const
     //---
 
     // calc fit shape at each pixel
-    QPolygonF bpoly, poly, tpoly;
+    CQChartsGeom::Polygon bpoly, poly, tpoly;
 
     CQChartsGeom::Point pl = CQChartsGeom::Point(fitData.xmin(), 0);
     CQChartsGeom::Point pr = CQChartsGeom::Point(fitData.xmax(), 0);
@@ -1916,17 +1916,17 @@ drawBestFit(CQChartsPaintDevice *device) const
 
       CQChartsGeom::Point p2 = CQChartsGeom::Point(p1.x, y2);
 
-      poly << QPointF(p2.x, p2.y);
+      poly.addPoint(p2);
 
       // deviation curve above/below
       if (isBestFitDeviation()) {
         p2 = CQChartsGeom::Point(p1.x, y2 - fitData.deviation());
 
-        bpoly << QPointF(p2.x, p2.y);
+        bpoly.addPoint(p2);
 
         p2 = CQChartsGeom::Point(p1.x, y2 + fitData.deviation());
 
-        tpoly << QPointF(p2.x, p2.y);
+        tpoly.addPoint(p2);
       }
     }
 
@@ -1954,18 +1954,18 @@ drawBestFit(CQChartsPaintDevice *device) const
 
       // draw fit deviation shape
       if (isBestFitDeviation()) {
-        QPolygonF dpoly;
+        CQChartsGeom::Polygon dpoly;
 
         for (int i = 0; i < bpoly.size(); ++i) {
-          const QPointF &p = bpoly[i];
+          CQChartsGeom::Point p = bpoly.point(i);
 
-          dpoly << p;
+          dpoly.addPoint(p);
         }
 
         for (int i = tpoly.size() - 1; i >= 0; --i) {
-          const QPointF &p = tpoly[i];
+          CQChartsGeom::Point p = tpoly.point(i);
 
-          dpoly << p;
+          dpoly.addPoint(p);
         }
 
         device->drawPolygon(dpoly);
@@ -2036,15 +2036,15 @@ drawStatsLines(CQChartsPaintDevice *device) const
     //---
 
     auto drawXStatLine = [&](double x) {
-      QPointF p1 = QPointF(x, statData.ystat.loutlier);
-      QPointF p2 = QPointF(x, statData.ystat.uoutlier);
+      CQChartsGeom::Point p1(x, statData.ystat.loutlier);
+      CQChartsGeom::Point p2(x, statData.ystat.uoutlier);
 
       device->drawLine(p1, p2);
     };
 
     auto drawYStatLine = [&](double y) {
-      QPointF p1 = QPointF(statData.xstat.loutlier, y);
-      QPointF p2 = QPointF(statData.xstat.uoutlier, y);
+      CQChartsGeom::Point p1(statData.xstat.loutlier, y);
+      CQChartsGeom::Point p2(statData.xstat.uoutlier, y);
 
       device->drawLine(p1, p2);
     };
@@ -2604,7 +2604,7 @@ initWhiskerData() const
         if (pointObj && pointObj->groupInd() == groupInd) {
           CQChartsXYBoxWhisker *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
-          whiskerData1->xWhisker.addValue(pointObj->point().x());
+          whiskerData1->xWhisker.addValue(pointObj->point().x);
         }
       }
     }
@@ -2620,7 +2620,7 @@ initWhiskerData() const
         if (pointObj && pointObj->groupInd() == groupInd) {
           CQChartsXYBoxWhisker *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
-          whiskerData1->yWhisker.addValue(pointObj->point().y());
+          whiskerData1->yWhisker.addValue(pointObj->point().y);
         }
       }
     }
@@ -2665,7 +2665,7 @@ initWhiskerData() const
 
             CQChartsXYBoxWhisker *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
-            whiskerData1->xWhisker.addValue(p.x());
+            whiskerData1->xWhisker.addValue(p.x);
           }
         }
       }
@@ -2686,7 +2686,7 @@ initWhiskerData() const
 
             CQChartsXYBoxWhisker *whiskerData1 = const_cast<CQChartsXYBoxWhisker *>(whiskerData);
 
-            whiskerData1->yWhisker.addValue(p.y());
+            whiskerData1->yWhisker.addValue(p.y);
           }
         }
       }
@@ -2746,18 +2746,18 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
   QColor fillColor2 = interpSymbolFillColor(ColorInd(0.5)); fillColor2.setAlphaF(a);
   QColor fillColor3 = interpSymbolFillColor(ColorInd(0.0)); fillColor3.setAlphaF(a);
 
-  device->setBrush(fillColor1); device->drawEllipse(device->pixelToWindow(pbbox1).qrect());
-  device->setBrush(fillColor2); device->drawEllipse(device->pixelToWindow(pbbox2).qrect());
-  device->setBrush(fillColor3); device->drawEllipse(device->pixelToWindow(pbbox3).qrect());
+  device->setBrush(fillColor1); device->drawEllipse(device->pixelToWindow(pbbox1));
+  device->setBrush(fillColor2); device->drawEllipse(device->pixelToWindow(pbbox2));
+  device->setBrush(fillColor3); device->drawEllipse(device->pixelToWindow(pbbox3));
 
-  auto drawText = [&](const QPointF &p, double value) {
+  auto drawText = [&](const CQChartsGeom::Point &p, double value) {
     QString text = QString("%1").arg(value);
 
     QFontMetricsF fm(device->font());
 
-    QPointF p1(p.x() - fm.width(text)/2, p.y());
+    CQChartsGeom::Point p1(p.x - fm.width(text)/2, p.y);
 
-    QPointF p2 = device->pixelToWindow(p1);
+    CQChartsGeom::Point p2 = device->pixelToWindow(p1);
 
     CQChartsTextOptions options;
 
@@ -2768,16 +2768,16 @@ drawSymbolMapKey(CQChartsPaintDevice *device) const
 //  CQChartsDrawUtil::drawSimpleText(device, p2, text);
   };
 
-  drawText(QPointF(pbbox1.getXMid(), pbbox1.getYMin()), max );
-  drawText(QPointF(pbbox2.getXMid(), pbbox2.getYMin()), mean);
-  drawText(QPointF(pbbox3.getXMid(), pbbox3.getYMin()), min );
+  drawText(CQChartsGeom::Point(pbbox1.getXMid(), pbbox1.getYMin()), max );
+  drawText(CQChartsGeom::Point(pbbox2.getXMid(), pbbox2.getYMin()), mean);
+  drawText(CQChartsGeom::Point(pbbox3.getXMid(), pbbox3.getYMin()), min );
 }
 
 //------
 
 CQChartsScatterPointObj::
 CQChartsScatterPointObj(const CQChartsScatterPlot *plot, int groupInd,
-                        const CQChartsGeom::BBox &rect, const QPointF &pos,
+                        const CQChartsGeom::BBox &rect, const CQChartsGeom::Point &pos,
                         const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsScatterPlot *>(plot), rect, is, ig, iv),
  plot_(plot), groupInd_(groupInd), pos_(pos)
@@ -2877,8 +2877,8 @@ calcTipId() const
   //---
 
   // add x, y columns
-  QString xstr = plot()->xStr(pos_.x());
-  QString ystr = plot()->yStr(pos_.y());
+  QString xstr = plot()->xStr(pos_.x);
+  QString ystr = plot()->yStr(pos_.y);
 
   tableTip.addTableRow(plot_->xHeaderName(), xstr);
   tableTip.addTableRow(plot_->yHeaderName(), ystr);
@@ -2946,9 +2946,9 @@ inside(const CQChartsGeom::Point &p) const
 
   plot_->pixelSymbolSize(this->symbolSize(), sx, sy);
 
-  QPointF p1 = plot_->windowToPixel(pos_);
+  CQChartsGeom::Point p1 = plot_->windowToPixel(pos_);
 
-  CQChartsGeom::BBox pbbox(p1.x() - sx, p1.y() - sy, p1.x() + sx, p1.y() + sy);
+  CQChartsGeom::BBox pbbox(p1.x - sx, p1.y - sy, p1.x + sx, p1.y + sy);
 
   CQChartsGeom::Point pp = plot_->windowToPixel(p);
 
@@ -3019,7 +3019,7 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
   //---
 
   // get point
-  QPointF ps = plot_->windowToPixel(pos_);
+  CQChartsGeom::Point ps = plot_->windowToPixel(pos_);
 
   if (dir != Dir::XY) {
     // Dir::X and Dir::Y are X/Y Rug Symbols
@@ -3045,7 +3045,7 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
   QImage image = this->image();
 
   if (image.isNull()) {
-    QPointF ps1 = plot_->pixelToWindow(ps);
+    CQChartsGeom::Point ps1 = plot_->pixelToWindow(ps);
 
     plot_->drawSymbol(device, ps1, symbolType, symbolSize, penBrush);
   }
@@ -3060,7 +3060,7 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
       sy = sx*(1.0/aspect);
     }
 
-    CQChartsGeom::BBox ibbox(ps.x() - sx, ps.y() - sy, ps.x() + 2*sx, ps.y() + 2*sy);
+    CQChartsGeom::BBox ibbox(ps.x - sx, ps.y - sy, ps.x + 2*sx, ps.y + 2*sy);
 
     device->drawImageInRect(plot()->pixelToWindow(ibbox), image);
   }
@@ -3110,10 +3110,9 @@ drawDir(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
     //---
 
     // draw text
-    CQChartsGeom::BBox ptbbox(ps.x() - sx, ps.y() - sy, ps.x() + sx, ps.y() + sy);
+    CQChartsGeom::BBox ptbbox(ps.x - sx, ps.y - sy, ps.x + sx, ps.y + sy);
 
-    dataLabel->draw(device, plot_->pixelToWindow(ptbbox).qrect(), name_,
-                    dataLabel->position(), tpen);
+    dataLabel->draw(device, plot_->pixelToWindow(ptbbox), name_, dataLabel->position(), tpen);
 
     //---
 
@@ -3154,9 +3153,9 @@ xColorValue(bool relative) const
   const CQChartsGeom::Range &dataRange = plot_->dataRange();
 
   if (relative)
-    return CMathUtil::map(pos_.x(), dataRange.xmin(), dataRange.xmax(), 0.0, 1.0);
+    return CMathUtil::map(pos_.x, dataRange.xmin(), dataRange.xmax(), 0.0, 1.0);
   else
-    return pos_.x();
+    return pos_.x;
 }
 
 double
@@ -3166,9 +3165,9 @@ yColorValue(bool relative) const
   const CQChartsGeom::Range &dataRange = plot_->dataRange();
 
   if (relative)
-    return CMathUtil::map(pos_.y(), dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
+    return CMathUtil::map(pos_.y, dataRange.ymin(), dataRange.ymax(), 0.0, 1.0);
   else
-    return pos_.y();
+    return pos_.y;
 }
 
 //------
@@ -3247,7 +3246,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw rect
-  device->drawRect(rect().qrect());
+  device->drawRect(rect());
 
   //---
 
@@ -3311,7 +3310,7 @@ drawRugSymbol(CQChartsPaintDevice *device, const Dir &dir, bool flip) const
     if (plot_->isInterrupt())
       return;
 
-    QPointF ps = plot_->windowToPixel(p);
+    CQChartsGeom::Point ps = plot_->windowToPixel(p);
 
     // Dir::X and Dir::Y are X/Y Rug Symbols
     CQChartsGeom::BBox pbbox = plot_->calcDataPixelRect();
@@ -3419,7 +3418,7 @@ CQChartsScatterGridKeyItem(CQChartsScatterPlot *plot) :
 {
 }
 
-QSizeF
+CQChartsGeom::Size
 CQChartsScatterGridKeyItem::
 size() const
 {
@@ -3437,7 +3436,7 @@ size() const
   double ww = plot_->pixelToWindowWidth (2*fw + tw + 6);
   double wh = plot_->pixelToWindowHeight(7*fh + fh + 4);
 
-  return QSizeF(ww, wh);
+  return CQChartsGeom::Size(ww, wh);
 }
 
 void
@@ -3472,19 +3471,19 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
   //---
 
   // draw gradient in left box
-  QPointF pg1 = QPointF(lprect.getXMin(), lprect.getYMax());
-  QPointF pg2 = QPointF(lprect.getXMin(), lprect.getYMin());
+  CQChartsGeom::Point pg1(lprect.getXMin(), lprect.getYMax());
+  CQChartsGeom::Point pg2(lprect.getXMin(), lprect.getYMin());
 
-  QLinearGradient lg(pg1.x(), pg1.y(), pg2.x(), pg2.y());
+  QLinearGradient lg(pg1.x, pg1.y, pg2.x, pg2.y);
 
   plot_->view()->themePalette()->setLinearGradient(lg, 1.0);
 
   QBrush brush(lg);
 
-  CQChartsGeom::BBox fbbox(pg1.x()                    , pg2.y(),
-                           pg1.x() + lprect.getWidth(), pg2.y() + lprect.getHeight());
+  CQChartsGeom::BBox fbbox(pg1.x                    , pg2.y,
+                           pg1.x + lprect.getWidth(), pg2.y + lprect.getHeight());
 
-  device->fillRect(device->pixelToWindow(fbbox).qrect(), brush);
+  device->fillRect(device->pixelToWindow(fbbox), brush);
 
   //---
 
@@ -3520,8 +3519,8 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
   //---
 
   // draw key labels
-  auto drawTextLabel = [&](const QPointF &p, int n) {
-    QPointF p1 = device->pixelToWindow(p);
+  auto drawTextLabel = [&](const CQChartsGeom::Point &p, int n) {
+    CQChartsGeom::Point p1 = device->pixelToWindow(p);
 
     QString text = QString("%1").arg(n);
 
@@ -3537,9 +3536,9 @@ draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect) const
   double x1 = rprect.getXMin();
   double df = (fm.ascent() - fm.descent())/2.0;
 
-  drawTextLabel(QPointF(x1, y1 + df), n1);
-  drawTextLabel(QPointF(x1, y2 + df), n2);
-  drawTextLabel(QPointF(x1, y3 + df), n3);
-  drawTextLabel(QPointF(x1, y4 + df), n4);
-  drawTextLabel(QPointF(x1, y5 + df), n5);
+  drawTextLabel(CQChartsGeom::Point(x1, y1 + df), n1);
+  drawTextLabel(CQChartsGeom::Point(x1, y2 + df), n2);
+  drawTextLabel(CQChartsGeom::Point(x1, y3 + df), n3);
+  drawTextLabel(CQChartsGeom::Point(x1, y4 + df), n4);
+  drawTextLabel(CQChartsGeom::Point(x1, y5 + df), n5);
 }

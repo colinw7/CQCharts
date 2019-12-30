@@ -136,6 +136,7 @@ class CQChartsPlotParameter : public QObject {
   Q_PROPERTY(QString  desc            READ desc            WRITE setDesc    )
   Q_PROPERTY(QString  type            READ typeName        WRITE setTypeName)
   Q_PROPERTY(QString  propName        READ propName        WRITE setPropName)
+  Q_PROPERTY(QString  propPath        READ propPath        WRITE setPropPath)
   Q_PROPERTY(int      groupId         READ groupId         WRITE setGroupId )
   Q_PROPERTY(QVariant defValue        READ defValue        WRITE setDefValue)
   Q_PROPERTY(QString  tip             READ tip             WRITE setTip     )
@@ -186,9 +187,13 @@ class CQChartsPlotParameter : public QObject {
   QString typeName() const;
   CQChartsPlotParameter &setTypeName(const QString &name);
 
-  //! get/set property name
+  //! get/set qt property name
   const QString &propName() const { return propName_; }
   CQChartsPlotParameter &setPropName(const QString &s) { propName_ = s; return *this; }
+
+  //! get/set property model path
+  const QString &propPath() const { return propPath_; }
+  CQChartsPlotParameter &setPropPath(const QString &s) { propPath_ = s; return *this; }
 
   //! get/set attributes
   const Attributes &attributes() const { return attributes_; }
@@ -333,7 +338,8 @@ class CQChartsPlotParameter : public QObject {
   QString    name_;                    //!< name
   QString    desc_;                    //!< description
   Type       type_     { Type::NONE }; //!< type
-  QString    propName_;                //!< property name
+  QString    propName_;                //!< qt property name
+  QString    propPath_;                //!< property model path
   Attributes attributes_;              //!< attributes
   int        groupId_ { -1 };          //!< parent group id
   QVariant   defValue_;                //!< default value

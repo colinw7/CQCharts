@@ -199,7 +199,7 @@ drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush
 {
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  CQChartsDrawUtil::drawRoundedPolygon(device, rect.qrect(), cornerSize, cornerSize);
+  CQChartsDrawUtil::drawRoundedPolygon(device, rect, cornerSize, cornerSize);
 }
 
 void
@@ -236,7 +236,7 @@ writeScriptData(CQChartsScriptPainter *device) const
   writeScriptGC(device, penBrush_);
 
   if      (this->isPolygon()) {
-    QPolygonF poly = this->polygon();
+    CQChartsGeom::Polygon poly = this->polygon();
 
     int np = poly.size();
 
@@ -246,7 +246,7 @@ writeScriptData(CQChartsScriptPainter *device) const
     for (int i = 0; i < np; ++i) {
       if (i > 0) os << ", ";
 
-      os << poly[i].x() << ", " << poly[i].y();
+      os << poly.point(i).x << ", " << poly.point(i).y;
     }
 
     os << "];\n";

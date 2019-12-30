@@ -1026,12 +1026,12 @@ class CQChartsSmooth {
     smooth();
   }
 
-  CQChartsSmooth(const QPolygonF &poly, bool sorted=true) :
+  CQChartsSmooth(const CQChartsGeom::Polygon &poly, bool sorted=true) :
    sorted_(sorted) {
-    int np = poly.count();
+    int np = poly.size();
 
     for (int i = 0; i < np; ++i)
-      points_.push_back(CQChartsGeom::Point(poly[i]));
+      points_.push_back(poly.point(i));
 
     reset();
 

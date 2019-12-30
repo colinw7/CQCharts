@@ -304,7 +304,7 @@ class CQChartsView : public QFrame,
 
   QFont plotFont(const CQChartsPlot *plot, const CQChartsFont &font) const;
 
-  double calcFontScale(const QSizeF &size) const;
+  double calcFontScale(const CQChartsGeom::Size &size) const;
 
   //---
 
@@ -320,7 +320,7 @@ class CQChartsView : public QFrame,
 
   QFont plotFont(const CQChartsPlot *plot, const QFont &font) const;
 
-  QFont scaledFont(const QFont &font, const QSizeF &size) const;
+  QFont scaledFont(const QFont &font, const CQChartsGeom::Size &size) const;
   QFont scaledFont(const QFont &font, double s) const;
 
   //---
@@ -738,8 +738,8 @@ class CQChartsView : public QFrame,
   //---
 
   // position, rect, length coordinate conversions
-  QPointF positionToView (const CQChartsPosition &pos) const;
-  QPointF positionToPixel(const CQChartsPosition &pos) const;
+  CQChartsGeom::Point positionToView (const CQChartsPosition &pos) const;
+  CQChartsGeom::Point positionToPixel(const CQChartsPosition &pos) const;
 
   // rect
   CQChartsGeom::BBox rectToView (const CQChartsRect &rect) const;
@@ -757,14 +757,8 @@ class CQChartsView : public QFrame,
   CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &w) const;
   CQChartsGeom::Point pixelToWindow(const CQChartsGeom::Point &p) const;
 
-  QPointF windowToPixel(const QPointF &w) const;
-  QPointF pixelToWindow(const QPointF &p) const;
-
   CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &w) const;
   CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &p) const;
-
-  QRectF windowToPixel(const QRectF &w) const;
-  QRectF pixelToWindow(const QRectF &p) const;
 
   double pixelToSignedWindowWidth (double ww) const;
   double pixelToSignedWindowHeight(double wh) const;
@@ -778,9 +772,9 @@ class CQChartsView : public QFrame,
   double windowToPixelWidth (double ww) const;
   double windowToPixelHeight(double wh) const;
 
-  QSizeF pixelToWindowSize(const QSizeF &ps) const;
+  CQChartsGeom::Size pixelToWindowSize(const CQChartsGeom::Size &ps) const;
 
-  QPolygonF windowToPixel(const QPolygonF &p) const;
+  CQChartsGeom::Polygon windowToPixel(const CQChartsGeom::Polygon &p) const;
 
   QPainterPath windowToPixel(const QPainterPath &p) const;
 

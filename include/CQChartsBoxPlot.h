@@ -187,7 +187,7 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   int                           setId_    { 0 };       //!< set id
   int                           groupInd_ { 0 };       //!< group ind
   const CQChartsBoxPlotWhisker* whisker_  { nullptr }; //!< whisker data
-  QPolygonF                     poly_;                 //!< draw polygon
+  CQChartsGeom::Polygon         poly_;                 //!< draw polygon
 };
 
 //---
@@ -292,8 +292,8 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
  private:
   const CQChartsBoxPlot* plot_     { nullptr }; //!< parent plot
   int                    groupInd_ { -1 };      //!< group ind
-  QPolygonF              line_;                 //!< connected line
-  QPolygonF              poly_;                 //!< connected polygon
+  CQChartsGeom::Polygon  line_;                 //!< connected line
+  CQChartsGeom::Polygon  poly_;                 //!< connected polygon
 };
 
 //---
@@ -307,8 +307,9 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
 
  public:
   CQChartsBoxPlotPointObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
-                          int setId, int groupInd, const QPointF &p, const QModelIndex &ind,
-                          const ColorInd &is, const ColorInd &ig, const ColorInd &iv);
+                          int setId, int groupInd, const CQChartsGeom::Point &p,
+                          const QModelIndex &ind, const ColorInd &is, const ColorInd &ig,
+                          const ColorInd &iv);
 
   QString typeName() const override { return "point"; }
 
@@ -325,7 +326,7 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
   const CQChartsBoxPlot* plot_     { nullptr }; //!< parent plot
   int                    setId_    { -1 };      //!< set id
   int                    groupInd_ { -1 };      //!< group id
-  QPointF                p_;                    //!< point
+  CQChartsGeom::Point    p_;                    //!< point
 };
 
 //---

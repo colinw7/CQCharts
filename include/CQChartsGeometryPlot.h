@@ -57,7 +57,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   Q_PROPERTY(CQChartsStyle style READ style WRITE setStyle)
 
  public:
-  using Polygons = std::vector<QPolygonF>;
+  using Polygons = std::vector<CQChartsGeom::Polygon>;
 
  public:
   CQChartsGeometryObj(const CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
@@ -70,7 +70,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   QString calcTipId() const override;
 
   bool isPolygon() const override { return true; }
-  QPolygonF polygon() const override { return polygons_[0]; }
+  CQChartsGeom::Polygon polygon() const override { return polygons_[0]; }
 
   //---
 
@@ -141,7 +141,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
  public:
-  using Polygons = std::vector<QPolygonF>;
+  using Polygons = std::vector<CQChartsGeom::Polygon>;
   using OptReal  = boost::optional<double>;
 
   //! geometry data

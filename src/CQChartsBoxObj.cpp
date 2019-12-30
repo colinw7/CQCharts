@@ -67,7 +67,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &de
 
 void
 CQChartsBoxObj::
-draw(CQChartsPaintDevice *device, const QRectF &rect) const
+draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox) const
 {
   // set pen and brush
   CQChartsPenBrush penBrush;
@@ -82,12 +82,13 @@ draw(CQChartsPaintDevice *device, const QRectF &rect) const
   if (isStateColoring())
     updatePenBrushState(penBrush);
 
-  draw(device, rect, penBrush);
+  draw(device, bbox, penBrush);
 }
 
 void
 CQChartsBoxObj::
-draw(CQChartsPaintDevice *device, const QRectF &rect, const CQChartsPenBrush &penBrush) const
+draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
+     const CQChartsPenBrush &penBrush) const
 {
   if (isFilled()) {
     // set pen and brush
@@ -100,7 +101,7 @@ draw(CQChartsPaintDevice *device, const QRectF &rect, const CQChartsPenBrush &pe
     //---
 
     // fill box
-    CQChartsDrawUtil::drawRoundedPolygon(device, rect, cornerSize(), cornerSize(), borderSides());
+    CQChartsDrawUtil::drawRoundedPolygon(device, bbox, cornerSize(), cornerSize(), borderSides());
   }
 
   if (isStroked()) {
@@ -114,7 +115,7 @@ draw(CQChartsPaintDevice *device, const QRectF &rect, const CQChartsPenBrush &pe
     //---
 
     // stroke box
-    CQChartsDrawUtil::drawRoundedPolygon(device, rect, cornerSize(), cornerSize(), borderSides());
+    CQChartsDrawUtil::drawRoundedPolygon(device, bbox, cornerSize(), cornerSize(), borderSides());
   }
 }
 
@@ -130,7 +131,7 @@ boxDataInvalidate()
 
 void
 CQChartsBoxObj::
-draw(CQChartsPaintDevice *device, const QPolygonF &poly) const
+draw(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly) const
 {
   if (isFilled()) {
     CQChartsPenBrush penBrush;

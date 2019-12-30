@@ -19,12 +19,12 @@ CQChartsTitleLocation::
 toString() const
 {
   switch (type_) {
-    case Type::TOP:      return "TOP";
-    case Type::CENTER:   return "CENTER";
-    case Type::BOTTOM:   return "BOTTOM";
-    case Type::ABS_POS:  return "ABS_POS";
-    case Type::ABS_RECT: return "ABS_RECT";
-    default:             return "NONE";
+    case Type::TOP:           return "TOP";
+    case Type::CENTER:        return "CENTER";
+    case Type::BOTTOM:        return "BOTTOM";
+    case Type::ABS_POSITION:  return "ABS_POSITION";
+    case Type::ABS_RECTANGLE: return "ABS_RECTANGLE";
+    default:                  return "NONE";
   }
 }
 
@@ -36,12 +36,12 @@ fromString(const QString &str)
 
   QString lstr = str.toLower();
 
-  if      (lstr == "top"     ) type = Type::TOP;
-  else if (lstr == "center"  ) type = Type::CENTER;
-  else if (lstr == "bottom"  ) type = Type::BOTTOM;
-  else if (lstr == "abs_pos" ) type = Type::ABS_POS;
-  else if (lstr == "abs_rect") type = Type::ABS_RECT;
-  else                         return false;
+  if      (lstr == "top"          ) type = Type::TOP;
+  else if (lstr == "center"       ) type = Type::CENTER;
+  else if (lstr == "bottom"       ) type = Type::BOTTOM;
+  else if (lstr == "abs_position" ) type = Type::ABS_POSITION;
+  else if (lstr == "abs_rectangle") type = Type::ABS_RECTANGLE;
+  else                              return false;
 
   type_ = type;
 
@@ -53,7 +53,7 @@ CQChartsTitleLocation::
 enumNames() const
 {
   static QStringList names = QStringList() <<
-    "TOP" << "CENTER" << "BOTTOM" << "ABS_POS" << "ABS_RECT";
+    "TOP" << "CENTER" << "BOTTOM" << "ABS_POSITION" << "ABS_RECTANGLE";
 
   return names;
 }

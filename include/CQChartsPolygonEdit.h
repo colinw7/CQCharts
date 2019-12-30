@@ -5,6 +5,7 @@
 #include <CQChartsLineEditBase.h>
 
 class CQChartsPolygonEdit;
+class CQChartsPolygonEditPointsFrame;
 
 /*!
  * \brief Polygon line edit
@@ -48,8 +49,9 @@ class CQChartsPolygonLineEdit : public CQChartsLineEditBase {
 
 #include <CQChartsEditBase.h>
 
+class CQChartsGeomPointEdit;
 class CQChartsUnitsEdit;
-class CQPoint2DEdit;
+
 class QScrollArea;
 
 /*!
@@ -66,6 +68,11 @@ class CQChartsPolygonEdit : public CQChartsEditBase {
 
   const CQChartsPolygon &polygon() const;
   void setPolygon(const CQChartsPolygon &pos);
+
+  const CQChartsUnits &units() const;
+  void setUnits(const CQChartsUnits &units);
+
+  int numPoints() const;
 
   QSize sizeHint() const;
 
@@ -94,15 +101,31 @@ class CQChartsPolygonEdit : public CQChartsEditBase {
   void connectSlots(bool b);
 
  private:
-  using PointEdits = std::vector<CQPoint2DEdit *>;
+  using PointEdits = std::vector<CQChartsGeomPointEdit *>;
 
-  CQChartsPolygon    polygon_;                  //!< polygon
-  CQChartsUnitsEdit* unitsEdit_    { nullptr }; //!< units edit
-  QFrame*            controlFrame_ { nullptr }; //!< control frame
-  QScrollArea*       scrollArea_   { nullptr }; //!< scroll area
-  QFrame*            pointsFrame_  { nullptr }; //!< points frame
-  PointEdits         pointEdits_;               //!< point edits
-  bool               connected_    { false };   //!< is connected
+  CQChartsPolygon                 polygon_;                  //!< polygon
+  CQChartsUnitsEdit*              unitsEdit_    { nullptr }; //!< units edit
+  QFrame*                         controlFrame_ { nullptr }; //!< control frame
+  QScrollArea*                    scrollArea_   { nullptr }; //!< scroll area
+  CQChartsPolygonEditPointsFrame* pointsFrame_  { nullptr }; //!< points frame
+  PointEdits                      pointEdits_;               //!< point edits
+  bool                            connected_    { false };   //!< is connected
+};
+
+//------
+
+class CQChartsPolygonEditPointsFrame : public QFrame {
+  Q_OBJECT
+
+ public:
+  CQChartsPolygonEditPointsFrame(CQChartsPolygonEdit *edit=nullptr);
+
+  void setEdit(CQChartsPolygonEdit *edit) { edit_ = edit; }
+
+  void paintEvent(QPaintEvent *) override;
+
+ private:
+  CQChartsPolygonEdit *edit_ { nullptr };
 };
 
 //------

@@ -291,7 +291,7 @@ class CQChartsDisplayRange {
     *pixel_y = roundReal(pixel_y1);
   }
 
-  void invertPixel(double px, double py, double &ipx, double &ipy) {
+  void invertPixel(double px, double py, double &ipx, double &ipy) const {
     ipx = pixel_.xmax - (px - pixel_.xmin);
     ipy = pixel_.ymax - (py - pixel_.ymin);
   }

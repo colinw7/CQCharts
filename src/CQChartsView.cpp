@@ -595,7 +595,7 @@ viewFont(const CQChartsFont &font) const
   QFont font1 = font.calcFont(font_.font());
 
   if (isScaleFont())
-    return scaledFont(font1, this->size());
+    return scaledFont(font1, CQChartsGeom::Size(this->size()));
   else
     return font1;
 }
@@ -605,7 +605,7 @@ CQChartsView::
 viewFont(const QFont &font) const
 {
   if (isScaleFont())
-    return scaledFont(font, this->size());
+    return scaledFont(font, CQChartsGeom::Size(this->size()));
   else
     return font;
 }
@@ -636,7 +636,7 @@ plotFont(const CQChartsPlot *plot, const QFont &font) const
 
 double
 CQChartsView::
-calcFontScale(const QSizeF &size) const
+calcFontScale(const CQChartsGeom::Size &size) const
 {
   // calc scale factor
   double sx = (size.width () > 0 ? size.width ()/defSizeHint().width () : 1.0);
@@ -647,7 +647,7 @@ calcFontScale(const QSizeF &size) const
 
 QFont
 CQChartsView::
-scaledFont(const QFont &font, const QSizeF &size) const
+scaledFont(const QFont &font, const CQChartsGeom::Size &size) const
 {
   double s = calcFontScale(size);
 
@@ -2275,7 +2275,7 @@ bool
 CQChartsView::
 editMousePress()
 {
-  QPointF p = mouseData_.pressPoint;
+  QPointF p = mousePressPoint();
 
   CQChartsGeom::Point w = pixelToWindow(CQChartsGeom::Point(p));
 
@@ -3340,7 +3340,7 @@ drawBackground(CQChartsPaintDevice *device) const
   setBrush(brush, true, interpBackgroundFillColor(ColorInd()),
            backgroundFillAlpha(), backgroundFillPattern());
 
-  device->fillRect(prect_.qrect(), brush);
+  device->fillRect(prect_, brush);
 }
 
 void
@@ -4189,17 +4189,17 @@ showMenu(const QPoint &p)
       return action;
     };
 
-    addKeyLocationGroupAction("Top Left"         , CQChartsKeyLocation::Type::TOP_LEFT     );
-    addKeyLocationGroupAction("Top Center"       , CQChartsKeyLocation::Type::TOP_CENTER   );
-    addKeyLocationGroupAction("Top Right"        , CQChartsKeyLocation::Type::TOP_RIGHT    );
-    addKeyLocationGroupAction("Center Left"      , CQChartsKeyLocation::Type::CENTER_LEFT  );
-    addKeyLocationGroupAction("Center Center"    , CQChartsKeyLocation::Type::CENTER_CENTER);
-    addKeyLocationGroupAction("Center Right"     , CQChartsKeyLocation::Type::CENTER_RIGHT );
-    addKeyLocationGroupAction("Bottom Left"      , CQChartsKeyLocation::Type::BOTTOM_LEFT  );
-    addKeyLocationGroupAction("Bottom Center"    , CQChartsKeyLocation::Type::BOTTOM_CENTER);
-    addKeyLocationGroupAction("Bottom Right"     , CQChartsKeyLocation::Type::BOTTOM_RIGHT );
-    addKeyLocationGroupAction("Absolute Position", CQChartsKeyLocation::Type::ABS_POSITION );
-    addKeyLocationGroupAction("Absolute Rect"    , CQChartsKeyLocation::Type::ABS_RECT     );
+    addKeyLocationGroupAction("Top Left"          , CQChartsKeyLocation::Type::TOP_LEFT     );
+    addKeyLocationGroupAction("Top Center"        , CQChartsKeyLocation::Type::TOP_CENTER   );
+    addKeyLocationGroupAction("Top Right"         , CQChartsKeyLocation::Type::TOP_RIGHT    );
+    addKeyLocationGroupAction("Center Left"       , CQChartsKeyLocation::Type::CENTER_LEFT  );
+    addKeyLocationGroupAction("Center Center"     , CQChartsKeyLocation::Type::CENTER_CENTER);
+    addKeyLocationGroupAction("Center Right"      , CQChartsKeyLocation::Type::CENTER_RIGHT );
+    addKeyLocationGroupAction("Bottom Left"       , CQChartsKeyLocation::Type::BOTTOM_LEFT  );
+    addKeyLocationGroupAction("Bottom Center"     , CQChartsKeyLocation::Type::BOTTOM_CENTER);
+    addKeyLocationGroupAction("Bottom Right"      , CQChartsKeyLocation::Type::BOTTOM_RIGHT );
+    addKeyLocationGroupAction("Absolute Position" , CQChartsKeyLocation::Type::ABS_POSITION );
+    addKeyLocationGroupAction("Absolute Rectangle", CQChartsKeyLocation::Type::ABS_RECTANGLE);
 
     keyLocationActionGroup->setExclusive(true);
 
@@ -4304,18 +4304,18 @@ showMenu(const QPoint &p)
       return action;
     };
 
-    addKeyLocationGroupAction("Top Left"         , CQChartsKeyLocation::Type::TOP_LEFT     );
-    addKeyLocationGroupAction("Top Center"       , CQChartsKeyLocation::Type::TOP_CENTER   );
-    addKeyLocationGroupAction("Top Right"        , CQChartsKeyLocation::Type::TOP_RIGHT    );
-    addKeyLocationGroupAction("Center Left"      , CQChartsKeyLocation::Type::CENTER_LEFT  );
-    addKeyLocationGroupAction("Center Center"    , CQChartsKeyLocation::Type::CENTER_CENTER);
-    addKeyLocationGroupAction("Center Right"     , CQChartsKeyLocation::Type::CENTER_RIGHT );
-    addKeyLocationGroupAction("Bottom Left"      , CQChartsKeyLocation::Type::BOTTOM_LEFT  );
-    addKeyLocationGroupAction("Bottom Center"    , CQChartsKeyLocation::Type::BOTTOM_CENTER);
-    addKeyLocationGroupAction("Bottom Right"     , CQChartsKeyLocation::Type::BOTTOM_RIGHT );
-    addKeyLocationGroupAction("Absolute Position", CQChartsKeyLocation::Type::ABS_POSITION );
-    addKeyLocationGroupAction("Absolute Rect"    , CQChartsKeyLocation::Type::ABS_RECT     );
-    addKeyLocationGroupAction("Auto"             , CQChartsKeyLocation::Type::AUTO         );
+    addKeyLocationGroupAction("Top Left"          , CQChartsKeyLocation::Type::TOP_LEFT     );
+    addKeyLocationGroupAction("Top Center"        , CQChartsKeyLocation::Type::TOP_CENTER   );
+    addKeyLocationGroupAction("Top Right"         , CQChartsKeyLocation::Type::TOP_RIGHT    );
+    addKeyLocationGroupAction("Center Left"       , CQChartsKeyLocation::Type::CENTER_LEFT  );
+    addKeyLocationGroupAction("Center Center"     , CQChartsKeyLocation::Type::CENTER_CENTER);
+    addKeyLocationGroupAction("Center Right"      , CQChartsKeyLocation::Type::CENTER_RIGHT );
+    addKeyLocationGroupAction("Bottom Left"       , CQChartsKeyLocation::Type::BOTTOM_LEFT  );
+    addKeyLocationGroupAction("Bottom Center"     , CQChartsKeyLocation::Type::BOTTOM_CENTER);
+    addKeyLocationGroupAction("Bottom Right"      , CQChartsKeyLocation::Type::BOTTOM_RIGHT );
+    addKeyLocationGroupAction("Absolute Position" , CQChartsKeyLocation::Type::ABS_POSITION );
+    addKeyLocationGroupAction("Absolute Rectangle", CQChartsKeyLocation::Type::ABS_RECTANGLE);
+    addKeyLocationGroupAction("Auto"              , CQChartsKeyLocation::Type::AUTO         );
 
     keyLocationActionGroup->setExclusive(true);
 
@@ -4488,10 +4488,11 @@ showMenu(const QPoint &p)
       return action;
     };
 
-    addTitleLocationGroupAction("Top"     , CQChartsTitleLocation::Type::TOP    );
-    addTitleLocationGroupAction("Center"  , CQChartsTitleLocation::Type::CENTER );
-    addTitleLocationGroupAction("Bottom"  , CQChartsTitleLocation::Type::BOTTOM );
-    addTitleLocationGroupAction("Absolute", CQChartsTitleLocation::Type::ABS_POS);
+    addTitleLocationGroupAction("Top"               , CQChartsTitleLocation::Type::TOP          );
+    addTitleLocationGroupAction("Center"            , CQChartsTitleLocation::Type::CENTER       );
+    addTitleLocationGroupAction("Bottom"            , CQChartsTitleLocation::Type::BOTTOM       );
+    addTitleLocationGroupAction("Absolute Position" , CQChartsTitleLocation::Type::ABS_POSITION );
+    addTitleLocationGroupAction("Absolute Rectangle", CQChartsTitleLocation::Type::ABS_RECTANGLE);
 
     if (title)
       titleLocationActionMap[title->location().type()]->setChecked(true);
@@ -4715,8 +4716,8 @@ viewKeyPositionSlot(QAction *action)
     viewKey->setLocation(CQChartsKeyLocation::Type::BOTTOM_RIGHT );
   else if (action->text() == "Absolute Position")
     viewKey->setLocation(CQChartsKeyLocation::Type::ABS_POSITION );
-  else if (action->text() == "Absolute Rect")
-    viewKey->setLocation(CQChartsKeyLocation::Type::ABS_RECT     );
+  else if (action->text() == "Absolute Rectangle")
+    viewKey->setLocation(CQChartsKeyLocation::Type::ABS_RECTANGLE);
   else
     assert(false);
 
@@ -4779,8 +4780,8 @@ plotKeyPositionSlot(QAction *action)
       plotKey->setLocation(CQChartsKeyLocation::Type::BOTTOM_RIGHT );
     else if (action->text() == "Absolute Position")
       plotKey->setLocation(CQChartsKeyLocation::Type::ABS_POSITION );
-    else if (action->text() == "Absolute Rect")
-      plotKey->setLocation(CQChartsKeyLocation::Type::ABS_RECT     );
+    else if (action->text() == "Absolute Rectangle")
+      plotKey->setLocation(CQChartsKeyLocation::Type::ABS_RECTANGLE);
     else
       assert(false);
   }
@@ -4953,8 +4954,10 @@ titleLocationSlot(QAction *action)
       title->setLocation(CQChartsTitleLocation::Type::CENTER);
     else if (action->text() == "Bottom")
       title->setLocation(CQChartsTitleLocation::Type::BOTTOM);
-    else if (action->text() == "Absolute")
-      title->setLocation(CQChartsTitleLocation::Type::ABS_POS);
+    else if (action->text() == "Absolute Position")
+      title->setLocation(CQChartsTitleLocation::Type::ABS_POSITION);
+    else if (action->text() == "Absolute Rectangle")
+      title->setLocation(CQChartsTitleLocation::Type::ABS_RECTANGLE);
   }
 }
 
@@ -5170,9 +5173,9 @@ printPNGSlot()
   QString dir = QDir::current().dirName() + "/charts.png";
 
   QString fileName = QFileDialog::getSaveFileName(this, "Print PNG", dir, "Files (*.png)");
+  if (! fileName.length()) return; // cancelled
 
-  if (! fileName.isNull())
-    printPNGSlot(fileName);
+  printPNGSlot(fileName);
 }
 
 void
@@ -5189,9 +5192,9 @@ printSVGSlot()
   QString dir = QDir::current().dirName() + "/charts.svg";
 
   QString fileName = QFileDialog::getSaveFileName(this, "Print SVG", dir, "Files (*.svg)");
+  if (! fileName.length()) return; // cancelled
 
-  if (! fileName.isNull())
-    printSVGSlot(fileName);
+  printSVGSlot(fileName);
 }
 
 void
@@ -5208,9 +5211,9 @@ writeSVGSlot()
   QString dir = QDir::current().dirName() + "/charts_svg.html";
 
   QString fileName = QFileDialog::getSaveFileName(this, "Write SVG/Html", dir, "Files (*.html)");
+  if (! fileName.length()) return; // cancelled
 
-  if (! fileName.isNull())
-    writeSVGSlot(fileName);
+  writeSVGSlot(fileName);
 }
 
 void
@@ -5234,9 +5237,9 @@ writeScriptSlot()
   QString dir = QDir::current().dirName() + "/charts_js.html";
 
   QString fileName = QFileDialog::getSaveFileName(this, "Write JS/Html", dir, "Files (*.html)");
+  if (! fileName.length()) return; // cancelled
 
-  if (! fileName.isNull())
-    writeScriptSlot(fileName);
+  writeScriptSlot(fileName);
 }
 
 bool
@@ -6731,7 +6734,7 @@ write(std::ostream &os) const
 
 //------
 
-QPointF
+CQChartsGeom::Point
 CQChartsView::
 positionToView(const CQChartsPosition &pos) const
 {
@@ -6748,10 +6751,10 @@ positionToView(const CQChartsPosition &pos) const
     p1.setY(p.getY()*height()/100.0);
   }
 
-  return p1.qpoint();
+  return p1;
 }
 
-QPointF
+CQChartsGeom::Point
 CQChartsView::
 positionToPixel(const CQChartsPosition &pos) const
 {
@@ -6768,7 +6771,7 @@ positionToPixel(const CQChartsPosition &pos) const
     p1.setY(p.getY()*height()/100.0);
   }
 
-  return p1.qpoint();
+  return p1;
 }
 
 //------
@@ -6777,8 +6780,7 @@ CQChartsGeom::BBox
 CQChartsView::
 rectToView(const CQChartsRect &rect) const
 {
-  CQChartsGeom::BBox r = CQChartsGeom::BBox(rect.rect());
-
+  CQChartsGeom::BBox r  = rect.bbox();
   CQChartsGeom::BBox r1 = r;
 
   if      (rect.units() == CQChartsUnits::PIXEL)
@@ -6799,8 +6801,7 @@ CQChartsGeom::BBox
 CQChartsView::
 rectToPixel(const CQChartsRect &rect) const
 {
-  CQChartsGeom::BBox r = CQChartsGeom::BBox(rect.rect());
-
+  CQChartsGeom::BBox r  = rect.bbox();
   CQChartsGeom::BBox r1 = r;
 
   if      (rect.units() == CQChartsUnits::PIXEL)
@@ -6919,28 +6920,6 @@ pixelToWindow(const CQChartsGeom::Point &p) const
   return w;
 }
 
-QPointF
-CQChartsView::
-windowToPixel(const QPointF &w) const
-{
-  double px, py;
-
-  windowToPixelI(w.x(), w.y(), px, py);
-
-  return QPointF(px, py);
-}
-
-QPointF
-CQChartsView::
-pixelToWindow(const QPointF &p) const
-{
-  double wx, wy;
-
-  pixelToWindowI(p.x(), p.y(), wx, wy);
-
-  return QPointF(wx, wy);
-}
-
 CQChartsGeom::BBox
 CQChartsView::
 windowToPixel(const CQChartsGeom::BBox &wrect) const
@@ -6963,20 +6942,6 @@ pixelToWindow(const CQChartsGeom::BBox &prect) const
   pixelToWindowI(prect.getXMax(), prect.getYMax(), wx2, wy1);
 
   return CQChartsGeom::BBox(wx1, wy1, wx2, wy2);
-}
-
-QRectF
-CQChartsView::
-windowToPixel(const QRectF &w) const
-{
-  return windowToPixel(CQChartsGeom::BBox(w)).qrect();
-}
-
-QRectF
-CQChartsView::
-pixelToWindow(const QRectF &p) const
-{
-  return pixelToWindow(CQChartsGeom::BBox(p)).qrect();
 }
 
 double
@@ -7055,26 +7020,26 @@ windowToPixelHeight(double wh) const
   return std::abs(py2 - py1);
 }
 
-QSizeF
+CQChartsGeom::Size
 CQChartsView::
-pixelToWindowSize(const QSizeF &ps) const
+pixelToWindowSize(const CQChartsGeom::Size &ps) const
 {
   double w = pixelToWindowWidth (ps.width ());
   double h = pixelToWindowHeight(ps.height());
 
-  return QSizeF(w, h);
+  return CQChartsGeom::Size(w, h);
 }
 
-QPolygonF
+CQChartsGeom::Polygon
 CQChartsView::
-windowToPixel(const QPolygonF &poly) const
+windowToPixel(const CQChartsGeom::Polygon &poly) const
 {
-  QPolygonF ppoly;
+  CQChartsGeom::Polygon ppoly;
 
   int np = poly.size();
 
   for (int i = 0; i < np; ++i)
-    ppoly << windowToPixel(poly[i]);
+    ppoly.addPoint(windowToPixel(poly.point(i)));
 
   return ppoly;
 }
@@ -7091,21 +7056,21 @@ windowToPixel(const QPainterPath &path) const
     const QPainterPath::Element &e = path.elementAt(i);
 
     if      (e.isMoveTo()) {
-      QPointF p1 = windowToPixel(QPointF(e.x, e.y));
+      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(e.x, e.y));
 
-      ppath.moveTo(p1);
+      ppath.moveTo(p1.qpoint());
     }
     else if (e.isLineTo()) {
-      QPointF p1 = windowToPixel(QPointF(e.x, e.y));
+      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(e.x, e.y));
 
-      ppath.lineTo(p1);
+      ppath.lineTo(p1.qpoint());
     }
     else if (e.isCurveTo()) {
       QPainterPath::Element     e1, e2;
       QPainterPath::ElementType e1t { QPainterPath::MoveToElement };
       QPainterPath::ElementType e2t { QPainterPath::MoveToElement };
 
-      QPointF p1 = windowToPixel(QPointF(e.x, e.y));
+      CQChartsGeom::Point p1 = windowToPixel(CQChartsGeom::Point(e.x, e.y));
 
       if (i < n - 1) {
         e1  = path.elementAt(i + 1);
@@ -7118,15 +7083,15 @@ windowToPixel(const QPainterPath &path) const
       }
 
       if (e1t == QPainterPath::CurveToDataElement) {
-        QPointF p2 = windowToPixel(QPointF(e1.x, e1.y)); ++i;
+        CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(e1.x, e1.y)); ++i;
 
         if (e2t == QPainterPath::CurveToDataElement) {
-          QPointF p3 = windowToPixel(QPointF(e2.x, e2.y)); ++i;
+          CQChartsGeom::Point p3 = windowToPixel(CQChartsGeom::Point(e2.x, e2.y)); ++i;
 
-          ppath.cubicTo(p1, p2, p3);
+          ppath.cubicTo(p1.qpoint(), p2.qpoint(), p3.qpoint());
         }
         else {
-          ppath.quadTo(p1, p2);
+          ppath.quadTo(p1.qpoint(), p2.qpoint());
         }
       }
     }

@@ -4,8 +4,8 @@
 #include <CQChartsPosition.h>
 #include <QFrame>
 
+class CQChartsGeomPointEdit;
 class CQChartsUnitsEdit;
-class CQPoint2DEdit;
 
 /*!
  * \brief position edit
@@ -36,10 +36,10 @@ class CQChartsPositionEdit : public QFrame {
   void connectSlots(bool b);
 
  private:
-  CQChartsPosition   position_;              //!< position data
-  CQPoint2DEdit*     edit_      { nullptr }; //!< position edit
-  CQChartsUnitsEdit* unitsEdit_ { nullptr }; //!< units edit
-  bool               connected_ { false };   //!< is connected
+  CQChartsPosition       position_;              //!< position data
+  CQChartsGeomPointEdit* edit_      { nullptr }; //!< position edit
+  CQChartsUnitsEdit*     unitsEdit_ { nullptr }; //!< units edit
+  bool                   connected_ { false };   //!< is connected
 };
 
 //------

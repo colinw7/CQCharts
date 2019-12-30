@@ -6,11 +6,11 @@
 #include <QAction>
 #include <map>
 
+class CQChartsLineDashEditAction;
+class CQChartsLineEdit;
 class QMenu;
-class CQLineEdit;
 class QToolButton;
 class CQIconCombo;
-class CQChartsLineDashEditAction;
 
 /*!
  * \brief line dash edit
@@ -50,13 +50,13 @@ class CQChartsLineDashEdit : public QFrame {
  private:
   using Actions = std::map<std::string, CQChartsLineDashEditAction *>;
 
-  bool             editable_ { false };
-  CQChartsLineDash dash_;
-  CQLineEdit*      edit_     { nullptr };
-  QToolButton*     button_   { nullptr };
-  QMenu*           menu_     { nullptr };
-  CQIconCombo*     combo_    { nullptr };
-  Actions          actions_;
+  bool              editable_ { false };
+  CQChartsLineDash  dash_;
+  CQChartsLineEdit* edit_     { nullptr };
+  QToolButton*      button_   { nullptr };
+  QMenu*            menu_     { nullptr };
+  CQIconCombo*      combo_    { nullptr };
+  Actions           actions_;
 };
 
 //---

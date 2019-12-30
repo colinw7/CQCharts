@@ -18,6 +18,10 @@ CQChartsFilterEdit(QWidget *parent) :
 {
   setObjectName("filterEdit");
 
+  setToolTip("Filter");
+
+  //---
+
   QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   edit_ = new CQChartsFilterEditEdit;
@@ -149,9 +153,11 @@ escapeSlot()
 
 CQChartsFilterEditEdit::
 CQChartsFilterEditEdit(QWidget *parent) :
- CQLineEdit(parent)
+ CQChartsLineEdit(parent)
 {
   setObjectName("edit");
+
+  setToolTip("Filter");
 }
 
 void
@@ -163,5 +169,5 @@ keyPressEvent(QKeyEvent *e)
     return;
   }
 
-  CQLineEdit::keyPressEvent(e);
+  CQChartsLineEdit::keyPressEvent(e);
 }

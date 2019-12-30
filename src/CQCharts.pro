@@ -193,6 +193,9 @@ CQChartsDrawUtil.cpp \
 CQChartsUtil.cpp \
 CQChartsWidgetUtil.cpp \
 \
+CQChartsVariant.cpp \
+CQChartsGeom.cpp \
+\
 CQChartsAnalyzeFile.cpp \
 CQChartsAnalyzeModel.cpp \
 \
@@ -240,7 +243,11 @@ CQChartsTextDataEdit.cpp \
 CQChartsTitleLocationEdit.cpp \
 CQChartsUnitsEdit.cpp \
 \
+CQChartsGeomBBoxEdit.cpp \
+CQChartsGeomPointEdit.cpp \
+\
 CQChartsEnumEdit.cpp \
+CQChartsLineEdit.cpp \
 \
 CQChartsPropertyViewTree.cpp \
 CQChartsPropertyViewEditor.cpp \
@@ -393,6 +400,9 @@ HEADERS += \
 ../include/CQChartsUtil.h \
 ../include/CQChartsWidgetUtil.h \
 \
+../include/CQChartsVariant.h \
+../include/CQChartsGeom.h \
+\
 ../include/CQChartsAnalyzeFile.h \
 ../include/CQChartsAnalyzeModel.h \
 \
@@ -502,7 +512,11 @@ HEADERS += \
 ../include/CQChartsTitleLocationEdit.h \
 ../include/CQChartsUnitsEdit.h \
 \
+../include/CQChartsGeomBBoxEdit.h \
+../include/CQChartsGeomPointEdit.h \
+\
 ../include/CQChartsEnumEdit.h \
+../include/CQChartsLineEdit.h \
 \
 ../include/CQChartsPropertyViewTree.h \
 ../include/CQChartsPropertyViewEditor.h \

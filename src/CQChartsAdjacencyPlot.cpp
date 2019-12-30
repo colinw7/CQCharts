@@ -933,7 +933,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
     twMax = std::max(twMax, tw);
 
-    QPointF pt(px + xts - tw - 2, py + pys - fm.descent()); // align right
+    CQChartsGeom::Point pt(px + xts - tw - 2, py + pys - fm.descent()); // align right
 
     CQChartsTextOptions options;
 
@@ -960,7 +960,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
   py = po.y + lengthPixelHeight(bgMargin()) + yts;
 
   for (auto &node : sortedNodes_) {
-    QPointF p1(px + pxs/2, py - 2);
+    CQChartsGeom::Point p1(px + pxs/2, py - 2);
 
     CQChartsTextOptions options;
 
@@ -995,7 +995,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
   CQChartsGeom::BBox cellBBox(px, py, px + std::max(nn, 1)*pxs, py + std::max(nn, 1)*pys);
 
-  device->fillRect(device->pixelToWindow(cellBBox).qrect(), fillBrush);
+  device->fillRect(device->pixelToWindow(cellBBox), fillBrush);
 
   //---
 
@@ -1028,7 +1028,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
         CQChartsDrawUtil::setPenBrush(device, emptyPenBrush);
 
-        CQChartsDrawUtil::drawRoundedPolygon(device, cellBBox.qrect(), cornerSize, cornerSize);
+        CQChartsDrawUtil::drawRoundedPolygon(device, cellBBox, cornerSize, cornerSize);
       }
 
       px += pxs;
@@ -1161,7 +1161,7 @@ draw(CQChartsPaintDevice *device)
   // draw box
   device->setColorNames();
 
-  drawRoundedPolygon(device, penBrush, rect(), plot_->cornerSize());
+  drawRoundedPolygon(device, penBrush, CQChartsGeom::BBox(rect()), plot_->cornerSize());
 
   device->resetColorNames();
 }

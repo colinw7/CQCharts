@@ -10,8 +10,6 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewItem.h>
 
-#include <QRectF>
-
 CQChartsTitle::
 CQChartsTitle(CQChartsPlot *plot) :
  CQChartsTextBoxObj(plot)
@@ -91,11 +89,11 @@ updateLocation()
   //---
 
   // calc title size
-  QSizeF ts = calcSize();
+  CQChartsGeom::Size ts = calcSize();
 
   CQChartsTitleLocation location = this->location();
 
-  QSizeF marginSize = plot_->pixelToWindowSize(QSizeF(8, 8));
+  CQChartsGeom::Size marginSize = plot_->pixelToWindowSize(CQChartsGeom::Size(8, 8));
 
   double kx = bbox.getXMid() - ts.width()/2;
   double ky = 0.0;
@@ -129,12 +127,12 @@ updateLocation()
     ky = bbox.getYMid() - ts.height()/2;
   }
 
-  QPointF kp(kx, ky);
+  CQChartsGeom::Point kp(kx, ky);
 
-  if      (location == CQChartsTitleLocation::Type::ABS_POS) {
+  if      (location == CQChartsTitleLocation::Type::ABS_POSITION) {
     kp = absolutePlotPosition();
   }
-  else if (location == CQChartsTitleLocation::Type::ABS_RECT) {
+  else if (location == CQChartsTitleLocation::Type::ABS_RECTANGLE) {
   }
 
   setPosition(kp);
@@ -153,7 +151,7 @@ addProperties(CQPropertyViewModel *model, const QString &path, const QString &/*
   CQChartsTextBoxObj::addProperties(model, path, "");
 }
 
-QPointF
+CQChartsGeom::Point
 CQChartsTitle::
 absolutePlotPosition() const
 {
@@ -162,12 +160,12 @@ absolutePlotPosition() const
 
 void
 CQChartsTitle::
-setAbsolutePlotPosition(const QPointF &p)
+setAbsolutePlotPosition(const CQChartsGeom::Point &p)
 {
   setAbsolutePosition(CQChartsPosition(plot_->windowToView(p), CQChartsUnits::VIEW));
 }
 
-QSizeF
+CQChartsGeom::Size
 CQChartsTitle::
 calcSize()
 {
@@ -180,10 +178,10 @@ calcSize()
 
     textOptions.html = isTextHtml();
 
-    QSizeF psize = CQChartsDrawUtil::calcTextSize(textStr(), font, textOptions);
+    CQChartsGeom::Size psize = CQChartsDrawUtil::calcTextSize(textStr(), font, textOptions);
 
     // convert to window size
-    QSizeF wsize = plot_->pixelToWindowSize(psize);
+    CQChartsGeom::Size wsize = plot_->pixelToWindowSize(psize);
 
     // add padding and margin
     double xlm = lengthParentWidth (margin().left  ());
@@ -191,13 +189,14 @@ calcSize()
     double ytm = lengthParentHeight(margin().top   ());
     double ybm = lengthParentHeight(margin().bottom());
 
-    QSizeF paddingSize = plot_->pixelToWindowSize(QSizeF(padding(), padding()));
+    CQChartsGeom::Size paddingSize =
+      plot_->pixelToWindowSize(CQChartsGeom::Size(padding(), padding()));
 
-    size_ = QSizeF(wsize.width () + 2*paddingSize.width () + xlm + xrm,
-                   wsize.height() + 2*paddingSize.height() + ybm + ytm);
+    size_ = CQChartsGeom::Size(wsize.width () + 2*paddingSize.width () + xlm + xrm,
+                               wsize.height() + 2*paddingSize.height() + ybm + ytm);
   }
   else {
-    size_ = QSizeF();
+    size_ = CQChartsGeom::Size();
   }
 
   return size_;
@@ -221,9 +220,9 @@ editPress(const CQChartsGeom::Point &p)
 {
   editHandles_->setDragPos(p);
 
-  if (location() != CQChartsTitleLocation::Type::ABS_POS &&
-      location() != CQChartsTitleLocation::Type::ABS_RECT) {
-    setLocation(CQChartsTitleLocation::Type::ABS_POS);
+  if (location() != CQChartsTitleLocation::Type::ABS_POSITION &&
+      location() != CQChartsTitleLocation::Type::ABS_RECTANGLE) {
+    setLocation(CQChartsTitleLocation::Type::ABS_POSITION);
 
     setAbsolutePlotPosition(position_);
   }
@@ -241,20 +240,20 @@ editMove(const CQChartsGeom::Point &p)
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
-  if (location() == CQChartsTitleLocation::Type::ABS_POS &&
+  if (location() == CQChartsTitleLocation::Type::ABS_POSITION &&
       dragSide == CQChartsResizeSide::MOVE) {
-    setLocation(CQChartsTitleLocation::Type::ABS_POS);
+    setLocation(CQChartsTitleLocation::Type::ABS_POSITION);
 
-    setAbsolutePlotPosition(absolutePlotPosition() + QPointF(dx, dy));
+    setAbsolutePlotPosition(absolutePlotPosition() + CQChartsGeom::Point(dx, dy));
   }
   else {
-    setLocation(CQChartsTitleLocation::Type::ABS_RECT);
+    setLocation(CQChartsTitleLocation::Type::ABS_RECTANGLE);
 
     editHandles_->updateBBox(dx, dy);
 
     bbox_ = editHandles_->bbox();
 
-    setAbsoluteRectangle(bbox_.qrect());
+    setAbsoluteRectangle(bbox_);
   }
 
   editHandles_->setDragPos(p);
@@ -280,9 +279,9 @@ editRelease(const CQChartsGeom::Point &)
 
 void
 CQChartsTitle::
-editMoveBy(const QPointF &d)
+editMoveBy(const CQChartsGeom::Point &d)
 {
-  setLocation(CQChartsTitleLocation::Type::ABS_POS);
+  setLocation(CQChartsTitleLocation::Type::ABS_POSITION);
 
   setAbsolutePlotPosition(position_ + d);
 
@@ -318,22 +317,22 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // clip to plot
-  QRectF clipRect = plot_->calcPlotRect().qrect();
+  CQChartsGeom::BBox clipRect = plot_->calcPlotRect();
 
   device->setClipRect(clipRect);
 
   //---
 
-  if (location() != CQChartsTitleLocation::Type::ABS_RECT)
+  if (location() != CQChartsTitleLocation::Type::ABS_RECTANGLE)
     updateLocation();
 
   //---
 
   double x, y, w, h;
 
-  if (location() != CQChartsTitleLocation::Type::ABS_RECT) {
-    x = position_.x(); // bottom
-    y = position_.y(); // top
+  if (location() != CQChartsTitleLocation::Type::ABS_RECTANGLE) {
+    x = position_.x; // bottom
+    y = position_.y; // top
     w = size_.width ();
     h = size_.height();
 
@@ -346,7 +345,8 @@ draw(CQChartsPaintDevice *device)
     h = bbox_.getHeight();
   }
 
-  QSizeF paddingSize = device->pixelToWindowSize(QSizeF(padding(), padding()));
+  CQChartsGeom::Size paddingSize =
+    device->pixelToWindowSize(CQChartsGeom::Size(padding(), padding()));
 
   double xlm = device->lengthWindowWidth (margin().left  ());
   double xrm = device->lengthWindowWidth (margin().right ());
@@ -363,7 +363,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  CQChartsBoxObj::draw(device, ibbox.qrect());
+  CQChartsBoxObj::draw(device, ibbox);
 
   //---
 
@@ -401,7 +401,7 @@ draw(CQChartsPaintDevice *device)
   // draw text
   device->setRenderHints(QPainter::Antialiasing);
 
-  CQChartsDrawUtil::drawTextInBox(device, tbbox.qrect(), textStr(), textOptions);
+  CQChartsDrawUtil::drawTextInBox(device, tbbox, textStr(), textOptions);
 
   //---
 
@@ -419,7 +419,7 @@ drawEditHandles(QPainter *painter) const
 {
   assert(plot_->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
-  if (location() != CQChartsTitleLocation::Type::ABS_RECT)
+  if (location() != CQChartsTitleLocation::Type::ABS_RECTANGLE)
     const_cast<CQChartsTitle *>(this)->editHandles_->setBBox(this->bbox());
 
   editHandles_->draw(painter);

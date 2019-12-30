@@ -15,13 +15,13 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsAnalyzeModel.h>
 #include <CQChartsWidgetUtil.h>
+#include <CQChartsLineEdit.h>
 #include <CQCharts.h>
 
 #include <CQSummaryModel.h>
 #include <CQTabSplit.h>
 #include <CQIntegerSpin.h>
 #include <CQRealSpin.h>
-#include <CQLineEdit.h>
 #include <CQUtil.h>
 #include <CQCustomCombo.h>
 #include <CQGroupBox.h>
@@ -32,7 +32,6 @@
 #include <QStackedWidget>
 #include <QTextEdit>
 #include <QCheckBox>
-#include <QRadioButton>
 #include <QPushButton>
 #include <QToolButton>
 #include <QLabel>
@@ -298,7 +297,9 @@ createTypeDataFrame()
 
   whereLayout->addWidget(whereLabel);
 
-  whereEdit_ = CQUtil::makeWidget<CQLineEdit>("whereEdit");
+  whereEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("whereEdit");
+
+  whereEdit_->setToolTip("Where Expression");
 
   whereLayout->addWidget(whereEdit_);
 
@@ -1494,7 +1495,7 @@ addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
 
   QLabel *label = CQUtil::makeLabelWidget<QLabel>(parameter->desc(), parameter->name() + "_label");
 
-  CQLineEdit *edit = CQUtil::makeWidget<CQLineEdit>(parameter->name() + "_edit");
+  auto edit = CQUtil::makeWidget<CQChartsLineEdit>(parameter->name() + "_edit");
 
   edit->setText(str);
 
@@ -1528,8 +1529,8 @@ addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
 
   editLayout->addWidget(label);
 
-  CQRealSpin *spinEdit = nullptr;
-  CQLineEdit *lineEdit = nullptr;
+  CQRealSpin       *spinEdit = nullptr;
+  CQChartsLineEdit *lineEdit = nullptr;
 
   QWidget *edit = nullptr;
 
@@ -1542,7 +1543,7 @@ addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
     connect(spinEdit, SIGNAL(valueChanged(double)), this, SLOT(validateSlot()));
   }
   else {
-    lineEdit = CQUtil::makeWidget<CQLineEdit>("edit");
+    lineEdit = CQUtil::makeWidget<CQChartsLineEdit>("edit");
     edit     = lineEdit;
 
     lineEdit->setText(QString("%1").arg(r));
@@ -1579,8 +1580,8 @@ addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
 
   editLayout->addWidget(label);
 
-  CQIntegerSpin *spinEdit = nullptr;
-  CQLineEdit    *lineEdit = nullptr;
+  CQIntegerSpin    *spinEdit = nullptr;
+  CQChartsLineEdit *lineEdit = nullptr;
 
   QWidget *edit = nullptr;
 
@@ -1593,7 +1594,7 @@ addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
     connect(spinEdit, SIGNAL(valueChanged(int)), this, SLOT(validateSlot()));
   }
   else {
-    lineEdit = CQUtil::makeWidget<CQLineEdit>("edit");
+    lineEdit = CQUtil::makeWidget<CQChartsLineEdit>("edit");
     edit     = lineEdit;
 
     lineEdit->setText(QString("%1").arg(i));
@@ -1679,7 +1680,7 @@ addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
     checkBox->setToolTip(tip);
 }
 
-CQLineEdit *
+CQChartsLineEdit *
 CQChartsCreatePlotDlg::
 addRealEdit(QLayout *layout, int &row, int &column, const QString &name,
             const QString &objName, const QString &placeholderText) const
@@ -1690,7 +1691,7 @@ addRealEdit(QLayout *layout, int &row, int &column, const QString &name,
     label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
   }
 
-  CQLineEdit *edit = CQUtil::makeWidget<CQLineEdit>(objName + "Edit");
+  auto edit = CQUtil::makeWidget<CQChartsLineEdit>(objName + "Edit");
 
   edit->setPlaceholderText(placeholderText);
 
@@ -1714,7 +1715,7 @@ addRealEdit(QLayout *layout, int &row, int &column, const QString &name,
   return edit;
 }
 
-CQLineEdit *
+CQChartsLineEdit *
 CQChartsCreatePlotDlg::
 addStringEdit(QLayout *layout, int &row, int &column, const QString &name,
               const QString &objName, const QString &placeholderText) const
@@ -1724,7 +1725,7 @@ addStringEdit(QLayout *layout, int &row, int &column, const QString &name,
   if (name != "")
     label = CQUtil::makeLabelWidget<QLabel>(name, objName + "Label");
 
-  CQLineEdit *edit = CQUtil::makeWidget<CQLineEdit>(objName + "Edit");
+  auto edit = CQUtil::makeWidget<CQChartsLineEdit>(objName + "Edit");
 
   edit->setPlaceholderText(placeholderText);
 
@@ -2248,8 +2249,8 @@ updateFormatSlot()
   PlotData &plotData = (isAdvanced() ? advancedTypePlotData_[type->name()] :
                                        basicTypePlotData_   [type->name()]);
 
-  QString     parameterName;
-  CQLineEdit *formatEdit { nullptr };
+  QString           parameterName;
+  CQChartsLineEdit *formatEdit { nullptr };
 
   for (const auto &fe : plotData.formatEdits) {
     const FormatEditData &formatEditData = fe.second;
@@ -3025,8 +3026,8 @@ parseParameterRealEdit(CQChartsPlotParameter *parameter, const PlotData &plotDat
 
   QWidget *edit = (*p).second;
 
-  CQRealSpin *spinEdit = qobject_cast<CQRealSpin *>(edit);
-  CQLineEdit *lineEdit = qobject_cast<CQLineEdit *>(edit);
+  CQRealSpin       *spinEdit = qobject_cast<CQRealSpin       *>(edit);
+  CQChartsLineEdit *lineEdit = qobject_cast<CQChartsLineEdit *>(edit);
 
   if (spinEdit)
     r = spinEdit->value();
@@ -3048,8 +3049,8 @@ parseParameterIntEdit(CQChartsPlotParameter *parameter, const PlotData &plotData
 
   QWidget *edit = (*p).second;
 
-  CQIntegerSpin *spinEdit = qobject_cast<CQIntegerSpin *>(edit);
-  CQLineEdit    *lineEdit = qobject_cast<CQLineEdit    *>(edit);
+  CQIntegerSpin    *spinEdit = qobject_cast<CQIntegerSpin    *>(edit);
+  CQChartsLineEdit *lineEdit = qobject_cast<CQChartsLineEdit *>(edit);
 
   if (spinEdit)
     i = spinEdit->value();

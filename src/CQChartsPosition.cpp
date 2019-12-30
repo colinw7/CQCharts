@@ -17,7 +17,7 @@ registerMetaType()
 
 bool
 CQChartsPosition::
-decodeString(const QString &str, CQChartsUnits &units, QPointF &point,
+decodeString(const QString &str, CQChartsUnits &units, CQChartsGeom::Point &point,
              const CQChartsUnits &defUnits)
 {
   // format is <x> <y> [<units>]
@@ -38,7 +38,7 @@ decodeString(const QString &str, CQChartsUnits &units, QPointF &point,
   if (! CQChartsUtil::toReal(strs[1], y))
     return false;
 
-  point = QPointF(x, y);
+  point = CQChartsGeom::Point(x, y);
 
   //---
 

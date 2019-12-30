@@ -1303,19 +1303,12 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   converted = true;
 
-  QRectF r;
+  bool ok;
 
-  if (var.type() == QVariant::Rect) {
-    r = var.value<QRect>();
+  CQChartsGeom::BBox bbox = CQChartsVariant::toBBox(var, ok);
+  if (! ok) return var;
 
-    return QVariant::fromValue<QRectF>(r);
-  }
-
-  QString str = var.toString();
-
-  (void) CQChartsUtil::stringToRect(str, r);
-
-  return QVariant::fromValue<QRectF>(r);
+  return CQChartsVariant::fromBBox(bbox);
 }
 
 QVariant
@@ -1323,18 +1316,14 @@ CQChartsColumnRectType::
 dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const QVariant &var,
          const CQChartsNameValues &, bool &converted) const
 {
-  if (! var.isValid())
-    return var;
+  bool ok;
+
+  CQChartsGeom::BBox bbox = CQChartsVariant::toBBox(var, ok);
+  if (! ok) return var;
 
   converted = true;
 
-  if (var.type() == QVariant::RectF) {
-    QRectF r = var.value<QRectF>();
-
-    return CQChartsUtil::rectToString(r);
-  }
-
-  return var; // TODO: other var formats
+  return bbox.toString();
 }
 
 //------
@@ -1364,19 +1353,19 @@ userData(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
 
   converted = true;
 
-  QPolygonF poly;
-
   if (var.type() == QVariant::Polygon) {
-    poly = var.value<QPolygon>();
+    QPolygonF poly = var.value<QPolygon>();
 
     return QVariant::fromValue<QPolygonF>(poly);
   }
 
   QString str = var.toString();
 
+  CQChartsGeom::Polygon poly;
+
   (void) CQChartsUtil::stringToPolygon(str, poly);
 
-  return QVariant::fromValue<QPolygonF>(poly);
+  return QVariant::fromValue<QPolygonF>(poly.qpoly());
 }
 
 QVariant
@@ -1392,7 +1381,7 @@ dataName(CQCharts *, const QAbstractItemModel *, const CQChartsColumn &, const Q
   if (var.type() == QVariant::PolygonF) {
     QPolygonF poly = var.value<QPolygonF>();
 
-    return CQChartsUtil::polygonToString(poly);
+    return CQChartsUtil::polygonToString(CQChartsGeom::Polygon(poly));
   }
 
   return var; // TODO: other var formats

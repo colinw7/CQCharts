@@ -144,6 +144,7 @@ writeSlot()
   QString dir = QDir::current().dirName() + "/model.csv";
 
   QString fileName = QFileDialog::getSaveFileName(this, "Write Model", dir, "Files (*.csv)");
+  if (! fileName.length()) return; // cancelled
 
   modelData_->writeCSV(fileName);
   //writeCSVModel(fileName);

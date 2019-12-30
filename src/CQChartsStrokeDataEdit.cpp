@@ -23,6 +23,8 @@ CQChartsStrokeDataLineEdit(QWidget *parent) :
 {
   setObjectName("strokeDataLineEdit");
 
+  setToolTip("Stroke Data");
+
   //---
 
   menuEdit_ = dataEdit_ = new CQChartsStrokeDataEdit;
@@ -199,6 +201,10 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
 {
   setObjectName("strokeDataEdit");
 
+  setToolTip("Stroke Data");
+
+  //---
+
   QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
@@ -252,6 +258,8 @@ CQChartsStrokeDataEdit(QWidget *parent, const CQChartsStrokeDataEditConfig &conf
     QLabel *cornerLabel = CQUtil::makeLabelWidget<QLabel>("Corner", "cornerLabel");
 
     cornerEdit_ = CQUtil::makeWidget<CQChartsLengthEdit>("cornerEdit");
+
+    cornerEdit_->setToolTip("Corner length");
 
     groupLayout->addWidget(cornerLabel, 4, 0);
     groupLayout->addWidget(cornerEdit_, 4, 1);
@@ -373,6 +381,7 @@ CQChartsStrokeDataEditPreview::
 CQChartsStrokeDataEditPreview(CQChartsStrokeDataEdit *edit) :
  CQChartsEditPreview(edit), edit_(edit)
 {
+  setToolTip("Stroke Preview");
 }
 
 void

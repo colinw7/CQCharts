@@ -5,8 +5,6 @@
 #include <CQChartsObjData.h>
 #include <CQChartsSides.h>
 #include <CQChartsPaintDevice.h>
-#include <QRectF>
-#include <QPolygonF>
 
 class CQPropertyViewModel;
 class CQChartsPaintDevice;
@@ -49,10 +47,10 @@ class CQChartsBoxObj : public CQChartsViewPlotObj,
 
   //---
 
-  void draw(CQChartsPaintDevice *device, const QRectF &rect) const;
-  void draw(CQChartsPaintDevice *device, const QPolygonF &poly) const;
+  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox) const;
+  void draw(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly) const;
 
-  void draw(CQChartsPaintDevice *device, const QRectF &rect,
+  void draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
             const CQChartsPenBrush &penBrush) const;
 
  protected:

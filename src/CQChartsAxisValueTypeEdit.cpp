@@ -6,6 +6,8 @@ CQChartsAxisValueTypeEdit(QWidget *parent) :
 {
   setObjectName("axisValueType");
 
+  setToolTip("Axis Value Type");
+
   init();
 
   QObject::connect(this, SIGNAL(enumChanged()), this, SIGNAL(valueChanged()));

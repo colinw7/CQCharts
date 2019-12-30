@@ -17,15 +17,16 @@ class CQChartsFillDataEdit;
 class CQChartsStrokeDataEdit;
 class CQChartsArrowDataEdit;
 class CQChartsColorLineEdit;
+class CQChartsLineEdit;
 
 class CQRealSpin;
 class CQCheckBox;
-class CQLineEdit;
 
 class QStackedWidget;
 class QFrame;
 class QComboBox;
 class QRadioButton;
+class QLabel;
 class QBoxLayout;
 class QHBoxLayout;
 class QGridLayout;
@@ -62,7 +63,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
     CQChartsPositionEdit* centerEdit  { nullptr };
     CQChartsLengthEdit*   rxEdit      { nullptr };
     CQChartsLengthEdit*   ryEdit      { nullptr };
-    CQLineEdit*           paddingEdit { nullptr };
+    CQChartsLineEdit*     paddingEdit { nullptr };
   };
 
   struct PolygonWidgets : public Widgets {
@@ -78,7 +79,7 @@ class CQChartsCreateAnnotationDlg : public QDialog {
     QRadioButton*         rectRadio     { nullptr };
     CQChartsPositionEdit* positionEdit  { nullptr };
     CQChartsRectEdit*     rectEdit      { nullptr };
-    CQLineEdit*           textEdit      { nullptr };
+    CQChartsLineEdit*     textEdit      { nullptr };
     CQChartsTextDataEdit* dataEdit      { nullptr };
   };
 
@@ -98,6 +99,8 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   };
 
  private:
+  QStringList typeNames() const;
+
   void initWidgets();
 
   void createRectFrame    ();
@@ -123,6 +126,9 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   bool createArrowAnnotation    ();
   bool createPointAnnotation    ();
 
+  bool setErrorMsg(const QString &msg);
+  void clearErrorMsg();
+
  private slots:
   void typeSlot(int ind);
 
@@ -133,19 +139,20 @@ class CQChartsCreateAnnotationDlg : public QDialog {
   void cancelSlot();
 
  private:
-  CQChartsView*   view_             { nullptr }; //!< associated view
-  CQChartsPlot*   plot_             { nullptr }; //!< associated plot
-  QComboBox*      typeCombo_        { nullptr }; //!< type combo
-  CQLineEdit*     idEdit_           { nullptr }; //!< id edit
-  CQLineEdit*     tipEdit_          { nullptr }; //!< tip edit
-  QStackedWidget* typeStack_        { nullptr }; //!< type stacked widget
-  RectWidgets     rectWidgets_;                  //!< rect edit widgets
-  EllipseWidgets  ellipseWidgets_;               //!< ellipse edit widgets
-  PolygonWidgets  polygonWidgets_;               //!< polygon edit widgets
-  PolylineWidgets polylineWidgets_;              //!< polyline edit widgets
-  TextWidgets     textWidgets_;                  //!< text edit widgets
-  ArrowWidgets    arrowWidgets_;                 //!< arrow edit widgets
-  PointWidgets    pointWidgets_;                 //!< point edit widgets
+  CQChartsView*     view_             { nullptr }; //!< associated view
+  CQChartsPlot*     plot_             { nullptr }; //!< associated plot
+  QComboBox*        typeCombo_        { nullptr }; //!< type combo
+  CQChartsLineEdit* idEdit_           { nullptr }; //!< id edit
+  CQChartsLineEdit* tipEdit_          { nullptr }; //!< tip edit
+  QStackedWidget*   typeStack_        { nullptr }; //!< type stacked widget
+  RectWidgets       rectWidgets_;                  //!< rect edit widgets
+  EllipseWidgets    ellipseWidgets_;               //!< ellipse edit widgets
+  PolygonWidgets    polygonWidgets_;               //!< polygon edit widgets
+  PolylineWidgets   polylineWidgets_;              //!< polyline edit widgets
+  TextWidgets       textWidgets_;                  //!< text edit widgets
+  ArrowWidgets      arrowWidgets_;                 //!< arrow edit widgets
+  PointWidgets      pointWidgets_;                 //!< point edit widgets
+  QLabel*           msgLabel_         { nullptr }; //!< error message label
 };
 
 #endif

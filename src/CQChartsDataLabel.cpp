@@ -54,14 +54,14 @@ addPathProperties(const QString &path, const QString &desc)
 
 void
 CQChartsDataLabel::
-draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr) const
+draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString &ystr) const
 {
-  draw(device, qrect, ystr, position());
+  draw(device, bbox, ystr, position());
 }
 
 void
 CQChartsDataLabel::
-draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
+draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString &ystr,
      const Position &position) const
 {
   if (! isVisible())
@@ -73,19 +73,17 @@ draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
 
   plot()->setPen(tpen, true, tc, textAlpha());
 
-  draw(device, qrect, ystr, position, tpen);
+  draw(device, bbox, ystr, position, tpen);
 }
 
 void
 CQChartsDataLabel::
-draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
+draw(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox, const QString &ystr,
      const Position &position, const QPen &tpen) const
 {
   device->save();
 
   plot()->view()->setPlotPainterFont(plot(), device, textFont());
-
-  QRectF qrect1 = qrect;
 
   //---
 
@@ -94,7 +92,7 @@ draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
   //---
 
   if (CMathUtil::isZero(textAngle())) {
-    QRectF pqrect = device->windowToPixel(qrect);
+    CQChartsGeom::BBox pbbox  = device->windowToPixel(bbox);
 
     double xm = 2; // pixels
     double ym = 2; // pixels
@@ -117,47 +115,47 @@ draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
     double px = 0.0, py = 0.0;
 
     if      (position1 == Position::TOP_INSIDE) {
-      px = pqrect.center().x() - tw/2;
-      py = pqrect.top   () + fm.ascent () + ym + padding;
+      px = pbbox.getXMid() - tw/2;
+      py = pbbox.getYMin() + fm.ascent () + ym + padding;
     }
     else if (position1 == Position::TOP_OUTSIDE) {
-      px = pqrect.center().x() - tw/2;
-      py = pqrect.top   () - fm.descent() - ym - padding;
+      px = pbbox.getXMid() - tw/2;
+      py = pbbox.getYMin() - fm.descent() - ym - padding;
     }
     else if (position1 == Position::BOTTOM_INSIDE) {
-      px = pqrect.center().x() - tw/2;
-      py = pqrect.bottom() - fm.descent() - ym - padding;
+      px = pbbox.getXMid() - tw/2;
+      py = pbbox.getYMax() - fm.descent() - ym - padding;
     }
     else if (position1 == Position::BOTTOM_OUTSIDE) {
-      px = pqrect.center().x() - tw/2;
-      py = pqrect.bottom() + fm.ascent () + ym + padding;
+      px = pbbox.getXMid() - tw/2;
+      py = pbbox.getYMax() + fm.ascent () + ym + padding;
     }
     else if (position1 == Position::LEFT_INSIDE) {
-      px = pqrect.left  () + xm + padding;
-      py = pqrect.center().y() + (fm.ascent() - fm.descent())/2;
+      px = pbbox.getXMin() + xm + padding;
+      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::LEFT_OUTSIDE) {
-      px = pqrect.left  () - tw - xm - padding;
-      py = pqrect.center().y() + (fm.ascent() - fm.descent())/2;
+      px = pbbox.getXMin() - tw - xm - padding;
+      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::RIGHT_INSIDE) {
-      px = pqrect.right () - tw - xm - padding;
-      py = pqrect.center().y() + (fm.ascent() - fm.descent())/2;
+      px = pbbox.getXMax() - tw - xm - padding;
+      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::RIGHT_OUTSIDE) {
-      px = pqrect.right () + xm + padding;
-      py = pqrect.center().y() + (fm.ascent() - fm.descent())/2;
+      px = pbbox.getXMax() + xm + padding;
+      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::CENTER) {
-      px = pqrect.center().x() - tw/2;
-      py = pqrect.center().y() + (fm.ascent() - fm.descent())/2;
+      px = pbbox.getXMid() - tw/2;
+      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
 
     // clip if needed
     bool clipped = false;
 
     if (isClip()) {
-      if (tw >= pqrect.width())
+      if (tw >= pbbox.getWidth())
         clipped = true;
     }
 
@@ -165,21 +163,21 @@ draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
       if (position1 == Position::TOP_INSIDE  || position1 == Position::BOTTOM_INSIDE ||
           position1 == Position::LEFT_INSIDE || position1 == Position::RIGHT_INSIDE ||
           position1 == Position::CENTER) {
-        device->setClipRect(device->pixelToWindow(pqrect));
+        device->setClipRect(bbox);
       }
     }
 
     // draw box
-    QRectF prect = QRectF(px - pxlm, py - fm.ascent() - pybm,
-                          tw + pxlm + pxrm, fm.height() + pybm + pytm);
+    CQChartsGeom::BBox tpbbox(px      - pxlm, py - fm.ascent () - pybm,
+                              px + tw + pxrm, py + fm.descent() + pytm);
 
-    CQChartsBoxObj::draw(device, device->pixelToWindow(prect));
+    CQChartsBoxObj::draw(device, device->pixelToWindow(tpbbox));
 
     if (! clipped) {
       if (ystr.length()) {
         device->setPen(tpen);
 
-        QPointF p1 = device->pixelToWindow(QPointF(px, py));
+        CQChartsGeom::Point p1 = device->pixelToWindow(CQChartsGeom::Point(px, py));
 
         CQChartsTextOptions options;
 
@@ -214,42 +212,43 @@ draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
     Qt::Alignment align = textAlignment();
 
     if      (position1 == Position::TOP_INSIDE) {
-      x = qrect.center().x();
-      y = qrect.top   () + ybm + ytm;
+      x = bbox.getXMid();
+      y = bbox.getYMax() + ybm + ytm;
     }
     else if (position1 == Position::TOP_OUTSIDE) {
-      x = qrect.center().x();
-      y = qrect.top   () - ybm - ytm;
+      x = bbox.getXMid();
+      y = bbox.getYMax() - ybm - ytm;
     }
     else if (position1 == Position::BOTTOM_INSIDE) {
-      x = qrect.center().x();
-      y = qrect.bottom() - ybm - ytm;
+      x = bbox.getXMid();
+      y = bbox.getYMin() - ybm - ytm;
     }
     else if (position1 == Position::BOTTOM_OUTSIDE) {
-      x = qrect.center ().x();
-      y = qrect.bottom() + ybm + ytm;
+      x = bbox.getXMid();
+      y = bbox.getYMin() + ybm + ytm;
     }
     else if (position1 == Position::LEFT_INSIDE) {
-      x = qrect.left  () + xlm + xrm;
-      y = qrect.center().y();
+      x = bbox.getXMin() + xlm + xrm;
+      y = bbox.getYMid();
     }
     else if (position1 == Position::LEFT_OUTSIDE) {
-      x = qrect.left  () - xlm - xrm;
-      y = qrect.center().y();
+      x = bbox.getXMin() - xlm - xrm;
+      y = bbox.getYMid();
     }
     else if (position1 == Position::RIGHT_INSIDE) {
-      x = qrect.right () - xlm - xrm;
-      y = qrect.center().y();
+      x = bbox.getXMax() - xlm - xrm;
+      y = bbox.getYMid();
     }
     else if (position1 == Position::RIGHT_OUTSIDE) {
-      x = qrect.right () + xlm + xrm;
-      y = qrect.center().y();
+      x = bbox.getXMax() + xlm + xrm;
+      y = bbox.getYMid();
     }
     else if (position1 == Position::CENTER) {
-      x = qrect.center().x();
-      y = qrect.center().y();
+      x = bbox.getXMid();
+      y = bbox.getYMid();
     }
 
+    CQChartsGeom::BBox          bbox;
     CQChartsRotatedText::Points points;
 
     CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
@@ -260,19 +259,19 @@ draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
     options.align = align;
 
     CQChartsRotatedText::calcBBoxData(x, y, ystr, device->font(), options, border,
-                                      qrect1, points, /*alignBBox*/ true);
+                                      bbox, points, /*alignBBox*/ true);
 
-    QPolygonF poly;
+    CQChartsGeom::Polygon poly;
 
     for (std::size_t i = 0; i < points.size(); ++i)
-      poly << device->pixelToWindow(points[i]);
+      poly.addPoint(device->pixelToWindow(points[i]));
 
     CQChartsBoxObj::draw(device, poly);
 
     device->setPen(tpen);
 
     if (ystr.length()) {
-      QPointF p1 = device->pixelToWindow(QPointF(x, y));
+      CQChartsGeom::Point p1 = device->pixelToWindow(CQChartsGeom::Point(x, y));
 
       CQChartsTextOptions options;
 
@@ -291,7 +290,7 @@ draw(CQChartsPaintDevice *device, const QRectF &qrect, const QString &ystr,
   //---
 
   if (plot()->showBoxes()) {
-    plot()->drawWindowColorBox(device, CQChartsGeom::BBox(qrect1));
+    plot()->drawWindowColorBox(device, bbox);
   }
 
   //---
@@ -328,9 +327,6 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
 
   double padding = CQChartsBoxObj::padding();
 
-  QRectF qrect  = bbox.qrect();
-  QRectF qrect1 = qrect;
-
   //---
 
   QFont font = plot()->view()->plotFont(plot(), textFont());
@@ -339,8 +335,10 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
 
   //---
 
+  CQChartsGeom::BBox wbbox;
+
   if (CMathUtil::isZero(textAngle())) {
-    QRectF pqrect = plot()->windowToPixel(qrect);
+    CQChartsGeom::BBox pbbox  = plot()->windowToPixel(bbox);
 
     //---
 
@@ -352,45 +350,45 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
     double px = 0.0, py = 0.0;
 
     if      (position1 == Position::TOP_INSIDE) {
-      px = pqrect.center().x() - tw/2;
-      py = pqrect.top   () + fm.ascent () + ym + padding;
+      px = pbbox.getXMid() - tw/2;
+      py = pbbox.getYMin() + fm.ascent () + ym + padding;
     }
     else if (position1 == Position::TOP_OUTSIDE) {
-      px = pqrect.center().x() - tw/2;
-      py = pqrect.top   () - fm.descent() - ym - padding;
+      px = pbbox.getXMid() - tw/2;
+      py = pbbox.getYMin() - fm.descent() - ym - padding;
     } else if (position1 == Position::BOTTOM_INSIDE) {
-      px = pqrect.center().x() - tw/2;
-      py = pqrect.bottom() - fm.descent() - ym - padding;
+      px = pbbox.getXMid() - tw/2;
+      py = pbbox.getYMax() - fm.descent() - ym - padding;
     }
     else if (position1 == Position::BOTTOM_OUTSIDE) {
-      px = pqrect.center().x() - tw/2;
-      py = pqrect.bottom() + fm.ascent () + ym + padding;
+      px = pbbox.getXMid() - tw/2;
+      py = pbbox.getYMax() + fm.ascent () + ym + padding;
     }
     else if (position1 == Position::LEFT_INSIDE) {
-      px = pqrect.left  () + xm + padding;
-      py = pqrect.center().y() + (fm.ascent() - fm.descent())/2;
+      px = pbbox.getXMin() + xm + padding;
+      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::LEFT_OUTSIDE) {
-      px = pqrect.left  () - tw - xm - padding;
-      py = pqrect.center().y() + (fm.ascent() - fm.descent())/2;
+      px = pbbox.getXMin() - tw - xm - padding;
+      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::RIGHT_INSIDE) {
-      px = pqrect.right () - tw - xm - padding;
-      py = pqrect.center().y() + (fm.ascent() - fm.descent())/2;
+      px = pbbox.getXMax() - tw - xm - padding;
+      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::RIGHT_OUTSIDE) {
-      px = pqrect.right () + xm + padding;
-      py = pqrect.center().y() + (fm.ascent() - fm.descent())/2;
+      px = pbbox.getXMax() + xm + padding;
+      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
     else if (position1 == Position::CENTER) {
-      px = pqrect.center().x() - tw/2;
-      py = pqrect.center().y() + (fm.ascent() - fm.descent())/2;
+      px = pbbox.getXMid() - tw/2;
+      py = pbbox.getYMid() + (fm.ascent() - fm.descent())/2;
     }
 
-    QRectF prect = QRectF(px - tw/2 - xlm, py - fm.ascent() - ybm,
-                          tw + xlm + xrm, fm.height() + ybm + ytm);
+    CQChartsGeom::BBox pbbox1(px - tw/2 - xlm, py - fm.ascent () - ybm,
+                              px + tw/2 + xrm, py + fm.descent() + ytm);
 
-    qrect1 = plot()->pixelToWindow(prect);
+    wbbox = plot()->pixelToWindow(pbbox1);
   }
   else {
     // calc pixel position
@@ -399,42 +397,43 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
     Qt::Alignment align = textAlignment();
 
     if      (position1 == Position::TOP_INSIDE) {
-      x = qrect.center().x();
-      y = qrect.top   () + ybm + ytm;
+      x = bbox.getXMid();
+      y = bbox.getYMax() + ybm + ytm;
     }
     else if (position1 == Position::TOP_OUTSIDE) {
-      x = qrect.center().x();
-      y = qrect.top   () - ybm - ytm;
+      x = bbox.getXMid();
+      y = bbox.getYMax() - ybm - ytm;
     }
     else if (position1 == Position::BOTTOM_INSIDE) {
-      x = qrect.center().x();
-      y = qrect.bottom() - ybm - ytm;
+      x = bbox.getXMid();
+      y = bbox.getYMin() - ybm - ytm;
     }
     else if (position1 == Position::BOTTOM_OUTSIDE) {
-      x = qrect.center ().x();
-      y = qrect.bottom() + ybm + ytm;
+      x = bbox.getXMid();
+      y = bbox.getYMin() + ybm + ytm;
     }
     else if (position1 == Position::LEFT_INSIDE) {
-      x = qrect.left  () + xlm + xrm;
-      y = qrect.center().y();
+      x = bbox.getXMin() + xlm + xrm;
+      y = bbox.getYMid();
     }
     else if (position1 == Position::LEFT_OUTSIDE) {
-      x = qrect.left  () - xlm - xrm;
-      y = qrect.center().y();
+      x = bbox.getXMin() - xlm - xrm;
+      y = bbox.getYMid();
     }
     else if (position1 == Position::RIGHT_INSIDE) {
-      x = qrect.right () - xlm - xrm;
-      y = qrect.center().y();
+      x = bbox.getXMax() - xlm - xrm;
+      y = bbox.getYMid();
     }
     else if (position1 == Position::RIGHT_OUTSIDE) {
-      x = qrect.right () + xlm + xrm;
-      y = qrect.center().y();
+      x = bbox.getXMax() + xlm + xrm;
+      y = bbox.getYMid();
     }
     else if (position1 == Position::CENTER) {
-      x = qrect.center().x();
-      y = qrect.center().y();
+      x = bbox.getXMid();
+      y = bbox.getYMid();
     }
 
+    CQChartsGeom::BBox          bbox;
     CQChartsRotatedText::Points points;
 
     CQChartsGeom::Margin border(xlm, ytm, xrm, ybm);
@@ -445,14 +444,14 @@ calcRect(const CQChartsGeom::BBox &bbox, const QString &ystr, const Position &po
     options.align = align;
 
     CQChartsRotatedText::calcBBoxData(x, y, ystr, font, options, border,
-                                      qrect1, points, /*alignBBox*/ true);
+                                      bbox, points, /*alignBBox*/ true);
+
+    wbbox = bbox;
   }
 
   //---
 
-  CQChartsGeom::BBox wrect(qrect1);
-
-  return wrect;
+  return wbbox;
 }
 
 CQChartsDataLabel::Position

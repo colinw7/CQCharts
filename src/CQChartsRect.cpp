@@ -18,12 +18,12 @@ registerMetaType()
 
 bool
 CQChartsRect::
-decodeString(const QString &str, CQChartsUnits &units, QRectF &rect,
+decodeString(const QString &str, CQChartsUnits &units, CQChartsGeom::BBox &bbox,
              const CQChartsUnits &defUnits)
 {
   CQStrParse parse(str);
 
-  if (! CQChartsUtil::parseRect(parse, rect))
+  if (! CQChartsUtil::parseBBox(parse, bbox))
     return false;
 
   parse.skipSpace();

@@ -6,6 +6,8 @@ CQChartsAxisTickLabelPlacementEdit(QWidget *parent) :
 {
   setObjectName("axisTickLabelPlacement");
 
+  setToolTip("Axis Placement");
+
   init();
 
   QObject::connect(this, SIGNAL(enumChanged()), this, SIGNAL(axisTickLabelPlacementChanged()));

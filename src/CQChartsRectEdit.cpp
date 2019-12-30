@@ -1,8 +1,8 @@
 #include <CQChartsRectEdit.h>
 #include <CQChartsUnitsEdit.h>
+#include <CQChartsGeomBBoxEdit.h>
 
 #include <CQPropertyView.h>
-#include <CQRectEdit.h>
 #include <CQUtil.h>
 
 #include <QHBoxLayout>
@@ -13,11 +13,13 @@ CQChartsRectEdit(QWidget *parent) :
 {
   setObjectName("rectEdit");
 
-  QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
+  auto layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   //---
 
-  edit_ = CQUtil::makeWidget<CQRectEdit>("rect");
+  edit_ = CQUtil::makeWidget<CQChartsGeomBBoxEdit>("rect");
+
+  edit_->setToolTip("Rectangle Coords (Left Bottom Right Top)");
 
   layout->addWidget(edit_);
 
@@ -52,10 +54,10 @@ void
 CQChartsRectEdit::
 editChanged()
 {
-  QRectF               qrect = edit_->getValue();
+  CQChartsGeom::BBox   bbox  = edit_->getValue();
   const CQChartsUnits &units = rect_.units();
 
-  CQChartsRect rect(qrect, units);
+  CQChartsRect rect(bbox, units);
 
   if (! rect_.isValid())
     return;
@@ -69,10 +71,10 @@ void
 CQChartsRectEdit::
 unitsChanged()
 {
-  const QRectF& qrect = rect_.rect();
-  CQChartsUnits units = unitsEdit_->units();
+  const CQChartsGeom::BBox &bbox  = rect_.bbox();
+  CQChartsUnits             units = unitsEdit_->units();
 
-  CQChartsRect rect(qrect, units);
+  CQChartsRect rect(bbox, units);
 
   if (! rect_.isValid())
     return;
@@ -88,10 +90,10 @@ rectToWidgets()
 {
   connectSlots(false);
 
-  const QRectF        &rect  = rect_.rect();
-  const CQChartsUnits &units = rect_.units();
+  const CQChartsGeom::BBox &bbox  = rect_.bbox();
+  const CQChartsUnits      &units = rect_.units();
 
-  edit_->setValue(rect);
+  edit_->setValue(bbox);
 
   unitsEdit_->setUnits(units);
 
@@ -102,10 +104,10 @@ void
 CQChartsRectEdit::
 widgetsToRect()
 {
-  QRectF        qrect = edit_->getValue();
-  CQChartsUnits units = unitsEdit_->units();
+  CQChartsGeom::BBox bbox  = edit_->getValue();
+  CQChartsUnits      units = unitsEdit_->units();
 
-  CQChartsRect rect(qrect, units);
+  CQChartsRect rect(bbox, units);
 
   if (! rect.isValid())
     return;

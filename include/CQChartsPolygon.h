@@ -1,9 +1,9 @@
 #ifndef CQChartsPolygon_H
 #define CQChartsPolygon_H
 
+#include <CQChartsGeom.h>
 #include <CQChartsUtil.h>
 #include <QString>
-#include <QPolygonF>
 #include <iostream>
 
 /*!
@@ -17,11 +17,11 @@ class CQChartsPolygon {
   static int metaTypeId;
 
  public:
-  CQChartsPolygon(const CQChartsUnits &units, const QPolygonF &polygon) :
+  CQChartsPolygon(const CQChartsUnits &units, const CQChartsGeom::Polygon &polygon) :
    units_(units), polygon_(polygon) {
   }
 
-  CQChartsPolygon(const QPolygonF &polygon=QPolygonF(),
+  CQChartsPolygon(const CQChartsGeom::Polygon &polygon=CQChartsGeom::Polygon(),
                   const CQChartsUnits &units=CQChartsUnits::PLOT) :
    units_(units), polygon_(polygon) {
   }
@@ -43,36 +43,44 @@ class CQChartsPolygon {
 
   //---
 
-  bool isValid() const { return units_ != CQChartsUnits::NONE && polygon_.size() > 0; }
+  bool isValid(bool closed=false) const {
+    return (closed ? polygon_.size() >= 3 : polygon_.size() >= 2);
+  }
 
   //---
 
   const CQChartsUnits &units() const { return units_; }
   void setUnits(const CQChartsUnits &units) { units_ = units; }
 
+  bool hasUnits() const { return units_ != CQChartsUnits::NONE; }
+
   //---
 
-  const QPolygonF &polygon() const { return polygon_; }
+  const CQChartsGeom::Polygon &polygon() const { return polygon_; }
 
   int numPoints() const { return polygon_.size(); }
 
-  const QPointF &point(int i) const { return polygon_[i]; }
-  void setPoint(int i, const QPointF &p) { polygon_[i] = p; }
+  CQChartsGeom::Point point(int i) const { return polygon_.point(i); }
+//const QPointF &qpoint(int i) const { return polygon_.qpoint(i); }
 
-  void addPoint(const QPointF &p) { polygon_ << p; }
+  void setPoint(int i, const CQChartsGeom::Point &p) { polygon_.setPoint(i, p); }
+//void setPoint(int i, const QPointF &p) { polygon_.setPoint(i, p); }
 
-  void removePoint() { polygon_.pop_back(); }
+  void addPoint(const CQChartsGeom::Point &p) { polygon_.addPoint(p); }
+//void addPoint(const QPointF &p) { polygon_.addPoint(p); }
+
+  void removePoint() { polygon_.removePoint(); }
 
   //---
 
-  void setValue(const CQChartsUnits &units, const QPolygonF &polygon) {
+  void setValue(const CQChartsUnits &units, const CQChartsGeom::Polygon &polygon) {
     units_   = units;
     polygon_ = polygon;
   }
 
   bool setValue(const QString &str, const CQChartsUnits &defUnits=CQChartsUnits::PLOT) {
-    CQChartsUnits units;
-    QPolygonF     polygon;
+    CQChartsUnits         units;
+    CQChartsGeom::Polygon polygon;
 
     if (! decodeString(str, units, polygon, defUnits))
       return false;
@@ -98,7 +106,7 @@ class CQChartsPolygon {
     for (int i = 0; i < polygon_.size(); ++i) {
       if (i > 0) str += " ";
 
-      str += QString("%1 %2").arg(polygon_[i].x()).arg(polygon_[i].y());
+      str += QString("%1 %2").arg(polygon_.point(i).x).arg(polygon_.point(i).y);
     }
 
     str += " " + ustr;
@@ -138,12 +146,13 @@ class CQChartsPolygon {
   //---
 
  private:
-  static bool decodeString(const QString &str, CQChartsUnits &units, QPolygonF &polygon,
+  static bool decodeString(const QString &str, CQChartsUnits &units,
+                           CQChartsGeom::Polygon &polygon,
                            const CQChartsUnits &defUnits=CQChartsUnits::PLOT);
 
  private:
-  CQChartsUnits units_ { CQChartsUnits::PIXEL };
-  QPolygonF     polygon_;
+  CQChartsUnits         units_ { CQChartsUnits::PIXEL };
+  CQChartsGeom::Polygon polygon_;
 };
 
 //---

@@ -18,7 +18,7 @@ registerMetaType()
 
 bool
 CQChartsPolygon::
-decodeString(const QString &str, CQChartsUnits &units, QPolygonF &polygon,
+decodeString(const QString &str, CQChartsUnits &units, CQChartsGeom::Polygon &polygon,
              const CQChartsUnits &defUnits)
 {
   CQStrParse parse(str);

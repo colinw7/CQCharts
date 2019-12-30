@@ -139,11 +139,11 @@ adjustTextOptions(CQChartsTextOptions &textOptions) const
 
 //---
 
-QPointF
+CQChartsGeom::Point
 CQChartsViewPlotObj::
 positionToParent(const CQChartsPosition &pos) const
 {
-  QPointF p;
+  CQChartsGeom::Point p;
 
   if      (plot())
     p = plot()->positionToPlot(pos);
@@ -153,11 +153,11 @@ positionToParent(const CQChartsPosition &pos) const
   return p;
 }
 
-QPointF
+CQChartsGeom::Point
 CQChartsViewPlotObj::
 positionToPixel(const CQChartsPosition &pos) const
 {
-  QPointF p;
+  CQChartsGeom::Point p;
 
   if      (plot())
     p = plot()->positionToPixel(pos);
@@ -321,4 +321,84 @@ backgroundColor() const
     bg = view()->interpBackgroundFillColor(ci);
 
   return bg;
+}
+
+//---
+
+CQChartsLength
+CQChartsViewPlotObj::
+makeLength(CQChartsView *view, CQChartsPlot *plot, double len)
+{
+  assert(view || plot);
+
+  if      (view)
+    return CQChartsLength(len, CQChartsUnits::VIEW);
+  else if (plot)
+    return CQChartsLength(len, CQChartsUnits::PLOT);
+  else
+    return CQChartsLength();
+}
+
+CQChartsPosition
+CQChartsViewPlotObj::
+makePosition(CQChartsView *view, CQChartsPlot *plot, double x, double y)
+{
+  assert(view || plot);
+
+  if      (view)
+    return CQChartsPosition(CQChartsGeom::Point(x, y), CQChartsUnits::VIEW);
+  else if (plot)
+    return CQChartsPosition(CQChartsGeom::Point(x, y), CQChartsUnits::PLOT);
+  else
+    return CQChartsPosition();
+}
+
+CQChartsRect
+CQChartsViewPlotObj::
+makeRect(CQChartsView *view, CQChartsPlot *plot, double x1, double y1, double x2, double y2)
+{
+  assert(view || plot);
+
+  if      (view)
+    return CQChartsRect(CQChartsGeom::BBox(x1, y1, x2, y2), CQChartsUnits::VIEW);
+  else if (plot)
+    return CQChartsRect(CQChartsGeom::BBox(x1, y1, x2, y2), CQChartsUnits::PLOT);
+  else
+    return CQChartsRect();
+}
+
+CQChartsRect
+CQChartsViewPlotObj::
+makeRect(CQChartsView *view, CQChartsPlot *plot,
+         const CQChartsPosition &start, const CQChartsPosition &end)
+{
+  assert(view || plot);
+
+  CQChartsRect rectangle;
+
+  // if different units then convert rectangle
+  if (start.units() != end.units()) {
+    CQChartsGeom::Point pstart, pend;
+
+    if      (plot) {
+      pstart = plot->positionToPlot(start);
+      pend   = plot->positionToPlot(end);
+    }
+    else if (view) {
+      pstart = view->positionToView(start);
+      pend   = view->positionToView(end);
+    }
+
+    CQChartsGeom::BBox bbox(pstart, pend);
+
+    if      (plot)
+      rectangle = CQChartsRect(bbox, CQChartsUnits::PLOT);
+    else if (view)
+      rectangle = CQChartsRect(bbox, CQChartsUnits::VIEW);
+  }
+  else {
+    rectangle = CQChartsRect(CQChartsGeom::BBox(start.p(), end.p()), start.units());
+  }
+
+  return rectangle;
 }

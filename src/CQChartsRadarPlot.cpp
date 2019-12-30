@@ -345,7 +345,8 @@ calcAnnotationBBox() const
           else if (y < 0)                align |= Qt::AlignTop;
 
           CQChartsGeom::BBox tbbox =
-            CQChartsDrawUtil::calcAlignedTextRect(&device, font, QPointF(x, y), name, align, 2, 2);
+            CQChartsDrawUtil::calcAlignedTextRect(&device, font, CQChartsGeom::Point(x, y),
+                                                  name, align, 2, 2);
 
           bbox += tbbox;
         }
@@ -437,7 +438,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
   //---
 
   // calc polygon points
-  QPolygonF                    poly;
+  CQChartsGeom::Polygon        poly;
   CQChartsRadarObj::NameValues nameValues;
 
   double a = (nv > 2 ? angleStart() : 0.0);
@@ -477,7 +478,7 @@ addRow(const ModelVisitor::VisitData &data, int nr, PlotObjs &objs) const
     double x = value*cos(ra)/scale;
     double y = value*sin(ra)/scale;
 
-    poly << QPointF(x, y);
+    poly.addPoint(CQChartsGeom::Point(x, y));
 
     //---
 
@@ -646,8 +647,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
         CQChartsGeom::Point p2 = windowToPixel(CQChartsGeom::Point(x, y));
 
-        device->drawLine(device->pixelToWindow(p1.qpoint()),
-                         device->pixelToWindow(p2.qpoint()));
+        device->drawLine(device->pixelToWindow(p1), device->pixelToWindow(p2));
 
         a -= da;
       }
@@ -679,7 +679,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
       double a = angleStart();
 
-      QPolygonF poly;
+      CQChartsGeom::Polygon poly;
 
       for (int iv = 0; iv < nv; ++iv) {
         double ra = CMathUtil::Deg2Rad(a);
@@ -689,7 +689,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
 
         CQChartsGeom::Point p1(x, y);
 
-        poly << p1.qpoint();
+        poly.addPoint(p1);
 
         //---
 
@@ -722,10 +722,9 @@ execDrawBackground(CQChartsPaintDevice *device) const
           options.contrast      = isTextContrast();
           options.contrastAlpha = textContrastAlpha();
 
-          CQChartsDrawUtil::drawTextAtPoint(device, p1.qpoint(), name, options,
-                                            /*centered*/false, 2, 2);
+          CQChartsDrawUtil::drawTextAtPoint(device, p1, name, options, /*centered*/false, 2, 2);
 
-        //CQChartsDrawUtil::drawAlignedText(device, p1.qpoint(), name, align, 2, 2);
+        //CQChartsDrawUtil::drawAlignedText(device, p1, name, align, 2, 2);
         }
 
         //---
@@ -733,7 +732,7 @@ execDrawBackground(CQChartsPaintDevice *device) const
         a -= da;
       }
 
-      poly << poly[0];
+      poly.addPoint(poly.point(0));
 
       //---
 
@@ -750,9 +749,9 @@ execDrawBackground(CQChartsPaintDevice *device) const
 //------
 
 CQChartsRadarObj::
-CQChartsRadarObj(const CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect, const QString &name,
-                 const QPolygonF &poly, const NameValues &nameValues, const QModelIndex &ind,
-                 const ColorInd &is) :
+CQChartsRadarObj(const CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect,
+                 const QString &name, const CQChartsGeom::Polygon &poly,
+                 const NameValues &nameValues, const QModelIndex &ind, const ColorInd &is) :
  CQChartsPlotObj(const_cast<CQChartsRadarPlot *>(plot), rect, is, ColorInd(), ColorInd()),
  plot_(plot), name_(name), poly_(poly), nameValues_(nameValues)
 {
@@ -817,26 +816,26 @@ inside(const CQChartsGeom::Point &p) const
 
   // point
   if      (poly_.size() == 1) {
-    const QPointF &p1 = poly_[0]; // circle radius p1.x()
+    CQChartsGeom::Point p1 = poly_.point(0); // circle radius p1.x
 
-    double r  = std::hypot(p .x  , p .y  );
-    double r1 = std::hypot(p1.x(), p1.x());
+    double r  = std::hypot(p .x, p .y);
+    double r1 = std::hypot(p1.x, p1.x);
 
     return (r < r1);
   }
   // line
   else if (poly_.size() == 2) {
-    const QPointF &p1 = poly_[0]; // circle radius p1.x() and p2.y()
-    const QPointF &p2 = poly_[1];
+    CQChartsGeom::Point p1 = poly_.point(0); // circle radius p1.x and p2.y
+    CQChartsGeom::Point p2 = poly_.point(1);
 
-    double r  = std::hypot(p .x  , p .y  );
-    double r1 = std::hypot(p1.x(), p2.y());
+    double r  = std::hypot(p .x, p .y);
+    double r1 = std::hypot(p1.x, p2.y);
 
     return (r < r1);
   }
   // polygon
   else if (poly_.size() >= 3) {
-    return poly_.containsPoint(p.qpoint(), Qt::OddEvenFill);
+    return poly_.containsPoint(p, Qt::OddEvenFill);
   }
   else
     return false;
@@ -879,9 +878,9 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // create pixel polygon
-  QPolygonF ppoly = plot_->windowToPixel(poly_);
+  CQChartsGeom::Polygon ppoly = plot_->windowToPixel(poly_);
 
-  ppoly << ppoly[0];
+  ppoly.addPoint(ppoly.point(0)); // close
 
   //---
 
@@ -900,25 +899,25 @@ draw(CQChartsPaintDevice *device)
 
   // draw point
   if      (poly_.size() == 1) {
-    const QPointF &p1 = ppoly[0]; // circle radius p1.x()
+    CQChartsGeom::Point p1 = ppoly.point(0); // circle radius p1.x
 
-    double r = p1.x() - po.x;
+    double r = p1.x - po.x;
 
     CQChartsGeom::BBox pbbox(po.x - r, po.y - r, po.x + r, po.y + r);
 
-    device->drawEllipse(device->pixelToWindow(pbbox).qrect());
+    device->drawEllipse(device->pixelToWindow(pbbox));
   }
   // draw line
   else if (poly_.size() == 2) {
-    const QPointF &p1 = ppoly[0]; // circle radius p1.x() and p2.y()
-    const QPointF &p2 = ppoly[1];
+    CQChartsGeom::Point p1 = ppoly.point(0); // circle radius p1.x and p2.y
+    CQChartsGeom::Point p2 = ppoly.point(1);
 
-    double xr = p1.x() - po.x;
-    double yr = p2.y() - po.y;
+    double xr = p1.x - po.x;
+    double yr = p2.y - po.y;
 
     CQChartsGeom::BBox pbbox(po.x - xr, po.y - yr, po.x + xr, po.y + yr);
 
-    device->drawEllipse(device->pixelToWindow(pbbox).qrect());
+    device->drawEllipse(device->pixelToWindow(pbbox));
   }
   // draw polygon
   else if (poly_.size() >= 3) {

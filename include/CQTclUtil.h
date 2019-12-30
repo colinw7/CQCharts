@@ -283,6 +283,30 @@ inline QVariant variantFromObj(Tcl_Interp *interp, const Tcl_Obj *obj) {
 
 //---
 
+inline QString variantListToString(const QVariantList &vars) {
+  Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
+
+  for (int i = 0; i < vars.length(); ++i) {
+    const QVariant &var = vars[i];
+
+    Tcl_Obj *obj1 = variantToObj(nullptr, var);
+
+    Tcl_ListObjAppendElement(nullptr, obj, obj1);
+  }
+
+  int len = 0;
+
+  char *str = Tcl_GetStringFromObj(obj, &len);
+
+  QString qstr(str);
+
+  Tcl_IncrRefCount(obj); Tcl_DecrRefCount(obj);
+
+  return qstr;
+}
+
+//---
+
 inline void createVar(Tcl_Interp *interp, const QString &name, const QVariant &var) {
   if (var.isValid()) {
     Tcl_Obj *nameObj  = variantToObj(interp, name);

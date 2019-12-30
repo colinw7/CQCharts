@@ -64,8 +64,8 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
  public:
   CQChartsRadarObj(const CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect,
-                   const QString &name, const QPolygonF &poly, const NameValues &nameValues,
-                   const QModelIndex &ind, const ColorInd &iv);
+                   const QString &name, const CQChartsGeom::Polygon &poly,
+                   const NameValues &nameValues, const QModelIndex &ind, const ColorInd &iv);
 
   QString typeName() const override { return "poly"; }
 
@@ -78,7 +78,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
   //---
 
   bool isPolygon() const override { return true; }
-  QPolygonF polygon() const override { return poly_; }
+  CQChartsGeom::Polygon polygon() const override { return poly_; }
 
   //---
 
@@ -103,7 +103,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
  private:
   const CQChartsRadarPlot* plot_       { nullptr }; //!< parent plot
   QString                  name_;                   //!< row name
-  QPolygonF                poly_;                   //!< polygon
+  CQChartsGeom::Polygon    poly_;                   //!< polygon
   NameValues               nameValues_;             //!< column values
 };
 

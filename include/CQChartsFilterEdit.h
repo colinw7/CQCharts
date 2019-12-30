@@ -54,13 +54,13 @@ class CQChartsFilterEdit : public QFrame {
 
 //------
 
-#include <CQLineEdit.h>
+#include <CQChartsLineEdit.h>
 
 /*!
  * \brief filter line edit
  * \ingroup Charts
  */
-class CQChartsFilterEditEdit : public CQLineEdit {
+class CQChartsFilterEditEdit : public CQChartsLineEdit {
   Q_OBJECT
 
  public:

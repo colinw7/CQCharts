@@ -7,13 +7,13 @@
 #include <CQChartsAlphaEdit.h>
 #include <CQChartsTextDataEdit.h>
 #include <CQChartsTextBoxDataEdit.h>
+#include <CQChartsGeomPointEdit.h>
 #include <CQCharts.h>
 #include <CQChartsWidgetUtil.h>
 
 #include <CQGroupBox.h>
 #include <CQCheckBox.h>
 #include <CQIntegerSpin.h>
-#include <CQPoint2DEdit.h>
 #include <CQUtil.h>
 
 #include <QLabel>
@@ -135,6 +135,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   horizontalEdit_ = CQUtil::makeWidget<CQCheckBox>("horizontalEdit");
 
   horizontalEdit_->setChecked(data_.horizontal);
+  horizontalEdit_->setToolTip("Draw key items horizontally");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Horizontal", horizontalEdit_, row);
 
@@ -145,6 +146,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
     flippedEdit_ = CQUtil::makeWidget<CQCheckBox>("flippedEdit");
 
     flippedEdit_->setChecked(data_.flipped);
+    flippedEdit_->setToolTip("Draw key items flipped");
 
     CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Flipped", flippedEdit_, row);
   }
@@ -155,6 +157,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   autoHideEdit_ = CQUtil::makeWidget<CQCheckBox>("autoHideEdit");
 
   autoHideEdit_->setChecked(data_.autoHide);
+  autoHideEdit_->setToolTip("Auto hide key if too large");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Auto Hide", autoHideEdit_, row);
 
@@ -164,6 +167,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   clippedEdit_ = CQUtil::makeWidget<CQCheckBox>("clippedEdit");
 
   clippedEdit_->setChecked(data_.clipped);
+  clippedEdit_->setToolTip("Clip key item");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Clipped", clippedEdit_, row);
 
@@ -183,6 +187,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   aboveEdit_ = CQUtil::makeWidget<CQCheckBox>("aboveEdit");
 
   aboveEdit_->setChecked(data_.above);
+  aboveEdit_->setToolTip("Draw key above plot");
 
   CQChartsWidgetUtil::addGridLabelWidget(placementGroupLayout, "Above", aboveEdit_, placementRow);
 
@@ -193,6 +198,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
     insideXEdit_ = CQUtil::makeWidget<CQCheckBox>("insideXEdit");
 
     insideXEdit_->setChecked(data_.insideX);
+    insideXEdit_->setToolTip("Draw inside plot in x direction");
 
     CQChartsWidgetUtil::addGridLabelWidget(placementGroupLayout, "Inside X",
                                            insideXEdit_, placementRow);
@@ -203,6 +209,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
     insideYEdit_ = CQUtil::makeWidget<CQCheckBox>("insideYEdit");
 
     insideYEdit_->setChecked(data_.insideY);
+    insideYEdit_->setToolTip("Draw inside plot in y direction");
 
     CQChartsWidgetUtil::addGridLabelWidget(placementGroupLayout, "Inside Y",
                                            insideYEdit_, placementRow);
@@ -222,9 +229,10 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
 
   if (plotKey) {
     // absolutePosition
-    absolutePositionEdit_ = CQUtil::makeWidget<CQPoint2DEdit>("absolutePositionEdit");
+    absolutePositionEdit_ = CQUtil::makeWidget<CQChartsGeomPointEdit>("absolutePositionEdit");
 
     absolutePositionEdit_->setValue(data_.absolutePosition);
+    absolutePositionEdit_->setToolTip("Absolute Position");
 
     CQChartsWidgetUtil::addGridLabelWidget(placementGroupLayout, "Abs Position",
                                            absolutePositionEdit_, placementRow);
@@ -236,6 +244,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   interactiveEdit_ = CQUtil::makeWidget<CQCheckBox>("interactiveEdit");
 
   interactiveEdit_->setChecked(data_.interactive);
+  interactiveEdit_->setToolTip("Enable click of key items");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Interactive", interactiveEdit_, row);
 
@@ -263,6 +272,7 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   maxRowsEdit_ = CQUtil::makeWidget<CQIntegerSpin>("maxRowsEdit");
 
   maxRowsEdit_->setValue(data_.maxRows);
+  maxRowsEdit_->setToolTip("Maximum Number of Rows");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Max Rows", maxRowsEdit_, row);
 
@@ -273,24 +283,27 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
     spacingEdit_ = CQUtil::makeWidget<CQIntegerSpin>("spacingEdit");
 
     spacingEdit_->setValue(data_.spacing);
+    spacingEdit_->setToolTip("Item Spacing");
 
     CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Spacing", spacingEdit_, row);
 
     //---
 
     // scrollWidth
-    scrollWidthEdit_ = CQUtil::makeWidget<CQLineEdit>("scrollWidthEdit");
+    scrollWidthEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("scrollWidthEdit");
 
     scrollWidthEdit_->setText(data_.scrollWidth.toString());
+    scrollWidthEdit_->setToolTip("Maximum Width before adding Scrollbar");
 
     CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Scroll Width", scrollWidthEdit_, row);
 
     //---
 
     // scrollHeight
-    scrollHeightEdit_ = CQUtil::makeWidget<CQLineEdit>("scrollHeightEdit");
+    scrollHeightEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("scrollHeightEdit");
 
     scrollHeightEdit_->setText(data_.scrollHeight.toString());
+    scrollHeightEdit_->setToolTip("Maximum Height before adding Scrollbar");
 
     CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Scroll Height", scrollHeightEdit_, row);
   }
@@ -308,9 +321,10 @@ CQChartsKeyEdit(QWidget *parent, CQChartsKey *key) :
   //--
 
   // header
-  headerEdit_ = CQUtil::makeWidget<CQLineEdit>("headerEdit");
+  headerEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("headerEdit");
 
   headerEdit_->setText(data_.header);
+  headerEdit_->setToolTip("Header Text");
 
   CQChartsWidgetUtil::addGridLabelWidget(headerGroupLayout, "Text", headerEdit_, headerRow);
 
@@ -452,13 +466,13 @@ widgetsToData()
   data_.headerTextData = headerTextDataEdit_->data();
 
   if (plotKey) {
-    data_.absolutePosition  = absolutePositionEdit_->getQValue();
-    data_.insideX      = insideXEdit_->isChecked();
-    data_.insideY      = insideYEdit_->isChecked();
-    data_.spacing      = spacingEdit_->value();
-    data_.flipped      = flippedEdit_->isChecked();
-    data_.scrollWidth  = CQChartsOptLength(scrollWidthEdit_->text());
-    data_.scrollHeight = CQChartsOptLength(scrollHeightEdit_->text());
+    data_.absolutePosition = absolutePositionEdit_->getValue();
+    data_.insideX          = insideXEdit_->isChecked();
+    data_.insideY          = insideYEdit_->isChecked();
+    data_.spacing          = spacingEdit_->value();
+    data_.flipped          = flippedEdit_->isChecked();
+    data_.scrollWidth      = CQChartsOptLength(scrollWidthEdit_->text());
+    data_.scrollHeight     = CQChartsOptLength(scrollHeightEdit_->text());
   }
 
   data_.textBoxData = textBoxEdit_->data();

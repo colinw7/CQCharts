@@ -43,7 +43,7 @@ using CQChartsHierScatterPointGroupMap = std::map<int,CQChartsHierScatterPointGr
 
 struct CQChartsHierScatterPoint {
   CQChartsHierScatterPointGroup* group { nullptr };
-  QPointF                        p;
+  CQChartsGeom::Point            p;
   QString                        name;
   int                            i     { 0 };
   QModelIndex                    ind;
@@ -173,7 +173,7 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
 
  public:
   CQChartsHierScatterPointObj(const CQChartsHierScatterPlot *plot, const CQChartsGeom::BBox &rect,
-                              const QPointF &p, const ColorInd &iv);
+                              const CQChartsGeom::Point &p, const ColorInd &iv);
 
   QString typeName() const override { return "point"; }
 
@@ -195,7 +195,7 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
 
  private:
   const CQChartsHierScatterPlot* plot_ { nullptr };
-  QPointF                        p_;
+  CQChartsGeom::Point            p_;
   QString                        name_;
   CQChartsHierScatterPointGroup* group_ { nullptr };
 };

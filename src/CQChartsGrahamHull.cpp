@@ -22,7 +22,7 @@ clear()
 
 void
 CQChartsGrahamHull::
-addPoint(const QPointF &point)
+addPoint(const CQChartsGeom::Point &point)
 {
   points_.push_back(point);
 
@@ -124,16 +124,16 @@ doScan()
 
 void
 CQChartsGrahamHull::
-getHull(QPolygonF &points) const
+getHull(CQChartsGeom::Polygon &poly) const
 {
   constCalc();
 
   int num_ipoints = ipoints_.size();
 
-  points.resize(num_ipoints);
+  poly.resize(num_ipoints);
 
   for (int i = 0; i < num_ipoints; ++i)
-    points[i] = points_[ipoints_[i]];
+    poly.setPoint(i, points_[ipoints_[i]]);
 }
 
 void
@@ -142,13 +142,13 @@ findLowest()
 {
   int num_points = ipoints_.size();
 
-  int     min_i = 0;
-  QPointF min_p = points_[ipoints_[min_i]];
+  int                 min_i = 0;
+  CQChartsGeom::Point min_p = points_[ipoints_[min_i]];
 
   for (int i = 1; i < num_points; ++i) {
-    const QPointF &p = points_[ipoints_[i]];
+    const CQChartsGeom::Point &p = points_[ipoints_[i]];
 
-    if (p.y() < min_p.y() || (p.y() == min_p.y() && p.x() > min_p.x())) {
+    if (p.y < min_p.y || (p.y == min_p.y && p.x > min_p.x)) {
       min_i = i;
       min_p = p;
     }
@@ -174,9 +174,9 @@ sortLowestClockwise()
   int i0 = ipoints_[0];
 
   std::sort(p1, p2, [&](const int &i1, const int &i2) {
-    const QPointF &p0 = points_[i0];
-    const QPointF &p1 = points_[i1];
-    const QPointF &p2 = points_[i2];
+    const CQChartsGeom::Point &p0 = points_[i0];
+    const CQChartsGeom::Point &p1 = points_[i1];
+    const CQChartsGeom::Point &p2 = points_[i2];
 
     int as = areaSign(p0, p1, p2);
 
@@ -184,8 +184,8 @@ sortLowestClockwise()
     if (as < 0) return false;
 
     // zero area (p1 and/or p2 are colinear)
-    double x = fabs(p1.x() - p0.x()) - fabs(p2.x() - p0.x());
-    double y = fabs(p1.y() - p0.y()) - fabs(p2.y() - p0.y());
+    double x = fabs(p1.x - p0.x) - fabs(p2.x - p0.x);
+    double y = fabs(p1.y - p0.y) - fabs(p2.y - p0.y);
 
     // remove colinear points
 
@@ -235,16 +235,17 @@ squash()
 
 bool
 CQChartsGrahamHull::
-pointLineLeft(const QPointF &a, const QPointF &b, const QPointF &c)
+pointLineLeft(const CQChartsGeom::Point &a, const CQChartsGeom::Point &b,
+              const CQChartsGeom::Point &c)
 {
   return areaSign(a, b, c) > 0;
 }
 
 int
 CQChartsGrahamHull::
-areaSign(const QPointF &a, const QPointF &b, const QPointF &c)
+areaSign(const CQChartsGeom::Point &a, const CQChartsGeom::Point &b, const CQChartsGeom::Point &c)
 {
-  double area2 = (b.x()- a.x())*(c.y() - a.y()) - (c.x()- a.x())*(b.y() - a.y());
+  double area2 = (b.x- a.x)*(c.y - a.y) - (c.x- a.x)*(b.y - a.y);
 
   if      (area2 > 0.0) return  1;
   else if (area2 < 0.0) return -1;
@@ -259,21 +260,21 @@ draw(const CQChartsPlot *, CQChartsPaintDevice *device) const
 
   //---
 
-  QPolygonF hpoints;
+  CQChartsGeom::Polygon hpoly;
 
-  getHull(hpoints);
+  getHull(hpoly);
 
-  int n = hpoints.size();
+  int n = hpoly.size();
 
   if (n > 0) {
-    QPainterPath path = CQChartsDrawUtil::polygonToPath(hpoints, /*closed*/true);
+    QPainterPath path = CQChartsDrawUtil::polygonToPath(hpoly, /*closed*/true);
 
     device->fillPath  (path, device->brush());
     device->strokePath(path, device->pen());
   }
 }
 
-QRectF
+CQChartsGeom::BBox
 CQChartsGrahamHull::
 bbox() const
 {
@@ -281,14 +282,9 @@ bbox() const
 
   //---
 
-  QPolygonF hpoints;
+  CQChartsGeom::Polygon hpoly;
 
-  getHull(hpoints);
+  getHull(hpoly);
 
-  QPolygonF poly;
-
-  for (const auto &p : hpoints)
-    poly << p;
-
-  return poly.boundingRect();
+  return hpoly.boundingBox();
 }

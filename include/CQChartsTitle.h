@@ -6,8 +6,6 @@
 #include <CQChartsPosition.h>
 #include <CQChartsRect.h>
 #include <CQChartsGeom.h>
-#include <QPointF>
-#include <QSizeF>
 #include <vector>
 
 class CQChartsPlot;
@@ -54,8 +52,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  const QPointF &position() const { return position_; }
-  void setPosition(const QPointF &p) { position_ = p; }
+  const CQChartsGeom::Point &position() const { return position_; }
+  void setPosition(const CQChartsGeom::Point &p) { position_ = p; }
 
   CQChartsEditHandles *editHandles() { return editHandles_; }
 
@@ -66,8 +64,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  QPointF absolutePlotPosition() const;
-  void setAbsolutePlotPosition(const QPointF &p);
+  CQChartsGeom::Point absolutePlotPosition() const;
+  void setAbsolutePlotPosition(const CQChartsGeom::Point &p);
 
   //---
 
@@ -85,7 +83,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  QSizeF calcSize();
+  CQChartsGeom::Size calcSize();
 
   //---
 
@@ -106,7 +104,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   virtual bool editMotion (const CQChartsGeom::Point &);
   virtual bool editRelease(const CQChartsGeom::Point &);
 
-  virtual void editMoveBy(const QPointF &d);
+  virtual void editMoveBy(const CQChartsGeom::Point &d);
 
   //---
 
@@ -124,8 +122,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   CQChartsPosition           absolutePosition_;              //!< position (relative to plot box)
   CQChartsRect               absoluteRectangle_;             //!< rect (relative to plot box)
   bool                       insidePlot_        { false };   //!< is placed inside plot
-  QPointF                    position_          { 0, 0 };    //!< position
-  QSizeF                     size_;                          //!< size
+  CQChartsGeom::Point        position_          { 0, 0 };    //!< position
+  CQChartsGeom::Size         size_;                          //!< size
   mutable CQChartsGeom::BBox bbox_;                          //!< bbox
   CQChartsEditHandles*       editHandles_       { nullptr }; //!< edit handles
 };

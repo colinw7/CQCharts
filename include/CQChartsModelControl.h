@@ -8,10 +8,10 @@
 class CQCharts;
 class CQChartsModelData;
 class CQChartsParamEdit;
+class CQChartsLineEdit;
 
 class CQPropertyViewModel;
 class CQPropertyViewTree;
-class CQLineEdit;
 
 class QGridLayout;
 class QRadioButton;
@@ -74,8 +74,9 @@ class CQChartsModelControl : public QFrame {
 
   //---
 
-  CQLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
-                          const QString &objName) const;
+  CQChartsLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
+                                const QString &objName) const;
+
   QComboBox *addComboBox(QGridLayout *grid, int &row, const QString &name,
                          const QString &objName) const;
 
@@ -89,39 +90,39 @@ class CQChartsModelControl : public QFrame {
   using ParamEdits = std::vector<ParamEdit>;
 
   struct ColumnEditData {
-    QFrame*      editFrame  { nullptr };
-    QGridLayout* editLayout { nullptr };
-    CQLineEdit*  numEdit    { nullptr };
-    CQLineEdit*  nameEdit   { nullptr };
+    QFrame*           editFrame  { nullptr };
+    QGridLayout*      editLayout { nullptr };
+    CQChartsLineEdit* numEdit    { nullptr };
+    CQChartsLineEdit* nameEdit   { nullptr };
 #if 0
-    CQLineEdit*  typeEdit   { nullptr };
+    CQChartsLineEdit* typeEdit   { nullptr };
 #else
-    QComboBox*   typeCombo  { nullptr };
+    QComboBox*        typeCombo  { nullptr };
 #endif
-    int          row        { 0 };
-    ParamEdits   paramEdits;
+    int               row        { 0 };
+    ParamEdits        paramEdits;
   };
 
   struct ExprWidgets {
-    QRadioButton* addRadio    { nullptr };
-    QRadioButton* removeRadio { nullptr };
-    QRadioButton* modifyRadio { nullptr };
-    CQLineEdit*   valueEdit   { nullptr };
-    QLabel*       columnLabel { nullptr };
-    CQLineEdit*   columnEdit  { nullptr };
-    CQLineEdit*   nameEdit    { nullptr };
-    QLabel*       typeLabel   { nullptr };
-    CQLineEdit*   typeEdit    { nullptr };
+    QRadioButton*     addRadio    { nullptr };
+    QRadioButton*     removeRadio { nullptr };
+    QRadioButton*     modifyRadio { nullptr };
+    CQChartsLineEdit* valueEdit   { nullptr };
+    QLabel*           columnLabel { nullptr };
+    CQChartsLineEdit* columnEdit  { nullptr };
+    CQChartsLineEdit* nameEdit    { nullptr };
+    QLabel*           typeLabel   { nullptr };
+    CQChartsLineEdit* typeEdit    { nullptr };
   };
 
 #ifdef CQCHARTS_FOLDED_MODEL
   struct FoldWidgets {
-    CQLineEdit* columnEdit    { nullptr };
-    QComboBox*  typeCombo     { nullptr };
-    QCheckBox*  autoCheck     { nullptr };
-    CQLineEdit* deltaEdit     { nullptr };
-    CQLineEdit* countEdit     { nullptr };
-    CQLineEdit* separatorEdit { nullptr };
+    CQChartsLineEdit* columnEdit    { nullptr };
+    QComboBox*        typeCombo     { nullptr };
+    QCheckBox*        autoCheck     { nullptr };
+    CQChartsLineEdit* deltaEdit     { nullptr };
+    CQChartsLineEdit* countEdit     { nullptr };
+    CQChartsLineEdit* separatorEdit { nullptr };
   };
 #endif
 

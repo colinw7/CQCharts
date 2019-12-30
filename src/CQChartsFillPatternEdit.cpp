@@ -6,6 +6,8 @@ CQChartsFillPatternEdit(QWidget *parent) :
 {
   setObjectName("fillPattern");
 
+  setToolTip("Fill Pattern");
+
   init();
 
   QObject::connect(this, SIGNAL(enumChanged()), this, SIGNAL(fillPatternChanged()));

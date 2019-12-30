@@ -14,6 +14,10 @@ CQChartsSymbolEdit(QWidget *parent) :
 {
   setObjectName("symbol");
 
+  setToolTip("Symbol Type");
+
+  //---
+
   QHBoxLayout *layout = CQUtil::makeLayout<QHBoxLayout>(this, 0, 2);
 
   combo_ = CQUtil::makeWidget<QComboBox>("combo");
@@ -113,20 +117,21 @@ draw(CQPropertyViewItem *, const CQPropertyViewDelegate *delegate, QPainter *pai
 
   int ss = std::max(option.rect.height()/2 - 2, 1);
 
-  QRect rect1(option.rect.left(), option.rect.center().y() - ss, 2*ss, 2*ss);
+  CQChartsGeom::BBox bbox1(option.rect.left()       , option.rect.center().y() - ss,
+                           option.rect.left() + 2*ss, option.rect.center().y() + ss);
 
-  painter->setClipRect(rect1.adjusted(-1, -1, 1, 1));
+  painter->setClipRect(bbox1.adjusted(-1, -1, 1, 1).qrect());
 
   painter->setPen  (Qt::black);
   painter->setBrush(Qt::white);
 
   CQChartsPixelPainter device(painter);
 
-  CQChartsDrawUtil::drawSymbol(&device, symbolType, rect1);
+  CQChartsDrawUtil::drawSymbol(&device, symbolType, bbox1);
 
   painter->restore();
 
-  int x = rect1.right() + 2;
+  int x = bbox1.getXMax() + 2;
 
   //--
 

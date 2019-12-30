@@ -5,7 +5,7 @@
 #include <QFrame>
 
 class CQChartsUnitsEdit;
-class CQRectEdit;
+class CQChartsGeomBBoxEdit;
 
 /*!
  * \brief rectangle edit
@@ -36,10 +36,10 @@ class CQChartsRectEdit : public QFrame {
   void connectSlots(bool b);
 
  private:
-  CQChartsRect       rect_;                  //!< rect data
-  CQRectEdit*        edit_      { nullptr }; //!< rect edit
-  CQChartsUnitsEdit* unitsEdit_ { nullptr }; //!< units edit
-  bool               connected_ { false };   //!< is connected
+  CQChartsRect          rect_;                  //!< rect data
+  CQChartsGeomBBoxEdit* edit_      { nullptr }; //!< rect edit
+  CQChartsUnitsEdit*    unitsEdit_ { nullptr }; //!< units edit
+  bool                  connected_ { false };   //!< is connected
 };
 
 //------

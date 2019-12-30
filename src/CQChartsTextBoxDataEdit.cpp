@@ -21,6 +21,8 @@ CQChartsTextBoxDataLineEdit(QWidget *parent) :
 {
   setObjectName("textBoxDataLineEdit");
 
+  setToolTip("Text Box Data");
+
   //---
 
   menuEdit_ = dataEdit_ = new CQChartsTextBoxDataEdit;
@@ -244,8 +246,6 @@ CQChartsTextBoxDataEdit(QWidget *parent, bool tabbed) :
     boxFrameLayout->addWidget(boxEdit_);
   }
   else {
-    //--
-
     // text
     textEdit_ = new CQChartsTextDataEdit;
 
@@ -377,6 +377,7 @@ CQChartsTextBoxDataEditPreview::
 CQChartsTextBoxDataEditPreview(CQChartsTextBoxDataEdit *edit) :
  CQChartsEditPreview(edit), edit_(edit)
 {
+  setToolTip("Text Box Preview");
 }
 
 void
@@ -428,6 +429,6 @@ draw(QPainter *painter, const CQChartsTextBoxData &data, const QRect &rect,
   // draw text box
   CQChartsPixelPainter device(painter);
 
-  CQChartsDrawUtil::drawRoundedPolygon(&device, rect, shape.stroke().cornerSize(),
-                                       shape.stroke().cornerSize());
+  CQChartsDrawUtil::drawRoundedPolygon(&device, CQChartsGeom::BBox(rect),
+                                       shape.stroke().cornerSize(), shape.stroke().cornerSize());
 }

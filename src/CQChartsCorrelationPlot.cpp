@@ -186,19 +186,19 @@ preDrawObjs(CQChartsPaintDevice *device) const
 
     double maxWidth = 0.0, maxHeight = 0.0;
 
-    QSizeF cellSize;
+    CQChartsGeom::Size cellSize;
 
     for (auto &plotObj : plotObjects()) {
       CQChartsCellObj *cellObj = dynamic_cast<CQChartsCellObj *>(plotObj);
       if (! cellObj) continue;
 
-      QSizeF s = cellObj->calcTextSize();
+      CQChartsGeom::Size s = cellObj->calcTextSize();
 
       maxWidth  = std::max(maxWidth , s.width ());
       maxHeight = std::max(maxHeight, s.height());
 
       if (first) {
-        cellSize = cellObj->rect().qrect().size();
+        cellSize = cellObj->rect().size();
         first    = false;
       }
     }
@@ -410,7 +410,7 @@ drawXLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  using ColRects = std::map<int,QRectF>;
+  using ColRects = std::map<int,CQChartsGeom::BBox>;
 
   ColRects colRects;
 
@@ -425,13 +425,13 @@ drawXLabels(CQChartsPaintDevice *device) const
     QString name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
-    QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
-                                                 textOptions, 0, /*alignBBox*/ true);
+    auto trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
+                                               textOptions, 0, /*alignBBox*/ true);
 
     colRects[c] = trect;
 
-    tw = std::max(tw, trect.width ());
-    th = std::max(th, trect.height());
+    tw = std::max(tw, trect.getWidth ());
+    th = std::max(th, trect.getHeight());
   }
 
   //---
@@ -448,23 +448,22 @@ drawXLabels(CQChartsPaintDevice *device) const
     QString name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
-    QPointF p(c + 0.5, 0);
+    CQChartsGeom::Point p(c + 0.5, 0);
 
-    QPointF p1 = windowToPixel(p);
+    CQChartsGeom::Point p1 = windowToPixel(p);
 
-    QRectF trect = colRects[c];
+    auto trect = colRects[c];
 
-    double tw1 = std::max(trect.width(), cw);
+    double tw1 = std::max(trect.getWidth(), cw);
 
     CQChartsGeom::BBox tbbox1;
 
     if (! isInvertY())
-      tbbox1 = CQChartsGeom::BBox(p1.x() - tw1/2, p1.y() + tm, p1.x() + tw1/2, p1.y() + tm + th);
+      tbbox1 = CQChartsGeom::BBox(p1.x - tw1/2, p1.y + tm, p1.x + tw1/2, p1.y + tm + th);
     else
-      tbbox1 = CQChartsGeom::BBox(p1.x() - tw1/2, p1.y() - th - tm, p1.x() + tw1/2, p1.y() - tm);
+      tbbox1 = CQChartsGeom::BBox(p1.x - tw1/2, p1.y - th - tm, p1.x + tw1/2, p1.y - tm);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1).qrect(),
-                                    name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1), name, textOptions);
   }
 }
 
@@ -501,7 +500,7 @@ drawYLabels(CQChartsPaintDevice *device) const
 
   //---
 
-  using RowRects = std::map<int,QRectF>;
+  using RowRects = std::map<int,CQChartsGeom::BBox>;
 
   RowRects colRects;
 
@@ -516,13 +515,13 @@ drawYLabels(CQChartsPaintDevice *device) const
     QString name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
-    QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
-                                                 textOptions, 0, /*alignBBox*/ true);
+    auto trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, device->font(),
+                                               textOptions, 0, /*alignBBox*/ true);
 
     colRects[c] = trect;
 
-    tw = std::max(tw, trect.width ());
-    th = std::max(th, trect.height());
+    tw = std::max(tw, trect.getWidth ());
+    th = std::max(th, trect.getHeight());
   }
 
   //---
@@ -539,23 +538,22 @@ drawYLabels(CQChartsPaintDevice *device) const
     QString name = modelHHeaderString(col, ok);
     if (! name.length()) continue;
 
-    QPointF p(0, c + 0.5);
+    CQChartsGeom::Point p(0, c + 0.5);
 
-    QPointF p1 = windowToPixel(p);
+    CQChartsGeom::Point p1 = windowToPixel(p);
 
-    QRectF trect = colRects[c];
+    auto trect = colRects[c];
 
-    double th1 = std::max(trect.height(), ch);
+    double th1 = std::max(trect.getHeight(), ch);
 
     CQChartsGeom::BBox tbbox1;
 
     if (! isInvertX())
-      tbbox1 = CQChartsGeom::BBox(p1.x() - tw - tm, p1.y() - th1/2, p1.x() - tm, p1.y() + th1/2);
+      tbbox1 = CQChartsGeom::BBox(p1.x - tw - tm, p1.y - th1/2, p1.x - tm, p1.y + th1/2);
     else
-      tbbox1 = CQChartsGeom::BBox(p1.x() + tm, p1.y() - th1/2, p1.x() + tm + tw, p1.y() + th1/2);
+      tbbox1 = CQChartsGeom::BBox(p1.x + tm, p1.y - th1/2, p1.x + tm + tw, p1.y + th1/2);
 
-    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1).qrect(),
-                                    name, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, device->pixelToWindow(tbbox1), name, textOptions);
   }
 }
 
@@ -592,10 +590,10 @@ calcAnnotationBBox() const
       options.angle = xLabelTextAngle();
       options.align = xLabelTextAlign();
 
-      QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, xfont,
-                                                   options, 0, /*alignBBox*/ true);
+      auto trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, xfont,
+                                                 options, 0, /*alignBBox*/ true);
 
-      th = std::max(th, trect.height());
+      th = std::max(th, trect.getHeight());
     }
 
     double th1 = pixelToWindowHeight(th + tm);
@@ -623,10 +621,10 @@ calcAnnotationBBox() const
       options.angle = yLabelTextAngle();
       options.align = yLabelTextAlign();
 
-      QRectF trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, yfont,
-                                                   options, 0, /*alignBBox*/ true);
+      auto trect = CQChartsRotatedText::calcBBox(0.0, 0.0, name, yfont,
+                                                 options, 0, /*alignBBox*/ true);
 
-      tw = std::max(tw, trect.width());
+      tw = std::max(tw, trect.getWidth());
     }
 
     double tw1 = pixelToWindowWidth(tw + tm);
@@ -696,12 +694,12 @@ getSelectIndices(Indices &inds) const
   addColumnSelectIndex(inds, CQChartsColumn(modelInd().column()));
 }
 
-QSizeF
+CQChartsGeom::Size
 CQChartsCellObj::
 calcTextSize() const
 {
   if (! plot_->isCellLabels())
-    return QSizeF();
+    return CQChartsGeom::Size();
 
   QFont font = plot_->view()->plotFont(plot_, plot_->cellLabelTextFont());
 
@@ -736,7 +734,7 @@ draw(CQChartsPaintDevice *device)
 
   //---
 
-  device->drawRect(rect().qrect());
+  device->drawRect(rect());
 
   //---
 
@@ -779,7 +777,7 @@ draw(CQChartsPaintDevice *device)
 
     textOptions = plot_->adjustTextOptions(textOptions);
 
-    CQChartsDrawUtil::drawTextInBox(device, rect().qrect(), valueStr, textOptions);
+    CQChartsDrawUtil::drawTextInBox(device, rect(), valueStr, textOptions);
   }
 
   //---

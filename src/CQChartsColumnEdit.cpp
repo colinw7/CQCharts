@@ -1,4 +1,5 @@
 #include <CQChartsColumnEdit.h>
+#include <CQChartsLineEdit.h>
 #include <CQChartsPlot.h>
 #include <CQChartsModelUtil.h>
 #include <CQChartsVariant.h>
@@ -6,7 +7,6 @@
 #include <CQPropertyView.h>
 #include <CQWidgetMenu.h>
 #include <CQGroupBox.h>
-#include <CQLineEdit.h>
 
 #include <QComboBox>
 #include <QCheckBox>
@@ -21,6 +21,8 @@ CQChartsColumnLineEdit(QWidget *parent) :
  CQChartsLineEditBase(parent)
 {
   setObjectName("columnLineEdit");
+
+  setToolTip("Column");
 
   //---
 
@@ -323,7 +325,9 @@ CQChartsColumnEdit(QWidget *parent) :
 
   roleLayout->addWidget(CQUtil::makeLabelWidget<QLabel>("Role", "roleLabel"));
 
-  roleEdit_ = CQUtil::makeWidget<CQLineEdit>("edit");
+  roleEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
+
+  roleEdit_->setToolTip("Column Role");
 
   connect(roleEdit_, SIGNAL(textChanged(const QString &)),
           this, SLOT(roleTextChanged(const QString &)));
@@ -347,7 +351,9 @@ CQChartsColumnEdit(QWidget *parent) :
 
   QVBoxLayout *menuExprGroupLayout = CQUtil::makeLayout<QVBoxLayout>(menuExprGroup_, 2, 2);
 
-  expressionEdit_ = CQUtil::makeWidget<CQLineEdit>("edit");
+  expressionEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("edit");
+
+  expressionEdit_->setToolTip("Column Expression");
 
   connect(expressionEdit_, SIGNAL(textChanged(const QString &)),
           this, SLOT(expressionTextChanged(const QString &)));
@@ -357,6 +363,8 @@ CQChartsColumnEdit(QWidget *parent) :
   //---
 
   vheaderCheck_ = CQUtil::makeLabelWidget<QCheckBox>("Vertical Header", "vheaderCheck");
+
+  vheaderCheck_->setToolTip("Get value from vertical header");
 
   connect(vheaderCheck_, SIGNAL(clicked(bool)), this, SLOT(vheaderCheckClicked(bool)));
 
@@ -661,6 +669,8 @@ CQChartsColumnCombo(QWidget *parent) :
  QComboBox(parent)
 {
   setObjectName("columnCombo");
+
+  setToolTip("Column Name");
 
   connect(this, SIGNAL(currentIndexChanged(int)),
           this, SIGNAL(columnChanged()));

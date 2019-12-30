@@ -7,8 +7,6 @@
 #include <CQStatData.h>
 
 #include <QObject>
-#include <QPolygonF>
-#include <QPointF>
 #include <vector>
 
 class CQChartsPlot;
@@ -43,7 +41,7 @@ class CQChartsDensity : public QObject {
   };
 
   using XVals  = std::vector<double>;
-  using Points = std::vector<QPointF>;
+  using Points = std::vector<CQChartsGeom::Point>;
 
  public:
   CQChartsDensity();
@@ -102,7 +100,7 @@ class CQChartsDensity : public QObject {
                         const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation,
                         const CQChartsWhiskerOpts &opts=CQChartsWhiskerOpts()) const;
 
-  void calcDistributionPoly(QPolygonF &ppoly, const CQChartsPlot *plot,
+  void calcDistributionPoly(CQChartsGeom::Polygon &ppoly, const CQChartsPlot *plot,
                             const CQChartsGeom::BBox &rect, const Qt::Orientation &orientation,
                             const CQChartsWhiskerOpts &opts=CQChartsWhiskerOpts()) const;
 

@@ -27,6 +27,8 @@ CQChartsTextDataLineEdit(QWidget *parent) :
 {
   setObjectName("textDataLineEdit");
 
+  setToolTip("Text Data");
+
   //---
 
   menuEdit_ = dataEdit_ = new CQChartsTextDataEdit;
@@ -216,6 +218,10 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 {
   setObjectName("textDataEdit");
 
+  setToolTip("Text Data");
+
+  //---
+
   QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 0, 2);
 
   //---
@@ -273,6 +279,8 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 
   contrastEdit_ = CQUtil::makeWidget<CQCheckBox>("contrastEdit");
 
+  contrastEdit_->setToolTip("Draw contrast border around text");
+
   groupLayout->addWidget(contrastLabel, 4, 0);
   groupLayout->addWidget(contrastEdit_, 4, 1);
 
@@ -280,6 +288,8 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   QLabel *alignLabel = CQUtil::makeLabelWidget<QLabel>("Align", "alignLabel");
 
   alignEdit_ = CQUtil::makeWidget<CQAlignEdit>("alignEdit");
+
+  alignEdit_->setToolTip("Text alignment");
 
   groupLayout->addWidget(alignLabel, 5, 0);
   groupLayout->addWidget(alignEdit_, 5, 1);
@@ -289,6 +299,8 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 
   formattedEdit_ = CQUtil::makeWidget<CQCheckBox>("formattedEdit");
 
+  formattedEdit_->setToolTip("Is text reformatted to fit in rectangle");
+
   groupLayout->addWidget(formattedLabel, 6, 0);
   groupLayout->addWidget(formattedEdit_, 6, 1);
 
@@ -297,6 +309,8 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
 
   scaledEdit_ = CQUtil::makeWidget<CQCheckBox>("scaledEdit");
 
+  scaledEdit_->setToolTip("Is text scaled to fit in rectangle");
+
   groupLayout->addWidget(scaledLabel, 7, 0);
   groupLayout->addWidget(scaledEdit_, 7, 1);
 
@@ -304,6 +318,8 @@ CQChartsTextDataEdit(QWidget *parent, bool optional) :
   QLabel *htmlLabel = CQUtil::makeLabelWidget<QLabel>("Html", "htmlLabel");
 
   htmlEdit_ = CQUtil::makeWidget<CQCheckBox>("htmlEdit");
+
+  htmlEdit_->setToolTip("Does text contain HTML control tags");
 
   groupLayout->addWidget(htmlLabel, 8, 0);
   groupLayout->addWidget(htmlEdit_, 8, 1);
@@ -455,6 +471,7 @@ CQChartsTextDataEditPreview::
 CQChartsTextDataEditPreview(CQChartsTextDataEdit *edit) :
  CQChartsEditPreview(edit), edit_(edit)
 {
+  setToolTip("Text Preview");
 }
 
 void
@@ -495,7 +512,7 @@ draw(QPainter *painter, const CQChartsTextData &data, const QRect &rect,
   int tx = rect.left() + 2;
   int ty = rect.center().y() + (fm.ascent() - fm.descent())/2;
 
-  QPointF pt(tx, ty);
+  CQChartsGeom::Point pt(tx, ty);
 
   QString text("ABC abc");
 

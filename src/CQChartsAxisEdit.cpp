@@ -111,6 +111,8 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
 {
   setObjectName("axisEdit");
 
+  setToolTip("Axis Data");
+
   QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(this, 2, 2);
 
   //---
@@ -157,6 +159,7 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   directionEdit_ = new CQHRadioButtons(nullptr, "Horizontal", "Vertical", nullptr);
 
   directionEdit_->setCurrentName(data_.direction == Qt::Horizontal ? "Horizontal" : "Vertical");
+  directionEdit_->setToolTip("Horizontal or Vertical Direction");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Direction", directionEdit_, row);
 
@@ -183,9 +186,10 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   //--
 
   // format
-  formatEdit_ = CQUtil::makeWidget<CQLineEdit>("formatEdit");
+  formatEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("formatEdit");
 
   formatEdit_->setText(data_.format);
+  formatEdit_->setToolTip("Value Format");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Format", formatEdit_, row);
 
@@ -195,6 +199,7 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   tickIncrementEdit_ = CQUtil::makeWidget<CQIntegerSpin>("tickIncrementEdit");
 
   tickIncrementEdit_->setValue(data_.tickIncrement);
+  tickIncrementEdit_->setToolTip("Tick Increment");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Tick Increment", tickIncrementEdit_, row);
 
@@ -204,6 +209,7 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   majorIncrementEdit_ = CQUtil::makeWidget<CQIntegerSpin>("majorIncrementEdit");
 
   majorIncrementEdit_->setValue(data_.majorIncrement);
+  majorIncrementEdit_->setToolTip("Major Tick Increment");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Major Increment", majorIncrementEdit_, row);
 
@@ -213,6 +219,7 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   startEdit_ = CQUtil::makeWidget<CQRealSpin>("startEdit");
 
   startEdit_->setValue(data_.start);
+  startEdit_->setToolTip("Start Value");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Start", startEdit_, row);
 
@@ -222,6 +229,7 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   endEdit_ = CQUtil::makeWidget<CQRealSpin>("endEdit");
 
   endEdit_->setValue(data_.end);
+  endEdit_->setToolTip("End Value");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "End", endEdit_, row);
 
@@ -231,15 +239,17 @@ CQChartsAxisEdit(QWidget *parent, CQChartsAxis *axis) :
   includeZeroEdit_ = CQUtil::makeWidget<CQCheckBox>("includeZeroEdit");
 
   includeZeroEdit_->setChecked(data_.includeZero);
+  includeZeroEdit_->setToolTip("Include zero in range");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Include Zero", includeZeroEdit_, row);
 
   //--
 
   // position
-  positionEdit_ = CQUtil::makeWidget<CQLineEdit>("positionEdit");
+  positionEdit_ = CQUtil::makeWidget<CQChartsLineEdit>("positionEdit");
 
   positionEdit_->setText(data_.position.toString());
+  positionEdit_->setToolTip("Axis Position");
 
   CQChartsWidgetUtil::addGridLabelWidget(groupLayout, "Position", positionEdit_, row);
 

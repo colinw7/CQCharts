@@ -20,6 +20,8 @@ CQChartsLengthEdit(QWidget *parent) :
 
   edit_ = CQUtil::makeWidget<CQRealSpin>("real");
 
+  edit_->setToolTip("Length value");
+
   layout->addWidget(edit_);
 
   //---

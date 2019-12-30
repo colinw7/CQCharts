@@ -478,7 +478,7 @@ createObjs(PlotObjs &objs) const
   //---
 
   // create polyline for value from each set
-  using Polygons = std::vector<QPolygonF>;
+  using Polygons = std::vector<CQChartsGeom::Polygon>;
   using Indices  = std::vector<QModelIndex>;
 
   class RowVisitor : public ModelVisitor {
@@ -489,7 +489,7 @@ createObjs(PlotObjs &objs) const
     }
 
     State visit(const QAbstractItemModel *, const VisitData &data) override {
-      QPolygonF poly;
+      CQChartsGeom::Polygon poly;
 
       QModelIndex xind = plot_->modelIndex(data.row, plot_->xColumn(), data.parent);
 
@@ -510,9 +510,9 @@ createObjs(PlotObjs &objs) const
           continue;
 
         if (! plot_->isHorizontal())
-          poly << QPointF(x, y);
+          poly.addPoint(CQChartsGeom::Point(x, y));
         else
-          poly << QPointF(y, x);
+          poly.addPoint(CQChartsGeom::Point(y, x));
       }
 
       polys_.push_back(poly);
@@ -553,8 +553,8 @@ createObjs(PlotObjs &objs) const
   int n = polys.size();
 
   for (int i = 0; i < n; ++i) {
-    const QPolygonF   &poly = polys[i];
-    const QModelIndex &xind = xinds[i];
+    const CQChartsGeom::Polygon &poly = polys[i];
+    const QModelIndex           &xind = xinds[i];
 
     QModelIndex xind1 = normalizeIndex(xind);
 
@@ -579,7 +579,7 @@ createObjs(PlotObjs &objs) const
     //---
 
     // create point object for each poly point
-    int nl = poly.count();
+    int nl = poly.size();
 
     for (int j = 0; j < nl; ++j) {
       const CQChartsColumn &setColumn = yColumns().getColumn(j);
@@ -591,7 +591,7 @@ createObjs(PlotObjs &objs) const
 
       const CQChartsGeom::Range &range = setRange(j);
 
-      const QPointF &p = poly[j];
+      CQChartsGeom::Point p = poly.point(j);
 
       // scale point to range
       double pos = 0.0;
@@ -600,13 +600,13 @@ createObjs(PlotObjs &objs) const
         double dry = range.ymax() - range.ymin();
 
         if (dry)
-          pos = (p.y() - range.ymin())/dry;
+          pos = (p.y - range.ymin())/dry;
       }
       else {
         double drx = range.xmax() - range.xmin();
 
         if (drx)
-          pos = (p.x() - range.xmin())/drx;
+          pos = (p.x - range.xmin())/drx;
       }
 
       double x, y;
@@ -626,13 +626,13 @@ createObjs(PlotObjs &objs) const
       ColorInd iv(j, nl);
 
       CQChartsParallelPointObj *pointObj =
-        new CQChartsParallelPointObj(this, bbox, p.y(), x, y, yind1, is, iv);
+        new CQChartsParallelPointObj(this, bbox, p.y, x, y, yind1, is, iv);
 
       //bool ok;
 
       //QString yname = modelHHeaderString(setColumn, ok);
 
-      //QString id = QString("%1:%2=%3").arg(xname).arg(yname).arg(p.y());
+      //QString id = QString("%1:%2=%3").arg(xname).arg(yname).arg(p.y);
 
       //pointObj->setId(id);
 
@@ -891,12 +891,12 @@ drawFgAxes(CQChartsPaintDevice *device) const
 
     device->setPen(tpen);
 
-    QPointF tp;
+    CQChartsGeom::Point tp;
 
     if (! isHorizontal())
-      tp = QPointF(p.x - tw/2.0, p.y - td - tm);
+      tp = CQChartsGeom::Point(p.x - tw/2.0, p.y - td - tm);
     else
-      tp = QPointF(p.x + tm, p.y - (ta - td)/2);
+      tp = CQChartsGeom::Point(p.x + tm, p.y - (ta - td)/2);
 
     CQChartsTextOptions options;
 
@@ -995,7 +995,8 @@ setNormalizedRange(CQChartsPaintDevice *device)
 
 CQChartsParallelLineObj::
 CQChartsParallelLineObj(const CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
-                        const QPolygonF &poly, const QModelIndex &ind, const ColorInd &is) :
+                        const CQChartsGeom::Polygon &poly, const QModelIndex &ind,
+                        const ColorInd &is) :
  CQChartsPlotObj(const_cast<CQChartsParallelPlot *>(plot), rect, is, ColorInd(), ColorInd()),
  plot_(plot), poly_(poly)
 {
@@ -1027,7 +1028,7 @@ calcTipId() const
 
   tableTip.addBoldLine(xname);
 
-  int nl = poly_.count();
+  int nl = poly_.size();
 
   for (int j = 0; j < nl; ++j) {
     const CQChartsColumn &yColumn = plot_->yColumns().getColumn(j);
@@ -1036,7 +1037,7 @@ calcTipId() const
 
     QString yname = plot_->modelHHeaderString(yColumn, ok);
 
-    tableTip.addTableRow(yname, poly_[j].y());
+    tableTip.addTableRow(yname, poly_.point(j).y);
   }
 
   //---
@@ -1071,16 +1072,16 @@ inside(const CQChartsGeom::Point &p) const
   // TODO: check as lines created, only need to create lines close to point
 
   // create unnormalized polygon
-  QPolygonF poly;
+  CQChartsGeom::Polygon poly;
 
   getPolyLine(poly);
 
   // check if close enough to each line to be inside
-  for (int i = 1; i < poly.count(); ++i) {
-    double x1 = poly[i - 1].x();
-    double y1 = poly[i - 1].y();
-    double x2 = poly[i    ].x();
-    double y2 = poly[i    ].y();
+  for (int i = 1; i < poly.size(); ++i) {
+    double x1 = poly.point(i - 1).x;
+    double y1 = poly.point(i - 1).y;
+    double x2 = poly.point(i    ).x;
+    double y2 = poly.point(i    ).y;
 
     double d;
 
@@ -1102,15 +1103,15 @@ interpY(double x, std::vector<double> &yvals) const
   if (! visible())
     return false;
 
-  QPolygonF poly;
+  CQChartsGeom::Polygon poly;
 
   getPolyLine(poly);
 
   for (int i = 1; i < poly.count(); ++i) {
-    double x1 = poly[i - 1].x();
-    double y1 = poly[i - 1].y();
-    double x2 = poly[i    ].x();
-    double y2 = poly[i    ].y();
+    double x1 = poly.point(i - 1).x;
+    double y1 = poly.point(i - 1).y;
+    double x2 = poly.point(i    ).x;
+    double y2 = poly.point(i    ).y;
 
     if (x >= x1 && x <= x2) {
       double y = (y2 - y1)*(x - x1)/(x2 - x1) + y1;
@@ -1156,12 +1157,12 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  polyLine_ = QPolygonF();
+  polyLine_ = CQChartsGeom::Polygon();
 
   getPolyLine(polyLine_);
 
-  for (int i = 1; i < polyLine_.count(); ++i)
-    device->drawLine(polyLine_[i - 1], polyLine_[i]);
+  for (int i = 1; i < polyLine_.size(); ++i)
+    device->drawLine(polyLine_.point(i - 1), polyLine_.point(i));
 
   device->resetColorNames();
 }
@@ -1182,24 +1183,24 @@ calcPenBrush(CQChartsPenBrush &penBrush, bool updateState) const
 
 void
 CQChartsParallelLineObj::
-getPolyLine(QPolygonF &poly) const
+getPolyLine(CQChartsGeom::Polygon &poly) const
 {
   // create unnormalized polyline
-  for (int i = 0; i < poly_.count(); ++i) {
+  for (int i = 0; i < poly_.size(); ++i) {
     const CQChartsGeom::Range &range = plot_->setRange(i);
 
     double x, y;
 
     if (! plot_->isHorizontal()) {
-      x = poly_[i].x();
-      y = (poly_[i].y() - range.ymin())/range.ysize();
+      x = poly_.point(i).x;
+      y = (poly_.point(i).y - range.ymin())/range.ysize();
     }
     else {
-      x = (poly_[i].x() - range.xmin())/range.xsize();
-      y = poly_[i].y();
+      x = (poly_.point(i).x - range.xmin())/range.xsize();
+      y = poly_.point(i).y;
     }
 
-    poly << QPointF(x, y);
+    poly.addPoint(CQChartsGeom::Point(x, y));
   }
 }
 
@@ -1347,7 +1348,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw symbol
-  QPointF p(x_, y_);
+  CQChartsGeom::Point p(x_, y_);
 
   plot->drawSymbol(device, p, symbolType, symbolSize1, penBrush);
 

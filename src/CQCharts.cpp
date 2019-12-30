@@ -44,6 +44,8 @@
 #include <CQChartsFillPatternEdit.h>
 #include <CQChartsFillUnderEdit.h>
 #include <CQChartsFontEdit.h>
+#include <CQChartsGeomBBoxEdit.h>
+#include <CQChartsGeomPointEdit.h>
 #include <CQChartsKeyLocationEdit.h>
 #include <CQChartsKeyPressBehaviorEdit.h>
 #include <CQChartsLengthEdit.h>
@@ -243,6 +245,8 @@ CQCharts::
 CQCharts()
 {
   // register variant meta types
+  CQChartsGeom::registerMetaTypes();
+
   CQChartsArrowData             ::registerMetaType();
   CQChartsAxisSide              ::registerMetaType();
   CQChartsAxisValueType         ::registerMetaType();
@@ -412,6 +416,8 @@ init()
     viewMgr->addType("CQChartsFillUnderPos"    , new CQChartsFillUnderPosPropertyViewType    );
     viewMgr->addType("CQChartsFillUnderSide"   , new CQChartsFillUnderSidePropertyViewType   );
     viewMgr->addType("CQChartsFont"            , new CQChartsFontPropertyViewType            );
+    viewMgr->addType("CQChartsGeom::BBox"      , new CQChartsGeomBBoxPropertyViewType        );
+    viewMgr->addType("CQChartsGeom::Point"     , new CQChartsGeomPointPropertyViewType       );
     viewMgr->addType("CQChartsKeyLocation"     , new CQChartsKeyLocationPropertyViewType     );
     viewMgr->addType("CQChartsKeyPressBehavior", new CQChartsKeyPressBehaviorPropertyViewType);
     viewMgr->addType("CQChartsTitleLocation"   , new CQChartsTitleLocationPropertyViewType   );

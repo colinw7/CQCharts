@@ -25,6 +25,8 @@ CQChartsColorLineEdit(QWidget *parent) :
 {
   setObjectName("colorLineEdit");
 
+  setToolTip("Color");
+
   //---
 
   menuEdit_ = dataEdit_ = new CQChartsColorEdit;

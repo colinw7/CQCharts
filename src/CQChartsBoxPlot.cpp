@@ -1397,12 +1397,11 @@ addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhiske
 
     double y1 = (isNormalized() ? whisker->normalize(y, isShowOutliers()) : y);
 
-    QPointF pos;
-
-    CQChartsGeom::BBox rect;
+    CQChartsGeom::Point pos;
+    CQChartsGeom::BBox  rect;
 
     if (! isHorizontal()) {
-      pos = QPointF(x, y1);
+      pos = CQChartsGeom::Point(x, y1);
 
       if (! isNormalized())
         rect = CQChartsGeom::BBox(x - 0.1, y1 - 0.1, x + 0.1, y1 + 0.1);
@@ -1410,7 +1409,7 @@ addJitterPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhiske
         rect = CQChartsGeom::BBox(x - 0.01, y1 - 0.01, x + 0.01, y1 + 0.01);
     }
     else {
-      pos = QPointF(y1, x);
+      pos = CQChartsGeom::Point(y1, x);
 
       if (! isNormalized())
         rect = CQChartsGeom::BBox(y1 - 0.1, x - 0.1, y1 + 0.1, x + 0.1);
@@ -1500,23 +1499,22 @@ addStackedPoints(int groupInd, int setId, double pos, const CQChartsBoxPlotWhisk
 
     plotSymbolSize(jitterSymbolSize(), sx, sy);
 
-    QPointF pos;
-
-    CQChartsGeom::BBox rect;
+    CQChartsGeom::Point pos;
+    CQChartsGeom::BBox  rect;
 
     if (! isHorizontal())
-      pos = QPointF(x, y1);
+      pos = CQChartsGeom::Point(x, y1);
     else
-      pos = QPointF(y1, x);
+      pos = CQChartsGeom::Point(y1, x);
 
-    rect = CQChartsGeom::BBox(pos.x() - sx, pos.y() - sy, pos.x() + sx, pos.y() + sy);
+    rect = CQChartsGeom::BBox(pos.x - sx, pos.y - sy, pos.x + sx, pos.y + sy);
 
     CQChartsBoxPlotPointObj *pointObj = nullptr;
 
     CQChartsGeom::BBox prect;
 
     if (placeRect(rect, prect)) {
-      QPointF ppos = pos;
+      CQChartsGeom::Point ppos = pos;
 
       if (! isHorizontal())
         ppos.setX(prect.getXMid());
@@ -1982,7 +1980,7 @@ CQChartsBoxPlotWhiskerObj::
 inside(const CQChartsGeom::Point &p) const
 {
   if (plot_->isViolin())
-    return poly_.containsPoint(p.qpoint(), Qt::OddEvenFill);
+    return poly_.containsPoint(p, Qt::OddEvenFill);
 
   return CQChartsBoxPlotObj::inside(p);
 }
@@ -2064,9 +2062,11 @@ draw(CQChartsPaintDevice *device)
 
     opts.violin = true;
 
-    density.calcDistributionPoly(poly_, plot_, rect, orientation, opts);
+    CQChartsGeom::Polygon poly1 = poly_;
 
-    device->drawPolygon(poly_);
+    density.calcDistributionPoly(poly1, plot_, rect, orientation, opts);
+
+    device->drawPolygon(poly1);
 
     drawBox       = plot_->isViolinBox();
     drawBoxFilled = false;
@@ -2500,7 +2500,7 @@ draw(CQChartsPaintDevice *device)
   double ox = rect_.getXYMid(! plot_->isHorizontal());
   double oy = rect_.getXYMid(  plot_->isHorizontal());
 
-  QPointF pos(ox, oy);
+  CQChartsGeom::Point pos(ox, oy);
 
   plot_->drawSymbol(device, pos, plot_->outlierSymbolType(),
                     plot_->outlierSymbolSize(), penBrush);
@@ -2823,7 +2823,7 @@ void
 CQChartsBoxPlotConnectedObj::
 initPolygon()
 {
-  QPolygonF maxPoly, minPoly;
+  CQChartsGeom::Polygon maxPoly, minPoly;
 
   const CQChartsBoxPlotConnectedObj::SetWhiskerMap &setWhiskerMap = this->setWhiskerMap();
 
@@ -2835,21 +2835,21 @@ initPolygon()
     double max    = whisker->max   ();
     double median = whisker->median();
 
-    line_ << CQChartsGeom::Point(setId, median).qpoint();
+    line_.addPoint(CQChartsGeom::Point(setId, median));
 
-    maxPoly << CQChartsGeom::Point(setId, max).qpoint();
-    minPoly << CQChartsGeom::Point(setId, min).qpoint();
+    maxPoly.addPoint(CQChartsGeom::Point(setId, max));
+    minPoly.addPoint(CQChartsGeom::Point(setId, min));
   }
 
   //---
 
-  int np = maxPoly.count();
+  int np = maxPoly.size();
 
   for (int i = 0; i < np; ++i)
-    poly_ << maxPoly.at(i);
+    poly_.addPoint(maxPoly.point(i));
 
   for (int i = 0; i < np; ++i)
-    poly_ << minPoly.at(np - 1 - i);
+    poly_.addPoint(minPoly.point(np - 1 - i));
 }
 
 const CQChartsBoxPlotConnectedObj::SetWhiskerMap &
@@ -2876,7 +2876,7 @@ bool
 CQChartsBoxPlotConnectedObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  return poly_.containsPoint(p.qpoint(), Qt::OddEvenFill);
+  return poly_.containsPoint(p, Qt::OddEvenFill);
 }
 
 void
@@ -2884,7 +2884,7 @@ CQChartsBoxPlotConnectedObj::
 draw(CQChartsPaintDevice *device)
 {
   // draw range polygon
-  int np = poly_.count();
+  int np = poly_.size();
 
   if (np) {
     // set pen and brush
@@ -2927,10 +2927,10 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw connected line
-  QPolygonF line;
+  CQChartsGeom::Polygon line;
 
-  for (int i = 0; i < line_.count(); ++i)
-    line << line_.at(i);
+  for (int i = 0; i < line_.size(); ++i)
+    line.addPoint(line_.point(i));
 
   device->drawPolyline(line);
 }
@@ -2964,12 +2964,12 @@ drawHText(CQChartsPaintDevice *device, double xl, double xr, double y,
 
   double yf = (fm.ascent() - fm.descent())/2.0;
 
-  QPointF tp;
+  CQChartsGeom::Point tp;
 
   if (onLeft)
-    tp = QPointF(x - margin - fm.width(text), y + yf);
+    tp = CQChartsGeom::Point(x - margin - fm.width(text), y + yf);
   else
-    tp = QPointF(x + margin, y + yf);
+    tp = CQChartsGeom::Point(x + margin, y + yf);
 
   // only support contrast
   CQChartsTextOptions options;
@@ -3006,12 +3006,12 @@ drawVText(CQChartsPaintDevice *device, double yb, double yt, double x,
   double fa = fm.ascent ();
   double fd = fm.descent();
 
-  QPointF tp;
+  CQChartsGeom::Point tp;
 
   if (onBottom)
-    tp = QPointF(x - xf, y + margin + fa);
+    tp = CQChartsGeom::Point(x - xf, y + margin + fa);
   else
-    tp = QPointF(x - xf, y - margin - fd);
+    tp = CQChartsGeom::Point(x - xf, y - margin - fd);
 
   // only support contrast
   CQChartsTextOptions options;
@@ -3096,8 +3096,9 @@ addVBBox(CQChartsGeom::BBox &pbbox, double yb, double yt, double x,
 
 CQChartsBoxPlotPointObj::
 CQChartsBoxPlotPointObj(const CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
-                        int setId, int groupInd, const QPointF &p, const QModelIndex &ind,
-                        const ColorInd &is, const ColorInd &ig, const ColorInd &iv) :
+                        int setId, int groupInd, const CQChartsGeom::Point &p,
+                        const QModelIndex &ind, const ColorInd &is, const ColorInd &ig,
+                        const ColorInd &iv) :
  CQChartsPlotObj(const_cast<CQChartsBoxPlot *>(plot), rect, is, ig, iv), plot_(plot),
  setId_(setId), groupInd_(groupInd), p_(p)
 {
@@ -3137,7 +3138,7 @@ bool
 CQChartsBoxPlotPointObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(p_.x(), p_.y()));
+  CQChartsGeom::Point p1 = plot_->windowToPixel(CQChartsGeom::Point(p_.x, p_.y));
 
   CQChartsGeom::BBox pbbox(p1.x - 4, p1.y - 4, p1.x + 4, p1.y + 4);
 
@@ -3183,7 +3184,7 @@ draw(CQChartsPaintDevice *device)
   //---
 
   // draw symbol
-  QPointF pos = device->pixelToWindow(p_);
+  CQChartsGeom::Point pos = device->pixelToWindow(p_);
 
   plot_->drawSymbol(device, pos, symbolType, symbolSize, penBrush);
 }

@@ -24,8 +24,8 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
   std::vector<double> yv;
 
   for (const auto &v : data.values) {
-    double x1 = (xmax > xmin ? CMathUtil::norm(v.x(), xmin, xmax) : 0.0);
-    double y1 = (ymax > ymin ? CMathUtil::norm(v.y(), ymin, ymax) : 0.0);
+    double x1 = (xmax > xmin ? CMathUtil::norm(v.x, xmin, xmax) : 0.0);
+    double y1 = (ymax > ymin ? CMathUtil::norm(v.y, ymin, ymax) : 0.0);
 
     xv.push_back(x1);
     yv.push_back(y1);
@@ -36,15 +36,17 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
   //---
 
   // calc pixel grid
-  QRectF pr = device->windowToPixel(QRectF(xmin, ymin, xmax - xmin, ymax - ymin));
+  CQChartsGeom::BBox bbox(xmin, ymin, xmax, ymax);
 
-  QPointF ll = pr.bottomLeft();
-  QPointF ur = pr.topRight  ();
+  CQChartsGeom::BBox pbbox = device->windowToPixel(bbox);
 
-  int x1 = CMathRound::RoundDown(ll.x());
-  int x2 = CMathRound::RoundUp  (ur.x());
-  int y2 = CMathRound::RoundUp  (ll.y());
-  int y1 = CMathRound::RoundDown(ur.y());
+  CQChartsGeom::Point ll = pbbox.getLL();
+  CQChartsGeom::Point ur = pbbox.getUR();
+
+  int x1 = CMathRound::RoundDown(ll.x);
+  int x2 = CMathRound::RoundUp  (ur.x);
+  int y2 = CMathRound::RoundUp  (ll.y);
+  int y1 = CMathRound::RoundDown(ur.y);
 
   int dx = gridSize;
   int dy = gridSize;
@@ -55,10 +57,10 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
   for (int y = y1; y <= y2; y += dy) {
     for (int x = x1; x <= x2; x += dx) {
       // calc value at normalized pixel sample point (use box center ?)
-      QPointF p = device->pixelToWindow(QPointF(x, y));
+      CQChartsGeom::Point p = device->pixelToWindow(CQChartsGeom::Point(x, y));
 
-      double x1 = (xmax > xmin ? CMathUtil::norm(p.x(), xmin, xmax) : 0.0);
-      double y1 = (ymax > ymin ? CMathUtil::norm(p.y(), ymin, ymax) : 0.0);
+      double x1 = (xmax > xmin ? CMathUtil::norm(p.x, xmin, xmax) : 0.0);
+      double y1 = (ymax > ymin ? CMathUtil::norm(p.y, ymin, ymax) : 0.0);
 
       double v = bivariate.calc(x1, y1);
 
@@ -85,9 +87,9 @@ draw(const CQChartsPlot *plot, CQChartsPaintDevice *device, const Data &data)
       //---
 
       // fill rect
-      QRectF pr1 = QRectF(x, y, dx, dy);
+      CQChartsGeom::BBox pb1(x, y, x + dx, y + dy);
 
-      device->fillRect(device->pixelToWindow(pr1), brush);
+      device->fillRect(device->pixelToWindow(pb1), brush);
     }
   }
 }

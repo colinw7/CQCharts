@@ -11,6 +11,7 @@
 #include <CQCharts.h>
 #include <CQChartsTip.h>
 #include <CQChartsDrawUtil.h>
+#include <CQChartsVariant.h>
 #include <CQChartsHtml.h>
 
 #include <CQPropertyViewModel.h>
@@ -400,30 +401,30 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
     QVariant rvar =
       CQChartsModelUtil::columnUserData(charts(), model, geometryColumn(), var, converted);
 
-    QPolygonF poly;
+    bool ok3;
 
     if      (geometryColumnType_ == ColumnType::RECT) {
-      QRectF r = rvar.value<QRectF>();
+      CQChartsGeom::BBox bbox = CQChartsVariant::toBBox(rvar, ok3);
 
-      poly = QPolygonF(r);
+      CQChartsGeom::Polygon poly(bbox);
 
       geometry.polygons.push_back(poly);
     }
     else if (geometryColumnType_ == ColumnType::POLYGON) {
-      poly = rvar.value<QPolygonF>();
+      CQChartsGeom::Polygon poly = CQChartsVariant::toPolygon(rvar, ok3);
 
       geometry.polygons.push_back(poly);
     }
     else if (geometryColumnType_ == ColumnType::POLYGON_LIST) {
-      CQChartsPolygonList polyList = rvar.value<CQChartsPolygonList>();
+      CQChartsPolygonList polyList = CQChartsVariant::toPolygonList(rvar, ok3);
 
       for (const auto &poly : polyList.polygons())
         geometry.polygons.push_back(poly);
     }
     else if (geometryColumnType_ == ColumnType::PATH) {
-      CQChartsPath path = rvar.value<CQChartsPath>();
+      CQChartsPath path = CQChartsVariant::toPath(rvar, ok3);
 
-      poly = path.path().toFillPolygon();
+      CQChartsGeom::Polygon poly = CQChartsGeom::Polygon(path.path().toFillPolygon());
 
       geometry.polygons.push_back(poly);
     }
@@ -447,12 +448,12 @@ addRow(const QAbstractItemModel *model, const ModelVisitor::VisitData &data,
 
   // update range from polygons
   for (auto &poly : geometry.polygons) {
-    for (int j = 0; j < poly.count(); ++j) {
-      const QPointF &p = poly[j];
+    for (int j = 0; j < poly.size(); ++j) {
+      CQChartsGeom::Point p = poly.point(j);
 
-      dataRange.updateRange(p.x(), p.y());
+      dataRange.updateRange(p.x, p.y);
 
-      geometry.bbox.add(p.x(), p.y());
+      geometry.bbox.add(p.x, p.y);
     }
   }
 
@@ -531,30 +532,30 @@ decodeGeometry(const QString &geomStr, Polygons &polygons) const
 
   // no braces - single polygon x1 y1 x2 y2 ...
   if      (n == 0) {
-    QPolygonF poly;
+    CQChartsGeom::Polygon poly;
 
     if (! CQChartsUtil::stringToPolygon("{{" + geomStr + "}}", poly))
       return false;
 
-    polygons.push_back(poly);
+    polygons.push_back(CQChartsGeom::Polygon(poly));
   }
   // single brace - single polygon {x1 y1} {x2 y2} ...
   else if (n == 1) {
-    QPolygonF poly;
+    CQChartsGeom::Polygon poly;
 
     if (! CQChartsUtil::stringToPolygon("{" + geomStr + "}", poly))
       return false;
 
-    polygons.push_back(poly);
+    polygons.push_back(CQChartsGeom::Polygon(poly));
   }
   // two braces - single polygon {{x1 y1} {x2 y2} ...}
   else if (n == 2) {
-    QPolygonF poly;
+    CQChartsGeom::Polygon poly;
 
     if (! CQChartsUtil::stringToPolygon(geomStr, poly))
       return false;
 
-    polygons.push_back(poly);
+    polygons.push_back(CQChartsGeom::Polygon(poly));
   }
   // three braces - list of polygons {{{x1 y1} {x2 y2} ...} ... }
   else if (n == 3) {
@@ -686,7 +687,7 @@ bool
 CQChartsGeometryObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  QPointF p1 = p.qpoint();
+  CQChartsGeom::Point p1 = p;
 
   for (const auto &poly : polygons_) {
     if (poly.containsPoint(p1, Qt::OddEvenFill))
@@ -728,24 +729,8 @@ draw(CQChartsPaintDevice *device)
 
   CQChartsDrawUtil::setPenBrush(device, penBrush);
 
-  for (const auto &ppoly : polygons_) {
-    QPainterPath path;
-
-    int i = 0;
-
-    for (const auto &ppoint : ppoly) {
-      if (i == 0)
-        path.moveTo(ppoint);
-      else
-        path.lineTo(ppoint);
-
-      ++i;
-    }
-
-    path.closeSubpath();
-
-    device->drawPath(path);
-  }
+  for (const auto &ppoly : polygons_)
+    device->drawPolygon(CQChartsGeom::Polygon(ppoly));
 
   device->resetColorNames();
 }
@@ -754,7 +739,7 @@ void
 CQChartsGeometryObj::
 drawFg(CQChartsPaintDevice *device) const
 {
-  plot_->dataLabel()->draw(device, rect().qrect(), name());
+  plot_->dataLabel()->draw(device, rect(), name());
 }
 
 void

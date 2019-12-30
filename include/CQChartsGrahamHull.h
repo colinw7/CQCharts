@@ -1,9 +1,7 @@
 #ifndef CQChartsGrahamHull_H
 #define CQChartsGrahamHull_H
 
-#include <QPolygonF>
-#include <QPointF>
-#include <QRectF>
+#include <CQChartsGeom.h>
 
 #include <vector>
 #include <set>
@@ -23,13 +21,13 @@ class CQChartsGrahamHull {
 
   void clear();
 
-  void addPoint(const QPointF &point);
+  void addPoint(const CQChartsGeom::Point &point);
 
-  void getHull(QPolygonF &points) const;
+  void getHull(CQChartsGeom::Polygon &points) const;
 
   void draw(const CQChartsPlot *plot, CQChartsPaintDevice *device) const;
 
-  QRectF bbox() const;
+  CQChartsGeom::BBox bbox() const;
 
  private:
   bool constCalc() const;
@@ -40,15 +38,18 @@ class CQChartsGrahamHull {
   void findLowest();
   bool doScan();
 
-  static bool pointLineLeft(const QPointF &a, const QPointF &b, const QPointF &c);
+  static bool pointLineLeft(const CQChartsGeom::Point &a, const CQChartsGeom::Point &b,
+                            const CQChartsGeom::Point &c);
 
-  static int areaSign(const QPointF &a, const QPointF &b, const QPointF &c);
+  static int areaSign(const CQChartsGeom::Point &a, const CQChartsGeom::Point &b,
+                      const CQChartsGeom::Point &c);
 
  private:
+  using Points    = std::vector<CQChartsGeom::Point>;
   using IPoints   = std::vector<int>;
   using DelPoints = std::set<int>;
 
-  QPolygonF points_;
+  Points    points_;
   bool      needsCalc_ { true };
   IPoints   ipoints_;
   DelPoints delPoints_;

@@ -12,7 +12,6 @@
 #include <QPen>
 #include <QBrush>
 #include <QFont>
-#include <QRectF>
 #include <QString>
 
 class CQChartsPaintDevice;
@@ -93,13 +92,13 @@ class CQChartsBrushData {
 
 namespace CQChartsDrawUtil {
 
-inline QPainterPath polygonToPath(const QPolygonF &polygon, bool closed=false) {
+inline QPainterPath polygonToPath(const CQChartsGeom::Polygon &polygon, bool closed=false) {
   QPainterPath path;
 
-  path.moveTo(polygon[0]);
+  path.moveTo(polygon.qpoint(0));
 
   for (int i = 1; i < polygon.size(); ++i)
-    path.lineTo(polygon[i]);
+    path.lineTo(polygon.qpoint(i));
 
   if (closed)
     path.closeSubpath();
@@ -115,48 +114,60 @@ namespace CQChartsDrawUtil {
 
 void setPenBrush(CQChartsPaintDevice *device, const CQChartsPenBrush &penBrush);
 
-void drawRoundedPolygon(CQChartsPaintDevice *device, const QRectF &qrect,
+void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
                         const CQChartsLength &xsize=CQChartsLength(),
                         const CQChartsLength &ysize=CQChartsLength(),
                         const CQChartsSides &sides=CQChartsSides(CQChartsSides::Side::ALL));
-void drawRoundedPolygon(CQChartsPaintDevice *device, const QPolygonF &poly,
+void drawRoundedPolygon(CQChartsPaintDevice *device, const CQChartsGeom::Polygon &poly,
                         const CQChartsLength &xsize=CQChartsLength(),
                         const CQChartsLength &ysize=CQChartsLength());
 
-void drawTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &text,
-                   const CQChartsTextOptions &options);
+void drawTextInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
+                   const QString &text, const CQChartsTextOptions &options);
 
-void drawRotatedTextInBox(CQChartsPaintDevice *device, const QRectF &rect, const QString &text,
-                          const QPen &pen, const CQChartsTextOptions &options);
+void drawRotatedTextInBox(CQChartsPaintDevice *device, const CQChartsGeom::BBox &rect,
+                          const QString &text, const QPen &pen, const CQChartsTextOptions &options);
 
-void drawTextAtPoint(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
+void drawTextAtPoint(CQChartsPaintDevice *device, const CQChartsGeom::Point &p, const QString &text,
                      const CQChartsTextOptions &options=CQChartsTextOptions(),
                      bool centered=false, double dx=0.0, double dy=0.0);
 
-void drawAlignedText(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
-                     Qt::Alignment align, double dx=0.0, double dy=0.0);
+void drawAlignedText(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
+                     const QString &text, Qt::Alignment align, double dx=0.0, double dy=0.0);
 
 CQChartsGeom::BBox calcAlignedTextRect(CQChartsPaintDevice *device, const QFont &font,
-                                       const QPointF &p, const QString &text,
+                                       const CQChartsGeom::Point &p, const QString &text,
                                        Qt::Alignment align, double dx, double dy);
 
-void drawContrastText(CQChartsPaintDevice *device, const QPointF &p, const QString &text,
-                      double alpha);
+void drawContrastText(CQChartsPaintDevice *device, const CQChartsGeom::Point &p,
+                      const QString &text, double alpha);
 
-QSizeF calcTextSize(const QString &text, const QFont &font, const CQChartsTextOptions &options);
+CQChartsGeom::Size calcTextSize(const QString &text, const QFont &font,
+                                const CQChartsTextOptions &options);
 
-void drawCenteredText(CQChartsPaintDevice *device, const QPointF &pos, const QString &text);
+void drawCenteredText(CQChartsPaintDevice *device, const CQChartsGeom::Point &pos,
+                      const QString &text);
 
-void drawSimpleText(CQChartsPaintDevice *device, const QPointF &pos, const QString &text);
+void drawSimpleText(CQChartsPaintDevice *device, const CQChartsGeom::Point &pos,
+                    const QString &text);
 
 void drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
-                const QPointF &c, const CQChartsLength &size);
+                const CQChartsGeom::Point &c, const CQChartsLength &size);
 void drawSymbol(CQChartsPaintDevice *device, const CQChartsSymbol &symbol,
-                const QRectF &rect);
+                const CQChartsGeom::BBox &bbox);
 
 void drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
                   double ri, double ro, double a1, double a2,
                   bool isInvertX=false, bool isInvertY=false);
+
+void drawArc(CQChartsPaintDevice *device, const CQChartsGeom::BBox &bbox,
+             double angle, double dangle);
+
+void drawArcSegment(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ibbox,
+                    const CQChartsGeom::BBox &obbox, double angle, double dangle);
+
+void drawArcsConnector(CQChartsPaintDevice *device, const CQChartsGeom::BBox &ibbox,
+                       double a1, double da1, double a2, double da2, bool isSelf);
 
 }
 
@@ -165,13 +176,13 @@ void drawPieSlice(CQChartsPaintDevice *device, const CQChartsGeom::Point &c,
 namespace CQChartsDrawPrivate {
 
 // private
-QSizeF calcHtmlTextSize(const QString &text, const QFont &font, int margin=0);
+CQChartsGeom::Size calcHtmlTextSize(const QString &text, const QFont &font, int margin=0);
 
-void drawScaledHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QString &text,
-                        const CQChartsTextOptions &options);
+void drawScaledHtmlText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &tbbox,
+                        const QString &text, const CQChartsTextOptions &options);
 
-void drawHtmlText(CQChartsPaintDevice *device, const QRectF &trect, const QString &text,
-                  const CQChartsTextOptions &options);
+void drawHtmlText(CQChartsPaintDevice *device, const CQChartsGeom::BBox &tbbox,
+                  const QString &text, const CQChartsTextOptions &options);
 
 }
 
